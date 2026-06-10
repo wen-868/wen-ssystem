@@ -1,0 +1,1287 @@
+openapi: 3.0.3
+info:
+  title: 智享营销系统第 1 阶段 API
+  version: 1.0.0
+  description: >
+    第 1 阶段 MVP 接口定义，覆盖后台管理、门店端、小程序端、微信支付、销售单微信分享收款。
+    价格、库存、订单状态、客户身份、收款状态均由后端裁剪和流转，前端不得自行判断。
+servers:
+  - url: https://api.example.com
+    description: 生产环境占位
+  - url: http://localhost:8080
+    description: 本地开发环境
+tags:
+  - name: AdminAuth
+    description: 后台与门店账号认证
+  - name: AdminProduct
+    description: 后台商品与价格
+  - name: AdminStore
+    description: 后台门店
+  - name: AdminReport
+    description: 后台报表
+  - name: StoreOrder
+    description: 门店订单履约
+  - name: StoreSaleBill
+    description: 门店销售单与分享收款
+  - name: Miniapp
+    description: 微信小程序
+  - name: Payment
+    description: 微信支付与退款
+  - name: ShareCollection
+    description: 客户打开的分享收款页
+
+security:
+  - bearerAuth: []
+
+paths:
+  /api/admin/auth/login:
+    post:
+      tags: [AdminAuth]
+      summary: 后台或门店端登录
+      security: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/LoginRequest'
+      responses:
+        '200':
+          description: 登录成功
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/ApiResponse'
+                  - type: object
+                    properties:
+                      data:
+                        $ref: '#/components/schemas/LoginResponse'
+
+  /api/admin/auth/me:
+    get:
+      tags: [AdminAuth]
+      summary: 获取当前登录用户信息
+      responses:
+        '200':
+          description: 当前用户
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/ApiResponse'
+                  - type: object
+                    properties:
+                      data:
+                        $ref: '#/components/schemas/UserProfile'
+
+  /api/admin/stores:
+    get:
+      tags: [AdminStore]
+      summary: 门店列表
+      parameters:
+        - $ref: '#/components/parameters/Page'
+        - $ref: '#/components/parameters/PageSize'
+        - name: keyword
+          in: query
+          schema:
+            type: string
+      responses:
+        '200':
+          description: 门店分页列表
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/StorePageResponse'
+    post:
+      tags: [AdminStore]
+      summary: 新增门店
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/StoreUpsertRequest'
+      responses:
+        '200':
+          description: 新增成功
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/IdResponse'
+
+  /api/admin/products:
+    get:
+      tags: [AdminProduct]
+      summary: 后台商品列表
+      parameters:
+        - $ref: '#/components/parameters/Page'
+        - $ref: '#/components/parameters/PageSize'
+        - name: keyword
+          in: query
+          description: 商品名称、SKU编码、条码
+          schema:
+            type: string
+        - name: status
+          in: query
+          schema:
+            type: string
+            enum: [DRAFT, ON_SALE, OFF_SALE]
+        - name: categoryId
+          in: query
+          schema:
+            type: integer
+            format: int64
+      responses:
+        '200':
+          description: 商品分页列表
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProductPageResponse'
+    post:
+      tags: [AdminProduct]
+      summary: 新增商品和 SKU
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ProductCreateRequest'
+      responses:
+        '200':
+          description: 新增成功
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/IdResponse'
+
+  /api/admin/products/{skuId}/price:
+    put:
+      tags: [AdminProduct]
+      summary: 修改 SKU 价格
+      description: 修改零售价、批发价、小程序价或门店价；批发价修改必须写价格日志。
+      parameters:
+        - $ref: '#/components/parameters/SkuId'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ProductPriceUpdateRequest'
+      responses:
+        '200':
+          description: 修改成功
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponse'
+
+  /api/admin/reports/dashboard:
+    get:
+      tags: [AdminReport]
+      summary: 后台首页经营看板
+      parameters:
+        - name: storeId
+          in: query
+          schema:
+            type: integer
+            format: int64
+        - name: date
+          in: query
+          schema:
+            type: string
+            format: date
+      responses:
+        '200':
+          description: 首页经营数据
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/ApiResponse'
+                  - type: object
+                    properties:
+                      data:
+                        $ref: '#/components/schemas/DashboardSummary'
+
+  /api/store/inventory:
+    get:
+      tags: [StoreOrder]
+      summary: 门店库存查询
+      parameters:
+        - name: keyword
+          in: query
+          description: 商品名称、SKU编码、条码
+          schema:
+            type: string
+        - name: storeId
+          in: query
+          schema:
+            type: integer
+            format: int64
+      responses:
+        '200':
+          description: 库存列表
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/ApiResponse'
+                  - type: object
+                    properties:
+                      data:
+                        type: array
+                        items:
+                          $ref: '#/components/schemas/InventoryItem'
+
+  /api/store/orders/{orderNo}/accept:
+    post:
+      tags: [StoreOrder]
+      summary: 门店接单
+      parameters:
+        - $ref: '#/components/parameters/OrderNo'
+      requestBody:
+        required: false
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/OrderActionRequest'
+      responses:
+        '200':
+          description: 接单成功
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponse'
+
+  /api/store/orders/{orderNo}/complete:
+    post:
+      tags: [StoreOrder]
+      summary: 门店完成订单
+      parameters:
+        - $ref: '#/components/parameters/OrderNo'
+      responses:
+        '200':
+          description: 完成成功
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponse'
+
+  /api/store/sale-bills:
+    post:
+      tags: [StoreSaleBill]
+      summary: 创建门店销售单
+      description: 创建线下销售单或批发销售单，后端计算金额、库存、客户身份和收款状态。
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/SaleBillCreateRequest'
+      responses:
+        '200':
+          description: 创建成功
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/ApiResponse'
+                  - type: object
+                    properties:
+                      data:
+                        $ref: '#/components/schemas/SaleBill'
+    get:
+      tags: [StoreSaleBill]
+      summary: 销售单列表
+      parameters:
+        - $ref: '#/components/parameters/Page'
+        - $ref: '#/components/parameters/PageSize'
+        - name: collectionStatus
+          in: query
+          schema:
+            type: string
+            enum: [UNPAID, PENDING, SHARED, PARTIAL, PAID, OVERDUE, CLOSED]
+        - name: keyword
+          in: query
+          schema:
+            type: string
+      responses:
+        '200':
+          description: 销售单列表
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SaleBillPageResponse'
+
+  /api/store/sale-bills/{billNo}:
+    get:
+      tags: [StoreSaleBill]
+      summary: 销售单详情
+      parameters:
+        - $ref: '#/components/parameters/BillNo'
+      responses:
+        '200':
+          description: 销售单详情
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/ApiResponse'
+                  - type: object
+                    properties:
+                      data:
+                        $ref: '#/components/schemas/SaleBill'
+
+  /api/store/sale-bills/{billNo}/collection-link:
+    post:
+      tags: [StoreSaleBill]
+      summary: 生成销售单分享收款
+      description: 生成微信可打开的收款页面、小程序卡片、图片或二维码。生成后本次收款金额锁定。
+      parameters:
+        - $ref: '#/components/parameters/BillNo'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateCollectionLinkRequest'
+      responses:
+        '200':
+          description: 生成成功
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/ApiResponse'
+                  - type: object
+                    properties:
+                      data:
+                        $ref: '#/components/schemas/CollectionLink'
+
+  /api/store/sale-bills/{billNo}/offline-payment:
+    post:
+      tags: [StoreSaleBill]
+      summary: 确认线下收款
+      description: 现金、转账、外部微信收款后由授权人员确认，必须写操作日志。
+      parameters:
+        - $ref: '#/components/parameters/BillNo'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/OfflinePaymentRequest'
+      responses:
+        '200':
+          description: 确认成功
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponse'
+
+  /api/miniapp/login:
+    post:
+      tags: [Miniapp]
+      summary: 小程序登录
+      security: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [code]
+              properties:
+                code:
+                  type: string
+                  description: 微信登录 code
+      responses:
+        '200':
+          description: 登录结果
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/ApiResponse'
+                  - type: object
+                    properties:
+                      data:
+                        $ref: '#/components/schemas/MiniappLoginResponse'
+
+  /api/miniapp/products:
+    get:
+      tags: [Miniapp]
+      summary: 小程序商品列表
+      description: 后端按客户身份裁剪价格字段。普通客户不得返回批发价字段。
+      security:
+        - miniappAuth: []
+      parameters:
+        - name: storeId
+          in: query
+          required: true
+          schema:
+            type: integer
+            format: int64
+        - name: keyword
+          in: query
+          schema:
+            type: string
+        - name: categoryId
+          in: query
+          schema:
+            type: integer
+            format: int64
+      responses:
+        '200':
+          description: 商品列表
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/ApiResponse'
+                  - type: object
+                    properties:
+                      data:
+                        type: array
+                        items:
+                          $ref: '#/components/schemas/MiniappProduct'
+
+  /api/miniapp/orders:
+    post:
+      tags: [Miniapp]
+      summary: 创建小程序订单
+      security:
+        - miniappAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/MiniappOrderCreateRequest'
+      responses:
+        '200':
+          description: 创建成功
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/ApiResponse'
+                  - type: object
+                    properties:
+                      data:
+                        $ref: '#/components/schemas/MiniappOrder'
+
+  /api/miniapp/orders/{orderNo}:
+    get:
+      tags: [Miniapp]
+      summary: 小程序订单详情
+      security:
+        - miniappAuth: []
+      parameters:
+        - $ref: '#/components/parameters/OrderNo'
+      responses:
+        '200':
+          description: 订单详情
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/ApiResponse'
+                  - type: object
+                    properties:
+                      data:
+                        $ref: '#/components/schemas/MiniappOrder'
+
+  /api/pay/orders:
+    post:
+      tags: [Payment]
+      summary: 创建微信支付单
+      description: 支持小程序订单、销售单分享收款等来源。
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreatePaymentRequest'
+      responses:
+        '200':
+          description: 预支付参数
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/ApiResponse'
+                  - type: object
+                    properties:
+                      data:
+                        $ref: '#/components/schemas/WechatPrepayResponse'
+
+  /api/pay/wx/callback:
+    post:
+      tags: [Payment]
+      summary: 微信支付回调
+      security: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              additionalProperties: true
+      responses:
+        '200':
+          description: 微信回调处理结果
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  code:
+                    type: string
+                    example: SUCCESS
+                  message:
+                    type: string
+                    example: 成功
+
+  /api/pay/refunds:
+    post:
+      tags: [Payment]
+      summary: 发起退款
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateRefundRequest'
+      responses:
+        '200':
+          description: 退款受理成功
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponse'
+
+  /api/share/collections/{token}:
+    get:
+      tags: [ShareCollection]
+      summary: 客户查看分享收款单
+      security: []
+      parameters:
+        - name: token
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: 分享收款详情
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/ApiResponse'
+                  - type: object
+                    properties:
+                      data:
+                        $ref: '#/components/schemas/ShareCollectionDetail'
+
+  /api/share/collections/{token}/pay:
+    post:
+      tags: [ShareCollection]
+      summary: 客户从分享页发起支付
+      security: []
+      parameters:
+        - name: token
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: 预支付参数
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/ApiResponse'
+                  - type: object
+                    properties:
+                      data:
+                        $ref: '#/components/schemas/WechatPrepayResponse'
+
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+    miniappAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+
+  parameters:
+    Page:
+      name: page
+      in: query
+      schema:
+        type: integer
+        minimum: 1
+        default: 1
+    PageSize:
+      name: pageSize
+      in: query
+      schema:
+        type: integer
+        minimum: 1
+        maximum: 100
+        default: 20
+    SkuId:
+      name: skuId
+      in: path
+      required: true
+      schema:
+        type: integer
+        format: int64
+    OrderNo:
+      name: orderNo
+      in: path
+      required: true
+      schema:
+        type: string
+    BillNo:
+      name: billNo
+      in: path
+      required: true
+      schema:
+        type: string
+
+  schemas:
+    ApiResponse:
+      type: object
+      required: [code, message]
+      properties:
+        code:
+          type: string
+          example: "0"
+        message:
+          type: string
+          example: 成功
+        traceId:
+          type: string
+          example: 01HZTRACEID
+
+    PageResponse:
+      type: object
+      required: [total, page, pageSize, records]
+      properties:
+        total:
+          type: integer
+        page:
+          type: integer
+        pageSize:
+          type: integer
+        records:
+          type: array
+          items:
+            type: object
+
+    IdResponse:
+      allOf:
+        - $ref: '#/components/schemas/ApiResponse'
+        - type: object
+          properties:
+            data:
+              type: object
+              properties:
+                id:
+                  type: integer
+                  format: int64
+
+    LoginRequest:
+      type: object
+      required: [username, password]
+      properties:
+        username:
+          type: string
+        password:
+          type: string
+          format: password
+
+    LoginResponse:
+      type: object
+      properties:
+        token:
+          type: string
+        user:
+          $ref: '#/components/schemas/UserProfile'
+
+    UserProfile:
+      type: object
+      properties:
+        id:
+          type: integer
+          format: int64
+        username:
+          type: string
+        realName:
+          type: string
+        storeId:
+          type: integer
+          format: int64
+          nullable: true
+        roles:
+          type: array
+          items:
+            type: string
+        permissions:
+          type: array
+          items:
+            type: string
+
+    StoreUpsertRequest:
+      type: object
+      required: [name, address, contact, phone]
+      properties:
+        name:
+          type: string
+        address:
+          type: string
+        lng:
+          type: number
+          format: double
+        lat:
+          type: number
+          format: double
+        contact:
+          type: string
+        phone:
+          type: string
+        deliveryRadius:
+          type: number
+          format: double
+
+    Store:
+      type: object
+      properties:
+        id:
+          type: integer
+          format: int64
+        name:
+          type: string
+        address:
+          type: string
+        businessStatus:
+          type: string
+          enum: [OPEN, PAUSED, CLOSED]
+        deliveryRadius:
+          type: number
+
+    StorePageResponse:
+      allOf:
+        - $ref: '#/components/schemas/ApiResponse'
+        - type: object
+          properties:
+            data:
+              allOf:
+                - $ref: '#/components/schemas/PageResponse'
+                - type: object
+                  properties:
+                    records:
+                      type: array
+                      items:
+                        $ref: '#/components/schemas/Store'
+
+    ProductCreateRequest:
+      type: object
+      required: [name, categoryId, saleChannels, skus]
+      properties:
+        name:
+          type: string
+        categoryId:
+          type: integer
+          format: int64
+        mainImage:
+          type: string
+        saleChannels:
+          type: array
+          items:
+            type: string
+            enum: [MINIAPP, STORE]
+        skus:
+          type: array
+          items:
+            $ref: '#/components/schemas/SkuCreateRequest'
+
+    SkuCreateRequest:
+      type: object
+      required: [skuName, boxRatio, retailPrice]
+      properties:
+        skuName:
+          type: string
+        barcode:
+          type: string
+        boxRatio:
+          type: integer
+        temperature:
+          type: string
+          enum: [NORMAL, CHILLED]
+        traceEnabled:
+          type: boolean
+        warningThreshold:
+          type: integer
+        costPrice:
+          type: number
+        retailPrice:
+          type: number
+        wholesalePrice:
+          type: number
+          nullable: true
+        miniappPrice:
+          type: number
+          nullable: true
+        storePrice:
+          type: number
+          nullable: true
+
+    ProductPriceUpdateRequest:
+      type: object
+      properties:
+        costPrice:
+          type: number
+        retailPrice:
+          type: number
+        wholesalePrice:
+          type: number
+          nullable: true
+        miniappPrice:
+          type: number
+          nullable: true
+        storePrice:
+          type: number
+          nullable: true
+
+    ProductItem:
+      type: object
+      properties:
+        spuId:
+          type: integer
+          format: int64
+        skuId:
+          type: integer
+          format: int64
+        name:
+          type: string
+        skuName:
+          type: string
+        skuCode:
+          type: string
+        barcode:
+          type: string
+        retailPrice:
+          type: number
+        wholesalePrice:
+          type: number
+          nullable: true
+        status:
+          type: string
+
+    ProductPageResponse:
+      allOf:
+        - $ref: '#/components/schemas/ApiResponse'
+        - type: object
+          properties:
+            data:
+              allOf:
+                - $ref: '#/components/schemas/PageResponse'
+                - type: object
+                  properties:
+                    records:
+                      type: array
+                      items:
+                        $ref: '#/components/schemas/ProductItem'
+
+    MiniappProduct:
+      type: object
+      description: 普通客户响应中不得包含 wholesalePrice 字段。
+      properties:
+        skuId:
+          type: integer
+          format: int64
+        name:
+          type: string
+        skuName:
+          type: string
+        image:
+          type: string
+        price:
+          type: number
+          description: 当前客户实际可见价格
+        retailPrice:
+          type: number
+        wholesalePrice:
+          type: number
+          nullable: true
+          description: 仅批发客户可返回
+        priceType:
+          type: string
+          enum: [RETAIL, WHOLESALE, MINIAPP]
+        availableQty:
+          type: integer
+
+    InventoryItem:
+      type: object
+      properties:
+        storeId:
+          type: integer
+          format: int64
+        skuId:
+          type: integer
+          format: int64
+        skuName:
+          type: string
+        stockType:
+          type: string
+          enum: [ONLINE, OFFLINE]
+        physicalQty:
+          type: integer
+        lockedQty:
+          type: integer
+        availableQty:
+          type: integer
+
+    MiniappOrderCreateRequest:
+      type: object
+      required: [storeId, fulfillmentType, items]
+      properties:
+        storeId:
+          type: integer
+          format: int64
+        fulfillmentType:
+          type: string
+          enum: [DELIVERY, PICKUP]
+        receiverName:
+          type: string
+        receiverMobile:
+          type: string
+        receiverAddress:
+          type: string
+        remark:
+          type: string
+        idempotencyKey:
+          type: string
+        items:
+          type: array
+          items:
+            type: object
+            required: [skuId, qty]
+            properties:
+              skuId:
+                type: integer
+                format: int64
+              qty:
+                type: integer
+
+    MiniappOrder:
+      type: object
+      properties:
+        orderNo:
+          type: string
+        orderStatus:
+          type: string
+        payStatus:
+          type: string
+        payableAmount:
+          type: number
+        expireAt:
+          type: string
+          format: date-time
+
+    OrderActionRequest:
+      type: object
+      properties:
+        remark:
+          type: string
+        idempotencyKey:
+          type: string
+
+    SaleBillCreateRequest:
+      type: object
+      required: [storeId, items]
+      properties:
+        storeId:
+          type: integer
+          format: int64
+        customerId:
+          type: integer
+          format: int64
+          nullable: true
+        customerName:
+          type: string
+        customerMobile:
+          type: string
+        discountAmount:
+          type: number
+          default: 0
+        roundingAmount:
+          type: number
+          default: 0
+        remark:
+          type: string
+        internalRemark:
+          type: string
+        idempotencyKey:
+          type: string
+        items:
+          type: array
+          items:
+            $ref: '#/components/schemas/SaleBillItemCreateRequest'
+
+    SaleBillItemCreateRequest:
+      type: object
+      required: [skuId, totalBottleQty]
+      properties:
+        skuId:
+          type: integer
+          format: int64
+        boxQty:
+          type: integer
+          default: 0
+        bottleQty:
+          type: integer
+          default: 0
+        totalBottleQty:
+          type: integer
+        unitPrice:
+          type: number
+          nullable: true
+          description: 如为空，后端按客户身份和门店价格计算。
+        priceType:
+          type: string
+          enum: [RETAIL, WHOLESALE, STORE]
+          nullable: true
+
+    SaleBill:
+      type: object
+      properties:
+        billNo:
+          type: string
+        storeId:
+          type: integer
+          format: int64
+        customerId:
+          type: integer
+          format: int64
+          nullable: true
+        customerName:
+          type: string
+        customerType:
+          type: string
+          enum: [RETAIL, WHOLESALE]
+        businessStatus:
+          type: string
+          enum: [DRAFT, CREATED, COMPLETED, VOIDED, RETURNED]
+        collectionStatus:
+          type: string
+          enum: [UNPAID, PENDING, SHARED, PARTIAL, PAID, OVERDUE, CLOSED]
+        receivableAmount:
+          type: number
+        receivedAmount:
+          type: number
+        unreceivedAmount:
+          type: number
+        items:
+          type: array
+          items:
+            $ref: '#/components/schemas/SaleBillItem'
+
+    SaleBillItem:
+      type: object
+      properties:
+        skuId:
+          type: integer
+          format: int64
+        skuName:
+          type: string
+        boxQty:
+          type: integer
+        bottleQty:
+          type: integer
+        totalBottleQty:
+          type: integer
+        unitPrice:
+          type: number
+        subtotalAmount:
+          type: number
+
+    SaleBillPageResponse:
+      allOf:
+        - $ref: '#/components/schemas/ApiResponse'
+        - type: object
+          properties:
+            data:
+              allOf:
+                - $ref: '#/components/schemas/PageResponse'
+                - type: object
+                  properties:
+                    records:
+                      type: array
+                      items:
+                        $ref: '#/components/schemas/SaleBill'
+
+    CreateCollectionLinkRequest:
+      type: object
+      required: [shareChannel, amount]
+      properties:
+        shareChannel:
+          type: string
+          enum: [MINIAPP_CARD, LINK, IMAGE, QR_CODE]
+        amount:
+          type: number
+          description: 本次收款金额，不得超过销售单未收金额。
+        expireHours:
+          type: integer
+          default: 72
+        remark:
+          type: string
+
+    CollectionLink:
+      type: object
+      properties:
+        linkNo:
+          type: string
+        sourceType:
+          type: string
+        sourceNo:
+          type: string
+        amount:
+          type: number
+        paidAmount:
+          type: number
+        status:
+          type: string
+          enum: [PENDING, PARTIAL, PAID, EXPIRED, CLOSED]
+        shareUrl:
+          type: string
+        qrCodeUrl:
+          type: string
+        expireAt:
+          type: string
+          format: date-time
+
+    OfflinePaymentRequest:
+      type: object
+      required: [amount, paymentMethod]
+      properties:
+        amount:
+          type: number
+        paymentMethod:
+          type: string
+          enum: [CASH, TRANSFER, OTHER_WECHAT, ALIPAY]
+        remark:
+          type: string
+        idempotencyKey:
+          type: string
+
+    MiniappLoginResponse:
+      type: object
+      properties:
+        token:
+          type: string
+        memberId:
+          type: integer
+          format: int64
+        customerType:
+          type: string
+          enum: [RETAIL, WHOLESALE]
+
+    CreatePaymentRequest:
+      type: object
+      required: [sourceType, sourceNo, amount]
+      properties:
+        sourceType:
+          type: string
+          enum: [MINIAPP_ORDER, SALE_BILL, COLLECTION_LINK]
+        sourceNo:
+          type: string
+        amount:
+          type: number
+        openid:
+          type: string
+          nullable: true
+        idempotencyKey:
+          type: string
+
+    WechatPrepayResponse:
+      type: object
+      properties:
+        payNo:
+          type: string
+        appId:
+          type: string
+        timeStamp:
+          type: string
+        nonceStr:
+          type: string
+        package:
+          type: string
+        signType:
+          type: string
+          example: RSA
+        paySign:
+          type: string
+
+    CreateRefundRequest:
+      type: object
+      required: [payNo, amount, reason]
+      properties:
+        payNo:
+          type: string
+        amount:
+          type: number
+        reason:
+          type: string
+
+    ShareCollectionDetail:
+      type: object
+      properties:
+        linkNo:
+          type: string
+        storeName:
+          type: string
+        sourceNo:
+          type: string
+        amount:
+          type: number
+        paidAmount:
+          type: number
+        status:
+          type: string
+        expireAt:
+          type: string
+          format: date-time
+        customerName:
+          type: string
+        items:
+          type: array
+          items:
+            $ref: '#/components/schemas/SaleBillItem'
+
+    DashboardSummary:
+      type: object
+      properties:
+        salesAmount:
+          type: number
+        orderCount:
+          type: integer
+        saleBillCount:
+          type: integer
+        pendingCollectionAmount:
+          type: number
+        inventoryWarningCount:
+          type: integer
+        pendingOrderCount:
+          type: integer
+

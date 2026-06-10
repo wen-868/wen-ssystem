@@ -1,0 +1,53 @@
+-- 智享营销系统 第 1 阶段开发种子数据
+-- 默认账号：admin
+-- 默认密码：admin123
+
+USE liquor_inventory;
+
+INSERT INTO sys_user (id, username, password_hash, real_name, mobile, store_id, status)
+VALUES
+  (1, 'admin', '240be518fabd2724ddb6f04eeb1da5967448d7e831c08c8fa822809f74c720a9', '系统管理员', '13800000000', NULL, 1)
+ON DUPLICATE KEY UPDATE
+  password_hash = VALUES(password_hash),
+  real_name = VALUES(real_name),
+  status = VALUES(status);
+
+INSERT INTO sys_user_role (user_id, role_id)
+SELECT 1, id FROM sys_role WHERE role_code = 'SUPER_ADMIN'
+ON DUPLICATE KEY UPDATE user_id = VALUES(user_id);
+
+INSERT INTO product_category (id, parent_id, name, sort_no, status)
+VALUES
+  (1, NULL, '白酒', 1, 1),
+  (2, NULL, '啤酒', 2, 1),
+  (3, NULL, '红酒', 3, 1)
+ON DUPLICATE KEY UPDATE name = VALUES(name), sort_no = VALUES(sort_no), status = VALUES(status);
+
+INSERT INTO product_spu (id, spu_code, name, category_id, main_image, sale_channels, status)
+VALUES
+  (1, 'SPU-DEMO-001', '示例白酒 53度 500ml', 1, NULL, JSON_ARRAY('MINIAPP', 'STORE'), 'ON_SALE')
+ON DUPLICATE KEY UPDATE name = VALUES(name), status = VALUES(status);
+
+INSERT INTO product_sku (id, spu_id, sku_code, barcode, sku_name, box_ratio, temperature, trace_enabled, warning_threshold, status)
+VALUES
+  (1, 1, 'SKU-DEMO-001', '690000000001', '示例白酒 53度 500ml 常温', 6, 'NORMAL', 0, 10, 1)
+ON DUPLICATE KEY UPDATE sku_name = VALUES(sku_name), warning_threshold = VALUES(warning_threshold), status = VALUES(status);
+
+INSERT INTO product_price (sku_id, cost_price, retail_price, wholesale_price, miniapp_price, store_price)
+VALUES
+  (1, 80.00, 129.00, 99.00, 119.00, 129.00)
+ON DUPLICATE KEY UPDATE
+  cost_price = VALUES(cost_price),
+  retail_price = VALUES(retail_price),
+  wholesale_price = VALUES(wholesale_price),
+  miniapp_price = VALUES(miniapp_price),
+  store_price = VALUES(store_price);
+
+INSERT INTO inventory_balance (store_id, sku_id, stock_type, physical_qty, locked_qty, available_qty)
+VALUES
+  (1, 1, 'ONLINE', 120, 0, 120),
+  (1, 1, 'OFFLINE', 240, 0, 240)
+ON DUPLICATE KEY UPDATE
+  physical_qty = VALUES(physical_qty),
+  locked_qty = VALUES(locked_qty),
+  available_qty = VALUES(available_qty);

@@ -1,0 +1,14 @@
+<view class="card">
+  <view class="muted">首页</view>
+  <view style="font-size: 42rpx; font-weight: 700; margin-top: 12rpx;">智享商城</view>
+  <view class="muted" style="margin-top: 20rpx;">商品浏览、一键下单和门店履约演示。</view>
+  <view wx:if="{{errorText}}" style="margin-top: 20rpx; color: #9b1c31;">{{errorText}}</view>
+</view>
+
+<view wx:for="{{products}}" wx:key="skuId" class="card">
+  <view style="font-size: 34rpx; font-weight: 700;">{{item.name}}</view>
+  <view class="muted" style="margin-top: 12rpx;">{{item.skuName}}</view>
+  <view class="price" style="margin-top: 18rpx;">¥{{item.price}}</view>
+  <view class="muted" style="margin-top: 12rpx;">可售库存：{{item.availableQty}}，价格类型：{{item.priceType}}</view>
+  <button class="primary" style="margin-top: 28rpx;" data-sku-id="{{item.skuId}}" bindtap="handleBuy">一键下单</button>
+</view>

@@ -1,0 +1,20 @@
+<view class="card">
+  <view wx:if="{{ success }}" style="text-align: center;">
+    <view style="font-size: 96rpx; margin: 40rpx 0 20rpx;">✓</view>
+    <view style="font-size: 44rpx; font-weight: 700;">支付成功</view>
+    <view class="muted" style="margin-top: 24rpx;">{{ message }}</view>
+    <view class="muted" style="margin-top: 8rpx;">支付单号：{{ payNo }}</view>
+    <view class="muted">收款金额：¥{{ amount }}</view>
+  </view>
+  <view wx:else style="text-align: center;">
+    <view style="font-size: 96rpx; margin: 40rpx 0 20rpx;">✗</view>
+    <view style="font-size: 44rpx; font-weight: 700;">支付失败</view>
+    <view class="muted" style="margin-top: 24rpx;">{{ message }}</view>
+    <view class="muted" style="margin-top: 8rpx;" wx:if="{{ payNo }}">支付单号：{{ payNo }}</view>
+  </view>
+  <view style="display: flex; gap: 24rpx; margin-top: 48rpx;" wx:if="{{ success }}">
+    <button class="primary" style="flex: 1;" bindtap="goOrders">查看订单</button>
+    <button class="primary" style="flex: 1;" bindtap="goHome">返回首页</button>
+  </view>
+  <button class="primary" style="margin-top: 48rpx;" bindtap="goHome" wx:else>返回首页</button>
+</view>

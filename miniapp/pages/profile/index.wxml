@@ -1,0 +1,11 @@
+<view class="card">
+  <view class="muted">我的</view>
+  <view style="font-size: 42rpx; font-weight: 700; margin-top: 12rpx;">{{ profile.nickname }}</view>
+  <view class="tag" style="margin-top: 16rpx;">{{ profile.customerLabel }}</view>
+  <view class="muted" wx:if="{{ profile.mobile }}" style="margin-top: 12rpx;">手机号：{{ profile.mobile }}</view>
+  <view class="muted" style="margin-top: 8rpx;">会员等级：{{ profile.memberLevel }}</view>
+  <view class="muted" style="margin-top: 8rpx;">积分余额：{{ profile.points }}</view>
+  <view class="muted" wx:if="{{ errorText }}" style="margin-top: 16rpx;">{{ errorText }}</view>
+  <button class="primary" style="margin-top: 32rpx;" loading="{{ loading }}" bindtap="handleLogin">微信一键登录</button>
+  <button class="primary" style="margin-top: 16rpx;" loading="{{ loading }}" bindtap="handleTap">刷新身份</button>
+</view>

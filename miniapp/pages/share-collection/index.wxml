@@ -1,0 +1,17 @@
+<view class="card">
+  <view class="muted">销售单收款</view>
+  <view wx:if="{{errorText}}" style="margin-top: 20rpx; color: #9b1c31;">{{errorText}}</view>
+  <view style="font-size: 42rpx; font-weight: 700; margin-top: 12rpx;">{{detail.storeName || '销售单收款'}}</view>
+  <view class="muted" style="margin-top: 20rpx;">单号：{{detail.sourceNo || '-'}}</view>
+  <view class="price" style="margin-top: 24rpx;">¥{{detail.amount || 0}}</view>
+  <view class="muted" style="margin-top: 12rpx;">已付：¥{{detail.paidAmount || 0}}</view>
+  <view class="muted" style="margin-top: 12rpx;">状态：{{detail.status || '加载中'}}</view>
+  <view class="muted" style="margin-top: 12rpx;">有效期：{{detail.expireAt || '-'}}</view>
+  <view wx:if="{{detail.items && detail.items.length}}" style="margin-top: 24rpx;">
+    <view wx:for="{{detail.items}}" wx:key="skuId" style="padding: 16rpx 0; border-top: 1px solid #eef0f4;">
+      <view>{{item.skuName}}</view>
+      <view class="muted">数量：{{item.totalBottleQty}}，小计：¥{{item.subtotalAmount}}</view>
+    </view>
+  </view>
+  <button class="primary" disabled="{{payDisabled}}" loading="{{loading}}" style="margin-top: 32rpx;" bindtap="handleTap">立即付款</button>
+</view>

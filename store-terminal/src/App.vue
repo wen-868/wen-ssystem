@@ -1,0 +1,493 @@
+<template>
+  <div class="layout">
+    <aside class="side">
+      <h1>门店操作端</h1>
+      <div v-for="item in nav" :key="item" class="nav-item" :class="{ active: item === nav[0] }">
+        {{ item }}
+      </div>
+    </aside>
+    <main class="main">
+      <h2>门店操作端工作台</h2>
+      <p class="muted">第 1 阶段联调骨架：已接入登录、库存查询、销售单创建和分享收款接口。</p>
+      <el-card v-if="!token" style="margin-bottom: 20px">
+        <template #header>门店账号登录</template>
+        <el-form :inline="true" @submit.prevent>
+          <el-form-item label="账号">
+            <el-input v-model="loginForm.username" placeholder="admin" />
+          </el-form-item>
+          <el-form-item label="密码">
+            <el-input v-model="loginForm.password" type="password" placeholder="admin123" show-password />
+          </el-form-item>
+          <el-form-item>
+            <el-button type="primary" :loading="loading" @click="handleLogin">登录</el-button>
+          </el-form-item>
+        </el-form>
+      </el-card>
+      <section class="cards">
+        <div class="card" v-for="card in cards" :key="card.label">
+          <div class="metric">{{ card.value }}</div>
+          <div>{{ card.label }}</div>
+          <p class="muted">{{ card.desc }}</p>
+        </div>
+      </section>
+      <el-card style="margin-top: 20px">
+        <template #header>
+          <div style="display: flex; justify-content: space-between; align-items: center">
+            <span>小程序订单履约</span>
+            <el-button size="small" @click="loadOrders">刷新订单</el-button>
+          </div>
+        </template>
+        <el-table :data="orders">
+          <el-table-column prop="orderNo" label="订单号" width="220" />
+          <el-table-column prop="receiverName" label="收货人" />
+          <el-table-column prop="receiverMobile" label="手机号" width="140" />
+          <el-table-column prop="fulfillmentType" label="履约方式" width="110" />
+          <el-table-column prop="orderStatus" label="订单状态" width="130" />
+          <el-table-column prop="payStatus" label="支付状态" width="110" />
+          <el-table-column prop="payableAmount" label="应付金额" width="120" />
+          <el-table-column label="操作" width="240">
+            <template #default="{ row }">
+              <el-button size="small" link type="primary" @click="openStoreOrderDetail(row.orderNo)">详情</el-button>
+              <el-button size="small" :disabled="row.orderStatus === 'ACCEPTED' || row.orderStatus === 'COMPLETED'" @click="handleAcceptOrder(row.orderNo)">接单</el-button>
+              <el-button size="small" type="primary" :disabled="row.orderStatus === 'COMPLETED'" @click="handleCompleteOrder(row.orderNo)">完成</el-button>
+            </template>
+          </el-table-column>
+        </el-table>
+      </el-card>
+      <el-card style="margin-top: 20px">
+        <template #header>快速创建销售单并分享收款</template>
+        <el-form label-width="100px">
+          <el-form-item label="客户姓名">
+            <el-input v-model="saleForm.customerName" placeholder="客户姓名" />
+          </el-form-item>
+          <el-form-item label="客户手机号">
+            <el-input v-model="saleForm.customerMobile" placeholder="客户手机号" />
+          </el-form-item>
+          <el-form-item label="SKU ID">
+            <el-input-number v-model="saleForm.skuId" :min="1" />
+          </el-form-item>
+          <el-form-item label="数量">
+            <el-input-number v-model="saleForm.totalBottleQty" :min="1" />
+          </el-form-item>
+          <el-form-item label="单价">
+            <el-input-number v-model="saleForm.unitPrice" :min="0" :precision="2" />
+          </el-form-item>
+          <el-form-item>
+            <el-button type="primary" :loading="loading" @click="handleCreateSaleBill">创建销售单</el-button>
+            <el-button :disabled="!currentBillNo" @click="handleShareCollection">生成分享收款</el-button>
+          </el-form-item>
+        </el-form>
+        <el-alert v-if="currentBillNo" type="success" show-icon :closable="false" style="margin-bottom: 12px">
+          <template #title>销售单：{{ currentBillNo }}，应收金额：¥{{ currentAmount.toFixed(2) }}</template>
+        </el-alert>
+        <el-alert v-if="shareUrl" type="warning" show-icon :closable="false">
+          <template #title>分享收款链接：{{ shareUrl }}</template>
+        </el-alert>
+      </el-card>
+
+      <el-card style="margin-top: 20px">
+        <template #header>
+          <div style="display: flex; justify-content: space-between; align-items: center">
+            <span>销售单列表</span>
+            <el-button size="small" @click="loadSaleBills">刷新销售单</el-button>
+          </div>
+        </template>
+        <el-table :data="saleBills">
+          <el-table-column prop="billNo" label="销售单号" width="220" />
+          <el-table-column prop="customerName" label="客户" />
+          <el-table-column prop="businessStatus" label="业务状态" width="120" />
+          <el-table-column prop="collectionStatus" label="收款状态" width="120" />
+          <el-table-column prop="receivableAmount" label="应收金额" width="120" />
+          <el-table-column prop="unreceivedAmount" label="未收金额" width="120" />
+          <el-table-column label="操作" width="220">
+            <template #default="{ row }">
+              <el-button size="small" @click="openSaleBillDetail(row.billNo)">详情</el-button>
+              <el-button size="small" type="primary" @click="shareExistingBill(row)">分享收款</el-button>
+            </template>
+          </el-table-column>
+        </el-table>
+      </el-card>
+
+      <el-drawer v-model="detailVisible" title="销售单详情" size="520px">
+        <template v-if="saleBillDetail">
+          <el-descriptions :column="1" border>
+            <el-descriptions-item label="销售单号">{{ saleBillDetail.billNo }}</el-descriptions-item>
+            <el-descriptions-item label="客户">{{ saleBillDetail.customerName || "-" }}</el-descriptions-item>
+            <el-descriptions-item label="业务状态">{{ saleBillDetail.businessStatus }}</el-descriptions-item>
+            <el-descriptions-item label="收款状态">{{ saleBillDetail.collectionStatus }}</el-descriptions-item>
+            <el-descriptions-item label="应收金额">¥{{ Number(saleBillDetail.receivableAmount || 0).toFixed(2) }}</el-descriptions-item>
+            <el-descriptions-item label="未收金额">¥{{ Number(saleBillDetail.unreceivedAmount || 0).toFixed(2) }}</el-descriptions-item>
+          </el-descriptions>
+          <el-table :data="saleBillDetail.items || []" style="margin-top: 16px">
+            <el-table-column prop="skuName" label="商品" />
+            <el-table-column prop="totalBottleQty" label="数量" width="80" />
+            <el-table-column prop="unitPrice" label="单价" width="90" />
+            <el-table-column prop="subtotalAmount" label="小计" width="90" />
+          </el-table>
+          <el-alert v-if="detailShareUrl" type="warning" show-icon :closable="false" style="margin-top: 16px">
+            <template #title>{{ detailShareUrl }}</template>
+          </el-alert>
+          <el-button type="primary" style="margin-top: 16px" @click="shareExistingBill(saleBillDetail)">
+            生成分享收款
+          </el-button>
+        </template>
+      </el-drawer>
+
+      <el-card style="margin-top: 20px">
+        <template #header>
+          <div style="display: flex; justify-content: space-between; align-items: center">
+            <span>库存查询</span>
+            <el-button size="small" @click="loadInventory">刷新库存</el-button>
+          </div>
+        </template>
+        <el-table :data="inventory">
+          <el-table-column prop="skuId" label="SKU ID" width="100" />
+          <el-table-column prop="skuName" label="商品规格" />
+          <el-table-column prop="stockType" label="库存类型" width="120" />
+          <el-table-column prop="physicalQty" label="物理库存" width="120" />
+          <el-table-column prop="availableQty" label="可售库存" width="120" />
+          <el-table-column label="操作" width="100">
+            <template #default="{ row }">
+              <el-button size="small" link type="primary" @click="openInvAdjust(row)">调整</el-button>
+            </template>
+          </el-table-column>
+        </el-table>
+      </el-card>
+      <el-card style="margin-top: 20px">
+        <template #header>
+          <div style="display: flex; justify-content: space-between; align-items: center">
+            <span>库存流水</span>
+            <el-button size="small" @click="loadInventoryLogs">刷新</el-button>
+          </div>
+        </template>
+        <el-table :data="inventoryLogs" empty-text="暂无流水">
+          <el-table-column prop="logNo" label="流水号" width="200" />
+          <el-table-column prop="skuName" label="商品" width="140" />
+          <el-table-column prop="changeQty" label="变动" width="80" />
+          <el-table-column prop="beforeQty" label="调整前" width="80" />
+          <el-table-column prop="afterQty" label="调整后" width="80" />
+          <el-table-column prop="reason" label="原因" />
+          <el-table-column prop="operatorName" label="操作人" width="120" />
+          <el-table-column prop="createdAt" label="时间" width="170" />
+        </el-table>
+      </el-card>
+      <el-card style="margin-top: 20px">
+        <template #header>
+          <div style="display: flex; justify-content: space-between; align-items: center">
+            <span>分享收款</span>
+            <el-button size="small" @click="loadCollectionLinks">刷新</el-button>
+          </div>
+        </template>
+        <el-table :data="collectionLinks" empty-text="暂无记录">
+          <el-table-column prop="linkNo" label="收款单号" width="200" />
+          <el-table-column prop="sourceNo" label="关联销售单" width="200" />
+          <el-table-column prop="amount" label="收款金额" width="100" />
+          <el-table-column prop="paidAmount" label="已付" width="80" />
+          <el-table-column prop="status" label="状态" width="100" />
+          <el-table-column prop="createdAt" label="创建时间" width="170" />
+        </el-table>
+      </el-card>
+      <el-card style="margin-top: 20px">
+        <template #header>
+          <div style="display: flex; justify-content: space-between; align-items: center">
+            <span>支付记录</span>
+            <el-button size="small" @click="loadPaymentOrders">刷新</el-button>
+          </div>
+        </template>
+        <el-table :data="paymentOrders" empty-text="暂无记录">
+          <el-table-column prop="payNo" label="支付单号" width="200" />
+          <el-table-column prop="sourceNo" label="关联来源" width="200" />
+          <el-table-column prop="amount" label="金额" width="100" />
+          <el-table-column prop="status" label="状态" width="100" />
+          <el-table-column prop="paymentMethod" label="方式" width="100" />
+          <el-table-column prop="createdAt" label="时间" width="170" />
+        </el-table>
+      </el-card>
+      <el-dialog v-model="orderDetailVisible" title="订单详情" width="560px">
+        <template v-if="orderDetail">
+          <el-descriptions :column="1" border>
+            <el-descriptions-item label="订单号">{{ orderDetail.orderNo }}</el-descriptions-item>
+            <el-descriptions-item label="客户类型">{{ orderDetail.customerType }}</el-descriptions-item>
+            <el-descriptions-item label="订单状态">{{ orderDetail.orderStatus }}</el-descriptions-item>
+            <el-descriptions-item label="支付状态">{{ orderDetail.payStatus }}</el-descriptions-item>
+            <el-descriptions-item label="应付金额">¥{{ Number(orderDetail.payableAmount || 0).toFixed(2) }}</el-descriptions-item>
+            <el-descriptions-item label="收货人">{{ orderDetail.receiverName || "-" }}</el-descriptions-item>
+            <el-descriptions-item label="收货地址">{{ orderDetail.receiverAddress || "-" }}</el-descriptions-item>
+          </el-descriptions>
+          <el-table :data="orderDetail.items || []" style="margin-top: 16px">
+            <el-table-column prop="skuName" label="商品" />
+            <el-table-column prop="quantity" label="数量" width="80" />
+            <el-table-column prop="unitPrice" label="单价" width="90" />
+            <el-table-column prop="subtotalAmount" label="小计" width="90" />
+          </el-table>
+        </template>
+      </el-dialog>
+      <el-dialog v-model="invDialogVisible" title="库存调整" width="400px">
+        <el-form label-width="100px">
+          <el-form-item label="商品">
+            <span>{{ invForm.skuName || "—" }}</span>
+          </el-form-item>
+          <el-form-item label="库存类型">
+            <span>{{ invForm.stockType }}</span>
+          </el-form-item>
+          <el-form-item label="变化量">
+            <el-input-number v-model="invForm.change" :min="-999" :max="999" />
+          </el-form-item>
+          <el-form-item label="备注">
+            <el-input v-model="invForm.remark" />
+          </el-form-item>
+        </el-form>
+        <template #footer>
+          <el-button @click="invDialogVisible = false">取消</el-button>
+          <el-button type="primary" :loading="loading" @click="handleInvAdjust">确认调整</el-button>
+        </template>
+      </el-dialog>
+    </main>
+  </div>
+</template>
+
+<script setup lang="ts">
+import { computed, onMounted, reactive, ref } from "vue";
+import { ElMessage } from "element-plus";
+import { acceptStoreOrder, adjustInventory, completeStoreOrder, createCollectionLink, createSaleBill, fetchInventory, fetchInventoryLogs, fetchSaleBillDetail, fetchSaleBills, fetchStoreCollectionLinks, fetchStoreDashboard, fetchStoreOrderDetail, fetchStoreOrders, fetchStorePaymentOrders, storeLogin } from "./api";
+
+const nav = ["工作台", "快速收银", "销售单", "接单履约", "库存查询", "分享收款"];
+const token = ref(localStorage.getItem("store_token") || localStorage.getItem("admin_token") || "");
+const loading = ref(false);
+const invDialogVisible = ref(false);
+const invForm = reactive({
+  skuId: 0,
+  skuName: "",
+  stockType: "OFFLINE",
+  change: 0,
+  remark: ""
+});
+const inventory = ref<any[]>([]);
+const inventoryLogs = ref<any[]>([]);
+const collectionLinks = ref<any[]>([]);
+const paymentOrders = ref<any[]>([]);
+const orders = ref<any[]>([]);
+const orderDetail = ref<any>(null);
+const orderDetailVisible = ref(false);
+const dashboard = ref<any>({
+  todayOrderCount: 0,
+  pendingOrderCount: 0,
+  todaySalesAmount: 0,
+  unReceivedAmount: 0
+});
+async function loadDashboard() {
+  try {
+    const data = await fetchStoreDashboard();
+    dashboard.value = data;
+  } catch {
+    ElMessage.warning("工作台概览接口暂不可用");
+  }
+}
+const saleBills = ref<any[]>([]);
+const saleBillDetail = ref<any | null>(null);
+const detailVisible = ref(false);
+const detailShareUrl = ref("");
+const currentBillNo = ref("");
+const currentAmount = ref(0);
+const shareUrl = ref("");
+const loginForm = reactive({ username: "admin", password: "admin123" });
+const saleForm = reactive({
+  customerName: "演示客户",
+  customerMobile: "13900000000",
+  skuId: 1,
+  totalBottleQty: 1,
+  unitPrice: 129
+});
+
+const cards = computed(() => [
+  { label: "今日销售额", value: "¥" + Number(dashboard.value.todaySalesAmount || 0).toFixed(2), desc: "销售单汇总" },
+  { label: "待收款", value: "¥" + Number(dashboard.value.unReceivedAmount || 0).toFixed(2), desc: "未收销售单金额" },
+  { label: "待处理订单", value: String(dashboard.value.pendingOrderCount || 0), desc: "待接单小程序订单" },
+  { label: "今日订单", value: String(dashboard.value.todayOrderCount || 0), desc: "今日小程序订单数" }
+]);
+
+async function handleLogin() {
+  loading.value = true;
+  try {
+    const result = await storeLogin(loginForm.username, loginForm.password);
+    localStorage.setItem("store_token", result.token);
+    token.value = result.token;
+    ElMessage.success("登录成功");
+    await Promise.all([loadInventory(), loadSaleBills(), loadOrders(), loadDashboard()]);
+  } finally {
+    loading.value = false;
+  }
+}
+
+async function handleCreateSaleBill() {
+  loading.value = true;
+  try {
+    const result = await createSaleBill({
+      storeId: 1,
+      customerName: saleForm.customerName,
+      customerMobile: saleForm.customerMobile,
+      items: [{
+        skuId: saleForm.skuId,
+        boxQty: 0,
+        bottleQty: saleForm.totalBottleQty,
+        totalBottleQty: saleForm.totalBottleQty,
+        unitPrice: saleForm.unitPrice,
+        priceType: "STORE"
+      }]
+    });
+    currentBillNo.value = result.billNo;
+    currentAmount.value = Number(result.receivableAmount || 0);
+    shareUrl.value = "";
+    ElMessage.success("销售单创建成功");
+    await loadSaleBills();
+  } finally {
+    loading.value = false;
+  }
+}
+
+async function handleShareCollection() {
+  if (!currentBillNo.value) return;
+  const result = await createCollectionLink(currentBillNo.value, currentAmount.value);
+  shareUrl.value = `${location.origin}${result.shareUrl}`;
+  ElMessage.success("分享收款链接已生成");
+  await loadSaleBills();
+}
+
+async function loadInventory() {
+  try {
+    inventory.value = await fetchInventory();
+  } catch {
+    ElMessage.warning("库存接口暂不可用，请确认后端和数据库已启动");
+  }
+}
+
+function openInvAdjust(row: any) {
+  invForm.skuId = row.skuId;
+  invForm.skuName = row.skuName;
+  invForm.stockType = row.stockType;
+  invForm.change = 0;
+  invForm.remark = "";
+  invDialogVisible.value = true;
+}
+
+async function handleInvAdjust() {
+  if (!invForm.skuId) return;
+  loading.value = true;
+  try {
+    await adjustInventory({
+      skuId: invForm.skuId,
+      stockType: invForm.stockType,
+      change: invForm.change,
+      remark: invForm.remark
+    });
+    ElMessage.success("调整成功");
+    invDialogVisible.value = false;
+    await loadInventory();
+  } finally {
+    loading.value = false;
+  }
+}
+
+async function loadInventoryLogs() {
+  try {
+    const data = await fetchInventoryLogs();
+    inventoryLogs.value = data.records || [];
+  } catch {
+    ElMessage.warning("库存流水接口暂不可用，请确认后端和数据库已启动");
+  }
+}
+
+async function loadCollectionLinks() {
+  try {
+    const data = await fetchStoreCollectionLinks();
+    collectionLinks.value = data.records || [];
+  } catch {
+    ElMessage.warning("收款记录接口暂不可用");
+  }
+}
+
+async function loadPaymentOrders() {
+  try {
+    const data = await fetchStorePaymentOrders();
+    paymentOrders.value = data.records || [];
+  } catch {
+    ElMessage.warning("支付记录接口暂不可用");
+  }
+}
+
+async function loadSaleBills() {
+  try {
+    const data = await fetchSaleBills();
+    saleBills.value = data.records || [];
+  } catch {
+    ElMessage.warning("销售单接口暂不可用，请确认后端和数据库已启动");
+  }
+}
+
+async function loadOrders() {
+  try {
+    const data = await fetchStoreOrders();
+    orders.value = data.records || [];
+  } catch {
+    ElMessage.warning("订单接口暂不可用，请确认后端和数据库已启动");
+  }
+}
+
+async function handleAcceptOrder(orderNo: string) {
+  await acceptStoreOrder(orderNo);
+  ElMessage.success("已接单");
+  await loadOrders();
+}
+
+async function handleCompleteOrder(orderNo: string) {
+  loading.value = true;
+  try {
+    await completeStoreOrder(orderNo);
+    ElMessage.success("订单已完成");
+    await loadOrders();
+  } finally {
+    loading.value = false;
+  }
+}
+
+async function openStoreOrderDetail(orderNo: string) {
+  loading.value = true;
+  try {
+    orderDetail.value = await fetchStoreOrderDetail(orderNo);
+    orderDetailVisible.value = true;
+  } finally {
+    loading.value = false;
+  }
+}
+
+async function openSaleBillDetail(billNo: string) {
+  saleBillDetail.value = await fetchSaleBillDetail(billNo);
+  detailShareUrl.value = "";
+  detailVisible.value = true;
+}
+
+async function shareExistingBill(row: any) {
+  const amount = Number(row.unreceivedAmount || row.receivableAmount || 0);
+  if (!row.billNo || amount <= 0) {
+    ElMessage.warning("当前销售单没有可收金额");
+    return;
+  }
+  const result = await createCollectionLink(row.billNo, amount);
+  const url = `${location.origin}${result.shareUrl}`;
+  if (detailVisible.value) {
+    detailShareUrl.value = url;
+  } else {
+    shareUrl.value = url;
+  }
+  ElMessage.success("分享收款链接已生成");
+  await loadSaleBills();
+}
+
+onMounted(() => {
+  if (token.value) {
+    Promise.all([loadInventory(), loadSaleBills(), loadOrders(), loadInventoryLogs(), loadCollectionLinks(), loadPaymentOrders(), loadDashboard()]).catch(() => {
+      ElMessage.warning("接口暂不可用，请确认后端和数据库已启动");
+    });
+  }
+});
+</script>

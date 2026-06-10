@@ -1,0 +1,24 @@
+page {
+  background: #f6f7fb;
+  color: #172033;
+  font-family: -apple-system, BlinkMacSystemFont, "Microsoft YaHei", sans-serif;
+}
+.card {
+  background: #fff;
+  border-radius: 24rpx;
+  padding: 28rpx;
+  margin: 24rpx;
+}
+.primary {
+  background: #9b1c31;
+  color: #fff;
+  border-radius: 999rpx;
+}
+.price {
+  color: #9b1c31;
+  font-weight: 700;
+  font-size: 40rpx;
+}
+.muted {
+  color: #697386;
+}

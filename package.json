@@ -1,0 +1,19 @@
+{
+  "name": "zhixiang-marketing-system",
+  "private": true,
+  "version": "0.1.0",
+  "description": "智享营销系统第 1 阶段 MVP 多端工程骨架",
+  "workspaces": [
+    "backend",
+    "admin-web",
+    "store-terminal"
+  ],
+  "scripts": {
+    "dev:backend": "npm --workspace backend run dev",
+    "dev:mock": "node scripts/dev-mock.mjs",
+    "dev:admin": "npm --workspace admin-web run dev",
+    "dev:store": "npm --workspace store-terminal run dev",
+    "build": "npm --workspaces run build",
+    "test:flow": "node scripts/self-test.mjs"
+  }
+}
