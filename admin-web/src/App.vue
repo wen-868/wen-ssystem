@@ -44,6 +44,19 @@
           </div>
         </template>
         <el-table :data="products">
+          <el-table-column label="图片" width="82">
+            <template #default="{ row }">
+              <el-image
+                v-if="row.mainImage"
+                :src="row.mainImage"
+                fit="cover"
+                style="width: 44px; height: 44px; border-radius: 6px; background: #f5f5f5"
+                :preview-src-list="[row.mainImage]"
+                preview-teleported
+              />
+              <span v-else class="muted">无</span>
+            </template>
+          </el-table-column>
           <el-table-column prop="skuCode" label="SKU编码" width="180" />
           <el-table-column prop="name" label="商品名称" />
           <el-table-column prop="skuName" label="规格" />
@@ -282,6 +295,9 @@
           <el-form-item label="商品名称">
             <el-input v-model="productForm.name" />
           </el-form-item>
+          <el-form-item label="图片URL">
+            <el-input v-model="productForm.mainImage" placeholder="可填写商品图片链接" />
+          </el-form-item>
           <el-form-item label="SKU名称">
             <el-input v-model="productForm.skuName" />
           </el-form-item>
@@ -384,6 +400,7 @@ const priceDialogVisible = ref(false);
 const loginForm = reactive({ username: "admin", password: "admin123" });
 const productForm = reactive({
   name: "演示新品白酒",
+  mainImage: "https://dummyimage.com/120x120/9b1c31/ffffff&text=Wine",
   skuName: "演示新品白酒 500ml",
   barcode: `69${Date.now()}`,
   boxRatio: 6,
@@ -662,6 +679,7 @@ async function handleCreateProduct() {
     await createProduct({
       name: productForm.name,
       categoryId: 1,
+      mainImage: productForm.mainImage || undefined,
       saleChannels: ["MINIAPP", "STORE"],
       skus: [
         {

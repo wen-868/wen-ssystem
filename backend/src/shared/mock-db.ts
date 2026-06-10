@@ -11,7 +11,7 @@ const state = {
     { id: 1, store_code: "STORE0001", name: "默认门店", address: "演示地址", contact: "管理员", phone: "13800000000", delivery_radius: 3, business_status: "OPEN", status: 1 }
   ],
   products: [
-    { spuId: 1, skuId: 1, name: "示例白酒 53度 500ml", skuName: "示例白酒 53度 500ml 常温", skuCode: "SKU-DEMO-001", barcode: "690000000001", retailPrice: 129, wholesalePrice: 99, miniappPrice: 119, costPrice: 0, storePrice: null as number | null, status: "ON_SALE" }
+    { spuId: 1, skuId: 1, name: "示例白酒 53度 500ml", mainImage: "https://dummyimage.com/120x120/9b1c31/ffffff&text=Wine", skuName: "示例白酒 53度 500ml 常温", skuCode: "SKU-DEMO-001", barcode: "690000000001", retailPrice: 129, wholesalePrice: 99, miniappPrice: 119, costPrice: 0, storePrice: null as number | null, status: "ON_SALE" }
   ] as Row[],
   inventory: [
     { storeId: 1, skuId: 1, skuName: "示例白酒 53度 500ml 常温", stockType: "ONLINE", physicalQty: 120, lockedQty: 0, availableQty: 120 },
@@ -428,6 +428,7 @@ export async function mockExecute(sql: string, params: unknown[] = []) {
         spuId: pendingProduct.spu.spuId,
         skuId: pendingProduct.sku.skuId,
         name: pendingProduct.spu.name,
+        mainImage: pendingProduct.spu.mainImage,
         skuName: pendingProduct.sku.skuName,
         skuCode: pendingProduct.sku.skuCode,
         barcode: pendingProduct.sku.barcode,

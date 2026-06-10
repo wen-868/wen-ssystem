@@ -90,7 +90,7 @@ adminRouter.get("/products", requireAuth, asyncHandler(async (req, res) => {
   const keyword = `%${String(req.query.keyword || "")}%`;
   const offset = (page - 1) * pageSize;
   const records = await query<any>(
-    `SELECT p.id AS spuId, s.id AS skuId, p.name, s.sku_name AS skuName, s.sku_code AS skuCode, s.barcode,
+    `SELECT p.id AS spuId, s.id AS skuId, p.name, p.main_image AS mainImage, s.sku_name AS skuName, s.sku_code AS skuCode, s.barcode,
             pp.retail_price AS retailPrice, pp.wholesale_price AS wholesalePrice, p.status
      FROM product_sku s
      JOIN product_spu p ON p.id = s.spu_id
