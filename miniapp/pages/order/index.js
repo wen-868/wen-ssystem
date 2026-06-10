@@ -36,5 +36,9 @@ Page({
   },
   handleTap() {
     this.loadOrders();
+  },
+  goDetail(event) {
+    const orderNo = event.currentTarget.dataset.orderNo;
+    wx.navigateTo({ url: `/pages/order-detail/index?orderNo=${orderNo}` });
   }
 });

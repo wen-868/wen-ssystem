@@ -30,6 +30,33 @@
           <p class="muted">{{ card.desc }}</p>
         </div>
       </section>
+      <el-card v-if="inventoryAlerts.length > 0" style="margin-top: 20px; border-left: 4px solid #e6a23c">
+        <template #header>
+          <div style="display: flex; justify-content: space-between; align-items: center">
+            <span style="color: #e6a23c; font-weight: bold">⚠ 库存预警（可用库存 ≤ 5）</span>
+            <el-button size="small" @click="loadInventoryAlerts">刷新</el-button>
+          </div>
+        </template>
+        <el-table :data="inventoryAlerts" size="small">
+          <el-table-column prop="skuName" label="商品" />
+          <el-table-column prop="stockType" label="库存类型" width="100" />
+          <el-table-column prop="availableQty" label="可用库存" width="100">
+            <template #default="{ row }">
+              <span style="color: #e6a23c; font-weight: bold">{{ row.availableQty }}</span>
+            </template>
+          </el-table-column>
+        </el-table>
+      </el-card>
+      <el-card style="margin-top: 20px">
+        <template #header>
+          <div style="display: flex; justify-content: space-between; align-items: center">
+            <span>近七日销售趋势</span>
+            <el-button size="small" @click="loadDailySales">刷新</el-button>
+          </div>
+        </template>
+        <canvas ref="barCanvas" style="width: 100%; height: 180px" />
+        <div v-if="dailySales.length === 0" style="text-align: center; padding: 20px; color: #999">暂无销售数据</div>
+      </el-card>
       <el-card style="margin-top: 20px">
         <template #header>
           <div style="display: flex; justify-content: space-between; align-items: center">
@@ -249,7 +276,7 @@
 <script setup lang="ts">
 import { computed, onMounted, reactive, ref } from "vue";
 import { ElMessage } from "element-plus";
-import { acceptStoreOrder, adjustInventory, completeStoreOrder, createCollectionLink, createSaleBill, fetchInventory, fetchInventoryLogs, fetchSaleBillDetail, fetchSaleBills, fetchStoreCollectionLinks, fetchStoreDashboard, fetchStoreOrderDetail, fetchStoreOrders, fetchStorePaymentOrders, storeLogin } from "./api";
+import { acceptStoreOrder, adjustInventory, completeStoreOrder, createCollectionLink, createSaleBill, fetchInventory, fetchInventoryLogs, fetchSaleBillDetail, fetchSaleBills, fetchStoreCollectionLinks, fetchStoreDailySales, fetchStoreDashboard, fetchStoreInventoryAlerts, fetchStoreOrderDetail, fetchStoreOrders, fetchStorePaymentOrders, storeLogin } from "./api";
 
 const nav = ["工作台", "快速收银", "销售单", "接单履约", "库存查询", "分享收款"];
 const token = ref(localStorage.getItem("store_token") || localStorage.getItem("admin_token") || "");
@@ -275,6 +302,10 @@ const dashboard = ref<any>({
   todaySalesAmount: 0,
   unReceivedAmount: 0
 });
+const dailySales = ref<any[]>([]);
+const inventoryAlerts = ref<any[]>([]);
+const barCanvas = ref<HTMLCanvasElement | null>(null);
+
 async function loadDashboard() {
   try {
     const data = await fetchStoreDashboard();
@@ -282,6 +313,44 @@ async function loadDashboard() {
   } catch {
     ElMessage.warning("工作台概览接口暂不可用");
   }
+}
+
+async function loadDailySales() {
+  const data = await fetchStoreDailySales();
+  dailySales.value = data;
+  drawBarChart();
+}
+
+async function loadInventoryAlerts() {
+  const data = await fetchStoreInventoryAlerts();
+  inventoryAlerts.value = data;
+}
+
+function drawBarChart() {
+  const canvas = barCanvas.value;
+  if (!canvas || dailySales.value.length === 0) return;
+  const ctx = canvas.getContext("2d");
+  if (!ctx) return;
+  const rect = canvas.getBoundingClientRect();
+  canvas.width = rect.width * devicePixelRatio;
+  canvas.height = 180 * devicePixelRatio;
+  ctx.scale(devicePixelRatio, devicePixelRatio);
+  const w = rect.width, h = 160, pad = 20;
+  ctx.clearRect(0, 0, w, 180);
+  const maxVal = Math.max(...dailySales.value.map((d: any) => Number(d.amount)), 1);
+  const barW = Math.max(25, (w - pad * 2) / dailySales.value.length * 0.6);
+  const step = (w - pad * 2) / dailySales.value.length;
+  dailySales.value.forEach((d: any, i: number) => {
+    const x = pad + step * i + (step - barW) / 2;
+    const val = Number(d.amount);
+    const y = h - (val / maxVal) * (h - 20);
+    ctx.fillStyle = "#9b1c31";
+    ctx.fillRect(x, y, barW, h - y);
+    ctx.fillStyle = "#333";
+    ctx.font = "11px sans-serif";
+    ctx.textAlign = "center";
+    ctx.fillText((d.date || "").slice(5), x + barW / 2, h + 14);
+  });
 }
 const saleBills = ref<any[]>([]);
 const saleBillDetail = ref<any | null>(null);
@@ -313,7 +382,7 @@ async function handleLogin() {
     localStorage.setItem("store_token", result.token);
     token.value = result.token;
     ElMessage.success("登录成功");
-    await Promise.all([loadInventory(), loadSaleBills(), loadOrders(), loadDashboard()]);
+    await Promise.all([loadInventory(), loadSaleBills(), loadOrders(), loadDashboard(), loadDailySales(), loadInventoryAlerts()]);
   } finally {
     loading.value = false;
   }
@@ -485,7 +554,7 @@ async function shareExistingBill(row: any) {
 
 onMounted(() => {
   if (token.value) {
-    Promise.all([loadInventory(), loadSaleBills(), loadOrders(), loadInventoryLogs(), loadCollectionLinks(), loadPaymentOrders(), loadDashboard()]).catch(() => {
+    Promise.all([loadInventory(), loadSaleBills(), loadOrders(), loadInventoryLogs(), loadCollectionLinks(), loadPaymentOrders(), loadDashboard(), loadDailySales(), loadInventoryAlerts()]).catch(() => {
       ElMessage.warning("接口暂不可用，请确认后端和数据库已启动");
     });
   }

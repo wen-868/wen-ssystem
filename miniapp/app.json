@@ -2,6 +2,7 @@
   "pages": [
     "pages/home/index",
     "pages/order/index",
+    "pages/order-detail/index",
     "pages/share-collection/index",
     "pages/payment-result/index",
     "pages/profile/index"

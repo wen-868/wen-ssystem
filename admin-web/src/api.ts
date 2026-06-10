@@ -47,8 +47,8 @@ export async function updateProductPrice(skuId: number, payload: { retailPrice?:
   return data.data;
 }
 
-export async function fetchOrders() {
-  const { data } = await api.get("/admin/orders", { params: { page: 1, pageSize: 20 } });
+export async function fetchOrders(params?: { keyword?: string; status?: string; page?: number; pageSize?: number }) {
+  const { data } = await api.get("/admin/orders", { params: { page: 1, pageSize: 20, ...params } });
   return data.data;
 }
 
@@ -94,5 +94,10 @@ export async function fetchOrderStats() {
 
 export async function fetchStorePerformance() {
   const { data } = await api.get("/admin/reports/store-performance");
+  return data.data || [];
+}
+
+export async function fetchInventoryAlerts() {
+  const { data } = await api.get("/admin/inventory/alerts");
   return data.data || [];
 }

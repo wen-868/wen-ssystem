@@ -159,10 +159,19 @@ const storePerf = await request("/admin/reports/store-performance", { headers: a
 console.log("门店业绩:", storePerf[0]?.storeName, storePerf[0]?.totalSales);
 
 const storeDash = await request("/store/dashboard", { headers: auth });
-console.log("门店工作台:", storeDash.todayOrderCount, storeDash.todaySalesAmount);
+  console.log("门店工作台:", storeDash.todayOrderCount, storeDash.todaySalesAmount);
+
+  const storeDailySales = await request("/store/daily-sales", { headers: auth });
+  console.log("门店日报销售:", storeDailySales.length ?? 0, storeDailySales[0]?.date);
+
+  const storeAlerts = await request("/store/inventory/alerts", { headers: auth });
+  console.log("门店库存预警:", storeAlerts.length ?? 0, storeAlerts[0]?.availableQty);
 
 const invBalances = await request("/admin/inventory/balances", { headers: auth });
 console.log("后台库存总览:", invBalances.records?.length ?? 0, invBalances.records?.[0]?.storeName);
+
+const alerts = await request("/admin/inventory/alerts", { headers: auth });
+console.log("库存预警:", alerts.length ?? 0, alerts[0]?.availableQty);
 
 const lastOrderNo = miniOrder.orderNo;
 if (lastOrderNo) {
@@ -170,6 +179,10 @@ if (lastOrderNo) {
   console.log("后台订单详情:", adminOrderDetail.orderNo, adminOrderDetail.items?.length ?? 0);
   const storeOrderDetail = await request(`/store/orders/${lastOrderNo}`, { headers: auth });
   console.log("门店订单详情:", storeOrderDetail.orderNo, storeOrderDetail.items?.length ?? 0);
+  const miniOrderDetail = await request(`/miniapp/orders/${lastOrderNo}`);
+  console.log("小程序订单详情:", miniOrderDetail.orderNo, miniOrderDetail.items?.length ?? 0);
+  const adminSearch = await request("/admin/orders?keyword=DD&page=1&pageSize=5", { headers: auth });
+  console.log("后台订单搜索:", adminSearch.records?.length ?? 0, "共", adminSearch.total);
 }
 
 console.log("SELF_TEST_PASS");

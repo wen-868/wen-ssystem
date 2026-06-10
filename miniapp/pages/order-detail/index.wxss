@@ -6,11 +6,10 @@
   box-shadow: 0 2rpx 12rpx rgba(0,0,0,0.06);
 }
 .muted { color: #666; font-size: 28rpx; }
-.price { color: #9b1c31; font-size: 36rpx; font-weight: 700; }
+.price { color: #9b1c31; font-size: 40rpx; font-weight: 700; }
 .primary {
-  width: 100%;
   background: #9b1c31;
-  color: white;
+  color: #fff;
   border-radius: 8rpx;
   border: none;
   font-size: 30rpx;
@@ -24,3 +23,10 @@
 .tag-pending { background: #fdf6ec; color: #e6a23c; }
 .tag-accept { background: #dbeafe; color: #409eff; }
 .tag-done { background: #e1f3d8; color: #67c23a; }
+.item-row {
+  display: flex;
+  justify-content: space-between;
+  padding: 12rpx 0;
+  border-bottom: 1rpx solid #f0f0f0;
+  font-size: 28rpx;
+}

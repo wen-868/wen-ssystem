@@ -215,18 +215,34 @@ adminRouter.get("/orders", requireAuth, asyncHandler(async (req, res) => {
   const page = Number(req.query.page || 1);
   const pageSize = Number(req.query.pageSize || 20);
   const offset = (page - 1) * pageSize;
+  const keyword = `%${String(req.query.keyword || "")}%`;
+  const status = String(req.query.status || "");
+  const conditions: string[] = [];
+  const params: unknown[] = [];
+  if (req.query.keyword) {
+    conditions.push("(order_no LIKE ? OR receiver_name LIKE ? OR receiver_mobile LIKE ?)");
+    params.push(keyword, keyword, keyword);
+  }
+  if (status) {
+    conditions.push("order_status = ?");
+    params.push(status);
+  }
+  const where = conditions.length > 0 ? `WHERE ${conditions.join(" AND ")}` : "";
   const records = await query<any>(
     `SELECT order_no AS orderNo, store_id AS storeId, customer_type AS customerType,
             fulfillment_type AS fulfillmentType, order_status AS orderStatus,
             pay_status AS payStatus, payable_amount AS payableAmount,
             receiver_name AS receiverName, receiver_mobile AS receiverMobile,
             created_at AS createdAt
-     FROM miniapp_order
+     FROM miniapp_order ${where}
      ORDER BY created_at DESC
      LIMIT ? OFFSET ?`,
-    [pageSize, offset]
+    [...params, pageSize, offset]
   );
-  const totalRow = await queryOne<any>("SELECT COUNT(*) AS total FROM miniapp_order");
+  const totalRow = await queryOne<any>(
+    `SELECT COUNT(*) AS total FROM miniapp_order ${where}`,
+    params
+  );
   res.json(ok({ total: totalRow?.total ?? 0, page, pageSize, records }));
 }));
 
@@ -364,6 +380,19 @@ adminRouter.get("/reports/store-performance", requireAuth, asyncHandler(async (_
      FROM store s
      LEFT JOIN sale_bill sb ON sb.store_id = s.id
      GROUP BY s.id, s.name`
+  );
+  res.json(ok(records));
+}));
+
+adminRouter.get("/inventory/alerts", requireAuth, asyncHandler(async (_req, res) => {
+  const records = await query<any>(
+    `SELECT ib.store_id AS storeId, s.name AS storeName,
+            ib.sku_id AS skuId, ib.sku_name AS skuName,
+            ib.stock_type AS stockType, ib.available_qty AS availableQty
+     FROM inventory_balance ib
+     LEFT JOIN store s ON s.id = ib.store_id
+     WHERE ib.available_qty <= 5
+     ORDER BY ib.available_qty ASC, ib.store_id`
   );
   res.json(ok(records));
 }));

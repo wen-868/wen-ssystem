@@ -57,6 +57,24 @@
           </el-table-column>
         </el-table>
       </el-card>
+      <el-card v-if="inventoryAlerts.length > 0" style="margin-top: 20px; border-left: 4px solid #e6a23c">
+        <template #header>
+          <div style="display: flex; justify-content: space-between; align-items: center">
+            <span style="color: #e6a23c; font-weight: bold">⚠ 库存预警（可用库存 ≤ 5）</span>
+            <el-button size="small" @click="loadInventoryAlerts">刷新</el-button>
+          </div>
+        </template>
+        <el-table :data="inventoryAlerts" size="small">
+          <el-table-column prop="storeName" label="门店" width="140" />
+          <el-table-column prop="skuName" label="商品" />
+          <el-table-column prop="stockType" label="库存类型" width="100" />
+          <el-table-column prop="availableQty" label="可用库存" width="100">
+            <template #default="{ row }">
+              <span style="color: #e6a23c; font-weight: bold">{{ row.availableQty }}</span>
+            </template>
+          </el-table-column>
+        </el-table>
+      </el-card>
       <el-card style="margin-top: 20px">
         <template #header>
           <div style="display: flex; justify-content: space-between; align-items: center">
@@ -77,9 +95,19 @@
       </el-card>
       <el-card style="margin-top: 20px">
         <template #header>
-          <div style="display: flex; justify-content: space-between; align-items: center">
+          <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 10px">
             <span>小程序订单</span>
-            <el-button size="small" @click="loadOrders">刷新</el-button>
+            <div style="display: flex; gap: 8px; align-items: center">
+              <el-input v-model="ordersKeyword" placeholder="订单号/收货人/电话" size="small" style="width: 180px" clearable @clear="searchOrders" @keyup.enter="searchOrders" />
+              <el-select v-model="ordersStatus" placeholder="全部状态" size="small" style="width: 140px" clearable @change="searchOrders">
+                <el-option label="待支付" value="PENDING_PAYMENT" />
+                <el-option label="已接单" value="ACCEPTED" />
+                <el-option label="已完成" value="COMPLETED" />
+                <el-option label="已取消" value="CANCELLED" />
+              </el-select>
+              <el-button size="small" @click="searchOrders">搜索</el-button>
+              <el-button size="small" @click="loadOrders(1)">刷新</el-button>
+            </div>
           </div>
         </template>
         <el-table :data="orders" empty-text="暂无订单">
@@ -96,6 +124,11 @@
             </template>
           </el-table-column>
         </el-table>
+        <div style="display: flex; justify-content: flex-end; align-items: center; margin-top: 12px; gap: 8px">
+          <span style="font-size: 13px; color: #666">共 {{ ordersTotal }} 条，第 {{ ordersPage }} / {{ Math.ceil(ordersTotal / 10) || 1 }} 页</span>
+          <el-button size="small" :disabled="ordersPage <= 1" @click="prevOrdersPage">上一页</el-button>
+          <el-button size="small" :disabled="ordersPage >= Math.ceil(ordersTotal / 10)" @click="nextOrdersPage">下一页</el-button>
+        </div>
       </el-card>
       <el-card style="margin-top: 20px">
         <template #header>
@@ -307,7 +340,7 @@
 <script setup lang="ts">
 import { nextTick, onMounted, reactive, ref } from "vue";
 import { ElMessage } from "element-plus";
-import { adminLogin, createProduct, createStore, fetchCollectionLinks, fetchDailySales, fetchDashboard, fetchInventoryBalances, fetchInventoryLogs, fetchOrderDetail, fetchOrders, fetchOrderStats, fetchPaymentOrders, fetchProducts, fetchSaleBills, fetchStorePerformance, fetchStores, updateProductPrice } from "./api";
+import { adminLogin, createProduct, createStore, fetchCollectionLinks, fetchDailySales, fetchDashboard, fetchInventoryAlerts, fetchInventoryBalances, fetchInventoryLogs, fetchOrderDetail, fetchOrders, fetchOrderStats, fetchPaymentOrders, fetchProducts, fetchSaleBills, fetchStorePerformance, fetchStores, updateProductPrice } from "./api";
 
 const nav = ["首页", "商品", "订单", "销售单", "库存", "收款", "报表", "系统"];
 
@@ -316,6 +349,10 @@ const loading = ref(false);
 const products = ref<any[]>([]);
 const stores = ref<any[]>([]);
 const orders = ref<any[]>([]);
+const ordersTotal = ref(0);
+const ordersPage = ref(1);
+const ordersKeyword = ref("");
+const ordersStatus = ref("");
 const saleBills = ref<any[]>([]);
 const inventoryLogs = ref<any[]>([]);
 const collectionLinks = ref<any[]>([]);
@@ -326,6 +363,7 @@ const orderDetailVisible = ref(false);
 const dailySales = ref<any[]>([]);
 const orderStats = ref<any[]>([]);
 const storePerf = ref<any[]>([]);
+const inventoryAlerts = ref<any[]>([]);
 const barCanvas = ref<HTMLCanvasElement | null>(null);
 const pieCanvas = ref<HTMLCanvasElement | null>(null);
 const productDialogVisible = ref(false);
@@ -367,7 +405,7 @@ async function handleLogin() {
     localStorage.setItem("admin_token", result.token);
     token.value = result.token;
     ElMessage.success("登录成功");
-    await Promise.all([loadDashboard(), loadProducts(), loadStores(), loadOrders(), loadSaleBills(), loadInventoryLogs(), loadInventoryBalances(), loadCollectionLinks(), loadPaymentOrders(), loadDailySales(), loadOrderStats(), loadStorePerformance()]);
+    await Promise.all([loadDashboard(), loadProducts(), loadStores(), loadOrders(), loadSaleBills(), loadInventoryLogs(), loadInventoryBalances(), loadCollectionLinks(), loadPaymentOrders(), loadDailySales(), loadOrderStats(), loadStorePerformance(), loadInventoryAlerts()]);
   } finally {
     loading.value = false;
   }
@@ -393,9 +431,34 @@ async function loadStores() {
   stores.value = data.records || [];
 }
 
-async function loadOrders() {
-  const data = await fetchOrders();
-  orders.value = data.records || [];
+async function loadOrders(page?: number) {
+  const result = await fetchOrders({
+    page: page ?? ordersPage.value,
+    pageSize: 10,
+    keyword: ordersKeyword.value || undefined,
+    status: ordersStatus.value || undefined
+  });
+  orders.value = result.records || [];
+  ordersTotal.value = result.total || 0;
+  ordersPage.value = result.page || 1;
+}
+
+function searchOrders() {
+  ordersPage.value = 1;
+  loadOrders(1);
+}
+
+function prevOrdersPage() {
+  if (ordersPage.value > 1) {
+    loadOrders(ordersPage.value - 1);
+  }
+}
+
+function nextOrdersPage() {
+  const maxPage = Math.ceil(ordersTotal.value / 10);
+  if (ordersPage.value < maxPage) {
+    loadOrders(ordersPage.value + 1);
+  }
 }
 
 async function loadSaleBills() {
@@ -440,6 +503,11 @@ async function loadOrderStats() {
 async function loadStorePerformance() {
   const data = await fetchStorePerformance();
   storePerf.value = data;
+}
+
+async function loadInventoryAlerts() {
+  const data = await fetchInventoryAlerts();
+  inventoryAlerts.value = data;
 }
 
 function drawBarChart() {
@@ -592,7 +660,7 @@ async function handleCreateProduct() {
 
 onMounted(() => {
   if (token.value) {
-    Promise.all([loadDashboard(), loadProducts(), loadStores(), loadOrders(), loadSaleBills(), loadInventoryLogs(), loadInventoryBalances(), loadCollectionLinks(), loadPaymentOrders(), loadDailySales(), loadOrderStats(), loadStorePerformance()]).catch(() => {
+    Promise.all([loadDashboard(), loadProducts(), loadStores(), loadOrders(), loadSaleBills(), loadInventoryLogs(), loadInventoryBalances(), loadCollectionLinks(), loadPaymentOrders(), loadDailySales(), loadOrderStats(), loadStorePerformance(), loadInventoryAlerts()]).catch(() => {
       ElMessage.warning("接口暂不可用，请确认后端和数据库已启动");
     });
   }

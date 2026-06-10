@@ -130,7 +130,11 @@ miniappRouter.get("/orders", asyncHandler(async (req, res) => {
 
 miniappRouter.get("/orders/:orderNo", asyncHandler(async (req, res) => {
   const order = await queryOne<any>(
-    `SELECT order_no AS orderNo, order_status AS orderStatus, pay_status AS payStatus, payable_amount AS payableAmount, expire_at AS expireAt
+    `SELECT order_no AS orderNo, order_status AS orderStatus, pay_status AS payStatus,
+            payable_amount AS payableAmount, expire_at AS expireAt,
+            receiver_name AS receiverName, receiver_mobile AS receiverMobile,
+            receiver_address AS receiverAddress, fulfillment_type AS fulfillmentType,
+            created_at AS createdAt
      FROM miniapp_order WHERE order_no = ?`,
     [req.params.orderNo]
   );
@@ -138,5 +142,11 @@ miniappRouter.get("/orders/:orderNo", asyncHandler(async (req, res) => {
     res.status(404).json({ code: "404", message: "订单不存在" });
     return;
   }
-  res.json(ok(order));
+  const items = await query<any>(
+    `SELECT sku_id AS skuId, sku_name AS skuName, qty AS quantity,
+            unit_price AS unitPrice, subtotal_amount AS subtotalAmount
+     FROM miniapp_order_item WHERE order_no = ?`,
+    [req.params.orderNo]
+  );
+  res.json(ok({ ...order, items }));
 }));

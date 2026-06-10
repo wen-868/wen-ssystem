@@ -396,3 +396,35 @@ storeRouter.get("/dashboard", asyncHandler(async (req, res) => {
     storeId
   }));
 }));
+
+storeRouter.get("/daily-sales", asyncHandler(async (req, res) => {
+  const storeId = req.query.storeId ? Number(req.query.storeId) : req.user?.storeId ?? null;
+  const where = storeId ? "WHERE sb.store_id = ?" : "";
+  const params = storeId ? [storeId] : [];
+  const records = await query<any>(
+    `SELECT DATE(sb.created_at) AS date, COUNT(*) AS count, COALESCE(SUM(sb.receivable_amount), 0) AS amount
+     FROM sale_bill sb
+     ${where}
+     GROUP BY DATE(sb.created_at)
+     ORDER BY date DESC
+     LIMIT 7`,
+    params
+  );
+  res.json(ok(records.reverse()));
+}));
+
+storeRouter.get("/inventory/alerts", asyncHandler(async (req, res) => {
+  const storeId = req.query.storeId ? Number(req.query.storeId) : req.user?.storeId ?? null;
+  const where = storeId ? "WHERE ib.store_id = ?" : "";
+  const params = storeId ? [storeId] : [];
+  const records = await query<any>(
+    `SELECT ib.sku_id AS skuId, ib.sku_name AS skuName,
+            ib.stock_type AS stockType, ib.available_qty AS availableQty
+     FROM inventory_balance ib
+     ${where ? where + " AND" : "WHERE"} ib.available_qty <= 5
+     ORDER BY ib.available_qty ASC
+     LIMIT 20`,
+    params
+  );
+  res.json(ok(records));
+}));

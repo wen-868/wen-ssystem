@@ -15,7 +15,7 @@ const state = {
   ] as Row[],
   inventory: [
     { storeId: 1, skuId: 1, skuName: "示例白酒 53度 500ml 常温", stockType: "ONLINE", physicalQty: 120, lockedQty: 0, availableQty: 120 },
-    { storeId: 1, skuId: 1, skuName: "示例白酒 53度 500ml 常温", stockType: "OFFLINE", physicalQty: 240, lockedQty: 0, availableQty: 240 }
+    { storeId: 1, skuId: 1, skuName: "示例白酒 53度 500ml 常温", stockType: "OFFLINE", physicalQty: 2, lockedQty: 0, availableQty: 2 }
   ],
   saleBills: [] as Row[],
   saleBillItems: [] as Row[],
@@ -101,18 +101,25 @@ export async function mockQuery<T = any>(sql: string, params: unknown[] = []) {
     return [] as T[];
   }
   if (s.includes("from inventory_balance") && s.includes("left join store")) {
-    return state.inventory.map((inv: Row) => {
+    const isAlert = s.includes("where ib.available_qty <= 5");
+    const filtered = isAlert
+      ? state.inventory.filter((inv: Row) => (inv.availableQty ?? 0) <= 5)
+      : state.inventory;
+    return filtered.map((inv: Row) => {
       const store = state.stores.find((st: Row) => st.id === inv.storeId);
-      return {
+      const base: any = {
         storeId: inv.storeId,
         storeName: store?.name ?? "",
         skuId: inv.skuId,
         skuName: inv.skuName,
         stockType: inv.stockType,
-        physicalQty: inv.physicalQty,
         availableQty: inv.availableQty,
-        lockedQty: inv.lockedQty
       };
+      if (!isAlert) {
+        base.physicalQty = inv.physicalQty;
+        base.lockedQty = inv.lockedQty;
+      }
+      return base;
     }) as T[];
   }
   if (s.includes("from inventory_balance") && s.includes("physical_qty") && s.includes("where store_id")) {
@@ -156,7 +163,7 @@ export async function mockQuery<T = any>(sql: string, params: unknown[] = []) {
     }
     return [] as T[];
   }
-  if (s.includes("date(created_at)") && s.includes("from sale_bill") && s.includes("group by")) {
+  if ((s.includes("date(created_at)") || s.includes("date(sb.created_at)")) && s.includes("from sale_bill") && s.includes("group by")) {
     const map = new Map<string, { date: string; count: number; amount: number }>();
     for (const bill of state.saleBills) {
       const d = (bill.createdAt as string).slice(0, 10);

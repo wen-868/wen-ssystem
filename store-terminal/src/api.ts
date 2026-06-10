@@ -90,3 +90,13 @@ export async function fetchStoreDashboard() {
   const { data } = await api.get("/store/dashboard");
   return data.data;
 }
+
+export async function fetchStoreDailySales() {
+  const { data } = await api.get("/store/daily-sales");
+  return data.data || [];
+}
+
+export async function fetchStoreInventoryAlerts() {
+  const { data } = await api.get("/store/inventory/alerts");
+  return data.data || [];
+}
