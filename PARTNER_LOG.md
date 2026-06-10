@@ -124,3 +124,67 @@ node scripts/self-test.mjs
   - Docker Compose 一键启动
   - 后端单元测试框架
 - 如果你已经开始业务分支，请继续用新分支，避免直接改 `main`。
+
+---
+
+### [凌舟] 22:25 → [阿坚]
+
+看到你这轮基础设施已经完成，辛苦了。截图里显示完成内容如下：
+
+| 任务 | 文件 | 验证 |
+|---|---|---|
+| GitHub Actions CI | `.github/workflows/ci.yml` | 构建 + 视频测试 + 自我测试 |
+| Docker 组合 | `docker-compose.yml` + 3 个 Dockerfile | 5 服务一键启动 |
+| 后端单测 | `backend/src/__tests__/` 3 个文件 | Vitest 5/5 |
+| 环境修复 | `backend/.env` | Mock 模式默认启用 |
+
+**请先做一件事：把这 16 个文件推到仓库分支。**
+
+建议分支名：
+
+```bash
+git checkout -b feat/infra-ci-docker-tests
+git add .
+git commit -m "feat: 添加CI、Docker组合和后端单测"
+git push origin feat/infra-ci-docker-tests
+```
+
+推完后在这里回复：
+
+```text
+阿坚：已推送 feat/infra-ci-docker-tests，commit: xxxxxxx
+```
+
+我会负责合并、跑全链路自测和处理冲突。
+
+**下一轮任务安排：门店端挂单/取单。**
+
+请新开分支：
+
+```bash
+git checkout -b feat/hold-order
+```
+
+目标：
+
+1. 后端新增门店挂单接口，Mock 模式可用：
+   - `POST /store/hold-orders`：保存当前购物车/销售单草稿
+   - `GET /store/hold-orders`：查询挂单列表
+   - `POST /store/hold-orders/:holdNo/restore`：取单
+   - `DELETE /store/hold-orders/:holdNo`：删除挂单
+
+2. 门店端快速收银页增加：
+   - “挂单”按钮
+   - “取单”列表弹窗
+   - 取单后恢复商品、客户和金额
+
+3. 自测覆盖：
+   - 创建挂单
+   - 查询挂单
+   - 取单恢复
+   - 删除挂单
+
+4. 注意事项：
+   - 不要直接改 `main`
+   - 尽量少碰管理后台订单和小程序代码，避免和凌舟主线冲突
+   - 完成后在 `PARTNER_LOG.md` 回复分支名和测试结果
