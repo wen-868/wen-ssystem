@@ -261,7 +261,21 @@ export async function mockQuery<T = any>(sql: string, params: unknown[] = []) {
     return [] as T[];
   }
   if (s.includes("insert into refund_order")) {
-    state.refundOrders.push({ refundNo: params[0], amount: params[1], reason: params[2], payNo: params[3], status: "PENDING" });
+    const pay = state.paymentOrders.find((p) => p.payNo === params[3] || p.pay_no === params[3]);
+    state.refundOrders.push({
+      refundNo: params[0],
+      refund_no: params[0],
+      payNo: params[3],
+      pay_no: params[3],
+      sourceType: pay?.sourceType,
+      source_type: pay?.sourceType,
+      sourceNo: pay?.sourceNo,
+      source_no: pay?.sourceNo,
+      amount: params[1],
+      reason: params[2],
+      status: "PENDING",
+      createdAt: new Date().toISOString()
+    });
     return [] as T[];
   }
   if (s.includes("select 1 as ok")) return [{ ok: 1 }] as T[];
@@ -316,6 +330,12 @@ export async function mockQuery<T = any>(sql: string, params: unknown[] = []) {
   }
   if (s.includes("from payment_order")) {
     return state.paymentOrders as T[];
+  }
+  if (s.includes("count(*) from refund_order")) {
+    return [{ total: state.refundOrders.length }] as T[];
+  }
+  if (s.includes("from refund_order")) {
+    return state.refundOrders as T[];
   }
   return [] as T[];
 }

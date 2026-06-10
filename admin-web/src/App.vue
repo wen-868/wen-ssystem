@@ -226,6 +226,23 @@
       <el-card style="margin-top: 20px">
         <template #header>
           <div style="display: flex; justify-content: space-between; align-items: center">
+            <span>退款记录</span>
+            <el-button size="small" @click="loadRefundOrders">刷新</el-button>
+          </div>
+        </template>
+        <el-table :data="refundOrders" empty-text="暂无退款">
+          <el-table-column prop="refundNo" label="退款单号" width="200" />
+          <el-table-column prop="payNo" label="支付单号" width="200" />
+          <el-table-column prop="sourceNo" label="关联来源" width="180" />
+          <el-table-column prop="amount" label="退款金额" width="100" />
+          <el-table-column prop="reason" label="原因" />
+          <el-table-column prop="status" label="状态" width="100" />
+          <el-table-column prop="createdAt" label="创建时间" width="170" />
+        </el-table>
+      </el-card>
+      <el-card style="margin-top: 20px">
+        <template #header>
+          <div style="display: flex; justify-content: space-between; align-items: center">
             <span>库存总览</span>
             <el-button size="small" @click="loadInventoryBalances">刷新</el-button>
           </div>
@@ -367,7 +384,7 @@
 <script setup lang="ts">
 import { nextTick, onMounted, reactive, ref } from "vue";
 import { ElMessage } from "element-plus";
-import { adminLogin, createProduct, createStore, exportOrdersCsv, fetchCollectionLinks, fetchDailySales, fetchDashboard, fetchInventoryAlerts, fetchInventoryBalances, fetchInventoryLogs, fetchOrderDetail, fetchOrders, fetchOrderStats, fetchPaymentOrders, fetchProducts, fetchSaleBills, fetchStorePerformance, fetchStores, updateProductPrice } from "./api";
+import { adminLogin, createProduct, createStore, exportOrdersCsv, fetchCollectionLinks, fetchDailySales, fetchDashboard, fetchInventoryAlerts, fetchInventoryBalances, fetchInventoryLogs, fetchOrderDetail, fetchOrders, fetchOrderStats, fetchPaymentOrders, fetchProducts, fetchRefundOrders, fetchSaleBills, fetchStorePerformance, fetchStores, updateProductPrice } from "./api";
 
 const nav = ["首页", "商品", "订单", "销售单", "库存", "收款", "报表", "系统"];
 
@@ -385,6 +402,7 @@ const saleBills = ref<any[]>([]);
 const inventoryLogs = ref<any[]>([]);
 const collectionLinks = ref<any[]>([]);
 const paymentOrders = ref<any[]>([]);
+const refundOrders = ref<any[]>([]);
 const inventoryBalances = ref<any[]>([]);
 const orderDetail = ref<any>(null);
 const orderDetailVisible = ref(false);
@@ -434,7 +452,7 @@ async function handleLogin() {
     localStorage.setItem("admin_token", result.token);
     token.value = result.token;
     ElMessage.success("登录成功");
-    await Promise.all([loadDashboard(), loadProducts(), loadStores(), loadOrders(), loadSaleBills(), loadInventoryLogs(), loadInventoryBalances(), loadCollectionLinks(), loadPaymentOrders(), loadDailySales(), loadOrderStats(), loadStorePerformance(), loadInventoryAlerts()]);
+    await Promise.all([loadDashboard(), loadProducts(), loadStores(), loadOrders(), loadSaleBills(), loadInventoryLogs(), loadInventoryBalances(), loadCollectionLinks(), loadPaymentOrders(), loadRefundOrders(), loadDailySales(), loadOrderStats(), loadStorePerformance(), loadInventoryAlerts()]);
   } finally {
     loading.value = false;
   }
@@ -525,6 +543,11 @@ async function loadCollectionLinks() {
 async function loadPaymentOrders() {
   const data = await fetchPaymentOrders();
   paymentOrders.value = data.records || [];
+}
+
+async function loadRefundOrders() {
+  const data = await fetchRefundOrders();
+  refundOrders.value = data.records || [];
 }
 
 async function loadInventoryBalances() {
@@ -707,7 +730,7 @@ async function handleCreateProduct() {
 
 onMounted(() => {
   if (token.value) {
-    Promise.all([loadDashboard(), loadProducts(), loadStores(), loadOrders(), loadSaleBills(), loadInventoryLogs(), loadInventoryBalances(), loadCollectionLinks(), loadPaymentOrders(), loadDailySales(), loadOrderStats(), loadStorePerformance(), loadInventoryAlerts()]).catch(() => {
+    Promise.all([loadDashboard(), loadProducts(), loadStores(), loadOrders(), loadSaleBills(), loadInventoryLogs(), loadInventoryBalances(), loadCollectionLinks(), loadPaymentOrders(), loadRefundOrders(), loadDailySales(), loadOrderStats(), loadStorePerformance(), loadInventoryAlerts()]).catch(() => {
       ElMessage.warning("接口暂不可用，请确认后端和数据库已启动");
     });
   }

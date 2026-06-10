@@ -77,6 +77,11 @@ export async function fetchPaymentOrders() {
   return data.data;
 }
 
+export async function fetchRefundOrders() {
+  const { data } = await api.get("/admin/refund-orders", { params: { page: 1, pageSize: 30 } });
+  return data.data;
+}
+
 export async function fetchInventoryBalances() {
   const { data } = await api.get("/admin/inventory/balances");
   return data.data;

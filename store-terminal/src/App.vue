@@ -230,6 +230,23 @@
           <el-table-column prop="createdAt" label="时间" width="170" />
         </el-table>
       </el-card>
+      <el-card style="margin-top: 20px">
+        <template #header>
+          <div style="display: flex; justify-content: space-between; align-items: center">
+            <span>退款记录</span>
+            <el-button size="small" @click="loadRefundOrders">刷新</el-button>
+          </div>
+        </template>
+        <el-table :data="refundOrders" empty-text="暂无退款">
+          <el-table-column prop="refundNo" label="退款单号" width="200" />
+          <el-table-column prop="payNo" label="支付单号" width="200" />
+          <el-table-column prop="sourceNo" label="关联来源" width="180" />
+          <el-table-column prop="amount" label="退款金额" width="100" />
+          <el-table-column prop="reason" label="原因" />
+          <el-table-column prop="status" label="状态" width="100" />
+          <el-table-column prop="createdAt" label="时间" width="170" />
+        </el-table>
+      </el-card>
       <el-dialog v-model="orderDetailVisible" title="订单详情" width="560px">
         <template v-if="orderDetail">
           <el-descriptions :column="1" border>
@@ -276,7 +293,7 @@
 <script setup lang="ts">
 import { computed, onMounted, reactive, ref } from "vue";
 import { ElMessage } from "element-plus";
-import { acceptStoreOrder, adjustInventory, completeStoreOrder, createCollectionLink, createSaleBill, fetchInventory, fetchInventoryLogs, fetchSaleBillDetail, fetchSaleBills, fetchStoreCollectionLinks, fetchStoreDailySales, fetchStoreDashboard, fetchStoreInventoryAlerts, fetchStoreOrderDetail, fetchStoreOrders, fetchStorePaymentOrders, storeLogin } from "./api";
+import { acceptStoreOrder, adjustInventory, completeStoreOrder, createCollectionLink, createSaleBill, fetchInventory, fetchInventoryLogs, fetchSaleBillDetail, fetchSaleBills, fetchStoreCollectionLinks, fetchStoreDailySales, fetchStoreDashboard, fetchStoreInventoryAlerts, fetchStoreOrderDetail, fetchStoreOrders, fetchStorePaymentOrders, fetchStoreRefundOrders, storeLogin } from "./api";
 
 const nav = ["工作台", "快速收银", "销售单", "接单履约", "库存查询", "分享收款"];
 const token = ref(localStorage.getItem("store_token") || localStorage.getItem("admin_token") || "");
@@ -293,6 +310,7 @@ const inventory = ref<any[]>([]);
 const inventoryLogs = ref<any[]>([]);
 const collectionLinks = ref<any[]>([]);
 const paymentOrders = ref<any[]>([]);
+const refundOrders = ref<any[]>([]);
 const orders = ref<any[]>([]);
 const orderDetail = ref<any>(null);
 const orderDetailVisible = ref(false);
@@ -382,7 +400,7 @@ async function handleLogin() {
     localStorage.setItem("store_token", result.token);
     token.value = result.token;
     ElMessage.success("登录成功");
-    await Promise.all([loadInventory(), loadSaleBills(), loadOrders(), loadDashboard(), loadDailySales(), loadInventoryAlerts()]);
+    await Promise.all([loadInventory(), loadSaleBills(), loadOrders(), loadDashboard(), loadDailySales(), loadInventoryAlerts(), loadRefundOrders()]);
   } finally {
     loading.value = false;
   }
@@ -484,6 +502,15 @@ async function loadPaymentOrders() {
   }
 }
 
+async function loadRefundOrders() {
+  try {
+    const data = await fetchStoreRefundOrders();
+    refundOrders.value = data.records || [];
+  } catch {
+    ElMessage.warning("退款记录接口暂不可用");
+  }
+}
+
 async function loadSaleBills() {
   try {
     const data = await fetchSaleBills();
@@ -554,7 +581,7 @@ async function shareExistingBill(row: any) {
 
 onMounted(() => {
   if (token.value) {
-    Promise.all([loadInventory(), loadSaleBills(), loadOrders(), loadInventoryLogs(), loadCollectionLinks(), loadPaymentOrders(), loadDashboard(), loadDailySales(), loadInventoryAlerts()]).catch(() => {
+    Promise.all([loadInventory(), loadSaleBills(), loadOrders(), loadInventoryLogs(), loadCollectionLinks(), loadPaymentOrders(), loadRefundOrders(), loadDashboard(), loadDailySales(), loadInventoryAlerts()]).catch(() => {
       ElMessage.warning("接口暂不可用，请确认后端和数据库已启动");
     });
   }

@@ -81,6 +81,11 @@ export async function fetchStorePaymentOrders() {
   return data.data;
 }
 
+export async function fetchStoreRefundOrders() {
+  const { data } = await api.get("/store/refund-orders", { params: { page: 1, pageSize: 30 } });
+  return data.data;
+}
+
 export async function fetchStoreOrderDetail(orderNo: string) {
   const { data } = await api.get(`/store/orders/${orderNo}`);
   return data.data;

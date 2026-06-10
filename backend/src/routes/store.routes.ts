@@ -368,6 +368,22 @@ storeRouter.get("/payment-orders", asyncHandler(async (req, res) => {
   res.json(ok({ total: totalRow?.total ?? 0, page, pageSize, records }));
 }));
 
+storeRouter.get("/refund-orders", asyncHandler(async (req, res) => {
+  const page = Number(req.query.page || 1);
+  const pageSize = Number(req.query.pageSize || 20);
+  const offset = (page - 1) * pageSize;
+  const records = await query<any>(
+    `SELECT refund_no AS refundNo, pay_no AS payNo, source_type AS sourceType,
+            source_no AS sourceNo, amount, reason, status, created_at AS createdAt
+     FROM refund_order
+     ORDER BY created_at DESC
+     LIMIT ? OFFSET ?`,
+    [pageSize, offset]
+  );
+  const totalRow = await queryOne<any>("SELECT COUNT(*) AS total FROM refund_order");
+  res.json(ok({ total: totalRow?.total ?? 0, page, pageSize, records }));
+}));
+
 storeRouter.get("/dashboard", asyncHandler(async (req, res) => {
   const storeId = req.query.storeId ? Number(req.query.storeId) : req.user?.storeId ?? null;
   const whereStore = storeId ? "WHERE store_id = ?" : "";

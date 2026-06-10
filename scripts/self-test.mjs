@@ -149,6 +149,23 @@ console.log("门店收款记录:", storeCollections.records?.length ?? 0);
 const storePays = await request("/store/payment-orders", { headers: auth });
 console.log("门店支付记录:", storePays.records?.length ?? 0);
 
+const refund = await request("/pay/refunds", {
+  method: "POST",
+  headers: auth,
+  body: JSON.stringify({
+    payNo: adminPays.records?.[0]?.payNo,
+    amount: 10,
+    reason: "自测退款"
+  })
+});
+console.log("退款申请:", refund.refundNo, refund.status);
+
+const storeRefunds = await request("/store/refund-orders", { headers: auth });
+console.log("门店退款记录:", storeRefunds.records?.length ?? 0, storeRefunds.records?.[0]?.refundNo);
+
+const adminRefunds = await request("/admin/refund-orders", { headers: auth });
+console.log("后台退款记录:", adminRefunds.records?.length ?? 0, adminRefunds.records?.[0]?.refundNo);
+
 const dailySales = await request("/admin/reports/daily-sales", { headers: auth });
 console.log("日报销售:", dailySales.length ?? 0, dailySales[0]?.date);
 
