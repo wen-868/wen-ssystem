@@ -368,6 +368,72 @@ storeRouter.get("/payment-orders", asyncHandler(async (req, res) => {
   res.json(ok({ total: totalRow?.total ?? 0, page, pageSize, records }));
 }));
 
+storeRouter.post("/hold-orders", asyncHandler(async (req, res) => {
+  const body = z.object({
+    customerName: z.string().optional().default(""),
+    customerMobile: z.string().optional().default(""),
+    amount: z.number().default(0),
+    remark: z.string().optional().default(""),
+    items: z.array(z.object({
+      skuId: z.number(),
+      skuName: z.string(),
+      quantity: z.number(),
+      unitPrice: z.number(),
+      subtotalAmount: z.number()
+    })).default([])
+  }).parse(req.body);
+  const holdNo = makeBizNo("GD");
+  const storeId = req.user?.storeId ?? 1;
+  const payload = JSON.stringify(body);
+  await query(
+    `INSERT INTO hold_order (hold_no, store_id, customer_name, customer_mobile, amount, payload, remark, status)
+     VALUES (?, ?, ?, ?, ?, ?, ?, 'HELD')`,
+    [holdNo, storeId, body.customerName, body.customerMobile, body.amount, payload, body.remark]
+  );
+  res.json(ok({ holdNo, status: "HELD" }));
+}));
+
+storeRouter.get("/hold-orders", asyncHandler(async (req, res) => {
+  const page = Number(req.query.page || 1);
+  const pageSize = Number(req.query.pageSize || 20);
+  const offset = (page - 1) * pageSize;
+  const records = await query<any>(
+    `SELECT hold_no AS holdNo, store_id AS storeId, customer_name AS customerName,
+            customer_mobile AS customerMobile, amount, remark, status, created_at AS createdAt
+     FROM hold_order
+     WHERE status = 'HELD'
+     ORDER BY created_at DESC
+     LIMIT ? OFFSET ?`,
+    [pageSize, offset]
+  );
+  const totalRow = await queryOne<any>("SELECT COUNT(*) AS total FROM hold_order WHERE status = 'HELD'");
+  res.json(ok({ total: totalRow?.total ?? 0, page, pageSize, records }));
+}));
+
+storeRouter.post("/hold-orders/:holdNo/restore", asyncHandler(async (req, res) => {
+  const hold = await queryOne<any>(
+    `SELECT hold_no AS holdNo, customer_name AS customerName, customer_mobile AS customerMobile,
+            amount, payload, remark, status, created_at AS createdAt
+     FROM hold_order
+     WHERE hold_no = ? AND status = 'HELD'`,
+    [req.params.holdNo]
+  );
+  if (!hold) {
+    res.status(404).json({ code: "404", message: "挂单不存在" });
+    return;
+  }
+  const payload = typeof hold.payload === "string" ? JSON.parse(hold.payload) : hold.payload;
+  res.json(ok({ ...hold, ...payload }));
+}));
+
+storeRouter.delete("/hold-orders/:holdNo", asyncHandler(async (req, res) => {
+  await query(
+    `UPDATE hold_order SET status = 'DELETED', updated_at = NOW() WHERE hold_no = ?`,
+    [req.params.holdNo]
+  );
+  res.json(ok({ holdNo: req.params.holdNo, status: "DELETED" }));
+}));
+
 storeRouter.get("/refund-orders", asyncHandler(async (req, res) => {
   const page = Number(req.query.page || 1);
   const pageSize = Number(req.query.pageSize || 20);

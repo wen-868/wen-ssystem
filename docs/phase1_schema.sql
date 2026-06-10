@@ -12,6 +12,7 @@ SET NAMES utf8mb4;
 SET FOREIGN_KEY_CHECKS = 0;
 
 DROP TABLE IF EXISTS operation_log;
+DROP TABLE IF EXISTS hold_order;
 DROP TABLE IF EXISTS refund_order;
 DROP TABLE IF EXISTS payment_order;
 DROP TABLE IF EXISTS collection_view_log;
@@ -423,6 +424,24 @@ CREATE TABLE payment_order (
   KEY idx_payment_order_status (status)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='支付单表';
 
+CREATE TABLE hold_order (
+  id BIGINT UNSIGNED NOT NULL AUTO_INCREMENT COMMENT '挂单ID',
+  hold_no VARCHAR(64) NOT NULL COMMENT '挂单号',
+  store_id BIGINT UNSIGNED NOT NULL COMMENT '门店ID',
+  customer_name VARCHAR(64) DEFAULT NULL COMMENT '客户姓名',
+  customer_mobile VARCHAR(32) DEFAULT NULL COMMENT '客户手机号',
+  amount DECIMAL(12,2) NOT NULL DEFAULT 0 COMMENT '挂单金额',
+  payload JSON NOT NULL COMMENT '挂单草稿内容',
+  remark VARCHAR(255) DEFAULT NULL COMMENT '备注',
+  status VARCHAR(32) NOT NULL DEFAULT 'HELD' COMMENT '状态：HELD/DELETED',
+  created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  updated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  PRIMARY KEY (id),
+  UNIQUE KEY uk_hold_order_no (hold_no),
+  KEY idx_hold_order_store_status (store_id, status),
+  KEY idx_hold_order_created_at (created_at)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='门店挂单表';
+
 CREATE TABLE refund_order (
   id BIGINT UNSIGNED NOT NULL AUTO_INCREMENT COMMENT '退款单ID',
   refund_no VARCHAR(64) NOT NULL COMMENT '退款单号',
@@ -471,4 +490,3 @@ INSERT INTO sys_role (role_code, role_name, data_scope, status) VALUES
 
 INSERT INTO store (store_code, name, address, lng, lat, contact, phone, delivery_radius, business_status, status) VALUES
 ('STORE0001', '默认门店', '请在后台维护门店地址', NULL, NULL, '管理员', '13800000000', 3.00, 'OPEN', 1);
-

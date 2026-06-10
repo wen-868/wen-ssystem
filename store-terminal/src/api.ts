@@ -86,6 +86,32 @@ export async function fetchStoreRefundOrders() {
   return data.data;
 }
 
+export async function createHoldOrder(payload: {
+  customerName?: string;
+  customerMobile?: string;
+  amount: number;
+  remark?: string;
+  items: Array<{ skuId: number; skuName: string; quantity: number; unitPrice: number; subtotalAmount: number }>;
+}) {
+  const { data } = await api.post("/store/hold-orders", payload);
+  return data.data;
+}
+
+export async function fetchHoldOrders() {
+  const { data } = await api.get("/store/hold-orders", { params: { page: 1, pageSize: 30 } });
+  return data.data;
+}
+
+export async function restoreHoldOrder(holdNo: string) {
+  const { data } = await api.post(`/store/hold-orders/${holdNo}/restore`);
+  return data.data;
+}
+
+export async function deleteHoldOrder(holdNo: string) {
+  const { data } = await api.delete(`/store/hold-orders/${holdNo}`);
+  return data.data;
+}
+
 export async function fetchStoreOrderDetail(orderNo: string) {
   const { data } = await api.get(`/store/orders/${orderNo}`);
   return data.data;

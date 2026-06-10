@@ -24,6 +24,7 @@ const state = {
   collectionLinks: [] as Row[],
   paymentOrders: [] as Row[],
   refundOrders: [] as Row[],
+  holdOrders: [] as Row[],
   viewLogs: [] as Row[],
   inventoryLogs: [] as Row[]
 };
@@ -278,6 +279,29 @@ export async function mockQuery<T = any>(sql: string, params: unknown[] = []) {
     });
     return [] as T[];
   }
+  if (s.includes("insert into hold_order")) {
+    state.holdOrders.unshift({
+      holdNo: params[0],
+      hold_no: params[0],
+      storeId: params[1],
+      store_id: params[1],
+      customerName: params[2],
+      customer_name: params[2],
+      customerMobile: params[3],
+      customer_mobile: params[3],
+      amount: params[4],
+      payload: params[5],
+      remark: params[6],
+      status: "HELD",
+      createdAt: new Date().toISOString()
+    });
+    return [] as T[];
+  }
+  if (s.includes("update hold_order set status = 'DELETED'")) {
+    const hold = state.holdOrders.find((h) => h.holdNo === params[0] || h.hold_no === params[0]);
+    if (hold) hold.status = "DELETED";
+    return [] as T[];
+  }
   if (s.includes("select 1 as ok")) return [{ ok: 1 }] as T[];
   if (s.includes("from product_price")) {
     const skuId = Number(params[0]);
@@ -336,6 +360,16 @@ export async function mockQuery<T = any>(sql: string, params: unknown[] = []) {
   }
   if (s.includes("from refund_order")) {
     return state.refundOrders as T[];
+  }
+  if (s.includes("count(*) from hold_order")) {
+    return [{ total: state.holdOrders.filter((h) => h.status !== "DELETED").length }] as T[];
+  }
+  if (s.includes("from hold_order") && s.includes("where hold_no = ?")) {
+    const hold = state.holdOrders.find((h) => (h.holdNo === params[0] || h.hold_no === params[0]) && h.status !== "DELETED");
+    return hold ? [hold] as T[] : [];
+  }
+  if (s.includes("from hold_order")) {
+    return state.holdOrders.filter((h) => h.status !== "DELETED") as T[];
   }
   return [] as T[];
 }

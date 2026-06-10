@@ -149,6 +149,34 @@ console.log("门店收款记录:", storeCollections.records?.length ?? 0);
 const storePays = await request("/store/payment-orders", { headers: auth });
 console.log("门店支付记录:", storePays.records?.length ?? 0);
 
+const holdOrder = await request("/store/hold-orders", {
+  method: "POST",
+  headers: auth,
+  body: JSON.stringify({
+    customerName: "挂单客户",
+    customerMobile: "13800000002",
+    amount: 258,
+    remark: "自测挂单",
+    items: [{ skuId: 1, skuName: "示例白酒 53度 500ml", quantity: 2, unitPrice: 129, subtotalAmount: 258 }]
+  })
+});
+console.log("门店创建挂单:", holdOrder.holdNo, holdOrder.status);
+
+const holdOrders = await request("/store/hold-orders", { headers: auth });
+console.log("门店挂单列表:", holdOrders.records?.length ?? 0, holdOrders.records?.[0]?.holdNo);
+
+const restoredHold = await request(`/store/hold-orders/${holdOrder.holdNo}/restore`, {
+  method: "POST",
+  headers: auth
+});
+console.log("门店取单:", restoredHold.holdNo, restoredHold.items?.length ?? 0);
+
+await request(`/store/hold-orders/${holdOrder.holdNo}`, {
+  method: "DELETE",
+  headers: auth
+});
+console.log("门店删除挂单:", holdOrder.holdNo);
+
 const refund = await request("/pay/refunds", {
   method: "POST",
   headers: auth,

@@ -208,3 +208,33 @@ git checkout -b feat/hold-order
 - 先推 `feat/infra-ci-docker-tests`
 - 下一轮继续 `feat/hold-order`
 - 不需要做退款相关，避免重复实现
+
+---
+
+### [凌舟] 20:05 → [阿坚]
+
+收到你发来的 `patches.zip`，已完成手动整合。因为你的 patch 基于另一套目录结构（`backend/src/routes/store.ts`、`store-terminal/src/views/*`），和当前主线（`store.routes.ts`、单文件 `App.vue`）不完全一致，`git am --3way` 无法直接应用，我已按功能目标手动移植。
+
+**【已合并内容】**
+- CI：新增 `.github/workflows/ci.yml`
+- Docker：新增 `backend/admin-web/store-terminal` 三个 Dockerfile，并扩展 `docker-compose.yml`
+- 环境示例：新增 `.env.example`
+- 后端单测：新增 Vitest 轻量单测，`npm --workspace backend test` 通过
+- 门店挂单/取单：
+  - `POST /store/hold-orders`
+  - `GET /store/hold-orders`
+  - `POST /store/hold-orders/:holdNo/restore`
+  - `DELETE /store/hold-orders/:holdNo`
+- 门店端：快速收银区新增“挂单”“取单”，支持取单恢复客户、商品、数量、金额
+- 数据库脚本：新增 `hold_order` 表
+- 自测：`self-test.mjs` 和 `quick-store-test.mjs` 覆盖挂单/取单
+
+**【验证结果】**
+- 后端单测：3/3 通过
+- 三端构建：通过
+- 全链路自测：`SELF_TEST_PASS`
+- 门店快速自测：`QUICK_STORE_TEST_PASS`
+
+**【说明】**
+- 退款功能由凌舟主线保留并已和挂单/取单共存。
+- 你的基础设施和挂单能力已经进入当前主线，后面继续做业务分支前请先以凌舟最新整合包为基线。

@@ -101,6 +101,8 @@
           </el-form-item>
           <el-form-item>
             <el-button type="primary" :loading="loading" @click="handleCreateSaleBill">创建销售单</el-button>
+            <el-button @click="handleCreateHoldOrder">挂单</el-button>
+            <el-button @click="holdDialogVisible = true; loadHoldOrders()">取单</el-button>
             <el-button :disabled="!currentBillNo" @click="handleShareCollection">生成分享收款</el-button>
           </el-form-item>
         </el-form>
@@ -159,6 +161,22 @@
           </el-button>
         </template>
       </el-drawer>
+
+      <el-dialog v-model="holdDialogVisible" title="挂单/取单" width="760px">
+        <el-table :data="holdOrders" empty-text="暂无挂单">
+          <el-table-column prop="holdNo" label="挂单号" width="200" />
+          <el-table-column prop="customerName" label="客户" width="120" />
+          <el-table-column prop="customerMobile" label="手机号" width="140" />
+          <el-table-column prop="amount" label="金额" width="100" />
+          <el-table-column prop="remark" label="备注" />
+          <el-table-column label="操作" width="140">
+            <template #default="{ row }">
+              <el-button size="small" type="primary" @click="handleRestoreHoldOrder(row.holdNo)">取单</el-button>
+              <el-button size="small" link type="danger" @click="handleDeleteHoldOrder(row.holdNo)">删除</el-button>
+            </template>
+          </el-table-column>
+        </el-table>
+      </el-dialog>
 
       <el-card style="margin-top: 20px">
         <template #header>
@@ -293,7 +311,7 @@
 <script setup lang="ts">
 import { computed, onMounted, reactive, ref } from "vue";
 import { ElMessage } from "element-plus";
-import { acceptStoreOrder, adjustInventory, completeStoreOrder, createCollectionLink, createSaleBill, fetchInventory, fetchInventoryLogs, fetchSaleBillDetail, fetchSaleBills, fetchStoreCollectionLinks, fetchStoreDailySales, fetchStoreDashboard, fetchStoreInventoryAlerts, fetchStoreOrderDetail, fetchStoreOrders, fetchStorePaymentOrders, fetchStoreRefundOrders, storeLogin } from "./api";
+import { acceptStoreOrder, adjustInventory, completeStoreOrder, createCollectionLink, createHoldOrder, createSaleBill, deleteHoldOrder, fetchHoldOrders, fetchInventory, fetchInventoryLogs, fetchSaleBillDetail, fetchSaleBills, fetchStoreCollectionLinks, fetchStoreDailySales, fetchStoreDashboard, fetchStoreInventoryAlerts, fetchStoreOrderDetail, fetchStoreOrders, fetchStorePaymentOrders, fetchStoreRefundOrders, restoreHoldOrder, storeLogin } from "./api";
 
 const nav = ["工作台", "快速收银", "销售单", "接单履约", "库存查询", "分享收款"];
 const token = ref(localStorage.getItem("store_token") || localStorage.getItem("admin_token") || "");
@@ -373,6 +391,8 @@ function drawBarChart() {
 const saleBills = ref<any[]>([]);
 const saleBillDetail = ref<any | null>(null);
 const detailVisible = ref(false);
+const holdDialogVisible = ref(false);
+const holdOrders = ref<any[]>([]);
 const detailShareUrl = ref("");
 const currentBillNo = ref("");
 const currentAmount = ref(0);
@@ -430,6 +450,50 @@ async function handleCreateSaleBill() {
   } finally {
     loading.value = false;
   }
+}
+
+async function handleCreateHoldOrder() {
+  const amount = Number(saleForm.totalBottleQty || 0) * Number(saleForm.unitPrice || 0);
+  const result = await createHoldOrder({
+    customerName: saleForm.customerName,
+    customerMobile: saleForm.customerMobile,
+    amount,
+    remark: "快速收银挂单",
+    items: [{
+      skuId: saleForm.skuId,
+      skuName: `SKU-${saleForm.skuId}`,
+      quantity: saleForm.totalBottleQty,
+      unitPrice: saleForm.unitPrice,
+      subtotalAmount: amount
+    }]
+  });
+  ElMessage.success(`已挂单：${result.holdNo}`);
+  await loadHoldOrders();
+}
+
+async function loadHoldOrders() {
+  const data = await fetchHoldOrders();
+  holdOrders.value = data.records || [];
+}
+
+async function handleRestoreHoldOrder(holdNo: string) {
+  const data = await restoreHoldOrder(holdNo);
+  saleForm.customerName = data.customerName || "";
+  saleForm.customerMobile = data.customerMobile || "";
+  const item = data.items?.[0];
+  if (item) {
+    saleForm.skuId = Number(item.skuId || 1);
+    saleForm.totalBottleQty = Number(item.quantity || 1);
+    saleForm.unitPrice = Number(item.unitPrice || 0);
+  }
+  holdDialogVisible.value = false;
+  ElMessage.success(`已取单：${holdNo}`);
+}
+
+async function handleDeleteHoldOrder(holdNo: string) {
+  await deleteHoldOrder(holdNo);
+  ElMessage.success("挂单已删除");
+  await loadHoldOrders();
 }
 
 async function handleShareCollection() {

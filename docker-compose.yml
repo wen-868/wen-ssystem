@@ -1,4 +1,48 @@
 services:
+  backend:
+    build:
+      context: .
+      dockerfile: backend/Dockerfile
+    container_name: liquor-backend
+    restart: unless-stopped
+    environment:
+      USE_MOCK_DB: "false"
+      PORT: 8080
+      JWT_SECRET: dev-secret
+      DB_HOST: mysql
+      DB_PORT: 3306
+      DB_USER: root
+      DB_PASSWORD: root123456
+      DB_NAME: liquor_inventory
+      TZ: Asia/Shanghai
+    ports:
+      - "8080:8080"
+    depends_on:
+      mysql:
+        condition: service_healthy
+
+  admin-web:
+    build:
+      context: .
+      dockerfile: admin-web/Dockerfile
+    container_name: liquor-admin-web
+    restart: unless-stopped
+    ports:
+      - "5173:80"
+    depends_on:
+      - backend
+
+  store-terminal:
+    build:
+      context: .
+      dockerfile: store-terminal/Dockerfile
+    container_name: liquor-store-terminal
+    restart: unless-stopped
+    ports:
+      - "5174:80"
+    depends_on:
+      - backend
+
   mysql:
     image: mysql:8.4
     container_name: liquor-mysql
