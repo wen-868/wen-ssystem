@@ -105,7 +105,18 @@
                 <el-option label="已完成" value="COMPLETED" />
                 <el-option label="已取消" value="CANCELLED" />
               </el-select>
+              <el-date-picker
+                v-model="ordersDateRange"
+                type="daterange"
+                size="small"
+                value-format="YYYY-MM-DD"
+                start-placeholder="开始日期"
+                end-placeholder="结束日期"
+                style="width: 240px"
+                @change="searchOrders"
+              />
               <el-button size="small" @click="searchOrders">搜索</el-button>
+              <el-button size="small" type="success" @click="exportOrders">导出CSV</el-button>
               <el-button size="small" @click="loadOrders(1)">刷新</el-button>
             </div>
           </div>
@@ -340,7 +351,7 @@
 <script setup lang="ts">
 import { nextTick, onMounted, reactive, ref } from "vue";
 import { ElMessage } from "element-plus";
-import { adminLogin, createProduct, createStore, fetchCollectionLinks, fetchDailySales, fetchDashboard, fetchInventoryAlerts, fetchInventoryBalances, fetchInventoryLogs, fetchOrderDetail, fetchOrders, fetchOrderStats, fetchPaymentOrders, fetchProducts, fetchSaleBills, fetchStorePerformance, fetchStores, updateProductPrice } from "./api";
+import { adminLogin, createProduct, createStore, exportOrdersCsv, fetchCollectionLinks, fetchDailySales, fetchDashboard, fetchInventoryAlerts, fetchInventoryBalances, fetchInventoryLogs, fetchOrderDetail, fetchOrders, fetchOrderStats, fetchPaymentOrders, fetchProducts, fetchSaleBills, fetchStorePerformance, fetchStores, updateProductPrice } from "./api";
 
 const nav = ["首页", "商品", "订单", "销售单", "库存", "收款", "报表", "系统"];
 
@@ -353,6 +364,7 @@ const ordersTotal = ref(0);
 const ordersPage = ref(1);
 const ordersKeyword = ref("");
 const ordersStatus = ref("");
+const ordersDateRange = ref<string[]>([]);
 const saleBills = ref<any[]>([]);
 const inventoryLogs = ref<any[]>([]);
 const collectionLinks = ref<any[]>([]);
@@ -436,7 +448,9 @@ async function loadOrders(page?: number) {
     page: page ?? ordersPage.value,
     pageSize: 10,
     keyword: ordersKeyword.value || undefined,
-    status: ordersStatus.value || undefined
+    status: ordersStatus.value || undefined,
+    dateStart: ordersDateRange.value?.[0] || undefined,
+    dateEnd: ordersDateRange.value?.[1] || undefined
   });
   orders.value = result.records || [];
   ordersTotal.value = result.total || 0;
@@ -459,6 +473,21 @@ function nextOrdersPage() {
   if (ordersPage.value < maxPage) {
     loadOrders(ordersPage.value + 1);
   }
+}
+
+async function exportOrders() {
+  const blob = await exportOrdersCsv({
+    keyword: ordersKeyword.value || undefined,
+    status: ordersStatus.value || undefined,
+    dateStart: ordersDateRange.value?.[0] || undefined,
+    dateEnd: ordersDateRange.value?.[1] || undefined
+  });
+  const url = URL.createObjectURL(blob);
+  const link = document.createElement("a");
+  link.href = url;
+  link.download = `orders-${new Date().toISOString().slice(0, 10)}.csv`;
+  link.click();
+  URL.revokeObjectURL(url);
 }
 
 async function loadSaleBills() {

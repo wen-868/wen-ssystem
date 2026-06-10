@@ -217,6 +217,8 @@ adminRouter.get("/orders", requireAuth, asyncHandler(async (req, res) => {
   const offset = (page - 1) * pageSize;
   const keyword = `%${String(req.query.keyword || "")}%`;
   const status = String(req.query.status || "");
+  const dateStart = String(req.query.dateStart || "");
+  const dateEnd = String(req.query.dateEnd || "");
   const conditions: string[] = [];
   const params: unknown[] = [];
   if (req.query.keyword) {
@@ -226,6 +228,14 @@ adminRouter.get("/orders", requireAuth, asyncHandler(async (req, res) => {
   if (status) {
     conditions.push("order_status = ?");
     params.push(status);
+  }
+  if (dateStart) {
+    conditions.push("DATE(created_at) >= ?");
+    params.push(dateStart);
+  }
+  if (dateEnd) {
+    conditions.push("DATE(created_at) <= ?");
+    params.push(dateEnd);
   }
   const where = conditions.length > 0 ? `WHERE ${conditions.join(" AND ")}` : "";
   const records = await query<any>(
@@ -244,6 +254,61 @@ adminRouter.get("/orders", requireAuth, asyncHandler(async (req, res) => {
     params
   );
   res.json(ok({ total: totalRow?.total ?? 0, page, pageSize, records }));
+}));
+
+adminRouter.get("/orders/export.csv", requireAuth, asyncHandler(async (req, res) => {
+  const keyword = `%${String(req.query.keyword || "")}%`;
+  const status = String(req.query.status || "");
+  const dateStart = String(req.query.dateStart || "");
+  const dateEnd = String(req.query.dateEnd || "");
+  const conditions: string[] = [];
+  const params: unknown[] = [];
+  if (req.query.keyword) {
+    conditions.push("(order_no LIKE ? OR receiver_name LIKE ? OR receiver_mobile LIKE ?)");
+    params.push(keyword, keyword, keyword);
+  }
+  if (status) {
+    conditions.push("order_status = ?");
+    params.push(status);
+  }
+  if (dateStart) {
+    conditions.push("DATE(created_at) >= ?");
+    params.push(dateStart);
+  }
+  if (dateEnd) {
+    conditions.push("DATE(created_at) <= ?");
+    params.push(dateEnd);
+  }
+  const where = conditions.length > 0 ? `WHERE ${conditions.join(" AND ")}` : "";
+  const records = await query<any>(
+    `SELECT order_no AS orderNo, store_id AS storeId, customer_type AS customerType,
+            fulfillment_type AS fulfillmentType, order_status AS orderStatus,
+            pay_status AS payStatus, payable_amount AS payableAmount,
+            receiver_name AS receiverName, receiver_mobile AS receiverMobile,
+            created_at AS createdAt
+     FROM miniapp_order ${where}
+     ORDER BY created_at DESC
+     LIMIT 1000`,
+    params
+  );
+  const escapeCsv = (value: unknown) => `"${String(value ?? "").replace(/"/g, '""')}"`;
+  const header = ["订单号", "门店ID", "客户类型", "履约方式", "订单状态", "支付状态", "金额", "收货人", "手机号", "创建时间"];
+  const rows = records.map((row) => [
+    row.orderNo,
+    row.storeId,
+    row.customerType,
+    row.fulfillmentType,
+    row.orderStatus,
+    row.payStatus,
+    row.payableAmount,
+    row.receiverName,
+    row.receiverMobile,
+    row.createdAt
+  ]);
+  const csv = `\uFEFF${[header, ...rows].map((line) => line.map(escapeCsv).join(",")).join("\n")}`;
+  res.setHeader("content-type", "text/csv; charset=utf-8");
+  res.setHeader("content-disposition", `attachment; filename="orders-${new Date().toISOString().slice(0, 10)}.csv"`);
+  res.send(csv);
 }));
 
 adminRouter.get("/sale-bills", requireAuth, asyncHandler(async (req, res) => {

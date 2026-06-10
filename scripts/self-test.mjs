@@ -183,6 +183,17 @@ if (lastOrderNo) {
   console.log("小程序订单详情:", miniOrderDetail.orderNo, miniOrderDetail.items?.length ?? 0);
   const adminSearch = await request("/admin/orders?keyword=DD&page=1&pageSize=5", { headers: auth });
   console.log("后台订单搜索:", adminSearch.records?.length ?? 0, "共", adminSearch.total);
+  const today = new Date().toISOString().slice(0, 10);
+  const adminDateSearch = await request(`/admin/orders?dateStart=${today}&dateEnd=${today}&page=1&pageSize=5`, { headers: auth });
+  console.log("后台订单日期筛选:", adminDateSearch.records?.length ?? 0, "共", adminDateSearch.total);
+  const csvRes = await fetch(`${base}/admin/orders/export.csv?keyword=DD&dateStart=${today}&dateEnd=${today}`, {
+    headers: auth
+  });
+  const csvText = await csvRes.text();
+  if (!csvRes.ok || !csvText.includes("订单号")) {
+    throw new Error(`/admin/orders/export.csv failed: ${csvRes.status} ${csvText.slice(0, 80)}`);
+  }
+  console.log("后台订单CSV导出:", csvText.split("\n").length, "行");
 }
 
 console.log("SELF_TEST_PASS");
