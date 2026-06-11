@@ -42,6 +42,104 @@ adminRouter.get("/auth/me", requireAuth, (req, res) => {
   res.json(ok(req.user));
 });
 
+adminRouter.get("/staff", requireAuth, asyncHandler(async (_req, res) => {
+  const records = await query<any>(
+    `SELECT id AS staffId, username, real_name AS realName, store_id AS storeId, status
+     FROM sys_user
+     WHERE status = 1
+     ORDER BY id ASC`,
+    []
+  );
+  res.json(ok({ total: records.length, records }));
+}));
+
+adminRouter.get("/members", requireAuth, asyncHandler(async (req, res) => {
+  const page = Number(req.query.page || 1);
+  const pageSize = Number(req.query.pageSize || 20);
+  const offset = (page - 1) * pageSize;
+  const keyword = `%${String(req.query.keyword || "")}%`;
+  const records = await query<any>(
+    `SELECT m.id AS memberId, m.name, m.mobile, m.customer_type AS customerType,
+            m.points, m.level_code AS levelCode, m.status,
+            m.staff_id AS staffId, u.real_name AS staffName
+     FROM member m
+     LEFT JOIN sys_user u ON u.id = m.staff_id
+     WHERE m.name LIKE ? OR m.mobile LIKE ?
+     ORDER BY m.id DESC
+     LIMIT ? OFFSET ?`,
+    [keyword, keyword, pageSize, offset]
+  );
+  const totalRow = await queryOne<any>("SELECT COUNT(*) AS total FROM member", []);
+  res.json(ok({ total: totalRow?.total ?? 0, page, pageSize, records }));
+}));
+
+adminRouter.post("/members", requireAuth, asyncHandler(async (req, res) => {
+  const body = z.object({
+    name: z.string(),
+    mobile: z.string(),
+    customerType: z.enum(["RETAIL", "WHOLESALE"]).default("RETAIL"),
+    staffId: z.number().optional()
+  }).parse(req.body);
+  const result = await query<any>(
+    `INSERT INTO member (name, mobile, customer_type, staff_id, points, level_code, status)
+     VALUES (?, ?, ?, ?, 0, ?, 1)`,
+    [body.name, body.mobile, body.customerType, body.staffId ?? null, body.customerType === "WHOLESALE" ? "WHOLESALE" : "NORMAL"]
+  );
+  const memberId = result?.[0]?.insertId ?? Date.now();
+  res.json(ok({ memberId, name: body.name, mobile: body.mobile, customerType: body.customerType, staffId: body.staffId ?? null }));
+}));
+
+adminRouter.get("/members/:memberId", requireAuth, asyncHandler(async (req, res) => {
+  const member = await queryOne<any>(
+    `SELECT m.id AS memberId, m.name, m.mobile, m.customer_type AS customerType,
+            m.points, m.level_code AS levelCode, m.status,
+            m.staff_id AS staffId, u.real_name AS staffName
+     FROM member m
+     LEFT JOIN sys_user u ON u.id = m.staff_id
+     WHERE m.id = ?`,
+    [Number(req.params.memberId)]
+  );
+  if (!member) {
+    res.status(404).json({ code: "404", message: "客户不存在" });
+    return;
+  }
+  res.json(ok(member));
+}));
+
+adminRouter.post("/members/:memberId/assign", requireAuth, asyncHandler(async (req, res) => {
+  const body = z.object({ staffId: z.number() }).parse(req.body);
+  await query("UPDATE member SET staff_id = ?, updated_at = NOW() WHERE id = ?", [body.staffId, Number(req.params.memberId)]);
+  res.json(ok({ memberId: Number(req.params.memberId), staffId: body.staffId }));
+}));
+
+adminRouter.get("/members/:memberId/price-history", requireAuth, asyncHandler(async (req, res) => {
+  const memberId = Number(req.params.memberId);
+  const skuId = Number(req.query.skuId);
+  const records = await query<any>(
+    `SELECT sbi.sku_id AS skuId, sbi.sku_name AS skuName, sbi.unit_price AS unitPrice,
+            sb.bill_no AS billNo, sb.created_at AS createdAt
+     FROM sale_bill_item sbi
+     JOIN sale_bill sb ON sb.bill_no = sbi.bill_no
+     WHERE sb.customer_id = ? AND sbi.sku_id = ?
+     ORDER BY sb.created_at DESC`,
+    [memberId, skuId]
+  );
+  if (records.length === 0) {
+    res.json(ok([]));
+    return;
+  }
+  const prices = records.map((r) => Number(r.unitPrice));
+  res.json(ok([{
+    skuId,
+    skuName: records[0].skuName,
+    lastPrice: prices[0],
+    highestPrice: Math.max(...prices),
+    lowestPrice: Math.min(...prices),
+    billCount: records.length,
+    lastBillNo: records[0].billNo
+  }]));
+}));
+
 adminRouter.get("/stores", requireAuth, asyncHandler(async (req, res) => {
   const page = Number(req.query.page || 1);
   const pageSize = Number(req.query.pageSize || 20);

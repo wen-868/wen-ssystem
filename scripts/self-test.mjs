@@ -91,6 +91,8 @@ const collection = await request(`/store/sale-bills/${saleBill.billNo}/collectio
   body: JSON.stringify({
     shareChannel: "LINK",
     amount: saleBill.receivableAmount,
+    taxEnabled: true,
+    taxRate: 0.13,
     expireHours: 72
   })
 });
@@ -239,6 +241,79 @@ if (lastOrderNo) {
     throw new Error(`/admin/orders/export.csv failed: ${csvRes.status} ${csvText.slice(0, 80)}`);
   }
   console.log("后台订单CSV导出:", csvText.split("\n").length, "行");
+}
+
+// ===== 客户模块 =====
+const memberList = await request("/admin/members", { headers: auth });
+console.log("客户列表:", memberList.records?.length ?? 0);
+const member1 = memberList.records?.[0];
+if (member1) {
+  const memberDetail = await request(`/admin/members/${member1.memberId}`, { headers: auth });
+  console.log("客户详情:", memberDetail.name, memberDetail.customerType);
+}
+const newMember = await request("/admin/members", {
+  method: "POST",
+  headers: auth,
+  body: JSON.stringify({ name: "测试客户", mobile: "13800001111", customerType: "RETAIL" })
+});
+console.log("新增客户:", newMember.memberId, newMember.name);
+
+// ===== 客户归属 =====
+const staffList = await request("/admin/staff", { headers: auth });
+console.log("销售员列表:", staffList.records?.length ?? 0);
+if (member1) {
+  await request(`/admin/members/${member1.memberId}/assign`, {
+    method: "POST",
+    headers: auth,
+    body: JSON.stringify({ staffId: 1 })
+  });
+  const memberAfter = await request(`/admin/members/${member1.memberId}`, { headers: auth });
+  console.log("客户归属:", memberAfter.name, "销售员:", memberAfter.staffName ?? "无");
+}
+
+// ===== 客户定价 =====
+if (member1) {
+  const memberSaleA = await request("/store/sale-bills", {
+    method: "POST",
+    headers: auth,
+    body: JSON.stringify({
+      storeId: 1,
+      customerId: member1.memberId,
+      items: [{ skuId: 1, boxQty: 0, bottleQty: 1, totalBottleQty: 1, unitPrice: 120, priceType: "STORE" }]
+    })
+  });
+  const memberSaleB = await request("/store/sale-bills", {
+    method: "POST",
+    headers: auth,
+    body: JSON.stringify({
+      storeId: 1,
+      customerId: member1.memberId,
+      items: [{ skuId: 1, boxQty: 0, bottleQty: 1, totalBottleQty: 1, unitPrice: 140, priceType: "STORE" }]
+    })
+  });
+  console.log("客户历史开单:", memberSaleA.billNo, memberSaleB.billNo);
+  const priceRef = await request(`/admin/members/${member1.memberId}/price-history?skuId=1`, { headers: auth });
+  console.log("客户价格历史:", priceRef.length ?? 0, priceRef[0]?.lastPrice ?? "无", priceRef[0]?.highestPrice ?? "无", priceRef[0]?.lowestPrice ?? "无");
+}
+const wholesaleSale = await request("/store/sale-bills", {
+  method: "POST",
+  headers: auth,
+  body: JSON.stringify({
+    storeId: 1,
+    customerId: 2,
+    items: [{ skuId: 1, boxQty: 0, bottleQty: 1, totalBottleQty: 1 }]
+  })
+});
+console.log("批发客户开单价:", wholesaleSale.items?.[0]?.unitPrice);
+if (wholesaleSale.items?.[0]?.unitPrice !== 99) {
+  throw new Error("批发客户开单未使用批发价");
+}
+
+// ===== 单据分享增强 =====
+const enhancedShareDetail = await request(`/share/collections/${collection.token}`);
+console.log("分享单详情:", enhancedShareDetail.linkNo, "商品数:", enhancedShareDetail.items?.length ?? 0, "税率:", enhancedShareDetail.taxRate ?? "无");
+if (!enhancedShareDetail.taxEnabled || Number(enhancedShareDetail.taxRate) !== 0.13) {
+  throw new Error("分享单税率开关或税率不正确");
 }
 
 console.log("SELF_TEST_PASS");

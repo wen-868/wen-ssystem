@@ -37,6 +37,31 @@ export async function fetchStores() {
   return data.data;
 }
 
+export async function fetchMembers() {
+  const { data } = await api.get("/admin/members", { params: { page: 1, pageSize: 30 } });
+  return data.data;
+}
+
+export async function createMember(payload: { name: string; mobile: string; customerType: "RETAIL" | "WHOLESALE"; staffId?: number }) {
+  const { data } = await api.post("/admin/members", payload);
+  return data.data;
+}
+
+export async function fetchStaff() {
+  const { data } = await api.get("/admin/staff");
+  return data.data;
+}
+
+export async function assignMember(memberId: number, staffId: number) {
+  const { data } = await api.post(`/admin/members/${memberId}/assign`, { staffId });
+  return data.data;
+}
+
+export async function fetchMemberPriceHistory(memberId: number, skuId: number) {
+  const { data } = await api.get(`/admin/members/${memberId}/price-history`, { params: { skuId } });
+  return data.data || [];
+}
+
 export async function createStore(payload: { code: string; name: string; address?: string; phone?: string }) {
   const { data } = await api.post("/admin/stores", payload);
   return data.data;

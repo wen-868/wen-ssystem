@@ -22,10 +22,12 @@ export async function createSaleBill(payload: unknown) {
   return data.data;
 }
 
-export async function createCollectionLink(billNo: string, amount: number) {
+export async function createCollectionLink(billNo: string, amount: number, options?: { taxEnabled?: boolean; taxRate?: number }) {
   const { data } = await api.post(`/store/sale-bills/${billNo}/collection-link`, {
     shareChannel: "LINK",
     amount,
+    taxEnabled: options?.taxEnabled ?? false,
+    taxRate: options?.taxRate ?? 0,
     expireHours: 72
   });
   return data.data;

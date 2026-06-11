@@ -9,7 +9,8 @@ export const shareRouter = Router();
 shareRouter.get("/collections/:token", asyncHandler(async (req, res) => {
   const link = await queryOne<any>(
     `SELECT cl.link_no AS linkNo, cl.source_type AS sourceType, cl.source_no AS sourceNo, cl.amount, cl.paid_amount AS paidAmount,
-            cl.status, cl.expire_at AS expireAt, sb.customer_name AS customerName, st.name AS storeName
+            cl.status, cl.expire_at AS expireAt, cl.tax_enabled AS taxEnabled, cl.tax_rate AS taxRate, cl.tax_amount AS taxAmount,
+            sb.customer_name AS customerName, st.name AS storeName
      FROM collection_link cl
      JOIN sale_bill sb ON sb.bill_no = cl.source_no
      JOIN store st ON st.id = sb.store_id

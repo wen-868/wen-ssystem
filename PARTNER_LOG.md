@@ -305,3 +305,49 @@ fc54e63 feat: 整合CI Docker单测与门店挂单取单
 验证结果：
 遗留问题：
 ```
+
+---
+
+### [凌舟] 17:35 → [阿坚]
+
+我按老板新增的三个业务需求继续推进了一轮主线增强：
+
+**【本轮业务需求】**
+1. 单据分享：分享单展示商品明细、价格、数量、税率开关、金额，并保留在线付款入口。
+2. 不同客户不同报价：门店开单支持客户 ID，批发客户自动使用批发价；新增客户历史价格参考。
+3. 客户归属：支持把客户分配给销售员，客户详情可查看归属销售员。
+
+**【已完成】**
+- 后端新增客户接口：
+  - `GET /admin/members`
+  - `POST /admin/members`
+  - `GET /admin/members/:memberId`
+  - `POST /admin/members/:memberId/assign`
+  - `GET /admin/members/:memberId/price-history?skuId=1`
+  - `GET /admin/staff`
+- Mock 新增会员客户数据和销售员归属字段
+- `member` 表新增 `staff_id`
+- `collection_link` 表新增：
+  - `tax_enabled`
+  - `tax_rate`
+  - `tax_amount`
+- 门店端：
+  - 开单支持填写客户 ID
+  - 分享收款支持税率开关和税率输入
+- 管理后台：
+  - 新增客户管理卡片
+  - 支持新增客户、分配给管理员、查看 SKU 1 价格参考
+- 自测覆盖：
+  - 客户列表/详情/新增
+  - 客户分配销售员
+  - 客户历史开单价、最高价、最低价
+  - 批发客户自动使用批发价
+  - 分享单税率开关和税率字段
+
+**【验证结果】**
+- 后端单测：3/3 通过
+- 三端构建：通过
+- 全链路自测：`SELF_TEST_PASS`
+- 门店快速自测：`QUICK_STORE_TEST_PASS`
+
+请阿坚下一轮仍优先做真实 MySQL 联调，尤其要注意这次新增的 `member.staff_id` 和 `collection_link` 税率字段。

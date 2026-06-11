@@ -7,6 +7,10 @@ const state = {
     { id: 1, username: "admin", password_hash: sha256("admin123"), real_name: "系统管理员", store_id: null, status: 1 }
   ],
   roles: [{ id: 1, role_code: "SUPER_ADMIN", role_name: "超级管理员", status: 1 }],
+  members: [
+    { id: 1, name: "默认零售客户", mobile: "13900000000", customer_type: "RETAIL", points: 120, level_code: "NORMAL", status: 1, staff_id: null as number | null },
+    { id: 2, name: "默认批发客户", mobile: "13900000001", customer_type: "WHOLESALE", points: 0, level_code: "WHOLESALE", status: 1, staff_id: 1 }
+  ] as Row[],
   stores: [
     { id: 1, store_code: "STORE0001", name: "默认门店", address: "演示地址", contact: "管理员", phone: "13800000000", delivery_radius: 3, business_status: "OPEN", status: 1 }
   ],
@@ -47,6 +51,74 @@ export async function mockQuery<T = any>(sql: string, params: unknown[] = []) {
   if (s.includes("from sys_user_role") && s.includes("join sys_role")) {
     return state.roles.map((r) => ({ role_code: r.role_code })) as T[];
   }
+  if (s.includes("from sys_user") && !s.includes("where username")) {
+    return state.users.map((u) => ({
+      staffId: u.id,
+      id: u.id,
+      username: u.username,
+      realName: u.real_name,
+      storeId: u.store_id,
+      status: u.status
+    })) as T[];
+  }
+  if (s.includes("count(*) as total from member")) return [{ total: state.members.length }] as T[];
+  if (s.includes("from member") && s.includes("where id = ?")) {
+    const member = state.members.find((m) => Number(m.id) === Number(params[0]));
+    if (!member) return [] as T[];
+    const staff = state.users.find((u) => u.id === member.staff_id);
+    return [{
+      memberId: member.id,
+      id: member.id,
+      name: member.name,
+      mobile: member.mobile,
+      customerType: member.customer_type,
+      customer_type: member.customer_type,
+      points: member.points,
+      levelCode: member.level_code,
+      level_code: member.level_code,
+      status: member.status,
+      staffId: member.staff_id,
+      staffName: staff?.real_name ?? null
+    }] as T[];
+  }
+  if (s.includes("from member")) {
+    return state.members.map((member) => {
+      const staff = state.users.find((u) => u.id === member.staff_id);
+      return {
+        memberId: member.id,
+        id: member.id,
+        name: member.name,
+        mobile: member.mobile,
+        customerType: member.customer_type,
+        customer_type: member.customer_type,
+        points: member.points,
+        levelCode: member.level_code,
+        level_code: member.level_code,
+        status: member.status,
+        staffId: member.staff_id,
+        staffName: staff?.real_name ?? null
+      };
+    }) as T[];
+  }
+  if (s.includes("insert into member")) {
+    const id = state.members.length + 1;
+    state.members.push({
+      id,
+      name: params[0],
+      mobile: params[1],
+      customer_type: params[2],
+      points: 0,
+      level_code: params[2] === "WHOLESALE" ? "WHOLESALE" : "NORMAL",
+      status: 1,
+      staff_id: params[3] == null ? null : Number(params[3])
+    });
+    return [{ insertId: id, affectedRows: 1 }] as T[];
+  }
+  if (s.includes("update member set staff_id")) {
+    const member = state.members.find((m) => Number(m.id) === Number(params[1]));
+    if (member) member.staff_id = Number(params[0]);
+    return [] as T[];
+  }
   if (s.includes("from store") && s.includes("count(*)")) return [{ total: state.stores.length }] as T[];
   if (s.includes("from store") && !s.includes("group by") && !s.includes("join")) {
     return state.stores.map((st) => ({
@@ -76,6 +148,23 @@ export async function mockQuery<T = any>(sql: string, params: unknown[] = []) {
     return [] as T[];
   }
   if (s.includes("from product_sku") && s.includes("count(*)")) return [{ total: state.products.length }] as T[];
+  if (s.includes("from sale_bill_item") && s.includes("join sale_bill") && s.includes("customer_id")) {
+    const memberId = Number(params[0]);
+    const skuId = Number(params[1]);
+    const bills = state.saleBills.filter((b) => Number(b.customerId ?? b.customer_id) === memberId);
+    const records = bills.flatMap((bill) =>
+      state.saleBillItems
+        .filter((item) => (item.billNo === bill.billNo || item.bill_no === bill.bill_no) && Number(item.skuId ?? item.sku_id) === skuId)
+        .map((item) => ({
+          skuId: item.skuId,
+          skuName: item.skuName,
+          unitPrice: item.unitPrice,
+          billNo: bill.billNo,
+          createdAt: bill.createdAt
+        }))
+    );
+    return records as T[];
+  }
   if (s.includes("select s.sku_name") && s.includes("from product_sku s") && s.includes("join product_price")) {
     const product = state.products.find((p) => p.skuId === params[0]);
     return product
@@ -232,7 +321,20 @@ export async function mockQuery<T = any>(sql: string, params: unknown[] = []) {
   }
   if (s.includes("from sale_bill") && !s.includes("join") && !s.includes("group by")) return state.saleBills as T[];
   if (s.includes("insert into collection_link")) {
-    state.collectionLinks.push({ linkNo: params[0], sourceType: "SALE_BILL", sourceNo: params[1], amount: params[2], paidAmount: 0, status: "PENDING", shareChannel: params[3], expireAt: new Date(Date.now() + Number(params[5]) * 3600_000).toISOString(), token: params[6] });
+    state.collectionLinks.push({
+      linkNo: params[0],
+      sourceType: "SALE_BILL",
+      sourceNo: params[1],
+      amount: params[2],
+      paidAmount: 0,
+      status: "PENDING",
+      shareChannel: params[3],
+      expireAt: new Date(Date.now() + Number(params[5]) * 3600_000).toISOString(),
+      token: params[6],
+      taxEnabled: Boolean(params[7]),
+      taxRate: Number(params[8] ?? 0),
+      taxAmount: Number(params[9] ?? 0)
+    });
     return [] as T[];
   }
   if (s.includes("update sale_bill")) {

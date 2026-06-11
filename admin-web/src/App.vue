@@ -108,6 +108,33 @@
       </el-card>
       <el-card style="margin-top: 20px">
         <template #header>
+          <div style="display: flex; justify-content: space-between; align-items: center">
+            <span>客户管理</span>
+            <div>
+              <el-button size="small" @click="loadMembers">刷新客户</el-button>
+              <el-button size="small" type="primary" @click="memberDialogVisible = true">新增客户</el-button>
+            </div>
+          </div>
+        </template>
+        <el-table :data="members" empty-text="暂无客户">
+          <el-table-column prop="memberId" label="客户ID" width="90" />
+          <el-table-column prop="name" label="客户名称" />
+          <el-table-column prop="mobile" label="手机号" width="140" />
+          <el-table-column prop="customerType" label="客户类型" width="120" />
+          <el-table-column prop="staffName" label="归属销售员" width="140" />
+          <el-table-column label="操作" width="210">
+            <template #default="{ row }">
+              <el-button size="small" link type="primary" @click="handleAssignMember(row)">分配给管理员</el-button>
+              <el-button size="small" link @click="handleShowPriceHistory(row)">价格参考</el-button>
+            </template>
+          </el-table-column>
+        </el-table>
+        <el-alert v-if="priceHistoryTip" type="info" show-icon :closable="false" style="margin-top: 12px">
+          <template #title>{{ priceHistoryTip }}</template>
+        </el-alert>
+      </el-card>
+      <el-card style="margin-top: 20px">
+        <template #header>
           <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 10px">
             <span>小程序订单</span>
             <div style="display: flex; gap: 8px; align-items: center">
@@ -356,6 +383,26 @@
           <el-button type="primary" :loading="loading" @click="handleCreateStore">保存</el-button>
         </template>
       </el-dialog>
+      <el-dialog v-model="memberDialogVisible" title="新增客户" width="480px">
+        <el-form label-width="100px">
+          <el-form-item label="客户名称">
+            <el-input v-model="memberForm.name" />
+          </el-form-item>
+          <el-form-item label="手机号">
+            <el-input v-model="memberForm.mobile" />
+          </el-form-item>
+          <el-form-item label="客户类型">
+            <el-select v-model="memberForm.customerType">
+              <el-option label="零售客户" value="RETAIL" />
+              <el-option label="批发客户" value="WHOLESALE" />
+            </el-select>
+          </el-form-item>
+        </el-form>
+        <template #footer>
+          <el-button @click="memberDialogVisible = false">取消</el-button>
+          <el-button type="primary" :loading="loading" @click="handleCreateMember">保存</el-button>
+        </template>
+      </el-dialog>
       <el-dialog v-model="priceDialogVisible" title="调整商品价格" width="420px">
         <el-form label-width="100px">
           <el-form-item label="SKU">
@@ -384,7 +431,7 @@
 <script setup lang="ts">
 import { nextTick, onMounted, reactive, ref } from "vue";
 import { ElMessage } from "element-plus";
-import { adminLogin, createProduct, createStore, exportOrdersCsv, fetchCollectionLinks, fetchDailySales, fetchDashboard, fetchInventoryAlerts, fetchInventoryBalances, fetchInventoryLogs, fetchOrderDetail, fetchOrders, fetchOrderStats, fetchPaymentOrders, fetchProducts, fetchRefundOrders, fetchSaleBills, fetchStorePerformance, fetchStores, updateProductPrice } from "./api";
+import { adminLogin, assignMember, createMember, createProduct, createStore, exportOrdersCsv, fetchCollectionLinks, fetchDailySales, fetchDashboard, fetchInventoryAlerts, fetchInventoryBalances, fetchInventoryLogs, fetchMemberPriceHistory, fetchMembers, fetchOrderDetail, fetchOrders, fetchOrderStats, fetchPaymentOrders, fetchProducts, fetchRefundOrders, fetchSaleBills, fetchStorePerformance, fetchStores, updateProductPrice } from "./api";
 
 const nav = ["首页", "商品", "订单", "销售单", "库存", "收款", "报表", "系统"];
 
@@ -392,6 +439,7 @@ const token = ref(localStorage.getItem("admin_token") || "");
 const loading = ref(false);
 const products = ref<any[]>([]);
 const stores = ref<any[]>([]);
+const members = ref<any[]>([]);
 const orders = ref<any[]>([]);
 const ordersTotal = ref(0);
 const ordersPage = ref(1);
@@ -414,7 +462,9 @@ const barCanvas = ref<HTMLCanvasElement | null>(null);
 const pieCanvas = ref<HTMLCanvasElement | null>(null);
 const productDialogVisible = ref(false);
 const storeDialogVisible = ref(false);
+const memberDialogVisible = ref(false);
 const priceDialogVisible = ref(false);
+const priceHistoryTip = ref("");
 const loginForm = reactive({ username: "admin", password: "admin123" });
 const productForm = reactive({
   name: "演示新品白酒",
@@ -430,6 +480,11 @@ const storeForm = reactive({
   name: "演示新门店",
   address: "示例地址",
   phone: "13800000001"
+});
+const memberForm = reactive({
+  name: "演示新客户",
+  mobile: `139${Date.now().toString().slice(-8)}`,
+  customerType: "RETAIL" as "RETAIL" | "WHOLESALE"
 });
 const priceForm = reactive({
   skuId: 0,
@@ -452,7 +507,7 @@ async function handleLogin() {
     localStorage.setItem("admin_token", result.token);
     token.value = result.token;
     ElMessage.success("登录成功");
-    await Promise.all([loadDashboard(), loadProducts(), loadStores(), loadOrders(), loadSaleBills(), loadInventoryLogs(), loadInventoryBalances(), loadCollectionLinks(), loadPaymentOrders(), loadRefundOrders(), loadDailySales(), loadOrderStats(), loadStorePerformance(), loadInventoryAlerts()]);
+    await Promise.all([loadDashboard(), loadProducts(), loadStores(), loadMembers(), loadOrders(), loadSaleBills(), loadInventoryLogs(), loadInventoryBalances(), loadCollectionLinks(), loadPaymentOrders(), loadRefundOrders(), loadDailySales(), loadOrderStats(), loadStorePerformance(), loadInventoryAlerts()]);
   } finally {
     loading.value = false;
   }
@@ -476,6 +531,11 @@ async function loadProducts() {
 async function loadStores() {
   const data = await fetchStores();
   stores.value = data.records || [];
+}
+
+async function loadMembers() {
+  const data = await fetchMembers();
+  members.value = data.records || [];
 }
 
 async function loadOrders(page?: number) {
@@ -696,6 +756,34 @@ async function handleCreateStore() {
   }
 }
 
+async function handleCreateMember() {
+  loading.value = true;
+  try {
+    await createMember(memberForm);
+    ElMessage.success("客户已新增");
+    memberDialogVisible.value = false;
+    await loadMembers();
+  } finally {
+    loading.value = false;
+  }
+}
+
+async function handleAssignMember(row: any) {
+  await assignMember(row.memberId, 1);
+  ElMessage.success("客户已分配给系统管理员");
+  await loadMembers();
+}
+
+async function handleShowPriceHistory(row: any) {
+  const records = await fetchMemberPriceHistory(row.memberId, 1);
+  if (!records.length) {
+    priceHistoryTip.value = `${row.name} 暂无 SKU 1 历史开单价`;
+    return;
+  }
+  const ref = records[0];
+  priceHistoryTip.value = `${row.name} / SKU ${ref.skuId}：上次 ¥${ref.lastPrice}，最高 ¥${ref.highestPrice}，最低 ¥${ref.lowestPrice}`;
+}
+
 async function handleCreateProduct() {
   loading.value = true;
   try {
@@ -730,7 +818,7 @@ async function handleCreateProduct() {
 
 onMounted(() => {
   if (token.value) {
-    Promise.all([loadDashboard(), loadProducts(), loadStores(), loadOrders(), loadSaleBills(), loadInventoryLogs(), loadInventoryBalances(), loadCollectionLinks(), loadPaymentOrders(), loadRefundOrders(), loadDailySales(), loadOrderStats(), loadStorePerformance(), loadInventoryAlerts()]).catch(() => {
+    Promise.all([loadDashboard(), loadProducts(), loadStores(), loadMembers(), loadOrders(), loadSaleBills(), loadInventoryLogs(), loadInventoryBalances(), loadCollectionLinks(), loadPaymentOrders(), loadRefundOrders(), loadDailySales(), loadOrderStats(), loadStorePerformance(), loadInventoryAlerts()]).catch(() => {
       ElMessage.warning("接口暂不可用，请确认后端和数据库已启动");
     });
   }

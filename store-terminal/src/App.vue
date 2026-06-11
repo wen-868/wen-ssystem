@@ -87,6 +87,10 @@
           <el-form-item label="客户姓名">
             <el-input v-model="saleForm.customerName" placeholder="客户姓名" />
           </el-form-item>
+          <el-form-item label="客户ID">
+            <el-input-number v-model="saleForm.customerId" :min="0" />
+            <span class="muted" style="margin-left: 8px">填写客户ID后按客户身份自动取价</span>
+          </el-form-item>
           <el-form-item label="客户手机号">
             <el-input v-model="saleForm.customerMobile" placeholder="客户手机号" />
           </el-form-item>
@@ -98,6 +102,10 @@
           </el-form-item>
           <el-form-item label="单价">
             <el-input-number v-model="saleForm.unitPrice" :min="0" :precision="2" />
+          </el-form-item>
+          <el-form-item label="分享税率">
+            <el-switch v-model="saleForm.taxEnabled" active-text="开启" inactive-text="关闭" />
+            <el-input-number v-if="saleForm.taxEnabled" v-model="saleForm.taxRate" :min="0" :max="1" :step="0.01" :precision="2" style="margin-left: 12px" />
           </el-form-item>
           <el-form-item>
             <el-button type="primary" :loading="loading" @click="handleCreateSaleBill">创建销售单</el-button>
@@ -399,11 +407,14 @@ const currentAmount = ref(0);
 const shareUrl = ref("");
 const loginForm = reactive({ username: "admin", password: "admin123" });
 const saleForm = reactive({
+  customerId: 0,
   customerName: "演示客户",
   customerMobile: "13900000000",
   skuId: 1,
   totalBottleQty: 1,
-  unitPrice: 129
+  unitPrice: 129,
+  taxEnabled: false,
+  taxRate: 0.13
 });
 
 const cards = computed(() => [
@@ -431,6 +442,7 @@ async function handleCreateSaleBill() {
   try {
     const result = await createSaleBill({
       storeId: 1,
+      customerId: saleForm.customerId > 0 ? saleForm.customerId : undefined,
       customerName: saleForm.customerName,
       customerMobile: saleForm.customerMobile,
       items: [{
@@ -498,7 +510,7 @@ async function handleDeleteHoldOrder(holdNo: string) {
 
 async function handleShareCollection() {
   if (!currentBillNo.value) return;
-  const result = await createCollectionLink(currentBillNo.value, currentAmount.value);
+  const result = await createCollectionLink(currentBillNo.value, currentAmount.value, { taxEnabled: saleForm.taxEnabled, taxRate: saleForm.taxRate });
   shareUrl.value = `${location.origin}${result.shareUrl}`;
   ElMessage.success("分享收款链接已生成");
   await loadSaleBills();
@@ -632,7 +644,7 @@ async function shareExistingBill(row: any) {
     ElMessage.warning("当前销售单没有可收金额");
     return;
   }
-  const result = await createCollectionLink(row.billNo, amount);
+  const result = await createCollectionLink(row.billNo, amount, { taxEnabled: saleForm.taxEnabled, taxRate: saleForm.taxRate });
   const url = `${location.origin}${result.shareUrl}`;
   if (detailVisible.value) {
     detailShareUrl.value = url;

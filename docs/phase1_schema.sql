@@ -131,6 +131,7 @@ CREATE TABLE member (
   mobile VARCHAR(20) NOT NULL COMMENT '手机号',
   name VARCHAR(64) DEFAULT NULL COMMENT '客户名称',
   customer_type VARCHAR(32) NOT NULL DEFAULT 'RETAIL' COMMENT '客户身份：RETAIL/WHOLESALE',
+  staff_id BIGINT UNSIGNED DEFAULT NULL COMMENT '归属销售员ID',
   points INT NOT NULL DEFAULT 0 COMMENT '积分',
   level_code VARCHAR(32) DEFAULT NULL COMMENT '会员等级',
   status TINYINT NOT NULL DEFAULT 1 COMMENT '状态：1正常，0禁用',
@@ -140,7 +141,8 @@ CREATE TABLE member (
   PRIMARY KEY (id),
   UNIQUE KEY uk_member_mobile (mobile),
   UNIQUE KEY uk_member_openid (openid),
-  KEY idx_member_customer_type (customer_type, status)
+  KEY idx_member_customer_type (customer_type, status),
+  KEY idx_member_staff_id (staff_id)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='会员客户表';
 
 CREATE TABLE product_category (
@@ -372,6 +374,9 @@ CREATE TABLE collection_link (
   source_no VARCHAR(64) NOT NULL COMMENT '来源单号',
   customer_id BIGINT UNSIGNED DEFAULT NULL COMMENT '客户ID',
   amount DECIMAL(12,2) NOT NULL COMMENT '本次收款金额',
+  tax_enabled TINYINT NOT NULL DEFAULT 0 COMMENT '是否展示税率',
+  tax_rate DECIMAL(8,4) NOT NULL DEFAULT 0.0000 COMMENT '税率',
+  tax_amount DECIMAL(12,2) NOT NULL DEFAULT 0.00 COMMENT '税额',
   paid_amount DECIMAL(12,2) NOT NULL DEFAULT 0.00 COMMENT '已支付金额',
   status VARCHAR(32) NOT NULL DEFAULT 'PENDING' COMMENT '状态：PENDING/PARTIAL/PAID/EXPIRED/CLOSED',
   share_channel VARCHAR(32) NOT NULL COMMENT '分享方式：MINIAPP_CARD/LINK/IMAGE/QR_CODE',

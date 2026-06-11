@@ -212,6 +212,8 @@ storeRouter.post("/sale-bills/:billNo/collection-link", asyncHandler(async (req,
   const body = z.object({
     shareChannel: z.enum(["MINIAPP_CARD", "LINK", "IMAGE", "QR_CODE"]).default("LINK"),
     amount: z.number(),
+    taxEnabled: z.boolean().default(false),
+    taxRate: z.number().min(0).max(1).default(0),
     expireHours: z.number().default(72),
     remark: z.string().optional()
   }).parse(req.body);
@@ -226,10 +228,11 @@ storeRouter.post("/sale-bills/:billNo/collection-link", asyncHandler(async (req,
   }
   const linkNo = makeBizNo("SK");
   const token = makeToken();
+  const taxAmount = body.taxEnabled ? Number((body.amount * body.taxRate).toFixed(2)) : 0;
   await query(
-    `INSERT INTO collection_link (link_no, source_type, source_no, amount, paid_amount, status, share_channel, share_user_id, expire_at, token)
-     VALUES (?, 'SALE_BILL', ?, ?, 0, 'PENDING', ?, ?, DATE_ADD(NOW(), INTERVAL ? HOUR), ?)`,
-    [linkNo, req.params.billNo, body.amount, body.shareChannel, req.user?.id ?? 0, body.expireHours, token]
+    `INSERT INTO collection_link (link_no, source_type, source_no, amount, paid_amount, status, share_channel, share_user_id, expire_at, token, tax_enabled, tax_rate, tax_amount)
+     VALUES (?, 'SALE_BILL', ?, ?, 0, 'PENDING', ?, ?, DATE_ADD(NOW(), INTERVAL ? HOUR), ?, ?, ?, ?)`,
+    [linkNo, req.params.billNo, body.amount, body.shareChannel, req.user?.id ?? 0, body.expireHours, token, body.taxEnabled ? 1 : 0, body.taxRate, taxAmount]
   );
   await query(
     `UPDATE sale_bill
@@ -242,6 +245,9 @@ storeRouter.post("/sale-bills/:billNo/collection-link", asyncHandler(async (req,
     sourceType: "SALE_BILL",
     sourceNo: req.params.billNo,
     amount: body.amount,
+    taxEnabled: body.taxEnabled,
+    taxRate: body.taxRate,
+    taxAmount,
     paidAmount: 0,
     status: "PENDING",
     shareUrl: `/share/collections/${token}`,
