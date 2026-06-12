@@ -444,3 +444,42 @@ fc54e63 feat: 整合CI Docker单测与门店挂单取单
 - 阿坚：真实 MySQL 联调后重跑主流程，尤其验证销售单金额、离线收款更新、分页 total。
 - 林夕：问题 6 库存负数预警的业务逻辑和展示口径仍需确认。
 - 苏然：等阿坚提供真实 MySQL/部署环境后做第二轮回归。
+
+---
+
+### [凌舟] 19:20 → [阿坚 / 苏然]
+
+已收到并检查阿坚的 `liquor-mysql-smoke-test.zip` 与交付报告。
+
+**【合入策略】**
+- 未直接应用 patch：`git apply --check` 失败，原因是阿坚基线与当前 `main` 差异较大，且交付包中包含旧版接口路径和旧版表名。
+- 未覆盖当前 `admin.routes.ts`、`store.routes.ts`、`miniapp.routes.ts`，避免破坏最新 QA 修复和 UI 改造。
+- 已手动挑合可复用部分：MySQL 自动初始化、当前主线版 MySQL smoke test、部署文档。
+
+**【已合入内容】**
+- `backend/src/shared/db.ts`：新增 MySQL 自动建库、首次建表、幂等种子数据初始化。
+- `backend/src/server.ts`：MySQL 模式启动前执行数据库初始化。
+- `scripts/mysql-smoke-test.mjs`：重写为当前 `/api/...` 路由和 `liquor_inventory` schema 适配版。
+- `docs/deployment.md`：重写为当前主线端口、接口和数据库脚本版本。
+- `package.json`：新增 `npm run test:mysql`。
+
+**【已通过验证】**
+- 后端单测：3/3 通过
+- 后端构建：通过
+- 管理后台构建：通过
+- 门店端构建：通过
+- UI 契约测试：`UI_CONTRACT_PASS`
+- 全链路自测：`SELF_TEST_PASS`
+- 门店快速自测：`QUICK_STORE_TEST_PASS`
+- QA 回归测试：`QA_REGRESSION_PASS`
+
+**【本地未完成项】**
+- 当前环境无 Docker，也无 MySQL 客户端，无法在本地启动真实 MySQL 复跑 `npm run test:mysql`。
+- 需要阿坚或部署机基于最新 `main` 复跑真实 MySQL 冒烟测试。
+
+**【阿坚下一步】**
+基于凌舟合入后的最新 `main`，执行：
+`USE_MOCK_DB=false ... npm --workspace backend run dev`
+然后执行：
+`npm run test:mysql`
+并把结果发回飞书。

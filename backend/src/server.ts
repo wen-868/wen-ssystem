@@ -2,6 +2,7 @@ import cors from "cors";
 import express from "express";
 import helmet from "helmet";
 import { env } from "./shared/env.js";
+import { initDatabase } from "./shared/db.js";
 import { errorHandler } from "./shared/error-handler.js";
 import { adminRouter } from "./routes/admin.routes.js";
 import { storeRouter } from "./routes/store.routes.js";
@@ -27,6 +28,17 @@ app.use("/api/share", shareRouter);
 
 app.use(errorHandler);
 
-app.listen(env.PORT, () => {
-  console.log(`zhixiang-backend listening on http://localhost:${env.PORT}`);
+async function start() {
+  if (!env.USE_MOCK_DB) {
+    await initDatabase();
+  }
+
+  app.listen(env.PORT, () => {
+    console.log(`zhixiang-backend listening on http://localhost:${env.PORT}`);
+  });
+}
+
+start().catch((error) => {
+  console.error("❌ 后端启动失败:", error);
+  process.exit(1);
 });

@@ -18,7 +18,8 @@
     "test:backend": "npm --workspace backend test",
     "test:store": "node scripts/quick-store-test.mjs",
     "test:ui": "node scripts/ui-contract-test.mjs",
-    "test:qa": "node scripts/qa-regression-test.mjs"
+    "test:qa": "node scripts/qa-regression-test.mjs",
+    "test:mysql": "node scripts/mysql-smoke-test.mjs"
   },
   "devDependencies": {
     "wait-on": "^9.0.10"
