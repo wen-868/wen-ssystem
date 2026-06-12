@@ -226,10 +226,10 @@ export async function mockQuery<T = any>(sql: string, params: unknown[] = []) {
     return inv ? [{ physicalQty: inv.physicalQty, physical_qty: inv.physicalQty }] as T[] : [] as T[];
   }
   if (s.includes("from inventory_balance")) return state.inventory as T[];
-  if (s.includes("from inventory_log") && s.includes("count(*)")) {
+  if ((s.includes("from inventory_log") || s.includes("from inventory_ledger")) && s.includes("count(*)")) {
     return [{ total: state.inventoryLogs.length }] as T[];
   }
-  if (s.includes("from inventory_log")) return state.inventoryLogs as T[];
+  if (s.includes("from inventory_log") || s.includes("from inventory_ledger")) return state.inventoryLogs as T[];
   if (s.includes("sum(received_amount)")) {
     const amount = state.saleBills.reduce((sum, b) => sum + Number(b.receivedAmount || b.received_amount || 0), 0);
     return [{ amount, count: state.saleBills.length }] as T[];
@@ -490,6 +490,23 @@ export async function mockQuery<T = any>(sql: string, params: unknown[] = []) {
       afterQty: Number(params[6]),
       reason: String(params[7]),
       operatorName: String(params[8]),
+      createdAt: new Date().toISOString()
+    });
+    return [] as T[];
+  }
+  if (s.includes("insert into inventory_ledger")) {
+    const product = state.products.find((p) => Number(p.skuId) === Number(params[2]));
+    state.inventoryLogs.push({
+      logNo: String(params[0]),
+      storeId: Number(params[1]),
+      skuId: Number(params[2]),
+      skuName: product?.skuName ?? "",
+      stockType: String(params[3]),
+      changeQty: Number(params[5]),
+      beforeQty: Number(params[6]),
+      afterQty: Number(params[7]),
+      reason: String(params[10] ?? ""),
+      operatorId: params[8],
       createdAt: new Date().toISOString()
     });
     return [] as T[];

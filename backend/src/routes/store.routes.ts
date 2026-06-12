@@ -82,7 +82,7 @@ storeRouter.get("/orders/:orderNo", asyncHandler(async (req, res) => {
   );
   if (!order) { res.status(404).json({ code: "404", message: "订单不存在" }); return; }
   const items = await query<any>(
-    `SELECT sku_id AS skuId, sku_name AS skuName, quantity, unit_price AS unitPrice,
+    `SELECT sku_id AS skuId, sku_name AS skuName, qty AS quantity, unit_price AS unitPrice,
             subtotal_amount AS subtotalAmount
      FROM miniapp_order_item WHERE order_no = ?`,
     [req.params.orderNo]
@@ -308,9 +308,23 @@ storeRouter.post("/inventory/adjust", asyncHandler(async (req, res) => {
   );
   const afterQty = beforeQty + body.change;
   await query(
-    `INSERT INTO inventory_log (log_no, store_id, sku_id, sku_name, change_qty, before_qty, after_qty, reason, operator_name)
-     VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`,
-    [makeBizNo("IL"), storeId, body.skuId, "", body.change, beforeQty, afterQty, body.remark ?? "门店调整", req.user?.username ?? "门店用户"]
+    `INSERT INTO inventory_ledger (ledger_no, store_id, sku_id, stock_type, biz_type, biz_no,
+                                   change_qty, before_qty, after_qty, before_locked_qty, after_locked_qty,
+                                   operator_id, idempotency_key, remark)
+     VALUES (?, ?, ?, ?, 'ADJUST', ?, ?, ?, ?, 0, 0, ?, ?, ?)`,
+    [
+      makeBizNo("IL"),
+      storeId,
+      body.skuId,
+      body.stockType,
+      makeBizNo("ADJ"),
+      body.change,
+      beforeQty,
+      afterQty,
+      req.user?.id ?? null,
+      makeBizNo("IDEMP"),
+      body.remark ?? "门店调整"
+    ]
   );
   res.json(ok({ ok: true }));
 }));
@@ -320,21 +334,23 @@ storeRouter.get("/inventory/logs", asyncHandler(async (req, res) => {
   const pageSize = Number(req.query.pageSize || 20);
   const offset = (page - 1) * pageSize;
   const storeId = req.query.storeId ? Number(req.query.storeId) : req.user?.storeId;
-  let sql = `SELECT log_no AS logNo, store_id AS storeId, sku_id AS skuId, sku_name AS skuName,
-                    change_qty AS changeQty, before_qty AS beforeQty, after_qty AS afterQty,
-                    reason, operator_name AS operatorName, created_at AS createdAt
-             FROM inventory_log`;
+  let sql = `SELECT il.ledger_no AS logNo, il.store_id AS storeId, il.sku_id AS skuId,
+                    ps.sku_name AS skuName, il.change_qty AS changeQty,
+                    il.before_qty AS beforeQty, il.after_qty AS afterQty,
+                    il.remark AS reason, il.operator_id AS operatorId, il.created_at AS createdAt
+             FROM inventory_ledger il
+             LEFT JOIN product_sku ps ON ps.id = il.sku_id`;
   const params: unknown[] = [];
   if (storeId) {
-    sql += " WHERE store_id = ?";
+    sql += " WHERE il.store_id = ?";
     params.push(storeId);
   }
-  sql += " ORDER BY created_at DESC LIMIT ? OFFSET ?";
+  sql += " ORDER BY il.created_at DESC LIMIT ? OFFSET ?";
   params.push(pageSize, offset);
   const records = await query<any>(sql, params);
   const totalSql = storeId
-    ? "SELECT COUNT(*) AS total FROM inventory_log WHERE store_id = ?"
-    : "SELECT COUNT(*) AS total FROM inventory_log";
+    ? "SELECT COUNT(*) AS total FROM inventory_ledger WHERE store_id = ?"
+    : "SELECT COUNT(*) AS total FROM inventory_ledger";
   const totalRow = await queryOne<any>(totalSql, storeId ? [storeId] : []);
   res.json(ok({ total: totalRow?.total ?? 0, page, pageSize, records }));
 }));
@@ -363,7 +379,7 @@ storeRouter.get("/payment-orders", asyncHandler(async (req, res) => {
   const offset = (page - 1) * pageSize;
   const records = await query<any>(
     `SELECT pay_no AS payNo, source_type AS sourceType, source_no AS sourceNo,
-            amount, status, payment_method AS paymentMethod,
+            amount, status, channel AS paymentMethod,
             paid_at AS paidAt, created_at AS createdAt
      FROM payment_order
      ORDER BY created_at DESC
@@ -506,9 +522,10 @@ storeRouter.get("/inventory/alerts", asyncHandler(async (req, res) => {
   const where = storeId ? "WHERE ib.store_id = ?" : "";
   const params = storeId ? [storeId] : [];
   const records = await query<any>(
-    `SELECT ib.sku_id AS skuId, ib.sku_name AS skuName,
+    `SELECT ib.sku_id AS skuId, ps.sku_name AS skuName,
             ib.stock_type AS stockType, ib.available_qty AS availableQty
      FROM inventory_balance ib
+     LEFT JOIN product_sku ps ON ps.id = ib.sku_id
      ${where ? where + " AND" : "WHERE"} ib.available_qty <= 5
      ORDER BY ib.available_qty ASC
      LIMIT 20`,

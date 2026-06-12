@@ -437,15 +437,17 @@ adminRouter.get("/inventory/logs", requireAuth, asyncHandler(async (req, res) =>
   const pageSize = Number(req.query.pageSize || 20);
   const offset = (page - 1) * pageSize;
   const records = await query<any>(
-    `SELECT log_no AS logNo, store_id AS storeId, sku_id AS skuId, sku_name AS skuName,
-            change_qty AS changeQty, before_qty AS beforeQty, after_qty AS afterQty,
-            reason, operator_name AS operatorName, created_at AS createdAt
-     FROM inventory_log
-     ORDER BY created_at DESC
+    `SELECT il.ledger_no AS logNo, il.store_id AS storeId, il.sku_id AS skuId,
+            ps.sku_name AS skuName, il.change_qty AS changeQty,
+            il.before_qty AS beforeQty, il.after_qty AS afterQty,
+            il.remark AS reason, il.operator_id AS operatorId, il.created_at AS createdAt
+     FROM inventory_ledger il
+     LEFT JOIN product_sku ps ON ps.id = il.sku_id
+     ORDER BY il.created_at DESC
      LIMIT ? OFFSET ?`,
     [pageSize, offset]
   );
-  const totalRow = await queryOne<any>("SELECT COUNT(*) AS total FROM inventory_log");
+  const totalRow = await queryOne<any>("SELECT COUNT(*) AS total FROM inventory_ledger");
   res.json(ok({ total: totalRow?.total ?? 0, page, pageSize, records }));
 }));
 
@@ -473,7 +475,7 @@ adminRouter.get("/payment-orders", requireAuth, asyncHandler(async (req, res) =>
   const offset = (page - 1) * pageSize;
   const records = await query<any>(
     `SELECT pay_no AS payNo, source_type AS sourceType, source_no AS sourceNo,
-            amount, status, payment_method AS paymentMethod,
+            amount, status, channel AS paymentMethod,
             paid_at AS paidAt, created_at AS createdAt
      FROM payment_order
      ORDER BY created_at DESC
@@ -502,12 +504,13 @@ adminRouter.get("/refund-orders", requireAuth, asyncHandler(async (req, res) => 
 
 adminRouter.get("/inventory/balances", requireAuth, asyncHandler(async (req, res) => {
   const records = await query<any>(
-    `SELECT ib.store_id AS storeId, s.store_name AS storeName, ib.sku_id AS skuId,
-            ib.sku_name AS skuName, ib.stock_type AS stockType,
+    `SELECT ib.store_id AS storeId, s.name AS storeName, ib.sku_id AS skuId,
+            ps.sku_name AS skuName, ib.stock_type AS stockType,
             ib.physical_qty AS physicalQty, ib.available_qty AS availableQty,
             ib.locked_qty AS lockedQty
      FROM inventory_balance ib
      LEFT JOIN store s ON s.id = ib.store_id
+     LEFT JOIN product_sku ps ON ps.id = ib.sku_id
      ORDER BY ib.store_id, ib.sku_id`
   );
   res.json(ok({ records }));
@@ -525,7 +528,7 @@ adminRouter.get("/orders/:orderNo", requireAuth, asyncHandler(async (req, res) =
   );
   if (!order) { res.status(404).json({ code: "404", message: "订单不存在" }); return; }
   const items = await query<any>(
-    `SELECT sku_id AS skuId, sku_name AS skuName, quantity, unit_price AS unitPrice,
+    `SELECT sku_id AS skuId, sku_name AS skuName, qty AS quantity, unit_price AS unitPrice,
             subtotal_amount AS subtotalAmount
      FROM miniapp_order_item WHERE order_no = ?`,
     [req.params.orderNo]
@@ -570,10 +573,11 @@ adminRouter.get("/reports/store-performance", requireAuth, asyncHandler(async (_
 adminRouter.get("/inventory/alerts", requireAuth, asyncHandler(async (_req, res) => {
   const records = await query<any>(
     `SELECT ib.store_id AS storeId, s.name AS storeName,
-            ib.sku_id AS skuId, ib.sku_name AS skuName,
+            ib.sku_id AS skuId, ps.sku_name AS skuName,
             ib.stock_type AS stockType, ib.available_qty AS availableQty
      FROM inventory_balance ib
      LEFT JOIN store s ON s.id = ib.store_id
+     LEFT JOIN product_sku ps ON ps.id = ib.sku_id
      WHERE ib.available_qty <= 5
      ORDER BY ib.available_qty ASC, ib.store_id`
   );

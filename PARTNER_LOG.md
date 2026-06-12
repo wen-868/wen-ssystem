@@ -483,3 +483,51 @@ fc54e63 feat: 整合CI Docker单测与门店挂单取单
 然后执行：
 `npm run test:mysql`
 并把结果发回飞书。
+
+---
+
+### [凌舟] 20:15 → [苏然 / 阿坚]
+
+苏然真实 MySQL 回归发现 5 个 500 错误，已完成修复并扩大 MySQL smoke test 覆盖范围。
+
+**【苏然发现的问题】**
+- `payment_order.payment_method` 字段不存在，真实字段是 `channel`。
+- `inventory_log` 表不存在，真实表是 `inventory_ledger`。
+- `inventory_balance.sku_name` 字段不存在，应 JOIN `product_sku`。
+- `store.store_name` 字段不存在，真实字段是 `store.name`。
+- 库存流水写入字段 `reason/operator_name` 与真实 schema 不一致，应使用 `remark/operator_id`。
+
+**【已修复】**
+- 后台支付记录：改为 `channel AS paymentMethod`。
+- 门店支付记录：改为 `channel AS paymentMethod`。
+- 后台库存流水：改查 `inventory_ledger` 并 JOIN `product_sku`。
+- 门店库存流水：改查 `inventory_ledger` 并 JOIN `product_sku`。
+- 门店库存调整：改写入 `inventory_ledger`。
+- 后台库存总览/预警：改 JOIN `product_sku` 和 `store.name`。
+- 门店库存预警：改 JOIN `product_sku`。
+- 顺带修复后台/门店订单详情：`miniapp_order_item.qty AS quantity`。
+
+**【回归覆盖】**
+- `scripts/mysql-smoke-test.mjs` 已新增苏然发现的边缘接口：
+  - 后台支付记录
+  - 后台库存总览
+  - 后台库存流水
+  - 后台库存预警
+  - 门店支付记录
+  - 门店库存流水
+  - 门店库存预警
+  - 门店库存调整
+
+**【本地验证】**
+- 后端单测：3/3 通过
+- 后端构建：通过
+- 管理后台构建：通过
+- 门店端构建：通过
+- UI 契约测试：`UI_CONTRACT_PASS`
+- 全链路自测：`SELF_TEST_PASS`
+- 门店快速自测：`QUICK_STORE_TEST_PASS`
+- QA 回归测试：`QA_REGRESSION_PASS`
+- `mysql-smoke-test.mjs` 语法检查：通过
+
+**【仍需复跑】**
+凌舟当前环境没有 MySQL 服务，真实 MySQL 下需要阿坚/苏然基于最新 `main` 复跑 `npm run test:mysql`。

@@ -149,6 +149,27 @@ async function apiChecks() {
     }
   });
   check("门店创建销售单", saleBill.body?.code === "0" && Boolean(saleBill.body?.data?.billNo));
+
+  const extraGetChecks = [
+    ["后台支付记录", "/api/admin/payment-orders"],
+    ["后台库存总览", "/api/admin/inventory/balances"],
+    ["后台库存流水", "/api/admin/inventory/logs"],
+    ["后台库存预警", "/api/admin/inventory/alerts"],
+    ["门店支付记录", "/api/store/payment-orders?storeId=1"],
+    ["门店库存流水", "/api/store/inventory/logs?storeId=1"],
+    ["门店库存预警", "/api/store/inventory/alerts?storeId=1"]
+  ];
+  for (const [name, path] of extraGetChecks) {
+    const res = await request(path, { headers: auth });
+    check(name, res.body?.code === "0", `status=${res.status}, body=${JSON.stringify(res.body).slice(0, 120)}`);
+  }
+
+  const adjust = await request("/api/store/inventory/adjust", {
+    method: "POST",
+    headers: auth,
+    body: { storeId: 1, skuId: 1, stockType: "OFFLINE", change: -1, remark: "MySQL冒烟测试" }
+  });
+  check("门店库存调整", adjust.body?.code === "0");
 }
 
 console.log("智享营销系统 MySQL 冒烟测试");
