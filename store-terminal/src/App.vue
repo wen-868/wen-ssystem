@@ -7,8 +7,10 @@
       </div>
     </aside>
     <main class="main">
-      <h2>门店操作端工作台</h2>
-      <p class="muted">第 1 阶段联调骨架：已接入登录、库存查询、销售单创建和分享收款接口。</p>
+      <section class="store-hero">
+        <h2>门店操作端工作台</h2>
+        <p class="muted">面向收银、开单、挂单、库存和分享收款的门店高频操作台。</p>
+      </section>
       <el-card v-if="!token" style="margin-bottom: 20px">
         <template #header>门店账号登录</template>
         <el-form :inline="true" @submit.prevent>
@@ -81,9 +83,9 @@
           </el-table-column>
         </el-table>
       </el-card>
-      <el-card style="margin-top: 20px">
+      <el-card class="cashier-panel" style="margin-top: 20px">
         <template #header>快速创建销售单并分享收款</template>
-        <el-form label-width="100px">
+        <el-form class="cashier-grid" label-width="100px">
           <el-form-item label="客户姓名">
             <el-input v-model="saleForm.customerName" placeholder="客户姓名" />
           </el-form-item>

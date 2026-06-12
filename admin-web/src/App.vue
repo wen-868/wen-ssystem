@@ -7,8 +7,10 @@
       </div>
     </aside>
     <main class="main">
-      <h2>智享营销系统管理后台工作台</h2>
-      <p class="muted">第 1 阶段联调骨架：已接入登录、经营看板和商品列表接口。</p>
+      <section class="dashboard-hero">
+        <h2>智享营销系统管理后台工作台</h2>
+        <p class="muted">围绕销售、库存、客户和收款，快速判断门店经营状态。</p>
+      </section>
       <el-card v-if="!token" style="margin-bottom: 20px">
         <template #header>管理员登录</template>
         <el-form :inline="true" @submit.prevent>

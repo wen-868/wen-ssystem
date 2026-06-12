@@ -16,7 +16,8 @@
     "build": "npm --workspaces run build",
     "test:flow": "node scripts/self-test.mjs",
     "test:backend": "npm --workspace backend test",
-    "test:store": "node scripts/quick-store-test.mjs"
+    "test:store": "node scripts/quick-store-test.mjs",
+    "test:ui": "node scripts/ui-contract-test.mjs"
   },
   "devDependencies": {
     "wait-on": "^9.0.10"

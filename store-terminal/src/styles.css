@@ -1,10 +1,12 @@
 :root {
-  --bg: #f6f7fb;
+  --bg: #F5F3EF;
   --panel: #ffffff;
-  --text: #172033;
-  --muted: #697386;
-  --brand: #9b1c31;
-  --line: #d9e0ea;
+  --text: #211A1D;
+  --muted: #7B7074;
+  --brand: #8B1A2B;
+  --gold: #C9A96E;
+  --line: #E8DED4;
+  --wine-dark: #3B1119;
 }
 body {
   margin: 0;
@@ -18,9 +20,10 @@ body {
   grid-template-columns: 220px 1fr;
 }
 .side {
-  background: #172033;
+  background: linear-gradient(180deg, var(--wine-dark), #5D1421);
   color: #fff;
   padding: 24px 18px;
+  box-shadow: 8px 0 32px rgba(59, 17, 25, .16);
 }
 .side h1 {
   font-size: 18px;
@@ -33,11 +36,29 @@ body {
   margin-bottom: 6px;
 }
 .nav-item.active {
-  background: var(--brand);
+  background: linear-gradient(135deg, var(--brand), #A72A3E);
   color: #fff;
+  border: 1px solid rgba(201, 169, 110, .45);
 }
 .main {
-  padding: 24px;
+  padding: 28px;
+}
+.store-hero {
+  background:
+    radial-gradient(circle at 18% 0%, rgba(201, 169, 110, .24), transparent 30%),
+    linear-gradient(135deg, #4A121E, var(--brand));
+  color: #fff;
+  border-radius: 24px;
+  padding: 28px;
+  margin-bottom: 20px;
+  box-shadow: 0 18px 45px rgba(139, 26, 43, .22);
+}
+.store-hero h2 {
+  margin: 0 0 8px;
+  font-size: 28px;
+}
+.store-hero .muted {
+  color: rgba(255, 255, 255, .78);
 }
 .cards {
   display: grid;
@@ -47,13 +68,32 @@ body {
 .card {
   background: var(--panel);
   border: 1px solid var(--line);
-  border-radius: 16px;
-  padding: 18px;
+  border-radius: 20px;
+  padding: 20px;
+  box-shadow: 0 14px 36px rgba(73, 48, 40, .08);
+}
+.cashier-panel {
+  border: 1px solid rgba(201, 169, 110, .42) !important;
+  box-shadow: 0 18px 45px rgba(139, 26, 43, .12) !important;
+}
+.cashier-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  column-gap: 18px;
 }
 .metric {
   font-size: 28px;
   font-weight: 700;
   color: var(--brand);
+}
+.card::before {
+  content: "";
+  display: block;
+  width: 42px;
+  height: 3px;
+  border-radius: 999px;
+  background: var(--gold);
+  margin-bottom: 12px;
 }
 .muted {
   color: var(--muted);
@@ -61,4 +101,5 @@ body {
 @media (max-width: 900px) {
   .layout { grid-template-columns: 1fr; }
   .cards { grid-template-columns: 1fr; }
+  .cashier-grid { grid-template-columns: 1fr; }
 }
