@@ -299,13 +299,17 @@ adminRouter.get("/reports/dashboard", requireAuth, asyncHandler(async (_req, res
      JOIN product_sku s ON s.id = ib.sku_id
      WHERE ib.available_qty <= s.warning_threshold`
   );
+  const pendingOrders = await queryOne<any>(
+    "SELECT COUNT(*) AS cnt FROM miniapp_order WHERE order_status = 'PENDING_PAYMENT'",
+    []
+  );
   res.json(ok({
     salesAmount: Number(sales?.amount ?? 0),
     orderCount: Number(orders?.count ?? 0),
     saleBillCount: Number(sales?.count ?? 0),
     pendingCollectionAmount: Number(pending?.amount ?? 0),
     inventoryWarningCount: Number(warnings?.count ?? 0),
-    pendingOrderCount: 0
+    pendingOrderCount: Number(pendingOrders?.cnt ?? 0)
   }));
 }));
 

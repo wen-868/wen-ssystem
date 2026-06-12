@@ -173,12 +173,19 @@ export async function mockQuery<T = any>(sql: string, params: unknown[] = []) {
           retail_price: product.retailPrice,
           wholesale_price: product.wholesalePrice,
           miniapp_price: product.miniappPrice,
-          store_price: product.retailPrice
+          store_price: product.storePrice
         }] as T[]
       : [];
   }
   if (s.includes("from product_sku") && s.includes("join product_spu") && s.includes("join product_price")) {
-    return state.products as T[];
+    return state.products.map((product) => {
+      const online = state.inventory.find((inv) => inv.skuId === product.skuId && inv.stockType === "ONLINE");
+      return {
+        ...product,
+        availableQty: online?.availableQty ?? 0,
+        available_qty: online?.availableQty ?? 0
+      };
+    }) as T[];
   }
   if (s.includes("update inventory_balance")) {
     const inv = state.inventory.find(
@@ -231,12 +238,48 @@ export async function mockQuery<T = any>(sql: string, params: unknown[] = []) {
     const amount = state.saleBills.reduce((sum, b) => sum + Number(b.unreceivedAmount || b.unreceived_amount || 0), 0);
     return [{ amount }] as T[];
   }
-  if (s.includes("from miniapp_order") && s.includes("count(*)")) return [{ total: state.miniappOrders.length, count: state.miniappOrders.length }] as T[];
+  if (s.includes("count(*) as cnt from miniapp_order")) {
+    if (s.includes("pending_payment")) {
+      const queryStoreId = Number(params[0]);
+      const pool = queryStoreId && !Number.isNaN(queryStoreId)
+        ? state.miniappOrders.filter((o: Row) => (o.storeId || o.store_id) === queryStoreId)
+        : state.miniappOrders;
+      const cnt = pool.filter((o: Row) => (o.orderStatus || o.order_status) === "PENDING_PAYMENT").length;
+      return [{ cnt }] as T[];
+    }
+    if (s.includes("store_id")) {
+      const queryStoreId = Number(params[0]);
+      const cnt = state.miniappOrders.filter((o: Row) => (o.storeId || o.store_id) === queryStoreId).length;
+      return [{ cnt }] as T[];
+    }
+    return [{ cnt: state.miniappOrders.length }] as T[];
+  }
+  if (s.includes("order_status as status") && s.includes("from miniapp_order")) {
+    const map = new Map<string, number>();
+    for (const order of state.miniappOrders) {
+      const st = String(order.order_status ?? order.orderStatus ?? "未知");
+      map.set(st, (map.get(st) || 0) + 1);
+    }
+    return Array.from(map.entries()).map(([status, count]) => ({ status, count })) as T[];
+  }
+  if (s.includes("from miniapp_order") && s.includes("count(*)")) {
+    const statusIndex = s.includes("order_status = ?") ? 0 : -1;
+    const filtered = statusIndex >= 0
+      ? state.miniappOrders.filter((o) => (o.orderStatus || o.order_status) === params[statusIndex])
+      : state.miniappOrders;
+    return [{ total: filtered.length, count: filtered.length }] as T[];
+  }
   if (s.includes("from miniapp_order") && s.includes("where order_no = ?")) {
     const order = state.miniappOrders.find((o) => o.orderNo === params[0] || o.order_no === params[0]);
     return order ? [order] as T[] : [];
   }
-  if (s.includes("from miniapp_order") && !s.includes("group by") && !s.includes("count(*)")) return state.miniappOrders as T[];
+  if (s.includes("from miniapp_order") && !s.includes("group by") && !s.includes("count(*)")) {
+    const statusIndex = s.includes("order_status = ?") ? 0 : -1;
+    const filtered = statusIndex >= 0
+      ? state.miniappOrders.filter((o) => (o.orderStatus || o.order_status) === params[statusIndex])
+      : state.miniappOrders;
+    return filtered as T[];
+  }
   if (s.includes("from miniapp_order_item") && s.includes("where order_no = ?")) {
     const result = state.miniappOrderItems.filter((item) => item.orderNo === params[0] || item.order_no === params[0]);
     return result as T[];
@@ -264,14 +307,6 @@ export async function mockQuery<T = any>(sql: string, params: unknown[] = []) {
     }
     return Array.from(map.values()).sort((a, b) => a.date.localeCompare(b.date)) as T[];
   }
-  if (s.includes("order_status as status") && s.includes("from miniapp_order")) {
-    const map = new Map<string, number>();
-    for (const order of state.miniappOrders) {
-      const st = String(order.order_status ?? order.orderStatus ?? "未知");
-      map.set(st, (map.get(st) || 0) + 1);
-    }
-    return Array.from(map.entries()).map(([status, count]) => ({ status, count })) as T[];
-  }
   if (s.includes("left join sale_bill") && s.includes("group by")) {
     return state.stores.map((st: Row) => {
       const bills = state.saleBills.filter((b: Row) => (b.storeId || b.store_id) === st.id);
@@ -294,22 +329,6 @@ export async function mockQuery<T = any>(sql: string, params: unknown[] = []) {
       : state.saleBills;
     const total = bills.reduce((sum: number, b: Row) => sum + Number(b.unreceivedAmount || b.unreceived_amount || 0), 0);
     return [{ total }] as T[];
-  }
-  if (s.includes("count(*) as cnt from miniapp_order")) {
-    if (s.includes("pending_payment")) {
-      const queryStoreId = Number(params[0]);
-      const pool = queryStoreId && !Number.isNaN(queryStoreId)
-        ? state.miniappOrders.filter((o: Row) => (o.storeId || o.store_id) === queryStoreId)
-        : state.miniappOrders;
-      const cn = pool.filter((o: Row) => (o.orderStatus || o.order_status) === "PENDING_PAYMENT").length;
-      return [{ cnt: cn }] as T[];
-    }
-    if (s.includes("store_id")) {
-      const queryStoreId = Number(params[0]);
-      const cn = state.miniappOrders.filter((o: Row) => (o.storeId || o.store_id) === queryStoreId).length;
-      return [{ cnt: cn }] as T[];
-    }
-    return [{ cnt: state.miniappOrders.length }] as T[];
   }
   if (s.includes("from sale_bill where") && s.includes("count(*)")) return [{ total: state.saleBills.length }] as T[];
   if (s.includes("from sale_bill") && s.includes("where bill_no = ?")) {
@@ -338,10 +357,24 @@ export async function mockQuery<T = any>(sql: string, params: unknown[] = []) {
     return [] as T[];
   }
   if (s.includes("update sale_bill")) {
-    const bill = state.saleBills.find((b) => b.billNo === params[0] || b.bill_no === params[0]);
-    if (bill && s.includes("collection_status = 'shared'")) {
+    if (s.includes("collection_status = 'shared'")) {
+      const bill = state.saleBills.find((b) => b.billNo === params[0] || b.bill_no === params[0]);
+      if (!bill) return [] as T[];
       bill.collectionStatus = "SHARED";
       bill.collection_status = "SHARED";
+      return [] as T[];
+    }
+    if (s.includes("received_amount = ?")) {
+      const bill = state.saleBills.find((b) => b.billNo === params[3] || b.bill_no === params[3]);
+      if (!bill) return [] as T[];
+      const received = Number(params[0]);
+      const unreceived = Math.max(Number(bill.receivableAmount ?? bill.receivable_amount ?? 0) - Number(params[1]), 0);
+      bill.receivedAmount = received;
+      bill.received_amount = received;
+      bill.unreceivedAmount = unreceived;
+      bill.unreceived_amount = unreceived;
+      bill.collectionStatus = params[2];
+      bill.collection_status = params[2];
     }
     return [] as T[];
   }
@@ -360,7 +393,23 @@ export async function mockQuery<T = any>(sql: string, params: unknown[] = []) {
     return [] as T[];
   }
   if (s.includes("insert into payment_order")) {
-    state.paymentOrders.push({ payNo: params[0], sourceType: params[1], sourceNo: params[2], amount: params[3], status: "PENDING" });
+    if (s.includes("'sale_bill'")) {
+      state.paymentOrders.push({
+        payNo: params[0],
+        pay_no: params[0],
+        sourceType: "SALE_BILL",
+        source_type: "SALE_BILL",
+        sourceNo: params[1],
+        source_no: params[1],
+        channel: params[2],
+        amount: params[3],
+        status: s.includes("'success'") ? "SUCCESS" : "PENDING",
+        paymentMethod: params[2],
+        payment_method: params[2]
+      });
+    } else {
+      state.paymentOrders.push({ payNo: params[0], sourceType: params[1], sourceNo: params[2], amount: params[3], status: "PENDING" });
+    }
     return [] as T[];
   }
   if (s.includes("insert into refund_order")) {
@@ -493,6 +542,7 @@ export async function mockExecute(sql: string, params: unknown[] = []) {
       receivableAmount: params[9],
       receivable_amount: params[9],
       receivedAmount: 0,
+      received_amount: 0,
       unreceivedAmount: params[10],
       unreceived_amount: params[10],
       createdAt: new Date().toISOString()
@@ -547,6 +597,36 @@ export async function mockExecute(sql: string, params: unknown[] = []) {
       unitPrice: params[4],
       priceType: params[5],
       subtotalAmount: params[6]
+    });
+    return result();
+  }
+  if (s.includes("update sale_bill") && s.includes("received_amount = ?")) {
+    const bill = state.saleBills.find((b) => b.billNo === params[3] || b.bill_no === params[3]);
+    if (bill) {
+      const received = Number(params[0]);
+      const unreceived = Math.max(Number(bill.receivableAmount ?? bill.receivable_amount ?? 0) - Number(params[1]), 0);
+      bill.receivedAmount = received;
+      bill.received_amount = received;
+      bill.unreceivedAmount = unreceived;
+      bill.unreceived_amount = unreceived;
+      bill.collectionStatus = params[2];
+      bill.collection_status = params[2];
+    }
+    return result();
+  }
+  if (s.includes("insert into payment_order")) {
+    state.paymentOrders.push({
+      payNo: params[0],
+      pay_no: params[0],
+      sourceType: "SALE_BILL",
+      source_type: "SALE_BILL",
+      sourceNo: params[1],
+      source_no: params[1],
+      channel: params[2],
+      paymentMethod: params[2],
+      payment_method: params[2],
+      amount: params[3],
+      status: s.includes("'success'") ? "SUCCESS" : "PENDING"
     });
     return result();
   }

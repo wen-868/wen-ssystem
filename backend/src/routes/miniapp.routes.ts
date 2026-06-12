@@ -72,7 +72,14 @@ miniappRouter.post("/orders", asyncHandler(async (req, res) => {
     receiverMobile: z.string().optional(),
     receiverAddress: z.string().optional(),
     remark: z.string().optional(),
-    items: z.array(z.object({ skuId: z.number(), qty: z.number().int().positive() })).min(1)
+    items: z.array(z.object({
+      skuId: z.number(),
+      qty: z.number().int().positive().optional(),
+      quantity: z.number().int().positive().optional()
+    }).transform((item) => ({
+      skuId: item.skuId,
+      qty: item.qty ?? item.quantity ?? 0
+    })).refine((item) => item.qty > 0, "qty or quantity is required")).min(1)
   }).parse(req.body);
   const customerType = String(req.headers["x-customer-type"] || "RETAIL");
   const order = await transaction(async (conn) => {
