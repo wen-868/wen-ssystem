@@ -8,12 +8,12 @@ services:
     environment:
       USE_MOCK_DB: "false"
       PORT: 8080
-      JWT_SECRET: dev-secret
+      JWT_SECRET: ${JWT_SECRET:?请在 .env 中设置 JWT_SECRET}
       DB_HOST: mysql
       DB_PORT: 3306
-      DB_USER: root
-      DB_PASSWORD: root123456
-      DB_NAME: liquor_inventory
+      DB_USER: ${DB_USER:-zhixiang_app}
+      DB_PASSWORD: ${DB_PASSWORD:?请在 .env 中设置 DB_PASSWORD}
+      DB_NAME: ${DB_NAME:-liquor_inventory}
       TZ: Asia/Shanghai
     ports:
       - "8080:8080"
@@ -48,8 +48,10 @@ services:
     container_name: liquor-mysql
     restart: unless-stopped
     environment:
-      MYSQL_ROOT_PASSWORD: root123456
-      MYSQL_DATABASE: liquor_inventory
+      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD:?请在 .env 中设置 MYSQL_ROOT_PASSWORD}
+      MYSQL_DATABASE: ${DB_NAME:-liquor_inventory}
+      MYSQL_USER: ${DB_USER:-zhixiang_app}
+      MYSQL_PASSWORD: ${DB_PASSWORD:?请在 .env 中设置 DB_PASSWORD}
       TZ: Asia/Shanghai
     ports:
       - "3306:3306"
@@ -62,7 +64,7 @@ services:
       - ./docs/phase1_schema.sql:/docker-entrypoint-initdb.d/01_schema.sql:ro
       - ./docs/phase1_seed.sql:/docker-entrypoint-initdb.d/02_seed.sql:ro
     healthcheck:
-      test: ["CMD", "mysqladmin", "ping", "-h", "127.0.0.1", "-uroot", "-proot123456"]
+      test: ["CMD-SHELL", "mysqladmin ping -h 127.0.0.1 -uroot -p$${MYSQL_ROOT_PASSWORD}"]
       interval: 10s
       timeout: 5s
       retries: 10

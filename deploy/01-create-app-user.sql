@@ -1,0 +1,27 @@
+-- 智享营销系统 MySQL 公测账号初始化脚本
+-- 执行前请先把 CHANGE_ME_TO_STRONG_PASSWORD 替换为随机强密码。
+-- 示例：openssl rand -base64 24
+
+CREATE DATABASE IF NOT EXISTS liquor_inventory
+  DEFAULT CHARACTER SET utf8mb4
+  DEFAULT COLLATE utf8mb4_0900_ai_ci;
+
+CREATE USER IF NOT EXISTS 'zhixiang_app'@'127.0.0.1'
+  IDENTIFIED BY 'CHANGE_ME_TO_STRONG_PASSWORD';
+
+CREATE USER IF NOT EXISTS 'zhixiang_app'@'localhost'
+  IDENTIFIED BY 'CHANGE_ME_TO_STRONG_PASSWORD';
+
+CREATE USER IF NOT EXISTS 'zhixiang_app'@'%'
+  IDENTIFIED BY 'CHANGE_ME_TO_STRONG_PASSWORD';
+
+GRANT SELECT, INSERT, UPDATE, DELETE, CREATE, ALTER, INDEX, REFERENCES
+  ON liquor_inventory.* TO 'zhixiang_app'@'127.0.0.1';
+
+GRANT SELECT, INSERT, UPDATE, DELETE, CREATE, ALTER, INDEX, REFERENCES
+  ON liquor_inventory.* TO 'zhixiang_app'@'localhost';
+
+GRANT SELECT, INSERT, UPDATE, DELETE, CREATE, ALTER, INDEX, REFERENCES
+  ON liquor_inventory.* TO 'zhixiang_app'@'%';
+
+FLUSH PRIVILEGES;

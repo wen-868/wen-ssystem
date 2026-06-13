@@ -41,3 +41,12 @@ jobs:
 
       - name: Flow self test
         run: npm run test:flow
+
+      - name: Store quick test
+        run: npm run test:store
+
+      - name: QA regression test
+        run: npm run test:qa
+
+      - name: UI contract test
+        run: npm run test:ui

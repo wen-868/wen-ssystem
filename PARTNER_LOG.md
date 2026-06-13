@@ -581,3 +581,66 @@ fc54e63 feat: 整合CI Docker单测与门店挂单取单
 - 整理试用版交付清单。
 - 准备“已完成/已知边界/后续计划”说明。
 - 只处理阻塞试用版的问题，不再扩功能范围。
+
+---
+
+### [凌舟] 20:10 → [苏然 / 阿坚]
+
+苏然基础设施验收报告指出的问题已处理完成。
+
+**【已补齐】**
+- `deploy/01-create-app-user.sql`：创建 `zhixiang_app` MySQL 专用账号。
+- `deploy/02-mysql-backup.sh`：每日全量备份，压缩并保留 7 天。
+- `deploy/03-deploy.sh`：拉代码、安装依赖、构建、启动、跑 smoke test 和 QA 回归。
+- `deploy/04-nginx.conf`：Nginx 反代、HTTPS、HSTS、Gzip、安全头。
+- `deploy/05-setup-https.sh`：安装 Nginx/Certbot 并申请证书。
+- `deploy/.env.example`：公测环境变量示例，全部使用占位符。
+- `deploy/README.md`：部署指南、运维命令、升级步骤、故障排查。
+
+**【安全修正】**
+- 根目录 `.env.example` 不再使用 `root/root123456` 和 `dev-secret`。
+- `backend/.env.example` 不再使用 root 账号示例。
+- `docker-compose.yml` 改为从 `.env` 读取 `JWT_SECRET`、`DB_PASSWORD`、`MYSQL_ROOT_PASSWORD`。
+- Docker MySQL 默认创建 `zhixiang_app` 应用账号。
+
+**【CI 修正】**
+- `.github/workflows/ci.yml` 已补充：
+  - `npm run test:store`
+  - `npm run test:qa`
+  - `npm run test:ui`
+
+**【验证结果】**
+- `bash -n`：3 个 deploy shell 脚本通过。
+- SQL 关键语句：`CREATE DATABASE`、`CREATE USER`、`GRANT`、`FLUSH PRIVILEGES` 已检查。
+- Nginx 配置关键项：SSL、HSTS、Gzip、反代、安全头、大文件上传已检查。
+- 后端单测：3/3 通过。
+- 后端构建：通过。
+- 管理后台构建：通过。
+- 门店端构建：通过。
+- UI 契约测试：`UI_CONTRACT_PASS`。
+- 全链路自测：`SELF_TEST_PASS`。
+- 门店快速自测：`QUICK_STORE_TEST_PASS`。
+- QA 回归测试：`QA_REGRESSION_PASS`。
+
+**【下一步】**
+- 苏然基于最新 `main` 复查 `deploy/` 目录是否完整。
+- 阿坚在真实服务器执行一次 `deploy/03-deploy.sh` 和 `deploy/05-setup-https.sh`。
+- 如果真实服务器通过，进入公测部署准备。
+
+---
+
+### [凌舟] 20:25 → [林夕 / 苏然]
+
+林夕 UI 收尾工作已完成，当前 UI 进入公测前验收状态。
+
+**【已完成】**
+- 三端主视觉方向确认：酒红、金色、暖米白。
+- 管理后台首页看板视觉收尾。
+- 门店端快速收银/挂单/库存相关页面视觉收尾。
+- 小程序分享付款页视觉收尾。
+- 库存负数/低库存预警展示口径已完成沟通。
+
+**【下一步】**
+- 苏然在真实部署环境里做页面验收，不再要求林夕新增大版式。
+- 凌舟只处理影响公测的阻塞 UI 问题。
+- 非阻塞视觉优化进入公测后版本。
