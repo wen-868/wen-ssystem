@@ -49,4 +49,19 @@ for (const file of walkJsFiles("miniapp")) {
   }
 }
 
+function walkWxmlFiles(dir) {
+  return readdirSync(dir, { withFileTypes: true }).flatMap((entry) => {
+    const path = join(dir, entry.name);
+    if (entry.isDirectory()) return walkWxmlFiles(path);
+    return path.endsWith(".wxml") ? [path] : [];
+  });
+}
+
+for (const file of walkWxmlFiles("miniapp")) {
+  const content = readFileSync(file, "utf8");
+  if (/===|\|\||&&|\?/.test(content)) {
+    throw new Error(`${file} 含有小程序 WXML 兼容风险表达式`);
+  }
+}
+
 console.log("BETA_ARTIFACTS_PASS");

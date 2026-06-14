@@ -2,6 +2,8 @@ Page({
   data: {
     orderNo: "",
     detail: null,
+    hasDetail: false,
+    hasItems: false,
     loading: false,
     errorText: ""
   },
@@ -23,15 +25,19 @@ Page({
           orderStatus: "PENDING_PAYMENT",
           payStatus: "UNPAID",
           payableAmount: 367,
+          orderTagClass: "pending",
+          payTagClass: "pending",
           receiverName: "内测用户",
           receiverMobile: "13800000000",
           receiverAddress: "演示地址",
           createdAt: "演示订单",
           items: [
-            { skuId: 1, skuName: "示例白酒 53度 500ml", qty: 1, unitPrice: 199, subtotalAmount: 199 },
-            { skuId: 2, skuName: "商务红酒 750ml", qty: 1, unitPrice: 168, subtotalAmount: 168 }
+            { skuId: 1, skuName: "示例白酒 53度 500ml", qty: 1, unitPrice: 199, subtotalAmount: 199, displayAmount: 199 },
+            { skuId: 2, skuName: "商务红酒 750ml", qty: 1, unitPrice: 168, subtotalAmount: 168, displayAmount: 168 }
           ]
         },
+        hasDetail: true,
+        hasItems: true,
         loading: false,
         errorText: ""
       });
@@ -45,7 +51,14 @@ Page({
       success: (res) => {
         const body = res.data || {};
         if (body.code === "0") {
-          this.setData({ detail: body.data });
+          const detail = body.data || {};
+          const items = (detail.items || []).map((item) => Object.assign({}, item, {
+            displayAmount: item.subtotalAmount || (item.unitPrice * item.qty)
+          }));
+          detail.items = items;
+          detail.orderTagClass = detail.orderStatus === "COMPLETED" ? "done" : (detail.orderStatus === "ACCEPTED" ? "accept" : "pending");
+          detail.payTagClass = detail.payStatus === "PAID" ? "done" : "pending";
+          this.setData({ detail, hasDetail: true, hasItems: items.length > 0 });
         } else {
           this.setData({ errorText: body.message || "加载失败" });
         }

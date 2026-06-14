@@ -1,23 +1,23 @@
 <view class="payment-hero">
   <view class="muted light">销售单收款</view>
-  <view class="hero-title">{{detail.storeName || '销售单收款'}}</view>
-  <view class="hero-sub">单号：{{detail.sourceNo || '-'}}</view>
+  <view class="hero-title">{{detail.storeName}}</view>
+  <view class="hero-sub">单号：{{detail.sourceNo}}</view>
 </view>
 
 <view class="card payment-card">
   <view wx:if="{{errorText}}" class="error-text">{{errorText}}</view>
   <view class="amount-label">本次应付</view>
-  <view class="price">¥{{detail.amount || 0}}</view>
+  <view class="price">¥{{detail.amount}}</view>
   <view class="status-row">
-    <view>已付：¥{{detail.paidAmount || 0}}</view>
-    <view>状态：{{detail.status || '加载中'}}</view>
+    <view>已付：¥{{detail.paidAmount}}</view>
+    <view>状态：{{detail.status}}</view>
   </view>
-  <view class="muted" style="margin-top: 12rpx;">有效期：{{detail.expireAt || '-'}}</view>
+  <view class="muted" style="margin-top: 12rpx;">有效期：{{detail.expireAt}}</view>
   <view wx:if="{{detail.taxEnabled}}" class="tax-box">
     <view>税率：{{detail.taxRate}}</view>
-    <view>税额：¥{{detail.taxAmount || 0}}</view>
+    <view>税额：¥{{detail.taxAmount}}</view>
   </view>
-  <view wx:if="{{detail.items && detail.items.length}}" class="items-box">
+  <view wx:if="{{hasItems}}" class="items-box">
     <view class="section-title">商品明细</view>
     <view wx:for="{{detail.items}}" wx:key="skuId" class="item-row">
       <view>{{item.skuName}}</view>

@@ -1,11 +1,11 @@
 <view wx:if="{{errorText}}" class="card" style="color: #9b1c31;">{{errorText}}</view>
 
-<view wx:if="{{detail}}" class="card">
+<view wx:if="{{hasDetail}}" class="card">
   <view style="font-size: 36rpx; font-weight: 700;">订单详情</view>
   <view class="muted" style="margin-top: 16rpx;">{{detail.orderNo}}</view>
   <view style="display: flex; margin-top: 20rpx;">
-    <text class="tag tag-{{detail.orderStatus === 'COMPLETED' ? 'done' : (detail.orderStatus === 'ACCEPTED' ? 'accept' : 'pending')}}">{{detail.orderStatus}}</text>
-    <text class="tag tag-{{detail.payStatus === 'PAID' ? 'done' : 'pending'}}" style="margin-left: 12rpx;">{{detail.payStatus}}</text>
+    <text class="tag tag-{{detail.orderTagClass}}">{{detail.orderStatus}}</text>
+    <text class="tag tag-{{detail.payTagClass}}" style="margin-left: 12rpx;">{{detail.payStatus}}</text>
   </view>
   <view class="price" style="margin-top: 24rpx;">¥{{detail.payableAmount}}</view>
   <view wx:if="{{detail.receiverName}}" class="muted" style="margin-top: 16rpx;">
@@ -14,11 +14,11 @@
   <view wx:if="{{detail.receiverAddress}}" class="muted" style="margin-top: 8rpx;">
     地址：{{detail.receiverAddress}}
   </view>
-  <view wx:if="{{detail.items && detail.items.length}}" style="margin-top: 24rpx;">
+  <view wx:if="{{hasItems}}" style="margin-top: 24rpx;">
     <view style="font-weight: 700; margin-bottom: 12rpx; font-size: 28rpx;">商品明细</view>
     <view wx:for="{{detail.items}}" wx:key="skuId" class="item-row">
       <text>{{item.skuName}} ×{{item.qty}}</text>
-      <text style="color: #9b1c31;">¥{{item.subtotalAmount || (item.unitPrice * item.qty)}}</text>
+      <text style="color: #9b1c31;">¥{{item.displayAmount}}</text>
     </view>
   </view>
   <view wx:if="{{detail.createdAt}}" class="muted" style="margin-top: 20rpx;">

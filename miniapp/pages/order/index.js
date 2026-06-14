@@ -2,7 +2,8 @@ Page({
   data: {
     orders: [],
     loading: false,
-    errorText: ""
+    errorText: "",
+    showEmpty: false
   },
   onShow() {
     this.loadOrders();
@@ -21,7 +22,10 @@ Page({
             payStatus: "UNPAID",
             fulfillmentType: "DELIVERY",
             payableAmount: 367,
-            createdAt: "演示订单"
+            createdAt: "演示订单",
+            orderTagClass: "pending",
+            payTagClass: "pending",
+            fulfillmentLabel: "配送"
           },
           {
             orderNo: "DD-DEMO-002",
@@ -29,11 +33,15 @@ Page({
             payStatus: "PAID",
             fulfillmentType: "PICKUP",
             payableAmount: 199,
-            createdAt: "演示订单"
+            createdAt: "演示订单",
+            orderTagClass: "done",
+            payTagClass: "done",
+            fulfillmentLabel: "自提"
           }
         ],
         loading: false,
-        errorText: "演示模式：服务器域名配置完成后将自动连接真实订单"
+        errorText: "演示模式：服务器域名配置完成后将自动连接真实订单",
+        showEmpty: false
       });
       if (done) done();
       return;
@@ -46,7 +54,12 @@ Page({
       success: (res) => {
         const body = res.data || {};
         if (body.code === "0") {
-          this.setData({ orders: body.data.records || [] });
+          const orders = (body.data.records || []).map((item) => Object.assign({}, item, {
+            orderTagClass: item.orderStatus === "COMPLETED" ? "done" : (item.orderStatus === "ACCEPTED" ? "accept" : "pending"),
+            payTagClass: item.payStatus === "PAID" ? "done" : "pending",
+            fulfillmentLabel: item.fulfillmentType === "PICKUP" ? "自提" : "配送"
+          }));
+          this.setData({ orders, showEmpty: orders.length === 0 });
         } else {
           this.setData({ errorText: body.message || "订单加载失败" });
         }

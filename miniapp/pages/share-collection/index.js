@@ -1,7 +1,19 @@
 Page({
   data: {
     token: "",
-    detail: null,
+    detail: {
+      storeName: "销售单收款",
+      sourceNo: "-",
+      amount: 0,
+      paidAmount: 0,
+      status: "加载中",
+      expireAt: "-",
+      taxEnabled: false,
+      taxRate: "",
+      taxAmount: 0,
+      items: []
+    },
+    hasItems: false,
     loading: false,
     errorText: "",
     payDisabled: true
@@ -32,6 +44,7 @@ Page({
             { skuId: 2, skuName: "商务红酒 750ml", totalBottleQty: 1, subtotalAmount: 168 }
           ]
         },
+        hasItems: true,
         errorText: "演示模式：正式域名配置完成后将连接真实收款单",
         payDisabled: false,
         loading: false
@@ -48,6 +61,7 @@ Page({
           const detail = body.data || {};
           this.setData({
             detail,
+            hasItems: detail.items && detail.items.length > 0,
             errorText: "",
             payDisabled: ["PENDING", "PARTIAL"].indexOf(detail.status) === -1
           });

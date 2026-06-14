@@ -11,14 +11,14 @@
     <text style="font-size: 28rpx; color: #9b1c31;">▶</text>
   </view>
   <view style="display: flex; margin-top: 16rpx; gap: 12rpx;">
-    <text class="tag tag-{{item.orderStatus === 'COMPLETED' ? 'done' : (item.orderStatus === 'ACCEPTED' ? 'accept' : 'pending')}}">{{item.orderStatus}}</text>
-    <text class="tag tag-{{item.payStatus === 'PAID' ? 'done' : 'pending'}}">{{item.payStatus}}</text>
+    <text class="tag tag-{{item.orderTagClass}}">{{item.orderStatus}}</text>
+    <text class="tag tag-{{item.payTagClass}}">{{item.payStatus}}</text>
   </view>
-  <view class="muted" style="margin-top: 14rpx;">履约方式：{{item.fulfillmentType === 'PICKUP' ? '自提' : '配送'}}</view>
+  <view class="muted" style="margin-top: 14rpx;">履约方式：{{item.fulfillmentLabel}}</view>
   <view class="price" style="margin-top: 14rpx;">¥{{item.payableAmount}}</view>
   <view class="muted" style="margin-top: 10rpx; font-size: 24rpx;">{{item.createdAt}}</view>
 </view>
 
-<view wx:if="{{!loading && !orders.length && !errorText}}" class="card">
+<view wx:if="{{showEmpty}}" class="card">
   <view class="muted">暂无订单，请先在首页下单。</view>
 </view>

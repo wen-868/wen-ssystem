@@ -13,13 +13,13 @@
   <view style="display: flex; align-items: center; margin-top: 20rpx;">
     <text style="font-size: 28rpx; margin-right: 16rpx;">数量：</text>
     <button class="stepper" data-sku-id="{{item.skuId}}" data-delta="-1" bindtap="changeQty" disabled="{{item._qty <= 1}}">-</button>
-    <text style="font-size: 32rpx; margin: 0 20rpx; min-width: 40rpx; text-align: center;">{{item._qty || 1}}</text>
+    <text style="font-size: 32rpx; margin: 0 20rpx; min-width: 40rpx; text-align: center;">{{item.displayQty}}</text>
     <button class="stepper" data-sku-id="{{item.skuId}}" data-delta="1" bindtap="changeQty" disabled="{{item._qty >= item.availableQty}}">+</button>
   </view>
   <button class="primary" style="margin-top: 28rpx;" data-sku-id="{{item.skuId}}" bindtap="handleBuy">加入下单</button>
 </view>
 
-<view wx:if="{{!loading && !products.length && !errorText}}" class="card">
+<view wx:if="{{showEmpty}}" class="card">
   <view class="muted">暂无在售商品，请先让管理员上架。</view>
 </view>
 

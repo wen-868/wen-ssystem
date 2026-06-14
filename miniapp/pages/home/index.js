@@ -8,7 +8,8 @@ Page({
     receiverName: "",
     receiverMobile: "",
     receiverAddress: "",
-    submitting: false
+    submitting: false,
+    showEmpty: false
   },
   onLoad() {
     this.loadProducts();
@@ -28,7 +29,8 @@ Page({
             price: 199,
             availableQty: 24,
             priceType: "零售价",
-            _qty: 1
+            _qty: 1,
+            displayQty: 1
           },
           {
             skuId: 2,
@@ -37,11 +39,13 @@ Page({
             price: 168,
             availableQty: 12,
             priceType: "会员价",
-            _qty: 1
+            _qty: 1,
+            displayQty: 1
           }
         ],
         loading: false,
-        errorText: "演示模式：服务器域名配置完成后将自动连接真实数据"
+        errorText: "演示模式：服务器域名配置完成后将自动连接真实数据",
+        showEmpty: false
       });
       if (done) done();
       return;
@@ -54,8 +58,8 @@ Page({
       success: (res) => {
         const body = res.data || {};
         if (body.code === "0") {
-          const products = (body.data || []).map((p) => Object.assign({}, p, { _qty: 1 }));
-          this.setData({ products });
+          const products = (body.data || []).map((p) => Object.assign({}, p, { _qty: 1, displayQty: 1 }));
+          this.setData({ products, showEmpty: products.length === 0 });
         } else {
           this.setData({ errorText: body.message || "商品加载失败" });
         }
@@ -76,7 +80,7 @@ Page({
       if (p.skuId !== skuId) return p;
       const newQty = (p._qty || 1) + delta;
       if (newQty < 1 || newQty > p.availableQty) return p;
-      return Object.assign({}, p, { _qty: newQty });
+      return Object.assign({}, p, { _qty: newQty, displayQty: newQty });
     });
     this.setData({ products });
   },
