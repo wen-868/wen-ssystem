@@ -72,6 +72,9 @@ rm -f "${TMP_SQL}"
 
 echo "==> 补齐既有 MySQL 用户权限"
 sudo mysql <<SQL
+ALTER USER 'zhixiang_app'@'127.0.0.1' IDENTIFIED BY '${DB_PASSWORD}';
+ALTER USER 'zhixiang_app'@'localhost' IDENTIFIED BY '${DB_PASSWORD}';
+ALTER USER 'zhixiang_app'@'%' IDENTIFIED BY '${DB_PASSWORD}';
 GRANT SELECT, INSERT, UPDATE, DELETE, CREATE, DROP, ALTER, INDEX, REFERENCES
   ON liquor_inventory.* TO 'zhixiang_app'@'127.0.0.1';
 GRANT SELECT, INSERT, UPDATE, DELETE, CREATE, DROP, ALTER, INDEX, REFERENCES
