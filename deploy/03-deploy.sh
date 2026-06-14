@@ -20,6 +20,13 @@ set +a
 
 : "${PORT:=8080}"
 : "${USE_MOCK_DB:=false}"
+if [[ -z "${VITE_API_BASE:-}" ]]; then
+  if [[ -n "${DOMAIN:-}" ]]; then
+    VITE_API_BASE="https://api.${DOMAIN}/api"
+  else
+    VITE_API_BASE="http://localhost:8080/api"
+  fi
+fi
 
 if [[ "${SKIP_GIT_PULL:-false}" == "true" ]]; then
   echo "跳过拉取代码：SKIP_GIT_PULL=true"
@@ -33,8 +40,9 @@ npm install
 
 echo "构建后端和前端"
 npm --workspace backend run build
-npm --workspace admin-web run build
-npm --workspace store-terminal run build
+echo "前端 API 地址：${VITE_API_BASE}"
+VITE_API_BASE="${VITE_API_BASE}" npm --workspace admin-web run build
+VITE_API_BASE="${VITE_API_BASE}" npm --workspace store-terminal run build
 
 mkdir -p "${LOG_DIR}"
 
