@@ -29,6 +29,7 @@ assertIncludes("store-terminal/public/manifest.webmanifest", "智享门店端");
 assertIncludes("store-terminal/public/sw.js", "store-terminal-shell-v1");
 assertIncludes("store-terminal/.env.beta.example", "VITE_API_BASE_URL=");
 assertIncludes("miniapp/app.config.beta.example.js", "https://api.example.com/api");
+assertIncludes("miniapp/app.js", "demoMode: true");
 
 function walkJsFiles(dir) {
   return readdirSync(dir, { withFileTypes: true }).flatMap((entry) => {

@@ -12,6 +12,32 @@ Page({
   },
   loadOrders(done) {
     const app = getApp();
+    if (app.globalData.demoMode) {
+      this.setData({
+        orders: [
+          {
+            orderNo: "DD-DEMO-001",
+            orderStatus: "PENDING_PAYMENT",
+            payStatus: "UNPAID",
+            fulfillmentType: "DELIVERY",
+            payableAmount: 367,
+            createdAt: "演示订单"
+          },
+          {
+            orderNo: "DD-DEMO-002",
+            orderStatus: "COMPLETED",
+            payStatus: "PAID",
+            fulfillmentType: "PICKUP",
+            payableAmount: 199,
+            createdAt: "演示订单"
+          }
+        ],
+        loading: false,
+        errorText: "演示模式：服务器域名配置完成后将自动连接真实订单"
+      });
+      if (done) done();
+      return;
+    }
     this.setData({ loading: true, errorText: "" });
     wx.request({
       url: `${app.globalData.apiBase}/miniapp/orders`,

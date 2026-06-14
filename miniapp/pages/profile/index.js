@@ -16,6 +16,22 @@ Page({
   },
   refreshProfile(done) {
     const app = getApp();
+    if (app.globalData.demoMode) {
+      this.setData({
+        profile: {
+          nickname: "内测演示用户",
+          customerType: "RETAIL",
+          customerLabel: "零售客户",
+          mobile: "13800000000",
+          memberLevel: "普通会员",
+          points: 120
+        },
+        loading: false,
+        errorText: "演示模式：服务器域名配置完成后将自动连接真实身份"
+      });
+      if (done) done();
+      return;
+    }
     this.setData({ loading: true, errorText: "" });
     wx.request({
       url: `${app.globalData.apiBase}/miniapp/profile`,
@@ -53,9 +69,14 @@ Page({
     });
   },
   handleLogin() {
+    const app = getApp();
+    if (app.globalData.demoMode) {
+      wx.showToast({ title: "演示登录成功", icon: "success" });
+      this.refreshProfile();
+      return;
+    }
     wx.login({
       success: (loginRes) => {
-        const app = getApp();
         wx.request({
           url: `${app.globalData.apiBase}/miniapp/auth/login`,
           method: "POST",

@@ -18,6 +18,34 @@ Page({
   },
   loadProducts(done) {
     const app = getApp();
+    if (app.globalData.demoMode) {
+      this.setData({
+        products: [
+          {
+            skuId: 1,
+            name: "示例白酒",
+            skuName: "53度 500ml",
+            price: 199,
+            availableQty: 24,
+            priceType: "零售价",
+            _qty: 1
+          },
+          {
+            skuId: 2,
+            name: "商务红酒",
+            skuName: "750ml 单瓶",
+            price: 168,
+            availableQty: 12,
+            priceType: "会员价",
+            _qty: 1
+          }
+        ],
+        loading: false,
+        errorText: "演示模式：服务器域名配置完成后将自动连接真实数据"
+      });
+      if (done) done();
+      return;
+    }
     this.setData({ loading: true, errorText: "" });
     wx.request({
       url: `${app.globalData.apiBase}/miniapp/products`,
@@ -85,6 +113,12 @@ Page({
     }
     this.setData({ submitting: true });
     const app = getApp();
+    if (app.globalData.demoMode) {
+      wx.showToast({ title: "演示下单成功", icon: "success" });
+      this.setData({ cartItems: [], cartTotal: 0, receiverName: "", receiverMobile: "", receiverAddress: "", submitting: false });
+      setTimeout(() => wx.switchTab({ url: "/pages/order/index" }), 800);
+      return;
+    }
     const items = cartItems.map((c) => ({ skuId: c.skuId, qty: c.qty }));
     wx.request({
       url: `${app.globalData.apiBase}/miniapp/orders`,

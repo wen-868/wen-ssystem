@@ -15,6 +15,29 @@ Page({
   },
   loadDetail(token) {
     const app = getApp();
+    if (app.globalData.demoMode) {
+      this.setData({
+        detail: {
+          storeName: "智享酒业演示门店",
+          sourceNo: "SK-DEMO-001",
+          amount: 367,
+          paidAmount: 0,
+          status: "PENDING",
+          expireAt: "演示有效期",
+          taxEnabled: true,
+          taxRate: "13%",
+          taxAmount: 42.24,
+          items: [
+            { skuId: 1, skuName: "示例白酒 53度 500ml", totalBottleQty: 1, subtotalAmount: 199 },
+            { skuId: 2, skuName: "商务红酒 750ml", totalBottleQty: 1, subtotalAmount: 168 }
+          ]
+        },
+        errorText: "演示模式：正式域名配置完成后将连接真实收款单",
+        payDisabled: false,
+        loading: false
+      });
+      return;
+    }
     this.setData({ loading: true });
     wx.request({
       url: `${app.globalData.apiBase}/share/collections/${token}`,
@@ -44,6 +67,12 @@ Page({
     const app = getApp();
     if (!this.data.token) {
       wx.showToast({ title: "缺少收款参数", icon: "none" });
+      return;
+    }
+    if (app.globalData.demoMode) {
+      wx.redirectTo({
+        url: "/pages/payment-result/index?success=1&payNo=ZF-DEMO-001&amount=367&sourceNo=SK-DEMO-001"
+      });
       return;
     }
     if (this.data.payDisabled) {
