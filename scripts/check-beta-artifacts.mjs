@@ -1,4 +1,5 @@
-import { existsSync, readFileSync, statSync } from "node:fs";
+import { existsSync, readdirSync, readFileSync, statSync } from "node:fs";
+import { join } from "node:path";
 
 function assertFile(path) {
   if (!existsSync(path) || !statSync(path).isFile()) {
@@ -28,5 +29,23 @@ assertIncludes("store-terminal/public/manifest.webmanifest", "智享门店端");
 assertIncludes("store-terminal/public/sw.js", "store-terminal-shell-v1");
 assertIncludes("store-terminal/.env.beta.example", "VITE_API_BASE_URL=");
 assertIncludes("miniapp/app.config.beta.example.js", "https://api.example.com/api");
+
+function walkJsFiles(dir) {
+  return readdirSync(dir, { withFileTypes: true }).flatMap((entry) => {
+    const path = join(dir, entry.name);
+    if (entry.isDirectory()) return walkJsFiles(path);
+    return path.endsWith(".js") ? [path] : [];
+  });
+}
+
+for (const file of walkJsFiles("miniapp")) {
+  const content = readFileSync(file, "utf8");
+  if (content.includes("?.")) {
+    throw new Error(`${file} 含有小程序兼容风险语法: ?.`);
+  }
+  if (/\{\s*\.\.\./.test(content)) {
+    throw new Error(`${file} 含有小程序兼容风险语法: 对象展开`);
+  }
+}
 
 console.log("BETA_ARTIFACTS_PASS");

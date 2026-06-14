@@ -26,7 +26,7 @@ Page({
           this.setData({
             detail,
             errorText: "",
-            payDisabled: !["PENDING", "PARTIAL"].includes(detail.status)
+            payDisabled: ["PENDING", "PARTIAL"].indexOf(detail.status) === -1
           });
         } else {
           this.setData({ errorText: body.message || "收款单不可用", payDisabled: true });
@@ -61,9 +61,10 @@ Page({
           return;
         }
         const payResult = body.data || {};
-        const amount = this.data.detail?.amount || payResult.amount || "0";
+        const detail = this.data.detail || {};
+        const amount = detail.amount || payResult.amount || "0";
         wx.redirectTo({
-          url: `/pages/payment-result/index?success=1&payNo=${payResult.payNo || ""}&amount=${amount}&sourceNo=${this.data.detail?.sourceNo || ""}`
+          url: `/pages/payment-result/index?success=1&payNo=${payResult.payNo || ""}&amount=${amount}&sourceNo=${detail.sourceNo || ""}`
         });
       },
       fail: () => {

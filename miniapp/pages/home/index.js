@@ -26,7 +26,7 @@ Page({
       success: (res) => {
         const body = res.data || {};
         if (body.code === "0") {
-          const products = (body.data || []).map((p) => ({ ...p, _qty: 1 }));
+          const products = (body.data || []).map((p) => Object.assign({}, p, { _qty: 1 }));
           this.setData({ products });
         } else {
           this.setData({ errorText: body.message || "商品加载失败" });
@@ -48,13 +48,13 @@ Page({
       if (p.skuId !== skuId) return p;
       const newQty = (p._qty || 1) + delta;
       if (newQty < 1 || newQty > p.availableQty) return p;
-      return { ...p, _qty: newQty };
+      return Object.assign({}, p, { _qty: newQty });
     });
     this.setData({ products });
   },
   handleBuy(event) {
     const skuId = Number(event.currentTarget.dataset.skuId);
-    const product = this.data.products.find((p) => p.skuId === skuId);
+    const product = this.data.products.filter((p) => p.skuId === skuId)[0];
     if (!product) return;
     const qty = product._qty || 1;
     const subtotal = Number((product.price * qty).toFixed(2));

@@ -13,6 +13,8 @@ rmSync(".beta-build", { recursive: true, force: true });
 rmSync(output, { force: true });
 mkdirSync(workDir, { recursive: true });
 cpSync("miniapp", workDir, { recursive: true });
+rmSync(`${workDir}/app.config.beta.example.js`, { force: true });
+rmSync(`${workDir}/project.private.config.json`, { force: true });
 
 execFileSync("zip", ["-qr", `../../${output}`, "."], {
   cwd: workDir,
