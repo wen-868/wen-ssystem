@@ -24,7 +24,8 @@ if [[ -z "${VITE_API_BASE:-}" ]]; then
   if [[ -n "${DOMAIN:-}" ]]; then
     VITE_API_BASE="https://api.${DOMAIN}/api"
   else
-    VITE_API_BASE="http://localhost:8080/api"
+    echo "缺少 VITE_API_BASE 或 DOMAIN，拒绝构建会请求 localhost 的生产前端。"
+    exit 1
   fi
 fi
 
@@ -43,6 +44,7 @@ npm --workspace backend run build
 echo "前端 API 地址：${VITE_API_BASE}"
 VITE_API_BASE="${VITE_API_BASE}" npm --workspace admin-web run build
 VITE_API_BASE="${VITE_API_BASE}" npm --workspace store-terminal run build
+npm run test:production-deploy
 
 mkdir -p "${LOG_DIR}"
 

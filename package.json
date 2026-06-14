@@ -23,6 +23,7 @@
     "test:ui": "node scripts/ui-contract-test.mjs",
     "test:qa": "node scripts/qa-regression-test.mjs",
     "test:beta": "node scripts/check-beta-artifacts.mjs",
+    "test:production-deploy": "node scripts/check-production-deploy.mjs",
     "test:mysql": "node scripts/mysql-smoke-test.mjs"
   },
   "devDependencies": {

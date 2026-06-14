@@ -1,5 +1,5 @@
-const CACHE_NAME = "store-terminal-shell-v1";
-const SHELL_ASSETS = ["/", "/manifest.webmanifest"];
+const CACHE_NAME = "store-terminal-shell-v2";
+const SHELL_ASSETS = ["/manifest.webmanifest"];
 
 self.addEventListener("install", (event) => {
   event.waitUntil(caches.open(CACHE_NAME).then((cache) => cache.addAll(SHELL_ASSETS)));
@@ -18,6 +18,10 @@ self.addEventListener("activate", (event) => {
 self.addEventListener("fetch", (event) => {
   const url = new URL(event.request.url);
   if (url.pathname.startsWith("/api/")) {
+    return;
+  }
+  if (event.request.mode === "navigate") {
+    event.respondWith(fetch(event.request).catch(() => caches.match("/")));
     return;
   }
   event.respondWith(

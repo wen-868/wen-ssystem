@@ -1,7 +1,16 @@
 import axios from "axios";
 
+function resolveApiBase() {
+  const configured = import.meta.env.VITE_API_BASE;
+  if (configured) return configured;
+  if (typeof window !== "undefined" && window.location.hostname.endsWith(".onepan.cn")) {
+    return "https://api.onepan.cn/api";
+  }
+  return ["http://", "localhost", ":8080/api"].join("");
+}
+
 export const api = axios.create({
-  baseURL: import.meta.env.VITE_API_BASE || "http://localhost:8080/api"
+  baseURL: resolveApiBase()
 });
 
 api.interceptors.request.use((config) => {

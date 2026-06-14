@@ -26,8 +26,8 @@ assertIncludes("store-terminal/index.html", "manifest.webmanifest");
 assertIncludes("store-terminal/index.html", "#1677FF");
 assertIncludes("store-terminal/src/main.ts", "./register-sw");
 assertIncludes("store-terminal/public/manifest.webmanifest", "智享门店端");
-assertIncludes("store-terminal/public/sw.js", "store-terminal-shell-v1");
-assertIncludes("store-terminal/.env.beta.example", "VITE_API_BASE_URL=");
+assertIncludes("store-terminal/public/sw.js", "store-terminal-shell-v2");
+assertIncludes("store-terminal/.env.beta.example", "VITE_API_BASE=");
 assertIncludes("miniapp/app.config.beta.example.js", "https://api.example.com/api");
 assertIncludes("miniapp/app.js", "demoMode: true");
 

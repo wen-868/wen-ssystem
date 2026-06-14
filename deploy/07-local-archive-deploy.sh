@@ -15,6 +15,8 @@ echo "==> 安装系统依赖"
 sudo apt-get update
 sudo apt-get install -y ca-certificates curl git unzip zip mysql-server nginx certbot python3-certbot-nginx
 
+cd "${PROJECT_DIR}"
+
 if ! command -v node >/dev/null 2>&1 || [[ "$(node -v | sed 's/^v//' | cut -d. -f1)" -lt 20 ]]; then
   echo "==> 安装 Node.js 20"
   curl -fsSL https://deb.nodesource.com/setup_20.x | sudo -E bash -
