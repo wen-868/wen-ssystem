@@ -26,13 +26,36 @@ echo "==> 准备目录"
 sudo mkdir -p "${APP_ROOT}"
 sudo chown -R "$(id -u):$(id -g)" "${APP_ROOT}"
 
+git_update() {
+  local attempt
+  git config --global http.version HTTP/1.1
+  git config --global http.postBuffer 524288000
+  for attempt in 1 2 3; do
+    echo "==> GitHub 拉取尝试 ${attempt}/3"
+    if [[ -d "${PROJECT_DIR}/.git" ]]; then
+      if git -C "${PROJECT_DIR}" -c http.version=HTTP/1.1 fetch --depth=1 origin main \
+        && git -C "${PROJECT_DIR}" reset --hard origin/main; then
+        return 0
+      fi
+    else
+      rm -rf "${PROJECT_DIR}"
+      if git -c http.version=HTTP/1.1 clone --depth=1 "${REPO_URL}" "${PROJECT_DIR}"; then
+        return 0
+      fi
+    fi
+    echo "GitHub 拉取失败，10 秒后重试"
+    sleep 10
+  done
+  echo "GitHub 拉取连续失败。请稍后重试，或在服务器网络稳定后重新执行本脚本。"
+  return 1
+}
+
 if [[ -d "${PROJECT_DIR}/.git" ]]; then
   echo "==> 更新代码"
-  git -C "${PROJECT_DIR}" fetch origin main
-  git -C "${PROJECT_DIR}" reset --hard origin/main
+  git_update
 else
   echo "==> 拉取代码"
-  git clone "${REPO_URL}" "${PROJECT_DIR}"
+  git_update
 fi
 
 cd "${PROJECT_DIR}"
@@ -80,7 +103,7 @@ ENV
 chmod 600 .env
 
 echo "==> 部署应用"
-bash deploy/03-deploy.sh
+SKIP_GIT_PULL=true bash deploy/03-deploy.sh
 
 echo "==> 配置 HTTPS"
 bash deploy/05-setup-https.sh

@@ -21,8 +21,12 @@ set +a
 : "${PORT:=8080}"
 : "${USE_MOCK_DB:=false}"
 
-echo "拉取最新代码"
-git pull origin main
+if [[ "${SKIP_GIT_PULL:-false}" == "true" ]]; then
+  echo "跳过拉取代码：SKIP_GIT_PULL=true"
+else
+  echo "拉取最新代码"
+  git -c http.version=HTTP/1.1 pull origin main
+fi
 
 echo "安装依赖"
 npm install
