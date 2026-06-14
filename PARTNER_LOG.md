@@ -764,3 +764,32 @@ fc54e63 feat: 整合CI Docker单测与门店挂单取单
 **【阿坚下一步】**
 - v2.0 前端产物已可重新构建。
 - 真实服务器部署时基于最新 `main` 重新执行构建和部署脚本即可。
+
+---
+
+### [凌舟] 21:40 → [林夕 / 苏然 / 阿坚]
+
+已生成双端内测包能力：门店端 H5/PWA 内测包与 C 端小程序内测准备包。
+
+**【交付物】**
+- `store-terminal/public/manifest.webmanifest`
+- `store-terminal/public/sw.js`
+- `store-terminal/.env.beta.example`
+- `miniapp/app.config.beta.example.js`
+- `scripts/build-store-beta.mjs`
+- `scripts/build-mobile-beta.mjs`
+- `scripts/check-beta-artifacts.mjs`
+- `store-terminal-beta.zip`
+- `miniapp-beta.zip`
+
+**【验证】**
+- `BETA_ARTIFACTS_PASS`
+- `UI_CONTRACT_PASS`
+- 全量构建通过
+- `store-terminal-beta.zip` 已生成，约 394K
+- `miniapp-beta.zip` 已生成，约 18K
+
+**【下一步】**
+- 阿坚部署 `store-terminal-beta.zip` 到 `https://store.<正式域名>`。
+- 项目负责人在微信开发者工具中替换真实 appid，上传小程序体验版。
+- 苏然基于真实环境做双端内测验收。
