@@ -19,6 +19,7 @@
     "test:store": "node scripts/quick-store-test.mjs",
     "test:ui": "node scripts/ui-contract-test.mjs",
     "test:qa": "node scripts/qa-regression-test.mjs",
+    "test:beta": "node scripts/check-beta-artifacts.mjs",
     "test:mysql": "node scripts/mysql-smoke-test.mjs"
   },
   "devDependencies": {
