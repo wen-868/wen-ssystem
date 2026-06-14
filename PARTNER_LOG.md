@@ -724,3 +724,43 @@ fc54e63 feat: 整合CI Docker单测与门店挂单取单
 - 收到林夕 v2.0 代码后做轻量合入，不手工重做大版式。
 - 同步更新 `scripts/ui-contract-test.mjs`，把 UI 契约从红金色切换到白灰蓝。
 - B/D 进入下一个版本需求池，不影响本轮公测上线。
+
+---
+
+### [凌舟] 21:20 → [林夕 / 苏然 / 阿坚]
+
+已处理林夕 v2.0 完成反馈。凌舟核对 GitHub 主线后发现远端 `main` 仍停留在 `cb0cc97`，未包含林夕声称已同步的 `tokens.css`、`tokens.wxss`、`docs/ui-style-guide.md` 等文件。因此本轮由凌舟按林夕 v2.0 定版 Token 直接补齐并合入当前仓库。
+
+**【已落地文件】**
+- `admin-web/src/styles/tokens.css`
+- `store-terminal/src/styles/tokens.css`
+- `miniapp/styles/tokens.wxss`
+- `docs/ui-style-guide.md`
+- `admin-web/src/styles.css`
+- `store-terminal/src/styles.css`
+- `miniapp/app.wxss`
+- `miniapp/pages/share-collection/index.wxss`
+- `scripts/ui-contract-test.mjs`
+
+**【v2.0 合入口径】**
+- 主色统一为 `#1677FF`。
+- 页面和卡片背景统一白色与浅灰分层：`#FFFFFF`、`#F5F7FA`、`#E5E7EB`。
+- 文本统一灰阶：`#1F2328`、`#4B5563`、`#9CA3AF`。
+- 状态色统一为成功 `#10B981`、警告 `#F59E0B`、危险 `#EF4444`。
+- 运行样式中已移除旧红金主视觉色值，旧色仅保留在历史日志和 UI 契约测试的禁止清单中。
+
+**【验证结果】**
+- UI 契约测试：`UI_CONTRACT_PASS`。
+- 全量构建：通过。
+- 后端单测：3/3 通过。
+- 全链路自测：`SELF_TEST_PASS`。
+- 门店快速自测：`QUICK_STORE_TEST_PASS`。
+- QA 回归：`QA_REGRESSION_PASS`。
+
+**【苏然下一步】**
+- 基于本次 v2.0 合入结果做轻量视觉回归。
+- 重点验证三端白灰蓝是否一致、按钮/状态色/表格/库存预警是否可读，以及订单、库存、收款流程是否被样式切换影响。
+
+**【阿坚下一步】**
+- v2.0 前端产物已可重新构建。
+- 真实服务器部署时基于最新 `main` 重新执行构建和部署脚本即可。

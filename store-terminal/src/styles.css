@@ -1,18 +1,10 @@
-:root {
-  --bg: #F5F3EF;
-  --panel: #ffffff;
-  --text: #211A1D;
-  --muted: #7B7074;
-  --brand: #8B1A2B;
-  --gold: #C9A96E;
-  --line: #E8DED4;
-  --wine-dark: #3B1119;
-}
+@import "./styles/tokens.css";
+
 body {
   margin: 0;
   font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "Microsoft YaHei", sans-serif;
-  color: var(--text);
-  background: var(--bg);
+  color: var(--text-primary);
+  background: var(--bg-page);
 }
 .layout {
   min-height: 100vh;
@@ -20,10 +12,11 @@ body {
   grid-template-columns: 220px 1fr;
 }
 .side {
-  background: linear-gradient(180deg, var(--wine-dark), #5D1421);
-  color: #fff;
+  background: var(--bg-card);
+  color: var(--text-primary);
   padding: 24px 18px;
-  box-shadow: 8px 0 32px rgba(59, 17, 25, .16);
+  border-right: 1px solid var(--border-normal);
+  box-shadow: 8px 0 32px rgba(31, 35, 40, .05);
 }
 .side h1 {
   font-size: 18px;
@@ -32,33 +25,34 @@ body {
 .nav-item {
   padding: 10px 12px;
   border-radius: 10px;
-  color: rgba(255,255,255,.82);
+  color: var(--text-secondary);
   margin-bottom: 6px;
 }
 .nav-item.active {
-  background: linear-gradient(135deg, var(--brand), #A72A3E);
-  color: #fff;
-  border: 1px solid rgba(201, 169, 110, .45);
+  background: var(--color-primary-soft);
+  color: var(--color-primary);
+  border: 1px solid var(--border-focus);
 }
 .main {
   padding: 28px;
 }
 .store-hero {
   background:
-    radial-gradient(circle at 18% 0%, rgba(201, 169, 110, .24), transparent 30%),
-    linear-gradient(135deg, #4A121E, var(--brand));
-  color: #fff;
+    linear-gradient(90deg, var(--color-primary) 0 6px, transparent 6px),
+    linear-gradient(180deg, var(--bg-card), var(--bg-soft));
+  color: var(--text-primary);
+  border: 1px solid var(--border-normal);
   border-radius: 24px;
   padding: 28px;
   margin-bottom: 20px;
-  box-shadow: 0 18px 45px rgba(139, 26, 43, .22);
+  box-shadow: var(--shadow-card);
 }
 .store-hero h2 {
   margin: 0 0 8px;
   font-size: 28px;
 }
 .store-hero .muted {
-  color: rgba(255, 255, 255, .78);
+  color: var(--text-secondary);
 }
 .cards {
   display: grid;
@@ -66,15 +60,15 @@ body {
   gap: 16px;
 }
 .card {
-  background: var(--panel);
-  border: 1px solid var(--line);
+  background: var(--bg-card);
+  border: 1px solid var(--border-normal);
   border-radius: 20px;
   padding: 20px;
-  box-shadow: 0 14px 36px rgba(73, 48, 40, .08);
+  box-shadow: var(--shadow-card);
 }
 .cashier-panel {
-  border: 1px solid rgba(201, 169, 110, .42) !important;
-  box-shadow: 0 18px 45px rgba(139, 26, 43, .12) !important;
+  border: 1px solid var(--border-focus) !important;
+  box-shadow: var(--shadow-focus), var(--shadow-card) !important;
 }
 .cashier-grid {
   display: grid;
@@ -84,7 +78,7 @@ body {
 .metric {
   font-size: 28px;
   font-weight: 700;
-  color: var(--brand);
+  color: var(--text-primary);
 }
 .card::before {
   content: "";
@@ -92,11 +86,11 @@ body {
   width: 42px;
   height: 3px;
   border-radius: 999px;
-  background: var(--gold);
+  background: var(--color-primary);
   margin-bottom: 12px;
 }
 .muted {
-  color: var(--muted);
+  color: var(--text-muted);
 }
 @media (max-width: 900px) {
   .layout { grid-template-columns: 1fr; }

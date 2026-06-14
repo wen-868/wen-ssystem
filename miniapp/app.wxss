@@ -1,28 +1,31 @@
+@import "./styles/tokens.wxss";
+
 page {
-  background: #F5F3EF;
-  color: #211A1D;
+  background: #FFFFFF;
+  color: #1F2328;
   font-family: -apple-system, BlinkMacSystemFont, "Microsoft YaHei", sans-serif;
 }
 .card {
-  background: #fff;
+  background: #FFFFFF;
+  border: 1px solid #E5E7EB;
   border-radius: 24rpx;
   padding: 28rpx;
   margin: 24rpx;
-  box-shadow: 0 18rpx 48rpx rgba(73, 48, 40, .08);
+  box-shadow: 0 18rpx 48rpx rgba(31, 35, 40, .08);
 }
 .primary {
-  background: #8B1A2B;
-  color: #fff;
+  background: #1677FF;
+  color: #FFFFFF;
   border-radius: 999rpx;
 }
 .price {
-  color: #8B1A2B;
+  color: #1F2328;
   font-weight: 700;
   font-size: 40rpx;
 }
 .gold {
-  color: #C9A96E;
+  color: #1677FF;
 }
 .muted {
-  color: #7B7074;
+  color: #9CA3AF;
 }

@@ -2,12 +2,14 @@
   margin: 24rpx;
   padding: 36rpx 32rpx;
   border-radius: 32rpx;
-  color: #fff;
-  background: linear-gradient(135deg, #4A121E, #8B1A2B);
-  box-shadow: 0 22rpx 56rpx rgba(139, 26, 43, .22);
+  color: #1F2328;
+  background: #FFFFFF;
+  border: 1px solid #E5E7EB;
+  border-left: 8rpx solid #1677FF;
+  box-shadow: 0 22rpx 56rpx rgba(31, 35, 40, .08);
 }
 .light {
-  color: rgba(255, 255, 255, .76);
+  color: #9CA3AF;
 }
 .hero-title {
   font-size: 44rpx;
@@ -15,20 +17,20 @@
   margin-top: 12rpx;
 }
 .hero-sub {
-  color: rgba(255, 255, 255, .78);
+  color: #4B5563;
   margin-top: 18rpx;
 }
 .payment-card {
   margin-top: -4rpx;
 }
 .amount-label {
-  color: #7B7074;
+  color: #9CA3AF;
   font-size: 26rpx;
 }
 .status-row {
   display: flex;
   justify-content: space-between;
-  color: #7B7074;
+  color: #4B5563;
   margin-top: 16rpx;
   font-size: 26rpx;
 }
@@ -38,28 +40,28 @@
   margin-top: 18rpx;
   padding: 18rpx;
   border-radius: 18rpx;
-  background: rgba(201, 169, 110, .14);
-  color: #8B1A2B;
+  background: #F5F7FA;
+  color: #4B5563;
 }
 .items-box {
   margin-top: 28rpx;
 }
 .section-title {
   font-weight: 700;
-  color: #211A1D;
+  color: #1F2328;
   margin-bottom: 8rpx;
 }
 .item-row {
   padding: 18rpx 0;
-  border-top: 1px solid #E8DED4;
+  border-top: 1px solid #E5E7EB;
 }
 .error-text {
   margin-bottom: 20rpx;
-  color: #8B1A2B;
+  color: #EF4444;
   font-weight: 700;
 }
 .pay-button {
   margin-top: 36rpx;
-  background: linear-gradient(135deg, #8B1A2B, #A72A3E);
-  box-shadow: 0 16rpx 36rpx rgba(139, 26, 43, .28);
+  background: #1677FF;
+  box-shadow: 0 16rpx 36rpx rgba(22, 119, 255, .24);
 }
