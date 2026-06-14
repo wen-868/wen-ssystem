@@ -47,6 +47,17 @@ sed "s/CHANGE_ME_TO_STRONG_PASSWORD/${DB_PASSWORD//\//\\/}/g" deploy/01-create-a
 sudo mysql < "${TMP_SQL}"
 rm -f "${TMP_SQL}"
 
+echo "==> 补齐既有 MySQL 用户权限"
+sudo mysql <<SQL
+GRANT SELECT, INSERT, UPDATE, DELETE, CREATE, DROP, ALTER, INDEX, REFERENCES
+  ON liquor_inventory.* TO 'zhixiang_app'@'127.0.0.1';
+GRANT SELECT, INSERT, UPDATE, DELETE, CREATE, DROP, ALTER, INDEX, REFERENCES
+  ON liquor_inventory.* TO 'zhixiang_app'@'localhost';
+GRANT SELECT, INSERT, UPDATE, DELETE, CREATE, DROP, ALTER, INDEX, REFERENCES
+  ON liquor_inventory.* TO 'zhixiang_app'@'%';
+FLUSH PRIVILEGES;
+SQL
+
 echo "==> 写入生产 .env"
 cat > .env <<ENV
 USE_MOCK_DB=false
