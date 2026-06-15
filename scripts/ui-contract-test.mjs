@@ -61,6 +61,11 @@ for (const text of ["activeNav === \"商品\"", "activeNav === \"订单\"", "act
 }
 assertIncludes("admin-web/src/App.vue", "runAdminAction");
 assertIncludes("store-terminal/src/App.vue", "cashier-panel");
+assertIncludes("store-terminal/src/App.vue", "activeNav");
+assertIncludes("store-terminal/src/App.vue", "store-login-page");
+assertIncludes("store-terminal/src/App.vue", "handleLogout");
+assertIncludes("store-terminal/src/App.vue", "门店操作员");
+assertIncludes("store-terminal/src/App.vue", "退出登录");
 assertIncludes("miniapp/pages/share-collection/index.wxml", "payment-hero");
 assertIncludes("miniapp/pages/share-collection/index.wxss", ".payment-hero");
 

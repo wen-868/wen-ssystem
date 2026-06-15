@@ -1,30 +1,50 @@
 <template>
-  <div class="layout">
+  <div v-if="!token" class="store-login-page">
+    <el-card class="login-card">
+      <template #header>
+        <div>
+          <h1>门店操作端</h1>
+          <p class="muted">请先登录，登录后进入门店收银和履约工作台。</p>
+        </div>
+      </template>
+      <el-form label-width="72px" @submit.prevent>
+        <el-form-item label="账号">
+          <el-input v-model="loginForm.username" placeholder="store_operator" />
+        </el-form-item>
+        <el-form-item label="密码">
+          <el-input v-model="loginForm.password" type="password" placeholder="admin123" show-password />
+        </el-form-item>
+        <el-form-item>
+          <el-button type="primary" :loading="loading" @click="handleLogin">登录进入门店端</el-button>
+        </el-form-item>
+      </el-form>
+    </el-card>
+  </div>
+  <div v-else class="layout">
     <aside class="side">
       <h1>门店操作端</h1>
-      <div v-for="item in nav" :key="item" class="nav-item" :class="{ active: item === nav[0] }">
+      <button
+        v-for="item in nav"
+        :key="item"
+        class="nav-item"
+        :class="{ active: item === activeNav }"
+        type="button"
+        @click="activeNav = item"
+      >
         {{ item }}
-      </div>
+      </button>
     </aside>
     <main class="main">
       <section class="store-hero">
-        <h2>门店操作端工作台</h2>
-        <p class="muted">面向收银、开单、挂单、库存和分享收款的门店高频操作台。</p>
+        <div>
+          <h2>{{ activeNav }}</h2>
+          <p class="muted">{{ storeNavDescriptions[activeNav] }}</p>
+        </div>
+        <div class="user-bar">
+          <span>门店操作员</span>
+          <el-button size="small" @click="handleLogout">退出登录</el-button>
+        </div>
       </section>
-      <el-card v-if="!token" style="margin-bottom: 20px">
-        <template #header>门店账号登录</template>
-        <el-form :inline="true" @submit.prevent>
-          <el-form-item label="账号">
-            <el-input v-model="loginForm.username" placeholder="admin" />
-          </el-form-item>
-          <el-form-item label="密码">
-            <el-input v-model="loginForm.password" type="password" placeholder="admin123" show-password />
-          </el-form-item>
-          <el-form-item>
-            <el-button type="primary" :loading="loading" @click="handleLogin">登录</el-button>
-          </el-form-item>
-        </el-form>
-      </el-card>
       <section class="cards">
         <div class="card" v-for="card in cards" :key="card.label">
           <div class="metric">{{ card.value }}</div>
@@ -388,6 +408,15 @@ import { ElMessage } from "element-plus";
 import { acceptStoreOrder, adjustInventory, completeStoreOrder, createCollectionLink, createHoldOrder, createOfflinePayment, createSaleBill, deleteHoldOrder, fetchHoldOrders, fetchInventory, fetchInventoryLogs, fetchSaleBillDetail, fetchSaleBills, fetchStoreCollectionLinks, fetchStoreDailySales, fetchStoreDashboard, fetchStoreInventoryAlerts, fetchStoreOrderDetail, fetchStoreOrders, fetchStorePaymentOrders, fetchStoreRefundOrders, restoreHoldOrder, searchStoreMembers, searchStoreProducts, storeLogin } from "./api";
 
 const nav = ["工作台", "快速收银", "销售单", "接单履约", "库存查询", "分享收款"];
+const activeNav = ref("工作台");
+const storeNavDescriptions: Record<string, string> = {
+  工作台: "查看门店销售、订单和库存概览。",
+  快速收银: "搜索商品和客户，创建销售单并线下收款。",
+  销售单: "查看销售单、详情和分享收款。",
+  接单履约: "处理小程序订单接单和完成。",
+  库存查询: "查看库存、调整库存和库存流水。",
+  分享收款: "查看分享收款、支付和退款记录。"
+};
 const token = ref(localStorage.getItem("store_token") || localStorage.getItem("admin_token") || "");
 const loading = ref(false);
 const invDialogVisible = ref(false);
@@ -511,6 +540,13 @@ async function handleLogin() {
   } finally {
     loading.value = false;
   }
+}
+
+function handleLogout() {
+  localStorage.removeItem("store_token");
+  token.value = "";
+  activeNav.value = "工作台";
+  ElMessage.success("已退出登录");
 }
 
 async function handleSearchProducts() {
