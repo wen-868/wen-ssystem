@@ -800,3 +800,67 @@ storeRouter.get("/inventory/alerts", asyncHandler(async (req, res) => {
   );
   res.json(ok(records));
 }));
+
+storeRouter.get("/receivables", asyncHandler(async (req, res) => {
+  const page = Number(req.query.page || 1);
+  const pageSize = Number(req.query.pageSize || 20);
+  const offset = (page - 1) * pageSize;
+  const status = req.query.status ? String(req.query.status) : null;
+  const keyword = `%${String(req.query.keyword || "")}%`;
+  const storeId = req.user?.storeId ?? null;
+  const records = await query<any>(
+    `SELECT receivable_no AS receivableNo, source_type AS sourceType, source_no AS sourceNo,
+            customer_name AS customerName, customer_mobile AS customerMobile,
+            receivable_amount AS receivableAmount, received_amount AS receivedAmount,
+            unreceived_amount AS unreceivedAmount, status, created_at AS createdAt
+     FROM receivable_account
+     WHERE (? IS NULL OR store_id = ?)
+       AND (? IS NULL OR status = ?)
+       AND (receivable_no LIKE ? OR source_no LIKE ? OR customer_name LIKE ? OR customer_mobile LIKE ?)
+     ORDER BY id DESC
+     LIMIT ? OFFSET ?`,
+    [storeId, storeId, status, status, keyword, keyword, keyword, keyword, pageSize, offset]
+  );
+  const total = await queryOne<any>(
+    `SELECT COUNT(*) AS total FROM receivable_account
+     WHERE (? IS NULL OR store_id = ?)
+       AND (? IS NULL OR status = ?)
+       AND (receivable_no LIKE ? OR source_no LIKE ? OR customer_name LIKE ? OR customer_mobile LIKE ?)`,
+    [storeId, storeId, status, status, keyword, keyword, keyword, keyword]
+  );
+  res.json(ok({ total: total?.total ?? 0, page, pageSize, records }));
+}));
+
+storeRouter.post("/receivables/:receivableNo/payment", asyncHandler(async (req, res) => {
+  const body = z.object({
+    amount: z.number().positive(),
+    paymentMethod: z.enum(["CASH", "TRANSFER", "OTHER_WECHAT", "ALIPAY"]),
+    remark: z.string().optional()
+  }).parse(req.body);
+  const result = await transaction(async (conn) => {
+    const [rows] = await conn.query<any[]>(
+      `SELECT receivable_no, source_no, received_amount, receivable_amount, unreceived_amount
+       FROM receivable_account WHERE receivable_no = ? FOR UPDATE`,
+      [req.params.receivableNo]
+    );
+    const receivable = rows[0];
+    if (!receivable) throw new Error("应收不存在");
+    if (body.amount > Number(receivable.unreceived_amount)) throw new Error("收款金额不能超过未收金额");
+    const receivedAmount = Number(receivable.received_amount) + body.amount;
+    const unreceivedAmount = Math.max(Number(receivable.receivable_amount) - receivedAmount, 0);
+    const status = unreceivedAmount === 0 ? "PAID" : "PARTIAL";
+    await conn.execute(
+      `UPDATE receivable_account
+       SET received_amount = ?, unreceived_amount = ?, status = ?, last_payment_time = NOW()
+       WHERE receivable_no = ?`,
+      [receivedAmount, unreceivedAmount, status, req.params.receivableNo]
+    );
+    await conn.execute(
+      `INSERT INTO payment_order (pay_no, source_type, source_no, channel, amount, status, paid_at)
+       VALUES (?, 'RECEIVABLE', ?, ?, ?, 'SUCCESS', NOW())`,
+      [makeBizNo("ZF"), req.params.receivableNo, body.paymentMethod, body.amount]
+    );
+    return { receivableNo: req.params.receivableNo, receivedAmount, unreceivedAmount, status };
+  });
+  res.json(ok(result));
+}));

@@ -102,7 +102,6 @@ async function testWholesaleOrderReservation() {
   const res = await request("/miniapp/orders", {
     method: "POST",
     headers: {
-      "Content-Type": "application/json",
       "x-customer-type": "WHOLESALE"
     },
     body: JSON.stringify({
@@ -126,7 +125,6 @@ async function testWholesaleDeliveryLifecycle() {
   const order = await request("/miniapp/orders", {
     method: "POST",
     headers: {
-      "Content-Type": "application/json",
       "x-customer-type": "WHOLESALE",
       "x-settlement-type": "ACCOUNT"
     },
@@ -162,7 +160,6 @@ async function testReceivableCollection() {
   const order = await request("/miniapp/orders", {
     method: "POST",
     headers: {
-      "Content-Type": "application/json",
       "x-customer-type": "WHOLESALE",
       "x-settlement-type": "ACCOUNT"
     },
@@ -202,7 +199,7 @@ async function testReceivableCollection() {
   // 登记收款
   const paid = await request(`/store/receivables/${first.receivableNo}/payment`, {
     method: "POST",
-    headers: { ...auth, "Content-Type": "application/json" },
+    headers: auth,
     body: JSON.stringify({ amount: 10, paymentMethod: "TRANSFER", remark: "测试收款" })
   });
   if (Number(paid.unreceivedAmount) < 0) throw new Error("剩余未收金额不应为负数");

@@ -631,6 +631,13 @@ export async function mockQuery<T = any>(sql: string, params: unknown[] = []) {
     return state.holdOrders.filter((h) => h.status !== "DELETED") as T[];
   }
   if (s.includes("from receivable_account")) {
+    if (s.includes("count(*) as total")) {
+      return [{ total: state.receivables.length }] as T[];
+    }
+    if (s.includes("where receivable_no = ?")) {
+      const found = state.receivables.find((r) => r.receivableNo === params[0] || r.receivable_no === params[0]);
+      return found ? [found] as T[] : [];
+    }
     return state.receivables as T[];
   }
   if (s.includes("insert into operation_log")) {
@@ -744,6 +751,7 @@ export async function mockExecute(sql: string, params: unknown[] = []) {
       storeId: params[1],
       store_id: params[1],
       customerType: params[2],
+      customer_type: params[2],
       fulfillmentType: params[3],
       fulfillment_type: params[3],
       orderStatus: params[4] ?? "PENDING_PAYMENT",
@@ -871,23 +879,50 @@ export async function mockExecute(sql: string, params: unknown[] = []) {
     state.receivables.push({
       receivableNo: params[0],
       receivable_no: params[0],
-      sourceType: params[1],
-      source_type: params[1],
-      sourceNo: params[2],
-      source_no: params[2],
-      storeId: params[3],
-      store_id: params[3],
-      customerId: params[4],
-      customerName: params[5],
-      customerMobile: params[6],
-      receivableAmount: params[7],
-      receivable_amount: params[7],
-      receivedAmount: params[8],
-      received_amount: params[8],
-      unreceivedAmount: params[9],
-      unreceived_amount: params[9],
-      status: params[10],
+      sourceType: "MINIAPP_ORDER",
+      source_type: "MINIAPP_ORDER",
+      sourceNo: params[1],
+      source_no: params[1],
+      storeId: params[2],
+      store_id: params[2],
+      customerId: params[3],
+      customerName: params[4],
+      customerMobile: params[5],
+      receivableAmount: params[6],
+      receivable_amount: params[6],
+      receivedAmount: 0,
+      received_amount: 0,
+      unreceivedAmount: params[7],
+      unreceived_amount: params[7],
+      status: "UNPAID",
       createdAt: new Date().toISOString()
+    });
+    return result();
+  }
+  if (s.includes("update receivable_account")) {
+    const receivable = state.receivables.find((r) => r.receivableNo === params[3] || r.receivable_no === params[3]);
+    if (receivable) {
+      receivable.receivedAmount = params[0];
+      receivable.received_amount = params[0];
+      receivable.unreceivedAmount = params[1];
+      receivable.unreceived_amount = params[1];
+      receivable.status = params[2];
+    }
+    return result();
+  }
+  if (s.includes("insert into payment_order") && s.includes("'receivable'")) {
+    state.paymentOrders.push({
+      payNo: params[0],
+      pay_no: params[0],
+      sourceType: "RECEIVABLE",
+      source_type: "RECEIVABLE",
+      sourceNo: params[1],
+      source_no: params[1],
+      channel: params[2],
+      paymentMethod: params[2],
+      payment_method: params[2],
+      amount: params[3],
+      status: "SUCCESS"
     });
     return result();
   }
