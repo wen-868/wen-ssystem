@@ -187,7 +187,7 @@ storeRouter.post("/orders/:orderNo/start-delivery", asyncHandler(async (req, res
   await query(
     `INSERT INTO operation_log (operator_id, operator_name, module, action, biz_no, after_data)
      VALUES (?, ?, 'ORDER_DELIVERY', 'START_DELIVERY', ?, JSON_OBJECT('status', 'DELIVERING'))`,
-    [req.user?.id ?? null, req.user?.realName ?? "系统用户", req.params.orderNo]
+    [req.user?.id ?? null, req.user?.username ?? "系统用户", req.params.orderNo]
   );
   res.json(ok({ orderNo: req.params.orderNo, status: "DELIVERING" }));
 }));

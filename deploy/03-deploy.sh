@@ -44,6 +44,7 @@ npm --workspace backend run build
 echo "前端 API 地址：${VITE_API_BASE}"
 VITE_API_BASE="${VITE_API_BASE}" npm --workspace admin-web run build
 VITE_API_BASE="${VITE_API_BASE}" npm --workspace store-terminal run build
+VITE_API_BASE="${VITE_API_BASE}" npm --workspace merchant-mobile run build
 npm run test:production-deploy
 
 mkdir -p "${LOG_DIR}"

@@ -207,4 +207,34 @@ async function testReceivableCollection() {
 
 await testReceivableCollection();
 
+// === merchant-mobile 相关断言 ===
+
+// 验证商家端登录接口可用
+const storeLogin = await request("/store/auth/login", {
+  method: "POST",
+  body: JSON.stringify({ username: "store_manager", password: "admin123" })
+});
+if (!storeLogin.token) throw new Error("商家端登录应返回 token");
+const storeAuth = { Authorization: `Bearer ${storeLogin.token}` };
+
+// 验证商家端 dashboard 接口可用
+const merchantDashboard = await request("/store/dashboard", { headers: storeAuth });
+if (typeof merchantDashboard !== "object") throw new Error("商家端 dashboard 应返回对象");
+
+// 验证商家端订单列表接口可用
+const merchantOrders = await request("/store/orders", { headers: storeAuth, qs: { page: 1, pageSize: 10 } });
+if (!Array.isArray(merchantOrders.records)) throw new Error("商家端订单列表应返回 records 数组");
+
+// 验证商家端库存接口可用
+const merchantInventory = await request("/store/inventory", { headers: storeAuth, qs: { keyword: "" } });
+if (!Array.isArray(merchantInventory) && !Array.isArray(merchantInventory.records)) throw new Error("商家端库存应返回数组");
+
+// 验证商家端客户接口可用
+const merchantMembers = await request("/store/members", { headers: storeAuth, qs: { keyword: "" } });
+if (!Array.isArray(merchantMembers.records)) throw new Error("商家端客户列表应返回 records 数组");
+
+// 验证商家端应收接口可用
+const merchantReceivables = await request("/store/receivables", { headers: storeAuth, qs: { page: 1, pageSize: 10 } });
+if (!Array.isArray(merchantReceivables.records)) throw new Error("商家端应收列表应返回 records 数组");
+
 console.log("QA_REGRESSION_PASS");

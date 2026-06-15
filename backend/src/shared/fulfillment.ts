@@ -60,7 +60,7 @@ export async function completeOrderDelivery(
   operatorId: number | null,
   makeBizNo: (prefix: string) => string
 ): Promise<{ orderNo: string; status: string; receivableNo: string | null }> {
-  const [orders] = await conn.query<any[]>(
+  const [orders]: any[] = await conn.query(
     `SELECT order_no, store_id, member_id, customer_type, settlement_type, payable_amount, receiver_name, receiver_mobile
      FROM miniapp_order
      WHERE order_no = ? AND order_status IN ('WAIT_DELIVERY', 'DELIVERING')
@@ -70,7 +70,7 @@ export async function completeOrderDelivery(
   const order = orders[0];
   if (!order) throw new Error("订单不存在或状态不可完成");
 
-  const [items] = await conn.query<any[]>(
+  const [items]: any[] = await conn.query(
     `SELECT sku_id AS skuId, qty AS quantity, reserved_qty AS reservedQty
      FROM miniapp_order_item WHERE order_no = ?`,
     [orderNo]

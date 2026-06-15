@@ -20,7 +20,15 @@ const files = [
   "merchant-mobile/package.json",
   "merchant-mobile/src/App.vue",
   "merchant-mobile/src/api.ts",
-  "merchant-mobile/src/styles/tokens.css"
+  "merchant-mobile/src/styles/tokens.css",
+  "merchant-mobile/src/views/LoginView.vue",
+  "merchant-mobile/src/views/HomeView.vue",
+  "merchant-mobile/src/views/OrdersView.vue",
+  "merchant-mobile/src/views/InventoryView.vue",
+  "merchant-mobile/src/views/CustomersView.vue",
+  "merchant-mobile/src/views/ReceivablesView.vue",
+  "deploy/03-deploy.sh",
+  "deploy/04-nginx.conf"
 ];
 
 const contents = Object.fromEntries(files.map((file) => [file, readFileSync(file, "utf8")]));
@@ -137,5 +145,39 @@ assertIncludes("merchant-mobile/package.json", "\"@vitejs/plugin-vue\"");
 assertIncludes("merchant-mobile/src/App.vue", "van-tabbar");
 assertIncludes("merchant-mobile/src/api.ts", "merchant_token");
 assertIncludes("merchant-mobile/src/styles/tokens.css", "#1677FF");
+
+// === merchant-mobile 关键页面存在性 ===
+assertIncludes("merchant-mobile/src/views/LoginView.vue", "智享商家端");
+assertIncludes("merchant-mobile/src/views/LoginView.vue", "store/auth/login");
+assertIncludes("merchant-mobile/src/views/HomeView.vue", "今日经营");
+assertIncludes("merchant-mobile/src/views/HomeView.vue", "store/dashboard");
+assertIncludes("merchant-mobile/src/views/OrdersView.vue", "订单配送");
+assertIncludes("merchant-mobile/src/views/OrdersView.vue", "startDelivery");
+assertIncludes("merchant-mobile/src/views/OrdersView.vue", "completeDelivery");
+assertIncludes("merchant-mobile/src/views/InventoryView.vue", "库存");
+assertIncludes("merchant-mobile/src/views/InventoryView.vue", "fetchInventory");
+assertIncludes("merchant-mobile/src/views/CustomersView.vue", "客户");
+assertIncludes("merchant-mobile/src/views/CustomersView.vue", "fetchCustomers");
+assertIncludes("merchant-mobile/src/views/ReceivablesView.vue", "应收");
+assertIncludes("merchant-mobile/src/views/ReceivablesView.vue", "fetchReceivables");
+assertIncludes("merchant-mobile/src/views/ReceivablesView.vue", "registerReceivablePayment");
+
+// === merchant-mobile api.ts 接口函数存在性 ===
+assertIncludes("merchant-mobile/src/api.ts", "fetchOrders");
+assertIncludes("merchant-mobile/src/api.ts", "fetchOrderDetail");
+assertIncludes("merchant-mobile/src/api.ts", "startDelivery");
+assertIncludes("merchant-mobile/src/api.ts", "completeDelivery");
+assertIncludes("merchant-mobile/src/api.ts", "rejectOrder");
+assertIncludes("merchant-mobile/src/api.ts", "fetchInventory");
+assertIncludes("merchant-mobile/src/api.ts", "fetchCustomers");
+assertIncludes("merchant-mobile/src/api.ts", "createCustomer");
+assertIncludes("merchant-mobile/src/api.ts", "fetchReceivables");
+assertIncludes("merchant-mobile/src/api.ts", "registerReceivablePayment");
+assertIncludes("merchant-mobile/src/api.ts", "fetchReports");
+
+// === deploy: merchant-mobile 部署配置 ===
+assertIncludes("deploy/03-deploy.sh", "merchant-mobile");
+assertIncludes("deploy/04-nginx.conf", "merchant.YOUR_DOMAIN");
+assertIncludes("deploy/04-nginx.conf", "merchant-mobile/dist");
 
 console.log("UI_CONTRACT_PASS");
