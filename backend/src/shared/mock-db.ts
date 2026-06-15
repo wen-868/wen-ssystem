@@ -801,6 +801,22 @@ export async function mockExecute(sql: string, params: unknown[] = []) {
     }
     return result();
   }
+  if (s.includes("insert into payment_order") && s.includes("'receivable'")) {
+    state.paymentOrders.push({
+      payNo: params[0],
+      pay_no: params[0],
+      sourceType: "RECEIVABLE",
+      source_type: "RECEIVABLE",
+      sourceNo: params[1],
+      source_no: params[1],
+      channel: params[2],
+      paymentMethod: params[2],
+      payment_method: params[2],
+      amount: params[3],
+      status: "SUCCESS"
+    });
+    return result();
+  }
   if (s.includes("insert into payment_order")) {
     state.paymentOrders.push({
       payNo: params[0],
@@ -908,22 +924,6 @@ export async function mockExecute(sql: string, params: unknown[] = []) {
       receivable.unreceived_amount = params[1];
       receivable.status = params[2];
     }
-    return result();
-  }
-  if (s.includes("insert into payment_order") && s.includes("'receivable'")) {
-    state.paymentOrders.push({
-      payNo: params[0],
-      pay_no: params[0],
-      sourceType: "RECEIVABLE",
-      source_type: "RECEIVABLE",
-      sourceNo: params[1],
-      source_no: params[1],
-      channel: params[2],
-      paymentMethod: params[2],
-      payment_method: params[2],
-      amount: params[3],
-      status: "SUCCESS"
-    });
     return result();
   }
   return result();

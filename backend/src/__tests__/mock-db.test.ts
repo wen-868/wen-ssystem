@@ -77,3 +77,116 @@ describe("Mock 数据库", () => {
     expect(rows[0].customerName).toBeUndefined();
   });
 });
+
+describe("应收账款 Mock", () => {
+  it("插入应收记录后可查询到列表", async () => {
+    await mockConn.execute(
+      `INSERT INTO receivable_account (receivable_no, source_type, source_no, store_id, customer_id, customer_name,
+                                       customer_mobile, receivable_amount, received_amount, unreceived_amount, status)
+       VALUES (?, 'MINIAPP_ORDER', ?, ?, ?, ?, ?, ?, 0, ?, 'UNPAID')`,
+      ["YS-TEST-001", "MO-TEST-001", 1, 2, "默认批发客户", "13900000001", 99, 99]
+    );
+
+    const list = await mockQuery<any>(
+      `SELECT receivable_no AS receivableNo, source_type AS sourceType, source_no AS sourceNo,
+              customer_name AS customerName, customer_mobile AS customerMobile,
+              receivable_amount AS receivableAmount, received_amount AS receivedAmount,
+              unreceived_amount AS unreceivedAmount, status, created_at AS createdAt
+       FROM receivable_account
+       ORDER BY id DESC`,
+      []
+    );
+
+    expect(list.length).toBeGreaterThanOrEqual(1);
+    const found = list.find((r: any) => r.receivableNo === "YS-TEST-001");
+    expect(found).toBeDefined();
+    expect(found.customerName).toBe("默认批发客户");
+    expect(Number(found.receivableAmount)).toBe(99);
+    expect(Number(found.receivedAmount)).toBe(0);
+    expect(found.status).toBe("UNPAID");
+  });
+
+  it("按 receivable_no 查询单条应收详情", async () => {
+    const row = await mockQuery<any>(
+      `SELECT receivable_no, source_no, received_amount, receivable_amount, unreceived_amount
+       FROM receivable_account WHERE receivable_no = ?`,
+      ["YS-TEST-001"]
+    );
+
+    expect(row).toHaveLength(1);
+    expect(row[0].receivable_no).toBe("YS-TEST-001");
+    expect(Number(row[0].unreceived_amount)).toBe(99);
+  });
+
+  it("更新应收收款后金额和状态正确变更", async () => {
+    await mockConn.execute(
+      `UPDATE receivable_account
+       SET received_amount = ?, unreceived_amount = ?, status = ?, last_payment_time = NOW()
+       WHERE receivable_no = ?`,
+      [10, 89, "PARTIAL", "YS-TEST-001"]
+    );
+
+    const row = await mockQuery<any>(
+      `SELECT receivable_no, received_amount, unreceived_amount, status
+       FROM receivable_account WHERE receivable_no = ?`,
+      ["YS-TEST-001"]
+    );
+
+    expect(row).toHaveLength(1);
+    expect(Number(row[0].received_amount)).toBe(10);
+    expect(Number(row[0].unreceived_amount)).toBe(89);
+    expect(row[0].status).toBe("PARTIAL");
+  });
+
+  it("全额收款后状态变为 PAID", async () => {
+    await mockConn.execute(
+      `UPDATE receivable_account
+       SET received_amount = ?, unreceived_amount = ?, status = ?, last_payment_time = NOW()
+       WHERE receivable_no = ?`,
+      [99, 0, "PAID", "YS-TEST-001"]
+    );
+
+    const row = await mockQuery<any>(
+      `SELECT receivable_no, received_amount, unreceived_amount, status
+       FROM receivable_account WHERE receivable_no = ?`,
+      ["YS-TEST-001"]
+    );
+
+    expect(Number(row[0].received_amount)).toBe(99);
+    expect(Number(row[0].unreceived_amount)).toBe(0);
+    expect(row[0].status).toBe("PAID");
+  });
+
+  it("应收收款生成付款记录", async () => {
+    await mockConn.execute(
+      `INSERT INTO payment_order (pay_no, source_type, source_no, channel, amount, status, paid_at)
+       VALUES (?, 'RECEIVABLE', ?, ?, ?, 'SUCCESS', NOW())`,
+      ["ZF-TEST-001", "YS-TEST-001", "TRANSFER", 10]
+    );
+
+    const payments = await mockQuery<any>(
+      `SELECT pay_no AS payNo, source_type AS sourceType, source_no AS sourceNo,
+              amount, status, channel AS paymentMethod
+       FROM payment_order
+       ORDER BY created_at DESC`,
+      []
+    );
+
+    const found = payments.find((p: any) => p.payNo === "ZF-TEST-001");
+    expect(found).toBeDefined();
+    expect(found.sourceType).toBe("RECEIVABLE");
+    expect(found.sourceNo).toBe("YS-TEST-001");
+    expect(Number(found.amount)).toBe(10);
+    expect(found.status).toBe("SUCCESS");
+  });
+
+  it("应收列表 count 查询返回正确总数", async () => {
+    const total = await mockQuery<any>(
+      `SELECT COUNT(*) AS total FROM receivable_account`,
+      []
+    );
+
+    expect(total).toHaveLength(1);
+    expect(Number(total[0].total)).toBeGreaterThanOrEqual(1);
+  });
+});
