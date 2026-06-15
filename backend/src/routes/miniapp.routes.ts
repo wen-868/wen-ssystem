@@ -4,6 +4,7 @@ import { asyncHandler } from "../shared/async-handler.js";
 import { query, queryOne, transaction } from "../shared/db.js";
 import { makeBizNo } from "../shared/id.js";
 import { ok } from "../shared/response.js";
+import { calcReservation, getInitialMiniappOrderState } from "../shared/fulfillment.js";
 
 export const miniappRouter = Router();
 
@@ -86,6 +87,8 @@ miniappRouter.post("/orders", asyncHandler(async (req, res) => {
   const remarkWithIdentity = anonymousMemberId
     ? `[anon:${anonymousMemberId}]${body.remark ? ` ${body.remark}` : ""}`
     : body.remark ?? null;
+  const initialState = getInitialMiniappOrderState(customerType === "WHOLESALE" ? "WHOLESALE" : "RETAIL");
+  const settlementType = customerType === "WHOLESALE" ? String(req.headers["x-settlement-type"] || "ACCOUNT") : "CASH";
   const order = await transaction(async (conn) => {
     const orderNo = makeBizNo("DD");
     let goodsAmount = 0;
@@ -101,22 +104,83 @@ miniappRouter.post("/orders", asyncHandler(async (req, res) => {
       const unitPrice = wholesale ? Number(price.wholesale_price) : Number(price.miniapp_price ?? price.retail_price);
       const subtotal = unitPrice * item.qty;
       goodsAmount += subtotal;
-      items.push({ ...item, skuName: price.sku_name, unitPrice, subtotal, priceType: wholesale ? "WHOLESALE" : "RETAIL" });
+      const inventory = await queryOne<any>(
+        `SELECT physical_qty AS physicalQty, locked_qty AS lockedQty, available_qty AS availableQty
+         FROM inventory_balance
+         WHERE store_id = ? AND sku_id = ? AND stock_type = 'ONLINE'`,
+        [body.storeId, item.skuId]
+      );
+      const reservation = customerType === "WHOLESALE"
+        ? calcReservation({ orderQty: item.qty, availableQty: Number(inventory?.availableQty ?? 0) })
+        : { reservedQty: 0, unreservedQty: item.qty };
+      items.push({
+        ...item,
+        skuName: price.sku_name,
+        unitPrice,
+        subtotal,
+        priceType: wholesale ? "WHOLESALE" : "RETAIL",
+        reservedQty: reservation.reservedQty,
+        unreservedQty: reservation.unreservedQty
+      });
     }
     await conn.execute(
       `INSERT INTO miniapp_order (order_no, member_id, store_id, customer_type, fulfillment_type, order_status, pay_status,
-                                  goods_amount, payable_amount, receiver_name, receiver_mobile, receiver_address, remark, expire_at)
-       VALUES (?, 1, ?, ?, ?, 'PENDING_PAYMENT', 'UNPAID', ?, ?, ?, ?, ?, ?, DATE_ADD(NOW(), INTERVAL 15 MINUTE))`,
-      [orderNo, body.storeId, customerType, body.fulfillmentType, goodsAmount, goodsAmount, body.receiverName ?? null, body.receiverMobile ?? null, body.receiverAddress ?? null, remarkWithIdentity]
+                                  settlement_type, delivery_status, goods_amount, payable_amount,
+                                  receiver_name, receiver_mobile, receiver_address, remark, expire_at)
+       VALUES (?, 1, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, DATE_ADD(NOW(), INTERVAL 15 MINUTE))`,
+      [
+        orderNo,
+        body.storeId,
+        customerType,
+        body.fulfillmentType,
+        initialState.orderStatus,
+        initialState.payStatus,
+        settlementType,
+        initialState.orderStatus === "WAIT_DELIVERY" ? "WAITING" : "WAITING",
+        goodsAmount,
+        goodsAmount,
+        body.receiverName ?? null,
+        body.receiverMobile ?? null,
+        body.receiverAddress ?? null,
+        remarkWithIdentity
+      ]
     );
     for (const item of items) {
       await conn.execute(
-        `INSERT INTO miniapp_order_item (order_no, sku_id, sku_name, qty, unit_price, price_type, subtotal_amount)
-         VALUES (?, ?, ?, ?, ?, ?, ?)`,
-        [orderNo, item.skuId, item.skuName, item.qty, item.unitPrice, item.priceType, item.subtotal]
+        `INSERT INTO miniapp_order_item (order_no, sku_id, sku_name, qty, reserved_qty, unreserved_qty, unit_price, price_type, subtotal_amount)
+         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+        [orderNo, item.skuId, item.skuName, item.qty, item.reservedQty, item.unreservedQty, item.unitPrice, item.priceType, item.subtotal]
       );
+      if (customerType === "WHOLESALE" && item.reservedQty > 0) {
+        await conn.execute(
+          `UPDATE inventory_balance
+           SET locked_qty = locked_qty + ?,
+               available_qty = GREATEST(available_qty - ?, 0),
+               updated_at = NOW()
+           WHERE store_id = ? AND sku_id = ? AND stock_type = 'ONLINE'`,
+          [item.reservedQty, item.reservedQty, body.storeId, item.skuId]
+        );
+        await conn.execute(
+          `INSERT INTO inventory_ledger (ledger_no, store_id, sku_id, stock_type, biz_type, biz_no,
+                                         change_qty, before_qty, after_qty, before_locked_qty, after_locked_qty,
+                                         operator_id, idempotency_key, remark)
+           VALUES (?, ?, ?, 'ONLINE', 'ORDER_LOCK', ?, 0, 0, 0, 0, ?, NULL, ?, ?)`,
+          [makeBizNo("IL"), body.storeId, item.skuId, orderNo, item.reservedQty, `ORDER_LOCK:${orderNo}:${item.skuId}`, "批发订货占用库存"]
+        );
+      }
     }
-    return { orderNo, orderStatus: "PENDING_PAYMENT", payStatus: "UNPAID", payableAmount: goodsAmount };
+    return {
+      orderNo,
+      orderStatus: initialState.orderStatus,
+      payStatus: initialState.payStatus,
+      payableAmount: goodsAmount,
+      items: items.map((item) => ({
+        skuId: item.skuId,
+        quantity: item.qty,
+        reservedQty: item.reservedQty,
+        unreservedQty: item.unreservedQty
+      }))
+    };
   });
   res.json(ok(order));
 }));
