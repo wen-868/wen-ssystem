@@ -66,6 +66,10 @@ assertIncludes("store-terminal/src/App.vue", "store-login-page");
 assertIncludes("store-terminal/src/App.vue", "handleLogout");
 assertIncludes("store-terminal/src/App.vue", "门店操作员");
 assertIncludes("store-terminal/src/App.vue", "退出登录");
+for (const text of ["activeNav === \"快速收银\"", "activeNav === \"销售单\"", "activeNav === \"接单履约\"", "activeNav === \"库存查询\"", "activeNav === \"分享收款\""]) {
+  assertIncludes("store-terminal/src/App.vue", text);
+}
+assertIncludes("store-terminal/src/App.vue", "runStoreAction");
 assertIncludes("miniapp/pages/share-collection/index.wxml", "payment-hero");
 assertIncludes("miniapp/pages/share-collection/index.wxss", ".payment-hero");
 
