@@ -21,6 +21,20 @@ api.interceptors.request.use((config) => {
   return config;
 });
 
+api.interceptors.response.use(
+  (response) => response,
+  (error) => {
+    if (error?.response?.status === 401) {
+      localStorage.removeItem("store_token");
+      localStorage.removeItem("admin_token");
+      if (typeof window !== "undefined") {
+        window.dispatchEvent(new Event("auth:logout"));
+      }
+    }
+    return Promise.reject(error);
+  }
+);
+
 export async function storeLogin(username: string, password: string) {
   const { data } = await api.post("/admin/auth/login", { username, password });
   return data.data as { token: string; user: unknown };

@@ -21,6 +21,19 @@ api.interceptors.request.use((config) => {
   return config;
 });
 
+api.interceptors.response.use(
+  (response) => response,
+  (error) => {
+    if (error?.response?.status === 401) {
+      localStorage.removeItem("admin_token");
+      if (typeof window !== "undefined") {
+        window.dispatchEvent(new Event("auth:logout"));
+      }
+    }
+    return Promise.reject(error);
+  }
+);
+
 export async function adminLogin(username: string, password: string) {
   const { data } = await api.post("/admin/auth/login", { username, password });
   return data.data as { token: string; user: unknown };
@@ -31,8 +44,8 @@ export async function fetchDashboard() {
   return data.data;
 }
 
-export async function fetchProducts() {
-  const { data } = await api.get("/admin/products", { params: { page: 1, pageSize: 20 } });
+export async function fetchProducts(params?: { keyword?: string; page?: number; pageSize?: number }) {
+  const { data } = await api.get("/admin/products", { params: { page: 1, pageSize: 20, ...params } });
   return data.data;
 }
 
@@ -46,8 +59,8 @@ export async function fetchStores() {
   return data.data;
 }
 
-export async function fetchMembers() {
-  const { data } = await api.get("/admin/members", { params: { page: 1, pageSize: 30 } });
+export async function fetchMembers(params?: { keyword?: string; page?: number; pageSize?: number }) {
+  const { data } = await api.get("/admin/members", { params: { page: 1, pageSize: 30, ...params } });
   return data.data;
 }
 

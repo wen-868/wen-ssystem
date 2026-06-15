@@ -120,8 +120,8 @@
               <el-table-column prop="productName" label="商品" min-width="140" />
               <el-table-column prop="skuName" label="规格" min-width="150" />
               <el-table-column prop="availableQty" label="库存" width="80" />
-              <el-table-column label="门店价" width="90">
-                <template #default="{ row }">¥{{ Number(row.storePrice || row.retailPrice || 0).toFixed(2) }}</template>
+              <el-table-column label="门店价" width="100">
+                <template #default="{ row }">{{ formatYuan(row.storePrice || row.retailPrice) }}</template>
               </el-table-column>
               <el-table-column label="操作" width="76">
                 <template #default="{ row }">
@@ -176,8 +176,8 @@
               <el-input-number v-model="row.unitPrice" :min="0" :precision="2" size="small" />
             </template>
           </el-table-column>
-          <el-table-column label="小计" width="110">
-            <template #default="{ row }">¥{{ (Number(row.quantity || 0) * Number(row.unitPrice || 0)).toFixed(2) }}</template>
+          <el-table-column label="小计" width="120">
+            <template #default="{ row }">{{ formatYuan(Number(row.quantity || 0) * Number(row.unitPrice || 0)) }}</template>
           </el-table-column>
           <el-table-column label="操作" width="80">
             <template #default="{ $index }">
@@ -186,7 +186,7 @@
           </el-table-column>
         </el-table>
         <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 12px">
-          <strong>购物车合计：¥{{ cartAmount.toFixed(2) }}</strong>
+          <strong>购物车合计：{{ formatYuan(cartAmount) }}</strong>
           <div>
             <el-select v-model="paymentMethod" style="width: 128px; margin-right: 8px">
               <el-option label="现金" value="CASH" />
@@ -201,7 +201,7 @@
           </div>
         </div>
         <el-alert v-if="currentBillNo" type="success" show-icon :closable="false" style="margin-bottom: 12px">
-          <template #title>销售单：{{ currentBillNo }}，应收金额：¥{{ currentAmount.toFixed(2) }}</template>
+          <template #title>销售单：{{ currentBillNo }}，应收金额：{{ formatYuan(currentAmount) }}</template>
         </el-alert>
         <el-alert v-if="shareUrl" type="warning" show-icon :closable="false">
           <template #title>分享收款链接：{{ shareUrl }}</template>
@@ -220,8 +220,12 @@
           <el-table-column prop="customerName" label="客户" />
           <el-table-column prop="businessStatus" label="业务状态" width="120" />
           <el-table-column prop="collectionStatus" label="收款状态" width="120" />
-          <el-table-column prop="receivableAmount" label="应收金额" width="120" />
-          <el-table-column prop="unreceivedAmount" label="未收金额" width="120" />
+          <el-table-column label="应收金额" width="120">
+            <template #default="{ row }">{{ formatYuan(row.receivableAmount) }}</template>
+          </el-table-column>
+          <el-table-column label="未收金额" width="120">
+            <template #default="{ row }">{{ formatYuan(row.unreceivedAmount) }}</template>
+          </el-table-column>
           <el-table-column label="操作" width="220">
             <template #default="{ row }">
               <el-button size="small" @click="openSaleBillDetail(row.billNo)">详情</el-button>
@@ -238,14 +242,18 @@
             <el-descriptions-item label="客户">{{ saleBillDetail.customerName || "-" }}</el-descriptions-item>
             <el-descriptions-item label="业务状态">{{ saleBillDetail.businessStatus }}</el-descriptions-item>
             <el-descriptions-item label="收款状态">{{ saleBillDetail.collectionStatus }}</el-descriptions-item>
-            <el-descriptions-item label="应收金额">¥{{ Number(saleBillDetail.receivableAmount || 0).toFixed(2) }}</el-descriptions-item>
-            <el-descriptions-item label="未收金额">¥{{ Number(saleBillDetail.unreceivedAmount || 0).toFixed(2) }}</el-descriptions-item>
+            <el-descriptions-item label="应收金额">{{ formatYuan(saleBillDetail.receivableAmount) }}</el-descriptions-item>
+            <el-descriptions-item label="未收金额">{{ formatYuan(saleBillDetail.unreceivedAmount) }}</el-descriptions-item>
           </el-descriptions>
           <el-table :data="saleBillDetail.items || []" style="margin-top: 16px">
             <el-table-column prop="skuName" label="商品" />
             <el-table-column prop="totalBottleQty" label="数量" width="80" />
-            <el-table-column prop="unitPrice" label="单价" width="90" />
-            <el-table-column prop="subtotalAmount" label="小计" width="90" />
+            <el-table-column label="单价" width="100">
+              <template #default="{ row }">{{ formatYuan(row.unitPrice) }}</template>
+            </el-table-column>
+            <el-table-column label="小计" width="100">
+              <template #default="{ row }">{{ formatYuan(row.subtotalAmount) }}</template>
+            </el-table-column>
           </el-table>
           <el-alert v-if="detailShareUrl" type="warning" show-icon :closable="false" style="margin-top: 16px">
             <template #title>{{ detailShareUrl }}</template>
@@ -261,7 +269,9 @@
           <el-table-column prop="holdNo" label="挂单号" width="200" />
           <el-table-column prop="customerName" label="客户" width="120" />
           <el-table-column prop="customerMobile" label="手机号" width="140" />
-          <el-table-column prop="amount" label="金额" width="100" />
+          <el-table-column label="金额" width="120">
+            <template #default="{ row }">{{ formatYuan(row.amount) }}</template>
+          </el-table-column>
           <el-table-column prop="remark" label="备注" />
           <el-table-column label="操作" width="140">
             <template #default="{ row }">
@@ -320,8 +330,12 @@
         <el-table :data="collectionLinks" empty-text="暂无记录">
           <el-table-column prop="linkNo" label="收款单号" width="200" />
           <el-table-column prop="sourceNo" label="关联销售单" width="200" />
-          <el-table-column prop="amount" label="收款金额" width="100" />
-          <el-table-column prop="paidAmount" label="已付" width="80" />
+          <el-table-column label="收款金额" width="120">
+            <template #default="{ row }">{{ formatYuan(row.amount) }}</template>
+          </el-table-column>
+          <el-table-column label="已付" width="100">
+            <template #default="{ row }">{{ formatYuan(row.paidAmount) }}</template>
+          </el-table-column>
           <el-table-column prop="status" label="状态" width="100" />
           <el-table-column prop="createdAt" label="创建时间" width="170" />
         </el-table>
@@ -336,7 +350,9 @@
         <el-table :data="paymentOrders" empty-text="暂无记录">
           <el-table-column prop="payNo" label="支付单号" width="200" />
           <el-table-column prop="sourceNo" label="关联来源" width="200" />
-          <el-table-column prop="amount" label="金额" width="100" />
+          <el-table-column label="金额" width="120">
+            <template #default="{ row }">{{ formatYuan(row.amount) }}</template>
+          </el-table-column>
           <el-table-column prop="status" label="状态" width="100" />
           <el-table-column prop="paymentMethod" label="方式" width="100" />
           <el-table-column prop="createdAt" label="时间" width="170" />
@@ -353,7 +369,9 @@
           <el-table-column prop="refundNo" label="退款单号" width="200" />
           <el-table-column prop="payNo" label="支付单号" width="200" />
           <el-table-column prop="sourceNo" label="关联来源" width="180" />
-          <el-table-column prop="amount" label="退款金额" width="100" />
+          <el-table-column label="退款金额" width="120">
+            <template #default="{ row }">{{ formatYuan(row.amount) }}</template>
+          </el-table-column>
           <el-table-column prop="reason" label="原因" />
           <el-table-column prop="status" label="状态" width="100" />
           <el-table-column prop="createdAt" label="时间" width="170" />
@@ -366,27 +384,31 @@
             <el-descriptions-item label="客户类型">{{ orderDetail.customerType }}</el-descriptions-item>
             <el-descriptions-item label="订单状态">{{ orderDetail.orderStatus }}</el-descriptions-item>
             <el-descriptions-item label="支付状态">{{ orderDetail.payStatus }}</el-descriptions-item>
-            <el-descriptions-item label="应付金额">¥{{ Number(orderDetail.payableAmount || 0).toFixed(2) }}</el-descriptions-item>
+            <el-descriptions-item label="应付金额">{{ formatYuan(orderDetail.payableAmount) }}</el-descriptions-item>
             <el-descriptions-item label="收货人">{{ orderDetail.receiverName || "-" }}</el-descriptions-item>
             <el-descriptions-item label="收货地址">{{ orderDetail.receiverAddress || "-" }}</el-descriptions-item>
           </el-descriptions>
           <el-table :data="orderDetail.items || []" style="margin-top: 16px">
             <el-table-column prop="skuName" label="商品" />
             <el-table-column prop="quantity" label="数量" width="80" />
-            <el-table-column prop="unitPrice" label="单价" width="90" />
-            <el-table-column prop="subtotalAmount" label="小计" width="90" />
+            <el-table-column label="单价" width="100">
+              <template #default="{ row }">{{ formatYuan(row.unitPrice) }}</template>
+            </el-table-column>
+            <el-table-column label="小计" width="100">
+              <template #default="{ row }">{{ formatYuan(row.subtotalAmount) }}</template>
+            </el-table-column>
           </el-table>
         </template>
       </el-dialog>
       <el-dialog v-model="invDialogVisible" title="库存调整" width="400px">
-        <el-form label-width="100px">
+        <el-form ref="invFormRef" :model="invForm" :rules="invRules" label-width="100px">
           <el-form-item label="商品">
             <span>{{ invForm.skuName || "—" }}</span>
           </el-form-item>
           <el-form-item label="库存类型">
             <span>{{ invForm.stockType }}</span>
           </el-form-item>
-          <el-form-item label="变化量">
+          <el-form-item label="变化量" prop="change">
             <el-input-number v-model="invForm.change" :min="-999" :max="999" />
           </el-form-item>
           <el-form-item label="备注">
@@ -404,8 +426,9 @@
 
 <script setup lang="ts">
 import { computed, onMounted, reactive, ref } from "vue";
-import { ElMessage } from "element-plus";
+import { ElMessage, ElMessageBox } from "element-plus";
 import { acceptStoreOrder, adjustInventory, completeStoreOrder, createCollectionLink, createHoldOrder, createOfflinePayment, createSaleBill, deleteHoldOrder, fetchHoldOrders, fetchInventory, fetchInventoryLogs, fetchSaleBillDetail, fetchSaleBills, fetchStoreCollectionLinks, fetchStoreDailySales, fetchStoreDashboard, fetchStoreInventoryAlerts, fetchStoreOrderDetail, fetchStoreOrders, fetchStorePaymentOrders, fetchStoreRefundOrders, restoreHoldOrder, searchStoreMembers, searchStoreProducts, storeLogin } from "./api";
+import { formatYuan } from "./utils/format";
 
 const nav = ["工作台", "快速收银", "销售单", "接单履约", "库存查询", "分享收款"];
 const activeNav = ref("工作台");
@@ -427,6 +450,16 @@ const invForm = reactive({
   change: 0,
   remark: ""
 });
+const invFormRef = ref();
+const invRules = {
+  change: [{
+    validator: (_: any, value: number, callback: any) => {
+      if (Number(value) !== 0) callback();
+      else callback(new Error("变化量不能为 0"));
+    },
+    trigger: "blur"
+  }]
+};
 const inventory = ref<any[]>([]);
 const inventoryLogs = ref<any[]>([]);
 const collectionLinks = ref<any[]>([]);
@@ -509,8 +542,8 @@ const paymentMethod = ref("CASH");
 const loginForm = reactive({ username: "admin", password: "admin123" });
 const saleForm = reactive({
   customerId: 0,
-  customerName: "演示客户",
-  customerMobile: "13900000000",
+  customerName: "",
+  customerMobile: "",
   skuId: 1,
   totalBottleQty: 1,
   unitPrice: 129,
@@ -523,8 +556,8 @@ const cartAmount = computed(() => cartItems.value.reduce((sum, item) => {
 }, 0));
 
 const cards = computed(() => [
-  { label: "今日销售额", value: "¥" + Number(dashboard.value.todaySalesAmount || 0).toFixed(2), desc: "销售单汇总" },
-  { label: "待收款", value: "¥" + Number(dashboard.value.unReceivedAmount || 0).toFixed(2), desc: "未收销售单金额" },
+  { label: "今日销售额", value: formatYuan(dashboard.value.todaySalesAmount), desc: "销售单汇总" },
+  { label: "待收款", value: formatYuan(dashboard.value.unReceivedAmount), desc: "未收销售单金额" },
   { label: "待处理订单", value: String(dashboard.value.pendingOrderCount || 0), desc: "待接单小程序订单" },
   { label: "今日订单", value: String(dashboard.value.todayOrderCount || 0), desc: "今日小程序订单数" }
 ]);
@@ -555,7 +588,9 @@ async function handleLogin() {
   }, "登录失败，请检查门店账号或稍后再试");
 }
 
-function handleLogout() {
+async function handleLogout() {
+  const confirmed = await ElMessageBox.confirm("确认退出当前登录?", "确认退出", { type: "warning" }).catch(() => null);
+  if (!confirmed) return;
   localStorage.removeItem("store_token");
   token.value = "";
   activeNav.value = "工作台";
@@ -745,6 +780,9 @@ function openInvAdjust(row: any) {
 
 async function handleInvAdjust() {
   if (!invForm.skuId) return;
+  await invFormRef.value?.validate();
+  const confirmed = await ElMessageBox.confirm(`确认调整 ${invForm.skuName || "该商品"} 的 ${invForm.stockType} 库存 ${invForm.change > 0 ? "+" : ""}${invForm.change}?`, "确认调整", { type: "warning" }).catch(() => null);
+  if (!confirmed) return;
   loading.value = true;
   try {
     await adjustInventory({
@@ -866,6 +904,13 @@ async function shareExistingBill(row: any) {
 }
 
 onMounted(() => {
+  if (typeof window !== "undefined") {
+    window.addEventListener("auth:logout", () => {
+      token.value = "";
+      activeNav.value = "工作台";
+      ElMessage.warning("登录已过期，请重新登录");
+    });
+  }
   if (token.value) {
     Promise.all([loadInventory(), loadSaleBills(), loadOrders(), loadInventoryLogs(), loadCollectionLinks(), loadPaymentOrders(), loadRefundOrders(), loadDashboard(), loadDailySales(), loadInventoryAlerts()]).catch(() => {
       ElMessage.warning("接口暂不可用，请确认后端和数据库已启动");

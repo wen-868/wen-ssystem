@@ -56,9 +56,11 @@
         <template #header>
           <div style="display: flex; justify-content: space-between; align-items: center">
             <span>商品列表</span>
-            <div>
+            <div style="display: flex; gap: 8px; align-items: center">
+              <el-input v-model="productsKeyword" placeholder="商品名/SKU" size="small" style="width: 180px" clearable @clear="searchProducts" @keyup.enter="searchProducts" />
+              <el-button size="small" @click="searchProducts">搜索</el-button>
               <el-button size="small" @click="loadProducts">刷新商品</el-button>
-              <el-button size="small" type="primary" @click="productDialogVisible = true">新增演示商品</el-button>
+              <el-button size="small" type="primary" @click="productDialogVisible = true">新增商品</el-button>
             </div>
           </div>
         </template>
@@ -79,8 +81,12 @@
           <el-table-column prop="skuCode" label="SKU编码" width="180" />
           <el-table-column prop="name" label="商品名称" />
           <el-table-column prop="skuName" label="规格" />
-          <el-table-column prop="retailPrice" label="零售价" width="100" />
-          <el-table-column prop="wholesalePrice" label="批发价" width="100" />
+          <el-table-column label="零售价" width="100">
+            <template #default="{ row }">{{ formatYuan(row.retailPrice) }}</template>
+          </el-table-column>
+          <el-table-column label="批发价" width="100">
+            <template #default="{ row }">{{ formatYuan(row.wholesalePrice) }}</template>
+          </el-table-column>
           <el-table-column prop="status" label="状态" width="120" />
           <el-table-column label="操作" width="220">
             <template #default="{ row }">
@@ -131,7 +137,9 @@
         <template #header>
           <div style="display: flex; justify-content: space-between; align-items: center">
             <span>客户管理</span>
-            <div>
+            <div style="display: flex; gap: 8px; align-items: center">
+              <el-input v-model="membersKeyword" placeholder="客户名/手机号" size="small" style="width: 180px" clearable @clear="searchMembers" @keyup.enter="searchMembers" />
+              <el-button size="small" @click="searchMembers">搜索</el-button>
               <el-button size="small" @click="loadMembers">刷新客户</el-button>
               <el-button size="small" type="primary" @click="memberDialogVisible = true">新增客户</el-button>
             </div>
@@ -187,7 +195,9 @@
           <el-table-column prop="customerType" label="客户类型" width="100" />
           <el-table-column prop="orderStatus" label="订单状态" width="130" />
           <el-table-column prop="payStatus" label="支付状态" width="100" />
-          <el-table-column prop="payableAmount" label="金额" width="100" />
+          <el-table-column label="金额" width="120">
+            <template #default="{ row }">{{ formatYuan(row.payableAmount) }}</template>
+          </el-table-column>
           <el-table-column prop="receiverName" label="收货人" />
           <el-table-column prop="createdAt" label="创建时间" width="170" />
           <el-table-column label="操作" width="80">
@@ -212,9 +222,15 @@
         <el-table :data="saleBills" empty-text="暂无销售单">
           <el-table-column prop="billNo" label="销售单号" width="200" />
           <el-table-column prop="customerName" label="客户" />
-          <el-table-column prop="receivableAmount" label="应收" width="100" />
-          <el-table-column prop="receivedAmount" label="已收" width="100" />
-          <el-table-column prop="unreceivedAmount" label="未收" width="100" />
+          <el-table-column label="应收" width="110">
+            <template #default="{ row }">{{ formatYuan(row.receivableAmount) }}</template>
+          </el-table-column>
+          <el-table-column label="已收" width="110">
+            <template #default="{ row }">{{ formatYuan(row.receivedAmount) }}</template>
+          </el-table-column>
+          <el-table-column label="未收" width="110">
+            <template #default="{ row }">{{ formatYuan(row.unreceivedAmount) }}</template>
+          </el-table-column>
           <el-table-column prop="collectionStatus" label="收款" width="120" />
           <el-table-column prop="businessStatus" label="履约" width="120" />
           <el-table-column prop="createdAt" label="创建时间" width="170" />
@@ -248,8 +264,12 @@
         <el-table :data="collectionLinks" empty-text="暂无记录">
           <el-table-column prop="linkNo" label="收款单号" width="200" />
           <el-table-column prop="sourceNo" label="关联销售单" width="200" />
-          <el-table-column prop="amount" label="收款金额" width="100" />
-          <el-table-column prop="paidAmount" label="已付" width="80" />
+          <el-table-column label="收款金额" width="120">
+            <template #default="{ row }">{{ formatYuan(row.amount) }}</template>
+          </el-table-column>
+          <el-table-column label="已付" width="100">
+            <template #default="{ row }">{{ formatYuan(row.paidAmount) }}</template>
+          </el-table-column>
           <el-table-column prop="status" label="状态" width="100" />
           <el-table-column prop="shareChannel" label="分享渠道" width="120" />
           <el-table-column prop="createdAt" label="创建时间" width="170" />
@@ -265,7 +285,9 @@
         <el-table :data="paymentOrders" empty-text="暂无记录">
           <el-table-column prop="payNo" label="支付单号" width="200" />
           <el-table-column prop="sourceNo" label="关联来源" width="200" />
-          <el-table-column prop="amount" label="金额" width="100" />
+          <el-table-column label="金额" width="120">
+            <template #default="{ row }">{{ formatYuan(row.amount) }}</template>
+          </el-table-column>
           <el-table-column prop="status" label="状态" width="100" />
           <el-table-column prop="paymentMethod" label="方式" width="100" />
           <el-table-column prop="createdAt" label="创建时间" width="170" />
@@ -282,7 +304,9 @@
           <el-table-column prop="refundNo" label="退款单号" width="200" />
           <el-table-column prop="payNo" label="支付单号" width="200" />
           <el-table-column prop="sourceNo" label="关联来源" width="180" />
-          <el-table-column prop="amount" label="退款金额" width="100" />
+          <el-table-column label="退款金额" width="120">
+            <template #default="{ row }">{{ formatYuan(row.amount) }}</template>
+          </el-table-column>
           <el-table-column prop="reason" label="原因" />
           <el-table-column prop="status" label="状态" width="100" />
           <el-table-column prop="createdAt" label="创建时间" width="170" />
@@ -330,7 +354,7 @@
             <el-table-column prop="storeName" label="门店" />
             <el-table-column prop="billCount" label="销售单数" width="100" />
             <el-table-column label="销售金额" width="120">
-              <template #default="{ row }">¥{{ Number(row.totalSales || 0).toFixed(2) }}</template>
+              <template #default="{ row }">{{ formatYuan(row.totalSales) }}</template>
             </el-table-column>
           </el-table>
         </el-card>
@@ -342,7 +366,7 @@
             <el-descriptions-item label="客户类型">{{ orderDetail.customerType }}</el-descriptions-item>
             <el-descriptions-item label="订单状态">{{ orderDetail.orderStatus }}</el-descriptions-item>
             <el-descriptions-item label="支付状态">{{ orderDetail.payStatus }}</el-descriptions-item>
-            <el-descriptions-item label="应付金额">¥{{ Number(orderDetail.payableAmount || 0).toFixed(2) }}</el-descriptions-item>
+            <el-descriptions-item label="应付金额">{{ formatYuan(orderDetail.payableAmount) }}</el-descriptions-item>
             <el-descriptions-item label="收货人">{{ orderDetail.receiverName || "-" }}</el-descriptions-item>
             <el-descriptions-item label="联系电话">{{ orderDetail.receiverMobile || "-" }}</el-descriptions-item>
             <el-descriptions-item label="收货地址">{{ orderDetail.receiverAddress || "-" }}</el-descriptions-item>
@@ -350,20 +374,24 @@
           <el-table :data="orderDetail.items || []" style="margin-top: 16px">
             <el-table-column prop="skuName" label="商品" />
             <el-table-column prop="quantity" label="数量" width="80" />
-            <el-table-column prop="unitPrice" label="单价" width="90" />
-            <el-table-column prop="subtotalAmount" label="小计" width="90" />
+            <el-table-column label="单价" width="100">
+              <template #default="{ row }">{{ formatYuan(row.unitPrice) }}</template>
+            </el-table-column>
+            <el-table-column label="小计" width="100">
+              <template #default="{ row }">{{ formatYuan(row.subtotalAmount) }}</template>
+            </el-table-column>
           </el-table>
         </template>
       </el-dialog>
-      <el-dialog v-model="productDialogVisible" title="新增演示商品" width="520px">
-        <el-form label-width="110px">
-          <el-form-item label="商品名称">
+      <el-dialog v-model="productDialogVisible" title="新增商品" width="520px">
+        <el-form ref="productFormRef" :model="productForm" :rules="productRules" label-width="110px">
+          <el-form-item label="商品名称" prop="name">
             <el-input v-model="productForm.name" />
           </el-form-item>
           <el-form-item label="图片URL">
             <el-input v-model="productForm.mainImage" placeholder="可填写商品图片链接" />
           </el-form-item>
-          <el-form-item label="SKU名称">
+          <el-form-item label="SKU名称" prop="skuName">
             <el-input v-model="productForm.skuName" />
           </el-form-item>
           <el-form-item label="条码">
@@ -372,10 +400,10 @@
           <el-form-item label="箱瓶换算">
             <el-input-number v-model="productForm.boxRatio" :min="1" />
           </el-form-item>
-          <el-form-item label="零售价">
+          <el-form-item label="零售价" prop="retailPrice">
             <el-input-number v-model="productForm.retailPrice" :min="0" :precision="2" />
           </el-form-item>
-          <el-form-item label="批发价">
+          <el-form-item label="批发价" prop="wholesalePrice">
             <el-input-number v-model="productForm.wholesalePrice" :min="0" :precision="2" />
           </el-form-item>
         </el-form>
@@ -385,17 +413,17 @@
         </template>
       </el-dialog>
       <el-dialog v-model="storeDialogVisible" title="新增门店" width="480px">
-        <el-form label-width="100px">
-          <el-form-item label="门店编码">
+        <el-form ref="storeFormRef" :model="storeForm" :rules="storeRules" label-width="100px">
+          <el-form-item label="门店编码" prop="code">
             <el-input v-model="storeForm.code" />
           </el-form-item>
-          <el-form-item label="门店名称">
+          <el-form-item label="门店名称" prop="name">
             <el-input v-model="storeForm.name" />
           </el-form-item>
           <el-form-item label="门店地址">
             <el-input v-model="storeForm.address" />
           </el-form-item>
-          <el-form-item label="联系电话">
+          <el-form-item label="联系电话" prop="phone">
             <el-input v-model="storeForm.phone" />
           </el-form-item>
         </el-form>
@@ -405,11 +433,11 @@
         </template>
       </el-dialog>
       <el-dialog v-model="memberDialogVisible" title="新增客户" width="480px">
-        <el-form label-width="100px">
-          <el-form-item label="客户名称">
+        <el-form ref="memberFormRef" :model="memberForm" :rules="memberRules" label-width="100px">
+          <el-form-item label="客户名称" prop="name">
             <el-input v-model="memberForm.name" />
           </el-form-item>
-          <el-form-item label="手机号">
+          <el-form-item label="手机号" prop="mobile">
             <el-input v-model="memberForm.mobile" />
           </el-form-item>
           <el-form-item label="客户类型">
@@ -425,7 +453,7 @@
         </template>
       </el-dialog>
       <el-dialog v-model="priceDialogVisible" title="调整商品价格" width="420px">
-        <el-form label-width="100px">
+        <el-form ref="priceFormRef" :model="priceForm" :rules="priceRules" label-width="100px">
           <el-form-item label="SKU">
             <span>{{ priceForm.skuName }}</span>
           </el-form-item>
@@ -436,7 +464,7 @@
               <el-option label="小程序价" value="miniapp" />
             </el-select>
           </el-form-item>
-          <el-form-item label="新价格">
+          <el-form-item label="新价格" prop="price">
             <el-input-number v-model="priceForm.price" :min="0" :precision="2" />
           </el-form-item>
         </el-form>
@@ -451,8 +479,9 @@
 
 <script setup lang="ts">
 import { nextTick, onMounted, reactive, ref } from "vue";
-import { ElMessage } from "element-plus";
+import { ElMessage, ElMessageBox } from "element-plus";
 import { adminLogin, assignMember, createMember, createProduct, createStore, exportOrdersCsv, fetchCollectionLinks, fetchDailySales, fetchDashboard, fetchInventoryAlerts, fetchInventoryBalances, fetchInventoryLogs, fetchMemberPriceHistory, fetchMembers, fetchOrderDetail, fetchOrders, fetchOrderStats, fetchPaymentOrders, fetchPriceLogs, fetchProducts, fetchRefundOrders, fetchSaleBills, fetchStorePerformance, fetchStores, updateProductPrice, updateProductStatus } from "./api";
+import { formatYuan } from "./utils/format";
 
 const nav = ["首页", "商品", "订单", "销售单", "库存", "客户", "门店", "收款", "报表"];
 const activeNav = ref("首页");
@@ -471,8 +500,10 @@ const adminNavDescriptions: Record<string, string> = {
 const token = ref(localStorage.getItem("admin_token") || "");
 const loading = ref(false);
 const products = ref<any[]>([]);
+const productsKeyword = ref("");
 const stores = ref<any[]>([]);
 const members = ref<any[]>([]);
+const membersKeyword = ref("");
 const orders = ref<any[]>([]);
 const ordersTotal = ref(0);
 const ordersPage = ref(1);
@@ -500,23 +531,23 @@ const priceDialogVisible = ref(false);
 const priceHistoryTip = ref("");
 const loginForm = reactive({ username: "admin", password: "admin123" });
 const productForm = reactive({
-  name: "演示新品白酒",
-  mainImage: "https://dummyimage.com/120x120/9b1c31/ffffff&text=Wine",
-  skuName: "演示新品白酒 500ml",
-  barcode: `69${Date.now()}`,
+  name: "",
+  mainImage: "",
+  skuName: "",
+  barcode: "",
   boxRatio: 6,
-  retailPrice: 128,
-  wholesalePrice: 98
+  retailPrice: 0,
+  wholesalePrice: 0
 });
 const storeForm = reactive({
-  code: `STORE${Date.now().toString().slice(-4)}`,
-  name: "演示新门店",
-  address: "示例地址",
-  phone: "13800000001"
+  code: "",
+  name: "",
+  address: "",
+  phone: ""
 });
 const memberForm = reactive({
-  name: "演示新客户",
-  mobile: `139${Date.now().toString().slice(-8)}`,
+  name: "",
+  mobile: "",
   customerType: "RETAIL" as "RETAIL" | "WHOLESALE"
 });
 const priceForm = reactive({
@@ -525,6 +556,61 @@ const priceForm = reactive({
   type: "retail",
   price: 0
 });
+
+const productFormRef = ref();
+const storeFormRef = ref();
+const memberFormRef = ref();
+const priceFormRef = ref();
+const mobilePattern = /^1[3-9]\d{9}$/;
+const productRules = {
+  name: [{ required: true, message: "请填写商品名称", trigger: "blur" }],
+  skuName: [{ required: true, message: "请填写 SKU 名称", trigger: "blur" }],
+  retailPrice: [{
+    validator: (_: any, value: number, callback: any) => {
+      if (Number(value) > 0) callback();
+      else callback(new Error("零售价需大于 0"));
+    },
+    trigger: "blur"
+  }],
+  wholesalePrice: [{
+    validator: (_: any, value: number, callback: any) => {
+      if (Number(value) > 0) callback();
+      else callback(new Error("批发价需大于 0"));
+    },
+    trigger: "blur"
+  }]
+};
+const storeRules = {
+  code: [
+    { required: true, message: "请填写门店编码", trigger: "blur" },
+    { min: 2, max: 32, message: "门店编码 2 到 32 个字符", trigger: "blur" }
+  ],
+  name: [{ required: true, message: "请填写门店名称", trigger: "blur" }],
+  phone: [{
+    validator: (_: any, value: string, callback: any) => {
+      if (!value) callback();
+      else if (mobilePattern.test(value)) callback();
+      else callback(new Error("请填写正确的手机号"));
+    },
+    trigger: "blur"
+  }]
+};
+const memberRules = {
+  name: [{ required: true, message: "请填写客户名称", trigger: "blur" }],
+  mobile: [
+    { required: true, message: "请填写手机号", trigger: "blur" },
+    { pattern: mobilePattern, message: "请填写正确的手机号", trigger: "blur" }
+  ]
+};
+const priceRules = {
+  price: [{
+    validator: (_: any, value: number, callback: any) => {
+      if (Number(value) > 0) callback();
+      else callback(new Error("价格需大于 0"));
+    },
+    trigger: "blur"
+  }]
+};
 
 const cards = ref([
   { label: "今日销售额", value: "¥0.00", desc: "等待接入报表接口" },
@@ -559,7 +645,9 @@ async function handleLogin() {
   }, "登录失败，请检查账号密码或稍后再试");
 }
 
-function handleLogout() {
+async function handleLogout() {
+  const confirmed = await ElMessageBox.confirm("确认退出当前登录?", "确认退出", { type: "warning" }).catch(() => null);
+  if (!confirmed) return;
   localStorage.removeItem("admin_token");
   token.value = "";
   activeNav.value = "首页";
@@ -569,15 +657,15 @@ function handleLogout() {
 async function loadDashboard() {
   const data = await fetchDashboard();
   cards.value = [
-    { label: "今日销售额", value: `¥${Number(data.salesAmount || 0).toFixed(2)}`, desc: "销售单实收金额" },
-    { label: "待收款", value: `¥${Number(data.pendingCollectionAmount || 0).toFixed(2)}`, desc: "销售单分享收款" },
+    { label: "今日销售额", value: formatYuan(data.salesAmount), desc: "销售单实收金额" },
+    { label: "待收款", value: formatYuan(data.pendingCollectionAmount), desc: "销售单分享收款" },
     { label: "待处理订单", value: String(data.pendingOrderCount || 0), desc: "小程序订单履约" },
     { label: "库存预警", value: String(data.inventoryWarningCount || 0), desc: "低库存提醒" }
   ];
 }
 
 async function loadProducts() {
-  const data = await fetchProducts();
+  const data = await fetchProducts({ keyword: productsKeyword.value || undefined });
   products.value = data.records || [];
 }
 
@@ -587,8 +675,16 @@ async function loadStores() {
 }
 
 async function loadMembers() {
-  const data = await fetchMembers();
+  const data = await fetchMembers({ keyword: membersKeyword.value || undefined });
   members.value = data.records || [];
+}
+
+function searchProducts() {
+  loadProducts();
+}
+
+function searchMembers() {
+  loadMembers();
 }
 
 async function loadOrders(page?: number) {
@@ -777,6 +873,9 @@ function openPriceDialog(row: any) {
 
 async function handleUpdatePrice() {
   if (!priceForm.skuId) return;
+  await priceFormRef.value?.validate();
+  const confirmed = await ElMessageBox.confirm(`确认调整 ${priceForm.skuName} 的价格为 ${formatYuan(priceForm.price)}?`, "确认调整", { type: "warning" }).catch(() => null);
+  if (!confirmed) return;
   loading.value = true;
   try {
     const payload: any = {};
@@ -802,6 +901,9 @@ async function handleProductStatus(row: any, status: "DRAFT" | "ON_SALE" | "OFF_
     ElMessage.warning("当前商品缺少 spuId，无法变更状态");
     return;
   }
+  const actionText = status === "ON_SALE" ? "上架" : "下架";
+  const confirmed = await ElMessageBox.confirm(`确认${actionText} ${row.name || row.skuName || "该商品"}?`, `确认${actionText}`, { type: "warning" }).catch(() => null);
+  if (!confirmed) return;
   loading.value = true;
   try {
     await updateProductStatus(spuId, status);
@@ -813,6 +915,7 @@ async function handleProductStatus(row: any, status: "DRAFT" | "ON_SALE" | "OFF_
 }
 
 async function handleCreateStore() {
+  await storeFormRef.value?.validate();
   loading.value = true;
   try {
     await createStore({
@@ -830,6 +933,7 @@ async function handleCreateStore() {
 }
 
 async function handleCreateMember() {
+  await memberFormRef.value?.validate();
   loading.value = true;
   try {
     await createMember(memberForm);
@@ -858,6 +962,7 @@ async function handleShowPriceHistory(row: any) {
 }
 
 async function handleCreateProduct() {
+  await productFormRef.value?.validate();
   loading.value = true;
   try {
     await createProduct({
@@ -890,6 +995,13 @@ async function handleCreateProduct() {
 }
 
 onMounted(() => {
+  if (typeof window !== "undefined") {
+    window.addEventListener("auth:logout", () => {
+      token.value = "";
+      activeNav.value = "首页";
+      ElMessage.warning("登录已过期，请重新登录");
+    });
+  }
   if (token.value) {
     Promise.all([loadDashboard(), loadProducts(), loadStores(), loadMembers(), loadOrders(), loadSaleBills(), loadInventoryLogs(), loadInventoryBalances(), loadCollectionLinks(), loadPaymentOrders(), loadRefundOrders(), loadDailySales(), loadOrderStats(), loadStorePerformance(), loadInventoryAlerts()]).catch(() => {
       ElMessage.warning("接口暂不可用，请确认后端和数据库已启动");
