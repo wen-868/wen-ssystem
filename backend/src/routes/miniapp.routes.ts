@@ -136,7 +136,7 @@ miniappRouter.post("/orders", asyncHandler(async (req, res) => {
         initialState.orderStatus,
         initialState.payStatus,
         settlementType,
-        initialState.orderStatus === "WAIT_DELIVERY" ? "WAITING" : "WAITING",
+        initialState.orderStatus === "WAIT_DELIVERY" ? "PENDING_DELIVERY" : "WAITING",
         goodsAmount,
         goodsAmount,
         body.receiverName ?? null,
