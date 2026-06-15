@@ -1,6 +1,10 @@
 const ADMIN_URL = process.env.ADMIN_URL || "https://admin.onepan.cn";
 const STORE_URL = process.env.STORE_URL || "https://store.onepan.cn";
 const API_BASE = process.env.API_BASE || "https://api.onepan.cn/api";
+const ADMIN_USERNAME = process.env.ADMIN_USERNAME || "admin";
+const ADMIN_PASSWORD = process.env.ADMIN_PASSWORD || "admin123";
+const STORE_USERNAME = process.env.STORE_USERNAME || "store_operator";
+const STORE_PASSWORD = process.env.STORE_PASSWORD || "admin123";
 
 async function mustFetch(url) {
   const res = await fetch(url);
@@ -34,7 +38,7 @@ for (const html of [adminHtml, storeHtml]) {
 
 const adminLogin = await api("/admin/auth/login", {
   method: "POST",
-  body: JSON.stringify({ username: "admin", password: "admin123" })
+  body: JSON.stringify({ username: ADMIN_USERNAME, password: ADMIN_PASSWORD })
 });
 
 const adminAuth = { Authorization: `Bearer ${adminLogin.token}` };
@@ -43,7 +47,7 @@ if (!Array.isArray(adminProducts.records)) throw new Error("生产后台商品�
 
 const storeLogin = await api("/admin/auth/login", {
   method: "POST",
-  body: JSON.stringify({ username: "store_operator", password: "admin123" })
+  body: JSON.stringify({ username: STORE_USERNAME, password: STORE_PASSWORD })
 });
 
 const storeAuth = { Authorization: `Bearer ${storeLogin.token}` };
