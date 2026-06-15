@@ -81,6 +81,16 @@ export async function updateProductPrice(skuId: number, payload: { retailPrice?:
   return data.data;
 }
 
+export async function updateProductStatus(spuId: number, status: "DRAFT" | "ON_SALE" | "OFF_SALE") {
+  const { data } = await api.patch(`/admin/products/${spuId}/status`, { status });
+  return data.data;
+}
+
+export async function fetchPriceLogs(skuId: number) {
+  const { data } = await api.get(`/admin/products/${skuId}/price-logs`);
+  return data.data as { records: unknown[] };
+}
+
 export async function fetchOrders(params?: { keyword?: string; status?: string; dateStart?: string; dateEnd?: string; page?: number; pageSize?: number }) {
   const { data } = await api.get("/admin/orders", { params: { page: 1, pageSize: 20, ...params } });
   return data.data;

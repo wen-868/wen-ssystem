@@ -24,7 +24,11 @@
     "test:qa": "node scripts/qa-regression-test.mjs",
     "test:beta": "node scripts/check-beta-artifacts.mjs",
     "test:production-deploy": "node scripts/check-production-deploy.mjs",
-    "test:mysql": "node scripts/mysql-smoke-test.mjs"
+    "test:mysql": "node scripts/mysql-smoke-test.mjs",
+    "test:acceptance:admin": "node scripts/acceptance-admin-mvp.mjs",
+    "test:acceptance:store": "node scripts/acceptance-store-mvp.mjs",
+    "test:miniapp-release": "node scripts/check-miniapp-release.mjs",
+    "test:acceptance:production": "node scripts/acceptance-production.mjs"
   },
   "devDependencies": {
     "wait-on": "^9.0.10"

@@ -4,9 +4,20 @@ type Row = Record<string, any>;
 
 const state = {
   users: [
-    { id: 1, username: "admin", password_hash: sha256("admin123"), real_name: "系统管理员", store_id: null, status: 1 }
+    { id: 1, username: "admin", password_hash: sha256("admin123"), real_name: "系统管理员", store_id: null, status: 1 },
+    { id: 2, username: "store_manager", password_hash: sha256("admin123"), real_name: "默认店长", store_id: 1, status: 1 },
+    { id: 3, username: "store_operator", password_hash: sha256("admin123"), real_name: "默认店员", store_id: 1, status: 1 }
   ],
-  roles: [{ id: 1, role_code: "SUPER_ADMIN", role_name: "超级管理员", status: 1 }],
+  roles: [
+    { id: 1, role_code: "SUPER_ADMIN", role_name: "超级管理员", status: 1 },
+    { id: 2, role_code: "STORE_MANAGER", role_name: "门店店长", status: 1 },
+    { id: 3, role_code: "STORE_OPERATOR", role_name: "门店操作员", status: 1 }
+  ],
+  userRoles: [
+    { user_id: 1, role_code: "SUPER_ADMIN" },
+    { user_id: 2, role_code: "STORE_MANAGER" },
+    { user_id: 3, role_code: "STORE_OPERATOR" }
+  ],
   members: [
     { id: 1, name: "默认零售客户", mobile: "13900000000", customer_type: "RETAIL", points: 120, level_code: "NORMAL", status: 1, staff_id: null as number | null },
     { id: 2, name: "默认批发客户", mobile: "13900000001", customer_type: "WHOLESALE", points: 0, level_code: "WHOLESALE", status: 1, staff_id: 1 }
@@ -28,6 +39,7 @@ const state = {
   collectionLinks: [] as Row[],
   paymentOrders: [] as Row[],
   refundOrders: [] as Row[],
+  priceLogs: [] as Row[],
   holdOrders: [] as Row[],
   viewLogs: [] as Row[],
   inventoryLogs: [] as Row[]
@@ -49,7 +61,8 @@ export async function mockQuery<T = any>(sql: string, params: unknown[] = []) {
     return state.users.filter((u) => u.username === params[0]) as T[];
   }
   if (s.includes("from sys_user_role") && s.includes("join sys_role")) {
-    return state.roles.map((r) => ({ role_code: r.role_code })) as T[];
+    const userId = Number(params[0]);
+    return state.userRoles.filter((role) => role.user_id === userId).map((role) => ({ role_code: role.role_code })) as T[];
   }
   if (s.includes("from sys_user") && !s.includes("where username")) {
     return state.users.map((u) => ({
@@ -179,11 +192,15 @@ export async function mockQuery<T = any>(sql: string, params: unknown[] = []) {
   }
   if (s.includes("from product_sku") && s.includes("join product_spu") && s.includes("join product_price")) {
     return state.products.map((product) => {
+      const offline = state.inventory.find((inv) => inv.skuId === product.skuId && inv.stockType === "OFFLINE");
       const online = state.inventory.find((inv) => inv.skuId === product.skuId && inv.stockType === "ONLINE");
       return {
         ...product,
+        productName: product.name,
+        storePrice: product.storePrice ?? product.retailPrice,
         availableQty: online?.availableQty ?? 0,
-        available_qty: online?.availableQty ?? 0
+        available_qty: online?.availableQty ?? 0,
+        offlineAvailableQty: offline?.availableQty ?? 0
       };
     }) as T[];
   }
@@ -562,6 +579,27 @@ export async function mockExecute(sql: string, params: unknown[] = []) {
       received_amount: 0,
       unreceivedAmount: params[10],
       unreceived_amount: params[10],
+      createdAt: new Date().toISOString()
+    });
+    return result();
+  }
+  if (s.startsWith("update product_spu set status")) {
+    const status = params[0];
+    const spuId = Number(params[1]);
+    for (const product of state.products) {
+      if (Number(product.spuId) === spuId) product.status = status;
+    }
+    return result();
+  }
+  if (s.includes("insert into product_price_log")) {
+    state.priceLogs.unshift({
+      id: state.priceLogs.length + 1,
+      skuId: params[0],
+      operatorId: params[1],
+      priceType: params[2],
+      oldPrice: params[3],
+      newPrice: params[4],
+      actionType: "UPDATE",
       createdAt: new Date().toISOString()
     });
     return result();

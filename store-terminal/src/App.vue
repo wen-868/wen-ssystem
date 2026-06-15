@@ -84,38 +84,102 @@
         </el-table>
       </el-card>
       <el-card class="cashier-panel" style="margin-top: 20px">
-        <template #header>快速创建销售单并分享收款</template>
+        <template #header>快速收银：搜索商品、选择客户、购物车与线下收款</template>
+        <el-row :gutter="16">
+          <el-col :md="12" :xs="24">
+            <el-form label-width="88px" @submit.prevent>
+              <el-form-item label="商品搜索">
+                <el-input v-model="productKeyword" placeholder="输入商品名或条码" clearable @keyup.enter="handleSearchProducts">
+                  <template #append>
+                    <el-button :loading="loading" @click="handleSearchProducts">搜索</el-button>
+                  </template>
+                </el-input>
+              </el-form-item>
+            </el-form>
+            <el-table :data="productOptions" size="small" empty-text="搜索商品后加入购物车" height="260">
+              <el-table-column prop="productName" label="商品" min-width="140" />
+              <el-table-column prop="skuName" label="规格" min-width="150" />
+              <el-table-column prop="availableQty" label="库存" width="80" />
+              <el-table-column label="门店价" width="90">
+                <template #default="{ row }">¥{{ Number(row.storePrice || row.retailPrice || 0).toFixed(2) }}</template>
+              </el-table-column>
+              <el-table-column label="操作" width="76">
+                <template #default="{ row }">
+                  <el-button size="small" type="primary" link @click="addCartItem(row)">加入</el-button>
+                </template>
+              </el-table-column>
+            </el-table>
+          </el-col>
+          <el-col :md="12" :xs="24">
+            <el-form label-width="88px" @submit.prevent>
+              <el-form-item label="客户搜索">
+                <el-input v-model="memberKeyword" placeholder="输入客户名或手机号" clearable @keyup.enter="handleSearchMembers">
+                  <template #append>
+                    <el-button :loading="loading" @click="handleSearchMembers">搜索</el-button>
+                  </template>
+                </el-input>
+              </el-form-item>
+            </el-form>
+            <el-table :data="memberOptions" size="small" empty-text="搜索并选择客户" height="260">
+              <el-table-column prop="name" label="客户" />
+              <el-table-column prop="mobile" label="手机号" width="130" />
+              <el-table-column prop="customerType" label="类型" width="90" />
+              <el-table-column label="操作" width="76">
+                <template #default="{ row }">
+                  <el-button size="small" type="primary" link @click="selectMember(row)">选择</el-button>
+                </template>
+              </el-table-column>
+            </el-table>
+          </el-col>
+        </el-row>
+        <el-divider />
         <el-form class="cashier-grid" label-width="100px">
-          <el-form-item label="客户姓名">
-            <el-input v-model="saleForm.customerName" placeholder="客户姓名" />
-          </el-form-item>
-          <el-form-item label="客户ID">
-            <el-input-number v-model="saleForm.customerId" :min="0" />
-            <span class="muted" style="margin-left: 8px">填写客户ID后按客户身份自动取价</span>
-          </el-form-item>
-          <el-form-item label="客户手机号">
-            <el-input v-model="saleForm.customerMobile" placeholder="客户手机号" />
-          </el-form-item>
-          <el-form-item label="SKU ID">
-            <el-input-number v-model="saleForm.skuId" :min="1" />
-          </el-form-item>
-          <el-form-item label="数量">
-            <el-input-number v-model="saleForm.totalBottleQty" :min="1" />
-          </el-form-item>
-          <el-form-item label="单价">
-            <el-input-number v-model="saleForm.unitPrice" :min="0" :precision="2" />
+          <el-form-item label="当前客户">
+            <el-input v-model="saleForm.customerName" placeholder="散客/客户姓名" style="max-width: 220px" />
+            <el-input v-model="saleForm.customerMobile" placeholder="手机号" style="max-width: 180px; margin-left: 8px" />
+            <span class="muted" style="margin-left: 8px">客户ID：{{ saleForm.customerId || "未选择" }}</span>
           </el-form-item>
           <el-form-item label="分享税率">
             <el-switch v-model="saleForm.taxEnabled" active-text="开启" inactive-text="关闭" />
             <el-input-number v-if="saleForm.taxEnabled" v-model="saleForm.taxRate" :min="0" :max="1" :step="0.01" :precision="2" style="margin-left: 12px" />
           </el-form-item>
-          <el-form-item>
-            <el-button type="primary" :loading="loading" @click="handleCreateSaleBill">创建销售单</el-button>
-            <el-button @click="handleCreateHoldOrder">挂单</el-button>
+        </el-form>
+        <el-table :data="cartItems" empty-text="购物车为空，请先搜索商品加入" style="margin-bottom: 12px">
+          <el-table-column prop="skuName" label="商品规格" min-width="180" />
+          <el-table-column label="数量" width="140">
+            <template #default="{ row }">
+              <el-input-number v-model="row.quantity" :min="1" :max="999" size="small" />
+            </template>
+          </el-table-column>
+          <el-table-column label="单价" width="150">
+            <template #default="{ row }">
+              <el-input-number v-model="row.unitPrice" :min="0" :precision="2" size="small" />
+            </template>
+          </el-table-column>
+          <el-table-column label="小计" width="110">
+            <template #default="{ row }">¥{{ (Number(row.quantity || 0) * Number(row.unitPrice || 0)).toFixed(2) }}</template>
+          </el-table-column>
+          <el-table-column label="操作" width="80">
+            <template #default="{ $index }">
+              <el-button size="small" link type="danger" @click="removeCartItem($index)">移除</el-button>
+            </template>
+          </el-table-column>
+        </el-table>
+        <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 12px">
+          <strong>购物车合计：¥{{ cartAmount.toFixed(2) }}</strong>
+          <div>
+            <el-select v-model="paymentMethod" style="width: 128px; margin-right: 8px">
+              <el-option label="现金" value="CASH" />
+              <el-option label="银行卡" value="BANK_CARD" />
+              <el-option label="其他" value="OTHER" />
+            </el-select>
+            <el-button type="primary" :loading="loading" :disabled="cartItems.length === 0" @click="handleCreateSaleBill">创建销售单</el-button>
+            <el-button type="success" :loading="loading" :disabled="!currentBillNo || currentAmount <= 0" @click="handleOfflinePayment">线下收款</el-button>
+            <el-button :disabled="cartItems.length === 0" @click="handleCreateHoldOrder">挂单</el-button>
             <el-button @click="holdDialogVisible = true; loadHoldOrders()">取单</el-button>
             <el-button :disabled="!currentBillNo" @click="handleShareCollection">生成分享收款</el-button>
-          </el-form-item>
-        </el-form>
+          </div>
+        </div>
         <el-alert v-if="currentBillNo" type="success" show-icon :closable="false" style="margin-bottom: 12px">
           <template #title>销售单：{{ currentBillNo }}，应收金额：¥{{ currentAmount.toFixed(2) }}</template>
         </el-alert>
@@ -321,7 +385,7 @@
 <script setup lang="ts">
 import { computed, onMounted, reactive, ref } from "vue";
 import { ElMessage } from "element-plus";
-import { acceptStoreOrder, adjustInventory, completeStoreOrder, createCollectionLink, createHoldOrder, createSaleBill, deleteHoldOrder, fetchHoldOrders, fetchInventory, fetchInventoryLogs, fetchSaleBillDetail, fetchSaleBills, fetchStoreCollectionLinks, fetchStoreDailySales, fetchStoreDashboard, fetchStoreInventoryAlerts, fetchStoreOrderDetail, fetchStoreOrders, fetchStorePaymentOrders, fetchStoreRefundOrders, restoreHoldOrder, storeLogin } from "./api";
+import { acceptStoreOrder, adjustInventory, completeStoreOrder, createCollectionLink, createHoldOrder, createOfflinePayment, createSaleBill, deleteHoldOrder, fetchHoldOrders, fetchInventory, fetchInventoryLogs, fetchSaleBillDetail, fetchSaleBills, fetchStoreCollectionLinks, fetchStoreDailySales, fetchStoreDashboard, fetchStoreInventoryAlerts, fetchStoreOrderDetail, fetchStoreOrders, fetchStorePaymentOrders, fetchStoreRefundOrders, restoreHoldOrder, searchStoreMembers, searchStoreProducts, storeLogin } from "./api";
 
 const nav = ["工作台", "快速收银", "销售单", "接单履约", "库存查询", "分享收款"];
 const token = ref(localStorage.getItem("store_token") || localStorage.getItem("admin_token") || "");
@@ -407,6 +471,12 @@ const detailShareUrl = ref("");
 const currentBillNo = ref("");
 const currentAmount = ref(0);
 const shareUrl = ref("");
+const productKeyword = ref("");
+const productOptions = ref<any[]>([]);
+const memberKeyword = ref("");
+const memberOptions = ref<any[]>([]);
+const cartItems = ref<any[]>([]);
+const paymentMethod = ref("CASH");
 const loginForm = reactive({ username: "admin", password: "admin123" });
 const saleForm = reactive({
   customerId: 0,
@@ -418,6 +488,10 @@ const saleForm = reactive({
   taxEnabled: false,
   taxRate: 0.13
 });
+
+const cartAmount = computed(() => cartItems.value.reduce((sum, item) => {
+  return sum + Number(item.quantity || 0) * Number(item.unitPrice || 0);
+}, 0));
 
 const cards = computed(() => [
   { label: "今日销售额", value: "¥" + Number(dashboard.value.todaySalesAmount || 0).toFixed(2), desc: "销售单汇总" },
@@ -439,7 +513,69 @@ async function handleLogin() {
   }
 }
 
+async function handleSearchProducts() {
+  loading.value = true;
+  try {
+    const data = await searchStoreProducts(productKeyword.value.trim());
+    productOptions.value = data.records || [];
+    if (productOptions.value.length === 0) {
+      ElMessage.info("未找到匹配商品");
+    }
+  } finally {
+    loading.value = false;
+  }
+}
+
+async function handleSearchMembers() {
+  loading.value = true;
+  try {
+    const data = await searchStoreMembers(memberKeyword.value.trim());
+    memberOptions.value = data.records || [];
+    if (memberOptions.value.length === 0) {
+      ElMessage.info("未找到匹配客户");
+    }
+  } finally {
+    loading.value = false;
+  }
+}
+
+function selectMember(row: any) {
+  saleForm.customerId = Number(row.memberId || row.id || 0);
+  saleForm.customerName = row.name || "";
+  saleForm.customerMobile = row.mobile || "";
+  ElMessage.success(`已选择客户：${saleForm.customerName || "散客"}`);
+}
+
+function addCartItem(row: any) {
+  const skuId = Number(row.skuId || row.id);
+  if (!skuId) {
+    ElMessage.warning("当前商品缺少 SKU ID");
+    return;
+  }
+  const existed = cartItems.value.find((item) => Number(item.skuId) === skuId);
+  if (existed) {
+    existed.quantity = Number(existed.quantity || 0) + 1;
+    return;
+  }
+  cartItems.value.push({
+    skuId,
+    skuName: row.skuName || row.productName || `SKU-${skuId}`,
+    productName: row.productName || "",
+    quantity: 1,
+    unitPrice: Number(row.storePrice || row.retailPrice || 0),
+    availableQty: Number(row.availableQty || 0)
+  });
+}
+
+function removeCartItem(index: number) {
+  cartItems.value.splice(index, 1);
+}
+
 async function handleCreateSaleBill() {
+  if (cartItems.value.length === 0) {
+    ElMessage.warning("请先加入商品到购物车");
+    return;
+  }
   loading.value = true;
   try {
     const result = await createSaleBill({
@@ -447,17 +583,18 @@ async function handleCreateSaleBill() {
       customerId: saleForm.customerId > 0 ? saleForm.customerId : undefined,
       customerName: saleForm.customerName,
       customerMobile: saleForm.customerMobile,
-      items: [{
-        skuId: saleForm.skuId,
+      items: cartItems.value.map((item) => ({
+        skuId: Number(item.skuId),
+        quantity: Number(item.quantity || 1),
         boxQty: 0,
-        bottleQty: saleForm.totalBottleQty,
-        totalBottleQty: saleForm.totalBottleQty,
-        unitPrice: saleForm.unitPrice,
+        bottleQty: Number(item.quantity || 1),
+        totalBottleQty: Number(item.quantity || 1),
+        unitPrice: Number(item.unitPrice || 0),
         priceType: "STORE"
-      }]
+      }))
     });
     currentBillNo.value = result.billNo;
-    currentAmount.value = Number(result.receivableAmount || 0);
+    currentAmount.value = Number(result.receivableAmount || cartAmount.value || 0);
     shareUrl.value = "";
     ElMessage.success("销售单创建成功");
     await loadSaleBills();
@@ -466,20 +603,40 @@ async function handleCreateSaleBill() {
   }
 }
 
+async function handleOfflinePayment() {
+  if (!currentBillNo.value || currentAmount.value <= 0) {
+    ElMessage.warning("请先创建有应收金额的销售单");
+    return;
+  }
+  loading.value = true;
+  try {
+    await createOfflinePayment(currentBillNo.value, currentAmount.value, paymentMethod.value);
+    ElMessage.success("线下收款成功");
+    currentAmount.value = 0;
+    cartItems.value = [];
+    await Promise.all([loadSaleBills(), loadPaymentOrders(), loadInventory(), loadInventoryLogs(), loadDashboard()]);
+  } finally {
+    loading.value = false;
+  }
+}
+
 async function handleCreateHoldOrder() {
-  const amount = Number(saleForm.totalBottleQty || 0) * Number(saleForm.unitPrice || 0);
+  if (cartItems.value.length === 0) {
+    ElMessage.warning("请先加入商品到购物车");
+    return;
+  }
   const result = await createHoldOrder({
     customerName: saleForm.customerName,
     customerMobile: saleForm.customerMobile,
-    amount,
+    amount: cartAmount.value,
     remark: "快速收银挂单",
-    items: [{
-      skuId: saleForm.skuId,
-      skuName: `SKU-${saleForm.skuId}`,
-      quantity: saleForm.totalBottleQty,
-      unitPrice: saleForm.unitPrice,
-      subtotalAmount: amount
-    }]
+    items: cartItems.value.map((item) => ({
+      skuId: Number(item.skuId),
+      skuName: item.skuName,
+      quantity: Number(item.quantity || 1),
+      unitPrice: Number(item.unitPrice || 0),
+      subtotalAmount: Number(item.quantity || 0) * Number(item.unitPrice || 0)
+    }))
   });
   ElMessage.success(`已挂单：${result.holdNo}`);
   await loadHoldOrders();
@@ -494,12 +651,14 @@ async function handleRestoreHoldOrder(holdNo: string) {
   const data = await restoreHoldOrder(holdNo);
   saleForm.customerName = data.customerName || "";
   saleForm.customerMobile = data.customerMobile || "";
-  const item = data.items?.[0];
-  if (item) {
-    saleForm.skuId = Number(item.skuId || 1);
-    saleForm.totalBottleQty = Number(item.quantity || 1);
-    saleForm.unitPrice = Number(item.unitPrice || 0);
-  }
+  saleForm.customerId = Number(data.customerId || 0);
+  cartItems.value = (data.items || []).map((item: any) => ({
+    skuId: Number(item.skuId || 0),
+    skuName: item.skuName || `SKU-${item.skuId}`,
+    quantity: Number(item.quantity || item.totalBottleQty || 1),
+    unitPrice: Number(item.unitPrice || 0),
+    availableQty: 0
+  }));
   holdDialogVisible.value = false;
   ElMessage.success(`已取单：${holdNo}`);
 }

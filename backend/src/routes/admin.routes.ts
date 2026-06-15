@@ -209,6 +209,7 @@ adminRouter.get("/products", requireAuth, asyncHandler(async (req, res) => {
 }));
 
 adminRouter.post("/products", requireAuth, asyncHandler(async (req, res) => {
+  const rawBody = req.body;
   const body = z.object({
     name: z.string(),
     categoryId: z.number(),
@@ -227,7 +228,18 @@ adminRouter.post("/products", requireAuth, asyncHandler(async (req, res) => {
       miniappPrice: z.number().nullable().optional(),
       storePrice: z.number().nullable().optional()
     })).min(1)
-  }).parse(req.body);
+  }).parse({
+    ...rawBody,
+    skus: rawBody.skus ?? [{
+      skuName: rawBody.skuName,
+      barcode: rawBody.barcode,
+      retailPrice: rawBody.retailPrice,
+      wholesalePrice: rawBody.wholesalePrice,
+      miniappPrice: rawBody.miniappPrice,
+      storePrice: rawBody.storePrice,
+      warningThreshold: rawBody.warningThreshold ?? 0
+    }]
+  });
   const result = await transaction(async (conn) => {
     const spuCode = makeBizNo("SPU");
     const [spuResult] = await conn.execute<any>(
@@ -236,6 +248,7 @@ adminRouter.post("/products", requireAuth, asyncHandler(async (req, res) => {
       [spuCode, body.name, body.categoryId, body.mainImage ?? null, JSON.stringify(body.saleChannels)]
     );
     const spuId = spuResult.insertId as number;
+    let firstSkuId: number | null = null;
     for (const sku of body.skus) {
       const skuCode = makeBizNo("SKU");
       const [skuResult] = await conn.execute<any>(
@@ -244,15 +257,43 @@ adminRouter.post("/products", requireAuth, asyncHandler(async (req, res) => {
         [spuId, skuCode, sku.barcode ?? null, sku.skuName, sku.boxRatio, sku.temperature, sku.traceEnabled ? 1 : 0, sku.warningThreshold]
       );
       const skuId = skuResult.insertId as number;
+      firstSkuId ??= skuId;
       await conn.execute(
         `INSERT INTO product_price (sku_id, cost_price, retail_price, wholesale_price, miniapp_price, store_price)
          VALUES (?, ?, ?, ?, ?, ?)`,
         [skuId, sku.costPrice, sku.retailPrice, sku.wholesalePrice ?? null, sku.miniappPrice ?? null, sku.storePrice ?? null]
       );
+      if (rawBody.initialQty !== undefined) {
+        await conn.execute(
+          `INSERT INTO inventory_balance (store_id, sku_id, stock_type, physical_qty, locked_qty, available_qty)
+           VALUES (1, ?, ?, ?, 0, ?)
+           ON DUPLICATE KEY UPDATE physical_qty = VALUES(physical_qty), available_qty = VALUES(available_qty), updated_at = NOW()`,
+          [skuId, rawBody.stockType ?? "OFFLINE", rawBody.initialQty, rawBody.initialQty]
+        );
+      }
     }
-    return { id: spuId, spuCode };
+    return { id: spuId, spuId, skuId: firstSkuId, spuCode };
   });
   res.json(ok(result));
+}));
+
+adminRouter.patch("/products/:spuId/status", requireAuth, asyncHandler(async (req, res) => {
+  const body = z.object({ status: z.enum(["DRAFT", "ON_SALE", "OFF_SALE"]) }).parse(req.body);
+  await query("UPDATE product_spu SET status = ?, updated_at = NOW() WHERE id = ?", [body.status, Number(req.params.spuId)]);
+  res.json(ok({ spuId: Number(req.params.spuId), status: body.status }));
+}));
+
+adminRouter.get("/products/:skuId/price-logs", requireAuth, asyncHandler(async (req, res) => {
+  const records = await query<any>(
+    `SELECT id, sku_id AS skuId, price_type AS priceType, old_price AS oldPrice,
+            new_price AS newPrice, action_type AS actionType, operator_id AS operatorId, created_at AS createdAt
+     FROM product_price_log
+     WHERE sku_id = ?
+     ORDER BY id DESC
+     LIMIT 50`,
+    [Number(req.params.skuId)]
+  );
+  res.json(ok({ records }));
 }));
 
 adminRouter.put("/products/:skuId/price", requireAuth, asyncHandler(async (req, res) => {
@@ -269,6 +310,13 @@ adminRouter.put("/products/:skuId/price", requireAuth, asyncHandler(async (req, 
     res.status(404).json({ code: "404", message: "SKU价格不存在" });
     return;
   }
+  const changes = [
+    ["COST", oldPrice.cost_price, body.costPrice],
+    ["RETAIL", oldPrice.retail_price, body.retailPrice],
+    ["WHOLESALE", oldPrice.wholesale_price, body.wholesalePrice],
+    ["MINIAPP", oldPrice.miniapp_price, body.miniappPrice],
+    ["STORE", oldPrice.store_price, body.storePrice]
+  ].filter(([, oldValue, newValue]) => newValue !== undefined && Number(oldValue ?? 0) !== Number(newValue ?? 0));
   await query(
     `UPDATE product_price
      SET cost_price = COALESCE(?, cost_price),
@@ -286,6 +334,13 @@ adminRouter.put("/products/:skuId/price", requireAuth, asyncHandler(async (req, 
       skuId
     ]
   );
+  for (const [priceType, oldValue, newValue] of changes) {
+    await query(
+      `INSERT INTO product_price_log (sku_id, operator_id, price_type, old_price, new_price, action_type)
+       VALUES (?, ?, ?, ?, ?, 'UPDATE')`,
+      [skuId, req.user?.id ?? 0, priceType, oldValue ?? null, newValue ?? null]
+    );
+  }
   res.json(ok({ skuId }));
 }));
 

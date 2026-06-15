@@ -6,15 +6,38 @@ USE liquor_inventory;
 
 INSERT INTO sys_user (id, username, password_hash, real_name, mobile, store_id, status)
 VALUES
-  (1, 'admin', '240be518fabd2724ddb6f04eeb1da5967448d7e831c08c8fa822809f74c720a9', '系统管理员', '13800000000', NULL, 1)
+  (1, 'admin', '240be518fabd2724ddb6f04eeb1da5967448d7e831c08c8fa822809f74c720a9', '系统管理员', '13800000000', NULL, 1),
+  (2, 'store_manager', '240be518fabd2724ddb6f04eeb1da5967448d7e831c08c8fa822809f74c720a9', '默认店长', '13800000001', 1, 1),
+  (3, 'store_operator', '240be518fabd2724ddb6f04eeb1da5967448d7e831c08c8fa822809f74c720a9', '默认店员', '13800000002', 1, 1)
 ON DUPLICATE KEY UPDATE
   password_hash = VALUES(password_hash),
   real_name = VALUES(real_name),
+  mobile = VALUES(mobile),
+  store_id = VALUES(store_id),
   status = VALUES(status);
 
 INSERT INTO sys_user_role (user_id, role_id)
 SELECT 1, id FROM sys_role WHERE role_code = 'SUPER_ADMIN'
 ON DUPLICATE KEY UPDATE user_id = VALUES(user_id);
+
+INSERT INTO sys_user_role (user_id, role_id)
+SELECT 2, id FROM sys_role WHERE role_code = 'STORE_MANAGER'
+ON DUPLICATE KEY UPDATE user_id = VALUES(user_id);
+
+INSERT INTO sys_user_role (user_id, role_id)
+SELECT 3, id FROM sys_role WHERE role_code = 'STORE_OPERATOR'
+ON DUPLICATE KEY UPDATE user_id = VALUES(user_id);
+
+INSERT INTO member (id, name, mobile, customer_type, staff_id, status)
+VALUES
+  (1, '零售客户', '13900000001', 'RETAIL', 1, 1),
+  (2, '批发客户', '13900000002', 'WHOLESALE', 1, 1)
+ON DUPLICATE KEY UPDATE
+  name = VALUES(name),
+  mobile = VALUES(mobile),
+  customer_type = VALUES(customer_type),
+  staff_id = VALUES(staff_id),
+  status = VALUES(status);
 
 INSERT INTO product_category (id, parent_id, name, sort_no, status)
 VALUES

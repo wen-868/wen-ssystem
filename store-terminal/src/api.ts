@@ -31,6 +31,21 @@ export async function createSaleBill(payload: unknown) {
   return data.data;
 }
 
+export async function searchStoreProducts(keyword: string) {
+  const { data } = await api.get("/store/products", { params: { keyword } });
+  return data.data as { records: any[] };
+}
+
+export async function searchStoreMembers(keyword: string) {
+  const { data } = await api.get("/store/members", { params: { keyword } });
+  return data.data as { records: any[] };
+}
+
+export async function createOfflinePayment(billNo: string, amount: number, paymentMethod: string) {
+  const { data } = await api.post(`/store/sale-bills/${billNo}/offline-payment`, { amount, paymentMethod });
+  return data.data;
+}
+
 export async function createCollectionLink(billNo: string, amount: number, options?: { taxEnabled?: boolean; taxRate?: number }) {
   const { data } = await api.post(`/store/sale-bills/${billNo}/collection-link`, {
     shareChannel: "LINK",

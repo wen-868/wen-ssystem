@@ -65,8 +65,10 @@
           <el-table-column prop="retailPrice" label="零售价" width="100" />
           <el-table-column prop="wholesalePrice" label="批发价" width="100" />
           <el-table-column prop="status" label="状态" width="120" />
-          <el-table-column label="操作" width="140">
+          <el-table-column label="操作" width="220">
             <template #default="{ row }">
+              <el-button size="small" link type="success" :disabled="row.status === 'ON_SALE'" @click="handleProductStatus(row, 'ON_SALE')">上架</el-button>
+              <el-button size="small" link type="warning" :disabled="row.status === 'OFF_SALE'" @click="handleProductStatus(row, 'OFF_SALE')">下架</el-button>
               <el-button size="small" link type="primary" @click="openPriceDialog(row)">改价</el-button>
             </template>
           </el-table-column>
@@ -433,7 +435,7 @@
 <script setup lang="ts">
 import { nextTick, onMounted, reactive, ref } from "vue";
 import { ElMessage } from "element-plus";
-import { adminLogin, assignMember, createMember, createProduct, createStore, exportOrdersCsv, fetchCollectionLinks, fetchDailySales, fetchDashboard, fetchInventoryAlerts, fetchInventoryBalances, fetchInventoryLogs, fetchMemberPriceHistory, fetchMembers, fetchOrderDetail, fetchOrders, fetchOrderStats, fetchPaymentOrders, fetchProducts, fetchRefundOrders, fetchSaleBills, fetchStorePerformance, fetchStores, updateProductPrice } from "./api";
+import { adminLogin, assignMember, createMember, createProduct, createStore, exportOrdersCsv, fetchCollectionLinks, fetchDailySales, fetchDashboard, fetchInventoryAlerts, fetchInventoryBalances, fetchInventoryLogs, fetchMemberPriceHistory, fetchMembers, fetchOrderDetail, fetchOrders, fetchOrderStats, fetchPaymentOrders, fetchPriceLogs, fetchProducts, fetchRefundOrders, fetchSaleBills, fetchStorePerformance, fetchStores, updateProductPrice, updateProductStatus } from "./api";
 
 const nav = ["首页", "商品", "订单", "销售单", "库存", "收款", "报表", "系统"];
 
@@ -734,7 +736,27 @@ async function handleUpdatePrice() {
     if (priceForm.type === "miniapp") payload.miniappPrice = priceForm.price;
     await updateProductPrice(priceForm.skuId, payload as any);
     ElMessage.success("价格已更新");
+    const logs = await fetchPriceLogs(priceForm.skuId).catch(() => ({ records: [] }));
+    if (logs.records.length > 0) {
+      ElMessage.info(`已记录 ${logs.records.length} 条价格日志`);
+    }
     priceDialogVisible.value = false;
+    await loadProducts();
+  } finally {
+    loading.value = false;
+  }
+}
+
+async function handleProductStatus(row: any, status: "DRAFT" | "ON_SALE" | "OFF_SALE") {
+  const spuId = Number(row.spuId || row.spu_id || row.id);
+  if (!spuId) {
+    ElMessage.warning("当前商品缺少 spuId，无法变更状态");
+    return;
+  }
+  loading.value = true;
+  try {
+    await updateProductStatus(spuId, status);
+    ElMessage.success(status === "ON_SALE" ? "商品已上架" : "商品已下架");
     await loadProducts();
   } finally {
     loading.value = false;

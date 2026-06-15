@@ -9,6 +9,42 @@ import { ok } from "../shared/response.js";
 export const storeRouter = Router();
 storeRouter.use(requireAuth);
 
+storeRouter.get("/products", asyncHandler(async (req, res) => {
+  const keyword = String(req.query.keyword || "");
+  const barcode = String(req.query.barcode || "");
+  const storeId = req.user?.storeId ?? 1;
+  const records = await query<any>(
+    `SELECT s.id AS skuId, s.sku_code AS skuCode, p.name AS productName, s.sku_name AS skuName,
+            s.barcode, pp.retail_price AS retailPrice, pp.wholesale_price AS wholesalePrice,
+            pp.store_price AS storePrice, ib.available_qty AS availableQty
+     FROM product_sku s
+     JOIN product_spu p ON p.id = s.spu_id
+     JOIN product_price pp ON pp.sku_id = s.id
+     LEFT JOIN inventory_balance ib ON ib.sku_id = s.id AND ib.store_id = ? AND ib.stock_type = 'OFFLINE'
+     WHERE p.status = 'ON_SALE'
+       AND (? = '' OR p.name LIKE ? OR s.sku_name LIKE ? OR s.sku_code LIKE ?)
+       AND (? = '' OR s.barcode = ?)
+     ORDER BY s.id DESC
+     LIMIT 50`,
+    [storeId, keyword, `%${keyword}%`, `%${keyword}%`, `%${keyword}%`, barcode, barcode]
+  );
+  res.json(ok({ records }));
+}));
+
+storeRouter.get("/members", asyncHandler(async (req, res) => {
+  const keyword = String(req.query.keyword || "");
+  const records = await query<any>(
+    `SELECT id AS memberId, name, mobile, customer_type AS customerType, status
+     FROM member
+     WHERE status = 1
+       AND (? = '' OR name LIKE ? OR mobile LIKE ?)
+     ORDER BY id DESC
+     LIMIT 50`,
+    [keyword, `%${keyword}%`, `%${keyword}%`]
+  );
+  res.json(ok({ records }));
+}));
+
 storeRouter.get("/inventory", asyncHandler(async (req, res) => {
   const keyword = `%${String(req.query.keyword || "")}%`;
   const storeId = req.query.storeId ? Number(req.query.storeId) : req.user?.storeId;
