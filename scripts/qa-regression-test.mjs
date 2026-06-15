@@ -55,6 +55,17 @@ if (filteredOrders.total !== filteredOrders.records.length) {
   throw new Error(`订单 total 与 records 不一致：${filteredOrders.total} vs ${filteredOrders.records.length}`);
 }
 
+const offlineInventory = await request("/store/inventory?storeId=1", { headers: auth });
+const offlineRows = Array.isArray(offlineInventory) ? offlineInventory : offlineInventory.records;
+const offlineSku = offlineRows.find((row) => Number(row.skuId) === 1 && row.stockType === "OFFLINE");
+if (Number(offlineSku?.availableQty ?? 0) < 1) {
+  await request("/store/inventory/adjust", {
+    method: "POST",
+    headers: auth,
+    body: JSON.stringify({ storeId: 1, skuId: 1, stockType: "OFFLINE", change: 5, remark: "QA回归补足测试库存" })
+  });
+}
+
 const saleBill = await request("/store/sale-bills", {
   method: "POST",
   headers: auth,
