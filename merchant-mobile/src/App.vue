@@ -11,6 +11,37 @@ import ProfileView from './views/ProfileView.vue'
 
 const token = ref(localStorage.getItem('merchant_token') || '')
 const active = ref('home')
+const userRole = ref('')
+
+// 所有角色都能看到的菜单
+const baseTabs = [
+  { name: 'home', icon: 'wap-home', label: '首页' },
+  { name: 'orders', icon: 'orders-o', label: '订单' },
+  { name: 'inventory', icon: 'cluster-o', label: '库存' },
+  { name: 'customers', icon: 'friends-o', label: '客户' },
+  { name: 'profile', icon: 'manager-o', label: '我的' }
+]
+
+// 管理员额外看到的菜单（应收、报表）
+const adminExtraTabs = [
+  { name: 'receivables', icon: 'balance-o', label: '应收' },
+  { name: 'reports', icon: 'chart-trending-o', label: '报表' }
+]
+
+// 根据角色计算可见的 tabbar 菜单
+const visibleTabs = computed(() => {
+  const isAdmin = userRole.value === 'ADMIN' || userRole.value === 'SUPER_ADMIN'
+  if (isAdmin) {
+    // 管理员：首页、订单、库存、客户、应收、报表、我的
+    return [
+      ...baseTabs.slice(0, 4),
+      ...adminExtraTabs,
+      baseTabs[4]
+    ]
+  }
+  // 普通角色：首页、订单、库存、客户、我的
+  return baseTabs
+})
 
 const views: Record<string, unknown> = {
   home: HomeView,
@@ -24,16 +55,37 @@ const views: Record<string, unknown> = {
 
 const currentView = computed(() => views[active.value] || HomeView)
 
-function onLogin(nextToken: string) {
+function onLogin(nextToken: string, user?: { id: number; name: string; role: string }) {
   localStorage.setItem('merchant_token', nextToken)
   token.value = nextToken
+  if (user) {
+    userRole.value = user.role || ''
+    localStorage.setItem('merchant_user', JSON.stringify(user))
+  }
+  active.value = 'home'
+}
+
+function onLogout() {
+  token.value = ''
+  userRole.value = ''
+  active.value = 'home'
+  localStorage.removeItem('merchant_token')
+  localStorage.removeItem('merchant_user')
 }
 
 onMounted(() => {
-  window.addEventListener('auth:logout', () => {
-    token.value = ''
-    active.value = 'home'
-  })
+  // 恢复已登录的用户角色
+  const savedUser = localStorage.getItem('merchant_user')
+  if (savedUser) {
+    try {
+      const parsed = JSON.parse(savedUser)
+      userRole.value = parsed.role || ''
+    } catch {
+      // ignore
+    }
+  }
+
+  window.addEventListener('auth:logout', onLogout)
 })
 </script>
 
@@ -42,11 +94,14 @@ onMounted(() => {
   <main v-else class="app-shell">
     <component :is="currentView" />
     <van-tabbar v-model="active" safe-area-inset-bottom>
-      <van-tabbar-item name="home" icon="wap-home">首页</van-tabbar-item>
-      <van-tabbar-item name="orders" icon="orders-o">订单</van-tabbar-item>
-      <van-tabbar-item name="inventory" icon="cluster-o">库存</van-tabbar-item>
-      <van-tabbar-item name="customers" icon="friends-o">客户</van-tabbar-item>
-      <van-tabbar-item name="profile" icon="manager-o">我的</van-tabbar-item>
+      <van-tabbar-item
+        v-for="tab in visibleTabs"
+        :key="tab.name"
+        :name="tab.name"
+        :icon="tab.icon"
+      >
+        {{ tab.label }}
+      </van-tabbar-item>
     </van-tabbar>
   </main>
 </template>
