@@ -14,6 +14,7 @@ SET FOREIGN_KEY_CHECKS = 0;
 DROP TABLE IF EXISTS operation_log;
 DROP TABLE IF EXISTS hold_order;
 DROP TABLE IF EXISTS refund_order;
+DROP TABLE IF EXISTS receivable_account;
 DROP TABLE IF EXISTS payment_order;
 DROP TABLE IF EXISTS collection_view_log;
 DROP TABLE IF EXISTS collection_link;
@@ -131,6 +132,7 @@ CREATE TABLE member (
   mobile VARCHAR(20) NOT NULL COMMENT '手机号',
   name VARCHAR(64) DEFAULT NULL COMMENT '客户名称',
   customer_type VARCHAR(32) NOT NULL DEFAULT 'RETAIL' COMMENT '客户身份：RETAIL/WHOLESALE',
+  settlement_type VARCHAR(32) NOT NULL DEFAULT 'CASH' COMMENT '结算方式：CASH/ACCOUNT',
   staff_id BIGINT UNSIGNED DEFAULT NULL COMMENT '归属销售员ID',
   points INT NOT NULL DEFAULT 0 COMMENT '积分',
   level_code VARCHAR(32) DEFAULT NULL COMMENT '会员等级',
@@ -279,6 +281,8 @@ CREATE TABLE miniapp_order (
   fulfillment_type VARCHAR(32) NOT NULL COMMENT '履约方式：DELIVERY/PICKUP',
   order_status VARCHAR(32) NOT NULL DEFAULT 'PENDING_PAYMENT' COMMENT '订单状态',
   pay_status VARCHAR(32) NOT NULL DEFAULT 'UNPAID' COMMENT '支付状态',
+  settlement_type VARCHAR(32) NOT NULL DEFAULT 'CASH' COMMENT '结算方式：CASH/ACCOUNT',
+  delivery_status VARCHAR(32) NOT NULL DEFAULT 'WAITING' COMMENT '配送状态：WAITING/DELIVERING/COMPLETED/REJECTED/CANCELLED',
   goods_amount DECIMAL(12,2) NOT NULL DEFAULT 0.00 COMMENT '商品金额',
   discount_amount DECIMAL(12,2) NOT NULL DEFAULT 0.00 COMMENT '优惠金额',
   payable_amount DECIMAL(12,2) NOT NULL DEFAULT 0.00 COMMENT '应付金额',
@@ -306,6 +310,8 @@ CREATE TABLE miniapp_order_item (
   sku_id BIGINT UNSIGNED NOT NULL COMMENT 'SKU ID',
   sku_name VARCHAR(128) NOT NULL COMMENT '下单时SKU名称',
   qty INT NOT NULL COMMENT '数量，单位瓶',
+  reserved_qty INT NOT NULL DEFAULT 0 COMMENT '已占用库存数量，单位瓶',
+  unreserved_qty INT NOT NULL DEFAULT 0 COMMENT '未占用数量，单位瓶',
   unit_price DECIMAL(12,2) NOT NULL COMMENT '成交单价',
   price_type VARCHAR(32) NOT NULL COMMENT '价格类型：RETAIL/WHOLESALE/MINIAPP/STORE',
   subtotal_amount DECIMAL(12,2) NOT NULL COMMENT '小计',
@@ -407,6 +413,29 @@ CREATE TABLE collection_view_log (
   KEY idx_collection_view_log_link_no (link_no),
   KEY idx_collection_view_log_viewed_at (viewed_at)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='分享收款访问日志表';
+
+CREATE TABLE receivable_account (
+  id BIGINT UNSIGNED NOT NULL AUTO_INCREMENT COMMENT '应收ID',
+  receivable_no VARCHAR(64) NOT NULL COMMENT '应收单号',
+  source_type VARCHAR(32) NOT NULL COMMENT '来源类型：MINIAPP_ORDER/SALE_BILL',
+  source_no VARCHAR(64) NOT NULL COMMENT '来源单号',
+  store_id BIGINT UNSIGNED NOT NULL COMMENT '门店ID',
+  customer_id BIGINT UNSIGNED DEFAULT NULL COMMENT '客户ID',
+  customer_name VARCHAR(64) DEFAULT NULL COMMENT '客户名称快照',
+  customer_mobile VARCHAR(20) DEFAULT NULL COMMENT '客户手机号快照',
+  receivable_amount DECIMAL(12,2) NOT NULL DEFAULT 0.00 COMMENT '应收金额',
+  received_amount DECIMAL(12,2) NOT NULL DEFAULT 0.00 COMMENT '已收金额',
+  unreceived_amount DECIMAL(12,2) NOT NULL DEFAULT 0.00 COMMENT '未收金额',
+  status VARCHAR(32) NOT NULL DEFAULT 'UNPAID' COMMENT '状态：UNPAID/PARTIAL/PAID/CLOSED',
+  last_payment_time DATETIME DEFAULT NULL COMMENT '最近收款时间',
+  created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  updated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  PRIMARY KEY (id),
+  UNIQUE KEY uk_receivable_no (receivable_no),
+  UNIQUE KEY uk_receivable_source (source_type, source_no),
+  KEY idx_receivable_store_status (store_id, status),
+  KEY idx_receivable_customer_id (customer_id)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='应收账款表';
 
 CREATE TABLE payment_order (
   id BIGINT UNSIGNED NOT NULL AUTO_INCREMENT COMMENT '支付单ID',
