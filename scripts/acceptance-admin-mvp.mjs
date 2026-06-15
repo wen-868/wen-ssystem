@@ -31,4 +31,13 @@ if (!Array.isArray(stores.records)) throw new Error("门店列表没有 records"
 const members = await request("/admin/members", { headers: auth });
 if (!Array.isArray(members.records)) throw new Error("客户列表没有 records");
 
+const saleBills = await request("/admin/sale-bills", { headers: auth });
+if (!Array.isArray(saleBills.records)) throw new Error("销售单列表没有 records");
+
+const balances = await request("/admin/inventory/balances", { headers: auth });
+if (!Array.isArray(balances.records) && !Array.isArray(balances)) throw new Error("库存总览没有 records");
+
+const dashboard = await request("/admin/reports/dashboard", { headers: auth });
+if (!dashboard) throw new Error("后台工作台无数据");
+
 console.log("ACCEPTANCE_ADMIN_MVP_PASS");

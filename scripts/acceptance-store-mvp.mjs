@@ -29,6 +29,12 @@ const inventory = await request("/store/inventory", { headers: auth });
 const inventoryRecords = Array.isArray(inventory) ? inventory : inventory.records;
 if (!Array.isArray(inventoryRecords)) throw new Error("库存列表没有 records");
 
+const saleBills = await request("/store/sale-bills", { headers: auth });
+if (!Array.isArray(saleBills.records)) throw new Error("门店销售单列表没有 records");
+
+const orders = await request("/store/orders", { headers: auth });
+if (!Array.isArray(orders.records)) throw new Error("门店订单列表没有 records");
+
 const products = await request("/store/products?keyword=示例", { headers: auth });
 if (!Array.isArray(products.records) || products.records.length === 0) throw new Error("门店商品搜索无结果");
 
