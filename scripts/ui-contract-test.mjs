@@ -15,7 +15,12 @@ const files = [
   "store-terminal/src/utils/format.ts",
   "miniapp/pages/share-collection/index.wxml",
   "miniapp/pages/share-collection/index.wxss",
-  "docs/ui-style-guide.md"
+  "docs/ui-style-guide.md",
+  "package.json",
+  "merchant-mobile/package.json",
+  "merchant-mobile/src/App.vue",
+  "merchant-mobile/src/api.ts",
+  "merchant-mobile/src/styles/tokens.css"
 ];
 
 const contents = Object.fromEntries(files.map((file) => [file, readFileSync(file, "utf8")]));
@@ -125,5 +130,12 @@ assertIncludes("admin-web/src/App.vue", "productsKeyword");
 assertIncludes("admin-web/src/App.vue", "membersKeyword");
 assertIncludes("admin-web/src/App.vue", "searchProducts");
 assertIncludes("admin-web/src/App.vue", "searchMembers");
+
+// === merchant-mobile workspace ===
+assertIncludes("package.json", "\"merchant-mobile\"");
+assertIncludes("merchant-mobile/package.json", "\"@vitejs/plugin-vue\"");
+assertIncludes("merchant-mobile/src/App.vue", "van-tabbar");
+assertIncludes("merchant-mobile/src/api.ts", "merchant_token");
+assertIncludes("merchant-mobile/src/styles/tokens.css", "#1677FF");
 
 console.log("UI_CONTRACT_PASS");

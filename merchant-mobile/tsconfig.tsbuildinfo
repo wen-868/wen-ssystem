@@ -1,0 +1,1 @@
+{"root":["./src/api.ts","./src/main.ts","./src/router.ts","./src/App.vue","./src/views/CustomersView.vue","./src/views/HomeView.vue","./src/views/InventoryView.vue","./src/views/LoginView.vue","./src/views/OrdersView.vue","./src/views/ProfileView.vue","./src/views/ReceivablesView.vue","./src/views/ReportsView.vue","./env.d.ts"],"version":"5.9.3"}
