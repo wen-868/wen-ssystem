@@ -45,14 +45,14 @@
           <el-button size="small" @click="handleLogout">退出登录</el-button>
         </div>
       </section>
-      <section class="cards">
+      <section v-if='activeNav === "首页"' class="cards">
         <div class="card" v-for="card in cards" :key="card.label">
           <div class="metric">{{ card.value }}</div>
           <div>{{ card.label }}</div>
           <p class="muted">{{ card.desc }}</p>
         </div>
       </section>
-      <el-card style="margin-top: 20px">
+      <el-card v-if='activeNav === "商品"' style="margin-top: 20px">
         <template #header>
           <div style="display: flex; justify-content: space-between; align-items: center">
             <span>商品列表</span>
@@ -91,7 +91,7 @@
           </el-table-column>
         </el-table>
       </el-card>
-      <el-card v-if="inventoryAlerts.length > 0" style="margin-top: 20px; border-left: 4px solid #e6a23c">
+      <el-card v-if='activeNav === "库存" && inventoryAlerts.length > 0' style="margin-top: 20px; border-left: 4px solid #e6a23c">
         <template #header>
           <div style="display: flex; justify-content: space-between; align-items: center">
             <span style="color: #e6a23c; font-weight: bold">⚠ 库存预警（可用库存 ≤ 5）</span>
@@ -109,7 +109,7 @@
           </el-table-column>
         </el-table>
       </el-card>
-      <el-card style="margin-top: 20px">
+      <el-card v-if='activeNav === "门店"' style="margin-top: 20px">
         <template #header>
           <div style="display: flex; justify-content: space-between; align-items: center">
             <span>门店管理</span>
@@ -127,7 +127,7 @@
           <el-table-column prop="businessStatus" label="营业状态" width="120" />
         </el-table>
       </el-card>
-      <el-card style="margin-top: 20px">
+      <el-card v-if='activeNav === "客户"' style="margin-top: 20px">
         <template #header>
           <div style="display: flex; justify-content: space-between; align-items: center">
             <span>客户管理</span>
@@ -154,7 +154,7 @@
           <template #title>{{ priceHistoryTip }}</template>
         </el-alert>
       </el-card>
-      <el-card style="margin-top: 20px">
+      <el-card v-if='activeNav === "订单"' style="margin-top: 20px">
         <template #header>
           <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 10px">
             <span>小程序订单</span>
@@ -202,7 +202,7 @@
           <el-button size="small" :disabled="ordersPage >= Math.ceil(ordersTotal / 10)" @click="nextOrdersPage">下一页</el-button>
         </div>
       </el-card>
-      <el-card style="margin-top: 20px">
+      <el-card v-if='activeNav === "销售单"' style="margin-top: 20px">
         <template #header>
           <div style="display: flex; justify-content: space-between; align-items: center">
             <span>销售单</span>
@@ -220,7 +220,7 @@
           <el-table-column prop="createdAt" label="创建时间" width="170" />
         </el-table>
       </el-card>
-      <el-card style="margin-top: 20px">
+      <el-card v-if='activeNav === "库存"' style="margin-top: 20px">
         <template #header>
           <div style="display: flex; justify-content: space-between; align-items: center">
             <span>库存流水</span>
@@ -238,7 +238,7 @@
           <el-table-column prop="createdAt" label="时间" width="170" />
         </el-table>
       </el-card>
-      <el-card style="margin-top: 20px">
+      <el-card v-if='activeNav === "收款"' style="margin-top: 20px">
         <template #header>
           <div style="display: flex; justify-content: space-between; align-items: center">
             <span>分享收款</span>
@@ -255,7 +255,7 @@
           <el-table-column prop="createdAt" label="创建时间" width="170" />
         </el-table>
       </el-card>
-      <el-card style="margin-top: 20px">
+      <el-card v-if='activeNav === "收款"' style="margin-top: 20px">
         <template #header>
           <div style="display: flex; justify-content: space-between; align-items: center">
             <span>支付记录</span>
@@ -271,7 +271,7 @@
           <el-table-column prop="createdAt" label="创建时间" width="170" />
         </el-table>
       </el-card>
-      <el-card style="margin-top: 20px">
+      <el-card v-if='activeNav === "收款"' style="margin-top: 20px">
         <template #header>
           <div style="display: flex; justify-content: space-between; align-items: center">
             <span>退款记录</span>
@@ -288,7 +288,7 @@
           <el-table-column prop="createdAt" label="创建时间" width="170" />
         </el-table>
       </el-card>
-      <el-card style="margin-top: 20px">
+      <el-card v-if='activeNav === "库存"' style="margin-top: 20px">
         <template #header>
           <div style="display: flex; justify-content: space-between; align-items: center">
             <span>库存总览</span>
@@ -304,7 +304,7 @@
           <el-table-column prop="lockedQty" label="锁定库存" width="100" />
         </el-table>
       </el-card>
-      <el-card style="margin-top: 20px">
+      <el-card v-if='activeNav === "报表"' style="margin-top: 20px">
         <template #header>
           <div style="display: flex; justify-content: space-between; align-items: center">
             <span>近七天销售趋势</span>
@@ -314,7 +314,7 @@
         <canvas ref="barCanvas" style="width: 100%; height: 220px" />
         <div v-if="dailySales.length === 0" style="text-align: center; padding: 20px; color: #999">暂无销售数据</div>
       </el-card>
-      <div style="display: flex; gap: 20px; margin-top: 20px">
+      <div v-if='activeNav === "报表"' style="display: flex; gap: 20px; margin-top: 20px">
         <el-card style="flex: 1">
           <template #header>
             <div style="display: flex; justify-content: space-between; align-items: center">
@@ -533,17 +533,30 @@ const cards = ref([
   { label: "库存预警", value: "0", desc: "低库存提醒" }
 ]);
 
-async function handleLogin() {
+function getErrorMessage(error: unknown, fallback: string) {
+  const anyError = error as { response?: { data?: { message?: string } }; message?: string };
+  return anyError?.response?.data?.message || anyError?.message || fallback;
+}
+
+async function runAdminAction(action: () => Promise<void>, fallback: string) {
   loading.value = true;
   try {
-    const result = await adminLogin(loginForm.username, loginForm.password);
-    localStorage.setItem("admin_token", result.token);
-    token.value = result.token;
-    ElMessage.success("登录成功");
-    await Promise.all([loadDashboard(), loadProducts(), loadStores(), loadMembers(), loadOrders(), loadSaleBills(), loadInventoryLogs(), loadInventoryBalances(), loadCollectionLinks(), loadPaymentOrders(), loadRefundOrders(), loadDailySales(), loadOrderStats(), loadStorePerformance(), loadInventoryAlerts()]);
+    await action();
+  } catch (error) {
+    ElMessage.error(getErrorMessage(error, fallback));
   } finally {
     loading.value = false;
   }
+}
+
+async function handleLogin() {
+  await runAdminAction(async () => {
+    const result = await adminLogin(loginForm.username, loginForm.password);
+    localStorage.setItem("admin_token", result.token);
+    token.value = result.token;
+    ElMessage.success("登录成功，正在加载后台数据");
+    await Promise.all([loadDashboard(), loadProducts(), loadStores(), loadMembers(), loadOrders(), loadSaleBills(), loadInventoryLogs(), loadInventoryBalances(), loadCollectionLinks(), loadPaymentOrders(), loadRefundOrders(), loadDailySales(), loadOrderStats(), loadStorePerformance(), loadInventoryAlerts()]);
+  }, "登录失败，请检查账号密码或稍后再试");
 }
 
 function handleLogout() {

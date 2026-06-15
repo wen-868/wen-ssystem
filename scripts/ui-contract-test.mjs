@@ -56,6 +56,10 @@ assertIncludes("admin-web/src/App.vue", "admin-login-page");
 assertIncludes("admin-web/src/App.vue", "handleLogout");
 assertIncludes("admin-web/src/App.vue", "系统管理员");
 assertIncludes("admin-web/src/App.vue", "退出登录");
+for (const text of ["activeNav === \"商品\"", "activeNav === \"订单\"", "activeNav === \"销售单\"", "activeNav === \"库存\"", "activeNav === \"客户\"", "activeNav === \"门店\"", "activeNav === \"收款\"", "activeNav === \"报表\""]) {
+  assertIncludes("admin-web/src/App.vue", text);
+}
+assertIncludes("admin-web/src/App.vue", "runAdminAction");
 assertIncludes("store-terminal/src/App.vue", "cashier-panel");
 assertIncludes("miniapp/pages/share-collection/index.wxml", "payment-hero");
 assertIncludes("miniapp/pages/share-collection/index.wxss", ".payment-hero");
