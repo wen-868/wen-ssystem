@@ -131,12 +131,158 @@ storeRouter.post("/orders/:orderNo/accept", asyncHandler(async (req, res) => {
   res.json(ok({ orderNo: req.params.orderNo, status: "ACCEPTED" }));
 }));
 
-storeRouter.post("/orders/:orderNo/complete", asyncHandler(async (req, res) => {
+storeRouter.post("/orders/:orderNo/start-delivery", asyncHandler(async (req, res) => {
   await query(
-    `UPDATE miniapp_order SET order_status = 'COMPLETED', completed_at = NOW(), updated_at = NOW() WHERE order_no = ?`,
+    `UPDATE miniapp_order
+     SET order_status = 'DELIVERING', delivery_status = 'DELIVERING', updated_at = NOW()
+     WHERE order_no = ? AND order_status = 'WAIT_DELIVERY'`,
     [req.params.orderNo]
   );
-  res.json(ok({ orderNo: req.params.orderNo, status: "COMPLETED" }));
+  await query(
+    `INSERT INTO operation_log (operator_id, operator_name, module, action, biz_no, after_data)
+     VALUES (?, ?, 'ORDER_DELIVERY', 'START_DELIVERY', ?, JSON_OBJECT('status', 'DELIVERING'))`,
+    [req.user?.id ?? null, req.user?.realName ?? "系统用户", req.params.orderNo]
+  );
+  res.json(ok({ orderNo: req.params.orderNo, status: "DELIVERING" }));
+}));
+
+storeRouter.post("/orders/:orderNo/complete-delivery", asyncHandler(async (req, res) => {
+  const result = await transaction(async (conn) => {
+    const [orders] = await conn.query<any[]>(
+      `SELECT order_no, store_id, member_id, customer_type, settlement_type, payable_amount, receiver_name, receiver_mobile
+       FROM miniapp_order
+       WHERE order_no = ? AND order_status IN ('WAIT_DELIVERY', 'DELIVERING')
+       FOR UPDATE`,
+      [req.params.orderNo]
+    );
+    const order = orders[0];
+    if (!order) throw new Error("订单不存在或状态不可完成");
+
+    const [items] = await conn.query<any[]>(
+      `SELECT sku_id AS skuId, qty AS quantity, reserved_qty AS reservedQty
+       FROM miniapp_order_item WHERE order_no = ?`,
+      [req.params.orderNo]
+    );
+
+    for (const item of items) {
+      const deductQty = Number(item.reservedQty ?? 0);
+      if (deductQty <= 0) continue;
+      await conn.execute(
+        `UPDATE inventory_balance
+         SET physical_qty = physical_qty - ?,
+             locked_qty = GREATEST(locked_qty - ?, 0),
+             updated_at = NOW()
+         WHERE store_id = ? AND sku_id = ? AND stock_type = 'ONLINE'`,
+        [deductQty, deductQty, order.store_id, item.skuId]
+      );
+      await conn.execute(
+        `INSERT INTO inventory_ledger (ledger_no, store_id, sku_id, stock_type, biz_type, biz_no,
+                                       change_qty, before_qty, after_qty, before_locked_qty, after_locked_qty,
+                                       operator_id, idempotency_key, remark)
+         VALUES (?, ?, ?, 'ONLINE', 'ORDER_COMPLETE', ?, ?, 0, 0, 0, 0, ?, ?, ?)`,
+        [
+          makeBizNo("IL"),
+          order.store_id,
+          item.skuId,
+          req.params.orderNo,
+          -deductQty,
+          req.user?.id ?? null,
+          `ORDER_COMPLETE:${req.params.orderNo}:${item.skuId}`,
+          "配送完成扣减库存"
+        ]
+      );
+    }
+
+    await conn.execute(
+      `UPDATE miniapp_order
+       SET order_status = 'COMPLETED', delivery_status = 'COMPLETED', completed_at = NOW(), updated_at = NOW()
+       WHERE order_no = ?`,
+      [req.params.orderNo]
+    );
+
+    let receivableNo: string | null = null;
+    if (order.customer_type === "WHOLESALE" && order.settlement_type === "ACCOUNT") {
+      receivableNo = makeBizNo("YS");
+      await conn.execute(
+        `INSERT INTO receivable_account (receivable_no, source_type, source_no, store_id, customer_id, customer_name,
+                                         customer_mobile, receivable_amount, received_amount, unreceived_amount, status)
+         VALUES (?, 'MINIAPP_ORDER', ?, ?, ?, ?, ?, ?, 0, ?, 'UNPAID')`,
+        [
+          receivableNo,
+          req.params.orderNo,
+          order.store_id,
+          order.member_id,
+          order.receiver_name,
+          order.receiver_mobile,
+          order.payable_amount,
+          order.payable_amount
+        ]
+      );
+    }
+
+    return { orderNo: req.params.orderNo, status: "COMPLETED", receivableNo };
+  });
+  res.json(ok(result));
+}));
+
+async function releaseOrderReservation(orderNo: string, status: "REJECTED" | "CANCELLED", operatorId: number | null) {
+  return transaction(async (conn) => {
+    const [orders] = await conn.query<any[]>(
+      `SELECT order_no, store_id FROM miniapp_order
+       WHERE order_no = ? AND order_status IN ('WAIT_DELIVERY', 'DELIVERING')
+       FOR UPDATE`,
+      [orderNo]
+    );
+    const order = orders[0];
+    if (!order) throw new Error("订单不存在或状态不可释放库存");
+    const [items] = await conn.query<any[]>(
+      `SELECT sku_id AS skuId, reserved_qty AS reservedQty FROM miniapp_order_item WHERE order_no = ?`,
+      [orderNo]
+    );
+    for (const item of items) {
+      const qty = Number(item.reservedQty ?? 0);
+      if (qty <= 0) continue;
+      await conn.execute(
+        `UPDATE inventory_balance
+         SET locked_qty = GREATEST(locked_qty - ?, 0),
+             available_qty = available_qty + ?,
+             updated_at = NOW()
+         WHERE store_id = ? AND sku_id = ? AND stock_type = 'ONLINE'`,
+        [qty, qty, order.store_id, item.skuId]
+      );
+      await conn.execute(
+        `INSERT INTO inventory_ledger (ledger_no, store_id, sku_id, stock_type, biz_type, biz_no,
+                                       change_qty, before_qty, after_qty, before_locked_qty, after_locked_qty,
+                                       operator_id, idempotency_key, remark)
+         VALUES (?, ?, ?, 'ONLINE', ?, ?, 0, 0, 0, 0, 0, ?, ?, ?)`,
+        [
+          makeBizNo("IL"),
+          order.store_id,
+          item.skuId,
+          status === "REJECTED" ? "ORDER_REJECT" : "ORDER_CANCEL",
+          orderNo,
+          operatorId,
+          `${status}:${orderNo}:${item.skuId}`,
+          status === "REJECTED" ? "客户拒收释放占用库存" : "订单取消释放占用库存"
+        ]
+      );
+    }
+    await conn.execute(
+      `UPDATE miniapp_order
+       SET order_status = ?, delivery_status = ?, updated_at = NOW()
+       WHERE order_no = ?`,
+      [status, status, orderNo]
+    );
+    return { orderNo, status };
+  });
+}
+
+storeRouter.post("/orders/:orderNo/reject", asyncHandler(async (req, res) => {
+  res.json(ok(await releaseOrderReservation(req.params.orderNo, "REJECTED", req.user?.id ?? null)));
+}));
+
+storeRouter.post("/orders/:orderNo/cancel", asyncHandler(async (req, res) => {
+  res.json(ok(await releaseOrderReservation(req.params.orderNo, "CANCELLED", req.user?.id ?? null)));
 }));
 
 storeRouter.get("/orders/:orderNo", asyncHandler(async (req, res) => {
