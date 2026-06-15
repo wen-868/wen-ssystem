@@ -9,6 +9,39 @@ import { ok } from "../shared/response.js";
 export const storeRouter = Router();
 storeRouter.use(requireAuth);
 
+const rawStoreSaleBillItemSchema = z.object({
+  skuId: z.number(),
+  boxQty: z.number().optional(),
+  bottleQty: z.number().optional(),
+  quantity: z.number().optional(),
+  totalBottleQty: z.number().optional(),
+  unitPrice: z.number().optional(),
+  priceType: z.enum(["RETAIL", "WHOLESALE", "STORE"]).optional()
+});
+
+export const storeSaleBillItemSchema = rawStoreSaleBillItemSchema.transform((item, ctx) => {
+  const totalBottleQty = item.totalBottleQty ?? item.quantity;
+  if (totalBottleQty == null || totalBottleQty <= 0) {
+    ctx.addIssue({
+      code: z.ZodIssueCode.custom,
+      message: "totalBottleQty 或 quantity 必须大于 0"
+    });
+    return z.NEVER;
+  }
+  return {
+    skuId: item.skuId,
+    boxQty: item.boxQty ?? 0,
+    bottleQty: item.bottleQty ?? item.quantity ?? totalBottleQty,
+    totalBottleQty,
+    unitPrice: item.unitPrice,
+    priceType: item.priceType
+  };
+});
+
+export function normalizeStoreSaleBillItem(input: unknown) {
+  return storeSaleBillItemSchema.parse(input);
+}
+
 storeRouter.get("/products", asyncHandler(async (req, res) => {
   const keyword = String(req.query.keyword || "");
   const barcode = String(req.query.barcode || "");
@@ -166,14 +199,7 @@ storeRouter.post("/sale-bills", asyncHandler(async (req, res) => {
     roundingAmount: z.number().default(0),
     remark: z.string().optional(),
     internalRemark: z.string().optional(),
-    items: z.array(z.object({
-      skuId: z.number(),
-      boxQty: z.number().default(0),
-      bottleQty: z.number().default(0),
-      totalBottleQty: z.number(),
-      unitPrice: z.number().optional(),
-      priceType: z.enum(["RETAIL", "WHOLESALE", "STORE"]).optional()
-    })).min(1)
+    items: z.array(storeSaleBillItemSchema).min(1)
   }).parse(req.body);
   const bill = await transaction(async (conn) => {
     const billNo = makeBizNo("XS");
@@ -298,11 +324,22 @@ storeRouter.post("/sale-bills/:billNo/offline-payment", asyncHandler(async (req,
     remark: z.string().optional()
   }).parse(req.body);
   await transaction(async (conn) => {
-    const [rows] = await conn.query<any[]>("SELECT received_amount, receivable_amount FROM sale_bill WHERE bill_no = ? FOR UPDATE", [req.params.billNo]);
+    const [rows] = await conn.query<any[]>(
+      "SELECT bill_no, store_id, received_amount, receivable_amount, collection_status FROM sale_bill WHERE bill_no = ? FOR UPDATE",
+      [req.params.billNo]
+    );
     const bill = rows[0];
     if (!bill) throw new Error("销售单不存在");
+    const existingDeductRows = await conn.query<any[]>(
+      "SELECT id FROM inventory_ledger WHERE biz_type = 'SALE_OUT' AND biz_no = ? LIMIT 1",
+      [req.params.billNo]
+    );
+    const alreadyDeducted = existingDeductRows[0].length > 0;
     const received = Number(bill.received_amount) + body.amount;
     const receivable = Number(bill.receivable_amount);
+    if (body.amount <= 0 || body.amount > Math.max(receivable - Number(bill.received_amount), 0)) {
+      throw new Error("收款金额不合法");
+    }
     const status = received >= receivable ? "PAID" : "PARTIAL";
     await conn.execute(
       `UPDATE sale_bill SET received_amount = ?, unreceived_amount = GREATEST(receivable_amount - ?, 0), collection_status = ?, last_payment_time = NOW()
@@ -314,6 +351,54 @@ storeRouter.post("/sale-bills/:billNo/offline-payment", asyncHandler(async (req,
        VALUES (?, 'SALE_BILL', ?, ?, ?, 'SUCCESS', NOW())`,
       [makeBizNo("ZF"), req.params.billNo, body.paymentMethod, body.amount]
     );
+    if (!alreadyDeducted) {
+      const [items] = await conn.query<any[]>(
+        `SELECT sku_id AS skuId, total_bottle_qty AS quantity
+         FROM sale_bill_item
+         WHERE bill_no = ?`,
+        [req.params.billNo]
+      );
+      for (const item of items) {
+        const [inventoryRows] = await conn.query<any[]>(
+          `SELECT physical_qty AS physicalQty, available_qty AS availableQty
+           FROM inventory_balance
+           WHERE store_id = ? AND sku_id = ? AND stock_type = 'OFFLINE'
+           FOR UPDATE`,
+          [bill.store_id, item.skuId]
+        );
+        const inventory = inventoryRows[0];
+        const beforeQty = Number(inventory?.availableQty ?? 0);
+        const quantity = Number(item.quantity ?? item.totalBottleQty);
+        if (beforeQty < quantity) throw new Error("库存不足，无法完成收款出库");
+        const afterQty = beforeQty - quantity;
+        await conn.execute(
+          `UPDATE inventory_balance
+           SET physical_qty = physical_qty - ?,
+               available_qty = available_qty - ?,
+               updated_at = NOW()
+           WHERE store_id = ? AND sku_id = ? AND stock_type = 'OFFLINE'`,
+          [quantity, quantity, bill.store_id ?? bill.storeId, item.skuId]
+        );
+        await conn.execute(
+          `INSERT INTO inventory_ledger (ledger_no, store_id, sku_id, stock_type, biz_type, biz_no,
+                                         change_qty, before_qty, after_qty, before_locked_qty, after_locked_qty,
+                                         operator_id, idempotency_key, remark)
+           VALUES (?, ?, ?, 'OFFLINE', 'SALE_OUT', ?, ?, ?, ?, 0, 0, ?, ?, ?)`,
+          [
+            makeBizNo("IL"),
+            bill.store_id ?? bill.storeId,
+            item.skuId,
+            req.params.billNo,
+            -quantity,
+            beforeQty,
+            afterQty,
+            req.user?.id ?? null,
+            `SALE_OUT:${req.params.billNo}:${item.skuId}`,
+            body.remark ?? "线下收款销售出库"
+          ]
+        );
+      }
+    }
   });
   res.json(ok({ billNo: req.params.billNo }));
 }));

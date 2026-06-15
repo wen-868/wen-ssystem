@@ -205,12 +205,14 @@ export async function mockQuery<T = any>(sql: string, params: unknown[] = []) {
     }) as T[];
   }
   if (s.includes("update inventory_balance")) {
+    const stockType = params.length >= 5 ? params[4] : (s.includes("stock_type = 'offline'") ? "OFFLINE" : params[4]);
     const inv = state.inventory.find(
-      (i) => i.storeId === params[2] && i.skuId === params[3] && i.stockType === params[4]
+      (i) => i.storeId === params[2] && i.skuId === params[3] && i.stockType === stockType
     );
     if (inv) {
-      inv.physicalQty = Number(inv.physicalQty) + Number(params[0]);
-      inv.availableQty = Number(inv.availableQty) + Number(params[1]);
+      const direction = s.includes("physical_qty = physical_qty -") ? -1 : 1;
+      inv.physicalQty = Number(inv.physicalQty) + direction * Number(params[0]);
+      inv.availableQty = Number(inv.availableQty) + direction * Number(params[1]);
     }
     return [] as T[];
   }
@@ -237,12 +239,18 @@ export async function mockQuery<T = any>(sql: string, params: unknown[] = []) {
     }) as T[];
   }
   if (s.includes("from inventory_balance") && s.includes("physical_qty") && s.includes("where store_id")) {
+    const stockType = params.length >= 3 ? params[2] : (s.includes("stock_type = 'offline'") ? "OFFLINE" : params[2]);
     const inv = state.inventory.find(
-      (i) => i.storeId === params[0] && i.skuId === params[1] && i.stockType === params[2]
+      (i) => i.storeId === params[0] && i.skuId === params[1] && i.stockType === stockType
     );
-    return inv ? [{ physicalQty: inv.physicalQty, physical_qty: inv.physicalQty }] as T[] : [] as T[];
+    return inv ? [{ physicalQty: inv.physicalQty, physical_qty: inv.physicalQty, availableQty: inv.availableQty, available_qty: inv.availableQty }] as T[] : [] as T[];
   }
   if (s.includes("from inventory_balance")) return state.inventory as T[];
+  if (s.includes("select id from inventory_ledger") && s.includes("biz_type = 'sale_out'")) {
+    return state.inventoryLogs
+      .filter((log) => log.bizType === "SALE_OUT" && log.bizNo === params[0])
+      .map((log) => ({ id: log.id ?? log.logNo })) as T[];
+  }
   if ((s.includes("from inventory_log") || s.includes("from inventory_ledger")) && s.includes("count(*)")) {
     return [{ total: state.inventoryLogs.length }] as T[];
   }
@@ -348,14 +356,14 @@ export async function mockQuery<T = any>(sql: string, params: unknown[] = []) {
     return [{ total }] as T[];
   }
   if (s.includes("from sale_bill where") && s.includes("count(*)")) return [{ total: state.saleBills.length }] as T[];
-  if (s.includes("from sale_bill") && s.includes("where bill_no = ?")) {
-    const bill = state.saleBills.find((b) => b.billNo === params[0] || b.bill_no === params[0]);
-    return bill ? [bill] as T[] : [];
-  }
   if (s.includes("from sale_bill_item where bill_no")) {
     return state.saleBillItems.filter((i) => i.billNo === params[0] || i.bill_no === params[0]) as T[];
   }
-  if (s.includes("from sale_bill") && !s.includes("join") && !s.includes("group by")) return state.saleBills as T[];
+  if (s.includes("from sale_bill where bill_no = ?")) {
+    const bill = state.saleBills.find((b) => b.billNo === params[0] || b.bill_no === params[0]);
+    return bill ? [bill] as T[] : [];
+  }
+  if (s.includes("from sale_bill ") && !s.includes("join") && !s.includes("group by")) return state.saleBills as T[];
   if (s.includes("insert into collection_link")) {
     state.collectionLinks.push({
       linkNo: params[0],
@@ -513,17 +521,29 @@ export async function mockQuery<T = any>(sql: string, params: unknown[] = []) {
   }
   if (s.includes("insert into inventory_ledger")) {
     const product = state.products.find((p) => Number(p.skuId) === Number(params[2]));
+    const isSaleOut = s.includes("'sale_out'");
+    const stockType = isSaleOut ? "OFFLINE" : String(params[3]);
+    const bizType = isSaleOut ? "SALE_OUT" : "ADJUST";
+    const bizNo = isSaleOut ? String(params[3]) : String(params[4]);
+    const changeQty = Number(params[isSaleOut ? 4 : 5]);
+    const beforeQty = Number(params[isSaleOut ? 5 : 6]);
+    const afterQty = Number(params[isSaleOut ? 6 : 7]);
+    const operatorId = params[isSaleOut ? 7 : 8];
+    const remark = String(params[isSaleOut ? 9 : 10] ?? "");
     state.inventoryLogs.push({
+      id: state.inventoryLogs.length + 1,
       logNo: String(params[0]),
       storeId: Number(params[1]),
       skuId: Number(params[2]),
       skuName: product?.skuName ?? "",
-      stockType: String(params[3]),
-      changeQty: Number(params[5]),
-      beforeQty: Number(params[6]),
-      afterQty: Number(params[7]),
-      reason: String(params[10] ?? ""),
-      operatorId: params[8],
+      stockType,
+      bizType,
+      bizNo,
+      changeQty,
+      beforeQty,
+      afterQty,
+      reason: remark,
+      operatorId,
       createdAt: new Date().toISOString()
     });
     return [] as T[];
@@ -561,11 +581,24 @@ export async function mockQuery<T = any>(sql: string, params: unknown[] = []) {
 
 export async function mockExecute(sql: string, params: unknown[] = []) {
   const s = sql.toLowerCase().replace(/\s+/g, " ");
+  if (s.includes("update inventory_balance")) {
+    const stockType = params.length >= 5 ? params[4] : (s.includes("stock_type = 'offline'") ? "OFFLINE" : params[4]);
+    const inv = state.inventory.find(
+      (i) => i.storeId === params[2] && i.skuId === params[3] && i.stockType === stockType
+    );
+    if (inv) {
+      const direction = s.includes("physical_qty = physical_qty -") ? -1 : 1;
+      inv.physicalQty = Number(inv.physicalQty) + direction * Number(params[0]);
+      inv.availableQty = Number(inv.availableQty) + direction * Number(params[1]);
+    }
+    return result();
+  }
   if (s.includes("insert into sale_bill ")) {
     state.saleBills.push({
       billNo: params[0],
       bill_no: params[0],
       storeId: params[1],
+      store_id: params[1],
       customerId: params[2],
       customerName: params[3],
       customerMobile: params[4],
