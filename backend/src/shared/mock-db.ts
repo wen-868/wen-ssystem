@@ -19,8 +19,8 @@ const state = {
     { user_id: 3, role_code: "STORE_OPERATOR" }
   ],
   members: [
-    { id: 1, name: "默认零售客户", mobile: "13900000000", customer_type: "RETAIL", points: 120, level_code: "NORMAL", status: 1, staff_id: null as number | null },
-    { id: 2, name: "默认批发客户", mobile: "13900000001", customer_type: "WHOLESALE", points: 0, level_code: "WHOLESALE", status: 1, staff_id: 1 }
+    { id: 1, name: "默认零售客户", mobile: "13900000000", customer_type: "RETAIL", settlement_type: "CASH", points: 120, level_code: "NORMAL", status: 1, staff_id: null as number | null },
+    { id: 2, name: "默认批发客户", mobile: "13900000001", customer_type: "WHOLESALE", settlement_type: "ACCOUNT", points: 0, level_code: "WHOLESALE", status: 1, staff_id: 1 }
   ] as Row[],
   stores: [
     { id: 1, store_code: "STORE0001", name: "默认门店", address: "演示地址", contact: "管理员", phone: "13800000000", delivery_radius: 3, business_status: "OPEN", status: 1 }
@@ -86,6 +86,8 @@ export async function mockQuery<T = any>(sql: string, params: unknown[] = []) {
       mobile: member.mobile,
       customerType: member.customer_type,
       customer_type: member.customer_type,
+      settlementType: member.settlement_type,
+      settlement_type: member.settlement_type,
       points: member.points,
       levelCode: member.level_code,
       level_code: member.level_code,
@@ -104,6 +106,8 @@ export async function mockQuery<T = any>(sql: string, params: unknown[] = []) {
         mobile: member.mobile,
         customerType: member.customer_type,
         customer_type: member.customer_type,
+        settlementType: member.settlement_type,
+        settlement_type: member.settlement_type,
         points: member.points,
         levelCode: member.level_code,
         level_code: member.level_code,
@@ -120,6 +124,7 @@ export async function mockQuery<T = any>(sql: string, params: unknown[] = []) {
       name: params[0],
       mobile: params[1],
       customer_type: params[2],
+      settlement_type: params[2] === "WHOLESALE" ? "ACCOUNT" : "CASH",
       points: 0,
       level_code: params[2] === "WHOLESALE" ? "WHOLESALE" : "NORMAL",
       status: 1,
@@ -205,14 +210,30 @@ export async function mockQuery<T = any>(sql: string, params: unknown[] = []) {
     }) as T[];
   }
   if (s.includes("update inventory_balance")) {
-    const stockType = params.length >= 5 ? params[4] : (s.includes("stock_type = 'offline'") ? "OFFLINE" : params[4]);
+    const stockType = params.length >= 5 ? params[4] : (s.includes("stock_type = 'offline'") ? "OFFLINE" : (s.includes("stock_type = 'online'") ? "ONLINE" : params[4]));
     const inv = state.inventory.find(
       (i) => i.storeId === params[2] && i.skuId === params[3] && i.stockType === stockType
     );
     if (inv) {
-      const direction = s.includes("physical_qty = physical_qty -") ? -1 : 1;
-      inv.physicalQty = Number(inv.physicalQty) + direction * Number(params[0]);
-      inv.availableQty = Number(inv.availableQty) + direction * Number(params[1]);
+      if (s.includes("locked_qty = locked_qty +")) {
+        inv.lockedQty = Number(inv.lockedQty) + Number(params[0]);
+        inv.availableQty = Math.max(0, Number(inv.availableQty) - Number(params[1]));
+      } else if (s.includes("physical_qty = physical_qty -") && s.includes("locked_qty = greatest(locked_qty -")) {
+        // 配送完成：扣 physical_qty 和 locked_qty
+        inv.physicalQty = Number(inv.physicalQty) - Number(params[0]);
+        inv.lockedQty = Math.max(0, Number(inv.lockedQty) - Number(params[2]));
+      } else if (s.includes("physical_qty = physical_qty -")) {
+        // 门店销售：扣 physical_qty 和 available_qty
+        inv.physicalQty = Number(inv.physicalQty) - Number(params[0]);
+        inv.availableQty = Math.max(0, Number(inv.availableQty) - Number(params[1]));
+      } else if (s.includes("locked_qty = greatest(locked_qty -")) {
+        inv.lockedQty = Math.max(0, Number(inv.lockedQty) - Number(params[0]));
+        inv.availableQty = Number(inv.availableQty) + Number(params[1]);
+      } else {
+        const direction = 1;
+        inv.physicalQty = Number(inv.physicalQty) + direction * Number(params[0]);
+        inv.availableQty = Number(inv.availableQty) + direction * Number(params[1]);
+      }
     }
     return [] as T[];
   }
@@ -243,7 +264,7 @@ export async function mockQuery<T = any>(sql: string, params: unknown[] = []) {
     const inv = state.inventory.find(
       (i) => i.storeId === params[0] && i.skuId === params[1] && i.stockType === stockType
     );
-    return inv ? [{ physicalQty: inv.physicalQty, physical_qty: inv.physicalQty, availableQty: inv.availableQty, available_qty: inv.availableQty }] as T[] : [] as T[];
+    return inv ? [{ physicalQty: inv.physicalQty, physical_qty: inv.physicalQty, lockedQty: inv.lockedQty, locked_qty: inv.lockedQty, availableQty: inv.availableQty, available_qty: inv.availableQty }] as T[] : [] as T[];
   }
   if (s.includes("from inventory_balance")) return state.inventory as T[];
   if (s.includes("select id from inventory_ledger") && s.includes("biz_type = 'sale_out'")) {
@@ -318,6 +339,26 @@ export async function mockQuery<T = any>(sql: string, params: unknown[] = []) {
     if (order && s.includes("completed")) {
       order.orderStatus = "COMPLETED";
       order.order_status = "COMPLETED";
+      order.deliveryStatus = "COMPLETED";
+      order.delivery_status = "COMPLETED";
+    }
+    if (order && s.includes("order_status = 'delivering'")) {
+      order.orderStatus = "DELIVERING";
+      order.order_status = "DELIVERING";
+      order.deliveryStatus = "DELIVERING";
+      order.delivery_status = "DELIVERING";
+    }
+    if (order && s.includes("order_status = 'rejected'")) {
+      order.orderStatus = "REJECTED";
+      order.order_status = "REJECTED";
+      order.deliveryStatus = "REJECTED";
+      order.delivery_status = "REJECTED";
+    }
+    if (order && s.includes("order_status = 'cancelled'")) {
+      order.orderStatus = "CANCELLED";
+      order.order_status = "CANCELLED";
+      order.deliveryStatus = "CANCELLED";
+      order.delivery_status = "CANCELLED";
     }
     return [] as T[];
   }
@@ -582,14 +623,30 @@ export async function mockQuery<T = any>(sql: string, params: unknown[] = []) {
 export async function mockExecute(sql: string, params: unknown[] = []) {
   const s = sql.toLowerCase().replace(/\s+/g, " ");
   if (s.includes("update inventory_balance")) {
-    const stockType = params.length >= 5 ? params[4] : (s.includes("stock_type = 'offline'") ? "OFFLINE" : params[4]);
+    const stockType = params.length >= 5 ? params[4] : (s.includes("stock_type = 'offline'") ? "OFFLINE" : (s.includes("stock_type = 'online'") ? "ONLINE" : params[4]));
     const inv = state.inventory.find(
       (i) => i.storeId === params[2] && i.skuId === params[3] && i.stockType === stockType
     );
     if (inv) {
-      const direction = s.includes("physical_qty = physical_qty -") ? -1 : 1;
-      inv.physicalQty = Number(inv.physicalQty) + direction * Number(params[0]);
-      inv.availableQty = Number(inv.availableQty) + direction * Number(params[1]);
+      if (s.includes("locked_qty = locked_qty +")) {
+        inv.lockedQty = Number(inv.lockedQty) + Number(params[0]);
+        inv.availableQty = Math.max(0, Number(inv.availableQty) - Number(params[1]));
+      } else if (s.includes("physical_qty = physical_qty -") && s.includes("locked_qty = greatest(locked_qty -")) {
+        // 配送完成：扣 physical_qty 和 locked_qty
+        inv.physicalQty = Number(inv.physicalQty) - Number(params[0]);
+        inv.lockedQty = Math.max(0, Number(inv.lockedQty) - Number(params[2]));
+      } else if (s.includes("physical_qty = physical_qty -")) {
+        // 门店销售：扣 physical_qty 和 available_qty
+        inv.physicalQty = Number(inv.physicalQty) - Number(params[0]);
+        inv.availableQty = Math.max(0, Number(inv.availableQty) - Number(params[1]));
+      } else if (s.includes("locked_qty = greatest(locked_qty -")) {
+        inv.lockedQty = Math.max(0, Number(inv.lockedQty) - Number(params[0]));
+        inv.availableQty = Number(inv.availableQty) + Number(params[1]);
+      } else {
+        const direction = 1;
+        inv.physicalQty = Number(inv.physicalQty) + direction * Number(params[0]);
+        inv.availableQty = Number(inv.availableQty) + direction * Number(params[1]);
+      }
     }
     return result();
   }
@@ -661,17 +718,21 @@ export async function mockExecute(sql: string, params: unknown[] = []) {
       customerType: params[2],
       fulfillmentType: params[3],
       fulfillment_type: params[3],
-      orderStatus: "PENDING_PAYMENT",
-      order_status: "PENDING_PAYMENT",
-      payStatus: "UNPAID",
-      pay_status: "UNPAID",
-      goodsAmount: params[4],
-      payableAmount: params[5],
-      payable_amount: params[5],
-      receiverName: params[6],
-      receiverMobile: params[7],
-      receiverAddress: params[8],
-      remark: params[9],
+      orderStatus: params[4] ?? "PENDING_PAYMENT",
+      order_status: params[4] ?? "PENDING_PAYMENT",
+      payStatus: params[5] ?? "UNPAID",
+      pay_status: params[5] ?? "UNPAID",
+      settlementType: params[6] ?? "CASH",
+      settlement_type: params[6] ?? "CASH",
+      deliveryStatus: params[7] ?? "WAITING",
+      delivery_status: params[7] ?? "WAITING",
+      goodsAmount: params[8],
+      payableAmount: params[9],
+      payable_amount: params[9],
+      receiverName: params[10],
+      receiverMobile: params[11],
+      receiverAddress: params[12],
+      remark: params[13],
       createdAt: new Date().toISOString()
     });
     return result();
@@ -682,9 +743,11 @@ export async function mockExecute(sql: string, params: unknown[] = []) {
       skuId: params[1],
       skuName: params[2],
       qty: params[3],
-      unitPrice: params[4],
-      priceType: params[5],
-      subtotalAmount: params[6]
+      reservedQty: Number(params[4] ?? 0),
+      unreservedQty: Number(params[5] ?? 0),
+      unitPrice: params[6],
+      priceType: params[7],
+      subtotalAmount: params[8]
     });
     return result();
   }
