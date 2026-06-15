@@ -51,9 +51,13 @@ Page({
       return;
     }
     this.setData({ loading: true, errorText: "" });
+    const anonymousId = wx.getStorageSync("anonymous_member_id") || "";
     wx.request({
       url: `${app.globalData.apiBase}/miniapp/products`,
       method: "GET",
+      header: {
+        "x-anonymous-member-id": anonymousId
+      },
       data: { storeId: 1 },
       success: (res) => {
         const body = res.data || {};
@@ -124,9 +128,13 @@ Page({
       return;
     }
     const items = cartItems.map((c) => ({ skuId: c.skuId, qty: c.qty }));
+    const anonymousId = wx.getStorageSync("anonymous_member_id") || "";
     wx.request({
       url: `${app.globalData.apiBase}/miniapp/orders`,
       method: "POST",
+      header: {
+        "x-anonymous-member-id": anonymousId
+      },
       data: {
         storeId: 1,
         fulfillmentType: "DELIVERY",

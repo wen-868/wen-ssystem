@@ -45,9 +45,13 @@ Page({
       return;
     }
     this.setData({ loading: true, errorText: "" });
+    const anonymousId = wx.getStorageSync("anonymous_member_id") || "";
     wx.request({
       url: `${app.globalData.apiBase}/miniapp/orders/${this.data.orderNo}`,
       method: "GET",
+      header: {
+        "x-anonymous-member-id": anonymousId
+      },
       success: (res) => {
         const body = res.data || {};
         if (body.code === "0") {

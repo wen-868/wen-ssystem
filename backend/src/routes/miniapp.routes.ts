@@ -65,6 +65,7 @@ miniappRouter.get("/products", asyncHandler(async (req, res) => {
 }));
 
 miniappRouter.post("/orders", asyncHandler(async (req, res) => {
+  const anonymousMemberId = String(req.headers["x-anonymous-member-id"] || "");
   const body = z.object({
     storeId: z.number(),
     fulfillmentType: z.enum(["DELIVERY", "PICKUP"]),
@@ -82,6 +83,9 @@ miniappRouter.post("/orders", asyncHandler(async (req, res) => {
     })).refine((item) => item.qty > 0, "qty or quantity is required")).min(1)
   }).parse(req.body);
   const customerType = String(req.headers["x-customer-type"] || "RETAIL");
+  const remarkWithIdentity = anonymousMemberId
+    ? `[anon:${anonymousMemberId}]${body.remark ? ` ${body.remark}` : ""}`
+    : body.remark ?? null;
   const order = await transaction(async (conn) => {
     const orderNo = makeBizNo("DD");
     let goodsAmount = 0;
@@ -103,7 +107,7 @@ miniappRouter.post("/orders", asyncHandler(async (req, res) => {
       `INSERT INTO miniapp_order (order_no, member_id, store_id, customer_type, fulfillment_type, order_status, pay_status,
                                   goods_amount, payable_amount, receiver_name, receiver_mobile, receiver_address, remark, expire_at)
        VALUES (?, 1, ?, ?, ?, 'PENDING_PAYMENT', 'UNPAID', ?, ?, ?, ?, ?, ?, DATE_ADD(NOW(), INTERVAL 15 MINUTE))`,
-      [orderNo, body.storeId, customerType, body.fulfillmentType, goodsAmount, goodsAmount, body.receiverName ?? null, body.receiverMobile ?? null, body.receiverAddress ?? null, body.remark ?? null]
+      [orderNo, body.storeId, customerType, body.fulfillmentType, goodsAmount, goodsAmount, body.receiverName ?? null, body.receiverMobile ?? null, body.receiverAddress ?? null, remarkWithIdentity]
     );
     for (const item of items) {
       await conn.execute(
@@ -118,6 +122,7 @@ miniappRouter.post("/orders", asyncHandler(async (req, res) => {
 }));
 
 miniappRouter.get("/orders", asyncHandler(async (req, res) => {
+  const anonymousMemberId = String(req.headers["x-anonymous-member-id"] || "");
   const page = Number(req.query.page || 1);
   const pageSize = Number(req.query.pageSize || 20);
   const offset = (page - 1) * pageSize;
@@ -127,23 +132,28 @@ miniappRouter.get("/orders", asyncHandler(async (req, res) => {
             receiver_name AS receiverName, receiver_mobile AS receiverMobile, receiver_address AS receiverAddress,
             created_at AS createdAt
      FROM miniapp_order
+     WHERE (? = '' OR remark LIKE ?)
      ORDER BY id DESC
      LIMIT ? OFFSET ?`,
-    [pageSize, offset]
+    [anonymousMemberId, `[anon:${anonymousMemberId}]%`, pageSize, offset]
   );
-  const total = await queryOne<any>("SELECT COUNT(*) AS total FROM miniapp_order", []);
+  const total = await queryOne<any>(
+    "SELECT COUNT(*) AS total FROM miniapp_order WHERE (? = '' OR remark LIKE ?)",
+    [anonymousMemberId, `[anon:${anonymousMemberId}]%`]
+  );
   res.json(ok({ total: total?.total ?? 0, page, pageSize, records }));
 }));
 
 miniappRouter.get("/orders/:orderNo", asyncHandler(async (req, res) => {
+  const anonymousMemberId = String(req.headers["x-anonymous-member-id"] || "");
   const order = await queryOne<any>(
     `SELECT order_no AS orderNo, order_status AS orderStatus, pay_status AS payStatus,
             payable_amount AS payableAmount, expire_at AS expireAt,
             receiver_name AS receiverName, receiver_mobile AS receiverMobile,
             receiver_address AS receiverAddress, fulfillment_type AS fulfillmentType,
             created_at AS createdAt
-     FROM miniapp_order WHERE order_no = ?`,
-    [req.params.orderNo]
+     FROM miniapp_order WHERE order_no = ? AND (? = '' OR remark LIKE ?)`,
+    [req.params.orderNo, anonymousMemberId, `[anon:${anonymousMemberId}]%`]
   );
   if (!order) {
     res.status(404).json({ code: "404", message: "订单不存在" });

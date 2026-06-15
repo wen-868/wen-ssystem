@@ -1,8 +1,8 @@
 {
-  "appid": "touristappid",
+  "appid": "wx0000000000000000",
   "projectname": "zhixiang-miniapp",
   "setting": {
-    "urlCheck": false,
+    "urlCheck": true,
     "es6": true,
     "enhance": true,
     "postcss": true,
