@@ -51,6 +51,11 @@ for (const file of ["admin-web/src/styles.css", "store-terminal/src/styles.css",
 }
 
 assertIncludes("admin-web/src/App.vue", "dashboard-hero");
+assertIncludes("admin-web/src/App.vue", "activeNav");
+assertIncludes("admin-web/src/App.vue", "admin-login-page");
+assertIncludes("admin-web/src/App.vue", "handleLogout");
+assertIncludes("admin-web/src/App.vue", "系统管理员");
+assertIncludes("admin-web/src/App.vue", "退出登录");
 assertIncludes("store-terminal/src/App.vue", "cashier-panel");
 assertIncludes("miniapp/pages/share-collection/index.wxml", "payment-hero");
 assertIncludes("miniapp/pages/share-collection/index.wxss", ".payment-hero");

@@ -1,33 +1,50 @@
 <template>
-  <div class="layout">
+  <div v-if="!token" class="admin-login-page">
+    <el-card class="login-card">
+      <template #header>
+        <div>
+          <h1>智享营销系统管理后台</h1>
+          <p class="muted">请先登录，登录后进入正式后台工作台。</p>
+        </div>
+      </template>
+      <el-form label-width="72px" @submit.prevent>
+        <el-form-item label="账号">
+          <el-input v-model="loginForm.username" placeholder="admin" />
+        </el-form-item>
+        <el-form-item label="密码">
+          <el-input v-model="loginForm.password" type="password" placeholder="admin123" show-password />
+        </el-form-item>
+        <el-form-item>
+          <el-button type="primary" :loading="loading" @click="handleLogin">登录进入后台</el-button>
+        </el-form-item>
+      </el-form>
+    </el-card>
+  </div>
+  <div v-else class="layout">
     <aside class="side">
       <h1>智享营销系统管理后台</h1>
-      <div v-for="item in nav" :key="item" class="nav-item" :class="{ active: item === nav[0] }">
+      <button
+        v-for="item in nav"
+        :key="item"
+        class="nav-item"
+        :class="{ active: item === activeNav }"
+        type="button"
+        @click="activeNav = item"
+      >
         {{ item }}
-      </div>
+      </button>
     </aside>
     <main class="main">
       <section class="dashboard-hero">
-        <h2>智享营销系统管理后台工作台</h2>
-        <p class="muted">围绕销售、库存、客户和收款，快速判断门店经营状态。</p>
+        <div>
+          <h2>{{ activeNav }}</h2>
+          <p class="muted">{{ adminNavDescriptions[activeNav] }}</p>
+        </div>
+        <div class="user-bar">
+          <span>系统管理员</span>
+          <el-button size="small" @click="handleLogout">退出登录</el-button>
+        </div>
       </section>
-      <el-card v-if="!token" style="margin-bottom: 20px">
-        <template #header>管理员登录</template>
-        <el-form :inline="true" @submit.prevent>
-          <el-form-item label="账号">
-            <el-input v-model="loginForm.username" placeholder="admin" />
-          </el-form-item>
-          <el-form-item label="密码">
-            <el-input v-model="loginForm.password" type="password" placeholder="admin123" show-password />
-          </el-form-item>
-          <el-form-item>
-            <el-button type="primary" :loading="loading" @click="handleLogin">登录并加载数据</el-button>
-          </el-form-item>
-        </el-form>
-      </el-card>
-      <el-alert v-else type="success" show-icon :closable="false" style="margin-bottom: 20px">
-        <template #title>已登录，Token 已保存到浏览器本地存储。</template>
-      </el-alert>
       <section class="cards">
         <div class="card" v-for="card in cards" :key="card.label">
           <div class="metric">{{ card.value }}</div>
@@ -437,7 +454,19 @@ import { nextTick, onMounted, reactive, ref } from "vue";
 import { ElMessage } from "element-plus";
 import { adminLogin, assignMember, createMember, createProduct, createStore, exportOrdersCsv, fetchCollectionLinks, fetchDailySales, fetchDashboard, fetchInventoryAlerts, fetchInventoryBalances, fetchInventoryLogs, fetchMemberPriceHistory, fetchMembers, fetchOrderDetail, fetchOrders, fetchOrderStats, fetchPaymentOrders, fetchPriceLogs, fetchProducts, fetchRefundOrders, fetchSaleBills, fetchStorePerformance, fetchStores, updateProductPrice, updateProductStatus } from "./api";
 
-const nav = ["首页", "商品", "订单", "销售单", "库存", "收款", "报表", "系统"];
+const nav = ["首页", "商品", "订单", "销售单", "库存", "客户", "门店", "收款", "报表"];
+const activeNav = ref("首页");
+const adminNavDescriptions: Record<string, string> = {
+  首页: "查看销售、订单、库存和门店业绩总览。",
+  商品: "维护商品、上下架和价格。",
+  订单: "处理小程序订单、搜索和导出。",
+  销售单: "查看销售单和收款状态。",
+  库存: "查看库存总览、库存流水和预警。",
+  客户: "维护客户和销售归属。",
+  门店: "维护门店基础信息。",
+  收款: "查看分享收款、支付和退款记录。",
+  报表: "查看销售趋势、订单分布和门店业绩。"
+};
 
 const token = ref(localStorage.getItem("admin_token") || "");
 const loading = ref(false);
@@ -515,6 +544,13 @@ async function handleLogin() {
   } finally {
     loading.value = false;
   }
+}
+
+function handleLogout() {
+  localStorage.removeItem("admin_token");
+  token.value = "";
+  activeNav.value = "首页";
+  ElMessage.success("已退出登录");
 }
 
 async function loadDashboard() {
