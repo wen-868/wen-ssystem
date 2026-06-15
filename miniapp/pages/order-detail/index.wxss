@@ -22,6 +22,7 @@
 }
 .tag-pending { background: #fdf6ec; color: #e6a23c; }
 .tag-accept { background: #dbeafe; color: #409eff; }
+.tag-delivery { background: #ecf5ff; color: #1677ff; }
 .tag-done { background: #e1f3d8; color: #67c23a; }
 .item-row {
   display: flex;
@@ -29,4 +30,12 @@
   padding: 12rpx 0;
   border-bottom: 1rpx solid #f0f0f0;
   font-size: 28rpx;
+}
+.primary-btn {
+  background: #1677ff;
+  color: #fff;
+  border-radius: 8rpx;
+  border: none;
+  font-size: 30rpx;
+  padding: 16rpx 0;
 }

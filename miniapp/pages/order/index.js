@@ -59,9 +59,16 @@ Page({
         const body = res.data || {};
         if (body.code === "0") {
           const orders = (body.data.records || []).map((item) => Object.assign({}, item, {
-            orderTagClass: item.orderStatus === "COMPLETED" ? "done" : (item.orderStatus === "ACCEPTED" ? "accept" : "pending"),
+            orderTagClass: item.orderStatus === "COMPLETED" ? "done"
+              : (item.orderStatus === "ACCEPTED" ? "accept"
+                : (item.orderStatus === "WAIT_DELIVERY" || item.orderStatus === "DELIVERING" ? "delivery" : "pending")),
             payTagClass: item.payStatus === "PAID" ? "done" : "pending",
-            fulfillmentLabel: item.fulfillmentType === "PICKUP" ? "自提" : "配送"
+            fulfillmentLabel: item.fulfillmentType === "PICKUP" ? "自提" : "配送",
+            orderStatusLabel: item.orderStatus === "WAIT_DELIVERY" ? "待配送"
+              : (item.orderStatus === "DELIVERING" ? "配送中"
+                : (item.orderStatus === "COMPLETED" ? "已完成"
+                  : (item.orderStatus === "REJECTED" ? "已拒收"
+                    : (item.orderStatus === "CANCELLED" ? "已取消" : item.orderStatus))))
           }));
           this.setData({ orders, showEmpty: orders.length === 0 });
         } else {

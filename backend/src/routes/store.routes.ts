@@ -5,6 +5,7 @@ import { requireAuth } from "../shared/auth.js";
 import { query, queryOne, transaction } from "../shared/db.js";
 import { makeBizNo, makeToken } from "../shared/id.js";
 import { ok } from "../shared/response.js";
+import { completeOrderDelivery } from "../shared/fulfillment.js";
 
 export const storeRouter = Router();
 storeRouter.use(requireAuth);
@@ -148,79 +149,7 @@ storeRouter.post("/orders/:orderNo/start-delivery", asyncHandler(async (req, res
 
 storeRouter.post("/orders/:orderNo/complete-delivery", asyncHandler(async (req, res) => {
   const result = await transaction(async (conn) => {
-    const [orders] = await conn.query<any[]>(
-      `SELECT order_no, store_id, member_id, customer_type, settlement_type, payable_amount, receiver_name, receiver_mobile
-       FROM miniapp_order
-       WHERE order_no = ? AND order_status IN ('WAIT_DELIVERY', 'DELIVERING')
-       FOR UPDATE`,
-      [req.params.orderNo]
-    );
-    const order = orders[0];
-    if (!order) throw new Error("订单不存在或状态不可完成");
-
-    const [items] = await conn.query<any[]>(
-      `SELECT sku_id AS skuId, qty AS quantity, reserved_qty AS reservedQty
-       FROM miniapp_order_item WHERE order_no = ?`,
-      [req.params.orderNo]
-    );
-
-    for (const item of items) {
-      const deductQty = Number(item.reservedQty ?? 0);
-      if (deductQty <= 0) continue;
-      await conn.execute(
-        `UPDATE inventory_balance
-         SET physical_qty = physical_qty - ?,
-             locked_qty = GREATEST(locked_qty - ?, 0),
-             updated_at = NOW()
-         WHERE store_id = ? AND sku_id = ? AND stock_type = 'ONLINE'`,
-        [deductQty, deductQty, order.store_id, item.skuId]
-      );
-      await conn.execute(
-        `INSERT INTO inventory_ledger (ledger_no, store_id, sku_id, stock_type, biz_type, biz_no,
-                                       change_qty, before_qty, after_qty, before_locked_qty, after_locked_qty,
-                                       operator_id, idempotency_key, remark)
-         VALUES (?, ?, ?, 'ONLINE', 'ORDER_COMPLETE', ?, ?, 0, 0, 0, 0, ?, ?, ?)`,
-        [
-          makeBizNo("IL"),
-          order.store_id,
-          item.skuId,
-          req.params.orderNo,
-          -deductQty,
-          req.user?.id ?? null,
-          `ORDER_COMPLETE:${req.params.orderNo}:${item.skuId}`,
-          "配送完成扣减库存"
-        ]
-      );
-    }
-
-    await conn.execute(
-      `UPDATE miniapp_order
-       SET order_status = 'COMPLETED', delivery_status = 'COMPLETED', completed_at = NOW(), updated_at = NOW()
-       WHERE order_no = ?`,
-      [req.params.orderNo]
-    );
-
-    let receivableNo: string | null = null;
-    if (order.customer_type === "WHOLESALE" && order.settlement_type === "ACCOUNT") {
-      receivableNo = makeBizNo("YS");
-      await conn.execute(
-        `INSERT INTO receivable_account (receivable_no, source_type, source_no, store_id, customer_id, customer_name,
-                                         customer_mobile, receivable_amount, received_amount, unreceived_amount, status)
-         VALUES (?, 'MINIAPP_ORDER', ?, ?, ?, ?, ?, ?, 0, ?, 'UNPAID')`,
-        [
-          receivableNo,
-          req.params.orderNo,
-          order.store_id,
-          order.member_id,
-          order.receiver_name,
-          order.receiver_mobile,
-          order.payable_amount,
-          order.payable_amount
-        ]
-      );
-    }
-
-    return { orderNo: req.params.orderNo, status: "COMPLETED", receivableNo };
+    return completeOrderDelivery(conn, req.params.orderNo, req.user?.id ?? null, makeBizNo);
   });
   res.json(ok(result));
 }));

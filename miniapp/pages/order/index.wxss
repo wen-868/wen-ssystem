@@ -23,4 +23,5 @@
 }
 .tag-pending { background: #fdf6ec; color: #e6a23c; }
 .tag-accept { background: #dbeafe; color: #409eff; }
+.tag-delivery { background: #ecf5ff; color: #1677ff; }
 .tag-done { background: #e1f3d8; color: #67c23a; }

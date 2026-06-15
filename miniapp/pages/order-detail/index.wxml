@@ -4,7 +4,7 @@
   <view style="font-size: 36rpx; font-weight: 700;">订单详情</view>
   <view class="muted" style="margin-top: 16rpx;">{{detail.orderNo}}</view>
   <view style="display: flex; margin-top: 20rpx;">
-    <text class="tag tag-{{detail.orderTagClass}}">{{detail.orderStatus}}</text>
+    <text class="tag tag-{{detail.orderTagClass}}">{{detail.orderStatusLabel}}</text>
     <text class="tag tag-{{detail.payTagClass}}" style="margin-left: 12rpx;">{{detail.payStatus}}</text>
   </view>
   <view class="price" style="margin-top: 24rpx;">¥{{detail.payableAmount}}</view>
@@ -25,5 +25,14 @@
     创建时间：{{detail.createdAt}}
   </view>
 </view>
+
+<button
+  wx:if="{{detail.orderStatus === 'WAIT_DELIVERY' || detail.orderStatus === 'DELIVERING'}}"
+  class="primary-btn"
+  style="margin: 20rpx; width: calc(100% - 40rpx);"
+  bindtap="confirmReceipt"
+>
+  确认收货
+</button>
 
 <button class="primary" style="margin: 20rpx; width: calc(100% - 40rpx);" bindtap="goBack">返回订单列表</button>

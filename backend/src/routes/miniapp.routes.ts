@@ -4,7 +4,7 @@ import { asyncHandler } from "../shared/async-handler.js";
 import { query, queryOne, transaction } from "../shared/db.js";
 import { makeBizNo } from "../shared/id.js";
 import { ok } from "../shared/response.js";
-import { calcReservation, getInitialMiniappOrderState } from "../shared/fulfillment.js";
+import { calcReservation, getInitialMiniappOrderState, completeOrderDelivery } from "../shared/fulfillment.js";
 
 export const miniappRouter = Router();
 
@@ -230,4 +230,11 @@ miniappRouter.get("/orders/:orderNo", asyncHandler(async (req, res) => {
     [req.params.orderNo]
   );
   res.json(ok({ ...order, items }));
+}));
+
+miniappRouter.post("/orders/:orderNo/confirm-receipt", asyncHandler(async (req, res) => {
+  const result = await transaction(async (conn) => {
+    return completeOrderDelivery(conn, req.params.orderNo, null, makeBizNo);
+  });
+  res.json(ok(result));
 }));

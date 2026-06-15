@@ -60,8 +60,15 @@ Page({
             displayAmount: item.subtotalAmount || (item.unitPrice * item.qty)
           }));
           detail.items = items;
-          detail.orderTagClass = detail.orderStatus === "COMPLETED" ? "done" : (detail.orderStatus === "ACCEPTED" ? "accept" : "pending");
+          detail.orderTagClass = detail.orderStatus === "COMPLETED" ? "done"
+            : (detail.orderStatus === "ACCEPTED" ? "accept"
+              : (detail.orderStatus === "WAIT_DELIVERY" || detail.orderStatus === "DELIVERING" ? "delivery" : "pending"));
           detail.payTagClass = detail.payStatus === "PAID" ? "done" : "pending";
+          detail.orderStatusLabel = detail.orderStatus === "WAIT_DELIVERY" ? "待配送"
+            : (detail.orderStatus === "DELIVERING" ? "配送中"
+              : (detail.orderStatus === "COMPLETED" ? "已完成"
+                : (detail.orderStatus === "REJECTED" ? "已拒收"
+                  : (detail.orderStatus === "CANCELLED" ? "已取消" : detail.orderStatus))));
           this.setData({ detail, hasDetail: true, hasItems: items.length > 0 });
         } else {
           this.setData({ errorText: body.message || "加载失败" });
@@ -73,6 +80,24 @@ Page({
       complete: () => {
         this.setData({ loading: false });
         if (done) done();
+      }
+    });
+  },
+  confirmReceipt() {
+    const orderNo = this.data.detail && this.data.detail.orderNo;
+    if (!orderNo) return;
+    wx.request({
+      url: `${getApp().globalData.apiBase}/miniapp/orders/${orderNo}/confirm-receipt`,
+      method: "POST",
+      header: {
+        "x-anonymous-member-id": wx.getStorageSync("anonymous_member_id") || ""
+      },
+      success: () => {
+        wx.showToast({ title: "已确认收货", icon: "success" });
+        this.loadDetail();
+      },
+      fail: () => {
+        wx.showToast({ title: "确认失败，请稍后重试", icon: "none" });
       }
     });
   },
