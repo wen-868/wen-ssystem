@@ -42,7 +42,9 @@ const state = {
   priceLogs: [] as Row[],
   holdOrders: [] as Row[],
   viewLogs: [] as Row[],
-  inventoryLogs: [] as Row[]
+  inventoryLogs: [] as Row[],
+  receivables: [] as Row[],
+  operationLogs: [] as Row[]
 };
 
 const pendingProduct: {
@@ -563,14 +565,25 @@ export async function mockQuery<T = any>(sql: string, params: unknown[] = []) {
   if (s.includes("insert into inventory_ledger")) {
     const product = state.products.find((p) => Number(p.skuId) === Number(params[2]));
     const isSaleOut = s.includes("'sale_out'");
-    const stockType = isSaleOut ? "OFFLINE" : String(params[3]);
-    const bizType = isSaleOut ? "SALE_OUT" : "ADJUST";
-    const bizNo = isSaleOut ? String(params[3]) : String(params[4]);
-    const changeQty = Number(params[isSaleOut ? 4 : 5]);
-    const beforeQty = Number(params[isSaleOut ? 5 : 6]);
-    const afterQty = Number(params[isSaleOut ? 6 : 7]);
-    const operatorId = params[isSaleOut ? 7 : 8];
-    const remark = String(params[isSaleOut ? 9 : 10] ?? "");
+    let stockType: string, bizType: string, bizNo: string, changeQty: number, operatorId: unknown, remark: string;
+    if (isSaleOut) {
+      stockType = "OFFLINE";
+      bizType = "SALE_OUT";
+      bizNo = String(params[3]);
+      changeQty = Number(params[4]);
+      operatorId = params[7];
+      remark = String(params[9] ?? "");
+    } else {
+      // 履约类：ORDER_LOCK, ORDER_COMPLETE, ORDER_REJECT, ORDER_CANCEL
+      stockType = String(params[3]);
+      bizType = String(params[4]);
+      bizNo = String(params[5]);
+      changeQty = Number(params[6]);
+      operatorId = params[11];
+      remark = String(params[13] ?? "");
+    }
+    const beforeQty = 0;
+    const afterQty = 0;
     state.inventoryLogs.push({
       id: state.inventoryLogs.length + 1,
       logNo: String(params[0]),
@@ -616,6 +629,21 @@ export async function mockQuery<T = any>(sql: string, params: unknown[] = []) {
   }
   if (s.includes("from hold_order")) {
     return state.holdOrders.filter((h) => h.status !== "DELETED") as T[];
+  }
+  if (s.includes("from receivable_account")) {
+    return state.receivables as T[];
+  }
+  if (s.includes("insert into operation_log")) {
+    state.operationLogs.push({
+      operatorId: params[0],
+      operatorName: params[1],
+      module: params[2],
+      action: params[3],
+      bizNo: params[4],
+      afterData: params[5],
+      createdAt: new Date().toISOString()
+    });
+    return [] as T[];
   }
   return [] as T[];
 }
@@ -837,6 +865,30 @@ export async function mockExecute(sql: string, params: unknown[] = []) {
       if (params[2] != null) product.wholesalePrice = Number(params[2]);
       if (params[3] != null) product.miniappPrice = Number(params[3]);
     }
+    return result();
+  }
+  if (s.includes("insert into receivable_account")) {
+    state.receivables.push({
+      receivableNo: params[0],
+      receivable_no: params[0],
+      sourceType: params[1],
+      source_type: params[1],
+      sourceNo: params[2],
+      source_no: params[2],
+      storeId: params[3],
+      store_id: params[3],
+      customerId: params[4],
+      customerName: params[5],
+      customerMobile: params[6],
+      receivableAmount: params[7],
+      receivable_amount: params[7],
+      receivedAmount: params[8],
+      received_amount: params[8],
+      unreceivedAmount: params[9],
+      unreceived_amount: params[9],
+      status: params[10],
+      createdAt: new Date().toISOString()
+    });
     return result();
   }
   return result();

@@ -122,4 +122,92 @@ async function testWholesaleOrderReservation() {
 
 await testWholesaleOrderReservation();
 
+async function testWholesaleDeliveryLifecycle() {
+  const order = await request("/miniapp/orders", {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      "x-customer-type": "WHOLESALE",
+      "x-settlement-type": "ACCOUNT"
+    },
+    body: JSON.stringify({
+      storeId: 1,
+      fulfillmentType: "DELIVERY",
+      receiverName: "账期批发客户",
+      receiverMobile: "13900000001",
+      receiverAddress: "客户仓库",
+      items: [{ skuId: 1, qty: 1 }]
+    })
+  });
+  const orderNo = order.orderNo;
+
+  const delivering = await request(`/store/orders/${orderNo}/start-delivery`, {
+    method: "POST",
+    headers: auth
+  });
+  if (delivering.status !== "DELIVERING") throw new Error("订单应进入配送中，实际为 " + delivering.status);
+
+  const completed = await request(`/store/orders/${orderNo}/complete-delivery`, {
+    method: "POST",
+    headers: auth
+  });
+  if (completed.status !== "COMPLETED") throw new Error("订单应完成，实际为 " + completed.status);
+  if (!completed.receivableNo) throw new Error("账期批发订单完成后应生成应收");
+}
+
+await testWholesaleDeliveryLifecycle();
+
+async function testReceivableCollection() {
+  // 先创建一个账期批发订单并完成配送以生成应收
+  const order = await request("/miniapp/orders", {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      "x-customer-type": "WHOLESALE",
+      "x-settlement-type": "ACCOUNT"
+    },
+    body: JSON.stringify({
+      storeId: 1,
+      fulfillmentType: "DELIVERY",
+      receiverName: "账期批发客户",
+      receiverMobile: "13900000001",
+      receiverAddress: "客户仓库",
+      items: [{ skuId: 1, qty: 1 }]
+    })
+  });
+  const orderNo = order.orderNo;
+
+  // 开始配送
+  await request(`/store/orders/${orderNo}/start-delivery`, {
+    method: "POST",
+    headers: auth
+  });
+
+  // 完成配送（账期批发应生成应收）
+  const completed = await request(`/store/orders/${orderNo}/complete-delivery`, {
+    method: "POST",
+    headers: auth
+  });
+  if (!completed.receivableNo) throw new Error("账期批发订单完成后应生成应收");
+
+  // 查询应收列表
+  const list = await request("/store/receivables", { headers: auth });
+  if (!Array.isArray(list.records)) throw new Error("应收列表应返回 records 数组");
+
+  // 找到刚生成的应收
+  const first = list.records.find((r) => r.receivableNo === completed.receivableNo);
+  if (!first) throw new Error("应收列表应包含刚生成的应收记录");
+  if (Number(first.receivableAmount) <= 0) throw new Error("应收金额应大于0");
+
+  // 登记收款
+  const paid = await request(`/store/receivables/${first.receivableNo}/payment`, {
+    method: "POST",
+    headers: { ...auth, "Content-Type": "application/json" },
+    body: JSON.stringify({ amount: 10, paymentMethod: "TRANSFER", remark: "测试收款" })
+  });
+  if (Number(paid.unreceivedAmount) < 0) throw new Error("剩余未收金额不应为负数");
+}
+
+await testReceivableCollection();
+
 console.log("QA_REGRESSION_PASS");
