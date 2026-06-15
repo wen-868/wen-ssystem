@@ -1,12 +1,15 @@
 const base = process.env.API_BASE || "http://localhost:8080/api";
 
 async function request(path, options = {}) {
+  const mergedHeaders = {
+    "content-type": "application/json",
+    ...(options.headers || {})
+  };
+  const bodyString = options.body && typeof options.body === "string" ? options.body : (options.body ? JSON.stringify(options.body) : undefined);
   const res = await fetch(`${base}${path}`, {
-    ...options,
-    headers: {
-      "content-type": "application/json",
-      ...(options.headers || {})
-    }
+    method: options.method || "GET",
+    headers: mergedHeaders,
+    body: bodyString
   });
   const text = await res.text();
   let body;
@@ -94,5 +97,29 @@ if (Number(saleBillDetail.receivedAmount) !== 50 || Number(saleBillDetail.unrece
 if (saleBillDetail.collectionStatus !== "PARTIAL") {
   throw new Error(`离线收款状态应为 PARTIAL，实际为 ${saleBillDetail.collectionStatus}`);
 }
+
+async function testWholesaleOrderReservation() {
+  const res = await request("/miniapp/orders", {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      "x-customer-type": "WHOLESALE"
+    },
+    body: JSON.stringify({
+      storeId: 1,
+      fulfillmentType: "DELIVERY",
+      receiverName: "批发客户",
+      receiverMobile: "13900000001",
+      receiverAddress: "批发客户仓库",
+      items: [{ skuId: 1, qty: 100 }]
+    })
+  });
+  if (res.orderStatus !== "WAIT_DELIVERY") throw new Error("批发订单应直接进入待配送，实际为 " + res.orderStatus);
+  if (res.payStatus !== "UNPAID") throw new Error("批发订单默认未付款，实际为 " + res.payStatus);
+  if (typeof res.items?.[0]?.reservedQty !== "number") throw new Error("批发订单应返回已占用数量");
+  if (typeof res.items?.[0]?.unreservedQty !== "number") throw new Error("批发订单应返回未占用数量");
+}
+
+await testWholesaleOrderReservation();
 
 console.log("QA_REGRESSION_PASS");
