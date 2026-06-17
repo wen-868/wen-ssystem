@@ -24,7 +24,13 @@
     "test:qa": "node scripts/qa-regression-test.mjs",
     "test:beta": "node scripts/check-beta-artifacts.mjs",
     "test:production-deploy": "node scripts/check-production-deploy.mjs",
-    "test:mysql": "node scripts/mysql-smoke-test.mjs"
+    "test:mysql": "node scripts/mysql-smoke-test.mjs",
+    "report:start": "node scripts/phase-tracker.mjs start",
+    "report:update": "node scripts/phase-tracker.mjs update",
+    "report:done": "node scripts/phase-tracker.mjs done",
+    "report:block": "node scripts/phase-tracker.mjs block",
+    "report:list": "node scripts/phase-tracker.mjs list",
+    "report:show": "node scripts/phase-tracker.mjs show"
   },
   "devDependencies": {
     "wait-on": "^9.0.10"
