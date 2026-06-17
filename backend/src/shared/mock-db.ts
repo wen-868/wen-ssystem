@@ -30,7 +30,19 @@ const state = {
   refundOrders: [] as Row[],
   holdOrders: [] as Row[],
   viewLogs: [] as Row[],
-  inventoryLogs: [] as Row[]
+  inventoryLogs: [] as Row[],
+  // phase2
+  suppliers: [] as Row[],
+  supplierContacts: [] as Row[],
+  purchaseOrders: [] as Row[],
+  purchaseOrderItems: [] as Row[],
+  purchaseInStockOrders: [] as Row[],
+  purchaseInStockItems: [] as Row[],
+  saleReturns: [] as Row[],
+  saleReturnItems: [] as Row[],
+  customerStatements: [] as Row[],
+  customerStatementItems: [] as Row[],
+  paymentRecords: [] as Row[]
 };
 
 const pendingProduct: {
@@ -41,7 +53,6 @@ const pendingProduct: {
 function result(insertId: number = Date.now()) {
   return [{ insertId, affectedRows: 1 }, undefined] as any;
 }
-
 export async function mockQuery<T = any>(sql: string, params: unknown[] = []) {
   const s = sql.toLowerCase().replace(/\s+/g, " ");
 
@@ -219,11 +230,11 @@ export async function mockQuery<T = any>(sql: string, params: unknown[] = []) {
       return base;
     }) as T[];
   }
-  if (s.includes("from inventory_balance") && s.includes("physical_qty") && s.includes("where store_id")) {
+  if (s.includes("from inventory_balance") && s.includes("where store_id")) {
     const inv = state.inventory.find(
       (i) => i.storeId === params[0] && i.skuId === params[1] && i.stockType === params[2]
     );
-    return inv ? [{ physicalQty: inv.physicalQty, physical_qty: inv.physicalQty }] as T[] : [] as T[];
+    return inv ? [inv] as T[] : [] as T[];
   }
   if (s.includes("from inventory_balance")) return state.inventory as T[];
   if ((s.includes("from inventory_log") || s.includes("from inventory_ledger")) && s.includes("count(*)")) {
@@ -539,6 +550,159 @@ export async function mockQuery<T = any>(sql: string, params: unknown[] = []) {
   if (s.includes("from hold_order")) {
     return state.holdOrders.filter((h) => h.status !== "DELETED") as T[];
   }
+  // ---- phase2 ----
+  // supplier_contact must come before supplier
+  if (s.includes("from supplier_contact")) {
+    if (s.includes("where supplier_id = ?") || s.includes("where supplier_id=?")) {
+      const sid = Number(params[0]);
+      return state.supplierContacts.filter((x) => Number(x.supplierId) === sid).map((x) => ({
+        ...x,
+        supplier_id: x.supplierId,
+        contact_name: x.contactName,
+        contact_role: x.contactRole,
+        contact_phone: x.contactPhone,
+        contact_email: x.contactEmail,
+        is_primary: x.isPrimary
+      })) as T[];
+    }
+    return state.supplierContacts.slice() as T[];
+  }
+  if (s.match(/from supplier($| |\n|\))/)) {
+    const keyword = params[0] && params[0] !== undefined ? String(params[0]).replace(/^%|%$/g, "") : "";
+    const typeFilter = params[1] && params[1] !== undefined ? String(params[1]) : "";
+    const statusFilter = params[2] && params[2] !== undefined ? String(params[2]) : "";
+    if (s.includes("where id = ?") || s.includes("where id=?")) {
+      const id = Number(params[0]);
+      return state.suppliers.filter((x) => Number(x.id) === id).map((x) => ({
+        ...x,
+        supplier_code: x.supplierCode,
+        supplier_name: x.supplierName,
+        contact_phone: x.contactPhone,
+        contact_name: x.contactName,
+        credit_limit: x.creditLimit,
+        credit_days: x.creditDays,
+        supplier_type: x.supplierType
+      })) as T[];
+    }
+    if (s.includes("where supplier_code = ?") || s.includes("where supplier_code=?")) {
+      const code = String(params[0]);
+      return state.suppliers.filter((x) => String(x.supplierCode) === code).map((x) => ({
+        ...x,
+        supplier_code: x.supplierCode,
+        supplier_name: x.supplierName,
+        contact_phone: x.contactPhone,
+        contact_name: x.contactName,
+        credit_limit: x.creditLimit,
+        credit_days: x.creditDays,
+        supplier_type: x.supplierType
+      })) as T[];
+    }
+    return state.suppliers
+      .filter((x) => !keyword || String(x.supplierName || "").includes(keyword))
+      .filter((x) => !typeFilter || x.supplierType === typeFilter)
+      .filter((x) => !statusFilter || x.status === statusFilter)
+      .map((x) => ({
+        ...x,
+        supplier_code: x.supplierCode,
+        supplier_name: x.supplierName,
+        contact_phone: x.contactPhone,
+        contact_name: x.contactName,
+        credit_limit: x.creditLimit,
+        credit_days: x.creditDays,
+        supplier_type: x.supplierType
+      })) as T[];
+  }
+  // purchase_order_item must be checked before purchase_order to avoid substring match
+  if (s.includes("from purchase_order_item")) {
+    return state.purchaseOrderItems
+      .filter((i) => !params[0] || i.orderNo === params[0])
+      .map((i) => ({
+        ...i,
+        order_no: i.orderNo,
+        sku_id: i.skuId,
+        sku_name: i.skuName,
+        box_qty: i.boxQty,
+        bottle_qty: i.bottleQty,
+        unit_price: i.unitPrice,
+        subtotal_amount: i.subtotalAmount
+      })) as T[];
+  }
+  if (s.includes("from purchase_order") && s.includes("where order_no")) {
+    return state.purchaseOrders
+      .filter((o) => o.orderNo === params[0])
+      .map((o) => ({
+        ...o,
+        order_no: o.orderNo,
+        store_id: o.storeId,
+        supplier_id: o.supplierId,
+        goods_amount: o.goodsAmount,
+        tax_amount: o.taxAmount,
+        payable_amount: o.payableAmount,
+        paid_amount: o.paidAmount,
+        pay_status: o.payStatus,
+        audit_time: o.auditTime,
+        auditor_id: o.auditorId
+      })) as T[];
+  }
+  if (s.includes("from purchase_order") && !s.includes("insert")) {
+    return state.purchaseOrders.map((o) => ({
+      ...o,
+      order_no: o.orderNo,
+      store_id: o.storeId,
+      supplier_id: o.supplierId,
+      goods_amount: o.goodsAmount,
+      tax_amount: o.taxAmount,
+      payable_amount: o.payableAmount,
+      paid_amount: o.paidAmount,
+      pay_status: o.payStatus
+    })) as T[];
+  }
+  // _item tables come before their parent to avoid prefix overlap
+  if (s.includes("from purchase_in_stock_item")) {
+    return state.purchaseInStockItems.slice() as T[];
+  }
+  if (s.includes("from purchase_in_stock_order")) {
+    return state.purchaseInStockOrders.slice() as T[];
+  }
+  if (s.includes("from sale_return_item")) {
+    return state.saleReturnItems.filter((i) => !params[0] || i.returnNo === params[0]) as T[];
+  }
+  if (s.includes("from sale_return") && s.includes("where return_no")) {
+    return state.saleReturns.filter((r) => r.returnNo === params[0]) as T[];
+  }
+  if (s.includes("from sale_return") && !s.includes("insert")) {
+    return state.saleReturns.map((r) => ({
+      ...r,
+      return_no: r.returnNo,
+      store_id: r.storeId,
+      customer_id: r.customerId,
+      customer_name: r.customerName,
+      total_amount: r.totalAmount,
+      stock_rollback_flag: r.stockRollbackFlag,
+      auditor_id: r.auditorId ?? null,
+      audit_time: r.auditTime ?? null
+    })) as T[];
+  }
+  if (s.includes("from customer_statement_item")) {
+    return state.customerStatementItems.filter((i) => !params[0] || i.statementNo === params[0]) as T[];
+  }
+  if (s.includes("from customer_statement")) {
+    return state.customerStatements.map((st) => ({
+      ...st,
+      statement_no: st.statementNo,
+      customer_id: st.customerId,
+      customer_name: st.customerName,
+      start_balance: st.startBalance,
+      sales_amount: st.salesAmount,
+      return_amount: st.returnAmount,
+      received_amount: st.receivedAmount,
+      end_balance: st.endBalance,
+      auditor_id: (st as any).auditorId ?? null
+    })) as T[];
+  }
+  if (s.includes("from payment_record")) {
+    return state.paymentRecords.slice() as T[];
+  }
   return [] as T[];
 }
 
@@ -705,6 +869,259 @@ export async function mockExecute(sql: string, params: unknown[] = []) {
     }
     return result();
   }
+  // ---- phase2 ----
+  if (s.includes("insert into supplier ")) {
+    const supplierCode = String(params[0]);
+    const supplierName = String(params[1]);
+    const contactName = params[2] ? String(params[2]) : null;
+    const contactPhone = params[3] ? String(params[3]) : null;
+    const address = params[4] ? String(params[4]) : null;
+    const taxNo = params[5] ? String(params[5]) : null;
+    const bankName = params[6] ? String(params[6]) : null;
+    const bankAccount = params[7] ? String(params[7]) : null;
+    const creditLimit = Number(params[8] ?? 0);
+    const creditDays = Number(params[9] ?? 30);
+    const settlementCycle = String(params[10] ?? "MONTHLY");
+    const supplierType = String(params[11] ?? "BRAND");
+    const levelCode = params[12] ? String(params[12]) : null;
+    const remark = params[13] ? String(params[13]) : null;
+    const status = String(params[14] ?? "ACTIVE");
+    const id = state.suppliers.length + 1;
+    state.suppliers.push({
+      id, supplierCode, supplierName, contactName, contactPhone,
+      address, taxNo, bankName, bankAccount,
+      creditLimit, creditDays, settlementCycle, supplierType,
+      levelCode, remark, status, createdAt: new Date().toISOString()
+    });
+    return result(id);
+  }
+  if (s.includes("insert into supplier_contact")) {
+    const supplierId = Number(params[0]);
+    const contactName = String(params[1]);
+    const contactRole = params[2] ? String(params[2]) : null;
+    const contactPhone = params[3] ? String(params[3]) : null;
+    const contactEmail = params[4] ? String(params[4]) : null;
+    const isPrimary = Number(params[5] ?? 0);
+    const id = state.supplierContacts.length + 1;
+    state.supplierContacts.push({ id, supplierId, contactName, contactRole, contactPhone, contactEmail, isPrimary });
+    return result(id);
+  }
+  if (s.includes("update supplier set")) {
+    const id = Number(params[params.length - 1]);
+    const supplier = state.suppliers.find((x) => x.id === id);
+    if (supplier) {
+      if (params[0] != null && params[0] !== undefined) supplier.contactPhone = String(params[0]);
+      if (params[1] != null && params[1] !== undefined) supplier.creditLimit = Number(params[1]);
+      if (params[2] != null && params[2] !== undefined) supplier.supplierType = String(params[2]);
+      if (params[3] != null && params[3] !== undefined) supplier.status = String(params[3]);
+    }
+    return result();
+  }
+  if (s.includes("insert into purchase_order ")) {
+    const orderNo = String(params[0]);
+    const storeId = Number(params[1]);
+    const supplierId = Number(params[2]);
+    const goodsAmount = Number(params[3] ?? 0);
+    const taxAmount = Number(params[4] ?? 0);
+    const payableAmount = Number(params[5] ?? 0);
+    const remark = params[6] ? String(params[6]) : null;
+    const id = state.purchaseOrders.length + 1;
+    state.purchaseOrders.push({
+      id, orderNo, storeId, supplierId,
+      orderStatus: "DRAFT", payStatus: "UNPAID",
+      goodsAmount, taxAmount, payableAmount, paidAmount: 0,
+      remark, auditTime: null, auditorId: null, inboundStatus: "NOT_STARTED",
+      createdAt: new Date().toISOString(), version: 1
+    });
+    return result(id);
+  }
+  if (s.includes("insert into purchase_order_item")) {
+    const orderNo = String(params[0]);
+    const skuId = Number(params[1]);
+    const skuName = String(params[2]);
+    const boxQty = Number(params[3] ?? 0);
+    const bottleQty = Number(params[4] ?? 0);
+    const unitPrice = Number(params[5] ?? 0);
+    const subtotal = Number(params[6] ?? (boxQty + bottleQty) * unitPrice);
+    const id = state.purchaseOrderItems.length + 1;
+    state.purchaseOrderItems.push({ id, orderNo, skuId, skuName, boxQty, bottleQty, unitPrice, subtotalAmount: subtotal, inboundQty: 0 });
+    return result(id);
+  }
+  if (s.includes("update purchase_order set") && s.includes("order_status")) {
+    const orderNo = String(params[params.length - 1]);
+    const order = state.purchaseOrders.find((o) => o.orderNo === orderNo);
+    if (order) {
+      if (params[0] != null && params[0] !== undefined) order.orderStatus = String(params[0]);
+      if (params[1] != null && params[1] !== undefined) order.auditorId = Number(params[1]);
+      if (params[2] != null && params[2] !== undefined) order.auditTime = new Date().toISOString();
+      order.version = Number(order.version ?? 1) + 1;
+    }
+    return result();
+  }
+  if (s.includes("update purchase_order set") && s.includes("pay_status")) {
+    const orderNo = String(params[params.length - 1]);
+    const order = state.purchaseOrders.find((o) => o.orderNo === orderNo);
+    if (order) {
+      if (params[0] != null) order.payStatus = String(params[0]);
+      if (params[1] != null) order.paidAmount = Number(params[1]);
+      order.version = Number(order.version ?? 1) + 1;
+    }
+    return result();
+  }
+  if (s.includes("insert into purchase_in_stock_order")) {
+    const inStockNo = String(params[0]);
+    const purchaseOrderNo = params[1] ? String(params[1]) : null;
+    const storeId = Number(params[2]);
+    const supplierId = Number(params[3]);
+    const totalQty = Number(params[4] ?? 0);
+    const totalAmount = Number(params[5] ?? 0);
+    const id = state.purchaseInStockOrders.length + 1;
+    state.purchaseInStockOrders.push({
+      id, inStockNo, purchaseOrderNo, storeId, supplierId,
+      totalQty, totalAmount, status: "DRAFT",
+      auditorId: null, auditTime: null,
+      createdAt: new Date().toISOString()
+    });
+    return result(id);
+  }
+  if (s.includes("insert into purchase_in_stock_item")) {
+    const inStockNo = String(params[0]);
+    const skuId = Number(params[1]);
+    const skuName = String(params[2]);
+    const planQty = Number(params[3] ?? 0);
+    const actualQty = Number(params[4] ?? planQty);
+    const unitPrice = Number(params[5] ?? 0);
+    const subtotal = Number(params[6] ?? actualQty * unitPrice);
+    const id = state.purchaseInStockItems.length + 1;
+    state.purchaseInStockItems.push({ id, inStockNo, skuId, skuName, planQty, actualQty, unitPrice, subtotalAmount: subtotal });
+    return result(id);
+  }
+  if (s.includes("update purchase_in_stock_order set") && s.includes("status")) {
+    const inStockNo = String(params[params.length - 1]);
+    const order = state.purchaseInStockOrders.find((o) => o.inStockNo === inStockNo);
+    if (order) {
+      order.status = String(params[0]);
+      if (String(params[0]) === "AUDITED") {
+        order.auditorId = params[1] ? Number(params[1]) : 1;
+        order.auditTime = new Date().toISOString();
+      }
+      if (String(params[0]) === "CANCELLED") {
+        order.auditorId = null;
+        order.auditTime = null;
+      }
+    }
+    return result();
+  }
+  if (s.includes("insert into sale_return ")) {
+    const returnNo = String(params[0]);
+    const storeId = Number(params[1]);
+    const customerId = Number(params[2]);
+    const customerName = String(params[3]);
+    const totalAmount = Number(params[4] ?? 0);
+    const remark = params[5] ? String(params[5]) : null;
+    const id = state.saleReturns.length + 1;
+    state.saleReturns.push({
+      id, returnNo, storeId, customerId, customerName,
+      totalAmount, remark, status: "DRAFT",
+      auditorId: null, auditTime: null, refundStatus: "UNREFUNDED",
+      stockRollbackFlag: 0,
+      createdAt: new Date().toISOString()
+    });
+    return result(id);
+  }
+  if (s.includes("insert into sale_return_item")) {
+    const returnNo = String(params[0]);
+    const skuId = Number(params[1]);
+    const skuName = String(params[2]);
+    const qty = Number(params[3] ?? 0);
+    const unitPrice = Number(params[4] ?? 0);
+    const subtotal = Number(params[5] ?? qty * unitPrice);
+    const id = state.saleReturnItems.length + 1;
+    state.saleReturnItems.push({ id, returnNo, skuId, skuName, qty, unitPrice, subtotalAmount: subtotal });
+    return result(id);
+  }
+  if (s.includes("update sale_return set")) {
+    const returnNo = String(params[params.length - 1]);
+    const r = state.saleReturns.find((x) => x.returnNo === returnNo);
+    if (r) {
+      if (params[0] != null && params[0] !== undefined) r.status = String(params[0]);
+      if (String(params[0]) === "AUDITED") {
+        r.auditorId = 1;
+        r.auditTime = new Date().toISOString();
+        r.stockRollbackFlag = 1;
+      }
+      if (params[1] != null && params[1] !== undefined) r.refundStatus = String(params[1]);
+    }
+    return result();
+  }
+  if (s.includes("insert into customer_statement ")) {
+    const statementNo = String(params[0]);
+    const customerId = Number(params[1]);
+    const customerName = String(params[2]);
+    const startBalance = Number(params[3] ?? 0);
+    const salesAmount = Number(params[4] ?? 0);
+    const returnAmount = Number(params[5] ?? 0);
+    const receivedAmount = Number(params[6] ?? 0);
+    const endBalance = Number(params[7] ?? (startBalance + salesAmount - returnAmount - receivedAmount));
+    const id = state.customerStatements.length + 1;
+    state.customerStatements.push({
+      id, statementNo, customerId, customerName,
+      startBalance, salesAmount, returnAmount, receivedAmount, endBalance,
+      status: "DRAFT",
+      period: `${new Date().getFullYear()}-${String(new Date().getMonth() + 1).padStart(2, "0")}`,
+      createdAt: new Date().toISOString()
+    });
+    return result(id);
+  }
+  if (s.includes("insert into customer_statement_item")) {
+    const statementNo = String(params[0]);
+    const transType = String(params[1]);
+    const transNo = params[2] ? String(params[2]) : null;
+    const amount = Number(params[3] ?? 0);
+    const remark = params[4] ? String(params[4]) : null;
+    const id = state.customerStatementItems.length + 1;
+    state.customerStatementItems.push({ id, statementNo, transType, transNo, amount, remark, createdAt: new Date().toISOString() });
+    return result(id);
+  }
+  if (s.includes("update customer_statement set")) {
+    const statementNo = String(params[params.length - 1]);
+    const st = state.customerStatements.find((x) => x.statementNo === statementNo);
+    if (st) {
+      if (params[0] != null && params[0] !== undefined) st.status = String(params[0]);
+      if (params[1] != null) (st as any).auditorId = Number(params[1]);
+      if (params[2] != null) (st as any).auditTime = String(params[2]);
+    }
+    return result();
+  }
+  if (s.includes("insert into payment_record")) {
+    const payNo = String(params[0]);
+    const sourceType = String(params[1]);
+    const sourceNo = String(params[2]);
+    const amount = Number(params[3] ?? 0);
+    const payMethod = String(params[4] ?? "BANK_TRANSFER");
+    const id = state.paymentRecords.length + 1;
+    state.paymentRecords.push({ id, payNo, sourceType, sourceNo, amount, payMethod, status: "PAID", createdAt: new Date().toISOString() });
+    return result(id);
+  }
+  if (s.includes("insert into inventory_balance")) {
+    const storeId = Number(params[0]);
+    const skuId = Number(params[1]);
+    const stockType = String(params[2] ?? "OFFLINE");
+    const physicalQty = Number(params[3] ?? 0);
+    const skuName = params[4] ? String(params[4]) : `SKU-${skuId}`;
+    state.inventory.push({ storeId, skuId, skuName, stockType, physicalQty, lockedQty: 0, availableQty: physicalQty });
+    return result(state.inventory.length);
+  }
+  if (s.includes("update inventory_balance")) {
+    const inv = state.inventory.find(
+      (i) => i.storeId === params[2] && i.skuId === params[3] && String(i.stockType) === String(params[4])
+    );
+    if (inv) {
+      inv.physicalQty = Number(inv.physicalQty) + Number(params[0]);
+      inv.availableQty = Number(inv.availableQty) + Number(params[1]);
+    }
+    return result();
+  }
   return result();
 }
 
@@ -712,3 +1129,31 @@ export const mockConn = {
   execute: mockExecute,
   query: async (sql: string, params: unknown[] = []) => [await mockQuery(sql, params), undefined]
 } as any;
+
+export function resetMockDb() {
+  state.suppliers = [];
+  state.supplierContacts = [];
+  state.purchaseOrders = [];
+  state.purchaseOrderItems = [];
+  state.purchaseInStockOrders = [];
+  state.purchaseInStockItems = [];
+  state.saleReturns = [];
+  state.saleReturnItems = [];
+  state.customerStatements = [];
+  state.customerStatementItems = [];
+  state.paymentRecords = [];
+  state.saleBills = [];
+  state.inventoryLogs = [];
+  state.miniappOrders = [];
+  state.miniappOrderItems = [];
+  state.holdOrders = [];
+  state.refundOrders = [];
+  state.paymentOrders = [];
+  state.collectionLinks = [];
+  // Keep existing inventory/users/stores but reset inventory list? Keep as initial snapshot.
+  // Reset inventory balance to an initial baseline so tests don't accumulate.
+  state.inventory = [
+    { storeId: 1, skuId: 1, skuName: "示例白酒 53度 500ml 常温", stockType: "ONLINE", physicalQty: 120, lockedQty: 0, availableQty: 120 },
+    { storeId: 1, skuId: 1, skuName: "示例白酒 53度 500ml 常温", stockType: "OFFLINE", physicalQty: 2, lockedQty: 0, availableQty: 2 }
+  ];
+}
