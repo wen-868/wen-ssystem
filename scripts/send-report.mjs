@@ -1,20 +1,36 @@
 #!/usr/bin/env node
 /**
  * 阶段工作汇报 —— CLI 发送器
+ * 自动读取项目根目录 .env 文件中的 FEISHU_WEBHOOK_URL
  *
  * 用法:
- *   node scripts/send-report.mjs --phase "S102 接口自动化测试" --status DONE \
- *     --summary "74 个测试用例全部通过" \
- *     --detail "采购订单" "10 个用例通过" \
- *     --detail "采购入库" "10 个用例通过" \
- *     --next "S103 集成测试" \
- *     --reporter "苏然"
- *
- * 或通过环境变量设置 webhook:
- *   export FEISHU_WEBHOOK_URL=https://open.feishu.cn/open-apis/bot/v2/hook/xxxx
+ *   node scripts/send-report.mjs --phase "S103 集成测试" --status DONE \
+ *     --summary "74/74 测试用例全部通过"
  */
-
+import fs from "node:fs";
+import path from "node:path";
+import http from "node:http";
 import https from "node:https";
+import { fileURLToPath } from "node:url";
+
+// 自动加载项目根目录 .env
+const projectRoot = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
+const envPath = path.join(projectRoot, ".env");
+if (fs.existsSync(envPath)) {
+  const lines = fs.readFileSync(envPath, "utf-8").split(/\r?\n/);
+  for (const line of lines) {
+    if (!line || line.startsWith("#")) continue;
+    const eq = line.indexOf("=");
+    if (eq < 0) continue;
+    const key = line.slice(0, eq).trim();
+    let value = line.slice(eq + 1).trim();
+    if ((value.startsWith('"') && value.endsWith('"')) ||
+        (value.startsWith("'") && value.endsWith("'"))) {
+      value = value.slice(1, -1);
+    }
+    if (!(key in process.env)) process.env[key] = value;
+  }
+}
 
 function parseArgs(argv) {
   const args = {
@@ -60,29 +76,66 @@ function postJson(url, body) {
     try {
       const urlObj = new URL(url);
       const payload = JSON.stringify(body);
-      const req = https.request(
-        {
-          hostname: urlObj.hostname,
-          port: urlObj.port || 443,
-          path: urlObj.pathname + urlObj.search,
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-            "Content-Length": Buffer.byteLength(payload)
+
+      const proxy = process.env.HTTPS_PROXY || process.env.https_proxy || process.env.HTTP_PROXY || process.env.http_proxy;
+
+      if (proxy) {
+        const proxyUrl = new URL(proxy);
+        http.request({
+          hostname: proxyUrl.hostname,
+          port: proxyUrl.port || 8080,
+          method: "CONNECT",
+          path: urlObj.hostname + ":" + (urlObj.port || 443)
+        }).on("connect", (res, socket) => {
+          if (res.statusCode !== 200) {
+            resolve({ ok: false, status: res.statusCode, data: { error: "CONNECT failed: " + res.statusCode } });
+            return;
           }
-        },
-        (res) => {
-          let data = "";
-          res.on("data", (c) => (data += c));
-          res.on("end", () => {
-            try {
-              resolve({ ok: res.statusCode === 200, status: res.statusCode, data: JSON.parse(data || "{}") });
-            } catch {
-              resolve({ ok: res.statusCode === 200, status: res.statusCode, data: null });
+          const req = https.request({
+            hostname: urlObj.hostname,
+            port: urlObj.port || 443,
+            path: urlObj.pathname + urlObj.search,
+            method: "POST",
+            socket,
+            agent: false,
+            headers: {
+              "Content-Type": "application/json",
+              "Content-Length": Buffer.byteLength(payload)
             }
+          }, (res) => {
+            let data = "";
+            res.on("data", (c) => (data += c));
+            res.on("end", () => {
+              try { resolve({ ok: res.statusCode === 200, status: res.statusCode, data: JSON.parse(data || "{}") }); }
+              catch { resolve({ ok: res.statusCode === 200, status: res.statusCode, data: null }); }
+            });
           });
+          req.on("error", (err) => resolve({ ok: false, status: 0, data: { error: String(err) } }));
+          req.write(payload);
+          req.end();
+        }).on("error", (err) => {
+          resolve({ ok: false, status: 0, data: { error: String(err) } });
+        }).end();
+        return;
+      }
+
+      const req = https.request({
+        hostname: urlObj.hostname,
+        port: urlObj.port || 443,
+        path: urlObj.pathname + urlObj.search,
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "Content-Length": Buffer.byteLength(payload)
         }
-      );
+      }, (res) => {
+        let data = "";
+        res.on("data", (c) => (data += c));
+        res.on("end", () => {
+          try { resolve({ ok: res.statusCode === 200, status: res.statusCode, data: JSON.parse(data || "{}") }); }
+          catch { resolve({ ok: res.statusCode === 200, status: res.statusCode, data: null }); }
+        });
+      });
       req.on("error", (err) => resolve({ ok: false, status: 0, data: { error: String(err) } }));
       req.write(payload);
       req.end();

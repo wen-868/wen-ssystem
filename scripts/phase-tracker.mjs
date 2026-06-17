@@ -1,25 +1,36 @@
 #!/usr/bin/env node
 /**
  * 阶段追踪器 —— 记录和管理每个阶段的汇报状态
- *
- * 用法:
- *   node scripts/phase-tracker.mjs start "S103 集成测试" "开始端到端集成测试"
- *   node scripts/phase-tracker.mjs update "S103 集成测试" "完成 50%，API 联调中"
- *   node scripts/phase-tracker.mjs done "S103 集成测试" "全部 74 个用例通过" -d "用例数" "74"
- *   node scripts/phase-tracker.mjs list
- *   node scripts/phase-tracker.mjs show "S103 集成测试"
- *
- * 数据保存在 .reports/phase-log.json（不会提交到 git）
- * 每个阶段的状态变化都会自动发送飞书汇报（如果配置了 webhook）
+ * 自动读取项目根目录 .env 文件中的 FEISHU_WEBHOOK_URL
  */
-
 import fs from "node:fs";
 import path from "node:path";
+import http from "node:http";
 import https from "node:https";
 import { fileURLToPath } from "node:url";
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
-const REPORTS_DIR = path.resolve(__dirname, "..", ".reports");
+
+// 自动加载项目根目录 .env
+const projectRoot = path.resolve(__dirname, "..");
+const envPath = path.join(projectRoot, ".env");
+if (fs.existsSync(envPath)) {
+  const lines = fs.readFileSync(envPath, "utf-8").split(/\r?\n/);
+  for (const line of lines) {
+    if (!line || line.startsWith("#")) continue;
+    const eq = line.indexOf("=");
+    if (eq < 0) continue;
+    const key = line.slice(0, eq).trim();
+    let value = line.slice(eq + 1).trim();
+    if ((value.startsWith('"') && value.endsWith('"')) ||
+        (value.startsWith("'") && value.endsWith("'"))) {
+      value = value.slice(1, -1);
+    }
+    if (!(key in process.env)) process.env[key] = value;
+  }
+}
+
+const REPORTS_DIR = path.join(projectRoot, ".reports");
 const LOG_FILE = path.join(REPORTS_DIR, "phase-log.json");
 const STATE_FILE = path.join(REPORTS_DIR, "phase-state.json");
 
@@ -54,6 +65,44 @@ function postHttpsJson(url, body) {
     try {
       const urlObj = new URL(url);
       const payload = JSON.stringify(body);
+      const proxy = process.env.HTTPS_PROXY || process.env.https_proxy || process.env.HTTP_PROXY || process.env.http_proxy;
+      if (proxy) {
+        const proxyUrl = new URL(proxy);
+        http.request({
+          hostname: proxyUrl.hostname,
+          port: proxyUrl.port || 8080,
+          method: "CONNECT",
+          path: urlObj.hostname + ":" + (urlObj.port || 443)
+        }).on("connect", (res, socket) => {
+          if (res.statusCode !== 200) {
+            resolve({ ok: false, status: res.statusCode, data: { error: "CONNECT failed: " + res.statusCode } });
+            return;
+          }
+          const req = https.request({
+            hostname: urlObj.hostname,
+            port: urlObj.port || 443,
+            path: urlObj.pathname + urlObj.search,
+            method: "POST",
+            socket,
+            agent: false,
+            headers: {
+              "Content-Type": "application/json",
+              "Content-Length": Buffer.byteLength(payload)
+            }
+          }, (res) => {
+            let data = "";
+            res.on("data", (c) => (data += c));
+            res.on("end", () => {
+              try { resolve({ ok: res.statusCode === 200, status: res.statusCode, data: JSON.parse(data || "{}") }); }
+              catch { resolve({ ok: res.statusCode === 200, status: res.statusCode, data: null }); }
+            });
+          });
+          req.on("error", (err) => resolve({ ok: false, status: 0, data: { error: String(err) } }));
+          req.write(payload);
+          req.end();
+        }).on("error", (err) => resolve({ ok: false, status: 0, data: { error: String(err) } })).end();
+        return;
+      }
       const req = https.request({
         hostname: urlObj.hostname,
         port: urlObj.port || 443,
