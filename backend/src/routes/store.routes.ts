@@ -527,9 +527,117 @@ storeRouter.get("/inventory/alerts", asyncHandler(async (req, res) => {
      FROM inventory_balance ib
      LEFT JOIN product_sku ps ON ps.id = ib.sku_id
      ${where ? where + " AND" : "WHERE"} ib.available_qty <= 5
-     ORDER BY ib.available_qty ASC
-     LIMIT 20`,
+     ORDER BY ib.available_qty ASC` ,
     params
   );
   res.json(ok(records));
+}));
+
+// ================== 客户对账 ==================
+storeRouter.get("/customer-statements", asyncHandler(async (_req, res) => {
+  const records = await query<any>(
+    `SELECT statement_no AS statementNo, customer_id AS customerId, customer_name AS customerName,
+            start_balance AS startBalance, sales_amount AS salesAmount, return_amount AS returnAmount,
+            received_amount AS receivedAmount, end_balance AS endBalance, status, period
+     FROM customer_statement ORDER BY id DESC`
+  );
+  res.json(ok(records));
+}));
+
+storeRouter.post("/customer-statements", asyncHandler(async (req, res) => {
+  const body = z.object({
+    customerId: z.number(),
+    customerName: z.string().optional(),
+    startBalance: z.number().default(0),
+    salesAmount: z.number().default(0),
+    returnAmount: z.number().default(0),
+    receivedAmount: z.number().default(0),
+    period: z.string().default("CURRENT"),
+    remark: z.string().optional(),
+    items: z.array(z.object({
+      transType: z.string(),
+      transNo: z.string(),
+      amount: z.number().default(0),
+      remark: z.string().optional()
+    })).default([])
+  }).parse(req.body);
+  const endBalance = Number((body.startBalance + body.salesAmount - body.returnAmount - body.receivedAmount).toFixed(2));
+  const statementNo = makeBizNo("DZ");
+  await query(
+    `INSERT INTO customer_statement (statement_no, customer_id, customer_name, start_balance, sales_amount, return_amount, received_amount, end_balance, status, period) VALUES (?, ?, ?, ?, ?, ?, ?, ?, 'PENDING', ?)`,
+    [statementNo, body.customerId, body.customerName ?? `客户-${body.customerId}`, body.startBalance, body.salesAmount, body.returnAmount, body.receivedAmount, endBalance, body.period]
+  );
+  for (const item of body.items) {
+    await query(
+      `INSERT INTO customer_statement_item (statement_no, trans_type, trans_no, amount, remark, created_at) VALUES (?, ?, ?, ?, ?, NOW())`,
+      [statementNo, item.transType, item.transNo, item.amount, item.remark ?? null]
+    );
+  }
+  res.json(ok({ statementNo, endBalance, status: "PENDING" }));
+}));
+
+storeRouter.get("/customer-statements/:statementNo", asyncHandler(async (req, res) => {
+  const st = await queryOne<any>(
+    `SELECT statement_no AS statementNo, customer_id AS customerId, customer_name AS customerName,
+            start_balance AS startBalance, sales_amount AS salesAmount, return_amount AS returnAmount,
+            received_amount AS receivedAmount, end_balance AS endBalance, status, period,
+            auditor_id AS auditorId, audit_time AS auditTime
+     FROM customer_statement WHERE statement_no = ?`,
+    [req.params.statementNo]
+  );
+  if (!st) { res.status(404).json({ code: "404", message: "对账单不存在" }); return; }
+  const items = await query<any>(
+    `SELECT trans_type AS transType, trans_no AS transNo, amount, remark FROM customer_statement_item WHERE statement_no = ?`,
+    [req.params.statementNo]
+  );
+  res.json(ok({ ...st, items }));
+}));
+
+storeRouter.post("/customer-statements/:statementNo/confirm", asyncHandler(async (req, res) => {
+  await query(`UPDATE customer_statement SET status = 'CONFIRMED', auditor_id = ?, audit_time = NOW() WHERE statement_no = ?`,
+    [req.user?.id ?? 1, req.params.statementNo]);
+  res.json(ok({ statementNo: req.params.statementNo, status: "CONFIRMED" }));
+}));
+
+// ================== 客户收款 ==================
+storeRouter.get("/customer-payments", asyncHandler(async (_req, res) => {
+  const records = await query<any>(
+    `SELECT receipt_no AS receiptNo, customer_id AS customerId, customer_name AS customerName,
+            pay_amount AS payAmount, pay_method AS payMethod, status, auditor_id AS auditorId, audit_time AS auditTime
+     FROM customer_payment ORDER BY id DESC`
+  );
+  res.json(ok(records));
+}));
+
+storeRouter.post("/customer-payments", asyncHandler(async (req, res) => {
+  const body = z.object({
+    customerId: z.number(),
+    customerName: z.string().optional(),
+    payAmount: z.number(),
+    payMethod: z.string().default("BANK"),
+    remark: z.string().optional()
+  }).parse(req.body);
+  const receiptNo = makeBizNo("SK");
+  await query(
+    `INSERT INTO customer_payment (receipt_no, customer_id, customer_name, pay_amount, pay_method, remark, status, auditor_id, audit_time) VALUES (?, ?, ?, ?, ?, ?, 'PAID', ?, NOW())`,
+    [receiptNo, body.customerId, body.customerName ?? `客户-${body.customerId}`, body.payAmount, body.payMethod, body.remark ?? null, req.user?.id ?? 1]
+  );
+  res.json(ok({ receiptNo, payAmount: body.payAmount, status: "PAID" }));
+}));
+
+storeRouter.get("/customer-payments/:receiptNo", asyncHandler(async (req, res) => {
+  const p = await queryOne<any>(
+    `SELECT receipt_no AS receiptNo, customer_id AS customerId, customer_name AS customerName,
+            pay_amount AS payAmount, pay_method AS payMethod, status, auditor_id AS auditorId, audit_time AS auditTime
+     FROM customer_payment WHERE receipt_no = ?`,
+    [req.params.receiptNo]
+  );
+  if (!p) { res.status(404).json({ code: "404", message: "收款单不存在" }); return; }
+  res.json(ok(p));
+}));
+
+storeRouter.post("/customer-payments/:receiptNo/void", asyncHandler(async (req, res) => {
+  await query(`UPDATE customer_payment SET status = 'VOID', auditor_id = ?, audit_time = NOW() WHERE receipt_no = ?`,
+    [req.user?.id ?? 1, req.params.receiptNo]);
+  res.json(ok({ receiptNo: req.params.receiptNo, status: "VOID" }));
 }));

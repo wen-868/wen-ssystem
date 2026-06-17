@@ -28,6 +28,8 @@ app.use("/api/share", shareRouter);
 
 app.use(errorHandler);
 
+export { app };
+
 async function start() {
   if (!env.USE_MOCK_DB) {
     await initDatabase();

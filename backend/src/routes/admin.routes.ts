@@ -583,3 +583,320 @@ adminRouter.get("/inventory/alerts", requireAuth, asyncHandler(async (_req, res)
   );
   res.json(ok(records));
 }));
+
+// ================== 采购订单 ==================
+adminRouter.get("/purchase-orders", requireAuth, asyncHandler(async (_req, res) => {
+  const orders = await query<any>(
+    `SELECT order_no AS orderNo, store_id AS storeId, supplier_id AS supplierId,
+            goods_amount AS goodsAmount, tax_amount AS taxAmount, payable_amount AS payableAmount,
+            paid_amount AS paidAmount, order_status AS orderStatus, pay_status AS payStatus, version
+     FROM purchase_order ORDER BY id DESC`
+  );
+  res.json(ok(orders));
+}));
+
+adminRouter.post("/purchase-orders", requireAuth, asyncHandler(async (req, res) => {
+  const body = z.object({
+    supplierId: z.number(),
+    storeId: z.number().default(1),
+    remark: z.string().optional(),
+    items: z.array(z.object({
+      skuId: z.number(),
+      skuName: z.string().optional(),
+      boxQty: z.number().default(0),
+      bottleQty: z.number().default(0),
+      unitPrice: z.number().default(0),
+      subtotalAmount: z.number().default(0)
+    })).min(1)
+  }).parse(req.body);
+  const goodsAmount = body.items.reduce((sum, i) => sum + (i.subtotalAmount || (i.bottleQty * i.unitPrice)), 0);
+  const payableAmount = Number(goodsAmount.toFixed(2));
+  const orderNo = makeBizNo("PO");
+  await query(
+    `INSERT INTO purchase_order (order_no, store_id, supplier_id, goods_amount, tax_amount, payable_amount, paid_amount, order_status, pay_status, remark, version) VALUES (?, ?, ?, ?, 0, ?, 0, 'DRAFT', 'UNPAID', ?, 1)`,
+    [orderNo, body.storeId, body.supplierId, goodsAmount, payableAmount, body.remark ?? null]
+  );
+  for (const item of body.items) {
+    const subtotal = item.subtotalAmount || Number((item.bottleQty * item.unitPrice).toFixed(2));
+    await query(
+      `INSERT INTO purchase_order_item (order_no, sku_id, sku_name, box_qty, bottle_qty, unit_price, subtotal_amount) VALUES (?, ?, ?, ?, ?, ?, ?)`,
+      [orderNo, item.skuId, item.skuName ?? `SKU-${item.skuId}`, item.boxQty, item.bottleQty, item.unitPrice, subtotal]
+    );
+  }
+  res.json(ok({ orderNo, goodsAmount, payableAmount, orderStatus: "DRAFT" }));
+}));
+
+adminRouter.get("/purchase-orders/:orderNo", requireAuth, asyncHandler(async (req, res) => {
+  const order = await queryOne<any>(
+    `SELECT order_no AS orderNo, store_id AS storeId, supplier_id AS supplierId,
+            goods_amount AS goodsAmount, tax_amount AS taxAmount, payable_amount AS payableAmount,
+            paid_amount AS paidAmount, order_status AS orderStatus, pay_status AS payStatus, version
+     FROM purchase_order WHERE order_no = ?`,
+    [req.params.orderNo]
+  );
+  if (!order) { res.status(404).json({ code: "404", message: "采购订单不存在" }); return; }
+  const items = await query<any>(
+    `SELECT sku_id AS skuId, sku_name AS skuName, box_qty AS boxQty, bottle_qty AS bottleQty, unit_price AS unitPrice, subtotal_amount AS subtotalAmount FROM purchase_order_item WHERE order_no = ?`,
+    [req.params.orderNo]
+  );
+  res.json(ok({ ...order, items }));
+}));
+
+adminRouter.post("/purchase-orders/:orderNo/submit", requireAuth, asyncHandler(async (req, res) => {
+  await query(`UPDATE purchase_order SET order_status = 'SUBMITTED' WHERE order_no = ?`, [req.params.orderNo]);
+  res.json(ok({ orderNo: req.params.orderNo, orderStatus: "SUBMITTED" }));
+}));
+
+adminRouter.post("/purchase-orders/:orderNo/audit", requireAuth, asyncHandler(async (req, res) => {
+  await query(`UPDATE purchase_order SET order_status = 'AUDITED', auditor_id = ?, audit_time = NOW() WHERE order_no = ?`,
+    [req.user?.id ?? 1, req.params.orderNo]);
+  res.json(ok({ orderNo: req.params.orderNo, orderStatus: "AUDITED" }));
+}));
+
+adminRouter.post("/purchase-orders/:orderNo/close", requireAuth, asyncHandler(async (req, res) => {
+  await query(`UPDATE purchase_order SET order_status = 'CLOSED' WHERE order_no = ?`, [req.params.orderNo]);
+  res.json(ok({ orderNo: req.params.orderNo, orderStatus: "CLOSED" }));
+}));
+
+adminRouter.post("/purchase-orders/:orderNo/void", requireAuth, asyncHandler(async (req, res) => {
+  await query(`UPDATE purchase_order SET order_status = 'VOID' WHERE order_no = ?`, [req.params.orderNo]);
+  res.json(ok({ orderNo: req.params.orderNo, orderStatus: "VOID" }));
+}));
+
+adminRouter.post("/purchase-orders/:orderNo/payment", requireAuth, asyncHandler(async (req, res) => {
+  const body = z.object({ payAmount: z.number(), payMethod: z.string().default("BANK") }).parse(req.body);
+  await query(`UPDATE purchase_order SET paid_amount = COALESCE(paid_amount, 0) + ?, pay_status = 'PARTIAL' WHERE order_no = ?`,
+    [body.payAmount, req.params.orderNo]);
+  await query(`UPDATE purchase_order SET pay_status = 'PAID' WHERE order_no = ? AND COALESCE(paid_amount, 0) >= payable_amount`,
+    [req.params.orderNo]);
+  await query(`INSERT INTO purchase_payment (pay_no, purchase_order_no, supplier_id, pay_amount, pay_method, status) VALUES (?, ?, 0, ?, ?, 'PENDING')`,
+    [makeBizNo("PP"), req.params.orderNo, body.payAmount, body.payMethod]);
+  res.json(ok({ orderNo: req.params.orderNo, payAmount: body.payAmount }));
+}));
+
+// ================== 采购入库 ==================
+adminRouter.get("/purchase-in-stocks", requireAuth, asyncHandler(async (_req, res) => {
+  const records = await query<any>(
+    `SELECT in_stock_no AS inStockNo, purchase_order_no AS purchaseOrderNo, store_id AS storeId, supplier_id AS supplierId,
+            total_qty AS totalQty, total_amount AS totalAmount, status, auditor_id AS auditorId, audit_time AS auditTime
+     FROM purchase_in_stock_order ORDER BY id DESC`
+  );
+  res.json(ok(records));
+}));
+
+adminRouter.post("/purchase-in-stocks", requireAuth, asyncHandler(async (req, res) => {
+  const body = z.object({
+    purchaseOrderNo: z.string().optional(),
+    storeId: z.number().default(1),
+    supplierId: z.number().default(1),
+    remark: z.string().optional(),
+    items: z.array(z.object({
+      skuId: z.number(),
+      skuName: z.string().optional(),
+      planQty: z.number().default(0),
+      actualQty: z.number().default(0),
+      unitPrice: z.number().default(0),
+      subtotalAmount: z.number().default(0)
+    })).min(1)
+  }).parse(req.body);
+  const totalQty = body.items.reduce((s, i) => s + (i.actualQty || i.planQty), 0);
+  const totalAmount = Number(body.items.reduce((s, i) => s + (i.subtotalAmount || ((i.actualQty || i.planQty) * i.unitPrice)), 0).toFixed(2));
+  const inStockNo = makeBizNo("RK");
+  await query(
+    `INSERT INTO purchase_in_stock_order (in_stock_no, purchase_order_no, store_id, supplier_id, total_qty, total_amount, status, remark) VALUES (?, ?, ?, ?, ?, ?, 'PENDING', ?)`,
+    [inStockNo, body.purchaseOrderNo ?? null, body.storeId, body.supplierId, totalQty, totalAmount, body.remark ?? null]
+  );
+  for (const item of body.items) {
+    const subtotal = item.subtotalAmount || Number(((item.actualQty || item.planQty) * item.unitPrice).toFixed(2));
+    await query(
+      `INSERT INTO purchase_in_stock_item (in_stock_no, sku_id, sku_name, plan_qty, actual_qty, unit_price, subtotal_amount) VALUES (?, ?, ?, ?, ?, ?, ?)`,
+      [inStockNo, item.skuId, item.skuName ?? `SKU-${item.skuId}`, item.planQty, item.actualQty, item.unitPrice, subtotal]
+    );
+  }
+  res.json(ok({ inStockNo, totalQty, totalAmount, status: "PENDING" }));
+}));
+
+adminRouter.get("/purchase-in-stocks/:stockNo", requireAuth, asyncHandler(async (req, res) => {
+  const order = await queryOne<any>(
+    `SELECT in_stock_no AS inStockNo, purchase_order_no AS purchaseOrderNo, store_id AS storeId, supplier_id AS supplierId,
+            total_qty AS totalQty, total_amount AS totalAmount, status, auditor_id AS auditorId, audit_time AS auditTime
+     FROM purchase_in_stock_order WHERE in_stock_no = ?`,
+    [req.params.stockNo]
+  );
+  if (!order) { res.status(404).json({ code: "404", message: "入库单不存在" }); return; }
+  const items = await query<any>(
+    `SELECT sku_id AS skuId, sku_name AS skuName, plan_qty AS planQty, actual_qty AS actualQty, unit_price AS unitPrice, subtotal_amount AS subtotalAmount FROM purchase_in_stock_item WHERE in_stock_no = ?`,
+    [req.params.stockNo]
+  );
+  res.json(ok({ ...order, items }));
+}));
+
+adminRouter.post("/purchase-in-stocks/:stockNo/approve", requireAuth, asyncHandler(async (req, res) => {
+  const items = await query<any>(
+    `SELECT pi.sku_id AS skuId, pi.sku_name AS skuName, pi.actual_qty AS actualQty, po.store_id AS storeId
+     FROM purchase_in_stock_item pi JOIN purchase_in_stock_order po ON po.in_stock_no = pi.in_stock_no WHERE pi.in_stock_no = ?`,
+    [req.params.stockNo]
+  );
+  for (const item of items) {
+    const qty = Number(item.actualQty || 0);
+    const storeId = Number(item.storeId || 1);
+    const existing = await queryOne<any>(
+      `SELECT store_id AS storeId FROM inventory_balance WHERE store_id = ? AND sku_id = ? AND stock_type = 'OFFLINE'`,
+      [storeId, item.skuId]
+    );
+    if (!existing) {
+      await query(`INSERT INTO inventory_balance (store_id, sku_id, stock_type, physical_qty, available_qty, sku_name) VALUES (?, ?, ?, ?, ?, ?)`,
+        [storeId, item.skuId, "OFFLINE", qty, qty, item.skuName]);
+    } else {
+      await query(`UPDATE inventory_balance SET physical_qty = physical_qty + ?, available_qty = available_qty + ? WHERE store_id = ? AND sku_id = ? AND stock_type = 'OFFLINE'`,
+        [qty, qty, storeId, item.skuId]);
+    }
+  }
+  await query(`UPDATE purchase_in_stock_order SET status = 'AUDITED', auditor_id = ?, audit_time = NOW() WHERE in_stock_no = ?`,
+    [req.user?.id ?? 1, req.params.stockNo]);
+  res.json(ok({ inStockNo: req.params.stockNo, status: "AUDITED" }));
+}));
+
+adminRouter.post("/purchase-in-stocks/:stockNo/void", requireAuth, asyncHandler(async (req, res) => {
+  const items = await query<any>(
+    `SELECT pi.sku_id AS skuId, pi.actual_qty AS actualQty, po.store_id AS storeId
+     FROM purchase_in_stock_item pi JOIN purchase_in_stock_order po ON po.in_stock_no = pi.in_stock_no WHERE pi.in_stock_no = ?`,
+    [req.params.stockNo]
+  );
+  for (const item of items) {
+    const qty = Number(item.actualQty || 0);
+    const storeId = Number(item.storeId || 1);
+    await query(`UPDATE inventory_balance SET physical_qty = physical_qty - ?, available_qty = available_qty - ? WHERE store_id = ? AND sku_id = ? AND stock_type = 'OFFLINE'`,
+      [qty, qty, storeId, item.skuId]);
+  }
+  await query(`UPDATE purchase_in_stock_order SET status = 'VOID', auditor_id = ?, audit_time = NOW() WHERE in_stock_no = ?`,
+    [req.user?.id ?? 1, req.params.stockNo]);
+  res.json(ok({ inStockNo: req.params.stockNo, status: "VOID" }));
+}));
+
+// ================== 采购退货 ==================
+adminRouter.get("/purchase-returns", requireAuth, asyncHandler(async (_req, res) => {
+  const records = await query<any>(
+    `SELECT return_no AS returnNo, purchase_order_no AS purchaseOrderNo, store_id AS storeId, supplier_id AS supplierId,
+            total_amount AS totalAmount, status, stock_rollback_flag AS stockRollbackFlag, auditor_id AS auditorId, audit_time AS auditTime
+     FROM purchase_return ORDER BY id DESC`
+  );
+  res.json(ok(records));
+}));
+
+adminRouter.post("/purchase-returns", requireAuth, asyncHandler(async (req, res) => {
+  const body = z.object({
+    purchaseOrderNo: z.string().optional(),
+    storeId: z.number().default(1),
+    supplierId: z.number().default(1),
+    remark: z.string().optional(),
+    items: z.array(z.object({
+      skuId: z.number(),
+      skuName: z.string().optional(),
+      qty: z.number().default(0),
+      unitPrice: z.number().default(0),
+      subtotalAmount: z.number().default(0)
+    })).min(1)
+  }).parse(req.body);
+  const totalAmount = Number(body.items.reduce((s, i) => s + (i.subtotalAmount || (i.qty * i.unitPrice)), 0).toFixed(2));
+  const returnNo = makeBizNo("TH");
+  await query(
+    `INSERT INTO purchase_return (return_no, purchase_order_no, store_id, supplier_id, total_amount, remark, status) VALUES (?, ?, ?, ?, ?, ?, 'PENDING')`,
+    [returnNo, body.purchaseOrderNo ?? null, body.storeId, body.supplierId, totalAmount, body.remark ?? null]
+  );
+  for (const item of body.items) {
+    const subtotal = item.subtotalAmount || Number((item.qty * item.unitPrice).toFixed(2));
+    await query(
+      `INSERT INTO purchase_return_item (return_no, sku_id, sku_name, qty, unit_price, subtotal_amount) VALUES (?, ?, ?, ?, ?, ?)`,
+      [returnNo, item.skuId, item.skuName ?? `SKU-${item.skuId}`, item.qty, item.unitPrice, subtotal]
+    );
+  }
+  res.json(ok({ returnNo, totalAmount, status: "PENDING" }));
+}));
+
+adminRouter.get("/purchase-returns/:returnNo", requireAuth, asyncHandler(async (req, res) => {
+  const r = await queryOne<any>(
+    `SELECT return_no AS returnNo, purchase_order_no AS purchaseOrderNo, store_id AS storeId, supplier_id AS supplierId,
+            total_amount AS totalAmount, status, stock_rollback_flag AS stockRollbackFlag, auditor_id AS auditorId, audit_time AS auditTime
+     FROM purchase_return WHERE return_no = ?`,
+    [req.params.returnNo]
+  );
+  if (!r) { res.status(404).json({ code: "404", message: "退货单不存在" }); return; }
+  const items = await query<any>(
+    `SELECT sku_id AS skuId, sku_name AS skuName, qty, unit_price AS unitPrice, subtotal_amount AS subtotalAmount FROM purchase_return_item WHERE return_no = ?`,
+    [req.params.returnNo]
+  );
+  res.json(ok({ ...r, items }));
+}));
+
+adminRouter.post("/purchase-returns/:returnNo/approve", requireAuth, asyncHandler(async (req, res) => {
+  const items = await query<any>(
+    `SELECT p.sku_id AS skuId, p.qty, r.store_id AS storeId FROM purchase_return_item p JOIN purchase_return r ON r.return_no = p.return_no WHERE p.return_no = ?`,
+    [req.params.returnNo]
+  );
+  for (const item of items) {
+    const qty = Number(item.qty || 0);
+    const storeId = Number(item.storeId || 1);
+    await query(`UPDATE inventory_balance SET physical_qty = physical_qty - ?, available_qty = available_qty - ? WHERE store_id = ? AND sku_id = ? AND stock_type = 'OFFLINE'`,
+      [qty, qty, storeId, item.skuId]);
+  }
+  await query(`UPDATE purchase_return SET status = 'AUDITED', stock_rollback_flag = 1, auditor_id = ?, audit_time = NOW() WHERE return_no = ?`,
+    [req.user?.id ?? 1, req.params.returnNo]);
+  res.json(ok({ returnNo: req.params.returnNo, status: "AUDITED", stockRollbackFlag: 1 }));
+}));
+
+adminRouter.post("/purchase-returns/:returnNo/void", requireAuth, asyncHandler(async (req, res) => {
+  await query(`UPDATE purchase_return SET status = 'VOID', auditor_id = ?, audit_time = NOW() WHERE return_no = ?`,
+    [req.user?.id ?? 1, req.params.returnNo]);
+  res.json(ok({ returnNo: req.params.returnNo, status: "VOID" }));
+}));
+
+// ================== 采购付款 ==================
+adminRouter.get("/purchase-payments", requireAuth, asyncHandler(async (_req, res) => {
+  const records = await query<any>(
+    `SELECT pay_no AS payNo, purchase_order_no AS purchaseOrderNo, supplier_id AS supplierId,
+            pay_amount AS payAmount, pay_method AS payMethod, status, auditor_id AS auditorId, audit_time AS auditTime
+     FROM purchase_payment ORDER BY id DESC`
+  );
+  res.json(ok(records));
+}));
+
+adminRouter.post("/purchase-payments", requireAuth, asyncHandler(async (req, res) => {
+  const body = z.object({
+    purchaseOrderNo: z.string(),
+    supplierId: z.number().default(1),
+    payAmount: z.number(),
+    payMethod: z.string().default("BANK")
+  }).parse(req.body);
+  const payNo = makeBizNo("FK");
+  await query(
+    `INSERT INTO purchase_payment (pay_no, purchase_order_no, supplier_id, pay_amount, pay_method, status) VALUES (?, ?, ?, ?, ?, 'PENDING')`,
+    [payNo, body.purchaseOrderNo, body.supplierId, body.payAmount, body.payMethod]
+  );
+  res.json(ok({ payNo, payAmount: body.payAmount, status: "PENDING" }));
+}));
+
+adminRouter.get("/purchase-payments/:paymentNo", requireAuth, asyncHandler(async (req, res) => {
+  const p = await queryOne<any>(
+    `SELECT pay_no AS payNo, purchase_order_no AS purchaseOrderNo, supplier_id AS supplierId,
+            pay_amount AS payAmount, pay_method AS payMethod, status, auditor_id AS auditorId, audit_time AS auditTime
+     FROM purchase_payment WHERE pay_no = ?`,
+    [req.params.paymentNo]
+  );
+  if (!p) { res.status(404).json({ code: "404", message: "付款单不存在" }); return; }
+  res.json(ok(p));
+}));
+
+adminRouter.post("/purchase-payments/:paymentNo/approve", requireAuth, asyncHandler(async (req, res) => {
+  const p = await queryOne<any>(`SELECT purchase_order_no AS purchaseOrderNo, pay_amount AS payAmount FROM purchase_payment WHERE pay_no = ?`,
+    [req.params.paymentNo]);
+  if (p) {
+    await query(`UPDATE purchase_order SET paid_amount = COALESCE(paid_amount, 0) + ? WHERE order_no = ?`,
+      [Number(p.payAmount || 0), p.purchaseOrderNo]);
+    await query(`UPDATE purchase_order SET pay_status = 'PAID' WHERE order_no = ? AND COALESCE(paid_amount, 0) >= payable_amount`,
+      [p.purchaseOrderNo]);
+  }
+  await query(`UPDATE purchase_payment SET status = 'PAID', auditor_id = ?, audit_time = NOW() WHERE pay_no = ?`,
+    [req.user?.id ?? 1, req.params.paymentNo]);
+  res.json(ok({ payNo: req.params.paymentNo, status: "PAID" }));
+}));

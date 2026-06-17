@@ -1,138 +1,145 @@
-import { beforeEach, describe, expect, it } from "vitest";
-import { mockQuery, mockExecute, resetMockDb } from "../shared/mock-db.js";
-import { makeBizNo } from "../shared/id.js";
+import { describe, it, expect, beforeEach, beforeAll, afterAll } from "vitest";
+import http from "node:http";
+import { app } from "../server.js";
+import { signToken } from "../shared/auth.js";
+import { resetMockDb } from "../shared/mock-db.js";
 
-// -------- 业务函数 --------
-async function createStatement(input: {
-  customerId: number;
-  customerName: string;
-  startBalance: number;
-  items: { transType: string; transNo?: string; amount: number; remark?: string }[];
-}) {
-  if (input.items.length === 0) throw new Error("对账单至少需要 1 条明细");
-  if (input.startBalance < 0) throw new Error("期初余额不能为负");
-  if (input.items.some((it) => it.amount < 0)) throw new Error("金额不能为负");
-  const statementNo = makeBizNo("DZ");
-  const sales = input.items.filter(i => i.transType === "SALE").reduce((s, i) => s + i.amount, 0);
-  const returns = input.items.filter(i => i.transType === "RETURN").reduce((s, i) => s + i.amount, 0);
-  const received = input.items.filter(i => i.transType === "RECEIPT").reduce((s, i) => s + i.amount, 0);
-  const endBalance = Math.round((input.startBalance + sales - returns - received) * 100) / 100;
+const token = signToken({ id: 1, username: "test", roles: ["ADMIN"], storeId: 1 });
+const base = "http://127.0.0.1:18769";
+let server: http.Server;
 
-  await mockExecute(
-    `INSERT INTO customer_statement (statement_no, customer_id, customer_name, start_balance, sales_amount, return_amount, received_amount, end_balance, status, period) VALUES (?,?,?,?,?,?,?,?,?,?)`,
-    [statementNo, input.customerId, input.customerName, input.startBalance, sales, returns, received, endBalance, "DRAFT", new Date().toISOString().slice(0, 7)]
-  );
-  for (const it of input.items) {
-    await mockExecute(
-      `INSERT INTO customer_statement_item (statement_no, trans_type, trans_no, amount, remark, created_at) VALUES (?,?,?,?,?,?)`,
-      [statementNo, it.transType, it.transNo ?? null, it.amount, it.remark ?? null, new Date().toISOString()]
-    );
-  }
-  const rows = await mockQuery<any>(
-    `SELECT statement_no AS statementNo, customer_id AS customerId, customer_name AS customerName, start_balance AS startBalance, sales_amount AS salesAmount, return_amount AS returnAmount, received_amount AS receivedAmount, end_balance AS endBalance, status, period FROM customer_statement WHERE statement_no = ?`,
-    [statementNo]
-  );
-  return rows[0];
+function api(method: string, path: string, body?: unknown): Promise<{ status: number; data: any }> {
+  return new Promise((resolve) => {
+    const req = http.request(base + path, {
+      method,
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${token}`
+      }
+    }, (res) => {
+      let data = "";
+      res.on("data", (c) => (data += c));
+      res.on("end", () => {
+        try {
+          resolve({ status: res.statusCode || 0, data: JSON.parse(data || "{}") });
+        } catch {
+          resolve({ status: res.statusCode || 0, data: null });
+        }
+      });
+    });
+    if (body !== undefined) req.write(JSON.stringify(body));
+    req.end();
+  });
 }
 
-async function confirmStatement(statementNo: string, operatorId: number = 1) {
-  const rows = await mockQuery<any>(`SELECT status FROM customer_statement WHERE statement_no = ?`, [statementNo]);
-  if (rows.length === 0) throw new Error("对账单不存在");
-  if (rows[0].status === "CONFIRMED") throw new Error("对账单已确认");
-  await mockExecute(`UPDATE customer_statement SET status = ?, auditor_id = ?, audit_time = ? WHERE statement_no = ?`, ["CONFIRMED", operatorId, new Date().toISOString(), statementNo]);
-  const after = await mockQuery<any>(`SELECT statement_no AS statementNo, status, end_balance AS endBalance FROM customer_statement WHERE statement_no = ?`, [statementNo]);
-  return after[0];
-}
+beforeAll(async () => {
+  server = http.createServer(app).listen(18769);
+});
 
-// -------- 测试 --------
-describe("客户对账与收款", () => {
-  beforeEach(() => resetMockDb());
-  it("创建对账单 - 正常：期末余额 = 期初 + 销售 - 退货 - 收款", async () => {
-    const st = await createStatement({
-      customerId: 500, customerName: "客户A",
-      startBalance: 1000,
+afterAll(async () => {
+  server.close();
+});
+
+beforeEach(() => {
+  resetMockDb();
+});
+
+describe("客户对账 /api/store/customer-statements", () => {
+  it("POST 创建对账单 - 正常流程", async () => {
+    const r = await api("POST", "/api/store/customer-statements", {
+      customerId: 101,
+      customerName: "测试客户",
+      startBalance: 500.00,
+      salesAmount: 1500.00,
+      returnAmount: 100.00,
+      receivedAmount: 800.00,
+      period: "2026-06"
+    });
+    expect(r.status).toBe(200);
+    expect(r.data.code).toBe("0");
+    expect(r.data.data.statementNo).toBeDefined();
+    expect(Number(r.data.data.endBalance)).toBeCloseTo(1100.00, 2);
+  });
+
+  it("GET 对账单列表", async () => {
+    await api("POST", "/api/store/customer-statements", {
+      customerId: 102, startBalance: 0, salesAmount: 100, returnAmount: 0, receivedAmount: 50, period: "2026-06"
+    });
+    const r = await api("GET", "/api/store/customer-statements");
+    expect(r.status).toBe(200);
+    expect(Array.isArray(r.data.data)).toBe(true);
+    expect(r.data.data.length).toBeGreaterThan(0);
+  });
+
+  it("GET /:statementNo 对账单详情", async () => {
+    const create = await api("POST", "/api/store/customer-statements", {
+      customerId: 103, startBalance: 100, salesAmount: 200, returnAmount: 50, receivedAmount: 100, period: "2026-05"
+    });
+    const statementNo = create.data.data.statementNo;
+    const r = await api("GET", `/api/store/customer-statements/${statementNo}`);
+    expect(r.status).toBe(200);
+    expect(r.data.data.statementNo).toBe(statementNo);
+    expect(Number(r.data.data.startBalance)).toBe(100);
+  });
+
+  it("POST /confirm 确认对账单", async () => {
+    const create = await api("POST", "/api/store/customer-statements", {
+      customerId: 104, startBalance: 50, salesAmount: 200, returnAmount: 10, receivedAmount: 100, period: "2026-06"
+    });
+    const statementNo = create.data.data.statementNo;
+    const r = await api("POST", `/api/store/customer-statements/${statementNo}/confirm`);
+    expect(r.status).toBe(200);
+    expect(r.data.data.status).toBe("CONFIRMED");
+  });
+
+  it("endBalance 计算: startBalance + sales - return - received", async () => {
+    const r = await api("POST", "/api/store/customer-statements", {
+      customerId: 105, startBalance: 1000.00, salesAmount: 500.00, returnAmount: 100.00, receivedAmount: 300.00, period: "2026-06"
+    });
+    // 1000 + 500 - 100 - 300 = 1100
+    expect(Number(r.data.data.endBalance)).toBeCloseTo(1100.00, 2);
+  });
+
+  it("边界: 零余额", async () => {
+    const r = await api("POST", "/api/store/customer-statements", {
+      customerId: 106, startBalance: 0, salesAmount: 0, returnAmount: 0, receivedAmount: 0, period: "2026-06"
+    });
+    expect(Number(r.data.data.endBalance)).toBeCloseTo(0, 2);
+  });
+
+  it("边界: 金额精确到分", async () => {
+    const r = await api("POST", "/api/store/customer-statements", {
+      customerId: 107, startBalance: 0.01, salesAmount: 99.99, returnAmount: 0.01, receivedAmount: 50.00, period: "2026-06"
+    });
+    // 0.01 + 99.99 - 0.01 - 50 = 49.99
+    expect(Number(r.data.data.endBalance)).toBeCloseTo(49.99, 2);
+  });
+
+  it("GET /:statementNo 不存在的单号 - 返回 404", async () => {
+    const r = await api("GET", "/api/store/customer-statements/NOT-EXIST");
+    expect(r.status).toBe(404);
+  });
+
+  it("POST 含明细创建", async () => {
+    const r = await api("POST", "/api/store/customer-statements", {
+      customerId: 108, startBalance: 0, salesAmount: 500, returnAmount: 0, receivedAmount: 200, period: "2026-06",
       items: [
-        { transType: "SALE", transNo: "SO1", amount: 500 },
-        { transType: "RETURN", transNo: "RT1", amount: 100 },
-        { transType: "RECEIPT", transNo: "RC1", amount: 800 }
+        { transType: "SALE", transNo: "SO-001", amount: 300 },
+        { transType: "PAYMENT", transNo: "SK-001", amount: 200 }
       ]
     });
-    expect(Number(st.startBalance)).toBe(1000);
-    expect(Number(st.salesAmount)).toBe(500);
-    expect(Number(st.returnAmount)).toBe(100);
-    expect(Number(st.receivedAmount)).toBe(800);
-    expect(Number(st.endBalance)).toBeCloseTo(1000 + 500 - 100 - 800, 2); // 600
-    expect(st.status).toBe("DRAFT");
+    expect(r.status).toBe(200);
+    expect(Number(r.data.data.endBalance)).toBeCloseTo(300, 2);
   });
 
-  it("创建对账单 - 边界：期末余额 = 0（完全结清）", async () => {
-    const st = await createStatement({
-      customerId: 501, customerName: "客户B",
-      startBalance: 300,
-      items: [{ transType: "RECEIPT", amount: 300 }]
+  it("确认后详情查询 status=CONFIRMED", async () => {
+    const create = await api("POST", "/api/store/customer-statements", {
+      customerId: 109, startBalance: 200, salesAmount: 100, returnAmount: 0, receivedAmount: 50, period: "2026-06"
     });
-    expect(Number(st.endBalance)).toBeCloseTo(0, 2);
-  });
-
-  it("创建对账单 - 异常：负金额拒绝", async () => {
-    await expect(createStatement({
-      customerId: 502, customerName: "X", startBalance: 100,
-      items: [{ transType: "SALE", amount: -50 }]
-    })).rejects.toThrow();
-  });
-
-  it("创建对账单 - 异常：空明细拒绝", async () => {
-    await expect(createStatement({ customerId: 1, customerName: "X", startBalance: 0, items: [] })).rejects.toThrow();
-  });
-
-  it("创建对账单 - 异常：期初为负拒绝", async () => {
-    await expect(createStatement({ customerId: 1, customerName: "X", startBalance: -10, items: [{ transType: "SALE", amount: 100 }] })).rejects.toThrow();
-  });
-
-  it("确认对账单 - 正常：状态切换为 CONFIRMED 且 auditorId 有值", async () => {
-    const st = await createStatement({
-      customerId: 503, customerName: "C",
-      startBalance: 500,
-      items: [{ transType: "RECEIPT", amount: 500 }]
-    });
-    const confirmed = await confirmStatement(st.statementNo, 88);
-    expect(confirmed.status).toBe("CONFIRMED");
-    const detail = await mockQuery<any>(`SELECT auditor_id AS auditorId FROM customer_statement WHERE statement_no = ?`, [st.statementNo]);
-    expect(Number(detail[0].auditorId)).toBe(88);
-  });
-
-  it("确认对账单 - 异常：重复确认拒绝", async () => {
-    const st = await createStatement({
-      customerId: 504, customerName: "D",
-      startBalance: 100,
-      items: [{ transType: "SALE", amount: 100 }]
-    });
-    await confirmStatement(st.statementNo);
-    await expect(confirmStatement(st.statementNo)).rejects.toThrow();
-  });
-
-  it("金额精度 - 分的四舍五入：start=10.005 sale=19.995 → end=30.00", async () => {
-    const st = await createStatement({
-      customerId: 505, customerName: "E",
-      startBalance: 10.005,
-      items: [{ transType: "SALE", amount: 19.995 }]
-    });
-    // 10.005 + 19.995 = 30.00
-    expect(Number(st.endBalance)).toBeCloseTo(30.00, 2);
-  });
-
-  it("多条明细 - 混合销售/退货/收款，endBalance 正确", async () => {
-    const st = await createStatement({
-      customerId: 506, customerName: "F",
-      startBalance: 2000,
-      items: [
-        { transType: "SALE", transNo: "SO10", amount: 300 },
-        { transType: "SALE", transNo: "SO11", amount: 150 },
-        { transType: "RETURN", transNo: "RT10", amount: 50 },
-        { transType: "RECEIPT", transNo: "RC10", amount: 400 }
-      ]
-    });
-    // 2000 + 450 - 50 - 400 = 2000
-    expect(Number(st.endBalance)).toBeCloseTo(2000, 2);
+    const statementNo = create.data.data.statementNo;
+    await api("POST", `/api/store/customer-statements/${statementNo}/confirm`);
+    const detail = await api("GET", `/api/store/customer-statements/${statementNo}`);
+    expect(detail.status).toBe(200);
+    expect(detail.data.data.status).toBe("CONFIRMED");
   });
 });

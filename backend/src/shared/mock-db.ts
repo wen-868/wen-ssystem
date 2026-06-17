@@ -40,8 +40,12 @@ const state = {
   purchaseInStockItems: [] as Row[],
   saleReturns: [] as Row[],
   saleReturnItems: [] as Row[],
+  purchaseReturns: [] as Row[],
+  purchaseReturnItems: [] as Row[],
   customerStatements: [] as Row[],
   customerStatementItems: [] as Row[],
+  purchasePayments: [] as Row[],
+  customerPayments: [] as Row[],
   paymentRecords: [] as Row[]
 };
 
@@ -52,6 +56,11 @@ const pendingProduct: {
 
 function result(insertId: number = Date.now()) {
   return [{ insertId, affectedRows: 1 }, undefined] as any;
+}
+function extractLiteral(sql: string, field: string): string | null {
+  const re = new RegExp(field + "\\s*=\\s*'([^']*)'", "i");
+  const m = sql.match(re);
+  return m ? m[1] : null;
 }
 export async function mockQuery<T = any>(sql: string, params: unknown[] = []) {
   const s = sql.toLowerCase().replace(/\s+/g, " ");
@@ -199,12 +208,15 @@ export async function mockQuery<T = any>(sql: string, params: unknown[] = []) {
     }) as T[];
   }
   if (s.includes("update inventory_balance")) {
+    const stockType = s.includes("stock_type = ?") && params[4] ? params[4] : "OFFLINE";
     const inv = state.inventory.find(
-      (i) => i.storeId === params[2] && i.skuId === params[3] && i.stockType === params[4]
+      (i) => i.storeId === params[2] && i.skuId === params[3] && String(i.stockType) === String(stockType)
     );
     if (inv) {
-      inv.physicalQty = Number(inv.physicalQty) + Number(params[0]);
-      inv.availableQty = Number(inv.availableQty) + Number(params[1]);
+      const isSubtract = s.includes("physical_qty = physical_qty - ?");
+      const delta = isSubtract ? -Number(params[0]) : Number(params[0]);
+      inv.physicalQty = Number(inv.physicalQty) + delta;
+      inv.availableQty = Number(inv.availableQty) + delta;
     }
     return [] as T[];
   }
@@ -231,8 +243,16 @@ export async function mockQuery<T = any>(sql: string, params: unknown[] = []) {
     }) as T[];
   }
   if (s.includes("from inventory_balance") && s.includes("where store_id")) {
+    const stockType = s.includes("stock_type = ?") || params[2] ? params[2] : "OFFLINE";
     const inv = state.inventory.find(
-      (i) => i.storeId === params[0] && i.skuId === params[1] && i.stockType === params[2]
+      (i) => i.storeId === params[0] && i.skuId === params[1] && String(i.stockType) === String(stockType)
+    );
+    return inv ? [inv] as T[] : [] as T[];
+  }
+  if (s.includes("from inventory_balance") && s.includes("where sku_id")) {
+    const stockType = s.includes("stock_type = ?") || params[1] ? params[1] : "OFFLINE";
+    const inv = state.inventory.find(
+      (i) => i.skuId === params[0] && String(i.stockType) === String(stockType)
     );
     return inv ? [inv] as T[] : [] as T[];
   }
@@ -683,6 +703,37 @@ export async function mockQuery<T = any>(sql: string, params: unknown[] = []) {
       audit_time: r.auditTime ?? null
     })) as T[];
   }
+  // purchase_return_item before purchase_return
+  if (s.includes("from purchase_return_item")) {
+    return state.purchaseReturnItems.filter((i) => !params[0] || i.returnNo === params[0]) as T[];
+  }
+  if (s.includes("from purchase_return") && s.includes("where return_no")) {
+    return state.purchaseReturns.filter((r) => r.returnNo === params[0]) as T[];
+  }
+  if (s.includes("from purchase_return") && !s.includes("insert")) {
+    return state.purchaseReturns.map((r) => ({
+      ...r,
+      return_no: r.returnNo,
+      purchase_order_no: r.purchaseOrderNo,
+      supplier_id: r.supplierId,
+      total_amount: r.totalAmount,
+      stock_rollback_flag: r.stockRollbackFlag,
+      auditor_id: r.auditorId ?? null,
+      audit_time: r.auditTime ?? null
+    })) as T[];
+  }
+  if (s.includes("from purchase_payment")) {
+    return state.purchasePayments.map((p) => ({
+      ...p,
+      pay_no: p.payNo,
+      purchase_order_no: p.purchaseOrderNo,
+      supplier_id: p.supplierId,
+      pay_method: p.payMethod,
+      pay_amount: p.payAmount,
+      auditor_id: p.auditorId ?? null,
+      audit_time: p.auditTime ?? null
+    })) as T[];
+  }
   if (s.includes("from customer_statement_item")) {
     return state.customerStatementItems.filter((i) => !params[0] || i.statementNo === params[0]) as T[];
   }
@@ -698,6 +749,18 @@ export async function mockQuery<T = any>(sql: string, params: unknown[] = []) {
       received_amount: st.receivedAmount,
       end_balance: st.endBalance,
       auditor_id: (st as any).auditorId ?? null
+    })) as T[];
+  }
+  if (s.includes("from customer_payment")) {
+    return state.customerPayments.map((p) => ({
+      ...p,
+      receipt_no: p.receiptNo,
+      customer_id: p.customerId,
+      customer_name: p.customerName,
+      pay_method: p.payMethod,
+      pay_amount: p.payAmount,
+      auditor_id: p.auditorId ?? null,
+      audit_time: p.auditTime ?? null
     })) as T[];
   }
   if (s.includes("from payment_record")) {
@@ -951,9 +1014,10 @@ export async function mockExecute(sql: string, params: unknown[] = []) {
     const orderNo = String(params[params.length - 1]);
     const order = state.purchaseOrders.find((o) => o.orderNo === orderNo);
     if (order) {
-      if (params[0] != null && params[0] !== undefined) order.orderStatus = String(params[0]);
-      if (params[1] != null && params[1] !== undefined) order.auditorId = Number(params[1]);
-      if (params[2] != null && params[2] !== undefined) order.auditTime = new Date().toISOString();
+      const status = extractLiteral(sql, "order_status");
+      if (status) order.orderStatus = status;
+      if (s.includes("auditor_id")) order.auditorId = Number(params[0] ?? 1);
+      if (s.includes("audit_time")) order.auditTime = new Date().toISOString();
       order.version = Number(order.version ?? 1) + 1;
     }
     return result();
@@ -962,8 +1026,11 @@ export async function mockExecute(sql: string, params: unknown[] = []) {
     const orderNo = String(params[params.length - 1]);
     const order = state.purchaseOrders.find((o) => o.orderNo === orderNo);
     if (order) {
-      if (params[0] != null) order.payStatus = String(params[0]);
-      if (params[1] != null) order.paidAmount = Number(params[1]);
+      const status = extractLiteral(sql, "pay_status");
+      if (status) order.payStatus = status;
+      if (s.includes("paid_amount") && params[0] != null) {
+        order.paidAmount = Number(order.paidAmount ?? 0) + Number(params[0]);
+      }
       order.version = Number(order.version ?? 1) + 1;
     }
     return result();
@@ -1000,12 +1067,17 @@ export async function mockExecute(sql: string, params: unknown[] = []) {
     const inStockNo = String(params[params.length - 1]);
     const order = state.purchaseInStockOrders.find((o) => o.inStockNo === inStockNo);
     if (order) {
-      order.status = String(params[0]);
-      if (String(params[0]) === "AUDITED") {
-        order.auditorId = params[1] ? Number(params[1]) : 1;
+      const status = extractLiteral(sql, "status");
+      if (status) order.status = status;
+      if (order.status === "AUDITED") {
+        order.auditorId = params[0] ? Number(params[0]) : 1;
         order.auditTime = new Date().toISOString();
       }
-      if (String(params[0]) === "CANCELLED") {
+      if (order.status === "VOID") {
+        order.auditorId = params[0] ? Number(params[0]) : 1;
+        order.auditTime = new Date().toISOString();
+      }
+      if (order.status === "CANCELLED") {
         order.auditorId = null;
         order.auditTime = null;
       }
@@ -1087,9 +1159,10 @@ export async function mockExecute(sql: string, params: unknown[] = []) {
     const statementNo = String(params[params.length - 1]);
     const st = state.customerStatements.find((x) => x.statementNo === statementNo);
     if (st) {
-      if (params[0] != null && params[0] !== undefined) st.status = String(params[0]);
-      if (params[1] != null) (st as any).auditorId = Number(params[1]);
-      if (params[2] != null) (st as any).auditTime = String(params[2]);
+      const status = extractLiteral(sql, "status");
+      if (status) st.status = status;
+      if (params[0] != null) (st as any).auditorId = Number(params[0]);
+      if (s.includes("audit_time")) (st as any).auditTime = new Date().toISOString();
     }
     return result();
   }
@@ -1103,6 +1176,85 @@ export async function mockExecute(sql: string, params: unknown[] = []) {
     state.paymentRecords.push({ id, payNo, sourceType, sourceNo, amount, payMethod, status: "PAID", createdAt: new Date().toISOString() });
     return result(id);
   }
+  if (s.includes("insert into purchase_return ")) {
+    const returnNo = String(params[0]);
+    const storeId = Number(params[1]);
+    const purchaseOrderNo = params[2] ? String(params[2]) : null;
+    const supplierId = params[3] ? Number(params[3]) : null;
+    const totalAmount = Number(params[4] ?? 0);
+    const remark = params[5] ? String(params[5]) : null;
+    const id = state.purchaseReturns.length + 1;
+    state.purchaseReturns.push({
+      id, returnNo, storeId, purchaseOrderNo, supplierId, totalAmount, remark, status: "PENDING", stockRollbackFlag: 0, auditorId: null, auditTime: null, audit_time: null, createdAt: new Date().toISOString()
+    });
+    return result(id);
+  }
+  if (s.includes("insert into purchase_return_item")) {
+    const returnNo = String(params[0]);
+    const skuId = Number(params[1]);
+    const skuName = String(params[2] ?? `SKU-${skuId}`);
+    const qty = Number(params[3] ?? 0);
+    const unitPrice = Number(params[4] ?? 0);
+    const subtotalAmount = Number(params[5] ?? 0);
+    const id = state.purchaseReturnItems.length + 1;
+    state.purchaseReturnItems.push({ id, returnNo, skuId, skuName, qty, unitPrice, subtotalAmount });
+    return result(id);
+  }
+  if (s.includes("update purchase_return set")) {
+    const returnNo = String(params[params.length - 1]);
+    const r = state.purchaseReturns.find((x) => x.returnNo === returnNo);
+    if (r) {
+      const status = extractLiteral(sql, "status");
+      if (status) r.status = status;
+      if (s.includes("auditor_id")) r.auditorId = Number(params[0] ?? 1);
+      if (s.includes("audit_time")) r.auditTime = new Date().toISOString();
+      if (s.includes("stock_rollback_flag")) r.stockRollbackFlag = 1;
+    }
+    return result();
+  }
+  if (s.includes("insert into purchase_payment")) {
+    const payNo = String(params[0]);
+    const purchaseOrderNo = params[1] ? String(params[1]) : null;
+    const supplierId = Number(params[2] ?? 0);
+    const payAmount = Number(params[3] ?? 0);
+    const payMethod = String(params[4] ?? "BANK");
+    const id = state.purchasePayments.length + 1;
+    state.purchasePayments.push({ id, payNo, purchaseOrderNo, supplierId, payAmount, payMethod, status: "PENDING", auditorId: null, auditTime: null });
+    return result(id);
+  }
+  if (s.includes("update purchase_payment set")) {
+    const payNo = String(params[params.length - 1]);
+    const p = state.purchasePayments.find((x) => x.payNo === payNo);
+    if (p) {
+      const status = extractLiteral(sql, "status");
+      if (status) p.status = status;
+      if (s.includes("auditor_id")) p.auditorId = Number(params[0] ?? 1);
+      if (s.includes("audit_time")) p.auditTime = new Date().toISOString();
+    }
+    return result();
+  }
+  if (s.includes("insert into customer_payment")) {
+    const receiptNo = String(params[0]);
+    const customerId = Number(params[1] ?? 0);
+    const customerName = String(params[2] ?? "客户");
+    const payAmount = Number(params[3] ?? 0);
+    const payMethod = String(params[4] ?? "BANK");
+    const remark = params[5] ? String(params[5]) : null;
+    const id = state.customerPayments.length + 1;
+    state.customerPayments.push({ id, receiptNo, customerId, customerName, payAmount, payMethod, remark, status: "PAID", auditorId: 1, auditTime: new Date().toISOString() });
+    return result(id);
+  }
+  if (s.includes("update customer_payment set")) {
+    const receiptNo = String(params[params.length - 1]);
+    const p = state.customerPayments.find((x) => x.receiptNo === receiptNo);
+    if (p) {
+      const status = extractLiteral(sql, "status");
+      if (status) p.status = status;
+      if (s.includes("auditor_id")) p.auditorId = Number(params[0] ?? 1);
+      if (s.includes("audit_time")) p.auditTime = new Date().toISOString();
+    }
+    return result();
+  }
   if (s.includes("insert into inventory_balance")) {
     const storeId = Number(params[0]);
     const skuId = Number(params[1]);
@@ -1113,12 +1265,15 @@ export async function mockExecute(sql: string, params: unknown[] = []) {
     return result(state.inventory.length);
   }
   if (s.includes("update inventory_balance")) {
+    const stockType = s.includes("stock_type = ?") && params[4] ? params[4] : "OFFLINE";
     const inv = state.inventory.find(
-      (i) => i.storeId === params[2] && i.skuId === params[3] && String(i.stockType) === String(params[4])
+      (i) => i.storeId === params[2] && i.skuId === params[3] && String(i.stockType) === String(stockType)
     );
     if (inv) {
-      inv.physicalQty = Number(inv.physicalQty) + Number(params[0]);
-      inv.availableQty = Number(inv.availableQty) + Number(params[1]);
+      const isSubtract = s.includes("physical_qty = physical_qty - ?");
+      const delta = isSubtract ? -Number(params[0]) : Number(params[0]);
+      inv.physicalQty = Number(inv.physicalQty) + delta;
+      inv.availableQty = Number(inv.availableQty) + delta;
     }
     return result();
   }
@@ -1139,6 +1294,10 @@ export function resetMockDb() {
   state.purchaseInStockItems = [];
   state.saleReturns = [];
   state.saleReturnItems = [];
+  state.purchaseReturns = [];
+  state.purchaseReturnItems = [];
+  state.purchasePayments = [];
+  state.customerPayments = [];
   state.customerStatements = [];
   state.customerStatementItems = [];
   state.paymentRecords = [];
