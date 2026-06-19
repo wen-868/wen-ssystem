@@ -1,6 +1,6 @@
 App({
   globalData: {
-    apiBase: "https://api.example.com/api",
+    apiBase: "https://api.onepan.cn/api",
     demoMode: false
   }
 });

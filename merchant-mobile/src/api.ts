@@ -143,6 +143,310 @@ export function registerReceivablePayment(
 
 /* ========== 报表 ========== */
 
-export function fetchReports() {
-  return api.get('/store/reports')
+export interface DashboardData {
+  todayOrderCount: number
+  pendingOrderCount: number
+  todaySalesAmount: number
+  unReceivedAmount: number
+  storeId: number
+}
+
+export interface DailySalesRecord {
+  date: string
+  count: number
+  amount: number
+}
+
+export interface InventoryAlertRecord {
+  skuId: number
+  skuName: string
+  stockType: string
+  availableQty: number
+}
+
+export function fetchDashboard() {
+  return api.get('/store/dashboard')
+}
+
+export function fetchDailySales() {
+  return api.get('/store/daily-sales')
+}
+
+export function fetchInventoryAlerts() {
+  return api.get('/store/inventory/alerts')
+}
+
+/* ========== 销售单 ========== */
+
+export interface SaleBillItem {
+  skuId: number
+  skuName: string
+  boxQty: number
+  bottleQty: number
+  totalBottleQty: number
+  unitPrice: number
+  priceType: string
+  subtotalAmount: number
+}
+
+export interface SaleBillRecord {
+  billNo: string
+  storeId: number
+  customerId: number | null
+  customerName: string
+  customerType: string
+  businessStatus: string
+  collectionStatus: string
+  receivableAmount: number
+  receivedAmount: number
+  unreceivedAmount: number
+  createdAt: string
+}
+
+export interface SaleBillDetail extends SaleBillRecord {
+  items: SaleBillItem[]
+}
+
+export interface CreateSaleBillParams {
+  customerId?: number | null
+  customerName?: string
+  customerMobile?: string
+  discountAmount?: number
+  roundingAmount?: number
+  remark?: string
+  items: {
+    skuId: number
+    boxQty?: number
+    bottleQty?: number
+    totalBottleQty: number
+    unitPrice?: number
+    priceType?: string
+  }[]
+}
+
+export function createSaleBill(data: CreateSaleBillParams) {
+  return api.post('/store/sale-bills', data)
+}
+
+export function fetchSaleBills(params: {
+  page?: number
+  pageSize?: number
+  keyword?: string
+  collectionStatus?: string
+}) {
+  return api.get('/store/sale-bills', { params })
+}
+
+export function fetchSaleBillDetail(billNo: string) {
+  return api.get(`/store/sale-bills/${billNo}`)
+}
+
+export function offlinePayment(billNo: string, data: {
+  amount: number
+  paymentMethod: string
+  remark?: string
+}) {
+  return api.post(`/store/sale-bills/${billNo}/offline-payment`, data)
+}
+
+export function createCollectionLink(billNo: string, data: {
+  amount: number
+  shareChannel?: string
+  expireHours?: number
+  remark?: string
+}) {
+  return api.post(`/store/sale-bills/${billNo}/collection-link`, data)
+}
+
+/* ========== 商品搜索（用于开单时选商品） ========== */
+
+export interface ProductRecord {
+  skuId: number
+  skuCode: string
+  productName: string
+  skuName: string
+  barcode: string
+  retailPrice: number
+  wholesalePrice: number
+  storePrice: number
+  availableQty: number
+}
+
+export function fetchProducts(params: { keyword?: string; barcode?: string }) {
+  return api.get('/store/products', { params })
+}
+
+/* ========== 库存调整 ========== */
+
+export interface InventoryLogRecord {
+  logNo: string
+  storeId: number
+  skuId: number
+  skuName: string
+  changeQty: number
+  beforeQty: number
+  afterQty: number
+  reason: string
+  operatorId: number
+  createdAt: string
+}
+
+export function adjustInventory(data: {
+  skuId: number
+  stockType?: string
+  change: number
+  remark?: string
+}) {
+  return api.post('/store/inventory/adjust', data)
+}
+
+export function fetchInventoryLogs(params: {
+  page?: number
+  pageSize?: number
+}) {
+  return api.get('/store/inventory/logs', { params })
+}
+
+/* ========== 管理后台 ========== */
+
+export interface AdminProductRecord {
+  spuId: number
+  skuId: number
+  name: string
+  mainImage: string
+  skuName: string
+  skuCode: string
+  barcode: string
+  retailPrice: number
+  wholesalePrice: number
+  status: string
+}
+
+export interface AdminStaffRecord {
+  staffId: number
+  username: string
+  realName: string
+  storeId: number
+  status: number
+}
+
+export interface AdminStoreRecord {
+  id: number
+  storeCode: string
+  name: string
+  address: string
+  contact: string
+  phone: string
+  deliveryRadius: number
+  businessStatus: string
+  status: number
+}
+
+export function fetchAdminProducts(params: { page?: number; pageSize?: number; keyword?: string }) {
+  return api.get('/admin/products', { params })
+}
+
+export function createAdminProduct(data: {
+  name: string
+  categoryId: number
+  mainImage?: string
+  saleChannels?: string[]
+  skus: {
+    skuName: string
+    barcode?: string
+    boxRatio?: number
+    temperature?: string
+    traceEnabled?: boolean
+    warningThreshold?: number
+    costPrice?: number
+    retailPrice: number
+    wholesalePrice?: number | null
+    miniappPrice?: number | null
+    storePrice?: number | null
+  }[]
+}) {
+  return api.post('/admin/products', data)
+}
+
+export function updateProductStatus(spuId: number, status: string) {
+  return api.patch(`/admin/products/${spuId}/status`, { status })
+}
+
+export function updateProductPrice(skuId: number, data: {
+  costPrice?: number
+  retailPrice?: number
+  wholesalePrice?: number | null
+  miniappPrice?: number | null
+  storePrice?: number | null
+}) {
+  return api.put(`/admin/products/${skuId}/price`, data)
+}
+
+export function fetchAdminStaff() {
+  return api.get('/admin/staff')
+}
+
+export function fetchAdminStores(params: { page?: number; pageSize?: number; keyword?: string }) {
+  return api.get('/admin/stores', { params })
+}
+
+export function createAdminStore(data: {
+  name: string
+  address?: string
+  lng?: number
+  lat?: number
+  contact?: string
+  phone?: string
+  deliveryRadius?: number
+}) {
+  return api.post('/admin/stores', data)
+}
+
+/* ========== 分享收款 ========== */
+
+export interface CollectionLinkRecord {
+  linkNo: string
+  sourceType: string
+  sourceNo: string
+  amount: number
+  paidAmount: number
+  status: string
+  shareChannel: string
+  token: string
+  expireAt: string
+  createdAt: string
+}
+
+export interface PaymentOrderRecord {
+  payNo: string
+  sourceType: string
+  sourceNo: string
+  amount: number
+  status: string
+  paymentMethod: string
+  paidAt: string
+  createdAt: string
+}
+
+export interface RefundOrderRecord {
+  refundNo: string
+  payNo: string
+  sourceType: string
+  sourceNo: string
+  amount: number
+  reason: string
+  status: string
+  createdAt: string
+}
+
+export function fetchCollectionLinks(params: { page?: number; pageSize?: number }) {
+  return api.get('/store/collection-links', { params })
+}
+
+export function fetchPaymentOrders(params: { page?: number; pageSize?: number }) {
+  return api.get('/store/payment-orders', { params })
+}
+
+export function fetchRefundOrders(params: { page?: number; pageSize?: number }) {
+  return api.get('/store/refund-orders', { params })
 }

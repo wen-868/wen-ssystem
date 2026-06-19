@@ -1,30 +1,32 @@
 :root {
-  --color-primary: #1677FF;
-  --color-primary-hover: #409EFF;
-  --color-primary-active: #0958D9;
-  --color-primary-soft: #E6F4FF;
+  --color-primary: #8B4513;
+  --color-primary-hover: #A0522D;
+  --color-primary-active: #6B3410;
+  --color-primary-soft: rgba(139, 69, 19, 0.08);
+  --color-primary-light: #C19A6B;
 
-  --text-primary: #1F2328;
-  --text-secondary: #4B5563;
-  --text-muted: #9CA3AF;
+  --text-primary: #2D2A26;
+  --text-secondary: #5C554C;
+  --text-muted: #9C958C;
   --text-inverse: #FFFFFF;
 
-  --bg-page: #FFFFFF;
+  --bg-page: #FAF8F5;
   --bg-card: #FFFFFF;
-  --bg-soft: #F5F7FA;
+  --bg-soft: #F0ECE6;
+  --bg-stat-card: #F0ECE6;
 
-  --border-normal: #E5E7EB;
-  --border-focus: #1677FF;
+  --border-normal: #E5E0D8;
+  --border-focus: #8B4513;
 
-  --color-success: #10B981;
-  --color-warning: #F59E0B;
-  --color-danger: #EF4444;
+  --color-success: #27AE60;
+  --color-warning: #D4A017;
+  --color-danger: #C0392B;
 
   --radius-sm: 8px;
   --radius-md: 12px;
   --radius-lg: 18px;
   --radius-xl: 24px;
 
-  --shadow-card: 0 16px 40px rgba(31, 35, 40, .08);
-  --shadow-focus: 0 0 0 3px rgba(22, 119, 255, .14);
+  --shadow-card: 0 2px 12px rgba(139, 69, 19, 0.06);
+  --shadow-focus: 0 0 0 3px rgba(139, 69, 19, 0.14);
 }

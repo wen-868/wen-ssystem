@@ -1,3 +1,5 @@
+const { injectTheme } = require('../../utils/theme')
+
 Page({
   data: {
     products: [],
@@ -9,13 +11,29 @@ Page({
     receiverMobile: "",
     receiverAddress: "",
     submitting: false,
-    showEmpty: false
+    showEmpty: false,
+    keyword: "",
+    theme: {},
+    themeCssVars: ""
   },
   onLoad() {
     this.loadProducts();
   },
+  onReady() {
+    injectTheme(this);
+  },
+  onShow() {
+    this.loadProducts();
+    injectTheme(this);
+  },
   onPullDownRefresh() {
     this.loadProducts(() => wx.stopPullDownRefresh());
+  },
+  onKeywordInput(e) {
+    this.setData({ keyword: e.detail.value });
+  },
+  onSearch() {
+    this.loadProducts();
   },
   loadProducts(done) {
     const app = getApp();
@@ -58,7 +76,7 @@ Page({
       header: {
         "x-anonymous-member-id": anonymousId
       },
-      data: { storeId: 1 },
+      data: { storeId: 1, keyword: this.data.keyword },
       success: (res) => {
         const body = res.data || {};
         if (body.code === "0") {

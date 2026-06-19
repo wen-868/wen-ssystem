@@ -1,3 +1,4 @@
+<view style="{{themeCssVars}}">
 <view class="card">
   <view wx:if="{{ success }}" style="text-align: center;">
     <view style="font-size: 96rpx; margin: 40rpx 0 20rpx;">✓</view>
@@ -17,4 +18,5 @@
     <button class="primary" style="flex: 1;" bindtap="goHome">返回首页</button>
   </view>
   <button class="primary" style="margin-top: 48rpx;" bindtap="goHome" wx:else>返回首页</button>
+</view>
 </view>

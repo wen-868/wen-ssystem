@@ -35,5 +35,8 @@
   },
   "devDependencies": {
     "wait-on": "^9.0.10"
+  },
+  "dependencies": {
+    "js-yaml": "^4.2.0"
   }
 }

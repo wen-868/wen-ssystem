@@ -26,7 +26,7 @@ adminRouter.post("/auth/login", asyncHandler(async (req, res) => {
      WHERE ur.user_id = ? AND r.status = 1`,
     [account.id]
   );
-  const roleCodes = roles.map((r) => r.role_code);
+  const roleCodes = roles.map((r: any) => r.role_code);
   const user = {
     id: account.id,
     username: account.username,
@@ -71,6 +71,463 @@ adminRouter.get("/members", requireAuth, asyncHandler(async (req, res) => {
   );
   const totalRow = await queryOne<any>("SELECT COUNT(*) AS total FROM member", []);
   res.json(ok({ total: totalRow?.total ?? 0, page, pageSize, records }));
+}));
+
+// ========== 任务4：销售退货API ==========
+
+// 新建销售退货单
+adminRouter.post("/sale-returns", requireAuth, asyncHandler(async (req, res) => {
+  const body = z.object({
+    sourceBillNo: z.string().optional(),
+    storeId: z.number(),
+    customerId: z.number().optional(),
+    customerName: z.string().optional(),
+    customerMobile: z.string().optional(),
+    discountAmount: z.number().default(0),
+    refundMethod: z.string().optional(),
+    remark: z.string().optional(),
+    items: z.array(z.object({
+      skuId: z.number(),
+      skuName: z.string(),
+      boxQty: z.number().default(0),
+      bottleQty: z.number().default(0),
+      totalBottleQty: z.number(),
+      unitPrice: z.number(),
+      reason: z.string().optional()
+    })).min(1)
+  }).parse(req.body);
+
+  const result = await transaction(async (conn) => {
+    const returnNo = makeBizNo("XSTH");
+    let goodsAmount = 0;
+
+    for (const item of body.items) {
+      goodsAmount += item.totalBottleQty * item.unitPrice;
+    }
+    const refundAmount = goodsAmount - body.discountAmount;
+
+    const [returnResult] = await conn.execute<any>(
+      `INSERT INTO sale_return (return_no, source_bill_no, store_id, customer_id, customer_name, customer_mobile,
+        return_status, goods_amount, discount_amount, refund_amount, refunded_amount,
+        refund_method, operator_id, remark)
+       VALUES (?, ?, ?, ?, ?, ?, 'PENDING', ?, ?, ?, 0, ?, ?, ?)`,
+      [returnNo, body.sourceBillNo ?? null, body.storeId,
+       body.customerId ?? null, body.customerName ?? null, body.customerMobile ?? null,
+       goodsAmount, body.discountAmount, refundAmount,
+       body.refundMethod ?? null, req.user?.id ?? 0, body.remark ?? null]
+    );
+
+    for (const item of body.items) {
+      const subtotal = item.totalBottleQty * item.unitPrice;
+      await conn.execute(
+        `INSERT INTO sale_return_item (return_no, sku_id, sku_name, box_qty, bottle_qty,
+          total_bottle_qty, unit_price, subtotal_amount, reason)
+         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+        [returnNo, item.skuId, item.skuName, item.boxQty, item.bottleQty,
+         item.totalBottleQty, item.unitPrice, subtotal, item.reason ?? null]
+      );
+
+      // 退回库存
+      await conn.execute(
+        `INSERT INTO inventory_balance (store_id, sku_id, stock_type, physical_qty, available_qty)
+         VALUES (?, ?, 'OFFLINE', ?, ?)
+         ON DUPLICATE KEY UPDATE
+           physical_qty = physical_qty + VALUES(physical_qty),
+           available_qty = available_qty + VALUES(available_qty),
+           updated_at = NOW()`,
+        [body.storeId, item.skuId, item.totalBottleQty, item.totalBottleQty]
+      );
+    }
+
+    return { returnId: returnResult.insertId as number, returnNo };
+  });
+  res.json(ok(result));
+}));
+
+// 销售退货列表
+adminRouter.get("/sale-returns", requireAuth, asyncHandler(async (req, res) => {
+  const page = Number(req.query.page || 1);
+  const pageSize = Number(req.query.pageSize || 20);
+  const offset = (page - 1) * pageSize;
+  const conditions: string[] = [];
+  const params: unknown[] = [];
+
+  if (req.query.customerId) {
+    conditions.push("customer_id = ?");
+    params.push(Number(req.query.customerId));
+  }
+  if (req.query.returnStatus) {
+    conditions.push("return_status = ?");
+    params.push(req.query.returnStatus);
+  }
+  if (req.query.dateStart) {
+    conditions.push("DATE(created_at) >= ?");
+    params.push(req.query.dateStart);
+  }
+  if (req.query.dateEnd) {
+    conditions.push("DATE(created_at) <= ?");
+    params.push(req.query.dateEnd);
+  }
+
+  const where = conditions.length > 0 ? `WHERE ${conditions.join(" AND ")}` : "";
+  const records = await query<any>(
+    `SELECT id, return_no AS returnNo, source_bill_no AS sourceBillNo,
+            store_id AS storeId, customer_id AS customerId,
+            customer_name AS customerName, customer_mobile AS customerMobile,
+            return_status AS returnStatus,
+            goods_amount AS goodsAmount, discount_amount AS discountAmount,
+            refund_amount AS refundAmount, refunded_amount AS refundedAmount,
+            refund_method AS refundMethod,
+            operator_id AS operatorId, remark, created_at AS createdAt
+     FROM sale_return
+     ${where}
+     ORDER BY created_at DESC
+     LIMIT ? OFFSET ?`,
+    [...params, pageSize, offset]
+  );
+  const totalRow = await queryOne<any>(
+    `SELECT COUNT(*) AS total FROM sale_return ${where}`,
+    params
+  );
+  res.json(ok({ total: totalRow?.total ?? 0, page, pageSize, records }));
+}));
+
+// 销售退货详情
+adminRouter.get("/sale-returns/:id", requireAuth, asyncHandler(async (req, res) => {
+  const returnId = Number(req.params.id);
+  const ret = await queryOne<any>(
+    `SELECT id, return_no AS returnNo, source_bill_no AS sourceBillNo,
+            store_id AS storeId, customer_id AS customerId,
+            customer_name AS customerName, customer_mobile AS customerMobile,
+            return_status AS returnStatus,
+            goods_amount AS goodsAmount, discount_amount AS discountAmount,
+            refund_amount AS refundAmount, refunded_amount AS refundedAmount,
+            refund_method AS refundMethod,
+            operator_id AS operatorId, auditor_id AS auditorId, audited_at AS auditedAt,
+            remark, created_at AS createdAt
+     FROM sale_return WHERE id = ?`,
+    [returnId]
+  );
+  if (!ret) {
+    res.status(404).json({ code: "404", message: "销售退货单不存在" });
+    return;
+  }
+  const items = await query<any>(
+    `SELECT id, return_no AS returnNo, sku_id AS skuId, sku_name AS skuName,
+            box_qty AS boxQty, bottle_qty AS bottleQty, total_bottle_qty AS totalBottleQty,
+            unit_price AS unitPrice, subtotal_amount AS subtotalAmount,
+            reason
+     FROM sale_return_item WHERE return_no = ?`,
+    [ret.returnNo]
+  );
+  res.json(ok({ ...ret, items }));
+}));
+
+// ========== 任务5：客户对账/付款API ==========
+
+// 客户对账单列表
+adminRouter.get("/customer-statements", requireAuth, asyncHandler(async (req, res) => {
+  const page = Number(req.query.page || 1);
+  const pageSize = Number(req.query.pageSize || 20);
+  const offset = (page - 1) * pageSize;
+  const conditions: string[] = [];
+  const params: unknown[] = [];
+
+  if (req.query.customerId) {
+    conditions.push("customer_id = ?");
+    params.push(Number(req.query.customerId));
+  }
+  if (req.query.status) {
+    conditions.push("status = ?");
+    params.push(req.query.status);
+  }
+
+  const where = conditions.length > 0 ? `WHERE ${conditions.join(" AND ")}` : "";
+  const records = await query<any>(
+    `SELECT id, statement_no AS statementNo, customer_id AS customerId,
+            customer_name AS customerName, customer_mobile AS customerMobile,
+            statement_type AS statementType, start_date AS startDate, end_date AS endDate,
+            opening_balance AS openingBalance, total_sales AS totalSales,
+            total_returns AS totalReturns, total_payments AS totalPayments,
+            closing_balance AS closingBalance,
+            status, confirmed_at AS confirmedAt, operator_id AS operatorId,
+            remark, created_at AS createdAt
+     FROM customer_statement
+     ${where}
+     ORDER BY created_at DESC
+     LIMIT ? OFFSET ?`,
+    [...params, pageSize, offset]
+  );
+  const totalRow = await queryOne<any>(
+    `SELECT COUNT(*) AS total FROM customer_statement ${where}`,
+    params
+  );
+  res.json(ok({ total: totalRow?.total ?? 0, page, pageSize, records }));
+}));
+
+// 对账单详情
+adminRouter.get("/customer-statements/:id", requireAuth, asyncHandler(async (req, res) => {
+  const statementId = Number(req.params.id);
+  const statement = await queryOne<any>(
+    `SELECT id, statement_no AS statementNo, customer_id AS customerId,
+            customer_name AS customerName, customer_mobile AS customerMobile,
+            statement_type AS statementType, start_date AS startDate, end_date AS endDate,
+            opening_balance AS openingBalance, total_sales AS totalSales,
+            total_returns AS totalReturns, total_payments AS totalPayments,
+            closing_balance AS closingBalance,
+            status, confirmed_at AS confirmedAt, operator_id AS operatorId,
+            remark, created_at AS createdAt
+     FROM customer_statement WHERE id = ?`,
+    [statementId]
+  );
+  if (!statement) {
+    res.status(404).json({ code: "404", message: "对账单不存在" });
+    return;
+  }
+
+  // 查询对账周期内的销售单
+  const saleBills = await query<any>(
+    `SELECT bill_no AS billNo, receivable_amount AS receivableAmount,
+            received_amount AS receivedAmount, unreceived_amount AS unreceivedAmount,
+            created_at AS createdAt
+     FROM sale_bill
+     WHERE customer_id = ? AND DATE(created_at) >= ? AND DATE(created_at) <= ?
+       AND business_status NOT IN ('DRAFT', 'VOIDED')
+     ORDER BY created_at ASC`,
+    [statement.customerId, statement.startDate, statement.endDate]
+  );
+
+  // 查询对账周期内的退货单
+  const saleReturns = await query<any>(
+    `SELECT return_no AS returnNo, refund_amount AS refundAmount, created_at AS createdAt
+     FROM sale_return
+     WHERE customer_id = ? AND DATE(created_at) >= ? AND DATE(created_at) <= ?
+       AND return_status NOT IN ('VOIDED')
+     ORDER BY created_at ASC`,
+    [statement.customerId, statement.startDate, statement.endDate]
+  );
+
+  // 查询对账周期内的收款记录
+  const payments = await query<any>(
+    `SELECT receipt_no AS receiptNo, amount, payment_method AS paymentMethod,
+            payment_date AS paymentDate, created_at AS createdAt
+     FROM customer_payment
+     WHERE customer_id = ? AND payment_date >= ? AND payment_date <= ?
+       AND status NOT IN ('VOIDED')
+     ORDER BY payment_date ASC`,
+    [statement.customerId, statement.startDate, statement.endDate]
+  );
+
+  res.json(ok({ ...statement, saleBills, saleReturns, payments }));
+}));
+
+// 生成对账单
+adminRouter.post("/customer-statements/generate", requireAuth, asyncHandler(async (req, res) => {
+  const body = z.object({
+    customerId: z.number(),
+    statementType: z.string().default("MONTHLY"),
+    startDate: z.string(),
+    endDate: z.string(),
+    remark: z.string().optional()
+  }).parse(req.body);
+
+  const customer = await queryOne<any>(
+    "SELECT id, name, mobile FROM member WHERE id = ?",
+    [body.customerId]
+  );
+  if (!customer) {
+    res.status(400).json({ code: "400", message: "客户不存在" });
+    return;
+  }
+
+  const result = await transaction(async (conn) => {
+    const statementNo = makeBizNo("DZ");
+
+    // 计算期初余额：该日期之前的未收金额
+    const openingRow = await conn.execute<any>(
+      `SELECT COALESCE(SUM(unreceived_amount), 0) AS balance
+       FROM sale_bill
+       WHERE customer_id = ? AND DATE(created_at) < ?
+         AND business_status NOT IN ('DRAFT', 'VOIDED')`,
+      [body.customerId, body.startDate]
+    );
+    const openingBalance = Number((openingRow as any)[0]?.[0]?.balance ?? 0);
+
+    // 本期销售
+    const salesRow = await conn.execute<any>(
+      `SELECT COALESCE(SUM(receivable_amount), 0) AS total
+       FROM sale_bill
+       WHERE customer_id = ? AND DATE(created_at) >= ? AND DATE(created_at) <= ?
+         AND business_status NOT IN ('DRAFT', 'VOIDED')`,
+      [body.customerId, body.startDate, body.endDate]
+    );
+    const totalSales = Number((salesRow as any)[0]?.[0]?.total ?? 0);
+
+    // 本期退货
+    const returnRow = await conn.execute<any>(
+      `SELECT COALESCE(SUM(refund_amount), 0) AS total
+       FROM sale_return
+       WHERE customer_id = ? AND DATE(created_at) >= ? AND DATE(created_at) <= ?
+         AND return_status NOT IN ('VOIDED')`,
+      [body.customerId, body.startDate, body.endDate]
+    );
+    const totalReturns = Number((returnRow as any)[0]?.[0]?.total ?? 0);
+
+    // 本期收款
+    const paymentRow = await conn.execute<any>(
+      `SELECT COALESCE(SUM(amount), 0) AS total
+       FROM customer_payment
+       WHERE customer_id = ? AND payment_date >= ? AND payment_date <= ?
+         AND status NOT IN ('VOIDED')`,
+      [body.customerId, body.startDate, body.endDate]
+    );
+    const totalPayments = Number((paymentRow as any)[0]?.[0]?.total ?? 0);
+
+    // 期末余额 = 期初 + 本期销售 - 本期退货 - 本期收款
+    const closingBalance = openingBalance + totalSales - totalReturns - totalPayments;
+
+    const [stmtResult] = await conn.execute<any>(
+      `INSERT INTO customer_statement (statement_no, customer_id, customer_name, customer_mobile,
+        statement_type, start_date, end_date,
+        opening_balance, total_sales, total_returns, total_payments, closing_balance,
+        status, operator_id, remark)
+       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'DRAFT', ?, ?)`,
+      [statementNo, body.customerId, customer.name, customer.mobile,
+       body.statementType, body.startDate, body.endDate,
+       openingBalance, totalSales, totalReturns, totalPayments, closingBalance,
+       req.user?.id ?? 0, body.remark ?? null]
+    );
+
+    return {
+      statementId: stmtResult.insertId as number,
+      statementNo,
+      openingBalance,
+      totalSales,
+      totalReturns,
+      totalPayments,
+      closingBalance
+    };
+  });
+  res.json(ok(result));
+}));
+
+// 客户付款记录
+adminRouter.get("/customer-payments", requireAuth, asyncHandler(async (req, res) => {
+  const page = Number(req.query.page || 1);
+  const pageSize = Number(req.query.pageSize || 20);
+  const offset = (page - 1) * pageSize;
+  const conditions: string[] = [];
+  const params: unknown[] = [];
+
+  if (req.query.customerId) {
+    conditions.push("customer_id = ?");
+    params.push(Number(req.query.customerId));
+  }
+  if (req.query.paymentMethod) {
+    conditions.push("payment_method = ?");
+    params.push(req.query.paymentMethod);
+  }
+  if (req.query.dateStart) {
+    conditions.push("payment_date >= ?");
+    params.push(req.query.dateStart);
+  }
+  if (req.query.dateEnd) {
+    conditions.push("payment_date <= ?");
+    params.push(req.query.dateEnd);
+  }
+
+  const where = conditions.length > 0 ? `WHERE ${conditions.join(" AND ")}` : "";
+  const records = await query<any>(
+    `SELECT id, receipt_no AS receiptNo, customer_id AS customerId,
+            customer_name AS customerName, amount,
+            payment_method AS paymentMethod,
+            source_type AS sourceType, source_no AS sourceNo,
+            voucher_no AS voucherNo, payment_date AS paymentDate,
+            operator_id AS operatorId, status, remark, created_at AS createdAt
+     FROM customer_payment
+     ${where}
+     ORDER BY created_at DESC
+     LIMIT ? OFFSET ?`,
+    [...params, pageSize, offset]
+  );
+  const totalRow = await queryOne<any>(
+    `SELECT COUNT(*) AS total FROM customer_payment ${where}`,
+    params
+  );
+  res.json(ok({ total: totalRow?.total ?? 0, page, pageSize, records }));
+}));
+
+// 登记客户付款
+adminRouter.post("/customer-payments", requireAuth, asyncHandler(async (req, res) => {
+  const body = z.object({
+    customerId: z.number(),
+    amount: z.number(),
+    paymentMethod: z.string().default("CASH"),
+    sourceType: z.string().optional(),
+    sourceNo: z.string().optional(),
+    voucherNo: z.string().optional(),
+    paymentDate: z.string(),
+    remark: z.string().optional()
+  }).parse(req.body);
+
+  const customer = await queryOne<any>(
+    "SELECT id, name FROM member WHERE id = ?",
+    [body.customerId]
+  );
+  if (!customer) {
+    res.status(400).json({ code: "400", message: "客户不存在" });
+    return;
+  }
+
+  const result = await transaction(async (conn) => {
+    const receiptNo = makeBizNo("SK");
+
+    const [paymentResult] = await conn.execute<any>(
+      `INSERT INTO customer_payment (receipt_no, customer_id, customer_name, amount,
+        payment_method, source_type, source_no, voucher_no, payment_date,
+        operator_id, status, remark)
+       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'COMPLETED', ?)`,
+      [receiptNo, body.customerId, customer.name, body.amount,
+       body.paymentMethod, body.sourceType ?? null, body.sourceNo ?? null,
+       body.voucherNo ?? null, body.paymentDate,
+       req.user?.id ?? 0, body.remark ?? null]
+    );
+
+    // 更新关联销售单的已收金额
+    if (body.sourceType === "SALE_BILL" && body.sourceNo) {
+      await conn.execute(
+        `UPDATE sale_bill
+         SET received_amount = LEAST(receivable_amount, received_amount + ?),
+             unreceived_amount = GREATEST(0, receivable_amount - received_amount - ?),
+             last_payment_time = NOW(),
+             updated_at = NOW()
+         WHERE bill_no = ?`,
+        [body.amount, body.amount, body.sourceNo]
+      );
+
+      // 更新收款状态
+      await conn.execute(
+        `UPDATE sale_bill
+         SET collection_status = CASE
+           WHEN received_amount + ? >= receivable_amount THEN 'PAID'
+           WHEN received_amount + ? > 0 THEN 'PARTIAL'
+           ELSE collection_status
+           END,
+           updated_at = NOW()
+         WHERE bill_no = ? AND business_status NOT IN ('DRAFT', 'VOIDED')`,
+        [body.amount, body.amount, body.sourceNo]
+      );
+    }
+
+    return {
+      paymentId: paymentResult.insertId as number,
+      receiptNo,
+      customerId: body.customerId,
+      customerName: customer.name,
+      amount: body.amount
+    };
+  });
+  res.json(ok(result));
 }));
 
 adminRouter.post("/members", requireAuth, asyncHandler(async (req, res) => {
@@ -128,7 +585,7 @@ adminRouter.get("/members/:memberId/price-history", requireAuth, asyncHandler(as
     res.json(ok([]));
     return;
   }
-  const prices = records.map((r) => Number(r.unitPrice));
+  const prices = records.map((r: any) => Number(r.unitPrice));
   res.json(ok([{
     skuId,
     skuName: records[0].skuName,
@@ -147,7 +604,9 @@ adminRouter.get("/stores", requireAuth, asyncHandler(async (req, res) => {
   const offset = (page - 1) * pageSize;
   const records = await query<any>(
     `SELECT id, store_code AS storeCode, name, address, contact, phone, delivery_radius AS deliveryRadius,
-            business_status AS businessStatus, status
+            business_status AS businessStatus, status,
+            miniapp_appid AS miniappAppid, wx_merchant_name AS wxMerchantName,
+            wx_service_phone AS wxServicePhone, wx_head_img AS wxHeadImg, wx_qrcode_url AS wxQrcodeUrl
      FROM store
      WHERE name LIKE ? OR store_code LIKE ?
      ORDER BY id DESC
@@ -180,6 +639,108 @@ adminRouter.post("/stores", requireAuth, asyncHandler(async (req, res) => {
   void result;
   const created = await queryOne<any>("SELECT id, store_code AS storeCode, name FROM store WHERE store_code = ?", [storeCode]);
   res.json(ok(created));
+}));
+
+adminRouter.get("/stores/:id", requireAuth, asyncHandler(async (req, res) => {
+  const store = await queryOne<any>(
+    `SELECT id, store_code AS storeCode, name, address, contact, phone, delivery_radius AS deliveryRadius,
+            business_status AS businessStatus, status,
+            miniapp_appid AS miniappAppid, wx_merchant_name AS wxMerchantName,
+            wx_service_phone AS wxServicePhone, wx_head_img AS wxHeadImg, wx_qrcode_url AS wxQrcodeUrl
+     FROM store WHERE id = ?`,
+    [Number(req.params.id)]
+  );
+  if (!store) {
+    res.status(404).json({ code: "1", message: "门店不存在" });
+    return;
+  }
+  res.json(ok(store));
+}));
+
+adminRouter.patch("/stores/:id", requireAuth, asyncHandler(async (req, res) => {
+  const storeId = Number(req.params.id);
+  const existing = await queryOne<any>("SELECT id FROM store WHERE id = ?", [storeId]);
+  if (!existing) {
+    res.status(404).json({ code: "1", message: "门店不存在" });
+    return;
+  }
+
+  const body = req.body;
+  const updates: string[] = [];
+  const params: unknown[] = [];
+
+  if (body.name !== undefined) { updates.push("name = ?"); params.push(body.name); }
+  if (body.address !== undefined) { updates.push("address = ?"); params.push(body.address); }
+  if (body.contact !== undefined) { updates.push("contact = ?"); params.push(body.contact); }
+  if (body.phone !== undefined) { updates.push("phone = ?"); params.push(body.phone); }
+  if (body.deliveryRadius !== undefined) { updates.push("delivery_radius = ?"); params.push(body.deliveryRadius); }
+  if (body.businessStatus !== undefined) { updates.push("business_status = ?"); params.push(body.businessStatus); }
+  if (body.miniappAppid !== undefined) { updates.push("miniapp_appid = ?"); params.push(body.miniappAppid); }
+  if (body.wxMerchantName !== undefined) { updates.push("wx_merchant_name = ?"); params.push(body.wxMerchantName); }
+  if (body.wxServicePhone !== undefined) { updates.push("wx_service_phone = ?"); params.push(body.wxServicePhone); }
+  if (body.wxHeadImg !== undefined) { updates.push("wx_head_img = ?"); params.push(body.wxHeadImg); }
+  if (body.wxQrcodeUrl !== undefined) { updates.push("wx_qrcode_url = ?"); params.push(body.wxQrcodeUrl); }
+
+  if (updates.length > 0) {
+    updates.push("updated_at = NOW()");
+    await query(`UPDATE store SET ${updates.join(", ")} WHERE id = ?`, [...params, storeId]);
+  }
+
+  const store = await queryOne<any>(
+    `SELECT id, store_code AS storeCode, name, address, contact, phone, delivery_radius AS deliveryRadius,
+            business_status AS businessStatus, status,
+            miniapp_appid AS miniappAppid, wx_merchant_name AS wxMerchantName,
+            wx_service_phone AS wxServicePhone, wx_head_img AS wxHeadImg, wx_qrcode_url AS wxQrcodeUrl
+     FROM store WHERE id = ?`,
+    [storeId]
+  );
+  res.json(ok(store));
+}));
+
+adminRouter.post("/stores/:id/fetch-wx-info", requireAuth, asyncHandler(async (req, res) => {
+  const storeId = Number(req.params.id);
+  const store = await queryOne<any>(
+    `SELECT id, name, phone, miniapp_appid AS miniappAppid,
+            wx_merchant_name AS wxMerchantName, wx_service_phone AS wxServicePhone,
+            wx_head_img AS wxHeadImg, wx_qrcode_url AS wxQrcodeUrl
+     FROM store WHERE id = ?`,
+    [storeId]
+  );
+  if (!store) {
+    res.status(404).json({ code: "1", message: "门店不存在" });
+    return;
+  }
+
+  const appid = store.miniappAppid;
+  if (!appid) {
+    res.status(400).json({ code: "1", message: "请先设置小程序 AppID" });
+    return;
+  }
+
+  // 模拟通过微信 API 根据 appid 拉取商户信息
+  // 真实环境需要调用微信开放平台 API：https://open.weixin.qq.com
+  // 需要配置 access_token 和对应的 API secret
+  const mockWxInfo = {
+    merchantName: store.name || "未命名商户",
+    servicePhone: store.phone || "400-000-0000",
+    headImg: "https://thirdwx.qlogo.cn/mmopen/test/132",
+    qrcodeUrl: `https://mp.weixin.qq.com/a/~${appid}~`
+  };
+
+  // 更新到数据库
+  await query(
+    `UPDATE store SET wx_merchant_name = ?, wx_service_phone = ?, wx_head_img = ?, wx_qrcode_url = ?, updated_at = NOW()
+     WHERE id = ?`,
+    [mockWxInfo.merchantName, mockWxInfo.servicePhone, mockWxInfo.headImg, mockWxInfo.qrcodeUrl, storeId]
+  );
+
+  res.json(ok({
+    miniappAppid: appid,
+    wxMerchantName: mockWxInfo.merchantName,
+    wxServicePhone: mockWxInfo.servicePhone,
+    wxHeadImg: mockWxInfo.headImg,
+    wxQrcodeUrl: mockWxInfo.qrcodeUrl
+  }));
 }));
 
 adminRouter.get("/products", requireAuth, asyncHandler(async (req, res) => {
@@ -450,7 +1011,7 @@ adminRouter.get("/orders/export.csv", requireAuth, asyncHandler(async (req, res)
   );
   const escapeCsv = (value: unknown) => `"${String(value ?? "").replace(/"/g, '""')}"`;
   const header = ["订单号", "门店ID", "客户类型", "履约方式", "订单状态", "支付状态", "金额", "收货人", "手机号", "创建时间"];
-  const rows = records.map((row) => [
+  const rows = records.map((row: any) => [
     row.orderNo,
     row.storeId,
     row.customerType,
@@ -637,4 +1198,1111 @@ adminRouter.get("/inventory/alerts", requireAuth, asyncHandler(async (_req, res)
      ORDER BY ib.available_qty ASC, ib.store_id`
   );
   res.json(ok(records));
+}));
+
+// ========== 任务1：供应商管理全套API ==========
+
+// 供应商列表（支持筛选：类型/评级/合作状态/负责采购员）
+adminRouter.get("/suppliers", requireAuth, asyncHandler(async (req, res) => {
+  const page = Number(req.query.page || 1);
+  const pageSize = Number(req.query.pageSize || 20);
+  const offset = (page - 1) * pageSize;
+  const keyword = `%${String(req.query.keyword || "")}%`;
+  const conditions: string[] = [];
+  const params: unknown[] = [];
+
+  if (req.query.keyword) {
+    conditions.push("(s.name LIKE ? OR s.supplier_code LIKE ? OR s.short_name LIKE ?)");
+    params.push(keyword, keyword, keyword);
+  }
+  if (req.query.category) {
+    conditions.push("s.category = ?");
+    params.push(req.query.category);
+  }
+  if (req.query.creditLevel) {
+    conditions.push("s.credit_level = ?");
+    params.push(req.query.creditLevel);
+  }
+  if (req.query.status !== undefined && req.query.status !== "") {
+    conditions.push("s.status = ?");
+    params.push(Number(req.query.status));
+  }
+
+  const where = conditions.length > 0 ? `WHERE ${conditions.join(" AND ")}` : "";
+  const records = await query<any>(
+    `SELECT s.id AS supplierId, s.supplier_code AS supplierCode, s.name, s.short_name AS shortName,
+            s.category, s.province, s.city, s.district, s.address,
+            s.credit_level AS creditLevel, s.settlement_type AS settlementType,
+            s.settlement_day AS settlementDay, s.tax_rate AS taxRate,
+            s.bank_name AS bankName, s.bank_account AS bankAccount, s.bank_account_name AS bankAccountName,
+            s.status, s.remark, s.created_at AS createdAt, s.updated_at AS updatedAt
+     FROM supplier s
+     ${where}
+     ORDER BY s.id DESC
+     LIMIT ? OFFSET ?`,
+    [...params, pageSize, offset]
+  );
+  const totalRow = await queryOne<any>(
+    `SELECT COUNT(*) AS total FROM supplier s ${where}`,
+    params
+  );
+  res.json(ok({ total: totalRow?.total ?? 0, page, pageSize, records }));
+}));
+
+// 供应商详情（包含联系人和绩效评估数据）
+adminRouter.get("/suppliers/:id", requireAuth, asyncHandler(async (req, res) => {
+  const supplierId = Number(req.params.id);
+  const supplier = await queryOne<any>(
+    `SELECT id AS supplierId, supplier_code AS supplierCode, name, short_name AS shortName,
+            category, province, city, district, address,
+            credit_level AS creditLevel, settlement_type AS settlementType,
+            settlement_day AS settlementDay, tax_rate AS taxRate,
+            bank_name AS bankName, bank_account AS bankAccount, bank_account_name AS bankAccountName,
+            status, remark, created_at AS createdAt, updated_at AS updatedAt
+     FROM supplier WHERE id = ?`,
+    [supplierId]
+  );
+  if (!supplier) {
+    res.status(404).json({ code: "404", message: "供应商不存在" });
+    return;
+  }
+  const contacts = await query<any>(
+    `SELECT id AS contactId, supplier_id AS supplierId, name, mobile, phone, email, wechat,
+            is_primary AS isPrimary, position, remark, created_at AS createdAt
+     FROM supplier_contact WHERE supplier_id = ? ORDER BY is_primary DESC, id ASC`,
+    [supplierId]
+  );
+  res.json(ok({ ...supplier, contacts }));
+}));
+
+// 新增供应商
+adminRouter.post("/suppliers", requireAuth, asyncHandler(async (req, res) => {
+  const body = z.object({
+    name: z.string(),
+    shortName: z.string().optional(),
+    category: z.string().optional(),
+    province: z.string().optional(),
+    city: z.string().optional(),
+    district: z.string().optional(),
+    address: z.string().optional(),
+    creditLevel: z.string().default("B"),
+    settlementType: z.string().default("CASH"),
+    settlementDay: z.number().nullable().optional(),
+    taxRate: z.number().default(0),
+    bankName: z.string().optional(),
+    bankAccount: z.string().optional(),
+    bankAccountName: z.string().optional(),
+    remark: z.string().optional(),
+    contacts: z.array(z.object({
+      name: z.string(),
+      mobile: z.string().optional(),
+      phone: z.string().optional(),
+      email: z.string().optional(),
+      wechat: z.string().optional(),
+      isPrimary: z.boolean().default(false),
+      position: z.string().optional(),
+      remark: z.string().optional()
+    })).optional()
+  }).parse(req.body);
+
+  const result = await transaction(async (conn) => {
+    const supplierCode = makeBizNo("GYS");
+    const [supplierResult] = await conn.execute<any>(
+      `INSERT INTO supplier (supplier_code, name, short_name, category, province, city, district, address,
+        credit_level, settlement_type, settlement_day, tax_rate, bank_name, bank_account, bank_account_name, remark)
+       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+      [supplierCode, body.name, body.shortName ?? null, body.category ?? null,
+       body.province ?? null, body.city ?? null, body.district ?? null, body.address ?? null,
+       body.creditLevel, body.settlementType, body.settlementDay ?? null, body.taxRate,
+       body.bankName ?? null, body.bankAccount ?? null, body.bankAccountName ?? null, body.remark ?? null]
+    );
+    const supplierId = supplierResult.insertId as number;
+
+    if (body.contacts && body.contacts.length > 0) {
+      for (const contact of body.contacts) {
+        await conn.execute(
+          `INSERT INTO supplier_contact (supplier_id, name, mobile, phone, email, wechat, is_primary, position, remark)
+           VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+          [supplierId, contact.name, contact.mobile ?? null, contact.phone ?? null,
+           contact.email ?? null, contact.wechat ?? null, contact.isPrimary ? 1 : 0,
+           contact.position ?? null, contact.remark ?? null]
+        );
+      }
+    }
+    return { supplierId, supplierCode };
+  });
+  res.json(ok(result));
+}));
+
+// 修改供应商
+adminRouter.put("/suppliers/:id", requireAuth, asyncHandler(async (req, res) => {
+  const supplierId = Number(req.params.id);
+  const existing = await queryOne<any>("SELECT id FROM supplier WHERE id = ?", [supplierId]);
+  if (!existing) {
+    res.status(404).json({ code: "404", message: "供应商不存在" });
+    return;
+  }
+
+  const body = z.object({
+    name: z.string().optional(),
+    shortName: z.string().optional(),
+    category: z.string().optional(),
+    province: z.string().optional(),
+    city: z.string().optional(),
+    district: z.string().optional(),
+    address: z.string().optional(),
+    creditLevel: z.string().optional(),
+    settlementType: z.string().optional(),
+    settlementDay: z.number().nullable().optional(),
+    taxRate: z.number().optional(),
+    bankName: z.string().optional(),
+    bankAccount: z.string().optional(),
+    bankAccountName: z.string().optional(),
+    status: z.number().optional(),
+    remark: z.string().optional()
+  }).parse(req.body);
+
+  const updates: string[] = [];
+  const params: unknown[] = [];
+  const fieldMap: Record<string, string> = {
+    name: "name", shortName: "short_name", category: "category",
+    province: "province", city: "city", district: "district", address: "address",
+    creditLevel: "credit_level", settlementType: "settlement_type",
+    settlementDay: "settlement_day", taxRate: "tax_rate",
+    bankName: "bank_name", bankAccount: "bank_account", bankAccountName: "bank_account_name",
+    status: "status", remark: "remark"
+  };
+
+  for (const [key, col] of Object.entries(fieldMap)) {
+    if ((body as any)[key] !== undefined) {
+      updates.push(`${col} = ?`);
+      params.push((body as any)[key]);
+    }
+  }
+  if (updates.length > 0) {
+    updates.push("updated_at = NOW()");
+    await query(`UPDATE supplier SET ${updates.join(", ")} WHERE id = ?`, [...params, supplierId]);
+  }
+
+  const supplier = await queryOne<any>(
+    `SELECT id AS supplierId, supplier_code AS supplierCode, name, short_name AS shortName,
+            category, province, city, district, address,
+            credit_level AS creditLevel, settlement_type AS settlementType,
+            settlement_day AS settlementDay, tax_rate AS taxRate,
+            bank_name AS bankName, bank_account AS bankAccount, bank_account_name AS bankAccountName,
+            status, remark, created_at AS createdAt, updated_at AS updatedAt
+     FROM supplier WHERE id = ?`,
+    [supplierId]
+  );
+  res.json(ok(supplier));
+}));
+
+// 删除供应商
+adminRouter.delete("/suppliers/:id", requireAuth, asyncHandler(async (req, res) => {
+  const supplierId = Number(req.params.id);
+  const existing = await queryOne<any>("SELECT id, name FROM supplier WHERE id = ?", [supplierId]);
+  if (!existing) {
+    res.status(404).json({ code: "404", message: "供应商不存在" });
+    return;
+  }
+  // 检查是否有关联采购订单
+  const orderCount = await queryOne<any>("SELECT COUNT(*) AS cnt FROM purchase_order WHERE supplier_id = ?", [supplierId]);
+  if (Number(orderCount?.cnt ?? 0) > 0) {
+    res.status(400).json({ code: "400", message: "该供应商存在关联采购订单，无法删除" });
+    return;
+  }
+  await query("DELETE FROM supplier_contact WHERE supplier_id = ?", [supplierId]);
+  await query("DELETE FROM supplier WHERE id = ?", [supplierId]);
+  res.json(ok({ supplierId, name: existing.name }));
+}));
+
+// 该供应商的采购订单
+adminRouter.get("/suppliers/:id/purchase-orders", requireAuth, asyncHandler(async (req, res) => {
+  const supplierId = Number(req.params.id);
+  const page = Number(req.query.page || 1);
+  const pageSize = Number(req.query.pageSize || 20);
+  const offset = (page - 1) * pageSize;
+  const records = await query<any>(
+    `SELECT id, order_no AS orderNo, supplier_id AS supplierId, supplier_name AS supplierName,
+            store_id AS storeId, order_status AS orderStatus,
+            goods_amount AS goodsAmount, tax_amount AS taxAmount,
+            discount_amount AS discountAmount, payable_amount AS payableAmount,
+            paid_amount AS paidAmount, unpaid_amount AS unpaidAmount,
+            expected_date AS expectedDate, actual_date AS actualDate,
+            created_at AS createdAt
+     FROM purchase_order
+     WHERE supplier_id = ?
+     ORDER BY created_at DESC
+     LIMIT ? OFFSET ?`,
+    [supplierId, pageSize, offset]
+  );
+  const totalRow = await queryOne<any>("SELECT COUNT(*) AS total FROM purchase_order WHERE supplier_id = ?", [supplierId]);
+  res.json(ok({ total: totalRow?.total ?? 0, page, pageSize, records }));
+}));
+
+// 该供应商的付款记录
+adminRouter.get("/suppliers/:id/payments", requireAuth, asyncHandler(async (req, res) => {
+  const supplierId = Number(req.params.id);
+  const page = Number(req.query.page || 1);
+  const pageSize = Number(req.query.pageSize || 20);
+  const offset = (page - 1) * pageSize;
+  const records = await query<any>(
+    `SELECT id, payment_no AS paymentNo, supplier_id AS supplierId, supplier_name AS supplierName,
+            payment_type AS paymentType, source_type AS sourceType, source_no AS sourceNo,
+            amount, payment_method AS paymentMethod,
+            bank_account AS bankAccount, bank_account_name AS bankAccountName, bank_name AS bankName,
+            voucher_no AS voucherNo, payment_date AS paymentDate,
+            status, remark, created_at AS createdAt
+     FROM purchase_payment
+     WHERE supplier_id = ?
+     ORDER BY created_at DESC
+     LIMIT ? OFFSET ?`,
+    [supplierId, pageSize, offset]
+  );
+  const totalRow = await queryOne<any>("SELECT COUNT(*) AS total FROM purchase_payment WHERE supplier_id = ?", [supplierId]);
+  res.json(ok({ total: totalRow?.total ?? 0, page, pageSize, records }));
+}));
+
+// 该供应商供货的商品列表
+adminRouter.get("/suppliers/:id/products", requireAuth, asyncHandler(async (req, res) => {
+  const supplierId = Number(req.params.id);
+  const records = await query<any>(
+    `SELECT DISTINCT poi.sku_id AS skuId, poi.sku_name AS skuName, poi.barcode,
+            poi.unit_price AS lastPrice, poi.tax_rate AS taxRate
+     FROM purchase_order_item poi
+     JOIN purchase_order po ON po.order_no = poi.order_no
+     WHERE po.supplier_id = ?
+     ORDER BY poi.sku_name`,
+    [supplierId]
+  );
+  res.json(ok({ records }));
+}));
+
+// 供应商绩效统计
+adminRouter.get("/suppliers/:id/stats", requireAuth, asyncHandler(async (req, res) => {
+  const supplierId = Number(req.params.id);
+  // 准时交付率：在预计到货日期前完成入库的订单比例
+  const deliveryStats = await queryOne<any>(
+    `SELECT
+        COUNT(*) AS totalOrders,
+        SUM(CASE WHEN actual_date IS NOT NULL AND actual_date <= expected_date THEN 1 ELSE 0 END) AS onTimeOrders,
+        SUM(CASE WHEN actual_date IS NOT NULL AND actual_date > expected_date THEN 1 ELSE 0 END) AS lateOrders
+     FROM purchase_order
+     WHERE supplier_id = ? AND order_status IN ('COMPLETED', 'PARTIAL')`,
+    [supplierId]
+  );
+  const totalOrders = Number(deliveryStats?.totalOrders ?? 0);
+  const onTimeOrders = Number(deliveryStats?.onTimeOrders ?? 0);
+  const onTimeRate = totalOrders > 0 ? Math.round((onTimeOrders / totalOrders) * 10000) / 100 : 0;
+
+  // 采购金额统计
+  const amountStats = await queryOne<any>(
+    `SELECT
+        COALESCE(SUM(payable_amount), 0) AS totalAmount,
+        COALESCE(SUM(paid_amount), 0) AS paidAmount,
+        COALESCE(SUM(unpaid_amount), 0) AS unpaidAmount
+     FROM purchase_order
+     WHERE supplier_id = ? AND order_status NOT IN ('DRAFT', 'CANCELLED')`,
+    [supplierId]
+  );
+
+  // 退货金额统计
+  const returnStats = await queryOne<any>(
+    `SELECT COUNT(*) AS returnCount, COALESCE(SUM(total_amount), 0) AS returnAmount
+     FROM purchase_return
+     WHERE supplier_id = ? AND return_status NOT IN ('VOIDED')`,
+    [supplierId]
+  );
+
+  // 采购次数
+  const orderCount = await queryOne<any>(
+    `SELECT COUNT(*) AS cnt FROM purchase_order WHERE supplier_id = ? AND order_status NOT IN ('DRAFT', 'CANCELLED')`,
+    [supplierId]
+  );
+
+  res.json(ok({
+    supplierId,
+    onTimeRate,
+    totalOrders,
+    onTimeOrders,
+    lateOrders: Number(deliveryStats?.lateOrders ?? 0),
+    totalAmount: Number(amountStats?.totalAmount ?? 0),
+    paidAmount: Number(amountStats?.paidAmount ?? 0),
+    unpaidAmount: Number(amountStats?.unpaidAmount ?? 0),
+    returnCount: Number(returnStats?.returnCount ?? 0),
+    returnAmount: Number(returnStats?.returnAmount ?? 0),
+    orderCount: Number(orderCount?.cnt ?? 0)
+  }));
+}));
+
+// ========== 任务3：客户管理API深度扩展 ==========
+
+// 该客户的销售单列表
+adminRouter.get("/members/:memberId/sale-bills", requireAuth, asyncHandler(async (req, res) => {
+  const memberId = Number(req.params.memberId);
+  const page = Number(req.query.page || 1);
+  const pageSize = Number(req.query.pageSize || 20);
+  const offset = (page - 1) * pageSize;
+  const records = await query<any>(
+    `SELECT bill_no AS billNo, store_id AS storeId, customer_name AS customerName,
+            customer_mobile AS customerMobile, customer_type AS customerType,
+            receivable_amount AS receivableAmount, received_amount AS receivedAmount,
+            unreceived_amount AS unreceivedAmount,
+            collection_status AS collectionStatus, business_status AS businessStatus,
+            created_at AS createdAt
+     FROM sale_bill
+     WHERE customer_id = ?
+     ORDER BY created_at DESC
+     LIMIT ? OFFSET ?`,
+    [memberId, pageSize, offset]
+  );
+  const totalRow = await queryOne<any>("SELECT COUNT(*) AS total FROM sale_bill WHERE customer_id = ?", [memberId]);
+  res.json(ok({ total: totalRow?.total ?? 0, page, pageSize, records }));
+}));
+
+// 该客户的回款记录
+adminRouter.get("/members/:memberId/payments", requireAuth, asyncHandler(async (req, res) => {
+  const memberId = Number(req.params.memberId);
+  const page = Number(req.query.page || 1);
+  const pageSize = Number(req.query.pageSize || 20);
+  const offset = (page - 1) * pageSize;
+
+  // 从 sale_payment 和 customer_payment 两张表汇总
+  const salePayments = await query<any>(
+    `SELECT id, receipt_no AS receiptNo, source_type AS sourceType, source_no AS sourceNo,
+            customer_id AS customerId, customer_name AS customerName,
+            amount, payment_method AS paymentMethod,
+            voucher_no AS voucherNo, payment_date AS paymentDate,
+            status, remark, created_at AS createdAt, 'SALE_PAYMENT' AS paymentTable
+     FROM sale_payment
+     WHERE customer_id = ?
+     UNION ALL
+     SELECT id, receipt_no AS receiptNo, source_type AS sourceType, source_no AS sourceNo,
+            customer_id AS customerId, customer_name AS customerName,
+            amount, payment_method AS paymentMethod,
+            voucher_no AS voucherNo, payment_date AS paymentDate,
+            status, remark, created_at AS createdAt, 'CUSTOMER_PAYMENT' AS paymentTable
+     FROM customer_payment
+     WHERE customer_id = ?
+     ORDER BY created_at DESC
+     LIMIT ? OFFSET ?`,
+    [memberId, memberId, pageSize, offset]
+  );
+  const totalRow = await queryOne<any>(
+    `SELECT
+        (SELECT COUNT(*) FROM sale_payment WHERE customer_id = ?) +
+        (SELECT COUNT(*) FROM customer_payment WHERE customer_id = ?) AS total`,
+    [memberId, memberId]
+  );
+  res.json(ok({ total: totalRow?.total ?? 0, page, pageSize, records: salePayments }));
+}));
+
+// 该客户的往来账务流水
+adminRouter.get("/members/:memberId/statements", requireAuth, asyncHandler(async (req, res) => {
+  const memberId = Number(req.params.memberId);
+  const page = Number(req.query.page || 1);
+  const pageSize = Number(req.query.pageSize || 20);
+  const offset = (page - 1) * pageSize;
+
+  const records = await query<any>(
+    `SELECT id, statement_no AS statementNo, customer_id AS customerId, customer_name AS customerName,
+            statement_type AS statementType, start_date AS startDate, end_date AS endDate,
+            opening_balance AS openingBalance, total_sales AS totalSales,
+            total_returns AS totalReturns, total_payments AS totalPayments,
+            closing_balance AS closingBalance,
+            status, confirmed_at AS confirmedAt, created_at AS createdAt
+     FROM customer_statement
+     WHERE customer_id = ?
+     ORDER BY created_at DESC
+     LIMIT ? OFFSET ?`,
+    [memberId, pageSize, offset]
+  );
+  const totalRow = await queryOne<any>(
+    "SELECT COUNT(*) AS total FROM customer_statement WHERE customer_id = ?",
+    [memberId]
+  );
+  res.json(ok({ total: totalRow?.total ?? 0, page, pageSize, records }));
+}));
+
+// 该客户的购买统计
+adminRouter.get("/members/:memberId/stats", requireAuth, asyncHandler(async (req, res) => {
+  const memberId = Number(req.params.memberId);
+
+  // 订单数和金额
+  const billStats = await queryOne<any>(
+    `SELECT COUNT(*) AS billCount,
+            COALESCE(SUM(receivable_amount), 0) AS totalAmount,
+            COALESCE(SUM(received_amount), 0) AS receivedAmount,
+            COALESCE(SUM(unreceived_amount), 0) AS unpaidAmount
+     FROM sale_bill
+     WHERE customer_id = ? AND business_status NOT IN ('DRAFT', 'VOIDED')`,
+    [memberId]
+  );
+
+  // TOP商品（按购买瓶数排序）
+  const topProducts = await query<any>(
+    `SELECT sbi.sku_id AS skuId, sbi.sku_name AS skuName,
+            SUM(sbi.total_bottle_qty) AS totalQty,
+            SUM(sbi.subtotal_amount) AS totalAmount
+     FROM sale_bill_item sbi
+     JOIN sale_bill sb ON sb.bill_no = sbi.bill_no
+     WHERE sb.customer_id = ? AND sb.business_status NOT IN ('DRAFT', 'VOIDED')
+     GROUP BY sbi.sku_id, sbi.sku_name
+     ORDER BY totalQty DESC
+     LIMIT 10`,
+    [memberId]
+  );
+
+  // 最近下单时间
+  const lastOrder = await queryOne<any>(
+    `SELECT MAX(created_at) AS lastOrderAt FROM sale_bill WHERE customer_id = ? AND business_status NOT IN ('DRAFT', 'VOIDED')`,
+    [memberId]
+  );
+
+  res.json(ok({
+    memberId,
+    billCount: Number(billStats?.billCount ?? 0),
+    totalAmount: Number(billStats?.totalAmount ?? 0),
+    receivedAmount: Number(billStats?.receivedAmount ?? 0),
+    unpaidAmount: Number(billStats?.unpaidAmount ?? 0),
+    lastOrderAt: lastOrder?.lastOrderAt ?? null,
+    topProducts
+  }));
+}));
+
+// 客户列表统计
+adminRouter.get("/members/stats", requireAuth, asyncHandler(async (_req, res) => {
+  // 总数
+  const totalRow = await queryOne<any>("SELECT COUNT(*) AS total FROM member WHERE status = 1");
+  // 本月新增
+  const newMonthRow = await queryOne<any>(
+    "SELECT COUNT(*) AS cnt FROM member WHERE status = 1 AND DATE_FORMAT(created_at, '%Y-%m') = DATE_FORMAT(NOW(), '%Y-%m')"
+  );
+  // 活跃数（最近30天有销售单）
+  const activeRow = await queryOne<any>(
+    `SELECT COUNT(DISTINCT customer_id) AS cnt
+     FROM sale_bill
+     WHERE customer_id IS NOT NULL
+       AND business_status NOT IN ('DRAFT', 'VOIDED')
+       AND created_at >= DATE_SUB(NOW(), INTERVAL 30 DAY)`
+  );
+  // 欠款数（有未收金额的客户数）
+  const debtRow = await queryOne<any>(
+    `SELECT COUNT(DISTINCT customer_id) AS cnt
+     FROM sale_bill
+     WHERE customer_id IS NOT NULL
+       AND unreceived_amount > 0
+       AND business_status NOT IN ('DRAFT', 'VOIDED')`
+  );
+  // 总应收
+  const receivableRow = await queryOne<any>(
+    `SELECT COALESCE(SUM(unreceived_amount), 0) AS total
+     FROM sale_bill
+     WHERE customer_id IS NOT NULL
+       AND unreceived_amount > 0
+       AND business_status NOT IN ('DRAFT', 'VOIDED')`
+  );
+
+  res.json(ok({
+    total: Number(totalRow?.total ?? 0),
+    newThisMonth: Number(newMonthRow?.cnt ?? 0),
+    activeCount: Number(activeRow?.cnt ?? 0),
+    debtCount: Number(debtRow?.cnt ?? 0),
+    totalReceivable: Number(receivableRow?.total ?? 0)
+  }));
+}));
+
+// ========== 任务2：采购管理全套API ==========
+
+// 采购订单列表（支持筛选：日期/供应商/采购员/状态）
+adminRouter.get("/purchase-orders", requireAuth, asyncHandler(async (req, res) => {
+  const page = Number(req.query.page || 1);
+  const pageSize = Number(req.query.pageSize || 20);
+  const offset = (page - 1) * pageSize;
+  const conditions: string[] = [];
+  const params: unknown[] = [];
+
+  if (req.query.supplierId) {
+    conditions.push("supplier_id = ?");
+    params.push(Number(req.query.supplierId));
+  }
+  if (req.query.orderStatus) {
+    conditions.push("order_status = ?");
+    params.push(req.query.orderStatus);
+  }
+  if (req.query.operatorId) {
+    conditions.push("operator_id = ?");
+    params.push(Number(req.query.operatorId));
+  }
+  if (req.query.dateStart) {
+    conditions.push("DATE(created_at) >= ?");
+    params.push(req.query.dateStart);
+  }
+  if (req.query.dateEnd) {
+    conditions.push("DATE(created_at) <= ?");
+    params.push(req.query.dateEnd);
+  }
+
+  const where = conditions.length > 0 ? `WHERE ${conditions.join(" AND ")}` : "";
+  const records = await query<any>(
+    `SELECT id, order_no AS orderNo, supplier_id AS supplierId, supplier_name AS supplierName,
+            store_id AS storeId, order_status AS orderStatus,
+            goods_amount AS goodsAmount, tax_amount AS taxAmount,
+            discount_amount AS discountAmount, payable_amount AS payableAmount,
+            paid_amount AS paidAmount, unpaid_amount AS unpaidAmount,
+            expected_date AS expectedDate, actual_date AS actualDate,
+            operator_id AS operatorId, auditor_id AS auditorId,
+            remark, created_at AS createdAt, updated_at AS updatedAt
+     FROM purchase_order
+     ${where}
+     ORDER BY created_at DESC
+     LIMIT ? OFFSET ?`,
+    [...params, pageSize, offset]
+  );
+  const totalRow = await queryOne<any>(
+    `SELECT COUNT(*) AS total FROM purchase_order ${where}`,
+    params
+  );
+  res.json(ok({ total: totalRow?.total ?? 0, page, pageSize, records }));
+}));
+
+// 采购订单详情（含明细）
+adminRouter.get("/purchase-orders/:id", requireAuth, asyncHandler(async (req, res) => {
+  const orderId = Number(req.params.id);
+  const order = await queryOne<any>(
+    `SELECT id, order_no AS orderNo, supplier_id AS supplierId, supplier_name AS supplierName,
+            store_id AS storeId, order_status AS orderStatus,
+            goods_amount AS goodsAmount, tax_amount AS taxAmount,
+            discount_amount AS discountAmount, payable_amount AS payableAmount,
+            paid_amount AS paidAmount, unpaid_amount AS unpaidAmount,
+            expected_date AS expectedDate, actual_date AS actualDate,
+            operator_id AS operatorId, auditor_id AS auditorId, audited_at AS auditedAt,
+            remark, created_at AS createdAt, updated_at AS updatedAt
+     FROM purchase_order WHERE id = ?`,
+    [orderId]
+  );
+  if (!order) {
+    res.status(404).json({ code: "404", message: "采购订单不存在" });
+    return;
+  }
+  const items = await query<any>(
+    `SELECT id, order_no AS orderNo, sku_id AS skuId, sku_name AS skuName, barcode,
+            box_qty AS boxQty, bottle_qty AS bottleQty, total_bottle_qty AS totalBottleQty,
+            unit_price AS unitPrice, tax_rate AS taxRate,
+            subtotal_amount AS subtotalAmount, tax_amount AS taxAmount, total_amount AS totalAmount,
+            in_stocked_qty AS inStockedQty, remark
+     FROM purchase_order_item WHERE order_no = ?`,
+    [order.orderNo]
+  );
+  res.json(ok({ ...order, items }));
+}));
+
+// 新建采购订单
+adminRouter.post("/purchase-orders", requireAuth, asyncHandler(async (req, res) => {
+  const body = z.object({
+    supplierId: z.number(),
+    storeId: z.number(),
+    expectedDate: z.string().optional(),
+    remark: z.string().optional(),
+    items: z.array(z.object({
+      skuId: z.number(),
+      skuName: z.string(),
+      barcode: z.string().optional(),
+      boxQty: z.number().default(0),
+      bottleQty: z.number().default(0),
+      totalBottleQty: z.number(),
+      unitPrice: z.number(),
+      taxRate: z.number().default(0),
+      remark: z.string().optional()
+    })).min(1)
+  }).parse(req.body);
+
+  // 获取供应商信息
+  const supplier = await queryOne<any>("SELECT id, name, tax_rate FROM supplier WHERE id = ?", [body.supplierId]);
+  if (!supplier) {
+    res.status(400).json({ code: "400", message: "供应商不存在" });
+    return;
+  }
+
+  const result = await transaction(async (conn) => {
+    const orderNo = makeBizNo("CG");
+    let goodsAmount = 0;
+    let taxAmount = 0;
+
+    for (const item of body.items) {
+      const subtotal = item.totalBottleQty * item.unitPrice;
+      const tax = subtotal * (item.taxRate || 0);
+      goodsAmount += subtotal;
+      taxAmount += tax;
+    }
+
+    const payableAmount = goodsAmount + taxAmount;
+
+    const [orderResult] = await conn.execute<any>(
+      `INSERT INTO purchase_order (order_no, supplier_id, supplier_name, store_id, order_status,
+        goods_amount, tax_amount, discount_amount, payable_amount, paid_amount, unpaid_amount,
+        expected_date, operator_id, remark)
+       VALUES (?, ?, ?, ?, 'DRAFT', ?, ?, 0, ?, 0, ?, ?, ?, ?)`,
+      [orderNo, body.supplierId, supplier.name, body.storeId,
+       goodsAmount, taxAmount, payableAmount, payableAmount,
+       body.expectedDate ?? null, req.user?.id ?? 0, body.remark ?? null]
+    );
+
+    for (const item of body.items) {
+      const subtotal = item.totalBottleQty * item.unitPrice;
+      const tax = subtotal * (item.taxRate || 0);
+      const total = subtotal + tax;
+      await conn.execute(
+        `INSERT INTO purchase_order_item (order_no, sku_id, sku_name, barcode, box_qty, bottle_qty,
+          total_bottle_qty, unit_price, tax_rate, subtotal_amount, tax_amount, total_amount, remark)
+         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+        [orderNo, item.skuId, item.skuName, item.barcode ?? null,
+         item.boxQty, item.bottleQty, item.totalBottleQty,
+         item.unitPrice, item.taxRate, subtotal, tax, total, item.remark ?? null]
+      );
+    }
+
+    return { orderId: orderResult.insertId as number, orderNo };
+  });
+  res.json(ok(result));
+}));
+
+// 修改采购订单
+adminRouter.put("/purchase-orders/:id", requireAuth, asyncHandler(async (req, res) => {
+  const orderId = Number(req.params.id);
+  const existing = await queryOne<any>(
+    `SELECT id, order_no AS orderNo, order_status AS orderStatus FROM purchase_order WHERE id = ?`,
+    [orderId]
+  );
+  if (!existing) {
+    res.status(404).json({ code: "404", message: "采购订单不存在" });
+    return;
+  }
+  if (!["DRAFT", "PENDING"].includes(existing.orderStatus)) {
+    res.status(400).json({ code: "400", message: "当前状态不允许修改" });
+    return;
+  }
+
+  const body = z.object({
+    expectedDate: z.string().optional(),
+    remark: z.string().optional(),
+    items: z.array(z.object({
+      skuId: z.number(),
+      skuName: z.string(),
+      barcode: z.string().optional(),
+      boxQty: z.number().default(0),
+      bottleQty: z.number().default(0),
+      totalBottleQty: z.number(),
+      unitPrice: z.number(),
+      taxRate: z.number().default(0),
+      remark: z.string().optional()
+    })).optional()
+  }).parse(req.body);
+
+  await transaction(async (conn) => {
+    const updates: string[] = [];
+    const params: unknown[] = [];
+
+    if (body.expectedDate !== undefined) {
+      updates.push("expected_date = ?");
+      params.push(body.expectedDate);
+    }
+    if (body.remark !== undefined) {
+      updates.push("remark = ?");
+      params.push(body.remark);
+    }
+
+    // 如果传了items则重新计算金额
+    if (body.items && body.items.length > 0) {
+      let goodsAmount = 0;
+      let taxAmount = 0;
+      for (const item of body.items) {
+        const subtotal = item.totalBottleQty * item.unitPrice;
+        const tax = subtotal * (item.taxRate || 0);
+        goodsAmount += subtotal;
+        taxAmount += tax;
+      }
+      const payableAmount = goodsAmount + taxAmount;
+      updates.push("goods_amount = ?", "tax_amount = ?", "payable_amount = ?", "unpaid_amount = ?");
+      params.push(goodsAmount, taxAmount, payableAmount, payableAmount);
+
+      // 删除旧明细，重新插入
+      await conn.execute("DELETE FROM purchase_order_item WHERE order_no = ?", [existing.orderNo]);
+      for (const item of body.items) {
+        const subtotal = item.totalBottleQty * item.unitPrice;
+        const tax = subtotal * (item.taxRate || 0);
+        const total = subtotal + tax;
+        await conn.execute(
+          `INSERT INTO purchase_order_item (order_no, sku_id, sku_name, barcode, box_qty, bottle_qty,
+            total_bottle_qty, unit_price, tax_rate, subtotal_amount, tax_amount, total_amount, remark)
+           VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+          [existing.orderNo, item.skuId, item.skuName, item.barcode ?? null,
+           item.boxQty, item.bottleQty, item.totalBottleQty,
+           item.unitPrice, item.taxRate, subtotal, tax, total, item.remark ?? null]
+        );
+      }
+    }
+
+    if (updates.length > 0) {
+      updates.push("updated_at = NOW()");
+      await conn.execute({ sql: `UPDATE purchase_order SET ${updates.join(", ")} WHERE id = ?`, values: [...params, orderId] } as any);
+    }
+  });
+
+  const order = await queryOne<any>(
+    `SELECT id, order_no AS orderNo, supplier_id AS supplierId, supplier_name AS supplierName,
+            store_id AS storeId, order_status AS orderStatus,
+            goods_amount AS goodsAmount, tax_amount AS taxAmount,
+            discount_amount AS discountAmount, payable_amount AS payableAmount,
+            paid_amount AS paidAmount, unpaid_amount AS unpaidAmount,
+            expected_date AS expectedDate, actual_date AS actualDate,
+            remark, created_at AS createdAt, updated_at AS updatedAt
+     FROM purchase_order WHERE id = ?`,
+    [orderId]
+  );
+  res.json(ok(order));
+}));
+
+// 取消采购订单
+adminRouter.delete("/purchase-orders/:id", requireAuth, asyncHandler(async (req, res) => {
+  const orderId = Number(req.params.id);
+  const existing = await queryOne<any>(
+    `SELECT id, order_no AS orderNo, order_status AS orderStatus FROM purchase_order WHERE id = ?`,
+    [orderId]
+  );
+  if (!existing) {
+    res.status(404).json({ code: "404", message: "采购订单不存在" });
+    return;
+  }
+  if (!["DRAFT", "PENDING"].includes(existing.orderStatus)) {
+    res.status(400).json({ code: "400", message: "当前状态不允许取消" });
+    return;
+  }
+  await query("UPDATE purchase_order SET order_status = 'CANCELLED', updated_at = NOW() WHERE id = ?", [orderId]);
+  res.json(ok({ orderId, orderNo: existing.orderNo }));
+}));
+
+// 确认采购订单
+adminRouter.post("/purchase-orders/:id/confirm", requireAuth, asyncHandler(async (req, res) => {
+  const orderId = Number(req.params.id);
+  const existing = await queryOne<any>(
+    `SELECT id, order_no AS orderNo, order_status AS orderStatus FROM purchase_order WHERE id = ?`,
+    [orderId]
+  );
+  if (!existing) {
+    res.status(404).json({ code: "404", message: "采购订单不存在" });
+    return;
+  }
+  if (existing.orderStatus !== "DRAFT" && existing.orderStatus !== "PENDING") {
+    res.status(400).json({ code: "400", message: "当前状态不允许确认" });
+    return;
+  }
+  await query(
+    `UPDATE purchase_order SET order_status = 'APPROVED', auditor_id = ?, audited_at = NOW(), updated_at = NOW() WHERE id = ?`,
+    [req.user?.id ?? 0, orderId]
+  );
+  res.json(ok({ orderId, orderNo: existing.orderNo, orderStatus: "APPROVED" }));
+}));
+
+// 采购入库（含批次信息录入）
+adminRouter.post("/purchase-orders/:id/in-stock", requireAuth, asyncHandler(async (req, res) => {
+  const orderId = Number(req.params.id);
+  const order = await queryOne<any>(
+    `SELECT id, order_no AS orderNo, supplier_id AS supplierId, supplier_name AS supplierName,
+            store_id AS storeId, order_status AS orderStatus
+     FROM purchase_order WHERE id = ?`,
+    [orderId]
+  );
+  if (!order) {
+    res.status(404).json({ code: "404", message: "采购订单不存在" });
+    return;
+  }
+  if (!["APPROVED", "PARTIAL"].includes(order.orderStatus)) {
+    res.status(400).json({ code: "400", message: "当前状态不允许入库" });
+    return;
+  }
+
+  const body = z.object({
+    remark: z.string().optional(),
+    items: z.array(z.object({
+      skuId: z.number(),
+      skuName: z.string(),
+      boxQty: z.number().default(0),
+      bottleQty: z.number().default(0),
+      totalBottleQty: z.number(),
+      unitPrice: z.number(),
+      taxRate: z.number().default(0),
+      batchNo: z.string().optional(),
+      productionDate: z.string().optional(),
+      expiryDate: z.string().optional(),
+      remark: z.string().optional()
+    })).min(1)
+  }).parse(req.body);
+
+  const result = await transaction(async (conn) => {
+    const stockNo = makeBizNo("CGRK");
+    let goodsAmount = 0;
+    let taxAmount = 0;
+
+    for (const item of body.items) {
+      const subtotal = item.totalBottleQty * item.unitPrice;
+      const tax = subtotal * (item.taxRate || 0);
+      goodsAmount += subtotal;
+      taxAmount += tax;
+    }
+    const totalAmount = goodsAmount + taxAmount;
+
+    const [stockResult] = await conn.execute<any>(
+      `INSERT INTO purchase_in_stock (stock_no, order_no, supplier_id, supplier_name, store_id,
+        stock_status, goods_amount, tax_amount, total_amount, operator_id, remark)
+       VALUES (?, ?, ?, ?, ?, 'PENDING', ?, ?, ?, ?, ?)`,
+      [stockNo, order.orderNo, order.supplierId, order.supplierName, order.storeId,
+       goodsAmount, taxAmount, totalAmount, req.user?.id ?? 0, body.remark ?? null]
+    );
+
+    for (const item of body.items) {
+      const subtotal = item.totalBottleQty * item.unitPrice;
+      const tax = subtotal * (item.taxRate || 0);
+      const total = subtotal + tax;
+      await conn.execute(
+        `INSERT INTO purchase_in_stock_item (stock_no, sku_id, sku_name, box_qty, bottle_qty,
+          total_bottle_qty, unit_price, tax_rate, subtotal_amount, tax_amount, total_amount,
+          batch_no, production_date, expiry_date, remark)
+         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+        [stockNo, item.skuId, item.skuName, item.boxQty, item.bottleQty, item.totalBottleQty,
+         item.unitPrice, item.taxRate, subtotal, tax, total,
+         item.batchNo ?? null, item.productionDate ?? null, item.expiryDate ?? null, item.remark ?? null]
+      );
+
+      // 更新采购订单明细的已入库数量
+      await conn.execute(
+        `UPDATE purchase_order_item SET in_stocked_qty = in_stocked_qty + ? WHERE order_no = ? AND sku_id = ?`,
+        [item.totalBottleQty, order.orderNo, item.skuId]
+      );
+
+      // 更新库存余额
+      await conn.execute(
+        `INSERT INTO inventory_balance (store_id, sku_id, stock_type, physical_qty, available_qty)
+         VALUES (?, ?, 'OFFLINE', ?, ?)
+         ON DUPLICATE KEY UPDATE
+           physical_qty = physical_qty + VALUES(physical_qty),
+           available_qty = available_qty + VALUES(available_qty),
+           updated_at = NOW()`,
+        [order.storeId, item.skuId, item.totalBottleQty, item.totalBottleQty]
+      );
+    }
+
+    // 检查采购订单是否全部入库
+    const remaining = await conn.execute<any>(
+      `SELECT SUM(total_bottle_qty - in_stocked_qty) AS remainingQty
+       FROM purchase_order_item WHERE order_no = ?`,
+      [order.orderNo]
+    );
+    const remainingQty = Number((remaining as any)[0]?.[0]?.remainingQty ?? 0);
+    const newStatus = remainingQty <= 0 ? "COMPLETED" : "PARTIAL";
+    await conn.execute(
+      `UPDATE purchase_order SET order_status = ?, actual_date = CURDATE(), updated_at = NOW() WHERE id = ?`,
+      [newStatus, orderId]
+    );
+
+    return { stockId: stockResult.insertId as number, stockNo, orderStatus: newStatus };
+  });
+  res.json(ok(result));
+}));
+
+// 入库单列表
+adminRouter.get("/purchase-in-stocks", requireAuth, asyncHandler(async (req, res) => {
+  const page = Number(req.query.page || 1);
+  const pageSize = Number(req.query.pageSize || 20);
+  const offset = (page - 1) * pageSize;
+  const conditions: string[] = [];
+  const params: unknown[] = [];
+
+  if (req.query.supplierId) {
+    conditions.push("supplier_id = ?");
+    params.push(Number(req.query.supplierId));
+  }
+  if (req.query.stockStatus) {
+    conditions.push("stock_status = ?");
+    params.push(req.query.stockStatus);
+  }
+  if (req.query.dateStart) {
+    conditions.push("DATE(created_at) >= ?");
+    params.push(req.query.dateStart);
+  }
+  if (req.query.dateEnd) {
+    conditions.push("DATE(created_at) <= ?");
+    params.push(req.query.dateEnd);
+  }
+
+  const where = conditions.length > 0 ? `WHERE ${conditions.join(" AND ")}` : "";
+  const records = await query<any>(
+    `SELECT id, stock_no AS stockNo, order_no AS orderNo, supplier_id AS supplierId,
+            supplier_name AS supplierName, store_id AS storeId, stock_status AS stockStatus,
+            goods_amount AS goodsAmount, tax_amount AS taxAmount, total_amount AS totalAmount,
+            operator_id AS operatorId, auditor_id AS auditorId, audited_at AS auditedAt,
+            remark, created_at AS createdAt
+     FROM purchase_in_stock
+     ${where}
+     ORDER BY created_at DESC
+     LIMIT ? OFFSET ?`,
+    [...params, pageSize, offset]
+  );
+  const totalRow = await queryOne<any>(
+    `SELECT COUNT(*) AS total FROM purchase_in_stock ${where}`,
+    params
+  );
+  res.json(ok({ total: totalRow?.total ?? 0, page, pageSize, records }));
+}));
+
+// 入库单详情
+adminRouter.get("/purchase-in-stocks/:id", requireAuth, asyncHandler(async (req, res) => {
+  const stockId = Number(req.params.id);
+  const stock = await queryOne<any>(
+    `SELECT id, stock_no AS stockNo, order_no AS orderNo, supplier_id AS supplierId,
+            supplier_name AS supplierName, store_id AS storeId, stock_status AS stockStatus,
+            goods_amount AS goodsAmount, tax_amount AS taxAmount, total_amount AS totalAmount,
+            operator_id AS operatorId, auditor_id AS auditorId, audited_at AS auditedAt,
+            remark, created_at AS createdAt
+     FROM purchase_in_stock WHERE id = ?`,
+    [stockId]
+  );
+  if (!stock) {
+    res.status(404).json({ code: "404", message: "入库单不存在" });
+    return;
+  }
+  const items = await query<any>(
+    `SELECT id, stock_no AS stockNo, sku_id AS skuId, sku_name AS skuName,
+            box_qty AS boxQty, bottle_qty AS bottleQty, total_bottle_qty AS totalBottleQty,
+            unit_price AS unitPrice, tax_rate AS taxRate,
+            subtotal_amount AS subtotalAmount, tax_amount AS taxAmount, total_amount AS totalAmount,
+            batch_no AS batchNo, production_date AS productionDate, expiry_date AS expiryDate,
+            remark
+     FROM purchase_in_stock_item WHERE stock_no = ?`,
+    [stock.stockNo]
+  );
+  res.json(ok({ ...stock, items }));
+}));
+
+// 采购退货
+adminRouter.post("/purchase-returns", requireAuth, asyncHandler(async (req, res) => {
+  const body = z.object({
+    orderNo: z.string().optional(),
+    stockNo: z.string().optional(),
+    supplierId: z.number(),
+    storeId: z.number(),
+    remark: z.string().optional(),
+    items: z.array(z.object({
+      skuId: z.number(),
+      skuName: z.string(),
+      boxQty: z.number().default(0),
+      bottleQty: z.number().default(0),
+      totalBottleQty: z.number(),
+      unitPrice: z.number(),
+      taxRate: z.number().default(0),
+      reason: z.string().optional()
+    })).min(1)
+  }).parse(req.body);
+
+  const supplier = await queryOne<any>("SELECT id, name FROM supplier WHERE id = ?", [body.supplierId]);
+  if (!supplier) {
+    res.status(400).json({ code: "400", message: "供应商不存在" });
+    return;
+  }
+
+  const result = await transaction(async (conn) => {
+    const returnNo = makeBizNo("CGTH");
+    let goodsAmount = 0;
+    let taxAmount = 0;
+
+    for (const item of body.items) {
+      const subtotal = item.totalBottleQty * item.unitPrice;
+      const tax = subtotal * (item.taxRate || 0);
+      goodsAmount += subtotal;
+      taxAmount += tax;
+    }
+    const totalAmount = goodsAmount + taxAmount;
+
+    const [returnResult] = await conn.execute<any>(
+      `INSERT INTO purchase_return (return_no, order_no, stock_no, supplier_id, supplier_name, store_id,
+        return_status, goods_amount, tax_amount, total_amount, refund_amount, refunded_amount,
+        operator_id, remark)
+       VALUES (?, ?, ?, ?, ?, ?, 'PENDING', ?, ?, ?, ?, 0, ?, ?)`,
+      [returnNo, body.orderNo ?? null, body.stockNo ?? null, body.supplierId, supplier.name,
+       body.storeId, goodsAmount, taxAmount, totalAmount, totalAmount,
+       req.user?.id ?? 0, body.remark ?? null]
+    );
+
+    for (const item of body.items) {
+      const subtotal = item.totalBottleQty * item.unitPrice;
+      const tax = subtotal * (item.taxRate || 0);
+      const total = subtotal + tax;
+      await conn.execute(
+        `INSERT INTO purchase_return_item (return_no, sku_id, sku_name, box_qty, bottle_qty,
+          total_bottle_qty, unit_price, tax_rate, subtotal_amount, tax_amount, total_amount, reason)
+         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+        [returnNo, item.skuId, item.skuName, item.boxQty, item.bottleQty, item.totalBottleQty,
+         item.unitPrice, item.taxRate, subtotal, tax, total, item.reason ?? null]
+      );
+
+      // 扣减库存
+      await conn.execute(
+        `UPDATE inventory_balance
+         SET physical_qty = GREATEST(physical_qty - ?, 0),
+             available_qty = GREATEST(available_qty - ?, 0),
+             updated_at = NOW()
+         WHERE store_id = ? AND sku_id = ? AND stock_type = 'OFFLINE'`,
+        [item.totalBottleQty, item.totalBottleQty, body.storeId, item.skuId]
+      );
+    }
+
+    return { returnId: returnResult.insertId as number, returnNo };
+  });
+  res.json(ok(result));
+}));
+
+// 采购退货列表
+adminRouter.get("/purchase-returns", requireAuth, asyncHandler(async (req, res) => {
+  const page = Number(req.query.page || 1);
+  const pageSize = Number(req.query.pageSize || 20);
+  const offset = (page - 1) * pageSize;
+  const conditions: string[] = [];
+  const params: unknown[] = [];
+
+  if (req.query.supplierId) {
+    conditions.push("supplier_id = ?");
+    params.push(Number(req.query.supplierId));
+  }
+  if (req.query.returnStatus) {
+    conditions.push("return_status = ?");
+    params.push(req.query.returnStatus);
+  }
+  if (req.query.dateStart) {
+    conditions.push("DATE(created_at) >= ?");
+    params.push(req.query.dateStart);
+  }
+  if (req.query.dateEnd) {
+    conditions.push("DATE(created_at) <= ?");
+    params.push(req.query.dateEnd);
+  }
+
+  const where = conditions.length > 0 ? `WHERE ${conditions.join(" AND ")}` : "";
+  const records = await query<any>(
+    `SELECT id, return_no AS returnNo, order_no AS orderNo, stock_no AS stockNo,
+            supplier_id AS supplierId, supplier_name AS supplierName, store_id AS storeId,
+            return_status AS returnStatus,
+            goods_amount AS goodsAmount, tax_amount AS taxAmount, total_amount AS totalAmount,
+            refund_amount AS refundAmount, refunded_amount AS refundedAmount,
+            operator_id AS operatorId, remark, created_at AS createdAt
+     FROM purchase_return
+     ${where}
+     ORDER BY created_at DESC
+     LIMIT ? OFFSET ?`,
+    [...params, pageSize, offset]
+  );
+  const totalRow = await queryOne<any>(
+    `SELECT COUNT(*) AS total FROM purchase_return ${where}`,
+    params
+  );
+  res.json(ok({ total: totalRow?.total ?? 0, page, pageSize, records }));
 }));

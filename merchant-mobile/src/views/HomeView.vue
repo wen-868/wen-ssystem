@@ -1,60 +1,105 @@
 <script setup lang="ts">
-import { onMounted, ref } from 'vue'
-import { api } from '../api'
+import { onMounted, ref, computed } from 'vue'
+import {
+  fetchDashboard,
+  fetchDailySales,
+  fetchInventoryAlerts,
+  type DashboardData,
+  type DailySalesRecord,
+  type InventoryAlertRecord
+} from '../api'
 
-interface DashboardMetrics {
-  todaySalesAmount: number
-  todayReceivedAmount: number
-  waitDeliveryCount: number
-  unpaidReceivableAmount: number
-  inventoryAlertCount: number
-}
-
+/* ========== 仪表盘指标 ========== */
 const loading = ref(false)
-const metrics = ref<DashboardMetrics>({
+const metrics = ref<DashboardData>({
+  todayOrderCount: 0,
+  pendingOrderCount: 0,
   todaySalesAmount: 0,
-  todayReceivedAmount: 0,
-  waitDeliveryCount: 0,
-  unpaidReceivableAmount: 0,
-  inventoryAlertCount: 0
+  unReceivedAmount: 0,
+  storeId: 0
 })
 
-// 快捷操作
+/* ========== 近 7 天销售趋势 ========== */
+const dailySales = ref<DailySalesRecord[]>([])
+const salesLoading = ref(false)
+
+const maxSalesAmount = computed(() => {
+  if (dailySales.value.length === 0) return 0
+  return Math.max(...dailySales.value.map((d) => d.amount))
+})
+
+/* ========== 库存预警 ========== */
+const alerts = ref<InventoryAlertRecord[]>([])
+const alertsLoading = ref(false)
+
+/* ========== 快捷操作 ========== */
 const quickActions = [
-  { text: '配送管理', icon: 'logistics', color: '#1677FF' },
-  { text: '开单收款', icon: 'cash-back-record', color: '#10B981' },
-  { text: '库存查询', icon: 'search', color: '#F59E0B' },
-  { text: '客户管理', icon: 'friends-o', color: '#8B5CF6' }
+  { text: '开单收款', icon: 'cash-back-record', color: '#10B981', route: 'create-sale' },
+  { text: '库存管理', icon: 'search', color: '#F59E0B', route: 'inventory' },
+  { text: '客户管理', icon: 'friends-o', color: '#8B5CF6', route: 'customers' },
+  { text: '应收管理', icon: 'balance-o', color: '#EF4444', route: 'receivables' },
+  { text: '报表', icon: 'chart-trending-o', color: '#1677FF', route: 'reports' }
 ]
 
-onMounted(async () => {
+function handleQuickAction(route: string) {
+  window.dispatchEvent(new CustomEvent('nav', { detail: route }))
+}
+
+/* ========== 数据加载 ========== */
+async function loadDashboard() {
   loading.value = true
   try {
-    const res = await api.get('/store/dashboard')
+    const res = await fetchDashboard()
     const data = res.data.data || {}
     metrics.value = {
+      todayOrderCount: Number(data.todayOrderCount || 0),
+      pendingOrderCount: Number(data.pendingOrderCount || 0),
       todaySalesAmount: Number(data.todaySalesAmount || 0),
-      todayReceivedAmount: Number(data.todayReceivedAmount || data.unReceivedAmount || 0),
-      waitDeliveryCount: Number(data.waitDeliveryCount || data.pendingOrderCount || 0),
-      unpaidReceivableAmount: Number(data.unpaidReceivableAmount || data.unReceivedAmount || 0),
-      inventoryAlertCount: Number(data.inventoryAlertCount || 0)
+      unReceivedAmount: Number(data.unReceivedAmount || 0),
+      storeId: Number(data.storeId || 0)
     }
   } catch {
-    // dashboard 接口可能尚未就绪，使用 mock 数据
-    metrics.value = {
-      todaySalesAmount: 12580.50,
-      todayReceivedAmount: 8960.00,
-      waitDeliveryCount: 12,
-      unpaidReceivableAmount: 34500.00,
-      inventoryAlertCount: 5
-    }
+    // 接口失败时保持空状态
   } finally {
     loading.value = false
   }
+}
+
+async function loadDailySales() {
+  salesLoading.value = true
+  try {
+    const res = await fetchDailySales()
+    dailySales.value = res.data.data || []
+  } catch {
+    // 接口失败时保持空状态
+  } finally {
+    salesLoading.value = false
+  }
+}
+
+async function loadAlerts() {
+  alertsLoading.value = true
+  try {
+    const res = await fetchInventoryAlerts()
+    alerts.value = res.data.data || []
+  } catch {
+    // 接口失败时保持空状态
+  } finally {
+    alertsLoading.value = false
+  }
+}
+
+onMounted(async () => {
+  await Promise.all([loadDashboard(), loadDailySales(), loadAlerts()])
 })
 
 function formatMoney(value: number): string {
   return value.toLocaleString('zh-CN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })
+}
+
+function formatDate(dateStr: string): string {
+  const d = new Date(dateStr)
+  return `${d.getMonth() + 1}/${d.getDate()}`
 }
 </script>
 
@@ -92,7 +137,7 @@ function formatMoney(value: number): string {
         <template #text>
           <div class="metric-text">
             <span class="metric-label">今日收款额</span>
-            <span class="metric-value">¥{{ formatMoney(metrics.todayReceivedAmount) }}</span>
+            <span class="metric-value metric-value--success">¥{{ formatMoney(metrics.todaySalesAmount - metrics.unReceivedAmount) }}</span>
           </div>
         </template>
       </van-grid-item>
@@ -105,7 +150,7 @@ function formatMoney(value: number): string {
         <template #text>
           <div class="metric-text">
             <span class="metric-label">待配送订单</span>
-            <span class="metric-value metric-value--warn">{{ metrics.waitDeliveryCount }}<span class="metric-unit"> 单</span></span>
+            <span class="metric-value metric-value--warn">{{ metrics.pendingOrderCount }}<span class="metric-unit"> 单</span></span>
           </div>
         </template>
       </van-grid-item>
@@ -118,27 +163,54 @@ function formatMoney(value: number): string {
         <template #text>
           <div class="metric-text">
             <span class="metric-label">待收款金额</span>
-            <span class="metric-value metric-value--danger">¥{{ formatMoney(metrics.unpaidReceivableAmount) }}</span>
+            <span class="metric-value metric-value--danger">¥{{ formatMoney(metrics.unReceivedAmount) }}</span>
           </div>
         </template>
       </van-grid-item>
     </van-grid>
 
-    <!-- 库存预警 -->
-    <van-cell-group inset class="alert-section">
-      <van-cell
-        title="库存预警"
-        :value="`${metrics.inventoryAlertCount} 项`"
-        is-link
-        icon="warning-o"
-      >
-        <template #right-icon>
-          <van-tag :type="metrics.inventoryAlertCount > 0 ? 'danger' : 'success'" plain>
-            {{ metrics.inventoryAlertCount > 0 ? '需关注' : '正常' }}
-          </van-tag>
-        </template>
-      </van-cell>
-    </van-cell-group>
+    <!-- 近 7 天销售趋势 -->
+    <div class="section-title">近 7 天销售趋势</div>
+    <div class="card trend-card">
+      <van-loading v-if="salesLoading" size="24" vertical class="loading-center">加载中...</van-loading>
+      <template v-else-if="dailySales.length > 0">
+        <div v-for="item in dailySales" :key="item.date" class="trend-row">
+          <span class="trend-date">{{ formatDate(item.date) }}</span>
+          <div class="trend-bar-wrapper">
+            <div
+              class="trend-bar"
+              :style="{ width: maxSalesAmount > 0 ? (item.amount / maxSalesAmount * 100) + '%' : '0%' }"
+            />
+          </div>
+          <span class="trend-amount">¥{{ formatMoney(item.amount) }}</span>
+        </div>
+      </template>
+      <div v-else class="empty-state">暂无销售数据</div>
+    </div>
+
+    <!-- 库存预警列表 -->
+    <div class="section-title">库存预警</div>
+    <div class="card alert-card">
+      <van-loading v-if="alertsLoading" size="24" vertical class="loading-center">加载中...</van-loading>
+      <template v-else-if="alerts.length > 0">
+        <div v-for="item in alerts" :key="item.skuId" class="alert-item">
+          <div class="alert-item-left">
+            <span class="alert-item-name">{{ item.skuName }}</span>
+            <span class="alert-item-type">{{ item.stockType }}</span>
+          </div>
+          <div class="alert-item-right">
+            <span class="alert-item-qty" :class="{ 'alert-item-qty--danger': item.availableQty <= 5 }">
+              {{ item.availableQty }}
+            </span>
+            <span class="alert-item-unit">可售</span>
+          </div>
+        </div>
+      </template>
+      <div v-else class="empty-state empty-state--success">
+        <van-icon name="checked" size="20" color="var(--color-success)" />
+        <span>库存充足</span>
+      </div>
+    </div>
 
     <!-- 快捷操作 -->
     <div class="section-title">常用操作</div>
@@ -148,7 +220,8 @@ function formatMoney(value: number): string {
         :key="action.text"
         :icon="action.icon"
         :text="action.text"
-        icon-color="#1677FF"
+        :icon-color="action.color"
+        @click="handleQuickAction(action.route)"
       />
     </van-grid>
   </section>
@@ -207,6 +280,10 @@ function formatMoney(value: number): string {
   color: var(--text-primary);
 }
 
+.metric-value--success {
+  color: var(--color-success);
+}
+
 .metric-value--warn {
   color: var(--color-warning);
 }
@@ -220,10 +297,131 @@ function formatMoney(value: number): string {
   font-weight: 400;
 }
 
-.alert-section {
-  margin-top: 12px;
+/* ===== 近 7 天销售趋势 ===== */
+.trend-card {
+  padding: var(--spacing-md);
 }
 
+.trend-row {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-sm);
+  padding: 6px 0;
+}
+
+.trend-row + .trend-row {
+  border-top: 1px solid var(--border-color-light);
+}
+
+.trend-date {
+  flex-shrink: 0;
+  width: 40px;
+  font-size: 12px;
+  color: var(--text-secondary);
+  text-align: right;
+}
+
+.trend-bar-wrapper {
+  flex: 1;
+  height: 16px;
+  background: var(--bg-secondary);
+  border-radius: var(--radius-sm);
+  overflow: hidden;
+}
+
+.trend-bar {
+  height: 100%;
+  background: linear-gradient(90deg, var(--color-primary), var(--color-primary-light, #60a5fa));
+  border-radius: var(--radius-sm);
+  min-width: 4px;
+  transition: width 0.3s ease;
+}
+
+.trend-amount {
+  flex-shrink: 0;
+  width: 80px;
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--text-primary);
+  text-align: right;
+}
+
+/* ===== 库存预警 ===== */
+.alert-card {
+  padding: 0;
+}
+
+.alert-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: var(--spacing-sm) var(--spacing-md);
+}
+
+.alert-item + .alert-item {
+  border-top: 1px solid var(--border-color-light);
+}
+
+.alert-item-left {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.alert-item-name {
+  font-size: 14px;
+  font-weight: 500;
+  color: var(--text-primary);
+}
+
+.alert-item-type {
+  font-size: 12px;
+  color: var(--text-secondary);
+}
+
+.alert-item-right {
+  display: flex;
+  align-items: baseline;
+  gap: 4px;
+}
+
+.alert-item-qty {
+  font-size: 16px;
+  font-weight: 600;
+  color: var(--text-primary);
+}
+
+.alert-item-qty--danger {
+  color: var(--color-danger);
+}
+
+.alert-item-unit {
+  font-size: 12px;
+  color: var(--text-secondary);
+}
+
+/* ===== 空状态 ===== */
+.empty-state {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--spacing-sm);
+  padding: var(--spacing-lg) var(--spacing-md);
+  font-size: 14px;
+  color: var(--text-secondary);
+}
+
+.empty-state--success {
+  color: var(--color-success);
+}
+
+.loading-center {
+  padding: var(--spacing-lg) var(--spacing-md);
+  display: flex;
+  justify-content: center;
+}
+
+/* ===== 通用 ===== */
 .section-title {
   font-size: 15px;
   font-weight: 600;

@@ -1,3 +1,5 @@
+const { injectTheme } = require('../../utils/theme')
+
 Page({
   data: {
     profile: {
@@ -9,7 +11,12 @@ Page({
       points: 0
     },
     loading: false,
-    errorText: ""
+    errorText: "",
+    theme: {},
+    themeCssVars: ""
+  },
+  onReady() {
+    injectTheme(this);
   },
   onShow() {
     this.refreshProfile();
@@ -100,5 +107,8 @@ Page({
   },
   handleTap() {
     this.refreshProfile();
+  },
+  goStatement() {
+    wx.navigateTo({ url: '/pages/statement/index' });
   }
 });

@@ -11,13 +11,13 @@
   "dependencies": {
     "@vitejs/plugin-vue": "^5.0.5",
     "axios": "^1.7.2",
-    "vant": "^4.9.21",
+    "vant": "^4.9.24",
     "vue": "^3.4.29",
     "vue-router": "^4.4.0",
     "vue-tsc": "^2.0.21"
   },
   "devDependencies": {
-    "typescript": "^5.5.3",
+    "typescript": "^5.9.3",
     "vite": "^5.3.1"
   }
 }

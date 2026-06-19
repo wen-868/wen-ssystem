@@ -1,9 +1,16 @@
+const { injectTheme } = require('../../utils/theme')
+
 Page({
   data: {
     orders: [],
     loading: false,
     errorText: "",
-    showEmpty: false
+    showEmpty: false,
+    theme: {},
+    themeCssVars: ""
+  },
+  onReady() {
+    injectTheme(this);
   },
   onShow() {
     this.loadOrders();

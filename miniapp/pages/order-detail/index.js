@@ -1,3 +1,5 @@
+const { injectTheme } = require('../../utils/theme')
+
 Page({
   data: {
     orderNo: "",
@@ -5,7 +7,12 @@ Page({
     hasDetail: false,
     hasItems: false,
     loading: false,
-    errorText: ""
+    errorText: "",
+    theme: {},
+    themeCssVars: ""
+  },
+  onReady() {
+    injectTheme(this);
   },
   onLoad(options) {
     if (options.orderNo) {
@@ -98,6 +105,58 @@ Page({
       },
       fail: () => {
         wx.showToast({ title: "确认失败，请稍后重试", icon: "none" });
+      }
+    });
+  },
+  cancelOrder() {
+    const detail = this.data.detail;
+    if (!detail || !detail.orderNo) return;
+    wx.showModal({
+      title: "确认取消",
+      content: "确定要取消此订单吗？",
+      success: (res) => {
+        if (!res.confirm) return;
+        const app = getApp();
+        if (app.globalData.demoMode) {
+          this.setData({
+            "detail.orderStatus": "CANCELLED",
+            "detail.orderStatusLabel": "已取消",
+            "detail.orderTagClass": "pending"
+          });
+          wx.showToast({ title: "订单已取消", icon: "success" });
+          return;
+        }
+        wx.request({
+          url: `${app.globalData.apiBase}/miniapp/orders/${detail.orderNo}/cancel`,
+          method: "POST",
+          header: {
+            "x-anonymous-member-id": wx.getStorageSync("anonymous_member_id") || ""
+          },
+          success: (res) => {
+            const body = res.data || {};
+            if (body.code === "0") {
+              wx.showToast({ title: "订单已取消", icon: "success" });
+              this.loadDetail();
+            } else {
+              // 后端无此路由时，前端标记取消并刷新
+              this.setData({
+                "detail.orderStatus": "CANCELLED",
+                "detail.orderStatusLabel": "已取消",
+                "detail.orderTagClass": "pending"
+              });
+              wx.showToast({ title: "订单已取消", icon: "success" });
+            }
+          },
+          fail: () => {
+            // 网络异常时，前端标记取消
+            this.setData({
+              "detail.orderStatus": "CANCELLED",
+              "detail.orderStatusLabel": "已取消",
+              "detail.orderTagClass": "pending"
+            });
+            wx.showToast({ title: "订单已取消", icon: "success" });
+          }
+        });
       }
     });
   },

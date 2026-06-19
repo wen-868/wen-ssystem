@@ -43,6 +43,10 @@ function onRefresh() {
 function toggleSort() {
   sortAsc.value = !sortAsc.value
 }
+
+function goToAdjust() {
+  window.dispatchEvent(new CustomEvent('nav', { detail: 'inventory-adjust' }))
+}
 </script>
 
 <template>
@@ -58,10 +62,13 @@ function toggleSort() {
       @cancel="onSearch"
     />
 
-    <!-- 排序按钮 -->
-    <div class="sort-bar">
+    <!-- 操作栏 -->
+    <div class="action-bar">
       <van-button size="small" plain @click="toggleSort">
         可售库存 {{ sortAsc ? '↑ 升序' : '↓ 降序' }}
+      </van-button>
+      <van-button size="small" type="primary" plain @click="goToAdjust">
+        库存调整
       </van-button>
       <span class="record-count">共 {{ records.length }} 条</span>
     </div>
@@ -122,16 +129,17 @@ function toggleSort() {
   color: var(--text-primary);
 }
 
-.sort-bar {
+.action-bar {
   display: flex;
   align-items: center;
-  justify-content: space-between;
+  gap: 8px;
   padding: 8px 16px;
 }
 
 .record-count {
   font-size: 13px;
   color: var(--text-muted);
+  margin-left: auto;
 }
 
 .loading-wrapper,

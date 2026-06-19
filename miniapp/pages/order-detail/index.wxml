@@ -1,3 +1,4 @@
+<view style="{{themeCssVars}}">
 <view wx:if="{{errorText}}" class="card" style="color: #9b1c31;">{{errorText}}</view>
 
 <view wx:if="{{hasDetail}}" class="card">
@@ -27,6 +28,15 @@
 </view>
 
 <button
+  wx:if="{{detail.orderStatus === 'PENDING_PAYMENT' || detail.orderStatus === 'PENDING'}}"
+  class="cancel-btn"
+  style="margin: 20rpx; width: calc(100% - 40rpx);"
+  bindtap="cancelOrder"
+>
+  取消订单
+</button>
+
+<button
   wx:if="{{detail.orderStatus === 'WAIT_DELIVERY' || detail.orderStatus === 'DELIVERING'}}"
   class="primary-btn"
   style="margin: 20rpx; width: calc(100% - 40rpx);"
@@ -36,3 +46,4 @@
 </button>
 
 <button class="primary" style="margin: 20rpx; width: calc(100% - 40rpx);" bindtap="goBack">返回订单列表</button>
+</view>

@@ -1,7 +1,10 @@
+const theme = require('./config/theme')
+
 App({
   globalData: {
     apiBase: "https://api.onepan.cn/api",
-    demoMode: false
+    demoMode: false,
+    theme: theme,
   },
   onLaunch() {
     const anonymousId = wx.getStorageSync("anonymous_member_id");

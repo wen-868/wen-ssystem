@@ -33,6 +33,9 @@ const refreshing = ref(false)
 const page = ref(1)
 const pageSize = 20
 
+// 搜索
+const searchValue = ref('')
+
 // 收款登记弹窗
 const showPaymentPopup = ref(false)
 const paymentTarget = ref<ReceivableRecord | null>(null)
@@ -50,7 +53,8 @@ async function loadReceivables(reset = false) {
     const res = await fetchReceivables({
       page: page.value,
       pageSize,
-      status: activeTab.value || undefined
+      status: activeTab.value || undefined,
+      keyword: searchValue.value || undefined
     })
     const data = res.data.data
     if (reset) {
@@ -76,6 +80,15 @@ function onRefresh() {
 }
 
 function onTabChange() {
+  loadReceivables(true)
+}
+
+function onSearch() {
+  loadReceivables(true)
+}
+
+function onCancelSearch() {
+  searchValue.value = ''
   loadReceivables(true)
 }
 
@@ -118,6 +131,16 @@ async function submitPayment() {
 <template>
   <section class="page">
     <h2 class="page-title">应收</h2>
+
+    <!-- 搜索框 -->
+    <van-search
+      v-model="searchValue"
+      placeholder="搜索客户名/手机号"
+      shape="round"
+      clearable
+      @search="onSearch"
+      @cancel="onCancelSearch"
+    />
 
     <!-- 状态筛选 -->
     <van-tabs v-model:active="activeTab" sticky @change="onTabChange">
@@ -255,6 +278,23 @@ async function submitPayment() {
   font-size: 18px;
   font-weight: 600;
   color: var(--text-primary);
+}
+
+/* 搜索框样式覆盖 */
+:deep(.van-search) {
+  padding: 8px 12px;
+  background: var(--bg-page);
+}
+
+:deep(.van-search__content) {
+  background: var(--bg-card);
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-lg);
+}
+
+:deep(.van-search__action) {
+  color: var(--color-primary);
+  font-size: var(--font-size-sm);
 }
 
 .empty-wrapper {

@@ -37,9 +37,49 @@ const routes: RouteRecordRaw[] = [
     component: () => import('./views/ReportsView.vue')
   },
   {
+    path: '/create-sale',
+    name: 'create-sale',
+    component: () => import('./views/CreateSaleView.vue')
+  },
+  {
+    path: '/sale-bills',
+    name: 'sale-bills',
+    component: () => import('./views/SaleBillsView.vue')
+  },
+  {
     path: '/profile',
     name: 'profile',
     component: () => import('./views/ProfileView.vue')
+  },
+  {
+    path: '/admin',
+    name: 'admin',
+    component: () => import('./views/AdminView.vue')
+  },
+  {
+    path: '/admin/products',
+    name: 'admin-products',
+    component: () => import('./views/AdminProductsView.vue')
+  },
+  {
+    path: '/admin/staff',
+    name: 'admin-staff',
+    component: () => import('./views/AdminStaffView.vue')
+  },
+  {
+    path: '/admin/stores',
+    name: 'admin-stores',
+    component: () => import('./views/AdminStoresView.vue')
+  },
+  {
+    path: '/admin/prices',
+    name: 'admin-prices',
+    component: () => import('./views/AdminPricesView.vue')
+  },
+  {
+    path: '/share-collection',
+    name: 'share-collection',
+    component: () => import('./views/ShareCollectionView.vue')
   }
 ]
 

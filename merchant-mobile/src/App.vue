@@ -7,7 +7,12 @@ import InventoryView from './views/InventoryView.vue'
 import CustomersView from './views/CustomersView.vue'
 import ReceivablesView from './views/ReceivablesView.vue'
 import ReportsView from './views/ReportsView.vue'
+import CreateSaleView from './views/CreateSaleView.vue'
+import SaleBillsView from './views/SaleBillsView.vue'
 import ProfileView from './views/ProfileView.vue'
+import InventoryAdjustView from './views/InventoryAdjustView.vue'
+import AdminView from './views/AdminView.vue'
+import ShareCollectionView from './views/ShareCollectionView.vue'
 
 const token = ref(localStorage.getItem('merchant_token') || '')
 const active = ref('home')
@@ -17,15 +22,17 @@ const userRole = ref('')
 const baseTabs = [
   { name: 'home', icon: 'wap-home', label: '首页' },
   { name: 'orders', icon: 'orders-o', label: '订单' },
+  { name: 'create-sale', icon: 'gold-coin', label: '开单' },
   { name: 'inventory', icon: 'cluster-o', label: '库存' },
   { name: 'customers', icon: 'friends-o', label: '客户' },
   { name: 'profile', icon: 'manager-o', label: '我的' }
 ]
 
-// 管理员额外看到的菜单（应收、报表）
+// 管理员额外看到的菜单（应收、报表、管理）
 const adminExtraTabs = [
   { name: 'receivables', icon: 'balance-o', label: '应收' },
-  { name: 'reports', icon: 'chart-trending-o', label: '报表' }
+  { name: 'reports', icon: 'chart-trending-o', label: '报表' },
+  { name: 'admin', icon: 'setting-o', label: '管理' }
 ]
 
 // 根据角色计算可见的 tabbar 菜单
@@ -50,6 +57,11 @@ const views: Record<string, unknown> = {
   customers: CustomersView,
   receivables: ReceivablesView,
   reports: ReportsView,
+  admin: AdminView,
+  'create-sale': CreateSaleView,
+  'sale-bills': SaleBillsView,
+  'inventory-adjust': InventoryAdjustView,
+  'share-collection': ShareCollectionView,
   profile: ProfileView
 }
 
@@ -86,6 +98,10 @@ onMounted(() => {
   }
 
   window.addEventListener('auth:logout', onLogout)
+
+  window.addEventListener('nav', ((e: CustomEvent) => {
+    active.value = e.detail
+  }) as EventListener)
 })
 </script>
 

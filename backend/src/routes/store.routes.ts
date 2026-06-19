@@ -55,6 +55,33 @@ storeRouter.get("/me", asyncHandler(async (req, res) => {
 
 storeRouter.use(requireAuth);
 
+// 门店信息（供小程序端获取）
+storeRouter.get("/info", asyncHandler(async (req, res) => {
+  const storeId = req.user?.storeId ?? 1;
+  const store = await queryOne<any>(
+    `SELECT name, address, phone, contact,
+            miniapp_appid AS miniappAppid, wx_merchant_name AS wxMerchantName,
+            wx_service_phone AS wxServicePhone, wx_head_img AS wxHeadImg, wx_qrcode_url AS wxQrcodeUrl
+     FROM store WHERE id = ?`,
+    [storeId]
+  );
+  if (!store) {
+    res.status(404).json({ code: "1", message: "门店不存在" });
+    return;
+  }
+  res.json(ok({
+    storeName: store.name,
+    storeAddress: store.address,
+    storePhone: store.phone,
+    storeContact: store.contact,
+    miniappAppid: store.miniappAppid,
+    wxMerchantName: store.wxMerchantName,
+    wxServicePhone: store.wxServicePhone,
+    wxHeadImg: store.wxHeadImg,
+    wxQrcodeUrl: store.wxQrcodeUrl
+  }));
+}));
+
 const rawStoreSaleBillItemSchema = z.object({
   skuId: z.number(),
   boxQty: z.number().optional(),

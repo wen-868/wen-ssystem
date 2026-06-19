@@ -89,6 +89,30 @@ export async function createStore(payload: { code: string; name: string; address
   return data.data;
 }
 
+export function fetchStoreDetail(id: number) {
+  return api.get(`/admin/stores/${id}`)
+}
+
+export function updateStore(id: number, data: {
+  name?: string
+  address?: string
+  contact?: string
+  phone?: string
+  deliveryRadius?: number
+  businessStatus?: string
+  miniappAppid?: string
+  wxMerchantName?: string
+  wxServicePhone?: string
+  wxHeadImg?: string
+  wxQrcodeUrl?: string
+}) {
+  return api.patch(`/admin/stores/${id}`, data)
+}
+
+export function fetchWxInfo(storeId: number) {
+  return api.post(`/admin/stores/${storeId}/fetch-wx-info`)
+}
+
 export async function updateProductPrice(skuId: number, payload: { retailPrice?: number; wholesalePrice?: number; miniappPrice?: number }) {
   const { data } = await api.put(`/admin/products/${skuId}/price`, payload);
   return data.data;
@@ -167,4 +191,34 @@ export async function fetchStorePerformance() {
 export async function fetchInventoryAlerts() {
   const { data } = await api.get("/admin/inventory/alerts");
   return data.data || [];
+}
+
+export async function fetchSaleBillDetail(billNo: string) {
+  const { data } = await api.get(`/store/sale-bills/${billNo}`);
+  return data.data;
+}
+
+export async function acceptOrder(orderNo: string) {
+  const { data } = await api.post(`/store/orders/${orderNo}/accept`);
+  return data.data;
+}
+
+export async function rejectOrder(orderNo: string) {
+  const { data } = await api.post(`/store/orders/${orderNo}/reject`);
+  return data.data;
+}
+
+export async function startDelivery(orderNo: string) {
+  const { data } = await api.post(`/store/orders/${orderNo}/start-delivery`);
+  return data.data;
+}
+
+export async function completeDelivery(orderNo: string) {
+  const { data } = await api.post(`/store/orders/${orderNo}/complete-delivery`);
+  return data.data;
+}
+
+export async function createCollectionLink(billNo: string, payload: { amount: number; shareChannel: string; expireHours: number }) {
+  const { data } = await api.post(`/store/sale-bills/${billNo}/collection-link`, payload);
+  return data.data;
 }

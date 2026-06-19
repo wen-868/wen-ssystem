@@ -46,7 +46,7 @@ miniappRouter.get("/products", asyncHandler(async (req, res) => {
      LIMIT 100`,
     [storeId, keyword, keyword, keyword, keyword]
   );
-  const data = rows.map((row) => {
+  const data = rows.map((row: any) => {
     const wholesaleVisible = customerType === "WHOLESALE" && row.wholesalePrice != null;
     const price = wholesaleVisible ? Number(row.wholesalePrice) : Number(row.miniappPrice ?? row.retailPrice);
     const item: Record<string, unknown> = {
