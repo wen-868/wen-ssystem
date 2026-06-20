@@ -56,7 +56,7 @@ async function loadReceivables(reset = false) {
       status: activeTab.value || undefined,
       keyword: searchValue.value || undefined
     })
-    const data = res.data.data
+    const data = res.data
     if (reset) {
       records.value = data.records ?? []
     } else {
@@ -288,13 +288,13 @@ async function submitPayment() {
 
 :deep(.van-search__content) {
   background: var(--bg-card);
-  border: 1px solid var(--border-color);
+  border: 1px solid var(--border-normal);
   border-radius: var(--radius-lg);
 }
 
 :deep(.van-search__action) {
   color: var(--color-primary);
-  font-size: var(--font-size-sm);
+  font-size: var(--text-caption);
 }
 
 .empty-wrapper {

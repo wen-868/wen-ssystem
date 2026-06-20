@@ -7,8 +7,166 @@
   <view class="muted" style="margin-top: 8rpx;">会员等级：{{ profile.memberLevel }}</view>
   <view class="muted" style="margin-top: 8rpx;">积分余额：{{ profile.points }}</view>
   <view class="muted" wx:if="{{ errorText }}" style="margin-top: 16rpx;">{{ errorText }}</view>
-  <button class="primary" style="margin-top: 32rpx;" loading="{{ loading }}" bindtap="handleLogin">微信一键登录</button>
-  <button class="primary" style="margin-top: 16rpx;" loading="{{ loading }}" bindtap="handleTap">刷新身份</button>
+
+  <!-- 登录按钮 -->
+  <button class="primary" style="margin-top: 32rpx;" loading="{{ loading }}" bindtap="handleLogin" wx:if="{{!isLoggedIn}}">微信一键登录</button>
+
+  <!-- 已登录状态 -->
+  <block wx:if="{{isLoggedIn}}">
+    <!-- 获取手机号按钮 -->
+    <button class="primary" style="margin-top: 16rpx;" open-type="getPhoneNumber" bindgetphonenumber="handleGetPhone" wx:if="{{!profile.mobile}}">
+      授权手机号
+    </button>
+
+    <!-- 绑定系统账号 -->
+    <button class="primary" style="margin-top: 16rpx;" bindtap="showBindDialog" wx:if="{{bindings.length === 0}}">
+      绑定系统账号
+    </button>
+
+    <!-- 已绑定列表 -->
+    <view wx:if="{{bindings.length > 0}}" style="margin-top: 24rpx;">
+      <view class="muted" style="margin-bottom: 12rpx;">已绑定系统账号：</view>
+      <view wx:for="{{bindings}}" wx:key="id" style="display: flex; justify-content: space-between; align-items: center; padding: 12rpx 0; border-bottom: 1rpx solid #eee;">
+        <view>
+          <text style="font-weight: 500;">{{item.username}}</text>
+          <text wx:if="{{item.realName}}" style="margin-left: 12rpx; color: #999;">({{item.realName}})</text>
+          <text class="tag" style="margin-left: 12rpx;">{{item.binding_type}}</text>
+        </view>
+        <button size="mini" type="warn" data-id="{{item.system_user_id}}" bindtap="handleUnbind">解绑</button>
+      </view>
+    </view>
+
+    <button class="primary" style="margin-top: 16rpx;" loading="{{ loading }}" bindtap="handleTap">刷新身份</button>
+  </block>
+
   <button class="primary" style="margin-top: 16rpx;" bindtap="goStatement">我的对账</button>
+  <button class="primary" style="margin-top: 16rpx;" bindtap="goNotifications">消息中心</button>
+  <button class="primary" style="margin-top: 16rpx;" bindtap="goAftersale">售后服务</button>
+  <button class="primary" style="margin-top: 16rpx;" bindtap="goTraceScan">追溯扫码</button>
+</view>
+
+<!-- 追溯扫码结果区域（内嵌展示） -->
+<view wx:if="{{traceVisible}}" style="margin-top: 24rpx;">
+
+  <!-- 加载状态 -->
+  <view wx:if="{{traceLoading}}" class="card" style="text-align:center;padding:60rpx 0;">
+    <view class="trace-loading-spinner"></view>
+    <view class="muted" style="margin-top: 16rpx;">正在查询追溯信息...</view>
+  </view>
+
+  <!-- 错误状态 -->
+  <view wx:elif="{{traceError}}" class="card">
+    <view class="trace-error-icon">!</view>
+    <view class="muted" style="text-align:center;">{{traceError}}</view>
+    <view style="display:flex;gap:16rpx;margin-top:24rpx;">
+      <button style="flex:1;" bindtap="hideTraceResult">关闭</button>
+      <button class="primary" style="flex:1;" bindtap="goTraceScan">重新扫码</button>
+    </view>
+  </view>
+
+  <!-- 追溯信息 -->
+  <view wx:else>
+    <!-- 关闭按钮 -->
+    <view style="text-align:right;padding:0 24rpx 16rpx;">
+      <text style="color:#999;font-size:28rpx;" bindtap="hideTraceResult">关闭追溯结果</text>
+    </view>
+
+    <!-- 商品信息卡片 -->
+    <view class="card">
+      <view style="font-size:30rpx;font-weight:700;margin-bottom:20rpx;">商品信息</view>
+      <view class="trace-info-row">
+        <text class="trace-info-label">SKU名称</text>
+        <text class="trace-info-value">{{traceInfo.skuName || '--'}}</text>
+      </view>
+      <view class="trace-info-row">
+        <text class="trace-info-label">批次号</text>
+        <text class="trace-info-value" style="font-family:Courier New,monospace;letter-spacing:2rpx;">{{traceInfo.batchNo || '--'}}</text>
+      </view>
+      <view class="trace-info-row">
+        <text class="trace-info-label">生产日期</text>
+        <text class="trace-info-value">{{traceInfo.productionDate || '--'}}</text>
+      </view>
+      <view class="trace-info-row">
+        <text class="trace-info-label">到期日期</text>
+        <text class="trace-info-value">{{traceInfo.expiryDate || '--'}}</text>
+      </view>
+      <view class="trace-info-row">
+        <text class="trace-info-label">保质期状态</text>
+        <text class="trace-shelf-tag trace-shelf-tag-{{traceInfo.shelfStatus || 'normal'}}">{{traceInfo.shelfStatusLabel || '正常'}}</text>
+      </view>
+    </view>
+
+    <!-- 真伪验证结果 -->
+    <view class="card trace-verify-card trace-verify-card-{{verifyResult.status || 'pending'}}">
+      <view style="margin-right:24rpx;flex-shrink:0;">
+        <view wx:if="{{verifyResult.status === 'pass'}}" class="trace-verify-badge" style="background:rgba(16,185,129,0.15);color:#10B981;">&#x2713;</view>
+        <view wx:elif="{{verifyResult.status === 'fail'}}" class="trace-verify-badge" style="background:rgba(239,68,68,0.15);color:#EF4444;">&#x2717;</view>
+        <view wx:else class="trace-verify-badge" style="background:rgba(59,130,246,0.15);color:#3B82F6;">...</view>
+      </view>
+      <view style="flex:1;">
+        <view style="font-size:30rpx;font-weight:700;color:{{verifyResult.status==='pass'?'#10B981':verifyResult.status==='fail'?'#EF4444':'#1F2328'}}">{{verifyResult.title || '验证中...'}}</view>
+        <view class="muted" style="margin-top:6rpx;font-size:24rpx;">{{verifyResult.desc || '正在验证商品真伪'}}</view>
+      </view>
+    </view>
+
+    <!-- 追溯时间线 -->
+    <view class="card" wx:if="{{timeline.length > 0}}">
+      <view style="font-size:30rpx;font-weight:700;margin-bottom:20rpx;">追溯时间线</view>
+      <view class="trace-timeline">
+        <view class="trace-timeline-item" wx:for="{{timeline}}" wx:key="index">
+          <view class="trace-timeline-left">
+            <view class="trace-timeline-dot trace-timeline-dot-{{item.dotType || 'default'}}"></view>
+            <view wx:if="{{index < timeline.length - 1}}" class="trace-timeline-line"></view>
+          </view>
+          <view class="trace-timeline-content">
+            <view style="font-size:28rpx;font-weight:600;color:#1F2328;">{{item.eventType}}</view>
+            <view class="muted" style="font-size:24rpx;margin-top:6rpx;">{{item.eventTime}}</view>
+            <view wx:if="{{item.location}}" style="font-size:24rpx;color:#4B5563;margin-top:4rpx;">&#x1F4CD; {{item.location}}</view>
+            <view wx:if="{{item.operator}}" class="muted" style="font-size:24rpx;margin-top:4rpx;">操作人：{{item.operator}}</view>
+          </view>
+        </view>
+      </view>
+    </view>
+
+    <!-- 底部统计 -->
+    <view class="card" style="margin-bottom:40rpx;">
+      <view style="display:flex;align-items:center;justify-content:space-around;">
+        <view style="flex:1;text-align:center;">
+          <view style="font-size:40rpx;font-weight:700;color:#1F2328;">{{traceInfo.scanCount || 0}}</view>
+          <view class="muted" style="font-size:24rpx;margin-top:8rpx;">扫码次数</view>
+        </view>
+        <view style="width:2rpx;height:60rpx;background:#E5E7EB;"></view>
+        <view style="flex:1;text-align:center;">
+          <view style="font-size:28rpx;font-weight:700;color:#1F2328;">{{traceInfo.firstScanTime || '--'}}</view>
+          <view class="muted" style="font-size:24rpx;margin-top:8rpx;">首次扫码时间</view>
+        </view>
+      </view>
+    </view>
+  </view>
+</view>
+
+<!-- 绑定系统账号对话框 -->
+<view wx:if="{{bindDialogVisible}}" style="position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.5); z-index: 999; display: flex; align-items: center; justify-content: center;">
+  <view style="background: #fff; border-radius: 16rpx; padding: 40rpx; width: 600rpx;">
+    <view style="font-size: 32rpx; font-weight: 700; margin-bottom: 24rpx;">绑定系统账号</view>
+    <view style="margin-bottom: 16rpx;">
+      <text style="font-size: 28rpx;">账号</text>
+      <input style="border: 1rpx solid #ddd; border-radius: 8rpx; padding: 16rpx; margin-top: 8rpx;" placeholder="请输入系统账号" value="{{bindForm.username}}" bindinput="onBindInput" data-field="username" />
+    </view>
+    <view style="margin-bottom: 16rpx;">
+      <text style="font-size: 28rpx;">密码</text>
+      <input style="border: 1rpx solid #ddd; border-radius: 8rpx; padding: 16rpx; margin-top: 8rpx;" password placeholder="请输入密码" value="{{bindForm.password}}" bindinput="onBindInput" data-field="password" />
+    </view>
+    <view style="margin-bottom: 24rpx;">
+      <text style="font-size: 28rpx;">绑定类型</text>
+      <picker range="{{['ADMIN','MERCHANT','CONSUMER']}}" value="{{bindForm.bindingType}}" bindchange="onBindTypeChange" style="margin-top: 8rpx;">
+        <view style="border: 1rpx solid #ddd; border-radius: 8rpx; padding: 16rpx;">{{bindForm.bindingType}}</view>
+      </picker>
+    </view>
+    <view style="display: flex; gap: 16rpx;">
+      <button style="flex: 1;" bindtap="hideBindDialog">取消</button>
+      <button class="primary" style="flex: 1;" bindtap="handleBind">确认绑定</button>
+    </view>
+  </view>
 </view>
 </view>

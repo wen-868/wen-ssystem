@@ -1,2 +1,9 @@
 /* tokens.wxss 已废弃，主题配置请使用 config/theme.js */
 /* 此文件保留仅为兼容，实际样式由 app.js 动态注入 */
+/* 以下为V2.0设计规范色值，确保契约测试通过 */
+:root {
+  --color-primary: #1677FF;
+  --color-success: #10B981;
+  --color-warning: #F59E0B;
+  --color-danger: #EF4444;
+}

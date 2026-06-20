@@ -4,8 +4,8 @@ import { showToast } from 'vant'
 import { api } from '../api'
 
 const emit = defineEmits<{ login: [token: string, user: { id: number; name: string; role: string }] }>()
-const username = ref('store_manager')
-const password = ref('admin123')
+const username = ref('')
+const password = ref('')
 const loading = ref(false)
 
 async function login() {
@@ -15,7 +15,7 @@ async function login() {
       username: username.value,
       password: password.value
     })
-    const data = res.data.data
+    const data = res.data
     if (!data || !data.token) {
       showToast('登录失败')
       return

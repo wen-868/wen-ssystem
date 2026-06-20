@@ -79,8 +79,11 @@ assertIncludes("admin-web/src/App.vue", "admin-login-page");
 assertIncludes("admin-web/src/App.vue", "handleLogout");
 assertIncludes("admin-web/src/App.vue", "系统管理员");
 assertIncludes("admin-web/src/App.vue", "退出登录");
-for (const text of ["activeNav === \"商品\"", "activeNav === \"订单\"", "activeNav === \"销售单\"", "activeNav === \"库存\"", "activeNav === \"客户\"", "activeNav === \"门店\"", "activeNav === \"收款\"", "activeNav === \"报表\""]) {
-  assertIncludes("admin-web/src/App.vue", text);
+for (const text of ['activeNav === "商品"', 'activeNav === "订单"', 'activeNav === "销售单"', 'activeNav === "库存"', 'activeNav === "客户"', 'activeNav === "门店"', 'activeNav === "收款"', 'activeNav === "报表"']) {
+  const alt = text.replace(/"/g, "'");
+  if (!contents["admin-web/src/App.vue"].includes(text) && !contents["admin-web/src/App.vue"].includes(alt)) {
+    throw new Error(`admin-web/src/App.vue 缺少 ${text} 或 ${alt}`);
+  }
 }
 assertIncludes("admin-web/src/App.vue", "runAdminAction");
 assertIncludes("store-terminal/src/App.vue", "cashier-panel");

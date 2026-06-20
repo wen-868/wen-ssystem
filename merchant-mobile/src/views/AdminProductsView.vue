@@ -37,7 +37,7 @@ async function loadProducts(reset = false) {
       pageSize,
       keyword: keyword.value || undefined
     })
-    const data = res.data.data
+    const data = res.data
     const records = data.records ?? []
     if (reset) {
       products.value = records

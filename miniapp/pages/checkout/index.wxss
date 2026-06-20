@@ -1,0 +1,220 @@
+/* ========== 加载状态 ========== */
+.loading-wrap {
+  display: flex;
+  justify-content: center;
+  padding: 120rpx 0;
+}
+
+/* ========== 收货地址 ========== */
+.address-card {
+  display: flex;
+  align-items: center;
+  position: relative;
+  padding-right: 48rpx;
+}
+.address-info {
+  flex: 1;
+}
+.address-row {
+  display: flex;
+  align-items: center;
+  gap: 20rpx;
+}
+.address-name {
+  font-size: 32rpx;
+  font-weight: 600;
+  color: var(--text-primary, #1F2328);
+}
+.address-mobile {
+  font-size: 28rpx;
+  color: var(--text-secondary, #4B5563);
+}
+.address-detail {
+  margin-top: 8rpx;
+  font-size: 26rpx;
+}
+.address-placeholder {
+  flex: 1;
+  text-align: center;
+  padding: 16rpx 0;
+}
+.address-arrow {
+  position: absolute;
+  right: 24rpx;
+  color: var(--text-muted, #9CA3AF);
+  font-size: 32rpx;
+}
+
+/* ========== 章节标题 ========== */
+.section-title {
+  font-size: 30rpx;
+  font-weight: 600;
+  color: var(--text-primary, #1F2328);
+  margin-bottom: 20rpx;
+}
+
+/* ========== 配送方式 ========== */
+.fulfillment-options {
+  display: flex;
+  gap: 20rpx;
+}
+.fulfillment-option {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 12rpx;
+  padding: 20rpx;
+  border: 2rpx solid var(--border-normal, #E5E7EB);
+  border-radius: 16rpx;
+  font-size: 28rpx;
+  color: var(--text-secondary, #4B5563);
+  background: var(--bg-soft, #F0F2F5);
+}
+.fulfillment-option.active {
+  border-color: var(--color-primary, #1677FF);
+  color: var(--color-primary, #1677FF);
+  background: var(--color-primary-soft, #E6F4FF);
+}
+.fulfillment-icon {
+  font-size: 32rpx;
+}
+
+/* ========== 商品清单 ========== */
+.checkout-item {
+  display: flex;
+  align-items: flex-start;
+  padding: 16rpx 0;
+  border-bottom: 1rpx solid var(--border-normal, #E5E7EB);
+}
+.checkout-item:last-child {
+  border-bottom: none;
+  padding-bottom: 0;
+}
+.checkout-item-image {
+  width: 120rpx;
+  height: 120rpx;
+  border-radius: 12rpx;
+  flex-shrink: 0;
+  background: var(--bg-soft, #F0F2F5);
+}
+.checkout-item-info {
+  flex: 1;
+  margin-left: 20rpx;
+}
+.checkout-item-name {
+  font-size: 28rpx;
+  font-weight: 600;
+  color: var(--text-primary, #1F2328);
+}
+.checkout-item-sku {
+  margin-top: 6rpx;
+  font-size: 24rpx;
+}
+.checkout-item-bottom {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-top: 12rpx;
+}
+.checkout-item-price {
+  font-size: 28rpx;
+}
+.checkout-item-subtotal {
+  font-size: 28rpx;
+  font-weight: 600;
+  color: var(--text-primary, #1F2328);
+}
+
+/* ========== 金额明细 ========== */
+.amount-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 12rpx 0;
+  font-size: 28rpx;
+}
+.discount-text {
+  color: var(--color-danger, #EF4444);
+}
+.amount-divider {
+  height: 1rpx;
+  background: var(--border-normal, #E5E7EB);
+  margin: 12rpx 0;
+}
+.total-row {
+  font-size: 30rpx;
+  font-weight: 600;
+}
+.total-price {
+  font-size: 40rpx;
+}
+
+/* ========== 支付方式 ========== */
+.pay-options {
+  display: flex;
+  flex-direction: column;
+  gap: 16rpx;
+}
+.pay-option {
+  display: flex;
+  align-items: center;
+  gap: 16rpx;
+  padding: 20rpx;
+  border: 2rpx solid var(--border-normal, #E5E7EB);
+  border-radius: 16rpx;
+  font-size: 28rpx;
+  color: var(--text-secondary, #4B5563);
+}
+.pay-option.active {
+  border-color: var(--color-primary, #1677FF);
+  color: var(--color-primary, #1677FF);
+  background: var(--color-primary-soft, #E6F4FF);
+}
+.pay-icon {
+  font-size: 32rpx;
+}
+.pay-check {
+  margin-left: auto;
+  color: var(--color-primary, #1677FF);
+  font-weight: 700;
+}
+
+/* ========== 备注 ========== */
+.remark-input {
+  width: 100%;
+  min-height: 80rpx;
+  border: 2rpx solid var(--border-normal, #E5E7EB);
+  border-radius: 12rpx;
+  padding: 16rpx;
+  font-size: 28rpx;
+  box-sizing: border-box;
+  background: var(--bg-soft, #F0F2F5);
+}
+
+/* ========== 底部提交栏 ========== */
+.checkout-footer {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  background: var(--bg-card, #FFFFFF);
+  padding: 16rpx 24rpx;
+  box-shadow: 0 -4rpx 16rpx rgba(0,0,0,0.06);
+  z-index: 100;
+}
+.footer-amount {
+  display: flex;
+  align-items: center;
+}
+.footer-price {
+  font-size: 40rpx;
+}
+.submit-btn {
+  font-size: 30rpx;
+  padding: 20rpx 56rpx;
+  line-height: 1.4;
+}

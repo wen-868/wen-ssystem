@@ -34,9 +34,9 @@ async function searchCustomers() {
   if (!customerKeyword.value.trim()) return
   try {
     const res = await fetchCustomers({ keyword: customerKeyword.value })
-    customerResults.value = res.data.data.records ?? []
+    customerResults.value = res.data.records ?? []
   } catch {
-    customerResults.value = []
+    showToast('操作失败，请重试')
   }
 }
 
@@ -61,9 +61,9 @@ async function searchProducts() {
   if (!productKeyword.value.trim()) return
   try {
     const res = await fetchProducts({ keyword: productKeyword.value })
-    productResults.value = res.data.data.records ?? []
+    productResults.value = res.data.records ?? []
   } catch {
-    productResults.value = []
+    showToast('操作失败，请重试')
   }
 }
 
@@ -150,6 +150,14 @@ function openPayment() {
     showToast('请先选择商品')
     return
   }
+  if (discountAmount.value < 0) {
+    showToast('折扣金额不能为负数')
+    return
+  }
+  if (roundingAmount.value < 0) {
+    showToast('抹零金额不能为负数')
+    return
+  }
   paymentAmount.value = receivableAmount.value
   paymentMethod.value = ''
   showPaymentSheet.value = true
@@ -177,7 +185,7 @@ async function confirmPayment() {
         priceType: i.priceType
       }))
     })
-    const bill: SaleBillDetail = billRes.data.data
+    const bill: SaleBillDetail = billRes.data
     closeToast()
 
     showLoadingToast({ message: '收款中...', forbidClick: true })
@@ -206,6 +214,14 @@ function openLinkPopup() {
     showToast('请先选择商品')
     return
   }
+  if (discountAmount.value < 0) {
+    showToast('折扣金额不能为负数')
+    return
+  }
+  if (roundingAmount.value < 0) {
+    showToast('抹零金额不能为负数')
+    return
+  }
   linkAmount.value = receivableAmount.value
   linkExpireHours.value = 72
   generatedLink.value = ''
@@ -230,7 +246,7 @@ async function confirmLink() {
         priceType: i.priceType
       }))
     })
-    const bill: SaleBillDetail = billRes.data.data
+    const bill: SaleBillDetail = billRes.data
     closeToast()
 
     showLoadingToast({ message: '生成链接...', forbidClick: true })
@@ -239,7 +255,7 @@ async function confirmLink() {
       expireHours: linkExpireHours.value
     })
     closeToast()
-    const linkData = linkRes.data.data
+    const linkData = linkRes.data
     const baseUrl = window.location.origin
     generatedLink.value = `${baseUrl}${linkData.shareUrl}`
     showSuccessToast('链接已生成')
@@ -271,7 +287,7 @@ function resetForm() {
 
 // ========== 跳转到销售单列表 ==========
 function goToSaleBills() {
-  window.location.hash = '#/sale-bills'
+  window.dispatchEvent(new CustomEvent('nav', { detail: 'sale-bills' }))
 }
 </script>
 

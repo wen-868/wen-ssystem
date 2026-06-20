@@ -1,0 +1,67 @@
+<view style="{{themeCssVars}}">
+  <!-- 售后类型选择 -->
+  <view class="card">
+    <view class="section-title">售后类型</view>
+    <view class="type-grid">
+      <view wx:for="{{typeOptions}}" wx:key="value"
+            class="type-option {{aftersaleType === item.value ? 'active' : ''}}"
+            data-value="{{item.value}}" bindtap="selectType">
+        <text class="type-label">{{item.label}}</text>
+        <text class="muted type-desc">{{item.desc}}</text>
+      </view>
+    </view>
+  </view>
+
+  <!-- 售后商品 -->
+  <view class="card" wx:if="{{orderItems.length > 0}}">
+    <view class="section-title">售后商品</view>
+    <view wx:for="{{orderItems}}" wx:key="skuId" class="apply-item">
+      <view class="apply-item-info">
+        <text class="apply-item-name">{{item.skuName}}</text>
+        <text class="muted">单价：¥{{item.unitPrice}}</text>
+      </view>
+      <view class="apply-item-qty">
+        <button class="stepper" data-sku-id="{{item.skuId}}" data-delta="-1" bindtap="changeApplyQty" disabled="{{item.applyQty <= 1}}">-</button>
+        <text class="qty-text">{{item.applyQty || item.qty || item.quantity}}</text>
+        <button class="stepper" data-sku-id="{{item.skuId}}" data-delta="1" bindtap="changeApplyQty" disabled="{{item.applyQty >= (item.qty || item.quantity)}}">+</button>
+      </view>
+    </view>
+    <view class="refund-row">
+      <text>退款金额：</text>
+      <text class="price">¥{{refundAmount}}</text>
+    </view>
+  </view>
+
+  <!-- 申请原因 -->
+  <view class="card">
+    <view class="section-title">申请原因</view>
+    <view class="reason-grid">
+      <view wx:for="{{reasonOptions}}" wx:key="*this"
+            class="reason-tag {{reason === item ? 'active' : ''}}"
+            data-reason="{{item}}" bindtap="selectReason">
+        <text>{{item}}</text>
+      </view>
+    </view>
+    <textarea class="detail-input" placeholder="详细说明（选填）" value="{{reasonDetail}}" bindinput="onDetailInput" maxlength="500" auto-height />
+  </view>
+
+  <!-- 图片凭证 -->
+  <view class="card">
+    <view class="section-title">上传凭证（最多{{maxImages}}张）</view>
+    <view class="image-grid">
+      <view wx:for="{{images}}" wx:key="*this" class="image-item">
+        <image src="{{item}}" mode="aspectFill" class="upload-image" />
+        <view class="image-delete" data-index="{{index}}" bindtap="deleteImage">x</view>
+      </view>
+      <view wx:if="{{images.length < maxImages}}" class="image-item image-add" bindtap="chooseImage">
+        <text class="add-icon">+</text>
+        <text class="muted add-text">添加图片</text>
+      </view>
+    </view>
+  </view>
+
+  <!-- 提交按钮 -->
+  <view class="submit-wrap safe-bottom">
+    <button class="primary submit-btn" loading="{{submitting}}" bindtap="submitApply">提交申请</button>
+  </view>
+</view>

@@ -1,9 +1,9 @@
 <script setup lang="ts">
 import { ref, onMounted } from 'vue'
-import { useRouter } from 'vue-router'
 import {
   showLoadingToast,
   showSuccessToast,
+  showToast,
   closeToast
 } from 'vant'
 import {
@@ -11,8 +11,6 @@ import {
   updateProductPrice,
   type AdminProductRecord
 } from '../api'
-
-const router = useRouter()
 
 const keyword = ref('')
 const products = ref<AdminProductRecord[]>([])
@@ -35,7 +33,7 @@ async function loadProducts(reset = false) {
       pageSize,
       keyword: keyword.value || undefined
     })
-    const data = res.data.data
+    const data = res.data
     const records = data.records ?? []
     if (reset) {
       products.value = records
@@ -47,7 +45,7 @@ async function loadProducts(reset = false) {
     }
     page.value++
   } catch {
-    // ignore
+    showToast('加载商品列表失败')
   } finally {
     loading.value = false
     refreshing.value = false
@@ -70,19 +68,34 @@ const batchAdjustValue = ref('')
 
 async function submitBatchAdjust() {
   if (!batchAdjustValue.value) {
-    showSuccessToast({ message: '请输入调整值', position: 'bottom' })
+    showToast('请输入调整值')
+    return
+  }
+  const adjustVal = Number(batchAdjustValue.value)
+  if (isNaN(adjustVal)) {
+    showToast('请输入有效的数字')
     return
   }
   try {
     showLoadingToast({ message: '批量调价中...', forbidClick: true })
-    // Simulate batch price update
-    await new Promise(r => setTimeout(r, 800))
+    for (const product of products.value) {
+      const currentRetail = Number(product.retailPrice) || 0
+      let newRetail: number
+      if (batchAdjustType.value === 'percent') {
+        newRetail = Math.round(currentRetail * (1 + adjustVal / 100) * 100) / 100
+      } else {
+        newRetail = Math.round((currentRetail + adjustVal) * 100) / 100
+      }
+      if (newRetail < 0) newRetail = 0
+      await updateProductPrice(product.skuId, { retailPrice: newRetail })
+    }
     closeToast()
     showSuccessToast('批量调价成功')
     showBatchPopup.value = false
     await loadProducts(true)
   } catch {
     closeToast()
+    showToast('操作失败，请重试')
   }
 }
 
@@ -118,7 +131,12 @@ function toNum(v: string): number | null {
 
 async function submitPriceUpdate() {
   if (!priceForm.value.retailPrice) {
-    showSuccessToast({ message: '请输入零售价', position: 'bottom' })
+    showToast('请输入零售价')
+    return
+  }
+  const retailNum = Number(priceForm.value.retailPrice)
+  if (isNaN(retailNum) || retailNum < 0) {
+    showToast('价格不能为负数')
     return
   }
   try {
@@ -135,7 +153,12 @@ async function submitPriceUpdate() {
     await loadProducts(true)
   } catch {
     closeToast()
+    showToast('操作失败，请重试')
   }
+}
+
+function goBack() {
+  window.dispatchEvent(new CustomEvent('nav', { detail: 'admin' }))
 }
 
 onMounted(() => {
@@ -146,7 +169,7 @@ onMounted(() => {
 <template>
   <section class="page">
     <div class="page-header">
-      <van-icon name="arrow-left" size="20" @click="router.back()" />
+      <van-icon name="arrow-left" size="20" @click="goBack" />
       <h2 class="page-title">价格管理</h2>
       <span style="width: 20px;"></span>
     </div>

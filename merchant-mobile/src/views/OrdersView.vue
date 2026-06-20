@@ -29,7 +29,15 @@ const STATUS_MAP: Record<string, { text: string; type: string }> = {
   PENDING_PAYMENT: { text: '待支付', type: 'warning' }
 }
 
+const PAY_STATUS_MAP: Record<string, { text: string; type: string }> = {
+  UNPAID: { text: '未支付', type: 'danger' },
+  PAID: { text: '已支付', type: 'success' },
+  PARTIAL_REFUND: { text: '部分退款', type: 'warning' },
+  REFUNDED: { text: '已退款', type: 'default' }
+}
+
 const activeTab = ref('')
+const searchKeyword = ref('')
 const orders = ref<OrderRecord[]>([])
 const loading = ref(false)
 const finished = ref(false)
@@ -54,7 +62,7 @@ async function loadOrders(reset = false) {
       pageSize,
       status: activeTab.value || undefined
     })
-    const data = res.data.data
+    const data = res.data
     if (reset) {
       orders.value = data.records ?? []
     } else {
@@ -81,13 +89,22 @@ function onTabChange() {
   loadOrders(true)
 }
 
+function onSearch() {
+  loadOrders(true)
+}
+
+function onCancelSearch() {
+  searchKeyword.value = ''
+  loadOrders(true)
+}
+
 async function viewDetail(orderNo: string) {
   showDetail.value = true
   detailLoading.value = true
   detail.value = null
   try {
     const res = await fetchOrderDetail(orderNo)
-    detail.value = res.data.data
+    detail.value = res.data
   } catch {
     // ignore
   } finally {
@@ -169,6 +186,16 @@ function canReject(status: string) {
   <section class="page">
     <h2 class="page-title">订单配送</h2>
 
+    <!-- 搜索栏 -->
+    <van-search
+      v-model="searchKeyword"
+      placeholder="搜索订单号/收货人"
+      shape="round"
+      clearable
+      @search="onSearch"
+      @cancel="onCancelSearch"
+    />
+
     <!-- 状态筛选 -->
     <van-tabs v-model:active="activeTab" sticky @change="onTabChange">
       <van-tab
@@ -200,13 +227,23 @@ function canReject(status: string) {
           <template #title>
             <div class="order-header">
               <span class="order-no">{{ order.orderNo }}</span>
-              <van-tag
-                :type="(STATUS_MAP[order.orderStatus]?.type as any) || 'default'"
-                plain
-                size="medium"
-              >
-                {{ STATUS_MAP[order.orderStatus]?.text || order.orderStatus }}
-              </van-tag>
+              <div class="order-tags">
+                <van-tag
+                  :type="(STATUS_MAP[order.orderStatus]?.type as any) || 'default'"
+                  plain
+                  size="medium"
+                >
+                  {{ STATUS_MAP[order.orderStatus]?.text || order.orderStatus }}
+                </van-tag>
+                <van-tag
+                  v-if="order.payStatus"
+                  :type="(PAY_STATUS_MAP[order.payStatus]?.type as any) || 'default'"
+                  plain
+                  size="medium"
+                >
+                  {{ PAY_STATUS_MAP[order.payStatus]?.text || order.payStatus }}
+                </van-tag>
+              </div>
             </div>
           </template>
           <template #label>
@@ -243,7 +280,7 @@ function canReject(status: string) {
                 <span class="detail-amount">¥{{ Number(detail.payableAmount).toFixed(2) }}</span>
               </template>
             </van-cell>
-            <van-cell title="状态">
+            <van-cell title="配送状态">
               <template #value>
                 <van-tag
                   :type="(STATUS_MAP[detail.orderStatus]?.type as any) || 'default'"
@@ -251,6 +288,18 @@ function canReject(status: string) {
                 >
                   {{ STATUS_MAP[detail.orderStatus]?.text || detail.orderStatus }}
                 </van-tag>
+              </template>
+            </van-cell>
+            <van-cell title="支付状态">
+              <template #value>
+                <van-tag
+                  v-if="detail.payStatus"
+                  :type="(PAY_STATUS_MAP[detail.payStatus]?.type as any) || 'default'"
+                  plain
+                >
+                  {{ PAY_STATUS_MAP[detail.payStatus]?.text || detail.payStatus }}
+                </van-tag>
+                <span v-else>-</span>
               </template>
             </van-cell>
           </van-cell-group>
@@ -309,7 +358,7 @@ function canReject(status: string) {
 <style scoped>
 .page-title {
   margin: 0 0 12px;
-  font-size: 18px;
+  font-size: var(--text-page-title);
   font-weight: 600;
   color: var(--text-primary);
 }
@@ -338,6 +387,11 @@ function canReject(status: string) {
   color: var(--text-primary);
 }
 
+.order-tags {
+  display: flex;
+  gap: 4px;
+}
+
 .order-info {
   display: flex;
   align-items: center;
@@ -358,7 +412,7 @@ function canReject(status: string) {
 }
 
 .detail-panel {
-  padding: 20px 16px;
+  padding: 20px var(--space-card-padding);
   max-height: 80vh;
   overflow-y: auto;
 }

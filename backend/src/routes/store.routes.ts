@@ -197,20 +197,28 @@ storeRouter.get("/orders", asyncHandler(async (req, res) => {
 }));
 
 storeRouter.post("/orders/:orderNo/accept", asyncHandler(async (req, res) => {
-  await query(
+  const result = await query(
     `UPDATE miniapp_order SET order_status = 'ACCEPTED', updated_at = NOW() WHERE order_no = ?`,
     [req.params.orderNo]
   );
+  if (!result || (result as any).affectedRows === 0) {
+    res.status(404).json({ code: "404", message: "订单不存在" });
+    return;
+  }
   res.json(ok({ orderNo: req.params.orderNo, status: "ACCEPTED" }));
 }));
 
 storeRouter.post("/orders/:orderNo/start-delivery", asyncHandler(async (req, res) => {
-  await query(
+  const result = await query(
     `UPDATE miniapp_order
      SET order_status = 'DELIVERING', delivery_status = 'DELIVERING', updated_at = NOW()
      WHERE order_no = ? AND order_status = 'WAIT_DELIVERY'`,
     [req.params.orderNo]
   );
+  if (!result || (result as any).affectedRows === 0) {
+    res.status(400).json({ code: "400", message: "订单不存在或状态不允许开始配送" });
+    return;
+  }
   await query(
     `INSERT INTO operation_log (operator_id, operator_name, module, action, biz_no, after_data)
      VALUES (?, ?, 'ORDER_DELIVERY', 'START_DELIVERY', ?, JSON_OBJECT('status', 'DELIVERING'))`,
@@ -559,42 +567,46 @@ storeRouter.post("/inventory/adjust", asyncHandler(async (req, res) => {
     remark: z.string().optional()
   }).parse(req.body);
   const storeId = body.storeId ?? req.user?.storeId ?? 1;
-  const current = await queryOne<any>(
-    `SELECT physical_qty AS physicalQty
-     FROM inventory_balance
-     WHERE store_id = ? AND sku_id = ? AND stock_type = ?`,
-    [storeId, body.skuId, body.stockType]
-  );
-  const beforeQty = Number(current?.physicalQty ?? 0);
-  await query(
-    `UPDATE inventory_balance
-     SET physical_qty = physical_qty + ?,
-         available_qty = available_qty + ?,
-         updated_at = NOW()
-     WHERE store_id = ? AND sku_id = ? AND stock_type = ?`,
-    [body.change, body.change, storeId, body.skuId, body.stockType]
-  );
-  const afterQty = beforeQty + body.change;
-  await query(
-    `INSERT INTO inventory_ledger (ledger_no, store_id, sku_id, stock_type, biz_type, biz_no,
-                                   change_qty, before_qty, after_qty, before_locked_qty, after_locked_qty,
-                                   operator_id, idempotency_key, remark)
-     VALUES (?, ?, ?, ?, 'ADJUST', ?, ?, ?, ?, 0, 0, ?, ?, ?)`,
-    [
-      makeBizNo("IL"),
-      storeId,
-      body.skuId,
-      body.stockType,
-      makeBizNo("ADJ"),
-      body.change,
-      beforeQty,
-      afterQty,
-      req.user?.id ?? null,
-      makeBizNo("IDEMP"),
-      body.remark ?? "门店调整"
-    ]
-  );
-  res.json(ok({ ok: true }));
+  const result = await transaction(async (conn) => {
+    const [rows] = await conn.query<any[]>(
+      `SELECT physical_qty AS physicalQty
+       FROM inventory_balance
+       WHERE store_id = ? AND sku_id = ? AND stock_type = ?
+       FOR UPDATE`,
+      [storeId, body.skuId, body.stockType]
+    );
+    const beforeQty = Number(rows[0]?.physicalQty ?? 0);
+    await conn.execute(
+      `UPDATE inventory_balance
+       SET physical_qty = physical_qty + ?,
+           available_qty = available_qty + ?,
+           updated_at = NOW()
+       WHERE store_id = ? AND sku_id = ? AND stock_type = ?`,
+      [body.change, body.change, storeId, body.skuId, body.stockType]
+    );
+    const afterQty = beforeQty + body.change;
+    await conn.execute(
+      `INSERT INTO inventory_ledger (ledger_no, store_id, sku_id, stock_type, biz_type, biz_no,
+                                     change_qty, before_qty, after_qty, before_locked_qty, after_locked_qty,
+                                     operator_id, idempotency_key, remark)
+       VALUES (?, ?, ?, ?, 'ADJUST', ?, ?, ?, ?, 0, 0, ?, ?, ?)`,
+      [
+        makeBizNo("IL"),
+        storeId,
+        body.skuId,
+        body.stockType,
+        makeBizNo("ADJ"),
+        body.change,
+        beforeQty,
+        afterQty,
+        req.user?.id ?? null,
+        makeBizNo("IDEMP"),
+        body.remark ?? "门店调整"
+      ]
+    );
+    return { ok: true };
+  });
+  res.json(ok(result));
 }));
 
 storeRouter.get("/inventory/logs", asyncHandler(async (req, res) => {

@@ -1,17 +1,16 @@
 <script setup lang="ts">
 import { ref, onMounted } from 'vue'
-import { useRouter } from 'vue-router'
 import {
+  showToast,
   showLoadingToast,
   showSuccessToast,
   closeToast
 } from 'vant'
 import {
+  api,
   fetchAdminStaff,
   type AdminStaffRecord
 } from '../api'
-
-const router = useRouter()
 
 const keyword = ref('')
 const staffList = ref<AdminStaffRecord[]>([])
@@ -33,24 +32,17 @@ const staffForm = ref({
   status: 1
 })
 
-const roleOptions = [
-  { text: '管理员', value: 'admin' },
-  { text: '销售员', value: 'sales' },
-  { text: '仓管员', value: 'warehouse' },
-  { text: '收银员', value: 'cashier' }
-]
-
 /* ========== 列表加载 ========== */
 async function loadStaff() {
   loading.value = true
   try {
     const res = await fetchAdminStaff()
-    const data = res.data.data
+    const data = res.data
     const records = data.records ?? data ?? []
     staffList.value = records
     finished.value = true
   } catch {
-    // ignore
+    showToast('加载员工列表失败')
   } finally {
     loading.value = false
     refreshing.value = false
@@ -58,12 +50,12 @@ async function loadStaff() {
 }
 
 function onSearch() {
-  loadStaff(true)
+  loadStaff()
 }
 
 function onRefresh() {
   refreshing.value = true
-  loadStaff(true)
+  loadStaff()
 }
 
 function openAddStaff() {
@@ -96,19 +88,41 @@ function openEditStaff(item: AdminStaffRecord) {
 
 async function submitStaff() {
   if (!staffForm.value.username || !staffForm.value.realName) {
-    showSuccessToast({ message: '请填写用户名和姓名', position: 'bottom' })
+    showToast('请填写用户名和姓名')
+    return
+  }
+  if (staffForm.value.mobile && !/^1[3-9]\d{9}$/.test(staffForm.value.mobile)) {
+    showToast('手机号格式不正确')
     return
   }
   try {
     showLoadingToast({ message: '保存中...', forbidClick: true })
-    // Simulate API call
-    await new Promise(r => setTimeout(r, 500))
+    if (isEdit.value) {
+      await api.put(`/admin/staff/${staffForm.value.staffId}`, {
+        username: staffForm.value.username,
+        realName: staffForm.value.realName,
+        mobile: staffForm.value.mobile,
+        roleId: staffForm.value.roleId,
+        storeId: staffForm.value.storeId,
+        status: staffForm.value.status
+      })
+    } else {
+      await api.post('/admin/staff', {
+        username: staffForm.value.username,
+        realName: staffForm.value.realName,
+        mobile: staffForm.value.mobile,
+        roleId: staffForm.value.roleId,
+        storeId: staffForm.value.storeId,
+        status: staffForm.value.status
+      })
+    }
     closeToast()
     showSuccessToast(isEdit.value ? '员工信息已更新' : '员工已添加')
     showStaffPopup.value = false
-    await loadStaff(true)
+    await loadStaff()
   } catch {
     closeToast()
+    showToast('操作失败，请重试')
   }
 }
 
@@ -116,15 +130,19 @@ function getStatusText(status: number) {
   return status === 1 ? '在职' : '离职'
 }
 
+function goBack() {
+  window.dispatchEvent(new CustomEvent('nav', { detail: 'admin' }))
+}
+
 onMounted(() => {
-  loadStaff(true)
+  loadStaff()
 })
 </script>
 
 <template>
   <section class="page">
     <div class="page-header">
-      <van-icon name="arrow-left" size="20" @click="router.back()" />
+      <van-icon name="arrow-left" size="20" @click="goBack" />
       <h2 class="page-title">员工管理</h2>
       <span style="width: 20px;"></span>
     </div>

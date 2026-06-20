@@ -1,1 +1,171 @@
+/* ========== 追溯扫码内嵌样式 ========== */
 
+/* 加载动画 */
+.trace-loading-spinner {
+  width: 64rpx;
+  height: 64rpx;
+  border: 6rpx solid #E5E7EB;
+  border-top-color: #1677FF;
+  border-radius: 50%;
+  animation: trace-spin 0.8s linear infinite;
+  margin: 0 auto;
+}
+
+@keyframes trace-spin {
+  to { transform: rotate(360deg); }
+}
+
+/* 错误图标 */
+.trace-error-icon {
+  width: 80rpx;
+  height: 80rpx;
+  line-height: 80rpx;
+  text-align: center;
+  border-radius: 50%;
+  background: #FEE2E2;
+  color: #EF4444;
+  font-size: 40rpx;
+  font-weight: 700;
+  margin: 0 auto 24rpx;
+}
+
+/* 商品信息行 */
+.trace-info-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 16rpx 0;
+  border-bottom: 1rpx solid #E5E7EB;
+}
+
+.trace-info-row:last-child {
+  border-bottom: none;
+}
+
+.trace-info-label {
+  font-size: 28rpx;
+  color: #4B5563;
+  flex-shrink: 0;
+  margin-right: 24rpx;
+}
+
+.trace-info-value {
+  font-size: 28rpx;
+  color: #1F2328;
+  text-align: right;
+  flex: 1;
+}
+
+/* 保质期标签 */
+.trace-shelf-tag {
+  display: inline-block;
+  padding: 6rpx 20rpx;
+  border-radius: 8rpx;
+  font-size: 24rpx;
+  font-weight: 500;
+}
+
+.trace-shelf-tag-normal {
+  background: #D1FAE5;
+  color: #065F46;
+}
+
+.trace-shelf-tag-expiring {
+  background: #FEF3C7;
+  color: #92400E;
+}
+
+.trace-shelf-tag-expired {
+  background: #FEE2E2;
+  color: #991B1B;
+}
+
+/* 真伪验证卡片 */
+.trace-verify-card {
+  display: flex;
+  align-items: center;
+  padding: 32rpx 28rpx;
+}
+
+.trace-verify-card-pass {
+  background: linear-gradient(135deg, #ECFDF5 0%, #D1FAE5 100%);
+  border: 2rpx solid #A7F3D0;
+}
+
+.trace-verify-card-fail {
+  background: linear-gradient(135deg, #FEF2F2 0%, #FEE2E2 100%);
+  border: 2rpx solid #FECACA;
+}
+
+.trace-verify-card-pending {
+  background: linear-gradient(135deg, #F0F9FF 0%, #E0F2FE 100%);
+  border: 2rpx solid #BAE6FD;
+}
+
+.trace-verify-badge {
+  width: 80rpx;
+  height: 80rpx;
+  line-height: 80rpx;
+  text-align: center;
+  font-size: 48rpx;
+  border-radius: 50%;
+}
+
+/* 追溯时间线 */
+.trace-timeline {
+  margin-top: 8rpx;
+}
+
+.trace-timeline-item {
+  display: flex;
+  min-height: 120rpx;
+}
+
+.trace-timeline-left {
+  width: 40rpx;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  flex-shrink: 0;
+  position: relative;
+}
+
+.trace-timeline-dot {
+  width: 24rpx;
+  height: 24rpx;
+  border-radius: 50%;
+  background: #E5E7EB;
+  border: 4rpx solid #FFFFFF;
+  box-shadow: 0 0 0 4rpx #E5E7EB;
+  flex-shrink: 0;
+  position: relative;
+  z-index: 1;
+}
+
+.trace-timeline-dot-primary {
+  background: #1677FF;
+  box-shadow: 0 0 0 4rpx rgba(22, 119, 255, 0.2);
+}
+
+.trace-timeline-dot-success {
+  background: #10B981;
+  box-shadow: 0 0 0 4rpx rgba(16, 185, 129, 0.2);
+}
+
+.trace-timeline-dot-warning {
+  background: #F59E0B;
+  box-shadow: 0 0 0 4rpx rgba(245, 158, 11, 0.2);
+}
+
+.trace-timeline-line {
+  width: 4rpx;
+  flex: 1;
+  background: #E5E7EB;
+  margin-top: 4rpx;
+}
+
+.trace-timeline-content {
+  flex: 1;
+  padding-left: 20rpx;
+  padding-bottom: 24rpx;
+}

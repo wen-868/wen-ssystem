@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { onMounted, ref, computed } from 'vue'
-import { showSuccessToast } from 'vant'
+import { showSuccessToast, showDialog } from 'vant'
 import { api } from '../api'
 
 // 角色中文化映射
@@ -28,7 +28,7 @@ onMounted(async () => {
   loading.value = true
   try {
     const res = await api.get('/store/me')
-    const data = res.data.data || {}
+    const data = res.data || {}
     me.value = {
       realName: data.realName || '商家用户',
       storeId: data.storeId || 1,
@@ -55,9 +55,19 @@ onMounted(async () => {
 })
 
 function logout() {
-  localStorage.removeItem('merchant_token')
-  localStorage.removeItem('merchant_user')
-  window.dispatchEvent(new Event('auth:logout'))
+  showDialog({
+    title: '确认退出',
+    message: '确定要退出登录吗？',
+    showCancelButton: true,
+    confirmButtonText: '确定退出',
+    cancelButtonText: '取消'
+  }).then(() => {
+    localStorage.removeItem('merchant_token')
+    localStorage.removeItem('merchant_user')
+    window.dispatchEvent(new Event('auth:logout'))
+  }).catch(() => {
+    // 用户取消
+  })
 }
 
 // 修改密码弹窗

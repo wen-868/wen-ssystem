@@ -74,7 +74,7 @@ async function loadBills(reset = false) {
       pageSize,
       collectionStatus: activeTab.value || undefined
     })
-    const data = res.data.data
+    const data = res.data
     if (reset) {
       bills.value = data.records ?? []
     } else {
@@ -85,7 +85,7 @@ async function loadBills(reset = false) {
     }
     page.value++
   } catch {
-    // ignore
+    showToast('操作失败，请重试')
   } finally {
     loading.value = false
     refreshing.value = false
@@ -107,9 +107,9 @@ async function viewDetail(billNo: string) {
   detail.value = null
   try {
     const res = await fetchSaleBillDetail(billNo)
-    detail.value = res.data.data
+    detail.value = res.data
   } catch {
-    // ignore
+    showToast('操作失败，请重试')
   } finally {
     detailLoading.value = false
   }
@@ -172,7 +172,7 @@ async function confirmLink() {
       expireHours: linkExpireHours.value
     })
     closeToast()
-    const linkData = res.data.data
+    const linkData = res.data
     const baseUrl = window.location.origin
     generatedLink.value = `${baseUrl}${linkData.shareUrl}`
     showSuccessToast('链接已生成')
@@ -196,7 +196,7 @@ function copyLink() {
 }
 
 function goBack() {
-  window.history.back()
+  window.dispatchEvent(new CustomEvent('nav', { detail: 'create-sale' }))
 }
 </script>
 

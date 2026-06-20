@@ -1,17 +1,16 @@
 <script setup lang="ts">
 import { ref, onMounted } from 'vue'
-import { useRouter } from 'vue-router'
 import {
   showLoadingToast,
   showSuccessToast,
+  showToast,
   closeToast
 } from 'vant'
 import {
+  api,
   fetchAdminStores,
   type AdminStoreRecord
 } from '../api'
-
-const router = useRouter()
 
 const keyword = ref('')
 const stores = ref<AdminStoreRecord[]>([])
@@ -38,11 +37,11 @@ async function loadStores() {
   loading.value = true
   try {
     const res = await fetchAdminStores({ page: 1, pageSize: 50, keyword: keyword.value || undefined })
-    const data = res.data.data
+    const data = res.data
     stores.value = data.records ?? []
     finished.value = true
   } catch {
-    // ignore
+    showToast('加载门店列表失败')
   } finally {
     loading.value = false
     refreshing.value = false
@@ -50,12 +49,12 @@ async function loadStores() {
 }
 
 function onSearch() {
-  loadStores(true)
+  loadStores()
 }
 
 function onRefresh() {
   refreshing.value = true
-  loadStores(true)
+  loadStores()
 }
 
 function openAddStore() {
@@ -87,19 +86,37 @@ function openEditStore(item: AdminStoreRecord) {
 }
 
 async function submitStore() {
-  if (!storeForm.value.name) {
-    showSuccessToast({ message: '请填写门店名称', position: 'bottom' })
+  if (!storeForm.value.name.trim()) {
+    showToast('请填写门店名称')
     return
   }
   try {
     showLoadingToast({ message: '保存中...', forbidClick: true })
-    await new Promise(r => setTimeout(r, 500))
+    if (isEdit.value) {
+      await api.put(`/admin/stores/${storeForm.value.id}`, {
+        name: storeForm.value.name,
+        address: storeForm.value.address,
+        contact: storeForm.value.contact,
+        phone: storeForm.value.phone,
+        deliveryRadius: storeForm.value.deliveryRadius,
+        businessStatus: storeForm.value.businessStatus
+      })
+    } else {
+      await api.post('/admin/stores', {
+        name: storeForm.value.name,
+        address: storeForm.value.address,
+        contact: storeForm.value.contact,
+        phone: storeForm.value.phone,
+        deliveryRadius: storeForm.value.deliveryRadius
+      })
+    }
     closeToast()
     showSuccessToast(isEdit.value ? '门店信息已更新' : '门店已添加')
     showStorePopup.value = false
-    await loadStores(true)
+    await loadStores()
   } catch {
     closeToast()
+    showToast('操作失败，请重试')
   }
 }
 
@@ -111,15 +128,19 @@ function getStatusType(status: string) {
   return status === 'OPEN' ? 'success' : 'danger'
 }
 
+function goBack() {
+  window.dispatchEvent(new CustomEvent('nav', { detail: 'admin' }))
+}
+
 onMounted(() => {
-  loadStores(true)
+  loadStores()
 })
 </script>
 
 <template>
   <section class="page">
     <div class="page-header">
-      <van-icon name="arrow-left" size="20" @click="router.back()" />
+      <van-icon name="arrow-left" size="20" @click="goBack" />
       <h2 class="page-title">门店设置</h2>
       <span style="width: 20px;"></span>
     </div>

@@ -64,3 +64,13 @@
   flex-shrink: 0;
   background: #f0f0f0;
 }
+.cart-add-btn {
+  background: transparent;
+  color: var(--color-primary, #1677FF);
+  border: 2rpx solid var(--color-primary, #1677FF);
+  border-radius: 999rpx;
+  font-size: 26rpx;
+  padding: 12rpx 24rpx;
+  line-height: 1.4;
+  white-space: nowrap;
+}

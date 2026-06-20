@@ -1,0 +1,57 @@
+<view style="{{themeCssVars}}">
+  <!-- Tab栏 -->
+  <view class="tab-bar">
+    <view wx:for="{{tabs}}" wx:key="key"
+          class="tab-item {{activeTab === item.key ? 'active' : ''}}"
+          data-tab="{{item.key}}" bindtap="switchTab">
+      <text>{{item.label}}</text>
+    </view>
+  </view>
+
+  <!-- 加载中 -->
+  <view wx:if="{{loading && records.length === 0}}" class="loading-wrap">
+    <text class="muted">加载中...</text>
+  </view>
+
+  <!-- 空状态 -->
+  <view wx:elif="{{showEmpty}}" class="empty-wrap">
+    <text class="empty-icon">📋</text>
+    <text class="muted">暂无售后记录</text>
+    <button class="primary" style="margin-top: 32rpx;" bindtap="goApply">申请售后</button>
+  </view>
+
+  <!-- 列表 -->
+  <view wx:else>
+    <view wx:for="{{records}}" wx:key="id" class="aftersale-card card" data-aftersale-no="{{item.aftersaleNo}}" bindtap="goDetail">
+      <view class="aftersale-header">
+        <text class="aftersale-no">{{item.aftersaleNo}}</text>
+        <text class="tag {{item.statusTagClass}}">{{item.statusLabel}}</text>
+      </view>
+      <view class="aftersale-type">
+        <text class="muted">类型：</text>
+        <text>{{item.aftersaleTypeLabel}}</text>
+      </view>
+      <view class="aftersale-reason">
+        <text class="muted">原因：</text>
+        <text>{{item.reason}}</text>
+      </view>
+      <view class="aftersale-footer">
+        <text class="muted">{{item.timeLabel}}</text>
+        <text wx:if="{{item.refundAmount > 0}}" class="aftersale-amount">退款：¥{{item.refundAmount}}</text>
+      </view>
+    </view>
+
+    <!-- 加载更多 -->
+    <view wx:if="{{loading && records.length > 0}}" class="load-more">
+      <text class="muted">加载中...</text>
+    </view>
+    <view wx:if="{{!hasMore && records.length > 0}}" class="load-more">
+      <text class="muted">没有更多了</text>
+    </view>
+  </view>
+
+  <!-- 浮动申请按钮 -->
+  <view class="float-btn safe-bottom" bindtap="goApply">
+    <text class="float-btn-text">+ 申请售后</text>
+  </view>
+</view>

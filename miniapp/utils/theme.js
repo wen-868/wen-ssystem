@@ -41,7 +41,7 @@ function injectTheme(page) {
 
   // 从后端获取门店信息，覆盖品牌名等
   const app = getApp()
-  const baseUrl = app.globalData.baseUrl
+  const baseUrl = app.globalData.apiBase
   const token = wx.getStorageSync('token')
 
   if (baseUrl && token) {

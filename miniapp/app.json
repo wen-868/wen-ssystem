@@ -6,7 +6,14 @@
     "pages/share-collection/index",
     "pages/payment-result/index",
     "pages/profile/index",
-    "pages/statement/index"
+    "pages/statement/index",
+    "pages/notifications/index",
+    "pages/cart/index",
+    "pages/checkout/index",
+    "pages/aftersale/index",
+    "pages/aftersale-detail/index",
+    "pages/aftersale-apply/index",
+    "pages/coupons/index"
   ],
   "window": {
     "navigationBarTitleText": "智享商城",
@@ -28,6 +35,12 @@
         "text": "首页",
         "iconPath": "images/home.png",
         "selectedIconPath": "images/home-active.png"
+      },
+      {
+        "pagePath": "pages/cart/index",
+        "text": "购物车",
+        "iconPath": "images/cart.png",
+        "selectedIconPath": "images/cart-active.png"
       },
       {
         "pagePath": "pages/order/index",

@@ -19,7 +19,7 @@ async function onSearch() {
   searchLoading.value = true
   try {
     const res = await fetchProducts({ keyword: keyword.value })
-    products.value = res.data.data ?? []
+    products.value = res.data ?? []
   } catch {
     // ignore
   } finally {
@@ -95,7 +95,7 @@ async function loadLogs(reset = false) {
       page: logsPage.value,
       pageSize: logsPageSize
     })
-    const data = res.data.data
+    const data = res.data
     if (reset) {
       logs.value = data.records ?? []
     } else {

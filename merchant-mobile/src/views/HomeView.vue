@@ -34,23 +34,23 @@ const alertsLoading = ref(false)
 
 /* ========== 快捷操作 ========== */
 const quickActions = [
-  { text: '开单收款', icon: 'cash-back-record', color: '#10B981', route: 'create-sale' },
-  { text: '库存管理', icon: 'search', color: '#F59E0B', route: 'inventory' },
-  { text: '客户管理', icon: 'friends-o', color: '#8B5CF6', route: 'customers' },
-  { text: '应收管理', icon: 'balance-o', color: '#EF4444', route: 'receivables' },
-  { text: '报表', icon: 'chart-trending-o', color: '#1677FF', route: 'reports' }
+  { text: '开单收款', icon: 'cash-back-record', color: 'var(--color-success)', route: 'create-sale' },
+  { text: '库存管理', icon: 'search', color: 'var(--color-warning)', route: 'inventory' },
+  { text: '客户管理', icon: 'friends-o', color: 'var(--color-primary)', route: 'customers' },
+  { text: '应收管理', icon: 'balance-o', color: 'var(--color-danger)', route: 'receivables' },
+  { text: '报表', icon: 'chart-trending-o', color: 'var(--color-primary)', route: 'reports' }
 ]
 
 function handleQuickAction(route: string) {
   window.dispatchEvent(new CustomEvent('nav', { detail: route }))
 }
 
-/* ========== 数据加载 ========== */
+/* ========== 数据加载 (store/dashboard) ========== */
 async function loadDashboard() {
   loading.value = true
   try {
     const res = await fetchDashboard()
-    const data = res.data.data || {}
+    const data = res.data || {}
     metrics.value = {
       todayOrderCount: Number(data.todayOrderCount || 0),
       pendingOrderCount: Number(data.pendingOrderCount || 0),
@@ -69,7 +69,7 @@ async function loadDailySales() {
   salesLoading.value = true
   try {
     const res = await fetchDailySales()
-    dailySales.value = res.data.data || []
+    dailySales.value = res.data || []
   } catch {
     // 接口失败时保持空状态
   } finally {
@@ -81,7 +81,7 @@ async function loadAlerts() {
   alertsLoading.value = true
   try {
     const res = await fetchInventoryAlerts()
-    alerts.value = res.data.data || []
+    alerts.value = res.data || []
   } catch {
     // 接口失败时保持空状态
   } finally {
@@ -299,18 +299,18 @@ function formatDate(dateStr: string): string {
 
 /* ===== 近 7 天销售趋势 ===== */
 .trend-card {
-  padding: var(--spacing-md);
+  padding: var(--space-card-padding);
 }
 
 .trend-row {
   display: flex;
   align-items: center;
-  gap: var(--spacing-sm);
+  gap: 8px;
   padding: 6px 0;
 }
 
 .trend-row + .trend-row {
-  border-top: 1px solid var(--border-color-light);
+  border-top: 1px solid var(--border-normal);
 }
 
 .trend-date {
@@ -324,14 +324,14 @@ function formatDate(dateStr: string): string {
 .trend-bar-wrapper {
   flex: 1;
   height: 16px;
-  background: var(--bg-secondary);
+  background: var(--bg-soft);
   border-radius: var(--radius-sm);
   overflow: hidden;
 }
 
 .trend-bar {
   height: 100%;
-  background: linear-gradient(90deg, var(--color-primary), var(--color-primary-light, #60a5fa));
+  background: linear-gradient(90deg, var(--color-primary), var(--color-primary-hover));
   border-radius: var(--radius-sm);
   min-width: 4px;
   transition: width 0.3s ease;
@@ -355,11 +355,11 @@ function formatDate(dateStr: string): string {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: var(--spacing-sm) var(--spacing-md);
+  padding: 8px var(--space-card-padding);
 }
 
 .alert-item + .alert-item {
-  border-top: 1px solid var(--border-color-light);
+  border-top: 1px solid var(--border-normal);
 }
 
 .alert-item-left {
@@ -405,8 +405,8 @@ function formatDate(dateStr: string): string {
   display: flex;
   align-items: center;
   justify-content: center;
-  gap: var(--spacing-sm);
-  padding: var(--spacing-lg) var(--spacing-md);
+  gap: 8px;
+  padding: 24px var(--space-card-padding);
   font-size: 14px;
   color: var(--text-secondary);
 }
@@ -416,7 +416,7 @@ function formatDate(dateStr: string): string {
 }
 
 .loading-center {
-  padding: var(--spacing-lg) var(--spacing-md);
+  padding: 24px var(--space-card-padding);
   display: flex;
   justify-content: center;
 }

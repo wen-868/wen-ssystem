@@ -44,6 +44,13 @@ page {
   font-size: 24rpx;
 }
 
+/* ========== 分割线 ========== */
+.divider {
+  background: #E5E7EB;
+  height: 2rpx;
+  margin: 24rpx 0;
+}
+
 /* ========== 标签 ========== */
 .tag {
   display: inline-block;

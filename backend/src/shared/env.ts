@@ -24,4 +24,8 @@ export const env = {
   WECHAT_PAY_PRIVATE_KEY_PATH: process.env.WECHAT_PAY_PRIVATE_KEY_PATH || "",
   WECHAT_PAY_API_V3_KEY: process.env.WECHAT_PAY_API_V3_KEY || "",
   WECHAT_PAY_NOTIFY_URL: process.env.WECHAT_PAY_NOTIFY_URL || "",
+  WX_APPID: process.env.WX_APPID || process.env.WECHAT_APP_ID || "",
+  WX_APP_SECRET: process.env.WX_APP_SECRET || process.env.WECHAT_APP_SECRET || "",
+  WX_MCH_ID: process.env.WX_MCH_ID || process.env.WECHAT_MCH_ID || "",
+  WX_API_KEY: process.env.WX_API_KEY || process.env.WECHAT_PAY_API_V3_KEY || "",
 };

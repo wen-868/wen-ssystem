@@ -1,0 +1,113 @@
+<view style="{{themeCssVars}}">
+  <!-- 加载中 -->
+  <view wx:if="{{loading}}" class="loading-wrap">
+    <text class="muted">加载中...</text>
+  </view>
+
+  <view wx:elif="{{errorText}}" class="card">
+    <text style="color: var(--color-danger);">{{errorText}}</text>
+  </view>
+
+  <view wx:else>
+    <!-- 收货地址 -->
+    <view class="card address-card" bindtap="chooseAddress">
+      <view wx:if="{{receiverName}}" class="address-info">
+        <view class="address-row">
+          <text class="address-name">{{receiverName}}</text>
+          <text class="address-mobile">{{receiverMobile}}</text>
+        </view>
+        <view class="muted address-detail">{{receiverAddress}}</view>
+      </view>
+      <view wx:else class="address-placeholder">
+        <text class="muted">点击选择收货地址</text>
+      </view>
+      <text class="address-arrow">></text>
+    </view>
+
+    <!-- 配送方式 -->
+    <view class="card">
+      <view class="section-title">配送方式</view>
+      <view class="fulfillment-options">
+        <view class="fulfillment-option {{fulfillmentType === 'DELIVERY' ? 'active' : ''}}" data-type="DELIVERY" bindtap="selectFulfillment">
+          <text class="fulfillment-icon">🚚</text>
+          <text>快递配送</text>
+        </view>
+        <view class="fulfillment-option {{fulfillmentType === 'PICKUP' ? 'active' : ''}}" data-type="PICKUP" bindtap="selectFulfillment">
+          <text class="fulfillment-icon">🏪</text>
+          <text>到店自提</text>
+        </view>
+      </view>
+    </view>
+
+    <!-- 商品清单 -->
+    <view class="card">
+      <view class="section-title">商品清单</view>
+      <view wx:for="{{items}}" wx:key="skuId" class="checkout-item">
+        <image class="checkout-item-image" src="{{item.image || '/images/placeholder.png'}}" mode="aspectFill" />
+        <view class="checkout-item-info">
+          <view class="checkout-item-name">{{item.spuName}}</view>
+          <view class="muted checkout-item-sku">{{item.skuName}}</view>
+          <view class="checkout-item-bottom">
+            <text class="price checkout-item-price">¥{{item.unitPrice}}</text>
+            <text class="muted">x{{item.quantity}}</text>
+            <text class="checkout-item-subtotal">¥{{item.subtotal}}</text>
+          </view>
+        </view>
+      </view>
+    </view>
+
+    <!-- 金额明细 -->
+    <view class="card">
+      <view class="section-title">金额明细</view>
+      <view class="amount-row">
+        <text class="muted">商品金额</text>
+        <text>¥{{goodsAmount}}</text>
+      </view>
+      <view wx:if="{{discountAmount > 0}}" class="amount-row">
+        <text class="muted">优惠{{discountDesc}}</text>
+        <text class="discount-text">-¥{{discountAmount}}</text>
+      </view>
+      <view class="amount-row">
+        <text class="muted">运费</text>
+        <text>{{shippingFee === 0 ? '免运费' : '¥' + shippingFee}}</text>
+      </view>
+      <view class="amount-divider"></view>
+      <view class="amount-row total-row">
+        <text>应付金额</text>
+        <text class="price total-price">¥{{payableAmount}}</text>
+      </view>
+    </view>
+
+    <!-- 支付方式 -->
+    <view class="card">
+      <view class="section-title">支付方式</view>
+      <view class="pay-options">
+        <view class="pay-option {{payMethod === 'WECHAT' ? 'active' : ''}}" data-method="WECHAT" bindtap="selectPayMethod">
+          <text class="pay-icon">💳</text>
+          <text>微信支付</text>
+          <view class="pay-check" wx:if="{{payMethod === 'WECHAT'}}">✓</view>
+        </view>
+        <view class="pay-option {{payMethod === 'CASH' ? 'active' : ''}}" data-method="CASH" bindtap="selectPayMethod">
+          <text class="pay-icon">💵</text>
+          <text>货到付款</text>
+          <view class="pay-check" wx:if="{{payMethod === 'CASH'}}">✓</view>
+        </view>
+      </view>
+    </view>
+
+    <!-- 备注 -->
+    <view class="card">
+      <view class="section-title">订单备注</view>
+      <textarea class="remark-input" placeholder="选填，如特殊配送要求" value="{{remark}}" bindinput="onRemarkInput" maxlength="200" auto-height />
+    </view>
+
+    <!-- 底部提交栏 -->
+    <view class="checkout-footer safe-bottom">
+      <view class="footer-amount">
+        <text class="muted">合计：</text>
+        <text class="price footer-price">¥{{payableAmount}}</text>
+      </view>
+      <button class="primary submit-btn" loading="{{submitting}}" bindtap="submitOrder">提交订单</button>
+    </view>
+  </view>
+</view>

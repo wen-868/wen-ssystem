@@ -11,8 +11,8 @@ export const reportRouter = Router();
 
 // 销售日报（指定日期范围，按天汇总：订单数/金额/回款/退货）
 reportRouter.get("/sales-daily", requireAuth, asyncHandler(async (req, res) => {
-  const dateStart = String(req.query.dateStart || (() => { const d = new Date(); d.setDate(d.getDate() - 30); return d.toISOString().slice(0, 10); })());
-  const dateEnd = String(req.query.dateEnd || new Date().toISOString().slice(0, 10));
+  const dateStart = parseDateParam(req.query.dateStart, (() => { const d = new Date(); d.setDate(d.getDate() - 30); return d.toISOString().slice(0, 10); })());
+  const dateEnd = parseDateParam(req.query.dateEnd, new Date().toISOString().slice(0, 10));
   const storeId = req.query.storeId ? Number(req.query.storeId) : undefined;
 
   const conditions: string[] = ["DATE(sb.created_at) BETWEEN ? AND ?"];
@@ -27,6 +27,7 @@ reportRouter.get("/sales-daily", requireAuth, asyncHandler(async (req, res) => {
   const records = await query<any>(
     `SELECT DATE(sb.created_at) AS date,
             COUNT(DISTINCT sb.bill_no) AS orderCount,
+            COUNT(DISTINCT sb.customer_id) AS customerCount,
             COALESCE(SUM(sb.receivable_amount), 0) AS salesAmount,
             COALESCE(SUM(sb.received_amount), 0) AS receivedAmount,
             COALESCE(SUM(sb.unreceived_amount), 0) AS unreceivedAmount
@@ -56,10 +57,14 @@ reportRouter.get("/sales-daily", requireAuth, asyncHandler(async (req, res) => {
 
   const result = records.map((r: any) => {
     const ret = returnMap.get(r.date) || { returnCount: 0, returnAmount: 0 };
+    const orderCount = Number(r.orderCount);
+    const salesAmount = Number(r.salesAmount);
     return {
       date: r.date,
-      orderCount: Number(r.orderCount),
-      salesAmount: Number(r.salesAmount),
+      orderCount,
+      customerCount: Number(r.customerCount),
+      avgOrderAmount: orderCount > 0 ? Math.round((salesAmount / orderCount) * 100) / 100 : 0,
+      salesAmount,
       receivedAmount: Number(r.receivedAmount),
       unreceivedAmount: Number(r.unreceivedAmount),
       returnCount: ret.returnCount,
@@ -73,8 +78,8 @@ reportRouter.get("/sales-daily", requireAuth, asyncHandler(async (req, res) => {
 // 销售排行（支持按商品/客户/业务员维度，指定时间范围）
 reportRouter.get("/sales-ranking", requireAuth, asyncHandler(async (req, res) => {
   const dimension = z.enum(["product", "customer", "staff"]).parse(req.query.dimension || "product");
-  const dateStart = String(req.query.dateStart || (() => { const d = new Date(); d.setDate(d.getDate() - 30); return d.toISOString().slice(0, 10); })());
-  const dateEnd = String(req.query.dateEnd || new Date().toISOString().slice(0, 10));
+  const dateStart = parseDateParam(req.query.dateStart, (() => { const d = new Date(); d.setDate(d.getDate() - 30); return d.toISOString().slice(0, 10); })());
+  const dateEnd = parseDateParam(req.query.dateEnd, new Date().toISOString().slice(0, 10));
   const limit = Math.min(Number(req.query.limit || 20), 100);
 
   let records: any[];
@@ -134,35 +139,44 @@ reportRouter.get("/sales-ranking", requireAuth, asyncHandler(async (req, res) =>
   }))));
 }));
 
+// 日期格式校验正则
+const DATE_REGEX = /^\d{4}-\d{2}-\d{2}$/;
+
+/** 校验日期参数格式，不合法则抛出 ZodError（400） */
+function parseDateParam(value: unknown, fallback?: string): string {
+  const str = String(value ?? "");
+  if (str === "" && fallback !== undefined) return fallback;
+  if (!DATE_REGEX.test(str)) {
+    throw new z.ZodError([
+      { code: z.ZodIssueCode.custom, path: ["date"], message: `日期格式不正确，应为 YYYY-MM-DD，实际为: ${str || "空"}` }
+    ]);
+  }
+  return str;
+}
+
 // 销售趋势（按月/周/日，近12个月数据）
 reportRouter.get("/sales-trend", requireAuth, asyncHandler(async (req, res) => {
   const granularity = z.enum(["month", "week", "day"]).parse(req.query.granularity || "month");
 
-  let dateFormat: string;
-  let intervalExpr: string;
-
-  if (granularity === "month") {
-    dateFormat = "%Y-%m";
-    intervalExpr = "12 MONTH";
-  } else if (granularity === "week") {
-    dateFormat = "%Y-%u";
-    intervalExpr = "12 WEEK";
-  } else {
-    dateFormat = "%Y-%m-%d";
-    intervalExpr = "30 DAY";
-  }
+  // 白名单映射：只允许预定义的 dateFormat 和 intervalExpr，不直接拼入 SQL
+  const formatMap: Record<string, { dateFormat: string; intervalExpr: string }> = {
+    month: { dateFormat: "%Y-%m", intervalExpr: "12 MONTH" },
+    week: { dateFormat: "%Y-%u", intervalExpr: "12 WEEK" },
+    day: { dateFormat: "%Y-%m-%d", intervalExpr: "30 DAY" }
+  };
+  const { dateFormat, intervalExpr } = formatMap[granularity];
 
   const records = await query<any>(
-    `SELECT DATE_FORMAT(sb.created_at, '${dateFormat}') AS period,
+    `SELECT DATE_FORMAT(sb.created_at, ?) AS period,
             COUNT(DISTINCT sb.bill_no) AS orderCount,
             COALESCE(SUM(sb.receivable_amount), 0) AS salesAmount,
             COALESCE(SUM(sb.received_amount), 0) AS receivedAmount
      FROM sale_bill sb
      WHERE sb.business_status NOT IN ('DRAFT', 'VOIDED')
-       AND sb.created_at >= DATE_SUB(CURDATE(), INTERVAL ${intervalExpr})
+       AND sb.created_at >= DATE_SUB(CURDATE(), INTERVAL ?)
      GROUP BY period
      ORDER BY period ASC`,
-    []
+    [dateFormat, intervalExpr]
   );
 
   res.json(ok(records.map((r: any) => ({
@@ -178,8 +192,8 @@ reportRouter.get("/customer-contribution", requireAuth, asyncHandler(async (req,
   const page = Number(req.query.page || 1);
   const pageSize = Number(req.query.pageSize || 20);
   const offset = (page - 1) * pageSize;
-  const dateStart = req.query.dateStart ? String(req.query.dateStart) : undefined;
-  const dateEnd = req.query.dateEnd ? String(req.query.dateEnd) : undefined;
+  const dateStart = req.query.dateStart ? parseDateParam(req.query.dateStart) : undefined;
+  const dateEnd = req.query.dateEnd ? parseDateParam(req.query.dateEnd) : undefined;
 
   const conditions: string[] = ["sb.business_status NOT IN ('DRAFT', 'VOIDED')", "sb.customer_id IS NOT NULL"];
   const params: unknown[] = [];
@@ -241,8 +255,8 @@ reportRouter.get("/customer-contribution", requireAuth, asyncHandler(async (req,
 
 // 采购汇总（指定时间范围：采购数/金额/到货/退货）
 reportRouter.get("/purchase-summary", requireAuth, asyncHandler(async (req, res) => {
-  const dateStart = String(req.query.dateStart || (() => { const d = new Date(); d.setDate(d.getDate() - 30); return d.toISOString().slice(0, 10); })());
-  const dateEnd = String(req.query.dateEnd || new Date().toISOString().slice(0, 10));
+  const dateStart = parseDateParam(req.query.dateStart, (() => { const d = new Date(); d.setDate(d.getDate() - 30); return d.toISOString().slice(0, 10); })());
+  const dateEnd = parseDateParam(req.query.dateEnd, new Date().toISOString().slice(0, 10));
 
   const orderStats = await queryOne<any>(
     `SELECT COUNT(*) AS orderCount,
@@ -291,8 +305,8 @@ reportRouter.get("/purchase-summary", requireAuth, asyncHandler(async (req, res)
 
 // 供应商采购排行
 reportRouter.get("/supplier-ranking", requireAuth, asyncHandler(async (req, res) => {
-  const dateStart = String(req.query.dateStart || (() => { const d = new Date(); d.setDate(d.getDate() - 30); return d.toISOString().slice(0, 10); })());
-  const dateEnd = String(req.query.dateEnd || new Date().toISOString().slice(0, 10));
+  const dateStart = parseDateParam(req.query.dateStart, (() => { const d = new Date(); d.setDate(d.getDate() - 30); return d.toISOString().slice(0, 10); })());
+  const dateEnd = parseDateParam(req.query.dateEnd, new Date().toISOString().slice(0, 10));
   const limit = Math.min(Number(req.query.limit || 20), 100);
 
   const records = await query<any>(
@@ -513,6 +527,33 @@ reportRouter.get("/inventory-age", requireAuth, asyncHandler(async (req, res) =>
 
 // 应收应付汇总（按客户/供应商）
 reportRouter.get("/receivable-payable", requireAuth, asyncHandler(async (req, res) => {
+  const rpDateStart = req.query.dateStart ? parseDateParam(req.query.dateStart) : undefined;
+  const rpDateEnd = req.query.dateEnd ? parseDateParam(req.query.dateEnd) : undefined;
+
+  // 构建时间条件
+  const receivableConditions: string[] = [
+    "sb.business_status NOT IN ('DRAFT', 'VOIDED')",
+    "sb.customer_id IS NOT NULL",
+    "sb.unreceived_amount > 0"
+  ];
+  const receivableParams: unknown[] = [];
+  if (rpDateStart && rpDateEnd) {
+    receivableConditions.push("DATE(sb.created_at) BETWEEN ? AND ?");
+    receivableParams.push(rpDateStart, rpDateEnd);
+  }
+  const receivableWhere = receivableConditions.join(" AND ");
+
+  const payableConditions: string[] = [
+    "po.order_status NOT IN ('DRAFT', 'CANCELLED')",
+    "po.unpaid_amount > 0"
+  ];
+  const payableParams: unknown[] = [];
+  if (rpDateStart && rpDateEnd) {
+    payableConditions.push("DATE(po.created_at) BETWEEN ? AND ?");
+    payableParams.push(rpDateStart, rpDateEnd);
+  }
+  const payableWhere = payableConditions.join(" AND ");
+
   // 应收汇总（按客户）
   const receivable = await query<any>(
     `SELECT sb.customer_id AS customerId, sb.customer_name AS customerName,
@@ -522,12 +563,10 @@ reportRouter.get("/receivable-payable", requireAuth, asyncHandler(async (req, re
             COALESCE(SUM(sb.received_amount), 0) AS totalReceived,
             COALESCE(SUM(sb.unreceived_amount), 0) AS totalUnreceived
      FROM sale_bill sb
-     WHERE sb.business_status NOT IN ('DRAFT', 'VOIDED')
-       AND sb.customer_id IS NOT NULL
-       AND sb.unreceived_amount > 0
+     WHERE ${receivableWhere}
      GROUP BY sb.customer_id, sb.customer_name, sb.customer_mobile
      ORDER BY totalUnreceived DESC`,
-    []
+    receivableParams
   );
 
   // 应付汇总（按供应商）
@@ -538,11 +577,10 @@ reportRouter.get("/receivable-payable", requireAuth, asyncHandler(async (req, re
             COALESCE(SUM(po.paid_amount), 0) AS totalPaid,
             COALESCE(SUM(po.unpaid_amount), 0) AS totalUnpaid
      FROM purchase_order po
-     WHERE po.order_status NOT IN ('DRAFT', 'CANCELLED')
-       AND po.unpaid_amount > 0
+     WHERE ${payableWhere}
      GROUP BY po.supplier_id, po.supplier_name
      ORDER BY totalUnpaid DESC`,
-    []
+    payableParams
   );
 
   const totalReceivable = receivable.reduce((sum: number, r: any) => sum + Number(r.totalUnreceived), 0);
@@ -570,8 +608,8 @@ reportRouter.get("/receivable-payable", requireAuth, asyncHandler(async (req, re
 
 // 回款分析（按时间/客户/业务员）
 reportRouter.get("/payment-analysis", requireAuth, asyncHandler(async (req, res) => {
-  const dateStart = String(req.query.dateStart || (() => { const d = new Date(); d.setDate(d.getDate() - 30); return d.toISOString().slice(0, 10); })());
-  const dateEnd = String(req.query.dateEnd || new Date().toISOString().slice(0, 10));
+  const dateStart = parseDateParam(req.query.dateStart, (() => { const d = new Date(); d.setDate(d.getDate() - 30); return d.toISOString().slice(0, 10); })());
+  const dateEnd = parseDateParam(req.query.dateEnd, new Date().toISOString().slice(0, 10));
   const groupBy = z.enum(["date", "customer", "staff"]).parse(req.query.groupBy || "date");
 
   let records: any[];
@@ -624,8 +662,8 @@ reportRouter.get("/payment-analysis", requireAuth, asyncHandler(async (req, res)
 
 // 利润表（收入-成本-费用=利润）
 reportRouter.get("/profit", requireAuth, asyncHandler(async (req, res) => {
-  const dateStart = String(req.query.dateStart || (() => { const d = new Date(); d.setDate(d.getDate() - 30); return d.toISOString().slice(0, 10); })());
-  const dateEnd = String(req.query.dateEnd || new Date().toISOString().slice(0, 10));
+  const dateStart = parseDateParam(req.query.dateStart, (() => { const d = new Date(); d.setDate(d.getDate() - 30); return d.toISOString().slice(0, 10); })());
+  const dateEnd = parseDateParam(req.query.dateEnd, new Date().toISOString().slice(0, 10));
 
   // 销售收入
   const salesIncome = await queryOne<any>(
@@ -671,6 +709,59 @@ reportRouter.get("/profit", requireAuth, asyncHandler(async (req, res) => {
   const grossProfit = income - cost - returns;
   const grossProfitRate = income > 0 ? Math.round((grossProfit / income) * 10000) / 100 : 0;
 
+  // 计算上一周期（相同天数的上一段时间）的销售额和毛利
+  const startDate = new Date(dateStart);
+  const endDate = new Date(dateEnd);
+  const daysDiff = Math.round((endDate.getTime() - startDate.getTime()) / (1000 * 60 * 60 * 24)) + 1;
+  const prevEnd = new Date(startDate);
+  prevEnd.setDate(prevEnd.getDate() - 1);
+  const prevStart = new Date(prevEnd);
+  prevStart.setDate(prevStart.getDate() - daysDiff + 1);
+  const prevDateStart = prevStart.toISOString().slice(0, 10);
+  const prevDateEnd = prevEnd.toISOString().slice(0, 10);
+
+  const prevSalesIncome = await queryOne<any>(
+    `SELECT COALESCE(SUM(receivable_amount), 0) AS totalAmount
+     FROM sale_bill
+     WHERE business_status NOT IN ('DRAFT', 'VOIDED')
+       AND DATE(created_at) BETWEEN ? AND ?`,
+    [prevDateStart, prevDateEnd]
+  );
+
+  const prevSalesCost = await queryOne<any>(
+    `SELECT COALESCE(SUM(sbi.total_bottle_qty * pp.cost_price), 0) AS totalCost
+     FROM sale_bill_item sbi
+     JOIN sale_bill sb ON sb.bill_no = sbi.bill_no
+     JOIN product_price pp ON pp.sku_id = sbi.sku_id
+     WHERE sb.business_status NOT IN ('DRAFT', 'VOIDED')
+       AND DATE(sb.created_at) BETWEEN ? AND ?`,
+    [prevDateStart, prevDateEnd]
+  );
+
+  const prevReturnAmount = await queryOne<any>(
+    `SELECT COALESCE(SUM(refund_amount), 0) AS totalAmount
+     FROM sale_return
+     WHERE return_status NOT IN ('VOIDED')
+       AND DATE(created_at) BETWEEN ? AND ?`,
+    [prevDateStart, prevDateEnd]
+  );
+
+  const prevPurchaseReturnAmount = await queryOne<any>(
+    `SELECT COALESCE(SUM(refund_amount), 0) AS totalAmount
+     FROM purchase_return
+     WHERE return_status NOT IN ('VOIDED')
+       AND DATE(created_at) BETWEEN ? AND ?`,
+    [prevDateStart, prevDateEnd]
+  );
+
+  const prevIncome = Number(prevSalesIncome?.totalAmount ?? 0);
+  const prevCost = Number(prevSalesCost?.totalCost ?? 0) - Number(prevPurchaseReturnAmount?.totalAmount ?? 0);
+  const prevReturns = Number(prevReturnAmount?.totalAmount ?? 0);
+  const prevGrossProfit = prevIncome - prevCost - prevReturns;
+
+  const salesGrowthRate = prevIncome > 0 ? Math.round(((income - prevIncome) / prevIncome) * 10000) / 100 : 0;
+  const profitGrowthRate = prevGrossProfit !== 0 ? Math.round(((grossProfit - prevGrossProfit) / Math.abs(prevGrossProfit)) * 10000) / 100 : (grossProfit > 0 ? 100 : 0);
+
   res.json(ok({
     dateStart,
     dateEnd,
@@ -678,7 +769,13 @@ reportRouter.get("/profit", requireAuth, asyncHandler(async (req, res) => {
     cost: Math.max(cost, 0),
     returns,
     grossProfit,
-    grossProfitRate
+    grossProfitRate,
+    salesGrowthRate,
+    profitGrowthRate,
+    prevDateStart,
+    prevDateEnd,
+    prevIncome,
+    prevGrossProfit
   }));
 }));
 
@@ -692,6 +789,27 @@ reportRouter.get("/business-overview", requireAuth, asyncHandler(async (_req, re
      WHERE business_status NOT IN ('DRAFT', 'VOIDED')
        AND DATE(created_at) = CURDATE()`
   );
+
+  // 昨日销售（用于计算增长率）
+  const yesterdaySales = await queryOne<any>(
+    `SELECT COALESCE(SUM(receivable_amount), 0) AS amount,
+            COUNT(*) AS count
+     FROM sale_bill
+     WHERE business_status NOT IN ('DRAFT', 'VOIDED')
+       AND DATE(created_at) = DATE_SUB(CURDATE(), INTERVAL 1 DAY)`
+  );
+
+  const todayAmount = Number(todaySales?.amount ?? 0);
+  const todayCount = Number(todaySales?.count ?? 0);
+  const yesterdayAmount = Number(yesterdaySales?.amount ?? 0);
+  const yesterdayCount = Number(yesterdaySales?.count ?? 0);
+
+  const salesGrowthRate = yesterdayAmount > 0
+    ? Math.round(((todayAmount - yesterdayAmount) / yesterdayAmount) * 10000) / 100
+    : (todayAmount > 0 ? 100 : 0);
+  const orderGrowthRate = yesterdayCount > 0
+    ? Math.round(((todayCount - yesterdayCount) / yesterdayCount) * 10000) / 100
+    : (todayCount > 0 ? 100 : 0);
 
   // 本月销售
   const monthSales = await queryOne<any>(
@@ -754,8 +872,10 @@ reportRouter.get("/business-overview", requireAuth, asyncHandler(async (_req, re
   );
 
   res.json(ok({
-    todaySalesAmount: Number(todaySales?.amount ?? 0),
-    todayOrderCount: Number(todaySales?.count ?? 0),
+    todaySalesAmount: todayAmount,
+    todayOrderCount: todayCount,
+    salesGrowthRate,
+    orderGrowthRate,
     monthSalesAmount: Number(monthSales?.amount ?? 0),
     monthOrderCount: Number(monthSales?.count ?? 0),
     yearSalesAmount: Number(yearSales?.amount ?? 0),

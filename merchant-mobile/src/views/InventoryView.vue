@@ -5,7 +5,9 @@ import { fetchInventory, type InventoryRecord } from '../api'
 const keyword = ref('')
 const records = ref<InventoryRecord[]>([])
 const loading = ref(false)
+const finished = ref(false)
 const refreshing = ref(false)
+const page = ref(1)
 const sortAsc = ref(true) // true = 可售库存升序（缺货优先）
 
 const sortedRecords = computed(() => {
@@ -18,11 +20,27 @@ const sortedRecords = computed(() => {
   return list
 })
 
-async function loadInventory() {
+async function loadInventory(reset = false) {
+  if (reset) {
+    page.value = 1
+    finished.value = false
+  }
   loading.value = true
   try {
-    const res = await fetchInventory({ keyword: keyword.value })
-    records.value = res.data.data ?? []
+    const res = await fetchInventory({
+      keyword: keyword.value || undefined
+    })
+    const data = res.data
+    const items = data?.records ?? data ?? []
+    if (reset) {
+      records.value = items
+    } else {
+      records.value.push(...items)
+    }
+    if (records.value.length >= (data?.total ?? items.length)) {
+      finished.value = true
+    }
+    page.value++
   } catch {
     // ignore
   } finally {
@@ -32,12 +50,17 @@ async function loadInventory() {
 }
 
 function onSearch() {
-  loadInventory()
+  loadInventory(true)
+}
+
+function onCancelSearch() {
+  keyword.value = ''
+  loadInventory(true)
 }
 
 function onRefresh() {
   refreshing.value = true
-  loadInventory()
+  loadInventory(true)
 }
 
 function toggleSort() {
@@ -57,9 +80,10 @@ function goToAdjust() {
     <van-search
       v-model="keyword"
       placeholder="搜索商品名/SKU"
-      show-action
+      shape="round"
+      clearable
       @search="onSearch"
-      @cancel="onSearch"
+      @cancel="onCancelSearch"
     />
 
     <!-- 操作栏 -->
@@ -75,13 +99,15 @@ function goToAdjust() {
 
     <!-- 库存列表 -->
     <van-pull-refresh v-model="refreshing" @refresh="onRefresh">
-      <div v-if="loading" class="loading-wrapper">
-        <van-loading type="spinner" />
-      </div>
-      <div v-else-if="sortedRecords.length === 0" class="empty-wrapper">
-        <van-empty description="暂无库存数据" />
-      </div>
-      <van-cell-group v-else inset>
+      <van-list
+        v-model:loading="loading"
+        :finished="finished"
+        finished-text="没有更多了"
+        @load="loadInventory"
+      >
+        <div v-if="sortedRecords.length === 0 && !loading" class="empty-wrapper">
+          <van-empty description="暂无库存数据" />
+        </div>
         <van-cell
           v-for="item in sortedRecords"
           :key="`${item.skuId}-${item.stockType}`"
@@ -116,7 +142,7 @@ function goToAdjust() {
             </div>
           </template>
         </van-cell>
-      </van-cell-group>
+      </van-list>
     </van-pull-refresh>
   </section>
 </template>
@@ -124,7 +150,7 @@ function goToAdjust() {
 <style scoped>
 .page-title {
   margin: 0 0 12px;
-  font-size: 18px;
+  font-size: var(--text-page-title);
   font-weight: 600;
   color: var(--text-primary);
 }
@@ -133,7 +159,7 @@ function goToAdjust() {
   display: flex;
   align-items: center;
   gap: 8px;
-  padding: 8px 16px;
+  padding: 8px var(--space-page-padding);
 }
 
 .record-count {
@@ -142,7 +168,6 @@ function goToAdjust() {
   margin-left: auto;
 }
 
-.loading-wrapper,
 .empty-wrapper {
   display: flex;
   justify-content: center;
@@ -151,6 +176,9 @@ function goToAdjust() {
 
 .inventory-cell {
   margin-bottom: 8px;
+  border-radius: var(--radius-sm);
+  background: var(--bg-card);
+  box-shadow: var(--shadow-card);
 }
 
 .inventory-name {

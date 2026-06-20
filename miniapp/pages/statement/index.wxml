@@ -18,7 +18,7 @@
 </view>
 
 <!-- 欠款提示 -->
-<view class="owing-banner" wx:if="{{owingAmount > 0}}">
+<view class="owing-banner" wx:if="{{owingAmount !== '0.00' && owingAmount !== '0'}}">
   <view class="owing-label">您当前有未结清账款</view>
   <view class="owing-value">¥{{owingAmount}}</view>
 </view>

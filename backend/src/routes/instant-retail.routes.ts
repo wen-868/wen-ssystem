@@ -129,66 +129,68 @@ async function handleWebhook(platform: PlatformType, req: any, res: any) {
   // c. 解析为统一订单
   const unified = parseUnifiedOrder(platform, verifyResult.payload ?? rawBody);
 
-  // d. 存入 platform_order
-  await query(
-    `INSERT INTO platform_order
-       (platform_order_id, platform, store_id, status, order_data_json, created_at, updated_at)
-     VALUES (?, ?, ?, ?, ?, NOW(), NOW())
-     ON DUPLICATE KEY UPDATE
-       status = VALUES(status),
-       order_data_json = VALUES(order_data_json),
-       updated_at = NOW()`,
-    [
-      unified.platformOrderId,
-      platform,
-      unified.storeId,
-      unified.status,
-      JSON.stringify(rawBody)
-    ]
-  );
-
-  // e. 如果已支付，创建内部 miniapp_order（模拟映射）
-  if (unified.status === "ACCEPTED" || unified.status === "PENDING") {
-    const existing = await queryOne<any>(
-      `SELECT order_no FROM miniapp_order WHERE order_no = ? LIMIT 1`,
-      [unified.orderId]
+  // d. 存入 platform_order + e. 创建内部 miniapp_order，用事务包裹
+  await transaction(async (conn) => {
+    await conn.execute(
+      `INSERT INTO platform_order
+         (platform_order_id, platform, store_id, status, order_data_json, created_at, updated_at)
+       VALUES (?, ?, ?, ?, ?, NOW(), NOW())
+       ON DUPLICATE KEY UPDATE
+         status = VALUES(status),
+         order_data_json = VALUES(order_data_json),
+         updated_at = NOW()`,
+      [
+        unified.platformOrderId,
+        platform,
+        unified.storeId,
+        unified.status,
+        JSON.stringify(rawBody)
+      ]
     );
-    if (!existing) {
-      await query(
-        `INSERT INTO miniapp_order
-           (order_no, store_id, customer_type, fulfillment_type, order_status, pay_status,
-            payable_amount, receiver_name, receiver_mobile, receiver_address, remark, created_at)
-         VALUES (?, ?, 'RETAIL', 'DELIVERY', 'PENDING_PAYMENT', 'UNPAID',
-                 ?, ?, ?, ?, ?, NOW())`,
-        [
-          unified.orderId,
-          unified.storeId || config.storeId || 1,
-          unified.payAmount,
-          unified.address.name,
-          unified.address.phone,
-          `${unified.address.province}${unified.address.city}${unified.address.district}${unified.address.detail}`,
-          unified.remark
-        ]
+
+    // e. 如果已支付，创建内部 miniapp_order（模拟映射）
+    if (unified.status === "ACCEPTED" || unified.status === "PENDING") {
+      const [existingRows] = await conn.query<any[]>(
+        `SELECT order_no FROM miniapp_order WHERE order_no = ? LIMIT 1`,
+        [unified.orderId]
       );
-      // 写入订单商品项
-      for (const item of unified.items) {
-        await query(
-          `INSERT INTO miniapp_order_item
-             (order_no, sku_id, sku_name, qty, reserved_qty, unit_price, price_type, subtotal_amount)
-           VALUES (?, ?, ?, ?, ?, ?, 'RETAIL', ?)`,
+      if (existingRows.length === 0) {
+        await conn.execute(
+          `INSERT INTO miniapp_order
+             (order_no, store_id, customer_type, fulfillment_type, order_status, pay_status,
+              payable_amount, receiver_name, receiver_mobile, receiver_address, remark, created_at)
+           VALUES (?, ?, 'RETAIL', 'DELIVERY', 'PENDING_PAYMENT', 'UNPAID',
+                   ?, ?, ?, ?, ?, NOW())`,
           [
             unified.orderId,
-            item.localSkuId || 0,
-            item.name,
-            item.quantity,
-            item.quantity,
-            item.unitPrice,
-            item.totalPrice
+            unified.storeId || config.storeId || "1",
+            unified.payAmount,
+            unified.address.name,
+            unified.address.phone,
+            `${unified.address.province}${unified.address.city}${unified.address.district}${unified.address.detail}`,
+            unified.remark ?? null
           ]
         );
+        // 写入订单商品项
+        for (const item of unified.items) {
+          await conn.execute(
+            `INSERT INTO miniapp_order_item
+               (order_no, sku_id, sku_name, qty, reserved_qty, unit_price, price_type, subtotal_amount)
+             VALUES (?, ?, ?, ?, ?, ?, 'RETAIL', ?)`,
+            [
+              unified.orderId,
+              item.localSkuId || 0,
+              item.name,
+              item.quantity,
+              item.quantity,
+              item.unitPrice,
+              item.totalPrice
+            ]
+          );
+        }
       }
     }
-  }
+  });
 
   // f. 返回平台要求的响应格式
   return res.json(buildWebhookResponse(platform, true));
@@ -362,25 +364,27 @@ adminRouter.post("/configs/:platform/sync-orders", asyncHandler(async (req, res)
   }
   const adapter = getAdapter(platform, config);
   const result = await adapter.syncOrders(req.body);
-  // 将同步到的订单写入 platform_order
-  for (const order of result.orders) {
-    await query(
-      `INSERT INTO platform_order
-         (platform_order_id, platform, store_id, status, order_data_json, created_at, updated_at)
-       VALUES (?, ?, ?, ?, ?, ?, NOW())
-       ON DUPLICATE KEY UPDATE
-         status = VALUES(status),
-         order_data_json = VALUES(order_data_json),
-         updated_at = NOW()`,
-      [
-        order.platformOrderId,
-        platform,
-        order.storeId,
-        order.status,
-        JSON.stringify(order.platformRawData ?? {})
-      ]
-    );
-  }
+  // 将同步到的订单写入 platform_order，用事务包裹
+  await transaction(async (conn) => {
+    for (const order of result.orders) {
+      await conn.execute(
+        `INSERT INTO platform_order
+           (platform_order_id, platform, store_id, status, order_data_json, created_at, updated_at)
+         VALUES (?, ?, ?, ?, ?, ?, NOW())
+         ON DUPLICATE KEY UPDATE
+           status = VALUES(status),
+           order_data_json = VALUES(order_data_json),
+           updated_at = NOW()`,
+        [
+          order.platformOrderId,
+          platform,
+          order.storeId,
+          order.status,
+          JSON.stringify(order.platformRawData ?? {})
+        ]
+      );
+    }
+  });
   res.json(ok({ platform, synced: result.orders.length, hasMore: result.hasMore }));
 }));
 

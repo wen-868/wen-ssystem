@@ -18,6 +18,10 @@ Page({
   onPullDownRefresh() {
     this.loadOrders(() => wx.stopPullDownRefresh());
   },
+
+  onReachBottom() {
+    this.loadOrders();
+  },
   loadOrders(done) {
     const app = getApp();
     if (app.globalData.demoMode) {
@@ -55,11 +59,14 @@ Page({
     }
     this.setData({ loading: true, errorText: "" });
     const anonymousId = wx.getStorageSync("anonymous_member_id") || "";
+    const token = wx.getStorageSync("miniapp_token") || "";
     wx.request({
       url: `${app.globalData.apiBase}/miniapp/orders`,
       method: "GET",
       header: {
-        "x-anonymous-member-id": anonymousId
+        "Content-Type": "application/json",
+        "x-anonymous-member-id": anonymousId,
+        ...(token ? { "Authorization": "Bearer " + token } : {})
       },
       data: { page: 1, pageSize: 20 },
       success: (res) => {

@@ -53,7 +53,7 @@ Page({
     }
     this.setData({ loading: true, errorText: "" });
     const anonymousId = wx.getStorageSync("anonymous_member_id") || "";
-    wx.request({
+    app.request({
       url: `${app.globalData.apiBase}/miniapp/orders/${this.data.orderNo}`,
       method: "GET",
       header: {
@@ -93,11 +93,13 @@ Page({
   confirmReceipt() {
     const orderNo = this.data.detail && this.data.detail.orderNo;
     if (!orderNo) return;
-    wx.request({
-      url: `${getApp().globalData.apiBase}/miniapp/orders/${orderNo}/confirm-receipt`,
+    const app = getApp();
+    const anonymousId = wx.getStorageSync("anonymous_member_id") || "";
+    app.request({
+      url: `${app.globalData.apiBase}/miniapp/orders/${orderNo}/confirm-receipt`,
       method: "POST",
       header: {
-        "x-anonymous-member-id": wx.getStorageSync("anonymous_member_id") || ""
+        "x-anonymous-member-id": anonymousId
       },
       success: () => {
         wx.showToast({ title: "已确认收货", icon: "success" });
@@ -126,11 +128,12 @@ Page({
           wx.showToast({ title: "订单已取消", icon: "success" });
           return;
         }
-        wx.request({
+        const anonymousId = wx.getStorageSync("anonymous_member_id") || "";
+        app.request({
           url: `${app.globalData.apiBase}/miniapp/orders/${detail.orderNo}/cancel`,
           method: "POST",
           header: {
-            "x-anonymous-member-id": wx.getStorageSync("anonymous_member_id") || ""
+            "x-anonymous-member-id": anonymousId
           },
           success: (res) => {
             const body = res.data || {};
@@ -138,23 +141,11 @@ Page({
               wx.showToast({ title: "订单已取消", icon: "success" });
               this.loadDetail();
             } else {
-              // 后端无此路由时，前端标记取消并刷新
-              this.setData({
-                "detail.orderStatus": "CANCELLED",
-                "detail.orderStatusLabel": "已取消",
-                "detail.orderTagClass": "pending"
-              });
-              wx.showToast({ title: "订单已取消", icon: "success" });
+              wx.showToast({ title: body.message || "取消失败", icon: "none" });
             }
           },
           fail: () => {
-            // 网络异常时，前端标记取消
-            this.setData({
-              "detail.orderStatus": "CANCELLED",
-              "detail.orderStatusLabel": "已取消",
-              "detail.orderTagClass": "pending"
-            });
-            wx.showToast({ title: "订单已取消", icon: "success" });
+            wx.showToast({ title: '网络异常，取消失败', icon: 'none' });
           }
         });
       }

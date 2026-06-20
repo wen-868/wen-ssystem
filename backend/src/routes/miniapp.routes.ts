@@ -1,4 +1,5 @@
 import { Router } from "express";
+import crypto from "node:crypto";
 import { z } from "zod";
 import { asyncHandler } from "../shared/async-handler.js";
 import { query, queryOne, transaction } from "../shared/db.js";
@@ -8,12 +9,19 @@ import { calcReservation, getInitialMiniappOrderState, completeOrderDelivery } f
 
 export const miniappRouter = Router();
 
+// deprecated: 旧版登录接口，仅用于开发调试，生产环境请使用 /api/miniapp/wechat/auth/login
+const devTokenStore = new Map<string, { memberId: number; customerType: string; createdAt: number }>();
+
 miniappRouter.post("/login", (_req, res) => {
-  res.json(ok({ token: "miniapp-dev-token", memberId: 1, customerType: "RETAIL" }));
+  const token = crypto.randomBytes(32).toString("hex");
+  devTokenStore.set(token, { memberId: 1, customerType: "RETAIL", createdAt: Date.now() });
+  res.json(ok({ token, memberId: 1, customerType: "RETAIL" }));
 });
 
 miniappRouter.post("/auth/login", (_req, res) => {
-  res.json(ok({ token: "miniapp-dev-token", memberId: 1, customerType: "RETAIL" }));
+  const token = crypto.randomBytes(32).toString("hex");
+  devTokenStore.set(token, { memberId: 1, customerType: "RETAIL", createdAt: Date.now() });
+  res.json(ok({ token, memberId: 1, customerType: "RETAIL" }));
 });
 
 miniappRouter.get("/profile", (req, res) => {
@@ -237,4 +245,99 @@ miniappRouter.post("/orders/:orderNo/confirm-receipt", asyncHandler(async (req, 
     return completeOrderDelivery(conn, req.params.orderNo, null, makeBizNo);
   });
   res.json(ok(result));
+}));
+
+// ========== 对账单接口 ==========
+miniappRouter.get("/statements", asyncHandler(async (req, res) => {
+  const anonymousMemberId = String(req.headers["x-anonymous-member-id"] || "");
+  const page = Number(req.query.page || 1);
+  const pageSize = Number(req.query.pageSize || 20);
+  const offset = (page - 1) * pageSize;
+
+  // 查询订单列表作为对账数据
+  const orders = await query<any>(
+    `SELECT order_no AS orderNo, goods_amount AS amount, created_at AS date,
+            order_status AS orderStatus, pay_status AS payStatus
+     FROM miniapp_order
+     WHERE (? = '' OR remark LIKE ?)
+     ORDER BY id DESC
+     LIMIT ? OFFSET ?`,
+    [anonymousMemberId, `[anon:${anonymousMemberId}]%`, pageSize, offset]
+  );
+
+  // 查询支付记录
+  const payments = await query<any>(
+    `SELECT pay_no AS paymentNo, amount, payment_method AS method, created_at AS date, status
+     FROM payment_order
+     WHERE (? = '' OR source_no IN (SELECT order_no FROM miniapp_order WHERE remark LIKE ?))
+     ORDER BY id DESC
+     LIMIT ? OFFSET ?`,
+    [anonymousMemberId, `[anon:${anonymousMemberId}]%`, pageSize, offset]
+  );
+
+  // 汇总
+  const summary = await queryOne<any>(
+    `SELECT COALESCE(SUM(goods_amount), 0) AS totalPurchase
+     FROM miniapp_order WHERE (? = '' OR remark LIKE ?)`,
+    [anonymousMemberId, `[anon:${anonymousMemberId}]%`]
+  );
+
+  const paidSummary = await queryOne<any>(
+    `SELECT COALESCE(SUM(amount), 0) AS totalPaid
+     FROM payment_order
+     WHERE status = 'PAID' AND (? = '' OR source_no IN (SELECT order_no FROM miniapp_order WHERE remark LIKE ?))`,
+    [anonymousMemberId, `[anon:${anonymousMemberId}]%`]
+  );
+
+  const totalPurchase = Number(summary?.totalPurchase || 0);
+  const totalPaid = Number(paidSummary?.totalPaid || 0);
+  const owingAmount = Math.max(0, totalPurchase - totalPaid);
+
+  const orderList = orders.map((o: any) => ({
+    id: o.orderNo,
+    orderNo: o.orderNo,
+    items: "",
+    amount: Number(o.amount).toFixed(2),
+    date: (o.date || "").slice(0, 10),
+    statusText: o.payStatus === "PAID" ? "已收款" : (o.orderStatus === "CANCELLED" ? "已取消" : "未收款")
+  }));
+
+  const paymentList = payments.map((p: any) => ({
+    id: p.paymentNo,
+    paymentNo: p.paymentNo,
+    method: p.method === "CASH" ? "现金" : (p.method === "OTHER_WECHAT" ? "微信支付" : p.method),
+    amount: Number(p.amount).toFixed(2),
+    date: (p.date || "").slice(0, 10),
+    statusText: p.status === "PAID" ? "已确认" : "待确认"
+  }));
+
+  res.json(ok({
+    totalPurchase: totalPurchase.toFixed(2),
+    totalPaid: totalPaid.toFixed(2),
+    owingAmount: owingAmount.toFixed(2),
+    orderList,
+    paymentList
+  }));
+}));
+
+miniappRouter.get("/statements/:id", asyncHandler(async (req, res) => {
+  const anonymousMemberId = String(req.headers["x-anonymous-member-id"] || "");
+  const order = await queryOne<any>(
+    `SELECT order_no AS orderNo, goods_amount AS amount, created_at AS date,
+            order_status AS orderStatus, pay_status AS payStatus,
+            receiver_name AS receiverName, receiver_mobile AS receiverMobile, receiver_address AS receiverAddress
+     FROM miniapp_order
+     WHERE order_no = ? AND (? = '' OR remark LIKE ?)`,
+    [req.params.id, anonymousMemberId, `[anon:${anonymousMemberId}]%`]
+  );
+  if (!order) {
+    res.status(404).json({ code: "404", message: "对账单不存在" });
+    return;
+  }
+  const items = await query<any>(
+    `SELECT sku_name AS skuName, qty, unit_price AS unitPrice, subtotal_amount AS subtotalAmount
+     FROM miniapp_order_item WHERE order_no = ?`,
+    [req.params.id]
+  );
+  res.json(ok({ ...order, items }));
 }));

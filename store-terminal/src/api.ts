@@ -35,6 +35,8 @@ api.interceptors.response.use(
   }
 );
 
+// 门店登录：后端暂无 /store/auth/login，复用 /admin/auth/login
+// TODO: 后端提供 /store/auth/login 后请切换
 export async function storeLogin(username: string, password: string) {
   const { data } = await api.post("/admin/auth/login", { username, password });
   return data.data as { token: string; user: unknown };
@@ -71,13 +73,13 @@ export async function createCollectionLink(billNo: string, amount: number, optio
   return data.data;
 }
 
-export async function fetchInventory() {
-  const { data } = await api.get("/store/inventory");
+export async function fetchInventory(keyword?: string) {
+  const { data } = await api.get("/store/inventory", { params: keyword ? { keyword } : {} });
   return data.data;
 }
 
-export async function fetchStoreOrders() {
-  const { data } = await api.get("/store/orders", { params: { page: 1, pageSize: 20 } });
+export async function fetchStoreOrders(params?: { page?: number; pageSize?: number }) {
+  const { data } = await api.get("/store/orders", { params: { page: 1, pageSize: 20, ...params } });
   return data.data;
 }
 
@@ -86,13 +88,23 @@ export async function acceptStoreOrder(orderNo: string) {
   return data.data;
 }
 
+export async function startDelivery(orderNo: string) {
+  const { data } = await api.post(`/store/orders/${orderNo}/start-delivery`, {});
+  return data.data;
+}
+
+export async function rejectStoreOrder(orderNo: string) {
+  const { data } = await api.post(`/store/orders/${orderNo}/reject`, {});
+  return data.data;
+}
+
 export async function completeStoreOrder(orderNo: string) {
   const { data } = await api.post(`/store/orders/${orderNo}/complete`, {});
   return data.data;
 }
 
-export async function fetchSaleBills() {
-  const { data } = await api.get("/store/sale-bills", { params: { page: 1, pageSize: 20 } });
+export async function fetchSaleBills(params?: { keyword?: string; collectionStatus?: string; page?: number; pageSize?: number }) {
+  const { data } = await api.get("/store/sale-bills", { params: { page: 1, pageSize: 20, ...params } });
   return data.data;
 }
 
@@ -106,23 +118,23 @@ export async function adjustInventory(params: { skuId: number; stockType: string
   return data.data;
 }
 
-export async function fetchInventoryLogs() {
-  const { data } = await api.get("/store/inventory/logs", { params: { page: 1, pageSize: 30 } });
+export async function fetchInventoryLogs(params?: { page?: number; pageSize?: number }) {
+  const { data } = await api.get("/store/inventory/logs", { params: { page: 1, pageSize: 30, ...params } });
   return data.data;
 }
 
-export async function fetchStoreCollectionLinks() {
-  const { data } = await api.get("/store/collection-links", { params: { page: 1, pageSize: 30 } });
+export async function fetchStoreCollectionLinks(params?: { page?: number; pageSize?: number }) {
+  const { data } = await api.get("/store/collection-links", { params: { page: 1, pageSize: 30, ...params } });
   return data.data;
 }
 
-export async function fetchStorePaymentOrders() {
-  const { data } = await api.get("/store/payment-orders", { params: { page: 1, pageSize: 30 } });
+export async function fetchStorePaymentOrders(params?: { page?: number; pageSize?: number }) {
+  const { data } = await api.get("/store/payment-orders", { params: { page: 1, pageSize: 30, ...params } });
   return data.data;
 }
 
-export async function fetchStoreRefundOrders() {
-  const { data } = await api.get("/store/refund-orders", { params: { page: 1, pageSize: 30 } });
+export async function fetchStoreRefundOrders(params?: { page?: number; pageSize?: number }) {
+  const { data } = await api.get("/store/refund-orders", { params: { page: 1, pageSize: 30, ...params } });
   return data.data;
 }
 
@@ -137,8 +149,8 @@ export async function createHoldOrder(payload: {
   return data.data;
 }
 
-export async function fetchHoldOrders() {
-  const { data } = await api.get("/store/hold-orders", { params: { page: 1, pageSize: 30 } });
+export async function fetchHoldOrders(params?: { page?: number; pageSize?: number }) {
+  const { data } = await api.get("/store/hold-orders", { params: { page: 1, pageSize: 30, ...params } });
   return data.data;
 }
 
@@ -162,6 +174,11 @@ export async function fetchStoreDashboard() {
   return data.data;
 }
 
+export async function fetchDashboardOverview() {
+  const { data } = await api.get("/admin/dashboard/overview");
+  return data.data;
+}
+
 export async function fetchStoreDailySales() {
   const { data } = await api.get("/store/daily-sales");
   return data.data || [];
@@ -170,4 +187,60 @@ export async function fetchStoreDailySales() {
 export async function fetchStoreInventoryAlerts() {
   const { data } = await api.get("/store/inventory/alerts");
   return data.data || [];
+}
+
+// 日结提交：后端暂无 /store/daily-settle，复用 /admin/daily-settle
+// TODO: 后端提供 /store/daily-settle 后请切换
+export async function submitDailySettle(payload: { settleDate: string }) {
+  const { data } = await api.post("/admin/daily-settle", payload);
+  return data.data;
+}
+
+// 日结历史：后端暂无 /store/daily-settle，复用 /admin/daily-settle
+// TODO: 后端提供 /store/daily-settle 后请切换
+export async function fetchDailySettleHistory(params?: { page?: number; pageSize?: number; startDate?: string; endDate?: string }) {
+  const { data } = await api.get("/admin/daily-settle", { params: { page: 1, pageSize: 30, ...params } });
+  return data.data;
+}
+
+// ==================== Store Control APIs ====================
+export async function fetchStoreControlStatus() {
+  const { data } = await api.get("/store/control/status");
+  return data.data;
+}
+export async function fetchStoreControlMyLogs(params?: { page?: number; pageSize?: number }) {
+  const { data } = await api.get("/store/control/my-logs", { params: { page: 1, pageSize: 20, ...params } });
+  return data.data;
+}
+
+// ==================== Transfer (调拨) APIs ====================
+export async function fetchStoreInTransitTransfers() {
+  const { data } = await api.get("/store/transfers/in-transit");
+  return data.data;
+}
+export async function fetchStoreMyShipments() {
+  const { data } = await api.get("/store/transfers/my-shipments");
+  return data.data;
+}
+export async function receiveStoreTransfer(id: number, payload: unknown) {
+  const { data } = await api.post(`/store/transfers/${id}/receive`, payload);
+  return data.data;
+}
+
+// ==================== Stock Check (盘点) APIs ====================
+export async function fetchStoreStockChecks() {
+  const { data } = await api.get("/store/stock-checks/my");
+  return data.data;
+}
+export async function fetchStoreStockCheckDetail(id: number) {
+  const { data } = await api.get(`/store/stock-checks/${id}`);
+  return data.data;
+}
+export async function updateStockCheckItem(checkId: number, itemId: number, payload: { actualQty: number }) {
+  const { data } = await api.put(`/store/stock-checks/${checkId}/items/${itemId}`, payload);
+  return data.data;
+}
+export async function submitStoreStockCheck(id: number) {
+  const { data } = await api.post(`/store/stock-checks/${id}/submit`);
+  return data.data;
 }

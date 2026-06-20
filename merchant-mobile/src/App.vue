@@ -5,6 +5,7 @@ import HomeView from './views/HomeView.vue'
 import OrdersView from './views/OrdersView.vue'
 import InventoryView from './views/InventoryView.vue'
 import CustomersView from './views/CustomersView.vue'
+import CustomerDetailView from './views/CustomerDetailView.vue'
 import ReceivablesView from './views/ReceivablesView.vue'
 import ReportsView from './views/ReportsView.vue'
 import CreateSaleView from './views/CreateSaleView.vue'
@@ -55,6 +56,7 @@ const views: Record<string, unknown> = {
   orders: OrdersView,
   inventory: InventoryView,
   customers: CustomersView,
+  'customer-detail': CustomerDetailView,
   receivables: ReceivablesView,
   reports: ReportsView,
   admin: AdminView,
@@ -66,6 +68,11 @@ const views: Record<string, unknown> = {
 }
 
 const currentView = computed(() => views[active.value] || HomeView)
+
+const currentMemberId = computed(() => {
+  const id = localStorage.getItem('merchant_customer_detail_id')
+  return id ? Number(id) : 0
+})
 
 function onLogin(nextToken: string, user?: { id: number; name: string; role: string }) {
   localStorage.setItem('merchant_token', nextToken)
@@ -108,7 +115,7 @@ onMounted(() => {
 <template>
   <LoginView v-if="!token" @login="onLogin" />
   <main v-else class="app-shell">
-    <component :is="currentView" />
+    <component :is="currentView" v-bind="active === 'customer-detail' ? { memberId: currentMemberId } : {}" />
     <van-tabbar v-model="active" safe-area-inset-bottom>
       <van-tabbar-item
         v-for="tab in visibleTabs"

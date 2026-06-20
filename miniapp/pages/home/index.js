@@ -24,6 +24,7 @@ Page({
   },
   onShow() {
     this.loadProducts();
+    this.loadCartCount();
     injectTheme(this);
   },
   onPullDownRefresh() {
@@ -70,13 +71,13 @@ Page({
     }
     this.setData({ loading: true, errorText: "" });
     const anonymousId = wx.getStorageSync("anonymous_member_id") || "";
-    wx.request({
+    app.request({
       url: `${app.globalData.apiBase}/miniapp/products`,
       method: "GET",
       header: {
         "x-anonymous-member-id": anonymousId
       },
-      data: { storeId: 1, keyword: this.data.keyword },
+      data: { storeId: app.globalData.storeId || wx.getStorageSync('storeId') || 1, keyword: this.data.keyword },
       success: (res) => {
         const body = res.data || {};
         if (body.code === "0") {
@@ -121,6 +122,46 @@ Page({
     const cartTotal = items.reduce((sum, c) => sum + c.subtotal, 0);
     this.setData({ cartItems: items, cartTotal: Number(cartTotal.toFixed(2)) });
   },
+  // ========== 加入购物车（后端） ==========
+  addToCart(event) {
+    const skuId = Number(event.currentTarget.dataset.skuId);
+    const product = this.data.products.filter((p) => p.skuId === skuId)[0];
+    if (!product) return;
+    const qty = product._qty || 1;
+    const app = getApp();
+    app.request({
+      url: `${app.globalData.apiBase}/miniapp/cart/cart/add`,
+      method: "POST",
+      data: { skuId, quantity: qty },
+      success: (res) => {
+        const body = res.data || {};
+        if (body.code === "0") {
+          wx.showToast({ title: "已加入购物车", icon: "success", duration: 1000 });
+          this.loadCartCount();
+        } else {
+          wx.showToast({ title: body.message || "加入失败", icon: "none" });
+        }
+      },
+      fail: () => {
+        wx.showToast({ title: "网络异常", icon: "none" });
+      }
+    });
+  },
+  // ========== 加载购物车数量 ==========
+  loadCartCount() {
+    const app = getApp();
+    app.request({
+      url: `${app.globalData.apiBase}/miniapp/cart/cart/count`,
+      method: "GET",
+      success: (res) => {
+        const body = res.data || {};
+        if (body.code === "0" && body.data) {
+          wx.setTabBarBadge({ index: 1, text: String(body.data.count || 0) });
+        }
+      },
+      fail: () => {}
+    });
+  },
   clearCart() {
     this.setData({ cartItems: [], cartTotal: 0 });
   },
@@ -147,14 +188,14 @@ Page({
     }
     const items = cartItems.map((c) => ({ skuId: c.skuId, qty: c.qty }));
     const anonymousId = wx.getStorageSync("anonymous_member_id") || "";
-    wx.request({
+    app.request({
       url: `${app.globalData.apiBase}/miniapp/orders`,
       method: "POST",
       header: {
         "x-anonymous-member-id": anonymousId
       },
       data: {
-        storeId: 1,
+        storeId: app.globalData.storeId || wx.getStorageSync('storeId') || 1,
         fulfillmentType: "DELIVERY",
         receiverName,
         receiverMobile,

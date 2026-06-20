@@ -12,7 +12,13 @@ api.interceptors.request.use((config) => {
 })
 
 api.interceptors.response.use(
-  (response) => response,
+  (response) => {
+    // 统一解包：让调用方直接获取 data.data
+    if (response.data && typeof response.data === 'object' && 'code' in response.data && 'data' in response.data) {
+      (response as any).data = response.data.data
+    }
+    return response
+  },
   (error) => {
     if (error.response?.status === 401) {
       localStorage.removeItem('merchant_token')
@@ -110,6 +116,26 @@ export function createCustomer(data: {
   return api.post('/store/members', data)
 }
 
+export function fetchCustomerDetail(memberId: number) {
+  return api.get(`/store/members/${memberId}`)
+}
+
+export function fetchCustomerStats(memberId: number) {
+  return api.get(`/store/members/${memberId}/stats`)
+}
+
+export function fetchCustomerSales(memberId: number, params: { page?: number; pageSize?: number }) {
+  return api.get(`/store/members/${memberId}/sales`, { params })
+}
+
+export function fetchCustomerPayments(memberId: number, params: { page?: number; pageSize?: number }) {
+  return api.get(`/store/members/${memberId}/payments`, { params })
+}
+
+export function fetchCustomerDebts(memberId: number, params: { page?: number; pageSize?: number }) {
+  return api.get(`/store/members/${memberId}/debts`, { params })
+}
+
 /* ========== 应收 ========== */
 
 export interface ReceivableRecord {
@@ -174,6 +200,22 @@ export function fetchDailySales() {
 
 export function fetchInventoryAlerts() {
   return api.get('/store/inventory/alerts')
+}
+
+export function fetchSalesRanking(params: { startDate?: string; endDate?: string }) {
+  return api.get('/store/reports/sales-ranking', { params })
+}
+
+export function fetchCustomerContribution(params: { startDate?: string; endDate?: string }) {
+  return api.get('/store/reports/customer-contribution', { params })
+}
+
+export function fetchProfitAnalysis(params: { startDate?: string; endDate?: string }) {
+  return api.get('/store/reports/profit-analysis', { params })
+}
+
+export function fetchReports(params: { type?: string; startDate?: string; endDate?: string }) {
+  return api.get('/store/reports', { params })
 }
 
 /* ========== 销售单 ========== */

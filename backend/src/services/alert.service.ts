@@ -1,4 +1,4 @@
-import { query, queryOne } from "../shared/db.js";
+import { query, queryOne, transaction } from "../shared/db.js";
 import { makeBizNo } from "../shared/id.js";
 
 // 预警检查函数集合
@@ -21,17 +21,24 @@ async function checkStockLowAlerts(): Promise<number> {
        AND ps.warning_threshold > 0`
   );
 
-  let count = 0;
-  for (const r of records) {
-    const exists = await queryOne<any>(
-      `SELECT id FROM alert_record
-       WHERE rule_type = 'STOCK_LOW' AND biz_type = 'SKU' AND biz_id = ? AND status = 'PENDING'`,
-      [r.skuId]
+  if (records.length === 0) return 0;
+
+  return transaction(async (conn) => {
+    // 批量查询已存在的预警
+    const skuIds = records.map((r: any) => r.skuId);
+    const [existingRows] = await conn.query<any[]>(
+      `SELECT biz_id FROM alert_record
+       WHERE rule_type = 'STOCK_LOW' AND biz_type = 'SKU' AND status = 'PENDING' AND biz_id IN (?)`,
+      [skuIds]
     );
-    if (!exists) {
+    const existingSet = new Set(existingRows.map((r: any) => Number(r.biz_id)));
+
+    let count = 0;
+    for (const r of records) {
+      if (existingSet.has(r.skuId)) continue;
       const alertNo = makeBizNo("YJ");
       const level = r.availableQty <= Math.max(r.safetyStock * 0.3, 1) ? "CRITICAL" : "WARNING";
-      await query(
+      await conn.execute(
         `INSERT INTO alert_record (alert_no, rule_id, rule_type, alert_level, title, description,
           biz_type, biz_id, biz_no, current_value, threshold_value, status)
          VALUES (?, ?, 'STOCK_LOW', ?, ?, ?, 'SKU', ?, ?, ?, ?, 'PENDING')`,
@@ -45,8 +52,8 @@ async function checkStockLowAlerts(): Promise<number> {
       );
       count++;
     }
-  }
-  return count;
+    return count;
+  });
 }
 
 /**
@@ -58,7 +65,7 @@ async function checkExpiryAlerts(): Promise<number> {
   );
   if (rules.length === 0) return 0;
 
-  let count = 0;
+  let totalCount = 0;
   for (const rule of rules) {
     const days = Number(rule.threshold_value);
     const level = days <= 7 ? "CRITICAL" : days <= 30 ? "WARNING" : "INFO";
@@ -77,16 +84,26 @@ async function checkExpiryAlerts(): Promise<number> {
       [days]
     );
 
-    for (const r of records) {
-      const exists = await queryOne<any>(
-        `SELECT id FROM alert_record
-         WHERE rule_type = 'EXPIRY' AND biz_type = 'SKU' AND biz_id = ?
-           AND biz_no = ? AND status = 'PENDING'`,
-        [r.skuId, r.batchNo ?? `SKU-${r.skuId}`]
+    if (records.length === 0) continue;
+
+    const count = await transaction(async (conn) => {
+      // 批量查询已存在的预警
+      const bizKeys = records.map((r: any) => [r.skuId, r.batchNo ?? `SKU-${r.skuId}`]);
+      // 构造 IN 条件：用 skuId + biz_no 组合判断
+      const skuIds = records.map((r: any) => r.skuId);
+      const [existingRows] = await conn.query<any[]>(
+        `SELECT biz_id, biz_no FROM alert_record
+         WHERE rule_type = 'EXPIRY' AND biz_type = 'SKU' AND status = 'PENDING' AND biz_id IN (?)`,
+        [skuIds]
       );
-      if (!exists) {
+      const existingSet = new Set(existingRows.map((r: any) => `${r.biz_id}:${r.biz_no}`));
+
+      let cnt = 0;
+      for (const r of records) {
+        const bizNo = r.batchNo ?? `SKU-${r.skuId}`;
+        if (existingSet.has(`${r.skuId}:${bizNo}`)) continue;
         const alertNo = makeBizNo("YJ");
-        await query(
+        await conn.execute(
           `INSERT INTO alert_record (alert_no, rule_id, rule_type, alert_level, title, description,
             biz_type, biz_id, biz_no, current_value, threshold_value, status)
            VALUES (?, ?, 'EXPIRY', ?, ?, ?, 'SKU', ?, ?, ?, ?, 'PENDING')`,
@@ -94,15 +111,17 @@ async function checkExpiryAlerts(): Promise<number> {
             alertNo, rule.id, level,
             `保质期预警：${r.skuName}`,
             `商品 ${r.skuName}（批次 ${r.batchNo ?? "无"}）有效期至 ${r.expiryDate}，剩余 ${r.remainingDays} 天`,
-            r.skuId, r.batchNo ?? `SKU-${r.skuId}`,
+            r.skuId, bizNo,
             r.remainingDays, days
           ]
         );
-        count++;
+        cnt++;
       }
-    }
+      return cnt;
+    });
+    totalCount += count;
   }
-  return count;
+  return totalCount;
 }
 
 /**
@@ -127,24 +146,29 @@ async function checkCreditAlerts(): Promise<number> {
      GROUP BY sb.customer_id, sb.customer_name`
   );
 
-  let count = 0;
-  for (const r of records) {
-    // 假设信用额度为欠款的 1.1 倍（实际应从客户档案读取）
-    // 这里使用一个合理的估算：如果客户有赊销记录，信用额度设为总欠款的 1.2 倍
-    const creditLimit = Number(r.totalDebt) * 1.2;
-    if (creditLimit <= 0) continue;
+  if (records.length === 0) return 0;
 
-    const debtRatio = (Number(r.totalDebt) / creditLimit) * 100;
-    if (debtRatio >= threshold) {
-      const exists = await queryOne<any>(
-        `SELECT id FROM alert_record
-         WHERE rule_type = 'CREDIT' AND biz_type = 'CUSTOMER' AND biz_id = ? AND status = 'PENDING'`,
-        [r.customerId]
-      );
-      if (!exists) {
+  return transaction(async (conn) => {
+    // 批量查询已存在的预警
+    const customerIds = records.map((r: any) => r.customerId);
+    const [existingRows] = await conn.query<any[]>(
+      `SELECT biz_id FROM alert_record
+       WHERE rule_type = 'CREDIT' AND biz_type = 'CUSTOMER' AND status = 'PENDING' AND biz_id IN (?)`,
+      [customerIds]
+    );
+    const existingSet = new Set(existingRows.map((r: any) => Number(r.biz_id)));
+
+    let count = 0;
+    for (const r of records) {
+      if (existingSet.has(r.customerId)) continue;
+      const creditLimit = Number(r.totalDebt) * 1.2;
+      if (creditLimit <= 0) continue;
+
+      const debtRatio = (Number(r.totalDebt) / creditLimit) * 100;
+      if (debtRatio >= threshold) {
         const alertNo = makeBizNo("YJ");
         const level = debtRatio >= 100 ? "CRITICAL" : "WARNING";
-        await query(
+        await conn.execute(
           `INSERT INTO alert_record (alert_no, rule_id, rule_type, alert_level, title, description,
             biz_type, biz_id, biz_no, current_value, threshold_value, status)
            VALUES (?, ?, 'CREDIT', ?, ?, ?, 'CUSTOMER', ?, ?, ?, ?, 'PENDING')`,
@@ -159,8 +183,8 @@ async function checkCreditAlerts(): Promise<number> {
         count++;
       }
     }
-  }
-  return count;
+    return count;
+  });
 }
 
 /**
@@ -185,18 +209,25 @@ async function checkOverdueAlerts(): Promise<number> {
        AND unreceived_amount > 0`
   );
 
-  let count = 0;
-  for (const r of records) {
-    const exists = await queryOne<any>(
-      `SELECT id FROM alert_record
-       WHERE rule_type = 'OVERDUE' AND biz_type = 'BILL' AND biz_no = ? AND status = 'PENDING'`,
-      [r.billNo]
+  if (records.length === 0) return 0;
+
+  return transaction(async (conn) => {
+    // 批量查询已存在的预警
+    const billNos = records.map((r: any) => r.billNo);
+    const [existingRows] = await conn.query<any[]>(
+      `SELECT biz_no FROM alert_record
+       WHERE rule_type = 'OVERDUE' AND biz_type = 'BILL' AND status = 'PENDING' AND biz_no IN (?)`,
+      [billNos]
     );
-    if (!exists) {
+    const existingSet = new Set(existingRows.map((r: any) => String(r.biz_no)));
+
+    let count = 0;
+    for (const r of records) {
+      if (existingSet.has(r.billNo)) continue;
       const alertNo = makeBizNo("YJ");
       const overdueDays = Number(r.overdueDays);
       const level = overdueDays >= 30 ? "CRITICAL" : overdueDays >= 7 ? "WARNING" : "INFO";
-      await query(
+      await conn.execute(
         `INSERT INTO alert_record (alert_no, rule_id, rule_type, alert_level, title, description,
           biz_type, biz_id, biz_no, current_value, threshold_value, status)
          VALUES (?, ?, 'OVERDUE', ?, ?, ?, 'BILL', NULL, ?, ?, ?, 'PENDING')`,
@@ -210,8 +241,8 @@ async function checkOverdueAlerts(): Promise<number> {
       );
       count++;
     }
-  }
-  return count;
+    return count;
+  });
 }
 
 /**
@@ -239,17 +270,24 @@ async function checkOverstockAlerts(): Promise<number> {
     [thresholdDays]
   );
 
-  let count = 0;
-  for (const r of records) {
-    const exists = await queryOne<any>(
-      `SELECT id FROM alert_record
-       WHERE rule_type = 'STOCK_OVERSTOCK' AND biz_type = 'SKU' AND biz_id = ?
-         AND biz_no = ? AND status = 'PENDING'`,
-      [r.skuId, r.batchNo ?? `SKU-${r.skuId}`]
+  if (records.length === 0) return 0;
+
+  return transaction(async (conn) => {
+    // 批量查询已存在的预警
+    const skuIds = records.map((r: any) => r.skuId);
+    const [existingRows] = await conn.query<any[]>(
+      `SELECT biz_id, biz_no FROM alert_record
+       WHERE rule_type = 'STOCK_OVERSTOCK' AND biz_type = 'SKU' AND status = 'PENDING' AND biz_id IN (?)`,
+      [skuIds]
     );
-    if (!exists) {
+    const existingSet = new Set(existingRows.map((r: any) => `${r.biz_id}:${r.biz_no}`));
+
+    let count = 0;
+    for (const r of records) {
+      const bizNo = r.batchNo ?? `SKU-${r.skuId}`;
+      if (existingSet.has(`${r.skuId}:${bizNo}`)) continue;
       const alertNo = makeBizNo("YJ");
-      await query(
+      await conn.execute(
         `INSERT INTO alert_record (alert_no, rule_id, rule_type, alert_level, title, description,
           biz_type, biz_id, biz_no, current_value, threshold_value, status)
          VALUES (?, ?, 'STOCK_OVERSTOCK', 'WARNING', ?, ?, 'SKU', ?, ?, ?, ?, 'PENDING')`,
@@ -257,14 +295,14 @@ async function checkOverstockAlerts(): Promise<number> {
           alertNo, rule.id,
           `库存积压预警：${r.skuName}`,
           `商品 ${r.skuName}（批次 ${r.batchNo ?? "无"}）库龄 ${r.ageDays} 天，超过 ${thresholdDays} 天预警线，数量 ${r.qty}`,
-          r.skuId, r.batchNo ?? `SKU-${r.skuId}`,
+          r.skuId, bizNo,
           r.ageDays, thresholdDays
         ]
       );
       count++;
     }
-  }
-  return count;
+    return count;
+  });
 }
 
 /**

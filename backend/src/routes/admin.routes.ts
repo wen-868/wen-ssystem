@@ -6,6 +6,7 @@ import { query, queryOne, transaction } from "../shared/db.js";
 import { makeBizNo } from "../shared/id.js";
 import { verifyPassword } from "../shared/password.js";
 import { ok } from "../shared/response.js";
+import bcrypt from "bcryptjs";
 
 export const adminRouter = Router();
 
@@ -71,6 +72,216 @@ adminRouter.get("/members", requireAuth, asyncHandler(async (req, res) => {
   );
   const totalRow = await queryOne<any>("SELECT COUNT(*) AS total FROM member", []);
   res.json(ok({ total: totalRow?.total ?? 0, page, pageSize, records }));
+}));
+
+// ========== 员工管理 POST/PUT ==========
+adminRouter.post("/staff", requireAuth, asyncHandler(async (req, res) => {
+  const body = z.object({
+    username: z.string(),
+    realName: z.string(),
+    mobile: z.string().optional(),
+    roleId: z.string().optional(),
+    storeId: z.number().optional(),
+    status: z.number().default(1),
+    password: z.string().optional()
+  }).parse(req.body);
+  const passwordHash = body.password
+    ? await bcrypt.hash(body.password, 10)
+    : await bcrypt.hash("123456", 10);
+  const result = await query<any>(
+    `INSERT INTO sys_user (username, real_name, mobile, store_id, status, password_hash)
+     VALUES (?, ?, ?, ?, ?, ?)`,
+    [body.username, body.realName, body.mobile ?? null, body.storeId ?? 1, body.status, passwordHash]
+  );
+  res.json(ok({ staffId: (result as any).insertId, username: body.username, realName: body.realName }));
+}));
+
+adminRouter.put("/staff/:staffId", requireAuth, asyncHandler(async (req, res) => {
+  const body = z.object({
+    username: z.string().optional(),
+    realName: z.string().optional(),
+    mobile: z.string().optional(),
+    roleId: z.string().optional(),
+    storeId: z.number().optional(),
+    status: z.number().optional()
+  }).parse(req.body);
+  const sets: string[] = [];
+  const params: unknown[] = [];
+  if (body.username !== undefined) { sets.push("username = ?"); params.push(body.username); }
+  if (body.realName !== undefined) { sets.push("real_name = ?"); params.push(body.realName); }
+  if (body.mobile !== undefined) { sets.push("mobile = ?"); params.push(body.mobile); }
+  if (body.storeId !== undefined) { sets.push("store_id = ?"); params.push(body.storeId); }
+  if (body.status !== undefined) { sets.push("status = ?"); params.push(body.status); }
+  if (sets.length === 0) { res.json(ok({})); return; }
+  params.push(Number(req.params.staffId));
+  await query(`UPDATE sys_user SET ${sets.join(", ")} WHERE id = ?`, params);
+  res.json(ok({ staffId: Number(req.params.staffId) }));
+}));
+
+// ========== 员工管理：停用员工 ==========
+adminRouter.delete("/staff/:id", requireAuth, asyncHandler(async (req, res) => {
+  const staffId = Number(req.params.id);
+  const existing = await queryOne<any>("SELECT id, username, status FROM sys_user WHERE id = ?", [staffId]);
+  if (!existing) {
+    res.status(404).json({ code: "404", message: "员工不存在" });
+    return;
+  }
+  if (existing.status !== 1) {
+    res.status(400).json({ code: "400", message: "员工已停用" });
+    return;
+  }
+  await query("UPDATE sys_user SET status = 0 WHERE id = ?", [staffId]);
+  res.json(ok({ staffId, username: existing.username }));
+}));
+
+// ========== 门店管理 PUT ==========
+adminRouter.put("/stores/:id", requireAuth, asyncHandler(async (req, res) => {
+  const body = z.object({
+    name: z.string().optional(),
+    address: z.string().optional(),
+    contact: z.string().optional(),
+    phone: z.string().optional(),
+    deliveryRadius: z.number().optional(),
+    businessStatus: z.string().optional()
+  }).parse(req.body);
+  const sets: string[] = [];
+  const params: unknown[] = [];
+  if (body.name !== undefined) { sets.push("name = ?"); params.push(body.name); }
+  if (body.address !== undefined) { sets.push("address = ?"); params.push(body.address); }
+  if (body.contact !== undefined) { sets.push("contact = ?"); params.push(body.contact); }
+  if (body.phone !== undefined) { sets.push("phone = ?"); params.push(body.phone); }
+  if (body.deliveryRadius !== undefined) { sets.push("delivery_radius = ?"); params.push(body.deliveryRadius); }
+  if (body.businessStatus !== undefined) { sets.push("business_status = ?"); params.push(body.businessStatus); }
+  if (sets.length === 0) { res.json(ok({})); return; }
+  params.push(Number(req.params.id));
+  await query(`UPDATE store SET ${sets.join(", ")} WHERE id = ?`, params);
+  res.json(ok({ id: Number(req.params.id) }));
+}));
+
+// ========== 日结接口 ==========
+adminRouter.post("/daily-settle", requireAuth, asyncHandler(async (req, res) => {
+  const body = z.object({
+    settleDate: z.string()
+  }).parse(req.body);
+
+  // 检查是否已有该日期的日结记录
+  const existing = await queryOne<any>("SELECT id FROM daily_settlement WHERE settle_date = ?", [body.settleDate]);
+  if (existing) {
+    res.status(400).json({ code: "400", message: "该日期已有日结记录" });
+    return;
+  }
+
+  // 从 payment_order 表按 channel 聚合当日真实收款数据
+  const channelRows = await query<any>(
+    `SELECT channel, COALESCE(SUM(amount), 0) AS amount
+     FROM payment_order
+     WHERE DATE(paid_at) = ? AND status = 'SUCCESS'
+     GROUP BY channel`,
+    [body.settleDate]
+  );
+
+  const channelMap: Record<string, number> = {};
+  for (const row of channelRows) {
+    channelMap[row.channel] = Number(row.amount);
+  }
+
+  const cashAmount = channelMap["CASH"] ?? 0;
+  const wechatAmount = channelMap["WECHAT"] ?? 0;
+  const alipayAmount = channelMap["ALIPAY"] ?? 0;
+  const transferAmount = channelMap["TRANSFER"] ?? 0;
+  const otherAmount = channelMap["OTHER"] ?? 0;
+  const totalReceived = cashAmount + wechatAmount + alipayAmount + transferAmount + otherAmount;
+
+  // 从 sale_bill 聚合当日销售额和退款
+  const salesRow = await queryOne<any>(
+    `SELECT COALESCE(SUM(receivable_amount), 0) AS totalSales
+     FROM sale_bill
+     WHERE DATE(created_at) = ? AND business_status NOT IN ('DRAFT', 'VOIDED')`,
+    [body.settleDate]
+  );
+  const totalSales = Number(salesRow?.totalSales ?? 0);
+
+  const refundRow = await queryOne<any>(
+    `SELECT COALESCE(SUM(refund_amount), 0) AS totalRefund
+     FROM sale_return
+     WHERE DATE(created_at) = ? AND return_status NOT IN ('VOIDED')`,
+    [body.settleDate]
+  );
+  const totalRefund = Number(refundRow?.totalRefund ?? 0);
+
+  await query(
+    `INSERT INTO daily_settlement (settle_date, total_sales, total_received, total_refund,
+       cash_amount, wechat_amount, alipay_amount, transfer_amount, other_amount, operator_id, created_at)
+     VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, NOW())`,
+    [body.settleDate, totalSales, totalReceived, totalRefund,
+     cashAmount, wechatAmount, alipayAmount, transferAmount, otherAmount,
+     req.user?.id ?? 0]
+  );
+  res.json(ok({
+    settleDate: body.settleDate,
+    totalSales,
+    totalReceived,
+    totalRefund,
+    cashAmount,
+    wechatAmount,
+    alipayAmount,
+    transferAmount,
+    otherAmount,
+    message: "日结成功"
+  }));
+}));
+
+// ========== 日结历史列表 ==========
+adminRouter.get("/daily-settle", requireAuth, asyncHandler(async (req, res) => {
+  const page = Number(req.query.page || 1);
+  const pageSize = Number(req.query.pageSize || 20);
+  const offset = (page - 1) * pageSize;
+  const conditions: string[] = [];
+  const params: unknown[] = [];
+
+  if (req.query.dateStart) {
+    conditions.push("settle_date >= ?");
+    params.push(req.query.dateStart);
+  }
+  if (req.query.dateEnd) {
+    conditions.push("settle_date <= ?");
+    params.push(req.query.dateEnd);
+  }
+
+  const where = conditions.length > 0 ? `WHERE ${conditions.join(" AND ")}` : "";
+  const records = await query<any>(
+    `SELECT id, settle_date AS settleDate, total_sales AS totalSales,
+            total_received AS totalReceived, total_refund AS totalRefund,
+            cash_amount AS cashAmount, wechat_amount AS wechatAmount,
+            alipay_amount AS alipayAmount, transfer_amount AS transferAmount,
+            other_amount AS otherAmount, operator_id AS operatorId, created_at AS createdAt
+     FROM daily_settlement
+     ${where}
+     ORDER BY settle_date DESC
+     LIMIT ? OFFSET ?`,
+    [...params, pageSize, offset]
+  );
+  const totalRow = await queryOne<any>(`SELECT COUNT(*) AS total FROM daily_settlement ${where}`, params);
+  res.json(ok({ total: totalRow?.total ?? 0, page, pageSize, records }));
+}));
+
+// ========== 日结详情 ==========
+adminRouter.get("/daily-settle/:id", requireAuth, asyncHandler(async (req, res) => {
+  const settleId = Number(req.params.id);
+  const record = await queryOne<any>(
+    `SELECT id, settle_date AS settleDate, total_sales AS totalSales,
+            total_received AS totalReceived, total_refund AS totalRefund,
+            cash_amount AS cashAmount, wechat_amount AS wechatAmount,
+            alipay_amount AS alipayAmount, transfer_amount AS transferAmount,
+            other_amount AS otherAmount, operator_id AS operatorId, created_at AS createdAt
+     FROM daily_settlement WHERE id = ?`,
+    [settleId]
+  );
+  if (!record) {
+    res.status(404).json({ code: "404", message: "日结记录不存在" });
+    return;
+  }
+  res.json(ok(record));
 }));
 
 // ========== 任务4：销售退货API ==========
@@ -563,15 +774,76 @@ adminRouter.get("/members/:memberId", requireAuth, asyncHandler(async (req, res)
   res.json(ok(member));
 }));
 
-adminRouter.post("/members/:memberId/assign", requireAuth, asyncHandler(async (req, res) => {
+// ========== 客户管理：编辑客户信息 ==========
+adminRouter.put("/members/:memberId", requireAuth, asyncHandler(async (req, res) => {
+  const memberId = Number(req.params.memberId);
+  const existing = await queryOne<any>("SELECT id FROM member WHERE id = ?", [memberId]);
+  if (!existing) {
+    res.status(404).json({ code: "404", message: "客户不存在" });
+    return;
+  }
+  const body = z.object({
+    name: z.string().optional(),
+    mobile: z.string().optional(),
+    address: z.string().optional(),
+    customerType: z.enum(["RETAIL", "WHOLESALE"]).optional(),
+    levelCode: z.string().optional(),
+    settlementType: z.string().optional(),
+    remark: z.string().optional()
+  }).parse(req.body);
+
+  const sets: string[] = [];
+  const params: unknown[] = [];
+  if (body.name !== undefined) { sets.push("name = ?"); params.push(body.name); }
+  if (body.mobile !== undefined) { sets.push("mobile = ?"); params.push(body.mobile); }
+  if (body.address !== undefined) { sets.push("address = ?"); params.push(body.address); }
+  if (body.customerType !== undefined) { sets.push("customer_type = ?"); params.push(body.customerType); }
+  if (body.levelCode !== undefined) { sets.push("level_code = ?"); params.push(body.levelCode); }
+  if (body.settlementType !== undefined) { sets.push("settlement_type = ?"); params.push(body.settlementType); }
+  if (body.remark !== undefined) { sets.push("remark = ?"); params.push(body.remark); }
+  if (sets.length === 0) { res.json(ok({ memberId })); return; }
+  sets.push("updated_at = NOW()");
+  params.push(memberId);
+  await query(`UPDATE member SET ${sets.join(", ")} WHERE id = ?`, params);
+  res.json(ok({ memberId }));
+}));
+
+// ========== 客户管理：停用客户 ==========
+adminRouter.delete("/members/:memberId", requireAuth, asyncHandler(async (req, res) => {
+  const memberId = Number(req.params.memberId);
+  const existing = await queryOne<any>("SELECT id, name, status FROM member WHERE id = ?", [memberId]);
+  if (!existing) {
+    res.status(404).json({ code: "404", message: "客户不存在" });
+    return;
+  }
+  if (existing.status === "INACTIVE") {
+    res.status(400).json({ code: "400", message: "客户已停用" });
+    return;
+  }
+  await query("UPDATE member SET status = 'INACTIVE', updated_at = NOW() WHERE id = ?", [memberId]);
+  res.json(ok({ memberId, name: existing.name }));
+}));
+
+adminRouter.get("/members/:memberId/assign", requireAuth, asyncHandler(async (req, res) => {
   const body = z.object({ staffId: z.number() }).parse(req.body);
-  await query("UPDATE member SET staff_id = ?, updated_at = NOW() WHERE id = ?", [body.staffId, Number(req.params.memberId)]);
-  res.json(ok({ memberId: Number(req.params.memberId), staffId: body.staffId }));
+  const memberId = Number(req.params.memberId);
+  const member = await queryOne<any>("SELECT id FROM member WHERE id = ?", [memberId]);
+  if (!member) {
+    res.status(404).json({ code: "404", message: "客户不存在" });
+    return;
+  }
+  const staff = await queryOne<any>("SELECT id FROM sys_user WHERE id = ? AND status = 1", [body.staffId]);
+  if (!staff) {
+    res.status(404).json({ code: "404", message: "员工不存在" });
+    return;
+  }
+  await query("UPDATE member SET staff_id = ?, updated_at = NOW() WHERE id = ?", [body.staffId, memberId]);
+  res.json(ok({ memberId, staffId: body.staffId }));
 }));
 
 adminRouter.get("/members/:memberId/price-history", requireAuth, asyncHandler(async (req, res) => {
   const memberId = Number(req.params.memberId);
-  const skuId = Number(req.query.skuId);
+  const skuId = z.number().positive().parse(Number(req.query.skuId));
   const records = await query<any>(
     `SELECT sbi.sku_id AS skuId, sbi.sku_name AS skuName, sbi.unit_price AS unitPrice,
             sb.bill_no AS billNo, sb.created_at AS createdAt
@@ -665,21 +937,23 @@ adminRouter.patch("/stores/:id", requireAuth, asyncHandler(async (req, res) => {
     return;
   }
 
-  const body = req.body;
+  const body = z.object({
+    name: z.string().optional(),
+    address: z.string().optional(),
+    phone: z.string().optional(),
+    status: z.number().optional(),
+    longitude: z.number().optional(),
+    latitude: z.number().optional()
+  }).parse(req.body);
   const updates: string[] = [];
   const params: unknown[] = [];
 
   if (body.name !== undefined) { updates.push("name = ?"); params.push(body.name); }
   if (body.address !== undefined) { updates.push("address = ?"); params.push(body.address); }
-  if (body.contact !== undefined) { updates.push("contact = ?"); params.push(body.contact); }
   if (body.phone !== undefined) { updates.push("phone = ?"); params.push(body.phone); }
-  if (body.deliveryRadius !== undefined) { updates.push("delivery_radius = ?"); params.push(body.deliveryRadius); }
-  if (body.businessStatus !== undefined) { updates.push("business_status = ?"); params.push(body.businessStatus); }
-  if (body.miniappAppid !== undefined) { updates.push("miniapp_appid = ?"); params.push(body.miniappAppid); }
-  if (body.wxMerchantName !== undefined) { updates.push("wx_merchant_name = ?"); params.push(body.wxMerchantName); }
-  if (body.wxServicePhone !== undefined) { updates.push("wx_service_phone = ?"); params.push(body.wxServicePhone); }
-  if (body.wxHeadImg !== undefined) { updates.push("wx_head_img = ?"); params.push(body.wxHeadImg); }
-  if (body.wxQrcodeUrl !== undefined) { updates.push("wx_qrcode_url = ?"); params.push(body.wxQrcodeUrl); }
+  if (body.status !== undefined) { updates.push("status = ?"); params.push(body.status); }
+  if (body.longitude !== undefined) { updates.push("longitude = ?"); params.push(body.longitude); }
+  if (body.latitude !== undefined) { updates.push("latitude = ?"); params.push(body.latitude); }
 
   if (updates.length > 0) {
     updates.push("updated_at = NOW()");
@@ -840,8 +1114,72 @@ adminRouter.post("/products", requireAuth, asyncHandler(async (req, res) => {
 
 adminRouter.patch("/products/:spuId/status", requireAuth, asyncHandler(async (req, res) => {
   const body = z.object({ status: z.enum(["DRAFT", "ON_SALE", "OFF_SALE"]) }).parse(req.body);
-  await query("UPDATE product_spu SET status = ?, updated_at = NOW() WHERE id = ?", [body.status, Number(req.params.spuId)]);
+  const result = await query("UPDATE product_spu SET status = ?, updated_at = NOW() WHERE id = ?", [body.status, Number(req.params.spuId)]);
+  if (!result || (result as any).affectedRows === 0) {
+    res.status(404).json({ code: "404", message: "商品不存在" });
+    return;
+  }
   res.json(ok({ spuId: Number(req.params.spuId), status: body.status }));
+}));
+
+// ========== 商品管理：编辑商品基本信息 ==========
+adminRouter.put("/products/:spuId", requireAuth, asyncHandler(async (req, res) => {
+  const spuId = Number(req.params.spuId);
+  const existing = await queryOne<any>("SELECT id FROM product_spu WHERE id = ?", [spuId]);
+  if (!existing) {
+    res.status(404).json({ code: "404", message: "商品不存在" });
+    return;
+  }
+  const body = z.object({
+    name: z.string().optional(),
+    barcode: z.string().optional(),
+    category: z.string().optional(),
+    brand: z.string().optional(),
+    unit: z.string().optional(),
+    boxRatio: z.number().optional(),
+    specs: z.string().optional(),
+    status: z.enum(["DRAFT", "ON_SALE", "OFF_SALE"]).optional()
+  }).parse(req.body);
+
+  const sets: string[] = [];
+  const params: unknown[] = [];
+  if (body.name !== undefined) { sets.push("name = ?"); params.push(body.name); }
+  if (body.category !== undefined) { sets.push("category_id = ?"); params.push(body.category); }
+  if (body.brand !== undefined) { sets.push("brand = ?"); params.push(body.brand); }
+  if (body.unit !== undefined) { sets.push("unit = ?"); params.push(body.unit); }
+  if (body.specs !== undefined) { sets.push("specs = ?"); params.push(body.specs); }
+  if (body.status !== undefined) { sets.push("status = ?"); params.push(body.status); }
+  if (sets.length === 0) { res.json(ok({ spuId })); return; }
+  sets.push("updated_at = NOW()");
+  params.push(spuId);
+  await query(`UPDATE product_spu SET ${sets.join(", ")} WHERE id = ?`, params);
+
+  // 如果传了 barcode，更新关联 SKU 的 barcode
+  if (body.barcode !== undefined) {
+    await query("UPDATE product_sku SET barcode = ? WHERE spu_id = ?", [body.barcode, spuId]);
+  }
+  // 如果传了 boxRatio，更新关联 SKU 的 box_ratio
+  if (body.boxRatio !== undefined) {
+    await query("UPDATE product_sku SET box_ratio = ? WHERE spu_id = ?", [body.boxRatio, spuId]);
+  }
+
+  res.json(ok({ spuId }));
+}));
+
+// ========== 商品管理：停用商品 ==========
+adminRouter.delete("/products/:spuId", requireAuth, asyncHandler(async (req, res) => {
+  const spuId = Number(req.params.spuId);
+  const existing = await queryOne<any>("SELECT id, name, status FROM product_spu WHERE id = ?", [spuId]);
+  if (!existing) {
+    res.status(404).json({ code: "404", message: "商品不存在" });
+    return;
+  }
+  if (existing.status === "OFF_SALE") {
+    res.status(400).json({ code: "400", message: "商品已停售" });
+    return;
+  }
+  await query("UPDATE product_spu SET status = 'OFF_SALE', updated_at = NOW() WHERE id = ?", [spuId]);
+  res.json(ok({ spuId, name: existing.name }));
 }));
 
 adminRouter.get("/products/:skuId/price-logs", requireAuth, asyncHandler(async (req, res) => {
@@ -866,43 +1204,44 @@ adminRouter.put("/products/:skuId/price", requireAuth, asyncHandler(async (req, 
     miniappPrice: z.number().nullable().optional(),
     storePrice: z.number().nullable().optional()
   }).parse(req.body);
-  const oldPrice = await queryOne<any>("SELECT * FROM product_price WHERE sku_id = ?", [skuId]);
-  if (!oldPrice) {
-    res.status(404).json({ code: "404", message: "SKU价格不存在" });
-    return;
-  }
-  const changes = [
-    ["COST", oldPrice.cost_price, body.costPrice],
-    ["RETAIL", oldPrice.retail_price, body.retailPrice],
-    ["WHOLESALE", oldPrice.wholesale_price, body.wholesalePrice],
-    ["MINIAPP", oldPrice.miniapp_price, body.miniappPrice],
-    ["STORE", oldPrice.store_price, body.storePrice]
-  ].filter(([, oldValue, newValue]) => newValue !== undefined && Number(oldValue ?? 0) !== Number(newValue ?? 0));
-  await query(
-    `UPDATE product_price
-     SET cost_price = COALESCE(?, cost_price),
-         retail_price = COALESCE(?, retail_price),
-         wholesale_price = ?,
-         miniapp_price = ?,
-         store_price = ?
-     WHERE sku_id = ?`,
-    [
-      body.costPrice ?? null,
-      body.retailPrice ?? null,
-      body.wholesalePrice === undefined ? oldPrice.wholesale_price : body.wholesalePrice,
-      body.miniappPrice === undefined ? oldPrice.miniapp_price : body.miniappPrice,
-      body.storePrice === undefined ? oldPrice.store_price : body.storePrice,
-      skuId
-    ]
-  );
-  for (const [priceType, oldValue, newValue] of changes) {
-    await query(
-      `INSERT INTO product_price_log (sku_id, operator_id, price_type, old_price, new_price, action_type)
-       VALUES (?, ?, ?, ?, ?, 'UPDATE')`,
-      [skuId, req.user?.id ?? 0, priceType, oldValue ?? null, newValue ?? null]
+  const result = await transaction(async (conn) => {
+    const [oldRows] = await conn.query<any[]>("SELECT * FROM product_price WHERE sku_id = ?", [skuId]);
+    const oldPrice = oldRows[0];
+    if (!oldPrice) throw Object.assign(new Error("SKU价格不存在"), { statusCode: 404 });
+    const changes = [
+      ["COST", oldPrice.cost_price, body.costPrice],
+      ["RETAIL", oldPrice.retail_price, body.retailPrice],
+      ["WHOLESALE", oldPrice.wholesale_price, body.wholesalePrice],
+      ["MINIAPP", oldPrice.miniapp_price, body.miniappPrice],
+      ["STORE", oldPrice.store_price, body.storePrice]
+    ].filter(([, oldValue, newValue]) => newValue !== undefined && Number(oldValue ?? 0) !== Number(newValue ?? 0));
+    await conn.execute(
+      `UPDATE product_price
+       SET cost_price = COALESCE(?, cost_price),
+           retail_price = COALESCE(?, retail_price),
+           wholesale_price = ?,
+           miniapp_price = ?,
+           store_price = ?
+       WHERE sku_id = ?`,
+      [
+        body.costPrice ?? null,
+        body.retailPrice ?? null,
+        body.wholesalePrice === undefined ? oldPrice.wholesale_price : body.wholesalePrice,
+        body.miniappPrice === undefined ? oldPrice.miniapp_price : body.miniappPrice,
+        body.storePrice === undefined ? oldPrice.store_price : body.storePrice,
+        skuId
+      ]
     );
-  }
-  res.json(ok({ skuId }));
+    for (const [priceType, oldValue, newValue] of changes) {
+      await conn.execute(
+        `INSERT INTO product_price_log (sku_id, operator_id, price_type, old_price, new_price, action_type)
+         VALUES (?, ?, ?, ?, ?, 'UPDATE')`,
+        [skuId, req.user?.id ?? 0, priceType, oldValue ?? null, newValue ?? null]
+      );
+    }
+    return { skuId };
+  });
+  res.json(ok(result));
 }));
 
 adminRouter.get("/reports/dashboard", requireAuth, asyncHandler(async (_req, res) => {
@@ -1033,6 +1372,28 @@ adminRouter.get("/sale-bills", requireAuth, asyncHandler(async (req, res) => {
   const page = Number(req.query.page || 1);
   const pageSize = Number(req.query.pageSize || 20);
   const offset = (page - 1) * pageSize;
+  const conditions: string[] = [];
+  const params: unknown[] = [];
+
+  if (req.query.keyword) {
+    const keyword = `%${String(req.query.keyword)}%`;
+    conditions.push("(bill_no LIKE ? OR customer_name LIKE ?)");
+    params.push(keyword, keyword);
+  }
+  if (req.query.status) {
+    conditions.push("collection_status = ?");
+    params.push(req.query.status);
+  }
+  if (req.query.dateStart) {
+    conditions.push("DATE(created_at) >= ?");
+    params.push(req.query.dateStart);
+  }
+  if (req.query.dateEnd) {
+    conditions.push("DATE(created_at) <= ?");
+    params.push(req.query.dateEnd);
+  }
+
+  const where = conditions.length > 0 ? `WHERE ${conditions.join(" AND ")}` : "";
   const records = await query<any>(
     `SELECT bill_no AS billNo, store_id AS storeId, customer_name AS customerName,
             customer_mobile AS customerMobile, receivable_amount AS receivableAmount,
@@ -1040,12 +1401,62 @@ adminRouter.get("/sale-bills", requireAuth, asyncHandler(async (req, res) => {
             collection_status AS collectionStatus, business_status AS businessStatus,
             created_at AS createdAt
      FROM sale_bill
+     ${where}
      ORDER BY created_at DESC
      LIMIT ? OFFSET ?`,
-    [pageSize, offset]
+    [...params, pageSize, offset]
   );
-  const totalRow = await queryOne<any>("SELECT COUNT(*) AS total FROM sale_bill");
+  const totalRow = await queryOne<any>(`SELECT COUNT(*) AS total FROM sale_bill ${where}`, params);
   res.json(ok({ total: totalRow?.total ?? 0, page, pageSize, records }));
+}));
+
+// ========== 销售单导出CSV ==========
+adminRouter.get("/sale-bills/export.csv", requireAuth, asyncHandler(async (req, res) => {
+  const conditions: string[] = [];
+  const params: unknown[] = [];
+
+  if (req.query.keyword) {
+    const keyword = `%${String(req.query.keyword)}%`;
+    conditions.push("(bill_no LIKE ? OR customer_name LIKE ?)");
+    params.push(keyword, keyword);
+  }
+  if (req.query.status) {
+    conditions.push("collection_status = ?");
+    params.push(req.query.status);
+  }
+  if (req.query.dateStart) {
+    conditions.push("DATE(created_at) >= ?");
+    params.push(req.query.dateStart);
+  }
+  if (req.query.dateEnd) {
+    conditions.push("DATE(created_at) <= ?");
+    params.push(req.query.dateEnd);
+  }
+
+  const where = conditions.length > 0 ? `WHERE ${conditions.join(" AND ")}` : "";
+  const records = await query<any>(
+    `SELECT bill_no AS billNo, store_id AS storeId, customer_name AS customerName,
+            customer_mobile AS customerMobile, receivable_amount AS receivableAmount,
+            received_amount AS receivedAmount, unreceived_amount AS unreceivedAmount,
+            collection_status AS collectionStatus, business_status AS businessStatus,
+            created_at AS createdAt
+     FROM sale_bill
+     ${where}
+     ORDER BY created_at DESC
+     LIMIT 5000`,
+    params
+  );
+  const escapeCsv = (value: unknown) => `"${String(value ?? "").replace(/"/g, '""')}"`;
+  const header = ["销售单号", "门店ID", "客户名称", "客户手机", "应收金额", "已收金额", "未收金额", "收款状态", "业务状态", "创建时间"];
+  const rows = records.map((row: any) => [
+    row.billNo, row.storeId, row.customerName, row.customerMobile,
+    row.receivableAmount, row.receivedAmount, row.unreceivedAmount,
+    row.collectionStatus, row.businessStatus, row.createdAt
+  ]);
+  const csv = `\uFEFF${[header, ...rows].map((line) => line.map(escapeCsv).join(",")).join("\n")}`;
+  res.setHeader("content-type", "text/csv; charset=utf-8");
+  res.setHeader("content-disposition", `attachment; filename="sale-bills-${new Date().toISOString().slice(0, 10)}.csv"`);
+  res.send(csv);
 }));
 
 adminRouter.get("/inventory/logs", requireAuth, asyncHandler(async (req, res) => {
@@ -1119,17 +1530,50 @@ adminRouter.get("/refund-orders", requireAuth, asyncHandler(async (req, res) => 
 }));
 
 adminRouter.get("/inventory/balances", requireAuth, asyncHandler(async (req, res) => {
+  const page = Number(req.query.page || 1);
+  const pageSize = Number(req.query.pageSize || 20);
+  const offset = (page - 1) * pageSize;
+  const conditions: string[] = [];
+  const params: unknown[] = [];
+
+  if (req.query.keyword) {
+    const keyword = `%${String(req.query.keyword)}%`;
+    conditions.push("(ps.sku_name LIKE ? OR ps.sku_code LIKE ? OR ps.barcode LIKE ?)");
+    params.push(keyword, keyword, keyword);
+  }
+  if (req.query.storeId) {
+    conditions.push("ib.store_id = ?");
+    params.push(Number(req.query.storeId));
+  }
+  if (req.query.category) {
+    conditions.push("psp.category_id = ?");
+    params.push(Number(req.query.category));
+  }
+
+  const where = conditions.length > 0 ? `WHERE ${conditions.join(" AND ")}` : "";
   const records = await query<any>(
     `SELECT ib.store_id AS storeId, s.name AS storeName, ib.sku_id AS skuId,
-            ps.sku_name AS skuName, ib.stock_type AS stockType,
+            ps.sku_name AS skuName, ps.barcode, ib.stock_type AS stockType,
             ib.physical_qty AS physicalQty, ib.available_qty AS availableQty,
             ib.locked_qty AS lockedQty
      FROM inventory_balance ib
      LEFT JOIN store s ON s.id = ib.store_id
      LEFT JOIN product_sku ps ON ps.id = ib.sku_id
-     ORDER BY ib.store_id, ib.sku_id`
+     LEFT JOIN product_spu psp ON psp.id = ps.spu_id
+     ${where}
+     ORDER BY ib.store_id, ib.sku_id
+     LIMIT ? OFFSET ?`,
+    [...params, pageSize, offset]
   );
-  res.json(ok({ records }));
+  const totalRow = await queryOne<any>(
+    `SELECT COUNT(*) AS total
+     FROM inventory_balance ib
+     LEFT JOIN product_sku ps ON ps.id = ib.sku_id
+     LEFT JOIN product_spu psp ON psp.id = ps.spu_id
+     ${where}`,
+    params
+  );
+  res.json(ok({ total: totalRow?.total ?? 0, page, pageSize, records }));
 }));
 
 adminRouter.get("/orders/:orderNo", requireAuth, asyncHandler(async (req, res) => {
@@ -1411,8 +1855,10 @@ adminRouter.delete("/suppliers/:id", requireAuth, asyncHandler(async (req, res) 
     res.status(400).json({ code: "400", message: "该供应商存在关联采购订单，无法删除" });
     return;
   }
-  await query("DELETE FROM supplier_contact WHERE supplier_id = ?", [supplierId]);
-  await query("DELETE FROM supplier WHERE id = ?", [supplierId]);
+  await transaction(async (conn) => {
+    await conn.execute("DELETE FROM supplier_contact WHERE supplier_id = ?", [supplierId]);
+    await conn.execute("DELETE FROM supplier WHERE id = ?", [supplierId]);
+  });
   res.json(ok({ supplierId, name: existing.name }));
 }));
 

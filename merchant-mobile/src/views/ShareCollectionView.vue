@@ -75,7 +75,7 @@ async function loadData(reset = false) {
     } else {
       res = await fetchRefundOrders(params)
     }
-    const data = res.data.data
+    const data = res.data
     const records = data.records ?? []
     if (activeTab.value === 'links') {
       if (reset) linkRecords.value = records as CollectionLinkRecord[]

@@ -3,6 +3,7 @@ import { ref } from 'vue'
 import {
   showLoadingToast,
   showSuccessToast,
+  showToast,
   closeToast
 } from 'vant'
 import { fetchCustomers, createCustomer, type CustomerRecord } from '../api'
@@ -10,7 +11,9 @@ import { fetchCustomers, createCustomer, type CustomerRecord } from '../api'
 const keyword = ref('')
 const customers = ref<CustomerRecord[]>([])
 const loading = ref(false)
+const finished = ref(false)
 const refreshing = ref(false)
+const page = ref(1)
 
 // 新增客户弹窗
 const showAddPopup = ref(false)
@@ -31,13 +34,29 @@ const SETTLEMENT_TYPE_MAP: Record<string, string> = {
   ACCOUNT: '账期'
 }
 
-async function loadCustomers() {
+async function loadCustomers(reset = false) {
+  if (reset) {
+    page.value = 1
+    finished.value = false
+  }
   loading.value = true
   try {
-    const res = await fetchCustomers({ keyword: keyword.value })
-    customers.value = res.data.data.records ?? res.data.data ?? []
+    const res = await fetchCustomers({
+      keyword: keyword.value || undefined
+    })
+    const data = res.data
+    const items = data?.records ?? data ?? []
+    if (reset) {
+      customers.value = items
+    } else {
+      customers.value.push(...items)
+    }
+    if (customers.value.length >= (data?.total ?? items.length)) {
+      finished.value = true
+    }
+    page.value++
   } catch {
-    // ignore
+    showToast('操作失败，请重试')
   } finally {
     loading.value = false
     refreshing.value = false
@@ -45,12 +64,17 @@ async function loadCustomers() {
 }
 
 function onSearch() {
-  loadCustomers()
+  loadCustomers(true)
+}
+
+function onCancelSearch() {
+  keyword.value = ''
+  loadCustomers(true)
 }
 
 function onRefresh() {
   refreshing.value = true
-  loadCustomers()
+  loadCustomers(true)
 }
 
 function openAddPopup() {
@@ -60,11 +84,15 @@ function openAddPopup() {
 
 async function submitAdd() {
   if (!addForm.value.name.trim()) {
-    showSuccessToast({ message: '请输入客户名称', position: 'bottom' })
+    showToast('请输入客户名称')
     return
   }
   if (!addForm.value.mobile.trim()) {
-    showSuccessToast({ message: '请输入手机号', position: 'bottom' })
+    showToast('请输入手机号')
+    return
+  }
+  if (!/^1[3-9]\d{9}$/.test(addForm.value.mobile)) {
+    showToast('手机号格式不正确')
     return
   }
   try {
@@ -73,10 +101,17 @@ async function submitAdd() {
     closeToast()
     showSuccessToast('客户创建成功')
     showAddPopup.value = false
-    await loadCustomers()
+    await loadCustomers(true)
   } catch {
     closeToast()
+    showToast('操作失败，请重试')
   }
+}
+
+function goToCustomerDetail(memberId: number) {
+  window.dispatchEvent(new CustomEvent('nav', { detail: 'customer-detail' }))
+  // 存储当前查看的客户ID
+  localStorage.setItem('merchant_customer_detail_id', String(memberId))
 }
 </script>
 
@@ -88,9 +123,10 @@ async function submitAdd() {
     <van-search
       v-model="keyword"
       placeholder="搜索客户名/手机号"
-      show-action
+      shape="round"
+      clearable
       @search="onSearch"
-      @cancel="onSearch"
+      @cancel="onCancelSearch"
     />
 
     <!-- 新增按钮 -->
@@ -103,17 +139,21 @@ async function submitAdd() {
 
     <!-- 客户列表 -->
     <van-pull-refresh v-model="refreshing" @refresh="onRefresh">
-      <div v-if="loading" class="loading-wrapper">
-        <van-loading type="spinner" />
-      </div>
-      <div v-else-if="customers.length === 0" class="empty-wrapper">
-        <van-empty description="暂无客户" />
-      </div>
-      <van-cell-group v-else inset>
+      <van-list
+        v-model:loading="loading"
+        :finished="finished"
+        finished-text="没有更多了"
+        @load="loadCustomers"
+      >
+        <div v-if="customers.length === 0 && !loading" class="empty-wrapper">
+          <van-empty description="暂无客户" />
+        </div>
         <van-cell
           v-for="item in customers"
           :key="item.memberId"
+          is-link
           class="customer-cell"
+          @click="goToCustomerDetail(item.memberId)"
         >
           <template #title>
             <div class="customer-header">
@@ -134,9 +174,19 @@ async function submitAdd() {
                 {{ SETTLEMENT_TYPE_MAP[item.settlementType || 'CASH'] || '现结' }}
               </span>
             </div>
+            <div class="customer-stats">
+              <span class="stat-item">
+                <span class="stat-label">累计消费</span>
+                <span class="stat-value">-</span>
+              </span>
+              <span class="stat-item">
+                <span class="stat-label">欠款</span>
+                <span class="stat-value stat-value--debt">-</span>
+              </span>
+            </div>
           </template>
         </van-cell>
-      </van-cell-group>
+      </van-list>
     </van-pull-refresh>
 
     <!-- 新增客户弹窗 -->
@@ -190,7 +240,7 @@ async function submitAdd() {
 <style scoped>
 .page-title {
   margin: 0 0 12px;
-  font-size: 18px;
+  font-size: var(--text-page-title);
   font-weight: 600;
   color: var(--text-primary);
 }
@@ -199,7 +249,7 @@ async function submitAdd() {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 8px 16px;
+  padding: 8px var(--space-page-padding);
 }
 
 .record-count {
@@ -207,7 +257,6 @@ async function submitAdd() {
   color: var(--text-muted);
 }
 
-.loading-wrapper,
 .empty-wrapper {
   display: flex;
   justify-content: center;
@@ -216,6 +265,9 @@ async function submitAdd() {
 
 .customer-cell {
   margin-bottom: 8px;
+  border-radius: var(--radius-sm);
+  background: var(--bg-card);
+  box-shadow: var(--shadow-card);
 }
 
 .customer-header {
@@ -247,8 +299,34 @@ async function submitAdd() {
   border-radius: 4px;
 }
 
+.customer-stats {
+  display: flex;
+  gap: 16px;
+  margin-top: 8px;
+}
+
+.stat-item {
+  display: flex;
+  flex-direction: column;
+}
+
+.stat-label {
+  font-size: 11px;
+  color: var(--text-muted);
+}
+
+.stat-value {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--text-primary);
+}
+
+.stat-value--debt {
+  color: var(--color-danger);
+}
+
 .add-panel {
-  padding: 20px 16px;
+  padding: 20px var(--space-card-padding);
 }
 
 .add-panel h3 {
