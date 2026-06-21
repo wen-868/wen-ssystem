@@ -33,6 +33,9 @@ import { adminStockCheckRouter, storeStockCheckRouter } from "./routes/stock-che
 import { auditRouter } from "./routes/audit.routes.js";
 import { exportRouter } from "./routes/export.routes.js";
 import { sysConfigRouter } from "./routes/sys-config.routes.js";
+import { supplierRouter } from "./routes/supplier.routes.js";
+import { purchaseRouter } from "./routes/purchase.routes.js";
+import { saleReturnRouter } from "./routes/sale-return.routes.js";
 
 const app = express();
 
@@ -78,6 +81,9 @@ app.use("/api/store/stock-checks", storeStockCheckRouter);
 app.use("/api/admin/audit-logs", requireAuth, auditRouter);
 app.use("/api/admin/export", requireAuth, exportRouter);
 app.use("/api/admin/sys-config", requireAuth, sysConfigRouter);
+app.use("/api/admin/suppliers", requireAuth, supplierRouter);
+app.use("/api/admin/purchase-orders", requireAuth, purchaseRouter);
+app.use("/api/store/sale-returns", requireAuth, saleReturnRouter);
 
 app.use(errorHandler);
 

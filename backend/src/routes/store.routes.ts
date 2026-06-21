@@ -354,6 +354,8 @@ storeRouter.post("/sale-bills", asyncHandler(async (req, res) => {
     roundingAmount: z.number().default(0),
     remark: z.string().optional(),
     internalRemark: z.string().optional(),
+    saleType: z.enum(["CASH", "CREDIT"]).default("CASH"),
+    dueDate: z.string().optional(),
     items: z.array(storeSaleBillItemSchema).min(1)
   }).parse(req.body);
   const bill = await transaction(async (conn) => {
@@ -383,12 +385,13 @@ storeRouter.post("/sale-bills", asyncHandler(async (req, res) => {
     const receivableAmount = Math.max(0, goodsAmount - body.discountAmount - body.roundingAmount);
     await conn.execute(
       `INSERT INTO sale_bill (bill_no, store_id, customer_id, customer_name, customer_mobile, customer_type,
-                              business_status, collection_status, goods_amount, discount_amount, rounding_amount,
-                              receivable_amount, received_amount, unreceived_amount, operator_id, remark, internal_remark)
-       VALUES (?, ?, ?, ?, ?, ?, 'CREATED', 'UNPAID', ?, ?, ?, ?, 0, ?, ?, ?, ?)`,
+                              sale_type, business_status, collection_status, goods_amount, discount_amount, rounding_amount,
+                              receivable_amount, received_amount, unreceived_amount, due_date, operator_id, remark, internal_remark)
+       VALUES (?, ?, ?, ?, ?, ?, ?, 'CREATED', 'UNPAID', ?, ?, ?, ?, 0, ?, ?, ?, ?)`,
       [
         billNo, storeId, body.customerId ?? null, member?.name ?? body.customerName ?? null, member?.mobile ?? body.customerMobile ?? null,
-        member?.customer_type ?? "RETAIL", goodsAmount, body.discountAmount, body.roundingAmount, receivableAmount, receivableAmount,
+        member?.customer_type ?? "RETAIL", body.saleType, goodsAmount, body.discountAmount, body.roundingAmount, receivableAmount, receivableAmount,
+        body.saleType === "CREDIT" ? body.dueDate ?? null : null,
         req.user?.id ?? 0, body.remark ?? null, body.internalRemark ?? null
       ]
     );
@@ -876,4 +879,92 @@ storeRouter.post("/receivables/:receivableNo/payment", asyncHandler(async (req, 
     return { receivableNo: req.params.receivableNo, receivedAmount, unreceivedAmount, status };
   });
   res.json(ok(result));
+}));
+
+// 销售单收款（支持赊销状态流转：UNPAID -> PARTIAL -> PAID）
+storeRouter.post("/sale-bills/:billNo/payment", asyncHandler(async (req, res) => {
+  const body = z.object({
+    amount: z.number().positive(),
+    paymentMethod: z.enum(["CASH", "TRANSFER", "OTHER_WECHAT", "ALIPAY"]),
+    remark: z.string().optional()
+  }).parse(req.body);
+
+  const result = await transaction(async (conn) => {
+    const [rows] = await conn.query<any[]>(
+      `SELECT bill_no, store_id, received_amount, receivable_amount, unreceived_amount, collection_status
+       FROM sale_bill WHERE bill_no = ? FOR UPDATE`,
+      [req.params.billNo]
+    );
+    const bill = rows[0];
+    if (!bill) throw new Error("销售单不存在");
+
+    const received = Number(bill.received_amount) + body.amount;
+    const receivable = Number(bill.receivable_amount);
+    if (body.amount <= 0 || body.amount > Math.max(receivable - Number(bill.received_amount), 0)) {
+      throw new Error("收款金额不合法");
+    }
+
+    const status = received >= receivable ? "PAID" : "PARTIAL";
+    await conn.execute(
+      `UPDATE sale_bill
+       SET received_amount = ?, unreceived_amount = GREATEST(receivable_amount - ?, 0),
+           collection_status = ?, last_payment_time = NOW()
+       WHERE bill_no = ?`,
+      [received, received, status, req.params.billNo]
+    );
+
+    await conn.execute(
+      `INSERT INTO payment_order (pay_no, source_type, source_no, channel, amount, status, paid_at)
+       VALUES (?, 'SALE_BILL', ?, ?, ?, 'SUCCESS', NOW())`,
+      [makeBizNo("ZF"), req.params.billNo, body.paymentMethod, body.amount]
+    );
+
+    await conn.execute(
+      `INSERT INTO operation_log (operator_id, operator_name, module, action, biz_no, after_data)
+       VALUES (?, ?, 'SALE_BILL', 'PAYMENT', ?, ?)`,
+      [req.user?.id ?? null, req.user?.username ?? "系统用户", req.params.billNo,
+       JSON.stringify({ amount: body.amount, received, status })]
+    );
+
+    return { billNo: req.params.billNo, receivedAmount: received, collectionStatus: status };
+  });
+
+  res.json(ok(result));
+}));
+
+// 超期销售单检测
+storeRouter.get("/sale-bills/overdue/check", asyncHandler(async (req, res) => {
+  const storeId = req.user?.storeId ?? null;
+
+  let sql = `SELECT bill_no AS billNo, store_id AS storeId, customer_name AS customerName,
+                    due_date AS dueDate, receivable_amount AS receivableAmount,
+                    unreceived_amount AS unreceivedAmount, collection_status AS collectionStatus
+             FROM sale_bill
+             WHERE sale_type = 'CREDIT'
+               AND collection_status IN ('UNPAID', 'PARTIAL')
+               AND due_date IS NOT NULL
+               AND due_date < CURDATE()`;
+  const params: unknown[] = [];
+
+  if (storeId) {
+    sql += ` AND store_id = ?`;
+    params.push(storeId);
+  }
+
+  sql += ` ORDER BY due_date ASC LIMIT 100`;
+
+  const overdueBills = await query<any>(sql, params);
+
+  // 标记超期
+  if (overdueBills.length > 0) {
+    const billNos = overdueBills.map((b: any) => b.billNo);
+    await query(
+      `UPDATE sale_bill SET collection_status = 'OVERDUE'
+       WHERE bill_no IN (${billNos.map(() => '?').join(',')})
+         AND collection_status IN ('UNPAID', 'PARTIAL')`,
+      billNos
+    );
+  }
+
+  res.json(ok({ count: overdueBills.length, overdueBills }));
 }));
