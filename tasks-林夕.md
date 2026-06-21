@@ -1,6 +1,6 @@
 # 林夕 - UI/前端开发任务清单
 
-> 角色：UI/前端交互工程师
+> 角色：UI/UX 设计师
 > 技术栈：Vue 3 + Vite + TypeScript + CSS Variables
 > 工作时间：每天 8 小时
 
