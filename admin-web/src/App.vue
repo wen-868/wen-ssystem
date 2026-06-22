@@ -3416,6 +3416,7 @@ watch(isCashierMode, (val) => {
   }
 });
 
+
 const productsLoading = ref(false);
 const storesLoading = ref(false);
 const membersLoading = ref(false);
