@@ -36,6 +36,7 @@ import { sysConfigRouter } from "./routes/sys-config.routes.js";
 import { supplierRouter } from "./routes/supplier.routes.js";
 import { purchaseRouter } from "./routes/purchase.routes.js";
 import { saleReturnRouter } from "./routes/sale-return.routes.js";
+import { approvalRouter } from "./routes/approval.routes.js";
 
 const app = express();
 
@@ -84,6 +85,7 @@ app.use("/api/admin/sys-config", requireAuth, sysConfigRouter);
 app.use("/api/admin/suppliers", requireAuth, supplierRouter);
 app.use("/api/admin/purchase-orders", requireAuth, purchaseRouter);
 app.use("/api/store/sale-returns", requireAuth, saleReturnRouter);
+app.use("/api/admin/approval", requireAuth, approvalRouter);
 
 app.use(errorHandler);
 
