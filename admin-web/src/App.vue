@@ -340,6 +340,36 @@
             <div class="dash-card-desc">{{ card.desc }}</div>
           </div>
         </div>
+        
+        <!-- 待办事项和快捷入口 -->
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:20px;margin-top:20px">
+          <!-- 待办事项 -->
+          <div class="table-card" style="padding:20px">
+            <h4 style="margin:0 0 12px;font-size:14px;color:var(--text-secondary)">待办事项</h4>
+            <div class="todo-list">
+              <div v-for="(todo, index) in todoList" :key="index" class="todo-item">
+                <div class="todo-content">
+                  <span class="todo-priority" :class="todo.priority">{{ todo.priorityText }}</span>
+                  <span class="todo-title">{{ todo.title }}</span>
+                </div>
+                <el-button size="small" type="primary" link @click="handleTodoClick(todo)">处理</el-button>
+              </div>
+              <div v-if="todoList.length === 0" style="text-align:center;padding:20px;color:#999">暂无待办</div>
+            </div>
+          </div>
+          
+          <!-- 快捷入口 -->
+          <div class="table-card" style="padding:20px">
+            <h4 style="margin:0 0 12px;font-size:14px;color:var(--text-secondary)">快捷入口</h4>
+            <div class="quick-entry">
+              <div v-for="entry in quickEntries" :key="entry.label" class="quick-entry-item" @click="activeNav = entry.nav">
+                <div class="quick-entry-icon">{{ entry.icon }}</div>
+                <div class="quick-entry-label">{{ entry.label }}</div>
+              </div>
+            </div>
+          </div>
+        </div>
+        
         <!-- 图表行 -->
         <div style="display:grid;grid-template-columns:2fr 1fr;gap:20px;margin-top:20px">
           <div class="table-card" style="padding:20px">
@@ -1514,6 +1544,12 @@
           <el-form-item label="规格">
             <el-input v-model="productEditForm.specs" placeholder="如：500ml/瓶" />
           </el-form-item>
+          <el-form-item label="酒精度">
+            <el-input v-model="productEditForm.alcoholDegree" placeholder="如：53%vol" />
+          </el-form-item>
+          <el-form-item label="产地">
+            <el-input v-model="productEditForm.origin" placeholder="如：贵州茅台" />
+          </el-form-item>
         </el-form>
         <template #footer>
           <el-button @click="productEditDialogVisible = false">取消</el-button>
@@ -1592,7 +1628,7 @@
           <el-button type="primary" :loading="storeEditLoading" @click="submitStoreEdit">保存</el-button>
         </template>
       </el-dialog>
-      <el-dialog v-model="memberDialogVisible" title="新增客户" width="480px">
+      <el-dialog v-model="memberDialogVisible" title="新增客户" width="560px">
         <el-form ref="memberFormRef" :model="memberForm" :rules="memberRules" label-width="100px">
           <el-form-item label="客户名称" prop="name">
             <el-input v-model="memberForm.name" />
@@ -1605,6 +1641,24 @@
               <el-option label="零售客户" value="RETAIL" />
               <el-option label="批发客户" value="WHOLESALE" />
             </el-select>
+          </el-form-item>
+          <el-form-item label="邮箱">
+            <el-input v-model="memberForm.email" placeholder="customer@example.com" />
+          </el-form-item>
+          <el-form-item label="地址">
+            <el-input v-model="memberForm.address" placeholder="详细地址" />
+          </el-form-item>
+          <el-form-item label="联系人">
+            <el-input v-model="memberForm.contactPerson" placeholder="联系人姓名" />
+          </el-form-item>
+          <el-form-item label="授信额度">
+            <el-input-number v-model="memberForm.creditLimit" :min="0" :precision="2" style="width: 100%" />
+          </el-form-item>
+          <el-form-item label="账期(天)">
+            <el-input-number v-model="memberForm.paymentDays" :min="0" style="width: 100%" />
+          </el-form-item>
+          <el-form-item label="备注">
+            <el-input v-model="memberForm.remark" type="textarea" :rows="3" placeholder="其他备注信息" />
           </el-form-item>
         </el-form>
         <template #footer>
@@ -3306,7 +3360,9 @@ const productEditForm = reactive({
   brand: "",
   unit: "",
   boxRatio: 6,
-  specs: ""
+  specs: "",
+  alcoholDegree: "",
+  origin: ""
 });
 const storeDialogVisible = ref(false);
 const storeEditDialogVisible = ref(false);
@@ -3347,7 +3403,13 @@ const storeForm = reactive({
 const memberForm = reactive({
   name: "",
   mobile: "",
-  customerType: "RETAIL" as "RETAIL" | "WHOLESALE"
+  customerType: "RETAIL" as "RETAIL" | "WHOLESALE",
+  email: "",
+  address: "",
+  contactPerson: "",
+  creditLimit: 0,
+  paymentDays: 0,
+  remark: ""
 });
 const priceForm = reactive({
   skuId: 0,
@@ -4688,6 +4750,33 @@ const dashCategoryPieRef = ref<echarts.ECharts | null>(null);
 const dashHotProductRef = ref<echarts.ECharts | null>(null);
 const dashCustomerTopRef = ref<echarts.ECharts | null>(null);
 const dashAlerts = ref<any[]>([]);
+
+// 待办事项和快捷入口
+const todoList = ref<any[]>([]);
+const quickEntries = ref([
+  { label: '新建销售单', icon: '📝', nav: '销售单' },
+  { label: '商品管理', icon: '📦', nav: '商品' },
+  { label: '订单管理', icon: '📋', nav: '订单' },
+  { label: '客户管理', icon: '👥', nav: '客户' },
+  { label: '库存查询', icon: '🏪', nav: '库存' },
+  { label: '报表中心', icon: '📊', nav: '报表' }
+]);
+
+function loadTodoList() {
+  // 模拟待办数据，实际应从后端获取
+  todoList.value = [
+    { id: 1, title: '3个销售单待收款', priority: 'high', priorityText: '高', nav: '销售单' },
+    { id: 2, title: '5个商品库存预警', priority: 'medium', priorityText: '中', nav: '预警中心' },
+    { id: 3, title: '2个订单待发货', priority: 'medium', priorityText: '中', nav: '订单' },
+    { id: 4, title: '1个客户信用预警', priority: 'low', priorityText: '低', nav: '授信管理' }
+  ];
+}
+
+function handleTodoClick(todo: any) {
+  if (todo.nav) {
+    activeNav.value = todo.nav;
+  }
+}
 
 function loadDashCards(data: any) {
   dashCards.value = [
