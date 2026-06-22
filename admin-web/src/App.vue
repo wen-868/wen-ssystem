@@ -4425,6 +4425,7 @@ async function handleDragEnd(event: any, targetStatus: string) {
   }
 }
 
+
 function openPriceDialog(row: any) {
   priceForm.skuId = row.skuId || row.sku_id || row.id;
   priceForm.skuName = row.skuName || row.name;
