@@ -720,6 +720,7 @@
           <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 10px">
             <span>销售单</span>
             <div style="display: flex; gap: 8px; align-items: center; flex-wrap: wrap">
+              <el-button size="small" type="primary" @click="openCreateSaleBillDialog">新建销售单</el-button>
               <el-input v-model="saleBillsKeyword" placeholder="单号/客户名" size="small" style="width: 180px" clearable @clear="searchSaleBills" @keyup.enter="searchSaleBills" />
               <el-select v-model="saleBillsStatus" placeholder="全部状态" size="small" style="width: 130px" clearable @change="searchSaleBills">
                 <el-option label="待收款" value="UNPAID" />
@@ -2873,6 +2874,75 @@
         <template #footer><el-button @click="sendNotificationDialogVisible=false">取消</el-button><el-button type="primary" :loading="loading" @click="handleSendNotification">发送</el-button></template>
       </el-dialog>
 
+      <!-- 销售单创建对话框 -->
+      <el-dialog v-model="saleBillCreateDialogVisible" title="新建销售单" width="800px">
+        <el-form :model="saleBillCreateForm" label-width="100px">
+          <el-form-item label="客户">
+            <el-select v-model="saleBillCreateForm.customerId" placeholder="选择客户（可选）" clearable filterable style="width:100%">
+              <el-option v-for="member in members" :key="member.id" :label="member.name" :value="member.id" />
+            </el-select>
+          </el-form-item>
+          <el-divider>商品明细</el-divider>
+          <el-table :data="saleBillCreateForm.items" border style="margin-bottom:16px">
+            <el-table-column label="商品" width="200">
+              <template #default="{ row }">
+                <el-select v-model="row.skuId" placeholder="选择商品" filterable style="width:100%">
+                  <el-option v-for="p in products" :key="p.id" :label="`${p.name} - ${p.skuName}`" :value="p.id" />
+                </el-select>
+              </template>
+            </el-table-column>
+            <el-table-column label="数量" width="120">
+              <template #default="{ row }">
+                <el-input-number v-model="row.quantity" :min="1" size="small" style="width:100%" />
+              </template>
+            </el-table-column>
+            <el-table-column label="单价" width="120">
+              <template #default="{ row }">
+                <el-input-number v-model="row.unitPrice" :min="0" :precision="2" size="small" style="width:100%" />
+              </template>
+            </el-table-column>
+            <el-table-column label="小计" width="100">
+              <template #default="{ row }">
+                ¥{{ formatYuan(row.quantity * row.unitPrice) }}
+              </template>
+            </el-table-column>
+            <el-table-column label="操作" width="80">
+              <template #default="{ $index }">
+                <el-button size="small" type="danger" link @click="saleBillCreateForm.items.splice($index, 1)">删除</el-button>
+              </template>
+            </el-table-column>
+          </el-table>
+          <el-button type="primary" link @click="saleBillCreateForm.items.push({ skuId: 0, quantity: 1, unitPrice: 0 })">+ 添加商品</el-button>
+          <el-divider>结算信息</el-divider>
+          <el-form-item label="折扣金额">
+            <el-input-number v-model="saleBillCreateForm.discountAmount" :min="0" :precision="2" style="width:200px" />
+          </el-form-item>
+          <el-form-item label="抹零金额">
+            <el-input-number v-model="saleBillCreateForm.roundDownAmount" :min="0" :precision="2" style="width:200px" />
+          </el-form-item>
+          <el-form-item label="支付方式">
+            <el-select v-model="saleBillCreateForm.paymentMethod" style="width:200px">
+              <el-option label="现金" value="CASH" />
+              <el-option label="微信" value="WECHAT" />
+              <el-option label="支付宝" value="ALIPAY" />
+              <el-option label="银行转账" value="BANK_TRANSFER" />
+            </el-select>
+          </el-form-item>
+          <el-form-item label="收款金额">
+            <el-input-number v-model="saleBillCreateForm.receivedAmount" :min="0" :precision="2" style="width:200px" />
+          </el-form-item>
+          <el-form-item label="应收合计">
+            <span style="font-size:18px;font-weight:600;color:#EF4444">
+              ¥{{ formatYuan(saleBillCreateForm.items.reduce((sum, item) => sum + item.quantity * item.unitPrice, 0) - (saleBillCreateForm.discountAmount || 0) - (saleBillCreateForm.roundDownAmount || 0)) }}
+            </span>
+          </el-form-item>
+        </el-form>
+        <template #footer>
+          <el-button @click="saleBillCreateDialogVisible=false">取消</el-button>
+          <el-button type="primary" :loading="loading" @click="handleCreateSaleBill">保存</el-button>
+        </template>
+      </el-dialog>
+
       <!-- 操作日志 -->
       <template v-if="activeNav === '操作日志'">
         <div class="stat-row">
@@ -3207,6 +3277,15 @@ const staffRules = {
 };
 const saleBillDetail = ref<any>(null);
 const saleBillDetailVisible = ref(false);
+const saleBillCreateDialogVisible = ref(false);
+const saleBillCreateForm = reactive({
+  customerId: undefined as number | undefined,
+  items: [] as Array<{ skuId: number; quantity: number; unitPrice: number }>,
+  discountAmount: 0,
+  roundDownAmount: 0,
+  paymentMethod: "CASH",
+  receivedAmount: 0
+});
 const collectionLinkDialogVisible = ref(false);
 const collectionLinkForm = reactive({
   billNo: "",
@@ -3630,6 +3709,41 @@ async function loadStaff() {
 async function openSaleBillDetail(billNo: string) {
   saleBillDetail.value = await fetchSaleBillDetail(billNo);
   saleBillDetailVisible.value = true;
+}
+
+function openCreateSaleBillDialog() {
+  saleBillCreateForm.customerId = undefined;
+  saleBillCreateForm.items = [{ skuId: 0, quantity: 1, unitPrice: 0 }];
+  saleBillCreateForm.discountAmount = 0;
+  saleBillCreateForm.roundDownAmount = 0;
+  saleBillCreateForm.paymentMethod = "CASH";
+  saleBillCreateForm.receivedAmount = 0;
+  saleBillCreateDialogVisible.value = true;
+}
+
+async function handleCreateSaleBill() {
+  if (saleBillCreateForm.items.length === 0 || saleBillCreateForm.items.some(item => item.skuId === 0)) {
+    ElMessage.warning("请添加商品");
+    return;
+  }
+  loading.value = true;
+  try {
+    await createSaleBill({
+      customerId: saleBillCreateForm.customerId,
+      items: saleBillCreateForm.items,
+      discountAmount: saleBillCreateForm.discountAmount,
+      roundDownAmount: saleBillCreateForm.roundDownAmount,
+      paymentMethod: saleBillCreateForm.paymentMethod,
+      receivedAmount: saleBillCreateForm.receivedAmount
+    });
+    ElMessage.success("销售单创建成功");
+    saleBillCreateDialogVisible.value = false;
+    await loadSaleBills();
+  } catch (e) {
+    ElMessage.error(getErrorMessage(e, "创建失败"));
+  } finally {
+    loading.value = false;
+  }
 }
 
 function openCollectionLinkDialog(row: any) {
