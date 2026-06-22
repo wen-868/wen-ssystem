@@ -198,6 +198,18 @@ export async function fetchSaleBillDetail(billNo: string) {
   return data.data;
 }
 
+export async function createSaleBill(payload: {
+  customerId?: number;
+  items: Array<{ skuId: number; quantity: number; unitPrice: number }>;
+  discountAmount?: number;
+  roundDownAmount?: number;
+  paymentMethod?: string;
+  receivedAmount?: number;
+}) {
+  const { data } = await api.post("/store/sale-bills", payload);
+  return data.data;
+}
+
 export async function acceptOrder(orderNo: string) {
   const { data } = await api.post(`/store/orders/${orderNo}/accept`);
   return data.data;
