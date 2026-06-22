@@ -21,18 +21,122 @@
     </el-card>
   </div>
   <div v-else class="layout">
-    <aside class="side">
-      <h1>智享营销系统管理后台</h1>
-      <button
-        v-for="item in nav"
-        :key="item"
-        class="nav-item"
-        :class="{ active: item === activeNav }"
-        type="button"
-        @click="activeNav = item"
+    <aside class="side" :class="{ 'is-collapsed': isMenuCollapsed }">
+      <div class="sidebar-header">
+        <h1 v-show="!isMenuCollapsed">智享营销系统</h1>
+        <h1 v-show="isMenuCollapsed">智享</h1>
+        <el-button
+          class="collapse-btn"
+          :icon="isMenuCollapsed ? 'Expand' : 'Fold'"
+          @click="isMenuCollapsed = !isMenuCollapsed"
+          size="small"
+        />
+      </div>
+      <el-menu
+        :default-active="activeNav"
+        :collapse="isMenuCollapsed"
+        :collapse-transition="false"
+        class="sidebar-menu"
+        @select="handleMenuSelect"
       >
-        {{ item }}
-      </button>
+        <el-menu-item index="首页">
+          <el-icon><HomeFilled /></el-icon>
+          <template #title>工作台</template>
+        </el-menu-item>
+
+        <el-sub-menu index="商品管理">
+          <template #title>
+            <el-icon><Goods /></el-icon>
+            <span>商品管理</span>
+          </template>
+          <el-menu-item index="商品">商品列表</el-menu-item>
+          <el-menu-item index="价格中心">价格中心</el-menu-item>
+        </el-sub-menu>
+
+        <el-sub-menu index="订单管理">
+          <template #title>
+            <el-icon><Document /></el-icon>
+            <span>订单管理</span>
+          </template>
+          <el-menu-item index="订单">订单列表</el-menu-item>
+          <el-menu-item index="订单超时">超时处理</el-menu-item>
+        </el-sub-menu>
+
+        <el-sub-menu index="销售管理">
+          <template #title>
+            <el-icon><ShoppingCart /></el-icon>
+            <span>销售管理</span>
+          </template>
+          <el-menu-item index="销售单">销售单</el-menu-item>
+          <el-menu-item index="销售退货">销售退货</el-menu-item>
+          <el-menu-item index="收款">收款记录</el-menu-item>
+        </el-sub-menu>
+
+        <el-sub-menu index="采购管理">
+          <template #title>
+            <el-icon><Box /></el-icon>
+            <span>采购管理</span>
+          </template>
+          <el-menu-item index="采购">采购管理</el-menu-item>
+          <el-menu-item index="供应商">供应商</el-menu-item>
+        </el-sub-menu>
+
+        <el-sub-menu index="客户管理">
+          <template #title>
+            <el-icon><User /></el-icon>
+            <span>客户管理</span>
+          </template>
+          <el-menu-item index="客户">客户列表</el-menu-item>
+          <el-menu-item index="客户对账">客户对账</el-menu-item>
+          <el-menu-item index="授信管理">授信管理</el-menu-item>
+        </el-sub-menu>
+
+        <el-sub-menu index="库存管理">
+          <template #title>
+            <el-icon><Files /></el-icon>
+            <span>库存管理</span>
+          </template>
+          <el-menu-item index="库存">库存总览</el-menu-item>
+          <el-menu-item index="预警中心">预警中心</el-menu-item>
+        </el-sub-menu>
+
+        <el-sub-menu index="门店管理">
+          <template #title>
+            <el-icon><OfficeBuilding /></el-icon>
+            <span>门店管理</span>
+          </template>
+          <el-menu-item index="门店">门店列表</el-menu-item>
+          <el-menu-item index="员工">员工管理</el-menu-item>
+        </el-sub-menu>
+
+        <el-sub-menu index="营销中心">
+          <template #title>
+            <el-icon><Present /></el-icon>
+            <span>营销中心</span>
+          </template>
+          <el-menu-item index="营销中心">营销活动</el-menu-item>
+          <el-menu-item index="售后管理">售后管理</el-menu-item>
+        </el-sub-menu>
+
+        <el-menu-item index="报表">
+          <el-icon><DataAnalysis /></el-icon>
+          <template #title>报表中心</template>
+        </el-menu-item>
+
+        <el-sub-menu index="系统管理">
+          <template #title>
+            <el-icon><Setting /></el-icon>
+            <span>系统管理</span>
+          </template>
+          <el-menu-item index="操作日志">操作日志</el-menu-item>
+          <el-menu-item index="系统设置">系统设置</el-menu-item>
+        </el-sub-menu>
+
+        <el-menu-item index="消息中心">
+          <el-icon><Bell /></el-icon>
+          <template #title>消息中心</template>
+        </el-menu-item>
+      </el-menu>
     </aside>
     <main class="main" v-loading="pageLoading">
       <section class="dashboard-hero">
@@ -2719,7 +2823,7 @@
 <script setup lang="ts">
 import { computed, nextTick, onMounted, onUnmounted, reactive, ref, watch } from "vue";
 import { ElMessage, ElMessageBox } from "element-plus";
-import { Download } from "@element-plus/icons-vue";
+import { Download, HomeFilled, Goods, Document, ShoppingCart, Box, User, Files, OfficeBuilding, Present, DataAnalysis, Setting, Bell, Expand, Fold } from "@element-plus/icons-vue";
 import * as echarts from "echarts";
 import { adminLogin, assignMember, createCollectionLink, createMember, createProduct, createStore, exportOrdersCsv, fetchCollectionLinks, fetchDailySales, fetchDashboard, fetchInventoryAlerts, fetchInventoryBalances, fetchInventoryLogs, fetchMemberPriceHistory, fetchMembers, fetchOrderDetail, fetchOrders, fetchOrderStats, fetchPaymentOrders, fetchPriceLogs, fetchProducts, fetchRefundOrders, fetchSaleBillDetail, fetchSaleBills, fetchStaff, fetchStorePerformance, fetchStores, fetchStoreDetail, updateStore, fetchWxInfo, updateProductPrice, updateProductStatus, acceptOrder, rejectOrder, startDelivery, completeDelivery, fetchDashboardOverview, fetchDashboardSalesTrend, fetchDashboardCategoryPie, fetchDashboardTopProducts, fetchDashboardTopCustomers, fetchDashboardRecentAlerts, fetchReportSalesDaily, fetchReportSalesRanking, fetchReportSalesTrend, fetchReportCustomerContribution, fetchReportPurchaseSummary, fetchReportInventoryTurnover, fetchReportReceivablePayable, fetchReportProfit, fetchSuppliers, createSupplier, fetchPurchaseOrders as fetchPurchaseOrdersApi, createPurchaseOrder, purchaseInStock, createPurchaseReturn, fetchSaleReturns as fetchSaleReturnsApi, createSaleReturn, fetchCustomerStatements as fetchStatementsApi, generateCustomerStatement, createCustomerPayment, fetchAlerts as fetchAlertsApi, handleAlertItem, fetchAlertRules, updateAlertRule, createStaff, updateStaff, toggleStaffStatus, updateProduct, fetchSaleBillsEnhanced, fetchReportReceivablePayableEnhanced, fetchReportProfitEnhanced, fetchPriceLevels, createPriceLevel, updatePriceLevel, deletePriceLevel, fetchSkuPrices, createSkuPrice, updatePrice as updateTierPrice, deletePrice as deleteTierPrice, fetchCustomerBindings, createCustomerBinding, approveCustomerBinding, rejectCustomerBinding, calcBestPrice, fetchPriceChangeLogs, fetchCredits, fetchCreditDetail, createCredit, updateCreditLimit, updateCreditTerm, freezeCredit, unfreezeCredit, fetchCreditLogs, fetchCollections, createCollection, updateCollection, fetchOverdueCollections, batchRemindCollections, fetchCollectionStatistics, fetchAfterSales, fetchAfterSaleDetail, approveAfterSale, rejectAfterSale, confirmReceiptAfterSale, inspectAfterSale, completeAfterSale, fetchAfterSaleStatistics, fetchTraceConfigs, createTraceConfig, updateTraceConfig, deleteTraceConfig, generateTraceCodes, fetchTraceCodes, fetchTraceCodeDetail, updateTraceCodeStatus, fetchTraceCodeStatistics, queryTraceCode, fetchRecalls, createRecall, updateRecall, executeRecall, completeRecall, fetchInventoryBatches, createInventoryBatch, splitInventoryBatch, fetchFifoSuggestion, fetchExpiryConfigs, fetchExpiryAlerts, handleExpiryAlert, fetchExpiryAlertStatistics, fetchStoreControlConfigs, updateStoreControlConfig, openStore, closeStore, suspendStore, resumeStore, fetchStoreControlLogs } from "./api";
 import { fetchOrderTimeoutConfigs, createOrderTimeoutConfig, updateOrderTimeoutConfig, deleteOrderTimeoutConfig, fetchOrderTimeoutLogs, fetchOrderTimeoutStatistics } from "./api";
@@ -2761,6 +2865,12 @@ const adminNavDescriptions: Record<string, string> = {
 const token = ref(localStorage.getItem("admin_token") || "");
 const loading = ref(false);
 const pageLoading = ref(false);
+const isMenuCollapsed = ref(false);
+
+const handleMenuSelect = (index: string) => {
+  activeNav.value = index;
+};
+
 const productsLoading = ref(false);
 const storesLoading = ref(false);
 const membersLoading = ref(false);
