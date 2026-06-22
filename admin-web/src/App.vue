@@ -59,6 +59,7 @@
             <span>订单管理</span>
           </template>
           <el-menu-item index="订单">订单列表</el-menu-item>
+          <el-menu-item index="订单泳道">泳道看板</el-menu-item>
           <el-menu-item index="订单超时">超时处理</el-menu-item>
         </el-sub-menu>
 
@@ -763,6 +764,43 @@
           <span style="font-size: 13px; color: #666">共 {{ ordersTotal }} 条，第 {{ ordersPage }} / {{ Math.ceil(ordersTotal / 10) || 1 }} 页</span>
           <el-button size="small" :disabled="ordersPage <= 1" @click="prevOrdersPage">上一页</el-button>
           <el-button size="small" :disabled="ordersPage >= Math.ceil(ordersTotal / 10)" @click="nextOrdersPage">下一页</el-button>
+        </div>
+      </el-card>
+      <el-card v-if='activeNav === "订单泳道"' style="margin-top: 20px">
+        <template #header>
+          <div style="display: flex; justify-content: space-between; align-items: center">
+            <span>订单状态泳道看板</span>
+            <el-button size="small" @click="loadKanbanOrders">刷新</el-button>
+          </div>
+        </template>
+        <div class="kanban-container">
+          <div v-for="lane in kanbanLanes" :key="lane.status" class="kanban-lane">
+            <div class="kanban-lane-header" :style="{ background: lane.color }">
+              <span>{{ lane.label }}</span>
+              <span class="lane-count">{{ kanbanData[lane.status]?.length || 0 }}</span>
+            </div>
+            <draggable
+              v-model="kanbanData[lane.status]"
+              group="orders"
+              item-key="orderNo"
+              class="kanban-lane-body"
+              @end="handleDragEnd($event, lane.status)"
+            >
+              <template #item="{ element }">
+                <div class="kanban-card" @click="openOrderDetail(element.orderNo)">
+                  <div class="card-header">
+                    <span class="order-no">{{ element.orderNo }}</span>
+                    <el-tag :type="getPayStatusType(element.payStatus)" size="small">{{ mapPayStatus(element.payStatus) }}</el-tag>
+                  </div>
+                  <div class="card-body">
+                    <div class="card-row"><span class="label">客户:</span><span>{{ element.receiverName || '-' }}</span></div>
+                    <div class="card-row"><span class="label">金额:</span><span class="amount">¥{{ formatYuan(element.payableAmount) }}</span></div>
+                    <div class="card-row"><span class="label">时间:</span><span>{{ element.createdAt?.substring(5, 16) || '-' }}</span></div>
+                  </div>
+                </div>
+              </template>
+            </draggable>
+          </div>
         </div>
       </el-card>
       <el-card v-if='activeNav === "销售单"' style="margin-top: 20px">
@@ -3161,6 +3199,7 @@ import { computed, nextTick, onMounted, onUnmounted, reactive, ref, watch } from
 import { ElMessage, ElMessageBox } from "element-plus";
 import { Download, HomeFilled, Goods, Document, ShoppingCart, Box, User, Files, OfficeBuilding, Present, DataAnalysis, Setting, Bell, Expand, Fold } from "@element-plus/icons-vue";
 import * as echarts from "echarts";
+import draggable from "vuedraggable";
 import { adminLogin, assignMember, createCollectionLink, createMember, createProduct, createStore, exportOrdersCsv, fetchCollectionLinks, fetchDailySales, fetchDashboard, fetchInventoryAlerts, fetchInventoryBalances, fetchInventoryLogs, fetchMemberPriceHistory, fetchMembers, fetchOrderDetail, fetchOrders, fetchOrderStats, fetchPaymentOrders, fetchPriceLogs, fetchProducts, fetchRefundOrders, fetchSaleBillDetail, fetchSaleBills, fetchStaff, fetchStorePerformance, fetchStores, fetchStoreDetail, updateStore, fetchWxInfo, updateProductPrice, updateProductStatus, acceptOrder, rejectOrder, startDelivery, completeDelivery, batchUpdateOrderStatus, fetchOrderLogs, fetchDashboardOverview, fetchDashboardSalesTrend, fetchDashboardCategoryPie, fetchDashboardTopProducts, fetchDashboardTopCustomers, fetchDashboardRecentAlerts, fetchReportSalesDaily, fetchReportSalesRanking, fetchReportSalesTrend, fetchReportCustomerContribution, fetchReportPurchaseSummary, fetchReportInventoryTurnover, fetchReportReceivablePayable, fetchReportProfit, fetchSuppliers, createSupplier, fetchPurchaseOrders as fetchPurchaseOrdersApi, createPurchaseOrder, purchaseInStock, createPurchaseReturn, fetchSaleReturns as fetchSaleReturnsApi, createSaleReturn, fetchCustomerStatements as fetchStatementsApi, generateCustomerStatement, createCustomerPayment, fetchAlerts as fetchAlertsApi, handleAlertItem, fetchAlertRules, updateAlertRule, createStaff, updateStaff, toggleStaffStatus, updateProduct, fetchSaleBillsEnhanced, fetchReportReceivablePayableEnhanced, fetchReportProfitEnhanced, fetchPriceLevels, createPriceLevel, updatePriceLevel, deletePriceLevel, fetchSkuPrices, createSkuPrice, updatePrice as updateTierPrice, deletePrice as deleteTierPrice, fetchCustomerBindings, createCustomerBinding, approveCustomerBinding, rejectCustomerBinding, calcBestPrice, fetchPriceChangeLogs, fetchCredits, fetchCreditDetail, createCredit, updateCreditLimit, updateCreditTerm, freezeCredit, unfreezeCredit, fetchCreditLogs, fetchCollections, createCollection, updateCollection, fetchOverdueCollections, batchRemindCollections, fetchCollectionStatistics, fetchAfterSales, fetchAfterSaleDetail, approveAfterSale, rejectAfterSale, confirmReceiptAfterSale, inspectAfterSale, completeAfterSale, fetchAfterSaleStatistics, fetchTraceConfigs, createTraceConfig, updateTraceConfig, deleteTraceConfig, generateTraceCodes, fetchTraceCodes, fetchTraceCodeDetail, updateTraceCodeStatus, fetchTraceCodeStatistics, queryTraceCode, fetchRecalls, createRecall, updateRecall, executeRecall, completeRecall, fetchInventoryBatches, createInventoryBatch, splitInventoryBatch, fetchFifoSuggestion, fetchExpiryConfigs, fetchExpiryAlerts, handleExpiryAlert, fetchExpiryAlertStatistics, fetchStoreControlConfigs, updateStoreControlConfig, openStore, closeStore, suspendStore, resumeStore, fetchStoreControlLogs, createSaleBill } from "./api";
 import { fetchOrderTimeoutConfigs, createOrderTimeoutConfig, updateOrderTimeoutConfig, deleteOrderTimeoutConfig, fetchOrderTimeoutLogs, fetchOrderTimeoutStatistics } from "./api";
 import { fetchTransfers, fetchTransferDetail, createTransfer, submitTransfer, approveTransfer, rejectTransfer, cancelTransfer, shipTransfer, fetchTransferStatistics } from "./api";
@@ -3251,6 +3290,24 @@ const orderStatusFlow = [
   { key: "DELIVERING", label: "配送中" },
   { key: "COMPLETED", label: "已完成" }
 ];
+
+// 泳道看板状态
+const kanbanLanes = [
+  { status: "PENDING_PAYMENT", label: "待支付", color: "#F59E0B" },
+  { status: "PAID", label: "已支付", color: "#1677FF" },
+  { status: "ACCEPTED", label: "已接单", color: "#10B981" },
+  { status: "WAIT_DELIVERY", label: "待配送", color: "#8B5CF6" },
+  { status: "DELIVERING", label: "配送中", color: "#3B82F6" },
+  { status: "COMPLETED", label: "已完成", color: "#10B981" }
+];
+const kanbanData = reactive<Record<string, any[]>>({
+  PENDING_PAYMENT: [],
+  PAID: [],
+  ACCEPTED: [],
+  WAIT_DELIVERY: [],
+  DELIVERING: [],
+  COMPLETED: []
+});
 const saleBills = ref<any[]>([]);
 const saleBillsKeyword = ref("");
 const saleBillsStatus = ref("");
@@ -4065,6 +4122,59 @@ function isStatusDone(stepKey: string) {
   const currentIdx = orderStatusFlow.findIndex(s => s.key === orderDetail.value.orderStatus);
   const stepIdx = orderStatusFlow.findIndex(s => s.key === stepKey);
   return stepIdx <= currentIdx;
+}
+
+// 泳道看板方法
+async function loadKanbanOrders() {
+  try {
+    const allOrders = await fetchOrders({ page: 1, pageSize: 500 });
+    const records = allOrders.records || [];
+    
+    // 清空现有数据
+    Object.keys(kanbanData).forEach(key => {
+      kanbanData[key] = [];
+    });
+    
+    // 按状态分组
+    records.forEach((order: any) => {
+      const status = order.orderStatus;
+      if (kanbanData[status]) {
+        kanbanData[status].push(order);
+      }
+    });
+  } catch (error) {
+    ElMessage.error("加载泳道看板数据失败");
+  }
+}
+
+async function handleDragEnd(event: any, targetStatus: string) {
+  const { newIndex } = event;
+  if (newIndex === null || newIndex === undefined) return;
+  
+  const order = kanbanData[targetStatus][newIndex];
+  if (!order) return;
+  
+  // 获取原始状态
+  let originalStatus = "";
+  for (const [status, orders] of Object.entries(kanbanData)) {
+    if (orders.some((o: any) => o.orderNo === order.orderNo)) {
+      originalStatus = status;
+      break;
+    }
+  }
+  
+  // 如果状态没有变化，不处理
+  if (originalStatus === targetStatus) return;
+  
+  try {
+    // 调用 API 更新订单状态
+    await batchUpdateOrderStatus([order.orderNo], targetStatus.toLowerCase());
+    ElMessage.success(`订单 ${order.orderNo} 状态已更新`);
+  } catch (error) {
+    ElMessage.error("状态更新失败");
+    // 恢复原始状态
+    await loadKanbanOrders();
+  }
 }
 
 function openPriceDialog(row: any) {
@@ -6299,6 +6409,12 @@ async function handleCancelStockCheck(row: any) {
 async function handleScDiff(row: any) {
   try { await handleStockCheckDiff(scDetailData.value.id, { itemId: row.id }); ElMessage.success("差异已处理"); openStockCheckDetail({ id: scDetailData.value.id }); } catch (e) { ElMessage.error(getErrorMessage(e, "处理失败")); }
 }
+
+watch(activeNav, (newNav) => {
+  if (newNav === "订单泳道") {
+    loadKanbanOrders();
+  }
+});
 
 onMounted(() => {
   if (typeof window !== "undefined") {
