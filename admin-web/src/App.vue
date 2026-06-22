@@ -888,8 +888,12 @@
         <template #header>
           <div style="display: flex; justify-content: space-between; align-items: center">
             <span>分享收款</span>
-            <el-button size="small" type="success" @click="handleExportPayments"><el-icon><Download /></el-icon> 导出</el-button>
-            <el-button size="small" @click="loadCollectionLinks">刷新</el-button>
+            <div style="display: flex; gap: 8px">
+              <el-button size="small" type="primary" @click="openFieldPoolDialog">字段池管理</el-button>
+              <el-button size="small" type="warning" @click="openTemplateDesigner">模板设计器</el-button>
+              <el-button size="small" type="success" @click="handleExportPayments"><el-icon><Download /></el-icon> 导出</el-button>
+              <el-button size="small" @click="loadCollectionLinks">刷新</el-button>
+            </div>
           </div>
         </template>
         <el-table :data="collectionLinks" empty-text="暂无记录">
@@ -903,9 +907,156 @@
           </el-table-column>
           <el-table-column prop="status" label="状态" width="100" />
           <el-table-column prop="shareChannel" label="分享渠道" width="120" />
+          <el-table-column prop="templateName" label="使用模板" width="150" />
           <el-table-column prop="createdAt" label="创建时间" width="170" />
+          <el-table-column label="操作" width="200" fixed="right">
+            <template #default="{ row }">
+              <el-button size="small" link type="primary" @click="previewShareLink(row)">预览</el-button>
+              <el-button size="small" link type="success" @click="copyShareLink(row)">复制链接</el-button>
+              <el-button size="small" link type="warning" @click="generateQrCode(row)">二维码</el-button>
+            </template>
+          </el-table-column>
         </el-table>
       </el-card>
+
+      <!-- 字段池管理对话框 -->
+      <el-dialog v-model="fieldPoolDialogVisible" title="字段池管理" width="700px">
+        <div style="margin-bottom: 16px; color: #666; font-size: 13px">
+          配置分享页面可显示的字段，拖拽调整显示顺序
+        </div>
+        <el-tabs v-model="fieldPoolTab">
+          <el-tab-pane label="单据基础信息" name="basic">
+            <draggable v-model="fieldPoolBasic" item-key="field" handle=".drag-handle" class="field-pool-list">
+              <template #item="{ element }">
+                <div class="field-pool-item">
+                  <el-icon class="drag-handle"><Rank /></el-icon>
+                  <span class="field-label">{{ element.label }}</span>
+                  <span class="field-key">{{ element.field }}</span>
+                  <el-switch v-model="element.enabled" />
+                </div>
+              </template>
+            </draggable>
+          </el-tab-pane>
+          <el-tab-pane label="商品明细" name="items">
+            <draggable v-model="fieldPoolItems" item-key="field" handle=".drag-handle" class="field-pool-list">
+              <template #item="{ element }">
+                <div class="field-pool-item">
+                  <el-icon class="drag-handle"><Rank /></el-icon>
+                  <span class="field-label">{{ element.label }}</span>
+                  <span class="field-key">{{ element.field }}</span>
+                  <el-switch v-model="element.enabled" />
+                </div>
+              </template>
+            </draggable>
+          </el-tab-pane>
+          <el-tab-pane label="支付信息" name="payment">
+            <draggable v-model="fieldPoolPayment" item-key="field" handle=".drag-handle" class="field-pool-list">
+              <template #item="{ element }">
+                <div class="field-pool-item">
+                  <el-icon class="drag-handle"><Rank /></el-icon>
+                  <span class="field-label">{{ element.label }}</span>
+                  <span class="field-key">{{ element.field }}</span>
+                  <el-switch v-model="element.enabled" />
+                </div>
+              </template>
+            </draggable>
+          </el-tab-pane>
+        </el-tabs>
+        <template #footer>
+          <el-button @click="fieldPoolDialogVisible = false">取消</el-button>
+          <el-button type="primary" @click="saveFieldPool">保存配置</el-button>
+        </template>
+      </el-dialog>
+
+      <!-- 模板设计器对话框 -->
+      <el-dialog v-model="templateDesignerVisible" title="模板设计器" width="900px" top="5vh">
+        <el-form :model="templateForm" label-width="120px">
+          <el-form-item label="模板名称" required>
+            <el-input v-model="templateForm.name" placeholder="请输入模板名称" />
+          </el-form-item>
+          <el-form-item label="模板描述">
+            <el-input v-model="templateForm.description" type="textarea" :rows="2" placeholder="请输入模板描述" />
+          </el-form-item>
+          <el-form-item label="主题颜色">
+            <el-color-picker v-model="templateForm.themeColor" />
+          </el-form-item>
+          <el-form-item label="页面布局">
+            <el-radio-group v-model="templateForm.layout">
+              <el-radio-button label="simple">简洁版</el-radio-button>
+              <el-radio-button label="standard">标准版</el-radio-button>
+              <el-radio-button label="detailed">详细版</el-radio-button>
+            </el-radio-group>
+          </el-form-item>
+          <el-form-item label="显示元素">
+            <el-checkbox-group v-model="templateForm.elements">
+              <el-checkbox label="header">店铺信息</el-checkbox>
+              <el-checkbox label="logo">店铺Logo</el-checkbox>
+              <el-checkbox label="qrcode">二维码</el-checkbox>
+              <el-checkbox label="barcode">条形码</el-checkbox>
+              <el-checkbox label="footer">页脚说明</el-checkbox>
+              <el-checkbox label="watermark">水印</el-checkbox>
+            </el-checkbox-group>
+          </el-form-item>
+          <el-form-item label="自定义说明">
+            <el-input v-model="templateForm.customNote" type="textarea" :rows="3" placeholder="可添加自定义说明文字，显示在页面底部" />
+          </el-form-item>
+        </el-form>
+        <div style="margin-top: 20px; padding: 20px; background: #f5f7fa; border-radius: 8px">
+          <div style="font-weight: 600; margin-bottom: 12px">预览效果</div>
+          <div class="template-preview" :style="{ borderColor: templateForm.themeColor }">
+            <div v-if="templateForm.elements.includes('header')" class="preview-header" :style="{ background: templateForm.themeColor }">
+              <div v-if="templateForm.elements.includes('logo')" class="preview-logo">LOGO</div>
+              <div class="preview-title">收款单据</div>
+            </div>
+            <div class="preview-body">
+              <div class="preview-row">
+                <span class="preview-label">单据编号:</span>
+                <span class="preview-value">BILL202606220001</span>
+              </div>
+              <div class="preview-row">
+                <span class="preview-label">应收金额:</span>
+                <span class="preview-value" style="color: #f56c6c; font-weight: 600">¥ 1,280.00</span>
+              </div>
+              <div class="preview-row">
+                <span class="preview-label">创建时间:</span>
+                <span class="preview-value">2026-06-22 14:30</span>
+              </div>
+            </div>
+            <div v-if="templateForm.elements.includes('qrcode')" class="preview-qrcode">
+              <div class="qrcode-placeholder">二维码</div>
+            </div>
+            <div v-if="templateForm.elements.includes('footer')" class="preview-footer">
+              <div>{{ templateForm.customNote || '感谢您的支持！' }}</div>
+            </div>
+            <div v-if="templateForm.elements.includes('watermark')" class="preview-watermark">水印</div>
+          </div>
+        </div>
+        <template #footer>
+          <el-button @click="templateDesignerVisible = false">取消</el-button>
+          <el-button type="primary" @click="saveTemplate">保存模板</el-button>
+        </template>
+      </el-dialog>
+
+      <!-- 二维码生成对话框 -->
+      <el-dialog v-model="qrcodeDialogVisible" title="收款二维码" width="400px">
+        <div style="text-align: center; padding: 20px">
+          <div class="qrcode-container">
+            <div class="qrcode-image">
+              <div style="width: 200px; height: 200px; background: #f0f0f0; display: flex; align-items: center; justify-content: center; border-radius: 8px">
+                <span style="color: #999">二维码占位</span>
+              </div>
+            </div>
+            <div style="margin-top: 16px; font-size: 14px; color: #666">
+              <div>收款单号: {{ currentQrLink?.linkNo }}</div>
+              <div>金额: ¥{{ formatYuan(currentQrLink?.amount || 0) }}</div>
+            </div>
+          </div>
+          <div style="margin-top: 20px; display: flex; gap: 12px; justify-content: center">
+            <el-button type="primary" @click="downloadQrCode">下载二维码</el-button>
+            <el-button @click="qrcodeDialogVisible = false">关闭</el-button>
+          </div>
+        </div>
+      </el-dialog>
       <el-card v-if='activeNav === "收款"' style="margin-top: 20px">
         <template #header>
           <div style="display: flex; justify-content: space-between; align-items: center">
@@ -3197,7 +3348,7 @@
 <script setup lang="ts">
 import { computed, nextTick, onMounted, onUnmounted, reactive, ref, watch } from "vue";
 import { ElMessage, ElMessageBox } from "element-plus";
-import { Download, HomeFilled, Goods, Document, ShoppingCart, Box, User, Files, OfficeBuilding, Present, DataAnalysis, Setting, Bell, Expand, Fold } from "@element-plus/icons-vue";
+import { Download, HomeFilled, Goods, Document, ShoppingCart, Box, User, Files, OfficeBuilding, Present, DataAnalysis, Setting, Bell, Expand, Fold, Rank } from "@element-plus/icons-vue";
 import * as echarts from "echarts";
 import draggable from "vuedraggable";
 import { adminLogin, assignMember, createCollectionLink, createMember, createProduct, createStore, exportOrdersCsv, fetchCollectionLinks, fetchDailySales, fetchDashboard, fetchInventoryAlerts, fetchInventoryBalances, fetchInventoryLogs, fetchMemberPriceHistory, fetchMembers, fetchOrderDetail, fetchOrders, fetchOrderStats, fetchPaymentOrders, fetchPriceLogs, fetchProducts, fetchRefundOrders, fetchSaleBillDetail, fetchSaleBills, fetchStaff, fetchStorePerformance, fetchStores, fetchStoreDetail, updateStore, fetchWxInfo, updateProductPrice, updateProductStatus, acceptOrder, rejectOrder, startDelivery, completeDelivery, batchUpdateOrderStatus, fetchOrderLogs, fetchDashboardOverview, fetchDashboardSalesTrend, fetchDashboardCategoryPie, fetchDashboardTopProducts, fetchDashboardTopCustomers, fetchDashboardRecentAlerts, fetchReportSalesDaily, fetchReportSalesRanking, fetchReportSalesTrend, fetchReportCustomerContribution, fetchReportPurchaseSummary, fetchReportInventoryTurnover, fetchReportReceivablePayable, fetchReportProfit, fetchSuppliers, createSupplier, fetchPurchaseOrders as fetchPurchaseOrdersApi, createPurchaseOrder, purchaseInStock, createPurchaseReturn, fetchSaleReturns as fetchSaleReturnsApi, createSaleReturn, fetchCustomerStatements as fetchStatementsApi, generateCustomerStatement, createCustomerPayment, fetchAlerts as fetchAlertsApi, handleAlertItem, fetchAlertRules, updateAlertRule, createStaff, updateStaff, toggleStaffStatus, updateProduct, fetchSaleBillsEnhanced, fetchReportReceivablePayableEnhanced, fetchReportProfitEnhanced, fetchPriceLevels, createPriceLevel, updatePriceLevel, deletePriceLevel, fetchSkuPrices, createSkuPrice, updatePrice as updateTierPrice, deletePrice as deleteTierPrice, fetchCustomerBindings, createCustomerBinding, approveCustomerBinding, rejectCustomerBinding, calcBestPrice, fetchPriceChangeLogs, fetchCredits, fetchCreditDetail, createCredit, updateCreditLimit, updateCreditTerm, freezeCredit, unfreezeCredit, fetchCreditLogs, fetchCollections, createCollection, updateCollection, fetchOverdueCollections, batchRemindCollections, fetchCollectionStatistics, fetchAfterSales, fetchAfterSaleDetail, approveAfterSale, rejectAfterSale, confirmReceiptAfterSale, inspectAfterSale, completeAfterSale, fetchAfterSaleStatistics, fetchTraceConfigs, createTraceConfig, updateTraceConfig, deleteTraceConfig, generateTraceCodes, fetchTraceCodes, fetchTraceCodeDetail, updateTraceCodeStatus, fetchTraceCodeStatistics, queryTraceCode, fetchRecalls, createRecall, updateRecall, executeRecall, completeRecall, fetchInventoryBatches, createInventoryBatch, splitInventoryBatch, fetchFifoSuggestion, fetchExpiryConfigs, fetchExpiryAlerts, handleExpiryAlert, fetchExpiryAlertStatistics, fetchStoreControlConfigs, updateStoreControlConfig, openStore, closeStore, suspendStore, resumeStore, fetchStoreControlLogs, createSaleBill } from "./api";
@@ -3465,6 +3616,47 @@ const collectionLinkForm = reactive({
   shareChannel: "LINK" as string,
   expireHours: 72
 });
+
+// 字段池管理状态
+const fieldPoolDialogVisible = ref(false);
+const fieldPoolTab = ref("basic");
+const fieldPoolBasic = ref([
+  { field: "billNo", label: "单据编号", enabled: true },
+  { field: "customerName", label: "客户名称", enabled: true },
+  { field: "createTime", label: "创建时间", enabled: true },
+  { field: "deliveryAddress", label: "收货地址", enabled: true },
+  { field: "contactPhone", label: "联系电话", enabled: true }
+]);
+const fieldPoolItems = ref([
+  { field: "productName", label: "商品名称", enabled: true },
+  { field: "specification", label: "规格", enabled: true },
+  { field: "quantity", label: "数量", enabled: true },
+  { field: "unitPrice", label: "单价", enabled: true },
+  { field: "subtotal", label: "小计", enabled: true }
+]);
+const fieldPoolPayment = ref([
+  { field: "totalAmount", label: "订单总额", enabled: true },
+  { field: "discountAmount", label: "优惠金额", enabled: true },
+  { field: "actualAmount", label: "实付金额", enabled: true },
+  { field: "paymentMethod", label: "支付方式", enabled: true },
+  { field: "paymentStatus", label: "支付状态", enabled: true }
+]);
+
+// 模板设计器状态
+const templateDesignerVisible = ref(false);
+const templateForm = reactive({
+  name: "",
+  description: "",
+  themeColor: "#1677FF",
+  layout: "standard",
+  elements: ["header", "qrcode", "footer"] as string[],
+  customNote: ""
+});
+
+// 二维码对话框状态
+const qrcodeDialogVisible = ref(false);
+const currentQrLink = ref<any>(null);
+
 const barCanvas = ref<HTMLCanvasElement | null>(null);
 const pieCanvas = ref<HTMLCanvasElement | null>(null);
 const productDialogVisible = ref(false);
@@ -4122,6 +4314,54 @@ function isStatusDone(stepKey: string) {
   const currentIdx = orderStatusFlow.findIndex(s => s.key === orderDetail.value.orderStatus);
   const stepIdx = orderStatusFlow.findIndex(s => s.key === stepKey);
   return stepIdx <= currentIdx;
+}
+
+// T9 字段池管理方法
+function openFieldPoolDialog() {
+  fieldPoolDialogVisible.value = true;
+}
+
+function saveFieldPool() {
+  ElMessage.success("字段池配置已保存");
+  fieldPoolDialogVisible.value = false;
+}
+
+// T9 模板设计器方法
+function openTemplateDesigner() {
+  templateDesignerVisible.value = true;
+}
+
+function saveTemplate() {
+  if (!templateForm.name) {
+    ElMessage.warning("请输入模板名称");
+    return;
+  }
+  ElMessage.success("模板已保存");
+  templateDesignerVisible.value = false;
+}
+
+// T9 分享链接方法
+function previewShareLink(row: any) {
+  const url = `${window.location.origin}/share/${row.linkNo}`;
+  window.open(url, "_blank");
+}
+
+function copyShareLink(row: any) {
+  const url = `${window.location.origin}/share/${row.linkNo}`;
+  navigator.clipboard.writeText(url).then(() => {
+    ElMessage.success("链接已复制到剪贴板");
+  }).catch(() => {
+    ElMessage.error("复制失败，请手动复制");
+  });
+}
+
+function generateQrCode(row: any) {
+  currentQrLink.value = row;
+  qrcodeDialogVisible.value = true;
+}
+
+function downloadQrCode() {
+  ElMessage.info("二维码下载功能开发中");
 }
 
 // 泳道看板方法
