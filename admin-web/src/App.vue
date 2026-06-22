@@ -703,7 +703,11 @@
               <el-input v-model="ordersKeyword" placeholder="订单号/收货人/电话" size="small" style="width: 180px" clearable @clear="searchOrders" @keyup.enter="searchOrders" />
               <el-select v-model="ordersStatus" placeholder="全部状态" size="small" style="width: 140px" clearable @change="searchOrders">
                 <el-option label="待支付" value="PENDING_PAYMENT" />
+                <el-option label="已支付" value="PAID" />
+                <el-option label="待处理" value="PENDING" />
                 <el-option label="已接单" value="ACCEPTED" />
+                <el-option label="待配送" value="WAIT_DELIVERY" />
+                <el-option label="配送中" value="DELIVERING" />
                 <el-option label="已完成" value="COMPLETED" />
                 <el-option label="已取消" value="CANCELLED" />
               </el-select>
@@ -723,11 +727,27 @@
             </div>
           </div>
         </template>
-        <el-table :data="orders" empty-text="暂无订单">
+        <div v-if="selectedOrders.length > 0" style="margin-bottom: 12px; padding: 12px; background: #f5f7fa; border-radius: 6px; display: flex; align-items: center; gap: 12px">
+          <span style="font-size: 14px; color: #666">已选择 {{ selectedOrders.length }} 项</span>
+          <el-button size="small" type="success" @click="handleBatchAction('accept')">批量接单</el-button>
+          <el-button size="small" type="primary" @click="handleBatchAction('deliver')">批量配送</el-button>
+          <el-button size="small" type="danger" @click="handleBatchAction('reject')">批量拒单</el-button>
+          <el-button size="small" @click="selectedOrders = []">取消选择</el-button>
+        </div>
+        <el-table :data="orders" empty-text="暂无订单" @selection-change="handleOrderSelectionChange">
+          <el-table-column type="selection" width="55" />
           <el-table-column prop="orderNo" label="订单号" width="200" />
           <el-table-column prop="customerType" label="客户类型" width="100"><template #default="{ row }">{{ mapCustomerType(row.customerType) }}</template></el-table-column>
-          <el-table-column prop="orderStatus" label="订单状态" width="130"><template #default="{ row }">{{ mapOrderStatus(row.orderStatus) }}</template></el-table-column>
-          <el-table-column prop="payStatus" label="支付状态" width="100"><template #default="{ row }">{{ mapPayStatus(row.payStatus) }}</template></el-table-column>
+          <el-table-column prop="orderStatus" label="订单状态" width="130">
+            <template #default="{ row }">
+              <el-tag :type="getOrderStatusType(row.orderStatus)" size="small">{{ mapOrderStatus(row.orderStatus) }}</el-tag>
+            </template>
+          </el-table-column>
+          <el-table-column prop="payStatus" label="支付状态" width="100">
+            <template #default="{ row }">
+              <el-tag :type="getPayStatusType(row.payStatus)" size="small">{{ mapPayStatus(row.payStatus) }}</el-tag>
+            </template>
+          </el-table-column>
           <el-table-column label="金额" width="120">
             <template #default="{ row }">{{ formatYuan(row.payableAmount) }}</template>
           </el-table-column>
@@ -1430,18 +1450,36 @@
           </el-tab-pane>
         </el-tabs>
       </template>
-      <el-dialog v-model="orderDetailVisible" title="订单详情" width="560px">
+      <el-dialog v-model="orderDetailVisible" title="订单详情" width="720px">
         <template v-if="orderDetail">
-          <el-descriptions :column="1" border>
+          <el-descriptions :column="2" border>
             <el-descriptions-item label="订单号">{{ orderDetail.orderNo }}</el-descriptions-item>
             <el-descriptions-item label="客户类型">{{ mapCustomerType(orderDetail.customerType) }}</el-descriptions-item>
-            <el-descriptions-item label="订单状态">{{ mapOrderStatus(orderDetail.orderStatus) }}</el-descriptions-item>
-            <el-descriptions-item label="支付状态">{{ mapPayStatus(orderDetail.payStatus) }}</el-descriptions-item>
+            <el-descriptions-item label="订单状态">
+              <el-tag :type="getOrderStatusType(orderDetail.orderStatus)" size="small">{{ mapOrderStatus(orderDetail.orderStatus) }}</el-tag>
+            </el-descriptions-item>
+            <el-descriptions-item label="支付状态">
+              <el-tag :type="getPayStatusType(orderDetail.payStatus)" size="small">{{ mapPayStatus(orderDetail.payStatus) }}</el-tag>
+            </el-descriptions-item>
             <el-descriptions-item label="应付金额">{{ formatYuan(orderDetail.payableAmount) }}</el-descriptions-item>
+            <el-descriptions-item label="创建时间">{{ orderDetail.createdAt || '-' }}</el-descriptions-item>
             <el-descriptions-item label="收货人">{{ orderDetail.receiverName || "-" }}</el-descriptions-item>
             <el-descriptions-item label="联系电话">{{ orderDetail.receiverMobile || "-" }}</el-descriptions-item>
-            <el-descriptions-item label="收货地址">{{ orderDetail.receiverAddress || "-" }}</el-descriptions-item>
+            <el-descriptions-item label="收货地址" :span="2">{{ orderDetail.receiverAddress || "-" }}</el-descriptions-item>
           </el-descriptions>
+
+          <!-- 状态流转 -->
+          <div style="margin-top: 20px">
+            <div style="font-weight: 600; margin-bottom: 12px; font-size: 14px">状态流转</div>
+            <div class="status-flow">
+              <div v-for="(step, idx) in orderStatusFlow" :key="step.key" class="status-flow-step" :class="{ active: step.key === orderDetail.orderStatus, done: isStatusDone(step.key) }">
+                <div class="step-circle">{{ idx + 1 }}</div>
+                <div class="step-label">{{ step.label }}</div>
+                <div v-if="idx < orderStatusFlow.length - 1" class="step-line" :class="{ done: isStatusDone(step.key) }"></div>
+              </div>
+            </div>
+          </div>
+
           <el-table :data="orderDetail.items || []" style="margin-top: 16px">
             <el-table-column prop="skuName" label="商品" />
             <el-table-column prop="quantity" label="数量" width="80" />
@@ -1452,6 +1490,19 @@
               <template #default="{ row }">{{ formatYuan(row.subtotalAmount) }}</template>
             </el-table-column>
           </el-table>
+
+          <!-- 操作日志 -->
+          <div style="margin-top: 20px">
+            <div style="font-weight: 600; margin-bottom: 12px; font-size: 14px">操作日志</div>
+            <el-timeline v-if="orderLogs.length > 0">
+              <el-timeline-item v-for="log in orderLogs" :key="log.id" :timestamp="log.createdAt" placement="top" :type="log.type === 'STATUS_CHANGE' ? 'primary' : 'info'">
+                <div>{{ log.action }}</div>
+                <div v-if="log.operator" style="font-size: 12px; color: #999">操作人: {{ log.operator }}</div>
+              </el-timeline-item>
+            </el-timeline>
+            <div v-else style="color: #999; font-size: 13px">暂无操作日志</div>
+          </div>
+
           <div v-if="orderDetail.orderStatus" style="margin-top: 16px; display: flex; gap: 8px; flex-wrap: wrap">
             <el-button v-if="orderDetail.orderStatus === 'PENDING_PAYMENT' || orderDetail.orderStatus === 'PENDING'" type="success" size="small" :loading="loading" @click="handleOrderAction(orderDetail.orderNo, 'accept')">接单</el-button>
             <el-button v-if="orderDetail.orderStatus === 'PENDING_PAYMENT' || orderDetail.orderStatus === 'PENDING'" type="danger" size="small" :loading="loading" @click="handleOrderAction(orderDetail.orderNo, 'reject')">拒单</el-button>
@@ -3110,7 +3161,7 @@ import { computed, nextTick, onMounted, onUnmounted, reactive, ref, watch } from
 import { ElMessage, ElMessageBox } from "element-plus";
 import { Download, HomeFilled, Goods, Document, ShoppingCart, Box, User, Files, OfficeBuilding, Present, DataAnalysis, Setting, Bell, Expand, Fold } from "@element-plus/icons-vue";
 import * as echarts from "echarts";
-import { adminLogin, assignMember, createCollectionLink, createMember, createProduct, createStore, exportOrdersCsv, fetchCollectionLinks, fetchDailySales, fetchDashboard, fetchInventoryAlerts, fetchInventoryBalances, fetchInventoryLogs, fetchMemberPriceHistory, fetchMembers, fetchOrderDetail, fetchOrders, fetchOrderStats, fetchPaymentOrders, fetchPriceLogs, fetchProducts, fetchRefundOrders, fetchSaleBillDetail, fetchSaleBills, fetchStaff, fetchStorePerformance, fetchStores, fetchStoreDetail, updateStore, fetchWxInfo, updateProductPrice, updateProductStatus, acceptOrder, rejectOrder, startDelivery, completeDelivery, fetchDashboardOverview, fetchDashboardSalesTrend, fetchDashboardCategoryPie, fetchDashboardTopProducts, fetchDashboardTopCustomers, fetchDashboardRecentAlerts, fetchReportSalesDaily, fetchReportSalesRanking, fetchReportSalesTrend, fetchReportCustomerContribution, fetchReportPurchaseSummary, fetchReportInventoryTurnover, fetchReportReceivablePayable, fetchReportProfit, fetchSuppliers, createSupplier, fetchPurchaseOrders as fetchPurchaseOrdersApi, createPurchaseOrder, purchaseInStock, createPurchaseReturn, fetchSaleReturns as fetchSaleReturnsApi, createSaleReturn, fetchCustomerStatements as fetchStatementsApi, generateCustomerStatement, createCustomerPayment, fetchAlerts as fetchAlertsApi, handleAlertItem, fetchAlertRules, updateAlertRule, createStaff, updateStaff, toggleStaffStatus, updateProduct, fetchSaleBillsEnhanced, fetchReportReceivablePayableEnhanced, fetchReportProfitEnhanced, fetchPriceLevels, createPriceLevel, updatePriceLevel, deletePriceLevel, fetchSkuPrices, createSkuPrice, updatePrice as updateTierPrice, deletePrice as deleteTierPrice, fetchCustomerBindings, createCustomerBinding, approveCustomerBinding, rejectCustomerBinding, calcBestPrice, fetchPriceChangeLogs, fetchCredits, fetchCreditDetail, createCredit, updateCreditLimit, updateCreditTerm, freezeCredit, unfreezeCredit, fetchCreditLogs, fetchCollections, createCollection, updateCollection, fetchOverdueCollections, batchRemindCollections, fetchCollectionStatistics, fetchAfterSales, fetchAfterSaleDetail, approveAfterSale, rejectAfterSale, confirmReceiptAfterSale, inspectAfterSale, completeAfterSale, fetchAfterSaleStatistics, fetchTraceConfigs, createTraceConfig, updateTraceConfig, deleteTraceConfig, generateTraceCodes, fetchTraceCodes, fetchTraceCodeDetail, updateTraceCodeStatus, fetchTraceCodeStatistics, queryTraceCode, fetchRecalls, createRecall, updateRecall, executeRecall, completeRecall, fetchInventoryBatches, createInventoryBatch, splitInventoryBatch, fetchFifoSuggestion, fetchExpiryConfigs, fetchExpiryAlerts, handleExpiryAlert, fetchExpiryAlertStatistics, fetchStoreControlConfigs, updateStoreControlConfig, openStore, closeStore, suspendStore, resumeStore, fetchStoreControlLogs, createSaleBill } from "./api";
+import { adminLogin, assignMember, createCollectionLink, createMember, createProduct, createStore, exportOrdersCsv, fetchCollectionLinks, fetchDailySales, fetchDashboard, fetchInventoryAlerts, fetchInventoryBalances, fetchInventoryLogs, fetchMemberPriceHistory, fetchMembers, fetchOrderDetail, fetchOrders, fetchOrderStats, fetchPaymentOrders, fetchPriceLogs, fetchProducts, fetchRefundOrders, fetchSaleBillDetail, fetchSaleBills, fetchStaff, fetchStorePerformance, fetchStores, fetchStoreDetail, updateStore, fetchWxInfo, updateProductPrice, updateProductStatus, acceptOrder, rejectOrder, startDelivery, completeDelivery, batchUpdateOrderStatus, fetchOrderLogs, fetchDashboardOverview, fetchDashboardSalesTrend, fetchDashboardCategoryPie, fetchDashboardTopProducts, fetchDashboardTopCustomers, fetchDashboardRecentAlerts, fetchReportSalesDaily, fetchReportSalesRanking, fetchReportSalesTrend, fetchReportCustomerContribution, fetchReportPurchaseSummary, fetchReportInventoryTurnover, fetchReportReceivablePayable, fetchReportProfit, fetchSuppliers, createSupplier, fetchPurchaseOrders as fetchPurchaseOrdersApi, createPurchaseOrder, purchaseInStock, createPurchaseReturn, fetchSaleReturns as fetchSaleReturnsApi, createSaleReturn, fetchCustomerStatements as fetchStatementsApi, generateCustomerStatement, createCustomerPayment, fetchAlerts as fetchAlertsApi, handleAlertItem, fetchAlertRules, updateAlertRule, createStaff, updateStaff, toggleStaffStatus, updateProduct, fetchSaleBillsEnhanced, fetchReportReceivablePayableEnhanced, fetchReportProfitEnhanced, fetchPriceLevels, createPriceLevel, updatePriceLevel, deletePriceLevel, fetchSkuPrices, createSkuPrice, updatePrice as updateTierPrice, deletePrice as deleteTierPrice, fetchCustomerBindings, createCustomerBinding, approveCustomerBinding, rejectCustomerBinding, calcBestPrice, fetchPriceChangeLogs, fetchCredits, fetchCreditDetail, createCredit, updateCreditLimit, updateCreditTerm, freezeCredit, unfreezeCredit, fetchCreditLogs, fetchCollections, createCollection, updateCollection, fetchOverdueCollections, batchRemindCollections, fetchCollectionStatistics, fetchAfterSales, fetchAfterSaleDetail, approveAfterSale, rejectAfterSale, confirmReceiptAfterSale, inspectAfterSale, completeAfterSale, fetchAfterSaleStatistics, fetchTraceConfigs, createTraceConfig, updateTraceConfig, deleteTraceConfig, generateTraceCodes, fetchTraceCodes, fetchTraceCodeDetail, updateTraceCodeStatus, fetchTraceCodeStatistics, queryTraceCode, fetchRecalls, createRecall, updateRecall, executeRecall, completeRecall, fetchInventoryBatches, createInventoryBatch, splitInventoryBatch, fetchFifoSuggestion, fetchExpiryConfigs, fetchExpiryAlerts, handleExpiryAlert, fetchExpiryAlertStatistics, fetchStoreControlConfigs, updateStoreControlConfig, openStore, closeStore, suspendStore, resumeStore, fetchStoreControlLogs, createSaleBill } from "./api";
 import { fetchOrderTimeoutConfigs, createOrderTimeoutConfig, updateOrderTimeoutConfig, deleteOrderTimeoutConfig, fetchOrderTimeoutLogs, fetchOrderTimeoutStatistics } from "./api";
 import { fetchTransfers, fetchTransferDetail, createTransfer, submitTransfer, approveTransfer, rejectTransfer, cancelTransfer, shipTransfer, fetchTransferStatistics } from "./api";
 import { fetchStockChecks, fetchStockCheckDetail, createStockCheck, startStockCheck, completeStockCheck, cancelStockCheck, handleStockCheckDiff, fetchStockCheckStatistics } from "./api";
@@ -3190,6 +3241,16 @@ const ordersPage = ref(1);
 const ordersKeyword = ref("");
 const ordersStatus = ref("");
 const ordersDateRange = ref<string[]>([]);
+const selectedOrders = ref<any[]>([]);
+const orderLogs = ref<any[]>([]);
+const orderStatusFlow = [
+  { key: "PENDING_PAYMENT", label: "待支付" },
+  { key: "PAID", label: "已支付" },
+  { key: "ACCEPTED", label: "已接单" },
+  { key: "WAIT_DELIVERY", label: "待配送" },
+  { key: "DELIVERING", label: "配送中" },
+  { key: "COMPLETED", label: "已完成" }
+];
 const saleBills = ref<any[]>([]);
 const saleBillsKeyword = ref("");
 const saleBillsStatus = ref("");
@@ -3941,7 +4002,69 @@ function drawPieChart() {
 
 async function openOrderDetail(orderNo: string) {
   orderDetail.value = await fetchOrderDetail(orderNo);
+  orderLogs.value = await fetchOrderLogs(orderNo);
   orderDetailVisible.value = true;
+}
+
+function handleOrderSelectionChange(selection: any[]) {
+  selectedOrders.value = selection;
+}
+
+async function handleBatchAction(action: string) {
+  if (selectedOrders.value.length === 0) {
+    ElMessage.warning("请先选择订单");
+    return;
+  }
+  const actionLabels: Record<string, string> = {
+    accept: "接单",
+    reject: "拒单",
+    deliver: "配送"
+  };
+  const confirmed = await ElMessageBox.confirm(`确认批量${actionLabels[action]} ${selectedOrders.value.length} 个订单?`, "批量操作确认", { type: "warning" }).catch(() => null);
+  if (!confirmed) return;
+  loading.value = true;
+  try {
+    const orderNos = selectedOrders.value.map(o => o.orderNo);
+    await batchUpdateOrderStatus(orderNos, action);
+    ElMessage.success(`批量${actionLabels[action]}成功`);
+    selectedOrders.value = [];
+    await loadOrders();
+  } catch (error) {
+    ElMessage.error(getErrorMessage(error, `批量${actionLabels[action]}失败`));
+  } finally {
+    loading.value = false;
+  }
+}
+
+function getOrderStatusType(status: string) {
+  const map: Record<string, string> = {
+    PENDING_PAYMENT: "warning",
+    PAID: "info",
+    PENDING: "warning",
+    ACCEPTED: "primary",
+    WAIT_DELIVERY: "info",
+    DELIVERING: "primary",
+    COMPLETED: "success",
+    CANCELLED: "danger"
+  };
+  return map[status] || "info";
+}
+
+function getPayStatusType(status: string) {
+  const map: Record<string, string> = {
+    UNPAID: "warning",
+    PAID: "success",
+    PARTIAL: "info",
+    REFUNDED: "danger"
+  };
+  return map[status] || "info";
+}
+
+function isStatusDone(stepKey: string) {
+  if (!orderDetail.value?.orderStatus) return false;
+  const currentIdx = orderStatusFlow.findIndex(s => s.key === orderDetail.value.orderStatus);
+  const stepIdx = orderStatusFlow.findIndex(s => s.key === stepKey);
+  return stepIdx <= currentIdx;
 }
 
 function openPriceDialog(row: any) {

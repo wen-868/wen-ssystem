@@ -230,6 +230,16 @@ export async function completeDelivery(orderNo: string) {
   return data.data;
 }
 
+export async function batchUpdateOrderStatus(orderNos: string[], action: string) {
+  const { data } = await api.post("/admin/orders/batch-action", { orderNos, action });
+  return data.data;
+}
+
+export async function fetchOrderLogs(orderNo: string) {
+  const { data } = await api.get(`/admin/orders/${orderNo}/logs`);
+  return data.data || [];
+}
+
 export async function createCollectionLink(billNo: string, payload: { amount: number; shareChannel: string; expireHours: number }) {
   const { data } = await api.post(`/store/sale-bills/${billNo}/collection-link`, payload);
   return data.data;
