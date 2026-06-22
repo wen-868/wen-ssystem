@@ -47,6 +47,10 @@ body {
   grid-template-columns: 64px 1fr;
 }
 
+.layout:has(.side.is-hidden) {
+  grid-template-columns: 0px 1fr;
+}
+
 /* 侧边栏：白色背景，左侧2px蓝色装饰线 */
 .side {
   background: var(--bg-card);
@@ -65,6 +69,13 @@ body {
 
 .side.is-collapsed {
   width: 64px;
+}
+
+.side.is-hidden {
+  width: 0;
+  padding: 0;
+  border: none;
+  overflow: hidden;
 }
 
 .sidebar-header {

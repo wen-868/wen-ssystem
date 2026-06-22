@@ -21,7 +21,7 @@
     </el-card>
   </div>
   <div v-else class="layout">
-    <aside class="side" :class="{ 'is-collapsed': isMenuCollapsed }">
+    <aside class="side" :class="{ 'is-collapsed': isMenuCollapsed && !isCashierMode, 'is-hidden': isCashierMode }">
       <div class="sidebar-header">
         <h1 v-show="!isMenuCollapsed">智享营销系统</h1>
         <h1 v-show="isMenuCollapsed">智享</h1>
@@ -145,6 +145,12 @@
           <p class="muted">{{ adminNavDescriptions[activeNav] }}</p>
         </div>
         <div class="user-bar">
+          <el-switch
+            v-model="isCashierMode"
+            active-text="收银台"
+            inactive-text="管理后台"
+            style="margin-right: 16px;"
+          />
           <el-popover placement="bottom-end" :width="360" trigger="click" @show="loadRecentNotifications">
             <template #reference>
               <el-badge :value="notificationUnreadCount || undefined" :hidden="!notificationUnreadCount" :max="99">
@@ -2866,10 +2872,18 @@ const token = ref(localStorage.getItem("admin_token") || "");
 const loading = ref(false);
 const pageLoading = ref(false);
 const isMenuCollapsed = ref(false);
+const isCashierMode = ref(false);
 
 const handleMenuSelect = (index: string) => {
   activeNav.value = index;
 };
+
+watch(isCashierMode, (val) => {
+  if (val) {
+    isMenuCollapsed.value = true;
+    activeNav.value = "销售单";
+  }
+});
 
 const productsLoading = ref(false);
 const storesLoading = ref(false);
