@@ -139,6 +139,160 @@
       </el-menu>
     </aside>
     <main class="main" v-loading="pageLoading">
+      <!-- 收银台模式 -->
+      <div v-if="isCashierMode" class="cashier-container">
+        <!-- 左侧：商品搜索 -->
+        <div class="cashier-left">
+          <div class="cashier-search">
+            <el-input
+              v-model="cashierProductKeyword"
+              placeholder="搜索商品名称/SKU"
+              clearable
+              @input="searchCashierProducts"
+            />
+          </div>
+          <div class="cashier-product-list">
+            <div
+              v-for="product in cashierProducts"
+              :key="product.skuId"
+              class="cashier-product-item"
+              @click="addToCart(product)"
+            >
+              <div class="product-name">{{ product.name }}</div>
+              <div class="product-sku">{{ product.skuName }}</div>
+              <div class="product-price">¥{{ formatYuan(product.retailPrice) }}</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- 中间：购物车 -->
+        <div class="cashier-center">
+          <div class="cart-header">
+            <h3>购物车</h3>
+            <el-button size="small" type="danger" @click="clearCart" :disabled="cashierCart.length === 0">清空</el-button>
+          </div>
+          <div class="cart-list">
+            <div v-if="cashierCart.length === 0" class="cart-empty">购物车为空</div>
+            <div v-for="(item, index) in cashierCart" :key="index" class="cart-item">
+              <div class="cart-item-info">
+                <div class="cart-item-name">{{ item.name }}</div>
+                <div class="cart-item-sku">{{ item.skuName }}</div>
+              </div>
+              <div class="cart-item-quantity">
+                <el-input-number
+                  v-model="item.quantity"
+                  :min="1"
+                  :max="999"
+                  size="small"
+                  @change="updateCartTotal"
+                />
+              </div>
+              <div class="cart-item-price">¥{{ formatYuan(item.retailPrice * item.quantity) }}</div>
+              <el-button size="small" type="danger" link @click="removeFromCart(index)">删除</el-button>
+            </div>
+          </div>
+        </div>
+
+        <!-- 右侧：结算区 -->
+        <div class="cashier-right">
+          <div class="settlement-section">
+            <h3>结算</h3>
+
+            <!-- 客户选择 -->
+            <div class="settlement-item">
+              <label>客户：</label>
+              <el-select
+                v-model="cashierSelectedCustomer"
+                placeholder="选择客户（可选）"
+                clearable
+                filterable
+                style="width: 100%"
+              >
+                <el-option
+                  v-for="member in members"
+                  :key="member.id"
+                  :label="member.name"
+                  :value="member"
+                />
+              </el-select>
+            </div>
+
+            <!-- 金额汇总 -->
+            <div class="settlement-summary">
+              <div class="summary-row">
+                <span>商品总额：</span>
+                <span>¥{{ formatYuan(cashierSubtotal) }}</span>
+              </div>
+              <div class="summary-row">
+                <label>折扣：</label>
+                <el-input-number
+                  v-model="cashierDiscount"
+                  :min="0"
+                  :max="cashierSubtotal"
+                  :precision="2"
+                  size="small"
+                  style="width: 100px"
+                  @change="updateCartTotal"
+                />
+              </div>
+              <div class="summary-row">
+                <label>抹零：</label>
+                <el-input-number
+                  v-model="cashierRoundDown"
+                  :min="0"
+                  :max="10"
+                  :precision="2"
+                  size="small"
+                  style="width: 100px"
+                  @change="updateCartTotal"
+                />
+              </div>
+              <div class="summary-row total">
+                <span>应收金额：</span>
+                <span class="total-amount">¥{{ formatYuan(cashierTotal) }}</span>
+              </div>
+            </div>
+
+            <!-- 支付方式 -->
+            <div class="settlement-item">
+              <label>支付方式：</label>
+              <el-radio-group v-model="cashierPaymentMethod">
+                <el-radio label="CASH">现金</el-radio>
+                <el-radio label="WECHAT">微信</el-radio>
+                <el-radio label="ALIPAY">支付宝</el-radio>
+              </el-radio-group>
+            </div>
+
+            <!-- 收款金额（现金时显示） -->
+            <div v-if="cashierPaymentMethod === 'CASH'" class="settlement-item">
+              <label>收款金额：</label>
+              <el-input-number
+                v-model="cashierReceivedAmount"
+                :min="cashierTotal"
+                :precision="2"
+                style="width: 100%"
+              />
+              <div class="change-amount">
+                找零：¥{{ formatYuan(cashierChange) }}
+              </div>
+            </div>
+
+            <!-- 提交按钮 -->
+            <el-button
+              type="primary"
+              size="large"
+              style="width: 100%; margin-top: 20px"
+              :disabled="cashierCart.length === 0"
+              @click="submitSale"
+            >
+              提交订单
+            </el-button>
+          </div>
+        </div>
+      </div>
+
+      <!-- 管理后台模式 -->
+      <template v-else>
       <section class="dashboard-hero">
         <div>
           <h2>{{ activeNav }}</h2>
@@ -2822,6 +2976,7 @@
           </el-tab-pane>
         </el-tabs>
       </template>
+    </template>
     </main>
   </div>
 </template>
@@ -2831,7 +2986,7 @@ import { computed, nextTick, onMounted, onUnmounted, reactive, ref, watch } from
 import { ElMessage, ElMessageBox } from "element-plus";
 import { Download, HomeFilled, Goods, Document, ShoppingCart, Box, User, Files, OfficeBuilding, Present, DataAnalysis, Setting, Bell, Expand, Fold } from "@element-plus/icons-vue";
 import * as echarts from "echarts";
-import { adminLogin, assignMember, createCollectionLink, createMember, createProduct, createStore, exportOrdersCsv, fetchCollectionLinks, fetchDailySales, fetchDashboard, fetchInventoryAlerts, fetchInventoryBalances, fetchInventoryLogs, fetchMemberPriceHistory, fetchMembers, fetchOrderDetail, fetchOrders, fetchOrderStats, fetchPaymentOrders, fetchPriceLogs, fetchProducts, fetchRefundOrders, fetchSaleBillDetail, fetchSaleBills, fetchStaff, fetchStorePerformance, fetchStores, fetchStoreDetail, updateStore, fetchWxInfo, updateProductPrice, updateProductStatus, acceptOrder, rejectOrder, startDelivery, completeDelivery, fetchDashboardOverview, fetchDashboardSalesTrend, fetchDashboardCategoryPie, fetchDashboardTopProducts, fetchDashboardTopCustomers, fetchDashboardRecentAlerts, fetchReportSalesDaily, fetchReportSalesRanking, fetchReportSalesTrend, fetchReportCustomerContribution, fetchReportPurchaseSummary, fetchReportInventoryTurnover, fetchReportReceivablePayable, fetchReportProfit, fetchSuppliers, createSupplier, fetchPurchaseOrders as fetchPurchaseOrdersApi, createPurchaseOrder, purchaseInStock, createPurchaseReturn, fetchSaleReturns as fetchSaleReturnsApi, createSaleReturn, fetchCustomerStatements as fetchStatementsApi, generateCustomerStatement, createCustomerPayment, fetchAlerts as fetchAlertsApi, handleAlertItem, fetchAlertRules, updateAlertRule, createStaff, updateStaff, toggleStaffStatus, updateProduct, fetchSaleBillsEnhanced, fetchReportReceivablePayableEnhanced, fetchReportProfitEnhanced, fetchPriceLevels, createPriceLevel, updatePriceLevel, deletePriceLevel, fetchSkuPrices, createSkuPrice, updatePrice as updateTierPrice, deletePrice as deleteTierPrice, fetchCustomerBindings, createCustomerBinding, approveCustomerBinding, rejectCustomerBinding, calcBestPrice, fetchPriceChangeLogs, fetchCredits, fetchCreditDetail, createCredit, updateCreditLimit, updateCreditTerm, freezeCredit, unfreezeCredit, fetchCreditLogs, fetchCollections, createCollection, updateCollection, fetchOverdueCollections, batchRemindCollections, fetchCollectionStatistics, fetchAfterSales, fetchAfterSaleDetail, approveAfterSale, rejectAfterSale, confirmReceiptAfterSale, inspectAfterSale, completeAfterSale, fetchAfterSaleStatistics, fetchTraceConfigs, createTraceConfig, updateTraceConfig, deleteTraceConfig, generateTraceCodes, fetchTraceCodes, fetchTraceCodeDetail, updateTraceCodeStatus, fetchTraceCodeStatistics, queryTraceCode, fetchRecalls, createRecall, updateRecall, executeRecall, completeRecall, fetchInventoryBatches, createInventoryBatch, splitInventoryBatch, fetchFifoSuggestion, fetchExpiryConfigs, fetchExpiryAlerts, handleExpiryAlert, fetchExpiryAlertStatistics, fetchStoreControlConfigs, updateStoreControlConfig, openStore, closeStore, suspendStore, resumeStore, fetchStoreControlLogs } from "./api";
+import { adminLogin, assignMember, createCollectionLink, createMember, createProduct, createStore, exportOrdersCsv, fetchCollectionLinks, fetchDailySales, fetchDashboard, fetchInventoryAlerts, fetchInventoryBalances, fetchInventoryLogs, fetchMemberPriceHistory, fetchMembers, fetchOrderDetail, fetchOrders, fetchOrderStats, fetchPaymentOrders, fetchPriceLogs, fetchProducts, fetchRefundOrders, fetchSaleBillDetail, fetchSaleBills, fetchStaff, fetchStorePerformance, fetchStores, fetchStoreDetail, updateStore, fetchWxInfo, updateProductPrice, updateProductStatus, acceptOrder, rejectOrder, startDelivery, completeDelivery, fetchDashboardOverview, fetchDashboardSalesTrend, fetchDashboardCategoryPie, fetchDashboardTopProducts, fetchDashboardTopCustomers, fetchDashboardRecentAlerts, fetchReportSalesDaily, fetchReportSalesRanking, fetchReportSalesTrend, fetchReportCustomerContribution, fetchReportPurchaseSummary, fetchReportInventoryTurnover, fetchReportReceivablePayable, fetchReportProfit, fetchSuppliers, createSupplier, fetchPurchaseOrders as fetchPurchaseOrdersApi, createPurchaseOrder, purchaseInStock, createPurchaseReturn, fetchSaleReturns as fetchSaleReturnsApi, createSaleReturn, fetchCustomerStatements as fetchStatementsApi, generateCustomerStatement, createCustomerPayment, fetchAlerts as fetchAlertsApi, handleAlertItem, fetchAlertRules, updateAlertRule, createStaff, updateStaff, toggleStaffStatus, updateProduct, fetchSaleBillsEnhanced, fetchReportReceivablePayableEnhanced, fetchReportProfitEnhanced, fetchPriceLevels, createPriceLevel, updatePriceLevel, deletePriceLevel, fetchSkuPrices, createSkuPrice, updatePrice as updateTierPrice, deletePrice as deleteTierPrice, fetchCustomerBindings, createCustomerBinding, approveCustomerBinding, rejectCustomerBinding, calcBestPrice, fetchPriceChangeLogs, fetchCredits, fetchCreditDetail, createCredit, updateCreditLimit, updateCreditTerm, freezeCredit, unfreezeCredit, fetchCreditLogs, fetchCollections, createCollection, updateCollection, fetchOverdueCollections, batchRemindCollections, fetchCollectionStatistics, fetchAfterSales, fetchAfterSaleDetail, approveAfterSale, rejectAfterSale, confirmReceiptAfterSale, inspectAfterSale, completeAfterSale, fetchAfterSaleStatistics, fetchTraceConfigs, createTraceConfig, updateTraceConfig, deleteTraceConfig, generateTraceCodes, fetchTraceCodes, fetchTraceCodeDetail, updateTraceCodeStatus, fetchTraceCodeStatistics, queryTraceCode, fetchRecalls, createRecall, updateRecall, executeRecall, completeRecall, fetchInventoryBatches, createInventoryBatch, splitInventoryBatch, fetchFifoSuggestion, fetchExpiryConfigs, fetchExpiryAlerts, handleExpiryAlert, fetchExpiryAlertStatistics, fetchStoreControlConfigs, updateStoreControlConfig, openStore, closeStore, suspendStore, resumeStore, fetchStoreControlLogs, createSaleBill } from "./api";
 import { fetchOrderTimeoutConfigs, createOrderTimeoutConfig, updateOrderTimeoutConfig, deleteOrderTimeoutConfig, fetchOrderTimeoutLogs, fetchOrderTimeoutStatistics } from "./api";
 import { fetchTransfers, fetchTransferDetail, createTransfer, submitTransfer, approveTransfer, rejectTransfer, cancelTransfer, shipTransfer, fetchTransferStatistics } from "./api";
 import { fetchStockChecks, fetchStockCheckDetail, createStockCheck, startStockCheck, completeStockCheck, cancelStockCheck, handleStockCheckDiff, fetchStockCheckStatistics } from "./api";
@@ -2882,6 +3037,10 @@ watch(isCashierMode, (val) => {
   if (val) {
     isMenuCollapsed.value = true;
     activeNav.value = "销售单";
+    // 初始化收银台商品列表
+    if (cashierProducts.value.length === 0 && products.value.length > 0) {
+      cashierProducts.value = products.value.slice(0, 50);
+    }
   }
 });
 
@@ -2914,6 +3073,105 @@ const saleBillsDateRange = ref<string[]>([]);
 const saleBillsPage = ref(1);
 const saleBillsPageSize = ref(20);
 const saleBillsTotal = ref(0);
+
+// 收银台状态
+const cashierProducts = ref<any[]>([]);
+const cashierCart = ref<any[]>([]);
+const cashierSelectedCustomer = ref<any>(null);
+const cashierDiscount = ref(0);
+const cashierRoundDown = ref(0);
+const cashierPaymentMethod = ref("CASH");
+const cashierReceivedAmount = ref(0);
+const cashierProductKeyword = ref("");
+
+// 收银台计算属性
+const cashierSubtotal = computed(() => {
+  return cashierCart.value.reduce((sum, item) => sum + item.retailPrice * item.quantity, 0);
+});
+
+const cashierTotal = computed(() => {
+  return Math.max(0, cashierSubtotal.value - cashierDiscount.value - cashierRoundDown.value);
+});
+
+const cashierChange = computed(() => {
+  return Math.max(0, cashierReceivedAmount.value - cashierTotal.value);
+});
+
+// 收银台方法
+function searchCashierProducts() {
+  const keyword = cashierProductKeyword.value.toLowerCase();
+  if (!keyword) {
+    cashierProducts.value = products.value.slice(0, 50);
+  } else {
+    cashierProducts.value = products.value.filter(p =>
+      p.name.toLowerCase().includes(keyword) ||
+      p.skuCode?.toLowerCase().includes(keyword)
+    ).slice(0, 50);
+  }
+}
+
+function addToCart(product: any) {
+  const existing = cashierCart.value.find(item => item.skuId === product.id);
+  if (existing) {
+    existing.quantity++;
+  } else {
+    cashierCart.value.push({
+      skuId: product.id,
+      name: product.name,
+      skuName: product.skuName,
+      retailPrice: product.retailPrice,
+      quantity: 1
+    });
+  }
+  updateCartTotal();
+}
+
+function removeFromCart(index: number) {
+  cashierCart.value.splice(index, 1);
+  updateCartTotal();
+}
+
+function clearCart() {
+  cashierCart.value = [];
+  cashierDiscount.value = 0;
+  cashierRoundDown.value = 0;
+  cashierReceivedAmount.value = 0;
+  cashierSelectedCustomer.value = null;
+}
+
+function updateCartTotal() {
+  // 触发重新计算
+  cashierDiscount.value = cashierDiscount.value;
+}
+
+async function submitSale() {
+  if (cashierCart.value.length === 0) {
+    ElMessage.warning("购物车为空");
+    return;
+  }
+
+  try {
+    const payload = {
+      customerId: cashierSelectedCustomer.value?.id,
+      items: cashierCart.value.map(item => ({
+        skuId: item.skuId,
+        quantity: item.quantity,
+        unitPrice: item.retailPrice
+      })),
+      discountAmount: cashierDiscount.value,
+      roundDownAmount: cashierRoundDown.value,
+      paymentMethod: cashierPaymentMethod.value,
+      receivedAmount: cashierPaymentMethod.value === "CASH" ? cashierReceivedAmount.value : cashierTotal.value
+    };
+
+    await createSaleBill(payload);
+    ElMessage.success("销售单创建成功");
+    clearCart();
+    loadSaleBills();
+  } catch (e: any) {
+    ElMessage.error(e?.response?.data?.message || "创建失败");
+  }
+}
 const inventoryLogs = ref<any[]>([]);
 const collectionLinks = ref<any[]>([]);
 const paymentOrders = ref<any[]>([]);
