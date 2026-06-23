@@ -135,6 +135,8 @@ async function start() {
     startOrderTimeoutScanner();
     // 启动赊销超期检测
     startOverdueScanner();
+    // 启动订阅到期检测
+    startSubscriptionExpiryScanner();
   });
 }
 

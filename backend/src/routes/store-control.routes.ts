@@ -335,94 +335,100 @@ export function startStoreControlScheduler() {
 }
 
 async function runStoreControlCheck() {
-  // 获取所有有管控配置的门店
-  const configs = await query<any>(
-    `SELECT scc.*, s.status AS current_status, s.name AS store_name
-     FROM store_control_config scc
-     JOIN store s ON s.id = scc.store_id
-     WHERE s.status IN ('OPEN', 'CLOSED')`
+  const tenantRows = await query<any>(
+    "SELECT DISTINCT tenant_id FROM store_control_config"
   );
+  const tenantIds = tenantRows.map((r: any) => r.tenant_id).filter(Boolean);
 
-  if (configs.length === 0) return;
+  if (tenantIds.length === 0) return;
 
-  const now = new Date();
-  const currentTime = `${String(now.getHours()).padStart(2, "0")}:${String(now.getMinutes()).padStart(2, "0")}`;
+  for (const tenantId of tenantIds) {
+    const configs = await query<any>(
+      `SELECT scc.*, s.status AS current_status, s.name AS store_name
+       FROM store_control_config scc
+       JOIN store s ON s.id = scc.store_id AND s.tenant_id = scc.tenant_id
+       WHERE scc.tenant_id = ?
+         AND s.status IN ('OPEN', 'CLOSED')`,
+      [tenantId]
+    );
 
-  await transaction(async (conn) => {
-    for (const config of configs) {
-      const currentStatus = config.current_status || "OPEN";
+    if (configs.length === 0) continue;
 
-      // 检查自动开门
-      if (config.auto_open_time && currentStatus === "CLOSED" && currentTime >= config.auto_open_time && currentTime < (config.auto_close_time || "23:59")) {
-        await conn.execute(
-          "UPDATE store SET status = 'OPEN' WHERE id = ? AND status = 'CLOSED'",
-          [config.store_id]
-        );
-        await conn.execute(
-          `INSERT INTO store_status_log (store_id, from_status, to_status, change_type, operator_id, remark)
-           VALUES (?, 'CLOSED', 'OPEN', 'SCHEDULED', NULL, '定时自动开门')`,
-          [config.store_id]
-        );
-        console.log(`[门店管控] 门店 ${config.store_name}(${config.store_id}) 自动开门`);
-      }
+    const now = new Date();
+    const currentTime = `${String(now.getHours()).padStart(2, "0")}:${String(now.getMinutes()).padStart(2, "0")}`;
 
-      // 检查自动关门
-      if (config.auto_close_time && currentStatus === "OPEN" && currentTime >= config.auto_close_time) {
-        await conn.execute(
-          "UPDATE store SET status = 'CLOSED' WHERE id = ? AND status = 'OPEN'",
-          [config.store_id]
-        );
-        await conn.execute(
-          `INSERT INTO store_status_log (store_id, from_status, to_status, change_type, operator_id, remark)
-           VALUES (?, 'OPEN', 'CLOSED', 'SCHEDULED', NULL, '定时自动关门')`,
-          [config.store_id]
-        );
-        console.log(`[门店管控] 门店 ${config.store_name}(${config.store_id}) 自动关门`);
-      }
+    await transaction(async (conn) => {
+      for (const config of configs) {
+        const currentStatus = config.current_status || "OPEN";
 
-      // 检查每日订单限额
-      if (config.max_daily_orders && currentStatus === "OPEN") {
-        const [orderRows] = await conn.execute<any[]>(
-          `SELECT COUNT(*) AS order_count FROM sale_bill
-           WHERE store_id = ? AND DATE(created_at) = CURDATE() AND business_status NOT IN ('DRAFT', 'VOIDED')`,
-          [config.store_id]
-        );
-        const orderCount = (orderRows as any[])[0]?.order_count ?? 0;
-        if (orderCount >= config.max_daily_orders) {
+        if (config.auto_open_time && currentStatus === "CLOSED" && currentTime >= config.auto_open_time && currentTime < (config.auto_close_time || "23:59")) {
           await conn.execute(
-            "UPDATE store SET status = 'CLOSED' WHERE id = ? AND status = 'OPEN'",
-            [config.store_id]
+            "UPDATE store SET status = 'OPEN' WHERE id = ? AND tenant_id = ? AND status = 'CLOSED'",
+            [config.store_id, tenantId]
           );
           await conn.execute(
-            `INSERT INTO store_status_log (store_id, from_status, to_status, change_type, operator_id, remark)
-             VALUES (?, 'OPEN', 'CLOSED', 'AUTO', NULL, ?)`,
-            [config.store_id, "当日订单数(" + orderCount + ")已达上限(" + config.max_daily_orders + ")，自动关门"]
+            `INSERT INTO store_status_log (tenant_id, store_id, from_status, to_status, change_type, operator_id, remark)
+             VALUES (?, ?, 'CLOSED', 'OPEN', 'SCHEDULED', NULL, '定时自动开门')`,
+            [tenantId, config.store_id]
           );
-          console.log(`[门店管控] 门店 ${config.store_name}(${config.store_id}) 订单数达上限，自动关门`);
+          console.log(`[门店管控] 租户 ${tenantId} 门店 ${config.store_name}(${config.store_id}) 自动开门`);
+        }
+
+        if (config.auto_close_time && currentStatus === "OPEN" && currentTime >= config.auto_close_time) {
+          await conn.execute(
+            "UPDATE store SET status = 'CLOSED' WHERE id = ? AND tenant_id = ? AND status = 'OPEN'",
+            [config.store_id, tenantId]
+          );
+          await conn.execute(
+            `INSERT INTO store_status_log (tenant_id, store_id, from_status, to_status, change_type, operator_id, remark)
+             VALUES (?, ?, 'OPEN', 'CLOSED', 'SCHEDULED', NULL, '定时自动关门')`,
+            [tenantId, config.store_id]
+          );
+          console.log(`[门店管控] 租户 ${tenantId} 门店 ${config.store_name}(${config.store_id}) 自动关门`);
+        }
+
+        if (config.max_daily_orders && currentStatus === "OPEN") {
+          const [orderRows] = await conn.execute<any[]>(
+            `SELECT COUNT(*) AS order_count FROM sale_bill
+             WHERE store_id = ? AND tenant_id = ? AND DATE(created_at) = CURDATE() AND business_status NOT IN ('DRAFT', 'VOIDED')`,
+            [config.store_id, tenantId]
+          );
+          const orderCount = (orderRows as any[])[0]?.order_count ?? 0;
+          if (orderCount >= config.max_daily_orders) {
+            await conn.execute(
+              "UPDATE store SET status = 'CLOSED' WHERE id = ? AND tenant_id = ? AND status = 'OPEN'",
+              [config.store_id, tenantId]
+            );
+            await conn.execute(
+              `INSERT INTO store_status_log (tenant_id, store_id, from_status, to_status, change_type, operator_id, remark)
+               VALUES (?, ?, 'OPEN', 'CLOSED', 'AUTO', NULL, ?)`,
+              [tenantId, config.store_id, "当日订单数(" + orderCount + ")已达上限(" + config.max_daily_orders + ")，自动关门"]
+            );
+            console.log(`[门店管控] 租户 ${tenantId} 门店 ${config.store_name}(${config.store_id}) 订单数达上限，自动关门`);
+          }
+        }
+
+        if (config.max_order_amount && currentStatus === "OPEN") {
+          const [amountRows] = await conn.execute<any[]>(
+            `SELECT COALESCE(SUM(receivable_amount), 0) AS total_amount FROM sale_bill
+             WHERE store_id = ? AND tenant_id = ? AND DATE(created_at) = CURDATE() AND business_status NOT IN ('DRAFT', 'VOIDED')`,
+            [config.store_id, tenantId]
+          );
+          const totalAmount = Number((amountRows as any[])[0]?.total_amount ?? 0);
+          if (totalAmount >= config.max_order_amount) {
+            await conn.execute(
+              "UPDATE store SET status = 'CLOSED' WHERE id = ? AND tenant_id = ? AND status = 'OPEN'",
+              [config.store_id, tenantId]
+            );
+            await conn.execute(
+              `INSERT INTO store_status_log (tenant_id, store_id, from_status, to_status, change_type, operator_id, remark)
+               VALUES (?, ?, 'OPEN', 'CLOSED', 'AUTO', NULL, ?)`,
+              [tenantId, config.store_id, "当日订单金额(" + totalAmount.toFixed(2) + ")已达上限(" + config.max_order_amount + ")，自动关门"]
+            );
+            console.log(`[门店管控] 租户 ${tenantId} 门店 ${config.store_name}(${config.store_id}) 订单金额达上限，自动关门`);
+          }
         }
       }
-
-      // 检查每日金额限额
-      if (config.max_order_amount && currentStatus === "OPEN") {
-        const [amountRows] = await conn.execute<any[]>(
-          `SELECT COALESCE(SUM(receivable_amount), 0) AS total_amount FROM sale_bill
-           WHERE store_id = ? AND DATE(created_at) = CURDATE() AND business_status NOT IN ('DRAFT', 'VOIDED')`,
-          [config.store_id]
-        );
-        const totalAmount = Number((amountRows as any[])[0]?.total_amount ?? 0);
-        if (totalAmount >= config.max_order_amount) {
-          await conn.execute(
-            "UPDATE store SET status = 'CLOSED' WHERE id = ? AND status = 'OPEN'",
-            [config.store_id]
-          );
-          await conn.execute(
-            `INSERT INTO store_status_log (store_id, from_status, to_status, change_type, operator_id, remark)
-             VALUES (?, 'OPEN', 'CLOSED', 'AUTO', NULL, ?)`,
-            [config.store_id, "当日订单金额(" + totalAmount.toFixed(2) + ")已达上限(" + config.max_order_amount + ")，自动关门"]
-          );
-          console.log(`[门店管控] 门店 ${config.store_name}(${config.store_id}) 订单金额达上限，自动关门`);
-        }
-      }
-    }
-  });
+    });
+  }
 }

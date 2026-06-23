@@ -1,40 +1,51 @@
 import { query } from "../shared/db.js";
 
-/**
- * 扫描超期的赊销销售单
- * 将 collection_status 从 PARTIAL 更新为 OVERDUE
- */
-export async function scanOverdueCreditBills(): Promise<number> {
-  const result = await query(
-    `UPDATE sale_bill
-     SET collection_status = 'OVERDUE', updated_at = NOW()
-     WHERE sale_type = 'CREDIT'
-       AND due_date IS NOT NULL
-       AND due_date < CURDATE()
-       AND collection_status IN ('UNPAID', 'PARTIAL')
-       AND business_status = 'CREATED'`
+async function getAllActiveTenants(): Promise<string[]> {
+  const rows = await query<any>(
+    "SELECT DISTINCT tenant_id FROM sys_user WHERE status = 1"
   );
-
-  const affectedRows = (result as any)?.affectedRows || 0;
-
-  if (affectedRows > 0) {
-    console.log(`[OverdueScanner] 标记 ${affectedRows} 笔赊销单为超期`);
-  }
-
-  return affectedRows;
+  return rows.map((r: any) => r.tenant_id).filter(Boolean);
 }
 
-/**
- * 启动超期检测定时任务
- * 每天凌晨 1 点执行
- */
+export async function scanOverdueCreditBills(tenantId?: string): Promise<number> {
+  let tenantIds: string[] = [];
+  if (tenantId) {
+    tenantIds = [tenantId];
+  } else {
+    tenantIds = await getAllActiveTenants();
+  }
+
+  let totalAffected = 0;
+
+  for (const tid of tenantIds) {
+    const result = await query(
+      `UPDATE sale_bill
+       SET collection_status = 'OVERDUE', updated_at = NOW()
+       WHERE tenant_id = ?
+         AND sale_type = 'CREDIT'
+         AND due_date IS NOT NULL
+         AND due_date < CURDATE()
+         AND collection_status IN ('UNPAID', 'PARTIAL')
+         AND business_status = 'CREATED'`,
+      [tid]
+    );
+
+    const affectedRows = (result as any)?.affectedRows || 0;
+    totalAffected += affectedRows;
+
+    if (affectedRows > 0) {
+      console.log(`[OverdueScanner] 租户 ${tid}: 标记 ${affectedRows} 笔赊销单为超期`);
+    }
+  }
+
+  return totalAffected;
+}
+
 export function startOverdueScanner() {
-  // 启动时立即执行一次
   scanOverdueCreditBills().catch(err => {
     console.error("[OverdueScanner] 启动扫描失败:", err);
   });
 
-  // 每天凌晨 1 点执行
   const interval = setInterval(() => {
     const now = new Date();
     if (now.getHours() === 1 && now.getMinutes() === 0) {
@@ -42,7 +53,7 @@ export function startOverdueScanner() {
         console.error("[OverdueScanner] 定时扫描失败:", err);
       });
     }
-  }, 60 * 1000); // 每分钟检查一次
+  }, 60 * 1000);
 
   console.log("[OverdueScanner] 超期检测定时任务已启动");
 

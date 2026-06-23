@@ -416,80 +416,84 @@ export function startExpiryScanner() {
 }
 
 async function runExpiryScan() {
-  // 获取启用的预警配置
-  const configs = await query<any>(
-    "SELECT * FROM expiry_alert_config WHERE enabled = 1 ORDER BY days_before_expiry DESC"
+  const tenantRows = await query<any>(
+    "SELECT DISTINCT tenant_id FROM inventory_batch WHERE expiry_date IS NOT NULL"
   );
-  if (configs.length === 0) return;
+  const tenantIds = tenantRows.map((r: any) => r.tenant_id).filter(Boolean);
 
-  // 获取所有未过期且有有效期的批次
-  const batches = await query<any>(
-    `SELECT ib.*, ps.sku_name
-     FROM inventory_batch ib
-     LEFT JOIN product_sku ps ON ps.id = ib.sku_id
-     WHERE ib.expiry_date IS NOT NULL AND ib.quantity > 0`
-  );
+  if (tenantIds.length === 0) return;
 
-  if (batches.length === 0) return;
+  for (const tenantId of tenantIds) {
+    const configs = await query<any>(
+      "SELECT * FROM expiry_alert_config WHERE tenant_id = ? AND enabled = 1 ORDER BY days_before_expiry DESC",
+      [tenantId]
+    );
+    if (configs.length === 0) continue;
 
-  await transaction(async (conn) => {
-    for (const batch of batches) {
-      const [rows] = await conn.execute<any[]>(
-        "SELECT DATEDIFF(?, CURDATE()) AS days_remaining",
-        [batch.expiry_date]
-      );
-      const daysRemaining = (rows as any[])[0]?.days_remaining ?? 0;
+    const batches = await query<any>(
+      `SELECT ib.*, ps.sku_name
+       FROM inventory_batch ib
+       LEFT JOIN product_sku ps ON ps.id = ib.sku_id AND ps.tenant_id = ib.tenant_id
+       WHERE ib.tenant_id = ?
+         AND ib.expiry_date IS NOT NULL
+         AND ib.quantity > 0`,
+      [tenantId]
+    );
 
-      // 匹配预警级别（取最高级别）
-      let matchedConfig: any = null;
-      for (const config of configs) {
-        if (daysRemaining <= config.days_before_expiry && daysRemaining >= 0) {
-          matchedConfig = config;
-          break; // configs已按days_before_expiry DESC排序，第一个匹配的就是最高级别
+    if (batches.length === 0) continue;
+
+    await transaction(async (conn) => {
+      for (const batch of batches) {
+        const [rows] = await conn.execute<any[]>(
+          "SELECT DATEDIFF(?, CURDATE()) AS days_remaining",
+          [batch.expiry_date]
+        );
+        const daysRemaining = (rows as any[])[0]?.days_remaining ?? 0;
+
+        let matchedConfig: any = null;
+        for (const config of configs) {
+          if (daysRemaining <= config.days_before_expiry && daysRemaining >= 0) {
+            matchedConfig = config;
+            break;
+          }
+        }
+
+        if (daysRemaining < 0) {
+          await conn.execute(
+            "UPDATE expiry_alert_record SET status = 'EXPIRED' WHERE batch_id = ? AND tenant_id = ? AND status = 'PENDING'",
+            [batch.id, tenantId]
+          );
+          continue;
+        }
+
+        if (!matchedConfig) continue;
+
+        const [existing] = await conn.execute<any[]>(
+          "SELECT id FROM expiry_alert_record WHERE batch_id = ? AND tenant_id = ? AND alert_level = ? AND status = 'PENDING'",
+          [batch.id, tenantId, matchedConfig.alert_level]
+        );
+
+        if ((existing as any[]).length > 0) {
+          await conn.execute(
+            "UPDATE expiry_alert_record SET days_remaining = ? WHERE batch_id = ? AND tenant_id = ? AND alert_level = ? AND status = 'PENDING'",
+            [daysRemaining, batch.id, tenantId, matchedConfig.alert_level]
+          );
+          continue;
+        }
+
+        await conn.execute(
+          `INSERT INTO expiry_alert_record (tenant_id, batch_id, store_id, sku_id, sku_name, batch_no, production_date, expiry_date, days_remaining, alert_level, action_taken, status)
+           VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'PENDING')`,
+          [tenantId, batch.id, batch.store_id, batch.sku_id, batch.sku_name || "", batch.batch_no, batch.production_date, batch.expiry_date, daysRemaining, matchedConfig.alert_level, matchedConfig.action]
+        );
+
+        if (matchedConfig.action === "BLOCK") {
+          await conn.execute(
+            "UPDATE inventory_batch SET locked_quantity = quantity WHERE id = ? AND tenant_id = ? AND locked_quantity < quantity",
+            [batch.id, tenantId]
+          );
         }
       }
-
-      // 处理已过期
-      if (daysRemaining < 0) {
-        // 更新已过期的预警记录状态
-        await conn.execute(
-          "UPDATE expiry_alert_record SET status = 'EXPIRED' WHERE batch_id = ? AND status = 'PENDING'",
-          [batch.id]
-        );
-        continue;
-      }
-
-      if (!matchedConfig) continue;
-
-      // 检查是否已存在该批次的该级别预警（去重）
-      const [existing] = await conn.execute<any[]>(
-        "SELECT id FROM expiry_alert_record WHERE batch_id = ? AND alert_level = ? AND status = 'PENDING'",
-        [batch.id, matchedConfig.alert_level]
-      );
-
-      if ((existing as any[]).length > 0) {
-        // 更新剩余天数
-        await conn.execute(
-          "UPDATE expiry_alert_record SET days_remaining = ? WHERE batch_id = ? AND alert_level = ? AND status = 'PENDING'",
-          [daysRemaining, batch.id, matchedConfig.alert_level]
-        );
-        continue;
-      }
-
-      // 创建预警记录
-      await conn.execute(
-        `INSERT INTO expiry_alert_record (batch_id, store_id, sku_id, sku_name, batch_no, production_date, expiry_date, days_remaining, alert_level, action_taken, status)
-         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'PENDING')`,
-        [batch.id, batch.store_id, batch.sku_id, batch.sku_name || "", batch.batch_no, batch.production_date, batch.expiry_date, daysRemaining, matchedConfig.alert_level, matchedConfig.action]
-      );
-
-      // BLOCK级别自动锁定库存
-      if (matchedConfig.action === "BLOCK") {
-        await conn.execute(
-          "UPDATE inventory_batch SET locked_quantity = quantity WHERE id = ? AND locked_quantity < quantity",
-          [batch.id]
-        );
-      }
-    }
-  });
+    });
+  }
 }
