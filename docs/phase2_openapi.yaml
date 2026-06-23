@@ -1,1165 +1,1959 @@
-
 openapi: 3.0.3
 info:
-  title: 智享营销系统 API (Phase 2)
-  description: 第 2 阶段：供应商管理 / 采购订单 / 销售退货 / 客户对账收款 / 库存预警
-  version: 1.0.0
-  contact:
-    name: 苏然 - 测试工程师
+  title: 智享营销系统第 2 阶段 API - 快速开单与往来账
+  version: 2.0.0
+  description: >
+    第 2 阶段业务模块接口，覆盖：供应商管理、采购全流程（订单/入库/退货/付款）、
+    销售退货、客户往来账（对账/收款）、库存预警。所有金额单位为元，精确到分。
 servers:
-  - url: http://localhost:8080/api
-    description: 本地开发
-  - url: https://api.onepan.cn/api
-    description: 生产
+  - url: https://api.onepan.cn
+    description: 生产环境
+  - url: http://localhost:8080
+    description: 本地开发环境
+tags:
+  - name: Supplier
+    description: 供应商管理
+  - name: PurchaseOrder
+    description: 采购订单
+  - name: PurchaseInStock
+    description: 采购入库
+  - name: PurchaseReturn
+    description: 采购退货
+  - name: PurchasePayment
+    description: 采购付款
+  - name: SaleReturn
+    description: 销售退货
+  - name: CustomerStatement
+    description: 客户对账单
+  - name: CustomerPayment
+    description: 客户收款
+  - name: InventoryAlert
+    description: 库存预警
+
+security:
+  - bearerAuth: []
 
 paths:
 
-  # ============================================================
-  # 1. 供应商管理
-  # ============================================================
+  # ========== 供应商管理 ==========
 
-  /admin/suppliers:
+  /api/admin/suppliers:
     get:
-      tags: [供应商管理]
-      summary: 供应商列表（分页/搜索）
+      tags: [Supplier]
+      summary: 供应商列表
       parameters:
-        - { name: page, in: query, schema: { type: integer, default: 1 } }
-        - { name: pageSize, in: query, schema: { type: integer, default: 20 } }
-        - { name: keyword, in: query, schema: { type: string } }
-        - { name: supplierType, in: query, schema: { type: string } }
-        - { name: status, in: query, schema: { type: string } }
+        - $ref: '#/components/parameters/Page'
+        - $ref: '#/components/parameters/PageSize'
+        - name: keyword
+          in: query
+          schema:
+            type: string
+          description: 名称/编码/联系人手机号
+        - name: status
+          in: query
+          schema:
+            type: integer
+            enum: [0, 1]
+          description: 0停用 1启用
       responses:
         '200':
-          description: 成功
+          description: 供应商分页列表
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/PageOfSupplier'
+                $ref: '#/components/schemas/SupplierPageResponse'
     post:
-      tags: [供应商管理]
-      summary: 创建供应商
+      tags: [Supplier]
+      summary: 新增供应商
       requestBody:
         required: true
         content:
           application/json:
-            schema: { $ref: '#/components/schemas/SupplierCreateRequest' }
+            schema:
+              $ref: '#/components/schemas/SupplierCreateRequest'
       responses:
         '200':
-          description: 成功
+          description: 新增成功
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/SupplierResponse'
+                $ref: '#/components/schemas/IdResponse'
 
-  /admin/suppliers/{id}:
+  /api/admin/suppliers/{supplierId}:
     get:
-      tags: [供应商管理]
+      tags: [Supplier]
       summary: 供应商详情
       parameters:
-        - { name: id, in: path, required: true, schema: { type: integer } }
+        - $ref: '#/components/parameters/SupplierId'
       responses:
         '200':
+          description: 供应商详情（含联系人列表）
           content:
             application/json:
-              schema: { $ref: '#/components/schemas/SupplierResponse' }
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/ApiResponse'
+                  - type: object
+                    properties:
+                      data:
+                        $ref: '#/components/schemas/SupplierDetail'
     put:
-      tags: [供应商管理]
-      summary: 更新供应商
+      tags: [Supplier]
+      summary: 修改供应商
       parameters:
-        - { name: id, in: path, required: true, schema: { type: integer } }
+        - $ref: '#/components/parameters/SupplierId'
       requestBody:
-        content:
-          application/json:
-            schema: { $ref: '#/components/schemas/SupplierUpdateRequest' }
-      responses:
-        '200':
-          content:
-            application/json:
-              schema: { $ref: '#/components/schemas/SupplierResponse' }
-    delete:
-      tags: [供应商管理]
-      summary: 停用/删除供应商
-      parameters:
-        - { name: id, in: path, required: true, schema: { type: integer } }
-      responses:
-        '200':
-          content:
-            application/json:
-              schema: { $ref: '#/components/schemas/GenericResponse' }
-
-  /admin/suppliers/{id}/contacts:
-    get:
-      tags: [供应商管理]
-      summary: 供应商联系人列表
-      parameters:
-        - { name: id, in: path, required: true, schema: { type: integer } }
-      responses:
-        '200':
-          content:
-            application/json:
-              schema: { $ref: '#/components/schemas/ContactListResponse' }
-    post:
-      tags: [供应商管理]
-      summary: 新增/更新供应商联系人
-      parameters:
-        - { name: id, in: path, required: true, schema: { type: integer } }
-      requestBody:
-        content:
-          application/json:
-            schema: { type: array, items: { $ref: '#/components/schemas/ContactCreateRequest' } }
-      responses:
-        '200':
-          content:
-            application/json:
-              schema: { $ref: '#/components/schemas/GenericResponse' }
-
-  /admin/suppliers/{id}/toggle-status:
-    post:
-      tags: [供应商管理]
-      summary: 启用/停用供应商
-      parameters:
-        - { name: id, in: path, required: true, schema: { type: integer } }
-      requestBody:
+        required: true
         content:
           application/json:
             schema:
-              type: object
-              properties:
-                status: { type: string, enum: [ACTIVE, INACTIVE, BLACKLIST] }
+              $ref: '#/components/schemas/SupplierUpdateRequest'
       responses:
         '200':
+          description: 修改成功
           content:
             application/json:
-              schema: { $ref: '#/components/schemas/GenericResponse' }
+              schema:
+                $ref: '#/components/schemas/ApiResponse'
 
-  # ============================================================
-  # 2. 采购订单
-  # ============================================================
+  /api/admin/suppliers/{supplierId}/contacts:
+    post:
+      tags: [Supplier]
+      summary: 添加供应商联系人
+      parameters:
+        - $ref: '#/components/parameters/SupplierId'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/SupplierContactRequest'
+      responses:
+        '200':
+          description: 添加成功
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/IdResponse'
 
-  /admin/purchase-orders:
+  # ========== 采购订单 ==========
+
+  /api/admin/purchase-orders:
     get:
-      tags: [采购订单]
+      tags: [PurchaseOrder]
       summary: 采购订单列表
       parameters:
-        - { name: page, in: query, schema: { type: integer, default: 1 } }
-        - { name: pageSize, in: query, schema: { type: integer, default: 20 } }
-        - { name: keyword, in: query, schema: { type: string } }
-        - { name: supplierId, in: query, schema: { type: integer } }
-        - { name: orderStatus, in: query, schema: { type: string } }
-        - { name: payStatus, in: query, schema: { type: string } }
-        - { name: dateFrom, in: query, schema: { type: string } }
-        - { name: dateTo, in: query, schema: { type: string } }
+        - $ref: '#/components/parameters/Page'
+        - $ref: '#/components/parameters/PageSize'
+        - name: keyword
+          in: query
+          schema:
+            type: string
+          description: 订单号/供应商名称
+        - name: orderStatus
+          in: query
+          schema:
+            type: string
+            enum: [DRAFT, PENDING, APPROVED, PARTIAL, COMPLETED, CANCELLED]
+        - name: supplierId
+          in: query
+          schema:
+            type: integer
+            format: int64
       responses:
         '200':
+          description: 采购订单分页列表
           content:
             application/json:
-              schema: { $ref: '#/components/schemas/PageOfPurchaseOrder' }
+              schema:
+                $ref: '#/components/schemas/PurchaseOrderPageResponse'
     post:
-      tags: [采购订单]
+      tags: [PurchaseOrder]
       summary: 创建采购订单
       requestBody:
+        required: true
         content:
           application/json:
-            schema: { $ref: '#/components/schemas/PurchaseOrderCreateRequest' }
+            schema:
+              $ref: '#/components/schemas/PurchaseOrderCreateRequest'
       responses:
         '200':
+          description: 创建成功
           content:
             application/json:
-              schema: { $ref: '#/components/schemas/PurchaseOrderResponse' }
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/ApiResponse'
+                  - type: object
+                    properties:
+                      data:
+                        $ref: '#/components/schemas/PurchaseOrder'
 
-  /admin/purchase-orders/{orderNo}:
+  /api/admin/purchase-orders/{orderNo}:
     get:
-      tags: [采购订单]
+      tags: [PurchaseOrder]
       summary: 采购订单详情
       parameters:
-        - { name: orderNo, in: path, required: true, schema: { type: string } }
+        - $ref: '#/components/parameters/OrderNo'
       responses:
         '200':
+          description: 采购订单详情（含明细）
           content:
             application/json:
-              schema: { $ref: '#/components/schemas/PurchaseOrderDetailResponse' }
-    put:
-      tags: [采购订单]
-      summary: 修改采购订单（仅 DRAFT 状态）
-      parameters:
-        - { name: orderNo, in: path, required: true, schema: { type: string } }
-      requestBody:
-        content:
-          application/json:
-            schema: { $ref: '#/components/schemas/PurchaseOrderUpdateRequest' }
-      responses:
-        '200':
-          content:
-            application/json:
-              schema: { $ref: '#/components/schemas/PurchaseOrderResponse' }
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/ApiResponse'
+                  - type: object
+                    properties:
+                      data:
+                        $ref: '#/components/schemas/PurchaseOrderDetail'
 
-  /admin/purchase-orders/{orderNo}/submit:
+  /api/admin/purchase-orders/{orderNo}/approve:
     post:
-      tags: [采购订单]
-      summary: 提交采购订单（DRAFT → SUBMITTED）
+      tags: [PurchaseOrder]
+      summary: 审核采购订单
       parameters:
-        - { name: orderNo, in: path, required: true, schema: { type: string } }
+        - $ref: '#/components/parameters/OrderNo'
       responses:
         '200':
+          description: 审核成功
           content:
             application/json:
-              schema: { $ref: '#/components/schemas/GenericResponse' }
+              schema:
+                $ref: '#/components/schemas/ApiResponse'
 
-  /admin/purchase-orders/{orderNo}/audit:
+  /api/admin/purchase-orders/{orderNo}/cancel:
     post:
-      tags: [采购订单]
-      summary: 审核采购订单（SUBMITTED → AUDITED）
+      tags: [PurchaseOrder]
+      summary: 取消采购订单
       parameters:
-        - { name: orderNo, in: path, required: true, schema: { type: string } }
-      requestBody:
-        content:
-          application/json:
-            schema:
-              type: object
-              properties:
-                passed: { type: boolean }
-                remark: { type: string }
+        - $ref: '#/components/parameters/OrderNo'
       responses:
         '200':
+          description: 取消成功
           content:
             application/json:
-              schema: { $ref: '#/components/schemas/GenericResponse' }
+              schema:
+                $ref: '#/components/schemas/ApiResponse'
 
-  /admin/purchase-orders/{orderNo}/inbound:
-    post:
-      tags: [采购订单]
-      summary: 采购入库（AUDITED → INBOUND_PARTIAL/INBOUND_COMPLETED，并写入库存流水）
-      parameters:
-        - { name: orderNo, in: path, required: true, schema: { type: string } }
-      requestBody:
-        content:
-          application/json:
-            schema: { $ref: '#/components/schemas/PurchaseInboundRequest' }
-      responses:
-        '200':
-          content:
-            application/json:
-              schema: { $ref: '#/components/schemas/GenericResponse' }
+  # ========== 采购入库 ==========
 
-  /admin/purchase-orders/{orderNo}/pay:
-    post:
-      tags: [采购订单]
-      summary: 采购付款登记
-      parameters:
-        - { name: orderNo, in: path, required: true, schema: { type: string } }
-      requestBody:
-        content:
-          application/json:
-            schema:
-              type: object
-              required: [amount, payMethod, payDate]
-              properties:
-                amount: { type: number, description: 付款金额 }
-                payMethod: { type: string, enum: [BANK_TRANSFER, CASH, CHECK, WECHAT, ALIPAY] }
-                payDate: { type: string, format: date }
-                payRef: { type: string }
-                remark: { type: string }
-      responses:
-        '200':
-          content:
-            application/json:
-              schema: { $ref: '#/components/schemas/GenericResponse' }
-
-  /admin/purchase-orders/{orderNo}/cancel:
-    post:
-      tags: [采购订单]
-      summary: 取消采购订单（仅 DRAFT/SUBMITTED，需记录作废原因）
-      parameters:
-        - { name: orderNo, in: path, required: true, schema: { type: string } }
-      requestBody:
-        content:
-          application/json:
-            schema:
-              type: object
-              properties:
-                reason: { type: string }
-      responses:
-        '200':
-          content:
-            application/json:
-              schema: { $ref: '#/components/schemas/GenericResponse' }
-
-  # ============================================================
-  # 3. 销售退货
-  # ============================================================
-
-  /admin/sales-returns:
+  /api/admin/purchase-in-stocks:
     get:
-      tags: [销售退货]
-      summary: 退货单列表
+      tags: [PurchaseInStock]
+      summary: 采购入库单列表
       parameters:
-        - { name: page, in: query, schema: { type: integer, default: 1 } }
-        - { name: pageSize, in: query, schema: { type: integer, default: 20 } }
-        - { name: keyword, in: query, schema: { type: string } }
-        - { name: sourceNo, in: query, schema: { type: string } }
-        - { name: returnStatus, in: query, schema: { type: string } }
-        - { name: dateFrom, in: query, schema: { type: string } }
-        - { name: dateTo, in: query, schema: { type: string } }
+        - $ref: '#/components/parameters/Page'
+        - $ref: '#/components/parameters/PageSize'
+        - name: keyword
+          in: query
+          schema:
+            type: string
+        - name: stockStatus
+          in: query
+          schema:
+            type: string
+            enum: [PENDING, COMPLETED, VOIDED]
       responses:
         '200':
+          description: 入库单分页列表
           content:
             application/json:
-              schema: { $ref: '#/components/schemas/PageOfSalesReturn' }
+              schema:
+                $ref: '#/components/schemas/PurchaseInStockPageResponse'
     post:
-      tags: [销售退货]
-      summary: 创建退货单
+      tags: [PurchaseInStock]
+      summary: 创建采购入库单
+      description: |
+        支持两种模式：
+        1. 按采购订单入库：传入 orderNo，系统自动带出订单明细
+        2. 直接入库：不传入 orderNo，手动填写明细（用于无订单采购）
+        入库审核通过后自动增加库存。
       requestBody:
+        required: true
         content:
           application/json:
-            schema: { $ref: '#/components/schemas/SalesReturnCreateRequest' }
+            schema:
+              $ref: '#/components/schemas/PurchaseInStockCreateRequest'
       responses:
         '200':
+          description: 创建成功
           content:
             application/json:
-              schema: { $ref: '#/components/schemas/SalesReturnResponse' }
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/ApiResponse'
+                  - type: object
+                    properties:
+                      data:
+                        $ref: '#/components/schemas/PurchaseInStock'
 
-  /admin/sales-returns/{returnNo}:
+  /api/admin/purchase-in-stocks/{stockNo}:
     get:
-      tags: [销售退货]
+      tags: [PurchaseInStock]
+      summary: 入库单详情
+      parameters:
+        - $ref: '#/components/parameters/StockNo'
+      responses:
+        '200':
+          description: 入库单详情（含明细）
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/ApiResponse'
+                  - type: object
+                    properties:
+                      data:
+                        $ref: '#/components/schemas/PurchaseInStockDetail'
+
+  /api/admin/purchase-in-stocks/{stockNo}/approve:
+    post:
+      tags: [PurchaseInStock]
+      summary: 审核入库单（审核后增加库存）
+      parameters:
+        - $ref: '#/components/parameters/StockNo'
+      responses:
+        '200':
+          description: 审核成功
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponse'
+
+  /api/admin/purchase-in-stocks/{stockNo}/void:
+    post:
+      tags: [PurchaseInStock]
+      summary: 作废入库单（回滚库存）
+      parameters:
+        - $ref: '#/components/parameters/StockNo'
+      responses:
+        '200':
+          description: 作废成功
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponse'
+
+  # ========== 采购退货 ==========
+
+  /api/admin/purchase-returns:
+    get:
+      tags: [PurchaseReturn]
+      summary: 采购退货单列表
+      parameters:
+        - $ref: '#/components/parameters/Page'
+        - $ref: '#/components/parameters/PageSize'
+        - name: keyword
+          in: query
+          schema:
+            type: string
+      responses:
+        '200':
+          description: 退货单分页列表
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PurchaseReturnPageResponse'
+    post:
+      tags: [PurchaseReturn]
+      summary: 创建采购退货单
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PurchaseReturnCreateRequest'
+      responses:
+        '200':
+          description: 创建成功
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/ApiResponse'
+                  - type: object
+                    properties:
+                      data:
+                        $ref: '#/components/schemas/PurchaseReturn'
+
+  /api/admin/purchase-returns/{returnNo}:
+    get:
+      tags: [PurchaseReturn]
       summary: 退货单详情
       parameters:
-        - { name: returnNo, in: path, required: true, schema: { type: string } }
+        - $ref: '#/components/parameters/ReturnNo'
       responses:
         '200':
+          description: 退货单详情
           content:
             application/json:
-              schema: { $ref: '#/components/schemas/SalesReturnDetailResponse' }
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/ApiResponse'
+                  - type: object
+                    properties:
+                      data:
+                        $ref: '#/components/schemas/PurchaseReturnDetail'
 
-  /admin/sales-returns/{returnNo}/submit:
+  /api/admin/purchase-returns/{returnNo}/approve:
     post:
-      tags: [销售退货]
-      summary: 提交退货单（DRAFT → SUBMITTED）
-      responses:
-        '200':
-          content:
-            application/json:
-              schema: { $ref: '#/components/schemas/GenericResponse' }
-
-  /admin/sales-returns/{returnNo}/audit:
-    post:
-      tags: [销售退货]
-      summary: 审核退货单（SUBMITTED → AUDITED）
+      tags: [PurchaseReturn]
+      summary: 审核退货单（审核后扣减库存）
       parameters:
-        - { name: returnNo, in: path, required: true, schema: { type: string } }
-      requestBody:
-        content:
-          application/json:
-            schema:
-              type: object
-              properties:
-                passed: { type: boolean }
-                remark: { type: string }
+        - $ref: '#/components/parameters/ReturnNo'
       responses:
         '200':
+          description: 审核成功
           content:
             application/json:
-              schema: { $ref: '#/components/schemas/GenericResponse' }
+              schema:
+                $ref: '#/components/schemas/ApiResponse'
 
-  /admin/sales-returns/{returnNo}/stock-in:
-    post:
-      tags: [销售退货]
-      summary: 退货入库并回滚库存（AUDITED → INBOUND/COMPLETED）
-      parameters:
-        - { name: returnNo, in: path, required: true, schema: { type: string } }
-      responses:
-        '200':
-          content:
-            application/json:
-              schema: { $ref: '#/components/schemas/GenericResponse' }
+  # ========== 采购付款 ==========
 
-  /admin/sales-returns/{returnNo}/refund:
-    post:
-      tags: [销售退货]
-      summary: 退款登记（可选多次）
-      parameters:
-        - { name: returnNo, in: path, required: true, schema: { type: string } }
-      requestBody:
-        content:
-          application/json:
-            schema:
-              type: object
-              required: [amount, payMethod]
-              properties:
-                amount: { type: number }
-                payMethod: { type: string, enum: [CASH, BANK_TRANSFER, WECHAT, ALIPAY] }
-                remark: { type: string }
-      responses:
-        '200':
-          content:
-            application/json:
-              schema: { $ref: '#/components/schemas/GenericResponse' }
-
-  /admin/sales-returns/{returnNo}/cancel:
-    post:
-      tags: [销售退货]
-      summary: 取消退货单（仅 DRAFT/SUBMITTED）
-      parameters:
-        - { name: returnNo, in: path, required: true, schema: { type: string } }
-      requestBody:
-        content:
-          application/json:
-            schema:
-              type: object
-              properties:
-                reason: { type: string }
-      responses:
-        '200':
-          content:
-            application/json:
-              schema: { $ref: '#/components/schemas/GenericResponse' }
-
-  # ============================================================
-  # 4. 客户对账/收款
-  # ============================================================
-
-  /admin/statements:
+  /api/admin/purchase-payments:
     get:
-      tags: [客户对账收款]
-      summary: 对账单列表
+      tags: [PurchasePayment]
+      summary: 采购付款单列表
       parameters:
-        - { name: page, in: query, schema: { type: integer, default: 1 } }
-        - { name: pageSize, in: query, schema: { type: integer, default: 20 } }
-        - { name: customerId, in: query, schema: { type: integer } }
-        - { name: statementStatus, in: query, schema: { type: string } }
-        - { name: collectionStatus, in: query, schema: { type: string } }
-        - { name: periodStart, in: query, schema: { type: string } }
-        - { name: periodEnd, in: query, schema: { type: string } }
+        - $ref: '#/components/parameters/Page'
+        - $ref: '#/components/parameters/PageSize'
+        - name: supplierId
+          in: query
+          schema:
+            type: integer
+            format: int64
+        - name: status
+          in: query
+          schema:
+            type: string
+            enum: [PENDING, COMPLETED, VOIDED]
       responses:
         '200':
+          description: 付款单分页列表
           content:
             application/json:
-              schema: { $ref: '#/components/schemas/PageOfStatement' }
-
-  /admin/statements/generate:
+              schema:
+                $ref: '#/components/schemas/PurchasePaymentPageResponse'
     post:
-      tags: [客户对账收款]
-      summary: 自动生成客户对账单（按 period + customer 聚合销售单/退货单）
+      tags: [PurchasePayment]
+      summary: 创建采购付款单
       requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PurchasePaymentCreateRequest'
+      responses:
+        '200':
+          description: 创建成功
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/ApiResponse'
+                  - type: object
+                    properties:
+                      data:
+                        $ref: '#/components/schemas/PurchasePayment'
+
+  /api/admin/purchase-payments/{paymentNo}/approve:
+    post:
+      tags: [PurchasePayment]
+      summary: 审核付款单
+      parameters:
+        - name: paymentNo
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: 审核成功
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponse'
+
+  # ========== 销售退货 ==========
+
+  /api/store/sale-returns:
+    get:
+      tags: [SaleReturn]
+      summary: 销售退货单列表
+      parameters:
+        - $ref: '#/components/parameters/Page'
+        - $ref: '#/components/parameters/PageSize'
+        - name: keyword
+          in: query
+          schema:
+            type: string
+        - name: returnStatus
+          in: query
+          schema:
+            type: string
+            enum: [PENDING, COMPLETED, VOIDED]
+      responses:
+        '200':
+          description: 销售退货单列表
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SaleReturnPageResponse'
+    post:
+      tags: [SaleReturn]
+      summary: 创建销售退货单
+      description: |
+        支持两种模式：
+        1. 按销售单退货：传入 sourceBillNo，系统带出原单商品
+        2. 直接退货：不传入 sourceBillNo，手动填写
+        退货审核通过后自动增加库存。
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/SaleReturnCreateRequest'
+      responses:
+        '200':
+          description: 创建成功
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/ApiResponse'
+                  - type: object
+                    properties:
+                      data:
+                        $ref: '#/components/schemas/SaleReturn'
+
+  /api/store/sale-returns/{returnNo}:
+    get:
+      tags: [SaleReturn]
+      summary: 销售退货单详情
+      parameters:
+        - $ref: '#/components/parameters/ReturnNo'
+      responses:
+        '200':
+          description: 退货单详情
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/ApiResponse'
+                  - type: object
+                    properties:
+                      data:
+                        $ref: '#/components/schemas/SaleReturnDetail'
+
+  /api/store/sale-returns/{returnNo}/approve:
+    post:
+      tags: [SaleReturn]
+      summary: 审核销售退货（增加库存）
+      parameters:
+        - $ref: '#/components/parameters/ReturnNo'
+      responses:
+        '200':
+          description: 审核成功
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponse'
+
+  /api/store/sale-returns/{returnNo}/refund:
+    post:
+      tags: [SaleReturn]
+      summary: 确认退款（现金/原路退回）
+      parameters:
+        - $ref: '#/components/parameters/ReturnNo'
+      requestBody:
+        required: true
         content:
           application/json:
             schema:
               type: object
-              required: [customerId, periodStart, periodEnd]
+              required: [amount, refundMethod]
               properties:
-                customerId: { type: integer }
-                periodStart: { type: string, format: date }
-                periodEnd: { type: string, format: date }
-                remark: { type: string }
+                amount:
+                  type: number
+                refundMethod:
+                  type: string
+                  enum: [CASH, WECHAT, BANK]
+                remark:
+                  type: string
       responses:
         '200':
+          description: 退款成功
           content:
             application/json:
-              schema: { $ref: '#/components/schemas/StatementResponse' }
+              schema:
+                $ref: '#/components/schemas/ApiResponse'
 
-  /admin/statements/{statementNo}:
+  # ========== 客户对账单 ==========
+
+  /api/store/customer-statements:
     get:
-      tags: [客户对账收款]
-      summary: 对账单详情（含明细列表）
+      tags: [CustomerStatement]
+      summary: 客户对账单列表
       parameters:
-        - { name: statementNo, in: path, required: true, schema: { type: string } }
+        - $ref: '#/components/parameters/Page'
+        - $ref: '#/components/parameters/PageSize'
+        - name: customerId
+          in: query
+          schema:
+            type: integer
+            format: int64
+        - name: status
+          in: query
+          schema:
+            type: string
+            enum: [DRAFT, CONFIRMED, PAID]
       responses:
         '200':
+          description: 对账单列表
           content:
             application/json:
-              schema: { $ref: '#/components/schemas/StatementDetailResponse' }
-
-  /admin/statements/{statementNo}/confirm:
+              schema:
+                $ref: '#/components/schemas/CustomerStatementPageResponse'
     post:
-      tags: [客户对账收款]
-      summary: 确认对账单（DRAFT → CONFIRMED）
-      parameters:
-        - { name: statementNo, in: path, required: true, schema: { type: string } }
-      responses:
-        '200':
-          content:
-            application/json:
-              schema: { $ref: '#/components/schemas/GenericResponse' }
-
-  /admin/statements/{statementNo}/payments:
-    post:
-      tags: [客户对账收款]
-      summary: 登记收款（支持多次、部分金额）
-      parameters:
-        - { name: statementNo, in: path, required: true, schema: { type: string } }
+      tags: [CustomerStatement]
+      summary: 生成客户对账单
+      description: 按客户+时间段生成对账单，汇总该期间的销售、退货、收款。
       requestBody:
+        required: true
         content:
           application/json:
             schema:
-              type: object
-              required: [amount, payMethod, payDate]
-              properties:
-                amount: { type: number, description: 收款金额 }
-                payMethod: { type: string, enum: [CASH, BANK_TRANSFER, WECHAT, ALIPAY, CHECK] }
-                payDate: { type: string, format: date }
-                payRef: { type: string }
-                relatedBillNo: { type: string }
-                remark: { type: string }
+              $ref: '#/components/schemas/CustomerStatementCreateRequest'
       responses:
         '200':
+          description: 生成成功
           content:
             application/json:
-              schema: { $ref: '#/components/schemas/GenericResponse' }
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/ApiResponse'
+                  - type: object
+                    properties:
+                      data:
+                        $ref: '#/components/schemas/CustomerStatement'
 
-  /admin/statements/{statementNo}/collection-link:
-    post:
-      tags: [客户对账收款]
-      summary: 生成分享收款链接（复用 phase1 collection_link）
+  /api/store/customer-statements/{statementNo}:
+    get:
+      tags: [CustomerStatement]
+      summary: 对账单详情
       parameters:
-        - { name: statementNo, in: path, required: true, schema: { type: string } }
+        - name: statementNo
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: 对账单详情（含明细流水）
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/ApiResponse'
+                  - type: object
+                    properties:
+                      data:
+                        $ref: '#/components/schemas/CustomerStatementDetail'
+
+  /api/store/customer-statements/{statementNo}/confirm:
+    post:
+      tags: [CustomerStatement]
+      summary: 确认对账单
+      parameters:
+        - name: statementNo
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: 确认成功
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponse'
+
+  # ========== 客户收款 ==========
+
+  /api/store/customer-payments:
+    get:
+      tags: [CustomerPayment]
+      summary: 客户收款记录列表
+      parameters:
+        - $ref: '#/components/parameters/Page'
+        - $ref: '#/components/parameters/PageSize'
+        - name: customerId
+          in: query
+          schema:
+            type: integer
+            format: int64
+      responses:
+        '200':
+          description: 收款记录列表
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CustomerPaymentPageResponse'
+    post:
+      tags: [CustomerPayment]
+      summary: 创建客户收款单
+      description: 支持按销售单收款、按对账单收款、预收款。
       requestBody:
+        required: true
         content:
           application/json:
             schema:
-              type: object
-              properties:
-                amount: { type: number }
-                expireHours: { type: integer, default: 72 }
+              $ref: '#/components/schemas/CustomerPaymentCreateRequest'
       responses:
         '200':
+          description: 创建成功
           content:
             application/json:
-              schema: { $ref: '#/components/schemas/ShareLinkResponse' }
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/ApiResponse'
+                  - type: object
+                    properties:
+                      data:
+                        $ref: '#/components/schemas/CustomerPayment'
 
-  /admin/customers/{customerId}/balance:
-    get:
-      tags: [客户对账收款]
-      summary: 客户余额（应收账款）
-      parameters:
-        - { name: customerId, in: path, required: true, schema: { type: integer } }
-      responses:
-        '200':
-          content:
-            application/json:
-              schema: { $ref: '#/components/schemas/CustomerBalanceResponse' }
-
-  # ============================================================
-  # 5. 库存预警
-  # ============================================================
-
-  /admin/inventory/warnings:
-    get:
-      tags: [库存预警]
-      summary: 预警事件列表
-      parameters:
-        - { name: page, in: query, schema: { type: integer, default: 1 } }
-        - { name: pageSize, in: query, schema: { type: integer, default: 20 } }
-        - { name: eventStatus, in: query, schema: { type: string } }
-        - { name: alertLevel, in: query, schema: { type: string } }
-        - { name: ruleType, in: query, schema: { type: string } }
-        - { name: storeId, in: query, schema: { type: integer } }
-        - { name: skuId, in: query, schema: { type: integer } }
-      responses:
-        '200':
-          content:
-            application/json:
-              schema: { $ref: '#/components/schemas/PageOfWarningEvent' }
-
-  /admin/inventory/warnings/trigger:
+  /api/store/customer-payments/{receiptNo}/void:
     post:
-      tags: [库存预警]
-      summary: 手动触发一次全表扫描（测试/修复数据）
+      tags: [CustomerPayment]
+      summary: 作废收款单
+      parameters:
+        - name: receiptNo
+          in: path
+          required: true
+          schema:
+            type: string
       responses:
         '200':
+          description: 作废成功
           content:
             application/json:
-              schema: { $ref: '#/components/schemas/GenericResponse' }
+              schema:
+                $ref: '#/components/schemas/ApiResponse'
 
-  /admin/inventory/warnings/{eventNo}/ack:
-    post:
-      tags: [库存预警]
-      summary: 确认预警（PENDING → ACKNOWLEDGED）
+  # ========== 库存预警 ==========
+
+  /api/admin/inventory-alerts:
+    get:
+      tags: [InventoryAlert]
+      summary: 库存预警列表
       parameters:
-        - { name: eventNo, in: path, required: true, schema: { type: string } }
+        - name: storeId
+          in: query
+          schema:
+            type: integer
+            format: int64
+        - name: alertType
+          in: query
+          schema:
+            type: string
+            enum: [LOW_STOCK, OVERSTOCK, EXPIRY]
+      responses:
+        '200':
+          description: 预警列表
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/ApiResponse'
+                  - type: object
+                    properties:
+                      data:
+                        type: array
+                        items:
+                          $ref: '#/components/schemas/InventoryAlertItem'
+
+  /api/admin/inventory-alerts/settings:
+    get:
+      tags: [InventoryAlert]
+      summary: 获取预警设置
+      responses:
+        '200':
+          description: 预警设置
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/ApiResponse'
+                  - type: object
+                    properties:
+                      data:
+                        $ref: '#/components/schemas/InventoryAlertSettings'
+    put:
+      tags: [InventoryAlert]
+      summary: 更新预警设置
       requestBody:
+        required: true
         content:
           application/json:
             schema:
-              type: object
-              properties:
-                remark: { type: string }
+              $ref: '#/components/schemas/InventoryAlertSettings'
       responses:
         '200':
+          description: 更新成功
           content:
             application/json:
-              schema: { $ref: '#/components/schemas/GenericResponse' }
-
-  /admin/inventory/warnings/{eventNo}/resolve:
-    post:
-      tags: [库存预警]
-      summary: 标记已解决（ACKNOWLEDGED → RESOLVED）
-      parameters:
-        - { name: eventNo, in: path, required: true, schema: { type: string } }
-      requestBody:
-        content:
-          application/json:
-            schema:
-              type: object
-              properties:
-                remark: { type: string }
-      responses:
-        '200':
-          content:
-            application/json:
-              schema: { $ref: '#/components/schemas/GenericResponse' }
-
-  /admin/inventory/warning-rules:
-    get:
-      tags: [库存预警]
-      summary: 预警规则列表
-      responses:
-        '200':
-          content:
-            application/json:
-              schema: { $ref: '#/components/schemas/WarningRuleListResponse' }
-    post:
-      tags: [库存预警]
-      summary: 创建/更新预警规则
-      requestBody:
-        content:
-          application/json:
-            schema: { $ref: '#/components/schemas/WarningRuleRequest' }
-      responses:
-        '200':
-          content:
-            application/json:
-              schema: { $ref: '#/components/schemas/GenericResponse' }
-
-  /admin/inventory/alerts/snapshot:
-    get:
-      tags: [库存预警]
-      summary: 当前低库存 SKU 快照（仪表盘使用）
-      parameters:
-        - { name: storeId, in: query, schema: { type: integer } }
-        - { name: threshold, in: query, schema: { type: integer, default: 5 } }
-      responses:
-        '200':
-          content:
-            application/json:
-              schema: { $ref: '#/components/schemas/AlertSnapshotResponse' }
+              schema:
+                $ref: '#/components/schemas/ApiResponse'
 
 components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+
+  parameters:
+    Page:
+      name: page
+      in: query
+      schema:
+        type: integer
+        minimum: 1
+        default: 1
+    PageSize:
+      name: pageSize
+      in: query
+      schema:
+        type: integer
+        minimum: 1
+        maximum: 100
+        default: 20
+    SupplierId:
+      name: supplierId
+      in: path
+      required: true
+      schema:
+        type: integer
+        format: int64
+    OrderNo:
+      name: orderNo
+      in: path
+      required: true
+      schema:
+        type: string
+    StockNo:
+      name: stockNo
+      in: path
+      required: true
+      schema:
+        type: string
+    ReturnNo:
+      name: returnNo
+      in: path
+      required: true
+      schema:
+        type: string
+
   schemas:
-    # ==========================================================
-    # 通用
-    # ==========================================================
-    GenericResponse:
+    ApiResponse:
       type: object
+      required: [code, message]
       properties:
-        code: { type: string, example: "0" }
-        message: { type: string }
-        data: { type: object, nullable: true }
+        code:
+          type: string
+          example: "0"
+        message:
+          type: string
+          example: 成功
+        traceId:
+          type: string
 
-    PageInfo:
+    IdResponse:
+      allOf:
+        - $ref: '#/components/schemas/ApiResponse'
+        - type: object
+          properties:
+            data:
+              type: object
+              properties:
+                id:
+                  type: integer
+                  format: int64
+
+    PageResponse:
       type: object
+      required: [total, page, pageSize, records]
       properties:
-        page: { type: integer }
-        pageSize: { type: integer }
-        total: { type: integer }
+        total:
+          type: integer
+        page:
+          type: integer
+        pageSize:
+          type: integer
+        records:
+          type: array
+          items:
+            type: object
 
-    # ==========================================================
-    # 供应商
-    # ==========================================================
+    # ========== 供应商 ==========
     Supplier:
       type: object
       properties:
-        id: { type: integer }
-        supplierCode: { type: string }
-        supplierName: { type: string }
-        contactName: { type: string }
-        contactPhone: { type: string }
-        address: { type: string }
-        taxNo: { type: string }
-        bankName: { type: string }
-        bankAccount: { type: string }
-        creditLimit: { type: number }
-        creditDays: { type: integer }
-        settlementCycle: { type: string }
-        supplierType: { type: string }
-        levelCode: { type: string }
-        status: { type: string }
-        remark: { type: string }
-        createdAt: { type: string }
+        id:
+          type: integer
+          format: int64
+        supplierCode:
+          type: string
+        name:
+          type: string
+        shortName:
+          type: string
+        category:
+          type: string
+          enum: [酒厂, 经销商, 批发商]
+        province:
+          type: string
+        city:
+          type: string
+        district:
+          type: string
+        address:
+          type: string
+        creditLevel:
+          type: string
+          enum: [A, B, C, D]
+        settlementType:
+          type: string
+          enum: [CASH, MONTHLY, QUARTERLY]
+        settlementDay:
+          type: integer
+        taxRate:
+          type: number
+        bankName:
+          type: string
+        bankAccount:
+          type: string
+        bankAccountName:
+          type: string
+        status:
+          type: integer
+          enum: [0, 1]
+        remark:
+          type: string
+        createdAt:
+          type: string
+          format: date-time
 
-    PageOfSupplier:
+    SupplierContact:
       type: object
       properties:
-        code: { type: string }
-        data:
-          type: object
+        id:
+          type: integer
+          format: int64
+        name:
+          type: string
+        mobile:
+          type: string
+        phone:
+          type: string
+        email:
+          type: string
+        wechat:
+          type: string
+        isPrimary:
+          type: integer
+          enum: [0, 1]
+        position:
+          type: string
+
+    SupplierDetail:
+      allOf:
+        - $ref: '#/components/schemas/Supplier'
+        - type: object
           properties:
-            records: { type: array, items: { $ref: '#/components/schemas/Supplier' } }
-            page: { type: integer }
-            pageSize: { type: integer }
-            total: { type: integer }
+            contacts:
+              type: array
+              items:
+                $ref: '#/components/schemas/SupplierContact'
 
     SupplierCreateRequest:
       type: object
-      required: [supplierName]
+      required: [supplierCode, name, settlementType]
       properties:
-        supplierName: { type: string }
-        contactName: { type: string }
-        contactPhone: { type: string }
-        address: { type: string }
-        taxNo: { type: string }
-        bankName: { type: string }
-        bankAccount: { type: string }
-        creditLimit: { type: number, default: 0 }
-        creditDays: { type: integer, default: 30 }
-        settlementCycle: { type: string, default: MONTHLY }
-        supplierType: { type: string, default: BRAND }
-        levelCode: { type: string }
-        remark: { type: string }
+        supplierCode:
+          type: string
+          description: 供应商编码，唯一
+        name:
+          type: string
+        shortName:
+          type: string
+        category:
+          type: string
+        province:
+          type: string
+        city:
+          type: string
+        district:
+          type: string
+        address:
+          type: string
+        creditLevel:
+          type: string
+          default: B
+        settlementType:
+          type: string
+          enum: [CASH, MONTHLY, QUARTERLY]
+        settlementDay:
+          type: integer
+        taxRate:
+          type: number
+          default: 0
+        bankName:
+          type: string
+        bankAccount:
+          type: string
+        bankAccountName:
+          type: string
+        remark:
+          type: string
         contacts:
           type: array
-          items: { $ref: '#/components/schemas/ContactCreateRequest' }
+          items:
+            $ref: '#/components/schemas/SupplierContactRequest'
 
     SupplierUpdateRequest:
-      type: object
-      properties:
-        supplierName: { type: string }
-        contactName: { type: string }
-        contactPhone: { type: string }
-        address: { type: string }
-        taxNo: { type: string }
-        bankName: { type: string }
-        bankAccount: { type: string }
-        creditLimit: { type: number }
-        creditDays: { type: integer }
-        settlementCycle: { type: string }
-        supplierType: { type: string }
-        levelCode: { type: string }
-        status: { type: string }
-        remark: { type: string }
+      allOf:
+        - $ref: '#/components/schemas/SupplierCreateRequest'
 
-    SupplierResponse:
+    SupplierContactRequest:
       type: object
+      required: [name]
       properties:
-        code: { type: string }
-        data: { $ref: '#/components/schemas/Supplier' }
+        name:
+          type: string
+        mobile:
+          type: string
+        phone:
+          type: string
+        email:
+          type: string
+        wechat:
+          type: string
+        isPrimary:
+          type: integer
+          default: 0
+        position:
+          type: string
 
-    ContactCreateRequest:
-      type: object
-      properties:
-        contactName: { type: string }
-        contactRole: { type: string }
-        contactPhone: { type: string }
-        contactEmail: { type: string }
-        isPrimary: { type: boolean, default: false }
+    SupplierPageResponse:
+      allOf:
+        - $ref: '#/components/schemas/ApiResponse'
+        - type: object
+          properties:
+            data:
+              allOf:
+                - $ref: '#/components/schemas/PageResponse'
+                - type: object
+                  properties:
+                    records:
+                      type: array
+                      items:
+                        $ref: '#/components/schemas/Supplier'
 
-    ContactListResponse:
-      type: object
-      properties:
-        code: { type: string }
-        data:
-          type: array
-          items:
-            type: object
-            properties:
-              id: { type: integer }
-              contactName: { type: string }
-              contactRole: { type: string }
-              contactPhone: { type: string }
-              contactEmail: { type: string }
-              isPrimary: { type: boolean }
-
-    # ==========================================================
-    # 采购订单
-    # ==========================================================
+    # ========== 采购订单 ==========
     PurchaseOrder:
       type: object
       properties:
-        id: { type: integer }
-        orderNo: { type: string }
-        storeId: { type: integer }
-        supplierId: { type: integer }
-        supplierName: { type: string }
-        orderType: { type: string }
-        orderStatus: { type: string }
-        payStatus: { type: string }
-        goodsAmount: { type: number }
-        taxAmount: { type: number }
-        discountAmount: { type: number }
-        payableAmount: { type: number }
-        paidAmount: { type: number }
-        expectDate: { type: string }
-        auditTime: { type: string }
-        created_at: { type: string }
+        orderNo:
+          type: string
+        supplierId:
+          type: integer
+          format: int64
+        supplierName:
+          type: string
+        storeId:
+          type: integer
+          format: int64
+        orderStatus:
+          type: string
+          enum: [DRAFT, PENDING, APPROVED, PARTIAL, COMPLETED, CANCELLED]
+        goodsAmount:
+          type: number
+        taxAmount:
+          type: number
+        discountAmount:
+          type: number
+        payableAmount:
+          type: number
+        paidAmount:
+          type: number
+        unpaidAmount:
+          type: number
+        expectedDate:
+          type: string
+          format: date
+        actualDate:
+          type: string
+          format: date
+        operatorId:
+          type: integer
+          format: int64
+        auditorId:
+          type: integer
+          format: int64
+        auditedAt:
+          type: string
+          format: date-time
+        remark:
+          type: string
+        createdAt:
+          type: string
+          format: date-time
 
-    PageOfPurchaseOrder:
+    PurchaseOrderItem:
       type: object
       properties:
-        code: { type: string }
-        data:
-          type: object
+        skuId:
+          type: integer
+          format: int64
+        skuName:
+          type: string
+        barcode:
+          type: string
+        boxQty:
+          type: integer
+        bottleQty:
+          type: integer
+        totalBottleQty:
+          type: integer
+        unitPrice:
+          type: number
+        taxRate:
+          type: number
+        subtotalAmount:
+          type: number
+        taxAmount:
+          type: number
+        totalAmount:
+          type: number
+        inStockedQty:
+          type: integer
+
+    PurchaseOrderDetail:
+      allOf:
+        - $ref: '#/components/schemas/PurchaseOrder'
+        - type: object
           properties:
-            records: { type: array, items: { $ref: '#/components/schemas/PurchaseOrder' } }
-            page: { type: integer }
-            pageSize: { type: integer }
-            total: { type: integer }
+            items:
+              type: array
+              items:
+                $ref: '#/components/schemas/PurchaseOrderItem'
 
     PurchaseOrderCreateRequest:
       type: object
-      required: [storeId, supplierId, items]
+      required: [supplierId, storeId, items]
       properties:
-        storeId: { type: integer }
-        supplierId: { type: integer }
-        orderType: { type: string, default: PURCHASE }
-        expectDate: { type: string, format: date }
-        discountAmount: { type: number, default: 0 }
-        remark: { type: string }
+        supplierId:
+          type: integer
+          format: int64
+        storeId:
+          type: integer
+          format: int64
+        expectedDate:
+          type: string
+          format: date
+        discountAmount:
+          type: number
+          default: 0
+        remark:
+          type: string
         items:
           type: array
           items:
-            type: object
-            required: [skuId, unitPrice]
-            properties:
-              skuId: { type: integer }
-              purchaseBoxQty: { type: integer, default: 0 }
-              purchaseBottleQty: { type: integer, default: 0 }
-              unitPrice: { type: number }
-              taxRate: { type: number, default: 0.13 }
+            $ref: '#/components/schemas/PurchaseOrderItemCreateRequest'
 
-    PurchaseOrderUpdateRequest:
+    PurchaseOrderItemCreateRequest:
       type: object
+      required: [skuId, totalBottleQty, unitPrice]
       properties:
-        expectDate: { type: string }
-        discountAmount: { type: number }
-        remark: { type: string }
-        items:
-          type: array
-          items:
-            type: object
-            properties:
-              skuId: { type: integer }
-              purchaseBoxQty: { type: integer }
-              purchaseBottleQty: { type: integer }
-              unitPrice: { type: number }
-              taxRate: { type: number }
+        skuId:
+          type: integer
+          format: int64
+        boxQty:
+          type: integer
+          default: 0
+        bottleQty:
+          type: integer
+          default: 0
+        totalBottleQty:
+          type: integer
+        unitPrice:
+          type: number
+        taxRate:
+          type: number
+          default: 0
+        remark:
+          type: string
 
-    PurchaseOrderResponse:
-      type: object
-      properties:
-        code: { type: string }
-        data: { $ref: '#/components/schemas/PurchaseOrder' }
-
-    PurchaseOrderDetailResponse:
-      type: object
-      properties:
-        code: { type: string }
-        data:
-          allOf:
-            - $ref: '#/components/schemas/PurchaseOrder'
-            - type: object
-              properties:
-                items:
-                  type: array
-                  items:
-                    type: object
-                    properties:
-                      skuId: { type: integer }
-                      skuCode: { type: string }
-                      skuName: { type: string }
-                      purchaseBoxQty: { type: integer }
-                      purchaseBottleQty: { type: integer }
-                      unitPrice: { type: number }
-                      subtotalAmount: { type: number }
-                      inboundBoxQty: { type: integer }
-                      inboundBottleQty: { type: integer }
-
-    PurchaseInboundRequest:
-      type: object
-      properties:
-        items:
-          type: array
-          items:
-            type: object
-            required: [skuId]
-            properties:
-              skuId: { type: integer }
-              inboundBoxQty: { type: integer }
-              inboundBottleQty: { type: integer }
-
-    # ==========================================================
-    # 销售退货
-    # ==========================================================
-    PageOfSalesReturn:
-      type: object
-      properties:
-        code: { type: string }
-        data:
-          type: object
+    PurchaseOrderPageResponse:
+      allOf:
+        - $ref: '#/components/schemas/ApiResponse'
+        - type: object
           properties:
-            records:
-              type: array
-              items:
-                type: object
-                properties:
-                  returnNo: { type: string }
-                  sourceType: { type: string }
-                  sourceNo: { type: string }
-                  customerName: { type: string }
-                  returnStatus: { type: string }
-                  refundStatus: { type: string }
-                  refundAmount: { type: number }
-                  actualRefundAmount: { type: number }
-                  created_at: { type: string }
-            page: { type: integer }
-            pageSize: { type: integer }
-            total: { type: integer }
+            data:
+              allOf:
+                - $ref: '#/components/schemas/PageResponse'
+                - type: object
+                  properties:
+                    records:
+                      type: array
+                      items:
+                        $ref: '#/components/schemas/PurchaseOrder'
 
-    SalesReturnCreateRequest:
-      type: object
-      required: [sourceType, sourceNo, storeId, items]
-      properties:
-        sourceType: { type: string, enum: [MINIAPP_ORDER, SALE_BILL] }
-        sourceNo: { type: string }
-        storeId: { type: integer }
-        returnReason: { type: string }
-        remark: { type: string }
-        items:
-          type: array
-          items:
-            type: object
-            required: [skuId, returnBottleQty, unitPrice]
-            properties:
-              skuId: { type: integer }
-              returnBoxQty: { type: integer, default: 0 }
-              returnBottleQty: { type: integer }
-              unitPrice: { type: number }
-
-    SalesReturnResponse:
+    # ========== 采购入库 ==========
+    PurchaseInStock:
       type: object
       properties:
-        code: { type: string }
-        data:
-          type: object
+        stockNo:
+          type: string
+        orderNo:
+          type: string
+        supplierId:
+          type: integer
+          format: int64
+        supplierName:
+          type: string
+        storeId:
+          type: integer
+          format: int64
+        stockStatus:
+          type: string
+          enum: [PENDING, COMPLETED, VOIDED]
+        goodsAmount:
+          type: number
+        taxAmount:
+          type: number
+        totalAmount:
+          type: number
+        operatorId:
+          type: integer
+          format: int64
+        auditorId:
+          type: integer
+          format: int64
+        auditedAt:
+          type: string
+          format: date-time
+        remark:
+          type: string
+        createdAt:
+          type: string
+          format: date-time
+
+    PurchaseInStockItem:
+      type: object
+      properties:
+        skuId:
+          type: integer
+          format: int64
+        skuName:
+          type: string
+        boxQty:
+          type: integer
+        bottleQty:
+          type: integer
+        totalBottleQty:
+          type: integer
+        unitPrice:
+          type: number
+        taxRate:
+          type: number
+        subtotalAmount:
+          type: number
+        taxAmount:
+          type: number
+        totalAmount:
+          type: number
+        batchNo:
+          type: string
+        productionDate:
+          type: string
+          format: date
+        expiryDate:
+          type: string
+          format: date
+
+    PurchaseInStockDetail:
+      allOf:
+        - $ref: '#/components/schemas/PurchaseInStock'
+        - type: object
           properties:
-            returnNo: { type: string }
-            returnStatus: { type: string }
-            refundAmount: { type: number }
-
-    SalesReturnDetailResponse:
-      type: object
-      properties:
-        code: { type: string }
-        data:
-          type: object
-          properties:
-            returnNo: { type: string }
-            sourceType: { type: string }
-            sourceNo: { type: string }
-            storeId: { type: integer }
-            customerName: { type: string }
-            returnStatus: { type: string }
-            refundStatus: { type: string }
-            returnReason: { type: string }
-            refundAmount: { type: number }
-            actualRefundAmount: { type: number }
-            stockRollbackFlag: { type: integer }
             items:
               type: array
               items:
-                type: object
-                properties:
-                  skuId: { type: integer }
-                  skuCode: { type: string }
-                  skuName: { type: string }
-                  returnBoxQty: { type: integer }
-                  returnBottleQty: { type: integer }
-                  unitPrice: { type: number }
-                  subtotalAmount: { type: number }
+                $ref: '#/components/schemas/PurchaseInStockItem'
 
-    # ==========================================================
-    # 客户对账收款
-    # ==========================================================
-    PageOfStatement:
+    PurchaseInStockCreateRequest:
+      type: object
+      required: [supplierId, storeId, items]
+      properties:
+        orderNo:
+          type: string
+          description: 关联采购订单号（可选）
+        supplierId:
+          type: integer
+          format: int64
+        storeId:
+          type: integer
+          format: int64
+        remark:
+          type: string
+        items:
+          type: array
+          items:
+            $ref: '#/components/schemas/PurchaseInStockItemCreateRequest'
+
+    PurchaseInStockItemCreateRequest:
+      type: object
+      required: [skuId, totalBottleQty, unitPrice]
+      properties:
+        skuId:
+          type: integer
+          format: int64
+        boxQty:
+          type: integer
+          default: 0
+        bottleQty:
+          type: integer
+          default: 0
+        totalBottleQty:
+          type: integer
+        unitPrice:
+          type: number
+        taxRate:
+          type: number
+          default: 0
+        batchNo:
+          type: string
+        productionDate:
+          type: string
+          format: date
+        expiryDate:
+          type: string
+          format: date
+        remark:
+          type: string
+
+    PurchaseInStockPageResponse:
+      allOf:
+        - $ref: '#/components/schemas/ApiResponse'
+        - type: object
+          properties:
+            data:
+              allOf:
+                - $ref: '#/components/schemas/PageResponse'
+                - type: object
+                  properties:
+                    records:
+                      type: array
+                      items:
+                        $ref: '#/components/schemas/PurchaseInStock'
+
+    # ========== 采购退货 ==========
+    PurchaseReturn:
       type: object
       properties:
-        code: { type: string }
-        data:
-          type: object
-          properties:
-            records:
-              type: array
-              items:
-                type: object
-                properties:
-                  statementNo: { type: string }
-                  customerId: { type: integer }
-                  customerName: { type: string }
-                  periodStart: { type: string }
-                  periodEnd: { type: string }
-                  statementStatus: { type: string }
-                  collectionStatus: { type: string }
-                  openingBalance: { type: number }
-                  salesAmount: { type: number }
-                  returnAmount: { type: number }
-                  collectionAmount: { type: number }
-                  closingBalance: { type: number }
-                  dueDate: { type: string }
-                  created_at: { type: string }
-            page: { type: integer }
-            pageSize: { type: integer }
-            total: { type: integer }
+        returnNo:
+          type: string
+        orderNo:
+          type: string
+        stockNo:
+          type: string
+        supplierId:
+          type: integer
+          format: int64
+        supplierName:
+          type: string
+        storeId:
+          type: integer
+          format: int64
+        returnStatus:
+          type: string
+          enum: [PENDING, COMPLETED, VOIDED]
+        goodsAmount:
+          type: number
+        taxAmount:
+          type: number
+        totalAmount:
+          type: number
+        refundAmount:
+          type: number
+        refundedAmount:
+          type: number
+        operatorId:
+          type: integer
+          format: int64
+        remark:
+          type: string
+        createdAt:
+          type: string
+          format: date-time
 
-    StatementResponse:
+    PurchaseReturnItem:
       type: object
       properties:
-        code: { type: string }
-        data:
-          type: object
-          properties:
-            statementNo: { type: string }
-            closingBalance: { type: number }
+        skuId:
+          type: integer
+          format: int64
+        skuName:
+          type: string
+        boxQty:
+          type: integer
+        bottleQty:
+          type: integer
+        totalBottleQty:
+          type: integer
+        unitPrice:
+          type: number
+        taxRate:
+          type: number
+        subtotalAmount:
+          type: number
+        taxAmount:
+          type: number
+        totalAmount:
+          type: number
+        reason:
+          type: string
 
-    StatementDetailResponse:
-      type: object
-      properties:
-        code: { type: string }
-        data:
-          type: object
+    PurchaseReturnDetail:
+      allOf:
+        - $ref: '#/components/schemas/PurchaseReturn'
+        - type: object
           properties:
-            statementNo: { type: string }
-            customerName: { type: string }
-            periodStart: { type: string }
-            periodEnd: { type: string }
-            statementStatus: { type: string }
-            collectionStatus: { type: string }
-            openingBalance: { type: number }
-            salesAmount: { type: number }
-            returnAmount: { type: number }
-            collectionAmount: { type: number }
-            closingBalance: { type: number }
             items:
               type: array
               items:
-                type: object
-                properties:
-                  itemType: { type: string }
-                  bizNo: { type: string }
-                  bizDate: { type: string }
-                  debitAmount: { type: number }
-                  creditAmount: { type: number }
-                  balanceAfter: { type: number }
-                  remark: { type: string }
-            payments:
-              type: array
-              items:
-                type: object
-                properties:
-                  paymentNo: { type: string }
-                  payAmount: { type: number }
-                  payMethod: { type: string }
-                  payDate: { type: string }
-                  payRef: { type: string }
-                  remark: { type: string }
+                $ref: '#/components/schemas/PurchaseReturnItem'
 
-    ShareLinkResponse:
+    PurchaseReturnCreateRequest:
       type: object
+      required: [supplierId, storeId, items]
       properties:
-        code: { type: string }
-        data:
-          type: object
-          properties:
-            linkNo: { type: string }
-            shareUrl: { type: string }
-            qrCode: { type: string }
-
-    CustomerBalanceResponse:
-      type: object
-      properties:
-        code: { type: string }
-        data:
-          type: object
-          properties:
-            customerId: { type: integer }
-            customerName: { type: string }
-            receivableTotal: { type: number, description: 应收账款总额 }
-            overdueTotal: { type: number, description: 已逾期金额 }
-            lastSaleDate: { type: string }
-
-    # ==========================================================
-    # 库存预警
-    # ==========================================================
-    PageOfWarningEvent:
-      type: object
-      properties:
-        code: { type: string }
-        data:
-          type: object
-          properties:
-            records:
-              type: array
-              items:
-                type: object
-                properties:
-                  eventNo: { type: string }
-                  ruleType: { type: string }
-                  alertLevel: { type: string }
-                  storeId: { type: integer }
-                  skuId: { type: integer }
-                  skuCode: { type: string }
-                  skuName: { type: string }
-                  currentValue: { type: integer }
-                  thresholdValue: { type: integer }
-                  eventTitle: { type: string }
-                  eventStatus: { type: string }
-                  createdAt: { type: string }
-            page: { type: integer }
-            pageSize: { type: integer }
-            total: { type: integer }
-
-    WarningRuleRequest:
-      type: object
-      required: [ruleType]
-      properties:
-        id: { type: integer }
-        ruleType: { type: string, enum: [LOW_STOCK, NEGATIVE_STOCK, ABNORMAL_MOVEMENT, EXPIRY] }
-        scopeType: { type: string, default: ALL }
-        scopeValue: { type: string }
-        storeId: { type: integer }
-        threshold: { type: integer }
-        thresholdDays: { type: integer }
-        alertLevel: { type: string, default: WARNING }
-        enabled: { type: boolean, default: true }
-        notifyChannels: { type: array, items: { type: string } }
-        notifyUserIds: { type: array, items: { type: integer } }
-
-    WarningRuleListResponse:
-      type: object
-      properties:
-        code: { type: string }
-        data:
+        orderNo:
+          type: string
+        stockNo:
+          type: string
+        supplierId:
+          type: integer
+          format: int64
+        storeId:
+          type: integer
+          format: int64
+        remark:
+          type: string
+        items:
           type: array
           items:
-            type: object
-            properties:
-              id: { type: integer }
-              ruleType: { type: string }
-              scopeType: { type: string }
-              threshold: { type: integer }
-              alertLevel: { type: string }
-              enabled: { type: boolean }
+            $ref: '#/components/schemas/PurchaseReturnItemCreateRequest'
 
-    AlertSnapshotResponse:
+    PurchaseReturnItemCreateRequest:
+      type: object
+      required: [skuId, totalBottleQty, unitPrice]
+      properties:
+        skuId:
+          type: integer
+          format: int64
+        boxQty:
+          type: integer
+          default: 0
+        bottleQty:
+          type: integer
+          default: 0
+        totalBottleQty:
+          type: integer
+        unitPrice:
+          type: number
+        taxRate:
+          type: number
+          default: 0
+        reason:
+          type: string
+
+    PurchaseReturnPageResponse:
+      allOf:
+        - $ref: '#/components/schemas/ApiResponse'
+        - type: object
+          properties:
+            data:
+              allOf:
+                - $ref: '#/components/schemas/PageResponse'
+                - type: object
+                  properties:
+                    records:
+                      type: array
+                      items:
+                        $ref: '#/components/schemas/PurchaseReturn'
+
+    # ========== 采购付款 ==========
+    PurchasePayment:
       type: object
       properties:
-        code: { type: string }
-        data:
+        paymentNo:
+          type: string
+        supplierId:
+          type: integer
+          format: int64
+        supplierName:
+          type: string
+        paymentType:
+          type: string
+          enum: [ORDER, RETURN, ADVANCE]
+        sourceType:
+          type: string
+        sourceNo:
+          type: string
+        amount:
+          type: number
+        paymentMethod:
+          type: string
+          enum: [BANK, CASH, WECHAT, ALIPAY]
+        bankAccount:
+          type: string
+        bankAccountName:
+          type: string
+        bankName:
+          type: string
+        voucherNo:
+          type: string
+        paymentDate:
+          type: string
+          format: date
+        operatorId:
+          type: integer
+          format: int64
+        status:
+          type: string
+          enum: [PENDING, COMPLETED, VOIDED]
+        remark:
+          type: string
+        createdAt:
+          type: string
+          format: date-time
+
+    PurchasePaymentCreateRequest:
+      type: object
+      required: [supplierId, amount, paymentMethod, paymentDate]
+      properties:
+        supplierId:
+          type: integer
+          format: int64
+        paymentType:
+          type: string
+          default: ORDER
+        sourceType:
+          type: string
+        sourceNo:
+          type: string
+        amount:
+          type: number
+        paymentMethod:
+          type: string
+          enum: [BANK, CASH, WECHAT, ALIPAY]
+        bankAccount:
+          type: string
+        bankAccountName:
+          type: string
+        bankName:
+          type: string
+        voucherNo:
+          type: string
+        paymentDate:
+          type: string
+          format: date
+        remark:
+          type: string
+
+    PurchasePaymentPageResponse:
+      allOf:
+        - $ref: '#/components/schemas/ApiResponse'
+        - type: object
+          properties:
+            data:
+              allOf:
+                - $ref: '#/components/schemas/PageResponse'
+                - type: object
+                  properties:
+                    records:
+                      type: array
+                      items:
+                        $ref: '#/components/schemas/PurchasePayment'
+
+    # ========== 销售退货 ==========
+    SaleReturn:
+      type: object
+      properties:
+        returnNo:
+          type: string
+        sourceBillNo:
+          type: string
+        storeId:
+          type: integer
+          format: int64
+        customerId:
+          type: integer
+          format: int64
+        customerName:
+          type: string
+        customerMobile:
+          type: string
+        returnStatus:
+          type: string
+          enum: [PENDING, COMPLETED, VOIDED]
+        goodsAmount:
+          type: number
+        discountAmount:
+          type: number
+        refundAmount:
+          type: number
+        refundedAmount:
+          type: number
+        refundMethod:
+          type: string
+        operatorId:
+          type: integer
+          format: int64
+        remark:
+          type: string
+        createdAt:
+          type: string
+          format: date-time
+
+    SaleReturnItem:
+      type: object
+      properties:
+        skuId:
+          type: integer
+          format: int64
+        skuName:
+          type: string
+        boxQty:
+          type: integer
+        bottleQty:
+          type: integer
+        totalBottleQty:
+          type: integer
+        unitPrice:
+          type: number
+        subtotalAmount:
+          type: number
+        reason:
+          type: string
+
+    SaleReturnDetail:
+      allOf:
+        - $ref: '#/components/schemas/SaleReturn'
+        - type: object
+          properties:
+            items:
+              type: array
+              items:
+                $ref: '#/components/schemas/SaleReturnItem'
+
+    SaleReturnCreateRequest:
+      type: object
+      required: [storeId, items]
+      properties:
+        sourceBillNo:
+          type: string
+          description: 关联销售单号（可选）
+        storeId:
+          type: integer
+          format: int64
+        customerId:
+          type: integer
+          format: int64
+        customerName:
+          type: string
+        customerMobile:
+          type: string
+        remark:
+          type: string
+        items:
           type: array
           items:
-            type: object
-            properties:
-              storeId: { type: integer }
-              skuId: { type: integer }
-              skuCode: { type: string }
-              skuName: { type: string }
-              physicalQty: { type: integer }
-              availableQty: { type: integer }
-              threshold: { type: integer }
-              alertLevel: { type: string }
+            $ref: '#/components/schemas/SaleReturnItemCreateRequest'
+
+    SaleReturnItemCreateRequest:
+      type: object
+      required: [skuId, totalBottleQty, unitPrice]
+      properties:
+        skuId:
+          type: integer
+          format: int64
+        boxQty:
+          type: integer
+          default: 0
+        bottleQty:
+          type: integer
+          default: 0
+        totalBottleQty:
+          type: integer
+        unitPrice:
+          type: number
+        reason:
+          type: string
+
+    SaleReturnPageResponse:
+      allOf:
+        - $ref: '#/components/schemas/ApiResponse'
+        - type: object
+          properties:
+            data:
+              allOf:
+                - $ref: '#/components/schemas/PageResponse'
+                - type: object
+                  properties:
+                    records:
+                      type: array
+                      items:
+                        $ref: '#/components/schemas/SaleReturn'
+
+    # ========== 客户对账单 ==========
+    CustomerStatement:
+      type: object
+      properties:
+        statementNo:
+          type: string
+        customerId:
+          type: integer
+          format: int64
+        customerName:
+          type: string
+        customerMobile:
+          type: string
+        statementType:
+          type: string
+          enum: [MONTHLY, QUARTERLY, CUSTOM]
+        startDate:
+          type: string
+          format: date
+        endDate:
+          type: string
+          format: date
+        openingBalance:
+          type: number
+        totalSales:
+          type: number
+        totalReturns:
+          type: number
+        totalPayments:
+          type: number
+        closingBalance:
+          type: number
+        status:
+          type: string
+          enum: [DRAFT, CONFIRMED, PAID]
+        confirmedAt:
+          type: string
+          format: date-time
+        operatorId:
+          type: integer
+          format: int64
+        remark:
+          type: string
+        createdAt:
+          type: string
+          format: date-time
+
+    CustomerStatementDetail:
+      allOf:
+        - $ref: '#/components/schemas/CustomerStatement'
+        - type: object
+          properties:
+            details:
+              type: array
+              items:
+                $ref: '#/components/schemas/CustomerStatementItem'
+
+    CustomerStatementItem:
+      type: object
+      properties:
+        bizDate:
+          type: string
+          format: date
+        bizType:
+          type: string
+          enum: [SALE, RETURN, PAYMENT]
+        bizNo:
+          type: string
+        amount:
+          type: number
+        balance:
+          type: number
+        remark:
+          type: string
+
+    CustomerStatementCreateRequest:
+      type: object
+      required: [customerId, startDate, endDate]
+      properties:
+        customerId:
+          type: integer
+          format: int64
+        statementType:
+          type: string
+          default: MONTHLY
+        startDate:
+          type: string
+          format: date
+        endDate:
+          type: string
+          format: date
+        remark:
+          type: string
+
+    CustomerStatementPageResponse:
+      allOf:
+        - $ref: '#/components/schemas/ApiResponse'
+        - type: object
+          properties:
+            data:
+              allOf:
+                - $ref: '#/components/schemas/PageResponse'
+                - type: object
+                  properties:
+                    records:
+                      type: array
+                      items:
+                        $ref: '#/components/schemas/CustomerStatement'
+
+    # ========== 客户收款 ==========
+    CustomerPayment:
+      type: object
+      properties:
+        receiptNo:
+          type: string
+        customerId:
+          type: integer
+          format: int64
+        customerName:
+          type: string
+        amount:
+          type: number
+        paymentMethod:
+          type: string
+          enum: [CASH, BANK, WECHAT, ALIPAY, COLLECTION]
+        sourceType:
+          type: string
+        sourceNo:
+          type: string
+        voucherNo:
+          type: string
+        paymentDate:
+          type: string
+          format: date
+        operatorId:
+          type: integer
+          format: int64
+        status:
+          type: string
+          enum: [COMPLETED, VOIDED]
+        remark:
+          type: string
+        createdAt:
+          type: string
+          format: date-time
+
+    CustomerPaymentCreateRequest:
+      type: object
+      required: [customerId, amount, paymentMethod, paymentDate]
+      properties:
+        customerId:
+          type: integer
+          format: int64
+        amount:
+          type: number
+        paymentMethod:
+          type: string
+          enum: [CASH, BANK, WECHAT, ALIPAY, COLLECTION]
+        sourceType:
+          type: string
+        sourceNo:
+          type: string
+        voucherNo:
+          type: string
+        paymentDate:
+          type: string
+          format: date
+        remark:
+          type: string
+
+    CustomerPaymentPageResponse:
+      allOf:
+        - $ref: '#/components/schemas/ApiResponse'
+        - type: object
+          properties:
+            data:
+              allOf:
+                - $ref: '#/components/schemas/PageResponse'
+                - type: object
+                  properties:
+                    records:
+                      type: array
+                      items:
+                        $ref: '#/components/schemas/CustomerPayment'
+
+    # ========== 库存预警 ==========
+    InventoryAlertItem:
+      type: object
+      properties:
+        skuId:
+          type: integer
+          format: int64
+        skuName:
+          type: string
+        storeId:
+          type: integer
+          format: int64
+        storeName:
+          type: string
+        alertType:
+          type: string
+          enum: [LOW_STOCK, OVERSTOCK, EXPIRY]
+        currentQty:
+          type: integer
+        threshold:
+          type: integer
+        alertLevel:
+          type: string
+          enum: [WARNING, CRITICAL]
+        createdAt:
+          type: string
+          format: date-time
+
+    InventoryAlertSettings:
+      type: object
+      properties:
+        lowStockEnabled:
+          type: boolean
+          default: true
+        lowStockThreshold:
+          type: integer
+          default: 10
+        lowStockCritical:
+          type: integer
+          default: 3
+        expiryWarningDays:
+          type: integer
+          default: 30
+        expiryCriticalDays:
+          type: integer
+          default: 7
+        notifyChannels:
+          type: array
+          items:
+            type: string
+            enum: [SMS, WECHAT, EMAIL]

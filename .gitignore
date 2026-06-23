@@ -5,4 +5,8 @@ dist
 .DS_Store
 coverage
 *.log
+<<<<<<< HEAD
 .reports
+=======
+.superpowers/
+>>>>>>> origin/main

@@ -1,0 +1,66 @@
+<view class="statement-header">
+  <view class="title">我的对账</view>
+  <view class="subtitle">查看往来订单、回款记录和当前欠款</view>
+  <view class="balance-row">
+    <view class="balance-item">
+      <view class="label">累计消费</view>
+      <view class="value">¥{{totalPurchase}}</view>
+    </view>
+    <view class="balance-item">
+      <view class="label">累计回款</view>
+      <view class="value">¥{{totalPaid}}</view>
+    </view>
+    <view class="balance-item">
+      <view class="label">当前欠款</view>
+      <view class="value" style="color:#FF6B6B">¥{{owingAmount}}</view>
+    </view>
+  </view>
+</view>
+
+<!-- 欠款提示 -->
+<view class="owing-banner" wx:if="{{owingAmount !== '0.00' && owingAmount !== '0'}}">
+  <view class="owing-label">您当前有未结清账款</view>
+  <view class="owing-value">¥{{owingAmount}}</view>
+</view>
+
+<!-- 标签切换 -->
+<view class="statement-tabs">
+  <view class="statement-tab {{activeTab === 'orders' ? 'active' : ''}}" bindtap="switchTab" data-tab="orders">历史订单</view>
+  <view class="statement-tab {{activeTab === 'payments' ? 'active' : ''}}" bindtap="switchTab" data-tab="payments">回款记录</view>
+</view>
+
+<!-- 记录列表 -->
+<view class="record-list">
+  <block wx:if="{{activeTab === 'orders'}}">
+    <view class="record-item" wx:for="{{orderList}}" wx:key="id">
+      <view class="record-left">
+        <view class="record-title">{{item.orderNo}}</view>
+        <view class="record-sub">{{item.items}} | {{item.date}}</view>
+      </view>
+      <view class="record-right">
+        <view class="record-amount expense">¥{{item.amount}}</view>
+        <view class="record-date">
+          <text class="record-tag tag-sale">销售</text>
+          {{item.statusText}}
+        </view>
+      </view>
+    </view>
+    <view class="empty-state" wx:if="{{orderList.length === 0}}">暂无订单记录</view>
+  </block>
+  <block wx:if="{{activeTab === 'payments'}}">
+    <view class="record-item" wx:for="{{paymentList}}" wx:key="id">
+      <view class="record-left">
+        <view class="record-title">{{item.paymentNo}}</view>
+        <view class="record-sub">{{item.method}} | {{item.date}}</view>
+      </view>
+      <view class="record-right">
+        <view class="record-amount income">¥{{item.amount}}</view>
+        <view class="record-date">
+          <text class="record-tag tag-payment">回款</text>
+          {{item.statusText}}
+        </view>
+      </view>
+    </view>
+    <view class="empty-state" wx:if="{{paymentList.length === 0}}">暂无回款记录</view>
+  </block>
+</view>

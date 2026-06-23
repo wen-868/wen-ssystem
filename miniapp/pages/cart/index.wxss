@@ -1,0 +1,174 @@
+/* ========== 购物车头部 ========== */
+.cart-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 24rpx 32rpx;
+  background: var(--bg-card, #FFFFFF);
+}
+.cart-title {
+  font-size: 36rpx;
+  font-weight: 700;
+  color: var(--text-primary, #1F2328);
+}
+.cart-edit-btn {
+  font-size: 28rpx;
+  color: var(--color-primary, #1677FF);
+  padding: 8rpx 16rpx;
+}
+
+/* ========== 空状态 ========== */
+.empty-wrap {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 120rpx 0;
+}
+.empty-icon {
+  font-size: 80rpx;
+  margin-bottom: 24rpx;
+}
+.loading-wrap {
+  display: flex;
+  justify-content: center;
+  padding: 120rpx 0;
+}
+
+/* ========== 购物车商品项 ========== */
+.cart-item {
+  display: flex;
+  align-items: flex-start;
+  padding: 24rpx;
+  position: relative;
+}
+.checkbox-wrap {
+  display: flex;
+  align-items: center;
+  padding: 12rpx;
+  flex-shrink: 0;
+}
+.checkbox {
+  width: 40rpx;
+  height: 40rpx;
+  border-radius: 50%;
+  border: 4rpx solid var(--border-normal, #E5E7EB);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: #fff;
+}
+.checkbox.checked {
+  background: var(--color-primary, #1677FF);
+  border-color: var(--color-primary, #1677FF);
+}
+.checkbox-icon {
+  color: #fff;
+  font-size: 24rpx;
+  font-weight: 700;
+}
+.cart-item-image {
+  width: 160rpx;
+  height: 160rpx;
+  border-radius: 16rpx;
+  flex-shrink: 0;
+  background: var(--bg-soft, #F0F2F5);
+}
+.cart-item-info {
+  flex: 1;
+  margin-left: 20rpx;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  min-height: 160rpx;
+}
+.cart-item-name {
+  font-size: 30rpx;
+  font-weight: 600;
+  color: var(--text-primary, #1F2328);
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+  overflow: hidden;
+}
+.cart-item-sku {
+  margin-top: 8rpx;
+  font-size: 24rpx;
+}
+.cart-item-bottom {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-top: 16rpx;
+}
+.cart-item-price {
+  font-size: 32rpx;
+}
+
+/* ========== 数量控制 ========== */
+.qty-control {
+  display: flex;
+  align-items: center;
+}
+.qty-text {
+  font-size: 30rpx;
+  min-width: 60rpx;
+  text-align: center;
+  font-weight: 600;
+}
+
+/* ========== 删除按钮 ========== */
+.delete-btn {
+  position: absolute;
+  right: 0;
+  top: 0;
+  bottom: 0;
+  width: 120rpx;
+  background: var(--color-danger, #EF4444);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 0 24rpx 24rpx 0;
+  color: #fff;
+  font-size: 28rpx;
+}
+
+/* ========== 底部结算栏 ========== */
+.cart-footer {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  background: var(--bg-card, #FFFFFF);
+  padding: 16rpx 24rpx;
+  box-shadow: 0 -4rpx 16rpx rgba(0,0,0,0.06);
+  z-index: 100;
+}
+.footer-left {
+  display: flex;
+  align-items: center;
+  gap: 12rpx;
+}
+.footer-right {
+  display: flex;
+  align-items: center;
+}
+.footer-action {
+  display: flex;
+  align-items: center;
+}
+.footer-total {
+  font-size: 36rpx;
+  margin-right: 16rpx;
+}
+.checkout-btn {
+  font-size: 28rpx;
+  padding: 16rpx 40rpx;
+  line-height: 1.4;
+}
+.checkout-btn[disabled] {
+  opacity: 0.5;
+}

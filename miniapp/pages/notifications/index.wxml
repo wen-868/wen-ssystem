@@ -1,0 +1,47 @@
+<view class="container">
+  <!-- Tab 切换 -->
+  <view class="tab-bar">
+    <view class="tab-item {{activeTab === 'all' ? 'active' : ''}}" bindtap="switchTab" data-tab="all">全部</view>
+    <view class="tab-item {{activeTab === 'unread' ? 'active' : ''}}" bindtap="switchTab" data-tab="unread">
+      未读
+      <text class="badge" wx:if="{{unreadCount > 0}}">{{unreadCount > 99 ? '99+' : unreadCount}}</text>
+    </view>
+  </view>
+
+  <!-- 通知列表 -->
+  <view class="notification-list" wx:if="{{notifications.length > 0}}">
+    <view class="notification-item {{item.isRead ? 'read' : 'unread'}}" wx:for="{{notifications}}" wx:key="id" bindtap="handleItemClick" data-item="{{item}}">
+      <view class="notification-dot" wx:if="{{!item.isRead}}"></view>
+      <view class="notification-content">
+        <view class="notification-header">
+          <text class="notification-title">{{item.title}}</text>
+          <text class="notification-time">{{item.sentAt}}</text>
+        </view>
+        <view class="notification-body">{{item.content}}</view>
+        <view class="notification-type">
+          <text class="type-tag">{{item.typeText}}</text>
+        </view>
+      </view>
+    </view>
+  </view>
+
+  <!-- 空状态 -->
+  <view class="empty-state" wx:if="{{notifications.length === 0 && !loading}}">
+    <view class="empty-icon">&#x1F4E8;</view>
+    <view class="empty-text">暂无通知</view>
+  </view>
+
+  <!-- 加载更多 -->
+  <view class="load-more" wx:if="{{hasMore && notifications.length > 0}}">
+    <view class="load-more-btn" bindtap="loadMore">加载更多</view>
+  </view>
+
+  <view class="no-more" wx:if="{{!hasMore && notifications.length > 0}}">
+    <text>没有更多了</text>
+  </view>
+
+  <!-- 加载状态 -->
+  <view class="loading" wx:if="{{loading}}">
+    <text>加载中...</text>
+  </view>
+</view>

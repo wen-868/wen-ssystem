@@ -1,0 +1,174 @@
+/* 对账页面样式 */
+.statement-header {
+  padding: 32rpx 24rpx 16rpx;
+  background: linear-gradient(135deg, #8B4513 0%, #C19A6B 100%);
+  color: #fff;
+  border-radius: 0 0 24rpx 24rpx;
+}
+
+.statement-header .title {
+  font-size: 36rpx;
+  font-weight: 700;
+}
+
+.statement-header .subtitle {
+  font-size: 24rpx;
+  opacity: 0.8;
+  margin-top: 8rpx;
+}
+
+.balance-row {
+  display: flex;
+  justify-content: space-around;
+  margin-top: 24rpx;
+}
+
+.balance-item {
+  text-align: center;
+}
+
+.balance-item .label {
+  font-size: 22rpx;
+  opacity: 0.7;
+}
+
+.balance-item .value {
+  font-size: 36rpx;
+  font-weight: 700;
+  margin-top: 4rpx;
+}
+
+.statement-tabs {
+  display: flex;
+  background: #fff;
+  margin: 24rpx;
+  border-radius: 16rpx;
+  box-shadow: 0 4rpx 24rpx rgba(0,0,0,0.06);
+  overflow: hidden;
+}
+
+.statement-tab {
+  flex: 1;
+  text-align: center;
+  padding: 20rpx 0;
+  font-size: 26rpx;
+  color: #697386;
+  position: relative;
+}
+
+.statement-tab.active {
+  color: #8B4513;
+  font-weight: 600;
+}
+
+.statement-tab.active::after {
+  content: '';
+  position: absolute;
+  bottom: 0;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 48rpx;
+  height: 4rpx;
+  background: #8B4513;
+  border-radius: 2rpx;
+}
+
+.record-list {
+  padding: 0 24rpx;
+}
+
+.record-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 24rpx 0;
+  border-bottom: 1rpx solid #F0F0F0;
+}
+
+.record-item:last-child {
+  border-bottom: none;
+}
+
+.record-left {
+  flex: 1;
+}
+
+.record-title {
+  font-size: 28rpx;
+  color: #1F2328;
+  font-weight: 500;
+}
+
+.record-sub {
+  font-size: 22rpx;
+  color: #9CA3AF;
+  margin-top: 4rpx;
+}
+
+.record-right {
+  text-align: right;
+}
+
+.record-amount {
+  font-size: 30rpx;
+  font-weight: 700;
+}
+
+.record-amount.income {
+  color: #27AE60;
+}
+
+.record-amount.expense {
+  color: #C0392B;
+}
+
+.record-amount.pending {
+  color: #D4A017;
+}
+
+.record-date {
+  font-size: 22rpx;
+  color: #9CA3AF;
+  margin-top: 4rpx;
+}
+
+.record-tag {
+  display: inline-block;
+  padding: 2rpx 12rpx;
+  border-radius: 6rpx;
+  font-size: 20rpx;
+  margin-left: 8rpx;
+}
+
+.tag-sale { background: #E6F4FF; color: #1677FF; }
+.tag-payment { background: #D1FAE5; color: #065F46; }
+.tag-refund { background: #FEE2E2; color: #991B1B; }
+
+.empty-state {
+  text-align: center;
+  padding: 80rpx 0;
+  color: #9CA3AF;
+  font-size: 26rpx;
+}
+
+.owing-banner {
+  margin: 24rpx;
+  padding: 24rpx;
+  background: #FFF8F0;
+  border: 1rpx solid #F5E6D3;
+  border-radius: 16rpx;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.owing-banner .owing-label {
+  font-size: 26rpx;
+  color: #5C554C;
+}
+
+.owing-banner .owing-value {
+  font-size: 36rpx;
+  font-weight: 700;
+  color: #C0392B;
+}

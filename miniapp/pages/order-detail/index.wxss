@@ -1,20 +1,4 @@
-.card {
-  margin: 20rpx;
-  padding: 32rpx;
-  background: #fff;
-  border-radius: 12rpx;
-  box-shadow: 0 2rpx 12rpx rgba(0,0,0,0.06);
-}
 .muted { color: #666; font-size: 28rpx; }
-.price { color: #9b1c31; font-size: 40rpx; font-weight: 700; }
-.primary {
-  background: #9b1c31;
-  color: #fff;
-  border-radius: 8rpx;
-  border: none;
-  font-size: 30rpx;
-  padding: 16rpx 0;
-}
 .tag {
   font-size: 22rpx;
   padding: 6rpx 16rpx;
@@ -22,6 +6,7 @@
 }
 .tag-pending { background: #fdf6ec; color: #e6a23c; }
 .tag-accept { background: #dbeafe; color: #409eff; }
+.tag-delivery { background: #ecf5ff; color: #1677ff; }
 .tag-done { background: #e1f3d8; color: #67c23a; }
 .item-row {
   display: flex;
@@ -29,4 +14,20 @@
   padding: 12rpx 0;
   border-bottom: 1rpx solid #f0f0f0;
   font-size: 28rpx;
+}
+.primary-btn {
+  background: #1677ff;
+  color: #fff;
+  border-radius: 8rpx;
+  border: none;
+  font-size: 30rpx;
+  padding: 16rpx 0;
+}
+.cancel-btn {
+  background: #fff;
+  color: #e6a23c;
+  border: 2rpx solid #e6a23c;
+  border-radius: 8rpx;
+  font-size: 30rpx;
+  padding: 16rpx 0;
 }

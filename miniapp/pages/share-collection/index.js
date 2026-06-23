@@ -1,3 +1,5 @@
+const { injectTheme } = require('../../utils/theme')
+
 Page({
   data: {
     token: "",
@@ -16,7 +18,15 @@ Page({
     hasItems: false,
     loading: false,
     errorText: "",
-    payDisabled: true
+    payDisabled: true,
+    theme: {},
+    themeCssVars: ""
+  },
+  onReady() {
+    injectTheme(this);
+  },
+  onShow() {
+    injectTheme(this);
   },
   onLoad(options) {
     const token = options.token || "";

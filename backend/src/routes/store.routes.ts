@@ -1,13 +1,155 @@
 import { Router } from "express";
 import { z } from "zod";
 import { asyncHandler } from "../shared/async-handler.js";
-import { requireAuth } from "../shared/auth.js";
+import { requireAuth, signToken } from "../shared/auth.js";
 import { query, queryOne, transaction } from "../shared/db.js";
 import { makeBizNo, makeToken } from "../shared/id.js";
+import { verifyPassword } from "../shared/password.js";
 import { ok } from "../shared/response.js";
+import { completeOrderDelivery } from "../shared/fulfillment.js";
 
 export const storeRouter = Router();
+
+// 登录接口放在 requireAuth 之前，不需要认证
+storeRouter.post("/auth/login", asyncHandler(async (req, res) => {
+  const body = z.object({ username: z.string(), password: z.string() }).parse(req.body);
+  const account = await queryOne<any>(
+    "SELECT id, username, password_hash, real_name, store_id, status, role FROM sys_user WHERE username = ? LIMIT 1",
+    [body.username]
+  );
+  if (!account || account.status !== 1 || !verifyPassword(body.password, account.password_hash)) {
+    res.status(401).json({ code: "401", message: "账号或密码错误" });
+    return;
+  }
+  const role = account.role || "STAFF";
+  const user = {
+    id: account.id,
+    name: account.real_name || account.username,
+    role,
+    storeId: account.store_id ?? 1
+  };
+  const token = signToken({ id: account.id, username: account.username, roles: [role], storeId: account.store_id });
+  res.json(ok({ token, user }));
+}));
+
+// 当前用户信息
+storeRouter.get("/me", asyncHandler(async (req, res) => {
+  res.json(ok({
+    userId: req.user?.id,
+    realName: req.user?.username ?? "商家用户",
+    storeId: req.user?.storeId ?? 1,
+    role: req.user?.roles?.[0] ?? "STAFF",
+    permissions: [
+      "dashboard.view",
+      "order.view",
+      "order.deliver",
+      "order.complete",
+      "inventory.view",
+      "customer.view",
+      "receivable.view",
+      "report.view"
+    ],
+    menus: ["home", "orders", "inventory", "customers", "receivables", "reports", "profile"]
+  }));
+}));
+
 storeRouter.use(requireAuth);
+
+// 门店信息（供小程序端获取）
+storeRouter.get("/info", asyncHandler(async (req, res) => {
+  const storeId = req.user?.storeId ?? 1;
+  const store = await queryOne<any>(
+    `SELECT name, address, phone, contact,
+            miniapp_appid AS miniappAppid, wx_merchant_name AS wxMerchantName,
+            wx_service_phone AS wxServicePhone, wx_head_img AS wxHeadImg, wx_qrcode_url AS wxQrcodeUrl
+     FROM store WHERE id = ?`,
+    [storeId]
+  );
+  if (!store) {
+    res.status(404).json({ code: "1", message: "门店不存在" });
+    return;
+  }
+  res.json(ok({
+    storeName: store.name,
+    storeAddress: store.address,
+    storePhone: store.phone,
+    storeContact: store.contact,
+    miniappAppid: store.miniappAppid,
+    wxMerchantName: store.wxMerchantName,
+    wxServicePhone: store.wxServicePhone,
+    wxHeadImg: store.wxHeadImg,
+    wxQrcodeUrl: store.wxQrcodeUrl
+  }));
+}));
+
+const rawStoreSaleBillItemSchema = z.object({
+  skuId: z.number(),
+  boxQty: z.number().optional(),
+  bottleQty: z.number().optional(),
+  quantity: z.number().optional(),
+  totalBottleQty: z.number().optional(),
+  unitPrice: z.number().optional(),
+  priceType: z.enum(["RETAIL", "WHOLESALE", "STORE"]).optional()
+});
+
+export const storeSaleBillItemSchema = rawStoreSaleBillItemSchema.transform((item, ctx) => {
+  const totalBottleQty = item.totalBottleQty ?? item.quantity;
+  if (totalBottleQty == null || totalBottleQty <= 0) {
+    ctx.addIssue({
+      code: z.ZodIssueCode.custom,
+      message: "totalBottleQty 或 quantity 必须大于 0"
+    });
+    return z.NEVER;
+  }
+  return {
+    skuId: item.skuId,
+    boxQty: item.boxQty ?? 0,
+    bottleQty: item.bottleQty ?? item.quantity ?? totalBottleQty,
+    totalBottleQty,
+    unitPrice: item.unitPrice,
+    priceType: item.priceType
+  };
+});
+
+export function normalizeStoreSaleBillItem(input: unknown) {
+  return storeSaleBillItemSchema.parse(input);
+}
+
+storeRouter.get("/products", asyncHandler(async (req, res) => {
+  const keyword = String(req.query.keyword || "");
+  const barcode = String(req.query.barcode || "");
+  const storeId = req.user?.storeId ?? 1;
+  const records = await query<any>(
+    `SELECT s.id AS skuId, s.sku_code AS skuCode, p.name AS productName, s.sku_name AS skuName,
+            s.barcode, pp.retail_price AS retailPrice, pp.wholesale_price AS wholesalePrice,
+            pp.store_price AS storePrice, ib.available_qty AS availableQty
+     FROM product_sku s
+     JOIN product_spu p ON p.id = s.spu_id
+     JOIN product_price pp ON pp.sku_id = s.id
+     LEFT JOIN inventory_balance ib ON ib.sku_id = s.id AND ib.store_id = ? AND ib.stock_type = 'OFFLINE'
+     WHERE p.status = 'ON_SALE'
+       AND (? = '' OR p.name LIKE ? OR s.sku_name LIKE ? OR s.sku_code LIKE ?)
+       AND (? = '' OR s.barcode = ?)
+     ORDER BY s.id DESC
+     LIMIT 50`,
+    [storeId, keyword, `%${keyword}%`, `%${keyword}%`, `%${keyword}%`, barcode, barcode]
+  );
+  res.json(ok({ records }));
+}));
+
+storeRouter.get("/members", asyncHandler(async (req, res) => {
+  const keyword = String(req.query.keyword || "");
+  const records = await query<any>(
+    `SELECT id AS memberId, name, mobile, customer_type AS customerType, status
+     FROM member
+     WHERE status = 1
+       AND (? = '' OR name LIKE ? OR mobile LIKE ?)
+     ORDER BY id DESC
+     LIMIT 50`,
+    [keyword, `%${keyword}%`, `%${keyword}%`]
+  );
+  res.json(ok({ records }));
+}));
 
 storeRouter.get("/inventory", asyncHandler(async (req, res) => {
   const keyword = `%${String(req.query.keyword || "")}%`;
@@ -55,19 +197,101 @@ storeRouter.get("/orders", asyncHandler(async (req, res) => {
 }));
 
 storeRouter.post("/orders/:orderNo/accept", asyncHandler(async (req, res) => {
-  await query(
+  const result = await query(
     `UPDATE miniapp_order SET order_status = 'ACCEPTED', updated_at = NOW() WHERE order_no = ?`,
     [req.params.orderNo]
   );
+  if (!result || (result as any).affectedRows === 0) {
+    res.status(404).json({ code: "404", message: "订单不存在" });
+    return;
+  }
   res.json(ok({ orderNo: req.params.orderNo, status: "ACCEPTED" }));
 }));
 
-storeRouter.post("/orders/:orderNo/complete", asyncHandler(async (req, res) => {
-  await query(
-    `UPDATE miniapp_order SET order_status = 'COMPLETED', completed_at = NOW(), updated_at = NOW() WHERE order_no = ?`,
+storeRouter.post("/orders/:orderNo/start-delivery", asyncHandler(async (req, res) => {
+  const result = await query(
+    `UPDATE miniapp_order
+     SET order_status = 'DELIVERING', delivery_status = 'DELIVERING', updated_at = NOW()
+     WHERE order_no = ? AND order_status = 'WAIT_DELIVERY'`,
     [req.params.orderNo]
   );
-  res.json(ok({ orderNo: req.params.orderNo, status: "COMPLETED" }));
+  if (!result || (result as any).affectedRows === 0) {
+    res.status(400).json({ code: "400", message: "订单不存在或状态不允许开始配送" });
+    return;
+  }
+  await query(
+    `INSERT INTO operation_log (operator_id, operator_name, module, action, biz_no, after_data)
+     VALUES (?, ?, 'ORDER_DELIVERY', 'START_DELIVERY', ?, JSON_OBJECT('status', 'DELIVERING'))`,
+    [req.user?.id ?? null, req.user?.username ?? "系统用户", req.params.orderNo]
+  );
+  res.json(ok({ orderNo: req.params.orderNo, status: "DELIVERING" }));
+}));
+
+storeRouter.post("/orders/:orderNo/complete-delivery", asyncHandler(async (req, res) => {
+  const result = await transaction(async (conn) => {
+    return completeOrderDelivery(conn, req.params.orderNo, req.user?.id ?? null, makeBizNo);
+  });
+  res.json(ok(result));
+}));
+
+async function releaseOrderReservation(orderNo: string, status: "REJECTED" | "CANCELLED", operatorId: number | null) {
+  return transaction(async (conn) => {
+    const [orders] = await conn.query<any[]>(
+      `SELECT order_no, store_id FROM miniapp_order
+       WHERE order_no = ? AND order_status IN ('WAIT_DELIVERY', 'DELIVERING')
+       FOR UPDATE`,
+      [orderNo]
+    );
+    const order = orders[0];
+    if (!order) throw new Error("订单不存在或状态不可释放库存");
+    const [items] = await conn.query<any[]>(
+      `SELECT sku_id AS skuId, reserved_qty AS reservedQty FROM miniapp_order_item WHERE order_no = ?`,
+      [orderNo]
+    );
+    for (const item of items) {
+      const qty = Number(item.reservedQty ?? 0);
+      if (qty <= 0) continue;
+      await conn.execute(
+        `UPDATE inventory_balance
+         SET locked_qty = GREATEST(locked_qty - ?, 0),
+             available_qty = available_qty + ?,
+             updated_at = NOW()
+         WHERE store_id = ? AND sku_id = ? AND stock_type = 'ONLINE'`,
+        [qty, qty, order.store_id, item.skuId]
+      );
+      await conn.execute(
+        `INSERT INTO inventory_ledger (ledger_no, store_id, sku_id, stock_type, biz_type, biz_no,
+                                       change_qty, before_qty, after_qty, before_locked_qty, after_locked_qty,
+                                       operator_id, idempotency_key, remark)
+         VALUES (?, ?, ?, 'ONLINE', ?, ?, 0, 0, 0, 0, 0, ?, ?, ?)`,
+        [
+          makeBizNo("IL"),
+          order.store_id,
+          item.skuId,
+          status === "REJECTED" ? "ORDER_REJECT" : "ORDER_CANCEL",
+          orderNo,
+          operatorId,
+          `${status}:${orderNo}:${item.skuId}`,
+          status === "REJECTED" ? "客户拒收释放占用库存" : "订单取消释放占用库存"
+        ]
+      );
+    }
+    await conn.execute(
+      `UPDATE miniapp_order
+       SET order_status = ?, delivery_status = ?, updated_at = NOW()
+       WHERE order_no = ?`,
+      [status, status, orderNo]
+    );
+    return { orderNo, status };
+  });
+}
+
+storeRouter.post("/orders/:orderNo/reject", asyncHandler(async (req, res) => {
+  res.json(ok(await releaseOrderReservation(req.params.orderNo, "REJECTED", req.user?.id ?? null)));
+}));
+
+storeRouter.post("/orders/:orderNo/cancel", asyncHandler(async (req, res) => {
+  res.json(ok(await releaseOrderReservation(req.params.orderNo, "CANCELLED", req.user?.id ?? null)));
 }));
 
 storeRouter.get("/orders/:orderNo", asyncHandler(async (req, res) => {
@@ -130,14 +354,7 @@ storeRouter.post("/sale-bills", asyncHandler(async (req, res) => {
     roundingAmount: z.number().default(0),
     remark: z.string().optional(),
     internalRemark: z.string().optional(),
-    items: z.array(z.object({
-      skuId: z.number(),
-      boxQty: z.number().default(0),
-      bottleQty: z.number().default(0),
-      totalBottleQty: z.number(),
-      unitPrice: z.number().optional(),
-      priceType: z.enum(["RETAIL", "WHOLESALE", "STORE"]).optional()
-    })).min(1)
+    items: z.array(storeSaleBillItemSchema).min(1)
   }).parse(req.body);
   const bill = await transaction(async (conn) => {
     const billNo = makeBizNo("XS");
@@ -262,11 +479,22 @@ storeRouter.post("/sale-bills/:billNo/offline-payment", asyncHandler(async (req,
     remark: z.string().optional()
   }).parse(req.body);
   await transaction(async (conn) => {
-    const [rows] = await conn.query<any[]>("SELECT received_amount, receivable_amount FROM sale_bill WHERE bill_no = ? FOR UPDATE", [req.params.billNo]);
+    const [rows] = await conn.query<any[]>(
+      "SELECT bill_no, store_id, received_amount, receivable_amount, collection_status FROM sale_bill WHERE bill_no = ? FOR UPDATE",
+      [req.params.billNo]
+    );
     const bill = rows[0];
     if (!bill) throw new Error("销售单不存在");
+    const existingDeductRows = await conn.query<any[]>(
+      "SELECT id FROM inventory_ledger WHERE biz_type = 'SALE_OUT' AND biz_no = ? LIMIT 1",
+      [req.params.billNo]
+    );
+    const alreadyDeducted = existingDeductRows[0].length > 0;
     const received = Number(bill.received_amount) + body.amount;
     const receivable = Number(bill.receivable_amount);
+    if (body.amount <= 0 || body.amount > Math.max(receivable - Number(bill.received_amount), 0)) {
+      throw new Error("收款金额不合法");
+    }
     const status = received >= receivable ? "PAID" : "PARTIAL";
     await conn.execute(
       `UPDATE sale_bill SET received_amount = ?, unreceived_amount = GREATEST(receivable_amount - ?, 0), collection_status = ?, last_payment_time = NOW()
@@ -278,6 +506,54 @@ storeRouter.post("/sale-bills/:billNo/offline-payment", asyncHandler(async (req,
        VALUES (?, 'SALE_BILL', ?, ?, ?, 'SUCCESS', NOW())`,
       [makeBizNo("ZF"), req.params.billNo, body.paymentMethod, body.amount]
     );
+    if (!alreadyDeducted) {
+      const [items] = await conn.query<any[]>(
+        `SELECT sku_id AS skuId, total_bottle_qty AS quantity
+         FROM sale_bill_item
+         WHERE bill_no = ?`,
+        [req.params.billNo]
+      );
+      for (const item of items) {
+        const [inventoryRows] = await conn.query<any[]>(
+          `SELECT physical_qty AS physicalQty, available_qty AS availableQty
+           FROM inventory_balance
+           WHERE store_id = ? AND sku_id = ? AND stock_type = 'OFFLINE'
+           FOR UPDATE`,
+          [bill.store_id, item.skuId]
+        );
+        const inventory = inventoryRows[0];
+        const beforeQty = Number(inventory?.availableQty ?? 0);
+        const quantity = Number(item.quantity ?? item.totalBottleQty);
+        if (beforeQty < quantity) throw new Error("库存不足，无法完成收款出库");
+        const afterQty = beforeQty - quantity;
+        await conn.execute(
+          `UPDATE inventory_balance
+           SET physical_qty = physical_qty - ?,
+               available_qty = available_qty - ?,
+               updated_at = NOW()
+           WHERE store_id = ? AND sku_id = ? AND stock_type = 'OFFLINE'`,
+          [quantity, quantity, bill.store_id ?? bill.storeId, item.skuId]
+        );
+        await conn.execute(
+          `INSERT INTO inventory_ledger (ledger_no, store_id, sku_id, stock_type, biz_type, biz_no,
+                                         change_qty, before_qty, after_qty, before_locked_qty, after_locked_qty,
+                                         operator_id, idempotency_key, remark)
+           VALUES (?, ?, ?, 'OFFLINE', 'SALE_OUT', ?, ?, ?, ?, 0, 0, ?, ?, ?)`,
+          [
+            makeBizNo("IL"),
+            bill.store_id ?? bill.storeId,
+            item.skuId,
+            req.params.billNo,
+            -quantity,
+            beforeQty,
+            afterQty,
+            req.user?.id ?? null,
+            `SALE_OUT:${req.params.billNo}:${item.skuId}`,
+            body.remark ?? "线下收款销售出库"
+          ]
+        );
+      }
+    }
   });
   res.json(ok({ billNo: req.params.billNo }));
 }));
@@ -291,42 +567,46 @@ storeRouter.post("/inventory/adjust", asyncHandler(async (req, res) => {
     remark: z.string().optional()
   }).parse(req.body);
   const storeId = body.storeId ?? req.user?.storeId ?? 1;
-  const current = await queryOne<any>(
-    `SELECT physical_qty AS physicalQty
-     FROM inventory_balance
-     WHERE store_id = ? AND sku_id = ? AND stock_type = ?`,
-    [storeId, body.skuId, body.stockType]
-  );
-  const beforeQty = Number(current?.physicalQty ?? 0);
-  await query(
-    `UPDATE inventory_balance
-     SET physical_qty = physical_qty + ?,
-         available_qty = available_qty + ?,
-         updated_at = NOW()
-     WHERE store_id = ? AND sku_id = ? AND stock_type = ?`,
-    [body.change, body.change, storeId, body.skuId, body.stockType]
-  );
-  const afterQty = beforeQty + body.change;
-  await query(
-    `INSERT INTO inventory_ledger (ledger_no, store_id, sku_id, stock_type, biz_type, biz_no,
-                                   change_qty, before_qty, after_qty, before_locked_qty, after_locked_qty,
-                                   operator_id, idempotency_key, remark)
-     VALUES (?, ?, ?, ?, 'ADJUST', ?, ?, ?, ?, 0, 0, ?, ?, ?)`,
-    [
-      makeBizNo("IL"),
-      storeId,
-      body.skuId,
-      body.stockType,
-      makeBizNo("ADJ"),
-      body.change,
-      beforeQty,
-      afterQty,
-      req.user?.id ?? null,
-      makeBizNo("IDEMP"),
-      body.remark ?? "门店调整"
-    ]
-  );
-  res.json(ok({ ok: true }));
+  const result = await transaction(async (conn) => {
+    const [rows] = await conn.query<any[]>(
+      `SELECT physical_qty AS physicalQty
+       FROM inventory_balance
+       WHERE store_id = ? AND sku_id = ? AND stock_type = ?
+       FOR UPDATE`,
+      [storeId, body.skuId, body.stockType]
+    );
+    const beforeQty = Number(rows[0]?.physicalQty ?? 0);
+    await conn.execute(
+      `UPDATE inventory_balance
+       SET physical_qty = physical_qty + ?,
+           available_qty = available_qty + ?,
+           updated_at = NOW()
+       WHERE store_id = ? AND sku_id = ? AND stock_type = ?`,
+      [body.change, body.change, storeId, body.skuId, body.stockType]
+    );
+    const afterQty = beforeQty + body.change;
+    await conn.execute(
+      `INSERT INTO inventory_ledger (ledger_no, store_id, sku_id, stock_type, biz_type, biz_no,
+                                     change_qty, before_qty, after_qty, before_locked_qty, after_locked_qty,
+                                     operator_id, idempotency_key, remark)
+       VALUES (?, ?, ?, ?, 'ADJUST', ?, ?, ?, ?, 0, 0, ?, ?, ?)`,
+      [
+        makeBizNo("IL"),
+        storeId,
+        body.skuId,
+        body.stockType,
+        makeBizNo("ADJ"),
+        body.change,
+        beforeQty,
+        afterQty,
+        req.user?.id ?? null,
+        makeBizNo("IDEMP"),
+        body.remark ?? "门店调整"
+      ]
+    );
+    return { ok: true };
+  });
+  res.json(ok(result));
 }));
 
 storeRouter.get("/inventory/logs", asyncHandler(async (req, res) => {
@@ -527,117 +807,73 @@ storeRouter.get("/inventory/alerts", asyncHandler(async (req, res) => {
      FROM inventory_balance ib
      LEFT JOIN product_sku ps ON ps.id = ib.sku_id
      ${where ? where + " AND" : "WHERE"} ib.available_qty <= 5
-     ORDER BY ib.available_qty ASC` ,
+     ORDER BY ib.available_qty ASC
+     LIMIT 20`,
     params
   );
   res.json(ok(records));
 }));
 
-// ================== 客户对账 ==================
-storeRouter.get("/customer-statements", asyncHandler(async (_req, res) => {
+storeRouter.get("/receivables", asyncHandler(async (req, res) => {
+  const page = Number(req.query.page || 1);
+  const pageSize = Number(req.query.pageSize || 20);
+  const offset = (page - 1) * pageSize;
+  const status = req.query.status ? String(req.query.status) : null;
+  const keyword = `%${String(req.query.keyword || "")}%`;
+  const storeId = req.user?.storeId ?? null;
   const records = await query<any>(
-    `SELECT statement_no AS statementNo, customer_id AS customerId, customer_name AS customerName,
-            start_balance AS startBalance, sales_amount AS salesAmount, return_amount AS returnAmount,
-            received_amount AS receivedAmount, end_balance AS endBalance, status, period
-     FROM customer_statement ORDER BY id DESC`
+    `SELECT receivable_no AS receivableNo, source_type AS sourceType, source_no AS sourceNo,
+            customer_name AS customerName, customer_mobile AS customerMobile,
+            receivable_amount AS receivableAmount, received_amount AS receivedAmount,
+            unreceived_amount AS unreceivedAmount, status, created_at AS createdAt
+     FROM receivable_account
+     WHERE (? IS NULL OR store_id = ?)
+       AND (? IS NULL OR status = ?)
+       AND (receivable_no LIKE ? OR source_no LIKE ? OR customer_name LIKE ? OR customer_mobile LIKE ?)
+     ORDER BY id DESC
+     LIMIT ? OFFSET ?`,
+    [storeId, storeId, status, status, keyword, keyword, keyword, keyword, pageSize, offset]
   );
-  res.json(ok(records));
+  const total = await queryOne<any>(
+    `SELECT COUNT(*) AS total FROM receivable_account
+     WHERE (? IS NULL OR store_id = ?)
+       AND (? IS NULL OR status = ?)
+       AND (receivable_no LIKE ? OR source_no LIKE ? OR customer_name LIKE ? OR customer_mobile LIKE ?)`,
+    [storeId, storeId, status, status, keyword, keyword, keyword, keyword]
+  );
+  res.json(ok({ total: total?.total ?? 0, page, pageSize, records }));
 }));
 
-storeRouter.post("/customer-statements", asyncHandler(async (req, res) => {
+storeRouter.post("/receivables/:receivableNo/payment", asyncHandler(async (req, res) => {
   const body = z.object({
-    customerId: z.number(),
-    customerName: z.string().optional(),
-    startBalance: z.number().default(0),
-    salesAmount: z.number().default(0),
-    returnAmount: z.number().default(0),
-    receivedAmount: z.number().default(0),
-    period: z.string().default("CURRENT"),
-    remark: z.string().optional(),
-    items: z.array(z.object({
-      transType: z.string(),
-      transNo: z.string(),
-      amount: z.number().default(0),
-      remark: z.string().optional()
-    })).default([])
-  }).parse(req.body);
-  const endBalance = Number((body.startBalance + body.salesAmount - body.returnAmount - body.receivedAmount).toFixed(2));
-  const statementNo = makeBizNo("DZ");
-  await query(
-    `INSERT INTO customer_statement (statement_no, customer_id, customer_name, start_balance, sales_amount, return_amount, received_amount, end_balance, status, period) VALUES (?, ?, ?, ?, ?, ?, ?, ?, 'PENDING', ?)`,
-    [statementNo, body.customerId, body.customerName ?? `客户-${body.customerId}`, body.startBalance, body.salesAmount, body.returnAmount, body.receivedAmount, endBalance, body.period]
-  );
-  for (const item of body.items) {
-    await query(
-      `INSERT INTO customer_statement_item (statement_no, trans_type, trans_no, amount, remark, created_at) VALUES (?, ?, ?, ?, ?, NOW())`,
-      [statementNo, item.transType, item.transNo, item.amount, item.remark ?? null]
-    );
-  }
-  res.json(ok({ statementNo, endBalance, status: "PENDING" }));
-}));
-
-storeRouter.get("/customer-statements/:statementNo", asyncHandler(async (req, res) => {
-  const st = await queryOne<any>(
-    `SELECT statement_no AS statementNo, customer_id AS customerId, customer_name AS customerName,
-            start_balance AS startBalance, sales_amount AS salesAmount, return_amount AS returnAmount,
-            received_amount AS receivedAmount, end_balance AS endBalance, status, period,
-            auditor_id AS auditorId, audit_time AS auditTime
-     FROM customer_statement WHERE statement_no = ?`,
-    [req.params.statementNo]
-  );
-  if (!st) { res.status(404).json({ code: "404", message: "对账单不存在" }); return; }
-  const items = await query<any>(
-    `SELECT trans_type AS transType, trans_no AS transNo, amount, remark FROM customer_statement_item WHERE statement_no = ?`,
-    [req.params.statementNo]
-  );
-  res.json(ok({ ...st, items }));
-}));
-
-storeRouter.post("/customer-statements/:statementNo/confirm", asyncHandler(async (req, res) => {
-  await query(`UPDATE customer_statement SET status = 'CONFIRMED', auditor_id = ?, audit_time = NOW() WHERE statement_no = ?`,
-    [req.user?.id ?? 1, req.params.statementNo]);
-  res.json(ok({ statementNo: req.params.statementNo, status: "CONFIRMED" }));
-}));
-
-// ================== 客户收款 ==================
-storeRouter.get("/customer-payments", asyncHandler(async (_req, res) => {
-  const records = await query<any>(
-    `SELECT receipt_no AS receiptNo, customer_id AS customerId, customer_name AS customerName,
-            pay_amount AS payAmount, pay_method AS payMethod, status, auditor_id AS auditorId, audit_time AS auditTime
-     FROM customer_payment ORDER BY id DESC`
-  );
-  res.json(ok(records));
-}));
-
-storeRouter.post("/customer-payments", asyncHandler(async (req, res) => {
-  const body = z.object({
-    customerId: z.number(),
-    customerName: z.string().optional(),
-    payAmount: z.number(),
-    payMethod: z.string().default("BANK"),
+    amount: z.number().positive(),
+    paymentMethod: z.enum(["CASH", "TRANSFER", "OTHER_WECHAT", "ALIPAY"]),
     remark: z.string().optional()
   }).parse(req.body);
-  const receiptNo = makeBizNo("SK");
-  await query(
-    `INSERT INTO customer_payment (receipt_no, customer_id, customer_name, pay_amount, pay_method, remark, status, auditor_id, audit_time) VALUES (?, ?, ?, ?, ?, ?, 'PAID', ?, NOW())`,
-    [receiptNo, body.customerId, body.customerName ?? `客户-${body.customerId}`, body.payAmount, body.payMethod, body.remark ?? null, req.user?.id ?? 1]
-  );
-  res.json(ok({ receiptNo, payAmount: body.payAmount, status: "PAID" }));
-}));
-
-storeRouter.get("/customer-payments/:receiptNo", asyncHandler(async (req, res) => {
-  const p = await queryOne<any>(
-    `SELECT receipt_no AS receiptNo, customer_id AS customerId, customer_name AS customerName,
-            pay_amount AS payAmount, pay_method AS payMethod, status, auditor_id AS auditorId, audit_time AS auditTime
-     FROM customer_payment WHERE receipt_no = ?`,
-    [req.params.receiptNo]
-  );
-  if (!p) { res.status(404).json({ code: "404", message: "收款单不存在" }); return; }
-  res.json(ok(p));
-}));
-
-storeRouter.post("/customer-payments/:receiptNo/void", asyncHandler(async (req, res) => {
-  await query(`UPDATE customer_payment SET status = 'VOID', auditor_id = ?, audit_time = NOW() WHERE receipt_no = ?`,
-    [req.user?.id ?? 1, req.params.receiptNo]);
-  res.json(ok({ receiptNo: req.params.receiptNo, status: "VOID" }));
+  const result = await transaction(async (conn) => {
+    const [rows] = await conn.query<any[]>(
+      `SELECT receivable_no, source_no, received_amount, receivable_amount, unreceived_amount
+       FROM receivable_account WHERE receivable_no = ? FOR UPDATE`,
+      [req.params.receivableNo]
+    );
+    const receivable = rows[0];
+    if (!receivable) throw new Error("应收不存在");
+    if (body.amount > Number(receivable.unreceived_amount)) throw new Error("收款金额不能超过未收金额");
+    const receivedAmount = Number(receivable.received_amount) + body.amount;
+    const unreceivedAmount = Math.max(Number(receivable.receivable_amount) - receivedAmount, 0);
+    const status = unreceivedAmount === 0 ? "PAID" : "PARTIAL";
+    await conn.execute(
+      `UPDATE receivable_account
+       SET received_amount = ?, unreceived_amount = ?, status = ?, last_payment_time = NOW()
+       WHERE receivable_no = ?`,
+      [receivedAmount, unreceivedAmount, status, req.params.receivableNo]
+    );
+    await conn.execute(
+      `INSERT INTO payment_order (pay_no, source_type, source_no, channel, amount, status, paid_at)
+       VALUES (?, 'RECEIVABLE', ?, ?, ?, 'SUCCESS', NOW())`,
+      [makeBizNo("ZF"), req.params.receivableNo, body.paymentMethod, body.amount]
+    );
+    return { receivableNo: req.params.receivableNo, receivedAmount, unreceivedAmount, status };
+  });
+  res.json(ok(result));
 }));

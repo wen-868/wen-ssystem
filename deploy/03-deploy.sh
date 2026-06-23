@@ -44,6 +44,7 @@ npm --workspace backend run build
 echo "前端 API 地址：${VITE_API_BASE}"
 VITE_API_BASE="${VITE_API_BASE}" npm --workspace admin-web run build
 VITE_API_BASE="${VITE_API_BASE}" npm --workspace store-terminal run build
+VITE_API_BASE="${VITE_API_BASE}" npm --workspace merchant-mobile run build
 npm run test:production-deploy
 
 mkdir -p "${LOG_DIR}"
@@ -58,23 +59,19 @@ if [[ -f "${PID_FILE}" ]]; then
 fi
 
 echo "启动后端，端口 ${PORT}"
-nohup env \
-  USE_MOCK_DB="${USE_MOCK_DB}" \
-  PORT="${PORT}" \
-  JWT_SECRET="${JWT_SECRET}" \
-  DB_HOST="${DB_HOST}" \
-  DB_PORT="${DB_PORT}" \
-  DB_USER="${DB_USER}" \
-  DB_PASSWORD="${DB_PASSWORD}" \
-  DB_NAME="${DB_NAME}" \
-  WECHAT_APP_ID="${WECHAT_APP_ID:-}" \
-  WECHAT_MCH_ID="${WECHAT_MCH_ID:-}" \
-  WECHAT_PAY_SERIAL_NO="${WECHAT_PAY_SERIAL_NO:-}" \
-  WECHAT_PAY_PRIVATE_KEY_PATH="${WECHAT_PAY_PRIVATE_KEY_PATH:-}" \
-  WECHAT_PAY_API_V3_KEY="${WECHAT_PAY_API_V3_KEY:-}" \
-  npm --workspace backend run start > "${LOG_DIR}/backend.log" 2>&1 &
+if ! command -v pm2 >/dev/null 2>&1; then
+  echo "安装 PM2"
+  npm install -g pm2
+fi
 
-echo $! > "${PID_FILE}"
+pm2 delete zhixiang-api 2>/dev/null || true
+pm2 start "${PROJECT_DIR}/backend/dist/server.js" \
+  --name zhixiang-api \
+  --env production \
+  --log "${LOG_DIR}/backend.log" \
+  --time \
+  -- \
+  --port="${PORT}"
 
 echo "等待后端健康检查"
 for i in {1..30}; do
@@ -84,11 +81,13 @@ for i in {1..30}; do
   fi
   if [[ "$i" == "30" ]]; then
     echo "后端启动超时，请查看 logs/backend.log"
-    tail -n 80 "${LOG_DIR}/backend.log" || true
+    pm2 logs zhixiang-api --lines 80 || tail -n 80 "${LOG_DIR}/backend.log" || true
     exit 1
   fi
   sleep 2
 done
+
+pm2 save
 
 echo "运行 MySQL smoke test"
 API_BASE="http://127.0.0.1:${PORT}" npm run test:mysql

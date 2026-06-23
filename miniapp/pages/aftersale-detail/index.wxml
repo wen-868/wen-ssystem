@@ -1,0 +1,113 @@
+<view style="{{themeCssVars}}">
+  <!-- 加载中 -->
+  <view wx:if="{{loading && !hasDetail}}" class="loading-wrap">
+    <text class="muted">加载中...</text>
+  </view>
+
+  <!-- 错误 -->
+  <view wx:elif="{{errorText && !hasDetail}}" class="error-wrap">
+    <text class="error-text">{{errorText}}</text>
+    <button class="retry-btn" bindtap="loadDetail">重试</button>
+  </view>
+
+  <!-- 详情内容 -->
+  <view wx:elif="{{hasDetail && detail}}">
+    <!-- 状态头部 -->
+    <view class="detail-header status-bg-{{detail.statusClass}}">
+      <view class="status-row">
+        <text class="status-tag tag-{{detail.statusClass}}">{{detail.statusText}}</text>
+        <text class="aftersale-no">{{detail.aftersaleNo}}</text>
+      </view>
+      <view class="type-row">
+        <text class="type-label">售后类型：{{detail.typeLabel}}</text>
+      </view>
+      <view wx:if="{{detail.refundAmountFormatted}}" class="amount-row">
+        <text class="refund-amount">{{detail.refundAmountFormatted}}</text>
+      </view>
+    </view>
+
+    <!-- 商品信息 -->
+    <view class="section card" wx:if="{{detail.items && detail.items.length > 0}}">
+      <view class="section-title">商品信息</view>
+      <view class="goods-list">
+        <view class="goods-item" wx:for="{{detail.items}}" wx:key="id">
+          <image wx:if="{{item.image}}" class="goods-image" src="{{item.image}}" mode="aspectFill" />
+          <view class="goods-info">
+            <text class="goods-name">{{item.skuName || item.productName}}</text>
+            <text class="goods-spec muted">{{item.spec || ''}}</text>
+            <view class="goods-bottom">
+              <text class="goods-price">¥{{item.price || item.unitPrice}}</text>
+              <text class="goods-qty muted">x{{item.qty || item.quantity}}</text>
+            </view>
+          </view>
+        </view>
+      </view>
+    </view>
+
+    <!-- 售后原因 -->
+    <view class="section card">
+      <view class="section-title">售后原因</view>
+      <text class="reason-text">{{detail.reason || '未填写'}}</text>
+    </view>
+
+    <!-- 凭证图片 -->
+    <view class="section card" wx:if="{{detail.imageList.length > 0}}">
+      <view class="section-title">凭证图片</view>
+      <view class="image-grid">
+        <image wx:for="{{detail.imageList}}" wx:key="*this"
+               class="proof-image" src="{{item}}" mode="aspectFill"
+               data-url="{{item}}" bindtap="previewImage" />
+      </view>
+    </view>
+
+    <!-- 处理进度时间线 -->
+    <view class="section card" wx:if="{{detail.timeline.length > 0}}">
+      <view class="section-title">处理进度</view>
+      <view class="timeline">
+        <view class="timeline-item" wx:for="{{detail.timeline}}" wx:key="index">
+          <view class="timeline-dot dot-{{item.dotType}}"></view>
+          <view class="timeline-line" wx:if="{{index < detail.timeline.length - 1}}"></view>
+          <view class="timeline-content">
+            <text class="timeline-event">{{item.event}}</text>
+            <text class="timeline-time muted">{{item.time}}</text>
+            <text wx:if="{{item.remark}}" class="timeline-remark muted">{{item.remark}}</text>
+          </view>
+        </view>
+      </view>
+    </view>
+
+    <!-- 基本信息 -->
+    <view class="section card">
+      <view class="section-title">基本信息</view>
+      <view class="info-row">
+        <text class="info-label muted">售后单号</text>
+        <text class="info-value">{{detail.aftersaleNo}}</text>
+      </view>
+      <view class="info-row" wx:if="{{detail.orderNo}}">
+        <text class="info-label muted">关联订单</text>
+        <text class="info-value">{{detail.orderNo}}</text>
+      </view>
+      <view class="info-row">
+        <text class="info-label muted">申请时间</text>
+        <text class="info-value">{{detail.createdAtFormatted}}</text>
+      </view>
+      <view class="info-row" wx:if="{{detail.updatedAtFormatted}}">
+        <text class="info-label muted">更新时间</text>
+        <text class="info-value">{{detail.updatedAtFormatted}}</text>
+      </view>
+      <view class="info-row" wx:if="{{detail.handlerName}}">
+        <text class="info-label muted">处理人</text>
+        <text class="info-value">{{detail.handlerName}}</text>
+      </view>
+      <view class="info-row" wx:if="{{detail.remark}}">
+        <text class="info-label muted">备注</text>
+        <text class="info-value">{{detail.remark}}</text>
+      </view>
+    </view>
+  </view>
+
+  <!-- 空状态 -->
+  <view wx:else class="empty-wrap">
+    <text class="muted">暂无售后详情</text>
+  </view>
+</view>

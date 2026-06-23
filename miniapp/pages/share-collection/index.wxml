@@ -1,3 +1,4 @@
+<view style="{{themeCssVars}}">
 <view class="payment-hero">
   <view class="muted light">销售单收款</view>
   <view class="hero-title">{{detail.storeName}}</view>
@@ -25,4 +26,5 @@
     </view>
   </view>
   <button class="primary pay-button" disabled="{{payDisabled}}" loading="{{loading}}" bindtap="handleTap">立即付款</button>
+</view>
 </view>

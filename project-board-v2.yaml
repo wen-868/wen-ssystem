@@ -1,0 +1,628 @@
+project:
+  name: 智享酒水库存管理系统
+  version: 2.0.0
+  start_date: '2026-06-17'
+  target_date: '2026-07-15'
+  status: in_progress
+  note: 基础部署完成，进入功能开发阶段。当前聚焦：快速开单、供应商管理、采购全流程、销售退货、客户往来账。
+
+agents:
+  - id: agent-suran
+    name: 苏然
+    role: 测试工程师
+    skills:
+      - 自动化测试
+      - 性能测试
+      - 接口测试
+      - 安全测试
+    status: waiting
+    current_task: null
+    progress: 0
+    blockers:
+      - 等待开发完成
+    daily_capacity: 6h
+
+  - id: agent-linxi
+    name: 林夕
+    role: UI/前端交互工程师
+    skills:
+      - Vue3/React
+      - 微信小程序
+      - PWA开发
+      - UI/UX设计
+      - 交互原型
+    status: idle
+    current_task: null
+    progress: 0
+    blockers: []
+    daily_capacity: 8h
+
+  - id: agent-ajian
+    name: 阿坚
+    role: 后端开发工程师
+    skills:
+      - Node.js/Express
+      - MySQL数据库
+      - 微信支付API
+      - 即时配送API
+    status: idle
+    current_task: null
+    progress: 0
+    blockers: []
+    daily_capacity: 8h
+
+# ========== 当前阶段：功能开发 Sprint（聚焦快速开单）==========
+tasks:
+
+  # ==================== 阿坚（后端）任务 ====================
+
+  - id: A101
+    title: 供应商管理 API
+    description: |
+      实现供应商管理完整 CRUD：
+      1. GET/POST /api/admin/suppliers - 列表/新增
+      2. GET/PUT /api/admin/suppliers/:id - 详情/修改
+      3. POST /api/admin/suppliers/:id/contacts - 添加联系人
+      4. 供应商编码自动生成规则：GYS + 年月日 + 3位序号
+      数据库表：supplier, supplier_contact
+    assignee: agent-ajian
+    priority: P0
+    status: todo
+    estimated_hours: 12
+    dependencies: []
+    deliverables:
+      - 供应商 CRUD 接口
+      - 编码生成逻辑
+      - 联系人管理接口
+
+  - id: A102
+    title: 采购订单 API
+    description: |
+      实现采购订单全流程：
+      1. GET/POST /api/admin/purchase-orders - 列表/创建
+      2. GET /api/admin/purchase-orders/:orderNo - 详情
+      3. POST /api/admin/purchase-orders/:orderNo/approve - 审核
+      4. POST /api/admin/purchase-orders/:orderNo/cancel - 取消
+      5. 订单号生成：CGDD + 年月日 + 4位序号
+      6. 创建时自动计算：商品金额、税额、应付金额
+      7. 审核后状态流转：DRAFT -> PENDING -> APPROVED
+      数据库表：purchase_order, purchase_order_item
+    assignee: agent-ajian
+    priority: P0
+    status: todo
+    estimated_hours: 16
+    dependencies:
+      - A101
+    deliverables:
+      - 采购订单 CRUD
+      - 审核/取消流程
+      - 金额自动计算
+
+  - id: A103
+    title: 采购入库 API
+    description: |
+      实现采购入库全流程：
+      1. GET/POST /api/admin/purchase-in-stocks - 列表/创建
+      2. GET /api/admin/purchase-in-stocks/:stockNo - 详情
+      3. POST /api/admin/purchase-in-stocks/:stockNo/approve - 审核（增加库存）
+      4. POST /api/admin/purchase-in-stocks/:stockNo/void - 作废（回滚库存）
+      5. 支持按采购订单入库（自动带出订单明细）
+      6. 支持无订单直接入库
+      7. 入库审核通过后：
+         - 增加 inventory_balance 库存
+         - 写 inventory_ledger 台账
+         - 更新采购订单已入库数量
+      入库单号：CGRK + 年月日 + 4位序号
+      数据库表：purchase_in_stock, purchase_in_stock_item
+    assignee: agent-ajian
+    priority: P0
+    status: todo
+    estimated_hours: 16
+    dependencies:
+      - A102
+    deliverables:
+      - 入库单 CRUD
+      - 审核增加库存逻辑
+      - 作废回滚逻辑
+      - 关联采购订单更新
+
+  - id: A104
+    title: 采购退货 API
+    description: |
+      实现采购退货：
+      1. GET/POST /api/admin/purchase-returns - 列表/创建
+      2. GET /api/admin/purchase-returns/:returnNo - 详情
+      3. POST /api/admin/purchase-returns/:returnNo/approve - 审核（扣减库存）
+      4. 退货审核通过后扣减库存，写台账
+      退货单号：CGTH + 年月日 + 4位序号
+      数据库表：purchase_return, purchase_return_item
+    assignee: agent-ajian
+    priority: P0
+    status: todo
+    estimated_hours: 12
+    dependencies:
+      - A103
+    deliverables:
+      - 采购退货 CRUD
+      - 审核扣减库存
+
+  - id: A105
+    title: 采购付款 API
+    description: |
+      实现采购付款：
+      1. GET/POST /api/admin/purchase-payments - 列表/创建
+      2. POST /api/admin/purchase-payments/:paymentNo/approve - 审核
+      3. 支持按订单付款、预付款、退货退款
+      4. 付款审核通过后更新订单已付金额
+      付款单号：CGFK + 年月日 + 4位序号
+      数据库表：purchase_payment
+    assignee: agent-ajian
+    priority: P0
+    status: todo
+    estimated_hours: 10
+    dependencies:
+      - A102
+    deliverables:
+      - 付款单 CRUD
+      - 审核更新订单金额
+
+  - id: A106
+    title: 销售退货 API
+    description: |
+      实现销售退货：
+      1. GET/POST /api/store/sale-returns - 列表/创建
+      2. GET /api/store/sale-returns/:returnNo - 详情
+      3. POST /api/store/sale-returns/:returnNo/approve - 审核（增加库存）
+      4. POST /api/store/sale-returns/:returnNo/refund - 确认退款
+      5. 支持按销售单退货（自动带出原单商品）
+      6. 支持直接退货
+      退货单号：XSTH + 年月日 + 4位序号
+      数据库表：sale_return, sale_return_item
+    assignee: agent-ajian
+    priority: P0
+    status: todo
+    estimated_hours: 14
+    dependencies: []
+    deliverables:
+      - 销售退货 CRUD
+      - 审核增加库存
+      - 退款处理
+
+  - id: A107
+    title: 客户对账单 API
+    description: |
+      实现客户对账：
+      1. GET/POST /api/store/customer-statements - 列表/生成
+      2. GET /api/store/customer-statements/:statementNo - 详情
+      3. POST /api/store/customer-statements/:statementNo/confirm - 确认
+      4. 生成对账单时汇总指定期间：
+         - 销售单金额（sale_bill）
+         - 销售退货金额（sale_return）
+         - 收款金额（customer_payment / sale_payment）
+      5. 计算期初余额、期末余额
+      对账单号：KHDZ + 年月日 + 4位序号
+      数据库表：customer_statement
+    assignee: agent-ajian
+    priority: P0
+    status: todo
+    estimated_hours: 14
+    dependencies:
+      - A106
+    deliverables:
+      - 对账单生成逻辑
+      - 汇总计算
+      - 确认流程
+
+  - id: A108
+    title: 客户收款 API
+    description: |
+      实现客户收款：
+      1. GET/POST /api/store/customer-payments - 列表/创建
+      2. POST /api/store/customer-payments/:receiptNo/void - 作废
+      3. 支持按销售单收款、按对账单收款、预收款
+      4. 收款后更新销售单/对账单已收金额
+      收款单号：KHSK + 年月日 + 4位序号
+      数据库表：customer_payment
+    assignee: agent-ajian
+    priority: P0
+    status: todo
+    estimated_hours: 10
+    dependencies:
+      - A107
+    deliverables:
+      - 收款单 CRUD
+      - 更新关联单据金额
+
+  - id: A109
+    title: 库存预警 API
+    description: |
+      实现库存预警：
+      1. GET /api/admin/inventory-alerts - 预警列表
+      2. GET/PUT /api/admin/inventory-alerts/settings - 设置
+      3. 低库存预警：available_qty <= warning_threshold
+      4. 支持按门店筛选
+      5. 返回预警级别：WARNING（警告）/ CRITICAL（紧急）
+    assignee: agent-ajian
+    priority: P1
+    status: todo
+    estimated_hours: 8
+    dependencies: []
+    deliverables:
+      - 预警查询接口
+      - 预警设置接口
+
+  - id: A110
+    title: 销售单扩展（赊销支持）
+    description: |
+      扩展现有销售单：
+      1. 创建销售单时支持 sale_type: CASH/CREDIT
+      2. CREDIT 类型时设置 due_date（应收截止日期）
+      3. 收款后更新 collection_status：UNPAID -> PARTIAL -> PAID
+      4. 超期未收自动标记 OVERDUE
+      5. 销售单关联 customer_statement
+      数据库变更：sale_bill 表已添加 sale_type, due_date, statement_id
+    assignee: agent-ajian
+    priority: P0
+    status: todo
+    estimated_hours: 8
+    dependencies: []
+    deliverables:
+      - 赊销类型支持
+      - 收款状态流转
+      - 超期检测
+
+  # ==================== 林夕（前端）任务 ====================
+
+  - id: L101
+    title: 供应商管理页面
+    description: |
+      管理后台 - 供应商管理：
+      1. 供应商列表页（搜索、分页、状态筛选）
+      2. 供应商新增/编辑页（表单：基本信息、结算方式、银行账户）
+      3. 供应商详情页（含联系人列表）
+      4. 联系人添加/编辑弹窗
+      技术：Vue3 + admin-web
+    assignee: agent-linxi
+    priority: P0
+    status: todo
+    estimated_hours: 16
+    dependencies:
+      - A101
+    deliverables:
+      - 供应商列表页
+      - 供应商表单页
+      - 联系人管理
+
+  - id: L102
+    title: 采购订单页面
+    description: |
+      管理后台 - 采购订单：
+      1. 采购订单列表页（状态筛选、供应商筛选）
+      2. 创建采购订单页（选择供应商、添加商品、自动计算金额）
+      3. 采购订单详情页（含明细、审核按钮）
+      4. 支持箱/瓶双单位输入
+      技术：Vue3 + admin-web
+    assignee: agent-linxi
+    priority: P0
+    status: todo
+    estimated_hours: 20
+    dependencies:
+      - A102
+    deliverables:
+      - 采购订单列表
+      - 采购订单创建
+      - 采购订单详情
+
+  - id: L103
+    title: 采购入库页面
+    description: |
+      管理后台 - 采购入库：
+      1. 入库单列表页
+      2. 创建入库单页（支持按采购订单入库、直接入库）
+      3. 入库单详情页（审核/作废按钮）
+      4. 扫码选择商品（输入条码自动带出商品）
+      技术：Vue3 + admin-web
+    assignee: agent-linxi
+    priority: P0
+    status: todo
+    estimated_hours: 16
+    dependencies:
+      - A103
+    deliverables:
+      - 入库单列表
+      - 入库单创建
+      - 入库单详情
+
+  - id: L104
+    title: 采购退货/付款页面
+    description: |
+      管理后台 - 采购退货与付款：
+      1. 采购退货单列表/创建/详情
+      2. 采购付款单列表/创建/详情
+      3. 付款方式选择（银行转账/现金/微信/支付宝）
+      技术：Vue3 + admin-web
+    assignee: agent-linxi
+    priority: P0
+    status: todo
+    estimated_hours: 14
+    dependencies:
+      - A104
+      - A105
+    deliverables:
+      - 采购退货页面
+      - 采购付款页面
+
+  - id: L105
+    title: 商家端H5 - 快速开单（销售）
+    description: |
+      商家端H5 - 销售开单优化：
+      1. 快速开单页（选择客户、扫码/搜索商品、箱瓶输入）
+      2. 支持现销/赊销切换
+      3. 赊销时选择应收截止日期
+      4. 销售单列表（含收款状态）
+      5. 销售单详情（收款按钮、分享收款）
+      技术：Vue3 + merchant-mobile
+    assignee: agent-linxi
+    priority: P0
+    status: todo
+    estimated_hours: 20
+    dependencies:
+      - A110
+    deliverables:
+      - 快速开单页
+      - 销售单列表/详情
+      - 赊销支持
+
+  - id: L106
+    title: 商家端H5 - 销售退货
+    description: |
+      商家端H5 - 销售退货：
+      1. 销售退货单列表
+      2. 创建退货单（按销售单退货/直接退货）
+      3. 退货单详情（审核状态）
+      4. 退款确认
+      技术：Vue3 + merchant-mobile
+    assignee: agent-linxi
+    priority: P0
+    status: todo
+    estimated_hours: 14
+    dependencies:
+      - A106
+    deliverables:
+      - 销售退货列表
+      - 销售退货创建
+      - 退款确认
+
+  - id: L107
+    title: 商家端H5 - 客户往来账
+    description: |
+      商家端H5 - 客户往来账：
+      1. 客户列表（显示欠款金额）
+      2. 客户对账单列表
+      3. 生成对账单（选择时间段）
+      4. 对账单详情（销售/退货/收款流水）
+      5. 客户收款（选择收款方式）
+      技术：Vue3 + merchant-mobile
+    assignee: agent-linxi
+    priority: P0
+    status: todo
+    estimated_hours: 18
+    dependencies:
+      - A107
+      - A108
+    deliverables:
+      - 客户列表
+      - 对账单列表/详情
+      - 收款页面
+
+  - id: L108
+    title: 管理后台 - 库存预警
+    description: |
+      管理后台 - 库存预警：
+      1. 预警列表页（低库存商品、当前库存、预警级别）
+      2. 预警设置页（阈值配置、通知方式）
+      3. 预警商品快速补货入口（跳转创建采购订单）
+      技术：Vue3 + admin-web
+    assignee: agent-linxi
+    priority: P1
+    status: todo
+    estimated_hours: 10
+    dependencies:
+      - A109
+    deliverables:
+      - 预警列表
+      - 预警设置
+
+  - id: L109
+    title: 门店终端 - 快速收银
+    description: |
+      门店终端PWA - 快速收银：
+      1. 扫码收银（扫描商品条码）
+      2. 箱/瓶数量输入
+      3. 客户选择（会员/散客）
+      4. 收款方式选择（现金/微信/支付宝）
+      5. 打印小票（对接打印机，后续迭代）
+      技术：Vue3 + store-terminal
+    assignee: agent-linxi
+    priority: P1
+    status: todo
+    estimated_hours: 16
+    dependencies:
+      - A110
+    deliverables:
+      - 扫码收银页
+      - 收款页面
+
+  # ==================== 苏然（测试）任务 ====================
+
+  - id: S101
+    title: 测试计划与用例编写（Phase 2）
+    description: |
+      针对新模块编写测试用例：
+      1. 供应商管理测试用例
+      2. 采购订单/入库/退货/付款全流程用例
+      3. 销售退货测试用例
+      4. 客户对账/收款测试用例
+      5. 库存预警测试用例
+      6. 金额计算精度测试（分位精度）
+    assignee: agent-suran
+    priority: P1
+    status: todo
+    estimated_hours: 16
+    dependencies: []
+    deliverables:
+      - Phase 2 测试计划
+      - 功能测试用例集
+
+  - id: S102
+    title: 接口自动化测试（Phase 2）
+    description: |
+      实现新模块接口自动化测试：
+      1. 供应商 CRUD 测试
+      2. 采购全流程测试（订单->入库->退货->付款）
+      3. 销售退货测试
+      4. 客户对账/收款测试
+      5. 库存预警测试
+      6. 金额边界值测试
+    assignee: agent-suran
+    priority: P1
+    status: todo
+    estimated_hours: 24
+    dependencies:
+      - A101
+      - A102
+      - A103
+      - A104
+      - A105
+      - A106
+      - A107
+      - A108
+    deliverables:
+      - 自动化测试脚本
+      - 测试报告
+
+  - id: S103
+    title: 前端功能测试
+    description: |
+      测试前端页面功能：
+      1. 供应商管理页面测试
+      2. 采购订单/入库页面测试
+      3. 快速开单页面测试
+      4. 销售退货页面测试
+      5. 客户往来账页面测试
+      6. 跨浏览器兼容性测试
+    assignee: agent-suran
+    priority: P1
+    status: todo
+    estimated_hours: 20
+    dependencies:
+      - L101
+      - L102
+      - L103
+      - L105
+      - L106
+      - L107
+    deliverables:
+      - 前端功能测试报告
+      - Bug 清单
+
+sprints:
+  - id: sprint-dev-1
+    name: 第一周 - 供应商与采购订单（6/17 - 6/24）
+    start: '2026-06-17'
+    end: '2026-06-24'
+    focus: 供应商管理 + 采购订单 + 销售退货
+    tasks:
+      - A101
+      - A102
+      - A106
+      - A110
+      - L101
+      - L105
+      - L106
+      - S101
+
+  - id: sprint-dev-2
+    name: 第二周 - 采购入库/退货/付款 + 客户往来（6/24 - 7/1）
+    start: '2026-06-24'
+    end: '2026-07-01'
+    focus: 采购入库、退货、付款 + 客户对账收款
+    tasks:
+      - A103
+      - A104
+      - A105
+      - A107
+      - A108
+      - L102
+      - L103
+      - L104
+      - L107
+      - S102
+
+  - id: sprint-dev-3
+    name: 第三周 - 库存预警 + 门店终端 + 测试收尾（7/1 - 7/8）
+    start: '2026-07-01'
+    end: '2026-07-08'
+    focus: 库存预警、门店快速收银、全面测试
+    tasks:
+      - A109
+      - L108
+      - L109
+      - S103
+
+  - id: sprint-dev-4
+    name: 第四周 - Bug修复 + 上线准备（7/8 - 7/15）
+    start: '2026-07-08'
+    end: '2026-07-15'
+    focus: Bug修复、性能优化、上线准备
+    tasks:
+      - 所有Bug修复
+      - 性能优化
+      - 上线检查
+
+meetings:
+  - type: daily_standup
+    time: '09:30'
+    channel: 飞书群
+
+  - type: weekly_review
+    time: 周五 17:00
+    channel: 飞书群
+
+# ========== 数据库变更 ==========
+database_changes:
+  file: docs/phase2_schema.sql
+  tables_added:
+    - supplier
+    - supplier_contact
+    - purchase_order
+    - purchase_order_item
+    - purchase_in_stock
+    - purchase_in_stock_item
+    - purchase_return
+    - purchase_return_item
+    - purchase_payment
+    - customer_statement
+    - customer_payment
+    - sale_return
+    - sale_return_item
+    - sale_payment
+  tables_altered:
+    - sale_bill: 新增 sale_type, due_date, statement_id
+
+# ========== API 文档 ==========
+api_documentation:
+  phase1: docs/phase1_openapi.yaml
+  phase2: docs/phase2_openapi.yaml
+
+# ========== 编码规则 ==========
+id_rules:
+  supplier_code: "GYS{YYMMDD}{NNN}"
+  purchase_order: "CGDD{YYMMDD}{NNNN}"
+  purchase_in_stock: "CGRK{YYMMDD}{NNNN}"
+  purchase_return: "CGTH{YYMMDD}{NNNN}"
+  purchase_payment: "CGFK{YYMMDD}{NNNN}"
+  sale_return: "XSTH{YYMMDD}{NNNN}"
+  customer_statement: "KHDZ{YYMMDD}{NNNN}"
+  customer_payment: "KHSK{YYMMDD}{NNNN}"
+  sale_payment: "XSSK{YYMMDD}{NNNN}"

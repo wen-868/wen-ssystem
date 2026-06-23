@@ -1,31 +1,72 @@
-@import "./styles/tokens.wxss";
-
+/* ========== 全局基础样式 ========== */
 page {
-  background: #FFFFFF;
-  color: #1F2328;
-  font-family: -apple-system, BlinkMacSystemFont, "Microsoft YaHei", sans-serif;
+  font-family: -apple-system, BlinkMacSystemFont, 'Helvetica Neue', 'PingFang SC', 'Microsoft YaHei', sans-serif;
+  font-size: 28rpx;
+  color: var(--text-primary, #1F2328);
+  background-color: var(--bg-page, #F5F7FA);
 }
+
+/* ========== 卡片 ========== */
 .card {
-  background: #FFFFFF;
-  border: 1px solid #E5E7EB;
-  border-radius: 24rpx;
-  padding: 28rpx;
+  background: var(--bg-card, #FFFFFF);
+  border-radius: var(--card-radius, 24rpx);
+  box-shadow: var(--card-shadow, 0 4rpx 24rpx rgba(0,0,0,0.06));
   margin: 24rpx;
-  box-shadow: 0 18rpx 48rpx rgba(31, 35, 40, .08);
+  padding: 28rpx;
 }
+
+/* ========== 主按钮 ========== */
 .primary {
-  background: #1677FF;
-  color: #FFFFFF;
-  border-radius: 999rpx;
+  background: var(--color-primary, #1677FF);
+  color: #ffffff;
+  border: none;
+  border-radius: var(--btn-radius, 999rpx);
+  font-size: var(--btn-font-size, 28rpx);
+  font-weight: 500;
+  padding: 20rpx 48rpx;
+  line-height: 1.4;
 }
+
+.primary::after {
+  border: none;
+}
+
+/* ========== 价格 ========== */
 .price {
-  color: #1F2328;
-  font-weight: 700;
-  font-size: 40rpx;
+  color: var(--color-price, #9b1c31);
+  font-weight: var(--price-font-weight, 700);
+  font-size: var(--price-font-size, 40rpx);
 }
-.gold {
-  color: #1677FF;
-}
+
+/* ========== 辅助文字 ========== */
 .muted {
-  color: #9CA3AF;
+  color: var(--text-muted, #9CA3AF);
+  font-size: 24rpx;
+}
+
+/* ========== 分割线 ========== */
+.divider {
+  background: #E5E7EB;
+  height: 2rpx;
+  margin: 24rpx 0;
+}
+
+/* ========== 标签 ========== */
+.tag {
+  display: inline-block;
+  padding: 4rpx 16rpx;
+  border-radius: 8rpx;
+  font-size: 22rpx;
+  font-weight: 500;
+}
+
+.tag-pending { background: #FEF3C7; color: #92400E; }
+.tag-accept { background: var(--color-primary-soft, #E6F4FF); color: var(--color-primary, #1677FF); }
+.tag-delivery { background: var(--color-primary-soft, #E6F4FF); color: var(--color-primary, #1677FF); }
+.tag-done { background: #D1FAE5; color: #065F46; }
+.tag-cancel { background: #FEE2E2; color: #991B1B; }
+
+/* ========== 安全区域 ========== */
+.safe-bottom {
+  padding-bottom: env(safe-area-inset-bottom);
 }

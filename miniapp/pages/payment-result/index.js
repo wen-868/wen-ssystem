@@ -1,10 +1,17 @@
+const { injectTheme } = require('../../utils/theme')
+
 Page({
   data: {
     success: true,
     payNo: "",
     amount: "",
     message: "",
-    sourceNo: ""
+    sourceNo: "",
+    theme: {},
+    themeCssVars: ""
+  },
+  onReady() {
+    injectTheme(this);
   },
   onLoad(options) {
     const success = options.success !== "0";

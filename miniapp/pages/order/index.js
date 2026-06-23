@@ -1,15 +1,26 @@
+const { injectTheme } = require('../../utils/theme')
+
 Page({
   data: {
     orders: [],
     loading: false,
     errorText: "",
-    showEmpty: false
+    showEmpty: false,
+    theme: {},
+    themeCssVars: ""
+  },
+  onReady() {
+    injectTheme(this);
   },
   onShow() {
     this.loadOrders();
   },
   onPullDownRefresh() {
     this.loadOrders(() => wx.stopPullDownRefresh());
+  },
+
+  onReachBottom() {
+    this.loadOrders();
   },
   loadOrders(done) {
     const app = getApp();
@@ -47,17 +58,31 @@ Page({
       return;
     }
     this.setData({ loading: true, errorText: "" });
+    const anonymousId = wx.getStorageSync("anonymous_member_id") || "";
+    const token = wx.getStorageSync("miniapp_token") || "";
     wx.request({
       url: `${app.globalData.apiBase}/miniapp/orders`,
       method: "GET",
+      header: {
+        "Content-Type": "application/json",
+        "x-anonymous-member-id": anonymousId,
+        ...(token ? { "Authorization": "Bearer " + token } : {})
+      },
       data: { page: 1, pageSize: 20 },
       success: (res) => {
         const body = res.data || {};
         if (body.code === "0") {
           const orders = (body.data.records || []).map((item) => Object.assign({}, item, {
-            orderTagClass: item.orderStatus === "COMPLETED" ? "done" : (item.orderStatus === "ACCEPTED" ? "accept" : "pending"),
+            orderTagClass: item.orderStatus === "COMPLETED" ? "done"
+              : (item.orderStatus === "ACCEPTED" ? "accept"
+                : (item.orderStatus === "WAIT_DELIVERY" || item.orderStatus === "DELIVERING" ? "delivery" : "pending")),
             payTagClass: item.payStatus === "PAID" ? "done" : "pending",
-            fulfillmentLabel: item.fulfillmentType === "PICKUP" ? "自提" : "配送"
+            fulfillmentLabel: item.fulfillmentType === "PICKUP" ? "自提" : "配送",
+            orderStatusLabel: item.orderStatus === "WAIT_DELIVERY" ? "待配送"
+              : (item.orderStatus === "DELIVERING" ? "配送中"
+                : (item.orderStatus === "COMPLETED" ? "已完成"
+                  : (item.orderStatus === "REJECTED" ? "已拒收"
+                    : (item.orderStatus === "CANCELLED" ? "已取消" : item.orderStatus))))
           }));
           this.setData({ orders, showEmpty: orders.length === 0 });
         } else {

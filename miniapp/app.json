@@ -5,7 +5,15 @@
     "pages/order-detail/index",
     "pages/share-collection/index",
     "pages/payment-result/index",
-    "pages/profile/index"
+    "pages/profile/index",
+    "pages/statement/index",
+    "pages/notifications/index",
+    "pages/cart/index",
+    "pages/checkout/index",
+    "pages/aftersale/index",
+    "pages/aftersale-detail/index",
+    "pages/aftersale-apply/index",
+    "pages/coupons/index"
   ],
   "window": {
     "navigationBarTitleText": "智享商城",
@@ -24,15 +32,27 @@
     "list": [
       {
         "pagePath": "pages/home/index",
-        "text": "首页"
+        "text": "首页",
+        "iconPath": "images/home.png",
+        "selectedIconPath": "images/home-active.png"
+      },
+      {
+        "pagePath": "pages/cart/index",
+        "text": "购物车",
+        "iconPath": "images/cart.png",
+        "selectedIconPath": "images/cart-active.png"
       },
       {
         "pagePath": "pages/order/index",
-        "text": "订单"
+        "text": "订单",
+        "iconPath": "images/order.png",
+        "selectedIconPath": "images/order-active.png"
       },
       {
         "pagePath": "pages/profile/index",
-        "text": "我的"
+        "text": "我的",
+        "iconPath": "images/profile.png",
+        "selectedIconPath": "images/profile-active.png"
       }
     ]
   }

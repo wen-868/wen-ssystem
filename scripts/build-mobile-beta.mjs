@@ -1,8 +1,9 @@
-import { mkdirSync, rmSync, cpSync, readFileSync } from "node:fs";
+import { mkdirSync, rmSync, cpSync, readFileSync, writeFileSync } from "node:fs";
 import { execFileSync } from "node:child_process";
 
 const workDir = ".beta-build/miniapp";
 const output = "miniapp-beta.zip";
+const apiBase = process.env.MINIAPP_API_BASE || "https://api.onepan.cn/api";
 const appJs = readFileSync("miniapp/app.js", "utf8");
 
 if (!appJs.includes("globalData") || !appJs.includes("apiBase")) {
@@ -13,6 +14,9 @@ rmSync(".beta-build", { recursive: true, force: true });
 rmSync(output, { force: true });
 mkdirSync(workDir, { recursive: true });
 cpSync("miniapp", workDir, { recursive: true });
+writeFileSync(`${workDir}/app.js`, appJs
+  .replace(/apiBase:\s*["'][^"']+["']/, `apiBase: "${apiBase}"`)
+  .replace(/demoMode:\s*true/, "demoMode: false"));
 rmSync(`${workDir}/app.config.beta.example.js`, { force: true });
 rmSync(`${workDir}/project.private.config.json`, { force: true });
 

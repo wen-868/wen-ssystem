@@ -1,0 +1,78 @@
+<view style="{{themeCssVars}}">
+  <!-- 顶部导航 -->
+  <view class="cart-header">
+    <text class="cart-title">购物车</text>
+    <text class="cart-edit-btn" bindtap="toggleEdit">{{editing ? '完成' : '编辑'}}</text>
+  </view>
+
+  <!-- 加载中 -->
+  <view wx:if="{{loading}}" class="loading-wrap">
+    <text class="muted">加载中...</text>
+  </view>
+
+  <!-- 空状态 -->
+  <view wx:elif="{{showEmpty}}" class="empty-wrap">
+    <text class="empty-icon">🛒</text>
+    <text class="muted">购物车是空的</text>
+    <button class="primary" style="margin-top: 32rpx;" bindtap="goHome">去逛逛</button>
+  </view>
+
+  <!-- 错误提示 -->
+  <view wx:elif="{{errorText}}" class="card">
+    <text style="color: var(--color-danger);">{{errorText}}</text>
+  </view>
+
+  <!-- 商品列表 -->
+  <view wx:else>
+    <view wx:for="{{items}}" wx:key="skuId" class="cart-item card">
+      <!-- 选择框 -->
+      <view class="checkbox-wrap" data-sku-id="{{item.skuId}}" bindtap="toggleCheck">
+        <view class="checkbox {{item.checked ? 'checked' : ''}}">
+          <text wx:if="{{item.checked}}" class="checkbox-icon">✓</text>
+        </view>
+      </view>
+
+      <!-- 商品信息 -->
+      <image class="cart-item-image" src="{{item.image || '/images/placeholder.png'}}" mode="aspectFill" />
+      <view class="cart-item-info">
+        <view class="cart-item-name">{{item.spuName}}</view>
+        <view class="muted cart-item-sku">{{item.skuName}}</view>
+        <view class="cart-item-bottom">
+          <text class="price cart-item-price">¥{{item.price}}</text>
+          <view class="qty-control">
+            <button class="stepper" data-sku-id="{{item.skuId}}" data-delta="-1" bindtap="changeQty" disabled="{{item.quantity <= 1}}">-</button>
+            <text class="qty-text">{{item.quantity}}</text>
+            <button class="stepper" data-sku-id="{{item.skuId}}" data-delta="1" bindtap="changeQty" disabled="{{item.quantity >= item.availableQty}}">+</button>
+          </view>
+        </view>
+      </view>
+
+      <!-- 编辑模式删除按钮 -->
+      <view wx:if="{{editing}}" class="delete-btn" data-sku-id="{{item.skuId}}" bindtap="deleteItem">
+        <text>删除</text>
+      </view>
+    </view>
+
+    <!-- 底部结算栏 -->
+    <view class="cart-footer safe-bottom">
+      <view class="footer-left">
+        <view class="checkbox-wrap" bindtap="toggleAll">
+          <view class="checkbox {{allChecked ? 'checked' : ''}}">
+            <text wx:if="{{allChecked}}" class="checkbox-icon">✓</text>
+          </view>
+        </view>
+        <text class="muted">全选</text>
+      </view>
+      <view class="footer-right">
+        <view wx:if="{{editing}}" class="footer-action">
+          <button class="outline" style="font-size: 26rpx; padding: 12rpx 32rpx;" bindtap="clearCart">清空购物车</button>
+        </view>
+        <view wx:else class="footer-action">
+          <text class="muted">合计：</text>
+          <text class="price footer-total">¥{{totalAmount}}</text>
+          <button class="primary checkout-btn" bindtap="goCheckout" disabled="{{totalQty === 0}}">去结算({{totalQty}})</button>
+        </view>
+      </view>
+    </view>
+  </view>
+</view>

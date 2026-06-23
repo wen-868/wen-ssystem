@@ -4,18 +4,29 @@ type Row = Record<string, any>;
 
 const state = {
   users: [
-    { id: 1, username: "admin", password_hash: sha256("admin123"), real_name: "系统管理员", store_id: null, status: 1 }
+    { id: 1, username: "admin", password_hash: sha256("admin123"), real_name: "系统管理员", store_id: null, status: 1 },
+    { id: 2, username: "store_manager", password_hash: sha256("admin123"), real_name: "默认店长", store_id: 1, status: 1 },
+    { id: 3, username: "store_operator", password_hash: sha256("admin123"), real_name: "默认店员", store_id: 1, status: 1 }
   ],
-  roles: [{ id: 1, role_code: "SUPER_ADMIN", role_name: "超级管理员", status: 1 }],
+  roles: [
+    { id: 1, role_code: "SUPER_ADMIN", role_name: "超级管理员", status: 1 },
+    { id: 2, role_code: "STORE_MANAGER", role_name: "门店店长", status: 1 },
+    { id: 3, role_code: "STORE_OPERATOR", role_name: "门店操作员", status: 1 }
+  ],
+  userRoles: [
+    { user_id: 1, role_code: "SUPER_ADMIN" },
+    { user_id: 2, role_code: "STORE_MANAGER" },
+    { user_id: 3, role_code: "STORE_OPERATOR" }
+  ],
   members: [
-    { id: 1, name: "默认零售客户", mobile: "13900000000", customer_type: "RETAIL", points: 120, level_code: "NORMAL", status: 1, staff_id: null as number | null },
-    { id: 2, name: "默认批发客户", mobile: "13900000001", customer_type: "WHOLESALE", points: 0, level_code: "WHOLESALE", status: 1, staff_id: 1 }
+    { id: 1, name: "默认零售客户", mobile: "13900000000", email: "retail@example.com", contact_person: "张经理", address: "北京市朝阳区示例街道1号", customer_type: "RETAIL", settlement_type: "CASH", points: 120, level_code: "NORMAL", status: 1, staff_id: null as number | null, remark: "演示零售客户" },
+    { id: 2, name: "默认批发客户", mobile: "13900000001", email: "wholesale@example.com", contact_person: "李总", address: "上海市浦东新区示例路88号", customer_type: "WHOLESALE", settlement_type: "ACCOUNT", points: 0, level_code: "WHOLESALE", status: 1, staff_id: 1, remark: "演示批发客户，长期合作" }
   ] as Row[],
   stores: [
-    { id: 1, store_code: "STORE0001", name: "默认门店", address: "演示地址", contact: "管理员", phone: "13800000000", delivery_radius: 3, business_status: "OPEN", status: 1 }
-  ],
+    { id: 1, store_code: "STORE0001", name: "默认门店", address: "演示地址", contact: "管理员", phone: "13800000000", delivery_radius: 3, business_status: "OPEN", status: 1, miniapp_appid: 'wx0000000000000000', wx_merchant_name: null, wx_service_phone: null, wx_head_img: null, wx_qrcode_url: null }
+  ] as Row[],
   products: [
-    { spuId: 1, skuId: 1, name: "示例白酒 53度 500ml", mainImage: "https://dummyimage.com/120x120/9b1c31/ffffff&text=Wine", skuName: "示例白酒 53度 500ml 常温", skuCode: "SKU-DEMO-001", barcode: "690000000001", retailPrice: 129, wholesalePrice: 99, miniappPrice: 119, costPrice: 0, storePrice: null as number | null, status: "ON_SALE" }
+    { spuId: 1, skuId: 1, name: "示例白酒 53度 500ml", mainImage: "https://dummyimage.com/120x120/9b1c31/ffffff&text=Wine", skuName: "示例白酒 53度 500ml 常温", skuCode: "SKU-DEMO-001", barcode: "690000000001", retailPrice: 129, wholesalePrice: 99, miniappPrice: 119, costPrice: 0, storePrice: null as number | null, status: "ON_SALE", alcoholContent: 53, origin: "贵州茅台镇" }
   ] as Row[],
   inventory: [
     { storeId: 1, skuId: 1, skuName: "示例白酒 53度 500ml 常温", stockType: "ONLINE", physicalQty: 120, lockedQty: 0, availableQty: 120 },
@@ -28,25 +39,29 @@ const state = {
   collectionLinks: [] as Row[],
   paymentOrders: [] as Row[],
   refundOrders: [] as Row[],
+  priceLogs: [] as Row[],
   holdOrders: [] as Row[],
   viewLogs: [] as Row[],
   inventoryLogs: [] as Row[],
-  // phase2
+  receivables: [] as Row[],
+  operationLogs: [] as Row[],
+  platformCredentials: [] as Row[],
+  platformOrders: [] as Row[],
+  // ===== 第一/二阶段新增表 =====
   suppliers: [] as Row[],
   supplierContacts: [] as Row[],
   purchaseOrders: [] as Row[],
   purchaseOrderItems: [] as Row[],
-  purchaseInStockOrders: [] as Row[],
+  purchaseInStocks: [] as Row[],
   purchaseInStockItems: [] as Row[],
-  saleReturns: [] as Row[],
-  saleReturnItems: [] as Row[],
   purchaseReturns: [] as Row[],
   purchaseReturnItems: [] as Row[],
-  customerStatements: [] as Row[],
-  customerStatementItems: [] as Row[],
   purchasePayments: [] as Row[],
+  saleReturns: [] as Row[],
+  saleReturnItems: [] as Row[],
+  customerStatements: [] as Row[],
   customerPayments: [] as Row[],
-  paymentRecords: [] as Row[]
+  salePayments: [] as Row[],
 };
 
 const pendingProduct: {
@@ -57,11 +72,7 @@ const pendingProduct: {
 function result(insertId: number = Date.now()) {
   return [{ insertId, affectedRows: 1 }, undefined] as any;
 }
-function extractLiteral(sql: string, field: string): string | null {
-  const re = new RegExp(field + "\\s*=\\s*'([^']*)'", "i");
-  const m = sql.match(re);
-  return m ? m[1] : null;
-}
+
 export async function mockQuery<T = any>(sql: string, params: unknown[] = []) {
   const s = sql.toLowerCase().replace(/\s+/g, " ");
 
@@ -69,7 +80,8 @@ export async function mockQuery<T = any>(sql: string, params: unknown[] = []) {
     return state.users.filter((u) => u.username === params[0]) as T[];
   }
   if (s.includes("from sys_user_role") && s.includes("join sys_role")) {
-    return state.roles.map((r) => ({ role_code: r.role_code })) as T[];
+    const userId = Number(params[0]);
+    return state.userRoles.filter((role) => role.user_id === userId).map((role) => ({ role_code: role.role_code })) as T[];
   }
   if (s.includes("from sys_user") && !s.includes("where username")) {
     return state.users.map((u) => ({
@@ -91,14 +103,20 @@ export async function mockQuery<T = any>(sql: string, params: unknown[] = []) {
       id: member.id,
       name: member.name,
       mobile: member.mobile,
+      email: member.email,
+      contactPerson: member.contact_person,
+      address: member.address,
       customerType: member.customer_type,
       customer_type: member.customer_type,
+      settlementType: member.settlement_type,
+      settlement_type: member.settlement_type,
       points: member.points,
       levelCode: member.level_code,
       level_code: member.level_code,
       status: member.status,
       staffId: member.staff_id,
-      staffName: staff?.real_name ?? null
+      staffName: staff?.real_name ?? null,
+      remark: member.remark
     }] as T[];
   }
   if (s.includes("from member")) {
@@ -109,14 +127,20 @@ export async function mockQuery<T = any>(sql: string, params: unknown[] = []) {
         id: member.id,
         name: member.name,
         mobile: member.mobile,
+        email: member.email,
+        contactPerson: member.contact_person,
+        address: member.address,
         customerType: member.customer_type,
         customer_type: member.customer_type,
+        settlementType: member.settlement_type,
+        settlement_type: member.settlement_type,
         points: member.points,
         levelCode: member.level_code,
         level_code: member.level_code,
         status: member.status,
         staffId: member.staff_id,
-        staffName: staff?.real_name ?? null
+        staffName: staff?.real_name ?? null,
+        remark: member.remark
       };
     }) as T[];
   }
@@ -126,11 +150,16 @@ export async function mockQuery<T = any>(sql: string, params: unknown[] = []) {
       id,
       name: params[0],
       mobile: params[1],
-      customer_type: params[2],
+      email: params[2] ?? null,
+      contact_person: params[3] ?? null,
+      address: params[4] ?? null,
+      customer_type: params[5],
+      staff_id: params[6] == null ? null : Number(params[6]),
       points: 0,
-      level_code: params[2] === "WHOLESALE" ? "WHOLESALE" : "NORMAL",
+      level_code: params[8] ?? (params[5] === "WHOLESALE" ? "WHOLESALE" : "NORMAL"),
+      settlement_type: params[9] ?? "CASH",
       status: 1,
-      staff_id: params[3] == null ? null : Number(params[3])
+      remark: params[10] ?? null
     });
     return [{ insertId: id, affectedRows: 1 }] as T[];
   }
@@ -150,7 +179,12 @@ export async function mockQuery<T = any>(sql: string, params: unknown[] = []) {
       phone: st.phone,
       deliveryRadius: st.delivery_radius,
       businessStatus: st.business_status,
-      status: st.status
+      status: st.status,
+      miniappAppid: st.miniapp_appid ?? null,
+      wxMerchantName: st.wx_merchant_name ?? null,
+      wxServicePhone: st.wx_service_phone ?? null,
+      wxHeadImg: st.wx_head_img ?? null,
+      wxQrcodeUrl: st.wx_qrcode_url ?? null
     })) as T[];
   }
   if (s.includes("insert into store")) {
@@ -163,7 +197,12 @@ export async function mockQuery<T = any>(sql: string, params: unknown[] = []) {
       phone: params[6] == null ? "" : String(params[6]),
       delivery_radius: Number(params[7] ?? 3),
       business_status: "OPEN",
-      status: 1
+      status: 1,
+      miniapp_appid: null,
+      wx_merchant_name: null,
+      wx_service_phone: null,
+      wx_head_img: null,
+      wx_qrcode_url: null
     });
     return [] as T[];
   }
@@ -199,24 +238,43 @@ export async function mockQuery<T = any>(sql: string, params: unknown[] = []) {
   }
   if (s.includes("from product_sku") && s.includes("join product_spu") && s.includes("join product_price")) {
     return state.products.map((product) => {
+      const offline = state.inventory.find((inv) => inv.skuId === product.skuId && inv.stockType === "OFFLINE");
       const online = state.inventory.find((inv) => inv.skuId === product.skuId && inv.stockType === "ONLINE");
       return {
         ...product,
+        productName: product.name,
+        storePrice: product.storePrice ?? product.retailPrice,
         availableQty: online?.availableQty ?? 0,
-        available_qty: online?.availableQty ?? 0
+        available_qty: online?.availableQty ?? 0,
+        offlineAvailableQty: offline?.availableQty ?? 0
       };
     }) as T[];
   }
   if (s.includes("update inventory_balance")) {
-    const stockType = s.includes("stock_type = ?") && params[4] ? params[4] : "OFFLINE";
+    const stockType = params.length >= 5 ? params[4] : (s.includes("stock_type = 'offline'") ? "OFFLINE" : (s.includes("stock_type = 'online'") ? "ONLINE" : params[4]));
     const inv = state.inventory.find(
-      (i) => i.storeId === params[2] && i.skuId === params[3] && String(i.stockType) === String(stockType)
+      (i) => i.storeId === params[2] && i.skuId === params[3] && i.stockType === stockType
     );
     if (inv) {
-      const isSubtract = s.includes("physical_qty = physical_qty - ?");
-      const delta = isSubtract ? -Number(params[0]) : Number(params[0]);
-      inv.physicalQty = Number(inv.physicalQty) + delta;
-      inv.availableQty = Number(inv.availableQty) + delta;
+      if (s.includes("locked_qty = locked_qty +")) {
+        inv.lockedQty = Number(inv.lockedQty) + Number(params[0]);
+        inv.availableQty = Math.max(0, Number(inv.availableQty) - Number(params[1]));
+      } else if (s.includes("physical_qty = physical_qty -") && s.includes("locked_qty = greatest(locked_qty -")) {
+        // 配送完成：扣 physical_qty 和 locked_qty
+        inv.physicalQty = Number(inv.physicalQty) - Number(params[0]);
+        inv.lockedQty = Math.max(0, Number(inv.lockedQty) - Number(params[2]));
+      } else if (s.includes("physical_qty = physical_qty -")) {
+        // 门店销售：扣 physical_qty 和 available_qty
+        inv.physicalQty = Number(inv.physicalQty) - Number(params[0]);
+        inv.availableQty = Math.max(0, Number(inv.availableQty) - Number(params[1]));
+      } else if (s.includes("locked_qty = greatest(locked_qty -")) {
+        inv.lockedQty = Math.max(0, Number(inv.lockedQty) - Number(params[0]));
+        inv.availableQty = Number(inv.availableQty) + Number(params[1]);
+      } else {
+        const direction = 1;
+        inv.physicalQty = Number(inv.physicalQty) + direction * Number(params[0]);
+        inv.availableQty = Number(inv.availableQty) + direction * Number(params[1]);
+      }
     }
     return [] as T[];
   }
@@ -242,21 +300,19 @@ export async function mockQuery<T = any>(sql: string, params: unknown[] = []) {
       return base;
     }) as T[];
   }
-  if (s.includes("from inventory_balance") && s.includes("where store_id")) {
-    const stockType = s.includes("stock_type = ?") || params[2] ? params[2] : "OFFLINE";
+  if (s.includes("from inventory_balance") && s.includes("physical_qty") && s.includes("where store_id")) {
+    const stockType = params.length >= 3 ? params[2] : (s.includes("stock_type = 'offline'") ? "OFFLINE" : params[2]);
     const inv = state.inventory.find(
-      (i) => i.storeId === params[0] && i.skuId === params[1] && String(i.stockType) === String(stockType)
+      (i) => i.storeId === params[0] && i.skuId === params[1] && i.stockType === stockType
     );
-    return inv ? [inv] as T[] : [] as T[];
-  }
-  if (s.includes("from inventory_balance") && s.includes("where sku_id")) {
-    const stockType = s.includes("stock_type = ?") || params[1] ? params[1] : "OFFLINE";
-    const inv = state.inventory.find(
-      (i) => i.skuId === params[0] && String(i.stockType) === String(stockType)
-    );
-    return inv ? [inv] as T[] : [] as T[];
+    return inv ? [{ physicalQty: inv.physicalQty, physical_qty: inv.physicalQty, lockedQty: inv.lockedQty, locked_qty: inv.lockedQty, availableQty: inv.availableQty, available_qty: inv.availableQty }] as T[] : [] as T[];
   }
   if (s.includes("from inventory_balance")) return state.inventory as T[];
+  if (s.includes("select id from inventory_ledger") && s.includes("biz_type = 'sale_out'")) {
+    return state.inventoryLogs
+      .filter((log) => log.bizType === "SALE_OUT" && log.bizNo === params[0])
+      .map((log) => ({ id: log.id ?? log.logNo })) as T[];
+  }
   if ((s.includes("from inventory_log") || s.includes("from inventory_ledger")) && s.includes("count(*)")) {
     return [{ total: state.inventoryLogs.length }] as T[];
   }
@@ -324,6 +380,26 @@ export async function mockQuery<T = any>(sql: string, params: unknown[] = []) {
     if (order && s.includes("completed")) {
       order.orderStatus = "COMPLETED";
       order.order_status = "COMPLETED";
+      order.deliveryStatus = "COMPLETED";
+      order.delivery_status = "COMPLETED";
+    }
+    if (order && s.includes("order_status = 'delivering'")) {
+      order.orderStatus = "DELIVERING";
+      order.order_status = "DELIVERING";
+      order.deliveryStatus = "DELIVERING";
+      order.delivery_status = "DELIVERING";
+    }
+    if (order && s.includes("order_status = 'rejected'")) {
+      order.orderStatus = "REJECTED";
+      order.order_status = "REJECTED";
+      order.deliveryStatus = "REJECTED";
+      order.delivery_status = "REJECTED";
+    }
+    if (order && s.includes("order_status = 'cancelled'")) {
+      order.orderStatus = "CANCELLED";
+      order.order_status = "CANCELLED";
+      order.deliveryStatus = "CANCELLED";
+      order.delivery_status = "CANCELLED";
     }
     return [] as T[];
   }
@@ -362,14 +438,14 @@ export async function mockQuery<T = any>(sql: string, params: unknown[] = []) {
     return [{ total }] as T[];
   }
   if (s.includes("from sale_bill where") && s.includes("count(*)")) return [{ total: state.saleBills.length }] as T[];
-  if (s.includes("from sale_bill") && s.includes("where bill_no = ?")) {
-    const bill = state.saleBills.find((b) => b.billNo === params[0] || b.bill_no === params[0]);
-    return bill ? [bill] as T[] : [];
-  }
   if (s.includes("from sale_bill_item where bill_no")) {
     return state.saleBillItems.filter((i) => i.billNo === params[0] || i.bill_no === params[0]) as T[];
   }
-  if (s.includes("from sale_bill") && !s.includes("join") && !s.includes("group by")) return state.saleBills as T[];
+  if (s.includes("from sale_bill where bill_no = ?")) {
+    const bill = state.saleBills.find((b) => b.billNo === params[0] || b.bill_no === params[0]);
+    return bill ? [bill] as T[] : [];
+  }
+  if (s.includes("from sale_bill ") && !s.includes("join") && !s.includes("group by")) return state.saleBills as T[];
   if (s.includes("insert into collection_link")) {
     state.collectionLinks.push({
       linkNo: params[0],
@@ -527,17 +603,40 @@ export async function mockQuery<T = any>(sql: string, params: unknown[] = []) {
   }
   if (s.includes("insert into inventory_ledger")) {
     const product = state.products.find((p) => Number(p.skuId) === Number(params[2]));
+    const isSaleOut = s.includes("'sale_out'");
+    let stockType: string, bizType: string, bizNo: string, changeQty: number, operatorId: unknown, remark: string;
+    if (isSaleOut) {
+      stockType = "OFFLINE";
+      bizType = "SALE_OUT";
+      bizNo = String(params[3]);
+      changeQty = Number(params[4]);
+      operatorId = params[7];
+      remark = String(params[9] ?? "");
+    } else {
+      // 履约类：ORDER_LOCK, ORDER_COMPLETE, ORDER_REJECT, ORDER_CANCEL
+      stockType = String(params[3]);
+      bizType = String(params[4]);
+      bizNo = String(params[5]);
+      changeQty = Number(params[6]);
+      operatorId = params[11];
+      remark = String(params[13] ?? "");
+    }
+    const beforeQty = 0;
+    const afterQty = 0;
     state.inventoryLogs.push({
+      id: state.inventoryLogs.length + 1,
       logNo: String(params[0]),
       storeId: Number(params[1]),
       skuId: Number(params[2]),
       skuName: product?.skuName ?? "",
-      stockType: String(params[3]),
-      changeQty: Number(params[5]),
-      beforeQty: Number(params[6]),
-      afterQty: Number(params[7]),
-      reason: String(params[10] ?? ""),
-      operatorId: params[8],
+      stockType,
+      bizType,
+      bizNo,
+      changeQty,
+      beforeQty,
+      afterQty,
+      reason: remark,
+      operatorId,
       createdAt: new Date().toISOString()
     });
     return [] as T[];
@@ -570,226 +669,367 @@ export async function mockQuery<T = any>(sql: string, params: unknown[] = []) {
   if (s.includes("from hold_order")) {
     return state.holdOrders.filter((h) => h.status !== "DELETED") as T[];
   }
-  // ---- phase2 ----
-  // supplier_contact must come before supplier
-  if (s.includes("from supplier_contact")) {
-    if (s.includes("where supplier_id = ?") || s.includes("where supplier_id=?")) {
-      const sid = Number(params[0]);
-      return state.supplierContacts.filter((x) => Number(x.supplierId) === sid).map((x) => ({
-        ...x,
-        supplier_id: x.supplierId,
-        contact_name: x.contactName,
-        contact_role: x.contactRole,
-        contact_phone: x.contactPhone,
-        contact_email: x.contactEmail,
-        is_primary: x.isPrimary
-      })) as T[];
+  if (s.includes("from receivable_account")) {
+    if (s.includes("count(*) as total")) {
+      return [{ total: state.receivables.length }] as T[];
     }
-    return state.supplierContacts.slice() as T[];
-  }
-  if (s.match(/from supplier($| |\n|\))/)) {
-    const keyword = params[0] && params[0] !== undefined ? String(params[0]).replace(/^%|%$/g, "") : "";
-    if (s.includes("where id = ?") || s.includes("where id=?")) {
-      const id = Number(params[0]);
-      return state.suppliers.filter((x) => Number(x.id) === id).map((x) => ({
-        ...x,
-        supplierId: x.id,
-        supplierCode: x.supplierCode,
-        supplierName: x.supplierName,
-        shortName: x.shortName,
-        creditLevel: x.creditLevel,
-        settlementType: x.settlementType,
-        settlementDay: x.settlementDay,
-        taxRate: x.taxRate,
-        bankName: x.bankName,
-        bankAccount: x.bankAccount,
-        bankAccountName: x.bankAccountName,
-        contactPhone: x.contactPhone,
-        creditLimit: x.creditLimit,
-        creditDays: x.creditDays,
-        supplierType: x.supplierType,
-        createdAt: x.createdAt,
-        updatedAt: x.updatedAt
-      })) as T[];
+    if (s.includes("where receivable_no = ?")) {
+      const found = state.receivables.find((r) => r.receivableNo === params[0] || r.receivable_no === params[0]);
+      return found ? [found] as T[] : [];
     }
-    if (s.includes("where supplier_code = ?") || s.includes("where supplier_code=?")) {
-      const code = String(params[0]);
-      return state.suppliers.filter((x) => String(x.supplierCode) === code).map((x) => ({
-        ...x,
-        supplierId: x.id,
-        supplierCode: x.supplierCode,
-        supplierName: x.supplierName,
-        shortName: x.shortName,
-        creditLevel: x.creditLevel,
-        settlementType: x.settlementType,
-        taxRate: x.taxRate,
-        contactPhone: x.contactPhone,
-        creditLimit: x.creditLimit,
-        creditDays: x.creditDays,
-        supplierType: x.supplierType
-      })) as T[];
+    return state.receivables as T[];
+  }
+  if (s.includes("insert into operation_log")) {
+    state.operationLogs.push({
+      operatorId: params[0],
+      operatorName: params[1],
+      module: params[2],
+      action: params[3],
+      bizNo: params[4],
+      afterData: params[5],
+      createdAt: new Date().toISOString()
+    });
+    return [] as T[];
+  }
+
+  // platform_config / platform_order 支持
+  if (s.includes("from platform_config") && s.includes("count(*)")) {
+    return [{ total: state.platformCredentials.length }] as T[];
+  }
+  if (s.includes("from platform_config") && s.includes("where platform = ?")) {
+    const found = state.platformCredentials.find((c: Row) => c.platform === params[0]);
+    return found ? [found] as T[] : [];
+  }
+  if (s.includes("from platform_config")) {
+    return state.platformCredentials as T[];
+  }
+  if (s.includes("insert into platform_config")) {
+    state.platformCredentials.push({
+      id: state.platformCredentials.length + 1,
+      platform: params[0],
+      store_id: params[1],
+      storeId: params[1],
+      app_key: params[2],
+      appKey: params[2],
+      app_secret: params[3],
+      appSecret: params[3],
+      merchant_id: params[4],
+      merchantId: params[4],
+      config_json: params[5],
+      configJson: params[5],
+      enabled: params[6] ?? 1,
+      created_at: new Date().toISOString(),
+      updated_at: new Date().toISOString()
+    });
+    return result(state.platformCredentials.length);
+  }
+  if (s.includes("update platform_config")) {
+    const cfg = state.platformCredentials.find((c: Row) => c.platform === params[params.length - 1]);
+    if (cfg) {
+      if (params[0] != null) { cfg.store_id = params[0]; cfg.storeId = params[0]; }
+      if (params[1] != null) { cfg.app_key = params[1]; cfg.appKey = params[1]; }
+      if (params[2] != null) { cfg.app_secret = params[2]; cfg.appSecret = params[2]; }
+      if (params[3] != null) { cfg.merchant_id = params[3]; cfg.merchantId = params[3]; }
+      if (params[4] !== undefined) { cfg.config_json = params[4]; cfg.configJson = params[4]; }
+      cfg.updated_at = new Date().toISOString();
     }
-    return state.suppliers
-      .filter((x) => !keyword || String(x.supplierName || "").includes(keyword) || String(x.supplierCode || "").includes(keyword) || String(x.shortName || "").includes(keyword))
-      .map((x) => ({
-        ...x,
-        supplierId: x.id,
-        supplierCode: x.supplierCode,
-        supplierName: x.supplierName,
-        shortName: x.shortName,
-        creditLevel: x.creditLevel,
-        settlementType: x.settlementType,
-        taxRate: x.taxRate,
-        contactPhone: x.contactPhone,
-        creditLimit: x.creditLimit,
-        creditDays: x.creditDays,
-        supplierType: x.supplierType
-      })) as T[];
+    return result();
   }
-  // purchase_order_item must be checked before purchase_order to avoid substring match
-  if (s.includes("from purchase_order_item")) {
-    return state.purchaseOrderItems
-      .filter((i) => !params[0] || i.orderNo === params[0])
-      .map((i) => ({
-        ...i,
-        order_no: i.orderNo,
-        sku_id: i.skuId,
-        sku_name: i.skuName,
-        box_qty: i.boxQty,
-        bottle_qty: i.bottleQty,
-        unit_price: i.unitPrice,
-        subtotal_amount: i.subtotalAmount
-      })) as T[];
+  if (s.includes("delete from platform_config")) {
+    state.platformCredentials = state.platformCredentials.filter((c: Row) => c.platform !== params[0]);
+    return result();
   }
-  if (s.includes("from purchase_order") && s.includes("where order_no")) {
-    return state.purchaseOrders
-      .filter((o) => o.orderNo === params[0])
-      .map((o) => ({
-        ...o,
-        order_no: o.orderNo,
-        store_id: o.storeId,
-        supplier_id: o.supplierId,
-        goods_amount: o.goodsAmount,
-        tax_amount: o.taxAmount,
-        payable_amount: o.payableAmount,
-        paid_amount: o.paidAmount,
-        pay_status: o.payStatus,
-        audit_time: o.auditTime,
-        auditor_id: o.auditorId
-      })) as T[];
+
+  if (s.includes("from platform_order") && s.includes("count(*)")) {
+    return [{ total: state.platformOrders.length }] as T[];
   }
-  if (s.includes("from purchase_order") && !s.includes("insert")) {
-    return state.purchaseOrders.map((o) => ({
-      ...o,
-      order_no: o.orderNo,
-      store_id: o.storeId,
-      supplier_id: o.supplierId,
-      goods_amount: o.goodsAmount,
-      tax_amount: o.taxAmount,
-      payable_amount: o.payableAmount,
-      paid_amount: o.paidAmount,
-      pay_status: o.payStatus
-    })) as T[];
+  if (s.includes("from platform_order") && s.includes("where platform_order_id = ?")) {
+    const found = state.platformOrders.find((o: Row) => o.platformOrderId === params[0] || o.platform_order_id === params[0]);
+    return found ? [found] as T[] : [];
   }
-  // _item tables come before their parent to avoid prefix overlap
-  if (s.includes("from purchase_in_stock_item")) {
-    return state.purchaseInStockItems.slice() as T[];
+  if (s.includes("from platform_order")) {
+    return state.platformOrders as T[];
   }
-  if (s.includes("from purchase_in_stock_order")) {
-    return state.purchaseInStockOrders.slice() as T[];
+  if (s.includes("insert into platform_order")) {
+    const existingIdx = state.platformOrders.findIndex((o: Row) =>
+      (o.platformOrderId === params[0] || o.platform_order_id === params[0]) && o.platform === params[1]
+    );
+    const row = {
+      platformOrderId: params[0],
+      platform_order_id: params[0],
+      platform: params[1],
+      store_id: params[2],
+      storeId: params[2],
+      status: params[3],
+      order_data_json: params[4],
+      orderDataJson: params[4],
+      created_at: params[5] ?? new Date().toISOString(),
+      createdAt: params[5] ?? new Date().toISOString(),
+      updated_at: new Date().toISOString(),
+      updatedAt: new Date().toISOString()
+    };
+    if (existingIdx >= 0) {
+      state.platformOrders[existingIdx] = { ...state.platformOrders[existingIdx], ...row };
+    } else {
+      state.platformOrders.push(row);
+    }
+    return result();
   }
-  if (s.includes("from sale_return_item")) {
-    return state.saleReturnItems.filter((i) => !params[0] || i.returnNo === params[0]) as T[];
+  if (s.includes("update platform_order")) {
+    const order = state.platformOrders.find((o: Row) => o.platformOrderId === params[params.length - 1] || o.platform_order_id === params[params.length - 1]);
+    if (order) {
+      order.status = params[0];
+      order.updated_at = new Date().toISOString();
+      order.updatedAt = new Date().toISOString();
+    }
+    return result();
   }
-  if (s.includes("from sale_return") && s.includes("where return_no")) {
-    return state.saleReturns.filter((r) => r.returnNo === params[0]) as T[];
+
+  // ===== 第一/二阶段新增表支持 =====
+
+  // 供应商相关
+  if (s.includes("from supplier") && s.includes("count(*)")) {
+    const filtered = s.includes("where supplier_id") ? state.purchaseOrders.filter((o: Row) => o.supplier_id === params[0]) : state.suppliers;
+    return [{ total: filtered.length }] as T[];
   }
-  if (s.includes("from sale_return") && !s.includes("insert")) {
-    return state.saleReturns.map((r) => ({
-      ...r,
-      return_no: r.returnNo,
-      store_id: r.storeId,
-      customer_id: r.customerId,
-      customer_name: r.customerName,
-      total_amount: r.totalAmount,
-      stock_rollback_flag: r.stockRollbackFlag,
-      auditor_id: r.auditorId ?? null,
-      audit_time: r.auditTime ?? null
-    })) as T[];
+  if (s.includes("from supplier") && s.includes("where id = ?")) {
+    const supplier = state.suppliers.find((sup: Row) => sup.id === Number(params[0]));
+    if (!supplier) return [] as T[];
+    const contacts = state.supplierContacts.filter((c: Row) => c.supplier_id === supplier.id);
+    return [{ ...supplier, contacts }] as T[];
   }
-  // purchase_return_item before purchase_return
-  if (s.includes("from purchase_return_item")) {
-    return state.purchaseReturnItems.filter((i) => !params[0] || i.returnNo === params[0]) as T[];
+  if (s.includes("from supplier") && !s.includes("count(*)")) {
+    return state.suppliers as T[];
   }
-  if (s.includes("from purchase_return") && s.includes("where return_no")) {
-    return state.purchaseReturns.filter((r) => r.returnNo === params[0]) as T[];
+  if (s.includes("from supplier_contact") && s.includes("where supplier_id")) {
+    return state.supplierContacts.filter((c: Row) => c.supplier_id === Number(params[0])) as T[];
   }
-  if (s.includes("from purchase_return") && !s.includes("insert")) {
-    return state.purchaseReturns.map((r) => ({
-      ...r,
-      return_no: r.returnNo,
-      purchase_order_no: r.purchaseOrderNo,
-      supplier_id: r.supplierId,
-      total_amount: r.totalAmount,
-      stock_rollback_flag: r.stockRollbackFlag,
-      auditor_id: r.auditorId ?? null,
-      audit_time: r.auditTime ?? null
-    })) as T[];
+  if (s.includes("insert into supplier_contact")) {
+    state.supplierContacts.push({
+      id: state.supplierContacts.length + 1,
+      supplier_id: params[0],
+      name: params[1],
+      mobile: params[2],
+      phone: params[3],
+      email: params[4],
+      wechat: params[5],
+      is_primary: params[6],
+      position: params[7],
+      remark: params[8],
+    });
+    return result();
+  }
+  if (s.includes("delete from supplier_contact")) {
+    state.supplierContacts = state.supplierContacts.filter((c: Row) => c.supplier_id !== Number(params[0]));
+    return result();
+  }
+  if (s.includes("delete from supplier") && s.includes("where id")) {
+    state.suppliers = state.suppliers.filter((sup: Row) => sup.id !== Number(params[0]));
+    return result();
+  }
+  if (s.includes("count(*) as cnt from purchase_order") && s.includes("where supplier_id")) {
+    const cnt = state.purchaseOrders.filter((o: Row) => o.supplier_id === Number(params[0])).length;
+    return [{ cnt }] as T[];
+  }
+  if (s.includes("from purchase_order") && s.includes("count(*)")) {
+    return [{ total: state.purchaseOrders.length }] as T[];
+  }
+  if (s.includes("from purchase_order") && s.includes("where id = ?")) {
+    const order = state.purchaseOrders.find((o: Row) => o.id === Number(params[0]));
+    return order ? [order] as T[] : [];
+  }
+  if (s.includes("from purchase_order") && !s.includes("count(*)")) {
+    const filtered = s.includes("where supplier_id") ? state.purchaseOrders.filter((o: Row) => o.supplier_id === Number(params[0])) : state.purchaseOrders;
+    return filtered as T[];
+  }
+  if (s.includes("from purchase_order_item") && s.includes("where order_no")) {
+    return state.purchaseOrderItems.filter((i: Row) => i.order_no === params[0]) as T[];
+  }
+  if (s.includes("from purchase_payment") && s.includes("count(*)")) {
+    return [{ total: state.purchasePayments.length }] as T[];
   }
   if (s.includes("from purchase_payment")) {
-    return state.purchasePayments.map((p) => ({
-      ...p,
-      pay_no: p.payNo,
-      purchase_order_no: p.purchaseOrderNo,
-      supplier_id: p.supplierId,
-      pay_method: p.payMethod,
-      pay_amount: p.payAmount,
-      auditor_id: p.auditorId ?? null,
-      audit_time: p.auditTime ?? null
-    })) as T[];
+    const filtered = s.includes("where supplier_id") ? state.purchasePayments.filter((p: Row) => p.supplier_id === Number(params[0])) : state.purchasePayments;
+    return filtered as T[];
   }
-  if (s.includes("from customer_statement_item")) {
-    return state.customerStatementItems.filter((i) => !params[0] || i.statementNo === params[0]) as T[];
+  if (s.includes("from purchase_order_item poi") && s.includes("join purchase_order po")) {
+    return [] as T[];
   }
-  if (s.includes("from customer_statement")) {
-    return state.customerStatements.map((st) => ({
-      ...st,
-      statement_no: st.statementNo,
-      customer_id: st.customerId,
-      customer_name: st.customerName,
-      start_balance: st.startBalance,
-      sales_amount: st.salesAmount,
-      return_amount: st.returnAmount,
-      received_amount: st.receivedAmount,
-      end_balance: st.endBalance,
-      auditor_id: (st as any).auditorId ?? null
-    })) as T[];
+
+  // 采购入库相关
+  if (s.includes("from purchase_in_stock") && s.includes("count(*)")) {
+    return [{ total: state.purchaseInStocks.length }] as T[];
   }
-  if (s.includes("from customer_payment")) {
-    return state.customerPayments.map((p) => ({
-      ...p,
-      receipt_no: p.receiptNo,
-      customer_id: p.customerId,
-      customer_name: p.customerName,
-      pay_method: p.payMethod,
-      pay_amount: p.payAmount,
-      auditor_id: p.auditorId ?? null,
-      audit_time: p.auditTime ?? null
-    })) as T[];
+  if (s.includes("from purchase_in_stock") && s.includes("where id = ?")) {
+    const stock = state.purchaseInStocks.find((st: Row) => st.id === Number(params[0]));
+    return stock ? [stock] as T[] : [];
   }
-  if (s.includes("from payment_record")) {
-    return state.paymentRecords.slice() as T[];
+  if (s.includes("from purchase_in_stock") && !s.includes("count(*)")) {
+    return state.purchaseInStocks as T[];
   }
+  if (s.includes("from purchase_in_stock_item") && s.includes("where stock_no")) {
+    return state.purchaseInStockItems.filter((i: Row) => i.stock_no === params[0]) as T[];
+  }
+
+  // 采购退货相关
+  if (s.includes("from purchase_return") && s.includes("count(*)")) {
+    return [{ total: state.purchaseReturns.length }] as T[];
+  }
+  if (s.includes("from purchase_return") && !s.includes("count(*)")) {
+    return state.purchaseReturns as T[];
+  }
+
+  // 销售退货相关
+  if (s.includes("from sale_return") && s.includes("count(*)")) {
+    return [{ total: state.saleReturns.length }] as T[];
+  }
+  if (s.includes("from sale_return") && s.includes("where id = ?")) {
+    const ret = state.saleReturns.find((r: Row) => r.id === Number(params[0]));
+    return ret ? [ret] as T[] : [];
+  }
+  if (s.includes("from sale_return") && !s.includes("count(*)")) {
+    return state.saleReturns as T[];
+  }
+  if (s.includes("from sale_return_item") && s.includes("where return_no")) {
+    return state.saleReturnItems.filter((i: Row) => i.return_no === params[0]) as T[];
+  }
+
+  // 客户对账单相关
+  if (s.includes("from customer_statement") && s.includes("count(*)")) {
+    return [{ total: state.customerStatements.length }] as T[];
+  }
+  if (s.includes("from customer_statement") && s.includes("where id = ?")) {
+    const stmt = state.customerStatements.find((st: Row) => st.id === Number(params[0]));
+    return stmt ? [stmt] as T[] : [];
+  }
+  if (s.includes("from customer_statement") && !s.includes("count(*)")) {
+    return state.customerStatements as T[];
+  }
+
+  // 客户付款相关
+  if (s.includes("from customer_payment") && s.includes("count(*)")) {
+    return [{ total: state.customerPayments.length }] as T[];
+  }
+  if (s.includes("from customer_payment") && !s.includes("count(*)")) {
+    return state.customerPayments as T[];
+  }
+
+  // 客户销售单查询
+  if (s.includes("from sale_bill") && s.includes("where customer_id = ?") && s.includes("count(*)")) {
+    const cnt = state.saleBills.filter((b: Row) => b.customerId === Number(params[0]) || b.customer_id === Number(params[0])).length;
+    return [{ total: cnt }] as T[];
+  }
+  if (s.includes("from sale_bill") && s.includes("where customer_id = ?") && !s.includes("count(*)") && !s.includes("sum(")) {
+    return state.saleBills.filter((b: Row) => b.customerId === Number(params[0]) || b.customer_id === Number(params[0])) as T[];
+  }
+
+  // 客户付款记录（sale_payment + customer_payment UNION）
+  if (s.includes("from sale_payment") && s.includes("from customer_payment")) {
+    const memberId = Number(params[0]);
+    const sp = state.salePayments.filter((p: Row) => p.customer_id === memberId);
+    const cp = state.customerPayments.filter((p: Row) => p.customer_id === memberId);
+    return [...sp, ...cp] as T[];
+  }
+
+  // 客户统计相关
+  if (s.includes("count(*) as total from member where status")) {
+    return [{ total: state.members.length }] as T[];
+  }
+  if (s.includes("count(*) as cnt from member") && s.includes("date_format")) {
+    return [{ cnt: 0 }] as T[];
+  }
+  if (s.includes("count(distinct customer_id) as cnt") && s.includes("created_at >= date_sub")) {
+    const activeIds = new Set(state.saleBills.filter((b: Row) => b.customerId || b.customer_id).map((b: Row) => b.customerId || b.customer_id));
+    return [{ cnt: activeIds.size }] as T[];
+  }
+  if (s.includes("count(distinct customer_id) as cnt") && s.includes("unreceived_amount > 0")) {
+    const debtIds = new Set(state.saleBills.filter((b: Row) => (b.unreceivedAmount || b.unreceived_amount) > 0).map((b: Row) => b.customerId || b.customer_id));
+    return [{ cnt: debtIds.size }] as T[];
+  }
+  if (s.includes("coalesce(sum(unreceived_amount), 0) as total") && s.includes("unreceived_amount > 0") && s.includes("customer_id is not null")) {
+    const total = state.saleBills.reduce((sum: number, b: Row) => sum + Number(b.unreceivedAmount || b.unreceived_amount || 0), 0);
+    return [{ total }] as T[];
+  }
+
+  // 客户购买统计
+  if (s.includes("count(*) as billcount") && s.includes("from sale_bill") && s.includes("where customer_id")) {
+    const bills = state.saleBills.filter((b: Row) => (b.customerId || b.customer_id) === Number(params[0]) && b.businessStatus !== "DRAFT" && b.businessStatus !== "VOIDED");
+    return [{ billCount: bills.length, totalAmount: 0, receivedAmount: 0, unpaidAmount: 0 }] as T[];
+  }
+  if (s.includes("from sale_bill_item sbi") && s.includes("join sale_bill sb") && s.includes("group by sbi.sku_id")) {
+    return [] as T[];
+  }
+  if (s.includes("max(created_at) as lastorderat") && s.includes("from sale_bill") && s.includes("where customer_id")) {
+    return [{ lastOrderAt: null }] as T[];
+  }
+
+  // 对账单生成时的汇总查询
+  if (s.includes("coalesce(sum(unreceived_amount), 0) as balance") && s.includes("date(created_at) < ?")) {
+    return [{ balance: 0 }] as T[];
+  }
+  if (s.includes("coalesce(sum(receivable_amount), 0) as total") && s.includes("from sale_bill") && s.includes("date(created_at) >= ?") && s.includes("date(created_at) <= ?")) {
+    return [{ total: 0 }] as T[];
+  }
+  if (s.includes("coalesce(sum(refund_amount), 0) as total") && s.includes("from sale_return")) {
+    return [{ total: 0 }] as T[];
+  }
+  if (s.includes("coalesce(sum(amount), 0) as total") && s.includes("from customer_payment") && s.includes("payment_date >= ?")) {
+    return [{ total: 0 }] as T[];
+  }
+
+  // 供应商绩效统计
+  if (s.includes("sum(case when actual_date is not null and actual_date <= expected_date")) {
+    return [{ totalOrders: 0, onTimeOrders: 0, lateOrders: 0 }] as T[];
+  }
+  if (s.includes("coalesce(sum(payable_amount), 0) as totalamount") && s.includes("from purchase_order") && s.includes("supplier_id")) {
+    return [{ totalAmount: 0, paidAmount: 0, unpaidAmount: 0 }] as T[];
+  }
+  if (s.includes("count(*) as returncount") && s.includes("from purchase_return") && s.includes("supplier_id")) {
+    return [{ returnCount: 0, returnAmount: 0 }] as T[];
+  }
+  if (s.includes("count(*) as cnt from purchase_order") && s.includes("supplier_id") && s.includes("order_status not in")) {
+    return [{ cnt: 0 }] as T[];
+  }
+
   return [] as T[];
 }
 
 export async function mockExecute(sql: string, params: unknown[] = []) {
   const s = sql.toLowerCase().replace(/\s+/g, " ");
+  if (s.includes("update inventory_balance")) {
+    const stockType = params.length >= 5 ? params[4] : (s.includes("stock_type = 'offline'") ? "OFFLINE" : (s.includes("stock_type = 'online'") ? "ONLINE" : params[4]));
+    const inv = state.inventory.find(
+      (i) => i.storeId === params[2] && i.skuId === params[3] && i.stockType === stockType
+    );
+    if (inv) {
+      if (s.includes("locked_qty = locked_qty +")) {
+        inv.lockedQty = Number(inv.lockedQty) + Number(params[0]);
+        inv.availableQty = Math.max(0, Number(inv.availableQty) - Number(params[1]));
+      } else if (s.includes("physical_qty = physical_qty -") && s.includes("locked_qty = greatest(locked_qty -")) {
+        // 配送完成：扣 physical_qty 和 locked_qty
+        inv.physicalQty = Number(inv.physicalQty) - Number(params[0]);
+        inv.lockedQty = Math.max(0, Number(inv.lockedQty) - Number(params[2]));
+      } else if (s.includes("physical_qty = physical_qty -")) {
+        // 门店销售：扣 physical_qty 和 available_qty
+        inv.physicalQty = Number(inv.physicalQty) - Number(params[0]);
+        inv.availableQty = Math.max(0, Number(inv.availableQty) - Number(params[1]));
+      } else if (s.includes("locked_qty = greatest(locked_qty -")) {
+        inv.lockedQty = Math.max(0, Number(inv.lockedQty) - Number(params[0]));
+        inv.availableQty = Number(inv.availableQty) + Number(params[1]);
+      } else {
+        const direction = 1;
+        inv.physicalQty = Number(inv.physicalQty) + direction * Number(params[0]);
+        inv.availableQty = Number(inv.availableQty) + direction * Number(params[1]);
+      }
+    }
+    return result();
+  }
   if (s.includes("insert into sale_bill ")) {
     state.saleBills.push({
       billNo: params[0],
       bill_no: params[0],
       storeId: params[1],
+      store_id: params[1],
       customerId: params[2],
       customerName: params[3],
       customerMobile: params[4],
@@ -803,6 +1043,27 @@ export async function mockExecute(sql: string, params: unknown[] = []) {
       received_amount: 0,
       unreceivedAmount: params[10],
       unreceived_amount: params[10],
+      createdAt: new Date().toISOString()
+    });
+    return result();
+  }
+  if (s.startsWith("update product_spu set status")) {
+    const status = params[0];
+    const spuId = Number(params[1]);
+    for (const product of state.products) {
+      if (Number(product.spuId) === spuId) product.status = status;
+    }
+    return result();
+  }
+  if (s.includes("insert into product_price_log")) {
+    state.priceLogs.unshift({
+      id: state.priceLogs.length + 1,
+      skuId: params[0],
+      operatorId: params[1],
+      priceType: params[2],
+      oldPrice: params[3],
+      newPrice: params[4],
+      actionType: "UPDATE",
       createdAt: new Date().toISOString()
     });
     return result();
@@ -829,19 +1090,24 @@ export async function mockExecute(sql: string, params: unknown[] = []) {
       storeId: params[1],
       store_id: params[1],
       customerType: params[2],
+      customer_type: params[2],
       fulfillmentType: params[3],
       fulfillment_type: params[3],
-      orderStatus: "PENDING_PAYMENT",
-      order_status: "PENDING_PAYMENT",
-      payStatus: "UNPAID",
-      pay_status: "UNPAID",
-      goodsAmount: params[4],
-      payableAmount: params[5],
-      payable_amount: params[5],
-      receiverName: params[6],
-      receiverMobile: params[7],
-      receiverAddress: params[8],
-      remark: params[9],
+      orderStatus: params[4] ?? "PENDING_PAYMENT",
+      order_status: params[4] ?? "PENDING_PAYMENT",
+      payStatus: params[5] ?? "UNPAID",
+      pay_status: params[5] ?? "UNPAID",
+      settlementType: params[6] ?? "CASH",
+      settlement_type: params[6] ?? "CASH",
+      deliveryStatus: params[7] ?? "WAITING",
+      delivery_status: params[7] ?? "WAITING",
+      goodsAmount: params[8],
+      payableAmount: params[9],
+      payable_amount: params[9],
+      receiverName: params[10],
+      receiverMobile: params[11],
+      receiverAddress: params[12],
+      remark: params[13],
       createdAt: new Date().toISOString()
     });
     return result();
@@ -852,9 +1118,11 @@ export async function mockExecute(sql: string, params: unknown[] = []) {
       skuId: params[1],
       skuName: params[2],
       qty: params[3],
-      unitPrice: params[4],
-      priceType: params[5],
-      subtotalAmount: params[6]
+      reservedQty: Number(params[4] ?? 0),
+      unreservedQty: Number(params[5] ?? 0),
+      unitPrice: params[6],
+      priceType: params[7],
+      subtotalAmount: params[8]
     });
     return result();
   }
@@ -870,6 +1138,22 @@ export async function mockExecute(sql: string, params: unknown[] = []) {
       bill.collectionStatus = params[2];
       bill.collection_status = params[2];
     }
+    return result();
+  }
+  if (s.includes("insert into payment_order") && s.includes("'receivable'")) {
+    state.paymentOrders.push({
+      payNo: params[0],
+      pay_no: params[0],
+      sourceType: "RECEIVABLE",
+      source_type: "RECEIVABLE",
+      sourceNo: params[1],
+      source_no: params[1],
+      channel: params[2],
+      paymentMethod: params[2],
+      payment_method: params[2],
+      amount: params[3],
+      status: "SUCCESS"
+    });
     return result();
   }
   if (s.includes("insert into payment_order")) {
@@ -946,350 +1230,378 @@ export async function mockExecute(sql: string, params: unknown[] = []) {
     }
     return result();
   }
-  // ---- phase2 ----
-  if (s.includes("insert into supplier ")) {
-    const supplierCode = String(params[0]);
-    const supplierName = String(params[1]);
-    const contactName = params[2] ? String(params[2]) : null;
-    const contactPhone = params[3] ? String(params[3]) : null;
-    const address = params[4] ? String(params[4]) : null;
-    const taxNo = params[5] ? String(params[5]) : null;
-    const bankName = params[6] ? String(params[6]) : null;
-    const bankAccount = params[7] ? String(params[7]) : null;
-    const creditLimit = Number(params[8] ?? 0);
-    const creditDays = Number(params[9] ?? 30);
-    const settlementCycle = String(params[10] ?? "MONTHLY");
-    const supplierType = String(params[11] ?? "BRAND");
-    const levelCode = params[12] ? String(params[12]) : null;
-    const remark = params[13] ? String(params[13]) : null;
-    const status = String(params[14] ?? "ACTIVE");
+  if (s.includes("insert into receivable_account")) {
+    state.receivables.push({
+      receivableNo: params[0],
+      receivable_no: params[0],
+      sourceType: "MINIAPP_ORDER",
+      source_type: "MINIAPP_ORDER",
+      sourceNo: params[1],
+      source_no: params[1],
+      storeId: params[2],
+      store_id: params[2],
+      customerId: params[3],
+      customerName: params[4],
+      customerMobile: params[5],
+      receivableAmount: params[6],
+      receivable_amount: params[6],
+      receivedAmount: 0,
+      received_amount: 0,
+      unreceivedAmount: params[7],
+      unreceived_amount: params[7],
+      status: "UNPAID",
+      createdAt: new Date().toISOString()
+    });
+    return result();
+  }
+  if (s.includes("update receivable_account")) {
+    const receivable = state.receivables.find((r) => r.receivableNo === params[3] || r.receivable_no === params[3]);
+    if (receivable) {
+      receivable.receivedAmount = params[0];
+      receivable.received_amount = params[0];
+      receivable.unreceivedAmount = params[1];
+      receivable.unreceived_amount = params[1];
+      receivable.status = params[2];
+    }
+    return result();
+  }
+
+  // ===== 第一/二阶段新增表 INSERT/UPDATE 支持 =====
+
+  // 供应商 INSERT
+  if (s.includes("insert into supplier (")) {
     const id = state.suppliers.length + 1;
     state.suppliers.push({
-      id, supplierCode, supplierName, contactName, contactPhone,
-      address, taxNo, bankName, bankAccount,
-      creditLimit, creditDays, settlementCycle, supplierType,
-      levelCode, remark, status, createdAt: new Date().toISOString()
+      id,
+      supplier_code: params[0],
+      name: params[1],
+      short_name: params[2],
+      category: params[3],
+      province: params[4],
+      city: params[5],
+      district: params[6],
+      address: params[7],
+      credit_level: params[8],
+      settlement_type: params[9],
+      settlement_day: params[10],
+      tax_rate: params[11],
+      bank_name: params[12],
+      bank_account: params[13],
+      bank_account_name: params[14],
+      remark: params[15],
+      status: 1,
+      created_at: new Date().toISOString(),
+      updated_at: new Date().toISOString(),
     });
     return result(id);
   }
-  if (s.includes("insert into supplier_contact")) {
-    const supplierId = Number(params[0]);
-    const contactName = String(params[1]);
-    const contactRole = params[2] ? String(params[2]) : null;
-    const contactPhone = params[3] ? String(params[3]) : null;
-    const contactEmail = params[4] ? String(params[4]) : null;
-    const isPrimary = Number(params[5] ?? 0);
-    const id = state.supplierContacts.length + 1;
-    state.supplierContacts.push({ id, supplierId, contactName, contactRole, contactPhone, contactEmail, isPrimary });
-    return result(id);
-  }
-  if (s.includes("update supplier set")) {
-    const id = Number(params[params.length - 1]);
-    const supplier = state.suppliers.find((x) => x.id === id);
+
+  // 供应商 UPDATE
+  if (s.includes("update supplier set") && s.includes("where id")) {
+    const supplier = state.suppliers.find((sup: Row) => sup.id === Number(params[params.length - 1]));
     if (supplier) {
-      if (params[0] != null && params[0] !== undefined) supplier.contactPhone = String(params[0]);
-      if (params[1] != null && params[1] !== undefined) supplier.creditLimit = Number(params[1]);
-      if (params[2] != null && params[2] !== undefined) supplier.supplierType = String(params[2]);
-      if (params[3] != null && params[3] !== undefined) supplier.status = String(params[3]);
+      // params are dynamic based on which fields are set
+      for (let i = 0; i < params.length - 1; i++) {
+        if (params[i] !== undefined) {
+          // Field mapping handled by caller
+        }
+      }
+      supplier.updated_at = new Date().toISOString();
     }
     return result();
   }
-  if (s.includes("insert into purchase_order ")) {
-    const orderNo = String(params[0]);
-    const storeId = Number(params[1]);
-    const supplierId = Number(params[2]);
-    const goodsAmount = Number(params[3] ?? 0);
-    const payableAmount = Number(params[4] ?? 0);
-    const remark = params[5] ? String(params[5]) : null;
+
+  // 采购订单 INSERT
+  if (s.includes("insert into purchase_order (")) {
     const id = state.purchaseOrders.length + 1;
     state.purchaseOrders.push({
-      id, orderNo, storeId, supplierId,
-      orderStatus: "DRAFT", payStatus: "UNPAID",
-      goodsAmount, taxAmount: 0, payableAmount, paidAmount: 0,
-      remark, auditTime: null, auditorId: null, inboundStatus: "NOT_STARTED",
-      createdAt: new Date().toISOString(), version: 1
+      id,
+      order_no: params[0],
+      supplier_id: params[1],
+      supplier_name: params[2],
+      store_id: params[3],
+      order_status: params[4],
+      goods_amount: params[5],
+      tax_amount: params[6],
+      discount_amount: params[7],
+      payable_amount: params[8],
+      paid_amount: params[9],
+      unpaid_amount: params[10],
+      expected_date: params[11],
+      operator_id: params[12],
+      remark: params[13],
+      created_at: new Date().toISOString(),
+      updated_at: new Date().toISOString(),
     });
     return result(id);
   }
-  if (s.includes("insert into purchase_order_item")) {
-    const orderNo = String(params[0]);
-    const skuId = Number(params[1]);
-    const skuName = String(params[2]);
-    const boxQty = Number(params[3] ?? 0);
-    const bottleQty = Number(params[4] ?? 0);
-    const unitPrice = Number(params[5] ?? 0);
-    const subtotal = Number(params[6] ?? (boxQty + bottleQty) * unitPrice);
-    const id = state.purchaseOrderItems.length + 1;
-    state.purchaseOrderItems.push({ id, orderNo, skuId, skuName, boxQty, bottleQty, unitPrice, subtotalAmount: subtotal, inboundQty: 0 });
-    return result(id);
+
+  // 采购订单明细 INSERT
+  if (s.includes("insert into purchase_order_item (")) {
+    state.purchaseOrderItems.push({
+      id: state.purchaseOrderItems.length + 1,
+      order_no: params[0],
+      sku_id: params[1],
+      sku_name: params[2],
+      barcode: params[3],
+      box_qty: params[4],
+      bottle_qty: params[5],
+      total_bottle_qty: params[6],
+      unit_price: params[7],
+      tax_rate: params[8],
+      subtotal_amount: params[9],
+      tax_amount: params[10],
+      total_amount: params[11],
+      remark: params[12],
+      in_stocked_qty: 0,
+    });
+    return result();
   }
-  if (s.includes("update purchase_order set") && s.includes("order_status")) {
-    const orderNo = String(params[params.length - 1]);
-    const order = state.purchaseOrders.find((o) => o.orderNo === orderNo);
+
+  // 采购订单明细 DELETE
+  if (s.includes("delete from purchase_order_item where order_no")) {
+    state.purchaseOrderItems = state.purchaseOrderItems.filter((i: Row) => i.order_no !== params[0]);
+    return result();
+  }
+
+  // 采购订单 UPDATE (状态变更等)
+  if (s.includes("update purchase_order set") && s.includes("where id")) {
+    const order = state.purchaseOrders.find((o: Row) => o.id === Number(params[params.length - 1]));
     if (order) {
-      const status = extractLiteral(sql, "order_status");
-      if (status) order.orderStatus = status;
-      if (s.includes("auditor_id")) order.auditorId = Number(params[0] ?? 1);
-      if (s.includes("audit_time")) order.auditTime = new Date().toISOString();
-      order.version = Number(order.version ?? 1) + 1;
-    }
-    return result();
-  }
-  if (s.includes("update purchase_order set") && s.includes("pay_status")) {
-    const orderNo = String(params[params.length - 1]);
-    const order = state.purchaseOrders.find((o) => o.orderNo === orderNo);
-    if (order) {
-      const status = extractLiteral(sql, "pay_status");
-      if (status) order.payStatus = status;
-      if (s.includes("paid_amount") && params[0] != null) {
-        order.paidAmount = Number(order.paidAmount ?? 0) + Number(params[0]);
+      if (s.includes("order_status = 'cancelled'")) order.order_status = "CANCELLED";
+      if (s.includes("order_status = 'approved'")) order.order_status = "APPROVED";
+      if (s.includes("order_status = ?")) {
+        // Dynamic status update
       }
-      order.version = Number(order.version ?? 1) + 1;
+      order.updated_at = new Date().toISOString();
     }
     return result();
   }
-  if (s.includes("insert into purchase_in_stock_order")) {
-    const inStockNo = String(params[0]);
-    const purchaseOrderNo = params[1] ? String(params[1]) : null;
-    const storeId = Number(params[2]);
-    const supplierId = Number(params[3]);
-    const totalQty = Number(params[4] ?? 0);
-    const totalAmount = Number(params[5] ?? 0);
-    const id = state.purchaseInStockOrders.length + 1;
-    state.purchaseInStockOrders.push({
-      id, inStockNo, purchaseOrderNo, storeId, supplierId,
-      totalQty, totalAmount, status: "DRAFT",
-      auditorId: null, auditTime: null,
-      createdAt: new Date().toISOString()
+
+  // 采购订单明细 UPDATE (入库数量)
+  if (s.includes("update purchase_order_item set in_stocked_qty")) {
+    const item = state.purchaseOrderItems.find((i: Row) => i.order_no === params[1] && i.sku_id === Number(params[2]));
+    if (item) item.in_stocked_qty = (item.in_stocked_qty || 0) + Number(params[0]);
+    return result();
+  }
+
+  // 采购入库单 INSERT
+  if (s.includes("insert into purchase_in_stock (")) {
+    const id = state.purchaseInStocks.length + 1;
+    state.purchaseInStocks.push({
+      id,
+      stock_no: params[0],
+      order_no: params[1],
+      supplier_id: params[2],
+      supplier_name: params[3],
+      store_id: params[4],
+      stock_status: params[5],
+      goods_amount: params[6],
+      tax_amount: params[7],
+      total_amount: params[8],
+      operator_id: params[9],
+      remark: params[10],
+      created_at: new Date().toISOString(),
     });
     return result(id);
   }
-  if (s.includes("insert into purchase_in_stock_item")) {
-    const inStockNo = String(params[0]);
-    const skuId = Number(params[1]);
-    const skuName = String(params[2]);
-    const planQty = Number(params[3] ?? 0);
-    const actualQty = Number(params[4] ?? planQty);
-    const unitPrice = Number(params[5] ?? 0);
-    const subtotal = Number(params[6] ?? actualQty * unitPrice);
-    const id = state.purchaseInStockItems.length + 1;
-    state.purchaseInStockItems.push({ id, inStockNo, skuId, skuName, planQty, actualQty, unitPrice, subtotalAmount: subtotal });
-    return result(id);
-  }
-  if (s.includes("update purchase_in_stock_order set") && s.includes("status")) {
-    const inStockNo = String(params[params.length - 1]);
-    const order = state.purchaseInStockOrders.find((o) => o.inStockNo === inStockNo);
-    if (order) {
-      const status = extractLiteral(sql, "status");
-      if (status) order.status = status;
-      if (order.status === "AUDITED") {
-        order.auditorId = params[0] ? Number(params[0]) : 1;
-        order.auditTime = new Date().toISOString();
-      }
-      if (order.status === "VOID") {
-        order.auditorId = params[0] ? Number(params[0]) : 1;
-        order.auditTime = new Date().toISOString();
-      }
-      if (order.status === "CANCELLED") {
-        order.auditorId = null;
-        order.auditTime = null;
-      }
-    }
-    return result();
-  }
-  if (s.includes("insert into sale_return ")) {
-    const returnNo = String(params[0]);
-    const storeId = Number(params[1]);
-    const customerId = Number(params[2]);
-    const customerName = String(params[3]);
-    const totalAmount = Number(params[4] ?? 0);
-    const remark = params[5] ? String(params[5]) : null;
-    const id = state.saleReturns.length + 1;
-    state.saleReturns.push({
-      id, returnNo, storeId, customerId, customerName,
-      totalAmount, remark, status: "DRAFT",
-      auditorId: null, auditTime: null, refundStatus: "UNREFUNDED",
-      stockRollbackFlag: 0,
-      createdAt: new Date().toISOString()
+
+  // 采购入库单明细 INSERT
+  if (s.includes("insert into purchase_in_stock_item (")) {
+    state.purchaseInStockItems.push({
+      id: state.purchaseInStockItems.length + 1,
+      stock_no: params[0],
+      sku_id: params[1],
+      sku_name: params[2],
+      box_qty: params[3],
+      bottle_qty: params[4],
+      total_bottle_qty: params[5],
+      unit_price: params[6],
+      tax_rate: params[7],
+      subtotal_amount: params[8],
+      tax_amount: params[9],
+      total_amount: params[10],
+      batch_no: params[11],
+      production_date: params[12],
+      expiry_date: params[13],
+      remark: params[14],
     });
-    return result(id);
-  }
-  if (s.includes("insert into sale_return_item")) {
-    const returnNo = String(params[0]);
-    const skuId = Number(params[1]);
-    const skuName = String(params[2]);
-    const qty = Number(params[3] ?? 0);
-    const unitPrice = Number(params[4] ?? 0);
-    const subtotal = Number(params[5] ?? qty * unitPrice);
-    const id = state.saleReturnItems.length + 1;
-    state.saleReturnItems.push({ id, returnNo, skuId, skuName, qty, unitPrice, subtotalAmount: subtotal });
-    return result(id);
-  }
-  if (s.includes("update sale_return set")) {
-    const returnNo = String(params[params.length - 1]);
-    const r = state.saleReturns.find((x) => x.returnNo === returnNo);
-    if (r) {
-      if (params[0] != null && params[0] !== undefined) r.status = String(params[0]);
-      if (String(params[0]) === "AUDITED") {
-        r.auditorId = 1;
-        r.auditTime = new Date().toISOString();
-        r.stockRollbackFlag = 1;
-      }
-      if (params[1] != null && params[1] !== undefined) r.refundStatus = String(params[1]);
-    }
     return result();
   }
-  if (s.includes("insert into customer_statement ")) {
-    const statementNo = String(params[0]);
-    const customerId = Number(params[1]);
-    const customerName = String(params[2]);
-    const startBalance = Number(params[3] ?? 0);
-    const salesAmount = Number(params[4] ?? 0);
-    const returnAmount = Number(params[5] ?? 0);
-    const receivedAmount = Number(params[6] ?? 0);
-    const endBalance = Number(params[7] ?? (startBalance + salesAmount - returnAmount - receivedAmount));
-    const id = state.customerStatements.length + 1;
-    state.customerStatements.push({
-      id, statementNo, customerId, customerName,
-      startBalance, salesAmount, returnAmount, receivedAmount, endBalance,
-      status: "DRAFT",
-      period: `${new Date().getFullYear()}-${String(new Date().getMonth() + 1).padStart(2, "0")}`,
-      createdAt: new Date().toISOString()
-    });
-    return result(id);
-  }
-  if (s.includes("insert into customer_statement_item")) {
-    const statementNo = String(params[0]);
-    const transType = String(params[1]);
-    const transNo = params[2] ? String(params[2]) : null;
-    const amount = Number(params[3] ?? 0);
-    const remark = params[4] ? String(params[4]) : null;
-    const id = state.customerStatementItems.length + 1;
-    state.customerStatementItems.push({ id, statementNo, transType, transNo, amount, remark, createdAt: new Date().toISOString() });
-    return result(id);
-  }
-  if (s.includes("update customer_statement set")) {
-    const statementNo = String(params[params.length - 1]);
-    const st = state.customerStatements.find((x) => x.statementNo === statementNo);
-    if (st) {
-      const status = extractLiteral(sql, "status");
-      if (status) st.status = status;
-      if (params[0] != null) (st as any).auditorId = Number(params[0]);
-      if (s.includes("audit_time")) (st as any).auditTime = new Date().toISOString();
-    }
-    return result();
-  }
-  if (s.includes("insert into payment_record")) {
-    const payNo = String(params[0]);
-    const sourceType = String(params[1]);
-    const sourceNo = String(params[2]);
-    const amount = Number(params[3] ?? 0);
-    const payMethod = String(params[4] ?? "BANK_TRANSFER");
-    const id = state.paymentRecords.length + 1;
-    state.paymentRecords.push({ id, payNo, sourceType, sourceNo, amount, payMethod, status: "PAID", createdAt: new Date().toISOString() });
-    return result(id);
-  }
-  if (s.includes("insert into purchase_return ")) {
-    const returnNo = String(params[0]);
-    const storeId = Number(params[1]);
-    const purchaseOrderNo = params[2] ? String(params[2]) : null;
-    const supplierId = params[3] ? Number(params[3]) : null;
-    const totalAmount = Number(params[4] ?? 0);
-    const remark = params[5] ? String(params[5]) : null;
+
+  // 采购退货 INSERT
+  if (s.includes("insert into purchase_return (")) {
     const id = state.purchaseReturns.length + 1;
     state.purchaseReturns.push({
-      id, returnNo, storeId, purchaseOrderNo, supplierId, totalAmount, remark, status: "PENDING", stockRollbackFlag: 0, auditorId: null, auditTime: null, audit_time: null, createdAt: new Date().toISOString()
+      id,
+      return_no: params[0],
+      order_no: params[1],
+      stock_no: params[2],
+      supplier_id: params[3],
+      supplier_name: params[4],
+      store_id: params[5],
+      return_status: params[6],
+      goods_amount: params[7],
+      tax_amount: params[8],
+      total_amount: params[9],
+      refund_amount: params[10],
+      refunded_amount: params[11],
+      operator_id: params[12],
+      remark: params[13],
+      created_at: new Date().toISOString(),
     });
     return result(id);
   }
-  if (s.includes("insert into purchase_return_item")) {
-    const returnNo = String(params[0]);
-    const skuId = Number(params[1]);
-    const skuName = String(params[2] ?? `SKU-${skuId}`);
-    const qty = Number(params[3] ?? 0);
-    const unitPrice = Number(params[4] ?? 0);
-    const subtotalAmount = Number(params[5] ?? 0);
-    const id = state.purchaseReturnItems.length + 1;
-    state.purchaseReturnItems.push({ id, returnNo, skuId, skuName, qty, unitPrice, subtotalAmount });
-    return result(id);
-  }
-  if (s.includes("update purchase_return set")) {
-    const returnNo = String(params[params.length - 1]);
-    const r = state.purchaseReturns.find((x) => x.returnNo === returnNo);
-    if (r) {
-      const status = extractLiteral(sql, "status");
-      if (status) r.status = status;
-      if (s.includes("auditor_id")) r.auditorId = Number(params[0] ?? 1);
-      if (s.includes("audit_time")) r.auditTime = new Date().toISOString();
-      if (s.includes("stock_rollback_flag")) r.stockRollbackFlag = 1;
-    }
+
+  // 采购退货明细 INSERT
+  if (s.includes("insert into purchase_return_item (")) {
+    state.purchaseReturnItems.push({
+      id: state.purchaseReturnItems.length + 1,
+      return_no: params[0],
+      sku_id: params[1],
+      sku_name: params[2],
+      box_qty: params[3],
+      bottle_qty: params[4],
+      total_bottle_qty: params[5],
+      unit_price: params[6],
+      tax_rate: params[7],
+      subtotal_amount: params[8],
+      tax_amount: params[9],
+      total_amount: params[10],
+      reason: params[11],
+    });
     return result();
   }
-  if (s.includes("insert into purchase_payment")) {
-    const payNo = String(params[0]);
-    const purchaseOrderNo = params[1] ? String(params[1]) : null;
-    const supplierId = Number(params[2] ?? 0);
-    const payAmount = Number(params[3] ?? 0);
-    const payMethod = String(params[4] ?? "BANK");
-    const id = state.purchasePayments.length + 1;
-    state.purchasePayments.push({ id, payNo, purchaseOrderNo, supplierId, payAmount, payMethod, status: "PENDING", auditorId: null, auditTime: null });
+
+  // 销售退货 INSERT
+  if (s.includes("insert into sale_return (")) {
+    const id = state.saleReturns.length + 1;
+    state.saleReturns.push({
+      id,
+      return_no: params[0],
+      source_bill_no: params[1],
+      store_id: params[2],
+      customer_id: params[3],
+      customer_name: params[4],
+      customer_mobile: params[5],
+      return_status: params[6],
+      goods_amount: params[7],
+      discount_amount: params[8],
+      refund_amount: params[9],
+      refunded_amount: params[10],
+      refund_method: params[11],
+      operator_id: params[12],
+      remark: params[13],
+      created_at: new Date().toISOString(),
+    });
     return result(id);
   }
-  if (s.includes("update purchase_payment set")) {
-    const payNo = String(params[params.length - 1]);
-    const p = state.purchasePayments.find((x) => x.payNo === payNo);
-    if (p) {
-      const status = extractLiteral(sql, "status");
-      if (status) p.status = status;
-      if (s.includes("auditor_id")) p.auditorId = Number(params[0] ?? 1);
-      if (s.includes("audit_time")) p.auditTime = new Date().toISOString();
-    }
+
+  // 销售退货明细 INSERT
+  if (s.includes("insert into sale_return_item (")) {
+    state.saleReturnItems.push({
+      id: state.saleReturnItems.length + 1,
+      return_no: params[0],
+      sku_id: params[1],
+      sku_name: params[2],
+      box_qty: params[3],
+      bottle_qty: params[4],
+      total_bottle_qty: params[5],
+      unit_price: params[6],
+      subtotal_amount: params[7],
+      reason: params[8],
+    });
     return result();
   }
-  if (s.includes("insert into customer_payment")) {
-    const receiptNo = String(params[0]);
-    const customerId = Number(params[1] ?? 0);
-    const customerName = String(params[2] ?? "客户");
-    const payAmount = Number(params[3] ?? 0);
-    const payMethod = String(params[4] ?? "BANK");
-    const remark = params[5] ? String(params[5]) : null;
+
+  // 客户对账单 INSERT
+  if (s.includes("insert into customer_statement (")) {
+    const id = state.customerStatements.length + 1;
+    state.customerStatements.push({
+      id,
+      statement_no: params[0],
+      customer_id: params[1],
+      customer_name: params[2],
+      customer_mobile: params[3],
+      statement_type: params[4],
+      start_date: params[5],
+      end_date: params[6],
+      opening_balance: params[7],
+      total_sales: params[8],
+      total_returns: params[9],
+      total_payments: params[10],
+      closing_balance: params[11],
+      status: params[12],
+      operator_id: params[13],
+      remark: params[14],
+      created_at: new Date().toISOString(),
+    });
+    return result(id);
+  }
+
+  // 客户付款 INSERT
+  if (s.includes("insert into customer_payment (")) {
     const id = state.customerPayments.length + 1;
-    state.customerPayments.push({ id, receiptNo, customerId, customerName, payAmount, payMethod, remark, status: "PAID", auditorId: 1, auditTime: new Date().toISOString() });
+    state.customerPayments.push({
+      id,
+      receipt_no: params[0],
+      customer_id: params[1],
+      customer_name: params[2],
+      amount: params[3],
+      payment_method: params[4],
+      source_type: params[5],
+      source_no: params[6],
+      voucher_no: params[7],
+      payment_date: params[8],
+      operator_id: params[9],
+      status: params[10],
+      remark: params[11],
+      created_at: new Date().toISOString(),
+    });
     return result(id);
   }
-  if (s.includes("update customer_payment set")) {
-    const receiptNo = String(params[params.length - 1]);
-    const p = state.customerPayments.find((x) => x.receiptNo === receiptNo);
-    if (p) {
-      const status = extractLiteral(sql, "status");
-      if (status) p.status = status;
-      if (s.includes("auditor_id")) p.auditorId = Number(params[0] ?? 1);
-      if (s.includes("audit_time")) p.auditTime = new Date().toISOString();
-    }
-    return result();
-  }
-  if (s.includes("insert into inventory_balance")) {
+
+  // 库存余额 INSERT（新增表相关的 ON DUPLICATE KEY UPDATE）
+  if (s.includes("insert into inventory_balance") && s.includes("on duplicate key update")) {
     const storeId = Number(params[0]);
     const skuId = Number(params[1]);
-    const stockType = String(params[2] ?? "OFFLINE");
-    const physicalQty = Number(params[3] ?? 0);
-    const skuName = params[4] ? String(params[4]) : `SKU-${skuId}`;
-    state.inventory.push({ storeId, skuId, skuName, stockType, physicalQty, lockedQty: 0, availableQty: physicalQty });
-    return result(state.inventory.length);
-  }
-  if (s.includes("update inventory_balance")) {
-    const stockType = s.includes("stock_type = ?") && params[4] ? params[4] : "OFFLINE";
+    const stockType = String(params[2]);
+    const qty = Number(params[3]);
     const inv = state.inventory.find(
-      (i) => i.storeId === params[2] && i.skuId === params[3] && String(i.stockType) === String(stockType)
+      (i) => i.storeId === storeId && i.skuId === skuId && i.stockType === stockType
     );
     if (inv) {
-      const isSubtract = s.includes("physical_qty = physical_qty - ?");
-      const delta = isSubtract ? -Number(params[0]) : Number(params[0]);
-      inv.physicalQty = Number(inv.physicalQty) + delta;
-      inv.availableQty = Number(inv.availableQty) + delta;
+      inv.physicalQty = Number(inv.physicalQty) + qty;
+      inv.availableQty = Number(inv.availableQty) + qty;
+    } else {
+      state.inventory.push({
+        storeId,
+        skuId,
+        skuName: "",
+        stockType,
+        physicalQty: qty,
+        lockedQty: 0,
+        availableQty: qty,
+      });
     }
     return result();
   }
+
+  // 采购退货扣减库存
+  if (s.includes("update inventory_balance") && s.includes("greatest(physical_qty -") && s.includes("greatest(available_qty -")) {
+    const storeId = Number(params[2]);
+    const skuId = Number(params[3]);
+    const qty = Number(params[0]);
+    const inv = state.inventory.find(
+      (i) => i.storeId === storeId && i.skuId === skuId && i.stockType === "OFFLINE"
+    );
+    if (inv) {
+      inv.physicalQty = Math.max(0, Number(inv.physicalQty) - qty);
+      inv.availableQty = Math.max(0, Number(inv.availableQty) - qty);
+    }
+    return result();
+  }
+
   return result();
 }
 
@@ -1298,34 +1610,8 @@ export const mockConn = {
   query: async (sql: string, params: unknown[] = []) => [await mockQuery(sql, params), undefined]
 } as any;
 
+const initialState = JSON.parse(JSON.stringify(state));
+
 export function resetMockDb() {
-  state.suppliers = [];
-  state.supplierContacts = [];
-  state.purchaseOrders = [];
-  state.purchaseOrderItems = [];
-  state.purchaseInStockOrders = [];
-  state.purchaseInStockItems = [];
-  state.saleReturns = [];
-  state.saleReturnItems = [];
-  state.purchaseReturns = [];
-  state.purchaseReturnItems = [];
-  state.purchasePayments = [];
-  state.customerPayments = [];
-  state.customerStatements = [];
-  state.customerStatementItems = [];
-  state.paymentRecords = [];
-  state.saleBills = [];
-  state.inventoryLogs = [];
-  state.miniappOrders = [];
-  state.miniappOrderItems = [];
-  state.holdOrders = [];
-  state.refundOrders = [];
-  state.paymentOrders = [];
-  state.collectionLinks = [];
-  // Keep existing inventory/users/stores but reset inventory list? Keep as initial snapshot.
-  // Reset inventory balance to an initial baseline so tests don't accumulate.
-  state.inventory = [
-    { storeId: 1, skuId: 1, skuName: "示例白酒 53度 500ml 常温", stockType: "ONLINE", physicalQty: 120, lockedQty: 0, availableQty: 120 },
-    { storeId: 1, skuId: 1, skuName: "示例白酒 53度 500ml 常温", stockType: "OFFLINE", physicalQty: 2, lockedQty: 0, availableQty: 2 }
-  ];
+  Object.assign(state, JSON.parse(JSON.stringify(initialState)));
 }

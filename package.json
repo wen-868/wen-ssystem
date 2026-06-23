@@ -6,14 +6,17 @@
   "workspaces": [
     "backend",
     "admin-web",
-    "store-terminal"
+    "store-terminal",
+    "merchant-mobile"
   ],
   "scripts": {
     "dev:backend": "npm --workspace backend run dev",
     "dev:mock": "node scripts/dev-mock.mjs",
     "dev:admin": "npm --workspace admin-web run dev",
     "dev:store": "npm --workspace store-terminal run dev",
+    "dev:merchant": "npm --workspace merchant-mobile run dev",
     "build": "npm --workspaces run build",
+    "build:merchant": "npm --workspace merchant-mobile run build",
     "build:store-beta": "node scripts/build-store-beta.mjs",
     "build:mobile-beta": "node scripts/build-mobile-beta.mjs",
     "build:beta": "npm run build:store-beta && npm run build:mobile-beta",
@@ -25,14 +28,15 @@
     "test:beta": "node scripts/check-beta-artifacts.mjs",
     "test:production-deploy": "node scripts/check-production-deploy.mjs",
     "test:mysql": "node scripts/mysql-smoke-test.mjs",
-    "report:start": "node scripts/phase-tracker.mjs start",
-    "report:update": "node scripts/phase-tracker.mjs update",
-    "report:done": "node scripts/phase-tracker.mjs done",
-    "report:block": "node scripts/phase-tracker.mjs block",
-    "report:list": "node scripts/phase-tracker.mjs list",
-    "report:show": "node scripts/phase-tracker.mjs show"
+    "test:acceptance:admin": "node scripts/acceptance-admin-mvp.mjs",
+    "test:acceptance:store": "node scripts/acceptance-store-mvp.mjs",
+    "test:miniapp-release": "node scripts/check-miniapp-release.mjs",
+    "test:acceptance:production": "node scripts/acceptance-production.mjs"
   },
   "devDependencies": {
     "wait-on": "^9.0.10"
+  },
+  "dependencies": {
+    "js-yaml": "^4.2.0"
   }
 }
