@@ -1705,6 +1705,13 @@
           <el-form-item label="商品名称" prop="name">
             <el-input v-model="productForm.name" />
           </el-form-item>
+          <el-form-item label="酒精度">
+            <el-input-number v-model="productForm.alcoholContent" :min="0" :max="100" :precision="1" style="width:120px" />
+            <span style="margin-left:8px">%vol</span>
+          </el-form-item>
+          <el-form-item label="产地">
+            <el-input v-model="productForm.origin" placeholder="如：贵州茅台镇" />
+          </el-form-item>
           <el-form-item label="图片URL">
             <el-input v-model="productForm.mainImage" placeholder="可填写商品图片链接" />
           </el-form-item>
