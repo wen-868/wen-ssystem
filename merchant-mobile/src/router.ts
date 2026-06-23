@@ -21,7 +21,10 @@ const routes: RouteRecordRaw[] = [
   { path: '/admin/staff', name: 'admin-staff', component: () => import('./views/AdminStaffView.vue') },
   { path: '/admin/stores', name: 'admin-stores', component: () => import('./views/AdminStoresView.vue') },
   { path: '/admin/prices', name: 'admin-prices', component: () => import('./views/AdminPricesView.vue') },
-  { path: '/share-collection', name: 'share-collection', component: () => import('./views/ShareCollectionView.vue') }
+  { path: '/share-collection', name: 'share-collection', component: () => import('./views/ShareCollectionView.vue') },
+  { path: '/sale-returns', name: 'sale-returns', component: () => import('./views/SaleReturnsView.vue') },
+  { path: '/sale-returns/create', name: 'sale-returns-create', component: () => import('./views/CreateSaleReturnView.vue') },
+  { path: '/sale-returns/:returnNo', name: 'sale-returns-detail', component: () => import('./views/SaleReturnDetailView.vue') }
 ]
 
 const router = createRouter({
