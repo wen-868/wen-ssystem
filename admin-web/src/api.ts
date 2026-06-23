@@ -198,6 +198,109 @@ export async function fetchSaleBillDetail(billNo: string) {
   return data.data;
 }
 
+/* ========== 供应商管理 ========== */
+
+export interface SupplierContact {
+  contactId?: number
+  supplierId?: number
+  name: string
+  mobile?: string
+  phone?: string
+  email?: string
+  wechat?: string
+  isPrimary: boolean
+  position?: string
+  remark?: string
+}
+
+export interface SupplierRecord {
+  supplierId: number
+  supplierCode: string
+  name: string
+  shortName?: string
+  category?: string
+  province?: string
+  city?: string
+  district?: string
+  address?: string
+  settlementType?: string
+  settlementDay?: number
+  taxRate?: number
+  bankName?: string
+  bankAccount?: string
+  bankAccountName?: string
+  status: number
+  createdAt?: string
+  contacts?: SupplierContact[]
+}
+
+export interface CreateSupplierParams {
+  name: string
+  shortName?: string
+  category?: string
+  province?: string
+  city?: string
+  district?: string
+  address?: string
+  settlementType?: string
+  settlementDay?: number
+  taxRate?: number
+  bankName?: string
+  bankAccount?: string
+  bankAccountName?: string
+  contacts?: SupplierContact[]
+}
+
+export async function fetchSuppliers(params?: {
+  keyword?: string
+  status?: number
+  page?: number
+  pageSize?: number
+}) {
+  const { data } = await api.get('/admin/suppliers', { params: { page: 1, pageSize: 20, ...params } })
+  return data.data
+}
+
+export async function fetchSupplierDetail(id: number) {
+  const { data } = await api.get(`/admin/suppliers/${id}`)
+  return data.data
+}
+
+export async function createSupplier(payload: CreateSupplierParams) {
+  const { data } = await api.post('/admin/suppliers', payload)
+  return data.data
+}
+
+export async function updateSupplier(id: number, payload: Partial<CreateSupplierParams>) {
+  const { data } = await api.put(`/admin/suppliers/${id}`, payload)
+  return data.data
+}
+
+export async function deleteSupplier(id: number) {
+  const { data } = await api.delete(`/admin/suppliers/${id}`)
+  return data.data
+}
+
+export async function fetchSupplierStats(id: number) {
+  const { data } = await api.get(`/admin/suppliers/${id}/stats`)
+  return data.data
+}
+
+export async function fetchSupplierPurchaseOrders(id: number, params?: { page?: number; pageSize?: number }) {
+  const { data } = await api.get(`/admin/suppliers/${id}/purchase-orders`, { params: { page: 1, pageSize: 20, ...params } })
+  return data.data
+}
+
+export async function fetchSupplierPayments(id: number, params?: { page?: number; pageSize?: number }) {
+  const { data } = await api.get(`/admin/suppliers/${id}/payments`, { params: { page: 1, pageSize: 20, ...params } })
+  return data.data
+}
+
+export async function fetchSupplierProducts(id: number) {
+  const { data } = await api.get(`/admin/suppliers/${id}/products`)
+  return data.data
+}
+
 export async function acceptOrder(orderNo: string) {
   const { data } = await api.post(`/store/orders/${orderNo}/accept`);
   return data.data;
