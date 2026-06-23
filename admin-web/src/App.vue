@@ -1837,7 +1837,7 @@
             <el-input v-model="productEditForm.specs" placeholder="如：500ml/瓶" />
           </el-form-item>
           <el-form-item label="酒精度">
-            <el-input v-model="productEditForm.alcoholDegree" placeholder="如：53%vol" />
+            <el-input-number v-model="productEditForm.alcoholContent" :min="0" :max="100" :precision="1" style="width:120px" />
           </el-form-item>
           <el-form-item label="产地">
             <el-input v-model="productEditForm.origin" placeholder="如：贵州茅台" />
@@ -3441,6 +3441,7 @@ const adminNavDescriptions: Record<string, string> = {
 };
 
 const token = ref(localStorage.getItem("admin_token") || "");
+const currentUser = ref<any>(null);
 const loading = ref(false);
 const pageLoading = ref(false);
 const isMenuCollapsed = ref(false);
@@ -3723,7 +3724,7 @@ const productEditForm = reactive({
   unit: "",
   boxRatio: 6,
   specs: "",
-  alcoholDegree: "",
+  alcoholContent: null as number | null,
   origin: ""
 });
 const storeDialogVisible = ref(false);
@@ -3754,7 +3755,9 @@ const productForm = reactive({
   barcode: "",
   boxRatio: 6,
   retailPrice: 0,
-  wholesalePrice: 0
+  wholesalePrice: 0,
+  alcoholContent: null as number | null,
+  origin: ""
 });
 const storeForm = reactive({
   code: "",
@@ -3931,6 +3934,7 @@ async function handleLogin() {
     const result = await adminLogin(loginForm.username, loginForm.password);
     localStorage.setItem("admin_token", result.token);
     token.value = result.token;
+    currentUser.value = result.user;
     ElMessage.success("登录成功，正在加载后台数据");
     pageLoading.value = true;
     try {
@@ -3957,41 +3961,29 @@ function toggleCashierMode() {
 
 function getNavTitle(key: string): string {
   const navMap: Record<string, string> = {
+    "首页": "工作台",
     "商品": "商品管理",
+    "价格中心": "价格管理",
     "订单": "订单管理",
+    "订单泳道": "泳道看板",
+    "订单超时": "超时处理",
     "销售单": "销售管理",
+    "销售退货": "销售退货",
     "客户": "客户管理",
+    "客户对账": "客户对账",
+    "授信管理": "授信管理",
     "供应商": "供应商管理",
     "采购": "采购管理",
-    "销售退货": "销售退货",
-    "客户对账": "客户对账",
     "库存": "库存管理",
+    "预警中心": "库存预警",
     "员工": "员工管理",
     "门店": "门店管理",
     "收款": "收款记录",
     "报表": "报表中心",
-    "预警中心": "库存预警",
-    "价格中心": "价格管理",
-    "授信管理": "授信管理",
-    "售后管理": "售后管理",
-    "订单超时": "超时处理",
     "营销中心": "营销中心",
+    "售后管理": "售后管理",
     "操作日志": "操作日志",
     "系统设置": "系统设置",
-    "商品管理": "商品管理",
-    "价格中心": "价格中心",
-    "订单管理": "订单管理",
-    "订单泳道": "泳道看板",
-    "订单超时": "超时处理",
-    "销售管理": "销售管理",
-    "收款": "收款记录",
-    "采购管理": "采购管理",
-    "客户管理": "客户管理",
-    "客户对账": "客户对账",
-    "库存管理": "库存管理",
-    "预警中心": "预警中心",
-    "门店管理": "门店管理",
-    "系统管理": "系统管理",
     "消息中心": "消息中心"
   };
   return navMap[key] || key;
