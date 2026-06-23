@@ -237,6 +237,8 @@ export interface SaleBillRecord {
   customerId: number | null
   customerName: string
   customerType: string
+  saleType: 'CASH' | 'CREDIT'
+  dueDate: string | null
   businessStatus: string
   collectionStatus: string
   receivableAmount: number
@@ -246,6 +248,8 @@ export interface SaleBillRecord {
 }
 
 export interface SaleBillDetail extends SaleBillRecord {
+  remark?: string
+  internalRemark?: string
   items: SaleBillItem[]
 }
 
@@ -253,6 +257,8 @@ export interface CreateSaleBillParams {
   customerId?: number | null
   customerName?: string
   customerMobile?: string
+  saleType?: 'CASH' | 'CREDIT'
+  dueDate?: string | null
   discountAmount?: number
   roundingAmount?: number
   remark?: string

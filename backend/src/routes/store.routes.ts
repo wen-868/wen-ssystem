@@ -324,6 +324,7 @@ storeRouter.get("/sale-bills", asyncHandler(async (req, res) => {
   const records = await query<any>(
     `SELECT bill_no AS billNo, store_id AS storeId, customer_id AS customerId, customer_name AS customerName,
             customer_type AS customerType, business_status AS businessStatus, collection_status AS collectionStatus,
+            sale_type AS saleType, due_date AS dueDate,
             receivable_amount AS receivableAmount, received_amount AS receivedAmount, unreceived_amount AS unreceivedAmount,
             created_at AS createdAt
      FROM sale_bill
@@ -350,6 +351,8 @@ storeRouter.post("/sale-bills", asyncHandler(async (req, res) => {
     customerId: z.number().nullable().optional(),
     customerName: z.string().optional(),
     customerMobile: z.string().optional(),
+    saleType: z.enum(["CASH", "CREDIT"]).default("CASH"),
+    dueDate: z.string().nullable().optional(),
     discountAmount: z.number().default(0),
     roundingAmount: z.number().default(0),
     remark: z.string().optional(),
@@ -383,12 +386,12 @@ storeRouter.post("/sale-bills", asyncHandler(async (req, res) => {
     const receivableAmount = Math.max(0, goodsAmount - body.discountAmount - body.roundingAmount);
     await conn.execute(
       `INSERT INTO sale_bill (bill_no, store_id, customer_id, customer_name, customer_mobile, customer_type,
-                              business_status, collection_status, goods_amount, discount_amount, rounding_amount,
+                              business_status, collection_status, sale_type, due_date, goods_amount, discount_amount, rounding_amount,
                               receivable_amount, received_amount, unreceived_amount, operator_id, remark, internal_remark)
-       VALUES (?, ?, ?, ?, ?, ?, 'CREATED', 'UNPAID', ?, ?, ?, ?, 0, ?, ?, ?, ?)`,
+       VALUES (?, ?, ?, ?, ?, ?, 'CREATED', 'UNPAID', ?, ?, ?, ?, ?, ?, 0, ?, ?, ?, ?)`,
       [
         billNo, storeId, body.customerId ?? null, member?.name ?? body.customerName ?? null, member?.mobile ?? body.customerMobile ?? null,
-        member?.customer_type ?? "RETAIL", goodsAmount, body.discountAmount, body.roundingAmount, receivableAmount, receivableAmount,
+        member?.customer_type ?? "RETAIL", body.saleType, body.dueDate ?? null, goodsAmount, body.discountAmount, body.roundingAmount, receivableAmount, receivableAmount,
         req.user?.id ?? 0, body.remark ?? null, body.internalRemark ?? null
       ]
     );
@@ -408,7 +411,9 @@ storeRouter.get("/sale-bills/:billNo", asyncHandler(async (req, res) => {
   const bill = await queryOne<any>(
     `SELECT bill_no AS billNo, store_id AS storeId, customer_id AS customerId, customer_name AS customerName,
             customer_type AS customerType, business_status AS businessStatus, collection_status AS collectionStatus,
-            receivable_amount AS receivableAmount, received_amount AS receivedAmount, unreceived_amount AS unreceivedAmount
+            sale_type AS saleType, due_date AS dueDate,
+            receivable_amount AS receivableAmount, received_amount AS receivedAmount, unreceived_amount AS unreceivedAmount,
+            remark, internal_remark AS internalRemark, created_at AS createdAt
      FROM sale_bill WHERE bill_no = ?`,
     [req.params.billNo]
   );
@@ -418,7 +423,7 @@ storeRouter.get("/sale-bills/:billNo", asyncHandler(async (req, res) => {
   }
   const items = await query<any>(
     `SELECT sku_id AS skuId, sku_name AS skuName, box_qty AS boxQty, bottle_qty AS bottleQty,
-            total_bottle_qty AS totalBottleQty, unit_price AS unitPrice, subtotal_amount AS subtotalAmount
+            total_bottle_qty AS totalBottleQty, unit_price AS unitPrice, price_type AS priceType, subtotal_amount AS subtotalAmount
      FROM sale_bill_item WHERE bill_no = ?`,
     [req.params.billNo]
   );

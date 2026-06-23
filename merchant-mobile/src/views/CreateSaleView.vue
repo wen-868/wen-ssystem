@@ -24,6 +24,15 @@ const SCENE_TABS = [
 ]
 const scene = ref('STORE')
 
+// ========== 销售类型 ==========
+const SALE_TYPE_OPTIONS = [
+  { label: '现销', value: 'CASH' },
+  { label: '赊销', value: 'CREDIT' }
+]
+const saleType = ref<'CASH' | 'CREDIT'>('CASH')
+const dueDate = ref<string>('')
+const remark = ref('')
+
 // ========== 客户选择 ==========
 const customerKeyword = ref('')
 const customerResults = ref<CustomerRecord[]>([])
@@ -168,14 +177,21 @@ async function confirmPayment() {
     showToast('请选择收款方式')
     return
   }
+  if (saleType.value === 'CREDIT' && !dueDate.value) {
+    showToast('请选择应收截止日期')
+    return
+  }
   try {
     showLoadingToast({ message: '创建单据...', forbidClick: true })
     const billRes = await createSaleBill({
       customerId: selectedCustomer.value?.memberId ?? null,
       customerName: selectedCustomer.value?.name ?? undefined,
       customerMobile: selectedCustomer.value?.mobile ?? undefined,
+      saleType: saleType.value,
+      dueDate: saleType.value === 'CREDIT' ? dueDate.value : null,
       discountAmount: discountAmount.value,
       roundingAmount: roundingAmount.value,
+      remark: remark.value || undefined,
       items: selectedItems.value.map(i => ({
         skuId: i.skuId,
         boxQty: i.boxQty,
@@ -229,14 +245,21 @@ function openLinkPopup() {
 }
 
 async function confirmLink() {
+  if (saleType.value === 'CREDIT' && !dueDate.value) {
+    showToast('请选择应收截止日期')
+    return
+  }
   try {
     showLoadingToast({ message: '创建单据...', forbidClick: true })
     const billRes = await createSaleBill({
       customerId: selectedCustomer.value?.memberId ?? null,
       customerName: selectedCustomer.value?.name ?? undefined,
       customerMobile: selectedCustomer.value?.mobile ?? undefined,
+      saleType: saleType.value,
+      dueDate: saleType.value === 'CREDIT' ? dueDate.value : null,
       discountAmount: discountAmount.value,
       roundingAmount: roundingAmount.value,
+      remark: remark.value || undefined,
       items: selectedItems.value.map(i => ({
         skuId: i.skuId,
         boxQty: i.boxQty,
@@ -277,6 +300,9 @@ function copyLink() {
 // ========== 表单重置 ==========
 function resetForm() {
   scene.value = 'STORE'
+  saleType.value = 'CASH'
+  dueDate.value = ''
+  remark.value = ''
   selectedCustomer.value = null
   selectedItems.value = []
   discountAmount.value = 0
@@ -309,6 +335,28 @@ function goToSaleBills() {
         :name="tab.value"
       />
     </van-tabs>
+
+    <!-- 销售类型 -->
+    <div class="card">
+      <div class="section-title">销售类型</div>
+      <van-radio-group v-model="saleType" direction="horizontal">
+        <van-radio
+          v-for="option in SALE_TYPE_OPTIONS"
+          :key="option.value"
+          :name="option.value"
+        >
+          {{ option.label }}
+        </van-radio>
+      </van-radio-group>
+      <van-field
+        v-if="saleType === 'CREDIT'"
+        v-model="dueDate"
+        type="date"
+        label="应收截止日期"
+        placeholder="选择日期"
+        required
+      />
+    </div>
 
     <!-- 客户选择 -->
     <div class="card">
@@ -379,6 +427,19 @@ function goToSaleBills() {
           <van-button type="danger" size="mini" plain @click="removeItem(index)">删除</van-button>
         </div>
       </div>
+    </div>
+
+    <!-- 备注 -->
+    <div class="card">
+      <div class="section-title">备注</div>
+      <van-field
+        v-model="remark"
+        type="textarea"
+        rows="2"
+        placeholder="选填，输入备注信息"
+        maxlength="200"
+        show-word-limit
+      />
     </div>
 
     <!-- 汇总栏 -->
