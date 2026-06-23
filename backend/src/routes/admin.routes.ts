@@ -60,8 +60,9 @@ adminRouter.get("/members", requireAuth, asyncHandler(async (req, res) => {
   const offset = (page - 1) * pageSize;
   const keyword = `%${String(req.query.keyword || "")}%`;
   const records = await query<any>(
-    `SELECT m.id AS memberId, m.name, m.mobile, m.customer_type AS customerType,
-            m.points, m.level_code AS levelCode, m.status,
+    `SELECT m.id AS memberId, m.name, m.mobile, m.email, m.contact_person AS contactPerson, m.address,
+            m.customer_type AS customerType, m.settlement_type AS settlementType,
+            m.points, m.level_code AS levelCode, m.status, m.remark,
             m.staff_id AS staffId, u.real_name AS staffName
      FROM member m
      LEFT JOIN sys_user u ON u.id = m.staff_id
@@ -745,22 +746,53 @@ adminRouter.post("/members", requireAuth, asyncHandler(async (req, res) => {
   const body = z.object({
     name: z.string(),
     mobile: z.string(),
+    email: z.string().optional(),
+    contactPerson: z.string().optional(),
+    address: z.string().optional(),
     customerType: z.enum(["RETAIL", "WHOLESALE"]).default("RETAIL"),
-    staffId: z.number().optional()
+    staffId: z.number().optional(),
+    levelCode: z.string().optional(),
+    settlementType: z.enum(["CASH", "ACCOUNT"]).optional(),
+    remark: z.string().optional(),
+    creditLimit: z.number().optional(),
+    paymentDays: z.number().optional()
   }).parse(req.body);
-  const result = await query<any>(
-    `INSERT INTO member (name, mobile, customer_type, staff_id, points, level_code, status)
-     VALUES (?, ?, ?, ?, 0, ?, 1)`,
-    [body.name, body.mobile, body.customerType, body.staffId ?? null, body.customerType === "WHOLESALE" ? "WHOLESALE" : "NORMAL"]
-  );
-  const memberId = result?.[0]?.insertId ?? Date.now();
-  res.json(ok({ memberId, name: body.name, mobile: body.mobile, customerType: body.customerType, staffId: body.staffId ?? null }));
+
+  const result = await transaction(async (conn) => {
+    const [memberResult] = await conn.execute<any>(
+      `INSERT INTO member (name, mobile, email, contact_person, address, customer_type, staff_id, points, level_code, settlement_type, remark, status)
+       VALUES (?, ?, ?, ?, ?, ?, ?, 0, ?, ?, ?, 1)`,
+      [body.name, body.mobile, body.email ?? null, body.contactPerson ?? null, body.address ?? null, body.customerType, body.staffId ?? null, body.levelCode ?? (body.customerType === "WHOLESALE" ? "WHOLESALE" : "NORMAL"), body.settlementType ?? "CASH", body.remark ?? null]
+    );
+    const memberId = memberResult.insertId as number;
+
+    if (body.creditLimit !== undefined && body.creditLimit > 0) {
+      let paymentTerm = "COD";
+      if (body.paymentDays === 7) paymentTerm = "NET_7";
+      else if (body.paymentDays === 15) paymentTerm = "NET_15";
+      else if (body.paymentDays === 30) paymentTerm = "NET_30";
+      else if (body.paymentDays === 60) paymentTerm = "NET_60";
+      else if (body.paymentDays === 90) paymentTerm = "NET_90";
+
+      await conn.execute(
+        `INSERT INTO customer_credit (customer_id, credit_limit, payment_term, status)
+         VALUES (?, ?, ?, 'ACTIVE')
+         ON DUPLICATE KEY UPDATE credit_limit = VALUES(credit_limit), payment_term = VALUES(payment_term)`,
+        [memberId, body.creditLimit, paymentTerm]
+      );
+    }
+
+    return memberId;
+  });
+
+  res.json(ok({ memberId: result, name: body.name, mobile: body.mobile, customerType: body.customerType, staffId: body.staffId ?? null }));
 }));
 
 adminRouter.get("/members/:memberId", requireAuth, asyncHandler(async (req, res) => {
   const member = await queryOne<any>(
-    `SELECT m.id AS memberId, m.name, m.mobile, m.customer_type AS customerType,
-            m.points, m.level_code AS levelCode, m.status,
+    `SELECT m.id AS memberId, m.name, m.mobile, m.email, m.contact_person AS contactPerson, m.address,
+            m.customer_type AS customerType, m.settlement_type AS settlementType,
+            m.points, m.level_code AS levelCode, m.status, m.remark,
             m.staff_id AS staffId, u.real_name AS staffName
      FROM member m
      LEFT JOIN sys_user u ON u.id = m.staff_id
@@ -785,6 +817,8 @@ adminRouter.put("/members/:memberId", requireAuth, asyncHandler(async (req, res)
   const body = z.object({
     name: z.string().optional(),
     mobile: z.string().optional(),
+    email: z.string().optional(),
+    contactPerson: z.string().optional(),
     address: z.string().optional(),
     customerType: z.enum(["RETAIL", "WHOLESALE"]).optional(),
     levelCode: z.string().optional(),
@@ -796,6 +830,8 @@ adminRouter.put("/members/:memberId", requireAuth, asyncHandler(async (req, res)
   const params: unknown[] = [];
   if (body.name !== undefined) { sets.push("name = ?"); params.push(body.name); }
   if (body.mobile !== undefined) { sets.push("mobile = ?"); params.push(body.mobile); }
+  if (body.email !== undefined) { sets.push("email = ?"); params.push(body.email); }
+  if (body.contactPerson !== undefined) { sets.push("contact_person = ?"); params.push(body.contactPerson); }
   if (body.address !== undefined) { sets.push("address = ?"); params.push(body.address); }
   if (body.customerType !== undefined) { sets.push("customer_type = ?"); params.push(body.customerType); }
   if (body.levelCode !== undefined) { sets.push("level_code = ?"); params.push(body.levelCode); }
@@ -1023,7 +1059,8 @@ adminRouter.get("/products", requireAuth, asyncHandler(async (req, res) => {
   const keyword = `%${String(req.query.keyword || "")}%`;
   const offset = (page - 1) * pageSize;
   const records = await query<any>(
-    `SELECT p.id AS spuId, s.id AS skuId, p.name, p.main_image AS mainImage, s.sku_name AS skuName, s.sku_code AS skuCode, s.barcode,
+    `SELECT p.id AS spuId, s.id AS skuId, p.name, p.main_image AS mainImage, p.alcohol_content AS alcoholContent, p.origin,
+            s.sku_name AS skuName, s.sku_code AS skuCode, s.barcode,
             pp.retail_price AS retailPrice, pp.wholesale_price AS wholesalePrice, p.status
      FROM product_sku s
      JOIN product_spu p ON p.id = s.spu_id
@@ -1049,6 +1086,8 @@ adminRouter.post("/products", requireAuth, asyncHandler(async (req, res) => {
     name: z.string(),
     categoryId: z.number(),
     mainImage: z.string().optional(),
+    alcoholContent: z.number().nullable().optional(),
+    origin: z.string().optional(),
     saleChannels: z.array(z.string()).default(["MINIAPP", "STORE"]),
     skus: z.array(z.object({
       skuName: z.string(),
@@ -1078,9 +1117,9 @@ adminRouter.post("/products", requireAuth, asyncHandler(async (req, res) => {
   const result = await transaction(async (conn) => {
     const spuCode = makeBizNo("SPU");
     const [spuResult] = await conn.execute<any>(
-      `INSERT INTO product_spu (spu_code, name, category_id, main_image, sale_channels, status)
-       VALUES (?, ?, ?, ?, CAST(? AS JSON), 'DRAFT')`,
-      [spuCode, body.name, body.categoryId, body.mainImage ?? null, JSON.stringify(body.saleChannels)]
+      `INSERT INTO product_spu (spu_code, name, category_id, main_image, alcohol_content, origin, sale_channels, status)
+       VALUES (?, ?, ?, ?, ?, ?, CAST(? AS JSON), 'DRAFT')`,
+      [spuCode, body.name, body.categoryId, body.mainImage ?? null, body.alcoholContent ?? null, body.origin ?? null, JSON.stringify(body.saleChannels)]
     );
     const spuId = spuResult.insertId as number;
     let firstSkuId: number | null = null;
@@ -1138,6 +1177,8 @@ adminRouter.put("/products/:spuId", requireAuth, asyncHandler(async (req, res) =
     unit: z.string().optional(),
     boxRatio: z.number().optional(),
     specs: z.string().optional(),
+    alcoholContent: z.number().nullable().optional(),
+    origin: z.string().optional(),
     status: z.enum(["DRAFT", "ON_SALE", "OFF_SALE"]).optional()
   }).parse(req.body);
 
@@ -1148,6 +1189,8 @@ adminRouter.put("/products/:spuId", requireAuth, asyncHandler(async (req, res) =
   if (body.brand !== undefined) { sets.push("brand = ?"); params.push(body.brand); }
   if (body.unit !== undefined) { sets.push("unit = ?"); params.push(body.unit); }
   if (body.specs !== undefined) { sets.push("specs = ?"); params.push(body.specs); }
+  if (body.alcoholContent !== undefined) { sets.push("alcohol_content = ?"); params.push(body.alcoholContent); }
+  if (body.origin !== undefined) { sets.push("origin = ?"); params.push(body.origin); }
   if (body.status !== undefined) { sets.push("status = ?"); params.push(body.status); }
   if (sets.length === 0) { res.json(ok({ spuId })); return; }
   sets.push("updated_at = NOW()");
@@ -1594,6 +1637,56 @@ adminRouter.get("/orders/:orderNo", requireAuth, asyncHandler(async (req, res) =
     [req.params.orderNo]
   );
   res.json(ok({ ...order, items }));
+}));
+
+const VALID_ORDER_ACTIONS: Record<string, { status: string; label: string }> = {
+  accept: { status: "ACCEPTED", label: "接单" },
+  start_delivery: { status: "DELIVERING", label: "开始配送" },
+  complete: { status: "COMPLETED", label: "完成" },
+  cancel: { status: "CANCELLED", label: "取消" },
+  reject: { status: "REJECTED", label: "拒单" }
+};
+
+const VALID_ORDER_STATUSES = new Set([
+  "PENDING_PAYMENT", "PAID", "ACCEPTED", "WAIT_DELIVERY",
+  "DELIVERING", "COMPLETED", "CANCELLED", "REJECTED"
+]);
+
+adminRouter.post("/orders/batch-action", requireAuth, asyncHandler(async (req, res) => {
+  const body = z.object({
+    orderNos: z.array(z.string()).min(1),
+    action: z.string()
+  }).parse(req.body);
+
+  let targetStatus: string;
+  const actionLower = body.action.toLowerCase().replace(/_/g, "_");
+
+  const actionConfig = VALID_ORDER_ACTIONS[actionLower];
+  if (actionConfig) {
+    targetStatus = actionConfig.status;
+  } else {
+    const statusUpper = body.action.toUpperCase();
+    if (VALID_ORDER_STATUSES.has(statusUpper)) {
+      targetStatus = statusUpper;
+    } else {
+      res.status(400).json({ code: "400", message: `不支持的操作或状态：${body.action}` });
+      return;
+    }
+  }
+
+  const placeholders = body.orderNos.map(() => "?").join(",");
+  const result = await query<any>(
+    `UPDATE miniapp_order SET order_status = ?, updated_at = NOW() WHERE order_no IN (${placeholders})`,
+    [targetStatus, ...body.orderNos]
+  );
+
+  const affectedRows = (result as any)?.affectedRows ?? 0;
+  res.json(ok({
+    action: body.action,
+    targetStatus,
+    affectedCount: affectedRows,
+    orderNos: body.orderNos
+  }));
 }));
 
 adminRouter.get("/reports/daily-sales", requireAuth, asyncHandler(async (_req, res) => {

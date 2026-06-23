@@ -64,7 +64,20 @@ export async function fetchMembers(params?: { keyword?: string; page?: number; p
   return data.data;
 }
 
-export async function createMember(payload: { name: string; mobile: string; customerType: "RETAIL" | "WHOLESALE"; staffId?: number }) {
+export async function createMember(payload: {
+  name: string;
+  mobile: string;
+  email?: string;
+  contactPerson?: string;
+  address?: string;
+  customerType: "RETAIL" | "WHOLESALE";
+  staffId?: number;
+  levelCode?: string;
+  settlementType?: string;
+  remark?: string;
+  creditLimit?: number;
+  paymentDays?: number;
+}) {
   const { data } = await api.post("/admin/members", payload);
   return data.data;
 }
