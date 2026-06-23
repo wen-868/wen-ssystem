@@ -549,3 +549,179 @@ export function createSaleReturn(data: {
 }) {
   return api.post('/store/sale-returns', data)
 }
+
+/* ========== 采购订单 ========== */
+
+export interface PurchaseOrderItem {
+  skuId: number
+  skuName: string
+  quantity: number
+  unitPrice: number
+  subtotal: number
+}
+
+export interface PurchaseOrderRecord {
+  purchaseNo: string
+  supplierId: number
+  supplierName: string
+  warehouseId: number
+  warehouseName: string
+  status: string
+  warehouseStatus: string
+  totalAmount: number
+  paidAmount: number
+  expectedDate: string
+  createdAt: string
+}
+
+export interface PurchaseOrderDetail extends PurchaseOrderRecord {
+  remark: string
+  items: PurchaseOrderItem[]
+  operationLogs: {
+    action: string
+    operator: string
+    remark: string
+    createdAt: string
+  }[]
+}
+
+export function fetchPurchaseOrders(params: {
+  page?: number
+  pageSize?: number
+  keyword?: string
+  status?: string
+}) {
+  return api.get('/store/purchase-orders', { params })
+}
+
+export function fetchPurchaseOrderDetail(purchaseNo: string) {
+  return api.get(`/store/purchase-orders/${purchaseNo}`)
+}
+
+export function createPurchaseOrder(data: {
+  supplierId: number
+  warehouseId: number
+  expectedDate?: string
+  remark?: string
+  items: {
+    skuId: number
+    quantity: number
+    unitPrice: number
+  }[]
+}) {
+  return api.post('/store/purchase-orders', data)
+}
+
+export function approvePurchaseOrder(purchaseNo: string) {
+  return api.post(`/store/purchase-orders/${purchaseNo}/approve`)
+}
+
+export function cancelPurchaseOrder(purchaseNo: string, reason?: string) {
+  return api.post(`/store/purchase-orders/${purchaseNo}/cancel`, { reason })
+}
+
+/* ========== 采购入库 ========== */
+
+export function purchaseInStock(data: {
+  purchaseNo: string
+  items: {
+    skuId: number
+    quantity: number
+    batchNo?: string
+    productionDate?: string
+    qualityResult: string
+  }[]
+}) {
+  return api.post('/store/purchase-in-stock', data)
+}
+
+/* ========== 采购退货 ========== */
+
+export interface PurchaseReturnRecord {
+  returnNo: string
+  purchaseNo: string
+  supplierName: string
+  returnAmount: number
+  reason: string
+  status: string
+  createdAt: string
+}
+
+export function fetchPurchaseReturns(params: {
+  page?: number
+  pageSize?: number
+  keyword?: string
+}) {
+  return api.get('/store/purchase-returns', { params })
+}
+
+export function createPurchaseReturn(data: {
+  purchaseNo: string
+  reason: string
+  remark?: string
+  items: {
+    skuId: number
+    returnQty: number
+    returnPrice: number
+  }[]
+}) {
+  return api.post('/store/purchase-returns', data)
+}
+
+/* ========== 客户往来账 ========== */
+
+export interface StatementRecord {
+  statementNo: string
+  customerId: number
+  customerName: string
+  periodStart: string
+  periodEnd: string
+  openingBalance: number
+  periodReceivable: number
+  periodReceived: number
+  closingBalance: number
+  status: string
+  createdAt: string
+}
+
+export interface StatementDetail extends StatementRecord {
+  details: {
+    date: string
+    type: string
+    billNo: string
+    summary: string
+    debit: number
+    credit: number
+    balance: number
+  }[]
+}
+
+export function fetchStatements(params: {
+  page?: number
+  pageSize?: number
+  keyword?: string
+  status?: string
+}) {
+  return api.get('/store/statements', { params })
+}
+
+export function fetchStatementDetail(statementNo: string) {
+  return api.get(`/store/statements/${statementNo}`)
+}
+
+export function generateStatement(data: {
+  memberId: number
+  periodStart: string
+  periodEnd: string
+}) {
+  return api.post('/store/statements/generate', data)
+}
+
+export function recordStatementPayment(statementNo: string, data: {
+  amount: number
+  paymentMethod: string
+  paymentDate: string
+  remark?: string
+}) {
+  return api.post(`/store/statements/${statementNo}/payment`, data)
+}

@@ -87,12 +87,99 @@
 
 ---
 
-## 下周预告（Sprint 2: 6/24 - 7/1）
+## Sprint 2（第二周：6/24 - 7/1）
 
-- L102 - 采购订单页面（20h）
-- L103 - 采购入库页面（16h）
-- L104 - 采购退货/付款页面（14h）
-- L107 - 客户往来账页面（18h）
+### P0 - L102 采购订单页面 [merchant-mobile]
+**截止时间**：6/26（周四）
+**预计耗时**：20 小时
+
+**任务详情**：
+1. 新建 `merchant-mobile/src/views/PurchaseOrdersView.vue`
+2. 新建 `merchant-mobile/src/views/PurchaseOrderDetailView.vue`
+3. 新建 `merchant-mobile/src/views/CreatePurchaseOrderView.vue`
+4. 采购订单列表
+5. 创建采购单：
+   - 选择供应商
+   - 选择仓库
+   - 添加商品（数量、单价）
+   - 预计到货日期
+6. 采购单详情页
+7. 审核/取消采购单
+
+**验收标准**：
+- [x] 采购单列表正常
+- [x] 创建采购单正常
+- [x] 采购单详情正常
+- [x] 审核/取消功能正常
+
+---
+
+### P0 - L103 采购入库页面 [merchant-mobile]
+**截止时间**：6/27（周五）
+**预计耗时**：16 小时
+
+**任务详情**：
+1. 新建 `merchant-mobile/src/views/PurchaseWarehousingView.vue`
+2. 采购入库操作：
+   - 选择已审核的采购单
+   - 填写本次入库数量
+   - 填写批次号
+   - 填写生产日期
+   - 填写质检结果
+3. 入库确认
+
+**验收标准**：
+- [x] 入库操作正常
+- [x] 批次号、生产日期可填写
+- [x] 质检结果可选择
+
+---
+
+### P0 - L104 采购退货页面 [merchant-mobile]
+**截止时间**：6/28（周六）
+**预计耗时**：14 小时
+
+**任务详情**：
+1. 新建 `merchant-mobile/src/views/PurchaseReturnsView.vue`
+2. 新建 `merchant-mobile/src/views/CreatePurchaseReturnView.vue`
+3. 采购退货单列表
+4. 创建退货单：
+   - 选择采购单
+   - 填写退货商品数量
+   - 填写退货单价
+   - 填写退货原因
+5. 退货单详情
+
+**验收标准**：
+- [x] 退货单列表正常
+- [x] 创建退货单正常
+- [x] 退货原因可填写
+
+---
+
+### P0 - L107 客户往来账页面 [merchant-mobile]
+**截止时间**：6/30（周一）
+**预计耗时**：18 小时
+
+**任务详情**：
+1. 新建 `merchant-mobile/src/views/StatementsView.vue`
+2. 新建 `merchant-mobile/src/views/StatementDetailView.vue`
+3. 新建 `merchant-mobile/src/views/CreateStatementView.vue`
+4. 新建 `merchant-mobile/src/views/StatementPaymentView.vue`
+5. 对账单列表
+6. 生成对账单：
+   - 选择客户
+   - 选择账期
+7. 对账单详情（往来明细）
+8. 登记付款
+
+**验收标准**：
+- [x] 对账单列表正常
+- [x] 生成对账单正常
+- [x] 对账单详情正常
+- [x] 登记付款正常
+
+---
 
 ## 开发规范
 
