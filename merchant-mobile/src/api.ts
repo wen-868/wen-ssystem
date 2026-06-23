@@ -492,3 +492,60 @@ export function fetchPaymentOrders(params: { page?: number; pageSize?: number })
 export function fetchRefundOrders(params: { page?: number; pageSize?: number }) {
   return api.get('/store/refund-orders', { params })
 }
+
+/* ========== 销售退货 ========== */
+
+export interface SaleReturnItem {
+  skuId: number
+  skuName: string
+  returnBoxQty: number
+  returnBottleQty: number
+  totalReturnBottleQty: number
+  unitPrice: number
+  returnAmount: number
+}
+
+export interface SaleReturnRecord {
+  returnNo: string
+  sourceBillNo: string
+  customerId: number | null
+  customerName: string
+  returnStatus: string
+  refundStatus: string
+  returnAmount: number
+  refundedAmount: number
+  createdAt: string
+}
+
+export interface SaleReturnDetail extends SaleReturnRecord {
+  reason: string
+  items: SaleReturnItem[]
+}
+
+export function fetchSaleReturns(params: {
+  page?: number
+  pageSize?: number
+  keyword?: string
+  returnStatus?: string
+}) {
+  return api.get('/store/sale-returns', { params })
+}
+
+export function fetchSaleReturnDetail(returnNo: string) {
+  return api.get(`/store/sale-returns/${returnNo}`)
+}
+
+export function createSaleReturn(data: {
+  sourceBillNo?: string
+  customerId?: number | null
+  customerName?: string
+  reason: string
+  items: {
+    skuId: number
+    returnBoxQty?: number
+    returnBottleQty?: number
+    totalReturnBottleQty: number
+  }[]
+}) {
+  return api.post('/store/sale-returns', data)
+}
