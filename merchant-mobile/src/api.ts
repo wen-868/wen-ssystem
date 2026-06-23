@@ -696,6 +696,109 @@ export function confirmPurchaseInStock(id: number) {
   return api.post(`/admin/purchase-in-stocks/${id}/confirm`)
 }
 
+/* ========== 采购退货 ========== */
+
+export interface PurchaseReturnItem {
+  skuId: number
+  skuName: string
+  boxQty: number
+  bottleQty: number
+  totalBottleQty: number
+  unitPrice: number
+  subtotalAmount: number
+  reason?: string
+}
+
+export interface PurchaseReturnRecord {
+  id: number
+  returnNo: string
+  orderNo?: string
+  supplierId: number
+  supplierName: string
+  storeId: number
+  returnStatus: string
+  goodsAmount: number
+  refundAmount: number
+  refundedAmount: number
+  refundMethod?: string
+  reason?: string
+  remark?: string
+  operatorId?: number
+  createdAt: string
+}
+
+export interface PurchaseReturnDetail extends PurchaseReturnRecord {
+  items: PurchaseReturnItem[]
+}
+
+export interface CreatePurchaseReturnParams {
+  orderNo?: string
+  supplierId?: number
+  supplierName?: string
+  reason?: string
+  remark?: string
+  items: {
+    skuId: number
+    skuName: string
+    boxQty?: number
+    bottleQty?: number
+    totalBottleQty: number
+    unitPrice: number
+    reason?: string
+  }[]
+}
+
+export function fetchPurchaseReturns(params: {
+  page?: number
+  pageSize?: number
+  returnStatus?: string
+  supplierId?: number
+}) {
+  return api.get('/admin/purchase-returns', { params })
+}
+
+export function fetchPurchaseReturnDetail(id: number) {
+  return api.get(`/admin/purchase-returns/${id}`)
+}
+
+export function createPurchaseReturn(data: CreatePurchaseReturnParams) {
+  return api.post('/admin/purchase-returns', data)
+}
+
+/* ========== 采购付款 ========== */
+
+export interface PurchasePaymentRecord {
+  id: number
+  paymentNo: string
+  orderNo?: string
+  supplierId: number
+  supplierName: string
+  amount: number
+  paymentMethod: string
+  status: string
+  remark?: string
+  createdAt: string
+}
+
+export function fetchPurchasePayments(params: {
+  page?: number
+  pageSize?: number
+  supplierId?: number
+  status?: string
+}) {
+  return api.get('/admin/purchase-payments', { params })
+}
+
+export function createPurchasePayment(data: {
+  orderNo?: string
+  supplierId: number
+  amount: number
+  paymentMethod: string
+  remark?: string
+}) {
+  return api.post('/admin/purchase-payments', data)
+}
+
 /* ========== 供应商（商家端） ========== */
 
 export interface SupplierOption {
