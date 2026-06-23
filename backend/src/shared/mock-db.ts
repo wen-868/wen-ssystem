@@ -589,47 +589,61 @@ export async function mockQuery<T = any>(sql: string, params: unknown[] = []) {
   }
   if (s.match(/from supplier($| |\n|\))/)) {
     const keyword = params[0] && params[0] !== undefined ? String(params[0]).replace(/^%|%$/g, "") : "";
-    const typeFilter = params[1] && params[1] !== undefined ? String(params[1]) : "";
-    const statusFilter = params[2] && params[2] !== undefined ? String(params[2]) : "";
     if (s.includes("where id = ?") || s.includes("where id=?")) {
       const id = Number(params[0]);
       return state.suppliers.filter((x) => Number(x.id) === id).map((x) => ({
         ...x,
-        supplier_code: x.supplierCode,
-        supplier_name: x.supplierName,
-        contact_phone: x.contactPhone,
-        contact_name: x.contactName,
-        credit_limit: x.creditLimit,
-        credit_days: x.creditDays,
-        supplier_type: x.supplierType
+        supplierId: x.id,
+        supplierCode: x.supplierCode,
+        supplierName: x.supplierName,
+        shortName: x.shortName,
+        creditLevel: x.creditLevel,
+        settlementType: x.settlementType,
+        settlementDay: x.settlementDay,
+        taxRate: x.taxRate,
+        bankName: x.bankName,
+        bankAccount: x.bankAccount,
+        bankAccountName: x.bankAccountName,
+        contactPhone: x.contactPhone,
+        creditLimit: x.creditLimit,
+        creditDays: x.creditDays,
+        supplierType: x.supplierType,
+        createdAt: x.createdAt,
+        updatedAt: x.updatedAt
       })) as T[];
     }
     if (s.includes("where supplier_code = ?") || s.includes("where supplier_code=?")) {
       const code = String(params[0]);
       return state.suppliers.filter((x) => String(x.supplierCode) === code).map((x) => ({
         ...x,
-        supplier_code: x.supplierCode,
-        supplier_name: x.supplierName,
-        contact_phone: x.contactPhone,
-        contact_name: x.contactName,
-        credit_limit: x.creditLimit,
-        credit_days: x.creditDays,
-        supplier_type: x.supplierType
+        supplierId: x.id,
+        supplierCode: x.supplierCode,
+        supplierName: x.supplierName,
+        shortName: x.shortName,
+        creditLevel: x.creditLevel,
+        settlementType: x.settlementType,
+        taxRate: x.taxRate,
+        contactPhone: x.contactPhone,
+        creditLimit: x.creditLimit,
+        creditDays: x.creditDays,
+        supplierType: x.supplierType
       })) as T[];
     }
     return state.suppliers
-      .filter((x) => !keyword || String(x.supplierName || "").includes(keyword))
-      .filter((x) => !typeFilter || x.supplierType === typeFilter)
-      .filter((x) => !statusFilter || x.status === statusFilter)
+      .filter((x) => !keyword || String(x.supplierName || "").includes(keyword) || String(x.supplierCode || "").includes(keyword) || String(x.shortName || "").includes(keyword))
       .map((x) => ({
         ...x,
-        supplier_code: x.supplierCode,
-        supplier_name: x.supplierName,
-        contact_phone: x.contactPhone,
-        contact_name: x.contactName,
-        credit_limit: x.creditLimit,
-        credit_days: x.creditDays,
-        supplier_type: x.supplierType
+        supplierId: x.id,
+        supplierCode: x.supplierCode,
+        supplierName: x.supplierName,
+        shortName: x.shortName,
+        creditLevel: x.creditLevel,
+        settlementType: x.settlementType,
+        taxRate: x.taxRate,
+        contactPhone: x.contactPhone,
+        creditLimit: x.creditLimit,
+        creditDays: x.creditDays,
+        supplierType: x.supplierType
       })) as T[];
   }
   // purchase_order_item must be checked before purchase_order to avoid substring match
@@ -985,14 +999,13 @@ export async function mockExecute(sql: string, params: unknown[] = []) {
     const storeId = Number(params[1]);
     const supplierId = Number(params[2]);
     const goodsAmount = Number(params[3] ?? 0);
-    const taxAmount = Number(params[4] ?? 0);
-    const payableAmount = Number(params[5] ?? 0);
-    const remark = params[6] ? String(params[6]) : null;
+    const payableAmount = Number(params[4] ?? 0);
+    const remark = params[5] ? String(params[5]) : null;
     const id = state.purchaseOrders.length + 1;
     state.purchaseOrders.push({
       id, orderNo, storeId, supplierId,
       orderStatus: "DRAFT", payStatus: "UNPAID",
-      goodsAmount, taxAmount, payableAmount, paidAmount: 0,
+      goodsAmount, taxAmount: 0, payableAmount, paidAmount: 0,
       remark, auditTime: null, auditorId: null, inboundStatus: "NOT_STARTED",
       createdAt: new Date().toISOString(), version: 1
     });
