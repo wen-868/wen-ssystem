@@ -799,6 +799,51 @@ export function createPurchasePayment(data: {
   return api.post('/admin/purchase-payments', data)
 }
 
+/* ========== 客户往来账 ========== */
+
+export interface CustomerLedgerSummary {
+  customerId: number
+  customerName: string
+  totalReceivable: number
+  totalReceived: number
+  totalPayable: number
+  totalPaid: number
+  balance: number
+}
+
+export interface CustomerLedgerRecord {
+  id: number
+  transactionNo: string
+  transactionType: 'RECEIVABLE' | 'PAYABLE' | 'RECEIPT' | 'PAYMENT'
+  sourceType: string
+  sourceNo: string
+  amount: number
+  balance: number
+  transactionDate: string
+  remark?: string
+}
+
+export interface CustomerLedgerDetail {
+  summary: CustomerLedgerSummary
+  records: CustomerLedgerRecord[]
+}
+
+export function fetchCustomerLedgers(params: {
+  page?: number
+  pageSize?: number
+  customerId?: number
+  keyword?: string
+}) {
+  return api.get('/store/customer-ledgers', { params })
+}
+
+export function fetchCustomerLedgerDetail(customerId: number, params?: {
+  startDate?: string
+  endDate?: string
+}) {
+  return api.get(`/store/customer-ledgers/${customerId}`, { params })
+}
+
 /* ========== 供应商（商家端） ========== */
 
 export interface SupplierOption {
