@@ -173,20 +173,108 @@ body {
 
 /* 主内容区：白色背景，内边距 24px 28px */
 .main {
-  padding: var(--space-page-padding);
+  padding: 0;
   overflow-y: auto;
   max-height: 100vh;
   background: var(--bg-page);
+  display: flex;
+  flex-direction: column;
+}
+
+.main > section,
+.main > .el-card {
+  padding: var(--space-page-padding);
+}
+
+/* 顶部导航栏 */
+.main-header {
+  background: var(--bg-card);
+  border-bottom: 1px solid var(--border-normal);
+  padding: 0 24px;
+  height: 60px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  position: sticky;
+  top: 0;
+  z-index: 100;
+}
+
+.header-left {
+  display: flex;
+  align-items: center;
+}
+
+.header-title {
+  font-size: 16px;
+  font-weight: 600;
+  color: var(--text-primary);
+}
+
+.header-right {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.user-info {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 12px;
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+  transition: background 0.2s;
+}
+
+.user-info:hover {
+  background: var(--bg-hover);
+}
+
+.user-info span {
+  font-size: 14px;
+  color: var(--text-secondary);
 }
 
 /* ═══════════════════════════════════════════
    收银台布局
    ═══════════════════════════════════════════ */
 .cashier-container {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  height: calc(100vh - 60px);
+  padding: 24px;
+}
+
+.cashier-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 16px 20px;
+  background: var(--bg-card);
+  border-radius: var(--radius-md);
+  border-bottom: 1px solid var(--border-normal);
+}
+
+.cashier-title {
+  font-size: 20px;
+  font-weight: 700;
+  color: var(--text-primary);
+  margin: 0;
+}
+
+.cashier-date {
+  font-size: 14px;
+  color: var(--text-secondary);
+}
+
+.cashier-main {
   display: grid;
   grid-template-columns: 300px 1fr 350px;
   gap: 16px;
-  height: calc(100vh - 120px);
+  flex: 1;
+  overflow: hidden;
 }
 
 .cashier-left {

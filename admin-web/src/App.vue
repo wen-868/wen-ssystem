@@ -140,154 +140,199 @@
       </el-menu>
     </aside>
     <main class="main" v-loading="pageLoading">
+      <!-- 顶部导航栏 -->
+      <header class="main-header" v-if="!isCashierMode">
+        <div class="header-left">
+          <span class="header-title">{{ activeNav === '首页' ? '工作台' : getNavTitle(activeNav) }}</span>
+        </div>
+        <div class="header-right">
+          <el-button
+            type="primary"
+            size="small"
+            icon="ShoppingCart"
+            @click="toggleCashierMode"
+          >
+            切换收银台
+          </el-button>
+          <el-dropdown trigger="click" style="margin-left: 12px">
+            <span class="user-info">
+              <el-icon><User /></el-icon>
+              <span>{{ currentUser?.realName || '管理员' }}</span>
+            </span>
+            <template #dropdown>
+              <el-dropdown-menu>
+                <el-dropdown-item @click="handleLogout">退出登录</el-dropdown-item>
+              </el-dropdown-menu>
+            </template>
+          </el-dropdown>
+        </div>
+      </header>
+
       <!-- 收银台模式 -->
       <div v-if="isCashierMode" class="cashier-container">
-        <!-- 左侧：商品搜索 -->
-        <div class="cashier-left">
-          <div class="cashier-search">
-            <el-input
-              v-model="cashierProductKeyword"
-              placeholder="搜索商品名称/SKU"
-              clearable
-              @input="searchCashierProducts"
-            />
-          </div>
-          <div class="cashier-product-list">
-            <div
-              v-for="product in cashierProducts"
-              :key="product.skuId"
-              class="cashier-product-item"
-              @click="addToCart(product)"
-            >
-              <div class="product-name">{{ product.name }}</div>
-              <div class="product-sku">{{ product.skuName }}</div>
-              <div class="product-price">¥{{ formatYuan(product.retailPrice) }}</div>
-            </div>
-          </div>
+        <!-- 收银台顶部：返回按钮 -->
+        <div class="cashier-header">
+          <el-button
+            type="default"
+            size="small"
+            icon="ArrowLeft"
+            @click="toggleCashierMode"
+          >
+            返回管理后台
+          </el-button>
+          <h2 class="cashier-title">收银台</h2>
+          <div class="cashier-date">{{ formatDate(new Date()) }}</div>
         </div>
-
-        <!-- 中间：购物车 -->
-        <div class="cashier-center">
-          <div class="cart-header">
-            <h3>购物车</h3>
-            <el-button size="small" type="danger" @click="clearCart" :disabled="cashierCart.length === 0">清空</el-button>
-          </div>
-          <div class="cart-list">
-            <div v-if="cashierCart.length === 0" class="cart-empty">购物车为空</div>
-            <div v-for="(item, index) in cashierCart" :key="index" class="cart-item">
-              <div class="cart-item-info">
-                <div class="cart-item-name">{{ item.name }}</div>
-                <div class="cart-item-sku">{{ item.skuName }}</div>
-              </div>
-              <div class="cart-item-quantity">
-                <el-input-number
-                  v-model="item.quantity"
-                  :min="1"
-                  :max="999"
-                  size="small"
-                  @change="updateCartTotal"
-                />
-              </div>
-              <div class="cart-item-price">¥{{ formatYuan(item.retailPrice * item.quantity) }}</div>
-              <el-button size="small" type="danger" link @click="removeFromCart(index)">删除</el-button>
-            </div>
-          </div>
-        </div>
-
-        <!-- 右侧：结算区 -->
-        <div class="cashier-right">
-          <div class="settlement-section">
-            <h3>结算</h3>
-
-            <!-- 客户选择 -->
-            <div class="settlement-item">
-              <label>客户：</label>
-              <el-select
-                v-model="cashierSelectedCustomer"
-                placeholder="选择客户（可选）"
+        
+        <!-- 收银台主体 -->
+        <div class="cashier-main">
+          <!-- 左侧：商品搜索 -->
+          <div class="cashier-left">
+            <div class="cashier-search">
+              <el-input
+                v-model="cashierProductKeyword"
+                placeholder="搜索商品名称/SKU"
                 clearable
-                filterable
-                style="width: 100%"
-              >
-                <el-option
-                  v-for="member in members"
-                  :key="member.id"
-                  :label="member.name"
-                  :value="member"
-                />
-              </el-select>
-            </div>
-
-            <!-- 金额汇总 -->
-            <div class="settlement-summary">
-              <div class="summary-row">
-                <span>商品总额：</span>
-                <span>¥{{ formatYuan(cashierSubtotal) }}</span>
-              </div>
-              <div class="summary-row">
-                <label>折扣：</label>
-                <el-input-number
-                  v-model="cashierDiscount"
-                  :min="0"
-                  :max="cashierSubtotal"
-                  :precision="2"
-                  size="small"
-                  style="width: 100px"
-                  @change="updateCartTotal"
-                />
-              </div>
-              <div class="summary-row">
-                <label>抹零：</label>
-                <el-input-number
-                  v-model="cashierRoundDown"
-                  :min="0"
-                  :max="10"
-                  :precision="2"
-                  size="small"
-                  style="width: 100px"
-                  @change="updateCartTotal"
-                />
-              </div>
-              <div class="summary-row total">
-                <span>应收金额：</span>
-                <span class="total-amount">¥{{ formatYuan(cashierTotal) }}</span>
-              </div>
-            </div>
-
-            <!-- 支付方式 -->
-            <div class="settlement-item">
-              <label>支付方式：</label>
-              <el-radio-group v-model="cashierPaymentMethod">
-                <el-radio label="CASH">现金</el-radio>
-                <el-radio label="WECHAT">微信</el-radio>
-                <el-radio label="ALIPAY">支付宝</el-radio>
-              </el-radio-group>
-            </div>
-
-            <!-- 收款金额（现金时显示） -->
-            <div v-if="cashierPaymentMethod === 'CASH'" class="settlement-item">
-              <label>收款金额：</label>
-              <el-input-number
-                v-model="cashierReceivedAmount"
-                :min="cashierTotal"
-                :precision="2"
-                style="width: 100%"
+                @input="searchCashierProducts"
               />
-              <div class="change-amount">
-                找零：¥{{ formatYuan(cashierChange) }}
+            </div>
+            <div class="cashier-product-list">
+              <div
+                v-for="product in cashierProducts"
+                :key="product.skuId"
+                class="cashier-product-item"
+                @click="addToCart(product)"
+              >
+                <div class="product-name">{{ product.name }}</div>
+                <div class="product-sku">{{ product.skuName }}</div>
+                <div class="product-price">¥{{ formatYuan(product.retailPrice) }}</div>
               </div>
             </div>
+          </div>
 
-            <!-- 提交按钮 -->
-            <el-button
-              type="primary"
-              size="large"
-              style="width: 100%; margin-top: 20px"
-              :disabled="cashierCart.length === 0"
-              @click="submitSale"
-            >
-              提交订单
-            </el-button>
+          <!-- 中间：购物车 -->
+          <div class="cashier-center">
+            <div class="cart-header">
+              <h3>购物车</h3>
+              <el-button size="small" type="danger" @click="clearCart" :disabled="cashierCart.length === 0">清空</el-button>
+            </div>
+            <div class="cart-list">
+              <div v-if="cashierCart.length === 0" class="cart-empty">购物车为空</div>
+              <div v-for="(item, index) in cashierCart" :key="index" class="cart-item">
+                <div class="cart-item-info">
+                  <div class="cart-item-name">{{ item.name }}</div>
+                  <div class="cart-item-sku">{{ item.skuName }}</div>
+                </div>
+                <div class="cart-item-quantity">
+                  <el-input-number
+                    v-model="item.quantity"
+                    :min="1"
+                    :max="999"
+                    size="small"
+                    @change="updateCartTotal"
+                  />
+                </div>
+                <div class="cart-item-price">¥{{ formatYuan(item.retailPrice * item.quantity) }}</div>
+                <el-button size="small" type="danger" link @click="removeFromCart(index)">删除</el-button>
+              </div>
+            </div>
+          </div>
+
+          <!-- 右侧：结算区 -->
+          <div class="cashier-right">
+            <div class="settlement-section">
+              <h3>结算</h3>
+
+              <!-- 客户选择 -->
+              <div class="settlement-item">
+                <label>客户：</label>
+                <el-select
+                  v-model="cashierSelectedCustomer"
+                  placeholder="选择客户（可选）"
+                  clearable
+                  filterable
+                  style="width: 100%"
+                >
+                  <el-option
+                    v-for="member in members"
+                    :key="member.id"
+                    :label="member.name"
+                    :value="member"
+                  />
+                </el-select>
+              </div>
+
+              <!-- 金额汇总 -->
+              <div class="settlement-summary">
+                <div class="summary-row">
+                  <span>商品总额：</span>
+                  <span>¥{{ formatYuan(cashierSubtotal) }}</span>
+                </div>
+                <div class="summary-row">
+                  <label>折扣：</label>
+                  <el-input-number
+                    v-model="cashierDiscount"
+                    :min="0"
+                    :max="cashierSubtotal"
+                    :precision="2"
+                    size="small"
+                    style="width: 100px"
+                    @change="updateCartTotal"
+                  />
+                </div>
+                <div class="summary-row">
+                  <label>抹零：</label>
+                  <el-input-number
+                    v-model="cashierRoundDown"
+                    :min="0"
+                    :max="10"
+                    :precision="2"
+                    size="small"
+                    style="width: 100px"
+                    @change="updateCartTotal"
+                  />
+                </div>
+                <div class="summary-row total">
+                  <span>应收金额：</span>
+                  <span class="total-amount">¥{{ formatYuan(cashierTotal) }}</span>
+                </div>
+              </div>
+
+              <!-- 支付方式 -->
+              <div class="settlement-item">
+                <label>支付方式：</label>
+                <el-radio-group v-model="cashierPaymentMethod">
+                  <el-radio label="CASH">现金</el-radio>
+                  <el-radio label="WECHAT">微信</el-radio>
+                  <el-radio label="ALIPAY">支付宝</el-radio>
+                </el-radio-group>
+              </div>
+
+              <!-- 收款金额（现金时显示） -->
+              <div v-if="cashierPaymentMethod === 'CASH'" class="settlement-item">
+                <label>收款金额：</label>
+                <el-input-number
+                  v-model="cashierReceivedAmount"
+                  :min="cashierTotal"
+                  :precision="2"
+                  style="width: 100%"
+                />
+                <div class="change-amount">
+                  找零：¥{{ formatYuan(cashierChange) }}
+                </div>
+              </div>
+
+              <!-- 提交按钮 -->
+              <el-button
+                type="primary"
+                size="large"
+                style="width: 100%; margin-top: 20px"
+                :disabled="cashierCart.length === 0"
+                @click="submitSale"
+              >
+                提交订单
+              </el-button>
+            </div>
           </div>
         </div>
       </div>
@@ -3905,6 +3950,52 @@ async function handleLogout() {
   activeNav.value = "首页";
   window.dispatchEvent(new Event("auth:logout"));
   ElMessage.success("已退出登录");
+}
+
+function toggleCashierMode() {
+  isCashierMode.value = !isCashierMode.value;
+}
+
+function getNavTitle(key: string): string {
+  const navMap: Record<string, string> = {
+    "商品": "商品管理",
+    "订单": "订单管理",
+    "销售单": "销售管理",
+    "客户": "客户管理",
+    "供应商": "供应商管理",
+    "采购": "采购管理",
+    "销售退货": "销售退货",
+    "客户对账": "客户对账",
+    "库存": "库存管理",
+    "员工": "员工管理",
+    "门店": "门店管理",
+    "收款": "收款记录",
+    "报表": "报表中心",
+    "预警中心": "库存预警",
+    "价格中心": "价格管理",
+    "授信管理": "授信管理",
+    "售后管理": "售后管理",
+    "订单超时": "超时处理",
+    "营销中心": "营销中心",
+    "操作日志": "操作日志",
+    "系统设置": "系统设置",
+    "商品管理": "商品管理",
+    "价格中心": "价格中心",
+    "订单管理": "订单管理",
+    "订单泳道": "泳道看板",
+    "订单超时": "超时处理",
+    "销售管理": "销售管理",
+    "收款": "收款记录",
+    "采购管理": "采购管理",
+    "客户管理": "客户管理",
+    "客户对账": "客户对账",
+    "库存管理": "库存管理",
+    "预警中心": "预警中心",
+    "门店管理": "门店管理",
+    "系统管理": "系统管理",
+    "消息中心": "消息中心"
+  };
+  return navMap[key] || key;
 }
 
 async function loadDashboard() {
