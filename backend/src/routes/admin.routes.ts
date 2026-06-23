@@ -52,8 +52,41 @@ adminRouter.post("/auth/login", asyncHandler(async (req, res) => {
 }));
 
 adminRouter.get("/auth/me", requireAuthWithTenant, asyncHandler(async (req, res) => {
+  const userId = req.user!.id;
+  const userSetting = await queryOne<any>(
+    "SELECT default_homepage FROM sys_user WHERE id = ?",
+    [userId]
+  );
   const accessInfo = getUserAccessInfo(req.user!);
-  res.json(ok({ ...req.user, ...accessInfo }));
+  const defaultMode = userSetting?.default_homepage
+    ? (userSetting.default_homepage === '/cashier' ? 'CASHIER' : 'ADMIN')
+    : accessInfo.defaultMode;
+  res.json(ok({ ...req.user, ...accessInfo, defaultMode }));
+}));
+
+// 获取当前用户设置
+adminRouter.get("/auth/settings", requireAuthWithTenant, asyncHandler(async (req, res) => {
+  const userId = req.user!.id;
+  const userSetting = await queryOne<any>(
+    "SELECT default_homepage FROM sys_user WHERE id = ?",
+    [userId]
+  );
+  res.json(ok({
+    defaultHomepage: userSetting?.default_homepage || null
+  }));
+}));
+
+// 更新当前用户设置
+adminRouter.put("/auth/settings", requireAuthWithTenant, asyncHandler(async (req, res) => {
+  const userId = req.user!.id;
+  const body = z.object({
+    defaultHomepage: z.enum(['/admin', '/cashier']).optional()
+  }).parse(req.body);
+  await query(
+    "UPDATE sys_user SET default_homepage = ? WHERE id = ?",
+    [body.defaultHomepage || null, userId]
+  );
+  res.json(ok({ success: true }));
 }));
 
 adminRouter.get("/staff", requireAuth, asyncHandler(async (_req, res) => {
