@@ -13,7 +13,7 @@ export const adminRouter = Router();
 adminRouter.post("/auth/login", asyncHandler(async (req, res) => {
   const body = z.object({ username: z.string(), password: z.string() }).parse(req.body);
   const account = await queryOne<any>(
-    "SELECT id, username, password_hash, real_name, store_id, status FROM sys_user WHERE username = ? LIMIT 1",
+    "SELECT id, username, password_hash, real_name, store_id, status, tenant_id FROM sys_user WHERE username = ? LIMIT 1",
     [body.username]
   );
   if (!account || account.status !== 1 || !verifyPassword(body.password, account.password_hash)) {
@@ -28,15 +28,17 @@ adminRouter.post("/auth/login", asyncHandler(async (req, res) => {
     [account.id]
   );
   const roleCodes = roles.map((r: any) => r.role_code);
+  const tenantId = account.tenant_id || 'default';
   const user = {
     id: account.id,
     username: account.username,
     realName: account.real_name,
     storeId: account.store_id,
+    tenantId: tenantId,
     roles: roleCodes,
     permissions: ["*"]
   };
-  res.json(ok({ token: signToken({ id: account.id, username: account.username, roles: roleCodes, storeId: account.store_id }), user }));
+  res.json(ok({ token: signToken({ id: account.id, username: account.username, roles: roleCodes, storeId: account.store_id, tenantId }), user }));
 }));
 
 adminRouter.get("/auth/me", requireAuth, (req, res) => {

@@ -1,12 +1,14 @@
 import type { RequestHandler } from "express";
 import jwt from "jsonwebtoken";
 import { env } from "./env.js";
+import { tenantMiddleware, type TenantRequest } from "./tenant.js";
 
 export type AuthUser = {
   id: number;
   username: string;
   roles: string[];
   storeId?: number | null;
+  tenantId: string;
 };
 
 export function hasAnyRole(user: AuthUser | undefined, allowedRoles: string[]) {
@@ -62,3 +64,5 @@ export const requireAuth: RequestHandler = (req, res, next) => {
     res.status(401).json({ code: "401", message: "登录已失效" });
   }
 };
+
+export const requireAuthWithTenant = [requireAuth, tenantMiddleware] as RequestHandler[];

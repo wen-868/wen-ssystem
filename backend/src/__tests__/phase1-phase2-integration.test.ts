@@ -13,7 +13,7 @@ import { env } from "../shared/env.js";
 
 // ====== 辅助工具 ======
 
-const token = signToken({ id: 1, username: "admin", roles: ["SUPER_ADMIN"], storeId: 1 });
+const token = signToken({ id: 1, username: "admin", roles: ["SUPER_ADMIN"], storeId: 1, tenantId: "default" });
 const authHeaders = { Authorization: `Bearer ${token}`, "Content-Type": "application/json" };
 const noAuthHeaders = { "Content-Type": "application/json" };
 

@@ -14,7 +14,7 @@ export const storeRouter = Router();
 storeRouter.post("/auth/login", asyncHandler(async (req, res) => {
   const body = z.object({ username: z.string(), password: z.string() }).parse(req.body);
   const account = await queryOne<any>(
-    "SELECT id, username, password_hash, real_name, store_id, status, role FROM sys_user WHERE username = ? LIMIT 1",
+    "SELECT id, username, password_hash, real_name, store_id, status, role, tenant_id FROM sys_user WHERE username = ? LIMIT 1",
     [body.username]
   );
   if (!account || account.status !== 1 || !verifyPassword(body.password, account.password_hash)) {
@@ -22,13 +22,15 @@ storeRouter.post("/auth/login", asyncHandler(async (req, res) => {
     return;
   }
   const role = account.role || "STAFF";
+  const tenantId = account.tenant_id || 'default';
   const user = {
     id: account.id,
     name: account.real_name || account.username,
     role,
-    storeId: account.store_id ?? 1
+    storeId: account.store_id ?? 1,
+    tenantId
   };
-  const token = signToken({ id: account.id, username: account.username, roles: [role], storeId: account.store_id });
+  const token = signToken({ id: account.id, username: account.username, roles: [role], storeId: account.store_id, tenantId });
   res.json(ok({ token, user }));
 }));
 
