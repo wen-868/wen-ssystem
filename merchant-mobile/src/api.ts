@@ -306,6 +306,74 @@ export function createCollectionLink(billNo: string, data: {
   return api.post(`/store/sale-bills/${billNo}/collection-link`, data)
 }
 
+/* ========== 销售退货 ========== */
+
+export interface SaleReturnItem {
+  skuId: number
+  skuName: string
+  boxQty: number
+  bottleQty: number
+  totalBottleQty: number
+  unitPrice: number
+  priceType: string
+  subtotalAmount: number
+}
+
+export interface SaleReturnRecord {
+  returnNo: string
+  storeId: number
+  sourceBillNo: string | null
+  customerId: number | null
+  customerName: string
+  returnType: 'BY_BILL' | 'DIRECT'
+  returnAmount: number
+  status: string
+  reason?: string
+  remark?: string
+  createdAt: string
+}
+
+export interface SaleReturnDetail extends SaleReturnRecord {
+  customerMobile?: string
+  operatorId?: number
+  items: SaleReturnItem[]
+}
+
+export interface CreateSaleReturnParams {
+  sourceBillNo?: string | null
+  customerId?: number | null
+  customerName?: string
+  customerMobile?: string
+  returnType?: 'BY_BILL' | 'DIRECT'
+  reason?: string
+  remark?: string
+  items: {
+    skuId: number
+    boxQty?: number
+    bottleQty?: number
+    totalBottleQty: number
+    unitPrice?: number
+    priceType?: string
+  }[]
+}
+
+export function fetchSaleReturns(params: {
+  page?: number
+  pageSize?: number
+  keyword?: string
+  status?: string
+}) {
+  return api.get('/store/sale-returns', { params })
+}
+
+export function createSaleReturn(data: CreateSaleReturnParams) {
+  return api.post('/store/sale-returns', data)
+}
+
+export function fetchSaleReturnDetail(returnNo: string) {
+  return api.get(`/store/sale-returns/${returnNo}`)
+}
+
 /* ========== 商品搜索（用于开单时选商品） ========== */
 
 export interface ProductRecord {
