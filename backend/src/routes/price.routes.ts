@@ -1,6 +1,6 @@
 import { Router } from "express";
 import { z } from "zod";
-import { requireAuth } from "../shared/auth.js";
+import { requireAuthWithTenant } from "../shared/auth.js";
 import { asyncHandler } from "../shared/async-handler.js";
 import { query, queryOne, transaction } from "../shared/db.js";
 import { ok } from "../shared/response.js";
@@ -10,20 +10,24 @@ export const priceRouter = Router();
 // ========== 价格等级管理 ==========
 
 // 获取所有价格等级列表
-priceRouter.get("/levels", requireAuth, asyncHandler(async (_req, res) => {
+priceRouter.get("/levels", requireAuthWithTenant, asyncHandler(async (req, res) => {
+  const tenantId = req.tenantId;
   const records = await query<any>(
     `SELECT id, level_code AS levelCode, level_name AS levelName,
             discount_rate AS discountRate, min_order_amount AS minOrderAmount,
             description, sort_order AS sortOrder, status,
             created_at AS createdAt, updated_at AS updatedAt
      FROM price_level
-     ORDER BY sort_order ASC, id ASC`
+     WHERE tenant_id = ?
+     ORDER BY sort_order ASC, id ASC`,
+    [tenantId]
   );
   res.json(ok({ total: records.length, records }));
 }));
 
 // 创建价格等级
-priceRouter.post("/levels", requireAuth, asyncHandler(async (req, res) => {
+priceRouter.post("/levels", requireAuthWithTenant, asyncHandler(async (req, res) => {
+  const tenantId = req.tenantId;
   const body = z.object({
     levelCode: z.string().min(1).max(32),
     levelName: z.string().min(1).max(64),
@@ -34,8 +38,8 @@ priceRouter.post("/levels", requireAuth, asyncHandler(async (req, res) => {
   }).parse(req.body);
 
   const existing = await queryOne<any>(
-    "SELECT id FROM price_level WHERE level_code = ?",
-    [body.levelCode]
+    "SELECT id FROM price_level WHERE level_code = ? AND tenant_id = ?",
+    [body.levelCode, tenantId]
   );
   if (existing) {
     res.status(400).json({ code: "400", message: "等级编码已存在" });
@@ -43,9 +47,9 @@ priceRouter.post("/levels", requireAuth, asyncHandler(async (req, res) => {
   }
 
   await query(
-    `INSERT INTO price_level (level_code, level_name, discount_rate, min_order_amount, description, sort_order)
-     VALUES (?, ?, ?, ?, ?, ?)`,
-    [body.levelCode, body.levelName, body.discountRate, body.minOrderAmount, body.description, body.sortOrder]
+    `INSERT INTO price_level (level_code, level_name, discount_rate, min_order_amount, description, sort_order, tenant_id)
+     VALUES (?, ?, ?, ?, ?, ?, ?)`,
+    [body.levelCode, body.levelName, body.discountRate, body.minOrderAmount, body.description, body.sortOrder, tenantId]
   );
 
   const record = await queryOne<any>(
@@ -53,19 +57,20 @@ priceRouter.post("/levels", requireAuth, asyncHandler(async (req, res) => {
             discount_rate AS discountRate, min_order_amount AS minOrderAmount,
             description, sort_order AS sortOrder, status,
             created_at AS createdAt
-     FROM price_level WHERE level_code = ?`,
-    [body.levelCode]
+     FROM price_level WHERE level_code = ? AND tenant_id = ?`,
+    [body.levelCode, tenantId]
   );
 
   res.json(ok(record));
 }));
 
 // 编辑价格等级
-priceRouter.put("/levels/:id", requireAuth, asyncHandler(async (req, res) => {
+priceRouter.put("/levels/:id", requireAuthWithTenant, asyncHandler(async (req, res) => {
+  const tenantId = req.tenantId;
   const levelId = Number(req.params.id);
   const existing = await queryOne<any>(
-    "SELECT id FROM price_level WHERE id = ?",
-    [levelId]
+    "SELECT id FROM price_level WHERE id = ? AND tenant_id = ?",
+    [levelId, tenantId]
   );
   if (!existing) {
     res.status(404).json({ code: "404", message: "价格等级不存在" });
@@ -93,8 +98,8 @@ priceRouter.put("/levels/:id", requireAuth, asyncHandler(async (req, res) => {
 
   if (updates.length > 0) {
     await query(
-      `UPDATE price_level SET ${updates.join(", ")} WHERE id = ?`,
-      [...params, levelId]
+      `UPDATE price_level SET ${updates.join(", ")} WHERE id = ? AND tenant_id = ?`,
+      [...params, levelId, tenantId]
     );
   }
 
@@ -103,32 +108,33 @@ priceRouter.put("/levels/:id", requireAuth, asyncHandler(async (req, res) => {
             discount_rate AS discountRate, min_order_amount AS minOrderAmount,
             description, sort_order AS sortOrder, status,
             created_at AS createdAt, updated_at AS updatedAt
-     FROM price_level WHERE id = ?`,
-    [levelId]
+     FROM price_level WHERE id = ? AND tenant_id = ?`,
+    [levelId, tenantId]
   );
 
   res.json(ok(record));
 }));
 
 // 停用价格等级（软删除）
-priceRouter.delete("/levels/:id", requireAuth, asyncHandler(async (req, res) => {
+priceRouter.delete("/levels/:id", requireAuthWithTenant, asyncHandler(async (req, res) => {
+  const tenantId = req.tenantId;
   const levelId = Number(req.params.id);
   const existing = await queryOne<any>(
-    "SELECT id, level_code FROM price_level WHERE id = ?",
-    [levelId]
+    "SELECT id, level_code FROM price_level WHERE id = ? AND tenant_id = ?",
+    [levelId, tenantId]
   );
   if (!existing) {
     res.status(404).json({ code: "404", message: "价格等级不存在" });
     return;
   }
-  if (existing.levelCode === "RETAIL") {
+  if (existing.level_code === "RETAIL") {
     res.status(400).json({ code: "400", message: "零售价等级不可停用" });
     return;
   }
 
   await query(
-    "UPDATE price_level SET status = 0 WHERE id = ?",
-    [levelId]
+    "UPDATE price_level SET status = 0 WHERE id = ? AND tenant_id = ?",
+    [levelId, tenantId]
   );
 
   res.json(ok({ levelId, status: "disabled" }));
@@ -137,7 +143,8 @@ priceRouter.delete("/levels/:id", requireAuth, asyncHandler(async (req, res) => 
 // ========== 阶梯价格管理 ==========
 
 // 获取SKU的所有阶梯价格
-priceRouter.get("/skus/:skuId/prices", requireAuth, asyncHandler(async (req, res) => {
+priceRouter.get("/skus/:skuId/prices", requireAuthWithTenant, asyncHandler(async (req, res) => {
+  const tenantId = req.tenantId;
   const skuId = Number(req.params.skuId);
   const records = await query<any>(
     `SELECT sp.id, sp.sku_id AS skuId, sp.price_level_id AS priceLevelId,
@@ -148,16 +155,17 @@ priceRouter.get("/skus/:skuId/prices", requireAuth, asyncHandler(async (req, res
             sp.effective_start AS effectiveStart, sp.effective_end AS effectiveEnd,
             sp.status, sp.created_at AS createdAt, sp.updated_at AS updatedAt
      FROM sku_price sp
-     JOIN price_level pl ON pl.id = sp.price_level_id
-     WHERE sp.sku_id = ?
+     JOIN price_level pl ON pl.id = sp.price_level_id AND pl.tenant_id = sp.tenant_id
+     WHERE sp.sku_id = ? AND sp.tenant_id = ?
      ORDER BY pl.sort_order ASC, sp.min_qty ASC`,
-    [skuId]
+    [skuId, tenantId]
   );
   res.json(ok({ total: records.length, records }));
 }));
 
 // 设置SKU阶梯价格（批量，事务）
-priceRouter.post("/skus/:skuId/prices", requireAuth, asyncHandler(async (req, res) => {
+priceRouter.post("/skus/:skuId/prices", requireAuthWithTenant, asyncHandler(async (req, res) => {
+  const tenantId = req.tenantId;
   const skuId = Number(req.params.skuId);
 
   const body = z.object({
@@ -175,8 +183,8 @@ priceRouter.post("/skus/:skuId/prices", requireAuth, asyncHandler(async (req, re
   // 校验价格等级是否存在
   const levelIds = [...new Set(body.prices.map(p => p.priceLevelId))];
   const levels = await query<any>(
-    "SELECT id FROM price_level WHERE id IN (?) AND status = 1",
-    [levelIds]
+    "SELECT id FROM price_level WHERE id IN (?) AND status = 1 AND tenant_id = ?",
+    [levelIds, tenantId]
   );
   if (levels.length !== levelIds.length) {
     res.status(400).json({ code: "400", message: "部分价格等级不存在或已停用" });
@@ -187,8 +195,8 @@ priceRouter.post("/skus/:skuId/prices", requireAuth, asyncHandler(async (req, re
     for (const item of body.prices) {
       // 查询是否已存在相同 sku+level+minQty 的记录
       const existing = await conn.execute(
-        "SELECT id, price FROM sku_price WHERE sku_id = ? AND price_level_id = ? AND min_qty = ?",
-        [skuId, item.priceLevelId, item.minQty]
+        "SELECT id, price FROM sku_price WHERE sku_id = ? AND price_level_id = ? AND min_qty = ? AND tenant_id = ?",
+        [skuId, item.priceLevelId, item.minQty, tenantId]
       ) as any;
 
       if ((existing[0] as any[]).length > 0) {
@@ -198,25 +206,25 @@ priceRouter.post("/skus/:skuId/prices", requireAuth, asyncHandler(async (req, re
           `UPDATE sku_price
            SET price = ?, cost_price = ?, suggested_retail_price = ?,
                effective_start = ?, effective_end = ?, status = 1, updated_at = NOW()
-           WHERE id = ?`,
+           WHERE id = ? AND tenant_id = ?`,
           [item.price, item.costPrice, item.suggestedRetailPrice,
-           item.effectiveStart, item.effectiveEnd, oldRecord.id]
+           item.effectiveStart, item.effectiveEnd, oldRecord.id, tenantId]
         );
         // 记录价格变更日志
         if (Number(oldRecord.price) !== item.price) {
           await conn.execute(
-            `INSERT INTO price_change_log (sku_id, price_level_id, old_price, new_price, change_reason, changed_by)
-             VALUES (?, ?, ?, ?, ?, ?)`,
-            [skuId, item.priceLevelId, oldRecord.price, item.price, "批量更新阶梯价", req.user!.id]
+            `INSERT INTO price_change_log (sku_id, price_level_id, old_price, new_price, change_reason, changed_by, tenant_id)
+             VALUES (?, ?, ?, ?, ?, ?, ?)`,
+            [skuId, item.priceLevelId, oldRecord.price, item.price, "批量更新阶梯价", req.user!.id, tenantId]
           );
         }
       } else {
         // 插入新记录
         await conn.execute(
-          `INSERT INTO sku_price (sku_id, price_level_id, min_qty, price, cost_price, suggested_retail_price, effective_start, effective_end)
-           VALUES (?, ?, ?, ?, ?, ?, ?, ?)`,
+          `INSERT INTO sku_price (sku_id, price_level_id, min_qty, price, cost_price, suggested_retail_price, effective_start, effective_end, tenant_id)
+           VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`,
           [skuId, item.priceLevelId, item.minQty, item.price, item.costPrice, item.suggestedRetailPrice,
-           item.effectiveStart, item.effectiveEnd]
+           item.effectiveStart, item.effectiveEnd, tenantId]
         );
       }
     }
@@ -232,22 +240,23 @@ priceRouter.post("/skus/:skuId/prices", requireAuth, asyncHandler(async (req, re
             sp.effective_start AS effectiveStart, sp.effective_end AS effectiveEnd,
             sp.status, sp.created_at AS createdAt, sp.updated_at AS updatedAt
      FROM sku_price sp
-     JOIN price_level pl ON pl.id = sp.price_level_id
-     WHERE sp.sku_id = ?
+     JOIN price_level pl ON pl.id = sp.price_level_id AND pl.tenant_id = sp.tenant_id
+     WHERE sp.sku_id = ? AND sp.tenant_id = ?
      ORDER BY pl.sort_order ASC, sp.min_qty ASC`,
-    [skuId]
+    [skuId, tenantId]
   );
 
   res.json(ok({ total: records.length, records }));
 }));
 
 // 编辑单条阶梯价
-priceRouter.put("/prices/:id", requireAuth, asyncHandler(async (req, res) => {
+priceRouter.put("/prices/:id", requireAuthWithTenant, asyncHandler(async (req, res) => {
+  const tenantId = req.tenantId;
   const priceId = Number(req.params.id);
   const existing = await queryOne<any>(
     `SELECT sp.id, sp.sku_id, sp.price_level_id, sp.min_qty, sp.price, sp.status
-     FROM sku_price sp WHERE sp.id = ?`,
-    [priceId]
+     FROM sku_price sp WHERE sp.id = ? AND sp.tenant_id = ?`,
+    [priceId, tenantId]
   );
   if (!existing) {
     res.status(404).json({ code: "404", message: "阶梯价格记录不存在" });
@@ -279,15 +288,15 @@ priceRouter.put("/prices/:id", requireAuth, asyncHandler(async (req, res) => {
     // 如果价格发生变化，记录变更日志
     if (body.price !== undefined && body.price !== Number(existing.price)) {
       await query(
-        `INSERT INTO price_change_log (sku_id, price_level_id, old_price, new_price, change_reason, changed_by)
-         VALUES (?, ?, ?, ?, ?, ?)`,
-        [existing.sku_id, existing.price_level_id, existing.price, body.price, "手动修改阶梯价", req.user!.id]
+        `INSERT INTO price_change_log (sku_id, price_level_id, old_price, new_price, change_reason, changed_by, tenant_id)
+         VALUES (?, ?, ?, ?, ?, ?, ?)`,
+        [existing.sku_id, existing.price_level_id, existing.price, body.price, "手动修改阶梯价", req.user!.id, tenantId]
       );
     }
 
     await query(
-      `UPDATE sku_price SET ${updates.join(", ")}, updated_at = NOW() WHERE id = ?`,
-      [...params, priceId]
+      `UPDATE sku_price SET ${updates.join(", ")}, updated_at = NOW() WHERE id = ? AND tenant_id = ?`,
+      [...params, priceId, tenantId]
     );
   }
 
@@ -300,34 +309,36 @@ priceRouter.put("/prices/:id", requireAuth, asyncHandler(async (req, res) => {
             sp.effective_start AS effectiveStart, sp.effective_end AS effectiveEnd,
             sp.status, sp.created_at AS createdAt, sp.updated_at AS updatedAt
      FROM sku_price sp
-     JOIN price_level pl ON pl.id = sp.price_level_id
-     WHERE sp.id = ?`,
-    [priceId]
+     JOIN price_level pl ON pl.id = sp.price_level_id AND pl.tenant_id = sp.tenant_id
+     WHERE sp.id = ? AND sp.tenant_id = ?`,
+    [priceId, tenantId]
   );
 
   res.json(ok(record));
 }));
 
 // 删除单条阶梯价
-priceRouter.delete("/prices/:id", requireAuth, asyncHandler(async (req, res) => {
+priceRouter.delete("/prices/:id", requireAuthWithTenant, asyncHandler(async (req, res) => {
+  const tenantId = req.tenantId;
   const priceId = Number(req.params.id);
   const existing = await queryOne<any>(
-    "SELECT id FROM sku_price WHERE id = ?",
-    [priceId]
+    "SELECT id FROM sku_price WHERE id = ? AND tenant_id = ?",
+    [priceId, tenantId]
   );
   if (!existing) {
     res.status(404).json({ code: "404", message: "阶梯价格记录不存在" });
     return;
   }
 
-  await query("DELETE FROM sku_price WHERE id = ?", [priceId]);
+  await query("DELETE FROM sku_price WHERE id = ? AND tenant_id = ?", [priceId, tenantId]);
   res.json(ok({ priceId, deleted: true }));
 }));
 
 // ========== 最优价查询（核心） ==========
 
 // 根据customerId + skuId + quantity 查询最优价格
-priceRouter.post("/best-price", requireAuth, asyncHandler(async (req, res) => {
+priceRouter.post("/best-price", requireAuthWithTenant, asyncHandler(async (req, res) => {
+  const tenantId = req.tenantId;
   const body = z.object({
     customerId: z.number().int().positive(),
     skuId: z.number().int().positive(),
@@ -340,11 +351,12 @@ priceRouter.post("/best-price", requireAuth, asyncHandler(async (req, res) => {
   const binding = await queryOne<any>(
     `SELECT cpb.price_level_id, pl.level_code, pl.level_name, pl.discount_rate
      FROM customer_price_binding cpb
-     JOIN price_level pl ON pl.id = cpb.price_level_id
+     JOIN price_level pl ON pl.id = cpb.price_level_id AND pl.tenant_id = cpb.tenant_id
      WHERE cpb.customer_id = ? AND cpb.status = 'APPROVED'
        AND (cpb.expire_at IS NULL OR cpb.expire_at > NOW())
+       AND cpb.tenant_id = ?
      LIMIT 1`,
-    [body.customerId]
+    [body.customerId, tenantId]
   );
 
   // 2. 确定优先级：协议价 > 客户绑定等级 > RETAIL兜底
@@ -362,12 +374,11 @@ priceRouter.post("/best-price", requireAuth, asyncHandler(async (req, res) => {
 
   // 获取零售等级ID作为兜底
   const retailLevel = await queryOne<any>(
-    "SELECT id FROM price_level WHERE level_code = 'RETAIL' AND status = 1 LIMIT 1"
+    "SELECT id FROM price_level WHERE level_code = 'RETAIL' AND status = 1 AND tenant_id = ? LIMIT 1",
+    [tenantId]
   );
 
   // 3. 在对应等级下查找匹配的阶梯价格
-  //    阶梯匹配：min_qty <= quantity 中取 min_qty 最大的
-  //    检查生效时间：effective_start <= today <= effective_end
   const matchParams: unknown[] = [];
   let matchSql = "";
 
@@ -378,13 +389,14 @@ priceRouter.post("/best-price", requireAuth, asyncHandler(async (req, res) => {
              pl.level_code AS levelCode, pl.level_name AS levelName,
              pl.discount_rate AS discountRate
       FROM sku_price sp
-      JOIN price_level pl ON pl.id = sp.price_level_id
+      JOIN price_level pl ON pl.id = sp.price_level_id AND pl.tenant_id = sp.tenant_id
       WHERE sp.sku_id = ? AND sp.price_level_id = ? AND sp.min_qty <= ? AND sp.status = 1
+        AND sp.tenant_id = ?
         AND (sp.effective_start IS NULL OR sp.effective_start <= ?)
         AND (sp.effective_end IS NULL OR sp.effective_end >= ?)
       ORDER BY sp.min_qty DESC
       LIMIT 1`;
-    matchParams.push(body.skuId, priceLevelId, body.quantity, today, today);
+    matchParams.push(body.skuId, priceLevelId, body.quantity, tenantId, today, today);
   } else if (retailLevel) {
     matchSql = `
       SELECT sp.id, sp.min_qty AS minQty, sp.price, sp.cost_price AS costPrice,
@@ -392,13 +404,14 @@ priceRouter.post("/best-price", requireAuth, asyncHandler(async (req, res) => {
              pl.level_code AS levelCode, pl.level_name AS levelName,
              pl.discount_rate AS discountRate
       FROM sku_price sp
-      JOIN price_level pl ON pl.id = sp.price_level_id
+      JOIN price_level pl ON pl.id = sp.price_level_id AND pl.tenant_id = sp.tenant_id
       WHERE sp.sku_id = ? AND sp.price_level_id = ? AND sp.min_qty <= ? AND sp.status = 1
+        AND sp.tenant_id = ?
         AND (sp.effective_start IS NULL OR sp.effective_start <= ?)
         AND (sp.effective_end IS NULL OR sp.effective_end >= ?)
       ORDER BY sp.min_qty DESC
       LIMIT 1`;
-    matchParams.push(body.skuId, retailLevel.id, body.quantity, today, today);
+    matchParams.push(body.skuId, retailLevel.id, body.quantity, tenantId, today, today);
   }
 
   let bestPrice: any = null;
@@ -414,13 +427,14 @@ priceRouter.post("/best-price", requireAuth, asyncHandler(async (req, res) => {
               pl.level_code AS levelCode, pl.level_name AS levelName,
               pl.discount_rate AS discountRate
        FROM sku_price sp
-       JOIN price_level pl ON pl.id = sp.price_level_id
+       JOIN price_level pl ON pl.id = sp.price_level_id AND pl.tenant_id = sp.tenant_id
        WHERE sp.sku_id = ? AND sp.price_level_id = ? AND sp.min_qty <= ? AND sp.status = 1
+         AND sp.tenant_id = ?
          AND (sp.effective_start IS NULL OR sp.effective_start <= ?)
          AND (sp.effective_end IS NULL OR sp.effective_end >= ?)
        ORDER BY sp.min_qty DESC
        LIMIT 1`,
-      [body.skuId, retailLevel.id, body.quantity, today, today]
+      [body.skuId, retailLevel.id, body.quantity, tenantId, today, today]
     );
   }
 
@@ -452,12 +466,13 @@ priceRouter.post("/best-price", requireAuth, asyncHandler(async (req, res) => {
 // ========== 客户价格绑定 ==========
 
 // 获取所有客户绑定
-priceRouter.get("/customer-bindings", requireAuth, asyncHandler(async (req, res) => {
+priceRouter.get("/customer-bindings", requireAuthWithTenant, asyncHandler(async (req, res) => {
+  const tenantId = req.tenantId;
   const page = Number(req.query.page || 1);
   const pageSize = Number(req.query.pageSize || 20);
   const offset = (page - 1) * pageSize;
-  const conditions: string[] = [];
-  const params: unknown[] = [];
+  const conditions: string[] = ["cpb.tenant_id = ?"];
+  const params: unknown[] = [tenantId];
 
   if (req.query.status) {
     conditions.push("cpb.status = ?");
@@ -468,7 +483,7 @@ priceRouter.get("/customer-bindings", requireAuth, asyncHandler(async (req, res)
     params.push(Number(req.query.customerId));
   }
 
-  const where = conditions.length > 0 ? `WHERE ${conditions.join(" AND ")}` : "";
+  const where = `WHERE ${conditions.join(" AND ")}`;
 
   const records = await query<any>(
     `SELECT cpb.id, cpb.customer_id AS customerId, cpb.price_level_id AS priceLevelId,
@@ -478,7 +493,7 @@ priceRouter.get("/customer-bindings", requireAuth, asyncHandler(async (req, res)
             cpb.expire_at AS expireAt,
             cpb.created_at AS createdAt, cpb.updated_at AS updatedAt
      FROM customer_price_binding cpb
-     JOIN price_level pl ON pl.id = cpb.price_level_id
+     JOIN price_level pl ON pl.id = cpb.price_level_id AND pl.tenant_id = cpb.tenant_id
      ${where}
      ORDER BY cpb.created_at DESC
      LIMIT ? OFFSET ?`,
@@ -499,7 +514,8 @@ priceRouter.get("/customer-bindings", requireAuth, asyncHandler(async (req, res)
 }));
 
 // 申请绑定（需审批）
-priceRouter.post("/customer-bindings", requireAuth, asyncHandler(async (req, res) => {
+priceRouter.post("/customer-bindings", requireAuthWithTenant, asyncHandler(async (req, res) => {
+  const tenantId = req.tenantId;
   const body = z.object({
     customerId: z.number().int().positive(),
     priceLevelId: z.number().int().positive(),
@@ -509,8 +525,8 @@ priceRouter.post("/customer-bindings", requireAuth, asyncHandler(async (req, res
 
   // 校验价格等级是否存在
   const level = await queryOne<any>(
-    "SELECT id FROM price_level WHERE id = ? AND status = 1",
-    [body.priceLevelId]
+    "SELECT id FROM price_level WHERE id = ? AND status = 1 AND tenant_id = ?",
+    [body.priceLevelId, tenantId]
   );
   if (!level) {
     res.status(400).json({ code: "400", message: "价格等级不存在或已停用" });
@@ -519,8 +535,8 @@ priceRouter.post("/customer-bindings", requireAuth, asyncHandler(async (req, res
 
   // 检查是否已有绑定记录
   const existing = await queryOne<any>(
-    "SELECT id, status FROM customer_price_binding WHERE customer_id = ?",
-    [body.customerId]
+    "SELECT id, status FROM customer_price_binding WHERE customer_id = ? AND tenant_id = ?",
+    [body.customerId, tenantId]
   );
   if (existing && existing.status === "APPROVED") {
     res.status(400).json({ code: "400", message: "该客户已有生效的价格等级绑定，请先取消后再申请" });
@@ -533,14 +549,14 @@ priceRouter.post("/customer-bindings", requireAuth, asyncHandler(async (req, res
       `UPDATE customer_price_binding
        SET price_level_id = ?, apply_reason = ?, status = 'PENDING',
            approved_by = NULL, approved_at = NULL, expire_at = ?, updated_at = NOW()
-       WHERE id = ?`,
-      [body.priceLevelId, body.applyReason, body.expireAt, existing.id]
+       WHERE id = ? AND tenant_id = ?`,
+      [body.priceLevelId, body.applyReason, body.expireAt, existing.id, tenantId]
     );
   } else {
     await query(
-      `INSERT INTO customer_price_binding (customer_id, price_level_id, apply_reason, expire_at, status)
-       VALUES (?, ?, ?, ?, 'PENDING')`,
-      [body.customerId, body.priceLevelId, body.applyReason, body.expireAt]
+      `INSERT INTO customer_price_binding (customer_id, price_level_id, apply_reason, expire_at, status, tenant_id)
+       VALUES (?, ?, ?, ?, 'PENDING', ?)`,
+      [body.customerId, body.priceLevelId, body.applyReason, body.expireAt, tenantId]
     );
   }
 
@@ -550,21 +566,22 @@ priceRouter.post("/customer-bindings", requireAuth, asyncHandler(async (req, res
             cpb.apply_reason AS applyReason, cpb.status,
             cpb.created_at AS createdAt
      FROM customer_price_binding cpb
-     JOIN price_level pl ON pl.id = cpb.price_level_id
-     WHERE cpb.customer_id = ?
+     JOIN price_level pl ON pl.id = cpb.price_level_id AND pl.tenant_id = cpb.tenant_id
+     WHERE cpb.customer_id = ? AND cpb.tenant_id = ?
      ORDER BY cpb.id DESC LIMIT 1`,
-    [body.customerId]
+    [body.customerId, tenantId]
   );
 
   res.json(ok(record));
 }));
 
 // 审批通过
-priceRouter.put("/customer-bindings/:id/approve", requireAuth, asyncHandler(async (req, res) => {
+priceRouter.put("/customer-bindings/:id/approve", requireAuthWithTenant, asyncHandler(async (req, res) => {
+  const tenantId = req.tenantId;
   const bindingId = Number(req.params.id);
   const existing = await queryOne<any>(
-    "SELECT id, customer_id, status FROM customer_price_binding WHERE id = ?",
-    [bindingId]
+    "SELECT id, customer_id, status FROM customer_price_binding WHERE id = ? AND tenant_id = ?",
+    [bindingId, tenantId]
   );
   if (!existing) {
     res.status(404).json({ code: "404", message: "绑定记录不存在" });
@@ -578,8 +595,8 @@ priceRouter.put("/customer-bindings/:id/approve", requireAuth, asyncHandler(asyn
   await query(
     `UPDATE customer_price_binding
      SET status = 'APPROVED', approved_by = ?, approved_at = NOW(), updated_at = NOW()
-     WHERE id = ?`,
-    [req.user!.id, bindingId]
+     WHERE id = ? AND tenant_id = ?`,
+    [req.user!.id, bindingId, tenantId]
   );
 
   res.json(ok({
@@ -591,7 +608,8 @@ priceRouter.put("/customer-bindings/:id/approve", requireAuth, asyncHandler(asyn
 }));
 
 // 审批拒绝
-priceRouter.put("/customer-bindings/:id/reject", requireAuth, asyncHandler(async (req, res) => {
+priceRouter.put("/customer-bindings/:id/reject", requireAuthWithTenant, asyncHandler(async (req, res) => {
+  const tenantId = req.tenantId;
   const bindingId = Number(req.params.id);
   const existing = await queryOne<any>(
     "SELECT id, status FROM customer_price_binding WHERE id = ?",
@@ -609,8 +627,8 @@ priceRouter.put("/customer-bindings/:id/reject", requireAuth, asyncHandler(async
   await query(
     `UPDATE customer_price_binding
      SET status = 'REJECTED', approved_by = ?, approved_at = NOW(), updated_at = NOW()
-     WHERE id = ?`,
-    [req.user!.id, bindingId]
+     WHERE id = ? AND tenant_id = ?`,
+    [req.user!.id, bindingId, tenantId]
   );
 
   res.json(ok({
@@ -622,11 +640,12 @@ priceRouter.put("/customer-bindings/:id/reject", requireAuth, asyncHandler(async
 }));
 
 // 取消绑定
-priceRouter.delete("/customer-bindings/:id", requireAuth, asyncHandler(async (req, res) => {
+priceRouter.delete("/customer-bindings/:id", requireAuthWithTenant, asyncHandler(async (req, res) => {
+  const tenantId = req.tenantId;
   const bindingId = Number(req.params.id);
   const existing = await queryOne<any>(
-    "SELECT id, status FROM customer_price_binding WHERE id = ?",
-    [bindingId]
+    "SELECT id, status FROM customer_price_binding WHERE id = ? AND tenant_id = ?",
+    [bindingId, tenantId]
   );
   if (!existing) {
     res.status(404).json({ code: "404", message: "绑定记录不存在" });
@@ -634,8 +653,8 @@ priceRouter.delete("/customer-bindings/:id", requireAuth, asyncHandler(async (re
   }
 
   await query(
-    "UPDATE customer_price_binding SET status = 'EXPIRED', updated_at = NOW() WHERE id = ?",
-    [bindingId]
+    "UPDATE customer_price_binding SET status = 'EXPIRED', updated_at = NOW() WHERE id = ? AND tenant_id = ?",
+    [bindingId, tenantId]
   );
 
   res.json(ok({ bindingId, status: "EXPIRED" }));
@@ -644,12 +663,13 @@ priceRouter.delete("/customer-bindings/:id", requireAuth, asyncHandler(async (re
 // ========== 价格变更历史 ==========
 
 // 查询价格变更历史（支持skuId筛选+分页）
-priceRouter.get("/change-logs", requireAuth, asyncHandler(async (req, res) => {
+priceRouter.get("/change-logs", requireAuthWithTenant, asyncHandler(async (req, res) => {
+  const tenantId = req.tenantId;
   const page = Number(req.query.page || 1);
   const pageSize = Number(req.query.pageSize || 20);
   const offset = (page - 1) * pageSize;
-  const conditions: string[] = [];
-  const params: unknown[] = [];
+  const conditions: string[] = ["pcl.tenant_id = ?"];
+  const params: unknown[] = [tenantId];
 
   if (req.query.skuId) {
     conditions.push("pcl.sku_id = ?");
@@ -660,7 +680,7 @@ priceRouter.get("/change-logs", requireAuth, asyncHandler(async (req, res) => {
     params.push(Number(req.query.priceLevelId));
   }
 
-  const where = conditions.length > 0 ? `WHERE ${conditions.join(" AND ")}` : "";
+  const where = `WHERE ${conditions.join(" AND ")}`;
 
   const records = await query<any>(
     `SELECT pcl.id, pcl.sku_id AS skuId, pcl.price_level_id AS priceLevelId,
@@ -669,7 +689,7 @@ priceRouter.get("/change-logs", requireAuth, asyncHandler(async (req, res) => {
             pcl.change_reason AS changeReason, pcl.changed_by AS changedBy,
             pcl.created_at AS createdAt
      FROM price_change_log pcl
-     JOIN price_level pl ON pl.id = pcl.price_level_id
+     JOIN price_level pl ON pl.id = pcl.price_level_id AND pl.tenant_id = pcl.tenant_id
      ${where}
      ORDER BY pcl.created_at DESC
      LIMIT ? OFFSET ?`,

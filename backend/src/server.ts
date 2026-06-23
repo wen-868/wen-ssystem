@@ -41,8 +41,14 @@ import { purchaseInStockRouter } from "./routes/purchase-in-stock.routes.js";
 import { purchaseReturnRouter } from "./routes/purchase-return.routes.js";
 import { customerStatementRouter } from "./routes/customer-statement.routes.js";
 import { customerPaymentRouter } from "./routes/customer-payment.routes.js";
+import { customerVisitRouter } from "./routes/customer-visit.routes.js";
 import { approvalRouter } from "./routes/approval.routes.js";
+import { tenantRouter } from "./routes/tenant.routes.js";
+import { subscriptionRouter } from "./routes/subscription.routes.js";
+import { customerMergeRouter } from "./routes/customer-merge.routes.js";
 import { startOverdueScanner } from "./services/overdue-scanner.service.js";
+import { startSubscriptionExpiryScanner } from "./services/subscription-expiry.service.js";
+import { marketingNewRouter } from "./routes/marketing-new.routes.js";
 
 const app = express();
 
@@ -103,7 +109,12 @@ app.use("/api/admin/purchase-in-stocks", requireAuthWithTenant, purchaseInStockR
 app.use("/api/admin/purchase-returns", requireAuthWithTenant, purchaseReturnRouter);
 app.use("/api/admin/customer-statements", requireAuthWithTenant, customerStatementRouter);
 app.use("/api/admin/customer-payments", requireAuthWithTenant, customerPaymentRouter);
+app.use("/api/admin/customer-visits", requireAuthWithTenant, customerVisitRouter);
 app.use("/api/admin/approval", requireAuthWithTenant, approvalRouter);
+app.use("/api/admin/tenants", requireAuthWithTenant, tenantRouter);
+app.use("/api/admin/subscriptions", requireAuthWithTenant, subscriptionRouter);
+app.use("/api/admin/customer-merge", requireAuthWithTenant, customerMergeRouter);
+app.use("/api/admin/marketing-new", requireAuthWithTenant, marketingNewRouter);
 
 app.use(errorHandler);
 
