@@ -12,6 +12,33 @@ export type AuthUser = {
   tenantId: string;
 };
 
+export type AccessMode = "ADMIN" | "CASHIER";
+
+export type UserAccessInfo = {
+  accessModes: AccessMode[];
+  defaultMode: AccessMode;
+};
+
+const ADMIN_ROLES = ["SUPER_ADMIN", "OPERATION_ADMIN", "WAREHOUSE_ADMIN", "FINANCE_ADMIN"];
+const CASHIER_ROLES = ["STORE_MANAGER", "STORE_OPERATOR", "CASHIER", "SALES"];
+
+export function getUserAccessInfo(user: AuthUser): UserAccessInfo {
+  const hasAdminRole = user.roles.some(r => ADMIN_ROLES.includes(r));
+  const hasCashierRole = user.roles.some(r => CASHIER_ROLES.includes(r));
+
+  const accessModes: AccessMode[] = [];
+  if (hasAdminRole) accessModes.push("ADMIN");
+  if (hasCashierRole || hasAdminRole) accessModes.push("CASHIER");
+
+  if (accessModes.length === 0) {
+    accessModes.push("CASHIER");
+  }
+
+  const defaultMode: AccessMode = hasAdminRole ? "ADMIN" : "CASHIER";
+
+  return { accessModes, defaultMode };
+}
+
 export function hasAnyRole(user: AuthUser | undefined, allowedRoles: string[]) {
   if (!user) return false;
   if (user.roles.includes("SUPER_ADMIN")) return true;

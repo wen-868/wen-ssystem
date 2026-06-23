@@ -1,6 +1,6 @@
 import { Router } from "express";
 import { z } from "zod";
-import { requireAuth, signToken, requireAuthWithTenant } from "../shared/auth.js";
+import { requireAuth, signToken, requireAuthWithTenant, getUserAccessInfo } from "../shared/auth.js";
 import { asyncHandler } from "../shared/async-handler.js";
 import { query, queryOne, transaction } from "../shared/db.js";
 import { makeBizNo } from "../shared/id.js";
@@ -24,26 +24,36 @@ adminRouter.post("/auth/login", asyncHandler(async (req, res) => {
     `SELECT r.role_code
      FROM sys_user_role ur
      JOIN sys_role r ON r.id = ur.role_id
-     WHERE ur.user_id = ? AND r.status = 1`,
+     WHERE ur.user_id = ? AND r.status = 'ACTIVE'`,
     [account.id]
   );
   const roleCodes = roles.map((r: any) => r.role_code);
   const tenantId = account.tenant_id || 'default';
+  const authUser = {
+    id: account.id,
+    username: account.username,
+    realName: account.real_name,
+    roles: roleCodes,
+    storeId: account.store_id,
+    tenantId
+  };
+  const accessInfo = getUserAccessInfo(authUser);
   const user = {
     id: account.id,
     username: account.username,
     realName: account.real_name,
     storeId: account.store_id,
-    tenantId: tenantId,
+    tenantId,
     roles: roleCodes,
-    permissions: ["*"]
+    permissions: ["*"],
+    ...accessInfo
   };
-  res.json(ok({ token: signToken({ id: account.id, username: account.username, realName: account.real_name, roles: roleCodes, storeId: account.store_id, tenantId }), user }));
+  res.json(ok({ token: signToken(authUser), user }));
 }));
 
 adminRouter.get("/auth/me", requireAuthWithTenant, asyncHandler(async (req, res) => {
-  const tenantId = req.tenantId!;
-  res.json(ok(req.user));
+  const accessInfo = getUserAccessInfo(req.user!);
+  res.json(ok({ ...req.user, ...accessInfo }));
 }));
 
 adminRouter.get("/staff", requireAuth, asyncHandler(async (_req, res) => {

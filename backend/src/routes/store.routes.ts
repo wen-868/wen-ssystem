@@ -1,7 +1,7 @@
 import { Router } from "express";
 import { z } from "zod";
 import { asyncHandler } from "../shared/async-handler.js";
-import { requireAuth, requireAuthWithTenant, signToken } from "../shared/auth.js";
+import { requireAuth, requireAuthWithTenant, signToken, getUserAccessInfo } from "../shared/auth.js";
 import { query, queryOne, transaction } from "../shared/db.js";
 import { makeBizNo, makeToken } from "../shared/id.js";
 import { verifyPassword } from "../shared/password.js";
@@ -10,27 +10,44 @@ import { completeOrderDelivery } from "../shared/fulfillment.js";
 
 export const storeRouter = Router();
 
-// 登录接口放在 requireAuth 之前，不需要认证
 storeRouter.post("/auth/login", asyncHandler(async (req, res) => {
   const body = z.object({ username: z.string(), password: z.string() }).parse(req.body);
   const account = await queryOne<any>(
-    "SELECT id, username, password_hash, real_name, store_id, status, role, tenant_id FROM sys_user WHERE username = ? LIMIT 1",
+    "SELECT id, username, password_hash, real_name, store_id, status, tenant_id FROM sys_user WHERE username = ? LIMIT 1",
     [body.username]
   );
   if (!account || account.status !== 1 || !verifyPassword(body.password, account.password_hash)) {
     res.status(401).json({ code: "401", message: "账号或密码错误" });
     return;
   }
-  const role = account.role || "STAFF";
+  const roles = await query<any>(
+    `SELECT r.role_code
+     FROM sys_user_role ur
+     JOIN sys_role r ON r.id = ur.role_id
+     WHERE ur.user_id = ? AND r.status = 'ACTIVE'`,
+    [account.id]
+  );
+  const roleCodes = roles.map((r: any) => r.role_code);
   const tenantId = account.tenant_id || 'default';
-  const user = {
+  const authUser = {
     id: account.id,
-    name: account.real_name || account.username,
-    role,
-    storeId: account.store_id ?? 1,
+    username: account.username,
+    realName: account.real_name,
+    roles: roleCodes.length > 0 ? roleCodes : ["STAFF"],
+    storeId: account.store_id,
     tenantId
   };
-  const token = signToken({ id: account.id, username: account.username, roles: [role], storeId: account.store_id, tenantId });
+  const accessInfo = getUserAccessInfo(authUser);
+  const user = {
+    id: account.id,
+    username: account.username,
+    realName: account.real_name || account.username,
+    roles: authUser.roles,
+    storeId: account.store_id ?? 1,
+    tenantId,
+    ...accessInfo
+  };
+  const token = signToken(authUser);
   res.json(ok({ token, user }));
 }));
 
