@@ -81,6 +81,8 @@ app.use("/api/admin/sys-config", requireAuth, sysConfigRouter);
 
 app.use(errorHandler);
 
+export { app };
+
 async function start() {
   if (!env.USE_MOCK_DB) {
     await initDatabase();
@@ -99,7 +101,11 @@ async function start() {
   });
 }
 
-start().catch((error) => {
-  console.error("❌ 后端启动失败:", error);
-  process.exit(1);
-});
+if (process.env.NODE_ENV !== "test") {
+  start().catch((error) => {
+    console.error("❌ 后端启动失败:", error);
+    process.exit(1);
+  });
+}
+
+export { start };

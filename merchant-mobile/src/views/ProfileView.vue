@@ -1,14 +1,13 @@
 <script setup lang="ts">
 import { onMounted, ref, computed } from 'vue'
 import { showSuccessToast, showDialog } from 'vant'
-import { api, fetchAdminStores } from '../api'
+import { api } from '../api'
 
 // 角色中文化映射
 const ROLE_MAP: Record<string, string> = {
   STAFF: '店员',
   MANAGER: '店长',
-  ADMIN: '管理员',
-  SUPER_ADMIN: '超级管理员'
+  ADMIN: '管理员'
 }
 
 const me = ref({
@@ -17,18 +16,13 @@ const me = ref({
   role: '',
   permissions: [] as string[],
   storeName: '',
-  storeAddress: '',
-  mobile: ''
+  storeAddress: ''
 })
 const loading = ref(false)
 
 const roleLabel = computed(() => {
   return ROLE_MAP[me.value.role] || me.value.role || '未知角色'
 })
-
-// 门店列表
-const stores = ref<Array<{ id: number; name: string; address?: string }>>([])
-const showStorePicker = ref(false)
 
 onMounted(async () => {
   loading.value = true
@@ -41,8 +35,7 @@ onMounted(async () => {
       role: data.role || '',
       permissions: data.permissions || [],
       storeName: data.storeName || '',
-      storeAddress: data.storeAddress || '',
-      mobile: data.mobile || ''
+      storeAddress: data.storeAddress || ''
     }
   } catch {
     // 使用本地缓存
@@ -58,17 +51,6 @@ onMounted(async () => {
     }
   } finally {
     loading.value = false
-  }
-
-  // 加载门店列表（仅管理员可见）
-  if (me.value.role === 'ADMIN' || me.value.role === 'SUPER_ADMIN') {
-    try {
-      const res = await fetchAdminStores({ page: 1, pageSize: 100 })
-      const data = res.data
-      stores.value = data?.records ?? data ?? []
-    } catch {
-      // ignore
-    }
   }
 })
 
@@ -86,26 +68,6 @@ function logout() {
   }).catch(() => {
     // 用户取消
   })
-}
-
-// 门店切换
-function openStorePicker() {
-  if (stores.value.length === 0) {
-    showSuccessToast({ message: '暂无可切换的门店', position: 'bottom' })
-    return
-  }
-  showStorePicker.value = true
-}
-
-function switchStore(storeId: number) {
-  me.value.storeId = storeId
-  const store = stores.value.find(s => s.id === storeId)
-  if (store) {
-    me.value.storeName = store.name
-    me.value.storeAddress = store.address || ''
-  }
-  showStorePicker.value = false
-  showSuccessToast({ message: '门店已切换', position: 'bottom' })
 }
 
 // 修改密码弹窗
@@ -135,26 +97,25 @@ async function submitChangePassword() {
     return
   }
   // TODO: 后端尚未实现 /store/auth/change-password，暂不调用 API
+  // 待后端接口就绪后取消下方注释
+  // try {
+  //   showLoadingToast({ message: '提交中...', forbidClick: true })
+  //   await api.post('/store/auth/change-password', {
+  //     oldPassword: oldPassword.value,
+  //     newPassword: newPassword.value
+  //   })
+  //   closeToast()
+  //   showSuccessToast('密码修改成功')
+  //   showPasswordDialog.value = false
+  // } catch {
+  //   closeToast()
+  // }
   showSuccessToast({ message: '功能开发中，敬请期待', position: 'bottom' })
   showPasswordDialog.value = false
 }
 
 // 关于弹窗
 const showAboutDialog = ref(false)
-
-// 系统设置菜单
-const settingsMenu = [
-  { label: '修改密码', icon: 'lock', action: 'password' },
-  { label: '关于系统', icon: 'info-o', action: 'about' }
-]
-
-function handleSettingsClick(action: string) {
-  if (action === 'password') {
-    openPasswordDialog()
-  } else if (action === 'about') {
-    showAboutDialog.value = true
-  }
-}
 </script>
 
 <template>
@@ -162,17 +123,16 @@ function handleSettingsClick(action: string) {
     <!-- 用户信息卡片 -->
     <div class="card profile-card">
       <div class="profile-header">
-        <div class="avatar-wrapper">
-          <van-icon name="manager-o" size="56" color="var(--color-primary)" />
-        </div>
+        <van-icon name="manager-o" size="48" color="var(--color-primary)" />
         <div class="profile-info">
           <h2>{{ me.realName }}</h2>
-          <div class="profile-meta">
-            <van-tag v-if="me.role" plain size="medium" type="primary">{{ roleLabel }}</van-tag>
-            <span v-if="me.mobile" class="mobile-text">{{ me.mobile }}</span>
-          </div>
+          <van-tag v-if="me.role" plain size="medium">{{ roleLabel }}</van-tag>
         </div>
       </div>
+      <van-cell-group inset>
+        <van-cell title="门店ID" :value="String(me.storeId)" />
+        <van-cell title="权限数" :value="`${me.permissions.length} 项`" />
+      </van-cell-group>
     </div>
 
     <!-- 门店信息区域 -->
@@ -182,32 +142,25 @@ function handleSettingsClick(action: string) {
         <span>门店信息</span>
       </div>
       <van-cell-group inset>
-        <van-cell
-          title="当前门店"
-          :value="me.storeName || '暂无'"
-          is-link
-          @click="openStorePicker"
-        />
+        <van-cell title="门店名称" :value="me.storeName || '暂无'" />
         <van-cell title="门店地址" :value="me.storeAddress || '暂无'" />
-        <van-cell title="门店ID" :value="String(me.storeId)" />
-        <van-cell title="权限数" :value="`${me.permissions.length} 项`" />
       </van-cell-group>
     </div>
 
-    <!-- 系统设置 -->
-    <div class="card settings-card">
-      <div class="section-title">
-        <van-icon name="setting-o" size="18" color="var(--color-primary)" />
-        <span>系统设置</span>
-      </div>
+    <!-- 功能入口 -->
+    <div class="card">
       <van-cell-group inset>
         <van-cell
-          v-for="item in settingsMenu"
-          :key="item.action"
-          :title="item.label"
-          :icon="item.icon"
+          title="修改密码"
+          icon="lock"
           is-link
-          @click="handleSettingsClick(item.action)"
+          @click="openPasswordDialog"
+        />
+        <van-cell
+          title="关于"
+          icon="info-o"
+          is-link
+          @click="showAboutDialog = true"
         />
       </van-cell-group>
     </div>
@@ -216,29 +169,6 @@ function handleSettingsClick(action: string) {
     <div class="logout-section">
       <van-button block type="danger" plain @click="logout">退出登录</van-button>
     </div>
-
-    <!-- 门店切换弹窗 -->
-    <van-popup
-      v-model:show="showStorePicker"
-      position="bottom"
-      round
-      :style="{ maxHeight: '60%' }"
-    >
-      <div class="store-picker-panel">
-        <h3>切换门店</h3>
-        <van-cell-group inset>
-          <van-cell
-            v-for="store in stores"
-            :key="store.id"
-            :title="store.name"
-            :label="store.address || '-'"
-            :icon="store.id === me.storeId ? 'success' : ''"
-            is-link
-            @click="switchStore(store.id)"
-          />
-        </van-cell-group>
-      </div>
-    </van-popup>
 
     <!-- 修改密码弹窗 -->
     <van-dialog
@@ -282,55 +212,30 @@ function handleSettingsClick(action: string) {
         </div>
         <h3 class="about-name">智享营销系统</h3>
         <p class="about-version">版本号：v1.0.0</p>
-        <p class="about-desc">酒水行业进销存 + 营销管理系统</p>
       </div>
     </van-dialog>
   </section>
 </template>
 
 <style scoped>
-/* ===== 用户信息卡片 ===== */
 .profile-card {
   text-align: center;
-  padding: 24px 16px;
 }
 
 .profile-header {
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 12px;
-}
-
-.avatar-wrapper {
-  width: 80px;
-  height: 80px;
-  border-radius: 50%;
-  background: var(--color-primary-soft);
-  display: flex;
-  align-items: center;
-  justify-content: center;
+  margin-bottom: 16px;
 }
 
 .profile-info h2 {
-  margin: 0 0 8px;
-  font-size: 20px;
-  font-weight: 600;
+  margin: 8px 0 4px;
+  font-size: 18px;
   color: var(--text-primary);
 }
 
-.profile-meta {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-}
-
-.mobile-text {
-  font-size: 13px;
-  color: var(--text-secondary);
-}
-
-/* ===== 门店信息区域 ===== */
+/* 门店信息区域 */
 .store-info-card {
   margin-top: 12px;
 }
@@ -345,17 +250,12 @@ function handleSettingsClick(action: string) {
   color: var(--text-primary);
 }
 
-/* ===== 系统设置 ===== */
-.settings-card {
-  margin-top: 12px;
-}
-
-/* ===== 修改密码表单 ===== */
+/* 修改密码表单 */
 .password-form {
   padding: 8px 0;
 }
 
-/* ===== 关于弹窗 ===== */
+/* 关于弹窗 */
 .about-content {
   display: flex;
   flex-direction: column;
@@ -375,30 +275,12 @@ function handleSettingsClick(action: string) {
 }
 
 .about-version {
-  margin: 0 0 4px;
+  margin: 0;
   font-size: 14px;
   color: var(--text-secondary);
 }
 
-.about-desc {
-  margin: 0;
-  font-size: 13px;
-  color: var(--text-muted);
-}
-
-/* ===== 门店切换弹窗 ===== */
-.store-picker-panel {
-  padding: 20px 16px;
-}
-
-.store-picker-panel h3 {
-  margin: 0 0 16px;
-  font-size: 16px;
-  text-align: center;
-  color: var(--text-primary);
-}
-
-/* ===== 退出登录 ===== */
+/* 退出登录 */
 .logout-section {
   margin-top: 24px;
 }

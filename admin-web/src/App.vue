@@ -191,52 +191,21 @@
             <div class="cashier-search">
               <el-input
                 v-model="cashierProductKeyword"
-                placeholder="搜索商品名称/SKU/条码"
+                placeholder="搜索商品名称/SKU"
                 clearable
                 @input="searchCashierProducts"
-              >
-                <template #prefix>
-                  <el-icon><Search /></el-icon>
-                </template>
-              </el-input>
-            </div>
-            <div class="cashier-category-tabs">
-              <el-tag
-                v-for="cat in cashierCategories"
-                :key="cat"
-                :type="cashierActiveCategory === cat ? 'primary' : 'info'"
-                effect="plain"
-                class="category-tag"
-                @click="cashierActiveCategory = cat; searchCashierProducts()"
-              >
-                {{ cat }}
-              </el-tag>
+              />
             </div>
             <div class="cashier-product-list">
               <div
                 v-for="product in cashierProducts"
-                :key="product.skuId || product.id"
+                :key="product.skuId"
                 class="cashier-product-item"
                 @click="addToCart(product)"
               >
-                <div class="product-image">
-                  <img v-if="product.mainImage" :src="product.mainImage" :alt="product.name" />
-                  <span v-else class="product-placeholder">{{ product.name?.charAt(0) }}</span>
-                </div>
-                <div class="product-info">
-                  <div class="product-name">{{ product.name }}</div>
-                  <div class="product-sku">{{ product.skuName }}</div>
-                  <div class="product-bottom">
-                    <span class="product-price">¥{{ formatYuan(product.retailPrice) }}</span>
-                    <span class="product-stock" :class="{ low: (product.availableQty ?? product.stock ?? 99) <= 5 }">
-                      库存: {{ product.availableQty ?? product.stock ?? '--' }}
-                    </span>
-                  </div>
-                </div>
-              </div>
-              <div v-if="cashierProducts.length === 0" class="product-empty">
-                <el-icon size="48" color="#ccc"><Document /></el-icon>
-                <p>暂无匹配商品</p>
+                <div class="product-name">{{ product.name }}</div>
+                <div class="product-sku">{{ product.skuName }}</div>
+                <div class="product-price">¥{{ formatYuan(product.retailPrice) }}</div>
               </div>
             </div>
           </div>
@@ -244,64 +213,27 @@
           <!-- 中间：购物车 -->
           <div class="cashier-center">
             <div class="cart-header">
-              <div class="cart-header-left">
-                <h3>购物车</h3>
-                <el-tag v-if="cashierCartTotalCount > 0" type="primary" effect="dark" size="small" round>
-                  {{ cashierCartTotalCount }} 件
-                </el-tag>
-              </div>
-              <el-button size="small" type="danger" :disabled="cashierCart.length === 0" @click="clearCart">
-                <el-icon><Delete /></el-icon>
-                清空
-              </el-button>
-            </div>
-            <div v-if="cashierRemark" class="cart-remark-bar" @click="cashierRemarkDialogVisible = true">
-              <el-icon><EditPen /></el-icon>
-              <span class="remark-text">{{ cashierRemark }}</span>
-              <el-icon class="remark-edit"><ArrowRight /></el-icon>
+              <h3>购物车</h3>
+              <el-button size="small" type="danger" @click="clearCart" :disabled="cashierCart.length === 0">清空</el-button>
             </div>
             <div class="cart-list">
-              <div v-if="cashierCart.length === 0" class="cart-empty">
-                <el-icon size="64" color="#e0e0e0"><ShoppingCart /></el-icon>
-                <p>购物车为空</p>
-                <p class="cart-empty-tip">点击左侧商品添加到购物车</p>
-              </div>
-              <div
-                v-for="(item, index) in cashierCart"
-                :key="index"
-                class="cart-item"
-                :class="{ 'cart-item-first': index === 0 }"
-              >
+              <div v-if="cashierCart.length === 0" class="cart-empty">购物车为空</div>
+              <div v-for="(item, index) in cashierCart" :key="index" class="cart-item">
                 <div class="cart-item-info">
                   <div class="cart-item-name">{{ item.name }}</div>
                   <div class="cart-item-sku">{{ item.skuName }}</div>
-                  <div class="cart-item-unit-price">单价: ¥{{ formatYuan(item.retailPrice) }}</div>
                 </div>
-                <div class="cart-item-right">
-                  <div class="cart-item-quantity-control">
-                    <button class="qty-btn qty-minus" @click="decreaseQty(index)">
-                      <el-icon><Minus /></el-icon>
-                    </button>
-                    <span class="qty-value">{{ item.quantity }}</span>
-                    <button class="qty-btn qty-plus" @click="increaseQty(index)">
-                      <el-icon><Plus /></el-icon>
-                    </button>
-                  </div>
-                  <div class="cart-item-subtotal">¥{{ formatYuan(item.retailPrice * item.quantity) }}</div>
-                  <button class="cart-item-remove" @click="removeFromCart(index)" title="删除">
-                    <el-icon><Delete /></el-icon>
-                  </button>
+                <div class="cart-item-quantity">
+                  <el-input-number
+                    v-model="item.quantity"
+                    :min="1"
+                    :max="999"
+                    size="small"
+                    @change="updateCartTotal"
+                  />
                 </div>
-              </div>
-            </div>
-            <div class="cart-footer">
-              <el-button type="primary" link @click="cashierRemarkDialogVisible = true">
-                <el-icon><EditPen /></el-icon>
-                {{ cashierRemark ? '修改备注' : '添加备注' }}
-              </el-button>
-              <div class="cart-footer-total">
-                <span>合计：</span>
-                <span class="cart-total-amount">¥{{ formatYuan(cashierSubtotal) }}</span>
+                <div class="cart-item-price">¥{{ formatYuan(item.retailPrice * item.quantity) }}</div>
+                <el-button size="small" type="danger" link @click="removeFromCart(index)">删除</el-button>
               </div>
             </div>
           </div>
@@ -309,19 +241,14 @@
           <!-- 右侧：结算区 -->
           <div class="cashier-right">
             <div class="settlement-section">
-              <!-- 应收金额卡片 -->
-              <div class="total-card">
-                <div class="total-label">应收金额</div>
-                <div class="total-amount-large">¥{{ formatYuan(cashierTotal) }}</div>
-                <div class="total-item-count">{{ cashierCartTotalCount }} 件商品</div>
-              </div>
+              <h3>结算</h3>
 
               <!-- 客户选择 -->
-              <div class="settlement-block">
-                <div class="settlement-block-title">客户信息</div>
+              <div class="settlement-item">
+                <label>客户：</label>
                 <el-select
                   v-model="cashierSelectedCustomer"
-                  placeholder="选择客户（散客可留空）"
+                  placeholder="选择客户（可选）"
                   clearable
                   filterable
                   style="width: 100%"
@@ -329,92 +256,69 @@
                   <el-option
                     v-for="member in members"
                     :key="member.id"
-                    :label="member.name + (member.mobile ? ' (' + member.mobile + ')' : '')"
+                    :label="member.name"
                     :value="member"
                   />
                 </el-select>
               </div>
 
-              <!-- 金额明细 -->
-              <div class="settlement-block">
-                <div class="settlement-block-title">金额明细</div>
-                <div class="amount-detail">
-                  <div class="amount-row">
-                    <span>商品总额</span>
-                    <span>¥{{ formatYuan(cashierSubtotal) }}</span>
-                  </div>
-                  <div class="amount-row discount-row">
-                    <span>优惠折扣</span>
-                    <div class="discount-input">
-                      <el-input-number
-                        v-model="cashierDiscount"
-                        :min="0"
-                        :max="cashierSubtotal"
-                        :precision="2"
-                        size="small"
-                        style="width: 120px"
-                      />
-                    </div>
-                  </div>
-                  <div class="amount-row discount-row">
-                    <span>抹零</span>
-                    <div class="discount-input">
-                      <el-input-number
-                        v-model="cashierRoundDown"
-                        :min="0"
-                        :max="Math.min(10, cashierSubtotal - cashierDiscount)"
-                        :precision="2"
-                        size="small"
-                        style="width: 120px"
-                      />
-                    </div>
-                  </div>
+              <!-- 金额汇总 -->
+              <div class="settlement-summary">
+                <div class="summary-row">
+                  <span>商品总额：</span>
+                  <span>¥{{ formatYuan(cashierSubtotal) }}</span>
+                </div>
+                <div class="summary-row">
+                  <label>折扣：</label>
+                  <el-input-number
+                    v-model="cashierDiscount"
+                    :min="0"
+                    :max="cashierSubtotal"
+                    :precision="2"
+                    size="small"
+                    style="width: 100px"
+                    @change="updateCartTotal"
+                  />
+                </div>
+                <div class="summary-row">
+                  <label>抹零：</label>
+                  <el-input-number
+                    v-model="cashierRoundDown"
+                    :min="0"
+                    :max="10"
+                    :precision="2"
+                    size="small"
+                    style="width: 100px"
+                    @change="updateCartTotal"
+                  />
+                </div>
+                <div class="summary-row total">
+                  <span>应收金额：</span>
+                  <span class="total-amount">¥{{ formatYuan(cashierTotal) }}</span>
                 </div>
               </div>
 
               <!-- 支付方式 -->
-              <div class="settlement-block">
-                <div class="settlement-block-title">支付方式</div>
-                <div class="payment-methods">
-                  <div
-                    v-for="method in paymentMethods"
-                    :key="method.value"
-                    class="payment-method-item"
-                    :class="{ active: cashierPaymentMethod === method.value }"
-                    @click="cashierPaymentMethod = method.value"
-                  >
-                    <div class="payment-icon">{{ method.icon }}</div>
-                    <div class="payment-name">{{ method.label }}</div>
-                  </div>
-                </div>
+              <div class="settlement-item">
+                <label>支付方式：</label>
+                <el-radio-group v-model="cashierPaymentMethod">
+                  <el-radio label="CASH">现金</el-radio>
+                  <el-radio label="WECHAT">微信</el-radio>
+                  <el-radio label="ALIPAY">支付宝</el-radio>
+                </el-radio-group>
               </div>
 
-              <!-- 现金收款 -->
-              <div v-if="cashierPaymentMethod === 'CASH'" class="settlement-block">
-                <div class="settlement-block-title">现金收款</div>
-                <div class="cash-receive">
-                  <el-input-number
-                    v-model="cashierReceivedAmount"
-                    :min="0"
-                    :precision="2"
-                    size="large"
-                    style="width: 100%"
-                    placeholder="输入收款金额"
-                  />
-                  <div class="change-card" :class="{ positive: cashierChange > 0 }">
-                    <span>找零金额</span>
-                    <span class="change-value">¥{{ formatYuan(cashierChange) }}</span>
-                  </div>
-                  <div class="quick-amounts">
-                    <el-button
-                      v-for="amt in quickAmounts"
-                      :key="amt"
-                      size="small"
-                      @click="cashierReceivedAmount = Math.max(cashierTotal, amt)"
-                    >
-                      ¥{{ amt }}
-                    </el-button>
-                  </div>
+              <!-- 收款金额（现金时显示） -->
+              <div v-if="cashierPaymentMethod === 'CASH'" class="settlement-item">
+                <label>收款金额：</label>
+                <el-input-number
+                  v-model="cashierReceivedAmount"
+                  :min="cashierTotal"
+                  :precision="2"
+                  style="width: 100%"
+                />
+                <div class="change-amount">
+                  找零：¥{{ formatYuan(cashierChange) }}
                 </div>
               </div>
 
@@ -422,52 +326,19 @@
               <el-button
                 type="primary"
                 size="large"
-                class="submit-btn"
+                style="width: 100%; margin-top: 20px"
                 :disabled="cashierCart.length === 0"
                 @click="submitSale"
               >
-                <el-icon><Check /></el-icon>
-                确认收款（¥{{ formatYuan(cashierTotal) }}）
+                提交订单
               </el-button>
-
-              <!-- 快捷键提示 -->
-              <div class="shortcut-tips">
-                <span>快捷键：Enter 确认收款</span>
-              </div>
             </div>
           </div>
         </div>
       </div>
 
-      <!-- 备注对话框 -->
-      <el-dialog v-model="cashierRemarkDialogVisible" title="订单备注" width="400px">
-        <el-input
-          v-model="cashierRemarkTemp"
-          type="textarea"
-          :rows="4"
-          placeholder="请输入备注信息..."
-          maxlength="200"
-          show-word-limit
-        />
-        <div class="remark-tags">
-          <el-tag
-            v-for="tag in remarkTags"
-            :key="tag"
-            class="remark-tag"
-            @click="cashierRemarkTemp = tag"
-            effect="plain"
-          >
-            {{ tag }}
-          </el-tag>
-        </div>
-        <template #footer>
-          <el-button @click="cashierRemarkTemp = ''">清空</el-button>
-          <el-button type="primary" @click="saveRemark">确定</el-button>
-        </template>
-      </el-dialog>
-
       <!-- 管理后台模式 -->
-      <template v-if="!isCashierMode">
+      <template v-else>
       <section class="dashboard-hero">
         <div>
           <h2>{{ activeNav }}</h2>
@@ -585,7 +456,7 @@
           <div style="display: flex; justify-content: space-between; align-items: center">
             <span>商品列表</span>
             <div style="display: flex; gap: 8px; align-items: center">
-              <el-input v-model="productsKeyword" placeholder="商品名/SKU" size="small" style="width: 180px" clearable @clear="searchProducts" @keyup.enter="searchProducts"><template #prefix><el-icon><Search /></el-icon></template></el-input>
+              <el-input v-model="productsKeyword" placeholder="商品名/SKU" size="small" style="width: 180px" clearable @clear="searchProducts" @keyup.enter="searchProducts" />
               <el-button size="small" @click="searchProducts">搜索</el-button>
               <el-button size="small" @click="loadProducts">刷新商品</el-button>
               <el-button size="small" type="primary" @click="productDialogVisible = true">新增商品</el-button>
@@ -737,7 +608,7 @@
             <div class="stat-item"><div class="stat-value">{{ formatYuan(customerStats.totalReceivable) }}</div><div class="stat-label">总应收</div></div>
           </div>
           <div class="filter-area">
-            <el-input v-model="membersKeyword" placeholder="客户名/手机号" style="width:180px" clearable @clear="searchMembers" @keyup.enter="searchMembers"><template #prefix><el-icon><Search /></el-icon></template></el-input>
+            <el-input v-model="membersKeyword" placeholder="客户名/手机号" style="width:180px" clearable @clear="searchMembers" @keyup.enter="searchMembers" />
             <el-select v-model="memberFilterType" placeholder="客户类型" style="width:130px" clearable @change="searchMembers"><el-option label="零售客户" value="RETAIL" /><el-option label="批发客户" value="WHOLESALE" /></el-select>
             <el-select v-model="memberFilterLevel" placeholder="客户等级" style="width:130px" clearable @change="searchMembers"><el-option label="普通" value="NORMAL" /><el-option label="银卡" value="SILVER" /><el-option label="金卡" value="GOLD" /><el-option label="钻石" value="DIAMOND" /></el-select>
             <el-select v-model="memberFilterArea" placeholder="区域" style="width:130px" clearable @change="searchMembers"><el-option label="东区" value="EAST" /><el-option label="西区" value="WEST" /><el-option label="南区" value="SOUTH" /><el-option label="北区" value="NORTH" /></el-select>
@@ -753,7 +624,7 @@
               <el-table-column label="操作" width="280"><template #default="{row}"><el-button size="small" link type="primary" @click="openCustomerDetail(row)">详情</el-button><el-button size="small" link type="success" @click="handleQuickAction(row,'开单')">开单</el-button><el-button size="small" link type="warning" @click="handleQuickAction(row,'收款')">收款</el-button><el-button size="small" link @click="handleQuickAction(row,'拜访')">拜访</el-button></template></el-table-column>
             </el-table>
             <div style="display:flex;justify-content:flex-end;margin-top:12px">
-              <el-pagination v-model:current-page="memberPage" v-model:page-size="memberPageSize" :total="memberTotal" :page-sizes="[10, 20, 50]" layout="total, sizes, prev, pager, next, jumper" size="small" @current-change="loadMembers" @size-change="loadMembers" />
+              <el-pagination v-model:current-page="memberPage" :page-size="memberPageSize" :total="memberTotal" layout="total, prev, pager, next" @current-change="loadMembers" />
             </div>
           </div>
         </div>
@@ -865,9 +736,9 @@
             <el-table-column prop="sentAt" label="时间" width="170" />
             <el-table-column label="操作" width="100"><template #default="{row}"><el-button v-if="!row.isRead" size="small" link type="primary" @click="handleMarkRead(row)">标记已读</el-button></template></el-table-column>
           </el-table>
-          <div style="display:flex;justify-content:flex-end;align-items:center;margin-top:12px">
-          <el-pagination v-model:current-page="notificationPage" v-model:page-size="notificationPageSize" :total="notificationsTotal" :page-sizes="[10, 20, 50]" layout="total, sizes, prev, pager, next, jumper" size="small" @current-change="loadNotifications" @size-change="loadNotifications" />
-        </div>
+          <div style="display:flex;justify-content:flex-end;margin-top:12px">
+            <el-pagination v-model:current-page="notificationPage" :page-size="notificationPageSize" :total="notificationsTotal" layout="total, prev, pager, next" @current-change="loadNotifications" />
+          </div>
         </div>
       </template>
       <el-card v-if='activeNav === "订单"' style="margin-top: 20px">
@@ -875,7 +746,7 @@
           <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 10px">
             <span>小程序订单</span>
             <div style="display: flex; gap: 8px; align-items: center">
-              <el-input v-model="ordersKeyword" placeholder="订单号/收货人/电话" size="small" style="width: 180px" clearable @clear="searchOrders" @keyup.enter="searchOrders"><template #prefix><el-icon><Search /></el-icon></template></el-input>
+              <el-input v-model="ordersKeyword" placeholder="订单号/收货人/电话" size="small" style="width: 180px" clearable @clear="searchOrders" @keyup.enter="searchOrders" />
               <el-select v-model="ordersStatus" placeholder="全部状态" size="small" style="width: 140px" clearable @change="searchOrders">
                 <el-option label="待支付" value="PENDING_PAYMENT" />
                 <el-option label="已支付" value="PAID" />
@@ -934,8 +805,10 @@
             </template>
           </el-table-column>
         </el-table>
-        <div style="display:flex;justify-content:flex-end;align-items:center;margin-top:12px">
-          <el-pagination v-model:current-page="ordersPage" v-model:page-size="ordersPageSize" :total="ordersTotal" :page-sizes="[10, 20, 50]" layout="total, sizes, prev, pager, next, jumper" size="small" @current-change="loadOrders" @size-change="loadOrders" />
+        <div style="display: flex; justify-content: flex-end; align-items: center; margin-top: 12px; gap: 8px">
+          <span style="font-size: 13px; color: #666">共 {{ ordersTotal }} 条，第 {{ ordersPage }} / {{ Math.ceil(ordersTotal / 10) || 1 }} 页</span>
+          <el-button size="small" :disabled="ordersPage <= 1" @click="prevOrdersPage">上一页</el-button>
+          <el-button size="small" :disabled="ordersPage >= Math.ceil(ordersTotal / 10)" @click="nextOrdersPage">下一页</el-button>
         </div>
       </el-card>
       <el-card v-if='activeNav === "订单泳道"' style="margin-top: 20px">
@@ -981,7 +854,7 @@
             <span>销售单</span>
             <div style="display: flex; gap: 8px; align-items: center; flex-wrap: wrap">
               <el-button size="small" type="primary" @click="openCreateSaleBillDialog">新建销售单</el-button>
-              <el-input v-model="saleBillsKeyword" placeholder="单号/客户名" size="small" style="width: 180px" clearable @clear="searchSaleBills" @keyup.enter="searchSaleBills"><template #prefix><el-icon><Search /></el-icon></template></el-input>
+              <el-input v-model="saleBillsKeyword" placeholder="单号/客户名" size="small" style="width: 180px" clearable @clear="searchSaleBills" @keyup.enter="searchSaleBills" />
               <el-select v-model="saleBillsStatus" placeholder="全部状态" size="small" style="width: 130px" clearable @change="searchSaleBills">
                 <el-option label="待收款" value="UNPAID" />
                 <el-option label="部分收款" value="PARTIAL" />
@@ -1321,7 +1194,7 @@
               </el-table-column>
             </el-table>
             <div style="margin-top:12px;text-align:right">
-              <el-pagination v-model:current-page="batchPage" v-model:page-size="batchPageSize" :total="batchTotal" :page-sizes="[10, 20, 50]" layout="total, sizes, prev, pager, next, jumper" size="small" @current-change="loadInventoryBatches" @size-change="loadInventoryBatches" />
+              <el-pagination small layout="prev,pager,next" :total="batchTotal" :page-size="20" v-model:current-page="batchPage" @current-change="loadInventoryBatches" />
             </div>
           </el-tab-pane>
           <el-tab-pane label="效期预警" name="expiryAlerts">
@@ -1409,7 +1282,7 @@
               </el-tab-pane>
               <el-tab-pane label="追溯码管理" name="codes">
                 <div class="filter-area">
-                  <el-input v-model="traceCodeKeyword" placeholder="搜索追溯码/SKU/批次" size="small" style="width:200px" clearable><template #prefix><el-icon><Search /></el-icon></template></el-input>
+                  <el-input v-model="traceCodeKeyword" placeholder="搜索追溯码/SKU/批次" size="small" style="width:200px" clearable />
                   <el-select v-model="traceCodeStatusFilter" placeholder="状态" size="small" style="width:120px" clearable><el-option label="未激活" value="INACTIVE" /><el-option label="已激活" value="ACTIVE" /><el-option label="已使用" value="USED" /><el-option label="已过期" value="EXPIRED" /></el-select>
                   <el-button size="small" @click="loadTraceCodes">搜索</el-button>
                   <el-button size="small" type="primary" @click="traceCodeGenerateDialogVisible=true">批量生成</el-button>
@@ -1426,7 +1299,7 @@
                   </el-table>
                 </div>
                 <div class="pagination-bar">
-                  <el-pagination v-model:current-page="traceCodePage" v-model:page-size="traceCodePageSize" :total="traceCodeTotal" :page-sizes="[10, 20, 50]" layout="total, sizes, prev, pager, next, jumper" size="small" @current-change="loadTraceCodes" @size-change="loadTraceCodes" />
+                  <el-pagination v-model:current-page="traceCodePage" :page-size="traceCodePageSize" :total="traceCodeTotal" layout="total, prev, pager, next" @current-change="loadTraceCodes" />
                 </div>
               </el-tab-pane>
               <el-tab-pane label="召回管理" name="recalls">
@@ -1507,7 +1380,7 @@
               </el-table-column>
             </el-table>
             <div style="margin-top:12px;text-align:right">
-              <el-pagination v-model:current-page="transferPage" v-model:page-size="transferPageSize" :total="transferTotal" :page-sizes="[10, 20, 50]" layout="total, sizes, prev, pager, next, jumper" size="small" @current-change="loadTransfers" @size-change="loadTransfers" />
+              <el-pagination small layout="prev,pager,next" :total="transferTotal" :page-size="20" v-model:current-page="transferPage" @current-change="loadTransfers" />
             </div>
           </el-tab-pane>
           <!-- 库存盘点 -->
@@ -1547,7 +1420,7 @@
               </el-table-column>
             </el-table>
             <div style="margin-top:12px;text-align:right">
-              <el-pagination v-model:current-page="scPage" v-model:page-size="scPageSize" :total="scTotal" :page-sizes="[10, 20, 50]" layout="total, sizes, prev, pager, next, jumper" size="small" @current-change="loadStockChecks" @size-change="loadStockChecks" />
+              <el-pagination small layout="prev,pager,next" :total="scTotal" :page-size="20" v-model:current-page="scPage" @current-change="loadStockChecks" />
             </div>
           </el-tab-pane>
         </el-tabs>
@@ -1964,7 +1837,7 @@
             <el-input v-model="productEditForm.specs" placeholder="如：500ml/瓶" />
           </el-form-item>
           <el-form-item label="酒精度">
-            <el-input v-model="productEditForm.alcoholDegree" placeholder="如：53%vol" />
+            <el-input-number v-model="productEditForm.alcoholContent" :min="0" :max="100" :precision="1" style="width:120px" />
           </el-form-item>
           <el-form-item label="产地">
             <el-input v-model="productEditForm.origin" placeholder="如：贵州茅台" />
@@ -2165,7 +2038,7 @@
             <div class="stat-item"><div class="stat-value">{{ formatYuan(supplierStats.totalOwing) }}</div><div class="stat-label">待付款</div></div>
           </div>
           <div class="filter-area">
-            <el-input v-model="supplierKeyword" placeholder="供应商名/编码" style="width:200px" clearable @clear="loadSuppliers" @keyup.enter="loadSuppliers"><template #prefix><el-icon><Search /></el-icon></template></el-input>
+            <el-input v-model="supplierKeyword" placeholder="供应商名/编码" style="width:200px" clearable @clear="loadSuppliers" @keyup.enter="loadSuppliers" />
             <el-select v-model="supplierFilterType" placeholder="供应类型" style="width:140px" clearable><el-option label="白酒" value="BAIJIU" /><el-option label="啤酒" value="BEER" /><el-option label="红酒" value="WINE" /><el-option label="综合" value="GENERAL" /></el-select>
             <el-select v-model="supplierFilterStatus" placeholder="合作状态" style="width:140px" clearable><el-option label="合作中" value="ACTIVE" /><el-option label="已暂停" value="SUSPENDED" /><el-option label="已终止" value="TERMINATED" /></el-select>
             <el-button @click="loadSuppliers">搜索</el-button><el-button @click="loadSuppliers">刷新</el-button><el-button type="primary" @click="supplierDialogVisible=true">新增供应商</el-button><el-button type="success" @click="handleExportSuppliers"><el-icon><Download /></el-icon> 导出</el-button>
@@ -2263,7 +2136,7 @@
             <div class="stat-item"><div class="stat-value">{{ formatYuan(purchaseStats.totalOwing) }}</div><div class="stat-label">待付款</div></div>
           </div>
           <div class="filter-area">
-            <el-input v-model="purchaseKeyword" placeholder="采购单号/供应商" style="width:200px" clearable @clear="loadPurchaseOrders" @keyup.enter="loadPurchaseOrders"><template #prefix><el-icon><Search /></el-icon></template></el-input>
+            <el-input v-model="purchaseKeyword" placeholder="采购单号/供应商" style="width:200px" clearable @clear="loadPurchaseOrders" @keyup.enter="loadPurchaseOrders" />
             <el-select v-model="purchaseFilterStatus" placeholder="状态" style="width:140px" clearable><el-option label="待审核" value="PENDING" /><el-option label="已审核" value="APPROVED" /><el-option label="已入库" value="WAREHOUSED" /><el-option label="已取消" value="CANCELLED" /></el-select>
             <el-button @click="loadPurchaseOrders">搜索</el-button><el-button @click="loadPurchaseOrders">刷新</el-button><el-button type="primary" @click="openPurchaseCreate">新建采购单</el-button><el-button @click="purchaseView='return'">采购退货</el-button><el-button type="success" @click="handleExportPurchaseOrders"><el-icon><Download /></el-icon> 导出</el-button>
           </div>
@@ -2348,7 +2221,7 @@
             <div class="stat-item"><div class="stat-value">{{ saleReturnStats.thisMonth }}</div><div class="stat-label">本月退货</div></div>
           </div>
           <div class="filter-area">
-            <el-input v-model="saleReturnKeyword" placeholder="退货单号/客户名" style="width:200px" clearable @clear="loadSaleReturns" @keyup.enter="loadSaleReturns"><template #prefix><el-icon><Search /></el-icon></template></el-input>
+            <el-input v-model="saleReturnKeyword" placeholder="退货单号/客户名" style="width:200px" clearable @clear="loadSaleReturns" @keyup.enter="loadSaleReturns" />
             <el-select v-model="saleReturnFilterStatus" placeholder="状态" style="width:140px" clearable><el-option label="待审核" value="PENDING" /><el-option label="已审核" value="APPROVED" /><el-option label="已退款" value="REFUNDED" /><el-option label="已取消" value="CANCELLED" /></el-select>
             <el-button @click="loadSaleReturns">搜索</el-button><el-button @click="loadSaleReturns">刷新</el-button><el-button type="primary" @click="openSaleReturnCreate">新建退货单</el-button>
           </div>
@@ -2401,7 +2274,7 @@
             <div class="stat-item"><div class="stat-value">{{ formatYuan(statementStats.totalOwing) }}</div><div class="stat-label">待收款</div></div>
           </div>
           <div class="filter-area">
-            <el-input v-model="statementKeyword" placeholder="对账单号/客户名" style="width:200px" clearable @clear="loadStatements" @keyup.enter="loadStatements"><template #prefix><el-icon><Search /></el-icon></template></el-input>
+            <el-input v-model="statementKeyword" placeholder="对账单号/客户名" style="width:200px" clearable @clear="loadStatements" @keyup.enter="loadStatements" />
             <el-select v-model="statementFilterStatus" placeholder="状态" style="width:140px" clearable><el-option label="待确认" value="PENDING" /><el-option label="已确认" value="CONFIRMED" /><el-option label="有异议" value="DISPUTED" /></el-select>
             <el-button @click="loadStatements">搜索</el-button><el-button @click="loadStatements">刷新</el-button><el-button type="primary" @click="openStatementCreate">生成对账单</el-button>
           </div>
@@ -2522,7 +2395,7 @@
           <!-- 阶梯价格管理 -->
           <el-tab-pane label="阶梯价格管理" name="tierPrices">
             <div class="filter-area">
-              <el-input v-model="priceSkuKeyword" placeholder="搜索SKU编码/名称" size="small" style="width:200px" clearable><template #prefix><el-icon><Search /></el-icon></template></el-input>
+              <el-input v-model="priceSkuKeyword" placeholder="搜索SKU编码/名称" size="small" style="width:200px" clearable />
               <el-button size="small" type="primary" @click="searchPriceSku">搜索SKU</el-button>
               <el-select v-if="priceSkuList.length" v-model="priceSelectedSkuId" placeholder="选择SKU" size="small" style="width:280px" filterable @change="loadSkuTierPrices">
                 <el-option v-for="s in priceSkuList" :key="s.id" :label="`${s.skuCode} - ${s.name}`" :value="s.id" />
@@ -2605,7 +2478,7 @@
           <!-- 授信额度列表 -->
           <el-tab-pane label="授信额度列表" name="credits">
             <div class="filter-area">
-              <el-input v-model="creditKeyword" placeholder="搜索客户名" size="small" style="width:180px" clearable><template #prefix><el-icon><Search /></el-icon></template></el-input>
+              <el-input v-model="creditKeyword" placeholder="搜索客户名" size="small" style="width:180px" clearable />
               <el-select v-model="creditStatusFilter" placeholder="状态" size="small" style="width:120px" clearable><el-option label="正常" value="NORMAL" /><el-option label="冻结" value="FROZEN" /><el-option label="逾期" value="OVERDUE" /></el-select>
               <el-button size="small" @click="loadCredits">搜索</el-button>
               <el-button size="small" @click="loadCredits">刷新</el-button>
@@ -2687,7 +2560,7 @@
           <div class="stat-item"><div class="stat-value">{{ asStats.timeoutRate||'-' }}</div><div class="stat-label">超时率</div></div>
         </div>
         <div class="filter-area">
-          <el-input v-model="asKeyword" placeholder="搜索单号/订单号/客户" size="small" style="width:200px" clearable><template #prefix><el-icon><Search /></el-icon></template></el-input>
+          <el-input v-model="asKeyword" placeholder="搜索单号/订单号/客户" size="small" style="width:200px" clearable />
           <el-select v-model="asStatusFilter" placeholder="状态" size="small" style="width:120px" clearable><el-option label="待审核" value="PENDING" /><el-option label="已审核" value="APPROVED" /><el-option label="已拒绝" value="REJECTED" /><el-option label="待验货" value="INSPECTING" /><el-option label="已完成" value="COMPLETED" /></el-select>
           <el-date-picker v-model="asDateRange" type="daterange" size="small" start-placeholder="开始日期" end-placeholder="结束日期" value-format="YYYY-MM-DD" style="width:240px" />
           <el-button size="small" @click="loadAfterSales">搜索</el-button>
@@ -3527,7 +3400,7 @@
 <script setup lang="ts">
 import { computed, nextTick, onMounted, onUnmounted, reactive, ref, watch } from "vue";
 import { ElMessage, ElMessageBox } from "element-plus";
-import { Download, HomeFilled, Goods, Document, ShoppingCart, Box, User, Files, OfficeBuilding, Present, DataAnalysis, Setting, Bell, Expand, Fold, Rank, Search, Delete, EditPen, ArrowRight, Minus, Plus, Check } from "@element-plus/icons-vue";
+import { Download, HomeFilled, Goods, Document, ShoppingCart, Box, User, Files, OfficeBuilding, Present, DataAnalysis, Setting, Bell, Expand, Fold, Rank } from "@element-plus/icons-vue";
 import * as echarts from "echarts";
 import draggable from "vuedraggable";
 import { adminLogin, assignMember, createCollectionLink, createMember, createProduct, createStore, exportOrdersCsv, fetchCollectionLinks, fetchDailySales, fetchDashboard, fetchInventoryAlerts, fetchInventoryBalances, fetchInventoryLogs, fetchMemberPriceHistory, fetchMembers, fetchOrderDetail, fetchOrders, fetchOrderStats, fetchPaymentOrders, fetchPriceLogs, fetchProducts, fetchRefundOrders, fetchSaleBillDetail, fetchSaleBills, fetchStaff, fetchStorePerformance, fetchStores, fetchStoreDetail, updateStore, fetchWxInfo, updateProductPrice, updateProductStatus, acceptOrder, rejectOrder, startDelivery, completeDelivery, batchUpdateOrderStatus, fetchOrderLogs, fetchDashboardOverview, fetchDashboardSalesTrend, fetchDashboardCategoryPie, fetchDashboardTopProducts, fetchDashboardTopCustomers, fetchDashboardRecentAlerts, fetchReportSalesDaily, fetchReportSalesRanking, fetchReportSalesTrend, fetchReportCustomerContribution, fetchReportPurchaseSummary, fetchReportInventoryTurnover, fetchReportReceivablePayable, fetchReportProfit, fetchSuppliers, createSupplier, fetchPurchaseOrders as fetchPurchaseOrdersApi, createPurchaseOrder, purchaseInStock, createPurchaseReturn, fetchSaleReturns as fetchSaleReturnsApi, createSaleReturn, fetchCustomerStatements as fetchStatementsApi, generateCustomerStatement, createCustomerPayment, fetchAlerts as fetchAlertsApi, handleAlertItem, fetchAlertRules, updateAlertRule, createStaff, updateStaff, toggleStaffStatus, updateProduct, fetchSaleBillsEnhanced, fetchReportReceivablePayableEnhanced, fetchReportProfitEnhanced, fetchPriceLevels, createPriceLevel, updatePriceLevel, deletePriceLevel, fetchSkuPrices, createSkuPrice, updatePrice as updateTierPrice, deletePrice as deleteTierPrice, fetchCustomerBindings, createCustomerBinding, approveCustomerBinding, rejectCustomerBinding, calcBestPrice, fetchPriceChangeLogs, fetchCredits, fetchCreditDetail, createCredit, updateCreditLimit, updateCreditTerm, freezeCredit, unfreezeCredit, fetchCreditLogs, fetchCollections, createCollection, updateCollection, fetchOverdueCollections, batchRemindCollections, fetchCollectionStatistics, fetchAfterSales, fetchAfterSaleDetail, approveAfterSale, rejectAfterSale, confirmReceiptAfterSale, inspectAfterSale, completeAfterSale, fetchAfterSaleStatistics, fetchTraceConfigs, createTraceConfig, updateTraceConfig, deleteTraceConfig, generateTraceCodes, fetchTraceCodes, fetchTraceCodeDetail, updateTraceCodeStatus, fetchTraceCodeStatistics, queryTraceCode, fetchRecalls, createRecall, updateRecall, executeRecall, completeRecall, fetchInventoryBatches, createInventoryBatch, splitInventoryBatch, fetchFifoSuggestion, fetchExpiryConfigs, fetchExpiryAlerts, handleExpiryAlert, fetchExpiryAlertStatistics, fetchStoreControlConfigs, updateStoreControlConfig, openStore, closeStore, suspendStore, resumeStore, fetchStoreControlLogs, createSaleBill } from "./api";
@@ -3568,6 +3441,7 @@ const adminNavDescriptions: Record<string, string> = {
 };
 
 const token = ref(localStorage.getItem("admin_token") || "");
+const currentUser = ref<any>(null);
 const loading = ref(false);
 const pageLoading = ref(false);
 const isMenuCollapsed = ref(false);
@@ -3588,7 +3462,6 @@ watch(isCashierMode, (val) => {
   }
 });
 
-
 const productsLoading = ref(false);
 const storesLoading = ref(false);
 const membersLoading = ref(false);
@@ -3608,7 +3481,6 @@ const membersKeyword = ref("");
 const orders = ref<any[]>([]);
 const ordersTotal = ref(0);
 const ordersPage = ref(1);
-const ordersPageSize = ref(20);
 const ordersKeyword = ref("");
 const ordersStatus = ref("");
 const ordersDateRange = ref<string[]>([]);
@@ -3657,30 +3529,6 @@ const cashierRoundDown = ref(0);
 const cashierPaymentMethod = ref("CASH");
 const cashierReceivedAmount = ref(0);
 const cashierProductKeyword = ref("");
-const cashierActiveCategory = ref("全部");
-const cashierRemark = ref("");
-const cashierRemarkTemp = ref("");
-const cashierRemarkDialogVisible = ref(false);
-
-const paymentMethods = [
-  { value: "CASH", label: "现金", icon: "💵" },
-  { value: "WECHAT", label: "微信", icon: "💚" },
-  { value: "ALIPAY", label: "支付宝", icon: "💙" }
-];
-
-const quickAmounts = [50, 100, 200, 500];
-
-const remarkTags = ["带走", "堂食", "开发票", "少冰", "常温", "加急"];
-
-const cashierCategories = computed(() => {
-  const cats = new Set<string>();
-  cats.add("全部");
-  products.value.forEach(p => {
-    if (p.categoryName) cats.add(p.categoryName);
-    if (p.category) cats.add(p.category);
-  });
-  return Array.from(cats).slice(0, 8);
-});
 
 // 收银台计算属性
 const cashierSubtotal = computed(() => {
@@ -3695,27 +3543,17 @@ const cashierChange = computed(() => {
   return Math.max(0, cashierReceivedAmount.value - cashierTotal.value);
 });
 
-const cashierCartTotalCount = computed(() => {
-  return cashierCart.value.reduce((sum, item) => sum + item.quantity, 0);
-});
-
 // 收银台方法
 function searchCashierProducts() {
   const keyword = cashierProductKeyword.value.toLowerCase();
-  const cat = cashierActiveCategory.value;
-  let filtered = products.value;
-  if (cat && cat !== "全部") {
-    filtered = filtered.filter(p => p.categoryName === cat || p.category === cat);
-  }
-  if (keyword) {
-    filtered = filtered.filter(p =>
+  if (!keyword) {
+    cashierProducts.value = products.value.slice(0, 50);
+  } else {
+    cashierProducts.value = products.value.filter(p =>
       p.name.toLowerCase().includes(keyword) ||
-      p.skuCode?.toLowerCase().includes(keyword) ||
-      p.skuName?.toLowerCase().includes(keyword) ||
-      p.barcode?.toLowerCase().includes(keyword)
-    );
+      p.skuCode?.toLowerCase().includes(keyword)
+    ).slice(0, 50);
   }
-  cashierProducts.value = filtered.slice(0, 50);
 }
 
 function addToCart(product: any) {
@@ -3734,20 +3572,6 @@ function addToCart(product: any) {
   updateCartTotal();
 }
 
-function increaseQty(index: number) {
-  cashierCart.value[index].quantity++;
-  updateCartTotal();
-}
-
-function decreaseQty(index: number) {
-  if (cashierCart.value[index].quantity > 1) {
-    cashierCart.value[index].quantity--;
-  } else {
-    removeFromCart(index);
-  }
-  updateCartTotal();
-}
-
 function removeFromCart(index: number) {
   cashierCart.value.splice(index, 1);
   updateCartTotal();
@@ -3759,16 +3583,11 @@ function clearCart() {
   cashierRoundDown.value = 0;
   cashierReceivedAmount.value = 0;
   cashierSelectedCustomer.value = null;
-  cashierRemark.value = "";
 }
 
 function updateCartTotal() {
+  // 触发重新计算
   cashierDiscount.value = cashierDiscount.value;
-}
-
-function saveRemark() {
-  cashierRemark.value = cashierRemarkTemp.value;
-  cashierRemarkDialogVisible.value = false;
 }
 
 async function submitSale() {
@@ -3788,8 +3607,7 @@ async function submitSale() {
       discountAmount: cashierDiscount.value,
       roundDownAmount: cashierRoundDown.value,
       paymentMethod: cashierPaymentMethod.value,
-      receivedAmount: cashierPaymentMethod.value === "CASH" ? cashierReceivedAmount.value : cashierTotal.value,
-      remark: cashierRemark.value
+      receivedAmount: cashierPaymentMethod.value === "CASH" ? cashierReceivedAmount.value : cashierTotal.value
     };
 
     await createSaleBill(payload);
@@ -3906,7 +3724,7 @@ const productEditForm = reactive({
   unit: "",
   boxRatio: 6,
   specs: "",
-  alcoholDegree: "",
+  alcoholContent: null as number | null,
   origin: ""
 });
 const storeDialogVisible = ref(false);
@@ -3929,7 +3747,6 @@ const wxFetchLoading = ref(false);
 const memberDialogVisible = ref(false);
 const priceDialogVisible = ref(false);
 const priceHistoryTip = ref("");
-const currentUser = ref<any>(null);
 const loginForm = reactive({ username: "admin", password: "admin123" });
 const productForm = reactive({
   name: "",
@@ -3939,7 +3756,7 @@ const productForm = reactive({
   boxRatio: 6,
   retailPrice: 0,
   wholesalePrice: 0,
-  alcoholContent: 0,
+  alcoholContent: null as number | null,
   origin: ""
 });
 const storeForm = reactive({
@@ -4051,38 +3868,13 @@ const loginRules = {
 const loginFormRef = ref();
 const supplierFormRef = ref();
 const supplierRules = {
-  name: [
-    { required: true, message: "请填写供应商名称", trigger: "blur" },
-    { min: 2, max: 50, message: "供应商名称长度为2-50个字符", trigger: "blur" }
-  ],
-  supplierCode: [
-    { required: true, message: "请填写供应商编码", trigger: "blur" },
-    { pattern: /^[A-Za-z0-9_-]+$/, message: "编码只能包含字母、数字、下划线和横线", trigger: "blur" }
-  ],
-  contactPerson: [
-    { max: 20, message: "联系人姓名不超过20个字符", trigger: "blur" }
-  ],
+  name: [{ required: true, message: "请填写供应商名称", trigger: "blur" }],
+  supplierCode: [{ required: true, message: "请填写供应商编码", trigger: "blur" }],
   phone: [{
     validator: (_: any, value: string, callback: any) => {
       if (!value) callback();
       else if (mobilePattern.test(value)) callback();
-      else callback(new Error("请填写正确的11位手机号"));
-    },
-    trigger: "blur"
-  }],
-  email: [{
-    validator: (_: any, value: string, callback: any) => {
-      if (!value) callback();
-      else if (/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value)) callback();
-      else callback(new Error("请填写正确的邮箱地址"));
-    },
-    trigger: "blur"
-  }],
-  bankAccount: [{
-    validator: (_: any, value: string, callback: any) => {
-      if (!value) callback();
-      else if (/^\d{16,19}$/.test(value)) callback();
-      else callback(new Error("银行账号应为16-19位数字"));
+      else callback(new Error("请填写正确的手机号"));
     },
     trigger: "blur"
   }]
@@ -4090,22 +3882,7 @@ const supplierRules = {
 const purchaseFormRef = ref();
 const purchaseRules = {
   supplierId: [{ required: true, message: "请选择供应商", trigger: "change" }],
-  warehouseId: [{ required: true, message: "请选择仓库", trigger: "change" }],
-  expectedDate: [{ required: true, message: "请选择预计到货日期", trigger: "change" }]
-};
-
-// 采购订单商品列表自定义验证
-const validatePurchaseItems = (rule: any, value: any, callback: any) => {
-  if (!purchaseForm.items || purchaseForm.items.length === 0) {
-    callback(new Error("请至少添加一个商品"));
-  } else {
-    const invalidItem = purchaseForm.items.find(item => !item.skuId || !item.quantity || item.quantity <= 0 || !item.unitPrice || item.unitPrice <= 0);
-    if (invalidItem) {
-      callback(new Error("请完整填写所有商品的SKU、数量和单价"));
-    } else {
-      callback();
-    }
-  }
+  warehouseId: [{ required: true, message: "请选择仓库", trigger: "change" }]
 };
 const statementCreateFormRef = ref();
 const statementCreateRules = {
@@ -4157,6 +3934,7 @@ async function handleLogin() {
     const result = await adminLogin(loginForm.username, loginForm.password);
     localStorage.setItem("admin_token", result.token);
     token.value = result.token;
+    currentUser.value = result.user;
     ElMessage.success("登录成功，正在加载后台数据");
     pageLoading.value = true;
     try {
@@ -4183,36 +3961,29 @@ function toggleCashierMode() {
 
 function getNavTitle(key: string): string {
   const navMap: Record<string, string> = {
+    "首页": "工作台",
     "商品": "商品管理",
+    "价格中心": "价格管理",
     "订单": "订单管理",
-    "销售单": "销售管理",
-    "客户": "客户管理",
-    "供应商": "供应商管理",
-    "采购": "采购管理",
-    "销售退货": "销售退货",
-    "库存": "库存管理",
-    "员工": "员工管理",
-    "门店": "门店管理",
-    "报表": "报表中心",
-    "授信管理": "授信管理",
-    "售后管理": "售后管理",
-    "营销中心": "营销中心",
-    "操作日志": "操作日志",
-    "系统设置": "系统设置",
-    "商品管理": "商品管理",
-    "价格中心": "价格中心",
-    "订单管理": "订单管理",
     "订单泳道": "泳道看板",
     "订单超时": "超时处理",
-    "销售管理": "销售管理",
-    "收款": "收款记录",
-    "采购管理": "采购管理",
-    "客户管理": "客户管理",
+    "销售单": "销售管理",
+    "销售退货": "销售退货",
+    "客户": "客户管理",
     "客户对账": "客户对账",
-    "库存管理": "库存管理",
-    "预警中心": "预警中心",
-    "门店管理": "门店管理",
-    "系统管理": "系统管理",
+    "授信管理": "授信管理",
+    "供应商": "供应商管理",
+    "采购": "采购管理",
+    "库存": "库存管理",
+    "预警中心": "库存预警",
+    "员工": "员工管理",
+    "门店": "门店管理",
+    "收款": "收款记录",
+    "报表": "报表中心",
+    "营销中心": "营销中心",
+    "售后管理": "售后管理",
+    "操作日志": "操作日志",
+    "系统设置": "系统设置",
     "消息中心": "消息中心"
   };
   return navMap[key] || key;
@@ -4270,7 +4041,7 @@ function searchMembers() {
 async function loadOrders(page?: number) {
   const result = await fetchOrders({
     page: page ?? ordersPage.value,
-    pageSize: ordersPageSize.value,
+    pageSize: 10,
     keyword: ordersKeyword.value || undefined,
     status: ordersStatus.value || undefined,
     dateStart: ordersDateRange.value?.[0] || undefined,
@@ -5816,10 +5587,10 @@ async function loadCustomerBindings() {
   try { const res = await fetchCustomerBindings(); customerBindings.value = Array.isArray(res) ? res : res?.records || res?.list || []; } catch { customerBindings.value = []; } finally { customerBindingsLoading.value = false; }
 }
 async function handleApproveBinding(row: any) {
-  try { await ElMessageBox.confirm(`确认审批通过客户绑定申请?`, "确认审批", { type: "warning" }); await approveCustomerBinding(row.id); ElMessage.success("审批通过"); loadCustomerBindings(); } catch (e: any) { if (e !== 'cancel') ElMessage.error(getErrorMessage(e, "审批失败")); }
+  try { await approveCustomerBinding(row.id); ElMessage.success("审批通过"); loadCustomerBindings(); } catch (e) { ElMessage.error(getErrorMessage(e, "审批失败")); }
 }
 async function handleRejectBinding(row: any) {
-  try { await ElMessageBox.confirm(`确认拒绝客户绑定申请?`, "确认拒绝", { type: "warning" }); await rejectCustomerBinding(row.id); ElMessage.success("已拒绝"); loadCustomerBindings(); } catch (e: any) { if (e !== 'cancel') ElMessage.error(getErrorMessage(e, "拒绝失败")); }
+  try { await rejectCustomerBinding(row.id); ElMessage.success("已拒绝"); loadCustomerBindings(); } catch (e) { ElMessage.error(getErrorMessage(e, "拒绝失败")); }
 }
 async function handleCalcBestPrice() {
   bestPriceLoading.value = true;
@@ -5949,7 +5720,7 @@ async function openAfterSaleDetail(row: any) {
   try { asDetailData.value = await fetchAfterSaleDetail(row.id); asDetailVisible.value = true; } catch (e) { ElMessage.error(getErrorMessage(e, "获取详情失败")); }
 }
 async function handleApproveAS(row: any) {
-  try { await ElMessageBox.confirm(`确认审核通过该售后申请?`, "确认审核", { type: "warning" }); await approveAfterSale(row.id); ElMessage.success("审核通过"); loadAfterSales(); } catch (e: any) { if (e !== 'cancel') ElMessage.error(getErrorMessage(e, "操作失败")); }
+  try { await approveAfterSale(row.id); ElMessage.success("审核通过"); loadAfterSales(); } catch (e) { ElMessage.error(getErrorMessage(e, "操作失败")); }
 }
 async function handleRejectAS(row: any) {
   try { await ElMessageBox.confirm("确认拒绝该售后申请?", "提示", { type: "warning" }); await rejectAfterSale(row.id); ElMessage.success("已拒绝"); loadAfterSales(); } catch (e: any) { if (e !== 'cancel') ElMessage.error(getErrorMessage(e, "操作失败")); }
@@ -6052,7 +5823,6 @@ async function handleCompleteRecall(row: any) {
 const inventoryBatchTab = ref("batches");
 const inventoryBatches = ref<any[]>([]);
 const batchPage = ref(1);
-const batchPageSize = ref(20);
 const batchTotal = ref(0);
 const batchFilterStoreId = ref<number | undefined>(undefined);
 const batchFilterExpiry = ref("");
@@ -6065,7 +5835,7 @@ const fifoSuggestions = ref<any[]>([]);
 
 async function loadInventoryBatches() {
   try {
-    const data = await fetchInventoryBatches({ page: batchPage.value, pageSize: batchPageSize.value, storeId: batchFilterStoreId.value, expiryStatus: batchFilterExpiry.value || undefined });
+    const data = await fetchInventoryBatches({ page: batchPage.value, storeId: batchFilterStoreId.value, expiryStatus: batchFilterExpiry.value || undefined });
     inventoryBatches.value = data.records || [];
     batchTotal.value = data.total || 0;
   } catch { /* silent */ }
@@ -6282,9 +6052,9 @@ async function handleSaveCoupon() {
     ElMessage.success("保存成功"); couponDialogVisible.value = false; loadCouponTemplates(); loadCouponStats();
   } catch (e) { ElMessage.error(getErrorMessage(e, "保存失败")); }
 }
-async function handleActivateCoupon(row: any) { try { await ElMessageBox.confirm(`确认激活优惠券模板 "${row.name}"?`, "确认激活", { type: "warning" }); await activateCouponTemplate(row.id); ElMessage.success("已激活"); loadCouponTemplates(); } catch (e: any) { if (e !== 'cancel') ElMessage.error(getErrorMessage(e, "操作失败")); } }
-async function handlePauseCoupon(row: any) { try { await ElMessageBox.confirm(`确认暂停优惠券模板 "${row.name}"?`, "确认暂停", { type: "warning" }); await pauseCouponTemplate(row.id); ElMessage.success("已暂停"); loadCouponTemplates(); } catch (e: any) { if (e !== 'cancel') ElMessage.error(getErrorMessage(e, "操作失败")); } }
-async function handleDeleteCoupon(row: any) { try { await ElMessageBox.confirm("确认删除该优惠券模板?", "提示", { type: "warning" }); await deleteCouponTemplate(row.id); ElMessage.success("已删除"); loadCouponTemplates(); } catch (e: any) { if (e !== 'cancel') ElMessage.error(getErrorMessage(e, "删除失败")); } }
+async function handleActivateCoupon(row: any) { try { await activateCouponTemplate(row.id); ElMessage.success("已激活"); loadCouponTemplates(); } catch (e) { ElMessage.error(getErrorMessage(e, "操作失败")); } }
+async function handlePauseCoupon(row: any) { try { await pauseCouponTemplate(row.id); ElMessage.success("已暂停"); loadCouponTemplates(); } catch (e) { ElMessage.error(getErrorMessage(e, "操作失败")); } }
+async function handleDeleteCoupon(row: any) { try { await deleteCouponTemplate(row.id); ElMessage.success("已删除"); loadCouponTemplates(); } catch (e) { ElMessage.error(getErrorMessage(e, "删除失败")); } }
 
 async function loadFullReductions() {
   const data = await fetchFullReductions({ status: frFilterStatus.value || undefined, page: frPage.value, pageSize: frPageSize.value });
@@ -6304,9 +6074,9 @@ async function handleSaveFR() {
     ElMessage.success("保存成功"); frDialogVisible.value = false; loadFullReductions();
   } catch (e) { ElMessage.error(getErrorMessage(e, "保存失败")); }
 }
-async function handleActivateFR(row: any) { try { await ElMessageBox.confirm(`确认激活满减活动 "${row.name}"?`, "确认激活", { type: "warning" }); await activateFullReduction(row.id); ElMessage.success("已激活"); loadFullReductions(); } catch (e: any) { if (e !== 'cancel') ElMessage.error(getErrorMessage(e, "操作失败")); } }
-async function handlePauseFR(row: any) { try { await ElMessageBox.confirm(`确认暂停满减活动 "${row.name}"?`, "确认暂停", { type: "warning" }); await pauseFullReduction(row.id); ElMessage.success("已暂停"); loadFullReductions(); } catch (e: any) { if (e !== 'cancel') ElMessage.error(getErrorMessage(e, "操作失败")); } }
-async function handleDeleteFR(row: any) { try { await ElMessageBox.confirm("确认删除该满减活动?", "提示", { type: "warning" }); await deleteFullReduction(row.id); ElMessage.success("已删除"); loadFullReductions(); } catch (e: any) { if (e !== 'cancel') ElMessage.error(getErrorMessage(e, "删除失败")); } }
+async function handleActivateFR(row: any) { try { await activateFullReduction(row.id); ElMessage.success("已激活"); loadFullReductions(); } catch (e) { ElMessage.error(getErrorMessage(e, "操作失败")); } }
+async function handlePauseFR(row: any) { try { await pauseFullReduction(row.id); ElMessage.success("已暂停"); loadFullReductions(); } catch (e) { ElMessage.error(getErrorMessage(e, "操作失败")); } }
+async function handleDeleteFR(row: any) { try { await deleteFullReduction(row.id); ElMessage.success("已删除"); loadFullReductions(); } catch (e) { ElMessage.error(getErrorMessage(e, "删除失败")); } }
 
 async function loadFlashSales() {
   const data = await fetchFlashSales({ status: flashFilterStatus.value || undefined, page: flashPage.value, pageSize: flashPageSize.value });
@@ -6325,9 +6095,9 @@ async function handleSaveFlash() {
     ElMessage.success("保存成功"); flashDialogVisible.value = false; loadFlashSales(); loadFlashStats();
   } catch (e) { ElMessage.error(getErrorMessage(e, "保存失败")); }
 }
-async function handleActivateFlash(row: any) { try { await ElMessageBox.confirm(`确认激活秒杀活动 "${row.name}"?`, "确认激活", { type: "warning" }); await activateFlashSale(row.id); ElMessage.success("已激活"); loadFlashSales(); } catch (e: any) { if (e !== 'cancel') ElMessage.error(getErrorMessage(e, "操作失败")); } }
-async function handlePauseFlash(row: any) { try { await ElMessageBox.confirm(`确认暂停秒杀活动 "${row.name}"?`, "确认暂停", { type: "warning" }); await pauseFlashSale(row.id); ElMessage.success("已暂停"); loadFlashSales(); } catch (e: any) { if (e !== 'cancel') ElMessage.error(getErrorMessage(e, "操作失败")); } }
-async function handleDeleteFlash(row: any) { try { await ElMessageBox.confirm("确认删除该秒杀活动?", "提示", { type: "warning" }); await deleteFlashSale(row.id); ElMessage.success("已删除"); loadFlashSales(); } catch (e: any) { if (e !== 'cancel') ElMessage.error(getErrorMessage(e, "删除失败")); } }
+async function handleActivateFlash(row: any) { try { await activateFlashSale(row.id); ElMessage.success("已激活"); loadFlashSales(); } catch (e) { ElMessage.error(getErrorMessage(e, "操作失败")); } }
+async function handlePauseFlash(row: any) { try { await pauseFlashSale(row.id); ElMessage.success("已暂停"); loadFlashSales(); } catch (e) { ElMessage.error(getErrorMessage(e, "操作失败")); } }
+async function handleDeleteFlash(row: any) { try { await deleteFlashSale(row.id); ElMessage.success("已删除"); loadFlashSales(); } catch (e) { ElMessage.error(getErrorMessage(e, "删除失败")); } }
 
 async function loadGroupBuys() {
   const data = await fetchGroupBuys({ status: gbFilterStatus.value || undefined, page: gbPage.value, pageSize: gbPageSize.value });
@@ -6345,8 +6115,8 @@ async function handleSaveGB() {
     ElMessage.success("保存成功"); gbDialogVisible.value = false; loadGroupBuys();
   } catch (e) { ElMessage.error(getErrorMessage(e, "保存失败")); }
 }
-async function handleActivateGB(row: any) { try { await ElMessageBox.confirm(`确认激活团购活动 "${row.name}"?`, "确认激活", { type: "warning" }); await activateGroupBuy(row.id); ElMessage.success("已激活"); loadGroupBuys(); } catch (e: any) { if (e !== 'cancel') ElMessage.error(getErrorMessage(e, "操作失败")); } }
-async function handleDeleteGB(row: any) { try { await ElMessageBox.confirm("确认删除该团购活动?", "提示", { type: "warning" }); await deleteGroupBuy(row.id); ElMessage.success("已删除"); loadGroupBuys(); } catch (e: any) { if (e !== 'cancel') ElMessage.error(getErrorMessage(e, "删除失败")); } }
+async function handleActivateGB(row: any) { try { await activateGroupBuy(row.id); ElMessage.success("已激活"); loadGroupBuys(); } catch (e) { ElMessage.error(getErrorMessage(e, "操作失败")); } }
+async function handleDeleteGB(row: any) { try { await deleteGroupBuy(row.id); ElMessage.success("已删除"); loadGroupBuys(); } catch (e) { ElMessage.error(getErrorMessage(e, "删除失败")); } }
 
 async function loadStackRules() {
   const data = await fetchStackRules();
@@ -6363,7 +6133,7 @@ async function handleSaveStackRule() {
     ElMessage.success("保存成功"); stackRuleDialogVisible.value = false; loadStackRules();
   } catch (e) { ElMessage.error(getErrorMessage(e, "保存失败")); }
 }
-async function handleDeleteStackRule(row: any) { try { await ElMessageBox.confirm("确认删除该叠加规则?", "提示", { type: "warning" }); await deleteStackRule(row.id); ElMessage.success("已删除"); loadStackRules(); } catch (e: any) { if (e !== 'cancel') ElMessage.error(getErrorMessage(e, "删除失败")); } }
+async function handleDeleteStackRule(row: any) { try { await deleteStackRule(row.id); ElMessage.success("已删除"); loadStackRules(); } catch (e) { ElMessage.error(getErrorMessage(e, "删除失败")); } }
 async function handleCalculate() {
   try {
     calcResult.value = await calculatePromotion({
@@ -6411,13 +6181,13 @@ async function handleCreatePayment() {
   } catch (e) { ElMessage.error(getErrorMessage(e, "创建付款单失败")); } finally { loading.value = false; }
 }
 async function handleApprovePayment(row: any) {
-  try { await ElMessageBox.confirm(`确认审核付款单 ${row.paymentNo}?`, "确认审核", { type: "warning" }); await approvePurchasePayment(row.id); ElMessage.success("审核通过"); await loadSupplierPayments(); } catch (e: any) { if (e !== 'cancel') ElMessage.error(getErrorMessage(e, "审核失败")); }
+  try { await approvePurchasePayment(row.id); ElMessage.success("审核通过"); await loadSupplierPayments(); } catch (e) { ElMessage.error(getErrorMessage(e, "审核失败")); }
 }
 async function handlePayPayment(row: any) {
   try { await payPurchasePayment(row.id); ElMessage.success("已确认付款"); await loadSupplierPayments(); } catch (e) { ElMessage.error(getErrorMessage(e, "确认付款失败")); }
 }
 async function handleCancelPayment(row: any) {
-  try { await ElMessageBox.confirm(`确认取消付款单 ${row.paymentNo}?`, "确认取消", { type: "warning" }); await cancelPurchasePayment(row.id); ElMessage.success("已取消"); await loadSupplierPayments(); } catch (e: any) { if (e !== 'cancel') ElMessage.error(getErrorMessage(e, "取消失败")); }
+  try { await cancelPurchasePayment(row.id); ElMessage.success("已取消"); await loadSupplierPayments(); } catch (e) { ElMessage.error(getErrorMessage(e, "取消失败")); }
 }
 function openStatementGenerateDialog() {
   const today = new Date().toISOString().slice(0, 10);
@@ -6509,7 +6279,7 @@ async function handleSaveRole() {
   } catch (e) { ElMessage.error(getErrorMessage(e, "保存角色失败")); } finally { loading.value = false; }
 }
 async function handleDeleteRole(row: any) {
-  try { await ElMessageBox.confirm(`确认删除角色 ${row.name}?`, "确认删除", { type: "warning" }); await deleteRole(row.id); ElMessage.success("角色已删除"); await loadRoles(); } catch (e: any) { if (e !== 'cancel') ElMessage.error(getErrorMessage(e, "删除角色失败")); }
+  try { await deleteRole(row.id); ElMessage.success("角色已删除"); await loadRoles(); } catch (e) { ElMessage.error(getErrorMessage(e, "删除角色失败")); }
 }
 
 // ==================== Notification System ====================
@@ -6835,9 +6605,8 @@ async function loadOtStats() {
 
 // ==================== 多仓调拨管理 ====================
 const transferList = ref<any[]>([]);
-const transferPage = ref(1);
-const transferPageSize = ref(20);
 const transferTotal = ref(0);
+const transferPage = ref(1);
 const transferFilterStatus = ref("");
 const transferFilterStoreId = ref<number | undefined>(undefined);
 const transferStats = ref<any>({});
@@ -6857,7 +6626,7 @@ function transferStatusText(status: string) {
 
 async function loadTransfers() {
   try {
-    const data = await fetchTransfers({ page: transferPage.value, pageSize: transferPageSize.value, status: transferFilterStatus.value || undefined, storeId: transferFilterStoreId.value });
+    const data = await fetchTransfers({ page: transferPage.value, status: transferFilterStatus.value || undefined, storeId: transferFilterStoreId.value });
     transferList.value = data.records || [];
     transferTotal.value = data.total || 0;
   } catch { /* silent */ }
@@ -6906,9 +6675,8 @@ async function handleTransferShip(row: any) {
 
 // ==================== 库存盘点管理 ====================
 const stockCheckList = ref<any[]>([]);
-const scPage = ref(1);
-const scPageSize = ref(20);
 const scTotal = ref(0);
+const scPage = ref(1);
 const scFilterStoreId = ref<number | undefined>(undefined);
 const scFilterStatus = ref("");
 const stockCheckStats = ref<any>({});
@@ -6928,7 +6696,7 @@ function scStatusText(status: string) {
 
 async function loadStockChecks() {
   try {
-    const data = await fetchStockChecks({ page: scPage.value, pageSize: scPageSize.value, storeId: scFilterStoreId.value, status: scFilterStatus.value || undefined });
+    const data = await fetchStockChecks({ page: scPage.value, storeId: scFilterStoreId.value, status: scFilterStatus.value || undefined });
     stockCheckList.value = data.records || [];
     scTotal.value = data.total || 0;
   } catch { /* silent */ }
@@ -6981,11 +6749,6 @@ watch(activeNav, (newNav) => {
 onMounted(() => {
   if (typeof window !== "undefined") {
     window.addEventListener("resize", resizeCharts);
-    window.addEventListener("auth:logout", () => {
-      token.value = "";
-      activeNav.value = "首页";
-      ElMessage.warning("登录已过期，请重新登录");
-    });
   }
   if (token.value) {
     pageLoading.value = true;

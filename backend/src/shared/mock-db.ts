@@ -19,14 +19,14 @@ const state = {
     { user_id: 3, role_code: "STORE_OPERATOR" }
   ],
   members: [
-    { id: 1, name: "默认零售客户", mobile: "13900000000", customer_type: "RETAIL", settlement_type: "CASH", points: 120, level_code: "NORMAL", status: 1, staff_id: null as number | null },
-    { id: 2, name: "默认批发客户", mobile: "13900000001", customer_type: "WHOLESALE", settlement_type: "ACCOUNT", points: 0, level_code: "WHOLESALE", status: 1, staff_id: 1 }
+    { id: 1, name: "默认零售客户", mobile: "13900000000", email: "retail@example.com", contact_person: "张经理", address: "北京市朝阳区示例街道1号", customer_type: "RETAIL", settlement_type: "CASH", points: 120, level_code: "NORMAL", status: 1, staff_id: null as number | null, remark: "演示零售客户" },
+    { id: 2, name: "默认批发客户", mobile: "13900000001", email: "wholesale@example.com", contact_person: "李总", address: "上海市浦东新区示例路88号", customer_type: "WHOLESALE", settlement_type: "ACCOUNT", points: 0, level_code: "WHOLESALE", status: 1, staff_id: 1, remark: "演示批发客户，长期合作" }
   ] as Row[],
   stores: [
     { id: 1, store_code: "STORE0001", name: "默认门店", address: "演示地址", contact: "管理员", phone: "13800000000", delivery_radius: 3, business_status: "OPEN", status: 1, miniapp_appid: 'wx0000000000000000', wx_merchant_name: null, wx_service_phone: null, wx_head_img: null, wx_qrcode_url: null }
   ] as Row[],
   products: [
-    { spuId: 1, skuId: 1, name: "示例白酒 53度 500ml", mainImage: "https://dummyimage.com/120x120/9b1c31/ffffff&text=Wine", skuName: "示例白酒 53度 500ml 常温", skuCode: "SKU-DEMO-001", barcode: "690000000001", retailPrice: 129, wholesalePrice: 99, miniappPrice: 119, costPrice: 0, storePrice: null as number | null, status: "ON_SALE" }
+    { spuId: 1, skuId: 1, name: "示例白酒 53度 500ml", mainImage: "https://dummyimage.com/120x120/9b1c31/ffffff&text=Wine", skuName: "示例白酒 53度 500ml 常温", skuCode: "SKU-DEMO-001", barcode: "690000000001", retailPrice: 129, wholesalePrice: 99, miniappPrice: 119, costPrice: 0, storePrice: null as number | null, status: "ON_SALE", alcoholContent: 53, origin: "贵州茅台镇" }
   ] as Row[],
   inventory: [
     { storeId: 1, skuId: 1, skuName: "示例白酒 53度 500ml 常温", stockType: "ONLINE", physicalQty: 120, lockedQty: 0, availableQty: 120 },
@@ -103,6 +103,9 @@ export async function mockQuery<T = any>(sql: string, params: unknown[] = []) {
       id: member.id,
       name: member.name,
       mobile: member.mobile,
+      email: member.email,
+      contactPerson: member.contact_person,
+      address: member.address,
       customerType: member.customer_type,
       customer_type: member.customer_type,
       settlementType: member.settlement_type,
@@ -112,7 +115,8 @@ export async function mockQuery<T = any>(sql: string, params: unknown[] = []) {
       level_code: member.level_code,
       status: member.status,
       staffId: member.staff_id,
-      staffName: staff?.real_name ?? null
+      staffName: staff?.real_name ?? null,
+      remark: member.remark
     }] as T[];
   }
   if (s.includes("from member")) {
@@ -123,6 +127,9 @@ export async function mockQuery<T = any>(sql: string, params: unknown[] = []) {
         id: member.id,
         name: member.name,
         mobile: member.mobile,
+        email: member.email,
+        contactPerson: member.contact_person,
+        address: member.address,
         customerType: member.customer_type,
         customer_type: member.customer_type,
         settlementType: member.settlement_type,
@@ -132,7 +139,8 @@ export async function mockQuery<T = any>(sql: string, params: unknown[] = []) {
         level_code: member.level_code,
         status: member.status,
         staffId: member.staff_id,
-        staffName: staff?.real_name ?? null
+        staffName: staff?.real_name ?? null,
+        remark: member.remark
       };
     }) as T[];
   }
@@ -142,12 +150,16 @@ export async function mockQuery<T = any>(sql: string, params: unknown[] = []) {
       id,
       name: params[0],
       mobile: params[1],
-      customer_type: params[2],
-      settlement_type: params[2] === "WHOLESALE" ? "ACCOUNT" : "CASH",
+      email: params[2] ?? null,
+      contact_person: params[3] ?? null,
+      address: params[4] ?? null,
+      customer_type: params[5],
+      staff_id: params[6] == null ? null : Number(params[6]),
       points: 0,
-      level_code: params[2] === "WHOLESALE" ? "WHOLESALE" : "NORMAL",
+      level_code: params[8] ?? (params[5] === "WHOLESALE" ? "WHOLESALE" : "NORMAL"),
+      settlement_type: params[9] ?? "CASH",
       status: 1,
-      staff_id: params[3] == null ? null : Number(params[3])
+      remark: params[10] ?? null
     });
     return [{ insertId: id, affectedRows: 1 }] as T[];
   }
@@ -1597,3 +1609,9 @@ export const mockConn = {
   execute: mockExecute,
   query: async (sql: string, params: unknown[] = []) => [await mockQuery(sql, params), undefined]
 } as any;
+
+const initialState = JSON.parse(JSON.stringify(state));
+
+export function resetMockDb() {
+  Object.assign(state, JSON.parse(JSON.stringify(initialState)));
+}

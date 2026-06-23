@@ -1,423 +1,563 @@
-<template>
-  <div class="create-sale-return-view">
-    <van-nav-bar title="创建退货单" left-arrow @click-left="$router.back()" />
-    
-    <van-form ref="formRef" :model="formData" :rules="formRules">
-      <!-- 退货模式选择 -->
-      <van-cell-group inset>
-        <van-cell title="退货模式" is-link :value="returnMode === 'bill' ? '按销售单退货' : '直接退货'" @click="showModePicker = true" />
-      </van-cell-group>
-      
-      <!-- 按销售单退货 -->
-      <van-cell-group inset v-if="returnMode === 'bill'" style="margin-top: 12px">
-        <van-field
-          v-model="billNo"
-          label="销售单号"
-          placeholder="请输入销售单号"
-          @blur="loadSaleBill"
-        />
-        
-        <div v-if="selectedBill" class="bill-info">
-          <div class="info-row">
-            <span class="label">客户：</span>
-            <span class="value">{{ selectedBill.customerName || '散客' }}</span>
-          </div>
-          <div class="info-row">
-            <span class="label">金额：</span>
-            <span class="value">¥{{ formatMoney(selectedBill.receivableAmount) }}</span>
-          </div>
-        </div>
-        
-        <div v-if="selectedBill && selectedBill.items" class="items-list">
-          <div class="section-title">退货商品</div>
-          <div
-            v-for="(item, _index) in returnItems"
-            :key="item.skuId"
-            class="item-card"
-          >
-            <div class="item-header">
-              <div class="item-name">{{ item.skuName }}</div>
-              <van-checkbox v-model="item.selected" />
-            </div>
-            <div class="item-body">
-              <div class="info-row">
-                <span class="label">原数量：</span>
-                <span class="value">{{ item.originalQty }} 瓶</span>
-              </div>
-              <van-field
-                v-model="item.returnQty"
-                type="number"
-                label="退货数量"
-                placeholder="请输入退货数量"
-                :disabled="!item.selected"
-              />
-            </div>
-          </div>
-        </div>
-      </van-cell-group>
-      
-      <!-- 直接退货 -->
-      <van-cell-group inset v-else style="margin-top: 12px">
-        <van-field
-          v-model="customerName"
-          label="客户名称"
-          placeholder="请输入客户名称"
-        />
-        
-        <van-cell title="选择商品" is-link @click="showProductPicker = true">
-          <template #value>
-            <span v-if="returnItems.length === 0">请选择商品</span>
-            <span v-else>已选 {{ returnItems.length }} 件</span>
-          </template>
-        </van-cell>
-        
-        <div v-if="returnItems.length > 0" class="items-list">
-          <div class="section-title">退货商品</div>
-          <div
-            v-for="(item, index) in returnItems"
-            :key="item.skuId"
-            class="item-card"
-          >
-            <div class="item-header">
-              <div class="item-name">{{ item.skuName }}</div>
-              <van-icon name="cross" @click="removeItem(index)" />
-            </div>
-            <div class="item-body">
-              <van-field
-                v-model="item.returnQty"
-                type="number"
-                label="退货数量"
-                placeholder="请输入退货数量"
-              />
-              <van-field
-                v-model="item.unitPrice"
-                type="number"
-                label="单价"
-                placeholder="请输入单价"
-              />
-            </div>
-          </div>
-        </div>
-      </van-cell-group>
-      
-      <!-- 退货原因 -->
-      <van-cell-group inset style="margin-top: 12px">
-        <van-field
-          v-model="formData.reason"
-          type="textarea"
-          label="退货原因"
-          placeholder="请输入退货原因"
-          rows="3"
-          autosize
-        />
-      </van-cell-group>
-      
-      <!-- 金额汇总 -->
-      <van-cell-group inset style="margin-top: 12px">
-        <van-cell title="退货总额" :value="`¥${formatMoney(totalAmount)}`" />
-      </van-cell-group>
-    </van-form>
-    
-    <div class="footer">
-      <van-button type="primary" block round @click="submitReturn">
-        提交退货单
-      </van-button>
-    </div>
-    
-    <!-- 退货模式选择弹窗 -->
-    <van-popup v-model:show="showModePicker" position="bottom" round>
-      <van-picker
-        :columns="modeOptions"
-        @confirm="onModeConfirm"
-        @cancel="showModePicker = false"
-      />
-    </van-popup>
-    
-    <!-- 商品选择弹窗 -->
-    <van-popup v-model:show="showProductPicker" position="bottom" round style="height: 60%">
-      <div class="product-picker">
-        <van-search v-model="productKeyword" placeholder="搜索商品" @search="searchProducts" />
-        <van-list
-          v-model:loading="productLoading"
-          :finished="productFinished"
-          finished-text="没有更多了"
-          @load="searchProducts"
-        >
-          <div
-            v-for="product in productList"
-            :key="product.skuId"
-            class="product-item"
-            @click="addProduct(product)"
-          >
-            <div class="product-name">{{ product.skuName }}</div>
-            <div class="product-price">¥{{ formatMoney(product.retailPrice) }}</div>
-          </div>
-        </van-list>
-      </div>
-    </van-popup>
-  </div>
-</template>
-
 <script setup lang="ts">
 import { ref, computed } from 'vue'
-import { useRouter } from 'vue-router'
-import { showToast, showSuccessToast } from 'vant'
 import {
-  fetchSaleBillDetail,
+  showToast,
+  showLoadingToast,
+  showSuccessToast,
+  closeToast
+} from 'vant'
+import {
   createSaleReturn,
+  fetchSaleBillDetail,
   fetchProducts,
   type SaleBillDetail,
   type ProductRecord
 } from '../api'
 
-const router = useRouter()
+// ========== 退货模式 ==========
+const RETURN_TYPE_OPTIONS = [
+  { label: '按销售单退货', value: 'BY_BILL' },
+  { label: '直接退货', value: 'DIRECT' }
+]
+const returnType = ref<'BY_BILL' | 'DIRECT'>('BY_BILL')
 
-const formRef = ref()
-const formData = ref({
-  reason: ''
-})
+// ========== 按单退货 - 销售单号 ==========
+const sourceBillNo = ref('')
+const sourceBill = ref<SaleBillDetail | null>(null)
+const sourceBillLoading = ref(false)
 
-const formRules = {
-  reason: [{ required: true, message: '请输入退货原因' }]
+async function loadSourceBill() {
+  if (!sourceBillNo.value.trim()) {
+    showToast('请输入销售单号')
+    return
+  }
+  sourceBillLoading.value = true
+  try {
+    const res = await fetchSaleBillDetail(sourceBillNo.value.trim())
+    sourceBill.value = res.data
+    // 将销售单商品复制到退货商品列表
+    returnItems.value = sourceBill.value.items.map(item => ({
+      skuId: item.skuId,
+      skuName: item.skuName,
+      boxQty: item.boxQty,
+      bottleQty: item.bottleQty,
+      bottlesPerBox: 6,
+      unitPrice: item.unitPrice,
+      priceType: item.priceType
+    }))
+    showSuccessToast('已加载销售单')
+  } catch {
+    showToast('销售单不存在或加载失败')
+  } finally {
+    sourceBillLoading.value = false
+  }
 }
 
-const returnMode = ref('bill')
-const showModePicker = ref(false)
-const modeOptions = [
-  { text: '按销售单退货', value: 'bill' },
-  { text: '直接退货', value: 'direct' }
-]
-
-const billNo = ref('')
-const selectedBill = ref<SaleBillDetail | null>(null)
-
-const customerName = ref('')
-const showProductPicker = ref(false)
+// ========== 直接退货 - 商品选择 ==========
 const productKeyword = ref('')
-const productList = ref<ProductRecord[]>([])
-const productLoading = ref(false)
-const productFinished = ref(false)
+const productResults = ref<ProductRecord[]>([])
+const showProductSearch = ref(false)
 
+async function searchProducts() {
+  if (!productKeyword.value.trim()) return
+  try {
+    const res = await fetchProducts({ keyword: productKeyword.value })
+    productResults.value = res.data.records ?? []
+  } catch {
+    showToast('操作失败，请重试')
+  }
+}
+
+function addProduct(p: ProductRecord) {
+  const exists = returnItems.value.find(i => i.skuId === p.skuId)
+  if (exists) {
+    exists.bottleQty += 1
+    showToast('已增加数量')
+  } else {
+    returnItems.value.push({
+      skuId: p.skuId,
+      skuName: p.skuName,
+      boxQty: 0,
+      bottleQty: 1,
+      bottlesPerBox: 6,
+      unitPrice: p.retailPrice,
+      priceType: 'RETAIL'
+    })
+  }
+  showProductSearch.value = false
+  productKeyword.value = ''
+  productResults.value = []
+}
+
+// ========== 退货商品列表 ==========
 interface ReturnItem {
   skuId: number
   skuName: string
-  originalQty: number
-  returnQty: number
+  boxQty: number
+  bottleQty: number
+  bottlesPerBox: number
   unitPrice: number
-  selected: boolean
+  priceType: string
 }
 
 const returnItems = ref<ReturnItem[]>([])
-
-const totalAmount = computed(() => {
-  return returnItems.value
-    .filter(item => item.selected)
-    .reduce((sum, item) => sum + item.returnQty * item.unitPrice, 0)
-})
-
-function onModeConfirm({ selectedOptions }: any) {
-  returnMode.value = selectedOptions[0].value
-  showModePicker.value = false
-  returnItems.value = []
-  selectedBill.value = null
-  billNo.value = ''
-}
-
-async function loadSaleBill() {
-  if (!billNo.value.trim()) return
-  
-  try {
-    const res = await fetchSaleBillDetail(billNo.value)
-    selectedBill.value = res.data
-    
-    returnItems.value = selectedBill.value!.items.map(item => ({
-      skuId: item.skuId,
-      skuName: item.skuName,
-      originalQty: item.totalBottleQty,
-      returnQty: item.totalBottleQty,
-      unitPrice: item.unitPrice,
-      selected: true
-    }))
-  } catch (error) {
-    showToast('销售单不存在')
-    selectedBill.value = null
-    returnItems.value = []
-  }
-}
-
-async function searchProducts() {
-  if (productLoading.value) return
-  
-  productLoading.value = true
-  
-  try {
-    const res = await fetchProducts({ keyword: productKeyword.value })
-    productList.value = res.data.records || []
-    productFinished.value = productList.value.length >= 20
-  } catch (error) {
-    console.error('搜索商品失败', error)
-  } finally {
-    productLoading.value = false
-  }
-}
-
-function addProduct(product: ProductRecord) {
-  const exists = returnItems.value.find(item => item.skuId === product.skuId)
-  if (exists) {
-    showToast('商品已添加')
-    return
-  }
-  
-  returnItems.value.push({
-    skuId: product.skuId,
-    skuName: product.skuName,
-    originalQty: 0,
-    returnQty: 1,
-    unitPrice: product.retailPrice,
-    selected: true
-  })
-  
-  showProductPicker.value = false
-  productKeyword.value = ''
-}
 
 function removeItem(index: number) {
   returnItems.value.splice(index, 1)
 }
 
+function itemTotalBottleQty(item: ReturnItem) {
+  return item.boxQty * item.bottlesPerBox + item.bottleQty
+}
+
+function itemSubtotal(item: ReturnItem) {
+  return item.unitPrice * itemTotalBottleQty(item)
+}
+
+const returnAmount = computed(() =>
+  returnItems.value.reduce((sum, i) => sum + itemSubtotal(i), 0)
+)
+
+// ========== 退货原因和备注 ==========
+const reason = ref('')
+const remark = ref('')
+
+const REASON_OPTIONS = [
+  '商品质量问题',
+  '商品损坏',
+  '客户退货',
+  '订单错误',
+  '其他原因'
+]
+
+// ========== 提交 ==========
 async function submitReturn() {
-  try {
-    await formRef.value?.validate()
-  } catch {
+  if (returnItems.value.length === 0) {
+    showToast('请先添加退货商品')
     return
   }
-  
-  const validItems = returnItems.value.filter(item => item.selected && item.returnQty > 0)
-  if (validItems.length === 0) {
-    showToast('请添加退货商品')
+  if (returnType.value === 'BY_BILL' && !sourceBill.value) {
+    showToast('请先加载销售单')
     return
   }
-  
+  if (!reason.value) {
+    showToast('请选择退货原因')
+    return
+  }
+
   try {
-    const data = {
-      sourceBillNo: returnMode.value === 'bill' ? billNo.value : undefined,
-      customerName: returnMode.value === 'direct' ? customerName.value : selectedBill.value?.customerName,
-      reason: formData.value.reason,
-      items: validItems.map(item => ({
-        skuId: item.skuId,
-        returnBottleQty: item.returnQty,
-        totalReturnBottleQty: item.returnQty
+    showLoadingToast({ message: '创建退货单...', forbidClick: true })
+    await createSaleReturn({
+      sourceBillNo: returnType.value === 'BY_BILL' ? sourceBill.value?.billNo : null,
+      customerId: sourceBill.value?.customerId ?? null,
+      customerName: sourceBill.value?.customerName ?? undefined,
+      customerMobile: sourceBill.value?.customerMobile ?? undefined,
+      returnType: returnType.value,
+      reason: reason.value,
+      remark: remark.value || undefined,
+      items: returnItems.value.map(i => ({
+        skuId: i.skuId,
+        boxQty: i.boxQty,
+        bottleQty: i.bottleQty,
+        totalBottleQty: itemTotalBottleQty(i),
+        unitPrice: i.unitPrice,
+        priceType: i.priceType
       }))
-    }
-    
-    await createSaleReturn(data)
+    })
+    closeToast()
     showSuccessToast('退货单创建成功')
-    router.back()
-  } catch (error) {
-    showToast('创建失败，请重试')
+    resetForm()
+    goBack()
+  } catch (err: any) {
+    closeToast()
+    showToast(err.response?.data?.message || '操作失败')
   }
 }
 
-function formatMoney(amount: number) {
-  return amount.toFixed(2)
+// ========== 表单重置 ==========
+function resetForm() {
+  returnType.value = 'BY_BILL'
+  sourceBillNo.value = ''
+  sourceBill.value = null
+  returnItems.value = []
+  reason.value = ''
+  remark.value = ''
+}
+
+// ========== 导航 ==========
+function goBack() {
+  window.dispatchEvent(new CustomEvent('nav', { detail: 'sale-returns' }))
 }
 </script>
 
+<template>
+  <section class="page">
+    <div class="page-header">
+      <h2 class="page-title">创建退货单</h2>
+      <van-button type="default" size="small" icon="arrow-left" @click="goBack">
+        返回
+      </van-button>
+    </div>
+
+    <!-- 退货模式选择 -->
+    <div class="card">
+      <div class="section-title">退货模式</div>
+      <van-radio-group v-model="returnType" direction="horizontal">
+        <van-radio
+          v-for="option in RETURN_TYPE_OPTIONS"
+          :key="option.value"
+          :name="option.value"
+        >
+          {{ option.label }}
+        </van-radio>
+      </van-radio-group>
+    </div>
+
+    <!-- 按单退货 - 销售单号输入 -->
+    <div v-if="returnType === 'BY_BILL'" class="card">
+      <div class="section-title">销售单号</div>
+      <van-field
+        v-model="sourceBillNo"
+        placeholder="输入销售单号"
+        clearable
+      >
+        <template #button>
+          <van-button
+            type="primary"
+            size="small"
+            :loading="sourceBillLoading"
+            @click="loadSourceBill"
+          >
+            加载
+          </van-button>
+        </template>
+      </van-field>
+      <div v-if="sourceBill" class="source-bill-info">
+        <div class="info-row">
+          <span class="label">客户：</span>
+          <span>{{ sourceBill.customerName || '散客' }}</span>
+        </div>
+        <div class="info-row">
+          <span class="label">金额：</span>
+          <span class="amount">¥{{ Number(sourceBill.receivableAmount).toFixed(2) }}</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- 直接退货 - 商品选择 -->
+    <div v-if="returnType === 'DIRECT'" class="card">
+      <div class="section-title">添加商品</div>
+      <div class="product-actions">
+        <van-button type="primary" size="small" icon="search" @click="showProductSearch = true">
+          搜索商品
+        </van-button>
+      </div>
+    </div>
+
+    <!-- 退货商品列表 -->
+    <div v-if="returnItems.length > 0" class="card">
+      <div class="section-title">退货商品</div>
+      <div
+        v-for="(item, index) in returnItems"
+        :key="item.skuId"
+        class="return-item"
+      >
+        <div class="item-header">
+          <span class="item-name">{{ item.skuName }}</span>
+          <span class="item-price">¥{{ item.unitPrice.toFixed(2) }}</span>
+        </div>
+        <div class="item-qty-row">
+          <div class="qty-group">
+            <span class="qty-label">箱</span>
+            <van-stepper v-model="item.boxQty" :min="0" :max="999" integer />
+          </div>
+          <div class="qty-group">
+            <span class="qty-label">瓶</span>
+            <van-stepper v-model="item.bottleQty" :min="0" :max="999" integer />
+          </div>
+        </div>
+        <div class="item-subtotal">
+          小计：¥{{ itemSubtotal(item).toFixed(2) }}
+          <van-button type="danger" size="mini" plain @click="removeItem(index)">删除</van-button>
+        </div>
+      </div>
+    </div>
+
+    <!-- 退货原因 -->
+    <div class="card">
+      <div class="section-title">退货原因</div>
+      <van-radio-group v-model="reason" direction="vertical">
+        <van-radio
+          v-for="option in REASON_OPTIONS"
+          :key="option"
+          :name="option"
+        >
+          {{ option }}
+        </van-radio>
+      </van-radio-group>
+    </div>
+
+    <!-- 备注 -->
+    <div class="card">
+      <div class="section-title">备注</div>
+      <van-field
+        v-model="remark"
+        type="textarea"
+        rows="2"
+        placeholder="选填，输入备注信息"
+        maxlength="200"
+        show-word-limit
+      />
+    </div>
+
+    <!-- 汇总栏 -->
+    <div class="summary-card">
+      <div class="summary-row total">
+        <span>退货金额</span>
+        <span class="total-amount">¥{{ returnAmount.toFixed(2) }}</span>
+      </div>
+    </div>
+
+    <!-- 底部操作按钮 -->
+    <div class="action-footer">
+      <van-button
+        type="danger"
+        block
+        round
+        size="large"
+        @click="submitReturn"
+      >
+        提交退货单
+      </van-button>
+    </div>
+
+    <!-- 商品搜索弹窗 -->
+    <van-popup v-model:show="showProductSearch" position="bottom" round :style="{ maxHeight: '80%' }">
+      <div class="popup-panel">
+        <h3>选择商品</h3>
+        <van-search
+          v-model="productKeyword"
+          placeholder="输入商品名称/条码"
+          show-action
+          @search="searchProducts"
+          @cancel="showProductSearch = false"
+        />
+        <div v-if="productResults.length === 0" class="empty-wrapper">
+          <van-empty description="无搜索结果" />
+        </div>
+        <van-cell-group v-else inset>
+          <van-cell
+            v-for="p in productResults"
+            :key="p.skuId"
+            is-link
+            @click="addProduct(p)"
+          >
+            <template #title>
+              <div class="product-header">
+                <span class="product-name">{{ p.skuName }}</span>
+                <span class="product-price">¥{{ Number(p.retailPrice).toFixed(2) }}</span>
+              </div>
+            </template>
+            <template #label>
+              <div class="product-meta">
+                <span>库存: {{ p.availableQty }}</span>
+                <span>条码: {{ p.barcode || '-' }}</span>
+              </div>
+            </template>
+          </van-cell>
+        </van-cell-group>
+      </div>
+    </van-popup>
+  </section>
+</template>
+
 <style scoped>
-.create-sale-return-view {
-  min-height: 100vh;
-  background: #f5f5f5;
-  padding-bottom: 80px;
+.page-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 12px;
 }
 
-.bill-info {
-  padding: 12px 16px;
-  background: #f7f8fa;
+.page-title {
+  margin: 0;
+  font-size: 18px;
+  font-weight: 600;
+  color: var(--text-primary);
+}
+
+.card {
+  background: var(--bg-card);
+  border-radius: var(--radius-md);
+  padding: 16px;
+  margin-bottom: 12px;
+  box-shadow: var(--shadow-card);
+}
+
+.section-title {
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--text-primary);
+  margin-bottom: 12px;
+}
+
+.source-bill-info {
+  margin-top: 12px;
+  padding: 12px;
+  background: var(--bg-soft);
+  border-radius: var(--radius-sm);
 }
 
 .info-row {
   display: flex;
+  align-items: center;
   justify-content: space-between;
-  margin-bottom: 8px;
+  font-size: 13px;
+  color: var(--text-secondary);
+  margin-bottom: 6px;
 }
 
 .info-row:last-child {
   margin-bottom: 0;
 }
 
-.label {
-  color: #999;
-  font-size: 14px;
+.info-row .label {
+  color: var(--text-muted);
 }
 
-.value {
-  color: #333;
-  font-size: 14px;
+.amount {
+  font-weight: 600;
+  color: var(--color-primary);
 }
 
-.items-list {
-  padding: 12px;
+.product-actions {
+  display: flex;
+  gap: 8px;
 }
 
-.section-title {
-  font-weight: 500;
-  font-size: 15px;
-  margin-bottom: 12px;
+.return-item {
+  padding: 12px 0;
+  border-bottom: 1px solid var(--border-normal);
 }
 
-.item-card {
-  background: white;
-  border-radius: 8px;
-  padding: 12px;
-  margin-bottom: 12px;
+.return-item:last-child {
+  border-bottom: none;
 }
 
 .item-header {
   display: flex;
-  justify-content: space-between;
   align-items: center;
+  justify-content: space-between;
   margin-bottom: 8px;
 }
 
 .item-name {
-  font-weight: 500;
   font-size: 14px;
+  font-weight: 500;
+  color: var(--text-primary);
 }
 
-.item-body {
-  padding-left: 8px;
+.item-price {
+  font-size: 13px;
+  color: var(--text-secondary);
 }
 
-.footer {
-  position: fixed;
-  bottom: 0;
-  left: 0;
-  right: 0;
-  padding: 12px;
-  background: white;
-  box-shadow: 0 -2px 8px rgba(0, 0, 0, 0.05);
-}
-
-.product-picker {
-  height: 100%;
+.item-qty-row {
   display: flex;
-  flex-direction: column;
+  gap: 16px;
+  margin-bottom: 8px;
 }
 
-.product-item {
+.qty-group {
   display: flex;
-  justify-content: space-between;
   align-items: center;
-  padding: 12px 16px;
-  border-bottom: 1px solid #f0f0f0;
+  gap: 8px;
+}
+
+.qty-label {
+  font-size: 13px;
+  color: var(--text-secondary);
+}
+
+.item-subtotal {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  font-size: 13px;
+  color: var(--text-secondary);
+}
+
+.summary-card {
+  background: var(--bg-card);
+  border-radius: var(--radius-md);
+  padding: 16px;
+  margin-bottom: 12px;
+  box-shadow: var(--shadow-card);
+}
+
+.summary-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 8px 0;
+}
+
+.summary-row.total {
+  border-top: 1px solid var(--border-normal);
+  padding-top: 12px;
+  margin-top: 4px;
+}
+
+.total-amount {
+  font-size: 18px;
+  font-weight: 700;
+  color: var(--color-danger);
+}
+
+.action-footer {
+  margin-top: 20px;
+}
+
+.popup-panel {
+  padding: 20px 16px;
+  max-height: 80vh;
+  overflow-y: auto;
+}
+
+.popup-panel h3 {
+  margin: 0 0 16px;
+  font-size: 16px;
+  text-align: center;
+  color: var(--text-primary);
+}
+
+.empty-wrapper {
+  padding: 40px 0;
+}
+
+.product-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 4px;
 }
 
 .product-name {
   font-size: 14px;
+  font-weight: 500;
+  color: var(--text-primary);
 }
 
 .product-price {
-  color: #ee0a24;
-  font-weight: 500;
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--color-primary);
+}
+
+.product-meta {
+  display: flex;
+  gap: 12px;
+  font-size: 12px;
+  color: var(--text-muted);
 }
 </style>

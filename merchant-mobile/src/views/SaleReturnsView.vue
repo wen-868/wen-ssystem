@@ -1,225 +1,348 @@
+<script setup lang="ts">
+import { ref } from 'vue'
+import {
+  showToast,
+  showLoadingToast,
+  showSuccessToast,
+  closeToast
+} from 'vant'
+import {
+  fetchSaleReturns,
+  fetchSaleReturnDetail,
+  type SaleReturnRecord,
+  type SaleReturnDetail
+} from '../api'
+
+const STATUS_TABS = [
+  { label: '全部', value: '' },
+  { label: '待处理', value: 'CREATED' },
+  { label: '已完成', value: 'COMPLETED' },
+  { label: '已取消', value: 'CANCELLED' }
+]
+
+const STATUS_MAP: Record<string, { text: string; type: string }> = {
+  CREATED: { text: '待处理', type: 'warning' },
+  COMPLETED: { text: '已完成', type: 'success' },
+  CANCELLED: { text: '已取消', type: 'default' }
+}
+
+const activeTab = ref('')
+const returns = ref<SaleReturnRecord[]>([])
+const loading = ref(false)
+const finished = ref(false)
+const refreshing = ref(false)
+const page = ref(1)
+const pageSize = 20
+
+// 详情弹窗
+const showDetail = ref(false)
+const detail = ref<SaleReturnDetail | null>(null)
+const detailLoading = ref(false)
+
+async function loadReturns(reset = false) {
+  if (reset) {
+    page.value = 1
+    finished.value = false
+  }
+  loading.value = true
+  try {
+    const res = await fetchSaleReturns({
+      page: page.value,
+      pageSize,
+      status: activeTab.value || undefined
+    })
+    const data = res.data
+    if (reset) {
+      returns.value = data.records ?? []
+    } else {
+      returns.value.push(...(data.records ?? []))
+    }
+    if (returns.value.length >= (data.total ?? 0)) {
+      finished.value = true
+    }
+    page.value++
+  } catch {
+    showToast('操作失败，请重试')
+  } finally {
+    loading.value = false
+    refreshing.value = false
+  }
+}
+
+function onRefresh() {
+  refreshing.value = true
+  loadReturns(true)
+}
+
+function onTabChange() {
+  loadReturns(true)
+}
+
+async function viewDetail(returnNo: string) {
+  showDetail.value = true
+  detailLoading.value = true
+  detail.value = null
+  try {
+    const res = await fetchSaleReturnDetail(returnNo)
+    detail.value = res.data
+  } catch {
+    showToast('操作失败，请重试')
+  } finally {
+    detailLoading.value = false
+  }
+}
+
+function goCreate() {
+  window.dispatchEvent(new CustomEvent('nav', { detail: 'create-sale-return' }))
+}
+
+function goBack() {
+  window.dispatchEvent(new CustomEvent('nav', { detail: 'home' }))
+}
+</script>
+
 <template>
-  <div class="sale-returns-view">
-    <van-nav-bar title="销售退货" left-arrow @click-left="$router.back()" />
-    
-    <van-search
-      v-model="keyword"
-      placeholder="搜索退货单号/客户"
-      @search="loadData"
-    />
-    
-    <van-tabs v-model:active="activeTab" @change="loadData">
-      <van-tab title="全部" name="all" />
-      <van-tab title="待审核" name="PENDING" />
-      <van-tab title="已完成" name="COMPLETED" />
-      <van-tab title="已取消" name="CANCELLED" />
+  <section class="page">
+    <div class="page-header">
+      <h2 class="page-title">销售退货</h2>
+      <div class="header-actions">
+        <van-button type="primary" size="small" icon="plus" @click="goCreate">
+          新建退货
+        </van-button>
+        <van-button type="default" size="small" icon="arrow-left" @click="goBack">
+          返回
+        </van-button>
+      </div>
+    </div>
+
+    <!-- 状态筛选 -->
+    <van-tabs v-model:active="activeTab" sticky @change="onTabChange">
+      <van-tab
+        v-for="tab in STATUS_TABS"
+        :key="tab.value"
+        :title="tab.label"
+        :name="tab.value"
+      />
     </van-tabs>
-    
+
+    <!-- 列表 -->
     <van-pull-refresh v-model="refreshing" @refresh="onRefresh">
       <van-list
         v-model:loading="loading"
         :finished="finished"
         finished-text="没有更多了"
-        @load="loadData"
+        @load="loadReturns"
       >
-        <div
-          v-for="item in list"
-          :key="item.returnNo"
-          class="return-card"
-          @click="goDetail(item.returnNo)"
-        >
-          <div class="card-header">
-            <div class="return-no">{{ item.returnNo }}</div>
-            <van-tag :type="getStatusType(item.returnStatus) as any">
-              {{ getStatusText(item.returnStatus) }}
-            </van-tag>
-          </div>
-          
-          <div class="card-body">
-            <div class="info-row">
-              <span class="label">客户：</span>
-              <span class="value">{{ item.customerName || '散客' }}</span>
-            </div>
-            <div class="info-row" v-if="item.sourceBillNo">
-              <span class="label">原销售单：</span>
-              <span class="value">{{ item.sourceBillNo }}</span>
-            </div>
-            <div class="info-row">
-              <span class="label">退货金额：</span>
-              <span class="value amount">¥{{ formatMoney(item.returnAmount) }}</span>
-            </div>
-            <div class="info-row">
-              <span class="label">创建时间：</span>
-              <span class="value">{{ formatDate(item.createdAt) }}</span>
-            </div>
-          </div>
+        <div v-if="returns.length === 0 && !loading" class="empty-wrapper">
+          <van-empty description="暂无退货单" />
         </div>
-        
-        <van-empty v-if="!loading && list.length === 0" description="暂无退货单" />
+        <van-cell
+          v-for="record in returns"
+          :key="record.returnNo"
+          is-link
+          class="return-cell"
+          @click="viewDetail(record.returnNo)"
+        >
+          <template #title>
+            <div class="return-header">
+              <span class="return-no">{{ record.returnNo }}</span>
+              <van-tag
+                :type="(STATUS_MAP[record.status]?.type as any) || 'default'"
+                plain
+                size="medium"
+              >
+                {{ STATUS_MAP[record.status]?.text || record.status }}
+              </van-tag>
+            </div>
+          </template>
+          <template #label>
+            <div class="return-info">
+              <span>{{ record.customerName || '散客' }}</span>
+              <span class="return-amount">¥{{ Number(record.returnAmount).toFixed(2) }}</span>
+            </div>
+            <div class="return-meta">
+              <van-tag v-if="record.returnType === 'BY_BILL'" type="primary" plain size="mini">按单退货</van-tag>
+              <van-tag v-else type="success" plain size="mini">直接退货</van-tag>
+              <span v-if="record.sourceBillNo" class="source-bill">原单: {{ record.sourceBillNo }}</span>
+              <span class="return-time">{{ record.createdAt }}</span>
+            </div>
+          </template>
+        </van-cell>
       </van-list>
     </van-pull-refresh>
-    
-    <van-button
-      type="primary"
-      block
+
+    <!-- 详情弹窗 -->
+    <van-popup
+      v-model:show="showDetail"
+      position="bottom"
       round
-      class="create-btn"
-      @click="$router.push('/sale-returns/create')"
+      :style="{ maxHeight: '80%' }"
     >
-      创建退货单
-    </van-button>
-  </div>
+      <div class="detail-panel">
+        <h3>退货单详情</h3>
+        <div v-if="detailLoading" class="detail-loading">
+          <van-loading type="spinner" />
+        </div>
+        <template v-else-if="detail">
+          <van-cell-group inset>
+            <van-cell title="单号" :value="detail.returnNo" />
+            <van-cell title="客户" :value="detail.customerName || '散客'" />
+            <van-cell title="退货类型">
+              <template #value>
+                <van-tag :type="detail.returnType === 'BY_BILL' ? 'primary' : 'success'" plain>
+                  {{ detail.returnType === 'BY_BILL' ? '按单退货' : '直接退货' }}
+                </van-tag>
+              </template>
+            </van-cell>
+            <van-cell v-if="detail.sourceBillNo" title="原销售单" :value="detail.sourceBillNo" />
+            <van-cell title="退货金额">
+              <template #value>
+                <span class="detail-amount">¥{{ Number(detail.returnAmount).toFixed(2) }}</span>
+              </template>
+            </van-cell>
+            <van-cell title="状态">
+              <template #value>
+                <van-tag
+                  :type="(STATUS_MAP[detail.status]?.type as any) || 'default'"
+                  plain
+                >
+                  {{ STATUS_MAP[detail.status]?.text || detail.status }}
+                </van-tag>
+              </template>
+            </van-cell>
+            <van-cell v-if="detail.reason" title="退货原因" :value="detail.reason" />
+            <van-cell v-if="detail.remark" title="备注" :value="detail.remark" />
+          </van-cell-group>
+
+          <!-- 商品明细 -->
+          <div class="detail-items">
+            <h4>退货商品</h4>
+            <van-cell-group inset>
+              <van-cell
+                v-for="item in detail.items"
+                :key="item.skuId"
+                :title="item.skuName"
+                :label="`${item.boxQty}箱${item.bottleQty}瓶 / 共${item.totalBottleQty}瓶`"
+              >
+                <template #value>
+                  ¥{{ Number(item.subtotalAmount).toFixed(2) }}
+                </template>
+              </van-cell>
+            </van-cell-group>
+          </div>
+        </template>
+      </div>
+    </van-popup>
+  </section>
 </template>
 
-<script setup lang="ts">
-import { ref } from 'vue'
-import { useRouter } from 'vue-router'
-import { fetchSaleReturns, type SaleReturnRecord } from '../api'
-
-const router = useRouter()
-
-const keyword = ref('')
-const activeTab = ref('all')
-const list = ref<SaleReturnRecord[]>([])
-const loading = ref(false)
-const finished = ref(false)
-const refreshing = ref(false)
-
-async function loadData() {
-  if (loading.value) return
-  
-  loading.value = true
-  
-  try {
-    const params: any = {
-      page: 1,
-      pageSize: 20,
-      keyword: keyword.value
-    }
-    
-    if (activeTab.value !== 'all') {
-      params.returnStatus = activeTab.value
-    }
-    
-    const res = await fetchSaleReturns(params)
-    const data = res.data
-    
-    if (refreshing.value) {
-      list.value = []
-      refreshing.value = false
-    }
-    
-    list.value = [...list.value, ...(data.records || [])]
-    finished.value = list.value.length >= (data.total || 0)
-  } catch (error) {
-    console.error('加载退货单失败', error)
-  } finally {
-    loading.value = false
-  }
-}
-
-function onRefresh() {
-  finished.value = false
-  loadData()
-}
-
-function goDetail(returnNo: string) {
-  router.push(`/sale-returns/${returnNo}`)
-}
-
-function getStatusType(status: string) {
-  const map: Record<string, string> = {
-    PENDING: 'warning',
-    APPROVED: 'primary',
-    COMPLETED: 'success',
-    CANCELLED: 'default'
-  }
-  return map[status] || 'default'
-}
-
-function getStatusText(status: string) {
-  const map: Record<string, string> = {
-    PENDING: '待审核',
-    APPROVED: '已审核',
-    COMPLETED: '已完成',
-    CANCELLED: '已取消'
-  }
-  return map[status] || status
-}
-
-function formatMoney(amount: number) {
-  return amount.toFixed(2)
-}
-
-function formatDate(dateStr: string) {
-  const date = new Date(dateStr)
-  return `${date.getMonth() + 1}/${date.getDate()} ${date.getHours()}:${String(date.getMinutes()).padStart(2, '0')}`
-}
-</script>
-
 <style scoped>
-.sale-returns-view {
-  min-height: 100vh;
-  background: #f5f5f5;
-  padding-bottom: 80px;
-}
-
-.return-card {
-  background: white;
-  margin: 12px;
-  border-radius: 8px;
-  overflow: hidden;
-}
-
-.card-header {
+.page-header {
   display: flex;
-  justify-content: space-between;
   align-items: center;
-  padding: 12px 16px;
-  border-bottom: 1px solid #f0f0f0;
+  justify-content: space-between;
+  margin-bottom: 12px;
+}
+
+.page-title {
+  margin: 0;
+  font-size: 18px;
+  font-weight: 600;
+  color: var(--text-primary);
+}
+
+.header-actions {
+  display: flex;
+  gap: 8px;
+}
+
+.empty-wrapper {
+  padding: 40px 0;
+}
+
+.return-cell {
+  margin-bottom: 8px;
+  border-radius: var(--radius-sm);
+  background: var(--bg-card);
+  box-shadow: var(--shadow-card);
+}
+
+.return-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 4px;
 }
 
 .return-no {
+  font-size: 14px;
   font-weight: 500;
-  font-size: 15px;
+  color: var(--text-primary);
 }
 
-.card-body {
-  padding: 12px 16px;
-}
-
-.info-row {
+.return-info {
   display: flex;
-  justify-content: space-between;
   align-items: center;
-  margin-bottom: 8px;
+  justify-content: space-between;
+  font-size: 13px;
+  color: var(--text-secondary);
 }
 
-.info-row:last-child {
-  margin-bottom: 0;
+.return-amount {
+  font-weight: 600;
+  color: var(--color-danger);
 }
 
-.label {
-  color: #999;
+.return-meta {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 12px;
+  color: var(--text-muted);
+  margin-top: 4px;
+}
+
+.source-bill {
+  color: var(--color-primary);
+}
+
+.return-time {
+  font-size: 12px;
+  color: var(--text-muted);
+}
+
+.detail-panel {
+  padding: 20px 16px;
+  max-height: 80vh;
+  overflow-y: auto;
+}
+
+.detail-panel h3 {
+  margin: 0 0 16px;
+  font-size: 16px;
+  text-align: center;
+  color: var(--text-primary);
+}
+
+.detail-loading {
+  display: flex;
+  justify-content: center;
+  padding: 40px 0;
+}
+
+.detail-amount {
+  font-weight: 600;
+  color: var(--color-danger);
+  font-size: 16px;
+}
+
+.detail-items {
+  margin-top: 12px;
+}
+
+.detail-items h4 {
+  margin: 0 0 8px;
   font-size: 14px;
-}
-
-.value {
-  color: #333;
-  font-size: 14px;
-}
-
-.amount {
-  color: #ee0a24;
-  font-weight: 500;
-}
-
-.create-btn {
-  position: fixed;
-  bottom: 0;
-  left: 0;
-  right: 0;
-  margin: 12px;
-  width: calc(100% - 24px);
+  color: var(--text-secondary);
 }
 </style>
