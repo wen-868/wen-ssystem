@@ -563,6 +563,45 @@ storeRouter.post("/sale-bills/:billNo/offline-payment", asyncHandler(async (req,
   res.json(ok({ billNo: req.params.billNo }));
 }));
 
+// 查询超期赊销单
+storeRouter.get("/sale-bills/overdue", asyncHandler(async (req, res) => {
+  const page = Number(req.query.page || 1);
+  const pageSize = Number(req.query.pageSize || 20);
+  const offset = (page - 1) * pageSize;
+  const storeId = req.user?.storeId ?? null;
+
+  const records = await query<any>(
+    `SELECT bill_no AS billNo, store_id AS storeId, customer_id AS customerId, customer_name AS customerName,
+            customer_mobile AS customerMobile, sale_type AS saleType, due_date AS dueDate,
+            collection_status AS collectionStatus, receivable_amount AS receivableAmount,
+            received_amount AS receivedAmount, unreceived_amount AS unreceivedAmount,
+            created_at AS createdAt, DATEDIFF(CURDATE(), due_date) AS overdueDays
+     FROM sale_bill
+     WHERE sale_type = 'CREDIT'
+       AND due_date IS NOT NULL
+       AND due_date < CURDATE()
+       AND collection_status IN ('UNPAID', 'PARTIAL')
+       AND business_status = 'CREATED'
+       AND (? IS NULL OR store_id = ?)
+     ORDER BY due_date ASC
+     LIMIT ? OFFSET ?`,
+    [storeId, storeId, pageSize, offset]
+  );
+
+  const total = await queryOne<any>(
+    `SELECT COUNT(*) AS total FROM sale_bill
+     WHERE sale_type = 'CREDIT'
+       AND due_date IS NOT NULL
+       AND due_date < CURDATE()
+       AND collection_status IN ('UNPAID', 'PARTIAL')
+       AND business_status = 'CREATED'
+       AND (? IS NULL OR store_id = ?)`,
+    [storeId, storeId]
+  );
+
+  res.json(ok({ total: total?.total ?? 0, page, pageSize, records }));
+}));
+
 storeRouter.post("/inventory/adjust", asyncHandler(async (req, res) => {
   const body = z.object({
     storeId: z.number().optional(),

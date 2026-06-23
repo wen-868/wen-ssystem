@@ -1,516 +1,204 @@
 import { Router } from "express";
 import { z } from "zod";
 import { asyncHandler } from "../shared/async-handler.js";
+import { requireAuthWithTenant } from "../shared/auth.js";
 import { query, queryOne, transaction } from "../shared/db.js";
 import { makeBizNo } from "../shared/id.js";
 import { ok } from "../shared/response.js";
 
 export const purchasePaymentRouter = Router();
 
-// ========== 付款单管理 ==========
+// 列表查询
+purchasePaymentRouter.get("/", requireAuthWithTenant, asyncHandler(async (req, res) => {
+  const { supplier_id, payment_type, status, start_date, end_date, page = 1, pageSize = 20 } = req.query;
+  const tenantId = req.tenantId;
+
+  let sql = "SELECT * FROM purchase_payment WHERE tenant_id = ?";
+  const params: any[] = [tenantId];
+
+  if (supplier_id) {
+    sql += " AND supplier_id = ?";
+    params.push(Number(supplier_id));
+  }
+
+  if (payment_type) {
+    sql += " AND payment_type = ?";
+    params.push(payment_type);
+  }
+
+  if (status) {
+    sql += " AND status = ?";
+    params.push(status);
+  }
+
+  if (start_date) {
+    sql += " AND payment_date >= ?";
+    params.push(start_date);
+  }
+
+  if (end_date) {
+    sql += " AND payment_date <= ?";
+    params.push(end_date);
+  }
+
+  sql += " ORDER BY created_at DESC LIMIT ? OFFSET ?";
+  params.push(Number(pageSize), (Number(page) - 1) * Number(pageSize));
+
+  const payments = await query<any>(sql, params);
+  res.json(ok(payments));
+}));
+
+// 详情查询
+purchasePaymentRouter.get("/:paymentNo", requireAuthWithTenant, asyncHandler(async (req, res) => {
+  const { paymentNo } = req.params;
+  const tenantId = req.tenantId;
+
+  const payment = await queryOne<any>(
+    "SELECT * FROM purchase_payment WHERE payment_no = ? AND tenant_id = ?",
+    [paymentNo, tenantId]
+  );
+
+  if (!payment) {
+    res.status(404).json({ code: "404", message: "付款单不存在" });
+    return;
+  }
+
+  res.json(ok(payment));
+}));
 
 // 创建付款单
-purchasePaymentRouter.post("/", asyncHandler(async (req, res) => {
+purchasePaymentRouter.post("/", requireAuthWithTenant, asyncHandler(async (req, res) => {
   const body = z.object({
-    purchaseOrderId: z.number().int().positive(),
-    supplierId: z.number().int().positive(),
-    paymentAmount: z.number().min(0),
-    paymentMethod: z.enum(["BANK_TRANSFER", "CASH", "CHECK", "OTHER"]).default("BANK_TRANSFER"),
-    bankAccount: z.string().max(100).optional(),
-    remark: z.string().max(500).optional()
+    supplier_id: z.number().int().positive(),
+    supplier_name: z.string().min(1).max(128),
+    payment_type: z.enum(["ORDER", "RETURN", "ADVANCE"]).default("ORDER"),
+    source_type: z.string().max(32).optional(),
+    source_no: z.string().max(64).optional(),
+    amount: z.number().min(0.01),
+    payment_method: z.enum(["BANK", "CASH", "WECHAT", "ALIPAY"]).default("BANK"),
+    bank_account: z.string().max(64).optional(),
+    bank_account_name: z.string().max(64).optional(),
+    bank_name: z.string().max(128).optional(),
+    voucher_no: z.string().max(64).optional(),
+    payment_date: z.string(),
+    remark: z.string().max(255).optional(),
   }).parse(req.body);
 
-  const paymentNo = makeBizNo("PP");
+  const tenantId = req.tenantId;
+  const paymentNo = makeBizNo("FK");
 
   await transaction(async (conn) => {
-    await (conn as any).execute(
-      `INSERT INTO purchase_payment (payment_no, purchase_order_id, supplier_id, payment_amount, payment_method, bank_account, remark, status)
-       VALUES (?, ?, ?, ?, ?, ?, ?, 'PENDING')`,
-      [paymentNo, body.purchaseOrderId, body.supplierId, body.paymentAmount, body.paymentMethod, body.bankAccount ?? null, body.remark ?? null]
+    // 插入付款 record
+    await conn.execute(
+      `INSERT INTO purchase_payment (
+        payment_no, supplier_id, supplier_name, payment_type, source_type, source_no,
+        amount, payment_method, bank_account, bank_account_name, bank_name, voucher_no,
+        payment_date, operator_id, status, remark, tenant_id
+      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'PENDING', ?, ?)`,
+      [
+        paymentNo, body.supplier_id, body.supplier_name, body.payment_type,
+        body.source_type || null, body.source_no || null,
+        body.amount, body.payment_method, body.bank_account || null,
+        body.bank_account_name || null, body.bank_name || null, body.voucher_no || null,
+        body.payment_date, req.user?.id, body.remark || null, tenantId
+      ]
+    );
+
+    // 写操作日志
+    await conn.execute(
+      "INSERT INTO operation_log (module, action, target_id, target_type, user_id, user_name, detail, tenant_id) VALUES (?, ?, ?, ?, ?, ?, ?, ?)",
+      ["purchase_payment", "CREATE", paymentNo, "purchase_payment", req.user?.id, req.user?.username, `创建付款单: ${paymentNo}, 金额: ${body.amount}`, tenantId]
     );
   });
 
-  const record = await queryOne<any>(
-    `SELECT id, payment_no AS paymentNo, purchase_order_id AS purchaseOrderId, supplier_id AS supplierId,
-            payment_amount AS paymentAmount, payment_method AS paymentMethod, bank_account AS bankAccount,
-            remark, status, created_at AS createdAt, updated_at AS updatedAt
-     FROM purchase_payment WHERE payment_no = ?`,
+  res.json(ok({ payment_no: paymentNo }));
+}));
+
+// 审核通过（PENDING -> COMPLETED）
+purchasePaymentRouter.post("/:paymentNo/approve", requireAuthWithTenant, asyncHandler(async (req, res) => {
+  const { paymentNo } = req.params;
+  const tenantId = req.tenantId;
+
+  const payment = await queryOne<any>(
+    "SELECT id, status, source_type, source_no, amount FROM purchase_payment WHERE payment_no = ? AND tenant_id = ?",
+    [paymentNo, tenantId]
+  );
+
+  if (!payment) {
+    res.status(404).json({ code: "404", message: "付款单不存在" });
+    return;
+  }
+
+  if (payment.status !== "PENDING") {
+    res.status(400).json({ code: "400", message: "只有待审核状态的付款单可以审核" });
+    return;
+  }
+
+  await transaction(async (conn) => {
+    // 更新付款单状态
+    await conn.execute(
+      "UPDATE purchase_payment SET status = 'COMPLETED' WHERE payment_no = ?",
+      [paymentNo]
+    );
+
+    // 如果是订单付款，更新采购订单的已付金额
+    if (payment.source_type === "PURCHASE_ORDER" && payment.source_no) {
+      const order = await conn.execute(
+        "SELECT payable_amount, paid_amount FROM purchase_order WHERE order_no = ?",
+        [payment.source_no]
+      );
+
+      const orderRow = (order[0] as any[])?.[0];
+      if (orderRow) {
+        const newPaidAmount = Number(orderRow.paid_amount) + Number(payment.amount);
+        const newUnpaidAmount = Number(orderRow.payable_amount) - newPaidAmount;
+
+        await conn.execute(
+          "UPDATE purchase_order SET paid_amount = ?, unpaid_amount = ? WHERE order_no = ?",
+          [newPaidAmount, Math.max(0, newUnpaidAmount), payment.source_no]
+        );
+      }
+    }
+
+    // 写操作日志
+    await conn.execute(
+      "INSERT INTO operation_log (module, action, target_id, target_type, user_id, user_name, detail, tenant_id) VALUES (?, ?, ?, ?, ?, ?, ?, ?)",
+      ["purchase_payment", "APPROVE", paymentNo, "purchase_payment", req.user?.id, req.user?.username, `审核通过: ${paymentNo}`, tenantId]
+    );
+  });
+
+  res.json(ok({ payment_no: paymentNo }));
+}));
+
+// 作废付款单（PENDING -> VOIDED）
+purchasePaymentRouter.post("/:paymentNo/void", requireAuthWithTenant, asyncHandler(async (req, res) => {
+  const { paymentNo } = req.params;
+  const tenantId = req.tenantId;
+
+  const payment = await queryOne<any>(
+    "SELECT id, status FROM purchase_payment WHERE payment_no = ? AND tenant_id = ?",
+    [paymentNo, tenantId]
+  );
+
+  if (!payment) {
+    res.status(404).json({ code: "404", message: "付款单不存在" });
+    return;
+  }
+
+  if (payment.status !== "PENDING") {
+    res.status(400).json({ code: "400", message: "只有待审核状态的付款单可以作废" });
+    return;
+  }
+
+  await query(
+    "UPDATE purchase_payment SET status = 'VOIDED' WHERE payment_no = ?",
     [paymentNo]
   );
 
-  res.json(ok(record));
-}));
-
-// 付款单列表
-purchasePaymentRouter.get("/", asyncHandler(async (req, res) => {
-  const page = Number(req.query.page || 1);
-  const pageSize = Number(req.query.pageSize || 20);
-  const offset = (page - 1) * pageSize;
-  const conditions: string[] = [];
-  const params: unknown[] = [];
-
-  if (req.query.supplierId) {
-    conditions.push("pp.supplier_id = ?");
-    params.push(Number(req.query.supplierId));
-  }
-  if (req.query.status) {
-    conditions.push("pp.status = ?");
-    params.push(req.query.status);
-  }
-
-  const where = conditions.length > 0 ? `WHERE ${conditions.join(" AND ")}` : "";
-
-  const records = await query<any>(
-    `SELECT pp.id, pp.payment_no AS paymentNo, pp.purchase_order_id AS purchaseOrderId, pp.supplier_id AS supplierId,
-            s.name AS supplierName,
-            pp.payment_amount AS paymentAmount, pp.payment_method AS paymentMethod, pp.bank_account AS bankAccount,
-            pp.remark, pp.status,
-            pp.approved_by AS approvedBy, pp.approved_at AS approvedAt,
-            pp.paid_at AS paidAt, pp.paid_by AS paidBy,
-            pp.created_at AS createdAt, pp.updated_at AS updatedAt
-     FROM purchase_payment pp
-     LEFT JOIN supplier s ON s.id = pp.supplier_id
-     ${where}
-     ORDER BY pp.created_at DESC
-     LIMIT ? OFFSET ?`,
-    [...params, pageSize, offset]
-  );
-
-  const totalRow = await queryOne<any>(
-    `SELECT COUNT(*) AS total FROM purchase_payment pp ${where}`,
-    params
-  );
-
-  res.json(ok({
-    total: Number(totalRow?.total ?? 0),
-    page,
-    pageSize,
-    records
-  }));
-}));
-
-// 付款单详情
-purchasePaymentRouter.get("/statistics", asyncHandler(async (_req, res) => {
-  const monthTotal = await queryOne<any>(
-    `SELECT COALESCE(SUM(payment_amount), 0) AS total
-     FROM purchase_payment
-     WHERE status = 'PAID' AND MONTH(paid_at) = MONTH(NOW()) AND YEAR(paid_at) = YEAR(NOW())`
-  );
-
-  const pendingApprove = await queryOne<any>(
-    `SELECT COUNT(*) AS count FROM purchase_payment WHERE status = 'PENDING'`
-  );
-
-  const pendingPay = await queryOne<any>(
-    `SELECT COUNT(*) AS count FROM purchase_payment WHERE status = 'APPROVED'`
-  );
-
-  res.json(ok({
-    monthPaidTotal: Number(monthTotal?.total ?? 0),
-    pendingApproveCount: Number(pendingApprove?.count ?? 0),
-    pendingPayCount: Number(pendingPay?.count ?? 0)
-  }));
-}));
-
-// 付款单详情
-purchasePaymentRouter.get("/:id", asyncHandler(async (req, res) => {
-  const id = Number(req.params.id);
-  const record = await queryOne<any>(
-    `SELECT pp.id, pp.payment_no AS paymentNo, pp.purchase_order_id AS purchaseOrderId, pp.supplier_id AS supplierId,
-            s.name AS supplierName,
-            pp.payment_amount AS paymentAmount, pp.payment_method AS paymentMethod, pp.bank_account AS bankAccount,
-            pp.remark, pp.status,
-            pp.approved_by AS approvedBy, pp.approved_at AS approvedAt,
-            pp.paid_at AS paidAt, pp.paid_by AS paidBy,
-            pp.created_at AS createdAt, pp.updated_at AS updatedAt
-     FROM purchase_payment pp
-     LEFT JOIN supplier s ON s.id = pp.supplier_id
-     WHERE pp.id = ?`,
-    [id]
-  );
-
-  if (!record) {
-    res.status(404).json({ code: "404", message: "付款单不存在" });
-    return;
-  }
-
-  res.json(ok(record));
-}));
-
-// 更新付款单
-purchasePaymentRouter.put("/:id", asyncHandler(async (req, res) => {
-  const id = Number(req.params.id);
-  const existing = await queryOne<any>("SELECT id, status FROM purchase_payment WHERE id = ?", [id]);
-  if (!existing) {
-    res.status(404).json({ code: "404", message: "付款单不存在" });
-    return;
-  }
-  if (existing.status !== "PENDING") {
-    res.status(400).json({ code: "400", message: "仅待审核状态的付款单可编辑" });
-    return;
-  }
-
-  const body = z.object({
-    paymentAmount: z.number().min(0).optional(),
-    paymentMethod: z.enum(["BANK_TRANSFER", "CASH", "CHECK", "OTHER"]).optional(),
-    bankAccount: z.string().max(100).optional(),
-    remark: z.string().max(500).optional()
-  }).parse(req.body);
-
-  const updates: string[] = [];
-  const params: unknown[] = [];
-
-  if (body.paymentAmount !== undefined) { updates.push("payment_amount = ?"); params.push(body.paymentAmount); }
-  if (body.paymentMethod !== undefined) { updates.push("payment_method = ?"); params.push(body.paymentMethod); }
-  if (body.bankAccount !== undefined) { updates.push("bank_account = ?"); params.push(body.bankAccount); }
-  if (body.remark !== undefined) { updates.push("remark = ?"); params.push(body.remark); }
-
-  if (updates.length > 0) {
-    await query(`UPDATE purchase_payment SET ${updates.join(", ")} WHERE id = ?`, [...params, id]);
-  }
-
-  const record = await queryOne<any>(
-    `SELECT id, payment_no AS paymentNo, purchase_order_id AS purchaseOrderId, supplier_id AS supplierId,
-            payment_amount AS paymentAmount, payment_method AS paymentMethod, bank_account AS bankAccount,
-            remark, status, created_at AS createdAt, updated_at AS updatedAt
-     FROM purchase_payment WHERE id = ?`,
-    [id]
-  );
-
-  res.json(ok(record));
-}));
-
-// 审核付款单
-purchasePaymentRouter.post("/:id/approve", asyncHandler(async (req, res) => {
-  const id = Number(req.params.id);
-  const existing = await queryOne<any>("SELECT id, status FROM purchase_payment WHERE id = ?", [id]);
-  if (!existing) {
-    res.status(404).json({ code: "404", message: "付款单不存在" });
-    return;
-  }
-  if (existing.status !== "PENDING") {
-    res.status(400).json({ code: "400", message: "仅待审核状态的付款单可审核" });
-    return;
-  }
-
   await query(
-    `UPDATE purchase_payment SET status = 'APPROVED', approved_by = ?, approved_at = NOW() WHERE id = ?`,
-    [req.user!.id, id]
+    "INSERT INTO operation_log (module, action, target_id, target_type, user_id, user_name, detail, tenant_id) VALUES (?, ?, ?, ?, ?, ?, ?, ?)",
+    ["purchase_payment", "VOID", paymentNo, "purchase_payment", req.user?.id, req.user?.username, `作废付款单: ${paymentNo}`, tenantId]
   );
 
-  const record = await queryOne<any>(
-    `SELECT id, payment_no AS paymentNo, status, approved_by AS approvedBy, approved_at AS approvedAt, updated_at AS updatedAt
-     FROM purchase_payment WHERE id = ?`,
-    [id]
-  );
-
-  res.json(ok(record));
-}));
-
-// 确认付款
-purchasePaymentRouter.post("/:id/pay", asyncHandler(async (req, res) => {
-  const id = Number(req.params.id);
-  const existing = await queryOne<any>("SELECT id, status FROM purchase_payment WHERE id = ?", [id]);
-  if (!existing) {
-    res.status(404).json({ code: "404", message: "付款单不存在" });
-    return;
-  }
-  if (existing.status !== "APPROVED") {
-    res.status(400).json({ code: "400", message: "仅已审核状态的付款单可确认付款" });
-    return;
-  }
-
-  await transaction(async (conn) => {
-    await (conn as any).execute(
-      `UPDATE purchase_payment SET status = 'PAID', paid_at = NOW(), paid_by = ? WHERE id = ?`,
-      [req.user!.id, id]
-    );
-    // 更新采购单已付金额
-    const payment = await queryOne<any>("SELECT purchase_order_id, payment_amount FROM purchase_payment WHERE id = ?", [id]);
-    if (payment) {
-      await (conn as any).execute(
-        `UPDATE purchase_order SET paid_amount = COALESCE(paid_amount, 0) + ? WHERE id = ?`,
-        [payment.payment_amount, payment.purchase_order_id]
-      );
-    }
-  });
-
-  const record = await queryOne<any>(
-    `SELECT id, payment_no AS paymentNo, status, paid_at AS paidAt, paid_by AS paidBy, updated_at AS updatedAt
-     FROM purchase_payment WHERE id = ?`,
-    [id]
-  );
-
-  res.json(ok(record));
-}));
-
-// 取消付款单
-purchasePaymentRouter.post("/:id/cancel", asyncHandler(async (req, res) => {
-  const id = Number(req.params.id);
-  const existing = await queryOne<any>("SELECT id, status FROM purchase_payment WHERE id = ?", [id]);
-  if (!existing) {
-    res.status(404).json({ code: "404", message: "付款单不存在" });
-    return;
-  }
-  if (existing.status === "PAID" || existing.status === "CANCELLED") {
-    res.status(400).json({ code: "400", message: "已付款或已取消的付款单不可取消" });
-    return;
-  }
-
-  await query(`UPDATE purchase_payment SET status = 'CANCELLED' WHERE id = ?`, [id]);
-
-  const record = await queryOne<any>(
-    `SELECT id, payment_no AS paymentNo, status, updated_at AS updatedAt
-     FROM purchase_payment WHERE id = ?`,
-    [id]
-  );
-
-  res.json(ok(record));
-}));
-
-// ========== 供应商对账 ==========
-
-// 生成对账单
-purchasePaymentRouter.post("/supplier-statements/generate", asyncHandler(async (req, res) => {
-  const body = z.object({
-    supplierId: z.number().int().positive(),
-    periodStart: z.string(),
-    periodEnd: z.string(),
-    remark: z.string().max(500).optional()
-  }).parse(req.body);
-
-  const statementNo = makeBizNo("SS");
-
-  const result = await transaction(async (conn) => {
-    // 查询时间段内的采购订单
-    const purchaseOrders = await (conn as any).execute(
-      `SELECT id, purchase_no, total_amount
-       FROM purchase_order
-       WHERE supplier_id = ? AND status IN ('APPROVED', 'WAREHOUSED')
-         AND created_at >= ? AND created_at <= DATE_ADD(?, INTERVAL 1 DAY)`,
-      [body.supplierId, body.periodStart, body.periodEnd]
-    ) as any;
-    const poList = (purchaseOrders[0] as any[]) || [];
-
-    // 查询时间段内的付款
-    const payments = await (conn as any).execute(
-      `SELECT purchase_order_id, payment_amount
-       FROM purchase_payment
-       WHERE supplier_id = ? AND status = 'PAID'
-         AND paid_at >= ? AND paid_at <= DATE_ADD(?, INTERVAL 1 DAY)`,
-      [body.supplierId, body.periodStart, body.periodEnd]
-    ) as any;
-    const payList = (payments[0] as any[]) || [];
-
-    // 查询时间段内的退货
-    const returns = await (conn as any).execute(
-      `SELECT purchase_order_id, return_amount
-       FROM purchase_return
-       WHERE supplier_id = ? AND status IN ('APPROVED', 'COMPLETED')
-         AND created_at >= ? AND created_at <= DATE_ADD(?, INTERVAL 1 DAY)`,
-      [body.supplierId, body.periodStart, body.periodEnd]
-    ) as any;
-    const returnList = (returns[0] as any[]) || [];
-
-    // 汇总
-    let totalPurchase = 0;
-    let totalPaid = 0;
-    let totalReturn = 0;
-
-    const items: any[] = [];
-    for (const po of poList) {
-      const poPayments = payList.filter((p: any) => p.purchase_order_id === po.id);
-      const poReturns = returnList.filter((r: any) => r.purchase_order_id === po.id);
-      const poPaid = poPayments.reduce((s: number, p: any) => s + Number(p.payment_amount), 0);
-      const poReturn = poReturns.reduce((s: number, r: any) => s + Number(r.return_amount), 0);
-
-      totalPurchase += Number(po.total_amount);
-      totalPaid += poPaid;
-      totalReturn += poReturn;
-
-      items.push({
-        purchaseOrderId: po.id,
-        purchaseAmount: po.total_amount,
-        paymentAmount: poPaid,
-        returnAmount: poReturn
-      });
-    }
-
-    // 插入对账单
-    const insertResult = await (conn as any).execute(
-      `INSERT INTO supplier_statement (statement_no, supplier_id, period_start, period_end,
-         total_purchase_amount, total_paid_amount, total_return_amount, status, remark)
-       VALUES (?, ?, ?, ?, ?, ?, ?, 'DRAFT', ?)`,
-      [statementNo, body.supplierId, body.periodStart, body.periodEnd,
-       totalPurchase, totalPaid, totalReturn, body.remark ?? null]
-    );
-    const statementId = (insertResult as any).insertId;
-
-    // 插入明细
-    for (const item of items) {
-      await (conn as any).execute(
-        `INSERT INTO supplier_statement_item (statement_id, purchase_order_id, purchase_amount, payment_amount, return_amount)
-         VALUES (?, ?, ?, ?, ?)`,
-        [statementId, item.purchaseOrderId, item.purchaseAmount, item.paymentAmount, item.returnAmount]
-      );
-    }
-
-    return { statementId, totalPurchase, totalPaid, totalReturn };
-  });
-
-  const record = await queryOne<any>(
-    `SELECT id, statement_no AS statementNo, supplier_id AS supplierId, period_start AS periodStart, period_end AS periodEnd,
-            total_purchase_amount AS totalPurchaseAmount, total_paid_amount AS totalPaidAmount,
-            total_return_amount AS totalReturnAmount, balance_amount AS balanceAmount,
-            status, remark, created_at AS createdAt
-     FROM supplier_statement WHERE id = ?`,
-    [result.statementId]
-  );
-
-  res.json(ok(record));
-}));
-
-// 对账单列表
-purchasePaymentRouter.get("/supplier-statements", asyncHandler(async (req, res) => {
-  const page = Number(req.query.page || 1);
-  const pageSize = Number(req.query.pageSize || 20);
-  const offset = (page - 1) * pageSize;
-  const conditions: string[] = [];
-  const params: unknown[] = [];
-
-  if (req.query.supplierId) {
-    conditions.push("ss.supplier_id = ?");
-    params.push(Number(req.query.supplierId));
-  }
-  if (req.query.status) {
-    conditions.push("ss.status = ?");
-    params.push(req.query.status);
-  }
-
-  const where = conditions.length > 0 ? `WHERE ${conditions.join(" AND ")}` : "";
-
-  const records = await query<any>(
-    `SELECT ss.id, ss.statement_no AS statementNo, ss.supplier_id AS supplierId,
-            s.name AS supplierName,
-            ss.period_start AS periodStart, ss.period_end AS periodEnd,
-            ss.total_purchase_amount AS totalPurchaseAmount, ss.total_paid_amount AS totalPaidAmount,
-            ss.total_return_amount AS totalReturnAmount, ss.balance_amount AS balanceAmount,
-            ss.status, ss.remark,
-            ss.confirmed_by AS confirmedBy, ss.confirmed_at AS confirmedAt,
-            ss.created_at AS createdAt, ss.updated_at AS updatedAt
-     FROM supplier_statement ss
-     LEFT JOIN supplier s ON s.id = ss.supplier_id
-     ${where}
-     ORDER BY ss.created_at DESC
-     LIMIT ? OFFSET ?`,
-    [...params, pageSize, offset]
-  );
-
-  const totalRow = await queryOne<any>(
-    `SELECT COUNT(*) AS total FROM supplier_statement ss ${where}`,
-    params
-  );
-
-  res.json(ok({
-    total: Number(totalRow?.total ?? 0),
-    page,
-    pageSize,
-    records
-  }));
-}));
-
-// 对账单详情（含明细）
-purchasePaymentRouter.get("/supplier-statements/:id", asyncHandler(async (req, res) => {
-  const id = Number(req.params.id);
-  const record = await queryOne<any>(
-    `SELECT ss.id, ss.statement_no AS statementNo, ss.supplier_id AS supplierId,
-            s.name AS supplierName,
-            ss.period_start AS periodStart, ss.period_end AS periodEnd,
-            ss.total_purchase_amount AS totalPurchaseAmount, ss.total_paid_amount AS totalPaidAmount,
-            ss.total_return_amount AS totalReturnAmount, ss.balance_amount AS balanceAmount,
-            ss.status, ss.remark,
-            ss.confirmed_by AS confirmedBy, ss.confirmed_at AS confirmedAt,
-            ss.created_at AS createdAt, ss.updated_at AS updatedAt
-     FROM supplier_statement ss
-     LEFT JOIN supplier s ON s.id = ss.supplier_id
-     WHERE ss.id = ?`,
-    [id]
-  );
-
-  if (!record) {
-    res.status(404).json({ code: "404", message: "对账单不存在" });
-    return;
-  }
-
-  const items = await query<any>(
-    `SELECT ssi.id, ssi.statement_id AS statementId, ssi.purchase_order_id AS purchaseOrderId,
-            po.purchase_no AS purchaseNo,
-            ssi.purchase_amount AS purchaseAmount, ssi.payment_amount AS paymentAmount,
-            ssi.return_amount AS returnAmount, ssi.balance
-     FROM supplier_statement_item ssi
-     LEFT JOIN purchase_order po ON po.id = ssi.purchase_order_id
-     WHERE ssi.statement_id = ?
-     ORDER BY ssi.id`,
-    [id]
-  );
-
-  res.json(ok({ ...record, items }));
-}));
-
-// 确认对账
-purchasePaymentRouter.post("/supplier-statements/:id/confirm", asyncHandler(async (req, res) => {
-  const id = Number(req.params.id);
-  const existing = await queryOne<any>("SELECT id, status FROM supplier_statement WHERE id = ?", [id]);
-  if (!existing) {
-    res.status(404).json({ code: "404", message: "对账单不存在" });
-    return;
-  }
-  if (existing.status !== "DRAFT") {
-    res.status(400).json({ code: "400", message: "仅草稿状态的对账单可确认" });
-    return;
-  }
-
-  await query(
-    `UPDATE supplier_statement SET status = 'CONFIRMED', confirmed_by = ?, confirmed_at = NOW() WHERE id = ?`,
-    [req.user!.id, id]
-  );
-
-  const record = await queryOne<any>(
-    `SELECT id, statement_no AS statementNo, status, confirmed_by AS confirmedBy, confirmed_at AS confirmedAt, updated_at AS updatedAt
-     FROM supplier_statement WHERE id = ?`,
-    [id]
-  );
-
-  res.json(ok(record));
-}));
-
-// 标记争议
-purchasePaymentRouter.post("/supplier-statements/:id/dispute", asyncHandler(async (req, res) => {
-  const id = Number(req.params.id);
-  const body = z.object({
-    remark: z.string().max(500).optional()
-  }).parse(req.body);
-
-  const existing = await queryOne<any>("SELECT id, status FROM supplier_statement WHERE id = ?", [id]);
-  if (!existing) {
-    res.status(404).json({ code: "404", message: "对账单不存在" });
-    return;
-  }
-  if (existing.status === "CONFIRMED") {
-    res.status(400).json({ code: "400", message: "已确认的对账单不可标记争议" });
-    return;
-  }
-
-  await query(
-    `UPDATE supplier_statement SET status = 'DISPUTED', remark = COALESCE(?, remark) WHERE id = ?`,
-    [body.remark ?? null, id]
-  );
-
-  const record = await queryOne<any>(
-    `SELECT id, statement_no AS statementNo, status, remark, updated_at AS updatedAt
-     FROM supplier_statement WHERE id = ?`,
-    [id]
-  );
-
-  res.json(ok(record));
+  res.json(ok({ payment_no: paymentNo }));
 }));

@@ -37,7 +37,12 @@ import { sysConfigRouter } from "./routes/sys-config.routes.js";
 import { supplierRouter } from "./routes/supplier.routes.js";
 import { purchaseRouter } from "./routes/purchase.routes.js";
 import { saleReturnRouter } from "./routes/sale-return.routes.js";
+import { purchaseInStockRouter } from "./routes/purchase-in-stock.routes.js";
+import { purchaseReturnRouter } from "./routes/purchase-return.routes.js";
+import { customerStatementRouter } from "./routes/customer-statement.routes.js";
+import { customerPaymentRouter } from "./routes/customer-payment.routes.js";
 import { approvalRouter } from "./routes/approval.routes.js";
+import { startOverdueScanner } from "./services/overdue-scanner.service.js";
 
 const app = express();
 
@@ -94,6 +99,10 @@ app.use("/api/admin/sys-config", requireAuthWithTenant, sysConfigRouter);
 app.use("/api/admin/suppliers", requireAuthWithTenant, supplierRouter);
 app.use("/api/admin/purchase-orders", requireAuthWithTenant, purchaseRouter);
 app.use("/api/store/sale-returns", requireAuthWithTenant, saleReturnRouter);
+app.use("/api/admin/purchase-in-stocks", requireAuthWithTenant, purchaseInStockRouter);
+app.use("/api/admin/purchase-returns", requireAuthWithTenant, purchaseReturnRouter);
+app.use("/api/admin/customer-statements", requireAuthWithTenant, customerStatementRouter);
+app.use("/api/admin/customer-payments", requireAuthWithTenant, customerPaymentRouter);
 app.use("/api/admin/approval", requireAuthWithTenant, approvalRouter);
 
 app.use(errorHandler);
@@ -113,6 +122,8 @@ async function start() {
     startStoreControlScheduler();
     // 启动订单超时扫描器
     startOrderTimeoutScanner();
+    // 启动赊销超期检测
+    startOverdueScanner();
   });
 }
 
