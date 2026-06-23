@@ -221,11 +221,11 @@ adminRouter.post("/products", requireAuth, asyncHandler(async (req, res) => {
       temperature: z.enum(["NORMAL", "CHILLED"]).default("NORMAL"),
       traceEnabled: z.boolean().default(false),
       warningThreshold: z.number().default(0),
-      costPrice: z.number().default(0),
-      retailPrice: z.number(),
-      wholesalePrice: z.number().nullable().optional(),
-      miniappPrice: z.number().nullable().optional(),
-      storePrice: z.number().nullable().optional()
+      costPrice: z.number().min(0).default(0),
+      retailPrice: z.number().min(0),
+      wholesalePrice: z.number().min(0).nullable().optional(),
+      miniappPrice: z.number().min(0).nullable().optional(),
+      storePrice: z.number().min(0).nullable().optional()
     })).min(1)
   }).parse(req.body);
   const result = await transaction(async (conn) => {
