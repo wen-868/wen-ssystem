@@ -637,6 +637,65 @@ export function cancelPurchaseOrder(id: number) {
   return api.delete(`/admin/purchase-orders/${id}`)
 }
 
+/* ========== 采购入库 ========== */
+
+export interface PurchaseStockItem {
+  id: number
+  stockNo: string
+  skuId: number
+  skuName: string
+  barcode?: string
+  boxQty: number
+  bottleQty: number
+  totalBottleQty: number
+  unitPrice: number
+  taxRate?: number
+  subtotalAmount: number
+  batchNo?: string
+  productionDate?: string
+  expiryDate?: string
+  remark?: string
+}
+
+export interface PurchaseStockRecord {
+  id: number
+  stockNo: string
+  orderNo: string
+  supplierId: number
+  supplierName: string
+  storeId: number
+  stockStatus: string
+  goodsAmount: number
+  taxAmount?: number
+  totalAmount: number
+  operatorId?: number
+  remark?: string
+  createdAt: string
+}
+
+export interface PurchaseStockDetail extends PurchaseStockRecord {
+  items: PurchaseStockItem[]
+}
+
+export function fetchPurchaseInStocks(params: {
+  page?: number
+  pageSize?: number
+  stockStatus?: string
+  supplierId?: number
+  dateStart?: string
+  dateEnd?: string
+}) {
+  return api.get('/admin/purchase-in-stocks', { params })
+}
+
+export function fetchPurchaseInStockDetail(id: number) {
+  return api.get(`/admin/purchase-in-stocks/${id}`)
+}
+
+export function confirmPurchaseInStock(id: number) {
+  return api.post(`/admin/purchase-in-stocks/${id}/confirm`)
+}
+
 /* ========== 供应商（商家端） ========== */
 
 export interface SupplierOption {
