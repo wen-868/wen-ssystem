@@ -324,7 +324,6 @@ storeRouter.get("/sale-bills", asyncHandler(async (req, res) => {
   const records = await query<any>(
     `SELECT bill_no AS billNo, store_id AS storeId, customer_id AS customerId, customer_name AS customerName,
             customer_type AS customerType, business_status AS businessStatus, collection_status AS collectionStatus,
-            sale_type AS saleType, due_date AS dueDate,
             receivable_amount AS receivableAmount, received_amount AS receivedAmount, unreceived_amount AS unreceivedAmount,
             created_at AS createdAt
      FROM sale_bill
@@ -351,8 +350,6 @@ storeRouter.post("/sale-bills", asyncHandler(async (req, res) => {
     customerId: z.number().nullable().optional(),
     customerName: z.string().optional(),
     customerMobile: z.string().optional(),
-    saleType: z.enum(["CASH", "CREDIT"]).default("CASH"),
-    dueDate: z.string().nullable().optional(),
     discountAmount: z.number().default(0),
     roundingAmount: z.number().default(0),
     remark: z.string().optional(),
@@ -386,12 +383,12 @@ storeRouter.post("/sale-bills", asyncHandler(async (req, res) => {
     const receivableAmount = Math.max(0, goodsAmount - body.discountAmount - body.roundingAmount);
     await conn.execute(
       `INSERT INTO sale_bill (bill_no, store_id, customer_id, customer_name, customer_mobile, customer_type,
-                              business_status, collection_status, sale_type, due_date, goods_amount, discount_amount, rounding_amount,
+                              business_status, collection_status, goods_amount, discount_amount, rounding_amount,
                               receivable_amount, received_amount, unreceived_amount, operator_id, remark, internal_remark)
-       VALUES (?, ?, ?, ?, ?, ?, 'CREATED', 'UNPAID', ?, ?, ?, ?, ?, ?, 0, ?, ?, ?, ?)`,
+       VALUES (?, ?, ?, ?, ?, ?, 'CREATED', 'UNPAID', ?, ?, ?, ?, 0, ?, ?, ?, ?)`,
       [
         billNo, storeId, body.customerId ?? null, member?.name ?? body.customerName ?? null, member?.mobile ?? body.customerMobile ?? null,
-        member?.customer_type ?? "RETAIL", body.saleType, body.dueDate ?? null, goodsAmount, body.discountAmount, body.roundingAmount, receivableAmount, receivableAmount,
+        member?.customer_type ?? "RETAIL", goodsAmount, body.discountAmount, body.roundingAmount, receivableAmount, receivableAmount,
         req.user?.id ?? 0, body.remark ?? null, body.internalRemark ?? null
       ]
     );
@@ -411,9 +408,7 @@ storeRouter.get("/sale-bills/:billNo", asyncHandler(async (req, res) => {
   const bill = await queryOne<any>(
     `SELECT bill_no AS billNo, store_id AS storeId, customer_id AS customerId, customer_name AS customerName,
             customer_type AS customerType, business_status AS businessStatus, collection_status AS collectionStatus,
-            sale_type AS saleType, due_date AS dueDate,
-            receivable_amount AS receivableAmount, received_amount AS receivedAmount, unreceived_amount AS unreceivedAmount,
-            remark, internal_remark AS internalRemark, created_at AS createdAt
+            receivable_amount AS receivableAmount, received_amount AS receivedAmount, unreceived_amount AS unreceivedAmount
      FROM sale_bill WHERE bill_no = ?`,
     [req.params.billNo]
   );
@@ -423,7 +418,7 @@ storeRouter.get("/sale-bills/:billNo", asyncHandler(async (req, res) => {
   }
   const items = await query<any>(
     `SELECT sku_id AS skuId, sku_name AS skuName, box_qty AS boxQty, bottle_qty AS bottleQty,
-            total_bottle_qty AS totalBottleQty, unit_price AS unitPrice, price_type AS priceType, subtotal_amount AS subtotalAmount
+            total_bottle_qty AS totalBottleQty, unit_price AS unitPrice, subtotal_amount AS subtotalAmount
      FROM sale_bill_item WHERE bill_no = ?`,
     [req.params.billNo]
   );
@@ -739,120 +734,6 @@ storeRouter.delete("/hold-orders/:holdNo", asyncHandler(async (req, res) => {
     [req.params.holdNo]
   );
   res.json(ok({ holdNo: req.params.holdNo, status: "DELETED" }));
-}));
-
-storeRouter.get("/sale-returns", asyncHandler(async (req, res) => {
-  const page = Number(req.query.page || 1);
-  const pageSize = Number(req.query.pageSize || 20);
-  const offset = (page - 1) * pageSize;
-  const keyword = `%${String(req.query.keyword || "")}%`;
-  const status = req.query.status ? String(req.query.status) : null;
-  const storeId = req.user?.storeId ?? null;
-  const records = await query<any>(
-    `SELECT return_no AS returnNo, store_id AS storeId, source_bill_no AS sourceBillNo,
-            customer_id AS customerId, customer_name AS customerName,
-            return_type AS returnType, return_amount AS returnAmount,
-            status, reason, remark, created_at AS createdAt
-     FROM sale_return
-     WHERE (? IS NULL OR store_id = ?)
-       AND (? IS NULL OR status = ?)
-       AND (return_no LIKE ? OR customer_name LIKE ?)
-     ORDER BY id DESC
-     LIMIT ? OFFSET ?`,
-    [storeId, storeId, status, status, keyword, keyword, pageSize, offset]
-  );
-  const total = await queryOne<any>(
-    `SELECT COUNT(*) AS total FROM sale_return
-     WHERE (? IS NULL OR store_id = ?)
-       AND (? IS NULL OR status = ?)
-       AND (return_no LIKE ? OR customer_name LIKE ?)`,
-    [storeId, storeId, status, status, keyword, keyword]
-  );
-  res.json(ok({ total: total?.total ?? 0, page, pageSize, records }));
-}));
-
-storeRouter.post("/sale-returns", asyncHandler(async (req, res) => {
-  const body = z.object({
-    storeId: z.number().optional(),
-    sourceBillNo: z.string().nullable().optional(),
-    customerId: z.number().nullable().optional(),
-    customerName: z.string().optional(),
-    customerMobile: z.string().optional(),
-    returnType: z.enum(["BY_BILL", "DIRECT"]).default("DIRECT"),
-    reason: z.string().optional(),
-    remark: z.string().optional(),
-    items: z.array(
-      z.object({
-        skuId: z.number(),
-        boxQty: z.number().default(0),
-        bottleQty: z.number().default(0),
-        totalBottleQty: z.number(),
-        unitPrice: z.number().optional(),
-        priceType: z.string().optional()
-      })
-    ).min(1)
-  }).parse(req.body);
-  const result = await transaction(async (conn) => {
-    const returnNo = makeBizNo("TH");
-    const storeId = body.storeId ?? req.user?.storeId ?? 1;
-    let returnAmount = 0;
-    const itemSnapshots = [];
-    for (const item of body.items) {
-      const price = await queryOne<any>(
-        `SELECT s.sku_name, pp.retail_price, pp.wholesale_price, pp.store_price
-         FROM product_sku s JOIN product_price pp ON pp.sku_id = s.id
-         WHERE s.id = ?`,
-        [item.skuId]
-      );
-      if (!price) throw new Error(`SKU不存在：${item.skuId}`);
-      const unitPrice = item.unitPrice ?? Number(price.retail_price ?? 0);
-      const subtotal = unitPrice * item.totalBottleQty;
-      returnAmount += subtotal;
-      itemSnapshots.push({ ...item, skuName: price.sku_name, unitPrice, subtotalAmount: subtotal });
-    }
-    await conn.execute(
-      `INSERT INTO sale_return (return_no, store_id, source_bill_no, customer_id, customer_name, customer_mobile,
-                                return_type, return_amount, status, reason, remark, operator_id)
-       VALUES (?, ?, ?, ?, ?, ?, ?, ?, 'CREATED', ?, ?, ?)`,
-      [
-        returnNo, storeId, body.sourceBillNo ?? null, body.customerId ?? null,
-        body.customerName ?? null, body.customerMobile ?? null,
-        body.returnType, returnAmount, body.reason ?? null, body.remark ?? null,
-        req.user?.id ?? 0
-      ]
-    );
-    for (const item of itemSnapshots) {
-      await conn.execute(
-        `INSERT INTO sale_return_item (return_no, sku_id, sku_name, box_qty, bottle_qty, total_bottle_qty, unit_price, price_type, subtotal_amount)
-         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`,
-        [returnNo, item.skuId, item.skuName, item.boxQty, item.bottleQty, item.totalBottleQty, item.unitPrice, item.priceType ?? 'RETAIL', item.subtotalAmount]
-      );
-    }
-    return { returnNo, storeId, returnType: body.returnType, returnAmount, status: "CREATED", items: itemSnapshots };
-  });
-  res.json(ok(result));
-}));
-
-storeRouter.get("/sale-returns/:returnNo", asyncHandler(async (req, res) => {
-  const record = await queryOne<any>(
-    `SELECT return_no AS returnNo, store_id AS storeId, source_bill_no AS sourceBillNo,
-            customer_id AS customerId, customer_name AS customerName, customer_mobile AS customerMobile,
-            return_type AS returnType, return_amount AS returnAmount,
-            status, reason, remark, operator_id AS operatorId, created_at AS createdAt
-     FROM sale_return WHERE return_no = ?`,
-    [req.params.returnNo]
-  );
-  if (!record) {
-    res.status(404).json({ code: "404", message: "退货单不存在" });
-    return;
-  }
-  const items = await query<any>(
-    `SELECT sku_id AS skuId, sku_name AS skuName, box_qty AS boxQty, bottle_qty AS bottleQty,
-            total_bottle_qty AS totalBottleQty, unit_price AS unitPrice, price_type AS priceType, subtotal_amount AS subtotalAmount
-     FROM sale_return_item WHERE return_no = ?`,
-    [req.params.returnNo]
-  );
-  res.json(ok({ ...record, items }));
 }));
 
 storeRouter.get("/refund-orders", asyncHandler(async (req, res) => {

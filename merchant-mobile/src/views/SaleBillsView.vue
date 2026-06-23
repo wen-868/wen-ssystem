@@ -20,15 +20,14 @@ const STATUS_TABS = [
   { label: '未收款', value: 'UNPAID' },
   { label: '部分收款', value: 'PARTIAL' },
   { label: '已收款', value: 'PAID' },
-  { label: '已超期', value: 'OVERDUE' }
+  { label: '已分享', value: 'SHARED' }
 ]
 
 const STATUS_MAP: Record<string, { text: string; type: string }> = {
   UNPAID: { text: '未收款', type: 'danger' },
   PARTIAL: { text: '部分收款', type: 'warning' },
   PAID: { text: '已收款', type: 'success' },
-  SHARED: { text: '已分享', type: 'primary' },
-  OVERDUE: { text: '已超期', type: 'danger' }
+  SHARED: { text: '已分享', type: 'primary' }
 }
 
 const activeTab = ref('')
@@ -255,11 +254,7 @@ function goBack() {
               <span>{{ bill.customerName || '散客' }}</span>
               <span class="bill-amount">¥{{ Number(bill.receivableAmount).toFixed(2) }}</span>
             </div>
-            <div class="bill-meta">
-              <van-tag v-if="bill.saleType === 'CREDIT'" type="warning" plain size="mini">赊销</van-tag>
-              <span v-if="bill.dueDate" class="bill-due">应收: {{ bill.dueDate }}</span>
-              <span class="bill-time">{{ bill.createdAt }}</span>
-            </div>
+            <div class="bill-time">{{ bill.createdAt }}</div>
           </template>
         </van-cell>
       </van-list>
@@ -281,14 +276,6 @@ function goBack() {
           <van-cell-group inset>
             <van-cell title="单号" :value="detail.billNo" />
             <van-cell title="客户" :value="detail.customerName || '散客'" />
-            <van-cell title="销售类型">
-              <template #value>
-                <van-tag :type="detail.saleType === 'CREDIT' ? 'warning' : 'success'" plain>
-                  {{ detail.saleType === 'CREDIT' ? '赊销' : '现销' }}
-                </van-tag>
-              </template>
-            </van-cell>
-            <van-cell v-if="detail.dueDate" title="应收截止日期" :value="detail.dueDate" />
             <van-cell title="类型">
               <template #value>
                 <van-tag
@@ -320,7 +307,6 @@ function goBack() {
                 </van-tag>
               </template>
             </van-cell>
-            <van-cell v-if="detail.remark" title="备注" :value="detail.remark" />
           </van-cell-group>
 
           <!-- 商品明细 -->
@@ -459,22 +445,10 @@ function goBack() {
   color: var(--color-primary);
 }
 
-.bill-meta {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  font-size: 12px;
-  color: var(--text-muted);
-  margin-top: 4px;
-}
-
-.bill-due {
-  color: var(--color-warning);
-}
-
 .bill-time {
   font-size: 12px;
   color: var(--text-muted);
+  margin-top: 4px;
 }
 
 .detail-panel {
