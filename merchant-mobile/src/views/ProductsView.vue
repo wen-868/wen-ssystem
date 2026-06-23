@@ -3,7 +3,7 @@ import { ref } from 'vue'
 import { showToast } from 'vant'
 import { fetchProducts, type ProductRecord } from '../api'
 
-const emit = defineEmits<{ navigate: [page: string] }>()
+defineEmits<{ navigate: [page: string] }>()
 
 const keyword = ref('')
 const activeCategory = ref('all')

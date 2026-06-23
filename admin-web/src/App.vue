@@ -3747,6 +3747,7 @@ const wxFetchLoading = ref(false);
 const memberDialogVisible = ref(false);
 const priceDialogVisible = ref(false);
 const priceHistoryTip = ref("");
+const currentUser = ref<any>(null);
 const loginForm = reactive({ username: "admin", password: "admin123" });
 const productForm = reactive({
   name: "",
@@ -3755,7 +3756,9 @@ const productForm = reactive({
   barcode: "",
   boxRatio: 6,
   retailPrice: 0,
-  wholesalePrice: 0
+  wholesalePrice: 0,
+  alcoholContent: 0,
+  origin: ""
 });
 const storeForm = reactive({
   code: "",
@@ -3965,17 +3968,12 @@ function getNavTitle(key: string): string {
     "供应商": "供应商管理",
     "采购": "采购管理",
     "销售退货": "销售退货",
-    "客户对账": "客户对账",
     "库存": "库存管理",
     "员工": "员工管理",
     "门店": "门店管理",
-    "收款": "收款记录",
     "报表": "报表中心",
-    "预警中心": "库存预警",
-    "价格中心": "价格管理",
     "授信管理": "授信管理",
     "售后管理": "售后管理",
-    "订单超时": "超时处理",
     "营销中心": "营销中心",
     "操作日志": "操作日志",
     "系统设置": "系统设置",
@@ -4516,7 +4514,6 @@ async function handleDragEnd(event: any, targetStatus: string) {
   }
 }
 
-function openPriceDialog
 function openPriceDialog(row: any) {
   priceForm.skuId = row.skuId || row.sku_id || row.id;
   priceForm.skuName = row.skuName || row.name;

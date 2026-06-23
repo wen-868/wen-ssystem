@@ -9,7 +9,7 @@
         <van-cell title="采购单号" :value="detail.purchaseNo" />
         <van-cell title="状态">
           <template #value>
-            <van-tag :type="getStatusType(detail.status)">
+            <van-tag :type="getStatusType(detail.status) as any">
               {{ getStatusText(detail.status) }}
             </van-tag>
           </template>

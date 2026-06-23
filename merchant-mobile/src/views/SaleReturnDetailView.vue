@@ -10,14 +10,14 @@
         <van-cell title="退货单号" :value="detail.returnNo" />
         <van-cell title="退货状态">
           <template #value>
-            <van-tag :type="getStatusType(detail.returnStatus)">
+            <van-tag :type="getStatusType(detail.returnStatus) as any">
               {{ getStatusText(detail.returnStatus) }}
             </van-tag>
           </template>
         </van-cell>
         <van-cell title="退款状态">
           <template #value>
-            <van-tag :type="getRefundStatusType(detail.refundStatus)">
+            <van-tag :type="getRefundStatusType(detail.refundStatus) as any">
               {{ getRefundStatusText(detail.refundStatus) }}
             </van-tag>
           </template>
@@ -89,12 +89,11 @@
 
 <script setup lang="ts">
 import { ref, onMounted } from 'vue'
-import { useRoute, useRouter } from 'vue-router'
+import { useRoute } from 'vue-router'
 import { showToast, showSuccessToast, showConfirmDialog } from 'vant'
 import { fetchSaleReturnDetail, type SaleReturnDetail } from '../api'
 
 const route = useRoute()
-const router = useRouter()
 
 const loading = ref(true)
 const detail = ref<SaleReturnDetail | null>(null)

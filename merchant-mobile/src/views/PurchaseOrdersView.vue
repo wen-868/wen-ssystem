@@ -37,7 +37,7 @@
         >
           <div class="card-header">
             <div class="order-no">{{ item.purchaseNo }}</div>
-            <van-tag :type="getStatusType(item.status)">
+            <van-tag :type="getStatusType(item.status) as any">
               {{ getStatusText(item.status) }}
             </van-tag>
           </div>

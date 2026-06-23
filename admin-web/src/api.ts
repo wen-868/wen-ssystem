@@ -188,9 +188,9 @@ export async function fetchStorePerformance() {
   return data.data || [];
 }
 
-export async function fetchInventoryAlerts() {
-  const { data } = await api.get("/admin/inventory/alerts");
-  return data.data || [];
+export async function fetchInventoryAlerts(params?: { page?: number; pageSize?: number; storeId?: number; level?: string }) {
+  const { data } = await api.get("/admin/inventory/alerts", { params: { page: 1, pageSize: 20, ...params } });
+  return data.data;
 }
 
 export async function fetchSaleBillDetail(billNo: string) {

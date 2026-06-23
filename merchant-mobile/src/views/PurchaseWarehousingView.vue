@@ -16,7 +16,7 @@
         <van-cell title="入库商品" />
         <div class="items-list">
           <div
-            v-for="(item, index) in warehousingItems"
+            v-for="(item, _index) in warehousingItems"
             :key="item.skuId"
             class="item-card"
           >
@@ -133,7 +133,7 @@ async function loadDetail() {
     const res = await fetchPurchaseOrderDetail(purchaseNo)
     detail.value = res.data as any
 
-    warehousingItems.value = (detail.value.items || []).map((item: any) => ({
+    warehousingItems.value = (detail.value!.items || []).map((item: any) => ({
       skuId: item.skuId,
       skuName: item.skuName,
       orderQty: item.quantity || 0,

@@ -31,7 +31,7 @@
         <div v-if="selectedBill && selectedBill.items" class="items-list">
           <div class="section-title">退货商品</div>
           <div
-            v-for="(item, index) in returnItems"
+            v-for="(item, _index) in returnItems"
             :key="item.skuId"
             class="item-card"
           >
@@ -230,7 +230,7 @@ async function loadSaleBill() {
     const res = await fetchSaleBillDetail(billNo.value)
     selectedBill.value = res.data
     
-    returnItems.value = selectedBill.value.items.map(item => ({
+    returnItems.value = selectedBill.value!.items.map(item => ({
       skuId: item.skuId,
       skuName: item.skuName,
       originalQty: item.totalBottleQty,

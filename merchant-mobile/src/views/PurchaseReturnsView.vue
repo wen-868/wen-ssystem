@@ -23,7 +23,7 @@
         >
           <div class="card-header">
             <div class="return-no">{{ item.returnNo }}</div>
-            <van-tag :type="getStatusType(item.status)">
+            <van-tag :type="getStatusType(item.status) as any">
               {{ getStatusText(item.status) }}
             </van-tag>
           </div>

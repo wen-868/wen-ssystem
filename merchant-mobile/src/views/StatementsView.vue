@@ -30,7 +30,7 @@
         >
           <div class="card-header">
             <div class="statement-no">{{ item.statementNo }}</div>
-            <van-tag :type="getStatusType(item.status)">
+            <van-tag :type="getStatusType(item.status) as any">
               {{ getStatusText(item.status) }}
             </van-tag>
           </div>

@@ -31,7 +31,7 @@
         <van-cell title="退货商品" />
         <div class="items-list">
           <div
-            v-for="(item, index) in formData.items"
+            v-for="(item, _index) in formData.items"
             :key="item.skuId"
             class="item-card"
           >
@@ -172,7 +172,7 @@ async function selectPurchase(purchase: PurchaseOrderRecord) {
     const res = await fetchPurchaseOrderDetail(purchase.purchaseNo)
     selectedPurchase.value = res.data as any
 
-    formData.value.items = (selectedPurchase.value.items || []).map((item: any) => ({
+    formData.value.items = (selectedPurchase.value!.items || []).map((item: any) => ({
       skuId: item.skuId,
       skuName: item.skuName,
       warehousedQty: item.warehousedQty || 0,

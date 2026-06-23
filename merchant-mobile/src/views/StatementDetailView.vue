@@ -10,7 +10,7 @@
         <van-cell title="客户名称" :value="detail.customerName" />
         <van-cell title="状态">
           <template #value>
-            <van-tag :type="getStatusType(detail.status)">
+            <van-tag :type="getStatusType(detail.status) as any">
               {{ getStatusText(detail.status) }}
             </van-tag>
           </template>
@@ -42,7 +42,7 @@
           >
             <div class="detail-header">
               <div class="detail-date">{{ item.date }}</div>
-              <van-tag size="small" type="primary">{{ item.type }}</van-tag>
+              <van-tag :size="'small' as any" type="primary">{{ item.type }}</van-tag>
             </div>
             <div class="detail-body">
               <div class="detail-info">
