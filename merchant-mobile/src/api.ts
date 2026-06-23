@@ -566,3 +566,87 @@ export function fetchPaymentOrders(params: { page?: number; pageSize?: number })
 export function fetchRefundOrders(params: { page?: number; pageSize?: number }) {
   return api.get('/store/refund-orders', { params })
 }
+
+/* ========== 采购订单 ========== */
+
+export interface PurchaseOrderItem {
+  id: number
+  orderNo: string
+  skuId: number
+  skuName: string
+  barcode?: string
+  boxQty: number
+  bottleQty: number
+  totalBottleQty: number
+  unitPrice: number
+  taxRate?: number
+  subtotalAmount: number
+  taxAmount?: number
+  totalAmount?: number
+  inStockedQty?: number
+  remark?: string
+}
+
+export interface PurchaseOrderRecord {
+  id: number
+  orderNo: string
+  supplierId: number
+  supplierName: string
+  storeId: number
+  orderStatus: string
+  goodsAmount: number
+  taxAmount?: number
+  discountAmount?: number
+  payableAmount: number
+  paidAmount: number
+  unpaidAmount: number
+  expectedDate?: string
+  actualDate?: string
+  operatorId?: number
+  auditorId?: number
+  remark?: string
+  createdAt: string
+  updatedAt?: string
+}
+
+export interface PurchaseOrderDetail extends PurchaseOrderRecord {
+  auditedAt?: string
+  items: PurchaseOrderItem[]
+}
+
+export function fetchPurchaseOrders(params: {
+  page?: number
+  pageSize?: number
+  supplierId?: number
+  orderStatus?: string
+  dateStart?: string
+  dateEnd?: string
+}) {
+  return api.get('/admin/purchase-orders', { params })
+}
+
+export function fetchPurchaseOrderDetail(id: number) {
+  return api.get(`/admin/purchase-orders/${id}`)
+}
+
+export function confirmPurchaseOrder(id: number) {
+  return api.post(`/admin/purchase-orders/${id}/confirm`)
+}
+
+export function cancelPurchaseOrder(id: number) {
+  return api.delete(`/admin/purchase-orders/${id}`)
+}
+
+/* ========== 供应商（商家端） ========== */
+
+export interface SupplierOption {
+  supplierId: number
+  supplierCode: string
+  name: string
+  shortName?: string
+  status: number
+}
+
+export function fetchSupplierOptions(params?: { keyword?: string }) {
+  return api.get('/admin/suppliers', { params: { pageSize: 100, ...params } })
+}
