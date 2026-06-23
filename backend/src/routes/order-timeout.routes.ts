@@ -1,5 +1,6 @@
 import { Router } from "express";
 import { z } from "zod";
+import { requireAuthWithTenant } from "../shared/auth.js";
 import { asyncHandler } from "../shared/async-handler.js";
 import { query, queryOne, transaction } from "../shared/db.js";
 import { ok, fail } from "../shared/response.js";
@@ -9,15 +10,18 @@ export const orderTimeoutRouter = Router();
 // ==================== 配置管理接口 ====================
 
 /** GET /configs - 获取所有超时配置 */
-orderTimeoutRouter.get("/configs", asyncHandler(async (_req, res) => {
+orderTimeoutRouter.get("/configs", requireAuthWithTenant, asyncHandler(async (req, res) => {
+  const tenantId = req.tenantId!;
   const configs = await query<any>(
-    "SELECT id, order_type AS orderType, timeout_type AS timeoutType, timeout_minutes AS timeoutMinutes, action, enabled, description, created_at AS createdAt, updated_at AS updatedAt FROM order_timeout_config ORDER BY id ASC"
+    "SELECT id, order_type AS orderType, timeout_type AS timeoutType, timeout_minutes AS timeoutMinutes, action, enabled, description, created_at AS createdAt, updated_at AS updatedAt FROM order_timeout_config WHERE tenant_id = ? ORDER BY id ASC",
+    [tenantId]
   );
   res.json(ok(configs));
 }));
 
 /** POST /configs - 新增配置 */
-orderTimeoutRouter.post("/configs", asyncHandler(async (req, res) => {
+orderTimeoutRouter.post("/configs", requireAuthWithTenant, asyncHandler(async (req, res) => {
+  const tenantId = req.tenantId!;
   const body = z.object({
     orderType: z.enum(["SALE", "PURCHASE", "TRANSFER"]),
     timeoutType: z.string().max(32),
@@ -28,15 +32,16 @@ orderTimeoutRouter.post("/configs", asyncHandler(async (req, res) => {
   }).parse(req.body);
 
   const result = await query<{ insertId: number }>(
-    "INSERT INTO order_timeout_config (order_type, timeout_type, timeout_minutes, action, enabled, description) VALUES (?, ?, ?, ?, ?, ?)",
-    [body.orderType, body.timeoutType, body.timeoutMinutes, body.action, body.enabled ? 1 : 0, body.description || null]
+    "INSERT INTO order_timeout_config (order_type, timeout_type, timeout_minutes, action, enabled, description, tenant_id) VALUES (?, ?, ?, ?, ?, ?, ?)",
+    [body.orderType, body.timeoutType, body.timeoutMinutes, body.action, body.enabled ? 1 : 0, body.description || null, tenantId]
   );
 
   res.json(ok({ id: (result as any).insertId }));
 }));
 
 /** PUT /configs/:id - 更新配置 */
-orderTimeoutRouter.put("/configs/:id", asyncHandler(async (req, res) => {
+orderTimeoutRouter.put("/configs/:id", requireAuthWithTenant, asyncHandler(async (req, res) => {
+  const tenantId = req.tenantId!;
   const id = Number(req.params.id);
   const body = z.object({
     orderType: z.enum(["SALE", "PURCHASE", "TRANSFER"]).optional(),
@@ -62,23 +67,25 @@ orderTimeoutRouter.put("/configs/:id", asyncHandler(async (req, res) => {
     return;
   }
 
-  values.push(id);
-  await query(`UPDATE order_timeout_config SET ${fields.join(", ")} WHERE id = ?`, values);
+  values.push(id, tenantId);
+  await query(`UPDATE order_timeout_config SET ${fields.join(", ")} WHERE id = ? AND tenant_id = ?`, values);
 
   res.json(ok({ message: "更新成功" }));
 }));
 
 /** DELETE /configs/:id - 删除配置 */
-orderTimeoutRouter.delete("/configs/:id", asyncHandler(async (req, res) => {
+orderTimeoutRouter.delete("/configs/:id", requireAuthWithTenant, asyncHandler(async (req, res) => {
+  const tenantId = req.tenantId!;
   const id = Number(req.params.id);
-  await query("DELETE FROM order_timeout_config WHERE id = ?", [id]);
+  await query("DELETE FROM order_timeout_config WHERE id = ? AND tenant_id = ?", [id, tenantId]);
   res.json(ok({ message: "删除成功" }));
 }));
 
 // ==================== 处理日志接口 ====================
 
 /** GET /logs - 处理日志(分页+日期筛选+结果筛选) */
-orderTimeoutRouter.get("/logs", asyncHandler(async (req, res) => {
+orderTimeoutRouter.get("/logs", requireAuthWithTenant, asyncHandler(async (req, res) => {
+  const tenantId = req.tenantId!;
   const page = Number(req.query.page || 1);
   const pageSize = Number(req.query.pageSize || 20);
   const offset = (page - 1) * pageSize;
@@ -86,8 +93,8 @@ orderTimeoutRouter.get("/logs", asyncHandler(async (req, res) => {
   const dateStart = String(req.query.dateStart || "");
   const dateEnd = String(req.query.dateEnd || "");
 
-  const whereClauses: string[] = [];
-  const params: unknown[] = [];
+  const whereClauses: string[] = ["otl.tenant_id = ?"];
+  const params: unknown[] = [tenantId];
 
   if (result) {
     whereClauses.push("otl.result = ?");
@@ -102,7 +109,7 @@ orderTimeoutRouter.get("/logs", asyncHandler(async (req, res) => {
     params.push(dateEnd + " 23:59:59");
   }
 
-  const whereSql = whereClauses.length > 0 ? "WHERE " + whereClauses.join(" AND ") : "";
+  const whereSql = "WHERE " + whereClauses.join(" AND ");
 
   const totalRow = await queryOne<{ total: number }>(
     `SELECT COUNT(*) AS total FROM order_timeout_log otl ${whereSql}`,
@@ -129,21 +136,27 @@ orderTimeoutRouter.get("/logs", asyncHandler(async (req, res) => {
 }));
 
 /** GET /statistics - 统计(今日/本周/本月处理数量) */
-orderTimeoutRouter.get("/statistics", asyncHandler(async (_req, res) => {
+orderTimeoutRouter.get("/statistics", requireAuthWithTenant, asyncHandler(async (req, res) => {
+  const tenantId = req.tenantId!;
   const todayStats = await queryOne<{ count: number }>(
-    "SELECT COUNT(*) AS count FROM order_timeout_log WHERE DATE(triggered_at) = CURDATE()"
+    "SELECT COUNT(*) AS count FROM order_timeout_log WHERE tenant_id = ? AND DATE(triggered_at) = CURDATE()",
+    [tenantId]
   );
   const weekStats = await queryOne<{ count: number }>(
-    "SELECT COUNT(*) AS count FROM order_timeout_log WHERE YEARWEEK(triggered_at, 1) = YEARWEEK(CURDATE(), 1)"
+    "SELECT COUNT(*) AS count FROM order_timeout_log WHERE tenant_id = ? AND YEARWEEK(triggered_at, 1) = YEARWEEK(CURDATE(), 1)",
+    [tenantId]
   );
   const monthStats = await queryOne<{ count: number }>(
-    "SELECT COUNT(*) AS count FROM order_timeout_log WHERE DATE_FORMAT(triggered_at, '%Y-%m') = DATE_FORMAT(CURDATE(), '%Y-%m')"
+    "SELECT COUNT(*) AS count FROM order_timeout_log WHERE tenant_id = ? AND DATE_FORMAT(triggered_at, '%Y-%m') = DATE_FORMAT(CURDATE(), '%Y-%m')",
+    [tenantId]
   );
   const successStats = await queryOne<{ count: number }>(
-    "SELECT COUNT(*) AS count FROM order_timeout_log WHERE result = 'SUCCESS' AND DATE(triggered_at) = CURDATE()"
+    "SELECT COUNT(*) AS count FROM order_timeout_log WHERE tenant_id = ? AND result = 'SUCCESS' AND DATE(triggered_at) = CURDATE()",
+    [tenantId]
   );
   const failedStats = await queryOne<{ count: number }>(
-    "SELECT COUNT(*) AS count FROM order_timeout_log WHERE result = 'FAILED' AND DATE(triggered_at) = CURDATE()"
+    "SELECT COUNT(*) AS count FROM order_timeout_log WHERE tenant_id = ? AND result = 'FAILED' AND DATE(triggered_at) = CURDATE()",
+    [tenantId]
   );
 
   res.json(ok({
@@ -166,7 +179,9 @@ async function processTimeoutConfig(config: {
   timeout_type: string;
   timeout_minutes: number;
   action: string;
+  tenant_id: number;
 }) {
+  const tenantId = config.tenant_id;
   // 根据订单类型和超时类型查找对应的表和状态字段
   let tableName = "";
   let statusField = "";
@@ -205,13 +220,14 @@ async function processTimeoutConfig(config: {
      FROM ${tableName}
      WHERE ${statusField} = ?
        ${extraWhere}
+       AND tenant_id = ?
        AND created_at < DATE_SUB(NOW(), INTERVAL ? MINUTE)
        AND id NOT IN (
          SELECT order_id FROM order_timeout_log
-         WHERE timeout_type = ? AND result = 'SUCCESS'
+         WHERE timeout_type = ? AND result = 'SUCCESS' AND tenant_id = ?
        )
      LIMIT 100`,
-    [statusValue, config.timeout_minutes, config.timeout_type]
+    [statusValue, tenantId, config.timeout_minutes, config.timeout_type, tenantId]
   );
 
   for (const order of orders) {
@@ -222,53 +238,53 @@ async function processTimeoutConfig(config: {
           if (config.timeout_type === "WAIT_PAY") {
             // WAIT_PAY 取消：同时更新 order_status 和 pay_status
             await conn.execute(
-              `UPDATE ${tableName} SET order_status = 'CANCELLED', pay_status = 'CANCELLED', updated_at = NOW() WHERE id = ?`,
-              [order.id]
+              `UPDATE ${tableName} SET order_status = 'CANCELLED', pay_status = 'CANCELLED', updated_at = NOW() WHERE id = ? AND tenant_id = ?`,
+              [order.id, tenantId]
             );
           } else if (config.timeout_type === "WAIT_SIGN") {
             // WAIT_SIGN 超时：自动签收（标记完成）
             await conn.execute(
-              `UPDATE ${tableName} SET order_status = 'COMPLETED', updated_at = NOW() WHERE id = ?`,
-              [order.id]
+              `UPDATE ${tableName} SET order_status = 'COMPLETED', updated_at = NOW() WHERE id = ? AND tenant_id = ?`,
+              [order.id, tenantId]
             );
           } else {
             // WAIT_ACCEPT 等其他场景：只更新 order_status
             await conn.execute(
-              `UPDATE ${tableName} SET order_status = 'CANCELLED', updated_at = NOW() WHERE id = ?`,
-              [order.id]
+              `UPDATE ${tableName} SET order_status = 'CANCELLED', updated_at = NOW() WHERE id = ? AND tenant_id = ?`,
+              [order.id, tenantId]
             );
           }
         } else if (config.action === "AUTO_ACCEPT") {
           await conn.execute(
-            `UPDATE ${tableName} SET order_status = 'ACCEPTED', updated_at = NOW() WHERE id = ?`,
-            [order.id]
+            `UPDATE ${tableName} SET order_status = 'ACCEPTED', updated_at = NOW() WHERE id = ? AND tenant_id = ?`,
+            [order.id, tenantId]
           );
         } else if (config.action === "AUTO_SIGN") {
           await conn.execute(
-            `UPDATE ${tableName} SET delivery_status = 'DELIVERED', order_status = 'COMPLETED', updated_at = NOW() WHERE id = ?`,
-            [order.id]
+            `UPDATE ${tableName} SET delivery_status = 'DELIVERED', order_status = 'COMPLETED', updated_at = NOW() WHERE id = ? AND tenant_id = ?`,
+            [order.id, tenantId]
           );
         }
         // REMIND 类型只记录日志，不改变订单状态
 
         // 记录处理日志
         await conn.execute(
-          `INSERT INTO order_timeout_log (order_id, order_type, timeout_type, action_taken, triggered_at, handled_at, result, remark)
-           VALUES (?, ?, ?, ?, NOW(), NOW(), 'SUCCESS', ?)`,
-          [order.id, config.order_type, config.timeout_type, config.action, `订单${order.order_no}超时自动${config.action}`]
+          `INSERT INTO order_timeout_log (order_id, order_type, timeout_type, action_taken, triggered_at, handled_at, result, remark, tenant_id)
+           VALUES (?, ?, ?, ?, NOW(), NOW(), 'SUCCESS', ?, ?)`,
+          [order.id, config.order_type, config.timeout_type, config.action, `订单${order.order_no}超时自动${config.action}`, tenantId]
         );
       });
     } catch (err) {
       // 记录失败日志
       try {
         await query(
-          `INSERT INTO order_timeout_log (order_id, order_type, timeout_type, action_taken, triggered_at, handled_at, result, remark)
-           VALUES (?, ?, ?, ?, NOW(), NOW(), 'FAILED', ?)`,
-          [order.id, config.order_type, config.timeout_type, config.action, String(err)]
+          `INSERT INTO order_timeout_log (order_id, order_type, timeout_type, action_taken, triggered_at, handled_at, result, remark, tenant_id)
+           VALUES (?, ?, ?, ?, NOW(), NOW(), 'FAILED', ?, ?)`,
+          [order.id, config.order_type, config.timeout_type, config.action, String(err), tenantId]
         );
       } catch {
         // 日志记录也失败，仅打印
-        console.error(`订单超时处理失败 [订单ID=${order.id}]:`, err);
+        console.error(`订单超时处理失败 [订单ID=${order.id} 租户ID=${tenantId}]:`, err);
       }
     }
   }
@@ -283,15 +299,16 @@ export function startOrderTimeoutScanner() {
 
   const timer = setInterval(async () => {
     try {
-      // 查询所有启用的超时配置
+      // 查询所有启用的超时配置（按租户）
       const configs = await query<{
         id: number;
         order_type: string;
         timeout_type: string;
         timeout_minutes: number;
         action: string;
+        tenant_id: number;
       }>(
-        "SELECT id, order_type, timeout_type, timeout_minutes, action FROM order_timeout_config WHERE enabled = 1"
+        "SELECT id, order_type, timeout_type, timeout_minutes, action, tenant_id FROM order_timeout_config WHERE enabled = 1"
       );
 
       for (const config of configs) {

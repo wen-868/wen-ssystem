@@ -1,6 +1,6 @@
 import { Router } from "express";
 import { z } from "zod";
-import { requireAuth, signToken } from "../shared/auth.js";
+import { requireAuth, signToken, requireAuthWithTenant } from "../shared/auth.js";
 import { asyncHandler } from "../shared/async-handler.js";
 import { query, queryOne, transaction } from "../shared/db.js";
 import { makeBizNo } from "../shared/id.js";
@@ -38,12 +38,13 @@ adminRouter.post("/auth/login", asyncHandler(async (req, res) => {
     roles: roleCodes,
     permissions: ["*"]
   };
-  res.json(ok({ token: signToken({ id: account.id, username: account.username, roles: roleCodes, storeId: account.store_id, tenantId }), user }));
+  res.json(ok({ token: signToken({ id: account.id, username: account.username, realName: account.real_name, roles: roleCodes, storeId: account.store_id, tenantId }), user }));
 }));
 
-adminRouter.get("/auth/me", requireAuth, (req, res) => {
+adminRouter.get("/auth/me", requireAuthWithTenant, asyncHandler(async (req, res) => {
+  const tenantId = req.tenantId!;
   res.json(ok(req.user));
-});
+}));
 
 adminRouter.get("/staff", requireAuth, asyncHandler(async (_req, res) => {
   const records = await query<any>(
@@ -56,7 +57,8 @@ adminRouter.get("/staff", requireAuth, asyncHandler(async (_req, res) => {
   res.json(ok({ total: records.length, records }));
 }));
 
-adminRouter.get("/members", requireAuth, asyncHandler(async (req, res) => {
+adminRouter.get("/members", requireAuthWithTenant, asyncHandler(async (req, res) => {
+  const tenantId = req.tenantId!;
   const page = Number(req.query.page || 1);
   const pageSize = Number(req.query.pageSize || 20);
   const offset = (page - 1) * pageSize;
@@ -67,12 +69,12 @@ adminRouter.get("/members", requireAuth, asyncHandler(async (req, res) => {
             m.staff_id AS staffId, u.real_name AS staffName
      FROM member m
      LEFT JOIN sys_user u ON u.id = m.staff_id
-     WHERE m.name LIKE ? OR m.mobile LIKE ?
+     WHERE m.tenant_id = ? AND (m.name LIKE ? OR m.mobile LIKE ?)
      ORDER BY m.id DESC
      LIMIT ? OFFSET ?`,
-    [keyword, keyword, pageSize, offset]
+    [tenantId, keyword, keyword, pageSize, offset]
   );
-  const totalRow = await queryOne<any>("SELECT COUNT(*) AS total FROM member", []);
+  const totalRow = await queryOne<any>("SELECT COUNT(*) AS total FROM member WHERE tenant_id = ?", [tenantId]);
   res.json(ok({ total: totalRow?.total ?? 0, page, pageSize, records }));
 }));
 
@@ -137,7 +139,8 @@ adminRouter.delete("/staff/:id", requireAuth, asyncHandler(async (req, res) => {
 }));
 
 // ========== 门店管理 PUT ==========
-adminRouter.put("/stores/:id", requireAuth, asyncHandler(async (req, res) => {
+adminRouter.put("/stores/:id", requireAuthWithTenant, asyncHandler(async (req, res) => {
+  const tenantId = req.tenantId!;
   const body = z.object({
     name: z.string().optional(),
     address: z.string().optional(),
@@ -155,19 +158,20 @@ adminRouter.put("/stores/:id", requireAuth, asyncHandler(async (req, res) => {
   if (body.deliveryRadius !== undefined) { sets.push("delivery_radius = ?"); params.push(body.deliveryRadius); }
   if (body.businessStatus !== undefined) { sets.push("business_status = ?"); params.push(body.businessStatus); }
   if (sets.length === 0) { res.json(ok({})); return; }
-  params.push(Number(req.params.id));
-  await query(`UPDATE store SET ${sets.join(", ")} WHERE id = ?`, params);
+  params.push(Number(req.params.id), tenantId);
+  await query(`UPDATE store SET ${sets.join(", ")} WHERE id = ? AND tenant_id = ?`, params);
   res.json(ok({ id: Number(req.params.id) }));
 }));
 
 // ========== 日结接口 ==========
-adminRouter.post("/daily-settle", requireAuth, asyncHandler(async (req, res) => {
+adminRouter.post("/daily-settle", requireAuthWithTenant, asyncHandler(async (req, res) => {
+  const tenantId = req.tenantId!;
   const body = z.object({
     settleDate: z.string()
   }).parse(req.body);
 
   // 检查是否已有该日期的日结记录
-  const existing = await queryOne<any>("SELECT id FROM daily_settlement WHERE settle_date = ?", [body.settleDate]);
+  const existing = await queryOne<any>("SELECT id FROM daily_settlement WHERE settle_date = ? AND tenant_id = ?", [body.settleDate, tenantId]);
   if (existing) {
     res.status(400).json({ code: "400", message: "该日期已有日结记录" });
     return;
@@ -177,9 +181,9 @@ adminRouter.post("/daily-settle", requireAuth, asyncHandler(async (req, res) => 
   const channelRows = await query<any>(
     `SELECT channel, COALESCE(SUM(amount), 0) AS amount
      FROM payment_order
-     WHERE DATE(paid_at) = ? AND status = 'SUCCESS'
+     WHERE DATE(paid_at) = ? AND status = 'SUCCESS' AND tenant_id = ?
      GROUP BY channel`,
-    [body.settleDate]
+    [body.settleDate, tenantId]
   );
 
   const channelMap: Record<string, number> = {};
@@ -198,26 +202,26 @@ adminRouter.post("/daily-settle", requireAuth, asyncHandler(async (req, res) => 
   const salesRow = await queryOne<any>(
     `SELECT COALESCE(SUM(receivable_amount), 0) AS totalSales
      FROM sale_bill
-     WHERE DATE(created_at) = ? AND business_status NOT IN ('DRAFT', 'VOIDED')`,
-    [body.settleDate]
+     WHERE DATE(created_at) = ? AND business_status NOT IN ('DRAFT', 'VOIDED') AND tenant_id = ?`,
+    [body.settleDate, tenantId]
   );
   const totalSales = Number(salesRow?.totalSales ?? 0);
 
   const refundRow = await queryOne<any>(
     `SELECT COALESCE(SUM(refund_amount), 0) AS totalRefund
      FROM sale_return
-     WHERE DATE(created_at) = ? AND return_status NOT IN ('VOIDED')`,
-    [body.settleDate]
+     WHERE DATE(created_at) = ? AND return_status NOT IN ('VOIDED') AND tenant_id = ?`,
+    [body.settleDate, tenantId]
   );
   const totalRefund = Number(refundRow?.totalRefund ?? 0);
 
   await query(
     `INSERT INTO daily_settlement (settle_date, total_sales, total_received, total_refund,
-       cash_amount, wechat_amount, alipay_amount, transfer_amount, other_amount, operator_id, created_at)
-     VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, NOW())`,
+       cash_amount, wechat_amount, alipay_amount, transfer_amount, other_amount, operator_id, created_at, tenant_id)
+     VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, NOW(), ?)`,
     [body.settleDate, totalSales, totalReceived, totalRefund,
      cashAmount, wechatAmount, alipayAmount, transferAmount, otherAmount,
-     req.user?.id ?? 0]
+     req.user!.id ?? 0, tenantId]
   );
   res.json(ok({
     settleDate: body.settleDate,
@@ -234,12 +238,13 @@ adminRouter.post("/daily-settle", requireAuth, asyncHandler(async (req, res) => 
 }));
 
 // ========== 日结历史列表 ==========
-adminRouter.get("/daily-settle", requireAuth, asyncHandler(async (req, res) => {
+adminRouter.get("/daily-settle", requireAuthWithTenant, asyncHandler(async (req, res) => {
+  const tenantId = req.tenantId!;
   const page = Number(req.query.page || 1);
   const pageSize = Number(req.query.pageSize || 20);
   const offset = (page - 1) * pageSize;
-  const conditions: string[] = [];
-  const params: unknown[] = [];
+  const conditions: string[] = ["tenant_id = ?"];
+  const params: unknown[] = [tenantId];
 
   if (req.query.dateStart) {
     conditions.push("settle_date >= ?");
@@ -250,7 +255,7 @@ adminRouter.get("/daily-settle", requireAuth, asyncHandler(async (req, res) => {
     params.push(req.query.dateEnd);
   }
 
-  const where = conditions.length > 0 ? `WHERE ${conditions.join(" AND ")}` : "";
+  const where = `WHERE ${conditions.join(" AND ")}`;
   const records = await query<any>(
     `SELECT id, settle_date AS settleDate, total_sales AS totalSales,
             total_received AS totalReceived, total_refund AS totalRefund,
@@ -268,7 +273,8 @@ adminRouter.get("/daily-settle", requireAuth, asyncHandler(async (req, res) => {
 }));
 
 // ========== 日结详情 ==========
-adminRouter.get("/daily-settle/:id", requireAuth, asyncHandler(async (req, res) => {
+adminRouter.get("/daily-settle/:id", requireAuthWithTenant, asyncHandler(async (req, res) => {
+  const tenantId = req.tenantId!;
   const settleId = Number(req.params.id);
   const record = await queryOne<any>(
     `SELECT id, settle_date AS settleDate, total_sales AS totalSales,
@@ -276,8 +282,8 @@ adminRouter.get("/daily-settle/:id", requireAuth, asyncHandler(async (req, res) 
             cash_amount AS cashAmount, wechat_amount AS wechatAmount,
             alipay_amount AS alipayAmount, transfer_amount AS transferAmount,
             other_amount AS otherAmount, operator_id AS operatorId, created_at AS createdAt
-     FROM daily_settlement WHERE id = ?`,
-    [settleId]
+     FROM daily_settlement WHERE id = ? AND tenant_id = ?`,
+    [settleId, tenantId]
   );
   if (!record) {
     res.status(404).json({ code: "404", message: "日结记录不存在" });
@@ -289,7 +295,8 @@ adminRouter.get("/daily-settle/:id", requireAuth, asyncHandler(async (req, res) 
 // ========== 任务4：销售退货API ==========
 
 // 新建销售退货单
-adminRouter.post("/sale-returns", requireAuth, asyncHandler(async (req, res) => {
+adminRouter.post("/sale-returns", requireAuthWithTenant, asyncHandler(async (req, res) => {
+  const tenantId = req.tenantId!;
   const body = z.object({
     sourceBillNo: z.string().optional(),
     storeId: z.number(),
@@ -322,33 +329,33 @@ adminRouter.post("/sale-returns", requireAuth, asyncHandler(async (req, res) => 
     const [returnResult] = await conn.execute<any>(
       `INSERT INTO sale_return (return_no, source_bill_no, store_id, customer_id, customer_name, customer_mobile,
         return_status, goods_amount, discount_amount, refund_amount, refunded_amount,
-        refund_method, operator_id, remark)
-       VALUES (?, ?, ?, ?, ?, ?, 'PENDING', ?, ?, ?, 0, ?, ?, ?)`,
+        refund_method, operator_id, remark, tenant_id)
+       VALUES (?, ?, ?, ?, ?, ?, 'PENDING', ?, ?, ?, 0, ?, ?, ?, ?)`,
       [returnNo, body.sourceBillNo ?? null, body.storeId,
        body.customerId ?? null, body.customerName ?? null, body.customerMobile ?? null,
        goodsAmount, body.discountAmount, refundAmount,
-       body.refundMethod ?? null, req.user?.id ?? 0, body.remark ?? null]
+       body.refundMethod ?? null, req.user!.id ?? 0, body.remark ?? null, tenantId]
     );
 
     for (const item of body.items) {
       const subtotal = item.totalBottleQty * item.unitPrice;
       await conn.execute(
         `INSERT INTO sale_return_item (return_no, sku_id, sku_name, box_qty, bottle_qty,
-          total_bottle_qty, unit_price, subtotal_amount, reason)
-         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+          total_bottle_qty, unit_price, subtotal_amount, reason, tenant_id)
+         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
         [returnNo, item.skuId, item.skuName, item.boxQty, item.bottleQty,
-         item.totalBottleQty, item.unitPrice, subtotal, item.reason ?? null]
+         item.totalBottleQty, item.unitPrice, subtotal, item.reason ?? null, tenantId]
       );
 
       // 退回库存
       await conn.execute(
-        `INSERT INTO inventory_balance (store_id, sku_id, stock_type, physical_qty, available_qty)
-         VALUES (?, ?, 'OFFLINE', ?, ?)
+        `INSERT INTO inventory_balance (store_id, sku_id, stock_type, physical_qty, available_qty, tenant_id)
+         VALUES (?, ?, 'OFFLINE', ?, ?, ?)
          ON DUPLICATE KEY UPDATE
            physical_qty = physical_qty + VALUES(physical_qty),
            available_qty = available_qty + VALUES(available_qty),
            updated_at = NOW()`,
-        [body.storeId, item.skuId, item.totalBottleQty, item.totalBottleQty]
+        [body.storeId, item.skuId, item.totalBottleQty, item.totalBottleQty, tenantId]
       );
     }
 
@@ -358,12 +365,13 @@ adminRouter.post("/sale-returns", requireAuth, asyncHandler(async (req, res) => 
 }));
 
 // 销售退货列表
-adminRouter.get("/sale-returns", requireAuth, asyncHandler(async (req, res) => {
+adminRouter.get("/sale-returns", requireAuthWithTenant, asyncHandler(async (req, res) => {
+  const tenantId = req.tenantId!;
   const page = Number(req.query.page || 1);
   const pageSize = Number(req.query.pageSize || 20);
   const offset = (page - 1) * pageSize;
-  const conditions: string[] = [];
-  const params: unknown[] = [];
+  const conditions: string[] = ["tenant_id = ?"];
+  const params: unknown[] = [tenantId];
 
   if (req.query.customerId) {
     conditions.push("customer_id = ?");
@@ -382,7 +390,7 @@ adminRouter.get("/sale-returns", requireAuth, asyncHandler(async (req, res) => {
     params.push(req.query.dateEnd);
   }
 
-  const where = conditions.length > 0 ? `WHERE ${conditions.join(" AND ")}` : "";
+  const where = `WHERE ${conditions.join(" AND ")}`;
   const records = await query<any>(
     `SELECT id, return_no AS returnNo, source_bill_no AS sourceBillNo,
             store_id AS storeId, customer_id AS customerId,
@@ -406,7 +414,8 @@ adminRouter.get("/sale-returns", requireAuth, asyncHandler(async (req, res) => {
 }));
 
 // 销售退货详情
-adminRouter.get("/sale-returns/:id", requireAuth, asyncHandler(async (req, res) => {
+adminRouter.get("/sale-returns/:id", requireAuthWithTenant, asyncHandler(async (req, res) => {
+  const tenantId = req.tenantId!;
   const returnId = Number(req.params.id);
   const ret = await queryOne<any>(
     `SELECT id, return_no AS returnNo, source_bill_no AS sourceBillNo,
@@ -418,8 +427,8 @@ adminRouter.get("/sale-returns/:id", requireAuth, asyncHandler(async (req, res) 
             refund_method AS refundMethod,
             operator_id AS operatorId, auditor_id AS auditorId, audited_at AS auditedAt,
             remark, created_at AS createdAt
-     FROM sale_return WHERE id = ?`,
-    [returnId]
+     FROM sale_return WHERE id = ? AND tenant_id = ?`,
+    [returnId, tenantId]
   );
   if (!ret) {
     res.status(404).json({ code: "404", message: "销售退货单不存在" });
@@ -430,8 +439,8 @@ adminRouter.get("/sale-returns/:id", requireAuth, asyncHandler(async (req, res) 
             box_qty AS boxQty, bottle_qty AS bottleQty, total_bottle_qty AS totalBottleQty,
             unit_price AS unitPrice, subtotal_amount AS subtotalAmount,
             reason
-     FROM sale_return_item WHERE return_no = ?`,
-    [ret.returnNo]
+     FROM sale_return_item WHERE return_no = ? AND tenant_id = ?`,
+    [ret.returnNo, tenantId]
   );
   res.json(ok({ ...ret, items }));
 }));
@@ -439,12 +448,13 @@ adminRouter.get("/sale-returns/:id", requireAuth, asyncHandler(async (req, res) 
 // ========== 任务5：客户对账/付款API ==========
 
 // 客户对账单列表
-adminRouter.get("/customer-statements", requireAuth, asyncHandler(async (req, res) => {
+adminRouter.get("/customer-statements", requireAuthWithTenant, asyncHandler(async (req, res) => {
+  const tenantId = req.tenantId!;
   const page = Number(req.query.page || 1);
   const pageSize = Number(req.query.pageSize || 20);
   const offset = (page - 1) * pageSize;
-  const conditions: string[] = [];
-  const params: unknown[] = [];
+  const conditions: string[] = ["tenant_id = ?"];
+  const params: unknown[] = [tenantId];
 
   if (req.query.customerId) {
     conditions.push("customer_id = ?");
@@ -455,7 +465,7 @@ adminRouter.get("/customer-statements", requireAuth, asyncHandler(async (req, re
     params.push(req.query.status);
   }
 
-  const where = conditions.length > 0 ? `WHERE ${conditions.join(" AND ")}` : "";
+  const where = `WHERE ${conditions.join(" AND ")}`;
   const records = await query<any>(
     `SELECT id, statement_no AS statementNo, customer_id AS customerId,
             customer_name AS customerName, customer_mobile AS customerMobile,
@@ -479,7 +489,8 @@ adminRouter.get("/customer-statements", requireAuth, asyncHandler(async (req, re
 }));
 
 // 对账单详情
-adminRouter.get("/customer-statements/:id", requireAuth, asyncHandler(async (req, res) => {
+adminRouter.get("/customer-statements/:id", requireAuthWithTenant, asyncHandler(async (req, res) => {
+  const tenantId = req.tenantId!;
   const statementId = Number(req.params.id);
   const statement = await queryOne<any>(
     `SELECT id, statement_no AS statementNo, customer_id AS customerId,
@@ -490,8 +501,8 @@ adminRouter.get("/customer-statements/:id", requireAuth, asyncHandler(async (req
             closing_balance AS closingBalance,
             status, confirmed_at AS confirmedAt, operator_id AS operatorId,
             remark, created_at AS createdAt
-     FROM customer_statement WHERE id = ?`,
-    [statementId]
+     FROM customer_statement WHERE id = ? AND tenant_id = ?`,
+    [statementId, tenantId]
   );
   if (!statement) {
     res.status(404).json({ code: "404", message: "对账单不存在" });
@@ -505,9 +516,9 @@ adminRouter.get("/customer-statements/:id", requireAuth, asyncHandler(async (req
             created_at AS createdAt
      FROM sale_bill
      WHERE customer_id = ? AND DATE(created_at) >= ? AND DATE(created_at) <= ?
-       AND business_status NOT IN ('DRAFT', 'VOIDED')
+       AND business_status NOT IN ('DRAFT', 'VOIDED') AND tenant_id = ?
      ORDER BY created_at ASC`,
-    [statement.customerId, statement.startDate, statement.endDate]
+    [statement.customerId, statement.startDate, statement.endDate, tenantId]
   );
 
   // 查询对账周期内的退货单
@@ -515,9 +526,9 @@ adminRouter.get("/customer-statements/:id", requireAuth, asyncHandler(async (req
     `SELECT return_no AS returnNo, refund_amount AS refundAmount, created_at AS createdAt
      FROM sale_return
      WHERE customer_id = ? AND DATE(created_at) >= ? AND DATE(created_at) <= ?
-       AND return_status NOT IN ('VOIDED')
+       AND return_status NOT IN ('VOIDED') AND tenant_id = ?
      ORDER BY created_at ASC`,
-    [statement.customerId, statement.startDate, statement.endDate]
+    [statement.customerId, statement.startDate, statement.endDate, tenantId]
   );
 
   // 查询对账周期内的收款记录
@@ -526,16 +537,17 @@ adminRouter.get("/customer-statements/:id", requireAuth, asyncHandler(async (req
             payment_date AS paymentDate, created_at AS createdAt
      FROM customer_payment
      WHERE customer_id = ? AND payment_date >= ? AND payment_date <= ?
-       AND status NOT IN ('VOIDED')
+       AND status NOT IN ('VOIDED') AND tenant_id = ?
      ORDER BY payment_date ASC`,
-    [statement.customerId, statement.startDate, statement.endDate]
+    [statement.customerId, statement.startDate, statement.endDate, tenantId]
   );
 
   res.json(ok({ ...statement, saleBills, saleReturns, payments }));
 }));
 
 // 生成对账单
-adminRouter.post("/customer-statements/generate", requireAuth, asyncHandler(async (req, res) => {
+adminRouter.post("/customer-statements/generate", requireAuthWithTenant, asyncHandler(async (req, res) => {
+  const tenantId = req.tenantId!;
   const body = z.object({
     customerId: z.number(),
     statementType: z.string().default("MONTHLY"),
@@ -545,8 +557,8 @@ adminRouter.post("/customer-statements/generate", requireAuth, asyncHandler(asyn
   }).parse(req.body);
 
   const customer = await queryOne<any>(
-    "SELECT id, name, mobile FROM member WHERE id = ?",
-    [body.customerId]
+    "SELECT id, name, mobile FROM member WHERE id = ? AND tenant_id = ?",
+    [body.customerId, tenantId]
   );
   if (!customer) {
     res.status(400).json({ code: "400", message: "客户不存在" });
@@ -561,8 +573,8 @@ adminRouter.post("/customer-statements/generate", requireAuth, asyncHandler(asyn
       `SELECT COALESCE(SUM(unreceived_amount), 0) AS balance
        FROM sale_bill
        WHERE customer_id = ? AND DATE(created_at) < ?
-         AND business_status NOT IN ('DRAFT', 'VOIDED')`,
-      [body.customerId, body.startDate]
+         AND business_status NOT IN ('DRAFT', 'VOIDED') AND tenant_id = ?`,
+      [body.customerId, body.startDate, tenantId]
     );
     const openingBalance = Number((openingRow as any)[0]?.[0]?.balance ?? 0);
 
@@ -571,8 +583,8 @@ adminRouter.post("/customer-statements/generate", requireAuth, asyncHandler(asyn
       `SELECT COALESCE(SUM(receivable_amount), 0) AS total
        FROM sale_bill
        WHERE customer_id = ? AND DATE(created_at) >= ? AND DATE(created_at) <= ?
-         AND business_status NOT IN ('DRAFT', 'VOIDED')`,
-      [body.customerId, body.startDate, body.endDate]
+         AND business_status NOT IN ('DRAFT', 'VOIDED') AND tenant_id = ?`,
+      [body.customerId, body.startDate, body.endDate, tenantId]
     );
     const totalSales = Number((salesRow as any)[0]?.[0]?.total ?? 0);
 
@@ -581,8 +593,8 @@ adminRouter.post("/customer-statements/generate", requireAuth, asyncHandler(asyn
       `SELECT COALESCE(SUM(refund_amount), 0) AS total
        FROM sale_return
        WHERE customer_id = ? AND DATE(created_at) >= ? AND DATE(created_at) <= ?
-         AND return_status NOT IN ('VOIDED')`,
-      [body.customerId, body.startDate, body.endDate]
+         AND return_status NOT IN ('VOIDED') AND tenant_id = ?`,
+      [body.customerId, body.startDate, body.endDate, tenantId]
     );
     const totalReturns = Number((returnRow as any)[0]?.[0]?.total ?? 0);
 
@@ -591,8 +603,8 @@ adminRouter.post("/customer-statements/generate", requireAuth, asyncHandler(asyn
       `SELECT COALESCE(SUM(amount), 0) AS total
        FROM customer_payment
        WHERE customer_id = ? AND payment_date >= ? AND payment_date <= ?
-         AND status NOT IN ('VOIDED')`,
-      [body.customerId, body.startDate, body.endDate]
+         AND status NOT IN ('VOIDED') AND tenant_id = ?`,
+      [body.customerId, body.startDate, body.endDate, tenantId]
     );
     const totalPayments = Number((paymentRow as any)[0]?.[0]?.total ?? 0);
 
@@ -603,12 +615,12 @@ adminRouter.post("/customer-statements/generate", requireAuth, asyncHandler(asyn
       `INSERT INTO customer_statement (statement_no, customer_id, customer_name, customer_mobile,
         statement_type, start_date, end_date,
         opening_balance, total_sales, total_returns, total_payments, closing_balance,
-        status, operator_id, remark)
-       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'DRAFT', ?, ?)`,
+        status, operator_id, remark, tenant_id)
+       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'DRAFT', ?, ?, ?)`,
       [statementNo, body.customerId, customer.name, customer.mobile,
        body.statementType, body.startDate, body.endDate,
        openingBalance, totalSales, totalReturns, totalPayments, closingBalance,
-       req.user?.id ?? 0, body.remark ?? null]
+       req.user!.id ?? 0, body.remark ?? null, tenantId]
     );
 
     return {
@@ -625,12 +637,13 @@ adminRouter.post("/customer-statements/generate", requireAuth, asyncHandler(asyn
 }));
 
 // 客户付款记录
-adminRouter.get("/customer-payments", requireAuth, asyncHandler(async (req, res) => {
+adminRouter.get("/customer-payments", requireAuthWithTenant, asyncHandler(async (req, res) => {
+  const tenantId = req.tenantId!;
   const page = Number(req.query.page || 1);
   const pageSize = Number(req.query.pageSize || 20);
   const offset = (page - 1) * pageSize;
-  const conditions: string[] = [];
-  const params: unknown[] = [];
+  const conditions: string[] = ["tenant_id = ?"];
+  const params: unknown[] = [tenantId];
 
   if (req.query.customerId) {
     conditions.push("customer_id = ?");
@@ -649,7 +662,7 @@ adminRouter.get("/customer-payments", requireAuth, asyncHandler(async (req, res)
     params.push(req.query.dateEnd);
   }
 
-  const where = conditions.length > 0 ? `WHERE ${conditions.join(" AND ")}` : "";
+  const where = `WHERE ${conditions.join(" AND ")}`;
   const records = await query<any>(
     `SELECT id, receipt_no AS receiptNo, customer_id AS customerId,
             customer_name AS customerName, amount,
@@ -671,7 +684,8 @@ adminRouter.get("/customer-payments", requireAuth, asyncHandler(async (req, res)
 }));
 
 // 登记客户付款
-adminRouter.post("/customer-payments", requireAuth, asyncHandler(async (req, res) => {
+adminRouter.post("/customer-payments", requireAuthWithTenant, asyncHandler(async (req, res) => {
+  const tenantId = req.tenantId!;
   const body = z.object({
     customerId: z.number(),
     amount: z.number(),
@@ -684,8 +698,8 @@ adminRouter.post("/customer-payments", requireAuth, asyncHandler(async (req, res
   }).parse(req.body);
 
   const customer = await queryOne<any>(
-    "SELECT id, name FROM member WHERE id = ?",
-    [body.customerId]
+    "SELECT id, name FROM member WHERE id = ? AND tenant_id = ?",
+    [body.customerId, tenantId]
   );
   if (!customer) {
     res.status(400).json({ code: "400", message: "客户不存在" });
@@ -698,12 +712,12 @@ adminRouter.post("/customer-payments", requireAuth, asyncHandler(async (req, res
     const [paymentResult] = await conn.execute<any>(
       `INSERT INTO customer_payment (receipt_no, customer_id, customer_name, amount,
         payment_method, source_type, source_no, voucher_no, payment_date,
-        operator_id, status, remark)
-       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'COMPLETED', ?)`,
+        operator_id, status, remark, tenant_id)
+       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'COMPLETED', ?, ?)`,
       [receiptNo, body.customerId, customer.name, body.amount,
        body.paymentMethod, body.sourceType ?? null, body.sourceNo ?? null,
        body.voucherNo ?? null, body.paymentDate,
-       req.user?.id ?? 0, body.remark ?? null]
+       req.user!.id ?? 0, body.remark ?? null, tenantId]
     );
 
     // 更新关联销售单的已收金额
@@ -714,8 +728,8 @@ adminRouter.post("/customer-payments", requireAuth, asyncHandler(async (req, res
              unreceived_amount = GREATEST(0, receivable_amount - received_amount - ?),
              last_payment_time = NOW(),
              updated_at = NOW()
-         WHERE bill_no = ?`,
-        [body.amount, body.amount, body.sourceNo]
+         WHERE bill_no = ? AND tenant_id = ?`,
+        [body.amount, body.amount, body.sourceNo, tenantId]
       );
 
       // 更新收款状态
@@ -727,8 +741,8 @@ adminRouter.post("/customer-payments", requireAuth, asyncHandler(async (req, res
            ELSE collection_status
            END,
            updated_at = NOW()
-         WHERE bill_no = ? AND business_status NOT IN ('DRAFT', 'VOIDED')`,
-        [body.amount, body.amount, body.sourceNo]
+         WHERE bill_no = ? AND business_status NOT IN ('DRAFT', 'VOIDED') AND tenant_id = ?`,
+        [body.amount, body.amount, body.sourceNo, tenantId]
       );
     }
 
@@ -743,7 +757,8 @@ adminRouter.post("/customer-payments", requireAuth, asyncHandler(async (req, res
   res.json(ok(result));
 }));
 
-adminRouter.post("/members", requireAuth, asyncHandler(async (req, res) => {
+adminRouter.post("/members", requireAuthWithTenant, asyncHandler(async (req, res) => {
+  const tenantId = req.tenantId!;
   const body = z.object({
     name: z.string(),
     mobile: z.string(),
@@ -751,23 +766,24 @@ adminRouter.post("/members", requireAuth, asyncHandler(async (req, res) => {
     staffId: z.number().optional()
   }).parse(req.body);
   const result = await query<any>(
-    `INSERT INTO member (name, mobile, customer_type, staff_id, points, level_code, status)
-     VALUES (?, ?, ?, ?, 0, ?, 1)`,
-    [body.name, body.mobile, body.customerType, body.staffId ?? null, body.customerType === "WHOLESALE" ? "WHOLESALE" : "NORMAL"]
+    `INSERT INTO member (name, mobile, customer_type, staff_id, points, level_code, status, tenant_id)
+     VALUES (?, ?, ?, ?, 0, ?, 1, ?)`,
+    [body.name, body.mobile, body.customerType, body.staffId ?? null, body.customerType === "WHOLESALE" ? "WHOLESALE" : "NORMAL", tenantId]
   );
   const memberId = result?.[0]?.insertId ?? Date.now();
   res.json(ok({ memberId, name: body.name, mobile: body.mobile, customerType: body.customerType, staffId: body.staffId ?? null }));
 }));
 
-adminRouter.get("/members/:memberId", requireAuth, asyncHandler(async (req, res) => {
+adminRouter.get("/members/:memberId", requireAuthWithTenant, asyncHandler(async (req, res) => {
+  const tenantId = req.tenantId!;
   const member = await queryOne<any>(
     `SELECT m.id AS memberId, m.name, m.mobile, m.customer_type AS customerType,
             m.points, m.level_code AS levelCode, m.status,
             m.staff_id AS staffId, u.real_name AS staffName
      FROM member m
      LEFT JOIN sys_user u ON u.id = m.staff_id
-     WHERE m.id = ?`,
-    [Number(req.params.memberId)]
+     WHERE m.id = ? AND m.tenant_id = ?`,
+    [Number(req.params.memberId), tenantId]
   );
   if (!member) {
     res.status(404).json({ code: "404", message: "客户不存在" });
@@ -777,9 +793,10 @@ adminRouter.get("/members/:memberId", requireAuth, asyncHandler(async (req, res)
 }));
 
 // ========== 客户管理：编辑客户信息 ==========
-adminRouter.put("/members/:memberId", requireAuth, asyncHandler(async (req, res) => {
+adminRouter.put("/members/:memberId", requireAuthWithTenant, asyncHandler(async (req, res) => {
+  const tenantId = req.tenantId!;
   const memberId = Number(req.params.memberId);
-  const existing = await queryOne<any>("SELECT id FROM member WHERE id = ?", [memberId]);
+  const existing = await queryOne<any>("SELECT id FROM member WHERE id = ? AND tenant_id = ?", [memberId, tenantId]);
   if (!existing) {
     res.status(404).json({ code: "404", message: "客户不存在" });
     return;
@@ -805,15 +822,16 @@ adminRouter.put("/members/:memberId", requireAuth, asyncHandler(async (req, res)
   if (body.remark !== undefined) { sets.push("remark = ?"); params.push(body.remark); }
   if (sets.length === 0) { res.json(ok({ memberId })); return; }
   sets.push("updated_at = NOW()");
-  params.push(memberId);
-  await query(`UPDATE member SET ${sets.join(", ")} WHERE id = ?`, params);
+  params.push(memberId, tenantId);
+  await query(`UPDATE member SET ${sets.join(", ")} WHERE id = ? AND tenant_id = ?`, params);
   res.json(ok({ memberId }));
 }));
 
 // ========== 客户管理：停用客户 ==========
-adminRouter.delete("/members/:memberId", requireAuth, asyncHandler(async (req, res) => {
+adminRouter.delete("/members/:memberId", requireAuthWithTenant, asyncHandler(async (req, res) => {
+  const tenantId = req.tenantId!;
   const memberId = Number(req.params.memberId);
-  const existing = await queryOne<any>("SELECT id, name, status FROM member WHERE id = ?", [memberId]);
+  const existing = await queryOne<any>("SELECT id, name, status FROM member WHERE id = ? AND tenant_id = ?", [memberId, tenantId]);
   if (!existing) {
     res.status(404).json({ code: "404", message: "客户不存在" });
     return;
@@ -822,14 +840,15 @@ adminRouter.delete("/members/:memberId", requireAuth, asyncHandler(async (req, r
     res.status(400).json({ code: "400", message: "客户已停用" });
     return;
   }
-  await query("UPDATE member SET status = 'INACTIVE', updated_at = NOW() WHERE id = ?", [memberId]);
+  await query("UPDATE member SET status = 'INACTIVE', updated_at = NOW() WHERE id = ? AND tenant_id = ?", [memberId, tenantId]);
   res.json(ok({ memberId, name: existing.name }));
 }));
 
-adminRouter.get("/members/:memberId/assign", requireAuth, asyncHandler(async (req, res) => {
+adminRouter.get("/members/:memberId/assign", requireAuthWithTenant, asyncHandler(async (req, res) => {
+  const tenantId = req.tenantId!;
   const body = z.object({ staffId: z.number() }).parse(req.body);
   const memberId = Number(req.params.memberId);
-  const member = await queryOne<any>("SELECT id FROM member WHERE id = ?", [memberId]);
+  const member = await queryOne<any>("SELECT id FROM member WHERE id = ? AND tenant_id = ?", [memberId, tenantId]);
   if (!member) {
     res.status(404).json({ code: "404", message: "客户不存在" });
     return;
@@ -839,11 +858,12 @@ adminRouter.get("/members/:memberId/assign", requireAuth, asyncHandler(async (re
     res.status(404).json({ code: "404", message: "员工不存在" });
     return;
   }
-  await query("UPDATE member SET staff_id = ?, updated_at = NOW() WHERE id = ?", [body.staffId, memberId]);
+  await query("UPDATE member SET staff_id = ?, updated_at = NOW() WHERE id = ? AND tenant_id = ?", [body.staffId, memberId, tenantId]);
   res.json(ok({ memberId, staffId: body.staffId }));
 }));
 
-adminRouter.get("/members/:memberId/price-history", requireAuth, asyncHandler(async (req, res) => {
+adminRouter.get("/members/:memberId/price-history", requireAuthWithTenant, asyncHandler(async (req, res) => {
+  const tenantId = req.tenantId!;
   const memberId = Number(req.params.memberId);
   const skuId = z.number().positive().parse(Number(req.query.skuId));
   const records = await query<any>(
@@ -851,9 +871,9 @@ adminRouter.get("/members/:memberId/price-history", requireAuth, asyncHandler(as
             sb.bill_no AS billNo, sb.created_at AS createdAt
      FROM sale_bill_item sbi
      JOIN sale_bill sb ON sb.bill_no = sbi.bill_no
-     WHERE sb.customer_id = ? AND sbi.sku_id = ?
+     WHERE sb.customer_id = ? AND sbi.sku_id = ? AND sb.tenant_id = ?
      ORDER BY sb.created_at DESC`,
-    [memberId, skuId]
+    [memberId, skuId, tenantId]
   );
   if (records.length === 0) {
     res.json(ok([]));
@@ -871,7 +891,8 @@ adminRouter.get("/members/:memberId/price-history", requireAuth, asyncHandler(as
   }]));
 }));
 
-adminRouter.get("/stores", requireAuth, asyncHandler(async (req, res) => {
+adminRouter.get("/stores", requireAuthWithTenant, asyncHandler(async (req, res) => {
+  const tenantId = req.tenantId!;
   const page = Number(req.query.page || 1);
   const pageSize = Number(req.query.pageSize || 20);
   const keyword = `%${String(req.query.keyword || "")}%`;
@@ -882,16 +903,17 @@ adminRouter.get("/stores", requireAuth, asyncHandler(async (req, res) => {
             miniapp_appid AS miniappAppid, wx_merchant_name AS wxMerchantName,
             wx_service_phone AS wxServicePhone, wx_head_img AS wxHeadImg, wx_qrcode_url AS wxQrcodeUrl
      FROM store
-     WHERE name LIKE ? OR store_code LIKE ?
+     WHERE tenant_id = ? AND (name LIKE ? OR store_code LIKE ?)
      ORDER BY id DESC
      LIMIT ? OFFSET ?`,
-    [keyword, keyword, pageSize, offset]
+    [tenantId, keyword, keyword, pageSize, offset]
   );
-  const totalRow = await queryOne<any>("SELECT COUNT(*) AS total FROM store WHERE name LIKE ? OR store_code LIKE ?", [keyword, keyword]);
+  const totalRow = await queryOne<any>("SELECT COUNT(*) AS total FROM store WHERE tenant_id = ? AND (name LIKE ? OR store_code LIKE ?)", [tenantId, keyword, keyword]);
   res.json(ok({ total: totalRow?.total ?? 0, page, pageSize, records }));
 }));
 
-adminRouter.post("/stores", requireAuth, asyncHandler(async (req, res) => {
+adminRouter.post("/stores", requireAuthWithTenant, asyncHandler(async (req, res) => {
+  const tenantId = req.tenantId!;
   const body = z.object({
     name: z.string(),
     address: z.string(),
@@ -906,23 +928,24 @@ adminRouter.post("/stores", requireAuth, asyncHandler(async (req, res) => {
     `SELECT 1 AS ok`
   );
   await query(
-    `INSERT INTO store (store_code, name, address, lng, lat, contact, phone, delivery_radius)
-     VALUES (?, ?, ?, ?, ?, ?, ?, ?)`,
-    [storeCode, body.name, body.address, body.lng ?? null, body.lat ?? null, body.contact ?? null, body.phone ?? null, body.deliveryRadius]
+    `INSERT INTO store (store_code, name, address, lng, lat, contact, phone, delivery_radius, tenant_id)
+     VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+    [storeCode, body.name, body.address, body.lng ?? null, body.lat ?? null, body.contact ?? null, body.phone ?? null, body.deliveryRadius, tenantId]
   );
   void result;
-  const created = await queryOne<any>("SELECT id, store_code AS storeCode, name FROM store WHERE store_code = ?", [storeCode]);
+  const created = await queryOne<any>("SELECT id, store_code AS storeCode, name FROM store WHERE store_code = ? AND tenant_id = ?", [storeCode, tenantId]);
   res.json(ok(created));
 }));
 
-adminRouter.get("/stores/:id", requireAuth, asyncHandler(async (req, res) => {
+adminRouter.get("/stores/:id", requireAuthWithTenant, asyncHandler(async (req, res) => {
+  const tenantId = req.tenantId!;
   const store = await queryOne<any>(
     `SELECT id, store_code AS storeCode, name, address, contact, phone, delivery_radius AS deliveryRadius,
             business_status AS businessStatus, status,
             miniapp_appid AS miniappAppid, wx_merchant_name AS wxMerchantName,
             wx_service_phone AS wxServicePhone, wx_head_img AS wxHeadImg, wx_qrcode_url AS wxQrcodeUrl
-     FROM store WHERE id = ?`,
-    [Number(req.params.id)]
+     FROM store WHERE id = ? AND tenant_id = ?`,
+    [Number(req.params.id), tenantId]
   );
   if (!store) {
     res.status(404).json({ code: "1", message: "门店不存在" });
@@ -931,9 +954,10 @@ adminRouter.get("/stores/:id", requireAuth, asyncHandler(async (req, res) => {
   res.json(ok(store));
 }));
 
-adminRouter.patch("/stores/:id", requireAuth, asyncHandler(async (req, res) => {
+adminRouter.patch("/stores/:id", requireAuthWithTenant, asyncHandler(async (req, res) => {
+  const tenantId = req.tenantId!;
   const storeId = Number(req.params.id);
-  const existing = await queryOne<any>("SELECT id FROM store WHERE id = ?", [storeId]);
+  const existing = await queryOne<any>("SELECT id FROM store WHERE id = ? AND tenant_id = ?", [storeId, tenantId]);
   if (!existing) {
     res.status(404).json({ code: "1", message: "门店不存在" });
     return;
@@ -959,7 +983,7 @@ adminRouter.patch("/stores/:id", requireAuth, asyncHandler(async (req, res) => {
 
   if (updates.length > 0) {
     updates.push("updated_at = NOW()");
-    await query(`UPDATE store SET ${updates.join(", ")} WHERE id = ?`, [...params, storeId]);
+    await query(`UPDATE store SET ${updates.join(", ")} WHERE id = ? AND tenant_id = ?`, [...params, storeId, tenantId]);
   }
 
   const store = await queryOne<any>(
@@ -967,20 +991,21 @@ adminRouter.patch("/stores/:id", requireAuth, asyncHandler(async (req, res) => {
             business_status AS businessStatus, status,
             miniapp_appid AS miniappAppid, wx_merchant_name AS wxMerchantName,
             wx_service_phone AS wxServicePhone, wx_head_img AS wxHeadImg, wx_qrcode_url AS wxQrcodeUrl
-     FROM store WHERE id = ?`,
-    [storeId]
+     FROM store WHERE id = ? AND tenant_id = ?`,
+    [storeId, tenantId]
   );
   res.json(ok(store));
 }));
 
-adminRouter.post("/stores/:id/fetch-wx-info", requireAuth, asyncHandler(async (req, res) => {
+adminRouter.post("/stores/:id/fetch-wx-info", requireAuthWithTenant, asyncHandler(async (req, res) => {
+  const tenantId = req.tenantId!;
   const storeId = Number(req.params.id);
   const store = await queryOne<any>(
     `SELECT id, name, phone, miniapp_appid AS miniappAppid,
             wx_merchant_name AS wxMerchantName, wx_service_phone AS wxServicePhone,
             wx_head_img AS wxHeadImg, wx_qrcode_url AS wxQrcodeUrl
-     FROM store WHERE id = ?`,
-    [storeId]
+     FROM store WHERE id = ? AND tenant_id = ?`,
+    [storeId, tenantId]
   );
   if (!store) {
     res.status(404).json({ code: "1", message: "门店不存在" });
@@ -1006,8 +1031,8 @@ adminRouter.post("/stores/:id/fetch-wx-info", requireAuth, asyncHandler(async (r
   // 更新到数据库
   await query(
     `UPDATE store SET wx_merchant_name = ?, wx_service_phone = ?, wx_head_img = ?, wx_qrcode_url = ?, updated_at = NOW()
-     WHERE id = ?`,
-    [mockWxInfo.merchantName, mockWxInfo.servicePhone, mockWxInfo.headImg, mockWxInfo.qrcodeUrl, storeId]
+     WHERE id = ? AND tenant_id = ?`,
+    [mockWxInfo.merchantName, mockWxInfo.servicePhone, mockWxInfo.headImg, mockWxInfo.qrcodeUrl, storeId, tenantId]
   );
 
   res.json(ok({
@@ -1019,7 +1044,8 @@ adminRouter.post("/stores/:id/fetch-wx-info", requireAuth, asyncHandler(async (r
   }));
 }));
 
-adminRouter.get("/products", requireAuth, asyncHandler(async (req, res) => {
+adminRouter.get("/products", requireAuthWithTenant, asyncHandler(async (req, res) => {
+  const tenantId = req.tenantId!;
   const page = Number(req.query.page || 1);
   const pageSize = Number(req.query.pageSize || 20);
   const keyword = `%${String(req.query.keyword || "")}%`;
@@ -1030,22 +1056,23 @@ adminRouter.get("/products", requireAuth, asyncHandler(async (req, res) => {
      FROM product_sku s
      JOIN product_spu p ON p.id = s.spu_id
      JOIN product_price pp ON pp.sku_id = s.id
-     WHERE p.name LIKE ? OR s.sku_code LIKE ? OR s.barcode LIKE ?
+     WHERE p.tenant_id = ? AND (p.name LIKE ? OR s.sku_code LIKE ? OR s.barcode LIKE ?)
      ORDER BY p.id DESC, s.id DESC
      LIMIT ? OFFSET ?`,
-    [keyword, keyword, keyword, pageSize, offset]
+    [tenantId, keyword, keyword, keyword, pageSize, offset]
   );
   const totalRow = await queryOne<any>(
     `SELECT COUNT(*) AS total
      FROM product_sku s
      JOIN product_spu p ON p.id = s.spu_id
-     WHERE p.name LIKE ? OR s.sku_code LIKE ? OR s.barcode LIKE ?`,
-    [keyword, keyword, keyword]
+     WHERE p.tenant_id = ? AND (p.name LIKE ? OR s.sku_code LIKE ? OR s.barcode LIKE ?)`,
+    [tenantId, keyword, keyword, keyword]
   );
   res.json(ok({ total: totalRow?.total ?? 0, page, pageSize, records }));
 }));
 
-adminRouter.post("/products", requireAuth, asyncHandler(async (req, res) => {
+adminRouter.post("/products", requireAuthWithTenant, asyncHandler(async (req, res) => {
+  const tenantId = req.tenantId!;
   const rawBody = req.body;
   const body = z.object({
     name: z.string(),
@@ -1080,32 +1107,32 @@ adminRouter.post("/products", requireAuth, asyncHandler(async (req, res) => {
   const result = await transaction(async (conn) => {
     const spuCode = makeBizNo("SPU");
     const [spuResult] = await conn.execute<any>(
-      `INSERT INTO product_spu (spu_code, name, category_id, main_image, sale_channels, status)
-       VALUES (?, ?, ?, ?, CAST(? AS JSON), 'DRAFT')`,
-      [spuCode, body.name, body.categoryId, body.mainImage ?? null, JSON.stringify(body.saleChannels)]
+      `INSERT INTO product_spu (spu_code, name, category_id, main_image, sale_channels, status, tenant_id)
+       VALUES (?, ?, ?, ?, CAST(? AS JSON), 'DRAFT', ?)`,
+      [spuCode, body.name, body.categoryId, body.mainImage ?? null, JSON.stringify(body.saleChannels), tenantId]
     );
     const spuId = spuResult.insertId as number;
     let firstSkuId: number | null = null;
     for (const sku of body.skus) {
       const skuCode = makeBizNo("SKU");
       const [skuResult] = await conn.execute<any>(
-        `INSERT INTO product_sku (spu_id, sku_code, barcode, sku_name, box_ratio, temperature, trace_enabled, warning_threshold)
-         VALUES (?, ?, ?, ?, ?, ?, ?, ?)`,
-        [spuId, skuCode, sku.barcode ?? null, sku.skuName, sku.boxRatio, sku.temperature, sku.traceEnabled ? 1 : 0, sku.warningThreshold]
+        `INSERT INTO product_sku (spu_id, sku_code, barcode, sku_name, box_ratio, temperature, trace_enabled, warning_threshold, tenant_id)
+         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+        [spuId, skuCode, sku.barcode ?? null, sku.skuName, sku.boxRatio, sku.temperature, sku.traceEnabled ? 1 : 0, sku.warningThreshold, tenantId]
       );
       const skuId = skuResult.insertId as number;
       firstSkuId ??= skuId;
       await conn.execute(
-        `INSERT INTO product_price (sku_id, cost_price, retail_price, wholesale_price, miniapp_price, store_price)
-         VALUES (?, ?, ?, ?, ?, ?)`,
-        [skuId, sku.costPrice, sku.retailPrice, sku.wholesalePrice ?? null, sku.miniappPrice ?? null, sku.storePrice ?? null]
+        `INSERT INTO product_price (sku_id, cost_price, retail_price, wholesale_price, miniapp_price, store_price, tenant_id)
+         VALUES (?, ?, ?, ?, ?, ?, ?)`,
+        [skuId, sku.costPrice, sku.retailPrice, sku.wholesalePrice ?? null, sku.miniappPrice ?? null, sku.storePrice ?? null, tenantId]
       );
       if (rawBody.initialQty !== undefined) {
         await conn.execute(
-          `INSERT INTO inventory_balance (store_id, sku_id, stock_type, physical_qty, locked_qty, available_qty)
-           VALUES (1, ?, ?, ?, 0, ?)
+          `INSERT INTO inventory_balance (store_id, sku_id, stock_type, physical_qty, locked_qty, available_qty, tenant_id)
+           VALUES (1, ?, ?, ?, 0, ?, ?)
            ON DUPLICATE KEY UPDATE physical_qty = VALUES(physical_qty), available_qty = VALUES(available_qty), updated_at = NOW()`,
-          [skuId, rawBody.stockType ?? "OFFLINE", rawBody.initialQty, rawBody.initialQty]
+          [skuId, rawBody.stockType ?? "OFFLINE", rawBody.initialQty, rawBody.initialQty, tenantId]
         );
       }
     }
@@ -1114,9 +1141,10 @@ adminRouter.post("/products", requireAuth, asyncHandler(async (req, res) => {
   res.json(ok(result));
 }));
 
-adminRouter.patch("/products/:spuId/status", requireAuth, asyncHandler(async (req, res) => {
+adminRouter.patch("/products/:spuId/status", requireAuthWithTenant, asyncHandler(async (req, res) => {
+  const tenantId = req.tenantId!;
   const body = z.object({ status: z.enum(["DRAFT", "ON_SALE", "OFF_SALE"]) }).parse(req.body);
-  const result = await query("UPDATE product_spu SET status = ?, updated_at = NOW() WHERE id = ?", [body.status, Number(req.params.spuId)]);
+  const result = await query("UPDATE product_spu SET status = ?, updated_at = NOW() WHERE id = ? AND tenant_id = ?", [body.status, Number(req.params.spuId), tenantId]);
   if (!result || (result as any).affectedRows === 0) {
     res.status(404).json({ code: "404", message: "商品不存在" });
     return;
@@ -1125,9 +1153,10 @@ adminRouter.patch("/products/:spuId/status", requireAuth, asyncHandler(async (re
 }));
 
 // ========== 商品管理：编辑商品基本信息 ==========
-adminRouter.put("/products/:spuId", requireAuth, asyncHandler(async (req, res) => {
+adminRouter.put("/products/:spuId", requireAuthWithTenant, asyncHandler(async (req, res) => {
+  const tenantId = req.tenantId!;
   const spuId = Number(req.params.spuId);
-  const existing = await queryOne<any>("SELECT id FROM product_spu WHERE id = ?", [spuId]);
+  const existing = await queryOne<any>("SELECT id FROM product_spu WHERE id = ? AND tenant_id = ?", [spuId, tenantId]);
   if (!existing) {
     res.status(404).json({ code: "404", message: "商品不存在" });
     return;
@@ -1153,25 +1182,26 @@ adminRouter.put("/products/:spuId", requireAuth, asyncHandler(async (req, res) =
   if (body.status !== undefined) { sets.push("status = ?"); params.push(body.status); }
   if (sets.length === 0) { res.json(ok({ spuId })); return; }
   sets.push("updated_at = NOW()");
-  params.push(spuId);
-  await query(`UPDATE product_spu SET ${sets.join(", ")} WHERE id = ?`, params);
+  params.push(spuId, tenantId);
+  await query(`UPDATE product_spu SET ${sets.join(", ")} WHERE id = ? AND tenant_id = ?`, params);
 
   // 如果传了 barcode，更新关联 SKU 的 barcode
   if (body.barcode !== undefined) {
-    await query("UPDATE product_sku SET barcode = ? WHERE spu_id = ?", [body.barcode, spuId]);
+    await query("UPDATE product_sku SET barcode = ? WHERE spu_id = ? AND tenant_id = ?", [body.barcode, spuId, tenantId]);
   }
   // 如果传了 boxRatio，更新关联 SKU 的 box_ratio
   if (body.boxRatio !== undefined) {
-    await query("UPDATE product_sku SET box_ratio = ? WHERE spu_id = ?", [body.boxRatio, spuId]);
+    await query("UPDATE product_sku SET box_ratio = ? WHERE spu_id = ? AND tenant_id = ?", [body.boxRatio, spuId, tenantId]);
   }
 
   res.json(ok({ spuId }));
 }));
 
 // ========== 商品管理：停用商品 ==========
-adminRouter.delete("/products/:spuId", requireAuth, asyncHandler(async (req, res) => {
+adminRouter.delete("/products/:spuId", requireAuthWithTenant, asyncHandler(async (req, res) => {
+  const tenantId = req.tenantId!;
   const spuId = Number(req.params.spuId);
-  const existing = await queryOne<any>("SELECT id, name, status FROM product_spu WHERE id = ?", [spuId]);
+  const existing = await queryOne<any>("SELECT id, name, status FROM product_spu WHERE id = ? AND tenant_id = ?", [spuId, tenantId]);
   if (!existing) {
     res.status(404).json({ code: "404", message: "商品不存在" });
     return;
@@ -1180,24 +1210,26 @@ adminRouter.delete("/products/:spuId", requireAuth, asyncHandler(async (req, res
     res.status(400).json({ code: "400", message: "商品已停售" });
     return;
   }
-  await query("UPDATE product_spu SET status = 'OFF_SALE', updated_at = NOW() WHERE id = ?", [spuId]);
+  await query("UPDATE product_spu SET status = 'OFF_SALE', updated_at = NOW() WHERE id = ? AND tenant_id = ?", [spuId, tenantId]);
   res.json(ok({ spuId, name: existing.name }));
 }));
 
-adminRouter.get("/products/:skuId/price-logs", requireAuth, asyncHandler(async (req, res) => {
+adminRouter.get("/products/:skuId/price-logs", requireAuthWithTenant, asyncHandler(async (req, res) => {
+  const tenantId = req.tenantId!;
   const records = await query<any>(
     `SELECT id, sku_id AS skuId, price_type AS priceType, old_price AS oldPrice,
             new_price AS newPrice, action_type AS actionType, operator_id AS operatorId, created_at AS createdAt
      FROM product_price_log
-     WHERE sku_id = ?
+     WHERE sku_id = ? AND tenant_id = ?
      ORDER BY id DESC
      LIMIT 50`,
-    [Number(req.params.skuId)]
+    [Number(req.params.skuId), tenantId]
   );
   res.json(ok({ records }));
 }));
 
-adminRouter.put("/products/:skuId/price", requireAuth, asyncHandler(async (req, res) => {
+adminRouter.put("/products/:skuId/price", requireAuthWithTenant, asyncHandler(async (req, res) => {
+  const tenantId = req.tenantId!;
   const skuId = Number(req.params.skuId);
   const body = z.object({
     costPrice: z.number().optional(),
@@ -1207,7 +1239,7 @@ adminRouter.put("/products/:skuId/price", requireAuth, asyncHandler(async (req, 
     storePrice: z.number().nullable().optional()
   }).parse(req.body);
   const result = await transaction(async (conn) => {
-    const [oldRows] = await conn.query<any[]>("SELECT * FROM product_price WHERE sku_id = ?", [skuId]);
+    const [oldRows] = await conn.query<any[]>("SELECT * FROM product_price WHERE sku_id = ? AND tenant_id = ?", [skuId, tenantId]);
     const oldPrice = oldRows[0];
     if (!oldPrice) throw Object.assign(new Error("SKU价格不存在"), { statusCode: 404 });
     const changes = [
@@ -1224,21 +1256,22 @@ adminRouter.put("/products/:skuId/price", requireAuth, asyncHandler(async (req, 
            wholesale_price = ?,
            miniapp_price = ?,
            store_price = ?
-       WHERE sku_id = ?`,
+       WHERE sku_id = ? AND tenant_id = ?`,
       [
         body.costPrice ?? null,
         body.retailPrice ?? null,
         body.wholesalePrice === undefined ? oldPrice.wholesale_price : body.wholesalePrice,
         body.miniappPrice === undefined ? oldPrice.miniapp_price : body.miniappPrice,
         body.storePrice === undefined ? oldPrice.store_price : body.storePrice,
-        skuId
+        skuId,
+        tenantId
       ]
     );
     for (const [priceType, oldValue, newValue] of changes) {
       await conn.execute(
-        `INSERT INTO product_price_log (sku_id, operator_id, price_type, old_price, new_price, action_type)
-         VALUES (?, ?, ?, ?, ?, 'UPDATE')`,
-        [skuId, req.user?.id ?? 0, priceType, oldValue ?? null, newValue ?? null]
+        `INSERT INTO product_price_log (sku_id, operator_id, price_type, old_price, new_price, action_type, tenant_id)
+         VALUES (?, ?, ?, ?, ?, 'UPDATE', ?)`,
+        [skuId, req.user!.id ?? 0, priceType, oldValue ?? null, newValue ?? null, tenantId]
       );
     }
     return { skuId };
@@ -1246,19 +1279,21 @@ adminRouter.put("/products/:skuId/price", requireAuth, asyncHandler(async (req, 
   res.json(ok(result));
 }));
 
-adminRouter.get("/reports/dashboard", requireAuth, asyncHandler(async (_req, res) => {
-  const sales = await queryOne<any>("SELECT COALESCE(SUM(received_amount),0) AS amount, COUNT(*) AS count FROM sale_bill WHERE DATE(created_at)=CURRENT_DATE");
-  const pending = await queryOne<any>("SELECT COALESCE(SUM(unreceived_amount),0) AS amount FROM sale_bill WHERE collection_status IN ('UNPAID','PENDING','SHARED','PARTIAL')");
-  const orders = await queryOne<any>("SELECT COUNT(*) AS count FROM miniapp_order WHERE DATE(created_at)=CURRENT_DATE");
+adminRouter.get("/reports/dashboard", requireAuthWithTenant, asyncHandler(async (req, res) => {
+  const tenantId = req.tenantId!;
+  const sales = await queryOne<any>("SELECT COALESCE(SUM(received_amount),0) AS amount, COUNT(*) AS count FROM sale_bill WHERE DATE(created_at)=CURRENT_DATE AND tenant_id = ?", [tenantId]);
+  const pending = await queryOne<any>("SELECT COALESCE(SUM(unreceived_amount),0) AS amount FROM sale_bill WHERE collection_status IN ('UNPAID','PENDING','SHARED','PARTIAL') AND tenant_id = ?", [tenantId]);
+  const orders = await queryOne<any>("SELECT COUNT(*) AS count FROM miniapp_order WHERE DATE(created_at)=CURRENT_DATE AND tenant_id = ?", [tenantId]);
   const warnings = await queryOne<any>(
     `SELECT COUNT(*) AS count
      FROM inventory_balance ib
      JOIN product_sku s ON s.id = ib.sku_id
-     WHERE ib.available_qty <= s.warning_threshold`
+     WHERE ib.available_qty <= s.warning_threshold AND ib.tenant_id = ?`,
+    [tenantId]
   );
   const pendingOrders = await queryOne<any>(
-    "SELECT COUNT(*) AS cnt FROM miniapp_order WHERE order_status = 'PENDING_PAYMENT'",
-    []
+    "SELECT COUNT(*) AS cnt FROM miniapp_order WHERE order_status = 'PENDING_PAYMENT' AND tenant_id = ?",
+    [tenantId]
   );
   res.json(ok({
     salesAmount: Number(sales?.amount ?? 0),
@@ -1270,7 +1305,8 @@ adminRouter.get("/reports/dashboard", requireAuth, asyncHandler(async (_req, res
   }));
 }));
 
-adminRouter.get("/orders", requireAuth, asyncHandler(async (req, res) => {
+adminRouter.get("/orders", requireAuthWithTenant, asyncHandler(async (req, res) => {
+  const tenantId = req.tenantId!;
   const page = Number(req.query.page || 1);
   const pageSize = Number(req.query.pageSize || 20);
   const offset = (page - 1) * pageSize;
@@ -1278,8 +1314,8 @@ adminRouter.get("/orders", requireAuth, asyncHandler(async (req, res) => {
   const status = String(req.query.status || "");
   const dateStart = String(req.query.dateStart || "");
   const dateEnd = String(req.query.dateEnd || "");
-  const conditions: string[] = [];
-  const params: unknown[] = [];
+  const conditions: string[] = ["tenant_id = ?"];
+  const params: unknown[] = [tenantId];
   if (req.query.keyword) {
     conditions.push("(order_no LIKE ? OR receiver_name LIKE ? OR receiver_mobile LIKE ?)");
     params.push(keyword, keyword, keyword);
@@ -1296,7 +1332,7 @@ adminRouter.get("/orders", requireAuth, asyncHandler(async (req, res) => {
     conditions.push("DATE(created_at) <= ?");
     params.push(dateEnd);
   }
-  const where = conditions.length > 0 ? `WHERE ${conditions.join(" AND ")}` : "";
+  const where = `WHERE ${conditions.join(" AND ")}`;
   const records = await query<any>(
     `SELECT order_no AS orderNo, store_id AS storeId, customer_type AS customerType,
             fulfillment_type AS fulfillmentType, order_status AS orderStatus,
@@ -1315,13 +1351,14 @@ adminRouter.get("/orders", requireAuth, asyncHandler(async (req, res) => {
   res.json(ok({ total: totalRow?.total ?? 0, page, pageSize, records }));
 }));
 
-adminRouter.get("/orders/export.csv", requireAuth, asyncHandler(async (req, res) => {
+adminRouter.get("/orders/export.csv", requireAuthWithTenant, asyncHandler(async (req, res) => {
+  const tenantId = req.tenantId!;
   const keyword = `%${String(req.query.keyword || "")}%`;
   const status = String(req.query.status || "");
   const dateStart = String(req.query.dateStart || "");
   const dateEnd = String(req.query.dateEnd || "");
-  const conditions: string[] = [];
-  const params: unknown[] = [];
+  const conditions: string[] = ["tenant_id = ?"];
+  const params: unknown[] = [tenantId];
   if (req.query.keyword) {
     conditions.push("(order_no LIKE ? OR receiver_name LIKE ? OR receiver_mobile LIKE ?)");
     params.push(keyword, keyword, keyword);
@@ -1338,7 +1375,7 @@ adminRouter.get("/orders/export.csv", requireAuth, asyncHandler(async (req, res)
     conditions.push("DATE(created_at) <= ?");
     params.push(dateEnd);
   }
-  const where = conditions.length > 0 ? `WHERE ${conditions.join(" AND ")}` : "";
+  const where = `WHERE ${conditions.join(" AND ")}`;
   const records = await query<any>(
     `SELECT order_no AS orderNo, store_id AS storeId, customer_type AS customerType,
             fulfillment_type AS fulfillmentType, order_status AS orderStatus,
@@ -1370,12 +1407,13 @@ adminRouter.get("/orders/export.csv", requireAuth, asyncHandler(async (req, res)
   res.send(csv);
 }));
 
-adminRouter.get("/sale-bills", requireAuth, asyncHandler(async (req, res) => {
+adminRouter.get("/sale-bills", requireAuthWithTenant, asyncHandler(async (req, res) => {
+  const tenantId = req.tenantId!;
   const page = Number(req.query.page || 1);
   const pageSize = Number(req.query.pageSize || 20);
   const offset = (page - 1) * pageSize;
-  const conditions: string[] = [];
-  const params: unknown[] = [];
+  const conditions: string[] = ["tenant_id = ?"];
+  const params: unknown[] = [tenantId];
 
   if (req.query.keyword) {
     const keyword = `%${String(req.query.keyword)}%`;
@@ -1395,7 +1433,7 @@ adminRouter.get("/sale-bills", requireAuth, asyncHandler(async (req, res) => {
     params.push(req.query.dateEnd);
   }
 
-  const where = conditions.length > 0 ? `WHERE ${conditions.join(" AND ")}` : "";
+  const where = `WHERE ${conditions.join(" AND ")}`;
   const records = await query<any>(
     `SELECT bill_no AS billNo, store_id AS storeId, customer_name AS customerName,
             customer_mobile AS customerMobile, receivable_amount AS receivableAmount,
@@ -1413,9 +1451,10 @@ adminRouter.get("/sale-bills", requireAuth, asyncHandler(async (req, res) => {
 }));
 
 // ========== 销售单导出CSV ==========
-adminRouter.get("/sale-bills/export.csv", requireAuth, asyncHandler(async (req, res) => {
-  const conditions: string[] = [];
-  const params: unknown[] = [];
+adminRouter.get("/sale-bills/export.csv", requireAuthWithTenant, asyncHandler(async (req, res) => {
+  const tenantId = req.tenantId!;
+  const conditions: string[] = ["tenant_id = ?"];
+  const params: unknown[] = [tenantId];
 
   if (req.query.keyword) {
     const keyword = `%${String(req.query.keyword)}%`;
@@ -1435,7 +1474,7 @@ adminRouter.get("/sale-bills/export.csv", requireAuth, asyncHandler(async (req, 
     params.push(req.query.dateEnd);
   }
 
-  const where = conditions.length > 0 ? `WHERE ${conditions.join(" AND ")}` : "";
+  const where = `WHERE ${conditions.join(" AND ")}`;
   const records = await query<any>(
     `SELECT bill_no AS billNo, store_id AS storeId, customer_name AS customerName,
             customer_mobile AS customerMobile, receivable_amount AS receivableAmount,
@@ -1461,7 +1500,8 @@ adminRouter.get("/sale-bills/export.csv", requireAuth, asyncHandler(async (req, 
   res.send(csv);
 }));
 
-adminRouter.get("/inventory/logs", requireAuth, asyncHandler(async (req, res) => {
+adminRouter.get("/inventory/logs", requireAuthWithTenant, asyncHandler(async (req, res) => {
+  const tenantId = req.tenantId!;
   const page = Number(req.query.page || 1);
   const pageSize = Number(req.query.pageSize || 20);
   const offset = (page - 1) * pageSize;
@@ -1472,15 +1512,17 @@ adminRouter.get("/inventory/logs", requireAuth, asyncHandler(async (req, res) =>
             il.remark AS reason, il.operator_id AS operatorId, il.created_at AS createdAt
      FROM inventory_ledger il
      LEFT JOIN product_sku ps ON ps.id = il.sku_id
+     WHERE il.tenant_id = ?
      ORDER BY il.created_at DESC
      LIMIT ? OFFSET ?`,
-    [pageSize, offset]
+    [tenantId, pageSize, offset]
   );
-  const totalRow = await queryOne<any>("SELECT COUNT(*) AS total FROM inventory_ledger");
+  const totalRow = await queryOne<any>("SELECT COUNT(*) AS total FROM inventory_ledger WHERE tenant_id = ?", [tenantId]);
   res.json(ok({ total: totalRow?.total ?? 0, page, pageSize, records }));
 }));
 
-adminRouter.get("/collection-links", requireAuth, asyncHandler(async (req, res) => {
+adminRouter.get("/collection-links", requireAuthWithTenant, asyncHandler(async (req, res) => {
+  const tenantId = req.tenantId!;
   const page = Number(req.query.page || 1);
   const pageSize = Number(req.query.pageSize || 20);
   const offset = (page - 1) * pageSize;
@@ -1490,15 +1532,17 @@ adminRouter.get("/collection-links", requireAuth, asyncHandler(async (req, res) 
             cl.share_channel AS shareChannel, cl.token,
             cl.expire_at AS expireAt, cl.created_at AS createdAt
      FROM collection_link cl
+     WHERE cl.tenant_id = ?
      ORDER BY cl.created_at DESC
      LIMIT ? OFFSET ?`,
-    [pageSize, offset]
+    [tenantId, pageSize, offset]
   );
-  const totalRow = await queryOne<any>("SELECT COUNT(*) AS total FROM collection_link");
+  const totalRow = await queryOne<any>("SELECT COUNT(*) AS total FROM collection_link WHERE tenant_id = ?", [tenantId]);
   res.json(ok({ total: totalRow?.total ?? 0, page, pageSize, records }));
 }));
 
-adminRouter.get("/payment-orders", requireAuth, asyncHandler(async (req, res) => {
+adminRouter.get("/payment-orders", requireAuthWithTenant, asyncHandler(async (req, res) => {
+  const tenantId = req.tenantId!;
   const page = Number(req.query.page || 1);
   const pageSize = Number(req.query.pageSize || 20);
   const offset = (page - 1) * pageSize;
@@ -1507,15 +1551,17 @@ adminRouter.get("/payment-orders", requireAuth, asyncHandler(async (req, res) =>
             amount, status, channel AS paymentMethod,
             paid_at AS paidAt, created_at AS createdAt
      FROM payment_order
+     WHERE tenant_id = ?
      ORDER BY created_at DESC
      LIMIT ? OFFSET ?`,
-    [pageSize, offset]
+    [tenantId, pageSize, offset]
   );
-  const totalRow = await queryOne<any>("SELECT COUNT(*) AS total FROM payment_order");
+  const totalRow = await queryOne<any>("SELECT COUNT(*) AS total FROM payment_order WHERE tenant_id = ?", [tenantId]);
   res.json(ok({ total: totalRow?.total ?? 0, page, pageSize, records }));
 }));
 
-adminRouter.get("/refund-orders", requireAuth, asyncHandler(async (req, res) => {
+adminRouter.get("/refund-orders", requireAuthWithTenant, asyncHandler(async (req, res) => {
+  const tenantId = req.tenantId!;
   const page = Number(req.query.page || 1);
   const pageSize = Number(req.query.pageSize || 20);
   const offset = (page - 1) * pageSize;
@@ -1523,20 +1569,22 @@ adminRouter.get("/refund-orders", requireAuth, asyncHandler(async (req, res) => 
     `SELECT refund_no AS refundNo, pay_no AS payNo, source_type AS sourceType,
             source_no AS sourceNo, amount, reason, status, created_at AS createdAt
      FROM refund_order
+     WHERE tenant_id = ?
      ORDER BY created_at DESC
      LIMIT ? OFFSET ?`,
-    [pageSize, offset]
+    [tenantId, pageSize, offset]
   );
-  const totalRow = await queryOne<any>("SELECT COUNT(*) AS total FROM refund_order");
+  const totalRow = await queryOne<any>("SELECT COUNT(*) AS total FROM refund_order WHERE tenant_id = ?", [tenantId]);
   res.json(ok({ total: totalRow?.total ?? 0, page, pageSize, records }));
 }));
 
-adminRouter.get("/inventory/balances", requireAuth, asyncHandler(async (req, res) => {
+adminRouter.get("/inventory/balances", requireAuthWithTenant, asyncHandler(async (req, res) => {
+  const tenantId = req.tenantId!;
   const page = Number(req.query.page || 1);
   const pageSize = Number(req.query.pageSize || 20);
   const offset = (page - 1) * pageSize;
-  const conditions: string[] = [];
-  const params: unknown[] = [];
+  const conditions: string[] = ["ib.tenant_id = ?"];
+  const params: unknown[] = [tenantId];
 
   if (req.query.keyword) {
     const keyword = `%${String(req.query.keyword)}%`;
@@ -1552,7 +1600,7 @@ adminRouter.get("/inventory/balances", requireAuth, asyncHandler(async (req, res
     params.push(Number(req.query.category));
   }
 
-  const where = conditions.length > 0 ? `WHERE ${conditions.join(" AND ")}` : "";
+  const where = `WHERE ${conditions.join(" AND ")}`;
   const records = await query<any>(
     `SELECT ib.store_id AS storeId, s.name AS storeName, ib.sku_id AS skuId,
             ps.sku_name AS skuName, ps.barcode, ib.stock_type AS stockType,
@@ -1578,15 +1626,16 @@ adminRouter.get("/inventory/balances", requireAuth, asyncHandler(async (req, res
   res.json(ok({ total: totalRow?.total ?? 0, page, pageSize, records }));
 }));
 
-adminRouter.get("/orders/:orderNo", requireAuth, asyncHandler(async (req, res) => {
+adminRouter.get("/orders/:orderNo", requireAuthWithTenant, asyncHandler(async (req, res) => {
+  const tenantId = req.tenantId!;
   const order = await queryOne<any>(
     `SELECT order_no AS orderNo, store_id AS storeId, customer_type AS customerType,
             fulfillment_type AS fulfillmentType, order_status AS orderStatus,
             pay_status AS payStatus, payable_amount AS payableAmount,
             receiver_name AS receiverName, receiver_mobile AS receiverMobile,
             receiver_address AS receiverAddress, created_at AS createdAt
-     FROM miniapp_order WHERE order_no = ?`,
-    [req.params.orderNo]
+     FROM miniapp_order WHERE order_no = ? AND tenant_id = ?`,
+    [req.params.orderNo, tenantId]
   );
   if (!order) { res.status(404).json({ code: "404", message: "订单不存在" }); return; }
   const items = await query<any>(
@@ -1598,41 +1647,50 @@ adminRouter.get("/orders/:orderNo", requireAuth, asyncHandler(async (req, res) =
   res.json(ok({ ...order, items }));
 }));
 
-adminRouter.get("/reports/daily-sales", requireAuth, asyncHandler(async (_req, res) => {
+adminRouter.get("/reports/daily-sales", requireAuthWithTenant, asyncHandler(async (req, res) => {
+  const tenantId = req.tenantId!;
   const records = await query<any>(
     `SELECT DATE(created_at) AS date,
             COUNT(DISTINCT bill_no) AS count,
             COALESCE(SUM(receivable_amount), 0) AS amount
      FROM sale_bill
-     WHERE created_at >= DATE_SUB(CURDATE(), INTERVAL 6 DAY)
+     WHERE created_at >= DATE_SUB(CURDATE(), INTERVAL 6 DAY) AND tenant_id = ?
      GROUP BY DATE(created_at)
-     ORDER BY date`
+     ORDER BY date`,
+    [tenantId]
   );
   res.json(ok(records));
 }));
 
-adminRouter.get("/reports/order-stats", requireAuth, asyncHandler(async (_req, res) => {
+adminRouter.get("/reports/order-stats", requireAuthWithTenant, asyncHandler(async (req, res) => {
+  const tenantId = req.tenantId!;
   const records = await query<any>(
     `SELECT order_status AS status, COUNT(*) AS count
      FROM miniapp_order
-     GROUP BY order_status`
+     WHERE tenant_id = ?
+     GROUP BY order_status`,
+    [tenantId]
   );
   res.json(ok(records));
 }));
 
-adminRouter.get("/reports/store-performance", requireAuth, asyncHandler(async (_req, res) => {
+adminRouter.get("/reports/store-performance", requireAuthWithTenant, asyncHandler(async (req, res) => {
+  const tenantId = req.tenantId!;
   const records = await query<any>(
     `SELECT s.id AS storeId, s.name AS storeName,
             COALESCE(SUM(sb.receivable_amount), 0) AS totalSales,
             COUNT(DISTINCT sb.bill_no) AS billCount
      FROM store s
-     LEFT JOIN sale_bill sb ON sb.store_id = s.id
-     GROUP BY s.id, s.name`
+     LEFT JOIN sale_bill sb ON sb.store_id = s.id AND sb.tenant_id = ?
+     WHERE s.tenant_id = ?
+     GROUP BY s.id, s.name`,
+    [tenantId, tenantId]
   );
   res.json(ok(records));
 }));
 
-adminRouter.get("/inventory/alerts", requireAuth, asyncHandler(async (_req, res) => {
+adminRouter.get("/inventory/alerts", requireAuthWithTenant, asyncHandler(async (req, res) => {
+  const tenantId = req.tenantId!;
   const records = await query<any>(
     `SELECT ib.store_id AS storeId, s.name AS storeName,
             ib.sku_id AS skuId, ps.sku_name AS skuName,
@@ -1640,8 +1698,9 @@ adminRouter.get("/inventory/alerts", requireAuth, asyncHandler(async (_req, res)
      FROM inventory_balance ib
      LEFT JOIN store s ON s.id = ib.store_id
      LEFT JOIN product_sku ps ON ps.id = ib.sku_id
-     WHERE ib.available_qty <= 5
-     ORDER BY ib.available_qty ASC, ib.store_id`
+     WHERE ib.tenant_id = ? AND ib.available_qty <= 5
+     ORDER BY ib.available_qty ASC, ib.store_id`,
+    [tenantId]
   );
   res.json(ok(records));
 }));
@@ -1649,13 +1708,14 @@ adminRouter.get("/inventory/alerts", requireAuth, asyncHandler(async (_req, res)
 // ========== 任务1：供应商管理全套API ==========
 
 // 供应商列表（支持筛选：类型/评级/合作状态/负责采购员）
-adminRouter.get("/suppliers", requireAuth, asyncHandler(async (req, res) => {
+adminRouter.get("/suppliers", requireAuthWithTenant, asyncHandler(async (req, res) => {
+  const tenantId = req.tenantId!;
   const page = Number(req.query.page || 1);
   const pageSize = Number(req.query.pageSize || 20);
   const offset = (page - 1) * pageSize;
   const keyword = `%${String(req.query.keyword || "")}%`;
-  const conditions: string[] = [];
-  const params: unknown[] = [];
+  const conditions: string[] = ["s.tenant_id = ?"];
+  const params: unknown[] = [tenantId];
 
   if (req.query.keyword) {
     conditions.push("(s.name LIKE ? OR s.supplier_code LIKE ? OR s.short_name LIKE ?)");
@@ -1674,7 +1734,7 @@ adminRouter.get("/suppliers", requireAuth, asyncHandler(async (req, res) => {
     params.push(Number(req.query.status));
   }
 
-  const where = conditions.length > 0 ? `WHERE ${conditions.join(" AND ")}` : "";
+  const where = `WHERE ${conditions.join(" AND ")}`;
   const records = await query<any>(
     `SELECT s.id AS supplierId, s.supplier_code AS supplierCode, s.name, s.short_name AS shortName,
             s.category, s.province, s.city, s.district, s.address,
@@ -1696,7 +1756,8 @@ adminRouter.get("/suppliers", requireAuth, asyncHandler(async (req, res) => {
 }));
 
 // 供应商详情（包含联系人和绩效评估数据）
-adminRouter.get("/suppliers/:id", requireAuth, asyncHandler(async (req, res) => {
+adminRouter.get("/suppliers/:id", requireAuthWithTenant, asyncHandler(async (req, res) => {
+  const tenantId = req.tenantId!;
   const supplierId = Number(req.params.id);
   const supplier = await queryOne<any>(
     `SELECT id AS supplierId, supplier_code AS supplierCode, name, short_name AS shortName,
@@ -1705,8 +1766,8 @@ adminRouter.get("/suppliers/:id", requireAuth, asyncHandler(async (req, res) => 
             settlement_day AS settlementDay, tax_rate AS taxRate,
             bank_name AS bankName, bank_account AS bankAccount, bank_account_name AS bankAccountName,
             status, remark, created_at AS createdAt, updated_at AS updatedAt
-     FROM supplier WHERE id = ?`,
-    [supplierId]
+     FROM supplier WHERE id = ? AND tenant_id = ?`,
+    [supplierId, tenantId]
   );
   if (!supplier) {
     res.status(404).json({ code: "404", message: "供应商不存在" });
@@ -1722,7 +1783,8 @@ adminRouter.get("/suppliers/:id", requireAuth, asyncHandler(async (req, res) => 
 }));
 
 // 新增供应商
-adminRouter.post("/suppliers", requireAuth, asyncHandler(async (req, res) => {
+adminRouter.post("/suppliers", requireAuthWithTenant, asyncHandler(async (req, res) => {
+  const tenantId = req.tenantId!;
   const body = z.object({
     name: z.string(),
     shortName: z.string().optional(),
@@ -1755,12 +1817,12 @@ adminRouter.post("/suppliers", requireAuth, asyncHandler(async (req, res) => {
     const supplierCode = makeBizNo("GYS");
     const [supplierResult] = await conn.execute<any>(
       `INSERT INTO supplier (supplier_code, name, short_name, category, province, city, district, address,
-        credit_level, settlement_type, settlement_day, tax_rate, bank_name, bank_account, bank_account_name, remark)
-       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+        credit_level, settlement_type, settlement_day, tax_rate, bank_name, bank_account, bank_account_name, remark, tenant_id)
+       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
       [supplierCode, body.name, body.shortName ?? null, body.category ?? null,
        body.province ?? null, body.city ?? null, body.district ?? null, body.address ?? null,
        body.creditLevel, body.settlementType, body.settlementDay ?? null, body.taxRate,
-       body.bankName ?? null, body.bankAccount ?? null, body.bankAccountName ?? null, body.remark ?? null]
+       body.bankName ?? null, body.bankAccount ?? null, body.bankAccountName ?? null, body.remark ?? null, tenantId]
     );
     const supplierId = supplierResult.insertId as number;
 
@@ -1781,9 +1843,10 @@ adminRouter.post("/suppliers", requireAuth, asyncHandler(async (req, res) => {
 }));
 
 // 修改供应商
-adminRouter.put("/suppliers/:id", requireAuth, asyncHandler(async (req, res) => {
+adminRouter.put("/suppliers/:id", requireAuthWithTenant, asyncHandler(async (req, res) => {
+  const tenantId = req.tenantId!;
   const supplierId = Number(req.params.id);
-  const existing = await queryOne<any>("SELECT id FROM supplier WHERE id = ?", [supplierId]);
+  const existing = await queryOne<any>("SELECT id FROM supplier WHERE id = ? AND tenant_id = ?", [supplierId, tenantId]);
   if (!existing) {
     res.status(404).json({ code: "404", message: "供应商不存在" });
     return;
@@ -1827,7 +1890,8 @@ adminRouter.put("/suppliers/:id", requireAuth, asyncHandler(async (req, res) => 
   }
   if (updates.length > 0) {
     updates.push("updated_at = NOW()");
-    await query(`UPDATE supplier SET ${updates.join(", ")} WHERE id = ?`, [...params, supplierId]);
+    params.push(supplierId, tenantId);
+    await query(`UPDATE supplier SET ${updates.join(", ")} WHERE id = ? AND tenant_id = ?`, params);
   }
 
   const supplier = await queryOne<any>(
@@ -1837,35 +1901,37 @@ adminRouter.put("/suppliers/:id", requireAuth, asyncHandler(async (req, res) => 
             settlement_day AS settlementDay, tax_rate AS taxRate,
             bank_name AS bankName, bank_account AS bankAccount, bank_account_name AS bankAccountName,
             status, remark, created_at AS createdAt, updated_at AS updatedAt
-     FROM supplier WHERE id = ?`,
-    [supplierId]
+     FROM supplier WHERE id = ? AND tenant_id = ?`,
+    [supplierId, tenantId]
   );
   res.json(ok(supplier));
 }));
 
 // 删除供应商
-adminRouter.delete("/suppliers/:id", requireAuth, asyncHandler(async (req, res) => {
+adminRouter.delete("/suppliers/:id", requireAuthWithTenant, asyncHandler(async (req, res) => {
+  const tenantId = req.tenantId!;
   const supplierId = Number(req.params.id);
-  const existing = await queryOne<any>("SELECT id, name FROM supplier WHERE id = ?", [supplierId]);
+  const existing = await queryOne<any>("SELECT id, name FROM supplier WHERE id = ? AND tenant_id = ?", [supplierId, tenantId]);
   if (!existing) {
     res.status(404).json({ code: "404", message: "供应商不存在" });
     return;
   }
   // 检查是否有关联采购订单
-  const orderCount = await queryOne<any>("SELECT COUNT(*) AS cnt FROM purchase_order WHERE supplier_id = ?", [supplierId]);
+  const orderCount = await queryOne<any>("SELECT COUNT(*) AS cnt FROM purchase_order WHERE supplier_id = ? AND tenant_id = ?", [supplierId, tenantId]);
   if (Number(orderCount?.cnt ?? 0) > 0) {
     res.status(400).json({ code: "400", message: "该供应商存在关联采购订单，无法删除" });
     return;
   }
   await transaction(async (conn) => {
     await conn.execute("DELETE FROM supplier_contact WHERE supplier_id = ?", [supplierId]);
-    await conn.execute("DELETE FROM supplier WHERE id = ?", [supplierId]);
+    await conn.execute("DELETE FROM supplier WHERE id = ? AND tenant_id = ?", [supplierId, tenantId]);
   });
   res.json(ok({ supplierId, name: existing.name }));
 }));
 
 // 该供应商的采购订单
-adminRouter.get("/suppliers/:id/purchase-orders", requireAuth, asyncHandler(async (req, res) => {
+adminRouter.get("/suppliers/:id/purchase-orders", requireAuthWithTenant, asyncHandler(async (req, res) => {
+  const tenantId = req.tenantId!;
   const supplierId = Number(req.params.id);
   const page = Number(req.query.page || 1);
   const pageSize = Number(req.query.pageSize || 20);
@@ -1879,17 +1945,18 @@ adminRouter.get("/suppliers/:id/purchase-orders", requireAuth, asyncHandler(asyn
             expected_date AS expectedDate, actual_date AS actualDate,
             created_at AS createdAt
      FROM purchase_order
-     WHERE supplier_id = ?
+     WHERE supplier_id = ? AND tenant_id = ?
      ORDER BY created_at DESC
      LIMIT ? OFFSET ?`,
-    [supplierId, pageSize, offset]
+    [supplierId, tenantId, pageSize, offset]
   );
-  const totalRow = await queryOne<any>("SELECT COUNT(*) AS total FROM purchase_order WHERE supplier_id = ?", [supplierId]);
+  const totalRow = await queryOne<any>("SELECT COUNT(*) AS total FROM purchase_order WHERE supplier_id = ? AND tenant_id = ?", [supplierId, tenantId]);
   res.json(ok({ total: totalRow?.total ?? 0, page, pageSize, records }));
 }));
 
 // 该供应商的付款记录
-adminRouter.get("/suppliers/:id/payments", requireAuth, asyncHandler(async (req, res) => {
+adminRouter.get("/suppliers/:id/payments", requireAuthWithTenant, asyncHandler(async (req, res) => {
+  const tenantId = req.tenantId!;
   const supplierId = Number(req.params.id);
   const page = Number(req.query.page || 1);
   const pageSize = Number(req.query.pageSize || 20);
@@ -1902,32 +1969,34 @@ adminRouter.get("/suppliers/:id/payments", requireAuth, asyncHandler(async (req,
             voucher_no AS voucherNo, payment_date AS paymentDate,
             status, remark, created_at AS createdAt
      FROM purchase_payment
-     WHERE supplier_id = ?
+     WHERE supplier_id = ? AND tenant_id = ?
      ORDER BY created_at DESC
      LIMIT ? OFFSET ?`,
-    [supplierId, pageSize, offset]
+    [supplierId, tenantId, pageSize, offset]
   );
-  const totalRow = await queryOne<any>("SELECT COUNT(*) AS total FROM purchase_payment WHERE supplier_id = ?", [supplierId]);
+  const totalRow = await queryOne<any>("SELECT COUNT(*) AS total FROM purchase_payment WHERE supplier_id = ? AND tenant_id = ?", [supplierId, tenantId]);
   res.json(ok({ total: totalRow?.total ?? 0, page, pageSize, records }));
 }));
 
 // 该供应商供货的商品列表
-adminRouter.get("/suppliers/:id/products", requireAuth, asyncHandler(async (req, res) => {
+adminRouter.get("/suppliers/:id/products", requireAuthWithTenant, asyncHandler(async (req, res) => {
+  const tenantId = req.tenantId!;
   const supplierId = Number(req.params.id);
   const records = await query<any>(
     `SELECT DISTINCT poi.sku_id AS skuId, poi.sku_name AS skuName, poi.barcode,
             poi.unit_price AS lastPrice, poi.tax_rate AS taxRate
      FROM purchase_order_item poi
      JOIN purchase_order po ON po.order_no = poi.order_no
-     WHERE po.supplier_id = ?
+     WHERE po.supplier_id = ? AND po.tenant_id = ?
      ORDER BY poi.sku_name`,
-    [supplierId]
+    [supplierId, tenantId]
   );
   res.json(ok({ records }));
 }));
 
 // 供应商绩效统计
-adminRouter.get("/suppliers/:id/stats", requireAuth, asyncHandler(async (req, res) => {
+adminRouter.get("/suppliers/:id/stats", requireAuthWithTenant, asyncHandler(async (req, res) => {
+  const tenantId = req.tenantId!;
   const supplierId = Number(req.params.id);
   // 准时交付率：在预计到货日期前完成入库的订单比例
   const deliveryStats = await queryOne<any>(
@@ -1936,8 +2005,8 @@ adminRouter.get("/suppliers/:id/stats", requireAuth, asyncHandler(async (req, re
         SUM(CASE WHEN actual_date IS NOT NULL AND actual_date <= expected_date THEN 1 ELSE 0 END) AS onTimeOrders,
         SUM(CASE WHEN actual_date IS NOT NULL AND actual_date > expected_date THEN 1 ELSE 0 END) AS lateOrders
      FROM purchase_order
-     WHERE supplier_id = ? AND order_status IN ('COMPLETED', 'PARTIAL')`,
-    [supplierId]
+     WHERE supplier_id = ? AND tenant_id = ? AND order_status IN ('COMPLETED', 'PARTIAL')`,
+    [supplierId, tenantId]
   );
   const totalOrders = Number(deliveryStats?.totalOrders ?? 0);
   const onTimeOrders = Number(deliveryStats?.onTimeOrders ?? 0);
@@ -1950,22 +2019,22 @@ adminRouter.get("/suppliers/:id/stats", requireAuth, asyncHandler(async (req, re
         COALESCE(SUM(paid_amount), 0) AS paidAmount,
         COALESCE(SUM(unpaid_amount), 0) AS unpaidAmount
      FROM purchase_order
-     WHERE supplier_id = ? AND order_status NOT IN ('DRAFT', 'CANCELLED')`,
-    [supplierId]
+     WHERE supplier_id = ? AND tenant_id = ? AND order_status NOT IN ('DRAFT', 'CANCELLED')`,
+    [supplierId, tenantId]
   );
 
   // 退货金额统计
   const returnStats = await queryOne<any>(
     `SELECT COUNT(*) AS returnCount, COALESCE(SUM(total_amount), 0) AS returnAmount
      FROM purchase_return
-     WHERE supplier_id = ? AND return_status NOT IN ('VOIDED')`,
-    [supplierId]
+     WHERE supplier_id = ? AND tenant_id = ? AND return_status NOT IN ('VOIDED')`,
+    [supplierId, tenantId]
   );
 
   // 采购次数
   const orderCount = await queryOne<any>(
-    `SELECT COUNT(*) AS cnt FROM purchase_order WHERE supplier_id = ? AND order_status NOT IN ('DRAFT', 'CANCELLED')`,
-    [supplierId]
+    `SELECT COUNT(*) AS cnt FROM purchase_order WHERE supplier_id = ? AND tenant_id = ? AND order_status NOT IN ('DRAFT', 'CANCELLED')`,
+    [supplierId, tenantId]
   );
 
   res.json(ok({
@@ -1986,7 +2055,8 @@ adminRouter.get("/suppliers/:id/stats", requireAuth, asyncHandler(async (req, re
 // ========== 任务3：客户管理API深度扩展 ==========
 
 // 该客户的销售单列表
-adminRouter.get("/members/:memberId/sale-bills", requireAuth, asyncHandler(async (req, res) => {
+adminRouter.get("/members/:memberId/sale-bills", requireAuthWithTenant, asyncHandler(async (req, res) => {
+  const tenantId = req.tenantId!;
   const memberId = Number(req.params.memberId);
   const page = Number(req.query.page || 1);
   const pageSize = Number(req.query.pageSize || 20);
@@ -1999,17 +2069,18 @@ adminRouter.get("/members/:memberId/sale-bills", requireAuth, asyncHandler(async
             collection_status AS collectionStatus, business_status AS businessStatus,
             created_at AS createdAt
      FROM sale_bill
-     WHERE customer_id = ?
+     WHERE customer_id = ? AND tenant_id = ?
      ORDER BY created_at DESC
      LIMIT ? OFFSET ?`,
-    [memberId, pageSize, offset]
+    [memberId, tenantId, pageSize, offset]
   );
-  const totalRow = await queryOne<any>("SELECT COUNT(*) AS total FROM sale_bill WHERE customer_id = ?", [memberId]);
+  const totalRow = await queryOne<any>("SELECT COUNT(*) AS total FROM sale_bill WHERE customer_id = ? AND tenant_id = ?", [memberId, tenantId]);
   res.json(ok({ total: totalRow?.total ?? 0, page, pageSize, records }));
 }));
 
 // 该客户的回款记录
-adminRouter.get("/members/:memberId/payments", requireAuth, asyncHandler(async (req, res) => {
+adminRouter.get("/members/:memberId/payments", requireAuthWithTenant, asyncHandler(async (req, res) => {
+  const tenantId = req.tenantId!;
   const memberId = Number(req.params.memberId);
   const page = Number(req.query.page || 1);
   const pageSize = Number(req.query.pageSize || 20);
@@ -2023,7 +2094,7 @@ adminRouter.get("/members/:memberId/payments", requireAuth, asyncHandler(async (
             voucher_no AS voucherNo, payment_date AS paymentDate,
             status, remark, created_at AS createdAt, 'SALE_PAYMENT' AS paymentTable
      FROM sale_payment
-     WHERE customer_id = ?
+     WHERE customer_id = ? AND tenant_id = ?
      UNION ALL
      SELECT id, receipt_no AS receiptNo, source_type AS sourceType, source_no AS sourceNo,
             customer_id AS customerId, customer_name AS customerName,
@@ -2031,22 +2102,23 @@ adminRouter.get("/members/:memberId/payments", requireAuth, asyncHandler(async (
             voucher_no AS voucherNo, payment_date AS paymentDate,
             status, remark, created_at AS createdAt, 'CUSTOMER_PAYMENT' AS paymentTable
      FROM customer_payment
-     WHERE customer_id = ?
+     WHERE customer_id = ? AND tenant_id = ?
      ORDER BY created_at DESC
      LIMIT ? OFFSET ?`,
-    [memberId, memberId, pageSize, offset]
+    [memberId, tenantId, memberId, tenantId, pageSize, offset]
   );
   const totalRow = await queryOne<any>(
     `SELECT
-        (SELECT COUNT(*) FROM sale_payment WHERE customer_id = ?) +
-        (SELECT COUNT(*) FROM customer_payment WHERE customer_id = ?) AS total`,
-    [memberId, memberId]
+        (SELECT COUNT(*) FROM sale_payment WHERE customer_id = ? AND tenant_id = ?) +
+        (SELECT COUNT(*) FROM customer_payment WHERE customer_id = ? AND tenant_id = ?) AS total`,
+    [memberId, tenantId, memberId, tenantId]
   );
   res.json(ok({ total: totalRow?.total ?? 0, page, pageSize, records: salePayments }));
 }));
 
 // 该客户的往来账务流水
-adminRouter.get("/members/:memberId/statements", requireAuth, asyncHandler(async (req, res) => {
+adminRouter.get("/members/:memberId/statements", requireAuthWithTenant, asyncHandler(async (req, res) => {
+  const tenantId = req.tenantId!;
   const memberId = Number(req.params.memberId);
   const page = Number(req.query.page || 1);
   const pageSize = Number(req.query.pageSize || 20);
@@ -2060,20 +2132,21 @@ adminRouter.get("/members/:memberId/statements", requireAuth, asyncHandler(async
             closing_balance AS closingBalance,
             status, confirmed_at AS confirmedAt, created_at AS createdAt
      FROM customer_statement
-     WHERE customer_id = ?
+     WHERE customer_id = ? AND tenant_id = ?
      ORDER BY created_at DESC
      LIMIT ? OFFSET ?`,
-    [memberId, pageSize, offset]
+    [memberId, tenantId, pageSize, offset]
   );
   const totalRow = await queryOne<any>(
-    "SELECT COUNT(*) AS total FROM customer_statement WHERE customer_id = ?",
-    [memberId]
+    "SELECT COUNT(*) AS total FROM customer_statement WHERE customer_id = ? AND tenant_id = ?",
+    [memberId, tenantId]
   );
   res.json(ok({ total: totalRow?.total ?? 0, page, pageSize, records }));
 }));
 
 // 该客户的购买统计
-adminRouter.get("/members/:memberId/stats", requireAuth, asyncHandler(async (req, res) => {
+adminRouter.get("/members/:memberId/stats", requireAuthWithTenant, asyncHandler(async (req, res) => {
+  const tenantId = req.tenantId!;
   const memberId = Number(req.params.memberId);
 
   // 订单数和金额
@@ -2083,8 +2156,8 @@ adminRouter.get("/members/:memberId/stats", requireAuth, asyncHandler(async (req
             COALESCE(SUM(received_amount), 0) AS receivedAmount,
             COALESCE(SUM(unreceived_amount), 0) AS unpaidAmount
      FROM sale_bill
-     WHERE customer_id = ? AND business_status NOT IN ('DRAFT', 'VOIDED')`,
-    [memberId]
+     WHERE customer_id = ? AND tenant_id = ? AND business_status NOT IN ('DRAFT', 'VOIDED')`,
+    [memberId, tenantId]
   );
 
   // TOP商品（按购买瓶数排序）
@@ -2094,17 +2167,17 @@ adminRouter.get("/members/:memberId/stats", requireAuth, asyncHandler(async (req
             SUM(sbi.subtotal_amount) AS totalAmount
      FROM sale_bill_item sbi
      JOIN sale_bill sb ON sb.bill_no = sbi.bill_no
-     WHERE sb.customer_id = ? AND sb.business_status NOT IN ('DRAFT', 'VOIDED')
+     WHERE sb.customer_id = ? AND sb.tenant_id = ? AND sb.business_status NOT IN ('DRAFT', 'VOIDED')
      GROUP BY sbi.sku_id, sbi.sku_name
      ORDER BY totalQty DESC
      LIMIT 10`,
-    [memberId]
+    [memberId, tenantId]
   );
 
   // 最近下单时间
   const lastOrder = await queryOne<any>(
-    `SELECT MAX(created_at) AS lastOrderAt FROM sale_bill WHERE customer_id = ? AND business_status NOT IN ('DRAFT', 'VOIDED')`,
-    [memberId]
+    `SELECT MAX(created_at) AS lastOrderAt FROM sale_bill WHERE customer_id = ? AND tenant_id = ? AND business_status NOT IN ('DRAFT', 'VOIDED')`,
+    [memberId, tenantId]
   );
 
   res.json(ok({
@@ -2119,36 +2192,44 @@ adminRouter.get("/members/:memberId/stats", requireAuth, asyncHandler(async (req
 }));
 
 // 客户列表统计
-adminRouter.get("/members/stats", requireAuth, asyncHandler(async (_req, res) => {
+adminRouter.get("/members/stats", requireAuthWithTenant, asyncHandler(async (req, res) => {
+  const tenantId = req.tenantId!;
   // 总数
-  const totalRow = await queryOne<any>("SELECT COUNT(*) AS total FROM member WHERE status = 1");
+  const totalRow = await queryOne<any>("SELECT COUNT(*) AS total FROM member WHERE status = 1 AND tenant_id = ?", [tenantId]);
   // 本月新增
   const newMonthRow = await queryOne<any>(
-    "SELECT COUNT(*) AS cnt FROM member WHERE status = 1 AND DATE_FORMAT(created_at, '%Y-%m') = DATE_FORMAT(NOW(), '%Y-%m')"
+    "SELECT COUNT(*) AS cnt FROM member WHERE status = 1 AND tenant_id = ? AND DATE_FORMAT(created_at, '%Y-%m') = DATE_FORMAT(NOW(), '%Y-%m')",
+    [tenantId]
   );
   // 活跃数（最近30天有销售单）
   const activeRow = await queryOne<any>(
     `SELECT COUNT(DISTINCT customer_id) AS cnt
      FROM sale_bill
      WHERE customer_id IS NOT NULL
+       AND tenant_id = ?
        AND business_status NOT IN ('DRAFT', 'VOIDED')
-       AND created_at >= DATE_SUB(NOW(), INTERVAL 30 DAY)`
+       AND created_at >= DATE_SUB(NOW(), INTERVAL 30 DAY)`,
+    [tenantId]
   );
   // 欠款数（有未收金额的客户数）
   const debtRow = await queryOne<any>(
     `SELECT COUNT(DISTINCT customer_id) AS cnt
      FROM sale_bill
      WHERE customer_id IS NOT NULL
+       AND tenant_id = ?
        AND unreceived_amount > 0
-       AND business_status NOT IN ('DRAFT', 'VOIDED')`
+       AND business_status NOT IN ('DRAFT', 'VOIDED')`,
+    [tenantId]
   );
   // 总应收
   const receivableRow = await queryOne<any>(
     `SELECT COALESCE(SUM(unreceived_amount), 0) AS total
      FROM sale_bill
      WHERE customer_id IS NOT NULL
+       AND tenant_id = ?
        AND unreceived_amount > 0
-       AND business_status NOT IN ('DRAFT', 'VOIDED')`
+       AND business_status NOT IN ('DRAFT', 'VOIDED')`,
+    [tenantId]
   );
 
   res.json(ok({
@@ -2163,12 +2244,13 @@ adminRouter.get("/members/stats", requireAuth, asyncHandler(async (_req, res) =>
 // ========== 任务2：采购管理全套API ==========
 
 // 采购订单列表（支持筛选：日期/供应商/采购员/状态）
-adminRouter.get("/purchase-orders", requireAuth, asyncHandler(async (req, res) => {
+adminRouter.get("/purchase-orders", requireAuthWithTenant, asyncHandler(async (req, res) => {
+  const tenantId = req.tenantId!;
   const page = Number(req.query.page || 1);
   const pageSize = Number(req.query.pageSize || 20);
   const offset = (page - 1) * pageSize;
-  const conditions: string[] = [];
-  const params: unknown[] = [];
+  const conditions: string[] = ["tenant_id = ?"];
+  const params: unknown[] = [tenantId];
 
   if (req.query.supplierId) {
     conditions.push("supplier_id = ?");
@@ -2191,7 +2273,7 @@ adminRouter.get("/purchase-orders", requireAuth, asyncHandler(async (req, res) =
     params.push(req.query.dateEnd);
   }
 
-  const where = conditions.length > 0 ? `WHERE ${conditions.join(" AND ")}` : "";
+  const where = `WHERE ${conditions.join(" AND ")}`;
   const records = await query<any>(
     `SELECT id, order_no AS orderNo, supplier_id AS supplierId, supplier_name AS supplierName,
             store_id AS storeId, order_status AS orderStatus,
@@ -2215,7 +2297,8 @@ adminRouter.get("/purchase-orders", requireAuth, asyncHandler(async (req, res) =
 }));
 
 // 采购订单详情（含明细）
-adminRouter.get("/purchase-orders/:id", requireAuth, asyncHandler(async (req, res) => {
+adminRouter.get("/purchase-orders/:id", requireAuthWithTenant, asyncHandler(async (req, res) => {
+  const tenantId = req.tenantId!;
   const orderId = Number(req.params.id);
   const order = await queryOne<any>(
     `SELECT id, order_no AS orderNo, supplier_id AS supplierId, supplier_name AS supplierName,
@@ -2226,8 +2309,8 @@ adminRouter.get("/purchase-orders/:id", requireAuth, asyncHandler(async (req, re
             expected_date AS expectedDate, actual_date AS actualDate,
             operator_id AS operatorId, auditor_id AS auditorId, audited_at AS auditedAt,
             remark, created_at AS createdAt, updated_at AS updatedAt
-     FROM purchase_order WHERE id = ?`,
-    [orderId]
+     FROM purchase_order WHERE id = ? AND tenant_id = ?`,
+    [orderId, tenantId]
   );
   if (!order) {
     res.status(404).json({ code: "404", message: "采购订单不存在" });
@@ -2246,7 +2329,8 @@ adminRouter.get("/purchase-orders/:id", requireAuth, asyncHandler(async (req, re
 }));
 
 // 新建采购订单
-adminRouter.post("/purchase-orders", requireAuth, asyncHandler(async (req, res) => {
+adminRouter.post("/purchase-orders", requireAuthWithTenant, asyncHandler(async (req, res) => {
+  const tenantId = req.tenantId!;
   const body = z.object({
     supplierId: z.number(),
     storeId: z.number(),
@@ -2266,7 +2350,7 @@ adminRouter.post("/purchase-orders", requireAuth, asyncHandler(async (req, res) 
   }).parse(req.body);
 
   // 获取供应商信息
-  const supplier = await queryOne<any>("SELECT id, name, tax_rate FROM supplier WHERE id = ?", [body.supplierId]);
+  const supplier = await queryOne<any>("SELECT id, name, tax_rate FROM supplier WHERE id = ? AND tenant_id = ?", [body.supplierId, tenantId]);
   if (!supplier) {
     res.status(400).json({ code: "400", message: "供应商不存在" });
     return;
@@ -2289,11 +2373,11 @@ adminRouter.post("/purchase-orders", requireAuth, asyncHandler(async (req, res) 
     const [orderResult] = await conn.execute<any>(
       `INSERT INTO purchase_order (order_no, supplier_id, supplier_name, store_id, order_status,
         goods_amount, tax_amount, discount_amount, payable_amount, paid_amount, unpaid_amount,
-        expected_date, operator_id, remark)
-       VALUES (?, ?, ?, ?, 'DRAFT', ?, ?, 0, ?, 0, ?, ?, ?, ?)`,
+        expected_date, operator_id, remark, tenant_id)
+       VALUES (?, ?, ?, ?, 'DRAFT', ?, ?, 0, ?, 0, ?, ?, ?, ?, ?)`,
       [orderNo, body.supplierId, supplier.name, body.storeId,
        goodsAmount, taxAmount, payableAmount, payableAmount,
-       body.expectedDate ?? null, req.user?.id ?? 0, body.remark ?? null]
+       body.expectedDate ?? null, req.user!.id ?? 0, body.remark ?? null, tenantId]
     );
 
     for (const item of body.items) {
@@ -2316,11 +2400,12 @@ adminRouter.post("/purchase-orders", requireAuth, asyncHandler(async (req, res) 
 }));
 
 // 修改采购订单
-adminRouter.put("/purchase-orders/:id", requireAuth, asyncHandler(async (req, res) => {
+adminRouter.put("/purchase-orders/:id", requireAuthWithTenant, asyncHandler(async (req, res) => {
+  const tenantId = req.tenantId!;
   const orderId = Number(req.params.id);
   const existing = await queryOne<any>(
-    `SELECT id, order_no AS orderNo, order_status AS orderStatus FROM purchase_order WHERE id = ?`,
-    [orderId]
+    `SELECT id, order_no AS orderNo, order_status AS orderStatus FROM purchase_order WHERE id = ? AND tenant_id = ?`,
+    [orderId, tenantId]
   );
   if (!existing) {
     res.status(404).json({ code: "404", message: "采购订单不存在" });
@@ -2393,7 +2478,8 @@ adminRouter.put("/purchase-orders/:id", requireAuth, asyncHandler(async (req, re
 
     if (updates.length > 0) {
       updates.push("updated_at = NOW()");
-      await conn.execute({ sql: `UPDATE purchase_order SET ${updates.join(", ")} WHERE id = ?`, values: [...params, orderId] } as any);
+      params.push(orderId, tenantId);
+      await conn.execute({ sql: `UPDATE purchase_order SET ${updates.join(", ")} WHERE id = ? AND tenant_id = ?`, values: params } as any);
     }
   });
 
@@ -2405,18 +2491,19 @@ adminRouter.put("/purchase-orders/:id", requireAuth, asyncHandler(async (req, re
             paid_amount AS paidAmount, unpaid_amount AS unpaidAmount,
             expected_date AS expectedDate, actual_date AS actualDate,
             remark, created_at AS createdAt, updated_at AS updatedAt
-     FROM purchase_order WHERE id = ?`,
-    [orderId]
+     FROM purchase_order WHERE id = ? AND tenant_id = ?`,
+    [orderId, tenantId]
   );
   res.json(ok(order));
 }));
 
 // 取消采购订单
-adminRouter.delete("/purchase-orders/:id", requireAuth, asyncHandler(async (req, res) => {
+adminRouter.delete("/purchase-orders/:id", requireAuthWithTenant, asyncHandler(async (req, res) => {
+  const tenantId = req.tenantId!;
   const orderId = Number(req.params.id);
   const existing = await queryOne<any>(
-    `SELECT id, order_no AS orderNo, order_status AS orderStatus FROM purchase_order WHERE id = ?`,
-    [orderId]
+    `SELECT id, order_no AS orderNo, order_status AS orderStatus FROM purchase_order WHERE id = ? AND tenant_id = ?`,
+    [orderId, tenantId]
   );
   if (!existing) {
     res.status(404).json({ code: "404", message: "采购订单不存在" });
@@ -2426,16 +2513,17 @@ adminRouter.delete("/purchase-orders/:id", requireAuth, asyncHandler(async (req,
     res.status(400).json({ code: "400", message: "当前状态不允许取消" });
     return;
   }
-  await query("UPDATE purchase_order SET order_status = 'CANCELLED', updated_at = NOW() WHERE id = ?", [orderId]);
+  await query("UPDATE purchase_order SET order_status = 'CANCELLED', updated_at = NOW() WHERE id = ? AND tenant_id = ?", [orderId, tenantId]);
   res.json(ok({ orderId, orderNo: existing.orderNo }));
 }));
 
 // 确认采购订单
-adminRouter.post("/purchase-orders/:id/confirm", requireAuth, asyncHandler(async (req, res) => {
+adminRouter.post("/purchase-orders/:id/confirm", requireAuthWithTenant, asyncHandler(async (req, res) => {
+  const tenantId = req.tenantId!;
   const orderId = Number(req.params.id);
   const existing = await queryOne<any>(
-    `SELECT id, order_no AS orderNo, order_status AS orderStatus FROM purchase_order WHERE id = ?`,
-    [orderId]
+    `SELECT id, order_no AS orderNo, order_status AS orderStatus FROM purchase_order WHERE id = ? AND tenant_id = ?`,
+    [orderId, tenantId]
   );
   if (!existing) {
     res.status(404).json({ code: "404", message: "采购订单不存在" });
@@ -2446,20 +2534,21 @@ adminRouter.post("/purchase-orders/:id/confirm", requireAuth, asyncHandler(async
     return;
   }
   await query(
-    `UPDATE purchase_order SET order_status = 'APPROVED', auditor_id = ?, audited_at = NOW(), updated_at = NOW() WHERE id = ?`,
-    [req.user?.id ?? 0, orderId]
+    `UPDATE purchase_order SET order_status = 'APPROVED', auditor_id = ?, audited_at = NOW(), updated_at = NOW() WHERE id = ? AND tenant_id = ?`,
+    [req.user!.id ?? 0, orderId, tenantId]
   );
   res.json(ok({ orderId, orderNo: existing.orderNo, orderStatus: "APPROVED" }));
 }));
 
 // 采购入库（含批次信息录入）
-adminRouter.post("/purchase-orders/:id/in-stock", requireAuth, asyncHandler(async (req, res) => {
+adminRouter.post("/purchase-orders/:id/in-stock", requireAuthWithTenant, asyncHandler(async (req, res) => {
+  const tenantId = req.tenantId!;
   const orderId = Number(req.params.id);
   const order = await queryOne<any>(
     `SELECT id, order_no AS orderNo, supplier_id AS supplierId, supplier_name AS supplierName,
             store_id AS storeId, order_status AS orderStatus
-     FROM purchase_order WHERE id = ?`,
-    [orderId]
+     FROM purchase_order WHERE id = ? AND tenant_id = ?`,
+    [orderId, tenantId]
   );
   if (!order) {
     res.status(404).json({ code: "404", message: "采购订单不存在" });
@@ -2502,10 +2591,10 @@ adminRouter.post("/purchase-orders/:id/in-stock", requireAuth, asyncHandler(asyn
 
     const [stockResult] = await conn.execute<any>(
       `INSERT INTO purchase_in_stock (stock_no, order_no, supplier_id, supplier_name, store_id,
-        stock_status, goods_amount, tax_amount, total_amount, operator_id, remark)
-       VALUES (?, ?, ?, ?, ?, 'PENDING', ?, ?, ?, ?, ?)`,
+        stock_status, goods_amount, tax_amount, total_amount, operator_id, remark, tenant_id)
+       VALUES (?, ?, ?, ?, ?, 'PENDING', ?, ?, ?, ?, ?, ?)`,
       [stockNo, order.orderNo, order.supplierId, order.supplierName, order.storeId,
-       goodsAmount, taxAmount, totalAmount, req.user?.id ?? 0, body.remark ?? null]
+       goodsAmount, taxAmount, totalAmount, req.user!.id ?? 0, body.remark ?? null, tenantId]
     );
 
     for (const item of body.items) {
@@ -2530,13 +2619,13 @@ adminRouter.post("/purchase-orders/:id/in-stock", requireAuth, asyncHandler(asyn
 
       // 更新库存余额
       await conn.execute(
-        `INSERT INTO inventory_balance (store_id, sku_id, stock_type, physical_qty, available_qty)
-         VALUES (?, ?, 'OFFLINE', ?, ?)
+        `INSERT INTO inventory_balance (store_id, sku_id, stock_type, physical_qty, available_qty, tenant_id)
+         VALUES (?, ?, 'OFFLINE', ?, ?, ?)
          ON DUPLICATE KEY UPDATE
            physical_qty = physical_qty + VALUES(physical_qty),
            available_qty = available_qty + VALUES(available_qty),
            updated_at = NOW()`,
-        [order.storeId, item.skuId, item.totalBottleQty, item.totalBottleQty]
+        [order.storeId, item.skuId, item.totalBottleQty, item.totalBottleQty, tenantId]
       );
     }
 
@@ -2549,8 +2638,8 @@ adminRouter.post("/purchase-orders/:id/in-stock", requireAuth, asyncHandler(asyn
     const remainingQty = Number((remaining as any)[0]?.[0]?.remainingQty ?? 0);
     const newStatus = remainingQty <= 0 ? "COMPLETED" : "PARTIAL";
     await conn.execute(
-      `UPDATE purchase_order SET order_status = ?, actual_date = CURDATE(), updated_at = NOW() WHERE id = ?`,
-      [newStatus, orderId]
+      `UPDATE purchase_order SET order_status = ?, actual_date = CURDATE(), updated_at = NOW() WHERE id = ? AND tenant_id = ?`,
+      [newStatus, orderId, tenantId]
     );
 
     return { stockId: stockResult.insertId as number, stockNo, orderStatus: newStatus };
@@ -2559,12 +2648,13 @@ adminRouter.post("/purchase-orders/:id/in-stock", requireAuth, asyncHandler(asyn
 }));
 
 // 入库单列表
-adminRouter.get("/purchase-in-stocks", requireAuth, asyncHandler(async (req, res) => {
+adminRouter.get("/purchase-in-stocks", requireAuthWithTenant, asyncHandler(async (req, res) => {
+  const tenantId = req.tenantId!;
   const page = Number(req.query.page || 1);
   const pageSize = Number(req.query.pageSize || 20);
   const offset = (page - 1) * pageSize;
-  const conditions: string[] = [];
-  const params: unknown[] = [];
+  const conditions: string[] = ["tenant_id = ?"];
+  const params: unknown[] = [tenantId];
 
   if (req.query.supplierId) {
     conditions.push("supplier_id = ?");
@@ -2583,7 +2673,7 @@ adminRouter.get("/purchase-in-stocks", requireAuth, asyncHandler(async (req, res
     params.push(req.query.dateEnd);
   }
 
-  const where = conditions.length > 0 ? `WHERE ${conditions.join(" AND ")}` : "";
+  const where = `WHERE ${conditions.join(" AND ")}`;
   const records = await query<any>(
     `SELECT id, stock_no AS stockNo, order_no AS orderNo, supplier_id AS supplierId,
             supplier_name AS supplierName, store_id AS storeId, stock_status AS stockStatus,
@@ -2604,7 +2694,8 @@ adminRouter.get("/purchase-in-stocks", requireAuth, asyncHandler(async (req, res
 }));
 
 // 入库单详情
-adminRouter.get("/purchase-in-stocks/:id", requireAuth, asyncHandler(async (req, res) => {
+adminRouter.get("/purchase-in-stocks/:id", requireAuthWithTenant, asyncHandler(async (req, res) => {
+  const tenantId = req.tenantId!;
   const stockId = Number(req.params.id);
   const stock = await queryOne<any>(
     `SELECT id, stock_no AS stockNo, order_no AS orderNo, supplier_id AS supplierId,
@@ -2612,8 +2703,8 @@ adminRouter.get("/purchase-in-stocks/:id", requireAuth, asyncHandler(async (req,
             goods_amount AS goodsAmount, tax_amount AS taxAmount, total_amount AS totalAmount,
             operator_id AS operatorId, auditor_id AS auditorId, audited_at AS auditedAt,
             remark, created_at AS createdAt
-     FROM purchase_in_stock WHERE id = ?`,
-    [stockId]
+     FROM purchase_in_stock WHERE id = ? AND tenant_id = ?`,
+    [stockId, tenantId]
   );
   if (!stock) {
     res.status(404).json({ code: "404", message: "入库单不存在" });
@@ -2633,7 +2724,8 @@ adminRouter.get("/purchase-in-stocks/:id", requireAuth, asyncHandler(async (req,
 }));
 
 // 采购退货
-adminRouter.post("/purchase-returns", requireAuth, asyncHandler(async (req, res) => {
+adminRouter.post("/purchase-returns", requireAuthWithTenant, asyncHandler(async (req, res) => {
+  const tenantId = req.tenantId!;
   const body = z.object({
     orderNo: z.string().optional(),
     stockNo: z.string().optional(),
@@ -2652,7 +2744,7 @@ adminRouter.post("/purchase-returns", requireAuth, asyncHandler(async (req, res)
     })).min(1)
   }).parse(req.body);
 
-  const supplier = await queryOne<any>("SELECT id, name FROM supplier WHERE id = ?", [body.supplierId]);
+  const supplier = await queryOne<any>("SELECT id, name FROM supplier WHERE id = ? AND tenant_id = ?", [body.supplierId, tenantId]);
   if (!supplier) {
     res.status(400).json({ code: "400", message: "供应商不存在" });
     return;
@@ -2674,11 +2766,11 @@ adminRouter.post("/purchase-returns", requireAuth, asyncHandler(async (req, res)
     const [returnResult] = await conn.execute<any>(
       `INSERT INTO purchase_return (return_no, order_no, stock_no, supplier_id, supplier_name, store_id,
         return_status, goods_amount, tax_amount, total_amount, refund_amount, refunded_amount,
-        operator_id, remark)
-       VALUES (?, ?, ?, ?, ?, ?, 'PENDING', ?, ?, ?, ?, 0, ?, ?)`,
+        operator_id, remark, tenant_id)
+       VALUES (?, ?, ?, ?, ?, ?, 'PENDING', ?, ?, ?, ?, 0, ?, ?, ?)`,
       [returnNo, body.orderNo ?? null, body.stockNo ?? null, body.supplierId, supplier.name,
        body.storeId, goodsAmount, taxAmount, totalAmount, totalAmount,
-       req.user?.id ?? 0, body.remark ?? null]
+       req.user!.id ?? 0, body.remark ?? null, tenantId]
     );
 
     for (const item of body.items) {
@@ -2699,8 +2791,8 @@ adminRouter.post("/purchase-returns", requireAuth, asyncHandler(async (req, res)
          SET physical_qty = GREATEST(physical_qty - ?, 0),
              available_qty = GREATEST(available_qty - ?, 0),
              updated_at = NOW()
-         WHERE store_id = ? AND sku_id = ? AND stock_type = 'OFFLINE'`,
-        [item.totalBottleQty, item.totalBottleQty, body.storeId, item.skuId]
+         WHERE store_id = ? AND sku_id = ? AND stock_type = 'OFFLINE' AND tenant_id = ?`,
+        [item.totalBottleQty, item.totalBottleQty, body.storeId, item.skuId, tenantId]
       );
     }
 
@@ -2710,12 +2802,13 @@ adminRouter.post("/purchase-returns", requireAuth, asyncHandler(async (req, res)
 }));
 
 // 采购退货列表
-adminRouter.get("/purchase-returns", requireAuth, asyncHandler(async (req, res) => {
+adminRouter.get("/purchase-returns", requireAuthWithTenant, asyncHandler(async (req, res) => {
+  const tenantId = req.tenantId!;
   const page = Number(req.query.page || 1);
   const pageSize = Number(req.query.pageSize || 20);
   const offset = (page - 1) * pageSize;
-  const conditions: string[] = [];
-  const params: unknown[] = [];
+  const conditions: string[] = ["tenant_id = ?"];
+  const params: unknown[] = [tenantId];
 
   if (req.query.supplierId) {
     conditions.push("supplier_id = ?");
@@ -2734,7 +2827,7 @@ adminRouter.get("/purchase-returns", requireAuth, asyncHandler(async (req, res) 
     params.push(req.query.dateEnd);
   }
 
-  const where = conditions.length > 0 ? `WHERE ${conditions.join(" AND ")}` : "";
+  const where = `WHERE ${conditions.join(" AND ")}`;
   const records = await query<any>(
     `SELECT id, return_no AS returnNo, order_no AS orderNo, stock_no AS stockNo,
             supplier_id AS supplierId, supplier_name AS supplierName, store_id AS storeId,

@@ -11,7 +11,7 @@ export const customerPaymentRouter = Router();
 // 列表查询
 customerPaymentRouter.get("/", requireAuthWithTenant, asyncHandler(async (req, res) => {
   const { customer_id, status, start_date, end_date, page = 1, pageSize = 20 } = req.query;
-  const tenantId = req.tenantId;
+  const tenantId = req.tenantId!;
 
   let sql = "SELECT * FROM customer_payment WHERE tenant_id = ?";
   const params: any[] = [tenantId];
@@ -46,7 +46,7 @@ customerPaymentRouter.get("/", requireAuthWithTenant, asyncHandler(async (req, r
 // 详情查询
 customerPaymentRouter.get("/:receiptNo", requireAuthWithTenant, asyncHandler(async (req, res) => {
   const { receiptNo } = req.params;
-  const tenantId = req.tenantId;
+  const tenantId = req.tenantId!;
 
   const payment = await queryOne<any>(
     "SELECT * FROM customer_payment WHERE receipt_no = ? AND tenant_id = ?",
@@ -75,7 +75,7 @@ customerPaymentRouter.post("/", requireAuthWithTenant, asyncHandler(async (req, 
     remark: z.string().max(255).optional(),
   }).parse(req.body);
 
-  const tenantId = req.tenantId;
+  const tenantId = req.tenantId!;
   const receiptNo = makeBizNo("SK");
 
   await transaction(async (conn) => {
@@ -89,7 +89,7 @@ customerPaymentRouter.post("/", requireAuthWithTenant, asyncHandler(async (req, 
       [
         receiptNo, body.customer_id, body.customer_name, body.amount,
         body.payment_method, body.source_type || null, body.source_no || null,
-        body.voucher_no || null, body.payment_date, req.user?.id,
+        body.voucher_no || null, body.payment_date, req.user!.id,
         body.remark || null, tenantId
       ]
     );
@@ -122,7 +122,7 @@ customerPaymentRouter.post("/", requireAuthWithTenant, asyncHandler(async (req, 
     // 写操作日志
     await conn.execute(
       "INSERT INTO operation_log (module, action, target_id, target_type, user_id, user_name, detail, tenant_id) VALUES (?, ?, ?, ?, ?, ?, ?, ?)",
-      ["customer_payment", "CREATE", receiptNo, "customer_payment", req.user?.id, req.user?.username, `创建收款单: ${receiptNo}, 金额: ${body.amount}`, tenantId]
+      ["customer_payment", "CREATE", receiptNo, "customer_payment", req.user!.id, req.user!.username, `创建收款单: ${receiptNo}, 金额: ${body.amount}`, tenantId]
     );
   });
 
@@ -132,7 +132,7 @@ customerPaymentRouter.post("/", requireAuthWithTenant, asyncHandler(async (req, 
 // 作废收款单（COMPLETED -> VOIDED）
 customerPaymentRouter.post("/:receiptNo/void", requireAuthWithTenant, asyncHandler(async (req, res) => {
   const { receiptNo } = req.params;
-  const tenantId = req.tenantId;
+  const tenantId = req.tenantId!;
 
   const payment = await queryOne<any>(
     "SELECT id, status, source_type, source_no, amount FROM customer_payment WHERE receipt_no = ? AND tenant_id = ?",
@@ -186,7 +186,7 @@ customerPaymentRouter.post("/:receiptNo/void", requireAuthWithTenant, asyncHandl
     // 写操作日志
     await conn.execute(
       "INSERT INTO operation_log (module, action, target_id, target_type, user_id, user_name, detail, tenant_id) VALUES (?, ?, ?, ?, ?, ?, ?, ?)",
-      ["customer_payment", "VOID", receiptNo, "customer_payment", req.user?.id, req.user?.username, `作废收款单: ${receiptNo}`, tenantId]
+      ["customer_payment", "VOID", receiptNo, "customer_payment", req.user!.id, req.user!.username, `作废收款单: ${receiptNo}`, tenantId]
     );
   });
 

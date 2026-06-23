@@ -11,7 +11,7 @@ export const creditRouter = Router();
 
 // 获取授信列表（支持搜索/状态筛选/分页）
 creditRouter.get("/credits", requireAuthWithTenant, asyncHandler(async (req, res) => {
-  const tenantId = req.tenantId;
+  const tenantId = req.tenantId!;
   const page = Number(req.query.page || 1);
   const pageSize = Number(req.query.pageSize || 20);
   const offset = (page - 1) * pageSize;
@@ -65,7 +65,7 @@ creditRouter.get("/credits", requireAuthWithTenant, asyncHandler(async (req, res
 
 // 获取客户授信详情
 creditRouter.get("/credits/:customerId", requireAuthWithTenant, asyncHandler(async (req, res) => {
-  const tenantId = req.tenantId;
+  const tenantId = req.tenantId!;
   const customerId = Number(req.params.customerId);
   const record = await queryOne<any>(
     `SELECT cc.id, cc.customer_id AS customerId, m.name AS customerName, m.mobile AS customerMobile,
@@ -93,7 +93,7 @@ creditRouter.get("/credits/:customerId", requireAuthWithTenant, asyncHandler(asy
 
 // 初始化/设置授信额度
 creditRouter.post("/credits/:customerId", requireAuthWithTenant, asyncHandler(async (req, res) => {
-  const tenantId = req.tenantId;
+  const tenantId = req.tenantId!;
   const customerId = Number(req.params.customerId);
 
   const body = z.object({
@@ -154,7 +154,7 @@ creditRouter.post("/credits/:customerId", requireAuthWithTenant, asyncHandler(as
 
 // 调整授信额度（需记录日志）
 creditRouter.put("/credits/:customerId/limit", requireAuthWithTenant, asyncHandler(async (req, res) => {
-  const tenantId = req.tenantId;
+  const tenantId = req.tenantId!;
   const customerId = Number(req.params.customerId);
 
   const body = z.object({
@@ -200,7 +200,7 @@ creditRouter.put("/credits/:customerId/limit", requireAuthWithTenant, asyncHandl
 
 // 调整账期
 creditRouter.put("/credits/:customerId/term", requireAuthWithTenant, asyncHandler(async (req, res) => {
-  const tenantId = req.tenantId;
+  const tenantId = req.tenantId!;
   const customerId = Number(req.params.customerId);
 
   const body = z.object({
@@ -247,7 +247,7 @@ creditRouter.put("/credits/:customerId/term", requireAuthWithTenant, asyncHandle
 
 // 校验可用额度
 creditRouter.get("/credits/:customerId/check", requireAuthWithTenant, asyncHandler(async (req, res) => {
-  const tenantId = req.tenantId;
+  const tenantId = req.tenantId!;
   const customerId = Number(req.params.customerId);
   const amount = Number(req.query.amount || 0);
 
@@ -284,7 +284,7 @@ creditRouter.get("/credits/:customerId/check", requireAuthWithTenant, asyncHandl
 
 // 占用额度（下单时调用，需FOR UPDATE防并发）
 creditRouter.post("/credits/:customerId/occupy", requireAuthWithTenant, asyncHandler(async (req, res) => {
-  const tenantId = req.tenantId;
+  const tenantId = req.tenantId!;
   const customerId = Number(req.params.customerId);
 
   const body = z.object({
@@ -352,7 +352,7 @@ creditRouter.post("/credits/:customerId/occupy", requireAuthWithTenant, asyncHan
 
 // 释放额度（取消/完成时调用）
 creditRouter.post("/credits/:customerId/release", requireAuthWithTenant, asyncHandler(async (req, res) => {
-  const tenantId = req.tenantId;
+  const tenantId = req.tenantId!;
   const customerId = Number(req.params.customerId);
 
   const body = z.object({
@@ -415,7 +415,7 @@ creditRouter.post("/credits/:customerId/release", requireAuthWithTenant, asyncHa
 
 // 冻结授信（逾期自动/手动）
 creditRouter.post("/credits/:customerId/freeze", requireAuthWithTenant, asyncHandler(async (req, res) => {
-  const tenantId = req.tenantId;
+  const tenantId = req.tenantId!;
   const customerId = Number(req.params.customerId);
 
   const body = z.object({
@@ -474,7 +474,7 @@ creditRouter.post("/credits/:customerId/freeze", requireAuthWithTenant, asyncHan
 
 // 解冻授信
 creditRouter.post("/credits/:customerId/unfreeze", requireAuthWithTenant, asyncHandler(async (req, res) => {
-  const tenantId = req.tenantId;
+  const tenantId = req.tenantId!;
   const customerId = Number(req.params.customerId);
 
   const body = z.object({
@@ -529,7 +529,7 @@ creditRouter.post("/credits/:customerId/unfreeze", requireAuthWithTenant, asyncH
 
 // 授信操作日志
 creditRouter.get("/credits/:customerId/logs", requireAuthWithTenant, asyncHandler(async (req, res) => {
-  const tenantId = req.tenantId;
+  const tenantId = req.tenantId!;
   const customerId = Number(req.params.customerId);
   const page = Number(req.query.page || 1);
   const pageSize = Number(req.query.pageSize || 20);
@@ -566,7 +566,7 @@ creditRouter.get("/credits/:customerId/logs", requireAuthWithTenant, asyncHandle
 
 // 催收记录列表（支持等级/客户/日期筛选）
 creditRouter.get("/collections", requireAuthWithTenant, asyncHandler(async (req, res) => {
-  const tenantId = req.tenantId;
+  const tenantId = req.tenantId!;
   const page = Number(req.query.page || 1);
   const pageSize = Number(req.query.pageSize || 20);
   const offset = (page - 1) * pageSize;
@@ -631,7 +631,7 @@ creditRouter.get("/collections", requireAuthWithTenant, asyncHandler(async (req,
 
 // 新增催收记录
 creditRouter.post("/collections", requireAuthWithTenant, asyncHandler(async (req, res) => {
-  const tenantId = req.tenantId;
+  const tenantId = req.tenantId!;
   const body = z.object({
     customerId: z.number().int().positive(),
     receivableNo: z.string().max(64).optional(),
@@ -689,7 +689,7 @@ creditRouter.post("/collections", requireAuthWithTenant, asyncHandler(async (req
 
 // 更新催收结果
 creditRouter.put("/collections/:id", requireAuthWithTenant, asyncHandler(async (req, res) => {
-  const tenantId = req.tenantId;
+  const tenantId = req.tenantId!;
   const collectionId = Number(req.params.id);
   const existing = await queryOne<any>(
     "SELECT id FROM collection_record WHERE id = ? AND tenant_id = ?",
@@ -741,7 +741,7 @@ creditRouter.put("/collections/:id", requireAuthWithTenant, asyncHandler(async (
 
 // 逾期客户列表（自动计算逾期天数和金额）
 creditRouter.get("/collections/overdue", requireAuthWithTenant, asyncHandler(async (req, res) => {
-  const tenantId = req.tenantId;
+  const tenantId = req.tenantId!;
   // 查找所有有授信且未结清的客户，结合账期计算逾期
   const records = await query<any>(
     `SELECT cc.customer_id AS customerId, m.name AS customerName, m.mobile AS customerMobile,
@@ -773,7 +773,7 @@ creditRouter.get("/collections/overdue", requireAuthWithTenant, asyncHandler(asy
 
 // 批量发送催收提醒（短信/站内信）
 creditRouter.post("/collections/batch-remind", requireAuthWithTenant, asyncHandler(async (req, res) => {
-  const tenantId = req.tenantId;
+  const tenantId = req.tenantId!;
   const body = z.object({
     customerIds: z.array(z.number().int().positive()).min(1),
     method: z.enum(["SMS", "PHONE", "LETTER"]).default("SMS"),
@@ -828,7 +828,7 @@ creditRouter.post("/collections/batch-remind", requireAuthWithTenant, asyncHandl
 
 // 催收统计（各等级数量、回款率）
 creditRouter.get("/collections/statistics", requireAuthWithTenant, asyncHandler(async (req, res) => {
-  const tenantId = req.tenantId;
+  const tenantId = req.tenantId!;
   // 各催收等级数量
   const levelStats = await query<any>(
     `SELECT collection_level AS collectionLevel, COUNT(*) AS count
@@ -899,7 +899,7 @@ creditRouter.get("/collections/statistics", requireAuthWithTenant, asyncHandler(
 
 // 获取风险客户列表（信用风险预警）
 creditRouter.get("/risk-customers", requireAuthWithTenant, asyncHandler(async (req, res) => {
-  const tenantId = req.tenantId;
+  const tenantId = req.tenantId!;
   const page = Number(req.query.page || 1);
   const pageSize = Number(req.query.pageSize || 20);
   const offset = (page - 1) * pageSize;

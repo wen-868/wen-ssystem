@@ -15,7 +15,7 @@ customerVisitRouter.get("/", requireAuthWithTenant, asyncHandler(async (req, res
     start_date, end_date, follow_up_required,
     page = 1, pageSize = 20
   } = req.query;
-  const tenantId = req.tenantId;
+  const tenantId = req.tenantId!;
 
   const conditions: string[] = ["cv.tenant_id = ?"];
   const params: any[] = [tenantId];
@@ -94,7 +94,7 @@ customerVisitRouter.get("/", requireAuthWithTenant, asyncHandler(async (req, res
 // 详情查询
 customerVisitRouter.get("/:visitNo", requireAuthWithTenant, asyncHandler(async (req, res) => {
   const { visitNo } = req.params;
-  const tenantId = req.tenantId;
+  const tenantId = req.tenantId!;
 
   const record = await queryOne<any>(
     `SELECT cv.id, cv.visit_no AS visitNo, cv.customer_id AS customerId,
@@ -155,7 +155,7 @@ customerVisitRouter.post("/", requireAuthWithTenant, asyncHandler(async (req, re
     remark: z.string().max(255).optional(),
   }).parse(req.body);
 
-  const tenantId = req.tenantId;
+  const tenantId = req.tenantId!;
   const visitNo = makeBizNo("BF");
 
   // 校验客户是否存在
@@ -207,7 +207,7 @@ customerVisitRouter.post("/", requireAuthWithTenant, asyncHandler(async (req, re
 // 更新拜访记录（签到/完成拜访）
 customerVisitRouter.put("/:visitNo", requireAuthWithTenant, asyncHandler(async (req, res) => {
   const { visitNo } = req.params;
-  const tenantId = req.tenantId;
+  const tenantId = req.tenantId!;
 
   const existing = await queryOne<any>(
     "SELECT id, status FROM customer_visit WHERE visit_no = ? AND tenant_id = ?",
@@ -310,7 +310,7 @@ customerVisitRouter.put("/:visitNo", requireAuthWithTenant, asyncHandler(async (
 // 签到（PLANNED -> VISITED）
 customerVisitRouter.post("/:visitNo/checkin", requireAuthWithTenant, asyncHandler(async (req, res) => {
   const { visitNo } = req.params;
-  const tenantId = req.tenantId;
+  const tenantId = req.tenantId!;
 
   const body = z.object({
     latitude: z.number().min(-90).max(90).optional(),
@@ -357,7 +357,7 @@ customerVisitRouter.post("/:visitNo/checkin", requireAuthWithTenant, asyncHandle
 // 签退（VISITED -> COMPLETED）
 customerVisitRouter.post("/:visitNo/checkout", requireAuthWithTenant, asyncHandler(async (req, res) => {
   const { visitNo } = req.params;
-  const tenantId = req.tenantId;
+  const tenantId = req.tenantId!;
 
   const body = z.object({
     visit_summary: z.string().optional(),
@@ -421,7 +421,7 @@ customerVisitRouter.post("/:visitNo/checkout", requireAuthWithTenant, asyncHandl
 // 取消拜访（PLANNED -> CANCELLED）
 customerVisitRouter.post("/:visitNo/cancel", requireAuthWithTenant, asyncHandler(async (req, res) => {
   const { visitNo } = req.params;
-  const tenantId = req.tenantId;
+  const tenantId = req.tenantId!;
 
   const existing = await queryOne<any>(
     "SELECT id, status FROM customer_visit WHERE visit_no = ? AND tenant_id = ?",
@@ -451,8 +451,8 @@ customerVisitRouter.post("/:visitNo/cancel", requireAuthWithTenant, asyncHandler
 
 // 待跟进拜访列表（follow_up_date <= 今天且未完成）
 customerVisitRouter.get("/follow-up/pending", requireAuthWithTenant, asyncHandler(async (req, res) => {
-  const tenantId = req.tenantId;
-  const visitorId = req.query.visitor_id ? Number(req.query.visitor_id) : req.user?.id;
+  const tenantId = req.tenantId!;
+  const visitorId = req.query.visitor_id ? Number(req.query.visitor_id) : req.user!.id;
   const page = Number(req.query.page || 1);
   const pageSize = Number(req.query.pageSize || 20);
   const offset = (page - 1) * pageSize;
@@ -491,7 +491,7 @@ customerVisitRouter.get("/follow-up/pending", requireAuthWithTenant, asyncHandle
 
 // 拜访统计
 customerVisitRouter.get("/statistics", requireAuthWithTenant, asyncHandler(async (req, res) => {
-  const tenantId = req.tenantId;
+  const tenantId = req.tenantId!;
   const visitorId = req.query.visitor_id ? Number(req.query.visitor_id) : null;
   const startDate = req.query.start_date as string || new Date(new Date().getFullYear(), new Date().getMonth(), 1).toISOString().slice(0, 10);
   const endDate = req.query.end_date as string || new Date().toISOString().slice(0, 10);

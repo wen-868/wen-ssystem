@@ -23,7 +23,7 @@ const today = () => new Date().toISOString().slice(0, 10);
 
 // ========== 导出客户列表（带租户隔离） ==========
 exportRouter.get("/customers", requireAuthWithTenant, asyncHandler(async (req, res) => {
-  const tenantId = req.tenantId;
+  const tenantId = req.tenantId!;
   const keyword = `%${String(req.query.keyword || "")}%`;
   const conditions: string[] = ["tenant_id = ?"];
   const params: unknown[] = [tenantId];
@@ -44,7 +44,7 @@ exportRouter.get("/customers", requireAuthWithTenant, asyncHandler(async (req, r
 
 // ========== 导出供应商列表（带租户隔离） ==========
 exportRouter.get("/suppliers", requireAuthWithTenant, asyncHandler(async (req, res) => {
-  const tenantId = req.tenantId;
+  const tenantId = req.tenantId!;
   const keyword = `%${String(req.query.keyword || "")}%`;
   const conditions: string[] = ["tenant_id = ?"];
   const params: unknown[] = [tenantId];
@@ -70,7 +70,7 @@ exportRouter.get("/suppliers", requireAuthWithTenant, asyncHandler(async (req, r
 
 // ========== 导出商品列表（带租户隔离） ==========
 exportRouter.get("/products", requireAuthWithTenant, asyncHandler(async (req, res) => {
-  const tenantId = req.tenantId;
+  const tenantId = req.tenantId!;
   const keyword = `%${String(req.query.keyword || "")}%`;
   const conditions: string[] = ["tenant_id = ?"];
   const params: unknown[] = [tenantId];
@@ -93,7 +93,7 @@ exportRouter.get("/products", requireAuthWithTenant, asyncHandler(async (req, re
 
 // ========== 导出库存明细（带租户隔离） ==========
 exportRouter.get("/inventory", requireAuthWithTenant, asyncHandler(async (req, res) => {
-  const tenantId = req.tenantId;
+  const tenantId = req.tenantId!;
   const conditions: string[] = ["tenant_id = ?"];
   const params: unknown[] = [tenantId];
   if (req.query.storeId) {
@@ -120,7 +120,7 @@ exportRouter.get("/inventory", requireAuthWithTenant, asyncHandler(async (req, r
 
 // ========== 导出采购单（带租户隔离） ==========
 exportRouter.get("/purchase-orders", requireAuthWithTenant, asyncHandler(async (req, res) => {
-  const tenantId = req.tenantId;
+  const tenantId = req.tenantId!;
   const keyword = `%${String(req.query.keyword || "")}%`;
   const conditions: string[] = ["tenant_id = ?"];
   const params: unknown[] = [tenantId];
@@ -147,7 +147,7 @@ exportRouter.get("/purchase-orders", requireAuthWithTenant, asyncHandler(async (
 
 // ========== 导出付款记录（带租户隔离） ==========
 exportRouter.get("/payments", requireAuthWithTenant, asyncHandler(async (req, res) => {
-  const tenantId = req.tenantId;
+  const tenantId = req.tenantId!;
   const conditions: string[] = ["tenant_id = ?"];
   const params: unknown[] = [tenantId];
   if (req.query.status) {
@@ -168,7 +168,7 @@ exportRouter.get("/payments", requireAuthWithTenant, asyncHandler(async (req, re
 
 // ========== 导出销售单（新增，带租户隔离） ==========
 exportRouter.get("/sales-orders", requireAuthWithTenant, asyncHandler(async (req, res) => {
-  const tenantId = req.tenantId;
+  const tenantId = req.tenantId!;
   const conditions: string[] = ["tenant_id = ?"];
   const params: unknown[] = [tenantId];
   
@@ -206,7 +206,7 @@ exportRouter.get("/sales-orders", requireAuthWithTenant, asyncHandler(async (req
 
 // ========== 导出审计日志（带租户隔离） ==========
 exportRouter.get("/audit-logs", requireAuthWithTenant, asyncHandler(async (req, res) => {
-  const tenantId = req.tenantId;
+  const tenantId = req.tenantId!;
   const conditions: string[] = ["tenant_id = ?"];
   const params: unknown[] = [tenantId];
   if (req.query.action) {

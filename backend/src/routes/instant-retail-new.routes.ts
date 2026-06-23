@@ -12,7 +12,7 @@ export const instantRetailRouter = Router();
 
 // 获取店铺配置
 instantRetailRouter.get("/shop-config", requireAuthWithTenant, asyncHandler(async (req, res) => {
-  const tenantId = req.tenantId;
+  const tenantId = req.tenantId!;
 
   const config = await queryOne<any>(
     `SELECT id, shop_name AS shopName, shop_logo AS shopLogo, shop_description AS shopDescription,
@@ -32,7 +32,7 @@ instantRetailRouter.get("/shop-config", requireAuthWithTenant, asyncHandler(asyn
 
 // 创建/更新店铺配置
 instantRetailRouter.post("/shop-config", requireAuthWithTenant, asyncHandler(async (req, res) => {
-  const tenantId = req.tenantId;
+  const tenantId = req.tenantId!;
 
   const body = z.object({
     shopName: z.string().min(1).max(128),
@@ -100,7 +100,7 @@ instantRetailRouter.post("/shop-config", requireAuthWithTenant, asyncHandler(asy
 
 // 获取分类列表
 instantRetailRouter.get("/categories", requireAuthWithTenant, asyncHandler(async (req, res) => {
-  const tenantId = req.tenantId;
+  const tenantId = req.tenantId!;
 
   const categories = await query<any>(
     `SELECT id, category_name AS categoryName, category_icon AS categoryIcon,
@@ -117,7 +117,7 @@ instantRetailRouter.get("/categories", requireAuthWithTenant, asyncHandler(async
 
 // 创建分类
 instantRetailRouter.post("/categories", requireAuthWithTenant, asyncHandler(async (req, res) => {
-  const tenantId = req.tenantId;
+  const tenantId = req.tenantId!;
 
   const body = z.object({
     categoryName: z.string().min(1).max(64),
@@ -139,7 +139,7 @@ instantRetailRouter.post("/categories", requireAuthWithTenant, asyncHandler(asyn
 
 // 获取即时零售商品列表
 instantRetailRouter.get("/products", requireAuthWithTenant, asyncHandler(async (req, res) => {
-  const tenantId = req.tenantId;
+  const tenantId = req.tenantId!;
   const { categoryId, status, isRecommended, isHot, isNew, page = 1, pageSize = 20 } = req.query;
 
   const conditions: string[] = ["rp.tenant_id = ?"];
@@ -199,7 +199,7 @@ instantRetailRouter.get("/products", requireAuthWithTenant, asyncHandler(async (
 
 // 添加商品到即时零售
 instantRetailRouter.post("/products", requireAuthWithTenant, asyncHandler(async (req, res) => {
-  const tenantId = req.tenantId;
+  const tenantId = req.tenantId!;
 
   const body = z.object({
     productId: z.number().int().positive(),
@@ -243,7 +243,7 @@ instantRetailRouter.post("/products", requireAuthWithTenant, asyncHandler(async 
 
 // 获取即时零售订单列表
 instantRetailRouter.get("/orders", requireAuthWithTenant, asyncHandler(async (req, res) => {
-  const tenantId = req.tenantId;
+  const tenantId = req.tenantId!;
   const { orderStatus, paymentStatus, startDate, endDate, page = 1, pageSize = 20 } = req.query;
 
   const conditions: string[] = ["tenant_id = ?"];
@@ -301,7 +301,7 @@ instantRetailRouter.get("/orders", requireAuthWithTenant, asyncHandler(async (re
 
 // 获取订单详情
 instantRetailRouter.get("/orders/:orderNo", requireAuthWithTenant, asyncHandler(async (req, res) => {
-  const tenantId = req.tenantId;
+  const tenantId = req.tenantId!;
   const { orderNo } = req.params;
 
   const order = await queryOne<any>(
@@ -341,7 +341,7 @@ instantRetailRouter.get("/orders/:orderNo", requireAuthWithTenant, asyncHandler(
 
 // 更新订单状态
 instantRetailRouter.put("/orders/:orderNo/status", requireAuthWithTenant, asyncHandler(async (req, res) => {
-  const tenantId = req.tenantId;
+  const tenantId = req.tenantId!;
   const { orderNo } = req.params;
 
   const body = z.object({
@@ -383,7 +383,7 @@ instantRetailRouter.put("/orders/:orderNo/status", requireAuthWithTenant, asyncH
 
 // 获取轮播图列表
 instantRetailRouter.get("/banners", requireAuthWithTenant, asyncHandler(async (req, res) => {
-  const tenantId = req.tenantId;
+  const tenantId = req.tenantId!;
 
   const banners = await query<any>(
     `SELECT id, banner_title AS bannerTitle, banner_image AS bannerImage,
@@ -401,7 +401,7 @@ instantRetailRouter.get("/banners", requireAuthWithTenant, asyncHandler(async (r
 
 // 创建轮播图
 instantRetailRouter.post("/banners", requireAuthWithTenant, asyncHandler(async (req, res) => {
-  const tenantId = req.tenantId;
+  const tenantId = req.tenantId!;
 
   const body = z.object({
     bannerTitle: z.string().min(1).max(128),

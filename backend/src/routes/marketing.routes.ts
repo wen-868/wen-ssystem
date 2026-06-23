@@ -1,6 +1,6 @@
 import { Router } from "express";
 import { z } from "zod";
-import { requireAuth } from "../shared/auth.js";
+import { requireAuthWithTenant } from "../shared/auth.js";
 import { asyncHandler } from "../shared/async-handler.js";
 import { query, queryOne, transaction } from "../shared/db.js";
 import { ok } from "../shared/response.js";
@@ -17,8 +17,9 @@ export const miniappMarketingRouter = Router();
 // 创建优惠券模板
 adminMarketingRouter.post(
   "/coupons/templates",
-  requireAuth,
+  requireAuthWithTenant,
   asyncHandler(async (req, res) => {
+    const tenantId = req.tenantId!;
     const body = z.object({
       name: z.string().min(1).max(128),
       type: z.enum(["FIXED", "PERCENT", "SHIPPING", "FREE_GIFT"]),
@@ -35,12 +36,12 @@ adminMarketingRouter.post(
 
     await query(
       `INSERT INTO coupon_template (name, type, value, min_amount, max_discount,
-        applicable_scope, applicable_ids, total_count, start_time, end_time, description)
-       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+        applicable_scope, applicable_ids, total_count, start_time, end_time, description, tenant_id)
+       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
       [
         body.name, body.type, body.value, body.minAmount, body.maxDiscount,
         body.applicableScope, JSON.stringify(body.applicableIds), body.totalCount,
-        body.startTime, body.endTime, body.description
+        body.startTime, body.endTime, body.description, tenantId
       ]
     );
 
@@ -50,7 +51,8 @@ adminMarketingRouter.post(
               total_count AS totalCount, claimed_count AS claimedCount, used_count AS usedCount,
               start_time AS startTime, end_time AS endTime, status, description,
               created_at AS createdAt, updated_at AS updatedAt
-       FROM coupon_template ORDER BY id DESC LIMIT 1`
+       FROM coupon_template WHERE tenant_id = ? ORDER BY id DESC LIMIT 1`,
+      [tenantId]
     );
 
     res.json(ok(record));
@@ -60,13 +62,14 @@ adminMarketingRouter.post(
 // 优惠券模板列表（分页+状态筛选+类型筛选）
 adminMarketingRouter.get(
   "/coupons/templates",
-  requireAuth,
+  requireAuthWithTenant,
   asyncHandler(async (req, res) => {
+    const tenantId = req.tenantId!;
     const page = Number(req.query.page || 1);
     const pageSize = Number(req.query.pageSize || 20);
     const offset = (page - 1) * pageSize;
-    const conditions: string[] = [];
-    const params: unknown[] = [];
+    const conditions: string[] = ["ct.tenant_id = ?"];
+    const params: unknown[] = [tenantId];
 
     if (req.query.status) {
       conditions.push("ct.status = ?");
@@ -81,7 +84,7 @@ adminMarketingRouter.get(
       params.push(`%${req.query.keyword}%`);
     }
 
-    const where = conditions.length > 0 ? `WHERE ${conditions.join(" AND ")}` : "";
+    const where = `WHERE ${conditions.join(" AND ")}`;
 
     const records = await query<any>(
       `SELECT ct.id, ct.name, ct.type, ct.value, ct.min_amount AS minAmount,
@@ -114,8 +117,9 @@ adminMarketingRouter.get(
 // 优惠券模板详情
 adminMarketingRouter.get(
   "/coupons/templates/:id",
-  requireAuth,
+  requireAuthWithTenant,
   asyncHandler(async (req, res) => {
+    const tenantId = req.tenantId!;
     const id = Number(req.params.id);
     const record = await queryOne<any>(
       `SELECT id, name, type, value, min_amount AS minAmount, max_discount AS maxDiscount,
@@ -123,8 +127,8 @@ adminMarketingRouter.get(
               total_count AS totalCount, claimed_count AS claimedCount, used_count AS usedCount,
               start_time AS startTime, end_time AS endTime, status, description,
               created_at AS createdAt, updated_at AS updatedAt
-       FROM coupon_template WHERE id = ?`,
-      [id]
+       FROM coupon_template WHERE id = ? AND tenant_id = ?`,
+      [id, tenantId]
     );
     if (!record) {
       res.status(404).json({ code: "404", message: "优惠券模板不存在" });
@@ -137,10 +141,11 @@ adminMarketingRouter.get(
 // 更新优惠券模板
 adminMarketingRouter.put(
   "/coupons/templates/:id",
-  requireAuth,
+  requireAuthWithTenant,
   asyncHandler(async (req, res) => {
+    const tenantId = req.tenantId!;
     const id = Number(req.params.id);
-    const existing = await queryOne<any>("SELECT id, status FROM coupon_template WHERE id = ?", [id]);
+    const existing = await queryOne<any>("SELECT id, status FROM coupon_template WHERE id = ? AND tenant_id = ?", [id, tenantId]);
     if (!existing) {
       res.status(404).json({ code: "404", message: "优惠券模板不存在" });
       return;
@@ -176,7 +181,7 @@ adminMarketingRouter.put(
     if (body.description !== undefined) { updates.push("description = ?"); params.push(body.description); }
 
     if (updates.length > 0) {
-      await query(`UPDATE coupon_template SET ${updates.join(", ")} WHERE id = ?`, [...params, id]);
+      await query(`UPDATE coupon_template SET ${updates.join(", ")} WHERE id = ? AND tenant_id = ?`, [...params, id, tenantId]);
     }
 
     const record = await queryOne<any>(
@@ -185,8 +190,8 @@ adminMarketingRouter.put(
               total_count AS totalCount, claimed_count AS claimedCount, used_count AS usedCount,
               start_time AS startTime, end_time AS endTime, status, description,
               created_at AS createdAt, updated_at AS updatedAt
-       FROM coupon_template WHERE id = ?`,
-      [id]
+       FROM coupon_template WHERE id = ? AND tenant_id = ?`,
+      [id, tenantId]
     );
 
     res.json(ok(record));
@@ -196,10 +201,11 @@ adminMarketingRouter.put(
 // 删除优惠券模板（仅DRAFT可删）
 adminMarketingRouter.delete(
   "/coupons/templates/:id",
-  requireAuth,
+  requireAuthWithTenant,
   asyncHandler(async (req, res) => {
+    const tenantId = req.tenantId!;
     const id = Number(req.params.id);
-    const existing = await queryOne<any>("SELECT id, status FROM coupon_template WHERE id = ?", [id]);
+    const existing = await queryOne<any>("SELECT id, status FROM coupon_template WHERE id = ? AND tenant_id = ?", [id, tenantId]);
     if (!existing) {
       res.status(404).json({ code: "404", message: "优惠券模板不存在" });
       return;
@@ -209,7 +215,7 @@ adminMarketingRouter.delete(
       return;
     }
 
-    await query("DELETE FROM coupon_template WHERE id = ?", [id]);
+    await query("DELETE FROM coupon_template WHERE id = ? AND tenant_id = ?", [id, tenantId]);
     res.json(ok({ id, deleted: true }));
   })
 );
@@ -217,10 +223,11 @@ adminMarketingRouter.delete(
 // 激活优惠券模板
 adminMarketingRouter.post(
   "/coupons/templates/:id/activate",
-  requireAuth,
+  requireAuthWithTenant,
   asyncHandler(async (req, res) => {
+    const tenantId = req.tenantId!;
     const id = Number(req.params.id);
-    const existing = await queryOne<any>("SELECT id, status FROM coupon_template WHERE id = ?", [id]);
+    const existing = await queryOne<any>("SELECT id, status FROM coupon_template WHERE id = ? AND tenant_id = ?", [id, tenantId]);
     if (!existing) {
       res.status(404).json({ code: "404", message: "优惠券模板不存在" });
       return;
@@ -230,7 +237,7 @@ adminMarketingRouter.post(
       return;
     }
 
-    await query("UPDATE coupon_template SET status = 'ACTIVE' WHERE id = ?", [id]);
+    await query("UPDATE coupon_template SET status = 'ACTIVE' WHERE id = ? AND tenant_id = ?", [id, tenantId]);
     res.json(ok({ id, status: "ACTIVE" }));
   })
 );
@@ -238,10 +245,11 @@ adminMarketingRouter.post(
 // 暂停优惠券模板
 adminMarketingRouter.post(
   "/coupons/templates/:id/pause",
-  requireAuth,
+  requireAuthWithTenant,
   asyncHandler(async (req, res) => {
+    const tenantId = req.tenantId!;
     const id = Number(req.params.id);
-    const existing = await queryOne<any>("SELECT id, status FROM coupon_template WHERE id = ?", [id]);
+    const existing = await queryOne<any>("SELECT id, status FROM coupon_template WHERE id = ? AND tenant_id = ?", [id, tenantId]);
     if (!existing) {
       res.status(404).json({ code: "404", message: "优惠券模板不存在" });
       return;
@@ -251,7 +259,7 @@ adminMarketingRouter.post(
       return;
     }
 
-    await query("UPDATE coupon_template SET status = 'PAUSED' WHERE id = ?", [id]);
+    await query("UPDATE coupon_template SET status = 'PAUSED' WHERE id = ? AND tenant_id = ?", [id, tenantId]);
     res.json(ok({ id, status: "PAUSED" }));
   })
 );
@@ -259,13 +267,14 @@ adminMarketingRouter.post(
 // 用户优惠券列表（分页+状态筛选）
 adminMarketingRouter.get(
   "/coupons/users",
-  requireAuth,
+  requireAuthWithTenant,
   asyncHandler(async (req, res) => {
+    const tenantId = req.tenantId!;
     const page = Number(req.query.page || 1);
     const pageSize = Number(req.query.pageSize || 20);
     const offset = (page - 1) * pageSize;
-    const conditions: string[] = [];
-    const params: unknown[] = [];
+    const conditions: string[] = ["ct.tenant_id = ?"];
+    const params: unknown[] = [tenantId];
 
     if (req.query.status) {
       conditions.push("uc.status = ?");
@@ -280,7 +289,7 @@ adminMarketingRouter.get(
       params.push(Number(req.query.templateId));
     }
 
-    const where = conditions.length > 0 ? `WHERE ${conditions.join(" AND ")}` : "";
+    const where = `WHERE ${conditions.join(" AND ")}`;
 
     const records = await query<any>(
       `SELECT uc.id, uc.template_id AS templateId, uc.user_id AS userId, uc.order_id AS orderId,
@@ -289,7 +298,7 @@ adminMarketingRouter.get(
               ct.name AS templateName, ct.type AS couponType, ct.value AS couponValue,
               ct.min_amount AS minAmount, ct.applicable_scope AS applicableScope
        FROM user_coupon uc
-       JOIN coupon_template ct ON ct.id = uc.template_id
+       JOIN coupon_template ct ON ct.id = uc.template_id AND ct.tenant_id = ?
        ${where}
        ORDER BY uc.claimed_at DESC
        LIMIT ? OFFSET ?`,
@@ -297,7 +306,9 @@ adminMarketingRouter.get(
     );
 
     const totalRow = await queryOne<any>(
-      `SELECT COUNT(*) AS total FROM user_coupon uc ${where}`,
+      `SELECT COUNT(*) AS total FROM user_coupon uc
+       JOIN coupon_template ct ON ct.id = uc.template_id AND ct.tenant_id = ?
+       ${where}`,
       params
     );
 
@@ -313,18 +324,21 @@ adminMarketingRouter.get(
 // 优惠券统计（各类型发放/使用/核销率）
 adminMarketingRouter.get(
   "/coupons/statistics",
-  requireAuth,
-  asyncHandler(async (_req, res) => {
+  requireAuthWithTenant,
+  asyncHandler(async (req, res) => {
+    const tenantId = req.tenantId!;
     const byType = await query<any>(
       `SELECT type, COUNT(*) AS templateCount,
               SUM(total_count) AS totalIssued, SUM(claimed_count) AS totalClaimed, SUM(used_count) AS totalUsed
-       FROM coupon_template GROUP BY type`
+       FROM coupon_template WHERE tenant_id = ? GROUP BY type`,
+      [tenantId]
     );
 
     const overall = await queryOne<any>(
       `SELECT COUNT(*) AS totalTemplates, SUM(total_count) AS totalIssued,
               SUM(claimed_count) AS totalClaimed, SUM(used_count) AS totalUsed
-       FROM coupon_template`
+       FROM coupon_template WHERE tenant_id = ?`,
+      [tenantId]
     );
 
     res.json(ok({
@@ -364,8 +378,9 @@ adminMarketingRouter.get(
 // 创建满减活动
 adminMarketingRouter.post(
   "/promotions/full-reduction",
-  requireAuth,
+  requireAuthWithTenant,
   asyncHandler(async (req, res) => {
+    const tenantId = req.tenantId!;
     const body = z.object({
       name: z.string().min(1).max(128),
       rules: z.array(z.object({
@@ -383,12 +398,12 @@ adminMarketingRouter.post(
 
     await query(
       `INSERT INTO full_reduction (name, rules, applicable_scope, applicable_ids,
-        start_time, end_time, priority, stackable, description)
-       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+        start_time, end_time, priority, stackable, description, tenant_id)
+       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
       [
         body.name, JSON.stringify(body.rules), body.applicableScope,
         JSON.stringify(body.applicableIds), body.startTime, body.endTime,
-        body.priority, body.stackable ? 1 : 0, body.description
+        body.priority, body.stackable ? 1 : 0, body.description, tenantId
       ]
     );
 
@@ -396,7 +411,8 @@ adminMarketingRouter.post(
       `SELECT id, name, rules, applicable_scope AS applicableScope, applicable_ids AS applicableIds,
               start_time AS startTime, end_time AS endTime, status, priority, stackable,
               description, created_at AS createdAt, updated_at AS updatedAt
-       FROM full_reduction ORDER BY id DESC LIMIT 1`
+       FROM full_reduction WHERE tenant_id = ? ORDER BY id DESC LIMIT 1`,
+      [tenantId]
     );
 
     res.json(ok(record));
@@ -406,20 +422,21 @@ adminMarketingRouter.post(
 // 满减活动列表
 adminMarketingRouter.get(
   "/promotions/full-reduction",
-  requireAuth,
+  requireAuthWithTenant,
   asyncHandler(async (req, res) => {
+    const tenantId = req.tenantId!;
     const page = Number(req.query.page || 1);
     const pageSize = Number(req.query.pageSize || 20);
     const offset = (page - 1) * pageSize;
-    const conditions: string[] = [];
-    const params: unknown[] = [];
+    const conditions: string[] = ["tenant_id = ?"];
+    const params: unknown[] = [tenantId];
 
     if (req.query.status) {
       conditions.push("status = ?");
       params.push(req.query.status);
     }
 
-    const where = conditions.length > 0 ? `WHERE ${conditions.join(" AND ")}` : "";
+    const where = `WHERE ${conditions.join(" AND ")}`;
 
     const records = await query<any>(
       `SELECT id, name, rules, applicable_scope AS applicableScope, applicable_ids AS applicableIds,
@@ -449,15 +466,16 @@ adminMarketingRouter.get(
 // 满减活动详情
 adminMarketingRouter.get(
   "/promotions/full-reduction/:id",
-  requireAuth,
+  requireAuthWithTenant,
   asyncHandler(async (req, res) => {
+    const tenantId = req.tenantId!;
     const id = Number(req.params.id);
     const record = await queryOne<any>(
       `SELECT id, name, rules, applicable_scope AS applicableScope, applicable_ids AS applicableIds,
               start_time AS startTime, end_time AS endTime, status, priority, stackable,
               description, created_at AS createdAt, updated_at AS updatedAt
-       FROM full_reduction WHERE id = ?`,
-      [id]
+       FROM full_reduction WHERE id = ? AND tenant_id = ?`,
+      [id, tenantId]
     );
     if (!record) {
       res.status(404).json({ code: "404", message: "满减活动不存在" });
@@ -470,10 +488,11 @@ adminMarketingRouter.get(
 // 更新满减活动
 adminMarketingRouter.put(
   "/promotions/full-reduction/:id",
-  requireAuth,
+  requireAuthWithTenant,
   asyncHandler(async (req, res) => {
+    const tenantId = req.tenantId!;
     const id = Number(req.params.id);
-    const existing = await queryOne<any>("SELECT id, status FROM full_reduction WHERE id = ?", [id]);
+    const existing = await queryOne<any>("SELECT id, status FROM full_reduction WHERE id = ? AND tenant_id = ?", [id, tenantId]);
     if (!existing) {
       res.status(404).json({ code: "404", message: "满减活动不存在" });
       return;
@@ -508,15 +527,15 @@ adminMarketingRouter.put(
     if (body.description !== undefined) { updates.push("description = ?"); params.push(body.description); }
 
     if (updates.length > 0) {
-      await query(`UPDATE full_reduction SET ${updates.join(", ")} WHERE id = ?`, [...params, id]);
+      await query(`UPDATE full_reduction SET ${updates.join(", ")} WHERE id = ? AND tenant_id = ?`, [...params, id, tenantId]);
     }
 
     const record = await queryOne<any>(
       `SELECT id, name, rules, applicable_scope AS applicableScope, applicable_ids AS applicableIds,
               start_time AS startTime, end_time AS endTime, status, priority, stackable,
               description, created_at AS createdAt, updated_at AS updatedAt
-       FROM full_reduction WHERE id = ?`,
-      [id]
+       FROM full_reduction WHERE id = ? AND tenant_id = ?`,
+      [id, tenantId]
     );
 
     res.json(ok(record));
@@ -526,10 +545,11 @@ adminMarketingRouter.put(
 // 删除满减活动
 adminMarketingRouter.delete(
   "/promotions/full-reduction/:id",
-  requireAuth,
+  requireAuthWithTenant,
   asyncHandler(async (req, res) => {
+    const tenantId = req.tenantId!;
     const id = Number(req.params.id);
-    const existing = await queryOne<any>("SELECT id, status FROM full_reduction WHERE id = ?", [id]);
+    const existing = await queryOne<any>("SELECT id, status FROM full_reduction WHERE id = ? AND tenant_id = ?", [id, tenantId]);
     if (!existing) {
       res.status(404).json({ code: "404", message: "满减活动不存在" });
       return;
@@ -539,7 +559,7 @@ adminMarketingRouter.delete(
       return;
     }
 
-    await query("DELETE FROM full_reduction WHERE id = ?", [id]);
+    await query("DELETE FROM full_reduction WHERE id = ? AND tenant_id = ?", [id, tenantId]);
     res.json(ok({ id, deleted: true }));
   })
 );
@@ -547,10 +567,11 @@ adminMarketingRouter.delete(
 // 激活满减活动
 adminMarketingRouter.post(
   "/promotions/full-reduction/:id/activate",
-  requireAuth,
+  requireAuthWithTenant,
   asyncHandler(async (req, res) => {
+    const tenantId = req.tenantId!;
     const id = Number(req.params.id);
-    const existing = await queryOne<any>("SELECT id, status FROM full_reduction WHERE id = ?", [id]);
+    const existing = await queryOne<any>("SELECT id, status FROM full_reduction WHERE id = ? AND tenant_id = ?", [id, tenantId]);
     if (!existing) {
       res.status(404).json({ code: "404", message: "满减活动不存在" });
       return;
@@ -560,7 +581,7 @@ adminMarketingRouter.post(
       return;
     }
 
-    await query("UPDATE full_reduction SET status = 'ACTIVE' WHERE id = ?", [id]);
+    await query("UPDATE full_reduction SET status = 'ACTIVE' WHERE id = ? AND tenant_id = ?", [id, tenantId]);
     res.json(ok({ id, status: "ACTIVE" }));
   })
 );
@@ -568,10 +589,11 @@ adminMarketingRouter.post(
 // 暂停满减活动
 adminMarketingRouter.post(
   "/promotions/full-reduction/:id/pause",
-  requireAuth,
+  requireAuthWithTenant,
   asyncHandler(async (req, res) => {
+    const tenantId = req.tenantId!;
     const id = Number(req.params.id);
-    const existing = await queryOne<any>("SELECT id, status FROM full_reduction WHERE id = ?", [id]);
+    const existing = await queryOne<any>("SELECT id, status FROM full_reduction WHERE id = ? AND tenant_id = ?", [id, tenantId]);
     if (!existing) {
       res.status(404).json({ code: "404", message: "满减活动不存在" });
       return;
@@ -581,7 +603,7 @@ adminMarketingRouter.post(
       return;
     }
 
-    await query("UPDATE full_reduction SET status = 'PAUSED' WHERE id = ?", [id]);
+    await query("UPDATE full_reduction SET status = 'PAUSED' WHERE id = ? AND tenant_id = ?", [id, tenantId]);
     res.json(ok({ id, status: "PAUSED" }));
   })
 );
@@ -593,8 +615,9 @@ adminMarketingRouter.post(
 // 创建秒杀活动
 adminMarketingRouter.post(
   "/promotions/flash-sale",
-  requireAuth,
+  requireAuthWithTenant,
   asyncHandler(async (req, res) => {
+    const tenantId = req.tenantId!;
     const body = z.object({
       name: z.string().min(1).max(128),
       productId: z.number().int().positive(),
@@ -609,11 +632,11 @@ adminMarketingRouter.post(
 
     await query(
       `INSERT INTO flash_sale (name, product_id, sku_id, flash_price, original_price,
-        total_stock, limit_per_user, start_time, end_time)
-       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+        total_stock, limit_per_user, start_time, end_time, tenant_id)
+       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
       [
         body.name, body.productId, body.skuId, body.flashPrice, body.originalPrice,
-        body.totalStock, body.limitPerUser, body.startTime, body.endTime
+        body.totalStock, body.limitPerUser, body.startTime, body.endTime, tenantId
       ]
     );
 
@@ -623,7 +646,8 @@ adminMarketingRouter.post(
               total_stock AS totalStock, sold_count AS soldCount, limit_per_user AS limitPerUser,
               start_time AS startTime, end_time AS endTime, status,
               created_at AS createdAt, updated_at AS updatedAt
-       FROM flash_sale ORDER BY id DESC LIMIT 1`
+       FROM flash_sale WHERE tenant_id = ? ORDER BY id DESC LIMIT 1`,
+      [tenantId]
     );
 
     res.json(ok(record));
@@ -633,20 +657,21 @@ adminMarketingRouter.post(
 // 秒杀活动列表
 adminMarketingRouter.get(
   "/promotions/flash-sale",
-  requireAuth,
+  requireAuthWithTenant,
   asyncHandler(async (req, res) => {
+    const tenantId = req.tenantId!;
     const page = Number(req.query.page || 1);
     const pageSize = Number(req.query.pageSize || 20);
     const offset = (page - 1) * pageSize;
-    const conditions: string[] = [];
-    const params: unknown[] = [];
+    const conditions: string[] = ["tenant_id = ?"];
+    const params: unknown[] = [tenantId];
 
     if (req.query.status) {
       conditions.push("status = ?");
       params.push(req.query.status);
     }
 
-    const where = conditions.length > 0 ? `WHERE ${conditions.join(" AND ")}` : "";
+    const where = `WHERE ${conditions.join(" AND ")}`;
 
     const records = await query<any>(
       `SELECT id, name, product_id AS productId, sku_id AS skuId,
@@ -678,8 +703,9 @@ adminMarketingRouter.get(
 // 秒杀活动详情
 adminMarketingRouter.get(
   "/promotions/flash-sale/:id",
-  requireAuth,
+  requireAuthWithTenant,
   asyncHandler(async (req, res) => {
+    const tenantId = req.tenantId!;
     const id = Number(req.params.id);
     const record = await queryOne<any>(
       `SELECT id, name, product_id AS productId, sku_id AS skuId,
@@ -687,8 +713,8 @@ adminMarketingRouter.get(
               total_stock AS totalStock, sold_count AS soldCount, limit_per_user AS limitPerUser,
               start_time AS startTime, end_time AS endTime, status,
               created_at AS createdAt, updated_at AS updatedAt
-       FROM flash_sale WHERE id = ?`,
-      [id]
+       FROM flash_sale WHERE id = ? AND tenant_id = ?`,
+      [id, tenantId]
     );
     if (!record) {
       res.status(404).json({ code: "404", message: "秒杀活动不存在" });
@@ -701,10 +727,11 @@ adminMarketingRouter.get(
 // 更新秒杀活动
 adminMarketingRouter.put(
   "/promotions/flash-sale/:id",
-  requireAuth,
+  requireAuthWithTenant,
   asyncHandler(async (req, res) => {
+    const tenantId = req.tenantId!;
     const id = Number(req.params.id);
-    const existing = await queryOne<any>("SELECT id, status FROM flash_sale WHERE id = ?", [id]);
+    const existing = await queryOne<any>("SELECT id, status FROM flash_sale WHERE id = ? AND tenant_id = ?", [id, tenantId]);
     if (!existing) {
       res.status(404).json({ code: "404", message: "秒杀活动不存在" });
       return;
@@ -736,7 +763,7 @@ adminMarketingRouter.put(
     if (body.endTime !== undefined) { updates.push("end_time = ?"); params.push(body.endTime); }
 
     if (updates.length > 0) {
-      await query(`UPDATE flash_sale SET ${updates.join(", ")} WHERE id = ?`, [...params, id]);
+      await query(`UPDATE flash_sale SET ${updates.join(", ")} WHERE id = ? AND tenant_id = ?`, [...params, id, tenantId]);
     }
 
     const record = await queryOne<any>(
@@ -745,8 +772,8 @@ adminMarketingRouter.put(
               total_stock AS totalStock, sold_count AS soldCount, limit_per_user AS limitPerUser,
               start_time AS startTime, end_time AS endTime, status,
               created_at AS createdAt, updated_at AS updatedAt
-       FROM flash_sale WHERE id = ?`,
-      [id]
+       FROM flash_sale WHERE id = ? AND tenant_id = ?`,
+      [id, tenantId]
     );
 
     res.json(ok(record));
@@ -756,10 +783,11 @@ adminMarketingRouter.put(
 // 删除秒杀活动
 adminMarketingRouter.delete(
   "/promotions/flash-sale/:id",
-  requireAuth,
+  requireAuthWithTenant,
   asyncHandler(async (req, res) => {
+    const tenantId = req.tenantId!;
     const id = Number(req.params.id);
-    const existing = await queryOne<any>("SELECT id, status FROM flash_sale WHERE id = ?", [id]);
+    const existing = await queryOne<any>("SELECT id, status FROM flash_sale WHERE id = ? AND tenant_id = ?", [id, tenantId]);
     if (!existing) {
       res.status(404).json({ code: "404", message: "秒杀活动不存在" });
       return;
@@ -769,7 +797,7 @@ adminMarketingRouter.delete(
       return;
     }
 
-    await query("DELETE FROM flash_sale WHERE id = ?", [id]);
+    await query("DELETE FROM flash_sale WHERE id = ? AND tenant_id = ?", [id, tenantId]);
     res.json(ok({ id, deleted: true }));
   })
 );
@@ -777,10 +805,11 @@ adminMarketingRouter.delete(
 // 激活秒杀活动
 adminMarketingRouter.post(
   "/promotions/flash-sale/:id/activate",
-  requireAuth,
+  requireAuthWithTenant,
   asyncHandler(async (req, res) => {
+    const tenantId = req.tenantId!;
     const id = Number(req.params.id);
-    const existing = await queryOne<any>("SELECT id, status FROM flash_sale WHERE id = ?", [id]);
+    const existing = await queryOne<any>("SELECT id, status FROM flash_sale WHERE id = ? AND tenant_id = ?", [id, tenantId]);
     if (!existing) {
       res.status(404).json({ code: "404", message: "秒杀活动不存在" });
       return;
@@ -790,7 +819,7 @@ adminMarketingRouter.post(
       return;
     }
 
-    await query("UPDATE flash_sale SET status = 'ACTIVE' WHERE id = ?", [id]);
+    await query("UPDATE flash_sale SET status = 'ACTIVE' WHERE id = ? AND tenant_id = ?", [id, tenantId]);
     res.json(ok({ id, status: "ACTIVE" }));
   })
 );
@@ -798,10 +827,11 @@ adminMarketingRouter.post(
 // 暂停秒杀活动
 adminMarketingRouter.post(
   "/promotions/flash-sale/:id/pause",
-  requireAuth,
+  requireAuthWithTenant,
   asyncHandler(async (req, res) => {
+    const tenantId = req.tenantId!;
     const id = Number(req.params.id);
-    const existing = await queryOne<any>("SELECT id, status FROM flash_sale WHERE id = ?", [id]);
+    const existing = await queryOne<any>("SELECT id, status FROM flash_sale WHERE id = ? AND tenant_id = ?", [id, tenantId]);
     if (!existing) {
       res.status(404).json({ code: "404", message: "秒杀活动不存在" });
       return;
@@ -811,7 +841,7 @@ adminMarketingRouter.post(
       return;
     }
 
-    await query("UPDATE flash_sale SET status = 'PAUSED' WHERE id = ?", [id]);
+    await query("UPDATE flash_sale SET status = 'PAUSED' WHERE id = ? AND tenant_id = ?", [id, tenantId]);
     res.json(ok({ id, status: "PAUSED" }));
   })
 );
@@ -819,8 +849,9 @@ adminMarketingRouter.post(
 // 秒杀统计
 adminMarketingRouter.get(
   "/promotions/flash-sale/statistics",
-  requireAuth,
-  asyncHandler(async (_req, res) => {
+  requireAuthWithTenant,
+  asyncHandler(async (req, res) => {
+    const tenantId = req.tenantId!;
     const stats = await query<any>(
       `SELECT fs.id, fs.name, fs.flash_price AS flashPrice, fs.original_price AS originalPrice,
               fs.total_stock AS totalStock, fs.sold_count AS soldCount, fs.status,
@@ -828,14 +859,17 @@ adminMarketingRouter.get(
               SUM(fsr.price * fsr.quantity) AS totalAmount
        FROM flash_sale fs
        LEFT JOIN flash_sale_record fsr ON fsr.flash_sale_id = fs.id
+       WHERE fs.tenant_id = ?
        GROUP BY fs.id
-       ORDER BY fs.created_at DESC`
+       ORDER BY fs.created_at DESC`,
+      [tenantId]
     );
 
     const overall = await queryOne<any>(
       `SELECT COUNT(*) AS totalActivities, SUM(total_stock) AS totalStock,
               SUM(sold_count) AS totalSold
-       FROM flash_sale`
+       FROM flash_sale WHERE tenant_id = ?`,
+      [tenantId]
     );
 
     res.json(ok({
@@ -873,8 +907,9 @@ adminMarketingRouter.get(
 // 创建拼团活动
 adminMarketingRouter.post(
   "/promotions/group-buy",
-  requireAuth,
+  requireAuthWithTenant,
   asyncHandler(async (req, res) => {
+    const tenantId = req.tenantId!;
     const body = z.object({
       name: z.string().min(1).max(128),
       productId: z.number().int().positive(),
@@ -891,12 +926,12 @@ adminMarketingRouter.post(
 
     await query(
       `INSERT INTO group_buy (name, product_id, sku_id, group_price, original_price,
-        min_group_size, max_group_size, time_limit_hours, total_stock, start_time, end_time)
-       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+        min_group_size, max_group_size, time_limit_hours, total_stock, start_time, end_time, tenant_id)
+       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
       [
         body.name, body.productId, body.skuId, body.groupPrice, body.originalPrice,
         body.minGroupSize, body.maxGroupSize, body.timeLimitHours, body.totalStock,
-        body.startTime, body.endTime
+        body.startTime, body.endTime, tenantId
       ]
     );
 
@@ -908,7 +943,8 @@ adminMarketingRouter.post(
               sold_count AS soldCount, status,
               start_time AS startTime, end_time AS endTime,
               created_at AS createdAt, updated_at AS updatedAt
-       FROM group_buy ORDER BY id DESC LIMIT 1`
+       FROM group_buy WHERE tenant_id = ? ORDER BY id DESC LIMIT 1`,
+      [tenantId]
     );
 
     res.json(ok(record));
@@ -918,20 +954,21 @@ adminMarketingRouter.post(
 // 拼团活动列表
 adminMarketingRouter.get(
   "/promotions/group-buy",
-  requireAuth,
+  requireAuthWithTenant,
   asyncHandler(async (req, res) => {
+    const tenantId = req.tenantId!;
     const page = Number(req.query.page || 1);
     const pageSize = Number(req.query.pageSize || 20);
     const offset = (page - 1) * pageSize;
-    const conditions: string[] = [];
-    const params: unknown[] = [];
+    const conditions: string[] = ["tenant_id = ?"];
+    const params: unknown[] = [tenantId];
 
     if (req.query.status) {
       conditions.push("status = ?");
       params.push(req.query.status);
     }
 
-    const where = conditions.length > 0 ? `WHERE ${conditions.join(" AND ")}` : "";
+    const where = `WHERE ${conditions.join(" AND ")}`;
 
     const records = await query<any>(
       `SELECT id, name, product_id AS productId, sku_id AS skuId,
@@ -965,8 +1002,9 @@ adminMarketingRouter.get(
 // 拼团活动详情
 adminMarketingRouter.get(
   "/promotions/group-buy/:id",
-  requireAuth,
+  requireAuthWithTenant,
   asyncHandler(async (req, res) => {
+    const tenantId = req.tenantId!;
     const id = Number(req.params.id);
     const record = await queryOne<any>(
       `SELECT id, name, product_id AS productId, sku_id AS skuId,
@@ -976,8 +1014,8 @@ adminMarketingRouter.get(
               sold_count AS soldCount, status,
               start_time AS startTime, end_time AS endTime,
               created_at AS createdAt, updated_at AS updatedAt
-       FROM group_buy WHERE id = ?`,
-      [id]
+       FROM group_buy WHERE id = ? AND tenant_id = ?`,
+      [id, tenantId]
     );
     if (!record) {
       res.status(404).json({ code: "404", message: "拼团活动不存在" });
@@ -990,10 +1028,11 @@ adminMarketingRouter.get(
 // 更新拼团活动
 adminMarketingRouter.put(
   "/promotions/group-buy/:id",
-  requireAuth,
+  requireAuthWithTenant,
   asyncHandler(async (req, res) => {
+    const tenantId = req.tenantId!;
     const id = Number(req.params.id);
-    const existing = await queryOne<any>("SELECT id, status FROM group_buy WHERE id = ?", [id]);
+    const existing = await queryOne<any>("SELECT id, status FROM group_buy WHERE id = ? AND tenant_id = ?", [id, tenantId]);
     if (!existing) {
       res.status(404).json({ code: "404", message: "拼团活动不存在" });
       return;
@@ -1029,7 +1068,7 @@ adminMarketingRouter.put(
     if (body.endTime !== undefined) { updates.push("end_time = ?"); params.push(body.endTime); }
 
     if (updates.length > 0) {
-      await query(`UPDATE group_buy SET ${updates.join(", ")} WHERE id = ?`, [...params, id]);
+      await query(`UPDATE group_buy SET ${updates.join(", ")} WHERE id = ? AND tenant_id = ?`, [...params, id, tenantId]);
     }
 
     const record = await queryOne<any>(
@@ -1040,8 +1079,8 @@ adminMarketingRouter.put(
               sold_count AS soldCount, status,
               start_time AS startTime, end_time AS endTime,
               created_at AS createdAt, updated_at AS updatedAt
-       FROM group_buy WHERE id = ?`,
-      [id]
+       FROM group_buy WHERE id = ? AND tenant_id = ?`,
+      [id, tenantId]
     );
 
     res.json(ok(record));
@@ -1051,10 +1090,11 @@ adminMarketingRouter.put(
 // 删除拼团活动
 adminMarketingRouter.delete(
   "/promotions/group-buy/:id",
-  requireAuth,
+  requireAuthWithTenant,
   asyncHandler(async (req, res) => {
+    const tenantId = req.tenantId!;
     const id = Number(req.params.id);
-    const existing = await queryOne<any>("SELECT id, status FROM group_buy WHERE id = ?", [id]);
+    const existing = await queryOne<any>("SELECT id, status FROM group_buy WHERE id = ? AND tenant_id = ?", [id, tenantId]);
     if (!existing) {
       res.status(404).json({ code: "404", message: "拼团活动不存在" });
       return;
@@ -1064,7 +1104,7 @@ adminMarketingRouter.delete(
       return;
     }
 
-    await query("DELETE FROM group_buy WHERE id = ?", [id]);
+    await query("DELETE FROM group_buy WHERE id = ? AND tenant_id = ?", [id, tenantId]);
     res.json(ok({ id, deleted: true }));
   })
 );
@@ -1072,10 +1112,11 @@ adminMarketingRouter.delete(
 // 激活拼团活动
 adminMarketingRouter.post(
   "/promotions/group-buy/:id/activate",
-  requireAuth,
+  requireAuthWithTenant,
   asyncHandler(async (req, res) => {
+    const tenantId = req.tenantId!;
     const id = Number(req.params.id);
-    const existing = await queryOne<any>("SELECT id, status FROM group_buy WHERE id = ?", [id]);
+    const existing = await queryOne<any>("SELECT id, status FROM group_buy WHERE id = ? AND tenant_id = ?", [id, tenantId]);
     if (!existing) {
       res.status(404).json({ code: "404", message: "拼团活动不存在" });
       return;
@@ -1085,7 +1126,7 @@ adminMarketingRouter.post(
       return;
     }
 
-    await query("UPDATE group_buy SET status = 'ACTIVE' WHERE id = ?", [id]);
+    await query("UPDATE group_buy SET status = 'ACTIVE' WHERE id = ? AND tenant_id = ?", [id, tenantId]);
     res.json(ok({ id, status: "ACTIVE" }));
   })
 );
@@ -1093,13 +1134,14 @@ adminMarketingRouter.post(
 // 拼团组列表
 adminMarketingRouter.get(
   "/promotions/group-buy/teams",
-  requireAuth,
+  requireAuthWithTenant,
   asyncHandler(async (req, res) => {
+    const tenantId = req.tenantId!;
     const page = Number(req.query.page || 1);
     const pageSize = Number(req.query.pageSize || 20);
     const offset = (page - 1) * pageSize;
-    const conditions: string[] = [];
-    const params: unknown[] = [];
+    const conditions: string[] = ["gb.tenant_id = ?"];
+    const params: unknown[] = [tenantId];
 
     if (req.query.activityId) {
       conditions.push("gbt.activity_id = ?");
@@ -1110,7 +1152,7 @@ adminMarketingRouter.get(
       params.push(req.query.status);
     }
 
-    const where = conditions.length > 0 ? `WHERE ${conditions.join(" AND ")}` : "";
+    const where = `WHERE ${conditions.join(" AND ")}`;
 
     const records = await query<any>(
       `SELECT gbt.id, gbt.activity_id AS activityId, gbt.leader_id AS leaderId,
@@ -1119,7 +1161,7 @@ adminMarketingRouter.get(
               gbt.expires_at AS expiresAt, gbt.created_at AS createdAt, gbt.completed_at AS completedAt,
               gb.name AS activityName, gb.group_price AS groupPrice
        FROM group_buy_team gbt
-       JOIN group_buy gb ON gb.id = gbt.activity_id
+       JOIN group_buy gb ON gb.id = gbt.activity_id AND gb.tenant_id = ?
        ${where}
        ORDER BY gbt.created_at DESC
        LIMIT ? OFFSET ?`,
@@ -1127,7 +1169,9 @@ adminMarketingRouter.get(
     );
 
     const totalRow = await queryOne<any>(
-      `SELECT COUNT(*) AS total FROM group_buy_team gbt ${where}`,
+      `SELECT COUNT(*) AS total FROM group_buy_team gbt
+       JOIN group_buy gb ON gb.id = gbt.activity_id AND gb.tenant_id = ?
+       ${where}`,
       params
     );
 
@@ -1147,8 +1191,9 @@ adminMarketingRouter.get(
 // 创建叠加规则
 adminMarketingRouter.post(
   "/promotions/stack-rules",
-  requireAuth,
+  requireAuthWithTenant,
   asyncHandler(async (req, res) => {
+    const tenantId = req.tenantId!;
     const body = z.object({
       name: z.string().min(1).max(128),
       typeCombination: z.array(z.array(z.string())).min(1),
@@ -1158,11 +1203,11 @@ adminMarketingRouter.post(
     }).parse(req.body);
 
     await query(
-      `INSERT INTO promo_stack_rule (name, type_combination, max_total_discount_rate, priority, enabled)
-       VALUES (?, ?, ?, ?, ?)`,
+      `INSERT INTO promo_stack_rule (name, type_combination, max_total_discount_rate, priority, enabled, tenant_id)
+       VALUES (?, ?, ?, ?, ?, ?)`,
       [
         body.name, JSON.stringify(body.typeCombination),
-        body.maxTotalDiscountRate, body.priority, body.enabled ? 1 : 0
+        body.maxTotalDiscountRate, body.priority, body.enabled ? 1 : 0, tenantId
       ]
     );
 
@@ -1170,7 +1215,8 @@ adminMarketingRouter.post(
       `SELECT id, name, type_combination AS typeCombination,
               max_total_discount_rate AS maxTotalDiscountRate,
               priority, enabled, created_at AS createdAt
-       FROM promo_stack_rule ORDER BY id DESC LIMIT 1`
+       FROM promo_stack_rule WHERE tenant_id = ? ORDER BY id DESC LIMIT 1`,
+      [tenantId]
     );
 
     res.json(ok(record));
@@ -1180,14 +1226,17 @@ adminMarketingRouter.post(
 // 叠加规则列表
 adminMarketingRouter.get(
   "/promotions/stack-rules",
-  requireAuth,
-  asyncHandler(async (_req, res) => {
+  requireAuthWithTenant,
+  asyncHandler(async (req, res) => {
+    const tenantId = req.tenantId!;
     const records = await query<any>(
       `SELECT id, name, type_combination AS typeCombination,
               max_total_discount_rate AS maxTotalDiscountRate,
               priority, enabled, created_at AS createdAt
        FROM promo_stack_rule
-       ORDER BY priority DESC, id ASC`
+       WHERE tenant_id = ?
+       ORDER BY priority DESC, id ASC`,
+      [tenantId]
     );
 
     res.json(ok({ total: records.length, records }));
@@ -1197,10 +1246,11 @@ adminMarketingRouter.get(
 // 更新叠加规则
 adminMarketingRouter.put(
   "/promotions/stack-rules/:id",
-  requireAuth,
+  requireAuthWithTenant,
   asyncHandler(async (req, res) => {
+    const tenantId = req.tenantId!;
     const id = Number(req.params.id);
-    const existing = await queryOne<any>("SELECT id FROM promo_stack_rule WHERE id = ?", [id]);
+    const existing = await queryOne<any>("SELECT id FROM promo_stack_rule WHERE id = ? AND tenant_id = ?", [id, tenantId]);
     if (!existing) {
       res.status(404).json({ code: "404", message: "叠加规则不存在" });
       return;
@@ -1224,15 +1274,15 @@ adminMarketingRouter.put(
     if (body.enabled !== undefined) { updates.push("enabled = ?"); params.push(body.enabled ? 1 : 0); }
 
     if (updates.length > 0) {
-      await query(`UPDATE promo_stack_rule SET ${updates.join(", ")} WHERE id = ?`, [...params, id]);
+      await query(`UPDATE promo_stack_rule SET ${updates.join(", ")} WHERE id = ? AND tenant_id = ?`, [...params, id, tenantId]);
     }
 
     const record = await queryOne<any>(
       `SELECT id, name, type_combination AS typeCombination,
               max_total_discount_rate AS maxTotalDiscountRate,
               priority, enabled, created_at AS createdAt
-       FROM promo_stack_rule WHERE id = ?`,
-      [id]
+       FROM promo_stack_rule WHERE id = ? AND tenant_id = ?`,
+      [id, tenantId]
     );
 
     res.json(ok(record));
@@ -1242,16 +1292,17 @@ adminMarketingRouter.put(
 // 删除叠加规则
 adminMarketingRouter.delete(
   "/promotions/stack-rules/:id",
-  requireAuth,
+  requireAuthWithTenant,
   asyncHandler(async (req, res) => {
+    const tenantId = req.tenantId!;
     const id = Number(req.params.id);
-    const existing = await queryOne<any>("SELECT id FROM promo_stack_rule WHERE id = ?", [id]);
+    const existing = await queryOne<any>("SELECT id FROM promo_stack_rule WHERE id = ? AND tenant_id = ?", [id, tenantId]);
     if (!existing) {
       res.status(404).json({ code: "404", message: "叠加规则不存在" });
       return;
     }
 
-    await query("DELETE FROM promo_stack_rule WHERE id = ?", [id]);
+    await query("DELETE FROM promo_stack_rule WHERE id = ? AND tenant_id = ?", [id, tenantId]);
     res.json(ok({ id, deleted: true }));
   })
 );
@@ -1259,8 +1310,9 @@ adminMarketingRouter.delete(
 // 试算接口：输入商品列表+优惠券+活动，返回最优组合
 adminMarketingRouter.post(
   "/promotions/calculate",
-  requireAuth,
+  requireAuthWithTenant,
   asyncHandler(async (req, res) => {
+    const tenantId = req.tenantId!;
     const body = z.object({
       items: z.array(z.object({
         skuId: z.number().int().positive(),
@@ -1291,8 +1343,8 @@ adminMarketingRouter.post(
     if (body.flashSaleId) {
       const flashSale = await queryOne<any>(
         `SELECT id, sku_id, flash_price, status, start_time, end_time
-         FROM flash_sale WHERE id = ? AND status = 'ACTIVE' AND start_time <= ? AND end_time >= ?`,
-        [body.flashSaleId, now, now]
+         FROM flash_sale WHERE id = ? AND tenant_id = ? AND status = 'ACTIVE' AND start_time <= ? AND end_time >= ?`,
+        [body.flashSaleId, tenantId, now, now]
       );
       if (flashSale) {
         let flashDiscount = 0;
@@ -1319,9 +1371,9 @@ adminMarketingRouter.post(
         `SELECT gbt.id, gbt.activity_id, gbt.status, gbt.target_size, gbt.current_size,
                 gb.group_price, gb.sku_id, gb.status AS activityStatus
          FROM group_buy_team gbt
-         JOIN group_buy gb ON gb.id = gbt.activity_id
+         JOIN group_buy gb ON gb.id = gbt.activity_id AND gb.tenant_id = ?
          WHERE gbt.id = ? AND gbt.status = 'PENDING' AND gb.status = 'ACTIVE'`,
-        [body.groupBuyTeamId]
+        [tenantId, body.groupBuyTeamId]
       );
       if (team) {
         let groupDiscount = 0;
@@ -1347,9 +1399,9 @@ adminMarketingRouter.post(
       const fullReductions = await query<any>(
         `SELECT id, rules, applicable_scope, applicable_ids, stackable
          FROM full_reduction
-         WHERE id IN (?) AND status = 'ACTIVE' AND start_time <= ? AND end_time >= ?
+         WHERE id IN (?) AND tenant_id = ? AND status = 'ACTIVE' AND start_time <= ? AND end_time >= ?
          ORDER BY priority DESC`,
-        [body.fullReductionIds, now, now]
+        [body.fullReductionIds, tenantId, now, now]
       );
       for (const fr of fullReductions) {
         const rules: Array<{ minAmount: number; reduceAmount: number }> = JSON.parse(fr.rules);
@@ -1374,8 +1426,8 @@ adminMarketingRouter.post(
     if (body.couponTemplateId) {
       const coupon = await queryOne<any>(
         `SELECT id, type, value, min_amount, max_discount, applicable_scope, applicable_ids
-         FROM coupon_template WHERE id = ? AND status = 'ACTIVE' AND start_time <= ? AND end_time >= ?`,
-        [body.couponTemplateId, now, now]
+         FROM coupon_template WHERE id = ? AND tenant_id = ? AND status = 'ACTIVE' AND start_time <= ? AND end_time >= ?`,
+        [body.couponTemplateId, tenantId, now, now]
       );
       if (coupon && discountedTotal >= Number(coupon.min_amount)) {
         let couponDiscount = 0;
@@ -1420,7 +1472,9 @@ adminMarketingRouter.post(
 // 我可领取的优惠券列表
 miniappMarketingRouter.get(
   "/coupons/available",
+  requireAuthWithTenant,
   asyncHandler(async (req, res) => {
+    const tenantId = req.tenantId!;
     const now = new Date().toISOString();
     const records = await query<any>(
       `SELECT id, name, type, value, min_amount AS minAmount, max_discount AS maxDiscount,
@@ -1428,10 +1482,10 @@ miniappMarketingRouter.get(
               claimed_count AS claimedCount,
               start_time AS startTime, end_time AS endTime, description
        FROM coupon_template
-       WHERE status = 'ACTIVE' AND start_time <= ? AND end_time >= ?
+       WHERE tenant_id = ? AND status = 'ACTIVE' AND start_time <= ? AND end_time >= ?
          AND (total_count = 0 OR claimed_count < total_count)
        ORDER BY created_at DESC`,
-      [now, now]
+      [tenantId, now, now]
     );
 
     res.json(ok({ total: records.length, records }));
@@ -1441,9 +1495,11 @@ miniappMarketingRouter.get(
 // 领取优惠券（防重复+库存扣减事务）
 miniappMarketingRouter.post(
   "/coupons/:templateId/claim",
+  requireAuthWithTenant,
   asyncHandler(async (req, res) => {
+    const tenantId = req.tenantId!;
     const templateId = Number(req.params.templateId);
-    const userId = Number(req.body.userId || req.query.userId || 0);
+    const userId = Number(req.user?.id || req.body.userId || req.query.userId || 0);
     if (!userId) {
       res.status(400).json({ code: "400", message: "缺少用户ID" });
       return;
@@ -1457,9 +1513,9 @@ miniappMarketingRouter.post(
         `SELECT id, name, type, value, min_amount, max_discount, total_count, claimed_count,
                 end_time, status
          FROM coupon_template
-         WHERE id = ? AND status = 'ACTIVE' AND start_time <= ? AND end_time >= ?
+         WHERE id = ? AND tenant_id = ? AND status = 'ACTIVE' AND start_time <= ? AND end_time >= ?
          FOR UPDATE`,
-        [templateId, now, now]
+        [templateId, tenantId, now, now]
       ) as any;
 
       const template = (templateRows as any[])[0];
@@ -1476,8 +1532,10 @@ miniappMarketingRouter.post(
 
       // 防重复领取
       const [existingRows] = await conn.execute(
-        `SELECT id FROM user_coupon WHERE template_id = ? AND user_id = ? AND status = 'AVAILABLE'`,
-        [templateId, userId]
+        `SELECT uc.id FROM user_coupon uc
+         JOIN coupon_template ct ON ct.id = uc.template_id AND ct.tenant_id = ?
+         WHERE uc.template_id = ? AND uc.user_id = ? AND uc.status = 'AVAILABLE'`,
+        [tenantId, templateId, userId]
       ) as any;
 
       if ((existingRows as any[]).length > 0) {
@@ -1491,15 +1549,15 @@ miniappMarketingRouter.post(
 
       // 插入用户优惠券
       await conn.execute(
-        `INSERT INTO user_coupon (template_id, user_id, status, expires_at)
-         VALUES (?, ?, 'AVAILABLE', ?)`,
-        [templateId, userId, expiresAt]
+        `INSERT INTO user_coupon (template_id, user_id, status, expires_at, tenant_id)
+         VALUES (?, ?, 'AVAILABLE', ?, ?)`,
+        [templateId, userId, expiresAt, tenantId]
       );
 
       // 扣减库存
       await conn.execute(
-        `UPDATE coupon_template SET claimed_count = claimed_count + 1 WHERE id = ?`,
-        [templateId]
+        `UPDATE coupon_template SET claimed_count = claimed_count + 1 WHERE id = ? AND tenant_id = ?`,
+        [templateId, tenantId]
       );
     });
 
@@ -1509,10 +1567,10 @@ miniappMarketingRouter.post(
               ct.name AS templateName, ct.type AS couponType, ct.value AS couponValue,
               ct.min_amount AS minAmount, ct.applicable_scope AS applicableScope
        FROM user_coupon uc
-       JOIN coupon_template ct ON ct.id = uc.template_id
-       WHERE uc.template_id = ? AND uc.user_id = ?
+       JOIN coupon_template ct ON ct.id = uc.template_id AND ct.tenant_id = ?
+       WHERE uc.template_id = ? AND uc.user_id = ? AND uc.tenant_id = ?
        ORDER BY uc.id DESC LIMIT 1`,
-      [templateId, userId]
+      [tenantId, templateId, userId, tenantId]
     );
 
     res.json(ok(record));
@@ -1522,8 +1580,10 @@ miniappMarketingRouter.post(
 // 我的优惠券（分页+状态筛选）
 miniappMarketingRouter.get(
   "/coupons/mine",
+  requireAuthWithTenant,
   asyncHandler(async (req, res) => {
-    const userId = Number(req.query.userId || 0);
+    const tenantId = req.tenantId!;
+    const userId = Number(req.user?.id || req.query.userId || 0);
     if (!userId) {
       res.status(400).json({ code: "400", message: "缺少用户ID" });
       return;
@@ -1531,8 +1591,8 @@ miniappMarketingRouter.get(
     const page = Number(req.query.page || 1);
     const pageSize = Number(req.query.pageSize || 20);
     const offset = (page - 1) * pageSize;
-    const conditions: string[] = ["uc.user_id = ?"];
-    const params: unknown[] = [userId];
+    const conditions: string[] = ["uc.user_id = ?", "uc.tenant_id = ?"];
+    const params: unknown[] = [userId, tenantId];
 
     if (req.query.status) {
       conditions.push("uc.status = ?");
@@ -1549,11 +1609,11 @@ miniappMarketingRouter.get(
               ct.min_amount AS minAmount, ct.max_discount AS maxDiscount,
               ct.applicable_scope AS applicableScope, ct.description
        FROM user_coupon uc
-       JOIN coupon_template ct ON ct.id = uc.template_id
+       JOIN coupon_template ct ON ct.id = uc.template_id AND ct.tenant_id = ?
        WHERE ${where}
        ORDER BY uc.claimed_at DESC
        LIMIT ? OFFSET ?`,
-      [...params, pageSize, offset]
+      [tenantId, ...params, pageSize, offset]
     );
 
     const totalRow = await queryOne<any>(
@@ -1577,7 +1637,9 @@ miniappMarketingRouter.get(
 // 进行中的秒杀列表
 miniappMarketingRouter.get(
   "/promotions/flash-sale/active",
-  asyncHandler(async (_req, res) => {
+  requireAuthWithTenant,
+  asyncHandler(async (req, res) => {
+    const tenantId = req.tenantId!;
     const now = new Date().toISOString();
     const records = await query<any>(
       `SELECT id, name, product_id AS productId, sku_id AS skuId,
@@ -1585,9 +1647,9 @@ miniappMarketingRouter.get(
               total_stock AS totalStock, sold_count AS soldCount, limit_per_user AS limitPerUser,
               start_time AS startTime, end_time AS endTime
        FROM flash_sale
-       WHERE status = 'ACTIVE' AND start_time <= ? AND end_time >= ?
+       WHERE tenant_id = ? AND status = 'ACTIVE' AND start_time <= ? AND end_time >= ?
        ORDER BY start_time ASC`,
-      [now, now]
+      [tenantId, now, now]
     );
 
     res.json(ok({ total: records.length, records }));
@@ -1597,7 +1659,9 @@ miniappMarketingRouter.get(
 // 秒杀下单（库存扣减+限购检查+事务）
 miniappMarketingRouter.post(
   "/promotions/flash-sale/:id/buy",
+  requireAuthWithTenant,
   asyncHandler(async (req, res) => {
+    const tenantId = req.tenantId!;
     const flashSaleId = Number(req.params.id);
     const body = z.object({
       userId: z.number().int().positive(),
@@ -1612,9 +1676,9 @@ miniappMarketingRouter.post(
         `SELECT id, flash_price, total_stock, sold_count, limit_per_user, status,
                 start_time, end_time
          FROM flash_sale
-         WHERE id = ? AND status = 'ACTIVE' AND start_time <= ? AND end_time >= ?
+         WHERE id = ? AND tenant_id = ? AND status = 'ACTIVE' AND start_time <= ? AND end_time >= ?
          FOR UPDATE`,
-        [flashSaleId, now, now]
+        [flashSaleId, tenantId, now, now]
       ) as any;
 
       const flash = (flashRows as any[])[0];
@@ -1633,8 +1697,10 @@ miniappMarketingRouter.post(
       // 限购检查
       const [purchaseRows] = await conn.execute(
         `SELECT COALESCE(SUM(quantity), 0) AS totalQty
-         FROM flash_sale_record WHERE flash_sale_id = ? AND user_id = ?`,
-        [flashSaleId, body.userId]
+         FROM flash_sale_record fsr
+         JOIN flash_sale fs ON fs.id = fsr.flash_sale_id AND fs.tenant_id = ?
+         WHERE fsr.flash_sale_id = ? AND fsr.user_id = ?`,
+        [tenantId, flashSaleId, body.userId]
       ) as any;
 
       const purchased = Number((purchaseRows as any[])[0]?.totalQty || 0);
@@ -1645,15 +1711,15 @@ miniappMarketingRouter.post(
 
       // 扣减库存
       await conn.execute(
-        `UPDATE flash_sale SET sold_count = sold_count + ? WHERE id = ?`,
-        [body.quantity, flashSaleId]
+        `UPDATE flash_sale SET sold_count = sold_count + ? WHERE id = ? AND tenant_id = ?`,
+        [body.quantity, flashSaleId, tenantId]
       );
 
       // 创建秒杀记录（orderId为null，后续由订单系统关联）
       await conn.execute(
-        `INSERT INTO flash_sale_record (flash_sale_id, user_id, quantity, price)
-         VALUES (?, ?, ?, ?)`,
-        [flashSaleId, body.userId, body.quantity, flash.flash_price]
+        `INSERT INTO flash_sale_record (flash_sale_id, user_id, quantity, price, tenant_id)
+         VALUES (?, ?, ?, ?, ?)`,
+        [flashSaleId, body.userId, body.quantity, flash.flash_price, tenantId]
       );
     });
 
@@ -1673,7 +1739,9 @@ miniappMarketingRouter.post(
 // 进行中的拼团列表
 miniappMarketingRouter.get(
   "/promotions/group-buy/active",
-  asyncHandler(async (_req, res) => {
+  requireAuthWithTenant,
+  asyncHandler(async (req, res) => {
+    const tenantId = req.tenantId!;
     const now = new Date().toISOString();
     const records = await query<any>(
       `SELECT id, name, product_id AS productId, sku_id AS skuId,
@@ -1683,9 +1751,9 @@ miniappMarketingRouter.get(
               sold_count AS soldCount,
               start_time AS startTime, end_time AS endTime
        FROM group_buy
-       WHERE status = 'ACTIVE' AND start_time <= ? AND end_time >= ?
+       WHERE tenant_id = ? AND status = 'ACTIVE' AND start_time <= ? AND end_time >= ?
        ORDER BY start_time ASC`,
-      [now, now]
+      [tenantId, now, now]
     );
 
     res.json(ok({ total: records.length, records }));
@@ -1695,7 +1763,9 @@ miniappMarketingRouter.get(
 // 开团（创建team+leader记录+扣库存）
 miniappMarketingRouter.post(
   "/promotions/group-buy/:id/create-team",
+  requireAuthWithTenant,
   asyncHandler(async (req, res) => {
+    const tenantId = req.tenantId!;
     const activityId = Number(req.params.id);
     const body = z.object({
       userId: z.number().int().positive(),
@@ -1710,9 +1780,9 @@ miniappMarketingRouter.post(
         `SELECT id, group_price, min_group_size, max_group_size, time_limit_hours,
                 total_stock, sold_count, status, start_time, end_time
          FROM group_buy
-         WHERE id = ? AND status = 'ACTIVE' AND start_time <= ? AND end_time >= ?
+         WHERE id = ? AND tenant_id = ? AND status = 'ACTIVE' AND start_time <= ? AND end_time >= ?
          FOR UPDATE`,
-        [activityId, now, now]
+        [activityId, tenantId, now, now]
       ) as any;
 
       const activity = (activityRows as any[])[0];
@@ -1733,24 +1803,24 @@ miniappMarketingRouter.post(
 
       // 创建拼团组
       const [teamResult] = await conn.execute(
-        `INSERT INTO group_buy_team (activity_id, leader_id, current_size, target_size, status, expires_at)
-         VALUES (?, ?, 1, ?, 'PENDING', ?)`,
-        [activityId, body.userId, activity.min_group_size, expiresAt]
+        `INSERT INTO group_buy_team (activity_id, leader_id, current_size, target_size, status, expires_at, tenant_id)
+         VALUES (?, ?, 1, ?, 'PENDING', ?, ?)`,
+        [activityId, body.userId, activity.min_group_size, expiresAt, tenantId]
       ) as any;
 
       const teamId = (teamResult as any).insertId;
 
       // 创建团长记录
       await conn.execute(
-        `INSERT INTO group_buy_member (team_id, user_id, is_leader)
-         VALUES (?, ?, 1)`,
-        [teamId, body.userId]
+        `INSERT INTO group_buy_member (team_id, user_id, is_leader, tenant_id)
+         VALUES (?, ?, 1, ?)`,
+        [teamId, body.userId, tenantId]
       );
 
       // 扣减库存
       await conn.execute(
-        `UPDATE group_buy SET sold_count = sold_count + ? WHERE id = ?`,
-        [body.quantity, activityId]
+        `UPDATE group_buy SET sold_count = sold_count + ? WHERE id = ? AND tenant_id = ?`,
+        [body.quantity, activityId, tenantId]
       );
 
       // 返回团信息
@@ -1758,8 +1828,8 @@ miniappMarketingRouter.post(
         `SELECT id, activity_id AS activityId, leader_id AS leaderId,
                 current_size AS currentSize, target_size AS targetSize,
                 status, expires_at AS expiresAt, created_at AS createdAt
-         FROM group_buy_team WHERE id = ?`,
-        [teamId]
+         FROM group_buy_team WHERE id = ? AND tenant_id = ?`,
+        [teamId, tenantId]
       ) as any;
 
       res.json(ok((team as any[])[0]));
@@ -1770,7 +1840,9 @@ miniappMarketingRouter.post(
 // 团详情
 miniappMarketingRouter.get(
   "/promotions/group-buy/team/:teamId",
+  requireAuthWithTenant,
   asyncHandler(async (req, res) => {
+    const tenantId = req.tenantId!;
     const teamId = Number(req.params.teamId);
 
     const team = await queryOne<any>(
@@ -1780,9 +1852,9 @@ miniappMarketingRouter.get(
               gbt.expires_at AS expiresAt, gbt.created_at AS createdAt, gbt.completed_at AS completedAt,
               gb.name AS activityName, gb.group_price AS groupPrice, gb.original_price AS originalPrice
        FROM group_buy_team gbt
-       JOIN group_buy gb ON gb.id = gbt.activity_id
-       WHERE gbt.id = ?`,
-      [teamId]
+       JOIN group_buy gb ON gb.id = gbt.activity_id AND gb.tenant_id = ?
+       WHERE gbt.id = ? AND gbt.tenant_id = ?`,
+      [tenantId, teamId, tenantId]
     );
 
     if (!team) {
@@ -1793,8 +1865,8 @@ miniappMarketingRouter.get(
     // 获取团员列表
     const members = await query<any>(
       `SELECT id, user_id AS userId, order_id AS orderId, is_leader AS isLeader, joined_at AS joinedAt
-       FROM group_buy_member WHERE team_id = ?`,
-      [teamId]
+       FROM group_buy_member WHERE team_id = ? AND tenant_id = ?`,
+      [teamId, tenantId]
     );
 
     res.json(ok({ ...team, members }));
@@ -1804,7 +1876,9 @@ miniappMarketingRouter.get(
 // 参团（检查人数+扣库存）
 miniappMarketingRouter.post(
   "/promotions/group-buy/team/:teamId/join",
+  requireAuthWithTenant,
   asyncHandler(async (req, res) => {
+    const tenantId = req.tenantId!;
     const teamId = Number(req.params.teamId);
     const body = z.object({
       userId: z.number().int().positive(),
@@ -1819,10 +1893,10 @@ miniappMarketingRouter.post(
         `SELECT gbt.id, gbt.activity_id, gbt.current_size, gbt.target_size, gbt.status, gbt.expires_at,
                 gb.max_group_size, gb.total_stock, gb.sold_count, gb.status AS activityStatus
          FROM group_buy_team gbt
-         JOIN group_buy gb ON gb.id = gbt.activity_id
-         WHERE gbt.id = ? AND gbt.status = 'PENDING' AND gbt.expires_at > ?
+         JOIN group_buy gb ON gb.id = gbt.activity_id AND gb.tenant_id = ?
+         WHERE gbt.id = ? AND gbt.tenant_id = ? AND gbt.status = 'PENDING' AND gbt.expires_at > ?
          FOR UPDATE`,
-        [teamId, now]
+        [tenantId, teamId, tenantId, now]
       ) as any;
 
       const team = (teamRows as any[])[0];
@@ -1833,8 +1907,8 @@ miniappMarketingRouter.post(
 
       // 检查是否已是团员
       const [memberRows] = await conn.execute(
-        `SELECT id FROM group_buy_member WHERE team_id = ? AND user_id = ?`,
-        [teamId, body.userId]
+        `SELECT id FROM group_buy_member WHERE team_id = ? AND user_id = ? AND tenant_id = ?`,
+        [teamId, body.userId, tenantId]
       ) as any;
 
       if ((memberRows as any[]).length > 0) {
@@ -1857,8 +1931,8 @@ miniappMarketingRouter.post(
 
       // 添加团员
       await conn.execute(
-        `INSERT INTO group_buy_member (team_id, user_id, is_leader) VALUES (?, ?, 0)`,
-        [teamId, body.userId]
+        `INSERT INTO group_buy_member (team_id, user_id, is_leader, tenant_id) VALUES (?, ?, 0, ?)`,
+        [teamId, body.userId, tenantId]
       );
 
       // 更新团人数
@@ -1868,19 +1942,20 @@ miniappMarketingRouter.post(
       await conn.execute(
         `UPDATE group_buy_team
          SET current_size = ?, status = ?, completed_at = ?
-         WHERE id = ?`,
+         WHERE id = ? AND tenant_id = ?`,
         [
           newSize,
           isCompleted ? "COMPLETED" : "PENDING",
           isCompleted ? now : null,
-          teamId
+          teamId,
+          tenantId
         ]
       );
 
       // 扣减库存
       await conn.execute(
-        `UPDATE group_buy SET sold_count = sold_count + ? WHERE id = ?`,
-        [body.quantity, team.activity_id]
+        `UPDATE group_buy SET sold_count = sold_count + ? WHERE id = ? AND tenant_id = ?`,
+        [body.quantity, team.activity_id, tenantId]
       );
     });
 
@@ -1891,9 +1966,9 @@ miniappMarketingRouter.post(
               gbt.status, gbt.expires_at AS expiresAt,
               gb.name AS activityName, gb.group_price AS groupPrice
        FROM group_buy_team gbt
-       JOIN group_buy gb ON gb.id = gbt.activity_id
-       WHERE gbt.id = ?`,
-      [teamId]
+       JOIN group_buy gb ON gb.id = gbt.activity_id AND gb.tenant_id = ?
+       WHERE gbt.id = ? AND gbt.tenant_id = ?`,
+      [tenantId, teamId, tenantId]
     );
 
     res.json(ok({

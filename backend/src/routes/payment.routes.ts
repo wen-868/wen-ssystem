@@ -21,7 +21,7 @@ paymentRouter.post("/orders", requireAuthWithTenant, asyncHandler(async (req, re
   }).parse(req.body);
 
   const payNo = makeBizNo("ZF");
-  const tenantId = req.tenantId;
+  const tenantId = req.tenantId!;
 
   await query(
     `INSERT INTO payment_order (pay_no, source_type, source_no, channel, amount, status, tenant_id)
@@ -140,7 +140,7 @@ paymentRouter.post("/refunds", requireAuthWithTenant, asyncHandler(async (req, r
     reason: z.string() 
   }).parse(req.body);
 
-  const tenantId = req.tenantId;
+  const tenantId = req.tenantId!;
   const payment = await queryOne<any>(
     "SELECT amount, status, transaction_id FROM payment_order WHERE pay_no = ? AND tenant_id = ?",
     [body.payNo, tenantId]
@@ -186,7 +186,7 @@ paymentRouter.post("/refunds", requireAuthWithTenant, asyncHandler(async (req, r
 
 paymentRouter.get("/orders/:payNo", requireAuthWithTenant, asyncHandler(async (req, res) => {
   const { payNo } = req.params;
-  const tenantId = req.tenantId;
+  const tenantId = req.tenantId!;
 
   const order = await queryOne<any>(
     "SELECT * FROM payment_order WHERE pay_no = ? AND tenant_id = ?",
@@ -202,7 +202,7 @@ paymentRouter.get("/orders/:payNo", requireAuthWithTenant, asyncHandler(async (r
 }));
 
 paymentRouter.get("/orders", requireAuthWithTenant, asyncHandler(async (req, res) => {
-  const tenantId = req.tenantId;
+  const tenantId = req.tenantId!;
   const { page = 1, pageSize = 20, status } = req.query;
 
   let sql = "SELECT * FROM payment_order WHERE tenant_id = ?";

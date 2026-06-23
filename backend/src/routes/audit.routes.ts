@@ -1,5 +1,6 @@
 import { Router } from "express";
 import { z } from "zod";
+import { requireAuthWithTenant } from "../shared/auth.js";
 import { asyncHandler } from "../shared/async-handler.js";
 import { query, queryOne, pool } from "../shared/db.js";
 import { ok } from "../shared/response.js";
@@ -8,7 +9,8 @@ import type { Request } from "express";
 export const auditRouter = Router();
 
 // ========== 审计日志查询（分页+筛选） ==========
-auditRouter.get("/", asyncHandler(async (req, res) => {
+auditRouter.get("/", requireAuthWithTenant, asyncHandler(async (req, res) => {
+  const tenantId = req.tenantId!;
   const schema = z.object({
     page: z.coerce.number().min(1).default(1),
     pageSize: z.coerce.number().min(1).max(100).default(20),
@@ -20,8 +22,8 @@ auditRouter.get("/", asyncHandler(async (req, res) => {
   });
   const params = schema.parse(req.query);
   const offset = (params.page - 1) * params.pageSize;
-  const conditions: string[] = [];
-  const sqlParams: unknown[] = [];
+  const conditions: string[] = ["tenant_id = ?"];
+  const sqlParams: unknown[] = [tenantId];
 
   if (params.userId) {
     conditions.push("user_id = ?");
@@ -44,7 +46,7 @@ auditRouter.get("/", asyncHandler(async (req, res) => {
     sqlParams.push(params.dateEnd);
   }
 
-  const where = conditions.length > 0 ? `WHERE ${conditions.join(" AND ")}` : "";
+  const where = `WHERE ${conditions.join(" AND ")}`;
 
   const totalRow = await queryOne<{ total: number }>(
     `SELECT COUNT(*) AS total FROM audit_log ${where}`,
@@ -66,17 +68,18 @@ auditRouter.get("/", asyncHandler(async (req, res) => {
 }));
 
 // ========== 审计日志统计 ==========
-auditRouter.get("/statistics", asyncHandler(async (_req, res) => {
+auditRouter.get("/statistics", requireAuthWithTenant, asyncHandler(async (req, res) => {
+  const tenantId = req.tenantId!;
   const today = new Date().toISOString().slice(0, 10);
   const weekStart = new Date(Date.now() - 7 * 86400000).toISOString().slice(0, 10);
   const monthStart = new Date(Date.now() - 30 * 86400000).toISOString().slice(0, 10);
 
   const [todayCount, weekCount, monthCount, actionDist, userDist] = await Promise.all([
-    queryOne<{ cnt: number }>(`SELECT COUNT(*) AS cnt FROM audit_log WHERE DATE(created_at) = ?`, [today]),
-    queryOne<{ cnt: number }>(`SELECT COUNT(*) AS cnt FROM audit_log WHERE DATE(created_at) >= ?`, [weekStart]),
-    queryOne<{ cnt: number }>(`SELECT COUNT(*) AS cnt FROM audit_log WHERE DATE(created_at) >= ?`, [monthStart]),
-    query<{ action: string; cnt: number }>(`SELECT action, COUNT(*) AS cnt FROM audit_log WHERE DATE(created_at) >= ? GROUP BY action ORDER BY cnt DESC`, [weekStart]),
-    query<{ userName: string; cnt: number }>(`SELECT user_name AS userName, COUNT(*) AS cnt FROM audit_log WHERE DATE(created_at) >= ? GROUP BY user_name ORDER BY cnt DESC LIMIT 10`, [weekStart])
+    queryOne<{ cnt: number }>(`SELECT COUNT(*) AS cnt FROM audit_log WHERE tenant_id = ? AND DATE(created_at) = ?`, [tenantId, today]),
+    queryOne<{ cnt: number }>(`SELECT COUNT(*) AS cnt FROM audit_log WHERE tenant_id = ? AND DATE(created_at) >= ?`, [tenantId, weekStart]),
+    queryOne<{ cnt: number }>(`SELECT COUNT(*) AS cnt FROM audit_log WHERE tenant_id = ? AND DATE(created_at) >= ?`, [tenantId, monthStart]),
+    query<{ action: string; cnt: number }>(`SELECT action, COUNT(*) AS cnt FROM audit_log WHERE tenant_id = ? AND DATE(created_at) >= ? GROUP BY action ORDER BY cnt DESC`, [tenantId, weekStart]),
+    query<{ userName: string; cnt: number }>(`SELECT user_name AS userName, COUNT(*) AS cnt FROM audit_log WHERE tenant_id = ? AND DATE(created_at) >= ? GROUP BY user_name ORDER BY cnt DESC LIMIT 10`, [tenantId, weekStart])
   ]);
 
   res.json(ok({
@@ -97,6 +100,7 @@ export interface LogAuditParams {
   resourceType: string;
   resourceId?: string;
   detail?: string;
+  tenantId: number;
   req: Request;
 }
 
@@ -110,9 +114,9 @@ export function logAudit(p: LogAuditParams): void {
   // 异步写入，不 await
   pool
     .query(
-      `INSERT INTO audit_log (user_id, user_name, role, action, resource_type, resource_id, detail, ip, user_agent)
-       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`,
-      [p.userId, p.userName, p.role, p.action, p.resourceType, p.resourceId ?? null, p.detail ?? null, ip, userAgent]
+      `INSERT INTO audit_log (user_id, user_name, role, action, resource_type, resource_id, detail, ip, user_agent, tenant_id)
+       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+      [p.userId, p.userName, p.role, p.action, p.resourceType, p.resourceId ?? null, p.detail ?? null, ip, userAgent, p.tenantId]
     )
     .catch((err) => {
       console.error("[audit] 写入审计日志失败:", err);

@@ -11,7 +11,7 @@ export const supplierRouter = Router();
 // 列表查询
 supplierRouter.get("/", requireAuthWithTenant, asyncHandler(async (req, res) => {
   const { keyword, status, page = 1, pageSize = 20 } = req.query;
-  const tenantId = req.tenantId;
+  const tenantId = req.tenantId!;
 
   let sql = "SELECT * FROM supplier WHERE tenant_id = ?";
   const params: any[] = [tenantId];
@@ -36,7 +36,7 @@ supplierRouter.get("/", requireAuthWithTenant, asyncHandler(async (req, res) => 
 // 详情查询（含联系人）
 supplierRouter.get("/:id", requireAuthWithTenant, asyncHandler(async (req, res) => {
   const { id } = req.params;
-  const tenantId = req.tenantId;
+  const tenantId = req.tenantId!;
 
   const supplier = await queryOne<any>(
     "SELECT * FROM supplier WHERE id = ? AND tenant_id = ?",
@@ -76,7 +76,7 @@ supplierRouter.post("/", requireAuthWithTenant, asyncHandler(async (req, res) =>
     remark: z.string().max(255).optional(),
   }).parse(req.body);
 
-  const tenantId = req.tenantId;
+  const tenantId = req.tenantId!;
   const supplierCode = makeBizNo("GYS");
 
   const result = await query(
@@ -96,7 +96,7 @@ supplierRouter.post("/", requireAuthWithTenant, asyncHandler(async (req, res) =>
 
   await query(
     "INSERT INTO operation_log (module, action, target_id, target_type, user_id, user_name, detail, tenant_id) VALUES (?, ?, ?, ?, ?, ?, ?, ?)",
-    ["supplier", "CREATE", String(result.insertId), "supplier", req.user?.id, req.user?.username, `创建供应商: ${body.name}`, tenantId]
+    ["supplier", "CREATE", String(result.insertId), "supplier", req.user!.id, req.user!.username, `创建供应商: ${body.name}`, tenantId]
   );
 
   res.json(ok({ id: result.insertId, supplier_code: supplierCode }));
@@ -105,7 +105,7 @@ supplierRouter.post("/", requireAuthWithTenant, asyncHandler(async (req, res) =>
 // 修改供应商
 supplierRouter.put("/:id", requireAuthWithTenant, asyncHandler(async (req, res) => {
   const { id } = req.params;
-  const tenantId = req.tenantId;
+  const tenantId = req.tenantId!;
 
   const existing = await queryOne<any>(
     "SELECT id FROM supplier WHERE id = ? AND tenant_id = ?",
@@ -155,7 +155,7 @@ supplierRouter.put("/:id", requireAuthWithTenant, asyncHandler(async (req, res) 
 
     await query(
       "INSERT INTO operation_log (module, action, target_id, target_type, user_id, user_name, detail, tenant_id) VALUES (?, ?, ?, ?, ?, ?, ?, ?)",
-      ["supplier", "UPDATE", id, "supplier", req.user?.id, req.user?.username, `修改供应商: ${body.name || id}`, tenantId]
+      ["supplier", "UPDATE", id, "supplier", req.user!.id, req.user!.username, `修改供应商: ${body.name || id}`, tenantId]
     );
   }
 
@@ -165,7 +165,7 @@ supplierRouter.put("/:id", requireAuthWithTenant, asyncHandler(async (req, res) 
 // 添加联系人
 supplierRouter.post("/:id/contacts", requireAuthWithTenant, asyncHandler(async (req, res) => {
   const { id } = req.params;
-  const tenantId = req.tenantId;
+  const tenantId = req.tenantId!;
 
   const supplier = await queryOne<any>(
     "SELECT id FROM supplier WHERE id = ? AND tenant_id = ?",
@@ -208,7 +208,7 @@ supplierRouter.post("/:id/contacts", requireAuthWithTenant, asyncHandler(async (
 
   await query(
     "INSERT INTO operation_log (module, action, target_id, target_type, user_id, user_name, detail, tenant_id) VALUES (?, ?, ?, ?, ?, ?, ?, ?)",
-    ["supplier", "ADD_CONTACT", String(result.insertId), "supplier_contact", req.user?.id, req.user?.username, `添加联系人: ${body.name}`, tenantId]
+    ["supplier", "ADD_CONTACT", String(result.insertId), "supplier_contact", req.user!.id, req.user!.username, `添加联系人: ${body.name}`, tenantId]
   );
 
   res.json(ok({ id: result.insertId }));
@@ -217,7 +217,7 @@ supplierRouter.post("/:id/contacts", requireAuthWithTenant, asyncHandler(async (
 // 删除联系人
 supplierRouter.delete("/:id/contacts/:contactId", requireAuthWithTenant, asyncHandler(async (req, res) => {
   const { id, contactId } = req.params;
-  const tenantId = req.tenantId;
+  const tenantId = req.tenantId!;
 
   const supplier = await queryOne<any>(
     "SELECT id FROM supplier WHERE id = ? AND tenant_id = ?",
@@ -243,7 +243,7 @@ supplierRouter.delete("/:id/contacts/:contactId", requireAuthWithTenant, asyncHa
 
   await query(
     "INSERT INTO operation_log (module, action, target_id, target_type, user_id, user_name, detail, tenant_id) VALUES (?, ?, ?, ?, ?, ?, ?, ?)",
-    ["supplier", "DELETE_CONTACT", contactId, "supplier_contact", req.user?.id, req.user?.username, `删除联系人: ${contact.name}`, tenantId]
+    ["supplier", "DELETE_CONTACT", contactId, "supplier_contact", req.user!.id, req.user!.username, `删除联系人: ${contact.name}`, tenantId]
   );
 
   res.json(ok({ id: Number(contactId) }));

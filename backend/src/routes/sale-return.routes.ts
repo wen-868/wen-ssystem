@@ -11,7 +11,7 @@ export const saleReturnRouter = Router();
 // 列表查询
 saleReturnRouter.get("/", requireAuthWithTenant, asyncHandler(async (req, res) => {
   const { store_id, customer_id, return_status, start_date, end_date, page = 1, pageSize = 20 } = req.query;
-  const tenantId = req.tenantId;
+  const tenantId = req.tenantId!;
 
   let sql = "SELECT * FROM sale_return WHERE tenant_id = ?";
   const params: any[] = [tenantId];
@@ -51,7 +51,7 @@ saleReturnRouter.get("/", requireAuthWithTenant, asyncHandler(async (req, res) =
 // 详情查询（含明细）
 saleReturnRouter.get("/:returnNo", requireAuthWithTenant, asyncHandler(async (req, res) => {
   const { returnNo } = req.params;
-  const tenantId = req.tenantId;
+  const tenantId = req.tenantId!;
 
   const returnOrder = await queryOne<any>(
     "SELECT * FROM sale_return WHERE return_no = ? AND tenant_id = ?",
@@ -91,7 +91,7 @@ saleReturnRouter.post("/", requireAuthWithTenant, asyncHandler(async (req, res) 
     })).min(1),
   }).parse(req.body);
 
-  const tenantId = req.tenantId;
+  const tenantId = req.tenantId!;
   const returnNo = makeBizNo("TH");
 
   let goodsAmount = 0;
@@ -121,7 +121,7 @@ saleReturnRouter.post("/", requireAuthWithTenant, asyncHandler(async (req, res) 
         returnNo, body.source_bill_no || null, body.store_id,
         body.customer_id || null, body.customer_name || null, body.customer_mobile || null,
         goodsAmount, body.discount_amount, refundAmount,
-        req.user?.id, body.remark || null, tenantId
+        req.user!.id, body.remark || null, tenantId
       ]
     );
 
@@ -141,7 +141,7 @@ saleReturnRouter.post("/", requireAuthWithTenant, asyncHandler(async (req, res) 
 
     await conn.execute(
       "INSERT INTO operation_log (module, action, target_id, target_type, user_id, user_name, detail, tenant_id) VALUES (?, ?, ?, ?, ?, ?, ?, ?)",
-      ["sale_return", "CREATE", returnNo, "sale_return", req.user?.id, req.user?.username, `创建退货单: ${returnNo}`, tenantId]
+      ["sale_return", "CREATE", returnNo, "sale_return", req.user!.id, req.user!.username, `创建退货单: ${returnNo}`, tenantId]
     );
   });
 
@@ -151,7 +151,7 @@ saleReturnRouter.post("/", requireAuthWithTenant, asyncHandler(async (req, res) 
 // 审核通过（PENDING -> COMPLETED）
 saleReturnRouter.post("/:returnNo/approve", requireAuthWithTenant, asyncHandler(async (req, res) => {
   const { returnNo } = req.params;
-  const tenantId = req.tenantId;
+  const tenantId = req.tenantId!;
 
   const returnOrder = await queryOne<any>(
     "SELECT id, return_status, store_id, source_bill_no FROM sale_return WHERE return_no = ? AND tenant_id = ?",
@@ -171,7 +171,7 @@ saleReturnRouter.post("/:returnNo/approve", requireAuthWithTenant, asyncHandler(
   await transaction(async (conn) => {
     await conn.execute(
       "UPDATE sale_return SET return_status = 'COMPLETED', auditor_id = ?, audited_at = NOW() WHERE return_no = ?",
-      [req.user?.id, returnNo]
+      [req.user!.id, returnNo]
     );
 
     // 增加库存
@@ -200,13 +200,13 @@ saleReturnRouter.post("/:returnNo/approve", requireAuthWithTenant, asyncHandler(
         returnOrder.store_id, itemRows[0]?.sku_id || 0, 
         itemRows.reduce((sum: number, i: any) => sum + i.total_bottle_qty, 0),
         0, itemRows.reduce((sum: number, i: any) => sum + i.total_bottle_qty, 0),
-        returnNo, req.user?.id, `退货入库: ${returnNo}`, tenantId
+        returnNo, req.user!.id, `退货入库: ${returnNo}`, tenantId
       ]
     );
 
     await conn.execute(
       "INSERT INTO operation_log (module, action, target_id, target_type, user_id, user_name, detail, tenant_id) VALUES (?, ?, ?, ?, ?, ?, ?, ?)",
-      ["sale_return", "APPROVE", returnNo, "sale_return", req.user?.id, req.user?.username, `审核通过: ${returnNo}`, tenantId]
+      ["sale_return", "APPROVE", returnNo, "sale_return", req.user!.id, req.user!.username, `审核通过: ${returnNo}`, tenantId]
     );
   });
 
@@ -216,7 +216,7 @@ saleReturnRouter.post("/:returnNo/approve", requireAuthWithTenant, asyncHandler(
 // 确认退款
 saleReturnRouter.post("/:returnNo/refund", requireAuthWithTenant, asyncHandler(async (req, res) => {
   const { returnNo } = req.params;
-  const tenantId = req.tenantId;
+  const tenantId = req.tenantId!;
 
   const body = z.object({
     refund_method: z.enum(["CASH", "WECHAT", "BANK"]),
@@ -250,7 +250,7 @@ saleReturnRouter.post("/:returnNo/refund", requireAuthWithTenant, asyncHandler(a
 
     await conn.execute(
       "INSERT INTO operation_log (module, action, target_id, target_type, user_id, user_name, detail, tenant_id) VALUES (?, ?, ?, ?, ?, ?, ?, ?)",
-      ["sale_return", "REFUND", returnNo, "sale_return", req.user?.id, req.user?.username, `确认退款: ${returnNo}, 方式: ${body.refund_method}`, tenantId]
+      ["sale_return", "REFUND", returnNo, "sale_return", req.user!.id, req.user!.username, `确认退款: ${returnNo}, 方式: ${body.refund_method}`, tenantId]
     );
   });
 

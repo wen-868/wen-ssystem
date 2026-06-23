@@ -1,5 +1,6 @@
 import { Router } from "express";
 import { z } from "zod";
+import { requireAuthWithTenant } from "../shared/auth.js";
 import { asyncHandler } from "../shared/async-handler.js";
 import { query, queryOne, transaction } from "../shared/db.js";
 import { makeBizNo } from "../shared/id.js";
@@ -35,8 +36,9 @@ const AFTERSALE_STATUS_LABELS: Record<string, string> = {
 // ==================== 小程序端 ====================
 
 // POST /aftersales - 创建售后申请
-miniappAftersaleRouter.post("/aftersales", asyncHandler(async (req, res) => {
-  const customerId = Number(req.user?.id || req.headers["x-customer-id"] || 1);
+miniappAftersaleRouter.post("/aftersales", requireAuthWithTenant, asyncHandler(async (req, res) => {
+  const tenantId = req.tenantId!;
+  const customerId = Number(req.user!.id || req.headers["x-customer-id"] || 1);
   const body = z.object({
     orderNo: z.string().min(1),
     aftersaleType: z.enum(["REFUND_ONLY", "RETURN_REFUND", "EXCHANGE", "REPAIR"]),
@@ -57,8 +59,8 @@ miniappAftersaleRouter.post("/aftersales", asyncHandler(async (req, res) => {
 
   // 校验订单存在且属于当前客户
   const order = await queryOne<any>(
-    `SELECT id, order_no, store_id, member_id, order_status FROM miniapp_order WHERE order_no = ? AND member_id = ?`,
-    [body.orderNo, customerId]
+    `SELECT id, order_no, store_id, member_id, order_status FROM miniapp_order WHERE order_no = ? AND member_id = ? AND tenant_id = ?`,
+    [body.orderNo, customerId, tenantId]
   );
   if (!order) {
     res.status(404).json(fail("订单不存在"));
@@ -71,8 +73,8 @@ miniappAftersaleRouter.post("/aftersales", asyncHandler(async (req, res) => {
 
   // 校验是否已有进行中的售后
   const existingAftersale = await queryOne<any>(
-    `SELECT id FROM aftersale WHERE order_no = ? AND customer_id = ? AND status NOT IN ('CANCELLED', 'COMPLETED', 'REJECTED', 'EXPIRED', 'CLOSED')`,
-    [body.orderNo, customerId]
+    `SELECT id FROM aftersale WHERE order_no = ? AND customer_id = ? AND tenant_id = ? AND status NOT IN ('CANCELLED', 'COMPLETED', 'REJECTED', 'EXPIRED', 'CLOSED')`,
+    [body.orderNo, customerId, tenantId]
   );
   if (existingAftersale) {
     res.status(400).json(fail("该订单已有进行中的售后申请"));
@@ -85,12 +87,12 @@ miniappAftersaleRouter.post("/aftersales", asyncHandler(async (req, res) => {
   await query(
     `INSERT INTO aftersale (aftersale_no, order_id, order_no, customer_id, store_id, aftersale_type,
                               reason, reason_detail, images, items, refund_amount, exchange_sku_id, exchange_qty,
-                              status, deadline)
-     VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'PENDING', ?)`,
+                              status, deadline, tenant_id)
+     VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'PENDING', ?, ?)`,
     [
       aftersaleNo, order.id, body.orderNo, customerId, order.store_id, body.aftersaleType,
       body.reason, body.reasonDetail ?? null, JSON.stringify(body.images || []), JSON.stringify(body.items),
-      body.refundAmount, body.exchangeSkuId ?? null, body.exchangeQty ?? null, deadline
+      body.refundAmount, body.exchangeSkuId ?? null, body.exchangeQty ?? null, deadline, tenantId
     ]
   );
 
@@ -103,15 +105,16 @@ miniappAftersaleRouter.post("/aftersales", asyncHandler(async (req, res) => {
 }));
 
 // GET /aftersales/mine - 我的售后列表
-miniappAftersaleRouter.get("/aftersales/mine", asyncHandler(async (req, res) => {
-  const customerId = Number(req.user?.id || req.headers["x-customer-id"] || 1);
+miniappAftersaleRouter.get("/aftersales/mine", requireAuthWithTenant, asyncHandler(async (req, res) => {
+  const tenantId = req.tenantId!;
+  const customerId = Number(req.user!.id || req.headers["x-customer-id"] || 1);
   const status = String(req.query.status || "");
   const page = Number(req.query.page || 1);
   const pageSize = Number(req.query.pageSize || 20);
   const offset = (page - 1) * pageSize;
 
-  let whereSql = "WHERE a.customer_id = ?";
-  const params: any[] = [customerId];
+  let whereSql = "WHERE a.customer_id = ? AND a.tenant_id = ?";
+  const params: any[] = [customerId, tenantId];
   if (status) {
     whereSql += " AND a.status = ?";
     params.push(status);
@@ -143,14 +146,15 @@ miniappAftersaleRouter.get("/aftersales/mine", asyncHandler(async (req, res) => 
 }));
 
 // GET /aftersales/:aftersaleNo - 售后详情
-miniappAftersaleRouter.get("/aftersales/:aftersaleNo", asyncHandler(async (req, res) => {
-  const customerId = Number(req.user?.id || req.headers["x-customer-id"] || 1);
+miniappAftersaleRouter.get("/aftersales/:aftersaleNo", requireAuthWithTenant, asyncHandler(async (req, res) => {
+  const tenantId = req.tenantId!;
+  const customerId = Number(req.user!.id || req.headers["x-customer-id"] || 1);
   const row = await queryOne<any>(
     `SELECT a.*, o.receiver_name AS orderReceiverName, o.receiver_mobile AS orderReceiverMobile
      FROM aftersale a
-     LEFT JOIN miniapp_order o ON o.order_no = a.order_no
-     WHERE a.aftersale_no = ? AND a.customer_id = ?`,
-    [req.params.aftersaleNo, customerId]
+     LEFT JOIN miniapp_order o ON o.order_no = a.order_no AND o.tenant_id = a.tenant_id
+     WHERE a.aftersale_no = ? AND a.customer_id = ? AND a.tenant_id = ?`,
+    [req.params.aftersaleNo, customerId, tenantId]
   );
   if (!row) {
     res.status(404).json(fail("售后单不存在"));
@@ -168,12 +172,13 @@ miniappAftersaleRouter.get("/aftersales/:aftersaleNo", asyncHandler(async (req, 
 }));
 
 // POST /aftersales/:aftersaleNo/cancel - 取消售后
-miniappAftersaleRouter.post("/aftersales/:aftersaleNo/cancel", asyncHandler(async (req, res) => {
-  const customerId = Number(req.user?.id || req.headers["x-customer-id"] || 1);
+miniappAftersaleRouter.post("/aftersales/:aftersaleNo/cancel", requireAuthWithTenant, asyncHandler(async (req, res) => {
+  const tenantId = req.tenantId!;
+  const customerId = Number(req.user!.id || req.headers["x-customer-id"] || 1);
   const result = await query(
     `UPDATE aftersale SET status = 'CANCELLED', updated_at = NOW()
-     WHERE aftersale_no = ? AND customer_id = ? AND status = 'PENDING'`,
-    [req.params.aftersaleNo, customerId]
+     WHERE aftersale_no = ? AND customer_id = ? AND tenant_id = ? AND status = 'PENDING'`,
+    [req.params.aftersaleNo, customerId, tenantId]
   );
   if ((result as any).affectedRows === 0) {
     res.status(400).json(fail("无法取消（非待审核状态或不属于您）"));
@@ -183,8 +188,9 @@ miniappAftersaleRouter.post("/aftersales/:aftersaleNo/cancel", asyncHandler(asyn
 }));
 
 // POST /aftersales/:aftersaleNo/return-logistics - 填写退货物流
-miniappAftersaleRouter.post("/aftersales/:aftersaleNo/return-logistics", asyncHandler(async (req, res) => {
-  const customerId = Number(req.user?.id || req.headers["x-customer-id"] || 1);
+miniappAftersaleRouter.post("/aftersales/:aftersaleNo/return-logistics", requireAuthWithTenant, asyncHandler(async (req, res) => {
+  const tenantId = req.tenantId!;
+  const customerId = Number(req.user!.id || req.headers["x-customer-id"] || 1);
   const body = z.object({
     returnLogisticsNo: z.string().min(1),
     returnLogisticsCompany: z.string().min(1)
@@ -192,8 +198,8 @@ miniappAftersaleRouter.post("/aftersales/:aftersaleNo/return-logistics", asyncHa
 
   const result = await query(
     `UPDATE aftersale SET return_logistics_no = ?, return_logistics_company = ?, status = 'RETURNING', updated_at = NOW()
-     WHERE aftersale_no = ? AND customer_id = ? AND status IN ('APPROVED', 'RETURNING')`,
-    [body.returnLogisticsNo, body.returnLogisticsCompany, req.params.aftersaleNo, customerId]
+     WHERE aftersale_no = ? AND customer_id = ? AND tenant_id = ? AND status IN ('APPROVED', 'RETURNING')`,
+    [body.returnLogisticsNo, body.returnLogisticsCompany, req.params.aftersaleNo, customerId, tenantId]
   );
   if ((result as any).affectedRows === 0) {
     res.status(400).json(fail("无法填写物流（状态不允许或不属于您）"));
@@ -203,8 +209,9 @@ miniappAftersaleRouter.post("/aftersales/:aftersaleNo/return-logistics", asyncHa
 }));
 
 // POST /aftersales/:aftersaleNo/rate - 评价售后处理
-miniappAftersaleRouter.post("/aftersales/:aftersaleNo/rate", asyncHandler(async (req, res) => {
-  const customerId = Number(req.user?.id || req.headers["x-customer-id"] || 1);
+miniappAftersaleRouter.post("/aftersales/:aftersaleNo/rate", requireAuthWithTenant, asyncHandler(async (req, res) => {
+  const tenantId = req.tenantId!;
+  const customerId = Number(req.user!.id || req.headers["x-customer-id"] || 1);
   const body = z.object({
     satisfaction: z.number().int().min(1).max(5),
     customerComment: z.string().optional()
@@ -212,8 +219,8 @@ miniappAftersaleRouter.post("/aftersales/:aftersaleNo/rate", asyncHandler(async 
 
   const result = await query(
     `UPDATE aftersale SET satisfaction = ?, customer_comment = ?, updated_at = NOW()
-     WHERE aftersale_no = ? AND customer_id = ? AND status = 'COMPLETED'`,
-    [body.satisfaction, body.customerComment ?? null, req.params.aftersaleNo, customerId]
+     WHERE aftersale_no = ? AND customer_id = ? AND tenant_id = ? AND status = 'COMPLETED'`,
+    [body.satisfaction, body.customerComment ?? null, req.params.aftersaleNo, customerId, tenantId]
   );
   if ((result as any).affectedRows === 0) {
     res.status(400).json(fail("无法评价（仅已完成状态可评价）"));
@@ -225,7 +232,8 @@ miniappAftersaleRouter.post("/aftersales/:aftersaleNo/rate", asyncHandler(async 
 // ==================== 管理端 ====================
 
 // GET /aftersales - 售后列表（支持筛选+分页）
-adminAftersaleRouter.get("/aftersales", asyncHandler(async (req, res) => {
+adminAftersaleRouter.get("/aftersales", requireAuthWithTenant, asyncHandler(async (req, res) => {
+  const tenantId = req.tenantId!;
   const status = String(req.query.status || "");
   const storeId = req.query.storeId ? Number(req.query.storeId) : null;
   const startDate = String(req.query.startDate || "");
@@ -235,8 +243,8 @@ adminAftersaleRouter.get("/aftersales", asyncHandler(async (req, res) => {
   const pageSize = Number(req.query.pageSize || 20);
   const offset = (page - 1) * pageSize;
 
-  const conditions: string[] = [];
-  const params: any[] = [];
+  const conditions: string[] = ["a.tenant_id = ?"];
+  const params: any[] = [tenantId];
 
   if (status) { conditions.push("a.status = ?"); params.push(status); }
   if (storeId) { conditions.push("a.store_id = ?"); params.push(storeId); }
@@ -244,7 +252,7 @@ adminAftersaleRouter.get("/aftersales", asyncHandler(async (req, res) => {
   if (endDate) { conditions.push("a.created_at <= ?"); params.push(endDate + " 23:59:59"); }
   if (keyword) { conditions.push("(a.aftersale_no LIKE ? OR a.order_no LIKE ? OR a.reason LIKE ?)"); params.push(`%${keyword}%`, `%${keyword}%`, `%${keyword}%`); }
 
-  const whereSql = conditions.length > 0 ? `WHERE ${conditions.join(" AND ")}` : "";
+  const whereSql = `WHERE ${conditions.join(" AND ")}`;
 
   const records = await query<any>(
     `SELECT a.id, a.aftersale_no AS aftersaleNo, a.order_no AS orderNo, a.customer_id AS customerId,
@@ -273,14 +281,15 @@ adminAftersaleRouter.get("/aftersales", asyncHandler(async (req, res) => {
 }));
 
 // GET /aftersales/:id - 售后详情（完整信息）
-adminAftersaleRouter.get("/aftersales/:id", asyncHandler(async (req, res) => {
+adminAftersaleRouter.get("/aftersales/:id", requireAuthWithTenant, asyncHandler(async (req, res) => {
+  const tenantId = req.tenantId!;
   const row = await queryOne<any>(
     `SELECT a.*,
             o.receiver_name AS orderReceiverName, o.receiver_mobile AS orderReceiverMobile, o.receiver_address AS orderReceiverAddress
      FROM aftersale a
-     LEFT JOIN miniapp_order o ON o.order_no = a.order_no
-     WHERE a.id = ?`,
-    [req.params.id]
+     LEFT JOIN miniapp_order o ON o.order_no = a.order_no AND o.tenant_id = a.tenant_id
+     WHERE a.id = ? AND a.tenant_id = ?`,
+    [req.params.id, tenantId]
   );
   if (!row) {
     res.status(404).json(fail("售后单不存在"));
@@ -298,12 +307,13 @@ adminAftersaleRouter.get("/aftersales/:id", asyncHandler(async (req, res) => {
 }));
 
 // POST /aftersales/:id/approve - 审核通过
-adminAftersaleRouter.post("/aftersales/:id/approve", asyncHandler(async (req, res) => {
-  const operatorId = req.user?.id;
+adminAftersaleRouter.post("/aftersales/:id/approve", requireAuthWithTenant, asyncHandler(async (req, res) => {
+  const tenantId = req.tenantId!;
+  const operatorId = req.user!.id;
   const result = await query(
     `UPDATE aftersale SET status = 'APPROVED', processed_by = ?, process_remark = ?, updated_at = NOW(), version = version + 1
-     WHERE id = ? AND status = 'PENDING' AND version = ?`,
-    [operatorId, req.body.processRemark || null, req.params.id, req.body.version || 1]
+     WHERE id = ? AND tenant_id = ? AND status = 'PENDING' AND version = ?`,
+    [operatorId, req.body.processRemark || null, req.params.id, tenantId, req.body.version || 1]
   );
   if ((result as any).affectedRows === 0) {
     res.status(400).json(fail("审核失败（状态已变更或版本不匹配）"));
@@ -313,8 +323,9 @@ adminAftersaleRouter.post("/aftersales/:id/approve", asyncHandler(async (req, re
 }));
 
 // POST /aftersales/:id/reject - 审核拒绝
-adminAftersaleRouter.post("/aftersales/:id/reject", asyncHandler(async (req, res) => {
-  const operatorId = req.user?.id;
+adminAftersaleRouter.post("/aftersales/:id/reject", requireAuthWithTenant, asyncHandler(async (req, res) => {
+  const tenantId = req.tenantId!;
+  const operatorId = req.user!.id;
   const body = z.object({
     processRemark: z.string().min(1, "请填写拒绝原因"),
     version: z.number().default(1)
@@ -322,8 +333,8 @@ adminAftersaleRouter.post("/aftersales/:id/reject", asyncHandler(async (req, res
 
   const result = await query(
     `UPDATE aftersale SET status = 'REJECTED', processed_by = ?, process_remark = ?, updated_at = NOW(), version = version + 1
-     WHERE id = ? AND status = 'PENDING' AND version = ?`,
-    [operatorId, body.processRemark, req.params.id, body.version]
+     WHERE id = ? AND tenant_id = ? AND status = 'PENDING' AND version = ?`,
+    [operatorId, body.processRemark, req.params.id, tenantId, body.version]
   );
   if ((result as any).affectedRows === 0) {
     res.status(400).json(fail("拒绝失败（状态已变更或版本不匹配）"));
@@ -333,11 +344,12 @@ adminAftersaleRouter.post("/aftersales/:id/reject", asyncHandler(async (req, res
 }));
 
 // POST /aftersales/:id/confirm-receipt - 确认收货
-adminAftersaleRouter.post("/aftersales/:id/confirm-receipt", asyncHandler(async (req, res) => {
+adminAftersaleRouter.post("/aftersales/:id/confirm-receipt", requireAuthWithTenant, asyncHandler(async (req, res) => {
+  const tenantId = req.tenantId!;
   const result = await query(
     `UPDATE aftersale SET status = 'RECEIVED', updated_at = NOW(), version = version + 1
-     WHERE id = ? AND status = 'RETURNING'`,
-    [req.params.id]
+     WHERE id = ? AND tenant_id = ? AND status = 'RETURNING'`,
+    [req.params.id, tenantId]
   );
   if ((result as any).affectedRows === 0) {
     res.status(400).json(fail("确认收货失败（状态不允许）"));
@@ -347,8 +359,9 @@ adminAftersaleRouter.post("/aftersales/:id/confirm-receipt", asyncHandler(async 
 }));
 
 // POST /aftersales/:id/inspect - 验货
-adminAftersaleRouter.post("/aftersales/:id/inspect", asyncHandler(async (req, res) => {
-  const operatorId = req.user?.id;
+adminAftersaleRouter.post("/aftersales/:id/inspect", requireAuthWithTenant, asyncHandler(async (req, res) => {
+  const tenantId = req.tenantId!;
+  const operatorId = req.user!.id;
   const body = z.object({
     inspectResult: z.enum(["PASS", "PARTIAL_PASS", "FAIL"]),
     inspectImages: z.array(z.string()).optional(),
@@ -359,10 +372,10 @@ adminAftersaleRouter.post("/aftersales/:id/inspect", asyncHandler(async (req, re
   const newStatus = body.inspectResult === "FAIL" ? "REJECTED" : "INSPECTING";
   const result = await query(
     `UPDATE aftersale SET status = ?, inspected_by = ?, inspect_result = ?, inspect_images = ?, updated_at = NOW(), version = version + 1
-     WHERE id = ? AND status IN ('RECEIVED', 'INSPECTING') AND version = ?`,
+     WHERE id = ? AND tenant_id = ? AND status IN ('RECEIVED', 'INSPECTING') AND version = ?`,
     [
       newStatus, operatorId, body.processRemark || body.inspectResult,
-      JSON.stringify(body.inspectImages || []), req.params.id, body.version
+      JSON.stringify(body.inspectImages || []), req.params.id, tenantId, body.version
     ]
   );
   if ((result as any).affectedRows === 0) {
@@ -373,8 +386,9 @@ adminAftersaleRouter.post("/aftersales/:id/inspect", asyncHandler(async (req, re
 }));
 
 // POST /aftersales/:id/complete - 完成处理（退款/换货）
-adminAftersaleRouter.post("/aftersales/:id/complete", asyncHandler(async (req, res) => {
-  const operatorId = req.user?.id;
+adminAftersaleRouter.post("/aftersales/:id/complete", requireAuthWithTenant, asyncHandler(async (req, res) => {
+  const tenantId = req.tenantId!;
+  const operatorId = req.user!.id;
   const body = z.object({
     processRemark: z.string().optional(),
     version: z.number().default(1)
@@ -382,8 +396,8 @@ adminAftersaleRouter.post("/aftersales/:id/complete", asyncHandler(async (req, r
 
   const result = await query(
     `UPDATE aftersale SET status = 'COMPLETED', processed_by = ?, process_remark = ?, updated_at = NOW(), version = version + 1
-     WHERE id = ? AND status IN ('INSPECTING', 'APPROVED') AND version = ?`,
-    [operatorId, body.processRemark || null, req.params.id, body.version]
+     WHERE id = ? AND tenant_id = ? AND status IN ('INSPECTING', 'APPROVED') AND version = ?`,
+    [operatorId, body.processRemark || null, req.params.id, tenantId, body.version]
   );
   if ((result as any).affectedRows === 0) {
     res.status(400).json(fail("完成处理失败（状态不允许或版本不匹配）"));
@@ -393,10 +407,11 @@ adminAftersaleRouter.post("/aftersales/:id/complete", asyncHandler(async (req, r
 }));
 
 // GET /aftersales/statistics - 售后统计
-adminAftersaleRouter.get("/aftersales/statistics", asyncHandler(async (req, res) => {
+adminAftersaleRouter.get("/aftersales/statistics", requireAuthWithTenant, asyncHandler(async (req, res) => {
+  const tenantId = req.tenantId!;
   const storeId = req.query.storeId ? Number(req.query.storeId) : null;
-  const storeFilter = storeId ? "WHERE store_id = ?" : "";
-  const storeParams = storeId ? [storeId] : [];
+  const storeFilter = storeId ? "WHERE tenant_id = ? AND store_id = ?" : "WHERE tenant_id = ?";
+  const storeParams = storeId ? [tenantId, storeId] : [tenantId];
 
   // 各类型数量
   const typeStats = await query<any>(
@@ -413,23 +428,23 @@ adminAftersaleRouter.get("/aftersales/statistics", asyncHandler(async (req, res)
   // 平均处理时效（小时）
   const avgTime = await queryOne<{ avgHours: string }>(
     `SELECT AVG(TIMESTAMPDIFF(HOUR, created_at, updated_at)) AS avgHours
-     FROM aftersale ${storeFilter ? storeFilter + " AND" : "WHERE"} status IN ('COMPLETED', 'CLOSED')`,
+     FROM aftersale ${storeFilter} AND status IN ('COMPLETED', 'CLOSED')`,
     storeParams
   );
 
   // 平均满意度
   const avgSatisfaction = await queryOne<{ avgScore: string }>(
-    `SELECT AVG(satisfaction) AS avgScore FROM aftersale ${storeFilter ? storeFilter + " AND" : "WHERE"} satisfaction IS NOT NULL`,
+    `SELECT AVG(satisfaction) AS avgScore FROM aftersale ${storeFilter} AND satisfaction IS NOT NULL`,
     storeParams
   );
 
   // 超时率
   const totalPending = await queryOne<{ total: number }>(
-    `SELECT COUNT(*) AS total FROM aftersale ${storeFilter ? storeFilter + " AND" : "WHERE"} deadline IS NOT NULL`,
+    `SELECT COUNT(*) AS total FROM aftersale ${storeFilter} AND deadline IS NOT NULL`,
     storeParams
   );
   const totalOverdue = await queryOne<{ total: number }>(
-    `SELECT COUNT(*) AS total FROM aftersale ${storeFilter ? storeFilter + " AND" : "WHERE"} deadline IS NOT NULL AND status NOT IN ('COMPLETED', 'CLOSED', 'CANCELLED') AND deadline < NOW()`,
+    `SELECT COUNT(*) AS total FROM aftersale ${storeFilter} AND deadline IS NOT NULL AND status NOT IN ('COMPLETED', 'CLOSED', 'CANCELLED') AND deadline < NOW()`,
     storeParams
   );
 

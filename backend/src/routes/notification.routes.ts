@@ -1,5 +1,6 @@
 import { Router } from "express";
 import { z } from "zod";
+import { requireAuthWithTenant } from "../shared/auth.js";
 import { asyncHandler } from "../shared/async-handler.js";
 import { query, queryOne } from "../shared/db.js";
 import { pool } from "../shared/db.js";
@@ -16,6 +17,7 @@ export interface SendNotificationParams {
   type: "SYSTEM" | "ORDER" | "PAYMENT" | "ALERT" | "CREDIT" | "RECALL";
   relatedId?: number | null;
   relatedType?: string | null;
+  tenantId: string;
 }
 
 export async function sendNotification(
@@ -23,8 +25,8 @@ export async function sendNotification(
   params: SendNotificationParams
 ): Promise<number> {
   const [result] = await dbPool.query(
-    `INSERT INTO notification (recipient_id, recipient_type, title, content, type, related_id, related_type)
-     VALUES (?, ?, ?, ?, ?, ?, ?)`,
+    `INSERT INTO notification (recipient_id, recipient_type, title, content, type, related_id, related_type, tenant_id)
+     VALUES (?, ?, ?, ?, ?, ?, ?, ?)`,
     [
       params.recipientId,
       params.recipientType,
@@ -32,7 +34,8 @@ export async function sendNotification(
       params.content,
       params.type,
       params.relatedId ?? null,
-      params.relatedType ?? null
+      params.relatedType ?? null,
+      params.tenantId
     ]
   );
   return (result as any).insertId;
@@ -43,12 +46,13 @@ export async function sendNotification(
 export const adminNotificationRouter = Router();
 
 // 通知列表
-adminNotificationRouter.get("/", asyncHandler(async (req, res) => {
+adminNotificationRouter.get("/", requireAuthWithTenant, asyncHandler(async (req, res) => {
+  const tenantId = req.tenantId!;
   const page = Number(req.query.page || 1);
   const pageSize = Number(req.query.pageSize || 20);
   const offset = (page - 1) * pageSize;
-  const conditions: string[] = [];
-  const params: unknown[] = [];
+  const conditions: string[] = ["n.tenant_id = ?"];
+  const params: unknown[] = [tenantId];
 
   if (req.query.type) {
     conditions.push("n.type = ?");
@@ -59,7 +63,7 @@ adminNotificationRouter.get("/", asyncHandler(async (req, res) => {
     params.push(Number(req.query.isRead));
   }
 
-  const where = conditions.length > 0 ? `WHERE ${conditions.join(" AND ")}` : "";
+  const where = `WHERE ${conditions.join(" AND ")}`;
 
   const records = await query<any>(
     `SELECT n.id, n.recipient_id AS recipientId, n.recipient_type AS recipientType,
@@ -88,39 +92,43 @@ adminNotificationRouter.get("/", asyncHandler(async (req, res) => {
 }));
 
 // 未读数量
-adminNotificationRouter.get("/unread-count", asyncHandler(async (req, res) => {
+adminNotificationRouter.get("/unread-count", requireAuthWithTenant, asyncHandler(async (req, res) => {
+  const tenantId = req.tenantId!;
   const count = await queryOne<any>(
-    `SELECT COUNT(*) AS count FROM notification WHERE recipient_id = ? AND recipient_type = 'ADMIN' AND is_read = 0`,
-    [req.user!.id]
+    `SELECT COUNT(*) AS count FROM notification WHERE recipient_id = ? AND recipient_type = 'ADMIN' AND is_read = 0 AND tenant_id = ?`,
+    [req.user!.id, tenantId]
   );
 
   res.json(ok({ count: Number(count?.count ?? 0) }));
 }));
 
 // 标记已读
-adminNotificationRouter.put("/:id/read", asyncHandler(async (req, res) => {
+adminNotificationRouter.put("/:id/read", requireAuthWithTenant, asyncHandler(async (req, res) => {
+  const tenantId = req.tenantId!;
   const id = Number(req.params.id);
   await query(
-    `UPDATE notification SET is_read = 1, read_at = NOW() WHERE id = ? AND is_read = 0`,
-    [id]
+    `UPDATE notification SET is_read = 1, read_at = NOW() WHERE id = ? AND tenant_id = ? AND is_read = 0`,
+    [id, tenantId]
   );
 
   res.json(ok({ marked: true }));
 }));
 
 // 全部标记已读
-adminNotificationRouter.post("/read-all", asyncHandler(async (req, res) => {
+adminNotificationRouter.post("/read-all", requireAuthWithTenant, asyncHandler(async (req, res) => {
+  const tenantId = req.tenantId!;
   await query(
     `UPDATE notification SET is_read = 1, read_at = NOW()
-     WHERE recipient_id = ? AND recipient_type = 'ADMIN' AND is_read = 0`,
-    [req.user!.id]
+     WHERE recipient_id = ? AND recipient_type = 'ADMIN' AND is_read = 0 AND tenant_id = ?`,
+    [req.user!.id, tenantId]
   );
 
   res.json(ok({ marked: true }));
 }));
 
 // 手动发送通知
-adminNotificationRouter.post("/send", asyncHandler(async (req, res) => {
+adminNotificationRouter.post("/send", requireAuthWithTenant, asyncHandler(async (req, res) => {
+  const tenantId = req.tenantId!;
   const body = z.object({
     recipientId: z.number().int().positive(),
     recipientType: z.enum(["ADMIN", "MERCHANT", "CONSUMER"]).default("ADMIN"),
@@ -138,7 +146,8 @@ adminNotificationRouter.post("/send", asyncHandler(async (req, res) => {
     content: body.content,
     type: body.type,
     relatedId: body.relatedId ?? null,
-    relatedType: body.relatedType ?? null
+    relatedType: body.relatedType ?? null,
+    tenantId
   });
 
   res.json(ok({ id, sent: true }));
@@ -149,13 +158,14 @@ adminNotificationRouter.post("/send", asyncHandler(async (req, res) => {
 export const miniappNotificationRouter = Router();
 
 // 我的通知列表
-miniappNotificationRouter.get("/", asyncHandler(async (req, res) => {
+miniappNotificationRouter.get("/", requireAuthWithTenant, asyncHandler(async (req, res) => {
+  const tenantId = req.tenantId!;
   const page = Number(req.query.page || 1);
   const pageSize = Number(req.query.pageSize || 20);
   const offset = (page - 1) * pageSize;
 
   // 从token中获取用户ID
-  const recipientId = req.user?.id;
+  const recipientId = req.user!.id;
   if (!recipientId) {
     res.status(401).json({ code: "401", message: "未登录" });
     return;
@@ -166,15 +176,15 @@ miniappNotificationRouter.get("/", asyncHandler(async (req, res) => {
             related_id AS relatedId, related_type AS relatedType,
             is_read AS isRead, sent_at AS sentAt, read_at AS readAt
      FROM notification
-     WHERE recipient_id = ? AND recipient_type = 'CONSUMER'
+     WHERE recipient_id = ? AND recipient_type = 'CONSUMER' AND tenant_id = ?
      ORDER BY sent_at DESC
      LIMIT ? OFFSET ?`,
-    [recipientId, pageSize, offset]
+    [recipientId, tenantId, pageSize, offset]
   );
 
   const totalRow = await queryOne<any>(
-    `SELECT COUNT(*) AS total FROM notification WHERE recipient_id = ? AND recipient_type = 'CONSUMER'`,
-    [recipientId]
+    `SELECT COUNT(*) AS total FROM notification WHERE recipient_id = ? AND recipient_type = 'CONSUMER' AND tenant_id = ?`,
+    [recipientId, tenantId]
   );
 
   res.json(ok({
@@ -186,35 +196,38 @@ miniappNotificationRouter.get("/", asyncHandler(async (req, res) => {
 }));
 
 // 未读数量
-miniappNotificationRouter.get("/unread-count", asyncHandler(async (req, res) => {
-  const recipientId = req.user?.id;
+miniappNotificationRouter.get("/unread-count", requireAuthWithTenant, asyncHandler(async (req, res) => {
+  const tenantId = req.tenantId!;
+  const recipientId = req.user!.id;
   if (!recipientId) {
     res.status(401).json({ code: "401", message: "未登录" });
     return;
   }
 
   const count = await queryOne<any>(
-    `SELECT COUNT(*) AS count FROM notification WHERE recipient_id = ? AND recipient_type = 'CONSUMER' AND is_read = 0`,
-    [recipientId]
+    `SELECT COUNT(*) AS count FROM notification WHERE recipient_id = ? AND recipient_type = 'CONSUMER' AND is_read = 0 AND tenant_id = ?`,
+    [recipientId, tenantId]
   );
 
   res.json(ok({ count: Number(count?.count ?? 0) }));
 }));
 
 // 标记已读
-miniappNotificationRouter.put("/:id/read", asyncHandler(async (req, res) => {
+miniappNotificationRouter.put("/:id/read", requireAuthWithTenant, asyncHandler(async (req, res) => {
+  const tenantId = req.tenantId!;
   const id = Number(req.params.id);
   await query(
-    `UPDATE notification SET is_read = 1, read_at = NOW() WHERE id = ? AND is_read = 0`,
-    [id]
+    `UPDATE notification SET is_read = 1, read_at = NOW() WHERE id = ? AND tenant_id = ? AND is_read = 0`,
+    [id, tenantId]
   );
 
   res.json(ok({ marked: true }));
 }));
 
 // 全部已读
-miniappNotificationRouter.post("/read-all", asyncHandler(async (req, res) => {
-  const recipientId = req.user?.id;
+miniappNotificationRouter.post("/read-all", requireAuthWithTenant, asyncHandler(async (req, res) => {
+  const tenantId = req.tenantId!;
+  const recipientId = req.user!.id;
   if (!recipientId) {
     res.status(401).json({ code: "401", message: "未登录" });
     return;
@@ -222,8 +235,8 @@ miniappNotificationRouter.post("/read-all", asyncHandler(async (req, res) => {
 
   await query(
     `UPDATE notification SET is_read = 1, read_at = NOW()
-     WHERE recipient_id = ? AND recipient_type = 'CONSUMER' AND is_read = 0`,
-    [recipientId]
+     WHERE recipient_id = ? AND recipient_type = 'CONSUMER' AND is_read = 0 AND tenant_id = ?`,
+    [recipientId, tenantId]
   );
 
   res.json(ok({ marked: true }));

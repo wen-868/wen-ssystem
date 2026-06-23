@@ -11,7 +11,7 @@ export const purchaseRouter = Router();
 // 列表查询
 purchaseRouter.get("/", requireAuthWithTenant, asyncHandler(async (req, res) => {
   const { supplier_id, order_status, start_date, end_date, page = 1, pageSize = 20 } = req.query;
-  const tenantId = req.tenantId;
+  const tenantId = req.tenantId!;
 
   let sql = "SELECT * FROM purchase_order WHERE tenant_id = ?";
   const params: any[] = [tenantId];
@@ -46,7 +46,7 @@ purchaseRouter.get("/", requireAuthWithTenant, asyncHandler(async (req, res) => 
 // 详情查询（含明细）
 purchaseRouter.get("/:orderNo", requireAuthWithTenant, asyncHandler(async (req, res) => {
   const { orderNo } = req.params;
-  const tenantId = req.tenantId;
+  const tenantId = req.tenantId!;
 
   const order = await queryOne<any>(
     "SELECT * FROM purchase_order WHERE order_no = ? AND tenant_id = ?",
@@ -87,7 +87,7 @@ purchaseRouter.post("/", requireAuthWithTenant, asyncHandler(async (req, res) =>
     })).min(1),
   }).parse(req.body);
 
-  const tenantId = req.tenantId;
+  const tenantId = req.tenantId!;
   const orderNo = makeBizNo("CGDD");
 
   // 计算金额
@@ -125,7 +125,7 @@ purchaseRouter.post("/", requireAuthWithTenant, asyncHandler(async (req, res) =>
       [
         orderNo, body.supplier_id, body.supplier_name, body.store_id,
         goodsAmount, taxAmount, body.discount_amount, payableAmount,
-        payableAmount, body.expected_date || null, req.user?.id, body.remark || null, tenantId
+        payableAmount, body.expected_date || null, req.user!.id, body.remark || null, tenantId
       ]
     );
 
@@ -148,7 +148,7 @@ purchaseRouter.post("/", requireAuthWithTenant, asyncHandler(async (req, res) =>
     // 写操作日志
     await conn.execute(
       "INSERT INTO operation_log (module, action, target_id, target_type, user_id, user_name, detail, tenant_id) VALUES (?, ?, ?, ?, ?, ?, ?, ?)",
-      ["purchase", "CREATE", orderNo, "purchase_order", req.user?.id, req.user?.username, `创建采购订单: ${orderNo}`, tenantId]
+      ["purchase", "CREATE", orderNo, "purchase_order", req.user!.id, req.user!.username, `创建采购订单: ${orderNo}`, tenantId]
     );
   });
 
@@ -158,7 +158,7 @@ purchaseRouter.post("/", requireAuthWithTenant, asyncHandler(async (req, res) =>
 // 提交审核（DRAFT -> PENDING）
 purchaseRouter.post("/:orderNo/submit", requireAuthWithTenant, asyncHandler(async (req, res) => {
   const { orderNo } = req.params;
-  const tenantId = req.tenantId;
+  const tenantId = req.tenantId!;
 
   const order = await queryOne<any>(
     "SELECT id, order_status FROM purchase_order WHERE order_no = ? AND tenant_id = ?",
@@ -182,7 +182,7 @@ purchaseRouter.post("/:orderNo/submit", requireAuthWithTenant, asyncHandler(asyn
 
   await query(
     "INSERT INTO operation_log (module, action, target_id, target_type, user_id, user_name, detail, tenant_id) VALUES (?, ?, ?, ?, ?, ?, ?, ?)",
-    ["purchase", "SUBMIT", orderNo, "purchase_order", req.user?.id, req.user?.username, `提交审核: ${orderNo}`, tenantId]
+    ["purchase", "SUBMIT", orderNo, "purchase_order", req.user!.id, req.user!.username, `提交审核: ${orderNo}`, tenantId]
   );
 
   res.json(ok({ order_no: orderNo }));
@@ -191,7 +191,7 @@ purchaseRouter.post("/:orderNo/submit", requireAuthWithTenant, asyncHandler(asyn
 // 审核通过（PENDING -> APPROVED）
 purchaseRouter.post("/:orderNo/approve", requireAuthWithTenant, asyncHandler(async (req, res) => {
   const { orderNo } = req.params;
-  const tenantId = req.tenantId;
+  const tenantId = req.tenantId!;
 
   const order = await queryOne<any>(
     "SELECT id, order_status FROM purchase_order WHERE order_no = ? AND tenant_id = ?",
@@ -210,12 +210,12 @@ purchaseRouter.post("/:orderNo/approve", requireAuthWithTenant, asyncHandler(asy
 
   await query(
     "UPDATE purchase_order SET order_status = 'APPROVED', auditor_id = ?, audited_at = NOW() WHERE order_no = ?",
-    [req.user?.id, orderNo]
+    [req.user!.id, orderNo]
   );
 
   await query(
     "INSERT INTO operation_log (module, action, target_id, target_type, user_id, user_name, detail, tenant_id) VALUES (?, ?, ?, ?, ?, ?, ?, ?)",
-    ["purchase", "APPROVE", orderNo, "purchase_order", req.user?.id, req.user?.username, `审核通过: ${orderNo}`, tenantId]
+    ["purchase", "APPROVE", orderNo, "purchase_order", req.user!.id, req.user!.username, `审核通过: ${orderNo}`, tenantId]
   );
 
   res.json(ok({ order_no: orderNo }));
@@ -224,7 +224,7 @@ purchaseRouter.post("/:orderNo/approve", requireAuthWithTenant, asyncHandler(asy
 // 取消订单（DRAFT/PENDING -> CANCELLED）
 purchaseRouter.post("/:orderNo/cancel", requireAuthWithTenant, asyncHandler(async (req, res) => {
   const { orderNo } = req.params;
-  const tenantId = req.tenantId;
+  const tenantId = req.tenantId!;
 
   const order = await queryOne<any>(
     "SELECT id, order_status FROM purchase_order WHERE order_no = ? AND tenant_id = ?",
@@ -248,7 +248,7 @@ purchaseRouter.post("/:orderNo/cancel", requireAuthWithTenant, asyncHandler(asyn
 
   await query(
     "INSERT INTO operation_log (module, action, target_id, target_type, user_id, user_name, detail, tenant_id) VALUES (?, ?, ?, ?, ?, ?, ?, ?)",
-    ["purchase", "CANCEL", orderNo, "purchase_order", req.user?.id, req.user?.username, `取消订单: ${orderNo}`, tenantId]
+    ["purchase", "CANCEL", orderNo, "purchase_order", req.user!.id, req.user!.username, `取消订单: ${orderNo}`, tenantId]
   );
 
   res.json(ok({ order_no: orderNo }));

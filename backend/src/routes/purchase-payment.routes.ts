@@ -11,7 +11,7 @@ export const purchasePaymentRouter = Router();
 // 列表查询
 purchasePaymentRouter.get("/", requireAuthWithTenant, asyncHandler(async (req, res) => {
   const { supplier_id, payment_type, status, start_date, end_date, page = 1, pageSize = 20 } = req.query;
-  const tenantId = req.tenantId;
+  const tenantId = req.tenantId!;
 
   let sql = "SELECT * FROM purchase_payment WHERE tenant_id = ?";
   const params: any[] = [tenantId];
@@ -51,7 +51,7 @@ purchasePaymentRouter.get("/", requireAuthWithTenant, asyncHandler(async (req, r
 // 详情查询
 purchasePaymentRouter.get("/:paymentNo", requireAuthWithTenant, asyncHandler(async (req, res) => {
   const { paymentNo } = req.params;
-  const tenantId = req.tenantId;
+  const tenantId = req.tenantId!;
 
   const payment = await queryOne<any>(
     "SELECT * FROM purchase_payment WHERE payment_no = ? AND tenant_id = ?",
@@ -84,7 +84,7 @@ purchasePaymentRouter.post("/", requireAuthWithTenant, asyncHandler(async (req, 
     remark: z.string().max(255).optional(),
   }).parse(req.body);
 
-  const tenantId = req.tenantId;
+  const tenantId = req.tenantId!;
   const paymentNo = makeBizNo("FK");
 
   await transaction(async (conn) => {
@@ -100,14 +100,14 @@ purchasePaymentRouter.post("/", requireAuthWithTenant, asyncHandler(async (req, 
         body.source_type || null, body.source_no || null,
         body.amount, body.payment_method, body.bank_account || null,
         body.bank_account_name || null, body.bank_name || null, body.voucher_no || null,
-        body.payment_date, req.user?.id, body.remark || null, tenantId
+        body.payment_date, req.user!.id, body.remark || null, tenantId
       ]
     );
 
     // 写操作日志
     await conn.execute(
       "INSERT INTO operation_log (module, action, target_id, target_type, user_id, user_name, detail, tenant_id) VALUES (?, ?, ?, ?, ?, ?, ?, ?)",
-      ["purchase_payment", "CREATE", paymentNo, "purchase_payment", req.user?.id, req.user?.username, `创建付款单: ${paymentNo}, 金额: ${body.amount}`, tenantId]
+      ["purchase_payment", "CREATE", paymentNo, "purchase_payment", req.user!.id, req.user!.username, `创建付款单: ${paymentNo}, 金额: ${body.amount}`, tenantId]
     );
   });
 
@@ -117,7 +117,7 @@ purchasePaymentRouter.post("/", requireAuthWithTenant, asyncHandler(async (req, 
 // 审核通过（PENDING -> COMPLETED）
 purchasePaymentRouter.post("/:paymentNo/approve", requireAuthWithTenant, asyncHandler(async (req, res) => {
   const { paymentNo } = req.params;
-  const tenantId = req.tenantId;
+  const tenantId = req.tenantId!;
 
   const payment = await queryOne<any>(
     "SELECT id, status, source_type, source_no, amount FROM purchase_payment WHERE payment_no = ? AND tenant_id = ?",
@@ -163,7 +163,7 @@ purchasePaymentRouter.post("/:paymentNo/approve", requireAuthWithTenant, asyncHa
     // 写操作日志
     await conn.execute(
       "INSERT INTO operation_log (module, action, target_id, target_type, user_id, user_name, detail, tenant_id) VALUES (?, ?, ?, ?, ?, ?, ?, ?)",
-      ["purchase_payment", "APPROVE", paymentNo, "purchase_payment", req.user?.id, req.user?.username, `审核通过: ${paymentNo}`, tenantId]
+      ["purchase_payment", "APPROVE", paymentNo, "purchase_payment", req.user!.id, req.user!.username, `审核通过: ${paymentNo}`, tenantId]
     );
   });
 
@@ -173,7 +173,7 @@ purchasePaymentRouter.post("/:paymentNo/approve", requireAuthWithTenant, asyncHa
 // 作废付款单（PENDING -> VOIDED）
 purchasePaymentRouter.post("/:paymentNo/void", requireAuthWithTenant, asyncHandler(async (req, res) => {
   const { paymentNo } = req.params;
-  const tenantId = req.tenantId;
+  const tenantId = req.tenantId!;
 
   const payment = await queryOne<any>(
     "SELECT id, status FROM purchase_payment WHERE payment_no = ? AND tenant_id = ?",
@@ -197,7 +197,7 @@ purchasePaymentRouter.post("/:paymentNo/void", requireAuthWithTenant, asyncHandl
 
   await query(
     "INSERT INTO operation_log (module, action, target_id, target_type, user_id, user_name, detail, tenant_id) VALUES (?, ?, ?, ?, ?, ?, ?, ?)",
-    ["purchase_payment", "VOID", paymentNo, "purchase_payment", req.user?.id, req.user?.username, `作废付款单: ${paymentNo}`, tenantId]
+    ["purchase_payment", "VOID", paymentNo, "purchase_payment", req.user!.id, req.user!.username, `作废付款单: ${paymentNo}`, tenantId]
   );
 
   res.json(ok({ payment_no: paymentNo }));

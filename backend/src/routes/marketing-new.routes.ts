@@ -6,13 +6,13 @@ import { query, queryOne, transaction } from "../shared/db.js";
 import { makeBizNo } from "../shared/id.js";
 import { ok } from "../shared/response.js";
 
-export const marketingRouter = Router();
+export const marketingNewRouter = Router();
 
 // ========== 优惠券模板管理 ==========
 
 // 获取优惠券模板列表
-marketingRouter.get("/coupons", requireAuthWithTenant, asyncHandler(async (req, res) => {
-  const tenantId = req.tenantId;
+marketingNewRouter.get("/coupons", requireAuthWithTenant, asyncHandler(async (req, res) => {
+  const tenantId = req.tenantId!;
   const { status, type, page = 1, pageSize = 20 } = req.query;
 
   const conditions: string[] = ["tenant_id = ?"];
@@ -60,8 +60,8 @@ marketingRouter.get("/coupons", requireAuthWithTenant, asyncHandler(async (req, 
 }));
 
 // 获取优惠券模板详情
-marketingRouter.get("/coupons/:templateId", requireAuthWithTenant, asyncHandler(async (req, res) => {
-  const tenantId = req.tenantId;
+marketingNewRouter.get("/coupons/:templateId", requireAuthWithTenant, asyncHandler(async (req, res) => {
+  const tenantId = req.tenantId!;
   const templateId = Number(req.params.templateId);
 
   const record = await queryOne<any>(
@@ -88,8 +88,8 @@ marketingRouter.get("/coupons/:templateId", requireAuthWithTenant, asyncHandler(
 }));
 
 // 创建优惠券模板
-marketingRouter.post("/coupons", requireAuthWithTenant, asyncHandler(async (req, res) => {
-  const tenantId = req.tenantId;
+marketingNewRouter.post("/coupons", requireAuthWithTenant, asyncHandler(async (req, res) => {
+  const tenantId = req.tenantId!;
 
   const body = z.object({
     templateName: z.string().min(1).max(128),
@@ -140,8 +140,8 @@ marketingRouter.post("/coupons", requireAuthWithTenant, asyncHandler(async (req,
 }));
 
 // 更新优惠券模板
-marketingRouter.put("/coupons/:templateId", requireAuthWithTenant, asyncHandler(async (req, res) => {
-  const tenantId = req.tenantId;
+marketingNewRouter.put("/coupons/:templateId", requireAuthWithTenant, asyncHandler(async (req, res) => {
+  const tenantId = req.tenantId!;
   const templateId = Number(req.params.templateId);
 
   const body = z.object({
@@ -222,8 +222,8 @@ marketingRouter.put("/coupons/:templateId", requireAuthWithTenant, asyncHandler(
 }));
 
 // 发放优惠券给用户
-marketingRouter.post("/coupons/:templateId/issue", requireAuthWithTenant, asyncHandler(async (req, res) => {
-  const tenantId = req.tenantId;
+marketingNewRouter.post("/coupons/:templateId/issue", requireAuthWithTenant, asyncHandler(async (req, res) => {
+  const tenantId = req.tenantId!;
   const templateId = Number(req.params.templateId);
 
   const body = z.object({
@@ -322,8 +322,8 @@ marketingRouter.post("/coupons/:templateId/issue", requireAuthWithTenant, asyncH
 // ========== 用户优惠券管理 ==========
 
 // 获取用户优惠券列表
-marketingRouter.get("/user-coupons", requireAuthWithTenant, asyncHandler(async (req, res) => {
-  const tenantId = req.tenantId;
+marketingNewRouter.get("/user-coupons", requireAuthWithTenant, asyncHandler(async (req, res) => {
+  const tenantId = req.tenantId!;
   const { userId, status, page = 1, pageSize = 20 } = req.query;
 
   const conditions: string[] = ["uc.tenant_id = ?"];
@@ -373,8 +373,8 @@ marketingRouter.get("/user-coupons", requireAuthWithTenant, asyncHandler(async (
 // ========== 促销活动管理 ==========
 
 // 获取促销活动列表
-marketingRouter.get("/promotions", requireAuthWithTenant, asyncHandler(async (req, res) => {
-  const tenantId = req.tenantId;
+marketingNewRouter.get("/promotions", requireAuthWithTenant, asyncHandler(async (req, res) => {
+  const tenantId = req.tenantId!;
   const { type, status, page = 1, pageSize = 20 } = req.query;
 
   const conditions: string[] = ["tenant_id = ?"];
@@ -420,8 +420,8 @@ marketingRouter.get("/promotions", requireAuthWithTenant, asyncHandler(async (re
 }));
 
 // 创建促销活动
-marketingRouter.post("/promotions", requireAuthWithTenant, asyncHandler(async (req, res) => {
-  const tenantId = req.tenantId;
+marketingNewRouter.post("/promotions", requireAuthWithTenant, asyncHandler(async (req, res) => {
+  const tenantId = req.tenantId!;
 
   const body = z.object({
     activityName: z.string().min(1).max(128),
@@ -468,8 +468,8 @@ marketingRouter.post("/promotions", requireAuthWithTenant, asyncHandler(async (r
 }));
 
 // 更新促销活动
-marketingRouter.put("/promotions/:activityId", requireAuthWithTenant, asyncHandler(async (req, res) => {
-  const tenantId = req.tenantId;
+marketingNewRouter.put("/promotions/:activityId", requireAuthWithTenant, asyncHandler(async (req, res) => {
+  const tenantId = req.tenantId!;
   const activityId = Number(req.params.activityId);
 
   const body = z.object({
@@ -550,8 +550,8 @@ marketingRouter.put("/promotions/:activityId", requireAuthWithTenant, asyncHandl
 // ========== 计算订单优惠 ==========
 
 // 计算订单可用优惠
-marketingRouter.post("/calculate-discount", requireAuthWithTenant, asyncHandler(async (req, res) => {
-  const tenantId = req.tenantId;
+marketingNewRouter.post("/calculate-discount", requireAuthWithTenant, asyncHandler(async (req, res) => {
+  const tenantId = req.tenantId!;
 
   const body = z.object({
     userId: z.number().int().positive(),

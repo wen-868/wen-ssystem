@@ -1,6 +1,7 @@
 import { Router } from "express";
 import crypto from "node:crypto";
 import { z } from "zod";
+import { requireAuthWithTenant } from "../shared/auth.js";
 import { asyncHandler } from "../shared/async-handler.js";
 import { query, queryOne, transaction } from "../shared/db.js";
 import { makeBizNo } from "../shared/id.js";
@@ -73,7 +74,8 @@ miniappRouter.get("/products", asyncHandler(async (req, res) => {
   res.json(ok(data));
 }));
 
-miniappRouter.post("/orders", asyncHandler(async (req, res) => {
+miniappRouter.post("/orders", requireAuthWithTenant, asyncHandler(async (req, res) => {
+  const tenantId = req.tenantId!;
   const anonymousMemberId = String(req.headers["x-anonymous-member-id"] || "");
   const body = z.object({
     storeId: z.number(),
@@ -104,8 +106,8 @@ miniappRouter.post("/orders", asyncHandler(async (req, res) => {
     for (const item of body.items) {
       const price = await queryOne<any>(
         `SELECT s.sku_name, pp.retail_price, pp.wholesale_price, pp.miniapp_price
-         FROM product_sku s JOIN product_price pp ON pp.sku_id = s.id WHERE s.id = ?`,
-        [item.skuId]
+         FROM product_sku s JOIN product_price pp ON pp.sku_id = s.id WHERE s.id = ? AND s.tenant_id = ?`,
+        [item.skuId, tenantId]
       );
       if (!price) throw new Error(`SKU不存在：${item.skuId}`);
       const wholesale = customerType === "WHOLESALE" && price.wholesale_price != null;
@@ -115,8 +117,8 @@ miniappRouter.post("/orders", asyncHandler(async (req, res) => {
       const inventory = await queryOne<any>(
         `SELECT physical_qty AS physicalQty, locked_qty AS lockedQty, available_qty AS availableQty
          FROM inventory_balance
-         WHERE store_id = ? AND sku_id = ? AND stock_type = 'ONLINE'`,
-        [body.storeId, item.skuId]
+         WHERE tenant_id = ? AND store_id = ? AND sku_id = ? AND stock_type = 'ONLINE'`,
+        [tenantId, body.storeId, item.skuId]
       );
       const reservation = customerType === "WHOLESALE"
         ? calcReservation({ orderQty: item.qty, availableQty: Number(inventory?.availableQty ?? 0) })
@@ -134,8 +136,8 @@ miniappRouter.post("/orders", asyncHandler(async (req, res) => {
     await conn.execute(
       `INSERT INTO miniapp_order (order_no, member_id, store_id, customer_type, fulfillment_type, order_status, pay_status,
                                   settlement_type, delivery_status, goods_amount, payable_amount,
-                                  receiver_name, receiver_mobile, receiver_address, remark, expire_at)
-       VALUES (?, 1, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, DATE_ADD(NOW(), INTERVAL 15 MINUTE))`,
+                                  receiver_name, receiver_mobile, receiver_address, remark, expire_at, tenant_id)
+       VALUES (?, 1, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, DATE_ADD(NOW(), INTERVAL 15 MINUTE), ?)`,
       [
         orderNo,
         body.storeId,
@@ -150,14 +152,15 @@ miniappRouter.post("/orders", asyncHandler(async (req, res) => {
         body.receiverName ?? null,
         body.receiverMobile ?? null,
         body.receiverAddress ?? null,
-        remarkWithIdentity
+        remarkWithIdentity,
+        tenantId
       ]
     );
     for (const item of items) {
       await conn.execute(
-        `INSERT INTO miniapp_order_item (order_no, sku_id, sku_name, qty, reserved_qty, unreserved_qty, unit_price, price_type, subtotal_amount)
-         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`,
-        [orderNo, item.skuId, item.skuName, item.qty, item.reservedQty, item.unreservedQty, item.unitPrice, item.priceType, item.subtotal]
+        `INSERT INTO miniapp_order_item (order_no, sku_id, sku_name, qty, reserved_qty, unreserved_qty, unit_price, price_type, subtotal_amount, tenant_id)
+         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+        [orderNo, item.skuId, item.skuName, item.qty, item.reservedQty, item.unreservedQty, item.unitPrice, item.priceType, item.subtotal, tenantId]
       );
       if (customerType === "WHOLESALE" && item.reservedQty > 0) {
         await conn.execute(
@@ -165,15 +168,15 @@ miniappRouter.post("/orders", asyncHandler(async (req, res) => {
            SET locked_qty = locked_qty + ?,
                available_qty = GREATEST(available_qty - ?, 0),
                updated_at = NOW()
-           WHERE store_id = ? AND sku_id = ? AND stock_type = 'ONLINE'`,
-          [item.reservedQty, item.reservedQty, body.storeId, item.skuId]
+           WHERE tenant_id = ? AND store_id = ? AND sku_id = ? AND stock_type = 'ONLINE'`,
+          [item.reservedQty, item.reservedQty, tenantId, body.storeId, item.skuId]
         );
         await conn.execute(
           `INSERT INTO inventory_ledger (ledger_no, store_id, sku_id, stock_type, biz_type, biz_no,
                                          change_qty, before_qty, after_qty, before_locked_qty, after_locked_qty,
-                                         operator_id, idempotency_key, remark)
-           VALUES (?, ?, ?, 'ONLINE', 'ORDER_LOCK', ?, 0, 0, 0, 0, ?, NULL, ?, ?)`,
-          [makeBizNo("IL"), body.storeId, item.skuId, orderNo, item.reservedQty, `ORDER_LOCK:${orderNo}:${item.skuId}`, "批发订货占用库存"]
+                                         operator_id, idempotency_key, remark, tenant_id)
+           VALUES (?, ?, ?, 'ONLINE', 'ORDER_LOCK', ?, 0, 0, 0, 0, ?, NULL, ?, ?, ?)`,
+          [makeBizNo("IL"), body.storeId, item.skuId, orderNo, item.reservedQty, `ORDER_LOCK:${orderNo}:${item.skuId}`, "批发订货占用库存", tenantId]
         );
       }
     }
@@ -193,7 +196,8 @@ miniappRouter.post("/orders", asyncHandler(async (req, res) => {
   res.json(ok(order));
 }));
 
-miniappRouter.get("/orders", asyncHandler(async (req, res) => {
+miniappRouter.get("/orders", requireAuthWithTenant, asyncHandler(async (req, res) => {
+  const tenantId = req.tenantId!;
   const anonymousMemberId = String(req.headers["x-anonymous-member-id"] || "");
   const page = Number(req.query.page || 1);
   const pageSize = Number(req.query.pageSize || 20);
@@ -204,19 +208,20 @@ miniappRouter.get("/orders", asyncHandler(async (req, res) => {
             receiver_name AS receiverName, receiver_mobile AS receiverMobile, receiver_address AS receiverAddress,
             created_at AS createdAt
      FROM miniapp_order
-     WHERE (? = '' OR remark LIKE ?)
+     WHERE tenant_id = ? AND (? = '' OR remark LIKE ?)
      ORDER BY id DESC
      LIMIT ? OFFSET ?`,
-    [anonymousMemberId, `[anon:${anonymousMemberId}]%`, pageSize, offset]
+    [tenantId, anonymousMemberId, `[anon:${anonymousMemberId}]%`, pageSize, offset]
   );
   const total = await queryOne<any>(
-    "SELECT COUNT(*) AS total FROM miniapp_order WHERE (? = '' OR remark LIKE ?)",
-    [anonymousMemberId, `[anon:${anonymousMemberId}]%`]
+    "SELECT COUNT(*) AS total FROM miniapp_order WHERE tenant_id = ? AND (? = '' OR remark LIKE ?)",
+    [tenantId, anonymousMemberId, `[anon:${anonymousMemberId}]%`]
   );
   res.json(ok({ total: total?.total ?? 0, page, pageSize, records }));
 }));
 
-miniappRouter.get("/orders/:orderNo", asyncHandler(async (req, res) => {
+miniappRouter.get("/orders/:orderNo", requireAuthWithTenant, asyncHandler(async (req, res) => {
+  const tenantId = req.tenantId!;
   const anonymousMemberId = String(req.headers["x-anonymous-member-id"] || "");
   const order = await queryOne<any>(
     `SELECT order_no AS orderNo, order_status AS orderStatus, pay_status AS payStatus,
@@ -224,8 +229,8 @@ miniappRouter.get("/orders/:orderNo", asyncHandler(async (req, res) => {
             receiver_name AS receiverName, receiver_mobile AS receiverMobile,
             receiver_address AS receiverAddress, fulfillment_type AS fulfillmentType,
             created_at AS createdAt
-     FROM miniapp_order WHERE order_no = ? AND (? = '' OR remark LIKE ?)`,
-    [req.params.orderNo, anonymousMemberId, `[anon:${anonymousMemberId}]%`]
+     FROM miniapp_order WHERE order_no = ? AND tenant_id = ? AND (? = '' OR remark LIKE ?)`,
+    [req.params.orderNo, tenantId, anonymousMemberId, `[anon:${anonymousMemberId}]%`]
   );
   if (!order) {
     res.status(404).json({ code: "404", message: "订单不存在" });
@@ -234,13 +239,14 @@ miniappRouter.get("/orders/:orderNo", asyncHandler(async (req, res) => {
   const items = await query<any>(
     `SELECT sku_id AS skuId, sku_name AS skuName, qty AS quantity,
             unit_price AS unitPrice, subtotal_amount AS subtotalAmount
-     FROM miniapp_order_item WHERE order_no = ?`,
-    [req.params.orderNo]
+     FROM miniapp_order_item WHERE order_no = ? AND tenant_id = ?`,
+    [req.params.orderNo, tenantId]
   );
   res.json(ok({ ...order, items }));
 }));
 
-miniappRouter.post("/orders/:orderNo/confirm-receipt", asyncHandler(async (req, res) => {
+miniappRouter.post("/orders/:orderNo/confirm-receipt", requireAuthWithTenant, asyncHandler(async (req, res) => {
+  const tenantId = req.tenantId!;
   const result = await transaction(async (conn) => {
     return completeOrderDelivery(conn, req.params.orderNo, null, makeBizNo);
   });
@@ -248,7 +254,8 @@ miniappRouter.post("/orders/:orderNo/confirm-receipt", asyncHandler(async (req, 
 }));
 
 // ========== 对账单接口 ==========
-miniappRouter.get("/statements", asyncHandler(async (req, res) => {
+miniappRouter.get("/statements", requireAuthWithTenant, asyncHandler(async (req, res) => {
+  const tenantId = req.tenantId!;
   const anonymousMemberId = String(req.headers["x-anonymous-member-id"] || "");
   const page = Number(req.query.page || 1);
   const pageSize = Number(req.query.pageSize || 20);
@@ -259,34 +266,34 @@ miniappRouter.get("/statements", asyncHandler(async (req, res) => {
     `SELECT order_no AS orderNo, goods_amount AS amount, created_at AS date,
             order_status AS orderStatus, pay_status AS payStatus
      FROM miniapp_order
-     WHERE (? = '' OR remark LIKE ?)
+     WHERE tenant_id = ? AND (? = '' OR remark LIKE ?)
      ORDER BY id DESC
      LIMIT ? OFFSET ?`,
-    [anonymousMemberId, `[anon:${anonymousMemberId}]%`, pageSize, offset]
+    [tenantId, anonymousMemberId, `[anon:${anonymousMemberId}]%`, pageSize, offset]
   );
 
   // 查询支付记录
   const payments = await query<any>(
     `SELECT pay_no AS paymentNo, amount, payment_method AS method, created_at AS date, status
      FROM payment_order
-     WHERE (? = '' OR source_no IN (SELECT order_no FROM miniapp_order WHERE remark LIKE ?))
+     WHERE tenant_id = ? AND (? = '' OR source_no IN (SELECT order_no FROM miniapp_order WHERE tenant_id = ? AND remark LIKE ?))
      ORDER BY id DESC
      LIMIT ? OFFSET ?`,
-    [anonymousMemberId, `[anon:${anonymousMemberId}]%`, pageSize, offset]
+    [tenantId, anonymousMemberId, tenantId, `[anon:${anonymousMemberId}]%`, pageSize, offset]
   );
 
   // 汇总
   const summary = await queryOne<any>(
     `SELECT COALESCE(SUM(goods_amount), 0) AS totalPurchase
-     FROM miniapp_order WHERE (? = '' OR remark LIKE ?)`,
-    [anonymousMemberId, `[anon:${anonymousMemberId}]%`]
+     FROM miniapp_order WHERE tenant_id = ? AND (? = '' OR remark LIKE ?)`,
+    [tenantId, anonymousMemberId, `[anon:${anonymousMemberId}]%`]
   );
 
   const paidSummary = await queryOne<any>(
     `SELECT COALESCE(SUM(amount), 0) AS totalPaid
      FROM payment_order
-     WHERE status = 'PAID' AND (? = '' OR source_no IN (SELECT order_no FROM miniapp_order WHERE remark LIKE ?))`,
-    [anonymousMemberId, `[anon:${anonymousMemberId}]%`]
+     WHERE tenant_id = ? AND status = 'PAID' AND (? = '' OR source_no IN (SELECT order_no FROM miniapp_order WHERE tenant_id = ? AND remark LIKE ?))`,
+    [tenantId, anonymousMemberId, tenantId, `[anon:${anonymousMemberId}]%`]
   );
 
   const totalPurchase = Number(summary?.totalPurchase || 0);
@@ -320,15 +327,16 @@ miniappRouter.get("/statements", asyncHandler(async (req, res) => {
   }));
 }));
 
-miniappRouter.get("/statements/:id", asyncHandler(async (req, res) => {
+miniappRouter.get("/statements/:id", requireAuthWithTenant, asyncHandler(async (req, res) => {
+  const tenantId = req.tenantId!;
   const anonymousMemberId = String(req.headers["x-anonymous-member-id"] || "");
   const order = await queryOne<any>(
     `SELECT order_no AS orderNo, goods_amount AS amount, created_at AS date,
             order_status AS orderStatus, pay_status AS payStatus,
             receiver_name AS receiverName, receiver_mobile AS receiverMobile, receiver_address AS receiverAddress
      FROM miniapp_order
-     WHERE order_no = ? AND (? = '' OR remark LIKE ?)`,
-    [req.params.id, anonymousMemberId, `[anon:${anonymousMemberId}]%`]
+     WHERE order_no = ? AND tenant_id = ? AND (? = '' OR remark LIKE ?)`,
+    [req.params.id, tenantId, anonymousMemberId, `[anon:${anonymousMemberId}]%`]
   );
   if (!order) {
     res.status(404).json({ code: "404", message: "对账单不存在" });
@@ -336,8 +344,8 @@ miniappRouter.get("/statements/:id", asyncHandler(async (req, res) => {
   }
   const items = await query<any>(
     `SELECT sku_name AS skuName, qty, unit_price AS unitPrice, subtotal_amount AS subtotalAmount
-     FROM miniapp_order_item WHERE order_no = ?`,
-    [req.params.id]
+     FROM miniapp_order_item WHERE order_no = ? AND tenant_id = ?`,
+    [req.params.id, tenantId]
   );
   res.json(ok({ ...order, items }));
 }));

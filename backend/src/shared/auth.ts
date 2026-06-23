@@ -6,6 +6,7 @@ import { tenantMiddleware, type TenantRequest } from "./tenant.js";
 export type AuthUser = {
   id: number;
   username: string;
+  realName?: string;
   roles: string[];
   storeId?: number | null;
   tenantId: string;

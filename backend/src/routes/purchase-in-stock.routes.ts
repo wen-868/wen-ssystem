@@ -11,7 +11,7 @@ export const purchaseInStockRouter = Router();
 // 列表查询
 purchaseInStockRouter.get("/", requireAuthWithTenant, asyncHandler(async (req, res) => {
   const { supplier_id, stock_status, start_date, end_date, page = 1, pageSize = 20 } = req.query;
-  const tenantId = req.tenantId;
+  const tenantId = req.tenantId!;
 
   let sql = "SELECT * FROM purchase_in_stock WHERE tenant_id = ?";
   const params: any[] = [tenantId];
@@ -46,7 +46,7 @@ purchaseInStockRouter.get("/", requireAuthWithTenant, asyncHandler(async (req, r
 // 详情查询（含明细）
 purchaseInStockRouter.get("/:stockNo", requireAuthWithTenant, asyncHandler(async (req, res) => {
   const { stockNo } = req.params;
-  const tenantId = req.tenantId;
+  const tenantId = req.tenantId!;
 
   const stock = await queryOne<any>(
     "SELECT * FROM purchase_in_stock WHERE stock_no = ? AND tenant_id = ?",
@@ -88,7 +88,7 @@ purchaseInStockRouter.post("/", requireAuthWithTenant, asyncHandler(async (req, 
     })).min(1),
   }).parse(req.body);
 
-  const tenantId = req.tenantId;
+  const tenantId = req.tenantId!;
   const stockNo = makeBizNo("RK");
 
   // 计算金额
@@ -124,7 +124,7 @@ purchaseInStockRouter.post("/", requireAuthWithTenant, asyncHandler(async (req, 
       ) VALUES (?, ?, ?, ?, ?, 'PENDING', ?, ?, ?, ?, ?, ?)`,
       [
         stockNo, body.order_no || null, body.supplier_id, body.supplier_name, body.store_id,
-        goodsAmount, taxAmount, totalAmount, req.user?.id, body.remark || null, tenantId
+        goodsAmount, taxAmount, totalAmount, req.user!.id, body.remark || null, tenantId
       ]
     );
 
@@ -148,7 +148,7 @@ purchaseInStockRouter.post("/", requireAuthWithTenant, asyncHandler(async (req, 
     // 写操作日志
     await conn.execute(
       "INSERT INTO operation_log (module, action, target_id, target_type, user_id, user_name, detail, tenant_id) VALUES (?, ?, ?, ?, ?, ?, ?, ?)",
-      ["purchase_in_stock", "CREATE", stockNo, "purchase_in_stock", req.user?.id, req.user?.username, `创建入库单: ${stockNo}`, tenantId]
+      ["purchase_in_stock", "CREATE", stockNo, "purchase_in_stock", req.user!.id, req.user!.username, `创建入库单: ${stockNo}`, tenantId]
     );
   });
 
@@ -158,7 +158,7 @@ purchaseInStockRouter.post("/", requireAuthWithTenant, asyncHandler(async (req, 
 // 审核通过（PENDING -> COMPLETED）
 purchaseInStockRouter.post("/:stockNo/approve", requireAuthWithTenant, asyncHandler(async (req, res) => {
   const { stockNo } = req.params;
-  const tenantId = req.tenantId;
+  const tenantId = req.tenantId!;
 
   const stock = await queryOne<any>(
     "SELECT id, stock_status, store_id FROM purchase_in_stock WHERE stock_no = ? AND tenant_id = ?",
@@ -179,7 +179,7 @@ purchaseInStockRouter.post("/:stockNo/approve", requireAuthWithTenant, asyncHand
     // 更新入库单状态
     await conn.execute(
       "UPDATE purchase_in_stock SET stock_status = 'COMPLETED', auditor_id = ?, audited_at = NOW() WHERE stock_no = ?",
-      [req.user?.id, stockNo]
+      [req.user!.id, stockNo]
     );
 
     // 获取明细
@@ -227,7 +227,7 @@ purchaseInStockRouter.post("/:stockNo/approve", requireAuthWithTenant, asyncHand
         [
           ledgerNo, stock.store_id, item.sku_id, stockNo,
           item.total_bottle_qty, beforeQty, afterQty,
-          req.user?.id, idempotencyKey, `采购入库: ${stockNo}`, tenantId
+          req.user!.id, idempotencyKey, `采购入库: ${stockNo}`, tenantId
         ]
       );
 
@@ -250,7 +250,7 @@ purchaseInStockRouter.post("/:stockNo/approve", requireAuthWithTenant, asyncHand
     // 写操作日志
     await conn.execute(
       "INSERT INTO operation_log (module, action, target_id, target_type, user_id, user_name, detail, tenant_id) VALUES (?, ?, ?, ?, ?, ?, ?, ?)",
-      ["purchase_in_stock", "APPROVE", stockNo, "purchase_in_stock", req.user?.id, req.user?.username, `审核通过: ${stockNo}`, tenantId]
+      ["purchase_in_stock", "APPROVE", stockNo, "purchase_in_stock", req.user!.id, req.user!.username, `审核通过: ${stockNo}`, tenantId]
     );
   });
 
@@ -260,7 +260,7 @@ purchaseInStockRouter.post("/:stockNo/approve", requireAuthWithTenant, asyncHand
 // 作废入库单（PENDING -> VOIDED）
 purchaseInStockRouter.post("/:stockNo/void", requireAuthWithTenant, asyncHandler(async (req, res) => {
   const { stockNo } = req.params;
-  const tenantId = req.tenantId;
+  const tenantId = req.tenantId!;
 
   const stock = await queryOne<any>(
     "SELECT id, stock_status FROM purchase_in_stock WHERE stock_no = ? AND tenant_id = ?",
@@ -284,7 +284,7 @@ purchaseInStockRouter.post("/:stockNo/void", requireAuthWithTenant, asyncHandler
 
   await query(
     "INSERT INTO operation_log (module, action, target_id, target_type, user_id, user_name, detail, tenant_id) VALUES (?, ?, ?, ?, ?, ?, ?, ?)",
-    ["purchase_in_stock", "VOID", stockNo, "purchase_in_stock", req.user?.id, req.user?.username, `作废入库单: ${stockNo}`, tenantId]
+    ["purchase_in_stock", "VOID", stockNo, "purchase_in_stock", req.user!.id, req.user!.username, `作废入库单: ${stockNo}`, tenantId]
   );
 
   res.json(ok({ stock_no: stockNo }));

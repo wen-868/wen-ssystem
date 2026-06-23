@@ -11,7 +11,7 @@ export const purchaseReturnRouter = Router();
 // 列表查询
 purchaseReturnRouter.get("/", requireAuthWithTenant, asyncHandler(async (req, res) => {
   const { supplier_id, return_status, start_date, end_date, page = 1, pageSize = 20 } = req.query;
-  const tenantId = req.tenantId;
+  const tenantId = req.tenantId!;
 
   let sql = "SELECT * FROM purchase_return WHERE tenant_id = ?";
   const params: any[] = [tenantId];
@@ -46,7 +46,7 @@ purchaseReturnRouter.get("/", requireAuthWithTenant, asyncHandler(async (req, re
 // 详情查询（含明细）
 purchaseReturnRouter.get("/:returnNo", requireAuthWithTenant, asyncHandler(async (req, res) => {
   const { returnNo } = req.params;
-  const tenantId = req.tenantId;
+  const tenantId = req.tenantId!;
 
   const returnOrder = await queryOne<any>(
     "SELECT * FROM purchase_return WHERE return_no = ? AND tenant_id = ?",
@@ -86,7 +86,7 @@ purchaseReturnRouter.post("/", requireAuthWithTenant, asyncHandler(async (req, r
     })).min(1),
   }).parse(req.body);
 
-  const tenantId = req.tenantId;
+  const tenantId = req.tenantId!;
   const returnNo = makeBizNo("CGTH");
 
   // 计算金额
@@ -126,7 +126,7 @@ purchaseReturnRouter.post("/", requireAuthWithTenant, asyncHandler(async (req, r
         returnNo, body.order_no || null, body.stock_no || null,
         body.supplier_id, body.supplier_name, body.store_id,
         goodsAmount, taxAmount, totalAmount, refundAmount,
-        req.user?.id, body.remark || null, tenantId
+        req.user!.id, body.remark || null, tenantId
       ]
     );
 
@@ -149,7 +149,7 @@ purchaseReturnRouter.post("/", requireAuthWithTenant, asyncHandler(async (req, r
     // 写操作日志
     await conn.execute(
       "INSERT INTO operation_log (module, action, target_id, target_type, user_id, user_name, detail, tenant_id) VALUES (?, ?, ?, ?, ?, ?, ?, ?)",
-      ["purchase_return", "CREATE", returnNo, "purchase_return", req.user?.id, req.user?.username, `创建采购退货单: ${returnNo}`, tenantId]
+      ["purchase_return", "CREATE", returnNo, "purchase_return", req.user!.id, req.user!.username, `创建采购退货单: ${returnNo}`, tenantId]
     );
   });
 
@@ -159,7 +159,7 @@ purchaseReturnRouter.post("/", requireAuthWithTenant, asyncHandler(async (req, r
 // 审核通过（PENDING -> COMPLETED）
 purchaseReturnRouter.post("/:returnNo/approve", requireAuthWithTenant, asyncHandler(async (req, res) => {
   const { returnNo } = req.params;
-  const tenantId = req.tenantId;
+  const tenantId = req.tenantId!;
 
   const returnOrder = await queryOne<any>(
     "SELECT id, return_status, store_id FROM purchase_return WHERE return_no = ? AND tenant_id = ?",
@@ -180,7 +180,7 @@ purchaseReturnRouter.post("/:returnNo/approve", requireAuthWithTenant, asyncHand
     // 更新退货单状态
     await conn.execute(
       "UPDATE purchase_return SET return_status = 'COMPLETED', auditor_id = ?, audited_at = NOW() WHERE return_no = ?",
-      [req.user?.id, returnNo]
+      [req.user!.id, returnNo]
     );
 
     // 获取明细
@@ -237,7 +237,7 @@ purchaseReturnRouter.post("/:returnNo/approve", requireAuthWithTenant, asyncHand
         [
           ledgerNo, returnOrder.store_id, item.sku_id, returnNo,
           -item.total_bottle_qty, beforeQty, afterQty,
-          req.user?.id, idempotencyKey, `采购退货出库: ${returnNo}`, tenantId
+          req.user!.id, idempotencyKey, `采购退货出库: ${returnNo}`, tenantId
         ]
       );
     }
@@ -245,7 +245,7 @@ purchaseReturnRouter.post("/:returnNo/approve", requireAuthWithTenant, asyncHand
     // 写操作日志
     await conn.execute(
       "INSERT INTO operation_log (module, action, target_id, target_type, user_id, user_name, detail, tenant_id) VALUES (?, ?, ?, ?, ?, ?, ?, ?)",
-      ["purchase_return", "APPROVE", returnNo, "purchase_return", req.user?.id, req.user?.username, `审核通过: ${returnNo}`, tenantId]
+      ["purchase_return", "APPROVE", returnNo, "purchase_return", req.user!.id, req.user!.username, `审核通过: ${returnNo}`, tenantId]
     );
   });
 
@@ -255,7 +255,7 @@ purchaseReturnRouter.post("/:returnNo/approve", requireAuthWithTenant, asyncHand
 // 作废退货单（PENDING -> VOIDED）
 purchaseReturnRouter.post("/:returnNo/void", requireAuthWithTenant, asyncHandler(async (req, res) => {
   const { returnNo } = req.params;
-  const tenantId = req.tenantId;
+  const tenantId = req.tenantId!;
 
   const returnOrder = await queryOne<any>(
     "SELECT id, return_status FROM purchase_return WHERE return_no = ? AND tenant_id = ?",
@@ -279,7 +279,7 @@ purchaseReturnRouter.post("/:returnNo/void", requireAuthWithTenant, asyncHandler
 
   await query(
     "INSERT INTO operation_log (module, action, target_id, target_type, user_id, user_name, detail, tenant_id) VALUES (?, ?, ?, ?, ?, ?, ?, ?)",
-    ["purchase_return", "VOID", returnNo, "purchase_return", req.user?.id, req.user?.username, `作废退货单: ${returnNo}`, tenantId]
+    ["purchase_return", "VOID", returnNo, "purchase_return", req.user!.id, req.user!.username, `作废退货单: ${returnNo}`, tenantId]
   );
 
   res.json(ok({ return_no: returnNo }));

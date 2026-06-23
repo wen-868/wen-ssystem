@@ -11,7 +11,7 @@ export const customerMergeRouter = Router();
 
 // 检测重复客户（按手机号/名称）
 customerMergeRouter.get("/duplicates", requireAuthWithTenant, asyncHandler(async (req, res) => {
-  const tenantId = req.tenantId;
+  const tenantId = req.tenantId!;
   const { type = "mobile" } = req.query; // mobile: 按手机号, name: 按名称, all: 全部
 
   const duplicates: any[] = [];
@@ -87,7 +87,7 @@ customerMergeRouter.get("/duplicates", requireAuthWithTenant, asyncHandler(async
 
 // 获取客户关联数据（订单、收款、欠款等）
 customerMergeRouter.get("/:customerId/relations", requireAuthWithTenant, asyncHandler(async (req, res) => {
-  const tenantId = req.tenantId;
+  const tenantId = req.tenantId!;
   const customerId = Number(req.params.customerId);
 
   const customer = await queryOne<any>(
@@ -149,7 +149,7 @@ customerMergeRouter.get("/:customerId/relations", requireAuthWithTenant, asyncHa
 
 // 合并客户
 customerMergeRouter.post("/merge", requireAuthWithTenant, asyncHandler(async (req, res) => {
-  const tenantId = req.tenantId;
+  const tenantId = req.tenantId!;
 
   const body = z.object({
     primaryCustomerId: z.number().int().positive(), // 主客户ID（保留）
@@ -308,7 +308,7 @@ customerMergeRouter.post("/merge", requireAuthWithTenant, asyncHandler(async (re
 
 // 批量检测并列出所有重复组
 customerMergeRouter.get("/duplicate-groups", requireAuthWithTenant, asyncHandler(async (req, res) => {
-  const tenantId = req.tenantId;
+  const tenantId = req.tenantId!;
   const { page = 1, pageSize = 20 } = req.query;
 
   // 按手机号分组

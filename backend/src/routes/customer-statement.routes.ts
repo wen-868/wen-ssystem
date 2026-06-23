@@ -11,7 +11,7 @@ export const customerStatementRouter = Router();
 // 列表查询
 customerStatementRouter.get("/", requireAuthWithTenant, asyncHandler(async (req, res) => {
   const { customer_id, status, start_date, end_date, page = 1, pageSize = 20 } = req.query;
-  const tenantId = req.tenantId;
+  const tenantId = req.tenantId!;
 
   let sql = "SELECT * FROM customer_statement WHERE tenant_id = ?";
   const params: any[] = [tenantId];
@@ -46,7 +46,7 @@ customerStatementRouter.get("/", requireAuthWithTenant, asyncHandler(async (req,
 // 详情查询
 customerStatementRouter.get("/:statementNo", requireAuthWithTenant, asyncHandler(async (req, res) => {
   const { statementNo } = req.params;
-  const tenantId = req.tenantId;
+  const tenantId = req.tenantId!;
 
   const statement = await queryOne<any>(
     "SELECT * FROM customer_statement WHERE statement_no = ? AND tenant_id = ?",
@@ -106,7 +106,7 @@ customerStatementRouter.post("/", requireAuthWithTenant, asyncHandler(async (req
     remark: z.string().max(255).optional(),
   }).parse(req.body);
 
-  const tenantId = req.tenantId;
+  const tenantId = req.tenantId!;
   const statementNo = makeBizNo("DZ");
 
   await transaction(async (conn) => {
@@ -177,14 +177,14 @@ customerStatementRouter.post("/", requireAuthWithTenant, asyncHandler(async (req
         statementNo, body.customer_id, body.customer_name, body.customer_mobile || null,
         body.statement_type, body.start_date, body.end_date,
         openingBalance, totalSales, totalReturns, totalPayments, closingBalance,
-        req.user?.id, body.remark || null, tenantId
+        req.user!.id, body.remark || null, tenantId
       ]
     );
 
     // 写操作日志
     await conn.execute(
       "INSERT INTO operation_log (module, action, target_id, target_type, user_id, user_name, detail, tenant_id) VALUES (?, ?, ?, ?, ?, ?, ?, ?)",
-      ["customer_statement", "CREATE", statementNo, "customer_statement", req.user?.id, req.user?.username, `创建对账单: ${statementNo}`, tenantId]
+      ["customer_statement", "CREATE", statementNo, "customer_statement", req.user!.id, req.user!.username, `创建对账单: ${statementNo}`, tenantId]
     );
   });
 
@@ -194,7 +194,7 @@ customerStatementRouter.post("/", requireAuthWithTenant, asyncHandler(async (req
 // 确认对账单（DRAFT -> CONFIRMED）
 customerStatementRouter.post("/:statementNo/confirm", requireAuthWithTenant, asyncHandler(async (req, res) => {
   const { statementNo } = req.params;
-  const tenantId = req.tenantId;
+  const tenantId = req.tenantId!;
 
   const statement = await queryOne<any>(
     "SELECT id, status FROM customer_statement WHERE statement_no = ? AND tenant_id = ?",
@@ -218,7 +218,7 @@ customerStatementRouter.post("/:statementNo/confirm", requireAuthWithTenant, asy
 
   await query(
     "INSERT INTO operation_log (module, action, target_id, target_type, user_id, user_name, detail, tenant_id) VALUES (?, ?, ?, ?, ?, ?, ?, ?)",
-    ["customer_statement", "CONFIRM", statementNo, "customer_statement", req.user?.id, req.user?.username, `确认对账单: ${statementNo}`, tenantId]
+    ["customer_statement", "CONFIRM", statementNo, "customer_statement", req.user!.id, req.user!.username, `确认对账单: ${statementNo}`, tenantId]
   );
 
   res.json(ok({ statement_no: statementNo }));
@@ -227,7 +227,7 @@ customerStatementRouter.post("/:statementNo/confirm", requireAuthWithTenant, asy
 // 标记结清（CONFIRMED -> PAID）
 customerStatementRouter.post("/:statementNo/paid", requireAuthWithTenant, asyncHandler(async (req, res) => {
   const { statementNo } = req.params;
-  const tenantId = req.tenantId;
+  const tenantId = req.tenantId!;
 
   const statement = await queryOne<any>(
     "SELECT id, status FROM customer_statement WHERE statement_no = ? AND tenant_id = ?",
@@ -251,7 +251,7 @@ customerStatementRouter.post("/:statementNo/paid", requireAuthWithTenant, asyncH
 
   await query(
     "INSERT INTO operation_log (module, action, target_id, target_type, user_id, user_name, detail, tenant_id) VALUES (?, ?, ?, ?, ?, ?, ?, ?)",
-    ["customer_statement", "PAID", statementNo, "customer_statement", req.user?.id, req.user?.username, `标记结清: ${statementNo}`, tenantId]
+    ["customer_statement", "PAID", statementNo, "customer_statement", req.user!.id, req.user!.username, `标记结清: ${statementNo}`, tenantId]
   );
 
   res.json(ok({ statement_no: statementNo }));

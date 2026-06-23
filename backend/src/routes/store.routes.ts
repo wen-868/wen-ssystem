@@ -1,7 +1,7 @@
 import { Router } from "express";
 import { z } from "zod";
 import { asyncHandler } from "../shared/async-handler.js";
-import { requireAuth, signToken } from "../shared/auth.js";
+import { requireAuth, requireAuthWithTenant, signToken } from "../shared/auth.js";
 import { query, queryOne, transaction } from "../shared/db.js";
 import { makeBizNo, makeToken } from "../shared/id.js";
 import { verifyPassword } from "../shared/password.js";
@@ -37,8 +37,8 @@ storeRouter.post("/auth/login", asyncHandler(async (req, res) => {
 // 当前用户信息
 storeRouter.get("/me", asyncHandler(async (req, res) => {
   res.json(ok({
-    userId: req.user?.id,
-    realName: req.user?.username ?? "商家用户",
+    userId: req.user!.id,
+    realName: req.user!.username ?? "商家用户",
     storeId: req.user?.storeId ?? 1,
     role: req.user?.roles?.[0] ?? "STAFF",
     permissions: [
@@ -55,17 +55,18 @@ storeRouter.get("/me", asyncHandler(async (req, res) => {
   }));
 }));
 
-storeRouter.use(requireAuth);
+storeRouter.use(requireAuthWithTenant);
 
 // 门店信息（供小程序端获取）
 storeRouter.get("/info", asyncHandler(async (req, res) => {
+  const tenantId = req.tenantId!;
   const storeId = req.user?.storeId ?? 1;
   const store = await queryOne<any>(
     `SELECT name, address, phone, contact,
             miniapp_appid AS miniappAppid, wx_merchant_name AS wxMerchantName,
             wx_service_phone AS wxServicePhone, wx_head_img AS wxHeadImg, wx_qrcode_url AS wxQrcodeUrl
-     FROM store WHERE id = ?`,
-    [storeId]
+     FROM store WHERE id = ? AND tenant_id = ?`,
+    [storeId, tenantId]
   );
   if (!store) {
     res.status(404).json({ code: "1", message: "门店不存在" });
@@ -118,6 +119,7 @@ export function normalizeStoreSaleBillItem(input: unknown) {
 }
 
 storeRouter.get("/products", asyncHandler(async (req, res) => {
+  const tenantId = req.tenantId!;
   const keyword = String(req.query.keyword || "");
   const barcode = String(req.query.barcode || "");
   const storeId = req.user?.storeId ?? 1;
@@ -126,52 +128,58 @@ storeRouter.get("/products", asyncHandler(async (req, res) => {
             s.barcode, pp.retail_price AS retailPrice, pp.wholesale_price AS wholesalePrice,
             pp.store_price AS storePrice, ib.available_qty AS availableQty
      FROM product_sku s
-     JOIN product_spu p ON p.id = s.spu_id
-     JOIN product_price pp ON pp.sku_id = s.id
-     LEFT JOIN inventory_balance ib ON ib.sku_id = s.id AND ib.store_id = ? AND ib.stock_type = 'OFFLINE'
-     WHERE p.status = 'ON_SALE'
+     JOIN product_spu p ON p.id = s.spu_id AND p.tenant_id = s.tenant_id
+     JOIN product_price pp ON pp.sku_id = s.id AND pp.tenant_id = s.tenant_id
+     LEFT JOIN inventory_balance ib ON ib.sku_id = s.id AND ib.store_id = ? AND ib.stock_type = 'OFFLINE' AND ib.tenant_id = s.tenant_id
+     WHERE s.tenant_id = ?
+       AND p.status = 'ON_SALE'
        AND (? = '' OR p.name LIKE ? OR s.sku_name LIKE ? OR s.sku_code LIKE ?)
        AND (? = '' OR s.barcode = ?)
      ORDER BY s.id DESC
      LIMIT 50`,
-    [storeId, keyword, `%${keyword}%`, `%${keyword}%`, `%${keyword}%`, barcode, barcode]
+    [storeId, tenantId, keyword, `%${keyword}%`, `%${keyword}%`, `%${keyword}%`, barcode, barcode]
   );
   res.json(ok({ records }));
 }));
 
 storeRouter.get("/members", asyncHandler(async (req, res) => {
+  const tenantId = req.tenantId!;
   const keyword = String(req.query.keyword || "");
   const records = await query<any>(
     `SELECT id AS memberId, name, mobile, customer_type AS customerType, status
      FROM member
-     WHERE status = 1
+     WHERE tenant_id = ?
+       AND status = 1
        AND (? = '' OR name LIKE ? OR mobile LIKE ?)
      ORDER BY id DESC
      LIMIT 50`,
-    [keyword, `%${keyword}%`, `%${keyword}%`]
+    [tenantId, keyword, `%${keyword}%`, `%${keyword}%`]
   );
   res.json(ok({ records }));
 }));
 
 storeRouter.get("/inventory", asyncHandler(async (req, res) => {
+  const tenantId = req.tenantId!;
   const keyword = `%${String(req.query.keyword || "")}%`;
   const storeId = req.query.storeId ? Number(req.query.storeId) : req.user?.storeId;
   const rows = await query<any>(
     `SELECT ib.store_id AS storeId, ib.sku_id AS skuId, s.sku_name AS skuName, ib.stock_type AS stockType,
             ib.physical_qty AS physicalQty, ib.locked_qty AS lockedQty, ib.available_qty AS availableQty
      FROM inventory_balance ib
-     JOIN product_sku s ON s.id = ib.sku_id
-     JOIN product_spu p ON p.id = s.spu_id
-     WHERE (? IS NULL OR ib.store_id = ?)
+     JOIN product_sku s ON s.id = ib.sku_id AND s.tenant_id = ib.tenant_id
+     JOIN product_spu p ON p.id = s.spu_id AND p.tenant_id = s.tenant_id
+     WHERE ib.tenant_id = ?
+       AND (? IS NULL OR ib.store_id = ?)
        AND (p.name LIKE ? OR s.sku_name LIKE ? OR s.sku_code LIKE ? OR s.barcode LIKE ?)
      ORDER BY ib.available_qty ASC, ib.updated_at DESC
      LIMIT 100`,
-    [storeId ?? null, storeId ?? null, keyword, keyword, keyword, keyword]
+    [tenantId, storeId ?? null, storeId ?? null, keyword, keyword, keyword, keyword]
   );
   res.json(ok(rows));
 }));
 
 storeRouter.get("/orders", asyncHandler(async (req, res) => {
+  const tenantId = req.tenantId!;
   const page = Number(req.query.page || 1);
   const pageSize = Number(req.query.pageSize || 20);
   const offset = (page - 1) * pageSize;
@@ -183,25 +191,28 @@ storeRouter.get("/orders", asyncHandler(async (req, res) => {
             receiver_name AS receiverName, receiver_mobile AS receiverMobile, receiver_address AS receiverAddress,
             created_at AS createdAt
      FROM miniapp_order
-     WHERE (? IS NULL OR store_id = ?)
+     WHERE tenant_id = ?
+       AND (? IS NULL OR store_id = ?)
        AND (? IS NULL OR order_status = ?)
      ORDER BY id DESC
      LIMIT ? OFFSET ?`,
-    [storeId, storeId, status, status, pageSize, offset]
+    [tenantId, storeId, storeId, status, status, pageSize, offset]
   );
   const total = await queryOne<any>(
     `SELECT COUNT(*) AS total FROM miniapp_order
-     WHERE (? IS NULL OR store_id = ?)
+     WHERE tenant_id = ?
+       AND (? IS NULL OR store_id = ?)
        AND (? IS NULL OR order_status = ?)`,
-    [storeId, storeId, status, status]
+    [tenantId, storeId, storeId, status, status]
   );
   res.json(ok({ total: total?.total ?? 0, page, pageSize, records }));
 }));
 
 storeRouter.post("/orders/:orderNo/accept", asyncHandler(async (req, res) => {
+  const tenantId = req.tenantId!;
   const result = await query(
-    `UPDATE miniapp_order SET order_status = 'ACCEPTED', updated_at = NOW() WHERE order_no = ?`,
-    [req.params.orderNo]
+    `UPDATE miniapp_order SET order_status = 'ACCEPTED', updated_at = NOW() WHERE order_no = ? AND tenant_id = ?`,
+    [req.params.orderNo, tenantId]
   );
   if (!result || (result as any).affectedRows === 0) {
     res.status(404).json({ code: "404", message: "订单不存在" });
@@ -211,38 +222,40 @@ storeRouter.post("/orders/:orderNo/accept", asyncHandler(async (req, res) => {
 }));
 
 storeRouter.post("/orders/:orderNo/start-delivery", asyncHandler(async (req, res) => {
+  const tenantId = req.tenantId!;
   const result = await query(
     `UPDATE miniapp_order
      SET order_status = 'DELIVERING', delivery_status = 'DELIVERING', updated_at = NOW()
-     WHERE order_no = ? AND order_status = 'WAIT_DELIVERY'`,
-    [req.params.orderNo]
+     WHERE order_no = ? AND order_status = 'WAIT_DELIVERY' AND tenant_id = ?`,
+    [req.params.orderNo, tenantId]
   );
   if (!result || (result as any).affectedRows === 0) {
     res.status(400).json({ code: "400", message: "订单不存在或状态不允许开始配送" });
     return;
   }
   await query(
-    `INSERT INTO operation_log (operator_id, operator_name, module, action, biz_no, after_data)
-     VALUES (?, ?, 'ORDER_DELIVERY', 'START_DELIVERY', ?, JSON_OBJECT('status', 'DELIVERING'))`,
-    [req.user?.id ?? null, req.user?.username ?? "系统用户", req.params.orderNo]
+    `INSERT INTO operation_log (operator_id, operator_name, module, action, biz_no, after_data, tenant_id)
+     VALUES (?, ?, 'ORDER_DELIVERY', 'START_DELIVERY', ?, JSON_OBJECT('status', 'DELIVERING'), ?)`,
+    [req.user!.id ?? null, req.user!.username ?? "系统用户", req.params.orderNo, tenantId]
   );
   res.json(ok({ orderNo: req.params.orderNo, status: "DELIVERING" }));
 }));
 
 storeRouter.post("/orders/:orderNo/complete-delivery", asyncHandler(async (req, res) => {
+  const tenantId = req.tenantId!;
   const result = await transaction(async (conn) => {
-    return completeOrderDelivery(conn, req.params.orderNo, req.user?.id ?? null, makeBizNo);
+    return completeOrderDelivery(conn, req.params.orderNo, req.user!.id ?? null, makeBizNo);
   });
   res.json(ok(result));
 }));
 
-async function releaseOrderReservation(orderNo: string, status: "REJECTED" | "CANCELLED", operatorId: number | null) {
+async function releaseOrderReservation(orderNo: string, status: "REJECTED" | "CANCELLED", operatorId: number | null, tenantId: string) {
   return transaction(async (conn) => {
     const [orders] = await conn.query<any[]>(
       `SELECT order_no, store_id FROM miniapp_order
-       WHERE order_no = ? AND order_status IN ('WAIT_DELIVERY', 'DELIVERING')
+       WHERE order_no = ? AND order_status IN ('WAIT_DELIVERY', 'DELIVERING') AND tenant_id = ?
        FOR UPDATE`,
-      [orderNo]
+      [orderNo, tenantId]
     );
     const order = orders[0];
     if (!order) throw new Error("订单不存在或状态不可释放库存");
@@ -258,14 +271,14 @@ async function releaseOrderReservation(orderNo: string, status: "REJECTED" | "CA
          SET locked_qty = GREATEST(locked_qty - ?, 0),
              available_qty = available_qty + ?,
              updated_at = NOW()
-         WHERE store_id = ? AND sku_id = ? AND stock_type = 'ONLINE'`,
-        [qty, qty, order.store_id, item.skuId]
+         WHERE store_id = ? AND sku_id = ? AND stock_type = 'ONLINE' AND tenant_id = ?`,
+        [qty, qty, order.store_id, item.skuId, tenantId]
       );
       await conn.execute(
         `INSERT INTO inventory_ledger (ledger_no, store_id, sku_id, stock_type, biz_type, biz_no,
                                        change_qty, before_qty, after_qty, before_locked_qty, after_locked_qty,
-                                       operator_id, idempotency_key, remark)
-         VALUES (?, ?, ?, 'ONLINE', ?, ?, 0, 0, 0, 0, 0, ?, ?, ?)`,
+                                       operator_id, idempotency_key, remark, tenant_id)
+         VALUES (?, ?, ?, 'ONLINE', ?, ?, 0, 0, 0, 0, 0, ?, ?, ?, ?)`,
         [
           makeBizNo("IL"),
           order.store_id,
@@ -274,37 +287,41 @@ async function releaseOrderReservation(orderNo: string, status: "REJECTED" | "CA
           orderNo,
           operatorId,
           `${status}:${orderNo}:${item.skuId}`,
-          status === "REJECTED" ? "客户拒收释放占用库存" : "订单取消释放占用库存"
+          status === "REJECTED" ? "客户拒收释放占用库存" : "订单取消释放占用库存",
+          tenantId
         ]
       );
     }
     await conn.execute(
       `UPDATE miniapp_order
        SET order_status = ?, delivery_status = ?, updated_at = NOW()
-       WHERE order_no = ?`,
-      [status, status, orderNo]
+       WHERE order_no = ? AND tenant_id = ?`,
+      [status, status, orderNo, tenantId]
     );
     return { orderNo, status };
   });
 }
 
 storeRouter.post("/orders/:orderNo/reject", asyncHandler(async (req, res) => {
-  res.json(ok(await releaseOrderReservation(req.params.orderNo, "REJECTED", req.user?.id ?? null)));
+  const tenantId = req.tenantId!;
+  res.json(ok(await releaseOrderReservation(req.params.orderNo, "REJECTED", req.user!.id ?? null, tenantId)));
 }));
 
 storeRouter.post("/orders/:orderNo/cancel", asyncHandler(async (req, res) => {
-  res.json(ok(await releaseOrderReservation(req.params.orderNo, "CANCELLED", req.user?.id ?? null)));
+  const tenantId = req.tenantId!;
+  res.json(ok(await releaseOrderReservation(req.params.orderNo, "CANCELLED", req.user!.id ?? null, tenantId)));
 }));
 
 storeRouter.get("/orders/:orderNo", asyncHandler(async (req, res) => {
+  const tenantId = req.tenantId!;
   const order = await queryOne<any>(
     `SELECT order_no AS orderNo, store_id AS storeId, customer_type AS customerType,
             fulfillment_type AS fulfillmentType, order_status AS orderStatus,
             pay_status AS payStatus, payable_amount AS payableAmount,
             receiver_name AS receiverName, receiver_mobile AS receiverMobile,
             receiver_address AS receiverAddress, created_at AS createdAt
-     FROM miniapp_order WHERE order_no = ?`,
-    [req.params.orderNo]
+     FROM miniapp_order WHERE order_no = ? AND tenant_id = ?`,
+    [req.params.orderNo, tenantId]
   );
   if (!order) { res.status(404).json({ code: "404", message: "订单不存在" }); return; }
   const items = await query<any>(
@@ -317,6 +334,7 @@ storeRouter.get("/orders/:orderNo", asyncHandler(async (req, res) => {
 }));
 
 storeRouter.get("/sale-bills", asyncHandler(async (req, res) => {
+  const tenantId = req.tenantId!;
   const page = Number(req.query.page || 1);
   const pageSize = Number(req.query.pageSize || 20);
   const offset = (page - 1) * pageSize;
@@ -329,24 +347,27 @@ storeRouter.get("/sale-bills", asyncHandler(async (req, res) => {
             receivable_amount AS receivableAmount, received_amount AS receivedAmount, unreceived_amount AS unreceivedAmount,
             created_at AS createdAt
      FROM sale_bill
-     WHERE (? IS NULL OR store_id = ?)
+     WHERE tenant_id = ?
+       AND (? IS NULL OR store_id = ?)
        AND (? IS NULL OR collection_status = ?)
        AND (bill_no LIKE ? OR customer_name LIKE ? OR customer_mobile LIKE ?)
      ORDER BY id DESC
      LIMIT ? OFFSET ?`,
-    [storeId, storeId, collectionStatus, collectionStatus, keyword, keyword, keyword, pageSize, offset]
+    [tenantId, storeId, storeId, collectionStatus, collectionStatus, keyword, keyword, keyword, pageSize, offset]
   );
   const total = await queryOne<any>(
     `SELECT COUNT(*) AS total FROM sale_bill
-     WHERE (? IS NULL OR store_id = ?)
+     WHERE tenant_id = ?
+       AND (? IS NULL OR store_id = ?)
        AND (? IS NULL OR collection_status = ?)
        AND (bill_no LIKE ? OR customer_name LIKE ? OR customer_mobile LIKE ?)`,
-    [storeId, storeId, collectionStatus, collectionStatus, keyword, keyword, keyword]
+    [tenantId, storeId, storeId, collectionStatus, collectionStatus, keyword, keyword, keyword]
   );
   res.json(ok({ total: total?.total ?? 0, page, pageSize, records }));
 }));
 
 storeRouter.post("/sale-bills", asyncHandler(async (req, res) => {
+  const tenantId = req.tenantId!;
   const body = z.object({
     storeId: z.number().optional(),
     customerId: z.number().nullable().optional(),
@@ -364,16 +385,16 @@ storeRouter.post("/sale-bills", asyncHandler(async (req, res) => {
     const billNo = makeBizNo("XS");
     const storeId = body.storeId ?? req.user?.storeId ?? 1;
     const member = body.customerId
-      ? await queryOne<any>("SELECT id, name, mobile, customer_type FROM member WHERE id = ?", [body.customerId])
+      ? await queryOne<any>("SELECT id, name, mobile, customer_type FROM member WHERE id = ? AND tenant_id = ?", [body.customerId, tenantId])
       : null;
     let goodsAmount = 0;
     const itemSnapshots = [];
     for (const item of body.items) {
       const price = await queryOne<any>(
         `SELECT s.sku_name, pp.retail_price, pp.wholesale_price, pp.store_price
-         FROM product_sku s JOIN product_price pp ON pp.sku_id = s.id
-         WHERE s.id = ?`,
-        [item.skuId]
+         FROM product_sku s JOIN product_price pp ON pp.sku_id = s.id AND pp.tenant_id = s.tenant_id
+         WHERE s.id = ? AND s.tenant_id = ?`,
+        [item.skuId, tenantId]
       );
       if (!price) throw new Error(`SKU不存在：${item.skuId}`);
       const customerType = member?.customer_type ?? "RETAIL";
@@ -388,13 +409,13 @@ storeRouter.post("/sale-bills", asyncHandler(async (req, res) => {
     await conn.execute(
       `INSERT INTO sale_bill (bill_no, store_id, customer_id, customer_name, customer_mobile, customer_type,
                               sale_type, business_status, collection_status, goods_amount, discount_amount, rounding_amount,
-                              receivable_amount, received_amount, unreceived_amount, due_date, operator_id, remark, internal_remark)
-       VALUES (?, ?, ?, ?, ?, ?, ?, 'CREATED', 'UNPAID', ?, ?, ?, ?, 0, ?, ?, ?, ?)`,
+                              receivable_amount, received_amount, unreceived_amount, due_date, operator_id, remark, internal_remark, tenant_id)
+       VALUES (?, ?, ?, ?, ?, ?, ?, 'CREATED', 'UNPAID', ?, ?, ?, ?, 0, ?, ?, ?, ?, ?)`,
       [
         billNo, storeId, body.customerId ?? null, member?.name ?? body.customerName ?? null, member?.mobile ?? body.customerMobile ?? null,
         member?.customer_type ?? "RETAIL", body.saleType, goodsAmount, body.discountAmount, body.roundingAmount, receivableAmount, receivableAmount,
         body.saleType === "CREDIT" ? body.dueDate ?? null : null,
-        req.user?.id ?? 0, body.remark ?? null, body.internalRemark ?? null
+        req.user!.id ?? 0, body.remark ?? null, body.internalRemark ?? null, tenantId
       ]
     );
     for (const item of itemSnapshots) {
@@ -410,12 +431,13 @@ storeRouter.post("/sale-bills", asyncHandler(async (req, res) => {
 }));
 
 storeRouter.get("/sale-bills/:billNo", asyncHandler(async (req, res) => {
+  const tenantId = req.tenantId!;
   const bill = await queryOne<any>(
     `SELECT bill_no AS billNo, store_id AS storeId, customer_id AS customerId, customer_name AS customerName,
             customer_type AS customerType, business_status AS businessStatus, collection_status AS collectionStatus,
             receivable_amount AS receivableAmount, received_amount AS receivedAmount, unreceived_amount AS unreceivedAmount
-     FROM sale_bill WHERE bill_no = ?`,
-    [req.params.billNo]
+     FROM sale_bill WHERE bill_no = ? AND tenant_id = ?`,
+    [req.params.billNo, tenantId]
   );
   if (!bill) {
     res.status(404).json({ code: "404", message: "销售单不存在" });
@@ -431,6 +453,7 @@ storeRouter.get("/sale-bills/:billNo", asyncHandler(async (req, res) => {
 }));
 
 storeRouter.post("/sale-bills/:billNo/collection-link", asyncHandler(async (req, res) => {
+  const tenantId = req.tenantId!;
   const body = z.object({
     shareChannel: z.enum(["MINIAPP_CARD", "LINK", "IMAGE", "QR_CODE"]).default("LINK"),
     amount: z.number(),
@@ -439,7 +462,7 @@ storeRouter.post("/sale-bills/:billNo/collection-link", asyncHandler(async (req,
     expireHours: z.number().default(72),
     remark: z.string().optional()
   }).parse(req.body);
-  const bill = await queryOne<any>("SELECT bill_no, unreceived_amount FROM sale_bill WHERE bill_no = ?", [req.params.billNo]);
+  const bill = await queryOne<any>("SELECT bill_no, unreceived_amount FROM sale_bill WHERE bill_no = ? AND tenant_id = ?", [req.params.billNo, tenantId]);
   if (!bill) {
     res.status(404).json({ code: "404", message: "销售单不存在" });
     return;
@@ -452,15 +475,15 @@ storeRouter.post("/sale-bills/:billNo/collection-link", asyncHandler(async (req,
   const token = makeToken();
   const taxAmount = body.taxEnabled ? Number((body.amount * body.taxRate).toFixed(2)) : 0;
   await query(
-    `INSERT INTO collection_link (link_no, source_type, source_no, amount, paid_amount, status, share_channel, share_user_id, expire_at, token, tax_enabled, tax_rate, tax_amount)
-     VALUES (?, 'SALE_BILL', ?, ?, 0, 'PENDING', ?, ?, DATE_ADD(NOW(), INTERVAL ? HOUR), ?, ?, ?, ?)`,
-    [linkNo, req.params.billNo, body.amount, body.shareChannel, req.user?.id ?? 0, body.expireHours, token, body.taxEnabled ? 1 : 0, body.taxRate, taxAmount]
+    `INSERT INTO collection_link (link_no, source_type, source_no, amount, paid_amount, status, share_channel, share_user_id, expire_at, token, tax_enabled, tax_rate, tax_amount, tenant_id)
+     VALUES (?, 'SALE_BILL', ?, ?, 0, 'PENDING', ?, ?, DATE_ADD(NOW(), INTERVAL ? HOUR), ?, ?, ?, ?, ?)`,
+    [linkNo, req.params.billNo, body.amount, body.shareChannel, req.user!.id ?? 0, body.expireHours, token, body.taxEnabled ? 1 : 0, body.taxRate, taxAmount, tenantId]
   );
   await query(
     `UPDATE sale_bill
      SET collection_status = 'SHARED', share_collection_count = share_collection_count + 1, last_share_time = NOW(), locked_amount_flag = 1
-     WHERE bill_no = ?`,
-    [req.params.billNo]
+     WHERE bill_no = ? AND tenant_id = ?`,
+    [req.params.billNo, tenantId]
   );
   res.json(ok({
     linkNo,
@@ -478,6 +501,7 @@ storeRouter.post("/sale-bills/:billNo/collection-link", asyncHandler(async (req,
 }));
 
 storeRouter.post("/sale-bills/:billNo/offline-payment", asyncHandler(async (req, res) => {
+  const tenantId = req.tenantId!;
   const body = z.object({
     amount: z.number(),
     paymentMethod: z.enum(["CASH", "TRANSFER", "OTHER_WECHAT", "ALIPAY"]),
@@ -485,14 +509,14 @@ storeRouter.post("/sale-bills/:billNo/offline-payment", asyncHandler(async (req,
   }).parse(req.body);
   await transaction(async (conn) => {
     const [rows] = await conn.query<any[]>(
-      "SELECT bill_no, store_id, received_amount, receivable_amount, collection_status FROM sale_bill WHERE bill_no = ? FOR UPDATE",
-      [req.params.billNo]
+      "SELECT bill_no, store_id, received_amount, receivable_amount, collection_status FROM sale_bill WHERE bill_no = ? AND tenant_id = ? FOR UPDATE",
+      [req.params.billNo, tenantId]
     );
     const bill = rows[0];
     if (!bill) throw new Error("销售单不存在");
     const existingDeductRows = await conn.query<any[]>(
-      "SELECT id FROM inventory_ledger WHERE biz_type = 'SALE_OUT' AND biz_no = ? LIMIT 1",
-      [req.params.billNo]
+      "SELECT id FROM inventory_ledger WHERE biz_type = 'SALE_OUT' AND biz_no = ? AND tenant_id = ? LIMIT 1",
+      [req.params.billNo, tenantId]
     );
     const alreadyDeducted = existingDeductRows[0].length > 0;
     const received = Number(bill.received_amount) + body.amount;
@@ -503,13 +527,13 @@ storeRouter.post("/sale-bills/:billNo/offline-payment", asyncHandler(async (req,
     const status = received >= receivable ? "PAID" : "PARTIAL";
     await conn.execute(
       `UPDATE sale_bill SET received_amount = ?, unreceived_amount = GREATEST(receivable_amount - ?, 0), collection_status = ?, last_payment_time = NOW()
-       WHERE bill_no = ?`,
-      [received, received, status, req.params.billNo]
+       WHERE bill_no = ? AND tenant_id = ?`,
+      [received, received, status, req.params.billNo, tenantId]
     );
     await conn.execute(
-      `INSERT INTO payment_order (pay_no, source_type, source_no, channel, amount, status, paid_at)
-       VALUES (?, 'SALE_BILL', ?, ?, ?, 'SUCCESS', NOW())`,
-      [makeBizNo("ZF"), req.params.billNo, body.paymentMethod, body.amount]
+      `INSERT INTO payment_order (pay_no, source_type, source_no, channel, amount, status, paid_at, tenant_id)
+       VALUES (?, 'SALE_BILL', ?, ?, ?, 'SUCCESS', NOW(), ?)`,
+      [makeBizNo("ZF"), req.params.billNo, body.paymentMethod, body.amount, tenantId]
     );
     if (!alreadyDeducted) {
       const [items] = await conn.query<any[]>(
@@ -522,9 +546,9 @@ storeRouter.post("/sale-bills/:billNo/offline-payment", asyncHandler(async (req,
         const [inventoryRows] = await conn.query<any[]>(
           `SELECT physical_qty AS physicalQty, available_qty AS availableQty
            FROM inventory_balance
-           WHERE store_id = ? AND sku_id = ? AND stock_type = 'OFFLINE'
+           WHERE store_id = ? AND sku_id = ? AND stock_type = 'OFFLINE' AND tenant_id = ?
            FOR UPDATE`,
-          [bill.store_id, item.skuId]
+          [bill.store_id, item.skuId, tenantId]
         );
         const inventory = inventoryRows[0];
         const beforeQty = Number(inventory?.availableQty ?? 0);
@@ -536,14 +560,14 @@ storeRouter.post("/sale-bills/:billNo/offline-payment", asyncHandler(async (req,
            SET physical_qty = physical_qty - ?,
                available_qty = available_qty - ?,
                updated_at = NOW()
-           WHERE store_id = ? AND sku_id = ? AND stock_type = 'OFFLINE'`,
-          [quantity, quantity, bill.store_id ?? bill.storeId, item.skuId]
+           WHERE store_id = ? AND sku_id = ? AND stock_type = 'OFFLINE' AND tenant_id = ?`,
+          [quantity, quantity, bill.store_id ?? bill.storeId, item.skuId, tenantId]
         );
         await conn.execute(
           `INSERT INTO inventory_ledger (ledger_no, store_id, sku_id, stock_type, biz_type, biz_no,
                                          change_qty, before_qty, after_qty, before_locked_qty, after_locked_qty,
-                                         operator_id, idempotency_key, remark)
-           VALUES (?, ?, ?, 'OFFLINE', 'SALE_OUT', ?, ?, ?, ?, 0, 0, ?, ?, ?)`,
+                                         operator_id, idempotency_key, remark, tenant_id)
+           VALUES (?, ?, ?, 'OFFLINE', 'SALE_OUT', ?, ?, ?, ?, 0, 0, ?, ?, ?, ?)`,
           [
             makeBizNo("IL"),
             bill.store_id ?? bill.storeId,
@@ -552,9 +576,10 @@ storeRouter.post("/sale-bills/:billNo/offline-payment", asyncHandler(async (req,
             -quantity,
             beforeQty,
             afterQty,
-            req.user?.id ?? null,
+            req.user!.id ?? null,
             `SALE_OUT:${req.params.billNo}:${item.skuId}`,
-            body.remark ?? "线下收款销售出库"
+            body.remark ?? "线下收款销售出库",
+            tenantId
           ]
         );
       }
@@ -565,6 +590,7 @@ storeRouter.post("/sale-bills/:billNo/offline-payment", asyncHandler(async (req,
 
 // 查询超期赊销单
 storeRouter.get("/sale-bills/overdue", asyncHandler(async (req, res) => {
+  const tenantId = req.tenantId!;
   const page = Number(req.query.page || 1);
   const pageSize = Number(req.query.pageSize || 20);
   const offset = (page - 1) * pageSize;
@@ -577,7 +603,8 @@ storeRouter.get("/sale-bills/overdue", asyncHandler(async (req, res) => {
             received_amount AS receivedAmount, unreceived_amount AS unreceivedAmount,
             created_at AS createdAt, DATEDIFF(CURDATE(), due_date) AS overdueDays
      FROM sale_bill
-     WHERE sale_type = 'CREDIT'
+     WHERE tenant_id = ?
+       AND sale_type = 'CREDIT'
        AND due_date IS NOT NULL
        AND due_date < CURDATE()
        AND collection_status IN ('UNPAID', 'PARTIAL')
@@ -585,24 +612,26 @@ storeRouter.get("/sale-bills/overdue", asyncHandler(async (req, res) => {
        AND (? IS NULL OR store_id = ?)
      ORDER BY due_date ASC
      LIMIT ? OFFSET ?`,
-    [storeId, storeId, pageSize, offset]
+    [tenantId, storeId, storeId, pageSize, offset]
   );
 
   const total = await queryOne<any>(
     `SELECT COUNT(*) AS total FROM sale_bill
-     WHERE sale_type = 'CREDIT'
+     WHERE tenant_id = ?
+       AND sale_type = 'CREDIT'
        AND due_date IS NOT NULL
        AND due_date < CURDATE()
        AND collection_status IN ('UNPAID', 'PARTIAL')
        AND business_status = 'CREATED'
        AND (? IS NULL OR store_id = ?)`,
-    [storeId, storeId]
+    [tenantId, storeId, storeId]
   );
 
   res.json(ok({ total: total?.total ?? 0, page, pageSize, records }));
 }));
 
 storeRouter.post("/inventory/adjust", asyncHandler(async (req, res) => {
+  const tenantId = req.tenantId!;
   const body = z.object({
     storeId: z.number().optional(),
     skuId: z.number(),
@@ -615,9 +644,9 @@ storeRouter.post("/inventory/adjust", asyncHandler(async (req, res) => {
     const [rows] = await conn.query<any[]>(
       `SELECT physical_qty AS physicalQty
        FROM inventory_balance
-       WHERE store_id = ? AND sku_id = ? AND stock_type = ?
+       WHERE store_id = ? AND sku_id = ? AND stock_type = ? AND tenant_id = ?
        FOR UPDATE`,
-      [storeId, body.skuId, body.stockType]
+      [storeId, body.skuId, body.stockType, tenantId]
     );
     const beforeQty = Number(rows[0]?.physicalQty ?? 0);
     await conn.execute(
@@ -625,15 +654,15 @@ storeRouter.post("/inventory/adjust", asyncHandler(async (req, res) => {
        SET physical_qty = physical_qty + ?,
            available_qty = available_qty + ?,
            updated_at = NOW()
-       WHERE store_id = ? AND sku_id = ? AND stock_type = ?`,
-      [body.change, body.change, storeId, body.skuId, body.stockType]
+       WHERE store_id = ? AND sku_id = ? AND stock_type = ? AND tenant_id = ?`,
+      [body.change, body.change, storeId, body.skuId, body.stockType, tenantId]
     );
     const afterQty = beforeQty + body.change;
     await conn.execute(
       `INSERT INTO inventory_ledger (ledger_no, store_id, sku_id, stock_type, biz_type, biz_no,
                                      change_qty, before_qty, after_qty, before_locked_qty, after_locked_qty,
-                                     operator_id, idempotency_key, remark)
-       VALUES (?, ?, ?, ?, 'ADJUST', ?, ?, ?, ?, 0, 0, ?, ?, ?)`,
+                                     operator_id, idempotency_key, remark, tenant_id)
+       VALUES (?, ?, ?, ?, 'ADJUST', ?, ?, ?, ?, 0, 0, ?, ?, ?, ?)`,
       [
         makeBizNo("IL"),
         storeId,
@@ -643,9 +672,10 @@ storeRouter.post("/inventory/adjust", asyncHandler(async (req, res) => {
         body.change,
         beforeQty,
         afterQty,
-        req.user?.id ?? null,
+        req.user!.id ?? null,
         makeBizNo("IDEMP"),
-        body.remark ?? "门店调整"
+        body.remark ?? "门店调整",
+        tenantId
       ]
     );
     return { ok: true };
@@ -654,6 +684,7 @@ storeRouter.post("/inventory/adjust", asyncHandler(async (req, res) => {
 }));
 
 storeRouter.get("/inventory/logs", asyncHandler(async (req, res) => {
+  const tenantId = req.tenantId!;
   const page = Number(req.query.page || 1);
   const pageSize = Number(req.query.pageSize || 20);
   const offset = (page - 1) * pageSize;
@@ -663,23 +694,25 @@ storeRouter.get("/inventory/logs", asyncHandler(async (req, res) => {
                     il.before_qty AS beforeQty, il.after_qty AS afterQty,
                     il.remark AS reason, il.operator_id AS operatorId, il.created_at AS createdAt
              FROM inventory_ledger il
-             LEFT JOIN product_sku ps ON ps.id = il.sku_id`;
-  const params: unknown[] = [];
+             LEFT JOIN product_sku ps ON ps.id = il.sku_id AND ps.tenant_id = il.tenant_id
+             WHERE il.tenant_id = ?`;
+  const params: unknown[] = [tenantId];
   if (storeId) {
-    sql += " WHERE il.store_id = ?";
+    sql += " AND il.store_id = ?";
     params.push(storeId);
   }
   sql += " ORDER BY il.created_at DESC LIMIT ? OFFSET ?";
   params.push(pageSize, offset);
   const records = await query<any>(sql, params);
   const totalSql = storeId
-    ? "SELECT COUNT(*) AS total FROM inventory_ledger WHERE store_id = ?"
-    : "SELECT COUNT(*) AS total FROM inventory_ledger";
-  const totalRow = await queryOne<any>(totalSql, storeId ? [storeId] : []);
+    ? "SELECT COUNT(*) AS total FROM inventory_ledger WHERE tenant_id = ? AND store_id = ?"
+    : "SELECT COUNT(*) AS total FROM inventory_ledger WHERE tenant_id = ?";
+  const totalRow = await queryOne<any>(totalSql, storeId ? [tenantId, storeId] : [tenantId]);
   res.json(ok({ total: totalRow?.total ?? 0, page, pageSize, records }));
 }));
 
 storeRouter.get("/collection-links", asyncHandler(async (req, res) => {
+  const tenantId = req.tenantId!;
   const page = Number(req.query.page || 1);
   const pageSize = Number(req.query.pageSize || 20);
   const offset = (page - 1) * pageSize;
@@ -689,15 +722,17 @@ storeRouter.get("/collection-links", asyncHandler(async (req, res) => {
             share_channel AS shareChannel, token, expire_at AS expireAt,
             created_at AS createdAt
      FROM collection_link
+     WHERE tenant_id = ?
      ORDER BY created_at DESC
      LIMIT ? OFFSET ?`,
-    [pageSize, offset]
+    [tenantId, pageSize, offset]
   );
-  const totalRow = await queryOne<any>("SELECT COUNT(*) AS total FROM collection_link");
+  const totalRow = await queryOne<any>("SELECT COUNT(*) AS total FROM collection_link WHERE tenant_id = ?", [tenantId]);
   res.json(ok({ total: totalRow?.total ?? 0, page, pageSize, records }));
 }));
 
 storeRouter.get("/payment-orders", asyncHandler(async (req, res) => {
+  const tenantId = req.tenantId!;
   const page = Number(req.query.page || 1);
   const pageSize = Number(req.query.pageSize || 20);
   const offset = (page - 1) * pageSize;
@@ -706,15 +741,17 @@ storeRouter.get("/payment-orders", asyncHandler(async (req, res) => {
             amount, status, channel AS paymentMethod,
             paid_at AS paidAt, created_at AS createdAt
      FROM payment_order
+     WHERE tenant_id = ?
      ORDER BY created_at DESC
      LIMIT ? OFFSET ?`,
-    [pageSize, offset]
+    [tenantId, pageSize, offset]
   );
-  const totalRow = await queryOne<any>("SELECT COUNT(*) AS total FROM payment_order");
+  const totalRow = await queryOne<any>("SELECT COUNT(*) AS total FROM payment_order WHERE tenant_id = ?", [tenantId]);
   res.json(ok({ total: totalRow?.total ?? 0, page, pageSize, records }));
 }));
 
 storeRouter.post("/hold-orders", asyncHandler(async (req, res) => {
+  const tenantId = req.tenantId!;
   const body = z.object({
     customerName: z.string().optional().default(""),
     customerMobile: z.string().optional().default(""),
@@ -732,14 +769,15 @@ storeRouter.post("/hold-orders", asyncHandler(async (req, res) => {
   const storeId = req.user?.storeId ?? 1;
   const payload = JSON.stringify(body);
   await query(
-    `INSERT INTO hold_order (hold_no, store_id, customer_name, customer_mobile, amount, payload, remark, status)
-     VALUES (?, ?, ?, ?, ?, ?, ?, 'HELD')`,
-    [holdNo, storeId, body.customerName, body.customerMobile, body.amount, payload, body.remark]
+    `INSERT INTO hold_order (hold_no, store_id, customer_name, customer_mobile, amount, payload, remark, status, tenant_id)
+     VALUES (?, ?, ?, ?, ?, ?, ?, 'HELD', ?)`,
+    [holdNo, storeId, body.customerName, body.customerMobile, body.amount, payload, body.remark, tenantId]
   );
   res.json(ok({ holdNo, status: "HELD" }));
 }));
 
 storeRouter.get("/hold-orders", asyncHandler(async (req, res) => {
+  const tenantId = req.tenantId!;
   const page = Number(req.query.page || 1);
   const pageSize = Number(req.query.pageSize || 20);
   const offset = (page - 1) * pageSize;
@@ -747,22 +785,24 @@ storeRouter.get("/hold-orders", asyncHandler(async (req, res) => {
     `SELECT hold_no AS holdNo, store_id AS storeId, customer_name AS customerName,
             customer_mobile AS customerMobile, amount, remark, status, created_at AS createdAt
      FROM hold_order
-     WHERE status = 'HELD'
+     WHERE tenant_id = ?
+       AND status = 'HELD'
      ORDER BY created_at DESC
      LIMIT ? OFFSET ?`,
-    [pageSize, offset]
+    [tenantId, pageSize, offset]
   );
-  const totalRow = await queryOne<any>("SELECT COUNT(*) AS total FROM hold_order WHERE status = 'HELD'");
+  const totalRow = await queryOne<any>("SELECT COUNT(*) AS total FROM hold_order WHERE tenant_id = ? AND status = 'HELD'", [tenantId]);
   res.json(ok({ total: totalRow?.total ?? 0, page, pageSize, records }));
 }));
 
 storeRouter.post("/hold-orders/:holdNo/restore", asyncHandler(async (req, res) => {
+  const tenantId = req.tenantId!;
   const hold = await queryOne<any>(
     `SELECT hold_no AS holdNo, customer_name AS customerName, customer_mobile AS customerMobile,
             amount, payload, remark, status, created_at AS createdAt
      FROM hold_order
-     WHERE hold_no = ? AND status = 'HELD'`,
-    [req.params.holdNo]
+     WHERE hold_no = ? AND status = 'HELD' AND tenant_id = ?`,
+    [req.params.holdNo, tenantId]
   );
   if (!hold) {
     res.status(404).json({ code: "404", message: "挂单不存在" });
@@ -773,14 +813,16 @@ storeRouter.post("/hold-orders/:holdNo/restore", asyncHandler(async (req, res) =
 }));
 
 storeRouter.delete("/hold-orders/:holdNo", asyncHandler(async (req, res) => {
+  const tenantId = req.tenantId!;
   await query(
-    `UPDATE hold_order SET status = 'DELETED', updated_at = NOW() WHERE hold_no = ?`,
-    [req.params.holdNo]
+    `UPDATE hold_order SET status = 'DELETED', updated_at = NOW() WHERE hold_no = ? AND tenant_id = ?`,
+    [req.params.holdNo, tenantId]
   );
   res.json(ok({ holdNo: req.params.holdNo, status: "DELETED" }));
 }));
 
 storeRouter.get("/refund-orders", asyncHandler(async (req, res) => {
+  const tenantId = req.tenantId!;
   const page = Number(req.query.page || 1);
   const pageSize = Number(req.query.pageSize || 20);
   const offset = (page - 1) * pageSize;
@@ -788,24 +830,26 @@ storeRouter.get("/refund-orders", asyncHandler(async (req, res) => {
     `SELECT refund_no AS refundNo, pay_no AS payNo, source_type AS sourceType,
             source_no AS sourceNo, amount, reason, status, created_at AS createdAt
      FROM refund_order
+     WHERE tenant_id = ?
      ORDER BY created_at DESC
      LIMIT ? OFFSET ?`,
-    [pageSize, offset]
+    [tenantId, pageSize, offset]
   );
-  const totalRow = await queryOne<any>("SELECT COUNT(*) AS total FROM refund_order");
+  const totalRow = await queryOne<any>("SELECT COUNT(*) AS total FROM refund_order WHERE tenant_id = ?", [tenantId]);
   res.json(ok({ total: totalRow?.total ?? 0, page, pageSize, records }));
 }));
 
 storeRouter.get("/dashboard", asyncHandler(async (req, res) => {
+  const tenantId = req.tenantId!;
   const storeId = req.query.storeId ? Number(req.query.storeId) : req.user?.storeId ?? null;
-  const whereStore = storeId ? "WHERE store_id = ?" : "";
-  const params = storeId ? [storeId] : [];
+  const whereStore = storeId ? "WHERE tenant_id = ? AND store_id = ?" : "WHERE tenant_id = ?";
+  const params = storeId ? [tenantId, storeId] : [tenantId];
   const todayOrders = await queryOne<any>(
     `SELECT COUNT(*) AS cnt FROM miniapp_order ${whereStore}`,
     params
   );
   const pendingOrders = await queryOne<any>(
-    `SELECT COUNT(*) AS cnt FROM miniapp_order ${whereStore ? whereStore + " AND" : "WHERE"} order_status = 'PENDING_PAYMENT'`,
+    `SELECT COUNT(*) AS cnt FROM miniapp_order ${whereStore} AND order_status = 'PENDING_PAYMENT'`,
     params
   );
   const todaySales = await queryOne<any>(
@@ -826,9 +870,10 @@ storeRouter.get("/dashboard", asyncHandler(async (req, res) => {
 }));
 
 storeRouter.get("/daily-sales", asyncHandler(async (req, res) => {
+  const tenantId = req.tenantId!;
   const storeId = req.query.storeId ? Number(req.query.storeId) : req.user?.storeId ?? null;
-  const where = storeId ? "WHERE sb.store_id = ?" : "";
-  const params = storeId ? [storeId] : [];
+  const where = storeId ? "WHERE sb.tenant_id = ? AND sb.store_id = ?" : "WHERE sb.tenant_id = ?";
+  const params = storeId ? [tenantId, storeId] : [tenantId];
   const records = await query<any>(
     `SELECT DATE(sb.created_at) AS date, COUNT(*) AS count, COALESCE(SUM(sb.receivable_amount), 0) AS amount
      FROM sale_bill sb
@@ -842,15 +887,16 @@ storeRouter.get("/daily-sales", asyncHandler(async (req, res) => {
 }));
 
 storeRouter.get("/inventory/alerts", asyncHandler(async (req, res) => {
+  const tenantId = req.tenantId!;
   const storeId = req.query.storeId ? Number(req.query.storeId) : req.user?.storeId ?? null;
-  const where = storeId ? "WHERE ib.store_id = ?" : "";
-  const params = storeId ? [storeId] : [];
+  const where = storeId ? "WHERE ib.tenant_id = ? AND ib.store_id = ?" : "WHERE ib.tenant_id = ?";
+  const params = storeId ? [tenantId, storeId] : [tenantId];
   const records = await query<any>(
     `SELECT ib.sku_id AS skuId, ps.sku_name AS skuName,
             ib.stock_type AS stockType, ib.available_qty AS availableQty
      FROM inventory_balance ib
-     LEFT JOIN product_sku ps ON ps.id = ib.sku_id
-     ${where ? where + " AND" : "WHERE"} ib.available_qty <= 5
+     LEFT JOIN product_sku ps ON ps.id = ib.sku_id AND ps.tenant_id = ib.tenant_id
+     ${where} AND ib.available_qty <= 5
      ORDER BY ib.available_qty ASC
      LIMIT 20`,
     params
@@ -859,6 +905,7 @@ storeRouter.get("/inventory/alerts", asyncHandler(async (req, res) => {
 }));
 
 storeRouter.get("/receivables", asyncHandler(async (req, res) => {
+  const tenantId = req.tenantId!;
   const page = Number(req.query.page || 1);
   const pageSize = Number(req.query.pageSize || 20);
   const offset = (page - 1) * pageSize;
@@ -871,24 +918,27 @@ storeRouter.get("/receivables", asyncHandler(async (req, res) => {
             receivable_amount AS receivableAmount, received_amount AS receivedAmount,
             unreceived_amount AS unreceivedAmount, status, created_at AS createdAt
      FROM receivable_account
-     WHERE (? IS NULL OR store_id = ?)
+     WHERE tenant_id = ?
+       AND (? IS NULL OR store_id = ?)
        AND (? IS NULL OR status = ?)
        AND (receivable_no LIKE ? OR source_no LIKE ? OR customer_name LIKE ? OR customer_mobile LIKE ?)
      ORDER BY id DESC
      LIMIT ? OFFSET ?`,
-    [storeId, storeId, status, status, keyword, keyword, keyword, keyword, pageSize, offset]
+    [tenantId, storeId, storeId, status, status, keyword, keyword, keyword, keyword, pageSize, offset]
   );
   const total = await queryOne<any>(
     `SELECT COUNT(*) AS total FROM receivable_account
-     WHERE (? IS NULL OR store_id = ?)
+     WHERE tenant_id = ?
+       AND (? IS NULL OR store_id = ?)
        AND (? IS NULL OR status = ?)
        AND (receivable_no LIKE ? OR source_no LIKE ? OR customer_name LIKE ? OR customer_mobile LIKE ?)`,
-    [storeId, storeId, status, status, keyword, keyword, keyword, keyword]
+    [tenantId, storeId, storeId, status, status, keyword, keyword, keyword, keyword]
   );
   res.json(ok({ total: total?.total ?? 0, page, pageSize, records }));
 }));
 
 storeRouter.post("/receivables/:receivableNo/payment", asyncHandler(async (req, res) => {
+  const tenantId = req.tenantId!;
   const body = z.object({
     amount: z.number().positive(),
     paymentMethod: z.enum(["CASH", "TRANSFER", "OTHER_WECHAT", "ALIPAY"]),
@@ -897,8 +947,8 @@ storeRouter.post("/receivables/:receivableNo/payment", asyncHandler(async (req, 
   const result = await transaction(async (conn) => {
     const [rows] = await conn.query<any[]>(
       `SELECT receivable_no, source_no, received_amount, receivable_amount, unreceived_amount
-       FROM receivable_account WHERE receivable_no = ? FOR UPDATE`,
-      [req.params.receivableNo]
+       FROM receivable_account WHERE receivable_no = ? AND tenant_id = ? FOR UPDATE`,
+      [req.params.receivableNo, tenantId]
     );
     const receivable = rows[0];
     if (!receivable) throw new Error("应收不存在");
@@ -909,13 +959,13 @@ storeRouter.post("/receivables/:receivableNo/payment", asyncHandler(async (req, 
     await conn.execute(
       `UPDATE receivable_account
        SET received_amount = ?, unreceived_amount = ?, status = ?, last_payment_time = NOW()
-       WHERE receivable_no = ?`,
-      [receivedAmount, unreceivedAmount, status, req.params.receivableNo]
+       WHERE receivable_no = ? AND tenant_id = ?`,
+      [receivedAmount, unreceivedAmount, status, req.params.receivableNo, tenantId]
     );
     await conn.execute(
-      `INSERT INTO payment_order (pay_no, source_type, source_no, channel, amount, status, paid_at)
-       VALUES (?, 'RECEIVABLE', ?, ?, ?, 'SUCCESS', NOW())`,
-      [makeBizNo("ZF"), req.params.receivableNo, body.paymentMethod, body.amount]
+      `INSERT INTO payment_order (pay_no, source_type, source_no, channel, amount, status, paid_at, tenant_id)
+       VALUES (?, 'RECEIVABLE', ?, ?, ?, 'SUCCESS', NOW(), ?)`,
+      [makeBizNo("ZF"), req.params.receivableNo, body.paymentMethod, body.amount, tenantId]
     );
     return { receivableNo: req.params.receivableNo, receivedAmount, unreceivedAmount, status };
   });
@@ -924,6 +974,7 @@ storeRouter.post("/receivables/:receivableNo/payment", asyncHandler(async (req, 
 
 // 销售单收款（支持赊销状态流转：UNPAID -> PARTIAL -> PAID）
 storeRouter.post("/sale-bills/:billNo/payment", asyncHandler(async (req, res) => {
+  const tenantId = req.tenantId!;
   const body = z.object({
     amount: z.number().positive(),
     paymentMethod: z.enum(["CASH", "TRANSFER", "OTHER_WECHAT", "ALIPAY"]),
@@ -933,8 +984,8 @@ storeRouter.post("/sale-bills/:billNo/payment", asyncHandler(async (req, res) =>
   const result = await transaction(async (conn) => {
     const [rows] = await conn.query<any[]>(
       `SELECT bill_no, store_id, received_amount, receivable_amount, unreceived_amount, collection_status
-       FROM sale_bill WHERE bill_no = ? FOR UPDATE`,
-      [req.params.billNo]
+       FROM sale_bill WHERE bill_no = ? AND tenant_id = ? FOR UPDATE`,
+      [req.params.billNo, tenantId]
     );
     const bill = rows[0];
     if (!bill) throw new Error("销售单不存在");
@@ -950,21 +1001,21 @@ storeRouter.post("/sale-bills/:billNo/payment", asyncHandler(async (req, res) =>
       `UPDATE sale_bill
        SET received_amount = ?, unreceived_amount = GREATEST(receivable_amount - ?, 0),
            collection_status = ?, last_payment_time = NOW()
-       WHERE bill_no = ?`,
-      [received, received, status, req.params.billNo]
+       WHERE bill_no = ? AND tenant_id = ?`,
+      [received, received, status, req.params.billNo, tenantId]
     );
 
     await conn.execute(
-      `INSERT INTO payment_order (pay_no, source_type, source_no, channel, amount, status, paid_at)
-       VALUES (?, 'SALE_BILL', ?, ?, ?, 'SUCCESS', NOW())`,
-      [makeBizNo("ZF"), req.params.billNo, body.paymentMethod, body.amount]
+      `INSERT INTO payment_order (pay_no, source_type, source_no, channel, amount, status, paid_at, tenant_id)
+       VALUES (?, 'SALE_BILL', ?, ?, ?, 'SUCCESS', NOW(), ?)`,
+      [makeBizNo("ZF"), req.params.billNo, body.paymentMethod, body.amount, tenantId]
     );
 
     await conn.execute(
-      `INSERT INTO operation_log (operator_id, operator_name, module, action, biz_no, after_data)
-       VALUES (?, ?, 'SALE_BILL', 'PAYMENT', ?, ?)`,
-      [req.user?.id ?? null, req.user?.username ?? "系统用户", req.params.billNo,
-       JSON.stringify({ amount: body.amount, received, status })]
+      `INSERT INTO operation_log (operator_id, operator_name, module, action, biz_no, after_data, tenant_id)
+       VALUES (?, ?, 'SALE_BILL', 'PAYMENT', ?, ?, ?)`,
+      [req.user!.id ?? null, req.user!.username ?? "系统用户", req.params.billNo,
+       JSON.stringify({ amount: body.amount, received, status }), tenantId]
     );
 
     return { billNo: req.params.billNo, receivedAmount: received, collectionStatus: status };
@@ -975,17 +1026,19 @@ storeRouter.post("/sale-bills/:billNo/payment", asyncHandler(async (req, res) =>
 
 // 超期销售单检测
 storeRouter.get("/sale-bills/overdue/check", asyncHandler(async (req, res) => {
+  const tenantId = req.tenantId!;
   const storeId = req.user?.storeId ?? null;
 
   let sql = `SELECT bill_no AS billNo, store_id AS storeId, customer_name AS customerName,
                     due_date AS dueDate, receivable_amount AS receivableAmount,
                     unreceived_amount AS unreceivedAmount, collection_status AS collectionStatus
              FROM sale_bill
-             WHERE sale_type = 'CREDIT'
+             WHERE tenant_id = ?
+               AND sale_type = 'CREDIT'
                AND collection_status IN ('UNPAID', 'PARTIAL')
                AND due_date IS NOT NULL
                AND due_date < CURDATE()`;
-  const params: unknown[] = [];
+  const params: unknown[] = [tenantId];
 
   if (storeId) {
     sql += ` AND store_id = ?`;
@@ -1002,8 +1055,9 @@ storeRouter.get("/sale-bills/overdue/check", asyncHandler(async (req, res) => {
     await query(
       `UPDATE sale_bill SET collection_status = 'OVERDUE'
        WHERE bill_no IN (${billNos.map(() => '?').join(',')})
+         AND tenant_id = ?
          AND collection_status IN ('UNPAID', 'PARTIAL')`,
-      billNos
+      [...billNos, tenantId]
     );
   }
 

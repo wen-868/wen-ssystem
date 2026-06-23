@@ -11,7 +11,7 @@ export const priceRouter = Router();
 
 // 获取所有价格等级列表
 priceRouter.get("/levels", requireAuthWithTenant, asyncHandler(async (req, res) => {
-  const tenantId = req.tenantId;
+  const tenantId = req.tenantId!;
   const records = await query<any>(
     `SELECT id, level_code AS levelCode, level_name AS levelName,
             discount_rate AS discountRate, min_order_amount AS minOrderAmount,
@@ -27,7 +27,7 @@ priceRouter.get("/levels", requireAuthWithTenant, asyncHandler(async (req, res) 
 
 // 创建价格等级
 priceRouter.post("/levels", requireAuthWithTenant, asyncHandler(async (req, res) => {
-  const tenantId = req.tenantId;
+  const tenantId = req.tenantId!;
   const body = z.object({
     levelCode: z.string().min(1).max(32),
     levelName: z.string().min(1).max(64),
@@ -66,7 +66,7 @@ priceRouter.post("/levels", requireAuthWithTenant, asyncHandler(async (req, res)
 
 // 编辑价格等级
 priceRouter.put("/levels/:id", requireAuthWithTenant, asyncHandler(async (req, res) => {
-  const tenantId = req.tenantId;
+  const tenantId = req.tenantId!;
   const levelId = Number(req.params.id);
   const existing = await queryOne<any>(
     "SELECT id FROM price_level WHERE id = ? AND tenant_id = ?",
@@ -117,7 +117,7 @@ priceRouter.put("/levels/:id", requireAuthWithTenant, asyncHandler(async (req, r
 
 // 停用价格等级（软删除）
 priceRouter.delete("/levels/:id", requireAuthWithTenant, asyncHandler(async (req, res) => {
-  const tenantId = req.tenantId;
+  const tenantId = req.tenantId!;
   const levelId = Number(req.params.id);
   const existing = await queryOne<any>(
     "SELECT id, level_code FROM price_level WHERE id = ? AND tenant_id = ?",
@@ -144,7 +144,7 @@ priceRouter.delete("/levels/:id", requireAuthWithTenant, asyncHandler(async (req
 
 // 获取SKU的所有阶梯价格
 priceRouter.get("/skus/:skuId/prices", requireAuthWithTenant, asyncHandler(async (req, res) => {
-  const tenantId = req.tenantId;
+  const tenantId = req.tenantId!;
   const skuId = Number(req.params.skuId);
   const records = await query<any>(
     `SELECT sp.id, sp.sku_id AS skuId, sp.price_level_id AS priceLevelId,
@@ -165,7 +165,7 @@ priceRouter.get("/skus/:skuId/prices", requireAuthWithTenant, asyncHandler(async
 
 // 设置SKU阶梯价格（批量，事务）
 priceRouter.post("/skus/:skuId/prices", requireAuthWithTenant, asyncHandler(async (req, res) => {
-  const tenantId = req.tenantId;
+  const tenantId = req.tenantId!;
   const skuId = Number(req.params.skuId);
 
   const body = z.object({
@@ -251,7 +251,7 @@ priceRouter.post("/skus/:skuId/prices", requireAuthWithTenant, asyncHandler(asyn
 
 // 编辑单条阶梯价
 priceRouter.put("/prices/:id", requireAuthWithTenant, asyncHandler(async (req, res) => {
-  const tenantId = req.tenantId;
+  const tenantId = req.tenantId!;
   const priceId = Number(req.params.id);
   const existing = await queryOne<any>(
     `SELECT sp.id, sp.sku_id, sp.price_level_id, sp.min_qty, sp.price, sp.status
@@ -319,7 +319,7 @@ priceRouter.put("/prices/:id", requireAuthWithTenant, asyncHandler(async (req, r
 
 // 删除单条阶梯价
 priceRouter.delete("/prices/:id", requireAuthWithTenant, asyncHandler(async (req, res) => {
-  const tenantId = req.tenantId;
+  const tenantId = req.tenantId!;
   const priceId = Number(req.params.id);
   const existing = await queryOne<any>(
     "SELECT id FROM sku_price WHERE id = ? AND tenant_id = ?",
@@ -338,7 +338,7 @@ priceRouter.delete("/prices/:id", requireAuthWithTenant, asyncHandler(async (req
 
 // 根据customerId + skuId + quantity 查询最优价格
 priceRouter.post("/best-price", requireAuthWithTenant, asyncHandler(async (req, res) => {
-  const tenantId = req.tenantId;
+  const tenantId = req.tenantId!;
   const body = z.object({
     customerId: z.number().int().positive(),
     skuId: z.number().int().positive(),
@@ -467,7 +467,7 @@ priceRouter.post("/best-price", requireAuthWithTenant, asyncHandler(async (req, 
 
 // 获取所有客户绑定
 priceRouter.get("/customer-bindings", requireAuthWithTenant, asyncHandler(async (req, res) => {
-  const tenantId = req.tenantId;
+  const tenantId = req.tenantId!;
   const page = Number(req.query.page || 1);
   const pageSize = Number(req.query.pageSize || 20);
   const offset = (page - 1) * pageSize;
@@ -515,7 +515,7 @@ priceRouter.get("/customer-bindings", requireAuthWithTenant, asyncHandler(async 
 
 // 申请绑定（需审批）
 priceRouter.post("/customer-bindings", requireAuthWithTenant, asyncHandler(async (req, res) => {
-  const tenantId = req.tenantId;
+  const tenantId = req.tenantId!;
   const body = z.object({
     customerId: z.number().int().positive(),
     priceLevelId: z.number().int().positive(),
@@ -577,7 +577,7 @@ priceRouter.post("/customer-bindings", requireAuthWithTenant, asyncHandler(async
 
 // 审批通过
 priceRouter.put("/customer-bindings/:id/approve", requireAuthWithTenant, asyncHandler(async (req, res) => {
-  const tenantId = req.tenantId;
+  const tenantId = req.tenantId!;
   const bindingId = Number(req.params.id);
   const existing = await queryOne<any>(
     "SELECT id, customer_id, status FROM customer_price_binding WHERE id = ? AND tenant_id = ?",
@@ -609,7 +609,7 @@ priceRouter.put("/customer-bindings/:id/approve", requireAuthWithTenant, asyncHa
 
 // 审批拒绝
 priceRouter.put("/customer-bindings/:id/reject", requireAuthWithTenant, asyncHandler(async (req, res) => {
-  const tenantId = req.tenantId;
+  const tenantId = req.tenantId!;
   const bindingId = Number(req.params.id);
   const existing = await queryOne<any>(
     "SELECT id, status FROM customer_price_binding WHERE id = ?",
@@ -641,7 +641,7 @@ priceRouter.put("/customer-bindings/:id/reject", requireAuthWithTenant, asyncHan
 
 // 取消绑定
 priceRouter.delete("/customer-bindings/:id", requireAuthWithTenant, asyncHandler(async (req, res) => {
-  const tenantId = req.tenantId;
+  const tenantId = req.tenantId!;
   const bindingId = Number(req.params.id);
   const existing = await queryOne<any>(
     "SELECT id, status FROM customer_price_binding WHERE id = ? AND tenant_id = ?",
@@ -664,7 +664,7 @@ priceRouter.delete("/customer-bindings/:id", requireAuthWithTenant, asyncHandler
 
 // 查询价格变更历史（支持skuId筛选+分页）
 priceRouter.get("/change-logs", requireAuthWithTenant, asyncHandler(async (req, res) => {
-  const tenantId = req.tenantId;
+  const tenantId = req.tenantId!;
   const page = Number(req.query.page || 1);
   const pageSize = Number(req.query.pageSize || 20);
   const offset = (page - 1) * pageSize;
