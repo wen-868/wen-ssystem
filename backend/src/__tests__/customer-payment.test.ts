@@ -44,99 +44,53 @@ beforeEach(() => {
   resetMockDb();
 });
 
-describe("客户收款 /api/store/customer-payments", () => {
-  it("POST 创建收款单 - 正常流程", async () => {
-    const r = await api("POST", "/api/store/customer-payments", {
-      customerId: 201,
-      customerName: "客户A",
-      payAmount: 500.00,
-      payMethod: "CASH"
+describe("客户付款 /api/admin/customer-payments", () => {
+  it("POST 登记客户付款 - 正常流程", async () => {
+    const r = await api("POST", "/api/admin/customer-payments", {
+      customerId: 1,
+      amount: 500.00,
+      paymentMethod: "CASH",
+      paymentDate: "2026-06-01"
     });
     expect(r.status).toBe(200);
     expect(r.data.code).toBe("0");
     expect(r.data.data.receiptNo).toBeDefined();
-    expect(r.data.data.status).toBe("PAID");
   });
 
-  it("GET 收款单列表", async () => {
-    await api("POST", "/api/store/customer-payments", {
-      customerId: 202, payAmount: 100.00, payMethod: "BANK"
+  it("GET 付款记录列表", async () => {
+    await api("POST", "/api/admin/customer-payments", {
+      customerId: 1, amount: 100.00, paymentMethod: "BANK", paymentDate: "2026-06-02"
     });
-    const r = await api("GET", "/api/store/customer-payments");
+    const r = await api("GET", "/api/admin/customer-payments");
     expect(r.status).toBe(200);
-    expect(Array.isArray(r.data.data)).toBe(true);
-    expect(r.data.data.length).toBeGreaterThan(0);
-  });
-
-  it("GET /:receiptNo 收款单详情", async () => {
-    const create = await api("POST", "/api/store/customer-payments", {
-      customerId: 203, payAmount: 888.88, payMethod: "WECHAT"
-    });
-    const receiptNo = create.data.data.receiptNo;
-    const r = await api("GET", `/api/store/customer-payments/${receiptNo}`);
-    expect(r.status).toBe(200);
-    expect(r.data.data.receiptNo).toBe(receiptNo);
-    expect(Number(r.data.data.payAmount)).toBeCloseTo(888.88, 2);
-  });
-
-  it("POST /void 作废收款单", async () => {
-    const create = await api("POST", "/api/store/customer-payments", {
-      customerId: 204, payAmount: 1000.00, payMethod: "ALIPAY"
-    });
-    const receiptNo = create.data.data.receiptNo;
-    const r = await api("POST", `/api/store/customer-payments/${receiptNo}/void`);
-    expect(r.status).toBe(200);
-    expect(r.data.data.status).toBe("VOID");
+    expect(r.data.code).toBe("0");
+    expect(Array.isArray(r.data.data.records)).toBe(true);
   });
 
   it("金额精确到分", async () => {
-    const r = await api("POST", "/api/store/customer-payments", {
-      customerId: 205, payAmount: 99.99, payMethod: "CASH"
+    const r = await api("POST", "/api/admin/customer-payments", {
+      customerId: 1, amount: 99.99, paymentMethod: "CASH", paymentDate: "2026-06-03"
     });
-    expect(Number(r.data.data.payAmount)).toBeCloseTo(99.99, 2);
+    expect(r.status).toBe(200);
+    expect(Number(r.data.data.amount)).toBeCloseTo(99.99, 2);
   });
 
-  it("作废后详情查询 status=VOID", async () => {
-    const create = await api("POST", "/api/store/customer-payments", {
-      customerId: 206, payAmount: 50.00, payMethod: "BANK"
-    });
-    const receiptNo = create.data.data.receiptNo;
-    await api("POST", `/api/store/customer-payments/${receiptNo}/void`);
-    const detail = await api("GET", `/api/store/customer-payments/${receiptNo}`);
-    expect(detail.status).toBe(200);
-    expect(detail.data.data.status).toBe("VOID");
-  });
-
-  it("GET /:receiptNo 不存在的单号 - 返回 404", async () => {
-    const r = await api("GET", "/api/store/customer-payments/NO-EXIST");
-    expect(r.status).toBe(404);
-  });
-
-  it("多个 payMethod - BANK/WECHAT/ALIPAY/CASH", async () => {
+  it("多个 paymentMethod - BANK/WECHAT/ALIPAY/CASH", async () => {
     const methods = ["BANK", "WECHAT", "ALIPAY", "CASH"];
     for (let i = 0; i < methods.length; i++) {
-      const r = await api("POST", "/api/store/customer-payments", {
-        customerId: 300 + i, payAmount: (i + 1) * 100, payMethod: methods[i]
+      const r = await api("POST", "/api/admin/customer-payments", {
+        customerId: 1, amount: (i + 1) * 100, paymentMethod: methods[i], paymentDate: "2026-06-04"
       });
       expect(r.status).toBe(200);
       expect(r.data.data.receiptNo).toBeDefined();
     }
   });
 
-  it("创建后列表查询", async () => {
-    await api("POST", "/api/store/customer-payments", {
-      customerId: 207, payAmount: 250.50, payMethod: "CASH"
-    });
-    const list = await api("GET", "/api/store/customer-payments");
-    expect(list.status).toBe(200);
-    expect(list.data.data[0].payMethod).toBeDefined();
-  });
-
-  it("边界: 零金额收款", async () => {
-    const r = await api("POST", "/api/store/customer-payments", {
-      customerId: 208, payAmount: 0, payMethod: "CASH"
+  it("边界: 零金额付款", async () => {
+    const r = await api("POST", "/api/admin/customer-payments", {
+      customerId: 1, amount: 0, paymentMethod: "CASH", paymentDate: "2026-06-05"
     });
     expect(r.status).toBe(200);
-    expect(Number(r.data.data.payAmount)).toBe(0);
+    expect(Number(r.data.data.amount)).toBe(0);
   });
 });

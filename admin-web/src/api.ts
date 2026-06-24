@@ -6,7 +6,7 @@ function resolveApiBase() {
   if (typeof window !== "undefined" && window.location.hostname.endsWith(".onepan.cn")) {
     return "https://api.onepan.cn/api";
   }
-  return ["http://", "localhost", ":8080/api"].join("");
+  return "/api";
 }
 
 export const api = axios.create({
@@ -377,13 +377,13 @@ export async function updateSupplierStatus(id: number, status: string) {
 }
 
 // ==================== Purchase APIs ====================
-export async function fetchPurchaseOrders(params?: { keyword?: string; status?: string; orderStatus?: string; page?: number; pageSize?: number }) {
+export async function fetchPurchaseOrders(params?: { keyword?: string; status?: string; orderStatus?: string; supplierId?: number; page?: number; pageSize?: number }) {
   const { data } = await api.get("/admin/purchase-orders", { params: { page: 1, pageSize: 20, ...params } });
   return data.data;
 }
 
-export async function fetchPurchaseOrderDetail(orderNo: string) {
-  const { data } = await api.get(`/admin/purchase-orders/${orderNo}`);
+export async function fetchPurchaseOrderDetail(id: number) {
+  const { data } = await api.get(`/admin/purchase-orders/${id}`);
   return data.data;
 }
 
@@ -392,23 +392,13 @@ export async function createPurchaseOrder(payload: unknown) {
   return data.data;
 }
 
-export async function submitPurchaseOrder(orderNo: string) {
-  const { data } = await api.post(`/admin/purchase-orders/${orderNo}/submit`);
+export async function confirmPurchaseOrder(id: number) {
+  const { data } = await api.post(`/admin/purchase-orders/${id}/confirm`);
   return data.data;
 }
 
-export async function auditPurchaseOrder(orderNo: string, _payload?: unknown) {
-  const { data } = await api.post(`/admin/purchase-orders/${orderNo}/approve`);
-  return data.data;
-}
-
-export async function voidPurchaseOrder(orderNo: string) {
-  const { data } = await api.post(`/admin/purchase-orders/${orderNo}/cancel`);
-  return data.data;
-}
-
-export async function payPurchaseOrder(orderNo: string, payload: unknown) {
-  const { data } = await api.post(`/admin/purchase-orders/${orderNo}/pay`, payload);
+export async function cancelPurchaseOrder(id: number) {
+  const { data } = await api.delete(`/admin/purchase-orders/${id}`);
   return data.data;
 }
 

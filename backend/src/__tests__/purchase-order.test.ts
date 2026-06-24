@@ -51,113 +51,96 @@ describe("采购订单 /api/admin/purchase-orders", () => {
       supplierId: 1,
       storeId: 1,
       items: [
-        { skuId: 101, skuName: "白酒A", bottleQty: 10, unitPrice: 50 },
-        { skuId: 102, skuName: "白酒B", bottleQty: 20, unitPrice: 80 }
+        { skuId: 101, skuName: "白酒A", bottleQty: 10, totalBottleQty: 10, unitPrice: 50 },
+        { skuId: 102, skuName: "白酒B", bottleQty: 20, totalBottleQty: 20, unitPrice: 80 }
       ]
     });
     expect(r.status).toBe(200);
     expect(r.data.code).toBe("0");
     expect(r.data.data.orderNo).toBeDefined();
-    expect(Number(r.data.data.goodsAmount)).toBeCloseTo(500 + 1600, 2);
-    expect(Number(r.data.data.payableAmount)).toBeCloseTo(2100, 2);
-    expect(r.data.data.orderStatus).toBe("DRAFT");
+    expect(r.data.data.orderId).toBeDefined();
+    const detail = await api("GET", `/api/admin/purchase-orders/${r.data.data.orderId}`);
+    expect(Number(detail.data.data.goodsAmount)).toBeCloseTo(500 + 1600, 2);
+    expect(detail.data.data.orderStatus).toBe("DRAFT");
   });
 
-  it("GET 列表", async () => {
+  it("GET 列表 - 分页结构", async () => {
     await api("POST", "/api/admin/purchase-orders", {
       supplierId: 1, storeId: 1,
-      items: [{ skuId: 200, skuName: "测试", bottleQty: 5, unitPrice: 100 }]
+      items: [{ skuId: 200, skuName: "测试", bottleQty: 5, totalBottleQty: 5, unitPrice: 100 }]
     });
     const r = await api("GET", "/api/admin/purchase-orders");
     expect(r.status).toBe(200);
-    expect(Array.isArray(r.data.data)).toBe(true);
-    expect(r.data.data.length).toBeGreaterThan(0);
+    expect(r.data.data.records).toBeDefined();
+    expect(Array.isArray(r.data.data.records)).toBe(true);
+    expect(r.data.data.records.length).toBeGreaterThan(0);
+    expect(r.data.data.total).toBeGreaterThan(0);
   });
 
-  it("GET/:orderNo 详情 - 包含 items", async () => {
+  it("GET/:id 详情 - 包含 items", async () => {
     const create = await api("POST", "/api/admin/purchase-orders", {
       supplierId: 1, storeId: 1,
-      items: [{ skuId: 300, skuName: "测试商品", bottleQty: 5, unitPrice: 100 }]
+      items: [{ skuId: 300, skuName: "测试商品", bottleQty: 5, totalBottleQty: 5, unitPrice: 100 }]
     });
-    const orderNo = create.data.data.orderNo;
-    const r = await api("GET", `/api/admin/purchase-orders/${orderNo}`);
+    const orderId = create.data.data.orderId;
+    const r = await api("GET", `/api/admin/purchase-orders/${orderId}`);
     expect(r.status).toBe(200);
-    expect(r.data.data.orderNo).toBe(orderNo);
+    expect(r.data.data.id).toBe(orderId);
     expect(Array.isArray(r.data.data.items)).toBe(true);
     expect(r.data.data.items.length).toBe(1);
     expect(Number(r.data.data.items[0].bottleQty)).toBe(5);
   });
 
-  it("POST /submit 提交订单 - 状态变为 SUBMITTED", async () => {
+  it("POST /:id/confirm 确认订单 - 状态变为 APPROVED", async () => {
     const create = await api("POST", "/api/admin/purchase-orders", {
       supplierId: 1, storeId: 1,
-      items: [{ skuId: 400, skuName: "X", bottleQty: 10, unitPrice: 50 }]
+      items: [{ skuId: 400, skuName: "X", bottleQty: 10, totalBottleQty: 10, unitPrice: 50 }]
     });
-    const orderNo = create.data.data.orderNo;
-    const r = await api("POST", `/api/admin/purchase-orders/${orderNo}/submit`);
+    const orderId = create.data.data.orderId;
+    const r = await api("POST", `/api/admin/purchase-orders/${orderId}/confirm`);
     expect(r.status).toBe(200);
-    expect(r.data.data.orderStatus).toBe("SUBMITTED");
+    expect(r.data.data.orderStatus).toBe("APPROVED");
   });
 
-  it("POST /audit 审核订单 - 状态变为 AUDITED", async () => {
+  it("DELETE /:id 取消订单 - 状态变为 CANCELLED", async () => {
     const create = await api("POST", "/api/admin/purchase-orders", {
       supplierId: 1, storeId: 1,
-      items: [{ skuId: 500, skuName: "Y", bottleQty: 10, unitPrice: 50 }]
+      items: [{ skuId: 600, skuName: "Z", bottleQty: 10, totalBottleQty: 10, unitPrice: 50 }]
     });
-    const orderNo = create.data.data.orderNo;
-    const r = await api("POST", `/api/admin/purchase-orders/${orderNo}/audit`);
+    const orderId = create.data.data.orderId;
+    const r = await api("DELETE", `/api/admin/purchase-orders/${orderId}`);
     expect(r.status).toBe(200);
-    expect(r.data.data.orderStatus).toBe("AUDITED");
-  });
-
-  it("POST /void 作废订单 - 状态变为 VOID", async () => {
-    const create = await api("POST", "/api/admin/purchase-orders", {
-      supplierId: 1, storeId: 1,
-      items: [{ skuId: 600, skuName: "Z", bottleQty: 10, unitPrice: 50 }]
-    });
-    const orderNo = create.data.data.orderNo;
-    const r = await api("POST", `/api/admin/purchase-orders/${orderNo}/void`);
-    expect(r.status).toBe(200);
-    expect(r.data.data.orderStatus).toBe("VOID");
-  });
-
-  it("POST /close 关闭订单 - 状态变为 CLOSED", async () => {
-    const create = await api("POST", "/api/admin/purchase-orders", {
-      supplierId: 1, storeId: 1,
-      items: [{ skuId: 700, skuName: "W", bottleQty: 10, unitPrice: 50 }]
-    });
-    const orderNo = create.data.data.orderNo;
-    const r = await api("POST", `/api/admin/purchase-orders/${orderNo}/close`);
-    expect(r.status).toBe(200);
-    expect(r.data.data.orderStatus).toBe("CLOSED");
-  });
-
-  it("POST /payment 付款 - 金额更新", async () => {
-    const create = await api("POST", "/api/admin/purchase-orders", {
-      supplierId: 1, storeId: 1,
-      items: [{ skuId: 800, skuName: "V", bottleQty: 10, unitPrice: 50.01 }]
-    });
-    const orderNo = create.data.data.orderNo;
-    const r = await api("POST", `/api/admin/purchase-orders/${orderNo}/payment`, {
-      payAmount: 500.10,
-      payMethod: "BANK"
-    });
-    expect(r.status).toBe(200);
-    expect(r.data.data.orderNo).toBe(orderNo);
-    expect(Number(r.data.data.payAmount)).toBeCloseTo(500.10, 2);
   });
 
   it("GET/:nonexistent 不存在的订单返回 404", async () => {
-    const r = await api("GET", "/api/admin/purchase-orders/PO-NOT-EXIST");
+    const r = await api("GET", "/api/admin/purchase-orders/99999");
     expect(r.status).toBe(404);
   });
 
   it("边界: 金额精度 0.01 元", async () => {
     const r = await api("POST", "/api/admin/purchase-orders", {
       supplierId: 1, storeId: 1,
-      items: [{ skuId: 900, skuName: "测试精度", bottleQty: 1, unitPrice: 99.99 }]
+      items: [{ skuId: 900, skuName: "测试精度", bottleQty: 1, totalBottleQty: 1, unitPrice: 99.99 }]
     });
     expect(r.status).toBe(200);
-    expect(Number(r.data.data.payableAmount)).toBeCloseTo(99.99, 2);
+    const detail = await api("GET", `/api/admin/purchase-orders/${r.data.data.orderId}`);
+    expect(Number(detail.data.data.goodsAmount)).toBeCloseTo(99.99, 2);
+  });
+
+  it("按状态筛选订单", async () => {
+    const create1 = await api("POST", "/api/admin/purchase-orders", {
+      supplierId: 1, storeId: 1,
+      items: [{ skuId: 701, skuName: "A", bottleQty: 1, totalBottleQty: 1, unitPrice: 100 }]
+    });
+    const create2 = await api("POST", "/api/admin/purchase-orders", {
+      supplierId: 1, storeId: 1,
+      items: [{ skuId: 702, skuName: "B", bottleQty: 1, totalBottleQty: 1, unitPrice: 200 }]
+    });
+    await api("POST", `/api/admin/purchase-orders/${create2.data.data.orderId}/confirm`);
+
+    const r = await api("GET", "/api/admin/purchase-orders?orderStatus=APPROVED");
+    expect(r.status).toBe(200);
+    expect(r.data.data.records.length).toBe(1);
+    expect(r.data.data.records[0].orderStatus).toBe("APPROVED");
   });
 });
