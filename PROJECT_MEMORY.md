@@ -141,8 +141,10 @@
 | `tasks/project-status-report.md` | 首次代码审查完成度报告（详细版） | 凌舟 |
 | `tasks/project-refactor-plan.md` | 整改方案（详细版） | 凌舟 |
 | `tasks/form-field-spec-v1.md` | 表单字段开发手册（11模块/50+表单） | 凌舟 |
+| `tasks/tasks-墨.md` | 墨（技术负责人）任务清单 | 墨 |
 | `tasks/tasks-阿坚.md` | 阿坚后端任务清单 | 墨 |
-| `tasks/tasks-林夕.md` | 林夕前端任务清单 | 墨 |
+| `tasks/tasks-阿澈.md` | 阿澈前端任务清单 | 墨 |
+| `tasks/tasks-林夕.md` | 林夕UI/UX任务清单 | 墨 |
 | `tasks/tasks-苏然.md` | 苏然测试任务清单 | 墨 |
 | `tasks/TECH_REVIEW_sprint2.md` | Sprint 2 技术评审报告 | 墨 |
 
@@ -204,6 +206,8 @@
 | 2026-06-23 | AI投入节奏确定 | 前期用DeepSeek API（月50-100元），客户量起来后再投GPU服务器 |
 | 2026-06-24 | 启动架构整改 | 发现admin-web单文件5300+行、后端胖路由、无tenant_id三大问题 |
 | 2026-06-24 | 建立项目管理机制 | 根目录固定文件名（PROJECT_MEMORY/STATUS/TASKS），阶段更新 |
+| 2026-06-24 | phase2-dev 合并入 feat/formal-mvp-a | 92个文件合并，0冲突，统一主开发分支 |
+| 2026-06-24 | 任务分发完成 | 墨完成5人任务清单分发（墨/阿坚/阿澈/林夕/苏然） |
 
 ---
 
