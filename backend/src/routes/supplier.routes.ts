@@ -289,12 +289,14 @@ supplierRouter.post("/:id/contacts", requireAuthWithTenant, asyncHandler(async (
     phone: z.string().max(32).optional(),
     email: z.string().email().max(128).optional(),
     wechat: z.string().max(64).optional(),
-    isPrimary: z.number().int().min(0).max(1).default(0),
+    isPrimary: z.boolean().default(false),
     position: z.string().max(64).optional(),
     remark: z.string().max(255).optional(),
   }).parse(req.body);
 
-  if (body.isPrimary === 1) {
+  const isPrimaryVal = body.isPrimary ? 1 : 0;
+
+  if (isPrimaryVal === 1) {
     await query(
       "UPDATE supplier_contact SET is_primary = 0 WHERE supplier_id = ?",
       [id]
@@ -307,7 +309,7 @@ supplierRouter.post("/:id/contacts", requireAuthWithTenant, asyncHandler(async (
     ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`,
     [
       id, body.name, body.mobile || null, body.phone || null,
-      body.email || null, body.wechat || null, body.isPrimary,
+      body.email || null, body.wechat || null, isPrimaryVal,
       body.position || null, body.remark || null
     ]
   );
