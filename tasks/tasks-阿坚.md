@@ -127,3 +127,330 @@
 - 时间：09:30
 - 地点：飞书群
 - 内容：昨天完成 / 今天计划 / 阻塞问题
+# 阿坚 - 后端开发# 阿坚 - 后端开发任务清单
+
+&gt; 角色：后端开发工程师
+&gt; 技术栈：Node.js 20 + Express + TypeScript + MySQL 8.4
+&gt; 工作时间：每天 8 小时
+&gt; 当前阶段：架构整改周（6/24 - 7/7）
+
+---
+
+## 本周任务（Week 1: 6/24 - 6/30）
+
+### 🔴 P0 - 后端分层改造 [R2-01]
+**截止时间**：6/28（周六）
+**预计耗时**：24 小时（3天）
+**优先级**：最高（tenant_id 改造依赖此任务）
+
+**任务目标**：
+将胖路由模式改为 Controller-Service-Model 三层架构，为后续 tenant_id 改造和功能开发奠定基础。
+
+**目标目录结构**：
+```
+backend/src/
+├── routes/           ← 仅保留路由定义，调用 Controller
+│   ├── admin.routes.ts
+│   ├── store.routes.ts
+│   └── ...
+├── controllers/       ← 新增：请求处理、参数校验、调用 Service
+# 阿坚 - 后端开发任务清单
+
+&gt; 角色：后端开发工程师
+&gt; 技术栈：Node.js 20 + Express + TypeScript + MySQL 8.4
+&gt; 工作时间：每天 8 小时
+&gt; 当前阶段：架构整改周（6/24 - 7/7）
+
+---
+
+## 本周任务（Week 1: 6/24 - 6/30）
+
+### 🔴 P0 - 后端分层改造 [R2-01]
+**截止时间**：6/28（周六）
+**预计耗时**：24 小时（3天）
+**优先级**：最高（tenant_id 改造依赖此任务）
+
+**任务目标**：
+将胖路由模式改为 Controller-Service-Model 三层架构，为后续 tenant_id 改造和功能开发奠定基础。
+
+**目标目录结构**：
+```
+backend/src/
+├── routes/           ← 仅保留路由定义，调用 Controller
+│   ├── admin.routes.ts
+│   ├── store.routes.ts
+│   └── ...
+├── controllers/       ← 新增：请求处理、参数校验、调用 Service
+│   ├── admin/
+│   │   ├── product.controller.ts
+│   │   ├── order.controller.ts
+│   │   ├── customer.controller.ts
+│   │   ├── supplier.controller.ts
+│   │   ├── purchase.controller.ts
+│   │   ├── inventory.controller.ts
+│   │   ├── employee.controller.ts
+│   │   ├── store.controller.ts
+│   │   ├── report.controller.ts
+│   │   └── payment.controller.ts
+│   └── store/
+│       ├── sale.controller.ts
+│       ├── order.controller.ts
+│       └── dashboard.controller.ts
+├── services/          ← 新增：业务逻辑、数据库操作
+│   ├── product.service.ts
+│   ├── order.service.ts
+│   ├── customer.service.ts
+│   ├── supplier.service.ts
+│   ├── purchase.service.ts
+│   ├── inventory.service.ts
+│   ├── payment.service.ts
+│   └── ...
+├── shared/            ← 保留：db/auth/id/response 等
+├── types/             ← 新增：TypeScript 类型定义
+│   ├── product.types.ts
+│   ├── order.types.ts
+│   └── ...
+└── app.ts
+# 阿坚 - 后端开发任务清单
+
+&gt; 角色：后端开发工程师
+&gt; 技术栈：Node.js 20 + Express + TypeScript + MySQL 8.4
+&gt; 工作时间：每天 8 小时
+&gt; 当前阶段：架构整改周（6/24 - 7/7）
+
+---
+
+## 本周任务（Week 1: 6/24 - 6/30）
+
+### 🔴 P0 - 后端分层改造 [R2-01]
+**截止时间**：6/28（周六）
+**预计耗时**：24 小时（3天）
+**优先级**：最高（tenant_id 改造依赖此任务）
+
+**任务目标**：
+将胖路由模式改为 Controller-Service-Model 三层架构，为后续 tenant_id 改造和功能开发奠定基础。
+
+**目标目录结构**：
+```
+backend/src/
+├── routes/           ← 仅保留路由定义，调用 Controller
+│   ├── admin.routes.ts
+│   ├── store.routes.ts
+│   └── ...
+├── controllers/       ← 新增：请求处理、参数校验、调用 Service
+│   ├── admin/
+│   │   ├── product.controller.ts
+│   │   ├── order.controller.ts
+│   │   ├── customer.controller.ts
+│   │   ├── supplier.controller.ts
+│   │   ├── purchase.controller.ts
+│   │   ├── inventory.controller.ts
+│   │   ├── employee.controller.ts
+│   │   ├── store.controller.ts
+│   │   ├── report.controller.ts
+│   │   └── payment.controller.ts
+│   └── store/
+│       ├── sale.controller.ts
+│       ├── order.controller.ts
+│       └── dashboard.controller.ts
+├── services/          ← 新增：业务逻辑、数据库操作
+│   ├── product.service.ts
+│   ├── order.service.ts
+│   ├── customer.service.ts
+│   ├── supplier.service.ts
+│   ├── purchase.service.ts
+│   ├── inventory.service.ts
+│   ├── payment.service.ts
+│   └── ...
+├── shared/            ← 保留：db/auth/id/response 等
+├── types/             ← 新增：TypeScript 类型定义
+│   ├── product.types.ts
+│   ├── order.types.ts
+│   └── ...
+└── app.ts
+```
+
+**具体工作**：
+
+| 步骤 | 内容 | 预计时间 |
+|------|------|---------|
+| 1 | 创建 controllers/、types/ 目录结构 | 0.5h |
+| 2 | 抽取产品相关逻辑 → product.controller.ts + product.service.ts | 3h |
+| 3 | 抽取订单相关逻辑 → order.controller.ts + order.service.ts | 3h |
+| 4 | 抽取客户相关逻辑 → customer.controller.ts + customer.service.ts | 2h |
+| 5 | 抽取供应商相关逻辑 → supplier.controller.ts + supplier.service.ts | 2h |# 阿坚 - 后端开发任务清单
+
+&gt; 角色：后端开发工程师
+&gt; 技术栈：Node.js 20 + Express + TypeScript + MySQL 8.4
+&gt; 工作时间：每天 8 小时
+&gt; 当前阶段：架构整改周（6/24 - 7/7）
+
+---
+
+## 本周任务（Week 1: 6/24 - 6/30）
+
+### 🔴 P0 - 后端分层改造 [R2-01]
+**截止时间**：6/28（周六）
+**预计耗时**：24 小时（3天）
+**优先级**：最高（tenant_id 改造依赖此任务）
+
+**任务目标**：
+将胖路由模式改为 Controller-Service-Model 三层架构，为后续 tenant_id 改造和功能开发奠定基础。
+
+**目标目录结构**：
+```
+backend/src/
+├── routes/           ← 仅保留路由定义，调用 Controller
+│   ├── admin.routes.ts
+│   ├── store.routes.ts
+│   └── ...
+├── controllers/       ← 新增：请求处理、参数校验、调用 Service
+│   ├── admin/
+│   │   ├── product.controller.ts
+│   │   ├── order.controller.ts
+│   │   ├── customer.controller.ts
+│   │   ├── supplier.controller.ts
+│   │   ├── purchase.controller.ts
+│   │   ├── inventory.controller.ts
+│   │   ├── employee.controller.ts
+│   │   ├── store.controller.ts
+│   │   ├── report.controller.ts
+│   │   └── payment.controller.ts
+│   └── store/
+│       ├── sale.controller.ts
+│       ├── order.controller.ts
+│       └── dashboard.controller.ts
+├── services/          ← 新增：业务逻辑、数据库操作
+│   ├── product.service.ts
+│   ├── order.service.ts
+│   ├── customer.service.ts
+│   ├── supplier.service.ts
+│   ├── purchase.service.ts
+│   ├── inventory.service.ts
+│   ├── payment.service.ts
+│   └── ...
+├── shared/            ← 保留：db/auth/id/response 等
+├── types/             ← 新增：TypeScript 类型定义
+│   ├── product.types.ts
+│   ├── order.types.ts
+│   └── ...
+└── app.ts
+```
+
+**具体工作**：
+
+| 步骤 | 内容 | 预计时间 |
+|------|------|---------|
+| 1 | 创建 controllers/、types/ 目录结构 | 0.5h |
+| 2 | 抽取产品相关逻辑 → product.controller.ts + product.service.ts | 3h |
+| 3 | 抽取订单相关逻辑 → order.controller.ts + order.service.ts | 3h |
+| 4 | 抽取客户相关逻辑 → customer.controller.ts + customer.service.ts | 2h |
+| 5 | 抽取供应商相关逻辑 → supplier.controller.ts + supplier.service.ts | 2h |
+| 6 | 抽取采购相关逻辑 → purchase.controller.ts + purchase.service.ts | 3h |
+| 7 | 抽取库存相关逻辑 → inventory.controller.ts + inventory.service.ts | 2h |
+| 8 | 抽取支付/报表/其他 → 对应 controller + service | 3h |
+| 9 | 重写 admin.routes.ts，仅保留路由定义 | 2h |
+| 10 | 重写 store.routes.ts，仅保留路由定义 | 1h |
+| 11 | 运行测试确保所有 API 正常 | 2h |
+
+**改造示例**：
+```typescript
+// ===== 改造前（胖路由）=====
+router.get('/products', requireAuth, asyncHandler(async (req,# 阿坚 - 后端开发任务清单
+
+&gt; 角色：后端开发工程师
+&gt; 技术栈：Node.js 20 + Express + TypeScript + MySQL 8.4
+&gt; 工作时间：每天 8 小时
+&gt; 当前阶段：架构整改周（6/24 - 7/7）
+
+---
+
+## 本周任务（Week 1: 6/24 - 6/30）
+
+### 🔴 P0 - 后端分层改造 [R2-01]
+**截止时间**：6/28（周六）
+**预计耗时**：24 小时（3天）
+**优先级**：最高（tenant_id 改造依赖此任务）
+
+**任务目标**：
+将胖路由模式改为 Controller-Service-Model 三层架构，为后续 tenant_id 改造和功能开发奠定基础。
+
+**目标目录结构**：
+```
+backend/src/
+├── routes/           ← 仅保留路由定义，调用 Controller
+│   ├── admin.routes.ts
+│   ├── store.routes.ts
+│   └── ...
+├── controllers/       ← 新增：请求处理、参数校验、调用 Service
+│   ├── admin/
+│   │   ├── product.controller.ts
+│   │   ├── order.controller.ts
+│   │   ├── customer.controller.ts
+│   │   ├── supplier.controller.ts
+│   │   ├── purchase.controller.ts
+│   │   ├── inventory.controller.ts
+│   │   ├── employee.controller.ts
+│   │   ├── store.controller.ts
+│   │   ├── report.controller.ts
+│   │   └── payment.controller.ts
+│   └── store/
+│       ├── sale.controller.ts
+│       ├── order.controller.ts
+│       └── dashboard.controller.ts
+├── services/          ← 新增：业务逻辑、数据库操作
+│   ├── product.service.ts
+│   ├── order.service.ts
+│   ├── customer.service.ts
+│   ├── supplier.service.ts
+│   ├── purchase.service.ts
+│   ├── inventory.service.ts
+│   ├── payment.service.ts
+│   └── ...
+├── shared/            ← 保留：db/auth/id/response 等
+├── types/             ← 新增：TypeScript 类型定义
+│   ├── product.types.ts
+│   ├── order.types.ts
+│   └── ...
+└── app.ts
+```
+
+**具体工作**：
+
+| 步骤 | 内容 | 预计时间 |
+|------|------|---------|
+| 1 | 创建 controllers/、types/ 目录结构 | 0.5h |
+| 2 | 抽取产品相关逻辑 → product.controller.ts + product.service.ts | 3h |
+| 3 | 抽取订单相关逻辑 → order.controller.ts + order.service.ts | 3h |
+| 4 | 抽取客户相关逻辑 → customer.controller.ts + customer.service.ts | 2h |
+| 5 | 抽取供应商相关逻辑 → supplier.controller.ts + supplier.service.ts | 2h |
+| 6 | 抽取采购相关逻辑 → purchase.controller.ts + purchase.service.ts | 3h |
+| 7 | 抽取库存相关逻辑 → inventory.controller.ts + inventory.service.ts | 2h |
+| 8 | 抽取支付/报表/其他 → 对应 controller + service | 3h |
+| 9 | 重写 admin.routes.ts，仅保留路由定义 | 2h |
+| 10 | 重写 store.routes.ts，仅保留路由定义 | 1h |
+| 11 | 运行测试确保所有 API 正常 | 2h |
+
+**改造示例**：
+```typescript
+// ===== 改造前（胖路由）=====
+router.get('/products', requireAuth, asyncHandler(async (req, res) =&gt; {
+  const { keyword, category, status, page, pageSize } = req.query;
+  // ... 50行业务逻辑 ...
+  res.json(ok({ data: products, total }));
+}));
+
+// ===== 改造后（分层）=====
+// routes/admin.routes.ts
+router.get('/products', requireAuth, productController.list);
+
+// controllers/admin/product.controller.ts
+export const list = asyncHandler(async (req, res) =&gt; {
+  const params = productQuerySchema.parse(req.query);
+  const result = await productService.list(params, req.user);
+  res.json(ok(result));
+});
+
+// services/product.service.ts
+export async function list(params, user) {
+  const { keyword, category,
