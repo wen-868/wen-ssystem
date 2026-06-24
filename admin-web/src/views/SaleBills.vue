@@ -1,90 +1,76 @@
 <template>
   <div class="page">
-    <el-card>
-      <template #header>
-        <div class="card-header">
-          <span>销售单</span>
-          <div class="header-actions">
-            <el-input
-              v-model="keyword"
-              placeholder="搜索销售单号/客户"
-              size="default"
-              style="width: 220px; margin-right: 10px"
-              clearable
-              @clear="loadSaleBills"
-              @keyup.enter="loadSaleBills"
-            />
-            <el-select v-model="payStatus" placeholder="收款状态" size="default" style="width: 130px; margin-right: 10px" clearable @change="loadSaleBills">
-              <el-option label="未收款" value="UNPAID" />
-              <el-option label="部分收款" value="PARTIAL" />
-              <el-option label="已结清" value="PAID" />
-            </el-select>
-            <el-select v-model="fulfillStatus" placeholder="履约状态" size="default" style="width: 130px; margin-right: 10px" clearable @change="loadSaleBills">
-              <el-option label="待发货" value="PENDING" />
-              <el-option label="部分发货" value="PARTIAL" />
-              <el-option label="已完成" value="COMPLETED" />
-              <el-option label="已取消" value="CANCELLED" />
-            </el-select>
-            <el-button @click="loadSaleBills">刷新</el-button>
-          </div>
-        </div>
+    <PageCard title="销售单">
+      <template #extra>
+        <el-input
+          v-model="keyword"
+          placeholder="搜索销售单号/客户"
+          size="default"
+          style="width: 220px"
+          clearable
+          @clear="loadSaleBills"
+          @keyup.enter="loadSaleBills"
+        />
+        <el-select v-model="payStatus" placeholder="收款状态" size="default" style="width: 130px" clearable @change="loadSaleBills">
+          <el-option label="未收款" value="UNPAID" />
+          <el-option label="部分收款" value="PARTIAL" />
+          <el-option label="已结清" value="PAID" />
+        </el-select>
+        <el-select v-model="fulfillStatus" placeholder="履约状态" size="default" style="width: 130px" clearable @change="loadSaleBills">
+          <el-option label="待发货" value="PENDING" />
+          <el-option label="部分发货" value="PARTIAL" />
+          <el-option label="已完成" value="COMPLETED" />
+          <el-option label="已取消" value="CANCELLED" />
+        </el-select>
+        <el-button @click="loadSaleBills">刷新</el-button>
       </template>
 
-      <el-table :data="saleBills" v-loading="loading" stripe>
-        <el-table-column prop="billNo" label="销售单号" width="200" />
-        <el-table-column prop="customerName" label="客户" min-width="140" />
-        <el-table-column prop="receivableAmount" label="应收" width="120">
-          <template #default="{ row }">¥{{ Number(row.receivableAmount || 0).toFixed(2) }}</template>
-        </el-table-column>
-        <el-table-column prop="receivedAmount" label="已收" width="120">
-          <template #default="{ row }">¥{{ Number(row.receivedAmount || 0).toFixed(2) }}</template>
-        </el-table-column>
-        <el-table-column prop="unpaidAmount" label="未收" width="120">
-          <template #default="{ row }">
-            <span :class="{ 'unpaid-text': row.unpaidAmount > 0 }">
-              ¥{{ Number(row.unpaidAmount || 0).toFixed(2) }}
-            </span>
-          </template>
-        </el-table-column>
-        <el-table-column prop="payStatus" label="收款状态" width="100">
-          <template #default="{ row }">
-            <el-tag v-if="row.payStatus === 'UNPAID'" type="danger">未收款</el-tag>
-            <el-tag v-else-if="row.payStatus === 'PARTIAL'" type="warning">部分收款</el-tag>
-            <el-tag v-else-if="row.payStatus === 'PAID'" type="success">已结清</el-tag>
-            <el-tag v-else>{{ row.payStatus }}</el-tag>
-          </template>
-        </el-table-column>
-        <el-table-column prop="fulfillStatus" label="履约状态" width="100">
-          <template #default="{ row }">
-            <el-tag v-if="row.fulfillStatus === 'PENDING'" type="warning">待发货</el-tag>
-            <el-tag v-else-if="row.fulfillStatus === 'PARTIAL'" type="primary">部分发货</el-tag>
-            <el-tag v-else-if="row.fulfillStatus === 'COMPLETED'" type="success">已完成</el-tag>
-            <el-tag v-else-if="row.fulfillStatus === 'CANCELLED'" type="info">已取消</el-tag>
-            <el-tag v-else>{{ row.fulfillStatus }}</el-tag>
-          </template>
-        </el-table-column>
-        <el-table-column prop="createTime" label="创建时间" width="160" />
-        <el-table-column label="操作" width="180" fixed="right">
-          <template #default="{ row }">
-            <el-button size="small" link type="primary" @click="viewDetail(row)">详情</el-button>
-          </template>
-        </el-table-column>
-      </el-table>
+      <DataTable
+        :columns="columns"
+        :data="saleBills"
+        :loading="loading"
+        :total="total"
+        v-model:page="page"
+        v-model:page-size="pageSize"
+        @update:page="loadSaleBills"
+        @update:page-size="loadSaleBills"
+      >
+        <template #receivableAmount="{ row }">
+          ¥{{ Number(row.receivableAmount || 0).toFixed(2) }}
+        </template>
 
-      <div class="pagination">
-        <el-pagination
-          background
-          layout="total, sizes, prev, pager, next, jumper"
-          :total="total"
-          :page-size="pageSize"
-          :current-page="page"
-          @size-change="handleSizeChange"
-          @current-change="handlePageChange"
-        />
-      </div>
-    </el-card>
+        <template #receivedAmount="{ row }">
+          ¥{{ Number(row.receivedAmount || 0).toFixed(2) }}
+        </template>
 
-    <el-drawer v-model="detailVisible" title="销售单详情" size="600px">
+        <template #unpaidAmount="{ row }">
+          <span :class="{ 'unpaid-text': row.unpaidAmount > 0 }">
+            ¥{{ Number(row.unpaidAmount || 0).toFixed(2) }}
+          </span>
+        </template>
+
+        <template #payStatus="{ row }">
+          <el-tag v-if="row.payStatus === 'UNPAID'" type="danger">未收款</el-tag>
+          <el-tag v-else-if="row.payStatus === 'PARTIAL'" type="warning">部分收款</el-tag>
+          <el-tag v-else-if="row.payStatus === 'PAID'" type="success">已结清</el-tag>
+          <el-tag v-else>{{ row.payStatus }}</el-tag>
+        </template>
+
+        <template #fulfillStatus="{ row }">
+          <el-tag v-if="row.fulfillStatus === 'PENDING'" type="warning">待发货</el-tag>
+          <el-tag v-else-if="row.fulfillStatus === 'PARTIAL'" type="primary">部分发货</el-tag>
+          <el-tag v-else-if="row.fulfillStatus === 'COMPLETED'" type="success">已完成</el-tag>
+          <el-tag v-else-if="row.fulfillStatus === 'CANCELLED'" type="info">已取消</el-tag>
+          <el-tag v-else>{{ row.fulfillStatus }}</el-tag>
+        </template>
+
+        <template #actions="{ row }">
+          <el-button size="small" link type="primary" @click="viewDetail(row)">详情</el-button>
+        </template>
+      </DataTable>
+    </PageCard>
+
+    <DetailDrawer v-model="detailVisible" title="销售单详情" width="600px">
       <template v-if="currentBill">
         <el-descriptions :column="2" border>
           <el-descriptions-item label="销售单号">{{ currentBill.billNo }}</el-descriptions-item>
@@ -124,7 +110,7 @@
           </el-table-column>
         </el-table>
       </template>
-    </el-drawer>
+    </DetailDrawer>
   </div>
 </template>
 
@@ -132,6 +118,9 @@
 import { onMounted, ref } from "vue";
 import { ElMessage } from "element-plus";
 import { fetchSaleBills } from "../api";
+import PageCard from "../components/PageCard.vue";
+import DataTable from "../components/DataTable.vue";
+import DetailDrawer from "../components/DetailDrawer.vue";
 
 const loading = ref(false);
 const saleBills = ref<any[]>([]);
@@ -143,6 +132,18 @@ const payStatus = ref("");
 const fulfillStatus = ref("");
 const detailVisible = ref(false);
 const currentBill = ref<any>(null);
+
+const columns = [
+  { prop: "billNo", label: "销售单号", width: 200 },
+  { prop: "customerName", label: "客户", minWidth: 140 },
+  { prop: "receivableAmount", label: "应收", width: 120, slot: "receivableAmount" },
+  { prop: "receivedAmount", label: "已收", width: 120, slot: "receivedAmount" },
+  { prop: "unpaidAmount", label: "未收", width: 120, slot: "unpaidAmount" },
+  { prop: "payStatus", label: "收款状态", width: 100, slot: "payStatus" },
+  { prop: "fulfillStatus", label: "履约状态", width: 100, slot: "fulfillStatus" },
+  { prop: "createTime", label: "创建时间", width: 160 },
+  { label: "操作", width: 180, fixed: "right", slot: "actions" }
+];
 
 async function loadSaleBills() {
   loading.value = true;
@@ -173,17 +174,6 @@ async function loadSaleBills() {
   }
 }
 
-function handleSizeChange(size: number) {
-  pageSize.value = size;
-  page.value = 1;
-  loadSaleBills();
-}
-
-function handlePageChange(p: number) {
-  page.value = p;
-  loadSaleBills();
-}
-
 function viewDetail(row: any) {
   currentBill.value = row;
   detailVisible.value = true;
@@ -197,20 +187,6 @@ onMounted(() => {
 <style scoped>
 .page {
   padding: 0;
-}
-.card-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-}
-.header-actions {
-  display: flex;
-  align-items: center;
-}
-.pagination {
-  margin-top: 16px;
-  display: flex;
-  justify-content: flex-end;
 }
 .unpaid-text {
   color: #f56c6c;

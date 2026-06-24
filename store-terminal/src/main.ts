@@ -4,5 +4,6 @@ import "element-plus/dist/index.css";
 import "./styles.css";
 import "./register-sw";
 import App from "./App.vue";
+import router from "./router";
 
-createApp(App).use(ElementPlus).mount("#app");
+createApp(App).use(ElementPlus).use(router).mount("#app");

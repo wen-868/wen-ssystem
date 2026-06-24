@@ -1,52 +1,36 @@
 <template>
   <div class="page">
-    <el-card>
-      <template #header>
-        <div class="card-header">
-          <span>库存预警</span>
-          <div class="header-actions">
-            <el-button @click="loadAlerts">
-              <el-icon><Refresh /></el-icon> 刷新
-            </el-button>
-          </div>
-        </div>
+    <PageCard title="库存预警">
+      <template #extra>
+        <el-button @click="loadAlerts">
+          <el-icon><Refresh /></el-icon> 刷新
+        </el-button>
       </template>
 
-      <el-table :data="alerts" v-loading="loading" stripe>
-        <el-table-column prop="storeName" label="门店" width="160" />
-        <el-table-column prop="productName" label="商品" min-width="200" />
-        <el-table-column prop="skuCode" label="SKU编码" width="160" />
-        <el-table-column prop="inventoryType" label="库存类型" width="120">
-          <template #default="{ row }">
-            <el-tag v-if="row.inventoryType === 'NORMAL'" type="primary">正常库存</el-tag>
-            <el-tag v-else-if="row.inventoryType === 'LOW'" type="warning">低库存</el-tag>
-            <el-tag v-else-if="row.inventoryType === 'OUT'" type="danger">缺货</el-tag>
-            <el-tag v-else>{{ row.inventoryType }}</el-tag>
-          </template>
-        </el-table-column>
-        <el-table-column prop="availableQty" label="可用库存" width="120">
-          <template #default="{ row }">
-            <span :class="{ 'low-stock': row.inventoryType === 'LOW' || row.inventoryType === 'OUT' }">
-              {{ Number(row.availableQty || 0).toFixed(0) }}
-            </span>
-          </template>
-        </el-table-column>
-        <el-table-column prop="warningQty" label="预警阈值" width="120" />
-        <el-table-column prop="unit" label="单位" width="80" />
-      </el-table>
+      <DataTable
+        :columns="columns"
+        :data="alerts"
+        :loading="loading"
+        :total="total"
+        v-model:page="page"
+        v-model:page-size="pageSize"
+        @update:page="loadAlerts"
+        @update:page-size="loadAlerts"
+      >
+        <template #inventoryType="{ row }">
+          <el-tag v-if="row.inventoryType === 'NORMAL'" type="primary">正常库存</el-tag>
+          <el-tag v-else-if="row.inventoryType === 'LOW'" type="warning">低库存</el-tag>
+          <el-tag v-else-if="row.inventoryType === 'OUT'" type="danger">缺货</el-tag>
+          <el-tag v-else>{{ row.inventoryType }}</el-tag>
+        </template>
 
-      <div class="pagination">
-        <el-pagination
-          background
-          layout="total, sizes, prev, pager, next, jumper"
-          :total="total"
-          :page-size="pageSize"
-          :current-page="page"
-          @size-change="handleSizeChange"
-          @current-change="handlePageChange"
-        />
-      </div>
-    </el-card>
+        <template #availableQty="{ row }">
+          <span :class="{ 'low-stock': row.inventoryType === 'LOW' || row.inventoryType === 'OUT' }">
+            {{ Number(row.availableQty || 0).toFixed(0) }}
+          </span>
+        </template>
+      </DataTable>
+    </PageCard>
   </div>
 </template>
 
@@ -55,12 +39,24 @@ import { onMounted, ref } from "vue";
 import { ElMessage } from "element-plus";
 import { Refresh } from "@element-plus/icons-vue";
 import { fetchInventoryAlerts } from "../api";
+import PageCard from "../components/PageCard.vue";
+import DataTable from "../components/DataTable.vue";
 
 const loading = ref(false);
 const alerts = ref<any[]>([]);
 const total = ref(0);
 const page = ref(1);
 const pageSize = ref(20);
+
+const columns = [
+  { prop: "storeName", label: "门店", width: 160 },
+  { prop: "productName", label: "商品", minWidth: 200 },
+  { prop: "skuCode", label: "SKU编码", width: 160 },
+  { prop: "inventoryType", label: "库存类型", width: 120, slot: "inventoryType" },
+  { prop: "availableQty", label: "可用库存", width: 120, slot: "availableQty" },
+  { prop: "warningQty", label: "预警阈值", width: 120 },
+  { prop: "unit", label: "单位", width: 80 }
+];
 
 async function loadAlerts() {
   loading.value = true;
@@ -78,17 +74,6 @@ async function loadAlerts() {
   }
 }
 
-function handleSizeChange(size: number) {
-  pageSize.value = size;
-  page.value = 1;
-  loadAlerts();
-}
-
-function handlePageChange(p: number) {
-  page.value = p;
-  loadAlerts();
-}
-
 onMounted(() => {
   loadAlerts();
 });
@@ -97,20 +82,6 @@ onMounted(() => {
 <style scoped>
 .page {
   padding: 0;
-}
-.card-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-}
-.header-actions {
-  display: flex;
-  align-items: center;
-}
-.pagination {
-  margin-top: 16px;
-  display: flex;
-  justify-content: flex-end;
 }
 .low-stock {
   color: #f56c6c;

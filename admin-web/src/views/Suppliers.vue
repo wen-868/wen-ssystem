@@ -5,7 +5,7 @@
       <p class="page-desc">管理供应商信息、联系人和合作状态</p>
     </div>
 
-    <el-card class="filter-card" shadow="never">
+    <PageCard>
       <el-form :inline="true" :model="filterForm">
         <el-form-item label="关键字">
           <el-input
@@ -49,81 +49,68 @@
           <el-button @click="resetFilter">重置</el-button>
         </el-form-item>
       </el-form>
-    </el-card>
+    </PageCard>
 
-    <el-card class="table-card" shadow="never">
-      <div class="table-actions">
+    <PageCard>
+      <template #extra>
         <el-button type="primary" @click="handleAdd">
           <el-icon><Plus /></el-icon> 新增供应商
         </el-button>
         <el-button @click="loadSuppliers">
           <el-icon><Refresh /></el-icon> 刷新
         </el-button>
-      </div>
+      </template>
 
-      <el-table :data="tableData" v-loading="loading" stripe style="width: 100%">
-        <el-table-column prop="supplierCode" label="供应商编码" width="180" />
-        <el-table-column prop="name" label="供应商名称" min-width="180" show-overflow-tooltip />
-        <el-table-column prop="shortName" label="简称" width="120" show-overflow-tooltip />
-        <el-table-column prop="category" label="分类" width="100">
-          <template #default="{ row }">
-            <el-tag v-if="row.category === 'BRAND'" type="primary">品牌商</el-tag>
-            <el-tag v-else-if="row.category === 'WHOLESALER'" type="success">批发商</el-tag>
-            <el-tag v-else-if="row.category === 'DISTRIBUTOR'" type="warning">经销商</el-tag>
-            <el-tag v-else>{{ row.category || '-' }}</el-tag>
-          </template>
-        </el-table-column>
-        <el-table-column prop="creditLevel" label="信用等级" width="100">
-          <template #default="{ row }">
-            <el-tag v-if="row.creditLevel === 'A'" type="success">A级</el-tag>
-            <el-tag v-else-if="row.creditLevel === 'B'" type="warning">B级</el-tag>
-            <el-tag v-else-if="row.creditLevel === 'C'" type="danger">C级</el-tag>
-            <el-tag v-else type="info">{{ row.creditLevel || '-' }}</el-tag>
-          </template>
-        </el-table-column>
-        <el-table-column prop="settlementType" label="结算方式" width="100">
-          <template #default="{ row }">
-            <span v-if="row.settlementType === 'CASH'">现结</span>
-            <span v-else-if="row.settlementType === 'MONTHLY'">月结</span>
-            <span v-else-if="row.settlementType === 'WEEKLY'">周结</span>
-            <span v-else>{{ row.settlementType || '-' }}</span>
-          </template>
-        </el-table-column>
-        <el-table-column prop="address" label="地址" min-width="150" show-overflow-tooltip />
-        <el-table-column prop="status" label="状态" width="80">
-          <template #default="{ row }">
-            <el-tag v-if="row.status === 1" type="success" size="small">启用</el-tag>
-            <el-tag v-else type="info" size="small">禁用</el-tag>
-          </template>
-        </el-table-column>
-        <el-table-column label="操作" width="180" fixed="right">
-          <template #default="{ row }">
-            <el-button link type="primary" size="small" @click="handleView(row)">详情</el-button>
-            <el-button link type="primary" size="small" @click="handleEdit(row)">编辑</el-button>
-            <el-button
-              link
-              :type="row.status === 1 ? 'danger' : 'success'"
-              size="small"
-              @click="handleToggleStatus(row)"
-            >
-              {{ row.status === 1 ? '禁用' : '启用' }}
-            </el-button>
-          </template>
-        </el-table-column>
-      </el-table>
+      <DataTable
+        :columns="columns"
+        :data="tableData"
+        :loading="loading"
+        :total="pagination.total"
+        v-model:page="pagination.page"
+        v-model:page-size="pagination.pageSize"
+        @update:page="loadSuppliers"
+        @update:page-size="loadSuppliers"
+      >
+        <template #category="{ row }">
+          <el-tag v-if="row.category === 'BRAND'" type="primary">品牌商</el-tag>
+          <el-tag v-else-if="row.category === 'WHOLESALER'" type="success">批发商</el-tag>
+          <el-tag v-else-if="row.category === 'DISTRIBUTOR'" type="warning">经销商</el-tag>
+          <el-tag v-else>{{ row.category || '-' }}</el-tag>
+        </template>
 
-      <div class="pagination-wrapper">
-        <el-pagination
-          v-model:current-page="pagination.page"
-          v-model:page-size="pagination.pageSize"
-          :page-sizes="[10, 20, 50, 100]"
-          :total="pagination.total"
-          layout="total, sizes, prev, pager, next, jumper"
-          @size-change="handleSizeChange"
-          @current-change="handlePageChange"
-        />
-      </div>
-    </el-card>
+        <template #creditLevel="{ row }">
+          <el-tag v-if="row.creditLevel === 'A'" type="success">A级</el-tag>
+          <el-tag v-else-if="row.creditLevel === 'B'" type="warning">B级</el-tag>
+          <el-tag v-else-if="row.creditLevel === 'C'" type="danger">C级</el-tag>
+          <el-tag v-else type="info">{{ row.creditLevel || '-' }}</el-tag>
+        </template>
+
+        <template #settlementType="{ row }">
+          <span v-if="row.settlementType === 'CASH'">现结</span>
+          <span v-else-if="row.settlementType === 'MONTHLY'">月结</span>
+          <span v-else-if="row.settlementType === 'WEEKLY'">周结</span>
+          <span v-else>{{ row.settlementType || '-' }}</span>
+        </template>
+
+        <template #status="{ row }">
+          <el-tag v-if="row.status === 1" type="success" size="small">启用</el-tag>
+          <el-tag v-else type="info" size="small">禁用</el-tag>
+        </template>
+
+        <template #actions="{ row }">
+          <el-button link type="primary" size="small" @click="handleView(row)">详情</el-button>
+          <el-button link type="primary" size="small" @click="handleEdit(row)">编辑</el-button>
+          <el-button
+            link
+            :type="row.status === 1 ? 'danger' : 'success'"
+            size="small"
+            @click="handleToggleStatus(row)"
+          >
+            {{ row.status === 1 ? '禁用' : '启用' }}
+          </el-button>
+        </template>
+      </DataTable>
+    </PageCard>
 
     <el-dialog
       v-model="dialogVisible"
@@ -275,7 +262,7 @@
       </template>
     </el-dialog>
 
-    <el-drawer v-model="detailVisible" title="供应商详情" size="560px">
+    <DetailDrawer v-model="detailVisible" title="供应商详情" width="560px">
       <template v-if="currentSupplier">
         <el-descriptions :column="2" border>
           <el-descriptions-item label="供应商编码">{{ currentSupplier.supplierCode }}</el-descriptions-item>
@@ -325,7 +312,7 @@
           </div>
         </div>
       </template>
-    </el-drawer>
+    </DetailDrawer>
   </div>
 </template>
 
@@ -335,6 +322,9 @@ import { ElMessage, ElMessageBox, type FormInstance, type FormRules } from "elem
 import { Search, Plus, Refresh, Delete } from "@element-plus/icons-vue";
 import { fetchSuppliers, createSupplier, updateSupplier } from "../api";
 import { formatDate } from "../utils/format";
+import PageCard from "../components/PageCard.vue";
+import DataTable from "../components/DataTable.vue";
+import DetailDrawer from "../components/DetailDrawer.vue";
 
 const loading = ref(false);
 const submitLoading = ref(false);
@@ -356,6 +346,18 @@ const pagination = reactive({
   pageSize: 20,
   total: 0
 });
+
+const columns = [
+  { prop: "supplierCode", label: "供应商编码", width: 180 },
+  { prop: "name", label: "供应商名称", minWidth: 180, showOverflowTooltip: true },
+  { prop: "shortName", label: "简称", width: 120, showOverflowTooltip: true },
+  { prop: "category", label: "分类", width: 100, slot: "category" },
+  { prop: "creditLevel", label: "信用等级", width: 100, slot: "creditLevel" },
+  { prop: "settlementType", label: "结算方式", width: 100, slot: "settlementType" },
+  { prop: "address", label: "地址", minWidth: 150, showOverflowTooltip: true },
+  { prop: "status", label: "状态", width: 80, slot: "status" },
+  { label: "操作", width: 180, fixed: "right", slot: "actions" }
+];
 
 const defaultForm = {
   supplierId: 0,
@@ -411,17 +413,6 @@ function resetFilter() {
   filterForm.category = "";
   filterForm.status = "";
   pagination.page = 1;
-  loadSuppliers();
-}
-
-function handleSizeChange(size: number) {
-  pagination.pageSize = size;
-  pagination.page = 1;
-  loadSuppliers();
-}
-
-function handlePageChange(page: number) {
-  pagination.page = page;
   loadSuppliers();
 }
 
@@ -543,26 +534,6 @@ onMounted(() => {
   margin: 0;
   color: #909399;
   font-size: 14px;
-}
-
-.filter-card {
-  margin-bottom: 16px;
-}
-
-.table-card {
-  margin-bottom: 16px;
-}
-
-.table-actions {
-  margin-bottom: 16px;
-  display: flex;
-  gap: 8px;
-}
-
-.pagination-wrapper {
-  margin-top: 16px;
-  display: flex;
-  justify-content: flex-end;
 }
 
 .contacts-section {
