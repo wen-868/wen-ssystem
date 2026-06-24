@@ -360,9 +360,10 @@ storeRouter.get("/sale-bills", asyncHandler(async (req, res) => {
   const storeId = req.user?.storeId ?? null;
   const records = await query<any>(
     `SELECT bill_no AS billNo, store_id AS storeId, customer_id AS customerId, customer_name AS customerName,
-            customer_type AS customerType, business_status AS businessStatus, collection_status AS collectionStatus,
-            receivable_amount AS receivableAmount, received_amount AS receivedAmount, unreceived_amount AS unreceivedAmount,
-            created_at AS createdAt
+            customer_type AS customerType, sale_type AS saleType, business_status AS businessStatus, 
+            collection_status AS collectionStatus, receivable_amount AS receivableAmount, 
+            received_amount AS receivedAmount, unreceived_amount AS unreceivedAmount,
+            due_date AS dueDate, created_at AS createdAt
      FROM sale_bill
      WHERE tenant_id = ?
        AND (? IS NULL OR store_id = ?)
@@ -451,8 +452,11 @@ storeRouter.get("/sale-bills/:billNo", asyncHandler(async (req, res) => {
   const tenantId = req.tenantId!;
   const bill = await queryOne<any>(
     `SELECT bill_no AS billNo, store_id AS storeId, customer_id AS customerId, customer_name AS customerName,
-            customer_type AS customerType, business_status AS businessStatus, collection_status AS collectionStatus,
-            receivable_amount AS receivableAmount, received_amount AS receivedAmount, unreceived_amount AS unreceivedAmount
+            customer_type AS customerType, sale_type AS saleType, business_status AS businessStatus, 
+            collection_status AS collectionStatus, goods_amount AS goodsAmount, discount_amount AS discountAmount,
+            rounding_amount AS roundingAmount, receivable_amount AS receivableAmount, 
+            received_amount AS receivedAmount, unreceived_amount AS unreceivedAmount,
+            due_date AS dueDate, remark, created_at AS createdAt
      FROM sale_bill WHERE bill_no = ? AND tenant_id = ?`,
     [req.params.billNo, tenantId]
   );

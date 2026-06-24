@@ -8,12 +8,32 @@ import { ok } from "../shared/response.js";
 
 export const supplierRouter = Router();
 
-// 列表查询
 supplierRouter.get("/", requireAuthWithTenant, asyncHandler(async (req, res) => {
   const { keyword, status, page = 1, pageSize = 20 } = req.query;
   const tenantId = req.tenantId!;
 
-  let sql = "SELECT * FROM supplier WHERE tenant_id = ?";
+  let sql = `SELECT 
+    id,
+    supplier_code AS supplierCode,
+    name,
+    short_name AS shortName,
+    category,
+    province,
+    city,
+    district,
+    address,
+    credit_level AS creditLevel,
+    settlement_type AS settlementType,
+    settlement_day AS settlementDay,
+    tax_rate AS taxRate,
+    bank_name AS bankName,
+    bank_account AS bankAccount,
+    bank_account_name AS bankAccountName,
+    status,
+    remark,
+    created_at AS createdAt,
+    updated_at AS updatedAt
+  FROM supplier WHERE tenant_id = ?`;
   const params: any[] = [tenantId];
 
   if (keyword) {
@@ -33,13 +53,33 @@ supplierRouter.get("/", requireAuthWithTenant, asyncHandler(async (req, res) => 
   res.json(ok(suppliers));
 }));
 
-// 详情查询（含联系人）
 supplierRouter.get("/:id", requireAuthWithTenant, asyncHandler(async (req, res) => {
   const { id } = req.params;
   const tenantId = req.tenantId!;
 
   const supplier = await queryOne<any>(
-    "SELECT * FROM supplier WHERE id = ? AND tenant_id = ?",
+    `SELECT 
+      id,
+      supplier_code AS supplierCode,
+      name,
+      short_name AS shortName,
+      category,
+      province,
+      city,
+      district,
+      address,
+      credit_level AS creditLevel,
+      settlement_type AS settlementType,
+      settlement_day AS settlementDay,
+      tax_rate AS taxRate,
+      bank_name AS bankName,
+      bank_account AS bankAccount,
+      bank_account_name AS bankAccountName,
+      status,
+      remark,
+      created_at AS createdAt,
+      updated_at AS updatedAt
+    FROM supplier WHERE id = ? AND tenant_id = ?`,
     [id, tenantId]
   );
 
@@ -49,30 +89,41 @@ supplierRouter.get("/:id", requireAuthWithTenant, asyncHandler(async (req, res) 
   }
 
   const contacts = await query<any>(
-    "SELECT * FROM supplier_contact WHERE supplier_id = ? ORDER BY is_primary DESC, created_at DESC",
+    `SELECT 
+      id,
+      supplier_id AS supplierId,
+      name,
+      mobile,
+      phone,
+      email,
+      wechat,
+      is_primary AS isPrimary,
+      position,
+      remark,
+      created_at AS createdAt
+    FROM supplier_contact WHERE supplier_id = ? ORDER BY is_primary DESC, created_at DESC`,
     [id]
   );
 
   res.json(ok({ ...supplier, contacts }));
 }));
 
-// 新增供应商
 supplierRouter.post("/", requireAuthWithTenant, asyncHandler(async (req, res) => {
   const body = z.object({
     name: z.string().min(1).max(128),
-    short_name: z.string().max(64).optional(),
+    shortName: z.string().max(64).optional(),
     category: z.string().max(32).optional(),
     province: z.string().max(64).optional(),
     city: z.string().max(64).optional(),
     district: z.string().max(64).optional(),
     address: z.string().max(255).optional(),
-    credit_level: z.string().max(16).default("B"),
-    settlement_type: z.enum(["CASH", "MONTHLY", "QUARTERLY"]).default("CASH"),
-    settlement_day: z.number().int().min(1).max(31).optional(),
-    tax_rate: z.number().min(0).max(1).default(0),
-    bank_name: z.string().max(128).optional(),
-    bank_account: z.string().max(64).optional(),
-    bank_account_name: z.string().max(64).optional(),
+    creditLevel: z.string().max(16).default("B"),
+    settlementType: z.enum(["CASH", "MONTHLY", "QUARTERLY"]).default("CASH"),
+    settlementDay: z.number().int().min(1).max(31).optional(),
+    taxRate: z.number().min(0).max(1).default(0),
+    bankName: z.string().max(128).optional(),
+    bankAccount: z.string().max(64).optional(),
+    bankAccountName: z.string().max(64).optional(),
     remark: z.string().max(255).optional(),
   }).parse(req.body);
 
@@ -86,10 +137,10 @@ supplierRouter.post("/", requireAuthWithTenant, asyncHandler(async (req, res) =>
       bank_account_name, remark, tenant_id
     ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
     [
-      supplierCode, body.name, body.short_name || null, body.category || null,
+      supplierCode, body.name, body.shortName || null, body.category || null,
       body.province || null, body.city || null, body.district || null, body.address || null,
-      body.credit_level, body.settlement_type, body.settlement_day || null, body.tax_rate,
-      body.bank_name || null, body.bank_account || null, body.bank_account_name || null,
+      body.creditLevel, body.settlementType, body.settlementDay || null, body.taxRate,
+      body.bankName || null, body.bankAccount || null, body.bankAccountName || null,
       body.remark || null, tenantId
     ]
   );
@@ -99,10 +150,9 @@ supplierRouter.post("/", requireAuthWithTenant, asyncHandler(async (req, res) =>
     ["supplier", "CREATE", String(result.insertId), "supplier", req.user!.id, req.user!.username, `创建供应商: ${body.name}`, tenantId]
   );
 
-  res.json(ok({ id: result.insertId, supplier_code: supplierCode }));
+  res.json(ok({ id: result.insertId, supplierCode }));
 }));
 
-// 修改供应商
 supplierRouter.put("/:id", requireAuthWithTenant, asyncHandler(async (req, res) => {
   const { id } = req.params;
   const tenantId = req.tenantId!;
@@ -119,29 +169,48 @@ supplierRouter.put("/:id", requireAuthWithTenant, asyncHandler(async (req, res) 
 
   const body = z.object({
     name: z.string().min(1).max(128).optional(),
-    short_name: z.string().max(64).optional(),
+    shortName: z.string().max(64).optional(),
     category: z.string().max(32).optional(),
     province: z.string().max(64).optional(),
     city: z.string().max(64).optional(),
     district: z.string().max(64).optional(),
     address: z.string().max(255).optional(),
-    credit_level: z.string().max(16).optional(),
-    settlement_type: z.enum(["CASH", "MONTHLY", "QUARTERLY"]).optional(),
-    settlement_day: z.number().int().min(1).max(31).optional(),
-    tax_rate: z.number().min(0).max(1).optional(),
-    bank_name: z.string().max(128).optional(),
-    bank_account: z.string().max(64).optional(),
-    bank_account_name: z.string().max(64).optional(),
+    creditLevel: z.string().max(16).optional(),
+    settlementType: z.enum(["CASH", "MONTHLY", "QUARTERLY"]).optional(),
+    settlementDay: z.number().int().min(1).max(31).optional(),
+    taxRate: z.number().min(0).max(1).optional(),
+    bankName: z.string().max(128).optional(),
+    bankAccount: z.string().max(64).optional(),
+    bankAccountName: z.string().max(64).optional(),
     status: z.number().int().min(0).max(1).optional(),
     remark: z.string().max(255).optional(),
   }).parse(req.body);
+
+  const fieldMap: Record<string, string> = {
+    name: "name",
+    shortName: "short_name",
+    category: "category",
+    province: "province",
+    city: "city",
+    district: "district",
+    address: "address",
+    creditLevel: "credit_level",
+    settlementType: "settlement_type",
+    settlementDay: "settlement_day",
+    taxRate: "tax_rate",
+    bankName: "bank_name",
+    bankAccount: "bank_account",
+    bankAccountName: "bank_account_name",
+    status: "status",
+    remark: "remark",
+  };
 
   const updates: string[] = [];
   const params: any[] = [];
 
   for (const [key, value] of Object.entries(body)) {
-    if (value !== undefined) {
-      updates.push(`${key} = ?`);
+    if (value !== undefined && fieldMap[key]) {
+      updates.push(`${fieldMap[key]} = ?`);
       params.push(value);
     }
   }
@@ -162,7 +231,6 @@ supplierRouter.put("/:id", requireAuthWithTenant, asyncHandler(async (req, res) 
   res.json(ok({ id: Number(id) }));
 }));
 
-// 添加联系人
 supplierRouter.post("/:id/contacts", requireAuthWithTenant, asyncHandler(async (req, res) => {
   const { id } = req.params;
   const tenantId = req.tenantId!;
@@ -183,12 +251,12 @@ supplierRouter.post("/:id/contacts", requireAuthWithTenant, asyncHandler(async (
     phone: z.string().max(32).optional(),
     email: z.string().email().max(128).optional(),
     wechat: z.string().max(64).optional(),
-    is_primary: z.number().int().min(0).max(1).default(0),
+    isPrimary: z.number().int().min(0).max(1).default(0),
     position: z.string().max(64).optional(),
     remark: z.string().max(255).optional(),
   }).parse(req.body);
 
-  if (body.is_primary === 1) {
+  if (body.isPrimary === 1) {
     await query(
       "UPDATE supplier_contact SET is_primary = 0 WHERE supplier_id = ?",
       [id]
@@ -201,7 +269,7 @@ supplierRouter.post("/:id/contacts", requireAuthWithTenant, asyncHandler(async (
     ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`,
     [
       id, body.name, body.mobile || null, body.phone || null,
-      body.email || null, body.wechat || null, body.is_primary,
+      body.email || null, body.wechat || null, body.isPrimary,
       body.position || null, body.remark || null
     ]
   );
@@ -214,7 +282,6 @@ supplierRouter.post("/:id/contacts", requireAuthWithTenant, asyncHandler(async (
   res.json(ok({ id: result.insertId }));
 }));
 
-// 删除联系人
 supplierRouter.delete("/:id/contacts/:contactId", requireAuthWithTenant, asyncHandler(async (req, res) => {
   const { id, contactId } = req.params;
   const tenantId = req.tenantId!;
