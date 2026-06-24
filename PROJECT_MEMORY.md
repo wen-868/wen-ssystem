@@ -91,6 +91,37 @@
 | P3 增值功能 | 营销模块、即时零售、数据导出 | 持续 | P2完成 |
 | AI助手V1 | 智能问答 + 记忆开单 | 8天 | M3之后 |
 
+### phase2-dev 分支进展（凌舟总结，2026-06-24）
+
+> 墨在 phase2-dev 分支上已推进了大量工作，以下为凌舟审查总结。
+
+**admin-web 重构（部分完成）：**
+- ✅ 已引入 vue-router（`admin-web/src/router/index.ts`）
+- ✅ 已创建 13 个 views 文件（Dashboard/Products/Suppliers/PurchaseOrders/PurchaseInStocks/Orders/SaleBills/CustomerStatements/Inventory/InventoryAlerts/Collection/Reports/System）
+- ⚠️ 路由仅13条，原规划22条，缺少：客户、销售退货、员工、门店、预警中心（已有InventoryAlerts）、价格中心、授信管理、售后管理、订单超时、营销中心、操作日志
+- ⚠️ 未抽取公共组件（无 components/ 目录）
+
+**后端测试（大幅扩展）：**
+- ✅ 新增 12 个测试文件（supplier/purchase-order/purchase-in-stock/purchase-return/sale-return/customer-payment/customer-statement/debug-po/miniapp/performance/pre-deployment/system-config/security）
+- ✅ 新增 vitest 配置
+- ✅ 新增飞书报告集成（feishu-report.ts）
+
+**merchant-mobile（功能扩展）：**
+- ✅ 新增 8 个页面（采购订单/入库/退货/对账/对账详情/对账付款/退货详情/功能中心/商品管理）
+- ✅ 新增采购相关API封装
+
+**其他：**
+- ✅ 新增 CI/CD 配置（.github/workflows/ci.yml）
+- ✅ 新增 phase-tracker.mjs 和 send-report.mjs 脚本
+- ✅ 新增测试文档（test-cases/test-plan）
+
+**凌舟的评估：**
+- 墨的推进速度很快，admin-web vue-router 重构已经启动
+- 但 phase2-dev 和 feat/formal-mvp-a 两个分支存在大量分叉，需要合并
+- admin-web 重构未完成（13/22页面），需要继续补全
+- 后端分层改造（Controller-Service）尚未开始
+- tenant_id 隔离尚未开始
+
 ---
 
 ## 五、文档索引
@@ -100,14 +131,26 @@
 | 文件 | 用途 | 更新频率 |
 |------|------|---------|
 | `PROJECT_MEMORY.md` | **本文件** - 项目管理中枢，阶段索引 | 每阶段更新 |
-| `PROJECT_STATUS.md` | 当前阶段完成度报告 | 每阶段更新 |
-| `PROJECT_TASKS.md` | 当前阶段任务清单（详细） | 每阶段更新 |
+
+### tasks/ 文件夹（所有报告和任务）
+
+| 文件 | 用途 | 生成人 |
+|------|------|--------|
+| `tasks/PROJECT_STATUS.md` | 当前阶段完成度报告 | 凌舟 |
+| `tasks/PROJECT_TASKS.md` | 当前阶段整改任务清单 | 凌舟 |
+| `tasks/project-status-report.md` | 首次代码审查完成度报告（详细版） | 凌舟 |
+| `tasks/project-refactor-plan.md` | 整改方案（详细版） | 凌舟 |
+| `tasks/form-field-spec-v1.md` | 表单字段开发手册（11模块/50+表单） | 凌舟 |
+| `tasks/tasks-阿坚.md` | 阿坚后端任务清单 | 墨 |
+| `tasks/tasks-林夕.md` | 林夕前端任务清单 | 墨 |
+| `tasks/tasks-苏然.md` | 苏然测试任务清单 | 墨 |
+
+> 墨生成的 TECH_REVIEW 报告待推送后补充到此文件夹。
 
 ### docs/ 目录（参考资料）
 
 | 文件 | 用途 |
 |------|------|
-| `docs/form-field-spec-v1.md` | 表单字段开发手册（11模块/50+表单） |
 | `docs/tenant-isolation-plan.md` | tenant_id 隔离方案（阿坚专属） |
 | `docs/ai-assistant-plan.md` | AI助手技术方案 |
 | `docs/API.md` | API接口文档 |

@@ -26,4 +26,10 @@ UPDATE sys_role SET status = 'DISABLED' WHERE status = '0';
 UPDATE sys_user SET status = 'ACTIVE' WHERE status = '1';
 UPDATE sys_user SET status = 'DISABLED' WHERE status = '0';
 
+-- 7. member: 添加 settlement_type 字段（旧表可能缺失）
+ALTER TABLE member ADD COLUMN settlement_type VARCHAR(32) NOT NULL DEFAULT 'CASH' COMMENT '结算方式：CASH/ACCOUNT' AFTER customer_type;
+
+-- 8. supplier: 添加 settlement_type 字段（旧表可能缺失）
+ALTER TABLE supplier ADD COLUMN settlement_type VARCHAR(32) NOT NULL DEFAULT 'MONTHLY' COMMENT '结算方式：CASH/MONTHLY' AFTER credit_level;
+
 SET FOREIGN_KEY_CHECKS = 1;
