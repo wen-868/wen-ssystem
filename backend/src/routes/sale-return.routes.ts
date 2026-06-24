@@ -2,145 +2,52 @@ import { Router } from "express";
 import { z } from "zod";
 import { asyncHandler } from "../shared/async-handler.js";
 import { requireAuthWithTenant } from "../shared/auth.js";
-import { query, queryOne, transaction } from "../shared/db.js";
-import { makeBizNo } from "../shared/id.js";
 import { ok } from "../shared/response.js";
+import { saleReturnService } from "../services/sale-return.service.js";
+import type { ServiceContext } from "../types/index.js";
 
 export const saleReturnRouter = Router();
 
+function getServiceContext(req: any): ServiceContext {
+  return {
+    tenantId: req.tenantId!,
+    userId: req.user!.id,
+    username: req.user!.username,
+    storeId: req.user!.storeId,
+  };
+}
+
 saleReturnRouter.get("/", requireAuthWithTenant, asyncHandler(async (req, res) => {
   const { storeId, customerId, status, startDate, endDate, keyword, page = 1, pageSize = 20 } = req.query;
-  const tenantId = req.tenantId!;
+  const ctx = getServiceContext(req);
 
-  let countSql = "SELECT COUNT(*) as total FROM sale_return WHERE tenant_id = ?";
-  let countParams: any[] = [tenantId];
+  const result = await saleReturnService.getPageList(
+    keyword as string | undefined,
+    storeId ? Number(storeId) : undefined,
+    customerId ? Number(customerId) : undefined,
+    status as string | undefined,
+    startDate as string | undefined,
+    endDate as string | undefined,
+    Number(page),
+    Number(pageSize),
+    ctx
+  );
 
-  let sql = `SELECT 
-    id,
-    return_no AS returnNo,
-    source_bill_no AS sourceBillNo,
-    store_id AS storeId,
-    customer_id AS customerId,
-    customer_name AS customerName,
-    customer_mobile AS customerMobile,
-    return_status AS status,
-    goods_amount AS goodsAmount,
-    discount_amount AS discountAmount,
-    refund_amount AS refundAmount,
-    refunded_amount AS refundedAmount,
-    refund_method AS refundMethod,
-    operator_id AS operatorId,
-    auditor_id AS auditorId,
-    audited_at AS auditedAt,
-    remark,
-    created_at AS createdAt,
-    updated_at AS updatedAt
-  FROM sale_return WHERE tenant_id = ?`;
-  const params: any[] = [tenantId];
-
-  if (storeId) {
-    sql += " AND store_id = ?";
-    countSql += " AND store_id = ?";
-    params.push(Number(storeId));
-    countParams.push(Number(storeId));
-  }
-
-  if (customerId) {
-    sql += " AND customer_id = ?";
-    countSql += " AND customer_id = ?";
-    params.push(Number(customerId));
-    countParams.push(Number(customerId));
-  }
-
-  if (status) {
-    sql += " AND return_status = ?";
-    countSql += " AND return_status = ?";
-    params.push(status);
-    countParams.push(status);
-  }
-
-  if (keyword) {
-    sql += " AND (return_no LIKE ? OR customer_name LIKE ? OR source_bill_no LIKE ?)";
-    countSql += " AND (return_no LIKE ? OR customer_name LIKE ? OR source_bill_no LIKE ?)";
-    params.push(`%${keyword}%`, `%${keyword}%`, `%${keyword}%`);
-    countParams.push(`%${keyword}%`, `%${keyword}%`, `%${keyword}%`);
-  }
-
-  if (startDate) {
-    sql += " AND created_at >= ?";
-    countSql += " AND created_at >= ?";
-    params.push(startDate);
-    countParams.push(startDate);
-  }
-
-  if (endDate) {
-    sql += " AND created_at <= ?";
-    countSql += " AND created_at <= ?";
-    params.push(endDate);
-    countParams.push(endDate);
-  }
-
-  const countResult = await queryOne<any>(countSql, countParams);
-  const total = countResult?.total || 0;
-
-  sql += " ORDER BY created_at DESC LIMIT ? OFFSET ?";
-  params.push(Number(pageSize), (Number(page) - 1) * Number(pageSize));
-
-  const records = await query<any>(sql, params);
-  res.json(ok({ records, total, page: Number(page), pageSize: Number(pageSize) }));
+  res.json(ok(result));
 }));
 
 saleReturnRouter.get("/:returnNo", requireAuthWithTenant, asyncHandler(async (req, res) => {
   const { returnNo } = req.params;
-  const tenantId = req.tenantId!;
+  const ctx = getServiceContext(req);
 
-  const returnOrder = await queryOne<any>(
-    `SELECT 
-      id,
-      return_no AS returnNo,
-      source_bill_no AS sourceBillNo,
-      store_id AS storeId,
-      customer_id AS customerId,
-      customer_name AS customerName,
-      customer_mobile AS customerMobile,
-      return_status AS status,
-      goods_amount AS goodsAmount,
-      discount_amount AS discountAmount,
-      refund_amount AS refundAmount,
-      refunded_amount AS refundedAmount,
-      refund_method AS refundMethod,
-      operator_id AS operatorId,
-      auditor_id AS auditorId,
-      audited_at AS auditedAt,
-      remark,
-      created_at AS createdAt,
-      updated_at AS updatedAt
-    FROM sale_return WHERE return_no = ? AND tenant_id = ?`,
-    [returnNo, tenantId]
-  );
+  const returnOrder = await saleReturnService.getDetail(returnNo, ctx);
 
   if (!returnOrder) {
     res.status(404).json({ code: "404", message: "退货单不存在" });
     return;
   }
 
-  const items = await query<any>(
-    `SELECT 
-      id,
-      return_no AS returnNo,
-      sku_id AS skuId,
-      sku_name AS skuName,
-      box_qty AS boxQty,
-      bottle_qty AS bottleQty,
-      total_bottle_qty AS totalBottleQty,
-      unit_price AS unitPrice,
-      subtotal_amount AS subtotal,
-      reason
-    FROM sale_return_item WHERE return_no = ? ORDER BY id ASC`,
-    [returnNo]
-  );
-
-  res.json(ok({ ...returnOrder, items }));
+  res.json(ok(returnOrder));
 }));
 
 saleReturnRouter.post("/", requireAuthWithTenant, asyncHandler(async (req, res) => {
@@ -162,166 +69,43 @@ saleReturnRouter.post("/", requireAuthWithTenant, asyncHandler(async (req, res) 
     })).min(1),
   }).parse(req.body);
 
-  const tenantId = req.tenantId!;
-  const returnNo = makeBizNo("TH");
-
-  let goodsAmount = 0;
-
-  const itemsWithAmount = body.items.map(item => {
-    const totalBottleQty = item.boxQty * 12 + item.bottleQty;
-    const subtotal = totalBottleQty * item.unitPrice;
-    goodsAmount += subtotal;
-
-    return {
-      ...item,
-      totalBottleQty,
-      subtotal,
-    };
-  });
-
-  const refundAmount = goodsAmount - body.discountAmount;
-
-  await transaction(async (conn) => {
-    await conn.execute(
-      `INSERT INTO sale_return (
-        return_no, source_bill_no, store_id, customer_id, customer_name, customer_mobile,
-        return_status, goods_amount, discount_amount, refund_amount, refunded_amount,
-        operator_id, remark, tenant_id
-      ) VALUES (?, ?, ?, ?, ?, ?, 'PENDING', ?, ?, ?, 0, ?, ?, ?)`,
-      [
-        returnNo, body.sourceBillNo || null, body.storeId,
-        body.customerId || null, body.customerName || null, body.customerMobile || null,
-        goodsAmount, body.discountAmount, refundAmount,
-        req.user!.id, body.remark || null, tenantId
-      ]
-    );
-
-    for (const item of itemsWithAmount) {
-      await conn.execute(
-        `INSERT INTO sale_return_item (
-          return_no, sku_id, sku_name, box_qty, bottle_qty, total_bottle_qty,
-          unit_price, subtotal_amount, reason
-        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`,
-        [
-          returnNo, item.skuId, item.skuName,
-          item.boxQty, item.bottleQty, item.totalBottleQty,
-          item.unitPrice, item.subtotal, item.reason || null
-        ]
-      );
-    }
-
-    await conn.execute(
-      "INSERT INTO operation_log (module, action, target_id, target_type, user_id, user_name, detail, tenant_id) VALUES (?, ?, ?, ?, ?, ?, ?, ?)",
-      ["sale_return", "CREATE", returnNo, "sale_return", req.user!.id, req.user!.username, `创建退货单: ${returnNo}`, tenantId]
-    );
-  });
-
-  res.json(ok({ returnNo }));
+  const ctx = getServiceContext(req);
+  const result = await saleReturnService.createReturn(body, ctx);
+  res.json(ok(result));
 }));
 
 saleReturnRouter.post("/:returnNo/approve", requireAuthWithTenant, asyncHandler(async (req, res) => {
   const { returnNo } = req.params;
-  const tenantId = req.tenantId!;
+  const ctx = getServiceContext(req);
 
-  const returnOrder = await queryOne<any>(
-    "SELECT id, return_status, store_id, source_bill_no FROM sale_return WHERE return_no = ? AND tenant_id = ?",
-    [returnNo, tenantId]
-  );
-
-  if (!returnOrder) {
-    res.status(404).json({ code: "404", message: "退货单不存在" });
-    return;
-  }
-
-  if (returnOrder.return_status !== "PENDING") {
-    res.status(400).json({ code: "400", message: "只有待审核状态的退货单可以审核" });
-    return;
-  }
-
-  await transaction(async (conn) => {
-    await conn.execute(
-      "UPDATE sale_return SET return_status = 'COMPLETED', auditor_id = ?, audited_at = NOW() WHERE return_no = ?",
-      [req.user!.id, returnNo]
-    );
-
-    const items = await conn.execute(
-      "SELECT sku_id, total_bottle_qty FROM sale_return_item WHERE return_no = ?",
-      [returnNo]
-    );
-
-    const itemRows = items[0] as any[];
-    for (const item of itemRows) {
-      await conn.execute(
-        `INSERT INTO inventory_balance (store_id, sku_id, quantity, tenant_id)
-         VALUES (?, ?, ?, ?)
-         ON DUPLICATE KEY UPDATE quantity = quantity + ?`,
-        [returnOrder.store_id, item.sku_id, item.total_bottle_qty, tenantId, item.total_bottle_qty]
-      );
+  try {
+    const result = await saleReturnService.approve(returnNo, ctx);
+    if (!result) {
+      res.status(404).json({ code: "404", message: "退货单不存在" });
+      return;
     }
-
-    if (itemRows.length > 0) {
-      const totalQty = itemRows.reduce((sum: number, i: any) => sum + i.total_bottle_qty, 0);
-      await conn.execute(
-        `INSERT INTO inventory_ledger (
-          store_id, sku_id, change_type, change_qty, before_qty, after_qty,
-          source_no, source_type, operator_id, remark, tenant_id
-        ) VALUES (?, ?, 'RETURN_IN', ?, ?, ?, ?, 'sale_return', ?, ?, ?)`,
-        [
-          returnOrder.store_id, itemRows[0].sku_id, totalQty,
-          0, totalQty,
-          returnNo, req.user!.id, `退货入库: ${returnNo}`, tenantId
-        ]
-      );
-    }
-
-    await conn.execute(
-      "INSERT INTO operation_log (module, action, target_id, target_type, user_id, user_name, detail, tenant_id) VALUES (?, ?, ?, ?, ?, ?, ?, ?)",
-      ["sale_return", "APPROVE", returnNo, "sale_return", req.user!.id, req.user!.username, `审核通过: ${returnNo}`, tenantId]
-    );
-  });
-
-  res.json(ok({ returnNo }));
+    res.json(ok(result));
+  } catch (e: any) {
+    res.status(400).json({ code: "400", message: e.message });
+  }
 }));
 
 saleReturnRouter.post("/:returnNo/refund", requireAuthWithTenant, asyncHandler(async (req, res) => {
   const { returnNo } = req.params;
-  const tenantId = req.tenantId!;
+  const ctx = getServiceContext(req);
 
   const body = z.object({
     refundMethod: z.enum(["CASH", "WECHAT", "BANK"]),
   }).parse(req.body);
 
-  const returnOrder = await queryOne<any>(
-    "SELECT id, return_status, refund_amount, refunded_amount FROM sale_return WHERE return_no = ? AND tenant_id = ?",
-    [returnNo, tenantId]
-  );
-
-  if (!returnOrder) {
-    res.status(404).json({ code: "404", message: "退货单不存在" });
-    return;
+  try {
+    const result = await saleReturnService.refund(returnNo, body, ctx);
+    if (!result) {
+      res.status(404).json({ code: "404", message: "退货单不存在" });
+      return;
+    }
+    res.json(ok(result));
+  } catch (e: any) {
+    res.status(400).json({ code: "400", message: e.message });
   }
-
-  if (returnOrder.return_status !== "COMPLETED") {
-    res.status(400).json({ code: "400", message: "只有已完成的退货单可以退款" });
-    return;
-  }
-
-  if (Number(returnOrder.refunded_amount) >= Number(returnOrder.refund_amount)) {
-    res.status(400).json({ code: "400", message: "退货单已全额退款" });
-    return;
-  }
-
-  await transaction(async (conn) => {
-    await conn.execute(
-      "UPDATE sale_return SET refunded_amount = refund_amount, refund_method = ? WHERE return_no = ?",
-      [body.refundMethod, returnNo]
-    );
-
-    await conn.execute(
-      "INSERT INTO operation_log (module, action, target_id, target_type, user_id, user_name, detail, tenant_id) VALUES (?, ?, ?, ?, ?, ?, ?, ?)",
-      ["sale_return", "REFUND", returnNo, "sale_return", req.user!.id, req.user!.username, `确认退款: ${returnNo}, 方式: ${body.refundMethod}`, tenantId]
-    );
-  });
-
-  res.json(ok({ returnNo }));
 }));
