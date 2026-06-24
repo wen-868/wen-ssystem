@@ -144,8 +144,9 @@
 | `tasks/tasks-阿坚.md` | 阿坚后端任务清单 | 墨 |
 | `tasks/tasks-林夕.md` | 林夕前端任务清单 | 墨 |
 | `tasks/tasks-苏然.md` | 苏然测试任务清单 | 墨 |
+| `tasks/TECH_REVIEW_sprint2.md` | Sprint 2 技术评审报告 | 墨 |
 
-> 墨生成的 TECH_REVIEW 报告待推送后补充到此文件夹。
+> 墨的报告已归档，不再需要额外补充。
 
 ### docs/ 目录（参考资料）
 
