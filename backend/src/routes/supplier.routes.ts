@@ -353,3 +353,183 @@ supplierRouter.delete("/:id/contacts/:contactId", requireAuthWithTenant, asyncHa
 
   res.json(ok({ id: Number(contactId) }));
 }));
+
+supplierRouter.get("/:id/purchase-orders", requireAuthWithTenant, asyncHandler(async (req, res) => {
+  const { id } = req.params;
+  const tenantId = req.tenantId!;
+  const { page = 1, pageSize = 20, status } = req.query;
+
+  const supplier = await queryOne<any>(
+    "SELECT id FROM supplier WHERE id = ? AND tenant_id = ?",
+    [id, tenantId]
+  );
+
+  if (!supplier) {
+    res.status(404).json({ code: "404", message: "供应商不存在" });
+    return;
+  }
+
+  let sql = `SELECT
+    id,
+    order_no AS purchaseNo,
+    supplier_id AS supplierId,
+    supplier_name AS supplierName,
+    store_id AS storeId,
+    order_status AS status,
+    warehouse_status AS warehouseStatus,
+    goods_amount AS goodsAmount,
+    tax_amount AS taxAmount,
+    discount_amount AS discountAmount,
+    payable_amount AS totalAmount,
+    paid_amount AS paidAmount,
+    unpaid_amount AS unpaidAmount,
+    expected_date AS expectedDate,
+    actual_date AS actualDate,
+    created_at AS createdAt,
+    updated_at AS updatedAt
+  FROM purchase_order WHERE tenant_id = ? AND supplier_id = ?`;
+  const params: unknown[] = [tenantId, id];
+  if (status) {
+    sql += " AND order_status = ?";
+    params.push(status);
+  }
+  sql += " ORDER BY created_at DESC";
+
+  const offset = (Number(page) - 1) * Number(pageSize);
+  const countSql = `SELECT COUNT(*) as total FROM (${sql}) t`;
+  const countResult = await queryOne<any>(countSql, params);
+  const total = countResult?.total || 0;
+
+  sql += " LIMIT ? OFFSET ?";
+  params.push(Number(pageSize), offset);
+  const records = await query<any>(sql, params);
+
+  res.json(ok({ records, total, page: Number(page), pageSize: Number(pageSize) }));
+}));
+
+supplierRouter.get("/:id/payments", requireAuthWithTenant, asyncHandler(async (req, res) => {
+  const { id } = req.params;
+  const tenantId = req.tenantId!;
+  const { page = 1, pageSize = 20 } = req.query;
+
+  const supplier = await queryOne<any>(
+    "SELECT id FROM supplier WHERE id = ? AND tenant_id = ?",
+    [id, tenantId]
+  );
+
+  if (!supplier) {
+    res.status(404).json({ code: "404", message: "供应商不存在" });
+    return;
+  }
+
+  const countSql = `SELECT COUNT(*) as total FROM supplier_payment WHERE tenant_id = ? AND supplier_id = ?`;
+  const countResult = await queryOne<any>(countSql, [tenantId, id]);
+  const total = countResult?.total || 0;
+
+  const sql = `SELECT
+    id,
+    payment_no AS paymentNo,
+    supplier_id AS supplierId,
+    supplier_name AS supplierName,
+    payment_amount AS paymentAmount,
+    payment_method AS paymentMethod,
+    payment_date AS paymentDate,
+    operator_id AS operatorId,
+    remark,
+    created_at AS createdAt
+  FROM supplier_payment WHERE tenant_id = ? AND supplier_id = ? ORDER BY created_at DESC LIMIT ? OFFSET ?`;
+  const offset = (Number(page) - 1) * Number(pageSize);
+  const records = await query<any>(sql, [tenantId, id, Number(pageSize), offset]);
+
+  res.json(ok({ records, total, page: Number(page), pageSize: Number(pageSize) }));
+}));
+
+supplierRouter.get("/:id/products", requireAuthWithTenant, asyncHandler(async (req, res) => {
+  const { id } = req.params;
+  const tenantId = req.tenantId!;
+  const { page = 1, pageSize = 20, keyword } = req.query;
+
+  const supplier = await queryOne<any>(
+    "SELECT id FROM supplier WHERE id = ? AND tenant_id = ?",
+    [id, tenantId]
+  );
+
+  if (!supplier) {
+    res.status(404).json({ code: "404", message: "供应商不存在" });
+    return;
+  }
+
+  let sql = `SELECT
+    sp.id,
+    sp.supplier_id AS supplierId,
+    sp.product_id AS productId,
+    sp.sku_id AS skuId,
+    sp.sku_name AS skuName,
+    sp.supply_price AS supplyPrice,
+    sp.tax_rate AS taxRate,
+    sp.min_order_qty AS minOrderQty,
+    sp.status,
+    sp.created_at AS createdAt
+  FROM supplier_product sp
+  WHERE sp.tenant_id = ? AND sp.supplier_id = ?`;
+  const params: unknown[] = [tenantId, id];
+
+  if (keyword) {
+    sql += " AND (sp.sku_name LIKE ?";
+    params.push(`%${keyword}%`);
+  }
+  sql += " ORDER BY sp.created_at DESC";
+
+  const countSql = `SELECT COUNT(*) as total FROM (${sql}) t`;
+  const countResult = await queryOne<any>(countSql, params);
+  const total = countResult?.total || 0;
+
+  const offset = (Number(page) - 1) * Number(pageSize);
+  sql += " LIMIT ? OFFSET ?";
+  params.push(Number(pageSize), offset);
+  const records = await query<any>(sql, params);
+
+  res.json(ok({ records, total, page: Number(page), pageSize: Number(pageSize) }));
+}));
+
+supplierRouter.get("/:id/stats", requireAuthWithTenant, asyncHandler(async (req, res) => {
+  const { id } = req.params;
+  const tenantId = req.tenantId!;
+
+  const supplier = await queryOne<any>(
+    "SELECT id FROM supplier WHERE id = ? AND tenant_id = ?",
+    [id, tenantId]
+  );
+
+  if (!supplier) {
+    res.status(404).json({ code: "404", message: "供应商不存在" });
+    return;
+  }
+
+  const orderStats = await queryOne<any>(
+    `SELECT
+      COUNT(*) as totalOrders,
+      COALESCE(SUM(CASE WHEN order_status = 'PENDING' THEN 1 ELSE 0 END), 0) as pendingOrders,
+      COALESCE(SUM(CASE WHEN order_status = 'APPROVED' THEN 1 ELSE 0 END), 0) as approvedOrders,
+      COALESCE(SUM(payable_amount), 0) as totalAmount,
+      COALESCE(SUM(paid_amount), 0) as paidAmount,
+      COALESCE(SUM(unpaid_amount), 0) as unpaidAmount
+    FROM purchase_order WHERE tenant_id = ? AND supplier_id = ?`,
+    [tenantId, id]
+  );
+
+  const productCount = await queryOne<any>(
+    "SELECT COUNT(*) as productCount FROM supplier_product WHERE tenant_id = ? AND supplier_id = ? AND status = 1",
+    [tenantId, id]
+  );
+
+  res.json(ok({
+    totalOrders: orderStats?.totalOrders || 0,
+    pendingOrders: orderStats?.pendingOrders || 0,
+    approvedOrders: orderStats?.approvedOrders || 0,
+    totalAmount: Number(orderStats?.totalAmount || 0),
+    paidAmount: Number(orderStats?.paidAmount || 0),
+    unpaidAmount: Number(orderStats?.unpaidAmount || 0),
+    productCount: productCount?.productCount || 0,
+  }));
+}));

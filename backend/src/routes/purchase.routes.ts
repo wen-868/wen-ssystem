@@ -335,3 +335,234 @@ purchaseRouter.post("/:orderNo/cancel", requireAuthWithTenant, asyncHandler(asyn
 
   res.json(ok({ purchaseNo: orderNo }));
 }));
+
+purchaseRouter.put("/:orderNo", requireAuthWithTenant, asyncHandler(async (req, res) => {
+  const { orderNo } = req.params;
+  const tenantId = req.tenantId!;
+
+  const existing = await queryOne<any>(
+    "SELECT id, order_status FROM purchase_order WHERE order_no = ? AND tenant_id = ?",
+    [orderNo, tenantId]
+  );
+
+  if (!existing) {
+    res.status(404).json({ code: "404", message: "采购订单不存在" });
+    return;
+  }
+
+  if (!["DRAFT", "PENDING"].includes(existing.order_status)) {
+    res.status(400).json({ code: "400", message: "当前状态不允许修改" });
+    return;
+  }
+
+  const body = z.object({
+    supplierId: z.number().int().positive().optional(),
+    supplierName: z.string().min(1).max(128).optional(),
+    expectedDate: z.string().optional(),
+    discountAmount: z.number().min(0).optional(),
+    remark: z.string().max(255).optional(),
+    items: z.array(z.object({
+      skuId: z.number().int().positive(),
+      skuName: z.string().min(1).max(128),
+      barcode: z.string().max(128).optional(),
+      boxQty: z.number().int().min(0).default(0),
+      bottleQty: z.number().int().min(0).default(0),
+      unitPrice: z.number().min(0),
+      taxRate: z.number().min(0).max(1).default(0),
+      remark: z.string().max(255).optional(),
+    })).optional(),
+  }).parse(req.body);
+
+  await transaction(async (conn) => {
+    const updates: string[] = [];
+    const params: unknown[] = [];
+
+    if (body.supplierId !== undefined) {
+      updates.push("supplier_id = ?");
+      params.push(body.supplierId);
+    }
+    if (body.supplierName !== undefined) {
+      updates.push("supplier_name = ?");
+      params.push(body.supplierName);
+    }
+    if (body.expectedDate !== undefined) {
+      updates.push("expected_date = ?");
+      params.push(body.expectedDate);
+    }
+    if (body.discountAmount !== undefined) {
+      updates.push("discount_amount = ?");
+      params.push(body.discountAmount);
+    }
+    if (body.remark !== undefined) {
+      updates.push("remark = ?");
+      params.push(body.remark);
+    }
+
+    if (body.items && body.items.length > 0) {
+      let goodsAmount = 0;
+      let taxAmount = 0;
+
+      const itemsWithAmount = body.items.map(item => {
+        const totalBottleQty = item.boxQty * 12 + item.bottleQty;
+        const subtotal = totalBottleQty * item.unitPrice;
+        const itemTaxAmount = subtotal * item.taxRate;
+        const totalAmount = subtotal + itemTaxAmount;
+        goodsAmount += subtotal;
+        taxAmount += itemTaxAmount;
+        return { ...item, totalBottleQty, subtotal, taxAmount: itemTaxAmount, totalAmount };
+      });
+
+      const discount = body.discountAmount ?? 0;
+      const totalAmount = goodsAmount + taxAmount - discount;
+
+      updates.push("goods_amount = ?", "tax_amount = ?", "payable_amount = ?", "unpaid_amount = ?");
+      params.push(goodsAmount, taxAmount, totalAmount, totalAmount);
+
+      await conn.execute("DELETE FROM purchase_order_item WHERE order_no = ?", [orderNo]);
+      for (const item of itemsWithAmount) {
+        await conn.execute(
+          `INSERT INTO purchase_order_item (
+            order_no, sku_id, sku_name, barcode, box_qty, bottle_qty, total_bottle_qty,
+            unit_price, tax_rate, subtotal_amount, tax_amount, total_amount, remark
+          ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+          [
+            orderNo, item.skuId, item.skuName, item.barcode || null,
+            item.boxQty, item.bottleQty, item.totalBottleQty,
+            item.unitPrice, item.taxRate, item.subtotal, item.taxAmount,
+            item.totalAmount, item.remark || null
+          ]
+        );
+      }
+    }
+
+    if (updates.length > 0) {
+      updates.push("updated_at = NOW()");
+      params.push(orderNo, tenantId);
+      await conn.execute(
+        `UPDATE purchase_order SET ${updates.join(", ")} WHERE order_no = ? AND tenant_id = ?`,
+        params as any[]
+      );
+    }
+
+    await conn.execute(
+      "INSERT INTO operation_log (module, action, target_id, target_type, user_id, user_name, detail, tenant_id) VALUES (?, ?, ?, ?, ?, ?, ?, ?)",
+      ["purchase", "UPDATE", orderNo, "purchase_order", req.user!.id, req.user!.username, `修改采购订单: ${orderNo}`, tenantId]
+    );
+  });
+
+  res.json(ok({ purchaseNo: orderNo }));
+}));
+
+purchaseRouter.delete("/:orderNo", requireAuthWithTenant, asyncHandler(async (req, res) => {
+  const { orderNo } = req.params;
+  const tenantId = req.tenantId!;
+
+  const existing = await queryOne<any>(
+    "SELECT id, order_status FROM purchase_order WHERE order_no = ? AND tenant_id = ?",
+    [orderNo, tenantId]
+  );
+
+  if (!existing) {
+    res.status(404).json({ code: "404", message: "采购订单不存在" });
+    return;
+  }
+
+  if (!["DRAFT"].includes(existing.order_status)) {
+    res.status(400).json({ code: "400", message: "只有草稿状态的订单可以删除" });
+    return;
+  }
+
+  await transaction(async (conn) => {
+    await conn.execute("DELETE FROM purchase_order_item WHERE order_no = ?", [orderNo]);
+    await conn.execute("DELETE FROM purchase_order WHERE order_no = ? AND tenant_id = ?", [orderNo, tenantId]);
+    await conn.execute(
+      "INSERT INTO operation_log (module, action, target_id, target_type, user_id, user_name, detail, tenant_id) VALUES (?, ?, ?, ?, ?, ?, ?, ?)",
+      ["purchase", "DELETE", orderNo, "purchase_order", req.user!.id, req.user!.username, `删除采购订单: ${orderNo}`, tenantId]
+    );
+  });
+
+  res.json(ok({ purchaseNo: orderNo }));
+}));
+
+purchaseRouter.post("/:orderNo/in-stock", requireAuthWithTenant, asyncHandler(async (req, res) => {
+  const { orderNo } = req.params;
+  const tenantId = req.tenantId!;
+
+  const body = z.object({
+    warehouseId: z.number().int().positive().optional(),
+    remark: z.string().max(255).optional(),
+    items: z.array(z.object({
+      skuId: z.number().int().positive(),
+      boxQty: z.number().int().min(0).default(0),
+      bottleQty: z.number().int().min(0).default(0),
+    })).min(1),
+  }).parse(req.body);
+
+  const order = await queryOne<any>(
+    "SELECT id, order_status, store_id FROM purchase_order WHERE order_no = ? AND tenant_id = ?",
+    [orderNo, tenantId]
+  );
+
+  if (!order) {
+    res.status(404).json({ code: "404", message: "采购订单不存在" });
+    return;
+  }
+
+  if (order.order_status !== "APPROVED") {
+    res.status(400).json({ code: "400", message: "只有已审核的订单可以入库" });
+    return;
+  }
+
+  const orderItems = await query<any>(
+    "SELECT sku_id, total_bottle_qty, in_stocked_qty FROM purchase_order_item WHERE order_no = ?",
+    [orderNo]
+  );
+
+  const itemMap = new Map<number, any>(orderItems.map((i: any) => [i.sku_id, i]));
+
+  await transaction(async (conn) => {
+    for (const item of body.items) {
+      const orderItem = itemMap.get(item.skuId);
+      if (!orderItem) continue;
+
+      const inStockBottleQty = item.boxQty * 12 + item.bottleQty;
+      const newInStockedQty = Number(orderItem.in_stocked_qty || 0) + inStockBottleQty;
+
+      await conn.execute(
+        "UPDATE purchase_order_item SET in_stocked_qty = ? WHERE order_no = ? AND sku_id = ?",
+        [newInStockedQty, orderNo, item.skuId]
+      );
+
+      await conn.execute(
+        `INSERT INTO inventory_balance (store_id, sku_id, quantity, tenant_id)
+         VALUES (?, ?, ?, ?)
+         ON DUPLICATE KEY UPDATE quantity = quantity + ?`,
+        [order.store_id, item.skuId, inStockBottleQty, tenantId, inStockBottleQty]
+      );
+    }
+
+    const [rows] = await conn.execute(
+      "SELECT total_bottle_qty, in_stocked_qty FROM purchase_order_item WHERE order_no = ?",
+      [orderNo]
+    ) as any;
+    const totalOrdered = rows.reduce((sum: number, i: any) => sum + Number(i.total_bottle_qty), 0);
+    const totalInStocked = rows.reduce((sum: number, i: any) => sum + Number(i.in_stocked_qty || 0), 0);
+
+    let warehouseStatus = "PARTIAL";
+    if (totalInStocked >= totalOrdered) {
+      warehouseStatus = "FULL";
+    }
+
+    await conn.execute(
+      "UPDATE purchase_order SET warehouse_status = ?, updated_at = NOW() WHERE order_no = ?",
+      [warehouseStatus, orderNo]
+    );
+
+    await conn.execute(
+      "INSERT INTO operation_log (module, action, target_id, target_type, user_id, user_name, detail, tenant_id) VALUES (?, ?, ?, ?, ?, ?, ?, ?)",
+      ["purchase", "IN_STOCK", orderNo, "purchase_order", req.user!.id, req.user!.username, `采购入库: ${orderNo}`, tenantId]
+    );
+  });
+
+  res.json(ok({ purchaseNo: orderNo }));
+}));
