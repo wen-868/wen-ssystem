@@ -68,6 +68,10 @@ app.get("/health", (_req, res) => {
   res.json({ code: "0", message: "ok", data: { service: "zhixiang-backend" } });
 });
 
+app.use("/api/admin/suppliers", requireAuthWithTenant, supplierRouter);
+app.use("/api/admin/purchase-orders", requireAuthWithTenant, purchaseRouter);
+app.use("/api/store/sale-returns", requireAuthWithTenant, saleReturnRouter);
+app.use("/api/admin/sale-returns", requireAuthWithTenant, saleReturnRouter);
 app.use("/api/admin", adminRouter);
 app.use("/api/admin/reports", reportRouter);
 app.use("/api/admin/alerts", alertRouter);
@@ -102,10 +106,6 @@ app.use("/api/store/stock-checks", storeStockCheckRouter);
 app.use("/api/admin/audit-logs", requireAuthWithTenant, auditRouter);
 app.use("/api/admin/export", requireAuthWithTenant, exportRouter);
 app.use("/api/admin/sys-config", requireAuthWithTenant, sysConfigRouter);
-app.use("/api/admin/suppliers", requireAuthWithTenant, supplierRouter);
-app.use("/api/admin/purchase-orders", requireAuthWithTenant, purchaseRouter);
-app.use("/api/store/sale-returns", requireAuthWithTenant, saleReturnRouter);
-app.use("/api/admin/sale-returns", requireAuthWithTenant, saleReturnRouter);
 app.use("/api/admin/purchase-in-stocks", requireAuthWithTenant, purchaseInStockRouter);
 app.use("/api/admin/purchase-returns", requireAuthWithTenant, purchaseReturnRouter);
 app.use("/api/admin/customer-statements", requireAuthWithTenant, customerStatementRouter);
