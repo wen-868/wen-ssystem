@@ -66,3 +66,26 @@ export interface CreateSaleReturnItemDTO {
 export interface RefundDTO {
   refundMethod: RefundMethod;
 }
+
+export interface SaleBillVO {
+  billNo: string;
+  storeId: number;
+  customerId?: number;
+  customerName?: string;
+  customerType?: string;
+  saleType?: string;
+  goodsAmount: number;
+  discountAmount: number;
+  receivableAmount: number;
+  items: SaleBillItemVO[];
+}
+
+export interface SaleBillItemVO {
+  skuId: number;
+  skuName: string;
+  boxQty: number;
+  bottleQty: number;
+  totalBottleQty: number;
+  unitPrice: number;
+  subtotalAmount: number;
+}

@@ -109,3 +109,17 @@ saleReturnRouter.post("/:returnNo/refund", requireAuthWithTenant, asyncHandler(a
     res.status(400).json({ code: "400", message: e.message });
   }
 }));
+
+saleReturnRouter.get("/sale-bills/:billNo", requireAuthWithTenant, asyncHandler(async (req, res) => {
+  const { billNo } = req.params;
+  const ctx = getServiceContext(req);
+
+  const bill = await saleReturnService.getSaleBill(billNo, ctx);
+
+  if (!bill) {
+    res.status(404).json({ code: "404", message: "销售单不存在" });
+    return;
+  }
+
+  res.json(ok(bill));
+}));

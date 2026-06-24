@@ -135,6 +135,44 @@ class SupplierService extends BaseService<Supplier> {
 
     return supplierDAO.getStats(supplierId, ctx.tenantId);
   }
+
+  async getPurchaseOrders(
+    supplierId: number,
+    status: string | undefined,
+    page: number,
+    pageSize: number,
+    ctx: ServiceContext
+  ): Promise<PageResult<any> | null> {
+    const supplier = await supplierDAO.findById(supplierId, ctx.tenantId);
+    if (!supplier) return null;
+
+    return supplierDAO.getPurchaseOrders(supplierId, status, { page, pageSize }, ctx.tenantId);
+  }
+
+  async getPayments(
+    supplierId: number,
+    page: number,
+    pageSize: number,
+    ctx: ServiceContext
+  ): Promise<PageResult<any> | null> {
+    const supplier = await supplierDAO.findById(supplierId, ctx.tenantId);
+    if (!supplier) return null;
+
+    return supplierDAO.getPayments(supplierId, { page, pageSize }, ctx.tenantId);
+  }
+
+  async getProducts(
+    supplierId: number,
+    keyword: string | undefined,
+    page: number,
+    pageSize: number,
+    ctx: ServiceContext
+  ): Promise<PageResult<any> | null> {
+    const supplier = await supplierDAO.findById(supplierId, ctx.tenantId);
+    if (!supplier) return null;
+
+    return supplierDAO.getProducts(supplierId, keyword, { page, pageSize }, ctx.tenantId);
+  }
 }
 
 export const supplierService = new SupplierService();

@@ -272,6 +272,29 @@ export class SaleReturnDAO extends BaseDAO<SaleReturn> {
       ]
     );
   }
+
+  async findSaleBill(billNo: string, tenantId: string): Promise<any | null> {
+    const bill = await queryOne<any>(
+      `SELECT bill_no AS billNo, store_id AS storeId, customer_id AS customerId, customer_name AS customerName,
+              customer_type AS customerType, sale_type AS saleType, business_status AS businessStatus,
+              collection_status AS collectionStatus, goods_amount AS goodsAmount, discount_amount AS discountAmount,
+              rounding_amount AS roundingAmount, receivable_amount AS receivableAmount,
+              received_amount AS receivedAmount, unreceived_amount AS unreceivedAmount,
+              due_date AS dueDate, remark, created_at AS createdAt
+       FROM sale_bill WHERE bill_no = ? AND tenant_id = ?`,
+      [billNo, tenantId]
+    );
+    if (!bill) return null;
+
+    const items = await query<any>(
+      `SELECT sku_id AS skuId, sku_name AS skuName, box_qty AS boxQty, bottle_qty AS bottleQty,
+              total_bottle_qty AS totalBottleQty, unit_price AS unitPrice, subtotal_amount AS subtotalAmount
+       FROM sale_bill_item WHERE bill_no = ?`,
+      [billNo]
+    );
+
+    return { ...bill, items };
+  }
 }
 
 export const saleReturnDAO = new SaleReturnDAO();

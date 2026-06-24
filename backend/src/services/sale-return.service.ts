@@ -192,6 +192,10 @@ class SaleReturnService extends BaseService<SaleReturn> {
 
     return { returnNo };
   }
+
+  async getSaleBill(billNo: string, ctx: ServiceContext): Promise<any | null> {
+    return saleReturnDAO.findSaleBill(billNo, ctx.tenantId);
+  }
 }
 
 export const saleReturnService = new SaleReturnService();

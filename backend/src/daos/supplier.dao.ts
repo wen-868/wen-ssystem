@@ -253,6 +253,131 @@ export class SupplierDAO extends BaseDAO<Supplier> {
       productCount: Number(productStats?.productCount || 0),
     };
   }
+
+  async getPurchaseOrders(
+    supplierId: number,
+    status: string | undefined,
+    pageParams: PageParams,
+    tenantId: string
+  ): Promise<PageResult<any>> {
+    let sql = `SELECT
+      id,
+      order_no AS purchaseNo,
+      supplier_id AS supplierId,
+      supplier_name AS supplierName,
+      store_id AS storeId,
+      order_status AS status,
+      warehouse_status AS warehouseStatus,
+      goods_amount AS goodsAmount,
+      tax_amount AS taxAmount,
+      discount_amount AS discountAmount,
+      payable_amount AS totalAmount,
+      paid_amount AS paidAmount,
+      unpaid_amount AS unpaidAmount,
+      expected_date AS expectedDate,
+      actual_date AS actualDate,
+      created_at AS createdAt,
+      updated_at AS updatedAt
+    FROM purchase_order WHERE tenant_id = ? AND supplier_id = ?`;
+    const params: unknown[] = [tenantId, supplierId];
+    if (status) {
+      sql += " AND order_status = ?";
+      params.push(status);
+    }
+    sql += " ORDER BY created_at DESC";
+
+    const offset = (pageParams.page - 1) * pageParams.pageSize;
+    const countSql = `SELECT COUNT(*) as total FROM (${sql}) t`;
+    const countResult = await queryOne<any>(countSql, params);
+    const total = Number(countResult?.total || 0);
+
+    sql += " LIMIT ? OFFSET ?";
+    params.push(pageParams.pageSize, offset);
+    const records = await query<any>(sql, params);
+
+    return {
+      records,
+      total,
+      page: pageParams.page,
+      pageSize: pageParams.pageSize,
+    };
+  }
+
+  async getPayments(
+    supplierId: number,
+    pageParams: PageParams,
+    tenantId: string
+  ): Promise<PageResult<any>> {
+    const countSql = `SELECT COUNT(*) as total FROM supplier_payment WHERE tenant_id = ? AND supplier_id = ?`;
+    const countResult = await queryOne<any>(countSql, [tenantId, supplierId]);
+    const total = Number(countResult?.total || 0);
+
+    const sql = `SELECT
+      id,
+      payment_no AS paymentNo,
+      supplier_id AS supplierId,
+      supplier_name AS supplierName,
+      payment_amount AS paymentAmount,
+      payment_method AS paymentMethod,
+      payment_date AS paymentDate,
+      operator_id AS operatorId,
+      remark,
+      created_at AS createdAt
+    FROM supplier_payment WHERE tenant_id = ? AND supplier_id = ? ORDER BY created_at DESC LIMIT ? OFFSET ?`;
+    const offset = (pageParams.page - 1) * pageParams.pageSize;
+    const records = await query<any>(sql, [tenantId, supplierId, pageParams.pageSize, offset]);
+
+    return {
+      records,
+      total,
+      page: pageParams.page,
+      pageSize: pageParams.pageSize,
+    };
+  }
+
+  async getProducts(
+    supplierId: number,
+    keyword: string | undefined,
+    pageParams: PageParams,
+    tenantId: string
+  ): Promise<PageResult<any>> {
+    let sql = `SELECT
+      sp.id,
+      sp.supplier_id AS supplierId,
+      sp.product_id AS productId,
+      sp.sku_id AS skuId,
+      sp.sku_name AS skuName,
+      sp.supply_price AS supplyPrice,
+      sp.tax_rate AS taxRate,
+      sp.min_order_qty AS minOrderQty,
+      sp.status,
+      sp.created_at AS createdAt
+    FROM supplier_product sp
+    WHERE sp.tenant_id = ? AND sp.supplier_id = ?`;
+    const params: unknown[] = [tenantId, supplierId];
+
+    if (keyword) {
+      sql += " AND sp.sku_name LIKE ?";
+      params.push(`%${keyword}%`);
+    }
+    sql += " ORDER BY sp.created_at DESC";
+
+    const countSql = `SELECT COUNT(*) as total FROM (${sql}) t`;
+    const countResult = await queryOne<any>(countSql, params);
+    const total = Number(countResult?.total || 0);
+
+    const offset = (pageParams.page - 1) * pageParams.pageSize;
+    sql += " LIMIT ? OFFSET ?";
+    params.push(pageParams.pageSize, offset);
+    const records = await query<any>(sql, params);
+
+    return {
+      records,
+      total,
+      page: pageParams.page,
+      pageSize: pageParams.pageSize,
+    };
+  }
 }
 
 export const supplierDAO = new SupplierDAO();
