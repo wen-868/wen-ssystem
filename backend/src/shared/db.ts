@@ -2,7 +2,22 @@ import mysql from "mysql2/promise";
 import { existsSync, readFileSync } from "node:fs";
 import { join, resolve } from "node:path";
 import { env } from "./env.js";
-import { mockConn, mockQuery } from "./mock-db.js";
+import { mockConn, mockQuery, mockExecute } from "./mock-db.js";
+
+let _execute: typeof mockExecute | null = null;
+
+export async function query<T = any>(sql: string, params: unknown[] = []) {
+  if (env.USE_MOCK_DB) {
+    const s = sql.toLowerCase().replace(/\s+/g, " ");
+    if (s.startsWith("insert") || s.startsWith("update") || s.startsWith("delete")) {
+      await mockExecute(sql, params);
+      return [{ insertId: Date.now(), affectedRows: 1 }] as unknown as T[];
+    }
+    return mockQuery<T>(sql, params);
+  }
+  const [rows] = await pool.query(sql, params);
+  return rows as T[];
+}
 
 export let pool = mysql.createPool({
   host: env.DB_HOST,
@@ -88,14 +103,6 @@ export async function initDatabase() {
     await pool.query(statement);
   }
   console.log("✅ 数据库种子数据初始化完成");
-}
-
-export async function query<T = any>(sql: string, params: unknown[] = []) {
-  if (env.USE_MOCK_DB) {
-    return mockQuery<T>(sql, params);
-  }
-  const [rows] = await pool.query(sql, params);
-  return rows as T[];
 }
 
 export async function queryOne<T = any>(sql: string, params: unknown[] = []) {

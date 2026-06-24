@@ -9,6 +9,7 @@
  * - token 过期处理
  */
 
+import { vi } from "vitest";
 import jwt from "jsonwebtoken";
 
 // ========== 常量 ==========
@@ -131,11 +132,11 @@ function createMockResponse() {
   const res: Record<string, any> = {
     statusCode: 200,
     body: null,
-    json: jest.fn(function (this: any, data: any) {
+    json: vi.fn(function (this: any, data: any) {
       this.body = data;
       return this;
     }),
-    status: jest.fn(function (this: any, code: number) {
+    status: vi.fn(function (this: any, code: number) {
       this.statusCode = code;
       return this;
     }),
@@ -144,7 +145,7 @@ function createMockResponse() {
 }
 
 function createMockNext() {
-  return jest.fn();
+  return vi.fn();
 }
 
 // ========== 测试用例 ==========

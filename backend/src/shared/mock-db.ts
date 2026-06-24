@@ -19,14 +19,14 @@ const state = {
     { user_id: 3, role_code: "STORE_OPERATOR" }
   ],
   members: [
-    { id: 1, name: "默认零售客户", mobile: "13900000000", customer_type: "RETAIL", settlement_type: "CASH", points: 120, level_code: "NORMAL", status: 1, staff_id: null as number | null },
-    { id: 2, name: "默认批发客户", mobile: "13900000001", customer_type: "WHOLESALE", settlement_type: "ACCOUNT", points: 0, level_code: "WHOLESALE", status: 1, staff_id: 1 }
+    { id: 1, name: "默认零售客户", mobile: "13900000000", email: "retail@example.com", contact_person: "张经理", address: "北京市朝阳区示例街道1号", customer_type: "RETAIL", settlement_type: "CASH", points: 120, level_code: "NORMAL", status: 1, staff_id: null as number | null, remark: "演示零售客户" },
+    { id: 2, name: "默认批发客户", mobile: "13900000001", email: "wholesale@example.com", contact_person: "李总", address: "上海市浦东新区示例路88号", customer_type: "WHOLESALE", settlement_type: "ACCOUNT", points: 0, level_code: "WHOLESALE", status: 1, staff_id: 1, remark: "演示批发客户，长期合作" }
   ] as Row[],
   stores: [
     { id: 1, store_code: "STORE0001", name: "默认门店", address: "演示地址", contact: "管理员", phone: "13800000000", delivery_radius: 3, business_status: "OPEN", status: 1, miniapp_appid: 'wx0000000000000000', wx_merchant_name: null, wx_service_phone: null, wx_head_img: null, wx_qrcode_url: null }
   ] as Row[],
   products: [
-    { spuId: 1, skuId: 1, name: "示例白酒 53度 500ml", mainImage: "https://dummyimage.com/120x120/9b1c31/ffffff&text=Wine", skuName: "示例白酒 53度 500ml 常温", skuCode: "SKU-DEMO-001", barcode: "690000000001", retailPrice: 129, wholesalePrice: 99, miniappPrice: 119, costPrice: 0, storePrice: null as number | null, status: "ON_SALE" }
+    { spuId: 1, skuId: 1, name: "示例白酒 53度 500ml", mainImage: "https://dummyimage.com/120x120/9b1c31/ffffff&text=Wine", skuName: "示例白酒 53度 500ml 常温", skuCode: "SKU-DEMO-001", barcode: "690000000001", retailPrice: 129, wholesalePrice: 99, miniappPrice: 119, costPrice: 0, storePrice: null as number | null, status: "ON_SALE", alcoholContent: 53, origin: "贵州茅台镇" }
   ] as Row[],
   inventory: [
     { storeId: 1, skuId: 1, skuName: "示例白酒 53度 500ml 常温", stockType: "ONLINE", physicalQty: 120, lockedQty: 0, availableQty: 120 },
@@ -48,7 +48,10 @@ const state = {
   platformCredentials: [] as Row[],
   platformOrders: [] as Row[],
   // ===== 第一/二阶段新增表 =====
-  suppliers: [] as Row[],
+  suppliers: [
+    { id: 1, code: "SUP001", name: "示例白酒供应商", contact_person: "王经理", phone: "13800000001", address: "四川省成都市示例区", supply_type: "ALCOHOL", tax_rate: 0.13, status: 1, remark: "默认演示供应商" },
+    { id: 2, code: "SUP002", name: "示例饮料供应商", contact_person: "李主管", phone: "13800000002", address: "广东省深圳市示例区", supply_type: "BEVERAGE", tax_rate: 0.13, status: 1, remark: "饮料类供应商" }
+  ] as Row[],
   supplierContacts: [] as Row[],
   purchaseOrders: [] as Row[],
   purchaseOrderItems: [] as Row[],
@@ -103,6 +106,9 @@ export async function mockQuery<T = any>(sql: string, params: unknown[] = []) {
       id: member.id,
       name: member.name,
       mobile: member.mobile,
+      email: member.email,
+      contactPerson: member.contact_person,
+      address: member.address,
       customerType: member.customer_type,
       customer_type: member.customer_type,
       settlementType: member.settlement_type,
@@ -112,7 +118,8 @@ export async function mockQuery<T = any>(sql: string, params: unknown[] = []) {
       level_code: member.level_code,
       status: member.status,
       staffId: member.staff_id,
-      staffName: staff?.real_name ?? null
+      staffName: staff?.real_name ?? null,
+      remark: member.remark
     }] as T[];
   }
   if (s.includes("from member")) {
@@ -123,6 +130,9 @@ export async function mockQuery<T = any>(sql: string, params: unknown[] = []) {
         id: member.id,
         name: member.name,
         mobile: member.mobile,
+        email: member.email,
+        contactPerson: member.contact_person,
+        address: member.address,
         customerType: member.customer_type,
         customer_type: member.customer_type,
         settlementType: member.settlement_type,
@@ -132,7 +142,8 @@ export async function mockQuery<T = any>(sql: string, params: unknown[] = []) {
         level_code: member.level_code,
         status: member.status,
         staffId: member.staff_id,
-        staffName: staff?.real_name ?? null
+        staffName: staff?.real_name ?? null,
+        remark: member.remark
       };
     }) as T[];
   }
@@ -142,12 +153,16 @@ export async function mockQuery<T = any>(sql: string, params: unknown[] = []) {
       id,
       name: params[0],
       mobile: params[1],
-      customer_type: params[2],
-      settlement_type: params[2] === "WHOLESALE" ? "ACCOUNT" : "CASH",
+      email: params[2] ?? null,
+      contact_person: params[3] ?? null,
+      address: params[4] ?? null,
+      customer_type: params[5],
+      staff_id: params[6] == null ? null : Number(params[6]),
       points: 0,
-      level_code: params[2] === "WHOLESALE" ? "WHOLESALE" : "NORMAL",
+      level_code: params[8] ?? (params[5] === "WHOLESALE" ? "WHOLESALE" : "NORMAL"),
+      settlement_type: params[9] ?? "CASH",
       status: 1,
-      staff_id: params[3] == null ? null : Number(params[3])
+      remark: params[10] ?? null
     });
     return [{ insertId: id, affectedRows: 1 }] as T[];
   }
@@ -775,22 +790,21 @@ export async function mockQuery<T = any>(sql: string, params: unknown[] = []) {
 
   // ===== 第一/二阶段新增表支持 =====
 
-  // 供应商相关
-  if (s.includes("from supplier") && s.includes("count(*)")) {
-    const filtered = s.includes("where supplier_id") ? state.purchaseOrders.filter((o: Row) => o.supplier_id === params[0]) : state.suppliers;
-    return [{ total: filtered.length }] as T[];
-  }
-  if (s.includes("from supplier") && s.includes("where id = ?")) {
-    const supplier = state.suppliers.find((sup: Row) => sup.id === Number(params[0]));
-    if (!supplier) return [] as T[];
-    const contacts = state.supplierContacts.filter((c: Row) => c.supplier_id === supplier.id);
-    return [{ ...supplier, contacts }] as T[];
-  }
-  if (s.includes("from supplier") && !s.includes("count(*)")) {
-    return state.suppliers as T[];
-  }
+  // 供应商相关 - 注意：supplier_contact 模式必须在 supplier 之前，否则会被错误匹配
   if (s.includes("from supplier_contact") && s.includes("where supplier_id")) {
-    return state.supplierContacts.filter((c: Row) => c.supplier_id === Number(params[0])) as T[];
+    return state.supplierContacts.filter((c: Row) => c.supplier_id === Number(params[0])).map(c => ({
+      contactId: c.id,
+      supplierId: c.supplier_id,
+      name: c.name,
+      mobile: c.mobile,
+      phone: c.phone,
+      email: c.email,
+      wechat: c.wechat,
+      isPrimary: c.is_primary,
+      position: c.position,
+      remark: c.remark,
+      createdAt: c.created_at
+    })) as T[];
   }
   if (s.includes("insert into supplier_contact")) {
     state.supplierContacts.push({
@@ -804,6 +818,7 @@ export async function mockQuery<T = any>(sql: string, params: unknown[] = []) {
       is_primary: params[6],
       position: params[7],
       remark: params[8],
+      created_at: new Date().toISOString()
     });
     return result();
   }
@@ -811,27 +826,167 @@ export async function mockQuery<T = any>(sql: string, params: unknown[] = []) {
     state.supplierContacts = state.supplierContacts.filter((c: Row) => c.supplier_id !== Number(params[0]));
     return result();
   }
+  if (s.includes("from supplier") && s.includes("count(*)")) {
+    const filtered = s.includes("where supplier_id") ? state.purchaseOrders.filter((o: Row) => o.supplier_id === params[0]) : state.suppliers;
+    return [{ total: filtered.length }] as T[];
+  }
+  if (s.includes("from supplier") && s.includes("where id = ?")) {
+    const supplier = state.suppliers.find((sup: Row) => sup.id === Number(params[0]));
+    if (!supplier) return [] as T[];
+    return [{
+      supplierId: supplier.id,
+      supplierCode: supplier.supplier_code,
+      name: supplier.name,
+      shortName: supplier.short_name,
+      category: supplier.category,
+      province: supplier.province,
+      city: supplier.city,
+      district: supplier.district,
+      address: supplier.address,
+      creditLevel: supplier.credit_level,
+      settlementType: supplier.settlement_type,
+      settlementDay: supplier.settlement_day,
+      taxRate: supplier.tax_rate,
+      bankName: supplier.bank_name,
+      bankAccount: supplier.bank_account,
+      bankAccountName: supplier.bank_account_name,
+      status: supplier.status,
+      remark: supplier.remark,
+      createdAt: supplier.created_at,
+      updatedAt: supplier.updated_at
+    }] as T[];
+  }
+  if (s.includes("from supplier") && !s.includes("count(*)")) {
+    return state.suppliers.map((sup: Row) => ({
+      supplierId: sup.id,
+      supplierCode: sup.supplier_code,
+      name: sup.name,
+      shortName: sup.short_name,
+      category: sup.category,
+      province: sup.province,
+      city: sup.city,
+      district: sup.district,
+      address: sup.address,
+      creditLevel: sup.credit_level,
+      settlementType: sup.settlement_type,
+      settlementDay: sup.settlement_day,
+      taxRate: sup.tax_rate,
+      bankName: sup.bank_name,
+      bankAccount: sup.bank_account,
+      bankAccountName: sup.bank_account_name,
+      status: sup.status,
+      remark: sup.remark,
+      createdAt: sup.created_at,
+      updatedAt: sup.updated_at
+    })) as T[];
+  }
   if (s.includes("delete from supplier") && s.includes("where id")) {
     state.suppliers = state.suppliers.filter((sup: Row) => sup.id !== Number(params[0]));
     return result();
   }
-  if (s.includes("count(*) as cnt from purchase_order") && s.includes("where supplier_id")) {
+  if (s.includes("count(*) as cnt from purchase_order") && s.includes("where supplier_id") && !s.includes("purchase_order_item")) {
     const cnt = state.purchaseOrders.filter((o: Row) => o.supplier_id === Number(params[0])).length;
     return [{ cnt }] as T[];
   }
-  if (s.includes("from purchase_order") && s.includes("count(*)")) {
-    return [{ total: state.purchaseOrders.length }] as T[];
+  if (s.includes("from purchase_order ") && s.includes("count(*)") && !s.includes("purchase_order_item")) {
+    const lower = s.toLowerCase();
+    let filtered = state.purchaseOrders;
+    if (lower.includes("order_status = ?")) {
+      const statusParam = params.find(p => typeof p === "string" && ["DRAFT", "PENDING", "APPROVED", "CANCELLED", "PARTIAL", "COMPLETED"].includes(p));
+      if (statusParam !== undefined) {
+        filtered = filtered.filter((o: Row) => o.order_status === statusParam);
+      }
+    }
+    if (lower.includes("supplier_id = ?")) {
+      const supplierIdParam = params.find(p => typeof p === "number" && p > 0);
+      if (supplierIdParam !== undefined) {
+        filtered = filtered.filter((o: Row) => o.supplier_id === Number(supplierIdParam));
+      }
+    }
+    return [{ total: filtered.length }] as T[];
   }
-  if (s.includes("from purchase_order") && s.includes("where id = ?")) {
+  if (s.includes("from purchase_order ") && s.includes("where id = ?") && !s.includes("purchase_order_item")) {
     const order = state.purchaseOrders.find((o: Row) => o.id === Number(params[0]));
-    return order ? [order] as T[] : [];
+    if (!order) return [] as T[];
+    return [{
+      id: order.id,
+      orderNo: order.order_no,
+      supplierId: order.supplier_id,
+      supplierName: order.supplier_name,
+      storeId: order.store_id,
+      orderStatus: order.order_status,
+      goodsAmount: order.goods_amount,
+      taxAmount: order.tax_amount,
+      discountAmount: order.discount_amount,
+      payableAmount: order.payable_amount,
+      paidAmount: order.paid_amount,
+      unpaidAmount: order.unpaid_amount,
+      expectedDate: order.expected_date,
+      actualDate: order.actual_date,
+      operatorId: order.operator_id,
+      auditorId: order.auditor_id,
+      auditedAt: order.audited_at,
+      remark: order.remark,
+      createdAt: order.created_at,
+      updatedAt: order.updated_at
+    }] as T[];
   }
-  if (s.includes("from purchase_order") && !s.includes("count(*)")) {
-    const filtered = s.includes("where supplier_id") ? state.purchaseOrders.filter((o: Row) => o.supplier_id === Number(params[0])) : state.purchaseOrders;
-    return filtered as T[];
+  if (s.includes("from purchase_order ") && !s.includes("count(*)") && !s.includes("purchase_order_item")) {
+    let filtered = state.purchaseOrders;
+    const lower = s.toLowerCase();
+    
+    if (lower.includes("where supplier_id")) {
+      const supplierIdParam = params.find(p => typeof p === "number" && p > 0 && state.suppliers.some(s => s.id === p));
+      if (supplierIdParam !== undefined) {
+        filtered = filtered.filter((o: Row) => o.supplier_id === Number(supplierIdParam));
+      }
+    }
+    if (lower.includes("order_status = ?")) {
+      const statusParam = params.find(p => typeof p === "string" && ["DRAFT", "PENDING", "APPROVED", "CANCELLED", "PARTIAL", "COMPLETED"].includes(p));
+      if (statusParam !== undefined) {
+        filtered = filtered.filter((o: Row) => o.order_status === statusParam);
+      }
+    }
+    return filtered.map((o: Row) => ({
+      id: o.id,
+      orderNo: o.order_no,
+      supplierId: o.supplier_id,
+      supplierName: o.supplier_name,
+      storeId: o.store_id,
+      orderStatus: o.order_status,
+      goodsAmount: o.goods_amount,
+      taxAmount: o.tax_amount,
+      discountAmount: o.discount_amount,
+      payableAmount: o.payable_amount,
+      paidAmount: o.paid_amount,
+      unpaidAmount: o.unpaid_amount,
+      expectedDate: o.expected_date,
+      actualDate: o.actual_date,
+      operatorId: o.operator_id,
+      auditorId: o.auditor_id,
+      remark: o.remark,
+      createdAt: o.created_at,
+      updatedAt: o.updated_at
+    })) as T[];
   }
   if (s.includes("from purchase_order_item") && s.includes("where order_no")) {
-    return state.purchaseOrderItems.filter((i: Row) => i.order_no === params[0]) as T[];
+    return state.purchaseOrderItems.filter((i: Row) => i.order_no === params[0]).map((i: Row) => ({
+      id: i.id,
+      orderNo: i.order_no,
+      skuId: i.sku_id,
+      skuName: i.sku_name,
+      barcode: i.barcode,
+      boxQty: i.box_qty,
+      bottleQty: i.bottle_qty,
+      totalBottleQty: i.total_bottle_qty,
+      unitPrice: i.unit_price,
+      taxRate: i.tax_rate,
+      subtotalAmount: i.subtotal_amount,
+      taxAmount: i.tax_amount,
+      totalAmount: i.total_amount,
+      inStockedQty: i.in_stocked_qty,
+      remark: i.remark
+    })) as T[];
   }
   if (s.includes("from purchase_payment") && s.includes("count(*)")) {
     return [{ total: state.purchasePayments.length }] as T[];
@@ -1288,10 +1443,15 @@ export async function mockExecute(sql: string, params: unknown[] = []) {
   if (s.includes("update supplier set") && s.includes("where id")) {
     const supplier = state.suppliers.find((sup: Row) => sup.id === Number(params[params.length - 1]));
     if (supplier) {
-      // params are dynamic based on which fields are set
-      for (let i = 0; i < params.length - 1; i++) {
-        if (params[i] !== undefined) {
-          // Field mapping handled by caller
+      const setMatch = sql.match(/SET\s+(.+?)\s+WHERE/i);
+      if (setMatch) {
+        const setClause = setMatch[1];
+        const fieldMatches = setClause.match(/(\w+)\s*=\s*\?/g) || [];
+        const fields = fieldMatches.map(f => f.split("=")[0].trim());
+        for (let i = 0; i < fields.length && i < params.length - 1; i++) {
+          if (fields[i] !== "updated_at") {
+            supplier[fields[i]] = params[i];
+          }
         }
       }
       supplier.updated_at = new Date().toISOString();
@@ -1308,16 +1468,16 @@ export async function mockExecute(sql: string, params: unknown[] = []) {
       supplier_id: params[1],
       supplier_name: params[2],
       store_id: params[3],
-      order_status: params[4],
-      goods_amount: params[5],
-      tax_amount: params[6],
-      discount_amount: params[7],
-      payable_amount: params[8],
-      paid_amount: params[9],
-      unpaid_amount: params[10],
-      expected_date: params[11],
-      operator_id: params[12],
-      remark: params[13],
+      order_status: "DRAFT",
+      goods_amount: params[4],
+      tax_amount: params[5],
+      discount_amount: 0,
+      payable_amount: params[6],
+      paid_amount: 0,
+      unpaid_amount: params[7],
+      expected_date: params[8],
+      operator_id: params[9],
+      remark: params[10],
       created_at: new Date().toISOString(),
       updated_at: new Date().toISOString(),
     });
@@ -1356,10 +1516,14 @@ export async function mockExecute(sql: string, params: unknown[] = []) {
   if (s.includes("update purchase_order set") && s.includes("where id")) {
     const order = state.purchaseOrders.find((o: Row) => o.id === Number(params[params.length - 1]));
     if (order) {
-      if (s.includes("order_status = 'cancelled'")) order.order_status = "CANCELLED";
-      if (s.includes("order_status = 'approved'")) order.order_status = "APPROVED";
-      if (s.includes("order_status = ?")) {
-        // Dynamic status update
+      const lower = s.toLowerCase();
+      if (lower.includes("order_status = 'cancelled'")) order.order_status = "CANCELLED";
+      if (lower.includes("order_status = 'approved'")) order.order_status = "APPROVED";
+      if (lower.includes("order_status = 'partial'")) order.order_status = "PARTIAL";
+      if (lower.includes("order_status = 'completed'")) order.order_status = "COMPLETED";
+      if (lower.includes("auditor_id = ?")) {
+        order.auditor_id = params[params.indexOf(params[params.length - 1]) - 2] || 0;
+        order.audited_at = new Date().toISOString();
       }
       order.updated_at = new Date().toISOString();
     }
@@ -1597,3 +1761,9 @@ export const mockConn = {
   execute: mockExecute,
   query: async (sql: string, params: unknown[] = []) => [await mockQuery(sql, params), undefined]
 } as any;
+
+const initialState = JSON.parse(JSON.stringify(state));
+
+export function resetMockDb() {
+  Object.assign(state, JSON.parse(JSON.stringify(initialState)));
+}

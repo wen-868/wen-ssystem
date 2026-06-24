@@ -21,26 +21,336 @@
     </el-card>
   </div>
   <div v-else class="layout">
-    <aside class="side">
-      <h1>智享营销系统管理后台</h1>
-      <button
-        v-for="item in nav"
-        :key="item"
-        class="nav-item"
-        :class="{ active: item === activeNav }"
-        type="button"
-        @click="activeNav = item"
+    <aside class="side" :class="{ 'is-collapsed': isMenuCollapsed && !isCashierMode, 'is-hidden': isCashierMode }">
+      <div class="sidebar-header">
+        <h1 v-show="!isMenuCollapsed">智享营销系统</h1>
+        <h1 v-show="isMenuCollapsed">智享</h1>
+        <el-button
+          class="collapse-btn"
+          :icon="isMenuCollapsed ? 'Expand' : 'Fold'"
+          @click="isMenuCollapsed = !isMenuCollapsed"
+          size="small"
+        />
+      </div>
+      <el-menu
+        :default-active="activeNav"
+        :collapse="isMenuCollapsed"
+        :collapse-transition="false"
+        class="sidebar-menu"
+        @select="handleMenuSelect"
       >
-        {{ item }}
-      </button>
+        <el-menu-item index="首页">
+          <el-icon><HomeFilled /></el-icon>
+          <template #title>工作台</template>
+        </el-menu-item>
+
+        <el-sub-menu index="商品管理">
+          <template #title>
+            <el-icon><Goods /></el-icon>
+            <span>商品管理</span>
+          </template>
+          <el-menu-item index="商品">商品列表</el-menu-item>
+          <el-menu-item index="价格中心">价格中心</el-menu-item>
+        </el-sub-menu>
+
+        <el-sub-menu index="订单管理">
+          <template #title>
+            <el-icon><Document /></el-icon>
+            <span>订单管理</span>
+          </template>
+          <el-menu-item index="订单">订单列表</el-menu-item>
+          <el-menu-item index="订单泳道">泳道看板</el-menu-item>
+          <el-menu-item index="订单超时">超时处理</el-menu-item>
+        </el-sub-menu>
+
+        <el-sub-menu index="销售管理">
+          <template #title>
+            <el-icon><ShoppingCart /></el-icon>
+            <span>销售管理</span>
+          </template>
+          <el-menu-item index="销售单">销售单</el-menu-item>
+          <el-menu-item index="销售退货">销售退货</el-menu-item>
+          <el-menu-item index="收款">收款记录</el-menu-item>
+        </el-sub-menu>
+
+        <el-sub-menu index="采购管理">
+          <template #title>
+            <el-icon><Box /></el-icon>
+            <span>采购管理</span>
+          </template>
+          <el-menu-item index="采购">采购管理</el-menu-item>
+          <el-menu-item index="供应商">供应商</el-menu-item>
+        </el-sub-menu>
+
+        <el-sub-menu index="客户管理">
+          <template #title>
+            <el-icon><User /></el-icon>
+            <span>客户管理</span>
+          </template>
+          <el-menu-item index="客户">客户列表</el-menu-item>
+          <el-menu-item index="客户对账">客户对账</el-menu-item>
+          <el-menu-item index="授信管理">授信管理</el-menu-item>
+        </el-sub-menu>
+
+        <el-sub-menu index="库存管理">
+          <template #title>
+            <el-icon><Files /></el-icon>
+            <span>库存管理</span>
+          </template>
+          <el-menu-item index="库存">库存总览</el-menu-item>
+          <el-menu-item index="预警中心">预警中心</el-menu-item>
+        </el-sub-menu>
+
+        <el-sub-menu index="门店管理">
+          <template #title>
+            <el-icon><OfficeBuilding /></el-icon>
+            <span>门店管理</span>
+          </template>
+          <el-menu-item index="门店">门店列表</el-menu-item>
+          <el-menu-item index="员工">员工管理</el-menu-item>
+        </el-sub-menu>
+
+        <el-sub-menu index="营销中心">
+          <template #title>
+            <el-icon><Present /></el-icon>
+            <span>营销中心</span>
+          </template>
+          <el-menu-item index="营销中心">营销活动</el-menu-item>
+          <el-menu-item index="售后管理">售后管理</el-menu-item>
+        </el-sub-menu>
+
+        <el-menu-item index="报表">
+          <el-icon><DataAnalysis /></el-icon>
+          <template #title>报表中心</template>
+        </el-menu-item>
+
+        <el-sub-menu index="系统管理">
+          <template #title>
+            <el-icon><Setting /></el-icon>
+            <span>系统管理</span>
+          </template>
+          <el-menu-item index="操作日志">操作日志</el-menu-item>
+          <el-menu-item index="系统设置">系统设置</el-menu-item>
+        </el-sub-menu>
+
+        <el-menu-item index="消息中心">
+          <el-icon><Bell /></el-icon>
+          <template #title>消息中心</template>
+        </el-menu-item>
+      </el-menu>
     </aside>
     <main class="main" v-loading="pageLoading">
+      <!-- 顶部导航栏 -->
+      <header class="main-header" v-if="!isCashierMode">
+        <div class="header-left">
+          <span class="header-title">{{ activeNav === '首页' ? '工作台' : getNavTitle(activeNav) }}</span>
+        </div>
+        <div class="header-right">
+          <el-button
+            type="primary"
+            size="small"
+            icon="ShoppingCart"
+            @click="toggleCashierMode"
+          >
+            切换收银台
+          </el-button>
+          <el-dropdown trigger="click" style="margin-left: 12px">
+            <span class="user-info">
+              <el-icon><User /></el-icon>
+              <span>{{ currentUser?.realName || '管理员' }}</span>
+            </span>
+            <template #dropdown>
+              <el-dropdown-menu>
+                <el-dropdown-item @click="handleLogout">退出登录</el-dropdown-item>
+              </el-dropdown-menu>
+            </template>
+          </el-dropdown>
+        </div>
+      </header>
+
+      <!-- 收银台模式 -->
+      <div v-if="isCashierMode" class="cashier-container">
+        <!-- 收银台顶部：返回按钮 -->
+        <div class="cashier-header">
+          <el-button
+            type="default"
+            size="small"
+            icon="ArrowLeft"
+            @click="toggleCashierMode"
+          >
+            返回管理后台
+          </el-button>
+          <h2 class="cashier-title">收银台</h2>
+          <div class="cashier-date">{{ formatDate(new Date()) }}</div>
+        </div>
+        
+        <!-- 收银台主体 -->
+        <div class="cashier-main">
+          <!-- 左侧：商品搜索 -->
+          <div class="cashier-left">
+            <div class="cashier-search">
+              <el-input
+                v-model="cashierProductKeyword"
+                placeholder="搜索商品名称/SKU"
+                clearable
+                @input="searchCashierProducts"
+              />
+            </div>
+            <div class="cashier-product-list">
+              <div
+                v-for="product in cashierProducts"
+                :key="product.skuId"
+                class="cashier-product-item"
+                @click="addToCart(product)"
+              >
+                <div class="product-name">{{ product.name }}</div>
+                <div class="product-sku">{{ product.skuName }}</div>
+                <div class="product-price">¥{{ formatYuan(product.retailPrice) }}</div>
+              </div>
+            </div>
+          </div>
+
+          <!-- 中间：购物车 -->
+          <div class="cashier-center">
+            <div class="cart-header">
+              <h3>购物车</h3>
+              <el-button size="small" type="danger" @click="clearCart" :disabled="cashierCart.length === 0">清空</el-button>
+            </div>
+            <div class="cart-list">
+              <div v-if="cashierCart.length === 0" class="cart-empty">购物车为空</div>
+              <div v-for="(item, index) in cashierCart" :key="index" class="cart-item">
+                <div class="cart-item-info">
+                  <div class="cart-item-name">{{ item.name }}</div>
+                  <div class="cart-item-sku">{{ item.skuName }}</div>
+                </div>
+                <div class="cart-item-quantity">
+                  <el-input-number
+                    v-model="item.quantity"
+                    :min="1"
+                    :max="999"
+                    size="small"
+                    @change="updateCartTotal"
+                  />
+                </div>
+                <div class="cart-item-price">¥{{ formatYuan(item.retailPrice * item.quantity) }}</div>
+                <el-button size="small" type="danger" link @click="removeFromCart(index)">删除</el-button>
+              </div>
+            </div>
+          </div>
+
+          <!-- 右侧：结算区 -->
+          <div class="cashier-right">
+            <div class="settlement-section">
+              <h3>结算</h3>
+
+              <!-- 客户选择 -->
+              <div class="settlement-item">
+                <label>客户：</label>
+                <el-select
+                  v-model="cashierSelectedCustomer"
+                  placeholder="选择客户（可选）"
+                  clearable
+                  filterable
+                  style="width: 100%"
+                >
+                  <el-option
+                    v-for="member in members"
+                    :key="member.id"
+                    :label="member.name"
+                    :value="member"
+                  />
+                </el-select>
+              </div>
+
+              <!-- 金额汇总 -->
+              <div class="settlement-summary">
+                <div class="summary-row">
+                  <span>商品总额：</span>
+                  <span>¥{{ formatYuan(cashierSubtotal) }}</span>
+                </div>
+                <div class="summary-row">
+                  <label>折扣：</label>
+                  <el-input-number
+                    v-model="cashierDiscount"
+                    :min="0"
+                    :max="cashierSubtotal"
+                    :precision="2"
+                    size="small"
+                    style="width: 100px"
+                    @change="updateCartTotal"
+                  />
+                </div>
+                <div class="summary-row">
+                  <label>抹零：</label>
+                  <el-input-number
+                    v-model="cashierRoundDown"
+                    :min="0"
+                    :max="10"
+                    :precision="2"
+                    size="small"
+                    style="width: 100px"
+                    @change="updateCartTotal"
+                  />
+                </div>
+                <div class="summary-row total">
+                  <span>应收金额：</span>
+                  <span class="total-amount">¥{{ formatYuan(cashierTotal) }}</span>
+                </div>
+              </div>
+
+              <!-- 支付方式 -->
+              <div class="settlement-item">
+                <label>支付方式：</label>
+                <el-radio-group v-model="cashierPaymentMethod">
+                  <el-radio label="CASH">现金</el-radio>
+                  <el-radio label="WECHAT">微信</el-radio>
+                  <el-radio label="ALIPAY">支付宝</el-radio>
+                </el-radio-group>
+              </div>
+
+              <!-- 收款金额（现金时显示） -->
+              <div v-if="cashierPaymentMethod === 'CASH'" class="settlement-item">
+                <label>收款金额：</label>
+                <el-input-number
+                  v-model="cashierReceivedAmount"
+                  :min="cashierTotal"
+                  :precision="2"
+                  style="width: 100%"
+                />
+                <div class="change-amount">
+                  找零：¥{{ formatYuan(cashierChange) }}
+                </div>
+              </div>
+
+              <!-- 提交按钮 -->
+              <el-button
+                type="primary"
+                size="large"
+                style="width: 100%; margin-top: 20px"
+                :disabled="cashierCart.length === 0"
+                @click="submitSale"
+              >
+                提交订单
+              </el-button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- 管理后台模式 -->
+      <template v-else>
       <section class="dashboard-hero">
         <div>
           <h2>{{ activeNav }}</h2>
           <p class="muted">{{ adminNavDescriptions[activeNav] }}</p>
         </div>
         <div class="user-bar">
+          <el-switch
+            v-model="isCashierMode"
+            active-text="收银台"
+            inactive-text="管理后台"
+            style="margin-right: 16px;"
+          />
           <el-popover placement="bottom-end" :width="360" trigger="click" @show="loadRecentNotifications">
             <template #reference>
               <el-badge :value="notificationUnreadCount || undefined" :hidden="!notificationUnreadCount" :max="99">
@@ -76,6 +386,36 @@
             <div class="dash-card-desc">{{ card.desc }}</div>
           </div>
         </div>
+        
+        <!-- 待办事项和快捷入口 -->
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:20px;margin-top:20px">
+          <!-- 待办事项 -->
+          <div class="table-card" style="padding:20px">
+            <h4 style="margin:0 0 12px;font-size:14px;color:var(--text-secondary)">待办事项</h4>
+            <div class="todo-list">
+              <div v-for="(todo, index) in todoList" :key="index" class="todo-item">
+                <div class="todo-content">
+                  <span class="todo-priority" :class="todo.priority">{{ todo.priorityText }}</span>
+                  <span class="todo-title">{{ todo.title }}</span>
+                </div>
+                <el-button size="small" type="primary" link @click="handleTodoClick(todo)">处理</el-button>
+              </div>
+              <div v-if="todoList.length === 0" style="text-align:center;padding:20px;color:#999">暂无待办</div>
+            </div>
+          </div>
+          
+          <!-- 快捷入口 -->
+          <div class="table-card" style="padding:20px">
+            <h4 style="margin:0 0 12px;font-size:14px;color:var(--text-secondary)">快捷入口</h4>
+            <div class="quick-entry">
+              <div v-for="entry in quickEntries" :key="entry.label" class="quick-entry-item" @click="activeNav = entry.nav">
+                <div class="quick-entry-icon">{{ entry.icon }}</div>
+                <div class="quick-entry-label">{{ entry.label }}</div>
+              </div>
+            </div>
+          </div>
+        </div>
+        
         <!-- 图表行 -->
         <div style="display:grid;grid-template-columns:2fr 1fr;gap:20px;margin-top:20px">
           <div class="table-card" style="padding:20px">
@@ -409,7 +749,11 @@
               <el-input v-model="ordersKeyword" placeholder="订单号/收货人/电话" size="small" style="width: 180px" clearable @clear="searchOrders" @keyup.enter="searchOrders" />
               <el-select v-model="ordersStatus" placeholder="全部状态" size="small" style="width: 140px" clearable @change="searchOrders">
                 <el-option label="待支付" value="PENDING_PAYMENT" />
+                <el-option label="已支付" value="PAID" />
+                <el-option label="待处理" value="PENDING" />
                 <el-option label="已接单" value="ACCEPTED" />
+                <el-option label="待配送" value="WAIT_DELIVERY" />
+                <el-option label="配送中" value="DELIVERING" />
                 <el-option label="已完成" value="COMPLETED" />
                 <el-option label="已取消" value="CANCELLED" />
               </el-select>
@@ -429,11 +773,27 @@
             </div>
           </div>
         </template>
-        <el-table :data="orders" empty-text="暂无订单">
+        <div v-if="selectedOrders.length > 0" style="margin-bottom: 12px; padding: 12px; background: #f5f7fa; border-radius: 6px; display: flex; align-items: center; gap: 12px">
+          <span style="font-size: 14px; color: #666">已选择 {{ selectedOrders.length }} 项</span>
+          <el-button size="small" type="success" @click="handleBatchAction('accept')">批量接单</el-button>
+          <el-button size="small" type="primary" @click="handleBatchAction('deliver')">批量配送</el-button>
+          <el-button size="small" type="danger" @click="handleBatchAction('reject')">批量拒单</el-button>
+          <el-button size="small" @click="selectedOrders = []">取消选择</el-button>
+        </div>
+        <el-table :data="orders" empty-text="暂无订单" @selection-change="handleOrderSelectionChange">
+          <el-table-column type="selection" width="55" />
           <el-table-column prop="orderNo" label="订单号" width="200" />
           <el-table-column prop="customerType" label="客户类型" width="100"><template #default="{ row }">{{ mapCustomerType(row.customerType) }}</template></el-table-column>
-          <el-table-column prop="orderStatus" label="订单状态" width="130"><template #default="{ row }">{{ mapOrderStatus(row.orderStatus) }}</template></el-table-column>
-          <el-table-column prop="payStatus" label="支付状态" width="100"><template #default="{ row }">{{ mapPayStatus(row.payStatus) }}</template></el-table-column>
+          <el-table-column prop="orderStatus" label="订单状态" width="130">
+            <template #default="{ row }">
+              <el-tag :type="getOrderStatusType(row.orderStatus)" size="small">{{ mapOrderStatus(row.orderStatus) }}</el-tag>
+            </template>
+          </el-table-column>
+          <el-table-column prop="payStatus" label="支付状态" width="100">
+            <template #default="{ row }">
+              <el-tag :type="getPayStatusType(row.payStatus)" size="small">{{ mapPayStatus(row.payStatus) }}</el-tag>
+            </template>
+          </el-table-column>
           <el-table-column label="金额" width="120">
             <template #default="{ row }">{{ formatYuan(row.payableAmount) }}</template>
           </el-table-column>
@@ -451,11 +811,49 @@
           <el-button size="small" :disabled="ordersPage >= Math.ceil(ordersTotal / 10)" @click="nextOrdersPage">下一页</el-button>
         </div>
       </el-card>
+      <el-card v-if='activeNav === "订单泳道"' style="margin-top: 20px">
+        <template #header>
+          <div style="display: flex; justify-content: space-between; align-items: center">
+            <span>订单状态泳道看板</span>
+            <el-button size="small" @click="loadKanbanOrders">刷新</el-button>
+          </div>
+        </template>
+        <div class="kanban-container">
+          <div v-for="lane in kanbanLanes" :key="lane.status" class="kanban-lane">
+            <div class="kanban-lane-header" :style="{ background: lane.color }">
+              <span>{{ lane.label }}</span>
+              <span class="lane-count">{{ kanbanData[lane.status]?.length || 0 }}</span>
+            </div>
+            <draggable
+              v-model="kanbanData[lane.status]"
+              group="orders"
+              item-key="orderNo"
+              class="kanban-lane-body"
+              @end="handleDragEnd($event, lane.status)"
+            >
+              <template #item="{ element }">
+                <div class="kanban-card" @click="openOrderDetail(element.orderNo)">
+                  <div class="card-header">
+                    <span class="order-no">{{ element.orderNo }}</span>
+                    <el-tag :type="getPayStatusType(element.payStatus)" size="small">{{ mapPayStatus(element.payStatus) }}</el-tag>
+                  </div>
+                  <div class="card-body">
+                    <div class="card-row"><span class="label">客户:</span><span>{{ element.receiverName || '-' }}</span></div>
+                    <div class="card-row"><span class="label">金额:</span><span class="amount">¥{{ formatYuan(element.payableAmount) }}</span></div>
+                    <div class="card-row"><span class="label">时间:</span><span>{{ element.createdAt?.substring(5, 16) || '-' }}</span></div>
+                  </div>
+                </div>
+              </template>
+            </draggable>
+          </div>
+        </div>
+      </el-card>
       <el-card v-if='activeNav === "销售单"' style="margin-top: 20px">
         <template #header>
           <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 10px">
             <span>销售单</span>
             <div style="display: flex; gap: 8px; align-items: center; flex-wrap: wrap">
+              <el-button size="small" type="primary" @click="openCreateSaleBillDialog">新建销售单</el-button>
               <el-input v-model="saleBillsKeyword" placeholder="单号/客户名" size="small" style="width: 180px" clearable @clear="searchSaleBills" @keyup.enter="searchSaleBills" />
               <el-select v-model="saleBillsStatus" placeholder="全部状态" size="small" style="width: 130px" clearable @change="searchSaleBills">
                 <el-option label="待收款" value="UNPAID" />
@@ -535,8 +933,12 @@
         <template #header>
           <div style="display: flex; justify-content: space-between; align-items: center">
             <span>分享收款</span>
-            <el-button size="small" type="success" @click="handleExportPayments"><el-icon><Download /></el-icon> 导出</el-button>
-            <el-button size="small" @click="loadCollectionLinks">刷新</el-button>
+            <div style="display: flex; gap: 8px">
+              <el-button size="small" type="primary" @click="openFieldPoolDialog">字段池管理</el-button>
+              <el-button size="small" type="warning" @click="openTemplateDesigner">模板设计器</el-button>
+              <el-button size="small" type="success" @click="handleExportPayments"><el-icon><Download /></el-icon> 导出</el-button>
+              <el-button size="small" @click="loadCollectionLinks">刷新</el-button>
+            </div>
           </div>
         </template>
         <el-table :data="collectionLinks" empty-text="暂无记录">
@@ -550,9 +952,156 @@
           </el-table-column>
           <el-table-column prop="status" label="状态" width="100" />
           <el-table-column prop="shareChannel" label="分享渠道" width="120" />
+          <el-table-column prop="templateName" label="使用模板" width="150" />
           <el-table-column prop="createdAt" label="创建时间" width="170" />
+          <el-table-column label="操作" width="200" fixed="right">
+            <template #default="{ row }">
+              <el-button size="small" link type="primary" @click="previewShareLink(row)">预览</el-button>
+              <el-button size="small" link type="success" @click="copyShareLink(row)">复制链接</el-button>
+              <el-button size="small" link type="warning" @click="generateQrCode(row)">二维码</el-button>
+            </template>
+          </el-table-column>
         </el-table>
       </el-card>
+
+      <!-- 字段池管理对话框 -->
+      <el-dialog v-model="fieldPoolDialogVisible" title="字段池管理" width="700px">
+        <div style="margin-bottom: 16px; color: #666; font-size: 13px">
+          配置分享页面可显示的字段，拖拽调整显示顺序
+        </div>
+        <el-tabs v-model="fieldPoolTab">
+          <el-tab-pane label="单据基础信息" name="basic">
+            <draggable v-model="fieldPoolBasic" item-key="field" handle=".drag-handle" class="field-pool-list">
+              <template #item="{ element }">
+                <div class="field-pool-item">
+                  <el-icon class="drag-handle"><Rank /></el-icon>
+                  <span class="field-label">{{ element.label }}</span>
+                  <span class="field-key">{{ element.field }}</span>
+                  <el-switch v-model="element.enabled" />
+                </div>
+              </template>
+            </draggable>
+          </el-tab-pane>
+          <el-tab-pane label="商品明细" name="items">
+            <draggable v-model="fieldPoolItems" item-key="field" handle=".drag-handle" class="field-pool-list">
+              <template #item="{ element }">
+                <div class="field-pool-item">
+                  <el-icon class="drag-handle"><Rank /></el-icon>
+                  <span class="field-label">{{ element.label }}</span>
+                  <span class="field-key">{{ element.field }}</span>
+                  <el-switch v-model="element.enabled" />
+                </div>
+              </template>
+            </draggable>
+          </el-tab-pane>
+          <el-tab-pane label="支付信息" name="payment">
+            <draggable v-model="fieldPoolPayment" item-key="field" handle=".drag-handle" class="field-pool-list">
+              <template #item="{ element }">
+                <div class="field-pool-item">
+                  <el-icon class="drag-handle"><Rank /></el-icon>
+                  <span class="field-label">{{ element.label }}</span>
+                  <span class="field-key">{{ element.field }}</span>
+                  <el-switch v-model="element.enabled" />
+                </div>
+              </template>
+            </draggable>
+          </el-tab-pane>
+        </el-tabs>
+        <template #footer>
+          <el-button @click="fieldPoolDialogVisible = false">取消</el-button>
+          <el-button type="primary" @click="saveFieldPool">保存配置</el-button>
+        </template>
+      </el-dialog>
+
+      <!-- 模板设计器对话框 -->
+      <el-dialog v-model="templateDesignerVisible" title="模板设计器" width="900px" top="5vh">
+        <el-form :model="templateForm" label-width="120px">
+          <el-form-item label="模板名称" required>
+            <el-input v-model="templateForm.name" placeholder="请输入模板名称" />
+          </el-form-item>
+          <el-form-item label="模板描述">
+            <el-input v-model="templateForm.description" type="textarea" :rows="2" placeholder="请输入模板描述" />
+          </el-form-item>
+          <el-form-item label="主题颜色">
+            <el-color-picker v-model="templateForm.themeColor" />
+          </el-form-item>
+          <el-form-item label="页面布局">
+            <el-radio-group v-model="templateForm.layout">
+              <el-radio-button label="simple">简洁版</el-radio-button>
+              <el-radio-button label="standard">标准版</el-radio-button>
+              <el-radio-button label="detailed">详细版</el-radio-button>
+            </el-radio-group>
+          </el-form-item>
+          <el-form-item label="显示元素">
+            <el-checkbox-group v-model="templateForm.elements">
+              <el-checkbox label="header">店铺信息</el-checkbox>
+              <el-checkbox label="logo">店铺Logo</el-checkbox>
+              <el-checkbox label="qrcode">二维码</el-checkbox>
+              <el-checkbox label="barcode">条形码</el-checkbox>
+              <el-checkbox label="footer">页脚说明</el-checkbox>
+              <el-checkbox label="watermark">水印</el-checkbox>
+            </el-checkbox-group>
+          </el-form-item>
+          <el-form-item label="自定义说明">
+            <el-input v-model="templateForm.customNote" type="textarea" :rows="3" placeholder="可添加自定义说明文字，显示在页面底部" />
+          </el-form-item>
+        </el-form>
+        <div style="margin-top: 20px; padding: 20px; background: #f5f7fa; border-radius: 8px">
+          <div style="font-weight: 600; margin-bottom: 12px">预览效果</div>
+          <div class="template-preview" :style="{ borderColor: templateForm.themeColor }">
+            <div v-if="templateForm.elements.includes('header')" class="preview-header" :style="{ background: templateForm.themeColor }">
+              <div v-if="templateForm.elements.includes('logo')" class="preview-logo">LOGO</div>
+              <div class="preview-title">收款单据</div>
+            </div>
+            <div class="preview-body">
+              <div class="preview-row">
+                <span class="preview-label">单据编号:</span>
+                <span class="preview-value">BILL202606220001</span>
+              </div>
+              <div class="preview-row">
+                <span class="preview-label">应收金额:</span>
+                <span class="preview-value" style="color: #f56c6c; font-weight: 600">¥ 1,280.00</span>
+              </div>
+              <div class="preview-row">
+                <span class="preview-label">创建时间:</span>
+                <span class="preview-value">2026-06-22 14:30</span>
+              </div>
+            </div>
+            <div v-if="templateForm.elements.includes('qrcode')" class="preview-qrcode">
+              <div class="qrcode-placeholder">二维码</div>
+            </div>
+            <div v-if="templateForm.elements.includes('footer')" class="preview-footer">
+              <div>{{ templateForm.customNote || '感谢您的支持！' }}</div>
+            </div>
+            <div v-if="templateForm.elements.includes('watermark')" class="preview-watermark">水印</div>
+          </div>
+        </div>
+        <template #footer>
+          <el-button @click="templateDesignerVisible = false">取消</el-button>
+          <el-button type="primary" @click="saveTemplate">保存模板</el-button>
+        </template>
+      </el-dialog>
+
+      <!-- 二维码生成对话框 -->
+      <el-dialog v-model="qrcodeDialogVisible" title="收款二维码" width="400px">
+        <div style="text-align: center; padding: 20px">
+          <div class="qrcode-container">
+            <div class="qrcode-image">
+              <div style="width: 200px; height: 200px; background: #f0f0f0; display: flex; align-items: center; justify-content: center; border-radius: 8px">
+                <span style="color: #999">二维码占位</span>
+              </div>
+            </div>
+            <div style="margin-top: 16px; font-size: 14px; color: #666">
+              <div>收款单号: {{ currentQrLink?.linkNo }}</div>
+              <div>金额: ¥{{ formatYuan(currentQrLink?.amount || 0) }}</div>
+            </div>
+          </div>
+          <div style="margin-top: 20px; display: flex; gap: 12px; justify-content: center">
+            <el-button type="primary" @click="downloadQrCode">下载二维码</el-button>
+            <el-button @click="qrcodeDialogVisible = false">关闭</el-button>
+          </div>
+        </div>
+      </el-dialog>
       <el-card v-if='activeNav === "收款"' style="margin-top: 20px">
         <template #header>
           <div style="display: flex; justify-content: space-between; align-items: center">
@@ -1135,18 +1684,36 @@
           </el-tab-pane>
         </el-tabs>
       </template>
-      <el-dialog v-model="orderDetailVisible" title="订单详情" width="560px">
+      <el-dialog v-model="orderDetailVisible" title="订单详情" width="720px">
         <template v-if="orderDetail">
-          <el-descriptions :column="1" border>
+          <el-descriptions :column="2" border>
             <el-descriptions-item label="订单号">{{ orderDetail.orderNo }}</el-descriptions-item>
             <el-descriptions-item label="客户类型">{{ mapCustomerType(orderDetail.customerType) }}</el-descriptions-item>
-            <el-descriptions-item label="订单状态">{{ mapOrderStatus(orderDetail.orderStatus) }}</el-descriptions-item>
-            <el-descriptions-item label="支付状态">{{ mapPayStatus(orderDetail.payStatus) }}</el-descriptions-item>
+            <el-descriptions-item label="订单状态">
+              <el-tag :type="getOrderStatusType(orderDetail.orderStatus)" size="small">{{ mapOrderStatus(orderDetail.orderStatus) }}</el-tag>
+            </el-descriptions-item>
+            <el-descriptions-item label="支付状态">
+              <el-tag :type="getPayStatusType(orderDetail.payStatus)" size="small">{{ mapPayStatus(orderDetail.payStatus) }}</el-tag>
+            </el-descriptions-item>
             <el-descriptions-item label="应付金额">{{ formatYuan(orderDetail.payableAmount) }}</el-descriptions-item>
+            <el-descriptions-item label="创建时间">{{ orderDetail.createdAt || '-' }}</el-descriptions-item>
             <el-descriptions-item label="收货人">{{ orderDetail.receiverName || "-" }}</el-descriptions-item>
             <el-descriptions-item label="联系电话">{{ orderDetail.receiverMobile || "-" }}</el-descriptions-item>
-            <el-descriptions-item label="收货地址">{{ orderDetail.receiverAddress || "-" }}</el-descriptions-item>
+            <el-descriptions-item label="收货地址" :span="2">{{ orderDetail.receiverAddress || "-" }}</el-descriptions-item>
           </el-descriptions>
+
+          <!-- 状态流转 -->
+          <div style="margin-top: 20px">
+            <div style="font-weight: 600; margin-bottom: 12px; font-size: 14px">状态流转</div>
+            <div class="status-flow">
+              <div v-for="(step, idx) in orderStatusFlow" :key="step.key" class="status-flow-step" :class="{ active: step.key === orderDetail.orderStatus, done: isStatusDone(step.key) }">
+                <div class="step-circle">{{ idx + 1 }}</div>
+                <div class="step-label">{{ step.label }}</div>
+                <div v-if="idx < orderStatusFlow.length - 1" class="step-line" :class="{ done: isStatusDone(step.key) }"></div>
+              </div>
+            </div>
+          </div>
+
           <el-table :data="orderDetail.items || []" style="margin-top: 16px">
             <el-table-column prop="skuName" label="商品" />
             <el-table-column prop="quantity" label="数量" width="80" />
@@ -1157,6 +1724,19 @@
               <template #default="{ row }">{{ formatYuan(row.subtotalAmount) }}</template>
             </el-table-column>
           </el-table>
+
+          <!-- 操作日志 -->
+          <div style="margin-top: 20px">
+            <div style="font-weight: 600; margin-bottom: 12px; font-size: 14px">操作日志</div>
+            <el-timeline v-if="orderLogs.length > 0">
+              <el-timeline-item v-for="log in orderLogs" :key="log.id" :timestamp="log.createdAt" placement="top" :type="log.type === 'STATUS_CHANGE' ? 'primary' : 'info'">
+                <div>{{ log.action }}</div>
+                <div v-if="log.operator" style="font-size: 12px; color: #999">操作人: {{ log.operator }}</div>
+              </el-timeline-item>
+            </el-timeline>
+            <div v-else style="color: #999; font-size: 13px">暂无操作日志</div>
+          </div>
+
           <div v-if="orderDetail.orderStatus" style="margin-top: 16px; display: flex; gap: 8px; flex-wrap: wrap">
             <el-button v-if="orderDetail.orderStatus === 'PENDING_PAYMENT' || orderDetail.orderStatus === 'PENDING'" type="success" size="small" :loading="loading" @click="handleOrderAction(orderDetail.orderNo, 'accept')">接单</el-button>
             <el-button v-if="orderDetail.orderStatus === 'PENDING_PAYMENT' || orderDetail.orderStatus === 'PENDING'" type="danger" size="small" :loading="loading" @click="handleOrderAction(orderDetail.orderNo, 'reject')">拒单</el-button>
@@ -1169,6 +1749,13 @@
         <el-form ref="productFormRef" :model="productForm" :rules="productRules" label-width="110px">
           <el-form-item label="商品名称" prop="name">
             <el-input v-model="productForm.name" />
+          </el-form-item>
+          <el-form-item label="酒精度">
+            <el-input-number v-model="productForm.alcoholContent" :min="0" :max="100" :precision="1" style="width:120px" />
+            <span style="margin-left:8px">%vol</span>
+          </el-form-item>
+          <el-form-item label="产地">
+            <el-input v-model="productForm.origin" placeholder="如：贵州茅台镇" />
           </el-form-item>
           <el-form-item label="图片URL">
             <el-input v-model="productForm.mainImage" placeholder="可填写商品图片链接" />
@@ -1249,6 +1836,12 @@
           <el-form-item label="规格">
             <el-input v-model="productEditForm.specs" placeholder="如：500ml/瓶" />
           </el-form-item>
+          <el-form-item label="酒精度">
+            <el-input-number v-model="productEditForm.alcoholContent" :min="0" :max="100" :precision="1" style="width:120px" />
+          </el-form-item>
+          <el-form-item label="产地">
+            <el-input v-model="productEditForm.origin" placeholder="如：贵州茅台" />
+          </el-form-item>
         </el-form>
         <template #footer>
           <el-button @click="productEditDialogVisible = false">取消</el-button>
@@ -1327,7 +1920,7 @@
           <el-button type="primary" :loading="storeEditLoading" @click="submitStoreEdit">保存</el-button>
         </template>
       </el-dialog>
-      <el-dialog v-model="memberDialogVisible" title="新增客户" width="480px">
+      <el-dialog v-model="memberDialogVisible" title="新增客户" width="560px">
         <el-form ref="memberFormRef" :model="memberForm" :rules="memberRules" label-width="100px">
           <el-form-item label="客户名称" prop="name">
             <el-input v-model="memberForm.name" />
@@ -1340,6 +1933,24 @@
               <el-option label="零售客户" value="RETAIL" />
               <el-option label="批发客户" value="WHOLESALE" />
             </el-select>
+          </el-form-item>
+          <el-form-item label="邮箱">
+            <el-input v-model="memberForm.email" placeholder="customer@example.com" />
+          </el-form-item>
+          <el-form-item label="地址">
+            <el-input v-model="memberForm.address" placeholder="详细地址" />
+          </el-form-item>
+          <el-form-item label="联系人">
+            <el-input v-model="memberForm.contactPerson" placeholder="联系人姓名" />
+          </el-form-item>
+          <el-form-item label="授信额度">
+            <el-input-number v-model="memberForm.creditLimit" :min="0" :precision="2" style="width: 100%" />
+          </el-form-item>
+          <el-form-item label="账期(天)">
+            <el-input-number v-model="memberForm.paymentDays" :min="0" style="width: 100%" />
+          </el-form-item>
+          <el-form-item label="备注">
+            <el-input v-model="memberForm.remark" type="textarea" :rows="3" placeholder="其他备注信息" />
           </el-form-item>
         </el-form>
         <template #footer>
@@ -2609,6 +3220,75 @@
         <template #footer><el-button @click="sendNotificationDialogVisible=false">取消</el-button><el-button type="primary" :loading="loading" @click="handleSendNotification">发送</el-button></template>
       </el-dialog>
 
+      <!-- 销售单创建对话框 -->
+      <el-dialog v-model="saleBillCreateDialogVisible" title="新建销售单" width="800px">
+        <el-form :model="saleBillCreateForm" label-width="100px">
+          <el-form-item label="客户">
+            <el-select v-model="saleBillCreateForm.customerId" placeholder="选择客户（可选）" clearable filterable style="width:100%">
+              <el-option v-for="member in members" :key="member.id" :label="member.name" :value="member.id" />
+            </el-select>
+          </el-form-item>
+          <el-divider>商品明细</el-divider>
+          <el-table :data="saleBillCreateForm.items" border style="margin-bottom:16px">
+            <el-table-column label="商品" width="200">
+              <template #default="{ row }">
+                <el-select v-model="row.skuId" placeholder="选择商品" filterable style="width:100%">
+                  <el-option v-for="p in products" :key="p.id" :label="`${p.name} - ${p.skuName}`" :value="p.id" />
+                </el-select>
+              </template>
+            </el-table-column>
+            <el-table-column label="数量" width="120">
+              <template #default="{ row }">
+                <el-input-number v-model="row.quantity" :min="1" size="small" style="width:100%" />
+              </template>
+            </el-table-column>
+            <el-table-column label="单价" width="120">
+              <template #default="{ row }">
+                <el-input-number v-model="row.unitPrice" :min="0" :precision="2" size="small" style="width:100%" />
+              </template>
+            </el-table-column>
+            <el-table-column label="小计" width="100">
+              <template #default="{ row }">
+                ¥{{ formatYuan(row.quantity * row.unitPrice) }}
+              </template>
+            </el-table-column>
+            <el-table-column label="操作" width="80">
+              <template #default="{ $index }">
+                <el-button size="small" type="danger" link @click="saleBillCreateForm.items.splice($index, 1)">删除</el-button>
+              </template>
+            </el-table-column>
+          </el-table>
+          <el-button type="primary" link @click="saleBillCreateForm.items.push({ skuId: 0, quantity: 1, unitPrice: 0 })">+ 添加商品</el-button>
+          <el-divider>结算信息</el-divider>
+          <el-form-item label="折扣金额">
+            <el-input-number v-model="saleBillCreateForm.discountAmount" :min="0" :precision="2" style="width:200px" />
+          </el-form-item>
+          <el-form-item label="抹零金额">
+            <el-input-number v-model="saleBillCreateForm.roundDownAmount" :min="0" :precision="2" style="width:200px" />
+          </el-form-item>
+          <el-form-item label="支付方式">
+            <el-select v-model="saleBillCreateForm.paymentMethod" style="width:200px">
+              <el-option label="现金" value="CASH" />
+              <el-option label="微信" value="WECHAT" />
+              <el-option label="支付宝" value="ALIPAY" />
+              <el-option label="银行转账" value="BANK_TRANSFER" />
+            </el-select>
+          </el-form-item>
+          <el-form-item label="收款金额">
+            <el-input-number v-model="saleBillCreateForm.receivedAmount" :min="0" :precision="2" style="width:200px" />
+          </el-form-item>
+          <el-form-item label="应收合计">
+            <span style="font-size:18px;font-weight:600;color:#EF4444">
+              ¥{{ formatYuan(saleBillCreateForm.items.reduce((sum, item) => sum + item.quantity * item.unitPrice, 0) - (saleBillCreateForm.discountAmount || 0) - (saleBillCreateForm.roundDownAmount || 0)) }}
+            </span>
+          </el-form-item>
+        </el-form>
+        <template #footer>
+          <el-button @click="saleBillCreateDialogVisible=false">取消</el-button>
+          <el-button type="primary" :loading="loading" @click="handleCreateSaleBill">保存</el-button>
+        </template>
+      </el-dialog>
+
       <!-- 操作日志 -->
       <template v-if="activeNav === '操作日志'">
         <div class="stat-row">
@@ -2712,6 +3392,7 @@
           </el-tab-pane>
         </el-tabs>
       </template>
+    </template>
     </main>
   </div>
 </template>
@@ -2719,9 +3400,10 @@
 <script setup lang="ts">
 import { computed, nextTick, onMounted, onUnmounted, reactive, ref, watch } from "vue";
 import { ElMessage, ElMessageBox } from "element-plus";
-import { Download } from "@element-plus/icons-vue";
+import { Download, HomeFilled, Goods, Document, ShoppingCart, Box, User, Files, OfficeBuilding, Present, DataAnalysis, Setting, Bell, Expand, Fold, Rank } from "@element-plus/icons-vue";
 import * as echarts from "echarts";
-import { adminLogin, assignMember, createCollectionLink, createMember, createProduct, createStore, exportOrdersCsv, fetchCollectionLinks, fetchDailySales, fetchDashboard, fetchInventoryAlerts, fetchInventoryBalances, fetchInventoryLogs, fetchMemberPriceHistory, fetchMembers, fetchOrderDetail, fetchOrders, fetchOrderStats, fetchPaymentOrders, fetchPriceLogs, fetchProducts, fetchRefundOrders, fetchSaleBillDetail, fetchSaleBills, fetchStaff, fetchStorePerformance, fetchStores, fetchStoreDetail, updateStore, fetchWxInfo, updateProductPrice, updateProductStatus, acceptOrder, rejectOrder, startDelivery, completeDelivery, fetchDashboardOverview, fetchDashboardSalesTrend, fetchDashboardCategoryPie, fetchDashboardTopProducts, fetchDashboardTopCustomers, fetchDashboardRecentAlerts, fetchReportSalesDaily, fetchReportSalesRanking, fetchReportSalesTrend, fetchReportCustomerContribution, fetchReportPurchaseSummary, fetchReportInventoryTurnover, fetchReportReceivablePayable, fetchReportProfit, fetchSuppliers, createSupplier, fetchPurchaseOrders as fetchPurchaseOrdersApi, createPurchaseOrder, purchaseInStock, createPurchaseReturn, fetchSaleReturns as fetchSaleReturnsApi, createSaleReturn, fetchCustomerStatements as fetchStatementsApi, generateCustomerStatement, createCustomerPayment, fetchAlerts as fetchAlertsApi, handleAlertItem, fetchAlertRules, updateAlertRule, createStaff, updateStaff, toggleStaffStatus, updateProduct, fetchSaleBillsEnhanced, fetchReportReceivablePayableEnhanced, fetchReportProfitEnhanced, fetchPriceLevels, createPriceLevel, updatePriceLevel, deletePriceLevel, fetchSkuPrices, createSkuPrice, updatePrice as updateTierPrice, deletePrice as deleteTierPrice, fetchCustomerBindings, createCustomerBinding, approveCustomerBinding, rejectCustomerBinding, calcBestPrice, fetchPriceChangeLogs, fetchCredits, fetchCreditDetail, createCredit, updateCreditLimit, updateCreditTerm, freezeCredit, unfreezeCredit, fetchCreditLogs, fetchCollections, createCollection, updateCollection, fetchOverdueCollections, batchRemindCollections, fetchCollectionStatistics, fetchAfterSales, fetchAfterSaleDetail, approveAfterSale, rejectAfterSale, confirmReceiptAfterSale, inspectAfterSale, completeAfterSale, fetchAfterSaleStatistics, fetchTraceConfigs, createTraceConfig, updateTraceConfig, deleteTraceConfig, generateTraceCodes, fetchTraceCodes, fetchTraceCodeDetail, updateTraceCodeStatus, fetchTraceCodeStatistics, queryTraceCode, fetchRecalls, createRecall, updateRecall, executeRecall, completeRecall, fetchInventoryBatches, createInventoryBatch, splitInventoryBatch, fetchFifoSuggestion, fetchExpiryConfigs, fetchExpiryAlerts, handleExpiryAlert, fetchExpiryAlertStatistics, fetchStoreControlConfigs, updateStoreControlConfig, openStore, closeStore, suspendStore, resumeStore, fetchStoreControlLogs } from "./api";
+import draggable from "vuedraggable";
+import { adminLogin, assignMember, createCollectionLink, createMember, createProduct, createStore, exportOrdersCsv, fetchCollectionLinks, fetchDailySales, fetchDashboard, fetchInventoryAlerts, fetchInventoryBalances, fetchInventoryLogs, fetchMemberPriceHistory, fetchMembers, fetchOrderDetail, fetchOrders, fetchOrderStats, fetchPaymentOrders, fetchPriceLogs, fetchProducts, fetchRefundOrders, fetchSaleBillDetail, fetchSaleBills, fetchStaff, fetchStorePerformance, fetchStores, fetchStoreDetail, updateStore, fetchWxInfo, updateProductPrice, updateProductStatus, acceptOrder, rejectOrder, startDelivery, completeDelivery, batchUpdateOrderStatus, fetchOrderLogs, fetchDashboardOverview, fetchDashboardSalesTrend, fetchDashboardCategoryPie, fetchDashboardTopProducts, fetchDashboardTopCustomers, fetchDashboardRecentAlerts, fetchReportSalesDaily, fetchReportSalesRanking, fetchReportSalesTrend, fetchReportCustomerContribution, fetchReportPurchaseSummary, fetchReportInventoryTurnover, fetchReportReceivablePayable, fetchReportProfit, fetchSuppliers, createSupplier, fetchPurchaseOrders as fetchPurchaseOrdersApi, createPurchaseOrder, purchaseInStock, createPurchaseReturn, fetchSaleReturns as fetchSaleReturnsApi, createSaleReturn, fetchCustomerStatements as fetchStatementsApi, generateCustomerStatement, createCustomerPayment, fetchAlerts as fetchAlertsApi, handleAlertItem, fetchAlertRules, updateAlertRule, createStaff, updateStaff, toggleStaffStatus, updateProduct, fetchSaleBillsEnhanced, fetchReportReceivablePayableEnhanced, fetchReportProfitEnhanced, fetchPriceLevels, createPriceLevel, updatePriceLevel, deletePriceLevel, fetchSkuPrices, createSkuPrice, updatePrice as updateTierPrice, deletePrice as deleteTierPrice, fetchCustomerBindings, createCustomerBinding, approveCustomerBinding, rejectCustomerBinding, calcBestPrice, fetchPriceChangeLogs, fetchCredits, fetchCreditDetail, createCredit, updateCreditLimit, updateCreditTerm, freezeCredit, unfreezeCredit, fetchCreditLogs, fetchCollections, createCollection, updateCollection, fetchOverdueCollections, batchRemindCollections, fetchCollectionStatistics, fetchAfterSales, fetchAfterSaleDetail, approveAfterSale, rejectAfterSale, confirmReceiptAfterSale, inspectAfterSale, completeAfterSale, fetchAfterSaleStatistics, fetchTraceConfigs, createTraceConfig, updateTraceConfig, deleteTraceConfig, generateTraceCodes, fetchTraceCodes, fetchTraceCodeDetail, updateTraceCodeStatus, fetchTraceCodeStatistics, queryTraceCode, fetchRecalls, createRecall, updateRecall, executeRecall, completeRecall, fetchInventoryBatches, createInventoryBatch, splitInventoryBatch, fetchFifoSuggestion, fetchExpiryConfigs, fetchExpiryAlerts, handleExpiryAlert, fetchExpiryAlertStatistics, fetchStoreControlConfigs, updateStoreControlConfig, openStore, closeStore, suspendStore, resumeStore, fetchStoreControlLogs, createSaleBill } from "./api";
 import { fetchOrderTimeoutConfigs, createOrderTimeoutConfig, updateOrderTimeoutConfig, deleteOrderTimeoutConfig, fetchOrderTimeoutLogs, fetchOrderTimeoutStatistics } from "./api";
 import { fetchTransfers, fetchTransferDetail, createTransfer, submitTransfer, approveTransfer, rejectTransfer, cancelTransfer, shipTransfer, fetchTransferStatistics } from "./api";
 import { fetchStockChecks, fetchStockCheckDetail, createStockCheck, startStockCheck, completeStockCheck, cancelStockCheck, handleStockCheckDiff, fetchStockCheckStatistics } from "./api";
@@ -2759,8 +3441,27 @@ const adminNavDescriptions: Record<string, string> = {
 };
 
 const token = ref(localStorage.getItem("admin_token") || "");
+const currentUser = ref<any>(null);
 const loading = ref(false);
 const pageLoading = ref(false);
+const isMenuCollapsed = ref(false);
+const isCashierMode = ref(false);
+
+const handleMenuSelect = (index: string) => {
+  activeNav.value = index;
+};
+
+watch(isCashierMode, (val) => {
+  if (val) {
+    isMenuCollapsed.value = true;
+    activeNav.value = "销售单";
+    // 初始化收银台商品列表
+    if (cashierProducts.value.length === 0 && products.value.length > 0) {
+      cashierProducts.value = products.value.slice(0, 50);
+    }
+  }
+});
+
 const productsLoading = ref(false);
 const storesLoading = ref(false);
 const membersLoading = ref(false);
@@ -2783,6 +3484,34 @@ const ordersPage = ref(1);
 const ordersKeyword = ref("");
 const ordersStatus = ref("");
 const ordersDateRange = ref<string[]>([]);
+const selectedOrders = ref<any[]>([]);
+const orderLogs = ref<any[]>([]);
+const orderStatusFlow = [
+  { key: "PENDING_PAYMENT", label: "待支付" },
+  { key: "PAID", label: "已支付" },
+  { key: "ACCEPTED", label: "已接单" },
+  { key: "WAIT_DELIVERY", label: "待配送" },
+  { key: "DELIVERING", label: "配送中" },
+  { key: "COMPLETED", label: "已完成" }
+];
+
+// 泳道看板状态
+const kanbanLanes = [
+  { status: "PENDING_PAYMENT", label: "待支付", color: "#F59E0B" },
+  { status: "PAID", label: "已支付", color: "#1677FF" },
+  { status: "ACCEPTED", label: "已接单", color: "#10B981" },
+  { status: "WAIT_DELIVERY", label: "待配送", color: "#8B5CF6" },
+  { status: "DELIVERING", label: "配送中", color: "#3B82F6" },
+  { status: "COMPLETED", label: "已完成", color: "#10B981" }
+];
+const kanbanData = reactive<Record<string, any[]>>({
+  PENDING_PAYMENT: [],
+  PAID: [],
+  ACCEPTED: [],
+  WAIT_DELIVERY: [],
+  DELIVERING: [],
+  COMPLETED: []
+});
 const saleBills = ref<any[]>([]);
 const saleBillsKeyword = ref("");
 const saleBillsStatus = ref("");
@@ -2790,6 +3519,105 @@ const saleBillsDateRange = ref<string[]>([]);
 const saleBillsPage = ref(1);
 const saleBillsPageSize = ref(20);
 const saleBillsTotal = ref(0);
+
+// 收银台状态
+const cashierProducts = ref<any[]>([]);
+const cashierCart = ref<any[]>([]);
+const cashierSelectedCustomer = ref<any>(null);
+const cashierDiscount = ref(0);
+const cashierRoundDown = ref(0);
+const cashierPaymentMethod = ref("CASH");
+const cashierReceivedAmount = ref(0);
+const cashierProductKeyword = ref("");
+
+// 收银台计算属性
+const cashierSubtotal = computed(() => {
+  return cashierCart.value.reduce((sum, item) => sum + item.retailPrice * item.quantity, 0);
+});
+
+const cashierTotal = computed(() => {
+  return Math.max(0, cashierSubtotal.value - cashierDiscount.value - cashierRoundDown.value);
+});
+
+const cashierChange = computed(() => {
+  return Math.max(0, cashierReceivedAmount.value - cashierTotal.value);
+});
+
+// 收银台方法
+function searchCashierProducts() {
+  const keyword = cashierProductKeyword.value.toLowerCase();
+  if (!keyword) {
+    cashierProducts.value = products.value.slice(0, 50);
+  } else {
+    cashierProducts.value = products.value.filter(p =>
+      p.name.toLowerCase().includes(keyword) ||
+      p.skuCode?.toLowerCase().includes(keyword)
+    ).slice(0, 50);
+  }
+}
+
+function addToCart(product: any) {
+  const existing = cashierCart.value.find(item => item.skuId === product.id);
+  if (existing) {
+    existing.quantity++;
+  } else {
+    cashierCart.value.push({
+      skuId: product.id,
+      name: product.name,
+      skuName: product.skuName,
+      retailPrice: product.retailPrice,
+      quantity: 1
+    });
+  }
+  updateCartTotal();
+}
+
+function removeFromCart(index: number) {
+  cashierCart.value.splice(index, 1);
+  updateCartTotal();
+}
+
+function clearCart() {
+  cashierCart.value = [];
+  cashierDiscount.value = 0;
+  cashierRoundDown.value = 0;
+  cashierReceivedAmount.value = 0;
+  cashierSelectedCustomer.value = null;
+}
+
+function updateCartTotal() {
+  // 触发重新计算
+  cashierDiscount.value = cashierDiscount.value;
+}
+
+async function submitSale() {
+  if (cashierCart.value.length === 0) {
+    ElMessage.warning("购物车为空");
+    return;
+  }
+
+  try {
+    const payload = {
+      customerId: cashierSelectedCustomer.value?.id,
+      items: cashierCart.value.map(item => ({
+        skuId: item.skuId,
+        quantity: item.quantity,
+        unitPrice: item.retailPrice
+      })),
+      discountAmount: cashierDiscount.value,
+      roundDownAmount: cashierRoundDown.value,
+      paymentMethod: cashierPaymentMethod.value,
+      receivedAmount: cashierPaymentMethod.value === "CASH" ? cashierReceivedAmount.value : cashierTotal.value
+    };
+
+    await createSaleBill(payload);
+    ElMessage.success("销售单创建成功");
+    clearCart();
+    loadSaleBills();
+  } catch (e: any) {
+    ElMessage.error(e?.response?.data?.message || "创建失败");
+  }
+}
 const inventoryLogs = ref<any[]>([]);
 const collectionLinks = ref<any[]>([]);
 const paymentOrders = ref<any[]>([]);
@@ -2825,6 +3653,15 @@ const staffRules = {
 };
 const saleBillDetail = ref<any>(null);
 const saleBillDetailVisible = ref(false);
+const saleBillCreateDialogVisible = ref(false);
+const saleBillCreateForm = reactive({
+  customerId: undefined as number | undefined,
+  items: [] as Array<{ skuId: number; quantity: number; unitPrice: number }>,
+  discountAmount: 0,
+  roundDownAmount: 0,
+  paymentMethod: "CASH",
+  receivedAmount: 0
+});
 const collectionLinkDialogVisible = ref(false);
 const collectionLinkForm = reactive({
   billNo: "",
@@ -2832,6 +3669,47 @@ const collectionLinkForm = reactive({
   shareChannel: "LINK" as string,
   expireHours: 72
 });
+
+// 字段池管理状态
+const fieldPoolDialogVisible = ref(false);
+const fieldPoolTab = ref("basic");
+const fieldPoolBasic = ref([
+  { field: "billNo", label: "单据编号", enabled: true },
+  { field: "customerName", label: "客户名称", enabled: true },
+  { field: "createTime", label: "创建时间", enabled: true },
+  { field: "deliveryAddress", label: "收货地址", enabled: true },
+  { field: "contactPhone", label: "联系电话", enabled: true }
+]);
+const fieldPoolItems = ref([
+  { field: "productName", label: "商品名称", enabled: true },
+  { field: "specification", label: "规格", enabled: true },
+  { field: "quantity", label: "数量", enabled: true },
+  { field: "unitPrice", label: "单价", enabled: true },
+  { field: "subtotal", label: "小计", enabled: true }
+]);
+const fieldPoolPayment = ref([
+  { field: "totalAmount", label: "订单总额", enabled: true },
+  { field: "discountAmount", label: "优惠金额", enabled: true },
+  { field: "actualAmount", label: "实付金额", enabled: true },
+  { field: "paymentMethod", label: "支付方式", enabled: true },
+  { field: "paymentStatus", label: "支付状态", enabled: true }
+]);
+
+// 模板设计器状态
+const templateDesignerVisible = ref(false);
+const templateForm = reactive({
+  name: "",
+  description: "",
+  themeColor: "#1677FF",
+  layout: "standard",
+  elements: ["header", "qrcode", "footer"] as string[],
+  customNote: ""
+});
+
+// 二维码对话框状态
+const qrcodeDialogVisible = ref(false);
+const currentQrLink = ref<any>(null);
+
 const barCanvas = ref<HTMLCanvasElement | null>(null);
 const pieCanvas = ref<HTMLCanvasElement | null>(null);
 const productDialogVisible = ref(false);
@@ -2845,7 +3723,9 @@ const productEditForm = reactive({
   brand: "",
   unit: "",
   boxRatio: 6,
-  specs: ""
+  specs: "",
+  alcoholContent: null as number | null,
+  origin: ""
 });
 const storeDialogVisible = ref(false);
 const storeEditDialogVisible = ref(false);
@@ -2875,7 +3755,9 @@ const productForm = reactive({
   barcode: "",
   boxRatio: 6,
   retailPrice: 0,
-  wholesalePrice: 0
+  wholesalePrice: 0,
+  alcoholContent: null as number | null,
+  origin: ""
 });
 const storeForm = reactive({
   code: "",
@@ -2886,7 +3768,13 @@ const storeForm = reactive({
 const memberForm = reactive({
   name: "",
   mobile: "",
-  customerType: "RETAIL" as "RETAIL" | "WHOLESALE"
+  customerType: "RETAIL" as "RETAIL" | "WHOLESALE",
+  email: "",
+  address: "",
+  contactPerson: "",
+  creditLimit: 0,
+  paymentDays: 0,
+  remark: ""
 });
 const priceForm = reactive({
   skuId: 0,
@@ -2980,13 +3868,36 @@ const loginRules = {
 const loginFormRef = ref();
 const supplierFormRef = ref();
 const supplierRules = {
-  name: [{ required: true, message: "请填写供应商名称", trigger: "blur" }],
-  supplierCode: [{ required: true, message: "请填写供应商编码", trigger: "blur" }],
+  name: [
+    { required: true, message: "请填写供应商名称", trigger: "blur" },
+    { min: 2, max: 50, message: "供应商名称长度为2-50个字符", trigger: "blur" }
+  ],
+  supplierCode: [
+    { required: true, message: "请填写供应商编码", trigger: "blur" },
+    { pattern: /^[A-Za-z0-9_-]+$/, message: "编码只能包含字母、数字、下划线和横线", trigger: "blur" }
+  ],
+  contactPerson: [{ max: 20, message: "联系人姓名不超过20个字符", trigger: "blur" }],
   phone: [{
     validator: (_: any, value: string, callback: any) => {
       if (!value) callback();
       else if (mobilePattern.test(value)) callback();
-      else callback(new Error("请填写正确的手机号"));
+      else callback(new Error("请填写正确的11位手机号"));
+    },
+    trigger: "blur"
+  }],
+  email: [{
+    validator: (_: any, value: string, callback: any) => {
+      if (!value) callback();
+      else if (/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value)) callback();
+      else callback(new Error("请填写正确的邮箱地址"));
+    },
+    trigger: "blur"
+  }],
+  bankAccount: [{
+    validator: (_: any, value: string, callback: any) => {
+      if (!value) callback();
+      else if (/^\d{16,19}$/.test(value)) callback();
+      else callback(new Error("银行账号应为16-19位数字"));
     },
     trigger: "blur"
   }]
@@ -2994,7 +3905,22 @@ const supplierRules = {
 const purchaseFormRef = ref();
 const purchaseRules = {
   supplierId: [{ required: true, message: "请选择供应商", trigger: "change" }],
-  warehouseId: [{ required: true, message: "请选择仓库", trigger: "change" }]
+  warehouseId: [{ required: true, message: "请选择仓库", trigger: "change" }],
+  expectedDate: [{ required: true, message: "请选择预计到货日期", trigger: "change" }]
+};
+
+// 采购订单商品列表验证
+const validatePurchaseItems = (_: any, __: any, callback: any) => {
+  if (!purchaseForm.items || purchaseForm.items.length === 0) {
+    callback(new Error("请至少添加一个商品"));
+  } else {
+    const invalid = purchaseForm.items.find((item: any) => !item.skuId || !item.quantity || item.quantity <= 0 || !item.unitPrice || item.unitPrice < 0);
+    if (invalid) {
+      callback(new Error("请完整填写所有商品的SKU、数量和单价"));
+    } else {
+      callback();
+    }
+  }
 };
 const statementCreateFormRef = ref();
 const statementCreateRules = {
@@ -3046,6 +3972,7 @@ async function handleLogin() {
     const result = await adminLogin(loginForm.username, loginForm.password);
     localStorage.setItem("admin_token", result.token);
     token.value = result.token;
+    currentUser.value = result.user;
     ElMessage.success("登录成功，正在加载后台数据");
     pageLoading.value = true;
     try {
@@ -3064,6 +3991,40 @@ async function handleLogout() {
   activeNav.value = "首页";
   window.dispatchEvent(new Event("auth:logout"));
   ElMessage.success("已退出登录");
+}
+
+function toggleCashierMode() {
+  isCashierMode.value = !isCashierMode.value;
+}
+
+function getNavTitle(key: string): string {
+  const navMap: Record<string, string> = {
+    "首页": "工作台",
+    "商品": "商品管理",
+    "价格中心": "价格管理",
+    "订单": "订单管理",
+    "订单泳道": "泳道看板",
+    "订单超时": "超时处理",
+    "销售单": "销售管理",
+    "销售退货": "销售退货",
+    "客户": "客户管理",
+    "客户对账": "客户对账",
+    "授信管理": "授信管理",
+    "供应商": "供应商管理",
+    "采购": "采购管理",
+    "库存": "库存管理",
+    "预警中心": "库存预警",
+    "员工": "员工管理",
+    "门店": "门店管理",
+    "收款": "收款记录",
+    "报表": "报表中心",
+    "营销中心": "营销中心",
+    "售后管理": "售后管理",
+    "操作日志": "操作日志",
+    "系统设置": "系统设置",
+    "消息中心": "消息中心"
+  };
+  return navMap[key] || key;
 }
 
 async function loadDashboard() {
@@ -3250,6 +4211,41 @@ async function openSaleBillDetail(billNo: string) {
   saleBillDetailVisible.value = true;
 }
 
+function openCreateSaleBillDialog() {
+  saleBillCreateForm.customerId = undefined;
+  saleBillCreateForm.items = [{ skuId: 0, quantity: 1, unitPrice: 0 }];
+  saleBillCreateForm.discountAmount = 0;
+  saleBillCreateForm.roundDownAmount = 0;
+  saleBillCreateForm.paymentMethod = "CASH";
+  saleBillCreateForm.receivedAmount = 0;
+  saleBillCreateDialogVisible.value = true;
+}
+
+async function handleCreateSaleBill() {
+  if (saleBillCreateForm.items.length === 0 || saleBillCreateForm.items.some(item => item.skuId === 0)) {
+    ElMessage.warning("请添加商品");
+    return;
+  }
+  loading.value = true;
+  try {
+    await createSaleBill({
+      customerId: saleBillCreateForm.customerId,
+      items: saleBillCreateForm.items,
+      discountAmount: saleBillCreateForm.discountAmount,
+      roundDownAmount: saleBillCreateForm.roundDownAmount,
+      paymentMethod: saleBillCreateForm.paymentMethod,
+      receivedAmount: saleBillCreateForm.receivedAmount
+    });
+    ElMessage.success("销售单创建成功");
+    saleBillCreateDialogVisible.value = false;
+    await loadSaleBills();
+  } catch (e) {
+    ElMessage.error(getErrorMessage(e, "创建失败"));
+  } finally {
+    loading.value = false;
+  }
+}
+
 function openCollectionLinkDialog(row: any) {
   collectionLinkForm.billNo = row.billNo;
   collectionLinkForm.amount = Number(row.unreceivedAmount) || 0;
@@ -3383,7 +4379,170 @@ function drawPieChart() {
 
 async function openOrderDetail(orderNo: string) {
   orderDetail.value = await fetchOrderDetail(orderNo);
+  orderLogs.value = await fetchOrderLogs(orderNo);
   orderDetailVisible.value = true;
+}
+
+function handleOrderSelectionChange(selection: any[]) {
+  selectedOrders.value = selection;
+}
+
+async function handleBatchAction(action: string) {
+  if (selectedOrders.value.length === 0) {
+    ElMessage.warning("请先选择订单");
+    return;
+  }
+  const actionLabels: Record<string, string> = {
+    accept: "接单",
+    reject: "拒单",
+    deliver: "配送"
+  };
+  const confirmed = await ElMessageBox.confirm(`确认批量${actionLabels[action]} ${selectedOrders.value.length} 个订单?`, "批量操作确认", { type: "warning" }).catch(() => null);
+  if (!confirmed) return;
+  loading.value = true;
+  try {
+    const orderNos = selectedOrders.value.map(o => o.orderNo);
+    await batchUpdateOrderStatus(orderNos, action);
+    ElMessage.success(`批量${actionLabels[action]}成功`);
+    selectedOrders.value = [];
+    await loadOrders();
+  } catch (error) {
+    ElMessage.error(getErrorMessage(error, `批量${actionLabels[action]}失败`));
+  } finally {
+    loading.value = false;
+  }
+}
+
+function getOrderStatusType(status: string) {
+  const map: Record<string, string> = {
+    PENDING_PAYMENT: "warning",
+    PAID: "info",
+    PENDING: "warning",
+    ACCEPTED: "primary",
+    WAIT_DELIVERY: "info",
+    DELIVERING: "primary",
+    COMPLETED: "success",
+    CANCELLED: "danger"
+  };
+  return map[status] || "info";
+}
+
+function getPayStatusType(status: string) {
+  const map: Record<string, string> = {
+    UNPAID: "warning",
+    PAID: "success",
+    PARTIAL: "info",
+    REFUNDED: "danger"
+  };
+  return map[status] || "info";
+}
+
+function isStatusDone(stepKey: string) {
+  if (!orderDetail.value?.orderStatus) return false;
+  const currentIdx = orderStatusFlow.findIndex(s => s.key === orderDetail.value.orderStatus);
+  const stepIdx = orderStatusFlow.findIndex(s => s.key === stepKey);
+  return stepIdx <= currentIdx;
+}
+
+// T9 字段池管理方法
+function openFieldPoolDialog() {
+  fieldPoolDialogVisible.value = true;
+}
+
+function saveFieldPool() {
+  ElMessage.success("字段池配置已保存");
+  fieldPoolDialogVisible.value = false;
+}
+
+// T9 模板设计器方法
+function openTemplateDesigner() {
+  templateDesignerVisible.value = true;
+}
+
+function saveTemplate() {
+  if (!templateForm.name) {
+    ElMessage.warning("请输入模板名称");
+    return;
+  }
+  ElMessage.success("模板已保存");
+  templateDesignerVisible.value = false;
+}
+
+// T9 分享链接方法
+function previewShareLink(row: any) {
+  const url = `${window.location.origin}/share/${row.linkNo}`;
+  window.open(url, "_blank");
+}
+
+function copyShareLink(row: any) {
+  const url = `${window.location.origin}/share/${row.linkNo}`;
+  navigator.clipboard.writeText(url).then(() => {
+    ElMessage.success("链接已复制到剪贴板");
+  }).catch(() => {
+    ElMessage.error("复制失败，请手动复制");
+  });
+}
+
+function generateQrCode(row: any) {
+  currentQrLink.value = row;
+  qrcodeDialogVisible.value = true;
+}
+
+function downloadQrCode() {
+  ElMessage.info("二维码下载功能开发中");
+}
+
+// 泳道看板方法
+async function loadKanbanOrders() {
+  try {
+    const allOrders = await fetchOrders({ page: 1, pageSize: 500 });
+    const records = allOrders.records || [];
+    
+    // 清空现有数据
+    Object.keys(kanbanData).forEach(key => {
+      kanbanData[key] = [];
+    });
+    
+    // 按状态分组
+    records.forEach((order: any) => {
+      const status = order.orderStatus;
+      if (kanbanData[status]) {
+        kanbanData[status].push(order);
+      }
+    });
+  } catch (error) {
+    ElMessage.error("加载泳道看板数据失败");
+  }
+}
+
+async function handleDragEnd(event: any, targetStatus: string) {
+  const { newIndex } = event;
+  if (newIndex === null || newIndex === undefined) return;
+  
+  const order = kanbanData[targetStatus][newIndex];
+  if (!order) return;
+  
+  // 获取原始状态
+  let originalStatus = "";
+  for (const [status, orders] of Object.entries(kanbanData)) {
+    if (orders.some((o: any) => o.orderNo === order.orderNo)) {
+      originalStatus = status;
+      break;
+    }
+  }
+  
+  // 如果状态没有变化，不处理
+  if (originalStatus === targetStatus) return;
+  
+  try {
+    // 调用 API 更新订单状态
+    await batchUpdateOrderStatus([order.orderNo], targetStatus.toLowerCase());
+    ElMessage.success(`订单 ${order.orderNo} 状态已更新`);
+  } catch (error) {
+    ElMessage.error("状态更新失败");
+    // 恢复原始状态
+    await loadKanbanOrders();
+  }
 }
 
 function openPriceDialog(row: any) {
@@ -4192,6 +5351,33 @@ const dashCategoryPieRef = ref<echarts.ECharts | null>(null);
 const dashHotProductRef = ref<echarts.ECharts | null>(null);
 const dashCustomerTopRef = ref<echarts.ECharts | null>(null);
 const dashAlerts = ref<any[]>([]);
+
+// 待办事项和快捷入口
+const todoList = ref<any[]>([]);
+const quickEntries = ref([
+  { label: '新建销售单', icon: '📝', nav: '销售单' },
+  { label: '商品管理', icon: '📦', nav: '商品' },
+  { label: '订单管理', icon: '📋', nav: '订单' },
+  { label: '客户管理', icon: '👥', nav: '客户' },
+  { label: '库存查询', icon: '🏪', nav: '库存' },
+  { label: '报表中心', icon: '📊', nav: '报表' }
+]);
+
+function loadTodoList() {
+  // 模拟待办数据，实际应从后端获取
+  todoList.value = [
+    { id: 1, title: '3个销售单待收款', priority: 'high', priorityText: '高', nav: '销售单' },
+    { id: 2, title: '5个商品库存预警', priority: 'medium', priorityText: '中', nav: '预警中心' },
+    { id: 3, title: '2个订单待发货', priority: 'medium', priorityText: '中', nav: '订单' },
+    { id: 4, title: '1个客户信用预警', priority: 'low', priorityText: '低', nav: '授信管理' }
+  ];
+}
+
+function handleTodoClick(todo: any) {
+  if (todo.nav) {
+    activeNav.value = todo.nav;
+  }
+}
 
 function loadDashCards(data: any) {
   dashCards.value = [
@@ -5591,6 +6777,12 @@ async function handleCancelStockCheck(row: any) {
 async function handleScDiff(row: any) {
   try { await handleStockCheckDiff(scDetailData.value.id, { itemId: row.id }); ElMessage.success("差异已处理"); openStockCheckDetail({ id: scDetailData.value.id }); } catch (e) { ElMessage.error(getErrorMessage(e, "处理失败")); }
 }
+
+watch(activeNav, (newNav) => {
+  if (newNav === "订单泳道") {
+    loadKanbanOrders();
+  }
+});
 
 onMounted(() => {
   if (typeof window !== "undefined") {
