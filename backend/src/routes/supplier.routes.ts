@@ -9,48 +9,69 @@ import { ok } from "../shared/response.js";
 export const supplierRouter = Router();
 
 supplierRouter.get("/", requireAuthWithTenant, asyncHandler(async (req, res) => {
-  const { keyword, status, page = 1, pageSize = 20 } = req.query;
+  const { keyword, supplyType, status, page = 1, pageSize = 20 } = req.query;
   const tenantId = req.tenantId!;
 
+  let countSql = "SELECT COUNT(*) as total FROM supplier WHERE tenant_id = ?";
+  let countParams: any[] = [tenantId];
+
   let sql = `SELECT 
-    id,
-    supplier_code AS supplierCode,
-    name,
-    short_name AS shortName,
-    category,
-    province,
-    city,
-    district,
-    address,
-    credit_level AS creditLevel,
-    settlement_type AS settlementType,
-    settlement_day AS settlementDay,
-    tax_rate AS taxRate,
-    bank_name AS bankName,
-    bank_account AS bankAccount,
-    bank_account_name AS bankAccountName,
-    status,
-    remark,
-    created_at AS createdAt,
-    updated_at AS updatedAt
-  FROM supplier WHERE tenant_id = ?`;
+    s.id,
+    s.supplier_code AS supplierCode,
+    s.name,
+    s.short_name AS shortName,
+    s.category AS supplyType,
+    s.province,
+    s.city,
+    s.district,
+    s.address,
+    s.credit_level AS creditLevel,
+    s.settlement_type AS settlementType,
+    s.settlement_day AS settlementDay,
+    s.tax_rate AS taxRate,
+    s.bank_name AS bankName,
+    s.bank_account AS bankAccount,
+    s.bank_account_name AS bankAccountName,
+    s.status,
+    s.remark,
+    s.created_at AS createdAt,
+    s.updated_at AS updatedAt,
+    sc.name AS contactPerson,
+    sc.mobile AS phone
+  FROM supplier s
+  LEFT JOIN supplier_contact sc ON sc.supplier_id = s.id AND sc.is_primary = 1
+  WHERE s.tenant_id = ?`;
   const params: any[] = [tenantId];
 
   if (keyword) {
-    sql += " AND (name LIKE ? OR short_name LIKE ? OR supplier_code LIKE ?)";
+    sql += " AND (s.name LIKE ? OR s.short_name LIKE ? OR s.supplier_code LIKE ?)";
+    countSql += " AND (name LIKE ? OR short_name LIKE ? OR supplier_code LIKE ?)";
     params.push(`%${keyword}%`, `%${keyword}%`, `%${keyword}%`);
+    countParams.push(`%${keyword}%`, `%${keyword}%`, `%${keyword}%`);
+  }
+
+  if (supplyType) {
+    sql += " AND s.category = ?";
+    countSql += " AND category = ?";
+    params.push(supplyType);
+    countParams.push(supplyType);
   }
 
   if (status !== undefined) {
-    sql += " AND status = ?";
+    sql += " AND s.status = ?";
+    countSql += " AND status = ?";
     params.push(Number(status));
+    countParams.push(Number(status));
   }
 
-  sql += " ORDER BY created_at DESC LIMIT ? OFFSET ?";
+  const countResult = await queryOne<any>(countSql, countParams);
+  const total = countResult?.total || 0;
+
+  sql += " ORDER BY s.created_at DESC LIMIT ? OFFSET ?";
   params.push(Number(pageSize), (Number(page) - 1) * Number(pageSize));
 
-  const suppliers = await query<any>(sql, params);
-  res.json(ok(suppliers));
+  const records = await query<any>(sql, params);
+  res.json(ok({ records, total, page: Number(page), pageSize: Number(pageSize) }));
 }));
 
 supplierRouter.get("/:id", requireAuthWithTenant, asyncHandler(async (req, res) => {
@@ -63,7 +84,7 @@ supplierRouter.get("/:id", requireAuthWithTenant, asyncHandler(async (req, res) 
       supplier_code AS supplierCode,
       name,
       short_name AS shortName,
-      category,
+      category AS supplyType,
       province,
       city,
       district,
@@ -112,7 +133,7 @@ supplierRouter.post("/", requireAuthWithTenant, asyncHandler(async (req, res) =>
   const body = z.object({
     name: z.string().min(1).max(128),
     shortName: z.string().max(64).optional(),
-    category: z.string().max(32).optional(),
+    supplyType: z.string().max(32).optional(),
     province: z.string().max(64).optional(),
     city: z.string().max(64).optional(),
     district: z.string().max(64).optional(),
@@ -125,32 +146,49 @@ supplierRouter.post("/", requireAuthWithTenant, asyncHandler(async (req, res) =>
     bankAccount: z.string().max(64).optional(),
     bankAccountName: z.string().max(64).optional(),
     remark: z.string().max(255).optional(),
+    contactPerson: z.string().max(64).optional(),
+    contactMobile: z.string().max(20).optional(),
+    contactPhone: z.string().max(32).optional(),
   }).parse(req.body);
 
   const tenantId = req.tenantId!;
   const supplierCode = makeBizNo("GYS");
 
-  const result = await query(
-    `INSERT INTO supplier (
-      supplier_code, name, short_name, category, province, city, district, address,
-      credit_level, settlement_type, settlement_day, tax_rate, bank_name, bank_account,
-      bank_account_name, remark, tenant_id
-    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
-    [
-      supplierCode, body.name, body.shortName || null, body.category || null,
-      body.province || null, body.city || null, body.district || null, body.address || null,
-      body.creditLevel, body.settlementType, body.settlementDay || null, body.taxRate,
-      body.bankName || null, body.bankAccount || null, body.bankAccountName || null,
-      body.remark || null, tenantId
-    ]
-  );
+  let supplierId = 0;
+  await transaction(async (conn) => {
+    const result = await conn.execute(
+      `INSERT INTO supplier (
+        supplier_code, name, short_name, category, province, city, district, address,
+        credit_level, settlement_type, settlement_day, tax_rate, bank_name, bank_account,
+        bank_account_name, remark, tenant_id
+      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+      [
+        supplierCode, body.name, body.shortName || null, body.supplyType || null,
+        body.province || null, body.city || null, body.district || null, body.address || null,
+        body.creditLevel, body.settlementType, body.settlementDay || null, body.taxRate,
+        body.bankName || null, body.bankAccount || null, body.bankAccountName || null,
+        body.remark || null, tenantId
+      ]
+    );
 
-  await query(
-    "INSERT INTO operation_log (module, action, target_id, target_type, user_id, user_name, detail, tenant_id) VALUES (?, ?, ?, ?, ?, ?, ?, ?)",
-    ["supplier", "CREATE", String(result.insertId), "supplier", req.user!.id, req.user!.username, `创建供应商: ${body.name}`, tenantId]
-  );
+    supplierId = (result as any).insertId;
 
-  res.json(ok({ id: result.insertId, supplierCode }));
+    if (body.contactPerson) {
+      await conn.execute(
+        `INSERT INTO supplier_contact (
+          supplier_id, name, mobile, phone, is_primary, position
+        ) VALUES (?, ?, ?, ?, 1, '联系人')`,
+        [supplierId, body.contactPerson, body.contactMobile || null, body.contactPhone || null]
+      );
+    }
+
+    await conn.execute(
+      "INSERT INTO operation_log (module, action, target_id, target_type, user_id, user_name, detail, tenant_id) VALUES (?, ?, ?, ?, ?, ?, ?, ?)",
+      ["supplier", "CREATE", String(supplierId), "supplier", req.user!.id, req.user!.username, `创建供应商: ${body.name}`, tenantId]
+    );
+  });
+
+  res.json(ok({ id: supplierId, supplierCode }));
 }));
 
 supplierRouter.put("/:id", requireAuthWithTenant, asyncHandler(async (req, res) => {
@@ -170,7 +208,7 @@ supplierRouter.put("/:id", requireAuthWithTenant, asyncHandler(async (req, res) 
   const body = z.object({
     name: z.string().min(1).max(128).optional(),
     shortName: z.string().max(64).optional(),
-    category: z.string().max(32).optional(),
+    supplyType: z.string().max(32).optional(),
     province: z.string().max(64).optional(),
     city: z.string().max(64).optional(),
     district: z.string().max(64).optional(),
@@ -189,7 +227,7 @@ supplierRouter.put("/:id", requireAuthWithTenant, asyncHandler(async (req, res) 
   const fieldMap: Record<string, string> = {
     name: "name",
     shortName: "short_name",
-    category: "category",
+    supplyType: "category",
     province: "province",
     city: "city",
     district: "district",

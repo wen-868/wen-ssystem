@@ -105,6 +105,7 @@ app.use("/api/admin/sys-config", requireAuthWithTenant, sysConfigRouter);
 app.use("/api/admin/suppliers", requireAuthWithTenant, supplierRouter);
 app.use("/api/admin/purchase-orders", requireAuthWithTenant, purchaseRouter);
 app.use("/api/store/sale-returns", requireAuthWithTenant, saleReturnRouter);
+app.use("/api/admin/sale-returns", requireAuthWithTenant, saleReturnRouter);
 app.use("/api/admin/purchase-in-stocks", requireAuthWithTenant, purchaseInStockRouter);
 app.use("/api/admin/purchase-returns", requireAuthWithTenant, purchaseReturnRouter);
 app.use("/api/admin/customer-statements", requireAuthWithTenant, customerStatementRouter);

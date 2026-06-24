@@ -4,9 +4,9 @@ type Row = Record<string, any>;
 
 const state = {
   users: [
-    { id: 1, username: "admin", password_hash: sha256("admin123"), real_name: "系统管理员", store_id: null, status: 1 },
-    { id: 2, username: "store_manager", password_hash: sha256("admin123"), real_name: "默认店长", store_id: 1, status: 1 },
-    { id: 3, username: "store_operator", password_hash: sha256("admin123"), real_name: "默认店员", store_id: 1, status: 1 }
+    { id: 1, username: "admin", password_hash: sha256("admin123"), real_name: "系统管理员", store_id: null, status: 1, tenant_id: "default" },
+    { id: 2, username: "store_manager", password_hash: sha256("admin123"), real_name: "默认店长", store_id: 1, status: 1, tenant_id: "default" },
+    { id: 3, username: "store_operator", password_hash: sha256("admin123"), real_name: "默认店员", store_id: 1, status: 1, tenant_id: "default" }
   ],
   roles: [
     { id: 1, role_code: "SUPER_ADMIN", role_name: "超级管理员", status: 1 },

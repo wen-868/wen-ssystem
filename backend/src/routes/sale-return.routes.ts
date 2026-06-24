@@ -9,8 +9,11 @@ import { ok } from "../shared/response.js";
 export const saleReturnRouter = Router();
 
 saleReturnRouter.get("/", requireAuthWithTenant, asyncHandler(async (req, res) => {
-  const { storeId, customerId, returnStatus, startDate, endDate, page = 1, pageSize = 20 } = req.query;
+  const { storeId, customerId, status, startDate, endDate, keyword, page = 1, pageSize = 20 } = req.query;
   const tenantId = req.tenantId!;
+
+  let countSql = "SELECT COUNT(*) as total FROM sale_return WHERE tenant_id = ?";
+  let countParams: any[] = [tenantId];
 
   let sql = `SELECT 
     id,
@@ -20,7 +23,7 @@ saleReturnRouter.get("/", requireAuthWithTenant, asyncHandler(async (req, res) =
     customer_id AS customerId,
     customer_name AS customerName,
     customer_mobile AS customerMobile,
-    return_status AS returnStatus,
+    return_status AS status,
     goods_amount AS goodsAmount,
     discount_amount AS discountAmount,
     refund_amount AS refundAmount,
@@ -37,34 +40,54 @@ saleReturnRouter.get("/", requireAuthWithTenant, asyncHandler(async (req, res) =
 
   if (storeId) {
     sql += " AND store_id = ?";
+    countSql += " AND store_id = ?";
     params.push(Number(storeId));
+    countParams.push(Number(storeId));
   }
 
   if (customerId) {
     sql += " AND customer_id = ?";
+    countSql += " AND customer_id = ?";
     params.push(Number(customerId));
+    countParams.push(Number(customerId));
   }
 
-  if (returnStatus) {
+  if (status) {
     sql += " AND return_status = ?";
-    params.push(returnStatus);
+    countSql += " AND return_status = ?";
+    params.push(status);
+    countParams.push(status);
+  }
+
+  if (keyword) {
+    sql += " AND (return_no LIKE ? OR customer_name LIKE ? OR source_bill_no LIKE ?)";
+    countSql += " AND (return_no LIKE ? OR customer_name LIKE ? OR source_bill_no LIKE ?)";
+    params.push(`%${keyword}%`, `%${keyword}%`, `%${keyword}%`);
+    countParams.push(`%${keyword}%`, `%${keyword}%`, `%${keyword}%`);
   }
 
   if (startDate) {
     sql += " AND created_at >= ?";
+    countSql += " AND created_at >= ?";
     params.push(startDate);
+    countParams.push(startDate);
   }
 
   if (endDate) {
     sql += " AND created_at <= ?";
+    countSql += " AND created_at <= ?";
     params.push(endDate);
+    countParams.push(endDate);
   }
+
+  const countResult = await queryOne<any>(countSql, countParams);
+  const total = countResult?.total || 0;
 
   sql += " ORDER BY created_at DESC LIMIT ? OFFSET ?";
   params.push(Number(pageSize), (Number(page) - 1) * Number(pageSize));
 
-  const returns = await query<any>(sql, params);
-  res.json(ok(returns));
+  const records = await query<any>(sql, params);
+  res.json(ok({ records, total, page: Number(page), pageSize: Number(pageSize) }));
 }));
 
 saleReturnRouter.get("/:returnNo", requireAuthWithTenant, asyncHandler(async (req, res) => {
@@ -80,7 +103,7 @@ saleReturnRouter.get("/:returnNo", requireAuthWithTenant, asyncHandler(async (re
       customer_id AS customerId,
       customer_name AS customerName,
       customer_mobile AS customerMobile,
-      return_status AS returnStatus,
+      return_status AS status,
       goods_amount AS goodsAmount,
       discount_amount AS discountAmount,
       refund_amount AS refundAmount,
@@ -111,7 +134,7 @@ saleReturnRouter.get("/:returnNo", requireAuthWithTenant, asyncHandler(async (re
       bottle_qty AS bottleQty,
       total_bottle_qty AS totalBottleQty,
       unit_price AS unitPrice,
-      subtotal_amount AS subtotalAmount,
+      subtotal_amount AS subtotal,
       reason
     FROM sale_return_item WHERE return_no = ? ORDER BY id ASC`,
     [returnNo]
@@ -146,13 +169,13 @@ saleReturnRouter.post("/", requireAuthWithTenant, asyncHandler(async (req, res) 
 
   const itemsWithAmount = body.items.map(item => {
     const totalBottleQty = item.boxQty * 12 + item.bottleQty;
-    const subtotalAmount = totalBottleQty * item.unitPrice;
-    goodsAmount += subtotalAmount;
+    const subtotal = totalBottleQty * item.unitPrice;
+    goodsAmount += subtotal;
 
     return {
       ...item,
       totalBottleQty,
-      subtotalAmount,
+      subtotal,
     };
   });
 
@@ -182,7 +205,7 @@ saleReturnRouter.post("/", requireAuthWithTenant, asyncHandler(async (req, res) 
         [
           returnNo, item.skuId, item.skuName,
           item.boxQty, item.bottleQty, item.totalBottleQty,
-          item.unitPrice, item.subtotalAmount, item.reason || null
+          item.unitPrice, item.subtotal, item.reason || null
         ]
       );
     }
@@ -236,18 +259,20 @@ saleReturnRouter.post("/:returnNo/approve", requireAuthWithTenant, asyncHandler(
       );
     }
 
-    await conn.execute(
-      `INSERT INTO inventory_ledger (
-        store_id, sku_id, change_type, change_qty, before_qty, after_qty,
-        source_no, source_type, operator_id, remark, tenant_id
-      ) VALUES (?, ?, 'RETURN_IN', ?, ?, ?, ?, 'sale_return', ?, ?, ?)`,
-      [
-        returnOrder.store_id, itemRows[0]?.sku_id || 0, 
-        itemRows.reduce((sum: number, i: any) => sum + i.total_bottle_qty, 0),
-        0, itemRows.reduce((sum: number, i: any) => sum + i.total_bottle_qty, 0),
-        returnNo, req.user!.id, `退货入库: ${returnNo}`, tenantId
-      ]
-    );
+    if (itemRows.length > 0) {
+      const totalQty = itemRows.reduce((sum: number, i: any) => sum + i.total_bottle_qty, 0);
+      await conn.execute(
+        `INSERT INTO inventory_ledger (
+          store_id, sku_id, change_type, change_qty, before_qty, after_qty,
+          source_no, source_type, operator_id, remark, tenant_id
+        ) VALUES (?, ?, 'RETURN_IN', ?, ?, ?, ?, 'sale_return', ?, ?, ?)`,
+        [
+          returnOrder.store_id, itemRows[0].sku_id, totalQty,
+          0, totalQty,
+          returnNo, req.user!.id, `退货入库: ${returnNo}`, tenantId
+        ]
+      );
+    }
 
     await conn.execute(
       "INSERT INTO operation_log (module, action, target_id, target_type, user_id, user_name, detail, tenant_id) VALUES (?, ?, ?, ?, ?, ?, ?, ?)",

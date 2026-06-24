@@ -9,20 +9,24 @@ import { ok } from "../shared/response.js";
 export const purchaseRouter = Router();
 
 purchaseRouter.get("/", requireAuthWithTenant, asyncHandler(async (req, res) => {
-  const { supplierId, orderStatus, startDate, endDate, page = 1, pageSize = 20 } = req.query;
+  const { supplierId, status, startDate, endDate, keyword, page = 1, pageSize = 20 } = req.query;
   const tenantId = req.tenantId!;
+
+  let countSql = "SELECT COUNT(*) as total FROM purchase_order WHERE tenant_id = ?";
+  let countParams: any[] = [tenantId];
 
   let sql = `SELECT 
     id,
-    order_no AS orderNo,
+    order_no AS purchaseNo,
     supplier_id AS supplierId,
     supplier_name AS supplierName,
     store_id AS storeId,
-    order_status AS orderStatus,
+    order_status AS status,
+    warehouse_status AS warehouseStatus,
     goods_amount AS goodsAmount,
     tax_amount AS taxAmount,
     discount_amount AS discountAmount,
-    payable_amount AS payableAmount,
+    payable_amount AS totalAmount,
     paid_amount AS paidAmount,
     unpaid_amount AS unpaidAmount,
     expected_date AS expectedDate,
@@ -37,29 +41,47 @@ purchaseRouter.get("/", requireAuthWithTenant, asyncHandler(async (req, res) => 
 
   if (supplierId) {
     sql += " AND supplier_id = ?";
+    countSql += " AND supplier_id = ?";
     params.push(Number(supplierId));
+    countParams.push(Number(supplierId));
   }
 
-  if (orderStatus) {
+  if (status) {
     sql += " AND order_status = ?";
-    params.push(orderStatus);
+    countSql += " AND order_status = ?";
+    params.push(status);
+    countParams.push(status);
+  }
+
+  if (keyword) {
+    sql += " AND (order_no LIKE ? OR supplier_name LIKE ?)";
+    countSql += " AND (order_no LIKE ? OR supplier_name LIKE ?)";
+    params.push(`%${keyword}%`, `%${keyword}%`);
+    countParams.push(`%${keyword}%`, `%${keyword}%`);
   }
 
   if (startDate) {
     sql += " AND created_at >= ?";
+    countSql += " AND created_at >= ?";
     params.push(startDate);
+    countParams.push(startDate);
   }
 
   if (endDate) {
     sql += " AND created_at <= ?";
+    countSql += " AND created_at <= ?";
     params.push(endDate);
+    countParams.push(endDate);
   }
+
+  const countResult = await queryOne<any>(countSql, countParams);
+  const total = countResult?.total || 0;
 
   sql += " ORDER BY created_at DESC LIMIT ? OFFSET ?";
   params.push(Number(pageSize), (Number(page) - 1) * Number(pageSize));
 
-  const orders = await query<any>(sql, params);
-  res.json(ok(orders));
+  const records = await query<any>(sql, params);
+  res.json(ok({ records, total, page: Number(page), pageSize: Number(pageSize) }));
 }));
 
 purchaseRouter.get("/:orderNo", requireAuthWithTenant, asyncHandler(async (req, res) => {
@@ -69,15 +91,16 @@ purchaseRouter.get("/:orderNo", requireAuthWithTenant, asyncHandler(async (req, 
   const order = await queryOne<any>(
     `SELECT 
       id,
-      order_no AS orderNo,
+      order_no AS purchaseNo,
       supplier_id AS supplierId,
       supplier_name AS supplierName,
       store_id AS storeId,
-      order_status AS orderStatus,
+      order_status AS status,
+      warehouse_status AS warehouseStatus,
       goods_amount AS goodsAmount,
       tax_amount AS taxAmount,
       discount_amount AS discountAmount,
-      payable_amount AS payableAmount,
+      payable_amount AS totalAmount,
       paid_amount AS paidAmount,
       unpaid_amount AS unpaidAmount,
       expected_date AS expectedDate,
@@ -99,7 +122,7 @@ purchaseRouter.get("/:orderNo", requireAuthWithTenant, asyncHandler(async (req, 
   const items = await query<any>(
     `SELECT 
       id,
-      order_no AS orderNo,
+      order_no AS purchaseNo,
       sku_id AS skuId,
       sku_name AS skuName,
       barcode,
@@ -108,7 +131,7 @@ purchaseRouter.get("/:orderNo", requireAuthWithTenant, asyncHandler(async (req, 
       total_bottle_qty AS totalBottleQty,
       unit_price AS unitPrice,
       tax_rate AS taxRate,
-      subtotal_amount AS subtotalAmount,
+      subtotal_amount AS subtotal,
       tax_amount AS taxAmount,
       total_amount AS totalAmount,
       remark
@@ -116,7 +139,21 @@ purchaseRouter.get("/:orderNo", requireAuthWithTenant, asyncHandler(async (req, 
     [orderNo]
   );
 
-  res.json(ok({ ...order, items }));
+  const operationLogs = await query<any>(
+    `SELECT 
+      id,
+      action,
+      operator_id AS operatorId,
+      user_name AS operator,
+      detail AS remark,
+      created_at AS createdAt
+    FROM operation_log 
+    WHERE target_id = ? AND target_type = 'purchase_order' 
+    ORDER BY created_at DESC`,
+    [orderNo]
+  );
+
+  res.json(ok({ ...order, items, operationLogs }));
 }));
 
 purchaseRouter.post("/", requireAuthWithTenant, asyncHandler(async (req, res) => {
@@ -147,23 +184,23 @@ purchaseRouter.post("/", requireAuthWithTenant, asyncHandler(async (req, res) =>
 
   const itemsWithAmount = body.items.map(item => {
     const totalBottleQty = item.boxQty * 12 + item.bottleQty;
-    const subtotalAmount = totalBottleQty * item.unitPrice;
-    const itemTaxAmount = subtotalAmount * item.taxRate;
-    const totalAmount = subtotalAmount + itemTaxAmount;
+    const subtotal = totalBottleQty * item.unitPrice;
+    const itemTaxAmount = subtotal * item.taxRate;
+    const totalAmount = subtotal + itemTaxAmount;
 
-    goodsAmount += subtotalAmount;
+    goodsAmount += subtotal;
     taxAmount += itemTaxAmount;
 
     return {
       ...item,
       totalBottleQty,
-      subtotalAmount,
+      subtotal,
       taxAmount: itemTaxAmount,
       totalAmount,
     };
   });
 
-  const payableAmount = goodsAmount + taxAmount - body.discountAmount;
+  const totalAmount = goodsAmount + taxAmount - body.discountAmount;
 
   await transaction(async (conn) => {
     await conn.execute(
@@ -171,11 +208,11 @@ purchaseRouter.post("/", requireAuthWithTenant, asyncHandler(async (req, res) =>
         order_no, supplier_id, supplier_name, store_id, order_status,
         goods_amount, tax_amount, discount_amount, payable_amount,
         paid_amount, unpaid_amount, expected_date, operator_id, remark, tenant_id
-      ) VALUES (?, ?, ?, ?, 'DRAFT', ?, ?, ?, ?, 0, ?, ?, ?, ?, ?)`,
+      ) VALUES (?, ?, ?, ?, 'PENDING', ?, ?, ?, ?, 0, ?, ?, ?, ?, ?)`,
       [
         orderNo, body.supplierId, body.supplierName, body.storeId,
-        goodsAmount, taxAmount, body.discountAmount, payableAmount,
-        payableAmount, body.expectedDate || null, req.user!.id, body.remark || null, tenantId
+        goodsAmount, taxAmount, body.discountAmount, totalAmount,
+        totalAmount, body.expectedDate || null, req.user!.id, body.remark || null, tenantId
       ]
     );
 
@@ -188,7 +225,7 @@ purchaseRouter.post("/", requireAuthWithTenant, asyncHandler(async (req, res) =>
         [
           orderNo, item.skuId, item.skuName, item.barcode || null,
           item.boxQty, item.bottleQty, item.totalBottleQty,
-          item.unitPrice, item.taxRate, item.subtotalAmount, item.taxAmount,
+          item.unitPrice, item.taxRate, item.subtotal, item.taxAmount,
           item.totalAmount, item.remark || null
         ]
       );
@@ -200,7 +237,7 @@ purchaseRouter.post("/", requireAuthWithTenant, asyncHandler(async (req, res) =>
     );
   });
 
-  res.json(ok({ orderNo }));
+  res.json(ok({ purchaseNo: orderNo }));
 }));
 
 purchaseRouter.post("/:orderNo/submit", requireAuthWithTenant, asyncHandler(async (req, res) => {
@@ -232,7 +269,7 @@ purchaseRouter.post("/:orderNo/submit", requireAuthWithTenant, asyncHandler(asyn
     ["purchase", "SUBMIT", orderNo, "purchase_order", req.user!.id, req.user!.username, `提交审核: ${orderNo}`, tenantId]
   );
 
-  res.json(ok({ orderNo }));
+  res.json(ok({ purchaseNo: orderNo }));
 }));
 
 purchaseRouter.post("/:orderNo/approve", requireAuthWithTenant, asyncHandler(async (req, res) => {
@@ -264,7 +301,7 @@ purchaseRouter.post("/:orderNo/approve", requireAuthWithTenant, asyncHandler(asy
     ["purchase", "APPROVE", orderNo, "purchase_order", req.user!.id, req.user!.username, `审核通过: ${orderNo}`, tenantId]
   );
 
-  res.json(ok({ orderNo }));
+  res.json(ok({ purchaseNo: orderNo }));
 }));
 
 purchaseRouter.post("/:orderNo/cancel", requireAuthWithTenant, asyncHandler(async (req, res) => {
@@ -296,5 +333,5 @@ purchaseRouter.post("/:orderNo/cancel", requireAuthWithTenant, asyncHandler(asyn
     ["purchase", "CANCEL", orderNo, "purchase_order", req.user!.id, req.user!.username, `取消订单: ${orderNo}`, tenantId]
   );
 
-  res.json(ok({ orderNo }));
+  res.json(ok({ purchaseNo: orderNo }));
 }));
