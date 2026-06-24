@@ -3868,13 +3868,36 @@ const loginRules = {
 const loginFormRef = ref();
 const supplierFormRef = ref();
 const supplierRules = {
-  name: [{ required: true, message: "请填写供应商名称", trigger: "blur" }],
-  supplierCode: [{ required: true, message: "请填写供应商编码", trigger: "blur" }],
+  name: [
+    { required: true, message: "请填写供应商名称", trigger: "blur" },
+    { min: 2, max: 50, message: "供应商名称长度为2-50个字符", trigger: "blur" }
+  ],
+  supplierCode: [
+    { required: true, message: "请填写供应商编码", trigger: "blur" },
+    { pattern: /^[A-Za-z0-9_-]+$/, message: "编码只能包含字母、数字、下划线和横线", trigger: "blur" }
+  ],
+  contactPerson: [{ max: 20, message: "联系人姓名不超过20个字符", trigger: "blur" }],
   phone: [{
     validator: (_: any, value: string, callback: any) => {
       if (!value) callback();
       else if (mobilePattern.test(value)) callback();
-      else callback(new Error("请填写正确的手机号"));
+      else callback(new Error("请填写正确的11位手机号"));
+    },
+    trigger: "blur"
+  }],
+  email: [{
+    validator: (_: any, value: string, callback: any) => {
+      if (!value) callback();
+      else if (/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value)) callback();
+      else callback(new Error("请填写正确的邮箱地址"));
+    },
+    trigger: "blur"
+  }],
+  bankAccount: [{
+    validator: (_: any, value: string, callback: any) => {
+      if (!value) callback();
+      else if (/^\d{16,19}$/.test(value)) callback();
+      else callback(new Error("银行账号应为16-19位数字"));
     },
     trigger: "blur"
   }]
@@ -3882,7 +3905,22 @@ const supplierRules = {
 const purchaseFormRef = ref();
 const purchaseRules = {
   supplierId: [{ required: true, message: "请选择供应商", trigger: "change" }],
-  warehouseId: [{ required: true, message: "请选择仓库", trigger: "change" }]
+  warehouseId: [{ required: true, message: "请选择仓库", trigger: "change" }],
+  expectedDate: [{ required: true, message: "请选择预计到货日期", trigger: "change" }]
+};
+
+// 采购订单商品列表验证
+const validatePurchaseItems = (_: any, __: any, callback: any) => {
+  if (!purchaseForm.items || purchaseForm.items.length === 0) {
+    callback(new Error("请至少添加一个商品"));
+  } else {
+    const invalid = purchaseForm.items.find((item: any) => !item.skuId || !item.quantity || item.quantity <= 0 || !item.unitPrice || item.unitPrice < 0);
+    if (invalid) {
+      callback(new Error("请完整填写所有商品的SKU、数量和单价"));
+    } else {
+      callback();
+    }
+  }
 };
 const statementCreateFormRef = ref();
 const statementCreateRules = {
