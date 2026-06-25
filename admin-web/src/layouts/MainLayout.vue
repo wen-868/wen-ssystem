@@ -18,20 +18,23 @@
         class="sidebar-menu"
         router
       >
+        <!-- 1. 工作台 -->
         <el-menu-item index="/dashboard">
           <el-icon><HomeFilled /></el-icon>
           <template #title>工作台</template>
         </el-menu-item>
 
-        <el-sub-menu index="products">
+        <!-- 2. 销售管理 -->
+        <el-sub-menu index="sales">
           <template #title>
-            <el-icon><Goods /></el-icon>
-            <span>商品管理</span>
+            <el-icon><ShoppingCart /></el-icon>
+            <span>销售管理</span>
           </template>
-          <el-menu-item index="/products">商品列表</el-menu-item>
-          <el-menu-item index="/prices">价格中心</el-menu-item>
+          <el-menu-item index="/sale-bills">销售单</el-menu-item>
+          <el-menu-item index="/sale-returns">销售退货</el-menu-item>
         </el-sub-menu>
 
+        <!-- 3. 订单管理 -->
         <el-sub-menu index="orders">
           <template #title>
             <el-icon><Document /></el-icon>
@@ -42,16 +45,7 @@
           <el-menu-item index="/order-timeout">超时处理</el-menu-item>
         </el-sub-menu>
 
-        <el-sub-menu index="sales">
-          <template #title>
-            <el-icon><ShoppingCart /></el-icon>
-            <span>销售管理</span>
-          </template>
-          <el-menu-item index="/sale-bills">销售单</el-menu-item>
-          <el-menu-item index="/sale-returns">销售退货</el-menu-item>
-          <el-menu-item index="/payments">收款记录</el-menu-item>
-        </el-sub-menu>
-
+        <!-- 4. 采购管理 -->
         <el-sub-menu index="purchase">
           <template #title>
             <el-icon><Box /></el-icon>
@@ -62,16 +56,7 @@
           <el-menu-item index="/suppliers">供应商</el-menu-item>
         </el-sub-menu>
 
-        <el-sub-menu index="customers">
-          <template #title>
-            <el-icon><User /></el-icon>
-            <span>客户管理</span>
-          </template>
-          <el-menu-item index="/customers">客户列表</el-menu-item>
-          <el-menu-item index="/customer-statements">客户对账</el-menu-item>
-          <el-menu-item index="/credit">授信管理</el-menu-item>
-        </el-sub-menu>
-
+        <!-- 5. 库存管理 -->
         <el-sub-menu index="inventory">
           <template #title>
             <el-icon><Files /></el-icon>
@@ -81,42 +66,74 @@
           <el-menu-item index="/inventory-alerts">预警中心</el-menu-item>
         </el-sub-menu>
 
-        <el-sub-menu index="stores">
+        <!-- 6. 客户管理 -->
+        <el-sub-menu index="customers">
           <template #title>
-            <el-icon><OfficeBuilding /></el-icon>
-            <span>门店管理</span>
+            <el-icon><User /></el-icon>
+            <span>客户管理</span>
           </template>
-          <el-menu-item index="/stores">门店列表</el-menu-item>
-          <el-menu-item index="/employees">员工管理</el-menu-item>
+          <el-menu-item index="/customers">客户列表</el-menu-item>
+          <el-menu-item index="/credit">授信管理</el-menu-item>
         </el-sub-menu>
 
+        <!-- 7. 商品中心 -->
+        <el-sub-menu index="products">
+          <template #title>
+            <el-icon><Goods /></el-icon>
+            <span>商品中心</span>
+          </template>
+          <el-menu-item index="/products">商品列表</el-menu-item>
+          <el-menu-item index="/prices">价格中心</el-menu-item>
+        </el-sub-menu>
+
+        <!-- 8. 即时零售（开发中） -->
+        <el-sub-menu index="instant-retail" disabled>
+          <template #title>
+            <el-icon><Shop /></el-icon>
+            <span>即时零售</span>
+          </template>
+          <el-menu-item index="/instant-retail/orders">小程序商城</el-menu-item>
+          <el-menu-item index="/instant-retail/delivery">配送管理</el-menu-item>
+        </el-sub-menu>
+
+        <!-- 9. 财务管理 -->
+        <el-sub-menu index="finance">
+          <template #title>
+            <el-icon><Coin /></el-icon>
+            <span>财务管理</span>
+          </template>
+          <el-menu-item index="/payments">收款记录</el-menu-item>
+          <el-menu-item index="/collection">分享收款</el-menu-item>
+          <el-menu-item index="/customer-statements">客户对账</el-menu-item>
+        </el-sub-menu>
+
+        <!-- 10. 数据报表 -->
+        <el-menu-item index="/reports">
+          <el-icon><DataAnalysis /></el-icon>
+          <template #title>数据报表</template>
+        </el-menu-item>
+
+        <!-- 11. 营销推广 -->
         <el-sub-menu index="marketing">
           <template #title>
             <el-icon><Present /></el-icon>
-            <span>营销中心</span>
+            <span>营销推广</span>
           </template>
           <el-menu-item index="/marketing">营销活动</el-menu-item>
           <el-menu-item index="/aftersale">售后管理</el-menu-item>
         </el-sub-menu>
 
-        <el-menu-item index="/reports">
-          <el-icon><DataAnalysis /></el-icon>
-          <template #title>报表中心</template>
-        </el-menu-item>
-
+        <!-- 12. 系统管理（含门店管理） -->
         <el-sub-menu index="system">
           <template #title>
             <el-icon><Setting /></el-icon>
             <span>系统管理</span>
           </template>
+          <el-menu-item index="/stores">门店管理</el-menu-item>
+          <el-menu-item index="/employees">员工管理</el-menu-item>
           <el-menu-item index="/audit-log">操作日志</el-menu-item>
           <el-menu-item index="/system">系统设置</el-menu-item>
         </el-sub-menu>
-
-        <el-menu-item index="/collection">
-          <el-icon><Rank /></el-icon>
-          <template #title>分享收款</template>
-        </el-menu-item>
       </el-menu>
     </aside>
     <main class="main" v-loading="pageLoading">
@@ -176,7 +193,7 @@
 import { computed, ref } from "vue";
 import { useRoute, useRouter } from "vue-router";
 import { ElMessage } from "element-plus";
-import { HomeFilled, Goods, Document, ShoppingCart, Box, User, Files, OfficeBuilding, Present, DataAnalysis, Setting, Expand, Fold, Rank } from "@element-plus/icons-vue";
+import { HomeFilled, Goods, Document, ShoppingCart, Box, User, Files, Shop, Coin, Present, DataAnalysis, Setting, Expand, Fold } from "@element-plus/icons-vue";
 import { formatDate } from "../utils/format";
 
 const route = useRoute();
@@ -192,30 +209,30 @@ const activeMenu = computed(() => route.path);
 const pageTitle = computed(() => {
   const titles: Record<string, string> = {
     "/dashboard": "工作台",
-    "/products": "商品列表",
-    "/prices": "价格中心",
+    "/sale-bills": "销售单",
+    "/sale-returns": "销售退货",
     "/orders": "订单列表",
     "/order-board": "泳道看板",
     "/order-timeout": "超时处理",
-    "/sale-bills": "销售单",
-    "/sale-returns": "销售退货",
-    "/payments": "收款记录",
     "/purchase-orders": "采购订单",
     "/purchase-in-stocks": "采购入库",
     "/suppliers": "供应商",
-    "/customers": "客户列表",
-    "/customer-statements": "客户对账",
-    "/credit": "授信管理",
     "/inventory": "库存总览",
     "/inventory-alerts": "预警中心",
-    "/stores": "门店列表",
-    "/employees": "员工管理",
+    "/customers": "客户列表",
+    "/credit": "授信管理",
+    "/products": "商品列表",
+    "/prices": "价格中心",
+    "/payments": "收款记录",
+    "/collection": "分享收款",
+    "/customer-statements": "客户对账",
+    "/reports": "数据报表",
     "/marketing": "营销活动",
     "/aftersale": "售后管理",
-    "/reports": "报表中心",
+    "/stores": "门店管理",
+    "/employees": "员工管理",
     "/audit-log": "操作日志",
-    "/system": "系统设置",
-    "/collection": "分享收款"
+    "/system": "系统设置"
   };
   return titles[route.path] || "智享营销系统";
 });
