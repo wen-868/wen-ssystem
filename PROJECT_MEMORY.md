@@ -155,15 +155,39 @@
 
 | 文件 | 用途 |
 |------|------|
+| `docs/ASSIGNMENT.md` | Phase 2 任务分配（历史参考） |
+| `docs/DEPLOY.md` | 部署简要说明 |
+| `docs/deployment.md` | 部署详细文档 |
+| `docs/PARTNER_LOG.md` | 合作伙伴沟通记录 |
 | `docs/tenant-isolation-plan.md` | tenant_id 隔离方案（阿坚专属） |
 | `docs/ai-assistant-plan.md` | AI助手技术方案 |
 | `docs/API.md` | API接口文档 |
 | `docs/init_database.sql` | 数据库初始化（62张表） |
-| `docs/deployment.md` | 部署文档 |
 | `docs/ui-style-guide.md` | UI风格指南 |
-| `docs/product-planning/zhixiang-product-plan-v3.html` | 产品规划V3.0（12分类/587字段） |
-| `docs/product-planning/task-assignment-v2-6people.html` | 6人团队任务分配单 |
-| `docs/product-planning/work-plan-v1.html` | 开发工作安排（四阶段路线图） |
+| `docs/product-planning/` | 产品规划HTML（3个文件） |
+| `docs/superpowers/` | 历史设计文档（19个文件，归档） |
+
+### tests/ 目录（测试相关）
+
+| 文件 | 用途 |
+|------|------|
+| `tests/README.md` | 测试说明 |
+| `tests/api-test-suite.mjs` | API 测试套件 |
+| `tests/docs/` | 测试文档（8个文件：测试计划/用例/兼容性/性能/安全） |
+
+### scripts/ 目录（自动化脚本）
+
+| 文件 | 用途 |
+|------|------|
+| `scripts/phase-tracker.mjs` | 阶段追踪 |
+| `scripts/send-report.mjs` | 飞书报告发送 |
+| `scripts/dev-mock.mjs` | 开发 Mock 服务 |
+| `scripts/mysql-smoke-test.mjs` | MySQL 冒烟测试 |
+| `scripts/self-test.mjs` | 自检脚本 |
+| `scripts/qa-regression-test.mjs` | QA 回归测试 |
+| `scripts/ui-contract-test.mjs` | UI 契约测试 |
+| `scripts/build-mobile-beta.mjs` | 手机端打包 |
+| `scripts/build-store-beta.mjs` | 门店端打包 |
 
 ---
 
