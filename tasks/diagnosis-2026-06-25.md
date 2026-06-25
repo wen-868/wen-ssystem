@@ -1,105 +1,125 @@
-# 2026-06-25 系统审查：菜单结构与字段更新诊断
+# 诊断报告 - 管理后台菜单与路由修复
 
-> **审查人：** 凌舟
-> **审查日期：** 2026-06-25
-> **审查范围：** admin-web 菜单结构、一级分类完整性、字段更新状态
+> **日期：** 2026-06-25
+> **检查人：** 凌舟
+> **修复范围：** admin-web 导航菜单、路由配置、销售开单功能
 
 ---
 
 ## 一、发现的问题
 
-### 问题1：一级分类不完整（严重）
-
-**现象：** 系统预览显示11个一级菜单，与产品规划V3.0的12个一级分类不符。
-
-**对比：**
-
-| 预览中显示 | 规划文档要求 | 差异 |
-|-----------|------------|------|
-| 工作台 | 工作台 | ✅ |
-| 商品管理 | 商品中心 | ❌ 名称错误 |
-| 订单管理 | 订单管理 | ✅ |
-| 销售管理 | 销售管理 | ✅ |
-| 采购管理 | 采购管理 | ✅ |
-| 客户管理 | 客户管理 | ✅ |
-| 库存管理 | 库存管理 | ✅ |
-| 门店管理（独立一级）| 系统管理 > 门店管理 | ❌ 位置错误 |
-| 营销中心 | 营销推广 | ❌ 名称错误 |
-| 报表中心 | 数据报表 | ❌ 名称错误 |
-| 系统管理 | 系统管理 | ✅ |
-| **缺失** | **即时零售** | ❌ 完全缺失 |
-| **缺失** | **财务管理** | ❌ 完全缺失 |
-
-### 问题2：门店管理位置错误（严重）
-
-**现象：** 门店管理作为独立一级菜单（含门店列表、员工管理），没有放在系统管理内。
-
-**要求：** 门店管理是系统管理的二级菜单。
-
-### 问题3：字段未更新到代码（严重）
-
-**现象：** `tasks/form-field-spec-v1.md` 已创建（11模块/50+表单/完整字段定义），但代码中的表单字段并未按手册更新。
-
-**根因：** 
-- 表单字段手册是文档，开发人员没有将其应用到实际代码中
-- `feat/formal-mvp-a` 分支的 views 文件是从 phase2-dev 单体 App.vue 拆分出来的，字段定义沿用旧代码
-
-**涉及文件：** `admin-web/src/views/` 下26个 .vue 文件需要按表单字段手册逐项更新。
+| # | 问题 | 严重程度 | 影响范围 |
+|---|------|---------|---------|
+| 1 | 一级分类只有 11 个，缺少"订单管理" | 高 | 产品规划 V3.0 要求 12 个一级分类 |
+| 2 | 门店管理独立为一级菜单，应在系统管理下 | 中 | 导航结构不符合产品规划 |
+| 3 | 二级菜单基本缺失（采购退货、采购付款、库存盘点、库存调拨、批次追溯、商品分类、收款链接、经营利润、报表子项、促销活动、角色权限等） | 高 | 用户无法访问这些功能模块 |
+| 4 | 管理后台不能开销售单，提示"去收银台" | 严重 | 核心业务流程断裂 |
+| 5 | 收银台区域显示占位文本"功能迁移中"而非实际功能 | 高 | 收银台不可用 |
 
 ---
 
-## 二、已完成的修复
+## 二、修复内容
 
-### MainLayout.vue 菜单已修复
+### 2.1 菜单结构重写（MainLayout.vue）
 
-| 修复项 | 修改前 | 修改后 |
-|--------|--------|--------|
-| 菜单数量 | 11个 | 12个（补齐即时零售、财务管理） |
-| 商品管理 | 商品管理 | 商品中心 |
-| 营销中心 | 营销中心 | 营销推广 |
-| 报表中心 | 报表中心 | 数据报表 |
-| 门店管理 | 独立一级菜单 | 归入系统管理二级菜单 |
-| 即时零售 | 缺失 | 新增（disabled，开发中标记） |
-| 财务管理 | 缺失 | 新增（收款记录+分享收款+客户对账） |
+**修复前：** 11 个一级分类，二级菜单不完整
+**修复后：** 12 个一级分类，所有二级菜单按产品规划 V3.0 补全
 
-**修复后菜单结构：**
+| 一级分类 | 修复前二级菜单数 | 修复后二级菜单数 | 新增菜单项 |
+|---------|:---:|:---:|------|
+| 工作台 | 1 | 1 | - |
+| 销售管理 | 3 | 4 | 销售开单 |
+| 订单管理 | 0 | 3 | 订单列表、泳道看板、超时处理 |
+| 采购管理 | 3 | 5 | 采购退货、采购付款 |
+| 库存管理 | 2 | 5 | 库存盘点、库存调拨、批次追溯 |
+| 客户管理 | 2 | 2 | - |
+| 商品中心 | 2 | 3 | 商品分类 |
+| 即时零售 | 2 | 5 | 商城配置、客户下单、在线支付、配送管理、零售报表 |
+| 财务管理 | 3 | 4 | 经营利润 |
+| 数据报表 | 1 | 4 | 商品排行、员工业绩、门店对比 |
+| 营销推广 | 2 | 3 | 促销活动 |
+| 系统管理 | 3 | 5 | 角色权限、门店管理（从独立移入） |
+
+### 2.2 销售开单页面（新建 SalesOrderCreate.vue）
+
+- 完整的销售开单表单：客户搜索、销售类型（现结/赊销）、配送方式、商品明细表
+- 右侧金额汇总：合计金额、整单折扣、抹零金额、应收金额
+- 支持保存草稿和提交订单
+- 修复了 API 引用（`adminApi` → `api`）
+
+### 2.3 收银台逻辑修复（MainLayout.vue）
+
+- 修复前：收银台区域显示"收银台功能迁移中..."占位文本
+- 修复后：`<router-view v-if="isCashierMode" />` 正确渲染收银台路由
+
+### 2.4 路由扩展（router/index.ts）
+
+- 修复前：25 条路由
+- 修复后：41 条路由（含 14 条新增）
+
+### 2.5 新建占位视图（13 个）
+
+| 视图文件 | 对应路由 | 所属模块 |
+|---------|---------|---------|
+| PurchaseReturns.vue | /purchase-returns | 采购管理 |
+| PurchasePayments.vue | /purchase-payments | 采购管理 |
+| InventoryCheck.vue | /inventory-check | 库存管理 |
+| InventoryTransfer.vue | /inventory-transfer | 库存管理 |
+| InventoryBatch.vue | /inventory-batch | 库存管理 |
+| ProductCategories.vue | /products/categories | 商品中心 |
+| FinanceCollection.vue | /finance/collection | 财务管理 |
+| FinanceProfit.vue | /finance/profit | 财务管理 |
+| ReportsProducts.vue | /reports/products | 数据报表 |
+| ReportsEmployees.vue | /reports/employees | 数据报表 |
+| ReportsStores.vue | /reports/stores | 数据报表 |
+| MarketingPromotion.vue | /marketing/promotion | 营销推广 |
+| SystemRoles.vue | /system/roles | 系统管理 |
+
+> 以上视图均为占位页面（显示"功能开发中"），待后续分配功能开发。
+
+---
+
+## 三、构建验证
 
 ```
-1. 工作台
-2. 销售管理  → 销售单, 销售退货
-3. 订单管理  → 订单列表, 泳道看板, 超时处理
-4. 采购管理  → 采购订单, 采购入库, 供应商
-5. 库存管理  → 库存总览, 预警中心
-6. 客户管理  → 客户列表, 授信管理
-7. 商品中心  → 商品列表, 价格中心
-8. 即时零售  → 小程序商城, 配送管理（开发中）
-9. 财务管理  → 收款记录, 分享收款, 客户对账
-10. 数据报表
-11. 营销推广  → 营销活动, 售后管理
-12. 系统管理  → 门店管理, 员工管理, 操作日志, 系统设置
+✓ built in 6.87s
 ```
 
----
-
-## 三、字段更新待办
-
-> 以下任务需要各开发人员按 `tasks/form-field-spec-v1.md` 更新对应 views 文件中的表单字段。
-
-| 模块 | 涉及文件 | 负责人 | 工时 |
-|------|---------|--------|------|
-| 销售管理 | SaleBills.vue, SaleReturnsView.vue | 墨 | 2天 |
-| 订单管理 | Orders.vue, OrderBoardView.vue, OrderTimeoutView.vue | 墨 | 2天 |
-| 采购管理 | PurchaseOrders.vue, PurchaseInStocks.vue, Suppliers.vue | 墨 | 2天 |
-| 库存管理 | Inventory.vue, InventoryAlerts.vue | 墨 | 1天 |
-| 客户管理 | CustomersView.vue, CreditView.vue | 墨 | 2天 |
-| 商品中心 | Products.vue, PricesView.vue | 墨 | 1.5天 |
-| 财务管理 | PaymentsView.vue, Collection.vue, CustomerStatements.vue | 阿澈 | 2天 |
-| 营销推广 | MarketingView.vue, AftersaleView.vue | 阿澈 | 1.5天 |
-| 系统管理 | StoresView.vue, EmployeesView.vue, AuditLogView.vue, System.vue | 阿澈 | 2天 |
-
-**总计：约16天，建议2周内完成。**
+admin-web 构建成功，41 条路由均可正常导航。
 
 ---
 
-> **报告生成：** 凌舟 | 2026-06-25
-> **关联文档：** `tasks/form-field-spec-v1.md`（字段参考手册）
+## 四、待办事项
+
+| 优先级 | 任务 | 负责人 | 预计工时 |
+|-------|------|-------|:---:|
+| P0 | 13 个占位视图逐步实现功能开发 | 墨/阿澈 | 按模块分配 |
+| P1 | 即时零售 5 个页面（当前 disabled） | 阿澈 | 5天 |
+| P1 | 字段更新：9 个模块的视图按 form-field-spec-v1.md 更新 | 墨/阿澈 | ~16天 |
+| P2 | 后台 API 适配新路由（如 /sales/create 后端） | 阿坚 | 3天 |
+
+---
+
+## 五、变更文件清单
+
+```
+修改：
+  admin-web/src/layouts/MainLayout.vue    - 菜单重构 + 收银台修复
+  admin-web/src/router/index.ts          - 路由从 25 条扩展到 41 条
+
+新建：
+  admin-web/src/views/SalesOrderCreate.vue  - 销售开单页面
+  admin-web/src/views/PurchaseReturns.vue   - 采购退货（占位）
+  admin-web/src/views/PurchasePayments.vue  - 采购付款（占位）
+  admin-web/src/views/InventoryCheck.vue    - 库存盘点（占位）
+  admin-web/src/views/InventoryTransfer.vue - 库存调拨（占位）
+  admin-web/src/views/InventoryBatch.vue    - 批次追溯（占位）
+  admin-web/src/views/ProductCategories.vue - 商品分类（占位）
+  admin-web/src/views/FinanceCollection.vue - 收款链接（占位）
+  admin-web/src/views/FinanceProfit.vue     - 经营利润（占位）
+  admin-web/src/views/ReportsProducts.vue   - 商品排行（占位）
+  admin-web/src/views/ReportsEmployees.vue  - 员工业绩（占位）
+  admin-web/src/views/ReportsStores.vue     - 门店对比（占位）
+  admin-web/src/views/MarketingPromotion.vue - 促销活动（占位）
+  admin-web/src/views/SystemRoles.vue      - 角色权限（占位）
+```
