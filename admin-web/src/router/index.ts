@@ -1,4 +1,5 @@
 import { createRouter, createWebHistory } from "vue-router";
+import { ElMessage } from "element-plus";
 import MainLayout from "../layouts/MainLayout.vue";
 import LoginView from "../views/LoginView.vue";
 import NotFound from "../views/NotFound.vue";
@@ -20,6 +21,17 @@ function isTokenExpired(): boolean {
   const exp = parseJwtExp(token);
   if (!exp) return false;
   return Date.now() >= exp;
+}
+
+function getUserRole(): string | null {
+  try {
+    const raw = localStorage.getItem("admin_user");
+    if (!raw) return null;
+    const user = JSON.parse(raw);
+    return user.role || null;
+  } catch {
+    return null;
+  }
 }
 
 const routes = [
@@ -47,53 +59,53 @@ const routes = [
       { path: "order-board", name: "OrderBoard", component: () => import("../views/OrderBoardView.vue") },
       { path: "order-timeout", name: "OrderTimeout", component: () => import("../views/OrderTimeoutView.vue") },
       // 4. 采购管理
-      { path: "purchase-orders", name: "PurchaseOrders", component: () => import("../views/PurchaseOrders.vue") },
-      { path: "purchase-in-stocks", name: "PurchaseInStocks", component: () => import("../views/PurchaseInStocks.vue") },
-      { path: "purchase-returns", name: "PurchaseReturns", component: () => import("../views/PurchaseReturns.vue") },
-      { path: "purchase-payments", name: "PurchasePayments", component: () => import("../views/PurchasePayments.vue") },
-      { path: "suppliers", name: "Suppliers", component: () => import("../views/Suppliers.vue") },
+      { path: "purchase-orders", name: "PurchaseOrders", component: () => import("../views/PurchaseOrders.vue"), meta: { roles: ["BOSS"] } },
+      { path: "purchase-in-stocks", name: "PurchaseInStocks", component: () => import("../views/PurchaseInStocks.vue"), meta: { roles: ["BOSS"] } },
+      { path: "purchase-returns", name: "PurchaseReturns", component: () => import("../views/PurchaseReturns.vue"), meta: { roles: ["BOSS"] } },
+      { path: "purchase-payments", name: "PurchasePayments", component: () => import("../views/PurchasePayments.vue"), meta: { roles: ["BOSS"] } },
+      { path: "suppliers", name: "Suppliers", component: () => import("../views/Suppliers.vue"), meta: { roles: ["BOSS"] } },
       // 5. 库存管理
       { path: "inventory", name: "Inventory", component: () => import("../views/Inventory.vue") },
-      { path: "inventory-check", name: "InventoryCheck", component: () => import("../views/InventoryCheck.vue") },
-      { path: "inventory-transfer", name: "InventoryTransfer", component: () => import("../views/InventoryTransfer.vue") },
-      { path: "inventory-batch", name: "InventoryBatch", component: () => import("../views/InventoryBatch.vue") },
+      { path: "inventory-check", name: "InventoryCheck", component: () => import("../views/InventoryCheck.vue"), meta: { roles: ["BOSS"] } },
+      { path: "inventory-transfer", name: "InventoryTransfer", component: () => import("../views/InventoryTransfer.vue"), meta: { roles: ["BOSS"] } },
+      { path: "inventory-batch", name: "InventoryBatch", component: () => import("../views/InventoryBatch.vue"), meta: { roles: ["BOSS"] } },
       { path: "inventory-alerts", name: "InventoryAlerts", component: () => import("../views/InventoryAlerts.vue") },
       // 6. 客户管理
       { path: "customers", name: "Customers", component: () => import("../views/CustomersView.vue") },
       { path: "credit", name: "Credit", component: () => import("../views/CreditView.vue") },
       // 7. 商品中心
       { path: "products", name: "Products", component: () => import("../views/Products.vue") },
-      { path: "products/categories", name: "ProductCategories", component: () => import("../views/ProductCategories.vue") },
+      { path: "products/categories", name: "ProductCategories", component: () => import("../views/ProductCategories.vue"), meta: { roles: ["BOSS"] } },
       { path: "prices", name: "Prices", component: () => import("../views/PricesView.vue") },
       // 8. 即时零售
-      { path: "instant-retail/config", name: "InstantRetailConfig", component: () => import("../views/InstantRetailConfig.vue") },
-      { path: "instant-retail/shelf", name: "InstantRetailShelf", component: () => import("../views/InstantRetailShelf.vue") },
-      { path: "instant-retail/orders", name: "InstantRetailOrders", component: () => import("../views/InstantRetailOrders.vue") },
-      { path: "instant-retail/payment", name: "InstantRetailPayment", component: () => import("../views/InstantRetailPayment.vue") },
-      { path: "instant-retail/delivery", name: "InstantRetailDelivery", component: () => import("../views/InstantRetailDelivery.vue") },
-      { path: "instant-retail/report", name: "InstantRetailReport", component: () => import("../views/InstantRetailReport.vue") },
-      { path: "instant-retail/platform", name: "InstantRetailPlatform", component: () => import("../views/InstantRetailPlatform.vue") },
-      { path: "instant-retail/order-board", name: "InstantRetailOrderBoard", component: () => import("../views/InstantRetailOrderBoard.vue") },
+      { path: "instant-retail/config", name: "InstantRetailConfig", component: () => import("../views/InstantRetailConfig.vue"), meta: { roles: ["BOSS"] } },
+      { path: "instant-retail/shelf", name: "InstantRetailShelf", component: () => import("../views/InstantRetailShelf.vue"), meta: { roles: ["BOSS"] } },
+      { path: "instant-retail/orders", name: "InstantRetailOrders", component: () => import("../views/InstantRetailOrders.vue"), meta: { roles: ["BOSS"] } },
+      { path: "instant-retail/payment", name: "InstantRetailPayment", component: () => import("../views/InstantRetailPayment.vue"), meta: { roles: ["BOSS"] } },
+      { path: "instant-retail/delivery", name: "InstantRetailDelivery", component: () => import("../views/InstantRetailDelivery.vue"), meta: { roles: ["BOSS"] } },
+      { path: "instant-retail/report", name: "InstantRetailReport", component: () => import("../views/InstantRetailReport.vue"), meta: { roles: ["BOSS"] } },
+      { path: "instant-retail/platform", name: "InstantRetailPlatform", component: () => import("../views/InstantRetailPlatform.vue"), meta: { roles: ["BOSS"] } },
+      { path: "instant-retail/order-board", name: "InstantRetailOrderBoard", component: () => import("../views/InstantRetailOrderBoard.vue"), meta: { roles: ["BOSS"] } },
       // 9. 财务管理
-      { path: "payments", name: "Payments", component: () => import("../views/PaymentsView.vue") },
-      { path: "finance/collection", name: "FinanceCollection", component: () => import("../views/FinanceCollection.vue") },
-      { path: "customer-statements", name: "CustomerStatements", component: () => import("../views/CustomerStatements.vue") },
-      { path: "finance/profit", name: "FinanceProfit", component: () => import("../views/FinanceProfit.vue") },
+      { path: "payments", name: "Payments", component: () => import("../views/PaymentsView.vue"), meta: { roles: ["BOSS"] } },
+      { path: "finance/collection", name: "FinanceCollection", component: () => import("../views/FinanceCollection.vue"), meta: { roles: ["BOSS"] } },
+      { path: "customer-statements", name: "CustomerStatements", component: () => import("../views/CustomerStatements.vue"), meta: { roles: ["BOSS"] } },
+      { path: "finance/profit", name: "FinanceProfit", component: () => import("../views/FinanceProfit.vue"), meta: { roles: ["BOSS"] } },
       // 10. 数据报表
-      { path: "reports", name: "Reports", component: () => import("../views/Reports.vue") },
-      { path: "reports/products", name: "ReportsProducts", component: () => import("../views/ReportsProducts.vue") },
-      { path: "reports/employees", name: "ReportsEmployees", component: () => import("../views/ReportsEmployees.vue") },
-      { path: "reports/stores", name: "ReportsStores", component: () => import("../views/ReportsStores.vue") },
+      { path: "reports", name: "Reports", component: () => import("../views/Reports.vue"), meta: { roles: ["BOSS"] } },
+      { path: "reports/products", name: "ReportsProducts", component: () => import("../views/ReportsProducts.vue"), meta: { roles: ["BOSS"] } },
+      { path: "reports/employees", name: "ReportsEmployees", component: () => import("../views/ReportsEmployees.vue"), meta: { roles: ["BOSS"] } },
+      { path: "reports/stores", name: "ReportsStores", component: () => import("../views/ReportsStores.vue"), meta: { roles: ["BOSS"] } },
       // 11. 营销推广
-      { path: "marketing", name: "Marketing", component: () => import("../views/MarketingView.vue") },
-      { path: "marketing/promotion", name: "MarketingPromotion", component: () => import("../views/MarketingPromotion.vue") },
-      { path: "aftersale", name: "Aftersale", component: () => import("../views/AftersaleView.vue") },
+      { path: "marketing", name: "Marketing", component: () => import("../views/MarketingView.vue"), meta: { roles: ["BOSS"] } },
+      { path: "marketing/promotion", name: "MarketingPromotion", component: () => import("../views/MarketingPromotion.vue"), meta: { roles: ["BOSS"] } },
+      { path: "aftersale", name: "Aftersale", component: () => import("../views/AftersaleView.vue"), meta: { roles: ["BOSS"] } },
       // 12. 系统管理
-      { path: "employees", name: "Employees", component: () => import("../views/EmployeesView.vue") },
-      { path: "stores", name: "Stores", component: () => import("../views/StoresView.vue") },
-      { path: "system/roles", name: "SystemRoles", component: () => import("../views/SystemRoles.vue") },
-      { path: "audit-log", name: "AuditLog", component: () => import("../views/AuditLogView.vue") },
-      { path: "system", name: "System", component: () => import("../views/System.vue") }
+      { path: "employees", name: "Employees", component: () => import("../views/EmployeesView.vue"), meta: { roles: ["BOSS"] } },
+      { path: "stores", name: "Stores", component: () => import("../views/StoresView.vue"), meta: { roles: ["BOSS"] } },
+      { path: "system/roles", name: "SystemRoles", component: () => import("../views/SystemRoles.vue"), meta: { roles: ["BOSS"] } },
+      { path: "audit-log", name: "AuditLog", component: () => import("../views/AuditLogView.vue"), meta: { roles: ["BOSS"] } },
+      { path: "system", name: "System", component: () => import("../views/System.vue"), meta: { roles: ["BOSS"] } }
     ]
   },
   { path: "/:pathMatch(.*)*", name: "NotFound", component: NotFound, meta: { requiresAuth: false } }
@@ -119,11 +131,24 @@ router.beforeEach((to, _from, next) => {
 
   if (to.meta.requiresAuth !== false && !token) {
     next("/login");
-  } else if (to.path === "/login" && token) {
-    next("/dashboard");
-  } else {
-    next();
+    return;
   }
+
+  if (to.path === "/login" && token) {
+    next("/dashboard");
+    return;
+  }
+
+  // 角色权限检查
+  const userRole = getUserRole();
+  const allowedRoles = (to.meta.roles as string[] | undefined) || [];
+  if (allowedRoles.length > 0 && userRole && !allowedRoles.includes(userRole)) {
+    ElMessage.warning("您没有权限访问该页面");
+    next("/dashboard");
+    return;
+  }
+
+  next();
 });
 
 export default router;
