@@ -1,21 +1,79 @@
-import { BaseService } from "./base.service.js";
-import { saleReturnDAO } from "../daos/sale-return.dao.js";
-import type { ServiceContext, PageResult, PageParams } from "../types/index.js";
-import type {
-  SaleReturn,
-  SaleReturnListVO,
-  SaleReturnDetailVO,
-  CreateSaleReturnDTO,
-  RefundDTO,
-} from "../models/sale-return.model.js";
+import { query, queryOne, transaction } from "../shared/db.js";
 import { makeBizNo } from "../shared/id.js";
-import { transaction } from "../shared/db.js";
+import type { ServiceContext, PageResult } from "../types/index.js";
 
-class SaleReturnService extends BaseService<SaleReturn> {
-  constructor() {
-    super(saleReturnDAO);
-  }
+// ── Type definitions (formerly in models/sale-return.model.ts) ──
 
+interface SaleReturnItem {
+  id: number;
+  return_no: string;
+  sku_id: number;
+  sku_name: string;
+  box_qty: number;
+  bottle_qty: number;
+  total_bottle_qty: number;
+  unit_price: number;
+  subtotal_amount: number;
+  reason: string | null;
+  created_at: string;
+}
+
+interface SaleReturn {
+  id: number;
+  return_no: string;
+  source_bill_no: string | null;
+  store_id: number;
+  customer_id: number | null;
+  customer_name: string | null;
+  customer_mobile: string | null;
+  return_status: string;
+  goods_amount: number;
+  discount_amount: number;
+  refund_amount: number;
+  refunded_amount: number;
+  refund_method: string | null;
+  operator_id: number;
+  remark: string | null;
+  tenant_id: string;
+  created_at: string;
+  updated_at: string;
+}
+
+interface SaleReturnListVO extends SaleReturn {
+  store_name?: string;
+}
+
+interface SaleReturnDetailVO extends SaleReturn {
+  items: SaleReturnItem[];
+}
+
+interface CreateSaleReturnDTO {
+  sourceBillNo?: string;
+  storeId: number;
+  customerId?: number;
+  customerName?: string;
+  customerMobile?: string;
+  discountAmount?: number;
+  remark?: string;
+  items: CreateSaleReturnItemDTO[];
+}
+
+interface CreateSaleReturnItemDTO {
+  skuId: number;
+  skuName: string;
+  boxQty: number;
+  bottleQty: number;
+  unitPrice: number;
+  reason?: string;
+}
+
+interface RefundDTO {
+  refundMethod: string;
+}
+
+// ── Service ──
+
+class SaleReturnService {
   async getPageList(
     keyword: string | undefined,
     storeId: number | undefined,
@@ -27,12 +85,59 @@ class SaleReturnService extends BaseService<SaleReturn> {
     pageSize: number,
     ctx: ServiceContext
   ): Promise<PageResult<SaleReturnListVO>> {
-    const pageParams: PageParams = { page, pageSize };
-    return saleReturnDAO.findPageWithFilters(keyword, storeId, customerId, status, startDate, endDate, pageParams, ctx.tenantId);
+    let where = "WHERE sr.tenant_id = ?";
+    const params: unknown[] = [ctx.tenantId];
+
+    if (storeId !== undefined) {
+      where += " AND sr.store_id = ?";
+      params.push(storeId);
+    }
+    if (customerId !== undefined) {
+      where += " AND sr.customer_id = ?";
+      params.push(customerId);
+    }
+    if (status) {
+      where += " AND sr.return_status = ?";
+      params.push(status);
+    }
+    if (startDate) {
+      where += " AND sr.created_at >= ?";
+      params.push(startDate);
+    }
+    if (endDate) {
+      where += " AND sr.created_at <= ?";
+      params.push(endDate + " 23:59:59");
+    }
+    if (keyword) {
+      where += " AND (sr.return_no LIKE ? OR sr.customer_name LIKE ? OR sr.customer_mobile LIKE ?)";
+      params.push(`%${keyword}%`, `%${keyword}%`, `%${keyword}%`);
+    }
+
+    const countSql = `SELECT COUNT(*) AS total FROM sale_return sr ${where}`;
+    const countRow = await queryOne<{ total: number }>(countSql, params);
+    const total = Number(countRow?.total ?? 0);
+
+    const offset = (page - 1) * pageSize;
+    const dataSql = `SELECT sr.*, s.name AS store_name FROM sale_return sr LEFT JOIN store s ON sr.store_id = s.id AND s.tenant_id = ? ${where} ORDER BY sr.created_at DESC LIMIT ? OFFSET ?`;
+    const dataParams = [ctx.tenantId, ...params, pageSize, offset];
+    const records = await query<SaleReturnListVO>(dataSql, dataParams);
+
+    return { records, total, page, pageSize };
   }
 
   async getDetail(returnNo: string, ctx: ServiceContext): Promise<SaleReturnDetailVO | null> {
-    return saleReturnDAO.findDetail(returnNo, ctx.tenantId);
+    const returnOrder = await queryOne<SaleReturn>(
+      "SELECT * FROM sale_return WHERE return_no = ? AND tenant_id = ?",
+      [returnNo, ctx.tenantId]
+    );
+    if (!returnOrder) return null;
+
+    const items = await query<SaleReturnItem>(
+      "SELECT * FROM sale_return_item WHERE return_no = ?",
+      [returnNo]
+    );
+
+    return { ...returnOrder, items };
   }
 
   async createReturn(dto: CreateSaleReturnDTO, ctx: ServiceContext): Promise<{ returnNo: string }> {
@@ -108,10 +213,13 @@ class SaleReturnService extends BaseService<SaleReturn> {
   }
 
   async approve(returnNo: string, ctx: ServiceContext): Promise<{ returnNo: string } | null> {
-    const returnOrder = await saleReturnDAO.findByReturnNo(returnNo, ctx.tenantId);
+    const returnOrder = await queryOne<SaleReturn>(
+      "SELECT * FROM sale_return WHERE return_no = ? AND tenant_id = ?",
+      [returnNo, ctx.tenantId]
+    );
     if (!returnOrder) return null;
 
-    if (returnOrder.status !== "PENDING") {
+    if (returnOrder.return_status !== "PENDING") {
       throw new Error("只有待审核状态的退货单可以审核");
     }
 
@@ -132,7 +240,7 @@ class SaleReturnService extends BaseService<SaleReturn> {
           `INSERT INTO inventory_balance (store_id, sku_id, quantity, tenant_id)
            VALUES (?, ?, ?, ?)
            ON DUPLICATE KEY UPDATE quantity = quantity + ?`,
-          [returnOrder.storeId, item.sku_id, item.total_bottle_qty, ctx.tenantId, item.total_bottle_qty]
+          [returnOrder.store_id, item.sku_id, item.total_bottle_qty, ctx.tenantId, item.total_bottle_qty]
         );
       }
 
@@ -144,7 +252,7 @@ class SaleReturnService extends BaseService<SaleReturn> {
             source_no, source_type, operator_id, remark, tenant_id
           ) VALUES (?, ?, 'RETURN_IN', ?, ?, ?, ?, 'sale_return', ?, ?, ?)`,
           [
-            returnOrder.storeId,
+            returnOrder.store_id,
             itemRows[0].sku_id,
             totalQty,
             0,
@@ -167,14 +275,17 @@ class SaleReturnService extends BaseService<SaleReturn> {
   }
 
   async refund(returnNo: string, dto: RefundDTO, ctx: ServiceContext): Promise<{ returnNo: string } | null> {
-    const returnOrder = await saleReturnDAO.findByReturnNo(returnNo, ctx.tenantId);
+    const returnOrder = await queryOne<SaleReturn>(
+      "SELECT * FROM sale_return WHERE return_no = ? AND tenant_id = ?",
+      [returnNo, ctx.tenantId]
+    );
     if (!returnOrder) return null;
 
-    if (returnOrder.status !== "COMPLETED") {
+    if (returnOrder.return_status !== "COMPLETED") {
       throw new Error("只有已完成的退货单可以退款");
     }
 
-    if (Number(returnOrder.refundedAmount) >= Number(returnOrder.refundAmount)) {
+    if (Number(returnOrder.refunded_amount) >= Number(returnOrder.refund_amount)) {
       throw new Error("退货单已全额退款");
     }
 
@@ -194,7 +305,18 @@ class SaleReturnService extends BaseService<SaleReturn> {
   }
 
   async getSaleBill(billNo: string, ctx: ServiceContext): Promise<any | null> {
-    return saleReturnDAO.findSaleBill(billNo, ctx.tenantId);
+    const bill = await queryOne<any>(
+      "SELECT * FROM sale_bill WHERE bill_no = ? AND tenant_id = ?",
+      [billNo, ctx.tenantId]
+    );
+    if (!bill) return null;
+
+    const items = await query<any>(
+      "SELECT * FROM sale_bill_item WHERE bill_no = ?",
+      [billNo]
+    );
+
+    return { ...bill, items };
   }
 }
 

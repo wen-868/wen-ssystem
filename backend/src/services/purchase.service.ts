@@ -1,22 +1,191 @@
-import { BaseService } from "./base.service.js";
-import { purchaseDAO } from "../daos/purchase.dao.js";
-import type { ServiceContext, PageResult, PageParams } from "../types/index.js";
-import type {
-  PurchaseOrder,
-  PurchaseOrderListVO,
-  PurchaseOrderDetailVO,
-  CreatePurchaseOrderDTO,
-  UpdatePurchaseOrderDTO,
-  InStockDTO,
-} from "../models/purchase.model.js";
+import { query, queryOne, transaction } from "../shared/db.js";
+import type { ServiceContext, PageResult } from "../types/index.js";
 import { makeBizNo } from "../shared/id.js";
-import { transaction } from "../shared/db.js";
 
-class PurchaseService extends BaseService<PurchaseOrder> {
-  constructor() {
-    super(purchaseDAO);
+// ---------------------------------------------------------------------------
+// Type Definitions (previously in purchase.model.ts)
+// ---------------------------------------------------------------------------
+
+export interface PurchaseOrder {
+  id: number;
+  orderNo: string;
+  supplierId: number;
+  supplierName: string;
+  storeId: number;
+  status: string;
+  goodsAmount: number;
+  taxAmount: number;
+  discountAmount: number;
+  payableAmount: number;
+  paidAmount: number;
+  unpaidAmount: number;
+  expectedDate: string | null;
+  operatorId: number;
+  remark: string | null;
+  tenantId: string;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface PurchaseOrderListVO {
+  id: number;
+  orderNo: string;
+  supplierName: string;
+  status: string;
+  goodsAmount: number;
+  payableAmount: number;
+  paidAmount: number;
+  unpaidAmount: number;
+  expectedDate: string | null;
+  createdDate: string;
+}
+
+export interface PurchaseOrderItemVO {
+  skuId: number;
+  skuName: string;
+  barcode: string | null;
+  boxQty: number;
+  bottleQty: number;
+  totalBottleQty: number;
+  unitPrice: number;
+  taxRate: number;
+  subtotalAmount: number;
+  taxAmount: number;
+  totalAmount: number;
+  inStockedQty: number;
+  remark: string | null;
+}
+
+export interface PurchaseOrderDetailVO {
+  id: number;
+  orderNo: string;
+  supplierId: number;
+  supplierName: string;
+  storeId: number;
+  status: string;
+  goodsAmount: number;
+  taxAmount: number;
+  discountAmount: number;
+  payableAmount: number;
+  paidAmount: number;
+  unpaidAmount: number;
+  expectedDate: string | null;
+  remark: string | null;
+  createdDate: string;
+  updatedDate: string;
+  items: PurchaseOrderItemVO[];
+}
+
+export interface CreatePurchaseOrderDTO {
+  supplierId: number;
+  supplierName: string;
+  storeId: number;
+  expectedDate?: string;
+  discountAmount?: number;
+  remark?: string;
+  items: Array<{
+    skuId: number;
+    skuName: string;
+    barcode?: string;
+    boxQty: number;
+    bottleQty: number;
+    unitPrice: number;
+    taxRate: number;
+    remark?: string;
+  }>;
+}
+
+export interface UpdatePurchaseOrderDTO {
+  supplierId?: number;
+  supplierName?: string;
+  expectedDate?: string;
+  discountAmount?: number;
+  remark?: string;
+  items?: Array<{
+    skuId: number;
+    skuName: string;
+    barcode?: string;
+    boxQty: number;
+    bottleQty: number;
+    unitPrice: number;
+    taxRate: number;
+    remark?: string;
+  }>;
+}
+
+export interface InStockDTO {
+  warehouseId?: number;
+  remark?: string;
+  items: Array<{
+    skuId: number;
+    boxQty: number;
+    bottleQty: number;
+  }>;
+}
+
+// ---------------------------------------------------------------------------
+// Internal helpers (replacing DAO methods)
+// ---------------------------------------------------------------------------
+
+async function findByOrderNo(orderNo: string, tenantId: string): Promise<PurchaseOrder | null> {
+  const row = await queryOne<any>(
+    `SELECT id, order_no AS orderNo, supplier_id AS supplierId, supplier_name AS supplierName,
+            store_id AS storeId, order_status AS status, goods_amount AS goodsAmount,
+            tax_amount AS taxAmount, discount_amount AS discountAmount,
+            payable_amount AS payableAmount, paid_amount AS paidAmount,
+            unpaid_amount AS unpaidAmount, expected_date AS expectedDate,
+            operator_id AS operatorId, remark, tenant_id AS tenantId,
+            created_at AS createdAt, updated_at AS updatedAt
+     FROM purchase_order
+     WHERE order_no = ? AND tenant_id = ?`,
+    [orderNo, tenantId]
+  );
+  return row ?? null;
+}
+
+async function updateOrderStatus(
+  orderNo: string,
+  status: string,
+  tenantId: string,
+  extra?: Record<string, unknown>
+): Promise<void> {
+  const sets: string[] = ["order_status = ?", "updated_at = NOW()"];
+  const params: unknown[] = [status];
+
+  if (extra) {
+    for (const [key, value] of Object.entries(extra)) {
+      const snakeKey = key.replace(/[A-Z]/g, (m) => "_" + m.toLowerCase());
+      sets.push(`${snakeKey} = ?`);
+      params.push(value);
+    }
   }
 
+  params.push(orderNo, tenantId);
+  await query(`UPDATE purchase_order SET ${sets.join(", ")} WHERE order_no = ? AND tenant_id = ?`, params);
+}
+
+async function addOperationLog(
+  module: string,
+  action: string,
+  targetId: string,
+  targetType: string,
+  userId: number,
+  username: string,
+  detail: string,
+  tenantId: string
+): Promise<void> {
+  await query(
+    `INSERT INTO operation_log (module, action, target_id, target_type, user_id, user_name, detail, tenant_id)
+     VALUES (?, ?, ?, ?, ?, ?, ?, ?)`,
+    [module, action, targetId, targetType, userId, username, detail, tenantId]
+  );
+}
+
+// ---------------------------------------------------------------------------
+// Service
+// ---------------------------------------------------------------------------
+
+class PurchaseService {
   async getPageList(
     keyword: string | undefined,
     supplierId: number | undefined,
@@ -27,12 +196,83 @@ class PurchaseService extends BaseService<PurchaseOrder> {
     pageSize: number,
     ctx: ServiceContext
   ): Promise<PageResult<PurchaseOrderListVO>> {
-    const pageParams: PageParams = { page, pageSize };
-    return purchaseDAO.findPageWithFilters(keyword, supplierId, status, startDate, endDate, pageParams, ctx.tenantId);
+    const conditions: string[] = ["po.tenant_id = ?"];
+    const params: unknown[] = [ctx.tenantId];
+
+    if (keyword) {
+      conditions.push("(po.order_no LIKE ? OR po.supplier_name LIKE ?)");
+      params.push(`%${keyword}%`, `%${keyword}%`);
+    }
+    if (supplierId !== undefined) {
+      conditions.push("po.supplier_id = ?");
+      params.push(supplierId);
+    }
+    if (status) {
+      conditions.push("po.order_status = ?");
+      params.push(status);
+    }
+    if (startDate) {
+      conditions.push("po.created_at >= ?");
+      params.push(startDate);
+    }
+    if (endDate) {
+      conditions.push("po.created_at <= ?");
+      params.push(endDate + " 23:59:59");
+    }
+
+    const whereClause = conditions.join(" AND ");
+
+    const countResult = await queryOne<{ total: number }>(
+      `SELECT COUNT(*) AS total FROM purchase_order po WHERE ${whereClause}`,
+      params
+    );
+    const total = Number(countResult?.total ?? 0);
+
+    const offset = (page - 1) * pageSize;
+    const rows = await query<PurchaseOrderListVO>(
+      `SELECT po.id, po.order_no AS orderNo, po.supplier_name AS supplierName,
+              po.order_status AS status, po.goods_amount AS goodsAmount,
+              po.payable_amount AS payableAmount, po.paid_amount AS paidAmount,
+              po.unpaid_amount AS unpaidAmount, po.expected_date AS expectedDate,
+              po.created_at AS createdDate
+       FROM purchase_order po
+       WHERE ${whereClause}
+       ORDER BY po.created_at DESC
+       LIMIT ? OFFSET ?`,
+      [...params, pageSize, offset]
+    );
+
+    return { records: rows, total, page, pageSize };
   }
 
   async getDetail(orderNo: string, ctx: ServiceContext): Promise<PurchaseOrderDetailVO | null> {
-    return purchaseDAO.findDetail(orderNo, ctx.tenantId);
+    const order = await queryOne<any>(
+      `SELECT id, order_no AS orderNo, supplier_id AS supplierId, supplier_name AS supplierName,
+              store_id AS storeId, order_status AS status, goods_amount AS goodsAmount,
+              tax_amount AS taxAmount, discount_amount AS discountAmount,
+              payable_amount AS payableAmount, paid_amount AS paidAmount,
+              unpaid_amount AS unpaidAmount, expected_date AS expectedDate,
+              remark, created_at AS createdDate, updated_at AS updatedDate
+       FROM purchase_order
+       WHERE order_no = ? AND tenant_id = ?`,
+      [orderNo, ctx.tenantId]
+    );
+
+    if (!order) return null;
+
+    const items = await query<PurchaseOrderItemVO>(
+      `SELECT sku_id AS skuId, sku_name AS skuName, barcode, box_qty AS boxQty,
+              bottle_qty AS bottleQty, total_bottle_qty AS totalBottleQty,
+              unit_price AS unitPrice, tax_rate AS taxRate,
+              subtotal_amount AS subtotalAmount, tax_amount AS taxAmount,
+              total_amount AS totalAmount, COALESCE(in_stocked_qty, 0) AS inStockedQty,
+              remark
+       FROM purchase_order_item
+       WHERE order_no = ?`,
+      [orderNo]
+    );
+
+    return { ...order, items };
   }
 
   async createOrder(dto: CreatePurchaseOrderDTO, ctx: ServiceContext): Promise<{ purchaseNo: string }> {
@@ -41,7 +281,7 @@ class PurchaseService extends BaseService<PurchaseOrder> {
     let goodsAmount = 0;
     let taxAmount = 0;
 
-    const itemsWithAmount = dto.items.map(item => {
+    const itemsWithAmount = dto.items.map((item) => {
       const totalBottleQty = item.boxQty * 12 + item.bottleQty;
       const subtotal = totalBottleQty * item.unitPrice;
       const itemTaxAmount = subtotal * item.taxRate;
@@ -70,9 +310,19 @@ class PurchaseService extends BaseService<PurchaseOrder> {
           paid_amount, unpaid_amount, expected_date, operator_id, remark, tenant_id
         ) VALUES (?, ?, ?, ?, 'PENDING', ?, ?, ?, ?, 0, ?, ?, ?, ?, ?)`,
         [
-          orderNo, dto.supplierId, dto.supplierName, dto.storeId,
-          goodsAmount, taxAmount, discountAmount, totalAmount,
-          totalAmount, dto.expectedDate || null, ctx.userId, dto.remark || null, ctx.tenantId
+          orderNo,
+          dto.supplierId,
+          dto.supplierName,
+          dto.storeId,
+          goodsAmount,
+          taxAmount,
+          discountAmount,
+          totalAmount,
+          totalAmount,
+          dto.expectedDate || null,
+          ctx.userId,
+          dto.remark || null,
+          ctx.tenantId,
         ]
       );
 
@@ -83,16 +333,26 @@ class PurchaseService extends BaseService<PurchaseOrder> {
             unit_price, tax_rate, subtotal_amount, tax_amount, total_amount, remark
           ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
           [
-            orderNo, item.skuId, item.skuName, item.barcode || null,
-            item.boxQty, item.bottleQty, item.totalBottleQty,
-            item.unitPrice, item.taxRate, item.subtotal, item.taxAmount,
-            item.totalAmount, item.remark || null
+            orderNo,
+            item.skuId,
+            item.skuName,
+            item.barcode || null,
+            item.boxQty,
+            item.bottleQty,
+            item.totalBottleQty,
+            item.unitPrice,
+            item.taxRate,
+            item.subtotal,
+            item.taxAmount,
+            item.totalAmount,
+            item.remark || null,
           ]
         );
       }
 
       await conn.execute(
-        "INSERT INTO operation_log (module, action, target_id, target_type, user_id, user_name, detail, tenant_id) VALUES (?, ?, ?, ?, ?, ?, ?, ?)",
+        `INSERT INTO operation_log (module, action, target_id, target_type, user_id, user_name, detail, tenant_id)
+         VALUES (?, ?, ?, ?, ?, ?, ?, ?)`,
         ["purchase", "CREATE", orderNo, "purchase_order", ctx.userId, ctx.username, `创建采购订单: ${orderNo}`, ctx.tenantId]
       );
     });
@@ -100,8 +360,12 @@ class PurchaseService extends BaseService<PurchaseOrder> {
     return { purchaseNo: orderNo };
   }
 
-  async updateOrder(orderNo: string, dto: UpdatePurchaseOrderDTO, ctx: ServiceContext): Promise<{ purchaseNo: string } | null> {
-    const existing = await purchaseDAO.findByOrderNo(orderNo, ctx.tenantId);
+  async updateOrder(
+    orderNo: string,
+    dto: UpdatePurchaseOrderDTO,
+    ctx: ServiceContext
+  ): Promise<{ purchaseNo: string } | null> {
+    const existing = await findByOrderNo(orderNo, ctx.tenantId);
     if (!existing) return null;
 
     if (!["DRAFT", "PENDING"].includes(existing.status)) {
@@ -137,7 +401,7 @@ class PurchaseService extends BaseService<PurchaseOrder> {
         let goodsAmount = 0;
         let taxAmount = 0;
 
-        const itemsWithAmount = dto.items.map(item => {
+        const itemsWithAmount = dto.items.map((item) => {
           const totalBottleQty = item.boxQty * 12 + item.bottleQty;
           const subtotal = totalBottleQty * item.unitPrice;
           const itemTaxAmount = subtotal * item.taxRate;
@@ -161,10 +425,19 @@ class PurchaseService extends BaseService<PurchaseOrder> {
               unit_price, tax_rate, subtotal_amount, tax_amount, total_amount, remark
             ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
             [
-              orderNo, item.skuId, item.skuName, item.barcode || null,
-              item.boxQty, item.bottleQty, item.totalBottleQty,
-              item.unitPrice, item.taxRate, item.subtotal, item.taxAmount,
-              item.totalAmount, item.remark || null
+              orderNo,
+              item.skuId,
+              item.skuName,
+              item.barcode || null,
+              item.boxQty,
+              item.bottleQty,
+              item.totalBottleQty,
+              item.unitPrice,
+              item.taxRate,
+              item.subtotal,
+              item.taxAmount,
+              item.totalAmount,
+              item.remark || null,
             ]
           );
         }
@@ -180,7 +453,8 @@ class PurchaseService extends BaseService<PurchaseOrder> {
       }
 
       await conn.execute(
-        "INSERT INTO operation_log (module, action, target_id, target_type, user_id, user_name, detail, tenant_id) VALUES (?, ?, ?, ?, ?, ?, ?, ?)",
+        `INSERT INTO operation_log (module, action, target_id, target_type, user_id, user_name, detail, tenant_id)
+         VALUES (?, ?, ?, ?, ?, ?, ?, ?)`,
         ["purchase", "UPDATE", orderNo, "purchase_order", ctx.userId, ctx.username, `修改采购订单: ${orderNo}`, ctx.tenantId]
       );
     });
@@ -189,7 +463,7 @@ class PurchaseService extends BaseService<PurchaseOrder> {
   }
 
   async delete(orderNo: string, ctx: ServiceContext): Promise<{ purchaseNo: string } | null> {
-    const existing = await purchaseDAO.findByOrderNo(orderNo, ctx.tenantId);
+    const existing = await findByOrderNo(orderNo, ctx.tenantId);
     if (!existing) return null;
 
     if (!["DRAFT"].includes(existing.status)) {
@@ -200,7 +474,8 @@ class PurchaseService extends BaseService<PurchaseOrder> {
       await conn.execute("DELETE FROM purchase_order_item WHERE order_no = ?", [orderNo]);
       await conn.execute("DELETE FROM purchase_order WHERE order_no = ? AND tenant_id = ?", [orderNo, ctx.tenantId]);
       await conn.execute(
-        "INSERT INTO operation_log (module, action, target_id, target_type, user_id, user_name, detail, tenant_id) VALUES (?, ?, ?, ?, ?, ?, ?, ?)",
+        `INSERT INTO operation_log (module, action, target_id, target_type, user_id, user_name, detail, tenant_id)
+         VALUES (?, ?, ?, ?, ?, ?, ?, ?)`,
         ["purchase", "DELETE", orderNo, "purchase_order", ctx.userId, ctx.username, `删除采购订单: ${orderNo}`, ctx.tenantId]
       );
     });
@@ -209,69 +484,88 @@ class PurchaseService extends BaseService<PurchaseOrder> {
   }
 
   async submit(orderNo: string, ctx: ServiceContext): Promise<{ purchaseNo: string } | null> {
-    const order = await purchaseDAO.findByOrderNo(orderNo, ctx.tenantId);
+    const order = await findByOrderNo(orderNo, ctx.tenantId);
     if (!order) return null;
 
     if (order.status !== "DRAFT") {
       throw new Error("只有草稿状态的订单可以提交审核");
     }
 
-    await purchaseDAO.updateOrder(orderNo, { status: "PENDING" }, ctx.tenantId);
-    await purchaseDAO.addOperationLog(
-      "purchase", "SUBMIT", orderNo, "purchase_order",
-      ctx.userId, ctx.username, `提交审核: ${orderNo}`, ctx.tenantId
+    await updateOrderStatus(orderNo, "PENDING", ctx.tenantId);
+    await addOperationLog(
+      "purchase",
+      "SUBMIT",
+      orderNo,
+      "purchase_order",
+      ctx.userId,
+      ctx.username,
+      `提交审核: ${orderNo}`,
+      ctx.tenantId
     );
 
     return { purchaseNo: orderNo };
   }
 
   async approve(orderNo: string, ctx: ServiceContext): Promise<{ purchaseNo: string } | null> {
-    const order = await purchaseDAO.findByOrderNo(orderNo, ctx.tenantId);
+    const order = await findByOrderNo(orderNo, ctx.tenantId);
     if (!order) return null;
 
     if (order.status !== "PENDING") {
       throw new Error("只有待审核状态的订单可以审核");
     }
 
-    await purchaseDAO.updateOrder(
+    await updateOrderStatus(orderNo, "APPROVED", ctx.tenantId, { auditorId: ctx.userId });
+    await addOperationLog(
+      "purchase",
+      "APPROVE",
       orderNo,
-      { status: "APPROVED", auditorId: ctx.userId },
+      "purchase_order",
+      ctx.userId,
+      ctx.username,
+      `审核通过: ${orderNo}`,
       ctx.tenantId
-    );
-    await purchaseDAO.addOperationLog(
-      "purchase", "APPROVE", orderNo, "purchase_order",
-      ctx.userId, ctx.username, `审核通过: ${orderNo}`, ctx.tenantId
     );
 
     return { purchaseNo: orderNo };
   }
 
   async cancel(orderNo: string, ctx: ServiceContext): Promise<{ purchaseNo: string } | null> {
-    const order = await purchaseDAO.findByOrderNo(orderNo, ctx.tenantId);
+    const order = await findByOrderNo(orderNo, ctx.tenantId);
     if (!order) return null;
 
     if (!["DRAFT", "PENDING"].includes(order.status)) {
       throw new Error("只有草稿或待审核状态的订单可以取消");
     }
 
-    await purchaseDAO.updateOrder(orderNo, { status: "CANCELLED" }, ctx.tenantId);
-    await purchaseDAO.addOperationLog(
-      "purchase", "CANCEL", orderNo, "purchase_order",
-      ctx.userId, ctx.username, `取消订单: ${orderNo}`, ctx.tenantId
+    await updateOrderStatus(orderNo, "CANCELLED", ctx.tenantId);
+    await addOperationLog(
+      "purchase",
+      "CANCEL",
+      orderNo,
+      "purchase_order",
+      ctx.userId,
+      ctx.username,
+      `取消订单: ${orderNo}`,
+      ctx.tenantId
     );
 
     return { purchaseNo: orderNo };
   }
 
   async inStock(orderNo: string, dto: InStockDTO, ctx: ServiceContext): Promise<{ purchaseNo: string } | null> {
-    const order = await purchaseDAO.findByOrderNo(orderNo, ctx.tenantId);
+    const order = await findByOrderNo(orderNo, ctx.tenantId);
     if (!order) return null;
 
     if (order.status !== "APPROVED") {
       throw new Error("只有已审核的订单可以入库");
     }
 
-    const orderItems = await purchaseDAO.getOrderItemsWithStock(orderNo);
+    const orderItems = await query<any>(
+      `SELECT sku_id, COALESCE(in_stocked_qty, 0) AS in_stocked_qty
+       FROM purchase_order_item
+       WHERE order_no = ?`,
+      [orderNo]
+    );
     const itemMap = new Map<number, any>(orderItems.map((i: any) => [i.sku_id, i]));
 
     await transaction(async (conn) => {
@@ -295,10 +589,10 @@ class PurchaseService extends BaseService<PurchaseOrder> {
         );
       }
 
-      const [rows] = await conn.execute(
+      const [rows] = (await conn.execute(
         "SELECT total_bottle_qty, in_stocked_qty FROM purchase_order_item WHERE order_no = ?",
         [orderNo]
-      ) as any;
+      )) as any;
       const totalOrdered = rows.reduce((sum: number, i: any) => sum + Number(i.total_bottle_qty), 0);
       const totalInStocked = rows.reduce((sum: number, i: any) => sum + Number(i.in_stocked_qty || 0), 0);
 
@@ -307,13 +601,14 @@ class PurchaseService extends BaseService<PurchaseOrder> {
         warehouseStatus = "FULL";
       }
 
-      await conn.execute(
-        "UPDATE purchase_order SET warehouse_status = ?, updated_at = NOW() WHERE order_no = ?",
-        [warehouseStatus, orderNo]
-      );
+      await conn.execute("UPDATE purchase_order SET warehouse_status = ?, updated_at = NOW() WHERE order_no = ?", [
+        warehouseStatus,
+        orderNo,
+      ]);
 
       await conn.execute(
-        "INSERT INTO operation_log (module, action, target_id, target_type, user_id, user_name, detail, tenant_id) VALUES (?, ?, ?, ?, ?, ?, ?, ?)",
+        `INSERT INTO operation_log (module, action, target_id, target_type, user_id, user_name, detail, tenant_id)
+         VALUES (?, ?, ?, ?, ?, ?, ?, ?)`,
         ["purchase", "IN_STOCK", orderNo, "purchase_order", ctx.userId, ctx.username, `采购入库: ${orderNo}`, ctx.tenantId]
       );
     });
