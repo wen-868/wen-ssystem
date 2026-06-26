@@ -49,6 +49,8 @@ import { customerMergeRouter } from "./routes/customer-merge.routes.js";
 import { startOverdueScanner } from "./services/overdue-scanner.service.js";
 import { startSubscriptionExpiryScanner } from "./services/subscription-expiry.service.js";
 import { marketingNewRouter } from "./routes/marketing-new.routes.js";
+import { quoteRouter, quoteShareRouter } from "./routes/quote.routes.js";
+import { platformRouter } from "./routes/platform.routes.js";
 
 const app = express();
 
@@ -116,6 +118,9 @@ app.use("/api/admin/tenants", requireAuthWithTenant, tenantRouter);
 app.use("/api/admin/subscriptions", requireAuthWithTenant, subscriptionRouter);
 app.use("/api/admin/customer-merge", requireAuthWithTenant, customerMergeRouter);
 app.use("/api/admin/marketing-new", requireAuthWithTenant, marketingNewRouter);
+app.use("/api/admin/quotes", requireAuthWithTenant, quoteRouter);
+app.use("/api/quote/share", quoteShareRouter);
+app.use("/api/platform", platformRouter);
 
 app.use(errorHandler);
 

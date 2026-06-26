@@ -3,6 +3,7 @@ import { requireAuthWithTenant } from "../shared/auth.js";
 import { requirePriceManagementAccess, requirePriceChangeLogAccess, priceResponseFilter } from "../shared/price-guard-middleware.js";
 import * as priceLevelController from "../controllers/admin/price-level.controller.js";
 import * as priceManagementController from "../controllers/admin/price-management.controller.js";
+import * as batchPriceController from "../controllers/admin/batch-price.controller.js";
 
 export const priceRouter = Router();
 
@@ -28,3 +29,9 @@ priceRouter.delete("/customer-bindings/:id", requireAuthWithTenant, requirePrice
 
 // 价格变更日志 - 仅管理员/店长/财务可查看
 priceRouter.get("/change-logs", requireAuthWithTenant, requirePriceChangeLogAccess(), priceManagementController.listChangeLogs);
+
+// 批量价格调整 - 仅管理员/店长可操作
+priceRouter.post("/batch/preview", requireAuthWithTenant, requirePriceManagementAccess(), batchPriceController.previewBatchAdjustment);
+priceRouter.post("/batch/execute", requireAuthWithTenant, requirePriceManagementAccess(), batchPriceController.executeBatchAdjustment);
+priceRouter.get("/batch/logs", requireAuthWithTenant, requirePriceChangeLogAccess(), batchPriceController.listBatchLogs);
+priceRouter.get("/batch/:batchNo", requireAuthWithTenant, requirePriceChangeLogAccess(), batchPriceController.getBatchDetail);
