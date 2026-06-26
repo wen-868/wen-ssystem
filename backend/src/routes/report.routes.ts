@@ -1,6 +1,6 @@
 import { Router } from "express";
 import { z } from "zod";
-import { requireAuth } from "../shared/auth.js";
+import { requireAuthWithTenant } from "../shared/auth.js";
 import { asyncHandler } from "../shared/async-handler.js";
 import { query, queryOne } from "../shared/db.js";
 import { ok } from "../shared/response.js";
@@ -10,13 +10,14 @@ export const reportRouter = Router();
 // ========== 销售报表 ==========
 
 // 销售日报（指定日期范围，按天汇总：订单数/金额/回款/退货）
-reportRouter.get("/sales-daily", requireAuth, asyncHandler(async (req, res) => {
+reportRouter.get("/sales-daily", requireAuthWithTenant, asyncHandler(async (req, res) => {
+  const tenantId = req.tenantId!;
   const dateStart = parseDateParam(req.query.dateStart, (() => { const d = new Date(); d.setDate(d.getDate() - 30); return d.toISOString().slice(0, 10); })());
   const dateEnd = parseDateParam(req.query.dateEnd, new Date().toISOString().slice(0, 10));
   const storeId = req.query.storeId ? Number(req.query.storeId) : undefined;
 
-  const conditions: string[] = ["DATE(sb.created_at) BETWEEN ? AND ?"];
-  const params: unknown[] = [dateStart, dateEnd];
+  const conditions: string[] = ["sb.tenant_id = ?", "DATE(sb.created_at) BETWEEN ? AND ?"];
+  const params: unknown[] = [tenantId, dateStart, dateEnd];
   if (storeId) {
     conditions.push("sb.store_id = ?");
     params.push(storeId);
@@ -39,15 +40,21 @@ reportRouter.get("/sales-daily", requireAuth, asyncHandler(async (req, res) => {
   );
 
   // 查询每天的退货数据
+  const returnConditions: string[] = ["sr.tenant_id = ?", "sr.return_status NOT IN ('VOIDED')", "DATE(sr.created_at) BETWEEN ? AND ?"];
+  const returnParams: unknown[] = [tenantId, dateStart, dateEnd];
+  if (storeId) {
+    returnConditions.push("sr.store_id = ?");
+    returnParams.push(storeId);
+  }
+  const returnWhere = returnConditions.join(" AND ");
   const returnRecords = await query<any>(
     `SELECT DATE(sr.created_at) AS date,
             COUNT(DISTINCT sr.return_no) AS returnCount,
             COALESCE(SUM(sr.refund_amount), 0) AS returnAmount
      FROM sale_return sr
-     WHERE sr.return_status NOT IN ('VOIDED') AND DATE(sr.created_at) BETWEEN ? AND ?
-     ${storeId ? "AND sr.store_id = ?" : ""}
+     WHERE ${returnWhere}
      GROUP BY DATE(sr.created_at)`,
-    storeId ? [dateStart, dateEnd, storeId] : [dateStart, dateEnd]
+    returnParams
   );
 
   const returnMap = new Map<string, { returnCount: number; returnAmount: number }>();
@@ -76,7 +83,8 @@ reportRouter.get("/sales-daily", requireAuth, asyncHandler(async (req, res) => {
 }));
 
 // 销售排行（支持按商品/客户/业务员维度，指定时间范围）
-reportRouter.get("/sales-ranking", requireAuth, asyncHandler(async (req, res) => {
+reportRouter.get("/sales-ranking", requireAuthWithTenant, asyncHandler(async (req, res) => {
+  const tenantId = req.tenantId!;
   const dimension = z.enum(["product", "customer", "staff"]).parse(req.query.dimension || "product");
   const dateStart = parseDateParam(req.query.dateStart, (() => { const d = new Date(); d.setDate(d.getDate() - 30); return d.toISOString().slice(0, 10); })());
   const dateEnd = parseDateParam(req.query.dateEnd, new Date().toISOString().slice(0, 10));
@@ -90,13 +98,14 @@ reportRouter.get("/sales-ranking", requireAuth, asyncHandler(async (req, res) =>
               SUM(sbi.total_bottle_qty) AS totalQty,
               COALESCE(SUM(sbi.subtotal_amount), 0) AS totalAmount
        FROM sale_bill_item sbi
-       JOIN sale_bill sb ON sb.bill_no = sbi.bill_no
+       JOIN sale_bill sb ON sb.bill_no = sbi.bill_no AND sb.tenant_id = sbi.tenant_id
        WHERE sb.business_status NOT IN ('DRAFT', 'VOIDED')
+         AND sb.tenant_id = ?
          AND DATE(sb.created_at) BETWEEN ? AND ?
        GROUP BY sbi.sku_id, sbi.sku_name
        ORDER BY totalAmount DESC
        LIMIT ?`,
-      [dateStart, dateEnd, limit]
+      [tenantId, dateStart, dateEnd, limit]
     );
   } else if (dimension === "customer") {
     records = await query<any>(
@@ -106,12 +115,13 @@ reportRouter.get("/sales-ranking", requireAuth, asyncHandler(async (req, res) =>
               COALESCE(SUM(sb.received_amount), 0) AS receivedAmount
        FROM sale_bill sb
        WHERE sb.business_status NOT IN ('DRAFT', 'VOIDED')
+         AND sb.tenant_id = ?
          AND sb.customer_id IS NOT NULL
          AND DATE(sb.created_at) BETWEEN ? AND ?
        GROUP BY sb.customer_id, sb.customer_name, sb.customer_mobile
        ORDER BY totalAmount DESC
        LIMIT ?`,
-      [dateStart, dateEnd, limit]
+      [tenantId, dateStart, dateEnd, limit]
     );
   } else {
     records = await query<any>(
@@ -122,11 +132,12 @@ reportRouter.get("/sales-ranking", requireAuth, asyncHandler(async (req, res) =>
        FROM sale_bill sb
        LEFT JOIN sys_user u ON u.id = sb.operator_id
        WHERE sb.business_status NOT IN ('DRAFT', 'VOIDED')
+         AND sb.tenant_id = ?
          AND DATE(sb.created_at) BETWEEN ? AND ?
        GROUP BY sb.operator_id, u.real_name
        ORDER BY totalAmount DESC
        LIMIT ?`,
-      [dateStart, dateEnd, limit]
+      [tenantId, dateStart, dateEnd, limit]
     );
   }
 
@@ -155,7 +166,8 @@ function parseDateParam(value: unknown, fallback?: string): string {
 }
 
 // 销售趋势（按月/周/日，近12个月数据）
-reportRouter.get("/sales-trend", requireAuth, asyncHandler(async (req, res) => {
+reportRouter.get("/sales-trend", requireAuthWithTenant, asyncHandler(async (req, res) => {
+  const tenantId = req.tenantId!;
   const granularity = z.enum(["month", "week", "day"]).parse(req.query.granularity || "month");
 
   // 白名单映射：只允许预定义的 dateFormat 和 intervalExpr，不直接拼入 SQL
@@ -173,10 +185,11 @@ reportRouter.get("/sales-trend", requireAuth, asyncHandler(async (req, res) => {
             COALESCE(SUM(sb.received_amount), 0) AS receivedAmount
      FROM sale_bill sb
      WHERE sb.business_status NOT IN ('DRAFT', 'VOIDED')
+       AND sb.tenant_id = ?
        AND sb.created_at >= DATE_SUB(CURDATE(), INTERVAL ?)
      GROUP BY period
      ORDER BY period ASC`,
-    [dateFormat, intervalExpr]
+    [dateFormat, tenantId, intervalExpr]
   );
 
   res.json(ok(records.map((r: any) => ({
@@ -188,15 +201,16 @@ reportRouter.get("/sales-trend", requireAuth, asyncHandler(async (req, res) => {
 }));
 
 // 客户贡献分析（累计购买金额/频次/客单价/毛利）
-reportRouter.get("/customer-contribution", requireAuth, asyncHandler(async (req, res) => {
+reportRouter.get("/customer-contribution", requireAuthWithTenant, asyncHandler(async (req, res) => {
+  const tenantId = req.tenantId!;
   const page = Number(req.query.page || 1);
   const pageSize = Number(req.query.pageSize || 20);
   const offset = (page - 1) * pageSize;
   const dateStart = req.query.dateStart ? parseDateParam(req.query.dateStart) : undefined;
   const dateEnd = req.query.dateEnd ? parseDateParam(req.query.dateEnd) : undefined;
 
-  const conditions: string[] = ["sb.business_status NOT IN ('DRAFT', 'VOIDED')", "sb.customer_id IS NOT NULL"];
-  const params: unknown[] = [];
+  const conditions: string[] = ["sb.tenant_id = ?", "sb.business_status NOT IN ('DRAFT', 'VOIDED')", "sb.customer_id IS NOT NULL"];
+  const params: unknown[] = [tenantId];
 
   if (dateStart) {
     conditions.push("DATE(sb.created_at) >= ?");
@@ -254,7 +268,8 @@ reportRouter.get("/customer-contribution", requireAuth, asyncHandler(async (req,
 // ========== 采购报表 ==========
 
 // 采购汇总（指定时间范围：采购数/金额/到货/退货）
-reportRouter.get("/purchase-summary", requireAuth, asyncHandler(async (req, res) => {
+reportRouter.get("/purchase-summary", requireAuthWithTenant, asyncHandler(async (req, res) => {
+  const tenantId = req.tenantId!;
   const dateStart = parseDateParam(req.query.dateStart, (() => { const d = new Date(); d.setDate(d.getDate() - 30); return d.toISOString().slice(0, 10); })());
   const dateEnd = parseDateParam(req.query.dateEnd, new Date().toISOString().slice(0, 10));
 
@@ -266,27 +281,30 @@ reportRouter.get("/purchase-summary", requireAuth, asyncHandler(async (req, res)
             COALESCE(SUM(paid_amount), 0) AS paidAmount,
             COALESCE(SUM(unpaid_amount), 0) AS unpaidAmount
      FROM purchase_order
-     WHERE order_status NOT IN ('DRAFT', 'CANCELLED')
+     WHERE tenant_id = ?
+       AND order_status NOT IN ('DRAFT', 'CANCELLED')
        AND DATE(created_at) BETWEEN ? AND ?`,
-    [dateStart, dateEnd]
+    [tenantId, dateStart, dateEnd]
   );
 
   const stockStats = await queryOne<any>(
     `SELECT COUNT(*) AS stockCount,
             COALESCE(SUM(total_amount), 0) AS stockAmount
      FROM purchase_in_stock
-     WHERE stock_status NOT IN ('VOIDED')
+     WHERE tenant_id = ?
+       AND stock_status NOT IN ('VOIDED')
        AND DATE(created_at) BETWEEN ? AND ?`,
-    [dateStart, dateEnd]
+    [tenantId, dateStart, dateEnd]
   );
 
   const returnStats = await queryOne<any>(
     `SELECT COUNT(*) AS returnCount,
             COALESCE(SUM(total_amount), 0) AS returnAmount
      FROM purchase_return
-     WHERE return_status NOT IN ('VOIDED')
+     WHERE tenant_id = ?
+       AND return_status NOT IN ('VOIDED')
        AND DATE(created_at) BETWEEN ? AND ?`,
-    [dateStart, dateEnd]
+    [tenantId, dateStart, dateEnd]
   );
 
   res.json(ok({
@@ -304,7 +322,8 @@ reportRouter.get("/purchase-summary", requireAuth, asyncHandler(async (req, res)
 }));
 
 // 供应商采购排行
-reportRouter.get("/supplier-ranking", requireAuth, asyncHandler(async (req, res) => {
+reportRouter.get("/supplier-ranking", requireAuthWithTenant, asyncHandler(async (req, res) => {
+  const tenantId = req.tenantId!;
   const dateStart = parseDateParam(req.query.dateStart, (() => { const d = new Date(); d.setDate(d.getDate() - 30); return d.toISOString().slice(0, 10); })());
   const dateEnd = parseDateParam(req.query.dateEnd, new Date().toISOString().slice(0, 10));
   const limit = Math.min(Number(req.query.limit || 20), 100);
@@ -316,12 +335,13 @@ reportRouter.get("/supplier-ranking", requireAuth, asyncHandler(async (req, res)
             COALESCE(SUM(po.paid_amount), 0) AS paidAmount,
             COALESCE(SUM(po.unpaid_amount), 0) AS unpaidAmount
      FROM purchase_order po
-     WHERE po.order_status NOT IN ('DRAFT', 'CANCELLED')
+     WHERE po.tenant_id = ?
+       AND po.order_status NOT IN ('DRAFT', 'CANCELLED')
        AND DATE(po.created_at) BETWEEN ? AND ?
      GROUP BY po.supplier_id, po.supplier_name
      ORDER BY totalAmount DESC
      LIMIT ?`,
-    [dateStart, dateEnd, limit]
+    [tenantId, dateStart, dateEnd, limit]
   );
 
   res.json(ok(records.map((r: any) => ({
@@ -336,12 +356,13 @@ reportRouter.get("/supplier-ranking", requireAuth, asyncHandler(async (req, res)
 // ========== 库存报表 ==========
 
 // 库存汇总（按商品/仓库：库存数量/金额/可用量）
-reportRouter.get("/inventory-summary", requireAuth, asyncHandler(async (req, res) => {
+reportRouter.get("/inventory-summary", requireAuthWithTenant, asyncHandler(async (req, res) => {
+  const tenantId = req.tenantId!;
   const groupBy = z.enum(["product", "store"]).parse(req.query.groupBy || "product");
   const storeId = req.query.storeId ? Number(req.query.storeId) : undefined;
 
-  const conditions: string[] = [];
-  const params: unknown[] = [];
+  const conditions: string[] = ["ib.tenant_id = ?"];
+  const params: unknown[] = [tenantId];
   if (storeId) {
     conditions.push("ib.store_id = ?");
     params.push(storeId);
@@ -360,8 +381,8 @@ reportRouter.get("/inventory-summary", requireAuth, asyncHandler(async (req, res
               SUM(ib.available_qty) AS totalAvailableQty,
               SUM(ib.physical_qty) * pp.cost_price AS totalAmount
        FROM inventory_balance ib
-       LEFT JOIN product_sku ps ON ps.id = ib.sku_id
-       LEFT JOIN product_price pp ON pp.sku_id = ib.sku_id
+       LEFT JOIN product_sku ps ON ps.id = ib.sku_id AND ps.tenant_id = ib.tenant_id
+       LEFT JOIN product_price pp ON pp.sku_id = ib.sku_id AND pp.tenant_id = ib.tenant_id
        ${where}
        GROUP BY ib.sku_id, ps.sku_name, ps.sku_code, ps.barcode, pp.cost_price
        ORDER BY totalAmount DESC`,
@@ -394,7 +415,8 @@ reportRouter.get("/inventory-summary", requireAuth, asyncHandler(async (req, res
 }));
 
 // 库存周转分析（周转率/周转天数）
-reportRouter.get("/inventory-turnover", requireAuth, asyncHandler(async (req, res) => {
+reportRouter.get("/inventory-turnover", requireAuthWithTenant, asyncHandler(async (req, res) => {
+  const tenantId = req.tenantId!;
   const months = Math.min(Number(req.query.months || 3), 12);
   const dateStart = new Date();
   dateStart.setMonth(dateStart.getMonth() - months);
@@ -405,19 +427,21 @@ reportRouter.get("/inventory-turnover", requireAuth, asyncHandler(async (req, re
             SUM(sbi.total_bottle_qty) AS totalSoldQty,
             COALESCE(SUM(sbi.subtotal_amount), 0) AS totalSalesAmount
      FROM sale_bill_item sbi
-     JOIN sale_bill sb ON sb.bill_no = sbi.bill_no
+     JOIN sale_bill sb ON sb.bill_no = sbi.bill_no AND sb.tenant_id = sbi.tenant_id
      WHERE sb.business_status NOT IN ('DRAFT', 'VOIDED')
+       AND sb.tenant_id = ?
        AND sb.created_at >= ?
      GROUP BY sbi.sku_id, sbi.sku_name`,
-    [dateStart.toISOString().slice(0, 10)]
+    [tenantId, dateStart.toISOString().slice(0, 10)]
   );
 
   // 当前库存
   const inventoryData = await query<any>(
     `SELECT sku_id AS skuId, SUM(physical_qty) AS totalQty
      FROM inventory_balance
+     WHERE tenant_id = ?
      GROUP BY sku_id`,
-    []
+    [tenantId]
   );
 
   const inventoryMap = new Map<number, number>();
@@ -451,11 +475,12 @@ reportRouter.get("/inventory-turnover", requireAuth, asyncHandler(async (req, re
 }));
 
 // 库龄分析（按库龄段统计：30天内/30-90天/90-180天/180天以上）
-reportRouter.get("/inventory-age", requireAuth, asyncHandler(async (req, res) => {
+reportRouter.get("/inventory-age", requireAuthWithTenant, asyncHandler(async (req, res) => {
+  const tenantId = req.tenantId!;
   const storeId = req.query.storeId ? Number(req.query.storeId) : undefined;
 
-  const conditions: string[] = [];
-  const params: unknown[] = [];
+  const conditions: string[] = ["psi.tenant_id = ?"];
+  const params: unknown[] = [tenantId];
   if (storeId) {
     conditions.push("psi.store_id = ?");
     params.push(storeId);
@@ -475,8 +500,8 @@ reportRouter.get("/inventory-age", requireAuth, asyncHandler(async (req, res) =>
         psi.created_at AS inStockDate,
         DATEDIFF(CURDATE(), psi.created_at) AS ageDays
       FROM purchase_in_stock_item psi
-      JOIN purchase_in_stock pis ON pis.stock_no = psi.stock_no
-      JOIN product_sku ps ON ps.id = psi.sku_id
+      JOIN purchase_in_stock pis ON pis.stock_no = psi.stock_no AND pis.tenant_id = psi.tenant_id
+      JOIN product_sku ps ON ps.id = psi.sku_id AND ps.tenant_id = psi.tenant_id
       ${where}
       ORDER BY ageDays DESC`,
     params
@@ -526,17 +551,19 @@ reportRouter.get("/inventory-age", requireAuth, asyncHandler(async (req, res) =>
 // ========== 财务报表 ==========
 
 // 应收应付汇总（按客户/供应商）
-reportRouter.get("/receivable-payable", requireAuth, asyncHandler(async (req, res) => {
+reportRouter.get("/receivable-payable", requireAuthWithTenant, asyncHandler(async (req, res) => {
+  const tenantId = req.tenantId!;
   const rpDateStart = req.query.dateStart ? parseDateParam(req.query.dateStart) : undefined;
   const rpDateEnd = req.query.dateEnd ? parseDateParam(req.query.dateEnd) : undefined;
 
   // 构建时间条件
   const receivableConditions: string[] = [
+    "sb.tenant_id = ?",
     "sb.business_status NOT IN ('DRAFT', 'VOIDED')",
     "sb.customer_id IS NOT NULL",
     "sb.unreceived_amount > 0"
   ];
-  const receivableParams: unknown[] = [];
+  const receivableParams: unknown[] = [tenantId];
   if (rpDateStart && rpDateEnd) {
     receivableConditions.push("DATE(sb.created_at) BETWEEN ? AND ?");
     receivableParams.push(rpDateStart, rpDateEnd);
@@ -544,10 +571,11 @@ reportRouter.get("/receivable-payable", requireAuth, asyncHandler(async (req, re
   const receivableWhere = receivableConditions.join(" AND ");
 
   const payableConditions: string[] = [
+    "po.tenant_id = ?",
     "po.order_status NOT IN ('DRAFT', 'CANCELLED')",
     "po.unpaid_amount > 0"
   ];
-  const payableParams: unknown[] = [];
+  const payableParams: unknown[] = [tenantId];
   if (rpDateStart && rpDateEnd) {
     payableConditions.push("DATE(po.created_at) BETWEEN ? AND ?");
     payableParams.push(rpDateStart, rpDateEnd);
@@ -607,7 +635,8 @@ reportRouter.get("/receivable-payable", requireAuth, asyncHandler(async (req, re
 }));
 
 // 回款分析（按时间/客户/业务员）
-reportRouter.get("/payment-analysis", requireAuth, asyncHandler(async (req, res) => {
+reportRouter.get("/payment-analysis", requireAuthWithTenant, asyncHandler(async (req, res) => {
+  const tenantId = req.tenantId!;
   const dateStart = parseDateParam(req.query.dateStart, (() => { const d = new Date(); d.setDate(d.getDate() - 30); return d.toISOString().slice(0, 10); })());
   const dateEnd = parseDateParam(req.query.dateEnd, new Date().toISOString().slice(0, 10));
   const groupBy = z.enum(["date", "customer", "staff"]).parse(req.query.groupBy || "date");
@@ -620,11 +649,12 @@ reportRouter.get("/payment-analysis", requireAuth, asyncHandler(async (req, res)
               COUNT(*) AS paymentCount,
               COALESCE(SUM(amount), 0) AS totalAmount
        FROM customer_payment
-       WHERE status NOT IN ('VOIDED')
+       WHERE tenant_id = ?
+         AND status NOT IN ('VOIDED')
          AND payment_date BETWEEN ? AND ?
        GROUP BY DATE(payment_date)
        ORDER BY period ASC`,
-      [dateStart, dateEnd]
+      [tenantId, dateStart, dateEnd]
     );
   } else if (groupBy === "customer") {
     records = await query<any>(
@@ -632,11 +662,12 @@ reportRouter.get("/payment-analysis", requireAuth, asyncHandler(async (req, res)
               COUNT(*) AS paymentCount,
               COALESCE(SUM(amount), 0) AS totalAmount
        FROM customer_payment
-       WHERE status NOT IN ('VOIDED')
+       WHERE tenant_id = ?
+         AND status NOT IN ('VOIDED')
          AND payment_date BETWEEN ? AND ?
        GROUP BY customer_id, customer_name
        ORDER BY totalAmount DESC`,
-      [dateStart, dateEnd]
+      [tenantId, dateStart, dateEnd]
     );
   } else {
     records = await query<any>(
@@ -645,11 +676,12 @@ reportRouter.get("/payment-analysis", requireAuth, asyncHandler(async (req, res)
               COALESCE(SUM(cp.amount), 0) AS totalAmount
        FROM customer_payment cp
        LEFT JOIN sys_user u ON u.id = cp.operator_id
-       WHERE cp.status NOT IN ('VOIDED')
+       WHERE cp.tenant_id = ?
+         AND cp.status NOT IN ('VOIDED')
          AND cp.payment_date BETWEEN ? AND ?
        GROUP BY cp.operator_id, u.real_name
        ORDER BY totalAmount DESC`,
-      [dateStart, dateEnd]
+      [tenantId, dateStart, dateEnd]
     );
   }
 
@@ -661,7 +693,8 @@ reportRouter.get("/payment-analysis", requireAuth, asyncHandler(async (req, res)
 }));
 
 // 利润表（收入-成本-费用=利润）
-reportRouter.get("/profit", requireAuth, asyncHandler(async (req, res) => {
+reportRouter.get("/profit", requireAuthWithTenant, asyncHandler(async (req, res) => {
+  const tenantId = req.tenantId!;
   const dateStart = parseDateParam(req.query.dateStart, (() => { const d = new Date(); d.setDate(d.getDate() - 30); return d.toISOString().slice(0, 10); })());
   const dateEnd = parseDateParam(req.query.dateEnd, new Date().toISOString().slice(0, 10));
 
@@ -669,38 +702,42 @@ reportRouter.get("/profit", requireAuth, asyncHandler(async (req, res) => {
   const salesIncome = await queryOne<any>(
     `SELECT COALESCE(SUM(receivable_amount), 0) AS totalAmount
      FROM sale_bill
-     WHERE business_status NOT IN ('DRAFT', 'VOIDED')
+     WHERE tenant_id = ?
+       AND business_status NOT IN ('DRAFT', 'VOIDED')
        AND DATE(created_at) BETWEEN ? AND ?`,
-    [dateStart, dateEnd]
+    [tenantId, dateStart, dateEnd]
   );
 
   // 销售成本（按成本价计算）
   const salesCost = await queryOne<any>(
     `SELECT COALESCE(SUM(sbi.total_bottle_qty * pp.cost_price), 0) AS totalCost
      FROM sale_bill_item sbi
-     JOIN sale_bill sb ON sb.bill_no = sbi.bill_no
-     JOIN product_price pp ON pp.sku_id = sbi.sku_id
+     JOIN sale_bill sb ON sb.bill_no = sbi.bill_no AND sb.tenant_id = sbi.tenant_id
+     JOIN product_price pp ON pp.sku_id = sbi.sku_id AND pp.tenant_id = sbi.tenant_id
      WHERE sb.business_status NOT IN ('DRAFT', 'VOIDED')
+       AND sb.tenant_id = ?
        AND DATE(sb.created_at) BETWEEN ? AND ?`,
-    [dateStart, dateEnd]
+    [tenantId, dateStart, dateEnd]
   );
 
   // 退货金额
   const returnAmount = await queryOne<any>(
     `SELECT COALESCE(SUM(refund_amount), 0) AS totalAmount
      FROM sale_return
-     WHERE return_status NOT IN ('VOIDED')
+     WHERE tenant_id = ?
+       AND return_status NOT IN ('VOIDED')
        AND DATE(created_at) BETWEEN ? AND ?`,
-    [dateStart, dateEnd]
+    [tenantId, dateStart, dateEnd]
   );
 
   // 采购退货退款（冲减成本）
   const purchaseReturnAmount = await queryOne<any>(
     `SELECT COALESCE(SUM(refund_amount), 0) AS totalAmount
      FROM purchase_return
-     WHERE return_status NOT IN ('VOIDED')
+     WHERE tenant_id = ?
+       AND return_status NOT IN ('VOIDED')
        AND DATE(created_at) BETWEEN ? AND ?`,
-    [dateStart, dateEnd]
+    [tenantId, dateStart, dateEnd]
   );
 
   const income = Number(salesIncome?.totalAmount ?? 0);
@@ -723,35 +760,39 @@ reportRouter.get("/profit", requireAuth, asyncHandler(async (req, res) => {
   const prevSalesIncome = await queryOne<any>(
     `SELECT COALESCE(SUM(receivable_amount), 0) AS totalAmount
      FROM sale_bill
-     WHERE business_status NOT IN ('DRAFT', 'VOIDED')
+     WHERE tenant_id = ?
+       AND business_status NOT IN ('DRAFT', 'VOIDED')
        AND DATE(created_at) BETWEEN ? AND ?`,
-    [prevDateStart, prevDateEnd]
+    [tenantId, prevDateStart, prevDateEnd]
   );
 
   const prevSalesCost = await queryOne<any>(
     `SELECT COALESCE(SUM(sbi.total_bottle_qty * pp.cost_price), 0) AS totalCost
      FROM sale_bill_item sbi
-     JOIN sale_bill sb ON sb.bill_no = sbi.bill_no
-     JOIN product_price pp ON pp.sku_id = sbi.sku_id
+     JOIN sale_bill sb ON sb.bill_no = sbi.bill_no AND sb.tenant_id = sbi.tenant_id
+     JOIN product_price pp ON pp.sku_id = sbi.sku_id AND pp.tenant_id = sbi.tenant_id
      WHERE sb.business_status NOT IN ('DRAFT', 'VOIDED')
+       AND sb.tenant_id = ?
        AND DATE(sb.created_at) BETWEEN ? AND ?`,
-    [prevDateStart, prevDateEnd]
+    [tenantId, prevDateStart, prevDateEnd]
   );
 
   const prevReturnAmount = await queryOne<any>(
     `SELECT COALESCE(SUM(refund_amount), 0) AS totalAmount
      FROM sale_return
-     WHERE return_status NOT IN ('VOIDED')
+     WHERE tenant_id = ?
+       AND return_status NOT IN ('VOIDED')
        AND DATE(created_at) BETWEEN ? AND ?`,
-    [prevDateStart, prevDateEnd]
+    [tenantId, prevDateStart, prevDateEnd]
   );
 
   const prevPurchaseReturnAmount = await queryOne<any>(
     `SELECT COALESCE(SUM(refund_amount), 0) AS totalAmount
      FROM purchase_return
-     WHERE return_status NOT IN ('VOIDED')
+     WHERE tenant_id = ?
+       AND return_status NOT IN ('VOIDED')
        AND DATE(created_at) BETWEEN ? AND ?`,
-    [prevDateStart, prevDateEnd]
+    [tenantId, prevDateStart, prevDateEnd]
   );
 
   const prevIncome = Number(prevSalesIncome?.totalAmount ?? 0);
@@ -780,14 +821,17 @@ reportRouter.get("/profit", requireAuth, asyncHandler(async (req, res) => {
 }));
 
 // 经营概况仪表盘数据（关键指标一览）
-reportRouter.get("/business-overview", requireAuth, asyncHandler(async (_req, res) => {
+reportRouter.get("/business-overview", requireAuthWithTenant, asyncHandler(async (req, res) => {
+  const tenantId = req.tenantId!;
   // 今日销售
   const todaySales = await queryOne<any>(
     `SELECT COALESCE(SUM(receivable_amount), 0) AS amount,
             COUNT(*) AS count
      FROM sale_bill
-     WHERE business_status NOT IN ('DRAFT', 'VOIDED')
-       AND DATE(created_at) = CURDATE()`
+     WHERE tenant_id = ?
+       AND business_status NOT IN ('DRAFT', 'VOIDED')
+       AND DATE(created_at) = CURDATE()`,
+    [tenantId]
   );
 
   // 昨日销售（用于计算增长率）
@@ -795,8 +839,10 @@ reportRouter.get("/business-overview", requireAuth, asyncHandler(async (_req, re
     `SELECT COALESCE(SUM(receivable_amount), 0) AS amount,
             COUNT(*) AS count
      FROM sale_bill
-     WHERE business_status NOT IN ('DRAFT', 'VOIDED')
-       AND DATE(created_at) = DATE_SUB(CURDATE(), INTERVAL 1 DAY)`
+     WHERE tenant_id = ?
+       AND business_status NOT IN ('DRAFT', 'VOIDED')
+       AND DATE(created_at) = DATE_SUB(CURDATE(), INTERVAL 1 DAY)`,
+    [tenantId]
   );
 
   const todayAmount = Number(todaySales?.amount ?? 0);
@@ -816,8 +862,10 @@ reportRouter.get("/business-overview", requireAuth, asyncHandler(async (_req, re
     `SELECT COALESCE(SUM(receivable_amount), 0) AS amount,
             COUNT(*) AS count
      FROM sale_bill
-     WHERE business_status NOT IN ('DRAFT', 'VOIDED')
-       AND DATE_FORMAT(created_at, '%Y-%m') = DATE_FORMAT(CURDATE(), '%Y-%m')`
+     WHERE tenant_id = ?
+       AND business_status NOT IN ('DRAFT', 'VOIDED')
+       AND DATE_FORMAT(created_at, '%Y-%m') = DATE_FORMAT(CURDATE(), '%Y-%m')`,
+    [tenantId]
   );
 
   // 本年销售
@@ -825,41 +873,51 @@ reportRouter.get("/business-overview", requireAuth, asyncHandler(async (_req, re
     `SELECT COALESCE(SUM(receivable_amount), 0) AS amount,
             COUNT(*) AS count
      FROM sale_bill
-     WHERE business_status NOT IN ('DRAFT', 'VOIDED')
-       AND DATE_FORMAT(created_at, '%Y') = DATE_FORMAT(CURDATE(), '%Y')`
+     WHERE tenant_id = ?
+       AND business_status NOT IN ('DRAFT', 'VOIDED')
+       AND DATE_FORMAT(created_at, '%Y') = DATE_FORMAT(CURDATE(), '%Y')`,
+    [tenantId]
   );
 
   // 总应收
   const totalReceivable = await queryOne<any>(
     `SELECT COALESCE(SUM(unreceived_amount), 0) AS amount
      FROM sale_bill
-     WHERE business_status NOT IN ('DRAFT', 'VOIDED')
-       AND unreceived_amount > 0`
+     WHERE tenant_id = ?
+       AND business_status NOT IN ('DRAFT', 'VOIDED')
+       AND unreceived_amount > 0`,
+    [tenantId]
   );
 
   // 总应付
   const totalPayable = await queryOne<any>(
     `SELECT COALESCE(SUM(unpaid_amount), 0) AS amount
      FROM purchase_order
-     WHERE order_status NOT IN ('DRAFT', 'CANCELLED')
-       AND unpaid_amount > 0`
+     WHERE tenant_id = ?
+       AND order_status NOT IN ('DRAFT', 'CANCELLED')
+       AND unpaid_amount > 0`,
+    [tenantId]
   );
 
   // 库存总值
   const inventoryValue = await queryOne<any>(
     `SELECT COALESCE(SUM(ib.physical_qty * pp.cost_price), 0) AS amount
      FROM inventory_balance ib
-     JOIN product_price pp ON pp.sku_id = ib.sku_id`
+     JOIN product_price pp ON pp.sku_id = ib.sku_id AND pp.tenant_id = ib.tenant_id
+     WHERE ib.tenant_id = ?`,
+    [tenantId]
   );
 
   // 客户总数
   const customerCount = await queryOne<any>(
-    "SELECT COUNT(*) AS count FROM member WHERE status = 1"
+    "SELECT COUNT(*) AS count FROM member WHERE tenant_id = ? AND status = 1",
+    [tenantId]
   );
 
   // 供应商总数
   const supplierCount = await queryOne<any>(
-    "SELECT COUNT(*) AS count FROM supplier WHERE status = 1"
+    "SELECT COUNT(*) AS count FROM supplier WHERE tenant_id = ? AND status = 1",
+    [tenantId]
   );
 
   // 本月采购
@@ -867,8 +925,10 @@ reportRouter.get("/business-overview", requireAuth, asyncHandler(async (_req, re
     `SELECT COALESCE(SUM(payable_amount), 0) AS amount,
             COUNT(*) AS count
      FROM purchase_order
-     WHERE order_status NOT IN ('DRAFT', 'CANCELLED')
-       AND DATE_FORMAT(created_at, '%Y-%m') = DATE_FORMAT(CURDATE(), '%Y-%m')`
+     WHERE tenant_id = ?
+       AND order_status NOT IN ('DRAFT', 'CANCELLED')
+       AND DATE_FORMAT(created_at, '%Y-%m') = DATE_FORMAT(CURDATE(), '%Y-%m')`,
+    [tenantId]
   );
 
   res.json(ok({

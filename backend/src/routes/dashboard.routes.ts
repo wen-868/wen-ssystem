@@ -1,5 +1,5 @@
 import { Router } from "express";
-import { requireAuth } from "../shared/auth.js";
+import { requireAuthWithTenant } from "../shared/auth.js";
 import { asyncHandler } from "../shared/async-handler.js";
 import { query, queryOne } from "../shared/db.js";
 import { ok } from "../shared/response.js";
@@ -7,23 +7,28 @@ import { ok } from "../shared/response.js";
 export const dashboardRouter = Router();
 
 // 经营概况（今日/本月/本年的核心指标对比）
-dashboardRouter.get("/overview", requireAuth, asyncHandler(async (_req, res) => {
+dashboardRouter.get("/overview", requireAuthWithTenant, asyncHandler(async (req, res) => {
+  const tenantId = req.tenantId!;
   // 今日指标
   const todaySales = await queryOne<any>(
     `SELECT COALESCE(SUM(receivable_amount), 0) AS salesAmount,
             COUNT(*) AS orderCount,
             COALESCE(SUM(received_amount), 0) AS receivedAmount
      FROM sale_bill
-     WHERE business_status NOT IN ('DRAFT', 'VOIDED')
-       AND DATE(created_at) = CURDATE()`
+     WHERE tenant_id = ?
+       AND business_status NOT IN ('DRAFT', 'VOIDED')
+       AND DATE(created_at) = CURDATE()`,
+    [tenantId]
   );
 
   const todayPurchase = await queryOne<any>(
     `SELECT COALESCE(SUM(payable_amount), 0) AS purchaseAmount,
             COUNT(*) AS orderCount
      FROM purchase_order
-     WHERE order_status NOT IN ('DRAFT', 'CANCELLED')
-       AND DATE(created_at) = CURDATE()`
+     WHERE tenant_id = ?
+       AND order_status NOT IN ('DRAFT', 'CANCELLED')
+       AND DATE(created_at) = CURDATE()`,
+    [tenantId]
   );
 
   // 本月指标
@@ -32,16 +37,20 @@ dashboardRouter.get("/overview", requireAuth, asyncHandler(async (_req, res) => 
             COUNT(*) AS orderCount,
             COALESCE(SUM(received_amount), 0) AS receivedAmount
      FROM sale_bill
-     WHERE business_status NOT IN ('DRAFT', 'VOIDED')
-       AND DATE_FORMAT(created_at, '%Y-%m') = DATE_FORMAT(CURDATE(), '%Y-%m')`
+     WHERE tenant_id = ?
+       AND business_status NOT IN ('DRAFT', 'VOIDED')
+       AND DATE_FORMAT(created_at, '%Y-%m') = DATE_FORMAT(CURDATE(), '%Y-%m')`,
+    [tenantId]
   );
 
   const monthPurchase = await queryOne<any>(
     `SELECT COALESCE(SUM(payable_amount), 0) AS purchaseAmount,
             COUNT(*) AS orderCount
      FROM purchase_order
-     WHERE order_status NOT IN ('DRAFT', 'CANCELLED')
-       AND DATE_FORMAT(created_at, '%Y-%m') = DATE_FORMAT(CURDATE(), '%Y-%m')`
+     WHERE tenant_id = ?
+       AND order_status NOT IN ('DRAFT', 'CANCELLED')
+       AND DATE_FORMAT(created_at, '%Y-%m') = DATE_FORMAT(CURDATE(), '%Y-%m')`,
+    [tenantId]
   );
 
   // 本年指标
@@ -50,16 +59,20 @@ dashboardRouter.get("/overview", requireAuth, asyncHandler(async (_req, res) => 
             COUNT(*) AS orderCount,
             COALESCE(SUM(received_amount), 0) AS receivedAmount
      FROM sale_bill
-     WHERE business_status NOT IN ('DRAFT', 'VOIDED')
-       AND DATE_FORMAT(created_at, '%Y') = DATE_FORMAT(CURDATE(), '%Y')`
+     WHERE tenant_id = ?
+       AND business_status NOT IN ('DRAFT', 'VOIDED')
+       AND DATE_FORMAT(created_at, '%Y') = DATE_FORMAT(CURDATE(), '%Y')`,
+    [tenantId]
   );
 
   const yearPurchase = await queryOne<any>(
     `SELECT COALESCE(SUM(payable_amount), 0) AS purchaseAmount,
             COUNT(*) AS orderCount
      FROM purchase_order
-     WHERE order_status NOT IN ('DRAFT', 'CANCELLED')
-       AND DATE_FORMAT(created_at, '%Y') = DATE_FORMAT(CURDATE(), '%Y')`
+     WHERE tenant_id = ?
+       AND order_status NOT IN ('DRAFT', 'CANCELLED')
+       AND DATE_FORMAT(created_at, '%Y') = DATE_FORMAT(CURDATE(), '%Y')`,
+    [tenantId]
   );
 
   // 库存总值
@@ -67,22 +80,28 @@ dashboardRouter.get("/overview", requireAuth, asyncHandler(async (_req, res) => 
     `SELECT COALESCE(SUM(ib.physical_qty * pp.cost_price), 0) AS amount,
             COUNT(DISTINCT ib.sku_id) AS skuCount
      FROM inventory_balance ib
-     LEFT JOIN product_price pp ON pp.sku_id = ib.sku_id`
+     LEFT JOIN product_price pp ON pp.sku_id = ib.sku_id AND pp.tenant_id = ib.tenant_id
+     WHERE ib.tenant_id = ?`,
+    [tenantId]
   );
 
   // 应收应付
   const receivable = await queryOne<any>(
     `SELECT COALESCE(SUM(unreceived_amount), 0) AS amount
      FROM sale_bill
-     WHERE business_status NOT IN ('DRAFT', 'VOIDED')
-       AND unreceived_amount > 0`
+     WHERE tenant_id = ?
+       AND business_status NOT IN ('DRAFT', 'VOIDED')
+       AND unreceived_amount > 0`,
+    [tenantId]
   );
 
   const payable = await queryOne<any>(
     `SELECT COALESCE(SUM(unpaid_amount), 0) AS amount
      FROM purchase_order
-     WHERE order_status NOT IN ('DRAFT', 'CANCELLED')
-       AND unpaid_amount > 0`
+     WHERE tenant_id = ?
+       AND order_status NOT IN ('DRAFT', 'CANCELLED')
+       AND unpaid_amount > 0`,
+    [tenantId]
   );
 
   res.json(ok({
@@ -119,18 +138,20 @@ dashboardRouter.get("/overview", requireAuth, asyncHandler(async (_req, res) => 
 }));
 
 // 销售趋势图数据（近12个月）
-dashboardRouter.get("/sales-trend", requireAuth, asyncHandler(async (_req, res) => {
+dashboardRouter.get("/sales-trend", requireAuthWithTenant, asyncHandler(async (req, res) => {
+  const tenantId = req.tenantId!;
   const records = await query<any>(
     `SELECT DATE_FORMAT(sb.created_at, '%Y-%m') AS month,
             COALESCE(SUM(sb.receivable_amount), 0) AS salesAmount,
             COALESCE(SUM(sb.received_amount), 0) AS receivedAmount,
             COUNT(DISTINCT sb.bill_no) AS orderCount
      FROM sale_bill sb
-     WHERE sb.business_status NOT IN ('DRAFT', 'VOIDED')
+     WHERE sb.tenant_id = ?
+       AND sb.business_status NOT IN ('DRAFT', 'VOIDED')
        AND sb.created_at >= DATE_SUB(CURDATE(), INTERVAL 12 MONTH)
      GROUP BY DATE_FORMAT(sb.created_at, '%Y-%m')
      ORDER BY month ASC`,
-    []
+    [tenantId]
   );
 
   res.json(ok(records.map((r: any) => ({
@@ -142,7 +163,8 @@ dashboardRouter.get("/sales-trend", requireAuth, asyncHandler(async (_req, res) 
 }));
 
 // 品类销售占比数据
-dashboardRouter.get("/category-pie", requireAuth, asyncHandler(async (req, res) => {
+dashboardRouter.get("/category-pie", requireAuthWithTenant, asyncHandler(async (req, res) => {
+  const tenantId = req.tenantId!;
   const dateStart = String(req.query.dateStart || (() => { const d = new Date(); d.setDate(d.getDate() - 30); return d.toISOString().slice(0, 10); })());
   const dateEnd = String(req.query.dateEnd || new Date().toISOString().slice(0, 10));
 
@@ -151,15 +173,16 @@ dashboardRouter.get("/category-pie", requireAuth, asyncHandler(async (req, res) 
             COALESCE(SUM(sbi.subtotal_amount), 0) AS totalAmount,
             SUM(sbi.total_bottle_qty) AS totalQty
      FROM sale_bill_item sbi
-     JOIN sale_bill sb ON sb.bill_no = sbi.bill_no
-     JOIN product_sku ps ON ps.id = sbi.sku_id
-     JOIN product_spu psp ON psp.id = ps.spu_id
+     JOIN sale_bill sb ON sb.bill_no = sbi.bill_no AND sb.tenant_id = sbi.tenant_id
+     JOIN product_sku ps ON ps.id = sbi.sku_id AND ps.tenant_id = sbi.tenant_id
+     JOIN product_spu psp ON psp.id = ps.spu_id AND psp.tenant_id = ps.tenant_id
      JOIN product_category pc ON pc.id = psp.category_id
      WHERE sb.business_status NOT IN ('DRAFT', 'VOIDED')
+       AND sb.tenant_id = ?
        AND DATE(sb.created_at) BETWEEN ? AND ?
      GROUP BY pc.name
      ORDER BY totalAmount DESC`,
-    [dateStart, dateEnd]
+    [tenantId, dateStart, dateEnd]
   );
 
   const totalAmount = records.reduce((sum: number, r: any) => sum + Number(r.totalAmount), 0);
@@ -173,7 +196,8 @@ dashboardRouter.get("/category-pie", requireAuth, asyncHandler(async (req, res) 
 }));
 
 // 热销商品TOP10
-dashboardRouter.get("/top-products", requireAuth, asyncHandler(async (req, res) => {
+dashboardRouter.get("/top-products", requireAuthWithTenant, asyncHandler(async (req, res) => {
+  const tenantId = req.tenantId!;
   const dateStart = String(req.query.dateStart || (() => { const d = new Date(); d.setDate(d.getDate() - 30); return d.toISOString().slice(0, 10); })());
   const dateEnd = String(req.query.dateEnd || new Date().toISOString().slice(0, 10));
 
@@ -183,13 +207,14 @@ dashboardRouter.get("/top-products", requireAuth, asyncHandler(async (req, res) 
             COALESCE(SUM(sbi.subtotal_amount), 0) AS totalAmount,
             COUNT(DISTINCT sbi.bill_no) AS orderCount
      FROM sale_bill_item sbi
-     JOIN sale_bill sb ON sb.bill_no = sbi.bill_no
+     JOIN sale_bill sb ON sb.bill_no = sbi.bill_no AND sb.tenant_id = sbi.tenant_id
      WHERE sb.business_status NOT IN ('DRAFT', 'VOIDED')
+       AND sb.tenant_id = ?
        AND DATE(sb.created_at) BETWEEN ? AND ?
      GROUP BY sbi.sku_id, sbi.sku_name
      ORDER BY totalAmount DESC
      LIMIT 10`,
-    [dateStart, dateEnd]
+    [tenantId, dateStart, dateEnd]
   );
 
   res.json(ok(records.map((r: any) => ({
@@ -202,7 +227,8 @@ dashboardRouter.get("/top-products", requireAuth, asyncHandler(async (req, res) 
 }));
 
 // 客户贡献TOP10
-dashboardRouter.get("/top-customers", requireAuth, asyncHandler(async (req, res) => {
+dashboardRouter.get("/top-customers", requireAuthWithTenant, asyncHandler(async (req, res) => {
+  const tenantId = req.tenantId!;
   const dateStart = String(req.query.dateStart || (() => { const d = new Date(); d.setDate(d.getDate() - 30); return d.toISOString().slice(0, 10); })());
   const dateEnd = String(req.query.dateEnd || new Date().toISOString().slice(0, 10));
 
@@ -213,12 +239,13 @@ dashboardRouter.get("/top-customers", requireAuth, asyncHandler(async (req, res)
             COALESCE(SUM(sb.received_amount), 0) AS receivedAmount
      FROM sale_bill sb
      WHERE sb.business_status NOT IN ('DRAFT', 'VOIDED')
+       AND sb.tenant_id = ?
        AND sb.customer_id IS NOT NULL
        AND DATE(sb.created_at) BETWEEN ? AND ?
      GROUP BY sb.customer_id, sb.customer_name
      ORDER BY totalAmount DESC
      LIMIT 10`,
-    [dateStart, dateEnd]
+    [tenantId, dateStart, dateEnd]
   );
 
   res.json(ok(records.map((r: any) => ({
@@ -231,7 +258,8 @@ dashboardRouter.get("/top-customers", requireAuth, asyncHandler(async (req, res)
 }));
 
 // 最近预警列表
-dashboardRouter.get("/recent-alerts", requireAuth, asyncHandler(async (req, res) => {
+dashboardRouter.get("/recent-alerts", requireAuthWithTenant, asyncHandler(async (req, res) => {
+  const tenantId = req.tenantId!;
   const limit = Math.min(Number(req.query.limit || 10), 50);
 
   const records = await query<any>(
@@ -241,7 +269,7 @@ dashboardRouter.get("/recent-alerts", requireAuth, asyncHandler(async (req, res)
             biz_type AS bizType, biz_id AS bizId,
             status, created_at AS createdAt
      FROM alert_record
-     WHERE status = 'PENDING'
+     WHERE tenant_id = ? AND status = 'PENDING'
      ORDER BY
        CASE alert_level
          WHEN 'CRITICAL' THEN 1
@@ -251,7 +279,7 @@ dashboardRouter.get("/recent-alerts", requireAuth, asyncHandler(async (req, res)
        END,
        created_at DESC
      LIMIT ?`,
-    [limit]
+    [tenantId, limit]
   );
 
   res.json(ok(records));

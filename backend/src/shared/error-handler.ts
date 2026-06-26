@@ -3,11 +3,6 @@ import { ZodError } from "zod";
 import { fail } from "./response.js";
 
 export const errorHandler: ErrorRequestHandler = (err, _req, res, _next) => {
-  if (err instanceof ZodError) {
-    const messages = err.issues.map((i) => `${i.path.join(".")}: ${i.message}`).join("; ");
-    res.status(400).json(fail(messages, "400"));
-    return;
-  }
   console.error(err);
 
   // ZodError：参数校验失败，返回 400 及具体字段错误

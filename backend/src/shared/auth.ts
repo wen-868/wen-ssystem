@@ -1,13 +1,43 @@
 import type { RequestHandler } from "express";
 import jwt from "jsonwebtoken";
 import { env } from "./env.js";
+import { tenantMiddleware, type TenantRequest } from "./tenant.js";
 
 export type AuthUser = {
   id: number;
   username: string;
+  realName?: string;
   roles: string[];
   storeId?: number | null;
+  tenantId: string;
 };
+
+export type AccessMode = "ADMIN" | "CASHIER";
+
+export type UserAccessInfo = {
+  accessModes: AccessMode[];
+  defaultMode: AccessMode;
+};
+
+const ADMIN_ROLES = ["SUPER_ADMIN", "OPERATION_ADMIN", "WAREHOUSE_ADMIN", "FINANCE_ADMIN"];
+const CASHIER_ROLES = ["STORE_MANAGER", "STORE_OPERATOR", "CASHIER", "SALES"];
+
+export function getUserAccessInfo(user: AuthUser): UserAccessInfo {
+  const hasAdminRole = user.roles.some(r => ADMIN_ROLES.includes(r));
+  const hasCashierRole = user.roles.some(r => CASHIER_ROLES.includes(r));
+
+  const accessModes: AccessMode[] = [];
+  if (hasAdminRole) accessModes.push("ADMIN");
+  if (hasCashierRole || hasAdminRole) accessModes.push("CASHIER");
+
+  if (accessModes.length === 0) {
+    accessModes.push("CASHIER");
+  }
+
+  const defaultMode: AccessMode = hasAdminRole ? "ADMIN" : "CASHIER";
+
+  return { accessModes, defaultMode };
+}
 
 export function hasAnyRole(user: AuthUser | undefined, allowedRoles: string[]) {
   if (!user) return false;
@@ -62,3 +92,5 @@ export const requireAuth: RequestHandler = (req, res, next) => {
     res.status(401).json({ code: "401", message: "登录已失效" });
   }
 };
+
+export const requireAuthWithTenant = [requireAuth, tenantMiddleware] as RequestHandler[];

@@ -1,0 +1,61 @@
+import { query } from "../shared/db.js";
+
+async function getAllActiveTenants(): Promise<string[]> {
+  const rows = await query<any>(
+    "SELECT DISTINCT tenant_id FROM sys_user WHERE status = 1"
+  );
+  return rows.map((r: any) => r.tenant_id).filter(Boolean);
+}
+
+export async function scanOverdueCreditBills(tenantId?: string): Promise<number> {
+  let tenantIds: string[] = [];
+  if (tenantId) {
+    tenantIds = [tenantId];
+  } else {
+    tenantIds = await getAllActiveTenants();
+  }
+
+  let totalAffected = 0;
+
+  for (const tid of tenantIds) {
+    const result = await query(
+      `UPDATE sale_bill
+       SET collection_status = 'OVERDUE', updated_at = NOW()
+       WHERE tenant_id = ?
+         AND sale_type = 'CREDIT'
+         AND due_date IS NOT NULL
+         AND due_date < CURDATE()
+         AND collection_status IN ('UNPAID', 'PARTIAL')
+         AND business_status = 'CREATED'`,
+      [tid]
+    );
+
+    const affectedRows = (result as any)?.affectedRows || 0;
+    totalAffected += affectedRows;
+
+    if (affectedRows > 0) {
+      console.log(`[OverdueScanner] 租户 ${tid}: 标记 ${affectedRows} 笔赊销单为超期`);
+    }
+  }
+
+  return totalAffected;
+}
+
+export function startOverdueScanner() {
+  scanOverdueCreditBills().catch(err => {
+    console.error("[OverdueScanner] 启动扫描失败:", err);
+  });
+
+  const interval = setInterval(() => {
+    const now = new Date();
+    if (now.getHours() === 1 && now.getMinutes() === 0) {
+      scanOverdueCreditBills().catch(err => {
+        console.error("[OverdueScanner] 定时扫描失败:", err);
+      });
+    }
+  }, 60 * 1000);
+
+  console.log("[OverdueScanner] 超期检测定时任务已启动");
+
+  return () => clearInterval(interval);
+}

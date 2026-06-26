@@ -5,6 +5,7 @@ import { env } from "./shared/env.js";
 import { initDatabase } from "./shared/db.js";
 import { errorHandler } from "./shared/error-handler.js";
 import { requireAuth } from "./shared/auth.js";
+import { tenantMiddleware } from "./shared/tenant.js";
 import { adminRouter } from "./routes/admin.routes.js";
 import { storeRouter } from "./routes/store.routes.js";
 import { miniappRouter } from "./routes/miniapp.routes.js";
@@ -33,6 +34,21 @@ import { adminStockCheckRouter, storeStockCheckRouter } from "./routes/stock-che
 import { auditRouter } from "./routes/audit.routes.js";
 import { exportRouter } from "./routes/export.routes.js";
 import { sysConfigRouter } from "./routes/sys-config.routes.js";
+import { supplierRouter } from "./routes/supplier.routes.js";
+import { purchaseRouter } from "./routes/purchase.routes.js";
+import { saleReturnRouter } from "./routes/sale-return.routes.js";
+import { purchaseInStockRouter } from "./routes/purchase-in-stock.routes.js";
+import { purchaseReturnRouter } from "./routes/purchase-return.routes.js";
+import { customerStatementRouter } from "./routes/customer-statement.routes.js";
+import { customerPaymentRouter } from "./routes/customer-payment.routes.js";
+import { customerVisitRouter } from "./routes/customer-visit.routes.js";
+import { approvalRouter } from "./routes/approval.routes.js";
+import { tenantRouter } from "./routes/tenant.routes.js";
+import { subscriptionRouter } from "./routes/subscription.routes.js";
+import { customerMergeRouter } from "./routes/customer-merge.routes.js";
+import { startOverdueScanner } from "./services/overdue-scanner.service.js";
+import { startSubscriptionExpiryScanner } from "./services/subscription-expiry.service.js";
+import { marketingNewRouter } from "./routes/marketing-new.routes.js";
 
 const app = express();
 
@@ -40,10 +56,22 @@ app.use(helmet());
 app.use(cors());
 app.use(express.json({ limit: "2mb" }));
 
+// 认证 + 租户隔离组合中间件
+const requireAuthWithTenant = (req: any, res: any, next: any) => {
+  requireAuth(req, res, (err?: any) => {
+    if (err) return;
+    tenantMiddleware(req, res, next);
+  });
+};
+
 app.get("/health", (_req, res) => {
   res.json({ code: "0", message: "ok", data: { service: "zhixiang-backend" } });
 });
 
+app.use("/api/admin/suppliers", requireAuthWithTenant, supplierRouter);
+app.use("/api/admin/purchase-orders", requireAuthWithTenant, purchaseRouter);
+app.use("/api/store/sale-returns", requireAuthWithTenant, saleReturnRouter);
+app.use("/api/admin/sale-returns", requireAuthWithTenant, saleReturnRouter);
 app.use("/api/admin", adminRouter);
 app.use("/api/admin/reports", reportRouter);
 app.use("/api/admin/alerts", alertRouter);
@@ -53,35 +81,43 @@ app.use("/api/miniapp", miniappRouter);
 app.use("/api/pay", paymentRouter);
 app.use("/api/share", shareRouter);
 app.use("/api/instant-retail", instantRetailRouter);
-app.use("/api/miniapp/cart", requireAuth, miniappCartRouter);
+app.use("/api/miniapp/cart", requireAuthWithTenant, miniappCartRouter);
 app.use("/api/miniapp/aftersales", miniappAftersaleRouter);
 app.use("/api/admin/aftersales", adminAftersaleRouter);
-app.use("/api/admin/prices", priceRouter);
-app.use("/api/admin/credits", creditRouter);
-app.use("/api/admin/trace", requireAuth, adminTraceRouter);
-app.use("/api/admin/inventory-batch", requireAuth, inventoryBatchRouter);
-app.use("/api/admin/store-control", requireAuth, adminStoreControlRouter);
+app.use("/api/admin/prices", requireAuthWithTenant, priceRouter);
+app.use("/api/admin/credits", requireAuthWithTenant, creditRouter);
+app.use("/api/admin/trace", requireAuthWithTenant, adminTraceRouter);
+app.use("/api/admin/inventory-batch", requireAuthWithTenant, inventoryBatchRouter);
+app.use("/api/admin/store-control", requireAuthWithTenant, adminStoreControlRouter);
 app.use("/api/store/control", storeStoreControlRouter);
 app.use("/api/miniapp/trace", miniappTraceRouter);
-app.use("/api/admin/marketing", adminMarketingRouter);
+app.use("/api/admin/marketing", requireAuthWithTenant, adminMarketingRouter);
 app.use("/api/miniapp/marketing", miniappMarketingRouter);
 app.use("/api/miniapp/wechat", wechatRouter);
-app.use("/api/admin/order-timeout", requireAuth, orderTimeoutRouter);
-app.use("/api/admin/purchase-payments", requireAuth, purchasePaymentRouter);
-app.use("/api/admin/roles", requireAuth, rbacRouter);
-app.use("/api/admin/notifications", requireAuth, adminNotificationRouter);
+app.use("/api/admin/order-timeout", requireAuthWithTenant, orderTimeoutRouter);
+app.use("/api/admin/purchase-payments", requireAuthWithTenant, purchasePaymentRouter);
+app.use("/api/admin/roles", requireAuthWithTenant, rbacRouter);
+app.use("/api/admin/notifications", requireAuthWithTenant, adminNotificationRouter);
 app.use("/api/miniapp/notifications", miniappNotificationRouter);
-app.use("/api/admin/transfers", requireAuth, adminTransferRouter);
+app.use("/api/admin/transfers", requireAuthWithTenant, adminTransferRouter);
 app.use("/api/store/transfers", storeTransferRouter);
-app.use("/api/admin/stock-checks", requireAuth, adminStockCheckRouter);
+app.use("/api/admin/stock-checks", requireAuthWithTenant, adminStockCheckRouter);
 app.use("/api/store/stock-checks", storeStockCheckRouter);
-app.use("/api/admin/audit-logs", requireAuth, auditRouter);
-app.use("/api/admin/export", requireAuth, exportRouter);
-app.use("/api/admin/sys-config", requireAuth, sysConfigRouter);
+app.use("/api/admin/audit-logs", requireAuthWithTenant, auditRouter);
+app.use("/api/admin/export", requireAuthWithTenant, exportRouter);
+app.use("/api/admin/sys-config", requireAuthWithTenant, sysConfigRouter);
+app.use("/api/admin/purchase-in-stocks", requireAuthWithTenant, purchaseInStockRouter);
+app.use("/api/admin/purchase-returns", requireAuthWithTenant, purchaseReturnRouter);
+app.use("/api/admin/customer-statements", requireAuthWithTenant, customerStatementRouter);
+app.use("/api/admin/customer-payments", requireAuthWithTenant, customerPaymentRouter);
+app.use("/api/admin/customer-visits", requireAuthWithTenant, customerVisitRouter);
+app.use("/api/admin/approval", requireAuthWithTenant, approvalRouter);
+app.use("/api/admin/tenants", requireAuthWithTenant, tenantRouter);
+app.use("/api/admin/subscriptions", requireAuthWithTenant, subscriptionRouter);
+app.use("/api/admin/customer-merge", requireAuthWithTenant, customerMergeRouter);
+app.use("/api/admin/marketing-new", requireAuthWithTenant, marketingNewRouter);
 
 app.use(errorHandler);
-
-export { app };
 
 async function start() {
   if (!env.USE_MOCK_DB) {
@@ -98,14 +134,14 @@ async function start() {
     startStoreControlScheduler();
     // 启动订单超时扫描器
     startOrderTimeoutScanner();
+    // 启动赊销超期检测
+    startOverdueScanner();
+    // 启动订阅到期检测
+    startSubscriptionExpiryScanner();
   });
 }
 
-if (process.env.NODE_ENV !== "test") {
-  start().catch((error) => {
-    console.error("❌ 后端启动失败:", error);
-    process.exit(1);
-  });
-}
-
-export { start };
+start().catch((error) => {
+  console.error("❌ 后端启动失败:", error);
+  process.exit(1);
+});

@@ -1,6 +1,6 @@
 import { Router } from "express";
 import { z } from "zod";
-import { requireAuth } from "../shared/auth.js";
+import { requireAuthWithTenant } from "../shared/auth.js";
 import { asyncHandler } from "../shared/async-handler.js";
 import { query, queryOne } from "../shared/db.js";
 import { ok } from "../shared/response.js";
@@ -9,12 +9,13 @@ import { runAllAlertChecks } from "../services/alert.service.js";
 export const alertRouter = Router();
 
 // 预警列表（支持按类型筛选：库存预警/保质期预警/信用预警/回款逾期）
-alertRouter.get("/list", requireAuth, asyncHandler(async (req, res) => {
+alertRouter.get("/list", requireAuthWithTenant, asyncHandler(async (req, res) => {
+  const tenantId = req.tenantId!;
   const page = Number(req.query.page || 1);
   const pageSize = Number(req.query.pageSize || 20);
   const offset = (page - 1) * pageSize;
-  const conditions: string[] = [];
-  const params: unknown[] = [];
+  const conditions: string[] = ["ar.tenant_id = ?"];
+  const params: unknown[] = [tenantId];
 
   if (req.query.ruleType) {
     conditions.push("ar.rule_type = ?");
@@ -61,32 +62,38 @@ alertRouter.get("/list", requireAuth, asyncHandler(async (req, res) => {
 }));
 
 // 各类预警数量统计
-alertRouter.get("/count", requireAuth, asyncHandler(async (_req, res) => {
+alertRouter.get("/count", requireAuthWithTenant, asyncHandler(async (req, res) => {
+  const tenantId = req.tenantId!;
   const pendingCounts = await query<any>(
     `SELECT rule_type AS ruleType, COUNT(*) AS count
      FROM alert_record
-     WHERE status = 'PENDING'
-     GROUP BY rule_type`
+     WHERE tenant_id = ? AND status = 'PENDING'
+     GROUP BY rule_type`,
+    [tenantId]
   );
 
   const totalPending = await queryOne<any>(
-    "SELECT COUNT(*) AS count FROM alert_record WHERE status = 'PENDING'"
+    "SELECT COUNT(*) AS count FROM alert_record WHERE tenant_id = ? AND status = 'PENDING'",
+    [tenantId]
   );
 
   const totalHandled = await queryOne<any>(
-    "SELECT COUNT(*) AS count FROM alert_record WHERE status = 'HANDLED'"
+    "SELECT COUNT(*) AS count FROM alert_record WHERE tenant_id = ? AND status = 'HANDLED'",
+    [tenantId]
   );
 
   const totalIgnored = await queryOne<any>(
-    "SELECT COUNT(*) AS count FROM alert_record WHERE status = 'IGNORED'"
+    "SELECT COUNT(*) AS count FROM alert_record WHERE tenant_id = ? AND status = 'IGNORED'",
+    [tenantId]
   );
 
   // 按级别统计
   const levelCounts = await query<any>(
     `SELECT alert_level AS alertLevel, COUNT(*) AS count
      FROM alert_record
-     WHERE status = 'PENDING'
-     GROUP BY alert_level`
+     WHERE tenant_id = ? AND status = 'PENDING'
+     GROUP BY alert_level`,
+    [tenantId]
   );
 
   const byType: Record<string, number> = {};
@@ -109,11 +116,12 @@ alertRouter.get("/count", requireAuth, asyncHandler(async (_req, res) => {
 }));
 
 // 处理预警（标记已处理/忽略）
-alertRouter.put("/:id/handle", requireAuth, asyncHandler(async (req, res) => {
+alertRouter.put("/:id/handle", requireAuthWithTenant, asyncHandler(async (req, res) => {
+  const tenantId = req.tenantId!;
   const alertId = Number(req.params.id);
   const existing = await queryOne<any>(
-    "SELECT id, status FROM alert_record WHERE id = ?",
-    [alertId]
+    "SELECT id, status FROM alert_record WHERE id = ? AND tenant_id = ?",
+    [alertId, tenantId]
   );
   if (!existing) {
     res.status(404).json({ code: "404", message: "预警记录不存在" });
@@ -130,7 +138,7 @@ alertRouter.put("/:id/handle", requireAuth, asyncHandler(async (req, res) => {
   }).parse(req.body);
 
   const newStatus = body.action === "HANDLE" ? "HANDLED" : "IGNORED";
-  const handlerName = req.user?.username ?? "system";
+  const handlerName = req.user!.username ?? "system";
 
   await query(
     `UPDATE alert_record
@@ -140,21 +148,22 @@ alertRouter.put("/:id/handle", requireAuth, asyncHandler(async (req, res) => {
          handle_time = NOW(),
          handle_remark = ?,
          updated_at = NOW()
-     WHERE id = ?`,
-    [newStatus, req.user?.id ?? 0, handlerName, body.remark ?? null, alertId]
+     WHERE id = ? AND tenant_id = ?`,
+    [newStatus, req.user!.id ?? 0, handlerName, body.remark ?? null, alertId, tenantId]
   );
 
   res.json(ok({
     alertId,
     status: newStatus,
-    handlerId: req.user?.id,
+    handlerId: req.user!.id,
     handlerName,
     handleTime: new Date().toISOString()
   }));
 }));
 
 // 预警规则配置列表
-alertRouter.get("/rules", requireAuth, asyncHandler(async (_req, res) => {
+alertRouter.get("/rules", requireAuthWithTenant, asyncHandler(async (req, res) => {
+  const tenantId = req.tenantId!;
   const records = await query<any>(
     `SELECT id, rule_code AS ruleCode, rule_name AS ruleName,
             rule_type AS ruleType, enabled,
@@ -162,18 +171,21 @@ alertRouter.get("/rules", requireAuth, asyncHandler(async (_req, res) => {
             extra_config AS extraConfig, description,
             created_at AS createdAt, updated_at AS updatedAt
      FROM alert_rule
-     ORDER BY rule_type, id ASC`
+     WHERE tenant_id = ?
+     ORDER BY rule_type, id ASC`,
+    [tenantId]
   );
 
   res.json(ok({ records }));
 }));
 
 // 修改预警规则（阈值调整）
-alertRouter.put("/rules/:id", requireAuth, asyncHandler(async (req, res) => {
+alertRouter.put("/rules/:id", requireAuthWithTenant, asyncHandler(async (req, res) => {
+  const tenantId = req.tenantId!;
   const ruleId = Number(req.params.id);
   const existing = await queryOne<any>(
-    "SELECT id FROM alert_rule WHERE id = ?",
-    [ruleId]
+    "SELECT id FROM alert_rule WHERE id = ? AND tenant_id = ?",
+    [ruleId, tenantId]
   );
   if (!existing) {
     res.status(404).json({ code: "404", message: "预警规则不存在" });
@@ -204,8 +216,8 @@ alertRouter.put("/rules/:id", requireAuth, asyncHandler(async (req, res) => {
 
   if (updates.length > 0) {
     await query(
-      `UPDATE alert_rule SET ${updates.join(", ")} WHERE id = ?`,
-      [...params, ruleId]
+      `UPDATE alert_rule SET ${updates.join(", ")} WHERE id = ? AND tenant_id = ?`,
+      [...params, ruleId, tenantId]
     );
   }
 
@@ -215,15 +227,16 @@ alertRouter.put("/rules/:id", requireAuth, asyncHandler(async (req, res) => {
             threshold_value AS thresholdValue, threshold_unit AS thresholdUnit,
             extra_config AS extraConfig, description,
             created_at AS createdAt, updated_at AS updatedAt
-     FROM alert_rule WHERE id = ?`,
-    [ruleId]
+     FROM alert_rule WHERE id = ? AND tenant_id = ?`,
+    [ruleId, tenantId]
   );
 
   res.json(ok(rule));
 }));
 
 // 手动触发预警检查
-alertRouter.post("/check", requireAuth, asyncHandler(async (_req, res) => {
+alertRouter.post("/check", requireAuthWithTenant, asyncHandler(async (req, res) => {
+  const tenantId = req.tenantId!;
   const result = await runAllAlertChecks();
   res.json(ok({
     message: `预警检查完成，新增 ${result.total} 条预警`,

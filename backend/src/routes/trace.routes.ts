@@ -1,10 +1,11 @@
 import { Router } from "express";
 import { z } from "zod";
-import { requireAuth } from "../shared/auth.js";
+import { requireAuthWithTenant } from "../shared/auth.js";
 import { asyncHandler } from "../shared/async-handler.js";
 import { query, queryOne, transaction } from "../shared/db.js";
 import { makeBizNo } from "../shared/id.js";
 import { ok } from "../shared/response.js";
+import { getTenantId } from "../shared/tenant.js";
 
 // ========== Admin 追溯路由 ==========
 export const adminTraceRouter = Router();
@@ -12,12 +13,13 @@ export const adminTraceRouter = Router();
 // ========== 追溯配置 ==========
 
 // 配置列表
-adminTraceRouter.get("/configs", requireAuth, asyncHandler(async (req, res) => {
+adminTraceRouter.get("/configs", requireAuthWithTenant, asyncHandler(async (req, res) => {
+  const tenantId = req.tenantId!;
   const page = Number(req.query.page || 1);
   const pageSize = Number(req.query.pageSize || 20);
   const offset = (page - 1) * pageSize;
-  const conditions: string[] = [];
-  const params: unknown[] = [];
+  const conditions: string[] = ["tc.tenant_id = ?"];
+  const params: unknown[] = [tenantId];
 
   if (req.query.configLevel) {
     conditions.push("tc.config_level = ?");
@@ -59,7 +61,8 @@ adminTraceRouter.get("/configs", requireAuth, asyncHandler(async (req, res) => {
 }));
 
 // 创建配置
-adminTraceRouter.post("/configs", requireAuth, asyncHandler(async (req, res) => {
+adminTraceRouter.post("/configs", requireAuthWithTenant, asyncHandler(async (req, res) => {
+  const tenantId = req.tenantId!;
   const body = z.object({
     configLevel: z.enum(["CATEGORY", "SKU", "GLOBAL"]),
     targetId: z.number().int().positive(),
@@ -78,11 +81,11 @@ adminTraceRouter.post("/configs", requireAuth, asyncHandler(async (req, res) => 
   await query(
     `INSERT INTO trace_config (config_no, config_level, target_id, target_name,
        trace_enabled, force_enabled, code_mode, code_prefix, auto_generate,
-       shelf_life_days, remark)
-     VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+       shelf_life_days, remark, tenant_id)
+     VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
     [configNo, body.configLevel, body.targetId, body.targetName,
      body.traceEnabled, body.forceEnabled, body.codeMode, body.codePrefix,
-     body.autoGenerate, body.shelfLifeDays, body.remark]
+     body.autoGenerate, body.shelfLifeDays, body.remark, tenantId]
   );
 
   const record = await queryOne<any>(
@@ -92,19 +95,20 @@ adminTraceRouter.post("/configs", requireAuth, asyncHandler(async (req, res) => 
             code_mode AS codeMode, code_prefix AS codePrefix,
             auto_generate AS autoGenerate, shelf_life_days AS shelfLifeDays,
             remark, status, created_at AS createdAt
-     FROM trace_config WHERE config_no = ?`,
-    [configNo]
+     FROM trace_config WHERE config_no = ? AND tenant_id = ?`,
+    [configNo, tenantId]
   );
 
   res.json(ok(record));
 }));
 
 // 编辑配置
-adminTraceRouter.put("/configs/:id", requireAuth, asyncHandler(async (req, res) => {
+adminTraceRouter.put("/configs/:id", requireAuthWithTenant, asyncHandler(async (req, res) => {
+  const tenantId = req.tenantId!;
   const configId = Number(req.params.id);
   const existing = await queryOne<any>(
-    "SELECT id FROM trace_config WHERE id = ?",
-    [configId]
+    "SELECT id FROM trace_config WHERE id = ? AND tenant_id = ?",
+    [configId, tenantId]
   );
   if (!existing) {
     res.status(404).json({ code: "404", message: "配置不存在" });
@@ -138,8 +142,8 @@ adminTraceRouter.put("/configs/:id", requireAuth, asyncHandler(async (req, res) 
 
   if (updates.length > 0) {
     await query(
-      `UPDATE trace_config SET ${updates.join(", ")} WHERE id = ?`,
-      [...params, configId]
+      `UPDATE trace_config SET ${updates.join(", ")} WHERE id = ? AND tenant_id = ?`,
+      [...params, configId, tenantId]
     );
   }
 
@@ -150,32 +154,34 @@ adminTraceRouter.put("/configs/:id", requireAuth, asyncHandler(async (req, res) 
             code_mode AS codeMode, code_prefix AS codePrefix,
             auto_generate AS autoGenerate, shelf_life_days AS shelfLifeDays,
             remark, status, updated_at AS updatedAt
-     FROM trace_config WHERE id = ?`,
-    [configId]
+     FROM trace_config WHERE id = ? AND tenant_id = ?`,
+    [configId, tenantId]
   );
 
   res.json(ok(record));
 }));
 
 // 删除配置
-adminTraceRouter.delete("/configs/:id", requireAuth, asyncHandler(async (req, res) => {
+adminTraceRouter.delete("/configs/:id", requireAuthWithTenant, asyncHandler(async (req, res) => {
+  const tenantId = req.tenantId!;
   const configId = Number(req.params.id);
   const existing = await queryOne<any>(
-    "SELECT id FROM trace_config WHERE id = ?",
-    [configId]
+    "SELECT id FROM trace_config WHERE id = ? AND tenant_id = ?",
+    [configId, tenantId]
   );
   if (!existing) {
     res.status(404).json({ code: "404", message: "配置不存在" });
     return;
   }
 
-  await query("DELETE FROM trace_config WHERE id = ?", [configId]);
+  await query("DELETE FROM trace_config WHERE id = ? AND tenant_id = ?", [configId, tenantId]);
 
   res.json(ok({ deleted: true }));
 }));
 
 // 检查SKU是否需要追溯
-adminTraceRouter.post("/configs/check", requireAuth, asyncHandler(async (req, res) => {
+adminTraceRouter.post("/configs/check", requireAuthWithTenant, asyncHandler(async (req, res) => {
+  const tenantId = req.tenantId!;
   const body = z.object({
     skuId: z.number().int().positive(),
     categoryId: z.number().int().optional()
@@ -185,8 +191,8 @@ adminTraceRouter.post("/configs/check", requireAuth, asyncHandler(async (req, re
   const skuConfig = await queryOne<any>(
     `SELECT id, config_no AS configNo, trace_enabled AS traceEnabled, force_enabled AS forceEnabled,
             code_mode AS codeMode, code_prefix AS codePrefix, shelf_life_days AS shelfLifeDays
-     FROM trace_config WHERE config_level = 'SKU' AND target_id = ? AND status = 1`,
-    [body.skuId]
+     FROM trace_config WHERE config_level = 'SKU' AND target_id = ? AND status = 1 AND tenant_id = ?`,
+    [body.skuId, tenantId]
   );
 
   if (skuConfig) {
@@ -202,8 +208,8 @@ adminTraceRouter.post("/configs/check", requireAuth, asyncHandler(async (req, re
     const categoryConfig = await queryOne<any>(
       `SELECT id, config_no AS configNo, trace_enabled AS traceEnabled, force_enabled AS forceEnabled,
               code_mode AS codeMode, code_prefix AS codePrefix, shelf_life_days AS shelfLifeDays
-       FROM trace_config WHERE config_level = 'CATEGORY' AND target_id = ? AND status = 1`,
-      [body.categoryId]
+       FROM trace_config WHERE config_level = 'CATEGORY' AND target_id = ? AND status = 1 AND tenant_id = ?`,
+      [body.categoryId, tenantId]
     );
 
     if (categoryConfig) {
@@ -219,7 +225,8 @@ adminTraceRouter.post("/configs/check", requireAuth, asyncHandler(async (req, re
   const globalConfig = await queryOne<any>(
     `SELECT id, config_no AS configNo, trace_enabled AS traceEnabled, force_enabled AS forceEnabled,
             code_mode AS codeMode, code_prefix AS codePrefix, shelf_life_days AS shelfLifeDays
-     FROM trace_config WHERE config_level = 'GLOBAL' AND status = 1 LIMIT 1`
+     FROM trace_config WHERE config_level = 'GLOBAL' AND status = 1 AND tenant_id = ? LIMIT 1`,
+    [tenantId]
   );
 
   if (globalConfig) {
@@ -236,7 +243,8 @@ adminTraceRouter.post("/configs/check", requireAuth, asyncHandler(async (req, re
 // ========== 追溯码管理 ==========
 
 // 生成追溯码
-adminTraceRouter.post("/codes/generate", requireAuth, asyncHandler(async (req, res) => {
+adminTraceRouter.post("/codes/generate", requireAuthWithTenant, asyncHandler(async (req, res) => {
+  const tenantId = req.tenantId!;
   const body = z.object({
     skuId: z.number().int().positive(),
     skuName: z.string().max(128).default(""),
@@ -254,12 +262,13 @@ adminTraceRouter.post("/codes/generate", requireAuth, asyncHandler(async (req, r
   // 查找追溯配置获取codePrefix和shelfLifeDays
   const skuConfig = await queryOne<any>(
     `SELECT code_prefix AS codePrefix, shelf_life_days AS shelfLifeDays
-     FROM trace_config WHERE config_level = 'SKU' AND target_id = ? AND status = 1`,
-    [body.skuId]
+     FROM trace_config WHERE config_level = 'SKU' AND target_id = ? AND status = 1 AND tenant_id = ?`,
+    [body.skuId, tenantId]
   );
   const globalConfig = !skuConfig ? await queryOne<any>(
     `SELECT code_prefix AS codePrefix, shelf_life_days AS shelfLifeDays
-     FROM trace_config WHERE config_level = 'GLOBAL' AND status = 1 LIMIT 1`
+     FROM trace_config WHERE config_level = 'GLOBAL' AND status = 1 AND tenant_id = ? LIMIT 1`,
+    [tenantId]
   ) : null;
   const config = skuConfig || globalConfig;
 
@@ -284,19 +293,19 @@ adminTraceRouter.post("/codes/generate", requireAuth, asyncHandler(async (req, r
     await query(
       `INSERT INTO trace_code (trace_code, sku_id, sku_name, batch_no, production_date, expiry_date,
          shelf_life_days, code_mode, category_id, current_status, current_location,
-         store_id, warehouse_id, supplier_id)
-       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, 'PRODUCED', '生产入库', ?, ?, ?, ?)`,
+         store_id, warehouse_id, supplier_id, tenant_id)
+       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, 'PRODUCED', '生产入库', ?, ?, ?, ?, ?)`,
       [traceCode, body.skuId, body.skuName, body.batchNo, productionDate, expiryDate,
        shelfLifeDays, body.codeMode, body.categoryId ?? null,
-       body.storeId ?? null, body.warehouseId ?? null, body.supplierId ?? null]
+       body.storeId ?? null, body.warehouseId ?? null, body.supplierId ?? null, tenantId]
     );
 
     // 记录事件日志
     await query(
       `INSERT INTO trace_event_log (trace_code, event_type, from_status, to_status,
-         operator_type, operator_id, operator_name, location, remark)
-       VALUES (?, 'GENERATE', NULL, 'PRODUCED', 'ADMIN', ?, ?, '生产入库', '系统生成追溯码')`,
-      [traceCode, req.user?.id ?? 0, req.user?.username ?? "system"]
+         operator_type, operator_id, operator_name, location, remark, tenant_id)
+       VALUES (?, 'GENERATE', NULL, 'PRODUCED', 'ADMIN', ?, ?, '生产入库', '系统生成追溯码', ?)`,
+      [traceCode, req.user!.id ?? 0, req.user!.username ?? "system", tenantId]
     );
 
     generatedCodes.push(traceCode);
@@ -310,12 +319,13 @@ adminTraceRouter.post("/codes/generate", requireAuth, asyncHandler(async (req, r
 }));
 
 // 追溯码列表
-adminTraceRouter.get("/codes", requireAuth, asyncHandler(async (req, res) => {
+adminTraceRouter.get("/codes", requireAuthWithTenant, asyncHandler(async (req, res) => {
+  const tenantId = req.tenantId!;
   const page = Number(req.query.page || 1);
   const pageSize = Number(req.query.pageSize || 20);
   const offset = (page - 1) * pageSize;
-  const conditions: string[] = [];
-  const params: unknown[] = [];
+  const conditions: string[] = ["tc.tenant_id = ?"];
+  const params: unknown[] = [tenantId];
 
   if (req.query.skuId) {
     conditions.push("tc.sku_id = ?");
@@ -369,7 +379,8 @@ adminTraceRouter.get("/codes", requireAuth, asyncHandler(async (req, res) => {
 }));
 
 // 追溯码详情
-adminTraceRouter.get("/codes/:traceCode", requireAuth, asyncHandler(async (req, res) => {
+adminTraceRouter.get("/codes/:traceCode", requireAuthWithTenant, asyncHandler(async (req, res) => {
+  const tenantId = req.tenantId!;
   const traceCode = req.params.traceCode;
   const code = await queryOne<any>(
     `SELECT tc.id, tc.trace_code AS traceCode, tc.sku_id AS skuId, tc.sku_name AS skuName,
@@ -385,8 +396,8 @@ adminTraceRouter.get("/codes/:traceCode", requireAuth, asyncHandler(async (req, 
             tc.produced_at AS producedAt, tc.version,
             tc.created_at AS createdAt, tc.updated_at AS updatedAt
      FROM trace_code tc
-     WHERE tc.trace_code = ?`,
-    [traceCode]
+     WHERE tc.trace_code = ? AND tc.tenant_id = ?`,
+    [traceCode, tenantId]
   );
 
   if (!code) {
@@ -403,16 +414,17 @@ adminTraceRouter.get("/codes/:traceCode", requireAuth, asyncHandler(async (req, 
             order_id AS orderId, location, remark,
             extra, ip, created_at AS createdAt
      FROM trace_event_log
-     WHERE trace_code = ?
+     WHERE trace_code = ? AND tenant_id = ?
      ORDER BY created_at ASC`,
-    [traceCode]
+    [traceCode, tenantId]
   );
 
   res.json(ok({ ...code, events }));
 }));
 
 // 更新追溯码状态
-adminTraceRouter.post("/codes/:traceCode/status", requireAuth, asyncHandler(async (req, res) => {
+adminTraceRouter.post("/codes/:traceCode/status", requireAuthWithTenant, asyncHandler(async (req, res) => {
+  const tenantId = req.tenantId!;
   const traceCode = req.params.traceCode;
 
   const body = z.object({
@@ -431,8 +443,8 @@ adminTraceRouter.post("/codes/:traceCode/status", requireAuth, asyncHandler(asyn
     `SELECT id, current_status AS currentStatus, current_location AS currentLocation,
             store_id AS storeId, warehouse_id AS warehouseId, order_id AS orderId,
             quality_check_result AS qualityCheckResult
-     FROM trace_code WHERE trace_code = ?`,
-    [traceCode]
+     FROM trace_code WHERE trace_code = ? AND tenant_id = ?`,
+    [traceCode, tenantId]
   );
 
   if (!existing) {
@@ -453,66 +465,74 @@ adminTraceRouter.post("/codes/:traceCode/status", requireAuth, asyncHandler(asyn
   updates.push("version = version + 1");
 
   await query(
-    `UPDATE trace_code SET ${updates.join(", ")} WHERE trace_code = ?`,
-    [...params, traceCode]
+    `UPDATE trace_code SET ${updates.join(", ")} WHERE trace_code = ? AND tenant_id = ?`,
+    [...params, traceCode, tenantId]
   );
 
   // 记录事件日志
   await query(
     `INSERT INTO trace_event_log (trace_code, event_type, from_status, to_status,
-       operator_type, operator_id, operator_name, store_id, order_id, location, remark, ip)
-     VALUES (?, 'STATUS_CHANGE', ?, ?, 'ADMIN', ?, ?, ?, ?, ?, ?, ?)`,
+       operator_type, operator_id, operator_name, store_id, order_id, location, remark, ip, tenant_id)
+     VALUES (?, 'STATUS_CHANGE', ?, ?, 'ADMIN', ?, ?, ?, ?, ?, ?, ?, ?)`,
     [traceCode, existing.currentStatus, body.status,
-     req.user?.id ?? 0, req.user?.username ?? "system",
+     req.user!.id ?? 0, req.user!.username ?? "system",
      body.storeId ?? existing.storeId, body.orderId ?? existing.orderId,
      body.location ?? existing.currentLocation, body.remark ?? "",
-     req.ip || ""]
+     req.ip || "", tenantId]
   );
 
   const code = await queryOne<any>(
     `SELECT id, trace_code AS traceCode, current_status AS currentStatus,
             current_location AS currentLocation, version, updated_at AS updatedAt
-     FROM trace_code WHERE trace_code = ?`,
-    [traceCode]
+     FROM trace_code WHERE trace_code = ? AND tenant_id = ?`,
+    [traceCode, tenantId]
   );
 
   res.json(ok(code));
 }));
 
 // 追溯码统计
-adminTraceRouter.get("/codes/statistics", requireAuth, asyncHandler(async (_req, res) => {
+adminTraceRouter.get("/codes/statistics", requireAuthWithTenant, asyncHandler(async (req, res) => {
+  const tenantId = req.tenantId!;
   // 按状态统计
   const statusStats = await query<any>(
     `SELECT current_status AS currentStatus, COUNT(*) AS count
      FROM trace_code
-     GROUP BY current_status`
+     WHERE tenant_id = ?
+     GROUP BY current_status`,
+    [tenantId]
   );
 
   // 总数
   const totalCount = await queryOne<any>(
-    "SELECT COUNT(*) AS count FROM trace_code"
+    "SELECT COUNT(*) AS count FROM trace_code WHERE tenant_id = ?",
+    [tenantId]
   );
 
   // 今日生成
   const todayCount = await queryOne<any>(
     `SELECT COUNT(*) AS count FROM trace_code
-     WHERE DATE(created_at) = CURDATE()`
+     WHERE tenant_id = ? AND DATE(created_at) = CURDATE()`,
+    [tenantId]
   );
 
   // 仿冒预警数
   const fraudCount = await queryOne<any>(
-    "SELECT COUNT(*) AS count FROM trace_code WHERE fraud_alert = 1"
+    "SELECT COUNT(*) AS count FROM trace_code WHERE fraud_alert = 1 AND tenant_id = ?",
+    [tenantId]
   );
 
   // 总扫码次数
   const totalScans = await queryOne<any>(
-    "SELECT COALESCE(SUM(scan_count), 0) AS count FROM trace_code"
+    "SELECT COALESCE(SUM(scan_count), 0) AS count FROM trace_code WHERE tenant_id = ?",
+    [tenantId]
   );
 
   // 今日扫码
   const todayScans = await queryOne<any>(
     `SELECT COUNT(*) AS count FROM trace_scan_log
-     WHERE DATE(created_at) = CURDATE()`
+     WHERE tenant_id = ? AND DATE(created_at) = CURDATE()`,
+    [tenantId]
   );
 
   const byStatus: Record<string, number> = {};
@@ -533,7 +553,8 @@ adminTraceRouter.get("/codes/statistics", requireAuth, asyncHandler(async (_req,
 // ========== 追溯查询（公开） ==========
 
 // 查询追溯链路
-adminTraceRouter.get("/query/:traceCode", asyncHandler(async (req, res) => {
+adminTraceRouter.get("/query/:traceCode", requireAuthWithTenant, asyncHandler(async (req, res) => {
+  const tenantId = req.tenantId!;
   const traceCode = req.params.traceCode;
   const code = await queryOne<any>(
     `SELECT id, trace_code AS traceCode, sku_id AS skuId, sku_name AS skuName,
@@ -545,8 +566,8 @@ adminTraceRouter.get("/query/:traceCode", asyncHandler(async (req, res) => {
             quality_check_result AS qualityCheckResult,
             scan_count AS scanCount, fraud_alert AS fraudAlert,
             produced_at AS producedAt, created_at AS createdAt
-     FROM trace_code WHERE trace_code = ?`,
-    [traceCode]
+     FROM trace_code WHERE trace_code = ? AND tenant_id = ?`,
+    [traceCode, tenantId]
   );
 
   if (!code) {
@@ -561,16 +582,17 @@ adminTraceRouter.get("/query/:traceCode", asyncHandler(async (req, res) => {
             operator_type AS operatorType, operator_name AS operatorName,
             location, remark, created_at AS createdAt
      FROM trace_event_log
-     WHERE trace_code = ?
+     WHERE trace_code = ? AND tenant_id = ?
      ORDER BY created_at ASC`,
-    [traceCode]
+    [traceCode, tenantId]
   );
 
   res.json(ok({ ...code, events }));
 }));
 
 // 真伪验证
-adminTraceRouter.post("/verify", asyncHandler(async (req, res) => {
+adminTraceRouter.post("/verify", requireAuthWithTenant, asyncHandler(async (req, res) => {
+  const tenantId = req.tenantId!;
   const body = z.object({
     traceCode: z.string().min(1),
     scanType: z.enum(["CONSUMER", "BUSINESS", "PDA", "ADMIN"]).default("CONSUMER"),
@@ -582,8 +604,8 @@ adminTraceRouter.post("/verify", asyncHandler(async (req, res) => {
             current_status AS currentStatus, quality_check_result AS qualityCheckResult,
             fraud_alert AS fraudAlert, expiry_date AS expiryDate,
             scan_count AS scanCount, first_scan_at AS firstScanAt
-     FROM trace_code WHERE trace_code = ?`,
-    [body.traceCode]
+     FROM trace_code WHERE trace_code = ? AND tenant_id = ?`,
+    [body.traceCode, tenantId]
   );
 
   let result: "SUCCESS" | "INVALID" | "NOT_FOUND" | "FRAUD_ALERT" | "EXPIRED" = "NOT_FOUND";
@@ -609,16 +631,16 @@ adminTraceRouter.post("/verify", asyncHandler(async (req, res) => {
        SET scan_count = scan_count + 1,
            first_scan_at = CASE WHEN scan_count = 0 THEN NOW() ELSE first_scan_at END,
            first_scan_ip = CASE WHEN scan_count = 0 THEN ? ELSE first_scan_ip END
-       WHERE trace_code = ?`,
-      [req.ip || "", body.traceCode]
+       WHERE trace_code = ? AND tenant_id = ?`,
+      [req.ip || "", body.traceCode, tenantId]
     );
   }
 
   // 记录扫码日志
   await query(
-    `INSERT INTO trace_scan_log (trace_code, scan_type, user_id, ip, result)
-     VALUES (?, ?, ?, ?, ?)`,
-    [body.traceCode, body.scanType, body.userId ?? null, req.ip || "", result]
+    `INSERT INTO trace_scan_log (trace_code, scan_type, user_id, ip, result, tenant_id)
+     VALUES (?, ?, ?, ?, ?, ?)`,
+    [body.traceCode, body.scanType, body.userId ?? null, req.ip || "", result, tenantId]
   );
 
   res.json(ok({
@@ -636,7 +658,8 @@ adminTraceRouter.post("/verify", asyncHandler(async (req, res) => {
 // ========== 召回管理 ==========
 
 // 创建召回
-adminTraceRouter.post("/recalls", requireAuth, asyncHandler(async (req, res) => {
+adminTraceRouter.post("/recalls", requireAuthWithTenant, asyncHandler(async (req, res) => {
+  const tenantId = req.tenantId!;
   const body = z.object({
     recallType: z.enum(["BATCH", "CATEGORY", "SKU", "SUPPLIER", "GLOBAL"]),
     targetValue: z.string().max(128),
@@ -649,26 +672,26 @@ adminTraceRouter.post("/recalls", requireAuth, asyncHandler(async (req, res) => 
 
   // 计算受影响数量
   let affectedCondition = "";
-  const affectedParams: unknown[] = [];
+  const affectedParams: unknown[] = [tenantId];
   switch (body.recallType) {
     case "BATCH":
-      affectedCondition = "batch_no = ?";
+      affectedCondition = "batch_no = ? AND tenant_id = ?";
       affectedParams.push(body.targetValue);
       break;
     case "CATEGORY":
-      affectedCondition = "category_id = ?";
+      affectedCondition = "category_id = ? AND tenant_id = ?";
       affectedParams.push(Number(body.targetValue));
       break;
     case "SKU":
-      affectedCondition = "sku_id = ?";
+      affectedCondition = "sku_id = ? AND tenant_id = ?";
       affectedParams.push(Number(body.targetValue));
       break;
     case "SUPPLIER":
-      affectedCondition = "supplier_id = ?";
+      affectedCondition = "supplier_id = ? AND tenant_id = ?";
       affectedParams.push(Number(body.targetValue));
       break;
     case "GLOBAL":
-      affectedCondition = "1 = 1";
+      affectedCondition = "tenant_id = ?";
       break;
   }
 
@@ -680,11 +703,11 @@ adminTraceRouter.post("/recalls", requireAuth, asyncHandler(async (req, res) => 
 
   await query(
     `INSERT INTO recall_record (recall_no, recall_type, target_value, target_name,
-       reason, total_affected, status, notify_content, operator_id)
-     VALUES (?, ?, ?, ?, ?, ?, 'CREATED', ?, ?)`,
+       reason, total_affected, status, notify_content, operator_id, tenant_id)
+     VALUES (?, ?, ?, ?, ?, ?, 'CREATED', ?, ?, ?)`,
     [recallNo, body.recallType, body.targetValue, body.targetName,
      body.reason, totalAffected?.count ?? 0,
-     body.notifyContent ?? null, req.user!.id]
+     body.notifyContent ?? null, req.user!.id, tenantId]
   );
 
   const record = await queryOne<any>(
@@ -694,20 +717,21 @@ adminTraceRouter.post("/recalls", requireAuth, asyncHandler(async (req, res) => 
             total_notified AS totalNotified, total_returned AS totalReturned,
             status, notify_content AS notifyContent,
             operator_id AS operatorId, created_at AS createdAt
-     FROM recall_record WHERE recall_no = ?`,
-    [recallNo]
+     FROM recall_record WHERE recall_no = ? AND tenant_id = ?`,
+    [recallNo, tenantId]
   );
 
   res.json(ok(record));
 }));
 
 // 召回列表
-adminTraceRouter.get("/recalls", requireAuth, asyncHandler(async (req, res) => {
+adminTraceRouter.get("/recalls", requireAuthWithTenant, asyncHandler(async (req, res) => {
+  const tenantId = req.tenantId!;
   const page = Number(req.query.page || 1);
   const pageSize = Number(req.query.pageSize || 20);
   const offset = (page - 1) * pageSize;
-  const conditions: string[] = [];
-  const params: unknown[] = [];
+  const conditions: string[] = ["rr.tenant_id = ?"];
+  const params: unknown[] = [tenantId];
 
   if (req.query.status) {
     conditions.push("rr.status = ?");
@@ -749,7 +773,8 @@ adminTraceRouter.get("/recalls", requireAuth, asyncHandler(async (req, res) => {
 }));
 
 // 召回详情
-adminTraceRouter.get("/recalls/:recallNo", requireAuth, asyncHandler(async (req, res) => {
+adminTraceRouter.get("/recalls/:recallNo", requireAuthWithTenant, asyncHandler(async (req, res) => {
+  const tenantId = req.tenantId!;
   const recallNo = req.params.recallNo;
   const record = await queryOne<any>(
     `SELECT rr.id, rr.recall_no AS recallNo, rr.recall_type AS recallType,
@@ -760,8 +785,8 @@ adminTraceRouter.get("/recalls/:recallNo", requireAuth, asyncHandler(async (req,
             rr.started_at AS startedAt, rr.completed_at AS completedAt,
             rr.operator_id AS operatorId, rr.created_at AS createdAt, rr.updated_at AS updatedAt
      FROM recall_record rr
-     WHERE rr.recall_no = ?`,
-    [recallNo]
+     WHERE rr.recall_no = ? AND rr.tenant_id = ?`,
+    [recallNo, tenantId]
   );
 
   if (!record) {
@@ -773,14 +798,15 @@ adminTraceRouter.get("/recalls/:recallNo", requireAuth, asyncHandler(async (req,
 }));
 
 // 执行召回
-adminTraceRouter.post("/recalls/:recallNo/execute", requireAuth, asyncHandler(async (req, res) => {
+adminTraceRouter.post("/recalls/:recallNo/execute", requireAuthWithTenant, asyncHandler(async (req, res) => {
+  const tenantId = req.tenantId!;
   const recallNo = req.params.recallNo;
 
   const existing = await queryOne<any>(
     `SELECT id, recall_no AS recallNo, recall_type AS recallType, target_value AS targetValue,
             status, total_affected AS totalAffected
-     FROM recall_record WHERE recall_no = ?`,
-    [recallNo]
+     FROM recall_record WHERE recall_no = ? AND tenant_id = ?`,
+    [recallNo, tenantId]
   );
 
   if (!existing) {
@@ -794,26 +820,26 @@ adminTraceRouter.post("/recalls/:recallNo/execute", requireAuth, asyncHandler(as
 
   // 构建受影响追溯码的查询条件
   let affectedCondition = "";
-  const affectedParams: unknown[] = [];
+  const affectedParams: unknown[] = [tenantId];
   switch (existing.recallType) {
     case "BATCH":
-      affectedCondition = "batch_no = ?";
+      affectedCondition = "batch_no = ? AND tenant_id = ?";
       affectedParams.push(existing.targetValue);
       break;
     case "CATEGORY":
-      affectedCondition = "category_id = ?";
+      affectedCondition = "category_id = ? AND tenant_id = ?";
       affectedParams.push(Number(existing.targetValue));
       break;
     case "SKU":
-      affectedCondition = "sku_id = ?";
+      affectedCondition = "sku_id = ? AND tenant_id = ?";
       affectedParams.push(Number(existing.targetValue));
       break;
     case "SUPPLIER":
-      affectedCondition = "supplier_id = ?";
+      affectedCondition = "supplier_id = ? AND tenant_id = ?";
       affectedParams.push(Number(existing.targetValue));
       break;
     case "GLOBAL":
-      affectedCondition = "1 = 1";
+      affectedCondition = "tenant_id = ?";
       break;
   }
 
@@ -836,9 +862,9 @@ adminTraceRouter.post("/recalls/:recallNo/execute", requireAuth, asyncHandler(as
   for (const row of affectedCodes) {
     await query(
       `INSERT INTO trace_event_log (trace_code, event_type, from_status, to_status,
-         operator_type, operator_id, operator_name, remark)
-       VALUES (?, 'RECALL', NULL, 'RECALLED', 'ADMIN', ?, ?, '执行召回')`,
-      [row.traceCode, req.user?.id ?? 0, req.user?.username ?? "system"]
+         operator_type, operator_id, operator_name, remark, tenant_id)
+       VALUES (?, 'RECALL', NULL, 'RECALLED', 'ADMIN', ?, ?, '执行召回', ?)`,
+      [row.traceCode, req.user!.id ?? 0, req.user!.username ?? "system", tenantId]
     );
   }
 
@@ -847,8 +873,8 @@ adminTraceRouter.post("/recalls/:recallNo/execute", requireAuth, asyncHandler(as
     `UPDATE recall_record
      SET status = 'IN_PROGRESS', started_at = NOW(),
          total_affected = ?, updated_at = NOW()
-     WHERE recall_no = ?`,
-    [affectedCodes.length, recallNo]
+     WHERE recall_no = ? AND tenant_id = ?`,
+    [affectedCodes.length, recallNo, tenantId]
   );
 
   const record = await queryOne<any>(
@@ -857,15 +883,16 @@ adminTraceRouter.post("/recalls/:recallNo/execute", requireAuth, asyncHandler(as
             reason, total_affected AS totalAffected,
             total_notified AS totalNotified, total_returned AS totalReturned,
             status, started_at AS startedAt, updated_at AS updatedAt
-     FROM recall_record WHERE recall_no = ?`,
-    [recallNo]
+     FROM recall_record WHERE recall_no = ? AND tenant_id = ?`,
+    [recallNo, tenantId]
   );
 
   res.json(ok({ ...record, affectedCount: affectedCodes.length }));
 }));
 
 // 完成召回
-adminTraceRouter.put("/recalls/:recallNo/complete", requireAuth, asyncHandler(async (req, res) => {
+adminTraceRouter.put("/recalls/:recallNo/complete", requireAuthWithTenant, asyncHandler(async (req, res) => {
+  const tenantId = req.tenantId!;
   const recallNo = req.params.recallNo;
 
   const body = z.object({
@@ -874,8 +901,8 @@ adminTraceRouter.put("/recalls/:recallNo/complete", requireAuth, asyncHandler(as
   }).parse(req.body);
 
   const existing = await queryOne<any>(
-    `SELECT id, status FROM recall_record WHERE recall_no = ?`,
-    [recallNo]
+    `SELECT id, status FROM recall_record WHERE recall_no = ? AND tenant_id = ?`,
+    [recallNo, tenantId]
   );
 
   if (!existing) {
@@ -891,8 +918,8 @@ adminTraceRouter.put("/recalls/:recallNo/complete", requireAuth, asyncHandler(as
     `UPDATE recall_record
      SET status = 'COMPLETED', total_notified = ?, total_returned = ?,
          completed_at = NOW(), updated_at = NOW()
-     WHERE recall_no = ?`,
-    [body.totalNotified, body.totalReturned, recallNo]
+     WHERE recall_no = ? AND tenant_id = ?`,
+    [body.totalNotified, body.totalReturned, recallNo, tenantId]
   );
 
   const record = await queryOne<any>(
@@ -901,8 +928,8 @@ adminTraceRouter.put("/recalls/:recallNo/complete", requireAuth, asyncHandler(as
             reason, total_affected AS totalAffected,
             total_notified AS totalNotified, total_returned AS totalReturned,
             status, completed_at AS completedAt, updated_at AS updatedAt
-     FROM recall_record WHERE recall_no = ?`,
-    [recallNo]
+     FROM recall_record WHERE recall_no = ? AND tenant_id = ?`,
+    [recallNo, tenantId]
   );
 
   res.json(ok(record));
@@ -913,14 +940,15 @@ export const miniappTraceRouter = Router();
 
 // 消费者查询（脱敏）
 miniappTraceRouter.get("/c/query/:traceCode", asyncHandler(async (req, res) => {
+  const tenantId = getTenantId(req);
   const traceCode = req.params.traceCode;
   const code = await queryOne<any>(
     `SELECT id, trace_code AS traceCode, sku_name AS skuName,
             batch_no AS batchNo, production_date AS productionDate,
             expiry_date AS expiryDate, shelf_life_days AS shelfLifeDays,
             current_status AS currentStatus, quality_check_result AS qualityCheckResult
-     FROM trace_code WHERE trace_code = ?`,
-    [traceCode]
+     FROM trace_code WHERE trace_code = ? AND tenant_id = ?`,
+    [traceCode, tenantId]
   );
 
   if (!code) {
@@ -935,9 +963,9 @@ miniappTraceRouter.get("/c/query/:traceCode", asyncHandler(async (req, res) => {
             operator_type AS operatorType, location, remark,
             created_at AS createdAt
      FROM trace_event_log
-     WHERE trace_code = ?
+     WHERE trace_code = ? AND tenant_id = ?
      ORDER BY created_at ASC`,
-    [traceCode]
+    [traceCode, tenantId]
   );
 
   res.json(ok({
@@ -955,6 +983,7 @@ miniappTraceRouter.get("/c/query/:traceCode", asyncHandler(async (req, res) => {
 
 // 消费者验证
 miniappTraceRouter.post("/c/verify", asyncHandler(async (req, res) => {
+  const tenantId = getTenantId(req);
   const body = z.object({
     traceCode: z.string().min(1),
     userId: z.number().int().optional()
@@ -965,8 +994,8 @@ miniappTraceRouter.post("/c/verify", asyncHandler(async (req, res) => {
             current_status AS currentStatus, quality_check_result AS qualityCheckResult,
             fraud_alert AS fraudAlert, expiry_date AS expiryDate,
             scan_count AS scanCount
-     FROM trace_code WHERE trace_code = ?`,
-    [body.traceCode]
+     FROM trace_code WHERE trace_code = ? AND tenant_id = ?`,
+    [body.traceCode, tenantId]
   );
 
   let result: "SUCCESS" | "INVALID" | "NOT_FOUND" | "FRAUD_ALERT" | "EXPIRED" = "NOT_FOUND";
@@ -991,16 +1020,16 @@ miniappTraceRouter.post("/c/verify", asyncHandler(async (req, res) => {
        SET scan_count = scan_count + 1,
            first_scan_at = CASE WHEN scan_count = 0 THEN NOW() ELSE first_scan_at END,
            first_scan_ip = CASE WHEN scan_count = 0 THEN ? ELSE first_scan_ip END
-       WHERE trace_code = ?`,
-      [req.ip || "", body.traceCode]
+       WHERE trace_code = ? AND tenant_id = ?`,
+      [req.ip || "", body.traceCode, tenantId]
     );
   }
 
   // 记录扫码日志
   await query(
-    `INSERT INTO trace_scan_log (trace_code, scan_type, user_id, ip, result)
-     VALUES (?, 'CONSUMER', ?, ?, ?)`,
-    [body.traceCode, body.userId ?? null, req.ip || "", result]
+    `INSERT INTO trace_scan_log (trace_code, scan_type, user_id, ip, result, tenant_id)
+     VALUES (?, 'CONSUMER', ?, ?, ?, ?)`,
+    [body.traceCode, body.userId ?? null, req.ip || "", result, tenantId]
   );
 
   res.json(ok({

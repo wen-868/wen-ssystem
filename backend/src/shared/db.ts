@@ -2,22 +2,7 @@ import mysql from "mysql2/promise";
 import { existsSync, readFileSync } from "node:fs";
 import { join, resolve } from "node:path";
 import { env } from "./env.js";
-import { mockConn, mockQuery, mockExecute } from "./mock-db.js";
-
-let _execute: typeof mockExecute | null = null;
-
-export async function query<T = any>(sql: string, params: unknown[] = []) {
-  if (env.USE_MOCK_DB) {
-    const s = sql.toLowerCase().replace(/\s+/g, " ");
-    if (s.startsWith("insert") || s.startsWith("update") || s.startsWith("delete")) {
-      await mockExecute(sql, params);
-      return [{ insertId: Date.now(), affectedRows: 1 }] as unknown as T[];
-    }
-    return mockQuery<T>(sql, params);
-  }
-  const [rows] = await pool.query(sql, params);
-  return rows as T[];
-}
+import { mockConn, mockQuery } from "./mock-db.js";
 
 export let pool = mysql.createPool({
   host: env.DB_HOST,
@@ -105,9 +90,138 @@ export async function initDatabase() {
   console.log("✅ 数据库种子数据初始化完成");
 }
 
+export async function query<T = any>(sql: string, params: unknown[] = []) {
+  if (env.USE_MOCK_DB) {
+    return mockQuery<T>(sql, params);
+  }
+  const [rows] = await pool.query(sql, params);
+  return rows as T[];
+}
+
 export async function queryOne<T = any>(sql: string, params: unknown[] = []) {
   const rows = await query<T>(sql, params);
   return rows[0] ?? null;
+}
+
+/**
+ * 带租户隔离的查询函数
+ * 自动在 SQL 中注入 tenant_id 过滤条件
+ * 
+ * @param sql - SQL 语句
+ * @param params - 参数数组
+ * @param tenantId - 租户ID
+ * @returns 查询结果
+ */
+export async function queryWithTenant<T = any>(sql: string, params: unknown[] = [], tenantId: string): Promise<T[]> {
+  if (env.USE_MOCK_DB) {
+    return mockQuery<T>(sql, params);
+  }
+  
+  const { modifiedSql, modifiedParams } = injectTenantCondition(sql, params, tenantId);
+  const [rows] = await pool.query(modifiedSql, modifiedParams);
+  return rows as T[];
+}
+
+/**
+ * 带租户隔离的单条查询函数
+ * 
+ * @param sql - SQL 语句
+ * @param params - 参数数组
+ * @param tenantId - 租户ID
+ * @returns 单条记录或 null
+ */
+export async function queryOneWithTenant<T = any>(sql: string, params: unknown[] = [], tenantId: string): Promise<T | null> {
+  const rows = await queryWithTenant<T>(sql, params, tenantId);
+  return rows[0] ?? null;
+}
+
+/**
+ * 解析 SQL 并注入 tenant_id 条件
+ */
+function injectTenantCondition(sql: string, params: unknown[], tenantId: string): { modifiedSql: string; modifiedParams: unknown[] } {
+  const trimmedSql = sql.trim().toUpperCase();
+  
+  // 判断 SQL 类型
+  if (trimmedSql.startsWith('SELECT')) {
+    return injectSelectTenant(sql, params, tenantId);
+  } else if (trimmedSql.startsWith('INSERT')) {
+    return injectInsertTenant(sql, params, tenantId);
+  } else if (trimmedSql.startsWith('UPDATE')) {
+    return injectUpdateTenant(sql, params, tenantId);
+  } else if (trimmedSql.startsWith('DELETE')) {
+    return injectDeleteTenant(sql, params, tenantId);
+  }
+  
+  // 未知类型，不修改
+  return { modifiedSql: sql, modifiedParams: params };
+}
+
+/**
+ * 处理 SELECT 语句
+ */
+function injectSelectTenant(sql: string, params: unknown[], tenantId: string): { modifiedSql: string; modifiedParams: unknown[] } {
+  // 检查是否已经有 tenant_id 条件
+  if (sql.toLowerCase().includes('tenant_id')) {
+    return { modifiedSql: sql, modifiedParams: params };
+  }
+  
+  // 在 WHERE 子句中添加 tenant_id 条件
+  const lowerSql = sql.toLowerCase();
+  if (lowerSql.includes('where')) {
+    const insertIndex = lowerSql.indexOf('where') + 5;
+    const modifiedSql = sql.substring(0, insertIndex) + ` tenant_id = ? AND ` + sql.substring(insertIndex);
+    return { modifiedSql, modifiedParams: [tenantId, ...params] };
+  } else {
+    const modifiedSql = sql + ' WHERE tenant_id = ?';
+    return { modifiedSql, modifiedParams: [...params, tenantId] };
+  }
+}
+
+/**
+ * 处理 INSERT 语句
+ */
+function injectInsertTenant(sql: string, params: unknown[], tenantId: string): { modifiedSql: string; modifiedParams: unknown[] } {
+  // 检查是否已经有 tenant_id 字段
+  if (sql.toLowerCase().includes('tenant_id')) {
+    return { modifiedSql: sql, modifiedParams: params };
+  }
+  
+  // 在字段列表和值列表中插入 tenant_id
+  const insertMatch = sql.match(/INSERT\s+INTO\s+(\w+)\s*\(\s*([^)]+)\s*\)\s*VALUES\s*\(\s*([^)]+)\s*\)/i);
+  if (insertMatch) {
+    const [, tableName, fields, values] = insertMatch;
+    const modifiedSql = `INSERT INTO ${tableName} (tenant_id, ${fields}) VALUES (?, ${values})`;
+    return { modifiedSql, modifiedParams: [tenantId, ...params] };
+  }
+  
+  return { modifiedSql: sql, modifiedParams: params };
+}
+
+/**
+ * 处理 UPDATE 语句
+ */
+function injectUpdateTenant(sql: string, params: unknown[], tenantId: string): { modifiedSql: string; modifiedParams: unknown[] } {
+  // 检查是否已经有 tenant_id 条件
+  if (sql.toLowerCase().includes('tenant_id')) {
+    return { modifiedSql: sql, modifiedParams: params };
+  }
+  
+  const lowerSql = sql.toLowerCase();
+  if (lowerSql.includes('where')) {
+    const insertIndex = lowerSql.indexOf('where') + 5;
+    const modifiedSql = sql.substring(0, insertIndex) + ` tenant_id = ? AND ` + sql.substring(insertIndex);
+    return { modifiedSql, modifiedParams: [tenantId, ...params] };
+  } else {
+    const modifiedSql = sql + ' WHERE tenant_id = ?';
+    return { modifiedSql, modifiedParams: [...params, tenantId] };
+  }
+}
+
+/**
+ * 处理 DELETE 语句
+ */
+function injectDeleteTenant(sql: string, params: unknown[], tenantId: string): { modifiedSql: string; modifiedParams: unknown[] } {
+  return injectUpdateTenant(sql, params, tenantId);
 }
 
 export async function transaction<T>(runner: (conn: mysql.PoolConnection) => Promise<T>) {

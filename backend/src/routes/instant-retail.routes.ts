@@ -17,7 +17,7 @@
  *
  * 路由分组：
  *   - /webhook/*      : 公开端点，供平台服务器推送调用，无需认证
- *   - /admin/*        : 管理后台端点，需要 requireAuth（后台管理员 Token）
+ *   - /admin/*        : 管理后台端点，需要 requireAuthWithTenant（后台管理员 Token）
  *   - /store/*        : 门店操作端点，需要 storeAuth（门店员工 Token）
  *
  * 数据库表依赖（需提前创建）：
@@ -30,7 +30,7 @@
 import { Router } from "express";
 import { z } from "zod";
 import { asyncHandler } from "../shared/async-handler.js";
-import { requireAuth } from "../shared/auth.js";
+import { requireAuthWithTenant } from "../shared/auth.js";
 import { query, queryOne, transaction } from "../shared/db.js";
 import { ok } from "../shared/response.js";
 import { makeBizNo } from "../shared/id.js";
@@ -55,11 +55,18 @@ function maskConfig(config: any) {
 }
 
 /** 从数据库读取平台配置（完整字段） */
-async function getPlatformConfig(platform: PlatformType, storeId?: string | number): Promise<PlatformCredentials | null> {
-  const sql = storeId
-    ? `SELECT * FROM platform_config WHERE platform = ? AND store_id = ? LIMIT 1`
-    : `SELECT * FROM platform_config WHERE platform = ? LIMIT 1`;
-  const params = storeId ? [platform, String(storeId)] : [platform];
+async function getPlatformConfig(platform: PlatformType, storeId?: string | number, tenantId?: string): Promise<PlatformCredentials | null> {
+  const conditions: string[] = ["platform = ?"];
+  const params: unknown[] = [platform];
+  if (storeId) {
+    conditions.push("store_id = ?");
+    params.push(String(storeId));
+  }
+  if (tenantId) {
+    conditions.push("tenant_id = ?");
+    params.push(tenantId);
+  }
+  const sql = `SELECT * FROM platform_config WHERE ${conditions.join(" AND ")} LIMIT 1`;
   const row = await queryOne<any>(sql, params);
   if (!row) return null;
   return {
@@ -76,19 +83,27 @@ async function getPlatformConfig(platform: PlatformType, storeId?: string | numb
   };
 }
 
-/** 门店认证中间件（复用 requireAuth 并校验 storeId） */
-const storeAuth: typeof requireAuth = (req, res, next) => {
-  requireAuth(req, res, () => {
-    if (!req.user) {
-      res.status(401).json({ code: "401", message: "未登录" });
-      return;
+/** 门店认证中间件（复用 requireAuthWithTenant 并校验 storeId） */
+const storeAuth = (req: any, res: any, next: any) => {
+  const handlers = Array.isArray(requireAuthWithTenant) ? requireAuthWithTenant : [requireAuthWithTenant];
+  let i = 0;
+  const nextHandler = () => {
+    if (i < handlers.length) {
+      const handler = handlers[i++];
+      handler(req, res, nextHandler);
+    } else {
+      if (!req.user) {
+        res.status(401).json({ code: "401", message: "未登录" });
+        return;
+      }
+      if (!req.user.storeId && !req.user.roles?.includes("SUPER_ADMIN")) {
+        res.status(403).json({ code: "403", message: "无门店权限" });
+        return;
+      }
+      next();
     }
-    if (!req.user.storeId && !req.user.roles?.includes("SUPER_ADMIN")) {
-      res.status(403).json({ code: "403", message: "无门店权限" });
-      return;
-    }
-    next();
-  });
+  };
+  nextHandler();
 };
 
 /* ────────────────────────────────────────────────────────────────────────────
@@ -223,18 +238,21 @@ instantRetailRouter.post("/webhook/eleme", asyncHandler(async (req, res) => {
 }));
 
 /* ────────────────────────────────────────────────────────────────────────────
- * 2. 管理后台配置端点（需要 requireAuth）
+ * 2. 管理后台配置端点（需要 requireAuthWithTenant）
  * ──────────────────────────────────────────────────────────────────────────── */
 
 const adminRouter = Router();
-instantRetailRouter.use("/admin/instant-retail", requireAuth, adminRouter);
+instantRetailRouter.use("/admin/instant-retail", requireAuthWithTenant, adminRouter);
 
 /** GET /admin/instant-retail/platforms — 获取当前门店支持的平台列表及启用状态 */
-adminRouter.get("/platforms", asyncHandler(async (_req, res) => {
+adminRouter.get("/platforms", asyncHandler(async (req, res) => {
+  const tenantId = req.tenantId!;
   const rows = await query<any>(
     `SELECT platform, store_id AS storeId, enabled, merchant_id AS merchantId, updated_at AS updatedAt
      FROM platform_config
-     ORDER BY platform`
+     WHERE tenant_id = ?
+     ORDER BY platform`,
+    [tenantId]
   );
   const allPlatforms = ["JD", "MEITUAN", "ELEME"];
   const records = allPlatforms.map((p) => {
@@ -251,13 +269,16 @@ adminRouter.get("/platforms", asyncHandler(async (_req, res) => {
 }));
 
 /** GET /admin/instant-retail/configs — 获取所有平台配置（敏感字段脱敏） */
-adminRouter.get("/configs", asyncHandler(async (_req, res) => {
+adminRouter.get("/configs", asyncHandler(async (req, res) => {
+  const tenantId = req.tenantId!;
   const rows = await query<any>(
     `SELECT id, platform, store_id AS storeId, app_key AS appKey, app_secret AS appSecret,
             merchant_id AS merchantId, enabled, config_json AS configJson,
             created_at AS createdAt, updated_at AS updatedAt
      FROM platform_config
-     ORDER BY platform`
+     WHERE tenant_id = ?
+     ORDER BY platform`,
+    [tenantId]
   );
   const records = rows.map((r: any) => maskConfig(r));
   res.json(ok({ records }));
@@ -265,13 +286,14 @@ adminRouter.get("/configs", asyncHandler(async (_req, res) => {
 
 /** GET /admin/instant-retail/configs/:platform — 获取指定平台配置 */
 adminRouter.get("/configs/:platform", asyncHandler(async (req, res) => {
+  const tenantId = req.tenantId!;
   const platform = parsePlatformType(req.params.platform);
   const row = await queryOne<any>(
     `SELECT id, platform, store_id AS storeId, app_key AS appKey, app_secret AS appSecret,
             merchant_id AS merchantId, enabled, config_json AS configJson,
             created_at AS createdAt, updated_at AS updatedAt
-     FROM platform_config WHERE platform = ? LIMIT 1`,
-    [platform]
+     FROM platform_config WHERE platform = ? AND tenant_id = ? LIMIT 1`,
+    [platform, tenantId]
   );
   if (!row) {
     res.status(404).json({ code: "404", message: "平台配置不存在" });
@@ -282,6 +304,7 @@ adminRouter.get("/configs/:platform", asyncHandler(async (req, res) => {
 
 /** POST /admin/instant-retail/configs — 创建/更新平台配置 */
 adminRouter.post("/configs", asyncHandler(async (req, res) => {
+  const tenantId = req.tenantId!;
   const body = z.object({
     platform: z.string(),
     storeId: z.string().optional(),
@@ -293,36 +316,38 @@ adminRouter.post("/configs", asyncHandler(async (req, res) => {
 
   const platform = parsePlatformType(body.platform);
   const existing = await queryOne<any>(
-    `SELECT id FROM platform_config WHERE platform = ? LIMIT 1`,
-    [platform]
+    `SELECT id FROM platform_config WHERE platform = ? AND tenant_id = ? LIMIT 1`,
+    [platform, tenantId]
   );
 
   if (existing) {
     await query(
       `UPDATE platform_config
        SET store_id = ?, app_key = ?, app_secret = ?, merchant_id = ?, config_json = ?, updated_at = NOW()
-       WHERE platform = ?`,
+       WHERE platform = ? AND tenant_id = ?`,
       [
         body.storeId ?? existing.store_id ?? "",
         body.appKey ?? existing.app_key ?? "",
         body.appSecret ?? existing.app_secret ?? "",
         body.merchantId ?? existing.merchant_id ?? "",
         body.configJson ? JSON.stringify(body.configJson) : existing.config_json ?? null,
-        platform
+        platform,
+        tenantId
       ]
     );
   } else {
     await query(
       `INSERT INTO platform_config
-         (platform, store_id, app_key, app_secret, merchant_id, config_json, enabled, created_at, updated_at)
-       VALUES (?, ?, ?, ?, ?, ?, 1, NOW(), NOW())`,
+         (platform, store_id, app_key, app_secret, merchant_id, config_json, enabled, created_at, updated_at, tenant_id)
+       VALUES (?, ?, ?, ?, ?, ?, 1, NOW(), NOW(), ?)`,
       [
         platform,
         body.storeId ?? "",
         body.appKey ?? "",
         body.appSecret ?? "",
         body.merchantId ?? "",
-        body.configJson ? JSON.stringify(body.configJson) : null
+        body.configJson ? JSON.stringify(body.configJson) : null,
+        tenantId
       ]
     );
   }
@@ -331,16 +356,17 @@ adminRouter.post("/configs", asyncHandler(async (req, res) => {
     `SELECT id, platform, store_id AS storeId, app_key AS appKey, app_secret AS appSecret,
             merchant_id AS merchantId, enabled, config_json AS configJson,
             created_at AS createdAt, updated_at AS updatedAt
-     FROM platform_config WHERE platform = ? LIMIT 1`,
-    [platform]
+     FROM platform_config WHERE platform = ? AND tenant_id = ? LIMIT 1`,
+    [platform, tenantId]
   );
   res.json(ok(maskConfig(row)));
 }));
 
 /** POST /admin/instant-retail/configs/:platform/test — 测试连接 */
 adminRouter.post("/configs/:platform/test", asyncHandler(async (req, res) => {
+  const tenantId = req.tenantId!;
   const platform = parsePlatformType(req.params.platform);
-  const config = await getPlatformConfig(platform);
+  const config = await getPlatformConfig(platform, undefined, tenantId);
   if (!config) {
     res.status(404).json({ code: "404", message: "平台配置不存在" });
     return;
@@ -356,8 +382,9 @@ adminRouter.post("/configs/:platform/test", asyncHandler(async (req, res) => {
 
 /** POST /admin/instant-retail/configs/:platform/sync-orders — 手动同步订单 */
 adminRouter.post("/configs/:platform/sync-orders", asyncHandler(async (req, res) => {
+  const tenantId = req.tenantId!;
   const platform = parsePlatformType(req.params.platform);
-  const config = await getPlatformConfig(platform);
+  const config = await getPlatformConfig(platform, undefined, tenantId);
   if (!config) {
     res.status(404).json({ code: "404", message: "平台配置不存在" });
     return;
@@ -369,8 +396,8 @@ adminRouter.post("/configs/:platform/sync-orders", asyncHandler(async (req, res)
     for (const order of result.orders) {
       await conn.execute(
         `INSERT INTO platform_order
-           (platform_order_id, platform, store_id, status, order_data_json, created_at, updated_at)
-         VALUES (?, ?, ?, ?, ?, ?, NOW())
+           (platform_order_id, platform, store_id, status, order_data_json, created_at, updated_at, tenant_id)
+         VALUES (?, ?, ?, ?, ?, ?, NOW(), ?)
          ON DUPLICATE KEY UPDATE
            status = VALUES(status),
            order_data_json = VALUES(order_data_json),
@@ -380,7 +407,8 @@ adminRouter.post("/configs/:platform/sync-orders", asyncHandler(async (req, res)
           platform,
           order.storeId,
           order.status,
-          JSON.stringify(order.platformRawData ?? {})
+          JSON.stringify(order.platformRawData ?? {}),
+          tenantId
         ]
       );
     }
@@ -390,8 +418,9 @@ adminRouter.post("/configs/:platform/sync-orders", asyncHandler(async (req, res)
 
 /** POST /admin/instant-retail/configs/:platform/sync-products — 手动同步商品 */
 adminRouter.post("/configs/:platform/sync-products", asyncHandler(async (req, res) => {
+  const tenantId = req.tenantId!;
   const platform = parsePlatformType(req.params.platform);
-  const config = await getPlatformConfig(platform);
+  const config = await getPlatformConfig(platform, undefined, tenantId);
   if (!config) {
     res.status(404).json({ code: "404", message: "平台配置不存在" });
     return;
@@ -403,8 +432,9 @@ adminRouter.post("/configs/:platform/sync-products", asyncHandler(async (req, re
 
 /** DELETE /admin/instant-retail/configs/:platform — 删除平台配置 */
 adminRouter.delete("/configs/:platform", asyncHandler(async (req, res) => {
+  const tenantId = req.tenantId!;
   const platform = parsePlatformType(req.params.platform);
-  await query(`DELETE FROM platform_config WHERE platform = ?`, [platform]);
+  await query(`DELETE FROM platform_config WHERE platform = ? AND tenant_id = ?`, [platform, tenantId]);
   res.json(ok({ platform, deleted: true }));
 }));
 
@@ -417,14 +447,15 @@ instantRetailRouter.use("/store/instant-retail", storeAuth, storeRouter);
 
 /** GET /store/instant-retail/orders — 查询当前门店的即时零售订单 */
 storeRouter.get("/orders", asyncHandler(async (req, res) => {
+  const tenantId = req.tenantId!;
   const page = Number(req.query.page || 1);
   const pageSize = Number(req.query.pageSize || 20);
   const offset = (page - 1) * pageSize;
   const storeId = req.user?.storeId ?? null;
   const platform = req.query.platform ? String(req.query.platform) : null;
 
-  const conditions: string[] = ["1=1"];
-  const params: unknown[] = [];
+  const conditions: string[] = ["tenant_id = ?"];
+  const params: unknown[] = [tenantId];
 
   if (storeId) {
     conditions.push("store_id = ?");
@@ -454,11 +485,12 @@ storeRouter.get("/orders", asyncHandler(async (req, res) => {
 
 /** GET /store/instant-retail/orders/:platformOrderId — 查询订单详情 */
 storeRouter.get("/orders/:platformOrderId", asyncHandler(async (req, res) => {
+  const tenantId = req.tenantId!;
   const order = await queryOne<any>(
     `SELECT platform_order_id AS platformOrderId, platform, store_id AS storeId,
             status, order_data_json AS orderDataJson, created_at AS createdAt, updated_at AS updatedAt
-     FROM platform_order WHERE platform_order_id = ? LIMIT 1`,
-    [req.params.platformOrderId]
+     FROM platform_order WHERE platform_order_id = ? AND tenant_id = ? LIMIT 1`,
+    [req.params.platformOrderId, tenantId]
   );
   if (!order) {
     res.status(404).json({ code: "404", message: "订单不存在" });
@@ -469,17 +501,18 @@ storeRouter.get("/orders/:platformOrderId", asyncHandler(async (req, res) => {
 
 /** POST /store/instant-retail/orders/:platformOrderId/confirm — 确认接单 */
 storeRouter.post("/orders/:platformOrderId/confirm", asyncHandler(async (req, res) => {
+  const tenantId = req.tenantId!;
   const platformOrderId = req.params.platformOrderId;
   const row = await queryOne<any>(
-    `SELECT platform, store_id AS storeId, status FROM platform_order WHERE platform_order_id = ? LIMIT 1`,
-    [platformOrderId]
+    `SELECT platform, store_id AS storeId, status FROM platform_order WHERE platform_order_id = ? AND tenant_id = ? LIMIT 1`,
+    [platformOrderId, tenantId]
   );
   if (!row) {
     res.status(404).json({ code: "404", message: "订单不存在" });
     return;
   }
   const platform = parsePlatformType(row.platform);
-  const config = await getPlatformConfig(platform, row.storeId);
+  const config = await getPlatformConfig(platform, row.storeId, tenantId);
   if (!config) {
     res.status(404).json({ code: "404", message: "平台配置不存在" });
     return;
@@ -488,8 +521,8 @@ storeRouter.post("/orders/:platformOrderId/confirm", asyncHandler(async (req, re
   const success = await adapter.confirmOrder(platformOrderId);
   if (success) {
     await query(
-      `UPDATE platform_order SET status = 'ACCEPTED', updated_at = NOW() WHERE platform_order_id = ?`,
-      [platformOrderId]
+      `UPDATE platform_order SET status = 'ACCEPTED', updated_at = NOW() WHERE platform_order_id = ? AND tenant_id = ?`,
+      [platformOrderId, tenantId]
     );
   }
   res.json(ok({ platformOrderId, success, status: "ACCEPTED" }));
@@ -497,17 +530,18 @@ storeRouter.post("/orders/:platformOrderId/confirm", asyncHandler(async (req, re
 
 /** POST /store/instant-retail/orders/:platformOrderId/start-delivery — 开始配送 */
 storeRouter.post("/orders/:platformOrderId/start-delivery", asyncHandler(async (req, res) => {
+  const tenantId = req.tenantId!;
   const platformOrderId = req.params.platformOrderId;
   const row = await queryOne<any>(
-    `SELECT platform, store_id AS storeId, status FROM platform_order WHERE platform_order_id = ? LIMIT 1`,
-    [platformOrderId]
+    `SELECT platform, store_id AS storeId, status FROM platform_order WHERE platform_order_id = ? AND tenant_id = ? LIMIT 1`,
+    [platformOrderId, tenantId]
   );
   if (!row) {
     res.status(404).json({ code: "404", message: "订单不存在" });
     return;
   }
   const platform = parsePlatformType(row.platform);
-  const config = await getPlatformConfig(platform, row.storeId);
+  const config = await getPlatformConfig(platform, row.storeId, tenantId);
   if (!config) {
     res.status(404).json({ code: "404", message: "平台配置不存在" });
     return;
@@ -516,8 +550,8 @@ storeRouter.post("/orders/:platformOrderId/start-delivery", asyncHandler(async (
   const success = await adapter.startDelivery(platformOrderId, req.body);
   if (success) {
     await query(
-      `UPDATE platform_order SET status = 'DELIVERING', updated_at = NOW() WHERE platform_order_id = ?`,
-      [platformOrderId]
+      `UPDATE platform_order SET status = 'DELIVERING', updated_at = NOW() WHERE platform_order_id = ? AND tenant_id = ?`,
+      [platformOrderId, tenantId]
     );
   }
   res.json(ok({ platformOrderId, success, status: "DELIVERING" }));
@@ -525,17 +559,18 @@ storeRouter.post("/orders/:platformOrderId/start-delivery", asyncHandler(async (
 
 /** POST /store/instant-retail/orders/:platformOrderId/complete-delivery — 完成配送 */
 storeRouter.post("/orders/:platformOrderId/complete-delivery", asyncHandler(async (req, res) => {
+  const tenantId = req.tenantId!;
   const platformOrderId = req.params.platformOrderId;
   const row = await queryOne<any>(
-    `SELECT platform, store_id AS storeId, status FROM platform_order WHERE platform_order_id = ? LIMIT 1`,
-    [platformOrderId]
+    `SELECT platform, store_id AS storeId, status FROM platform_order WHERE platform_order_id = ? AND tenant_id = ? LIMIT 1`,
+    [platformOrderId, tenantId]
   );
   if (!row) {
     res.status(404).json({ code: "404", message: "订单不存在" });
     return;
   }
   const platform = parsePlatformType(row.platform);
-  const config = await getPlatformConfig(platform, row.storeId);
+  const config = await getPlatformConfig(platform, row.storeId, tenantId);
   if (!config) {
     res.status(404).json({ code: "404", message: "平台配置不存在" });
     return;
@@ -544,8 +579,8 @@ storeRouter.post("/orders/:platformOrderId/complete-delivery", asyncHandler(asyn
   const success = await adapter.completeDelivery(platformOrderId);
   if (success) {
     await query(
-      `UPDATE platform_order SET status = 'COMPLETED', updated_at = NOW() WHERE platform_order_id = ?`,
-      [platformOrderId]
+      `UPDATE platform_order SET status = 'COMPLETED', updated_at = NOW() WHERE platform_order_id = ? AND tenant_id = ?`,
+      [platformOrderId, tenantId]
     );
   }
   res.json(ok({ platformOrderId, success, status: "COMPLETED" }));
@@ -553,18 +588,19 @@ storeRouter.post("/orders/:platformOrderId/complete-delivery", asyncHandler(asyn
 
 /** POST /store/instant-retail/orders/:platformOrderId/cancel — 取消订单 */
 storeRouter.post("/orders/:platformOrderId/cancel", asyncHandler(async (req, res) => {
+  const tenantId = req.tenantId!;
   const platformOrderId = req.params.platformOrderId;
   const body = z.object({ reason: z.string().optional() }).parse(req.body);
   const row = await queryOne<any>(
-    `SELECT platform, store_id AS storeId, status FROM platform_order WHERE platform_order_id = ? LIMIT 1`,
-    [platformOrderId]
+    `SELECT platform, store_id AS storeId, status FROM platform_order WHERE platform_order_id = ? AND tenant_id = ? LIMIT 1`,
+    [platformOrderId, tenantId]
   );
   if (!row) {
     res.status(404).json({ code: "404", message: "订单不存在" });
     return;
   }
   const platform = parsePlatformType(row.platform);
-  const config = await getPlatformConfig(platform, row.storeId);
+  const config = await getPlatformConfig(platform, row.storeId, tenantId);
   if (!config) {
     res.status(404).json({ code: "404", message: "平台配置不存在" });
     return;
@@ -573,8 +609,8 @@ storeRouter.post("/orders/:platformOrderId/cancel", asyncHandler(async (req, res
   const success = await adapter.cancelOrder(platformOrderId, body.reason);
   if (success) {
     await query(
-      `UPDATE platform_order SET status = 'CANCELLED', updated_at = NOW() WHERE platform_order_id = ?`,
-      [platformOrderId]
+      `UPDATE platform_order SET status = 'CANCELLED', updated_at = NOW() WHERE platform_order_id = ? AND tenant_id = ?`,
+      [platformOrderId, tenantId]
     );
   }
   res.json(ok({ platformOrderId, success, status: "CANCELLED" }));

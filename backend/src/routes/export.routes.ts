@@ -2,6 +2,7 @@ import { Router } from "express";
 import { z } from "zod";
 import { asyncHandler } from "../shared/async-handler.js";
 import { query } from "../shared/db.js";
+import { requireAuthWithTenant } from "../shared/auth.js";
 
 export const exportRouter = Router();
 
@@ -20,11 +21,12 @@ function sendCsv(res: import("express").Response, filename: string, header: stri
 
 const today = () => new Date().toISOString().slice(0, 10);
 
-// ========== 导出客户列表 ==========
-exportRouter.get("/customers", asyncHandler(async (req, res) => {
+// ========== 导出客户列表（带租户隔离） ==========
+exportRouter.get("/customers", requireAuthWithTenant, asyncHandler(async (req, res) => {
+  const tenantId = req.tenantId!;
   const keyword = `%${String(req.query.keyword || "")}%`;
-  const conditions: string[] = [];
-  const params: unknown[] = [];
+  const conditions: string[] = ["tenant_id = ?"];
+  const params: unknown[] = [tenantId];
   if (req.query.keyword) {
     conditions.push("(name LIKE ? OR mobile LIKE ?)");
     params.push(keyword, keyword);
@@ -40,11 +42,12 @@ exportRouter.get("/customers", asyncHandler(async (req, res) => {
   sendCsv(res, `customers-${today()}.csv`, header, rows);
 }));
 
-// ========== 导出供应商列表 ==========
-exportRouter.get("/suppliers", asyncHandler(async (req, res) => {
+// ========== 导出供应商列表（带租户隔离） ==========
+exportRouter.get("/suppliers", requireAuthWithTenant, asyncHandler(async (req, res) => {
+  const tenantId = req.tenantId!;
   const keyword = `%${String(req.query.keyword || "")}%`;
-  const conditions: string[] = [];
-  const params: unknown[] = [];
+  const conditions: string[] = ["tenant_id = ?"];
+  const params: unknown[] = [tenantId];
   if (req.query.keyword) {
     conditions.push("(name LIKE ? OR supplier_code LIKE ?)");
     params.push(keyword, keyword);
@@ -65,11 +68,12 @@ exportRouter.get("/suppliers", asyncHandler(async (req, res) => {
   sendCsv(res, `suppliers-${today()}.csv`, header, rows);
 }));
 
-// ========== 导出商品列表 ==========
-exportRouter.get("/products", asyncHandler(async (req, res) => {
+// ========== 导出商品列表（带租户隔离） ==========
+exportRouter.get("/products", requireAuthWithTenant, asyncHandler(async (req, res) => {
+  const tenantId = req.tenantId!;
   const keyword = `%${String(req.query.keyword || "")}%`;
-  const conditions: string[] = [];
-  const params: unknown[] = [];
+  const conditions: string[] = ["tenant_id = ?"];
+  const params: unknown[] = [tenantId];
   if (req.query.keyword) {
     conditions.push("(name LIKE ? OR sku_code LIKE ?)");
     params.push(keyword, keyword);
@@ -87,10 +91,11 @@ exportRouter.get("/products", asyncHandler(async (req, res) => {
   sendCsv(res, `products-${today()}.csv`, header, rows);
 }));
 
-// ========== 导出库存明细 ==========
-exportRouter.get("/inventory", asyncHandler(async (req, res) => {
-  const conditions: string[] = [];
-  const params: unknown[] = [];
+// ========== 导出库存明细（带租户隔离） ==========
+exportRouter.get("/inventory", requireAuthWithTenant, asyncHandler(async (req, res) => {
+  const tenantId = req.tenantId!;
+  const conditions: string[] = ["tenant_id = ?"];
+  const params: unknown[] = [tenantId];
   if (req.query.storeId) {
     conditions.push("store_id = ?");
     params.push(req.query.storeId);
@@ -113,11 +118,12 @@ exportRouter.get("/inventory", asyncHandler(async (req, res) => {
   sendCsv(res, `inventory-${today()}.csv`, header, rows);
 }));
 
-// ========== 导出采购单 ==========
-exportRouter.get("/purchase-orders", asyncHandler(async (req, res) => {
+// ========== 导出采购单（带租户隔离） ==========
+exportRouter.get("/purchase-orders", requireAuthWithTenant, asyncHandler(async (req, res) => {
+  const tenantId = req.tenantId!;
   const keyword = `%${String(req.query.keyword || "")}%`;
-  const conditions: string[] = [];
-  const params: unknown[] = [];
+  const conditions: string[] = ["tenant_id = ?"];
+  const params: unknown[] = [tenantId];
   if (req.query.keyword) {
     conditions.push("(purchase_no LIKE ? OR supplier_name LIKE ?)");
     params.push(keyword, keyword);
@@ -139,10 +145,11 @@ exportRouter.get("/purchase-orders", asyncHandler(async (req, res) => {
   sendCsv(res, `purchase-orders-${today()}.csv`, header, rows);
 }));
 
-// ========== 导出付款记录 ==========
-exportRouter.get("/payments", asyncHandler(async (req, res) => {
-  const conditions: string[] = [];
-  const params: unknown[] = [];
+// ========== 导出付款记录（带租户隔离） ==========
+exportRouter.get("/payments", requireAuthWithTenant, asyncHandler(async (req, res) => {
+  const tenantId = req.tenantId!;
+  const conditions: string[] = ["tenant_id = ?"];
+  const params: unknown[] = [tenantId];
   if (req.query.status) {
     conditions.push("status = ?");
     params.push(req.query.status);
@@ -159,10 +166,49 @@ exportRouter.get("/payments", asyncHandler(async (req, res) => {
   sendCsv(res, `payments-${today()}.csv`, header, rows);
 }));
 
-// ========== 导出审计日志 ==========
-exportRouter.get("/audit-logs", asyncHandler(async (req, res) => {
-  const conditions: string[] = [];
-  const params: unknown[] = [];
+// ========== 导出销售单（新增，带租户隔离） ==========
+exportRouter.get("/sales-orders", requireAuthWithTenant, asyncHandler(async (req, res) => {
+  const tenantId = req.tenantId!;
+  const conditions: string[] = ["tenant_id = ?"];
+  const params: unknown[] = [tenantId];
+  
+  if (req.query.keyword) {
+    const keyword = `%${String(req.query.keyword)}%`;
+    conditions.push("(order_no LIKE ? OR customer_name LIKE ?)");
+    params.push(keyword, keyword);
+  }
+  if (req.query.status) {
+    conditions.push("status = ?");
+    params.push(req.query.status);
+  }
+  if (req.query.startDate) {
+    conditions.push("DATE(created_at) >= ?");
+    params.push(req.query.startDate);
+  }
+  if (req.query.endDate) {
+    conditions.push("DATE(created_at) <= ?");
+    params.push(req.query.endDate);
+  }
+  
+  const where = conditions.length > 0 ? `WHERE ${conditions.join(" AND ")}` : "";
+  const records = await query<any>(
+    `SELECT order_no AS orderNo, customer_name AS customerName,
+            total_amount AS totalAmount, discount_amount AS discountAmount,
+            paid_amount AS paidAmount, payment_method AS paymentMethod,
+            status, created_at AS createdAt
+     FROM sales_order ${where} ORDER BY created_at DESC LIMIT 5000`,
+    params
+  );
+  const header = ["订单号", "客户名称", "订单金额", "优惠金额", "实付金额", "支付方式", "状态", "创建时间"];
+  const rows = records.map((r: any) => [r.orderNo, r.customerName, r.totalAmount, r.discountAmount, r.paidAmount, r.paymentMethod, r.status, r.createdAt]);
+  sendCsv(res, `sales-orders-${today()}.csv`, header, rows);
+}));
+
+// ========== 导出审计日志（带租户隔离） ==========
+exportRouter.get("/audit-logs", requireAuthWithTenant, asyncHandler(async (req, res) => {
+  const tenantId = req.tenantId!;
+  const conditions: string[] = ["tenant_id = ?"];
+  const params: unknown[] = [tenantId];
   if (req.query.action) {
     conditions.push("action = ?");
     params.push(req.query.action);

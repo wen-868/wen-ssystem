@@ -1,6 +1,6 @@
 import { Router } from "express";
 import { z } from "zod";
-import { requireAuth } from "../shared/auth.js";
+import { requireAuthWithTenant } from "../shared/auth.js";
 import { asyncHandler } from "../shared/async-handler.js";
 import { query, queryOne, transaction } from "../shared/db.js";
 import { ok } from "../shared/response.js";
@@ -10,12 +10,13 @@ export const creditRouter = Router();
 // ========== 授信额度管理 ==========
 
 // 获取授信列表（支持搜索/状态筛选/分页）
-creditRouter.get("/credits", requireAuth, asyncHandler(async (req, res) => {
+creditRouter.get("/credits", requireAuthWithTenant, asyncHandler(async (req, res) => {
+  const tenantId = req.tenantId!;
   const page = Number(req.query.page || 1);
   const pageSize = Number(req.query.pageSize || 20);
   const offset = (page - 1) * pageSize;
-  const conditions: string[] = [];
-  const params: unknown[] = [];
+  const conditions: string[] = ["cc.tenant_id = ?"];
+  const params: unknown[] = [tenantId];
 
   if (req.query.status) {
     conditions.push("cc.status = ?");
@@ -27,7 +28,7 @@ creditRouter.get("/credits", requireAuth, asyncHandler(async (req, res) => {
     params.push(kw, kw);
   }
 
-  const where = conditions.length > 0 ? `WHERE ${conditions.join(" AND ")}` : "";
+  const where = `WHERE ${conditions.join(" AND ")}`;
 
   const records = await query<any>(
     `SELECT cc.id, cc.customer_id AS customerId, m.name AS customerName, m.mobile AS customerMobile,
@@ -63,7 +64,8 @@ creditRouter.get("/credits", requireAuth, asyncHandler(async (req, res) => {
 }));
 
 // 获取客户授信详情
-creditRouter.get("/credits/:customerId", requireAuth, asyncHandler(async (req, res) => {
+creditRouter.get("/credits/:customerId", requireAuthWithTenant, asyncHandler(async (req, res) => {
+  const tenantId = req.tenantId!;
   const customerId = Number(req.params.customerId);
   const record = await queryOne<any>(
     `SELECT cc.id, cc.customer_id AS customerId, m.name AS customerName, m.mobile AS customerMobile,
@@ -77,8 +79,8 @@ creditRouter.get("/credits/:customerId", requireAuth, asyncHandler(async (req, r
             cc.version, cc.created_at AS createdAt, cc.updated_at AS updatedAt
      FROM customer_credit cc
      LEFT JOIN member m ON m.id = cc.customer_id
-     WHERE cc.customer_id = ?`,
-    [customerId]
+     WHERE cc.customer_id = ? AND cc.tenant_id = ?`,
+    [customerId, tenantId]
   );
 
   if (!record) {
@@ -90,7 +92,8 @@ creditRouter.get("/credits/:customerId", requireAuth, asyncHandler(async (req, r
 }));
 
 // 初始化/设置授信额度
-creditRouter.post("/credits/:customerId", requireAuth, asyncHandler(async (req, res) => {
+creditRouter.post("/credits/:customerId", requireAuthWithTenant, asyncHandler(async (req, res) => {
+  const tenantId = req.tenantId!;
   const customerId = Number(req.params.customerId);
 
   const body = z.object({
@@ -114,8 +117,8 @@ creditRouter.post("/credits/:customerId", requireAuth, asyncHandler(async (req, 
 
   // 检查是否已有授信记录
   const existing = await queryOne<any>(
-    "SELECT id, status FROM customer_credit WHERE customer_id = ?",
-    [customerId]
+    "SELECT id, status FROM customer_credit WHERE customer_id = ? AND tenant_id = ?",
+    [customerId, tenantId]
   );
   if (existing) {
     res.status(400).json({ code: "400", message: "该客户已有授信记录，请使用调整接口" });
@@ -124,17 +127,17 @@ creditRouter.post("/credits/:customerId", requireAuth, asyncHandler(async (req, 
 
   await query(
     `INSERT INTO customer_credit (customer_id, credit_limit, payment_term, late_fee_rate,
-       max_late_fee_rate, warning_threshold, overdue_freeze_days, status)
-     VALUES (?, ?, ?, ?, ?, ?, ?, 'ACTIVE')`,
+       max_late_fee_rate, warning_threshold, overdue_freeze_days, status, tenant_id)
+     VALUES (?, ?, ?, ?, ?, ?, ?, 'ACTIVE', ?)`,
     [customerId, body.creditLimit, body.paymentTerm, body.lateFeeRate,
-     body.maxLateFeeRate, body.warningThreshold, body.overdueFreezeDays]
+     body.maxLateFeeRate, body.warningThreshold, body.overdueFreezeDays, tenantId]
   );
 
   // 记录操作日志
   await query(
-    `INSERT INTO credit_operation_log (customer_id, operation_type, amount, balance_before, balance_after, operator_id, remark)
-     VALUES (?, 'ADJUST_LIMIT', ?, 0, ?, ?, '初始化授信额度')`,
-    [customerId, body.creditLimit, body.creditLimit, req.user!.id]
+    `INSERT INTO credit_operation_log (customer_id, operation_type, amount, balance_before, balance_after, operator_id, remark, tenant_id)
+     VALUES (?, 'ADJUST_LIMIT', ?, 0, ?, ?, '初始化授信额度', ?)`,
+    [customerId, body.creditLimit, body.creditLimit, req.user!.id, tenantId]
   );
 
   const record = await queryOne<any>(
@@ -142,15 +145,16 @@ creditRouter.post("/credits/:customerId", requireAuth, asyncHandler(async (req, 
             cc.credit_used AS creditUsed, cc.credit_frozen AS creditFrozen,
             cc.credit_available AS creditAvailable, cc.payment_term AS paymentTerm,
             cc.status, cc.version, cc.created_at AS createdAt
-     FROM customer_credit cc WHERE cc.customer_id = ?`,
-    [customerId]
+     FROM customer_credit cc WHERE cc.customer_id = ? AND cc.tenant_id = ?`,
+    [customerId, tenantId]
   );
 
   res.json(ok(record));
 }));
 
 // 调整授信额度（需记录日志）
-creditRouter.put("/credits/:customerId/limit", requireAuth, asyncHandler(async (req, res) => {
+creditRouter.put("/credits/:customerId/limit", requireAuthWithTenant, asyncHandler(async (req, res) => {
+  const tenantId = req.tenantId!;
   const customerId = Number(req.params.customerId);
 
   const body = z.object({
@@ -162,8 +166,8 @@ creditRouter.put("/credits/:customerId/limit", requireAuth, asyncHandler(async (
   const result = await query<any>(
     `UPDATE customer_credit
      SET credit_limit = ?, version = version + 1, updated_at = NOW()
-     WHERE customer_id = ? AND status != 'CLOSED'`,
-    [body.creditLimit, customerId]
+     WHERE customer_id = ? AND tenant_id = ? AND status != 'CLOSED'`,
+    [body.creditLimit, customerId, tenantId]
   );
 
   if ((result as any).affectedRows === 0) {
@@ -173,13 +177,13 @@ creditRouter.put("/credits/:customerId/limit", requireAuth, asyncHandler(async (
 
   // 记录操作日志
   const credit = await queryOne<any>(
-    "SELECT credit_available FROM customer_credit WHERE customer_id = ?",
-    [customerId]
+    "SELECT credit_available FROM customer_credit WHERE customer_id = ? AND tenant_id = ?",
+    [customerId, tenantId]
   );
   await query(
-    `INSERT INTO credit_operation_log (customer_id, operation_type, amount, balance_before, balance_after, operator_id, remark)
-     VALUES (?, 'ADJUST_LIMIT', ?, ?, ?, ?, ?)`,
-    [customerId, body.creditLimit, credit?.credit_available ?? 0, credit?.credit_available ?? 0, req.user!.id, body.reason]
+    `INSERT INTO credit_operation_log (customer_id, operation_type, amount, balance_before, balance_after, operator_id, remark, tenant_id)
+     VALUES (?, 'ADJUST_LIMIT', ?, ?, ?, ?, ?, ?)`,
+    [customerId, body.creditLimit, credit?.credit_available ?? 0, credit?.credit_available ?? 0, req.user!.id, body.reason, tenantId]
   );
 
   const record = await queryOne<any>(
@@ -187,15 +191,16 @@ creditRouter.put("/credits/:customerId/limit", requireAuth, asyncHandler(async (
             cc.credit_used AS creditUsed, cc.credit_frozen AS creditFrozen,
             cc.credit_available AS creditAvailable, cc.payment_term AS paymentTerm,
             cc.status, cc.version, cc.updated_at AS updatedAt
-     FROM customer_credit cc WHERE cc.customer_id = ?`,
-    [customerId]
+     FROM customer_credit cc WHERE cc.customer_id = ? AND cc.tenant_id = ?`,
+    [customerId, tenantId]
   );
 
   res.json(ok(record));
 }));
 
 // 调整账期
-creditRouter.put("/credits/:customerId/term", requireAuth, asyncHandler(async (req, res) => {
+creditRouter.put("/credits/:customerId/term", requireAuthWithTenant, asyncHandler(async (req, res) => {
+  const tenantId = req.tenantId!;
   const customerId = Number(req.params.customerId);
 
   const body = z.object({
@@ -204,8 +209,8 @@ creditRouter.put("/credits/:customerId/term", requireAuth, asyncHandler(async (r
   }).parse(req.body);
 
   const existing = await queryOne<any>(
-    "SELECT id, payment_term, status FROM customer_credit WHERE customer_id = ?",
-    [customerId]
+    "SELECT id, payment_term, status FROM customer_credit WHERE customer_id = ? AND tenant_id = ?",
+    [customerId, tenantId]
   );
   if (!existing) {
     res.status(404).json({ code: "404", message: "授信记录不存在" });
@@ -218,38 +223,39 @@ creditRouter.put("/credits/:customerId/term", requireAuth, asyncHandler(async (r
 
   await query(
     `UPDATE customer_credit SET payment_term = ?, version = version + 1, updated_at = NOW()
-     WHERE customer_id = ?`,
-    [body.paymentTerm, customerId]
+     WHERE customer_id = ? AND tenant_id = ?`,
+    [body.paymentTerm, customerId, tenantId]
   );
 
   // 记录操作日志
   await query(
-    `INSERT INTO credit_operation_log (customer_id, operation_type, amount, balance_before, balance_after, operator_id, remark)
-     VALUES (?, 'MANUAL_ADJUST', 0, 0, 0, ?, ?)`,
-    [customerId, req.user!.id, `账期调整: ${existing.payment_term} -> ${body.paymentTerm}, ${body.reason}`]
+    `INSERT INTO credit_operation_log (customer_id, operation_type, amount, balance_before, balance_after, operator_id, remark, tenant_id)
+     VALUES (?, 'MANUAL_ADJUST', 0, 0, 0, ?, ?, ?)`,
+    [customerId, req.user!.id, `账期调整: ${existing.payment_term} -> ${body.paymentTerm}, ${body.reason}`, tenantId]
   );
 
   const record = await queryOne<any>(
     `SELECT cc.id, cc.customer_id AS customerId, cc.credit_limit AS creditLimit,
             cc.credit_available AS creditAvailable, cc.payment_term AS paymentTerm,
             cc.status, cc.version, cc.updated_at AS updatedAt
-     FROM customer_credit cc WHERE cc.customer_id = ?`,
-    [customerId]
+     FROM customer_credit cc WHERE cc.customer_id = ? AND cc.tenant_id = ?`,
+    [customerId, tenantId]
   );
 
   res.json(ok(record));
 }));
 
 // 校验可用额度
-creditRouter.get("/credits/:customerId/check", requireAuth, asyncHandler(async (req, res) => {
+creditRouter.get("/credits/:customerId/check", requireAuthWithTenant, asyncHandler(async (req, res) => {
+  const tenantId = req.tenantId!;
   const customerId = Number(req.params.customerId);
   const amount = Number(req.query.amount || 0);
 
   const credit = await queryOne<any>(
     `SELECT cc.credit_limit, cc.credit_used, cc.credit_frozen, cc.credit_available,
             cc.status, cc.warning_threshold, cc.payment_term
-     FROM customer_credit cc WHERE cc.customer_id = ?`,
-    [customerId]
+     FROM customer_credit cc WHERE cc.customer_id = ? AND cc.tenant_id = ?`,
+    [customerId, tenantId]
   );
 
   if (!credit) {
@@ -277,7 +283,8 @@ creditRouter.get("/credits/:customerId/check", requireAuth, asyncHandler(async (
 }));
 
 // 占用额度（下单时调用，需FOR UPDATE防并发）
-creditRouter.post("/credits/:customerId/occupy", requireAuth, asyncHandler(async (req, res) => {
+creditRouter.post("/credits/:customerId/occupy", requireAuthWithTenant, asyncHandler(async (req, res) => {
+  const tenantId = req.tenantId!;
   const customerId = Number(req.params.customerId);
 
   const body = z.object({
@@ -290,9 +297,9 @@ creditRouter.post("/credits/:customerId/occupy", requireAuth, asyncHandler(async
     const rows = await (conn as any).execute(
       `SELECT id, credit_limit, credit_used, credit_frozen, credit_available, status, version
        FROM customer_credit
-       WHERE customer_id = ? AND status = 'ACTIVE'
+       WHERE customer_id = ? AND tenant_id = ? AND status = 'ACTIVE'
        FOR UPDATE`,
-      [customerId]
+      [customerId, tenantId]
     );
     const credit = (rows[0] as any[])[0];
 
@@ -314,15 +321,15 @@ creditRouter.post("/credits/:customerId/occupy", requireAuth, asyncHandler(async
     await (conn as any).execute(
       `UPDATE customer_credit
        SET credit_used = credit_used + ?, version = version + 1, updated_at = NOW()
-       WHERE customer_id = ? AND version = ?`,
-      [body.amount, customerId, credit.version]
+       WHERE customer_id = ? AND tenant_id = ? AND version = ?`,
+      [body.amount, customerId, tenantId, credit.version]
     );
 
     // 记录操作日志
     await (conn as any).execute(
-      `INSERT INTO credit_operation_log (customer_id, operation_type, amount, balance_before, balance_after, related_order_no, operator_id, remark)
-       VALUES (?, 'OCCUPY', ?, ?, ?, ?, ?, '下单占用额度')`,
-      [customerId, body.amount, balanceBefore, balanceAfter, body.orderNo, req.user!.id]
+      `INSERT INTO credit_operation_log (customer_id, operation_type, amount, balance_before, balance_after, related_order_no, operator_id, remark, tenant_id)
+       VALUES (?, 'OCCUPY', ?, ?, ?, ?, ?, '下单占用额度', ?)`,
+      [customerId, body.amount, balanceBefore, balanceAfter, body.orderNo, req.user!.id, tenantId]
     );
   });
 
@@ -331,8 +338,8 @@ creditRouter.post("/credits/:customerId/occupy", requireAuth, asyncHandler(async
     `SELECT cc.credit_limit AS creditLimit, cc.credit_used AS creditUsed,
             cc.credit_frozen AS creditFrozen, cc.credit_available AS creditAvailable,
             cc.status, cc.version
-     FROM customer_credit cc WHERE cc.customer_id = ?`,
-    [customerId]
+     FROM customer_credit cc WHERE cc.customer_id = ? AND cc.tenant_id = ?`,
+    [customerId, tenantId]
   );
 
   res.json(ok({
@@ -344,7 +351,8 @@ creditRouter.post("/credits/:customerId/occupy", requireAuth, asyncHandler(async
 }));
 
 // 释放额度（取消/完成时调用）
-creditRouter.post("/credits/:customerId/release", requireAuth, asyncHandler(async (req, res) => {
+creditRouter.post("/credits/:customerId/release", requireAuthWithTenant, asyncHandler(async (req, res) => {
+  const tenantId = req.tenantId!;
   const customerId = Number(req.params.customerId);
 
   const body = z.object({
@@ -358,9 +366,9 @@ creditRouter.post("/credits/:customerId/release", requireAuth, asyncHandler(asyn
     const rows = await (conn as any).execute(
       `SELECT id, credit_limit, credit_used, credit_frozen, credit_available, status, version
        FROM customer_credit
-       WHERE customer_id = ?
+       WHERE customer_id = ? AND tenant_id = ?
        FOR UPDATE`,
-      [customerId]
+      [customerId, tenantId]
     );
     const credit = (rows[0] as any[])[0];
 
@@ -377,15 +385,15 @@ creditRouter.post("/credits/:customerId/release", requireAuth, asyncHandler(asyn
     await (conn as any).execute(
       `UPDATE customer_credit
        SET credit_used = ?, version = version + 1, updated_at = NOW()
-       WHERE customer_id = ? AND version = ?`,
-      [newUsed, customerId, credit.version]
+       WHERE customer_id = ? AND tenant_id = ? AND version = ?`,
+      [newUsed, customerId, tenantId, credit.version]
     );
 
     // 记录操作日志
     await (conn as any).execute(
-      `INSERT INTO credit_operation_log (customer_id, operation_type, amount, balance_before, balance_after, related_order_no, operator_id, remark)
-       VALUES (?, 'RELEASE', ?, ?, ?, ?, ?, ?)`,
-      [customerId, body.amount, balanceBefore, balanceAfter, body.orderNo, req.user!.id, body.remark]
+      `INSERT INTO credit_operation_log (customer_id, operation_type, amount, balance_before, balance_after, related_order_no, operator_id, remark, tenant_id)
+       VALUES (?, 'RELEASE', ?, ?, ?, ?, ?, ?, ?)`,
+      [customerId, body.amount, balanceBefore, balanceAfter, body.orderNo, req.user!.id, body.remark, tenantId]
     );
   });
 
@@ -393,8 +401,8 @@ creditRouter.post("/credits/:customerId/release", requireAuth, asyncHandler(asyn
     `SELECT cc.credit_limit AS creditLimit, cc.credit_used AS creditUsed,
             cc.credit_frozen AS creditFrozen, cc.credit_available AS creditAvailable,
             cc.status, cc.version
-     FROM customer_credit cc WHERE cc.customer_id = ?`,
-    [customerId]
+     FROM customer_credit cc WHERE cc.customer_id = ? AND cc.tenant_id = ?`,
+    [customerId, tenantId]
   );
 
   res.json(ok({
@@ -406,7 +414,8 @@ creditRouter.post("/credits/:customerId/release", requireAuth, asyncHandler(asyn
 }));
 
 // 冻结授信（逾期自动/手动）
-creditRouter.post("/credits/:customerId/freeze", requireAuth, asyncHandler(async (req, res) => {
+creditRouter.post("/credits/:customerId/freeze", requireAuthWithTenant, asyncHandler(async (req, res) => {
+  const tenantId = req.tenantId!;
   const customerId = Number(req.params.customerId);
 
   const body = z.object({
@@ -415,8 +424,8 @@ creditRouter.post("/credits/:customerId/freeze", requireAuth, asyncHandler(async
   }).parse(req.body);
 
   const existing = await queryOne<any>(
-    "SELECT id, status, credit_available, version FROM customer_credit WHERE customer_id = ?",
-    [customerId]
+    "SELECT id, status, credit_available, version FROM customer_credit WHERE customer_id = ? AND tenant_id = ?",
+    [customerId, tenantId]
   );
   if (!existing) {
     res.status(404).json({ code: "404", message: "授信记录不存在" });
@@ -437,21 +446,21 @@ creditRouter.post("/credits/:customerId/freeze", requireAuth, asyncHandler(async
     `UPDATE customer_credit
      SET status = 'FROZEN', credit_frozen = credit_frozen + ?, freeze_reason = ?,
          frozen_at = NOW(), version = version + 1, updated_at = NOW()
-     WHERE customer_id = ?`,
-    [body.freezeAmount, body.reason, customerId]
+     WHERE customer_id = ? AND tenant_id = ?`,
+    [body.freezeAmount, body.reason, customerId, tenantId]
   );
 
   const afterCredit = await queryOne<any>(
-    "SELECT credit_available FROM customer_credit WHERE customer_id = ?",
-    [customerId]
+    "SELECT credit_available FROM customer_credit WHERE customer_id = ? AND tenant_id = ?",
+    [customerId, tenantId]
   );
   const balanceAfter = Number(afterCredit?.credit_available ?? 0);
 
   // 记录操作日志
   await query(
-    `INSERT INTO credit_operation_log (customer_id, operation_type, amount, balance_before, balance_after, operator_id, remark)
-     VALUES (?, 'FREEZE', ?, ?, ?, ?, ?)`,
-    [customerId, body.freezeAmount, balanceBefore, balanceAfter, req.user!.id, body.reason]
+    `INSERT INTO credit_operation_log (customer_id, operation_type, amount, balance_before, balance_after, operator_id, remark, tenant_id)
+     VALUES (?, 'FREEZE', ?, ?, ?, ?, ?, ?)`,
+    [customerId, body.freezeAmount, balanceBefore, balanceAfter, req.user!.id, body.reason, tenantId]
   );
 
   res.json(ok({
@@ -464,7 +473,8 @@ creditRouter.post("/credits/:customerId/freeze", requireAuth, asyncHandler(async
 }));
 
 // 解冻授信
-creditRouter.post("/credits/:customerId/unfreeze", requireAuth, asyncHandler(async (req, res) => {
+creditRouter.post("/credits/:customerId/unfreeze", requireAuthWithTenant, asyncHandler(async (req, res) => {
+  const tenantId = req.tenantId!;
   const customerId = Number(req.params.customerId);
 
   const body = z.object({
@@ -473,8 +483,8 @@ creditRouter.post("/credits/:customerId/unfreeze", requireAuth, asyncHandler(asy
   }).parse(req.body);
 
   const existing = await queryOne<any>(
-    "SELECT id, status, credit_available, credit_frozen, version FROM customer_credit WHERE customer_id = ?",
-    [customerId]
+    "SELECT id, status, credit_available, credit_frozen, version FROM customer_credit WHERE customer_id = ? AND tenant_id = ?",
+    [customerId, tenantId]
   );
   if (!existing) {
     res.status(404).json({ code: "404", message: "授信记录不存在" });
@@ -492,21 +502,21 @@ creditRouter.post("/credits/:customerId/unfreeze", requireAuth, asyncHandler(asy
      SET status = 'ACTIVE', credit_frozen = GREATEST(0, credit_frozen - ?),
          freeze_reason = NULL, unfrozen_at = NOW(),
          version = version + 1, updated_at = NOW()
-     WHERE customer_id = ?`,
-    [body.unfreezeAmount, customerId]
+     WHERE customer_id = ? AND tenant_id = ?`,
+    [body.unfreezeAmount, customerId, tenantId]
   );
 
   const afterCredit = await queryOne<any>(
-    "SELECT credit_available FROM customer_credit WHERE customer_id = ?",
-    [customerId]
+    "SELECT credit_available FROM customer_credit WHERE customer_id = ? AND tenant_id = ?",
+    [customerId, tenantId]
   );
   const balanceAfter = Number(afterCredit?.credit_available ?? 0);
 
   // 记录操作日志
   await query(
-    `INSERT INTO credit_operation_log (customer_id, operation_type, amount, balance_before, balance_after, operator_id, remark)
-     VALUES (?, 'UNFREEZE', ?, ?, ?, ?, ?)`,
-    [customerId, body.unfreezeAmount, balanceBefore, balanceAfter, req.user!.id, body.reason]
+    `INSERT INTO credit_operation_log (customer_id, operation_type, amount, balance_before, balance_after, operator_id, remark, tenant_id)
+     VALUES (?, 'UNFREEZE', ?, ?, ?, ?, ?, ?)`,
+    [customerId, body.unfreezeAmount, balanceBefore, balanceAfter, req.user!.id, body.reason, tenantId]
   );
 
   res.json(ok({
@@ -518,7 +528,8 @@ creditRouter.post("/credits/:customerId/unfreeze", requireAuth, asyncHandler(asy
 }));
 
 // 授信操作日志
-creditRouter.get("/credits/:customerId/logs", requireAuth, asyncHandler(async (req, res) => {
+creditRouter.get("/credits/:customerId/logs", requireAuthWithTenant, asyncHandler(async (req, res) => {
+  const tenantId = req.tenantId!;
   const customerId = Number(req.params.customerId);
   const page = Number(req.query.page || 1);
   const pageSize = Number(req.query.pageSize || 20);
@@ -532,15 +543,15 @@ creditRouter.get("/credits/:customerId/logs", requireAuth, asyncHandler(async (r
             col.operator_id AS operatorId, col.remark,
             col.created_at AS createdAt
      FROM credit_operation_log col
-     WHERE col.customer_id = ?
+     WHERE col.customer_id = ? AND col.tenant_id = ?
      ORDER BY col.created_at DESC
      LIMIT ? OFFSET ?`,
-    [customerId, pageSize, offset]
+    [customerId, tenantId, pageSize, offset]
   );
 
   const totalRow = await queryOne<any>(
-    "SELECT COUNT(*) AS total FROM credit_operation_log WHERE customer_id = ?",
-    [customerId]
+    "SELECT COUNT(*) AS total FROM credit_operation_log WHERE customer_id = ? AND tenant_id = ?",
+    [customerId, tenantId]
   );
 
   res.json(ok({
@@ -554,12 +565,13 @@ creditRouter.get("/credits/:customerId/logs", requireAuth, asyncHandler(async (r
 // ========== 催收管理 ==========
 
 // 催收记录列表（支持等级/客户/日期筛选）
-creditRouter.get("/collections", requireAuth, asyncHandler(async (req, res) => {
+creditRouter.get("/collections", requireAuthWithTenant, asyncHandler(async (req, res) => {
+  const tenantId = req.tenantId!;
   const page = Number(req.query.page || 1);
   const pageSize = Number(req.query.pageSize || 20);
   const offset = (page - 1) * pageSize;
-  const conditions: string[] = [];
-  const params: unknown[] = [];
+  const conditions: string[] = ["cr.tenant_id = ?"];
+  const params: unknown[] = [tenantId];
 
   if (req.query.collectionLevel) {
     conditions.push("cr.collection_level = ?");
@@ -582,7 +594,7 @@ creditRouter.get("/collections", requireAuth, asyncHandler(async (req, res) => {
     params.push(req.query.endDate);
   }
 
-  const where = conditions.length > 0 ? `WHERE ${conditions.join(" AND ")}` : "";
+  const where = `WHERE ${conditions.join(" AND ")}`;
 
   const records = await query<any>(
     `SELECT cr.id, cr.customer_id AS customerId, m.name AS customerName, m.mobile AS customerMobile,
@@ -618,7 +630,8 @@ creditRouter.get("/collections", requireAuth, asyncHandler(async (req, res) => {
 }));
 
 // 新增催收记录
-creditRouter.post("/collections", requireAuth, asyncHandler(async (req, res) => {
+creditRouter.post("/collections", requireAuthWithTenant, asyncHandler(async (req, res) => {
+  const tenantId = req.tenantId!;
   const body = z.object({
     customerId: z.number().int().positive(),
     receivableNo: z.string().max(64).optional(),
@@ -647,12 +660,12 @@ creditRouter.post("/collections", requireAuth, asyncHandler(async (req, res) => 
   await query(
     `INSERT INTO collection_record (customer_id, receivable_no, overdue_days, overdue_amount,
        collection_level, collection_method, collection_content, contact_person,
-       contact_result, promised_amount, promised_date, next_follow_up_date, operator_id)
-     VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+       contact_result, promised_amount, promised_date, next_follow_up_date, operator_id, tenant_id)
+     VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
     [body.customerId, body.receivableNo ?? null, body.overdueDays, body.overdueAmount,
      body.collectionLevel, body.collectionMethod, body.collectionContent ?? null,
      body.contactPerson, body.contactResult ?? null, body.promisedAmount ?? null,
-     body.promisedDate ?? null, body.nextFollowUpDate ?? null, req.user!.id]
+     body.promisedDate ?? null, body.nextFollowUpDate ?? null, req.user!.id, tenantId]
   );
 
   const record = await queryOne<any>(
@@ -667,18 +680,20 @@ creditRouter.post("/collections", requireAuth, asyncHandler(async (req, res) => 
             cr.operator_id AS operatorId, cr.created_at AS createdAt
      FROM collection_record cr
      LEFT JOIN member m ON m.id = cr.customer_id
-     WHERE cr.id = LAST_INSERT_ID()`
+     WHERE cr.id = LAST_INSERT_ID() AND cr.tenant_id = ?`,
+    [tenantId]
   );
 
   res.json(ok(record));
 }));
 
 // 更新催收结果
-creditRouter.put("/collections/:id", requireAuth, asyncHandler(async (req, res) => {
+creditRouter.put("/collections/:id", requireAuthWithTenant, asyncHandler(async (req, res) => {
+  const tenantId = req.tenantId!;
   const collectionId = Number(req.params.id);
   const existing = await queryOne<any>(
-    "SELECT id FROM collection_record WHERE id = ?",
-    [collectionId]
+    "SELECT id FROM collection_record WHERE id = ? AND tenant_id = ?",
+    [collectionId, tenantId]
   );
   if (!existing) {
     res.status(404).json({ code: "404", message: "催收记录不存在" });
@@ -704,8 +719,8 @@ creditRouter.put("/collections/:id", requireAuth, asyncHandler(async (req, res) 
 
   if (updates.length > 0) {
     await query(
-      `UPDATE collection_record SET ${updates.join(", ")} WHERE id = ?`,
-      [...params, collectionId]
+      `UPDATE collection_record SET ${updates.join(", ")} WHERE id = ? AND tenant_id = ?`,
+      [...params, collectionId, tenantId]
     );
   }
 
@@ -717,15 +732,16 @@ creditRouter.put("/collections/:id", requireAuth, asyncHandler(async (req, res) 
             cr.created_at AS createdAt
      FROM collection_record cr
      LEFT JOIN member m ON m.id = cr.customer_id
-     WHERE cr.id = ?`,
-    [collectionId]
+     WHERE cr.id = ? AND cr.tenant_id = ?`,
+    [collectionId, tenantId]
   );
 
   res.json(ok(record));
 }));
 
 // 逾期客户列表（自动计算逾期天数和金额）
-creditRouter.get("/collections/overdue", requireAuth, asyncHandler(async (_req, res) => {
+creditRouter.get("/collections/overdue", requireAuthWithTenant, asyncHandler(async (req, res) => {
+  const tenantId = req.tenantId!;
   // 查找所有有授信且未结清的客户，结合账期计算逾期
   const records = await query<any>(
     `SELECT cc.customer_id AS customerId, m.name AS customerName, m.mobile AS customerMobile,
@@ -747,15 +763,17 @@ creditRouter.get("/collections/overdue", requireAuth, asyncHandler(async (_req, 
             cc.credit_used AS estimatedOverdueAmount
      FROM customer_credit cc
      LEFT JOIN member m ON m.id = cc.customer_id
-     WHERE cc.credit_used > 0 AND cc.status IN ('ACTIVE', 'FROZEN')
-     ORDER BY cc.credit_used DESC`
+     WHERE cc.credit_used > 0 AND cc.status IN ('ACTIVE', 'FROZEN') AND cc.tenant_id = ?
+     ORDER BY cc.credit_used DESC`,
+    [tenantId]
   );
 
   res.json(ok({ total: records.length, records }));
 }));
 
 // 批量发送催收提醒（短信/站内信）
-creditRouter.post("/collections/batch-remind", requireAuth, asyncHandler(async (req, res) => {
+creditRouter.post("/collections/batch-remind", requireAuthWithTenant, asyncHandler(async (req, res) => {
+  const tenantId = req.tenantId!;
   const body = z.object({
     customerIds: z.array(z.number().int().positive()).min(1),
     method: z.enum(["SMS", "PHONE", "LETTER"]).default("SMS"),
@@ -780,18 +798,18 @@ creditRouter.post("/collections/batch-remind", requireAuth, asyncHandler(async (
 
       // 获取授信信息
       const credit = await queryOne<any>(
-        "SELECT credit_used, credit_limit FROM customer_credit WHERE customer_id = ?",
-        [customerId]
+        "SELECT credit_used, credit_limit FROM customer_credit WHERE customer_id = ? AND tenant_id = ?",
+        [customerId, tenantId]
       );
 
       // 创建催收记录
       await query(
         `INSERT INTO collection_record (customer_id, overdue_days, overdue_amount,
            collection_level, collection_method, collection_content,
-           contact_person, operator_id)
-         VALUES (?, 0, ?, ?, ?, ?, ?, ?)`,
+           contact_person, operator_id, tenant_id)
+         VALUES (?, 0, ?, ?, ?, ?, ?, ?, ?)`,
         [customerId, credit?.credit_used ?? 0, body.collectionLevel, body.method,
-         body.content, customer.name, req.user!.id]
+         body.content, customer.name, req.user!.id, tenantId]
       );
 
       successCount++;
@@ -809,44 +827,52 @@ creditRouter.post("/collections/batch-remind", requireAuth, asyncHandler(async (
 }));
 
 // 催收统计（各等级数量、回款率）
-creditRouter.get("/collections/statistics", requireAuth, asyncHandler(async (_req, res) => {
+creditRouter.get("/collections/statistics", requireAuthWithTenant, asyncHandler(async (req, res) => {
+  const tenantId = req.tenantId!;
   // 各催收等级数量
   const levelStats = await query<any>(
     `SELECT collection_level AS collectionLevel, COUNT(*) AS count
      FROM collection_record
+     WHERE tenant_id = ?
      GROUP BY collection_level
-     ORDER BY FIELD(collection_level, 'REMIND', 'LIGHT', 'MEDIUM', 'HEAVY', 'SEVERE')`
+     ORDER BY FIELD(collection_level, 'REMIND', 'LIGHT', 'MEDIUM', 'HEAVY', 'SEVERE')`,
+    [tenantId]
   );
 
   // 各催收结果数量
   const resultStats = await query<any>(
     `SELECT contact_result AS contactResult, COUNT(*) AS count
      FROM collection_record
-     WHERE contact_result IS NOT NULL
-     GROUP BY contact_result`
+     WHERE contact_result IS NOT NULL AND tenant_id = ?
+     GROUP BY contact_result`,
+    [tenantId]
   );
 
   // 总催收次数
   const totalCount = await queryOne<any>(
-    "SELECT COUNT(*) AS count FROM collection_record"
+    "SELECT COUNT(*) AS count FROM collection_record WHERE tenant_id = ?",
+    [tenantId]
   );
 
   // 承诺还款总金额
   const promisedTotal = await queryOne<any>(
-    "SELECT COALESCE(SUM(promised_amount), 0) AS total FROM collection_record WHERE contact_result = 'PROMISED'"
+    "SELECT COALESCE(SUM(promised_amount), 0) AS total FROM collection_record WHERE contact_result = 'PROMISED' AND tenant_id = ?",
+    [tenantId]
   );
 
   // 本月催收次数
   const monthCount = await queryOne<any>(
     `SELECT COUNT(*) AS count FROM collection_record
-     WHERE YEAR(created_at) = YEAR(NOW()) AND MONTH(created_at) = MONTH(NOW())`
+     WHERE YEAR(created_at) = YEAR(NOW()) AND MONTH(created_at) = MONTH(NOW()) AND tenant_id = ?`,
+    [tenantId]
   );
 
   // 待跟进提醒数（next_follow_up_date <= 今天）
   const followUpCount = await queryOne<any>(
     `SELECT COUNT(*) AS count FROM collection_record
      WHERE next_follow_up_date IS NOT NULL AND next_follow_up_date <= CURDATE()
-       AND contact_result NOT IN ('PARTIAL_PAID')`
+       AND contact_result NOT IN ('PARTIAL_PAID') AND tenant_id = ?`,
+    [tenantId]
   );
 
   const byLevel: Record<string, number> = {};
@@ -866,5 +892,87 @@ creditRouter.get("/collections/statistics", requireAuth, asyncHandler(async (_re
     pendingFollowUps: Number(followUpCount?.count ?? 0),
     byLevel,
     byResult
+  }));
+}));
+
+// ========== 风险客户名单 ==========
+
+// 获取风险客户列表（信用风险预警）
+creditRouter.get("/risk-customers", requireAuthWithTenant, asyncHandler(async (req, res) => {
+  const tenantId = req.tenantId!;
+  const page = Number(req.query.page || 1);
+  const pageSize = Number(req.query.pageSize || 20);
+  const offset = (page - 1) * pageSize;
+
+  // 风险客户定义：
+  // 1. 授信状态为 FROZEN 的客户
+  // 2. 已用额度超过预警阈值的客户
+  // 3. 估算逾期天数 > 0 的客户
+  const records = await query<any>(
+    `SELECT cc.customer_id AS customerId, m.name AS customerName, m.mobile AS customerMobile,
+            cc.credit_limit AS creditLimit, cc.credit_used AS creditUsed,
+            cc.credit_frozen AS creditFrozen, cc.credit_available AS creditAvailable,
+            cc.payment_term AS paymentTerm, cc.warning_threshold AS warningThreshold,
+            cc.status AS creditStatus, cc.freeze_reason AS freezeReason,
+            cc.frozen_at AS frozenAt,
+            COALESCE(
+              DATEDIFF(NOW(),
+                CASE cc.payment_term
+                  WHEN 'COD' THEN NOW()
+                  WHEN 'NET_7' THEN DATE_SUB(NOW(), INTERVAL 7 DAY)
+                  WHEN 'NET_15' THEN DATE_SUB(NOW(), INTERVAL 15 DAY)
+                  WHEN 'NET_30' THEN DATE_SUB(NOW(), INTERVAL 30 DAY)
+                  WHEN 'NET_60' THEN DATE_SUB(NOW(), INTERVAL 60 DAY)
+                  WHEN 'NET_90' THEN DATE_SUB(NOW(), INTERVAL 90 DAY)
+                END
+              ), 0
+            ) AS estimatedOverdueDays,
+            CASE
+              WHEN cc.status = 'FROZEN' THEN 'FROZEN'
+              WHEN cc.credit_limit > 0 AND (cc.credit_used / cc.credit_limit) >= cc.warning_threshold THEN 'WARNING'
+              WHEN cc.payment_term != 'COD' AND cc.credit_used > 0 AND
+                   DATEDIFF(NOW(),
+                     CASE cc.payment_term
+                       WHEN 'NET_7' THEN DATE_SUB(NOW(), INTERVAL 7 DAY)
+                       WHEN 'NET_15' THEN DATE_SUB(NOW(), INTERVAL 15 DAY)
+                       WHEN 'NET_30' THEN DATE_SUB(NOW(), INTERVAL 30 DAY)
+                       WHEN 'NET_60' THEN DATE_SUB(NOW(), INTERVAL 60 DAY)
+                       WHEN 'NET_90' THEN DATE_SUB(NOW(), INTERVAL 90 DAY)
+                     END
+                   ) > 0 THEN 'OVERDUE'
+              ELSE 'NORMAL'
+            END AS riskLevel
+     FROM customer_credit cc
+     LEFT JOIN member m ON m.id = cc.customer_id
+     WHERE cc.tenant_id = ?
+       AND (
+         cc.status = 'FROZEN'
+         OR (cc.credit_limit > 0 AND cc.credit_used / cc.credit_limit >= cc.warning_threshold)
+         OR (cc.payment_term != 'COD' AND cc.credit_used > 0)
+       )
+     ORDER BY
+       CASE cc.status WHEN 'FROZEN' THEN 0 WHEN 'ACTIVE' THEN 1 ELSE 2 END,
+       cc.credit_used DESC
+     LIMIT ? OFFSET ?`,
+    [tenantId, pageSize, offset]
+  );
+
+  const totalRow = await queryOne<any>(
+    `SELECT COUNT(*) AS total
+     FROM customer_credit cc
+     WHERE cc.tenant_id = ?
+       AND (
+         cc.status = 'FROZEN'
+         OR (cc.credit_limit > 0 AND cc.credit_used / cc.credit_limit >= cc.warning_threshold)
+         OR (cc.payment_term != 'COD' AND cc.credit_used > 0)
+       )`,
+    [tenantId]
+  );
+
+  res.json(ok({
+    total: Number(totalRow?.total ?? 0),
+    page,
+    pageSize,
+    records
   }));
 }));
