@@ -9,10 +9,10 @@
       </template>
       <el-form ref="loginFormRef" :model="loginForm" :rules="loginRules" label-width="72px" @submit.prevent>
         <el-form-item label="账号">
-          <el-input v-model="loginForm.username" placeholder="admin" />
+          <el-input v-model="loginForm.username" placeholder="请输入账号" />
         </el-form-item>
         <el-form-item label="密码">
-          <el-input v-model="loginForm.password" type="password" placeholder="admin123" show-password />
+          <el-input v-model="loginForm.password" type="password" placeholder="请输入密码" show-password />
         </el-form-item>
         <el-form-item>
           <el-button type="primary" :loading="loading" @click="handleLogin" style="width:100%">登录进入后台</el-button>
@@ -33,8 +33,8 @@ const loginFormRef = ref<FormInstance>();
 const loading = ref(false);
 
 const loginForm = reactive({
-  username: "admin",
-  password: "admin123"
+  username: "",
+  password: ""
 });
 
 const loginRules: FormRules = {

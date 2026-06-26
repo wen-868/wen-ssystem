@@ -1,6 +1,26 @@
 import { createRouter, createWebHistory } from "vue-router";
 import MainLayout from "../layouts/MainLayout.vue";
 import LoginView from "../views/LoginView.vue";
+import NotFound from "../views/NotFound.vue";
+
+function parseJwtExp(token: string): number | null {
+  try {
+    const parts = token.split(".");
+    if (parts.length !== 3) return null;
+    const payload = JSON.parse(atob(parts[1]));
+    return payload.exp ? payload.exp * 1000 : null;
+  } catch {
+    return null;
+  }
+}
+
+function isTokenExpired(): boolean {
+  const token = localStorage.getItem("admin_token");
+  if (!token) return true;
+  const exp = parseJwtExp(token);
+  if (!exp) return false;
+  return Date.now() >= exp;
+}
 
 const routes = [
   {
@@ -76,7 +96,7 @@ const routes = [
       { path: "system", name: "System", component: () => import("../views/System.vue") }
     ]
   },
-  { path: "/:pathMatch(.*)*", redirect: "/dashboard" }
+  { path: "/:pathMatch(.*)*", name: "NotFound", component: NotFound, meta: { requiresAuth: false } }
 ];
 
 const router = createRouter({
@@ -86,6 +106,17 @@ const router = createRouter({
 
 router.beforeEach((to, _from, next) => {
   const token = localStorage.getItem("admin_token");
+  const expired = token && isTokenExpired();
+
+  if (expired) {
+    localStorage.removeItem("admin_token");
+    localStorage.removeItem("admin_user");
+    if (to.path !== "/login") {
+      next("/login");
+      return;
+    }
+  }
+
   if (to.meta.requiresAuth !== false && !token) {
     next("/login");
   } else if (to.path === "/login" && token) {
