@@ -107,11 +107,11 @@
           <el-menu-item index="/instant-retail/report">零售报表</el-menu-item>
         </el-sub-menu>
 
-        <!-- 9. 财务管理 -->
+        <!-- 9. 财务往来 -->
         <el-sub-menu index="finance">
           <template #title>
             <el-icon><Coin /></el-icon>
-            <span>财务管理</span>
+            <span>财务往来</span>
           </template>
           <el-menu-item index="/payments">资金流水</el-menu-item>
           <el-menu-item index="/finance/collection">收款链接</el-menu-item>
@@ -131,22 +131,22 @@
           <el-menu-item index="/reports/stores">门店对比</el-menu-item>
         </el-sub-menu>
 
-        <!-- 11. 营销推广 -->
+        <!-- 11. 营销中心 -->
         <el-sub-menu index="marketing">
           <template #title>
             <el-icon><Present /></el-icon>
-            <span>营销推广</span>
+            <span>营销中心</span>
           </template>
           <el-menu-item index="/marketing">优惠券管理</el-menu-item>
           <el-menu-item index="/marketing/promotion">促销活动</el-menu-item>
           <el-menu-item index="/aftersale">售后管理</el-menu-item>
         </el-sub-menu>
 
-        <!-- 12. 系统管理（含门店管理） -->
+        <!-- 12. 系统设置（含门店管理） -->
         <el-sub-menu index="system">
           <template #title>
             <el-icon><Setting /></el-icon>
-            <span>系统管理</span>
+            <span>系统设置</span>
           </template>
           <el-menu-item index="/employees">员工管理</el-menu-item>
           <el-menu-item index="/stores">门店管理</el-menu-item>
@@ -226,7 +226,7 @@ const activeMenu = computed(() => route.path);
 
 const pageTitle = computed(() => {
   const titles: Record<string, string> = {
-    "/dashboard": "工作台",
+    "/dashboard": "工作总台",
     "/sales/create": "销售开单",
     "/sale-bills": "销售单据",
     "/sale-returns": "销售退货",
