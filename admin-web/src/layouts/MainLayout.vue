@@ -190,6 +190,7 @@
       <div v-if="isCashierMode" class="cashier-container">
         <div class="cashier-header">
           <el-button
+            v-if="!isCashierUser"
             type="default"
             size="small"
             icon="ArrowLeft"
@@ -211,7 +212,7 @@
 </template>
 
 <script setup lang="ts">
-import { computed, ref } from "vue";
+import { computed, onMounted, ref } from "vue";
 import { useRoute, useRouter } from "vue-router";
 import { ElMessage } from "element-plus";
 import { HomeFilled, Goods, Document, ShoppingCart, Box, User, Files, Shop, Coin, Present, DataAnalysis, Setting, Expand, Fold } from "@element-plus/icons-vue";
@@ -224,6 +225,26 @@ const isMenuCollapsed = ref(false);
 const isCashierMode = ref(false);
 const pageLoading = ref(false);
 const currentUser = ref<any>(null);
+
+const isCashierUser = computed(() => {
+  return currentUser.value?.role === "CASHIER";
+});
+
+onMounted(() => {
+  try {
+    const raw = localStorage.getItem("admin_user");
+    if (raw) {
+      currentUser.value = JSON.parse(raw);
+    }
+  } catch {
+    // ignore
+  }
+
+  if (currentUser.value?.role === "CASHIER") {
+    isCashierMode.value = true;
+    isMenuCollapsed.value = true;
+  }
+});
 
 const activeMenu = computed(() => route.path);
 
