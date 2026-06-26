@@ -1,5 +1,7 @@
 import { query, queryOne, queryWithTenant, queryOneWithTenant, transaction } from "../../shared/db.js";
 import { makeBizNo } from "../../shared/id.js";
+import { detectChangedFields, syncChangedFields } from "../../shared/field-sync.js";
+import { syncProductFullChain, syncProductStatus, syncProductPrice } from "../../shared/product-sync.js";
 
 export async function listProducts(keyword: string, page: number, pageSize: number, tenantId: string) {
   const like = `%${keyword}%`;
@@ -88,6 +90,12 @@ export async function updateProductStatus(spuId: number, status: string, tenantI
   if (!result || (result as any).affectedRows === 0) {
     return null;
   }
+
+  // M0-11: 状态变更全链路同步
+  syncProductStatus(spuId, status, tenantId).catch(err => {
+    console.error("[ProductSync] 状态同步异常:", err.message);
+  });
+
   return { spuId, status };
 }
 
@@ -123,6 +131,30 @@ export async function updateProduct(spuId: number, body: {
   }
   if (body.boxRatio !== undefined) {
     await queryWithTenant("UPDATE product_sku SET box_ratio = ? WHERE spu_id = ? AND tenant_id = ?", [body.boxRatio, spuId, tenantId], tenantId);
+  }
+
+  // 分字段定向同步：只同步变更的字段到下游关联表
+  const changedFields = detectChangedFields(body, {
+    name: existing.name,
+    category: existing.category_id,
+    brand: existing.brand,
+    unit: existing.unit,
+    status: existing.status
+  });
+  if (changedFields.length > 0) {
+    // M0-10: 分字段定向同步
+    syncChangedFields("product_spu", spuId, changedFields, tenantId).catch(err => {
+      console.error("[FieldSync] 商品字段同步异常:", err.message);
+    });
+
+    // M0-11: 商品全链路同步
+    syncProductFullChain(spuId, changedFields, tenantId).then(summary => {
+      if (summary.failCount > 0) {
+        console.warn(`[ProductSync] 全链路同步部分失败: ${summary.failCount}/${summary.totalTargets}`, summary.stages.filter(s => !s.success));
+      }
+    }).catch(err => {
+      console.error("[ProductSync] 全链路同步异常:", err.message);
+    });
   }
 
   return { spuId };
@@ -199,5 +231,27 @@ export async function updateProductPrice(skuId: number, body: {
     }
     return { skuId };
   });
+
+  // M0-11: 价格变更全链路同步（异步，不阻塞响应）
+  if (body.costPrice !== undefined || body.retailPrice !== undefined || body.wholesalePrice !== undefined) {
+    const changedTypes: string[] = [];
+    if (body.costPrice !== undefined) changedTypes.push("costPrice");
+    if (body.retailPrice !== undefined) changedTypes.push("retailPrice");
+    if (body.wholesalePrice !== undefined) changedTypes.push("wholesalePrice");
+
+    // 获取 SKU 对应的 SPU ID
+    const skuInfo = await queryOneWithTenant<any>(
+      "SELECT spu_id FROM product_sku WHERE id = ? AND tenant_id = ?",
+      [skuId, tenantId],
+      tenantId
+    );
+
+    if (skuInfo?.spu_id) {
+      syncProductPrice(skuInfo.spu_id, changedTypes, tenantId).catch(err => {
+        console.error("[ProductSync] 价格同步异常:", err.message);
+      });
+    }
+  }
+
   return result;
 }

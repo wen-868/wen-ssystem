@@ -6,6 +6,7 @@ import { asyncHandler } from "../shared/async-handler.js";
 import { query, queryOne, transaction } from "../shared/db.js";
 import { ok } from "../shared/response.js";
 import type { AuthUser } from "../shared/auth.js";
+import * as menuPermissionController from "../controllers/admin/menu-permission.controller.js";
 
 export const rbacRouter = Router();
 
@@ -266,3 +267,29 @@ rbacRouter.put("/users/:userId/roles", requireAuthWithTenant, asyncHandler(async
 
   res.json(ok(records));
 }));
+
+// ========== 菜单与权限矩阵 ==========
+
+// 获取完整菜单树
+rbacRouter.get("/menus/tree", requireAuthWithTenant, menuPermissionController.getMenuTree);
+
+// 获取当前用户的菜单树
+rbacRouter.get("/menus/user", requireAuthWithTenant, menuPermissionController.getUserMenus);
+
+// 获取角色完整权限矩阵
+rbacRouter.get("/roles/:roleId/permissions", requireAuthWithTenant, menuPermissionController.getRolePermissions);
+
+// 设置角色菜单权限
+rbacRouter.put("/roles/:roleId/menus", requireAuthWithTenant, menuPermissionController.setRoleMenuPermissions);
+
+// 获取角色数据权限
+rbacRouter.get("/roles/:roleId/data-permissions", requireAuthWithTenant, menuPermissionController.getDataPermissions);
+
+// 设置角色数据权限
+rbacRouter.put("/roles/:roleId/data-permissions", requireAuthWithTenant, menuPermissionController.setRoleDataPermissions);
+
+// 获取角色字段权限
+rbacRouter.get("/roles/:roleId/field-permissions", requireAuthWithTenant, menuPermissionController.getFieldPermissions);
+
+// 设置角色字段权限
+rbacRouter.put("/roles/:roleId/field-permissions", requireAuthWithTenant, menuPermissionController.setRoleFieldPermissions);

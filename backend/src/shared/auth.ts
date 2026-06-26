@@ -19,8 +19,9 @@ export type UserAccessInfo = {
   defaultMode: AccessMode;
 };
 
-const ADMIN_ROLES = ["SUPER_ADMIN", "OPERATION_ADMIN", "WAREHOUSE_ADMIN", "FINANCE_ADMIN"];
-const CASHIER_ROLES = ["STORE_MANAGER", "STORE_OPERATOR", "CASHIER", "SALES"];
+export const ADMIN_ROLES = ["SUPER_ADMIN", "STORE_MANAGER", "FINANCE_STAFF", "PURCHASE_STAFF", "WAREHOUSE_STAFF"];
+export const CASHIER_ROLES = ["STORE_MANAGER", "SALES_STAFF", "CUSTOMER_SERVICE", "READONLY"];
+export const ALL_ROLES = ["SUPER_ADMIN", "STORE_MANAGER", "FINANCE_STAFF", "PURCHASE_STAFF", "WAREHOUSE_STAFF", "SALES_STAFF", "CUSTOMER_SERVICE", "READONLY"];
 
 export function getUserAccessInfo(user: AuthUser): UserAccessInfo {
   const hasAdminRole = user.roles.some(r => ADMIN_ROLES.includes(r));
