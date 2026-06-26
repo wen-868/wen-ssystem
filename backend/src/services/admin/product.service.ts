@@ -1,5 +1,7 @@
 import { query, queryOne, queryWithTenant, queryOneWithTenant, transaction } from "../../shared/db.js";
 import { makeBizNo } from "../../shared/id.js";
+import { syncChangedFields, detectChangedFields } from "../../shared/field-sync.js";
+import { syncProductStatus, syncProductPrice } from "../../shared/product-sync.js";
 
 export async function listProducts(keyword: string, page: number, pageSize: number, tenantId: string) {
   const like = `%${keyword}%`;
@@ -88,6 +90,10 @@ export async function updateProductStatus(spuId: number, status: string, tenantI
   if (!result || (result as any).affectedRows === 0) {
     return null;
   }
+
+  // 全链路同步：商品状态变更
+  syncProductStatus(spuId, status, tenantId).catch(() => {});
+
   return { spuId, status };
 }
 
@@ -125,6 +131,15 @@ export async function updateProduct(spuId: number, body: {
     await queryWithTenant("UPDATE product_sku SET box_ratio = ? WHERE spu_id = ? AND tenant_id = ?", [body.boxRatio, spuId, tenantId], tenantId);
   }
 
+  // 分字段定向同步：将变更字段同步到关联表
+  const changedFields = detectChangedFields(
+    existing,
+    { name: body.name, category: body.category, brand: body.brand, unit: body.unit, specs: body.specs, status: body.status }
+  );
+  if (changedFields.length > 0) {
+    syncChangedFields("product_spu", spuId, changedFields, tenantId).catch(() => {});
+  }
+
   return { spuId };
 }
 
@@ -137,6 +152,10 @@ export async function disableProduct(spuId: number, tenantId: string) {
     return { code: "400", message: "商品已停售" };
   }
   await queryWithTenant("UPDATE product_spu SET status = 'OFF_SALE', updated_at = NOW() WHERE id = ? AND tenant_id = ?", [spuId, tenantId], tenantId);
+
+  // 全链路同步：商品下架状态
+  syncProductStatus(spuId, "OFF_SALE", tenantId).catch(() => {});
+
   return { spuId, name: existing.name };
 }
 
@@ -199,5 +218,25 @@ export async function updateProductPrice(skuId: number, body: {
     }
     return { skuId };
   });
+
+  // 全链路同步：商品价格变更
+  const changedPriceTypes: string[] = [];
+  if (body.retailPrice !== undefined) changedPriceTypes.push("retail_price");
+  if (body.wholesalePrice !== undefined) changedPriceTypes.push("wholesale_price");
+  if (body.miniappPrice !== undefined) changedPriceTypes.push("miniapp_price");
+  if (body.storePrice !== undefined) changedPriceTypes.push("store_price");
+
+  if (changedPriceTypes.length > 0) {
+    // 获取 SKU 对应的 SPU ID
+    const sku = await queryOneWithTenant<any>(
+      "SELECT spu_id AS spuId FROM product_sku WHERE id = ? AND tenant_id = ?",
+      [skuId, tenantId],
+      tenantId
+    );
+    if (sku?.spuId) {
+      syncProductPrice(sku.spuId, changedPriceTypes, tenantId).catch(() => {});
+    }
+  }
+
   return result;
 }
