@@ -51,6 +51,7 @@ import { startSubscriptionExpiryScanner } from "./services/subscription-expiry.s
 import { marketingNewRouter } from "./routes/marketing-new.routes.js";
 import { quoteRouter, quoteShareRouter } from "./routes/quote.routes.js";
 import { platformRouter } from "./routes/platform.routes.js";
+import { menuPermissionRouter } from "./routes/menu-permission.routes.js";
 
 const app = express();
 
@@ -121,6 +122,7 @@ app.use("/api/admin/marketing-new", requireAuthWithTenant, marketingNewRouter);
 app.use("/api/admin/quotes", requireAuthWithTenant, quoteRouter);
 app.use("/api/quote/share", quoteShareRouter);
 app.use("/api/platform", platformRouter);
+app.use("/api/admin/menu-permissions", requireAuthWithTenant, menuPermissionRouter);
 
 app.use(errorHandler);
 

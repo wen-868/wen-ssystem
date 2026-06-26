@@ -1,4 +1,5 @@
-import { query, queryOne, queryWithTenant, queryOneWithTenant } from "../../shared/db.js";
+import { query, queryOne, queryWithTenant, queryOneWithTenant, transaction } from "../../shared/db.js";
+import { syncChangedFields, detectChangedFields } from "../../shared/field-sync.js";
 
 export async function listMembers(tenantId: string, page: number, pageSize: number, keyword: string) {
   const offset = (page - 1) * pageSize;
@@ -49,7 +50,7 @@ export async function getCustomerDetail(tenantId: string, memberId: number) {
 }
 
 export async function updateCustomer(tenantId: string, memberId: number, body: { name?: string; mobile?: string; address?: string; customerType?: string; levelCode?: string; settlementType?: string; remark?: string }) {
-  const existing = await queryOneWithTenant<any>("SELECT id FROM member WHERE id = ? AND tenant_id = ?", [memberId, tenantId], tenantId);
+  const existing = await queryOneWithTenant<any>("SELECT id, name, mobile FROM member WHERE id = ? AND tenant_id = ?", [memberId, tenantId], tenantId);
   if (!existing) {
     throw Object.assign(new Error("客户不存在"), { statusCode: 404 });
   }
@@ -66,6 +67,16 @@ export async function updateCustomer(tenantId: string, memberId: number, body: {
   sets.push("updated_at = NOW()");
   params.push(memberId, tenantId);
   await queryWithTenant(`UPDATE member SET ${sets.join(", ")} WHERE id = ? AND tenant_id = ?`, params, tenantId);
+
+  // 分字段定向同步：客户名称/电话变更同步到销售单
+  const changedFields = detectChangedFields(
+    { name: existing.name, mobile: existing.mobile },
+    { name: body.name, mobile: body.mobile }
+  );
+  if (changedFields.length > 0) {
+    syncChangedFields("member", memberId, changedFields, tenantId).catch(() => {});
+  }
+
   return { memberId };
 }
 
