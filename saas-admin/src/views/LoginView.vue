@@ -54,11 +54,13 @@ async function handleLogin() {
 
   loading.value = true;
   try {
-    const res: any = await saasLogin(loginForm.username, loginForm.password);
-    const token = res.token || res.data?.token || res;
+    const res = await saasLogin(loginForm.username, loginForm.password);
+    const result = res.data?.data || res.data || res;
+    const token = result.token;
+    const user = result.user;
     if (token) {
       localStorage.setItem("saas_token", token);
-      localStorage.setItem("saas_user", JSON.stringify(res.data?.user || res.user || { realName: loginForm.username }));
+      localStorage.setItem("saas_user", JSON.stringify(user || { realName: loginForm.username }));
       ElMessage.success("登录成功");
       router.push("/dashboard");
     } else {
