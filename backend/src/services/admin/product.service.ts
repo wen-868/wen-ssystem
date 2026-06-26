@@ -1,10 +1,10 @@
-import { query, queryOne, transaction } from "../../shared/db.js";
+import { query, queryOne, queryWithTenant, queryOneWithTenant, transaction } from "../../shared/db.js";
 import { makeBizNo } from "../../shared/id.js";
 
 export async function listProducts(keyword: string, page: number, pageSize: number, tenantId: string) {
   const like = `%${keyword}%`;
   const offset = (page - 1) * pageSize;
-  const records = await query<any>(
+  const records = await queryWithTenant<any>(
     `SELECT p.id AS spuId, s.id AS skuId, p.name, p.main_image AS mainImage, s.sku_name AS skuName, s.sku_code AS skuCode, s.barcode,
             pp.retail_price AS retailPrice, pp.wholesale_price AS wholesalePrice, p.status
      FROM product_sku s
@@ -13,14 +13,16 @@ export async function listProducts(keyword: string, page: number, pageSize: numb
      WHERE p.tenant_id = ? AND (p.name LIKE ? OR s.sku_code LIKE ? OR s.barcode LIKE ?)
      ORDER BY p.id DESC, s.id DESC
      LIMIT ? OFFSET ?`,
-    [tenantId, like, like, like, pageSize, offset]
+    [tenantId, like, like, like, pageSize, offset],
+    tenantId
   );
-  const totalRow = await queryOne<any>(
+  const totalRow = await queryOneWithTenant<any>(
     `SELECT COUNT(*) AS total
      FROM product_sku s
      JOIN product_spu p ON p.id = s.spu_id
      WHERE p.tenant_id = ? AND (p.name LIKE ? OR s.sku_code LIKE ? OR s.barcode LIKE ?)`,
-    [tenantId, like, like, like]
+    [tenantId, like, like, like],
+    tenantId
   );
   return { total: totalRow?.total ?? 0, page, pageSize, records };
 }
@@ -82,7 +84,7 @@ export async function createProduct(body: {
 }
 
 export async function updateProductStatus(spuId: number, status: string, tenantId: string) {
-  const result = await query("UPDATE product_spu SET status = ?, updated_at = NOW() WHERE id = ? AND tenant_id = ?", [status, spuId, tenantId]);
+  const result = await queryWithTenant("UPDATE product_spu SET status = ?, updated_at = NOW() WHERE id = ? AND tenant_id = ?", [status, spuId, tenantId], tenantId);
   if (!result || (result as any).affectedRows === 0) {
     return null;
   }
@@ -99,7 +101,7 @@ export async function updateProduct(spuId: number, body: {
   specs?: string;
   status?: "DRAFT" | "ON_SALE" | "OFF_SALE";
 }, tenantId: string) {
-  const existing = await queryOne<any>("SELECT id FROM product_spu WHERE id = ? AND tenant_id = ?", [spuId, tenantId]);
+  const existing = await queryOneWithTenant<any>("SELECT id FROM product_spu WHERE id = ? AND tenant_id = ?", [spuId, tenantId], tenantId);
   if (!existing) {
     return null;
   }
@@ -114,39 +116,40 @@ export async function updateProduct(spuId: number, body: {
   if (sets.length === 0) { return { spuId }; }
   sets.push("updated_at = NOW()");
   params.push(spuId, tenantId);
-  await query(`UPDATE product_spu SET ${sets.join(", ")} WHERE id = ? AND tenant_id = ?`, params);
+  await queryWithTenant(`UPDATE product_spu SET ${sets.join(", ")} WHERE id = ? AND tenant_id = ?`, params, tenantId);
 
   if (body.barcode !== undefined) {
-    await query("UPDATE product_sku SET barcode = ? WHERE spu_id = ? AND tenant_id = ?", [body.barcode, spuId, tenantId]);
+    await queryWithTenant("UPDATE product_sku SET barcode = ? WHERE spu_id = ? AND tenant_id = ?", [body.barcode, spuId, tenantId], tenantId);
   }
   if (body.boxRatio !== undefined) {
-    await query("UPDATE product_sku SET box_ratio = ? WHERE spu_id = ? AND tenant_id = ?", [body.boxRatio, spuId, tenantId]);
+    await queryWithTenant("UPDATE product_sku SET box_ratio = ? WHERE spu_id = ? AND tenant_id = ?", [body.boxRatio, spuId, tenantId], tenantId);
   }
 
   return { spuId };
 }
 
 export async function disableProduct(spuId: number, tenantId: string) {
-  const existing = await queryOne<any>("SELECT id, name, status FROM product_spu WHERE id = ? AND tenant_id = ?", [spuId, tenantId]);
+  const existing = await queryOneWithTenant<any>("SELECT id, name, status FROM product_spu WHERE id = ? AND tenant_id = ?", [spuId, tenantId], tenantId);
   if (!existing) {
     return { code: "404", message: "商品不存在" };
   }
   if (existing.status === "OFF_SALE") {
     return { code: "400", message: "商品已停售" };
   }
-  await query("UPDATE product_spu SET status = 'OFF_SALE', updated_at = NOW() WHERE id = ? AND tenant_id = ?", [spuId, tenantId]);
+  await queryWithTenant("UPDATE product_spu SET status = 'OFF_SALE', updated_at = NOW() WHERE id = ? AND tenant_id = ?", [spuId, tenantId], tenantId);
   return { spuId, name: existing.name };
 }
 
 export async function getProductPriceHistory(skuId: number, tenantId: string) {
-  const records = await query<any>(
+  const records = await queryWithTenant<any>(
     `SELECT id, sku_id AS skuId, price_type AS priceType, old_price AS oldPrice,
             new_price AS newPrice, action_type AS actionType, operator_id AS operatorId, created_at AS createdAt
      FROM product_price_log
      WHERE sku_id = ? AND tenant_id = ?
      ORDER BY id DESC
      LIMIT 50`,
-    [skuId, tenantId]
+    [skuId, tenantId],
+    tenantId
   );
   return { records };
 }

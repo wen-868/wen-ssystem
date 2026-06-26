@@ -1,4 +1,4 @@
-import { query, queryOne } from "../../shared/db.js";
+import { query, queryOne, queryWithTenant, queryOneWithTenant } from "../../shared/db.js";
 import { signToken, getUserAccessInfo, AuthUser } from "../../shared/auth.js";
 import { verifyPassword } from "../../shared/password.js";
 
@@ -18,14 +18,14 @@ export async function login(username: string, password: string) {
     [account.id]
   );
   const roleCodes = roles.map((r: any) => r.role_code);
-  const tenantId = account.tenant_id || 'default';
+  const resolvedTenantId = account.tenant_id || 'default';
   const authUser: AuthUser = {
     id: account.id,
     username: account.username,
     realName: account.real_name,
     roles: roleCodes,
     storeId: account.store_id,
-    tenantId
+    tenantId: resolvedTenantId
   };
   const accessInfo = getUserAccessInfo(authUser);
   const user = {
@@ -33,7 +33,7 @@ export async function login(username: string, password: string) {
     username: account.username,
     realName: account.real_name,
     storeId: account.store_id,
-    tenantId,
+    tenantId: resolvedTenantId,
     roles: roleCodes,
     permissions: ["*"],
     ...accessInfo
@@ -42,9 +42,10 @@ export async function login(username: string, password: string) {
 }
 
 export async function getMe(user: AuthUser) {
-  const userSetting = await queryOne<any>(
+  const userSetting = await queryOneWithTenant<any>(
     "SELECT default_homepage FROM sys_user WHERE id = ?",
-    [user.id]
+    [user.id],
+    user.tenantId
   );
   const accessInfo = getUserAccessInfo(user);
   const defaultMode = userSetting?.default_homepage
@@ -53,20 +54,22 @@ export async function getMe(user: AuthUser) {
   return { ...user, ...accessInfo, defaultMode };
 }
 
-export async function getSettings(userId: number) {
-  const userSetting = await queryOne<any>(
+export async function getSettings(userId: number, tenantId: string) {
+  const userSetting = await queryOneWithTenant<any>(
     "SELECT default_homepage FROM sys_user WHERE id = ?",
-    [userId]
+    [userId],
+    tenantId
   );
   return {
     defaultHomepage: userSetting?.default_homepage || null
   };
 }
 
-export async function updateSettings(userId: number, defaultHomepage: string | null) {
-  await query(
+export async function updateSettings(userId: number, defaultHomepage: string | null, tenantId: string) {
+  await queryWithTenant(
     "UPDATE sys_user SET default_homepage = ? WHERE id = ?",
-    [defaultHomepage, userId]
+    [defaultHomepage, userId],
+    tenantId
   );
   return { success: true };
 }

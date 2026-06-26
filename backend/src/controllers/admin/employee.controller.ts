@@ -3,8 +3,8 @@ import { asyncHandler } from "../../shared/async-handler.js";
 import { ok } from "../../shared/response.js";
 import * as employeeService from "../../services/admin/employee.service.js";
 
-export const listStaff = asyncHandler(async (_req, res) => {
-  const result = await employeeService.listStaff();
+export const listStaff = asyncHandler(async (req, res) => {
+  const result = await employeeService.listStaff(req.user!.tenantId);
   res.json(ok(result));
 });
 
@@ -18,7 +18,7 @@ export const createStaff = asyncHandler(async (req, res) => {
     status: z.number().default(1),
     password: z.string().optional()
   }).parse(req.body);
-  const result = await employeeService.createStaff(body);
+  const result = await employeeService.createStaff(body, req.user!.tenantId);
   res.json(ok(result));
 });
 
@@ -31,13 +31,13 @@ export const updateStaff = asyncHandler(async (req, res) => {
     storeId: z.number().optional(),
     status: z.number().optional()
   }).parse(req.body);
-  const result = await employeeService.updateStaff(Number(req.params.staffId), body);
+  const result = await employeeService.updateStaff(Number(req.params.staffId), body, req.user!.tenantId);
   res.json(ok(result));
 });
 
 export const disableStaff = asyncHandler(async (req, res) => {
   try {
-    const result = await employeeService.disableStaff(Number(req.params.id));
+    const result = await employeeService.disableStaff(Number(req.params.id), req.user!.tenantId);
     res.json(ok(result));
   } catch (e: any) {
     const statusCode = e.statusCode || 400;

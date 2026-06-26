@@ -1,4 +1,4 @@
-import { query, queryOne, transaction } from "../shared/db.js";
+import { query, queryOne, transaction, queryWithTenant, queryOneWithTenant } from "../shared/db.js";
 import { makeBizNo } from "../shared/id.js";
 import type { ServiceContext, PageResult } from "../types/index.js";
 
@@ -114,27 +114,29 @@ class SaleReturnService {
     }
 
     const countSql = `SELECT COUNT(*) AS total FROM sale_return sr ${where}`;
-    const countRow = await queryOne<{ total: number }>(countSql, params);
+    const countRow = await queryOneWithTenant<{ total: number }>(countSql, params, ctx.tenantId);
     const total = Number(countRow?.total ?? 0);
 
     const offset = (page - 1) * pageSize;
     const dataSql = `SELECT sr.*, s.name AS store_name FROM sale_return sr LEFT JOIN store s ON sr.store_id = s.id AND s.tenant_id = ? ${where} ORDER BY sr.created_at DESC LIMIT ? OFFSET ?`;
     const dataParams = [ctx.tenantId, ...params, pageSize, offset];
-    const records = await query<SaleReturnListVO>(dataSql, dataParams);
+    const records = await queryWithTenant<SaleReturnListVO>(dataSql, dataParams, ctx.tenantId);
 
     return { records, total, page, pageSize };
   }
 
   async getDetail(returnNo: string, ctx: ServiceContext): Promise<SaleReturnDetailVO | null> {
-    const returnOrder = await queryOne<SaleReturn>(
+    const returnOrder = await queryOneWithTenant<SaleReturn>(
       "SELECT * FROM sale_return WHERE return_no = ? AND tenant_id = ?",
-      [returnNo, ctx.tenantId]
+      [returnNo, ctx.tenantId],
+      ctx.tenantId
     );
     if (!returnOrder) return null;
 
-    const items = await query<SaleReturnItem>(
+    const items = await queryWithTenant<SaleReturnItem>(
       "SELECT * FROM sale_return_item WHERE return_no = ?",
-      [returnNo]
+      [returnNo],
+      ctx.tenantId
     );
 
     return { ...returnOrder, items };
@@ -213,9 +215,10 @@ class SaleReturnService {
   }
 
   async approve(returnNo: string, ctx: ServiceContext): Promise<{ returnNo: string } | null> {
-    const returnOrder = await queryOne<SaleReturn>(
+    const returnOrder = await queryOneWithTenant<SaleReturn>(
       "SELECT * FROM sale_return WHERE return_no = ? AND tenant_id = ?",
-      [returnNo, ctx.tenantId]
+      [returnNo, ctx.tenantId],
+      ctx.tenantId
     );
     if (!returnOrder) return null;
 
@@ -275,9 +278,10 @@ class SaleReturnService {
   }
 
   async refund(returnNo: string, dto: RefundDTO, ctx: ServiceContext): Promise<{ returnNo: string } | null> {
-    const returnOrder = await queryOne<SaleReturn>(
+    const returnOrder = await queryOneWithTenant<SaleReturn>(
       "SELECT * FROM sale_return WHERE return_no = ? AND tenant_id = ?",
-      [returnNo, ctx.tenantId]
+      [returnNo, ctx.tenantId],
+      ctx.tenantId
     );
     if (!returnOrder) return null;
 
@@ -305,15 +309,17 @@ class SaleReturnService {
   }
 
   async getSaleBill(billNo: string, ctx: ServiceContext): Promise<any | null> {
-    const bill = await queryOne<any>(
+    const bill = await queryOneWithTenant<any>(
       "SELECT * FROM sale_bill WHERE bill_no = ? AND tenant_id = ?",
-      [billNo, ctx.tenantId]
+      [billNo, ctx.tenantId],
+      ctx.tenantId
     );
     if (!bill) return null;
 
-    const items = await query<any>(
+    const items = await queryWithTenant<any>(
       "SELECT * FROM sale_bill_item WHERE bill_no = ?",
-      [billNo]
+      [billNo],
+      ctx.tenantId
     );
 
     return { ...bill, items };

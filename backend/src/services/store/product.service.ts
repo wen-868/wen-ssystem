@@ -1,4 +1,4 @@
-import { query, queryOne } from "../../shared/db.js";
+import { query, queryOne, queryWithTenant, queryOneWithTenant } from "../../shared/db.js";
 
 export async function listProducts(params: {
   keyword?: string;
@@ -7,7 +7,7 @@ export async function listProducts(params: {
   tenantId: string;
 }) {
   const { keyword = "", barcode = "", storeId, tenantId } = params;
-  const records = await query<any>(
+  const records = await queryWithTenant<any>(
     `SELECT s.id AS skuId, s.sku_code AS skuCode, p.name AS productName, s.sku_name AS skuName,
             s.barcode, pp.retail_price AS retailPrice, pp.wholesale_price AS wholesalePrice,
             pp.store_price AS storePrice, ib.available_qty AS availableQty
@@ -21,7 +21,8 @@ export async function listProducts(params: {
        AND (? = '' OR s.barcode = ?)
      ORDER BY s.id DESC
      LIMIT 50`,
-    [storeId, tenantId, keyword, `%${keyword}%`, `%${keyword}%`, `%${keyword}%`, barcode, barcode]
+    [storeId, tenantId, keyword, `%${keyword}%`, `%${keyword}%`, `%${keyword}%`, barcode, barcode],
+    tenantId
   );
   return { records };
 }
@@ -31,7 +32,7 @@ export async function listMembers(params: {
   tenantId: string;
 }) {
   const { keyword = "", tenantId } = params;
-  const records = await query<any>(
+  const records = await queryWithTenant<any>(
     `SELECT id AS memberId, name, mobile, customer_type AS customerType, status
      FROM member
      WHERE tenant_id = ?
@@ -39,7 +40,8 @@ export async function listMembers(params: {
        AND (? = '' OR name LIKE ? OR mobile LIKE ?)
      ORDER BY id DESC
      LIMIT 50`,
-    [tenantId, keyword, `%${keyword}%`, `%${keyword}%`]
+    [tenantId, keyword, `%${keyword}%`, `%${keyword}%`],
+    tenantId
   );
   return { records };
 }

@@ -1,9 +1,9 @@
-import { query, queryOne } from "../../shared/db.js";
+import { query, queryOne, queryWithTenant, queryOneWithTenant } from "../../shared/db.js";
 
 export async function listMembers(tenantId: string, page: number, pageSize: number, keyword: string) {
   const offset = (page - 1) * pageSize;
   const kw = `%${keyword}%`;
-  const records = await query<any>(
+  const records = await queryWithTenant<any>(
     `SELECT m.id AS memberId, m.name, m.mobile, m.customer_type AS customerType,
             m.points, m.level_code AS levelCode, m.status,
             m.staff_id AS staffId, u.real_name AS staffName
@@ -12,32 +12,35 @@ export async function listMembers(tenantId: string, page: number, pageSize: numb
      WHERE m.tenant_id = ? AND (m.name LIKE ? OR m.mobile LIKE ?)
      ORDER BY m.id DESC
      LIMIT ? OFFSET ?`,
-    [tenantId, kw, kw, pageSize, offset]
+    [tenantId, kw, kw, pageSize, offset],
+    tenantId
   );
-  const totalRow = await queryOne<any>("SELECT COUNT(*) AS total FROM member WHERE tenant_id = ?", [tenantId]);
+  const totalRow = await queryOneWithTenant<any>("SELECT COUNT(*) AS total FROM member WHERE tenant_id = ?", [tenantId], tenantId);
   return { total: totalRow?.total ?? 0, page, pageSize, records };
 }
 
 export async function createCustomer(tenantId: string, body: { name: string; mobile: string; customerType: string; staffId?: number }) {
   const levelCode = body.customerType === "WHOLESALE" ? "WHOLESALE" : "NORMAL";
-  const result = await query<any>(
+  const result = await queryWithTenant<any>(
     `INSERT INTO member (name, mobile, customer_type, staff_id, points, level_code, status, tenant_id)
      VALUES (?, ?, ?, ?, 0, ?, 1, ?)`,
-    [body.name, body.mobile, body.customerType, body.staffId ?? null, levelCode, tenantId]
+    [body.name, body.mobile, body.customerType, body.staffId ?? null, levelCode, tenantId],
+    tenantId
   );
   const memberId = result?.[0]?.insertId ?? Date.now();
   return { memberId, name: body.name, mobile: body.mobile, customerType: body.customerType, staffId: body.staffId ?? null };
 }
 
 export async function getCustomerDetail(tenantId: string, memberId: number) {
-  const member = await queryOne<any>(
+  const member = await queryOneWithTenant<any>(
     `SELECT m.id AS memberId, m.name, m.mobile, m.customer_type AS customerType,
             m.points, m.level_code AS levelCode, m.status,
             m.staff_id AS staffId, u.real_name AS staffName
      FROM member m
      LEFT JOIN sys_user u ON u.id = m.staff_id
      WHERE m.id = ? AND m.tenant_id = ?`,
-    [memberId, tenantId]
+    [memberId, tenantId],
+    tenantId
   );
   if (!member) {
     throw Object.assign(new Error("客户不存在"), { statusCode: 404 });
@@ -46,7 +49,7 @@ export async function getCustomerDetail(tenantId: string, memberId: number) {
 }
 
 export async function updateCustomer(tenantId: string, memberId: number, body: { name?: string; mobile?: string; address?: string; customerType?: string; levelCode?: string; settlementType?: string; remark?: string }) {
-  const existing = await queryOne<any>("SELECT id FROM member WHERE id = ? AND tenant_id = ?", [memberId, tenantId]);
+  const existing = await queryOneWithTenant<any>("SELECT id FROM member WHERE id = ? AND tenant_id = ?", [memberId, tenantId], tenantId);
   if (!existing) {
     throw Object.assign(new Error("客户不存在"), { statusCode: 404 });
   }
@@ -62,44 +65,45 @@ export async function updateCustomer(tenantId: string, memberId: number, body: {
   if (sets.length === 0) { return { memberId }; }
   sets.push("updated_at = NOW()");
   params.push(memberId, tenantId);
-  await query(`UPDATE member SET ${sets.join(", ")} WHERE id = ? AND tenant_id = ?`, params);
+  await queryWithTenant(`UPDATE member SET ${sets.join(", ")} WHERE id = ? AND tenant_id = ?`, params, tenantId);
   return { memberId };
 }
 
 export async function disableCustomer(tenantId: string, memberId: number) {
-  const existing = await queryOne<any>("SELECT id, name, status FROM member WHERE id = ? AND tenant_id = ?", [memberId, tenantId]);
+  const existing = await queryOneWithTenant<any>("SELECT id, name, status FROM member WHERE id = ? AND tenant_id = ?", [memberId, tenantId], tenantId);
   if (!existing) {
     throw Object.assign(new Error("客户不存在"), { statusCode: 404 });
   }
   if (existing.status === "INACTIVE") {
     throw Object.assign(new Error("客户已停用"), { statusCode: 400 });
   }
-  await query("UPDATE member SET status = 'INACTIVE', updated_at = NOW() WHERE id = ? AND tenant_id = ?", [memberId, tenantId]);
+  await queryWithTenant("UPDATE member SET status = 'INACTIVE', updated_at = NOW() WHERE id = ? AND tenant_id = ?", [memberId, tenantId], tenantId);
   return { memberId, name: existing.name };
 }
 
 export async function assignStaffToCustomer(tenantId: string, memberId: number, staffId: number) {
-  const member = await queryOne<any>("SELECT id FROM member WHERE id = ? AND tenant_id = ?", [memberId, tenantId]);
+  const member = await queryOneWithTenant<any>("SELECT id FROM member WHERE id = ? AND tenant_id = ?", [memberId, tenantId], tenantId);
   if (!member) {
     throw Object.assign(new Error("客户不存在"), { statusCode: 404 });
   }
-  const staff = await queryOne<any>("SELECT id FROM sys_user WHERE id = ? AND status = 1", [staffId]);
+  const staff = await queryOneWithTenant<any>("SELECT id FROM sys_user WHERE id = ? AND status = 1", [staffId], tenantId);
   if (!staff) {
     throw Object.assign(new Error("员工不存在"), { statusCode: 404 });
   }
-  await query("UPDATE member SET staff_id = ?, updated_at = NOW() WHERE id = ? AND tenant_id = ?", [staffId, memberId, tenantId]);
+  await queryWithTenant("UPDATE member SET staff_id = ?, updated_at = NOW() WHERE id = ? AND tenant_id = ?", [staffId, memberId, tenantId], tenantId);
   return { memberId, staffId };
 }
 
 export async function getCustomerPriceHistory(tenantId: string, memberId: number, skuId: number) {
-  const records = await query<any>(
+  const records = await queryWithTenant<any>(
     `SELECT sbi.sku_id AS skuId, sbi.sku_name AS skuName, sbi.unit_price AS unitPrice,
             sb.bill_no AS billNo, sb.created_at AS createdAt
      FROM sale_bill_item sbi
      JOIN sale_bill sb ON sb.bill_no = sbi.bill_no
      WHERE sb.customer_id = ? AND sbi.sku_id = ? AND sb.tenant_id = ?
      ORDER BY sb.created_at DESC`,
-    [memberId, skuId, tenantId]
+    [memberId, skuId, tenantId],
+    tenantId
   );
   if (records.length === 0) {
     return [];
@@ -118,7 +122,7 @@ export async function getCustomerPriceHistory(tenantId: string, memberId: number
 
 export async function listCustomerSaleBills(tenantId: string, memberId: number, page: number, pageSize: number) {
   const offset = (page - 1) * pageSize;
-  const records = await query<any>(
+  const records = await queryWithTenant<any>(
     `SELECT bill_no AS billNo, store_id AS storeId, customer_name AS customerName,
             customer_mobile AS customerMobile, customer_type AS customerType,
             receivable_amount AS receivableAmount, received_amount AS receivedAmount,
@@ -129,15 +133,16 @@ export async function listCustomerSaleBills(tenantId: string, memberId: number, 
      WHERE customer_id = ? AND tenant_id = ?
      ORDER BY created_at DESC
      LIMIT ? OFFSET ?`,
-    [memberId, tenantId, pageSize, offset]
+    [memberId, tenantId, pageSize, offset],
+    tenantId
   );
-  const totalRow = await queryOne<any>("SELECT COUNT(*) AS total FROM sale_bill WHERE customer_id = ? AND tenant_id = ?", [memberId, tenantId]);
+  const totalRow = await queryOneWithTenant<any>("SELECT COUNT(*) AS total FROM sale_bill WHERE customer_id = ? AND tenant_id = ?", [memberId, tenantId], tenantId);
   return { total: totalRow?.total ?? 0, page, pageSize, records };
 }
 
 export async function listCustomerPayments(tenantId: string, memberId: number, page: number, pageSize: number) {
   const offset = (page - 1) * pageSize;
-  const records = await query<any>(
+  const records = await queryWithTenant<any>(
     `SELECT id, receipt_no AS receiptNo, source_type AS sourceType, source_no AS sourceNo,
             customer_id AS customerId, customer_name AS customerName,
             amount, payment_method AS paymentMethod,
@@ -155,20 +160,22 @@ export async function listCustomerPayments(tenantId: string, memberId: number, p
      WHERE customer_id = ? AND tenant_id = ?
      ORDER BY created_at DESC
      LIMIT ? OFFSET ?`,
-    [memberId, tenantId, memberId, tenantId, pageSize, offset]
+    [memberId, tenantId, memberId, tenantId, pageSize, offset],
+    tenantId
   );
-  const totalRow = await queryOne<any>(
+  const totalRow = await queryOneWithTenant<any>(
     `SELECT
         (SELECT COUNT(*) FROM sale_payment WHERE customer_id = ? AND tenant_id = ?) +
         (SELECT COUNT(*) FROM customer_payment WHERE customer_id = ? AND tenant_id = ?) AS total`,
-    [memberId, tenantId, memberId, tenantId]
+    [memberId, tenantId, memberId, tenantId],
+    tenantId
   );
   return { total: totalRow?.total ?? 0, page, pageSize, records };
 }
 
 export async function listCustomerStatements(tenantId: string, memberId: number, page: number, pageSize: number) {
   const offset = (page - 1) * pageSize;
-  const records = await query<any>(
+  const records = await queryWithTenant<any>(
     `SELECT id, statement_no AS statementNo, customer_id AS customerId, customer_name AS customerName,
             statement_type AS statementType, start_date AS startDate, end_date AS endDate,
             opening_balance AS openingBalance, total_sales AS totalSales,
@@ -179,27 +186,30 @@ export async function listCustomerStatements(tenantId: string, memberId: number,
      WHERE customer_id = ? AND tenant_id = ?
      ORDER BY created_at DESC
      LIMIT ? OFFSET ?`,
-    [memberId, tenantId, pageSize, offset]
+    [memberId, tenantId, pageSize, offset],
+    tenantId
   );
-  const totalRow = await queryOne<any>(
+  const totalRow = await queryOneWithTenant<any>(
     "SELECT COUNT(*) AS total FROM customer_statement WHERE customer_id = ? AND tenant_id = ?",
-    [memberId, tenantId]
+    [memberId, tenantId],
+    tenantId
   );
   return { total: totalRow?.total ?? 0, page, pageSize, records };
 }
 
 export async function getCustomerPurchaseStats(tenantId: string, memberId: number) {
-  const billStats = await queryOne<any>(
+  const billStats = await queryOneWithTenant<any>(
     `SELECT COUNT(*) AS billCount,
             COALESCE(SUM(receivable_amount), 0) AS totalAmount,
             COALESCE(SUM(received_amount), 0) AS receivedAmount,
             COALESCE(SUM(unreceived_amount), 0) AS unpaidAmount
      FROM sale_bill
      WHERE customer_id = ? AND tenant_id = ? AND business_status NOT IN ('DRAFT', 'VOIDED')`,
-    [memberId, tenantId]
+    [memberId, tenantId],
+    tenantId
   );
 
-  const topProducts = await query<any>(
+  const topProducts = await queryWithTenant<any>(
     `SELECT sbi.sku_id AS skuId, sbi.sku_name AS skuName,
             SUM(sbi.total_bottle_qty) AS totalQty,
             SUM(sbi.subtotal_amount) AS totalAmount
@@ -209,12 +219,14 @@ export async function getCustomerPurchaseStats(tenantId: string, memberId: numbe
      GROUP BY sbi.sku_id, sbi.sku_name
      ORDER BY totalQty DESC
      LIMIT 10`,
-    [memberId, tenantId]
+    [memberId, tenantId],
+    tenantId
   );
 
-  const lastOrder = await queryOne<any>(
+  const lastOrder = await queryOneWithTenant<any>(
     `SELECT MAX(created_at) AS lastOrderAt FROM sale_bill WHERE customer_id = ? AND tenant_id = ? AND business_status NOT IN ('DRAFT', 'VOIDED')`,
-    [memberId, tenantId]
+    [memberId, tenantId],
+    tenantId
   );
 
   return {
@@ -229,37 +241,41 @@ export async function getCustomerPurchaseStats(tenantId: string, memberId: numbe
 }
 
 export async function getCustomerStats(tenantId: string) {
-  const totalRow = await queryOne<any>("SELECT COUNT(*) AS total FROM member WHERE status = 1 AND tenant_id = ?", [tenantId]);
-  const newMonthRow = await queryOne<any>(
+  const totalRow = await queryOneWithTenant<any>("SELECT COUNT(*) AS total FROM member WHERE status = 1 AND tenant_id = ?", [tenantId], tenantId);
+  const newMonthRow = await queryOneWithTenant<any>(
     "SELECT COUNT(*) AS cnt FROM member WHERE status = 1 AND tenant_id = ? AND DATE_FORMAT(created_at, '%Y-%m') = DATE_FORMAT(NOW(), '%Y-%m')",
-    [tenantId]
+    [tenantId],
+    tenantId
   );
-  const activeRow = await queryOne<any>(
+  const activeRow = await queryOneWithTenant<any>(
     `SELECT COUNT(DISTINCT customer_id) AS cnt
      FROM sale_bill
      WHERE customer_id IS NOT NULL
        AND tenant_id = ?
        AND business_status NOT IN ('DRAFT', 'VOIDED')
        AND created_at >= DATE_SUB(NOW(), INTERVAL 30 DAY)`,
-    [tenantId]
+    [tenantId],
+    tenantId
   );
-  const debtRow = await queryOne<any>(
+  const debtRow = await queryOneWithTenant<any>(
     `SELECT COUNT(DISTINCT customer_id) AS cnt
      FROM sale_bill
      WHERE customer_id IS NOT NULL
        AND tenant_id = ?
        AND unreceived_amount > 0
        AND business_status NOT IN ('DRAFT', 'VOIDED')`,
-    [tenantId]
+    [tenantId],
+    tenantId
   );
-  const receivableRow = await queryOne<any>(
+  const receivableRow = await queryOneWithTenant<any>(
     `SELECT COALESCE(SUM(unreceived_amount), 0) AS total
      FROM sale_bill
      WHERE customer_id IS NOT NULL
        AND tenant_id = ?
        AND unreceived_amount > 0
        AND business_status NOT IN ('DRAFT', 'VOIDED')`,
-    [tenantId]
+    [tenantId],
+    tenantId
   );
 
   return {

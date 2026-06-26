@@ -1,4 +1,4 @@
-import { query, queryOne, transaction } from "../../shared/db.js";
+import { query, queryOne, queryWithTenant, queryOneWithTenant, transaction } from "../../shared/db.js";
 import { makeBizNo } from "../../shared/id.js";
 import { completeOrderDelivery } from "../../shared/fulfillment.js";
 
@@ -11,7 +11,7 @@ export async function listOrders(params: {
 }) {
   const { page, pageSize, storeId, status, tenantId } = params;
   const offset = (page - 1) * pageSize;
-  const records = await query<any>(
+  const records = await queryWithTenant<any>(
     `SELECT order_no AS orderNo, store_id AS storeId, fulfillment_type AS fulfillmentType,
             order_status AS orderStatus, pay_status AS payStatus, payable_amount AS payableAmount,
             receiver_name AS receiverName, receiver_mobile AS receiverMobile, receiver_address AS receiverAddress,
@@ -22,59 +22,66 @@ export async function listOrders(params: {
        AND (? IS NULL OR order_status = ?)
      ORDER BY id DESC
      LIMIT ? OFFSET ?`,
-    [tenantId, storeId, storeId, status, status, pageSize, offset]
+    [tenantId, storeId, storeId, status, status, pageSize, offset],
+    tenantId
   );
-  const total = await queryOne<any>(
+  const total = await queryOneWithTenant<any>(
     `SELECT COUNT(*) AS total FROM miniapp_order
      WHERE tenant_id = ?
        AND (? IS NULL OR store_id = ?)
        AND (? IS NULL OR order_status = ?)`,
-    [tenantId, storeId, storeId, status, status]
+    [tenantId, storeId, storeId, status, status],
+    tenantId
   );
   return { total: total?.total ?? 0, page, pageSize, records };
 }
 
 export async function getOrderDetail(orderNo: string, tenantId: string) {
-  const order = await queryOne<any>(
+  const order = await queryOneWithTenant<any>(
     `SELECT order_no AS orderNo, store_id AS storeId, customer_type AS customerType,
             fulfillment_type AS fulfillmentType, order_status AS orderStatus,
             pay_status AS payStatus, payable_amount AS payableAmount,
             receiver_name AS receiverName, receiver_mobile AS receiverMobile,
             receiver_address AS receiverAddress, created_at AS createdAt
      FROM miniapp_order WHERE order_no = ? AND tenant_id = ?`,
-    [orderNo, tenantId]
+    [orderNo, tenantId],
+    tenantId
   );
   if (!order) return null;
-  const items = await query<any>(
+  const items = await queryWithTenant<any>(
     `SELECT sku_id AS skuId, sku_name AS skuName, qty AS quantity, unit_price AS unitPrice,
             subtotal_amount AS subtotalAmount
      FROM miniapp_order_item WHERE order_no = ?`,
-    [orderNo]
+    [orderNo],
+    tenantId
   );
   return { ...order, items };
 }
 
 export async function acceptOrder(orderNo: string, tenantId: string) {
-  const result = await query(
+  const result = await queryWithTenant(
     `UPDATE miniapp_order SET order_status = 'ACCEPTED', updated_at = NOW() WHERE order_no = ? AND tenant_id = ?`,
-    [orderNo, tenantId]
+    [orderNo, tenantId],
+    tenantId
   );
   if (!result || (result as any).affectedRows === 0) return null;
   return { orderNo, status: "ACCEPTED" };
 }
 
 export async function startDelivery(orderNo: string, tenantId: string, userId: number | null, username: string) {
-  const result = await query(
+  const result = await queryWithTenant(
     `UPDATE miniapp_order
      SET order_status = 'DELIVERING', delivery_status = 'DELIVERING', updated_at = NOW()
      WHERE order_no = ? AND order_status = 'WAIT_DELIVERY' AND tenant_id = ?`,
-    [orderNo, tenantId]
+    [orderNo, tenantId],
+    tenantId
   );
   if (!result || (result as any).affectedRows === 0) return null;
-  await query(
+  await queryWithTenant(
     `INSERT INTO operation_log (operator_id, operator_name, module, action, biz_no, after_data, tenant_id)
      VALUES (?, ?, 'ORDER_DELIVERY', 'START_DELIVERY', ?, JSON_OBJECT('status', 'DELIVERING'), ?)`,
-    [userId ?? null, username ?? "系统用户", orderNo, tenantId]
+    [userId ?? null, username ?? "系统用户", orderNo, tenantId],
+    tenantId
   );
   return { orderNo, status: "DELIVERING" };
 }

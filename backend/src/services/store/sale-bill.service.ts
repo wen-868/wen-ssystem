@@ -1,4 +1,4 @@
-import { query, queryOne, transaction } from "../../shared/db.js";
+import { query, queryOne, queryWithTenant, queryOneWithTenant, transaction } from "../../shared/db.js";
 import { makeBizNo, makeToken } from "../../shared/id.js";
 
 export async function listSaleBills(params: {
@@ -8,7 +8,7 @@ export async function listSaleBills(params: {
   const { page, pageSize, storeId, keyword, collectionStatus, tenantId } = params;
   const offset = (page - 1) * pageSize;
   const kw = `%${keyword}%`;
-  const records = await query<any>(
+  const records = await queryWithTenant<any>(
     `SELECT bill_no AS billNo, store_id AS storeId, customer_id AS customerId, customer_name AS customerName,
             customer_type AS customerType, sale_type AS saleType, business_status AS businessStatus, 
             collection_status AS collectionStatus, receivable_amount AS receivableAmount, 
@@ -21,21 +21,23 @@ export async function listSaleBills(params: {
        AND (bill_no LIKE ? OR customer_name LIKE ? OR customer_mobile LIKE ?)
      ORDER BY id DESC
      LIMIT ? OFFSET ?`,
-    [tenantId, storeId, storeId, collectionStatus, collectionStatus, kw, kw, kw, pageSize, offset]
+    [tenantId, storeId, storeId, collectionStatus, collectionStatus, kw, kw, kw, pageSize, offset],
+    tenantId
   );
-  const total = await queryOne<any>(
+  const total = await queryOneWithTenant<any>(
     `SELECT COUNT(*) AS total FROM sale_bill
      WHERE tenant_id = ?
        AND (? IS NULL OR store_id = ?)
        AND (? IS NULL OR collection_status = ?)
        AND (bill_no LIKE ? OR customer_name LIKE ? OR customer_mobile LIKE ?)`,
-    [tenantId, storeId, storeId, collectionStatus, collectionStatus, kw, kw, kw]
+    [tenantId, storeId, storeId, collectionStatus, collectionStatus, kw, kw, kw],
+    tenantId
   );
   return { total: total?.total ?? 0, page, pageSize, records };
 }
 
 export async function getSaleBillDetail(billNo: string, tenantId: string) {
-  const bill = await queryOne<any>(
+  const bill = await queryOneWithTenant<any>(
     `SELECT bill_no AS billNo, store_id AS storeId, customer_id AS customerId, customer_name AS customerName,
             customer_type AS customerType, sale_type AS saleType, business_status AS businessStatus, 
             collection_status AS collectionStatus, goods_amount AS goodsAmount, discount_amount AS discountAmount,
@@ -43,14 +45,16 @@ export async function getSaleBillDetail(billNo: string, tenantId: string) {
             received_amount AS receivedAmount, unreceived_amount AS unreceivedAmount,
             due_date AS dueDate, remark, created_at AS createdAt
      FROM sale_bill WHERE bill_no = ? AND tenant_id = ?`,
-    [billNo, tenantId]
+    [billNo, tenantId],
+    tenantId
   );
   if (!bill) return null;
-  const items = await query<any>(
+  const items = await queryWithTenant<any>(
     `SELECT sku_id AS skuId, sku_name AS skuName, box_qty AS boxQty, bottle_qty AS bottleQty,
             total_bottle_qty AS totalBottleQty, unit_price AS unitPrice, subtotal_amount AS subtotalAmount
      FROM sale_bill_item WHERE bill_no = ?`,
-    [billNo]
+    [billNo],
+    tenantId
   );
   return { ...bill, items };
 }
@@ -68,16 +72,17 @@ export async function createSaleBill(params: {
   return transaction(async (conn) => {
     const billNo = makeBizNo("XS");
     const member = customerId
-      ? await queryOne<any>("SELECT id, name, mobile, customer_type FROM member WHERE id = ? AND tenant_id = ?", [customerId, tenantId])
+      ? await queryOneWithTenant<any>("SELECT id, name, mobile, customer_type FROM member WHERE id = ? AND tenant_id = ?", [customerId, tenantId], tenantId)
       : null;
     let goodsAmount = 0;
     const itemSnapshots = [];
     for (const item of items) {
-      const price = await queryOne<any>(
+      const price = await queryOneWithTenant<any>(
         `SELECT s.sku_name, pp.retail_price, pp.wholesale_price, pp.store_price
          FROM product_sku s JOIN product_price pp ON pp.sku_id = s.id AND pp.tenant_id = s.tenant_id
          WHERE s.id = ? AND s.tenant_id = ?`,
-        [item.skuId, tenantId]
+        [item.skuId, tenantId],
+        tenantId
       );
       if (!price) throw new Error(`SKU不存在：${item.skuId}`);
       const customerType = member?.customer_type ?? "RETAIL";
@@ -117,20 +122,22 @@ export async function createCollectionLink(params: {
   remark?: string; userId: number; tenantId: string;
 }) {
   const { billNo, shareChannel, amount, taxEnabled, taxRate, expireHours, remark, userId, tenantId } = params;
-  const bill = await queryOne<any>("SELECT bill_no, unreceived_amount FROM sale_bill WHERE bill_no = ? AND tenant_id = ?", [billNo, tenantId]);
+  const bill = await queryOneWithTenant<any>("SELECT bill_no, unreceived_amount FROM sale_bill WHERE bill_no = ? AND tenant_id = ?", [billNo, tenantId], tenantId);
   if (!bill) throw new Error("销售单不存在");
   if (amount <= 0 || amount > Number(bill.unreceived_amount)) throw new Error("收款金额必须大于0且不能超过未收金额");
   const linkNo = makeBizNo("SK");
   const token = makeToken();
   const taxAmount = taxEnabled ? Number((amount * taxRate).toFixed(2)) : 0;
-  await query(
+  await queryWithTenant(
     `INSERT INTO collection_link (link_no, source_type, source_no, amount, paid_amount, status, share_channel, share_user_id, expire_at, token, tax_enabled, tax_rate, tax_amount, tenant_id)
      VALUES (?, 'SALE_BILL', ?, ?, 0, 'PENDING', ?, ?, DATE_ADD(NOW(), INTERVAL ? HOUR), ?, ?, ?, ?, ?)`,
-    [linkNo, billNo, amount, shareChannel, userId, expireHours, token, taxEnabled ? 1 : 0, taxRate, taxAmount, tenantId]
+    [linkNo, billNo, amount, shareChannel, userId, expireHours, token, taxEnabled ? 1 : 0, taxRate, taxAmount, tenantId],
+    tenantId
   );
-  await query(
+  await queryWithTenant(
     `UPDATE sale_bill SET collection_status = 'SHARED', share_collection_count = share_collection_count + 1, last_share_time = NOW(), locked_amount_flag = 1 WHERE bill_no = ? AND tenant_id = ?`,
-    [billNo, tenantId]
+    [billNo, tenantId],
+    tenantId
   );
   return { linkNo, sourceType: "SALE_BILL", sourceNo: billNo, amount, taxEnabled, taxRate, taxAmount, paidAmount: 0, status: "PENDING", shareUrl: `/share/collections/${token}`, token };
 }
@@ -229,7 +236,7 @@ export async function listOverdueBills(params: {
 }) {
   const { page, pageSize, storeId, tenantId } = params;
   const offset = (page - 1) * pageSize;
-  const records = await query<any>(
+  const records = await queryWithTenant<any>(
     `SELECT bill_no AS billNo, store_id AS storeId, customer_id AS customerId, customer_name AS customerName,
             customer_mobile AS customerMobile, sale_type AS saleType, due_date AS dueDate,
             collection_status AS collectionStatus, receivable_amount AS receivableAmount,
@@ -240,11 +247,13 @@ export async function listOverdueBills(params: {
        AND collection_status IN ('UNPAID', 'PARTIAL') AND business_status = 'CREATED'
        AND (? IS NULL OR store_id = ?)
      ORDER BY due_date ASC LIMIT ? OFFSET ?`,
-    [tenantId, storeId, storeId, pageSize, offset]
+    [tenantId, storeId, storeId, pageSize, offset],
+    tenantId
   );
-  const total = await queryOne<any>(
+  const total = await queryOneWithTenant<any>(
     `SELECT COUNT(*) AS total FROM sale_bill WHERE tenant_id = ? AND sale_type = 'CREDIT' AND due_date IS NOT NULL AND due_date < CURDATE() AND collection_status IN ('UNPAID', 'PARTIAL') AND business_status = 'CREATED' AND (? IS NULL OR store_id = ?)`,
-    [tenantId, storeId, storeId]
+    [tenantId, storeId, storeId],
+    tenantId
   );
   return { total: total?.total ?? 0, page, pageSize, records };
 }
@@ -254,12 +263,13 @@ export async function checkOverdueBills(storeId: number | null, tenantId: string
   const params: unknown[] = [tenantId];
   if (storeId) { sql += ` AND store_id = ?`; params.push(storeId); }
   sql += ` ORDER BY due_date ASC LIMIT 100`;
-  const overdueBills = await query<any>(sql, params);
+  const overdueBills = await queryWithTenant<any>(sql, params, tenantId);
   if (overdueBills.length > 0) {
     const billNos = overdueBills.map((b: any) => b.billNo);
-    await query(
+    await queryWithTenant(
       `UPDATE sale_bill SET collection_status = 'OVERDUE' WHERE bill_no IN (${billNos.map(() => '?').join(',')}) AND tenant_id = ? AND collection_status IN ('UNPAID', 'PARTIAL')`,
-      [...billNos, tenantId]
+      [...billNos, tenantId],
+      tenantId
     );
   }
   return { count: overdueBills.length, overdueBills };

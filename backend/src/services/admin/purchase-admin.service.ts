@@ -1,4 +1,4 @@
-import { query, queryOne, transaction } from "../../shared/db.js";
+import { query, queryOne, queryWithTenant, queryOneWithTenant, transaction } from "../../shared/db.js";
 import { makeBizNo } from "../../shared/id.js";
 
 // ========== 采购订单列表 ==========
@@ -39,7 +39,7 @@ export async function listPurchaseOrders(params: {
   }
 
   const where = `WHERE ${conditions.join(" AND ")}`;
-  const records = await query<any>(
+  const records = await queryWithTenant<any>(
     `SELECT id, order_no AS orderNo, supplier_id AS supplierId, supplier_name AS supplierName,
             store_id AS storeId, order_status AS orderStatus,
             goods_amount AS goodsAmount, tax_amount AS taxAmount,
@@ -52,18 +52,20 @@ export async function listPurchaseOrders(params: {
      ${where}
      ORDER BY created_at DESC
      LIMIT ? OFFSET ?`,
-    [...queryParams, pageSize, offset]
+    [...queryParams, pageSize, offset],
+    tenantId
   );
-  const totalRow = await queryOne<any>(
+  const totalRow = await queryOneWithTenant<any>(
     `SELECT COUNT(*) AS total FROM purchase_order ${where}`,
-    queryParams
+    queryParams,
+    tenantId
   );
   return { total: totalRow?.total ?? 0, page, pageSize, records };
 }
 
 // ========== 采购订单详情（含明细） ==========
 export async function getPurchaseOrderDetail(id: number, tenantId: string) {
-  const order = await queryOne<any>(
+  const order = await queryOneWithTenant<any>(
     `SELECT id, order_no AS orderNo, supplier_id AS supplierId, supplier_name AS supplierName,
             store_id AS storeId, order_status AS orderStatus,
             goods_amount AS goodsAmount, tax_amount AS taxAmount,
@@ -73,19 +75,21 @@ export async function getPurchaseOrderDetail(id: number, tenantId: string) {
             operator_id AS operatorId, auditor_id AS auditorId, audited_at AS auditedAt,
             remark, created_at AS createdAt, updated_at AS updatedAt
      FROM purchase_order WHERE id = ? AND tenant_id = ?`,
-    [id, tenantId]
+    [id, tenantId],
+    tenantId
   );
   if (!order) {
     throw Object.assign(new Error("采购订单不存在"), { statusCode: 404 });
   }
-  const items = await query<any>(
+  const items = await queryWithTenant<any>(
     `SELECT id, order_no AS orderNo, sku_id AS skuId, sku_name AS skuName, barcode,
             box_qty AS boxQty, bottle_qty AS bottleQty, total_bottle_qty AS totalBottleQty,
             unit_price AS unitPrice, tax_rate AS taxRate,
             subtotal_amount AS subtotalAmount, tax_amount AS taxAmount, total_amount AS totalAmount,
             in_stocked_qty AS inStockedQty, remark
      FROM purchase_order_item WHERE order_no = ?`,
-    [order.orderNo]
+    [order.orderNo],
+    tenantId
   );
   return { ...order, items };
 }
@@ -113,9 +117,10 @@ export async function createPurchaseOrder(params: {
   const { supplierId, storeId, tenantId, operatorId, expectedDate, remark, items } = params;
 
   // 获取供应商信息
-  const supplier = await queryOne<any>(
+  const supplier = await queryOneWithTenant<any>(
     "SELECT id, name, tax_rate FROM supplier WHERE id = ? AND tenant_id = ?",
-    [supplierId, tenantId]
+    [supplierId, tenantId],
+    tenantId
   );
   if (!supplier) {
     throw Object.assign(new Error("供应商不存在"), { statusCode: 400 });
@@ -183,9 +188,10 @@ export async function updatePurchaseOrder(id: number, params: {
 }) {
   const { tenantId, expectedDate, remark, items } = params;
 
-  const existing = await queryOne<any>(
+  const existing = await queryOneWithTenant<any>(
     `SELECT id, order_no AS orderNo, order_status AS orderStatus FROM purchase_order WHERE id = ? AND tenant_id = ?`,
-    [id, tenantId]
+    [id, tenantId],
+    tenantId
   );
   if (!existing) {
     throw Object.assign(new Error("采购订单不存在"), { statusCode: 404 });
@@ -245,7 +251,7 @@ export async function updatePurchaseOrder(id: number, params: {
     }
   });
 
-  return await queryOne<any>(
+  return await queryOneWithTenant<any>(
     `SELECT id, order_no AS orderNo, supplier_id AS supplierId, supplier_name AS supplierName,
             store_id AS storeId, order_status AS orderStatus,
             goods_amount AS goodsAmount, tax_amount AS taxAmount,
@@ -254,15 +260,17 @@ export async function updatePurchaseOrder(id: number, params: {
             expected_date AS expectedDate, actual_date AS actualDate,
             remark, created_at AS createdAt, updated_at AS updatedAt
      FROM purchase_order WHERE id = ? AND tenant_id = ?`,
-    [id, tenantId]
+    [id, tenantId],
+    tenantId
   );
 }
 
 // ========== 取消采购订单 ==========
 export async function cancelPurchaseOrder(id: number, tenantId: string) {
-  const existing = await queryOne<any>(
+  const existing = await queryOneWithTenant<any>(
     `SELECT id, order_no AS orderNo, order_status AS orderStatus FROM purchase_order WHERE id = ? AND tenant_id = ?`,
-    [id, tenantId]
+    [id, tenantId],
+    tenantId
   );
   if (!existing) {
     throw Object.assign(new Error("采购订单不存在"), { statusCode: 404 });
@@ -270,18 +278,20 @@ export async function cancelPurchaseOrder(id: number, tenantId: string) {
   if (!["DRAFT", "PENDING"].includes(existing.orderStatus)) {
     throw Object.assign(new Error("当前状态不允许取消"), { statusCode: 400 });
   }
-  await query(
+  await queryWithTenant(
     "UPDATE purchase_order SET order_status = 'CANCELLED', updated_at = NOW() WHERE id = ? AND tenant_id = ?",
-    [id, tenantId]
+    [id, tenantId],
+    tenantId
   );
   return { orderId: id, orderNo: existing.orderNo };
 }
 
 // ========== 确认采购订单 ==========
 export async function confirmPurchaseOrder(id: number, tenantId: string, auditorId: number) {
-  const existing = await queryOne<any>(
+  const existing = await queryOneWithTenant<any>(
     `SELECT id, order_no AS orderNo, order_status AS orderStatus FROM purchase_order WHERE id = ? AND tenant_id = ?`,
-    [id, tenantId]
+    [id, tenantId],
+    tenantId
   );
   if (!existing) {
     throw Object.assign(new Error("采购订单不存在"), { statusCode: 404 });
@@ -289,9 +299,10 @@ export async function confirmPurchaseOrder(id: number, tenantId: string, auditor
   if (existing.orderStatus !== "DRAFT" && existing.orderStatus !== "PENDING") {
     throw Object.assign(new Error("当前状态不允许确认"), { statusCode: 400 });
   }
-  await query(
+  await queryWithTenant(
     `UPDATE purchase_order SET order_status = 'APPROVED', auditor_id = ?, audited_at = NOW(), updated_at = NOW() WHERE id = ? AND tenant_id = ?`,
-    [auditorId, id, tenantId]
+    [auditorId, id, tenantId],
+    tenantId
   );
   return { orderId: id, orderNo: existing.orderNo, orderStatus: "APPROVED" };
 }
@@ -317,11 +328,12 @@ export async function purchaseInStock(id: number, params: {
 }) {
   const { tenantId, operatorId, remark, items } = params;
 
-  const order = await queryOne<any>(
+  const order = await queryOneWithTenant<any>(
     `SELECT id, order_no AS orderNo, supplier_id AS supplierId, supplier_name AS supplierName,
             store_id AS storeId, order_status AS orderStatus
      FROM purchase_order WHERE id = ? AND tenant_id = ?`,
-    [id, tenantId]
+    [id, tenantId],
+    tenantId
   );
   if (!order) {
     throw Object.assign(new Error("采购订单不存在"), { statusCode: 404 });
@@ -434,7 +446,7 @@ export async function listPurchaseInStocks(params: {
   }
 
   const where = `WHERE ${conditions.join(" AND ")}`;
-  const records = await query<any>(
+  const records = await queryWithTenant<any>(
     `SELECT id, stock_no AS stockNo, order_no AS orderNo, supplier_id AS supplierId,
             supplier_name AS supplierName, store_id AS storeId, stock_status AS stockStatus,
             goods_amount AS goodsAmount, tax_amount AS taxAmount, total_amount AS totalAmount,
@@ -444,30 +456,33 @@ export async function listPurchaseInStocks(params: {
      ${where}
      ORDER BY created_at DESC
      LIMIT ? OFFSET ?`,
-    [...queryParams, pageSize, offset]
+    [...queryParams, pageSize, offset],
+    tenantId
   );
-  const totalRow = await queryOne<any>(
+  const totalRow = await queryOneWithTenant<any>(
     `SELECT COUNT(*) AS total FROM purchase_in_stock ${where}`,
-    queryParams
+    queryParams,
+    tenantId
   );
   return { total: totalRow?.total ?? 0, page, pageSize, records };
 }
 
 // ========== 入库单详情 ==========
 export async function getPurchaseInStockDetail(id: number, tenantId: string) {
-  const stock = await queryOne<any>(
+  const stock = await queryOneWithTenant<any>(
     `SELECT id, stock_no AS stockNo, order_no AS orderNo, supplier_id AS supplierId,
             supplier_name AS supplierName, store_id AS storeId, stock_status AS stockStatus,
             goods_amount AS goodsAmount, tax_amount AS taxAmount, total_amount AS totalAmount,
             operator_id AS operatorId, auditor_id AS auditorId, audited_at AS auditedAt,
             remark, created_at AS createdAt
      FROM purchase_in_stock WHERE id = ? AND tenant_id = ?`,
-    [id, tenantId]
+    [id, tenantId],
+    tenantId
   );
   if (!stock) {
     throw Object.assign(new Error("入库单不存在"), { statusCode: 404 });
   }
-  const items = await query<any>(
+  const items = await queryWithTenant<any>(
     `SELECT id, stock_no AS stockNo, sku_id AS skuId, sku_name AS skuName,
             box_qty AS boxQty, bottle_qty AS bottleQty, total_bottle_qty AS totalBottleQty,
             unit_price AS unitPrice, tax_rate AS taxRate,
@@ -475,7 +490,8 @@ export async function getPurchaseInStockDetail(id: number, tenantId: string) {
             batch_no AS batchNo, production_date AS productionDate, expiry_date AS expiryDate,
             remark
      FROM purchase_in_stock_item WHERE stock_no = ?`,
-    [stock.stockNo]
+    [stock.stockNo],
+    tenantId
   );
   return { ...stock, items };
 }
@@ -502,9 +518,10 @@ export async function purchaseReturn(params: {
 }) {
   const { orderNo, stockNo, supplierId, storeId, tenantId, operatorId, remark, items } = params;
 
-  const supplier = await queryOne<any>(
+  const supplier = await queryOneWithTenant<any>(
     "SELECT id, name FROM supplier WHERE id = ? AND tenant_id = ?",
-    [supplierId, tenantId]
+    [supplierId, tenantId],
+    tenantId
   );
   if (!supplier) {
     throw Object.assign(new Error("供应商不存在"), { statusCode: 400 });
@@ -594,7 +611,7 @@ export async function listPurchaseReturns(params: {
   }
 
   const where = `WHERE ${conditions.join(" AND ")}`;
-  const records = await query<any>(
+  const records = await queryWithTenant<any>(
     `SELECT id, return_no AS returnNo, order_no AS orderNo, stock_no AS stockNo,
             supplier_id AS supplierId, supplier_name AS supplierName, store_id AS storeId,
             return_status AS returnStatus,
@@ -605,11 +622,13 @@ export async function listPurchaseReturns(params: {
      ${where}
      ORDER BY created_at DESC
      LIMIT ? OFFSET ?`,
-    [...queryParams, pageSize, offset]
+    [...queryParams, pageSize, offset],
+    tenantId
   );
-  const totalRow = await queryOne<any>(
+  const totalRow = await queryOneWithTenant<any>(
     `SELECT COUNT(*) AS total FROM purchase_return ${where}`,
-    queryParams
+    queryParams,
+    tenantId
   );
   return { total: totalRow?.total ?? 0, page, pageSize, records };
 }

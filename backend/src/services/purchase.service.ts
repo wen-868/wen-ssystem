@@ -1,4 +1,4 @@
-import { query, queryOne, transaction } from "../shared/db.js";
+import { query, queryOne, transaction, queryWithTenant, queryOneWithTenant } from "../shared/db.js";
 import type { ServiceContext, PageResult } from "../types/index.js";
 import { makeBizNo } from "../shared/id.js";
 
@@ -128,7 +128,7 @@ export interface InStockDTO {
 // ---------------------------------------------------------------------------
 
 async function findByOrderNo(orderNo: string, tenantId: string): Promise<PurchaseOrder | null> {
-  const row = await queryOne<any>(
+  const row = await queryOneWithTenant<any>(
     `SELECT id, order_no AS orderNo, supplier_id AS supplierId, supplier_name AS supplierName,
             store_id AS storeId, order_status AS status, goods_amount AS goodsAmount,
             tax_amount AS taxAmount, discount_amount AS discountAmount,
@@ -138,7 +138,8 @@ async function findByOrderNo(orderNo: string, tenantId: string): Promise<Purchas
             created_at AS createdAt, updated_at AS updatedAt
      FROM purchase_order
      WHERE order_no = ? AND tenant_id = ?`,
-    [orderNo, tenantId]
+    [orderNo, tenantId],
+    tenantId
   );
   return row ?? null;
 }
@@ -161,7 +162,7 @@ async function updateOrderStatus(
   }
 
   params.push(orderNo, tenantId);
-  await query(`UPDATE purchase_order SET ${sets.join(", ")} WHERE order_no = ? AND tenant_id = ?`, params);
+  await queryWithTenant(`UPDATE purchase_order SET ${sets.join(", ")} WHERE order_no = ? AND tenant_id = ?`, params, tenantId);
 }
 
 async function addOperationLog(
@@ -174,10 +175,11 @@ async function addOperationLog(
   detail: string,
   tenantId: string
 ): Promise<void> {
-  await query(
+  await queryWithTenant(
     `INSERT INTO operation_log (module, action, target_id, target_type, user_id, user_name, detail, tenant_id)
      VALUES (?, ?, ?, ?, ?, ?, ?, ?)`,
-    [module, action, targetId, targetType, userId, username, detail, tenantId]
+    [module, action, targetId, targetType, userId, username, detail, tenantId],
+    tenantId
   );
 }
 
@@ -222,14 +224,15 @@ class PurchaseService {
 
     const whereClause = conditions.join(" AND ");
 
-    const countResult = await queryOne<{ total: number }>(
+    const countResult = await queryOneWithTenant<{ total: number }>(
       `SELECT COUNT(*) AS total FROM purchase_order po WHERE ${whereClause}`,
-      params
+      params,
+      ctx.tenantId
     );
     const total = Number(countResult?.total ?? 0);
 
     const offset = (page - 1) * pageSize;
-    const rows = await query<PurchaseOrderListVO>(
+    const rows = await queryWithTenant<PurchaseOrderListVO>(
       `SELECT po.id, po.order_no AS orderNo, po.supplier_name AS supplierName,
               po.order_status AS status, po.goods_amount AS goodsAmount,
               po.payable_amount AS payableAmount, po.paid_amount AS paidAmount,
@@ -239,14 +242,15 @@ class PurchaseService {
        WHERE ${whereClause}
        ORDER BY po.created_at DESC
        LIMIT ? OFFSET ?`,
-      [...params, pageSize, offset]
+      [...params, pageSize, offset],
+      ctx.tenantId
     );
 
     return { records: rows, total, page, pageSize };
   }
 
   async getDetail(orderNo: string, ctx: ServiceContext): Promise<PurchaseOrderDetailVO | null> {
-    const order = await queryOne<any>(
+    const order = await queryOneWithTenant<any>(
       `SELECT id, order_no AS orderNo, supplier_id AS supplierId, supplier_name AS supplierName,
               store_id AS storeId, order_status AS status, goods_amount AS goodsAmount,
               tax_amount AS taxAmount, discount_amount AS discountAmount,
@@ -255,12 +259,13 @@ class PurchaseService {
               remark, created_at AS createdDate, updated_at AS updatedDate
        FROM purchase_order
        WHERE order_no = ? AND tenant_id = ?`,
-      [orderNo, ctx.tenantId]
+      [orderNo, ctx.tenantId],
+      ctx.tenantId
     );
 
     if (!order) return null;
 
-    const items = await query<PurchaseOrderItemVO>(
+    const items = await queryWithTenant<PurchaseOrderItemVO>(
       `SELECT sku_id AS skuId, sku_name AS skuName, barcode, box_qty AS boxQty,
               bottle_qty AS bottleQty, total_bottle_qty AS totalBottleQty,
               unit_price AS unitPrice, tax_rate AS taxRate,
@@ -269,7 +274,8 @@ class PurchaseService {
               remark
        FROM purchase_order_item
        WHERE order_no = ?`,
-      [orderNo]
+      [orderNo],
+      ctx.tenantId
     );
 
     return { ...order, items };
@@ -560,11 +566,12 @@ class PurchaseService {
       throw new Error("只有已审核的订单可以入库");
     }
 
-    const orderItems = await query<any>(
+    const orderItems = await queryWithTenant<any>(
       `SELECT sku_id, COALESCE(in_stocked_qty, 0) AS in_stocked_qty
        FROM purchase_order_item
        WHERE order_no = ?`,
-      [orderNo]
+      [orderNo],
+      ctx.tenantId
     );
     const itemMap = new Map<number, any>(orderItems.map((i: any) => [i.sku_id, i]));
 

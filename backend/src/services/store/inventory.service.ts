@@ -1,4 +1,4 @@
-import { query, queryOne, transaction } from "../../shared/db.js";
+import { query, queryOne, queryWithTenant, queryOneWithTenant, transaction } from "../../shared/db.js";
 import { makeBizNo } from "../../shared/id.js";
 
 export async function listInventory(params: {
@@ -6,7 +6,7 @@ export async function listInventory(params: {
 }) {
   const { keyword, storeId, tenantId } = params;
   const kw = `%${keyword}%`;
-  const rows = await query<any>(
+  const rows = await queryWithTenant<any>(
     `SELECT ib.store_id AS storeId, ib.sku_id AS skuId, s.sku_name AS skuName, ib.stock_type AS stockType,
             ib.physical_qty AS physicalQty, ib.locked_qty AS lockedQty, ib.available_qty AS availableQty
      FROM inventory_balance ib
@@ -17,7 +17,8 @@ export async function listInventory(params: {
        AND (p.name LIKE ? OR s.sku_name LIKE ? OR s.sku_code LIKE ? OR s.barcode LIKE ?)
      ORDER BY ib.available_qty ASC, ib.updated_at DESC
      LIMIT 100`,
-    [tenantId, storeId ?? null, storeId ?? null, kw, kw, kw, kw]
+    [tenantId, storeId ?? null, storeId ?? null, kw, kw, kw, kw],
+    tenantId
   );
   return rows;
 }
@@ -56,17 +57,18 @@ export async function listInventoryLogs(params: {
   if (storeId) { sql += " AND il.store_id = ?"; paramsArr.push(storeId); }
   sql += " ORDER BY il.created_at DESC LIMIT ? OFFSET ?";
   paramsArr.push(pageSize, offset);
-  const records = await query<any>(sql, paramsArr);
+  const records = await queryWithTenant<any>(sql, paramsArr, tenantId);
   const totalSql = storeId ? "SELECT COUNT(*) AS total FROM inventory_ledger WHERE tenant_id = ? AND store_id = ?" : "SELECT COUNT(*) AS total FROM inventory_ledger WHERE tenant_id = ?";
-  const totalRow = await queryOne<any>(totalSql, storeId ? [tenantId, storeId] : [tenantId]);
+  const totalRow = await queryOneWithTenant<any>(totalSql, storeId ? [tenantId, storeId] : [tenantId], tenantId);
   return { total: totalRow?.total ?? 0, page, pageSize, records };
 }
 
 export async function listInventoryAlerts(storeId: number | null, tenantId: string) {
   const where = storeId ? "WHERE ib.tenant_id = ? AND ib.store_id = ?" : "WHERE ib.tenant_id = ?";
   const params = storeId ? [tenantId, storeId] : [tenantId];
-  return query<any>(
+  return queryWithTenant<any>(
     `SELECT ib.sku_id AS skuId, ps.sku_name AS skuName, ib.stock_type AS stockType, ib.available_qty AS availableQty FROM inventory_balance ib LEFT JOIN product_sku ps ON ps.id = ib.sku_id AND ps.tenant_id = ib.tenant_id ${where} AND ib.available_qty <= 5 ORDER BY ib.available_qty ASC LIMIT 20`,
-    params
+    params,
+    tenantId
   );
 }

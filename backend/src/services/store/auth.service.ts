@@ -1,5 +1,5 @@
 import { z } from "zod";
-import { query, queryOne } from "../../shared/db.js";
+import { query, queryOne, queryWithTenant, queryOneWithTenant } from "../../shared/db.js";
 import { signToken, getUserAccessInfo } from "../../shared/auth.js";
 import { verifyPassword } from "../../shared/password.js";
 
@@ -57,12 +57,13 @@ export function getCurrentUser(user: any) {
 }
 
 export async function getStoreInfo(storeId: number, tenantId: string) {
-  const store = await queryOne<any>(
+  const store = await queryOneWithTenant<any>(
     `SELECT name, address, phone, contact,
             miniapp_appid AS miniappAppid, wx_merchant_name AS wxMerchantName,
             wx_service_phone AS wxServicePhone, wx_head_img AS wxHeadImg, wx_qrcode_url AS wxQrcodeUrl
      FROM store WHERE id = ? AND tenant_id = ?`,
-    [storeId, tenantId]
+    [storeId, tenantId],
+    tenantId
   );
   if (!store) return null;
   return {

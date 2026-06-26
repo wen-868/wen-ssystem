@@ -19,7 +19,7 @@ export const getMe = asyncHandler(async (req, res) => {
 });
 
 export const getSettings = asyncHandler(async (req, res) => {
-  const result = await authService.getSettings(req.user!.id);
+  const result = await authService.getSettings(req.user!.id, req.tenantId!);
   res.json(ok(result));
 });
 
@@ -27,6 +27,6 @@ export const updateSettings = asyncHandler(async (req, res) => {
   const body = z.object({
     defaultHomepage: z.enum(['/admin', '/cashier']).optional()
   }).parse(req.body);
-  const result = await authService.updateSettings(req.user!.id, body.defaultHomepage || null);
+  const result = await authService.updateSettings(req.user!.id, body.defaultHomepage || null, req.tenantId!);
   res.json(ok(result));
 });

@@ -1,4 +1,4 @@
-import { query, queryOne, transaction } from "../shared/db.js";
+import { query, queryOne, transaction, queryWithTenant, queryOneWithTenant } from "../shared/db.js";
 import { makeBizNo } from "../shared/id.js";
 import type { ServiceContext, PageResult, PageParams } from "../types/index.js";
 
@@ -258,18 +258,20 @@ class SupplierService {
     const offset = (page - 1) * pageSize;
 
     const [countRows, dataRows] = await Promise.all([
-      query<{ total: number }>(
+      queryWithTenant<{ total: number }>(
         `SELECT COUNT(*) AS total FROM supplier s WHERE ${whereClause}`,
-        params
+        params,
+        ctx.tenantId
       ),
-      query<any>(
+      queryWithTenant<any>(
         `SELECT s.*, sc.name AS contact_person, sc.mobile AS contact_mobile
          FROM supplier s
          LEFT JOIN supplier_contact sc ON s.id = sc.supplier_id AND sc.is_primary = 1
          WHERE ${whereClause}
          ORDER BY s.id DESC
          LIMIT ? OFFSET ?`,
-        [...params, pageSize, offset]
+        [...params, pageSize, offset],
+        ctx.tenantId
       ),
     ]);
 
@@ -282,15 +284,17 @@ class SupplierService {
   }
 
   async getDetail(id: number, ctx: ServiceContext): Promise<SupplierDetailVO | null> {
-    const supplier = await queryOne<any>(
+    const supplier = await queryOneWithTenant<any>(
       "SELECT * FROM supplier WHERE id = ? AND tenant_id = ?",
-      [id, ctx.tenantId]
+      [id, ctx.tenantId],
+      ctx.tenantId
     );
     if (!supplier) return null;
 
-    const contacts = await query<any>(
+    const contacts = await queryWithTenant<any>(
       "SELECT * FROM supplier_contact WHERE supplier_id = ? ORDER BY is_primary DESC, id ASC",
-      [id]
+      [id],
+      ctx.tenantId
     );
 
     const result = mapSupplierDetailRow(supplier);
@@ -299,9 +303,10 @@ class SupplierService {
   }
 
   async findById(id: number, tenantId: string): Promise<Supplier | null> {
-    return queryOne<Supplier>(
+    return queryOneWithTenant<Supplier>(
       "SELECT * FROM supplier WHERE id = ? AND tenant_id = ?",
-      [id, tenantId]
+      [id, tenantId],
+      tenantId
     );
   }
 
@@ -363,17 +368,19 @@ class SupplierService {
     updates.push("updated_at = NOW()");
     params.push(id, ctx.tenantId);
 
-    const [result] = await query<any>(
+    const [result] = await queryWithTenant<any>(
       `UPDATE supplier SET ${updates.join(", ")} WHERE id = ? AND tenant_id = ?`,
-      params
+      params,
+      ctx.tenantId
     );
 
     const affected = result?.affectedRows ?? 0;
 
     if (affected > 0) {
-      await query(
+      await queryWithTenant(
         "INSERT INTO operation_log (module, action, target_id, target_type, user_id, user_name, detail, tenant_id) VALUES (?, ?, ?, ?, ?, ?, ?, ?)",
-        ["supplier", "UPDATE", String(id), "supplier", ctx.userId, ctx.username, `修改供应商: ${dto.name || id}`, ctx.tenantId]
+        ["supplier", "UPDATE", String(id), "supplier", ctx.userId, ctx.username, `修改供应商: ${dto.name || id}`, ctx.tenantId],
+        ctx.tenantId
       );
     }
 
@@ -387,13 +394,14 @@ class SupplierService {
     if (!supplier) return null;
 
     if (dto.isPrimary) {
-      await query(
+      await queryWithTenant(
         "UPDATE supplier_contact SET is_primary = 0 WHERE supplier_id = ?",
-        [supplierId]
+        [supplierId],
+        ctx.tenantId
       );
     }
 
-    const [result] = await query<any>(
+    const [result] = await queryWithTenant<any>(
       `INSERT INTO supplier_contact (supplier_id, name, mobile, phone, email, wechat, is_primary, position, remark)
        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`,
       [
@@ -406,14 +414,16 @@ class SupplierService {
         dto.isPrimary ? 1 : 0,
         dto.position || null,
         dto.remark || null,
-      ]
+      ],
+      ctx.tenantId
     );
 
     const contactId = result?.insertId ?? 0;
 
-    await query(
+    await queryWithTenant(
       "INSERT INTO operation_log (module, action, target_id, target_type, user_id, user_name, detail, tenant_id) VALUES (?, ?, ?, ?, ?, ?, ?, ?)",
-      ["supplier", "ADD_CONTACT", String(contactId), "supplier_contact", ctx.userId, ctx.username, `添加联系人: ${dto.name}`, ctx.tenantId]
+      ["supplier", "ADD_CONTACT", String(contactId), "supplier_contact", ctx.userId, ctx.username, `添加联系人: ${dto.name}`, ctx.tenantId],
+      ctx.tenantId
     );
 
     return { id: contactId };
@@ -423,20 +433,23 @@ class SupplierService {
     const supplier = await this.findById(supplierId, ctx.tenantId);
     if (!supplier) return null;
 
-    const contact = await queryOne<SupplierContact>(
+    const contact = await queryOneWithTenant<SupplierContact>(
       "SELECT * FROM supplier_contact WHERE id = ? AND supplier_id = ?",
-      [contactId, supplierId]
+      [contactId, supplierId],
+      ctx.tenantId
     );
     if (!contact) return false;
 
-    await query(
+    await queryWithTenant(
       "DELETE FROM supplier_contact WHERE id = ?",
-      [contactId]
+      [contactId],
+      ctx.tenantId
     );
 
-    await query(
+    await queryWithTenant(
       "INSERT INTO operation_log (module, action, target_id, target_type, user_id, user_name, detail, tenant_id) VALUES (?, ?, ?, ?, ?, ?, ?, ?)",
-      ["supplier", "DELETE_CONTACT", String(contactId), "supplier_contact", ctx.userId, ctx.username, `删除联系人: ${contact.name}`, ctx.tenantId]
+      ["supplier", "DELETE_CONTACT", String(contactId), "supplier_contact", ctx.userId, ctx.username, `删除联系人: ${contact.name}`, ctx.tenantId],
+      ctx.tenantId
     );
 
     return true;
@@ -448,11 +461,12 @@ class SupplierService {
     const supplier = await this.findById(supplierId, ctx.tenantId);
     if (!supplier) return null;
 
-    const rows = await query<{ orderCount: number; totalAmount: number }>(
+    const rows = await queryWithTenant<{ orderCount: number; totalAmount: number }>(
       `SELECT COUNT(*) AS orderCount, COALESCE(SUM(payable_amount), 0) AS totalAmount
        FROM purchase_order
        WHERE supplier_id = ? AND tenant_id = ?`,
-      [supplierId, ctx.tenantId]
+      [supplierId, ctx.tenantId],
+      ctx.tenantId
     );
 
     return {
@@ -485,13 +499,15 @@ class SupplierService {
     const offset = (page - 1) * pageSize;
 
     const [countRows, dataRows] = await Promise.all([
-      query<{ total: number }>(
+      queryWithTenant<{ total: number }>(
         `SELECT COUNT(*) AS total FROM purchase_order WHERE ${whereClause}`,
-        params
+        params,
+        ctx.tenantId
       ),
-      query<any>(
+      queryWithTenant<any>(
         `SELECT * FROM purchase_order WHERE ${whereClause} ORDER BY created_at DESC LIMIT ? OFFSET ?`,
-        [...params, pageSize, offset]
+        [...params, pageSize, offset],
+        ctx.tenantId
       ),
     ]);
 
@@ -517,13 +533,15 @@ class SupplierService {
     const offset = (page - 1) * pageSize;
 
     const [countRows, dataRows] = await Promise.all([
-      query<{ total: number }>(
+      queryWithTenant<{ total: number }>(
         "SELECT COUNT(*) AS total FROM purchase_payment WHERE supplier_id = ? AND tenant_id = ?",
-        [supplierId, ctx.tenantId]
+        [supplierId, ctx.tenantId],
+        ctx.tenantId
       ),
-      query<any>(
+      queryWithTenant<any>(
         `SELECT * FROM purchase_payment WHERE supplier_id = ? AND tenant_id = ? ORDER BY created_at DESC LIMIT ? OFFSET ?`,
-        [supplierId, ctx.tenantId, pageSize, offset]
+        [supplierId, ctx.tenantId, pageSize, offset],
+        ctx.tenantId
       ),
     ]);
 
@@ -559,21 +577,23 @@ class SupplierService {
     const offset = (page - 1) * pageSize;
 
     const [countRows, dataRows] = await Promise.all([
-      query<{ total: number }>(
+      queryWithTenant<{ total: number }>(
         `SELECT COUNT(DISTINCT poi.sku_id) AS total
          FROM purchase_order po
          JOIN purchase_order_item poi ON po.order_no = poi.order_no
          WHERE ${whereClause}`,
-        params
+        params,
+        ctx.tenantId
       ),
-      query<any>(
+      queryWithTenant<any>(
         `SELECT DISTINCT poi.sku_id, poi.sku_name, poi.barcode
          FROM purchase_order po
          JOIN purchase_order_item poi ON po.order_no = poi.order_no
          WHERE ${whereClause}
          ORDER BY poi.sku_name ASC
          LIMIT ? OFFSET ?`,
-        [...params, pageSize, offset]
+        [...params, pageSize, offset],
+        ctx.tenantId
       ),
     ]);
 

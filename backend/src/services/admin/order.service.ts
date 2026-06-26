@@ -1,4 +1,4 @@
-import { query, queryOne } from "../../shared/db.js";
+import { query, queryOne, queryWithTenant, queryOneWithTenant } from "../../shared/db.js";
 
 export async function listOrders(
   page: number,
@@ -30,7 +30,7 @@ export async function listOrders(
     params.push(dateEnd);
   }
   const where = `WHERE ${conditions.join(" AND ")}`;
-  const records = await query<any>(
+  const records = await queryWithTenant<any>(
     `SELECT order_no AS orderNo, store_id AS storeId, customer_type AS customerType,
             fulfillment_type AS fulfillmentType, order_status AS orderStatus,
             pay_status AS payStatus, payable_amount AS payableAmount,
@@ -39,11 +39,13 @@ export async function listOrders(
      FROM miniapp_order ${where}
      ORDER BY created_at DESC
      LIMIT ? OFFSET ?`,
-    [...params, pageSize, offset]
+    [...params, pageSize, offset],
+    tenantId
   );
-  const totalRow = await queryOne<any>(
+  const totalRow = await queryOneWithTenant<any>(
     `SELECT COUNT(*) AS total FROM miniapp_order ${where}`,
-    params
+    params,
+    tenantId
   );
   return { total: totalRow?.total ?? 0, page, pageSize, records };
 }
@@ -75,7 +77,7 @@ export async function exportOrdersCsv(
     params.push(dateEnd);
   }
   const where = `WHERE ${conditions.join(" AND ")}`;
-  const records = await query<any>(
+  const records = await queryWithTenant<any>(
     `SELECT order_no AS orderNo, store_id AS storeId, customer_type AS customerType,
             fulfillment_type AS fulfillmentType, order_status AS orderStatus,
             pay_status AS payStatus, payable_amount AS payableAmount,
@@ -84,7 +86,8 @@ export async function exportOrdersCsv(
      FROM miniapp_order ${where}
      ORDER BY created_at DESC
      LIMIT 1000`,
-    params
+    params,
+    tenantId
   );
   const escapeCsv = (value: unknown) => `"${String(value ?? "").replace(/"/g, '""')}"`;
   const header = ["订单号", "门店ID", "客户类型", "履约方式", "订单状态", "支付状态", "金额", "收货人", "手机号", "创建时间"];
@@ -105,32 +108,35 @@ export async function exportOrdersCsv(
 }
 
 export async function getOrderDetail(orderNo: string, tenantId: string) {
-  const order = await queryOne<any>(
+  const order = await queryOneWithTenant<any>(
     `SELECT order_no AS orderNo, store_id AS storeId, customer_type AS customerType,
             fulfillment_type AS fulfillmentType, order_status AS orderStatus,
             pay_status AS payStatus, payable_amount AS payableAmount,
             receiver_name AS receiverName, receiver_mobile AS receiverMobile,
             receiver_address AS receiverAddress, created_at AS createdAt
      FROM miniapp_order WHERE order_no = ? AND tenant_id = ?`,
-    [orderNo, tenantId]
+    [orderNo, tenantId],
+    tenantId
   );
   if (!order) return null;
-  const items = await query<any>(
+  const items = await queryWithTenant<any>(
     `SELECT sku_id AS skuId, sku_name AS skuName, qty AS quantity, unit_price AS unitPrice,
             subtotal_amount AS subtotalAmount
      FROM miniapp_order_item WHERE order_no = ?`,
-    [orderNo]
+    [orderNo],
+    tenantId
   );
   return { ...order, items };
 }
 
 export async function getOrderStatusStats(tenantId: string) {
-  const records = await query<any>(
+  const records = await queryWithTenant<any>(
     `SELECT order_status AS status, COUNT(*) AS count
      FROM miniapp_order
      WHERE tenant_id = ?
      GROUP BY order_status`,
-    [tenantId]
+    [tenantId],
+    tenantId
   );
   return records;
 }
@@ -167,7 +173,7 @@ export async function listSaleBills(
   }
 
   const where = `WHERE ${conditions.join(" AND ")}`;
-  const records = await query<any>(
+  const records = await queryWithTenant<any>(
     `SELECT bill_no AS billNo, store_id AS storeId, customer_name AS customerName,
             customer_mobile AS customerMobile, receivable_amount AS receivableAmount,
             received_amount AS receivedAmount, unreceived_amount AS unreceivedAmount,
@@ -177,9 +183,10 @@ export async function listSaleBills(
      ${where}
      ORDER BY created_at DESC
      LIMIT ? OFFSET ?`,
-    [...params, pageSize, offset]
+    [...params, pageSize, offset],
+    tenantId
   );
-  const totalRow = await queryOne<any>(`SELECT COUNT(*) AS total FROM sale_bill ${where}`, params);
+  const totalRow = await queryOneWithTenant<any>(`SELECT COUNT(*) AS total FROM sale_bill ${where}`, params, tenantId);
   return { total: totalRow?.total ?? 0, page, pageSize, records };
 }
 
@@ -212,7 +219,7 @@ export async function exportSaleBillsCsv(
   }
 
   const where = `WHERE ${conditions.join(" AND ")}`;
-  const records = await query<any>(
+  const records = await queryWithTenant<any>(
     `SELECT bill_no AS billNo, store_id AS storeId, customer_name AS customerName,
             customer_mobile AS customerMobile, receivable_amount AS receivableAmount,
             received_amount AS receivedAmount, unreceived_amount AS unreceivedAmount,
@@ -222,7 +229,8 @@ export async function exportSaleBillsCsv(
      ${where}
      ORDER BY created_at DESC
      LIMIT 5000`,
-    params
+    params,
+    tenantId
   );
   const escapeCsv = (value: unknown) => `"${String(value ?? "").replace(/"/g, '""')}"`;
   const header = ["销售单号", "门店ID", "客户名称", "客户手机", "应收金额", "已收金额", "未收金额", "收款状态", "业务状态", "创建时间"];
