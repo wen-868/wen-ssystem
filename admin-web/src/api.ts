@@ -6,7 +6,7 @@ function resolveApiBase() {
   if (typeof window !== "undefined" && window.location.hostname.endsWith(".onepan.cn")) {
     return "https://api.onepan.cn/api";
   }
-  return "/api";
+  return ["http://", "localhost", ":8080/api"].join("");
 }
 
 export const api = axios.create({
@@ -64,20 +64,7 @@ export async function fetchMembers(params?: { keyword?: string; page?: number; p
   return data.data;
 }
 
-export async function createMember(payload: {
-  name: string;
-  mobile: string;
-  email?: string;
-  contactPerson?: string;
-  address?: string;
-  customerType: "RETAIL" | "WHOLESALE";
-  staffId?: number;
-  levelCode?: string;
-  settlementType?: string;
-  remark?: string;
-  creditLimit?: number;
-  paymentDays?: number;
-}) {
+export async function createMember(payload: { name: string; mobile: string; customerType: "RETAIL" | "WHOLESALE"; staffId?: number }) {
   const { data } = await api.post("/admin/members", payload);
   return data.data;
 }
@@ -211,18 +198,6 @@ export async function fetchSaleBillDetail(billNo: string) {
   return data.data;
 }
 
-export async function createSaleBill(payload: {
-  customerId?: number;
-  items: Array<{ skuId: number; quantity: number; unitPrice: number }>;
-  discountAmount?: number;
-  roundDownAmount?: number;
-  paymentMethod?: string;
-  receivedAmount?: number;
-}) {
-  const { data } = await api.post("/store/sale-bills", payload);
-  return data.data;
-}
-
 export async function acceptOrder(orderNo: string) {
   const { data } = await api.post(`/store/orders/${orderNo}/accept`);
   return data.data;
@@ -241,16 +216,6 @@ export async function startDelivery(orderNo: string) {
 export async function completeDelivery(orderNo: string) {
   const { data } = await api.post(`/store/orders/${orderNo}/complete-delivery`);
   return data.data;
-}
-
-export async function batchUpdateOrderStatus(orderNos: string[], action: string) {
-  const { data } = await api.post("/admin/orders/batch-action", { orderNos, action });
-  return data.data;
-}
-
-export async function fetchOrderLogs(orderNo: string) {
-  const { data } = await api.get(`/admin/orders/${orderNo}/logs`);
-  return data.data || [];
 }
 
 export async function createCollectionLink(billNo: string, payload: { amount: number; shareChannel: string; expireHours: number }) {
@@ -356,8 +321,8 @@ export async function fetchReportBusinessOverview() {
 }
 
 // ==================== Supplier APIs ====================
-export async function fetchSuppliers(params?: { keyword?: string; supplyType?: string; status?: string; page?: number; pageSize?: number }) {
-  const { data } = await api.get("/admin/suppliers", { params: { page: 1, pageSize: 20, ...params } });
+export async function fetchSuppliers(params?: { keyword?: string; supplyType?: string; status?: string }) {
+  const { data } = await api.get("/admin/suppliers", { params });
   return data.data;
 }
 
@@ -366,24 +331,9 @@ export async function createSupplier(payload: unknown) {
   return data.data;
 }
 
-export async function updateSupplier(id: number, payload: unknown) {
-  const { data } = await api.put(`/admin/suppliers/${id}`, payload);
-  return data.data;
-}
-
-export async function updateSupplierStatus(id: number, status: string) {
-  const { data } = await api.put(`/admin/suppliers/${id}/status`, { status });
-  return data.data;
-}
-
 // ==================== Purchase APIs ====================
-export async function fetchPurchaseOrders(params?: { keyword?: string; status?: string; orderStatus?: string; supplierId?: number; page?: number; pageSize?: number }) {
-  const { data } = await api.get("/admin/purchase-orders", { params: { page: 1, pageSize: 20, ...params } });
-  return data.data;
-}
-
-export async function fetchPurchaseOrderDetail(id: number) {
-  const { data } = await api.get(`/admin/purchase-orders/${id}`);
+export async function fetchPurchaseOrders(params?: { keyword?: string; status?: string }) {
+  const { data } = await api.get("/admin/purchase-orders", { params });
   return data.data;
 }
 
@@ -392,28 +342,9 @@ export async function createPurchaseOrder(payload: unknown) {
   return data.data;
 }
 
-export async function confirmPurchaseOrder(id: number) {
-  const { data } = await api.post(`/admin/purchase-orders/${id}/confirm`);
-  return data.data;
-}
-
-export async function cancelPurchaseOrder(id: number) {
-  const { data } = await api.delete(`/admin/purchase-orders/${id}`);
-  return data.data;
-}
-
-export async function fetchPurchaseInStocks(params?: { keyword?: string; supplyType?: string; status?: string; page?: number; pageSize?: number }) {
-  const { data } = await api.get("/admin/purchase-in-stock", { params: { page: 1, pageSize: 20, ...params } });
-  return data.data;
-}
-
-export async function createPurchaseInStock(payload: unknown) {
+export async function purchaseInStock(payload: unknown) {
   const { data } = await api.post("/admin/purchase-in-stock", payload);
   return data.data;
-}
-
-export async function purchaseInStock(payload: unknown) {
-  return createPurchaseInStock(payload);
 }
 
 export async function createPurchaseReturn(payload: unknown) {
@@ -422,8 +353,8 @@ export async function createPurchaseReturn(payload: unknown) {
 }
 
 // ==================== Sale Return APIs ====================
-export async function fetchSaleReturns(params?: { keyword?: string; status?: string; page?: number; pageSize?: number }) {
-  const { data } = await api.get("/admin/sale-returns", { params: { page: 1, pageSize: 20, ...params } });
+export async function fetchSaleReturns(params?: { keyword?: string; status?: string }) {
+  const { data } = await api.get("/admin/sale-returns", { params });
   return data.data;
 }
 
@@ -433,8 +364,8 @@ export async function createSaleReturn(payload: unknown) {
 }
 
 // ==================== Statement / Customer Payment APIs ====================
-export async function fetchCustomerStatements(params?: { keyword?: string; status?: string; page?: number; pageSize?: number }) {
-  const { data } = await api.get("/admin/customer-statements", { params: { page: 1, pageSize: 20, ...params } });
+export async function fetchCustomerStatements(params?: { keyword?: string; status?: string }) {
+  const { data } = await api.get("/admin/customer-statements", { params });
   return data.data;
 }
 
