@@ -351,6 +351,215 @@ export async function runAllAlertChecks(tenantId?: string): Promise<{
   };
 }
 
+export async function listAlerts(params: {
+  page: number; pageSize: number; tenantId: string;
+  ruleType?: string; alertLevel?: string; status?: string;
+}) {
+  const { page, pageSize, tenantId, ruleType, alertLevel, status } = params;
+  const offset = (page - 1) * pageSize;
+  const conditions: string[] = ["ar.tenant_id = ?"];
+  const queryParams: unknown[] = [tenantId];
+
+  if (ruleType) {
+    conditions.push("ar.rule_type = ?");
+    queryParams.push(ruleType);
+  }
+  if (alertLevel) {
+    conditions.push("ar.alert_level = ?");
+    queryParams.push(alertLevel);
+  }
+  if (status) {
+    conditions.push("ar.status = ?");
+    queryParams.push(status);
+  }
+
+  const where = conditions.length > 0 ? `WHERE ${conditions.join(" AND ")}` : "";
+
+  const records = await query<any>(
+    `SELECT ar.id, ar.alert_no AS alertNo, ar.rule_id AS ruleId,
+            ar.rule_type AS ruleType, ar.alert_level AS alertLevel,
+            ar.title, ar.description,
+            ar.biz_type AS bizType, ar.biz_id AS bizId, ar.biz_no AS bizNo,
+            ar.current_value AS currentValue, ar.threshold_value AS thresholdValue,
+            ar.status, ar.handler_id AS handlerId, ar.handler_name AS handlerName,
+            ar.handle_time AS handleTime, ar.handle_remark AS handleRemark,
+            ar.created_at AS createdAt, ar.updated_at AS updatedAt
+     FROM alert_record ar
+     ${where}
+     ORDER BY ar.created_at DESC
+     LIMIT ? OFFSET ?`,
+    [...queryParams, pageSize, offset]
+  );
+
+  const totalRow = await queryOne<any>(
+    `SELECT COUNT(*) AS total FROM alert_record ar ${where}`,
+    queryParams
+  );
+
+  return {
+    total: Number(totalRow?.total ?? 0),
+    page,
+    pageSize,
+    records
+  };
+}
+
+export async function getAlertCounts(tenantId: string) {
+  const pendingCounts = await query<any>(
+    `SELECT rule_type AS ruleType, COUNT(*) AS count
+     FROM alert_record
+     WHERE tenant_id = ? AND status = 'PENDING'
+     GROUP BY rule_type`,
+    [tenantId]
+  );
+
+  const totalPending = await queryOne<any>(
+    "SELECT COUNT(*) AS count FROM alert_record WHERE tenant_id = ? AND status = 'PENDING'",
+    [tenantId]
+  );
+
+  const totalHandled = await queryOne<any>(
+    "SELECT COUNT(*) AS count FROM alert_record WHERE tenant_id = ? AND status = 'HANDLED'",
+    [tenantId]
+  );
+
+  const totalIgnored = await queryOne<any>(
+    "SELECT COUNT(*) AS count FROM alert_record WHERE tenant_id = ? AND status = 'IGNORED'",
+    [tenantId]
+  );
+
+  const levelCounts = await query<any>(
+    `SELECT alert_level AS alertLevel, COUNT(*) AS count
+     FROM alert_record
+     WHERE tenant_id = ? AND status = 'PENDING'
+     GROUP BY alert_level`,
+    [tenantId]
+  );
+
+  const byType: Record<string, number> = {};
+  for (const row of pendingCounts) {
+    byType[row.ruleType] = Number(row.count);
+  }
+
+  const byLevel: Record<string, number> = {};
+  for (const row of levelCounts) {
+    byLevel[row.alertLevel] = Number(row.count);
+  }
+
+  return {
+    totalPending: Number(totalPending?.count ?? 0),
+    totalHandled: Number(totalHandled?.count ?? 0),
+    totalIgnored: Number(totalIgnored?.count ?? 0),
+    byType,
+    byLevel
+  };
+}
+
+export async function handleAlert(
+  alertId: number, tenantId: string, action: string, remark: string | undefined,
+  userId: number, username: string
+) {
+  const existing = await queryOne<any>(
+    "SELECT id, status FROM alert_record WHERE id = ? AND tenant_id = ?",
+    [alertId, tenantId]
+  );
+  if (!existing) throw Object.assign(new Error("预警记录不存在"), { statusCode: 404 });
+  if (existing.status !== "PENDING") throw Object.assign(new Error("该预警已处理，无法重复操作"), { statusCode: 400 });
+
+  const newStatus = action === "HANDLE" ? "HANDLED" : "IGNORED";
+  const handlerName = username ?? "system";
+
+  await query(
+    `UPDATE alert_record
+     SET status = ?,
+         handler_id = ?,
+         handler_name = ?,
+         handle_time = NOW(),
+         handle_remark = ?,
+         updated_at = NOW()
+     WHERE id = ? AND tenant_id = ?`,
+    [newStatus, userId ?? 0, handlerName, remark ?? null, alertId, tenantId]
+  );
+
+  return {
+    alertId,
+    status: newStatus,
+    handlerId: userId,
+    handlerName,
+    handleTime: new Date().toISOString()
+  };
+}
+
+export async function listAlertRules(tenantId: string) {
+  const records = await query<any>(
+    `SELECT id, rule_code AS ruleCode, rule_name AS ruleName,
+            rule_type AS ruleType, enabled,
+            threshold_value AS thresholdValue, threshold_unit AS thresholdUnit,
+            extra_config AS extraConfig, description,
+            created_at AS createdAt, updated_at AS updatedAt
+     FROM alert_rule
+     WHERE tenant_id = ?
+     ORDER BY rule_type, id ASC`,
+    [tenantId]
+  );
+
+  return { records };
+}
+
+export async function updateAlertRule(
+  ruleId: number, tenantId: string,
+  body: { enabled?: boolean; thresholdValue?: number; description?: string }
+) {
+  const existing = await queryOne<any>(
+    "SELECT id FROM alert_rule WHERE id = ? AND tenant_id = ?",
+    [ruleId, tenantId]
+  );
+  if (!existing) throw Object.assign(new Error("预警规则不存在"), { statusCode: 404 });
+
+  const updates: string[] = [];
+  const params: unknown[] = [];
+
+  if (body.enabled !== undefined) {
+    updates.push("enabled = ?");
+    params.push(body.enabled ? 1 : 0);
+  }
+  if (body.thresholdValue !== undefined) {
+    updates.push("threshold_value = ?");
+    params.push(body.thresholdValue);
+  }
+  if (body.description !== undefined) {
+    updates.push("description = ?");
+    params.push(body.description);
+  }
+
+  if (updates.length > 0) {
+    await query(
+      `UPDATE alert_rule SET ${updates.join(", ")} WHERE id = ? AND tenant_id = ?`,
+      [...params, ruleId, tenantId]
+    );
+  }
+
+  const rule = await queryOne<any>(
+    `SELECT id, rule_code AS ruleCode, rule_name AS ruleName,
+            rule_type AS ruleType, enabled,
+            threshold_value AS thresholdValue, threshold_unit AS thresholdUnit,
+            extra_config AS extraConfig, description,
+            created_at AS createdAt, updated_at AS updatedAt
+     FROM alert_rule WHERE id = ? AND tenant_id = ?`,
+    [ruleId, tenantId]
+  );
+
+  return rule;
+}
+
+export async function runCheck(tenantId: string) {
+  const result = await runAllAlertChecks(tenantId);
+  return {
+    message: `预警检查完成，新增 ${result.total} 条预警`,
+    ...result
+  };
+}
+
 export function startAlertScheduler() {
   const intervalMs = 60 * 60 * 1000;
   console.log(`[预警引擎] 定时检查已启动，间隔 ${intervalMs / 1000} 秒`);

@@ -1,7 +1,9 @@
 import { z } from "zod";
 import { asyncHandler } from "../../shared/async-handler.js";
 import { ok } from "../../shared/response.js";
-import { creditService } from "../../services/admin/credit.service.js";
+import * as creditLimitService from "../../services/admin/credit-limit.service.js";
+import * as creditCollectionService from "../../services/admin/credit-collection.service.js";
+import * as creditRiskService from "../../services/admin/credit-risk.service.js";
 import type { ServiceContext } from "../../types/index.js";
 
 function getServiceContext(req: any): ServiceContext {
@@ -20,7 +22,7 @@ export const getCreditList = asyncHandler(async (req, res) => {
   const status = req.query.status as string | undefined;
   const keyword = req.query.keyword as string | undefined;
 
-  const result = await creditService.getCreditList(status, keyword, page, pageSize, ctx);
+  const result = await creditLimitService.getCreditList(status, keyword, page, pageSize, ctx);
   res.json(ok(result));
 });
 
@@ -28,7 +30,7 @@ export const getCreditDetail = asyncHandler(async (req, res) => {
   const ctx = getServiceContext(req);
   const customerId = Number(req.params.customerId);
 
-  const record = await creditService.getCreditDetail(customerId, ctx);
+  const record = await creditLimitService.getCreditDetail(customerId, ctx);
 
   if (!record) {
     res.status(404).json({ code: "404", message: "该客户尚未开通授信" });
@@ -52,7 +54,7 @@ export const initCredit = asyncHandler(async (req, res) => {
   }).parse(req.body);
 
   try {
-    const result = await creditService.initCredit(customerId, body, ctx);
+    const result = await creditLimitService.initCredit(customerId, body, ctx);
     res.json(ok(result));
   } catch (e: any) {
     res.status(e.statusCode || 400).json({ code: String(e.statusCode || 400), message: e.message });
@@ -65,7 +67,7 @@ export const checkCredit = asyncHandler(async (req, res) => {
   const amount = Number(req.query.amount || 0);
 
   try {
-    const result = await creditService.checkCredit(customerId, amount, ctx);
+    const result = await creditLimitService.checkCredit(customerId, amount, ctx);
     res.json(ok(result));
   } catch (e: any) {
     res.status(e.statusCode || 404).json({ code: String(e.statusCode || 404), message: e.message });
@@ -82,7 +84,7 @@ export const occupyCredit = asyncHandler(async (req, res) => {
   }).parse(req.body);
 
   try {
-    const result = await creditService.occupyCredit(customerId, body, ctx);
+    const result = await creditLimitService.occupyCredit(customerId, body, ctx);
     res.json(ok(result));
   } catch (e: any) {
     res.status(e.statusCode || 400).json({ code: String(e.statusCode || 400), message: e.message });
@@ -100,7 +102,7 @@ export const releaseCredit = asyncHandler(async (req, res) => {
   }).parse(req.body);
 
   try {
-    const result = await creditService.releaseCredit(customerId, body, ctx);
+    const result = await creditLimitService.releaseCredit(customerId, body, ctx);
     res.json(ok(result));
   } catch (e: any) {
     res.status(e.statusCode || 400).json({ code: String(e.statusCode || 400), message: e.message });
@@ -117,7 +119,7 @@ export const freezeCredit = asyncHandler(async (req, res) => {
   }).parse(req.body);
 
   try {
-    const result = await creditService.freezeCredit(customerId, body, ctx);
+    const result = await creditLimitService.freezeCredit(customerId, body, ctx);
     res.json(ok(result));
   } catch (e: any) {
     res.status(e.statusCode || 400).json({ code: String(e.statusCode || 400), message: e.message });
@@ -134,7 +136,7 @@ export const unfreezeCredit = asyncHandler(async (req, res) => {
   }).parse(req.body);
 
   try {
-    const result = await creditService.unfreezeCredit(customerId, body, ctx);
+    const result = await creditLimitService.unfreezeCredit(customerId, body, ctx);
     res.json(ok(result));
   } catch (e: any) {
     res.status(e.statusCode || 400).json({ code: String(e.statusCode || 400), message: e.message });
@@ -151,7 +153,7 @@ export const getCollectionList = asyncHandler(async (req, res) => {
   const startDate = req.query.startDate as string | undefined;
   const endDate = req.query.endDate as string | undefined;
 
-  const result = await creditService.getCollectionList(
+  const result = await creditCollectionService.getCollectionList(
     collectionLevel, customerId, contactResult, startDate, endDate, page, pageSize, ctx
   );
   res.json(ok(result));
@@ -176,7 +178,7 @@ export const createCollection = asyncHandler(async (req, res) => {
   }).parse(req.body);
 
   try {
-    const result = await creditService.createCollection(body, ctx);
+    const result = await creditCollectionService.createCollection(body, ctx);
     res.json(ok(result));
   } catch (e: any) {
     res.status(e.statusCode || 400).json({ code: String(e.statusCode || 400), message: e.message });
@@ -196,7 +198,7 @@ export const updateCollection = asyncHandler(async (req, res) => {
   }).parse(req.body);
 
   try {
-    const result = await creditService.updateCollection(collectionId, body, ctx);
+    const result = await creditCollectionService.updateCollection(collectionId, body, ctx);
     res.json(ok(result));
   } catch (e: any) {
     res.status(e.statusCode || 404).json({ code: String(e.statusCode || 404), message: e.message });
@@ -205,7 +207,7 @@ export const updateCollection = asyncHandler(async (req, res) => {
 
 export const getOverdueCustomers = asyncHandler(async (req, res) => {
   const ctx = getServiceContext(req);
-  const result = await creditService.getOverdueCustomers(ctx);
+  const result = await creditCollectionService.getOverdueCustomers(ctx);
   res.json(ok(result));
 });
 
@@ -219,13 +221,13 @@ export const batchRemind = asyncHandler(async (req, res) => {
     collectionLevel: z.enum(["REMIND", "LIGHT", "MEDIUM", "HEAVY", "SEVERE"]).default("REMIND")
   }).parse(req.body);
 
-  const result = await creditService.batchRemind(body, ctx);
+  const result = await creditCollectionService.batchRemind(body, ctx);
   res.json(ok(result));
 });
 
 export const getCollectionStatistics = asyncHandler(async (req, res) => {
   const ctx = getServiceContext(req);
-  const result = await creditService.getCollectionStatistics(ctx);
+  const result = await creditCollectionService.getCollectionStatistics(ctx);
   res.json(ok(result));
 });
 
@@ -234,6 +236,6 @@ export const getRiskCustomers = asyncHandler(async (req, res) => {
   const page = Number(req.query.page || 1);
   const pageSize = Number(req.query.pageSize || 20);
 
-  const result = await creditService.getRiskCustomers(page, pageSize, ctx);
+  const result = await creditRiskService.getRiskCustomers(page, pageSize, ctx);
   res.json(ok(result));
 });

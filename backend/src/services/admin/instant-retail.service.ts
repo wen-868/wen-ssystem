@@ -452,3 +452,416 @@ export async function cancelOrder(platformOrderId: string, reason: string | unde
   }
   return { found: true, configFound: true, platformOrderId, success, status: "CANCELLED" };
 }
+
+// ════════════════════════════════════════════════════════════════════════════
+// 即时零售管理后台（instant-retail-new 模块）
+// ════════════════════════════════════════════════════════════════════════════
+
+// ────────────────────────────────────────────────────────────────────────────
+// 店铺配置管理
+// ────────────────────────────────────────────────────────────────────────────
+
+// 1. 获取店铺配置
+export async function getShopConfig(tenantId: string) {
+  const config = await queryOneWithTenant<any>(
+    `SELECT id, shop_name AS shopName, shop_logo AS shopLogo, shop_description AS shopDescription,
+            contact_phone AS contactPhone, business_hours AS businessHours,
+            delivery_enabled AS deliveryEnabled, pickup_enabled AS pickupEnabled,
+            min_order_amount AS minOrderAmount, delivery_fee AS deliveryFee,
+            free_delivery_amount AS freeDeliveryAmount, delivery_radius AS deliveryRadius,
+            estimated_delivery_time AS estimatedDeliveryTime, announcement,
+            status, created_at AS createdAt, updated_at AS updatedAt
+     FROM retail_shop_config
+     WHERE tenant_id = ?`,
+    [tenantId],
+    tenantId
+  );
+  return config || {};
+}
+
+// 2. 创建/更新店铺配置
+export async function saveShopConfig(body: {
+  shopName: string;
+  shopLogo?: string;
+  shopDescription?: string;
+  contactPhone?: string;
+  businessHours?: string;
+  deliveryEnabled: number;
+  pickupEnabled: number;
+  minOrderAmount: number;
+  deliveryFee: number;
+  freeDeliveryAmount?: number;
+  deliveryRadius?: number;
+  estimatedDeliveryTime?: string;
+  announcement?: string;
+}, tenantId: string) {
+  const existing = await queryOneWithTenant<any>(
+    "SELECT id FROM retail_shop_config WHERE tenant_id = ?",
+    [tenantId],
+    tenantId
+  );
+
+  if (existing) {
+    await queryWithTenant(
+      `UPDATE retail_shop_config SET
+        shop_name = ?, shop_logo = ?, shop_description = ?, contact_phone = ?,
+        business_hours = ?, delivery_enabled = ?, pickup_enabled = ?,
+        min_order_amount = ?, delivery_fee = ?, free_delivery_amount = ?,
+        delivery_radius = ?, estimated_delivery_time = ?, announcement = ?
+       WHERE tenant_id = ?`,
+      [
+        body.shopName, body.shopLogo || null, body.shopDescription || null,
+        body.contactPhone || null, body.businessHours || null,
+        body.deliveryEnabled, body.pickupEnabled,
+        body.minOrderAmount, body.deliveryFee, body.freeDeliveryAmount || null,
+        body.deliveryRadius || null, body.estimatedDeliveryTime || null,
+        body.announcement || null, tenantId
+      ],
+      tenantId
+    );
+  } else {
+    await queryWithTenant(
+      `INSERT INTO retail_shop_config (
+        shop_name, shop_logo, shop_description, contact_phone, business_hours,
+        delivery_enabled, pickup_enabled, min_order_amount, delivery_fee,
+        free_delivery_amount, delivery_radius, estimated_delivery_time,
+        announcement, tenant_id
+      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+      [
+        body.shopName, body.shopLogo || null, body.shopDescription || null,
+        body.contactPhone || null, body.businessHours || null,
+        body.deliveryEnabled, body.pickupEnabled,
+        body.minOrderAmount, body.deliveryFee, body.freeDeliveryAmount || null,
+        body.deliveryRadius || null, body.estimatedDeliveryTime || null,
+        body.announcement || null, tenantId
+      ],
+      tenantId
+    );
+  }
+
+  return { success: true };
+}
+
+// ────────────────────────────────────────────────────────────────────────────
+// 分类管理
+// ────────────────────────────────────────────────────────────────────────────
+
+// 3. 获取分类列表
+export async function listCategories(tenantId: string) {
+  const categories = await queryWithTenant<any>(
+    `SELECT id, category_name AS categoryName, category_icon AS categoryIcon,
+            parent_id AS parentId, sort_order AS sortOrder, status,
+            created_at AS createdAt
+     FROM retail_category
+     WHERE tenant_id = ?
+     ORDER BY sort_order ASC, id ASC`,
+    [tenantId],
+    tenantId
+  );
+  return { total: categories.length, records: categories };
+}
+
+// 4. 创建分类
+export async function createCategory(body: {
+  categoryName: string;
+  categoryIcon?: string;
+  parentId: number;
+  sortOrder: number;
+}, tenantId: string) {
+  await queryWithTenant(
+    `INSERT INTO retail_category (category_name, category_icon, parent_id, sort_order, tenant_id)
+     VALUES (?, ?, ?, ?, ?)`,
+    [body.categoryName, body.categoryIcon || null, body.parentId, body.sortOrder, tenantId],
+    tenantId
+  );
+  return { success: true };
+}
+
+// ────────────────────────────────────────────────────────────────────────────
+// 商品管理
+// ────────────────────────────────────────────────────────────────────────────
+
+// 5. 获取即时零售商品列表
+export async function listRetailProducts(params: {
+  tenantId: string;
+  categoryId?: number;
+  status?: string;
+  isRecommended?: number;
+  isHot?: number;
+  isNew?: number;
+  page: number;
+  pageSize: number;
+}) {
+  const { tenantId, categoryId, status, isRecommended, isHot, isNew, page, pageSize } = params;
+
+  const conditions: string[] = ["rp.tenant_id = ?"];
+  const queryParams: any[] = [tenantId];
+
+  if (categoryId) {
+    conditions.push("rp.category_id = ?");
+    queryParams.push(categoryId);
+  }
+  if (status) {
+    conditions.push("rp.status = ?");
+    queryParams.push(status);
+  }
+  if (isRecommended !== undefined) {
+    conditions.push("rp.is_recommended = ?");
+    queryParams.push(isRecommended);
+  }
+  if (isHot !== undefined) {
+    conditions.push("rp.is_hot = ?");
+    queryParams.push(isHot);
+  }
+  if (isNew !== undefined) {
+    conditions.push("rp.is_new = ?");
+    queryParams.push(isNew);
+  }
+
+  const where = conditions.length > 0 ? `WHERE ${conditions.join(" AND ")}` : "";
+
+  const records = await queryWithTenant<any>(
+    `SELECT rp.id, rp.product_id AS productId, rp.category_id AS categoryId,
+            rp.retail_price AS retailPrice, rp.original_price AS originalPrice,
+            rp.stock, rp.sales_count AS salesCount,
+            rp.is_recommended AS isRecommended, rp.is_hot AS isHot, rp.is_new AS isNew,
+            rp.sort_order AS sortOrder, rp.status,
+            ps.name AS productName, ps.sku_code AS skuCode, ps.unit,
+            ps.image AS productImage
+     FROM retail_product rp
+     LEFT JOIN product_sku ps ON ps.id = rp.product_id
+     ${where}
+     ORDER BY rp.sort_order ASC, rp.id DESC
+     LIMIT ? OFFSET ?`,
+    [...queryParams, pageSize, (page - 1) * pageSize],
+    tenantId
+  );
+
+  const totalRow = await queryOneWithTenant<any>(
+    `SELECT COUNT(*) AS total FROM retail_product rp ${where}`,
+    queryParams,
+    tenantId
+  );
+
+  return { total: Number(totalRow?.total ?? 0), page, pageSize, records };
+}
+
+// 6. 添加商品到即时零售
+export async function addRetailProduct(body: {
+  productId: number;
+  categoryId?: number;
+  retailPrice: number;
+  originalPrice?: number;
+  stock: number;
+  isRecommended: number;
+  isHot: number;
+  isNew: number;
+  sortOrder: number;
+}, tenantId: string) {
+  const product = await queryOneWithTenant<any>(
+    "SELECT id, name FROM product_sku WHERE id = ? AND tenant_id = ?",
+    [body.productId, tenantId],
+    tenantId
+  );
+
+  if (!product) throw Object.assign(new Error("商品不存在"), { statusCode: 404 });
+
+  await queryWithTenant(
+    `INSERT INTO retail_product (
+      product_id, category_id, retail_price, original_price, stock,
+      is_recommended, is_hot, is_new, sort_order, tenant_id
+    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+    [
+      body.productId, body.categoryId || null, body.retailPrice,
+      body.originalPrice || body.retailPrice, body.stock,
+      body.isRecommended, body.isHot, body.isNew, body.sortOrder, tenantId
+    ],
+    tenantId
+  );
+
+  return { success: true };
+}
+
+// ────────────────────────────────────────────────────────────────────────────
+// 订单管理
+// ────────────────────────────────────────────────────────────────────────────
+
+// 7. 订单列表
+export async function listRetailOrders(params: {
+  tenantId: string;
+  orderStatus?: string;
+  paymentStatus?: string;
+  startDate?: string;
+  endDate?: string;
+  page: number;
+  pageSize: number;
+}) {
+  const { tenantId, orderStatus, paymentStatus, startDate, endDate, page, pageSize } = params;
+
+  const conditions: string[] = ["tenant_id = ?"];
+  const queryParams: any[] = [tenantId];
+
+  if (orderStatus) {
+    conditions.push("order_status = ?");
+    queryParams.push(orderStatus);
+  }
+  if (paymentStatus) {
+    conditions.push("payment_status = ?");
+    queryParams.push(paymentStatus);
+  }
+  if (startDate) {
+    conditions.push("DATE(created_at) >= ?");
+    queryParams.push(startDate);
+  }
+  if (endDate) {
+    conditions.push("DATE(created_at) <= ?");
+    queryParams.push(endDate);
+  }
+
+  const where = conditions.length > 0 ? `WHERE ${conditions.join(" AND ")}` : "";
+
+  const records = await queryWithTenant<any>(
+    `SELECT id, order_no AS orderNo, user_id AS userId, user_name AS userName,
+            user_phone AS userPhone, total_amount AS totalAmount,
+            discount_amount AS discountAmount, delivery_fee AS deliveryFee,
+            pay_amount AS payAmount, delivery_type AS deliveryType,
+            delivery_address AS deliveryAddress, receiver_name AS receiverName,
+            receiver_phone AS receiverPhone, payment_status AS paymentStatus,
+            payment_method AS paymentMethod, payment_time AS paymentTime,
+            order_status AS orderStatus, cancel_reason AS cancelReason,
+            cancelled_at AS cancelledAt, completed_at AS completedAt,
+            created_at AS createdAt
+     FROM retail_order
+     ${where}
+     ORDER BY created_at DESC
+     LIMIT ? OFFSET ?`,
+    [...queryParams, pageSize, (page - 1) * pageSize],
+    tenantId
+  );
+
+  const totalRow = await queryOneWithTenant<any>(
+    `SELECT COUNT(*) AS total FROM retail_order ${where}`,
+    queryParams,
+    tenantId
+  );
+
+  return { total: Number(totalRow?.total ?? 0), page, pageSize, records };
+}
+
+// 8. 订单详情 + items
+export async function getRetailOrderDetail(orderNo: string, tenantId: string) {
+  const order = await queryOneWithTenant<any>(
+    `SELECT id, order_no AS orderNo, user_id AS userId, user_name AS userName,
+            user_phone AS userPhone, total_amount AS totalAmount,
+            discount_amount AS discountAmount, delivery_fee AS deliveryFee,
+            pay_amount AS payAmount, delivery_type AS deliveryType,
+            delivery_address AS deliveryAddress, delivery_time AS deliveryTime,
+            receiver_name AS receiverName, receiver_phone AS receiverPhone,
+            receiver_latitude AS receiverLatitude, receiver_longitude AS receiverLongitude,
+            remark, payment_status AS paymentStatus, payment_method AS paymentMethod,
+            payment_time AS paymentTime, transaction_no AS transactionNo,
+            order_status AS orderStatus, cancel_reason AS cancelReason,
+            cancelled_at AS cancelledAt, completed_at AS completedAt,
+            created_at AS createdAt
+     FROM retail_order
+     WHERE order_no = ? AND tenant_id = ?`,
+    [orderNo, tenantId],
+    tenantId
+  );
+
+  if (!order) throw Object.assign(new Error("订单不存在"), { statusCode: 404 });
+
+  const items = await queryWithTenant<any>(
+    `SELECT product_id AS productId, product_name AS productName,
+            product_image AS productImage, price, quantity, subtotal
+     FROM retail_order_item
+     WHERE order_id = ?`,
+    [order.id],
+    tenantId
+  );
+
+  return { ...order, items };
+}
+
+// 9. 更新订单状态
+export async function updateRetailOrderStatus(params: {
+  orderNo: string;
+  tenantId: string;
+  orderStatus: string;
+  cancelReason?: string;
+}) {
+  const { orderNo, tenantId, orderStatus, cancelReason } = params;
+
+  const order = await queryOneWithTenant<any>(
+    "SELECT id, order_status FROM retail_order WHERE order_no = ? AND tenant_id = ?",
+    [orderNo, tenantId],
+    tenantId
+  );
+
+  if (!order) throw Object.assign(new Error("订单不存在"), { statusCode: 404 });
+
+  const updates: string[] = ["order_status = ?", "updated_at = NOW()"];
+  const updateParams: any[] = [orderStatus];
+
+  if (orderStatus === "CANCELLED") {
+    updates.push("cancel_reason = ?", "cancelled_at = NOW()");
+    updateParams.push(cancelReason || null, new Date());
+  } else if (orderStatus === "COMPLETED") {
+    updates.push("completed_at = NOW()");
+    updateParams.push(new Date());
+  }
+
+  updateParams.push(orderNo, tenantId);
+  await queryWithTenant(
+    `UPDATE retail_order SET ${updates.join(", ")} WHERE order_no = ? AND tenant_id = ?`,
+    updateParams,
+    tenantId
+  );
+
+  return { order_no: orderNo, order_status: orderStatus };
+}
+
+// ────────────────────────────────────────────────────────────────────────────
+// 轮播图管理
+// ────────────────────────────────────────────────────────────────────────────
+
+// 10. 获取轮播图列表
+export async function listBanners(tenantId: string) {
+  const banners = await queryWithTenant<any>(
+    `SELECT id, banner_title AS bannerTitle, banner_image AS bannerImage,
+            link_type AS linkType, link_value AS linkValue,
+            sort_order AS sortOrder, status, start_time AS startTime,
+            end_time AS endTime, created_at AS createdAt
+     FROM retail_banner
+     WHERE tenant_id = ?
+     ORDER BY sort_order ASC, id ASC`,
+    [tenantId],
+    tenantId
+  );
+  return { total: banners.length, records: banners };
+}
+
+// 11. 创建轮播图
+export async function createBanner(body: {
+  bannerTitle: string;
+  bannerImage: string;
+  linkType?: string;
+  linkValue?: string;
+  sortOrder: number;
+  startTime?: string;
+  endTime?: string;
+}, tenantId: string) {
+  await queryWithTenant(
+    `INSERT INTO retail_banner (
+      banner_title, banner_image, link_type, link_value,
+      sort_order, start_time, end_time, tenant_id
+    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?)`,
+    [
+      body.bannerTitle, body.bannerImage, body.linkType || null,
+      body.linkValue || null, body.sortOrder, body.startTime || null,
+      body.endTime || null, tenantId
+    ],
+    tenantId
+  );
+  return { success: true };
+}

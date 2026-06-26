@@ -1,7 +1,11 @@
 import { z } from "zod";
 import { asyncHandler } from "../../shared/async-handler.js";
 import { ok } from "../../shared/response.js";
-import * as platformService from "../../services/platform/platform.service.js";
+import * as tenantAdminService from "../../services/platform/tenant-admin.service.js";
+import * as adminAccountService from "../../services/platform/admin-account.service.js";
+import * as overviewService from "../../services/platform/platform-overview.service.js";
+import * as subscriptionAdminService from "../../services/platform/subscription-admin.service.js";
+import * as configService from "../../services/platform/platform-config.service.js";
 
 // ─── 租户管理 ────────────────────────────────────────────────
 
@@ -12,7 +16,7 @@ export const listTenants = asyncHandler(async (req, res) => {
   const keyword = req.query.keyword as string | undefined;
   const planCode = req.query.planCode as string | undefined;
 
-  const result = await platformService.listPlatformTenants(
+  const result = await tenantAdminService.listPlatformTenants(
     page,
     pageSize,
     { status, keyword, planCode }
@@ -23,7 +27,7 @@ export const listTenants = asyncHandler(async (req, res) => {
 export const getTenantDetail = asyncHandler(async (req, res) => {
   const tenantId = req.params.tenantId;
 
-  const result = await platformService.getPlatformTenantDetail(tenantId);
+  const result = await tenantAdminService.getPlatformTenantDetail(tenantId);
   if (!result) {
     res.status(404).json({ code: "404", message: "租户不存在" });
     return;
@@ -42,7 +46,7 @@ export const createTenant = asyncHandler(async (req, res) => {
     durationDays: z.number().int().min(1).max(3650).default(30)
   }).parse(req.body);
 
-  const result = await platformService.createPlatformTenant(body);
+  const result = await tenantAdminService.createPlatformTenant(body);
   res.json(ok(result));
 });
 
@@ -56,7 +60,7 @@ export const updateTenant = asyncHandler(async (req, res) => {
     status: z.enum(["ACTIVE", "DISABLED", "EXPIRED"]).optional()
   }).parse(req.body);
 
-  const result = await platformService.updatePlatformTenant(tenantId, body);
+  const result = await tenantAdminService.updatePlatformTenant(tenantId, body);
   res.json(ok(result));
 });
 
@@ -69,7 +73,7 @@ export const listAdmins = asyncHandler(async (req, res) => {
   const status = req.query.status as string | undefined;
   const keyword = req.query.keyword as string | undefined;
 
-  const result = await platformService.listPlatformAdmins(
+  const result = await adminAccountService.listPlatformAdmins(
     page,
     pageSize,
     { role, status, keyword }
@@ -87,7 +91,7 @@ export const createAdmin = asyncHandler(async (req, res) => {
     role: z.enum(["SUPER_ADMIN", "ADMIN", "SUPPORT"])
   }).parse(req.body);
 
-  const result = await platformService.createPlatformAdmin(body);
+  const result = await adminAccountService.createPlatformAdmin(body);
   res.json(ok(result));
 });
 
@@ -97,7 +101,7 @@ export const updateAdminStatus = asyncHandler(async (req, res) => {
     status: z.enum(["ACTIVE", "DISABLED"])
   }).parse(req.body);
 
-  const result = await platformService.updatePlatformAdminStatus(
+  const result = await adminAccountService.updatePlatformAdminStatus(
     adminId,
     body.status
   );
@@ -107,7 +111,7 @@ export const updateAdminStatus = asyncHandler(async (req, res) => {
 // ─── 数据统计 ────────────────────────────────────────────────
 
 export const getOverview = asyncHandler(async (_req, res) => {
-  const result = await platformService.getPlatformOverview();
+  const result = await overviewService.getPlatformOverview();
   res.json(ok(result));
 });
 
@@ -121,7 +125,7 @@ export const listSubscriptions = asyncHandler(async (req, res) => {
   const planCode = req.query.planCode as string | undefined;
   const keyword = req.query.keyword as string | undefined;
 
-  const result = await platformService.listPlatformSubscriptions(
+  const result = await subscriptionAdminService.listPlatformSubscriptions(
     page,
     pageSize,
     { tenantId, status, planCode, keyword }
@@ -139,7 +143,7 @@ export const createSubscription = asyncHandler(async (req, res) => {
     operator: z.string().default("platform")
   }).parse(req.body);
 
-  const result = await platformService.createPlatformSubscription(
+  const result = await subscriptionAdminService.createPlatformSubscription(
     body.tenantId,
     body.planCode,
     body.planName,
@@ -154,7 +158,7 @@ export const createSubscription = asyncHandler(async (req, res) => {
 
 export const listConfigs = asyncHandler(async (req, res) => {
   const category = req.query.category as string | undefined;
-  const result = await platformService.listPlatformConfigs(category);
+  const result = await configService.listPlatformConfigs(category);
   res.json(ok(result));
 });
 
@@ -165,7 +169,7 @@ export const updateConfig = asyncHandler(async (req, res) => {
     operator: z.string().default("platform")
   }).parse(req.body);
 
-  const result = await platformService.updatePlatformConfig(
+  const result = await configService.updatePlatformConfig(
     configKey,
     body.configValue,
     body.operator
@@ -185,7 +189,7 @@ export const listAuditLogs = asyncHandler(async (req, res) => {
   const startDate = req.query.startDate as string | undefined;
   const endDate = req.query.endDate as string | undefined;
 
-  const result = await platformService.listPlatformAuditLogs(
+  const result = await configService.listPlatformAuditLogs(
     page,
     pageSize,
     { adminId, action, module, keyword, startDate, endDate }

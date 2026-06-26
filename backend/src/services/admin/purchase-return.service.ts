@@ -169,3 +169,140 @@ export async function voidReturn(returnNo: string, tenantId: string, userId: num
   );
   return { return_no: returnNo };
 }
+
+// ========== 采购退货 ==========
+export async function purchaseReturn(params: {
+  orderNo?: string;
+  stockNo?: string;
+  supplierId: number;
+  storeId: number;
+  tenantId: string;
+  operatorId: number;
+  remark?: string;
+  items: Array<{
+    skuId: number;
+    skuName: string;
+    boxQty: number;
+    bottleQty: number;
+    totalBottleQty: number;
+    unitPrice: number;
+    taxRate: number;
+    reason?: string;
+  }>;
+}) {
+  const { orderNo, stockNo, supplierId, storeId, tenantId, operatorId, remark, items } = params;
+
+  const supplier = await queryOneWithTenant<any>(
+    "SELECT id, name FROM supplier WHERE id = ? AND tenant_id = ?",
+    [supplierId, tenantId],
+    tenantId
+  );
+  if (!supplier) {
+    throw Object.assign(new Error("供应商不存在"), { statusCode: 400 });
+  }
+
+  const result = await transaction(async (conn) => {
+    const returnNo = makeBizNo("CGTH");
+    let goodsAmount = 0;
+    let taxAmount = 0;
+
+    for (const item of items) {
+      const subtotal = item.totalBottleQty * item.unitPrice;
+      const tax = subtotal * (item.taxRate || 0);
+      goodsAmount += subtotal;
+      taxAmount += tax;
+    }
+    const totalAmount = goodsAmount + taxAmount;
+
+    const [returnResult] = await conn.execute<any>(
+      `INSERT INTO purchase_return (return_no, order_no, stock_no, supplier_id, supplier_name, store_id,
+        return_status, goods_amount, tax_amount, total_amount, refund_amount, refunded_amount,
+        operator_id, remark, tenant_id)
+       VALUES (?, ?, ?, ?, ?, ?, 'PENDING', ?, ?, ?, ?, 0, ?, ?, ?)`,
+      [returnNo, orderNo ?? null, stockNo ?? null, supplierId, supplier.name,
+       storeId, goodsAmount, taxAmount, totalAmount, totalAmount,
+       operatorId, remark ?? null, tenantId]
+    );
+
+    for (const item of items) {
+      const subtotal = item.totalBottleQty * item.unitPrice;
+      const tax = subtotal * (item.taxRate || 0);
+      const total = subtotal + tax;
+      await conn.execute(
+        `INSERT INTO purchase_return_item (return_no, sku_id, sku_name, box_qty, bottle_qty,
+          total_bottle_qty, unit_price, tax_rate, subtotal_amount, tax_amount, total_amount, reason)
+         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+        [returnNo, item.skuId, item.skuName, item.boxQty, item.bottleQty, item.totalBottleQty,
+         item.unitPrice, item.taxRate, subtotal, tax, total, item.reason ?? null]
+      );
+
+      // 扣减库存
+      await conn.execute(
+        `UPDATE inventory_balance
+         SET physical_qty = GREATEST(physical_qty - ?, 0),
+             available_qty = GREATEST(available_qty - ?, 0),
+             updated_at = NOW()
+         WHERE store_id = ? AND sku_id = ? AND stock_type = 'OFFLINE' AND tenant_id = ?`,
+        [item.totalBottleQty, item.totalBottleQty, storeId, item.skuId, tenantId]
+      );
+    }
+
+    return { returnId: returnResult.insertId as number, returnNo };
+  });
+  return result;
+}
+
+// ========== 采购退货列表 ==========
+export async function listPurchaseReturns(params: {
+  page: number;
+  pageSize: number;
+  tenantId: string;
+  supplierId?: number;
+  returnStatus?: string;
+  dateStart?: string;
+  dateEnd?: string;
+}) {
+  const { page, pageSize, tenantId, supplierId, returnStatus, dateStart, dateEnd } = params;
+  const offset = (page - 1) * pageSize;
+  const conditions: string[] = ["tenant_id = ?"];
+  const queryParams: unknown[] = [tenantId];
+
+  if (supplierId !== undefined) {
+    conditions.push("supplier_id = ?");
+    queryParams.push(supplierId);
+  }
+  if (returnStatus) {
+    conditions.push("return_status = ?");
+    queryParams.push(returnStatus);
+  }
+  if (dateStart) {
+    conditions.push("DATE(created_at) >= ?");
+    queryParams.push(dateStart);
+  }
+  if (dateEnd) {
+    conditions.push("DATE(created_at) <= ?");
+    queryParams.push(dateEnd);
+  }
+
+  const where = `WHERE ${conditions.join(" AND ")}`;
+  const records = await queryWithTenant<any>(
+    `SELECT id, return_no AS returnNo, order_no AS orderNo, stock_no AS stockNo,
+            supplier_id AS supplierId, supplier_name AS supplierName, store_id AS storeId,
+            return_status AS returnStatus,
+            goods_amount AS goodsAmount, tax_amount AS taxAmount, total_amount AS totalAmount,
+            refund_amount AS refundAmount, refunded_amount AS refundedAmount,
+            operator_id AS operatorId, remark, created_at AS createdAt
+     FROM purchase_return
+     ${where}
+     ORDER BY created_at DESC
+     LIMIT ? OFFSET ?`,
+    [...queryParams, pageSize, offset],
+    tenantId
+  );
+  const totalRow = await queryOneWithTenant<any>(
+    `SELECT COUNT(*) AS total FROM purchase_return ${where}`,
+    queryParams,
+    tenantId
+  );
+  return { total: totalRow?.total ?? 0, page, pageSize, records };
+}

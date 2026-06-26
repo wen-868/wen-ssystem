@@ -172,3 +172,192 @@ export async function voidStock(stockNo: string, tenantId: string, userId: numbe
   );
   return { stock_no: stockNo };
 }
+
+// ========== 采购入库（含批次信息录入） ==========
+export async function purchaseInStock(id: number, params: {
+  tenantId: string;
+  operatorId: number;
+  remark?: string;
+  items: Array<{
+    skuId: number;
+    skuName: string;
+    boxQty: number;
+    bottleQty: number;
+    totalBottleQty: number;
+    unitPrice: number;
+    taxRate: number;
+    batchNo?: string;
+    productionDate?: string;
+    expiryDate?: string;
+    remark?: string;
+  }>;
+}) {
+  const { tenantId, operatorId, remark, items } = params;
+
+  const order = await queryOneWithTenant<any>(
+    `SELECT id, order_no AS orderNo, supplier_id AS supplierId, supplier_name AS supplierName,
+            store_id AS storeId, order_status AS orderStatus
+     FROM purchase_order WHERE id = ? AND tenant_id = ?`,
+    [id, tenantId],
+    tenantId
+  );
+  if (!order) {
+    throw Object.assign(new Error("采购订单不存在"), { statusCode: 404 });
+  }
+  if (!["APPROVED", "PARTIAL"].includes(order.orderStatus)) {
+    throw Object.assign(new Error("当前状态不允许入库"), { statusCode: 400 });
+  }
+
+  const result = await transaction(async (conn) => {
+    const stockNo = makeBizNo("CGRK");
+    let goodsAmount = 0;
+    let taxAmount = 0;
+
+    for (const item of items) {
+      const subtotal = item.totalBottleQty * item.unitPrice;
+      const tax = subtotal * (item.taxRate || 0);
+      goodsAmount += subtotal;
+      taxAmount += tax;
+    }
+    const totalAmount = goodsAmount + taxAmount;
+
+    const [stockResult] = await conn.execute<any>(
+      `INSERT INTO purchase_in_stock (stock_no, order_no, supplier_id, supplier_name, store_id,
+        stock_status, goods_amount, tax_amount, total_amount, operator_id, remark, tenant_id)
+       VALUES (?, ?, ?, ?, ?, 'PENDING', ?, ?, ?, ?, ?, ?)`,
+      [stockNo, order.orderNo, order.supplierId, order.supplierName, order.storeId,
+       goodsAmount, taxAmount, totalAmount, operatorId, remark ?? null, tenantId]
+    );
+
+    for (const item of items) {
+      const subtotal = item.totalBottleQty * item.unitPrice;
+      const tax = subtotal * (item.taxRate || 0);
+      const total = subtotal + tax;
+      await conn.execute(
+        `INSERT INTO purchase_in_stock_item (stock_no, sku_id, sku_name, box_qty, bottle_qty,
+          total_bottle_qty, unit_price, tax_rate, subtotal_amount, tax_amount, total_amount,
+          batch_no, production_date, expiry_date, remark)
+         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+        [stockNo, item.skuId, item.skuName, item.boxQty, item.bottleQty, item.totalBottleQty,
+         item.unitPrice, item.taxRate, subtotal, tax, total,
+         item.batchNo ?? null, item.productionDate ?? null, item.expiryDate ?? null, item.remark ?? null]
+      );
+
+      // 更新采购订单明细的已入库数量
+      await conn.execute(
+        `UPDATE purchase_order_item SET in_stocked_qty = in_stocked_qty + ? WHERE order_no = ? AND sku_id = ?`,
+        [item.totalBottleQty, order.orderNo, item.skuId]
+      );
+
+      // 更新库存余额
+      await conn.execute(
+        `INSERT INTO inventory_balance (store_id, sku_id, stock_type, physical_qty, available_qty, tenant_id)
+         VALUES (?, ?, 'OFFLINE', ?, ?, ?)
+         ON DUPLICATE KEY UPDATE
+           physical_qty = physical_qty + VALUES(physical_qty),
+           available_qty = available_qty + VALUES(available_qty),
+           updated_at = NOW()`,
+        [order.storeId, item.skuId, item.totalBottleQty, item.totalBottleQty, tenantId]
+      );
+    }
+
+    // 检查采购订单是否全部入库
+    const remaining = await conn.execute<any>(
+      `SELECT SUM(total_bottle_qty - in_stocked_qty) AS remainingQty
+       FROM purchase_order_item WHERE order_no = ?`,
+      [order.orderNo]
+    );
+    const remainingQty = Number((remaining as any)[0]?.[0]?.remainingQty ?? 0);
+    const newStatus = remainingQty <= 0 ? "COMPLETED" : "PARTIAL";
+    await conn.execute(
+      `UPDATE purchase_order SET order_status = ?, actual_date = CURDATE(), updated_at = NOW() WHERE id = ? AND tenant_id = ?`,
+      [newStatus, id, tenantId]
+    );
+
+    return { stockId: stockResult.insertId as number, stockNo, orderStatus: newStatus };
+  });
+  return result;
+}
+
+// ========== 入库单列表 ==========
+export async function listPurchaseInStocks(params: {
+  page: number;
+  pageSize: number;
+  tenantId: string;
+  supplierId?: number;
+  stockStatus?: string;
+  dateStart?: string;
+  dateEnd?: string;
+}) {
+  const { page, pageSize, tenantId, supplierId, stockStatus, dateStart, dateEnd } = params;
+  const offset = (page - 1) * pageSize;
+  const conditions: string[] = ["tenant_id = ?"];
+  const queryParams: unknown[] = [tenantId];
+
+  if (supplierId !== undefined) {
+    conditions.push("supplier_id = ?");
+    queryParams.push(supplierId);
+  }
+  if (stockStatus) {
+    conditions.push("stock_status = ?");
+    queryParams.push(stockStatus);
+  }
+  if (dateStart) {
+    conditions.push("DATE(created_at) >= ?");
+    queryParams.push(dateStart);
+  }
+  if (dateEnd) {
+    conditions.push("DATE(created_at) <= ?");
+    queryParams.push(dateEnd);
+  }
+
+  const where = `WHERE ${conditions.join(" AND ")}`;
+  const records = await queryWithTenant<any>(
+    `SELECT id, stock_no AS stockNo, order_no AS orderNo, supplier_id AS supplierId,
+            supplier_name AS supplierName, store_id AS storeId, stock_status AS stockStatus,
+            goods_amount AS goodsAmount, tax_amount AS taxAmount, total_amount AS totalAmount,
+            operator_id AS operatorId, auditor_id AS auditorId, audited_at AS auditedAt,
+            remark, created_at AS createdAt
+     FROM purchase_in_stock
+     ${where}
+     ORDER BY created_at DESC
+     LIMIT ? OFFSET ?`,
+    [...queryParams, pageSize, offset],
+    tenantId
+  );
+  const totalRow = await queryOneWithTenant<any>(
+    `SELECT COUNT(*) AS total FROM purchase_in_stock ${where}`,
+    queryParams,
+    tenantId
+  );
+  return { total: totalRow?.total ?? 0, page, pageSize, records };
+}
+
+// ========== 入库单详情 ==========
+export async function getPurchaseInStockDetail(id: number, tenantId: string) {
+  const stock = await queryOneWithTenant<any>(
+    `SELECT id, stock_no AS stockNo, order_no AS orderNo, supplier_id AS supplierId,
+            supplier_name AS supplierName, store_id AS storeId, stock_status AS stockStatus,
+            goods_amount AS goodsAmount, tax_amount AS taxAmount, total_amount AS totalAmount,
+            operator_id AS operatorId, auditor_id AS auditorId, audited_at AS auditedAt,
+            remark, created_at AS createdAt
+     FROM purchase_in_stock WHERE id = ? AND tenant_id = ?`,
+    [id, tenantId],
+    tenantId
+  );
+  if (!stock) {
+    throw Object.assign(new Error("入库单不存在"), { statusCode: 404 });
+  }
+  const items = await queryWithTenant<any>(
+    `SELECT id, stock_no AS stockNo, sku_id AS skuId, sku_name AS skuName,
+            box_qty AS boxQty, bottle_qty AS bottleQty, total_bottle_qty AS totalBottleQty,
+            unit_price AS unitPrice, tax_rate AS taxRate,
+            subtotal_amount AS subtotalAmount, tax_amount AS taxAmount, total_amount AS totalAmount,
+            batch_no AS batchNo, production_date AS productionDate, expiry_date AS expiryDate,
+            remark
+     FROM purchase_in_stock_item WHERE stock_no = ?`,
+    [stock.stockNo],
+    tenantId
+  );
+  return { ...stock, items };
+}

@@ -1,6 +1,11 @@
 import { asyncHandler } from "../../shared/async-handler.js";
 import { ok } from "../../shared/response.js";
-import * as service from "../../services/admin/purchase-admin.service.js";
+import * as purchaseOrderService from "../../services/admin/purchase-order.service.js";
+import * as purchaseInStockService from "../../services/admin/purchase-in-stock.service.js";
+import * as purchaseReturnService from "../../services/admin/purchase-return.service.js";
+import * as purchasePaymentService from "../../services/admin/purchase-payment.service.js";
+
+const service = { ...purchaseOrderService, ...purchaseInStockService, ...purchaseReturnService, ...purchasePaymentService };
 
 export const listPurchaseOrders = asyncHandler(async (req, res) => {
   const result = await service.listPurchaseOrders({
