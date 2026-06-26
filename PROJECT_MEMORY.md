@@ -14,7 +14,7 @@
 | 技术栈 | Node.js/Express + MySQL + Vue 3 + Vite + Element Plus |
 | GitHub | https://github.com/wen-868/wen-ssystem.git |
 | 当前分支 | feat/formal-mvp-a |
-| 部署域名 | api.onepan.cn / admin.onepan.cn / m.onepan.cn / store.onepan.cn / saas.onepan.cn |
+| 部署域名 | api.onepan.cn / admin.onepan.cn / m.onepan.cn / saas.onepan.cn |
 
 ---
 
@@ -262,6 +262,7 @@
 | 2026-06-26 | V4.2 新增功能（凌舟） | 三端闭环新增商品详情同步（经销→二批→终端店自动同步）、库存管理新增批量价格调整+一键报价推送（行情每日变动场景） |
 | 2026-06-26 | V4.3 深度审计修正（凌舟） | 发现胖路由0%改造、多租户0%实施、LoginView硬编码凭证。推翻"后端100%完成"结论，改为底层架构从零开始 |
 | 2026-06-26 | V4.4 平台总后台 + 域名规划（凌舟） | 新增平台总后台（saas-admin），域名 `saas.onepan.cn`。PC端统一为一个域名 admin.onepan.cn。总工期 101天→117天 |
+| 2026-06-26 | V4.4.1 移动端统一 · 域名精简（凌舟） | 门店终端合并入商家移动端 `m.onepan.cn`（权限切换），域名从 5 个精简为 4 个 |
 
 ---
 
@@ -279,4 +280,4 @@
 
 > **最后更新：** 2026-06-26
 > **更新人：** 凌舟
-> **版本：** V4.4（平台总后台 + 域名规划）
+> **版本：** V4.4.1（移动端统一 · 域名精简为 4 个）
