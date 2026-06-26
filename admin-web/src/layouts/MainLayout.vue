@@ -94,17 +94,20 @@
           <el-menu-item index="/prices">价格管理</el-menu-item>
         </el-sub-menu>
 
-        <!-- 8. 即时零售（开发中） -->
-        <el-sub-menu index="instant-retail" disabled>
+        <!-- 8. 即时零售 -->
+        <el-sub-menu index="instant-retail">
           <template #title>
             <el-icon><Shop /></el-icon>
             <span>即时零售</span>
           </template>
-          <el-menu-item index="/instant-retail/shop">商城配置</el-menu-item>
-          <el-menu-item index="/instant-retail/orders">客户下单</el-menu-item>
+          <el-menu-item index="/instant-retail/config">小程序配置</el-menu-item>
+          <el-menu-item index="/instant-retail/shelf">商品货架</el-menu-item>
+          <el-menu-item index="/instant-retail/orders">小程序订单</el-menu-item>
           <el-menu-item index="/instant-retail/payment">在线支付</el-menu-item>
           <el-menu-item index="/instant-retail/delivery">配送管理</el-menu-item>
           <el-menu-item index="/instant-retail/report">零售报表</el-menu-item>
+          <el-menu-item index="/instant-retail/platform">平台对接</el-menu-item>
+          <el-menu-item index="/instant-retail/order-board">60秒接单</el-menu-item>
         </el-sub-menu>
 
         <!-- 9. 财务往来 -->
@@ -264,7 +267,15 @@ const pageTitle = computed(() => {
     "/stores": "门店管理",
     "/system/roles": "角色权限",
     "/audit-log": "操作日志",
-    "/system": "系统配置"
+    "/system": "系统配置",
+    "/instant-retail/config": "小程序配置",
+    "/instant-retail/shelf": "商品货架",
+    "/instant-retail/orders": "小程序订单",
+    "/instant-retail/payment": "在线支付",
+    "/instant-retail/delivery": "配送管理",
+    "/instant-retail/report": "零售报表",
+    "/instant-retail/platform": "平台对接",
+    "/instant-retail/order-board": "接单工作台"
   };
   return titles[route.path] || "智享营销系统";
 });

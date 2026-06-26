@@ -45,7 +45,15 @@ const routes = [
       { path: "products", name: "Products", component: () => import("../views/Products.vue") },
       { path: "products/categories", name: "ProductCategories", component: () => import("../views/ProductCategories.vue") },
       { path: "prices", name: "Prices", component: () => import("../views/PricesView.vue") },
-      // 8. 即时零售（开发中，暂无路由）
+      // 8. 即时零售
+      { path: "instant-retail/config", name: "InstantRetailConfig", component: () => import("../views/InstantRetailConfig.vue") },
+      { path: "instant-retail/shelf", name: "InstantRetailShelf", component: () => import("../views/InstantRetailShelf.vue") },
+      { path: "instant-retail/orders", name: "InstantRetailOrders", component: () => import("../views/InstantRetailOrders.vue") },
+      { path: "instant-retail/payment", name: "InstantRetailPayment", component: () => import("../views/InstantRetailPayment.vue") },
+      { path: "instant-retail/delivery", name: "InstantRetailDelivery", component: () => import("../views/InstantRetailDelivery.vue") },
+      { path: "instant-retail/report", name: "InstantRetailReport", component: () => import("../views/InstantRetailReport.vue") },
+      { path: "instant-retail/platform", name: "InstantRetailPlatform", component: () => import("../views/InstantRetailPlatform.vue") },
+      { path: "instant-retail/order-board", name: "InstantRetailOrderBoard", component: () => import("../views/InstantRetailOrderBoard.vue") },
       // 9. 财务管理
       { path: "payments", name: "Payments", component: () => import("../views/PaymentsView.vue") },
       { path: "finance/collection", name: "FinanceCollection", component: () => import("../views/FinanceCollection.vue") },
