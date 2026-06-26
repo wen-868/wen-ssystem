@@ -1,181 +1,71 @@
-# 阿坚 - 后端开发任务清单
+# 阿坚 · 任务清单（后端工程师）
 
-> 角色：后端开发工程师
-> 技术栈：Node.js 20 + Express + TypeScript + MySQL 8.4
-> 工作时间：每天 8 小时
-
----
-
-## 当前阶段：基础架构整改期（6/24 - 7/7）
-
-### 🔴 P0 - 后端分层改造（Controller-Service 模式）[R2-01]
-**截止时间**：6/28（周日）
-**预计耗时**：40 小时
-**优先级**：最高（tenant_id 改造的前置依赖）
-
-**目标**：将胖路由模式改为 Controller-Service 两层架构，为后续 tenant_id 改造打基础。
-
-**目标目录结构**：
-```
-backend/src/
-├── routes/           ← 仅保留路由定义，调用 Controller
-│   ├── admin.routes.ts
-│   ├── store.routes.ts
-│   └── ...
-├── controllers/      ← 新增：请求处理、参数校验、调用 Service
-│   ├── admin/
-│   │   ├── product.controller.ts
-│   │   ├── order.controller.ts
-│   │   ├── customer.controller.ts
-│   │   ├── supplier.controller.ts
-│   │   ├── purchase.controller.ts
-│   │   ├── inventory.controller.ts
-│   │   ├── employee.controller.ts
-│   │   ├── store.controller.ts
-│   │   ├── report.controller.ts
-│   │   └── payment.controller.ts
-│   └── store/
-│       ├── sale.controller.ts
-│       ├── order.controller.ts
-│       └── dashboard.controller.ts
-├── services/         ← 新增：业务逻辑、数据库操作
-│   ├── product.service.ts
-│   ├── order.service.ts
-│   ├── customer.service.ts
-│   ├── supplier.service.ts
-│   ├── purchase.service.ts
-│   ├── inventory.service.ts
-│   ├── payment.service.ts
-│   └── ...
-├── types/            ← 新增：TypeScript 类型定义
-│   ├── product.types.ts
-│   ├── order.types.ts
-│   └── ...
-└── shared/           ← 保留：db/auth/id/response 等
-```
-
-**具体工作**：
-
-| 步骤 | 内容 | 预计时间 |
-|------|------|---------|
-| 1 | 创建 controllers/、services/、types/ 目录结构 | 0.5h |
-| 2 | 抽取产品相关逻辑 → product.controller.ts + product.service.ts | 3h |
-| 3 | 抽取订单相关逻辑 → order.controller.ts + order.service.ts | 3h |
-| 4 | 抽取客户相关逻辑 → customer.controller.ts + customer.service.ts | 2h |
-| 5 | 抽取供应商相关逻辑 → supplier.controller.ts + supplier.service.ts | 2h |
-| 6 | 抽取采购相关逻辑 → purchase.controller.ts + purchase.service.ts | 4h |
-| 7 | 抽取库存相关逻辑 → inventory.controller.ts + inventory.service.ts | 3h |
-| 8 | 抽取支付/报表/员工/门店 → 对应 controller + service | 6h |
-| 9 | 重写 admin.routes.ts，仅保留路由定义 | 3h |
-| 10 | 重写 store.routes.ts，仅保留路由定义 | 2h |
-| 11 | 运行测试，确保所有 API 行为不变 | 4h |
-
-**改造示例**：
-```typescript
-// ===== 改造前（胖路由）=====
-router.get('/products', requireAuth, asyncHandler(async (req, res) => {
-  const { keyword, category, status, page, pageSize } = req.query;
-  // ... 50 行业务逻辑 ...
-  res.json(ok({ data: products, total }));
-}));
-
-// ===== 改造后（分层）=====
-// routes/admin.routes.ts
-router.get('/products', requireAuth, productController.list);
-
-// controllers/admin/product.controller.ts
-export const list = asyncHandler(async (req, res) => {
-  const params = productQuerySchema.parse(req.query);
-  const result = await productService.list(params, req.user);
-  res.json(ok(result));
-});
-
-// services/product.service.ts
-export async function list(params, user) {
-  const { keyword, category, status, page, pageSize } = params;
-  const sql = `SELECT ... FROM product_sku WHERE ...`;
-  const [rows] = await db.query(sql, [...]);
-  return { data: rows, total };
-}
-```
-
-**验收标准**：
-- [ ] controllers/ 目录下至少 10 个 controller 文件
-- [ ] services/ 目录下至少 10 个 service 文件
-- [ ] admin.routes.ts 仅包含路由定义，不含业务逻辑
-- [ ] store.routes.ts 仅包含路由定义，不含业务逻辑
-- [ ] 所有 389 个 API 端点功能不变
-- [ ] 现有测试全部通过
+> **更新日期：** 2026-06-26
+> **当前阶段：** M0 三端闭环 + S1 商品中心（25天）
+> **开发模式：** 模块式开发，逐模块推进，完整验收
 
 ---
 
-### 🔴 P0 - tenant_id 多租户数据隔离 [R2-02]
-**截止时间**：7/4（周六）
-**预计耗时**：40 小时
-**依赖**：R2-01 分层改造完成
-**优先级**：最高（SaaS 化基础）
+## 第一阶段：M0 三端闭环底层架构（10天）⚠️ 最高优先级
 
-**目标**：62 张表全部添加 tenant_id 字段，所有查询自动注入 tenant_id 过滤。
+| 编号 | 任务 | 工时 | 状态 | 关键产出 |
+|------|------|:---:|:---:|------|
+| M0-01 | **tenant_id 全系统数据隔离** | 5天 | ⏳ | 62张核心表添加 tenant_id；所有查询API添加过滤中间件；tenant context 注入 |
+| M0-02 | **8角色权限矩阵设计** | 3天 | ⏳ | 角色表 + 菜单权限表 + 数据权限表 + 字段权限表；中间件注入 |
+| M0-03 | **越权拦截引擎** | 2天 | ⏳ | 价格跨层级查询拦截中间件；供应商查二批供货价→403；门店查厂家底价→403 |
+| M0-04 | **分字段定向同步中间件** | 2天 | ⏳ | 基础字段全链路同步 + 价格字段定向同步；交易双方成交价推送 |
 
-**详细方案参考**：`docs/tenant-isolation-plan.md`
-
-**具体工作**：
-
-| 步骤 | 内容 | 预计时间 |
-|------|------|---------|
-| 1 | 编写迁移 SQL：62 张表 ALTER TABLE ADD tenant_id | 2h |
-| 2 | 修改 shared/db.ts：添加 tenant_id 自动注入机制 | 3h |
-| 3 | 修改 shared/auth.ts：JWT payload 中携带 tenant_id | 1h |
-| 4 | 逐个修改 services/ 中的查询，确保 WHERE 条件包含 tenant_id | 16h |
-| 5 | 修改所有 INSERT 语句，自动写入 tenant_id | 4h |
-| 6 | 编写数据迁移脚本：为现有数据分配默认 tenant_id | 2h |
-| 7 | 编写 tenant 隔离验证测试 | 4h |
-| 8 | 回归测试，确保现有功能不受影响 | 8h |
-
-**核心要求**：
-1. **SELECT**：所有查询自动带上 `WHERE tenant_id = ?`
-2. **INSERT**：自动写入当前用户的 tenant_id
-3. **UPDATE/DELETE**：同样带上 tenant_id 条件，防止越权
-4. **向后兼容**：现有数据分配默认 tenant_id = 1
-
-**验收标准**：
-- [ ] 62 张表全部有 tenant_id 字段（有索引）
-- [ ] 所有 SELECT 查询自动带 tenant_id 过滤
-- [ ] 所有 INSERT 自动写入 tenant_id
-- [ ] 租户 A 无法查到租户 B 的数据（集成测试验证）
-- [ ] 现有功能不受影响（向后兼容）
-- [ ] 所有测试通过
+### M0 验收标准
+- 62张表全部有 tenant_id 且查询自动过滤
+- 8种角色权限矩阵生效，越权请求返回403
+- 跨层级价格查询被拦截
+- 价格变更仅推送给交易对方
 
 ---
 
-### 🟡 P2 - 整理测试文件（顺手做）
-**预计耗时**：4 小时
+## S1 商品中心（5天）
 
-**任务详情**：
-1. 把 backend/tests/ 下的 Jest 测试和 backend/src/__tests__/ 下的 Vitest 测试统一
-2. 修复现有失败的测试用例（约 36 个失败）
-3. 统一测试框架（建议全部用 Vitest）
-
-**验收标准**：
-- [ ] 所有测试用同一框架运行
-- [ ] 失败用例修复率 80% 以上
+| 编号 | 任务 | 工时 | 状态 | 关键产出 |
+|------|------|:---:|:---:|------|
+| S1-01 | 商品表设计 + 酒水行业字段 | 2天 | ⏳ | tb_product / tb_sku / tb_product_price / tb_category / tb_brand / tb_tag / tb_tag_relation |
+| S1-11 | 商品中心API开发 | 3天 | ⏳ | 商品CRUD + 分类API + 品牌API + 价格API + 标签API + 导入导出API |
 
 ---
 
-## 开发规范
+## S2 客户管理（3天）
 
-1. 使用 TypeScript，严格类型，禁用 any
-2. 路由用 `asyncHandler` 包裹
-3. 参数校验用 zod（放在 controller 层）
-4. 数据库操作参数化查询
-5. 事务用 `transaction()` 包裹
-6. 金额精确到分（整数存储，单位：分）
-7. 操作写 operation_log
-8. 单据号按规则生成（makeBizNo）
-9. 所有 SQL 必须带 tenant_id 条件（R2-02 阶段）
+| 编号 | 任务 | 工时 | 状态 | 关键产出 |
+|------|------|:---:|:---:|------|
+| S2-BE-01 | 客户表设计 + 会员表设计 | 1天 | ⏳ | tb_member / tb_member_point / tb_member_level / tb_member_card / tb_credit |
+| S2-BE-02 | 客户管理API开发 | 2天 | ⏳ | 客户CRUD + 积分API + 储值API + 信用API |
 
-## 每日站会
+---
 
-- 时间：09:30
-- 地点：飞书群
-- 内容：昨天完成 / 今天计划 / 阻塞问题
+## S3 系统设置（3天）
+
+| 编号 | 任务 | 工时 | 状态 | 关键产出 |
+|------|------|:---:|:---:|------|
+| S3-BE-01 | 门店/员工/角色表设计 | 1天 | ⏳ | tb_store / tb_employee / tb_role / tb_permission / tb_audit_log |
+| S3-BE-02 | 系统设置API开发 | 2天 | ⏳ | 门店CRUD + 员工CRUD + 角色权限CRUD + 操作日志API |
+
+---
+
+## 后续阶段（S4-S12，约 60 天）
+
+| 阶段 | 模块 | 工时 |
+|:---:|------|:---:|
+| S4 | 采购管理：采购订单/入库/退货/供应商表+API | 8天 |
+| S5 | 库存管理：出入库/盘点/调拨/批次/预警表+API | 8天 |
+| S6 | 销售管理：销售单/分享收款/出库退货表+API | 10天 |
+| S7 | 财务往来：应收应付/对账/费用表+API | 8天 |
+| S8 | 订单管理：全渠道订单聚合/分发表+API | 5天 |
+| S9 | 数据报表：报表数据汇总API | 5天 |
+| S10 | 即时零售：小程序+外卖平台后端API | 8天 |
+| S11 | 营销中心：优惠券/促销/满减表+API | 5天 |
+| S12 | 工作总台：经营概览聚合API | 3天 |
+
+---
+
+## 当前阻塞项
+
+> 无。从 M0-01 tenant_id 隔离开始。
