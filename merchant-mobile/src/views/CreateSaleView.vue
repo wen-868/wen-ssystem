@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { ref, computed } from 'vue'
+import { useRouter } from 'vue-router'
 import {
   showToast,
   showLoadingToast,
@@ -10,12 +11,15 @@ import {
   createSaleBill,
   offlinePayment,
   createCollectionLink,
-  fetchProducts,
-  fetchCustomers,
-  type CustomerRecord,
-  type ProductRecord,
+  fetchAdminProducts,
+  fetchAdminCustomers,
+  type AdminCustomerRecord,
+  type AdminProductRecord,
   type SaleBillDetail
 } from '../api'
+import { isWeChat, wxScanQRCode } from '../utils/wx'
+
+const router = useRouter()
 
 // ========== 场景 ==========
 const SCENE_TABS = [
@@ -24,23 +28,42 @@ const SCENE_TABS = [
 ]
 const scene = ref('STORE')
 
+// ========== 销售类型（现销/赊销） ==========
+const SALE_TYPE_TABS = [
+  { label: '现销', value: 'CASH' },
+  { label: '赊销', value: 'CREDIT' }
+]
+const saleType = ref('CASH')
+
+// 赊销截止日期
+const dueDate = ref('')
+const showDueDatePicker = ref(false)
+const minDate = new Date()
+minDate.setDate(minDate.getDate() + 1)
+const currentDueDate = ref(minDate)
+
+function onDueDateConfirm(date: Date) {
+  dueDate.value = date.toISOString().split('T')[0]
+  showDueDatePicker.value = false
+}
+
 // ========== 客户选择 ==========
 const customerKeyword = ref('')
-const customerResults = ref<CustomerRecord[]>([])
-const selectedCustomer = ref<CustomerRecord | null>(null)
+const customerResults = ref<AdminCustomerRecord[]>([])
+const selectedCustomer = ref<AdminCustomerRecord | null>(null)
 const showCustomerSearch = ref(false)
 
 async function searchCustomers() {
   if (!customerKeyword.value.trim()) return
   try {
-    const res = await fetchCustomers({ keyword: customerKeyword.value })
-    customerResults.value = res.data.records ?? []
+    const res = await fetchAdminCustomers({ keyword: customerKeyword.value })
+    customerResults.value = (res.data as any)?.records ?? []
   } catch {
     showToast('操作失败，请重试')
   }
 }
 
-function selectCustomer(c: CustomerRecord) {
+function selectCustomer(c: AdminCustomerRecord) {
   selectedCustomer.value = c
   showCustomerSearch.value = false
   customerKeyword.value = ''
@@ -54,21 +77,132 @@ function selectWalkIn() {
 
 // ========== 商品选择 ==========
 const productKeyword = ref('')
-const productResults = ref<ProductRecord[]>([])
+const productResults = ref<AdminProductRecord[]>([])
 const showProductSearch = ref(false)
+
+// 扫码状态
+const showScanPopup = ref(false)
+const scanBarcode = ref('')
+const scanLoading = ref(false)
+const scanStream = ref<MediaStream | null>(null)
 
 async function searchProducts() {
   if (!productKeyword.value.trim()) return
   try {
-    const res = await fetchProducts({ keyword: productKeyword.value })
-    productResults.value = res.data.records ?? []
+    const res = await fetchAdminProducts({ keyword: productKeyword.value })
+    productResults.value = (res.data as any)?.records ?? []
   } catch {
     showToast('操作失败，请重试')
   }
 }
 
-function onScan() {
-  showToast('扫码功能开发中')
+async function onScan() {
+  scanBarcode.value = ''
+  if (isWeChat()) {
+    try {
+      const result = await wxScanQRCode()
+      if (result) {
+        scanBarcode.value = result
+        productKeyword.value = result
+        showProductSearch.value = true
+        await searchProducts()
+      }
+    } catch {
+      showToast('扫码失败，请手动输入')
+    }
+    return
+  }
+  showScanPopup.value = true
+  startCamera()
+}
+
+async function startCamera() {
+  scanLoading.value = true
+  try {
+    const stream = await navigator.mediaDevices.getUserMedia({
+      video: { facingMode: 'environment' }
+    })
+    scanStream.value = stream
+    const video = document.getElementById('scan-video') as HTMLVideoElement
+    if (video) {
+      video.srcObject = stream
+      video.play()
+      detectBarcode(video)
+    }
+  } catch {
+    scanLoading.value = false
+  }
+}
+
+function stopCamera() {
+  if (scanStream.value) {
+    scanStream.value.getTracks().forEach(t => t.stop())
+    scanStream.value = null
+  }
+}
+
+async function detectBarcode(video: HTMLVideoElement) {
+  try {
+    if ('BarcodeDetector' in window) {
+      const detector = new (window as any).BarcodeDetector({ formats: ['ean_13', 'ean_8', 'code_128', 'code_39', 'qr_code'] })
+      const detect = async () => {
+        if (!scanStream.value || scanLoading.value === false) return
+        try {
+          const barcodes = await detector.detect(video)
+          if (barcodes.length > 0) {
+            scanBarcode.value = barcodes[0].rawValue
+            scanLoading.value = false
+            stopCamera()
+            await searchByBarcode()
+            return
+          }
+        } catch { /* continue */ }
+        if (scanStream.value) {
+          requestAnimationFrame(detect)
+        }
+      }
+      scanLoading.value = false
+      detect()
+    } else {
+      scanLoading.value = false
+    }
+  } catch {
+    scanLoading.value = false
+  }
+}
+
+async function searchByBarcode() {
+  if (!scanBarcode.value.trim()) return
+  try {
+    const res = await fetchAdminProducts({ keyword: scanBarcode.value })
+    const items = (res.data as any)?.records ?? []
+    if (items.length === 1) {
+      addProduct(items[0])
+      showScanPopup.value = false
+    } else if (items.length > 1) {
+      productResults.value = items
+      showScanPopup.value = false
+      showProductSearch.value = true
+    } else {
+      showToast('未找到该条码对应的商品')
+    }
+  } catch {
+    showToast('扫码查询失败')
+  }
+}
+
+function onManualBarcodeConfirm() {
+  if (!scanBarcode.value.trim()) {
+    showToast('请输入条码')
+    return
+  }
+  stopCamera()
+  searchByBarcode()
+}
+
+function onScanPopupClose() {
+  stopCamera()
+  scanLoading.value = false
 }
 
 // ========== 已选商品 ==========
@@ -85,7 +219,7 @@ interface SelectedItem {
 
 const selectedItems = ref<SelectedItem[]>([])
 
-function addProduct(p: ProductRecord) {
+function addProduct(p: AdminProductRecord) {
   const exists = selectedItems.value.find(i => i.skuId === p.skuId)
   if (exists) {
     exists.bottleQty += 1
@@ -93,17 +227,17 @@ function addProduct(p: ProductRecord) {
   } else {
     const isWholesale = selectedCustomer.value?.customerType === 'WHOLESALE'
     const price = isWholesale
-      ? (p.wholesalePrice ?? p.retailPrice)
-      : (p.storePrice ?? p.retailPrice)
+      ? ((p.wholesalePrice && p.wholesalePrice > 0) ? p.wholesalePrice : p.retailPrice)
+      : p.retailPrice
     selectedItems.value.push({
       skuId: p.skuId,
       skuName: p.skuName,
       skuCode: p.skuCode,
       unitPrice: Number(price),
-      priceType: isWholesale ? 'WHOLESALE' : 'STORE',
+      priceType: isWholesale ? 'WHOLESALE' : 'RETAIL',
       boxQty: 0,
       bottleQty: 1,
-      bottlesPerBox: 6
+      bottlesPerBox: p.boxRatio || 6
     })
   }
   showProductSearch.value = false
@@ -171,6 +305,7 @@ async function confirmPayment() {
   try {
     showLoadingToast({ message: '创建单据...', forbidClick: true })
     const billRes = await createSaleBill({
+      saleType: 'CASH',
       customerId: selectedCustomer.value?.memberId ?? null,
       customerName: selectedCustomer.value?.name ?? undefined,
       customerMobile: selectedCustomer.value?.mobile ?? undefined,
@@ -232,6 +367,7 @@ async function confirmLink() {
   try {
     showLoadingToast({ message: '创建单据...', forbidClick: true })
     const billRes = await createSaleBill({
+      saleType: 'CASH',
       customerId: selectedCustomer.value?.memberId ?? null,
       customerName: selectedCustomer.value?.name ?? undefined,
       customerMobile: selectedCustomer.value?.mobile ?? undefined,
@@ -274,20 +410,64 @@ function copyLink() {
   })
 }
 
+// ========== 赊销提交 ==========
+async function submitCreditSale() {
+  if (selectedItems.value.length === 0) {
+    showToast('请先选择商品')
+    return
+  }
+  if (!selectedCustomer.value) {
+    showToast('请选择客户（赊销必须选择客户）')
+    return
+  }
+  if (!dueDate.value) {
+    showToast('请选择应收截止日期')
+    return
+  }
+  try {
+    showLoadingToast({ message: '创建赊销单...', forbidClick: true })
+    await createSaleBill({
+      saleType: 'CREDIT',
+      customerId: selectedCustomer.value.memberId,
+      customerName: selectedCustomer.value.name,
+      customerMobile: selectedCustomer.value.mobile,
+      discountAmount: discountAmount.value,
+      roundingAmount: roundingAmount.value,
+      dueDate: dueDate.value,
+      items: selectedItems.value.map(i => ({
+        skuId: i.skuId,
+        boxQty: i.boxQty,
+        bottleQty: i.bottleQty,
+        totalBottleQty: itemTotalBottleQty(i),
+        unitPrice: i.unitPrice,
+        priceType: i.priceType
+      }))
+    })
+    closeToast()
+    showSuccessToast('赊销单已创建')
+    resetForm()
+  } catch (err: any) {
+    closeToast()
+    showToast(err.response?.data?.message || '操作失败')
+  }
+}
+
 // ========== 表单重置 ==========
 function resetForm() {
   scene.value = 'STORE'
+  saleType.value = 'CASH'
   selectedCustomer.value = null
   selectedItems.value = []
   discountAmount.value = 0
   roundingAmount.value = 0
   paymentMethod.value = ''
   generatedLink.value = ''
+  dueDate.value = ''
 }
 
 // ========== 跳转到销售单列表 ==========
 function goToSaleBills() {
-  window.dispatchEvent(new CustomEvent('nav', { detail: 'sale-bills' }))
+  router.push('/sale-bills')
 }
 </script>
 
@@ -309,6 +489,27 @@ function goToSaleBills() {
         :name="tab.value"
       />
     </van-tabs>
+
+    <!-- 销售类型切换（仅门店现场） -->
+    <div v-if="scene === 'STORE'" class="sale-type-bar">
+      <span class="sale-type-label">销售类型：</span>
+      <van-tabs v-model:active="saleType" type="card" class="sale-type-tabs">
+        <van-tab
+          v-for="tab in SALE_TYPE_TABS"
+          :key="tab.value"
+          :title="tab.label"
+          :name="tab.value"
+        />
+      </van-tabs>
+    </div>
+
+    <!-- 赊销截止日期（仅赊销模式） -->
+    <div v-if="scene === 'STORE' && saleType === 'CREDIT'" class="due-date-card">
+      <van-cell-group inset>
+        <van-cell title="应收截止日期" is-link :value="dueDate || '请选择'" @click="showDueDatePicker = true" />
+      </van-cell-group>
+      <div class="due-date-tip">赊销订单将在此日期前完成收款</div>
+    </div>
 
     <!-- 客户选择 -->
     <div class="card">
@@ -413,8 +614,9 @@ function goToSaleBills() {
 
     <!-- 底部操作按钮 -->
     <div class="action-footer">
+      <!-- 门店现场 - 现销 -->
       <van-button
-        v-if="scene === 'STORE'"
+        v-if="scene === 'STORE' && saleType === 'CASH'"
         type="primary"
         block
         round
@@ -423,6 +625,18 @@ function goToSaleBills() {
       >
         立即收款
       </van-button>
+      <!-- 门店现场 - 赊销 -->
+      <van-button
+        v-else-if="scene === 'STORE' && saleType === 'CREDIT'"
+        type="warning"
+        block
+        round
+        size="large"
+        @click="submitCreditSale"
+      >
+        创建赊销单
+      </van-button>
+      <!-- 外出拜访 -->
       <van-button
         v-else
         type="primary"
@@ -499,18 +713,41 @@ function goToSaleBills() {
               <span class="product-name">{{ p.skuName }}</span>
             </template>
             <template #label>
-              <span class="product-stock">库存: {{ p.availableQty ?? '-' }}</span>
+              <span class="product-stock">{{ p.categoryName || p.skuCode || '-' }}</span>
             </template>
             <template #value>
               <span class="product-price">
                 ¥{{ (selectedCustomer?.customerType === 'WHOLESALE'
-                  ? (p.wholesalePrice ?? p.retailPrice)
-                  : (p.storePrice ?? p.retailPrice)
-                ).toFixed(2) }}
-              </span>
+                  ? ((p.wholesalePrice && p.wholesalePrice > 0) ? p.wholesalePrice : p.retailPrice)
+                  : p.retailPrice
+                ).toFixed(2) }}</span>
             </template>
           </van-cell>
         </van-cell-group>
+      </div>
+    </van-popup>
+
+    <!-- 扫码弹窗 -->
+    <van-popup v-model:show="showScanPopup" position="center" round :style="{ width: '90%', maxWidth: '400px' }" @close="onScanPopupClose">
+      <div class="scan-panel">
+        <h3>扫码</h3>
+        <div v-if="scanLoading" class="scan-loading">
+          <van-loading /> 启动摄像头...
+        </div>
+        <div class="scan-video-wrapper">
+          <video id="scan-video" autoplay playsinline muted class="scan-video" />
+        </div>
+        <div class="scan-manual">
+          <van-field
+            v-model="scanBarcode"
+            label="条码"
+            placeholder="手动输入条码"
+            clearable
+          />
+          <van-button type="primary" block size="small" @click="onManualBarcodeConfirm">
+            确认查询
+          </van-button>
+        </div>
       </div>
     </van-popup>
 
@@ -522,6 +759,18 @@ function goToSaleBills() {
       @select="(action: any) => { paymentMethod = action.value; confirmPayment() }"
       cancel-text="取消"
     />
+
+    <!-- 截止日期选择器 -->
+    <van-popup v-model:show="showDueDatePicker" position="bottom" round>
+      <van-datetime-picker
+        v-model="currentDueDate"
+        type="date"
+        title="选择应收截止日期"
+        :min-date="minDate"
+        @confirm="onDueDateConfirm"
+        @cancel="showDueDatePicker = false"
+      />
+    </van-popup>
 
     <!-- 收款链接弹窗 -->
     <van-popup v-model:show="showLinkPopup" position="center" round :style="{ width: '90%', maxWidth: '360px' }">
@@ -575,6 +824,48 @@ function goToSaleBills() {
 
 .scene-tabs {
   margin-bottom: 12px;
+}
+
+.sale-type-bar {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 12px;
+  padding: 0 4px;
+}
+
+.sale-type-label {
+  font-size: 14px;
+  color: var(--text-secondary);
+  white-space: nowrap;
+}
+
+.sale-type-tabs {
+  flex: 1;
+}
+
+:deep(.sale-type-tabs .van-tabs__nav--card) {
+  border-color: var(--color-warning);
+}
+
+:deep(.sale-type-tabs .van-tab--active) {
+  background: var(--color-warning);
+  color: #fff;
+}
+
+:deep(.sale-type-tabs .van-tab) {
+  color: var(--color-warning);
+  border-color: var(--color-warning);
+}
+
+.due-date-card {
+  margin-bottom: 12px;
+}
+
+.due-date-tip {
+  padding: 8px 16px;
+  font-size: 12px;
+  color: var(--text-muted);
 }
 
 :deep(.scene-tabs .van-tabs__nav--card) {
@@ -798,5 +1089,48 @@ function goToSaleBills() {
 
 .link-actions {
   margin-top: 16px;
+}
+
+/* ===== 扫码弹窗 ===== */
+.scan-panel {
+  padding: 20px 16px;
+}
+
+.scan-panel h3 {
+  margin: 0 0 16px;
+  font-size: 16px;
+  text-align: center;
+  color: var(--text-primary);
+}
+
+.scan-loading {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 20px;
+  font-size: 14px;
+  color: var(--text-secondary);
+}
+
+.scan-video-wrapper {
+  width: 100%;
+  height: 200px;
+  background: #000;
+  border-radius: 8px;
+  overflow: hidden;
+  margin-bottom: 16px;
+}
+
+.scan-video {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.scan-manual {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
 }
 </style>

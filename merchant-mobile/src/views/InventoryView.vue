@@ -1,37 +1,45 @@
 <script setup lang="ts">
-import { ref, computed } from 'vue'
-import { fetchInventory, type InventoryRecord } from '../api'
+import { ref } from 'vue'
+import { fetchAdminProducts, type AdminProductRecord } from '../api'
 
 const keyword = ref('')
-const records = ref<InventoryRecord[]>([])
+const activeCategory = ref('')
+const records = ref<AdminProductRecord[]>([])
 const loading = ref(false)
 const finished = ref(false)
 const refreshing = ref(false)
 const page = ref(1)
-const sortAsc = ref(true) // true = 可售库存升序（缺货优先）
 
-const sortedRecords = computed(() => {
-  const list = [...records.value]
-  list.sort((a, b) => {
-    return sortAsc.value
-      ? Number(a.availableQty) - Number(b.availableQty)
-      : Number(b.availableQty) - Number(a.availableQty)
-  })
-  return list
-})
+const categories = [
+  { value: '', label: '全部' },
+  { value: '白酒', label: '白酒' },
+  { value: '红酒', label: '红酒' },
+  { value: '啤酒', label: '啤酒' },
+  { value: '其他', label: '其他' }
+]
 
-async function loadInventory(reset = false) {
+function formatSpec(item: AdminProductRecord): string {
+  const parts: string[] = []
+  if (item.boxRatio > 1) parts.push(`1${item.boxUnit}=${item.boxRatio}${item.baseUnit}`)
+  if (item.alcoholContent) parts.push(`${item.alcoholContent}%vol`)
+  return parts.join(' / ') || '-'
+}
+
+async function loadProducts(reset = false) {
   if (reset) {
     page.value = 1
     finished.value = false
   }
   loading.value = true
   try {
-    const res = await fetchInventory({
-      keyword: keyword.value || undefined
+    const res = await fetchAdminProducts({
+      keyword: keyword.value || undefined,
+      category: activeCategory.value || undefined,
+      page: page.value,
+      pageSize: 20
     })
-    const data = res.data
-    const items = data?.records ?? data ?? []
+    const data = res.data as any
+    const items = (data?.records ?? data ?? []) as AdminProductRecord[]
     if (reset) {
       records.value = items
     } else {
@@ -50,95 +58,106 @@ async function loadInventory(reset = false) {
 }
 
 function onSearch() {
-  loadInventory(true)
+  loadProducts(true)
 }
 
 function onCancelSearch() {
   keyword.value = ''
-  loadInventory(true)
+  loadProducts(true)
 }
 
 function onRefresh() {
   refreshing.value = true
-  loadInventory(true)
+  loadProducts(true)
 }
 
-function toggleSort() {
-  sortAsc.value = !sortAsc.value
+function onCategoryChange(cat: string) {
+  activeCategory.value = cat
+  loadProducts(true)
 }
 
-function goToAdjust() {
-  window.dispatchEvent(new CustomEvent('nav', { detail: 'inventory-adjust' }))
+function formatPrice(val: number | undefined | null): string {
+  if (val == null) return '-'
+  return `¥${Number(val).toFixed(2)}`
 }
 </script>
 
 <template>
   <section class="page">
-    <h2 class="page-title">库存</h2>
+    <h2 class="page-title">商品查询</h2>
 
-    <!-- 搜索栏 -->
     <van-search
       v-model="keyword"
-      placeholder="搜索商品名/SKU"
+      placeholder="搜索商品名/SKU/条码"
       shape="round"
       clearable
       @search="onSearch"
       @cancel="onCancelSearch"
     />
 
-    <!-- 操作栏 -->
+    <van-tabs
+      v-model:active="activeCategory"
+      class="category-tabs"
+      line-width="24px"
+      @change="onCategoryChange"
+    >
+      <van-tab
+        v-for="cat in categories"
+        :key="cat.value"
+        :title="cat.label"
+        :name="cat.value"
+      />
+    </van-tabs>
+
     <div class="action-bar">
-      <van-button size="small" plain @click="toggleSort">
-        可售库存 {{ sortAsc ? '↑ 升序' : '↓ 降序' }}
-      </van-button>
-      <van-button size="small" type="primary" plain @click="goToAdjust">
-        库存调整
-      </van-button>
       <span class="record-count">共 {{ records.length }} 条</span>
     </div>
 
-    <!-- 库存列表 -->
     <van-pull-refresh v-model="refreshing" @refresh="onRefresh">
       <van-list
         v-model:loading="loading"
         :finished="finished"
         finished-text="没有更多了"
-        @load="loadInventory"
+        @load="loadProducts"
       >
-        <div v-if="sortedRecords.length === 0 && !loading" class="empty-wrapper">
-          <van-empty description="暂无库存数据" />
+        <div v-if="records.length === 0 && !loading" class="empty-wrapper">
+          <van-empty description="暂无商品数据" />
         </div>
         <van-cell
-          v-for="item in sortedRecords"
-          :key="`${item.skuId}-${item.stockType}`"
-          class="inventory-cell"
+          v-for="item in records"
+          :key="item.skuId"
+          class="product-cell"
         >
           <template #title>
-            <div class="inventory-name">{{ item.skuName }}</div>
-            <div class="inventory-sku">SKU: {{ item.skuId }}</div>
+            <div class="product-name">{{ item.skuName || item.name }}</div>
+            <div class="product-sku">
+              <span>SKU: {{ item.skuCode }}</span>
+              <span v-if="item.barcode" class="product-barcode">{{ item.barcode }}</span>
+            </div>
+            <div class="product-tags">
+              <span v-if="item.alcoholContent" class="tag alcohol">{{ item.alcoholContent }}%vol</span>
+              <span v-if="item.origin" class="tag origin">{{ item.origin }}</span>
+              <span v-if="item.categoryName" class="tag category">{{ item.categoryName }}</span>
+            </div>
           </template>
           <template #label>
-            <div class="inventory-qty-row">
-              <span class="qty-item">
-                <span class="qty-label">实际</span>
-                <span class="qty-value">{{ item.physicalQty }}</span>
+            <div class="product-price-row">
+              <span class="price-item">
+                <span class="price-label">零售价</span>
+                <span class="price-value">{{ formatPrice(item.retailPrice) }}</span>
               </span>
-              <span class="qty-item">
-                <span class="qty-label">占用</span>
-                <span class="qty-value qty-locked">{{ item.lockedQty }}</span>
+              <span class="price-item">
+                <span class="price-label">批发价</span>
+                <span class="price-value">{{ formatPrice(item.wholesalePrice) }}</span>
               </span>
-              <span class="qty-item">
-                <span class="qty-label">可售</span>
-                <span
-                  class="qty-value"
-                  :class="{
-                    'qty-low': item.availableQty <= 5,
-                    'qty-ok': item.availableQty > 5
-                  }"
-                >
-                  {{ item.availableQty }}
-                </span>
+              <span v-if="item.storePrice" class="price-item">
+                <span class="price-label">门店价</span>
+                <span class="price-value">{{ formatPrice(item.storePrice) }}</span>
               </span>
+            </div>
+            <div v-if="formatSpec(item) !== '-'" class="product-spec-row">
+              <span class="spec-label">规格</span>
+              <span class="spec-value">{{ formatSpec(item) }}</span>
             </div>
           </template>
         </van-cell>
@@ -158,14 +177,12 @@ function goToAdjust() {
 .action-bar {
   display: flex;
   align-items: center;
-  gap: 8px;
   padding: 8px var(--space-page-padding);
 }
 
 .record-count {
   font-size: 13px;
   color: var(--text-muted);
-  margin-left: auto;
 }
 
 .empty-wrapper {
@@ -174,58 +191,108 @@ function goToAdjust() {
   padding: 40px 0;
 }
 
-.inventory-cell {
+.product-cell {
   margin-bottom: 8px;
   border-radius: var(--radius-sm);
   background: var(--bg-card);
   box-shadow: var(--shadow-card);
 }
 
-.inventory-name {
+.product-name {
   font-size: 15px;
   font-weight: 500;
   color: var(--text-primary);
 }
 
-.inventory-sku {
+.product-sku {
+  display: flex;
+  gap: 12px;
   font-size: 12px;
   color: var(--text-muted);
   margin-top: 2px;
 }
 
-.inventory-qty-row {
+.product-barcode {
+  color: var(--text-muted);
+}
+
+.product-tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-top: 6px;
+}
+
+.tag {
+  display: inline-block;
+  padding: 2px 8px;
+  font-size: 11px;
+  border-radius: 10px;
+  background: var(--bg-secondary);
+  color: var(--text-secondary);
+}
+
+.tag.alcohol {
+  background: #fff0e6;
+  color: #e65c00;
+}
+
+.tag.origin {
+  background: #e6f7ff;
+  color: #1890ff;
+}
+
+.tag.category {
+  background: #f9f0ff;
+  color: #722ed1;
+}
+
+.product-price-row {
   display: flex;
   gap: 16px;
   margin-top: 8px;
 }
 
-.qty-item {
+.price-item {
   display: flex;
   flex-direction: column;
   align-items: center;
 }
 
-.qty-label {
+.price-label {
   font-size: 11px;
   color: var(--text-muted);
   margin-bottom: 2px;
 }
 
-.qty-value {
-  font-size: 16px;
+.price-value {
+  font-size: 14px;
   font-weight: 600;
   color: var(--text-primary);
 }
 
-.qty-locked {
-  color: var(--color-warning);
+.product-spec-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-top: 8px;
+  padding-top: 8px;
+  border-top: 1px solid var(--border-color);
 }
 
-.qty-low {
-  color: var(--color-danger);
+.spec-label {
+  font-size: 12px;
+  color: var(--text-muted);
 }
 
-.qty-ok {
-  color: var(--color-success);
+.spec-value {
+  font-size: 13px;
+  color: var(--text-secondary);
+  font-weight: 500;
+}
+
+.category-tabs {
+  padding: 0 var(--space-page-padding);
+  margin-bottom: 4px;
 }
 </style>

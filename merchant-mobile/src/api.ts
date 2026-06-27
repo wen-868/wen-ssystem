@@ -103,7 +103,7 @@ export interface CustomerRecord {
   settlementType?: string
 }
 
-export function fetchCustomers(params: { keyword?: string }) {
+export function fetchCustomers(params: { keyword?: string; page?: number; pageSize?: number }) {
   return api.get('/store/members', { params })
 }
 
@@ -134,6 +134,76 @@ export function fetchCustomerPayments(memberId: number, params: { page?: number;
 
 export function fetchCustomerDebts(memberId: number, params: { page?: number; pageSize?: number }) {
   return api.get(`/store/members/${memberId}/debts`, { params })
+}
+
+/* ========== 客户台账 ========== */
+
+export interface CustomerLedgerItem {
+  id: number
+  time: string
+  type: string
+  typeLabel: string
+  amount: number
+  balance: number
+  remark: string
+  billNo: string
+  transactionType: string
+  transactionNo: string
+  sourceType: string
+  sourceNo: string
+  transactionDate: string
+}
+
+export interface CustomerLedgerSummary {
+  memberId: number
+  memberName: string
+  customerId: number
+  customerName: string
+  openBalance: number
+  totalDebit: number
+  totalCredit: number
+  closeBalance: number
+  balance: number
+  totalReceivable: number
+  totalReceived: number
+  totalPayable: number
+  totalPaid: number
+}
+
+export interface CustomerLedgerRecord {
+  memberId: number
+  memberName: string
+  customerType: string
+  mobile: string
+  openBalance: number
+  totalDebit: number
+  totalCredit: number
+  closeBalance: number
+  startDate: string
+  endDate: string
+}
+
+export interface CustomerLedgerDetail extends CustomerLedgerRecord {
+  items: CustomerLedgerItem[]
+  summary: CustomerLedgerSummary
+  records: CustomerLedgerItem[]
+}
+
+export function fetchCustomerLedgers(params: {
+  page?: number
+  pageSize?: number
+  keyword?: string
+  startDate?: string
+  endDate?: string
+}) {
+  return api.get('/store/customer-ledgers', { params })
+}
+
+export function fetchCustomerLedgerDetail(memberId: number, params: {
+  startDate?: string
+  endDate?: string
+}) {
+  return api.get(`/store/customer-ledgers/${memberId}`, { params })
 }
 
 /* ========== 应收 ========== */
@@ -236,6 +306,7 @@ export interface SaleBillRecord {
   storeId: number
   customerId: number | null
   customerName: string
+  customerMobile: string
   customerType: string
   businessStatus: string
   collectionStatus: string
@@ -250,11 +321,13 @@ export interface SaleBillDetail extends SaleBillRecord {
 }
 
 export interface CreateSaleBillParams {
+  saleType?: 'CASH' | 'CREDIT'  // 销售类型：现销/赊销
   customerId?: number | null
   customerName?: string
   customerMobile?: string
   discountAmount?: number
   roundingAmount?: number
+  dueDate?: string  // 赊销应收截止日期
   remark?: string
   items: {
     skuId: number
@@ -314,7 +387,7 @@ export interface ProductRecord {
   availableQty: number
 }
 
-export function fetchProducts(params: { keyword?: string; barcode?: string }) {
+export function fetchProducts(params: { keyword?: string; barcode?: string; category?: string; page?: number; pageSize?: number }) {
   return api.get('/store/products', { params })
 }
 
@@ -361,7 +434,28 @@ export interface AdminProductRecord {
   barcode: string
   retailPrice: number
   wholesalePrice: number
+  storePrice?: number
   status: string
+  alcoholContent: number | null
+  origin: string | null
+  boxRatio: number
+  boxUnit: string
+  baseUnit: string
+  categoryName: string | null
+}
+
+export interface AdminCustomerRecord {
+  memberId: number
+  name: string
+  mobile: string
+  customerType: string
+  points: number
+  levelCode: string | null
+  status: number
+  staffId: number | null
+  staffName: string | null
+  totalSpent: number
+  arrears: number
 }
 
 export interface AdminStaffRecord {
@@ -384,8 +478,12 @@ export interface AdminStoreRecord {
   status: number
 }
 
-export function fetchAdminProducts(params: { page?: number; pageSize?: number; keyword?: string }) {
+export function fetchAdminProducts(params: { page?: number; pageSize?: number; keyword?: string; category?: string }) {
   return api.get('/admin/products', { params })
+}
+
+export function fetchAdminCustomers(params: { page?: number; pageSize?: number; keyword?: string }) {
+  return api.get('/admin/customers', { params })
 }
 
 export function createAdminProduct(data: {
@@ -491,4 +589,456 @@ export function fetchPaymentOrders(params: { page?: number; pageSize?: number })
 
 export function fetchRefundOrders(params: { page?: number; pageSize?: number }) {
   return api.get('/store/refund-orders', { params })
+}
+
+/* ========== 销售退货 ========== */
+
+export interface SaleReturnItem {
+  id: number
+  skuId: number
+  skuName: string
+  boxQty: number
+  bottleQty: number
+  totalBottleQty: number
+  unitPrice: number
+  subtotal: number
+  reason: string
+}
+
+export interface SaleReturnRecord {
+  id: number
+  returnNo: string
+  sourceBillNo: string
+  storeId: number
+  customerId: number | null
+  customerName: string
+  customerMobile: string
+  status: string
+  refundStatus: string
+  returnType: string
+  reason: string
+  goodsAmount: number
+  discountAmount: number
+  refundAmount: number
+  refundedAmount: number
+  refundMethod: string
+  operatorId: number
+  auditorId: number
+  auditedAt: string
+  remark: string
+  createdAt: string
+  updatedAt: string
+}
+
+export interface SaleReturnDetail extends SaleReturnRecord {
+  items: SaleReturnItem[]
+}
+
+export function fetchSaleReturns(params: {
+  page?: number
+  pageSize?: number
+  keyword?: string
+  status?: string
+}) {
+  return api.get('/store/sale-returns', { params })
+}
+
+export function fetchSaleReturnDetail(returnNo: string) {
+  return api.get(`/store/sale-returns/${returnNo}`)
+}
+
+export function createSaleReturn(data: {
+  sourceBillNo?: string
+  storeId?: number
+  customerId?: number | null
+  customerName?: string
+  customerMobile?: string
+  returnType?: string
+  reason?: string
+  discountAmount?: number
+  remark?: string
+  items: {
+    skuId: number
+    skuName?: string
+    boxQty?: number
+    bottleQty?: number
+    unitPrice?: number
+    reason?: string
+  }[]
+}) {
+  return api.post('/store/sale-returns', data)
+}
+
+export function approveSaleReturn(returnNo: string) {
+  return api.post(`/store/sale-returns/${returnNo}/approve`)
+}
+
+export function refundSaleReturn(returnNo: string, data?: { refundMethod?: string }) {
+  return api.post(`/store/sale-returns/${returnNo}/refund`, data)
+}
+
+/* ========== 采购订单 ========== */
+
+export interface PurchaseOrderItem {
+  id: number
+  skuId: number
+  skuName: string
+  barcode: string
+  boxQty: number
+  bottleQty: number
+  totalBottleQty: number
+  quantity: number
+  unitPrice: number
+  taxRate: number
+  subtotal: number
+  subtotalAmount: number
+  taxAmount: number
+  totalAmount: number
+  remark: string
+}
+
+export interface PurchaseOrderRecord {
+  id: number
+  purchaseNo: string
+  orderNo: string
+  supplierId: number
+  supplierName: string
+  storeId: number
+  warehouseName: string
+  status: string
+  orderStatus: string
+  warehouseStatus: string
+  goodsAmount: number
+  taxAmount: number
+  discountAmount: number
+  totalAmount: number
+  paidAmount: number
+  unpaidAmount: number
+  payableAmount: number
+  expectedDate: string
+  actualDate: string
+  operatorId: number
+  auditorId: number
+  auditedAt: string
+  remark: string
+  createdAt: string
+  updatedAt: string
+}
+
+export interface PurchaseOrderDetail extends PurchaseOrderRecord {
+  items: PurchaseOrderItem[]
+  operationLogs: {
+    action: string
+    operatorId: number
+    operator: string
+    remark: string
+    createdAt: string
+  }[]
+}
+
+export function fetchPurchaseOrders(params: {
+  page?: number
+  pageSize?: number
+  keyword?: string
+  status?: string
+  orderStatus?: string
+  supplierId?: number
+}) {
+  return api.get('/store/purchase-orders', { params })
+}
+
+export function fetchPurchaseOrderDetail(purchaseNo: string | number) {
+  return api.get(`/store/purchase-orders/${purchaseNo}`)
+}
+
+export function createPurchaseOrder(data: {
+  supplierId: number
+  supplierName?: string
+  storeId?: number
+  warehouseId?: number
+  expectedDate?: string
+  discountAmount?: number
+  remark?: string
+  items: {
+    skuId: number
+    skuName?: string
+    barcode?: string
+    boxQty?: number
+    bottleQty?: number
+    unitPrice?: number
+    taxRate?: number
+    remark?: string
+  }[]
+}) {
+  return api.post('/store/purchase-orders', data)
+}
+
+export function updatePurchaseOrder(purchaseNo: string, data: {
+  supplierId?: number
+  expectedDate?: string
+  discountAmount?: number
+  remark?: string
+  items?: {
+    skuId: number
+    boxQty?: number
+    bottleQty?: number
+    unitPrice?: number
+    remark?: string
+  }[]
+}) {
+  return api.put(`/store/purchase-orders/${purchaseNo}`, data)
+}
+
+export function deletePurchaseOrder(purchaseNo: string) {
+  return api.delete(`/store/purchase-orders/${purchaseNo}`)
+}
+
+export function submitPurchaseOrder(purchaseNo: string) {
+  return api.post(`/store/purchase-orders/${purchaseNo}/submit`)
+}
+
+export function approvePurchaseOrder(purchaseNo: string) {
+  return api.post(`/store/purchase-orders/${purchaseNo}/approve`)
+}
+
+export function cancelPurchaseOrder(purchaseNo: string | number, reason?: string) {
+  return api.post(`/store/purchase-orders/${purchaseNo}/cancel`, { reason })
+}
+
+export function confirmPurchaseOrder(purchaseNo: string | number) {
+  return api.post(`/store/purchase-orders/${purchaseNo}/confirm`)
+}
+
+/* ========== 采购入库 ========== */
+
+export function purchaseInStock(data: {
+  purchaseNo: string
+  warehouseId?: number
+  remark?: string
+  items: {
+    skuId: number
+    boxQty?: number
+    bottleQty?: number
+  }[]
+}) {
+  return api.post(`/store/purchase-orders/${data.purchaseNo}/in-stock`, data)
+}
+
+/* ========== 采购入库记录 ========== */
+
+export interface PurchaseStockRecord {
+  id: number
+  stockNo: string
+  orderNo: string
+  purchaseNo: string
+  stockStatus: string
+  supplierId: number
+  supplierName: string
+  warehouseId: number
+  warehouseName: string
+  status: string
+  totalQty: number
+  totalAmount: number
+  goodsAmount: number
+  taxAmount: number
+  remark: string
+  operatorId: number
+  operatorName: string
+  createdAt: string
+  updatedAt: string
+}
+
+export interface PurchaseStockDetail extends PurchaseStockRecord {
+  items: PurchaseStockItem[]
+  stockStatus: string
+}
+
+export interface PurchaseStockItem {
+  id: number
+  skuId: number
+  skuName: string
+  skuCode: string
+  boxQty: number
+  bottleQty: number
+  totalBottleQty: number
+  unitPrice: number
+  subtotal: number
+  subtotalAmount: number
+}
+
+export function fetchPurchaseInStocks(params: {
+  page?: number
+  pageSize?: number
+  keyword?: string
+  status?: string
+  stockStatus?: string
+}) {
+  return api.get('/store/purchase-in-stocks', { params })
+}
+
+export function fetchPurchaseInStockDetail(stockNo: string | number) {
+  return api.get(`/store/purchase-in-stocks/${stockNo}`)
+}
+
+export function confirmPurchaseInStock(stockNo: string | number) {
+  return api.post(`/store/purchase-in-stocks/${stockNo}/confirm`)
+}
+
+/* ========== 采购退货 ========== */
+
+export interface PurchaseReturnItem {
+  id: number
+  skuId: number
+  skuName: string
+  returnQty: number
+  returnPrice: number
+  returnAmount: number
+  boxQty: number
+  bottleQty: number
+  totalBottleQty: number
+  unitPrice: number
+  subtotalAmount: number
+  reason: string
+}
+
+export interface PurchaseReturnRecord {
+  id: number
+  returnNo: string
+  purchaseNo: string
+  orderNo: string
+  supplierId: number
+  supplierName: string
+  status: string
+  returnStatus: string
+  totalAmount: number
+  goodsAmount: number
+  refundAmount: number
+  refundedAmount: number
+  refundMethod: string
+  reason: string
+  operatorId: number
+  auditorId: number
+  auditedAt: string
+  remark: string
+  createdAt: string
+  updatedAt: string
+}
+
+export interface PurchaseReturnDetail extends PurchaseReturnRecord {
+  items: PurchaseReturnItem[]
+}
+
+export function fetchPurchaseReturns(params: {
+  page?: number
+  pageSize?: number
+  keyword?: string
+  status?: string
+  returnStatus?: string
+  supplierId?: number
+}) {
+  return api.get('/store/purchase-returns', { params })
+}
+
+export function fetchPurchaseReturnDetail(returnNo: string | number) {
+  return api.get(`/store/purchase-returns/${returnNo}`)
+}
+
+export function createPurchaseReturn(data: {
+  purchaseNo?: string
+  supplierId?: number
+  supplierName?: string
+  reason: string
+  remark?: string
+  items: {
+    skuId: number
+    returnQty: number
+    returnPrice: number
+    reason?: string
+  }[]
+}) {
+  return api.post('/store/purchase-returns', data)
+}
+
+export type CreatePurchaseReturnParams = Parameters<typeof createPurchaseReturn>[0]
+
+export function approvePurchaseReturn(returnNo: string) {
+  return api.post(`/store/purchase-returns/${returnNo}/approve`)
+}
+
+/* ========== 客户往来账 ========== */
+
+export interface StatementRecord {
+  id: number
+  statementNo: string
+  customerId: number
+  customerName: string
+  customerMobile: string
+  periodStart: string
+  periodEnd: string
+  openingBalance: number
+  periodReceivable: number
+  periodReceived: number
+  closingBalance: number
+  status: string
+  operatorId: number
+  createdAt: string
+  updatedAt: string
+}
+
+export interface StatementDetail extends StatementRecord {
+  details: {
+    id: number
+    date: string
+    type: string
+    billNo: string
+    summary: string
+    debit: number
+    credit: number
+    balance: number
+    remark: string
+  }[]
+}
+
+export function fetchStatements(params: {
+  page?: number
+  pageSize?: number
+  keyword?: string
+  status?: string
+  customerId?: number
+}) {
+  return api.get('/store/customer-statements', { params })
+}
+
+export function fetchStatementDetail(statementNo: string) {
+  return api.get(`/store/customer-statements/${statementNo}`)
+}
+
+export function generateStatement(data: {
+  customerId?: number
+  memberId?: number
+  periodStart: string
+  periodEnd: string
+}) {
+  return api.post('/store/customer-statements/generate', data)
+}
+
+export function confirmStatement(statementNo: string) {
+  return api.post(`/store/customer-statements/${statementNo}/confirm`)
+}
+
+export function recordStatementPayment(statementNo: string, data: {
+  amount: number
+  paymentMethod: string
+  paymentDate: string
+  remark?: string
+}) {
+  return api.post(`/store/customer-statements/${statementNo}/payment`, data)
+}
+
+export function fetchStatementPayments(params: {
+  page?: number
+  pageSize?: number
+  customerId?: number
+}) {
+  return api.get('/store/customer-payments', { params })
 }

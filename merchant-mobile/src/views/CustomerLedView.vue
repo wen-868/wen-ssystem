@@ -1,15 +1,13 @@
 <script setup lang="ts">
-import { ref, computed, onMounted } from 'vue'
+import { ref, onMounted } from 'vue'
 import { showToast } from 'vant'
 import {
   fetchCustomerLedgers,
   fetchCustomerLedgerDetail,
   type CustomerLedgerSummary,
-  type CustomerLedgerRecord,
   type CustomerLedgerDetail
 } from '../api'
 
-const activeTab = ref('all')
 const keyword = ref('')
 const dateRange = ref({ start: '', end: '' })
 
@@ -74,10 +72,6 @@ function onRefresh() {
   loadLedgers(true)
 }
 
-function onTabChange() {
-  loadLedgers(true)
-}
-
 function onSearch() {
   loadLedgers(true)
 }
@@ -109,12 +103,6 @@ function getTransactionTypeColor(type: string) {
 
 function getSourceTypeText(type: string) {
   return SOURCE_TYPE_MAP[type] || type
-}
-
-function formatAmount(amount: number, isDebit: boolean) {
-  const formatted = Math.abs(amount).toFixed(2)
-  if (isDebit) return `-${formatted}`
-  return formatted
 }
 
 function goBack() {
