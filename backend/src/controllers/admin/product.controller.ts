@@ -8,7 +8,8 @@ export const listProducts = asyncHandler(async (req, res) => {
   const page = Number(req.query.page || 1);
   const pageSize = Number(req.query.pageSize || 20);
   const keyword = String(req.query.keyword || "");
-  const result = await productService.listProducts(keyword, page, pageSize, tenantId);
+  const category = req.query.category ? String(req.query.category) : undefined;
+  const result = await productService.listProducts(keyword, page, pageSize, tenantId, category);
   res.json(ok(result));
 });
 

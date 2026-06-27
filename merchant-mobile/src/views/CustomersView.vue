@@ -1,10 +1,7 @@
 <script setup lang="ts">
 import { ref } from 'vue'
 import {
-  showLoadingToast,
-  showSuccessToast,
-  showToast,
-  closeToast
+  showToast
 } from 'vant'
 import { fetchCustomers, createCustomer, type CustomerRecord } from '../api'
 

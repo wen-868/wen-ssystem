@@ -50,6 +50,7 @@ adminRouter.get("/sale-bills/export-csv", requireAuthWithTenant, orderController
 
 // ============ 客户管理 ============
 adminRouter.get("/members", requireAuthWithTenant, customerController.listMembers);
+adminRouter.get("/customers", requireAuthWithTenant, customerController.listMembers);
 adminRouter.post("/members", requireAuthWithTenant, customerController.createCustomer);
 adminRouter.get("/members/:id", requireAuthWithTenant, customerController.getCustomerDetail);
 adminRouter.put("/members/:id", requireAuthWithTenant, customerController.updateCustomer);

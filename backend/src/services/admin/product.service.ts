@@ -3,27 +3,50 @@ import { makeBizNo } from "../../shared/id.js";
 import { syncChangedFields, detectChangedFields } from "../../shared/field-sync.js";
 import { syncProductStatus, syncProductPrice } from "../../shared/product-sync.js";
 
-export async function listProducts(keyword: string, page: number, pageSize: number, tenantId: string) {
+export async function listProducts(keyword: string, page: number, pageSize: number, tenantId: string, category?: string) {
   const like = `%${keyword}%`;
   const offset = (page - 1) * pageSize;
+
+  let categoryJoin = '';
+  let categoryWhere = '';
+  const params: unknown[] = [tenantId, like, like, like];
+
+  if (category) {
+    categoryJoin = 'JOIN product_category pc ON pc.id = p.category_id';
+    categoryWhere = 'AND pc.name = ?';
+    params.push(category);
+  }
+
+  params.push(pageSize, offset);
+
   const records = await queryWithTenant<any>(
     `SELECT p.id AS spuId, s.id AS skuId, p.name, p.main_image AS mainImage, s.sku_name AS skuName, s.sku_code AS skuCode, s.barcode,
-            pp.retail_price AS retailPrice, pp.wholesale_price AS wholesalePrice, p.status
-     FROM product_sku s
+            pp.retail_price AS retailPrice, pp.wholesale_price AS wholesalePrice, pp.store_price AS storePrice, p.status,
+            s.box_ratio AS boxRatio, s.box_unit AS boxUnit, s.base_unit AS baseUnit,
+            NULL AS alcoholContent, NULL AS origin` +
+    (category ? `, pc.name AS categoryName` : `, NULL AS categoryName`) +
+    `\n     FROM product_sku s
      JOIN product_spu p ON p.id = s.spu_id
      JOIN product_price pp ON pp.sku_id = s.id
-     WHERE p.tenant_id = ? AND (p.name LIKE ? OR s.sku_code LIKE ? OR s.barcode LIKE ?)
+     ${categoryJoin}
+     WHERE p.tenant_id = ? AND (p.name LIKE ? OR s.sku_code LIKE ? OR s.barcode LIKE ?) ${categoryWhere}
      ORDER BY p.id DESC, s.id DESC
      LIMIT ? OFFSET ?`,
-    [tenantId, like, like, like, pageSize, offset],
+    params,
     tenantId
   );
+
+  const countParams: unknown[] = [tenantId, like, like, like];
+  if (category) {
+    countParams.push(category);
+  }
   const totalRow = await queryOneWithTenant<any>(
     `SELECT COUNT(*) AS total
      FROM product_sku s
      JOIN product_spu p ON p.id = s.spu_id
-     WHERE p.tenant_id = ? AND (p.name LIKE ? OR s.sku_code LIKE ? OR s.barcode LIKE ?)`,
-    [tenantId, like, like, like],
+     ${category ? 'JOIN product_category pc ON pc.id = p.category_id' : ''}
+     WHERE p.tenant_id = ? AND (p.name LIKE ? OR s.sku_code LIKE ? OR s.barcode LIKE ?) ${category ? 'AND pc.name = ?' : ''}`,
+    countParams,
     tenantId
   );
   return { total: totalRow?.total ?? 0, page, pageSize, records };

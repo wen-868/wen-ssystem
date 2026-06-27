@@ -7,7 +7,19 @@ export async function listMembers(tenantId: string, page: number, pageSize: numb
   const records = await queryWithTenant<any>(
     `SELECT m.id AS memberId, m.name, m.mobile, m.customer_type AS customerType,
             m.points, m.level_code AS levelCode, m.status,
-            m.staff_id AS staffId, u.real_name AS staffName
+            m.staff_id AS staffId, u.real_name AS staffName,
+            COALESCE(
+              (SELECT SUM(receivable_amount)
+               FROM sale_bill
+               WHERE customer_id = m.id AND business_status NOT IN ('DRAFT', 'VOIDED')),
+              0
+            ) AS totalSpent,
+            COALESCE(
+              (SELECT SUM(unreceived_amount)
+               FROM sale_bill
+               WHERE customer_id = m.id AND business_status NOT IN ('DRAFT', 'VOIDED')),
+              0
+            ) AS arrears
      FROM member m
      LEFT JOIN sys_user u ON u.id = m.staff_id
      WHERE m.tenant_id = ? AND (m.name LIKE ? OR m.mobile LIKE ?)
