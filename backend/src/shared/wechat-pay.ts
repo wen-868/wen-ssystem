@@ -1,6 +1,5 @@
 import crypto from 'crypto';
 import fs from 'fs';
-import fetch from 'node-fetch';
 import { env } from './env.js';
 
 interface WechatPayConfig {
