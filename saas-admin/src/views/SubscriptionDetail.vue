@@ -54,6 +54,8 @@
       <el-empty v-if="!detail.logs?.length" description="暂无变更记录" style="margin: 20px 0;" />
     </el-card>
 
+    <el-empty v-if="!loading && !detail" description="暂无订阅数据" />
+
     <!-- 续费 -->
     <el-dialog v-model="showRenewDialog" title="续费" width="480px" :close-on-click-modal="false">
       <el-form :model="renewForm" label-width="120px">

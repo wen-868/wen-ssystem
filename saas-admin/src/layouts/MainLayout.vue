@@ -33,6 +33,11 @@
           <el-icon><Setting /></el-icon>
           <template #title>平台配置</template>
         </el-menu-item>
+
+        <el-menu-item index="/audit-logs">
+          <el-icon><List /></el-icon>
+          <template #title>操作日志</template>
+        </el-menu-item>
       </el-menu>
     </aside>
 

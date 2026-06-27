@@ -1201,3 +1201,100 @@ export async function fetchStockCheckStatistics() {
   const { data } = await api.get("/admin/stock-checks/statistics");
   return data.data;
 }
+
+// ==================== Instant Retail APIs ====================
+export async function fetchInstantRetailConfigs(params?: { page?: number; pageSize?: number }) {
+  const { data } = await api.get("/admin/instant-retail/configs", { params: { page: 1, pageSize: 20, ...params } });
+  return data.data;
+}
+export async function createInstantRetailConfig(payload: unknown) {
+  const { data } = await api.post("/admin/instant-retail/configs", payload);
+  return data.data;
+}
+export async function updateInstantRetailConfig(id: number, payload: unknown) {
+  const { data } = await api.put(`/admin/instant-retail/configs/${id}`, payload);
+  return data.data;
+}
+
+export async function fetchShelfProducts(params?: { keyword?: string; category?: string; page?: number; pageSize?: number }) {
+  const { data } = await api.get("/admin/instant-retail/shelf", { params: { page: 1, pageSize: 20, ...params } });
+  return data.data;
+}
+export async function addShelfProduct(payload: unknown) {
+  const { data } = await api.post("/admin/instant-retail/shelf", payload);
+  return data.data;
+}
+export async function removeShelfProduct(id: number) {
+  const { data } = await api.delete(`/admin/instant-retail/shelf/${id}`);
+  return data.data;
+}
+export async function updateShelfProduct(id: number, payload: unknown) {
+  const { data } = await api.put(`/admin/instant-retail/shelf/${id}`, payload);
+  return data.data;
+}
+
+export async function fetchInstantOrders(params?: { keyword?: string; status?: string; dateStart?: string; dateEnd?: string; page?: number; pageSize?: number }) {
+  const { data } = await api.get("/admin/instant-retail/orders", { params: { page: 1, pageSize: 20, ...params } });
+  return data.data;
+}
+export async function fetchInstantOrderDetail(orderNo: string) {
+  const { data } = await api.get(`/admin/instant-retail/orders/${orderNo}`);
+  return data.data;
+}
+export async function confirmInstantOrder(orderNo: string) {
+  const { data } = await api.post(`/admin/instant-retail/orders/${orderNo}/confirm`);
+  return data.data;
+}
+export async function cancelInstantOrder(orderNo: string) {
+  const { data } = await api.post(`/admin/instant-retail/orders/${orderNo}/cancel`);
+  return data.data;
+}
+export async function refundInstantOrder(orderNo: string) {
+  const { data } = await api.post(`/admin/instant-retail/orders/${orderNo}/refund`);
+  return data.data;
+}
+
+export async function fetchInstantPayments(params?: { orderNo?: string; paymentMethod?: string; status?: string; dateStart?: string; dateEnd?: string; page?: number; pageSize?: number }) {
+  const { data } = await api.get("/admin/instant-retail/payments", { params: { page: 1, pageSize: 20, ...params } });
+  return data.data;
+}
+export async function fetchInstantPaymentDetail(paymentNo: string) {
+  const { data } = await api.get(`/admin/instant-retail/payments/${paymentNo}`);
+  return data.data;
+}
+
+export async function fetchInstantDeliveries(params?: { orderNo?: string; deliveryStatus?: string; dateStart?: string; dateEnd?: string; page?: number; pageSize?: number }) {
+  const { data } = await api.get("/admin/instant-retail/deliveries", { params: { page: 1, pageSize: 20, ...params } });
+  return data.data;
+}
+export async function assignDelivery(deliveryId: number, payload: { riderId: number; riderName: string }) {
+  const { data } = await api.post(`/admin/instant-retail/deliveries/${deliveryId}/assign`, payload);
+  return data.data;
+}
+export async function updateDeliveryStatus(deliveryId: number, payload: { status: string }) {
+  const { data } = await api.put(`/admin/instant-retail/deliveries/${deliveryId}/status`, payload);
+  return data.data;
+}
+
+export async function fetchInstantReportSummary(params?: { dateStart?: string; dateEnd?: string }) {
+  const { data } = await api.get("/admin/instant-retail/reports/summary", { params });
+  return data.data;
+}
+export async function fetchInstantReportTrend(params?: { dateStart?: string; dateEnd?: string }) {
+  const { data } = await api.get("/admin/instant-retail/reports/trend", { params });
+  return data.data;
+}
+
+export async function fetchInstantPlatformConfig() {
+  const { data } = await api.get("/admin/instant-retail/platform/config");
+  return data.data;
+}
+export async function updateInstantPlatformConfig(payload: unknown) {
+  const { data } = await api.put("/admin/instant-retail/platform/config", payload);
+  return data.data;
+}
+
+export async function fetchOrderBoardData() {
+  const { data } = await api.get("/admin/instant-retail/order-board");
+  return data.data;
+}

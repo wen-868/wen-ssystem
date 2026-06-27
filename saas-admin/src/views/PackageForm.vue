@@ -227,7 +227,8 @@ const rules: FormRules = {
   planName: [{ required: true, message: "请输入套餐名称", trigger: "blur" }],
   planType: [{ required: true, message: "请选择套餐类型", trigger: "change" }],
   price: [{ required: true, type: "number", message: "请输入售价", trigger: "blur" }],
-  durationDays: [{ required: true, type: "number", message: "请输入有效期", trigger: "blur" }]
+  durationDays: [{ required: true, type: "number", message: "请输入有效期", trigger: "blur" }],
+  maxUsers: [{ required: true, type: "number", message: "请输入最大用户数", trigger: "blur" }]
 };
 
 function goBack() {

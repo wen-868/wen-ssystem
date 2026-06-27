@@ -5,11 +5,11 @@
     <el-tabs v-model="activeTab" type="border-card">
       <!-- 全局参数 -->
       <el-tab-pane label="全局参数" name="general">
-        <el-form :model="config" label-width="140px" style="max-width: 760px; padding: 20px;">
-          <el-form-item label="平台名称">
+        <el-form ref="generalFormRef" :model="config" :rules="generalRules" label-width="140px" style="max-width: 760px; padding: 20px;">
+          <el-form-item label="平台名称" prop="platformName">
             <el-input v-model="config.platformName" placeholder="如：OnePan 运营平台" />
           </el-form-item>
-          <el-form-item label="客服电话">
+          <el-form-item label="客服电话" prop="servicePhone">
             <el-input v-model="config.servicePhone" placeholder="如：400-XXX-XXXX" />
           </el-form-item>
           <el-form-item label="客服邮箱">
@@ -167,11 +167,18 @@
 
 <script setup lang="ts">
 import { ref, reactive, onMounted } from "vue";
-import { ElMessage } from "element-plus";
+import { ElMessage, type FormInstance, type FormRules } from "element-plus";
 import { getPlatformConfig, updatePlatformConfig, getPlans } from "../api";
 
 const activeTab = ref("general");
 const saving = ref(false);
+const generalFormRef = ref<FormInstance>();
+const generalRules: FormRules = {
+  platformName: [{ required: true, message: "请输入平台名称", trigger: "blur" }],
+  servicePhone: [
+    { pattern: /^[\d-+() ]{6,20}$/, message: "请输入正确的电话号码", trigger: "blur" }
+  ]
+};
 const planOptions = ref<any[]>([]);
 
 const config = reactive<any>({
@@ -213,6 +220,13 @@ async function fetchPlans() {
 }
 
 async function saveConfig() {
+  if (activeTab.value === "general") {
+    try {
+      await generalFormRef.value?.validate();
+    } catch {
+      return;
+    }
+  }
   saving.value = true;
   try {
     await updatePlatformConfig({ ...config });

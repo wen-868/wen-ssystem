@@ -79,6 +79,7 @@
           </template>
         </el-table-column>
       </el-table>
+      <el-empty v-if="!loading && list.length === 0" description="暂无套餐数据" />
     </el-card>
   </div>
 </template>

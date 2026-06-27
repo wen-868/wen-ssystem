@@ -191,3 +191,8 @@ export function getPlatformConfig() {
 export function updatePlatformConfig(data: any) {
   return api.put<any, { data: ApiResult<any> }>("/admin/sys-config", data);
 }
+
+// ==================== 操作日志 ====================
+export function getAuditLogs(params?: { keyword?: string; action?: string; userId?: number; page?: number; pageSize?: number }) {
+  return api.get<any, { data: ApiResult<any> }>("/admin/audit-logs", { params: { page: 1, pageSize: 20, ...params } });
+}

@@ -56,6 +56,8 @@
         </el-table-column>
       </el-table>
 
+      <el-empty v-if="!loading && list.length === 0" description="暂无订阅数据" />
+
       <div style="display: flex; justify-content: flex-end; margin-top: 16px;">
         <el-pagination
           v-model:current-page="page"

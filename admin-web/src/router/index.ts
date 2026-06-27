@@ -48,16 +48,16 @@ const routes = [
     meta: { requiresAuth: true },
     children: [
       // 1. 工作台
-      { path: "dashboard", name: "Dashboard", component: () => import("../views/Dashboard.vue") },
+      { path: "dashboard", name: "Dashboard", component: () => import("../views/Dashboard.vue"), meta: { roles: ["BOSS", "MGR"] } },
       // 2. 销售管理
-      { path: "sales/create", name: "SalesOrderCreate", component: () => import("../views/SalesOrderCreate.vue") },
-      { path: "sale-bills", name: "SaleBills", component: () => import("../views/SaleBills.vue") },
-      { path: "sale-returns", name: "SaleReturns", component: () => import("../views/SaleReturnsView.vue") },
-      { path: "collection", name: "Collection", component: () => import("../views/Collection.vue") },
+      { path: "sales/create", name: "SalesOrderCreate", component: () => import("../views/SalesOrderCreate.vue"), meta: { roles: ["BOSS", "MGR"] } },
+      { path: "sale-bills", name: "SaleBills", component: () => import("../views/SaleBills.vue"), meta: { roles: ["BOSS", "MGR"] } },
+      { path: "sale-returns", name: "SaleReturns", component: () => import("../views/SaleReturnsView.vue"), meta: { roles: ["BOSS", "MGR"] } },
+      { path: "collection", name: "Collection", component: () => import("../views/Collection.vue"), meta: { roles: ["BOSS", "MGR"] } },
       // 3. 订单管理
-      { path: "orders", name: "Orders", component: () => import("../views/Orders.vue") },
-      { path: "order-board", name: "OrderBoard", component: () => import("../views/OrderBoardView.vue") },
-      { path: "order-timeout", name: "OrderTimeout", component: () => import("../views/OrderTimeoutView.vue") },
+      { path: "orders", name: "Orders", component: () => import("../views/Orders.vue"), meta: { roles: ["BOSS", "MGR"] } },
+      { path: "order-board", name: "OrderBoard", component: () => import("../views/OrderBoardView.vue"), meta: { roles: ["BOSS", "MGR"] } },
+      { path: "order-timeout", name: "OrderTimeout", component: () => import("../views/OrderTimeoutView.vue"), meta: { roles: ["BOSS", "MGR"] } },
       // 4. 采购管理
       { path: "purchase-orders", name: "PurchaseOrders", component: () => import("../views/PurchaseOrders.vue"), meta: { roles: ["BOSS"] } },
       { path: "purchase-in-stocks", name: "PurchaseInStocks", component: () => import("../views/PurchaseInStocks.vue"), meta: { roles: ["BOSS"] } },
@@ -65,18 +65,20 @@ const routes = [
       { path: "purchase-payments", name: "PurchasePayments", component: () => import("../views/PurchasePayments.vue"), meta: { roles: ["BOSS"] } },
       { path: "suppliers", name: "Suppliers", component: () => import("../views/Suppliers.vue"), meta: { roles: ["BOSS"] } },
       // 5. 库存管理
-      { path: "inventory", name: "Inventory", component: () => import("../views/Inventory.vue") },
+      { path: "inventory", name: "Inventory", component: () => import("../views/Inventory.vue"), meta: { roles: ["BOSS", "MGR"] } },
       { path: "inventory-check", name: "InventoryCheck", component: () => import("../views/InventoryCheck.vue"), meta: { roles: ["BOSS"] } },
       { path: "inventory-transfer", name: "InventoryTransfer", component: () => import("../views/InventoryTransfer.vue"), meta: { roles: ["BOSS"] } },
       { path: "inventory-batch", name: "InventoryBatch", component: () => import("../views/InventoryBatch.vue"), meta: { roles: ["BOSS"] } },
-      { path: "inventory-alerts", name: "InventoryAlerts", component: () => import("../views/InventoryAlerts.vue") },
+      { path: "inventory-batch-price", name: "InventoryBatchPrice", component: () => import("../views/InventoryBatchPrice.vue"), meta: { roles: ["BOSS"] } },
+      { path: "inventory-price-quote", name: "InventoryPriceQuote", component: () => import("../views/InventoryPriceQuote.vue"), meta: { roles: ["BOSS"] } },
+      { path: "inventory-alerts", name: "InventoryAlerts", component: () => import("../views/InventoryAlerts.vue"), meta: { roles: ["BOSS", "MGR"] } },
       // 6. 客户管理
-      { path: "customers", name: "Customers", component: () => import("../views/CustomersView.vue") },
-      { path: "credit", name: "Credit", component: () => import("../views/CreditView.vue") },
+      { path: "customers", name: "Customers", component: () => import("../views/CustomersView.vue"), meta: { roles: ["BOSS", "MGR"] } },
+      { path: "credit", name: "Credit", component: () => import("../views/CreditView.vue"), meta: { roles: ["BOSS", "MGR"] } },
       // 7. 商品中心
-      { path: "products", name: "Products", component: () => import("../views/Products.vue") },
+      { path: "products", name: "Products", component: () => import("../views/Products.vue"), meta: { roles: ["BOSS", "MGR"] } },
       { path: "products/categories", name: "ProductCategories", component: () => import("../views/ProductCategories.vue"), meta: { roles: ["BOSS"] } },
-      { path: "prices", name: "Prices", component: () => import("../views/PricesView.vue") },
+      { path: "prices", name: "Prices", component: () => import("../views/PricesView.vue"), meta: { roles: ["BOSS", "MGR"] } },
       // 8. 即时零售
       { path: "instant-retail/config", name: "InstantRetailConfig", component: () => import("../views/InstantRetailConfig.vue"), meta: { roles: ["BOSS"] } },
       { path: "instant-retail/shelf", name: "InstantRetailShelf", component: () => import("../views/InstantRetailShelf.vue"), meta: { roles: ["BOSS"] } },

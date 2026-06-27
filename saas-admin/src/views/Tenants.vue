@@ -82,6 +82,8 @@
         </el-table-column>
       </el-table>
 
+      <el-empty v-if="!loading && list.length === 0" description="暂无租户数据" />
+
       <div style="margin-top: 16px; display: flex; justify-content: flex-end;">
         <el-pagination
           v-model:current-page="page"
@@ -345,7 +347,10 @@ const createForm = reactive({
 const createRules: FormRules = {
   companyName: [{ required: true, message: "请输入公司名称", trigger: "blur" }],
   contactPerson: [{ required: true, message: "请输入联系人", trigger: "blur" }],
-  contactMobile: [{ required: true, message: "请输入联系电话", trigger: "blur" }]
+  contactMobile: [
+    { required: true, message: "请输入联系电话", trigger: "blur" },
+    { pattern: /^1[3-9]\d{9}$/, message: "请输入正确的手机号", trigger: "blur" }
+  ]
 };
 
 async function handleCreate() {

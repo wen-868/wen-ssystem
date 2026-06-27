@@ -82,6 +82,7 @@
 
 <script setup lang="ts">
 import { ref, reactive, onMounted, onUnmounted } from "vue";
+import { ElMessage } from "element-plus";
 import * as echarts from "echarts";
 import { getPlatformOverview } from "../api";
 
@@ -111,7 +112,8 @@ async function fetchOverview() {
     const data = res.data?.data || (res as any).data || res;
     Object.assign(overview, data);
     renderCharts(data);
-  } catch {
+  } catch (e: any) {
+    ElMessage.error(e?.response?.data?.message || "加载看板数据失败");
     // 加载失败时用空数据渲染
     renderCharts({});
   } finally {
