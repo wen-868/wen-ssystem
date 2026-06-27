@@ -562,12 +562,12 @@ export async function runCheck(tenantId: string) {
 
 export function startAlertScheduler() {
   const intervalMs = 60 * 60 * 1000;
-  console.log(`[预警引擎] 定时检查已启动，间隔 ${intervalMs / 1000} 秒`);
+  console.info(`[预警引擎] 定时检查已启动，间隔 ${intervalMs / 1000} 秒`);
 
   setTimeout(async () => {
     try {
       const result = await runAllAlertChecks();
-      console.log(`[预警引擎] 首次检查完成，新增预警 ${result.total} 条`);
+      console.info(`[预警引擎] 首次检查完成，新增预警 ${result.total} 条`);
     } catch (error) {
       console.error("[预警引擎] 首次检查失败:", error);
     }
@@ -577,7 +577,7 @@ export function startAlertScheduler() {
     try {
       const result = await runAllAlertChecks();
       if (result.total > 0) {
-        console.log(`[预警引擎] 定时检查完成，新增预警 ${result.total} 条`);
+        console.info(`[预警引擎] 定时检查完成，新增预警 ${result.total} 条`);
       }
     } catch (error) {
       console.error("[预警引擎] 定时检查失败:", error);

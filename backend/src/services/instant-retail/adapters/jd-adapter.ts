@@ -44,7 +44,7 @@ export class JdAdapter extends AbstractPlatformAdapter {
 
     const signStr = this.sign({ app_key: appKey, timestamp, app_secret: appSecret });
 
-    console.log(`[JD] Authenticating with sign: ${signStr}`);
+    console.info(`[JD] Authenticating with sign: ${signStr}`);
 
     const expireAt = new Date(Date.now() + 7200 * 1000);
     const creds: PlatformCredentials = {
@@ -91,7 +91,7 @@ export class JdAdapter extends AbstractPlatformAdapter {
       this.createMockOrder(`JD${Date.now()}${i}`, params?.status ?? 'PENDING')
     );
 
-    console.log(`[JD] Synced ${mockOrders.length} orders`);
+    console.info(`[JD] Synced ${mockOrders.length} orders`);
 
     return {
       orders: mockOrders,
@@ -109,7 +109,7 @@ export class JdAdapter extends AbstractPlatformAdapter {
    */
   async confirmOrder(platformOrderId: string): Promise<boolean> {
     await this.ensureAuthenticated();
-    console.log(`[JD] Confirming order: ${platformOrderId}`);
+    console.info(`[JD] Confirming order: ${platformOrderId}`);
     return true;
   }
 
@@ -126,7 +126,7 @@ export class JdAdapter extends AbstractPlatformAdapter {
     courierInfo?: { name?: string; phone?: string; courierId?: string }
   ): Promise<boolean> {
     await this.ensureAuthenticated();
-    console.log(`[JD] Starting delivery for order: ${platformOrderId}`, courierInfo);
+    console.info(`[JD] Starting delivery for order: ${platformOrderId}`, courierInfo);
     return true;
   }
 
@@ -139,7 +139,7 @@ export class JdAdapter extends AbstractPlatformAdapter {
    */
   async completeDelivery(platformOrderId: string): Promise<boolean> {
     await this.ensureAuthenticated();
-    console.log(`[JD] Completing delivery for order: ${platformOrderId}`);
+    console.info(`[JD] Completing delivery for order: ${platformOrderId}`);
     return true;
   }
 
@@ -153,7 +153,7 @@ export class JdAdapter extends AbstractPlatformAdapter {
    */
   async cancelOrder(platformOrderId: string, reason?: string): Promise<boolean> {
     await this.ensureAuthenticated();
-    console.log(`[JD] Cancelling order: ${platformOrderId}, reason: ${reason ?? 'N/A'}`);
+    console.info(`[JD] Cancelling order: ${platformOrderId}, reason: ${reason ?? 'N/A'}`);
     return true;
   }
 
@@ -194,7 +194,7 @@ export class JdAdapter extends AbstractPlatformAdapter {
       storeId: this.credentials?.storeId ?? 'mock_store',
     }));
 
-    console.log(`[JD] Synced ${mockProducts.length} products`);
+    console.info(`[JD] Synced ${mockProducts.length} products`);
 
     return {
       products: mockProducts,
@@ -212,7 +212,7 @@ export class JdAdapter extends AbstractPlatformAdapter {
   async updateInventory(params: UpdateInventoryParams[]): Promise<UpdateInventoryResult[]> {
     await this.ensureAuthenticated();
 
-    console.log(`[JD] Updating inventory for ${params.length} items`);
+    console.info(`[JD] Updating inventory for ${params.length} items`);
 
     return params.map((p) => ({
       success: true,
@@ -244,7 +244,7 @@ export class JdAdapter extends AbstractPlatformAdapter {
     const expectedSign = this.md5(`${payloadStr}${ts}${appSecret}`);
     const valid = expectedSign === signature;
 
-    console.log(`[JD] Webhook verification: ${valid ? 'passed' : 'failed'}`);
+    console.info(`[JD] Webhook verification: ${valid ? 'passed' : 'failed'}`);
 
     return {
       valid,

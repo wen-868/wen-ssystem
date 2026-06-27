@@ -1,12 +1,19 @@
-import { createHash } from "node:crypto";
+import bcrypt from "bcryptjs";
 
-export function sha256(input: string) {
-  return createHash("sha256").update(input).digest("hex");
+const SALT_ROUNDS = 10;
+
+export function hashPassword(password: string): Promise<string> {
+  return bcrypt.hash(password, SALT_ROUNDS);
 }
 
-export function verifyPassword(inputPassword: string, passwordHash: string) {
-  // 第 1 阶段开发环境支持两种形式：
-  // 1. 推荐：数据库保存 SHA-256 哈希
-  // 2. 兼容：本地调试可临时保存明文，后续正式版本替换为 bcrypt/argon2
-  return passwordHash === sha256(inputPassword) || passwordHash === inputPassword;
+export function hashPasswordSync(password: string): string {
+  return bcrypt.hashSync(password, SALT_ROUNDS);
+}
+
+export async function verifyPassword(inputPassword: string, passwordHash: string): Promise<boolean> {
+  return bcrypt.compare(inputPassword, passwordHash);
+}
+
+export function verifyPasswordSync(inputPassword: string, passwordHash: string): boolean {
+  return bcrypt.compareSync(inputPassword, passwordHash);
 }

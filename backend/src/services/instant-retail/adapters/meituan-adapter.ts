@@ -45,7 +45,7 @@ export class MeituanAdapter extends AbstractPlatformAdapter {
 
     const signStr = this.sign({ app_id: appKey, timestamp, app_secret: appSecret });
 
-    console.log(`[MEITUAN] Authenticating with sign: ${signStr}`);
+    console.info(`[MEITUAN] Authenticating with sign: ${signStr}`);
 
     const expireAt = new Date(Date.now() + 86400 * 1000);
     const creds: PlatformCredentials = {
@@ -93,7 +93,7 @@ export class MeituanAdapter extends AbstractPlatformAdapter {
       this.createMockOrder(`MT${Date.now()}${i}`, params?.status ?? 'PENDING')
     );
 
-    console.log(`[MEITUAN] Synced ${mockOrders.length} orders (pull mode)`);
+    console.info(`[MEITUAN] Synced ${mockOrders.length} orders (pull mode)`);
 
     return {
       orders: mockOrders,
@@ -111,7 +111,7 @@ export class MeituanAdapter extends AbstractPlatformAdapter {
    */
   async confirmOrder(platformOrderId: string): Promise<boolean> {
     await this.ensureAuthenticated();
-    console.log(`[MEITUAN] Confirming order: ${platformOrderId}`);
+    console.info(`[MEITUAN] Confirming order: ${platformOrderId}`);
     return true;
   }
 
@@ -128,7 +128,7 @@ export class MeituanAdapter extends AbstractPlatformAdapter {
     courierInfo?: { name?: string; phone?: string; courierId?: string }
   ): Promise<boolean> {
     await this.ensureAuthenticated();
-    console.log(`[MEITUAN] Starting delivery for order: ${platformOrderId}`, courierInfo);
+    console.info(`[MEITUAN] Starting delivery for order: ${platformOrderId}`, courierInfo);
     return true;
   }
 
@@ -141,7 +141,7 @@ export class MeituanAdapter extends AbstractPlatformAdapter {
    */
   async completeDelivery(platformOrderId: string): Promise<boolean> {
     await this.ensureAuthenticated();
-    console.log(`[MEITUAN] Completing delivery for order: ${platformOrderId}`);
+    console.info(`[MEITUAN] Completing delivery for order: ${platformOrderId}`);
     return true;
   }
 
@@ -155,7 +155,7 @@ export class MeituanAdapter extends AbstractPlatformAdapter {
    */
   async cancelOrder(platformOrderId: string, reason?: string): Promise<boolean> {
     await this.ensureAuthenticated();
-    console.log(`[MEITUAN] Cancelling order: ${platformOrderId}, reason: ${reason ?? 'N/A'}`);
+    console.info(`[MEITUAN] Cancelling order: ${platformOrderId}, reason: ${reason ?? 'N/A'}`);
     return true;
   }
 
@@ -196,7 +196,7 @@ export class MeituanAdapter extends AbstractPlatformAdapter {
       storeId: this.credentials?.storeId ?? 'mock_store',
     }));
 
-    console.log(`[MEITUAN] Synced ${mockProducts.length} products`);
+    console.info(`[MEITUAN] Synced ${mockProducts.length} products`);
 
     return {
       products: mockProducts,
@@ -214,7 +214,7 @@ export class MeituanAdapter extends AbstractPlatformAdapter {
   async updateInventory(params: UpdateInventoryParams[]): Promise<UpdateInventoryResult[]> {
     await this.ensureAuthenticated();
 
-    console.log(`[MEITUAN] Updating inventory for ${params.length} items`);
+    console.info(`[MEITUAN] Updating inventory for ${params.length} items`);
 
     return params.map((p) => ({
       success: true,
@@ -246,7 +246,7 @@ export class MeituanAdapter extends AbstractPlatformAdapter {
     const expectedSign = this.hmacSha256(`${payloadStr}${ts}`, appSecret);
     const valid = expectedSign === signature;
 
-    console.log(`[MEITUAN] Webhook verification: ${valid ? 'passed' : 'failed'}`);
+    console.info(`[MEITUAN] Webhook verification: ${valid ? 'passed' : 'failed'}`);
 
     return {
       valid,

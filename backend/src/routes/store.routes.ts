@@ -3,7 +3,6 @@ import { z } from "zod";
 import { asyncHandler } from "../shared/async-handler.js";
 import { requireAuthWithTenant, getUserAccessInfo, signToken } from "../shared/auth.js";
 import { query, queryOne } from "../shared/db.js";
-import { verifyPassword } from "../shared/password.js";
 import { ok } from "../shared/response.js";
 import * as authController from "../controllers/store/auth.controller.js";
 import * as productController from "../controllers/store/product.controller.js";

@@ -22,13 +22,13 @@ function test(name, fn) {
   return fn().then(
     (result) => {
       passed++;
-      console.log(`  ✅ ${name}`);
+      console.info(`  ✅ ${name}`);
       results.push({ name, status: "pass" });
       return result;
     },
     (err) => {
       failed++;
-      console.log(`  ❌ ${name}: ${err.message}`);
+      console.info(`  ❌ ${name}: ${err.message}`);
       results.push({ name, status: "fail", error: err.message });
       return null;
     }
@@ -50,7 +50,7 @@ function assertField(obj, field, type = "string") {
 }
 
 async function testAuth() {
-  console.log("\n=== 认证模块测试 ===");
+  console.info("\n=== 认证模块测试 ===");
   await test("管理员登录", async () => {
     const { status, data } = await request("POST", "/store/auth/login", {
       username: "admin",
@@ -64,7 +64,7 @@ async function testAuth() {
 }
 
 async function testSupplierModule() {
-  console.log("\n=== 供应商管理模块测试 ===");
+  console.info("\n=== 供应商管理模块测试 ===");
   let supplierId = null;
   let supplierCode = null;
 
@@ -116,12 +116,12 @@ async function testSupplierModule() {
     return data.data;
   });
 
-  console.log(`  供应商ID: ${supplierId}, 编码: ${supplierCode}`);
+  console.info(`  供应商ID: ${supplierId}, 编码: ${supplierCode}`);
   return supplierId;
 }
 
 async function testPurchaseModule(supplierId) {
-  console.log("\n=== 采购订单模块测试 ===");
+  console.info("\n=== 采购订单模块测试 ===");
   let purchaseNo = null;
 
   await test("创建采购订单", async () => {
@@ -184,12 +184,12 @@ async function testPurchaseModule(supplierId) {
     return data.data;
   });
 
-  console.log(`  采购单号: ${purchaseNo}`);
+  console.info(`  采购单号: ${purchaseNo}`);
   return purchaseNo;
 }
 
 async function testSaleReturnModule() {
-  console.log("\n=== 销售退货模块测试 ===");
+  console.info("\n=== 销售退货模块测试 ===");
   let returnNo = null;
 
   await test("创建销售退货单", async () => {
@@ -249,12 +249,12 @@ async function testSaleReturnModule() {
     return data.data;
   });
 
-  console.log(`  退货单号: ${returnNo}`);
+  console.info(`  退货单号: ${returnNo}`);
   return returnNo;
 }
 
 async function testCreditSaleModule() {
-  console.log("\n=== 赊销销售单模块测试 ===");
+  console.info("\n=== 赊销销售单模块测试 ===");
 
   await test("赊销销售单列表（分页结构）", async () => {
     const { status, data } = await request("GET", "/admin/sale-bills?page=1&pageSize=10&billType=CREDIT");
@@ -286,9 +286,9 @@ async function testCreditSaleModule() {
 }
 
 async function main() {
-  console.log("========================================");
-  console.log("  前后端联调集成测试");
-  console.log("========================================");
+  console.info("========================================");
+  console.info("  前后端联调集成测试");
+  console.info("========================================");
 
   await testAuth();
   const supplierId = await testSupplierModule();
@@ -296,18 +296,18 @@ async function main() {
   await testSaleReturnModule();
   await testCreditSaleModule();
 
-  console.log("\n========================================");
-  console.log(`  测试结果: ${passed} 通过, ${failed} 失败`);
-  console.log("========================================");
+  console.info("\n========================================");
+  console.info(`  测试结果: ${passed} 通过, ${failed} 失败`);
+  console.info("========================================");
 
   if (failed > 0) {
-    console.log("\n失败的测试:");
+    console.info("\n失败的测试:");
     results.filter(r => r.status === "fail").forEach(r => {
-      console.log(`  - ${r.name}: ${r.error}`);
+      console.info(`  - ${r.name}: ${r.error}`);
     });
     process.exit(1);
   } else {
-    console.log("\n🎉 所有联调测试通过！");
+    console.info("\n🎉 所有联调测试通过！");
     process.exit(0);
   }
 }

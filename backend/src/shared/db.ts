@@ -72,14 +72,14 @@ export async function initDatabase() {
   await ensureDatabaseExists();
 
   if (await tableExists("sys_user")) {
-    console.log("✅ 数据库表已存在，跳过 schema 初始化");
+    console.info("✅ 数据库表已存在，跳过 schema 初始化");
   } else {
     const schemaPath = findSqlFile("phase1_schema.sql");
     const schemaSql = readFileSync(schemaPath, "utf8");
     for (const statement of splitSqlStatements(schemaSql)) {
       await pool.query(statement);
     }
-    console.log("✅ 数据库 schema 初始化完成");
+    console.info("✅ 数据库 schema 初始化完成");
   }
 
   const seedPath = findSqlFile("phase1_seed.sql");
@@ -87,7 +87,7 @@ export async function initDatabase() {
   for (const statement of splitSqlStatements(seedSql)) {
     await pool.query(statement);
   }
-  console.log("✅ 数据库种子数据初始化完成");
+  console.info("✅ 数据库种子数据初始化完成");
 }
 
 export async function query<T = any>(sql: string, params: unknown[] = []) {

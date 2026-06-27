@@ -8,7 +8,7 @@ export async function login(username: string, password: string) {
     "SELECT id, username, password_hash, real_name, store_id, status, tenant_id FROM sys_user WHERE username = ? LIMIT 1",
     [username]
   );
-  if (!account || account.status !== 1 || !verifyPassword(password, account.password_hash)) {
+  if (!account || account.status !== 1 || !(await verifyPassword(password, account.password_hash))) {
     throw new Error("账号或密码错误");
   }
   const roles = await query<any>(

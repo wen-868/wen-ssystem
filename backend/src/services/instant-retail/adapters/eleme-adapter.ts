@@ -44,7 +44,7 @@ export class ElemeAdapter extends AbstractPlatformAdapter {
 
     const signStr = this.sign({ client_id: appKey, timestamp, client_secret: appSecret });
 
-    console.log(`[ELEME] Authenticating with sign: ${signStr}`);
+    console.info(`[ELEME] Authenticating with sign: ${signStr}`);
 
     const expireAt = new Date(Date.now() + 86400 * 1000);
     const creds: PlatformCredentials = {
@@ -91,7 +91,7 @@ export class ElemeAdapter extends AbstractPlatformAdapter {
       this.createMockOrder(`EL${Date.now()}${i}`, params?.status ?? 'PENDING')
     );
 
-    console.log(`[ELEME] Synced ${mockOrders.length} orders`);
+    console.info(`[ELEME] Synced ${mockOrders.length} orders`);
 
     return {
       orders: mockOrders,
@@ -109,7 +109,7 @@ export class ElemeAdapter extends AbstractPlatformAdapter {
    */
   async confirmOrder(platformOrderId: string): Promise<boolean> {
     await this.ensureAuthenticated();
-    console.log(`[ELEME] Confirming order: ${platformOrderId}`);
+    console.info(`[ELEME] Confirming order: ${platformOrderId}`);
     return true;
   }
 
@@ -126,7 +126,7 @@ export class ElemeAdapter extends AbstractPlatformAdapter {
     courierInfo?: { name?: string; phone?: string; courierId?: string }
   ): Promise<boolean> {
     await this.ensureAuthenticated();
-    console.log(`[ELEME] Starting delivery for order: ${platformOrderId}`, courierInfo);
+    console.info(`[ELEME] Starting delivery for order: ${platformOrderId}`, courierInfo);
     return true;
   }
 
@@ -139,7 +139,7 @@ export class ElemeAdapter extends AbstractPlatformAdapter {
    */
   async completeDelivery(platformOrderId: string): Promise<boolean> {
     await this.ensureAuthenticated();
-    console.log(`[ELEME] Completing delivery for order: ${platformOrderId}`);
+    console.info(`[ELEME] Completing delivery for order: ${platformOrderId}`);
     return true;
   }
 
@@ -153,7 +153,7 @@ export class ElemeAdapter extends AbstractPlatformAdapter {
    */
   async cancelOrder(platformOrderId: string, reason?: string): Promise<boolean> {
     await this.ensureAuthenticated();
-    console.log(`[ELEME] Cancelling order: ${platformOrderId}, reason: ${reason ?? 'N/A'}`);
+    console.info(`[ELEME] Cancelling order: ${platformOrderId}, reason: ${reason ?? 'N/A'}`);
     return true;
   }
 
@@ -194,7 +194,7 @@ export class ElemeAdapter extends AbstractPlatformAdapter {
       storeId: this.credentials?.storeId ?? 'mock_store',
     }));
 
-    console.log(`[ELEME] Synced ${mockProducts.length} products`);
+    console.info(`[ELEME] Synced ${mockProducts.length} products`);
 
     return {
       products: mockProducts,
@@ -212,7 +212,7 @@ export class ElemeAdapter extends AbstractPlatformAdapter {
   async updateInventory(params: UpdateInventoryParams[]): Promise<UpdateInventoryResult[]> {
     await this.ensureAuthenticated();
 
-    console.log(`[ELEME] Updating inventory for ${params.length} items`);
+    console.info(`[ELEME] Updating inventory for ${params.length} items`);
 
     return params.map((p) => ({
       success: true,
@@ -244,7 +244,7 @@ export class ElemeAdapter extends AbstractPlatformAdapter {
     const expectedSign = this.hmacSha256(`${payloadStr}${ts}`, appSecret);
     const valid = expectedSign === signature;
 
-    console.log(`[ELEME] Webhook verification: ${valid ? 'passed' : 'failed'}`);
+    console.info(`[ELEME] Webhook verification: ${valid ? 'passed' : 'failed'}`);
 
     return {
       valid,
