@@ -1,117 +1,83 @@
-# 墨 · 任务清单（技术负责人 · V4.4 平台总后台版）
+# 墨 · 任务清单（技术负责人 · V4.5 审计整改版）
 
-> **更新日期：** 2026-06-26
-> **当前阶段：** V4.4 · 底层架构收敛 + 平台总后台 + 缺口补齐
-> **进展：** 胖路由拆分已完成（admin.routes.ts 2847→83行），多租户代码已合并，迁移脚本待补
+> **更新日期：** 2026-06-27
+> **当前阶段：** V4.5 · 审计问题整改
+> **进展：** saas-admin 5 个 P0 模块已完成，admin-web 50 个视图 42 个已完整实现
 > **核心理念：** PC端只有一端，管理后台和收银台按权限切换
-> **开发模式：** 先修复 P0 安全问题，完成平台总后台，再补缺口
 
 ---
 
 ## 当前策略
 
-⚠️ 2026-06-26 凌舟审计发现：
-- 后端胖路由：✅ 已完成拆分（admin.routes.ts 2847→83行，Controller-Service 分层已建立）
-- 多租户隔离：🟡 代码已合并，迁移脚本待补
-- 硬编码凭证：`LoginView.vue` 明文暴露 `admin/admin123`（待修复）
-- 🆕 平台总后台：全新项目，需从零搭建
-
-**核心策略：** 先修复 P0 安全问题（1天），同步搭建平台总后台前端（15天），再补 admin-web 缺口。
+⚠️ 2026-06-27 凌舟全系统审计发现：
+- 硬编码凭证：`admin-web/src/App.vue` 登录表单默认填 `admin/admin123`（**严重**）
+- 路由缺失：`InventoryBatchPrice.vue` 和 `InventoryPriceQuote.vue` 文件存在但 router 未注册
+- 角色权限：admin-web 14 条路由无角色限制，saas-admin 无角色检查
+- 即时零售：8 个视图仍是占位（`<el-empty>`）
 
 ---
 
-## P0：立即修复（1天）
+## P0：立即修复（1.5天）
 
 | 编号 | 任务 | 工时 | 状态 | 验收标准 |
 |------|------|:---:|:---:|------|
-| **P0-01** | **LoginView.vue 移除硬编码默认凭证** | 0.5天 | 🔴 | 移除 `admin/admin123` 默认值，改为空字符串；placeholder 改为通用提示 |
-| **P0-02** | **router 鉴权增强**：token 过期检测 + 无权限页面提示 | 0.5天 | 🔴 | token 过期自动跳转登录页；404 页面显示"页面不存在"提示 |
+| **P0-01** | **App.vue 移除硬编码凭证** | 0.5天 | 🔴 | 移除 `loginForm` 中 `admin/admin123` 默认值，改为 `{ username: "", password: "" }`；移除 `placeholder="admin123"` |
+| **P0-02** | **补注册 2 条缺失路由** | 0.5天 | 🔴 | `InventoryBatchPrice.vue` → `/inventory-batch-price`；`InventoryPriceQuote.vue` → `/inventory-price-quote`；路由注册到 `router/index.ts` |
+| **P0-03** | **admin-web 路由角色权限加固** | 0.5天 | 🔴 | 14 条无限制路由加 `meta.roles`：销售开单/订单管理/库存查询/客户管理/商品管理等限 BOSS+MGR |
 
 ---
 
-## PLAT-FE：平台总后台前端（saas-admin · 全新项目，15天）🆕
-
-> 独立前端项目，技术栈与 admin-web 一致（Vue 3 + Vite + Element Plus），部署域名 `saas.onepan.cn`。
+## P1：平台总后台收尾（3天）
 
 | 编号 | 任务 | 工时 | 状态 | 验收标准 |
 |------|------|:---:|:---:|------|
-| **PLAT-01** | **项目初始化**：`saas-admin` 脚手架搭建、路由、布局、登录页 | 2天 | 🔴 | 项目可启动，登录页面可用 |
-| **PLAT-02** | **TenantList** - 租户管理页（列表/审核/详情/开通/停用） | 3天 | 🔴 | 租户CRUD、审核流程、开通初始化 |
-| **PLAT-03** | **PlanList** - 套餐管理页（套餐定义、功能开关勾选） | 2.5天 | 🔴 | 套餐CRUD、12模块功能开关 |
-| **PLAT-04** | **SubscriptionList** - 订阅管理页（订阅记录、续费、升降级） | 2.5天 | 🔴 | 订阅CRUD、续费操作、套餐变更 |
-| **PLAT-05** | **PlatformDashboard** - 平台经营看板（总租户/活跃/收入/趋势） | 3天 | 🔴 | 图表展示、数据正确 |
-| **PLAT-06** | **PlatformConfig** - 平台配置页（全局参数/公告/维护模式） | 2天 | 🔴 | 配置CRUD、维护模式开关 |
-
-**PLAT-FE 验收：** 5个页面全部可访问，数据正常保存，对接后端 `platform.routes.ts` API 成功。租户开通→初始化→登录→停用全流程闭环。
+| **PLAT-07** | **saas-admin 路由角色权限** | 0.5天 | 🔴 | 添加 `meta.roles` 限制，仅 `SUPER_ADMIN` 可访问租户/套餐/订阅管理 |
+| **PLAT-08** | **saas-admin 操作日志页面** | 1.5天 | 🔴 | 对接 `/api/platform/audit-logs`，列表/搜索/筛选 |
+| **PLAT-09** | **saas-admin 全局细节打磨** | 1天 | 🔴 | 表单校验、错误提示、loading 状态、空数据展示 |
 
 ---
 
-## 第一阶段：M0 配合底层架构（配合阿坚，2天）
-
-| 编号 | 任务 | 工时 | 状态 |
-|------|------|:---:|:---:|
-| M0-FE-01 | 配合阿坚做前端权限对接：路由守卫、按钮权限、菜单权限 | 1天 | ⏳ |
-| M0-FE-02 | PC端统一权限切换：根据角色自动显示收银台/管理后台视图 | 1天 | ⏳ |
-
-> **验收标准：** CASHIER角色登录自动进入收银台模式，BOSS角色登录显示完整管理后台。
-
----
-
-## G1：P0 缺口补齐（8个视图，22天）
+## G1：即时零售 8 个视图补齐（22天）
 
 | 编号 | 任务 | 工时 | 状态 | 验收标准 |
 |------|------|:---:|:---:|------|
-| G1-01 | **ProductCategories** - 商品分类管理页（两级分类树，拖拽排序） | 2.5天 | ⏳ | 分类树CRUD、拖拽排序、关联商品统计 |
-| G1-02 | **PurchaseReturns** - 采购退货页（退货申请、退货单列表、退货入库） | 2.5天 | ⏳ | 退货流程完整、库存回滚正确 |
-| G1-03 | **PurchasePayments** - 采购付款页（付款单、核销应付） | 2天 | ⏳ | 付款核销对应正确、对账平衡 |
-| G1-04 | **InventoryCheck** - 库存盘点页（盘点单、盈亏调整） | 2.5天 | ⏳ | 盘点单CRUD、盈亏调整库存更新正确 |
-| G1-05 | **InventoryTransfer** - 库存调拨页（调拨单、出入库确认） | 2天 | ⏳ | 调拨流程完整、双方库存更新正确 |
-| G1-06 | **SystemRoles** - 角色权限管理页（角色创建、菜单权限配置） | 3.5天 | ⏳ | 角色CRUD、菜单权限勾选、数据权限配置 |
-| G1-07 | **InventoryBatchPrice** ⭐ NEW - 批量价格调整页（批量选择商品、多种调价方式、调价预览、调价记录） | 3天 | ⏳ | 固定金额/百分比/逐商品/按参考价四种调价方式可用 |
-| G1-08 | **InventoryPriceQuote** ⭐ NEW - 一键报价推送页（报价单生成、站内信+微信推送、查阅统计、催阅） | 4天 | ⏳ | 报价单CRUD、推送成功、客户可查阅、统计正确 |
-
-**G1 验收：** 8个页面全部可访问，表单可提交，数据正常保存，对接后端API成功。新增批量调价和报价推送功能完整可用。
+| S10-01 | **InstantRetailConfig** - 小程序店铺配置页 | 2.5天 | ⏳ | 店铺信息/首页装修/导航配置/公告管理 |
+| S10-02 | **InstantRetailShelf** - 商品货架管理页 | 3天 | ⏳ | 分类展示/搜索/价格分层（零售价+批发价） |
+| S10-03 | **InstantRetailOrders** - 小程序订单管理页 | 2天 | ⏳ | 订单列表/状态追踪/物流查询 |
+| S10-04 | **InstantRetailPayment** - 在线支付配置页 | 2天 | ⏳ | 微信商户号配置/支付记录/退款管理 |
+| S10-05 | **InstantRetailDelivery** - 配送管理页 | 2天 | ⏳ | 配送方式/运费模板/自提点管理 |
+| S10-06 | **InstantRetailReport** - 零售报表页 | 2天 | ⏳ | 销售数据/毛利分析展示 |
+| S10-07 | **InstantRetailPlatform** - 外卖平台对接页 | 3天 | ⏳ | 平台密钥配置/商品上架同步 |
+| S10-08 | **InstantRetailOrderBoard** - 60秒接单工作台 | 3天 | ⏳ | 强制倒计时接单，超时自动拒 |
 
 ---
 
-## G2：P1 缺口补齐（7个非即时零售占位视图，12天）
+## 已有视图细节打磨（穿插）
 
-| 编号 | 任务 | 工时 | 状态 |
-|------|------|:---:|:---:|
-| G2-01 | **InventoryBatch** - 批次追溯页（批次列表、追溯查询） | 1.5天 | ⏳ |
-| G2-02 | **FinanceCollection** - 收款链接管理页 | 1.5天 | ⏳ |
-| G2-03 | **FinanceProfit** - 经营利润报表页 | 2天 | ⏳ |
-| G2-04 | **ReportsProducts** - 商品排行报表 | 1.5天 | ⏳ |
-| G2-05 | **ReportsEmployees** - 员工业绩报表 | 1.5天 | ⏳ |
-| G2-06 | **ReportsStores** - 门店对比报表 | 1.5天 | ⏳ |
-| G2-07 | **MarketingPromotion** - 促销活动管理页 | 2.5天 | ⏳ |
-
----
-
-## 已有视图细节打磨（穿插在各阶段）
-
-> 以下26个视图已完整实现，在G1/G2阶段穿插打磨细节：
+> 以下 42 个视图已完整实现，穿插打磨细节：
 >
 > - 工作总台：Dashboard
 > - 销售管理：SalesOrderCreate, SaleBills, SaleReturns, Collection（4个）
 > - 订单管理：Orders, OrderBoard, OrderTimeout（3个）
-> - 采购管理：PurchaseOrders, PurchaseInStocks, Suppliers（3个）
-> - 库存管理：Inventory, InventoryAlerts（2个）
+> - 采购管理：PurchaseOrders, PurchaseInStocks, PurchaseReturns, PurchasePayments, Suppliers（5个）
+> - 库存管理：Inventory, InventoryCheck, InventoryTransfer, InventoryBatch, InventoryAlerts, InventoryBatchPrice, InventoryPriceQuote（7个）
 > - 客户管理：Customers, Credit（2个）
-> - 商品中心：Products, Prices（2个）
-> - 财务往来：Payments, CustomerStatements（2个）
-> - 数据报表：Reports（1个）
-> - 营销中心：Marketing, Aftersale（2个）
-> - 系统设置：Employees, Stores, AuditLog, System（4个）
+> - 商品中心：Products, ProductCategories, Prices（3个）
+> - 即时零售：10个（8个占位 + 2个待注册）
+> - 财务往来：Payments, FinanceCollection, CustomerStatements, FinanceProfit（4个）
+> - 数据报表：Reports, ReportsProducts, ReportsEmployees, ReportsStores（4个）
+> - 营销中心：Marketing, MarketingPromotion, Aftersale（3个）
+> - 系统设置：Employees, Stores, SystemRoles, AuditLog, System（5个）
 
-**打磨内容：**
-- 字段对齐 `product-spec-v6-adapted.md`
-- 表单校验规则完善
-- 交互体验优化
-- API对接正确性验证
+**打磨内容：** 字段对齐产品规格、表单校验规则完善、交互体验优化、API对接正确性验证
 
 ---
 
-## 当前阻塞项
+## 工期汇总
 
-> 无。从 M0-FE 配合阿坚开始。
+| 阶段 | 内容 | 工时 | 状态 |
+|------|------|:---:|:---:|
+| P0 | 硬编码凭证 + 缺失路由 + 角色加固 | 1.5天 | 🔴 |
+| P1 | saas-admin 收尾 | 3天 | 🔴 |
+| G1 | 即时零售 8 个视图 | 22天 | ⏳ |
+| **合计** | | **26.5天** | |
