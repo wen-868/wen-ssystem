@@ -186,7 +186,7 @@
 import { computed, onMounted, reactive, ref } from "vue";
 import { ElMessage, ElMessageBox } from "element-plus";
 import { Plus } from "@element-plus/icons-vue";
-import { createPurchaseInStock, fetchPurchaseInStocks, fetchSuppliers, fetchStores } from "../api";
+import { purchaseInStock, fetchPurchaseInStocks, fetchSuppliers, fetchStores } from "../api";
 
 const loading = ref(false);
 const submitLoading = ref(false);
@@ -314,7 +314,7 @@ async function handleCreate() {
   }
   submitLoading.value = true;
   try {
-    await createPurchaseInStock(form);
+    await purchaseInStock(form);
     ElMessage.success("创建成功");
     dialogVisible.value = false;
     Object.assign(form, { ...defaultForm, items: [{ skuId: 0, skuName: "", skuCode: "", quantity: 1, unitPrice: 0 }] });

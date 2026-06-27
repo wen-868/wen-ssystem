@@ -354,7 +354,7 @@ async function loadSuppliers() {
 
 async function loadPurchaseOrders() {
   try {
-    const data = await fetchPurchaseOrders({ page: 1, pageSize: 100, orderStatus: "APPROVED" });
+    const data = await fetchPurchaseOrders({ page: 1, pageSize: 100, status: "APPROVED" });
     purchaseOrders.value = data.records || [];
   } catch {
     purchaseOrders.value = [];

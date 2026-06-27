@@ -268,7 +268,7 @@
             <el-table-column label="操作" width="180" fixed="right">
               <template #default="{ row }">
                 <el-button size="small" link type="primary" @click="editStackRule(row)">编辑</el-button>
-                <el-button size="small" link type="danger" @click="deleteStackRule(row)">删除</el-button>
+                <el-button size="small" link type="danger" @click="handleDeleteStackRule(row)">删除</el-button>
               </template>
             </el-table-column>
           </el-table>
@@ -710,7 +710,7 @@ function editStackRule(row: any) {
   ElMessage.info("编辑规则: " + row.name);
 }
 
-async function deleteStackRule(row: any) {
+async function handleDeleteStackRule(row: any) {
   const confirmed = await ElMessageBox.confirm(`确认删除规则 ${row.name}?`, "确认删除", { type: "warning" }).catch(() => null);
   if (!confirmed) return;
   try {

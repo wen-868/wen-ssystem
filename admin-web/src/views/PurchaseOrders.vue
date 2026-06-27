@@ -227,7 +227,7 @@ async function loadOrders() {
     const data = await fetchPurchaseOrders({
       page: page.value,
       pageSize: pageSize.value,
-      orderStatus: orderStatus.value || undefined
+      status: orderStatus.value || undefined
     });
     orders.value = data.records || [];
     total.value = data.total || 0;

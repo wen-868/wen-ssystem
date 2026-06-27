@@ -74,8 +74,8 @@
           <template #default="{ row }">
             <el-button size="small" link type="primary" @click="viewDetail(row)">详情</el-button>
             <el-button size="small" link type="warning" @click="openAdjustLimit(row)">调额</el-button>
-            <el-button v-if="row.status === 'NORMAL'" size="small" link type="danger" @click="freezeCredit(row)">冻结</el-button>
-            <el-button v-if="row.status === 'FROZEN'" size="small" link type="success" @click="unfreezeCredit(row)">解冻</el-button>
+            <el-button v-if="row.status === 'NORMAL'" size="small" link type="danger" @click="handleFreezeCredit(row)">冻结</el-button>
+            <el-button v-if="row.status === 'FROZEN'" size="small" link type="success" @click="handleUnfreezeCredit(row)">解冻</el-button>
           </template>
         </el-table-column>
       </el-table>
@@ -277,7 +277,7 @@ async function submitAdjustLimit() {
   }
 }
 
-async function freezeCredit(row: any) {
+async function handleFreezeCredit(row: any) {
   const confirmed = await ElMessageBox.confirm(`确认冻结 ${row.customerName} 的授信额度?`, "确认冻结", { type: "warning" }).catch(() => null);
   if (!confirmed) return;
   try {
@@ -289,7 +289,7 @@ async function freezeCredit(row: any) {
   }
 }
 
-async function unfreezeCredit(row: any) {
+async function handleUnfreezeCredit(row: any) {
   const confirmed = await ElMessageBox.confirm(`确认解冻 ${row.customerName} 的授信额度?`, "确认解冻", { type: "warning" }).catch(() => null);
   if (!confirmed) return;
   try {

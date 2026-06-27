@@ -321,8 +321,8 @@ export async function fetchReportBusinessOverview() {
 }
 
 // ==================== Supplier APIs ====================
-export async function fetchSuppliers(params?: { keyword?: string; supplyType?: string; status?: string }) {
-  const { data } = await api.get("/admin/suppliers", { params });
+export async function fetchSuppliers(params?: { keyword?: string; supplyType?: string; status?: string; page?: number; pageSize?: number }) {
+  const { data } = await api.get("/admin/suppliers", { params: { page: 1, pageSize: 20, ...params } });
   return data.data;
 }
 
@@ -330,10 +330,14 @@ export async function createSupplier(payload: unknown) {
   const { data } = await api.post("/admin/suppliers", payload);
   return data.data;
 }
+export async function updateSupplier(id: number, payload: unknown) {
+  const { data } = await api.put(`/admin/suppliers/${id}`, payload);
+  return data.data;
+}
 
 // ==================== Purchase APIs ====================
-export async function fetchPurchaseOrders(params?: { keyword?: string; status?: string }) {
-  const { data } = await api.get("/admin/purchase-orders", { params });
+export async function fetchPurchaseOrders(params?: { keyword?: string; status?: string; page?: number; pageSize?: number }) {
+  const { data } = await api.get("/admin/purchase-orders", { params: { page: 1, pageSize: 20, ...params } });
   return data.data;
 }
 
@@ -342,8 +346,33 @@ export async function createPurchaseOrder(payload: unknown) {
   return data.data;
 }
 
+export async function fetchPurchaseOrderDetail(id: number) {
+  const { data } = await api.get(`/admin/purchase-orders/${id}`);
+  return data.data;
+}
+
+export async function cancelPurchaseOrder(id: number) {
+  const { data } = await api.post(`/admin/purchase-orders/${id}/cancel`);
+  return data.data;
+}
+
+export async function confirmPurchaseOrder(id: number) {
+  const { data } = await api.post(`/admin/purchase-orders/${id}/confirm`);
+  return data.data;
+}
+
 export async function purchaseInStock(payload: unknown) {
-  const { data } = await api.post("/admin/purchase-in-stock", payload);
+  const { data } = await api.post("/admin/purchase-in-stocks", payload);
+  return data.data;
+}
+
+export async function fetchPurchaseInStocks(params?: { keyword?: string; status?: string; page?: number; pageSize?: number }) {
+  const { data } = await api.get("/admin/purchase-in-stocks", { params: { page: 1, pageSize: 20, ...params } });
+  return data.data;
+}
+
+export async function fetchPurchaseReturns(params?: { keyword?: string; status?: string; page?: number; pageSize?: number }) {
+  const { data } = await api.get("/admin/purchase-returns", { params: { page: 1, pageSize: 20, ...params } });
   return data.data;
 }
 
@@ -353,8 +382,8 @@ export async function createPurchaseReturn(payload: unknown) {
 }
 
 // ==================== Sale Return APIs ====================
-export async function fetchSaleReturns(params?: { keyword?: string; status?: string }) {
-  const { data } = await api.get("/admin/sale-returns", { params });
+export async function fetchSaleReturns(params?: { keyword?: string; status?: string; page?: number; pageSize?: number }) {
+  const { data } = await api.get("/admin/sale-returns", { params: { page: 1, pageSize: 20, ...params } });
   return data.data;
 }
 
@@ -364,8 +393,8 @@ export async function createSaleReturn(payload: unknown) {
 }
 
 // ==================== Statement / Customer Payment APIs ====================
-export async function fetchCustomerStatements(params?: { keyword?: string; status?: string }) {
-  const { data } = await api.get("/admin/customer-statements", { params });
+export async function fetchCustomerStatements(params?: { keyword?: string; status?: string; page?: number; pageSize?: number }) {
+  const { data } = await api.get("/admin/customer-statements", { params: { page: 1, pageSize: 20, ...params } });
   return data.data;
 }
 
