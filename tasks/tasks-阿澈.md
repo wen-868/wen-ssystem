@@ -1,382 +1,265 @@
-# 阿澈 · Phase 2 商品管理模块
+# 阿澈 · Phase 2 + Phase 3 商品管理模块
 
-**日期**：2026-06-28
-**状态**：待开始
-**验收标准**：对照 `tasks/field-audit-product-center.md` 逐字段验证，不能遗漏任何字段
-
----
-
-## 任务概览
-
-| # | 任务 | 优先级 | 依赖 | 预计文件 | 状态 |
-|---|------|--------|------|----------|------|
-| 1 | 分类 API 化（替换硬编码） | P0 | 阿坚#2 | 2个文件改动 | 待开始 |
-| 2 | 商品详情页 ProductDetailView.vue | P0 | 阿坚#3 | 1个新文件 | 待开始 |
-| 3 | AdminProductsView 增强 | P1 | 阿坚#6 | 1个文件改动 | 待开始 |
-| 4 | 商品搜索优化 | P1 | 无 | 1个文件改动 | 待开始 |
-| 5 | 路由+导航注册 | P0 | 无 | 2个文件改动 | 待开始 |
+**日期**：2026-06-29
+**状态**：Phase 2 待开始，Phase 3 待开始
+**验收标准**：对照 `tasks/field-audit-product-center.md` 逐字段验证
 
 ---
 
-## 1. 分类 API 化（P0）
+# Phase 2（进行中）
+
+| # | 任务 | 优先级 | 依赖 | 状态 |
+|---|------|--------|------|------|
+| 1 | 分类 API 化（替换硬编码） | P0 | 阿坚 Phase 2 ✅ | 待开始 |
+| 2 | ProductDetailView.vue 商品详情页 | P0 | 阿坚 Phase 2 ✅ | 待开始 |
+| 3 | AdminProductsView 增强 | P1 | 阿坚 Phase 2 ✅ | 待开始 |
+| 4 | 商品搜索优化 | P1 | 无 | 待开始 |
+| 5 | 路由+导航注册 | P0 | 无 | 待开始 |
+
+---
+
+# Phase 3（新增）
+
+| # | 任务 | 优先级 | 依赖 | 状态 |
+|---|------|--------|------|------|
+| 6 | 商品详情页标签展示 | P0 | 阿坚 Phase 3 #2 | 待开始 |
+| 7 | 按标签筛选商品 | P0 | 阿坚 Phase 3 #2 | 待开始 |
+| 8 | 批次信息查看 | P1 | 阿坚 Phase 3 #4 | 待开始 |
+
+---
+
+## 6. 商品详情页标签展示（P0）
 
 ### 修改文件
-
-**文件**：`merchant-mobile/src/views/ProductsView.vue`（274行）
-**配合文件**：`merchant-mobile/src/api.ts`
-
-### 当前问题
-
-分类为前端硬编码：
-```typescript
-const categories = [
-  { value: 'all', label: '全部' },
-  { value: 'baijiu', label: '白酒' },
-  { value: 'hongjiu', label: '红酒' },
-  { value: 'pijiu', label: '啤酒' },
-  { value: 'other', label: '其他' }
-]
-```
-
-### 改动步骤
-
-#### 1.1 新增 API 函数
-
-**文件**：`merchant-mobile/src/api.ts`
-
-```typescript
-// Phase 2 新增
-export interface CategoryRecord {
-  id: number
-  parentId: number | null
-  name: string
-  icon: string | null
-  code: string | null
-  sortNo: number
-  status: number
-}
-
-export async function fetchCategories(): Promise<{ data: CategoryRecord[] }> {
-  return api.get('/admin/products/categories')
-}
-```
-
-#### 1.2 修改 ProductsView.vue
-
-```typescript
-// 替换硬编码的 categories
-import { ref, onMounted } from 'vue'
-import { fetchCategories, type CategoryRecord } from '../api'
-
-const categoryList = ref<CategoryRecord[]>([])
-const activeCategoryId = ref<number | null>(null) // null = 全部
-
-// 初始化加载分类
-onMounted(async () => {
-  try {
-    const res = await fetchCategories()
-    categoryList.value = res.data ?? []
-  } catch { /* 保持空状态 */ }
-})
-
-// 渲染时动态生成分类标签
-const displayCategories = computed(() => [
-  { id: null, name: '全部' },
-  ...categoryList.value
-])
-
-// 切换分类时传 categoryId
-function switchCategory(catId: number | null) {
-  activeCategoryId.value = catId
-  loadProducts()
-}
-
-// loadProducts 中传 categoryId
-async function loadProducts() {
-  const res = await fetchProducts({
-    keyword: keyword.value || undefined,
-    categoryId: activeCategoryId.value ?? undefined
-  })
-}
-```
-
-模板中：
-```html
-<div class="category-bar">
-  <div
-    v-for="cat in displayCategories"
-    :key="cat.id ?? 'all'"
-    class="category-item"
-    :class="{ active: activeCategoryId === cat.id }"
-    @click="switchCategory(cat.id)"
-  >
-    {{ cat.name }}
-  </div>
-</div>
-```
-
-### 验收清单
-
-- [ ] 分类列表从后端动态加载
-- [ ] 分类切换传 `categoryId` 而非硬编码字符串
-- [ ] "全部"作为默认选项（categoryId=null）
-- [ ] 分类为空时显示"全部"一项
-- [ ] 字段与审计报告 3.3 节一致
-
----
-
-## 2. 商品详情页 ProductDetailView.vue（P0）
-
-### 新建文件
 
 **文件**：`merchant-mobile/src/views/ProductDetailView.vue`
 
 ### 功能要求
 
-从 ProductsView 商品卡片点击跳转，展示完整商品信息。
+在商品详情页中展示标签信息：
 
-#### 页面结构
-
+#### 属性标签（product_tag_relation）
+在基本信息区域下方，按标签组分组展示：
 ```
-┌─────────────────────────────┐
-│  ← 返回    商品详情          │  导航栏
-├─────────────────────────────┤
-│  [主图] [轮播图1] [轮播图2]   │  图片轮播（van-swipe）
-├─────────────────────────────┤
-│  商品名称                     │
-│  品牌：茅台  单位：瓶         │
-│  规格：500ml  酒精度：53%vol  │
-│  产地：贵州茅台镇             │
-│  [新品] [推荐]               │  标签
-├─────────────────────────────┤
-│  商品简介：经典酱香...        │
-├─────────────────────────────┤
-│  SKU 规格                    │
-│  ┌─────────────────────────┐ │
-│  │ 500ml │ 瓶装 │ 1×6箱规  │ │  SKU 卡片列表
-│  │ 条码：6901234567890     │ │
-│  │ 常温 | 溯源码 | 预警10瓶  │ │
-│  └─────────────────────────┘ │
-│  ┌─────────────────────────┐ │
-│  │ 1L    │ 桶装 │ 1×1      │ │
-│  │ ...                     │ │
-│  └─────────────────────────┘ │
-├─────────────────────────────┤
-│  价格信息                     │
-│  零售价：¥1499.00            │
-│  批发价：¥1200.00            │
-│  库存：120 瓶                │
-└─────────────────────────────┘
+属性标签
+香型：酱香型
+产区：茅台镇 宜宾
+场景：宴请 送礼
+年份：2024
 ```
 
-#### 字段清单
+使用 van-tag 组件，标签组名称作为小标题，标签值以彩色标签展示。
 
-| 区域 | 字段 | 来源 |
-|------|------|------|
-| 基本信息 | name, brand, unit, specs, alcoholContent, origin, isNew, isRecommend, description | SPU |
-| 图片 | mainImage, imageUrls | SPU |
-| SKU 列表 | skuName, barcode, volume, packaging, baseUnit, boxUnit, boxRatio, temperature, traceEnabled, warningThreshold | SKU |
-| 价格 | retailPrice, wholesalePrice | product_price |
-| 库存 | availableQty | inventory |
+#### 营销标签（marketing_tags）
+在商品名称下方展示营销标签：
+```
+[新品] [爆款] [推荐]
+```
+使用不同颜色的 van-tag：新品=蓝色、爆款=红色、热销=橙色、推荐=绿色、限时特价=黄色、清仓=灰色。
 
-#### API 调用
+### API 调用
 
 ```typescript
-// 在 merchant-mobile/src/api.ts 中新增
-export async function fetchProductDetail(spuId: number) {
-  return api.get(`/admin/products/${spuId}`)
-}
-// 或通过 store 接口
-export async function fetchStoreProductDetail(spuId: number) {
-  return api.get(`/store/products/${spuId}`)
-}
-```
-
-#### 路由参数
-
-```typescript
-// 从 URL 获取 spuId
-import { useRoute } from 'vue-router'
-const route = useRoute()
-const spuId = Number(route.params.spuId)
+// 获取商品标签（在 fetchProductDetail 返回中已包含）
+// 或单独调用
+fetchProductTags(spuId: number)
 ```
 
 ### 验收清单
 
-- [ ] 从 ProductsView 商品卡片点击跳转正常
-- [ ] 页面展示全部字段（SPU 10 + SKU 13 + 价格 2 + 库存 1）
-- [ ] 图片轮播正常
-- [ ] SKU 列表展示完整
-- [ ] 价格信息展示完整
-- [ ] Vant 组件风格与现有页面一致
-- [ ] 字段与审计报告 3.1 节一致
+- [ ] 属性标签按标签组分组展示
+- [ ] 香型为单选显示，产区/场景为多选显示
+- [ ] 营销标签以彩色标签展示
+- [ ] 标签颜色区分明确
 
 ---
 
-## 3. AdminProductsView 增强（P1）
-
-### 修改文件
-
-**文件**：`merchant-mobile/src/views/AdminProductsView.vue`
-
-### 改动内容
-
-#### 3.1 分类筛选
-
-从 API 获取分类列表，添加分类筛选栏（参考 ProductsView 的分类栏样式）。
-
-#### 3.2 商品搜索
-
-添加搜索栏（van-search），支持按名称/条码/SKU 编码搜索。
-
-#### 3.3 列表项增强
-
-当前每项显示内容不足，需要增加：
-- 分类名称（categoryName）
-- 品牌（brand）
-- SKU 数量（显示为 "3个SKU"）
-
-列表项结构：
-```
-┌─────────────────────────────┐
-│ 茅台飞天              ON_SALE│
-│ 白酒 | 茅台 | 3个SKU        │
-│ 零售价 ¥1499.00            │
-│ [上架] [下架] [改价] [详情]  │
-└─────────────────────────────┘
-```
-
-#### 3.4 新建商品入口
-
-在页面顶部添加"新建商品"按钮，点击跳转到新建商品页面或弹窗。
-
-### 验收清单
-
-- [ ] 分类筛选从 API 动态加载
-- [ ] 搜索功能正常（名称/条码/SKU）
-- [ ] 列表项展示 categoryName、brand、SKU 数量
-- [ ] 新建商品入口可点击
-- [ ] 商品详情跳转入口正常
-
----
-
-## 4. 商品搜索优化（P1）
+## 7. 按标签筛选商品（P0）
 
 ### 修改文件
 
 **文件**：`merchant-mobile/src/views/ProductsView.vue`
 
-### 改动内容
+### 功能要求
 
-#### 4.1 搜索历史
+在分类筛选栏下方或搜索页面中，增加标签筛选入口：
 
-```typescript
-// localStorage 存储最近 10 条搜索记录
-const SEARCH_HISTORY_KEY = 'product_search_history'
-const MAX_HISTORY = 10
+#### 方案：筛选面板
+- 搜索栏右侧增加"筛选"图标按钮
+- 点击弹出筛选面板（van-popup 从底部弹出）
+- 筛选面板包含：
+  - 香型（单选）
+  - 产区（多选）
+  - 场景（多选）
+  - 年份（单选）
+- 选择后点击"确定"，调用 `fetchProducts` 传入 `tagIds` 参数
+- 已选标签显示在搜索栏下方（van-tag 可删除）
 
-function getSearchHistory(): string[] {
-  try {
-    return JSON.parse(localStorage.getItem(SEARCH_HISTORY_KEY) || '[]')
-  } catch { return [] }
-}
-
-function saveSearchHistory(keyword: string) {
-  const history = getSearchHistory().filter(h => h !== keyword)
-  history.unshift(keyword)
-  localStorage.setItem(SEARCH_HISTORY_KEY, JSON.stringify(history.slice(0, MAX_HISTORY)))
-}
-
-function clearSearchHistory() {
-  localStorage.removeItem(SEARCH_HISTORY_KEY)
-}
+#### UI 结构
+```
+┌─────────────────────────────┐
+│ 搜索框              [筛选]  │
+│ [酱香型 ✕] [茅台镇 ✕]      │  已选标签
+├─────────────────────────────┤
+│ 商品列表...                  │
+└─────────────────────────────┘
 ```
 
-UI：搜索框获得焦点时显示搜索历史列表（van-tag），每项可点击搜索，底部有"清除历史"按钮。
-
-#### 4.2 热门搜索标签
-
-```typescript
-// 热门搜索（可配置，初期前端硬编码，后续从后端获取）
-const hotKeywords = ['茅台', '五粮液', '啤酒', '红酒', '洋酒', '扫码']
+#### 筛选面板
+```
+┌─────────────────────────────┐
+│  筛选              [重置]    │
+├─────────────────────────────┤
+│  香型                        │
+│  ○ 酱香型 ○ 浓香型 ○ 清香型  │
+│  ○ 米香型 ○ 兼香型 ○ 凤香型  │
+├─────────────────────────────┤
+│  产区                        │
+│  ☑ 茅台镇 ☑ 宜宾 ☐ 泸州    │
+│  ☐ 汾阳   ☐ 宿迁 ☐ 亳州    │
+├─────────────────────────────┤
+│  场景                        │
+│  ☑ 宴请 ☐ 自饮 ☐ 送礼       │
+│  ☐ 收藏 ☐ 商务               │
+├─────────────────────────────┤
+│  年份                        │
+│  ○ 2025 ○ 2024 ○ 2023       │
+│  ○ 2020 ○ 老年份             │
+├─────────────────────────────┤
+│         [确定]               │
+└─────────────────────────────┘
 ```
 
-UI：搜索框下方显示热门搜索标签（van-tag），点击直接搜索。
+### API 调用
 
-#### 4.3 扫码功能保持
-
-保持现有微信扫码 + 浏览器摄像头两种方式。
+```typescript
+// 修改 fetchProducts 支持 tagIds 参数
+fetchProducts({ keyword?, categoryId?, tagIds?: number[] })
+```
 
 ### 验收清单
 
-- [ ] 搜索历史功能正常（记录/展示/清除）
-- [ ] 热门搜索标签展示（≥6个）
-- [ ] 扫码功能保持正常
-- [ ] 搜索体验流畅
+- [ ] 筛选入口可见（搜索栏右侧图标）
+- [ ] 筛选面板弹出正常
+- [ ] 香型/年份为单选，产区/场景为多选
+- [ ] 已选标签展示在搜索栏下方
+- [ ] 已选标签可单个删除
+- [ ] 筛选后商品列表正确过滤
+- [ ] 重置功能正常
 
 ---
 
-## 5. 路由+导航注册（P0）
+## 8. 批次信息查看（P1）
 
-### 5.1 路由注册
+### 修改文件
 
-**文件**：`merchant-mobile/src/router.ts`
+**文件**：`merchant-mobile/src/views/ProductDetailView.vue`
+
+### 功能要求
+
+在商品详情页底部或 SKU 区域，增加"批次信息"入口：
+
+- 点击"查看批次"跳转到批次列表页
+- 批次列表展示该商品的所有批次
+- 点击批次查看详情（批次号、生产日期、有效期、库存数量）
+- 追溯链以时间线展示（van-steps 组件）
+
+#### 批次列表
+```
+┌─────────────────────────────┐
+│  ← 批次追溯                  │
+├─────────────────────────────┤
+│  茅台飞天 500ml              │
+├─────────────────────────────┤
+│  ┌─────────────────────────┐│
+│  │ 批次 B2026-001          ││
+│  │ 生产：2026-01-15        ││
+│  │ 有效期至：2029-01-15    ││
+│  │ 库存：50 瓶              ││
+│  │                    [详情]││
+│  └─────────────────────────┘│
+│  ┌─────────────────────────┐│
+│  │ 批次 B2026-002          ││
+│  │ ...                     ││
+│  └─────────────────────────┘│
+└─────────────────────────────┘
+```
+
+#### 追溯链
+```
+┌─────────────────────────────┐
+│  批次 B2026-001 追溯链       │
+├─────────────────────────────┤
+│  2026-01-15                  │
+│  采购单 PO-2026-001          │
+│  供应商：XX酒业              │
+│       ↓                     │
+│  2026-01-16                  │
+│  入库 100 瓶                 │
+│       ↓                     │
+│  2026-01-20                  │
+│  出库 30 瓶                  │
+│  → 销售单 SO-2026-001       │
+│       ↓                     │
+│  2026-02-01                  │
+│  出库 20 瓶                  │
+│  → 销售单 SO-2026-002       │
+│       ↓                     │
+│  当前库存：50 瓶             │
+└─────────────────────────────┘
+```
+
+### 新增 API
 
 ```typescript
-// 在 routes 数组中新增
-{
-  path: '/products/:spuId',
-  name: 'ProductDetail',
-  component: () => import('@/views/ProductDetailView.vue'),
-  meta: { title: '商品详情' }
-}
+fetchBatches(spuId: number)
+fetchBatchDetail(batchId: number)
+fetchBatchTrace(batchId: number)
 ```
 
-### 5.2 商品卡片点击跳转
+### 新增页面
 
-**文件**：`merchant-mobile/src/views/ProductsView.vue`
+**文件**：`merchant-mobile/src/views/BatchListView.vue`
+**文件**：`merchant-mobile/src/views/BatchTraceView.vue`
 
-在商品卡片上添加点击事件：
-```html
-<div
-  v-for="item in products"
-  :key="item.skuId"
-  class="product-card"
-  @click="$router.push(`/products/${item.spuId}`)"
->
-```
+### 新增路由
 
-### 5.3 AdminProductsView 详情跳转
-
-**文件**：`merchant-mobile/src/views/AdminProductsView.vue`
-
-在商品列表项添加"详情"按钮或整行点击跳转：
-```html
-@click="$router.push(`/products/${item.spuId}`)"
+```typescript
+{ path: '/products/:spuId/batches', name: 'BatchList', component: () => import('@/views/BatchListView.vue') }
+{ path: '/batches/:batchId/trace', name: 'BatchTrace', component: () => import('@/views/BatchTraceView.vue') }
 ```
 
 ### 验收清单
 
-- [ ] 路由 `/products/:spuId` 注册正确
-- [ ] ProductsView 商品卡片点击跳转正常
-- [ ] AdminProductsView 商品详情跳转正常
-- [ ] 返回按钮正常
+- [ ] 商品详情页有"查看批次"入口
+- [ ] 批次列表展示完整（批次号/生产日期/有效期/库存）
+- [ ] 批次详情展示完整
+- [ ] 追溯链时间线展示采购→入库→出库→销售链路
+- [ ] van-steps 组件使用正确
 
 ---
 
 ## 验收总清单
 
+### Phase 2
 | 检查项 | 状态 |
 |--------|:---:|
 | 分类从后端动态加载（替换硬编码） | ☐ |
 | 分类切换传 categoryId | ☐ |
-| ProductDetailView.vue 页面完整 | ☐ |
-| 详情页展示全部字段（SPU 10 + SKU 13 + 价格 2 + 库存 1） | ☐ |
+| ProductDetailView.vue 页面完整（全部字段） | ☐ |
 | AdminProductsView 含分类筛选+搜索 | ☐ |
-| AdminProductsView 列表项含 categoryName/brand/SKU数量 | ☐ |
 | 搜索历史功能正常 | ☐ |
 | 热门搜索标签正常 | ☐ |
-| 扫码功能保持正常 | ☐ |
 | 路由 `/products/:spuId` 注册正确 | ☐ |
 | 商品卡片点击跳转详情 | ☐ |
-| 所有页面字段与 `tasks/field-audit-product-center.md` 一致 | ☐ |
+
+### Phase 3
+| 检查项 | 状态 |
+|--------|:---:|
+| 属性标签按标签组分组展示 | ☐ |
+| 营销标签以彩色标签展示 | ☐ |
+| 筛选面板（香型/产区/场景/年份）正常 | ☐ |
+| 已选标签展示+删除正常 | ☐ |
+| 按标签筛选商品正确 | ☐ |
+| 批次列表页面完整 | ☐ |
+| 批次追溯链时间线展示完整 | ☐ |
