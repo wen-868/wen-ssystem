@@ -62,6 +62,9 @@
             <el-button size="small" link type="primary" @click="viewDetail(row)">详情</el-button>
           </template>
         </el-table-column>
+        <template #empty>
+          <el-empty description="暂无数据" :image-size="80" />
+        </template>
       </el-table>
 
       <div class="pagination">
@@ -116,6 +119,9 @@
             </template>
           </el-table-column>
           <el-table-column prop="createTime" label="日期" width="160" />
+          <template #empty>
+            <el-empty description="暂无数据" :image-size="80" />
+          </template>
         </el-table>
 
         <h4 style="margin: 20px 0 10px">收款明细</h4>
@@ -126,6 +132,9 @@
             <template #default="{ row }">-¥{{ Number(row.amount || 0).toFixed(2) }}</template>
           </el-table-column>
           <el-table-column prop="createTime" label="日期" width="160" />
+          <template #empty>
+            <el-empty description="暂无数据" :image-size="80" />
+          </template>
         </el-table>
       </template>
     </el-drawer>

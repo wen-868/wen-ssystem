@@ -31,6 +31,9 @@
             </el-table-column>
             <el-table-column prop="shareChannel" label="分享渠道" width="120" />
             <el-table-column prop="createdAt" label="创建时间" width="170" />
+            <template #empty>
+              <el-empty description="暂无数据" :image-size="80" />
+            </template>
           </el-table>
         </el-tab-pane>
 
@@ -53,6 +56,9 @@
             </el-table-column>
             <el-table-column prop="paymentMethod" label="方式" width="100" />
             <el-table-column prop="createdAt" label="创建时间" width="170" />
+            <template #empty>
+              <el-empty description="暂无数据" :image-size="80" />
+            </template>
           </el-table>
         </el-tab-pane>
 
@@ -76,9 +82,12 @@
               </template>
             </el-table-column>
             <el-table-column prop="createdAt" label="创建时间" width="170" />
+            <template #empty>
+              <el-empty description="暂无数据" :image-size="80" />
+            </template>
           </el-table>
-        </el-tab-pane>
-      </el-tabs>
+          </el-tab-pane>
+        </el-tabs>
 
       <div class="pagination">
         <el-pagination

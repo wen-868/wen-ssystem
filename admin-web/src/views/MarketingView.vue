@@ -71,6 +71,9 @@
                 <el-button size="small" link type="danger" @click="deleteCoupon(row)">删除</el-button>
               </template>
             </el-table-column>
+          <template #empty>
+            <el-empty description="暂无数据" :image-size="80" />
+          </template>
           </el-table>
 
           <div class="pagination">
@@ -128,6 +131,9 @@
                 <el-button size="small" link type="danger" @click="deleteFR(row)">删除</el-button>
               </template>
             </el-table-column>
+          <template #empty>
+            <el-empty description="暂无数据" :image-size="80" />
+          </template>
           </el-table>
 
           <div class="pagination">
@@ -182,6 +188,9 @@
                 <el-button size="small" link type="danger" @click="deleteFS(row)">删除</el-button>
               </template>
             </el-table-column>
+          <template #empty>
+            <el-empty description="暂无数据" :image-size="80" />
+          </template>
           </el-table>
 
           <div class="pagination">
@@ -233,6 +242,9 @@
                 <el-button size="small" link type="danger" @click="deleteGB(row)">删除</el-button>
               </template>
             </el-table-column>
+          <template #empty>
+            <el-empty description="暂无数据" :image-size="80" />
+          </template>
           </el-table>
 
           <div class="pagination">
@@ -271,6 +283,9 @@
                 <el-button size="small" link type="danger" @click="handleDeleteStackRule(row)">删除</el-button>
               </template>
             </el-table-column>
+          <template #empty>
+            <el-empty description="暂无数据" :image-size="80" />
+          </template>
           </el-table>
         </el-tab-pane>
       </el-tabs>

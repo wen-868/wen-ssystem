@@ -42,6 +42,9 @@
             {{ formatYuan(row.miniappPrice) }}
           </template>
         </el-table-column>
+        <template #empty>
+          <el-empty description="暂无数据" :image-size="80" />
+        </template>
       </el-table>
 
       <div class="pagination">
@@ -114,6 +117,9 @@
               </span>
             </template>
           </el-table-column>
+          <template #empty>
+            <el-empty description="暂无数据" :image-size="80" />
+          </template>
         </el-table>
 
         <div style="margin-top: 16px; text-align: right">
@@ -147,6 +153,9 @@
             {{ formatDate(row.createdAt) }}
           </template>
         </el-table-column>
+        <template #empty>
+          <el-empty description="暂无数据" :image-size="80" />
+        </template>
       </el-table>
 
       <div class="pagination">

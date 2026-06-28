@@ -78,6 +78,9 @@
             <el-button v-if="row.status === 'FROZEN'" size="small" link type="success" @click="handleUnfreezeCredit(row)">解冻</el-button>
           </template>
         </el-table-column>
+        <template #empty>
+          <el-empty description="暂无数据" :image-size="80" />
+        </template>
       </el-table>
 
       <div class="pagination">
@@ -126,6 +129,9 @@
           <el-table-column prop="operatorName" label="操作人" width="100" />
           <el-table-column prop="createdAt" label="时间" width="160" />
           <el-table-column prop="remark" label="备注" min-width="120" />
+          <template #empty>
+            <el-empty description="暂无数据" :image-size="80" />
+          </template>
         </el-table>
       </template>
     </el-dialog>

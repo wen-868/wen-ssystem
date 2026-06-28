@@ -49,6 +49,9 @@
                 </el-button>
               </template>
             </el-table-column>
+          <template #empty>
+              <el-empty description="暂无数据" :image-size="80" />
+            </template>
           </el-table>
 
           <div class="pagination">
@@ -112,6 +115,9 @@
                 </el-button>
               </template>
             </el-table-column>
+          <template #empty>
+              <el-empty description="暂无数据" :image-size="80" />
+            </template>
           </el-table>
 
           <div class="pagination">
@@ -453,7 +459,7 @@ function toggleStaffStatus(row: any) {
 
 async function handleStaffSubmit() {
   if (!staffFormRef.value) return;
-  await staffFormRef.value.validate(async (valid) => {
+  await staffFormRef.value.validate(async (valid: boolean) => {
     if (!valid) return;
     staffSubmitLoading.value = true;
     try {

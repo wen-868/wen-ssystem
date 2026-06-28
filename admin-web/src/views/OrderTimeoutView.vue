@@ -71,6 +71,9 @@
                 <el-button size="small" link type="danger" @click="deleteConfig(row)">删除</el-button>
               </template>
             </el-table-column>
+            <template #empty>
+              <el-empty description="暂无数据" :image-size="80" />
+            </template>
           </el-table>
         </el-tab-pane>
 
@@ -129,6 +132,9 @@
             </el-table-column>
             <el-table-column prop="errorMsg" label="失败原因" min-width="160" />
             <el-table-column prop="createdAt" label="执行时间" width="170" />
+            <template #empty>
+              <el-empty description="暂无数据" :image-size="80" />
+            </template>
           </el-table>
 
           <div class="pagination">

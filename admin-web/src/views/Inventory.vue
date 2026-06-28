@@ -48,6 +48,9 @@
             <el-table-column prop="warningQty" label="预警阈值" width="100" />
             <el-table-column prop="unit" label="单位" width="80" />
             <el-table-column prop="updateTime" label="更新时间" width="160" />
+            <template #empty>
+              <el-empty description="暂无数据" :image-size="80" />
+            </template>
           </el-table>
 
           <div class="pagination">
@@ -112,6 +115,9 @@
             <el-table-column prop="relatedNo" label="关联单号" width="180" />
             <el-table-column prop="operatorName" label="操作人" width="100" />
             <el-table-column prop="createTime" label="操作时间" width="160" />
+            <template #empty>
+              <el-empty description="暂无数据" :image-size="80" />
+            </template>
           </el-table>
 
           <div class="pagination">

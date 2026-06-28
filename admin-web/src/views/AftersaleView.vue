@@ -88,6 +88,9 @@
             <el-button v-if="row.status === 'WAIT_INSPECT'" size="small" link type="warning" @click="handleInspect(row)">质检</el-button>
           </template>
         </el-table-column>
+      <template #empty>
+          <el-empty description="暂无数据" :image-size="80" />
+        </template>
       </el-table>
 
       <div class="pagination">
@@ -142,6 +145,9 @@
           <el-table-column label="小计" width="120">
             <template #default="{ row }">-¥{{ Number(row.subtotal || 0).toFixed(2) }}</template>
           </el-table-column>
+        <template #empty>
+            <el-empty description="暂无数据" :image-size="80" />
+          </template>
         </el-table>
       </template>
     </el-drawer>

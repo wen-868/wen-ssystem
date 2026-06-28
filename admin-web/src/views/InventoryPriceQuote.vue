@@ -37,6 +37,9 @@
             <el-button v-if="row.status === 'SENT' || row.status === 'READ'" size="small" link type="info" @click="handleViewStats(row)">查看统计</el-button>
           </template>
         </el-table-column>
+        <template #empty>
+          <el-empty description="暂无数据" :image-size="80" />
+        </template>
       </el-table>
 
       <div class="pagination">
@@ -82,6 +85,9 @@
                 <el-button size="small" link type="danger" @click="createForm.items.splice($index, 1)">删除</el-button>
               </template>
             </el-table-column>
+            <template #empty>
+              <el-empty description="暂无数据" :image-size="80" />
+            </template>
           </el-table>
         </el-form-item>
         <el-form-item label="备注">
@@ -126,6 +132,9 @@
               {{ formatYuan((row.unitPrice || 0) * (row.quantity || 1)) }}
             </template>
           </el-table-column>
+          <template #empty>
+            <el-empty description="暂无数据" :image-size="80" />
+          </template>
         </el-table>
 
         <div v-if="detailQuote.remark" style="margin-top: 16px; color: #666">

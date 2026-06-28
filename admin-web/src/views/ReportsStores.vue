@@ -48,6 +48,9 @@
             </span>
           </template>
         </el-table-column>
+      <template #empty>
+        <el-empty description="暂无数据" :image-size="80" />
+      </template>
       </el-table>
     </PageCard>
 

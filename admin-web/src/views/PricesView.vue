@@ -33,6 +33,9 @@
                 <el-button size="small" link type="danger" @click="deleteLevel(row)">删除</el-button>
               </template>
             </el-table-column>
+            <template #empty>
+              <el-empty description="暂无数据" :image-size="80" />
+            </template>
           </el-table>
         </el-tab-pane>
 
@@ -64,6 +67,9 @@
                 <el-button size="small" link type="primary" @click="openSkuPriceEdit(row)">编辑价格</el-button>
               </template>
             </el-table-column>
+            <template #empty>
+              <el-empty description="暂无数据" :image-size="80" />
+            </template>
           </el-table>
         </el-tab-pane>
 
@@ -94,6 +100,9 @@
                 <el-button v-if="row.status === 'PENDING'" size="small" link type="danger" @click="rejectBinding(row)">拒绝</el-button>
               </template>
             </el-table-column>
+            <template #empty>
+              <el-empty description="暂无数据" :image-size="80" />
+            </template>
           </el-table>
         </el-tab-pane>
 
@@ -111,6 +120,9 @@
             <el-table-column prop="operatorName" label="操作人" width="120" />
             <el-table-column prop="createdAt" label="变更时间" width="170" />
             <el-table-column prop="remark" label="备注" min-width="140" />
+            <template #empty>
+              <el-empty description="暂无数据" :image-size="80" />
+            </template>
           </el-table>
         </el-tab-pane>
       </el-tabs>

@@ -47,6 +47,9 @@
             <el-button size="small" link type="primary" @click="openDetail(row)">追溯</el-button>
           </template>
         </el-table-column>
+        <template #empty>
+          <el-empty description="暂无数据" :image-size="80" />
+        </template>
       </el-table>
 
       <div class="pagination">
@@ -108,6 +111,9 @@
             </template>
           </el-table-column>
           <el-table-column prop="remark" label="备注" min-width="120" />
+          <template #empty>
+            <el-empty description="暂无数据" :image-size="80" />
+          </template>
         </el-table>
       </template>
     </DetailDrawer>
@@ -137,6 +143,9 @@
             </el-popconfirm>
           </template>
         </el-table-column>
+        <template #empty>
+          <el-empty description="暂无数据" :image-size="80" />
+        </template>
       </el-table>
     </PageCard>
 
@@ -195,6 +204,9 @@
             <el-button v-if="row.status === 'PENDING'" size="small" link type="primary" @click="handleAlertItem(row)">处理</el-button>
           </template>
         </el-table-column>
+        <template #empty>
+          <el-empty description="暂无数据" :image-size="80" />
+        </template>
       </el-table>
 
       <div class="pagination">

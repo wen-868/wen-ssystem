@@ -39,6 +39,9 @@
             <el-button size="small" link @click="handleShowPriceHistory(row)">价格参考</el-button>
           </template>
         </el-table-column>
+        <template #empty>
+          <el-empty description="暂无数据" :image-size="80" />
+        </template>
       </el-table>
 
       <el-alert v-if="priceHistoryTip" type="info" show-icon :closable="false" style="margin-top: 12px">
