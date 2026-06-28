@@ -28,4 +28,5 @@ export const env = {
   WX_APP_SECRET: process.env.WX_APP_SECRET || process.env.WECHAT_APP_SECRET || "",
   WX_MCH_ID: process.env.WX_MCH_ID || process.env.WECHAT_MCH_ID || "",
   WX_API_KEY: process.env.WX_API_KEY || process.env.WECHAT_PAY_API_V3_KEY || "",
+  INSTANT_RETAIL_MOCK: process.env.INSTANT_RETAIL_MOCK || "",
 };

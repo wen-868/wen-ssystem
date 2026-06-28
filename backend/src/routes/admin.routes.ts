@@ -37,6 +37,7 @@ adminRouter.put("/products/:id", requireAuthWithTenant, productController.update
 adminRouter.put("/products/:id/disable", requireAuthWithTenant, productController.disableProduct);
 adminRouter.get("/products/:skuId/price-history", requireAuthWithTenant, productController.getProductPriceHistory);
 adminRouter.put("/products/:skuId/price", requireAuthWithTenant, productController.updateProductPrice);
+adminRouter.post("/products/batch-update", requireAuthWithTenant, productController.batchUpdateProducts);
 
 // ============ 订单管理 ============
 adminRouter.get("/orders", requireAuthWithTenant, orderController.listOrders);

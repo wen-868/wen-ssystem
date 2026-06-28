@@ -263,3 +263,102 @@ export async function updateProductPrice(skuId: number, body: {
 
   return result;
 }
+
+export async function batchUpdateProducts(
+  ids: number[],
+  updates: {
+    status?: string;
+    costPrice?: number;
+    retailPrice?: number;
+    wholesalePrice?: number | null;
+    miniappPrice?: number | null;
+    storePrice?: number | null;
+    categoryId?: number;
+  },
+  tenantId: string
+) {
+  const details: Array<{ id: number; success: boolean; error?: string }> = [];
+  let successCount = 0;
+  let failedCount = 0;
+
+  for (const spuId of ids) {
+    try {
+      const existing = await queryOneWithTenant<any>(
+        "SELECT id, status FROM product_spu WHERE id = ? AND tenant_id = ?",
+        [spuId, tenantId],
+        tenantId
+      );
+      if (!existing) {
+        details.push({ id: spuId, success: false, error: "商品不存在" });
+        failedCount++;
+        continue;
+      }
+
+      const spuSets: string[] = [];
+      const spuParams: unknown[] = [];
+
+      if (updates.status !== undefined) {
+        spuSets.push("status = ?");
+        spuParams.push(updates.status);
+      }
+      if (updates.categoryId !== undefined) {
+        spuSets.push("category_id = ?");
+        spuParams.push(updates.categoryId);
+      }
+
+      if (spuSets.length > 0) {
+        spuSets.push("updated_at = NOW()");
+        spuParams.push(spuId, tenantId);
+        await queryWithTenant(
+          `UPDATE product_spu SET ${spuSets.join(", ")} WHERE id = ? AND tenant_id = ?`,
+          spuParams,
+          tenantId
+        );
+      }
+
+      // 更新价格字段
+      const priceFields: string[] = [];
+      const priceParams: unknown[] = [];
+      if (updates.costPrice !== undefined) {
+        priceFields.push("cost_price = ?");
+        priceParams.push(updates.costPrice);
+      }
+      if (updates.retailPrice !== undefined) {
+        priceFields.push("retail_price = ?");
+        priceParams.push(updates.retailPrice);
+      }
+      if (updates.wholesalePrice !== undefined) {
+        priceFields.push("wholesale_price = ?");
+        priceParams.push(updates.wholesalePrice);
+      }
+      if (updates.miniappPrice !== undefined) {
+        priceFields.push("miniapp_price = ?");
+        priceParams.push(updates.miniappPrice);
+      }
+      if (updates.storePrice !== undefined) {
+        priceFields.push("store_price = ?");
+        priceParams.push(updates.storePrice);
+      }
+
+      if (priceFields.length > 0) {
+        priceParams.push(spuId, tenantId);
+        await queryWithTenant(
+          `UPDATE product_price pp
+           JOIN product_sku s ON s.id = pp.sku_id
+           SET ${priceFields.join(", ")}
+           WHERE s.spu_id = ? AND pp.tenant_id = ?`,
+          priceParams,
+          tenantId
+        );
+      }
+
+      details.push({ id: spuId, success: true });
+      successCount++;
+    } catch (err: any) {
+      details.push({ id: spuId, success: false, error: err.message || "更新失败" });
+      failedCount++;
+    }
+  }
+
+  return { success: successCount, failed: failedCount, details };
+}
