@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { onMounted, ref, computed } from 'vue'
+import { useRouter } from 'vue-router'
 import {
   fetchDashboard,
   fetchDailySales,
@@ -8,6 +9,8 @@ import {
   type DailySalesRecord,
   type InventoryAlertRecord
 } from '../api'
+
+const router = useRouter()
 
 /* ========== 仪表盘指标 ========== */
 const loading = ref(false)
@@ -33,16 +36,53 @@ const alerts = ref<InventoryAlertRecord[]>([])
 const alertsLoading = ref(false)
 
 /* ========== 快捷操作 ========== */
-const quickActions = [
-  { text: '开单收款', icon: 'cash-back-record', color: 'var(--color-success)', route: 'create-sale' },
-  { text: '库存管理', icon: 'search', color: 'var(--color-warning)', route: 'inventory' },
-  { text: '客户管理', icon: 'friends-o', color: 'var(--color-primary)', route: 'customers' },
-  { text: '应收管理', icon: 'balance-o', color: 'var(--color-danger)', route: 'receivables' },
-  { text: '报表', icon: 'chart-trending-o', color: 'var(--color-primary)', route: 'reports' }
+const moduleGroups = [
+  {
+    title: '销售',
+    items: [
+      { text: '开单收款', icon: 'cash-back-record', route: '/create-sale' },
+      { text: '销售单据', icon: 'orders-o', route: '/orders' },
+      { text: '销售账单', icon: 'bill-o', route: '/sale-bills' }
+    ]
+  },
+  {
+    title: '采购',
+    items: [
+      { text: '采购订单', icon: 'shopping-cart-o', route: '/purchase-orders' },
+      { text: '采购入库', icon: 'logistics', route: '/purchase-in-stocks' },
+      { text: '采购退货', icon: 'exchange', route: '/purchase-returns' }
+    ]
+  },
+  {
+    title: '库存',
+    items: [
+      { text: '库存管理', icon: 'bar-chart-o', route: '/inventory' },
+      { text: '库存调整', icon: 'setting-o', route: '/inventory-adjust' }
+    ]
+  },
+  {
+    title: '退货',
+    items: [
+      { text: '销售退货', icon: 'revoke', route: '/sale-returns' }
+    ]
+  },
+  {
+    title: '对账',
+    items: [
+      { text: '对账单', icon: 'balance-list-o', route: '/statements' },
+      { text: '应收管理', icon: 'gold-coin-o', route: '/receivables' }
+    ]
+  },
+  {
+    title: '客户',
+    items: [
+      { text: '客户管理', icon: 'friends-o', route: '/customers' }
+    ]
+  }
 ]
 
-function handleQuickAction(route: string) {
-  window.dispatchEvent(new CustomEvent('nav', { detail: route }))
+function goTo(path: string) {
+  router.push(path)
 }
 
 /* ========== 数据加载 (store/dashboard) ========== */
@@ -212,18 +252,24 @@ function formatDate(dateStr: string): string {
       </div>
     </div>
 
-    <!-- 快捷操作 -->
-    <div class="section-title">常用操作</div>
-    <van-grid :column-num="4" :border="false" class="action-grid">
-      <van-grid-item
-        v-for="action in quickActions"
-        :key="action.text"
-        :icon="action.icon"
-        :text="action.text"
-        :icon-color="action.color"
-        @click="handleQuickAction(action.route)"
-      />
-    </van-grid>
+    <!-- 快捷操作 - 按模块分组 -->
+    <div class="section-title">快捷入口</div>
+    <div class="module-grid">
+      <div v-for="group in moduleGroups" :key="group.title" class="module-group">
+        <div class="group-title">{{ group.title }}</div>
+        <div class="group-cards">
+          <div
+            v-for="item in group.items"
+            :key="item.text"
+            class="entry-card"
+            @click="goTo(item.route)"
+          >
+            <van-icon :name="item.icon" size="22" />
+            <span>{{ item.text }}</span>
+          </div>
+        </div>
+      </div>
+    </div>
   </section>
 </template>
 
@@ -434,5 +480,59 @@ function formatDate(dateStr: string): string {
   border-radius: var(--radius-lg);
   overflow: hidden;
   box-shadow: var(--shadow-card);
+}
+
+/* ===== 模块快捷入口 ===== */
+.module-grid {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding: 0 16px;
+}
+
+.module-group {
+  background: var(--bg-card);
+  border-radius: var(--radius-lg);
+  padding: 12px;
+  box-shadow: var(--shadow-card);
+}
+
+.group-title {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--text-secondary);
+  margin-bottom: 8px;
+  padding-left: 2px;
+}
+
+.group-cards {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.entry-card {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  padding: 10px 12px;
+  background: var(--bg-soft);
+  border-radius: var(--radius-md);
+  cursor: pointer;
+  transition: transform 0.15s ease;
+  min-width: 70px;
+  font-size: 11px;
+  color: var(--text-primary);
+  user-select: none;
+}
+
+.entry-card :deep(.van-icon) {
+  color: var(--color-primary);
+}
+
+.entry-card:active {
+  transform: scale(0.95);
+  background: var(--bg-page);
 }
 </style>

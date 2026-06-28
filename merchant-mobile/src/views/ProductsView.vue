@@ -2,6 +2,7 @@
 import { ref } from 'vue'
 import { showToast } from 'vant'
 import { fetchProducts, type ProductRecord } from '../api'
+import { isWeChat, wxScanQRCode } from '../utils/wx'
 
 defineEmits<{ navigate: [page: string] }>()
 
@@ -56,8 +57,20 @@ function onRefresh() {
   loadProducts()
 }
 
-function onScan() {
-  showToast('扫码功能开发中')
+async function onScan() {
+  if (isWeChat()) {
+    try {
+      const result = await wxScanQRCode()
+      if (result) {
+        keyword.value = result
+        loadProducts()
+      }
+    } catch {
+      showToast('扫码失败，请重试')
+    }
+  } else {
+    showToast('扫码功能需要微信环境')
+  }
 }
 
 function formatPrice(price: number | null | undefined): string {
