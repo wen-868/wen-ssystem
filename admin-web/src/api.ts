@@ -1298,3 +1298,159 @@ export async function fetchOrderBoardData() {
   const { data } = await api.get("/admin/instant-retail/order-board");
   return data.data;
 }
+
+// ==================== Tenant APIs ====================
+export async function fetchTenants(params?: { page?: number; pageSize?: number; status?: string; keyword?: string }) {
+  const { data } = await api.get("/api/tenants", { params: { page: 1, pageSize: 20, ...params } });
+  return data.data;
+}
+export async function fetchTenantDetail(tenantId: string) {
+  const { data } = await api.get(`/api/tenants/${tenantId}`);
+  return data.data;
+}
+export async function createTenant(payload: { name: string; contactName?: string; contactPhone?: string; address?: string }) {
+  const { data } = await api.post("/api/tenants", payload);
+  return data.data;
+}
+export async function updateTenant(tenantId: string, payload: { name?: string; contactName?: string; contactPhone?: string; address?: string }) {
+  const { data } = await api.put(`/api/tenants/${tenantId}`, payload);
+  return data.data;
+}
+export async function changeTenantStatus(tenantId: string, payload: { status: string }) {
+  const { data } = await api.put(`/api/tenants/${tenantId}/status`, payload);
+  return data.data;
+}
+export async function fetchTenantModules(tenantId: string) {
+  const { data } = await api.get(`/api/tenants/${tenantId}/modules`);
+  return data.data;
+}
+export async function setTenantModules(tenantId: string, payload: { modules: string[] }) {
+  const { data } = await api.put(`/api/tenants/${tenantId}/modules`, payload);
+  return data.data;
+}
+
+// ==================== Subscription APIs ====================
+export async function fetchSubscriptionPlans(params?: { page?: number; pageSize?: number }) {
+  const { data } = await api.get("/api/subscriptions/plans", { params });
+  return data.data;
+}
+export async function fetchSubscriptionPlanDetail(planId: string) {
+  const { data } = await api.get(`/api/subscriptions/plans/${planId}`);
+  return data.data;
+}
+export async function createSubscriptionPlan(payload: { name: string; price: number; duration: number; features?: string[] }) {
+  const { data } = await api.post("/api/subscriptions/plans", payload);
+  return data.data;
+}
+export async function updateSubscriptionPlan(planId: string, payload: { name?: string; price?: number; duration?: number; features?: string[] }) {
+  const { data } = await api.put(`/api/subscriptions/plans/${planId}`, payload);
+  return data.data;
+}
+export async function fetchSubscriptions(params?: { page?: number; pageSize?: number; tenantId?: string; status?: string }) {
+  const { data } = await api.get("/api/subscriptions", { params: { page: 1, pageSize: 20, ...params } });
+  return data.data;
+}
+export async function fetchSubscriptionDetail(subscriptionId: string) {
+  const { data } = await api.get(`/api/subscriptions/${subscriptionId}`);
+  return data.data;
+}
+export async function createSubscription(payload: { tenantId: string; planId: string; startDate?: string }) {
+  const { data } = await api.post("/api/subscriptions", payload);
+  return data.data;
+}
+export async function changeSubscriptionPlan(subscriptionId: string, payload: { planId: string }) {
+  const { data } = await api.post(`/api/subscriptions/${subscriptionId}/change-plan`, payload);
+  return data.data;
+}
+export async function cancelSubscription(subscriptionId: string) {
+  const { data } = await api.post(`/api/subscriptions/${subscriptionId}/cancel`);
+  return data.data;
+}
+export async function paySubscription(subscriptionId: string) {
+  const { data } = await api.post(`/api/subscriptions/${subscriptionId}/pay`);
+  return data.data;
+}
+export async function renewSubscription(subscriptionId: string) {
+  const { data } = await api.post(`/api/subscriptions/${subscriptionId}/renew`);
+  return data.data;
+}
+export async function fetchExpiringSubscriptions() {
+  const { data } = await api.get("/api/subscriptions/expiring/list");
+  return data.data;
+}
+export async function fetchExpiredSubscriptions() {
+  const { data } = await api.get("/api/subscriptions/expired/list");
+  return data.data;
+}
+
+// ==================== Customer Visit APIs ====================
+export async function fetchCustomerVisits(params?: { page?: number; pageSize?: number; status?: string; staffId?: number; customerId?: number; dateStart?: string; dateEnd?: string }) {
+  const { data } = await api.get("/api/customer-visit", { params: { page: 1, pageSize: 20, ...params } });
+  return data.data;
+}
+export async function fetchCustomerVisitDetail(visitNo: string) {
+  const { data } = await api.get(`/api/customer-visit/${visitNo}`);
+  return data.data;
+}
+export async function createCustomerVisit(payload: { customerId: number; staffId: number; planDate: string; purpose: string; address?: string }) {
+  const { data } = await api.post("/api/customer-visit", payload);
+  return data.data;
+}
+export async function updateCustomerVisit(visitNo: string, payload: { planDate?: string; purpose?: string; address?: string }) {
+  const { data } = await api.put(`/api/customer-visit/${visitNo}`, payload);
+  return data.data;
+}
+export async function checkinCustomerVisit(visitNo: string, payload?: { location?: string; remark?: string }) {
+  const { data } = await api.post(`/api/customer-visit/${visitNo}/checkin`, payload || {});
+  return data.data;
+}
+export async function checkoutCustomerVisit(visitNo: string, payload?: { remark?: string; nextPlan?: string }) {
+  const { data } = await api.post(`/api/customer-visit/${visitNo}/checkout`, payload || {});
+  return data.data;
+}
+export async function cancelCustomerVisit(visitNo: string) {
+  const { data } = await api.post(`/api/customer-visit/${visitNo}/cancel`);
+  return data.data;
+}
+export async function fetchCustomerVisitStatistics(params?: { dateStart?: string; dateEnd?: string; staffId?: number }) {
+  const { data } = await api.get("/api/customer-visit/statistics", { params });
+  return data.data;
+}
+
+// ==================== Approval APIs ====================
+export async function fetchApprovalRules(params?: { page?: number; pageSize?: number }) {
+  const { data } = await api.get("/api/approval/rules", { params: { page: 1, pageSize: 20, ...params } });
+  return data.data;
+}
+export async function createApprovalRule(payload: { name: string; description?: string; steps: any[] }) {
+  const { data } = await api.post("/api/approval/rules", payload);
+  return data.data;
+}
+export async function updateApprovalRule(id: number, payload: { name?: string; description?: string; steps?: any[] }) {
+  const { data } = await api.put(`/api/approval/rules/${id}`, payload);
+  return data.data;
+}
+export async function fetchApprovalInstances(params?: { page?: number; pageSize?: number; status?: string }) {
+  const { data } = await api.get("/api/approval/instances", { params: { page: 1, pageSize: 20, ...params } });
+  return data.data;
+}
+export async function fetchApprovalInstanceDetail(instanceNo: string) {
+  const { data } = await api.get(`/api/approval/instances/${instanceNo}`);
+  return data.data;
+}
+export async function submitApproval(payload: { ruleId: number; title: string; content: string; attachments?: string[] }) {
+  const { data } = await api.post("/api/approval/instances/submit", payload);
+  return data.data;
+}
+export async function fetchApprovalTasks(params?: { page?: number; pageSize?: number; status?: string }) {
+  const { data } = await api.get("/api/approval/tasks", { params: { page: 1, pageSize: 20, ...params } });
+  return data.data;
+}
+export async function approveTask(id: number, payload?: { comment?: string }) {
+  const { data } = await api.post(`/api/approval/tasks/${id}/approve`, payload || {});
+  return data.data;
+}
+export async function rejectTask(id: number, payload?: { comment?: string }) {
+  const { data } = await api.post(`/api/approval/tasks/${id}/reject`, payload || {});
+  return data.data;
+}

@@ -81,6 +81,7 @@
           </template>
           <el-menu-item index="/customers">客户列表</el-menu-item>
           <el-menu-item index="/credit">授信管理</el-menu-item>
+          <el-menu-item index="/customer-visits">客户拜访</el-menu-item>
         </el-sub-menu>
 
         <!-- 7. 商品中心 -->
@@ -156,6 +157,9 @@
           <el-menu-item index="/system/roles">角色权限</el-menu-item>
           <el-menu-item index="/audit-log">操作日志</el-menu-item>
           <el-menu-item index="/system">系统配置</el-menu-item>
+          <el-menu-item index="/tenants">租户管理</el-menu-item>
+          <el-menu-item index="/subscriptions">订阅管理</el-menu-item>
+          <el-menu-item index="/approval">审批中心</el-menu-item>
         </el-sub-menu>
       </el-menu>
     </aside>
@@ -270,6 +274,8 @@ const pageTitle = computed(() => {
     "/inventory-alerts": "库存预警",
     "/customers": "客户列表",
     "/credit": "授信管理",
+    "/customer-visits": "客户拜访",
+    "/customer-visits/stats": "拜访统计",
     "/products": "商品列表",
     "/products/categories": "商品分类",
     "/prices": "价格管理",
@@ -289,6 +295,8 @@ const pageTitle = computed(() => {
     "/system/roles": "角色权限",
     "/audit-log": "操作日志",
     "/system": "系统配置",
+    "/approval": "审批中心",
+    "/my-approvals": "我的申请",
     "/instant-retail/config": "小程序配置",
     "/instant-retail/shelf": "商品货架",
     "/instant-retail/orders": "小程序订单",
@@ -296,9 +304,12 @@ const pageTitle = computed(() => {
     "/instant-retail/delivery": "配送管理",
     "/instant-retail/report": "零售报表",
     "/instant-retail/platform": "平台对接",
-    "/instant-retail/order-board": "接单工作台"
+    "/instant-retail/order-board": "接单工作台",
+    "/tenants": "租户管理",
+    "/tenants/:tenantId": "租户详情",
+    "/subscriptions": "订阅管理"
   };
-  return titles[route.path] || "智享营销系统";
+  return titles[route.path] || (route.meta.title as string) || "智享营销系统";
 });
 
 function toggleCashierMode() {

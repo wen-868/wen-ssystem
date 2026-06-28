@@ -75,6 +75,8 @@ const routes = [
       // 6. 客户管理
       { path: "customers", name: "Customers", component: () => import("../views/CustomersView.vue"), meta: { roles: ["BOSS", "MGR"] } },
       { path: "credit", name: "Credit", component: () => import("../views/CreditView.vue"), meta: { roles: ["BOSS", "MGR"] } },
+      { path: "customer-visits", name: "CustomerVisits", component: () => import("../views/CustomerVisitRecords.vue"), meta: { title: "客户拜访", roles: ["BOSS", "MGR", "ADMIN"] } },
+      { path: "customer-visits/stats", name: "CustomerVisitStats", component: () => import("../views/CustomerVisitStats.vue"), meta: { title: "拜访统计", roles: ["BOSS", "MGR", "ADMIN"] } },
       // 7. 商品中心
       { path: "products", name: "Products", component: () => import("../views/Products.vue"), meta: { roles: ["BOSS", "MGR"] } },
       { path: "products/categories", name: "ProductCategories", component: () => import("../views/ProductCategories.vue"), meta: { roles: ["BOSS"] } },
@@ -107,7 +109,14 @@ const routes = [
       { path: "stores", name: "Stores", component: () => import("../views/StoresView.vue"), meta: { roles: ["BOSS"] } },
       { path: "system/roles", name: "SystemRoles", component: () => import("../views/SystemRoles.vue"), meta: { roles: ["BOSS"] } },
       { path: "audit-log", name: "AuditLog", component: () => import("../views/AuditLogView.vue"), meta: { roles: ["BOSS"] } },
-      { path: "system", name: "System", component: () => import("../views/System.vue"), meta: { roles: ["BOSS"] } }
+      { path: "system", name: "System", component: () => import("../views/System.vue"), meta: { roles: ["BOSS"] } },
+      { path: "tenants", name: "Tenants", component: () => import("../views/Tenants.vue"), meta: { title: "租户管理", roles: ["BOSS", "ADMIN"] } },
+      { path: "tenants/:tenantId", name: "TenantDetail", component: () => import("../views/TenantDetail.vue"), meta: { title: "租户详情", roles: ["BOSS", "ADMIN"] } },
+      { path: "subscriptions", name: "Subscriptions", component: () => import("../views/Subscriptions.vue"), meta: { title: "订阅管理", roles: ["BOSS", "ADMIN"] } },
+      // 审批管理
+      { path: "approval", name: "Approval", component: () => import("../views/ApprovalRules.vue"), meta: { title: "审批中心", roles: ["BOSS", "MGR", "ADMIN"] } },
+      { path: "approval/:instanceNo", name: "ApprovalDetail", component: () => import("../views/ApprovalDetail.vue"), meta: { title: "审批详情", roles: ["BOSS", "MGR", "ADMIN"] } },
+      { path: "my-approvals", name: "MyApprovals", component: () => import("../views/MyApprovals.vue"), meta: { title: "我的申请", roles: ["BOSS", "MGR", "ADMIN", "STAFF"] } }
     ]
   },
   { path: "/:pathMatch(.*)*", name: "NotFound", component: NotFound, meta: { requiresAuth: false } }
