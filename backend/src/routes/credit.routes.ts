@@ -46,3 +46,4 @@ creditRouter.get("/collections/statistics", requireAuthWithTenant, creditControl
 // 风险客户
 // ========================================================================
 creditRouter.get("/risk-customers", requireAuthWithTenant, creditController.getRiskCustomers);
+creditRouter.get("/risk-list", requireAuthWithTenant, creditController.getRiskCustomers);

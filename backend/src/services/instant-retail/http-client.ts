@@ -5,7 +5,7 @@
 
 import { env } from "../../shared/env.js";
 
-const isMock = () => env.INSTANT_RETAIL_MOCK === "true" || !env.INSTANT_RETAIL_MOCK;
+const isMock = () => env.INSTANT_RETAIL_MOCK === "true";
 
 /** 重试配置 */
 const RETRY_CONFIG = {
