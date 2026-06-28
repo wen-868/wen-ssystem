@@ -155,5 +155,5 @@ export function startOrderTimeoutScanner() {
     timer.unref();
   }
 
-  console.log("[OrderTimeoutScanner] 订单超时扫描器已启动，每60秒扫描一次");
+  console.info("[OrderTimeoutScanner] 订单超时扫描器已启动，每60秒扫描一次");
 }

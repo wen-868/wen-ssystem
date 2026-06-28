@@ -1,10 +1,7 @@
 <script setup lang="ts">
 import { ref } from 'vue'
 import {
-  showToast,
-  showLoadingToast,
-  showSuccessToast,
-  closeToast
+  showToast
 } from 'vant'
 import {
   fetchSaleReturns,
@@ -158,11 +155,11 @@ function goBack() {
           <template #label>
             <div class="return-info">
               <span>{{ record.customerName || '散客' }}</span>
-              <span class="return-amount">¥{{ Number(record.returnAmount).toFixed(2) }}</span>
+              <span class="return-amount">¥{{ Number(record.refundAmount).toFixed(2) }}</span>
             </div>
             <div class="return-meta">
-              <van-tag v-if="record.returnType === 'BY_BILL'" type="primary" plain size="mini">按单退货</van-tag>
-              <van-tag v-else type="success" plain size="mini">直接退货</van-tag>
+              <van-tag v-if="record.returnType === 'BY_BILL'" type="primary" plain size="medium">按单退货</van-tag>
+              <van-tag v-else type="success" plain size="medium">直接退货</van-tag>
               <span v-if="record.sourceBillNo" class="source-bill">原单: {{ record.sourceBillNo }}</span>
               <span class="return-time">{{ record.createdAt }}</span>
             </div>
@@ -197,7 +194,7 @@ function goBack() {
             <van-cell v-if="detail.sourceBillNo" title="原销售单" :value="detail.sourceBillNo" />
             <van-cell title="退货金额">
               <template #value>
-                <span class="detail-amount">¥{{ Number(detail.returnAmount).toFixed(2) }}</span>
+                <span class="detail-amount">¥{{ Number(detail.refundAmount).toFixed(2) }}</span>
               </template>
             </van-cell>
             <van-cell title="状态">
@@ -225,7 +222,7 @@ function goBack() {
                 :label="`${item.boxQty}箱${item.bottleQty}瓶 / 共${item.totalBottleQty}瓶`"
               >
                 <template #value>
-                  ¥{{ Number(item.subtotalAmount).toFixed(2) }}
+                  ¥{{ Number(item.subtotal).toFixed(2) }}
                 </template>
               </van-cell>
             </van-cell-group>

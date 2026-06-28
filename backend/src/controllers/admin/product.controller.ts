@@ -1,14 +1,16 @@
-import { z } from "zod";
 import { asyncHandler } from "../../shared/async-handler.js";
 import { ok } from "../../shared/response.js";
+import { z } from "zod";
 import * as productService from "../../services/admin/product.service.js";
+import { cacheDelPattern } from "../../shared/redis-cache.js";
 
 export const listProducts = asyncHandler(async (req, res) => {
   const tenantId = req.tenantId!;
   const page = Number(req.query.page || 1);
   const pageSize = Number(req.query.pageSize || 20);
   const keyword = String(req.query.keyword || "");
-  const result = await productService.listProducts(keyword, page, pageSize, tenantId);
+  const category = req.query.category ? String(req.query.category) : undefined;
+  const result = await productService.listProducts(keyword, page, pageSize, tenantId, category);
   res.json(ok(result));
 });
 
@@ -118,4 +120,35 @@ export const updateProductPrice = asyncHandler(async (req, res) => {
     }
     throw err;
   }
+});
+
+/** 批量更新商品 */
+export const batchUpdateProducts = asyncHandler(async (req, res) => {
+  const tenantId = req.tenantId!;
+
+  const body = z.object({
+    ids: z.array(z.number().int().positive()).min(1).max(500),
+    updates: z.object({
+      status: z.enum(["ACTIVE", "INACTIVE", "DISCONTINUED"]).optional(),
+      costPrice: z.number().optional(),
+      retailPrice: z.number().optional(),
+      wholesalePrice: z.number().nullable().optional(),
+      miniappPrice: z.number().nullable().optional(),
+      storePrice: z.number().nullable().optional(),
+      categoryId: z.number().optional(),
+    }),
+  }).parse(req.body);
+
+  const results = await productService.batchUpdateProducts(body.ids, body.updates, tenantId);
+
+  // 清除商品缓存
+  await cacheDelPattern(`tenant:${tenantId}:product:*`);
+  await cacheDelPattern(`tenant:${tenantId}:products:*`);
+
+  res.json(ok({
+    total: body.ids.length,
+    success: results.success,
+    failed: results.failed,
+    details: results.details,
+  }));
 });

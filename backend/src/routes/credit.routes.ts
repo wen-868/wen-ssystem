@@ -23,12 +23,22 @@ creditRouter.put("/credits/:customerId/limit", requireAuthWithTenant, creditAdju
 creditRouter.put("/credits/:customerId/term", requireAuthWithTenant, creditAdjustController.adjustTerm);
 
 // ========================================================================
+// 信用评分与风控（赊销风控引擎）
+// ========================================================================
+creditRouter.post("/credits/:customerId/evaluate", requireAuthWithTenant, creditController.evaluateCredit);
+creditRouter.get("/credits/:customerId/intercept", requireAuthWithTenant, creditController.checkCreditIntercept);
+creditRouter.post("/credits/:customerId/auto-init", requireAuthWithTenant, creditController.autoInitCredit);
+creditRouter.get("/credits/strategy/collection", requireAuthWithTenant, creditController.getCollectionStrategyConfig);
+creditRouter.get("/credits/strategy/tiers", requireAuthWithTenant, creditController.getCreditTiers);
+
+// ========================================================================
 // 催收管理
 // ========================================================================
 creditRouter.get("/collections", requireAuthWithTenant, creditController.getCollectionList);
 creditRouter.post("/collections", requireAuthWithTenant, creditController.createCollection);
 creditRouter.put("/collections/:id", requireAuthWithTenant, creditController.updateCollection);
 creditRouter.get("/collections/overdue", requireAuthWithTenant, creditController.getOverdueCustomers);
+creditRouter.post("/collections/auto-generate", requireAuthWithTenant, creditController.autoGenerateCollections);
 creditRouter.post("/collections/batch-remind", requireAuthWithTenant, creditController.batchRemind);
 creditRouter.get("/collections/statistics", requireAuthWithTenant, creditController.getCollectionStatistics);
 

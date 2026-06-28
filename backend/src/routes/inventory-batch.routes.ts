@@ -35,7 +35,7 @@ import { query, transaction } from "../shared/db.js";
 let expiryScannerRunning = false;
 
 export function startExpiryScanner() {
-  console.log("[效期扫描器] 已启动，每60秒检查一次（凌晨2点执行全量扫描）");
+  console.info("[效期扫描器] 已启动，每60秒检查一次（凌晨2点执行全量扫描）");
 
   const timer = setInterval(async () => {
     if (expiryScannerRunning) return;
@@ -47,7 +47,7 @@ export function startExpiryScanner() {
     expiryScannerRunning = true;
     try {
       await runExpiryScan();
-      console.log("[效期扫描器] 扫描完成");
+      console.info("[效期扫描器] 扫描完成");
     } catch (error) {
       console.error("[效期扫描器] 扫描失败:", error);
     } finally {

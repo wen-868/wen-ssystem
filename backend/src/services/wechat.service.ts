@@ -96,7 +96,7 @@ export async function bindUser(
     return { success: false, code: "400", message: "账号不存在或已禁用" };
   }
 
-  if (!verifyPassword(body.password, sysUser.password_hash)) {
+  if (!(await verifyPassword(body.password, sysUser.password_hash))) {
     return { success: false, code: "400", message: "密码错误" };
   }
 

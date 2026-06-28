@@ -4,6 +4,7 @@ import { ok } from "../../shared/response.js";
 import * as creditLimitService from "../../services/admin/credit-limit.service.js";
 import * as creditCollectionService from "../../services/admin/credit-collection.service.js";
 import * as creditRiskService from "../../services/admin/credit-risk.service.js";
+import * as creditScoringService from "../../services/admin/credit-scoring.service.js";
 import type { ServiceContext } from "../../types/index.js";
 
 function getServiceContext(req: any): ServiceContext {
@@ -238,4 +239,66 @@ export const getRiskCustomers = asyncHandler(async (req, res) => {
 
   const result = await creditRiskService.getRiskCustomers(page, pageSize, ctx);
   res.json(ok(result));
+});
+
+// ========== 信用评分与风控新接口 ==========
+
+/** 评估客户信用评分 */
+export const evaluateCredit = asyncHandler(async (req, res) => {
+  const ctx = getServiceContext(req);
+  const customerId = Number(req.params.customerId);
+
+  try {
+    const result = await creditScoringService.evaluateCreditScore(customerId, ctx);
+    res.json(ok(result));
+  } catch (e: any) {
+    res.status(e.statusCode || 400).json({ code: String(e.statusCode || 400), message: e.message });
+  }
+});
+
+/** 赊销拦截检查 */
+export const checkCreditIntercept = asyncHandler(async (req, res) => {
+  const ctx = getServiceContext(req);
+  const customerId = Number(req.params.customerId);
+  const amount = Number(req.query.amount || 0);
+
+  try {
+    const result = await creditScoringService.interceptCredit(customerId, amount, ctx);
+    res.json(ok(result));
+  } catch (e: any) {
+    res.status(e.statusCode || 400).json({ code: String(e.statusCode || 400), message: e.message });
+  }
+});
+
+/** 自动授信初始化 */
+export const autoInitCredit = asyncHandler(async (req, res) => {
+  const ctx = getServiceContext(req);
+  const customerId = Number(req.params.customerId);
+
+  try {
+    const result = await creditScoringService.autoInitCredit(customerId, ctx);
+    res.json(ok(result));
+  } catch (e: any) {
+    res.status(e.statusCode || 400).json({ code: String(e.statusCode || 400), message: e.message });
+  }
+});
+
+/** 自动生成催收任务 */
+export const autoGenerateCollections = asyncHandler(async (req, res) => {
+  const ctx = getServiceContext(req);
+
+  const result = await creditScoringService.autoGenerateCollections(ctx);
+  res.json(ok(result));
+});
+
+/** 获取催收策略配置 */
+export const getCollectionStrategyConfig = asyncHandler(async (_req, res) => {
+  const config = creditScoringService.getCollectionStrategyConfig();
+  res.json(ok(config));
+});
+
+/** 获取授信阶梯配置 */
+export const getCreditTiers = asyncHandler(async (_req, res) => {
+  const tiers = creditScoringService.getCreditTiers();
+  res.json(ok(tiers));
 });

@@ -92,7 +92,7 @@ app.use("/api/admin/credits", requireAuthWithTenant, creditRouter);
 app.use("/api/admin/trace", requireAuthWithTenant, adminTraceRouter);
 app.use("/api/admin/inventory-batch", requireAuthWithTenant, inventoryBatchRouter);
 app.use("/api/admin/store-control", requireAuthWithTenant, adminStoreControlRouter);
-app.use("/api/store/control", storeStoreControlRouter);
+app.use("/api/store/control", requireAuthWithTenant, storeStoreControlRouter);
 app.use("/api/miniapp/trace", miniappTraceRouter);
 app.use("/api/admin/marketing", requireAuthWithTenant, adminMarketingRouter);
 app.use("/api/miniapp/marketing", miniappMarketingRouter);
@@ -103,9 +103,9 @@ app.use("/api/admin/roles", requireAuthWithTenant, rbacRouter);
 app.use("/api/admin/notifications", requireAuthWithTenant, adminNotificationRouter);
 app.use("/api/miniapp/notifications", miniappNotificationRouter);
 app.use("/api/admin/transfers", requireAuthWithTenant, adminTransferRouter);
-app.use("/api/store/transfers", storeTransferRouter);
+app.use("/api/store/transfers", requireAuthWithTenant, storeTransferRouter);
 app.use("/api/admin/stock-checks", requireAuthWithTenant, adminStockCheckRouter);
-app.use("/api/store/stock-checks", storeStockCheckRouter);
+app.use("/api/store/stock-checks", requireAuthWithTenant, storeStockCheckRouter);
 app.use("/api/admin/audit-logs", requireAuthWithTenant, auditRouter);
 app.use("/api/admin/export", requireAuthWithTenant, exportRouter);
 app.use("/api/admin/sys-config", requireAuthWithTenant, sysConfigRouter);
@@ -121,7 +121,7 @@ app.use("/api/admin/customer-merge", requireAuthWithTenant, customerMergeRouter)
 app.use("/api/admin/marketing-new", requireAuthWithTenant, marketingNewRouter);
 app.use("/api/admin/quotes", requireAuthWithTenant, quoteRouter);
 app.use("/api/quote/share", quoteShareRouter);
-app.use("/api/platform", platformRouter);
+app.use("/api/platform", requireAuthWithTenant, platformRouter);
 app.use("/api/admin/menu-permissions", requireAuthWithTenant, menuPermissionRouter);
 
 app.use(errorHandler);
@@ -132,7 +132,7 @@ async function start() {
   }
 
   app.listen(env.PORT, () => {
-    console.log(`zhixiang-backend listening on http://localhost:${env.PORT}`);
+    console.info(`zhixiang-backend listening on http://localhost:${env.PORT}`);
     // 启动预警定时检查
     startAlertScheduler();
     // 启动效期扫描器

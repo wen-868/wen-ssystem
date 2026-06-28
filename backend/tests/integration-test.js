@@ -24,8 +24,8 @@ async function request(method, path, body = null, auth = true) {
 
 function test(name, fn) {
   return fn().then(
-    () => { console.log(`✅ ${name}`); return true; },
-    (err) => { console.log(`❌ ${name}: ${err.message}`); return false; }
+    () => { console.info(`✅ ${name}`); return true; },
+    (err) => { console.info(`❌ ${name}: ${err.message}`); return false; }
   );
 }
 
@@ -65,7 +65,7 @@ async function login() {
 }
 
 async function testSupplierModule() {
-  console.log("\n=== 供应商管理模块测试 ===");
+  console.info("\n=== 供应商管理模块测试 ===");
   let allPassed = true;
   let supplierId = null;
 
@@ -172,7 +172,7 @@ async function testSupplierModule() {
 }
 
 async function testPurchaseModule() {
-  console.log("\n=== 采购订单模块测试 ===");
+  console.info("\n=== 采购订单模块测试 ===");
   let allPassed = true;
   let orderNo = null;
 
@@ -266,7 +266,7 @@ async function testPurchaseModule() {
 }
 
 async function testSaleReturnModule() {
-  console.log("\n=== 销售退货模块测试 ===");
+  console.info("\n=== 销售退货模块测试 ===");
   let allPassed = true;
   let returnNo = null;
 
@@ -353,7 +353,7 @@ async function testSaleReturnModule() {
 }
 
 async function testSaleCreditModule() {
-  console.log("\n=== 销售单赊销模块测试 ===");
+  console.info("\n=== 销售单赊销模块测试 ===");
   let allPassed = true;
   let billNo = null;
 
@@ -434,15 +434,15 @@ async function testSaleCreditModule() {
 }
 
 async function main() {
-  console.log("=== 前后端接口对接测试 ===\n");
+  console.info("=== 前后端接口对接测试 ===\n");
 
   try {
-    console.log("登录中...");
+    console.info("登录中...");
     const user = await login();
-    console.log(`✅ 登录成功: ${user.realName} (tenantId: ${user.tenantId})`);
-    console.log(`   accessModes: ${user.accessModes.join(", ")}`);
+    console.info(`✅ 登录成功: ${user.realName} (tenantId: ${user.tenantId})`);
+    console.info(`   accessModes: ${user.accessModes.join(", ")}`);
   } catch (err) {
-    console.log(`❌ 登录失败: ${err.message}`);
+    console.info(`❌ 登录失败: ${err.message}`);
     process.exit(1);
   }
 
@@ -452,16 +452,16 @@ async function main() {
   results.push(await testSaleReturnModule());
   results.push(await testSaleCreditModule());
 
-  console.log("\n=== 测试总结 ===");
+  console.info("\n=== 测试总结 ===");
   const passed = results.filter(Boolean).length;
   const total = results.length;
-  console.log(`通过: ${passed}/${total} 个模块`);
+  console.info(`通过: ${passed}/${total} 个模块`);
 
   if (passed === total) {
-    console.log("\n🎉 所有模块对接测试通过！");
+    console.info("\n🎉 所有模块对接测试通过！");
     process.exit(0);
   } else {
-    console.log("\n⚠️  部分模块测试未通过，请检查");
+    console.info("\n⚠️  部分模块测试未通过，请检查");
     process.exit(1);
   }
 }

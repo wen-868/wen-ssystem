@@ -10,8 +10,8 @@
         <van-cell title="退货单号" :value="detail.returnNo" />
         <van-cell title="退货状态">
           <template #value>
-            <van-tag :type="getStatusType(detail.returnStatus) as any">
-              {{ getStatusText(detail.returnStatus) }}
+            <van-tag :type="getStatusType(detail.status) as any">
+              {{ getStatusText(detail.status) }}
             </van-tag>
           </template>
         </van-cell>
@@ -42,12 +42,12 @@
           >
             <div class="item-header">
               <div class="item-name">{{ item.skuName }}</div>
-              <div class="item-amount">¥{{ formatMoney(item.returnAmount) }}</div>
+              <div class="item-amount">¥{{ formatMoney(item.subtotal) }}</div>
             </div>
             <div class="item-body">
               <div class="info-row">
                 <span class="label">退货数量：</span>
-                <span class="value">{{ item.totalReturnBottleQty }} 瓶</span>
+                <span class="value">{{ item.totalBottleQty }} 瓶</span>
               </div>
               <div class="info-row">
                 <span class="label">单价：</span>
@@ -65,18 +65,18 @@
       
       <!-- 金额信息 -->
       <van-cell-group inset style="margin-top: 12px">
-        <van-cell title="退货金额" :value="`¥${formatMoney(detail.returnAmount)}`" />
+        <van-cell title="退货金额" :value="`¥${formatMoney(detail.refundAmount)}`" />
         <van-cell title="已退款金额" :value="`¥${formatMoney(detail.refundedAmount)}`" />
       </van-cell-group>
       
       <!-- 操作按钮 -->
-      <div class="footer" v-if="detail.returnStatus === 'PENDING'">
+      <div class="footer" v-if="detail.status === 'PENDING'">
         <van-button type="primary" block round @click="approveReturn">
           审核通过
         </van-button>
       </div>
       
-      <div class="footer" v-if="detail.returnStatus === 'APPROVED' && detail.refundStatus === 'UNPAID'">
+      <div class="footer" v-if="detail.status === 'APPROVED' && detail.refundStatus === 'UNPAID'">
         <van-button type="primary" block round @click="confirmRefund">
           确认退款
         </van-button>
@@ -179,7 +179,7 @@ async function confirmRefund() {
   try {
     await showConfirmDialog({
       title: '确认退款',
-      message: `确认退款 ¥${formatMoney(detail.value!.returnAmount)} 吗？`
+      message: `确认退款 ¥${formatMoney(detail.value!.refundAmount)} 吗？`
     })
     
     // TODO: 调用退款 API

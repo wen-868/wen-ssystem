@@ -31,7 +31,7 @@ import { query, transaction } from "../shared/db.js";
 let storeControlRunning = false;
 
 export function startStoreControlScheduler() {
-  console.log("[门店管控] 定时检查器已启动，每60秒检查一次");
+  console.info("[门店管控] 定时检查器已启动，每60秒检查一次");
 
   const timer = setInterval(async () => {
     if (storeControlRunning) return;
@@ -84,7 +84,7 @@ async function runStoreControlCheck() {
              VALUES (?, ?, 'CLOSED', 'OPEN', 'SCHEDULED', NULL, '定时自动开门')`,
             [tenantId, config.store_id]
           );
-          console.log(`[门店管控] 租户 ${tenantId} 门店 ${config.store_name}(${config.store_id}) 自动开门`);
+          console.info(`[门店管控] 租户 ${tenantId} 门店 ${config.store_name}(${config.store_id}) 自动开门`);
         }
 
         if (config.auto_close_time && currentStatus === "OPEN" && currentTime >= config.auto_close_time) {
@@ -97,7 +97,7 @@ async function runStoreControlCheck() {
              VALUES (?, ?, 'OPEN', 'CLOSED', 'SCHEDULED', NULL, '定时自动关门')`,
             [tenantId, config.store_id]
           );
-          console.log(`[门店管控] 租户 ${tenantId} 门店 ${config.store_name}(${config.store_id}) 自动关门`);
+          console.info(`[门店管控] 租户 ${tenantId} 门店 ${config.store_name}(${config.store_id}) 自动关门`);
         }
 
         if (config.max_daily_orders && currentStatus === "OPEN") {
@@ -117,7 +117,7 @@ async function runStoreControlCheck() {
                VALUES (?, ?, 'OPEN', 'CLOSED', 'AUTO', NULL, ?)`,
               [tenantId, config.store_id, "当日订单数(" + orderCount + ")已达上限(" + config.max_daily_orders + ")，自动关门"]
             );
-            console.log(`[门店管控] 租户 ${tenantId} 门店 ${config.store_name}(${config.store_id}) 订单数达上限，自动关门`);
+            console.info(`[门店管控] 租户 ${tenantId} 门店 ${config.store_name}(${config.store_id}) 订单数达上限，自动关门`);
           }
         }
 
@@ -138,7 +138,7 @@ async function runStoreControlCheck() {
                VALUES (?, ?, 'OPEN', 'CLOSED', 'AUTO', NULL, ?)`,
               [tenantId, config.store_id, "当日订单金额(" + totalAmount.toFixed(2) + ")已达上限(" + config.max_order_amount + ")，自动关门"]
             );
-            console.log(`[门店管控] 租户 ${tenantId} 门店 ${config.store_name}(${config.store_id}) 订单金额达上限，自动关门`);
+            console.info(`[门店管控] 租户 ${tenantId} 门店 ${config.store_name}(${config.store_id}) 订单金额达上限，自动关门`);
           }
         }
       }

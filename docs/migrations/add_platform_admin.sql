@@ -1,15 +1,11 @@
--- 平台总后台功能 - 数据库表结构
--- 执行时间：2026-06-27
--- 负责人：阿坚
-
-USE liquor_inventory;
+-- ============================================================
+-- 平台总后台数据表（幂等版本）
+-- 使用 CREATE TABLE IF NOT EXISTS，可安全在生产环境执行
+-- ============================================================
+-- 注意：此文件因历史原因使用了 DROP TABLE IF EXISTS，已修正为幂等语法
 
 -- 平台管理员表
-DROP TABLE IF EXISTS platform_audit_log;
-DROP TABLE IF EXISTS platform_config;
-DROP TABLE IF EXISTS platform_admin;
-
-CREATE TABLE platform_admin (
+CREATE TABLE IF NOT EXISTS platform_admin (
   id BIGINT UNSIGNED NOT NULL AUTO_INCREMENT COMMENT '管理员ID',
   username VARCHAR(50) NOT NULL COMMENT '用户名',
   password_hash VARCHAR(255) NOT NULL COMMENT '密码哈希',
@@ -30,7 +26,7 @@ CREATE TABLE platform_admin (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='平台管理员';
 
 -- 平台配置表
-CREATE TABLE platform_config (
+CREATE TABLE IF NOT EXISTS platform_config (
   id BIGINT UNSIGNED NOT NULL AUTO_INCREMENT COMMENT '配置ID',
   config_key VARCHAR(100) NOT NULL COMMENT '配置键',
   config_value TEXT COMMENT '配置值',
@@ -46,7 +42,7 @@ CREATE TABLE platform_config (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='平台配置';
 
 -- 平台审计日志表
-CREATE TABLE platform_audit_log (
+CREATE TABLE IF NOT EXISTS platform_audit_log (
   id BIGINT UNSIGNED NOT NULL AUTO_INCREMENT COMMENT '日志ID',
   admin_id BIGINT UNSIGNED DEFAULT NULL COMMENT '管理员ID',
   module VARCHAR(50) NOT NULL COMMENT '模块：tenant/subscription/admin/config',
@@ -61,12 +57,12 @@ CREATE TABLE platform_audit_log (
   KEY idx_created_at (created_at)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='平台审计日志';
 
--- 初始化超级管理员（默认密码：admin123）
-INSERT INTO platform_admin (username, password_hash, real_name, phone, role, status, created_by)
+-- 初始化超级管理员（默认密码：admin123），幂等插入
+INSERT IGNORE INTO platform_admin (username, password_hash, real_name, phone, role, status, created_by)
 VALUES ('superadmin', '$2a$10$N9qo8uLOickgx2ZMRZoMyeIjZAgcfl7p92ldGxad68LJZdL17lhWy', '超级管理员', '13800000000', 'SUPER_ADMIN', 'ACTIVE', 'system');
 
--- 初始化默认配置
-INSERT INTO platform_config (config_key, config_value, category, description, sort_order) VALUES
+-- 初始化默认配置，幂等插入
+INSERT IGNORE INTO platform_config (config_key, config_value, category, description, sort_order) VALUES
 ('platform_name', '智享酒行 SaaS 平台', 'general', '平台名称', 1),
 ('platform_logo', '', 'general', '平台Logo', 2),
 ('default_plan', 'basic', 'general', '默认套餐', 3),

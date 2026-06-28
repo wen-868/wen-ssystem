@@ -34,7 +34,7 @@ export async function scanOverdueCreditBills(tenantId?: string): Promise<number>
     totalAffected += affectedRows;
 
     if (affectedRows > 0) {
-      console.log(`[OverdueScanner] 租户 ${tid}: 标记 ${affectedRows} 笔赊销单为超期`);
+      console.info(`[OverdueScanner] 租户 ${tid}: 标记 ${affectedRows} 笔赊销单为超期`);
     }
   }
 
@@ -55,7 +55,7 @@ export function startOverdueScanner() {
     }
   }, 60 * 1000);
 
-  console.log("[OverdueScanner] 超期检测定时任务已启动");
+  console.info("[OverdueScanner] 超期检测定时任务已启动");
 
   return () => clearInterval(interval);
 }

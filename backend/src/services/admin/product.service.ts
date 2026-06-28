@@ -3,27 +3,50 @@ import { makeBizNo } from "../../shared/id.js";
 import { syncChangedFields, detectChangedFields } from "../../shared/field-sync.js";
 import { syncProductStatus, syncProductPrice } from "../../shared/product-sync.js";
 
-export async function listProducts(keyword: string, page: number, pageSize: number, tenantId: string) {
+export async function listProducts(keyword: string, page: number, pageSize: number, tenantId: string, category?: string) {
   const like = `%${keyword}%`;
   const offset = (page - 1) * pageSize;
+
+  let categoryJoin = '';
+  let categoryWhere = '';
+  const params: unknown[] = [tenantId, like, like, like];
+
+  if (category) {
+    categoryJoin = 'JOIN product_category pc ON pc.id = p.category_id';
+    categoryWhere = 'AND pc.name = ?';
+    params.push(category);
+  }
+
+  params.push(pageSize, offset);
+
   const records = await queryWithTenant<any>(
     `SELECT p.id AS spuId, s.id AS skuId, p.name, p.main_image AS mainImage, s.sku_name AS skuName, s.sku_code AS skuCode, s.barcode,
-            pp.retail_price AS retailPrice, pp.wholesale_price AS wholesalePrice, p.status
-     FROM product_sku s
+            pp.retail_price AS retailPrice, pp.wholesale_price AS wholesalePrice, pp.store_price AS storePrice, p.status,
+            s.box_ratio AS boxRatio, s.box_unit AS boxUnit, s.base_unit AS baseUnit,
+            NULL AS alcoholContent, NULL AS origin` +
+    (category ? `, pc.name AS categoryName` : `, NULL AS categoryName`) +
+    `\n     FROM product_sku s
      JOIN product_spu p ON p.id = s.spu_id
      JOIN product_price pp ON pp.sku_id = s.id
-     WHERE p.tenant_id = ? AND (p.name LIKE ? OR s.sku_code LIKE ? OR s.barcode LIKE ?)
+     ${categoryJoin}
+     WHERE p.tenant_id = ? AND (p.name LIKE ? OR s.sku_code LIKE ? OR s.barcode LIKE ?) ${categoryWhere}
      ORDER BY p.id DESC, s.id DESC
      LIMIT ? OFFSET ?`,
-    [tenantId, like, like, like, pageSize, offset],
+    params,
     tenantId
   );
+
+  const countParams: unknown[] = [tenantId, like, like, like];
+  if (category) {
+    countParams.push(category);
+  }
   const totalRow = await queryOneWithTenant<any>(
     `SELECT COUNT(*) AS total
      FROM product_sku s
      JOIN product_spu p ON p.id = s.spu_id
-     WHERE p.tenant_id = ? AND (p.name LIKE ? OR s.sku_code LIKE ? OR s.barcode LIKE ?)`,
-    [tenantId, like, like, like],
+     ${category ? 'JOIN product_category pc ON pc.id = p.category_id' : ''}
+     WHERE p.tenant_id = ? AND (p.name LIKE ? OR s.sku_code LIKE ? OR s.barcode LIKE ?) ${category ? 'AND pc.name = ?' : ''}`,
+    countParams,
     tenantId
   );
   return { total: totalRow?.total ?? 0, page, pageSize, records };
@@ -239,4 +262,103 @@ export async function updateProductPrice(skuId: number, body: {
   }
 
   return result;
+}
+
+export async function batchUpdateProducts(
+  ids: number[],
+  updates: {
+    status?: string;
+    costPrice?: number;
+    retailPrice?: number;
+    wholesalePrice?: number | null;
+    miniappPrice?: number | null;
+    storePrice?: number | null;
+    categoryId?: number;
+  },
+  tenantId: string
+) {
+  const details: Array<{ id: number; success: boolean; error?: string }> = [];
+  let successCount = 0;
+  let failedCount = 0;
+
+  for (const spuId of ids) {
+    try {
+      const existing = await queryOneWithTenant<any>(
+        "SELECT id, status FROM product_spu WHERE id = ? AND tenant_id = ?",
+        [spuId, tenantId],
+        tenantId
+      );
+      if (!existing) {
+        details.push({ id: spuId, success: false, error: "商品不存在" });
+        failedCount++;
+        continue;
+      }
+
+      const spuSets: string[] = [];
+      const spuParams: unknown[] = [];
+
+      if (updates.status !== undefined) {
+        spuSets.push("status = ?");
+        spuParams.push(updates.status);
+      }
+      if (updates.categoryId !== undefined) {
+        spuSets.push("category_id = ?");
+        spuParams.push(updates.categoryId);
+      }
+
+      if (spuSets.length > 0) {
+        spuSets.push("updated_at = NOW()");
+        spuParams.push(spuId, tenantId);
+        await queryWithTenant(
+          `UPDATE product_spu SET ${spuSets.join(", ")} WHERE id = ? AND tenant_id = ?`,
+          spuParams,
+          tenantId
+        );
+      }
+
+      // 更新价格字段
+      const priceFields: string[] = [];
+      const priceParams: unknown[] = [];
+      if (updates.costPrice !== undefined) {
+        priceFields.push("cost_price = ?");
+        priceParams.push(updates.costPrice);
+      }
+      if (updates.retailPrice !== undefined) {
+        priceFields.push("retail_price = ?");
+        priceParams.push(updates.retailPrice);
+      }
+      if (updates.wholesalePrice !== undefined) {
+        priceFields.push("wholesale_price = ?");
+        priceParams.push(updates.wholesalePrice);
+      }
+      if (updates.miniappPrice !== undefined) {
+        priceFields.push("miniapp_price = ?");
+        priceParams.push(updates.miniappPrice);
+      }
+      if (updates.storePrice !== undefined) {
+        priceFields.push("store_price = ?");
+        priceParams.push(updates.storePrice);
+      }
+
+      if (priceFields.length > 0) {
+        priceParams.push(spuId, tenantId);
+        await queryWithTenant(
+          `UPDATE product_price pp
+           JOIN product_sku s ON s.id = pp.sku_id
+           SET ${priceFields.join(", ")}
+           WHERE s.spu_id = ? AND pp.tenant_id = ?`,
+          priceParams,
+          tenantId
+        );
+      }
+
+      details.push({ id: spuId, success: true });
+      successCount++;
+    } catch (err: any) {
+      details.push({ id: spuId, success: false, error: err.message || "更新失败" });
+      failedCount++;
+    }
+  }
+
+  return { success: successCount, failed: failedCount, details };
 }

@@ -1,129 +1,60 @@
-# 阿坚 - 后端开发任务清单
+# 阿坚 · 模块化开发任务
 
-> 角色：后端开发工程师
-> 技术栈：Node.js 20 + Express + TypeScript + MySQL 8.4
-> 工作时间：每天 8 小时
-
----
-
-## 当前 Sprint（第一周：6/17 - 6/24）
-
-### P0 - 供应商管理 API [A101]
-**截止时间**：6/19（周四）
-**预计耗时**：12 小时
-
-**任务详情**：
-1. 新建 `backend/src/routes/supplier.routes.ts`
-2. 实现接口：
-   - `GET /api/admin/suppliers` - 列表（支持 keyword、status 筛选）
-   - `POST /api/admin/suppliers` - 新增
-   - `GET /api/admin/suppliers/:id` - 详情（含 contacts 列表）
-   - `PUT /api/admin/suppliers/:id` - 修改
-   - `POST /api/admin/suppliers/:id/contacts` - 添加联系人
-3. 供应商编码自动生成：`GYS{YYMMDD}{3位序号}`
-4. 数据验证使用 zod
-5. 操作写 operation_log
-
-**参考代码**：
-- `backend/src/routes/store.routes.ts` 中的 CRUD 模式
-- `backend/src/shared/id.ts` 中的 `makeBizNo`
-- 数据库表：`supplier`, `supplier_contact`
-
-**验收标准**：
-- [ ] 所有接口通过 Postman 测试
-- [ ] 编码自动生成正确
-- [ ] 联系人增删正常
-- [ ] 操作日志有记录
+**日期**：2026-06-28
+**分支**：main（c3ff2de）
+**阶段**：模块化开发 — Phase 1
 
 ---
 
-### P0 - 采购订单 API [A102]
-**截止时间**：6/21（周六）
-**预计耗时**：16 小时
-**依赖**：A101 完成
+## 模块1：即时零售真实对接 · 5天
 
-**任务详情**：
-1. 新建 `backend/src/routes/purchase.routes.ts`
-2. 实现接口：
-   - `GET /api/admin/purchase-orders` - 列表
-   - `POST /api/admin/purchase-orders` - 创建
-   - `GET /api/admin/purchase-orders/:orderNo` - 详情
-   - `POST /api/admin/purchase-orders/:orderNo/approve` - 审核
-   - `POST /api/admin/purchase-orders/:orderNo/cancel` - 取消
-3. 订单号生成：`CGDD{YYMMDD}{4位序号}`
-4. 金额自动计算逻辑
-5. 状态流转：DRAFT -> PENDING -> APPROVED
+当前 `instant-retail/adapters/` 下 meituan/elem/jd 三个适配器均为 mock 实现，需替换为真实 API。
 
-**验收标准**：
-- [ ] 创建订单金额计算正确
-- [ ] 审核/取消状态流转正确
-- [ ] 事务保证数据一致性
+**要求**：
+- 美团 adapter：替换 mock 为真实 API 签名、订单同步、商品同步、库存同步
+- 饿了么 adapter：同上
+- 京东 adapter：同上
+- 实现 OAuth 令牌刷新机制
+- 实现错误重试和降级策略
+- 保留 mock 模式开关（`INSTANT_RETAIL_MOCK=true` 环境变量）
+
+**参考**：当前 `meituan-adapter.ts` 已有签名逻辑骨架，补充完整即可。
 
 ---
 
-### P0 - 销售退货 API [A106]
-**截止时间**：6/23（周一）
-**预计耗时**：14 小时
+## 模块2：赊销风控引擎 · 4天
 
-**任务详情**：
-1. 在 `store.routes.ts` 追加或新建 `sale-return.routes.ts`
-2. 实现接口：
-   - `GET /api/store/sale-returns` - 列表
-   - `POST /api/store/sale-returns` - 创建
-   - `GET /api/store/sale-returns/:returnNo` - 详情
-   - `POST /api/store/sale-returns/:returnNo/approve` - 审核
-   - `POST /api/store/sale-returns/:returnNo/refund` - 确认退款
-3. 支持按销售单退货
-4. 审核后增加库存，写台账
+当前赊销管理有基础 CRUD 和超期扫描，但缺少风控决策能力。
 
-**验收标准**：
-- [ ] 按销售单退货自动带出商品
-- [ ] 审核后库存正确增加
-- [ ] 台账记录正确
+**要求**：
+- 信用评分模型：基于客户历史回款率、逾期次数、交易频次、交易金额计算信用分
+- 自动授信：新客户默认额度 + 阶梯式提额规则
+- 赊销拦截：开单时校验客户信用额度，超限自动拦截
+- 催收策略：按逾期天数分级（1-30天/31-60天/60+天），自动生成催收任务
+- API 端点：`POST /api/admin/credits/evaluate`、`GET /api/admin/credits/risk-list`
+
+**依赖**：`credit.routes.ts` 已有基础，新增 `credit-engine.service.ts`。
 
 ---
 
-### P0 - 销售单扩展（赊销支持）[A110]
-**截止时间**：6/24（周二）
-**预计耗时**：8 小时
+## 模块3：API 性能优化 · 3天
 
-**任务详情**：
-1. 修改 `POST /api/store/sale-bills`：
-   - 接收 `saleType`（CASH/CREDIT）
-   - CREDIT 时接收 `dueDate`
-2. 修改收款逻辑：
-   - 收款后更新 collection_status
-   - UNPAID -> PARTIAL -> PAID
-3. 超期检测（查询接口或定时任务）
+**要求**：
+- 慢查询分析：检查 `backend/src/services/` 下所有 SQL 查询，为高频查询添加索引
+- 数据库索引：products（sku_code, barcode, tenant_id）、sale_bills（bill_no, created_at, tenant_id）、inventory（sku_id, tenant_id, store_id）
+- Redis 缓存：dashboard 统计数据、商品列表、价格阶梯缓存，TTL 5分钟
+- 批量接口：`POST /api/admin/products/batch-update` 批量更新商品价格/状态
 
-**验收标准**：
-- [ ] 现销/赊销创建正常
-- [ ] 收款状态流转正确
-- [ ] 超期标记正确
+**交付物**：`docs/migrations/add_indexes.sql` + 缓存中间件。
 
 ---
 
-## 下周预告（Sprint 2: 6/24 - 7/1）
+## 汇总
 
-- A103 - 采购入库 API（16h）
-- A104 - 采购退货 API（12h）
-- A105 - 采购付款 API（10h）
-- A107 - 客户对账单 API（14h）
-- A108 - 客户收款 API（10h）
+| 模块 | 内容 | 工期 |
+|------|------|------|
+| 即时零售真实对接 | 3个平台适配器 | 5天 |
+| 赊销风控引擎 | 信用评分+拦截+催收 | 4天 |
+| API 性能优化 | 索引+缓存+批量 | 3天 |
 
-## 开发规范
-
-1. 使用 TypeScript，严格类型
-2. 路由用 `asyncHandler` 包裹
-3. 参数校验用 zod
-4. 数据库操作参数化查询
-5. 事务用 `transaction()` 包裹
-6. 金额精确到分
-7. 操作写 operation_log
-8. 单据号按规则生成
-
-## 每日站会
-
-- 时间：09:30
-- 地点：飞书群
-- 内容：昨天完成 / 今天计划 / 阻塞问题
+**总计：12天。**

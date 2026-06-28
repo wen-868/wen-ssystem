@@ -36,7 +36,7 @@ async function loadSourceBill() {
     const res = await fetchSaleBillDetail(sourceBillNo.value.trim())
     sourceBill.value = res.data
     // 将销售单商品复制到退货商品列表
-    returnItems.value = sourceBill.value.items.map(item => ({
+    returnItems.value = sourceBill.value?.items?.map(item => ({
       skuId: item.skuId,
       skuName: item.skuName,
       boxQty: item.boxQty,
@@ -44,7 +44,7 @@ async function loadSourceBill() {
       bottlesPerBox: 6,
       unitPrice: item.unitPrice,
       priceType: item.priceType
-    }))
+    })) || []
     showSuccessToast('已加载销售单')
   } catch {
     showToast('销售单不存在或加载失败')
@@ -148,7 +148,7 @@ async function submitReturn() {
   try {
     showLoadingToast({ message: '创建退货单...', forbidClick: true })
     await createSaleReturn({
-      sourceBillNo: returnType.value === 'BY_BILL' ? sourceBill.value?.billNo : null,
+      sourceBillNo: returnType.value === 'BY_BILL' ? (sourceBill.value?.billNo ?? undefined) : undefined,
       customerId: sourceBill.value?.customerId ?? null,
       customerName: sourceBill.value?.customerName ?? undefined,
       customerMobile: sourceBill.value?.customerMobile ?? undefined,
