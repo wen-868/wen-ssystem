@@ -1,83 +1,66 @@
-# 阿澈 · 模块化开发任务
+# 阿澈 · Phase 1 模块化开发任务
 
 **日期**：2026-06-28
-**分支**：main（c3ff2de）
-**阶段**：模块化开发 — Phase 1
+**分支**：main（9c503f0）
+**状态**：⚠️ 4项全部未完成
 
 ---
 
 ## 背景
 
-`merchant-mobile/src/views/` 下有 20 个视图文件已写好但未在 `router.ts` 中注册路由，用户无法访问。需要在注册路由的同时完成联调验证。
+`merchant-mobile/src/views/` 下有 20 个视图文件已写好，但 `router.ts` 中一个都没注册。需要全部注册路由 + 联调验证 + 首页重构。
 
 ---
 
-## 模块1：采购模块接入 · 3天
+## 模块1：采购模块接入 · ❌ 未开始
 
 **涉及文件**（7个）：
-- `CreatePurchaseOrderView.vue` — 创建采购单
-- `PurchaseOrderDetailView.vue` — 采购单详情
-- `PurchaseOrdersView.vue` — 采购单列表
-- `PurchaseReturnsView.vue` — 采购退货列表
-- `CreatePurchaseReturnView.vue` — 创建采购退货
-- `PurchaseStockView.vue` — 采购入库
-- `PurchaseWarehousingView.vue` — 入库操作
+- `CreatePurchaseOrderView.vue`、`PurchaseOrderDetailView.vue`、`PurchaseOrdersView.vue`
+- `PurchaseReturnsView.vue`、`CreatePurchaseReturnView.vue`
+- `PurchaseStockView.vue`、`PurchaseWarehousingView.vue`
 
-**要求**：
-- 在 `merchant-mobile/src/router.ts` 注册全部 7 个路由
-- 验证每个页面的 API 调用通路正常（后端 `purchase.routes.ts` 已完备）
-- 导航入口：首页增加「采购管理」卡片
+**要求**：在 `router.ts` 注册全部 7 个路由，首页增加「采购管理」入口。
 
 ---
 
-## 模块2：销售退货 + 对账收款接入 · 3天
+## 模块2：销售退货 + 对账收款 · ❌ 未开始
 
 **涉及文件**（8个）：
-- 退货：`CreateSaleReturnView.vue`、`SaleReturnDetailView.vue`、`SaleReturnView.vue`、`SaleReturnsView.vue`
+- 退货：`CreateSaleReturnView.vue`、`SaleReturnDetailView.vue`、`SaleReturnsView.vue`
 - 对账：`CreateStatementView.vue`、`StatementDetailView.vue`、`StatementPaymentView.vue`、`StatementsView.vue`
 
-**要求**：
-- 在 `merchant-mobile/src/router.ts` 注册全部 8 个路由
-- 验证 API 通路（后端 `sale-return.routes.ts`、`customer-statement.routes.ts`、`customer-payment.routes.ts` 已完备）
-- 导航入口：首页增加「退货管理」「对账收款」卡片
+**注意**：`SaleReturnView.vue`（单数）文件不存在，无需注册。
+
+**要求**：在 `router.ts` 注册全部 7 个路由，首页增加「退货管理」「对账收款」入口。
 
 ---
 
-## 模块3：客户详情 + 库存调整接入 · 2天
+## 模块3：客户详情 + 库存调整 · ❌ 未开始
 
 **涉及文件**（3个）：
-- `CustomerDetailView.vue` — 客户详情
-- `CustomerLedView.vue` — 客户台账
-- `InventoryAdjustView.vue` — 库存调整
+- `CustomerDetailView.vue`、`CustomerLedView.vue`、`InventoryAdjustView.vue`
 
-**要求**：
-- 在 `merchant-mobile/src/router.ts` 注册全部 3 个路由
-- 验证 API 通路
-- 客户列表页点击跳转客户详情
-- 库存页增加「库存调整」入口
+**要求**：在 `router.ts` 注册全部 3 个路由。客户列表页点击跳转详情，库存页增加调整入口。
 
 ---
 
-## 模块4：功能中心 + 首页重构 · 2天
+## 模块4：功能中心 + 首页重构 · ❌ 未开始
 
-**涉及文件**（2个）：
-- `FunctionCenterView.vue` — 功能中心
-- `ProductsView.vue` — 商品浏览（已有扫码占位，改用 `wxScanQRCode`）
+**涉及文件**：
+- `FunctionCenterView.vue` — 注册路由
+- `HomeView.vue` — 按模块分组重构（销售/采购/库存/退货/对账/客户）
 
-**要求**：
-- 注册 `FunctionCenterView` 路由
-- `ProductsView` 的扫码功能替换为 `wxScanQRCode`（参考 `CreateSaleView.vue` 已实现的方式）
-- 首页布局优化：按模块分组（销售/采购/库存/退货/对账/客户），每个模块一个入口卡片
+**要求**：首页改为模块化入口，每个模块一个卡片，点击进入对应功能列表。
 
 ---
 
 ## 汇总
 
-| 模块 | 内容 | 工期 |
-|------|------|------|
-| 采购模块 | 7个视图路由注册+联调 | 3天 |
-| 退货+对账 | 8个视图路由注册+联调 | 3天 |
-| 客户+库存 | 3个视图路由注册+联调 | 2天 |
-| 功能中心+首页 | 2个视图+首页重构 | 2天 |
+| 模块 | 路由数 | 状态 |
+|------|--------|------|
+| 采购模块 | 7 | ❌ |
+| 退货+对账 | 7 | ❌ |
+| 客户+库存 | 3 | ❌ |
+| 功能中心+首页 | 1路由+重构 | ❌ |
 
-**总计：10天。20个视图已写，主要是路由注册+联调+首页重构。**
+**0/4 完成。视图文件已存在，主要是路由注册+联调+首页重构。**

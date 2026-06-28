@@ -1,60 +1,51 @@
-# 阿坚 · 模块化开发任务
+# 阿坚 · Phase 1 模块化开发任务
 
 **日期**：2026-06-28
-**分支**：main（c3ff2de）
-**阶段**：模块化开发 — Phase 1
+**分支**：main（9c503f0）
+**状态**：⚠️ 4/9 完成，5项待办
 
 ---
 
-## 模块1：即时零售真实对接 · 5天
+## ✅ 已完成
 
-当前 `instant-retail/adapters/` 下 meituan/elem/jd 三个适配器均为 mock 实现，需替换为真实 API。
-
-**要求**：
-- 美团 adapter：替换 mock 为真实 API 签名、订单同步、商品同步、库存同步
-- 饿了么 adapter：同上
-- 京东 adapter：同上
-- 实现 OAuth 令牌刷新机制
-- 实现错误重试和降级策略
-- 保留 mock 模式开关（`INSTANT_RETAIL_MOCK=true` 环境变量）
-
-**参考**：当前 `meituan-adapter.ts` 已有签名逻辑骨架，补充完整即可。
+| 模块 | 项目 | 证据 |
+|------|------|------|
+| 即时零售 | OAuth token 刷新 | `http-client.ts` 自动刷新+重试，三个适配器已接入 |
+| 赊销风控 | 信用评分引擎 | `credit-scoring.service.ts` 4维度评分+阶梯额度 |
+| 赊销风控 | evaluate 路由 | `POST /credits/:customerId/evaluate` |
+| 性能优化 | Redis 缓存 | `redis-cache.ts` ioredis 懒加载，TTL 5分钟 |
+| 性能优化 | 索引迁移 | `docs/migrations/add_performance_indexes.sql` |
+| 性能优化 | 批量更新 | `POST /products/batch-update` + `PUT /sys-config/batch` |
 
 ---
 
-## 模块2：赊销风控引擎 · 4天
+## ❌ 待办
 
-当前赊销管理有基础 CRUD 和超期扫描，但缺少风控决策能力。
+### 模块1：即时零售 mock 去除
+
+**问题**：`http-client.ts` L8 逻辑为 `env.INSTANT_RETAIL_MOCK === "true" || !env.INSTANT_RETAIL_MOCK`，空值时默认走 mock。三个 adapter 的 `authenticate()` 仍有 mock 降级。
 
 **要求**：
-- 信用评分模型：基于客户历史回款率、逾期次数、交易频次、交易金额计算信用分
-- 自动授信：新客户默认额度 + 阶梯式提额规则
-- 赊销拦截：开单时校验客户信用额度，超限自动拦截
-- 催收策略：按逾期天数分级（1-30天/31-60天/60+天），自动生成催收任务
-- API 端点：`POST /api/admin/credits/evaluate`、`GET /api/admin/credits/risk-list`
-
-**依赖**：`credit.routes.ts` 已有基础，新增 `credit-engine.service.ts`。
+- 修改判断逻辑：仅当 `INSTANT_RETAIL_MOCK=true` 时走 mock，其余走真实 API
+- 删除 adapter 中的 mock 凭证降级（`mock_app_key` 等）
+- 验证真实 API 通路
 
 ---
 
-## 模块3：API 性能优化 · 3天
+### 模块2：赊销风控 — risk-list 路由
 
-**要求**：
-- 慢查询分析：检查 `backend/src/services/` 下所有 SQL 查询，为高频查询添加索引
-- 数据库索引：products（sku_code, barcode, tenant_id）、sale_bills（bill_no, created_at, tenant_id）、inventory（sku_id, tenant_id, store_id）
-- Redis 缓存：dashboard 统计数据、商品列表、价格阶梯缓存，TTL 5分钟
-- 批量接口：`POST /api/admin/products/batch-update` 批量更新商品价格/状态
+**问题**：现有 `/risk-customers`，缺少 `/risk-list` 端点。
 
-**交付物**：`docs/migrations/add_indexes.sql` + 缓存中间件。
+**要求**：新增 `GET /api/admin/credits/risk-list`，返回风险客户列表（信用分低于阈值、逾期超过30天、额度使用率超过80%）。
 
 ---
 
 ## 汇总
 
-| 模块 | 内容 | 工期 |
-|------|------|------|
-| 即时零售真实对接 | 3个平台适配器 | 5天 |
-| 赊销风控引擎 | 信用评分+拦截+催收 | 4天 |
-| API 性能优化 | 索引+缓存+批量 | 3天 |
+| 模块 | 完成项 | 待办项 |
+|------|--------|--------|
+| 即时零售 | OAuth ✅ | mock去除 ❌ |
+| 赊销风控 | 评分引擎 ✅、evaluate ✅ | risk-list路由 ❌ |
+| 性能优化 | Redis ✅、索引 ✅、批量 ✅ | — |
 
-**总计：12天。**
+**6/8 完成。2项待办。**
