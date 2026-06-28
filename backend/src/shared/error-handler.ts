@@ -1,5 +1,5 @@
 import type { ErrorRequestHandler } from "express";
-import { ZodError } from "zod";
+import { ZodError, type ZodIssue } from "zod";
 import { fail } from "./response.js";
 
 export const errorHandler: ErrorRequestHandler = (err, _req, res, _next) => {
@@ -7,7 +7,7 @@ export const errorHandler: ErrorRequestHandler = (err, _req, res, _next) => {
 
   // ZodError：参数校验失败，返回 400 及具体字段错误
   if (err instanceof ZodError) {
-    const fieldErrors = err.errors.map((e) => ({
+    const fieldErrors = err.errors.map((e: ZodIssue) => ({
       field: e.path.join(".") || "root",
       message: e.message,
       code: e.code
