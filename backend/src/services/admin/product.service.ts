@@ -1,65 +1,105 @@
 import { query, queryOne, queryWithTenant, queryOneWithTenant, transaction } from "../../shared/db.js";
 import { makeBizNo } from "../../shared/id.js";
-import { syncChangedFields, detectChangedFields } from "../../shared/field-sync.js";
-import { syncProductStatus, syncProductPrice } from "../../shared/product-sync.js";
+import { detectChangedFields, syncChangedFields } from "../../shared/field-sync.js";
+import { syncProductFullChain, syncProductStatus, syncProductPrice } from "../../shared/product-sync.js";
 
-export async function listProducts(keyword: string, page: number, pageSize: number, tenantId: string, category?: string) {
+export async function listProducts(keyword: string, page: number, pageSize: number, tenantId: string) {
   const like = `%${keyword}%`;
   const offset = (page - 1) * pageSize;
-
-  let categoryJoin = '';
-  let categoryWhere = '';
-  const params: unknown[] = [tenantId, like, like, like];
-
-  if (category) {
-    categoryJoin = 'JOIN product_category pc ON pc.id = p.category_id';
-    categoryWhere = 'AND pc.name = ?';
-    params.push(category);
-  }
-
-  params.push(pageSize, offset);
-
   const records = await queryWithTenant<any>(
-    `SELECT p.id AS spuId, s.id AS skuId, p.name, p.main_image AS mainImage, s.sku_name AS skuName, s.sku_code AS skuCode, s.barcode,
-            pp.retail_price AS retailPrice, pp.wholesale_price AS wholesalePrice, pp.store_price AS storePrice, p.status,
-            s.box_ratio AS boxRatio, s.box_unit AS boxUnit, s.base_unit AS baseUnit,
-            NULL AS alcoholContent, NULL AS origin` +
-    (category ? `, pc.name AS categoryName` : `, NULL AS categoryName`) +
-    `\n     FROM product_sku s
+    `SELECT p.id AS spuId, p.spu_code AS spuCode, p.name, p.category_id AS categoryId,
+            pc.name AS categoryName, p.brand, p.unit, p.specs,
+            p.alcohol_content AS alcoholContent, p.origin, p.main_image AS mainImage,
+            p.image_urls AS imageUrls, p.detail, p.sale_channels AS saleChannels,
+            p.sort_no AS sortNo, p.is_new AS isNew, p.is_recommend AS isRecommend,
+            p.description, p.status,
+            s.id AS skuId, s.sku_code AS skuCode, s.sku_name AS skuName, s.barcode,
+            s.volume, s.packaging, s.base_unit AS baseUnit, s.box_unit AS boxUnit,
+            s.box_ratio AS boxRatio, s.temperature, s.trace_enabled AS traceEnabled,
+            s.warning_threshold AS warningThreshold,
+            pp.retail_price AS retailPrice, pp.wholesale_price AS wholesalePrice,
+            pp.cost_price AS costPrice, pp.miniapp_price AS miniappPrice,
+            pp.store_price AS storePrice,
+            COALESCE(ib.available_qty, 0) AS availableQty
+     FROM product_sku s
      JOIN product_spu p ON p.id = s.spu_id
      JOIN product_price pp ON pp.sku_id = s.id
-     ${categoryJoin}
-     WHERE p.tenant_id = ? AND (p.name LIKE ? OR s.sku_code LIKE ? OR s.barcode LIKE ?) ${categoryWhere}
+     LEFT JOIN product_category pc ON pc.id = p.category_id
+     LEFT JOIN inventory_balance ib ON ib.sku_id = s.id AND ib.stock_type = 'OFFLINE'
+     WHERE p.tenant_id = ? AND (p.name LIKE ? OR s.sku_code LIKE ? OR s.barcode LIKE ?)
      ORDER BY p.id DESC, s.id DESC
      LIMIT ? OFFSET ?`,
-    params,
+    [tenantId, like, like, like, pageSize, offset],
     tenantId
   );
-
-  const countParams: unknown[] = [tenantId, like, like, like];
-  if (category) {
-    countParams.push(category);
-  }
   const totalRow = await queryOneWithTenant<any>(
     `SELECT COUNT(*) AS total
      FROM product_sku s
      JOIN product_spu p ON p.id = s.spu_id
-     ${category ? 'JOIN product_category pc ON pc.id = p.category_id' : ''}
-     WHERE p.tenant_id = ? AND (p.name LIKE ? OR s.sku_code LIKE ? OR s.barcode LIKE ?) ${category ? 'AND pc.name = ?' : ''}`,
-    countParams,
+     WHERE p.tenant_id = ? AND (p.name LIKE ? OR s.sku_code LIKE ? OR s.barcode LIKE ?)`,
+    [tenantId, like, like, like],
     tenantId
   );
   return { total: totalRow?.total ?? 0, page, pageSize, records };
 }
 
+export async function getProductDetail(spuId: number, tenantId: string) {
+  const spu = await queryOneWithTenant<any>(
+    `SELECT p.id, p.spu_code AS spuCode, p.name, p.category_id AS categoryId,
+            pc.name AS categoryName, p.brand, p.unit, p.specs,
+            p.alcohol_content AS alcoholContent, p.origin,
+            p.main_image AS mainImage, p.image_urls AS imageUrls, p.detail,
+            p.sale_channels AS saleChannels, p.sort_no AS sortNo,
+            p.is_new AS isNew, p.is_recommend AS isRecommend,
+            p.description, p.status, p.created_at AS createdAt, p.updated_at AS updatedAt
+     FROM product_spu p
+     LEFT JOIN product_category pc ON pc.id = p.category_id
+     WHERE p.id = ? AND p.tenant_id = ?`,
+    [spuId, tenantId], tenantId
+  );
+  if (!spu) throw Object.assign(new Error("商品不存在"), { statusCode: 404 });
+
+  const skus = await queryWithTenant<any>(
+    `SELECT s.id, s.sku_code AS skuCode, s.sku_name AS skuName, s.barcode,
+            s.volume, s.packaging, s.base_unit AS baseUnit, s.box_unit AS boxUnit,
+            s.box_ratio AS boxRatio, s.temperature, s.trace_enabled AS traceEnabled,
+            s.warning_threshold AS warningThreshold,
+            pp.cost_price AS costPrice, pp.retail_price AS retailPrice,
+            pp.wholesale_price AS wholesalePrice, pp.miniapp_price AS miniappPrice,
+            pp.store_price AS storePrice,
+            COALESCE(ib.available_qty, 0) AS availableQty
+     FROM product_sku s
+     LEFT JOIN product_price pp ON pp.sku_id = s.id
+     LEFT JOIN inventory_balance ib ON ib.sku_id = s.id AND ib.stock_type = 'OFFLINE'
+     WHERE s.spu_id = ? AND s.tenant_id = ?
+     ORDER BY s.id ASC`,
+    [spuId, tenantId], tenantId
+  );
+
+  return { ...spu, skus };
+}
+
 export async function createProduct(body: {
   name: string;
   categoryId: number;
+  brand?: string;
+  unit?: string;
+  specs?: string;
   mainImage?: string;
   saleChannels: string[];
+  alcoholContent?: number;
+  origin?: string;
+  sortNo?: number;
+  isNew?: boolean;
+  isRecommend?: boolean;
+  description?: string;
   skus: Array<{
     skuName: string;
     barcode?: string;
+    volume?: string;
+    packaging?: string;
+    baseUnit?: string;
+    boxUnit?: string;
     boxRatio: number;
     temperature: "NORMAL" | "CHILLED";
     traceEnabled: boolean;
@@ -74,18 +114,29 @@ export async function createProduct(body: {
   const result = await transaction(async (conn) => {
     const spuCode = makeBizNo("SPU");
     const [spuResult] = await conn.query<any>(
-      `INSERT INTO product_spu (spu_code, name, category_id, main_image, sale_channels, status, tenant_id)
-       VALUES (?, ?, ?, ?, CAST(? AS JSON), 'DRAFT', ?)`,
-      [spuCode, body.name, body.categoryId, body.mainImage ?? null, JSON.stringify(body.saleChannels), tenantId]
+      `INSERT INTO product_spu (spu_code, name, category_id, brand, unit, specs,
+       main_image, sale_channels, alcohol_content, origin, sort_no, is_new, is_recommend,
+       description, status, tenant_id)
+       VALUES (?, ?, ?, ?, ?, ?, ?, CAST(? AS JSON), ?, ?, ?, ?, ?, ?, 'DRAFT', ?)`,
+      [spuCode, body.name, body.categoryId,
+       body.brand ?? null, body.unit ?? null, body.specs ?? null,
+       body.mainImage ?? null, JSON.stringify(body.saleChannels),
+       body.alcoholContent ?? null, body.origin ?? null,
+       body.sortNo ?? 0, body.isNew ? 1 : 0, body.isRecommend ? 1 : 0,
+       body.description ?? null, tenantId]
     );
     const spuId = spuResult.insertId as number;
     let firstSkuId: number | null = null;
     for (const sku of body.skus) {
       const skuCode = makeBizNo("SKU");
       const [skuResult] = await conn.query<any>(
-        `INSERT INTO product_sku (spu_id, sku_code, barcode, sku_name, box_ratio, temperature, trace_enabled, warning_threshold, tenant_id)
-         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`,
-        [spuId, skuCode, sku.barcode ?? null, sku.skuName, sku.boxRatio, sku.temperature, sku.traceEnabled ? 1 : 0, sku.warningThreshold, tenantId]
+        `INSERT INTO product_sku (spu_id, sku_code, barcode, sku_name, volume, packaging,
+         base_unit, box_unit, box_ratio, temperature, trace_enabled, warning_threshold, tenant_id)
+         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+        [spuId, skuCode, sku.barcode ?? null, sku.skuName,
+         sku.volume ?? null, sku.packaging ?? null,
+         sku.baseUnit ?? '瓶', sku.boxUnit ?? '箱',
+         sku.boxRatio, sku.temperature, sku.traceEnabled ? 1 : 0, sku.warningThreshold, tenantId]
       );
       const skuId = skuResult.insertId as number;
       firstSkuId ??= skuId;
@@ -114,8 +165,9 @@ export async function updateProductStatus(spuId: number, status: string, tenantI
     return null;
   }
 
-  // 全链路同步：商品状态变更
-  syncProductStatus(spuId, status, tenantId).catch(() => {});
+  syncProductStatus(spuId, status, tenantId).catch(err => {
+    console.error("[ProductSync] 状态同步异常:", err.message);
+  });
 
   return { spuId, status };
 }
@@ -129,8 +181,12 @@ export async function updateProduct(spuId: number, body: {
   boxRatio?: number;
   specs?: string;
   status?: "DRAFT" | "ON_SALE" | "OFF_SALE";
+  sortNo?: number;
+  isNew?: boolean;
+  isRecommend?: boolean;
+  description?: string;
 }, tenantId: string) {
-  const existing = await queryOneWithTenant<any>("SELECT id FROM product_spu WHERE id = ? AND tenant_id = ?", [spuId, tenantId], tenantId);
+  const existing = await queryOneWithTenant<any>("SELECT * FROM product_spu WHERE id = ? AND tenant_id = ?", [spuId, tenantId], tenantId);
   if (!existing) {
     return null;
   }
@@ -142,6 +198,10 @@ export async function updateProduct(spuId: number, body: {
   if (body.unit !== undefined) { sets.push("unit = ?"); params.push(body.unit); }
   if (body.specs !== undefined) { sets.push("specs = ?"); params.push(body.specs); }
   if (body.status !== undefined) { sets.push("status = ?"); params.push(body.status); }
+  if (body.sortNo !== undefined) { sets.push("sort_no = ?"); params.push(body.sortNo); }
+  if (body.isNew !== undefined) { sets.push("is_new = ?"); params.push(body.isNew ? 1 : 0); }
+  if (body.isRecommend !== undefined) { sets.push("is_recommend = ?"); params.push(body.isRecommend ? 1 : 0); }
+  if (body.description !== undefined) { sets.push("description = ?"); params.push(body.description); }
   if (sets.length === 0) { return { spuId }; }
   sets.push("updated_at = NOW()");
   params.push(spuId, tenantId);
@@ -154,13 +214,25 @@ export async function updateProduct(spuId: number, body: {
     await queryWithTenant("UPDATE product_sku SET box_ratio = ? WHERE spu_id = ? AND tenant_id = ?", [body.boxRatio, spuId, tenantId], tenantId);
   }
 
-  // 分字段定向同步：将变更字段同步到关联表
-  const changedFields = detectChangedFields(
-    existing,
-    { name: body.name, category: body.category, brand: body.brand, unit: body.unit, specs: body.specs, status: body.status }
-  );
+  const changedFields = detectChangedFields(body, {
+    name: existing.name,
+    category: existing.category_id,
+    brand: existing.brand,
+    unit: existing.unit,
+    status: existing.status
+  });
   if (changedFields.length > 0) {
-    syncChangedFields("product_spu", spuId, changedFields, tenantId).catch(() => {});
+    syncChangedFields("product_spu", spuId, changedFields, tenantId).catch(err => {
+      console.error("[FieldSync] 商品字段同步异常:", err.message);
+    });
+
+    syncProductFullChain(spuId, changedFields, tenantId).then(summary => {
+      if (summary.failCount > 0) {
+        console.warn(`[ProductSync] 全链路同步部分失败: ${summary.failCount}/${summary.totalTargets}`, summary.stages.filter(s => !s.success));
+      }
+    }).catch(err => {
+      console.error("[ProductSync] 全链路同步异常:", err.message);
+    });
   }
 
   return { spuId };
@@ -175,10 +247,6 @@ export async function disableProduct(spuId: number, tenantId: string) {
     return { code: "400", message: "商品已停售" };
   }
   await queryWithTenant("UPDATE product_spu SET status = 'OFF_SALE', updated_at = NOW() WHERE id = ? AND tenant_id = ?", [spuId, tenantId], tenantId);
-
-  // 全链路同步：商品下架状态
-  syncProductStatus(spuId, "OFF_SALE", tenantId).catch(() => {});
-
   return { spuId, name: existing.name };
 }
 
@@ -242,123 +310,84 @@ export async function updateProductPrice(skuId: number, body: {
     return { skuId };
   });
 
-  // 全链路同步：商品价格变更
-  const changedPriceTypes: string[] = [];
-  if (body.retailPrice !== undefined) changedPriceTypes.push("retail_price");
-  if (body.wholesalePrice !== undefined) changedPriceTypes.push("wholesale_price");
-  if (body.miniappPrice !== undefined) changedPriceTypes.push("miniapp_price");
-  if (body.storePrice !== undefined) changedPriceTypes.push("store_price");
+  if (body.costPrice !== undefined || body.retailPrice !== undefined || body.wholesalePrice !== undefined) {
+    const changedTypes: string[] = [];
+    if (body.costPrice !== undefined) changedTypes.push("costPrice");
+    if (body.retailPrice !== undefined) changedTypes.push("retailPrice");
+    if (body.wholesalePrice !== undefined) changedTypes.push("wholesalePrice");
 
-  if (changedPriceTypes.length > 0) {
-    // 获取 SKU 对应的 SPU ID
-    const sku = await queryOneWithTenant<any>(
-      "SELECT spu_id AS spuId FROM product_sku WHERE id = ? AND tenant_id = ?",
+    const skuInfo = await queryOneWithTenant<any>(
+      "SELECT spu_id FROM product_sku WHERE id = ? AND tenant_id = ?",
       [skuId, tenantId],
       tenantId
     );
-    if (sku?.spuId) {
-      syncProductPrice(sku.spuId, changedPriceTypes, tenantId).catch(() => {});
+
+    if (skuInfo?.spu_id) {
+      syncProductPrice(skuInfo.spu_id, changedTypes, tenantId).catch(err => {
+        console.error("[ProductSync] 价格同步异常:", err.message);
+      });
     }
   }
 
   return result;
 }
 
-export async function batchUpdateProducts(
-  ids: number[],
-  updates: {
-    status?: string;
-    costPrice?: number;
-    retailPrice?: number;
-    wholesalePrice?: number | null;
-    miniappPrice?: number | null;
-    storePrice?: number | null;
-    categoryId?: number;
-  },
+// 商品导入
+export async function importProducts(
+  rows: Array<Record<string, string>>,
   tenantId: string
 ) {
-  const details: Array<{ id: number; success: boolean; error?: string }> = [];
+  const errors: Array<{ row: number; message: string }> = [];
   let successCount = 0;
-  let failedCount = 0;
 
-  for (const spuId of ids) {
+  for (let i = 0; i < rows.length; i++) {
+    const row = rows[i];
+    const rowNum = i + 1;
     try {
-      const existing = await queryOneWithTenant<any>(
-        "SELECT id, status FROM product_spu WHERE id = ? AND tenant_id = ?",
-        [spuId, tenantId],
-        tenantId
-      );
-      if (!existing) {
-        details.push({ id: spuId, success: false, error: "商品不存在" });
-        failedCount++;
+      if (!row.name || !row.skuName) {
+        errors.push({ row: rowNum, message: "商品名称和SKU名称为必填项" });
         continue;
       }
-
-      const spuSets: string[] = [];
-      const spuParams: unknown[] = [];
-
-      if (updates.status !== undefined) {
-        spuSets.push("status = ?");
-        spuParams.push(updates.status);
-      }
-      if (updates.categoryId !== undefined) {
-        spuSets.push("category_id = ?");
-        spuParams.push(updates.categoryId);
-      }
-
-      if (spuSets.length > 0) {
-        spuSets.push("updated_at = NOW()");
-        spuParams.push(spuId, tenantId);
-        await queryWithTenant(
-          `UPDATE product_spu SET ${spuSets.join(", ")} WHERE id = ? AND tenant_id = ?`,
-          spuParams,
-          tenantId
+      await transaction(async (conn) => {
+        const spuCode = makeBizNo("SPU");
+        const [spuResult] = await conn.query<any>(
+          `INSERT INTO product_spu (spu_code, name, category_id, brand, unit, specs,
+           main_image, sale_channels, alcohol_content, origin, sort_no, is_new, is_recommend,
+           description, status, tenant_id)
+           VALUES (?, ?, ?, ?, ?, ?, ?, CAST(? AS JSON), ?, ?, ?, ?, ?, ?, 'DRAFT', ?)`,
+          [spuCode, row.name, Number(row.categoryId) || 1,
+           row.brand ?? null, row.unit ?? null, row.specs ?? null,
+           row.mainImage ?? null, JSON.stringify(["STORE", "MINIAPP"]),
+           row.alcoholContent ? Number(row.alcoholContent) : null, row.origin ?? null,
+           Number(row.sortNo) || 0, row.isNew === '1' ? 1 : 0, row.isRecommend === '1' ? 1 : 0,
+           row.description ?? null, tenantId]
         );
-      }
-
-      // 更新价格字段
-      const priceFields: string[] = [];
-      const priceParams: unknown[] = [];
-      if (updates.costPrice !== undefined) {
-        priceFields.push("cost_price = ?");
-        priceParams.push(updates.costPrice);
-      }
-      if (updates.retailPrice !== undefined) {
-        priceFields.push("retail_price = ?");
-        priceParams.push(updates.retailPrice);
-      }
-      if (updates.wholesalePrice !== undefined) {
-        priceFields.push("wholesale_price = ?");
-        priceParams.push(updates.wholesalePrice);
-      }
-      if (updates.miniappPrice !== undefined) {
-        priceFields.push("miniapp_price = ?");
-        priceParams.push(updates.miniappPrice);
-      }
-      if (updates.storePrice !== undefined) {
-        priceFields.push("store_price = ?");
-        priceParams.push(updates.storePrice);
-      }
-
-      if (priceFields.length > 0) {
-        priceParams.push(spuId, tenantId);
-        await queryWithTenant(
-          `UPDATE product_price pp
-           JOIN product_sku s ON s.id = pp.sku_id
-           SET ${priceFields.join(", ")}
-           WHERE s.spu_id = ? AND pp.tenant_id = ?`,
-          priceParams,
-          tenantId
+        const spuId = spuResult.insertId as number;
+        const skuCode = makeBizNo("SKU");
+        const [skuResult] = await conn.query<any>(
+          `INSERT INTO product_sku (spu_id, sku_code, barcode, sku_name, volume, packaging,
+           base_unit, box_unit, box_ratio, temperature, trace_enabled, warning_threshold, tenant_id)
+           VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+          [spuId, skuCode, row.barcode ?? null, row.skuName,
+           row.volume ?? null, row.packaging ?? null,
+           row.baseUnit ?? '瓶', row.boxUnit ?? '箱',
+           Number(row.boxRatio) || 1, row.temperature || 'NORMAL',
+           row.traceEnabled === '1' ? 1 : 0, Number(row.warningThreshold) || 0, tenantId]
         );
-      }
-
-      details.push({ id: spuId, success: true });
+        const skuId = skuResult.insertId as number;
+        await conn.query(
+          `INSERT INTO product_price (sku_id, cost_price, retail_price, wholesale_price, miniapp_price, store_price, tenant_id)
+           VALUES (?, ?, ?, ?, ?, ?, ?)`,
+          [skuId, Number(row.costPrice) || 0, Number(row.retailPrice) || 0,
+           row.wholesalePrice ? Number(row.wholesalePrice) : null,
+           row.miniappPrice ? Number(row.miniappPrice) : null,
+           row.storePrice ? Number(row.storePrice) : null, tenantId]
+        );
+      });
       successCount++;
     } catch (err: any) {
-      details.push({ id: spuId, success: false, error: err.message || "更新失败" });
-      failedCount++;
+      errors.push({ row: rowNum, message: err.message || "导入失败" });
     }
   }
-
-  return { success: successCount, failed: failedCount, details };
+  return { successCount, failCount: errors.length, errors };
 }

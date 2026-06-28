@@ -31,13 +31,14 @@ adminRouter.get("/stores/:id/wechat-info", requireAuthWithTenant, employeeContro
 
 // ============ 商品管理 ============
 adminRouter.get("/products", requireAuthWithTenant, productController.listProducts);
+adminRouter.get("/products/:spuId", requireAuthWithTenant, productController.getProductDetail);
 adminRouter.post("/products", requireAuthWithTenant, productController.createProduct);
 adminRouter.put("/products/:id/status", requireAuthWithTenant, productController.updateProductStatus);
 adminRouter.put("/products/:id", requireAuthWithTenant, productController.updateProduct);
 adminRouter.put("/products/:id/disable", requireAuthWithTenant, productController.disableProduct);
 adminRouter.get("/products/:skuId/price-history", requireAuthWithTenant, productController.getProductPriceHistory);
 adminRouter.put("/products/:skuId/price", requireAuthWithTenant, productController.updateProductPrice);
-adminRouter.post("/products/batch-update", requireAuthWithTenant, productController.batchUpdateProducts);
+adminRouter.post("/products/import", requireAuthWithTenant, productController.importProducts);
 
 // ============ 订单管理 ============
 adminRouter.get("/orders", requireAuthWithTenant, orderController.listOrders);
@@ -51,8 +52,9 @@ adminRouter.get("/sale-bills/export-csv", requireAuthWithTenant, orderController
 
 // ============ 客户管理 ============
 adminRouter.get("/members", requireAuthWithTenant, customerController.listMembers);
-adminRouter.get("/customers", requireAuthWithTenant, customerController.listMembers);
 adminRouter.post("/members", requireAuthWithTenant, customerController.createCustomer);
+adminRouter.get("/members/stats", requireAuthWithTenant, customerController.getCustomerStats);
+adminRouter.get("/members/:id/purchase-stats", requireAuthWithTenant, customerController.getCustomerPurchaseStats);
 adminRouter.get("/members/:id", requireAuthWithTenant, customerController.getCustomerDetail);
 adminRouter.put("/members/:id", requireAuthWithTenant, customerController.updateCustomer);
 adminRouter.put("/members/:id/disable", requireAuthWithTenant, customerController.disableCustomer);
@@ -61,8 +63,6 @@ adminRouter.get("/members/:id/price-history", requireAuthWithTenant, customerCon
 adminRouter.get("/members/:id/sale-bills", requireAuthWithTenant, customerController.listCustomerSaleBills);
 adminRouter.get("/members/:id/payments", requireAuthWithTenant, customerController.listCustomerPayments);
 adminRouter.get("/members/:id/statements", requireAuthWithTenant, customerController.listCustomerStatements);
-adminRouter.get("/members/:id/purchase-stats", requireAuthWithTenant, customerController.getCustomerPurchaseStats);
-adminRouter.get("/members/stats", requireAuthWithTenant, customerController.getCustomerStats);
 
 // ============ 报表/仪表盘 ============
 adminRouter.get("/dashboard", requireAuthWithTenant, reportController.getDashboard);
