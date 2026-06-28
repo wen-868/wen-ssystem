@@ -1,71 +1,60 @@
-# 阿坚 · 任务清单（后端工程师 · V4.5 审计整改版）
+# 阿坚 · 模块化开发任务
 
-> **更新日期：** 2026-06-27
-> **当前阶段：** V4.5 · 四阶段全部完成，审计问题整改
-> **进展：** ✅ 胖路由全部 ≤228 行，✅ 多租户迁移脚本已修复，✅ 权限矩阵/越权拦截/同步中间件已接入，✅ 批量调价/报价推送/平台总后台 API 已注册
-> **核心理念：** 底层架构已就绪，现在补安全漏洞和细节瑕疵。
+**日期**：2026-06-28
+**分支**：main（c3ff2de）
+**阶段**：模块化开发 — Phase 1
 
 ---
 
-## ⚠️ 进度更新（2026-06-27 凌舟第三次审计）
+## 模块1：即时零售真实对接 · 5天
 
-### 四阶段全部完成 ✅
+当前 `instant-retail/adapters/` 下 meituan/elem/jd 三个适配器均为 mock 实现，需替换为真实 API。
 
-| 指标 | 之前 | 现在 |
+**要求**：
+- 美团 adapter：替换 mock 为真实 API 签名、订单同步、商品同步、库存同步
+- 饿了么 adapter：同上
+- 京东 adapter：同上
+- 实现 OAuth 令牌刷新机制
+- 实现错误重试和降级策略
+- 保留 mock 模式开关（`INSTANT_RETAIL_MOCK=true` 环境变量）
+
+**参考**：当前 `meituan-adapter.ts` 已有签名逻辑骨架，补充完整即可。
+
+---
+
+## 模块2：赊销风控引擎 · 4天
+
+当前赊销管理有基础 CRUD 和超期扫描，但缺少风控决策能力。
+
+**要求**：
+- 信用评分模型：基于客户历史回款率、逾期次数、交易频次、交易金额计算信用分
+- 自动授信：新客户默认额度 + 阶梯式提额规则
+- 赊销拦截：开单时校验客户信用额度，超限自动拦截
+- 催收策略：按逾期天数分级（1-30天/31-60天/60+天），自动生成催收任务
+- API 端点：`POST /api/admin/credits/evaluate`、`GET /api/admin/credits/risk-list`
+
+**依赖**：`credit.routes.ts` 已有基础，新增 `credit-engine.service.ts`。
+
+---
+
+## 模块3：API 性能优化 · 3天
+
+**要求**：
+- 慢查询分析：检查 `backend/src/services/` 下所有 SQL 查询，为高频查询添加索引
+- 数据库索引：products（sku_code, barcode, tenant_id）、sale_bills（bill_no, created_at, tenant_id）、inventory（sku_id, tenant_id, store_id）
+- Redis 缓存：dashboard 统计数据、商品列表、价格阶梯缓存，TTL 5分钟
+- 批量接口：`POST /api/admin/products/batch-update` 批量更新商品价格/状态
+
+**交付物**：`docs/migrations/add_indexes.sql` + 缓存中间件。
+
+---
+
+## 汇总
+
+| 模块 | 内容 | 工期 |
 |------|------|------|
-| 路由文件 | 12 个超 500 行 | **全部 ≤228 行** ✅ |
-| Controller 层 | 15 个 | **85 个** ✅ |
-| Service 层 | 22 个 | **87 个** ✅ |
-| 迁移脚本 | MariaDB 语法 | **MySQL 8.0+ 兼容** ✅ |
-| 权限矩阵 | 缺失 | **sys_menu/data_permission/field_permission 已接入** ✅ |
-| 越权拦截 | 缺失 | **price-guard 6 个中间件已挂载** ✅ |
-| 字段同步 | 缺失 | **field-sync 已接入 product/customer service** ✅ |
-| 全链路同步 | 缺失 | **product-sync 已接入 product.service** ✅ |
-| 批量调价 | 缺失 | **server.ts 已注册** ✅ |
-| 报价推送 | 缺失 | **server.ts 已注册** ✅ |
-| 平台总后台 API | 缺失 | **server.ts 已注册** ✅ |
-| 编译 | — | **0 errors** ✅ |
-| 测试 | — | **145/149 passed** ✅ |
+| 即时零售真实对接 | 3个平台适配器 | 5天 |
+| 赊销风控引擎 | 信用评分+拦截+催收 | 4天 |
+| API 性能优化 | 索引+缓存+批量 | 3天 |
 
----
-
-## P0：立即修复（3.5天）
-
-| 编号 | 任务 | 工时 | 状态 | 验收标准 |
-|------|------|:---:|:---:|------|
-| **P0-01** | **4 个路由补认证和租户中间件** | 1天 | 🔴 | `/api/platform`、`/api/store/control`、`/api/store/transfers`、`/api/store/stock-checks` 挂载 `requireAuthWithTenant` |
-| **P0-02** | **密码哈希升级 bcrypt** | 1天 | 🔴 | 替换 `shared/password.ts` 的 SHA-256 为 bcrypt；移除 `verifyPassword` 明文比对逻辑；mock-db.ts 同步更新 |
-| **P0-03** | **add_platform_admin.sql 改为幂等** | 0.5天 | 🔴 | `DROP TABLE IF EXISTS` → `CREATE TABLE IF NOT EXISTS` |
-| **P0-04** | **instant-retail-new.routes.ts 处理** | 0.5天 | 🔴 | 确认是否替换旧版 `instant-retail.routes.ts`，或删除死代码文件 |
-| **P0-05** | **node-fetch 依赖补充** | 0.5天 | 🔴 | `npm install node-fetch @types/node-fetch`，消除编译错误 |
-
----
-
-## P1：细节修复（2天）
-
-| 编号 | 任务 | 工时 | 状态 | 验收标准 |
-|------|------|:---:|:---:|------|
-| **P1-01** | **auth.test.ts 修复** | 0.5天 | 🔴 | `jest.fn()` → `vi.fn()`，4 个失败测试用例通过 |
-| **P1-02** | **console.log 收敛** | 1天 | 🔴 | 定时任务日志统一为 `console.info` 或引入日志库；删除调试残留 |
-| **P1-03** | **init_database.sql 注释修正** | 0.5天 | 🔴 | 文件末尾"52 张"→"62 张" |
-
----
-
-## P2：可选优化（后续）
-
-| 编号 | 任务 | 工时 | 状态 |
-|------|------|:---:|:---:|
-| P2-01 | 3 个路由文件改为委托 Controller（purchase/sale-return/supplier） | 1天 | ⏳ |
-| P2-02 | overdue-scanner / subscription-expiry 接入 queryWithTenant | 0.5天 | ⏳ |
-| P2-03 | JWT Secret 从 .env.production 移除，改为环境变量注入 | 0.5天 | ⏳ |
-
----
-
-## 工期汇总
-
-| 优先级 | 内容 | 工时 | 状态 |
-|:---:|------|:---:|:---:|
-| P0 | 安全修复（认证/密码/幂等/死代码/依赖） | 3.5天 | 🔴 |
-| P1 | 细节修复（测试/日志/注释） | 2天 | 🔴 |
-| P2 | 可选优化 | 2天 | ⏳ |
-| **合计** | | **7.5天** | |
+**总计：12天。**
