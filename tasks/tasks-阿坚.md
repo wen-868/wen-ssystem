@@ -2,6 +2,7 @@
 
 **日期**：2026-06-28
 **状态**：待开始
+**验收标准**：对照 `tasks/field-audit-product-center.md` 逐字段验证
 
 ---
 
@@ -9,116 +10,102 @@
 
 | # | 任务 | 优先级 | 状态 |
 |---|------|--------|------|
-| 1 | 分类 CRUD 后端 API | P0 | 待开始 |
-| 2 | 商品详情接口 | P0 | 待开始 |
-| 3 | 品牌管理后端 | P1 | 待开始 |
-| 4 | 单位管理后端 | P1 | 待开始 |
-| 5 | 商品列表接口字段完善 | P1 | 待开始 |
+| 1 | DDL 修复：product_spu 补字段 + 索引表名修正 | P0 🔴 | 待开始 |
+| 2 | 分类 CRUD 后端 API | P0 | 待开始 |
+| 3 | 商品详情接口 | P0 | 待开始 |
+| 4 | 品牌表 + 品牌管理 CRUD | P1 | 待开始 |
+| 5 | 单位表 + 单位管理 CRUD | P1 | 待开始 |
+| 6 | 商品列表接口字段完善 | P1 | 待开始 |
+| 7 | 商品导入接口 | P1 | 待开始 |
 
 ---
 
-## 1. 分类 CRUD 后端 API（P0）
+## 1. DDL 修复（P0 🔴 阻塞）
 
-**现状**：`admin-web/src/views/ProductCategories.vue` 调用了以下 API，但后端**完全没有对应路由**：
-- `GET /api/admin/products/categories` — 分类列表
-- `POST /api/admin/products/categories` — 新增分类
-- `PUT /api/admin/products/categories/:id` — 编辑分类
-- `DELETE /api/admin/products/categories/:id` — 删除分类
-- `PUT /api/admin/products/categories/:id/sort` — 排序
+### 1.1 product_spu 补字段
 
-**数据表**：`product_category`（已存在，字段：id, parent_id, name, sort_no, status）
+**问题**：代码中 `product.service.ts` 直接读写 `brand`、`unit`、`specs` 字段，但 DDL 从未定义，运行时会报错。
 
-**要求**：
-- 在 `backend/src/routes/` 下新建 `category.routes.ts`
-- 在 `backend/src/controllers/admin/` 下新建 `category.controller.ts`
-- 在 `backend/src/services/admin/` 下新建 `category.service.ts`
-- 在 `backend/src/server.ts` 注册路由（前缀 `/api/admin/products`）
-- 支持两级分类树（parent_id 为 null 或 0 表示一级）
-- 排序接口支持拖拽后的批量更新
-
----
-
-## 2. 商品详情接口（P0）
-
-**现状**：无单独的商品详情查询接口，目前仅有列表接口返回简要信息。
-
-**要求**：
-- `GET /api/admin/products/:spuId` — 返回完整 SPU 信息 + 所有 SKU + 价格
-- 在 `product.controller.ts` 和 `product.service.ts` 中新增方法
-- 返回格式：
-```json
-{
-  "spuId": 1,
-  "spuCode": "SPU001",
-  "name": "茅台飞天",
-  "categoryId": 1,
-  "categoryName": "白酒",
-  "brand": "茅台",
-  "mainImage": "...",
-  "saleChannels": ["STORE", "MINIAPP"],
-  "status": "ON_SALE",
-  "skus": [
-    {
-      "skuId": 1,
-      "skuCode": "SKU001",
-      "barcode": "6901234567890",
-      "skuName": "500ml",
-      "baseUnit": "瓶",
-      "boxUnit": "箱",
-      "boxRatio": 6,
-      "temperature": "AMBIENT",
-      "traceEnabled": true,
-      "warningThreshold": 10,
-      "price": {
-        "costPrice": 800.00,
-        "retailPrice": 1499.00,
-        "wholesalePrice": 1200.00,
-        "miniappPrice": 1399.00,
-        "storePrice": 1499.00
-      }
-    }
-  ]
-}
+**SQL 迁移脚本**：
+```sql
+ALTER TABLE product_spu
+  ADD COLUMN brand VARCHAR(128) DEFAULT NULL COMMENT '品牌',
+  ADD COLUMN unit VARCHAR(32) DEFAULT NULL COMMENT '单位',
+  ADD COLUMN specs VARCHAR(256) DEFAULT NULL COMMENT '规格',
+  ADD COLUMN sort_no INT NOT NULL DEFAULT 0 COMMENT '排序',
+  ADD COLUMN is_new TINYINT NOT NULL DEFAULT 0 COMMENT '新品标记',
+  ADD COLUMN is_recommend TINYINT NOT NULL DEFAULT 0 COMMENT '推荐标记',
+  ADD COLUMN description VARCHAR(512) DEFAULT NULL COMMENT '商品简介';
 ```
 
+### 1.2 product_sku 补字段
+
+```sql
+ALTER TABLE product_sku
+  ADD COLUMN volume VARCHAR(32) DEFAULT NULL COMMENT '净含量（500ml/1L）',
+  ADD COLUMN packaging VARCHAR(32) DEFAULT NULL COMMENT '包装类型（瓶装/罐装/桶装）';
+```
+
+### 1.3 product_category 补字段
+
+```sql
+ALTER TABLE product_category
+  ADD COLUMN icon VARCHAR(256) DEFAULT NULL COMMENT '分类图标',
+  ADD COLUMN code VARCHAR(64) DEFAULT NULL COMMENT '分类编码';
+```
+
+### 1.4 索引表名修正
+
+`docs/migrations/add_performance_indexes.sql` 中 `products` → `product_spu`。
+
 ---
 
-## 3. 品牌管理后端（P1）
+## 2. 分类 CRUD 后端 API（P0）
 
-**现状**：品牌字段仅作为 `product_spu` 的字符串字段，无独立品牌表和管理接口。
+**现状**：`admin-web/src/views/ProductCategories.vue`（440行）调用的 API 后端完全不存在。
 
 **要求**：
+- 新建 `backend/src/routes/category.routes.ts`
+- 新建 `backend/src/controllers/admin/category.controller.ts`
+- 新建 `backend/src/services/admin/category.service.ts`
+- 在 `server.ts` 注册路由
+- 接口：`GET /api/admin/products/categories`、`POST`、`PUT /:id`、`DELETE /:id`、`PUT /:id/sort`
+- 支持两级分类树，返回字段与 `product_category` 表一致（含 icon/code 补字段后）
+
+---
+
+## 3. 商品详情接口（P0）
+
+`GET /api/admin/products/:spuId` — 返回完整 SPU + 所有 SKU + 价格，字段对照审计报告 3.1 节。
+
+---
+
+## 4. 品牌表 + 品牌管理 CRUD（P1）
+
 - 新建 `brand` 表（id, name, logo, description, sort_no, status, created_at, updated_at）
-- 新建 `backend/src/routes/brand.routes.ts`
-- 新建 `backend/src/controllers/admin/brand.controller.ts`
-- 新建 `backend/src/services/admin/brand.service.ts`
-- 在 `server.ts` 注册路由（前缀 `/api/admin/brands`）
-- 接口：`GET /api/admin/brands`（列表+搜索）、`POST`、`PUT /:id`、`DELETE /:id`
-- 创建商品时品牌改为下拉选择（从 brand 表获取）
+- CRUD 路由 `/api/admin/brands`
+- 字段对照审计报告 3.3 节
 
 ---
 
-## 4. 单位管理后端（P1）
+## 5. 单位表 + 单位管理 CRUD（P1）
 
-**现状**：单位字段仅作为 `product_sku` 的字符串字段（base_unit/box_unit），无独立单位表和管理接口。
-
-**要求**：
-- 新建 `unit` 表（id, name, code, type ['BASE','BOX'], sort_no, status, created_at, updated_at）
-- 新建 `backend/src/routes/unit.routes.ts`
-- 新建 `backend/src/controllers/admin/unit.controller.ts`
-- 新建 `backend/src/services/admin/unit.service.ts`
-- 在 `server.ts` 注册路由（前缀 `/api/admin/units`）
-- 接口：`GET /api/admin/units`、`POST`、`PUT /:id`、`DELETE /:id`
-- 创建商品时单位改为下拉选择
+- 新建 `unit` 表（id, name, code, type, sort_no, status, created_at, updated_at）
+- CRUD 路由 `/api/admin/units`
+- 字段对照审计报告 3.2 节
 
 ---
 
-## 5. 商品列表接口字段完善（P1）
+## 6. 商品列表接口字段完善（P1）
 
-**现状**：`admin-web/src/views/Products.vue` 使用 `skuCode`/`productName` 等扁平字段，但后端返回 `spuId`/`skuId`/`name`/`skuName` 结构，字段不匹配。
+确保 `GET /api/admin/products` 返回字段与 `product_spu` 表一致（含 brand/unit/specs/sort_no/is_new/is_recommend/description 补字段后）。
 
-**要求**：
-- 检查 `GET /api/admin/products` 返回格式
-- 确保列表接口返回 `categoryName`（JOIN product_category）
-- 确保每个 SKU 附带 `retailPrice`、`wholesalePrice`、`availableQty`
-- 确保返回字段与前端 `Products.vue` 消费的字段一致
+---
+
+## 7. 商品导入接口（P1）
+
+`POST /api/admin/products/import` — 支持 CSV/Excel 批量导入商品。
+
+---
+
+**验收标准**：所有接口返回字段与 `tasks/field-audit-product-center.md` 审计报告一致，无遗漏。
