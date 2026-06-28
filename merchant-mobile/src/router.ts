@@ -58,7 +58,6 @@ const routes: RouteRecordRaw[] = [
   { path: '/sale-returns', name: 'sale-returns', component: () => import('./views/SaleReturnsView.vue'), meta: { requiresAuth: true } },
   { path: '/sale-returns/create', name: 'sale-returns-create', component: () => import('./views/CreateSaleReturnView.vue'), meta: { requiresAuth: true } },
   { path: '/sale-returns/:returnNo', name: 'sale-returns-detail', component: () => import('./views/SaleReturnDetailView.vue'), meta: { requiresAuth: true } },
-  { path: '/sale-return', name: 'sale-return', component: () => import('./views/SaleReturnView.vue'), meta: { requiresAuth: true } },
   // 采购订单
   { path: '/purchase-orders', name: 'purchase-orders', component: () => import('./views/PurchaseOrdersView.vue'), meta: { requiresAuth: true } },
   { path: '/purchase-orders/create', name: 'purchase-order-create', component: () => import('./views/CreatePurchaseOrderView.vue'), meta: { requiresAuth: true } },
