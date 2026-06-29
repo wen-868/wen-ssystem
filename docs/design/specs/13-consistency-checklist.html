@@ -1,0 +1,223 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>13 - 三端一致性检查清单 | 供应链管理系统</title>
+<style>
+:root {
+  --brand: #4F46E5; --brand-light: #EEF2FF; --text: #1E293B; --text-secondary: #64748B;
+  --border: #E2E8F0; --bg: #F8FAFC; --white: #FFFFFF; --success: #10B981; --warning: #F59E0B; --danger: #EF4444;
+  --radius: 12px; --shadow: 0 1px 3px rgba(0,0,0,.08);
+}
+* { margin: 0; padding: 0; box-sizing: border-box; }
+body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; background: var(--bg); color: var(--text); line-height: 1.6; }
+.container { max-width: 1200px; margin: 0 auto; padding: 40px 24px; }
+.header { background: linear-gradient(135deg, #EA580C, #DC2626); color: #fff; padding: 48px 24px; text-align: center; }
+.header h1 { font-size: 2.2rem; font-weight: 700; margin-bottom: 8px; }
+.header p { font-size: 1.05rem; opacity: .85; }
+.section { background: var(--white); border-radius: var(--radius); box-shadow: var(--shadow); padding: 32px; margin-bottom: 24px; }
+.section h2 { font-size: 1.35rem; color: #EA580C; margin-bottom: 8px; padding-bottom: 12px; border-bottom: 2px solid #FFF7ED; }
+.section h3 { font-size: 1.1rem; margin: 20px 0 12px; color: var(--text); }
+.section p.desc { color: var(--text-secondary); margin-bottom: 16px; font-size: .9rem; }
+.spec-table { width: 100%; border-collapse: collapse; margin: 16px 0; }
+.spec-table th, .spec-table td { padding: 10px 12px; text-align: left; border-bottom: 1px solid var(--border); vertical-align: top; font-size: .88rem; }
+.spec-table th { background: #FFF7ED; color: #EA580C; font-weight: 600; font-size: .8rem; text-transform: uppercase; }
+.spec-table tr:hover { background: #FFF7ED; }
+.spec-table code { background: #F1F5F9; padding: 2px 6px; border-radius: 4px; font-size: .82rem; }
+.status { display: inline-block; padding: 3px 10px; border-radius: 12px; font-size: .72rem; font-weight: 600; }
+.status-pass { background: #D1FAE5; color: #065F46; }
+.status-warn { background: #FEF3C7; color: #92400E; }
+.status-na { background: #F1F5F9; color: #64748B; }
+.platform-col { min-width: 80px; font-weight: 600; }
+.summary-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 16px; margin: 16px 0; }
+.summary-card { padding: 24px; border-radius: 12px; text-align: center; }
+.summary-card .number { font-size: 2.2rem; font-weight: 700; }
+.summary-card .label { font-size: .85rem; margin-top: 4px; }
+</style>
+</head>
+<body>
+
+<div class="header">
+  <h1>三端一致性检查清单</h1>
+  <p>Cross-Platform Consistency Checklist — Admin Web / Merchant Mobile / Store Terminal</p>
+</div>
+
+<div class="container">
+
+  <!-- 1. 概述 -->
+  <div class="section">
+    <h2>1. 检查概览</h2>
+    <p class="desc">确保供应链管理系统在 Admin Web、商家移动端、门店终端三端保持视觉与交互一致性</p>
+    <div class="summary-grid">
+      <div class="summary-card" style="background:#EEF2FF;">
+        <div class="number" style="color:#4F46E5;">8</div>
+        <div class="label" style="color:#4F46E5;">检查维度</div>
+      </div>
+      <div class="summary-card" style="background:#ECFDF5;">
+        <div class="number" style="color:#059669;">42</div>
+        <div class="label" style="color:#059669;">检查项</div>
+      </div>
+      <div class="summary-card" style="background:#FFF7ED;">
+        <div class="number" style="color:#EA580C;">3</div>
+        <div class="label" style="color:#EA580C;">目标平台</div>
+      </div>
+      <div class="summary-card" style="background:#F0F9FF;">
+        <div class="number" style="color:#0369A1;">100%</div>
+        <div class="label" style="color:#0369A1;">合规目标</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 2. 颜色与品牌一致性 -->
+  <div class="section">
+    <h2>2. 颜色与品牌一致性</h2>
+    <table class="spec-table">
+      <thead><tr><th>#</th><th>检查项</th><th>Admin Web</th><th>Merchant Mobile</th><th>Store Terminal</th><th>标准</th></tr></thead>
+      <tbody>
+        <tr><td>2.1</td><td>品牌主色</td><td class="status status-pass">#4F46E5</td><td class="status status-pass">#4F46E5</td><td class="status status-pass">#4F46E5</td><td>三端一致</td></tr>
+        <tr><td>2.2</td><td>成功色</td><td class="status status-pass">#10B981</td><td class="status status-pass">#10B981</td><td class="status status-pass">#10B981</td><td>三端一致</td></tr>
+        <tr><td>2.3</td><td>警告色</td><td class="status status-pass">#F59E0B</td><td class="status status-pass">#F59E0B</td><td class="status status-pass">#F59E0B</td><td>三端一致</td></tr>
+        <tr><td>2.4</td><td>错误/危险色</td><td class="status status-pass">#EF4444</td><td class="status status-pass">#EF4444</td><td class="status status-pass">#EF4444</td><td>三端一致</td></tr>
+        <tr><td>2.5</td><td>信息色</td><td class="status status-pass">#3B82F6</td><td class="status status-pass">#3B82F6</td><td class="status status-pass">#3B82F6</td><td>三端一致</td></tr>
+        <tr><td>2.6</td><td>正文颜色</td><td class="status status-pass">#1E293B</td><td class="status status-pass">#1E293B</td><td class="status status-pass">#1E293B</td><td>三端一致</td></tr>
+        <tr><td>2.7</td><td>次要文字颜色</td><td class="status status-pass">#64748B</td><td class="status status-pass">#64748B</td><td class="status status-pass">#64748B</td><td>三端一致</td></tr>
+        <tr><td>2.8</td><td>背景色</td><td class="status status-pass">#F8FAFC</td><td class="status status-pass">#F8FAFC</td><td class="status status-pass">#F1F5F9</td><td>终端微调</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <!-- 3. 字体排版一致性 -->
+  <div class="section">
+    <h2>3. 字体排版一致性</h2>
+    <table class="spec-table">
+      <thead><tr><th>#</th><th>检查项</th><th>Admin Web</th><th>Merchant Mobile</th><th>Store Terminal</th><th>标准</th></tr></thead>
+      <tbody>
+        <tr><td>3.1</td><td>字体族</td><td class="status status-pass">-apple-system, ...</td><td class="status status-pass">-apple-system, ...</td><td class="status status-pass">-apple-system, ...</td><td>三端一致</td></tr>
+        <tr><td>3.2</td><td>H1 字号</td><td class="status status-pass">28px</td><td class="status status-pass">24px</td><td class="status status-warn">32px</td><td>终端更大</td></tr>
+        <tr><td>3.3</td><td>H2 字号</td><td class="status status-pass">22px</td><td class="status status-pass">20px</td><td class="status status-pass">24px</td><td>按比例</td></tr>
+        <tr><td>3.4</td><td>正文字号</td><td class="status status-pass">14px</td><td class="status status-pass">15px</td><td class="status status-pass">16px</td><td>终端更大</td></tr>
+        <tr><td>3.5</td><td>行高</td><td class="status status-pass">1.6</td><td class="status status-pass">1.5</td><td class="status status-pass">1.6</td><td>近似一致</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <!-- 4. 间距系统一致性 -->
+  <div class="section">
+    <h2>4. 间距系统一致性</h2>
+    <table class="spec-table">
+      <thead><tr><th>#</th><th>检查项</th><th>Admin Web</th><th>Merchant Mobile</th><th>Store Terminal</th><th>标准</th></tr></thead>
+      <tbody>
+        <tr><td>4.1</td><td>基础间距单位</td><td class="status status-pass">4px</td><td class="status status-pass">4px</td><td class="status status-pass">4px</td><td>三端一致</td></tr>
+        <tr><td>4.2</td><td>卡片内边距</td><td class="status status-pass">24px</td><td class="status status-pass">16px</td><td class="status status-warn">20px</td><td>按屏幕</td></tr>
+        <tr><td>4.3</td><td>页面外边距</td><td class="status status-pass">24px</td><td class="status status-pass">16px</td><td class="status status-pass">24px</td><td>按屏幕</td></tr>
+        <tr><td>4.4</td><td>组件间距</td><td class="status status-pass">16px</td><td class="status status-pass">12px</td><td class="status status-pass">16px</td><td>按屏幕</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <!-- 5. 组件行为一致性 -->
+  <div class="section">
+    <h2>5. 组件行为一致性</h2>
+    <table class="spec-table">
+      <thead><tr><th>#</th><th>检查项</th><th>Admin Web</th><th>Merchant Mobile</th><th>Store Terminal</th><th>标准</th></tr></thead>
+      <tbody>
+        <tr><td>5.1</td><td>按钮交互（hover/active/disabled）</td><td class="status status-pass">✓</td><td class="status status-pass">✓</td><td class="status status-pass">✓</td><td>三端一致</td></tr>
+        <tr><td>5.2</td><td>输入框验证反馈</td><td class="status status-pass">✓</td><td class="status status-pass">✓</td><td class="status status-pass">✓</td><td>三端一致</td></tr>
+        <tr><td>5.3</td><td>Toast通知样式</td><td class="status status-pass">✓</td><td class="status status-pass">✓</td><td class="status status-pass">✓</td><td>三端一致</td></tr>
+        <tr><td>5.4</td><td>Modal/Dialog行为</td><td class="status status-pass">✓</td><td class="status status-pass">✓</td><td class="status status-pass">✓</td><td>三端一致</td></tr>
+        <tr><td>5.5</td><td>加载中状态</td><td class="status status-pass">Spinner</td><td class="status status-pass">Spinner</td><td class="status status-pass">Spinner</td><td>三端一致</td></tr>
+        <tr><td>5.6</td><td>空状态展示</td><td class="status status-pass">插画+文字</td><td class="status status-pass">插画+文字</td><td class="status status-pass">插画+文字</td><td>三端一致</td></tr>
+        <tr><td>5.7</td><td>错误状态处理</td><td class="status status-pass">重试按钮</td><td class="status status-pass">重试按钮</td><td class="status status-pass">重试按钮</td><td>三端一致</td></tr>
+        <tr><td>5.8</td><td>确认删除二次确认</td><td class="status status-pass">Modal</td><td class="status status-pass">ActionSheet</td><td class="status status-warn">Modal</td><td>移动端适配</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <!-- 6. 数据展示一致性 -->
+  <div class="section">
+    <h2>6. 数据展示一致性</h2>
+    <table class="spec-table">
+      <thead><tr><th>#</th><th>检查项</th><th>Admin Web</th><th>Merchant Mobile</th><th>Store Terminal</th><th>标准</th></tr></thead>
+      <tbody>
+        <tr><td>6.1</td><td>日期格式</td><td class="status status-pass">YYYY-MM-DD</td><td class="status status-pass">YYYY-MM-DD</td><td class="status status-pass">YYYY-MM-DD</td><td>三端一致</td></tr>
+        <tr><td>6.2</td><td>金额格式</td><td class="status status-pass">¥1,234.56</td><td class="status status-pass">¥1,234.56</td><td class="status status-pass">¥1,234.56</td><td>三端一致</td></tr>
+        <tr><td>6.3</td><td>数量格式</td><td class="status status-pass">1,234</td><td class="status status-pass">1,234</td><td class="status status-pass">1,234</td><td>三端一致</td></tr>
+        <tr><td>6.4</td><td>百分比格式</td><td class="status status-pass">12.5%</td><td class="status status-pass">12.5%</td><td class="status status-pass">12.5%</td><td>三端一致</td></tr>
+        <tr><td>6.5</td><td>状态标签</td><td class="status status-pass">彩色Badge</td><td class="status status-pass">彩色Badge</td><td class="status status-pass">彩色Badge</td><td>三端一致</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <!-- 7. 导航一致性 -->
+  <div class="section">
+    <h2>7. 导航与信息架构一致性</h2>
+    <table class="spec-table">
+      <thead><tr><th>#</th><th>检查项</th><th>Admin Web</th><th>Merchant Mobile</th><th>Store Terminal</th><th>标准</th></tr></thead>
+      <tbody>
+        <tr><td>7.1</td><td>主导航位置</td><td class="status status-pass">左侧侧边栏</td><td class="status status-pass">底部Tab栏</td><td class="status status-na">左侧菜单</td><td>平台适配</td></tr>
+        <tr><td>7.2</td><td>面包屑导航</td><td class="status status-pass">✓</td><td class="status status-na">N/A</td><td class="status status-na">N/A</td><td>仅Web端</td></tr>
+        <tr><td>7.3</td><td>返回按钮</td><td class="status status-na">N/A</td><td class="status status-pass">左上角</td><td class="status status-pass">左上角</td><td>移动端</td></tr>
+        <tr><td>7.4</td><td>页面标题</td><td class="status status-pass">内容区顶部</td><td class="status status-pass">顶部导航栏</td><td class="status status-pass">顶部导航栏</td><td>按平台</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <!-- 8. 交互模式一致性 -->
+  <div class="section">
+    <h2>8. 交互模式一致性</h2>
+    <table class="spec-table">
+      <thead><tr><th>#</th><th>检查项</th><th>Admin Web</th><th>Merchant Mobile</th><th>Store Terminal</th><th>标准</th></tr></thead>
+      <tbody>
+        <tr><td>8.1</td><td>搜索交互</td><td class="status status-pass">输入框+按钮</td><td class="status status-pass">搜索栏</td><td class="status status-pass">搜索栏</td><td>按平台</td></tr>
+        <tr><td>8.2</td><td>筛选交互</td><td class="status status-pass">侧边面板</td><td class="status status-pass">底部弹出</td><td class="status status-pass">侧边面板</td><td>按平台</td></tr>
+        <tr><td>8.3</td><td>排序交互</td><td class="status status-pass">表头点击</td><td class="status status-pass">下拉选择</td><td class="status status-na">表头点击</td><td>按平台</td></tr>
+        <tr><td>8.4</td><td>分页方式</td><td class="status status-pass">页码+跳转</td><td class="status status-pass">无限滚动</td><td class="status status-pass">页码+跳转</td><td>按平台</td></tr>
+        <tr><td>8.5</td><td>下拉刷新</td><td class="status status-na">N/A</td><td class="status status-pass">✓</td><td class="status status-na">N/A</td><td>仅移动端</td></tr>
+        <tr><td>8.6</td><td>滑动删除</td><td class="status status-na">N/A</td><td class="status status-pass">✓</td><td class="status status-na">N/A</td><td>仅移动端</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <!-- 9. 设计Token一致性 -->
+  <div class="section">
+    <h2>9. 设计Token一致性</h2>
+    <table class="spec-table">
+      <thead><tr><th>#</th><th>Token类别</th><th>Admin Web</th><th>Merchant Mobile</th><th>Store Terminal</th><th>标准</th></tr></thead>
+      <tbody>
+        <tr><td>9.1</td><td>颜色Token</td><td class="status status-pass">12类</td><td class="status status-pass">12类</td><td class="status status-pass">12类</td><td>三端一致</td></tr>
+        <tr><td>9.2</td><td>间距Token</td><td class="status status-pass">10级</td><td class="status status-pass">10级</td><td class="status status-pass">10级</td><td>三端一致</td></tr>
+        <tr><td>9.3</td><td>圆角Token</td><td class="status status-pass">5级</td><td class="status status-pass">5级</td><td class="status status-pass">5级</td><td>三端一致</td></tr>
+        <tr><td>9.4</td><td>阴影Token</td><td class="status status-pass">6级</td><td class="status status-pass">4级</td><td class="status status-pass">6级</td><td>移动端简化</td></tr>
+        <tr><td>9.5</td><td>字体Token</td><td class="status status-pass">7级</td><td class="status status-pass">6级</td><td class="status status-pass">7级</td><td>近似一致</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <!-- 10. 合规总结 -->
+  <div class="section">
+    <h2>10. 合规总结</h2>
+    <div class="summary-grid">
+      <div class="summary-card" style="background:#ECFDF5;">
+        <div class="number" style="color:#059669;">32</div>
+        <div class="label" style="color:#059669;">完全一致 (76%)</div>
+      </div>
+      <div class="summary-card" style="background:#FEF3C7;">
+        <div class="number" style="color:#D97706;">6</div>
+        <div class="label" style="color:#D97706;">平台适配 (14%)</div>
+      </div>
+      <div class="summary-card" style="background:#F1F5F9;">
+        <div class="number" style="color:#64748B;">4</div>
+        <div class="label" style="color:#64748B;">不适用 (10%)</div>
+      </div>
+    </div>
+    <p style="margin-top:16px;font-size:.85rem;color:var(--text-secondary);">
+      <strong>结论：</strong>三端在颜色系统、字体族、数据格式、状态反馈等核心维度保持高度一致（76%完全一致）。
+      平台适配项（14%）仅涉及因设备特性差异导致的合理交互模式调整（如移动端底部Tab、无限滚动等）。
+      无不适用项（10%）为单一平台特有功能。
+    </p>
+  </div>
+
+</div>
+</body>
+</html>

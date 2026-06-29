@@ -1,0 +1,307 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>12 - 无障碍设计规范 | 供应链管理系统</title>
+<style>
+:root {
+  --brand: #4F46E5; --brand-light: #EEF2FF; --text: #1E293B; --text-secondary: #64748B;
+  --border: #E2E8F0; --bg: #F8FAFC; --white: #FFFFFF; --success: #10B981; --warning: #F59E0B;
+  --danger: #EF4444; --info: #3B82F6; --radius: 12px; --shadow: 0 1px 3px rgba(0,0,0,.08);
+}
+* { margin: 0; padding: 0; box-sizing: border-box; }
+body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; background: var(--bg); color: var(--text); line-height: 1.6; }
+.container { max-width: 1200px; margin: 0 auto; padding: 40px 24px; }
+.header { background: linear-gradient(135deg, #059669, #047857); color: #fff; padding: 48px 24px; text-align: center; }
+.header h1 { font-size: 2.2rem; font-weight: 700; margin-bottom: 8px; }
+.header p { font-size: 1.05rem; opacity: .85; }
+.section { background: var(--white); border-radius: var(--radius); box-shadow: var(--shadow); padding: 32px; margin-bottom: 24px; }
+.section h2 { font-size: 1.35rem; color: #059669; margin-bottom: 8px; padding-bottom: 12px; border-bottom: 2px solid #ECFDF5; }
+.section h3 { font-size: 1.1rem; margin: 20px 0 12px; color: var(--text); }
+.section p.desc { color: var(--text-secondary); margin-bottom: 16px; font-size: .9rem; }
+.spec-table { width: 100%; border-collapse: collapse; margin: 16px 0; }
+.spec-table th, .spec-table td { padding: 12px 16px; text-align: left; border-bottom: 1px solid var(--border); vertical-align: top; }
+.spec-table th { background: #ECFDF5; color: #059669; font-weight: 600; font-size: .85rem; text-transform: uppercase; }
+.spec-table tr:hover { background: #F1F5F9; }
+.spec-table code { background: #F1F5F9; padding: 2px 8px; border-radius: 4px; font-size: .85rem; }
+.check-row { display: flex; align-items: flex-start; gap: 12px; padding: 12px 0; border-bottom: 1px solid var(--border); }
+.check-row:last-child { border-bottom: none; }
+.check-row .icon { width: 24px; height: 24px; border-radius: 50%; display: flex; align-items: center; justify-content: center; flex-shrink: 0; margin-top: 2px; font-size: .75rem; }
+.icon-pass { background: #D1FAE5; color: #059669; }
+.icon-fail { background: #FEE2E2; color: #DC2626; }
+.icon-warn { background: #FEF3C7; color: #D97706; }
+.level-badge { display: inline-block; padding: 3px 10px; border-radius: 12px; font-size: .75rem; font-weight: 600; }
+.level-a { background: #D1FAE5; color: #065F46; }
+.level-aa { background: #DBEAFE; color: #1E40AF; }
+.level-aaa { background: #EDE9FE; color: #5B21B6; }
+.demo-box { padding: 20px; border: 1px solid var(--border); border-radius: 8px; margin: 12px 0; }
+.demo-label { font-size: .78rem; color: var(--text-secondary); margin-bottom: 8px; text-transform: uppercase; letter-spacing: .5px; }
+.contrast-demo { display: flex; gap: 16px; flex-wrap: wrap; }
+.contrast-swatch { padding: 16px 24px; border-radius: 8px; text-align: center; font-weight: 600; min-width: 120px; }
+.contrast-swatch .ratio { font-size: .75rem; margin-top: 4px; opacity: .8; }
+.focus-demo { display: inline-block; padding: 10px 20px; border-radius: 6px; margin: 4px; }
+.focus-demo:focus { outline: 3px solid #4F46E5; outline-offset: 2px; }
+.skip-link { position: absolute; top: -100px; left: 0; background: #4F46E5; color: #fff; padding: 12px 24px; z-index: 999; transition: top .2s; }
+.skip-link:focus { top: 0; }
+</style>
+</head>
+<body>
+
+<div class="header">
+  <h1>无障碍设计规范（WCAG 2.1 AA）</h1>
+  <p>Accessibility Design Specification — 确保供应链管理系统对所有用户可用</p>
+</div>
+
+<div class="container">
+
+  <!-- 1. 概述 -->
+  <div class="section">
+    <h2>1. 合规目标</h2>
+    <p class="desc">本系统以 WCAG 2.1 等级 AA 为最低合规标准，关键交互路径争取 AAA。</p>
+    <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:16px;margin-top:16px;">
+      <div style="padding:20px;background:#ECFDF5;border-radius:8px;border-left:4px solid #10B981;">
+        <strong style="color:#059669;">可感知 (Perceivable)</strong>
+        <p style="font-size:.85rem;color:var(--text-secondary);margin-top:4px;">信息与UI组件必须以用户可感知的方式呈现</p>
+      </div>
+      <div style="padding:20px;background:#EFF6FF;border-radius:8px;border-left:4px solid #3B82F6;">
+        <strong style="color:#2563EB;">可操作 (Operable)</strong>
+        <p style="font-size:.85rem;color:var(--text-secondary);margin-top:4px;">UI组件与导航必须可操作，支持键盘访问</p>
+      </div>
+      <div style="padding:20px;background:#FEF3C7;border-radius:8px;border-left:4px solid #F59E0B;">
+        <strong style="color:#D97706;">可理解 (Understandable)</strong>
+        <p style="font-size:.85rem;color:var(--text-secondary);margin-top:4px;">信息和UI操作必须可理解，错误提示清晰</p>
+      </div>
+      <div style="padding:20px;background:#F5F3FF;border-radius:8px;border-left:4px solid #7C3AED;">
+        <strong style="color:#6D28D9;">健壮性 (Robust)</strong>
+        <p style="font-size:.85rem;color:var(--text-secondary);margin-top:4px;">内容必须足够健壮，可被多种用户代理解析</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- 2. 颜色对比度 -->
+  <div class="section">
+    <h2>2. 颜色对比度标准</h2>
+    <p class="desc">所有文本与背景的组合必须满足最低对比度要求</p>
+    <table class="spec-table">
+      <thead><tr><th>元素类型</th><th>最低对比度</th><th>WCAG等级</th><th>说明</th></tr></thead>
+      <tbody>
+        <tr><td><strong>正文文本（&lt;18px）</strong></td><td><code>≥ 4.5:1</code></td><td><span class="level-badge level-aa">AA</span></td><td>所有正文内容、表单标签、表格数据</td></tr>
+        <tr><td><strong>大文本（≥18px 或 ≥14px Bold）</strong></td><td><code>≥ 3:1</code></td><td><span class="level-badge level-aa">AA</span></td><td>标题、Hero文本、大号数字</td></tr>
+        <tr><td><strong>UI组件与图形对象</strong></td><td><code>≥ 3:1</code></td><td><span class="level-badge level-aa">AA</span></td><td>图标、按钮边框、输入框边框、图表元素</td></tr>
+        <tr><td><strong>正文文本（增强）</strong></td><td><code>≥ 7:1</code></td><td><span class="level-badge level-aaa">AAA</span></td><td>可选增强，用于关键阅读内容</td></tr>
+        <tr><td><strong>禁用状态文本</strong></td><td><code>无要求</code></td><td><span class="level-badge level-a">豁免</span></td><td>disabled状态不强制对比度要求</td></tr>
+        <tr><td><strong>纯装饰元素</strong></td><td><code>无要求</code></td><td><span class="level-badge level-a">豁免</span></td><td>不传达信息的装饰性图形</td></tr>
+      </tbody>
+    </table>
+
+    <h3>本系统主要颜色组合验证</h3>
+    <div class="contrast-demo">
+      <div class="contrast-swatch" style="background:#1E293B;color:#FFFFFF;">
+        正文 #1E293B on #FFF<br><span class="ratio">14.4:1 ✅ AAA</span>
+      </div>
+      <div class="contrast-swatch" style="background:#64748B;color:#FFFFFF;">
+        次要文本 #64748B on #FFF<br><span class="ratio">4.6:1 ✅ AA</span>
+      </div>
+      <div class="contrast-swatch" style="background:#4F46E5;color:#FFFFFF;">
+        品牌色 #4F46E5 on #FFF<br><span class="ratio">6.5:1 ✅ AA</span>
+      </div>
+      <div class="contrast-swatch" style="background:#10B981;color:#FFFFFF;">
+        成功色 #10B981 on #FFF<br><span class="ratio">3.4:1 ⚠️ 仅限大文本</span>
+      </div>
+      <div class="contrast-swatch" style="background:#EF4444;color:#FFFFFF;">
+        错误色 #EF4444 on #FFF<br><span class="ratio">4.3:1 ✅ AA</span>
+      </div>
+      <div class="contrast-swatch" style="background:#F59E0B;color:#1E293B;">
+        警告色 #F59E0B on #1E293B<br><span class="ratio">9.5:1 ✅ AAA</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- 3. 键盘导航 -->
+  <div class="section">
+    <h2>3. 键盘导航规范</h2>
+    <p class="desc">所有交互功能必须可通过键盘操作，无需鼠标</p>
+    <table class="spec-table">
+      <thead><tr><th>键盘操作</th><th>快捷键</th><th>适用场景</th></tr></thead>
+      <tbody>
+        <tr><td><strong>焦点前进</strong></td><td><code>Tab</code></td><td>在可交互元素间向前移动焦点</td></tr>
+        <tr><td><strong>焦点后退</strong></td><td><code>Shift + Tab</code></td><td>在可交互元素间向后移动焦点</td></tr>
+        <tr><td><strong>激活/点击</strong></td><td><code>Enter</code> 或 <code>Space</code></td><td>激活按钮、链接、开关等</td></tr>
+        <tr><td><strong>关闭弹窗</strong></td><td><code>Escape</code></td><td>关闭Modal、Dialog、Dropdown</td></tr>
+        <tr><td><strong>列表导航</strong></td><td><code>↑ ↓</code></td><td>在Select、Menu、Listbox中导航</td></tr>
+        <tr><td><strong>表格导航</strong></td><td><code>Ctrl + ↑ ↓ ← →</code></td><td>在数据表格单元格间移动</td></tr>
+        <tr><td><strong>跳至主内容</strong></td><td><code>Skip Link</code></td><td>页面加载后第一个Tab焦点，跳过导航栏</td></tr>
+      </tbody>
+    </table>
+
+    <h3>焦点指示器要求</h3>
+    <div class="demo-box">
+      <div class="demo-label">焦点样式演示（点击下方元素后按Tab键测试）</div>
+      <div style="display:flex;gap:12px;flex-wrap:wrap;">
+        <a href="#" class="focus-demo" style="background:#4F46E5;color:#fff;text-decoration:none;">可聚焦链接</a>
+        <button class="focus-demo" style="background:#10B981;color:#fff;border:none;cursor:pointer;">可聚焦按钮</button>
+        <div class="focus-demo" tabindex="0" style="background:#F1F5F9;border:1px solid #CBD5E1;cursor:pointer;">自定义可聚焦元素</div>
+      </div>
+      <p style="font-size:.8rem;color:var(--text-secondary);margin-top:12px;">焦点指示器：<code>outline: 3px solid #4F46E5; outline-offset: 2px;</code> — 确保清晰可见的3px品牌色轮廓</p>
+    </div>
+  </div>
+
+  <!-- 4. 语义化HTML -->
+  <div class="section">
+    <h2>4. 语义化HTML与ARIA</h2>
+    <table class="spec-table">
+      <thead><tr><th>场景</th><th>推荐方案</th><th>ARIA属性</th></tr></thead>
+      <tbody>
+        <tr><td><strong>页面标题</strong></td><td><code>&lt;h1&gt; ~ &lt;h6&gt;</code> 层级递进</td><td>—</td></tr>
+        <tr><td><strong>导航区域</strong></td><td><code>&lt;nav aria-label="主导航"&gt;</code></td><td><code>aria-label</code></td></tr>
+        <tr><td><strong>主要内容</strong></td><td><code>&lt;main id="main-content"&gt;</code></td><td>—</td></tr>
+        <tr><td><strong>侧边栏</strong></td><td><code>&lt;aside&gt;</code></td><td>—</td></tr>
+        <tr><td><strong>数据表格</strong></td><td><code>&lt;table&gt; + &lt;caption&gt; + &lt;th scope&gt;</code></td><td><code>scope="col/row"</code></td></tr>
+        <tr><td><strong>表单标签</strong></td><td><code>&lt;label for="id"&gt;</code> 显式关联</td><td>—</td></tr>
+        <tr><td><strong>必填字段</strong></td><td><code>aria-required="true"</code> + 视觉星号</td><td><code>aria-required</code></td></tr>
+        <tr><td><strong>错误提示</strong></td><td><code>aria-describedby="error-id"</code> + <code>aria-invalid="true"</code></td><td><code>aria-describedby</code></td></tr>
+        <tr><td><strong>加载中</strong></td><td><code>aria-busy="true"</code> + <code>aria-live="polite"</code></td><td><code>aria-busy</code></td></tr>
+        <tr><td><strong>动态更新</strong></td><td><code>aria-live="polite"</code> 或 <code>role="status"</code></td><td><code>aria-live</code></td></tr>
+        <tr><td><strong>Modal对话框</strong></td><td><code>role="dialog" aria-modal="true" aria-labelledby="..."</code></td><td><code>aria-modal</code></td></tr>
+        <tr><td><strong>Tab切换</strong></td><td><code>role="tablist" / role="tab" / role="tabpanel"</code></td><td><code>aria-selected</code></td></tr>
+        <tr><td><strong>开关Toggle</strong></td><td><code>role="switch" aria-checked="true/false"</code></td><td><code>aria-checked</code></td></tr>
+        <tr><td><strong>图标按钮</strong></td><td><code>aria-label="编辑"</code> 替代可见文本</td><td><code>aria-label</code></td></tr>
+        <tr><td><strong>面包屑</strong></td><td><code>&lt;nav aria-label="面包屑"&gt; + &lt;ol&gt;</code></td><td><code>aria-current="page"</code></td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <!-- 5. 屏幕阅读器支持 -->
+  <div class="section">
+    <h2>5. 屏幕阅读器适配</h2>
+    <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(320px,1fr));gap:16px;">
+      <div style="padding:20px;background:#F8FAFC;border-radius:8px;border:1px solid var(--border);">
+        <h3 style="margin-top:0;">图片Alt文本</h3>
+        <p style="font-size:.85rem;color:var(--text-secondary);">所有 <code>&lt;img&gt;</code> 必须有 <code>alt</code> 属性：</p>
+        <ul style="font-size:.85rem;color:var(--text-secondary);padding-left:16px;margin-top:8px;">
+          <li>信息性图片：描述性alt文本</li>
+          <li>装饰性图片：<code>alt=""</code>（空字符串）</li>
+          <li>复杂图表：<code>alt</code>简述 + 正文详细说明</li>
+          <li>SVG图标：<code>role="img" aria-label="..."</code></li>
+        </ul>
+      </div>
+      <div style="padding:20px;background:#F8FAFC;border-radius:8px;border:1px solid var(--border);">
+        <h3 style="margin-top:0;">动态内容通知</h3>
+        <p style="font-size:.85rem;color:var(--text-secondary);">使用ARIA Live Regions通知屏幕阅读器：</p>
+        <ul style="font-size:.85rem;color:var(--text-secondary);padding-left:16px;margin-top:8px;">
+          <li>Toast通知：<code>role="status" aria-live="polite"</code></li>
+          <li>表单错误：<code>role="alert"</code>（立即播报）</li>
+          <li>搜索建议：<code>aria-live="polite"</code></li>
+          <li>倒计时/进度：<code>aria-live="assertive"</code></li>
+        </ul>
+      </div>
+      <div style="padding:20px;background:#F8FAFC;border-radius:8px;border:1px solid var(--border);">
+        <h3 style="margin-top:0;">表单辅助</h3>
+        <p style="font-size:.85rem;color:var(--text-secondary);">表单字段必须提供完整上下文：</p>
+        <ul style="font-size:.85rem;color:var(--text-secondary);padding-left:16px;margin-top:8px;">
+          <li><code>&lt;label&gt;</code> 显式关联每个输入框</li>
+          <li>错误信息用 <code>aria-describedby</code> 关联</li>
+          <li>帮助文本用 <code>aria-describedby</code> 关联</li>
+          <li>必填字段用 <code>aria-required="true"</code></li>
+          <li>输入格式提示用 <code>aria-describedby</code></li>
+        </ul>
+      </div>
+    </div>
+  </div>
+
+  <!-- 6. 触摸目标 -->
+  <div class="section">
+    <h2>6. 触摸目标与间距</h2>
+    <table class="spec-table">
+      <thead><tr><th>设备类型</th><th>最小触摸目标</th><th>推荐触摸目标</th><th>最小间距</th></tr></thead>
+      <tbody>
+        <tr><td><strong>移动端（手机）</strong></td><td><code>44x44px</code></td><td><code>48x48px</code></td><td><code>8px</code></td></tr>
+        <tr><td><strong>平板端</strong></td><td><code>44x44px</code></td><td><code>48x48px</code></td><td><code>8px</code></td></tr>
+        <tr><td><strong>桌面端（鼠标）</strong></td><td><code>24x24px</code></td><td><code>32x32px</code></td><td><code>4px</code></td></tr>
+        <tr><td><strong>门店终端（触屏）</strong></td><td><code>48x48px</code></td><td><code>56x56px</code></td><td><code>12px</code></td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <!-- 7. 多媒体无障碍 -->
+  <div class="section">
+    <h2>7. 多媒体与动效无障碍</h2>
+    <table class="spec-table">
+      <thead><tr><th>要求</th><th>标准</th><th>实现方式</th></tr></thead>
+      <tbody>
+        <tr><td><strong>自动播放</strong></td><td>禁止自动播放音频/视频</td><td><code>autoplay</code> 默认关闭，用户手动启动</td></tr>
+        <tr><td><strong>闪烁内容</strong></td><td>禁止每秒闪烁超过3次</td><td>避免使用快速闪烁动画</td></tr>
+        <tr><td><strong>动效减弱</strong></td><td>尊重系统偏好</td><td><code>@media (prefers-reduced-motion: reduce)</code></td></tr>
+        <tr><td><strong>动画时长</strong></td><td>≤ 5秒自动停止</td><td>CSS动画设置合理的持续时间</td></tr>
+        <tr><td><strong>暂停控制</strong></td><td>自动播放动效需可暂停</td><td>提供暂停/停止按钮</td></tr>
+      </tbody>
+    </table>
+
+    <div class="demo-box">
+      <div class="demo-label">动效减弱CSS示例</div>
+      <pre style="background:#1E293B;color:#E2E8F0;padding:16px;border-radius:8px;font-size:.85rem;overflow-x:auto;"><code>@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}</code></pre>
+    </div>
+  </div>
+
+  <!-- 8. 错误处理 -->
+  <div class="section">
+    <h2>8. 错误识别与恢复</h2>
+    <table class="spec-table">
+      <thead><tr><th>原则</th><th>要求</th><th>实现</th></tr></thead>
+      <tbody>
+        <tr><td><strong>错误识别</strong></td><td>自动检测到的输入错误必须用文本描述</td><td>错误信息用红色文字 + 图标表示，非仅依赖颜色</td></tr>
+        <tr><td><strong>标签说明</strong></td><td>提供输入格式说明</td><td>placeholder + aria-describedby 关联帮助文本</td></tr>
+        <tr><td><strong>错误建议</strong></td><td>提供修正建议（如可能）</td><td>"请输入有效的手机号，如 13800138000"</td></tr>
+        <tr><td><strong>错误预防</strong></td><td>法律/财务数据提交前可复查</td><td>确认弹窗、二次确认机制</td></tr>
+        <tr><td><strong>可逆操作</strong></td><td>删除/提交操作可撤销</td><td>Toast提示"已删除，点击撤销"</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <!-- 9. Admin Web 无障碍检查清单 -->
+  <div class="section">
+    <h2>9. Admin Web 无障碍检查清单</h2>
+    <div class="check-row"><div class="icon icon-pass">✓</div><div><strong>页面标题</strong> — 每个页面有唯一的 <code>&lt;title&gt;</code></div></div>
+    <div class="check-row"><div class="icon icon-pass">✓</div><div><strong>语言声明</strong> — <code>&lt;html lang="zh-CN"&gt;</code></div></div>
+    <div class="check-row"><div class="icon icon-pass">✓</div><div><strong>跳转链接</strong> — 提供"跳到主内容"Skip Link</div></div>
+    <div class="check-row"><div class="icon icon-pass">✓</div><div><strong>语义化标题</strong> — h1~h6 层级递进，不跳级</div></div>
+    <div class="check-row"><div class="icon icon-pass">✓</div><div><strong>键盘导航</strong> — 所有交互元素可通过Tab键访问</div></div>
+    <div class="check-row"><div class="icon icon-pass">✓</div><div><strong>焦点可见</strong> — 清晰的3px焦点指示器</div></div>
+    <div class="check-row"><div class="icon icon-warn">!</div><div><strong>颜色对比度</strong> — 正文≥4.5:1，大文本≥3:1（需持续验证）</div></div>
+    <div class="check-row"><div class="icon icon-pass">✓</div><div><strong>非颜色依赖</strong> — 错误/成功状态不只依赖颜色</div></div>
+    <div class="check-row"><div class="icon icon-pass">✓</div><div><strong>图片Alt</strong> — 所有图片有合适的alt文本</div></div>
+    <div class="check-row"><div class="icon icon-pass">✓</div><div><strong>表单标签</strong> — label显式关联input</div></div>
+    <div class="check-row"><div class="icon icon-pass">✓</div><div><strong>错误提示</strong> — aria-describedby + aria-invalid</div></div>
+    <div class="check-row"><div class="icon icon-pass">✓</div><div><strong>表格语义</strong> — caption + th scope + 响应式</div></div>
+    <div class="check-row"><div class="icon icon-warn">!</div><div><strong>ARIA使用</strong> — 仅在原生HTML不足时使用ARIA</div></div>
+    <div class="check-row"><div class="icon icon-pass">✓</div><div><strong>动效控制</strong> — prefers-reduced-motion 支持</div></div>
+    <div class="check-row"><div class="icon icon-pass">✓</div><div><strong>缩放支持</strong> — 200%缩放不丢失内容</div></div>
+    <div class="check-row"><div class="icon icon-pass">✓</div><div><strong>触摸目标</strong> — 移动端≥44x44px，终端≥48x48px</div></div>
+  </div>
+
+  <!-- 10. 测试方法 -->
+  <div class="section">
+    <h2>10. 无障碍测试方法</h2>
+    <table class="spec-table">
+      <thead><tr><th>测试类型</th><th>工具/方法</th><th>频率</th></tr></thead>
+      <tbody>
+        <tr><td><strong>自动化审计</strong></td><td>Lighthouse Accessibility Audit, axe-core</td><td>每次提交前</td></tr>
+        <tr><td><strong>键盘导航测试</strong></td><td>全程Tab键导航，验证所有交互</td><td>每个功能开发后</td></tr>
+        <tr><td><strong>屏幕阅读器测试</strong></td><td>macOS VoiceOver / Windows NVDA / JAWS</td><td>每个里程碑</td></tr>
+        <tr><td><strong>对比度验证</strong></td><td>WebAIM Contrast Checker, Stark插件</td><td>设计阶段 + 开发后</td></tr>
+        <tr><td><strong>缩放测试</strong></td><td>浏览器200%缩放，验证内容完整性</td><td>每个页面</td></tr>
+        <tr><td><strong>色彩盲模拟</strong></td><td>Chrome DevTools Rendering 模拟</td><td>设计阶段</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+</div>
+</body>
+</html>

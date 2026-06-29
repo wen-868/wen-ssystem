@@ -1,0 +1,198 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>响应式设计方案 — 智享酒水库存系统</title>
+<style>
+:root {
+  --color-primary: #1677FF; --color-primary-hover: #409EFF; --color-primary-soft: #E6F4FF;
+  --color-success: #10B981; --color-warning: #F59E0B; --color-danger: #EF4444; --color-info: #3B82F6;
+  --gray-50: #F9FAFB; --gray-100: #F3F4F6; --gray-200: #E5E7EB; --gray-300: #D1D5DB; --gray-400: #9CA3AF; --gray-500: #6B7280; --gray-600: #4B5563; --gray-700: #374151; --gray-800: #1F2937; --gray-900: #111827;
+  --text-primary: #1F2328; --text-secondary: #4B5563; --text-muted: #9CA3AF;
+  --bg-page: #F5F7FA; --bg-card: #FFFFFF;
+  --radius-sm: 8px; --radius-md: 12px; --radius-lg: 16px;
+  --shadow-sm: 0 1px 3px rgba(0,0,0,0.06); --shadow-md: 0 4px 6px rgba(0,0,0,0.04);
+  --font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang SC", "Microsoft YaHei", sans-serif;
+}
+* { margin: 0; padding: 0; box-sizing: border-box; }
+body { font-family: var(--font-family); background: var(--bg-page); color: var(--text-primary); line-height: 1.6; }
+.container { max-width: 1100px; margin: 0 auto; padding: 40px 24px; }
+.header { background: linear-gradient(135deg, #1677FF 0%, #0958D9 100%); color: #fff; padding: 60px 24px; text-align: center; }
+.header h1 { font-size: 32px; font-weight: 700; margin-bottom: 8px; }
+.header p { font-size: 14px; opacity: 0.85; }
+.section { background: var(--bg-card); border-radius: var(--radius-lg); padding: 28px; margin-bottom: 20px; box-shadow: var(--shadow-sm); }
+.section h2 { font-size: 20px; font-weight: 600; margin-bottom: 16px; }
+.section h3 { font-size: 15px; font-weight: 600; margin: 16px 0 10px; color: var(--text-secondary); }
+table { width: 100%; border-collapse: collapse; font-size: 13px; }
+th { background: #F8FAFC; padding: 10px 14px; text-align: left; font-weight: 600; color: var(--text-secondary); border-bottom: 2px solid var(--gray-200); }
+td { padding: 10px 14px; border-bottom: 1px solid var(--gray-100); }
+.badge { display: inline-block; padding: 2px 8px; border-radius: 4px; font-size: 11px; font-weight: 600; }
+.badge-primary { background: #E6F4FF; color: #1677FF; }
+.badge-success { background: #D1FAE5; color: #10B981; }
+.badge-info { background: #DBEAFE; color: #3B82F6; }
+.bp-scale { display: flex; align-items: center; gap: 0; margin: 20px 0; overflow-x: auto; }
+.bp-item { flex: 1; min-width: 100px; padding: 16px; text-align: center; border-radius: 8px; margin: 0 4px; }
+.bp-mobile { background: #DBEAFE; color: #1E40AF; }
+.bp-tablet { background: #D1FAE5; color: #065F46; }
+.bp-desktop { background: #FEF3C7; color: #92400E; }
+.bp-wide { background: #FEE2E2; color: #991B1B; }
+.bp-value { font-size: 24px; font-weight: 700; }
+.bp-label { font-size: 12px; margin-top: 4px; }
+.device-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 16px; }
+.device-card { border: 1px solid var(--gray-200); border-radius: var(--radius-md); padding: 16px; }
+.device-name { font-size: 14px; font-weight: 600; margin-bottom: 8px; }
+.device-spec { font-size: 12px; color: var(--text-secondary); margin: 2px 0; }
+.code-block { background: #1F2937; color: #E5E7EB; padding: 14px; border-radius: 8px; font-family: monospace; font-size: 12px; overflow-x: auto; margin: 8px 0; }
+.layout-demo { border: 1px solid var(--gray-200); border-radius: 8px; overflow: hidden; margin: 10px 0; }
+.layout-bar { height: 40px; display: flex; align-items: center; justify-content: center; font-size: 11px; color: #fff; font-weight: 500; }
+.layout-bar-header { background: var(--color-primary); }
+.layout-bar-sidebar { background: var(--color-info); }
+.layout-bar-content { background: var(--gray-400); }
+.layout-bar-footer { background: var(--gray-600); }
+</style>
+</head>
+<body>
+
+<div class="header">
+  <h1>响应式设计方案</h1>
+  <p>Responsive Design Plan — 三端断点适配策略</p>
+  <p style="margin-top:4px;font-size:12px;opacity:0.65">林夕 · 2026-06-29</p>
+</div>
+
+<div class="container">
+
+<!-- 1. Breakpoint System -->
+<div class="section">
+  <h2>1. 断点系统</h2>
+  <div class="bp-scale">
+    <div class="bp-item bp-mobile"><div class="bp-value">640px</div><div class="bp-label">sm · 大屏手机</div></div>
+    <div class="bp-item bp-tablet"><div class="bp-value">768px</div><div class="bp-label">md · 平板竖屏</div></div>
+    <div class="bp-item bp-desktop"><div class="bp-value">1024px</div><div class="bp-label">lg · 平板横屏</div></div>
+    <div class="bp-item bp-desktop"><div class="bp-value">1280px</div><div class="bp-label">xl · 桌面显示器</div></div>
+    <div class="bp-item bp-wide"><div class="bp-value">1536px</div><div class="bp-label">2xl · 大屏</div></div>
+  </div>
+  <h3>CSS 断点变量</h3>
+  <div class="code-block">
+:root {<br>
+&nbsp;&nbsp;--bp-sm: 640px;   /* 大屏手机 */<br>
+&nbsp;&nbsp;--bp-md: 768px;   /* 平板竖屏 */<br>
+&nbsp;&nbsp;--bp-lg: 1024px;  /* 平板横屏 */<br>
+&nbsp;&nbsp;--bp-xl: 1280px;  /* 桌面 */<br>
+&nbsp;&nbsp;--bp-2xl: 1536px; /* 大屏 */<br>
+}
+  </div>
+</div>
+
+<!-- 2. Admin-Web Responsive -->
+<div class="section">
+  <h2>2. Admin-Web 管理后台 — 响应式策略</h2>
+  <table>
+    <tr><th>断点</th><th>宽度</th><th>侧边栏</th><th>表格列</th><th>统计卡</th><th>表单</th></tr>
+    <tr><td>&lt; 768px</td><td>小屏</td><td>隐藏（汉堡菜单）</td><td>2-3 列</td><td>1 列堆叠</td><td>单列</td></tr>
+    <tr><td>768-1024px</td><td>平板</td><td>折叠（图标模式）</td><td>4-5 列</td><td>2 列</td><td>双列</td></tr>
+    <tr><td>1024-1280px</td><td>桌面</td><td>展开（200px）</td><td>全量显示</td><td>3 列</td><td>双列</td></tr>
+    <tr><td>&gt; 1280px</td><td>大屏</td><td>展开（220px）</td><td>全量 + 更多操作</td><td>4 列</td><td>三列</td></tr>
+  </table>
+  <h3>布局变化示意</h3>
+  <div class="device-grid">
+    <div>
+      <div style="font-size:12px;font-weight:600;margin-bottom:6px;color:var(--text-secondary)">小屏 (&lt; 768px)</div>
+      <div class="layout-demo">
+        <div class="layout-bar layout-bar-header">顶部导航</div>
+        <div class="layout-bar layout-bar-content" style="height:120px">内容区（单列）</div>
+      </div>
+    </div>
+    <div>
+      <div style="font-size:12px;font-weight:600;margin-bottom:6px;color:var(--text-secondary)">平板 (768-1024px)</div>
+      <div class="layout-demo" style="display:flex">
+        <div class="layout-bar layout-bar-sidebar" style="width:60px;height:160px">图标</div>
+        <div class="layout-bar layout-bar-content" style="flex:1;height:160px">内容区（双列）</div>
+      </div>
+    </div>
+    <div>
+      <div style="font-size:12px;font-weight:600;margin-bottom:6px;color:var(--text-secondary)">桌面 (&gt; 1024px)</div>
+      <div class="layout-demo" style="display:flex">
+        <div class="layout-bar layout-bar-sidebar" style="width:200px;height:160px">侧边栏</div>
+        <div class="layout-bar layout-bar-content" style="flex:1;height:160px">内容区（多列）</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- 3. Merchant-Mobile Responsive -->
+<div class="section">
+  <h2>3. Merchant-Mobile 商家端H5 — 移动端优先</h2>
+  <table>
+    <tr><th>策略</th><th>说明</th></tr>
+    <tr><td>基准宽度</td><td>375px（iPhone 6/7/8 设计稿基准）</td></tr>
+    <tr><td>适配方案</td><td>rem 适配 + viewport 缩放，最大宽度 480px 居中</td></tr>
+    <tr><td>组件库</td><td>Vant 4，天然支持移动端触摸交互</td></tr>
+    <tr><td>平板适配</td><td>最大宽度限制 480px，居中显示，两侧留白</td></tr>
+    <tr><td>横屏适配</td><td>部分表单布局改为双列，按钮缩小</td></tr>
+  </table>
+  <div class="code-block">
+/* merchant-mobile 响应式核心 */<br>
+@media (max-width: 480px) {<br>
+&nbsp;&nbsp;.container { padding: 0 12px; }<br>
+&nbsp;&nbsp;.card { border-radius: 8px; }<br>
+}<br>
+@media (min-width: 481px) {<br>
+&nbsp;&nbsp;.container { max-width: 480px; margin: 0 auto; }<br>
+}
+  </div>
+</div>
+
+<!-- 4. Store-Terminal Responsive -->
+<div class="section">
+  <h2>4. Store-Terminal 门店终端 — 固定优化</h2>
+  <table>
+    <tr><th>策略</th><th>说明</th></tr>
+    <tr><td>基准宽度</td><td>1024px（平板/触屏POS机）</td></tr>
+    <tr><td>最小宽度</td><td>800px，低于此宽度缩小字体和按钮</td></tr>
+    <tr><td>触屏优化</td><td>按钮最小触控区域 44x44px，间距 ≥ 12px</td></tr>
+    <tr><td>键盘快捷键</td><td>F1/F2/F3 快捷收款，数字键盘直接输入金额</td></tr>
+    <tr><td>打印适配</td><td>小票打印区域独立样式，不随屏幕变化</td></tr>
+  </table>
+</div>
+
+<!-- 5. Device Support Matrix -->
+<div class="section">
+  <h2>5. 设备支持矩阵</h2>
+  <table>
+    <tr><th>设备类型</th><th>分辨率</th><th>admin-web</th><th>merchant-mobile</th><th>store-terminal</th></tr>
+    <tr><td>iPhone SE</td><td>375×667</td><td><span class="badge badge-info">基本</span></td><td><span class="badge badge-success">完美</span></td><td><span class="badge" style="background:var(--gray-100);color:var(--gray-500)">不支持</span></td></tr>
+    <tr><td>iPhone 14 Pro</td><td>393×852</td><td><span class="badge badge-info">基本</span></td><td><span class="badge badge-success">完美</span></td><td><span class="badge" style="background:var(--gray-100);color:var(--gray-500)">不支持</span></td></tr>
+    <tr><td>iPad Mini</td><td>768×1024</td><td><span class="badge badge-success">完美</span></td><td><span class="badge badge-success">完美</span></td><td><span class="badge badge-success">完美</span></td></tr>
+    <tr><td>iPad Pro</td><td>1024×1366</td><td><span class="badge badge-success">完美</span></td><td><span class="badge badge-success">完美</span></td><td><span class="badge badge-success">完美</span></td></tr>
+    <tr><td>笔记本 13"</td><td>1366×768</td><td><span class="badge badge-success">完美</span></td><td><span class="badge badge-info">基本</span></td><td><span class="badge badge-success">完美</span></td></tr>
+    <tr><td>笔记本 15"</td><td>1440×900</td><td><span class="badge badge-success">完美</span></td><td><span class="badge badge-info">基本</span></td><td><span class="badge badge-success">完美</span></td></tr>
+    <tr><td>桌面显示器</td><td>1920×1080</td><td><span class="badge badge-success">完美</span></td><td><span class="badge badge-info">基本</span></td><td><span class="badge badge-success">完美</span></td></tr>
+    <tr><td>大屏显示器</td><td>2560×1440</td><td><span class="badge badge-success">完美</span></td><td><span class="badge badge-info">基本</span></td><td><span class="badge badge-success">完美</span></td></tr>
+  </table>
+</div>
+
+<!-- 6. Responsive Best Practices -->
+<div class="section">
+  <h2>6. 响应式最佳实践</h2>
+  <table>
+    <tr><th>原则</th><th>说明</th></tr>
+    <tr><td>Mobile First</td><td>先写移动端样式，再用 min-width 媒体查询向上覆盖</td></tr>
+    <tr><td>弹性布局</td><td>优先使用 flexbox/grid，避免固定宽度</td></tr>
+    <tr><td>相对单位</td><td>使用 rem/%/vw 替代 px，字体最小 12px</td></tr>
+    <tr><td>触控区域</td><td>交互元素最小 44×44px（iOS 规范），间距 ≥ 8px</td></tr>
+    <tr><td>图片优化</td><td>使用 srcset 提供多分辨率图片，图标使用 SVG</td></tr>
+    <tr><td>隐藏/显示</td><td>非核心内容在小屏可隐藏，用 .hide-mobile / .show-desktop 控制</td></tr>
+    <tr><td>表格处理</td><td>小屏表格可横向滚动，或转为卡片式布局</td></tr>
+  </table>
+</div>
+
+</div>
+
+<div style="text-align:center;padding:40px;color:var(--text-muted);font-size:13px">
+  <p>响应式设计方案 · 智享酒水库存系统</p>
+  <p>林夕 · UI/UX Designer · 2026-06-29</p>
+</div>
+
+</body>
+</html>

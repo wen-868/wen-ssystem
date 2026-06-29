@@ -1,0 +1,441 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>关键页面视觉稿 — 智享酒水库存系统</title>
+<style>
+:root {
+  --color-primary: #1677FF; --color-primary-hover: #409EFF; --color-primary-active: #0958D9; --color-primary-soft: #E6F4FF; --color-primary-bg: #F0F7FF;
+  --color-gold: #C69C6D; --color-gold-light: #D4A574; --color-gold-soft: #FFF8E1;
+  --color-success: #10B981; --color-warning: #F59E0B; --color-danger: #EF4444; --color-info: #3B82F6;
+  --color-success-soft: #D1FAE5; --color-warning-soft: #FEF3C7; --color-danger-soft: #FEE2E2; --color-info-soft: #DBEAFE;
+  --gray-50: #F9FAFB; --gray-100: #F3F4F6; --gray-200: #E5E7EB; --gray-300: #D1D5DB; --gray-400: #9CA3AF; --gray-500: #6B7280; --gray-600: #4B5563; --gray-700: #374151; --gray-800: #1F2937; --gray-900: #111827;
+  --text-primary: #1F2328; --text-secondary: #4B5563; --text-muted: #9CA3AF; --text-link: #1677FF;
+  --bg-page: #F5F7FA; --bg-card: #FFFFFF; --bg-soft: #F5F7FA;
+  --border-normal: #E5E7EB; --border-light: #F0F0F0;
+  --radius-xs: 4px; --radius-sm: 8px; --radius-md: 12px; --radius-lg: 16px; --radius-xl: 20px; --radius-2xl: 24px;
+  --shadow-xs: 0 1px 2px rgba(0,0,0,0.04); --shadow-sm: 0 1px 3px rgba(0,0,0,0.06); --shadow-md: 0 4px 6px rgba(0,0,0,0.04); --shadow-lg: 0 10px 15px rgba(0,0,0,0.06);
+  --transition-fast: 0.15s ease; --transition-normal: 0.25s ease;
+  --font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang SC", "Microsoft YaHei", sans-serif;
+}
+* { margin: 0; padding: 0; box-sizing: border-box; }
+body { font-family: var(--font-family); background: var(--bg-page); color: var(--text-primary); line-height: 1.6; }
+.container { max-width: 1300px; margin: 0 auto; padding: 40px 24px; }
+.header { background: linear-gradient(135deg, #1677FF 0%, #0958D9 100%); color: #fff; padding: 60px 24px; text-align: center; }
+.header h1 { font-size: 32px; font-weight: 700; margin-bottom: 8px; }
+.header p { font-size: 14px; opacity: 0.85; }
+.section { background: var(--bg-card); border-radius: var(--radius-lg); padding: 28px; margin-bottom: 20px; box-shadow: var(--shadow-sm); }
+.section h2 { font-size: 20px; font-weight: 600; margin-bottom: 16px; }
+
+/* Mockup: Admin Dashboard */
+.mockup { border: 1px solid var(--gray-200); border-radius: var(--radius-md); overflow: hidden; background: #fff; margin: 16px 0; }
+.mockup-header { background: #fff; border-bottom: 1px solid var(--gray-100); padding: 0 20px; height: 56px; display: flex; align-items: center; justify-content: space-between; }
+.mockup-logo { font-size: 16px; font-weight: 700; color: var(--color-primary); display: flex; align-items: center; gap: 8px; }
+.mockup-logo-icon { width: 28px; height: 28px; background: linear-gradient(135deg, var(--color-primary), var(--color-primary-active)); border-radius: 6px; }
+.mockup-nav { display: flex; gap: 4px; }
+.mockup-nav-item { padding: 6px 14px; border-radius: 6px; font-size: 13px; color: var(--text-secondary); cursor: pointer; }
+.mockup-nav-item.active { background: var(--color-primary-soft); color: var(--color-primary); font-weight: 500; }
+.mockup-user { display: flex; align-items: center; gap: 8px; font-size: 13px; }
+.mockup-avatar { width: 32px; height: 32px; border-radius: 50%; background: var(--color-primary); display: flex; align-items: center; justify-content: center; color: #fff; font-size: 13px; font-weight: 600; }
+.mockup-body { display: flex; }
+.mockup-sidebar { width: 220px; background: #fff; border-right: 1px solid var(--gray-100); padding: 16px 0; min-height: 500px; }
+.mockup-sidebar-item { padding: 10px 20px; font-size: 13px; color: var(--text-secondary); display: flex; align-items: center; gap: 10px; cursor: pointer; transition: all var(--transition-fast); }
+.mockup-sidebar-item:hover { background: var(--gray-50); }
+.mockup-sidebar-item.active { background: var(--color-primary-soft); color: var(--color-primary); font-weight: 500; border-right: 3px solid var(--color-primary); }
+.mockup-sidebar-section { font-size: 11px; color: var(--gray-400); padding: 16px 20px 6px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px; }
+.mockup-main { flex: 1; padding: 20px 24px; background: var(--bg-page); }
+.mockup-page-title { font-size: 20px; font-weight: 700; margin-bottom: 16px; }
+.mockup-breadcrumb { font-size: 12px; color: var(--gray-500); margin-bottom: 12px; }
+
+/* Stats Cards */
+.stats-row { display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px; margin-bottom: 20px; }
+.stat-card { background: #fff; border-radius: var(--radius-md); padding: 18px; border: 1px solid var(--gray-100); display: flex; flex-direction: column; gap: 8px; }
+.stat-card .stat-label { font-size: 12px; color: var(--gray-500); }
+.stat-card .stat-value { font-size: 28px; font-weight: 700; }
+.stat-card .stat-change { font-size: 11px; }
+.stat-card .stat-change.up { color: var(--color-success); }
+.stat-card .stat-icon { width: 40px; height: 40px; border-radius: var(--radius-sm); display: flex; align-items: center; justify-content: center; font-size: 18px; }
+
+/* Table */
+.mockup-table { background: #fff; border-radius: var(--radius-md); border: 1px solid var(--gray-100); overflow: hidden; }
+.mockup-table-header { padding: 14px 18px; display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid var(--gray-100); }
+.mockup-table-title { font-size: 14px; font-weight: 600; }
+.mockup-table-actions { display: flex; gap: 8px; }
+.mockup-table table { width: 100%; border-collapse: collapse; }
+.mockup-table th { background: #F8FAFC; padding: 10px 14px; text-align: left; font-size: 12px; font-weight: 600; color: var(--text-secondary); border-bottom: 1px solid var(--gray-200); }
+.mockup-table td { padding: 10px 14px; font-size: 13px; border-bottom: 1px solid var(--gray-100); }
+.mockup-table tr:hover td { background: #F8FAFC; }
+
+/* Buttons */
+.btn { display: inline-flex; align-items: center; gap: 4px; padding: 7px 14px; border-radius: var(--radius-sm); font-size: 12px; font-weight: 500; cursor: pointer; border: none; transition: all var(--transition-fast); font-family: inherit; }
+.btn-primary { background: var(--color-primary); color: #fff; }
+.btn-primary:hover { background: var(--color-primary-hover); }
+.btn-default { background: #fff; color: var(--text-primary); border: 1px solid var(--gray-300); }
+.btn-default:hover { border-color: var(--color-primary); color: var(--color-primary); }
+.btn-danger { background: var(--color-danger); color: #fff; }
+.btn-sm { padding: 4px 10px; font-size: 11px; height: 26px; }
+.btn-text { background: none; border: none; color: var(--color-primary); padding: 4px 8px; }
+.btn-text:hover { background: var(--color-primary-soft); }
+
+/* Tags */
+.tag { display: inline-flex; padding: 2px 8px; border-radius: var(--radius-xs); font-size: 11px; font-weight: 500; }
+.tag-success { background: var(--color-success-soft); color: var(--color-success); }
+.tag-warning { background: var(--color-warning-soft); color: var(--color-warning); }
+.tag-danger { background: var(--color-danger-soft); color: var(--color-danger); }
+.tag-info { background: var(--color-info-soft); color: var(--color-info); }
+.tag-default { background: var(--gray-100); color: var(--gray-600); }
+
+/* Form */
+.form-group { margin-bottom: 14px; }
+.form-label { display: block; font-size: 12px; font-weight: 500; color: var(--text-secondary); margin-bottom: 4px; }
+.form-input { width: 100%; height: 36px; padding: 0 12px; border: 1px solid var(--gray-300); border-radius: var(--radius-sm); font-size: 13px; font-family: inherit; outline: none; transition: all var(--transition-fast); }
+.form-input:focus { border-color: var(--color-primary); box-shadow: 0 0 0 3px rgba(22,119,255,0.1); }
+.form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+.form-select { width: 100%; height: 36px; padding: 0 12px; border: 1px solid var(--gray-300); border-radius: var(--radius-sm); font-size: 13px; background: #fff; outline: none; font-family: inherit; }
+
+/* Search bar */
+.search-bar { display: flex; gap: 10px; align-items: center; }
+.search-input { width: 240px; height: 34px; padding: 0 12px; border: 1px solid var(--gray-300); border-radius: var(--radius-sm); font-size: 13px; outline: none; }
+.search-input:focus { border-color: var(--color-primary); }
+
+/* Modal */
+.modal-overlay { background: rgba(0,0,0,0.45); padding: 40px; border-radius: 8px; display: flex; justify-content: center; }
+.modal { background: #fff; border-radius: var(--radius-lg); width: 520px; box-shadow: var(--shadow-lg); overflow: hidden; }
+.modal-header { padding: 18px 20px; border-bottom: 1px solid var(--gray-100); font-size: 15px; font-weight: 600; }
+.modal-body { padding: 20px; }
+.modal-footer { padding: 14px 20px; border-top: 1px solid var(--gray-100); display: flex; justify-content: flex-end; gap: 8px; }
+
+/* Mobile Mockup */
+.mobile-frame { max-width: 375px; margin: 0 auto; border: 1px solid var(--gray-200); border-radius: 24px; overflow: hidden; box-shadow: var(--shadow-lg); }
+.mobile-status { background: var(--color-primary); padding: 8px 16px; display: flex; justify-content: space-between; color: #fff; font-size: 11px; }
+.mobile-header { background: #fff; padding: 12px 16px; display: flex; align-items: center; justify-content: space-between; border-bottom: 1px solid var(--gray-100); }
+.mobile-title { font-size: 16px; font-weight: 600; }
+.mobile-body { padding: 16px; background: var(--bg-page); min-height: 400px; }
+.mobile-tabbar { display: flex; border-top: 1px solid var(--gray-100); background: #fff; }
+.mobile-tab { flex: 1; padding: 8px 0; text-align: center; font-size: 10px; color: var(--gray-500); }
+.mobile-tab.active { color: var(--color-primary); }
+.mobile-tab-icon { display: block; font-size: 20px; margin-bottom: 2px; }
+.mobile-card { background: #fff; border-radius: var(--radius-md); padding: 14px; margin-bottom: 12px; border: 1px solid var(--gray-100); }
+.mobile-card-title { font-size: 14px; font-weight: 600; margin-bottom: 6px; }
+.mobile-card-row { display: flex; justify-content: space-between; font-size: 12px; color: var(--text-secondary); margin: 3px 0; }
+.mobile-btn { display: block; width: 100%; padding: 12px; border-radius: var(--radius-sm); font-size: 14px; font-weight: 500; text-align: center; border: none; cursor: pointer; }
+.mobile-btn-primary { background: var(--color-primary); color: #fff; }
+
+/* Tabs */
+.mockup-tabs { display: flex; gap: 0; border-bottom: 1px solid var(--gray-200); margin-bottom: 16px; }
+.mockup-tab { padding: 10px 18px; font-size: 13px; color: var(--text-secondary); border-bottom: 2px solid transparent; cursor: pointer; }
+.mockup-tab.active { color: var(--color-primary); border-bottom-color: var(--color-primary); font-weight: 500; }
+
+/* Two column */
+.two-col { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
+@media (max-width: 768px) { .two-col { grid-template-columns: 1fr; } }
+</style>
+</head>
+<body>
+
+<div class="header">
+  <h1>关键页面视觉稿</h1>
+  <p>High-Fidelity Mockups — 三端核心页面视觉设计</p>
+  <p style="margin-top:4px;font-size:12px;opacity:0.65">林夕 · 2026-06-29</p>
+</div>
+
+<div class="container">
+
+<!-- 1. Admin Dashboard -->
+<div class="section">
+  <h2>1. Admin-Web 仪表盘</h2>
+  <div class="mockup">
+    <div class="mockup-header">
+      <div class="mockup-logo"><div class="mockup-logo-icon"></div>智享酒水</div>
+      <div class="mockup-nav">
+        <div class="mockup-nav-item active">仪表盘</div>
+        <div class="mockup-nav-item">商品</div>
+        <div class="mockup-nav-item">采购</div>
+        <div class="mockup-nav-item">库存</div>
+      </div>
+      <div class="mockup-user"><div class="mockup-avatar">管</div>管理员</div>
+    </div>
+    <div class="mockup-body">
+      <div class="mockup-sidebar">
+        <div class="mockup-sidebar-section">业务管理</div>
+        <div class="mockup-sidebar-item active">仪表盘</div>
+        <div class="mockup-sidebar-item">商品管理</div>
+        <div class="mockup-sidebar-item">供应商管理</div>
+        <div class="mockup-sidebar-section">采购管理</div>
+        <div class="mockup-sidebar-item">采购订单</div>
+        <div class="mockup-sidebar-item">采购入库</div>
+        <div class="mockup-sidebar-item">采购退货</div>
+        <div class="mockup-sidebar-item">采购付款</div>
+        <div class="mockup-sidebar-section">系统管理</div>
+        <div class="mockup-sidebar-item">库存预警</div>
+        <div class="mockup-sidebar-item">系统设置</div>
+      </div>
+      <div class="mockup-main">
+        <div class="mockup-page-title">仪表盘</div>
+        <div class="stats-row">
+          <div class="stat-card"><div class="stat-label">商品总数</div><div class="stat-value" style="color:var(--color-primary)">1,286</div><div class="stat-change up">+12 本月新增</div></div>
+          <div class="stat-card"><div class="stat-label">供应商数</div><div class="stat-value" style="color:var(--color-gold)">48</div><div class="stat-change up">+3 本月新增</div></div>
+          <div class="stat-card"><div class="stat-label">采购订单</div><div class="stat-value" style="color:var(--color-info)">156</div><div class="stat-change" style="color:var(--color-warning)">23 待审核</div></div>
+          <div class="stat-card"><div class="stat-label">库存预警</div><div class="stat-value" style="color:var(--color-danger)">12</div><div class="stat-change" style="color:var(--color-danger)">3 严重不足</div></div>
+        </div>
+        <div class="mockup-table">
+          <div class="mockup-table-header"><span class="mockup-table-title">最近采购订单</span><span class="btn btn-text">查看全部</span></div>
+          <table>
+            <tr><th>订单号</th><th>供应商</th><th>金额</th><th>状态</th><th>日期</th><th>操作</th></tr>
+            <tr><td>CGDD240601001</td><td>茅台酒业</td><td>¥52,800.00</td><td><span class="tag tag-success">已审核</span></td><td>06-01</td><td><span class="btn btn-text btn-sm">查看</span></td></tr>
+            <tr><td>CGDD240601002</td><td>五粮液集团</td><td>¥38,500.00</td><td><span class="tag tag-warning">待审核</span></td><td>06-02</td><td><span class="btn btn-text btn-sm">审核</span></td></tr>
+            <tr><td>CGDD240601003</td><td>青岛啤酒</td><td>¥12,300.00</td><td><span class="tag tag-info">草稿</span></td><td>06-03</td><td><span class="btn btn-text btn-sm">编辑</span></td></tr>
+          </table>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- 2. Supplier Management -->
+<div class="section">
+  <h2>2. Admin-Web 供应商管理</h2>
+  <div class="mockup">
+    <div class="mockup-header">
+      <div class="mockup-logo"><div class="mockup-logo-icon"></div>智享酒水</div>
+      <div class="mockup-nav"><div class="mockup-nav-item">仪表盘</div><div class="mockup-nav-item active">供应商</div></div>
+      <div class="mockup-user"><div class="mockup-avatar">管</div>管理员</div>
+    </div>
+    <div class="mockup-body">
+      <div class="mockup-sidebar"><div class="mockup-sidebar-item active">供应商管理</div></div>
+      <div class="mockup-main">
+        <div class="mockup-breadcrumb">首页 / 供应商管理</div>
+        <div class="mockup-page-title">供应商管理</div>
+        <div class="mockup-table">
+          <div class="mockup-table-header">
+            <div class="search-bar">
+              <input class="search-input" placeholder="搜索名称/编码/手机号">
+              <select class="form-select" style="width:120px"><option>全部状态</option><option>启用</option><option>停用</option></select>
+            </div>
+            <button class="btn btn-primary">+ 新增供应商</button>
+          </div>
+          <table>
+            <tr><th>编码</th><th>名称</th><th>类别</th><th>结算方式</th><th>联系人</th><th>状态</th><th>操作</th></tr>
+            <tr><td>GYS240601001</td><td>茅台酒业有限公司</td><td>白酒</td><td>月结</td><td>张三 138****8888</td><td><span class="tag tag-success">启用</span></td><td><span class="btn btn-text btn-sm">查看</span><span class="btn btn-text btn-sm">编辑</span></td></tr>
+            <tr><td>GYS240601002</td><td>五粮液集团有限公司</td><td>白酒</td><td>现结</td><td>李四 139****9999</td><td><span class="tag tag-success">启用</span></td><td><span class="btn btn-text btn-sm">查看</span><span class="btn btn-text btn-sm">编辑</span></td></tr>
+            <tr><td>GYS240601003</td><td>青岛啤酒股份有限公司</td><td>啤酒</td><td>季结</td><td>王五 137****7777</td><td><span class="tag tag-default">停用</span></td><td><span class="btn btn-text btn-sm">查看</span><span class="btn btn-text btn-sm">启用</span></td></tr>
+          </table>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- 3. Create Purchase Order -->
+<div class="section">
+  <h2>3. Admin-Web 创建采购订单</h2>
+  <div class="mockup">
+    <div class="modal-overlay">
+      <div class="modal">
+        <div class="modal-header">创建采购订单</div>
+        <div class="modal-body">
+          <div class="form-row">
+            <div class="form-group"><label class="form-label">供应商 *</label><select class="form-select"><option>请选择供应商</option></select></div>
+            <div class="form-group"><label class="form-label">预计到货日期</label><input class="form-input" type="date"></div>
+          </div>
+          <div style="font-size:13px;font-weight:600;margin:14px 0 8px;color:var(--text-secondary)">商品明细</div>
+          <div class="mockup-table" style="margin-bottom:12px">
+            <table>
+              <tr><th>商品名称</th><th>规格</th><th>箱数</th><th>瓶数</th><th>单价</th><th>税率</th><th>小计</th><th>操作</th></tr>
+              <tr><td>茅台飞天53°</td><td>500ml 6瓶/箱</td><td>2</td><td>0</td><td>1499</td><td>13%</td><td>¥17,988</td><td><span class="btn btn-text btn-sm">删除</span></td></tr>
+            </table>
+          </div>
+          <button class="btn btn-default" style="width:100%">+ 添加商品</button>
+          <div style="display:flex;gap:12px;margin-top:12px;font-size:13px;justify-content:flex-end;color:var(--text-secondary)">
+            <span>商品金额: <strong>¥17,988.00</strong></span>
+            <span>税额: <strong>¥2,338.44</strong></span>
+            <span style="font-size:15px;color:var(--text-primary)">应付金额: <strong style="color:var(--color-primary)">¥20,326.44</strong></span>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button class="btn btn-default">取消</button>
+          <button class="btn btn-primary">提交</button>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- 4. Mobile Create Sale -->
+<div class="section">
+  <h2>4. Merchant-Mobile 快速开单</h2>
+  <div class="mobile-frame">
+    <div class="mobile-status"><span>9:41</span><span>WiFi ▮▮▮▮</span></div>
+    <div class="mobile-header"><span style="font-size:20px">←</span><span class="mobile-title">快速开单</span><span style="color:var(--color-primary);font-size:13px">提交</span></div>
+    <div class="mobile-body">
+      <div class="mobile-card">
+        <div style="font-size:12px;color:var(--text-muted);margin-bottom:6px">客户信息</div>
+        <div style="display:flex;align-items:center;gap:10px">
+          <div style="width:40px;height:40px;border-radius:50%;background:var(--color-primary-soft);display:flex;align-items:center;justify-content:center;color:var(--color-primary);font-weight:700">张</div>
+          <div><div style="font-size:14px;font-weight:600">张三</div><div style="font-size:11px;color:var(--text-muted)">138****8888</div></div>
+        </div>
+      </div>
+      <div class="mobile-card">
+        <div style="font-size:12px;color:var(--text-muted);margin-bottom:6px">销售类型</div>
+        <div style="display:flex;gap:8px">
+          <span style="padding:6px 16px;background:var(--color-primary);color:#fff;border-radius:20px;font-size:13px">现销</span>
+          <span style="padding:6px 16px;background:var(--gray-100);border-radius:20px;font-size:13px">赊销</span>
+        </div>
+      </div>
+      <div class="mobile-card">
+        <div style="font-size:12px;color:var(--text-muted);margin-bottom:6px">商品列表</div>
+        <div style="display:flex;justify-content:space-between;padding:8px 0;border-bottom:1px solid var(--gray-100)">
+          <div><div style="font-size:14px;font-weight:500">茅台飞天53°</div><div style="font-size:11px;color:var(--text-muted)">¥1499 × 2箱(12瓶)</div></div>
+          <div style="font-weight:600;font-size:14px">¥17,988</div>
+        </div>
+        <div style="display:flex;justify-content:space-between;padding:8px 0">
+          <div><div style="font-size:14px;font-weight:500">五粮液52°</div><div style="font-size:11px;color:var(--text-muted)">¥1099 × 1箱(6瓶)</div></div>
+          <div style="font-weight:600;font-size:14px">¥6,594</div>
+        </div>
+        <button class="btn btn-default" style="width:100%;margin-top:8px">+ 添加商品</button>
+      </div>
+      <div class="mobile-card">
+        <div class="mobile-card-row"><span>商品金额</span><span>¥24,582</span></div>
+        <div class="mobile-card-row"><span>优惠</span><span style="color:var(--color-danger)">-¥0</span></div>
+        <div class="mobile-card-row" style="margin-top:6px;font-weight:700;font-size:15px;color:var(--text-primary)"><span>应收金额</span><span style="color:var(--color-primary)">¥24,582.00</span></div>
+      </div>
+      <div class="mobile-card">
+        <div style="font-size:12px;color:var(--text-muted);margin-bottom:6px">收款方式</div>
+        <div style="display:flex;gap:8px">
+          <span style="flex:1;padding:8px;text-align:center;background:var(--color-primary-soft);color:var(--color-primary);border-radius:8px;font-size:12px">现金</span>
+          <span style="flex:1;padding:8px;text-align:center;background:var(--gray-100);border-radius:8px;font-size:12px">微信</span>
+          <span style="flex:1;padding:8px;text-align:center;background:var(--gray-100);border-radius:8px;font-size:12px">支付宝</span>
+        </div>
+      </div>
+      <button class="mobile-btn mobile-btn-primary" style="margin-top:8px">确认开单 ¥24,582.00</button>
+    </div>
+    <div class="mobile-tabbar">
+      <div class="mobile-tab active"><span class="mobile-tab-icon">🏠</span>首页</div>
+      <div class="mobile-tab"><span class="mobile-tab-icon">📋</span>订单</div>
+      <div class="mobile-tab"><span class="mobile-tab-icon">💰</span>收款</div>
+      <div class="mobile-tab"><span class="mobile-tab-icon">👤</span>我的</div>
+    </div>
+  </div>
+</div>
+
+<!-- 5. Inventory Alert -->
+<div class="section">
+  <h2>5. Admin-Web 库存预警</h2>
+  <div class="mockup">
+    <div class="mockup-main" style="background:var(--bg-page);padding:20px">
+      <div class="mockup-page-title">库存预警</div>
+      <div class="stats-row" style="grid-template-columns:repeat(3,1fr)">
+        <div class="stat-card"><div class="stat-label">预警总数</div><div class="stat-value" style="color:var(--color-warning);font-size:24px">12</div></div>
+        <div class="stat-card"><div class="stat-label">严重不足</div><div class="stat-value" style="color:var(--color-danger);font-size:24px">3</div></div>
+        <div class="stat-card"><div class="stat-label">低于阈值</div><div class="stat-value" style="color:var(--color-warning);font-size:24px">9</div></div>
+      </div>
+      <div class="mockup-table">
+        <div class="mockup-table-header">
+          <span class="mockup-table-title">预警商品列表</span>
+          <div class="search-bar">
+            <select class="form-select" style="width:120px"><option>全部门店</option></select>
+          </div>
+        </div>
+        <table>
+          <tr><th>商品名称</th><th>门店</th><th>当前库存</th><th>预警阈值</th><th>级别</th><th>通知方式</th><th>操作</th></tr>
+          <tr><td>茅台飞天53°</td><td>总店</td><td style="color:var(--color-danger);font-weight:700">2</td><td>10</td><td><span class="tag tag-danger">严重</span></td><td>站内信/短信</td><td><span class="btn btn-primary btn-sm">快速补货</span></td></tr>
+          <tr><td>五粮液52°</td><td>总店</td><td style="color:var(--color-warning)">8</td><td>20</td><td><span class="tag tag-warning">预警</span></td><td>站内信</td><td><span class="btn btn-primary btn-sm">快速补货</span></td></tr>
+          <tr><td>青岛啤酒</td><td>分店A</td><td style="color:var(--color-danger);font-weight:700">1</td><td>5</td><td><span class="tag tag-danger">严重</span></td><td>站内信/飞书</td><td><span class="btn btn-primary btn-sm">快速补货</span></td></tr>
+        </table>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- 6. Store Checkout -->
+<div class="section">
+  <h2>6. Store-Terminal 门店收银</h2>
+  <div class="mockup" style="max-width:900px;margin:0 auto">
+    <div class="mockup-header">
+      <div class="mockup-logo"><div class="mockup-logo-icon"></div>门店收银</div>
+      <div style="font-size:18px;font-weight:600;color:var(--text-primary)">收银台</div>
+      <div style="font-size:13px;color:var(--text-muted)">收银员: 小林</div>
+    </div>
+    <div style="display:flex;min-height:400px">
+      <div style="flex:1;padding:20px;background:var(--bg-page)">
+        <div style="display:flex;gap:12px;margin-bottom:16px">
+          <input class="form-input" style="flex:2;height:44px;font-size:16px" placeholder="扫描或输入商品条码...">
+          <select class="form-select" style="flex:1;height:44px"><option>散客</option></select>
+        </div>
+        <div class="mockup-table">
+          <table>
+            <tr><th>商品</th><th>数量</th><th>单价</th><th>小计</th></tr>
+            <tr><td>茅台飞天53°</td><td>2箱(12瓶) <span style="font-size:10px;color:var(--color-primary);cursor:pointer">瓶</span></td><td>¥1,499</td><td>¥17,988</td></tr>
+            <tr><td>五粮液52°</td><td>1箱(6瓶) <span style="font-size:10px;color:var(--color-primary);cursor:pointer">瓶</span></td><td>¥1,099</td><td>¥6,594</td></tr>
+          </table>
+        </div>
+        <div style="display:flex;justify-content:flex-end;gap:24px;margin-top:16px;font-size:14px">
+          <span>商品数: <strong>2</strong></span>
+          <span style="font-size:18px">应收: <strong style="color:var(--color-primary)">¥24,582.00</strong></span>
+        </div>
+      </div>
+      <div style="width:280px;padding:20px;background:#fff;border-left:1px solid var(--gray-100)">
+        <div style="font-size:14px;font-weight:600;margin-bottom:16px">收款</div>
+        <div class="form-group"><label class="form-label">实收金额</label><input class="form-input" style="height:44px;font-size:18px;font-weight:600" value="25000"></div>
+        <div style="background:var(--color-success-soft);padding:12px;border-radius:8px;margin-bottom:16px;text-align:center">
+          <div style="font-size:12px;color:var(--color-success)">找零</div>
+          <div style="font-size:24px;font-weight:700;color:var(--color-success)">¥418.00</div>
+        </div>
+        <div style="display:flex;flex-direction:column;gap:8px">
+          <button class="btn btn-primary" style="height:44px;font-size:15px;width:100%">现金收款 (F1)</button>
+          <button class="btn btn-default" style="height:40px;width:100%">微信支付 (F2)</button>
+          <button class="btn btn-default" style="height:40px;width:100%">支付宝 (F3)</button>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- 7. Customer Statements Mobile -->
+<div class="section">
+  <h2>7. Merchant-Mobile 客户往来账</h2>
+  <div class="mobile-frame">
+    <div class="mobile-status"><span>9:41</span><span>WiFi</span></div>
+    <div class="mobile-header"><span>←</span><span class="mobile-title">客户往来账</span><span></span></div>
+    <div class="mobile-body">
+      <div class="mobile-card">
+        <div style="display:flex;justify-content:space-between;align-items:center">
+          <div style="display:flex;align-items:center;gap:10px">
+            <div style="width:40px;height:40px;border-radius:50%;background:var(--color-primary-soft);display:flex;align-items:center;justify-content:center;color:var(--color-primary);font-weight:700">张</div>
+            <div><div style="font-size:14px;font-weight:600">张三</div><div style="font-size:11px;color:var(--text-muted)">138****8888</div></div>
+          </div>
+          <div style="text-align:right"><div style="font-size:11px;color:var(--text-muted)">欠款</div><div style="font-size:18px;font-weight:700;color:var(--color-danger)">¥12,500</div></div>
+        </div>
+      </div>
+      <div class="mobile-card">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px">
+          <span style="font-size:14px;font-weight:600">对账单</span>
+          <span style="font-size:12px;color:var(--color-primary)">生成对账单</span>
+        </div>
+        <div style="padding:10px 0;border-bottom:1px solid var(--gray-100);display:flex;justify-content:space-between">
+          <div><div style="font-size:13px">KHDZ240601001</div><div style="font-size:11px;color:var(--text-muted)">2024-06-01 ~ 2024-06-30</div></div>
+          <div style="text-align:right"><div style="font-size:13px;font-weight:600">¥12,500</div><span class="tag tag-warning">待确认</span></div>
+        </div>
+      </div>
+      <div class="mobile-card">
+        <div style="font-size:14px;font-weight:600;margin-bottom:10px">收款记录</div>
+        <div style="padding:8px 0;border-bottom:1px solid var(--gray-100);display:flex;justify-content:space-between">
+          <div><div style="font-size:13px">现金收款</div><div style="font-size:11px;color:var(--text-muted)">2024-06-15</div></div>
+          <div style="font-size:14px;font-weight:600;color:var(--color-success)">+¥5,000</div>
+        </div>
+      </div>
+      <button class="mobile-btn mobile-btn-primary" style="margin-top:8px">录入收款</button>
+    </div>
+  </div>
+</div>
+
+</div>
+
+<div style="text-align:center;padding:40px;color:var(--text-muted);font-size:13px">
+  <p>关键页面视觉稿 · 智享酒水库存系统</p>
+  <p>林夕 · UI/UX Designer · 2026-06-29</p>
+</div>
+
+</body>
+</html>

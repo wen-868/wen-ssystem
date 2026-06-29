@@ -1299,158 +1299,140 @@ export async function fetchOrderBoardData() {
   return data.data;
 }
 
-// ==================== Tenant APIs ====================
-export async function fetchTenants(params?: { page?: number; pageSize?: number; status?: string; keyword?: string }) {
-  const { data } = await api.get("/api/tenants", { params: { page: 1, pageSize: 20, ...params } });
+// ==================== Brand APIs ====================
+export async function fetchBrands(params?: { keyword?: string; status?: string; page?: number; pageSize?: number }) {
+  const { data } = await api.get("/admin/brands", { params: { page: 1, pageSize: 20, ...params } });
   return data.data;
 }
-export async function fetchTenantDetail(tenantId: string) {
-  const { data } = await api.get(`/api/tenants/${tenantId}`);
+export async function createBrand(payload: { name: string; sortNo?: number; remark?: string }) {
+  const { data } = await api.post("/admin/brands", payload);
   return data.data;
 }
-export async function createTenant(payload: { name: string; contactName?: string; contactPhone?: string; address?: string }) {
-  const { data } = await api.post("/api/tenants", payload);
+export async function updateBrand(id: number, payload: { name?: string; sortNo?: number; remark?: string }) {
+  const { data } = await api.put(`/admin/brands/${id}`, payload);
   return data.data;
 }
-export async function updateTenant(tenantId: string, payload: { name?: string; contactName?: string; contactPhone?: string; address?: string }) {
-  const { data } = await api.put(`/api/tenants/${tenantId}`, payload);
-  return data.data;
-}
-export async function changeTenantStatus(tenantId: string, payload: { status: string }) {
-  const { data } = await api.put(`/api/tenants/${tenantId}/status`, payload);
-  return data.data;
-}
-export async function fetchTenantModules(tenantId: string) {
-  const { data } = await api.get(`/api/tenants/${tenantId}/modules`);
-  return data.data;
-}
-export async function setTenantModules(tenantId: string, payload: { modules: string[] }) {
-  const { data } = await api.put(`/api/tenants/${tenantId}/modules`, payload);
+export async function deleteBrand(id: number) {
+  const { data } = await api.delete(`/admin/brands/${id}`);
   return data.data;
 }
 
-// ==================== Subscription APIs ====================
-export async function fetchSubscriptionPlans(params?: { page?: number; pageSize?: number }) {
-  const { data } = await api.get("/api/subscriptions/plans", { params });
+// ==================== Unit APIs ====================
+export async function fetchUnits(params?: { keyword?: string; status?: string; page?: number; pageSize?: number }) {
+  const { data } = await api.get("/admin/units", { params: { page: 1, pageSize: 20, ...params } });
   return data.data;
 }
-export async function fetchSubscriptionPlanDetail(planId: string) {
-  const { data } = await api.get(`/api/subscriptions/plans/${planId}`);
+export async function createUnit(payload: { name: string; sortNo?: number; remark?: string }) {
+  const { data } = await api.post("/admin/units", payload);
   return data.data;
 }
-export async function createSubscriptionPlan(payload: { name: string; price: number; duration: number; features?: string[] }) {
-  const { data } = await api.post("/api/subscriptions/plans", payload);
+export async function updateUnit(id: number, payload: { name?: string; sortNo?: number; remark?: string }) {
+  const { data } = await api.put(`/admin/units/${id}`, payload);
   return data.data;
 }
-export async function updateSubscriptionPlan(planId: string, payload: { name?: string; price?: number; duration?: number; features?: string[] }) {
-  const { data } = await api.put(`/api/subscriptions/plans/${planId}`, payload);
-  return data.data;
-}
-export async function fetchSubscriptions(params?: { page?: number; pageSize?: number; tenantId?: string; status?: string }) {
-  const { data } = await api.get("/api/subscriptions", { params: { page: 1, pageSize: 20, ...params } });
-  return data.data;
-}
-export async function fetchSubscriptionDetail(subscriptionId: string) {
-  const { data } = await api.get(`/api/subscriptions/${subscriptionId}`);
-  return data.data;
-}
-export async function createSubscription(payload: { tenantId: string; planId: string; startDate?: string }) {
-  const { data } = await api.post("/api/subscriptions", payload);
-  return data.data;
-}
-export async function changeSubscriptionPlan(subscriptionId: string, payload: { planId: string }) {
-  const { data } = await api.post(`/api/subscriptions/${subscriptionId}/change-plan`, payload);
-  return data.data;
-}
-export async function cancelSubscription(subscriptionId: string) {
-  const { data } = await api.post(`/api/subscriptions/${subscriptionId}/cancel`);
-  return data.data;
-}
-export async function paySubscription(subscriptionId: string) {
-  const { data } = await api.post(`/api/subscriptions/${subscriptionId}/pay`);
-  return data.data;
-}
-export async function renewSubscription(subscriptionId: string) {
-  const { data } = await api.post(`/api/subscriptions/${subscriptionId}/renew`);
-  return data.data;
-}
-export async function fetchExpiringSubscriptions() {
-  const { data } = await api.get("/api/subscriptions/expiring/list");
-  return data.data;
-}
-export async function fetchExpiredSubscriptions() {
-  const { data } = await api.get("/api/subscriptions/expired/list");
+export async function deleteUnit(id: number) {
+  const { data } = await api.delete(`/admin/units/${id}`);
   return data.data;
 }
 
-// ==================== Customer Visit APIs ====================
-export async function fetchCustomerVisits(params?: { page?: number; pageSize?: number; status?: string; staffId?: number; customerId?: number; dateStart?: string; dateEnd?: string }) {
-  const { data } = await api.get("/api/customer-visit", { params: { page: 1, pageSize: 20, ...params } });
-  return data.data;
-}
-export async function fetchCustomerVisitDetail(visitNo: string) {
-  const { data } = await api.get(`/api/customer-visit/${visitNo}`);
-  return data.data;
-}
-export async function createCustomerVisit(payload: { customerId: number; staffId: number; planDate: string; purpose: string; address?: string }) {
-  const { data } = await api.post("/api/customer-visit", payload);
-  return data.data;
-}
-export async function updateCustomerVisit(visitNo: string, payload: { planDate?: string; purpose?: string; address?: string }) {
-  const { data } = await api.put(`/api/customer-visit/${visitNo}`, payload);
-  return data.data;
-}
-export async function checkinCustomerVisit(visitNo: string, payload?: { location?: string; remark?: string }) {
-  const { data } = await api.post(`/api/customer-visit/${visitNo}/checkin`, payload || {});
-  return data.data;
-}
-export async function checkoutCustomerVisit(visitNo: string, payload?: { remark?: string; nextPlan?: string }) {
-  const { data } = await api.post(`/api/customer-visit/${visitNo}/checkout`, payload || {});
-  return data.data;
-}
-export async function cancelCustomerVisit(visitNo: string) {
-  const { data } = await api.post(`/api/customer-visit/${visitNo}/cancel`);
-  return data.data;
-}
-export async function fetchCustomerVisitStatistics(params?: { dateStart?: string; dateEnd?: string; staffId?: number }) {
-  const { data } = await api.get("/api/customer-visit/statistics", { params });
+// ==================== Product Import API ====================
+export async function importProducts(payload: { rows: Record<string, unknown>[]; mapping?: Record<string, string> }) {
+  const { data } = await api.post("/admin/products/import", payload);
   return data.data;
 }
 
-// ==================== Approval APIs ====================
-export async function fetchApprovalRules(params?: { page?: number; pageSize?: number }) {
-  const { data } = await api.get("/api/approval/rules", { params: { page: 1, pageSize: 20, ...params } });
+// ==================== Product Tag APIs ====================
+export async function fetchProductTags(params?: { keyword?: string; tagType?: string; status?: string; page?: number; pageSize?: number }) {
+  const { data } = await api.get("/admin/product-tags", { params: { page: 1, pageSize: 20, ...params } });
   return data.data;
 }
-export async function createApprovalRule(payload: { name: string; description?: string; steps: any[] }) {
-  const { data } = await api.post("/api/approval/rules", payload);
+export async function createProductTag(payload: { name: string; tagType: string; sortNo?: number; remark?: string }) {
+  const { data } = await api.post("/admin/product-tags", payload);
   return data.data;
 }
-export async function updateApprovalRule(id: number, payload: { name?: string; description?: string; steps?: any[] }) {
-  const { data } = await api.put(`/api/approval/rules/${id}`, payload);
+export async function updateProductTag(id: number, payload: { name?: string; tagType?: string; sortNo?: number; remark?: string }) {
+  const { data } = await api.put(`/admin/product-tags/${id}`, payload);
   return data.data;
 }
-export async function fetchApprovalInstances(params?: { page?: number; pageSize?: number; status?: string }) {
-  const { data } = await api.get("/api/approval/instances", { params: { page: 1, pageSize: 20, ...params } });
+export async function deleteProductTag(id: number) {
+  const { data } = await api.delete(`/admin/product-tags/${id}`);
   return data.data;
 }
-export async function fetchApprovalInstanceDetail(instanceNo: string) {
-  const { data } = await api.get(`/api/approval/instances/${instanceNo}`);
+
+// ==================== Product Category APIs ====================
+export async function fetchProductCategories() {
+  const { data } = await api.get("/admin/products/categories");
   return data.data;
 }
-export async function submitApproval(payload: { ruleId: number; title: string; content: string; attachments?: string[] }) {
-  const { data } = await api.post("/api/approval/instances/submit", payload);
+export async function createProductCategory(payload: { name: string; parentId?: number; icon?: string; sortNo?: number }) {
+  const { data } = await api.post("/admin/products/categories", payload);
   return data.data;
 }
-export async function fetchApprovalTasks(params?: { page?: number; pageSize?: number; status?: string }) {
-  const { data } = await api.get("/api/approval/tasks", { params: { page: 1, pageSize: 20, ...params } });
+export async function updateProductCategory(id: number, payload: { name?: string; parentId?: number; icon?: string; sortNo?: number }) {
+  const { data } = await api.put(`/admin/products/categories/${id}`, payload);
   return data.data;
 }
-export async function approveTask(id: number, payload?: { comment?: string }) {
-  const { data } = await api.post(`/api/approval/tasks/${id}/approve`, payload || {});
+export async function deleteProductCategory(id: number) {
+  const { data } = await api.delete(`/admin/products/categories/${id}`);
   return data.data;
 }
-export async function rejectTask(id: number, payload?: { comment?: string }) {
-  const { data } = await api.post(`/api/approval/tasks/${id}/reject`, payload || {});
+export async function sortProductCategory(id: number, payload: { parentId: number | null; sortOrder: number }) {
+  const { data } = await api.put(`/admin/products/categories/${id}/sort`, payload);
   return data.data;
+}
+
+// ==================== Marketing Tag APIs ====================
+export async function fetchMarketingTags(params?: { keyword?: string; tagType?: string; status?: string; page?: number; pageSize?: number }) {
+  const { data } = await api.get("/admin/marketing/tags", { params: { page: 1, pageSize: 20, ...params } });
+  return data.data;
+}
+export async function createMarketingTag(payload: { name: string; tagType: string; color?: string; sortNo?: number; remark?: string }) {
+  const { data } = await api.post("/admin/marketing/tags", payload);
+  return data.data;
+}
+export async function updateMarketingTag(id: number, payload: { name?: string; tagType?: string; color?: string; sortNo?: number; remark?: string }) {
+  const { data } = await api.put(`/admin/marketing/tags/${id}`, payload);
+  return data.data;
+}
+export async function deleteMarketingTag(id: number) {
+  const { data } = await api.delete(`/admin/marketing/tags/${id}`);
+  return data.data;
+}
+
+// ==================== Daily Settlement APIs ====================
+export async function fetchDailySettlements(params?: { page?: number; pageSize?: number; dateStart?: string; dateEnd?: string }) {
+  const { data } = await api.get("/admin/daily-settlements", { params: { page: 1, pageSize: 20, ...params } });
+  return data.data;
+}
+export async function createDailySettlement(payload: { settlementDate: string; storeId?: number }) {
+  const { data } = await api.post("/admin/daily-settlements", payload);
+  return data.data;
+}
+export async function fetchDailySettlementDetail(id: number) {
+  const { data } = await api.get(`/admin/daily-settlements/${id}`);
+  return data.data;
+}
+
+// ==================== Order Stats API ====================
+export async function fetchOrderStatusStats() {
+  const { data } = await api.get("/admin/orders/stats");
+  return data.data;
+}
+
+// ==================== Customer Stats API ====================
+export async function fetchCustomerStats() {
+  const { data } = await api.get("/admin/members/stats");
+  return data.data;
+}
+
+// ==================== Inventory Balance API ====================
+export async function fetchInventoryBalanceList() {
+  const { data } = await api.get("/admin/inventory-balance");
+  return data.data;
+}
+
+// ==================== Sale Bills Export API ====================
+export async function exportSaleBillsCsv(params?: { keyword?: string; status?: string; dateStart?: string; dateEnd?: string }) {
+  const { data } = await api.get("/admin/sale-bills/export-csv", { params, responseType: "blob" });
+  return data as Blob;
 }

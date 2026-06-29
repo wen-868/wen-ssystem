@@ -1,0 +1,222 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>动效规范文档 — 智享酒水库存系统</title>
+<style>
+:root {
+  --color-primary: #1677FF; --color-primary-hover: #409EFF; --color-primary-soft: #E6F4FF;
+  --color-success: #10B981; --color-warning: #F59E0B; --color-danger: #EF4444;
+  --gray-50: #F9FAFB; --gray-100: #F3F4F6; --gray-200: #E5E7EB; --gray-300: #D1D5DB; --gray-400: #9CA3AF; --gray-500: #6B7280; --gray-600: #4B5563; --gray-700: #374151; --gray-800: #1F2937; --gray-900: #111827;
+  --text-primary: #1F2328; --text-secondary: #4B5563; --text-muted: #9CA3AF;
+  --bg-page: #F5F7FA; --bg-card: #FFFFFF;
+  --radius-sm: 8px; --radius-md: 12px; --radius-lg: 16px;
+  --shadow-sm: 0 1px 3px rgba(0,0,0,0.06); --shadow-md: 0 4px 6px rgba(0,0,0,0.04);
+  --transition-fast: 0.15s ease; --transition-normal: 0.25s ease; --transition-slow: 0.35s ease; --transition-spring: 0.35s cubic-bezier(0.34,1.56,0.64,1);
+  --font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang SC", "Microsoft YaHei", sans-serif;
+}
+* { margin: 0; padding: 0; box-sizing: border-box; }
+body { font-family: var(--font-family); background: var(--bg-page); color: var(--text-primary); line-height: 1.6; }
+.container { max-width: 1100px; margin: 0 auto; padding: 40px 24px; }
+.header { background: linear-gradient(135deg, #1677FF 0%, #0958D9 100%); color: #fff; padding: 60px 24px; text-align: center; }
+.header h1 { font-size: 32px; font-weight: 700; margin-bottom: 8px; }
+.header p { font-size: 14px; opacity: 0.85; }
+.section { background: var(--bg-card); border-radius: var(--radius-lg); padding: 28px; margin-bottom: 20px; box-shadow: var(--shadow-sm); }
+.section h2 { font-size: 20px; font-weight: 600; margin-bottom: 16px; }
+.section h3 { font-size: 15px; font-weight: 600; margin: 16px 0 10px; color: var(--text-secondary); }
+table { width: 100%; border-collapse: collapse; font-size: 13px; }
+th { background: #F8FAFC; padding: 10px 14px; text-align: left; font-weight: 600; color: var(--text-secondary); border-bottom: 2px solid var(--gray-200); }
+td { padding: 10px 14px; border-bottom: 1px solid var(--gray-100); }
+.code-block { background: #1F2937; color: #E5E7EB; padding: 14px; border-radius: 8px; font-family: monospace; font-size: 12px; overflow-x: auto; margin: 8px 0; }
+.badge { display: inline-block; padding: 2px 8px; border-radius: 4px; font-size: 11px; font-weight: 600; }
+.badge-primary { background: #E6F4FF; color: #1677FF; }
+
+/* Animation Demos */
+.anim-demo { display: flex; gap: 16px; flex-wrap: wrap; margin: 16px 0; }
+.anim-box { width: 80px; height: 80px; background: var(--color-primary); border-radius: var(--radius-sm); display: flex; align-items: center; justify-content: center; color: #fff; font-size: 11px; cursor: pointer; }
+.anim-fast { transition: all var(--transition-fast); }
+.anim-fast:hover { transform: scale(1.1); background: var(--color-primary-hover); }
+.anim-normal { transition: all var(--transition-normal); }
+.anim-normal:hover { transform: scale(1.15); box-shadow: var(--shadow-md); }
+.anim-slow { transition: all var(--transition-slow); }
+.anim-slow:hover { transform: scale(1.2); border-radius: 50%; }
+.anim-spring { transition: all var(--transition-spring); }
+.anim-spring:hover { transform: scale(1.2) rotate(5deg); }
+
+/* Curve visualization */
+.curve-viz { display: flex; gap: 20px; flex-wrap: wrap; }
+.curve-card { border: 1px solid var(--gray-200); border-radius: 8px; padding: 16px; text-align: center; min-width: 180px; }
+.curve-graph { height: 100px; position: relative; margin: 10px 0; border-bottom: 2px solid var(--gray-300); border-left: 2px solid var(--gray-300); }
+.curve-line { position: absolute; bottom: 0; left: 0; width: 100%; height: 100%; border-bottom: 2px solid var(--color-primary); }
+.curve-ease { border-radius: 0 0 0 0; }
+.curve-ease-in { border-radius: 0 100% 0 0; }
+.curve-ease-out { border-radius: 100% 0 0 0; }
+.curve-spring { animation: spring-demo 1.5s ease-in-out infinite; background: var(--color-primary); width: 8px; height: 8px; border-radius: 50%; position: absolute; left: 0; bottom: 0; }
+@keyframes spring-demo {
+  0% { left: 0; bottom: 0; }
+  50% { left: 50%; bottom: 90%; }
+  70% { left: 70%; bottom: 40%; }
+  85% { left: 85%; bottom: 75%; }
+  100% { left: 100%; bottom: 80%; }
+}
+
+/* Fade animation */
+.fade-box { background: var(--color-primary-soft); padding: 16px; border-radius: 8px; text-align: center; font-size: 13px; animation: fadeInUp 2s ease-in-out infinite; }
+@keyframes fadeInUp {
+  0% { opacity: 0; transform: translateY(16px); }
+  50% { opacity: 1; transform: translateY(0); }
+  100% { opacity: 0; transform: translateY(-16px); }
+}
+</style>
+</head>
+<body>
+
+<div class="header">
+  <h1>动效规范文档</h1>
+  <p>Motion Design System — 曲线 · 时长 · 场景 · 原则</p>
+  <p style="margin-top:4px;font-size:12px;opacity:0.65">林夕 · 2026-06-29</p>
+</div>
+
+<div class="container">
+
+<!-- 1. Motion Tokens -->
+<div class="section">
+  <h2>1. 动效 Token 定义</h2>
+  <table>
+    <tr><th>Token</th><th>时长</th><th>曲线</th><th>CSS 值</th><th>使用场景</th></tr>
+    <tr><td><code>--transition-fast</code></td><td>150ms</td><td>ease</td><td style="font-family:monospace;font-size:11px">0.15s ease</td><td>hover 状态切换、图标变化、微交互</td></tr>
+    <tr><td><code>--transition-normal</code></td><td>250ms</td><td>ease</td><td style="font-family:monospace;font-size:11px">0.25s ease</td><td>展开/收起、切换、fade in/out</td></tr>
+    <tr><td><code>--transition-slow</code></td><td>350ms</td><td>ease</td><td style="font-family:monospace;font-size:11px">0.35s ease</td><td>页面切换、模态框进出、路由过渡</td></tr>
+    <tr><td><code>--transition-spring</code></td><td>350ms</td><td>弹性</td><td style="font-family:monospace;font-size:11px">cubic-bezier(0.34,1.56,0.64,1)</td><td>弹窗弹出、通知出现、弹跳效果</td></tr>
+  </table>
+  <h3>交互演示 <span style="font-size:12px;color:var(--text-muted);font-weight:400">（悬停查看效果）</span></h3>
+  <div class="anim-demo">
+    <div class="anim-box anim-fast">Fast<br>150ms</div>
+    <div class="anim-box anim-normal">Normal<br>250ms</div>
+    <div class="anim-box anim-slow">Slow<br>350ms</div>
+    <div class="anim-box anim-spring">Spring<br>350ms</div>
+  </div>
+</div>
+
+<!-- 2. Easing Curves -->
+<div class="section">
+  <h2>2. 缓动曲线详解</h2>
+  <div class="curve-viz">
+    <div class="curve-card">
+      <div style="font-weight:600;font-size:13px">ease</div>
+      <div style="font-size:11px;color:var(--text-muted)">默认缓动</div>
+      <div class="curve-graph"><svg width="100%" height="100%" viewBox="0 0 100 100"><path d="M0,100 C20,10 80,10 100,0" stroke="var(--color-primary)" stroke-width="2" fill="none"/></svg></div>
+      <div style="font-size:11px;color:var(--text-secondary)">快入快出，最常用</div>
+    </div>
+    <div class="curve-card">
+      <div style="font-weight:600;font-size:13px">ease-in</div>
+      <div style="font-size:11px;color:var(--text-muted)">缓入</div>
+      <div class="curve-graph"><svg width="100%" height="100%" viewBox="0 0 100 100"><path d="M0,100 C50,100 80,40 100,0" stroke="var(--color-warning)" stroke-width="2" fill="none"/></svg></div>
+      <div style="font-size:11px;color:var(--text-secondary)">慢入快出，元素出场</div>
+    </div>
+    <div class="curve-card">
+      <div style="font-weight:600;font-size:13px">ease-out</div>
+      <div style="font-size:11px;color:var(--text-muted)">缓出</div>
+      <div class="curve-graph"><svg width="100%" height="100%" viewBox="0 0 100 100"><path d="M0,100 C20,60 50,0 100,0" stroke="var(--color-success)" stroke-width="2" fill="none"/></svg></div>
+      <div style="font-size:11px;color:var(--text-secondary)">快入慢出，元素入场</div>
+    </div>
+    <div class="curve-card">
+      <div style="font-weight:600;font-size:13px">spring</div>
+      <div style="font-size:11px;color:var(--text-muted)">弹性</div>
+      <div class="curve-graph"><div class="curve-spring"></div></div>
+      <div style="font-size:11px;color:var(--text-secondary)">cubic-bezier(0.34,1.56,0.64,1)</div>
+    </div>
+  </div>
+</div>
+
+<!-- 3. Animation Scenarios -->
+<div class="section">
+  <h2>3. 动效场景矩阵</h2>
+  <table>
+    <tr><th>场景</th><th>类型</th><th>时长</th><th>曲线</th><th>说明</th></tr>
+    <tr><td>按钮 hover</td><td>微交互</td><td>150ms</td><td>ease</td><td>颜色过渡、轻微缩放(1.02)</td></tr>
+    <tr><td>输入框聚焦</td><td>微交互</td><td>150ms</td><td>ease</td><td>边框变色 + 阴影扩散</td></tr>
+    <tr><td>卡片悬停</td><td>微交互</td><td>250ms</td><td>ease</td><td>上浮 2px + 阴影加深</td></tr>
+    <tr><td>下拉菜单展开</td><td>展开</td><td>250ms</td><td>ease-out</td><td>从上到下展开，透明度 0→1</td></tr>
+    <tr><td>折叠面板</td><td>展开</td><td>250ms</td><td>ease</td><td>高度动画，内容淡入</td></tr>
+    <tr><td>弹窗出现</td><td>入场</td><td>350ms</td><td>spring</td><td>缩放 0.95→1 + 淡入</td></tr>
+    <tr><td>弹窗关闭</td><td>出场</td><td>150ms</td><td>ease-in</td><td>出场快于入场</td></tr>
+    <tr><td>Toast 通知</td><td>入场</td><td>350ms</td><td>spring</td><td>从顶部滑入 + 弹性</td></tr>
+    <tr><td>Toast 消失</td><td>出场</td><td>250ms</td><td>ease-in</td><td>淡出 + 上滑</td></tr>
+    <tr><td>路由切换</td><td>过渡</td><td>350ms</td><td>ease</td><td>页面淡入淡出</td></tr>
+    <tr><td>骨架屏</td><td>加载</td><td>1.5s</td><td>ease</td><td>shimmer 循环动画</td></tr>
+    <tr><td>Spinner</td><td>加载</td><td>0.7s</td><td>linear</td><td>无限旋转</td></tr>
+    <tr><td>数字变化</td><td>反馈</td><td>500ms</td><td>ease-out</td><td>数字递增动画</td></tr>
+    <tr><td>图表加载</td><td>入场</td><td>500ms</td><td>ease-out</td><td>柱状图从底部升起</td></tr>
+  </table>
+</div>
+
+<!-- 4. CSS Animations -->
+<div class="section">
+  <h2>4. 内置动画类</h2>
+  <div class="code-block">
+/* 淡入上移 */<br>
+@keyframes fade-in-up {<br>
+&nbsp;&nbsp;0% { opacity: 0; transform: translateY(16px); }<br>
+&nbsp;&nbsp;100% { opacity: 1; transform: translateY(0); }<br>
+}<br>
+<br>
+/* 缩放入场 */<br>
+@keyframes scale-in {<br>
+&nbsp;&nbsp;0% { opacity: 0; transform: scale(0.95); }<br>
+&nbsp;&nbsp;100% { opacity: 1; transform: scale(1); }<br>
+}<br>
+<br>
+/* 右侧滑入 */<br>
+@keyframes slide-in-right {<br>
+&nbsp;&nbsp;0% { opacity: 0; transform: translateX(24px); }<br>
+&nbsp;&nbsp;100% { opacity: 1; transform: translateX(0); }<br>
+}<br>
+<br>
+/* 骨架屏闪光 */<br>
+@keyframes shimmer {<br>
+&nbsp;&nbsp;0% { opacity: 0.6; }<br>
+&nbsp;&nbsp;50% { opacity: 1; }<br>
+&nbsp;&nbsp;100% { opacity: 0.6; }<br>
+}
+  </div>
+</div>
+
+<!-- 5. Motion Principles -->
+<div class="section">
+  <h2>5. 动效设计原则</h2>
+  <table>
+    <tr><th>原则</th><th>说明</th></tr>
+    <tr><td><strong>出场快于入场</strong></td><td>出场动画 150ms，入场动画 250-350ms。用户等待的是内容出现，不是消失</td></tr>
+    <tr><td><strong>弹性用于强调</strong></td><td>spring 弹性曲线仅用于需要吸引注意力的场景（弹窗、通知），不可滥用</td></tr>
+    <tr><td><strong>不超过 400ms</strong></td><td>任何动画不超过 400ms，超过会让用户感到等待</td></tr>
+    <tr><td><strong>尊重用户偏好</strong></td><td><code>prefers-reduced-motion: reduce</code> 时关闭所有动画和过渡</td></tr>
+    <tr><td><strong>有意义才动</strong></td><td>动效应有明确目的：引导注意力、提供反馈、展示状态变化，不为动而动</td></tr>
+    <tr><td><strong>一致性</strong></td><td>同类元素使用相同的动效参数，不一致会让产品显得不专业</td></tr>
+    <tr><td><strong>性能优先</strong></td><td>仅动画 <code>transform</code> 和 <code>opacity</code>，避免触发重排的 <code>width/height/top/left</code></td></tr>
+  </table>
+</div>
+
+<!-- 6. Performance -->
+<div class="section">
+  <h2>6. 性能优化</h2>
+  <table>
+    <tr><th>推荐</th><th>避免</th></tr>
+    <tr><td><code>transform: translateX()</code></td><td><code>left</code> / <code>right</code></td></tr>
+    <tr><td><code>transform: scale()</code></td><td><code>width</code> / <code>height</code></td></tr>
+    <tr><td><code>opacity</code></td><td><code>visibility</code> / <code>display</code></td></tr>
+    <tr><td><code>will-change</code> 提前告知</td><td>大面积重绘</td></tr>
+    <tr><td><code>requestAnimationFrame</code> JS动画</td><td><code>setInterval</code> 动画</td></tr>
+  </table>
+</div>
+
+</div>
+
+<div style="text-align:center;padding:40px;color:var(--text-muted);font-size:13px">
+  <p>动效规范文档 · 智享酒水库存系统</p>
+  <p>林夕 · UI/UX Designer · 2026-06-29</p>
+</div>
+
+</body>
+</html>

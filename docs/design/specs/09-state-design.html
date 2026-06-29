@@ -1,0 +1,168 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>状态设计规范 — 智享酒水库存系统</title>
+<style>
+:root {
+  --color-primary: #1677FF; --color-primary-hover: #409EFF; --color-primary-soft: #E6F4FF;
+  --color-success: #10B981; --color-warning: #F59E0B; --color-danger: #EF4444; --color-info: #3B82F6;
+  --color-success-soft: #D1FAE5; --color-warning-soft: #FEF3C7; --color-danger-soft: #FEE2E2; --color-info-soft: #DBEAFE;
+  --gray-50: #F9FAFB; --gray-100: #F3F4F6; --gray-200: #E5E7EB; --gray-300: #D1D5DB; --gray-400: #9CA3AF; --gray-500: #6B7280; --gray-600: #4B5563; --gray-700: #374151; --gray-800: #1F2937; --gray-900: #111827;
+  --text-primary: #1F2328; --text-secondary: #4B5563; --text-muted: #9CA3AF;
+  --bg-page: #F5F7FA; --bg-card: #FFFFFF;
+  --radius-sm: 8px; --radius-md: 12px; --radius-lg: 16px;
+  --shadow-sm: 0 1px 3px rgba(0,0,0,0.06); --shadow-md: 0 4px 6px rgba(0,0,0,0.04);
+  --font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang SC", "Microsoft YaHei", sans-serif;
+}
+* { margin: 0; padding: 0; box-sizing: border-box; }
+body { font-family: var(--font-family); background: var(--bg-page); color: var(--text-primary); line-height: 1.6; }
+.container { max-width: 1100px; margin: 0 auto; padding: 40px 24px; }
+.header { background: linear-gradient(135deg, #1677FF 0%, #0958D9 100%); color: #fff; padding: 60px 24px; text-align: center; }
+.header h1 { font-size: 32px; font-weight: 700; margin-bottom: 8px; }
+.header p { font-size: 14px; opacity: 0.85; }
+.section { background: var(--bg-card); border-radius: var(--radius-lg); padding: 28px; margin-bottom: 20px; box-shadow: var(--shadow-sm); }
+.section h2 { font-size: 20px; font-weight: 600; margin-bottom: 16px; }
+.section h3 { font-size: 15px; font-weight: 600; margin: 16px 0 10px; color: var(--text-secondary); }
+table { width: 100%; border-collapse: collapse; font-size: 13px; }
+th { background: #F8FAFC; padding: 10px 14px; text-align: left; font-weight: 600; color: var(--text-secondary); border-bottom: 2px solid var(--gray-200); }
+td { padding: 10px 14px; border-bottom: 1px solid var(--gray-100); }
+.state-demo { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; }
+.state-card { border: 1px solid var(--gray-200); border-radius: var(--radius-md); padding: 20px; text-align: center; }
+.state-icon { font-size: 36px; margin-bottom: 8px; }
+.state-title { font-size: 14px; font-weight: 600; margin-bottom: 4px; }
+.state-desc { font-size: 12px; color: var(--text-secondary); }
+.skeleton-demo { display: flex; flex-direction: column; gap: 10px; padding: 16px; background: #fff; border-radius: 8px; border: 1px solid var(--gray-200); }
+.skeleton-row { height: 16px; background: var(--gray-100); border-radius: 4px; animation: shimmer 1.5s infinite; }
+.skeleton-row:nth-child(2) { width: 80%; }
+.skeleton-row:nth-child(3) { width: 60%; }
+@keyframes shimmer { 0% { opacity: 0.6; } 50% { opacity: 1; } 100% { opacity: 0.6; } }
+</style>
+</head>
+<body>
+
+<div class="header">
+  <h1>状态设计规范</h1>
+  <p>State Design — 空状态 · 错误状态 · 加载状态 · 边界状态</p>
+  <p style="margin-top:4px;font-size:12px;opacity:0.65">林夕 · 2026-06-29</p>
+</div>
+
+<div class="container">
+
+<!-- 1. State Overview -->
+<div class="section">
+  <h2>1. 状态总览</h2>
+  <div class="state-demo">
+    <div class="state-card">
+      <div class="state-icon">📭</div>
+      <div class="state-title">空状态 Empty</div>
+      <div class="state-desc">暂无数据，引导用户创建</div>
+    </div>
+    <div class="state-card">
+      <div class="state-icon">❌</div>
+      <div class="state-title">错误状态 Error</div>
+      <div class="state-desc">加载失败，提供重试入口</div>
+    </div>
+    <div class="state-card">
+      <div class="state-icon">⏳</div>
+      <div class="state-title">加载状态 Loading</div>
+      <div class="state-desc">数据加载中，提供骨架屏</div>
+    </div>
+    <div class="state-card">
+      <div class="state-icon">🔍</div>
+      <div class="state-title">搜索无结果</div>
+      <div class="state-desc">搜索无匹配，调整关键词</div>
+    </div>
+    <div class="state-card">
+      <div class="state-icon">🔒</div>
+      <div class="state-title">无权限</div>
+      <div class="state-desc">当前用户无权限访问</div>
+    </div>
+    <div class="state-card">
+      <div class="state-icon">🌐</div>
+      <div class="state-title">网络异常</div>
+      <div class="state-desc">网络断开，检查网络连接</div>
+    </div>
+  </div>
+</div>
+
+<!-- 2. Empty State -->
+<div class="section">
+  <h2>2. 空状态设计规范</h2>
+  <table>
+    <tr><th>场景</th><th>图标</th><th>文案</th><th>操作</th></tr>
+    <tr><td>列表无数据</td><td>空盒子图标</td><td>"暂无数据"</td><td>"新增"按钮</td></tr>
+    <tr><td>搜索无结果</td><td>搜索图标</td><td>"未找到匹配结果"</td><td>"清空筛选"</td></tr>
+    <tr><td>筛选无结果</td><td>筛选图标</td><td>"当前筛选条件下无数据"</td><td>"重置筛选"</td></tr>
+    <tr><td>详情不存在</td><td>文件图标</td><td>"数据不存在或已删除"</td><td>"返回列表"</td></tr>
+    <tr><td>购物车为空</td><td>购物车图标</td><td>"购物车还是空的"</td><td>"去逛逛"</td></tr>
+  </table>
+  <h3>空状态设计原则</h3>
+  <ul style="padding-left:20px;font-size:13px;color:var(--text-secondary)">
+    <li>始终提供明确的下一步操作按钮</li>
+    <li>图标使用灰色调，不抢眼</li>
+    <li>文案简洁友好，不要用技术术语</li>
+    <li>空状态不是"什么都没有"，而是"从这里开始"</li>
+  </ul>
+</div>
+
+<!-- 3. Loading State -->
+<div class="section">
+  <h2>3. 加载状态设计规范</h2>
+  <table>
+    <tr><th>类型</th><th>使用场景</th><th>视觉</th><th>时长</th></tr>
+    <tr><td><strong>骨架屏</strong></td><td>页面首次加载、列表加载</td><td>灰色占位块 + shimmer 动画</td><td>持续至数据加载完成</td></tr>
+    <tr><td><strong>Spinner</strong></td><td>按钮提交、弹窗加载</td><td>旋转圆圈</td><td>持续至操作完成</td></tr>
+    <tr><td><strong>进度条</strong></td><td>文件上传、批量处理</td><td>蓝色进度条 + 百分比</td><td>按实际进度</td></tr>
+    <tr><td><strong>全屏加载</strong></td><td>应用初始化</td><td>居中 Logo + Spinner</td><td>2-3 秒</td></tr>
+    <tr><td><strong>下拉刷新</strong></td><td>移动端列表刷新</td><td>下拉动画 + 提示文字</td><td>0.5-1 秒</td></tr>
+  </table>
+  <h3>骨架屏演示</h3>
+  <div class="skeleton-demo" style="max-width:400px">
+    <div class="skeleton-row"></div>
+    <div class="skeleton-row"></div>
+    <div class="skeleton-row"></div>
+    <div class="skeleton-row" style="width:40%"></div>
+  </div>
+</div>
+
+<!-- 4. Error State -->
+<div class="section">
+  <h2>4. 错误状态设计规范</h2>
+  <table>
+    <tr><th>错误类型</th><th>视觉</th><th>文案模板</th><th>操作</th></tr>
+    <tr><td><strong>网络错误</strong></td><td>红色横幅 + 错误图标</td><td>"网络连接异常，请检查网络后重试"</td><td>重试按钮</td></tr>
+    <tr><td><strong>服务器错误</strong></td><td>红色横幅</td><td>"服务器繁忙，请稍后重试"</td><td>重试 / 联系管理员</td></tr>
+    <tr><td><strong>权限不足</strong></td><td>黄色横幅</td><td>"您没有权限执行此操作"</td><td>返回 / 申请权限</td></tr>
+    <tr><td><strong>数据不存在</strong></td><td>灰色提示</td><td>"数据不存在或已被删除"</td><td>返回列表</td></tr>
+    <tr><td><strong>表单验证失败</strong></td><td>红色文字 + 红色边框</td><td>"请输入正确的XXX"</td><td>修正后重新提交</td></tr>
+    <tr><td><strong>超时</strong></td><td>黄色横幅</td><td>"请求超时，请稍后重试"</td><td>重试按钮</td></tr>
+  </table>
+</div>
+
+<!-- 5. Edge Cases -->
+<div class="section">
+  <h2>5. 边界状态处理</h2>
+  <table>
+    <tr><th>场景</th><th>处理方式</th></tr>
+    <tr><td><strong>数据量过大</strong></td><td>分页加载（每页20条），虚拟滚动（超过1000条）</td></tr>
+    <tr><td><strong>金额为0</strong></td><td>显示 ¥0.00（不隐藏），灰色显示</td></tr>
+    <tr><td><strong>数量为0</strong></td><td>显示 0，库存为0时红色高亮</td></tr>
+    <tr><td><strong>长文本溢出</strong></td><td>省略号截断 + Tooltip 显示完整内容</td></tr>
+    <tr><td><strong>图片加载失败</strong></td><td>显示默认占位图 + 商品名称首字</td></tr>
+    <tr><td><strong>并发操作冲突</strong></td><td>提示"数据已被他人修改，请刷新后重试"</td></tr>
+    <tr><td><strong>离线状态</strong></td><td>显示离线提示，缓存最近数据</td></tr>
+    <tr><td><strong>浏览器兼容</strong></td><td>不支持的特性降级处理，不阻断核心功能</td></tr>
+  </table>
+</div>
+
+</div>
+
+<div style="text-align:center;padding:40px;color:var(--text-muted);font-size:13px">
+  <p>状态设计规范 · 智享酒水库存系统</p>
+  <p>林夕 · UI/UX Designer · 2026-06-29</p>
+</div>
+
+</body>
+</html>

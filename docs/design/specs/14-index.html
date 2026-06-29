@@ -1,0 +1,283 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>14 - 设计交付物索引与汇总 | 供应链管理系统</title>
+<style>
+:root {
+  --brand: #4F46E5; --brand-light: #EEF2FF; --text: #1E293B; --text-secondary: #64748B;
+  --border: #E2E8F0; --bg: #F8FAFC; --white: #FFFFFF; --success: #10B981; --warning: #F59E0B; --danger: #EF4444;
+  --radius: 12px; --shadow: 0 1px 3px rgba(0,0,0,.08);
+}
+* { margin: 0; padding: 0; box-sizing: border-box; }
+body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; background: var(--bg); color: var(--text); line-height: 1.6; }
+.container { max-width: 1200px; margin: 0 auto; padding: 40px 24px; }
+.header { background: linear-gradient(135deg, #1E293B, #334155); color: #fff; padding: 48px 24px; text-align: center; }
+.header h1 { font-size: 2.2rem; font-weight: 700; margin-bottom: 8px; }
+.header p { font-size: 1.05rem; opacity: .85; }
+.header .meta { font-size: .85rem; opacity: .6; margin-top: 8px; }
+.section { background: var(--white); border-radius: var(--radius); box-shadow: var(--shadow); padding: 32px; margin-bottom: 24px; }
+.section h2 { font-size: 1.35rem; color: var(--brand); margin-bottom: 8px; padding-bottom: 12px; border-bottom: 2px solid var(--brand-light); }
+.card-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(340px, 1fr)); gap: 16px; margin: 16px 0; }
+.card { border: 1px solid var(--border); border-radius: 12px; padding: 24px; transition: all .2s; text-decoration: none; color: inherit; display: block; }
+.card:hover { border-color: var(--brand); box-shadow: 0 4px 20px rgba(79,70,229,.12); transform: translateY(-2px); }
+.card .num { font-size: .78rem; font-weight: 700; color: var(--brand); letter-spacing: .5px; margin-bottom: 4px; }
+.card .title { font-size: 1.05rem; font-weight: 600; margin-bottom: 6px; }
+.card .desc { font-size: .82rem; color: var(--text-secondary); }
+.card .tags { margin-top: 10px; display: flex; gap: 6px; flex-wrap: wrap; }
+.tag { padding: 2px 10px; border-radius: 12px; font-size: .7rem; font-weight: 600; }
+.tag-high { background: #FEE2E2; color: #DC2626; }
+.tag-medium { background: #FEF3C7; color: #D97706; }
+.tag-html { background: #DBEAFE; color: #1D4ED8; }
+.tag-design { background: #EDE9FE; color: #6D28D9; }
+.stats-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); gap: 16px; margin: 16px 0; }
+.stat-card { padding: 24px; border-radius: 12px; text-align: center; }
+.stat-card .number { font-size: 2rem; font-weight: 700; }
+.stat-card .label { font-size: .82rem; margin-top: 4px; }
+.phase-timeline { display: flex; gap: 0; margin: 16px 0; flex-wrap: wrap; }
+.phase-item { flex: 1; min-width: 150px; padding: 20px; text-align: center; position: relative; }
+.phase-item:not(:last-child)::after { content: '→'; position: absolute; right: -8px; top: 50%; transform: translateY(-50%); font-size: 1.2rem; color: var(--brand); }
+.phase-item .phase-num { width: 36px; height: 36px; border-radius: 50%; background: var(--brand); color: #fff; display: flex; align-items: center; justify-content: center; margin: 0 auto 8px; font-weight: 700; font-size: .9rem; }
+.phase-item .phase-title { font-size: .85rem; font-weight: 600; }
+.phase-item .phase-count { font-size: .75rem; color: var(--text-secondary); }
+</style>
+</head>
+<body>
+
+<div class="header">
+  <h1>设计交付物索引与汇总</h1>
+  <p>供应链管理系统 · UI/UX设计规范 v3.0 · 完整交付物索引</p>
+  <p class="meta">产出日期：2026-06-29 | 总交付物：14项 | 格式：HTML自包含文档</p>
+</div>
+
+<div class="container">
+
+  <!-- 1. 总览统计 -->
+  <div class="section">
+    <h2>1. 交付物总览</h2>
+    <div class="stats-grid">
+      <div class="stat-card" style="background:#EEF2FF;">
+        <div class="number" style="color:#4F46E5;">14</div>
+        <div class="label" style="color:#4F46E5;">设计文档</div>
+      </div>
+      <div class="stat-card" style="background:#ECFDF5;">
+        <div class="number" style="color:#059669;">4</div>
+        <div class="label" style="color:#059669;">高优先级</div>
+      </div>
+      <div class="stat-card" style="background:#FEF3C7;">
+        <div class="number" style="color:#D97706;">5</div>
+        <div class="label" style="color:#D97706;">中优先级</div>
+      </div>
+      <div class="stat-card" style="background:#F1F5F9;">
+        <div class="number" style="color:#64748B;">5</div>
+        <div class="label" style="color:#64748B;">低优先级</div>
+      </div>
+      <div class="stat-card" style="background:#F0F9FF;">
+        <div class="number" style="color:#0369A1;">~5,000</div>
+        <div class="label" style="color:#0369A1;">总行数（HTML）</div>
+      </div>
+      <div class="stat-card" style="background:#F5F3FF;">
+        <div class="number" style="color:#6D28D9;">3</div>
+        <div class="label" style="color:#6D28D9;">覆盖平台</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 2. 产出阶段 -->
+  <div class="section">
+    <h2>2. 产出阶段</h2>
+    <div class="phase-timeline">
+      <div class="phase-item">
+        <div class="phase-num">1</div>
+        <div class="phase-title">设计基础</div>
+        <div class="phase-count">4项</div>
+      </div>
+      <div class="phase-item">
+        <div class="phase-num">2</div>
+        <div class="phase-title">交互规范</div>
+        <div class="phase-count">3项</div>
+      </div>
+      <div class="phase-item">
+        <div class="phase-num">3</div>
+        <div class="phase-title">视觉方案</div>
+        <div class="phase-count">3项</div>
+      </div>
+      <div class="phase-item">
+        <div class="phase-num">4</div>
+        <div class="phase-title">系统规范</div>
+        <div class="phase-count">4项</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 3. 高优先级交付物 -->
+  <div class="section">
+    <h2>3. 高优先级交付物 <span class="tag tag-high">Priority: High</span></h2>
+    <p class="desc" style="margin-top:8px;">核心设计规范，直接影响所有前端开发工作</p>
+    <div class="card-grid">
+      <a href="01-design-system-spec.html" class="card">
+        <div class="num">01</div>
+        <div class="title">设计系统规范 v3.0</div>
+        <div class="desc">品牌色系、语义色系、字体排版、间距系统、圆角、阴影、动效、暗色模式、响应式断点、无障碍设计等12大模块，含140+ CSS Design Token</div>
+        <div class="tags"><span class="tag tag-high">High</span><span class="tag tag-design">Design System</span><span class="tag tag-html">~380行</span></div>
+      </a>
+      <a href="02-component-interaction-states.html" class="card">
+        <div class="num">02</div>
+        <div class="title">组件交互状态规范</div>
+        <div class="desc">10大类组件（Button/Input/Tag/Table/Card/Modal/Toast等）的交互状态定义，含hover/active/disabled/loading/empty/error/focus</div>
+        <div class="tags"><span class="tag tag-high">High</span><span class="tag tag-design">Interaction</span><span class="tag tag-html">~368行</span></div>
+      </a>
+      <a href="03-user-flow-diagrams.html" class="card">
+        <div class="num">03</div>
+        <div class="title">关键页面交互流程图</div>
+        <div class="desc">8个核心业务流程（供应商管理/采购订单/快速开单/入库/退货/往来账/库存预警/门店收银），含线框图和流程节点</div>
+        <div class="tags"><span class="tag tag-high">High</span><span class="tag tag-design">User Flow</span><span class="tag tag-html">~404行</span></div>
+      </a>
+      <a href="04-visual-mockups.html" class="card">
+        <div class="num">04</div>
+        <div class="title">高保真视觉稿</div>
+        <div class="desc">7个核心页面视觉稿（Admin仪表盘/供应商管理/采购订单/快速开单/库存预警/门店收银/客户往来账）</div>
+        <div class="tags"><span class="tag tag-high">High</span><span class="tag tag-design">Mockup</span><span class="tag tag-html">~441行</span></div>
+      </a>
+    </div>
+  </div>
+
+  <!-- 4. 中优先级交付物 -->
+  <div class="section">
+    <h2>4. 中优先级交付物 <span class="tag tag-medium">Priority: Medium</span></h2>
+    <p class="desc" style="margin-top:8px;">交互与视觉方案，指导前端开发和用户体验优化</p>
+    <div class="card-grid">
+      <a href="05-responsive-design.html" class="card">
+        <div class="num">05</div>
+        <div class="title">响应式设计方案</div>
+        <div class="desc">断点可视化、Admin-Web/商店端/门店终端三端适配策略、设备支持矩阵、响应式最佳实践</div>
+        <div class="tags"><span class="tag tag-medium">Medium</span><span class="tag tag-html">~198行</span></div>
+      </a>
+      <a href="06-motion-design.html" class="card">
+        <div class="num">06</div>
+        <div class="title">动效规范文档</div>
+        <div class="desc">4种缓动曲线可视化、14个场景动效矩阵、内置CSS动画类、5条设计原则、性能优化建议</div>
+        <div class="tags"><span class="tag tag-medium">Medium</span><span class="tag tag-html">~222行</span></div>
+      </a>
+      <a href="07-dark-mode-spec.html" class="card">
+        <div class="num">07</div>
+        <div class="title">暗色模式设计规范</div>
+        <div class="desc">切换机制、18个Token颜色映射表、视觉对比演示、7条设计规则、实现要点</div>
+        <div class="tags"><span class="tag tag-medium">Medium</span><span class="tag tag-html">~166行</span></div>
+      </a>
+      <a href="08-form-interaction.html" class="card">
+        <div class="num">08</div>
+        <div class="title">表单交互规范</div>
+        <div class="desc">5种布局类型、8种字段验证规则、3种验证时机、表单状态演示、5种提交反馈、7条最佳实践</div>
+        <div class="tags"><span class="tag tag-medium">Medium</span><span class="tag tag-html">~173行</span></div>
+      </a>
+      <a href="09-state-design.html" class="card">
+        <div class="num">09</div>
+        <div class="title">状态设计规范</div>
+        <div class="desc">6种状态总览、5种空状态场景、5种加载状态（含骨架屏）、6种错误状态、8种边界情况处理</div>
+        <div class="tags"><span class="tag tag-medium">Medium</span><span class="tag tag-html">~168行</span></div>
+      </a>
+    </div>
+  </div>
+
+  <!-- 5. 低优先级交付物 -->
+  <div class="section">
+    <h2>5. 低优先级交付物 <span class="tag" style="background:#F1F5F9;color:#64748B;">Priority: Low</span></h2>
+    <p class="desc" style="margin-top:8px;">辅助规范与质量保障，用于团队协作和交付验收</p>
+    <div class="card-grid">
+      <a href="10-notification-system.html" class="card">
+        <div class="num">10</div>
+        <div class="title">通知反馈系统设计</div>
+        <div class="desc">4种Toast演示、5种Dialog类型、3种Notification示例、3种Banner演示、反馈方式选择矩阵</div>
+        <div class="tags"><span class="tag" style="background:#F1F5F9;color:#64748B;">Low</span><span class="tag tag-html">~199行</span></div>
+      </a>
+      <a href="11-icon-system.html" class="card">
+        <div class="num">11</div>
+        <div class="title">图标与插画系统规范</div>
+        <div class="desc">6大类50+图标（导航/操作/状态/数据/文件）、6种插画场景、尺寸规范、CSS Token、三端适配策略</div>
+        <div class="tags"><span class="tag" style="background:#F1F5F9;color:#64748B;">Low</span><span class="tag tag-html">~316行</span></div>
+      </a>
+      <a href="12-accessibility.html" class="card">
+        <div class="num">12</div>
+        <div class="title">无障碍设计规范（WCAG 2.1 AA）</div>
+        <div class="desc">4大原则（POUR）、颜色对比度验证、键盘导航、语义化HTML+ARIA、屏幕阅读器适配、触摸目标、动效控制、检查清单</div>
+        <div class="tags"><span class="tag" style="background:#F1F5F9;color:#64748B;">Low</span><span class="tag tag-html">~280行</span></div>
+      </a>
+      <a href="13-consistency-checklist.html" class="card">
+        <div class="num">13</div>
+        <div class="title">三端一致性检查清单</div>
+        <div class="desc">8个维度42项检查项（颜色/字体/间距/组件/数据/导航/交互/Token），合规总结：76%完全一致</div>
+        <div class="tags"><span class="tag" style="background:#F1F5F9;color:#64748B;">Low</span><span class="tag tag-html">~280行</span></div>
+      </a>
+      <a href="14-index.html" class="card" style="border-color:var(--brand);">
+        <div class="num">14</div>
+        <div class="title">设计交付物索引与汇总</div>
+        <div class="desc">本文档 — 14项设计交付物的完整索引、优先级分类、统计概览、产出阶段说明</div>
+        <div class="tags"><span class="tag" style="background:#F1F5F9;color:#64748B;">Low</span><span class="tag tag-html">~300行</span></div>
+      </a>
+    </div>
+  </div>
+
+  <!-- 6. 文件目录结构 -->
+  <div class="section">
+    <h2>6. 文件目录结构</h2>
+    <pre style="background:#1E293B;color:#E2E8F0;padding:24px;border-radius:8px;font-size:.85rem;overflow-x:auto;line-height:1.8;"><code>docs/design/
+├── specs/
+│   ├── <span style="color:#93C5FD;">01-design-system-spec.html</span>         设计系统规范 v3.0
+│   ├── <span style="color:#93C5FD;">02-component-interaction-states.html</span>  组件交互状态规范
+│   ├── <span style="color:#93C5FD;">03-user-flow-diagrams.html</span>          关键页面交互流程图
+│   ├── <span style="color:#93C5FD;">04-visual-mockups.html</span>              高保真视觉稿
+│   ├── <span style="color:#93C5FD;">05-responsive-design.html</span>           响应式设计方案
+│   ├── <span style="color:#93C5FD;">06-motion-design.html</span>               动效规范文档
+│   ├── <span style="color:#93C5FD;">07-dark-mode-spec.html</span>              暗色模式设计规范
+│   ├── <span style="color:#93C5FD;">08-form-interaction.html</span>            表单交互规范
+│   ├── <span style="color:#93C5FD;">09-state-design.html</span>                状态设计规范
+│   ├── <span style="color:#93C5FD;">10-notification-system.html</span>         通知反馈系统设计
+│   ├── <span style="color:#93C5FD;">11-icon-system.html</span>                 图标与插画系统规范
+│   ├── <span style="color:#93C5FD;">12-accessibility.html</span>              无障碍设计规范
+│   ├── <span style="color:#93C5FD;">13-consistency-checklist.html</span>       三端一致性检查清单
+│   └── <span style="color:#FDE68A;">14-index.html</span>                        设计交付物索引与汇总
+├── prototypes/                                   交互原型（待补充）
+└── diagrams/                                     设计图表（待补充）</code></pre>
+  </div>
+
+  <!-- 7. 使用说明 -->
+  <div class="section">
+    <h2>7. 使用说明</h2>
+    <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(300px,1fr));gap:16px;">
+      <div style="padding:20px;background:#F8FAFC;border-radius:8px;border:1px solid var(--border);">
+        <strong>如何浏览</strong>
+        <p style="font-size:.85rem;color:var(--text-secondary);margin-top:4px;">所有文档均为自包含HTML文件，可直接在浏览器中打开。无需构建工具、无需服务器、无需npm install。</p>
+      </div>
+      <div style="padding:20px;background:#F8FAFC;border-radius:8px;border:1px solid var(--border);">
+        <strong>推荐阅读顺序</strong>
+        <p style="font-size:.85rem;color:var(--text-secondary);margin-top:4px;">01 → 02 → 04 → 03 → 08 → 09 → 10 → 05 → 06 → 07 → 11 → 12 → 13</p>
+      </div>
+      <div style="padding:20px;background:#F8FAFC;border-radius:8px;border:1px solid var(--border);">
+        <strong>前端开发参考</strong>
+        <p style="font-size:.85rem;color:var(--text-secondary);margin-top:4px;">01号文档（设计系统）是前端开发的权威参考，包含所有CSS Design Token。02号文档（组件状态）是组件开发的交互规范。</p>
+      </div>
+      <div style="padding:20px;background:#F8FAFC;border-radius:8px;border:1px solid var(--border);">
+        <strong>设计评审参考</strong>
+        <p style="font-size:.85rem;color:var(--text-secondary);margin-top:4px;">04号文档（视觉稿）和13号文档（一致性检查清单）可用于设计评审。12号文档（无障碍规范）可用于无障碍合规审计。</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- 8. 版本记录 -->
+  <div class="section">
+    <h2>8. 版本记录</h2>
+    <table class="spec-table" style="width:100%;">
+      <thead><tr><th>版本</th><th>日期</th><th>作者</th><th>变更说明</th></tr></thead>
+      <tbody>
+        <tr><td><strong>v3.0</strong></td><td>2026-06-29</td><td>林夕</td><td>完整14项设计交付物产出，覆盖三端（Admin Web / Merchant Mobile / Store Terminal）</td></tr>
+        <tr><td>v2.0</td><td>2026-06-20</td><td>林夕</td><td>同步17个视图开发完成后的设计更新</td></tr>
+        <tr><td>v1.0</td><td>2026-06-10</td><td>林夕</td><td>初始设计系统建立</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+</div>
+</body>
+</html>

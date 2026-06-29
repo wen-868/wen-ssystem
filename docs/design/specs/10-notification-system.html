@@ -1,0 +1,199 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>通知反馈系统设计 — 智享酒水库存系统</title>
+<style>
+:root {
+  --color-primary: #1677FF; --color-primary-hover: #409EFF; --color-primary-soft: #E6F4FF;
+  --color-success: #10B981; --color-warning: #F59E0B; --color-danger: #EF4444; --color-info: #3B82F6;
+  --color-success-soft: #D1FAE5; --color-warning-soft: #FEF3C7; --color-danger-soft: #FEE2E2; --color-info-soft: #DBEAFE;
+  --gray-50: #F9FAFB; --gray-100: #F3F4F6; --gray-200: #E5E7EB; --gray-300: #D1D5DB; --gray-400: #9CA3AF; --gray-500: #6B7280; --gray-600: #4B5563; --gray-700: #374151; --gray-800: #1F2937; --gray-900: #111827;
+  --text-primary: #1F2328; --text-secondary: #4B5563; --text-muted: #9CA3AF;
+  --bg-page: #F5F7FA; --bg-card: #FFFFFF;
+  --radius-xs: 4px; --radius-sm: 8px; --radius-md: 12px; --radius-lg: 16px;
+  --shadow-sm: 0 1px 3px rgba(0,0,0,0.06); --shadow-md: 0 4px 6px rgba(0,0,0,0.04); --shadow-lg: 0 10px 15px rgba(0,0,0,0.06);
+  --font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang SC", "Microsoft YaHei", sans-serif;
+}
+* { margin: 0; padding: 0; box-sizing: border-box; }
+body { font-family: var(--font-family); background: var(--bg-page); color: var(--text-primary); line-height: 1.6; }
+.container { max-width: 1100px; margin: 0 auto; padding: 40px 24px; }
+.header { background: linear-gradient(135deg, #1677FF 0%, #0958D9 100%); color: #fff; padding: 60px 24px; text-align: center; }
+.header h1 { font-size: 32px; font-weight: 700; margin-bottom: 8px; }
+.header p { font-size: 14px; opacity: 0.85; }
+.section { background: var(--bg-card); border-radius: var(--radius-lg); padding: 28px; margin-bottom: 20px; box-shadow: var(--shadow-sm); }
+.section h2 { font-size: 20px; font-weight: 600; margin-bottom: 16px; }
+.section h3 { font-size: 15px; font-weight: 600; margin: 16px 0 10px; color: var(--text-secondary); }
+table { width: 100%; border-collapse: collapse; font-size: 13px; }
+th { background: #F8FAFC; padding: 10px 14px; text-align: left; font-weight: 600; color: var(--text-secondary); border-bottom: 2px solid var(--gray-200); }
+td { padding: 10px 14px; border-bottom: 1px solid var(--gray-100); }
+.notif-demo { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 12px; }
+
+/* Toast */
+.toast { display: flex; align-items: center; gap: 10px; padding: 12px 16px; border-radius: 8px; font-size: 13px; box-shadow: var(--shadow-md); }
+.toast-success { background: #ECFDF5; border: 1px solid rgba(16,185,129,0.2); color: #065F46; }
+.toast-warning { background: #FFFBEB; border: 1px solid rgba(245,158,11,0.2); color: #92400E; }
+.toast-error { background: #FEF2F2; border: 1px solid rgba(239,68,68,0.2); color: #991B1B; }
+.toast-info { background: #EFF6FF; border: 1px solid rgba(59,130,246,0.2); color: #1E40AF; }
+.toast-icon { font-size: 16px; font-weight: bold; }
+
+/* Dialog */
+.dialog { border: 1px solid var(--gray-200); border-radius: var(--radius-md); overflow: hidden; box-shadow: var(--shadow-lg); }
+.dialog-header { padding: 16px 20px; border-bottom: 1px solid var(--gray-100); font-weight: 600; font-size: 14px; }
+.dialog-body { padding: 20px; font-size: 13px; color: var(--text-secondary); }
+.dialog-footer { padding: 12px 20px; border-top: 1px solid var(--gray-100); display: flex; justify-content: flex-end; gap: 8px; }
+.btn { display: inline-flex; align-items: center; gap: 4px; padding: 7px 14px; border-radius: var(--radius-sm); font-size: 12px; font-weight: 500; cursor: pointer; border: none; transition: all 0.15s ease; font-family: inherit; }
+.btn-primary { background: var(--color-primary); color: #fff; }
+.btn-default { background: #fff; color: var(--text-primary); border: 1px solid var(--gray-300); }
+.btn-danger { background: var(--color-danger); color: #fff; }
+
+/* Notification */
+.notification { display: flex; gap: 12px; padding: 14px 16px; border-radius: 8px; border: 1px solid var(--gray-200); }
+.notification-avatar { width: 40px; height: 40px; border-radius: 50%; background: var(--color-primary-soft); display: flex; align-items: center; justify-content: center; color: var(--color-primary); font-weight: 700; font-size: 14px; flex-shrink: 0; }
+.notification-content { flex: 1; }
+.notification-title { font-size: 13px; font-weight: 600; margin-bottom: 2px; }
+.notification-body { font-size: 12px; color: var(--text-secondary); }
+.notification-time { font-size: 11px; color: var(--text-muted); margin-top: 4px; }
+</style>
+</head>
+<body>
+
+<div class="header">
+  <h1>通知反馈系统设计</h1>
+  <p>Notification & Feedback System — Toast · Dialog · Notification · Banner</p>
+  <p style="margin-top:4px;font-size:12px;opacity:0.65">林夕 · 2026-06-29</p>
+</div>
+
+<div class="container">
+
+<!-- 1. Toast -->
+<div class="section">
+  <h2>1. Toast 轻提示</h2>
+  <p style="color:var(--text-secondary);margin-bottom:12px;font-size:13px">用于操作结果的即时反馈，自动消失，不打断用户操作。</p>
+  <div class="notif-demo">
+    <div class="toast toast-success"><span class="toast-icon">&#10003;</span>操作成功</div>
+    <div class="toast toast-warning"><span class="toast-icon">&#9888;</span>库存不足，请及时补货</div>
+    <div class="toast toast-error"><span class="toast-icon">&#10007;</span>保存失败，请重试</div>
+    <div class="toast toast-info"><span class="toast-icon">&#8505;</span>系统将在5分钟后维护</div>
+  </div>
+  <h3>Toast 规范</h3>
+  <table>
+    <tr><th>属性</th><th>值</th></tr>
+    <tr><td>位置</td><td>页面顶部居中（桌面端）/ 顶部（移动端）</td></tr>
+    <tr><td>显示时长</td><td>Success 2秒 / Warning 3秒 / Error 5秒 / Info 3秒</td></tr>
+    <tr><td>动画</td><td>spring 弹性入场，ease-in 淡出</td></tr>
+    <tr><td>最大数量</td><td>同时最多显示 3 条，超出后队列排队</td></tr>
+    <tr><td>关闭方式</td><td>自动消失 + 点击关闭按钮</td></tr>
+  </table>
+</div>
+
+<!-- 2. Dialog -->
+<div class="section">
+  <h2>2. Dialog 对话框</h2>
+  <p style="color:var(--text-secondary);margin-bottom:12px;font-size:13px">用于需要用户确认的操作，打断当前流程，必须用户做出选择。</p>
+  <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px">
+    <div class="dialog">
+      <div class="dialog-header">确认删除</div>
+      <div class="dialog-body">确定要删除该供应商吗？此操作不可撤销，相关采购订单将保留但无法关联。</div>
+      <div class="dialog-footer">
+        <button class="btn btn-default">取消</button>
+        <button class="btn btn-danger">确认删除</button>
+      </div>
+    </div>
+    <div class="dialog">
+      <div class="dialog-header">提交成功</div>
+      <div class="dialog-body" style="text-align:center">
+        <div style="font-size:36px;color:var(--color-success);margin-bottom:8px">&#10003;</div>
+        采购订单 CGDD240601001 已提交审核
+      </div>
+      <div class="dialog-footer" style="justify-content:center">
+        <button class="btn btn-primary">查看详情</button>
+        <button class="btn btn-default">继续创建</button>
+      </div>
+    </div>
+  </div>
+  <h3>Dialog 类型</h3>
+  <table>
+    <tr><th>类型</th><th>标题</th><th>确认按钮</th><th>使用场景</th></tr>
+    <tr><td><strong>确认操作</strong></td><td>"确认XXX"</td><td>危险色按钮</td><td>删除、作废等不可逆操作</td></tr>
+    <tr><td><strong>提交确认</strong></td><td>"提交XXX"</td><td>主色按钮</td><td>提交审核、确认订单</td></tr>
+    <tr><td><strong>成功提示</strong></td><td>"操作成功"</td><td>主色按钮（知道了）</td><td>操作完成后展示结果</td></tr>
+    <tr><td><strong>警告提示</strong></td><td>"请注意"</td><td>主色按钮</td><td>库存不足、重复操作等</td></tr>
+    <tr><td><strong>表单弹窗</strong></td><td>"新增/编辑XXX"</td><td>保存 + 取消</td><td>新增/编辑表单</td></tr>
+  </table>
+</div>
+
+<!-- 3. Notification -->
+<div class="section">
+  <h2>3. Notification 通知</h2>
+  <p style="color:var(--text-secondary);margin-bottom:12px;font-size:13px">用于系统级消息推送，显示在页面右上角，支持已读/未读状态。</p>
+  <div style="max-width:400px">
+    <div class="notification" style="margin-bottom:8px">
+      <div class="notification-avatar">系</div>
+      <div class="notification-content">
+        <div class="notification-title">库存预警</div>
+        <div class="notification-body">茅台飞天53° 库存不足（当前2瓶，阈值10瓶）</div>
+        <div class="notification-time">10分钟前</div>
+      </div>
+    </div>
+    <div class="notification" style="margin-bottom:8px;background:var(--gray-50)">
+      <div class="notification-avatar">审</div>
+      <div class="notification-content">
+        <div class="notification-title">采购订单已审核</div>
+        <div class="notification-body">CGDD240601001 已通过审核</div>
+        <div class="notification-time">1小时前</div>
+      </div>
+    </div>
+    <div class="notification">
+      <div class="notification-avatar" style="background:var(--color-warning-soft);color:var(--color-warning)">付</div>
+      <div class="notification-content">
+        <div class="notification-title">付款提醒</div>
+        <div class="notification-body">供应商"茅台酒业"月结账款¥52,800即将到期</div>
+        <div class="notification-time">昨天</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- 4. Banner -->
+<div class="section">
+  <h2>4. Banner 横幅提示</h2>
+  <p style="color:var(--text-secondary);margin-bottom:12px;font-size:13px">页面级全局提示，位于内容区顶部，可关闭。</p>
+  <div style="display:flex;flex-direction:column;gap:8px">
+    <div style="padding:10px 16px;background:#ECFDF5;border:1px solid rgba(16,185,129,0.2);border-radius:8px;font-size:13px;display:flex;justify-content:space-between;align-items:center">
+      <span>&#10003; 数据已自动保存</span><span style="color:var(--gray-400);cursor:pointer">x</span>
+    </div>
+    <div style="padding:10px 16px;background:#FFFBEB;border:1px solid rgba(245,158,11,0.2);border-radius:8px;font-size:13px;display:flex;justify-content:space-between;align-items:center">
+      <span>&#9888; 系统将在 30 分钟后进行维护升级</span><span style="color:var(--gray-400);cursor:pointer">x</span>
+    </div>
+    <div style="padding:10px 16px;background:#FEF2F2;border:1px solid rgba(239,68,68,0.2);border-radius:8px;font-size:13px;display:flex;justify-content:space-between;align-items:center">
+      <span>&#10007; 网络连接异常，部分功能可能不可用</span><span style="color:var(--gray-400);cursor:pointer">x</span>
+    </div>
+  </div>
+</div>
+
+<!-- 5. Feedback Matrix -->
+<div class="section">
+  <h2>5. 反馈方式选择矩阵</h2>
+  <table>
+    <tr><th>场景</th><th>Toast</th><th>Dialog</th><th>Notification</th><th>Banner</th></tr>
+    <tr><td>操作成功</td><td>&#10003; 首选</td><td>仅需要跳转时</td><td>-</td><td>-</td></tr>
+    <tr><td>操作失败</td><td>&#10003; 首选</td><td>需要详细说明时</td><td>-</td><td>-</td></tr>
+    <tr><td>确认删除</td><td>-</td><td>&#10003; 首选</td><td>-</td><td>-</td></tr>
+    <tr><td>库存预警</td><td>-</td><td>-</td><td>&#10003; 首选</td><td>&#10003; 页面顶部</td></tr>
+    <tr><td>审核通知</td><td>-</td><td>-</td><td>&#10003; 首选</td><td>-</td></tr>
+    <tr><td>系统维护</td><td>-</td><td>-</td><td>-</td><td>&#10003; 首选</td></tr>
+    <tr><td>表单验证</td><td>-</td><td>-</td><td>-</td><td>内联错误</td></tr>
+  </table>
+</div>
+
+</div>
+
+<div style="text-align:center;padding:40px;color:var(--text-muted);font-size:13px">
+  <p>通知反馈系统设计 · 智享酒水库存系统</p>
+  <p>林夕 · UI/UX Designer · 2026-06-29</p>
+</div>
+
+</body>
+</html>

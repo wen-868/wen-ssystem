@@ -1,0 +1,380 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>智享酒水库存系统 — 设计系统规范 v3.0</title>
+<style>
+:root {
+  --color-primary: #1677FF; --color-primary-hover: #409EFF; --color-primary-active: #0958D9;
+  --color-gold: #C69C6D; --color-gold-light: #D4A574;
+  --color-success: #10B981; --color-warning: #F59E0B; --color-danger: #EF4444; --color-info: #3B82F6;
+  --gray-50: #F9FAFB; --gray-100: #F3F4F6; --gray-200: #E5E7EB; --gray-300: #D1D5DB;
+  --gray-400: #9CA3AF; --gray-500: #6B7280; --gray-600: #4B5563; --gray-700: #374151; --gray-800: #1F2937; --gray-900: #111827;
+  --text-primary: #1F2328; --text-secondary: #4B5563; --text-muted: #9CA3AF;
+  --bg-page: #F5F7FA; --bg-card: #FFFFFF;
+  --radius-md: 12px; --radius-lg: 16px; --shadow-md: 0 4px 6px rgba(0,0,0,0.04);
+  --font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang SC", "Microsoft YaHei", sans-serif;
+}
+* { margin: 0; padding: 0; box-sizing: border-box; }
+body { font-family: var(--font-family); background: var(--bg-page); color: var(--text-primary); line-height: 1.6; }
+.container { max-width: 1200px; margin: 0 auto; padding: 40px 24px; }
+.header { background: linear-gradient(135deg, #1677FF 0%, #0958D9 100%); color: #fff; padding: 60px 24px; text-align: center; }
+.header h1 { font-size: 36px; font-weight: 700; margin-bottom: 12px; }
+.header p { font-size: 16px; opacity: 0.85; }
+.section { background: var(--bg-card); border-radius: var(--radius-lg); padding: 32px; margin-bottom: 24px; box-shadow: var(--shadow-md); }
+.section h2 { font-size: 22px; font-weight: 600; margin-bottom: 20px; padding-bottom: 12px; border-bottom: 2px solid var(--color-primary); display: flex; align-items: center; gap: 10px; }
+.section h3 { font-size: 16px; font-weight: 600; margin: 20px 0 12px; color: var(--text-secondary); }
+.color-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(160px, 1fr)); gap: 16px; }
+.color-swatch { border-radius: var(--radius-md); overflow: hidden; box-shadow: 0 1px 3px rgba(0,0,0,0.08); }
+.color-preview { height: 80px; display: flex; align-items: flex-end; padding: 12px; }
+.color-preview span { color: #fff; font-size: 12px; font-weight: 500; text-shadow: 0 1px 2px rgba(0,0,0,0.3); }
+.color-info { padding: 10px 12px; background: #fff; }
+.color-name { font-size: 12px; font-weight: 600; color: var(--gray-800); }
+.color-value { font-size: 11px; color: var(--gray-500); font-family: monospace; margin-top: 2px; }
+.token-table { width: 100%; border-collapse: collapse; font-size: 13px; }
+.token-table th { background: #F8FAFC; padding: 10px 14px; text-align: left; font-weight: 600; color: var(--text-secondary); border-bottom: 2px solid var(--gray-200); }
+.token-table td { padding: 10px 14px; border-bottom: 1px solid var(--gray-100); }
+.token-table .token-name { font-family: monospace; font-size: 12px; color: var(--color-primary); }
+.token-table .token-value { font-family: monospace; font-size: 12px; color: var(--gray-600); }
+.token-table .token-sample { width: 40px; }
+.token-sample-dot { width: 24px; height: 24px; border-radius: 4px; border: 1px solid var(--gray-200); }
+.badge { display: inline-block; padding: 2px 8px; border-radius: 4px; font-size: 11px; font-weight: 600; }
+.badge-primary { background: #E6F4FF; color: #1677FF; }
+.badge-gold { background: #FFF8E1; color: #C69C6D; }
+.spacing-demo { display: flex; align-items: flex-end; gap: 8px; margin: 12px 0; }
+.spacing-bar { background: var(--color-primary); border-radius: 4px 4px 0 0; min-width: 20px; display: flex; align-items: flex-end; justify-content: center; padding-bottom: 4px; color: #fff; font-size: 10px; }
+.radius-demo { display: flex; gap: 16px; flex-wrap: wrap; }
+.radius-box { width: 64px; height: 64px; background: var(--color-primary); display: flex; align-items: center; justify-content: center; color: #fff; font-size: 10px; }
+.shadow-demo { display: flex; gap: 16px; flex-wrap: wrap; }
+.shadow-card { width: 100px; height: 80px; background: #fff; border-radius: 8px; display: flex; align-items: flex-end; justify-content: center; padding: 8px; font-size: 10px; color: var(--gray-500); }
+.type-scale { display: flex; flex-direction: column; gap: 8px; }
+.type-row { display: flex; align-items: baseline; gap: 16px; padding: 6px 0; border-bottom: 1px solid var(--gray-100); }
+.type-label { font-size: 11px; color: var(--gray-500); font-family: monospace; min-width: 80px; }
+.type-render { color: var(--text-primary); }
+.toc { background: var(--gray-50); border-radius: var(--radius-md); padding: 20px 24px; margin-bottom: 24px; }
+.toc h3 { margin: 0 0 12px; font-size: 14px; color: var(--text-secondary); }
+.toc ol { padding-left: 20px; }
+.toc li { margin: 4px 0; font-size: 13px; }
+.toc a { color: var(--color-primary); text-decoration: none; }
+.toc a:hover { text-decoration: underline; }
+.footer { text-align: center; padding: 40px; color: var(--text-muted); font-size: 13px; }
+</style>
+</head>
+<body>
+
+<div class="header">
+  <h1>智享酒水库存系统</h1>
+  <p>设计系统规范 v3.0 — Design System Specification</p>
+  <p style="margin-top:8px;font-size:13px;opacity:0.7">林夕 / UI/UX Designer / 2026-06-29</p>
+</div>
+
+<div class="container">
+
+<!-- TOC -->
+<div class="toc">
+  <h3>目录</h3>
+  <ol>
+    <li><a href="#brand">品牌色系</a></li>
+    <li><a href="#semantic">语义色系</a></li>
+    <li><a href="#neutral">中性灰阶</a></li>
+    <li><a href="#typography">字体排版</a></li>
+    <li><a href="#spacing">间距系统</a></li>
+    <li><a href="#radius">圆角体系</a></li>
+    <li><a href="#shadow">阴影层级</a></li>
+    <li><a href="#motion">动效系统</a></li>
+    <li><a href="#components">组件令牌</a></li>
+    <li><a href="#dark-mode">暗色模式</a></li>
+    <li><a href="#responsive">响应式断点</a></li>
+    <li><a href="#a11y">无障碍设计</a></li>
+  </ol>
+</div>
+
+<!-- 1. Brand Colors -->
+<div class="section" id="brand">
+  <h2><span class="badge badge-primary">01</span> 品牌色系</h2>
+  <p style="color:var(--text-secondary);margin-bottom:16px">品牌主色为蓝色 (#1677FF)，体现专业、可信赖的科技感。酒业金色作为辅助色，体现行业属性。</p>
+  <h3>主色层级</h3>
+  <div class="color-grid">
+    <div class="color-swatch"><div class="color-preview" style="background:#1677FF"><span>Primary</span></div><div class="color-info"><div class="color-name">品牌主色</div><div class="color-value">#1677FF / --color-primary</div></div></div>
+    <div class="color-swatch"><div class="color-preview" style="background:#409EFF"><span>Hover</span></div><div class="color-info"><div class="color-name">悬停色</div><div class="color-value">#409EFF / --color-primary-hover</div></div></div>
+    <div class="color-swatch"><div class="color-preview" style="background:#0958D9"><span>Active</span></div><div class="color-info"><div class="color-name">激活色</div><div class="color-value">#0958D9 / --color-primary-active</div></div></div>
+    <div class="color-swatch"><div class="color-preview" style="background:#E6F4FF"><span style="color:#1677FF">Soft</span></div><div class="color-info"><div class="color-name">柔和色</div><div class="color-value">#E6F4FF / --color-primary-soft</div></div></div>
+    <div class="color-swatch"><div class="color-preview" style="background:#F0F7FF"><span style="color:#1677FF">BG</span></div><div class="color-info"><div class="color-name">背景色</div><div class="color-value">#F0F7FF / --color-primary-bg</div></div></div>
+  </div>
+  <h3>酒业金色</h3>
+  <div class="color-grid">
+    <div class="color-swatch"><div class="color-preview" style="background:#C69C6D"><span>Gold</span></div><div class="color-info"><div class="color-name">酒业金色</div><div class="color-value">#C69C6D / --color-gold</div></div></div>
+    <div class="color-swatch"><div class="color-preview" style="background:#D4A574"><span>Light</span></div><div class="color-info"><div class="color-name">浅金色</div><div class="color-value">#D4A574 / --color-gold-light</div></div></div>
+    <div class="color-swatch"><div class="color-preview" style="background:#FFF8E1"><span style="color:#C69C6D">Soft</span></div><div class="color-info"><div class="color-name">柔和金</div><div class="color-value">#FFF8E1 / --color-gold-soft</div></div></div>
+    <div class="color-swatch"><div class="color-preview" style="background:#FFFDF7"><span style="color:#C69C6D">BG</span></div><div class="color-info"><div class="color-name">金色背景</div><div class="color-value">#FFFDF7 / --color-gold-bg</div></div></div>
+  </div>
+</div>
+
+<!-- 2. Semantic Colors -->
+<div class="section" id="semantic">
+  <h2><span class="badge badge-primary">02</span> 语义色系</h2>
+  <p style="color:var(--text-secondary);margin-bottom:16px">用于状态反馈、操作提示，每个语义色包含主色、柔和色、背景色三个层级。</p>
+  <div class="color-grid">
+    <div class="color-swatch"><div class="color-preview" style="background:#10B981"><span>Success</span></div><div class="color-info"><div class="color-name">成功</div><div class="color-value">#10B981 / --color-success</div></div></div>
+    <div class="color-swatch"><div class="color-preview" style="background:#D1FAE5"><span style="color:#10B981">Soft</span></div><div class="color-info"><div class="color-name">成功柔和</div><div class="color-value">#D1FAE5</div></div></div>
+    <div class="color-swatch"><div class="color-preview" style="background:#F59E0B"><span>Warning</span></div><div class="color-info"><div class="color-name">警告</div><div class="color-value">#F59E0B / --color-warning</div></div></div>
+    <div class="color-swatch"><div class="color-preview" style="background:#FEF3C7"><span style="color:#F59E0B">Soft</span></div><div class="color-info"><div class="color-name">警告柔和</div><div class="color-value">#FEF3C7</div></div></div>
+    <div class="color-swatch"><div class="color-preview" style="background:#EF4444"><span>Danger</span></div><div class="color-info"><div class="color-name">危险</div><div class="color-value">#EF4444 / --color-danger</div></div></div>
+    <div class="color-swatch"><div class="color-preview" style="background:#FEE2E2"><span style="color:#EF4444">Soft</span></div><div class="color-info"><div class="color-name">危险柔和</div><div class="color-value">#FEE2E2</div></div></div>
+    <div class="color-swatch"><div class="color-preview" style="background:#3B82F6"><span>Info</span></div><div class="color-info"><div class="color-name">信息</div><div class="color-value">#3B82F6 / --color-info</div></div></div>
+    <div class="color-swatch"><div class="color-preview" style="background:#DBEAFE"><span style="color:#3B82F6">Soft</span></div><div class="color-info"><div class="color-name">信息柔和</div><div class="color-value">#DBEAFE</div></div></div>
+  </div>
+  <h3>语义色使用规则</h3>
+  <table class="token-table">
+    <tr><th>语义</th><th>主色用途</th><th>柔和色用途</th><th>背景色用途</th></tr>
+    <tr><td>Success</td><td>成功图标、确认按钮</td><td>成功标签背景</td><td>成功提示横幅</td></tr>
+    <tr><td>Warning</td><td>警告图标、警告按钮</td><td>警告标签背景</td><td>警告提示横幅</td></tr>
+    <tr><td>Danger</td><td>错误图标、删除按钮</td><td>错误标签背景</td><td>错误提示横幅</td></tr>
+    <tr><td>Info</td><td>信息图标、链接</td><td>信息标签背景</td><td>信息提示横幅</td></tr>
+  </table>
+</div>
+
+<!-- 3. Neutral Gray -->
+<div class="section" id="neutral">
+  <h2><span class="badge badge-primary">03</span> 中性灰阶</h2>
+  <div class="color-grid">
+    <div class="color-swatch"><div class="color-preview" style="background:#F9FAFB"><span style="color:#111827">50</span></div><div class="color-info"><div class="color-name">灰阶 50</div><div class="color-value">#F9FAFB / 页面背景</div></div></div>
+    <div class="color-swatch"><div class="color-preview" style="background:#F3F4F6"><span style="color:#111827">100</span></div><div class="color-info"><div class="color-name">灰阶 100</div><div class="color-value">#F3F4F6 / 卡片背景</div></div></div>
+    <div class="color-swatch"><div class="color-preview" style="background:#E5E7EB"><span style="color:#111827">200</span></div><div class="color-info"><div class="color-name">灰阶 200</div><div class="color-value">#E5E7EB / 边框</div></div></div>
+    <div class="color-swatch"><div class="color-preview" style="background:#D1D5DB"><span style="color:#111827">300</span></div><div class="color-info"><div class="color-name">灰阶 300</div><div class="color-value">#D1D5DB / 占位符</div></div></div>
+    <div class="color-swatch"><div class="color-preview" style="background:#9CA3AF"><span>400</span></div><div class="color-info"><div class="color-name">灰阶 400</div><div class="color-value">#9CA3AF / 辅助文字</div></div></div>
+    <div class="color-swatch"><div class="color-preview" style="background:#6B7280"><span>500</span></div><div class="color-info"><div class="color-name">灰阶 500</div><div class="color-value">#6B7280</div></div></div>
+    <div class="color-swatch"><div class="color-preview" style="background:#4B5563"><span>600</span></div><div class="color-info"><div class="color-name">灰阶 600</div><div class="color-value">#4B5563 / 次要标题</div></div></div>
+    <div class="color-swatch"><div class="color-preview" style="background:#374151"><span>700</span></div><div class="color-info"><div class="color-name">灰阶 700</div><div class="color-value">#374151</div></div></div>
+    <div class="color-swatch"><div class="color-preview" style="background:#1F2937"><span>800</span></div><div class="color-info"><div class="color-name">灰阶 800</div><div class="color-value">#1F2937 / 主要标题</div></div></div>
+    <div class="color-swatch"><div class="color-preview" style="background:#111827"><span>900</span></div><div class="color-info"><div class="color-name">灰阶 900</div><div class="color-value">#111827 / 强调文字</div></div></div>
+  </div>
+</div>
+
+<!-- 4. Typography -->
+<div class="section" id="typography">
+  <h2><span class="badge badge-primary">04</span> 字体排版</h2>
+  <h3>字体族</h3>
+  <table class="token-table">
+    <tr><th>分类</th><th>值</th><th>用途</th></tr>
+    <tr><td>系统字体</td><td class="token-value">-apple-system, "PingFang SC", "Microsoft YaHei", sans-serif</td><td>正文、标题</td></tr>
+    <tr><td>等宽字体</td><td class="token-value">"SF Mono", "Fira Code", "Consolas", monospace</td><td>代码、数字</td></tr>
+  </table>
+  <h3>字号层级</h3>
+  <div class="type-scale">
+    <div class="type-row"><span class="type-label">--text-xs / 11px</span><span class="type-render" style="font-size:11px">辅助说明文字 · 标签 · 脚注</span></div>
+    <div class="type-row"><span class="type-label">--text-sm / 12px</span><span class="type-render" style="font-size:12px">表格内容 · 表单标签 · 次要信息</span></div>
+    <div class="type-row"><span class="type-label">--text-base / 13px</span><span class="type-render" style="font-size:13px">正文内容 · 描述文字 · 列表项</span></div>
+    <div class="type-row"><span class="type-label">--text-md / 14px</span><span class="type-render" style="font-size:14px">强调正文 · 卡片标题 · 导航标签</span></div>
+    <div class="type-row"><span class="type-label">--text-lg / 16px</span><span class="type-render" style="font-size:16px;font-weight:600">小标题 · 模块标题 · 弹窗标题</span></div>
+    <div class="type-row"><span class="type-label">--text-xl / 18px</span><span class="type-render" style="font-size:18px;font-weight:600">中标题 · 页面副标题</span></div>
+    <div class="type-row"><span class="type-label">--text-2xl / 20px</span><span class="type-render" style="font-size:20px;font-weight:700">大标题 · 页面标题</span></div>
+    <div class="type-row"><span class="type-label">--text-3xl / 24px</span><span class="type-render" style="font-size:24px;font-weight:700">特大标题 · 仪表盘标题</span></div>
+    <div class="type-row"><span class="type-label">--text-4xl / 28px</span><span class="type-render" style="font-size:28px;font-weight:700">超大标题 · 首页标题</span></div>
+  </div>
+  <h3>字重</h3>
+  <table class="token-table">
+    <tr><td class="token-name">--font-normal</td><td class="token-value">400</td><td>正文、辅助文字</td></tr>
+    <tr><td class="token-name">--font-medium</td><td class="token-value">500</td><td>强调文字、标签</td></tr>
+    <tr><td class="token-name">--font-semibold</td><td class="token-value">600</td><td>小标题、卡片标题</td></tr>
+    <tr><td class="token-name">--font-bold</td><td class="token-value">700</td><td>页面标题、大标题</td></tr>
+  </table>
+</div>
+
+<!-- 5. Spacing -->
+<div class="section" id="spacing">
+  <h2><span class="badge badge-primary">05</span> 间距系统</h2>
+  <p style="color:var(--text-secondary);margin-bottom:16px">基于 4px 基准的间距阶梯，确保视觉节奏一致。</p>
+  <div class="spacing-demo">
+    <div class="spacing-bar" style="height:12px;width:20px">4</div>
+    <div class="spacing-bar" style="height:24px;width:24px">8</div>
+    <div class="spacing-bar" style="height:36px;width:28px">12</div>
+    <div class="spacing-bar" style="height:48px;width:32px">16</div>
+    <div class="spacing-bar" style="height:60px;width:36px">20</div>
+    <div class="spacing-bar" style="height:72px;width:40px">24</div>
+    <div class="spacing-bar" style="height:96px;width:48px">32</div>
+    <div class="spacing-bar" style="height:120px;width:56px">40</div>
+    <div class="spacing-bar" style="height:144px;width:64px">48</div>
+  </div>
+  <table class="token-table">
+    <tr><th>Token</th><th>值</th><th>使用场景</th></tr>
+    <tr><td class="token-name">--space-1</td><td class="token-value">4px</td><td>极小间距：图标与文字、标签内边距</td></tr>
+    <tr><td class="token-name">--space-2</td><td class="token-value">8px</td><td>紧凑间距：表单项间距、按钮组间距</td></tr>
+    <tr><td class="token-name">--space-3</td><td class="token-value">12px</td><td>常规间距：列表项内边距、标签间距</td></tr>
+    <tr><td class="token-name">--space-4</td><td class="token-value">16px</td><td>标准间距：卡片内边距、表单列间距</td></tr>
+    <tr><td class="token-name">--space-5</td><td class="token-value">20px</td><td>中等间距：区块间距</td></tr>
+    <tr><td class="token-name">--space-6</td><td class="token-value">24px</td><td>大间距：页面内边距、段间距</td></tr>
+    <tr><td class="token-name">--space-8</td><td class="token-value">32px</td><td>超大间距：模块间距</td></tr>
+    <tr><td class="token-name">--space-10</td><td class="token-value">40px</td><td>分区间距：主要区域分隔</td></tr>
+    <tr><td class="token-name">--space-12</td><td class="token-value">48px</td><td>页面级间距：首页区块</td></tr>
+  </table>
+</div>
+
+<!-- 6. Radius -->
+<div class="section" id="radius">
+  <h2><span class="badge badge-primary">06</span> 圆角体系</h2>
+  <div class="radius-demo">
+    <div class="radius-box" style="border-radius:4px">xs 4</div>
+    <div class="radius-box" style="border-radius:8px">sm 8</div>
+    <div class="radius-box" style="border-radius:12px">md 12</div>
+    <div class="radius-box" style="border-radius:16px">lg 16</div>
+    <div class="radius-box" style="border-radius:20px">xl 20</div>
+    <div class="radius-box" style="border-radius:24px">2xl 24</div>
+    <div class="radius-box" style="border-radius:9999px;width:72px">full</div>
+  </div>
+  <table class="token-table" style="margin-top:16px">
+    <tr><th>Token</th><th>值</th><th>使用场景</th></tr>
+    <tr><td class="token-name">--radius-xs</td><td class="token-value">4px</td><td>标签、徽章、小按钮</td></tr>
+    <tr><td class="token-name">--radius-sm</td><td class="token-value">8px</td><td>输入框、按钮、下拉菜单</td></tr>
+    <tr><td class="token-name">--radius-md</td><td class="token-value">12px</td><td>卡片、弹窗、面板</td></tr>
+    <tr><td class="token-name">--radius-lg</td><td class="token-value">16px</td><td>大卡片、模态框</td></tr>
+    <tr><td class="token-name">--radius-xl</td><td class="token-value">20px</td><td>特大卡片</td></tr>
+    <tr><td class="token-name">--radius-2xl</td><td class="token-value">24px</td><td>首页功能卡片</td></tr>
+    <tr><td class="token-name">--radius-full</td><td class="token-value">9999px</td><td>头像、胶囊按钮、药丸标签</td></tr>
+  </table>
+</div>
+
+<!-- 7. Shadows -->
+<div class="section" id="shadow">
+  <h2><span class="badge badge-primary">07</span> 阴影层级</h2>
+  <div class="shadow-demo">
+    <div class="shadow-card" style="box-shadow:0 1px 2px rgba(0,0,0,0.04)">xs</div>
+    <div class="shadow-card" style="box-shadow:0 1px 3px rgba(0,0,0,0.06),0 1px 2px rgba(0,0,0,0.04)">sm</div>
+    <div class="shadow-card" style="box-shadow:0 4px 6px rgba(0,0,0,0.04),0 2px 4px rgba(0,0,0,0.04)">md</div>
+    <div class="shadow-card" style="box-shadow:0 10px 15px rgba(0,0,0,0.06),0 4px 6px rgba(0,0,0,0.04)">lg</div>
+    <div class="shadow-card" style="box-shadow:0 20px 40px rgba(0,0,0,0.08)">xl</div>
+    <div class="shadow-card" style="box-shadow:0 0 0 3px rgba(22,119,255,0.14)">focus</div>
+    <div class="shadow-card" style="box-shadow:0 0 0 3px rgba(239,68,68,0.14)">error</div>
+  </div>
+  <table class="token-table" style="margin-top:16px">
+    <tr><th>Token</th><th>层级</th><th>使用场景</th></tr>
+    <tr><td class="token-name">--shadow-xs</td><td>极浅</td><td>表格行、输入框悬停</td></tr>
+    <tr><td class="token-name">--shadow-sm</td><td>浅</td><td>卡片、面板</td></tr>
+    <tr><td class="token-name">--shadow-md</td><td>中</td><td>下拉菜单、弹出面板</td></tr>
+    <tr><td class="token-name">--shadow-lg</td><td>深</td><td>弹窗、对话框</td></tr>
+    <tr><td class="token-name">--shadow-xl</td><td>极深</td><td>模态框、抽屉</td></tr>
+    <tr><td class="token-name">--shadow-focus</td><td>聚焦</td><td>输入框聚焦状态</td></tr>
+    <tr><td class="token-name">--shadow-error</td><td>错误</td><td>输入框错误状态</td></tr>
+  </table>
+</div>
+
+<!-- 8. Motion -->
+<div class="section" id="motion">
+  <h2><span class="badge badge-primary">08</span> 动效系统</h2>
+  <table class="token-table">
+    <tr><th>Token</th><th>值</th><th>曲线</th><th>使用场景</th></tr>
+    <tr><td class="token-name">--transition-fast</td><td class="token-value">0.15s ease</td><td>ease</td><td>hover 状态切换、图标变化、微交互</td></tr>
+    <tr><td class="token-name">--transition-normal</td><td class="token-value">0.25s ease</td><td>ease</td><td>展开/收起、切换、fade in/out</td></tr>
+    <tr><td class="token-name">--transition-slow</td><td class="token-value">0.35s ease</td><td>ease</td><td>页面切换、模态框进出、路由过渡</td></tr>
+    <tr><td class="token-name">--transition-spring</td><td class="token-value">0.35s cubic-bezier(0.34,1.56,0.64,1)</td><td>弹性</td><td>弹窗弹出、通知出现、弹跳效果</td></tr>
+  </table>
+  <h3>动效原则</h3>
+  <ul style="padding-left:20px;color:var(--text-secondary);margin-top:8px">
+    <li><strong>出场快于入场</strong>：出场动画 0.15s，入场动画 0.25s-0.35s</li>
+    <li><strong>弹性用于强调</strong>：spring 仅用于需要吸引注意力的场景</li>
+    <li><strong>尊重用户偏好</strong>：prefers-reduced-motion 时关闭所有动画</li>
+    <li><strong>不超过 400ms</strong>：任何动画不超过 400ms，避免用户等待</li>
+  </ul>
+</div>
+
+<!-- 9. Component Tokens -->
+<div class="section" id="components">
+  <h2><span class="badge badge-primary">09</span> 组件令牌</h2>
+  <h3>表格 Table</h3>
+  <table class="token-table">
+    <tr><td class="token-name">--table-header-bg</td><td class="token-value">#F8FAFC</td><td>表头背景</td></tr>
+    <tr><td class="token-name">--table-header-text</td><td class="token-value">#4B5563</td><td>表头文字</td></tr>
+    <tr><td class="token-name">--table-row-hover</td><td class="token-value">#F8FAFC</td><td>行悬停背景</td></tr>
+    <tr><td class="token-name">--table-stripe</td><td class="token-value">#FAFBFC</td><td>斑马纹背景</td></tr>
+    <tr><td class="token-name">--table-border</td><td class="token-value">#E5E7EB</td><td>表格边框</td></tr>
+    <tr><td class="token-name">--table-row-height</td><td class="token-value">52px</td><td>行高</td></tr>
+  </table>
+  <h3>输入框 Input</h3>
+  <table class="token-table">
+    <tr><td class="token-name">--input-height</td><td class="token-value">36px</td><td>默认高度</td></tr>
+    <tr><td class="token-name">--input-height-lg</td><td class="token-value">44px</td><td>大尺寸高度</td></tr>
+    <tr><td class="token-name">--input-radius</td><td class="token-value">8px</td><td>圆角</td></tr>
+    <tr><td class="token-name">--input-border</td><td class="token-value">#E5E7EB</td><td>边框色</td></tr>
+    <tr><td class="token-name">--input-bg</td><td class="token-value">#FFFFFF</td><td>背景色</td></tr>
+    <tr><td class="token-name">--input-focus-shadow</td><td class="token-value">0 0 0 3px rgba(22,119,255,0.1)</td><td>聚焦阴影</td></tr>
+  </table>
+  <h3>按钮 Button</h3>
+  <table class="token-table">
+    <tr><td class="token-name">--btn-height</td><td class="token-value">36px</td><td>默认高度</td></tr>
+    <tr><td class="token-name">--btn-height-sm</td><td class="token-value">28px</td><td>小尺寸高度</td></tr>
+    <tr><td class="token-name">--btn-height-lg</td><td class="token-value">44px</td><td>大尺寸高度</td></tr>
+    <tr><td class="token-name">--btn-radius</td><td class="token-value">8px</td><td>圆角</td></tr>
+    <tr><td class="token-name">--btn-padding</td><td class="token-value">0 16px</td><td>内边距</td></tr>
+  </table>
+</div>
+
+<!-- 10. Dark Mode -->
+<div class="section" id="dark-mode">
+  <h2><span class="badge badge-primary">10</span> 暗色模式</h2>
+  <p style="color:var(--text-secondary);margin-bottom:16px">通过 <code>prefers-color-scheme: dark</code> 媒体查询自动切换，同时支持 <code>[data-theme="dark"]</code> 手动切换。</p>
+  <div style="display:grid;grid-template-columns:1fr 1fr;gap:24px">
+    <div style="background:#fff;border:1px solid var(--gray-200);border-radius:8px;padding:16px">
+      <h4 style="margin-bottom:8px">浅色模式</h4>
+      <div style="display:flex;flex-direction:column;gap:6px;font-size:12px">
+        <div style="background:#F5F7FA;padding:8px;border-radius:4px">页面背景 #F5F7FA</div>
+        <div style="background:#fff;padding:8px;border-radius:4px;border:1px solid #E5E7EB">卡片背景 #FFFFFF</div>
+        <div style="color:#1F2328;padding:8px">文字 #1F2328</div>
+        <div style="color:#4B5563;padding:8px">次要文字 #4B5563</div>
+      </div>
+    </div>
+    <div style="background:#0F172A;border:1px solid #334155;border-radius:8px;padding:16px">
+      <h4 style="margin-bottom:8px;color:#E5E7EB">暗色模式</h4>
+      <div style="display:flex;flex-direction:column;gap:6px;font-size:12px">
+        <div style="background:#0F172A;padding:8px;border-radius:4px;color:#9CA3AF">页面背景 #0F172A</div>
+        <div style="background:#1E293B;padding:8px;border-radius:4px;border:1px solid #334155;color:#9CA3AF">卡片背景 #1E293B</div>
+        <div style="color:#E5E7EB;padding:8px">文字 #E5E7EB</div>
+        <div style="color:#9CA3AF;padding:8px">次要文字 #9CA3AF</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- 11. Responsive -->
+<div class="section" id="responsive">
+  <h2><span class="badge badge-primary">11</span> 响应式断点</h2>
+  <table class="token-table">
+    <tr><th>断点</th><th>值</th><th>设备</th><th>布局策略</th></tr>
+    <tr><td>sm</td><td class="token-value">640px</td><td>大屏手机</td><td>单列、堆叠</td></tr>
+    <tr><td>md</td><td class="token-value">768px</td><td>平板竖屏</td><td>双列、侧边栏收起</td></tr>
+    <tr><td>lg</td><td class="token-value">1024px</td><td>平板横屏 / 小屏笔记本</td><td>侧边栏展开、多列</td></tr>
+    <tr><td>xl</td><td class="token-value">1280px</td><td>桌面显示器</td><td>完整布局、仪表盘</td></tr>
+    <tr><td>2xl</td><td class="token-value">1536px</td><td>大屏显示器</td><td>宽屏优化、最大宽度</td></tr>
+  </table>
+  <h3>三端适配方案</h3>
+  <table class="token-table">
+    <tr><th>端</th><th>基准宽度</th><th>组件库</th><th>适配策略</th></tr>
+    <tr><td>admin-web</td><td>1440px Desk</td><td>Element Plus</td><td>弹性布局 + 侧边栏折叠</td></tr>
+    <tr><td>merchant-mobile</td><td>375px Mobile</td><td>Vant 4</td><td>移动端优先，rem 适配</td></tr>
+    <tr><td>store-terminal</td><td>1024px Tablet</td><td>Element Plus</td><td>固定宽度，触屏优化</td></tr>
+  </table>
+</div>
+
+<!-- 12. Accessibility -->
+<div class="section" id="a11y">
+  <h2><span class="badge badge-primary">12</span> 无障碍设计</h2>
+  <table class="token-table">
+    <tr><th>特性</th><th>实现</th><th>标准</th></tr>
+    <tr><td>减少动画</td><td class="token-value">prefers-reduced-motion: reduce</td><td>WCAG 2.2.2</td></tr>
+    <tr><td>焦点可见</td><td class="token-value">:focus-visible { outline: 2px solid var(--color-primary) }</td><td>WCAG 2.4.7</td></tr>
+    <tr><td>屏幕阅读器</td><td class="token-value">.sr-only 辅助类</td><td>WCAG 1.3.1</td></tr>
+    <tr><td>颜色对比度</td><td class="token-value">正文 ≥ 4.5:1，大文字 ≥ 3:1</td><td>WCAG 1.4.3</td></tr>
+    <tr><td>键盘导航</td><td class="token-value">Tab/Shift+Tab 完整焦点流</td><td>WCAG 2.1.1</td></tr>
+    <tr><td>暗色模式</td><td class="token-value">prefers-color-scheme 自动切换</td><td>用户偏好</td></tr>
+  </table>
+</div>
+
+</div>
+
+<div class="footer">
+  <p>智享酒水库存系统 · 设计系统规范 v3.0</p>
+  <p>林夕 · UI/UX Designer · 2026-06-29</p>
+</div>
+
+</body>
+</html>
