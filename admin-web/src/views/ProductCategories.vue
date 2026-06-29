@@ -34,6 +34,7 @@
           >
             <template #default="{ node, data }">
               <span class="tree-node">
+                <span v-if="data.icon" class="tree-node-icon">{{ data.icon }}</span>
                 <span class="tree-node-label">{{ data.name }}</span>
                 <el-tag v-if="data.status === 0" type="info" size="small" style="margin-left: 6px">禁用</el-tag>
               </span>
@@ -55,6 +56,9 @@
               </el-form-item>
               <el-form-item label="分类编码">
                 <el-input v-model="detailForm.code" />
+              </el-form-item>
+              <el-form-item label="分类图标">
+                <el-input v-model="detailForm.icon" />
               </el-form-item>
               <el-form-item label="排序号">
                 <el-input-number v-model="detailForm.sortOrder" :min="0" style="width: 100%" />
@@ -88,6 +92,9 @@
         </el-form-item>
         <el-form-item label="分类编码" prop="code">
           <el-input v-model="form.code" placeholder="请输入分类编码" />
+        </el-form-item>
+        <el-form-item label="分类图标">
+          <el-input v-model="form.icon" placeholder="请输入图标名称或URL" />
         </el-form-item>
         <el-form-item label="排序号">
           <el-input-number v-model="form.sortOrder" :min="0" style="width: 100%" />
@@ -154,6 +161,7 @@ const parentTreeData = computed(() => {
 const defaultForm = {
   name: "",
   code: "",
+  icon: "",
   sortOrder: 0,
   parentId: null as number | null,
   status: 1
@@ -169,6 +177,7 @@ const formRules: FormRules = {
 const detailForm = reactive({
   name: "",
   code: "",
+  icon: "",
   sortOrder: 0,
   parentName: "",
   status: 1,
@@ -237,6 +246,7 @@ function handleNodeClick(data: any) {
   currentNode.value = data;
   detailForm.name = data.name || "";
   detailForm.code = data.code || "";
+  detailForm.icon = data.icon || "";
   detailForm.sortOrder = data.sortOrder || 0;
   detailForm.parentName = getParentName(data.id);
   detailForm.status = data.status ?? 1;
@@ -260,6 +270,7 @@ function handleEdit() {
   Object.assign(form, {
     name: node.name,
     code: node.code,
+    icon: node.icon || "",
     sortOrder: node.sortOrder || 0,
     parentId: node.parentId || null,
     status: node.status ?? 1
@@ -408,6 +419,11 @@ onMounted(() => {
   display: flex;
   align-items: center;
   flex: 1;
+}
+
+.tree-node-icon {
+  margin-right: 4px;
+  font-size: 16px;
 }
 
 .tree-node-label {

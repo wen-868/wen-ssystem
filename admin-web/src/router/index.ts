@@ -82,6 +82,8 @@ const routes = [
       { path: "products/units", name: "Units", component: () => import("../views/Units.vue"), meta: { roles: ["BOSS", "MGR"] } },
       { path: "products/import", name: "ProductImport", component: () => import("../views/ProductImport.vue"), meta: { roles: ["BOSS", "MGR"] } },
       { path: "products/tags", name: "ProductTags", component: () => import("../views/ProductTags.vue"), meta: { roles: ["BOSS", "MGR"] } },
+      { path: "products/tag-groups", name: "TagGroups", component: () => import("../views/TagGroups.vue"), meta: { roles: ["BOSS", "MGR"] } },
+      { path: "products/tag-relation", name: "ProductTagRelation", component: () => import("../views/ProductTagRelation.vue"), meta: { roles: ["BOSS", "MGR"] } },
       { path: "prices", name: "Prices", component: () => import("../views/PricesView.vue"), meta: { roles: ["BOSS", "MGR"] } },
       // 8. 即时零售
       { path: "instant-retail/config", name: "InstantRetailConfig", component: () => import("../views/InstantRetailConfig.vue"), meta: { roles: ["BOSS"] } },
