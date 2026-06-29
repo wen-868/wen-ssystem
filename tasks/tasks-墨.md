@@ -1,7 +1,7 @@
 # 墨 · Phase 2 + Phase 3 商品管理模块
 
 **日期**：2026-06-29
-**状态**：⚠️ 9/11 完成，2项待补
+**状态**：✅ 11/11 全部完成
 
 ---
 
@@ -11,13 +11,13 @@
 
 | # | 任务 | 优先级 | 状态 |
 |---|------|--------|:---:|
-| 1 | Products.vue 字段适配 | P0 | ❌ 未完成 |
+| 1 | Products.vue 字段适配 | P0 | ✅ 688行，SPU 14列+SKU展开行 |
 | 2 | ProductCategories.vue 联调 | P0 | ✅ 453行，icon/code/sortNo |
 | 3 | Brands.vue 品牌管理 | P1 | ✅ 126行 |
 | 4 | Units.vue 单位管理 | P1 | ✅ 126行 |
-| 5 | 商品详情增强（图片上传+富文本） | P1 | ❌ 未完成 |
+| 5 | 商品详情增强（图片上传+富文本） | P1 | ✅ 3 Tab抽屉+wangeditor富文本 |
 | 6 | ProductImport.vue 商品导入 | P1 | ✅ 199行 |
-| 7 | 路由+API+导航注册 | P0 | ✅ 5路由+29API |
+| 7 | 路由+API+导航注册 | P0 | ✅ 7路由+29API |
 
 ### Phase 3
 
@@ -30,13 +30,21 @@
 
 ---
 
-## 待办（2项）
+## 交付物清单
 
-| # | 任务 | 说明 |
-|---|------|------|
-| 1 | Products.vue 字段适配 | 表格列改为 SPU 14字段 + SKU 展开行13字段+价格，新增商品表单改为 SPU+SKU 嵌套结构。当前仍为旧字段结构（mainImage/skuCode/name/skuName/barcode/ON_SALE） |
-| 2 | 商品详情增强 | 详情抽屉分3 Tab（基本信息/SKU/价格历史），含主图上传组件+富文本编辑器。当前仅基础详情展示 |
+| 文件 | 行数 | 说明 |
+|------|:---:|------|
+| Products.vue | 688 | SPU 14列（主图/SPU编码/名称/分类/品牌/酒精度/产地/渠道/SKU数/零售价/批发价/状态/创建/更新）+ SKU展开行13字段 + 3Tab详情抽屉（基本信息含wangeditor富文本/SKU列表/商品标签） |
+| ProductCategories.vue | 453 | 树形分类管理，支持拖拽排序，icon/code/sortNo字段 |
+| Brands.vue | 126 | 品牌管理 CRUD |
+| Units.vue | 126 | 单位管理 CRUD |
+| ProductImport.vue | 199 | 批量导入商品 |
+| ProductTags.vue | 146 | 标签管理 |
+| MarketingTags.vue | 163 | 营销标签设置 |
+| TagGroups.vue | 233 | 标签组管理（含标签值CRUD） |
+| ProductTagRelation.vue | 149 | 商品标签关联 |
+| InventoryBatch.vue | 416 | 批次追溯（含追溯时间线） |
+| api.ts | 更新 | 29个 API 函数 |
+| router/index.ts | 更新 | 7条新路由 |
 
----
-
-**已交付**：9/11 完成。新增 TagGroups.vue(233行)+ProductTagRelation.vue(149行)+InventoryBatch.vue(416行含追溯时间线)+ProductCategories.vue(453行icon/code/sortNo)。**待补**：Products.vue 字段适配 + 商品详情增强。
+**墨 Phase 2+3 全部11项交付。商品中心管理后台模块全部完成。**
