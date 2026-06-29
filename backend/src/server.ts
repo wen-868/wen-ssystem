@@ -52,6 +52,7 @@ import { customerMergeRouter } from "./routes/customer-merge.routes.js";
 import { startOverdueScanner } from "./services/overdue-scanner.service.js";
 import { startSubscriptionExpiryScanner } from "./services/subscription-expiry.service.js";
 import { marketingNewRouter } from "./routes/marketing-new.routes.js";
+import { tagRouter } from "./routes/tag.routes.js";
 import { platformRouter } from "./routes/platform.routes.js";
 
 const app = express();
@@ -115,14 +116,15 @@ app.use("/api/admin/purchase-returns", requireAuthWithTenant, purchaseReturnRout
 app.use("/api/store/customer-statements", requireAuthWithTenant, customerStatementRouter);
 app.use("/api/store/customer-payments", requireAuthWithTenant, customerPaymentRouter);
 app.use("/api/admin/customer-visits", requireAuthWithTenant, customerVisitRouter);
-app.use("/api/admin/products/categories", requireAuthWithTenant, categoryRouter);
-app.use("/api/admin/brands", requireAuthWithTenant, brandRouter);
-app.use("/api/admin/units", requireAuthWithTenant, unitRouter);
+app.use("/api/admin/products/categories", categoryRouter);
+app.use("/api/admin/brands", brandRouter);
+app.use("/api/admin/units", unitRouter);
 app.use("/api/admin/approval", requireAuthWithTenant, approvalRouter);
 app.use("/api/admin/tenants", requireAuthWithTenant, tenantRouter);
 app.use("/api/admin/subscriptions", requireAuthWithTenant, subscriptionRouter);
 app.use("/api/admin/customer-merge", requireAuthWithTenant, customerMergeRouter);
 app.use("/api/admin/marketing-new", requireAuthWithTenant, marketingNewRouter);
+app.use("/api/admin", tagRouter);
 app.use("/api/platform", requireAuthWithTenant, platformRouter);
 
 app.use(errorHandler);

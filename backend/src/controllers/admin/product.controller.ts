@@ -161,3 +161,12 @@ export const importProducts = asyncHandler(async (req, res) => {
   const result = await productService.importProducts(rows, tenantId);
   res.json(ok(result));
 });
+
+export const setMarketingTags = asyncHandler(async (req, res) => {
+  const tenantId = req.tenantId!;
+  const body = z.object({
+    tags: z.array(z.string()),
+  }).parse(req.body);
+  const result = await productService.setMarketingTags(Number(req.params.spuId), body.tags, tenantId);
+  res.json(ok(result));
+});

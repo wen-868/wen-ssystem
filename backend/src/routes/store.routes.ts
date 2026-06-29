@@ -11,6 +11,8 @@ import * as saleBillController from "../controllers/store/sale-bill.controller.j
 import * as inventoryController from "../controllers/store/inventory.controller.js";
 import * as otherController from "../controllers/store/other.controller.js";
 import * as receivableController from "../controllers/store/receivable.controller.js";
+import * as tagController from "../controllers/admin/tag.controller.js";
+import * as batchController from "../controllers/inventory-batch.controller.js";
 
 export const storeRouter = Router();
 
@@ -48,6 +50,10 @@ storeRouter.get("/info", authController.getStoreInfo);
 
 // 产品
 storeRouter.get("/products", productController.listProducts);
+storeRouter.get("/product-categories", productController.getCategories);
+storeRouter.get("/products/:spuId/tags", tagController.getProductTags);
+storeRouter.get("/products/:spuId/batches", batchController.listBatchesBySpu);
+storeRouter.get("/products/:spuId", productController.getProductDetail);
 storeRouter.get("/members", productController.listMembers);
 
 // 订单
@@ -93,3 +99,9 @@ storeRouter.post("/receivables/:receivableNo/payment", receivableController.paym
 // 仪表盘
 storeRouter.get("/dashboard", receivableController.getDashboard);
 storeRouter.get("/daily-sales", receivableController.getDailySales);
+
+// 标签与批次（共用）
+storeRouter.get("/tags", tagController.listTags);
+storeRouter.get("/tag-groups", tagController.listGroups);
+storeRouter.get("/batches/:id", batchController.getBatchDetail);
+storeRouter.get("/batches/:id/trace", batchController.getTraceChain);

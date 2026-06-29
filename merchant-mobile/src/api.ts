@@ -375,7 +375,78 @@ export function createCollectionLink(billNo: string, data: {
 
 /* ========== 商品搜索（用于开单时选商品） ========== */
 
+/* Phase 2 新增 */
+export interface CategoryRecord {
+  id: number
+  parentId: number | null
+  name: string
+  icon: string | null
+  code: string | null
+  sortNo: number
+  status: number
+}
+
+export function fetchCategories() {
+  return api.get('/store/product-categories')
+}
+
+export interface ProductDetailRecord {
+  spuId: number
+  spuCode: string
+  name: string
+  categoryId: number
+  categoryName: string
+  mainImage: string
+  imageUrls: string[]
+  detail: string
+  alcoholContent: number
+  origin: string
+  saleChannels: string[]
+  status: string
+  brand: string
+  unit: string
+  specs: string
+  sortNo: number
+  isNew: number
+  isRecommend: number
+  marketingTags: string[] | null
+  description: string
+  createdAt: string
+  updatedAt: string
+  skus: ProductDetailSku[]
+}
+
+export interface ProductDetailSku {
+  skuId: number
+  spuId: number
+  skuCode: string
+  skuName: string
+  barcode: string
+  alcoholDegree: number
+  skuOrigin: string
+  baseUnit: string
+  boxUnit: string
+  boxRatio: number
+  temperature: string
+  traceEnabled: number
+  warningThreshold: number
+  status: number
+  volume: string
+  packaging: string
+  costPrice: number
+  retailPrice: number
+  wholesalePrice: number
+  miniappPrice: number
+  storePrice: number
+  availableQty: number
+}
+
+export function fetchProductDetail(spuId: number) {
+  return api.get(`/store/products/${spuId}`)
+}
+
 export interface ProductRecord {
+  spuId: number
   skuId: number
   skuCode: string
   productName: string
@@ -387,7 +458,7 @@ export interface ProductRecord {
   availableQty: number
 }
 
-export function fetchProducts(params: { keyword?: string; barcode?: string; category?: string; page?: number; pageSize?: number }) {
+export function fetchProducts(params: { keyword?: string; barcode?: string; category?: string; categoryId?: number; tagIds?: number[]; page?: number; pageSize?: number }) {
   return api.get('/store/products', { params })
 }
 
@@ -442,6 +513,9 @@ export interface AdminProductRecord {
   boxUnit: string
   baseUnit: string
   categoryName: string | null
+  brand?: string | null
+  skuCount?: number
+  totalStock?: number
 }
 
 export interface AdminCustomerRecord {
@@ -1041,4 +1115,105 @@ export function fetchStatementPayments(params: {
   customerId?: number
 }) {
   return api.get('/store/customer-payments', { params })
+}
+
+/* ========== Phase 3: 标签 ========== */
+
+export interface TagGroupRecord {
+  id: number
+  name: string
+  code: string
+  sortNo: number
+  isMultiple: number
+  status: number
+}
+
+export interface TagRecord {
+  id: number
+  groupId: number
+  groupName: string
+  name: string
+  sortNo: number
+  status: number
+}
+
+export interface ProductTagGroups {
+  groups: {
+    groupId: number
+    groupName: string
+    groupCode: string
+    isMultiple: number
+    tags: { id: number; name: string }[]
+  }[]
+  tagIds: number[]
+}
+
+export function fetchTagGroups() {
+  return api.get('/store/tag-groups')
+}
+
+export function fetchTags(groupId?: number) {
+  return api.get('/store/tags', { params: groupId ? { groupId } : undefined })
+}
+
+export function fetchProductTags(spuId: number) {
+  return api.get(`/store/products/${spuId}/tags`)
+}
+
+/* ========== Phase 3: 批次 ========== */
+
+export interface BatchRecord {
+  id: number
+  batch_no: string
+  batchNo?: string
+  sku_id: number
+  sku_name: string
+  skuName?: string
+  storeName?: string
+  production_date: string
+  productionDate?: string
+  expiry_date: string
+  expiryDate?: string
+  quantity: number
+  cost_price: number
+  costPrice?: number
+  locked_quantity?: number
+  created_at?: string
+}
+
+export interface BatchTraceRecord {
+  batch: {
+    id: number
+    batchNo: string
+    productName: string
+    skuName: string
+    productionDate: string
+    expiryDate: string
+    quantity: number
+    costPrice: number
+  }
+  chain: {
+    time: string
+    type: string
+    title: string
+    detail: string
+  }[]
+}
+
+export function fetchBatches(spuId: number) {
+  return api.get(`/store/products/${spuId}/batches`)
+}
+
+export function fetchBatchDetail(batchId: number) {
+  return api.get(`/store/batches/${batchId}`)
+}
+
+export function fetchBatchTrace(batchId: number) {
+  return api.get(`/store/batches/${batchId}/trace`)
+}
+
+/* ========== Phase 3: 营销标签 ========== */
+
+export function setMarketingTags(spuId: number, tags: string[]) {
+  return api.put(`/admin/products/${spuId}/marketing-tags`, { tags })
 }

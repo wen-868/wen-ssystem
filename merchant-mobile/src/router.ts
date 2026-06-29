@@ -15,18 +15,11 @@ const routes: RouteRecordRaw[] = [
     component: () => import('./views/HomeView.vue'),
     meta: { requiresAuth: true, tab: 'home' }
   },
-  {
-    path: '/products',
-    name: 'products',
-    component: () => import('./views/ProductsView.vue'),
-    meta: { requiresAuth: true, tab: 'products' }
-  },
-  {
-    path: '/create-sale',
-    name: 'create-sale',
-    component: () => import('./views/CreateSaleView.vue'),
-    meta: { requiresAuth: true, tab: 'create-sale' }
-  },
+  { path: '/products', name: 'products', component: () => import('./views/ProductsView.vue'), meta: { requiresAuth: true, tab: 'products' } },
+  { path: '/products/:spuId', name: 'product-detail', component: () => import('./views/ProductDetailView.vue'), meta: { requiresAuth: true } },
+  { path: '/products/:spuId/batches', name: 'batch-list', component: () => import('./views/BatchListView.vue'), meta: { requiresAuth: true } },
+  { path: '/batches/:batchId/trace', name: 'batch-trace', component: () => import('./views/BatchTraceView.vue'), meta: { requiresAuth: true } },
+  { path: '/create-sale', name: 'create-sale', component: () => import('./views/CreateSaleView.vue'), meta: { requiresAuth: true, tab: 'create-sale' } },
   {
     path: '/function-center',
     name: 'function-center',

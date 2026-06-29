@@ -39,6 +39,7 @@ adminRouter.put("/products/:id/disable", requireAuthWithTenant, productControlle
 adminRouter.get("/products/:skuId/price-history", requireAuthWithTenant, productController.getProductPriceHistory);
 adminRouter.put("/products/:skuId/price", requireAuthWithTenant, productController.updateProductPrice);
 adminRouter.post("/products/import", requireAuthWithTenant, productController.importProducts);
+adminRouter.put("/products/:spuId/marketing-tags", requireAuthWithTenant, productController.setMarketingTags);
 
 // ============ 订单管理 ============
 adminRouter.get("/orders", requireAuthWithTenant, orderController.listOrders);

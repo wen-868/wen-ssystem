@@ -12,7 +12,7 @@ export async function listProducts(keyword: string, page: number, pageSize: numb
             p.alcohol_content AS alcoholContent, p.origin, p.main_image AS mainImage,
             p.image_urls AS imageUrls, p.detail, p.sale_channels AS saleChannels,
             p.sort_no AS sortNo, p.is_new AS isNew, p.is_recommend AS isRecommend,
-            p.description, p.status,
+            p.description, p.marketing_tags AS marketingTags, p.status,
             s.id AS skuId, s.sku_code AS skuCode, s.sku_name AS skuName, s.barcode,
             s.volume, s.packaging, s.base_unit AS baseUnit, s.box_unit AS boxUnit,
             s.box_ratio AS boxRatio, s.temperature, s.trace_enabled AS traceEnabled,
@@ -51,7 +51,7 @@ export async function getProductDetail(spuId: number, tenantId: string) {
             p.main_image AS mainImage, p.image_urls AS imageUrls, p.detail,
             p.sale_channels AS saleChannels, p.sort_no AS sortNo,
             p.is_new AS isNew, p.is_recommend AS isRecommend,
-            p.description, p.status, p.created_at AS createdAt, p.updated_at AS updatedAt
+            p.description, p.marketing_tags AS marketingTags, p.status, p.created_at AS createdAt, p.updated_at AS updatedAt
      FROM product_spu p
      LEFT JOIN product_category pc ON pc.id = p.category_id
      WHERE p.id = ? AND p.tenant_id = ?`,
@@ -390,4 +390,14 @@ export async function importProducts(
     }
   }
   return { successCount, failCount: errors.length, errors };
+}
+
+// 营销标签设置
+export async function setMarketingTags(spuId: number, tags: string[], tenantId: string) {
+  await queryWithTenant(
+    "UPDATE product_spu SET marketing_tags = ? WHERE id = ? AND tenant_id = ?",
+    [JSON.stringify(tags), spuId, tenantId],
+    tenantId
+  );
+  return { spuId, marketingTags: tags };
 }

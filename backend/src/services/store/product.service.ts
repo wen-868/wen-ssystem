@@ -1,16 +1,67 @@
 import { query, queryOne, queryWithTenant, queryOneWithTenant } from "../../shared/db.js";
 
+export async function getCategories(tenantId: string) {
+  const records = await queryWithTenant<any>(
+    `SELECT id, name, parent_id AS parentId, sort_no AS sortNo
+     FROM product_category
+     WHERE tenant_id = ? AND status = 1
+     ORDER BY sort_no ASC, id ASC`,
+    [tenantId],
+    tenantId
+  );
+  return { records };
+}
+
+export async function getProductDetail(spuId: number, tenantId: string) {
+  const spu = await queryOneWithTenant<any>(
+    `SELECT p.id, p.spu_code AS spuCode, p.name, p.category_id AS categoryId,
+            pc.name AS categoryName, p.brand, p.unit, p.specs,
+            p.alcohol_content AS alcoholContent, p.origin,
+            p.main_image AS mainImage, p.image_urls AS imageUrls, p.detail,
+            p.sale_channels AS saleChannels, p.sort_no AS sortNo,
+            p.is_new AS isNew, p.is_recommend AS isRecommend,
+            p.marketing_tags AS marketingTags,
+            p.description, p.status, p.created_at AS createdAt, p.updated_at AS updatedAt
+     FROM product_spu p
+     LEFT JOIN product_category pc ON pc.id = p.category_id
+     WHERE p.id = ? AND p.tenant_id = ? AND p.status = 'ON_SALE'`,
+    [spuId, tenantId], tenantId
+  );
+  if (!spu) throw Object.assign(new Error("商品不存在"), { statusCode: 404 });
+
+  const skus = await queryWithTenant<any>(
+    `SELECT s.id, s.sku_code AS skuCode, s.sku_name AS skuName, s.barcode,
+            s.volume, s.packaging, s.base_unit AS baseUnit, s.box_unit AS boxUnit,
+            s.box_ratio AS boxRatio, s.temperature, s.trace_enabled AS traceEnabled,
+            s.warning_threshold AS warningThreshold,
+            pp.cost_price AS costPrice, pp.retail_price AS retailPrice,
+            pp.wholesale_price AS wholesalePrice, pp.miniapp_price AS miniappPrice,
+            pp.store_price AS storePrice,
+            COALESCE(ib.available_qty, 0) AS availableQty
+     FROM product_sku s
+     LEFT JOIN product_price pp ON pp.sku_id = s.id
+     LEFT JOIN inventory_balance ib ON ib.sku_id = s.id AND ib.stock_type = 'OFFLINE'
+     WHERE s.spu_id = ? AND s.tenant_id = ?
+     ORDER BY s.id ASC`,
+    [spuId, tenantId], tenantId
+  );
+
+  return { ...spu, skus };
+}
+
 export async function listProducts(params: {
   keyword?: string;
   barcode?: string;
+  categoryId?: number;
+  tagIds?: number[];
   storeId: number;
   tenantId: string;
 }) {
-  const { keyword = "", barcode = "", storeId, tenantId } = params;
-  const records = await queryWithTenant<any>(
-    `SELECT s.id AS skuId, s.sku_code AS skuCode, p.name AS productName, s.sku_name AS skuName,
-            s.barcode, pp.retail_price AS retailPrice, pp.wholesale_price AS wholesalePrice,
-            pp.store_price AS storePrice, ib.available_qty AS availableQty
+  const { keyword = "", barcode = "", categoryId, tagIds, storeId, tenantId } = params;
+  let sql = `SELECT s.id AS skuId, s.sku_code AS skuCode, p.name AS productName, p.id AS spuId,
+            s.sku_name AS skuName, s.barcode, pp.retail_price AS retailPrice,
+            pp.wholesale_price AS wholesalePrice, pp.store_price AS storePrice,
+            ib.available_qty AS availableQty
      FROM product_sku s
      JOIN product_spu p ON p.id = s.spu_id AND p.tenant_id = s.tenant_id
      JOIN product_price pp ON pp.sku_id = s.id AND pp.tenant_id = s.tenant_id
@@ -18,12 +69,22 @@ export async function listProducts(params: {
      WHERE s.tenant_id = ?
        AND p.status = 'ON_SALE'
        AND (? = '' OR p.name LIKE ? OR s.sku_name LIKE ? OR s.sku_code LIKE ?)
-       AND (? = '' OR s.barcode = ?)
-     ORDER BY s.id DESC
-     LIMIT 50`,
-    [storeId, tenantId, keyword, `%${keyword}%`, `%${keyword}%`, `%${keyword}%`, barcode, barcode],
-    tenantId
-  );
+       AND (? = '' OR s.barcode = ?)`;
+  const paramsArr: unknown[] = [storeId, tenantId, keyword, `%${keyword}%`, `%${keyword}%`, `%${keyword}%`, barcode, barcode];
+
+  if (categoryId) {
+    sql += ` AND p.category_id = ?`;
+    paramsArr.push(categoryId);
+  }
+
+  if (tagIds && tagIds.length > 0) {
+    sql += ` AND p.id IN (SELECT DISTINCT ptr.spu_id FROM product_tag_relation ptr WHERE ptr.tag_id IN (${tagIds.map(() => '?').join(',')}))`;
+    paramsArr.push(...tagIds);
+  }
+
+  sql += ` ORDER BY s.id DESC LIMIT 50`;
+
+  const records = await queryWithTenant<any>(sql, paramsArr, tenantId);
   return { records };
 }
 
