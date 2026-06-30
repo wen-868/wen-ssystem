@@ -9,6 +9,7 @@ import * as reportController from "../controllers/admin/report.controller.js";
 import * as dailySettlementController from "../controllers/admin/daily-settlement.controller.js";
 import * as memberController from "../controllers/admin/member.controller.js";
 import * as lifecycleController from "../controllers/admin/customer-lifecycle.controller.js";
+import * as financeDashboardController from "../controllers/admin/finance-dashboard.controller.js";
 
 export const adminRouter = Router();
 
@@ -116,3 +117,12 @@ adminRouter.get("/members/benefits", requireAuthWithTenant, memberController.get
 adminRouter.get("/members/lifecycle/stages", requireAuthWithTenant, lifecycleController.getLifecycleStages);
 adminRouter.get("/members/lifecycle/trend", requireAuthWithTenant, lifecycleController.getLifecycleTrend);
 adminRouter.get("/members/lifecycle/detail", requireAuthWithTenant, lifecycleController.getLifecycleDetail);
+
+// ============ Phase 7: 财务驾驶舱 ============
+adminRouter.get("/finance/dashboard", requireAuthWithTenant, financeDashboardController.getFinanceDashboard);
+adminRouter.get("/finance/daily-report", requireAuthWithTenant, financeDashboardController.getDailyReport);
+adminRouter.get("/finance/monthly-report", requireAuthWithTenant, financeDashboardController.getMonthlyReport);
+adminRouter.get("/finance/cash-flow", requireAuthWithTenant, financeDashboardController.getCashFlow);
+adminRouter.get("/finance/profit-trend", requireAuthWithTenant, financeDashboardController.getProfitTrend);
+adminRouter.get("/finance/top-customers-ar", requireAuthWithTenant, financeDashboardController.getTopCustomersAR);
+adminRouter.get("/finance/top-suppliers-ap", requireAuthWithTenant, financeDashboardController.getTopSuppliersAP);

@@ -69,6 +69,11 @@ import { storeValueCardRouter } from "./routes/store-value-card.routes.js";
 import { customerTagRouter } from "./routes/customer-tag.routes.js";
 import { customerCareRouter } from "./routes/customer-care.routes.js";
 import { customerSegmentRouter } from "./routes/customer-segment.routes.js";
+import { receiptRouter } from "./routes/receipt.routes.js";
+import { paymentNewRouter } from "./routes/payment-new.routes.js";
+import { receivableRouter } from "./routes/receivable.routes.js";
+import { expenseRouter } from "./routes/expense.routes.js";
+import { reconciliationRouter } from "./routes/reconciliation.routes.js";
 
 const app = express();
 
@@ -171,6 +176,11 @@ app.use("/api/admin/store-value-cards", requireAuthWithTenant, storeValueCardRou
 app.use("/api/admin/members/tags", requireAuthWithTenant, customerTagRouter);
 app.use("/api/admin/members/care", requireAuthWithTenant, customerCareRouter);
 app.use("/api/admin/members/segments", requireAuthWithTenant, customerSegmentRouter);
+app.use("/api/admin/receipts", requireAuthWithTenant, receiptRouter);
+app.use("/api/admin/payments-new", requireAuthWithTenant, paymentNewRouter);
+app.use("/api/admin/receivables", requireAuthWithTenant, receivableRouter);
+app.use("/api/admin/expenses", requireAuthWithTenant, expenseRouter);
+app.use("/api/admin/reconciliation", requireAuthWithTenant, reconciliationRouter);
 
 app.use(errorHandler);
 
