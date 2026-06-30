@@ -1,4 +1,4 @@
-# 阿坚 · 即时零售模块 · 后端核心
+# 阿坚 · 订单管理模块 · 后端核心
 
 **日期**：2026-06-30
 **状态**：待开始
@@ -9,82 +9,57 @@
 
 | # | 任务 | 优先级 | 状态 |
 |---|------|--------|:---:|
-| 1 | 即时零售数据库DDL - 9张缺失表迁移脚本 | P0 | :x: |
-| 2 | 路由修复+控制器挂载 - instant-retail-new.routes.ts | P0 | :x: |
-| 3 | 平台对接完善 - platform_config CRUD + OAuth + 连接测试 | P0 | :x: |
-| 4 | 商品上架同步 + 库存原子扣减 | P0 | :x: |
-| 5 | 履约调度 + 缺货异常处理 | P0 | :x: |
-| 6 | 平台对账 + 评价 + 零售经营分析API | P1 | :x: |
+| 1 | 全渠道订单聚合 - DDL迁移 + 聚合API | P0 | :x: |
+| 2 | 订单分发与路由 - 路由规则 + 分发API | P0 | :x: |
+| 3 | 订单状态同步 - 双向同步引擎 + 同步API | P0 | :x: |
+| 4 | 订单异常处理 - 异常检测 + 处理API | P0 | :x: |
+| 5 | 全渠道商品映射 - 映射表DDL + CRUD API | P0 | :x: |
+| 6 | 订单售后聚合 - 统一售后DDL + API | P1 | :x: |
 
 ---
 
 ## 详细说明
 
-### 1. 即时零售数据库DDL
-- **文件**：`docs/migrations/add_instant_retail_tables.sql`
+### 1. 全渠道订单聚合 - DDL迁移 + 聚合API
+- **文件**：`docs/migrations/add_order_management.sql`（新建）、`backend/src/routes/order-center.routes.ts`（新建）、`backend/src/controllers/admin/order-center.controller.ts`（新建）、`backend/src/services/admin/order-center.service.ts`（新建）
 - **关键字段**：
-  - `platform_config` - 平台+store_id+app_key+app_secret+merchant_id+access_token+refresh_token+token_expire_at+enabled+config_json
-  - `platform_order` - platform_order_id+platform+store_id+status+order_data_json+created_at+updated_at
-  - `platform_product_map` - platform+store_id+local_sku_id+platform_sku_id+platform_spu_id+sync_status
-  - `retail_shop_config` - shop_name+shop_logo+shop_description+contact_phone+business_hours+delivery_enabled+pickup_enabled+min_order_amount+delivery_fee+delivery_radius+estimated_delivery_time+announcement+status
-  - `retail_category` - category_name+category_icon+parent_id+sort_order+status
-  - `retail_product` - product_id+category_id+retail_price+original_price+stock+sales_count+is_recommended+is_hot+is_new+sort_order+status
-  - `retail_order` - order_no+user_id+total_amount+discount_amount+delivery_fee+pay_amount+delivery_type+delivery_address+receiver_name+receiver_phone+receiver_latitude+receiver_longitude+remark+payment_status+payment_method+payment_time+transaction_no+order_status+cancel_reason
-  - `retail_order_item` - order_id+product_id+product_name+product_image+price+quantity+subtotal
-  - `retail_banner` - banner_title+banner_image+link_type+link_value+sort_order+status+start_time+end_time
-- **说明**：创建全部9张即时零售核心表的DDL迁移脚本，需包含完整字段定义、索引（tenant_id、status、platform等）、外键约束（retail_order_item->retail_order）、ENGINE=InnoDB、CHARSET=utf8mb4。参考现有 `docs/phase10_instant_retail.sql` 进行扩展，确保与现有 service 层代码中查询的字段名称一致。
+  - `channel_order` 表：channel_order_id、channel（WECHAT/DOUYIN/MEITUAN/JD/ELEME/OFFLINE）、channel_order_no、channel_status、tenant_id、store_id、customer_id、customer_name、customer_phone、total_amount、discount_amount、delivery_fee、pay_amount、order_status（PENDING/CONFIRMED/PROCESSING/SHIPPED/COMPLETED/CANCELLED）、payment_status（UNPAID/PAID/REFUNDED）、channel_raw_data（JSON）、pulled_at、synced_at、created_at、updated_at
+  - `channel_order_item` 表：channel_order_id、channel_sku_id、channel_sku_name、local_sku_id、local_sku_name、price、quantity、subtotal
+  - 聚合API：GET /admin/order-center/channel-orders（分页+渠道筛选+状态筛选+日期范围+搜索）、GET /admin/order-center/channel-orders/:id（详情含商品明细）、POST /admin/order-center/channel-orders/pull（手动拉取渠道订单）、GET /admin/order-center/channel-orders/stats（各渠道订单统计）
+- **说明**：创建全渠道订单聚合表，将所有渠道（微信小程序、抖音、美团、饿了么、京东、线下）的订单统一入库到 `channel_order` 表。实现聚合API支持多维度筛选（渠道、状态、日期、关键词）。渠道订单原始数据以JSON格式存储在 `channel_raw_data` 字段中，保留各平台特有字段。整合现有 `order.controller.ts` 的 `listOrders` 逻辑，复用 `order.service.ts` 中的查询方法。路由注册到 `server.ts`：`app.use("/api/admin/order-center", requireAuthWithTenant, orderCenterRouter)`。
 
-### 2. 路由修复+控制器挂载
-- **文件**：`backend/src/routes/instant-retail-new.routes.ts`
-- **关键字段**：11个控制器方法 + 3个Webhook端点 + 管理后台CRUD端点 + 门店操作端点
-- **说明**：当前 `server.ts` 第16行导入 `./routes/instant-retail-new.routes.js`，但该文件不存在，系统启动会报错。需创建此文件，整合以下控制器：
-  - `controllers/admin/instant-retail.controller.ts` - 17个方法（getShopConfig/saveShopConfig/listCategories/createCategory/listRetailProducts/addRetailProduct/listRetailOrders/getRetailOrderDetail/updateRetailOrderStatus/listBanners/createBanner + 已挂载的11个方法）
-  - `controllers/instant-retail/fulfillment.controller.ts` - startDelivery/completeDelivery
-  - `controllers/instant-retail/order-receiving.controller.ts` - listOrders/getOrderDetail/confirmOrder/cancelOrder
-  - `controllers/instant-retail/platform-integration.controller.ts` - 3个Webhook + getPlatforms/getConfigs/getConfigByPlatform/upsertConfig/testConnection/syncOrders/syncProducts/deleteConfig
-  - 路由分组：`/webhook/*`（无需认证）、`/admin/*`（requireAuthWithTenant）、`/store/*`（storeAuth）
-  - 同时修复 `server.ts` 路径（如需要改为 `.ts` 扩展名或保持 `.js` 编译后引用）
-
-### 3. 平台对接完善
-- **文件**：`backend/src/services/instant-retail/`
-- **关键字段**：platform_config 完整CRUD、OAuth令牌刷新、连接测试
-- **说明**：
-  - 完善 `platform-integration.service.ts` 中的 `upsertConfig` 方法，增加 access_token/refresh_token/token_expire_at 字段的持久化
-  - 实现 OAuth Token 自动刷新：在 `testConnection` 和 `authenticate` 中检测 token 过期状态，自动调用 refresh_token 续期
-  - 完善 `getPlatforms` 返回每个平台的完整状态（enabled/configured/storeId/merchantId/tokenExpireAt）
-  - 实现 `common.service.ts` 中 `getPlatformConfigWithTenant` 的完整逻辑，支持按 storeId 查询
-  - 确保 JD/美团/饿了么三个适配器的 `authenticate()` 方法返回正确的 `PlatformCredentials` 结构
-
-### 4. 商品上架同步 + 库存原子扣减
-- **文件**：`backend/src/services/instant-retail/`（新增 `product-sync.service.ts`、`inventory-deduction.service.ts`）
+### 2. 订单分发与路由 - 路由规则 + 分发API
+- **文件**：`backend/src/services/admin/order-routing.service.ts`（新建）、`backend/src/controllers/admin/order-routing.controller.ts`（新建）、`backend/src/routes/order-routing.routes.ts`（新建）
 - **关键字段**：
-  - 商品同步：platform_product_map（local_sku_id/platform_sku_id/platform_spu_id/sync_status）、批量同步状态流转（UNSYNCED->PENDING->SYNCED/FAILED）
-  - 库存扣减：Redis DECR原子操作、数据库行级锁（SELECT ... FOR UPDATE）、库存不足拒单
-- **说明**：
-  - 实现 `platform_product_map` 的CRUD服务，支持平台商品映射关系的增删改查
-  - 批量商品同步：从 `retail_product` 表读取商品，通过平台适配器 `syncProducts()` 推送到各平台，更新 `sync_status`
-  - 库存原子扣减：下单时使用 Redis DECR 原子扣减库存，失败则回滚并拒绝订单；定时将 Redis 库存回写数据库
-  - 处理并发场景：同一商品多用户同时下单时，确保库存扣减的原子性和一致性
+  - `order_routing_rule` 表：rule_name、channel、store_id、warehouse_id、priority、condition_json（JSON：区域/金额/商品类别/时间段等条件）、action_type（ASSIGN_STORE/ASSIGN_WAREHOUSE/SPLIT）、is_enabled、created_at、updated_at
+  - `order_dispatch_log` 表：channel_order_id、rule_id、from_store_id、to_store_id、from_warehouse_id、to_warehouse_id、dispatch_status（PENDING/ASSIGNED/FAILED）、dispatch_reason、created_at
+  - 路由API：GET /admin/order-routing/rules（规则列表）、POST /admin/order-routing/rules（创建规则）、PUT /admin/order-routing/rules/:id（更新规则）、DELETE /admin/order-routing/rules/:id（删除规则）、POST /admin/order-routing/dispatch（手动触发分发）、GET /admin/order-routing/dispatch-logs（分发日志）
+- **说明**：实现订单智能分发路由引擎。核心逻辑：订单到达后根据路由规则（区域、商品类别、仓库库存、门店接单能力）自动分配到对应门店/仓库。支持条件匹配（condition_json 存储匹配条件：region/amount_range/category_ids/time_range），支持优先级排序（priority越小越优先）。分发日志记录每次路由决策的原因和结果。路由注册：`app.use("/api/admin/order-routing", requireAuthWithTenant, orderRoutingRouter)`。
 
-### 5. 履约调度 + 缺货异常处理
-- **文件**：`backend/src/services/instant-retail/fulfillment.service.ts`（扩展）、新增 `shortage-handler.service.ts`
+### 3. 订单状态同步 - 双向同步引擎 + 同步API
+- **文件**：`backend/src/services/admin/order-sync.service.ts`（新建）、`backend/src/controllers/admin/order-sync.controller.ts`（新建）、`backend/src/routes/order-sync.routes.ts`（新建）
 - **关键字段**：
-  - 履约调度：delivery_type（SELF/PLATFORM/THIRD_PARTY）、配送路由规则、骑手分配
-  - 缺货处理：缺货检测（stock < quantity）、自动拒单（rejectOrder）、平台通知、库存预警
-- **说明**：
-  - 扩展 `fulfillment.service.ts`：实现自配送（SELF）和第三方配送（THIRD_PARTY）的路由逻辑
-  - 配送路由规则：根据订单金额、距离、时段自动选择配送方式
-  - 缺货检测：接单时实时检测库存，库存不足自动调用平台 `rejectOrder` 并通知管理员
-  - 异常处理：配送超时自动告警、骑手无响应转单、订单取消后库存回退
+  - `order_sync_log` 表：channel_order_id、sync_type（PULL_STATUS/PUSH_STATUS）、from_status、to_status、channel、sync_result（SUCCESS/FAILED）、error_message、synced_at、created_at
+  - 同步API：GET /admin/order-sync/logs（同步日志分页）、POST /admin/order-sync/pull-status（手动拉取渠道订单状态）、POST /admin/order-sync/push-status（推送系统状态到渠道）、POST /admin/order-sync/batch-sync（批量同步）、GET /admin/order-sync/stats（同步统计）
+- **说明**：实现订单状态双向同步引擎。PULL：定时从各渠道（微信/抖音/美团/饿了么/京东）拉取订单最新状态，更新 `channel_order.order_status`；PUSH：当系统内订单状态变更时（如发货、完成），推送状态到对应渠道。同步日志记录每次同步的详细信息（来源状态、目标状态、结果、错误信息）。定时任务每5分钟执行一次状态拉取。复用现有 `instant-retail` 的平台适配器（JD/美团/饿了么）进行状态同步。路由注册：`app.use("/api/admin/order-sync", requireAuthWithTenant, orderSyncRouter)`。
 
-### 6. 平台对账 + 评价 + 零售经营分析API
-- **文件**：`backend/src/services/instant-retail/`（新增 `reconciliation.service.ts`、`review.service.ts`、`retail-analytics.service.ts`）
+### 4. 订单异常处理 - 异常检测 + 处理API
+- **文件**：`backend/src/services/admin/order-exception.service.ts`（新建）、`backend/src/controllers/admin/order-exception.controller.ts`（新建）、`backend/src/routes/order-exception.routes.ts`（新建）
 - **关键字段**：
-  - 对账：佣金费率（commission_rate）、平台实收（platform_amount）、对账差异（diff_amount）、对账状态（reconciliation_status）
-  - 评价：评分（rating）、评价内容（review_content）、评价回复（reply）、评价标签（review_tags）
-  - 经营分析：销售额（sales_amount）、毛利（gross_profit）、订单量（order_count）、客单价（avg_order_amount）、平台对比（platform_comparison）
-- **说明**：
-  - 平台对账：实现佣金计算逻辑（按平台费率），生成对账报表，标记差异项
-  - 评价同步：从各平台拉取用户评价数据，存储到 `retail_review` 表，支持回复功能
-  - 零售经营分析API：提供 `GET /admin/instant-retail/reports/summary`（汇总）、`GET /admin/instant-retail/reports/trend`（趋势）、`GET /admin/instant-retail/reports/platform-compare`（平台对比）三个端点
-  - 数据来源：`retail_order` + `retail_order_item` + `platform_order` 联合查询
+  - `order_exception` 表：channel_order_id、exception_type（SHORTAGE/CANCEL/REFUND/TIMEOUT/DELIVERY_FAIL/PAYMENT_FAIL/OTHER）、exception_level（WARNING/ERROR/CRITICAL）、exception_detail（JSON：异常详情）、handle_status（PENDING/PROCESSING/RESOLVED/CLOSED）、handler_id、handle_remark、handle_result、created_at、handled_at、resolved_at
+  - 异常API：GET /admin/order-exception/list（异常列表分页+类型筛选+状态筛选）、GET /admin/order-exception/:id（异常详情）、POST /admin/order-exception/:id/handle（处理异常）、POST /admin/order-exception/:id/resolve（标记已解决）、GET /admin/order-exception/stats（异常统计：按类型/按渠道/按时间）
+- **说明**：实现订单异常统一处理中心。异常检测：自动检测缺货、取消、退款、超时、配送失败、支付失败等异常类型，生成异常记录。处理流程：PENDING（待处理）-> PROCESSING（处理中，分配处理人+填写处理方案）-> RESOLVED（已解决）/ CLOSED（已关闭）。异常统计：按类型（缺货占比/取消率/退款率）、按渠道（各渠道异常率）、按时间（异常趋势）生成统计。与现有 `order-timeout` 模块集成，超时异常自动流转到异常处理中心。路由注册：`app.use("/api/admin/order-exception", requireAuthWithTenant, orderExceptionRouter)`。
+
+### 5. 全渠道商品映射 - 映射表DDL + CRUD API
+- **文件**：`docs/migrations/add_order_product_map.sql`（新建）、`backend/src/controllers/admin/order-product-map.controller.ts`（新建）、`backend/src/routes/order-product-map.routes.ts`（新建）、`backend/src/services/admin/order-product-map.service.ts`（新建）
+- **关键字段**：
+  - `order_product_map` 表：channel（WECHAT/DOUYIN/MEITUAN/JD/ELEME）、store_id、local_sku_id、channel_sku_id、channel_spu_id、channel_product_name、channel_price、sync_status（UNSYNCED/SYNCED/FAILED）、last_synced_at、created_at、updated_at
+  - 映射API：GET /admin/order-product-map/list（分页+渠道筛选+状态筛选+搜索）、POST /admin/order-product-map（创建映射）、PUT /admin/order-product-map/:id（更新映射）、DELETE /admin/order-product-map/:id（删除映射）、POST /admin/order-product-map/batch-import（批量导入映射）、POST /admin/order-product-map/sync（手动触发同步）、GET /admin/order-product-map/mismatch（未映射商品列表）
+- **说明**：创建全渠道商品映射表，建立各渠道商品编码与系统本地SKU的对应关系。区别于 `platform_product_map`（即时零售专用），本表覆盖所有订单渠道（微信/抖音/线下等）。支持批量导入映射（CSV/Excel），支持手动创建和编辑映射关系。未映射商品列表：列出所有渠道订单中 `channel_sku_id` 未匹配到本地SKU的商品，提示管理员完成映射。复用 `instant-retail` 中的 `platform_product_map` 同步逻辑。路由注册：`app.use("/api/admin/order-product-map", requireAuthWithTenant, orderProductMapRouter)`。
+
+### 6. 订单售后聚合 - 统一售后DDL + API
+- **文件**：`docs/migrations/add_order_aftersale.sql`（新建）、`backend/src/controllers/admin/order-aftersale.controller.ts`（新建）、`backend/src/routes/order-aftersale.routes.ts`（新建）、`backend/src/services/admin/order-aftersale.service.ts`（新建）
+- **关键字段**：
+  - `order_aftersale` 表：channel_order_id、channel、aftersale_no、aftersale_type（REFUND_ONLY/RETURN_REFUND/EXCHANGE/REPAIR）、reason、reason_detail、images（JSON数组）、refund_amount、aftersale_status（PENDING/APPROVED/REJECTED/WAIT_RECEIPT/WAIT_INSPECT/COMPLETED/CLOSED）、handler_id、handle_remark、return_logistics_no、return_logistics_company、channel_raw_data（JSON）、created_at、handled_at、completed_at
+  - 售后API：GET /admin/order-aftersale/list（分页+渠道筛选+类型筛选+状态筛选+搜索）、GET /admin/order-aftersale/:id（详情）、POST /admin/order-aftersale/:id/approve（审核通过）、POST /admin/order-aftersale/:id/reject（审核拒绝）、POST /admin/order-aftersale/:id/complete（完成售后）、GET /admin/order-aftersale/stats（售后统计：按类型/按渠道/按时间）
+- **说明**：创建全渠道售后统一聚合表，将各渠道的售后申请统一管理。整合现有 `aftersale.routes.ts` 中的售后逻辑，扩展为支持多渠道路由。售后状态流转：PENDING -> APPROVED/REJECTED -> WAIT_RECEIPT（退货收货）-> WAIT_INSPECT（质检）-> COMPLETED/CLOSED。退款金额自动关联渠道订单实付金额。售后统计：售后率（按渠道/按商品）、退款金额趋势、售后类型分布。路由注册：`app.use("/api/admin/order-aftersale", requireAuthWithTenant, orderAftersaleRouter)`。
