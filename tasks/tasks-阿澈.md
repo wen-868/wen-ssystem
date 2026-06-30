@@ -1,7 +1,7 @@
-# 阿澈 · 库存管理模块 · 商户移动端
+# 阿澈 · 客户管理模块 · 商户移动端
 
 **日期**：2026-06-30
-**状态**：已完成
+**状态**：待开始
 
 ---
 
@@ -9,40 +9,53 @@
 
 | # | 任务 | 优先级 | 状态 |
 |---|------|--------|:---:|
-| 1 | 盘点页面 | P0 | ✅ |
-| 2 | 调拨页面 | P0 | ✅ |
+| 1 | 客户积分明细页 | P0 | ❌ |
+| 2 | 储值卡管理页 | P0 | ❌ |
+| 3 | 会员卡展示页 | P0 | ❌ |
+| 4 | 客户标签编辑页 | P1 | ❌ |
 
 ---
 
 ## 详细说明
 
-### 1. 盘点页面
-- **文件**：新建 `merchant-mobile/src/views/InventoryCheckView.vue` + `merchant-mobile/src/views/InventoryCheckExecuteView.vue`
+### 1. 客户积分明细页
+- **文件**：新建 `merchant-mobile/src/views/CustomerPointsView.vue`
 - **功能**：
-  - **InventoryCheckView.vue**：
-    - 盘点单列表（盘点编号/仓库/状态/盘点SKU数/创建时间）
-    - 状态筛选：待盘点/已盘点/已审核
-    - 新建盘点单按钮（选择仓库→生成盘点单）
-  - **InventoryCheckExecuteView.vue**：
-    - 盘点SKU列表（商品名称/账面数量/实际数量输入框/差异）
-    - 扫码输入（点击扫码按钮调起摄像头扫描条码）
-    - 手动输入实际数量
-    - 差异自动计算（红色标记）
-    - 提交盘点（二次确认）
-- **API**：`fetchInventoryChecks`、`createInventoryCheck`、`getInventoryCheckDetail`、`submitInventoryCheck`
-- **路由**：`/inventory-checks`、`/inventory-checks/:checkNo/execute`
+  - 积分余额卡片（当前积分/累计积分/等级）
+  - 积分获取记录列表（时间/来源/积分/余额）
+  - 积分消耗记录列表
+  - 手动调整积分（管理员权限，输入积分+原因）
+  - 积分规则说明（消费积分比例等）
+- **API**：`fetchCustomerPoints(customerId)`、`fetchCustomerPointsRecords(customerId, type)`、`adjustCustomerPoints(customerId, payload)`
+- **路由**：`/customer-points/:customerId`
 
-### 2. 调拨页面
-- **文件**：新建 `merchant-mobile/src/views/InventoryTransferView.vue` + `merchant-mobile/src/views/InventoryTransferDetailView.vue`
+### 2. 储值卡管理页
+- **文件**：新建 `merchant-mobile/src/views/StoreValueCardView.vue`
 - **功能**：
-  - **InventoryTransferView.vue**：
-    - 调拨单列表（调拨编号/调出仓库/调入仓库/状态/金额/创建时间）
-    - 状态筛选：待发货/已发货/已收货
-    - 新建调拨单按钮（选择调出仓库+调入仓库+商品）
-  - **InventoryTransferDetailView.vue**：
-    - 调拨单详情：调出/调入仓库信息、商品明细、状态标签
-    - 出库确认：调出方点击确认出库（减少调出仓库存）
-    - 入库确认：调入方点击确认入库（增加调入仓库存）
-    - 状态流转：待发货→已发货→已收货
-- **API**：`fetchTransferOrders`、`createTransferOrder`、`getTransferOrderDetail`、`confirmTransferOut`、`confirmTransferIn`
-- **路由**：`/inventory-transfers`、`/inventory-transfers/:transferNo`
+  - 储值卡余额展示（卡片样式：余额/卡号/状态）
+  - 充值操作（输入金额+选择支付方式）
+  - 消费记录列表（时间/类型/金额/余额）
+  - 快速充值（固定金额按钮：100/200/500/1000）
+- **API**：`fetchStoreValueCard(customerId)`、`rechargeStoreValueCard(cardNo, payload)`、`fetchStoreValueTransactions(cardNo)`
+- **路由**：`/store-value-card/:customerId`
+
+### 3. 会员卡展示页
+- **文件**：新建 `merchant-mobile/src/views/MemberCardView.vue`
+- **功能**：
+  - 会员卡正面（等级图标/会员名/积分/有效期/二维码）
+  - 会员权益列表（各等级对应折扣/生日礼包/优先配送等）
+  - 积分快速查看入口
+  - 储值卡快速查看入口
+  - 消费记录最近3笔
+- **API**：`fetchMemberCard(customerId)`、`fetchMemberBenefits()`
+- **路由**：`/member-card/:customerId`
+
+### 4. 客户标签编辑页
+- **文件**：新建 `merchant-mobile/src/views/CustomerTagEditView.vue`
+- **功能**：
+  - 标签云展示（当前客户已打标签，可删除）
+  - 可选标签列表（分组展示，点击添加/移除）
+  - 客户画像简要信息（偏好品类/消费频次/平均客单价）
+  - 保存标签变更
+- **API**：`fetchCustomerTags(customerId)`、`fetchAllTags()`、`addCustomerTag(customerId, tagId)`、`removeCustomerTag(customerId, tagId)`
+- **路由**：`/customer-tags/:customerId`
