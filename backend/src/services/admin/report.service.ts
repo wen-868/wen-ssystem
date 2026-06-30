@@ -196,3 +196,95 @@ export async function listRefundOrders(tenantId: string, page: number, pageSize:
   const totalRow = await queryOneWithTenant<any>("SELECT COUNT(*) AS total FROM refund_order WHERE tenant_id = ?", [tenantId], tenantId);
   return { total: totalRow?.total ?? 0, page, pageSize, records };
 }
+
+// ============ 分享链接管理 ============
+
+export async function getCollectionLinkStats(tenantId: string) {
+  const total = await queryOneWithTenant<any>("SELECT COUNT(*) AS total FROM collection_link WHERE tenant_id = ?", [tenantId], tenantId);
+  const paid = await queryOneWithTenant<any>("SELECT COUNT(*) AS cnt FROM collection_link WHERE tenant_id = ? AND status = 'PAID'", [tenantId], tenantId);
+  const revoked = await queryOneWithTenant<any>("SELECT COUNT(*) AS cnt FROM collection_link WHERE tenant_id = ? AND status = 'REVOKED'", [tenantId], tenantId);
+  const channels = await queryWithTenant<any>(
+    `SELECT share_channel AS channel, COUNT(*) AS cnt FROM collection_link WHERE tenant_id = ? GROUP BY share_channel`,
+    [tenantId], tenantId
+  );
+  const totalAmount = await queryOneWithTenant<any>("SELECT COALESCE(SUM(paid_amount),0) AS amount FROM collection_link WHERE tenant_id = ?", [tenantId], tenantId);
+  return {
+    total: total?.total ?? 0,
+    paidCount: paid?.cnt ?? 0,
+    revokedCount: revoked?.cnt ?? 0,
+    totalPaidAmount: totalAmount?.amount ?? 0,
+    paymentRate: total?.total > 0 ? ((paid?.cnt ?? 0) / total.total * 100).toFixed(1) + "%" : "0%",
+    channels
+  };
+}
+
+export async function revokeCollectionLink(linkNo: string, tenantId: string) {
+  const link = await queryOneWithTenant<any>("SELECT link_no, status FROM collection_link WHERE link_no = ? AND tenant_id = ?", [linkNo, tenantId], tenantId);
+  if (!link) throw new Error("分享链接不存在");
+  if (link.status === "REVOKED") throw new Error("链接已撤销");
+  if (link.status === "PAID") throw new Error("已支付的链接不可撤销");
+  await queryWithTenant("UPDATE collection_link SET status = 'REVOKED' WHERE link_no = ? AND tenant_id = ?", [linkNo, tenantId], tenantId);
+  return { linkNo, status: "REVOKED" };
+}
+
+// ============ 销售报表 ============
+
+export async function getSalesRanking(tenantId: string, startDate?: string, endDate?: string) {
+  let dateFilter = "";
+  const params: unknown[] = [tenantId];
+  if (startDate) { dateFilter += " AND sb.created_at >= ?"; params.push(startDate); }
+  if (endDate) { dateFilter += " AND sb.created_at < DATE_ADD(?, INTERVAL 1 DAY)"; params.push(endDate); }
+  const records = await queryWithTenant<any>(
+    `SELECT sb.operator_id AS staffId, COALESCE(e.name, '未知') AS staffName,
+            COUNT(DISTINCT sb.bill_no) AS orderCount,
+            COALESCE(SUM(sb.receivable_amount), 0) AS totalSales,
+            COALESCE(SUM(sb.received_amount), 0) AS totalReceived
+     FROM sale_bill sb
+     LEFT JOIN employee e ON e.id = sb.operator_id
+     WHERE sb.tenant_id = ?${dateFilter}
+     GROUP BY sb.operator_id, e.name
+     ORDER BY totalSales DESC`,
+    params, tenantId
+  );
+  return records;
+}
+
+export async function getProductRanking(tenantId: string, startDate?: string, endDate?: string) {
+  let dateFilter = "";
+  const params: unknown[] = [tenantId];
+  if (startDate) { dateFilter += " AND sb.created_at >= ?"; params.push(startDate); }
+  if (endDate) { dateFilter += " AND sb.created_at < DATE_ADD(?, INTERVAL 1 DAY)"; params.push(endDate); }
+  const records = await queryWithTenant<any>(
+    `SELECT sbi.sku_id AS skuId, sbi.sku_name AS skuName,
+            COALESCE(SUM(sbi.total_bottle_qty), 0) AS totalQty,
+            COALESCE(SUM(sbi.subtotal_amount), 0) AS totalSales
+     FROM sale_bill_item sbi
+     JOIN sale_bill sb ON sb.bill_no = sbi.bill_no
+     WHERE sb.tenant_id = ?${dateFilter}
+     GROUP BY sbi.sku_id, sbi.sku_name
+     ORDER BY totalSales DESC
+     LIMIT 50`,
+    params, tenantId
+  );
+  return records;
+}
+
+export async function getSalesTrend(tenantId: string, groupBy: string = "day", startDate?: string, endDate?: string) {
+  let dateFilter = "";
+  const params: unknown[] = [tenantId];
+  if (startDate) { dateFilter += " AND sb.created_at >= ?"; params.push(startDate); }
+  if (endDate) { dateFilter += " AND sb.created_at < DATE_ADD(?, INTERVAL 1 DAY)"; params.push(endDate); }
+  let format = "%Y-%m-%d";
+  if (groupBy === "week") format = "%Y-%u";
+  if (groupBy === "month") format = "%Y-%m";
+  const records = await queryWithTenant<any>(
+    `SELECT DATE_FORMAT(sb.created_at, ?) AS period,
+            COUNT(DISTINCT sb.bill_no) AS count,
+            COALESCE(SUM(sb.receivable_amount), 0) AS amount
+     FROM sale_bill sb
+     WHERE sb.tenant_id = ?${dateFilter}
+     GROUP BY period ORDER BY period`,
+    [format, ...params], tenantId
+  );
+  return records;
+}

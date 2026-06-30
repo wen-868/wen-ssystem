@@ -54,6 +54,8 @@ import { startSubscriptionExpiryScanner } from "./services/subscription-expiry.s
 import { marketingNewRouter } from "./routes/marketing-new.routes.js";
 import { tagRouter } from "./routes/tag.routes.js";
 import { platformRouter } from "./routes/platform.routes.js";
+import { customerPriceRouter } from "./routes/customer-price.routes.js";
+import { commissionRouter } from "./routes/commission.routes.js";
 
 const app = express();
 
@@ -126,6 +128,8 @@ app.use("/api/admin/customer-merge", requireAuthWithTenant, customerMergeRouter)
 app.use("/api/admin/marketing-new", requireAuthWithTenant, marketingNewRouter);
 app.use("/api/admin", tagRouter);
 app.use("/api/platform", requireAuthWithTenant, platformRouter);
+app.use("/api/admin/customer-prices", requireAuthWithTenant, customerPriceRouter);
+app.use("/api/admin/commission", requireAuthWithTenant, commissionRouter);
 
 app.use(errorHandler);
 

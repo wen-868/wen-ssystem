@@ -34,6 +34,11 @@
           <el-menu-item index="/sale-bills">销售单据</el-menu-item>
           <el-menu-item index="/sale-returns">销售退货</el-menu-item>
           <el-menu-item index="/collection">收款管理</el-menu-item>
+          <el-menu-item index="/sales/collection-links">分享链接</el-menu-item>
+          <el-menu-item index="/sales/customer-prices">价格策略</el-menu-item>
+          <el-menu-item index="/sales/commission/rules">提成规则</el-menu-item>
+          <el-menu-item index="/sales/commission/records">提成记录</el-menu-item>
+          <el-menu-item index="/sales/reports">销售报表</el-menu-item>
         </el-sub-menu>
 
         <!-- 3. 订单管理 -->
@@ -81,7 +86,6 @@
           </template>
           <el-menu-item index="/customers">客户列表</el-menu-item>
           <el-menu-item index="/credit">授信管理</el-menu-item>
-          <el-menu-item index="/customer-visits">客户拜访</el-menu-item>
         </el-sub-menu>
 
         <!-- 7. 商品中心 -->
@@ -92,6 +96,12 @@
           </template>
           <el-menu-item index="/products">商品列表</el-menu-item>
           <el-menu-item index="/products/categories">商品分类</el-menu-item>
+          <el-menu-item index="/products/brands">品牌管理</el-menu-item>
+          <el-menu-item index="/products/units">单位管理</el-menu-item>
+          <el-menu-item index="/products/import">商品导入</el-menu-item>
+          <el-menu-item index="/products/tags">商品标签</el-menu-item>
+          <el-menu-item index="/products/tag-groups">标签分组</el-menu-item>
+          <el-menu-item index="/products/tag-relation">标签关联</el-menu-item>
           <el-menu-item index="/prices">价格管理</el-menu-item>
         </el-sub-menu>
 
@@ -142,6 +152,7 @@
             <span>营销中心</span>
           </template>
           <el-menu-item index="/marketing">优惠券管理</el-menu-item>
+          <el-menu-item index="/marketing/tags">营销标签</el-menu-item>
           <el-menu-item index="/marketing/promotion">促销活动</el-menu-item>
           <el-menu-item index="/aftersale">售后管理</el-menu-item>
         </el-sub-menu>
@@ -157,9 +168,6 @@
           <el-menu-item index="/system/roles">角色权限</el-menu-item>
           <el-menu-item index="/audit-log">操作日志</el-menu-item>
           <el-menu-item index="/system">系统配置</el-menu-item>
-          <el-menu-item index="/tenants">租户管理</el-menu-item>
-          <el-menu-item index="/subscriptions">订阅管理</el-menu-item>
-          <el-menu-item index="/approval">审批中心</el-menu-item>
         </el-sub-menu>
       </el-menu>
     </aside>
@@ -259,6 +267,11 @@ const pageTitle = computed(() => {
     "/sale-bills": "销售单据",
     "/sale-returns": "销售退货",
     "/collection": "收款管理",
+    "/sales/collection-links": "分享链接",
+    "/sales/customer-prices": "价格策略",
+    "/sales/commission/rules": "提成规则",
+    "/sales/commission/records": "提成记录",
+    "/sales/reports": "销售报表",
     "/orders": "订单列表",
     "/order-board": "泳道看板",
     "/order-timeout": "超时处理",
@@ -274,10 +287,14 @@ const pageTitle = computed(() => {
     "/inventory-alerts": "库存预警",
     "/customers": "客户列表",
     "/credit": "授信管理",
-    "/customer-visits": "客户拜访",
-    "/customer-visits/stats": "拜访统计",
     "/products": "商品列表",
     "/products/categories": "商品分类",
+    "/products/brands": "品牌管理",
+    "/products/units": "单位管理",
+    "/products/import": "商品导入",
+    "/products/tags": "商品标签",
+    "/products/tag-groups": "标签分组",
+    "/products/tag-relation": "标签关联",
     "/prices": "价格管理",
     "/payments": "资金流水",
     "/finance/collection": "收款链接",
@@ -288,6 +305,7 @@ const pageTitle = computed(() => {
     "/reports/employees": "员工业绩",
     "/reports/stores": "门店对比",
     "/marketing": "优惠券管理",
+    "/marketing/tags": "营销标签",
     "/marketing/promotion": "促销活动",
     "/aftersale": "售后管理",
     "/employees": "员工管理",
@@ -295,8 +313,6 @@ const pageTitle = computed(() => {
     "/system/roles": "角色权限",
     "/audit-log": "操作日志",
     "/system": "系统配置",
-    "/approval": "审批中心",
-    "/my-approvals": "我的申请",
     "/instant-retail/config": "小程序配置",
     "/instant-retail/shelf": "商品货架",
     "/instant-retail/orders": "小程序订单",
@@ -304,12 +320,9 @@ const pageTitle = computed(() => {
     "/instant-retail/delivery": "配送管理",
     "/instant-retail/report": "零售报表",
     "/instant-retail/platform": "平台对接",
-    "/instant-retail/order-board": "接单工作台",
-    "/tenants": "租户管理",
-    "/tenants/:tenantId": "租户详情",
-    "/subscriptions": "订阅管理"
+    "/instant-retail/order-board": "接单工作台"
   };
-  return titles[route.path] || (route.meta.title as string) || "智享营销系统";
+  return titles[route.path] || "智享营销系统";
 });
 
 function toggleCashierMode() {

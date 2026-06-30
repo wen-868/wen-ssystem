@@ -11,8 +11,10 @@ import {
   fetchSaleBillDetail,
   offlinePayment,
   createCollectionLink,
+  fetchCollectionLinks,
   type SaleBillRecord,
-  type SaleBillDetail
+  type SaleBillDetail,
+  type CollectionLinkRecord
 } from '../api'
 
 const STATUS_TABS = [
@@ -61,6 +63,11 @@ const showLink = ref(false)
 const linkAmount = ref(0)
 const linkExpireHours = ref(72)
 const generatedLink = ref('')
+
+// 链接历史
+const linkHistory = ref<CollectionLinkRecord[]>([])
+const showLinkHistory = ref(false)
+const linkHistoryLoading = ref(false)
 
 async function loadBills(reset = false) {
   if (reset) {
@@ -195,6 +202,58 @@ function copyLink() {
   })
 }
 
+function shareToWeChat() {
+  if (!generatedLink.value) return
+  // 复制链接后提示用户打开微信粘贴
+  navigator.clipboard.writeText(generatedLink.value).then(() => {
+    showSuccessToast('链接已复制，请打开微信粘贴发送')
+  }).catch(() => {
+    showToast('分享失败')
+  })
+}
+
+async function openLinkHistory(billNo: string) {
+  showLinkHistory.value = true
+  linkHistoryLoading.value = true
+  currentBillNo.value = billNo
+  try {
+    const res = await fetchCollectionLinks({ page: 1, pageSize: 50 })
+    const allLinks = (res.data as any)?.records ?? []
+    linkHistory.value = allLinks.filter((l: CollectionLinkRecord) => l.sourceNo === billNo)
+  } catch {
+    linkHistory.value = []
+  } finally {
+    linkHistoryLoading.value = false
+  }
+}
+
+function openLinkFromBill(billNo: string, amount: number) {
+  currentBillNo.value = billNo
+  linkAmount.value = amount
+  linkExpireHours.value = 72
+  generatedLink.value = ''
+  showLink.value = true
+}
+
+const LINK_STATUS_MAP: Record<string, { text: string; type: string }> = {
+  PENDING: { text: '待支付', type: 'warning' },
+  PARTIAL: { text: '部分支付', type: 'primary' },
+  PAID: { text: '已支付', type: 'success' },
+  EXPIRED: { text: '已过期', type: 'default' },
+  CANCELLED: { text: '已取消', type: 'default' }
+}
+
+function formatLinkExpire(expireAt: string): string {
+  if (!expireAt) return '-'
+  const d = new Date(expireAt)
+  const now = new Date()
+  const diff = d.getTime() - now.getTime()
+  if (diff <= 0) return '已过期'
+  const hours = Math.floor(diff / 3600000)
+  if (hours < 1) return '即将过期'
+  return `剩余${hours}小时`
+}
+
 function goBack() {
   window.dispatchEvent(new CustomEvent('nav', { detail: 'create-sale' }))
 }
@@ -255,6 +314,20 @@ function goBack() {
               <span class="bill-amount">¥{{ Number(bill.receivableAmount).toFixed(2) }}</span>
             </div>
             <div class="bill-time">{{ bill.createdAt }}</div>
+          </template>
+          <template #right-icon>
+            <div class="bill-actions">
+              <van-button
+                v-if="canShare(bill.collectionStatus)"
+                size="mini"
+                type="primary"
+                plain
+                icon="share-o"
+                @click.stop="openLinkFromBill(bill.billNo, bill.receivableAmount)"
+              >
+                分享
+              </van-button>
+            </div>
           </template>
         </van-cell>
       </van-list>
@@ -344,6 +417,43 @@ function goBack() {
             >
               生成收款链接
             </van-button>
+            <van-button
+              type="default"
+              block
+              plain
+              @click="openLinkHistory(detail.billNo)"
+            >
+              查看分享记录
+            </van-button>
+          </div>
+
+          <!-- 链接历史 -->
+          <div v-if="linkHistory.length > 0" class="link-history-section">
+            <h4>分享记录</h4>
+            <van-cell-group inset>
+              <van-cell
+                v-for="link in linkHistory"
+                :key="link.linkNo"
+                :title="link.linkNo"
+              >
+                <template #label>
+                  <div class="link-history-meta">
+                    <span>金额：¥{{ Number(link.amount).toFixed(2) }}</span>
+                    <span>已付：¥{{ Number(link.paidAmount).toFixed(2) }}</span>
+                    <span class="link-expire">{{ formatLinkExpire(link.expireAt) }}</span>
+                  </div>
+                </template>
+                <template #value>
+                  <van-tag
+                    :type="(LINK_STATUS_MAP[link.status]?.type as any) || 'default'"
+                    plain
+                    size="medium"
+                  >
+                    {{ LINK_STATUS_MAP[link.status]?.text || link.status }}
+                  </van-tag>
+                </template>
+              </van-cell>
+            </van-cell-group>
           </div>
         </template>
       </div>
@@ -383,7 +493,11 @@ function goBack() {
             clickable
             @click="copyLink"
           />
-          <van-button type="primary" block size="small" @click="copyLink">复制链接</van-button>
+          <div class="share-channels">
+            <span class="share-label">分享渠道：</span>
+            <van-button type="success" size="small" icon="wechat" @click="shareToWeChat">微信</van-button>
+            <van-button type="primary" size="small" icon="description" @click="copyLink">复制链接</van-button>
+          </div>
         </div>
         <div v-else class="link-actions">
           <van-button type="primary" block @click="confirmLink">生成链接</van-button>
@@ -523,7 +637,51 @@ function goBack() {
   gap: 10px;
 }
 
+.share-channels {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 4px 0;
+}
+
+.share-label {
+  font-size: 13px;
+  color: var(--text-secondary);
+  flex-shrink: 0;
+}
+
 .link-actions {
   margin-top: 16px;
+}
+
+.bill-actions {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  margin-left: 8px;
+}
+
+.link-history-section {
+  margin-top: 16px;
+}
+
+.link-history-section h4 {
+  margin: 0 0 8px 4px;
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--text-primary);
+}
+
+.link-history-meta {
+  display: flex;
+  gap: 12px;
+  font-size: 12px;
+  color: var(--text-secondary);
+  margin-top: 4px;
+}
+
+.link-expire {
+  color: var(--color-warning);
+  font-weight: 500;
 }
 </style>

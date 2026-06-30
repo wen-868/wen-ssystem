@@ -3,6 +3,12 @@ import type { RouteRecordRaw } from 'vue-router'
 
 const routes: RouteRecordRaw[] = [
   {
+    path: '/share/payment/:token',
+    name: 'share-payment',
+    component: () => import('./views/SharePaymentView.vue'),
+    meta: { requiresAuth: false }
+  },
+  {
     path: '/login',
     name: 'login',
     component: () => import('./views/LoginView.vue'),
@@ -39,6 +45,8 @@ const routes: RouteRecordRaw[] = [
   { path: '/customer-ledger', name: 'customer-ledger', component: () => import('./views/CustomerLedView.vue'), meta: { requiresAuth: true } },
   { path: '/receivables', name: 'receivables', component: () => import('./views/ReceivablesView.vue'), meta: { requiresAuth: true } },
   { path: '/reports', name: 'reports', component: () => import('./views/ReportsView.vue'), meta: { requiresAuth: true } },
+  { path: '/reports/sales', name: 'sales-reports', component: () => import('./views/SalesReportsView.vue'), meta: { requiresAuth: true } },
+  { path: '/shift/settlement', name: 'shift-settlement', component: () => import('./views/ShiftSettlement.vue'), meta: { requiresAuth: true } },
   { path: '/sale-bills', name: 'sale-bills', component: () => import('./views/SaleBillsView.vue'), meta: { requiresAuth: true } },
   { path: '/inventory-adjust', name: 'inventory-adjust', component: () => import('./views/InventoryAdjustView.vue'), meta: { requiresAuth: true } },
   { path: '/admin', name: 'admin', component: () => import('./views/AdminView.vue'), meta: { requiresAuth: true, role: 'admin' } },

@@ -113,7 +113,7 @@ export function fetchWxInfo(storeId: number) {
   return api.post(`/admin/stores/${storeId}/fetch-wx-info`)
 }
 
-export async function updateProductPrice(skuId: number, payload: { retailPrice?: number; wholesalePrice?: number; miniappPrice?: number }) {
+export async function updateProductPrice(skuId: number, payload: { retailPrice?: number; wholesalePrice?: number; miniappPrice?: number; storePrice?: number; costPrice?: number }) {
   const { data } = await api.put(`/admin/products/${skuId}/price`, payload);
   return data.data;
 }
@@ -148,8 +148,84 @@ export async function fetchInventoryLogs() {
   return data.data;
 }
 
-export async function fetchCollectionLinks() {
-  const { data } = await api.get("/admin/collection-links", { params: { page: 1, pageSize: 30 } });
+export async function fetchCollectionLinks(params?: { page?: number; pageSize?: number; status?: string; keyword?: string }) {
+  const { data } = await api.get("/admin/collection-links", { params: { page: 1, pageSize: 30, ...params } });
+  return data.data;
+}
+
+export async function batchCreateCollectionLinks(payload: { billNos: string[]; shareChannel?: string; amount?: number; expireHours?: number }) {
+  const { data } = await api.post("/admin/collection-links/batch", payload);
+  return data.data;
+}
+
+export async function revokeCollectionLink(linkNo: string) {
+  const { data } = await api.put(`/admin/collection-links/${linkNo}/revoke`);
+  return data.data;
+}
+
+export async function fetchCollectionStats() {
+  const { data } = await api.get("/admin/collection-links/stats");
+  return data.data;
+}
+
+export async function fetchSaleBillCollectionLinks(billNo: string) {
+  const { data } = await api.get(`/admin/sale-bills/${billNo}/collection-links`);
+  return data.data;
+}
+
+// ==================== Customer Price APIs ====================
+export async function fetchCustomerPrices(params?: { page?: number; pageSize?: number; keyword?: string; customerId?: number; status?: string }) {
+  const { data } = await api.get("/admin/customer-prices", { params: { page: 1, pageSize: 20, ...params } });
+  return data.data;
+}
+export async function createCustomerPrice(payload: { customerId: number; customerName: string; skuId: number; skuName: string; standardPrice: number; customPrice: number; startDate?: string; endDate?: string; remark?: string }) {
+  const { data } = await api.post("/admin/customer-prices", payload);
+  return data.data;
+}
+export async function updateCustomerPrice(id: number, payload: { customPrice?: number; standardPrice?: number; startDate?: string; endDate?: string; remark?: string }) {
+  const { data } = await api.put(`/admin/customer-prices/${id}`, payload);
+  return data.data;
+}
+export async function deleteCustomerPrice(id: number) {
+  const { data } = await api.delete(`/admin/customer-prices/${id}`);
+  return data.data;
+}
+export async function batchSetCustomerPrices(payload: { customerId: number; customerName: string; skuIds: number[]; skuNames: string[]; standardPrices: number[]; discountRate: number; startDate?: string; endDate?: string }) {
+  const { data } = await api.post("/admin/customer-prices/batch", payload);
+  return data.data;
+}
+
+// ==================== Commission APIs ====================
+export async function fetchCommissionRules(params?: { page?: number; pageSize?: number }) {
+  const { data } = await api.get("/admin/commission/rules", { params: { page: 1, pageSize: 20, ...params } });
+  return data.data;
+}
+export async function createCommissionRule(payload: { name: string; ruleType: string; config: any; startDate?: string; endDate?: string; remark?: string }) {
+  const { data } = await api.post("/admin/commission/rules", payload);
+  return data.data;
+}
+export async function updateCommissionRule(id: number, payload: any) {
+  const { data } = await api.put(`/admin/commission/rules/${id}`, payload);
+  return data.data;
+}
+export async function deleteCommissionRule(id: number) {
+  const { data } = await api.delete(`/admin/commission/rules/${id}`);
+  return data.data;
+}
+export async function fetchCommissionRecords(params?: { page?: number; pageSize?: number; staffId?: number; status?: string; dateStart?: string; dateEnd?: string }) {
+  const { data } = await api.get("/admin/commission/records", { params: { page: 1, pageSize: 20, ...params } });
+  return data.data;
+}
+export async function calculateCommission(payload: { dateStart: string; dateEnd: string }) {
+  const { data } = await api.post("/admin/commission/calculate", payload);
+  return data.data;
+}
+export async function settleCommission(ids: number[]) {
+  const { data } = await api.post("/admin/commission/settle", { ids });
+  return data.data;
+}
+export async function fetchCommissionStats() {
+  const { data } = await api.get("/admin/commission/stats");
   return data.data;
 }
 
@@ -317,6 +393,11 @@ export async function fetchReportProfit() {
 
 export async function fetchReportBusinessOverview() {
   const { data } = await api.get("/admin/reports/business-overview");
+  return data.data;
+}
+
+export async function fetchReportStaffPerformance(params?: { dateStart?: string; dateEnd?: string }) {
+  const { data } = await api.get("/admin/reports/staff-performance", { params });
   return data.data;
 }
 

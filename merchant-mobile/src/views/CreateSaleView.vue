@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref, computed } from 'vue'
+import { ref, computed, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import {
   showToast,
@@ -13,13 +13,31 @@ import {
   createCollectionLink,
   fetchAdminProducts,
   fetchAdminCustomers,
+  fetchShiftSummary,
   type AdminCustomerRecord,
   type AdminProductRecord,
-  type SaleBillDetail
+  type SaleBillDetail,
+  type ShiftData
 } from '../api'
 import { isWeChat, wxScanQRCode } from '../utils/wx'
 
 const router = useRouter()
+
+// ========== 班次信息 ==========
+const shiftData = ref<ShiftData | null>(null)
+
+async function loadShift() {
+  try {
+    const res = await fetchShiftSummary()
+    shiftData.value = res.data as ShiftData
+  } catch {
+    shiftData.value = null
+  }
+}
+
+function formatPrice(price: number | null | undefined): string {
+  return Number(price ?? 0).toFixed(2)
+}
 
 // ========== 场景 ==========
 const SCENE_TABS = [
@@ -469,6 +487,10 @@ function resetForm() {
 function goToSaleBills() {
   router.push('/sale-bills')
 }
+onMounted(() => {
+  loadShift()
+})
+
 </script>
 
 <template>
@@ -477,6 +499,19 @@ function goToSaleBills() {
       <h2 class="page-title">销售开单</h2>
       <van-button type="default" size="small" icon="orders-o" @click="goToSaleBills">
         单据
+      </van-button>
+    </div>
+
+    <!-- 班次信息 -->
+    <div v-if="shiftData" class="shift-bar">
+      <div class="shift-info">
+        <span class="shift-label">今日</span>
+        <span class="shift-item">销售 ¥{{ formatPrice(shiftData.totalSales) }}</span>
+        <span class="shift-item">收款 ¥{{ formatPrice(shiftData.totalReceived) }}</span>
+        <span class="shift-item">{{ shiftData.orderCount }}单</span>
+      </div>
+      <van-button size="mini" type="primary" plain @click="$router.push('/shift/settlement')">
+        班结
       </van-button>
     </div>
 
@@ -1133,4 +1168,41 @@ function goToSaleBills() {
   flex-direction: column;
   gap: 10px;
 }
+
+/* ===== 班次信息 ===== */
+.shift-bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 10px 16px;
+  margin-bottom: 8px;
+  background: var(--color-primary-soft);
+  border-radius: var(--radius-md);
+}
+
+.shift-info {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+}
+
+.shift-label {
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--color-primary);
+  background: var(--bg-card);
+  padding: 2px 8px;
+  border-radius: 4px;
+  flex-shrink: 0;
+}
+
+.shift-item {
+  font-size: 12px;
+  color: var(--text-primary);
+  white-space: nowrap;
+}
+
 </style>

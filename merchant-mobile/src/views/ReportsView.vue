@@ -4,8 +4,8 @@ import {
   fetchDashboard,
   fetchDailySales,
   fetchInventoryAlerts,
+  fetchProductRanking,
   fetchSalesRanking,
-  fetchCustomerContribution,
   fetchProfitAnalysis,
   type DashboardData,
   type DailySalesRecord,
@@ -136,7 +136,7 @@ const rankingLoading = ref(false)
 async function loadSalesRanking() {
   rankingLoading.value = true
   try {
-    const res = await fetchSalesRanking({
+    const res = await fetchProductRanking({
       startDate: dateRange.value[0] || undefined,
       endDate: dateRange.value[1] || undefined
     })
@@ -160,7 +160,7 @@ const customerContribLoading = ref(false)
 async function loadCustomerContribution() {
   customerContribLoading.value = true
   try {
-    const res = await fetchCustomerContribution({
+    const res = await fetchSalesRanking({
       startDate: dateRange.value[0] || undefined,
       endDate: dateRange.value[1] || undefined
     })

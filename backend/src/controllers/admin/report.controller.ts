@@ -69,3 +69,60 @@ export const listRefundOrders = asyncHandler(async (req, res) => {
   );
   res.json(ok(result));
 });
+
+// ============ 分享链接管理 ============
+
+export const getCollectionLinkStats = asyncHandler(async (req, res) => {
+  const result = await reportService.getCollectionLinkStats(req.tenantId!);
+  res.json(ok(result));
+});
+
+export const revokeCollectionLink = asyncHandler(async (req, res) => {
+  try {
+    const result = await reportService.revokeCollectionLink(req.params.linkNo, req.tenantId!);
+    res.json(ok(result));
+  } catch (e: any) {
+    res.status(400).json({ code: "400", message: e.message });
+  }
+});
+
+export const batchCreateCollectionLinks = asyncHandler(async (req, res) => {
+  const { billNos, shareChannel, amount, taxEnabled, taxRate, expireHours } = req.body;
+  const result = await (await import("../../services/store/sale-bill.service.js")).batchCreateCollectionLinks({
+    billNos, shareChannel, amount, taxEnabled, taxRate,
+    expireHours: expireHours ?? 72,
+    userId: req.userId!,
+    tenantId: req.tenantId!
+  });
+  res.json(ok(result));
+});
+
+// ============ 销售报表 ============
+
+export const getSalesRanking = asyncHandler(async (req, res) => {
+  const result = await reportService.getSalesRanking(
+    req.tenantId!,
+    req.query.startDate as string | undefined,
+    req.query.endDate as string | undefined
+  );
+  res.json(ok(result));
+});
+
+export const getProductRanking = asyncHandler(async (req, res) => {
+  const result = await reportService.getProductRanking(
+    req.tenantId!,
+    req.query.startDate as string | undefined,
+    req.query.endDate as string | undefined
+  );
+  res.json(ok(result));
+});
+
+export const getSalesTrend = asyncHandler(async (req, res) => {
+  const result = await reportService.getSalesTrend(
+    req.tenantId!,
+    String(req.query.groupBy || "day"),
+    req.query.startDate as string | undefined,
+    req.query.endDate as string | undefined
+  );
+  res.json(ok(result));
+});

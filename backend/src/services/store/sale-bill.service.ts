@@ -274,3 +274,85 @@ export async function checkOverdueBills(storeId: number | null, tenantId: string
   }
   return { count: overdueBills.length, overdueBills };
 }
+
+// 批量生成分享链接
+export async function batchCreateCollectionLinks(params: {
+  billNos: string[]; shareChannel: string; amount?: number;
+  taxEnabled: boolean; taxRate: number; expireHours: number;
+  userId: number; tenantId: string;
+}) {
+  const { billNos, shareChannel, amount, taxEnabled, taxRate, expireHours, userId, tenantId } = params;
+  const results: any[] = [];
+  for (const billNo of billNos) {
+    const bill = await queryOneWithTenant<any>("SELECT bill_no, unreceived_amount FROM sale_bill WHERE bill_no = ? AND tenant_id = ?", [billNo, tenantId], tenantId);
+    if (!bill) continue;
+    const linkAmount = amount ?? Number(bill.unreceived_amount);
+    if (linkAmount <= 0 || linkAmount > Number(bill.unreceived_amount)) continue;
+    const linkNo = makeBizNo("SK");
+    const token = makeToken();
+    const taxAmount = taxEnabled ? Number((linkAmount * taxRate).toFixed(2)) : 0;
+    await queryWithTenant(
+      `INSERT INTO collection_link (link_no, source_type, source_no, amount, paid_amount, status, share_channel, share_user_id, expire_at, token, tax_enabled, tax_rate, tax_amount, tenant_id)
+       VALUES (?, 'SALE_BILL', ?, ?, 0, 'PENDING', ?, ?, DATE_ADD(NOW(), INTERVAL ? HOUR), ?, ?, ?, ?, ?)`,
+      [linkNo, billNo, linkAmount, shareChannel, userId, expireHours, token, taxEnabled ? 1 : 0, taxRate, taxAmount, tenantId],
+      tenantId
+    );
+    await queryWithTenant(
+      `UPDATE sale_bill SET collection_status = 'SHARED', share_collection_count = share_collection_count + 1, last_share_time = NOW(), locked_amount_flag = 1 WHERE bill_no = ? AND tenant_id = ?`,
+      [billNo, tenantId],
+      tenantId
+    );
+    results.push({ billNo, linkNo, token, amount: linkAmount, status: "PENDING", shareUrl: `/share/collections/${token}` });
+  }
+  return { count: results.length, links: results };
+}
+
+// 撤销分享链接
+export async function revokeCollectionLink(linkNo: string, tenantId: string) {
+  const link = await queryOneWithTenant<any>(
+    "SELECT link_no, source_no, status, amount, paid_amount FROM collection_link WHERE link_no = ? AND tenant_id = ?",
+    [linkNo, tenantId],
+    tenantId
+  );
+  if (!link) throw new Error("分享链接不存在");
+  if (link.status === "REVOKED") throw new Error("链接已撤销");
+  if (link.status === "PAID") throw new Error("已支付的链接不可撤销");
+  await queryWithTenant(
+    "UPDATE collection_link SET status = 'REVOKED' WHERE link_no = ? AND tenant_id = ?",
+    [linkNo, tenantId],
+    tenantId
+  );
+  return { linkNo, status: "REVOKED" };
+}
+
+// 分享链接统计
+export async function getCollectionLinkStats(tenantId: string) {
+  const total = await queryOneWithTenant<any>(
+    "SELECT COUNT(*) AS total FROM collection_link WHERE tenant_id = ?", [tenantId], tenantId
+  );
+  const paid = await queryOneWithTenant<any>(
+    "SELECT COUNT(*) AS cnt FROM collection_link WHERE tenant_id = ? AND status = 'PAID'", [tenantId], tenantId
+  );
+  const revoked = await queryOneWithTenant<any>(
+    "SELECT COUNT(*) AS cnt FROM collection_link WHERE tenant_id = ? AND status = 'REVOKED'", [tenantId], tenantId
+  );
+  const channels = await queryWithTenant<any>(
+    `SELECT share_channel AS channel, COUNT(*) AS cnt
+     FROM collection_link WHERE tenant_id = ?
+     GROUP BY share_channel`,
+    [tenantId],
+    tenantId
+  );
+  const totalAmount = await queryOneWithTenant<any>(
+    "SELECT COALESCE(SUM(paid_amount), 0) AS amount FROM collection_link WHERE tenant_id = ?",
+    [tenantId], tenantId
+  );
+  return {
+    total: total?.total ?? 0,
+    paidCount: paid?.cnt ?? 0,
+    revokedCount: revoked?.cnt ?? 0,
+    totalPaidAmount: totalAmount?.amount ?? 0,
+    paymentRate: total?.total > 0 ? ((paid?.cnt ?? 0) / total.total * 100).toFixed(1) + "%" : "0%",
+    channels
+  };
+}

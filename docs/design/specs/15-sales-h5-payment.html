@@ -1,0 +1,279 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>15 - H5 支付页面设计 | 智享酒水库存系统</title>
+<style>
+:root {
+  --brand: #1677FF; --brand-light: #E6F4FF; --text: #1F2328; --text-secondary: #4B5563; --text-muted: #9CA3AF;
+  --border: #E5E7EB; --bg: #F5F7FA; --white: #FFF; --success: #10B981; --warning: #F59E0B; --danger: #EF4444;
+  --radius: 12px; --shadow: 0 2px 8px rgba(0,0,0,.06); --gold: #C69C6D;
+}
+* { margin: 0; padding: 0; box-sizing: border-box; }
+body { font-family: -apple-system, BlinkMacSystemFont, 'PingFang SC', 'Microsoft YaHei', sans-serif; background: var(--bg); color: var(--text); line-height: 1.6; }
+.container { max-width: 1200px; margin: 0 auto; padding: 40px 24px; }
+.header { background: linear-gradient(135deg, #1677FF, #52C41A); color: #fff; padding: 48px 24px; text-align: center; }
+.header h1 { font-size: 2rem; font-weight: 700; margin-bottom: 8px; }
+.header p { font-size: 1rem; opacity: .85; }
+.section { background: var(--white); border-radius: var(--radius); padding: 32px; margin-bottom: 24px; box-shadow: var(--shadow); }
+.section h2 { font-size: 1.25rem; color: var(--brand); margin-bottom: 8px; padding-bottom: 12px; border-bottom: 2px solid var(--brand-light); }
+.section h3 { font-size: 1.05rem; margin: 20px 0 10px; }
+.section p.desc { color: var(--text-secondary); margin-bottom: 16px; font-size: .88rem; }
+
+/* Phone Mockup */
+.phone-frame { width: 375px; margin: 20px auto; border: 3px solid #1F2328; border-radius: 36px; overflow: hidden; background: #fff; box-shadow: 0 20px 60px rgba(0,0,0,.15); }
+.phone-status { height: 36px; background: #1F2328; display: flex; align-items: center; justify-content: space-between; padding: 0 20px; color: #fff; font-size: 11px; }
+.phone-nav { height: 44px; background: #fff; display: flex; align-items: center; justify-content: center; border-bottom: 1px solid #F0F0F0; font-size: 15px; font-weight: 600; position: relative; }
+.phone-nav .back { position: absolute; left: 12px; font-size: 18px; color: var(--brand); }
+.phone-body { padding: 0; min-height: 500px; background: #F5F7FA; }
+.phone-body .card { background: #fff; margin: 12px; border-radius: 12px; padding: 16px; }
+
+/* Payment specific */
+.pay-merchant { display: flex; align-items: center; gap: 10px; padding: 16px; background: #fff; }
+.pay-merchant .logo { width: 40px; height: 40px; border-radius: 8px; background: linear-gradient(135deg, var(--brand), #0958D9); display: flex; align-items: center; justify-content: center; color: #fff; font-weight: 700; font-size: 14px; }
+.pay-merchant .name { font-size: 15px; font-weight: 600; }
+.pay-merchant .sub { font-size: 11px; color: var(--text-muted); }
+.pay-amount { text-align: center; padding: 24px 16px; background: #fff; }
+.pay-amount .label { font-size: 13px; color: var(--text-secondary); margin-bottom: 8px; }
+.pay-amount .value { font-size: 42px; font-weight: 700; color: var(--text); }
+.pay-amount .value .yen { font-size: 24px; }
+.pay-items { background: #fff; margin: 0 12px; border-radius: 12px; overflow: hidden; }
+.pay-item { display: flex; justify-content: space-between; padding: 12px 16px; border-bottom: 1px solid #F5F5F5; font-size: 13px; }
+.pay-item:last-child { border-bottom: none; }
+.pay-item .qty { color: var(--text-muted); }
+.pay-summary { background: #fff; margin: 12px; border-radius: 12px; padding: 12px 16px; }
+.pay-summary .row { display: flex; justify-content: space-between; font-size: 13px; padding: 4px 0; }
+.pay-summary .row.total { font-size: 16px; font-weight: 700; border-top: 1px solid var(--border); padding-top: 10px; margin-top: 6px; }
+.pay-btn { display: block; width: calc(100% - 24px); margin: 16px 12px 24px; padding: 14px; background: linear-gradient(135deg, #52C41A, #3CB043); color: #fff; border: none; border-radius: 12px; font-size: 17px; font-weight: 600; cursor: pointer; text-align: center; }
+.pay-btn:hover { opacity: .9; }
+.pay-expire { text-align: center; font-size: 12px; color: var(--warning); padding: 0 16px 16px; }
+.pay-expire .countdown { font-weight: 700; font-size: 14px; }
+.pay-methods { background: #fff; margin: 12px; border-radius: 12px; padding: 4px 0; }
+.pay-method { display: flex; align-items: center; gap: 12px; padding: 14px 16px; border-bottom: 1px solid #F5F5F5; cursor: pointer; }
+.pay-method:last-child { border-bottom: none; }
+.pay-method .icon { width: 32px; height: 32px; border-radius: 8px; display: flex; align-items: center; justify-content: center; font-size: 14px; }
+.pay-method .icon.wx { background: #07C160; color: #fff; }
+.pay-method .icon.alipay { background: #1677FF; color: #fff; }
+.pay-method .name { font-size: 14px; flex: 1; }
+.pay-method .check { color: var(--brand); font-size: 16px; }
+
+/* Flow diagram */
+.flow { display: flex; align-items: center; justify-content: center; gap: 12px; flex-wrap: wrap; padding: 20px; }
+.flow-step { background: var(--brand-light); border: 1px solid var(--brand); border-radius: 12px; padding: 14px 20px; text-align: center; font-size: 13px; font-weight: 500; min-width: 100px; }
+.flow-step .step-num { display: block; width: 24px; height: 24px; border-radius: 50%; background: var(--brand); color: #fff; font-size: 12px; line-height: 24px; margin: 0 auto 6px; }
+.flow-arrow { font-size: 20px; color: var(--brand); }
+
+/* States */
+.state-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 16px; margin: 16px 0; }
+.state-card { border: 1px solid var(--border); border-radius: 12px; overflow: hidden; }
+.state-card .state-header { padding: 10px 16px; font-size: 13px; font-weight: 600; }
+.state-card .state-body { padding: 16px; background: #fff; font-size: 13px; }
+
+/* Spec table */
+.spec-table { width: 100%; border-collapse: collapse; margin: 16px 0; }
+.spec-table th, .spec-table td { padding: 10px 14px; text-align: left; border-bottom: 1px solid var(--border); font-size: .85rem; }
+.spec-table th { background: var(--brand-light); color: var(--brand); font-weight: 600; font-size: .8rem; }
+.spec-table tr:hover { background: #F8FAFC; }
+.spec-table code { background: #F1F5F9; padding: 2px 6px; border-radius: 4px; font-size: .82rem; }
+</style>
+</head>
+<body>
+
+<div class="header">
+  <h1>H5 支付页面设计</h1>
+  <p>单据分享 → 微信打开 → 在线支付 → 状态同步 — 核心差异化闭环</p>
+</div>
+
+<div class="container">
+
+  <!-- 1. 业务流程 -->
+  <div class="section">
+    <h2>1. 业务流程</h2>
+    <p class="desc">销售开单后生成分享链接 → 客户微信打开 → 查看明细 → 唤起微信支付 → 支付成功 → 回写状态</p>
+    <div class="flow">
+      <div class="flow-step"><span class="step-num">1</span>业务员开单</div>
+      <div class="flow-arrow">→</div>
+      <div class="flow-step"><span class="step-num">2</span>生成分享链接</div>
+      <div class="flow-arrow">→</div>
+      <div class="flow-step"><span class="step-num">3</span>微信发送客户</div>
+      <div class="flow-arrow">→</div>
+      <div class="flow-step"><span class="step-num">4</span>客户打开H5</div>
+      <div class="flow-arrow">→</div>
+      <div class="flow-step"><span class="step-num">5</span>确认支付</div>
+      <div class="flow-arrow">→</div>
+      <div class="flow-step" style="background:#D1FAE5;border-color:#10B981;"><span class="step-num" style="background:#10B981;">6</span>状态同步</div>
+    </div>
+  </div>
+
+  <!-- 2. H5 支付页面原型 -->
+  <div class="section">
+    <h2>2. H5 支付页面原型</h2>
+    <p class="desc">客户在微信中打开分享链接后看到的支付页面（375px 移动端）</p>
+
+    <div class="phone-frame">
+      <div class="phone-status"><span>9:41</span><span>📶 🔋</span></div>
+      <div class="phone-nav"><span class="back">‹</span>确认支付</div>
+      <div class="phone-body">
+
+        <!-- 商户信息 -->
+        <div class="pay-merchant">
+          <div class="logo">智</div>
+          <div>
+            <div class="name">智享酒水批发</div>
+            <div class="sub">销售单号：XSDD240629001</div>
+          </div>
+        </div>
+
+        <!-- 金额 -->
+        <div class="pay-amount">
+          <div class="label">应付金额</div>
+          <div class="value"><span class="yen">¥</span>12,850<span style="font-size:18px;color:var(--text-secondary);font-weight:400">.00</span></div>
+        </div>
+
+        <!-- 商品明细 -->
+        <div class="pay-items">
+          <div style="padding:12px 16px;font-size:13px;font-weight:600;color:var(--text-secondary);border-bottom:1px solid #F5F5F5;">商品明细</div>
+          <div class="pay-item"><span>茅台 飞天 53度 500ml</span><span class="qty">×2箱</span><span>¥5,600</span></div>
+          <div class="pay-item"><span>五粮液 普五 52度 500ml</span><span class="qty">×1箱</span><span>¥3,800</span></div>
+          <div class="pay-item"><span>国窖1573 52度 500ml</span><span class="qty">×3箱</span><span>¥2,400</span></div>
+          <div class="pay-item"><span>剑南春 水晶剑 52度 500ml</span><span class="qty">×1箱</span><span>¥1,050</span></div>
+        </div>
+
+        <!-- 金额汇总 -->
+        <div class="pay-summary">
+          <div class="row"><span>商品金额</span><span>¥13,000.00</span></div>
+          <div class="row"><span>优惠</span><span style="color:var(--danger)">-¥300.00</span></div>
+          <div class="row"><span>抹零</span><span style="color:var(--danger)">-¥0.00</span></div>
+          <div class="row total"><span>合计</span><span style="color:var(--danger)">¥12,850.00</span></div>
+        </div>
+
+        <!-- 支付方式 -->
+        <div class="pay-methods">
+          <div style="padding:12px 16px;font-size:13px;font-weight:600;color:var(--text-secondary);">支付方式</div>
+          <div class="pay-method">
+            <div class="icon wx">微</div>
+            <span class="name">微信支付</span>
+            <span class="check">✓</span>
+          </div>
+        </div>
+
+        <!-- 支付按钮 -->
+        <button class="pay-btn">立即支付 ¥12,850.00</button>
+
+        <!-- 过期倒计时 -->
+        <div class="pay-expire">
+          <span>请在 </span><span class="countdown">23:45</span><span> 内完成支付，超时链接失效</span>
+        </div>
+
+      </div>
+    </div>
+  </div>
+
+  <!-- 3. 支付状态页面 -->
+  <div class="section">
+    <h2>3. 支付状态页面</h2>
+    <div class="state-grid">
+      <div class="state-card">
+        <div class="state-header" style="background:#D1FAE5;color:#065F46;">支付成功</div>
+        <div class="state-body" style="text-align:center;">
+          <div style="font-size:48px;margin:16px 0;">✅</div>
+          <div style="font-size:18px;font-weight:700;">支付成功</div>
+          <div style="font-size:13px;color:var(--text-secondary);margin:8px 0;">¥12,850.00</div>
+          <div style="font-size:12px;color:var(--text-muted);">订单号：XSDD240629001</div>
+          <div style="margin-top:16px;padding:10px;background:#F5F7FA;border-radius:8px;font-size:12px;color:var(--text-secondary);">支付完成后系统自动回写销售单状态，业务员可实时查看</div>
+        </div>
+      </div>
+      <div class="state-card">
+        <div class="state-header" style="background:#FEF3C7;color:#92400E;">支付处理中</div>
+        <div class="state-body" style="text-align:center;">
+          <div style="font-size:48px;margin:16px 0;">⏳</div>
+          <div style="font-size:15px;font-weight:600;">支付处理中</div>
+          <div style="font-size:12px;color:var(--text-secondary);margin:8px 0;">请稍候，正在确认支付结果...</div>
+          <div style="margin-top:16px;width:100%;height:4px;background:#E5E7EB;border-radius:2px;overflow:hidden;"><div style="width:60%;height:100%;background:var(--warning);animation:loading 1.5s infinite;"></div></div>
+        </div>
+      </div>
+      <div class="state-card">
+        <div class="state-header" style="background:#FEE2E2;color:#991B1B;">支付失败</div>
+        <div class="state-body" style="text-align:center;">
+          <div style="font-size:48px;margin:16px 0;">❌</div>
+          <div style="font-size:15px;font-weight:600;">支付失败</div>
+          <div style="font-size:12px;color:var(--text-secondary);margin:8px 0;">余额不足，请更换支付方式</div>
+          <button style="margin-top:12px;padding:10px 32px;background:var(--brand);color:#fff;border:none;border-radius:8px;font-size:14px;cursor:pointer;">重新支付</button>
+        </div>
+      </div>
+      <div class="state-card">
+        <div class="state-header" style="background:#F1F5F9;color:#475569;">链接已过期</div>
+        <div class="state-body" style="text-align:center;">
+          <div style="font-size:48px;margin:16px 0;">⏰</div>
+          <div style="font-size:15px;font-weight:600;">链接已过期</div>
+          <div style="font-size:12px;color:var(--text-secondary);margin:8px 0;">该支付链接已超过24小时有效期<br>请联系业务员重新发送</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 4. 字段规范 -->
+  <div class="section">
+    <h2>4. 字段规范</h2>
+    <table class="spec-table">
+      <thead><tr><th>字段</th><th>类型</th><th>说明</th><th>来源</th></tr></thead>
+      <tbody>
+        <tr><td><code>shareId</code></td><td>UUID</td><td>分享链接唯一标识</td><td>url参数</td></tr>
+        <tr><td><code>billNo</code></td><td>String</td><td>销售单号</td><td>API返回</td></tr>
+        <tr><td><code>merchantName</code></td><td>String</td><td>商户名称</td><td>API返回</td></tr>
+        <tr><td><code>receivableAmount</code></td><td>Decimal</td><td>应收金额</td><td>API返回</td></tr>
+        <tr><td><code>items</code></td><td>Array</td><td>商品明细列表</td><td>API返回</td></tr>
+        <tr><td><code>item.productName</code></td><td>String</td><td>商品名称</td><td>API返回</td></tr>
+        <tr><td><code>item.quantity</code></td><td>Number</td><td>数量</td><td>API返回</td></tr>
+        <tr><td><code>item.unitPrice</code></td><td>Decimal</td><td>单价</td><td>API返回</td></tr>
+        <tr><td><code>item.subtotal</code></td><td>Decimal</td><td>小计</td><td>API返回</td></tr>
+        <tr><td><code>discountAmount</code></td><td>Decimal</td><td>优惠金额</td><td>API返回</td></tr>
+        <tr><td><code>expireAt</code></td><td>DateTime</td><td>链接过期时间</td><td>API返回</td></tr>
+        <tr><td><code>remainingSeconds</code></td><td>Number</td><td>剩余支付秒数</td><td>前端计算</td></tr>
+        <tr><td><code>payStatus</code></td><td>Enum</td><td>UNPAID/PAID/EXPIRED/FAILED</td><td>回写</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <!-- 5. 交互规范 -->
+  <div class="section">
+    <h2>5. 交互规范</h2>
+    <table class="spec-table">
+      <thead><tr><th>交互</th><th>触发条件</th><th>行为</th></tr></thead>
+      <tbody>
+        <tr><td><strong>页面加载</strong></td><td>客户打开链接</td><td>校验 shareId 有效性，无效显示"链接已过期"；有效展示订单详情</td></tr>
+        <tr><td><strong>倒计时</strong></td><td>页面加载后</td><td>实时显示剩余支付时间，格式：MM:SS；剩余5分钟时变橙色，1分钟时变红色+脉冲</td></tr>
+        <tr><td><strong>点击支付</strong></td><td>用户点击"立即支付"</td><td>调用微信JSAPI <code>wx.chooseWXPay</code> 唤起支付</td></tr>
+        <tr><td><strong>支付成功</strong></td><td>微信回调 success</td><td>展示成功页 → 3秒后自动关闭或显示"返回"按钮</td></tr>
+        <tr><td><strong>支付失败</strong></td><td>微信回调 fail</td><td>展示失败原因 → 提供"重新支付"按钮</td></tr>
+        <tr><td><strong>支付取消</strong></td><td>用户取消支付</td><td>回到支付页面，允许再次支付</td></tr>
+        <tr><td><strong>链接过期</strong></td><td>倒计时归零或服务端判断</td><td>禁用支付按钮，展示"链接已过期"状态</td></tr>
+        <tr><td><strong>重复支付</strong></td><td>已支付链接再次打开</td><td>直接展示"已支付"状态，不显示支付按钮</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <!-- 6. 验收标准 -->
+  <div class="section">
+    <h2>6. 验收标准</h2>
+    <table class="spec-table">
+      <thead><tr><th>#</th><th>验收项</th><th>标准</th></tr></thead>
+      <tbody>
+        <tr><td>1</td><td>移动端适配</td><td>375px ~ 414px 完美展示，微信内置浏览器兼容</td></tr>
+        <tr><td>2</td><td>金额展示</td><td>金额格式 ¥XX,XXX.XX，千分位+两位小数</td></tr>
+        <tr><td>3</td><td>商品明细</td><td>完整展示商品名、规格、数量、单价、小计</td></tr>
+        <tr><td>4</td><td>支付按钮</td><td>绿色醒目按钮，固定在底部，面积≥44x44px</td></tr>
+        <tr><td>5</td><td>倒计时</td><td>实时更新，<5分钟橙色，<1分钟红色闪烁</td></tr>
+        <tr><td>6</td><td>过期处理</td><td>过期自动禁用按钮，明确提示"链接已过期"</td></tr>
+        <tr><td>7</td><td>支付成功</td><td>成功页展示，3秒后自动跳转或提示关闭</td></tr>
+        <tr><td>8</td><td>支付失败</td><td>展示失败原因，提供重试入口</td></tr>
+        <tr><td>9</td><td>重复支付防护</td><td>已支付链接再次打开直接显示成功状态</td></tr>
+        <tr><td>10</td><td>加载状态</td><td>页面加载中显示骨架屏/loading</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+</div>
+</body>
+</html>

@@ -54,6 +54,11 @@ const routes = [
       { path: "sale-bills", name: "SaleBills", component: () => import("../views/SaleBills.vue"), meta: { roles: ["BOSS", "MGR"] } },
       { path: "sale-returns", name: "SaleReturns", component: () => import("../views/SaleReturnsView.vue"), meta: { roles: ["BOSS", "MGR"] } },
       { path: "collection", name: "Collection", component: () => import("../views/Collection.vue"), meta: { roles: ["BOSS", "MGR"] } },
+      { path: "sales/collection-links", name: "CollectionLinks", component: () => import("../views/CollectionLinks.vue"), meta: { roles: ["BOSS", "MGR"] } },
+      { path: "sales/customer-prices", name: "CustomerPrices", component: () => import("../views/CustomerPrices.vue"), meta: { roles: ["BOSS", "MGR"] } },
+      { path: "sales/commission/rules", name: "CommissionRules", component: () => import("../views/CommissionRules.vue"), meta: { roles: ["BOSS", "MGR"] } },
+      { path: "sales/commission/records", name: "CommissionRecords", component: () => import("../views/CommissionRecords.vue"), meta: { roles: ["BOSS", "MGR"] } },
+      { path: "sales/reports", name: "SalesReports", component: () => import("../views/SalesReports.vue"), meta: { roles: ["BOSS", "MGR"] } },
       // 3. 订单管理
       { path: "orders", name: "Orders", component: () => import("../views/Orders.vue"), meta: { roles: ["BOSS", "MGR"] } },
       { path: "order-board", name: "OrderBoard", component: () => import("../views/OrderBoardView.vue"), meta: { roles: ["BOSS", "MGR"] } },

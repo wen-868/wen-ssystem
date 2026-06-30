@@ -13,6 +13,7 @@ import * as otherController from "../controllers/store/other.controller.js";
 import * as receivableController from "../controllers/store/receivable.controller.js";
 import * as tagController from "../controllers/admin/tag.controller.js";
 import * as batchController from "../controllers/inventory-batch.controller.js";
+import * as shiftController from "../controllers/store/shift.controller.js";
 
 export const storeRouter = Router();
 
@@ -99,6 +100,11 @@ storeRouter.post("/receivables/:receivableNo/payment", receivableController.paym
 // 仪表盘
 storeRouter.get("/dashboard", receivableController.getDashboard);
 storeRouter.get("/daily-sales", receivableController.getDailySales);
+
+// 班结
+storeRouter.get("/shift/current", shiftController.getCurrentShift);
+storeRouter.post("/shift/settle", shiftController.settleShift);
+storeRouter.get("/shift/history", shiftController.getShiftHistory);
 
 // 标签与批次（共用）
 storeRouter.get("/tags", tagController.listTags);

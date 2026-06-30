@@ -76,6 +76,16 @@ adminRouter.get("/collection-links", requireAuthWithTenant, reportController.lis
 adminRouter.get("/payment-orders", requireAuthWithTenant, reportController.listPaymentOrders);
 adminRouter.get("/refund-orders", requireAuthWithTenant, reportController.listRefundOrders);
 
+// ============ 分享链接管理 ============
+adminRouter.get("/collection-links/stats", requireAuthWithTenant, reportController.getCollectionLinkStats);
+adminRouter.post("/collection-links/:linkNo/revoke", requireAuthWithTenant, reportController.revokeCollectionLink);
+adminRouter.post("/sale-bills/batch-collection-link", requireAuthWithTenant, reportController.batchCreateCollectionLinks);
+
+// ============ 销售报表 ============
+adminRouter.get("/reports/sales-ranking", requireAuthWithTenant, reportController.getSalesRanking);
+adminRouter.get("/reports/product-ranking", requireAuthWithTenant, reportController.getProductRanking);
+adminRouter.get("/reports/sales-trend", requireAuthWithTenant, reportController.getSalesTrend);
+
 // ============ 日结 ============
 adminRouter.post("/daily-settlements", requireAuthWithTenant, dailySettlementController.createDailySettlement);
 adminRouter.get("/daily-settlements", requireAuthWithTenant, dailySettlementController.listDailySettlements);

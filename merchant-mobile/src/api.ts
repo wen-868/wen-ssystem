@@ -272,20 +272,20 @@ export function fetchInventoryAlerts() {
   return api.get('/store/inventory/alerts')
 }
 
-export function fetchSalesRanking(params: { startDate?: string; endDate?: string }) {
+export function fetchProductRanking(params: { startDate?: string; endDate?: string }) {
   return api.get('/store/reports/sales-ranking', { params })
 }
 
-export function fetchCustomerContribution(params: { startDate?: string; endDate?: string }) {
+export function fetchSalesRanking(params: { startDate?: string; endDate?: string }) {
   return api.get('/store/reports/customer-contribution', { params })
+}
+
+export function fetchSalesTrend(params: { startDate?: string; endDate?: string }) {
+  return api.get('/store/reports', { params })
 }
 
 export function fetchProfitAnalysis(params: { startDate?: string; endDate?: string }) {
   return api.get('/store/reports/profit-analysis', { params })
-}
-
-export function fetchReports(params: { type?: string; startDate?: string; endDate?: string }) {
-  return api.get('/store/reports', { params })
 }
 
 /* ========== 销售单 ========== */
@@ -1115,6 +1115,75 @@ export function fetchStatementPayments(params: {
   customerId?: number
 }) {
   return api.get('/store/customer-payments', { params })
+}
+
+/* ========== 分享支付（H5支付页面） ========== */
+
+export interface ShareCollectionDetail {
+  linkNo: string
+  sourceType: string
+  sourceNo: string
+  amount: number
+  paidAmount: number
+  status: string
+  expireAt: string
+  taxEnabled: boolean
+  taxRate: number
+  taxAmount: number
+  customerName: string
+  storeName: string
+  items: ShareCollectionItem[]
+}
+
+export interface ShareCollectionItem {
+  skuId: number
+  skuName: string
+  boxQty: number
+  bottleQty: number
+  totalBottleQty: number
+  unitPrice: number
+  subtotalAmount: number
+}
+
+export function fetchCollectionLinkByToken(token: string) {
+  return api.get(`/share/collections/${token}`)
+}
+
+export function payCollectionByToken(token: string) {
+  return api.post(`/share/collections/${token}/pay`)
+}
+
+/* ========== 班结 ========== */
+
+export interface ShiftData {
+  shiftDate: string
+  startTime: string
+  operatingHours: string
+  totalSales: number
+  orderCount: number
+  cashOrderCount: number
+  creditOrderCount: number
+  returnOrderCount: number
+  totalReceived: number
+  paymentBreakdown: ShiftPaymentBreakdown[]
+  settleNo?: string
+}
+
+export interface ShiftPaymentBreakdown {
+  channel: string
+  amount: number
+}
+
+export function fetchShiftSummary() {
+  return api.get('/store/shift/current')
+}
+
+export function submitShiftSettlement(data: { actualAmount: number }) {
+  return api.post('/store/shift/settle', data)
+}
+
+export function fetchShiftHistory(params?: { page?: number; pageSize?: number }) {
+  return api.get('/store/shift/history', { params })
 }
 
 /* ========== Phase 3: 标签 ========== */
