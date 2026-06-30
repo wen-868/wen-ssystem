@@ -66,7 +66,9 @@ const routes = [
       // 4. 采购管理
       { path: "purchase-orders", name: "PurchaseOrders", component: () => import("../views/PurchaseOrders.vue"), meta: { roles: ["BOSS"] } },
       { path: "purchase-in-stocks", name: "PurchaseInStocks", component: () => import("../views/PurchaseInStocks.vue"), meta: { roles: ["BOSS"] } },
-      { path: "purchase-returns", name: "PurchaseReturns", component: () => import("../views/PurchaseReturns.vue"), meta: { roles: ["BOSS"] } },
+      { path: "purchase-returns", name: "PurchaseReturns", component: () => import("../views/PurchaseReturnsView.vue"), meta: { roles: ["BOSS", "MGR"] } },
+      { path: "purchase/supplier-statements", name: "SupplierStatements", component: () => import("../views/SupplierStatements.vue"), meta: { roles: ["BOSS", "MGR"] } },
+      { path: "purchase/plans", name: "PurchasePlans", component: () => import("../views/PurchasePlans.vue"), meta: { roles: ["BOSS", "MGR"] } },
       { path: "purchase-payments", name: "PurchasePayments", component: () => import("../views/PurchasePayments.vue"), meta: { roles: ["BOSS"] } },
       { path: "suppliers", name: "Suppliers", component: () => import("../views/Suppliers.vue"), meta: { roles: ["BOSS"] } },
       // 5. 库存管理
@@ -105,7 +107,8 @@ const routes = [
       { path: "customer-statements", name: "CustomerStatements", component: () => import("../views/CustomerStatements.vue"), meta: { roles: ["BOSS"] } },
       { path: "finance/profit", name: "FinanceProfit", component: () => import("../views/FinanceProfit.vue"), meta: { roles: ["BOSS"] } },
       // 10. 数据报表
-      { path: "reports", name: "Reports", component: () => import("../views/Reports.vue"), meta: { roles: ["BOSS"] } },
+      { path: "reports", name: "Reports", component: () => import("../views/Reports.vue"), meta: { roles: ["BOSS", "MGR"] } },
+      { path: "reports/purchase", name: "PurchaseReports", component: () => import("../views/PurchaseReports.vue"), meta: { roles: ["BOSS", "MGR"] } },
       { path: "reports/products", name: "ReportsProducts", component: () => import("../views/ReportsProducts.vue"), meta: { roles: ["BOSS"] } },
       { path: "reports/employees", name: "ReportsEmployees", component: () => import("../views/ReportsEmployees.vue"), meta: { roles: ["BOSS"] } },
       { path: "reports/stores", name: "ReportsStores", component: () => import("../views/ReportsStores.vue"), meta: { roles: ["BOSS"] } },

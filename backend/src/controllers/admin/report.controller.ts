@@ -126,3 +126,33 @@ export const getSalesTrend = asyncHandler(async (req, res) => {
   );
   res.json(ok(result));
 });
+
+// ============ 采购报表 ============
+
+export const getPurchaseSummary = asyncHandler(async (req, res) => {
+  const result = await reportService.getPurchaseSummary(
+    req.tenantId!,
+    req.query.startDate as string | undefined,
+    req.query.endDate as string | undefined
+  );
+  res.json(ok(result));
+});
+
+export const getPurchaseTrend = asyncHandler(async (req, res) => {
+  const result = await reportService.getPurchaseTrend(
+    req.tenantId!,
+    (req.query.groupBy as string) ?? "day",
+    req.query.startDate as string | undefined,
+    req.query.endDate as string | undefined
+  );
+  res.json(ok(result));
+});
+
+export const getSupplierRanking = asyncHandler(async (req, res) => {
+  const result = await reportService.getSupplierRanking(
+    req.tenantId!,
+    req.query.startDate as string | undefined,
+    req.query.endDate as string | undefined
+  );
+  res.json(ok(result));
+});

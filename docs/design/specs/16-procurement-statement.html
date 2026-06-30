@@ -1,0 +1,286 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>16 - 供应商对账页面设计 | 智享酒水库存系统</title>
+<style>
+:root {
+  --brand: #1677FF; --brand-light: #E6F4FF; --text: #1F2328; --text-secondary: #4B5563; --text-muted: #9CA3AF;
+  --border: #E5E7EB; --bg: #F5F7FA; --white: #FFF; --success: #10B981; --warning: #F59E0B; --danger: #EF4444;
+  --radius: 12px; --shadow: 0 2px 8px rgba(0,0,0,.06);
+}
+* { margin: 0; padding: 0; box-sizing: border-box; }
+body { font-family: -apple-system, BlinkMacSystemFont, 'PingFang SC', 'Microsoft YaHei', sans-serif; background: var(--bg); color: var(--text); line-height: 1.6; }
+.container { max-width: 1300px; margin: 0 auto; padding: 40px 24px; }
+.header { background: linear-gradient(135deg, #1677FF, #7C3AED); color: #fff; padding: 48px 24px; text-align: center; }
+.header h1 { font-size: 2rem; font-weight: 700; margin-bottom: 8px; }
+.header p { font-size: 1rem; opacity: .85; }
+.section { background: var(--white); border-radius: var(--radius); padding: 32px; margin-bottom: 24px; box-shadow: var(--shadow); }
+.section h2 { font-size: 1.25rem; color: var(--brand); margin-bottom: 8px; padding-bottom: 12px; border-bottom: 2px solid var(--brand-light); }
+.section h3 { font-size: 1.05rem; margin: 20px 0 10px; }
+.section p.desc { color: var(--text-secondary); margin-bottom: 16px; font-size: .88rem; }
+
+/* Mockup */
+.mockup { border: 1px solid var(--border); border-radius: var(--radius); overflow: hidden; background: #fff; margin: 16px 0; }
+.mockup-header { background: #fff; border-bottom: 1px solid #F0F0F0; padding: 0 20px; height: 56px; display: flex; align-items: center; justify-content: space-between; }
+.mockup-logo { font-size: 16px; font-weight: 700; color: var(--brand); display: flex; align-items: center; gap: 8px; }
+.mockup-logo-icon { width: 28px; height: 28px; background: linear-gradient(135deg, var(--brand), #0958D9); border-radius: 6px; }
+.mockup-nav { display: flex; gap: 4px; }
+.mockup-nav-item { padding: 6px 14px; border-radius: 6px; font-size: 13px; color: var(--text-secondary); }
+.mockup-nav-item.active { background: var(--brand-light); color: var(--brand); font-weight: 500; }
+.mockup-user { display: flex; align-items: center; gap: 8px; font-size: 13px; }
+.mockup-avatar { width: 32px; height: 32px; border-radius: 50%; background: var(--brand); display: flex; align-items: center; justify-content: center; color: #fff; font-size: 13px; font-weight: 600; }
+.mockup-body { display: flex; }
+.mockup-sidebar { width: 220px; background: #fff; border-right: 1px solid #F0F0F0; padding: 16px 0; min-height: 520px; }
+.mockup-sidebar-item { padding: 10px 20px; font-size: 13px; color: var(--text-secondary); display: flex; align-items: center; gap: 10px; }
+.mockup-sidebar-item.active { background: var(--brand-light); color: var(--brand); font-weight: 500; border-right: 3px solid var(--brand); }
+.mockup-sidebar-section { font-size: 11px; color: var(--text-muted); padding: 16px 20px 6px; font-weight: 600; text-transform: uppercase; }
+.mockup-main { flex: 1; padding: 20px 24px; background: var(--bg); }
+.mockup-page-title { font-size: 20px; font-weight: 700; margin-bottom: 4px; }
+.mockup-breadcrumb { font-size: 12px; color: var(--text-muted); margin-bottom: 12px; }
+.tag { padding: 2px 8px; border-radius: 4px; font-size: 11px; font-weight: 500; white-space: nowrap; }
+.tag-warning { background: #FEF3C7; color: #92400E; }
+.tag-success { background: #D1FAE5; color: #065F46; }
+.tag-danger { background: #FEE2E2; color: #991B1B; }
+.tag-info { background: #DBEAFE; color: #1E40AF; }
+.tag-default { background: #F1F5F9; color: #475569; }
+
+/* Table */
+.mockup-table { width: 100%; border-collapse: collapse; font-size: 12px; }
+.mockup-table th { background: #F8FAFC; padding: 10px 12px; text-align: left; font-weight: 600; color: var(--text-secondary); border-bottom: 1px solid var(--border); font-size: 11px; }
+.mockup-table td { padding: 10px 12px; border-bottom: 1px solid #F0F0F0; }
+.mockup-table tr:hover td { background: #F8FAFC; }
+
+/* Flow */
+.flow { display: flex; align-items: center; justify-content: center; gap: 12px; flex-wrap: wrap; padding: 20px; }
+.flow-step { background: var(--brand-light); border: 1px solid var(--brand); border-radius: 12px; padding: 14px 20px; text-align: center; font-size: 13px; font-weight: 500; min-width: 100px; }
+.flow-step .step-num { display: block; width: 24px; height: 24px; border-radius: 50%; background: var(--brand); color: #fff; font-size: 12px; line-height: 24px; margin: 0 auto 6px; }
+.flow-arrow { font-size: 20px; color: var(--brand); }
+
+/* Spec table */
+.spec-table { width: 100%; border-collapse: collapse; margin: 16px 0; }
+.spec-table th, .spec-table td { padding: 10px 14px; text-align: left; border-bottom: 1px solid var(--border); font-size: .85rem; }
+.spec-table th { background: var(--brand-light); color: var(--brand); font-weight: 600; font-size: .8rem; }
+.spec-table tr:hover { background: #F8FAFC; }
+.spec-table code { background: #F1F5F9; padding: 2px 6px; border-radius: 4px; font-size: .82rem; }
+
+/* Statement detail */
+.statement-card { background: #fff; border: 1px solid var(--border); border-radius: 8px; padding: 16px; margin-bottom: 12px; }
+.statement-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; }
+.statement-header .no { font-size: 15px; font-weight: 700; }
+.statement-header .amount { font-size: 18px; font-weight: 700; color: var(--danger); }
+.statement-summary { display: grid; grid-template-columns: repeat(4,1fr); gap: 8px; margin-bottom: 12px; font-size: 12px; }
+.statement-summary .item { text-align: center; }
+.statement-summary .item .label { color: var(--text-muted); font-size: 11px; }
+.statement-summary .item .value { font-weight: 600; font-size: 15px; margin-top: 2px; }
+.modal-overlay { position: fixed; inset: 0; background: rgba(0,0,0,.4); display: flex; align-items: center; justify-content: center; z-index: 100; }
+.modal { background: #fff; border-radius: 12px; padding: 24px; width: 480px; box-shadow: 0 20px 60px rgba(0,0,0,.15); }
+.modal h3 { font-size: 16px; margin-bottom: 16px; }
+.modal .form-row { display: flex; gap: 12px; margin-bottom: 12px; }
+.modal .form-row label { font-size: 12px; color: var(--text-secondary); display: block; margin-bottom: 4px; }
+.modal .form-row input, .modal .form-row select { width: 100%; padding: 8px 10px; border: 1px solid var(--border); border-radius: 6px; font-size: 13px; }
+.modal .btn-row { display: flex; justify-content: flex-end; gap: 8px; margin-top: 16px; }
+.btn-primary { padding: 8px 20px; background: var(--brand); color: #fff; border: none; border-radius: 6px; font-size: 13px; cursor: pointer; }
+.btn-secondary { padding: 8px 20px; background: #fff; color: var(--text); border: 1px solid var(--border); border-radius: 6px; font-size: 13px; cursor: pointer; }
+</style>
+</head>
+<body>
+
+<div class="header">
+  <h1>供应商对账页面设计</h1>
+  <p>对账单生成 → 供应商确认 → 付款核销 — 采购流程闭环</p>
+</div>
+
+<div class="container">
+
+  <!-- 1. 业务流程 -->
+  <div class="section">
+    <h2>1. 对账业务流程</h2>
+    <div class="flow">
+      <div class="flow-step"><span class="step-num">1</span>选择供应商与期间</div>
+      <div class="flow-arrow">→</div>
+      <div class="flow-step"><span class="step-num">2</span>生成对账单</div>
+      <div class="flow-arrow">→</div>
+      <div class="flow-step"><span class="step-num">3</span>供应商确认</div>
+      <div class="flow-arrow">→</div>
+      <div class="flow-step" style="background:#D1FAE5;border-color:#10B981;"><span class="step-num" style="background:#10B981;">4</span>付款核销</div>
+    </div>
+  </div>
+
+  <!-- 2. 对账单列表 -->
+  <div class="section">
+    <h2>2. 对账单列表页</h2>
+    <div class="mockup">
+      <div class="mockup-header">
+        <div class="mockup-logo"><div class="mockup-logo-icon"></div>智享酒水库存</div>
+        <div class="mockup-nav">
+          <span class="mockup-nav-item">仪表盘</span>
+          <span class="mockup-nav-item">采购管理</span>
+          <span class="mockup-nav-item">销售管理</span>
+          <span class="mockup-nav-item">库存管理</span>
+        </div>
+        <div class="mockup-user"><div class="mockup-avatar">财</div>财务</div>
+      </div>
+      <div class="mockup-body">
+        <div class="mockup-sidebar">
+          <div class="mockup-sidebar-section">采购管理</div>
+          <div class="mockup-sidebar-item">采购订单</div>
+          <div class="mockup-sidebar-item">采购入库</div>
+          <div class="mockup-sidebar-item">采购退货</div>
+          <div class="mockup-sidebar-item">供应商档案</div>
+          <div class="mockup-sidebar-item active">供应商对账</div>
+          <div class="mockup-sidebar-item">采购计划</div>
+          <div class="mockup-sidebar-item">采购报表</div>
+        </div>
+        <div class="mockup-main">
+          <div class="mockup-breadcrumb">采购管理 / 供应商对账</div>
+          <div class="mockup-page-title">供应商对账</div>
+          <div style="display:flex;gap:12px;margin-bottom:16px;align-items:center;">
+            <button style="padding:8px 16px;background:var(--brand);color:#fff;border:none;border-radius:6px;font-size:12px;cursor:pointer;">+ 生成对账单</button>
+            <select style="padding:6px 12px;border:1px solid var(--border);border-radius:6px;font-size:12px;color:var(--text-secondary);"><option>全部供应商</option><option>茅台酒厂</option><option>五粮液酒厂</option></select>
+            <select style="padding:6px 12px;border:1px solid var(--border);border-radius:6px;font-size:12px;color:var(--text-secondary);"><option>全部状态</option><option>待确认</option><option>已确认</option><option>有争议</option></select>
+          </div>
+          <table class="mockup-table">
+            <thead><tr><th>对账单号</th><th>供应商</th><th>期间</th><th>采购金额</th><th>已付金额</th><th>退货金额</th><th>余额</th><th>状态</th><th>操作</th></tr></thead>
+            <tbody>
+              <tr><td>DZD240630001</td><td>茅台酒厂</td><td>2024-06</td><td>¥186,500</td><td>¥150,000</td><td>¥6,500</td><td style="font-weight:700;color:var(--danger);">¥30,000</td><td><span class="tag tag-warning">待确认</span></td><td><a href="#" style="color:var(--brand);font-size:12px;">详情</a> <a href="#" style="color:var(--danger);font-size:12px;">标记争议</a></td></tr>
+              <tr><td>DZD240628001</td><td>五粮液酒厂</td><td>2024-06</td><td>¥125,800</td><td>¥125,800</td><td>¥0</td><td style="font-weight:700;color:var(--success);">¥0</td><td><span class="tag tag-success">已确认</span></td><td><a href="#" style="color:var(--brand);font-size:12px;">详情</a></td></tr>
+              <tr><td>DZD240520002</td><td>国窖酒厂</td><td>2024-05</td><td>¥89,200</td><td>¥80,000</td><td>¥3,200</td><td style="font-weight:700;color:var(--danger);">¥6,000</td><td><span class="tag tag-danger">有争议</span></td><td><a href="#" style="color:var(--brand);font-size:12px;">详情</a> <a href="#" style="color:var(--success);font-size:12px;">解决</a></td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 3. 生成对账单弹窗 -->
+  <div class="section">
+    <h2>3. 生成对账单弹窗</h2>
+    <div class="mockup" style="position:relative;min-height:300px;">
+      <div class="modal-overlay" style="position:relative;">
+        <div class="modal">
+          <h3>生成对账单</h3>
+          <div class="form-row">
+            <div style="flex:1;"><label>供应商</label><select><option>请选择供应商</option><option>茅台酒厂</option><option>五粮液酒厂</option></select></div>
+          </div>
+          <div class="form-row">
+            <div style="flex:1;"><label>起始日期</label><input type="date" value="2024-06-01"></div>
+            <div style="flex:1;"><label>截止日期</label><input type="date" value="2024-06-30"></div>
+          </div>
+          <div class="form-row" style="padding:10px;background:#F8FAFC;border-radius:6px;font-size:12px;color:var(--text-secondary);">
+            系统将汇总该期间所有采购订单、入库、退货记录，自动计算应付余额
+          </div>
+          <div class="btn-row">
+            <button class="btn-secondary">取消</button>
+            <button class="btn-primary">生成对账单</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 4. 对账单详情 -->
+  <div class="section">
+    <h2>4. 对账单详情页</h2>
+    <div class="mockup">
+      <div class="mockup-header">
+        <div class="mockup-logo"><div class="mockup-logo-icon"></div>智享酒水库存</div>
+        <div class="mockup-nav"><span class="mockup-nav-item">仪表盘</span><span class="mockup-nav-item">采购管理</span><span class="mockup-nav-item">销售管理</span><span class="mockup-nav-item">库存管理</span></div>
+        <div class="mockup-user"><div class="mockup-avatar">财</div>财务</div>
+      </div>
+      <div class="mockup-body">
+        <div class="mockup-sidebar">
+          <div class="mockup-sidebar-section">采购管理</div>
+          <div class="mockup-sidebar-item">采购订单</div>
+          <div class="mockup-sidebar-item">采购入库</div>
+          <div class="mockup-sidebar-item">采购退货</div>
+          <div class="mockup-sidebar-item">供应商档案</div>
+          <div class="mockup-sidebar-item active">供应商对账</div>
+          <div class="mockup-sidebar-item">采购计划</div>
+          <div class="mockup-sidebar-item">采购报表</div>
+        </div>
+        <div class="mockup-main">
+          <div class="mockup-breadcrumb">采购管理 / 供应商对账 / 详情</div>
+          <div class="mockup-page-title">对账单详情 — DZD240630001</div>
+
+          <div class="statement-card">
+            <div class="statement-header">
+              <div>
+                <div class="no">茅台酒厂 · 2024年6月</div>
+                <div style="font-size:12px;color:var(--text-muted);">生成时间：2024-06-30 15:00 · 状态：<span class="tag tag-warning">待确认</span></div>
+              </div>
+              <div class="amount">余额 ¥30,000</div>
+            </div>
+            <div class="statement-summary">
+              <div class="item"><div class="label">采购金额</div><div class="value">¥186,500</div></div>
+              <div class="item"><div class="label">已付金额</div><div class="value" style="color:var(--success);">¥150,000</div></div>
+              <div class="item"><div class="label">退货金额</div><div class="value" style="color:var(--warning);">¥6,500</div></div>
+              <div class="item"><div class="label">应付余额</div><div class="value" style="color:var(--danger);">¥30,000</div></div>
+            </div>
+          </div>
+
+          <div style="font-size:13px;font-weight:600;margin:16px 0 8px;">明细记录</div>
+          <table class="mockup-table">
+            <thead><tr><th>日期</th><th>单据类型</th><th>单号</th><th>商品</th><th>数量</th><th>金额</th><th>方向</th></tr></thead>
+            <tbody>
+              <tr><td>06-15</td><td>采购入库</td><td>RK240615003</td><td>茅台 飞天 53度</td><td>30箱</td><td>¥84,000</td><td style="color:var(--danger);">应付</td></tr>
+              <tr><td>06-15</td><td>采购入库</td><td>RK240615003</td><td>茅台 王子酒 53度</td><td>20箱</td><td>¥36,000</td><td style="color:var(--danger);">应付</td></tr>
+              <tr><td>06-20</td><td>采购入库</td><td>RK240620005</td><td>茅台 迎宾酒 53度</td><td>25箱</td><td>¥66,500</td><td style="color:var(--danger);">应付</td></tr>
+              <tr><td>06-22</td><td>采购退货</td><td>TH240622001</td><td>茅台 王子酒（临期）</td><td>-5箱</td><td>-¥6,500</td><td style="color:var(--success);">冲减</td></tr>
+              <tr><td>06-25</td><td>付款</td><td>FK240625001</td><td>银行转账</td><td>—</td><td>-¥150,000</td><td style="color:var(--success);">已付</td></tr>
+            </tbody>
+          </table>
+
+          <div style="display:flex;gap:8px;margin-top:16px;justify-content:flex-end;">
+            <button class="btn-secondary">标记争议</button>
+            <button class="btn-primary">确认对账</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 5. 字段规范 -->
+  <div class="section">
+    <h2>5. 字段规范</h2>
+    <table class="spec-table">
+      <thead><tr><th>字段</th><th>类型</th><th>说明</th></tr></thead>
+      <tbody>
+        <tr><td><code>statementNo</code></td><td>String</td><td>对账单号，格式 DZD + 年月日 + 序号</td></tr>
+        <tr><td><code>supplierId</code></td><td>UUID</td><td>供应商ID</td></tr>
+        <tr><td><code>supplierName</code></td><td>String</td><td>供应商名称</td></tr>
+        <tr><td><code>periodStart</code></td><td>Date</td><td>对账期间起始日期</td></tr>
+        <tr><td><code>periodEnd</code></td><td>Date</td><td>对账期间截止日期</td></tr>
+        <tr><td><code>purchaseAmount</code></td><td>Decimal</td><td>本期采购金额合计</td></tr>
+        <tr><td><code>paidAmount</code></td><td>Decimal</td><td>本期已付金额</td></tr>
+        <tr><td><code>returnAmount</code></td><td>Decimal</td><td>本期退货金额</td></tr>
+        <tr><td><code>balanceAmount</code></td><td>Decimal</td><td>应付余额 = 采购金额 - 已付 - 退货</td></tr>
+        <tr><td><code>status</code></td><td>Enum</td><td>PENDING / CONFIRMED / DISPUTED</td></tr>
+        <tr><td><code>items</code></td><td>Array</td><td>明细行列表（入库/退货/付款记录）</td></tr>
+        <tr><td><code>item.type</code></td><td>Enum</td><td>IN_STOCK / RETURN / PAYMENT</td></tr>
+        <tr><td><code>item.direction</code></td><td>Enum</td><td>DEBIT（应付）/ CREDIT（冲减/已付）</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <!-- 6. 验收标准 -->
+  <div class="section">
+    <h2>6. 验收标准</h2>
+    <table class="spec-table">
+      <thead><tr><th>#</th><th>验收项</th><th>标准</th></tr></thead>
+      <tbody>
+        <tr><td>1</td><td>对账单列表</td><td>展示供应商/期间/金额/余额/状态，支持筛选</td></tr>
+        <tr><td>2</td><td>生成对账单</td><td>弹窗选择供应商+日期范围，自动汇总数据</td></tr>
+        <tr><td>3</td><td>对账单详情</td><td>汇总卡片 + 明细列表（入库/退货/付款），金额计算正确</td></tr>
+        <tr><td>4</td><td>确认对账</td><td>确认后状态变为"已确认"，不可修改</td></tr>
+        <tr><td>5</td><td>标记争议</td><td>争议状态下可备注原因，保留记录</td></tr>
+        <tr><td>6</td><td>金额精度</td><td>所有金额保留2位小数，千分位格式化</td></tr>
+        <tr><td>7</td><td>余额计算</td><td>余额 = 采购金额 - 已付金额 - 退货金额，实时计算</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+</div>
+</body>
+</html>

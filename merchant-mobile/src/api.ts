@@ -1286,3 +1286,151 @@ export function fetchBatchTrace(batchId: number) {
 export function setMarketingTags(spuId: number, tags: string[]) {
   return api.put(`/admin/products/${spuId}/marketing-tags`, { tags })
 }
+
+/* ========== Phase 5: 供应商管理 ========== */
+
+export interface SupplierRecord {
+  id: number
+  name: string
+  shortName: string
+  supplyType: string
+  province: string
+  city: string
+  district: string
+  address: string
+  creditLevel: string
+  settlementType: string
+  settlementDay: number
+  taxRate: number
+  bankName: string
+  bankAccount: string
+  bankAccountName: string
+  contactPerson: string
+  contactMobile: string
+  contactPhone: string
+  status: number
+  remark: string
+  createdAt: string
+}
+
+export interface SupplierContact {
+  id: number
+  supplierId: number
+  name: string
+  mobile: string
+  phone: string
+  email: string
+  wechat: string
+  isPrimary: number
+  position: string
+  remark: string
+}
+
+export interface SupplierDetail extends SupplierRecord {
+  contacts: SupplierContact[]
+}
+
+export interface SupplierStats {
+  purchaseOrderCount: number
+  totalPurchaseAmount: number
+}
+
+export interface SupplierProductRecord {
+  spuId: number
+  spuName: string
+  skuId: number
+  skuName: string
+  purchasePrice: number
+  supplyStatus: number
+}
+
+export function fetchSuppliers(params: {
+  keyword?: string
+  supplyType?: string
+  page?: number
+  pageSize?: number
+}) {
+  return api.get('/store/suppliers', { params })
+}
+
+export function fetchSupplierDetail(id: number) {
+  return api.get(`/store/suppliers/${id}`)
+}
+
+export function fetchSupplierProducts(id: number, params?: { page?: number; pageSize?: number; keyword?: string }) {
+  return api.get(`/store/suppliers/${id}/products`, { params })
+}
+
+export function fetchSupplierStats(id: number) {
+  return api.get(`/store/suppliers/${id}/stats`)
+}
+
+/* ========== Phase 5: 供应商对账 ========== */
+
+export interface SupplierStatementRecord {
+  id: number
+  statementNo: string
+  statement_no: string
+  supplierId: number
+  supplier_id: number
+  supplierName: string
+  supplier_name: string
+  startDate: string
+  start_date: string
+  endDate: string
+  end_date: string
+  openingBalance: number
+  opening_balance: number
+  totalPurchase: number
+  total_purchase: number
+  totalReturns: number
+  total_returns: number
+  totalPayments: number
+  total_payments: number
+  closingBalance: number
+  closing_balance: number
+  status: string
+  remark: string
+  operatorId: number
+  createdAt: string
+  created_at: string
+}
+
+export interface SupplierStatementDetail extends SupplierStatementRecord {
+  purchases: { purchase_no: string; goods_amount: number; tax_amount: number; total_amount: number; created_at: string }[]
+  returns: { return_no: string; return_amount: number; created_at: string }[]
+  payments: { payment_no: string; amount: number; payment_date: string }[]
+}
+
+export function fetchSupplierStatements(params: {
+  supplierId?: number
+  status?: string
+  startDate?: string
+  endDate?: string
+  page?: number
+  pageSize?: number
+}) {
+  return api.get('/store/supplier-statements', { params })
+}
+
+export function generateSupplierStatement(data: {
+  supplier_id: number
+  supplier_name: string
+  start_date: string
+  end_date: string
+  remark?: string
+}) {
+  return api.post('/store/supplier-statements', data)
+}
+
+export function getSupplierStatementDetail(statementNo: string) {
+  return api.get(`/store/supplier-statements/${statementNo}`)
+}
+
+export function confirmSupplierStatement(statementNo: string) {
+  return api.post(`/store/supplier-statements/${statementNo}/confirm`)
+}
+
+export function disputeSupplierStatement(statementNo: string, remark: string) {
+  return api.post(`/store/supplier-statements/${statementNo}/dispute`, { remark })
+}

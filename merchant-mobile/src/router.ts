@@ -74,7 +74,13 @@ const routes: RouteRecordRaw[] = [
   { path: '/statements', name: 'statements', component: () => import('./views/StatementsView.vue'), meta: { requiresAuth: true } },
   { path: '/statements/create', name: 'statement-create', component: () => import('./views/CreateStatementView.vue'), meta: { requiresAuth: true } },
   { path: '/statements/:statementNo', name: 'statement-detail', component: () => import('./views/StatementDetailView.vue'), meta: { requiresAuth: true } },
-  { path: '/statements/:statementNo/payment', name: 'statement-payment', component: () => import('./views/StatementPaymentView.vue'), meta: { requiresAuth: true } }
+  { path: '/statements/:statementNo/payment', name: 'statement-payment', component: () => import('./views/StatementPaymentView.vue'), meta: { requiresAuth: true } },
+  // 供应商管理
+  { path: '/suppliers', name: 'suppliers', component: () => import('./views/SuppliersView.vue'), meta: { requiresAuth: true } },
+  { path: '/suppliers/:id', name: 'supplier-detail', component: () => import('./views/SupplierDetailView.vue'), meta: { requiresAuth: true } },
+  // 供应商对账
+  { path: '/supplier-statements', name: 'supplier-statements', component: () => import('./views/SupplierStatementsView.vue'), meta: { requiresAuth: true } },
+  { path: '/supplier-statements/:statementNo', name: 'supplier-statement-detail', component: () => import('./views/SupplierStatementDetailView.vue'), meta: { requiresAuth: true } }
 ]
 
 const router = createRouter({

@@ -61,6 +61,8 @@
           <el-menu-item index="/purchase-orders">采购订单</el-menu-item>
           <el-menu-item index="/purchase-in-stocks">采购入库</el-menu-item>
           <el-menu-item index="/purchase-returns">采购退货</el-menu-item>
+          <el-menu-item index="/purchase/supplier-statements">供应商对账</el-menu-item>
+          <el-menu-item index="/purchase/plans">采购计划</el-menu-item>
           <el-menu-item index="/purchase-payments">采购付款</el-menu-item>
           <el-menu-item index="/suppliers">供应商</el-menu-item>
         </el-sub-menu>
@@ -143,6 +145,7 @@
           <el-menu-item index="/reports/products">商品排行</el-menu-item>
           <el-menu-item index="/reports/employees">员工业绩</el-menu-item>
           <el-menu-item index="/reports/stores">门店对比</el-menu-item>
+          <el-menu-item index="/reports/purchase">采购报表</el-menu-item>
         </el-sub-menu>
 
         <!-- 11. 营销中心 -->
@@ -278,6 +281,8 @@ const pageTitle = computed(() => {
     "/purchase-orders": "采购订单",
     "/purchase-in-stocks": "采购入库",
     "/purchase-returns": "采购退货",
+    "/purchase/supplier-statements": "供应商对账",
+    "/purchase/plans": "采购计划",
     "/purchase-payments": "采购付款",
     "/suppliers": "供应商",
     "/inventory": "库存查询",
@@ -304,6 +309,7 @@ const pageTitle = computed(() => {
     "/reports/products": "商品排行",
     "/reports/employees": "员工业绩",
     "/reports/stores": "门店对比",
+    "/reports/purchase": "采购报表",
     "/marketing": "优惠券管理",
     "/marketing/tags": "营销标签",
     "/marketing/promotion": "促销活动",

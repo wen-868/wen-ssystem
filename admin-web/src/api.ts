@@ -356,8 +356,13 @@ export async function fetchReportPurchaseSummary() {
   return data.data;
 }
 
-export async function fetchReportSupplierRanking() {
-  const { data } = await api.get("/admin/reports/supplier-ranking");
+export async function fetchReportSupplierRanking(params?: { dateStart?: string; dateEnd?: string }) {
+  const { data } = await api.get("/admin/reports/supplier-ranking", { params });
+  return data.data;
+}
+
+export async function fetchReportPurchaseTrend(params?: { granularity?: string; months?: number }) {
+  const { data } = await api.get("/admin/reports/purchase-trend", { params });
   return data.data;
 }
 
@@ -1127,23 +1132,53 @@ export async function fetchPurchasePaymentStatistics() {
 
 // ==================== Supplier Statement APIs ====================
 export async function fetchSupplierStatements(params?: { supplierId?: number; status?: string; page?: number; pageSize?: number }) {
-  const { data } = await api.get("/admin/purchase-payments/supplier-statements", { params: { page: 1, pageSize: 20, ...params } });
+  const { data } = await api.get("/admin/supplier-statements", { params: { page: 1, pageSize: 20, ...params } });
   return data.data;
 }
 export async function fetchSupplierStatementDetail(id: number) {
-  const { data } = await api.get(`/admin/purchase-payments/supplier-statements/${id}`);
+  const { data } = await api.get(`/admin/supplier-statements/${id}`);
   return data.data;
 }
 export async function generateSupplierStatement(payload: unknown) {
-  const { data } = await api.post("/admin/purchase-payments/supplier-statements/generate", payload);
+  const { data } = await api.post("/admin/supplier-statements/generate", payload);
   return data.data;
 }
 export async function confirmSupplierStatement(id: number) {
-  const { data } = await api.post(`/admin/purchase-payments/supplier-statements/${id}/confirm`);
+  const { data } = await api.post(`/admin/supplier-statements/${id}/confirm`);
   return data.data;
 }
 export async function disputeSupplierStatement(id: number, payload?: unknown) {
-  const { data } = await api.post(`/admin/purchase-payments/supplier-statements/${id}/dispute`, payload || {});
+  const { data } = await api.post(`/admin/supplier-statements/${id}/dispute`, payload || {});
+  return data.data;
+}
+
+// ==================== Purchase Plan APIs ====================
+export async function fetchPurchasePlans(params?: { page?: number; pageSize?: number; status?: string; supplierId?: number }) {
+  const { data } = await api.get("/admin/purchase-plans", { params: { page: 1, pageSize: 20, ...params } });
+  return data.data;
+}
+export async function createPurchasePlan(payload: { planName: string; supplierId?: number; supplierName?: string; items: any[]; remark?: string }) {
+  const { data } = await api.post("/admin/purchase-plans", payload);
+  return data.data;
+}
+export async function fetchPurchasePlanDetail(id: number) {
+  const { data } = await api.get(`/admin/purchase-plans/${id}`);
+  return data.data;
+}
+export async function approvePurchasePlan(id: number) {
+  const { data } = await api.post(`/admin/purchase-plans/${id}/approve`);
+  return data.data;
+}
+export async function convertPurchasePlanToOrder(id: number) {
+  const { data } = await api.post(`/admin/purchase-plans/${id}/convert`);
+  return data.data;
+}
+export async function cancelPurchasePlan(id: number) {
+  const { data } = await api.post(`/admin/purchase-plans/${id}/cancel`);
+  return data.data;
+}
+export async function fetchReplenishmentSuggestions() {
+  const { data } = await api.get("/admin/purchase-plans/replenish/suggestions");
   return data.data;
 }
 

@@ -288,3 +288,76 @@ export async function getSalesTrend(tenantId: string, groupBy: string = "day", s
   );
   return records;
 }
+
+// ============ 采购报表 ============
+
+export async function getPurchaseSummary(tenantId: string, startDate?: string, endDate?: string) {
+  const conditions: string[] = ["po.tenant_id = ?", "po.order_status NOT IN ('VOIDED')"];
+  const params: unknown[] = [tenantId];
+  if (startDate) { conditions.push("po.created_at >= ?"); params.push(startDate); }
+  if (endDate) { conditions.push("po.created_at <= ?"); params.push(endDate); }
+  const where = `WHERE ${conditions.join(" AND ")}`;
+  const summary = await queryOneWithTenant<any>(
+    `SELECT COALESCE(SUM(po.goods_amount), 0) AS totalPurchaseAmount,
+            COUNT(DISTINCT po.order_no) AS orderCount,
+            COUNT(DISTINCT po.supplier_id) AS supplierCount
+     FROM purchase_order po ${where}`,
+    params, tenantId
+  );
+  const bySupplier = await queryWithTenant<any>(
+    `SELECT po.supplier_id AS supplierId, s.name AS supplierName,
+            COALESCE(SUM(po.goods_amount), 0) AS totalAmount,
+            COUNT(DISTINCT po.order_no) AS orderCount
+     FROM purchase_order po
+     LEFT JOIN supplier s ON s.id = po.supplier_id
+     ${where}
+     GROUP BY po.supplier_id, s.name
+     ORDER BY totalAmount DESC`,
+    params, tenantId
+  );
+  return { summary, bySupplier };
+}
+
+export async function getPurchaseTrend(tenantId: string, groupBy: string = "day", startDate?: string, endDate?: string) {
+  const conditions: string[] = ["tenant_id = ?", "order_status NOT IN ('VOIDED')"];
+  const params: unknown[] = [tenantId];
+  if (startDate) { conditions.push("created_at >= ?"); params.push(startDate); }
+  if (endDate) { conditions.push("created_at <= ?"); params.push(endDate); }
+  const where = `WHERE ${conditions.join(" AND ")}`;
+  let dateFormat: string;
+  if (groupBy === "month") {
+    dateFormat = "DATE_FORMAT(created_at, '%Y-%m')";
+  } else if (groupBy === "week") {
+    dateFormat = "DATE_FORMAT(created_at, '%Y-%u')";
+  } else {
+    dateFormat = "DATE(created_at)";
+  }
+  return queryWithTenant<any>(
+    `SELECT ${dateFormat} AS period,
+            COUNT(DISTINCT order_no) AS orderCount,
+            COALESCE(SUM(goods_amount), 0) AS totalAmount
+     FROM purchase_order ${where}
+     GROUP BY period
+     ORDER BY period`,
+    params, tenantId
+  );
+}
+
+export async function getSupplierRanking(tenantId: string, startDate?: string, endDate?: string) {
+  const conditions: string[] = ["po.tenant_id = ?", "po.order_status NOT IN ('VOIDED')"];
+  const params: unknown[] = [tenantId];
+  if (startDate) { conditions.push("po.created_at >= ?"); params.push(startDate); }
+  if (endDate) { conditions.push("po.created_at <= ?"); params.push(endDate); }
+  const where = `WHERE ${conditions.join(" AND ")}`;
+  return queryWithTenant<any>(
+    `SELECT po.supplier_id AS supplierId, s.name AS supplierName,
+            COALESCE(SUM(po.goods_amount), 0) AS totalAmount,
+            COUNT(DISTINCT po.order_no) AS orderCount
+     FROM purchase_order po
+     LEFT JOIN supplier s ON s.id = po.supplier_id
+     ${where}
+     GROUP BY po.supplier_id, s.name
+     ORDER BY totalAmount DESC`,
+    params, tenantId
+  );
+}

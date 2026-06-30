@@ -724,11 +724,217 @@ body { font-family: var(--font-family); background: var(--bg-page); color: var(-
   </div>
 </div>
 
+<!-- ==================== 新增：采购管理模块视觉稿 ==================== -->
+
+<!-- 13. 采购报表页面 -->
+<div class="section" id="procurement-report">
+  <h2>13. 采购报表</h2>
+  <p style="font-size:12px;color:var(--text-muted);margin-bottom:16px;">采购管理模块 · 采购汇总 / 供应商排名 / 品类占比</p>
+  <div class="mockup">
+    <div class="mockup-header">
+      <div class="mockup-logo"><div class="mockup-logo-icon"></div>智享酒水库存</div>
+      <div class="mockup-nav">
+        <span class="mockup-nav-item">仪表盘</span>
+        <span class="mockup-nav-item">采购管理</span>
+        <span class="mockup-nav-item">销售管理</span>
+        <span class="mockup-nav-item">库存管理</span>
+      </div>
+      <div class="mockup-user"><div class="mockup-avatar">管</div>管理员</div>
+    </div>
+    <div class="mockup-body">
+      <div class="mockup-sidebar">
+        <div class="mockup-sidebar-section">采购管理</div>
+        <div class="mockup-sidebar-item">采购订单</div>
+        <div class="mockup-sidebar-item">采购入库</div>
+        <div class="mockup-sidebar-item">采购退货</div>
+        <div class="mockup-sidebar-item">供应商档案</div>
+        <div class="mockup-sidebar-item">供应商对账</div>
+        <div class="mockup-sidebar-item">采购计划</div>
+        <div class="mockup-sidebar-item active">采购报表</div>
+      </div>
+      <div class="mockup-main">
+        <div class="mockup-breadcrumb">采购管理 / 采购报表</div>
+        <div class="mockup-page-title">采购报表</div>
+        <div style="display:flex;gap:12px;margin-bottom:16px;align-items:center;">
+          <select style="padding:6px 12px;border:1px solid var(--gray-200);border-radius:6px;font-size:12px;"><option>本月</option><option>上月</option><option>本季度</option></select>
+        </div>
+        <div class="stats-row" style="grid-template-columns:repeat(4,1fr);">
+          <div class="stat-card"><div class="stat-label">本月采购额</div><div class="stat-value" style="font-size:22px;color:var(--color-primary);">¥312,300</div><div class="stat-change up">↑ 8.2%</div></div>
+          <div class="stat-card"><div class="stat-label">采购订单数</div><div class="stat-value" style="font-size:22px;">45</div><div class="stat-change up">↑ 5.1%</div></div>
+          <div class="stat-card"><div class="stat-label">活跃供应商</div><div class="stat-value" style="font-size:22px;">12</div><div class="stat-change">持平</div></div>
+          <div class="stat-card"><div class="stat-label">平均采购成本</div><div class="stat-value" style="font-size:22px;color:var(--color-warning);">¥6,940</div><div class="stat-change up" style="color:var(--color-danger);">↑ 3.5%</div></div>
+        </div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-top:16px;">
+          <div style="background:#fff;border:1px solid var(--gray-100);border-radius:8px;padding:16px;">
+            <div style="font-size:13px;font-weight:600;margin-bottom:12px;">供应商采购排名</div>
+            <table style="width:100%;font-size:12px;">
+              <tr style="border-bottom:1px solid var(--gray-100);"><td style="padding:6px 0;">1. 茅台酒厂</td><td style="text-align:right;font-weight:600;">¥186,500</td></tr>
+              <tr style="border-bottom:1px solid var(--gray-100);"><td style="padding:6px 0;">2. 五粮液酒厂</td><td style="text-align:right;font-weight:600;">¥125,800</td></tr>
+              <tr style="border-bottom:1px solid var(--gray-100);"><td style="padding:6px 0;">3. 国窖酒厂</td><td style="text-align:right;font-weight:600;">¥89,200</td></tr>
+              <tr style="border-bottom:1px solid var(--gray-100);"><td style="padding:6px 0;">4. 剑南春酒厂</td><td style="text-align:right;">¥52,400</td></tr>
+              <tr><td style="padding:6px 0;">5. 洋河酒厂</td><td style="text-align:right;">¥38,100</td></tr>
+            </table>
+          </div>
+          <div style="background:#fff;border:1px solid var(--gray-100);border-radius:8px;padding:16px;">
+            <div style="font-size:13px;font-weight:600;margin-bottom:12px;">品类采购占比</div>
+            <div style="font-size:12px;color:var(--text-secondary);">
+              <div style="display:flex;align-items:center;margin-bottom:8px;gap:8px;"><span style="width:60px;">白酒</span><div style="flex:1;height:14px;background:#F0F0F0;border-radius:7px;overflow:hidden;"><div style="width:58%;height:100%;background:var(--color-primary);border-radius:7px;"></div></div><span>58%</span></div>
+              <div style="display:flex;align-items:center;margin-bottom:8px;gap:8px;"><span style="width:60px;">啤酒</span><div style="flex:1;height:14px;background:#F0F0F0;border-radius:7px;overflow:hidden;"><div style="width:22%;height:100%;background:var(--color-success);border-radius:7px;"></div></div><span>22%</span></div>
+              <div style="display:flex;align-items:center;margin-bottom:8px;gap:8px;"><span style="width:60px;">红酒</span><div style="flex:1;height:14px;background:#F0F0F0;border-radius:7px;overflow:hidden;"><div style="width:12%;height:100%;background:var(--color-warning);border-radius:7px;"></div></div><span>12%</span></div>
+              <div style="display:flex;align-items:center;gap:8px;"><span style="width:60px;">其他</span><div style="flex:1;height:14px;background:#F0F0F0;border-radius:7px;overflow:hidden;"><div style="width:8%;height:100%;background:var(--color-danger);border-radius:7px;"></div></div><span>8%</span></div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- 14. 采购计划页面 -->
+<div class="section" id="procurement-plan">
+  <h2>14. 采购计划与智能补货</h2>
+  <p style="font-size:12px;color:var(--text-muted);margin-bottom:16px;">采购管理模块 · 智能补货建议 / 采购计划 / 转采购订单</p>
+  <div class="mockup">
+    <div class="mockup-header">
+      <div class="mockup-logo"><div class="mockup-logo-icon"></div>智享酒水库存</div>
+      <div class="mockup-nav">
+        <span class="mockup-nav-item">仪表盘</span>
+        <span class="mockup-nav-item">采购管理</span>
+        <span class="mockup-nav-item">销售管理</span>
+        <span class="mockup-nav-item">库存管理</span>
+      </div>
+      <div class="mockup-user"><div class="mockup-avatar">管</div>管理员</div>
+    </div>
+    <div class="mockup-body">
+      <div class="mockup-sidebar">
+        <div class="mockup-sidebar-section">采购管理</div>
+        <div class="mockup-sidebar-item">采购订单</div>
+        <div class="mockup-sidebar-item">采购入库</div>
+        <div class="mockup-sidebar-item">采购退货</div>
+        <div class="mockup-sidebar-item">供应商档案</div>
+        <div class="mockup-sidebar-item">供应商对账</div>
+        <div class="mockup-sidebar-item active">采购计划</div>
+        <div class="mockup-sidebar-item">采购报表</div>
+      </div>
+      <div class="mockup-main">
+        <div class="mockup-breadcrumb">采购管理 / 采购计划</div>
+        <div class="mockup-page-title">采购计划与智能补货</div>
+        <div style="display:flex;gap:8px;margin-bottom:16px;">
+          <button style="padding:6px 16px;background:var(--color-primary);color:#fff;border:none;border-radius:6px;font-size:12px;cursor:pointer;">智能分析</button>
+          <button style="padding:6px 16px;background:var(--color-success);color:#fff;border:none;border-radius:6px;font-size:12px;cursor:pointer;">一键生成采购计划</button>
+          <div style="display:flex;gap:8px;margin-left:auto;background:var(--gray-50);border-radius:6px;padding:2px;">
+            <button style="padding:5px 12px;background:#fff;border:1px solid var(--gray-200);border-radius:4px;font-size:12px;font-weight:500;">补货建议</button>
+            <button style="padding:5px 12px;background:transparent;border:none;font-size:12px;color:var(--text-secondary);">采购计划</button>
+          </div>
+        </div>
+        <table class="mockup-table">
+          <thead><tr><th>商品</th><th>当前库存</th><th>安全库存</th><th>月均销量</th><th>建议采购量</th><th>补货原因</th><th>操作</th></tr></thead>
+          <tbody>
+            <tr><td>茅台 飞天 53度</td><td style="color:var(--color-danger);font-weight:600;">15箱</td><td>30箱</td><td>45箱</td><td style="font-weight:600;">30箱</td><td>低于安全库存</td><td><a href="#" style="color:var(--color-primary);font-size:12px;">生成订单</a></td></tr>
+            <tr><td>五粮液 普五 52度</td><td style="color:var(--color-warning);">22箱</td><td>20箱</td><td>35箱</td><td style="font-weight:600;">20箱</td><td>销量增长</td><td><a href="#" style="color:var(--color-primary);font-size:12px;">生成订单</a></td></tr>
+            <tr><td>国窖1573 52度</td><td>40箱</td><td>25箱</td><td>30箱</td><td>—</td><td style="color:var(--color-success);">库存充足</td><td>—</td></tr>
+            <tr><td>剑南春 水晶剑</td><td style="color:var(--color-danger);font-weight:600;">8箱</td><td>15箱</td><td>20箱</td><td style="font-weight:600;">15箱</td><td>低于安全库存</td><td><a href="#" style="color:var(--color-primary);font-size:12px;">生成订单</a></td></tr>
+          </tbody>
+        </table>
+        <div style="margin-top:16px;padding:12px;background:var(--color-primary-soft);border-radius:8px;font-size:12px;color:var(--text-secondary);">
+          <strong>智能分析说明：</strong>基于过去90天销售趋势、当前库存水平、安全库存阈值、供应商供货周期，自动计算建议采购量。采购计划列表可一键转为采购订单。
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- 15. 商户端供应商管理 -->
+<div class="section" id="merchant-supplier">
+  <h2>15. 商户端供应商管理</h2>
+  <p style="font-size:12px;color:var(--text-muted);margin-bottom:16px;">采购管理模块 · 移动端供应商列表 / 详情 / 联系记录</p>
+  <div style="display:flex;gap:24px;flex-wrap:wrap;justify-content:center;">
+    <!-- 供应商列表 -->
+    <div class="mobile-frame" style="width:375px;margin:0;">
+      <div class="mobile-header"><span>←</span><span class="mobile-title">供应商</span><span></span></div>
+      <div class="mobile-body">
+        <div style="padding:12px;background:#fff;margin-bottom:1px;">
+          <input type="text" placeholder="搜索供应商名称" style="width:100%;padding:8px 12px;border:1px solid var(--gray-200);border-radius:20px;font-size:13px;background:var(--gray-50);">
+        </div>
+        <div class="mobile-card" style="margin:8px 12px;">
+          <div style="display:flex;justify-content:space-between;align-items:center;">
+            <div style="display:flex;align-items:center;gap:10px;">
+              <div style="width:44px;height:44px;border-radius:10px;background:var(--color-primary-soft);display:flex;align-items:center;justify-content:center;color:var(--color-primary);font-weight:700;font-size:14px;">茅</div>
+              <div><div style="font-size:14px;font-weight:600;">茅台酒厂</div><div style="font-size:11px;color:var(--text-muted);">贵州茅台 · 白酒</div></div>
+            </div>
+            <div style="text-align:right;font-size:12px;color:var(--text-muted);">本月采购<br><span style="font-weight:600;color:var(--color-primary);">¥186,500</span></div>
+          </div>
+        </div>
+        <div class="mobile-card" style="margin:8px 12px;">
+          <div style="display:flex;justify-content:space-between;align-items:center;">
+            <div style="display:flex;align-items:center;gap:10px;">
+              <div style="width:44px;height:44px;border-radius:10px;background:var(--color-success-soft);display:flex;align-items:center;justify-content:center;color:var(--color-success);font-weight:700;font-size:14px;">五</div>
+              <div><div style="font-size:14px;font-weight:600;">五粮液酒厂</div><div style="font-size:11px;color:var(--text-muted);">四川宜宾 · 白酒</div></div>
+            </div>
+            <div style="text-align:right;font-size:12px;color:var(--text-muted);">本月采购<br><span style="font-weight:600;color:var(--color-primary);">¥125,800</span></div>
+          </div>
+        </div>
+        <div class="mobile-card" style="margin:8px 12px;">
+          <div style="display:flex;justify-content:space-between;align-items:center;">
+            <div style="display:flex;align-items:center;gap:10px;">
+              <div style="width:44px;height:44px;border-radius:10px;background:var(--color-warning-soft);display:flex;align-items:center;justify-content:center;color:var(--color-warning);font-weight:700;font-size:14px;">国</div>
+              <div><div style="font-size:14px;font-weight:600;">国窖酒厂</div><div style="font-size:11px;color:var(--text-muted);">四川泸州 · 白酒</div></div>
+            </div>
+            <div style="text-align:right;font-size:12px;color:var(--text-muted);">本月采购<br><span style="font-weight:600;color:var(--color-primary);">¥89,200</span></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 供应商详情 -->
+    <div class="mobile-frame" style="width:375px;margin:0;">
+      <div class="mobile-header"><span>←</span><span class="mobile-title">供应商详情</span><span></span></div>
+      <div class="mobile-body">
+        <div class="mobile-card" style="margin:8px 12px;text-align:center;">
+          <div style="width:56px;height:56px;border-radius:14px;background:var(--color-primary);display:flex;align-items:center;justify-content:center;color:#fff;font-weight:700;font-size:20px;margin:0 auto 8px;">茅</div>
+          <div style="font-size:16px;font-weight:700;">茅台酒厂</div>
+          <div style="font-size:12px;color:var(--text-muted);">白酒 · 贵州茅台</div>
+        </div>
+        <div class="mobile-card" style="margin:8px 12px;">
+          <div style="font-size:13px;font-weight:600;margin-bottom:8px;">基本信息</div>
+          <div style="font-size:12px;color:var(--text-secondary);line-height:2;">
+            <div>联系人：王经理</div>
+            <div style="color:var(--color-primary);">电话：138****8888</div>
+            <div>地址：贵州省仁怀市茅台镇</div>
+            <div>账期：30天 · 结算方式：月结</div>
+          </div>
+        </div>
+        <div class="mobile-card" style="margin:8px 12px;">
+          <div style="font-size:13px;font-weight:600;margin-bottom:8px;">供应产品</div>
+          <div style="display:flex;flex-wrap:wrap;gap:6px;font-size:11px;">
+            <span class="tag tag-info">飞天茅台 53度</span>
+            <span class="tag tag-info">王子酒 53度</span>
+            <span class="tag tag-info">迎宾酒 53度</span>
+            <span class="tag tag-info">茅台1935</span>
+          </div>
+        </div>
+        <div class="mobile-card" style="margin:8px 12px;">
+          <div style="font-size:13px;font-weight:600;margin-bottom:8px;">采购历史</div>
+          <div style="font-size:12px;color:var(--text-secondary);">
+            <div style="display:flex;justify-content:space-between;padding:4px 0;"><span>2024-06</span><span style="font-weight:600;">¥186,500</span></div>
+            <div style="display:flex;justify-content:space-between;padding:4px 0;"><span>2024-05</span><span style="font-weight:600;">¥152,300</span></div>
+            <div style="display:flex;justify-content:space-between;padding:4px 0;"><span>2024-04</span><span style="font-weight:600;">¥138,200</span></div>
+          </div>
+        </div>
+        <div style="display:flex;gap:8px;margin:8px 12px 16px;">
+          <button class="mobile-btn mobile-btn-primary" style="flex:1;">拨打电话</button>
+          <button class="mobile-btn" style="flex:1;background:var(--color-success);color:#fff;border:none;">发送消息</button>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
 </div>
 
 <div style="text-align:center;padding:40px;color:var(--text-muted);font-size:13px">
   <p>关键页面视觉稿 · 智享酒水库存系统</p>
-  <p>林夕 · UI/UX Designer · 2026-06-29</p>
+  <p>林夕 · UI/UX Designer · 2026-06-30</p>
 </div>
 
 </body>

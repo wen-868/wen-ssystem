@@ -86,6 +86,11 @@ adminRouter.get("/reports/sales-ranking", requireAuthWithTenant, reportControlle
 adminRouter.get("/reports/product-ranking", requireAuthWithTenant, reportController.getProductRanking);
 adminRouter.get("/reports/sales-trend", requireAuthWithTenant, reportController.getSalesTrend);
 
+// ============ 采购报表 ============
+adminRouter.get("/reports/purchase-summary", requireAuthWithTenant, reportController.getPurchaseSummary);
+adminRouter.get("/reports/purchase-trend", requireAuthWithTenant, reportController.getPurchaseTrend);
+adminRouter.get("/reports/supplier-ranking", requireAuthWithTenant, reportController.getSupplierRanking);
+
 // ============ 日结 ============
 adminRouter.post("/daily-settlements", requireAuthWithTenant, dailySettlementController.createDailySettlement);
 adminRouter.get("/daily-settlements", requireAuthWithTenant, dailySettlementController.listDailySettlements);

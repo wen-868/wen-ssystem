@@ -56,6 +56,9 @@ import { tagRouter } from "./routes/tag.routes.js";
 import { platformRouter } from "./routes/platform.routes.js";
 import { customerPriceRouter } from "./routes/customer-price.routes.js";
 import { commissionRouter } from "./routes/commission.routes.js";
+import { supplierStatementRouter } from "./routes/supplier-statement.routes.js";
+import { purchasePlanRouter } from "./routes/purchase-plan.routes.js";
+import { purchaseContractRouter } from "./routes/purchase-contract.routes.js";
 
 const app = express();
 
@@ -130,6 +133,9 @@ app.use("/api/admin", tagRouter);
 app.use("/api/platform", requireAuthWithTenant, platformRouter);
 app.use("/api/admin/customer-prices", requireAuthWithTenant, customerPriceRouter);
 app.use("/api/admin/commission", requireAuthWithTenant, commissionRouter);
+app.use("/api/admin/supplier-statements", requireAuthWithTenant, supplierStatementRouter);
+app.use("/api/admin/purchase-plans", requireAuthWithTenant, purchasePlanRouter);
+app.use("/api/admin/purchase-contracts", requireAuthWithTenant, purchaseContractRouter);
 
 app.use(errorHandler);
 
