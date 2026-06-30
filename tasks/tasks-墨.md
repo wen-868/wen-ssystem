@@ -1,4 +1,4 @@
-# 墨 . 营销中心模块 . 管理后台
+# 墨 · 即时零售模块 · 管理后台
 
 **日期**：2026-06-30
 **状态**：待开始
@@ -9,207 +9,43 @@
 
 | # | 任务 | 优先级 | 状态 |
 |---|------|--------|:---:|
-| 1 | 营销中心统一重构 | P1 | PENDING |
-| 2 | 限时折扣管理页面 | P1 | PENDING |
-| 3 | 满赠管理页面 | P1 | PENDING |
-| 4 | 积分商城管理页面 | P1 | PENDING |
-| 5 | 营销看板页面 | P1 | PENDING |
-| 6 | 营销素材库页面 | P1 | PENDING |
-
-> 跳过的P2模块：秒杀拼团、社群营销管理页面
+| 1 | InstantRetailConfig - 店铺配置+装修 | P0 | :x: |
+| 2 | InstantRetailShelf - 商品货架管理 | P0 | :x: |
+| 3 | InstantRetailOrders - 订单管理 | P0 | :x: |
+| 4 | InstantRetailPlatform - 平台对接配置 | P0 | :x: |
+| 5 | InstantRetailOrderBoard - 60秒接单看板 | P0 | :x: |
+| 6 | InstantRetailReport - 零售经营分析 | P1 | :x: |
 
 ---
 
 ## 详细说明
 
-### 1. 营销中心统一重构
+### 1. InstantRetailConfig - 店铺配置+装修
+- **文件**：`admin-web/src/views/InstantRetailConfig.vue`
+- **关键字段**：shopName/shopLogo/shopDescription/contactPhone/businessHours/deliveryEnabled/pickupEnabled/minOrderAmount/deliveryFee/freeDeliveryAmount/deliveryRadius/estimatedDeliveryTime/announcement + 轮播图管理（bannerTitle/bannerImage/linkType/linkValue/sortOrder/startTime/endTime/status）+ 分类管理（categoryName/categoryIcon/parentId/sortOrder/status）
+- **说明**：实现即时零售店铺配置页面，包含三个Tab：店铺信息（表单布局：店铺名称+Logo上传+描述+联系电话+营业时间，配送设置：配送开关+自提开关+最低起送金额+配送费+免配送费门槛+配送半径+预计配送时间，公告编辑区）、轮播图管理（卡片列表+拖拽排序+新增/编辑弹窗含标题/图片上传/链接类型下拉/链接值/时间段选择器/状态开关）、分类管理（树形表格+新增/编辑弹窗含分类名称/图标/上级分类/排序/状态）。所有操作调用 `api.ts` 中已有的 `/admin/instant-retail/configs` 和 `/admin/instant-retail/shelf` 系列接口。扩展现有占位文件 `InstantRetailConfig.vue`。
 
-- **接口/文件**：
-  - `admin-web/src/views/MarketingView.vue` -- 重构后的统一营销中心入口
-  - `admin-web/src/views/MarketingPromotion.vue` -- 废弃（功能合并）
-  - `admin-web/src/views/MarketingTags.vue` -- 保留，作为标签管理子页面
-  - `admin-web/src/router/index.ts` -- 更新路由配置
-- **关键组件**：
-  - 顶部概览卡片行：活动总数、进行中、即将开始、已结束（使用 `el-statistic` 或自定义卡片）
-  - Tab 导航栏：优惠券、满减满赠、限时折扣、秒杀拼团（灰色置灰+即将上线标签）、积分商城、活动叠加
-  - 每个 Tab 下为独立子组件，按需加载（`defineAsyncComponent`）
-  - 搜索筛选栏：全局搜索（活动名称/编码）、状态筛选、时间范围筛选
-  - 批量操作栏：批量启用、批量停用、批量删除
-- **说明**：
-  - 合并 MarketingView.vue（优惠券管理）和 MarketingPromotion.vue（秒杀/拼团/满减）为统一入口
-  - 采用 Tab 切换架构，各子模块独立组件，避免单文件过大
-  - 秒杀拼团Tab标记为"即将上线"并置灰不可点击
-  - 路由统一为 `/marketing`，移除旧路由 `/marketing-promotion`
-  - 已有优惠券管理功能完整保留，仅调整组件嵌套结构
+### 2. InstantRetailShelf - 商品货架管理
+- **文件**：`admin-web/src/views/InstantRetailShelf.vue`
+- **关键字段**：分类树筛选（categoryId）、商品表格（productName/skuCode/retailPrice/originalPrice/stock/salesCount/isRecommended/isHot/isNew/sortOrder/status）、批量操作（批量上下架/批量改价/批量修改分类/批量设置推荐/热销/新品标签）
+- **说明**：实现商品货架管理页面，左侧分类树（从 `retail_category` 接口加载，点击筛选），右侧商品表格（分页列表，列：商品图片+名称+SKU编码+零售价+原价+库存+销量+推荐/热销/新品标签+排序+状态+操作），顶部操作栏（搜索框+分类筛选+状态筛选+添加商品按钮+批量操作按钮组），添加商品弹窗（从 `product_sku` 表选择商品+设置零售价+原价+库存+分类+标签+排序），编辑弹窗（修改价格/库存/标签/排序）。批量操作：选中多行后下拉菜单选择批量上架/下架/改价/修改分类/设置标签。扩展现有占位文件 `InstantRetailShelf.vue`。
 
----
+### 3. InstantRetailOrders - 订单管理
+- **文件**：`admin-web/src/views/InstantRetailOrders.vue`
+- **关键字段**：订单筛选（orderStatus/paymentStatus/startDate/endDate/keyword）、订单表格（orderNo/userName/userPhone/totalAmount/discountAmount/deliveryFee/payAmount/deliveryType/paymentStatus/orderStatus/createdAt）、详情抽屉（订单基本信息+商品明细列表+支付信息+配送信息+操作日志）、状态流转操作（确认/取消/退款/完成）
+- **说明**：实现即时零售订单管理页面，顶部筛选栏（订单状态下拉：PENDING/CONFIRMED/PREPARING/DELIVERING/COMPLETED/CANCELLED，支付状态下拉：UNPAID/PAID/REFUNDED，日期范围选择器，订单号搜索），订单表格（分页列表，列：订单号+用户+金额+优惠+配送费+实付+配送方式+支付状态+订单状态+时间+操作），行操作（确认接单/取消订单/标记完成/退款），详情抽屉（左侧：订单基本信息+收货信息+备注，右侧：商品明细表格含商品图/名称/单价/数量/小计，底部：支付信息+操作日志时间线）。订单状态流转需校验：PENDING->CONFIRMED->PREPARING->DELIVERING->COMPLETED，CANCELLED需填写取消原因。扩展现有占位文件 `InstantRetailOrders.vue`。
 
-### 2. 限时折扣管理页面
+### 4. InstantRetailPlatform - 平台对接配置
+- **文件**：`admin-web/src/views/InstantRetailPlatform.vue`
+- **关键字段**：3个Tab（京东/美团/饿了么）、密钥配置表单（appKey/appSecret/merchantId/storeId/enabled/configJson）、连接测试（状态指示灯+测试结果）、Webhook地址展示、手动同步（同步订单/同步商品按钮+同步日志）
+- **说明**：实现平台对接配置页面，顶部3个Tab（京东秒送/美团外卖/饿了么，带平台icon和连接状态指示灯：绿=已连接/红=连接失败/灰=未配置），每个Tab下：密钥配置表单（appKey输入框+appSecret密码框带显示/隐藏切换+merchantId输入框+storeId选择器+启用开关+configJson高级配置JSON编辑器），操作按钮（保存配置+测试连接），连接状态区（测试结果提示+最后连接时间+token过期时间），Webhook配置区（回调URL只读展示+复制按钮+验签说明），同步操作区（手动同步订单按钮+手动同步商品按钮+最近同步时间+同步日志列表）。调用 `api.ts` 中已有的 `/admin/instant-retail/platform/config` 系列接口。扩展现有占位文件 `InstantRetailPlatform.vue`。
 
-- **接口/文件**：
-  - `admin-web/src/views/MarketingLimitedDiscount.vue` -- 限时折扣管理页面
-  - `admin-web/src/api.ts` -- 新增限时折扣相关API调用
-- **关键组件**：
-  - 折扣活动列表表格：
-    - 列：活动编码、活动名称、折扣类型（百分比/固定金额）、折扣值、时间范围、适用商品数、已售/总库存、状态、操作
-    - 状态标签：DRAFT(灰)、PENDING(蓝)、ACTIVE(绿)、PAUSED(黄)、ENDED(红)、SOLD_OUT(橙)
-    - 操作列：编辑、启用/停用、删除
-    - 分页：el-pagination，默认每页20条
-  - 新建/编辑折扣活动对话框（el-dialog，宽度 800px）：
-    - 基本信息：活动名称（el-input）、活动描述（el-input type=textarea）、时间范围（el-date-picker type=datetimerange）
-    - 折扣规则：折扣类型（el-radio-group: 百分比/固定金额）、折扣值（el-input-number）
-    - 最低消费金额（el-input-number）
-    - 库存设置：总库存（el-input-number）、每人限购（el-input-number）、每单限购（el-input-number）
-    - 商品选择器：弹窗选择适用商品（el-transfer 或 el-table + 多选），支持搜索/分类筛选
-    - 表单校验：活动名称必填、时间范围必填且开始<结束、折扣值>0、库存>=0
-  - 商品关联管理：
-    - 已选商品列表：商品名称、原价、折扣价、库存、已售
-    - 批量设置折扣价（支持公式：原价*折扣率 或 统一折扣价）
-    - 移除商品功能
-  - 启用校验提示：库存不足/时间冲突/商品已下架等风险提示
-- **说明**：
-  - 参考 MarketingPromotion.vue 中秒杀模块的交互模式
-  - 商品选择器需支持分页加载和搜索
-  - 折扣价可批量计算或逐个设置
-  - 时间选择器默认精确到分钟，支持定时生效
+### 5. InstantRetailOrderBoard - 60秒接单看板
+- **文件**：`admin-web/src/views/InstantRetailOrderBoard.vue`
+- **关键字段**：新订单倒计时（60秒倒计时+颜色渐变绿->黄->红）、订单卡片（平台来源/订单号/用户/金额/商品列表）、音效提醒（Web Audio API 新订单提示音+超时告警音）、批量操作（全选+批量接单+批量拒单）、订单分组（待接单/进行中/已完成）
+- **说明**：实现60秒接单看板页面，核心功能：新订单到达时顶部弹出醒目卡片，60秒倒计时进度条（0-60秒颜色从绿渐变到黄到红，<10秒时闪烁+音效告警），卡片内容（平台来源icon+标签/订单号/用户姓名电话/金额/商品明细列表/备注），底部操作（绿色接单按钮+红色拒单按钮+拒单原因快捷选择）。页面主体：三列看板布局（待接单/进行中/已完成），每列卡片列表，支持卡片拖拽流转（从待接单拖到进行中=确认接单，从进行中拖到已完成=完成配送）。顶部工具栏：音效开关+自动接单开关+刷新按钮+批量操作按钮（全选+批量接单+批量拒单）。需使用 WebSocket 或轮询（每3秒）获取新订单。扩展现有占位文件 `InstantRetailOrderBoard.vue`。
 
----
-
-### 3. 满赠管理页面
-
-- **接口/文件**：
-  - `admin-web/src/views/MarketingGiftRule.vue` -- 满赠规则管理页面
-  - `admin-web/src/api.ts` -- 新增满赠规则相关API调用
-- **关键组件**：
-  - 满赠规则列表表格：
-    - 列：规则编码、规则名称、满赠类型（满金额/满件数/两者）、时间范围、适用商品数、赠品库存、已赠数量、状态、操作
-    - 状态标签：同限时折扣
-    - 操作列：编辑、启用/停用、删除
-  - 新建/编辑满赠规则对话框（el-dialog，宽度 900px）：
-    - 基本信息：规则名称、规则描述、时间范围
-    - 满赠条件：条件类型（el-radio: 满金额/满件数/两者）、满赠阈值（满X元 或 满X件）
-    - 适用范围：el-radio 全部商品/指定分类/指定商品，选择商品时弹出商品选择器
-    - 多级满赠配置（核心组件）：
-      - 层级列表（el-table 内嵌）：
-        - 列：层级序号、满足金额、赠品商品、赠送数量、操作
-        - 添加层级按钮（el-button +）
-        - 每行可独立设置：满足金额阈值（el-input-number）、赠品商品（el-select 搜索商品）、赠送数量（el-input-number）
-        - 层级自动排序（按满足金额升序）
-      - 层级预览：满100元赠A商品1件，满200元赠B商品2件
-    - 赠品库存联动：选择赠品后自动显示当前库存，库存不足红色警告
-    - 表单校验：规则名称必填、时间范围必填、至少配置一个满赠层级、赠品库存>0
-  - 赠品商品选择器：弹窗搜索商品，展示商品名称/库存/图片缩略图
-- **说明**：
-  - 多级满赠层级编辑器是核心交互，需直观展示阶梯关系
-  - 赠品选择时实时显示库存，不足时禁止选择或警告提示
-  - 参考 MarketingPromotion.vue 中满减模块的交互模式
-
----
-
-### 4. 积分商城管理页面
-
-- **接口/文件**：
-  - `admin-web/src/views/MarketingPointsMall.vue` -- 积分商城管理页面
-  - `admin-web/src/api.ts` -- 新增积分商城相关API调用
-- **关键组件**：
-  - 顶部统计卡片行：
-    - 兑换商品总数、上架商品数、总兑换量、总消耗积分（el-statistic）
-  - 兑换商品管理Tab：
-    - 商品卡片网格（el-row + el-col，4列）：
-      - 卡片内容：商品图片（el-image，支持预览）、商品名称、所需积分（大字号红色）、市场参考价（删除线灰色）、库存余量/总库存、状态标签
-      - 操作按钮：编辑、上架/下架、删除
-      - 库存不足商品显示"已兑完"半透明遮罩
-    - 新建/编辑商品对话框（el-dialog，宽度 700px）：
-      - 商品图片上传（el-upload + 图片裁剪）
-      - 商品名称（el-input）、商品描述（el-input type=textarea）
-      - 所需积分（el-input-number, min=1）、市场参考价（el-input-number）
-      - 库存设置：总库存、每人限兑次数、总限兑次数
-      - 排序权重（el-input-number）
-    - 搜索筛选：关键词搜索、状态筛选（上架/下架）
-  - 兑换记录Tab：
-    - 兑换记录表格：
-      - 列：兑换编号、用户信息（姓名/手机号）、商品名称、消耗积分、兑换数量、兑换时间、状态
-      - 状态筛选：全部/待确认/已确认/已取消
-      - 操作：确认兑换（el-popconfirm）、取消兑换（el-popconfirm + 退回积分提示）
-      - 分页：el-pagination
-    - 时间范围筛选：el-date-picker
-    - 导出兑换记录：el-button @click导出Excel
-- **说明**：
-  - 商品卡片布局参考电商后台商品管理，突出积分价值感
-  - 图片上传支持预览和裁剪（cropperjs或el-upload自带）
-  - 确认/取消兑换需二次确认弹窗，展示影响说明
-
----
-
-### 5. 营销看板页面
-
-- **接口/文件**：
-  - `admin-web/src/views/MarketingDashboard.vue` -- 营销看板页面
-  - `admin-web/src/api.ts` -- 新增看板相关API调用
-- **关键组件**：
-  - 顶部概览卡片行（6个卡片，el-row + el-col）：
-    - 活动总数、进行中、已结束、参与总人数、发放优惠券数、核销率
-    - 每个卡片使用 el-statistic 组件，带图标和趋势箭头
-  - 图表区域（使用 ECharts，通过 echarts 库）：
-    - 活动参与趋势图（折线图）：X轴-日期，Y轴-参与人数，支持日/周/月切换
-    - 活动转化率趋势图（双Y轴折线图）：参与人数（柱状图）+ 转化率（折线图，%）
-    - 活动ROI排行（横向柱状图）：各活动ROI对比，从高到低排序
-    - 活动类型分布（饼图）：优惠券/满减/限时折扣/满赠/积分各类型占比
-    - 优惠券使用趋势（面积图）：发放量 vs 使用量 vs 核销率
-  - 活动对比表（el-table）：
-    - 选择2-4个活动进行对比
-    - 对比维度：参与人数、转化率、订单数、GMV、优惠金额、ROI
-    - 每个维度高亮最优值
-  - 时间筛选器（el-date-picker + 快捷按钮）：
-    - 快捷按钮：今天、本周、本月、近30天、自定义
-    - 日期范围选择器联动所有图表
-  - 活动类型筛选（el-select 多选）
-- **说明**：
-  - 需要安装 echarts 依赖（`npm install echarts`）
-  - 图表使用统一的 ECharts 主题色，参考 01-design-system-spec.html
-  - 图表需支持响应式 resize
-  - 数据为空时显示 el-empty 占位
-
----
-
-### 6. 营销素材库页面
-
-- **接口/文件**：
-  - `admin-web/src/views/MarketingMaterial.vue` -- 营销素材库页面
-  - `admin-web/src/api.ts` -- 新增素材库相关API调用
-- **关键组件**：
-  - 左侧分类树（el-tree）：
-    - 节点：全部素材、海报、优惠券背景、秒杀背景、公众号文章、其他
-    - 支持右键菜单（新增子分类、重命名、删除）
-    - 选中分类后右侧素材列表联动筛选
-  - 右侧素材管理区：
-    - 顶部操作栏：
-      - 搜索输入框（el-input，支持素材名称搜索）
-      - 类型筛选（el-select：图片/视频/文档/HTML）
-      - 使用场景筛选（el-select）
-      - 标签筛选（el-select 多选）
-      - 上传按钮（el-upload，支持多文件拖拽上传）
-      - 视图切换（列表视图/网格视图）
-    - 素材网格视图（el-row + el-col，响应式列数）：
-      - 素材卡片：缩略图（el-image，支持lightbox预览）、素材名称、分类标签、使用场景标签
-      - 卡片hover：显示操作按钮（发布/归档、编辑、删除）
-      - 状态角标：DRAFT(灰)、PUBLISHED(绿)、ARCHIVED(灰)
-    - 素材列表视图（el-table）：
-      - 列：缩略图、素材名称、类型、分类、标签、大小、使用次数、状态、更新时间、操作
-    - 素材详情对话框（el-dialog）：
-      - 大图预览区（el-image，支持缩放）
-      - 素材信息：名称、编码、类型、格式、尺寸、大小、分类、标签
-      - 使用统计：下载次数、查看次数、使用次数
-      - 关联活动：关联活动名称+链接
-      - 操作按钮：下载、发布/归档、编辑、删除
-  - 上传对话框（el-dialog）：
-    - 拖拽上传区（el-upload drag）
-    - 上传进度条（el-progress）
-    - 上传后自动填充：素材名称（默认取文件名）、类型自动识别
-    - 补充信息：分类选择、标签输入（el-tag 动态添加）、使用场景选择
-  - 分页：el-pagination
-- **说明**：
-  - 素材上传支持 jpg/png/gif/webp/svg/mp4/mov/pdf/html
-  - 图片类素材自动生成缩略图展示
-  - 分类树支持最多3级嵌套
-  - 删除素材需二次确认，提示关联活动可能受影响
+### 6. InstantRetailReport - 零售经营分析
+- **文件**：`admin-web/src/views/InstantRetailReport.vue`
+- **关键字段**：销售概览（今日销售额/订单量/客单价/毛利）、趋势图（日销售额趋势/订单量趋势）、平台对比（京东/美团/饿了么销售占比饼图+对比表格）、商品排行（热销商品TOP20/毛利商品TOP20）、导出功能（Excel导出）
+- **说明**：实现零售经营分析页面，顶部概览卡片（今日销售额/环比增长率/今日订单量/客单价/毛利率，带趋势箭头），中部趋势图（折线图：近30天销售额趋势+订单量趋势，支持切换日/周/月维度），平台对比区（饼图：各平台销售占比，柱状图：各平台销售额/订单量对比，表格：平台名称/销售额/订单量/客单价/佣金/净收入），商品排行（两个Tab：热销TOP20表格含商品名/销量/销售额/占比，毛利TOP20表格含商品名/毛利额/毛利率/销量），底部导出按钮（导出Excel报表）。调用 `api.ts` 中已有的 `/admin/instant-retail/reports/summary` 和 `/admin/instant-retail/reports/trend` 接口。扩展现有占位文件 `InstantRetailReport.vue`。
