@@ -1,0 +1,805 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>30 - 商户端营销中心 | 智享酒水库存系统</title>
+<style>
+:root {
+  --brand: #1677FF; --brand-light: #E6F4FF; --text: #1F2328; --text-secondary: #4B5563; --text-muted: #9CA3AF;
+  --border: #E5E7EB; --bg: #F5F7FA; --white: #FFF; --success: #10B981; --warning: #F59E0B; --danger: #EF4444;
+  --radius: 12px; --shadow: 0 2px 8px rgba(0,0,0,.06);
+  --promo-red: #FF4757; --promo-orange: #FF6348; --promo-warm: #FFA502; --promo-gold: #F9CA24; --promo-green: #2ED573; --promo-gray: #B2BEC3;
+}
+* { margin: 0; padding: 0; box-sizing: border-box; }
+body { font-family: -apple-system, BlinkMacSystemFont, 'PingFang SC', 'Microsoft YaHei', sans-serif; background: var(--bg); color: var(--text); line-height: 1.6; }
+.container { max-width: 1200px; margin: 0 auto; padding: 40px 24px; }
+.header { background: linear-gradient(135deg, #1677FF, #0958D9); color: #fff; padding: 48px 24px; text-align: center; }
+.header h1 { font-size: 2rem; font-weight: 700; margin-bottom: 8px; }
+.header p { font-size: 1rem; opacity: .85; }
+.section { background: var(--white); border-radius: var(--radius); padding: 32px; margin-bottom: 24px; box-shadow: var(--shadow); }
+.section h2 { font-size: 1.25rem; color: var(--brand); margin-bottom: 8px; padding-bottom: 12px; border-bottom: 2px solid var(--brand-light); }
+.section h3 { font-size: 1.05rem; margin: 20px 0 10px; color: var(--text); }
+.section p.desc { color: var(--text-secondary); margin-bottom: 16px; font-size: .88rem; }
+
+/* Phone Mockup */
+.phone-frame { width: 375px; margin: 20px auto; border: 8px solid #1F2937; border-radius: 32px; overflow: hidden; background: #fff; box-shadow: 0 20px 60px rgba(0,0,0,0.3); }
+.phone-status { height: 28px; background: #1F2937; display: flex; align-items: center; justify-content: space-between; padding: 0 20px; color: #fff; font-size: 10px; }
+.phone-status .icons { display: flex; align-items: center; gap: 4px; }
+.phone-status .icons .sig { font-size: 8px; letter-spacing: 1px; }
+.phone-nav { height: 44px; background: #fff; display: flex; align-items: center; justify-content: center; border-bottom: 1px solid #F0F0F0; font-size: 16px; font-weight: 600; position: relative; }
+.phone-nav .back { position: absolute; left: 12px; font-size: 18px; color: var(--brand); cursor: pointer; }
+.phone-body { min-height: 500px; background: #F5F7FA; }
+.phone-body .inner-card { background: #fff; margin: 10px; border-radius: 10px; padding: 14px; }
+
+/* Tab Bar */
+.tab-bar { display: flex; justify-content: space-around; padding: 8px 0 20px; border-top: 1px solid #E5E7EB; background: #fff; }
+.tab-item { display: flex; flex-direction: column; align-items: center; gap: 2px; font-size: 10px; color: var(--text-muted); cursor: pointer; }
+.tab-item.active { color: var(--brand); }
+.tab-item .tab-icon { width: 24px; height: 24px; border-radius: 6px; display: flex; align-items: center; justify-content: center; font-size: 12px; }
+.tab-item.active .tab-icon { background: var(--brand-light); color: var(--brand); }
+
+/* Banner */
+.banner-area { padding: 10px; background: #fff; }
+.banner-slide { height: 140px; background: linear-gradient(135deg, var(--promo-red), #ff6b78); border-radius: 10px; display: flex; align-items: center; justify-content: center; color: #fff; font-size: 16px; font-weight: 700; position: relative; }
+.banner-dots { display: flex; justify-content: center; gap: 6px; padding: 8px 0; }
+.banner-dot { width: 6px; height: 6px; border-radius: 50%; background: #D1D5DB; }
+.banner-dot.active { background: var(--brand); width: 16px; border-radius: 3px; }
+
+/* Activity Grid */
+.activity-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; padding: 0 10px 10px; }
+.activity-entry { background: #fff; border-radius: 10px; padding: 14px 10px; text-align: center; border: 1px solid #F0F0F0; position: relative; }
+.activity-entry .entry-icon { width: 36px; height: 36px; border-radius: 10px; margin: 0 auto 6px; display: flex; align-items: center; justify-content: center; font-size: 16px; }
+.activity-entry .entry-name { font-size: 12px; font-weight: 600; color: var(--text); }
+.activity-entry .entry-badge { position: absolute; top: 6px; right: 8px; font-size: 10px; padding: 1px 6px; border-radius: 8px; }
+.activity-entry .entry-sub { font-size: 10px; color: var(--text-muted); margin-top: 2px; }
+.activity-entry.disabled { opacity: 0.5; }
+.activity-entry.disabled .lock-icon { position: absolute; top: 50%; left: 50%; transform: translate(-50%,-50%); font-size: 20px; color: var(--text-muted); }
+
+/* Coupon Card */
+.coupon-card { display: flex; border-radius: 10px; overflow: hidden; margin-bottom: 8px; border: 1px solid #F0F0F0; }
+.coupon-left { width: 90px; background: linear-gradient(135deg, var(--promo-red), #ff6b78); color: #fff; display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 12px 8px; }
+.coupon-left .amount { font-size: 28px; font-weight: 700; line-height: 1; }
+.coupon-left .amount .yen { font-size: 14px; }
+.coupon-left .condition { font-size: 10px; opacity: .85; margin-top: 2px; }
+.coupon-right { flex: 1; padding: 10px 12px; display: flex; flex-direction: column; justify-content: space-between; background: #fff; }
+.coupon-right .coupon-name { font-size: 13px; font-weight: 600; }
+.coupon-right .coupon-meta { font-size: 10px; color: var(--text-muted); }
+.coupon-right .coupon-action { align-self: flex-end; padding: 4px 14px; border-radius: 14px; font-size: 11px; font-weight: 600; background: var(--promo-red); color: #fff; border: none; cursor: pointer; }
+
+/* Progress */
+.progress-bar { height: 6px; background: #F0F0F0; border-radius: 3px; overflow: hidden; margin-top: 4px; }
+.progress-fill { height: 100%; background: var(--promo-red); border-radius: 3px; }
+
+/* Countdown Banner */
+.countdown-banner { background: linear-gradient(135deg, var(--promo-red), #ff6b78); color: #fff; padding: 16px; margin: 10px; border-radius: 10px; text-align: center; }
+.countdown-banner .title { font-size: 14px; font-weight: 600; margin-bottom: 4px; }
+.countdown-banner .timer { font-family: 'Courier New', monospace; font-size: 24px; font-weight: 700; letter-spacing: 2px; }
+
+/* Product Card */
+.product-card { background: #fff; border-radius: 10px; padding: 10px; margin-bottom: 8px; border: 1px solid #F0F0F0; }
+.product-card .product-row { display: flex; gap: 10px; }
+.product-card .product-img { width: 80px; height: 80px; background: #F3F4F6; border-radius: 8px; flex-shrink: 0; display: flex; align-items: center; justify-content: center; color: var(--text-muted); font-size: 11px; }
+.product-card .product-info { flex: 1; }
+.product-card .product-name { font-size: 13px; font-weight: 600; margin-bottom: 4px; }
+.product-card .product-price { display: flex; align-items: baseline; gap: 6px; }
+.product-card .product-price .original { font-size: 11px; color: var(--text-muted); text-decoration: line-through; }
+.product-card .product-price .discount { font-size: 20px; font-weight: 700; color: var(--promo-red); }
+.product-card .product-meta { font-size: 10px; color: var(--text-muted); margin-top: 4px; display: flex; justify-content: space-between; }
+.product-card .stock-tag { font-size: 10px; padding: 1px 6px; border-radius: 4px; }
+.product-card .stock-tag.urgent { background: #FEE2E2; color: var(--promo-red); }
+.product-card .stock-tag.enough { background: #D1FAE5; color: var(--promo-green); }
+
+/* Points */
+.points-header { background: linear-gradient(135deg, var(--promo-gold), #fbbf24); padding: 20px; margin: 10px; border-radius: 10px; text-align: center; color: #fff; }
+.points-header .points-value { font-size: 32px; font-weight: 700; }
+.points-header .points-label { font-size: 12px; opacity: .85; margin-top: 2px; }
+.points-header .points-detail { font-size: 11px; margin-top: 6px; text-decoration: underline; cursor: pointer; }
+.exchange-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; padding: 0 10px 10px; }
+.exchange-card { background: #fff; border-radius: 10px; overflow: hidden; border: 1px solid #F0F0F0; }
+.exchange-card .exc-img { height: 100px; background: #F3F4F6; display: flex; align-items: center; justify-content: center; color: var(--text-muted); font-size: 11px; }
+.exchange-card .exc-info { padding: 10px; }
+.exchange-card .exc-name { font-size: 12px; font-weight: 600; margin-bottom: 4px; }
+.exchange-card .exc-points { font-size: 16px; font-weight: 700; color: var(--promo-gold); }
+.exchange-card .exc-market { font-size: 10px; color: var(--text-muted); text-decoration: line-through; }
+.exchange-card .exc-stock { font-size: 10px; color: var(--text-muted); }
+.exchange-card .exc-btn { display: block; width: 100%; padding: 7px; border: none; border-radius: 6px; font-size: 12px; font-weight: 600; margin-top: 6px; cursor: pointer; }
+.exchange-card .exc-btn.enabled { background: var(--promo-gold); color: #fff; }
+.exchange-card .exc-btn.disabled { background: #E5E7EB; color: var(--text-muted); cursor: not-allowed; }
+
+/* Section Tabs */
+.section-tabs { display: flex; gap: 0; padding: 0 10px; background: #fff; border-bottom: 1px solid #F0F0F0; }
+.section-tab { padding: 10px 16px; font-size: 13px; color: var(--text-muted); cursor: pointer; border-bottom: 2px solid transparent; }
+.section-tab.active { color: var(--brand); border-bottom-color: var(--brand); font-weight: 600; }
+
+/* Icon placeholders */
+.icon-coupon { background: #FFF0F0; color: var(--promo-red); }
+.icon-flash { background: #FFF7ED; color: var(--promo-orange); }
+.icon-gold { background: #FFFDE7; color: var(--promo-gold); }
+.icon-seckill { background: #F3F4F6; color: var(--text-muted); }
+.icon-gift { background: #FFF7ED; color: var(--promo-orange); }
+
+/* Spec Table */
+.spec-table { width: 100%; border-collapse: collapse; margin: 16px 0; }
+.spec-table th, .spec-table td { padding: 10px 14px; text-align: left; border-bottom: 1px solid var(--border); font-size: .85rem; }
+.spec-table th { background: var(--brand-light); color: var(--brand); font-weight: 600; font-size: .8rem; }
+.spec-table tr:hover { background: #F8FAFC; }
+.spec-table code { background: #F1F5F9; padding: 2px 6px; border-radius: 4px; font-size: .82rem; }
+
+/* Checklist */
+.checklist { list-style: none; padding: 0; }
+.checklist li { padding: 8px 0 8px 28px; position: relative; font-size: .88rem; color: var(--text-secondary); border-bottom: 1px solid #F0F0F0; }
+.checklist li::before { content: ''; position: absolute; left: 0; top: 10px; width: 16px; height: 16px; border: 2px solid var(--border); border-radius: 4px; }
+.checklist li:last-child { border-bottom: none; }
+
+/* Code Block */
+.code-block { background: #1E293B; color: #E2E8F0; padding: 16px; border-radius: 8px; font-family: 'Courier New', monospace; font-size: 13px; overflow-x: auto; white-space: pre; line-height: 1.5; margin: 12px 0; }
+
+/* Tag */
+.tag { display: inline-block; padding: 2px 8px; border-radius: 4px; font-size: 11px; font-weight: 500; }
+.tag-danger { background: #FEE2E2; color: #991B1B; }
+.tag-success { background: #D1FAE5; color: #065F46; }
+.tag-warning { background: #FEF3C7; color: #92400E; }
+.tag-info { background: #DBEAFE; color: #1E40AF; }
+
+.tab-content { display: none; }
+.tab-content.active { display: block; }
+
+/* Coupon status group */
+.coupon-group-label { font-size: 11px; font-weight: 600; color: var(--text-muted); padding: 8px 10px 4px; }
+.coupon-card.used { opacity: 0.6; }
+.coupon-card.used .coupon-left { background: linear-gradient(135deg, #B2BEC3, #D1D5DB); }
+.coupon-card.used .coupon-action { background: #B2BEC3; }
+.coupon-card.expired { opacity: 0.5; }
+.coupon-card.expired .coupon-left { background: linear-gradient(135deg, #D1D5DB, #E5E7EB); }
+.coupon-card.expired .coupon-action { background: #D1D5DB; }
+
+/* Activity list */
+.activity-list-item { display: flex; gap: 10px; padding: 10px; background: #fff; margin: 0 10px 8px; border-radius: 10px; border: 1px solid #F0F0F0; }
+.activity-list-item .act-img { width: 80px; height: 60px; border-radius: 8px; background: #F3F4F6; flex-shrink: 0; display: flex; align-items: center; justify-content: center; color: var(--text-muted); font-size: 11px; }
+.activity-list-item .act-info { flex: 1; }
+.activity-list-item .act-name { font-size: 13px; font-weight: 600; }
+.activity-list-item .act-time { font-size: 10px; color: var(--text-muted); margin-top: 2px; }
+.activity-list-item .act-join { padding: 4px 14px; border-radius: 14px; font-size: 11px; font-weight: 600; background: var(--brand); color: #fff; border: none; cursor: pointer; align-self: flex-end; }
+
+/* Exchange records */
+.exchange-record-entry { padding: 10px; text-align: center; font-size: 13px; color: var(--brand); cursor: pointer; border-top: 1px solid #F0F0F0; }
+
+/* Mobile scroll hint */
+.phone-body { max-height: 620px; overflow-y: auto; }
+</style>
+</head>
+<body>
+
+<div class="header">
+  <h1>30 · 商户端营销中心 — 设计规格文档</h1>
+  <p>移动端 H5 · 营销中心首页 · 优惠券 · 限时折扣 · 积分商城</p>
+</div>
+
+<div class="container">
+
+  <!-- 1. 页面总览 -->
+  <div class="section">
+    <h2>1. 页面总览</h2>
+    <p class="desc">商户端营销中心是面向商户的移动端H5营销管理入口，整合优惠券领取与使用、限时折扣商品浏览、积分商城兑换等核心营销功能，帮助商户一站式管理和参与平台营销活动。页面采用底部导航栏切换五大模块，营销中心作为核心Tab承载全部营销功能。</p>
+    <p class="desc">设计目标：提升商户活动参与度、降低优惠券领取门槛、加速限时折扣商品曝光、增强积分兑换转化率。</p>
+  </div>
+
+  <!-- 2. 营销中心首页 Mockup -->
+  <div class="section">
+    <h2>2. 营销中心首页 — 移动端原型</h2>
+    <p class="desc">商户端营销中心首页（375px 移动端视口），包含轮播Banner、活动入口、热门推荐。</p>
+
+    <div class="phone-frame">
+      <div class="phone-status">
+        <span>9:41</span>
+        <span class="icons"><span class="sig">●●●●○</span> WiFi</span>
+      </div>
+      <div class="phone-nav"><span class="back">&lsaquo;</span>营销中心</div>
+      <div class="phone-body">
+
+        <!-- Banner Carousel -->
+        <div class="banner-area">
+          <div class="banner-slide">
+            <div style="text-align:center;">
+              <div style="font-size:18px;font-weight:700;">年中大促 火热进行中</div>
+              <div style="font-size:12px;margin-top:4px;opacity:.9;">全场满200减30 · 限时优惠券免费领</div>
+            </div>
+          </div>
+          <div class="banner-dots">
+            <div class="banner-dot active"></div>
+            <div class="banner-dot"></div>
+            <div class="banner-dot"></div>
+          </div>
+        </div>
+
+        <!-- Activity Entry Grid 2x2 -->
+        <div class="activity-grid">
+          <div class="activity-entry" style="position:relative;">
+            <div class="entry-icon icon-coupon">&#9633;</div>
+            <div class="entry-name">优惠券</div>
+            <span class="entry-badge" style="background:#FEE2E2;color:var(--promo-red);">3张可用</span>
+          </div>
+          <div class="activity-entry">
+            <div class="entry-icon icon-flash">&#9889;</div>
+            <div class="entry-name">限时折扣</div>
+            <div class="entry-sub" style="color:var(--promo-red);">距结束 02:15:30</div>
+          </div>
+          <div class="activity-entry">
+            <div class="entry-icon icon-gold">&#9679;</div>
+            <div class="entry-name">积分商城</div>
+            <div class="entry-sub">2,860 积分</div>
+          </div>
+          <div class="activity-entry disabled">
+            <div class="entry-icon icon-seckill">&#9679;</div>
+            <div class="entry-name">秒杀</div>
+            <div class="entry-sub">即将上线</div>
+            <div class="lock-icon">&#128274;</div>
+          </div>
+          <div class="activity-entry">
+            <div class="entry-icon icon-gift">&#9733;</div>
+            <div class="entry-name">满赠</div>
+            <span class="entry-badge" style="background:#FFF7ED;color:var(--promo-orange);">进行中</span>
+          </div>
+        </div>
+
+        <!-- Hot Activity List -->
+        <div style="padding:0 10px;">
+          <div style="font-size:14px;font-weight:600;padding:8px 0;">热门活动推荐</div>
+        </div>
+        <div class="activity-list-item">
+          <div class="act-img">活动图</div>
+          <div class="act-info">
+            <div class="act-name">新商户入驻礼包</div>
+            <div class="act-time">2026-06-01 ~ 2026-07-31</div>
+          </div>
+          <div class="act-join">立即参与</div>
+        </div>
+        <div class="activity-list-item">
+          <div class="act-img">活动图</div>
+          <div class="act-info">
+            <div class="act-name">月度销量冲刺赛</div>
+            <div class="act-time">2026-06-25 ~ 2026-06-30</div>
+          </div>
+          <div class="act-join">立即参与</div>
+        </div>
+        <div class="activity-list-item">
+          <div class="act-img">活动图</div>
+          <div class="act-info">
+            <div class="act-name">老客回馈专享优惠</div>
+            <div class="act-time">2026-06-15 ~ 2026-07-15</div>
+          </div>
+          <div class="act-join">立即参与</div>
+        </div>
+
+        <!-- Bottom Tab Bar -->
+        <div class="tab-bar">
+          <div class="tab-item">
+            <div class="tab-icon">&#9633;</div>
+            <span>首页</span>
+          </div>
+          <div class="tab-item active">
+            <div class="tab-icon">&#9834;</div>
+            <span>营销</span>
+          </div>
+          <div class="tab-item">
+            <div class="tab-icon">&#9633;</div>
+            <span>商品</span>
+          </div>
+          <div class="tab-item">
+            <div class="tab-icon">&#9633;</div>
+            <span>报表</span>
+          </div>
+          <div class="tab-item">
+            <div class="tab-icon">&#9633;</div>
+            <span>我的</span>
+          </div>
+        </div>
+
+      </div>
+    </div>
+  </div>
+
+  <!-- 3. 优惠券页面 Mockup -->
+  <div class="section">
+    <h2>3. 优惠券页面 — 移动端原型</h2>
+    <p class="desc">优惠券模块包含三个子Tab：可用券、领取中心、我的券包。</p>
+
+    <div class="phone-frame">
+      <div class="phone-status">
+        <span>9:41</span>
+        <span class="icons"><span class="sig">●●●●○</span> WiFi</span>
+      </div>
+      <div class="phone-nav"><span class="back">&lsaquo;</span>优惠券</div>
+      <div class="phone-body">
+
+        <!-- Sub Tabs -->
+        <div class="section-tabs">
+          <div class="section-tab active">可用券</div>
+          <div class="section-tab">领取中心</div>
+          <div class="section-tab">我的券包</div>
+        </div>
+
+        <div style="padding:10px;">
+
+          <!-- Available Coupons -->
+          <div style="font-size:12px;color:var(--text-muted);margin-bottom:8px;">共 3 张可用优惠券</div>
+
+          <div class="coupon-card">
+            <div class="coupon-left">
+              <div class="amount"><span class="yen">&yen;</span>30</div>
+              <div class="condition">满200可用</div>
+            </div>
+            <div class="coupon-right">
+              <div class="coupon-name">满减券 · 全场通用</div>
+              <div class="coupon-meta">有效期至 2026-07-31</div>
+              <div class="coupon-meta">适用：全部商品</div>
+              <div class="coupon-action">立即使用</div>
+            </div>
+          </div>
+
+          <div class="coupon-card">
+            <div class="coupon-left">
+              <div class="amount"><span class="yen">&yen;</span>50</div>
+              <div class="condition">满500可用</div>
+            </div>
+            <div class="coupon-right">
+              <div class="coupon-name">满减券 · 酒水品类</div>
+              <div class="coupon-meta">有效期至 2026-07-15</div>
+              <div class="coupon-meta">适用：酒水类商品</div>
+              <div class="coupon-action">立即使用</div>
+            </div>
+          </div>
+
+          <div class="coupon-card">
+            <div class="coupon-left">
+              <div class="amount"><span class="yen">&yen;</span>10</div>
+              <div class="condition">无门槛</div>
+            </div>
+            <div class="coupon-right">
+              <div class="coupon-name">新人专享券</div>
+              <div class="coupon-meta">有效期至 2026-08-01</div>
+              <div class="coupon-meta">适用：全部商品</div>
+              <div class="coupon-action">立即使用</div>
+            </div>
+          </div>
+
+        </div>
+
+        <!-- Bottom Tab Bar -->
+        <div class="tab-bar">
+          <div class="tab-item">
+            <div class="tab-icon">&#9633;</div>
+            <span>首页</span>
+          </div>
+          <div class="tab-item active">
+            <div class="tab-icon">&#9834;</div>
+            <span>营销</span>
+          </div>
+          <div class="tab-item">
+            <div class="tab-icon">&#9633;</div>
+            <span>商品</span>
+          </div>
+          <div class="tab-item">
+            <div class="tab-icon">&#9633;</div>
+            <span>报表</span>
+          </div>
+          <div class="tab-item">
+            <div class="tab-icon">&#9633;</div>
+            <span>我的</span>
+          </div>
+        </div>
+
+      </div>
+    </div>
+
+    <!-- 领取中心 -->
+    <h3>3.2 领取中心</h3>
+    <div class="phone-frame">
+      <div class="phone-status">
+        <span>9:41</span>
+        <span class="icons"><span class="sig">●●●●○</span> WiFi</span>
+      </div>
+      <div class="phone-nav"><span class="back">&lsaquo;</span>优惠券</div>
+      <div class="phone-body">
+
+        <div class="section-tabs">
+          <div class="section-tab">可用券</div>
+          <div class="section-tab active">领取中心</div>
+          <div class="section-tab">我的券包</div>
+        </div>
+
+        <div style="padding:10px;">
+
+          <div class="coupon-card">
+            <div class="coupon-left">
+              <div class="amount"><span class="yen">&yen;</span>20</div>
+              <div class="condition">满100可用</div>
+            </div>
+            <div class="coupon-right">
+              <div class="coupon-name">限时福利券</div>
+              <div class="coupon-meta" style="margin-bottom:4px;">总量 500 张</div>
+              <div style="display:flex;align-items:center;gap:6px;font-size:10px;color:var(--text-muted);">
+                <span>已领取 328/500</span>
+                <div class="progress-bar" style="flex:1;">
+                  <div class="progress-fill" style="width:65%;"></div>
+                </div>
+              </div>
+              <div class="coupon-action" style="margin-top:6px;">立即领取</div>
+            </div>
+          </div>
+
+          <div class="coupon-card">
+            <div class="coupon-left">
+              <div class="amount"><span class="yen">&yen;</span>100</div>
+              <div class="condition">满1000可用</div>
+            </div>
+            <div class="coupon-right">
+              <div class="coupon-name">大额采购券</div>
+              <div class="coupon-meta" style="margin-bottom:4px;">总量 200 张</div>
+              <div style="display:flex;align-items:center;gap:6px;font-size:10px;color:var(--text-muted);">
+                <span>已领取 156/200</span>
+                <div class="progress-bar" style="flex:1;">
+                  <div class="progress-fill" style="width:78%;"></div>
+                </div>
+              </div>
+              <div class="coupon-action" style="margin-top:6px;">立即领取</div>
+            </div>
+          </div>
+
+        </div>
+
+        <div class="tab-bar">
+          <div class="tab-item"><div class="tab-icon">&#9633;</div><span>首页</span></div>
+          <div class="tab-item active"><div class="tab-icon">&#9834;</div><span>营销</span></div>
+          <div class="tab-item"><div class="tab-icon">&#9633;</div><span>商品</span></div>
+          <div class="tab-item"><div class="tab-icon">&#9633;</div><span>报表</span></div>
+          <div class="tab-item"><div class="tab-icon">&#9633;</div><span>我的</span></div>
+        </div>
+
+      </div>
+    </div>
+
+    <!-- 我的券包 -->
+    <h3>3.3 我的券包</h3>
+    <div class="phone-frame">
+      <div class="phone-status">
+        <span>9:41</span>
+        <span class="icons"><span class="sig">●●●●○</span> WiFi</span>
+      </div>
+      <div class="phone-nav"><span class="back">&lsaquo;</span>优惠券</div>
+      <div class="phone-body">
+
+        <div class="section-tabs">
+          <div class="section-tab">可用券</div>
+          <div class="section-tab">领取中心</div>
+          <div class="section-tab active">我的券包</div>
+        </div>
+
+        <div style="padding:10px;">
+
+          <div class="coupon-group-label">未使用 (3)</div>
+          <div class="coupon-card">
+            <div class="coupon-left">
+              <div class="amount"><span class="yen">&yen;</span>30</div>
+              <div class="condition">满200可用</div>
+            </div>
+            <div class="coupon-right">
+              <div class="coupon-name">满减券 · 全场通用</div>
+              <div class="coupon-meta">有效期至 2026-07-31</div>
+              <div class="coupon-action">去使用</div>
+            </div>
+          </div>
+
+          <div class="coupon-group-label">已使用 (2)</div>
+          <div class="coupon-card used">
+            <div class="coupon-left">
+              <div class="amount"><span class="yen">&yen;</span>15</div>
+              <div class="condition">满100可用</div>
+            </div>
+            <div class="coupon-right">
+              <div class="coupon-name">品类专享券</div>
+              <div class="coupon-meta">使用时间 2026-06-15</div>
+              <div class="coupon-action">已使用</div>
+            </div>
+          </div>
+
+          <div class="coupon-group-label">已过期 (1)</div>
+          <div class="coupon-card expired">
+            <div class="coupon-left">
+              <div class="amount"><span class="yen">&yen;</span>5</div>
+              <div class="condition">无门槛</div>
+            </div>
+            <div class="coupon-right">
+              <div class="coupon-name">签到奖励券</div>
+              <div class="coupon-meta">已过期 2026-05-31</div>
+              <div class="coupon-action">已过期</div>
+            </div>
+          </div>
+
+        </div>
+
+        <div class="tab-bar">
+          <div class="tab-item"><div class="tab-icon">&#9633;</div><span>首页</span></div>
+          <div class="tab-item active"><div class="tab-icon">&#9834;</div><span>营销</span></div>
+          <div class="tab-item"><div class="tab-icon">&#9633;</div><span>商品</span></div>
+          <div class="tab-item"><div class="tab-icon">&#9633;</div><span>报表</span></div>
+          <div class="tab-item"><div class="tab-icon">&#9633;</div><span>我的</span></div>
+        </div>
+
+      </div>
+    </div>
+  </div>
+
+  <!-- 4. 限时折扣页面 Mockup -->
+  <div class="section">
+    <h2>4. 限时折扣页面 — 移动端原型</h2>
+    <p class="desc">限时折扣商品列表，展示头部倒计时Banner与折扣商品卡片。</p>
+
+    <div class="phone-frame">
+      <div class="phone-status">
+        <span>9:41</span>
+        <span class="icons"><span class="sig">●●●●○</span> WiFi</span>
+      </div>
+      <div class="phone-nav"><span class="back">&lsaquo;</span>限时折扣</div>
+      <div class="phone-body">
+
+        <!-- Countdown Banner -->
+        <div class="countdown-banner">
+          <div class="title">限时折扣 · 距结束</div>
+          <div class="timer">02:15:30</div>
+        </div>
+
+        <!-- Product List -->
+        <div style="padding:0 10px;">
+
+          <div class="product-card">
+            <div class="product-row">
+              <div class="product-img">商品图</div>
+              <div class="product-info">
+                <div class="product-name">茅台 飞天 53度 500ml</div>
+                <div class="product-price">
+                  <span class="discount">&yen;2,599</span>
+                  <span class="original">&yen;2,899</span>
+                </div>
+                <div class="product-meta">
+                  <span style="color:var(--promo-red);">还剩 1天 03:45:12</span>
+                  <span class="stock-tag urgent">库存紧张</span>
+                </div>
+                <div style="margin-top:6px;">
+                  <div class="progress-bar"><div class="progress-fill" style="width:85%;"></div></div>
+                  <div style="font-size:10px;color:var(--text-muted);margin-top:2px;">已售 85%</div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div class="product-card">
+            <div class="product-row">
+              <div class="product-img">商品图</div>
+              <div class="product-info">
+                <div class="product-name">五粮液 普五 52度 500ml</div>
+                <div class="product-price">
+                  <span class="discount">&yen;1,199</span>
+                  <span class="original">&yen;1,399</span>
+                </div>
+                <div class="product-meta">
+                  <span style="color:var(--promo-red);">还剩 2天 08:20:05</span>
+                  <span class="stock-tag enough">库存充足</span>
+                </div>
+                <div style="margin-top:6px;">
+                  <div class="progress-bar"><div class="progress-fill" style="width:45%;"></div></div>
+                  <div style="font-size:10px;color:var(--text-muted);margin-top:2px;">已售 45%</div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div class="product-card">
+            <div class="product-row">
+              <div class="product-img">商品图</div>
+              <div class="product-info">
+                <div class="product-name">国窖1573 52度 500ml</div>
+                <div class="product-price">
+                  <span class="discount">&yen;899</span>
+                  <span class="original">&yen;1,099</span>
+                </div>
+                <div class="product-meta">
+                  <span style="color:var(--promo-red);">还剩 12:30:15</span>
+                  <span class="stock-tag urgent">库存紧张</span>
+                </div>
+                <div style="margin-top:6px;">
+                  <div class="progress-bar"><div class="progress-fill" style="width:92%;"></div></div>
+                  <div style="font-size:10px;color:var(--text-muted);margin-top:2px;">已售 92%</div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+        </div>
+
+        <div class="tab-bar">
+          <div class="tab-item"><div class="tab-icon">&#9633;</div><span>首页</span></div>
+          <div class="tab-item active"><div class="tab-icon">&#9834;</div><span>营销</span></div>
+          <div class="tab-item"><div class="tab-icon">&#9633;</div><span>商品</span></div>
+          <div class="tab-item"><div class="tab-icon">&#9633;</div><span>报表</span></div>
+          <div class="tab-item"><div class="tab-icon">&#9633;</div><span>我的</span></div>
+        </div>
+
+      </div>
+    </div>
+  </div>
+
+  <!-- 5. 积分商城页面 Mockup -->
+  <div class="section">
+    <h2>5. 积分商城页面 — 移动端原型</h2>
+    <p class="desc">积分商城模块，展示积分余额、兑换商品网格、兑换记录入口。</p>
+
+    <div class="phone-frame">
+      <div class="phone-status">
+        <span>9:41</span>
+        <span class="icons"><span class="sig">●●●●○</span> WiFi</span>
+      </div>
+      <div class="phone-nav"><span class="back">&lsaquo;</span>积分商城</div>
+      <div class="phone-body">
+
+        <!-- Points Header -->
+        <div class="points-header">
+          <div class="points-label">我的积分</div>
+          <div class="points-value">2,860</div>
+          <div class="points-detail">积分明细 &rsaquo;</div>
+        </div>
+
+        <!-- Exchange Grid -->
+        <div class="exchange-grid">
+          <div class="exchange-card">
+            <div class="exc-img">商品图</div>
+            <div class="exc-info">
+              <div class="exc-name">茅台品鉴杯套装</div>
+              <div class="exc-points">1,200 积分</div>
+              <div class="exc-market">市场价 ¥128</div>
+              <div class="exc-stock">库存 38 件</div>
+              <button class="exc-btn enabled">立即兑换</button>
+            </div>
+          </div>
+          <div class="exchange-card">
+            <div class="exc-img">商品图</div>
+            <div class="exc-info">
+              <div class="exc-name">品牌定制雨伞</div>
+              <div class="exc-points">800 积分</div>
+              <div class="exc-market">市场价 ¥68</div>
+              <div class="exc-stock">库存 120 件</div>
+              <button class="exc-btn enabled">立即兑换</button>
+            </div>
+          </div>
+          <div class="exchange-card">
+            <div class="exc-img">商品图</div>
+            <div class="exc-info">
+              <div class="exc-name">高端红酒开瓶器</div>
+              <div class="exc-points">3,500 积分</div>
+              <div class="exc-market">市场价 ¥298</div>
+              <div class="exc-stock">库存 15 件</div>
+              <button class="exc-btn disabled">积分不足</button>
+            </div>
+          </div>
+          <div class="exchange-card">
+            <div class="exc-img">商品图</div>
+            <div class="exc-info">
+              <div class="exc-name">酒水展示架</div>
+              <div class="exc-points">5,000 积分</div>
+              <div class="exc-market">市场价 ¥458</div>
+              <div class="exc-stock">库存 8 件</div>
+              <button class="exc-btn disabled">积分不足</button>
+            </div>
+          </div>
+        </div>
+
+        <!-- Exchange Records Entry -->
+        <div class="exchange-record-entry">我的兑换记录 &rsaquo;</div>
+
+        <div class="tab-bar">
+          <div class="tab-item"><div class="tab-icon">&#9633;</div><span>首页</span></div>
+          <div class="tab-item active"><div class="tab-icon">&#9834;</div><span>营销</span></div>
+          <div class="tab-item"><div class="tab-icon">&#9633;</div><span>商品</span></div>
+          <div class="tab-item"><div class="tab-icon">&#9633;</div><span>报表</span></div>
+          <div class="tab-item"><div class="tab-icon">&#9633;</div><span>我的</span></div>
+        </div>
+
+      </div>
+    </div>
+  </div>
+
+  <!-- 6. 字段规范表 -->
+  <div class="section">
+    <h2>6. 字段规范表</h2>
+
+    <h3>6.1 优惠券字段</h3>
+    <table class="spec-table">
+      <thead>
+        <tr><th>字段名</th><th>类型</th><th>说明</th><th>示例</th></tr>
+      </thead>
+      <tbody>
+        <tr><td><code>couponId</code></td><td>String</td><td>优惠券唯一标识</td><td>CPN20260630001</td></tr>
+        <tr><td><code>couponName</code></td><td>String</td><td>优惠券名称</td><td>满减券 · 全场通用</td></tr>
+        <tr><td><code>couponType</code></td><td>Enum</td><td>券类型：满减/折扣/无门槛</td><td>FULL_REDUCTION</td></tr>
+        <tr><td><code>faceValue</code></td><td>Number</td><td>面值（元）</td><td>30</td></tr>
+        <tr><td><code>threshold</code></td><td>Number</td><td>使用门槛（元），0=无门槛</td><td>200</td></tr>
+        <tr><td><code>totalQuantity</code></td><td>Number</td><td>发放总量</td><td>500</td></tr>
+        <tr><td><code>receivedCount</code></td><td>Number</td><td>已领取数量</td><td>328</td></tr>
+        <tr><td><code>validFrom</code></td><td>DateTime</td><td>有效期开始</td><td>2026-06-01 00:00:00</td></tr>
+        <tr><td><code>validTo</code></td><td>DateTime</td><td>有效期结束</td><td>2026-07-31 23:59:59</td></tr>
+        <tr><td><code>scopeType</code></td><td>Enum</td><td>适用范围：全部/品类/指定商品</td><td>ALL</td></tr>
+        <tr><td><code>status</code></td><td>Enum</td><td>状态：未使用/已使用/已过期</td><td>UNUSED</td></tr>
+      </tbody>
+    </table>
+
+    <h3>6.2 限时折扣商品字段</h3>
+    <table class="spec-table">
+      <thead>
+        <tr><th>字段名</th><th>类型</th><th>说明</th><th>示例</th></tr>
+      </thead>
+      <tbody>
+        <tr><td><code>productId</code></td><td>String</td><td>商品唯一标识</td><td>PROD001</td></tr>
+        <tr><td><code>productName</code></td><td>String</td><td>商品名称</td><td>茅台 飞天 53度 500ml</td></tr>
+        <tr><td><code>originalPrice</code></td><td>Number</td><td>原价（元）</td><td>2899</td></tr>
+        <tr><td><code>discountPrice</code></td><td>Number</td><td>折扣价（元）</td><td>2599</td></tr>
+        <tr><td><code>discountRate</code></td><td>Number</td><td>折扣率（%）</td><td>89.7</td></tr>
+        <tr><td><code>startTime</code></td><td>DateTime</td><td>活动开始时间</td><td>2026-06-25 00:00:00</td></tr>
+        <tr><td><code>endTime</code></td><td>DateTime</td><td>活动结束时间</td><td>2026-07-01 00:00:00</td></tr>
+        <tr><td><code>totalStock</code></td><td>Number</td><td>活动总库存</td><td>100</td></tr>
+        <tr><td><code>soldCount</code></td><td>Number</td><td>已售数量</td><td>85</td></tr>
+        <tr><td><code>stockStatus</code></td><td>Enum</td><td>库存状态：充足/紧张/售罄</td><td>URGENT</td></tr>
+      </tbody>
+    </table>
+
+    <h3>6.3 积分兑换商品字段</h3>
+    <table class="spec-table">
+      <thead>
+        <tr><th>字段名</th><th>类型</th><th>说明</th><th>示例</th></tr>
+      </thead>
+      <tbody>
+        <tr><td><code>exchangeId</code></td><td>String</td><td>兑换商品唯一标识</td><td>EXC001</td></tr>
+        <tr><td><code>exchangeName</code></td><td>String</td><td>兑换商品名称</td><td>茅台品鉴杯套装</td></tr>
+        <tr><td><code>requiredPoints</code></td><td>Number</td><td>所需积分</td><td>1200</td></tr>
+        <tr><td><code>marketPrice</code></td><td>Number</td><td>市场参考价（元）</td><td>128</td></tr>
+        <tr><td><code>totalStock</code></td><td>Number</td><td>兑换总库存</td><td>50</td></tr>
+        <tr><td><code>remainStock</code></td><td>Number</td><td>剩余库存</td><td>38</td></tr>
+        <tr><td><code>exchangeLimit</code></td><td>Number</td><td>每人限兑次数</td><td>1</td></tr>
+        <tr><td><code>startTime</code></td><td>DateTime</td><td>兑换开始时间</td><td>2026-06-01 00:00:00</td></tr>
+        <tr><td><code>endTime</code></td><td>DateTime</td><td>兑换结束时间</td><td>2026-12-31 23:59:59</td></tr>
+        <tr><td><code>status</code></td><td>Enum</td><td>状态：上架/下架/售罄</td><td>ONLINE</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <!-- 7. 验收标准 -->
+  <div class="section">
+    <h2>7. 验收标准</h2>
+    <ul class="checklist">
+      <li>营销中心首页顶部Banner轮播正常，支持自动播放与手动滑动</li>
+      <li>活动分类入口 2x2 网格布局，包含优惠券、限时折扣、积分商城、秒杀、满赠五个入口</li>
+      <li>优惠券入口显示可用数量角标，秒杀入口置灰并显示锁图标与"即将上线"</li>
+      <li>限时折扣入口实时显示倒计时，格式为 HH:MM:SS</li>
+      <li>积分商城入口显示当前积分余额</li>
+      <li>热门活动推荐列表展示活动名称、时间、参与按钮</li>
+      <li>优惠券页面三个子Tab（可用券/领取中心/我的券包）切换流畅</li>
+      <li>可用券列表展示券面值、使用条件、有效期、适用范围</li>
+      <li>领取中心展示券的领取进度条（已领取/总量）</li>
+      <li>我的券包按状态分组（未使用/已使用/已过期），已使用和已过期券置灰</li>
+      <li>限时折扣页面头部倒计时Banner使用 monospace 字体显示倒计时</li>
+      <li>折扣商品卡片展示原价（删除线）、折扣价（红色大字）、倒计时、已售进度条</li>
+      <li>库存标签：库存紧张显示红色，库存充足显示绿色</li>
+      <li>积分商城顶部展示积分余额，使用金币黄(#F9CA24)背景</li>
+      <li>兑换商品 2 列网格展示，包含商品图、所需积分、市场参考价、库存余量</li>
+      <li>积分不足时兑换按钮灰色置灰不可点击</li>
+      <li>底部导航栏 5 个 Tab（首页/营销/商品/报表/我的），营销 Tab 激活态高亮</li>
+      <li>手机框 375px 宽度，8px 黑色边框，32px 圆角，居中显示</li>
+      <li>所有字体使用系统默认字体栈，无外部依赖</li>
+      <li>页面在 375px 视口内完整展示，无横向溢出</li>
+    </ul>
+  </div>
+
+</div>
+
+</body>
+</html>

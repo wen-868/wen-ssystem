@@ -176,11 +176,15 @@
             <el-icon><Present /></el-icon>
             <span>营销中心</span>
           </template>
-          <el-menu-item index="/marketing">优惠券管理</el-menu-item>
+          <el-menu-item index="/marketing">营销中心</el-menu-item>
           <el-menu-item index="/marketing/tags">营销标签</el-menu-item>
-          <el-menu-item index="/marketing/promotion">促销活动</el-menu-item>
-          <el-menu-item index="/aftersale">售后管理</el-menu-item>
+          <el-menu-item index="/marketing/limited-discount">限时折扣</el-menu-item>
+          <el-menu-item index="/marketing/gift-rule">满赠管理</el-menu-item>
+          <el-menu-item index="/marketing/points-mall">积分商城</el-menu-item>
+          <el-menu-item index="/marketing/dashboard">营销看板</el-menu-item>
+          <el-menu-item index="/marketing/materials">素材库</el-menu-item>
         </el-sub-menu>
+        <el-menu-item index="/aftersale">售后管理</el-menu-item>
 
         <!-- 12. 系统设置（含门店管理） -->
         <el-sub-menu index="system">
@@ -354,9 +358,13 @@ const pageTitle = computed(() => {
     "/reports/collection-analysis": "收款分析",
     "/reports/customers": "客户分析",
     "/reports/inventory": "库存分析",
-    "/marketing": "优惠券管理",
+    "/marketing": "营销中心",
     "/marketing/tags": "营销标签",
-    "/marketing/promotion": "促销活动",
+    "/marketing/limited-discount": "限时折扣",
+    "/marketing/gift-rule": "满赠管理",
+    "/marketing/points-mall": "积分商城",
+    "/marketing/dashboard": "营销看板",
+    "/marketing/materials": "素材库",
     "/aftersale": "售后管理",
     "/employees": "员工管理",
     "/stores": "门店管理",

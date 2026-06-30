@@ -1,0 +1,652 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>31 - 营销设计规范补充 | 智享酒水库存系统</title>
+<style>
+:root {
+  --brand: #1677FF; --brand-light: #E6F4FF; --text: #1F2328; --text-secondary: #4B5563; --text-muted: #9CA3AF;
+  --border: #E5E7EB; --bg: #F5F7FA; --white: #FFF; --success: #10B981; --warning: #F59E0B; --danger: #EF4444;
+  --radius: 12px; --shadow: 0 2px 8px rgba(0,0,0,.06);
+  --promo-red: #FF4757; --promo-orange: #FF6348; --promo-warm: #FFA502; --promo-gold: #F9CA24; --promo-green: #2ED573; --promo-gray: #B2BEC3;
+}
+* { margin: 0; padding: 0; box-sizing: border-box; }
+body { font-family: -apple-system, BlinkMacSystemFont, 'PingFang SC', 'Microsoft YaHei', sans-serif; background: var(--bg); color: var(--text); line-height: 1.6; }
+.container { max-width: 1200px; margin: 0 auto; padding: 40px 24px; }
+.header { background: linear-gradient(135deg, #FF4757, #FF6348); color: #fff; padding: 48px 24px; text-align: center; }
+.header h1 { font-size: 2rem; font-weight: 700; margin-bottom: 8px; }
+.header p { font-size: 1rem; opacity: .85; }
+.section { background: var(--white); border-radius: var(--radius); padding: 32px; margin-bottom: 24px; box-shadow: var(--shadow); }
+.section h2 { font-size: 1.25rem; color: var(--promo-red); margin-bottom: 8px; padding-bottom: 12px; border-bottom: 2px solid #FFF0F0; }
+.section h3 { font-size: 1.05rem; margin: 20px 0 10px; color: var(--text); }
+.section p.desc { color: var(--text-secondary); margin-bottom: 16px; font-size: .88rem; }
+.section p { margin: 8px 0; font-size: .88rem; }
+
+/* Color Swatches */
+.color-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(180px, 1fr)); gap: 16px; margin: 16px 0; }
+.color-swatch { border-radius: var(--radius); overflow: hidden; box-shadow: 0 1px 3px rgba(0,0,0,.08); border: 1px solid var(--border); }
+.color-preview { height: 80px; display: flex; align-items: flex-end; padding: 12px; }
+.color-preview span { color: #fff; font-size: 12px; font-weight: 500; text-shadow: 0 1px 2px rgba(0,0,0,.3); }
+.color-info { padding: 10px 12px; background: #fff; }
+.color-name { font-size: 13px; font-weight: 600; color: var(--text); }
+.color-var { font-size: 11px; color: var(--text-muted); font-family: monospace; margin-top: 2px; }
+.color-hex { font-size: 11px; color: var(--text-muted); font-family: monospace; }
+.color-usage { font-size: 10px; color: var(--text-muted); margin-top: 4px; }
+
+/* Code Block */
+.code-block { background: #1E293B; color: #E2E8F0; padding: 16px; border-radius: 8px; font-family: 'Courier New', monospace; font-size: 13px; overflow-x: auto; white-space: pre; line-height: 1.5; margin: 12px 0; }
+
+/* Countdown */
+.countdown-demo { display: flex; gap: 24px; flex-wrap: wrap; align-items: flex-start; margin: 16px 0; }
+.countdown-group { display: flex; flex-direction: column; gap: 8px; }
+.countdown-group .size-label { font-size: 11px; color: var(--text-muted); font-weight: 600; }
+.countdown-display { display: flex; align-items: center; gap: 2px; }
+.countdown-block { background: rgba(0,0,0,0.75); border-radius: 6px; padding: 4px 8px; display: flex; flex-direction: column; align-items: center; min-width: 36px; }
+.countdown-block .digit { color: #fff; font-weight: 700; }
+.countdown-block .label { color: rgba(255,255,255,.6); font-size: 8px; }
+.countdown-sep { color: rgba(0,0,0,.75); font-weight: 700; font-size: 16px; margin: 0 2px; }
+
+.countdown-sm .countdown-block { min-width: 28px; padding: 2px 6px; border-radius: 4px; }
+.countdown-sm .countdown-block .digit { font-size: 16px; }
+.countdown-sm .countdown-sep { font-size: 12px; }
+.countdown-md .countdown-block .digit { font-size: 20px; }
+.countdown-md .countdown-sep { font-size: 16px; }
+.countdown-lg .countdown-block { min-width: 44px; padding: 6px 10px; border-radius: 8px; }
+.countdown-lg .countdown-block .digit { font-size: 24px; }
+.countdown-lg .countdown-sep { font-size: 20px; }
+
+/* Animation Demo */
+@keyframes pulse-flash {
+  0%, 100% { transform: scale(1); }
+  50% { transform: scale(1.05); }
+}
+@keyframes breathe {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.3; }
+}
+@keyframes float-up {
+  0% { opacity: 1; transform: translateY(0) scale(1); }
+  100% { opacity: 0; transform: translateY(-60px) scale(0.5); }
+}
+@keyframes ripple {
+  0% { transform: scale(0); opacity: 0.6; }
+  100% { transform: scale(4); opacity: 0; }
+}
+
+.pulse-demo { animation: pulse-flash 0.5s ease-in-out infinite; display: inline-block; }
+.breathe-demo { animation: breathe 2s ease-in-out infinite; display: inline-block; }
+
+/* Promo Tags */
+.tag-demo-row { display: flex; gap: 16px; flex-wrap: wrap; align-items: center; margin: 16px 0; }
+.promo-tag { display: inline-flex; align-items: center; gap: 4px; padding: 4px 10px; border-radius: 4px; font-size: 12px; font-weight: 600; color: #fff; }
+.promo-tag-limited { background: var(--promo-red); }
+.promo-tag-gift { background: var(--promo-orange); }
+.promo-tag-seckill { background: linear-gradient(135deg, var(--promo-red), #ff6b78); animation: pulse-flash 1s ease-in-out infinite; }
+.promo-tag-soldout { background: var(--promo-gray); }
+
+/* Tag icon placeholders */
+.tag-icon-lightning { width: 0; height: 0; border-left: 5px solid transparent; border-right: 5px solid transparent; border-bottom: 10px solid #fff; }
+.tag-icon-gift { width: 10px; height: 10px; background: #fff; border-radius: 2px; position: relative; }
+.tag-icon-gift::after { content: ''; position: absolute; top: -3px; left: 0; width: 10px; height: 4px; background: #fff; border-radius: 2px 2px 0 0; }
+
+/* Status Badges */
+.status-badge-row { display: flex; gap: 16px; flex-wrap: wrap; align-items: center; margin: 16px 0; }
+.status-badge { display: inline-flex; align-items: center; gap: 6px; padding: 4px 12px; border-radius: 12px; font-size: 12px; font-weight: 600; }
+.status-draft { background: #F3F4F6; color: #6B7280; }
+.status-active { background: #D1FAE5; color: #065F46; }
+.status-paused { background: #FEF3C7; color: #92400E; }
+.status-ended { background: #F3F4F6; color: #6B7280; text-decoration: line-through; }
+.status-expired { background: #F3F4F6; color: #6B7280; text-decoration: line-through; }
+.status-dot { width: 8px; height: 8px; border-radius: 50%; }
+.status-dot.green { background: var(--promo-green); animation: breathe 2s ease-in-out infinite; }
+
+/* Spec Table */
+.spec-table { width: 100%; border-collapse: collapse; margin: 16px 0; }
+.spec-table th, .spec-table td { padding: 10px 14px; text-align: left; border-bottom: 1px solid var(--border); font-size: .85rem; }
+.spec-table th { background: #FFF0F0; color: var(--promo-red); font-weight: 600; font-size: .8rem; }
+.spec-table tr:hover { background: #F8FAFC; }
+.spec-table code { background: #F1F5F9; padding: 2px 6px; border-radius: 4px; font-size: .82rem; }
+
+/* Checklist */
+.checklist { list-style: none; padding: 0; }
+.checklist li { padding: 8px 0 8px 28px; position: relative; font-size: .88rem; color: var(--text-secondary); border-bottom: 1px solid #F0F0F0; }
+.checklist li::before { content: ''; position: absolute; left: 0; top: 10px; width: 16px; height: 16px; border: 2px solid var(--border); border-radius: 4px; }
+.checklist li:last-child { border-bottom: none; }
+
+/* Floating particles demo */
+.particle-area { position: relative; height: 80px; background: #F8FAFC; border-radius: 8px; overflow: hidden; margin: 12px 0; }
+.particle { position: absolute; width: 6px; height: 6px; border-radius: 50%; background: var(--promo-gold); animation: float-up 1.5s ease-out infinite; }
+.particle:nth-child(1) { left: 40%; animation-delay: 0s; }
+.particle:nth-child(2) { left: 45%; animation-delay: 0.2s; }
+.particle:nth-child(3) { left: 50%; animation-delay: 0.4s; }
+.particle:nth-child(4) { left: 55%; animation-delay: 0.1s; }
+.particle:nth-child(5) { left: 60%; animation-delay: 0.3s; }
+
+/* Button ripple demo */
+.ripple-btn { position: relative; overflow: hidden; padding: 10px 24px; background: var(--promo-red); color: #fff; border: none; border-radius: 8px; font-size: 14px; font-weight: 600; cursor: pointer; }
+.ripple-effect { position: absolute; border-radius: 50%; background: rgba(255,255,255,.4); animation: ripple 0.4s ease-out; pointer-events: none; }
+
+/* Hover card demo */
+.hover-card { padding: 16px; background: #fff; border-radius: 10px; border: 1px solid var(--border); transition: transform .2s, box-shadow .2s; cursor: pointer; }
+.hover-card:hover { transform: translateY(-4px); box-shadow: 0 8px 24px rgba(0,0,0,.12); }
+
+/* Animation demo section */
+.anim-demo-box { border: 1px dashed var(--border); border-radius: 8px; padding: 20px; margin: 12px 0; background: #FAFBFC; }
+</style>
+</head>
+<body>
+
+<div class="header">
+  <h1>31 · 营销设计规范补充 — 设计规格文档</h1>
+  <p>促销色系 · 倒计时组件 · 抢购动效 · 促销标签 · 活动状态徽章</p>
+</div>
+
+<div class="container">
+
+  <!-- 1. 页面总览 -->
+  <div class="section">
+    <h2>1. 页面总览</h2>
+    <p class="desc">本规范是设计系统 v3.0 的营销场景补充，定义了促销活动相关的专属色系、倒计时组件、动效规范、标签和状态徽章。所有规范需与现有设计系统（文档 01-13）配合使用，确保营销场景下的视觉一致性。</p>
+    <p class="desc">适用范围：商户端营销中心、优惠券页面、限时折扣、积分商城、活动管理后台等所有营销相关页面。</p>
+  </div>
+
+  <!-- 2. 促销色系定义 -->
+  <div class="section">
+    <h2>2. 促销色系定义</h2>
+    <p class="desc">营销场景专属色系，与基础语义色系互补，不可替代基础语义色。用于折扣标签、秒杀按钮、倒计时、积分展示等场景。</p>
+
+    <div class="color-grid">
+      <div class="color-swatch">
+        <div class="color-preview" style="background:var(--promo-red);"><span>Primary</span></div>
+        <div class="color-info">
+          <div class="color-name">主促销色</div>
+          <div class="color-var">--promo-red</div>
+          <div class="color-hex">#FF4757</div>
+          <div class="color-usage">折扣标签 / 秒杀按钮 / 倒计时</div>
+        </div>
+      </div>
+      <div class="color-swatch">
+        <div class="color-preview" style="background:var(--promo-orange);"><span>Secondary</span></div>
+        <div class="color-info">
+          <div class="color-name">辅助促销色</div>
+          <div class="color-var">--promo-orange</div>
+          <div class="color-hex">#FF6348</div>
+          <div class="color-usage">满减标签 / 活动banner渐变</div>
+        </div>
+      </div>
+      <div class="color-swatch">
+        <div class="color-preview" style="background:var(--promo-warm);"><span>Warm</span></div>
+        <div class="color-info">
+          <div class="color-name">暖橙</div>
+          <div class="color-var">--promo-warm</div>
+          <div class="color-hex">#FFA502</div>
+          <div class="color-usage">优惠券标签 / 金币辅色</div>
+        </div>
+      </div>
+      <div class="color-swatch">
+        <div class="color-preview" style="background:var(--promo-gold);"><span>Gold</span></div>
+        <div class="color-info">
+          <div class="color-name">金币黄</div>
+          <div class="color-var">--promo-gold</div>
+          <div class="color-hex">#F9CA24</div>
+          <div class="color-usage">积分展示 / 积分商城背景</div>
+        </div>
+      </div>
+      <div class="color-swatch">
+        <div class="color-preview" style="background:var(--promo-green);"><span>Green</span></div>
+        <div class="color-info">
+          <div class="color-name">翠绿</div>
+          <div class="color-var">--promo-green</div>
+          <div class="color-hex">#2ED573</div>
+          <div class="color-usage">成功 / 库存充足标签</div>
+        </div>
+      </div>
+      <div class="color-swatch">
+        <div class="color-preview" style="background:var(--promo-red);"><span>Danger</span></div>
+        <div class="color-info">
+          <div class="color-name">促销红</div>
+          <div class="color-var">--promo-red</div>
+          <div class="color-hex">#FF4757</div>
+          <div class="color-usage">警告 / 库存紧张标签</div>
+        </div>
+      </div>
+      <div class="color-swatch">
+        <div class="color-preview" style="background:var(--promo-gray);"><span>Gray</span></div>
+        <div class="color-info">
+          <div class="color-name">灰蓝</div>
+          <div class="color-var">--promo-gray</div>
+          <div class="color-hex">#B2BEC3</div>
+          <div class="color-usage">置灰 / 不可用 / 已领完</div>
+        </div>
+      </div>
+    </div>
+
+    <h3>2.1 CSS 变量定义</h3>
+    <div class="code-block">:root {
+  /* 促销色系 — 与基础语义色互补，不可替代 */
+  --promo-red:    #FF4757;   /* 主促销色：折扣标签、秒杀按钮、倒计时 */
+  --promo-orange: #FF6348;   /* 辅助促销色：满减标签、活动渐变 */
+  --promo-warm:   #FFA502;   /* 暖橙：优惠券标签 */
+  --promo-gold:   #F9CA24;   /* 金币黄：积分展示、积分商城 */
+  --promo-green:  #2ED573;   /* 翠绿：成功、库存充足 */
+  --promo-gray:   #B2BEC3;   /* 灰蓝：置灰、不可用状态 */
+}</div>
+
+    <h3>2.2 Tailwind CSS 扩展配置</h3>
+    <div class="code-block">// tailwind.config.js 扩展
+module.exports = {
+  theme: {
+    extend: {
+      colors: {
+        'promo-red':    '#FF4757',
+        'promo-orange': '#FF6348',
+        'promo-warm':   '#FFA502',
+        'promo-gold':   '#F9CA24',
+        'promo-green':  '#2ED573',
+        'promo-gray':   '#B2BEC3',
+      },
+      animation: {
+        'pulse-flash': 'pulse-flash 0.5s ease-in-out infinite',
+        'breathe':     'breathe 2s ease-in-out infinite',
+        'float-up':    'float-up 1.5s ease-out infinite',
+        'ripple':      'ripple 0.4s ease-out',
+      },
+      keyframes: {
+        'pulse-flash': {
+          '0%, 100%': { transform: 'scale(1)' },
+          '50%':      { transform: 'scale(1.05)' },
+        },
+        'breathe': {
+          '0%, 100%': { opacity: '1' },
+          '50%':      { opacity: '0.3' },
+        },
+        'float-up': {
+          '0%':   { opacity: '1', transform: 'translateY(0) scale(1)' },
+          '100%': { opacity: '0', transform: 'translateY(-60px) scale(0.5)' },
+        },
+        'ripple': {
+          '0%':   { transform: 'scale(0)', opacity: '0.6' },
+          '100%': { transform: 'scale(4)', opacity: '0' },
+        },
+      },
+    },
+  },
+}</div>
+  </div>
+
+  <!-- 3. 倒计时组件规范 -->
+  <div class="section">
+    <h2>3. 倒计时组件规范</h2>
+    <p class="desc">倒计时组件用于限时折扣、秒杀等活动场景，支持三种尺寸分别对应不同展示层级。</p>
+
+    <h3>3.1 尺寸规格</h3>
+
+    <div class="countdown-demo">
+      <div class="countdown-group">
+        <div class="size-label">大号 (24px) — 活动头部 Banner</div>
+        <div class="countdown-display countdown-lg" style="background:linear-gradient(135deg,var(--promo-red),#ff6b78));padding:12px 16px;border-radius:10px;">
+          <div class="countdown-block"><span class="digit">02</span><span class="label">天</span></div>
+          <div class="countdown-sep" style="color:#fff;">:</div>
+          <div class="countdown-block"><span class="digit">15</span><span class="label">时</span></div>
+          <div class="countdown-sep" style="color:#fff;">:</div>
+          <div class="countdown-block"><span class="digit">30</span><span class="label">分</span></div>
+          <div class="countdown-sep" style="color:#fff;">:</div>
+          <div class="countdown-block"><span class="digit">45</span><span class="label">秒</span></div>
+        </div>
+      </div>
+
+      <div class="countdown-group">
+        <div class="size-label">中号 (20px) — 商品卡片</div>
+        <div class="countdown-display countdown-md">
+          <div class="countdown-block"><span class="digit">02</span><span class="label">天</span></div>
+          <div class="countdown-sep">:</div>
+          <div class="countdown-block"><span class="digit">15</span><span class="label">时</span></div>
+          <div class="countdown-sep">:</div>
+          <div class="countdown-block"><span class="digit">30</span><span class="label">分</span></div>
+          <div class="countdown-sep">:</div>
+          <div class="countdown-block"><span class="digit">45</span><span class="label">秒</span></div>
+        </div>
+      </div>
+
+      <div class="countdown-group">
+        <div class="size-label">小号 (16px) — 列表</div>
+        <div class="countdown-display countdown-sm">
+          <div class="countdown-block"><span class="digit">02</span><span class="label">天</span></div>
+          <div class="countdown-sep">:</div>
+          <div class="countdown-block"><span class="digit">15</span><span class="label">时</span></div>
+          <div class="countdown-sep">:</div>
+          <div class="countdown-block"><span class="digit">30</span><span class="label">分</span></div>
+          <div class="countdown-sep">:</div>
+          <div class="countdown-block"><span class="digit">45</span><span class="label">秒</span></div>
+        </div>
+      </div>
+    </div>
+
+    <h3>3.2 颜色变化规则</h3>
+    <table class="spec-table">
+      <thead>
+        <tr><th>剩余时间</th><th>数字颜色</th><th>背景</th><th>动画</th><th>说明</th></tr>
+      </thead>
+      <tbody>
+        <tr><td>&gt; 1 小时</td><td>白色 #FFFFFF</td><td>rgba(0,0,0,0.75)</td><td>无</td><td>正常展示</td></tr>
+        <tr><td>&lt; 1 小时</td><td>促销红 #FF4757</td><td>rgba(0,0,0,0.75)</td><td>无</td><td>数字变色提示紧迫</td></tr>
+        <tr><td>&lt; 10 分钟</td><td>促销红 #FF4757</td><td>rgba(0,0,0,0.75)</td><td>pulse 脉冲闪烁</td><td>强烈紧迫感，促进下单</td></tr>
+      </tbody>
+    </table>
+
+    <h3>3.3 CSS Animation 关键帧</h3>
+    <div class="code-block">/* 脉冲闪烁动画 — 用于倒计时 &lt;10分钟 */
+@keyframes pulse-flash {
+  0%, 100% {
+    transform: scale(1);
+  }
+  50% {
+    transform: scale(1.05);
+  }
+}
+
+/* 使用示例 */
+.countdown-urgent {
+  animation: pulse-flash 0.5s ease-in-out infinite;
+  color: var(--promo-red);
+}</div>
+  </div>
+
+  <!-- 4. 抢购动效规范 -->
+  <div class="section">
+    <h2>4. 抢购动效规范</h2>
+    <p class="desc">抢购场景下的交互反馈动效，提升用户操作感知和紧迫感。</p>
+
+    <h3>4.1 按钮点击波纹效果</h3>
+    <p>从点击中心扩散的圆形波纹，300ms ease-out 过渡，提升点击反馈感。</p>
+    <div class="anim-demo-box">
+      <div class="ripple-btn" style="position:relative;overflow:hidden;display:inline-block;padding:10px 24px;background:var(--promo-red);color:#fff;border:none;border-radius:8px;font-size:14px;font-weight:600;cursor:pointer;">
+        立即抢购
+        <div style="position:absolute;top:50%;left:50%;width:20px;height:20px;border-radius:50%;background:rgba(255,255,255,.4);animation:ripple .4s ease-out infinite;pointer-events:none;"></div>
+      </div>
+    </div>
+
+    <h3>4.2 商品卡片 Hover 上浮</h3>
+    <p>鼠标悬停时卡片上浮 4px + 阴影加深，200ms 过渡，用于PC端商品列表。</p>
+    <div class="anim-demo-box">
+      <div class="hover-card" style="max-width:260px;">
+        <div style="width:100%;height:120px;background:#F3F4F6;border-radius:6px;display:flex;align-items:center;justify-content:center;color:var(--text-muted);font-size:11px;margin-bottom:8px;">商品图</div>
+        <div style="font-size:13px;font-weight:600;">茅台 飞天 53度</div>
+        <div style="font-size:18px;font-weight:700;color:var(--promo-red);">&yen;2,599</div>
+      </div>
+    </div>
+
+    <h3>4.3 库存减少进度条动画</h3>
+    <p>进度条使用 linear 过渡，从 100% 平滑减少，直观展示库存消耗。</p>
+    <div class="anim-demo-box">
+      <div style="margin-bottom:10px;display:flex;justify-content:space-between;font-size:11px;color:var(--text-muted);">
+        <span>已售 85%</span><span>剩余 15 件</span>
+      </div>
+      <div style="height:8px;background:#F0F0F0;border-radius:4px;overflow:hidden;">
+        <div style="height:100%;width:85%;background:linear-gradient(90deg,var(--promo-red),var(--promo-orange));border-radius:4px;transition:width 1s linear;"></div>
+      </div>
+    </div>
+
+    <h3>4.4 领取成功飘落动画</h3>
+    <p>优惠券领取成功后，金色粒子从按钮区域向上飘散，1.5s ease-out。</p>
+    <div class="anim-demo-box" style="text-align:center;">
+      <div class="particle-area">
+        <div class="particle"></div>
+        <div class="particle"></div>
+        <div class="particle"></div>
+        <div class="particle"></div>
+        <div class="particle"></div>
+        <div style="position:absolute;bottom:12px;left:50%;transform:translateX(-50%);font-size:12px;color:var(--promo-gold);font-weight:600;">领取成功!</div>
+      </div>
+    </div>
+
+    <h3>4.5 CSS 关键帧代码</h3>
+    <div class="code-block">/* 按钮波纹 */
+@keyframes ripple {
+  0%   { transform: scale(0); opacity: 0.6; }
+  100% { transform: scale(4); opacity: 0; }
+}
+
+/* 卡片上浮 */
+.card-hover {
+  transition: transform .2s, box-shadow .2s;
+}
+.card-hover:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 8px 24px rgba(0,0,0,.12);
+}
+
+/* 飘落粒子 */
+@keyframes float-up {
+  0%   { opacity: 1; transform: translateY(0) scale(1); }
+  100% { opacity: 0; transform: translateY(-60px) scale(0.5); }
+}
+
+/* 进度条过渡 */
+.progress-fill {
+  transition: width 1s linear;
+}</div>
+  </div>
+
+  <!-- 5. 促销标签组件 -->
+  <div class="section">
+    <h2>5. 促销标签组件</h2>
+    <p class="desc">营销场景中常用的促销标签样式，统一视觉语言。</p>
+
+    <h3>5.1 标签样式展示</h3>
+    <div class="tag-demo-row">
+      <div class="promo-tag promo-tag-limited">
+        <span style="width:0;height:0;border-left:5px solid transparent;border-right:5px solid transparent;border-bottom:10px solid #fff;display:inline-block;"></span>
+        限时
+      </div>
+      <div class="promo-tag promo-tag-gift">
+        <span style="width:10px;height:10px;background:#fff;border-radius:2px;display:inline-block;position:relative;">
+          <span style="width:10px;height:4px;background:#fff;border-radius:2px 2px 0 0;position:absolute;top:-3px;left:0;display:block;"></span>
+        </span>
+        满赠
+      </div>
+      <div class="promo-tag promo-tag-seckill pulse-demo">
+        <span style="width:0;height:0;border-left:5px solid transparent;border-right:5px solid transparent;border-bottom:10px solid #fff;display:inline-block;"></span>
+        秒杀
+      </div>
+      <div class="promo-tag promo-tag-soldout">已领完</div>
+    </div>
+
+    <h3>5.2 标签 CSS 代码</h3>
+    <div class="code-block">/* 限时标签 — 红色背景 + 白色闪电图标 */
+.promo-tag-limited {
+  background: #FF4757;
+  color: #fff;
+  padding: 4px 10px;
+  border-radius: 4px;
+  font-size: 12px;
+  font-weight: 600;
+}
+
+/* 满赠标签 — 橙色背景 + 礼物图标 */
+.promo-tag-gift {
+  background: #FF6348;
+  color: #fff;
+  padding: 4px 10px;
+  border-radius: 4px;
+  font-size: 12px;
+  font-weight: 600;
+}
+
+/* 秒杀标签 — 红色渐变 + 脉冲动画 */
+.promo-tag-seckill {
+  background: linear-gradient(135deg, #FF4757, #ff6b78);
+  color: #fff;
+  padding: 4px 10px;
+  border-radius: 4px;
+  font-size: 12px;
+  font-weight: 600;
+  animation: pulse-flash 1s ease-in-out infinite;
+}
+
+/* 已领完标签 — 灰色背景 */
+.promo-tag-soldout {
+  background: #B2BEC3;
+  color: #fff;
+  padding: 4px 10px;
+  border-radius: 4px;
+  font-size: 12px;
+  font-weight: 600;
+}</div>
+  </div>
+
+  <!-- 6. 活动状态徽章 -->
+  <div class="section">
+    <h2>6. 活动状态徽章</h2>
+    <p class="desc">活动管理后台中用于标识活动生命周期的状态徽章，五种状态覆盖完整活动流程。</p>
+
+    <h3>6.1 状态徽章展示</h3>
+    <div class="status-badge-row">
+      <span class="status-badge status-draft">DRAFT 草稿</span>
+      <span class="status-badge status-active">
+        <span class="status-dot green"></span> ACTIVE 进行中
+      </span>
+      <span class="status-badge status-paused">PAUSED 已暂停</span>
+      <span class="status-badge status-ended">ENDED 已结束</span>
+      <span class="status-badge status-expired">EXPIRED 已过期</span>
+    </div>
+
+    <h3>6.2 状态徽章 CSS 代码</h3>
+    <div class="code-block">/* 草稿 */
+.status-draft {
+  background: #F3F4F6;
+  color: #6B7280;
+  padding: 4px 12px;
+  border-radius: 12px;
+  font-size: 12px;
+  font-weight: 600;
+}
+
+/* 进行中 — 绿色 + 呼吸灯 */
+.status-active {
+  background: #D1FAE5;
+  color: #065F46;
+  padding: 4px 12px;
+  border-radius: 12px;
+  font-size: 12px;
+  font-weight: 600;
+}
+.status-active .status-dot {
+  width: 8px; height: 8px;
+  border-radius: 50%;
+  background: #2ED573;
+  animation: breathe 2s ease-in-out infinite;
+}
+
+/* 已暂停 */
+.status-paused {
+  background: #FEF3C7;
+  color: #92400E;
+  padding: 4px 12px;
+  border-radius: 12px;
+  font-size: 12px;
+  font-weight: 600;
+}
+
+/* 已结束 / 已过期 — 灰色 + 删除线 */
+.status-ended,
+.status-expired {
+  background: #F3F4F6;
+  color: #6B7280;
+  text-decoration: line-through;
+  padding: 4px 12px;
+  border-radius: 12px;
+  font-size: 12px;
+  font-weight: 600;
+}
+
+/* 呼吸动画 */
+@keyframes breathe {
+  0%, 100% { opacity: 1; }
+  50%      { opacity: 0.3; }
+}</div>
+  </div>
+
+  <!-- 7. 与现有设计规范衔接说明 -->
+  <div class="section">
+    <h2>7. 与现有设计规范衔接说明</h2>
+    <p class="desc">本规范是设计系统 v3.0 的扩展，以下表格说明与现有规范的继承和补充关系。</p>
+
+    <table class="spec-table">
+      <thead>
+        <tr><th>现有规范</th><th>文档编号</th><th>继承关系</th><th>本规范补充</th></tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>设计系统规范 v3.0</td>
+          <td>01</td>
+          <td>继承全部 CSS 变量、字体排版、间距、圆角、阴影体系</td>
+          <td>新增促销色系 7 个变量</td>
+        </tr>
+        <tr>
+          <td>组件交互与状态规范</td>
+          <td>02</td>
+          <td>继承 Button、Tag、Badge 基础组件结构</td>
+          <td>新增促销标签、活动状态徽章</td>
+        </tr>
+        <tr>
+          <td>视觉界面原型</td>
+          <td>04</td>
+          <td>继承手机框、页面布局模式</td>
+          <td>新增倒计时组件、抢购动效</td>
+        </tr>
+        <tr>
+          <td>动效设计规范</td>
+          <td>06</td>
+          <td>继承动效时长、缓动函数约定</td>
+          <td>新增 pulse-flash、breathe、float-up、ripple 关键帧</td>
+        </tr>
+        <tr>
+          <td>暗色模式规范</td>
+          <td>07</td>
+          <td>暗色模式下促销色亮度微调（+10%）</td>
+          <td>促销色暗色模式适配需单独评估</td>
+        </tr>
+        <tr>
+          <td>商户端营销中心</td>
+          <td>30</td>
+          <td>本规范为其提供色系和组件基础</td>
+          <td>全部促销色、倒计时、标签、动效应用于该页面</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <!-- 8. 验收标准 -->
+  <div class="section">
+    <h2>8. 验收标准</h2>
+    <ul class="checklist">
+      <li>7 个促销色系变量全部定义在 :root 中，与基础语义色共存不冲突</li>
+      <li>颜色色块展示包含颜色名称、CSS 变量名、HEX 值、用途说明</li>
+      <li>CSS 变量定义代码块可直接复制到项目中使用</li>
+      <li>Tailwind 扩展配置代码块包含 colors 和 animation/keyframes 完整定义</li>
+      <li>倒计时组件支持三种尺寸：大(24px)、中(20px)、小(16px)</li>
+      <li>倒计时使用深色背景卡片 rgba(0,0,0,0.75) + 白色数字 + 标签</li>
+      <li>倒计时颜色变化规则覆盖 &gt;1小时、&lt;1小时、&lt;10分钟 三种场景</li>
+      <li>pulse-flash 动画关键帧正确实现 scale(1) → scale(1.05) → scale(1)</li>
+      <li>按钮波纹效果从点击中心扩散，300ms ease-out</li>
+      <li>商品卡片 hover 上浮 translateY(-4px) + 阴影加深，200ms</li>
+      <li>库存进度条使用 linear 过渡，飘落粒子使用 float-up 动画</li>
+      <li>4 种促销标签样式与实际渲染效果一致</li>
+      <li>"限时"标签：红色背景 #FF4757 + 白色文字 + CSS 三角形闪电图标</li>
+      <li>"满赠"标签：橙色背景 #FF6348 + 白色文字 + CSS 方块礼物图标</li>
+      <li>"秒杀"标签：红色渐变背景 + 脉冲动画</li>
+      <li>"已领完"标签：灰色背景 #B2BEC3</li>
+      <li>5 种活动状态徽章：DRAFT/ACTIVE/PAUSED/ENDED/EXPIRED</li>
+      <li>ACTIVE 徽章包含绿色呼吸灯动画</li>
+      <li>ENDED 和 EXPIRED 徽章包含删除线效果</li>
+      <li>与现有设计规范衔接说明表格清晰展示继承关系</li>
+      <li>所有代码块使用 .code-block 样式，深色背景 + 等宽字体</li>
+    </ul>
+  </div>
+
+</div>
+
+</body>
+</html>

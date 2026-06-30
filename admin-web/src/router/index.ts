@@ -137,7 +137,11 @@ const routes = [
       // 11. 营销推广
       { path: "marketing", name: "Marketing", component: () => import("../views/MarketingView.vue"), meta: { roles: ["BOSS"] } },
       { path: "marketing/tags", name: "MarketingTags", component: () => import("../views/MarketingTags.vue"), meta: { roles: ["BOSS", "MGR"] } },
-      { path: "marketing/promotion", name: "MarketingPromotion", component: () => import("../views/MarketingPromotion.vue"), meta: { roles: ["BOSS"] } },
+      { path: "marketing/limited-discount", name: "MarketingLimitedDiscount", component: () => import("../views/MarketingLimitedDiscount.vue"), meta: { roles: ["BOSS"] } },
+      { path: "marketing/gift-rule", name: "MarketingGiftRule", component: () => import("../views/MarketingGiftRule.vue"), meta: { roles: ["BOSS"] } },
+      { path: "marketing/points-mall", name: "MarketingPointsMall", component: () => import("../views/MarketingPointsMall.vue"), meta: { roles: ["BOSS"] } },
+      { path: "marketing/dashboard", name: "MarketingDashboard", component: () => import("../views/MarketingDashboard.vue"), meta: { roles: ["BOSS"] } },
+      { path: "marketing/materials", name: "MarketingMaterial", component: () => import("../views/MarketingMaterial.vue"), meta: { roles: ["BOSS"] } },
       { path: "aftersale", name: "Aftersale", component: () => import("../views/AftersaleView.vue"), meta: { roles: ["BOSS"] } },
       // 12. 系统管理
       { path: "employees", name: "Employees", component: () => import("../views/EmployeesView.vue"), meta: { roles: ["BOSS"] } },

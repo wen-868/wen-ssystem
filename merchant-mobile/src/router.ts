@@ -103,7 +103,12 @@ const routes: RouteRecordRaw[] = [
   { path: '/customer-receivables/:customerId', name: 'customer-receivables', component: () => import('./views/CustomerReceivableView.vue'), meta: { requiresAuth: true } },
   { path: '/expense-create', name: 'expense-create', component: () => import('./views/ExpenseCreateView.vue'), meta: { requiresAuth: true } },
   { path: '/reconciliation', name: 'reconciliation', component: () => import('./views/ReconciliationMobileView.vue'), meta: { requiresAuth: true } },
-  { path: '/reconciliation/:customerId', name: 'reconciliation-detail', component: () => import('./views/ReconciliationMobileView.vue'), meta: { requiresAuth: true } }
+  { path: '/reconciliation/:customerId', name: 'reconciliation-detail', component: () => import('./views/ReconciliationMobileView.vue'), meta: { requiresAuth: true } },
+  // 营销中心
+  { path: '/marketing', name: 'marketing', component: () => import('./views/MarketingCenter.vue'), meta: { requiresAuth: true } },
+  { path: '/marketing/coupons', name: 'marketing-coupons', component: () => import('./views/MarketingCoupons.vue'), meta: { requiresAuth: true } },
+  { path: '/marketing/limited-discount', name: 'marketing-limited-discount', component: () => import('./views/MarketingLimitedDiscount.vue'), meta: { requiresAuth: true } },
+  { path: '/marketing/points-mall', name: 'marketing-points-mall', component: () => import('./views/MarketingPointsMall.vue'), meta: { requiresAuth: true } }
 ]
 
 const router = createRouter({

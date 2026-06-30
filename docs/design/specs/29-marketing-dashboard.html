@@ -1,0 +1,888 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>29 · 营销看板+素材库 — 设计规格文档</title>
+<style>
+/* ===== CSS Variables ===== */
+:root {
+  --brand:        #1677FF;
+  --brand-light:  #E6F4FF;
+  --text:         #1F2328;
+  --text-secondary: #4B5563;
+  --text-muted:   #9CA3AF;
+  --border:       #E5E7EB;
+  --bg:           #F5F7FA;
+  --white:        #FFFFFF;
+  --success:      #10B981;
+  --warning:      #F59E0B;
+  --danger:       #EF4444;
+  --radius:       12px;
+  --shadow:       0 2px 8px rgba(0,0,0,.06);
+  --shadow-md:    0 4px 12px rgba(0,0,0,.08);
+  --shadow-lg:    0 8px 24px rgba(0,0,0,.12);
+}
+* { margin: 0; padding: 0; box-sizing: border-box; }
+body {
+  font-family: -apple-system, BlinkMacSystemFont, 'PingFang SC', 'Microsoft YaHei', sans-serif;
+  background: var(--bg); color: var(--text); line-height: 1.6;
+}
+.container { max-width: 1400px; margin: 0 auto; padding: 40px 24px; }
+
+/* ===== Header ===== */
+.header {
+  background: linear-gradient(135deg, #1677FF, #0958D9);
+  color: #fff; padding: 48px 40px; text-align: left; border-radius: 16px; margin-bottom: 40px;
+  position: relative; overflow: hidden;
+}
+.header::before {
+  content: ''; position: absolute; top: -60px; right: -40px; width: 260px; height: 260px;
+  background: rgba(255,255,255,0.05); border-radius: 50%;
+}
+.header::after {
+  content: ''; position: absolute; bottom: -80px; left: 30%; width: 200px; height: 200px;
+  background: rgba(255,255,255,0.04); border-radius: 50%;
+}
+.header * { position: relative; z-index: 1; }
+.header .spec-number {
+  display: inline-block; background: rgba(255,255,255,0.18); padding: 4px 16px;
+  border-radius: 20px; font-size: 14px; font-weight: 500; margin-bottom: 16px; letter-spacing: 0.5px;
+}
+.header h1 { font-size: 36px; font-weight: 700; margin-bottom: 8px; letter-spacing: -0.5px; }
+.header .subtitle { font-size: 16px; opacity: 0.85; font-weight: 400; }
+.header .meta-row {
+  display: flex; gap: 32px; margin-top: 20px; font-size: 13px; opacity: 0.7; flex-wrap: wrap;
+}
+
+/* ===== Section ===== */
+.section {
+  background: var(--white); border-radius: var(--radius); padding: 32px; margin-bottom: 24px;
+  box-shadow: var(--shadow);
+}
+.section-title {
+  font-size: 1.25rem; color: var(--brand); margin-bottom: 8px; padding-bottom: 12px;
+  border-bottom: 2px solid var(--brand-light);
+}
+.section-desc { color: var(--text-secondary); margin-bottom: 20px; font-size: .88rem; }
+
+/* ===== Mockup ===== */
+.mockup {
+  border: 1px solid var(--border); border-radius: var(--radius); overflow: hidden;
+  background: #fff; margin: 16px 0;
+}
+.mockup-header {
+  background: #fff; border-bottom: 1px solid #F0F0F0; padding: 0 20px; height: 56px;
+  display: flex; align-items: center; justify-content: space-between;
+}
+.mockup-logo { font-size: 16px; font-weight: 700; color: var(--brand); display: flex; align-items: center; gap: 8px; }
+.mockup-logo-icon { width: 28px; height: 28px; background: linear-gradient(135deg, var(--brand), #0958D9); border-radius: 6px; }
+.mockup-nav { display: flex; gap: 4px; }
+.mockup-nav-item { padding: 6px 14px; border-radius: 6px; font-size: 13px; color: var(--text-secondary); }
+.mockup-nav-item.active { background: var(--brand-light); color: var(--brand); font-weight: 500; }
+.mockup-user { display: flex; align-items: center; gap: 8px; font-size: 13px; }
+.mockup-avatar { width: 32px; height: 32px; border-radius: 50%; background: var(--brand); display: flex; align-items: center; justify-content: center; color: #fff; font-size: 13px; font-weight: 600; }
+
+.mockup-body { display: flex; }
+.mockup-sidebar {
+  width: 220px; background: #fff; border-right: 1px solid #F0F0F0; padding: 16px 0; min-height: 650px;
+}
+.mockup-sidebar-section { font-size: 11px; color: var(--text-muted); padding: 16px 20px 6px; font-weight: 600; text-transform: uppercase; }
+.mockup-sidebar-item { padding: 10px 20px; font-size: 13px; color: var(--text-secondary); }
+.mockup-sidebar-item.active { background: var(--brand-light); color: var(--brand); font-weight: 500; border-right: 3px solid var(--brand); }
+
+.mockup-main { flex: 1; padding: 20px 24px; background: var(--bg); }
+.mockup-page-title { font-size: 20px; font-weight: 700; margin-bottom: 4px; }
+.mockup-breadcrumb { font-size: 12px; color: var(--text-muted); margin-bottom: 12px; }
+
+/* ===== Tags ===== */
+.tag { padding: 2px 8px; border-radius: 4px; font-size: 11px; font-weight: 500; white-space: nowrap; display: inline-block; }
+.tag-success { background: #D1FAE5; color: #065F46; }
+.tag-warning { background: #FEF3C7; color: #92400E; }
+.tag-danger { background: #FEE2E2; color: #991B1B; }
+.tag-info { background: #DBEAFE; color: #1E40AF; }
+
+/* ===== Stats Row ===== */
+.stats-row { display: grid; grid-template-columns: repeat(6, 1fr); gap: 12px; margin-bottom: 20px; }
+.stat-card {
+  background: #fff; border-radius: 8px; padding: 16px 14px; border: 1px solid var(--border);
+  display: flex; flex-direction: column; gap: 6px;
+}
+.stat-card .stat-label { font-size: 12px; color: var(--text-muted); }
+.stat-card .stat-value { font-size: 24px; font-weight: 700; }
+.stat-card .stat-sub { font-size: 11px; color: var(--text-muted); }
+
+/* ===== Buttons ===== */
+.btn { display: inline-flex; align-items: center; gap: 4px; padding: 6px 14px; border-radius: 6px; font-size: 12px; font-weight: 500; cursor: pointer; border: none; font-family: inherit; }
+.btn-primary { background: var(--brand); color: #fff; }
+.btn-default { background: #fff; color: var(--text); border: 1px solid var(--border); }
+.btn-sm { padding: 4px 10px; font-size: 11px; }
+
+/* ===== Mockup Table ===== */
+.mockup-table { width: 100%; border-collapse: collapse; font-size: 12px; }
+.mockup-table th { background: #F8FAFC; padding: 10px 12px; text-align: left; font-weight: 600; color: var(--text-secondary); border-bottom: 1px solid var(--border); font-size: 11px; }
+.mockup-table td { padding: 10px 12px; border-bottom: 1px solid #F0F0F0; }
+.mockup-table tr:hover td { background: #F8FAFC; }
+
+/* ===== Tab Navigation ===== */
+.tab-nav { display: flex; gap: 0; border-bottom: 2px solid var(--border); margin-bottom: 16px; }
+.tab-nav .tab-nav-item { padding: 10px 20px; font-size: 13px; font-weight: 500; color: var(--text-secondary); border-bottom: 2px solid transparent; margin-bottom: -2px; cursor: pointer; }
+.tab-nav .tab-nav-item.active { color: var(--brand); border-bottom-color: var(--brand); }
+
+/* ===== Time Filter ===== */
+.time-filter { display: flex; align-items: center; gap: 12px; margin-bottom: 16px; flex-wrap: wrap; }
+.time-filter .date-range {
+  display: flex; align-items: center; gap: 8px; background: #fff; border: 1px solid var(--border);
+  border-radius: 6px; padding: 6px 12px; font-size: 13px;
+}
+.time-filter .date-range input { border: none; outline: none; font-size: 13px; color: var(--text); width: 110px; }
+.time-filter .date-range .sep { color: var(--text-muted); }
+.time-filter .quick-btns { display: flex; gap: 4px; }
+.time-filter .quick-btn {
+  padding: 6px 12px; border-radius: 6px; font-size: 12px; border: 1px solid var(--border);
+  background: #fff; color: var(--text-secondary); cursor: pointer;
+}
+.time-filter .quick-btn.active { background: var(--brand); color: #fff; border-color: var(--brand); }
+
+/* ===== Chart Containers ===== */
+.chart-card {
+  background: #fff; border-radius: 8px; padding: 16px; border: 1px solid var(--border);
+}
+.chart-card .chart-title { font-size: 13px; font-weight: 600; margin-bottom: 12px; color: var(--text); }
+
+/* ===== Line Chart (CSS) ===== */
+.line-chart { position: relative; height: 200px; padding: 0 40px 30px 50px; }
+.line-chart .chart-grid {
+  position: absolute; left: 50px; right: 40px; top: 0; bottom: 30px;
+  display: flex; flex-direction: column; justify-content: space-between;
+}
+.line-chart .chart-grid .grid-line { border-top: 1px dashed #E5E7EB; width: 100%; }
+.line-chart .chart-y-labels {
+  position: absolute; left: 0; top: 0; bottom: 30px; width: 45px;
+  display: flex; flex-direction: column; justify-content: space-between;
+  font-size: 10px; color: var(--text-muted); text-align: right; padding-right: 6px;
+}
+.line-chart .chart-area {
+  position: absolute; left: 50px; right: 40px; top: 0; bottom: 30px;
+}
+.line-chart .chart-dots {
+  position: absolute; left: 50px; right: 40px; top: 0; bottom: 30px;
+}
+.line-chart .chart-x-labels {
+  position: absolute; left: 50px; right: 40px; bottom: 0; height: 25px;
+  display: flex; justify-content: space-between; font-size: 10px; color: var(--text-muted);
+}
+.line-chart .dot-point {
+  position: absolute; width: 8px; height: 8px; border-radius: 50%; background: var(--brand);
+  transform: translate(-50%, -50%);
+}
+.line-chart .dot-point.green { background: var(--success); }
+.line-chart .line-segment {
+  position: absolute; height: 2px; background: var(--brand); transform-origin: left center;
+}
+.line-chart .line-segment.green { background: var(--success); }
+.line-chart-legend {
+  display: flex; gap: 20px; justify-content: center; font-size: 11px; margin-top: 8px;
+}
+.line-chart-legend .legend-item { display: flex; align-items: center; gap: 4px; }
+.line-chart-legend .legend-dot { width: 8px; height: 8px; border-radius: 50%; }
+
+/* ===== Bar Chart (CSS) ===== */
+.bar-chart-h { display: flex; flex-direction: column; gap: 10px; }
+.bar-chart-h .bar-row { display: flex; align-items: center; gap: 10px; }
+.bar-chart-h .bar-label { width: 100px; font-size: 12px; color: var(--text); text-align: right; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.bar-chart-h .bar-track { flex: 1; height: 24px; background: #F3F4F6; border-radius: 4px; overflow: hidden; position: relative; }
+.bar-chart-h .bar-fill { height: 100%; border-radius: 4px; display: flex; align-items: center; padding: 0 8px; font-size: 11px; color: #fff; font-weight: 600; }
+.bar-chart-h .bar-val { width: 60px; font-size: 12px; font-weight: 600; color: var(--text); }
+
+/* ===== Donut Chart (CSS) ===== */
+.donut-chart-wrap { display: flex; align-items: center; gap: 30px; justify-content: center; }
+.donut-chart {
+  width: 140px; height: 140px; border-radius: 50%; position: relative;
+}
+.donut-chart::after {
+  content: ''; position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%);
+  width: 70px; height: 70px; background: #fff; border-radius: 50%;
+}
+.donut-legend { display: flex; flex-direction: column; gap: 8px; font-size: 12px; }
+.donut-legend .legend-item { display: flex; align-items: center; gap: 8px; }
+.donut-legend .legend-dot { width: 10px; height: 10px; border-radius: 3px; flex-shrink: 0; }
+.donut-legend .legend-val { font-weight: 600; margin-left: auto; }
+
+/* ===== Material Library ===== */
+.material-layout { display: flex; gap: 16px; }
+.material-category {
+  width: 160px; background: #fff; border-radius: 8px; border: 1px solid var(--border);
+  padding: 12px 0; flex-shrink: 0;
+}
+.material-category .cat-title { font-size: 12px; font-weight: 600; color: var(--text-muted); padding: 0 12px 8px; text-transform: uppercase; }
+.material-category .cat-item { padding: 8px 12px; font-size: 13px; color: var(--text-secondary); cursor: pointer; }
+.material-category .cat-item.active { background: var(--brand-light); color: var(--brand); font-weight: 500; }
+.material-category .cat-item .count { float: right; color: var(--text-muted); font-size: 11px; }
+
+.material-content { flex: 1; }
+.material-toolbar { display: flex; align-items: center; gap: 10px; margin-bottom: 12px; flex-wrap: wrap; }
+.material-toolbar .search-box {
+  display: flex; align-items: center; background: #fff; border: 1px solid var(--border);
+  border-radius: 6px; padding: 6px 12px; gap: 6px; min-width: 200px;
+}
+.material-toolbar .search-box input { border: none; outline: none; font-size: 13px; color: var(--text); width: 100%; }
+.material-toolbar select {
+  padding: 6px 12px; border: 1px solid var(--border); border-radius: 6px; font-size: 13px;
+  color: var(--text); background: #fff; outline: none;
+}
+
+/* ===== Material Grid (Waterfall) ===== */
+.material-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; }
+.material-card {
+  background: #fff; border-radius: 8px; border: 1px solid var(--border); overflow: hidden;
+  transition: box-shadow 0.2s;
+}
+.material-card:hover { box-shadow: var(--shadow-md); }
+.material-card .material-thumb {
+  background: #F3F4F6; display: flex; align-items: center; justify-content: center;
+  color: var(--text-muted); font-size: 13px; position: relative;
+}
+.material-card .material-thumb .thumb-icon {
+  color: #9CA3AF; font-size: 28px;
+}
+.material-card .material-info { padding: 10px; display: flex; flex-direction: column; gap: 4px; }
+.material-card .material-name { font-size: 12px; font-weight: 500; color: var(--text); }
+.material-card .material-tags { display: flex; gap: 4px; flex-wrap: wrap; }
+.material-card .material-tags .mat-tag {
+  padding: 1px 6px; border-radius: 3px; font-size: 10px; background: #F3F4F6; color: var(--text-secondary);
+}
+
+/* ===== Modal ===== */
+.modal-overlay {
+  background: rgba(0,0,0,0.45); position: fixed; top: 0; left: 0; right: 0; bottom: 0;
+  display: flex; align-items: center; justify-content: center; z-index: 1000;
+}
+.modal {
+  background: #fff; border-radius: 12px; width: 650px; max-height: 80vh; overflow-y: auto;
+  box-shadow: var(--shadow-lg);
+}
+.modal-header {
+  padding: 20px 24px; border-bottom: 1px solid var(--border); display: flex;
+  align-items: center; justify-content: space-between;
+}
+.modal-header .modal-title { font-size: 16px; font-weight: 600; }
+.modal-header .modal-close { font-size: 20px; color: var(--text-muted); cursor: pointer; width: 28px; height: 28px; display: flex; align-items: center; justify-content: center; border-radius: 6px; }
+.modal-body { padding: 24px; display: flex; flex-direction: column; gap: 16px; }
+.modal-footer { padding: 16px 24px; border-top: 1px solid var(--border); display: flex; justify-content: flex-end; gap: 12px; }
+
+.form-group { display: flex; flex-direction: column; gap: 6px; }
+.form-group label { font-size: 13px; font-weight: 500; color: var(--text); }
+.form-group input, .form-group textarea { padding: 8px 12px; border: 1px solid var(--border); border-radius: 6px; font-size: 13px; color: var(--text); outline: none; font-family: inherit; }
+.form-group textarea { resize: vertical; min-height: 60px; }
+
+.upload-zone {
+  border: 2px dashed var(--border); border-radius: 8px; padding: 32px; text-align: center;
+  color: var(--text-muted); font-size: 13px; background: #FAFBFC; cursor: pointer;
+}
+.upload-zone .upload-hint { margin-top: 4px; font-size: 12px; }
+.upload-progress { margin-top: 12px; }
+.upload-progress .progress-bar {
+  height: 6px; background: #F3F4F6; border-radius: 3px; overflow: hidden;
+}
+.upload-progress .progress-fill { height: 100%; background: var(--brand); border-radius: 3px; }
+.upload-progress .progress-text { font-size: 11px; color: var(--text-muted); margin-top: 4px; }
+
+/* ===== Image Preview ===== */
+.img-preview-large {
+  background: #F3F4F6; border-radius: 8px; height: 200px; display: flex;
+  align-items: center; justify-content: center; color: var(--text-muted); font-size: 14px;
+}
+.file-info-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; font-size: 13px; }
+.file-info-grid .info-item { display: flex; justify-content: space-between; padding: 6px 0; border-bottom: 1px solid #F0F0F0; }
+.file-info-grid .info-item .info-label { color: var(--text-muted); }
+.file-info-grid .info-item .info-value { font-weight: 500; }
+.usage-stats { display: flex; gap: 20px; }
+.usage-stats .usage-item { text-align: center; }
+.usage-stats .usage-num { font-size: 24px; font-weight: 700; color: var(--brand); }
+.usage-stats .usage-label { font-size: 11px; color: var(--text-muted); }
+
+/* ===== Spec Table ===== */
+.spec-table { width: 100%; border-collapse: collapse; margin: 16px 0; }
+.spec-table th, .spec-table td { padding: 10px 14px; text-align: left; border-bottom: 1px solid var(--border); font-size: .85rem; }
+.spec-table th { background: var(--brand-light); color: var(--brand); font-weight: 600; font-size: .8rem; }
+.spec-table code { background: #F1F5F9; padding: 2px 6px; border-radius: 4px; font-size: .82rem; }
+
+/* ===== Checklist ===== */
+.checklist { list-style: none; padding: 0; }
+.checklist li { padding: 8px 0; font-size: .88rem; display: flex; align-items: flex-start; gap: 8px; }
+.checklist li::before { content: '\2610'; color: var(--brand); font-size: 1rem; flex-shrink: 0; }
+
+/* ===== Footer ===== */
+.footer { text-align: center; padding: 40px; color: var(--text-muted); font-size: 13px; }
+
+/* ===== Helpers ===== */
+.text-success { color: var(--success); }
+.text-danger { color: var(--danger); }
+.text-warning { color: var(--warning); }
+.text-muted { color: var(--text-muted); }
+.font-mono { font-family: 'SF Mono', 'Consolas', monospace; }
+.text-right { text-align: right; }
+.mt-16 { margin-top: 16px; }
+.mb-16 { margin-bottom: 16px; }
+.mr-8 { margin-right: 8px; }
+</style>
+</head>
+<body>
+
+<div class="container">
+
+  <!-- ===== HEADER ===== -->
+  <header class="header">
+    <div class="spec-number">SPEC-29</div>
+    <h1>29 · 营销看板 + 素材库</h1>
+    <p class="subtitle">管理后台 — 营销数据驾驶舱 | 活动效果追踪 | 素材资产管理 | 运营模块</p>
+    <div class="meta-row">
+      <span>版本 v1.0</span>
+      <span>2026-06-30</span>
+      <span>林夕 · UI/UX Designer</span>
+      <span>智享酒水库存系统</span>
+    </div>
+  </header>
+
+  <!-- ===== 页面总览 ===== -->
+  <div class="section">
+    <h2 class="section-title">页面总览</h2>
+    <p class="section-desc">
+      营销看板+素材库是运营模块的核心功能页面，分为两大Tab：营销看板用于监控活动效果数据（KPI概览、趋势图、ROI排行、类型分布、活动对比），
+      素材库用于管理营销素材资产（图片上传、分类管理、详情查看、使用统计）。管理员可通过此页面全面掌握营销活动表现并高效管理素材资源。
+    </p>
+  </div>
+
+  <!-- ===== Mockup 区域 ===== -->
+  <div class="section">
+    <h2 class="section-title">界面设计稿</h2>
+    <p class="section-desc">营销看板+素材库管理后台完整页面模型，包含营销看板（数据可视化）和素材库（资产管理）两大Tab。</p>
+
+    <div class="mockup">
+      <!-- 顶部导航栏 -->
+      <div class="mockup-header">
+        <div class="mockup-logo"><div class="mockup-logo-icon"></div>智享酒水</div>
+        <div class="mockup-nav">
+          <span class="mockup-nav-item">工作台</span>
+          <span class="mockup-nav-item">销售</span>
+          <span class="mockup-nav-item">采购</span>
+          <span class="mockup-nav-item">财务</span>
+          <span class="mockup-nav-item">报表</span>
+          <span class="mockup-nav-item active">运营</span>
+        </div>
+        <div class="mockup-user"><span>林夕</span><div class="mockup-avatar">林</div></div>
+      </div>
+
+      <div class="mockup-body">
+        <!-- 左侧导航树 -->
+        <div class="mockup-sidebar">
+          <div class="mockup-sidebar-section">运营管理</div>
+          <div class="mockup-sidebar-item">积分商城</div>
+          <div class="mockup-sidebar-item active">营销看板</div>
+          <div class="mockup-sidebar-item">优惠券管理</div>
+          <div class="mockup-sidebar-item">活动管理</div>
+          <div class="mockup-sidebar-item">素材库</div>
+          <div class="mockup-sidebar-section">系统设置</div>
+          <div class="mockup-sidebar-item">积分规则</div>
+          <div class="mockup-sidebar-item">会员等级</div>
+        </div>
+
+        <!-- 中央工作区 -->
+        <div class="mockup-main">
+          <div class="mockup-page-title">营销看板</div>
+          <div class="mockup-breadcrumb">运营 &gt; 营销看板</div>
+
+          <!-- Tab 切换 -->
+          <div class="tab-nav">
+            <span class="tab-nav-item active">营销看板</span>
+            <span class="tab-nav-item">素材库</span>
+          </div>
+
+          <!-- ========== 营销看板 Tab ========== -->
+
+          <!-- 时间筛选器 -->
+          <div class="time-filter">
+            <div class="date-range">
+              <input type="text" value="2026-06-01" readonly>
+              <span class="sep">~</span>
+              <input type="text" value="2026-06-30" readonly>
+            </div>
+            <div class="quick-btns">
+              <span class="quick-btn">今天</span>
+              <span class="quick-btn">本周</span>
+              <span class="quick-btn active">本月</span>
+              <span class="quick-btn">近30天</span>
+            </div>
+          </div>
+
+          <!-- 顶部概览 KPI 卡片行 (6个) -->
+          <div class="stats-row">
+            <div class="stat-card">
+              <div class="stat-label">活动总数</div>
+              <div class="stat-value" style="color:var(--brand);">12</div>
+              <div class="stat-sub">本月新增 3 个</div>
+            </div>
+            <div class="stat-card">
+              <div class="stat-label">进行中</div>
+              <div class="stat-value" style="color:var(--success);">5</div>
+              <div class="stat-sub">占比 41.7%</div>
+            </div>
+            <div class="stat-card">
+              <div class="stat-label">已结束</div>
+              <div class="stat-value" style="color:var(--text-muted);">7</div>
+              <div class="stat-sub">占比 58.3%</div>
+            </div>
+            <div class="stat-card">
+              <div class="stat-label">参与总人数</div>
+              <div class="stat-value">28,560</div>
+              <div class="stat-sub">+18.5% 环比</div>
+            </div>
+            <div class="stat-card">
+              <div class="stat-label">发放优惠券数</div>
+              <div class="stat-value" style="color:var(--warning);">8,420</div>
+              <div class="stat-sub">+12.3% 环比</div>
+            </div>
+            <div class="stat-card">
+              <div class="stat-label">核销率</div>
+              <div class="stat-value" style="color:var(--success);">62.8%</div>
+              <div class="stat-sub">+5.2pp 环比</div>
+            </div>
+          </div>
+
+          <!-- 活动效果趋势图 (模拟折线图) -->
+          <div class="chart-card mb-16">
+            <div class="chart-title">活动效果趋势（按日参与人数 &amp; 转化率）</div>
+            <div class="line-chart-legend">
+              <span class="legend-item"><span class="legend-dot" style="background:var(--brand);"></span>参与人数</span>
+              <span class="legend-item"><span class="legend-dot" style="background:var(--success);"></span>转化率</span>
+            </div>
+            <div class="line-chart">
+              <div class="chart-grid">
+                <span class="grid-line"></span><span class="grid-line"></span><span class="grid-line"></span><span class="grid-line"></span><span class="grid-line"></span>
+              </div>
+              <div class="chart-y-labels">
+                <span>2000</span><span>1500</span><span>1000</span><span>500</span><span>0</span>
+              </div>
+              <div class="chart-area">
+                <!-- 参与人数折线 dot points (blue) -->
+                <div class="dot-point" style="left:0%;top:65%;"></div>
+                <div class="dot-point" style="left:12.5%;top:48%;"></div>
+                <div class="dot-point" style="left:25%;top:55%;"></div>
+                <div class="dot-point" style="left:37.5%;top:32%;"></div>
+                <div class="dot-point" style="left:50%;top:40%;"></div>
+                <div class="dot-point" style="left:62.5%;top:25%;"></div>
+                <div class="dot-point" style="left:75%;top:18%;"></div>
+                <div class="dot-point" style="left:87.5%;top:22%;"></div>
+                <!-- 转化率折线 dot points (green) -->
+                <div class="dot-point green" style="left:0%;top:78%;"></div>
+                <div class="dot-point green" style="left:12.5%;top:70%;"></div>
+                <div class="dot-point green" style="left:25%;top:72%;"></div>
+                <div class="dot-point green" style="left:37.5%;top:60%;"></div>
+                <div class="dot-point green" style="left:50%;top:62%;"></div>
+                <div class="dot-point green" style="left:62.5%;top:52%;"></div>
+                <div class="dot-point green" style="left:75%;top:48%;"></div>
+                <div class="dot-point green" style="left:87.5%;top:44%;"></div>
+                <!-- 连线 SVG -->
+                <svg style="position:absolute;top:0;left:0;width:100%;height:100%;pointer-events:none;" viewBox="0 0 600 170" preserveAspectRatio="none">
+                  <polyline points="0,110.5 75,81.6 150,93.5 225,54.4 300,68 375,42.5 450,30.6 525,37.4" fill="none" stroke="#1677FF" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                  <polyline points="0,132.6 75,119 150,122.4 225,102 300,105.4 375,88.4 450,81.6 525,74.8" fill="none" stroke="#10B981" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                </svg>
+              </div>
+              <div class="chart-x-labels">
+                <span>06/01</span><span>06/05</span><span>06/09</span><span>06/13</span><span>06/17</span><span>06/21</span><span>06/25</span><span>06/30</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- 活动ROI排行 + 活动类型分布 -->
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:16px;">
+            <!-- 活动ROI排行 (模拟横向柱状图) -->
+            <div class="chart-card">
+              <div class="chart-title">活动ROI排行（投入产出比）</div>
+              <div class="bar-chart-h">
+                <div class="bar-row">
+                  <span class="bar-label">618年中大促</span>
+                  <div class="bar-track"><div class="bar-fill" style="width:92%;background:linear-gradient(90deg,#1677FF,#69b1ff);">92%</div></div>
+                  <span class="bar-val">ROI 8.5</span>
+                </div>
+                <div class="bar-row">
+                  <span class="bar-label">端午品酒节</span>
+                  <div class="bar-track"><div class="bar-fill" style="width:78%;background:linear-gradient(90deg,#1677FF,#69b1ff);">78%</div></div>
+                  <span class="bar-val">ROI 7.2</span>
+                </div>
+                <div class="bar-row">
+                  <span class="bar-label">会员日特惠</span>
+                  <div class="bar-track"><div class="bar-fill" style="width:65%;background:linear-gradient(90deg,#1677FF,#69b1ff);">65%</div></div>
+                  <span class="bar-val">ROI 6.0</span>
+                </div>
+                <div class="bar-row">
+                  <span class="bar-label">新品首发尝鲜</span>
+                  <div class="bar-track"><div class="bar-fill" style="width:52%;background:linear-gradient(90deg,#1677FF,#69b1ff);">52%</div></div>
+                  <span class="bar-val">ROI 4.8</span>
+                </div>
+                <div class="bar-row">
+                  <span class="bar-label">积分翻倍周</span>
+                  <div class="bar-track"><div class="bar-fill" style="width:41%;background:linear-gradient(90deg,#1677FF,#69b1ff);">41%</div></div>
+                  <span class="bar-val">ROI 3.8</span>
+                </div>
+                <div class="bar-row">
+                  <span class="bar-label">老客回馈专场</span>
+                  <div class="bar-track"><div class="bar-fill" style="width:35%;background:linear-gradient(90deg,#1677FF,#69b1ff);">35%</div></div>
+                  <span class="bar-val">ROI 3.2</span>
+                </div>
+              </div>
+            </div>
+
+            <!-- 活动类型分布 (模拟圆环图) -->
+            <div class="chart-card">
+              <div class="chart-title">活动类型分布</div>
+              <div class="donut-chart-wrap">
+                <div class="donut-chart" style="background:conic-gradient(#1677FF 0% 35%, #10B981 35% 55%, #F59E0B 55% 72%, #EF4444 72% 85%, #8B5CF6 85% 100%);"></div>
+                <div class="donut-legend">
+                  <div class="legend-item"><span class="legend-dot" style="background:#1677FF;"></span>优惠券<span class="legend-val">35%</span></div>
+                  <div class="legend-item"><span class="legend-dot" style="background:#10B981;"></span>满减<span class="legend-val">20%</span></div>
+                  <div class="legend-item"><span class="legend-dot" style="background:#F59E0B;"></span>限时折扣<span class="legend-val">17%</span></div>
+                  <div class="legend-item"><span class="legend-dot" style="background:#EF4444;"></span>满赠<span class="legend-val">13%</span></div>
+                  <div class="legend-item"><span class="legend-dot" style="background:#8B5CF6;"></span>积分<span class="legend-val">15%</span></div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- 活动对比表 -->
+          <div class="chart-card">
+            <div class="chart-title">活动对比表</div>
+            <div style="overflow-x:auto;">
+              <table class="mockup-table">
+                <thead>
+                  <tr>
+                    <th>活动名称</th>
+                    <th>参与人数</th>
+                    <th>转化率</th>
+                    <th>GMV</th>
+                    <th>ROI</th>
+                    <th>状态</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr>
+                    <td style="font-weight:500;">618年中大促</td>
+                    <td>8,520</td>
+                    <td class="text-success">32.5%</td>
+                    <td style="font-weight:600;">¥186,500</td>
+                    <td style="font-weight:600;color:var(--brand);">8.5</td>
+                    <td><span class="tag tag-success">进行中</span></td>
+                  </tr>
+                  <tr>
+                    <td style="font-weight:500;">端午品酒节</td>
+                    <td>6,380</td>
+                    <td class="text-success">28.2%</td>
+                    <td style="font-weight:600;">¥128,300</td>
+                    <td style="font-weight:600;color:var(--brand);">7.2</td>
+                    <td><span class="tag tag-info">已结束</span></td>
+                  </tr>
+                  <tr>
+                    <td style="font-weight:500;">会员日特惠</td>
+                    <td>5,120</td>
+                    <td>25.8%</td>
+                    <td style="font-weight:600;">¥86,200</td>
+                    <td style="font-weight:600;color:var(--brand);">6.0</td>
+                    <td><span class="tag tag-success">进行中</span></td>
+                  </tr>
+                  <tr>
+                    <td style="font-weight:500;">新品首发尝鲜</td>
+                    <td>3,840</td>
+                    <td>22.1%</td>
+                    <td style="font-weight:600;">¥62,400</td>
+                    <td style="font-weight:600;color:var(--brand);">4.8</td>
+                    <td><span class="tag tag-success">进行中</span></td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+
+          <!-- ========== 素材库 Tab ========== -->
+          <div class="tab-nav mt-16">
+            <span class="tab-nav-item">营销看板</span>
+            <span class="tab-nav-item active">素材库</span>
+          </div>
+
+          <div class="material-layout">
+            <!-- 左侧分类树 -->
+            <div class="material-category">
+              <div class="cat-title">素材分类</div>
+              <div class="cat-item active">全部素材 <span class="count">86</span></div>
+              <div class="cat-item">海报 <span class="count">24</span></div>
+              <div class="cat-item">优惠券背景 <span class="count">18</span></div>
+              <div class="cat-item">秒杀背景 <span class="count">12</span></div>
+              <div class="cat-item">公众号文章 <span class="count">20</span></div>
+              <div class="cat-item">其他 <span class="count">12</span></div>
+            </div>
+
+            <!-- 右侧素材内容区 -->
+            <div class="material-content">
+              <!-- 搜索筛选栏 -->
+              <div class="material-toolbar">
+                <div class="search-box">
+                  <span style="color:var(--text-muted);font-size:14px;">&#x1F50D;</span>
+                  <input type="text" placeholder="搜索素材名称...">
+                </div>
+                <select>
+                  <option>全部类型</option>
+                  <option>图片</option>
+                  <option>视频</option>
+                </select>
+                <select>
+                  <option>全部分类</option>
+                  <option>海报</option>
+                  <option>优惠券背景</option>
+                  <option>秒杀背景</option>
+                  <option>公众号文章</option>
+                </select>
+                <select>
+                  <option>全部标签</option>
+                  <option>618</option>
+                  <option>端午</option>
+                  <option>会员日</option>
+                  <option>新品</option>
+                </select>
+              </div>
+
+              <!-- 素材网格 (瀑布流，4列) -->
+              <div class="material-grid">
+                <!-- 素材1: 高 -->
+                <div class="material-card">
+                  <div class="material-thumb" style="height:160px;">
+                    <span class="thumb-icon">&#x1F5BC;</span>
+                  </div>
+                  <div class="material-info">
+                    <div class="material-name">618大促主海报</div>
+                    <div class="material-tags">
+                      <span class="mat-tag">海报</span>
+                      <span class="mat-tag">618</span>
+                    </div>
+                  </div>
+                </div>
+                <!-- 素材2: 中 -->
+                <div class="material-card">
+                  <div class="material-thumb" style="height:120px;">
+                    <span class="thumb-icon">&#x1F4C4;</span>
+                  </div>
+                  <div class="material-info">
+                    <div class="material-name">端午优惠券背景</div>
+                    <div class="material-tags">
+                      <span class="mat-tag">优惠券背景</span>
+                      <span class="mat-tag">端午</span>
+                    </div>
+                  </div>
+                </div>
+                <!-- 素材3: 低 -->
+                <div class="material-card">
+                  <div class="material-thumb" style="height:100px;">
+                    <span class="thumb-icon">&#x1F3A8;</span>
+                  </div>
+                  <div class="material-info">
+                    <div class="material-name">秒杀倒计时背景</div>
+                    <div class="material-tags">
+                      <span class="mat-tag">秒杀背景</span>
+                    </div>
+                  </div>
+                </div>
+                <!-- 素材4: 高 -->
+                <div class="material-card">
+                  <div class="material-thumb" style="height:150px;">
+                    <span class="thumb-icon">&#x1F4F0;</span>
+                  </div>
+                  <div class="material-info">
+                    <div class="material-name">新品首发公众号封面</div>
+                    <div class="material-tags">
+                      <span class="mat-tag">公众号文章</span>
+                      <span class="mat-tag">新品</span>
+                    </div>
+                  </div>
+                </div>
+                <!-- 素材5: 中 -->
+                <div class="material-card">
+                  <div class="material-thumb" style="height:130px;">
+                    <span class="thumb-icon">&#x1F5BC;</span>
+                  </div>
+                  <div class="material-info">
+                    <div class="material-name">会员日特惠海报</div>
+                    <div class="material-tags">
+                      <span class="mat-tag">海报</span>
+                      <span class="mat-tag">会员日</span>
+                    </div>
+                  </div>
+                </div>
+                <!-- 素材6: 低 -->
+                <div class="material-card">
+                  <div class="material-thumb" style="height:110px;">
+                    <span class="thumb-icon">&#x1F4C4;</span>
+                  </div>
+                  <div class="material-info">
+                    <div class="material-name">满减优惠券模板</div>
+                    <div class="material-tags">
+                      <span class="mat-tag">优惠券背景</span>
+                    </div>
+                  </div>
+                </div>
+                <!-- 素材7: 高 -->
+                <div class="material-card">
+                  <div class="material-thumb" style="height:170px;">
+                    <span class="thumb-icon">&#x1F3A8;</span>
+                  </div>
+                  <div class="material-info">
+                    <div class="material-name">限时秒杀专场图</div>
+                    <div class="material-tags">
+                      <span class="mat-tag">秒杀背景</span>
+                      <span class="mat-tag">限时</span>
+                    </div>
+                  </div>
+                </div>
+                <!-- 素材8: 中 -->
+                <div class="material-card">
+                  <div class="material-thumb" style="height:125px;">
+                    <span class="thumb-icon">&#x1F4F0;</span>
+                  </div>
+                  <div class="material-info">
+                    <div class="material-name">品酒文化推文配图</div>
+                    <div class="material-tags">
+                      <span class="mat-tag">公众号文章</span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 素材详情弹窗 -->
+    <h3 style="margin:24px 0 12px;font-size:15px;">素材详情弹窗</h3>
+    <div class="mockup" style="border:2px solid var(--brand);">
+      <div class="modal-overlay" style="position:relative;background:rgba(0,0,0,0.3);padding:40px;display:flex;align-items:center;justify-content:center;">
+        <div class="modal" style="position:relative;z-index:1;">
+          <div class="modal-header">
+            <span class="modal-title">素材详情 - 618大促主海报</span>
+            <span class="modal-close">x</span>
+          </div>
+          <div class="modal-body">
+            <div class="img-preview-large">
+              <span>618大促主海报预览图</span>
+            </div>
+            <div style="font-size:13px;font-weight:600;color:var(--text);">文件信息</div>
+            <div class="file-info-grid">
+              <div class="info-item"><span class="info-label">文件大小</span><span class="info-value">2.4 MB</span></div>
+              <div class="info-item"><span class="info-label">图片尺寸</span><span class="info-value">1920 x 1080 px</span></div>
+              <div class="info-item"><span class="info-label">文件格式</span><span class="info-value">PNG</span></div>
+              <div class="info-item"><span class="info-label">上传时间</span><span class="info-value">2026-06-15 10:30</span></div>
+            </div>
+            <div style="font-size:13px;font-weight:600;color:var(--text);">使用统计</div>
+            <div class="usage-stats">
+              <div class="usage-item">
+                <div class="usage-num">128</div>
+                <div class="usage-label">下载次数</div>
+              </div>
+              <div class="usage-item">
+                <div class="usage-num">3,560</div>
+                <div class="usage-label">查看次数</div>
+              </div>
+              <div class="usage-item">
+                <div class="usage-num">5</div>
+                <div class="usage-label">使用次数</div>
+              </div>
+            </div>
+          </div>
+          <div class="modal-footer">
+            <button class="btn btn-default">关闭</button>
+            <button class="btn btn-primary">下载素材</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 上传区域 -->
+    <h3 style="margin:24px 0 12px;font-size:15px;">素材上传区域</h3>
+    <div class="mockup" style="border:2px dashed var(--brand);">
+      <div style="padding:40px;text-align:center;">
+        <div class="upload-zone" style="border-style:dashed;">
+          <div style="font-size:32px;margin-bottom:8px;color:var(--text-muted);">+</div>
+          <div style="font-weight:500;">点击或拖拽上传素材</div>
+          <div class="upload-hint">支持 JPG/PNG/GIF/MP4 格式，单文件最大 10MB，支持批量上传</div>
+        </div>
+        <div class="upload-progress" style="max-width:400px;margin:16px auto 0;">
+          <div style="display:flex;justify-content:space-between;font-size:12px;margin-bottom:4px;">
+            <span>上传中... 618大促主海报.png</span>
+            <span>65%</span>
+          </div>
+          <div class="progress-bar">
+            <div class="progress-fill" style="width:65%;"></div>
+          </div>
+          <div class="progress-text">已上传 2/5 个文件</div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- ===== 字段规范表 ===== -->
+  <div class="section">
+    <h2 class="section-title">字段规范</h2>
+    <p class="section-desc">素材库模块涉及的核心数据字段定义，确保前后端接口对齐、数据口径一致。</p>
+
+    <h3 style="font-size:14px;margin:16px 0 10px;color:var(--text);">素材库字段</h3>
+    <table class="spec-table">
+      <thead>
+        <tr><th>字段名</th><th>类型</th><th>说明</th><th>示例值</th></tr>
+      </thead>
+      <tbody>
+        <tr><td><code>material_id</code></td><td>String</td><td>素材唯一标识</td><td>MAT-001</td></tr>
+        <tr><td><code>material_name</code></td><td>String</td><td>素材名称</td><td>618大促主海报</td></tr>
+        <tr><td><code>material_url</code></td><td>String(URL)</td><td>素材文件地址</td><td>/materials/mat-001.png</td></tr>
+        <tr><td><code>file_size</code></td><td>Integer</td><td>文件大小（字节）</td><td>2516582</td></tr>
+        <tr><td><code>file_format</code></td><td>String</td><td>文件格式</td><td>PNG</td></tr>
+        <tr><td><code>image_width</code></td><td>Integer</td><td>图片宽度（px）</td><td>1920</td></tr>
+        <tr><td><code>image_height</code></td><td>Integer</td><td>图片高度（px）</td><td>1080</td></tr>
+        <tr><td><code>category</code></td><td>Enum</td><td>分类: POSTER / COUPON_BG / SECKILL_BG / ARTICLE / OTHER</td><td>POSTER</td></tr>
+        <tr><td><code>tags</code></td><td>Array&lt;String&gt;</td><td>标签列表</td><td>["618","大促","主视觉"]</td></tr>
+        <tr><td><code>download_count</code></td><td>Integer</td><td>下载次数</td><td>128</td></tr>
+        <tr><td><code>view_count</code></td><td>Integer</td><td>查看次数</td><td>3560</td></tr>
+        <tr><td><code>usage_count</code></td><td>Integer</td><td>使用次数</td><td>5</td></tr>
+        <tr><td><code>uploaded_at</code></td><td>DateTime</td><td>上传时间</td><td>2026-06-15 10:30:00</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <!-- ===== 验收标准 ===== -->
+  <div class="section">
+    <h2 class="section-title">验收标准</h2>
+    <p class="section-desc">营销看板+素材库模块上线前必须通过的验收检查项。</p>
+    <ul class="checklist">
+      <li>营销看板Tab和素材库Tab可正常切换，切换时保留各Tab的筛选状态。</li>
+      <li>营销看板时间筛选器支持日期范围选择器和快捷按钮（今天/本周/本月/近30天），点击快捷按钮自动填充日期范围。</li>
+      <li>顶部6个KPI卡片正确展示：活动总数、进行中（绿色）、已结束（灰色）、参与总人数、发放优惠券数、核销率（百分比）。</li>
+      <li>活动效果趋势图以折线图形式展示按日参与人数和转化率趋势，图例在上方，支持鼠标悬停显示数据点详情。</li>
+      <li>活动ROI排行以横向柱状图展示各活动投入产出比对比，柱子宽度与ROI值成正比。</li>
+      <li>活动类型分布以圆环图展示优惠券/满减/限时折扣/满赠/积分各类型占比，图例与图表数据一致。</li>
+      <li>活动对比表支持选择2-4个活动，对比参与人数、转化率、GMV、ROI指标。</li>
+      <li>素材库左侧分类树展示海报/优惠券背景/秒杀背景/公众号文章/其他五个分类，点击切换筛选。</li>
+      <li>素材网格以瀑布流效果展示（4列，不同高度），每张卡片包含缩略图、名称、分类标签、使用场景标签。</li>
+      <li>素材详情弹窗展示大图预览、文件信息（大小/尺寸/格式）、使用统计（下载/查看/使用次数）。</li>
+      <li>上传区域支持拖拽上传（虚线边框+"点击或拖拽上传"提示），批量上传时显示进度条。</li>
+      <li>页面在 1440px 分辨率下完整显示，所有图表和网格自适应，无横向滚动条。</li>
+    </ul>
+  </div>
+
+  <!-- ===== FOOTER ===== -->
+  <footer class="footer">
+    <strong>营销看板 + 素材库</strong> · 智享酒水库存系统<br>
+    林夕 · UI/UX Designer · 2026-06-30
+  </footer>
+
+</div>
+
+</body>
+</html>

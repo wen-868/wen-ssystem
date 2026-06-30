@@ -1973,3 +1973,127 @@ export function fetchCustomerReconciliationDetail(statementNo: string) {
 export function confirmCustomerReconciliation(statementNo: string) {
   return api.post(`/store/customer-statements/${statementNo}/confirm`)
 }
+
+/* ========== Phase 10: 营销中心 ========== */
+
+export interface CouponTemplate {
+  id: number
+  name: string
+  type: string // FIXED | PERCENT | SHIPPING | FREE_GIFT
+  value: number
+  minAmount: number
+  maxDiscount: number | null
+  applicableScope: string
+  totalCount: number
+  claimedCount: number
+  usedCount: number
+  startTime: string
+  endTime: string
+  status: string
+  description: string
+}
+
+export interface UserCoupon {
+  id: number
+  templateId: number
+  userId: number
+  status: string // AVAILABLE | USED | EXPIRED
+  claimedAt: string
+  usedAt: string
+  expiresAt: string
+  templateName: string
+  couponType: string
+  couponValue: number
+  minAmount: number
+  maxDiscount: number | null
+  applicableScope: string
+  description: string
+}
+
+export interface CouponStatistics {
+  overall: {
+    totalTemplates: number
+    totalIssued: number
+    totalClaimed: number
+    totalUsed: number
+    claimRate: string
+    useRate: string
+  }
+  byType: {
+    type: string
+    templateCount: number
+    totalIssued: number
+    totalClaimed: number
+    totalUsed: number
+    claimRate: string
+    useRate: string
+  }[]
+}
+
+export interface FlashSaleItem {
+  id: number
+  name: string
+  productId: number
+  skuId: number
+  flashPrice: number
+  originalPrice: number
+  totalStock: number
+  soldCount: number
+  limitPerUser: number
+  startTime: string
+  endTime: string
+  status: string
+}
+
+export interface FullReductionItem {
+  id: number
+  name: string
+  type: string
+  minAmount: number
+  reduceAmount: number
+  discountPercent: number
+  startTime: string
+  endTime: string
+  status: string
+  applicableScope: string
+}
+
+export function fetchCouponTemplates(params?: { page?: number; pageSize?: number; status?: string }) {
+  return api.get('/store/marketing/coupons/templates', { params })
+}
+
+export function fetchAvailableCoupons() {
+  return api.get('/store/marketing/coupons/available')
+}
+
+export function fetchCouponStatistics() {
+  return api.get('/store/marketing/coupons/statistics')
+}
+
+export function claimCoupon(templateId: number) {
+  return api.post(`/store/marketing/coupons/claim/${templateId}`)
+}
+
+export function fetchMyCoupons(params?: { page?: number; pageSize?: number; status?: string }) {
+  return api.get('/store/marketing/coupons/my', { params })
+}
+
+export function fetchActiveFlashSales() {
+  return api.get('/store/marketing/flash-sales/active')
+}
+
+export function fetchActiveLimitedDiscounts() {
+  return api.get('/store/marketing/limited-discounts/active')
+}
+
+export function fetchMyPoints() {
+  return api.get('/store/marketing/points/my')
+}
+
+export function fetchMyPointsRecords(params?: { page?: number; pageSize?: number; type?: string }) {
+  return api.get('/store/marketing/points/my-records', { params })
+}
+
+export function fetchPointsRule() {
+  return api.get('/store/marketing/points/rule')
+}
