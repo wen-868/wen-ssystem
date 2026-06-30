@@ -164,6 +164,10 @@
           <el-menu-item index="/reports/employees">员工业绩</el-menu-item>
           <el-menu-item index="/reports/stores">门店对比</el-menu-item>
           <el-menu-item index="/reports/purchase">采购报表</el-menu-item>
+          <el-menu-item index="/reports/sales-analysis">销售分析</el-menu-item>
+          <el-menu-item index="/reports/collection-analysis">收款分析</el-menu-item>
+          <el-menu-item index="/reports/customers">客户分析</el-menu-item>
+          <el-menu-item index="/reports/inventory">库存分析</el-menu-item>
         </el-sub-menu>
 
         <!-- 11. 营销中心 -->
@@ -346,6 +350,10 @@ const pageTitle = computed(() => {
     "/reports/employees": "员工业绩",
     "/reports/stores": "门店对比",
     "/reports/purchase": "采购报表",
+    "/reports/sales-analysis": "销售分析",
+    "/reports/collection-analysis": "收款分析",
+    "/reports/customers": "客户分析",
+    "/reports/inventory": "库存分析",
     "/marketing": "优惠券管理",
     "/marketing/tags": "营销标签",
     "/marketing/promotion": "促销活动",

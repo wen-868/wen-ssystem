@@ -1,0 +1,621 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>21 - 在线收款专项分析 | 智享酒水库存系统</title>
+<style>
+:root {
+  --brand: #1677FF; --brand-light: #E6F4FF; --text: #1F2328; --text-secondary: #4B5563; --text-muted: #9CA3AF;
+  --border: #E5E7EB; --bg: #F5F7FA; --white: #FFF; --success: #10B981; --warning: #F59E0B; --danger: #EF4444;
+  --radius: 12px; --shadow: 0 2px 8px rgba(0,0,0,.06);
+  --teal: #14B8A6; --orange: #F97316; --teal-light: #CCFBF1; --orange-light: #FFF7ED;
+}
+* { margin: 0; padding: 0; box-sizing: border-box; }
+body { font-family: -apple-system, BlinkMacSystemFont, 'PingFang SC', 'Microsoft YaHei', sans-serif; background: var(--bg); color: var(--text); line-height: 1.6; }
+.container { max-width: 1300px; margin: 0 auto; padding: 40px 24px; }
+.header { background: linear-gradient(135deg, #1677FF, #0958D9); color: #fff; padding: 48px 24px; text-align: center; }
+.header h1 { font-size: 2rem; font-weight: 700; margin-bottom: 8px; }
+.header p { font-size: 1rem; opacity: .85; }
+.section { background: var(--white); border-radius: var(--radius); padding: 32px; margin-bottom: 24px; box-shadow: var(--shadow); }
+.section h2 { font-size: 1.25rem; color: var(--brand); margin-bottom: 8px; padding-bottom: 12px; border-bottom: 2px solid var(--brand-light); }
+.section h3 { font-size: 1.05rem; margin: 20px 0 10px; }
+.section p.desc { color: var(--text-secondary); margin-bottom: 16px; font-size: .88rem; }
+
+.mockup { border: 1px solid var(--border); border-radius: var(--radius); overflow: hidden; background: #fff; margin: 16px 0; }
+.mockup-header { background: #fff; border-bottom: 1px solid #F0F0F0; padding: 0 20px; height: 56px; display: flex; align-items: center; justify-content: space-between; }
+.mockup-logo { font-size: 16px; font-weight: 700; color: var(--brand); display: flex; align-items: center; gap: 8px; }
+.mockup-logo-icon { width: 28px; height: 28px; background: linear-gradient(135deg, var(--brand), #0958D9); border-radius: 6px; }
+.mockup-nav { display: flex; gap: 4px; }
+.mockup-nav-item { padding: 6px 14px; border-radius: 6px; font-size: 13px; color: var(--text-secondary); }
+.mockup-nav-item.active { background: var(--brand-light); color: var(--brand); font-weight: 500; }
+.mockup-user { display: flex; align-items: center; gap: 8px; font-size: 13px; }
+.mockup-avatar { width: 32px; height: 32px; border-radius: 50%; background: var(--brand); display: flex; align-items: center; justify-content: center; color: #fff; font-size: 13px; font-weight: 600; }
+.mockup-body { display: flex; }
+.mockup-sidebar { width: 220px; background: #fff; border-right: 1px solid #F0F0F0; padding: 16px 0; min-height: 520px; }
+.mockup-sidebar-item { padding: 10px 20px; font-size: 13px; color: var(--text-secondary); }
+.mockup-sidebar-item.active { background: var(--brand-light); color: var(--brand); font-weight: 500; border-right: 3px solid var(--brand); }
+.mockup-sidebar-section { font-size: 11px; color: var(--text-muted); padding: 16px 20px 6px; font-weight: 600; text-transform: uppercase; }
+.mockup-main { flex: 1; padding: 20px 24px; background: var(--bg); }
+.mockup-page-title { font-size: 20px; font-weight: 700; margin-bottom: 4px; }
+.mockup-breadcrumb { font-size: 12px; color: var(--text-muted); margin-bottom: 12px; }
+.tag { padding: 2px 8px; border-radius: 4px; font-size: 11px; font-weight: 500; white-space: nowrap; }
+.tag-success { background: #D1FAE5; color: #065F46; }
+.tag-warning { background: #FEF3C7; color: #92400E; }
+.tag-danger { background: #FEE2E2; color: #991B1B; }
+.tag-info { background: #DBEAFE; color: #1E40AF; }
+
+.mockup-table { width: 100%; border-collapse: collapse; font-size: 12px; }
+.mockup-table th { background: #F8FAFC; padding: 10px 12px; text-align: left; font-weight: 600; color: var(--text-secondary); border-bottom: 1px solid var(--border); font-size: 11px; }
+.mockup-table td { padding: 10px 12px; border-bottom: 1px solid #F0F0F0; }
+.mockup-table tr:hover td { background: #F8FAFC; }
+
+.spec-table { width: 100%; border-collapse: collapse; margin: 16px 0; }
+.spec-table th, .spec-table td { padding: 10px 14px; text-align: left; border-bottom: 1px solid var(--border); font-size: .85rem; }
+.spec-table th { background: var(--brand-light); color: var(--brand); font-weight: 600; font-size: .8rem; }
+.spec-table code { background: #F1F5F9; padding: 2px 6px; border-radius: 4px; font-size: .82rem; }
+
+.stats-row { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; margin-bottom: 20px; }
+.stat-card { background: #fff; border-radius: 8px; padding: 18px; border: 1px solid var(--border); display: flex; flex-direction: column; gap: 8px; }
+.stat-card .stat-label { font-size: 12px; color: var(--text-muted); }
+.stat-card .stat-value { font-size: 28px; font-weight: 700; }
+.stat-card .stat-change { font-size: 11px; }
+.stat-card .stat-change.up { color: var(--success); }
+.stat-card .stat-change.down { color: var(--danger); }
+.stat-card .stat-icon { width: 40px; height: 40px; border-radius: 8px; display: flex; align-items: center; justify-content: center; font-size: 18px; }
+
+.btn { display: inline-flex; align-items: center; gap: 4px; padding: 6px 14px; border-radius: 6px; font-size: 12px; font-weight: 500; cursor: pointer; border: none; font-family: inherit; }
+.btn-primary { background: var(--brand); color: #fff; }
+.btn-default { background: #fff; color: var(--text); border: 1px solid var(--border); }
+.btn-sm { padding: 4px 10px; font-size: 11px; }
+
+.checklist { list-style: none; padding: 0; }
+.checklist li { padding: 8px 0; font-size: .88rem; display: flex; align-items: flex-start; gap: 8px; }
+.checklist li::before { content: '☐'; color: var(--brand); font-size: 1rem; flex-shrink: 0; }
+
+.text-success { color: var(--success); }
+.text-danger { color: var(--danger); }
+.text-warning { color: var(--warning); }
+.font-mono { font-family: 'SF Mono', 'Consolas', monospace; }
+.text-right { text-align: right; }
+
+.funnel-bar { height: 48px; border-radius: 6px; display: flex; align-items: center; justify-content: space-between; padding: 0 16px; margin-bottom: 8px; color: #fff; font-size: 13px; font-weight: 500; position: relative; }
+.funnel-bar .funnel-info { display: flex; align-items: center; gap: 12px; }
+.funnel-bar .funnel-rate { font-size: 12px; opacity: .9; }
+.funnel-arrow { text-align: center; font-size: 14px; color: var(--text-muted); margin: 2px 0; }
+
+.channel-bar { display: flex; align-items: center; gap: 10px; margin-bottom: 10px; font-size: 12px; }
+.channel-bar .channel-label { width: 60px; text-align: right; }
+.channel-bar .channel-track { flex: 1; height: 22px; background: #F0F0F0; border-radius: 4px; overflow: hidden; }
+.channel-bar .channel-fill { height: 100%; border-radius: 4px; }
+
+.timeout-bar { display: flex; align-items: center; gap: 10px; margin-bottom: 8px; font-size: 12px; }
+.timeout-bar .timeout-label { width: 80px; text-align: right; }
+.timeout-bar .timeout-track { flex: 1; height: 22px; background: #F0F0F0; border-radius: 4px; overflow: hidden; }
+.timeout-bar .timeout-fill { height: 100%; border-radius: 4px; display: flex; align-items: center; padding-left: 8px; font-size: 11px; color: #fff; }
+</style>
+</head>
+<body>
+
+<div class="header">
+  <h1>21 · 在线收款专项分析</h1>
+  <p>管理后台 — 收款漏斗和渠道分析 | 数据报表模块</p>
+</div>
+
+<div class="container">
+
+<!-- ====== 一、收款概览卡片 ====== -->
+<div class="section">
+  <h2>一、收款概览卡片</h2>
+  <p class="desc">6 个核心 KPI 指标卡片，展示收款业务全景数据</p>
+
+  <div class="mockup">
+    <div class="mockup-header">
+      <div class="mockup-logo"><div class="mockup-logo-icon"></div>智享酒水</div>
+      <div class="mockup-nav">
+        <span class="mockup-nav-item">工作台</span>
+        <span class="mockup-nav-item">销售</span>
+        <span class="mockup-nav-item">采购</span>
+        <span class="mockup-nav-item">财务</span>
+        <span class="mockup-nav-item active">报表</span>
+      </div>
+      <div class="mockup-user"><span>林夕</span><div class="mockup-avatar">林</div></div>
+    </div>
+    <div class="mockup-body">
+      <div class="mockup-sidebar">
+        <div class="mockup-sidebar-section">数据报表</div>
+        <div class="mockup-sidebar-item">经营总览</div>
+        <div class="mockup-sidebar-item">销售分析</div>
+        <div class="mockup-sidebar-item active">收款分析</div>
+        <div class="mockup-sidebar-item">商品分析</div>
+        <div class="mockup-sidebar-item">客户分析</div>
+        <div class="mockup-sidebar-item">库存分析</div>
+        <div class="mockup-sidebar-item">采购分析</div>
+        <div class="mockup-sidebar-item">财务分析</div>
+        <div class="mockup-sidebar-item">员工绩效</div>
+      </div>
+      <div class="mockup-main">
+        <div class="mockup-page-title">收款分析</div>
+        <div class="mockup-breadcrumb">报表 &gt; 收款分析</div>
+        <div class="stats-row">
+          <div class="stat-card">
+            <div class="stat-label">累计收款总额</div>
+            <div class="stat-value" style="color:var(--brand);">¥1,286,500</div>
+            <div class="stat-change up">↑ 22.5% 同比增长</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-label">本月收款</div>
+            <div class="stat-value" style="color:var(--teal);">¥286,500</div>
+            <div class="stat-change up">↑ 15.3% 环比上月</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-label">今日收款</div>
+            <div class="stat-value" style="color:var(--success);">¥18,200</div>
+            <div class="stat-change up">↑ 8.6% vs 昨日</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-label">待收金额</div>
+            <div class="stat-value" style="color:var(--warning);">¥52,300</div>
+            <div class="stat-change down">↓ 12.8% 较上月改善</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-label">退款率</div>
+            <div class="stat-value" style="color:var(--danger);">2.6%</div>
+            <div class="stat-change down">↓ 0.4pp 较上月</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-label">平均收款周期</div>
+            <div class="stat-value" style="color:var(--brand);">3.2<span style="font-size:16px;">天</span></div>
+            <div class="stat-change down">↓ 0.5天 较上月</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ====== 二、收款漏斗图 ====== -->
+<div class="section">
+  <h2>二、收款漏斗图</h2>
+  <p class="desc">展示从分享到支付成功的 4 阶段转化漏斗，直观反映各环节流失率</p>
+
+  <div class="mockup">
+    <div class="mockup-header">
+      <div class="mockup-logo"><div class="mockup-logo-icon"></div>智享酒水</div>
+      <div class="mockup-nav"><span class="mockup-nav-item">工作台</span><span class="mockup-nav-item active">报表</span></div>
+      <div class="mockup-user"><span>林夕</span><div class="mockup-avatar">林</div></div>
+    </div>
+    <div class="mockup-body">
+      <div class="mockup-sidebar">
+        <div class="mockup-sidebar-section">数据报表</div>
+        <div class="mockup-sidebar-item">经营总览</div>
+        <div class="mockup-sidebar-item">销售分析</div>
+        <div class="mockup-sidebar-item active">收款分析</div>
+        <div class="mockup-sidebar-item">商品分析</div>
+        <div class="mockup-sidebar-item">客户分析</div>
+      </div>
+      <div class="mockup-main">
+        <div class="mockup-page-title">收款漏斗</div>
+        <div class="mockup-breadcrumb">报表 &gt; 收款分析 &gt; 收款漏斗</div>
+        <div style="background:#fff;border-radius:8px;padding:24px;border:1px solid var(--border);max-width:680px;margin:0 auto;">
+          <div class="funnel-bar" style="width:100%;background:linear-gradient(90deg,#1677FF,#3B82F6);">
+            <div class="funnel-info"><span style="font-weight:700;">分享数</span><span>1,280</span></div>
+            <div class="funnel-rate">100%</div>
+          </div>
+          <div class="funnel-arrow">↓ 转化率 66.9%</div>
+          <div class="funnel-bar" style="width:82%;margin:0 auto;background:linear-gradient(90deg,#14B8A6,#2DD4BF);">
+            <div class="funnel-info"><span style="font-weight:700;">查看数</span><span>856</span></div>
+            <div class="funnel-rate">66.9%</div>
+          </div>
+          <div class="funnel-arrow">↓ 转化率 87.4%</div>
+          <div class="funnel-bar" style="width:62%;margin:0 auto;background:linear-gradient(90deg,#F97316,#FB923C);">
+            <div class="funnel-info"><span style="font-weight:700;">支付数</span><span>748</span></div>
+            <div class="funnel-rate">87.4%</div>
+          </div>
+          <div class="funnel-arrow">↓ 转化率 96.3%</div>
+          <div class="funnel-bar" style="width:48%;margin:0 auto;background:linear-gradient(90deg,#10B981,#34D399);">
+            <div class="funnel-info"><span style="font-weight:700;">支付成功</span><span>720</span></div>
+            <div class="funnel-rate">96.3%</div>
+          </div>
+          <div style="text-align:center;margin-top:16px;font-size:12px;color:var(--text-muted);">
+            整体转化率：720 / 1,280 = <span style="color:var(--brand);font-weight:600;">56.3%</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ====== 三、收款趋势图 ====== -->
+<div class="section">
+  <h2>三、收款趋势图</h2>
+  <p class="desc">近30日收款金额/笔数双轴折线图，支持按渠道拆分视图</p>
+
+  <div class="mockup">
+    <div class="mockup-header">
+      <div class="mockup-logo"><div class="mockup-logo-icon"></div>智享酒水</div>
+      <div class="mockup-nav"><span class="mockup-nav-item">工作台</span><span class="mockup-nav-item active">报表</span></div>
+      <div class="mockup-user"><span>林夕</span><div class="mockup-avatar">林</div></div>
+    </div>
+    <div class="mockup-body">
+      <div class="mockup-sidebar">
+        <div class="mockup-sidebar-section">数据报表</div>
+        <div class="mockup-sidebar-item">经营总览</div>
+        <div class="mockup-sidebar-item">销售分析</div>
+        <div class="mockup-sidebar-item active">收款分析</div>
+        <div class="mockup-sidebar-item">商品分析</div>
+        <div class="mockup-sidebar-item">客户分析</div>
+      </div>
+      <div class="mockup-main">
+        <div class="mockup-page-title">收款趋势</div>
+        <div class="mockup-breadcrumb">报表 &gt; 收款分析 &gt; 收款趋势</div>
+        <div style="display:flex;gap:4px;margin-bottom:12px;background:#fff;padding:4px;border-radius:8px;width:fit-content;">
+          <span style="padding:6px 16px;background:var(--brand);color:#fff;border-radius:6px;font-size:12px;font-weight:500;">全部</span>
+          <span style="padding:6px 16px;color:var(--text-secondary);border-radius:6px;font-size:12px;">微信</span>
+          <span style="padding:6px 16px;color:var(--text-secondary);border-radius:6px;font-size:12px;">支付宝</span>
+          <span style="padding:6px 16px;color:var(--text-secondary);border-radius:6px;font-size:12px;">银行卡</span>
+          <span style="padding:6px 16px;color:var(--text-secondary);border-radius:6px;font-size:12px;">现金</span>
+        </div>
+        <div style="background:#fff;border-radius:8px;padding:16px;border:1px solid var(--border);">
+          <div style="font-size:13px;font-weight:600;margin-bottom:12px;">近30日收款金额 / 笔数</div>
+          <div style="height:160px;display:flex;align-items:flex-end;gap:6px;padding:0 8px;">
+            <div style="flex:1;display:flex;flex-direction:column;align-items:center;gap:2px;"><div style="width:100%;height:80px;background:linear-gradient(180deg,#1677FF,#E6F4FF);border-radius:3px 3px 0 0;"></div><div style="width:60%;height:6px;border-radius:3px;background:#10B981;"></div></div>
+            <div style="flex:1;display:flex;flex-direction:column;align-items:center;gap:2px;"><div style="width:100%;height:95px;background:linear-gradient(180deg,#1677FF,#E6F4FF);border-radius:3px 3px 0 0;"></div><div style="width:65%;height:6px;border-radius:3px;background:#10B981;"></div></div>
+            <div style="flex:1;display:flex;flex-direction:column;align-items:center;gap:2px;"><div style="width:100%;height:110px;background:linear-gradient(180deg,#1677FF,#E6F4FF);border-radius:3px 3px 0 0;"></div><div style="width:70%;height:6px;border-radius:3px;background:#10B981;"></div></div>
+            <div style="flex:1;display:flex;flex-direction:column;align-items:center;gap:2px;"><div style="width:100%;height:130px;background:linear-gradient(180deg,#1677FF,#E6F4FF);border-radius:3px 3px 0 0;"></div><div style="width:80%;height:6px;border-radius:3px;background:#10B981;"></div></div>
+            <div style="flex:1;display:flex;flex-direction:column;align-items:center;gap:2px;"><div style="width:100%;height:100px;background:linear-gradient(180deg,#1677FF,#E6F4FF);border-radius:3px 3px 0 0;"></div><div style="width:60%;height:6px;border-radius:3px;background:#10B981;"></div></div>
+            <div style="flex:1;display:flex;flex-direction:column;align-items:center;gap:2px;"><div style="width:100%;height:140px;background:linear-gradient(180deg,#1677FF,#E6F4FF);border-radius:3px 3px 0 0;"></div><div style="width:90%;height:6px;border-radius:3px;background:#10B981;"></div></div>
+          </div>
+          <div style="display:flex;gap:16px;justify-content:center;margin-top:8px;font-size:11px;">
+            <span><span style="display:inline-block;width:10px;height:10px;background:#1677FF;border-radius:2px;margin-right:4px;"></span>收款金额</span>
+            <span><span style="display:inline-block;width:10px;height:10px;background:#10B981;border-radius:2px;margin-right:4px;"></span>笔数</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ====== 四、渠道分布图 ====== -->
+<div class="section">
+  <h2>四、渠道分布图</h2>
+  <p class="desc">饼图展示各支付渠道收款金额占比，支持钻取到渠道明细</p>
+
+  <div class="mockup">
+    <div class="mockup-header">
+      <div class="mockup-logo"><div class="mockup-logo-icon"></div>智享酒水</div>
+      <div class="mockup-nav"><span class="mockup-nav-item">工作台</span><span class="mockup-nav-item active">报表</span></div>
+      <div class="mockup-user"><span>林夕</span><div class="mockup-avatar">林</div></div>
+    </div>
+    <div class="mockup-body">
+      <div class="mockup-sidebar">
+        <div class="mockup-sidebar-section">数据报表</div>
+        <div class="mockup-sidebar-item">经营总览</div>
+        <div class="mockup-sidebar-item">销售分析</div>
+        <div class="mockup-sidebar-item active">收款分析</div>
+        <div class="mockup-sidebar-item">商品分析</div>
+        <div class="mockup-sidebar-item">客户分析</div>
+      </div>
+      <div class="mockup-main">
+        <div class="mockup-page-title">渠道分布</div>
+        <div class="mockup-breadcrumb">报表 &gt; 收款分析 &gt; 渠道分布</div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;">
+          <div style="background:#fff;border-radius:8px;padding:24px;border:1px solid var(--border);display:flex;align-items:center;justify-content:center;">
+            <div style="position:relative;width:200px;height:200px;">
+              <svg viewBox="0 0 200 200" width="200" height="200">
+                <circle cx="100" cy="100" r="80" fill="none" stroke="#1677FF" stroke-width="40" stroke-dasharray="261.38 502.65" stroke-dashoffset="0" transform="rotate(-90 100 100)"/>
+                <circle cx="100" cy="100" r="80" fill="none" stroke="#14B8A6" stroke-width="40" stroke-dasharray="140.74 502.65" stroke-dashoffset="-261.38" transform="rotate(-90 100 100)"/>
+                <circle cx="100" cy="100" r="80" fill="none" stroke="#F59E0B" stroke-width="40" stroke-dasharray="75.40 502.65" stroke-dashoffset="-402.12" transform="rotate(-90 100 100)"/>
+                <circle cx="100" cy="100" r="80" fill="none" stroke="#EF4444" stroke-width="40" stroke-dasharray="25.13 502.65" stroke-dashoffset="-477.52" transform="rotate(-90 100 100)"/>
+                <circle cx="100" cy="100" r="50" fill="#fff"/>
+                <text x="100" y="97" text-anchor="middle" font-size="14" font-weight="700" fill="#1F2328">本月</text>
+                <text x="100" y="113" text-anchor="middle" font-size="12" fill="#4B5563">¥286,500</text>
+              </svg>
+            </div>
+          </div>
+          <div style="background:#fff;border-radius:8px;padding:20px;border:1px solid var(--border);display:flex;flex-direction:column;gap:12px;font-size:12px;">
+            <div style="display:flex;align-items:center;gap:8px;"><div style="width:10px;height:10px;border-radius:2px;background:#1677FF;"></div><span style="flex:1;">微信</span><span style="font-weight:600;">52%</span><span style="color:var(--text-muted);">¥149,000</span></div>
+            <div style="display:flex;align-items:center;gap:8px;"><div style="width:10px;height:10px;border-radius:2px;background:#14B8A6;"></div><span style="flex:1;">支付宝</span><span style="font-weight:600;">28%</span><span style="color:var(--text-muted);">¥80,200</span></div>
+            <div style="display:flex;align-items:center;gap:8px;"><div style="width:10px;height:10px;border-radius:2px;background:#F59E0B;"></div><span style="flex:1;">银行卡</span><span style="font-weight:600;">15%</span><span style="color:var(--text-muted);">¥43,000</span></div>
+            <div style="display:flex;align-items:center;gap:8px;"><div style="width:10px;height:10px;border-radius:2px;background:#EF4444;"></div><span style="flex:1;">现金</span><span style="font-weight:600;">5%</span><span style="color:var(--text-muted);">¥14,300</span></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ====== 五、渠道转化率对比表 ====== -->
+<div class="section">
+  <h2>五、渠道转化率对比表</h2>
+  <p class="desc">各渠道漏斗各环节转化数据对比，用于识别高转化/高流失渠道</p>
+
+  <div class="mockup">
+    <div class="mockup-header">
+      <div class="mockup-logo"><div class="mockup-logo-icon"></div>智享酒水</div>
+      <div class="mockup-nav"><span class="mockup-nav-item">工作台</span><span class="mockup-nav-item active">报表</span></div>
+      <div class="mockup-user"><span>林夕</span><div class="mockup-avatar">林</div></div>
+    </div>
+    <div class="mockup-body">
+      <div class="mockup-sidebar">
+        <div class="mockup-sidebar-section">数据报表</div>
+        <div class="mockup-sidebar-item">经营总览</div>
+        <div class="mockup-sidebar-item">销售分析</div>
+        <div class="mockup-sidebar-item active">收款分析</div>
+        <div class="mockup-sidebar-item">商品分析</div>
+        <div class="mockup-sidebar-item">客户分析</div>
+      </div>
+      <div class="mockup-main">
+        <div class="mockup-page-title">渠道转化率</div>
+        <div class="mockup-breadcrumb">报表 &gt; 收款分析 &gt; 渠道转化率</div>
+        <div style="background:#fff;border-radius:8px;border:1px solid var(--border);overflow:hidden;">
+          <table class="mockup-table">
+            <thead><tr><th>渠道名称</th><th>分享数</th><th>查看数</th><th>支付数</th><th>支付金额</th><th>转化率</th><th>占比</th></tr></thead>
+            <tbody>
+              <tr>
+                <td><span style="display:inline-block;width:8px;height:8px;border-radius:2px;background:#1677FF;margin-right:6px;"></span>微信</td>
+                <td>680</td><td>520</td><td>468</td><td class="text-success">¥149,000</td>
+                <td><span class="tag tag-success">68.8%</span></td><td>52%</td>
+              </tr>
+              <tr>
+                <td><span style="display:inline-block;width:8px;height:8px;border-radius:2px;background:#14B8A6;margin-right:6px;"></span>支付宝</td>
+                <td>360</td><td>240</td><td>210</td><td class="text-success">¥80,200</td>
+                <td><span class="tag tag-info">58.3%</span></td><td>28%</td>
+              </tr>
+              <tr>
+                <td><span style="display:inline-block;width:8px;height:8px;border-radius:2px;background:#F59E0B;margin-right:6px;"></span>银行卡</td>
+                <td>180</td><td>80</td><td>58</td><td class="text-success">¥43,000</td>
+                <td><span class="tag tag-warning">32.2%</span></td><td>15%</td>
+              </tr>
+              <tr>
+                <td><span style="display:inline-block;width:8px;height:8px;border-radius:2px;background:#EF4444;margin-right:6px;"></span>现金</td>
+                <td>60</td><td>16</td><td>12</td><td class="text-success">¥14,300</td>
+                <td><span class="tag tag-danger">20.0%</span></td><td>5%</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+        <div style="display:flex;gap:8px;margin-top:12px;font-size:11px;color:var(--text-muted);">
+          <span>转化率 = 支付成功 / 分享数</span>
+          <span style="margin-left:auto;">数据更新时间：2026-06-30 15:00</span>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ====== 六、超时未付分析 ====== -->
+<div class="section">
+  <h2>六、超时未付分析</h2>
+  <p class="desc">监控超时未付订单，分析超时时长分布与趋势，支持催收决策</p>
+
+  <div class="mockup">
+    <div class="mockup-header">
+      <div class="mockup-logo"><div class="mockup-logo-icon"></div>智享酒水</div>
+      <div class="mockup-nav"><span class="mockup-nav-item">工作台</span><span class="mockup-nav-item active">报表</span></div>
+      <div class="mockup-user"><span>林夕</span><div class="mockup-avatar">林</div></div>
+    </div>
+    <div class="mockup-body">
+      <div class="mockup-sidebar">
+        <div class="mockup-sidebar-section">数据报表</div>
+        <div class="mockup-sidebar-item">经营总览</div>
+        <div class="mockup-sidebar-item">销售分析</div>
+        <div class="mockup-sidebar-item active">收款分析</div>
+        <div class="mockup-sidebar-item">商品分析</div>
+        <div class="mockup-sidebar-item">客户分析</div>
+      </div>
+      <div class="mockup-main">
+        <div class="mockup-page-title">超时未付分析</div>
+        <div class="mockup-breadcrumb">报表 &gt; 收款分析 &gt; 超时未付</div>
+
+        <h3 style="font-size:14px;margin-bottom:8px;">超时订单列表</h3>
+        <div style="background:#fff;border-radius:8px;border:1px solid var(--border);overflow:hidden;margin-bottom:16px;">
+          <table class="mockup-table">
+            <thead><tr><th>订单号</th><th>客户</th><th>金额</th><th>超时时长</th><th>状态</th></tr></thead>
+            <tbody>
+              <tr><td class="font-mono">SO-20260630-003</td><td>四海酒家</td><td class="text-success">¥12,000</td><td>1h 25m</td><td><span class="tag tag-warning">待付款</span></td></tr>
+              <tr><td class="font-mono">SO-20260630-008</td><td>醉仙楼</td><td class="text-success">¥5,200</td><td>45m</td><td><span class="tag tag-warning">待付款</span></td></tr>
+              <tr><td class="font-mono">SO-20260629-015</td><td>聚贤阁酒楼</td><td class="text-success">¥8,500</td><td>3h 10m</td><td><span class="tag tag-danger">已超时</span></td></tr>
+              <tr><td class="font-mono">SO-20260629-022</td><td>御品轩</td><td class="text-success">¥3,800</td><td>5h 40m</td><td><span class="tag tag-danger">已超时</span></td></tr>
+            </tbody>
+          </table>
+        </div>
+
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:16px;">
+          <div style="background:#fff;border-radius:8px;padding:16px;border:1px solid var(--border);">
+            <div style="font-size:13px;font-weight:600;margin-bottom:12px;">超时区间分布</div>
+            <div class="timeout-bar">
+              <span class="timeout-label">&lt;30min</span>
+              <div class="timeout-track"><div class="timeout-fill" style="width:40%;background:var(--success);">40%</div></div>
+            </div>
+            <div class="timeout-bar">
+              <span class="timeout-label">30-60min</span>
+              <div class="timeout-track"><div class="timeout-fill" style="width:25%;background:var(--brand);">25%</div></div>
+            </div>
+            <div class="timeout-bar">
+              <span class="timeout-label">1-2h</span>
+              <div class="timeout-track"><div class="timeout-fill" style="width:20%;background:var(--warning);">20%</div></div>
+            </div>
+            <div class="timeout-bar">
+              <span class="timeout-label">2-24h</span>
+              <div class="timeout-track"><div class="timeout-fill" style="width:10%;background:var(--orange);">10%</div></div>
+            </div>
+            <div class="timeout-bar">
+              <span class="timeout-label">24h+</span>
+              <div class="timeout-track"><div class="timeout-fill" style="width:5%;background:var(--danger);">5%</div></div>
+            </div>
+          </div>
+          <div style="background:#fff;border-radius:8px;padding:16px;border:1px solid var(--border);">
+            <div style="font-size:13px;font-weight:600;margin-bottom:12px;">近30日超时率趋势</div>
+            <div style="height:120px;display:flex;align-items:flex-end;gap:4px;padding:0 8px;">
+              <div style="flex:1;background:linear-gradient(180deg,#EF4444,#FEE2E2);border-radius:3px 3px 0 0;height:40px;"></div>
+              <div style="flex:1;background:linear-gradient(180deg,#EF4444,#FEE2E2);border-radius:3px 3px 0 0;height:50px;"></div>
+              <div style="flex:1;background:linear-gradient(180deg,#EF4444,#FEE2E2);border-radius:3px 3px 0 0;height:35px;"></div>
+              <div style="flex:1;background:linear-gradient(180deg,#EF4444,#FEE2E2);border-radius:3px 3px 0 0;height:60px;"></div>
+              <div style="flex:1;background:linear-gradient(180deg,#EF4444,#FEE2E2);border-radius:3px 3px 0 0;height:45px;"></div>
+              <div style="flex:1;background:linear-gradient(180deg,#EF4444,#FEE2E2);border-radius:3px 3px 0 0;height:30px;"></div>
+            </div>
+            <div style="display:flex;justify-content:space-between;margin-top:8px;font-size:10px;color:var(--text-muted);">
+              <span>06-25</span><span>06-26</span><span>06-27</span><span>06-28</span><span>06-29</span><span>06-30</span>
+            </div>
+            <div style="display:flex;align-items:center;gap:8px;margin-top:8px;font-size:11px;">
+              <span style="display:inline-block;width:10px;height:10px;background:#EF4444;border-radius:2px;"></span>
+              <span>超时率</span>
+              <span style="margin-left:auto;font-weight:600;">当前 4.8%</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ====== 七、退款分析 ====== -->
+<div class="section">
+  <h2>七、退款分析</h2>
+  <p class="desc">退款金额、退款率趋势及退款原因分类，支撑售后质量改进</p>
+
+  <div class="mockup">
+    <div class="mockup-header">
+      <div class="mockup-logo"><div class="mockup-logo-icon"></div>智享酒水</div>
+      <div class="mockup-nav"><span class="mockup-nav-item">工作台</span><span class="mockup-nav-item active">报表</span></div>
+      <div class="mockup-user"><span>林夕</span><div class="mockup-avatar">林</div></div>
+    </div>
+    <div class="mockup-body">
+      <div class="mockup-sidebar">
+        <div class="mockup-sidebar-section">数据报表</div>
+        <div class="mockup-sidebar-item">经营总览</div>
+        <div class="mockup-sidebar-item">销售分析</div>
+        <div class="mockup-sidebar-item active">收款分析</div>
+        <div class="mockup-sidebar-item">商品分析</div>
+        <div class="mockup-sidebar-item">客户分析</div>
+      </div>
+      <div class="mockup-main">
+        <div class="mockup-page-title">退款分析</div>
+        <div class="mockup-breadcrumb">报表 &gt; 收款分析 &gt; 退款分析</div>
+
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:16px;">
+          <div style="background:#fff;border-radius:8px;padding:16px;border:1px solid var(--border);">
+            <div style="font-size:13px;font-weight:600;margin-bottom:12px;">退款金额 / 退款率趋势</div>
+            <div style="height:120px;display:flex;align-items:flex-end;gap:4px;padding:0 8px;">
+              <div style="flex:1;display:flex;flex-direction:column;align-items:center;gap:2px;"><div style="width:100%;height:60px;background:linear-gradient(180deg,#EF4444,#FEE2E2);border-radius:3px 3px 0 0;"></div><div style="width:60%;height:5px;border-radius:3px;background:#F59E0B;"></div></div>
+              <div style="flex:1;display:flex;flex-direction:column;align-items:center;gap:2px;"><div style="width:100%;height:75px;background:linear-gradient(180deg,#EF4444,#FEE2E2);border-radius:3px 3px 0 0;"></div><div style="width:65%;height:5px;border-radius:3px;background:#F59E0B;"></div></div>
+              <div style="flex:1;display:flex;flex-direction:column;align-items:center;gap:2px;"><div style="width:100%;height:50px;background:linear-gradient(180deg,#EF4444,#FEE2E2);border-radius:3px 3px 0 0;"></div><div style="width:50%;height:5px;border-radius:3px;background:#F59E0B;"></div></div>
+              <div style="flex:1;display:flex;flex-direction:column;align-items:center;gap:2px;"><div style="width:100%;height:85px;background:linear-gradient(180deg,#EF4444,#FEE2E2);border-radius:3px 3px 0 0;"></div><div style="width:70%;height:5px;border-radius:3px;background:#F59E0B;"></div></div>
+              <div style="flex:1;display:flex;flex-direction:column;align-items:center;gap:2px;"><div style="width:100%;height:45px;background:linear-gradient(180deg,#EF4444,#FEE2E2);border-radius:3px 3px 0 0;"></div><div style="width:45%;height:5px;border-radius:3px;background:#F59E0B;"></div></div>
+              <div style="flex:1;display:flex;flex-direction:column;align-items:center;gap:2px;"><div style="width:100%;height:55px;background:linear-gradient(180deg,#EF4444,#FEE2E2);border-radius:3px 3px 0 0;"></div><div style="width:55%;height:5px;border-radius:3px;background:#F59E0B;"></div></div>
+            </div>
+            <div style="display:flex;gap:16px;justify-content:center;margin-top:8px;font-size:11px;">
+              <span><span style="display:inline-block;width:10px;height:10px;background:#EF4444;border-radius:2px;margin-right:4px;"></span>退款金额</span>
+              <span><span style="display:inline-block;width:10px;height:10px;background:#F59E0B;border-radius:2px;margin-right:4px;"></span>退款率</span>
+            </div>
+          </div>
+          <div style="background:#fff;border-radius:8px;padding:16px;border:1px solid var(--border);">
+            <div style="font-size:13px;font-weight:600;margin-bottom:12px;">退款原因分类</div>
+            <div class="channel-bar">
+              <span class="channel-label">品质问题</span>
+              <div class="channel-track"><div class="channel-fill" style="width:35%;background:var(--danger);"></div></div>
+              <span style="font-weight:600;">35%</span>
+            </div>
+            <div class="channel-bar">
+              <span class="channel-label">发货延迟</span>
+              <div class="channel-track"><div class="channel-fill" style="width:25%;background:var(--warning);"></div></div>
+              <span style="font-weight:600;">25%</span>
+            </div>
+            <div class="channel-bar">
+              <span class="channel-label">客户取消</span>
+              <div class="channel-track"><div class="channel-fill" style="width:20%;background:var(--brand);"></div></div>
+              <span style="font-weight:600;">20%</span>
+            </div>
+            <div class="channel-bar">
+              <span class="channel-label">价格争议</span>
+              <div class="channel-track"><div class="channel-fill" style="width:12%;background:var(--teal);"></div></div>
+              <span style="font-weight:600;">12%</span>
+            </div>
+            <div class="channel-bar">
+              <span class="channel-label">其他</span>
+              <div class="channel-track"><div class="channel-fill" style="width:8%;background:var(--text-muted);"></div></div>
+              <span style="font-weight:600;">8%</span>
+            </div>
+          </div>
+        </div>
+
+        <div style="background:#fff;border-radius:8px;border:1px solid var(--border);padding:12px;">
+          <div style="display:flex;gap:16px;font-size:12px;">
+            <div style="text-align:center;flex:1;">
+              <div style="font-size:11px;color:var(--text-muted);">本月退款金额</div>
+              <div style="font-size:20px;font-weight:700;color:var(--danger);">¥7,449</div>
+            </div>
+            <div style="text-align:center;flex:1;">
+              <div style="font-size:11px;color:var(--text-muted);">本月退款率</div>
+              <div style="font-size:20px;font-weight:700;color:var(--warning);">2.6%</div>
+            </div>
+            <div style="text-align:center;flex:1;">
+              <div style="font-size:11px;color:var(--text-muted);">退款笔数</div>
+              <div style="font-size:20px;font-weight:700;color:var(--text);">19</div>
+            </div>
+            <div style="text-align:center;flex:1;">
+              <div style="font-size:11px;color:var(--text-muted);">平均退款周期</div>
+              <div style="font-size:20px;font-weight:700;color:var(--text);">1.8<span style="font-size:12px;">天</span></div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ====== 字段规范 ====== -->
+<div class="section">
+  <h2>八、字段规范</h2>
+  <table class="spec-table">
+    <thead><tr><th>字段</th><th>类型</th><th>示例</th><th>说明</th></tr></thead>
+    <tbody>
+      <tr><td><code>collection_total</code></td><td>decimal(14,2)</td><td>1286500.00</td><td>累计收款总额</td></tr>
+      <tr><td><code>collection_month</code></td><td>decimal(12,2)</td><td>286500.00</td><td>本月收款金额</td></tr>
+      <tr><td><code>collection_today</code></td><td>decimal(12,2)</td><td>18200.00</td><td>今日收款金额</td></tr>
+      <tr><td><code>pending_amount</code></td><td>decimal(12,2)</td><td>52300.00</td><td>待收金额</td></tr>
+      <tr><td><code>refund_rate</code></td><td>decimal(5,2)</td><td>2.6</td><td>退款率（%）</td></tr>
+      <tr><td><code>avg_collection_days</code></td><td>decimal(4,1)</td><td>3.2</td><td>平均收款周期（天）</td></tr>
+      <tr><td><code>funnel_share_count</code></td><td>int</td><td>1280</td><td>漏斗-分享数</td></tr>
+      <tr><td><code>funnel_view_count</code></td><td>int</td><td>856</td><td>漏斗-查看数</td></tr>
+      <tr><td><code>funnel_pay_count</code></td><td>int</td><td>748</td><td>漏斗-支付数</td></tr>
+      <tr><td><code>funnel_success_count</code></td><td>int</td><td>720</td><td>漏斗-支付成功数</td></tr>
+      <tr><td><code>channel_wechat_ratio</code></td><td>decimal(5,2)</td><td>52.00</td><td>微信渠道占比（%）</td></tr>
+      <tr><td><code>channel_alipay_ratio</code></td><td>decimal(5,2)</td><td>28.00</td><td>支付宝渠道占比（%）</td></tr>
+      <tr><td><code>channel_bank_ratio</code></td><td>decimal(5,2)</td><td>15.00</td><td>银行卡渠道占比（%）</td></tr>
+      <tr><td><code>channel_cash_ratio</code></td><td>decimal(5,2)</td><td>5.00</td><td>现金渠道占比（%）</td></tr>
+      <tr><td><code>timeout_rate</code></td><td>decimal(5,2)</td><td>4.8</td><td>超时率（%）</td></tr>
+      <tr><td><code>timeout_distribution</code></td><td>json</td><td>{"lt30min":40,...}</td><td>超时区间分布</td></tr>
+      <tr><td><code>refund_reason</code></td><td>varchar(50)</td><td>品质问题</td><td>退款原因分类</td></tr>
+      <tr><td><code>refund_amount_month</code></td><td>decimal(12,2)</td><td>7449.00</td><td>本月退款金额</td></tr>
+      <tr><td><code>refund_order_count</code></td><td>int</td><td>19</td><td>退款笔数</td></tr>
+      <tr><td><code>avg_refund_days</code></td><td>decimal(4,1)</td><td>1.8</td><td>平均退款周期（天）</td></tr>
+    </tbody>
+  </table>
+</div>
+
+<!-- ====== 验收标准 ====== -->
+<div class="section">
+  <h2>九、验收标准</h2>
+  <ul class="checklist">
+    <li>收款漏斗图展示4阶段（分享→查看→支付→支付成功）转化率，各阶段颜色区分</li>
+    <li>渠道分布饼图支持5种渠道（微信/支付宝/银行卡/现金/其他），含占比和金额</li>
+    <li>收款趋势图支持按渠道拆分（全部/微信/支付宝/银行卡/现金），双轴金额+笔数</li>
+    <li>超时未付分析含超时订单列表、区间分布（5级）和近30日超时率趋势</li>
+    <li>退款分析含退款原因分类（5类）和退款金额/退款率趋势双线图</li>
+    <li>渠道转化率对比表含渠道名称、分享数、查看数、支付数、支付金额、转化率、占比</li>
+    <li>6个收款概览KPI卡片含累计/本月/今日/待收/退款率/平均周期</li>
+    <li>所有图表数据支持日期筛选和渠道筛选联动</li>
+  </ul>
+</div>
+
+</div>
+
+<div style="text-align:center;padding:40px;color:var(--text-muted);font-size:13px;">
+  <p>在线收款专项分析 · 智享酒水库存系统</p>
+  <p>林夕 · UI/UX Designer · 2026-06-30</p>
+</div>
+
+</body>
+</html>

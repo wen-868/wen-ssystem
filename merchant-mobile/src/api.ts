@@ -272,20 +272,173 @@ export function fetchInventoryAlerts() {
   return api.get('/store/inventory/alerts')
 }
 
-export function fetchProductRanking(params: { startDate?: string; endDate?: string }) {
+/* ========== Phase 9: 数据报表 ========== */
+
+export interface BusinessOverview {
+  todaySalesAmount: number
+  todayOrderCount: number
+  salesGrowthRate: number
+  orderGrowthRate: number
+  monthSalesAmount: number
+  monthOrderCount: number
+  yearSalesAmount: number
+  yearOrderCount: number
+  totalReceivable: number
+  totalPayable: number
+  inventoryValue: number
+  customerCount: number
+  supplierCount: number
+  monthPurchaseAmount: number
+  monthPurchaseCount: number
+}
+
+export interface SalesTrendItem {
+  period: string
+  orderCount: number
+  salesAmount: number
+  receivedAmount: number
+}
+
+export interface SalesRankingItem {
+  id: number
+  name: string
+  totalQty: number
+  totalAmount: number
+  orderCount: number
+  mobile?: string
+}
+
+export interface CustomerContributionItem {
+  customerId: number
+  customerName: string
+  customerMobile: string
+  orderCount: number
+  totalAmount: number
+  receivedAmount: number
+  unpaidAmount: number
+  avgOrderAmount: number
+}
+
+export interface FinanceOverview {
+  income: number
+  cost: number
+  returns: number
+  grossProfit: number
+  grossProfitRate: number
+  salesGrowthRate: number
+  profitGrowthRate: number
+}
+
+export interface PaymentAnalysisItem {
+  period: string
+  paymentCount: number
+  totalAmount: number
+}
+
+export interface PaymentChannelItem {
+  customerId: number
+  customerName: string
+  paymentCount: number
+  totalAmount: number
+}
+
+export interface InventorySummaryItem {
+  skuId: number
+  skuName: string
+  skuCode: string
+  barcode: string
+  costPrice: number
+  totalPhysicalQty: number
+  totalLockedQty: number
+  totalAvailableQty: number
+  totalAmount: number
+}
+
+export interface InventoryAgeItem {
+  skuId: number
+  skuName: string
+  batchNo: string
+  inStockDate: string
+  ageDays: number
+  qty: number
+}
+
+export interface InventoryAgeData {
+  summary: {
+    within30: { qty: number; amount: number; count: number }
+    days30to90: { qty: number; amount: number; count: number }
+    days90to180: { qty: number; amount: number; count: number }
+    over180: { qty: number; amount: number; count: number }
+  }
+  details: InventoryAgeItem[]
+}
+
+export interface ReceivablePayableData {
+  totalReceivable: number
+  totalPayable: number
+  receivableList: {
+    customerId: number
+    customerName: string
+    customerMobile: string
+    billCount: number
+    totalReceivable: number
+    totalReceived: number
+    totalUnreceived: number
+  }[]
+  payableList: {
+    supplierId: number
+    supplierName: string
+    orderCount: number
+    totalPayable: number
+    totalPaid: number
+    totalUnpaid: number
+  }[]
+}
+
+export function fetchBusinessOverview() {
+  return api.get('/store/reports/business-overview')
+}
+
+export function fetchSalesTrend(params?: { granularity?: string }) {
+  return api.get('/store/reports/sales-trend', { params })
+}
+
+export function fetchSalesRanking(params: { dimension?: string; dateStart?: string; dateEnd?: string; limit?: number }) {
   return api.get('/store/reports/sales-ranking', { params })
 }
 
-export function fetchSalesRanking(params: { startDate?: string; endDate?: string }) {
+export function fetchCustomerContribution(params: { dateStart?: string; dateEnd?: string; page?: number; pageSize?: number }) {
   return api.get('/store/reports/customer-contribution', { params })
 }
 
-export function fetchSalesTrend(params: { startDate?: string; endDate?: string }) {
-  return api.get('/store/reports', { params })
+export function fetchInventorySummary(params?: { groupBy?: string }) {
+  return api.get('/store/reports/inventory-summary', { params })
+}
+
+export function fetchInventoryAgeData() {
+  return api.get('/store/reports/inventory-age')
+}
+
+export function fetchReceivablePayable(params?: { dateStart?: string; dateEnd?: string }) {
+  return api.get('/store/reports/receivable-payable', { params })
+}
+
+export function fetchProfitData(params?: { dateStart?: string; dateEnd?: string }) {
+  return api.get('/store/reports/profit', { params })
+}
+
+export function fetchPaymentAnalysis(params?: { dateStart?: string; dateEnd?: string; groupBy?: string }) {
+  return api.get('/store/reports/payment-analysis', { params })
+}
+
+/* ========== 兼容旧接口 ========== */
+
+export function fetchProductRanking(params: { startDate?: string; endDate?: string }) {
+  return api.get('/store/reports/sales-ranking', { params: { ...params, dimension: 'product' } })
 }
 
 export function fetchProfitAnalysis(params: { startDate?: string; endDate?: string }) {
-  return api.get('/store/reports/profit-analysis', { params })
+  return api.get('/store/reports/profit', { params })
 }
 
 /* ========== 销售单 ========== */

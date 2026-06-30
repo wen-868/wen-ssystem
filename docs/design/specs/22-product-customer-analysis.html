@@ -1,0 +1,775 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>22 - 商品分析+客户分析 | 智享酒水库存系统</title>
+<style>
+:root {
+  --brand: #1677FF; --brand-light: #E6F4FF; --text: #1F2328; --text-secondary: #4B5563; --text-muted: #9CA3AF;
+  --border: #E5E7EB; --bg: #F5F7FA; --white: #FFF; --success: #10B981; --warning: #F59E0B; --danger: #EF4444;
+  --radius: 12px; --shadow: 0 2px 8px rgba(0,0,0,.06);
+}
+* { margin: 0; padding: 0; box-sizing: border-box; }
+body { font-family: -apple-system, BlinkMacSystemFont, 'PingFang SC', 'Microsoft YaHei', sans-serif; background: var(--bg); color: var(--text); line-height: 1.6; }
+.container { max-width: 1300px; margin: 0 auto; padding: 40px 24px; }
+.header { background: linear-gradient(135deg, #1677FF, #0958D9); color: #fff; padding: 48px 24px; text-align: center; }
+.header h1 { font-size: 2rem; font-weight: 700; margin-bottom: 8px; }
+.header p { font-size: 1rem; opacity: .85; }
+.section { background: var(--white); border-radius: var(--radius); padding: 32px; margin-bottom: 24px; box-shadow: var(--shadow); }
+.section h2 { font-size: 1.25rem; color: var(--brand); margin-bottom: 8px; padding-bottom: 12px; border-bottom: 2px solid var(--brand-light); }
+.section h3 { font-size: 1.05rem; margin: 20px 0 10px; }
+.section p.desc { color: var(--text-secondary); margin-bottom: 16px; font-size: .88rem; }
+
+.mockup { border: 1px solid var(--border); border-radius: var(--radius); overflow: hidden; background: #fff; margin: 16px 0; }
+.mockup-header { background: #fff; border-bottom: 1px solid #F0F0F0; padding: 0 20px; height: 56px; display: flex; align-items: center; justify-content: space-between; }
+.mockup-logo { font-size: 16px; font-weight: 700; color: var(--brand); display: flex; align-items: center; gap: 8px; }
+.mockup-logo-icon { width: 28px; height: 28px; background: linear-gradient(135deg, var(--brand), #0958D9); border-radius: 6px; }
+.mockup-nav { display: flex; gap: 4px; }
+.mockup-nav-item { padding: 6px 14px; border-radius: 6px; font-size: 13px; color: var(--text-secondary); }
+.mockup-nav-item.active { background: var(--brand-light); color: var(--brand); font-weight: 500; }
+.mockup-user { display: flex; align-items: center; gap: 8px; font-size: 13px; }
+.mockup-avatar { width: 32px; height: 32px; border-radius: 50%; background: var(--brand); display: flex; align-items: center; justify-content: center; color: #fff; font-size: 13px; font-weight: 600; }
+.mockup-body { display: flex; }
+.mockup-sidebar { width: 220px; background: #fff; border-right: 1px solid #F0F0F0; padding: 16px 0; min-height: 520px; }
+.mockup-sidebar-item { padding: 10px 20px; font-size: 13px; color: var(--text-secondary); }
+.mockup-sidebar-item.active { background: var(--brand-light); color: var(--brand); font-weight: 500; border-right: 3px solid var(--brand); }
+.mockup-sidebar-section { font-size: 11px; color: var(--text-muted); padding: 16px 20px 6px; font-weight: 600; text-transform: uppercase; }
+.mockup-main { flex: 1; padding: 20px 24px; background: var(--bg); }
+.mockup-page-title { font-size: 20px; font-weight: 700; margin-bottom: 4px; }
+.mockup-breadcrumb { font-size: 12px; color: var(--text-muted); margin-bottom: 12px; }
+.tag { padding: 2px 8px; border-radius: 4px; font-size: 11px; font-weight: 500; white-space: nowrap; }
+.tag-success { background: #D1FAE5; color: #065F46; }
+.tag-warning { background: #FEF3C7; color: #92400E; }
+.tag-danger { background: #FEE2E2; color: #991B1B; }
+.tag-info { background: #DBEAFE; color: #1E40AF; }
+
+.mockup-table { width: 100%; border-collapse: collapse; font-size: 12px; }
+.mockup-table th { background: #F8FAFC; padding: 10px 12px; text-align: left; font-weight: 600; color: var(--text-secondary); border-bottom: 1px solid var(--border); font-size: 11px; }
+.mockup-table td { padding: 10px 12px; border-bottom: 1px solid #F0F0F0; }
+.mockup-table tr:hover td { background: #F8FAFC; }
+
+.spec-table { width: 100%; border-collapse: collapse; margin: 16px 0; }
+.spec-table th, .spec-table td { padding: 10px 14px; text-align: left; border-bottom: 1px solid var(--border); font-size: .85rem; }
+.spec-table th { background: var(--brand-light); color: var(--brand); font-weight: 600; font-size: .8rem; }
+.spec-table code { background: #F1F5F9; padding: 2px 6px; border-radius: 4px; font-size: .82rem; }
+
+.stats-row { display: grid; grid-template-columns: repeat(5, 1fr); gap: 16px; margin-bottom: 20px; }
+.stat-card { background: #fff; border-radius: 8px; padding: 18px; border: 1px solid var(--border); display: flex; flex-direction: column; gap: 8px; }
+.stat-card .stat-label { font-size: 12px; color: var(--text-muted); }
+.stat-card .stat-value { font-size: 28px; font-weight: 700; }
+.stat-card .stat-change { font-size: 11px; }
+.stat-card .stat-change.up { color: var(--success); }
+.stat-card .stat-change.down { color: var(--danger); }
+.stat-card .stat-icon { width: 40px; height: 40px; border-radius: 8px; display: flex; align-items: center; justify-content: center; font-size: 18px; }
+
+.btn { display: inline-flex; align-items: center; gap: 4px; padding: 6px 14px; border-radius: 6px; font-size: 12px; font-weight: 500; cursor: pointer; border: none; font-family: inherit; }
+.btn-primary { background: var(--brand); color: #fff; }
+.btn-default { background: #fff; color: var(--text); border: 1px solid var(--border); }
+.btn-sm { padding: 4px 10px; font-size: 11px; }
+
+.checklist { list-style: none; padding: 0; }
+.checklist li { padding: 8px 0; font-size: .88rem; display: flex; align-items: flex-start; gap: 8px; }
+.checklist li::before { content: '☐'; color: var(--brand); font-size: 1rem; flex-shrink: 0; }
+
+.text-success { color: var(--success); }
+.text-danger { color: var(--danger); }
+.text-warning { color: var(--warning); }
+.font-mono { font-family: 'SF Mono', 'Consolas', monospace; }
+.text-right { text-align: right; }
+.text-center { text-align: center; }
+
+.poll-list { display: flex; flex-direction: column; gap: 8px; font-size: 12px; }
+.poll-item { display: flex; align-items: center; gap: 10px; }
+.poll-dot { width: 10px; height: 10px; border-radius: 50%; flex-shrink: 0; }
+.poll-bar { flex: 1; height: 20px; border-radius: 4px; }
+.poll-label { width: 70px; font-size: 12px; }
+.poll-value { width: 80px; font-weight: 600; font-size: 12px; text-align: right; }
+
+.chart-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-bottom: 16px; }
+.chart-grid-3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 16px; margin-bottom: 16px; }
+.chart-card { background: #fff; border-radius: 8px; padding: 16px; border: 1px solid var(--border); }
+.chart-card-title { font-size: 13px; font-weight: 600; margin-bottom: 12px; }
+
+.sortable-header { cursor: pointer; user-select: none; }
+.sortable-header:hover { color: var(--brand); }
+.sortable-header::after { content: ' ↕'; font-size: 10px; color: var(--text-muted); }
+.sortable-header.asc::after { content: ' ↑'; color: var(--brand); }
+.sortable-header.desc::after { content: ' ↓'; color: var(--brand); }
+
+.bar-chart { display: flex; align-items: flex-end; gap: 8px; height: 140px; padding: 0 8px; }
+.bar-col { flex: 1; display: flex; flex-direction: column; align-items: center; gap: 4px; }
+.bar-fill { width: 100%; border-radius: 4px 4px 0 0; transition: height .3s; }
+.bar-label { font-size: 10px; color: var(--text-muted); text-align: center; }
+
+.pie-chart-svg { display: block; margin: 0 auto; }
+.warning-level { display: flex; align-items: center; gap: 6px; }
+.warning-dot { width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0; }
+</style>
+</head>
+<body>
+
+<div class="header">
+  <h1>22 · 商品分析 + 客户分析</h1>
+  <p>管理后台 — 商品和客户维度深度分析 | 数据报表模块</p>
+</div>
+
+<div class="container">
+
+<!-- ====== Part A: 商品分析 ====== -->
+<div class="section">
+  <h2>一、商品分析</h2>
+  <p class="desc">商品维度深度分析，含概览卡片、畅销排行、滞销预警、毛利分析、ABC分类、品类分析、新品表现</p>
+
+  <div class="mockup">
+    <div class="mockup-header">
+      <div class="mockup-logo"><div class="mockup-logo-icon"></div>智享酒水</div>
+      <div class="mockup-nav">
+        <span class="mockup-nav-item">工作台</span>
+        <span class="mockup-nav-item">销售</span>
+        <span class="mockup-nav-item">采购</span>
+        <span class="mockup-nav-item">财务</span>
+        <span class="mockup-nav-item active">报表</span>
+      </div>
+      <div class="mockup-user"><span>林夕</span><div class="mockup-avatar">林</div></div>
+    </div>
+    <div class="mockup-body">
+      <div class="mockup-sidebar">
+        <div class="mockup-sidebar-section">数据报表</div>
+        <div class="mockup-sidebar-item">经营总览</div>
+        <div class="mockup-sidebar-item">销售分析</div>
+        <div class="mockup-sidebar-item">收款分析</div>
+        <div class="mockup-sidebar-item active">商品分析</div>
+        <div class="mockup-sidebar-item">客户分析</div>
+        <div class="mockup-sidebar-item">库存分析</div>
+        <div class="mockup-sidebar-item">采购分析</div>
+        <div class="mockup-sidebar-item">财务分析</div>
+        <div class="mockup-sidebar-item">员工绩效</div>
+      </div>
+      <div class="mockup-main">
+        <div class="mockup-page-title">商品分析</div>
+        <div class="mockup-breadcrumb">报表 &gt; 商品分析</div>
+
+        <!-- 1.1 商品概览卡片 -->
+        <h3 style="font-size:13px;font-weight:600;margin:8px 0 12px;">商品概览</h3>
+        <div class="stats-row">
+          <div class="stat-card"><div class="stat-label">SKU总数</div><div class="stat-value" style="color:var(--brand);">1,280</div><div class="stat-change up">↑ 新增 32 SKU</div></div>
+          <div class="stat-card"><div class="stat-label">动销SKU数</div><div class="stat-value" style="color:var(--success);">986</div><div class="stat-change up">↑ 5.3% vs 上月</div></div>
+          <div class="stat-card"><div class="stat-label">动销率</div><div class="stat-value">77%</div><div class="stat-change up">↑ 2.1pp</div></div>
+          <div class="stat-card"><div class="stat-label">库存总额</div><div class="stat-value" style="color:var(--warning);">¥2,860,000</div><div class="stat-change down">↓ 8.2% vs 上月</div></div>
+          <div class="stat-card"><div class="stat-label">库存周转天数</div><div class="stat-value" style="color:var(--brand);">42天</div><div class="stat-change up">↑ 优化 3天</div></div>
+        </div>
+
+        <!-- 1.2 畅销TOP20排行榜 -->
+        <h3 style="font-size:13px;font-weight:600;margin:8px 0 12px;">畅销 TOP20 排行榜 <span style="font-weight:400;font-size:11px;color:var(--text-muted);">（点击表头排序）</span></h3>
+        <table class="mockup-table">
+          <thead><tr>
+            <th style="width:30px;">#</th>
+            <th class="sortable-header asc">商品名</th>
+            <th class="sortable-header">品类</th>
+            <th class="sortable-header">销量（箱）</th>
+            <th class="sortable-header">销售额（元）</th>
+            <th class="sortable-header">毛利（元）</th>
+            <th class="sortable-header">毛利率</th>
+          </tr></thead>
+          <tbody>
+            <tr>
+              <td style="font-weight:700;color:var(--brand);">1</td>
+              <td>茅台飞天53度 500ml</td>
+              <td><span class="tag tag-info">白酒</span></td>
+              <td>2,480</td>
+              <td class="text-success">¥3,720,000</td>
+              <td class="text-success">¥1,116,000</td>
+              <td>30%</td>
+            </tr>
+            <tr>
+              <td style="font-weight:700;color:var(--brand);">2</td>
+              <td>五粮液普五 52度 500ml</td>
+              <td><span class="tag tag-info">白酒</span></td>
+              <td>1,860</td>
+              <td class="text-success">¥1,860,000</td>
+              <td class="text-success">¥558,000</td>
+              <td>30%</td>
+            </tr>
+            <tr>
+              <td style="font-weight:700;color:var(--brand);">3</td>
+              <td>国窖1573 52度 500ml</td>
+              <td><span class="tag tag-info">白酒</span></td>
+              <td>1,550</td>
+              <td class="text-success">¥1,395,000</td>
+              <td class="text-success">¥418,500</td>
+              <td>30%</td>
+            </tr>
+            <tr>
+              <td style="font-weight:700;color:var(--brand);">4</td>
+              <td>剑南春水晶剑 52度</td>
+              <td><span class="tag tag-info">白酒</span></td>
+              <td>1,320</td>
+              <td class="text-success">¥792,000</td>
+              <td class="text-success">¥237,600</td>
+              <td>30%</td>
+            </tr>
+            <tr>
+              <td style="font-weight:700;color:var(--text-muted);">5</td>
+              <td>洋河梦之蓝M6+ 52度</td>
+              <td><span class="tag tag-info">白酒</span></td>
+              <td>1,180</td>
+              <td class="text-success">¥826,000</td>
+              <td class="text-success">¥247,800</td>
+              <td>30%</td>
+            </tr>
+          </tbody>
+        </table>
+
+        <!-- 1.3 滞销预警列表 -->
+        <h3 style="font-size:13px;font-weight:600;margin:20px 0 12px;">滞销预警列表</h3>
+        <table class="mockup-table">
+          <thead><tr>
+            <th>商品名</th><th>品类</th><th>库存量（箱）</th><th>最近销量（箱）</th><th>滞销天数</th><th style="width:100px;">预警等级</th>
+          </tr></thead>
+          <tbody>
+            <tr>
+              <td>老村长香满堂 42度</td>
+              <td><span class="tag tag-info">白酒</span></td>
+              <td>580</td>
+              <td style="color:var(--danger);">2</td>
+              <td style="color:var(--danger);">95天</td>
+              <td>
+                <span class="warning-level"><span class="warning-dot" style="background:var(--danger);"></span><span class="tag tag-danger">红色预警</span></span>
+              </td>
+            </tr>
+            <tr>
+              <td>长城干红窖藏3年</td>
+              <td><span class="tag tag-info">红酒</span></td>
+              <td>420</td>
+              <td style="color:var(--warning);">8</td>
+              <td style="color:var(--warning);">62天</td>
+              <td>
+                <span class="warning-level"><span class="warning-dot" style="background:var(--warning);"></span><span class="tag tag-warning">橙色预警</span></span>
+              </td>
+            </tr>
+            <tr>
+              <td>青岛奥古特 330ml</td>
+              <td><span class="tag tag-info">啤酒</span></td>
+              <td>350</td>
+              <td style="color:var(--warning);">15</td>
+              <td style="color:var(--warning);">48天</td>
+              <td>
+                <span class="warning-level"><span class="warning-dot" style="background:var(--warning);"></span><span class="tag tag-warning">黄色预警</span></span>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+
+        <!-- 1.4 毛利排行 -->
+        <h3 style="font-size:13px;font-weight:600;margin:20px 0 12px;">毛利排行 <span style="font-weight:400;font-size:11px;color:var(--text-muted);">（支持升序/降序切换）</span></h3>
+        <div style="display:flex;gap:8px;margin-bottom:10px;align-items:center;">
+          <button class="btn btn-primary btn-sm">毛利率 ↓</button>
+          <button class="btn btn-default btn-sm">毛利额</button>
+          <button class="btn btn-default btn-sm">销售额</button>
+        </div>
+        <table class="mockup-table">
+          <thead><tr>
+            <th style="width:30px;">#</th>
+            <th>商品名</th><th>品类</th><th>销售额（元）</th><th>成本（元）</th><th>毛利（元）</th><th>毛利率</th>
+          </tr></thead>
+          <tbody>
+            <tr>
+              <td style="font-weight:700;color:var(--brand);">1</td>
+              <td>茅台飞天53度 500ml</td><td><span class="tag tag-info">白酒</span></td>
+              <td>¥3,720,000</td><td>¥2,604,000</td><td class="text-success">¥1,116,000</td><td style="font-weight:700;color:var(--success);">30%</td>
+            </tr>
+            <tr>
+              <td style="font-weight:700;color:var(--brand);">2</td>
+              <td>奔富Bin389 赤霞珠</td><td><span class="tag tag-info">红酒</span></td>
+              <td>¥520,000</td><td>¥338,000</td><td class="text-success">¥182,000</td><td style="font-weight:700;color:var(--success);">35%</td>
+            </tr>
+            <tr>
+              <td style="font-weight:700;color:var(--brand);">3</td>
+              <td>五粮液普五 52度</td><td><span class="tag tag-info">白酒</span></td>
+              <td>¥1,860,000</td><td>¥1,302,000</td><td class="text-success">¥558,000</td><td style="font-weight:700;color:var(--success);">30%</td>
+            </tr>
+            <tr>
+              <td style="font-weight:700;color:var(--text-muted);">4</td>
+              <td>国窖1573 52度</td><td><span class="tag tag-info">白酒</span></td>
+              <td>¥1,395,000</td><td>¥976,500</td><td class="text-success">¥418,500</td><td style="font-weight:700;color:var(--success);">30%</td>
+            </tr>
+            <tr>
+              <td style="font-weight:700;color:var(--text-muted);">5</td>
+              <td>张裕解百纳特选级</td><td><span class="tag tag-info">红酒</span></td>
+              <td>¥380,000</td><td>¥243,200</td><td class="text-success">¥136,800</td><td style="font-weight:700;color:var(--success);">36%</td>
+            </tr>
+          </tbody>
+        </table>
+
+        <!-- 1.5 品类销售分析 -->
+        <h3 style="font-size:13px;font-weight:600;margin:20px 0 12px;">品类销售分析</h3>
+        <div class="chart-grid">
+          <div class="chart-card">
+            <div class="chart-card-title">品类销售占比</div>
+            <div class="poll-list">
+              <div class="poll-item">
+                <span class="poll-dot" style="background:var(--brand);"></span>
+                <span class="poll-label">白酒</span>
+                <div class="poll-bar" style="background:linear-gradient(90deg,var(--brand),var(--brand-light));width:100%;"></div>
+                <span class="poll-value">45%</span>
+              </div>
+              <div class="poll-item">
+                <span class="poll-dot" style="background:var(--success);"></span>
+                <span class="poll-label">啤酒</span>
+                <div class="poll-bar" style="background:linear-gradient(90deg,var(--success),#D1FAE5);width:56%;"></div>
+                <span class="poll-value">25%</span>
+              </div>
+              <div class="poll-item">
+                <span class="poll-dot" style="background:var(--warning);"></span>
+                <span class="poll-label">红酒</span>
+                <div class="poll-bar" style="background:linear-gradient(90deg,var(--warning),#FEF3C7);width:40%;"></div>
+                <span class="poll-value">18%</span>
+              </div>
+              <div class="poll-item">
+                <span class="poll-dot" style="background:var(--danger);"></span>
+                <span class="poll-label">其他</span>
+                <div class="poll-bar" style="background:linear-gradient(90deg,var(--danger),#FEE2E2);width:27%;"></div>
+                <span class="poll-value">12%</span>
+              </div>
+            </div>
+          </div>
+          <div class="chart-card">
+            <div class="chart-card-title">品类销售额对比</div>
+            <div class="bar-chart">
+              <div class="bar-col"><div style="font-size:10px;color:var(--text-muted);margin-bottom:2px;">¥2.8M</div><div class="bar-fill" style="height:100%;background:linear-gradient(180deg,var(--brand),var(--brand-light));"></div><div class="bar-label">白酒</div></div>
+              <div class="bar-col"><div style="font-size:10px;color:var(--text-muted);margin-bottom:2px;">¥1.6M</div><div class="bar-fill" style="height:57%;background:linear-gradient(180deg,var(--success),#D1FAE5);"></div><div class="bar-label">啤酒</div></div>
+              <div class="bar-col"><div style="font-size:10px;color:var(--text-muted);margin-bottom:2px;">¥1.1M</div><div class="bar-fill" style="height:39%;background:linear-gradient(180deg,var(--warning),#FEF3C7);"></div><div class="bar-label">红酒</div></div>
+              <div class="bar-col"><div style="font-size:10px;color:var(--text-muted);margin-bottom:2px;">¥0.8M</div><div class="bar-fill" style="height:28%;background:linear-gradient(180deg,var(--danger),#FEE2E2);"></div><div class="bar-label">其他</div></div>
+            </div>
+          </div>
+        </div>
+
+        <!-- 1.6 商品ABC分析 -->
+        <h3 style="font-size:13px;font-weight:600;margin:20px 0 12px;">商品 ABC 分析</h3>
+        <div class="chart-grid">
+          <div class="chart-card">
+            <div class="chart-card-title">ABC 分类占比（按销售额）</div>
+            <div class="poll-list">
+              <div class="poll-item">
+                <span class="poll-dot" style="background:var(--brand);"></span>
+                <span class="poll-label">A类（前70%）</span>
+                <div class="poll-bar" style="background:linear-gradient(90deg,var(--brand),var(--brand-light));width:100%;"></div>
+                <span class="poll-value">120 SKU</span>
+              </div>
+              <div class="poll-item">
+                <span class="poll-dot" style="background:var(--warning);"></span>
+                <span class="poll-label">B类（70-90%）</span>
+                <div class="poll-bar" style="background:linear-gradient(90deg,var(--warning),#FEF3C7);width:40%;"></div>
+                <span class="poll-value">350 SKU</span>
+              </div>
+              <div class="poll-item">
+                <span class="poll-dot" style="background:var(--text-muted);"></span>
+                <span class="poll-label">C类（90-100%）</span>
+                <div class="poll-bar" style="background:linear-gradient(90deg,var(--text-muted),#E5E7EB);width:22%;"></div>
+                <span class="poll-value">810 SKU</span>
+              </div>
+            </div>
+          </div>
+          <div class="chart-card">
+            <div class="chart-card-title">ABC 分类明细</div>
+            <table style="width:100%;font-size:12px;border-collapse:collapse;">
+              <thead><tr style="background:#F8FAFC;"><th style="padding:8px;">分类</th><th style="padding:8px;text-align:right;">SKU数</th><th style="padding:8px;text-align:right;">占比</th><th style="padding:8px;text-align:right;">累计销售额</th><th style="padding:8px;text-align:right;">销售额占比</th></tr></thead>
+              <tbody>
+                <tr><td style="padding:6px;"><span class="tag tag-info">A类</span></td><td style="text-align:right;">120</td><td style="text-align:right;">9.4%</td><td style="text-align:right;">¥4,860,000</td><td style="text-align:right;font-weight:700;">70%</td></tr>
+                <tr><td style="padding:6px;"><span class="tag tag-warning">B类</span></td><td style="text-align:right;">350</td><td style="text-align:right;">27.3%</td><td style="text-align:right;">¥1,388,000</td><td style="text-align:right;font-weight:700;">20%</td></tr>
+                <tr><td style="padding:6px;"><span class="tag tag-default" style="background:#F3F4F6;color:#6B7280;">C类</span></td><td style="text-align:right;">810</td><td style="text-align:right;">63.3%</td><td style="text-align:right;">¥694,000</td><td style="text-align:right;font-weight:700;">10%</td></tr>
+                <tr style="font-weight:700;background:#F8FAFC;"><td style="padding:6px;">合计</td><td style="text-align:right;">1,280</td><td style="text-align:right;">100%</td><td style="text-align:right;">¥6,942,000</td><td style="text-align:right;">100%</td></tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+        <!-- 1.7 新品表现 -->
+        <h3 style="font-size:13px;font-weight:600;margin:20px 0 12px;">新品表现（近30天上架）</h3>
+        <table class="mockup-table">
+          <thead><tr>
+            <th style="width:30px;">#</th>
+            <th>商品名</th><th>品类</th><th>上架日期</th><th>销量（箱）</th><th>销售额（元）</th><th>表现评级</th>
+          </tr></thead>
+          <tbody>
+            <tr>
+              <td style="font-weight:700;color:var(--brand);">1</td>
+              <td>习酒窖藏1988 53度</td>
+              <td><span class="tag tag-info">白酒</span></td>
+              <td>2026-06-05</td>
+              <td>320</td>
+              <td class="text-success">¥256,000</td>
+              <td><span class="tag tag-success">优秀</span></td>
+            </tr>
+            <tr>
+              <td style="font-weight:700;color:var(--brand);">2</td>
+              <td>雪花纯生匠心 500ml</td>
+              <td><span class="tag tag-info">啤酒</span></td>
+              <td>2026-06-08</td>
+              <td>280</td>
+              <td class="text-success">¥33,600</td>
+              <td><span class="tag tag-success">优秀</span></td>
+            </tr>
+            <tr>
+              <td style="font-weight:700;color:var(--brand);">3</td>
+              <td>拉菲传奇波尔多 2019</td>
+              <td><span class="tag tag-info">红酒</span></td>
+              <td>2026-06-12</td>
+              <td>180</td>
+              <td class="text-success">¥162,000</td>
+              <td><span class="tag tag-success">良好</span></td>
+            </tr>
+            <tr>
+              <td style="font-weight:700;color:var(--text-muted);">4</td>
+              <td>汾酒青花20 53度</td>
+              <td><span class="tag tag-info">白酒</span></td>
+              <td>2026-06-15</td>
+              <td>150</td>
+              <td class="text-success">¥120,000</td>
+              <td><span class="tag tag-success">良好</span></td>
+            </tr>
+            <tr>
+              <td style="font-weight:700;color:var(--text-muted);">5</td>
+              <td>燕京U8 500ml</td>
+              <td><span class="tag tag-info">啤酒</span></td>
+              <td>2026-06-20</td>
+              <td>120</td>
+              <td class="text-success">¥14,400</td>
+              <td><span class="tag tag-warning">一般</span></td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ====== Part B: 客户分析 ====== -->
+<div class="section">
+  <h2>二、客户分析</h2>
+  <p class="desc">客户维度深度分析，含概览卡片、贡献排行、复购率、客单价分布、RFM分析、新增趋势、流失预警</p>
+
+  <div class="mockup">
+    <div class="mockup-header">
+      <div class="mockup-logo"><div class="mockup-logo-icon"></div>智享酒水</div>
+      <div class="mockup-nav">
+        <span class="mockup-nav-item">工作台</span>
+        <span class="mockup-nav-item">销售</span>
+        <span class="mockup-nav-item">采购</span>
+        <span class="mockup-nav-item">财务</span>
+        <span class="mockup-nav-item active">报表</span>
+      </div>
+      <div class="mockup-user"><span>林夕</span><div class="mockup-avatar">林</div></div>
+    </div>
+    <div class="mockup-body">
+      <div class="mockup-sidebar">
+        <div class="mockup-sidebar-section">数据报表</div>
+        <div class="mockup-sidebar-item">经营总览</div>
+        <div class="mockup-sidebar-item">销售分析</div>
+        <div class="mockup-sidebar-item">收款分析</div>
+        <div class="mockup-sidebar-item">商品分析</div>
+        <div class="mockup-sidebar-item active">客户分析</div>
+        <div class="mockup-sidebar-item">库存分析</div>
+        <div class="mockup-sidebar-item">采购分析</div>
+        <div class="mockup-sidebar-item">财务分析</div>
+        <div class="mockup-sidebar-item">员工绩效</div>
+      </div>
+      <div class="mockup-main">
+        <div class="mockup-page-title">客户分析</div>
+        <div class="mockup-breadcrumb">报表 &gt; 客户分析</div>
+
+        <!-- 2.1 客户概览卡片 -->
+        <h3 style="font-size:13px;font-weight:600;margin:8px 0 12px;">客户概览</h3>
+        <div class="stats-row">
+          <div class="stat-card"><div class="stat-label">客户总数</div><div class="stat-value" style="color:var(--brand);">856</div><div class="stat-change up">↑ 6.5% vs 上月</div></div>
+          <div class="stat-card"><div class="stat-label">本月新增</div><div class="stat-value" style="color:var(--success);">48</div><div class="stat-change up">↑ 12.8% vs 上月</div></div>
+          <div class="stat-card"><div class="stat-label">活跃客户数</div><div class="stat-value" style="color:var(--brand);">520</div><div class="stat-change up">60.7% 活跃率</div></div>
+          <div class="stat-card"><div class="stat-label">流失客户数</div><div class="stat-value" style="color:var(--danger);">32</div><div class="stat-change down">↓ 3.7% 流失率</div></div>
+          <div class="stat-card"><div class="stat-label">复购率</div><div class="stat-value" style="color:var(--success);">62%</div><div class="stat-change up">↑ 4.2pp vs 上月</div></div>
+        </div>
+
+        <!-- 2.2 客户贡献排行TOP20 -->
+        <h3 style="font-size:13px;font-weight:600;margin:20px 0 12px;">客户贡献排行 TOP20</h3>
+        <table class="mockup-table">
+          <thead><tr>
+            <th style="width:30px;">#</th>
+            <th>客户名</th><th>累计消费金额（元）</th><th>订单数</th><th>客单价（元）</th><th>最近消费日期</th>
+          </tr></thead>
+          <tbody>
+            <tr>
+              <td style="font-weight:700;color:var(--brand);">1</td>
+              <td>聚贤阁酒楼</td>
+              <td class="text-success">¥856,000</td>
+              <td>128</td>
+              <td>¥6,688</td>
+              <td>2026-06-28</td>
+            </tr>
+            <tr>
+              <td style="font-weight:700;color:var(--brand);">2</td>
+              <td>醉仙楼大酒店</td>
+              <td class="text-success">¥720,000</td>
+              <td>95</td>
+              <td>¥7,579</td>
+              <td>2026-06-30</td>
+            </tr>
+            <tr>
+              <td style="font-weight:700;color:var(--brand);">3</td>
+              <td>四海酒家</td>
+              <td class="text-success">¥658,000</td>
+              <td>82</td>
+              <td>¥8,024</td>
+              <td>2026-06-25</td>
+            </tr>
+            <tr>
+              <td style="font-weight:700;color:var(--text-muted);">4</td>
+              <td>福满楼餐饮</td>
+              <td class="text-success">¥520,000</td>
+              <td>68</td>
+              <td>¥7,647</td>
+              <td>2026-06-29</td>
+            </tr>
+            <tr>
+              <td style="font-weight:700;color:var(--text-muted);">5</td>
+              <td>金鼎轩酒楼</td>
+              <td class="text-success">¥485,000</td>
+              <td>60</td>
+              <td>¥8,083</td>
+              <td>2026-06-27</td>
+            </tr>
+          </tbody>
+        </table>
+
+        <!-- 2.3 复购率趋势图 -->
+        <h3 style="font-size:13px;font-weight:600;margin:20px 0 12px;">复购率趋势（近6个月）</h3>
+        <div class="chart-card">
+          <div class="bar-chart" style="height:160px;">
+            <div class="bar-col"><div style="font-size:10px;color:var(--text-muted);font-weight:600;margin-bottom:2px;">58%</div><div class="bar-fill" style="height:92%;background:linear-gradient(180deg,var(--brand),var(--brand-light));"></div><div class="bar-label">1月</div></div>
+            <div class="bar-col"><div style="font-size:10px;color:var(--text-muted);font-weight:600;margin-bottom:2px;">56%</div><div class="bar-fill" style="height:88%;background:linear-gradient(180deg,var(--brand),var(--brand-light));"></div><div class="bar-label">2月</div></div>
+            <div class="bar-col"><div style="font-size:10px;color:var(--text-muted);font-weight:600;margin-bottom:2px;">59%</div><div class="bar-fill" style="height:94%;background:linear-gradient(180deg,var(--brand),var(--brand-light));"></div><div class="bar-label">3月</div></div>
+            <div class="bar-col"><div style="font-size:10px;color:var(--text-muted);font-weight:600;margin-bottom:2px;">60%</div><div class="bar-fill" style="height:96%;background:linear-gradient(180deg,var(--brand),var(--brand-light));"></div><div class="bar-label">4月</div></div>
+            <div class="bar-col"><div style="font-size:10px;color:var(--text-muted);font-weight:600;margin-bottom:2px;">63%</div><div class="bar-fill" style="height:100%;background:linear-gradient(180deg,var(--success),#D1FAE5);"></div><div class="bar-label">5月</div></div>
+            <div class="bar-col"><div style="font-size:10px;color:var(--brand);font-weight:700;margin-bottom:2px;">62%</div><div class="bar-fill" style="height:98%;background:linear-gradient(180deg,var(--success),#D1FAE5);"></div><div class="bar-label">6月</div></div>
+          </div>
+        </div>
+
+        <!-- 2.4 客单价分布 -->
+        <h3 style="font-size:13px;font-weight:600;margin:20px 0 12px;">客单价分布</h3>
+        <div class="chart-grid">
+          <div class="chart-card">
+            <div class="chart-card-title">客户数量分布</div>
+            <div class="bar-chart" style="height:160px;">
+              <div class="bar-col"><div style="font-size:10px;color:var(--text-muted);margin-bottom:2px;">85</div><div class="bar-fill" style="height:53%;background:linear-gradient(180deg,var(--brand),var(--brand-light));"></div><div class="bar-label">&lt;100</div></div>
+              <div class="bar-col"><div style="font-size:10px;color:var(--text-muted);margin-bottom:2px;">160</div><div class="bar-fill" style="height:100%;background:linear-gradient(180deg,var(--brand),var(--brand-light));"></div><div class="bar-label">100-300</div></div>
+              <div class="bar-col"><div style="font-size:10px;color:var(--text-muted);margin-bottom:2px;">210</div><div class="bar-fill" style="height:100%;background:linear-gradient(180deg,var(--success),#D1FAE5);"></div><div class="bar-label">300-500</div></div>
+              <div class="bar-col"><div style="font-size:10px;color:var(--text-muted);margin-bottom:2px;">245</div><div class="bar-fill" style="height:100%;background:linear-gradient(180deg,var(--success),#D1FAE5);"></div><div class="bar-label">500-1000</div></div>
+              <div class="bar-col"><div style="font-size:10px;color:var(--text-muted);margin-bottom:2px;">120</div><div class="bar-fill" style="height:75%;background:linear-gradient(180deg,var(--warning),#FEF3C7);"></div><div class="bar-label">1000-3000</div></div>
+              <div class="bar-col"><div style="font-size:10px;color:var(--text-muted);margin-bottom:2px;">36</div><div class="bar-fill" style="height:22%;background:linear-gradient(180deg,var(--danger),#FEE2E2);"></div><div class="bar-label">3000+</div></div>
+            </div>
+          </div>
+          <div class="chart-card">
+            <div class="chart-card-title">订单数量分布</div>
+            <div class="bar-chart" style="height:160px;">
+              <div class="bar-col"><div style="font-size:10px;color:var(--text-muted);margin-bottom:2px;">340</div><div class="bar-fill" style="height:30%;background:linear-gradient(180deg,var(--brand),var(--brand-light));"></div><div class="bar-label">&lt;100</div></div>
+              <div class="bar-col"><div style="font-size:10px;color:var(--text-muted);margin-bottom:2px;">720</div><div class="bar-fill" style="height:64%;background:linear-gradient(180deg,var(--brand),var(--brand-light));"></div><div class="bar-label">100-300</div></div>
+              <div class="bar-col"><div style="font-size:10px;color:var(--text-muted);margin-bottom:2px;">1,120</div><div class="bar-fill" style="height:100%;background:linear-gradient(180deg,var(--success),#D1FAE5);"></div><div class="bar-label">300-500</div></div>
+              <div class="bar-col"><div style="font-size:10px;color:var(--text-muted);margin-bottom:2px;">1,080</div><div class="bar-fill" style="height:96%;background:linear-gradient(180deg,var(--success),#D1FAE5);"></div><div class="bar-label">500-1000</div></div>
+              <div class="bar-col"><div style="font-size:10px;color:var(--text-muted);margin-bottom:2px;">480</div><div class="bar-fill" style="height:43%;background:linear-gradient(180deg,var(--warning),#FEF3C7);"></div><div class="bar-label">1000-3000</div></div>
+              <div class="bar-col"><div style="font-size:10px;color:var(--text-muted);margin-bottom:2px;">110</div><div class="bar-fill" style="height:10%;background:linear-gradient(180deg,var(--danger),#FEE2E2);"></div><div class="bar-label">3000+</div></div>
+            </div>
+          </div>
+        </div>
+
+        <!-- 2.5 RFM分析矩阵 -->
+        <h3 style="font-size:13px;font-weight:600;margin:20px 0 12px;">RFM 分析矩阵</h3>
+        <table class="mockup-table">
+          <thead><tr>
+            <th>客户分组</th><th>R值（最近消费）</th><th>F值（消费频率）</th><th>M值（消费金额）</th><th>客户数</th><th>占比</th><th>策略建议</th>
+          </tr></thead>
+          <tbody>
+            <tr>
+              <td style="font-weight:600;">重要价值客户</td>
+              <td><span class="tag tag-success">高</span></td><td><span class="tag tag-success">高</span></td><td><span class="tag tag-success">高</span></td>
+              <td>86</td><td>10.0%</td>
+              <td style="font-size:11px;color:var(--text-secondary);">保持VIP权益，优先服务</td>
+            </tr>
+            <tr>
+              <td style="font-weight:600;">重要发展客户</td>
+              <td><span class="tag tag-success">高</span></td><td><span class="tag tag-warning">低</span></td><td><span class="tag tag-success">高</span></td>
+              <td>52</td><td>6.1%</td>
+              <td style="font-size:11px;color:var(--text-secondary);">提升消费频次，交叉销售</td>
+            </tr>
+            <tr>
+              <td style="font-weight:600;">重要保持客户</td>
+              <td><span class="tag tag-danger">低</span></td><td><span class="tag tag-success">高</span></td><td><span class="tag tag-success">高</span></td>
+              <td>38</td><td>4.4%</td>
+              <td style="font-size:11px;color:var(--text-secondary);">召回活动，专属优惠</td>
+            </tr>
+            <tr>
+              <td style="font-weight:600;">重要挽留客户</td>
+              <td><span class="tag tag-danger">低</span></td><td><span class="tag tag-warning">低</span></td><td><span class="tag tag-success">高</span></td>
+              <td>28</td><td>3.3%</td>
+              <td style="font-size:11px;color:var(--text-secondary);">主动联系，大额优惠券</td>
+            </tr>
+            <tr>
+              <td style="font-weight:600;">一般价值客户</td>
+              <td><span class="tag tag-success">高</span></td><td><span class="tag tag-success">高</span></td><td><span class="tag tag-warning">低</span></td>
+              <td>120</td><td>14.0%</td>
+              <td style="font-size:11px;color:var(--text-secondary);">提升客单价，套餐推荐</td>
+            </tr>
+            <tr>
+              <td style="font-weight:600;">一般发展客户</td>
+              <td><span class="tag tag-success">高</span></td><td><span class="tag tag-warning">低</span></td><td><span class="tag tag-warning">低</span></td>
+              <td>185</td><td>21.6%</td>
+              <td style="font-size:11px;color:var(--text-secondary);">新品推荐，培养忠诚度</td>
+            </tr>
+            <tr>
+              <td style="font-weight:600;">一般保持客户</td>
+              <td><span class="tag tag-danger">低</span></td><td><span class="tag tag-success">高</span></td><td><span class="tag tag-warning">低</span></td>
+              <td>95</td><td>11.1%</td>
+              <td style="font-size:11px;color:var(--text-secondary);">满减活动，积分激励</td>
+            </tr>
+            <tr>
+              <td style="font-weight:600;">一般挽留客户</td>
+              <td><span class="tag tag-danger">低</span></td><td><span class="tag tag-warning">低</span></td><td><span class="tag tag-warning">低</span></td>
+              <td>252</td><td>29.4%</td>
+              <td style="font-size:11px;color:var(--text-secondary);">低成本触达，促销唤醒</td>
+            </tr>
+          </tbody>
+        </table>
+
+        <!-- 2.6 新增客户趋势 -->
+        <h3 style="font-size:13px;font-weight:600;margin:20px 0 12px;">新增客户趋势（近6个月）</h3>
+        <div class="chart-card">
+          <div class="bar-chart" style="height:160px;">
+            <div class="bar-col"><div style="font-size:10px;color:var(--text-muted);font-weight:600;margin-bottom:2px;">35</div><div class="bar-fill" style="height:73%;background:linear-gradient(180deg,var(--brand),var(--brand-light));"></div><div class="bar-label">1月</div></div>
+            <div class="bar-col"><div style="font-size:10px;color:var(--text-muted);font-weight:600;margin-bottom:2px;">28</div><div class="bar-fill" style="height:58%;background:linear-gradient(180deg,var(--brand),var(--brand-light));"></div><div class="bar-label">2月</div></div>
+            <div class="bar-col"><div style="font-size:10px;color:var(--text-muted);font-weight:600;margin-bottom:2px;">42</div><div class="bar-fill" style="height:88%;background:linear-gradient(180deg,var(--brand),var(--brand-light));"></div><div class="bar-label">3月</div></div>
+            <div class="bar-col"><div style="font-size:10px;color:var(--text-muted);font-weight:600;margin-bottom:2px;">38</div><div class="bar-fill" style="height:79%;background:linear-gradient(180deg,var(--brand),var(--brand-light));"></div><div class="bar-label">4月</div></div>
+            <div class="bar-col"><div style="font-size:10px;color:var(--text-muted);font-weight:600;margin-bottom:2px;">45</div><div class="bar-fill" style="height:94%;background:linear-gradient(180deg,var(--success),#D1FAE5);"></div><div class="bar-label">5月</div></div>
+            <div class="bar-col"><div style="font-size:10px;color:var(--brand);font-weight:700;margin-bottom:2px;">48</div><div class="bar-fill" style="height:100%;background:linear-gradient(180deg,var(--success),#D1FAE5);"></div><div class="bar-label">6月</div></div>
+          </div>
+        </div>
+
+        <!-- 2.7 流失客户预警 -->
+        <h3 style="font-size:13px;font-weight:600;margin:20px 0 12px;">流失客户预警</h3>
+        <table class="mockup-table">
+          <thead><tr>
+            <th>客户名</th><th>最后消费日期</th><th>未消费天数</th><th>累计消费金额（元）</th><th>历史订单数</th><th>流失趋势</th>
+          </tr></thead>
+          <tbody>
+            <tr>
+              <td>老码头酒馆</td>
+              <td>2026-03-12</td>
+              <td style="color:var(--danger);font-weight:700;">110天</td>
+              <td>¥186,000</td>
+              <td>32</td>
+              <td><span class="tag tag-danger">高风险</span></td>
+            </tr>
+            <tr>
+              <td>湘味轩餐厅</td>
+              <td>2026-04-05</td>
+              <td style="color:var(--danger);font-weight:700;">86天</td>
+              <td>¥98,000</td>
+              <td>18</td>
+              <td><span class="tag tag-danger">高风险</span></td>
+            </tr>
+            <tr>
+              <td>巴蜀风情火锅</td>
+              <td>2026-04-28</td>
+              <td style="color:var(--warning);font-weight:700;">63天</td>
+              <td>¥245,000</td>
+              <td>45</td>
+              <td><span class="tag tag-warning">中风险</span></td>
+            </tr>
+            <tr>
+              <td>御膳坊酒楼</td>
+              <td>2026-05-10</td>
+              <td style="color:var(--warning);">51天</td>
+              <td>¥156,000</td>
+              <td>28</td>
+              <td><span class="tag tag-warning">中风险</span></td>
+            </tr>
+            <tr>
+              <td>江南小馆</td>
+              <td>2026-05-22</td>
+              <td style="color:var(--warning);">39天</td>
+              <td>¥72,000</td>
+              <td>15</td>
+              <td><span class="tag tag-warning">低风险</span></td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- 字段规范 -->
+<div class="section">
+  <h2>三、字段规范</h2>
+  <table class="spec-table">
+    <thead><tr><th>字段</th><th>类型</th><th>示例</th><th>说明</th></tr></thead>
+    <tbody>
+      <tr><td><code>sku_total</code></td><td>int</td><td>1280</td><td>SKU总数</td></tr>
+      <tr><td><code>active_sku_count</code></td><td>int</td><td>986</td><td>动销SKU数（近30天有销售）</td></tr>
+      <tr><td><code>active_sku_rate</code></td><td>decimal(5,2)</td><td>77.03</td><td>动销率（%）</td></tr>
+      <tr><td><code>total_inventory_value</code></td><td>decimal(14,2)</td><td>2860000.00</td><td>库存总额（元）</td></tr>
+      <tr><td><code>inventory_turnover_days</code></td><td>int</td><td>42</td><td>库存周转天数</td></tr>
+      <tr><td><code>sales_volume</code></td><td>int</td><td>2480</td><td>销量（箱）</td></tr>
+      <tr><td><code>sales_amount</code></td><td>decimal(12,2)</td><td>3720000.00</td><td>销售额（元）</td></tr>
+      <tr><td><code>gross_profit</code></td><td>decimal(12,2)</td><td>1116000.00</td><td>毛利（元）</td></tr>
+      <tr><td><code>gross_profit_rate</code></td><td>decimal(5,2)</td><td>30.00</td><td>毛利率（%）</td></tr>
+      <tr><td><code>slow_moving_days</code></td><td>int</td><td>95</td><td>滞销天数</td></tr>
+      <tr><td><code>warning_level</code></td><td>enum</td><td>red / orange / yellow</td><td>预警等级：红/橙/黄</td></tr>
+      <tr><td><code>abc_category</code></td><td>enum</td><td>A / B / C</td><td>ABC分类</td></tr>
+      <tr><td><code>customer_total</code></td><td>int</td><td>856</td><td>客户总数</td></tr>
+      <tr><td><code>new_customer_month</code></td><td>int</td><td>48</td><td>本月新增客户数</td></tr>
+      <tr><td><code>active_customer_count</code></td><td>int</td><td>520</td><td>活跃客户数（近30天有消费）</td></tr>
+      <tr><td><code>churned_customer_count</code></td><td>int</td><td>32</td><td>流失客户数（90天未消费）</td></tr>
+      <tr><td><code>repurchase_rate</code></td><td>decimal(5,2)</td><td>62.00</td><td>复购率（%）</td></tr>
+      <tr><td><code>cumulative_amount</code></td><td>decimal(14,2)</td><td>856000.00</td><td>累计消费金额（元）</td></tr>
+      <tr><td><code>order_count</code></td><td>int</td><td>128</td><td>订单数</td></tr>
+      <tr><td><code>avg_order_value</code></td><td>decimal(10,2)</td><td>6688.00</td><td>客单价（元）</td></tr>
+      <tr><td><code>last_purchase_date</code></td><td>date</td><td>2026-06-28</td><td>最近消费日期</td></tr>
+      <tr><td><code>rfm_r_score</code></td><td>enum</td><td>high / low</td><td>R值：最近消费（高/低）</td></tr>
+      <tr><td><code>rfm_f_score</code></td><td>enum</td><td>high / low</td><td>F值：消费频率（高/低）</td></tr>
+      <tr><td><code>rfm_m_score</code></td><td>enum</td><td>high / low</td><td>M值：消费金额（高/低）</td></tr>
+      <tr><td><code>unpurchased_days</code></td><td>int</td><td>110</td><td>未消费天数</td></tr>
+      <tr><td><code>churn_risk</code></td><td>enum</td><td>high / medium / low</td><td>流失风险等级</td></tr>
+    </tbody>
+  </table>
+</div>
+
+<!-- 验收标准 -->
+<div class="section">
+  <h2>四、验收标准</h2>
+  <ul class="checklist">
+    <li>商品概览：5个概要卡片（SKU总数/动销SKU数/动销率/库存总额/库存周转天数），含环比变化</li>
+    <li>畅销TOP20：表头支持排序切换（升降序），含商品名/品类/销量/销售额/毛利/毛利率</li>
+    <li>滞销预警：三级预警等级（红/橙/黄），含滞销天数计算逻辑</li>
+    <li>毛利排行：支持按毛利率/毛利额/销售额三个维度切换排序</li>
+    <li>品类分析：饼图展示品类占比 + 柱状图展示品类销售额，数据联动</li>
+    <li>ABC分析：按销售额自动分类（A类前70%/B类70-90%/C类90-100%），展示SKU数和金额</li>
+    <li>新品表现：近30天上架新品Top5，含表现评级（优秀/良好/一般）</li>
+    <li>客户概览：5个概要卡片（客户总数/本月新增/活跃客户数/流失客户数/复购率）</li>
+    <li>客户贡献TOP20：含累计消费金额/订单数/客单价/最近消费日期</li>
+    <li>复购率趋势：近6个月复购率柱状图，含趋势线</li>
+    <li>客单价分布：6个区间双维度柱状图（客户数量+订单数量）</li>
+    <li>RFM矩阵：8个客户分组，含R/F/M得分、客户数、占比及策略建议</li>
+    <li>新增客户趋势：近6个月新增客户柱状图</li>
+    <li>流失预警：90天未消费标记为流失，含高风险/中风险/低风险三级</li>
+    <li>所有图表支持数据导出（Excel/CSV）</li>
+    <li>日期筛选器支持自定义时间范围查询</li>
+  </ul>
+</div>
+
+</div>
+
+<div style="text-align:center;padding:40px;color:var(--text-muted);font-size:13px;">
+  <p>商品分析+客户分析 · 智享酒水库存系统</p>
+  <p>林夕 · UI/UX Designer · 2026-06-30</p>
+</div>
+
+</body>
+</html>

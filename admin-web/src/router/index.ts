@@ -130,6 +130,10 @@ const routes = [
       { path: "reports/products", name: "ReportsProducts", component: () => import("../views/ReportsProducts.vue"), meta: { roles: ["BOSS"] } },
       { path: "reports/employees", name: "ReportsEmployees", component: () => import("../views/ReportsEmployees.vue"), meta: { roles: ["BOSS"] } },
       { path: "reports/stores", name: "ReportsStores", component: () => import("../views/ReportsStores.vue"), meta: { roles: ["BOSS"] } },
+      { path: "reports/sales-analysis", name: "SalesAnalysis", component: () => import("../views/SalesAnalysis.vue"), meta: { roles: ["BOSS", "MGR"] } },
+      { path: "reports/collection-analysis", name: "CollectionAnalysis", component: () => import("../views/CollectionAnalysis.vue"), meta: { roles: ["BOSS", "MGR"] } },
+      { path: "reports/customers", name: "CustomerAnalysis", component: () => import("../views/CustomerAnalysis.vue"), meta: { roles: ["BOSS"] } },
+      { path: "reports/inventory", name: "InventoryReports", component: () => import("../views/InventoryReports.vue"), meta: { roles: ["BOSS"] } },
       // 11. 营销推广
       { path: "marketing", name: "Marketing", component: () => import("../views/MarketingView.vue"), meta: { roles: ["BOSS"] } },
       { path: "marketing/tags", name: "MarketingTags", component: () => import("../views/MarketingTags.vue"), meta: { roles: ["BOSS", "MGR"] } },

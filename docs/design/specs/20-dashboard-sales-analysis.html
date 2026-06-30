@@ -1,0 +1,325 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>20 - 经营总览+销售分析 | 智享酒水库存系统</title>
+<style>
+:root {
+  --brand: #1677FF; --brand-light: #E6F4FF; --text: #1F2328; --text-secondary: #4B5563; --text-muted: #9CA3AF;
+  --border: #E5E7EB; --bg: #F5F7FA; --white: #FFF; --success: #10B981; --warning: #F59E0B; --danger: #EF4444;
+  --radius: 12px; --shadow: 0 2px 8px rgba(0,0,0,.06);
+}
+* { margin: 0; padding: 0; box-sizing: border-box; }
+body { font-family: -apple-system, BlinkMacSystemFont, 'PingFang SC', 'Microsoft YaHei', sans-serif; background: var(--bg); color: var(--text); line-height: 1.6; }
+.container { max-width: 1300px; margin: 0 auto; padding: 40px 24px; }
+.header { background: linear-gradient(135deg, #1677FF, #0958D9); color: #fff; padding: 48px 24px; text-align: center; }
+.header h1 { font-size: 2rem; font-weight: 700; margin-bottom: 8px; }
+.header p { font-size: 1rem; opacity: .85; }
+.section { background: var(--white); border-radius: var(--radius); padding: 32px; margin-bottom: 24px; box-shadow: var(--shadow); }
+.section h2 { font-size: 1.25rem; color: var(--brand); margin-bottom: 8px; padding-bottom: 12px; border-bottom: 2px solid var(--brand-light); }
+.section h3 { font-size: 1.05rem; margin: 20px 0 10px; }
+.section p.desc { color: var(--text-secondary); margin-bottom: 16px; font-size: .88rem; }
+
+.mockup { border: 1px solid var(--border); border-radius: var(--radius); overflow: hidden; background: #fff; margin: 16px 0; }
+.mockup-header { background: #fff; border-bottom: 1px solid #F0F0F0; padding: 0 20px; height: 56px; display: flex; align-items: center; justify-content: space-between; }
+.mockup-logo { font-size: 16px; font-weight: 700; color: var(--brand); display: flex; align-items: center; gap: 8px; }
+.mockup-logo-icon { width: 28px; height: 28px; background: linear-gradient(135deg, var(--brand), #0958D9); border-radius: 6px; }
+.mockup-nav { display: flex; gap: 4px; }
+.mockup-nav-item { padding: 6px 14px; border-radius: 6px; font-size: 13px; color: var(--text-secondary); }
+.mockup-nav-item.active { background: var(--brand-light); color: var(--brand); font-weight: 500; }
+.mockup-user { display: flex; align-items: center; gap: 8px; font-size: 13px; }
+.mockup-avatar { width: 32px; height: 32px; border-radius: 50%; background: var(--brand); display: flex; align-items: center; justify-content: center; color: #fff; font-size: 13px; font-weight: 600; }
+.mockup-body { display: flex; }
+.mockup-sidebar { width: 220px; background: #fff; border-right: 1px solid #F0F0F0; padding: 16px 0; min-height: 520px; }
+.mockup-sidebar-item { padding: 10px 20px; font-size: 13px; color: var(--text-secondary); }
+.mockup-sidebar-item.active { background: var(--brand-light); color: var(--brand); font-weight: 500; border-right: 3px solid var(--brand); }
+.mockup-sidebar-section { font-size: 11px; color: var(--text-muted); padding: 16px 20px 6px; font-weight: 600; text-transform: uppercase; }
+.mockup-main { flex: 1; padding: 20px 24px; background: var(--bg); }
+.mockup-page-title { font-size: 20px; font-weight: 700; margin-bottom: 4px; }
+.mockup-breadcrumb { font-size: 12px; color: var(--text-muted); margin-bottom: 12px; }
+.tag { padding: 2px 8px; border-radius: 4px; font-size: 11px; font-weight: 500; white-space: nowrap; }
+.tag-success { background: #D1FAE5; color: #065F46; }
+.tag-warning { background: #FEF3C7; color: #92400E; }
+.tag-danger { background: #FEE2E2; color: #991B1B; }
+.tag-info { background: #DBEAFE; color: #1E40AF; }
+
+.mockup-table { width: 100%; border-collapse: collapse; font-size: 12px; }
+.mockup-table th { background: #F8FAFC; padding: 10px 12px; text-align: left; font-weight: 600; color: var(--text-secondary); border-bottom: 1px solid var(--border); font-size: 11px; }
+.mockup-table td { padding: 10px 12px; border-bottom: 1px solid #F0F0F0; }
+.mockup-table tr:hover td { background: #F8FAFC; }
+
+.spec-table { width: 100%; border-collapse: collapse; margin: 16px 0; }
+.spec-table th, .spec-table td { padding: 10px 14px; text-align: left; border-bottom: 1px solid var(--border); font-size: .85rem; }
+.spec-table th { background: var(--brand-light); color: var(--brand); font-weight: 600; font-size: .8rem; }
+.spec-table code { background: #F1F5F9; padding: 2px 6px; border-radius: 4px; font-size: .82rem; }
+
+.stats-row { display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px; margin-bottom: 20px; }
+.stat-card { background: #fff; border-radius: 8px; padding: 18px; border: 1px solid var(--border); display: flex; flex-direction: column; gap: 8px; }
+.stat-card .stat-label { font-size: 12px; color: var(--text-muted); }
+.stat-card .stat-value { font-size: 28px; font-weight: 700; }
+.stat-card .stat-change { font-size: 11px; }
+.stat-card .stat-change.up { color: var(--success); }
+.stat-card .stat-change.down { color: var(--danger); }
+.stat-card .stat-icon { width: 40px; height: 40px; border-radius: 8px; display: flex; align-items: center; justify-content: center; font-size: 18px; }
+
+.btn { display: inline-flex; align-items: center; gap: 4px; padding: 6px 14px; border-radius: 6px; font-size: 12px; font-weight: 500; cursor: pointer; border: none; font-family: inherit; }
+.btn-primary { background: var(--brand); color: #fff; }
+.btn-default { background: #fff; color: var(--text); border: 1px solid var(--border); }
+.btn-sm { padding: 4px 10px; font-size: 11px; }
+
+.checklist { list-style: none; padding: 0; }
+.checklist li { padding: 8px 0; font-size: .88rem; display: flex; align-items: flex-start; gap: 8px; }
+.checklist li::before { content: '☐'; color: var(--brand); font-size: 1rem; flex-shrink: 0; }
+
+.text-success { color: var(--success); }
+.text-danger { color: var(--danger); }
+.text-warning { color: var(--warning); }
+.font-mono { font-family: 'SF Mono', 'Consolas', monospace; }
+.text-right { text-align: right; }
+</style>
+</head>
+<body>
+
+<div class="header">
+  <h1>20 · 经营总览 + 销售分析</h1>
+  <p>管理后台 — 经营驾驶舱 + 销售深度分析 | 数据报表模块</p>
+</div>
+
+<div class="container">
+
+<!-- ====== 经营总览 ====== -->
+<div class="section">
+  <h2>一、经营总览（驾驶舱）</h2>
+  <p class="desc">首页经营概览，~40字段，含概要卡片、趋势图、排行榜、订单列表</p>
+
+  <div class="mockup">
+    <div class="mockup-header">
+      <div class="mockup-logo"><div class="mockup-logo-icon"></div>智享酒水</div>
+      <div class="mockup-nav">
+        <span class="mockup-nav-item active">工作台</span>
+        <span class="mockup-nav-item">销售</span>
+        <span class="mockup-nav-item">采购</span>
+        <span class="mockup-nav-item">财务</span>
+        <span class="mockup-nav-item">报表</span>
+      </div>
+      <div class="mockup-user"><span>林夕</span><div class="mockup-avatar">林</div></div>
+    </div>
+    <div class="mockup-body">
+      <div class="mockup-sidebar">
+        <div class="mockup-sidebar-section">数据报表</div>
+        <div class="mockup-sidebar-item active">经营总览</div>
+        <div class="mockup-sidebar-item">销售分析</div>
+        <div class="mockup-sidebar-item">收款分析</div>
+        <div class="mockup-sidebar-item">商品分析</div>
+        <div class="mockup-sidebar-item">客户分析</div>
+        <div class="mockup-sidebar-item">库存分析</div>
+        <div class="mockup-sidebar-item">采购分析</div>
+        <div class="mockup-sidebar-item">财务分析</div>
+        <div class="mockup-sidebar-item">员工绩效</div>
+      </div>
+      <div class="mockup-main">
+        <div class="mockup-page-title">经营总览</div>
+        <div style="display:flex;gap:4px;margin-bottom:12px;background:#fff;padding:4px;border-radius:8px;width:fit-content;">
+          <span style="padding:6px 16px;background:var(--brand);color:#fff;border-radius:6px;font-size:12px;font-weight:500;">今日</span>
+          <span style="padding:6px 16px;color:var(--text-secondary);border-radius:6px;font-size:12px;">昨日</span>
+          <span style="padding:6px 16px;color:var(--text-secondary);border-radius:6px;font-size:12px;">本周</span>
+          <span style="padding:6px 16px;color:var(--text-secondary);border-radius:6px;font-size:12px;">本月</span>
+        </div>
+        <div class="stats-row">
+          <div class="stat-card"><div class="stat-label">今日销售额</div><div class="stat-value" style="color:var(--brand);">¥18,200</div><div class="stat-change up">↑ 12.5% vs 昨日</div></div>
+          <div class="stat-card"><div class="stat-label">今日订单数</div><div class="stat-value">28</div><div class="stat-change up">↑ 8.3% vs 昨日</div></div>
+          <div class="stat-card"><div class="stat-label">今日毛利</div><div class="stat-value" style="color:var(--success);">¥5,460</div><div class="stat-change up">↑ 15.2% vs 昨日</div></div>
+          <div class="stat-card"><div class="stat-label">客单价</div><div class="stat-value" style="color:var(--warning);">¥650</div><div class="stat-change up">↑ 3.8% vs 昨日</div></div>
+        </div>
+        <div style="display:grid;grid-template-columns:2fr 1fr;gap:16px;margin-bottom:16px;">
+          <div style="background:#fff;border-radius:8px;padding:16px;border:1px solid var(--border);">
+            <div style="font-size:13px;font-weight:600;margin-bottom:12px;">近30日销售趋势</div>
+            <div style="height:160px;display:flex;align-items:flex-end;gap:6px;padding:0 8px;">
+              <div style="flex:1;display:flex;flex-direction:column;align-items:center;gap:2px;"><div style="width:100%;height:80px;background:linear-gradient(180deg,#1677FF,#E6F4FF);border-radius:3px 3px 0 0;"></div><div style="width:60%;height:6px;border-radius:3px;background:#10B981;"></div></div>
+              <div style="flex:1;display:flex;flex-direction:column;align-items:center;gap:2px;"><div style="width:100%;height:95px;background:linear-gradient(180deg,#1677FF,#E6F4FF);border-radius:3px 3px 0 0;"></div><div style="width:65%;height:6px;border-radius:3px;background:#10B981;"></div></div>
+              <div style="flex:1;display:flex;flex-direction:column;align-items:center;gap:2px;"><div style="width:100%;height:110px;background:linear-gradient(180deg,#1677FF,#E6F4FF);border-radius:3px 3px 0 0;"></div><div style="width:70%;height:6px;border-radius:3px;background:#10B981;"></div></div>
+              <div style="flex:1;display:flex;flex-direction:column;align-items:center;gap:2px;"><div style="width:100%;height:130px;background:linear-gradient(180deg,#1677FF,#E6F4FF);border-radius:3px 3px 0 0;"></div><div style="width:80%;height:6px;border-radius:3px;background:#10B981;"></div></div>
+              <div style="flex:1;display:flex;flex-direction:column;align-items:center;gap:2px;"><div style="width:100%;height:100px;background:linear-gradient(180deg,#1677FF,#E6F4FF);border-radius:3px 3px 0 0;"></div><div style="width:60%;height:6px;border-radius:3px;background:#10B981;"></div></div>
+              <div style="flex:1;display:flex;flex-direction:column;align-items:center;gap:2px;"><div style="width:100%;height:140px;background:linear-gradient(180deg,#1677FF,#E6F4FF);border-radius:3px 3px 0 0;"></div><div style="width:90%;height:6px;border-radius:3px;background:#10B981;"></div></div>
+            </div>
+            <div style="display:flex;gap:16px;justify-content:center;margin-top:8px;font-size:11px;">
+              <span><span style="display:inline-block;width:10px;height:10px;background:#1677FF;border-radius:2px;margin-right:4px;"></span>销售额</span>
+              <span><span style="display:inline-block;width:10px;height:10px;background:#10B981;border-radius:2px;margin-right:4px;"></span>订单数</span>
+            </div>
+          </div>
+          <div style="background:#fff;border-radius:8px;padding:16px;border:1px solid var(--border);">
+            <div style="font-size:13px;font-weight:600;margin-bottom:12px;">品类销售占比</div>
+            <div style="display:flex;flex-direction:column;gap:10px;font-size:12px;">
+              <div style="display:flex;align-items:center;gap:8px;"><div style="width:8px;height:8px;border-radius:50%;background:#1677FF;"></div><span style="flex:1;">白酒</span><span style="font-weight:600;">45%</span></div>
+              <div style="display:flex;align-items:center;gap:8px;"><div style="width:8px;height:8px;border-radius:50%;background:#10B981;"></div><span style="flex:1;">啤酒</span><span style="font-weight:600;">25%</span></div>
+              <div style="display:flex;align-items:center;gap:8px;"><div style="width:8px;height:8px;border-radius:50%;background:#F59E0B;"></div><span style="flex:1;">红酒</span><span style="font-weight:600;">18%</span></div>
+              <div style="display:flex;align-items:center;gap:8px;"><div style="width:8px;height:8px;border-radius:50%;background:#EF4444;"></div><span style="flex:1;">其他</span><span style="font-weight:600;">12%</span></div>
+            </div>
+          </div>
+        </div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:16px;">
+          <div style="background:#fff;border-radius:8px;padding:16px;border:1px solid var(--border);">
+            <div style="font-size:13px;font-weight:600;margin-bottom:12px;">门店销售排行</div>
+            <div style="display:flex;flex-direction:column;gap:8px;font-size:12px;">
+              <div style="display:flex;align-items:center;gap:8px;"><span style="width:60px;">总店</span><div style="flex:1;height:20px;background:var(--brand);border-radius:4px;width:100%;"></div><span style="font-weight:600;">¥85,000</span></div>
+              <div style="display:flex;align-items:center;gap:8px;"><span style="width:60px;">城东店</span><div style="flex:1;height:20px;background:var(--brand);border-radius:4px;width:72%;"></div><span style="font-weight:600;">¥61,200</span></div>
+              <div style="display:flex;align-items:center;gap:8px;"><span style="width:60px;">城南店</span><div style="flex:1;height:20px;background:var(--brand);border-radius:4px;width:55%;"></div><span style="font-weight:600;">¥46,800</span></div>
+              <div style="display:flex;align-items:center;gap:8px;"><span style="width:60px;">城西店</span><div style="flex:1;height:20px;background:var(--brand);border-radius:4px;width:38%;"></div><span style="font-weight:600;">¥32,300</span></div>
+            </div>
+          </div>
+          <div style="background:#fff;border-radius:8px;padding:16px;border:1px solid var(--border);">
+            <div style="font-size:13px;font-weight:600;margin-bottom:12px;">支付方式分布</div>
+            <div style="display:flex;flex-direction:column;gap:10px;font-size:12px;">
+              <div style="display:flex;align-items:center;gap:8px;"><div style="width:8px;height:8px;border-radius:50%;background:#1677FF;"></div><span style="flex:1;">微信支付</span><span style="font-weight:600;">52%</span></div>
+              <div style="display:flex;align-items:center;gap:8px;"><div style="width:8px;height:8px;border-radius:50%;background:#10B981;"></div><span style="flex:1;">支付宝</span><span style="font-weight:600;">28%</span></div>
+              <div style="display:flex;align-items:center;gap:8px;"><div style="width:8px;height:8px;border-radius:50%;background:#F59E0B;"></div><span style="flex:1;">银行卡</span><span style="font-weight:600;">15%</span></div>
+              <div style="display:flex;align-items:center;gap:8px;"><div style="width:8px;height:8px;border-radius:50%;background:#EF4444;"></div><span style="flex:1;">现金</span><span style="font-weight:600;">5%</span></div>
+            </div>
+          </div>
+        </div>
+        <div class="mockup-table">
+          <div class="mockup-table-header"><span class="mockup-table-title">最近订单</span></div>
+          <table><thead><tr><th>订单号</th><th>客户</th><th>金额</th><th>支付方式</th><th>时间</th><th>状态</th></tr></thead>
+          <tbody>
+            <tr><td class="font-mono">SO-20260630-001</td><td>聚贤阁酒楼</td><td class="text-success">¥8,500</td><td>微信支付</td><td>14:30</td><td><span class="tag tag-success">已完成</span></td></tr>
+            <tr><td class="font-mono">SO-20260630-002</td><td>醉仙楼</td><td class="text-success">¥5,200</td><td>支付宝</td><td>13:15</td><td><span class="tag tag-success">已完成</span></td></tr>
+            <tr><td class="font-mono">SO-20260630-003</td><td>四海酒家</td><td class="text-success">¥12,000</td><td>银行转账</td><td>11:00</td><td><span class="tag tag-warning">待付款</span></td></tr>
+          </tbody></table>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ====== 销售分析 ====== -->
+<div class="section">
+  <h2>二、销售分析</h2>
+  <p class="desc">销售深度分析，~45字段，含趋势图、热力图、排行TOP20、同期对比</p>
+
+  <div class="mockup">
+    <div class="mockup-header">
+      <div class="mockup-logo"><div class="mockup-logo-icon"></div>智享酒水</div>
+      <div class="mockup-nav"><span class="mockup-nav-item">工作台</span><span class="mockup-nav-item active">报表</span></div>
+      <div class="mockup-user"><span>林夕</span><div class="mockup-avatar">林</div></div>
+    </div>
+    <div class="mockup-body">
+      <div class="mockup-sidebar">
+        <div class="mockup-sidebar-section">数据报表</div>
+        <div class="mockup-sidebar-item">经营总览</div>
+        <div class="mockup-sidebar-item active">销售分析</div>
+        <div class="mockup-sidebar-item">收款分析</div>
+        <div class="mockup-sidebar-item">商品分析</div>
+        <div class="mockup-sidebar-item">客户分析</div>
+      </div>
+      <div class="mockup-main">
+        <div class="mockup-page-title">销售分析</div>
+        <div class="mockup-breadcrumb">报表 &gt; 销售分析</div>
+        <div style="display:flex;gap:4px;margin-bottom:12px;background:#fff;padding:4px;border-radius:8px;width:fit-content;">
+          <span style="padding:6px 16px;background:var(--brand);color:#fff;border-radius:6px;font-size:12px;">日</span>
+          <span style="padding:6px 16px;color:var(--text-secondary);border-radius:6px;font-size:12px;">周</span>
+          <span style="padding:6px 16px;color:var(--text-secondary);border-radius:6px;font-size:12px;">月</span>
+        </div>
+        <div style="background:#fff;border-radius:8px;padding:16px;border:1px solid var(--border);margin-bottom:16px;">
+          <div style="font-size:13px;font-weight:600;margin-bottom:12px;">销售趋势（销售额+订单数+客单价三线）</div>
+          <div style="height:140px;display:flex;align-items:flex-end;gap:4px;">
+            <div style="flex:1;background:linear-gradient(180deg,#1677FF,#E6F4FF);border-radius:3px 3px 0 0;height:90px;"></div>
+            <div style="flex:1;background:linear-gradient(180deg,#1677FF,#E6F4FF);border-radius:3px 3px 0 0;height:110px;"></div>
+            <div style="flex:1;background:linear-gradient(180deg,#1677FF,#E6F4FF);border-radius:3px 3px 0 0;height:80px;"></div>
+            <div style="flex:1;background:linear-gradient(180deg,#1677FF,#E6F4FF);border-radius:3px 3px 0 0;height:130px;"></div>
+            <div style="flex:1;background:linear-gradient(180deg,#1677FF,#E6F4FF);border-radius:3px 3px 0 0;height:100px;"></div>
+            <div style="flex:1;background:linear-gradient(180deg,#1677FF,#E6F4FF);border-radius:3px 3px 0 0;height:120px;"></div>
+            <div style="flex:1;background:linear-gradient(180deg,#1677FF,#E6F4FF);border-radius:3px 3px 0 0;height:140px;"></div>
+          </div>
+          <div style="display:flex;gap:16px;justify-content:center;margin-top:8px;font-size:11px;">
+            <span><span style="display:inline-block;width:10px;height:10px;background:#1677FF;border-radius:2px;"></span>销售额</span>
+            <span><span style="display:inline-block;width:10px;height:10px;background:#10B981;border-radius:2px;"></span>订单数</span>
+            <span><span style="display:inline-block;width:10px;height:10px;background:#F59E0B;border-radius:2px;"></span>客单价</span>
+          </div>
+        </div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:16px;">
+          <div style="background:#fff;border-radius:8px;padding:16px;border:1px solid var(--border);">
+            <div style="font-size:13px;font-weight:600;margin-bottom:12px;">销售排行 TOP20</div>
+            <div style="display:flex;gap:4px;margin-bottom:8px;background:#F8FAFC;padding:3px;border-radius:6px;width:fit-content;">
+              <span style="padding:4px 12px;background:#fff;border-radius:4px;font-size:11px;font-weight:500;">商品</span>
+              <span style="padding:4px 12px;font-size:11px;color:var(--text-muted);">客户</span>
+              <span style="padding:4px 12px;font-size:11px;color:var(--text-muted);">门店</span>
+              <span style="padding:4px 12px;font-size:11px;color:var(--text-muted);">业务员</span>
+            </div>
+            <div style="display:flex;flex-direction:column;gap:5px;font-size:12px;">
+              <div style="display:flex;justify-content:space-between;"><span>1. 茅台飞天53度</span><span style="font-weight:600;">¥125,000</span></div>
+              <div style="display:flex;justify-content:space-between;"><span>2. 五粮液普五</span><span style="font-weight:600;">¥98,000</span></div>
+              <div style="display:flex;justify-content:space-between;"><span>3. 国窖1573</span><span style="font-weight:600;">¥72,000</span></div>
+              <div style="display:flex;justify-content:space-between;"><span>4. 剑南春</span><span style="font-weight:600;">¥58,000</span></div>
+              <div style="display:flex;justify-content:space-between;"><span>5. 洋河梦之蓝</span><span style="font-weight:600;">¥45,000</span></div>
+            </div>
+          </div>
+          <div style="background:#fff;border-radius:8px;padding:16px;border:1px solid var(--border);">
+            <div style="font-size:13px;font-weight:600;margin-bottom:12px;">同期对比</div>
+            <table style="width:100%;font-size:12px;border-collapse:collapse;">
+              <thead><tr style="background:#F8FAFC;"><th style="padding:8px;">指标</th><th style="padding:8px;text-align:right;">本期</th><th style="padding:8px;text-align:right;">上期</th><th style="padding:8px;text-align:right;">环比</th></tr></thead>
+              <tbody>
+                <tr><td style="padding:6px;">销售额</td><td style="text-align:right;">¥486,500</td><td style="text-align:right;">¥432,500</td><td style="text-align:right;color:var(--success);">↑ 12.5%</td></tr>
+                <tr><td style="padding:6px;">订单数</td><td style="text-align:right;">748</td><td style="text-align:right;">690</td><td style="text-align:right;color:var(--success);">↑ 8.4%</td></tr>
+                <tr><td style="padding:6px;">客单价</td><td style="text-align:right;">¥650</td><td style="text-align:right;">¥627</td><td style="text-align:right;color:var(--success);">↑ 3.7%</td></tr>
+                <tr><td style="padding:6px;">退款金额</td><td style="text-align:right;">¥12,800</td><td style="text-align:right;">¥15,200</td><td style="text-align:right;color:var(--success);">↓ 15.8%</td></tr>
+                <tr><td style="padding:6px;">退款率</td><td style="text-align:right;">2.6%</td><td style="text-align:right;">3.5%</td><td style="text-align:right;color:var(--success);">↓ 0.9pp</td></tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+        <div class="mockup-table">
+          <div class="mockup-table-header"><span class="mockup-table-title">销售日报明细</span></div>
+          <table><thead><tr><th>日期</th><th>销售额</th><th>订单数</th><th>客单价</th><th>退款金额</th><th>退款率</th></tr></thead>
+          <tbody>
+            <tr><td>06-30</td><td class="text-success">¥18,200</td><td>28</td><td>¥650</td><td>¥500</td><td>2.7%</td></tr>
+            <tr><td>06-29</td><td class="text-success">¥16,180</td><td>25</td><td>¥647</td><td>¥420</td><td>2.6%</td></tr>
+            <tr><td>06-28</td><td class="text-success">¥19,500</td><td>30</td><td>¥650</td><td>¥650</td><td>3.3%</td></tr>
+          </tbody></table>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- 字段规范 -->
+<div class="section">
+  <h2>三、字段规范</h2>
+  <table class="spec-table">
+    <thead><tr><th>字段</th><th>类型</th><th>示例</th><th>说明</th></tr></thead>
+    <tbody>
+      <tr><td><code>today_sales</code></td><td>decimal(12,2)</td><td>18200.00</td><td>今日销售额</td></tr>
+      <tr><td><code>today_orders</code></td><td>int</td><td>28</td><td>今日订单数</td></tr>
+      <tr><td><code>today_gross_profit</code></td><td>decimal(12,2)</td><td>5460.00</td><td>今日毛利</td></tr>
+      <tr><td><code>avg_order_value</code></td><td>decimal(10,2)</td><td>650.00</td><td>客单价</td></tr>
+      <tr><td><code>sales_change_rate</code></td><td>decimal(5,2)</td><td>12.5</td><td>环比变化率（%）</td></tr>
+      <tr><td><code>category_ratio</code></td><td>json</td><td>{"白酒":45,"啤酒":25}</td><td>品类占比</td></tr>
+      <tr><td><code>refund_rate</code></td><td>decimal(5,2)</td><td>2.6</td><td>退款率（%）</td></tr>
+    </tbody>
+  </table>
+</div>
+
+<!-- 验收标准 -->
+<div class="section">
+  <h2>四、验收标准</h2>
+  <ul class="checklist">
+    <li>经营总览：4个概要卡片含环比箭头，日期切换（今日/昨日/本周/本月）</li>
+    <li>销售趋势图：销售额+订单数双轴混合图，近30日</li>
+    <li>门店排行：横向柱状图，销售额/订单数/毛利</li>
+    <li>品类+支付方式：饼图展示占比</li>
+    <li>销售分析：日/周/月粒度切换，三线（销售额+订单数+客单价）</li>
+    <li>排行TOP20：商品/客户/门店/业务员四维度Tab切换</li>
+    <li>同期对比：本期vs上期销售额/订单数/客单价/退款对比表</li>
+    <li>销售日报：日期/销售额/订单数/客单价/退款金额/退款率</li>
+  </ul>
+</div>
+
+</div>
+
+<div style="text-align:center;padding:40px;color:var(--text-muted);font-size:13px;">
+  <p>经营总览+销售分析 · 智享酒水库存系统</p>
+  <p>林夕 · UI/UX Designer · 2026-06-30</p>
+</div>
+
+</body>
+</html>

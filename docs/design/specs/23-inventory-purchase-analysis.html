@@ -1,0 +1,472 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>23 - 库存分析 + 采购分析 | 智享酒水库存系统</title>
+<style>
+:root {
+  --brand: #10B981; --brand-light: #D1FAE5; --text: #1F2328; --text-secondary: #4B5563; --text-muted: #9CA3AF;
+  --border: #E5E7EB; --bg: #F5F7FA; --white: #FFF; --success: #10B981; --warning: #F59E0B; --danger: #EF4444;
+  --radius: 12px; --shadow: 0 2px 8px rgba(0,0,0,.06);
+}
+* { margin: 0; padding: 0; box-sizing: border-box; }
+body { font-family: -apple-system, BlinkMacSystemFont, 'PingFang SC', 'Microsoft YaHei', sans-serif; background: var(--bg); color: var(--text); line-height: 1.6; }
+.container { max-width: 1300px; margin: 0 auto; padding: 40px 24px; }
+.header { background: linear-gradient(135deg, #10B981, #065F46); color: #fff; padding: 48px 24px; text-align: center; }
+.header h1 { font-size: 2rem; font-weight: 700; margin-bottom: 8px; }
+.header p { font-size: 1rem; opacity: .85; }
+.section { background: var(--white); border-radius: var(--radius); padding: 32px; margin-bottom: 24px; box-shadow: var(--shadow); }
+.section h2 { font-size: 1.25rem; color: var(--brand); margin-bottom: 8px; padding-bottom: 12px; border-bottom: 2px solid var(--brand-light); }
+.section h3 { font-size: 1.05rem; margin: 20px 0 10px; }
+.section p.desc { color: var(--text-secondary); margin-bottom: 16px; font-size: .88rem; }
+
+.mockup { border: 1px solid var(--border); border-radius: var(--radius); overflow: hidden; background: #fff; margin: 16px 0; }
+.mockup-header { background: #fff; border-bottom: 1px solid #F0F0F0; padding: 0 20px; height: 56px; display: flex; align-items: center; justify-content: space-between; }
+.mockup-logo { font-size: 16px; font-weight: 700; color: var(--brand); display: flex; align-items: center; gap: 8px; }
+.mockup-logo-icon { width: 28px; height: 28px; background: linear-gradient(135deg, var(--brand), #065F46); border-radius: 6px; }
+.mockup-nav { display: flex; gap: 4px; }
+.mockup-nav-item { padding: 6px 14px; border-radius: 6px; font-size: 13px; color: var(--text-secondary); }
+.mockup-nav-item.active { background: var(--brand-light); color: var(--brand); font-weight: 500; }
+.mockup-user { display: flex; align-items: center; gap: 8px; font-size: 13px; }
+.mockup-avatar { width: 32px; height: 32px; border-radius: 50%; background: var(--brand); display: flex; align-items: center; justify-content: center; color: #fff; font-size: 13px; font-weight: 600; }
+.mockup-body { display: flex; }
+.mockup-sidebar { width: 220px; background: #fff; border-right: 1px solid #F0F0F0; padding: 16px 0; min-height: 520px; }
+.mockup-sidebar-item { padding: 10px 20px; font-size: 13px; color: var(--text-secondary); }
+.mockup-sidebar-item.active { background: var(--brand-light); color: var(--brand); font-weight: 500; border-right: 3px solid var(--brand); }
+.mockup-sidebar-section { font-size: 11px; color: var(--text-muted); padding: 16px 20px 6px; font-weight: 600; text-transform: uppercase; }
+.mockup-main { flex: 1; padding: 20px 24px; background: var(--bg); }
+.mockup-page-title { font-size: 20px; font-weight: 700; margin-bottom: 4px; }
+.mockup-breadcrumb { font-size: 12px; color: var(--text-muted); margin-bottom: 12px; }
+.tag { padding: 2px 8px; border-radius: 4px; font-size: 11px; font-weight: 500; white-space: nowrap; }
+.tag-success { background: #D1FAE5; color: #065F46; }
+.tag-warning { background: #FEF3C7; color: #92400E; }
+.tag-danger { background: #FEE2E2; color: #991B1B; }
+.tag-info { background: #DBEAFE; color: #1E40AF; }
+
+.mockup-table { width: 100%; border-collapse: collapse; font-size: 12px; background: #fff; border-radius: 8px; border: 1px solid var(--border); overflow: hidden; }
+.mockup-table th { background: #F8FAFC; padding: 10px 12px; text-align: left; font-weight: 600; color: var(--text-secondary); border-bottom: 1px solid var(--border); font-size: 11px; }
+.mockup-table td { padding: 10px 12px; border-bottom: 1px solid #F0F0F0; }
+.mockup-table tr:hover td { background: #F8FAFC; }
+
+.spec-table { width: 100%; border-collapse: collapse; margin: 16px 0; }
+.spec-table th, .spec-table td { padding: 10px 14px; text-align: left; border-bottom: 1px solid var(--border); font-size: .85rem; }
+.spec-table th { background: var(--brand-light); color: var(--brand); font-weight: 600; font-size: .8rem; }
+.spec-table code { background: #F1F5F9; padding: 2px 6px; border-radius: 4px; font-size: .82rem; }
+
+.stats-row { display: grid; grid-template-columns: repeat(5, 1fr); gap: 16px; margin-bottom: 20px; }
+.stats-row-4 { display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px; margin-bottom: 20px; }
+.stat-card { background: #fff; border-radius: 8px; padding: 18px; border: 1px solid var(--border); display: flex; flex-direction: column; gap: 8px; }
+.stat-card .stat-label { font-size: 12px; color: var(--text-muted); }
+.stat-card .stat-value { font-size: 28px; font-weight: 700; }
+.stat-card .stat-change { font-size: 11px; }
+.stat-card .stat-change.up { color: var(--success); }
+.stat-card .stat-change.down { color: var(--danger); }
+.stat-card .stat-icon { width: 40px; height: 40px; border-radius: 8px; display: flex; align-items: center; justify-content: center; font-size: 18px; }
+
+.btn { display: inline-flex; align-items: center; gap: 4px; padding: 6px 14px; border-radius: 6px; font-size: 12px; font-weight: 500; cursor: pointer; border: none; font-family: inherit; }
+.btn-primary { background: var(--brand); color: #fff; }
+.btn-default { background: #fff; color: var(--text); border: 1px solid var(--border); }
+.btn-sm { padding: 4px 10px; font-size: 11px; }
+
+.checklist { list-style: none; padding: 0; }
+.checklist li { padding: 8px 0; font-size: .88rem; display: flex; align-items: flex-start; gap: 8px; }
+.checklist li::before { content: '☐'; color: var(--brand); font-size: 1rem; flex-shrink: 0; }
+
+.text-success { color: var(--success); }
+.text-danger { color: var(--danger); }
+.text-warning { color: var(--warning); }
+.font-mono { font-family: 'SF Mono', 'Consolas', monospace; }
+.text-right { text-align: right; }
+
+.chart-bar { flex: 1; display: flex; flex-direction: column; align-items: center; gap: 4px; }
+.chart-bar-fill { width: 100%; border-radius: 4px 4px 0 0; }
+.chart-bar-label { font-size: 10px; color: var(--text-muted); }
+
+.aging-grid { display: grid; grid-template-columns: 2fr 1fr; gap: 16px; }
+.aging-bar-row { display: flex; align-items: center; gap: 10px; margin-bottom: 10px; font-size: 12px; }
+.aging-bar-label { width: 80px; text-align: right; }
+.aging-bar-track { flex: 1; height: 24px; background: #F3F4F6; border-radius: 4px; overflow: hidden; }
+.aging-bar-fill { height: 100%; border-radius: 4px; }
+
+.pie-visual { display: flex; align-items: center; justify-content: center; gap: 20px; }
+.pie-circle { width: 120px; height: 120px; border-radius: 50%; background: conic-gradient(#10B981 0% 55%, #F59E0B 55% 75%, #3B82F6 75% 87%, #8B5CF6 87% 95%, #EF4444 95% 100%); }
+.pie-legend { display: flex; flex-direction: column; gap: 6px; font-size: 11px; }
+.pie-legend-item { display: flex; align-items: center; gap: 6px; }
+.pie-legend-dot { width: 8px; height: 8px; border-radius: 50%; }
+</style>
+</head>
+<body>
+
+<div class="header">
+  <h1>23 · 库存分析 + 采购分析</h1>
+  <p>管理后台 — 库存和采购维度分析 | 数据报表模块</p>
+</div>
+
+<div class="container">
+
+<!-- ====== Part A: 库存分析 ====== -->
+<div class="section">
+  <h2>一、库存分析</h2>
+  <p class="desc">库存维度深度分析，~30字段，含库存概览、周转趋势、库龄分布、呆滞品预警、价值排行、出入库趋势、安全库存预警</p>
+
+  <div class="mockup">
+    <div class="mockup-header">
+      <div class="mockup-logo"><div class="mockup-logo-icon"></div>智享酒水</div>
+      <div class="mockup-nav">
+        <span class="mockup-nav-item">工作台</span>
+        <span class="mockup-nav-item">销售</span>
+        <span class="mockup-nav-item">采购</span>
+        <span class="mockup-nav-item">财务</span>
+        <span class="mockup-nav-item active">报表</span>
+      </div>
+      <div class="mockup-user"><span>林夕</span><div class="mockup-avatar">林</div></div>
+    </div>
+    <div class="mockup-body">
+      <div class="mockup-sidebar">
+        <div class="mockup-sidebar-section">数据报表</div>
+        <div class="mockup-sidebar-item">经营总览</div>
+        <div class="mockup-sidebar-item">销售分析</div>
+        <div class="mockup-sidebar-item">收款分析</div>
+        <div class="mockup-sidebar-item">商品分析</div>
+        <div class="mockup-sidebar-item">客户分析</div>
+        <div class="mockup-sidebar-item active">库存分析</div>
+        <div class="mockup-sidebar-item">采购分析</div>
+        <div class="mockup-sidebar-item">财务分析</div>
+        <div class="mockup-sidebar-item">员工绩效</div>
+      </div>
+      <div class="mockup-main">
+        <div class="mockup-page-title">库存分析</div>
+        <div class="mockup-breadcrumb">报表 &gt; 库存分析</div>
+
+        <!-- 1. 库存概览卡片 -->
+        <h3>1. 库存概览</h3>
+        <div class="stats-row">
+          <div class="stat-card"><div class="stat-label">库存总额</div><div class="stat-value" style="color:var(--brand);">¥2,860,000</div><div class="stat-change up">↑ 5.2% vs 上月</div></div>
+          <div class="stat-card"><div class="stat-label">库存总量(箱)</div><div class="stat-value">3,200</div><div class="stat-change up">↑ 3.1% vs 上月</div></div>
+          <div class="stat-card"><div class="stat-label">库存SKU数</div><div class="stat-value">1,280</div><div class="stat-change up">↑ 12 新增</div></div>
+          <div class="stat-card"><div class="stat-label">呆滞品数量</div><div class="stat-value" style="color:var(--danger);">45</div><div class="stat-change down">↑ 8 vs 上月</div></div>
+          <div class="stat-card"><div class="stat-label">周转天数</div><div class="stat-value" style="color:var(--warning);">42天</div><div class="stat-change down">↑ 3天 vs 上月</div></div>
+        </div>
+
+        <!-- 2. 库存周转天数趋势 -->
+        <h3>2. 库存周转天数趋势</h3>
+        <div style="background:#fff;border-radius:8px;padding:16px;border:1px solid var(--border);margin-bottom:16px;">
+          <div style="font-size:13px;font-weight:600;margin-bottom:4px;">近12月周转天数</div>
+          <div style="font-size:11px;color:var(--text-muted);margin-bottom:12px;">单位：天</div>
+          <div style="height:160px;display:flex;align-items:flex-end;gap:8px;padding:0 8px;">
+            <div class="chart-bar"><div class="chart-bar-fill" style="height:100px;background:linear-gradient(180deg,#10B981,#D1FAE5);"></div><div class="chart-bar-label">45</div><div class="chart-bar-label">1月</div></div>
+            <div class="chart-bar"><div class="chart-bar-fill" style="height:90px;background:linear-gradient(180deg,#10B981,#D1FAE5);"></div><div class="chart-bar-label">40</div><div class="chart-bar-label">3月</div></div>
+            <div class="chart-bar"><div class="chart-bar-fill" style="height:80px;background:linear-gradient(180deg,#10B981,#D1FAE5);"></div><div class="chart-bar-label">38</div><div class="chart-bar-label">5月</div></div>
+            <div class="chart-bar"><div class="chart-bar-fill" style="height:85px;background:linear-gradient(180deg,#F59E0B,#FEF3C7);"></div><div class="chart-bar-label">39</div><div class="chart-bar-label">7月</div></div>
+            <div class="chart-bar"><div class="chart-bar-fill" style="height:88px;background:linear-gradient(180deg,#F59E0B,#FEF3C7);"></div><div class="chart-bar-label">40</div><div class="chart-bar-label">9月</div></div>
+            <div class="chart-bar"><div class="chart-bar-fill" style="height:95px;background:linear-gradient(180deg,#EF4444,#FEE2E2);"></div><div class="chart-bar-label">42</div><div class="chart-bar-label">11月</div></div>
+          </div>
+          <div style="display:flex;gap:16px;justify-content:center;margin-top:8px;font-size:11px;">
+            <span><span style="display:inline-block;width:10px;height:10px;background:#10B981;border-radius:2px;margin-right:4px;"></span>健康(&lt;40天)</span>
+            <span><span style="display:inline-block;width:10px;height:10px;background:#F59E0B;border-radius:2px;margin-right:4px;"></span>关注(40-45天)</span>
+            <span><span style="display:inline-block;width:10px;height:10px;background:#EF4444;border-radius:2px;margin-right:4px;"></span>预警(&gt;45天)</span>
+          </div>
+        </div>
+
+        <!-- 3. 库龄分布 -->
+        <h3>3. 库龄分布</h3>
+        <div class="aging-grid" style="margin-bottom:16px;">
+          <div style="background:#fff;border-radius:8px;padding:16px;border:1px solid var(--border);">
+            <div style="font-size:13px;font-weight:600;margin-bottom:12px;">库龄区间分布</div>
+            <div class="aging-bar-row"><span class="aging-bar-label">&lt;30天</span><div class="aging-bar-track"><div class="aging-bar-fill" style="width:55%;background:#10B981;"></div></div><span style="font-weight:600;">55%</span></div>
+            <div class="aging-bar-row"><span class="aging-bar-label">30-60天</span><div class="aging-bar-track"><div class="aging-bar-fill" style="width:20%;background:#34D399;"></div></div><span style="font-weight:600;">20%</span></div>
+            <div class="aging-bar-row"><span class="aging-bar-label">60-90天</span><div class="aging-bar-track"><div class="aging-bar-fill" style="width:12%;background:#FBBF24;"></div></div><span style="font-weight:600;">12%</span></div>
+            <div class="aging-bar-row"><span class="aging-bar-label">90-180天</span><div class="aging-bar-track"><div class="aging-bar-fill" style="width:8%;background:#F97316;"></div></div><span style="font-weight:600;">8%</span></div>
+            <div class="aging-bar-row"><span class="aging-bar-label">180天+</span><div class="aging-bar-track"><div class="aging-bar-fill" style="width:5%;background:#EF4444;"></div></div><span style="font-weight:600;">5%</span></div>
+          </div>
+          <div style="background:#fff;border-radius:8px;padding:16px;border:1px solid var(--border);">
+            <div style="font-size:13px;font-weight:600;margin-bottom:12px;">库龄占比</div>
+            <div class="pie-visual">
+              <div class="pie-circle"></div>
+              <div class="pie-legend">
+                <div class="pie-legend-item"><span class="pie-legend-dot" style="background:#10B981;"></span>&lt;30天 55%</div>
+                <div class="pie-legend-item"><span class="pie-legend-dot" style="background:#F59E0B;"></span>30-60天 20%</div>
+                <div class="pie-legend-item"><span class="pie-legend-dot" style="background:#3B82F6;"></span>60-90天 12%</div>
+                <div class="pie-legend-item"><span class="pie-legend-dot" style="background:#8B5CF6;"></span>90-180天 8%</div>
+                <div class="pie-legend-item"><span class="pie-legend-dot" style="background:#EF4444;"></span>180天+ 5%</div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- 4. 呆滞品预警列表 -->
+        <h3>4. 呆滞品预警列表</h3>
+        <table class="mockup-table" style="margin-bottom:16px;">
+          <thead><tr><th>商品名</th><th>品类</th><th>库存量(箱)</th><th>库龄(天)</th><th>最近出库日期</th><th>预警等级</th></tr></thead>
+          <tbody>
+            <tr><td>古井贡酒年份原浆</td><td>白酒</td><td>85</td><td style="color:var(--danger);font-weight:600;">210</td><td>2026-01-15</td><td><span class="tag tag-danger">🔴 严重</span></td></tr>
+            <tr><td>张裕解百纳干红</td><td>红酒</td><td>62</td><td style="color:var(--warning);font-weight:600;">145</td><td>2026-03-22</td><td><span class="tag tag-warning">🟠 关注</span></td></tr>
+            <tr><td>青岛纯生500ml</td><td>啤酒</td><td>120</td><td style="color:var(--warning);font-weight:600;">95</td><td>2026-05-10</td><td><span class="tag tag-warning">🟡 提醒</span></td></tr>
+          </tbody>
+        </table>
+
+        <!-- 5. 库存价值排行 -->
+        <h3>5. 库存价值排行 TOP20</h3>
+        <table class="mockup-table" style="margin-bottom:16px;">
+          <thead><tr><th>排名</th><th>商品名</th><th>品类</th><th>库存量(箱)</th><th>单价(元)</th><th>库存价值(元)</th><th>占比</th></tr></thead>
+          <tbody>
+            <tr><td>1</td><td>茅台飞天53度</td><td>白酒</td><td>180</td><td class="font-mono">¥15,800</td><td class="text-success font-mono">¥2,844,000</td><td>28.5%</td></tr>
+            <tr><td>2</td><td>五粮液普五</td><td>白酒</td><td>220</td><td class="font-mono">¥7,200</td><td class="text-success font-mono">¥1,584,000</td><td>15.9%</td></tr>
+            <tr><td>3</td><td>国窖1573</td><td>白酒</td><td>150</td><td class="font-mono">¥6,500</td><td class="text-success font-mono">¥975,000</td><td>9.8%</td></tr>
+            <tr><td>4</td><td>剑南春水晶剑</td><td>白酒</td><td>200</td><td class="font-mono">¥3,800</td><td class="text-success font-mono">¥760,000</td><td>7.6%</td></tr>
+            <tr><td>5</td><td>洋河梦之蓝M6</td><td>白酒</td><td>160</td><td class="font-mono">¥4,200</td><td class="text-success font-mono">¥672,000</td><td>6.7%</td></tr>
+          </tbody>
+        </table>
+
+        <!-- 6. 出入库趋势 -->
+        <h3>6. 出入库趋势（近30日）</h3>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:16px;">
+          <div style="background:#fff;border-radius:8px;padding:16px;border:1px solid var(--border);">
+            <div style="font-size:13px;font-weight:600;margin-bottom:12px;">入库数量/金额</div>
+            <div style="height:120px;display:flex;align-items:flex-end;gap:6px;">
+              <div class="chart-bar"><div class="chart-bar-fill" style="height:70px;background:linear-gradient(180deg,#10B981,#D1FAE5);"></div><div class="chart-bar-label">6/25</div></div>
+              <div class="chart-bar"><div class="chart-bar-fill" style="height:90px;background:linear-gradient(180deg,#10B981,#D1FAE5);"></div><div class="chart-bar-label">6/26</div></div>
+              <div class="chart-bar"><div class="chart-bar-fill" style="height:55px;background:linear-gradient(180deg,#10B981,#D1FAE5);"></div><div class="chart-bar-label">6/27</div></div>
+              <div class="chart-bar"><div class="chart-bar-fill" style="height:100px;background:linear-gradient(180deg,#10B981,#D1FAE5);"></div><div class="chart-bar-label">6/28</div></div>
+              <div class="chart-bar"><div class="chart-bar-fill" style="height:80px;background:linear-gradient(180deg,#10B981,#D1FAE5);"></div><div class="chart-bar-label">6/29</div></div>
+              <div class="chart-bar"><div class="chart-bar-fill" style="height:110px;background:linear-gradient(180deg,#10B981,#D1FAE5);"></div><div class="chart-bar-label">6/30</div></div>
+            </div>
+            <div style="display:flex;gap:16px;justify-content:center;margin-top:8px;font-size:11px;">
+              <span><span style="display:inline-block;width:10px;height:10px;background:#10B981;border-radius:2px;margin-right:4px;"></span>入库数量</span>
+              <span><span style="display:inline-block;width:10px;height:10px;background:#065F46;border-radius:2px;margin-right:4px;"></span>入库金额</span>
+            </div>
+          </div>
+          <div style="background:#fff;border-radius:8px;padding:16px;border:1px solid var(--border);">
+            <div style="font-size:13px;font-weight:600;margin-bottom:12px;">出库数量/金额</div>
+            <div style="height:120px;display:flex;align-items:flex-end;gap:6px;">
+              <div class="chart-bar"><div class="chart-bar-fill" style="height:85px;background:linear-gradient(180deg,#EF4444,#FEE2E2);"></div><div class="chart-bar-label">6/25</div></div>
+              <div class="chart-bar"><div class="chart-bar-fill" style="height:60px;background:linear-gradient(180deg,#EF4444,#FEE2E2);"></div><div class="chart-bar-label">6/26</div></div>
+              <div class="chart-bar"><div class="chart-bar-fill" style="height:95px;background:linear-gradient(180deg,#EF4444,#FEE2E2);"></div><div class="chart-bar-label">6/27</div></div>
+              <div class="chart-bar"><div class="chart-bar-fill" style="height:75px;background:linear-gradient(180deg,#EF4444,#FEE2E2);"></div><div class="chart-bar-label">6/28</div></div>
+              <div class="chart-bar"><div class="chart-bar-fill" style="height:100px;background:linear-gradient(180deg,#EF4444,#FEE2E2);"></div><div class="chart-bar-label">6/29</div></div>
+              <div class="chart-bar"><div class="chart-bar-fill" style="height:90px;background:linear-gradient(180deg,#EF4444,#FEE2E2);"></div><div class="chart-bar-label">6/30</div></div>
+            </div>
+            <div style="display:flex;gap:16px;justify-content:center;margin-top:8px;font-size:11px;">
+              <span><span style="display:inline-block;width:10px;height:10px;background:#EF4444;border-radius:2px;margin-right:4px;"></span>出库数量</span>
+              <span><span style="display:inline-block;width:10px;height:10px;background:#991B1B;border-radius:2px;margin-right:4px;"></span>出库金额</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- 7. 安全库存预警 -->
+        <h3>7. 安全库存预警</h3>
+        <table class="mockup-table">
+          <thead><tr><th>商品名</th><th>品类</th><th>当前库存(箱)</th><th>安全库存(箱)</th><th>缺口(箱)</th><th>建议采购量(箱)</th><th>预警等级</th></tr></thead>
+          <tbody>
+            <tr><td>茅台飞天53度</td><td>白酒</td><td style="color:var(--danger);font-weight:600;">18</td><td>50</td><td style="color:var(--danger);">32</td><td>60</td><td><span class="tag tag-danger">🔴 紧急</span></td></tr>
+            <tr><td>百威啤酒330ml</td><td>啤酒</td><td style="color:var(--warning);font-weight:600;">45</td><td>80</td><td style="color:var(--warning);">35</td><td>50</td><td><span class="tag tag-warning">🟠 关注</span></td></tr>
+            <tr><td>张裕解百纳干红</td><td>红酒</td><td style="color:var(--warning);font-weight:600;">28</td><td>40</td><td style="color:var(--warning);">12</td><td>30</td><td><span class="tag tag-warning">🟡 提醒</span></td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ====== Part B: 采购分析 ====== -->
+<div class="section">
+  <h2>二、采购分析</h2>
+  <p class="desc">采购维度深度分析，~25字段，含采购概览、趋势图、供应商排行、品类分析、成本变动、到货时效</p>
+
+  <div class="mockup">
+    <div class="mockup-header">
+      <div class="mockup-logo"><div class="mockup-logo-icon"></div>智享酒水</div>
+      <div class="mockup-nav">
+        <span class="mockup-nav-item">工作台</span>
+        <span class="mockup-nav-item">销售</span>
+        <span class="mockup-nav-item">采购</span>
+        <span class="mockup-nav-item">财务</span>
+        <span class="mockup-nav-item active">报表</span>
+      </div>
+      <div class="mockup-user"><span>林夕</span><div class="mockup-avatar">林</div></div>
+    </div>
+    <div class="mockup-body">
+      <div class="mockup-sidebar">
+        <div class="mockup-sidebar-section">数据报表</div>
+        <div class="mockup-sidebar-item">经营总览</div>
+        <div class="mockup-sidebar-item">销售分析</div>
+        <div class="mockup-sidebar-item">收款分析</div>
+        <div class="mockup-sidebar-item">商品分析</div>
+        <div class="mockup-sidebar-item">客户分析</div>
+        <div class="mockup-sidebar-item">库存分析</div>
+        <div class="mockup-sidebar-item active">采购分析</div>
+        <div class="mockup-sidebar-item">财务分析</div>
+        <div class="mockup-sidebar-item">员工绩效</div>
+      </div>
+      <div class="mockup-main">
+        <div class="mockup-page-title">采购分析</div>
+        <div class="mockup-breadcrumb">报表 &gt; 采购分析</div>
+
+        <!-- 1. 采购概览卡片 -->
+        <h3>1. 采购概览</h3>
+        <div class="stats-row">
+          <div class="stat-card"><div class="stat-label">本月采购总额</div><div class="stat-value" style="color:var(--brand);">¥210,000</div><div class="stat-change up">↑ 8.5% vs 上月</div></div>
+          <div class="stat-card"><div class="stat-label">采购笔数</div><div class="stat-value">32</div><div class="stat-change up">↑ 5笔 vs 上月</div></div>
+          <div class="stat-card"><div class="stat-label">到货率</div><div class="stat-value" style="color:var(--success);">94%</div><div class="stat-change up">↑ 2.1% vs 上月</div></div>
+          <div class="stat-card"><div class="stat-label">采购成本</div><div class="stat-value" style="color:var(--warning);">¥198,400</div><div class="stat-change down">↑ 6.8% vs 上月</div></div>
+          <div class="stat-card"><div class="stat-label">供应商数</div><div class="stat-value">18</div><div class="stat-change up">↑ 2家 新增</div></div>
+        </div>
+
+        <!-- 2. 采购趋势图 -->
+        <h3>2. 采购趋势（近12月）</h3>
+        <div style="background:#fff;border-radius:8px;padding:16px;border:1px solid var(--border);margin-bottom:16px;">
+          <div style="font-size:13px;font-weight:600;margin-bottom:4px;">采购金额 &amp; 笔数趋势</div>
+          <div style="font-size:11px;color:var(--text-muted);margin-bottom:12px;">单位：万元 / 笔</div>
+          <div style="height:160px;display:flex;align-items:flex-end;gap:8px;padding:0 8px;">
+            <div class="chart-bar"><div class="chart-bar-fill" style="height:95px;background:linear-gradient(180deg,#10B981,#D1FAE5);"></div><div style="width:70%;height:6px;border-radius:3px;background:#065F46;margin-top:2px;"></div><div class="chart-bar-label">18.5万</div><div class="chart-bar-label">1月</div></div>
+            <div class="chart-bar"><div class="chart-bar-fill" style="height:80px;background:linear-gradient(180deg,#10B981,#D1FAE5);"></div><div style="width:60%;height:6px;border-radius:3px;background:#065F46;margin-top:2px;"></div><div class="chart-bar-label">16.2万</div><div class="chart-bar-label">3月</div></div>
+            <div class="chart-bar"><div class="chart-bar-fill" style="height:105px;background:linear-gradient(180deg,#10B981,#D1FAE5);"></div><div style="width:80%;height:6px;border-radius:3px;background:#065F46;margin-top:2px;"></div><div class="chart-bar-label">20.0万</div><div class="chart-bar-label">5月</div></div>
+            <div class="chart-bar"><div class="chart-bar-fill" style="height:90px;background:linear-gradient(180deg,#10B981,#D1FAE5);"></div><div style="width:65%;height:6px;border-radius:3px;background:#065F46;margin-top:2px;"></div><div class="chart-bar-label">17.8万</div><div class="chart-bar-label">7月</div></div>
+            <div class="chart-bar"><div class="chart-bar-fill" style="height:100px;background:linear-gradient(180deg,#10B981,#D1FAE5);"></div><div style="width:75%;height:6px;border-radius:3px;background:#065F46;margin-top:2px;"></div><div class="chart-bar-label">19.5万</div><div class="chart-bar-label">9月</div></div>
+            <div class="chart-bar"><div class="chart-bar-fill" style="height:110px;background:linear-gradient(180deg,#10B981,#D1FAE5);"></div><div style="width:85%;height:6px;border-radius:3px;background:#065F46;margin-top:2px;"></div><div class="chart-bar-label">21.0万</div><div class="chart-bar-label">11月</div></div>
+          </div>
+          <div style="display:flex;gap:16px;justify-content:center;margin-top:8px;font-size:11px;">
+            <span><span style="display:inline-block;width:10px;height:10px;background:#10B981;border-radius:2px;margin-right:4px;"></span>采购金额</span>
+            <span><span style="display:inline-block;width:10px;height:10px;background:#065F46;border-radius:2px;margin-right:4px;"></span>采购笔数</span>
+          </div>
+        </div>
+
+        <!-- 3. 供应商采购排行TOP10 -->
+        <h3>3. 供应商采购排行 TOP10</h3>
+        <table class="mockup-table" style="margin-bottom:16px;">
+          <thead><tr><th>排名</th><th>供应商名</th><th>采购金额(元)</th><th>采购笔数</th><th>占比</th><th>到货率</th></tr></thead>
+          <tbody>
+            <tr><td>1</td><td>茅台集团供应链</td><td class="font-mono">¥850,000</td><td>12</td><td>28.3%</td><td><span class="tag tag-success">98%</span></td></tr>
+            <tr><td>2</td><td>五粮液酒业有限公司</td><td class="font-mono">¥520,000</td><td>8</td><td>17.3%</td><td><span class="tag tag-success">96%</span></td></tr>
+            <tr><td>3</td><td>华润雪花啤酒</td><td class="font-mono">¥380,000</td><td>15</td><td>12.7%</td><td><span class="tag tag-success">95%</span></td></tr>
+            <tr><td>4</td><td>张裕葡萄酒股份</td><td class="font-mono">¥280,000</td><td>6</td><td>9.3%</td><td><span class="tag tag-warning">88%</span></td></tr>
+            <tr><td>5</td><td>泸州老窖股份</td><td class="font-mono">¥210,000</td><td>5</td><td>7.0%</td><td><span class="tag tag-success">97%</span></td></tr>
+          </tbody>
+        </table>
+
+        <!-- 4. 品类采购分析 -->
+        <h3>4. 品类采购分析</h3>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:16px;">
+          <div style="background:#fff;border-radius:8px;padding:16px;border:1px solid var(--border);">
+            <div style="font-size:13px;font-weight:600;margin-bottom:12px;">品类采购金额占比</div>
+            <div class="pie-visual">
+              <div class="pie-circle" style="background:conic-gradient(#10B981 0% 50%, #F59E0B 50% 72%, #3B82F6 72% 90%, #8B5CF6 90% 100%);"></div>
+              <div class="pie-legend">
+                <div class="pie-legend-item"><span class="pie-legend-dot" style="background:#10B981;"></span>白酒 50%</div>
+                <div class="pie-legend-item"><span class="pie-legend-dot" style="background:#F59E0B;"></span>啤酒 22%</div>
+                <div class="pie-legend-item"><span class="pie-legend-dot" style="background:#3B82F6;"></span>红酒 18%</div>
+                <div class="pie-legend-item"><span class="pie-legend-dot" style="background:#8B5CF6;"></span>其他 10%</div>
+              </div>
+            </div>
+          </div>
+          <div style="background:#fff;border-radius:8px;padding:16px;border:1px solid var(--border);">
+            <div style="font-size:13px;font-weight:600;margin-bottom:12px;">品类采购金额明细</div>
+            <div class="aging-bar-row"><span class="aging-bar-label">白酒</span><div class="aging-bar-track"><div class="aging-bar-fill" style="width:50%;background:#10B981;"></div></div><span style="font-weight:600;">¥1,500,000</span></div>
+            <div class="aging-bar-row"><span class="aging-bar-label">啤酒</span><div class="aging-bar-track"><div class="aging-bar-fill" style="width:22%;background:#F59E0B;"></div></div><span style="font-weight:600;">¥660,000</span></div>
+            <div class="aging-bar-row"><span class="aging-bar-label">红酒</span><div class="aging-bar-track"><div class="aging-bar-fill" style="width:18%;background:#3B82F6;"></div></div><span style="font-weight:600;">¥540,000</span></div>
+            <div class="aging-bar-row"><span class="aging-bar-label">其他</span><div class="aging-bar-track"><div class="aging-bar-fill" style="width:10%;background:#8B5CF6;"></div></div><span style="font-weight:600;">¥300,000</span></div>
+          </div>
+        </div>
+
+        <!-- 5. 采购成本变动 -->
+        <h3>5. 采购成本变动</h3>
+        <div style="background:#fff;border-radius:8px;padding:16px;border:1px solid var(--border);margin-bottom:16px;">
+          <div style="font-size:13px;font-weight:600;margin-bottom:4px;">主要商品采购单价趋势（近6月）</div>
+          <div style="font-size:11px;color:var(--text-muted);margin-bottom:12px;">单位：元/箱</div>
+          <div style="height:140px;display:flex;align-items:flex-end;gap:10px;padding:0 8px;">
+            <div class="chart-bar"><div class="chart-bar-fill" style="height:90px;background:linear-gradient(180deg,#10B981,#D1FAE5);"></div><div class="chart-bar-label">¥15,200</div><div class="chart-bar-label">1月</div></div>
+            <div class="chart-bar"><div class="chart-bar-fill" style="height:93px;background:linear-gradient(180deg,#10B981,#D1FAE5);"></div><div class="chart-bar-label">¥15,500</div><div class="chart-bar-label">2月</div></div>
+            <div class="chart-bar"><div class="chart-bar-fill" style="height:96px;background:linear-gradient(180deg,#10B981,#D1FAE5);"></div><div class="chart-bar-label">¥15,800</div><div class="chart-bar-label">3月</div></div>
+            <div class="chart-bar"><div class="chart-bar-fill" style="height:98px;background:linear-gradient(180deg,#F59E0B,#FEF3C7);"></div><div class="chart-bar-label">¥16,000</div><div class="chart-bar-label">4月</div></div>
+            <div class="chart-bar"><div class="chart-bar-fill" style="height:100px;background:linear-gradient(180deg,#F59E0B,#FEF3C7);"></div><div class="chart-bar-label">¥16,200</div><div class="chart-bar-label">5月</div></div>
+            <div class="chart-bar"><div class="chart-bar-fill" style="height:100px;background:linear-gradient(180deg,#EF4444,#FEE2E2);"></div><div class="chart-bar-label">¥16,200</div><div class="chart-bar-label">6月</div></div>
+          </div>
+          <div style="display:flex;gap:16px;justify-content:center;margin-top:8px;font-size:11px;">
+            <span><span style="display:inline-block;width:10px;height:10px;background:#10B981;border-radius:2px;margin-right:4px;"></span>茅台飞天53度</span>
+            <span><span style="display:inline-block;width:10px;height:10px;background:#F59E0B;border-radius:2px;margin-right:4px;"></span>五粮液普五</span>
+            <span><span style="display:inline-block;width:10px;height:10px;background:#EF4444;border-radius:2px;margin-right:4px;"></span>国窖1573</span>
+          </div>
+        </div>
+
+        <!-- 6. 采购到货时效 -->
+        <h3>6. 采购到货时效</h3>
+        <div style="background:#fff;border-radius:8px;padding:16px;border:1px solid var(--border);margin-bottom:16px;">
+          <div style="font-size:13px;font-weight:600;margin-bottom:4px;">下单到到货平均天数趋势</div>
+          <div style="font-size:11px;color:var(--text-muted);margin-bottom:12px;">单位：天</div>
+          <div style="height:140px;display:flex;align-items:flex-end;gap:8px;padding:0 8px;">
+            <div class="chart-bar"><div class="chart-bar-fill" style="height:80px;background:linear-gradient(180deg,#10B981,#D1FAE5);"></div><div class="chart-bar-label">3.2天</div><div class="chart-bar-label">1月</div></div>
+            <div class="chart-bar"><div class="chart-bar-fill" style="height:70px;background:linear-gradient(180deg,#10B981,#D1FAE5);"></div><div class="chart-bar-label">2.8天</div><div class="chart-bar-label">3月</div></div>
+            <div class="chart-bar"><div class="chart-bar-fill" style="height:85px;background:linear-gradient(180deg,#F59E0B,#FEF3C7);"></div><div class="chart-bar-label">3.5天</div><div class="chart-bar-label">5月</div></div>
+            <div class="chart-bar"><div class="chart-bar-fill" style="height:75px;background:linear-gradient(180deg,#10B981,#D1FAE5);"></div><div class="chart-bar-label">3.0天</div><div class="chart-bar-label">7月</div></div>
+            <div class="chart-bar"><div class="chart-bar-fill" style="height:60px;background:linear-gradient(180deg,#10B981,#D1FAE5);"></div><div class="chart-bar-label">2.5天</div><div class="chart-bar-label">9月</div></div>
+            <div class="chart-bar"><div class="chart-bar-fill" style="height:65px;background:linear-gradient(180deg,#10B981,#D1FAE5);"></div><div class="chart-bar-label">2.7天</div><div class="chart-bar-label">11月</div></div>
+          </div>
+          <div style="display:flex;gap:16px;justify-content:center;margin-top:8px;font-size:11px;">
+            <span><span style="display:inline-block;width:10px;height:10px;background:#10B981;border-radius:2px;margin-right:4px;"></span>平均到货天数</span>
+            <span style="color:var(--text-muted);">目标：≤3天</span>
+          </div>
+        </div>
+
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ====== 字段规范 ====== -->
+<div class="section">
+  <h2>三、字段规范</h2>
+  <table class="spec-table">
+    <thead><tr><th>字段</th><th>类型</th><th>示例</th><th>说明</th></tr></thead>
+    <tbody>
+      <tr><td><code>inventory_total</code></td><td>decimal(14,2)</td><td>2860000.00</td><td>库存总额（元）</td></tr>
+      <tr><td><code>total_boxes</code></td><td>int</td><td>3200</td><td>库存总量（箱）</td></tr>
+      <tr><td><code>sku_count</code></td><td>int</td><td>1280</td><td>库存SKU数</td></tr>
+      <tr><td><code>dead_stock_count</code></td><td>int</td><td>45</td><td>呆滞品数量</td></tr>
+      <tr><td><code>turnover_days</code></td><td>int</td><td>42</td><td>库存周转天数</td></tr>
+      <tr><td><code>aging_distribution</code></td><td>json</td><td>{"lt30":55,"30-60":20,...}</td><td>库龄区间分布（%）</td></tr>
+      <tr><td><code>dead_stock_warning_level</code></td><td>enum</td><td>red/orange/yellow</td><td>呆滞品预警等级</td></tr>
+      <tr><td><code>safety_stock_gap</code></td><td>int</td><td>32</td><td>安全库存缺口（箱）</td></tr>
+      <tr><td><code>inbound_qty</code></td><td>int</td><td>120</td><td>入库数量（箱）</td></tr>
+      <tr><td><code>outbound_qty</code></td><td>int</td><td>95</td><td>出库数量（箱）</td></tr>
+      <tr><td><code>purchase_total</code></td><td>decimal(14,2)</td><td>210000.00</td><td>本月采购总额（元）</td></tr>
+      <tr><td><code>purchase_count</code></td><td>int</td><td>32</td><td>采购笔数</td></tr>
+      <tr><td><code>delivery_rate</code></td><td>decimal(5,2)</td><td>94.00</td><td>到货率（%）</td></tr>
+      <tr><td><code>purchase_cost</code></td><td>decimal(14,2)</td><td>198400.00</td><td>采购成本（元）</td></tr>
+      <tr><td><code>supplier_count</code></td><td>int</td><td>18</td><td>供应商数量</td></tr>
+      <tr><td><code>supplier_ranking</code></td><td>json[]</td><td>[{name,amount,rate}]</td><td>供应商采购排行</td></tr>
+      <tr><td><code>category_purchase_ratio</code></td><td>json</td><td>{"白酒":50,"啤酒":22,...}</td><td>品类采购占比</td></tr>
+      <tr><td><code>unit_price_trend</code></td><td>json</td><td>[{month,price}]</td><td>采购单价趋势</td></tr>
+      <tr><td><code>avg_delivery_days</code></td><td>decimal(4,1)</td><td>2.7</td><td>平均到货天数</td></tr>
+    </tbody>
+  </table>
+</div>
+
+<!-- ====== 验收标准 ====== -->
+<div class="section">
+  <h2>四、验收标准</h2>
+  <ul class="checklist">
+    <li>库存概览：5个概要卡片（库存总额/总量/SKU数/呆滞品/周转天数），含环比变化箭头</li>
+    <li>库存周转天数趋势：近12月折线/柱状图，按健康/关注/预警三级颜色区分</li>
+    <li>库龄分布：堆叠横向柱状图 + 饼图双视图，5个库龄区间清晰可辨</li>
+    <li>呆滞品预警列表：表格含商品名/品类/库存量/库龄/最近出库日期/预警等级（红/橙/黄三级）</li>
+    <li>库存价值排行TOP20：按库存价值降序排列，含占比列</li>
+    <li>出入库趋势：近30日入库/出库数量+金额双轴图，分左右面板展示</li>
+    <li>安全库存预警：低于安全库存商品列表，缺口列+建议采购量，红/橙/黄三级预警</li>
+    <li>采购概览：5个概要卡片（采购总额/笔数/到货率/采购成本/供应商数）</li>
+    <li>采购趋势图：近12月采购金额+笔数双轴图</li>
+    <li>供应商排行TOP10：含采购金额/笔数/占比/到货率，到货率用tag标注</li>
+    <li>品类采购分析：饼图+横向柱状图双视图，四品类（白酒/啤酒/红酒/其他）</li>
+    <li>采购成本变动+到货时效：主要商品价格趋势折线图 + 到货天数柱状图</li>
+  </ul>
+</div>
+
+</div>
+
+<div style="text-align:center;padding:40px;color:var(--text-muted);font-size:13px;">
+  <p>库存分析+采购分析 · 智享酒水库存系统</p>
+  <p>林夕 · UI/UX Designer · 2026-06-30</p>
+</div>
+
+</body>
+</html>

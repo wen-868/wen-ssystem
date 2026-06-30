@@ -5,6 +5,9 @@ import * as customerReportController from "../controllers/admin/report/customer-
 import * as productReportController from "../controllers/admin/report/product-report.controller.js";
 import * as financeReportController from "../controllers/admin/report/finance-report.controller.js";
 import * as staffReportController from "../controllers/admin/report/staff-report.controller.js";
+import * as reportCollectionController from "../controllers/admin/report-collection.controller.js";
+import * as reportCustomerController from "../controllers/admin/report-customer.controller.js";
+import * as reportExportController from "../controllers/admin/report-export.controller.js";
 
 export const reportRouter = Router();
 
@@ -31,3 +34,21 @@ reportRouter.get("/profit", requireAuthWithTenant, financeReportController.getPr
 
 // 员工报表
 reportRouter.get("/staff-performance", requireAuthWithTenant, staffReportController.getStaffPerformanceRanking);
+
+// ==================== Phase 9: 收款报表 ====================
+reportRouter.get("/collection/funnel", requireAuthWithTenant, reportCollectionController.getCollectionFunnel);
+reportRouter.get("/collection/channel-conversion", requireAuthWithTenant, reportCollectionController.getChannelConversion);
+reportRouter.get("/collection/timeout", requireAuthWithTenant, reportCollectionController.getCollectionTimeout);
+reportRouter.get("/collection/daily-trend", requireAuthWithTenant, reportCollectionController.getCollectionDailyTrend);
+reportRouter.get("/collection/summary", requireAuthWithTenant, reportCollectionController.getCollectionSummary);
+
+// ==================== Phase 9: 客户分析报表 ====================
+reportRouter.get("/customer/repurchase", requireAuthWithTenant, reportCustomerController.getRepurchaseAnalysis);
+reportRouter.get("/customer/avg-order-value", requireAuthWithTenant, reportCustomerController.getAvgOrderValueDistribution);
+reportRouter.get("/customer/rfm", requireAuthWithTenant, reportCustomerController.getRFMAnalysis);
+reportRouter.get("/customer/contribution-ranking", requireAuthWithTenant, reportCustomerController.getCustomerContributionRanking);
+reportRouter.get("/customer/new-customer-trend", requireAuthWithTenant, reportCustomerController.getNewCustomerTrend);
+reportRouter.get("/customer/lost-customer", requireAuthWithTenant, reportCustomerController.getLostCustomerAnalysis);
+
+// ==================== Phase 9: 报表导出 ====================
+reportRouter.post("/export", requireAuthWithTenant, reportExportController.exportReport);

@@ -1,0 +1,661 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>24 - 财务分析+员工绩效 | 智享酒水库存系统</title>
+<style>
+:root {
+  --brand: #8B5CF6; --brand-light: #EDE9FE; --text: #1F2328; --text-secondary: #4B5563; --text-muted: #9CA3AF;
+  --border: #E5E7EB; --bg: #F5F7FA; --white: #FFF; --success: #10B981; --warning: #F59E0B; --danger: #EF4444;
+  --radius: 12px; --shadow: 0 2px 8px rgba(0,0,0,.06);
+}
+* { margin: 0; padding: 0; box-sizing: border-box; }
+body { font-family: -apple-system, BlinkMacSystemFont, 'PingFang SC', 'Microsoft YaHei', sans-serif; background: var(--bg); color: var(--text); line-height: 1.6; }
+.container { max-width: 1300px; margin: 0 auto; padding: 40px 24px; }
+.header { background: linear-gradient(135deg, #8B5CF6, #6D28D9); color: #fff; padding: 48px 24px; text-align: center; }
+.header h1 { font-size: 2rem; font-weight: 700; margin-bottom: 8px; }
+.header p { font-size: 1rem; opacity: .85; }
+.section { background: var(--white); border-radius: var(--radius); padding: 32px; margin-bottom: 24px; box-shadow: var(--shadow); }
+.section h2 { font-size: 1.25rem; color: var(--brand); margin-bottom: 8px; padding-bottom: 12px; border-bottom: 2px solid var(--brand-light); }
+.section h3 { font-size: 1.05rem; margin: 20px 0 10px; }
+.section p.desc { color: var(--text-secondary); margin-bottom: 16px; font-size: .88rem; }
+
+.mockup { border: 1px solid var(--border); border-radius: var(--radius); overflow: hidden; background: #fff; margin: 16px 0; }
+.mockup-header { background: #fff; border-bottom: 1px solid #F0F0F0; padding: 0 20px; height: 56px; display: flex; align-items: center; justify-content: space-between; }
+.mockup-logo { font-size: 16px; font-weight: 700; color: var(--brand); display: flex; align-items: center; gap: 8px; }
+.mockup-logo-icon { width: 28px; height: 28px; background: linear-gradient(135deg, #8B5CF6, #6D28D9); border-radius: 6px; }
+.mockup-nav { display: flex; gap: 4px; }
+.mockup-nav-item { padding: 6px 14px; border-radius: 6px; font-size: 13px; color: var(--text-secondary); }
+.mockup-nav-item.active { background: var(--brand-light); color: var(--brand); font-weight: 500; }
+.mockup-user { display: flex; align-items: center; gap: 8px; font-size: 13px; }
+.mockup-avatar { width: 32px; height: 32px; border-radius: 50%; background: var(--brand); display: flex; align-items: center; justify-content: center; color: #fff; font-size: 13px; font-weight: 600; }
+.mockup-body { display: flex; }
+.mockup-sidebar { width: 220px; background: #fff; border-right: 1px solid #F0F0F0; padding: 16px 0; min-height: 520px; }
+.mockup-sidebar-item { padding: 10px 20px; font-size: 13px; color: var(--text-secondary); }
+.mockup-sidebar-item.active { background: var(--brand-light); color: var(--brand); font-weight: 500; border-right: 3px solid var(--brand); }
+.mockup-sidebar-section { font-size: 11px; color: var(--text-muted); padding: 16px 20px 6px; font-weight: 600; text-transform: uppercase; }
+.mockup-main { flex: 1; padding: 20px 24px; background: var(--bg); }
+.mockup-page-title { font-size: 20px; font-weight: 700; margin-bottom: 4px; }
+.mockup-breadcrumb { font-size: 12px; color: var(--text-muted); margin-bottom: 12px; }
+.tag { padding: 2px 8px; border-radius: 4px; font-size: 11px; font-weight: 500; white-space: nowrap; }
+.tag-success { background: #D1FAE5; color: #065F46; }
+.tag-warning { background: #FEF3C7; color: #92400E; }
+.tag-danger { background: #FEE2E2; color: #991B1B; }
+.tag-info { background: #DBEAFE; color: #1E40AF; }
+
+.mockup-table { width: 100%; border-collapse: collapse; font-size: 12px; }
+.mockup-table th { background: #F8FAFC; padding: 10px 12px; text-align: left; font-weight: 600; color: var(--text-secondary); border-bottom: 1px solid var(--border); font-size: 11px; }
+.mockup-table td { padding: 10px 12px; border-bottom: 1px solid #F0F0F0; }
+.mockup-table tr:hover td { background: #F8FAFC; }
+
+.spec-table { width: 100%; border-collapse: collapse; margin: 16px 0; }
+.spec-table th, .spec-table td { padding: 10px 14px; text-align: left; border-bottom: 1px solid var(--border); font-size: .85rem; }
+.spec-table th { background: var(--brand-light); color: var(--brand); font-weight: 600; font-size: .8rem; }
+.spec-table code { background: #F1F5F9; padding: 2px 6px; border-radius: 4px; font-size: .82rem; }
+
+.stats-row { display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px; margin-bottom: 20px; }
+.stat-card { background: #fff; border-radius: 8px; padding: 18px; border: 1px solid var(--border); display: flex; flex-direction: column; gap: 8px; }
+.stat-card .stat-label { font-size: 12px; color: var(--text-muted); }
+.stat-card .stat-value { font-size: 28px; font-weight: 700; }
+.stat-card .stat-change { font-size: 11px; }
+.stat-card .stat-change.up { color: var(--success); }
+.stat-card .stat-change.down { color: var(--danger); }
+.stat-card .stat-icon { width: 40px; height: 40px; border-radius: 8px; display: flex; align-items: center; justify-content: center; font-size: 18px; }
+
+.btn { display: inline-flex; align-items: center; gap: 4px; padding: 6px 14px; border-radius: 6px; font-size: 12px; font-weight: 500; cursor: pointer; border: none; font-family: inherit; }
+.btn-primary { background: var(--brand); color: #fff; }
+.btn-default { background: #fff; color: var(--text); border: 1px solid var(--border); }
+.btn-sm { padding: 4px 10px; font-size: 11px; }
+
+.checklist { list-style: none; padding: 0; }
+.checklist li { padding: 8px 0; font-size: .88rem; display: flex; align-items: flex-start; gap: 8px; }
+.checklist li::before { content: '☐'; color: var(--brand); font-size: 1rem; flex-shrink: 0; }
+
+.text-success { color: var(--success); }
+.text-danger { color: var(--danger); }
+.text-warning { color: var(--warning); }
+.font-mono { font-family: 'SF Mono', 'Consolas', monospace; }
+.text-right { text-align: right; }
+</style>
+</head>
+<body>
+
+<div class="header">
+  <h1>24 · 财务分析 + 员工绩效</h1>
+  <p>管理后台 — 财务和员工维度分析 | 数据报表模块</p>
+</div>
+
+<div class="container">
+
+<!-- ====== Part A: 财务分析 ====== -->
+<div class="section">
+  <h2>一、财务分析</h2>
+  <p class="desc">财务综合概览，~30字段，含利润趋势、收支结构、现金流、应收应付等</p>
+
+  <div class="mockup">
+    <div class="mockup-header">
+      <div class="mockup-logo"><div class="mockup-logo-icon"></div>智享酒水</div>
+      <div class="mockup-nav">
+        <span class="mockup-nav-item">工作台</span>
+        <span class="mockup-nav-item">销售</span>
+        <span class="mockup-nav-item">采购</span>
+        <span class="mockup-nav-item">财务</span>
+        <span class="mockup-nav-item active">报表</span>
+      </div>
+      <div class="mockup-user"><span>林夕</span><div class="mockup-avatar">林</div></div>
+    </div>
+    <div class="mockup-body">
+      <div class="mockup-sidebar">
+        <div class="mockup-sidebar-section">数据报表</div>
+        <div class="mockup-sidebar-item">经营总览</div>
+        <div class="mockup-sidebar-item">销售分析</div>
+        <div class="mockup-sidebar-item">收款分析</div>
+        <div class="mockup-sidebar-item">商品分析</div>
+        <div class="mockup-sidebar-item">客户分析</div>
+        <div class="mockup-sidebar-item">库存分析</div>
+        <div class="mockup-sidebar-item">采购分析</div>
+        <div class="mockup-sidebar-item active">财务分析</div>
+        <div class="mockup-sidebar-item">员工绩效</div>
+      </div>
+      <div class="mockup-main">
+        <div class="mockup-page-title">财务分析</div>
+        <div class="mockup-breadcrumb">报表 &gt; 财务分析</div>
+        <div style="display:flex;gap:4px;margin-bottom:12px;background:#fff;padding:4px;border-radius:8px;width:fit-content;">
+          <span style="padding:6px 16px;background:var(--brand);color:#fff;border-radius:6px;font-size:12px;font-weight:500;">本月</span>
+          <span style="padding:6px 16px;color:var(--text-secondary);border-radius:6px;font-size:12px;">本季</span>
+          <span style="padding:6px 16px;color:var(--text-secondary);border-radius:6px;font-size:12px;">本年</span>
+        </div>
+
+        <!-- 1. 财务概览卡片 -->
+        <div class="stats-row" style="grid-template-columns:repeat(3,1fr);">
+          <div class="stat-card"><div class="stat-label">本月收入</div><div class="stat-value" style="color:var(--brand);">¥486,500</div><div class="stat-change up">↑ 12.5% vs 上月</div></div>
+          <div class="stat-card"><div class="stat-label">本月支出</div><div class="stat-value" style="color:var(--danger);">¥236,900</div><div class="stat-change down">↓ 8.3% vs 上月</div></div>
+          <div class="stat-card"><div class="stat-label">净利润</div><div class="stat-value" style="color:var(--success);">¥249,600</div><div class="stat-change up">↑ 18.6% vs 上月</div></div>
+        </div>
+        <div class="stats-row" style="grid-template-columns:repeat(3,1fr);">
+          <div class="stat-card"><div class="stat-label">利润率</div><div class="stat-value" style="color:var(--warning);">51.3%</div><div class="stat-change up">↑ 3.2pp vs 上月</div></div>
+          <div class="stat-card"><div class="stat-label">应收余额</div><div class="stat-value" style="color:var(--warning);">¥133,700</div><div class="stat-change up">↑ 5.1% vs 上月</div></div>
+          <div class="stat-card"><div class="stat-label">应付余额</div><div class="stat-value" style="color:var(--danger);">¥85,600</div><div class="stat-change down">↓ 2.8% vs 上月</div></div>
+        </div>
+
+        <!-- 2. 利润趋势图 -->
+        <div style="background:#fff;border-radius:8px;padding:16px;border:1px solid var(--border);margin-bottom:16px;">
+          <div style="font-size:13px;font-weight:600;margin-bottom:12px;">利润趋势（近12月）</div>
+          <div style="display:grid;grid-template-columns:repeat(6,1fr);gap:6px;margin-bottom:8px;">
+            <div style="flex:1;display:flex;flex-direction:column;align-items:center;gap:2px;">
+              <div style="display:flex;gap:2px;align-items:flex-end;height:100px;">
+                <div style="width:14px;height:72px;background:linear-gradient(180deg,#8B5CF6,#EDE9FE);border-radius:2px 2px 0 0;"></div>
+                <div style="width:14px;height:45px;background:linear-gradient(180deg,#EF4444,#FEE2E2);border-radius:2px 2px 0 0;"></div>
+                <div style="width:14px;height:28px;background:linear-gradient(180deg,#F59E0B,#FEF3C7);border-radius:2px 2px 0 0;"></div>
+                <div style="width:14px;height:15px;background:linear-gradient(180deg,#10B981,#D1FAE5);border-radius:2px 2px 0 0;"></div>
+              </div>
+              <div style="font-size:10px;color:var(--text-muted);">1月</div>
+            </div>
+            <div style="flex:1;display:flex;flex-direction:column;align-items:center;gap:2px;">
+              <div style="display:flex;gap:2px;align-items:flex-end;height:100px;">
+                <div style="width:14px;height:68px;background:linear-gradient(180deg,#8B5CF6,#EDE9FE);border-radius:2px 2px 0 0;"></div>
+                <div style="width:14px;height:42px;background:linear-gradient(180deg,#EF4444,#FEE2E2);border-radius:2px 2px 0 0;"></div>
+                <div style="width:14px;height:26px;background:linear-gradient(180deg,#F59E0B,#FEF3C7);border-radius:2px 2px 0 0;"></div>
+                <div style="width:14px;height:14px;background:linear-gradient(180deg,#10B981,#D1FAE5);border-radius:2px 2px 0 0;"></div>
+              </div>
+              <div style="font-size:10px;color:var(--text-muted);">2月</div>
+            </div>
+            <div style="flex:1;display:flex;flex-direction:column;align-items:center;gap:2px;">
+              <div style="display:flex;gap:2px;align-items:flex-end;height:100px;">
+                <div style="width:14px;height:85px;background:linear-gradient(180deg,#8B5CF6,#EDE9FE);border-radius:2px 2px 0 0;"></div>
+                <div style="width:14px;height:50px;background:linear-gradient(180deg,#EF4444,#FEE2E2);border-radius:2px 2px 0 0;"></div>
+                <div style="width:14px;height:30px;background:linear-gradient(180deg,#F59E0B,#FEF3C7);border-radius:2px 2px 0 0;"></div>
+                <div style="width:14px;height:18px;background:linear-gradient(180deg,#10B981,#D1FAE5);border-radius:2px 2px 0 0;"></div>
+              </div>
+              <div style="font-size:10px;color:var(--text-muted);">3月</div>
+            </div>
+            <div style="flex:1;display:flex;flex-direction:column;align-items:center;gap:2px;">
+              <div style="display:flex;gap:2px;align-items:flex-end;height:100px;">
+                <div style="width:14px;height:90px;background:linear-gradient(180deg,#8B5CF6,#EDE9FE);border-radius:2px 2px 0 0;"></div>
+                <div style="width:14px;height:55px;background:linear-gradient(180deg,#EF4444,#FEE2E2);border-radius:2px 2px 0 0;"></div>
+                <div style="width:14px;height:32px;background:linear-gradient(180deg,#F59E0B,#FEF3C7);border-radius:2px 2px 0 0;"></div>
+                <div style="width:14px;height:20px;background:linear-gradient(180deg,#10B981,#D1FAE5);border-radius:2px 2px 0 0;"></div>
+              </div>
+              <div style="font-size:10px;color:var(--text-muted);">4月</div>
+            </div>
+            <div style="flex:1;display:flex;flex-direction:column;align-items:center;gap:2px;">
+              <div style="display:flex;gap:2px;align-items:flex-end;height:100px;">
+                <div style="width:14px;height:100px;background:linear-gradient(180deg,#8B5CF6,#EDE9FE);border-radius:2px 2px 0 0;"></div>
+                <div style="width:14px;height:60px;background:linear-gradient(180deg,#EF4444,#FEE2E2);border-radius:2px 2px 0 0;"></div>
+                <div style="width:14px;height:35px;background:linear-gradient(180deg,#F59E0B,#FEF3C7);border-radius:2px 2px 0 0;"></div>
+                <div style="width:14px;height:22px;background:linear-gradient(180deg,#10B981,#D1FAE5);border-radius:2px 2px 0 0;"></div>
+              </div>
+              <div style="font-size:10px;color:var(--text-muted);">5月</div>
+            </div>
+            <div style="flex:1;display:flex;flex-direction:column;align-items:center;gap:2px;">
+              <div style="display:flex;gap:2px;align-items:flex-end;height:100px;">
+                <div style="width:14px;height:95px;background:linear-gradient(180deg,#8B5CF6,#EDE9FE);border-radius:2px 2px 0 0;"></div>
+                <div style="width:14px;height:58px;background:linear-gradient(180deg,#EF4444,#FEE2E2);border-radius:2px 2px 0 0;"></div>
+                <div style="width:14px;height:33px;background:linear-gradient(180deg,#F59E0B,#FEF3C7);border-radius:2px 2px 0 0;"></div>
+                <div style="width:14px;height:20px;background:linear-gradient(180deg,#10B981,#D1FAE5);border-radius:2px 2px 0 0;"></div>
+              </div>
+              <div style="font-size:10px;color:var(--text-muted);">6月</div>
+            </div>
+          </div>
+          <div style="display:flex;gap:16px;justify-content:center;margin-top:8px;font-size:11px;flex-wrap:wrap;">
+            <span><span style="display:inline-block;width:10px;height:10px;background:#8B5CF6;border-radius:2px;margin-right:4px;"></span>收入</span>
+            <span><span style="display:inline-block;width:10px;height:10px;background:#EF4444;border-radius:2px;margin-right:4px;"></span>成本</span>
+            <span><span style="display:inline-block;width:10px;height:10px;background:#F59E0B;border-radius:2px;margin-right:4px;"></span>费用</span>
+            <span><span style="display:inline-block;width:10px;height:10px;background:#10B981;border-radius:2px;margin-right:4px;"></span>利润</span>
+          </div>
+        </div>
+
+        <!-- 3. 收入结构 + 支出结构 -->
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:16px;">
+          <div style="background:#fff;border-radius:8px;padding:16px;border:1px solid var(--border);">
+            <div style="font-size:13px;font-weight:600;margin-bottom:12px;">收入结构分析</div>
+            <div style="display:flex;flex-direction:column;gap:10px;font-size:12px;">
+              <div style="display:flex;align-items:center;gap:8px;"><div style="width:8px;height:8px;border-radius:50%;background:#8B5CF6;"></div><span style="flex:1;">销售收入</span><span style="font-weight:600;">¥462,175 (95%)</span></div>
+              <div style="display:flex;align-items:center;gap:8px;"><div style="width:8px;height:8px;border-radius:50%;background:#10B981;"></div><span style="flex:1;">其他收入</span><span style="font-weight:600;">¥24,325 (5%)</span></div>
+            </div>
+            <div style="margin-top:12px;display:flex;align-items:center;gap:8px;">
+              <div style="width:90px;height:90px;border-radius:50%;background:conic-gradient(#8B5CF6 0% 95%, #10B981 95% 100%);"></div>
+              <div style="font-size:11px;color:var(--text-muted);">销售收入为主，涵盖白酒、啤酒、红酒等品类</div>
+            </div>
+          </div>
+          <div style="background:#fff;border-radius:8px;padding:16px;border:1px solid var(--border);">
+            <div style="font-size:13px;font-weight:600;margin-bottom:12px;">支出结构分析</div>
+            <div style="display:flex;flex-direction:column;gap:10px;font-size:12px;">
+              <div style="display:flex;align-items:center;gap:8px;"><div style="width:8px;height:8px;border-radius:50%;background:#EF4444;"></div><span style="flex:1;">采购成本</span><span style="font-weight:600;">¥199,000 (84%)</span></div>
+              <div style="display:flex;align-items:center;gap:8px;"><div style="width:8px;height:8px;border-radius:50%;background:#F59E0B;"></div><span style="flex:1;">人员工资</span><span style="font-weight:600;">¥18,950 (8%)</span></div>
+              <div style="display:flex;align-items:center;gap:8px;"><div style="width:8px;height:8px;border-radius:50%;background:#1677FF;"></div><span style="flex:1;">运营费用</span><span style="font-weight:600;">¥11,845 (5%)</span></div>
+              <div style="display:flex;align-items:center;gap:8px;"><div style="width:8px;height:8px;border-radius:50%;background:#9CA3AF;"></div><span style="flex:1;">其他支出</span><span style="font-weight:600;">¥7,105 (3%)</span></div>
+            </div>
+          </div>
+        </div>
+
+        <!-- 5. 费用分类分析 -->
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:16px;">
+          <div style="background:#fff;border-radius:8px;padding:16px;border:1px solid var(--border);">
+            <div style="font-size:13px;font-weight:600;margin-bottom:12px;">费用分类分析</div>
+            <div style="display:flex;flex-direction:column;gap:8px;font-size:12px;">
+              <div style="display:flex;align-items:center;gap:8px;"><span style="width:48px;">日常费用</span><div style="flex:1;height:16px;background:linear-gradient(90deg,#8B5CF6,#C4B5FD);border-radius:4px;width:100%;"></div><span style="font-weight:600;">¥8,500 (45%)</span></div>
+              <div style="display:flex;align-items:center;gap:8px;"><span style="width:48px;">差旅费用</span><div style="flex:1;height:16px;background:linear-gradient(90deg,#EF4444,#FCA5A5);border-radius:4px;width:60%;"></div><span style="font-weight:600;">¥4,200 (22%)</span></div>
+              <div style="display:flex;align-items:center;gap:8px;"><span style="width:48px;">办公费用</span><div style="flex:1;height:16px;background:linear-gradient(90deg,#F59E0B,#FCD34D);border-radius:4px;width:40%;"></div><span style="font-weight:600;">¥3,100 (16%)</span></div>
+              <div style="display:flex;align-items:center;gap:8px;"><span style="width:48px;">运输费用</span><div style="flex:1;height:16px;background:linear-gradient(90deg,#10B981,#6EE7B7);border-radius:4px;width:28%;"></div><span style="font-weight:600;">¥2,000 (11%)</span></div>
+              <div style="display:flex;align-items:center;gap:8px;"><span style="width:48px;">其他费用</span><div style="flex:1;height:16px;background:linear-gradient(90deg,#1677FF,#93C5FD);border-radius:4px;width:14%;"></div><span style="font-weight:600;">¥1,045 (6%)</span></div>
+            </div>
+          </div>
+          <div style="background:#fff;border-radius:8px;padding:16px;border:1px solid var(--border);">
+            <div style="font-size:13px;font-weight:600;margin-bottom:12px;">费用类型占比</div>
+            <div style="display:flex;flex-direction:column;gap:10px;font-size:12px;">
+              <div style="display:flex;align-items:center;gap:8px;"><div style="width:8px;height:8px;border-radius:50%;background:#8B5CF6;"></div><span style="flex:1;">日常费用</span><span style="font-weight:600;">45%</span></div>
+              <div style="display:flex;align-items:center;gap:8px;"><div style="width:8px;height:8px;border-radius:50%;background:#EF4444;"></div><span style="flex:1;">差旅费用</span><span style="font-weight:600;">22%</span></div>
+              <div style="display:flex;align-items:center;gap:8px;"><div style="width:8px;height:8px;border-radius:50%;background:#F59E0B;"></div><span style="flex:1;">办公费用</span><span style="font-weight:600;">16%</span></div>
+              <div style="display:flex;align-items:center;gap:8px;"><div style="width:8px;height:8px;border-radius:50%;background:#10B981;"></div><span style="flex:1;">运输费用</span><span style="font-weight:600;">11%</span></div>
+              <div style="display:flex;align-items:center;gap:8px;"><div style="width:8px;height:8px;border-radius:50%;background:#1677FF;"></div><span style="flex:1;">其他</span><span style="font-weight:600;">6%</span></div>
+            </div>
+          </div>
+        </div>
+
+        <!-- 6. 应收应付趋势 -->
+        <div style="background:#fff;border-radius:8px;padding:16px;border:1px solid var(--border);margin-bottom:16px;">
+          <div style="font-size:13px;font-weight:600;margin-bottom:12px;">应收应付趋势（近12月）</div>
+          <div style="display:grid;grid-template-columns:repeat(6,1fr);gap:6px;margin-bottom:8px;">
+            <div style="flex:1;display:flex;flex-direction:column;align-items:center;gap:2px;">
+              <div style="display:flex;gap:3px;align-items:flex-end;height:80px;">
+                <div style="width:16px;height:55px;background:linear-gradient(180deg,#F59E0B,#FEF3C7);border-radius:2px 2px 0 0;"></div>
+                <div style="width:16px;height:35px;background:linear-gradient(180deg,#EF4444,#FEE2E2);border-radius:2px 2px 0 0;"></div>
+              </div><div style="font-size:10px;color:var(--text-muted);">1月</div></div>
+            <div style="flex:1;display:flex;flex-direction:column;align-items:center;gap:2px;">
+              <div style="display:flex;gap:3px;align-items:flex-end;height:80px;">
+                <div style="width:16px;height:58px;background:linear-gradient(180deg,#F59E0B,#FEF3C7);border-radius:2px 2px 0 0;"></div>
+                <div style="width:16px;height:38px;background:linear-gradient(180deg,#EF4444,#FEE2E2);border-radius:2px 2px 0 0;"></div>
+              </div><div style="font-size:10px;color:var(--text-muted);">2月</div></div>
+            <div style="flex:1;display:flex;flex-direction:column;align-items:center;gap:2px;">
+              <div style="display:flex;gap:3px;align-items:flex-end;height:80px;">
+                <div style="width:16px;height:62px;background:linear-gradient(180deg,#F59E0B,#FEF3C7);border-radius:2px 2px 0 0;"></div>
+                <div style="width:16px;height:40px;background:linear-gradient(180deg,#EF4444,#FEE2E2);border-radius:2px 2px 0 0;"></div>
+              </div><div style="font-size:10px;color:var(--text-muted);">3月</div></div>
+            <div style="flex:1;display:flex;flex-direction:column;align-items:center;gap:2px;">
+              <div style="display:flex;gap:3px;align-items:flex-end;height:80px;">
+                <div style="width:16px;height:70px;background:linear-gradient(180deg,#F59E0B,#FEF3C7);border-radius:2px 2px 0 0;"></div>
+                <div style="width:16px;height:42px;background:linear-gradient(180deg,#EF4444,#FEE2E2);border-radius:2px 2px 0 0;"></div>
+              </div><div style="font-size:10px;color:var(--text-muted);">4月</div></div>
+            <div style="flex:1;display:flex;flex-direction:column;align-items:center;gap:2px;">
+              <div style="display:flex;gap:3px;align-items:flex-end;height:80px;">
+                <div style="width:16px;height:75px;background:linear-gradient(180deg,#F59E0B,#FEF3C7);border-radius:2px 2px 0 0;"></div>
+                <div style="width:16px;height:45px;background:linear-gradient(180deg,#EF4444,#FEE2E2);border-radius:2px 2px 0 0;"></div>
+              </div><div style="font-size:10px;color:var(--text-muted);">5月</div></div>
+            <div style="flex:1;display:flex;flex-direction:column;align-items:center;gap:2px;">
+              <div style="display:flex;gap:3px;align-items:flex-end;height:80px;">
+                <div style="width:16px;height:68px;background:linear-gradient(180deg,#F59E0B,#FEF3C7);border-radius:2px 2px 0 0;"></div>
+                <div style="width:16px;height:40px;background:linear-gradient(180deg,#EF4444,#FEE2E2);border-radius:2px 2px 0 0;"></div>
+              </div><div style="font-size:10px;color:var(--text-muted);">6月</div></div>
+          </div>
+          <div style="display:flex;gap:16px;justify-content:center;margin-top:8px;font-size:11px;">
+            <span><span style="display:inline-block;width:10px;height:10px;background:#F59E0B;border-radius:2px;margin-right:4px;"></span>应收余额</span>
+            <span><span style="display:inline-block;width:10px;height:10px;background:#EF4444;border-radius:2px;margin-right:4px;"></span>应付余额</span>
+          </div>
+        </div>
+
+        <!-- 7. 现金流趋势 -->
+        <div style="background:#fff;border-radius:8px;padding:16px;border:1px solid var(--border);margin-bottom:16px;">
+          <div style="font-size:13px;font-weight:600;margin-bottom:12px;">现金流趋势（近12月）</div>
+          <div style="display:grid;grid-template-columns:repeat(6,1fr);gap:6px;margin-bottom:8px;">
+            <div style="flex:1;display:flex;flex-direction:column;align-items:center;gap:2px;">
+              <div style="display:flex;gap:3px;align-items:flex-end;height:80px;">
+                <div style="width:14px;height:60px;background:linear-gradient(180deg,#10B981,#D1FAE5);border-radius:2px 2px 0 0;"></div>
+                <div style="width:14px;height:42px;background:linear-gradient(180deg,#EF4444,#FEE2E2);border-radius:2px 2px 0 0;"></div>
+                <div style="width:14px;height:18px;background:linear-gradient(180deg,#8B5CF6,#EDE9FE);border-radius:2px 2px 0 0;"></div>
+              </div><div style="font-size:10px;color:var(--text-muted);">1月</div></div>
+            <div style="flex:1;display:flex;flex-direction:column;align-items:center;gap:2px;">
+              <div style="display:flex;gap:3px;align-items:flex-end;height:80px;">
+                <div style="width:14px;height:55px;background:linear-gradient(180deg,#10B981,#D1FAE5);border-radius:2px 2px 0 0;"></div>
+                <div style="width:14px;height:40px;background:linear-gradient(180deg,#EF4444,#FEE2E2);border-radius:2px 2px 0 0;"></div>
+                <div style="width:14px;height:15px;background:linear-gradient(180deg,#8B5CF6,#EDE9FE);border-radius:2px 2px 0 0;"></div>
+              </div><div style="font-size:10px;color:var(--text-muted);">2月</div></div>
+            <div style="flex:1;display:flex;flex-direction:column;align-items:center;gap:2px;">
+              <div style="display:flex;gap:3px;align-items:flex-end;height:80px;">
+                <div style="width:14px;height:70px;background:linear-gradient(180deg,#10B981,#D1FAE5);border-radius:2px 2px 0 0;"></div>
+                <div style="width:14px;height:48px;background:linear-gradient(180deg,#EF4444,#FEE2E2);border-radius:2px 2px 0 0;"></div>
+                <div style="width:14px;height:22px;background:linear-gradient(180deg,#8B5CF6,#EDE9FE);border-radius:2px 2px 0 0;"></div>
+              </div><div style="font-size:10px;color:var(--text-muted);">3月</div></div>
+            <div style="flex:1;display:flex;flex-direction:column;align-items:center;gap:2px;">
+              <div style="display:flex;gap:3px;align-items:flex-end;height:80px;">
+                <div style="width:14px;height:75px;background:linear-gradient(180deg,#10B981,#D1FAE5);border-radius:2px 2px 0 0;"></div>
+                <div style="width:14px;height:52px;background:linear-gradient(180deg,#EF4444,#FEE2E2);border-radius:2px 2px 0 0;"></div>
+                <div style="width:14px;height:23px;background:linear-gradient(180deg,#8B5CF6,#EDE9FE);border-radius:2px 2px 0 0;"></div>
+              </div><div style="font-size:10px;color:var(--text-muted);">4月</div></div>
+            <div style="flex:1;display:flex;flex-direction:column;align-items:center;gap:2px;">
+              <div style="display:flex;gap:3px;align-items:flex-end;height:80px;">
+                <div style="width:14px;height:80px;background:linear-gradient(180deg,#10B981,#D1FAE5);border-radius:2px 2px 0 0;"></div>
+                <div style="width:14px;height:55px;background:linear-gradient(180deg,#EF4444,#FEE2E2);border-radius:2px 2px 0 0;"></div>
+                <div style="width:14px;height:25px;background:linear-gradient(180deg,#8B5CF6,#EDE9FE);border-radius:2px 2px 0 0;"></div>
+              </div><div style="font-size:10px;color:var(--text-muted);">5月</div></div>
+            <div style="flex:1;display:flex;flex-direction:column;align-items:center;gap:2px;">
+              <div style="display:flex;gap:3px;align-items:flex-end;height:80px;">
+                <div style="width:14px;height:78px;background:linear-gradient(180deg,#10B981,#D1FAE5);border-radius:2px 2px 0 0;"></div>
+                <div style="width:14px;height:50px;background:linear-gradient(180deg,#EF4444,#FEE2E2);border-radius:2px 2px 0 0;"></div>
+                <div style="width:14px;height:28px;background:linear-gradient(180deg,#8B5CF6,#EDE9FE);border-radius:2px 2px 0 0;"></div>
+              </div><div style="font-size:10px;color:var(--text-muted);">6月</div></div>
+          </div>
+          <div style="display:flex;gap:16px;justify-content:center;margin-top:8px;font-size:11px;">
+            <span><span style="display:inline-block;width:10px;height:10px;background:#10B981;border-radius:2px;margin-right:4px;"></span>现金流入</span>
+            <span><span style="display:inline-block;width:10px;height:10px;background:#EF4444;border-radius:2px;margin-right:4px;"></span>现金流出</span>
+            <span><span style="display:inline-block;width:10px;height:10px;background:#8B5CF6;border-radius:2px;margin-right:4px;"></span>净现金流</span>
+          </div>
+        </div>
+
+        <!-- 8. 毛利率趋势 -->
+        <div style="background:#fff;border-radius:8px;padding:16px;border:1px solid var(--border);">
+          <div style="font-size:13px;font-weight:600;margin-bottom:12px;">毛利率趋势（近12月）</div>
+          <div style="display:grid;grid-template-columns:repeat(6,1fr);gap:6px;margin-bottom:8px;">
+            <div style="flex:1;display:flex;flex-direction:column;align-items:center;gap:2px;">
+              <div style="height:80px;display:flex;align-items:flex-end;"><div style="width:28px;height:58px;background:linear-gradient(180deg,#8B5CF6,#EDE9FE);border-radius:3px 3px 0 0;"></div></div>
+              <div style="font-size:10px;color:var(--text-muted);">1月</div><div style="font-size:10px;font-weight:600;">48.2%</div></div>
+            <div style="flex:1;display:flex;flex-direction:column;align-items:center;gap:2px;">
+              <div style="height:80px;display:flex;align-items:flex-end;"><div style="width:28px;height:55px;background:linear-gradient(180deg,#8B5CF6,#EDE9FE);border-radius:3px 3px 0 0;"></div></div>
+              <div style="font-size:10px;color:var(--text-muted);">2月</div><div style="font-size:10px;font-weight:600;">46.5%</div></div>
+            <div style="flex:1;display:flex;flex-direction:column;align-items:center;gap:2px;">
+              <div style="height:80px;display:flex;align-items:flex-end;"><div style="width:28px;height:65px;background:linear-gradient(180deg,#8B5CF6,#EDE9FE);border-radius:3px 3px 0 0;"></div></div>
+              <div style="font-size:10px;color:var(--text-muted);">3月</div><div style="font-size:10px;font-weight:600;">52.1%</div></div>
+            <div style="flex:1;display:flex;flex-direction:column;align-items:center;gap:2px;">
+              <div style="height:80px;display:flex;align-items:flex-end;"><div style="width:28px;height:70px;background:linear-gradient(180deg,#8B5CF6,#EDE9FE);border-radius:3px 3px 0 0;"></div></div>
+              <div style="font-size:10px;color:var(--text-muted);">4月</div><div style="font-size:10px;font-weight:600;">55.0%</div></div>
+            <div style="flex:1;display:flex;flex-direction:column;align-items:center;gap:2px;">
+              <div style="height:80px;display:flex;align-items:flex-end;"><div style="width:28px;height:62px;background:linear-gradient(180deg,#8B5CF6,#EDE9FE);border-radius:3px 3px 0 0;"></div></div>
+              <div style="font-size:10px;color:var(--text-muted);">5月</div><div style="font-size:10px;font-weight:600;">50.8%</div></div>
+            <div style="flex:1;display:flex;flex-direction:column;align-items:center;gap:2px;">
+              <div style="height:80px;display:flex;align-items:flex-end;"><div style="width:28px;height:66px;background:linear-gradient(180deg,#8B5CF6,#EDE9FE);border-radius:3px 3px 0 0;"></div></div>
+              <div style="font-size:10px;color:var(--text-muted);">6月</div><div style="font-size:10px;font-weight:600;">51.3%</div></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ====== Part B: 员工绩效 ====== -->
+<div class="section">
+  <h2>二、员工绩效</h2>
+  <p class="desc">员工绩效深度分析，~40字段，含排行TOP10、雷达对比、时段分析、达成率等</p>
+
+  <div class="mockup">
+    <div class="mockup-header">
+      <div class="mockup-logo"><div class="mockup-logo-icon"></div>智享酒水</div>
+      <div class="mockup-nav">
+        <span class="mockup-nav-item">工作台</span>
+        <span class="mockup-nav-item">销售</span>
+        <span class="mockup-nav-item">采购</span>
+        <span class="mockup-nav-item">财务</span>
+        <span class="mockup-nav-item active">报表</span>
+      </div>
+      <div class="mockup-user"><span>林夕</span><div class="mockup-avatar">林</div></div>
+    </div>
+    <div class="mockup-body">
+      <div class="mockup-sidebar">
+        <div class="mockup-sidebar-section">数据报表</div>
+        <div class="mockup-sidebar-item">经营总览</div>
+        <div class="mockup-sidebar-item">销售分析</div>
+        <div class="mockup-sidebar-item">收款分析</div>
+        <div class="mockup-sidebar-item">商品分析</div>
+        <div class="mockup-sidebar-item">客户分析</div>
+        <div class="mockup-sidebar-item">库存分析</div>
+        <div class="mockup-sidebar-item">采购分析</div>
+        <div class="mockup-sidebar-item">财务分析</div>
+        <div class="mockup-sidebar-item active">员工绩效</div>
+      </div>
+      <div class="mockup-main">
+        <div class="mockup-page-title">员工绩效</div>
+        <div class="mockup-breadcrumb">报表 &gt; 员工绩效</div>
+        <div style="display:flex;gap:4px;margin-bottom:12px;background:#fff;padding:4px;border-radius:8px;width:fit-content;">
+          <span style="padding:6px 16px;background:var(--brand);color:#fff;border-radius:6px;font-size:12px;font-weight:500;">本月</span>
+          <span style="padding:6px 16px;color:var(--text-secondary);border-radius:6px;font-size:12px;">本季</span>
+          <span style="padding:6px 16px;color:var(--text-secondary);border-radius:6px;font-size:12px;">本年</span>
+        </div>
+
+        <!-- 1. 员工概览卡片 -->
+        <div class="stats-row">
+          <div class="stat-card"><div class="stat-label">销售人员总数</div><div class="stat-value" style="color:var(--brand);">12</div><div class="stat-change" style="color:var(--text-muted);">在职销售</div></div>
+          <div class="stat-card"><div class="stat-label">本月销售冠军</div><div class="stat-value" style="font-size:22px;color:var(--warning);">张伟</div><div class="stat-change up">销售额 ¥86,500</div></div>
+          <div class="stat-card"><div class="stat-label">人均销售额</div><div class="stat-value" style="color:var(--success);">¥40,542</div><div class="stat-change up">↑ 8.2% vs 上月</div></div>
+          <div class="stat-card"><div class="stat-label">人均订单数</div><div class="stat-value" style="color:var(--brand);">62</div><div class="stat-change up">↑ 5.1% vs 上月</div></div>
+        </div>
+
+        <!-- 2. 员工业绩排行TOP10 -->
+        <div style="background:#fff;border-radius:8px;padding:16px;border:1px solid var(--border);margin-bottom:16px;">
+          <div style="font-size:13px;font-weight:600;margin-bottom:12px;">员工业绩排行 TOP10</div>
+          <table class="mockup-table">
+            <thead><tr><th>排名</th><th>员工名</th><th>销售额</th><th>订单数</th><th>毛利</th><th>客单价</th><th>新客数</th><th>复购率</th><th>操作</th></tr></thead>
+            <tbody>
+              <tr><td style="font-weight:700;color:var(--warning);">🥇 1</td><td style="font-weight:600;">张伟</td><td class="text-success">¥86,500</td><td>128</td><td>¥34,200</td><td>¥676</td><td>18</td><td>68%</td><td><a href="#" style="color:var(--brand);font-size:11px;">详情</a></td></tr>
+              <tr><td style="font-weight:700;color:var(--text-muted);">🥈 2</td><td style="font-weight:600;">李强</td><td class="text-success">¥72,300</td><td>105</td><td>¥28,500</td><td>¥689</td><td>15</td><td>62%</td><td><a href="#" style="color:var(--brand);font-size:11px;">详情</a></td></tr>
+              <tr><td style="font-weight:700;color:var(--text-muted);">🥉 3</td><td style="font-weight:600;">王芳</td><td class="text-success">¥58,200</td><td>92</td><td>¥22,100</td><td>¥633</td><td>12</td><td>55%</td><td><a href="#" style="color:var(--brand);font-size:11px;">详情</a></td></tr>
+              <tr><td>4</td><td>赵明</td><td class="text-success">¥45,800</td><td>78</td><td>¥17,400</td><td>¥587</td><td>10</td><td>48%</td><td><a href="#" style="color:var(--brand);font-size:11px;">详情</a></td></tr>
+              <tr><td>5</td><td>陈静</td><td class="text-success">¥38,600</td><td>65</td><td>¥14,300</td><td>¥594</td><td>8</td><td>42%</td><td><a href="#" style="color:var(--brand);font-size:11px;">详情</a></td></tr>
+            </tbody>
+          </table>
+        </div>
+
+        <!-- 3. 员工销售趋势 -->
+        <div style="background:#fff;border-radius:8px;padding:16px;border:1px solid var(--border);margin-bottom:16px;">
+          <div style="font-size:13px;font-weight:600;margin-bottom:12px;">员工销售趋势 - 张伟（近12月）</div>
+          <div style="display:grid;grid-template-columns:repeat(6,1fr);gap:6px;margin-bottom:8px;">
+            <div style="flex:1;display:flex;flex-direction:column;align-items:center;gap:2px;">
+              <div style="display:flex;gap:2px;align-items:flex-end;height:80px;">
+                <div style="width:16px;height:52px;background:linear-gradient(180deg,#8B5CF6,#EDE9FE);border-radius:2px 2px 0 0;"></div>
+                <div style="width:16px;height:32px;background:linear-gradient(180deg,#10B981,#D1FAE5);border-radius:2px 2px 0 0;"></div>
+              </div><div style="font-size:10px;color:var(--text-muted);">1月</div></div>
+            <div style="flex:1;display:flex;flex-direction:column;align-items:center;gap:2px;">
+              <div style="display:flex;gap:2px;align-items:flex-end;height:80px;">
+                <div style="width:16px;height:48px;background:linear-gradient(180deg,#8B5CF6,#EDE9FE);border-radius:2px 2px 0 0;"></div>
+                <div style="width:16px;height:28px;background:linear-gradient(180deg,#10B981,#D1FAE5);border-radius:2px 2px 0 0;"></div>
+              </div><div style="font-size:10px;color:var(--text-muted);">2月</div></div>
+            <div style="flex:1;display:flex;flex-direction:column;align-items:center;gap:2px;">
+              <div style="display:flex;gap:2px;align-items:flex-end;height:80px;">
+                <div style="width:16px;height:68px;background:linear-gradient(180deg,#8B5CF6,#EDE9FE);border-radius:2px 2px 0 0;"></div>
+                <div style="width:16px;height:42px;background:linear-gradient(180deg,#10B981,#D1FAE5);border-radius:2px 2px 0 0;"></div>
+              </div><div style="font-size:10px;color:var(--text-muted);">3月</div></div>
+            <div style="flex:1;display:flex;flex-direction:column;align-items:center;gap:2px;">
+              <div style="display:flex;gap:2px;align-items:flex-end;height:80px;">
+                <div style="width:16px;height:75px;background:linear-gradient(180deg,#8B5CF6,#EDE9FE);border-radius:2px 2px 0 0;"></div>
+                <div style="width:16px;height:45px;background:linear-gradient(180deg,#10B981,#D1FAE5);border-radius:2px 2px 0 0;"></div>
+              </div><div style="font-size:10px;color:var(--text-muted);">4月</div></div>
+            <div style="flex:1;display:flex;flex-direction:column;align-items:center;gap:2px;">
+              <div style="display:flex;gap:2px;align-items:flex-end;height:80px;">
+                <div style="width:16px;height:80px;background:linear-gradient(180deg,#8B5CF6,#EDE9FE);border-radius:2px 2px 0 0;"></div>
+                <div style="width:16px;height:48px;background:linear-gradient(180deg,#10B981,#D1FAE5);border-radius:2px 2px 0 0;"></div>
+              </div><div style="font-size:10px;color:var(--text-muted);">5月</div></div>
+            <div style="flex:1;display:flex;flex-direction:column;align-items:center;gap:2px;">
+              <div style="display:flex;gap:2px;align-items:flex-end;height:80px;">
+                <div style="width:16px;height:78px;background:linear-gradient(180deg,#8B5CF6,#EDE9FE);border-radius:2px 2px 0 0;"></div>
+                <div style="width:16px;height:46px;background:linear-gradient(180deg,#10B981,#D1FAE5);border-radius:2px 2px 0 0;"></div>
+              </div><div style="font-size:10px;color:var(--text-muted);">6月</div></div>
+          </div>
+          <div style="display:flex;gap:16px;justify-content:center;margin-top:8px;font-size:11px;">
+            <span><span style="display:inline-block;width:10px;height:10px;background:#8B5CF6;border-radius:2px;margin-right:4px;"></span>销售额</span>
+            <span><span style="display:inline-block;width:10px;height:10px;background:#10B981;border-radius:2px;margin-right:4px;"></span>订单数</span>
+          </div>
+        </div>
+
+        <!-- 4. 员工对比雷达图 -->
+        <div style="background:#fff;border-radius:8px;padding:16px;border:1px solid var(--border);margin-bottom:16px;">
+          <div style="font-size:13px;font-weight:600;margin-bottom:12px;">员工对比 · 六维分析</div>
+          <div style="display:flex;gap:8px;margin-bottom:12px;font-size:11px;">
+            <span style="display:flex;align-items:center;gap:4px;"><span style="width:10px;height:10px;border-radius:2px;background:#8B5CF6;"></span>张伟</span>
+            <span style="display:flex;align-items:center;gap:4px;"><span style="width:10px;height:10px;border-radius:2px;background:#10B981;"></span>李强</span>
+            <span style="display:flex;align-items:center;gap:4px;"><span style="width:10px;height:10px;border-radius:2px;background:#F59E0B;"></span>王芳</span>
+          </div>
+          <table class="mockup-table">
+            <thead><tr><th>维度</th><th style="width:28%;">张伟</th><th style="width:28%;">李强</th><th style="width:28%;">王芳</th></tr></thead>
+            <tbody>
+              <tr>
+                <td style="font-weight:500;">销售额</td>
+                <td><div style="display:flex;align-items:center;gap:6px;"><div style="flex:1;height:14px;background:linear-gradient(90deg,#8B5CF6,#C4B5FD);border-radius:4px;width:100%;"></div><span style="font-size:11px;">¥86,500</span></div></td>
+                <td><div style="display:flex;align-items:center;gap:6px;"><div style="flex:1;height:14px;background:linear-gradient(90deg,#10B981,#6EE7B7);border-radius:4px;width:84%;"></div><span style="font-size:11px;">¥72,300</span></div></td>
+                <td><div style="display:flex;align-items:center;gap:6px;"><div style="flex:1;height:14px;background:linear-gradient(90deg,#F59E0B,#FCD34D);border-radius:4px;width:67%;"></div><span style="font-size:11px;">¥58,200</span></div></td>
+              </tr>
+              <tr>
+                <td style="font-weight:500;">订单数</td>
+                <td><div style="display:flex;align-items:center;gap:6px;"><div style="flex:1;height:14px;background:linear-gradient(90deg,#8B5CF6,#C4B5FD);border-radius:4px;width:100%;"></div><span style="font-size:11px;">128</span></div></td>
+                <td><div style="display:flex;align-items:center;gap:6px;"><div style="flex:1;height:14px;background:linear-gradient(90deg,#10B981,#6EE7B7);border-radius:4px;width:82%;"></div><span style="font-size:11px;">105</span></div></td>
+                <td><div style="display:flex;align-items:center;gap:6px;"><div style="flex:1;height:14px;background:linear-gradient(90deg,#F59E0B,#FCD34D);border-radius:4px;width:72%;"></div><span style="font-size:11px;">92</span></div></td>
+              </tr>
+              <tr>
+                <td style="font-weight:500;">毛利</td>
+                <td><div style="display:flex;align-items:center;gap:6px;"><div style="flex:1;height:14px;background:linear-gradient(90deg,#8B5CF6,#C4B5FD);border-radius:4px;width:100%;"></div><span style="font-size:11px;">¥34,200</span></div></td>
+                <td><div style="display:flex;align-items:center;gap:6px;"><div style="flex:1;height:14px;background:linear-gradient(90deg,#10B981,#6EE7B7);border-radius:4px;width:83%;"></div><span style="font-size:11px;">¥28,500</span></div></td>
+                <td><div style="display:flex;align-items:center;gap:6px;"><div style="flex:1;height:14px;background:linear-gradient(90deg,#F59E0B,#FCD34D);border-radius:4px;width:65%;"></div><span style="font-size:11px;">¥22,100</span></div></td>
+              </tr>
+              <tr>
+                <td style="font-weight:500;">客单价</td>
+                <td><div style="display:flex;align-items:center;gap:6px;"><div style="flex:1;height:14px;background:linear-gradient(90deg,#8B5CF6,#C4B5FD);border-radius:4px;width:98%;"></div><span style="font-size:11px;">¥676</span></div></td>
+                <td><div style="display:flex;align-items:center;gap:6px;"><div style="flex:1;height:14px;background:linear-gradient(90deg,#10B981,#6EE7B7);border-radius:4px;width:100%;"></div><span style="font-size:11px;">¥689</span></div></td>
+                <td><div style="display:flex;align-items:center;gap:6px;"><div style="flex:1;height:14px;background:linear-gradient(90deg,#F59E0B,#FCD34D);border-radius:4px;width:92%;"></div><span style="font-size:11px;">¥633</span></div></td>
+              </tr>
+              <tr>
+                <td style="font-weight:500;">新客数</td>
+                <td><div style="display:flex;align-items:center;gap:6px;"><div style="flex:1;height:14px;background:linear-gradient(90deg,#8B5CF6,#C4B5FD);border-radius:4px;width:100%;"></div><span style="font-size:11px;">18</span></div></td>
+                <td><div style="display:flex;align-items:center;gap:6px;"><div style="flex:1;height:14px;background:linear-gradient(90deg,#10B981,#6EE7B7);border-radius:4px;width:83%;"></div><span style="font-size:11px;">15</span></div></td>
+                <td><div style="display:flex;align-items:center;gap:6px;"><div style="flex:1;height:14px;background:linear-gradient(90deg,#F59E0B,#FCD34D);border-radius:4px;width:67%;"></div><span style="font-size:11px;">12</span></div></td>
+              </tr>
+              <tr>
+                <td style="font-weight:500;">复购率</td>
+                <td><div style="display:flex;align-items:center;gap:6px;"><div style="flex:1;height:14px;background:linear-gradient(90deg,#8B5CF6,#C4B5FD);border-radius:4px;width:100%;"></div><span style="font-size:11px;">68%</span></div></td>
+                <td><div style="display:flex;align-items:center;gap:6px;"><div style="flex:1;height:14px;background:linear-gradient(90deg,#10B981,#6EE7B7);border-radius:4px;width:91%;"></div><span style="font-size:11px;">62%</span></div></td>
+                <td><div style="display:flex;align-items:center;gap:6px;"><div style="flex:1;height:14px;background:linear-gradient(90deg,#F59E0B,#FCD34D);border-radius:4px;width:81%;"></div><span style="font-size:11px;">55%</span></div></td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+
+        <!-- 5. 员工时段分析 -->
+        <div style="background:#fff;border-radius:8px;padding:16px;border:1px solid var(--border);margin-bottom:16px;">
+          <div style="font-size:13px;font-weight:600;margin-bottom:12px;">员工时段销售分布</div>
+          <table class="mockup-table">
+            <thead><tr><th>时段</th><th>张伟</th><th>李强</th><th>王芳</th><th>赵明</th><th>陈静</th><th>合计</th></tr></thead>
+            <tbody>
+              <tr><td style="font-weight:500;">09:00-11:00</td><td class="text-success">¥12,800</td><td>¥9,500</td><td>¥7,200</td><td>¥5,600</td><td>¥4,200</td><td style="font-weight:600;">¥39,300</td></tr>
+              <tr><td style="font-weight:500;">11:00-13:00</td><td class="text-success">¥18,500</td><td>¥15,200</td><td>¥12,800</td><td>¥9,800</td><td>¥8,500</td><td style="font-weight:600;">¥64,800</td></tr>
+              <tr><td style="font-weight:500;">13:00-15:00</td><td class="text-success">¥22,000</td><td>¥20,100</td><td>¥16,500</td><td>¥12,300</td><td>¥10,200</td><td style="font-weight:600;">¥81,100</td></tr>
+              <tr><td style="font-weight:500;">15:00-17:00</td><td class="text-success">¥19,800</td><td>¥16,400</td><td>¥13,200</td><td>¥10,500</td><td>¥8,800</td><td style="font-weight:600;">¥68,700</td></tr>
+              <tr><td style="font-weight:500;">17:00-19:00</td><td class="text-success">¥10,200</td><td>¥8,600</td><td>¥6,800</td><td>¥5,400</td><td>¥4,500</td><td style="font-weight:600;">¥35,500</td></tr>
+              <tr><td style="font-weight:500;">19:00-21:00</td><td class="text-success">¥3,200</td><td>¥2,500</td><td>¥1,700</td><td>¥2,200</td><td>¥2,400</td><td style="font-weight:600;">¥12,000</td></tr>
+            </tbody>
+          </table>
+        </div>
+
+        <!-- 6. 员工业绩达成率 -->
+        <div style="background:#fff;border-radius:8px;padding:16px;border:1px solid var(--border);">
+          <div style="font-size:13px;font-weight:600;margin-bottom:12px;">员工业绩达成率（目标 vs 实际）</div>
+          <div style="display:flex;flex-direction:column;gap:10px;font-size:12px;">
+            <div style="display:flex;align-items:center;gap:8px;">
+              <span style="width:42px;font-weight:500;">张伟</span>
+              <div style="flex:1;display:flex;align-items:center;gap:2px;">
+                <div style="flex:1;height:22px;background:#E5E7EB;border-radius:3px;position:relative;overflow:hidden;">
+                  <div style="position:absolute;left:0;top:0;height:100%;background:linear-gradient(90deg,#8B5CF6,#C4B5FD);border-radius:3px;width:100%;"></div>
+                </div>
+                <span style="font-weight:600;color:var(--text);min-width:60px;text-align:right;">¥86.5K (108%)</span>
+              </div>
+            </div>
+            <div style="display:flex;align-items:center;gap:8px;">
+              <span style="width:42px;font-weight:500;">李强</span>
+              <div style="flex:1;display:flex;align-items:center;gap:2px;">
+                <div style="flex:1;height:22px;background:#E5E7EB;border-radius:3px;position:relative;overflow:hidden;">
+                  <div style="position:absolute;left:0;top:0;height:100%;background:linear-gradient(90deg,#10B981,#6EE7B7);border-radius:3px;width:90%;"></div>
+                </div>
+                <span style="font-weight:600;color:var(--text);min-width:60px;text-align:right;">¥72.3K (90%)</span>
+              </div>
+            </div>
+            <div style="display:flex;align-items:center;gap:8px;">
+              <span style="width:42px;font-weight:500;">王芳</span>
+              <div style="flex:1;display:flex;align-items:center;gap:2px;">
+                <div style="flex:1;height:22px;background:#E5E7EB;border-radius:3px;position:relative;overflow:hidden;">
+                  <div style="position:absolute;left:0;top:0;height:100%;background:linear-gradient(90deg,#F59E0B,#FCD34D);border-radius:3px;width:73%;"></div>
+                </div>
+                <span style="font-weight:600;color:var(--text);min-width:60px;text-align:right;">¥58.2K (97%)</span>
+              </div>
+            </div>
+            <div style="display:flex;align-items:center;gap:8px;">
+              <span style="width:42px;font-weight:500;">赵明</span>
+              <div style="flex:1;display:flex;align-items:center;gap:2px;">
+                <div style="flex:1;height:22px;background:#E5E7EB;border-radius:3px;position:relative;overflow:hidden;">
+                  <div style="position:absolute;left:0;top:0;height:100%;background:linear-gradient(90deg,#EF4444,#FCA5A5);border-radius:3px;width:57%;"></div>
+                </div>
+                <span style="font-weight:600;color:var(--text);min-width:60px;text-align:right;">¥45.8K (76%)</span>
+              </div>
+            </div>
+            <div style="display:flex;align-items:center;gap:8px;">
+              <span style="width:42px;font-weight:500;">陈静</span>
+              <div style="flex:1;display:flex;align-items:center;gap:2px;">
+                <div style="flex:1;height:22px;background:#E5E7EB;border-radius:3px;position:relative;overflow:hidden;">
+                  <div style="position:absolute;left:0;top:0;height:100%;background:linear-gradient(90deg,#1677FF,#93C5FD);border-radius:3px;width:48%;"></div>
+                </div>
+                <span style="font-weight:600;color:var(--text);min-width:60px;text-align:right;">¥38.6K (85%)</span>
+              </div>
+            </div>
+          </div>
+          <div style="display:flex;gap:12px;margin-top:10px;font-size:11px;color:var(--text-muted);">
+            <span>灰色底色 = 月目标 ¥80,000</span>
+            <span>进度条 = 实际完成额</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- 字段规范 -->
+<div class="section">
+  <h2>三、字段规范</h2>
+  <table class="spec-table">
+    <thead><tr><th>字段</th><th>类型</th><th>示例</th><th>说明</th></tr></thead>
+    <tbody>
+      <tr><td><code>revenue</code></td><td>decimal(12,2)</td><td>486500.00</td><td>本月收入</td></tr>
+      <tr><td><code>cost</code></td><td>decimal(12,2)</td><td>236900.00</td><td>本月支出</td></tr>
+      <tr><td><code>net_profit</code></td><td>decimal(12,2)</td><td>249600.00</td><td>净利润</td></tr>
+      <tr><td><code>profit_margin</code></td><td>decimal(5,2)</td><td>51.3</td><td>利润率（%）</td></tr>
+      <tr><td><code>receivable</code></td><td>decimal(12,2)</td><td>133700.00</td><td>应收余额</td></tr>
+      <tr><td><code>payable</code></td><td>decimal(12,2)</td><td>85600.00</td><td>应付余额</td></tr>
+      <tr><td><code>cash_inflow</code></td><td>decimal(12,2)</td><td>420000.00</td><td>现金流入</td></tr>
+      <tr><td><code>cash_outflow</code></td><td>decimal(12,2)</td><td>380000.00</td><td>现金流出</td></tr>
+      <tr><td><code>cash_flow</code></td><td>decimal(12,2)</td><td>40000.00</td><td>净现金流</td></tr>
+      <tr><td><code>gross_margin</code></td><td>decimal(5,2)</td><td>51.3</td><td>毛利率</td></tr>
+      <tr><td><code>staff_sales</code></td><td>decimal(12,2)</td><td>86500.00</td><td>员工销售额</td></tr>
+      <tr><td><code>staff_orders</code></td><td>int</td><td>128</td><td>员工订单数</td></tr>
+      <tr><td><code>staff_gross_profit</code></td><td>decimal(12,2)</td><td>34200.00</td><td>员工毛利</td></tr>
+      <tr><td><code>avg_order_value</code></td><td>decimal(10,2)</td><td>676.00</td><td>客单价</td></tr>
+      <tr><td><code>new_customer_count</code></td><td>int</td><td>18</td><td>新客数</td></tr>
+      <tr><td><code>repurchase_rate</code></td><td>decimal(5,2)</td><td>68.0</td><td>复购率（%）</td></tr>
+      <tr><td><code>target_achievement_rate</code></td><td>decimal(5,2)</td><td>108.0</td><td>目标达成率（%）</td></tr>
+      <tr><td><code>sales_target</code></td><td>decimal(12,2)</td><td>80000.00</td><td>月销售目标</td></tr>
+      <tr><td><code>time_slot</code></td><td>varchar(20)</td><td>09:00-11:00</td><td>时段</td></tr>
+    </tbody>
+  </table>
+</div>
+
+<!-- 验收标准 -->
+<div class="section">
+  <h2>四、验收标准</h2>
+  <ul class="checklist">
+    <li>财务概览：6个KPI卡片（收入/支出/净利润/利润率/应收/应付），含环比变化箭头</li>
+    <li>利润趋势图：近12月收入/成本/费用/利润四维度柱状图，支持月/季/年切换</li>
+    <li>收入结构分析：饼图展示销售收入和其他收入占比</li>
+    <li>支出结构分析：饼图展示采购成本/人员工资/运营费用/其他支出占比</li>
+    <li>费用分类分析：横向柱状图展示日常/差旅/办公/运输/其他费用及百分比</li>
+    <li>应收应付趋势：近12月应收/应付余额双柱对比图</li>
+    <li>现金流趋势：近12月现金流入/流出/净现金流三柱对比图</li>
+    <li>毛利率趋势：近12月毛利率折线/柱状图，含月度数值标注</li>
+    <li>员工概览：4个卡片（人员总数/销售冠军/人均销售额/人均订单数）</li>
+    <li>员工业绩排行TOP10：含销售额/订单数/毛利/客单价/新客数/复购率，支持点击查看详情</li>
+    <li>员工对比雷达图：六维指标（销售额/订单数/毛利/客单价/新客数/复购率）横向对比，支持2-3人</li>
+    <li>员工业绩达成率：目标vs实际对比，进度条可视化，含达成率百分比</li>
+  </ul>
+</div>
+
+</div>
+
+<div style="text-align:center;padding:40px;color:var(--text-muted);font-size:13px;">
+  <p>财务分析+员工绩效 · 智享酒水库存系统</p>
+  <p>林夕 · UI/UX Designer · 2026-06-30</p>
+</div>
+
+</body>
+</html>

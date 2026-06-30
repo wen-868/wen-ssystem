@@ -53,6 +53,7 @@ import { subscriptionRouter } from "./routes/subscription.routes.js";
 import { customerMergeRouter } from "./routes/customer-merge.routes.js";
 import { startOverdueScanner } from "./services/overdue-scanner.service.js";
 import { startSubscriptionExpiryScanner } from "./services/subscription-expiry.service.js";
+import "./jobs/report-aggregation.job.js";
 import { marketingNewRouter } from "./routes/marketing-new.routes.js";
 import { tagRouter } from "./routes/tag.routes.js";
 import { platformRouter } from "./routes/platform.routes.js";

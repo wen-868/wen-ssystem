@@ -1,0 +1,1600 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>25 · 商户端报表 — 设计规格文档</title>
+<style>
+/* ===== CSS Variables ===== */
+:root {
+  --brand:        #1a56db;
+  --brand-light:  #e8f0fe;
+  --text:         #1f2937;
+  --text-secondary: #6b7280;
+  --text-muted:   #9ca3af;
+  --border:       #e5e7eb;
+  --border-light: #f3f4f6;
+  --bg:           #f9fafb;
+  --bg-white:     #ffffff;
+  --success:      #10b981;
+  --warning:      #f59e0b;
+  --danger:       #ef4444;
+  --orange:       #f97316;
+  --radius:       12px;
+  --radius-sm:    8px;
+  --shadow:       0 1px 3px rgba(0,0,0,0.08), 0 1px 2px rgba(0,0,0,0.06);
+  --shadow-md:    0 4px 6px rgba(0,0,0,0.07), 0 2px 4px rgba(0,0,0,0.06);
+  --shadow-lg:    0 10px 25px rgba(0,0,0,0.1), 0 4px 10px rgba(0,0,0,0.06);
+}
+
+/* ===== Reset & Base ===== */
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+body {
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", "Helvetica Neue", Arial, sans-serif;
+  background: #f0f2f5;
+  color: var(--text);
+  line-height: 1.6;
+  -webkit-font-smoothing: antialiased;
+}
+
+/* ===== Document Layout ===== */
+.doc-wrapper {
+  max-width: 1400px;
+  margin: 0 auto;
+  padding: 40px 32px;
+}
+
+/* ===== Header ===== */
+.header {
+  background: linear-gradient(135deg, #1a56db 0%, #1e40af 50%, #1e3a8a 100%);
+  color: #fff;
+  padding: 48px 40px;
+  border-radius: 16px;
+  margin-bottom: 40px;
+  position: relative;
+  overflow: hidden;
+}
+.header::before {
+  content: '';
+  position: absolute;
+  top: -60px;
+  right: -40px;
+  width: 260px;
+  height: 260px;
+  background: rgba(255,255,255,0.05);
+  border-radius: 50%;
+}
+.header::after {
+  content: '';
+  position: absolute;
+  bottom: -80px;
+  left: 30%;
+  width: 200px;
+  height: 200px;
+  background: rgba(255,255,255,0.04);
+  border-radius: 50%;
+}
+.header * { position: relative; z-index: 1; }
+.header .spec-number {
+  display: inline-block;
+  background: rgba(255,255,255,0.18);
+  padding: 4px 16px;
+  border-radius: 20px;
+  font-size: 14px;
+  font-weight: 500;
+  margin-bottom: 16px;
+  letter-spacing: 0.5px;
+}
+.header h1 {
+  font-size: 36px;
+  font-weight: 700;
+  margin-bottom: 8px;
+  letter-spacing: -0.5px;
+}
+.header .subtitle {
+  font-size: 16px;
+  opacity: 0.85;
+  font-weight: 400;
+}
+.header .meta-row {
+  display: flex;
+  gap: 32px;
+  margin-top: 20px;
+  font-size: 13px;
+  opacity: 0.7;
+  flex-wrap: wrap;
+}
+.header .meta-row span { display: flex; align-items: center; gap: 6px; }
+
+/* ===== Section ===== */
+.section {
+  margin-bottom: 48px;
+}
+.section-title {
+  font-size: 24px;
+  font-weight: 700;
+  color: var(--text);
+  margin-bottom: 8px;
+  padding-left: 16px;
+  border-left: 4px solid var(--brand);
+}
+.section-desc {
+  font-size: 14px;
+  color: var(--text-secondary);
+  margin-bottom: 24px;
+  padding-left: 20px;
+}
+
+/* ===== Screen Grid ===== */
+.screens-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(420px, 1fr));
+  gap: 40px 32px;
+  justify-items: center;
+}
+.screen-wrapper {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+.screen-label {
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--text-secondary);
+  margin-bottom: 16px;
+  text-align: center;
+  letter-spacing: 0.5px;
+  text-transform: uppercase;
+}
+
+/* ===== Mobile Frame ===== */
+.mobile-frame {
+  width: 375px;
+  background: var(--bg-white);
+  border: 3px solid #1f2937;
+  border-radius: 36px;
+  overflow: hidden;
+  box-shadow: var(--shadow-lg), 0 0 0 2px #374151;
+  position: relative;
+  font-size: 13px;
+}
+.mobile-frame .status-bar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 10px 24px 6px;
+  background: #fff;
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--text);
+}
+.mobile-frame .status-bar .time { font-size: 13px; }
+.mobile-frame .status-bar .icons {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 11px;
+}
+.mobile-frame .status-bar .icons .signal { display: flex; gap: 2px; }
+.mobile-frame .status-bar .icons .signal span {
+  display: block;
+  width: 3px;
+  background: var(--text);
+  border-radius: 1px;
+}
+.mobile-frame .status-bar .icons .signal span:nth-child(1) { height: 5px; }
+.mobile-frame .status-bar .icons .signal span:nth-child(2) { height: 8px; }
+.mobile-frame .status-bar .icons .signal span:nth-child(3) { height: 11px; }
+.mobile-frame .status-bar .icons .signal span:nth-child(4) { height: 14px; }
+.mobile-frame .status-bar .icons .battery {
+  width: 24px;
+  height: 11px;
+  border: 1.5px solid var(--text);
+  border-radius: 3px;
+  padding: 2px;
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+.mobile-frame .status-bar .icons .battery::after {
+  content: '';
+  position: absolute;
+  right: -4px;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 2.5px;
+  height: 5px;
+  background: var(--text);
+  border-radius: 0 2px 2px 0;
+}
+.mobile-frame .status-bar .icons .battery .fill {
+  width: 100%;
+  height: 100%;
+  background: var(--text);
+  border-radius: 1px;
+}
+
+/* ===== Screen Content Area ===== */
+.mobile-frame .screen-content {
+  padding: 0 16px 12px;
+  max-height: 620px;
+  overflow-y: auto;
+  background: #f5f6f8;
+}
+.mobile-frame .screen-content::-webkit-scrollbar { width: 0; }
+
+/* ===== Top Bar ===== */
+.top-bar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 12px 0 10px;
+}
+.top-bar .title {
+  font-size: 18px;
+  font-weight: 700;
+  color: var(--text);
+}
+.top-bar .date-selector {
+  font-size: 12px;
+  color: var(--brand);
+  background: var(--brand-light);
+  padding: 4px 12px;
+  border-radius: 14px;
+  font-weight: 500;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+/* ===== Mobile Card ===== */
+.mobile-card {
+  background: #fff;
+  border-radius: var(--radius);
+  padding: 14px;
+  margin-bottom: 10px;
+  box-shadow: var(--shadow);
+}
+.mobile-card .card-title {
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--text);
+  margin-bottom: 10px;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+.mobile-card .card-title .dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: var(--brand);
+  flex-shrink: 0;
+}
+
+/* ===== KPI Grid 2x2 ===== */
+.kpi-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+  margin-bottom: 10px;
+}
+.kpi-card {
+  background: #fff;
+  border-radius: var(--radius-sm);
+  padding: 12px;
+  box-shadow: var(--shadow);
+  text-align: center;
+}
+.kpi-card .kpi-label {
+  font-size: 11px;
+  color: var(--text-secondary);
+  margin-bottom: 4px;
+}
+.kpi-card .kpi-value {
+  font-size: 20px;
+  font-weight: 700;
+  color: var(--text);
+}
+.kpi-card .kpi-value.accent { color: var(--brand); }
+.kpi-card .kpi-value.success { color: var(--success); }
+.kpi-card .kpi-sub {
+  font-size: 10px;
+  color: var(--text-muted);
+  margin-top: 2px;
+}
+
+/* ===== Mini Chart (SVG) ===== */
+.mini-chart {
+  width: 100%;
+  height: 120px;
+  margin: 8px 0;
+}
+.mini-chart svg { width: 100%; height: 100%; }
+
+/* ===== Mini Bar Chart (CSS) ===== */
+.bar-chart {
+  display: flex;
+  align-items: flex-end;
+  gap: 6px;
+  height: 100px;
+  padding: 0 4px;
+}
+.bar-chart .bar-col {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+}
+.bar-chart .bar-fill {
+  width: 100%;
+  max-width: 32px;
+  background: linear-gradient(180deg, var(--brand) 0%, #3b82f6 100%);
+  border-radius: 4px 4px 0 0;
+  transition: height 0.3s;
+}
+.bar-chart .bar-label {
+  font-size: 10px;
+  color: var(--text-muted);
+  white-space: nowrap;
+}
+
+/* ===== Order List ===== */
+.order-list, .list-stack {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+.order-item, .list-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 8px 0;
+  border-bottom: 1px solid var(--border-light);
+  font-size: 12px;
+}
+.order-item:last-child, .list-item:last-child { border-bottom: none; }
+.order-item .col { display: flex; flex-direction: column; }
+.order-item .col.name { font-weight: 500; }
+.order-item .col.amount { font-weight: 600; text-align: right; }
+.order-item .col.sub { font-size: 11px; color: var(--text-muted); }
+.order-item .badge {
+  font-size: 10px;
+  padding: 2px 8px;
+  border-radius: 10px;
+  font-weight: 500;
+}
+.badge-success { background: #d1fae5; color: #065f46; }
+.badge-warning { background: #fef3c7; color: #92400e; }
+.badge-danger { background: #fee2e2; color: #991b1b; }
+.badge-info { background: #dbeafe; color: #1e40af; }
+
+/* ===== Toggle Tabs ===== */
+.toggle-tabs {
+  display: flex;
+  background: #f3f4f6;
+  border-radius: 8px;
+  padding: 3px;
+  margin-bottom: 10px;
+}
+.toggle-tabs .tab {
+  flex: 1;
+  text-align: center;
+  padding: 6px 0;
+  font-size: 12px;
+  font-weight: 500;
+  color: var(--text-secondary);
+  border-radius: 6px;
+  cursor: pointer;
+  transition: 0.2s;
+}
+.toggle-tabs .tab.active {
+  background: #fff;
+  color: var(--brand);
+  font-weight: 600;
+  box-shadow: var(--shadow);
+}
+
+/* ===== Ranked List ===== */
+.rank-list {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+.rank-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 0;
+  font-size: 12px;
+}
+.rank-item .rank-num {
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  background: #e5e7eb;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 11px;
+  font-weight: 700;
+  color: var(--text-secondary);
+  flex-shrink: 0;
+}
+.rank-item .rank-num.top { background: #fef3c7; color: #b45309; }
+.rank-item .rank-info { flex: 1; min-width: 0; }
+.rank-item .rank-name { font-weight: 500; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.rank-item .rank-sub { font-size: 10px; color: var(--text-muted); }
+.rank-item .rank-val { font-weight: 600; white-space: nowrap; text-align: right; }
+
+/* ===== Pie Chart (CSS conic) ===== */
+.pie-chart {
+  width: 100px;
+  height: 100px;
+  border-radius: 50%;
+  margin: 0 auto;
+  position: relative;
+}
+.pie-legend {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px 16px;
+  margin-top: 10px;
+  justify-content: center;
+  font-size: 11px;
+}
+.pie-legend .legend-item {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+.pie-legend .legend-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 2px;
+  flex-shrink: 0;
+}
+
+/* ===== Summary Cards Row ===== */
+.summary-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr;
+  gap: 8px;
+  margin-bottom: 10px;
+}
+.summary-card {
+  background: #fff;
+  border-radius: var(--radius-sm);
+  padding: 10px 8px;
+  text-align: center;
+  box-shadow: var(--shadow);
+}
+.summary-card .s-label { font-size: 10px; color: var(--text-muted); margin-bottom: 2px; }
+.summary-card .s-value { font-size: 16px; font-weight: 700; }
+.summary-card .s-value.income { color: var(--brand); }
+.summary-card .s-value.expense { color: var(--danger); }
+.summary-card .s-value.profit { color: var(--success); }
+
+/* ===== Tab Bar ===== */
+.tab-bar {
+  display: flex;
+  background: #fff;
+  border-top: 1px solid var(--border);
+  padding: 4px 0 0;
+}
+.tab-bar .tab-item {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+  padding: 6px 0 8px;
+  font-size: 10px;
+  color: var(--text-muted);
+  transition: 0.2s;
+}
+.tab-bar .tab-item .tab-icon {
+  font-size: 16px;
+  line-height: 1;
+}
+.tab-bar .tab-item.active {
+  color: var(--brand);
+  font-weight: 600;
+}
+
+/* ===== Inventory Warning ===== */
+.warning-list { display: flex; flex-direction: column; gap: 6px; }
+.warning-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px;
+  border-radius: 8px;
+  font-size: 12px;
+  border-left: 3px solid;
+}
+.warning-item.level-red { background: #fef2f2; border-left-color: var(--danger); }
+.warning-item.level-orange { background: #fff7ed; border-left-color: var(--orange); }
+.warning-item.level-yellow { background: #fffbeb; border-left-color: var(--warning); }
+.warning-item .warn-icon { font-size: 16px; flex-shrink: 0; }
+.warning-item .warn-info { flex: 1; }
+.warning-item .warn-name { font-weight: 500; }
+.warning-item .warn-sub { font-size: 10px; color: var(--text-muted); }
+.warning-item .warn-val { font-weight: 600; white-space: nowrap; }
+
+/* ===== Spec Table ===== */
+.spec-table {
+  width: 100%;
+  border-collapse: collapse;
+  background: #fff;
+  border-radius: var(--radius);
+  overflow: hidden;
+  box-shadow: var(--shadow);
+}
+.spec-table thead { background: #f8fafc; }
+.spec-table th {
+  padding: 12px 16px;
+  text-align: left;
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--text-secondary);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  border-bottom: 2px solid var(--border);
+}
+.spec-table td {
+  padding: 10px 16px;
+  font-size: 13px;
+  border-bottom: 1px solid var(--border-light);
+}
+.spec-table tr:last-child td { border-bottom: none; }
+.spec-table code {
+  background: #f1f5f9;
+  padding: 2px 6px;
+  border-radius: 4px;
+  font-size: 12px;
+  color: var(--brand);
+}
+
+/* ===== Checklist ===== */
+.checklist {
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+.checklist li {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  padding: 12px 16px;
+  background: #fff;
+  border-radius: var(--radius-sm);
+  box-shadow: var(--shadow);
+  font-size: 14px;
+}
+.checklist li .check-box {
+  width: 20px;
+  height: 20px;
+  border: 2px solid var(--border);
+  border-radius: 4px;
+  flex-shrink: 0;
+  margin-top: 1px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.checklist li .check-box::after {
+  content: '✓';
+  color: var(--success);
+  font-weight: 700;
+  font-size: 14px;
+  opacity: 0.5;
+}
+
+/* ===== Footer ===== */
+.footer {
+  text-align: center;
+  padding: 32px 0;
+  color: var(--text-muted);
+  font-size: 13px;
+  border-top: 1px solid var(--border);
+  margin-top: 48px;
+}
+.footer strong { color: var(--text-secondary); }
+
+/* ===== Responsive ===== */
+@media (max-width: 768px) {
+  .doc-wrapper { padding: 20px 16px; }
+  .header { padding: 32px 24px; }
+  .header h1 { font-size: 26px; }
+  .screens-grid { grid-template-columns: 1fr; }
+  .mobile-frame { width: 100%; max-width: 375px; }
+}
+
+/* ===== Chart SVG inline helpers ===== */
+.chart-area { fill: rgba(26,86,219,0.1); }
+.chart-line { fill: none; stroke: var(--brand); stroke-width: 2; }
+.chart-dot { fill: var(--brand); }
+.chart-grid { stroke: #e5e7eb; stroke-width: 0.5; }
+</style>
+</head>
+<body>
+
+<div class="doc-wrapper">
+
+  <!-- ===== HEADER ===== -->
+  <header class="header">
+    <div class="spec-number">SPEC-25</div>
+    <h1>商户端报表</h1>
+    <p class="subtitle">商户移动端 — 经营数据查看 | 数据报表模块</p>
+    <div class="meta-row">
+      <span>📋 版本 v1.0</span>
+      <span>📅 2026-06-30</span>
+      <span>👤 林夕 · UI/UX Designer</span>
+      <span>🏷️ 智享酒水库存系统</span>
+    </div>
+  </header>
+
+  <!-- ===== SCREENS ===== -->
+  <div class="section">
+    <h2 class="section-title">移动端界面设计</h2>
+    <p class="section-desc">商户端报表共 6 个标签页，分别覆盖经营概览、销售分析、收款分析、库存分析、客户分析、财务分析。以下为各页面完整设计稿。</p>
+
+    <div class="screens-grid">
+
+      <!-- ===== SCREEN 1: 商户经营概览 ===== -->
+      <div class="screen-wrapper">
+        <div class="screen-label">📊 标签页一 · 经营概览</div>
+        <div class="mobile-frame">
+          <div class="status-bar">
+            <span class="time">9:41</span>
+            <span class="icons">
+              <span class="signal"><span></span><span></span><span></span><span></span></span>
+              <span>5G</span>
+              <span class="battery"><span class="fill"></span></span>
+            </span>
+          </div>
+          <div class="screen-content">
+            <div class="top-bar">
+              <span class="title">经营概览</span>
+              <span class="date-selector">📅 今日 ▾</span>
+            </div>
+
+            <!-- KPI 2x2 Grid -->
+            <div class="kpi-grid">
+              <div class="kpi-card">
+                <div class="kpi-label">今日销售额</div>
+                <div class="kpi-value accent">¥8,500</div>
+                <div class="kpi-sub">↑ 12.5% 较昨日</div>
+              </div>
+              <div class="kpi-card">
+                <div class="kpi-label">订单数</div>
+                <div class="kpi-value">12</div>
+                <div class="kpi-sub">↑ 3 笔较昨日</div>
+              </div>
+              <div class="kpi-card">
+                <div class="kpi-label">毛利</div>
+                <div class="kpi-value success">¥2,550</div>
+                <div class="kpi-sub">毛利率 30%</div>
+              </div>
+              <div class="kpi-card">
+                <div class="kpi-label">客单价</div>
+                <div class="kpi-value">¥708</div>
+                <div class="kpi-sub">↑ 8.3% 较昨日</div>
+              </div>
+            </div>
+
+            <!-- 近7日销售趋势 -->
+            <div class="mobile-card">
+              <div class="card-title"><span class="dot"></span>近7日销售趋势</div>
+              <div class="mini-chart">
+                <svg viewBox="0 0 330 110">
+                  <line x1="10" y1="100" x2="325" y2="100" stroke="#e5e7eb" stroke-width="0.5"/>
+                  <line x1="10" y1="75" x2="325" y2="75" stroke="#e5e7eb" stroke-width="0.5"/>
+                  <line x1="10" y1="50" x2="325" y2="50" stroke="#e5e7eb" stroke-width="0.5"/>
+                  <line x1="10" y1="25" x2="325" y2="25" stroke="#e5e7eb" stroke-width="0.5"/>
+                  <line x1="10" y1="0" x2="325" y2="0" stroke="#e5e7eb" stroke-width="0.5"/>
+                  <polygon points="20,72 68,65 116,55 164,40 212,48 260,30 308,22 308,100 20,100" fill="rgba(26,86,219,0.1)"/>
+                  <polyline points="20,72 68,65 116,55 164,40 212,48 260,30 308,22" fill="none" stroke="#1a56db" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                  <circle cx="20" cy="72" r="3" fill="#1a56db"/>
+                  <circle cx="68" cy="65" r="3" fill="#1a56db"/>
+                  <circle cx="116" cy="55" r="3" fill="#1a56db"/>
+                  <circle cx="164" cy="40" r="3" fill="#1a56db"/>
+                  <circle cx="212" cy="48" r="3" fill="#1a56db"/>
+                  <circle cx="260" cy="30" r="3" fill="#1a56db"/>
+                  <circle cx="308" cy="22" r="3" fill="#1a56db"/>
+                  <text x="20" y="108" text-anchor="middle" font-size="9" fill="#9ca3af">06/24</text>
+                  <text x="68" y="108" text-anchor="middle" font-size="9" fill="#9ca3af">06/25</text>
+                  <text x="116" y="108" text-anchor="middle" font-size="9" fill="#9ca3af">06/26</text>
+                  <text x="164" y="108" text-anchor="middle" font-size="9" fill="#9ca3af">06/27</text>
+                  <text x="212" y="108" text-anchor="middle" font-size="9" fill="#9ca3af">06/28</text>
+                  <text x="260" y="108" text-anchor="middle" font-size="9" fill="#9ca3af">06/29</text>
+                  <text x="308" y="108" text-anchor="middle" font-size="9" fill="#9ca3af">06/30</text>
+                </svg>
+              </div>
+            </div>
+
+            <!-- 最近订单 -->
+            <div class="mobile-card">
+              <div class="card-title"><span class="dot"></span>最近订单</div>
+              <div class="order-list">
+                <div class="order-item">
+                  <div class="col">
+                    <span class="name">鑫旺烟酒商行</span>
+                    <span class="sub">2026-06-30 10:23</span>
+                  </div>
+                  <div class="col amount">
+                    <span>¥2,380</span>
+                    <span class="badge badge-success">已完成</span>
+                  </div>
+                </div>
+                <div class="order-item">
+                  <div class="col">
+                    <span class="name">醉仙楼餐饮</span>
+                    <span class="sub">2026-06-30 09:15</span>
+                  </div>
+                  <div class="col amount">
+                    <span>¥1,560</span>
+                    <span class="badge badge-warning">配送中</span>
+                  </div>
+                </div>
+                <div class="order-item">
+                  <div class="col">
+                    <span class="name">聚贤庄批发</span>
+                    <span class="sub">2026-06-30 08:40</span>
+                  </div>
+                  <div class="col amount">
+                    <span>¥4,560</span>
+                    <span class="badge badge-info">待确认</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Bottom Tab Bar -->
+          <div class="tab-bar">
+            <div class="tab-item active">
+              <span class="tab-icon">📊</span>概览
+            </div>
+            <div class="tab-item">
+              <span class="tab-icon">📈</span>销售
+            </div>
+            <div class="tab-item">
+              <span class="tab-icon">💰</span>收款
+            </div>
+            <div class="tab-item">
+              <span class="tab-icon">📦</span>库存
+            </div>
+            <div class="tab-item">
+              <span class="tab-icon">👥</span>客户
+            </div>
+            <div class="tab-item">
+              <span class="tab-icon">📋</span>财务
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ===== SCREEN 2: 商户销售分析 ===== -->
+      <div class="screen-wrapper">
+        <div class="screen-label">📈 标签页二 · 销售分析</div>
+        <div class="mobile-frame">
+          <div class="status-bar">
+            <span class="time">9:41</span>
+            <span class="icons">
+              <span class="signal"><span></span><span></span><span></span><span></span></span>
+              <span>5G</span>
+              <span class="battery"><span class="fill"></span></span>
+            </span>
+          </div>
+          <div class="screen-content">
+            <div class="top-bar">
+              <span class="title">销售分析</span>
+              <span class="date-selector">📅 06/24 - 06/30 ▾</span>
+            </div>
+
+            <!-- Day/Week/Month Toggle -->
+            <div class="toggle-tabs">
+              <div class="tab active">日</div>
+              <div class="tab">周</div>
+              <div class="tab">月</div>
+            </div>
+
+            <!-- 销售趋势 Bar Chart -->
+            <div class="mobile-card">
+              <div class="card-title"><span class="dot"></span>销售趋势</div>
+              <div class="bar-chart">
+                <div class="bar-col"><span style="font-size:10px;font-weight:600">¥6.2k</span><div class="bar-fill" style="height:62px"></div><span class="bar-label">06/24</span></div>
+                <div class="bar-col"><span style="font-size:10px;font-weight:600">¥5.8k</span><div class="bar-fill" style="height:58px"></div><span class="bar-label">06/25</span></div>
+                <div class="bar-col"><span style="font-size:10px;font-weight:600">¥7.1k</span><div class="bar-fill" style="height:71px"></div><span class="bar-label">06/26</span></div>
+                <div class="bar-col"><span style="font-size:10px;font-weight:600">¥8.4k</span><div class="bar-fill" style="height:84px"></div><span class="bar-label">06/27</span></div>
+                <div class="bar-col"><span style="font-size:10px;font-weight:600">¥6.9k</span><div class="bar-fill" style="height:69px"></div><span class="bar-label">06/28</span></div>
+                <div class="bar-col"><span style="font-size:10px;font-weight:600">¥9.2k</span><div class="bar-fill" style="height:92px"></div><span class="bar-label">06/29</span></div>
+                <div class="bar-col"><span style="font-size:10px;font-weight:600;color:var(--brand)">¥8.5k</span><div class="bar-fill" style="height:85px;background:linear-gradient(180deg,#ef4444 0%,#f87171 100%)"></div><span class="bar-label" style="color:var(--brand)">今天</span></div>
+              </div>
+            </div>
+
+            <!-- 商品销售排行TOP10 -->
+            <div class="mobile-card">
+              <div class="card-title"><span class="dot"></span>商品销售排行 TOP10</div>
+              <div class="rank-list">
+                <div class="rank-item">
+                  <span class="rank-num top">1</span>
+                  <div class="rank-info"><div class="rank-name">飞天茅台 53° 500ml</div><div class="rank-sub">售出 86 瓶</div></div>
+                  <span class="rank-val">¥129,000</span>
+                </div>
+                <div class="rank-item">
+                  <span class="rank-num top">2</span>
+                  <div class="rank-info"><div class="rank-name">五粮液 52° 500ml</div><div class="rank-sub">售出 64 瓶</div></div>
+                  <span class="rank-val">¥70,400</span>
+                </div>
+                <div class="rank-item">
+                  <span class="rank-num top">3</span>
+                  <div class="rank-info"><div class="rank-name">国窖1573 52° 500ml</div><div class="rank-sub">售出 52 瓶</div></div>
+                  <span class="rank-val">¥49,400</span>
+                </div>
+                <div class="rank-item">
+                  <span class="rank-num">4</span>
+                  <div class="rank-info"><div class="rank-name">剑南春 52° 500ml</div><div class="rank-sub">售出 38 瓶</div></div>
+                  <span class="rank-val">¥18,240</span>
+                </div>
+                <div class="rank-item">
+                  <span class="rank-num">5</span>
+                  <div class="rank-info"><div class="rank-name">洋河梦之蓝 M6 52°</div><div class="rank-sub">售出 30 瓶</div></div>
+                  <span class="rank-val">¥15,000</span>
+                </div>
+              </div>
+            </div>
+
+            <!-- 客户贡献排行TOP10 -->
+            <div class="mobile-card">
+              <div class="card-title"><span class="dot"></span>客户贡献排行 TOP10</div>
+              <div class="rank-list">
+                <div class="rank-item">
+                  <span class="rank-num top">1</span>
+                  <div class="rank-info"><div class="rank-name">鑫旺烟酒商行</div><div class="rank-sub">12 笔订单</div></div>
+                  <span class="rank-val">¥38,500</span>
+                </div>
+                <div class="rank-item">
+                  <span class="rank-num top">2</span>
+                  <div class="rank-info"><div class="rank-name">聚贤庄批发</div><div class="rank-sub">8 笔订单</div></div>
+                  <span class="rank-val">¥28,200</span>
+                </div>
+                <div class="rank-item">
+                  <span class="rank-num top">3</span>
+                  <div class="rank-info"><div class="rank-name">醉仙楼餐饮</div><div class="rank-sub">15 笔订单</div></div>
+                  <span class="rank-val">¥22,800</span>
+                </div>
+                <div class="rank-item">
+                  <span class="rank-num">4</span>
+                  <div class="rank-info"><div class="rank-name">四海酒业</div><div class="rank-sub">6 笔订单</div></div>
+                  <span class="rank-val">¥18,600</span>
+                </div>
+                <div class="rank-item">
+                  <span class="rank-num">5</span>
+                  <div class="rank-info"><div class="rank-name">一品香茶酒行</div><div class="rank-sub">9 笔订单</div></div>
+                  <span class="rank-val">¥15,400</span>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div class="tab-bar">
+            <div class="tab-item">
+              <span class="tab-icon">📊</span>概览
+            </div>
+            <div class="tab-item active">
+              <span class="tab-icon">📈</span>销售
+            </div>
+            <div class="tab-item">
+              <span class="tab-icon">💰</span>收款
+            </div>
+            <div class="tab-item">
+              <span class="tab-icon">📦</span>库存
+            </div>
+            <div class="tab-item">
+              <span class="tab-icon">👥</span>客户
+            </div>
+            <div class="tab-item">
+              <span class="tab-icon">📋</span>财务
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ===== SCREEN 3: 商户收款分析 ===== -->
+      <div class="screen-wrapper">
+        <div class="screen-label">💰 标签页三 · 收款分析</div>
+        <div class="mobile-frame">
+          <div class="status-bar">
+            <span class="time">9:41</span>
+            <span class="icons">
+              <span class="signal"><span></span><span></span><span></span><span></span></span>
+              <span>5G</span>
+              <span class="battery"><span class="fill"></span></span>
+            </span>
+          </div>
+          <div class="screen-content">
+            <div class="top-bar">
+              <span class="title">收款分析</span>
+              <span class="date-selector">📅 本月 ▾</span>
+            </div>
+
+            <!-- 收款总额卡片 -->
+            <div class="mobile-card" style="text-align:center;background:linear-gradient(135deg,#1a56db,#1e40af);color:#fff;">
+              <div style="font-size:12px;opacity:0.8;margin-bottom:4px;">收款总额（本月）</div>
+              <div style="font-size:32px;font-weight:700;">¥286,500</div>
+              <div style="font-size:11px;opacity:0.7;margin-top:2px;">已收 ¥243,800 · 待收 ¥42,700</div>
+            </div>
+
+            <!-- 收款渠道分布 -->
+            <div class="mobile-card">
+              <div class="card-title"><span class="dot"></span>收款渠道分布</div>
+              <div style="display:flex;align-items:center;gap:20px;justify-content:center;">
+                <div class="pie-chart" style="background:conic-gradient(#07c160 0% 52%, #1a56db 52% 80%, #f59e0b 80% 95%, #6b7280 95% 100%);"></div>
+                <div class="pie-legend" style="flex-direction:column;align-items:flex-start;">
+                  <div class="legend-item"><span class="legend-dot" style="background:#07c160;"></span>微信 52%</div>
+                  <div class="legend-item"><span class="legend-dot" style="background:#1a56db;"></span>支付宝 28%</div>
+                  <div class="legend-item"><span class="legend-dot" style="background:#f59e0b;"></span>银行卡 15%</div>
+                  <div class="legend-item"><span class="legend-dot" style="background:#6b7280;"></span>现金 5%</div>
+                </div>
+              </div>
+            </div>
+
+            <!-- 待收列表 -->
+            <div class="mobile-card">
+              <div class="card-title"><span class="dot"></span>待收列表</div>
+              <div class="order-list">
+                <div class="order-item">
+                  <div class="col">
+                    <span class="name">鑫旺烟酒商行</span>
+                    <span class="sub">¥12,800 · 到期 07/05</span>
+                  </div>
+                  <span class="badge badge-warning">待收款</span>
+                </div>
+                <div class="order-item">
+                  <div class="col">
+                    <span class="name">四海酒业</span>
+                    <span class="sub">¥8,600 · 到期 07/08</span>
+                  </div>
+                  <span class="badge badge-warning">待收款</span>
+                </div>
+                <div class="order-item">
+                  <div class="col">
+                    <span class="name">一品香茶酒行</span>
+                    <span class="sub">¥21,300 · 到期 06/28</span>
+                  </div>
+                  <span class="badge badge-danger">已逾期</span>
+                </div>
+              </div>
+            </div>
+
+            <!-- 收款记录 -->
+            <div class="mobile-card">
+              <div class="card-title"><span class="dot"></span>收款记录</div>
+              <div class="order-list">
+                <div class="order-item">
+                  <div class="col">
+                    <span class="name">聚贤庄批发</span>
+                    <span class="sub">06/30 · 微信</span>
+                  </div>
+                  <span style="font-weight:600;color:var(--success);">+¥18,500</span>
+                </div>
+                <div class="order-item">
+                  <div class="col">
+                    <span class="name">醉仙楼餐饮</span>
+                    <span class="sub">06/29 · 银行卡</span>
+                  </div>
+                  <span style="font-weight:600;color:var(--success);">+¥9,200</span>
+                </div>
+                <div class="order-item">
+                  <div class="col">
+                    <span class="name">鑫旺烟酒商行</span>
+                    <span class="sub">06/28 · 支付宝</span>
+                  </div>
+                  <span style="font-weight:600;color:var(--success);">+¥22,000</span>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div class="tab-bar">
+            <div class="tab-item">
+              <span class="tab-icon">📊</span>概览
+            </div>
+            <div class="tab-item">
+              <span class="tab-icon">📈</span>销售
+            </div>
+            <div class="tab-item active">
+              <span class="tab-icon">💰</span>收款
+            </div>
+            <div class="tab-item">
+              <span class="tab-icon">📦</span>库存
+            </div>
+            <div class="tab-item">
+              <span class="tab-icon">👥</span>客户
+            </div>
+            <div class="tab-item">
+              <span class="tab-icon">📋</span>财务
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ===== SCREEN 4: 商户库存分析 ===== -->
+      <div class="screen-wrapper">
+        <div class="screen-label">📦 标签页四 · 库存分析</div>
+        <div class="mobile-frame">
+          <div class="status-bar">
+            <span class="time">9:41</span>
+            <span class="icons">
+              <span class="signal"><span></span><span></span><span></span><span></span></span>
+              <span>5G</span>
+              <span class="battery"><span class="fill"></span></span>
+            </span>
+          </div>
+          <div class="screen-content">
+            <div class="top-bar">
+              <span class="title">库存分析</span>
+              <span class="date-selector">📅 实时 ▾</span>
+            </div>
+
+            <!-- 库存概览 -->
+            <div class="mobile-card">
+              <div class="card-title"><span class="dot"></span>库存概览</div>
+              <div class="summary-row">
+                <div class="summary-card">
+                  <div class="s-label">库存总额</div>
+                  <div class="s-value" style="color:var(--brand);">¥680K</div>
+                </div>
+                <div class="summary-card">
+                  <div class="s-label">SKU数</div>
+                  <div class="s-value" style="color:var(--text);">320</div>
+                </div>
+                <div class="summary-card">
+                  <div class="s-label">周转天数</div>
+                  <div class="s-value" style="color:var(--warning);">38天</div>
+                </div>
+              </div>
+            </div>
+
+            <!-- 库存预警 -->
+            <div class="mobile-card">
+              <div class="card-title"><span class="dot"></span>库存预警</div>
+              <div class="warning-list">
+                <div class="warning-item level-red">
+                  <span class="warn-icon">🔴</span>
+                  <div class="warn-info">
+                    <div class="warn-name">飞天茅台 53° 500ml</div>
+                    <div class="warn-sub">库存仅剩 2 瓶 · 安全库存 10 瓶</div>
+                  </div>
+                  <span class="warn-val" style="color:var(--danger);">缺货预警</span>
+                </div>
+                <div class="warning-item level-orange">
+                  <span class="warn-icon">🟠</span>
+                  <div class="warn-info">
+                    <div class="warn-name">五粮液 52° 500ml</div>
+                    <div class="warn-sub">库存 6 瓶 · 安全库存 15 瓶</div>
+                  </div>
+                  <span class="warn-val" style="color:var(--orange);">低库存</span>
+                </div>
+                <div class="warning-item level-yellow">
+                  <span class="warn-icon">🟡</span>
+                  <div class="warn-info">
+                    <div class="warn-name">古井贡酒 年份原浆 50°</div>
+                    <div class="warn-sub">库存 18 瓶 · 安全库存 30 瓶</div>
+                  </div>
+                  <span class="warn-val" style="color:var(--warning);">关注</span>
+                </div>
+              </div>
+            </div>
+
+            <!-- 呆滞品列表 -->
+            <div class="mobile-card">
+              <div class="card-title"><span class="dot"></span>呆滞品列表（库龄 &gt; 90天）</div>
+              <div class="order-list">
+                <div class="order-item">
+                  <div class="col">
+                    <span class="name">老白干 67° 500ml</span>
+                    <span class="sub">库龄 186 天</span>
+                  </div>
+                  <span style="font-weight:600;">28 瓶</span>
+                </div>
+                <div class="order-item">
+                  <div class="col">
+                    <span class="name">红星二锅头 56° 750ml</span>
+                    <span class="sub">库龄 142 天</span>
+                  </div>
+                  <span style="font-weight:600;">35 瓶</span>
+                </div>
+                <div class="order-item">
+                  <div class="col">
+                    <span class="name">竹叶青 45° 500ml</span>
+                    <span class="sub">库龄 108 天</span>
+                  </div>
+                  <span style="font-weight:600;">16 瓶</span>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div class="tab-bar">
+            <div class="tab-item">
+              <span class="tab-icon">📊</span>概览
+            </div>
+            <div class="tab-item">
+              <span class="tab-icon">📈</span>销售
+            </div>
+            <div class="tab-item">
+              <span class="tab-icon">💰</span>收款
+            </div>
+            <div class="tab-item active">
+              <span class="tab-icon">📦</span>库存
+            </div>
+            <div class="tab-item">
+              <span class="tab-icon">👥</span>客户
+            </div>
+            <div class="tab-item">
+              <span class="tab-icon">📋</span>财务
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ===== SCREEN 5: 商户客户分析 ===== -->
+      <div class="screen-wrapper">
+        <div class="screen-label">👥 标签页五 · 客户分析</div>
+        <div class="mobile-frame">
+          <div class="status-bar">
+            <span class="time">9:41</span>
+            <span class="icons">
+              <span class="signal"><span></span><span></span><span></span><span></span></span>
+              <span>5G</span>
+              <span class="battery"><span class="fill"></span></span>
+            </span>
+          </div>
+          <div class="screen-content">
+            <div class="top-bar">
+              <span class="title">客户分析</span>
+              <span class="date-selector">📅 本月 ▾</span>
+            </div>
+
+            <!-- 客户贡献排行 -->
+            <div class="mobile-card">
+              <div class="card-title"><span class="dot"></span>客户贡献排行 TOP10</div>
+              <div class="rank-list">
+                <div class="rank-item">
+                  <span class="rank-num top">1</span>
+                  <div class="rank-info"><div class="rank-name">鑫旺烟酒商行</div><div class="rank-sub">12笔 · 占比 18.2%</div></div>
+                  <span class="rank-val">¥38,500</span>
+                </div>
+                <div class="rank-item">
+                  <span class="rank-num top">2</span>
+                  <div class="rank-info"><div class="rank-name">聚贤庄批发</div><div class="rank-sub">8笔 · 占比 13.3%</div></div>
+                  <span class="rank-val">¥28,200</span>
+                </div>
+                <div class="rank-item">
+                  <span class="rank-num top">3</span>
+                  <div class="rank-info"><div class="rank-name">醉仙楼餐饮</div><div class="rank-sub">15笔 · 占比 10.8%</div></div>
+                  <span class="rank-val">¥22,800</span>
+                </div>
+                <div class="rank-item">
+                  <span class="rank-num">4</span>
+                  <div class="rank-info"><div class="rank-name">四海酒业</div><div class="rank-sub">6笔 · 占比 8.8%</div></div>
+                  <span class="rank-val">¥18,600</span>
+                </div>
+                <div class="rank-item">
+                  <span class="rank-num">5</span>
+                  <div class="rank-info"><div class="rank-name">一品香茶酒行</div><div class="rank-sub">9笔 · 占比 7.3%</div></div>
+                  <span class="rank-val">¥15,400</span>
+                </div>
+              </div>
+            </div>
+
+            <!-- 客户分布 -->
+            <div class="mobile-card">
+              <div class="card-title"><span class="dot"></span>客户分布</div>
+              <div style="display:flex;align-items:center;gap:16px;justify-content:center;">
+                <div class="pie-chart" style="background:conic-gradient(#10b981 0% 30%, #1a56db 30% 85%, #ef4444 85% 100%);"></div>
+                <div class="pie-legend" style="flex-direction:column;align-items:flex-start;">
+                  <div class="legend-item"><span class="legend-dot" style="background:#10b981;"></span>新客 30%</div>
+                  <div class="legend-item"><span class="legend-dot" style="background:#1a56db;"></span>老客 55%</div>
+                  <div class="legend-item"><span class="legend-dot" style="background:#ef4444;"></span>流失 15%</div>
+                </div>
+              </div>
+            </div>
+
+            <!-- 客户采购排行 -->
+            <div class="mobile-card">
+              <div class="card-title"><span class="dot"></span>客户采购排行</div>
+              <div class="order-list">
+                <div class="order-item">
+                  <div class="col">
+                    <span class="name">鑫旺烟酒商行</span>
+                    <span class="sub">采购 12 次</span>
+                  </div>
+                  <span style="font-weight:600;">¥38,500</span>
+                </div>
+                <div class="order-item">
+                  <div class="col">
+                    <span class="name">聚贤庄批发</span>
+                    <span class="sub">采购 8 次</span>
+                  </div>
+                  <span style="font-weight:600;">¥28,200</span>
+                </div>
+                <div class="order-item">
+                  <div class="col">
+                    <span class="name">醉仙楼餐饮</span>
+                    <span class="sub">采购 15 次</span>
+                  </div>
+                  <span style="font-weight:600;">¥22,800</span>
+                </div>
+                <div class="order-item">
+                  <div class="col">
+                    <span class="name">四海酒业</span>
+                    <span class="sub">采购 6 次</span>
+                  </div>
+                  <span style="font-weight:600;">¥18,600</span>
+                </div>
+                <div class="order-item">
+                  <div class="col">
+                    <span class="name">一品香茶酒行</span>
+                    <span class="sub">采购 9 次</span>
+                  </div>
+                  <span style="font-weight:600;">¥15,400</span>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div class="tab-bar">
+            <div class="tab-item">
+              <span class="tab-icon">📊</span>概览
+            </div>
+            <div class="tab-item">
+              <span class="tab-icon">📈</span>销售
+            </div>
+            <div class="tab-item">
+              <span class="tab-icon">💰</span>收款
+            </div>
+            <div class="tab-item">
+              <span class="tab-icon">📦</span>库存
+            </div>
+            <div class="tab-item active">
+              <span class="tab-icon">👥</span>客户
+            </div>
+            <div class="tab-item">
+              <span class="tab-icon">📋</span>财务
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ===== SCREEN 6: 商户财务分析 ===== -->
+      <div class="screen-wrapper">
+        <div class="screen-label">📋 标签页六 · 财务分析</div>
+        <div class="mobile-frame">
+          <div class="status-bar">
+            <span class="time">9:41</span>
+            <span class="icons">
+              <span class="signal"><span></span><span></span><span></span><span></span></span>
+              <span>5G</span>
+              <span class="battery"><span class="fill"></span></span>
+            </span>
+          </div>
+          <div class="screen-content">
+            <div class="top-bar">
+              <span class="title">财务分析</span>
+              <span class="date-selector">📅 本月 ▾</span>
+            </div>
+
+            <!-- 本月收入/支出/利润 -->
+            <div class="summary-row">
+              <div class="summary-card">
+                <div class="s-label">本月收入</div>
+                <div class="s-value income">¥128,500</div>
+              </div>
+              <div class="summary-card">
+                <div class="s-label">本月支出</div>
+                <div class="s-value expense">¥89,950</div>
+              </div>
+              <div class="summary-card">
+                <div class="s-label">本月利润</div>
+                <div class="s-value profit">¥38,550</div>
+              </div>
+            </div>
+
+            <!-- 收支趋势 6个月 -->
+            <div class="mobile-card">
+              <div class="card-title"><span class="dot"></span>收支趋势（近6个月）</div>
+              <div class="mini-chart">
+                <svg viewBox="0 0 330 110">
+                  <line x1="10" y1="100" x2="325" y2="100" stroke="#e5e7eb" stroke-width="0.5"/>
+                  <line x1="10" y1="75" x2="325" y2="75" stroke="#e5e7eb" stroke-width="0.5"/>
+                  <line x1="10" y1="50" x2="325" y2="50" stroke="#e5e7eb" stroke-width="0.5"/>
+                  <line x1="10" y1="25" x2="325" y2="25" stroke="#e5e7eb" stroke-width="0.5"/>
+                  <!-- 收入线 -->
+                  <polyline points="20,65 78,55 136,42 194,35 252,48 310,28" fill="none" stroke="#1a56db" stroke-width="2" stroke-linecap="round"/>
+                  <circle cx="20" cy="65" r="3" fill="#1a56db"/>
+                  <circle cx="78" cy="55" r="3" fill="#1a56db"/>
+                  <circle cx="136" cy="42" r="3" fill="#1a56db"/>
+                  <circle cx="194" cy="35" r="3" fill="#1a56db"/>
+                  <circle cx="252" cy="48" r="3" fill="#1a56db"/>
+                  <circle cx="310" cy="28" r="3" fill="#1a56db"/>
+                  <!-- 支出线 -->
+                  <polyline points="20,78 78,72 136,60 194,52 252,62 310,44" fill="none" stroke="#ef4444" stroke-width="2" stroke-linecap="round" stroke-dasharray="4,3"/>
+                  <circle cx="20" cy="78" r="3" fill="#ef4444"/>
+                  <circle cx="78" cy="72" r="3" fill="#ef4444"/>
+                  <circle cx="136" cy="60" r="3" fill="#ef4444"/>
+                  <circle cx="194" cy="52" r="3" fill="#ef4444"/>
+                  <circle cx="252" cy="62" r="3" fill="#ef4444"/>
+                  <circle cx="310" cy="44" r="3" fill="#ef4444"/>
+                  <text x="20" y="108" text-anchor="middle" font-size="9" fill="#9ca3af">1月</text>
+                  <text x="78" y="108" text-anchor="middle" font-size="9" fill="#9ca3af">2月</text>
+                  <text x="136" y="108" text-anchor="middle" font-size="9" fill="#9ca3af">3月</text>
+                  <text x="194" y="108" text-anchor="middle" font-size="9" fill="#9ca3af">4月</text>
+                  <text x="252" y="108" text-anchor="middle" font-size="9" fill="#9ca3af">5月</text>
+                  <text x="310" y="108" text-anchor="middle" font-size="9" fill="#9ca3af">6月</text>
+                </svg>
+              </div>
+              <div style="display:flex;gap:20px;justify-content:center;font-size:11px;">
+                <span style="display:flex;align-items:center;gap:4px;"><span style="width:10px;height:10px;border-radius:50%;background:#1a56db;"></span>收入</span>
+                <span style="display:flex;align-items:center;gap:4px;"><span style="width:10px;height:10px;border-radius:50%;background:#ef4444;"></span>支出</span>
+              </div>
+            </div>
+
+            <!-- 费用分类 -->
+            <div class="mobile-card">
+              <div class="card-title"><span class="dot"></span>费用分类</div>
+              <div style="display:flex;align-items:center;gap:16px;justify-content:center;">
+                <div class="pie-chart" style="background:conic-gradient(#ef4444 0% 42%, #f59e0b 42% 67%, #1a56db 67% 85%, #10b981 85% 100%);"></div>
+                <div class="pie-legend" style="flex-direction:column;align-items:flex-start;">
+                  <div class="legend-item"><span class="legend-dot" style="background:#ef4444;"></span>采购成本 42%</div>
+                  <div class="legend-item"><span class="legend-dot" style="background:#f59e0b;"></span>物流运费 25%</div>
+                  <div class="legend-item"><span class="legend-dot" style="background:#1a56db;"></span>人工成本 18%</div>
+                  <div class="legend-item"><span class="legend-dot" style="background:#10b981;"></span>仓储费用 15%</div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div class="tab-bar">
+            <div class="tab-item">
+              <span class="tab-icon">📊</span>概览
+            </div>
+            <div class="tab-item">
+              <span class="tab-icon">📈</span>销售
+            </div>
+            <div class="tab-item">
+              <span class="tab-icon">💰</span>收款
+            </div>
+            <div class="tab-item">
+              <span class="tab-icon">📦</span>库存
+            </div>
+            <div class="tab-item">
+              <span class="tab-icon">👥</span>客户
+            </div>
+            <div class="tab-item active">
+              <span class="tab-icon">📋</span>财务
+            </div>
+          </div>
+        </div>
+      </div>
+
+    </div><!-- .screens-grid -->
+  </div><!-- .section -->
+
+  <!-- ===== 字段规范 ===== -->
+  <div class="section">
+    <h2 class="section-title">字段规范</h2>
+    <p class="section-desc">商户端报表模块涉及的核心数据字段定义，确保前后端接口对齐、数据口径一致。</p>
+    <div style="overflow-x:auto;">
+      <table class="spec-table">
+        <thead>
+          <tr>
+            <th>字段名</th>
+            <th>类型</th>
+            <th>说明</th>
+            <th>示例值</th>
+            <th>所属模块</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td><code>daily_sales_amount</code></td>
+            <td>Decimal</td>
+            <td>今日销售额（元）</td>
+            <td>8500.00</td>
+            <td>经营概览</td>
+          </tr>
+          <tr>
+            <td><code>daily_order_count</code></td>
+            <td>Integer</td>
+            <td>今日订单数</td>
+            <td>12</td>
+            <td>经营概览</td>
+          </tr>
+          <tr>
+            <td><code>gross_profit</code></td>
+            <td>Decimal</td>
+            <td>毛利（销售额 - 成本）</td>
+            <td>2550.00</td>
+            <td>经营概览</td>
+          </tr>
+          <tr>
+            <td><code>avg_order_value</code></td>
+            <td>Decimal</td>
+            <td>客单价（销售额 / 订单数）</td>
+            <td>708.33</td>
+            <td>经营概览</td>
+          </tr>
+          <tr>
+            <td><code>sales_trend_7d</code></td>
+            <td>Array&lt;Decimal&gt;</td>
+            <td>近7日每日销售额</td>
+            <td>[6200,5800,7100,8400,6900,9200,8500]</td>
+            <td>经营概览 / 销售</td>
+          </tr>
+          <tr>
+            <td><code>product_sales_rank</code></td>
+            <td>Array&lt;Object&gt;</td>
+            <td>商品销售排行（名称/销量/金额）</td>
+            <td>[{name, qty, amount}]</td>
+            <td>销售分析</td>
+          </tr>
+          <tr>
+            <td><code>customer_contribution_rank</code></td>
+            <td>Array&lt;Object&gt;</td>
+            <td>客户贡献排行（名称/订单数/金额）</td>
+            <td>[{name, orders, amount}]</td>
+            <td>销售 / 客户</td>
+          </tr>
+          <tr>
+            <td><code>collection_total</code></td>
+            <td>Decimal</td>
+            <td>收款总额</td>
+            <td>286500.00</td>
+            <td>收款分析</td>
+          </tr>
+          <tr>
+            <td><code>collection_channels</code></td>
+            <td>Array&lt;Object&gt;</td>
+            <td>收款渠道分布（渠道/金额/占比）</td>
+            <td>[{channel, amount, pct}]</td>
+            <td>收款分析</td>
+          </tr>
+          <tr>
+            <td><code>pending_collections</code></td>
+            <td>Array&lt;Object&gt;</td>
+            <td>待收列表（客户/金额/到期日）</td>
+            <td>[{customer, amount, due_date}]</td>
+            <td>收款分析</td>
+          </tr>
+          <tr>
+            <td><code>inventory_total_value</code></td>
+            <td>Decimal</td>
+            <td>库存总额</td>
+            <td>680000.00</td>
+            <td>库存分析</td>
+          </tr>
+          <tr>
+            <td><code>sku_count</code></td>
+            <td>Integer</td>
+            <td>SKU 数量</td>
+            <td>320</td>
+            <td>库存分析</td>
+          </tr>
+          <tr>
+            <td><code>turnover_days</code></td>
+            <td>Integer</td>
+            <td>库存周转天数</td>
+            <td>38</td>
+            <td>库存分析</td>
+          </tr>
+          <tr>
+            <td><code>inventory_alerts</code></td>
+            <td>Array&lt;Object&gt;</td>
+            <td>库存预警列表（商品/库存量/安全库存/等级）</td>
+            <td>[{product, qty, safe_qty, level}]</td>
+            <td>库存分析</td>
+          </tr>
+          <tr>
+            <td><code>slow_moving_items</code></td>
+            <td>Array&lt;Object&gt;</td>
+            <td>呆滞品列表（商品/库龄/库存量）</td>
+            <td>[{product, age_days, qty}]</td>
+            <td>库存分析</td>
+          </tr>
+          <tr>
+            <td><code>customer_distribution</code></td>
+            <td>Object</td>
+            <td>客户分布（新客/老客/流失占比）</td>
+            <td>{new:30, regular:55, churned:15}</td>
+            <td>客户分析</td>
+          </tr>
+          <tr>
+            <td><code>monthly_revenue</code></td>
+            <td>Decimal</td>
+            <td>本月收入</td>
+            <td>128500.00</td>
+            <td>财务分析</td>
+          </tr>
+          <tr>
+            <td><code>monthly_expense</code></td>
+            <td>Decimal</td>
+            <td>本月支出</td>
+            <td>89950.00</td>
+            <td>财务分析</td>
+          </tr>
+          <tr>
+            <td><code>monthly_profit</code></td>
+            <td>Decimal</td>
+            <td>本月利润</td>
+            <td>38550.00</td>
+            <td>财务分析</td>
+          </tr>
+          <tr>
+            <td><code>expense_breakdown</code></td>
+            <td>Array&lt;Object&gt;</td>
+            <td>费用分类（类别/金额/占比）</td>
+            <td>[{category, amount, pct}]</td>
+            <td>财务分析</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- ===== 验收标准 ===== -->
+  <div class="section">
+    <h2 class="section-title">验收标准</h2>
+    <p class="section-desc">以下为商户端报表模块上线前必须通过的验收检查项。</p>
+    <ul class="checklist">
+      <li>
+        <span class="check-box"></span>
+        <span>商户登录后可在底部导航栏切换 6 个标签页（经营概览 / 销售 / 收款 / 库存 / 客户 / 财务），每个标签页加载对应数据。</span>
+      </li>
+      <li>
+        <span class="check-box"></span>
+        <span>经营概览页展示今日 4 项 KPI（销售额、订单数、毛利、客单价），数据与后端实时同步，误差不超过 5 分钟。</span>
+      </li>
+      <li>
+        <span class="check-box"></span>
+        <span>销售分析页支持日/周/月切换，TOP10 排行列表数据正确、排序无误，点击商品可查看详情。</span>
+      </li>
+      <li>
+        <span class="check-box"></span>
+        <span>收款分析页收款渠道饼图比例与后端数据一致，待收列表按到期日排序，逾期项以红色标识。</span>
+      </li>
+      <li>
+        <span class="check-box"></span>
+        <span>库存分析页库存预警按红/橙/黄三级展示，缺货商品（库存低于安全库存 50%）标记为红色。</span>
+      </li>
+      <li>
+        <span class="check-box"></span>
+        <span>客户分析页客户分布饼图比例正确，采购排行与销售数据交叉验证一致。</span>
+      </li>
+      <li>
+        <span class="check-box"></span>
+        <span>财务分析页收支趋势图展示近 6 个月数据，费用分类饼图与财务系统数据对齐。</span>
+      </li>
+      <li>
+        <span class="check-box"></span>
+        <span>所有页面在 375px 宽度手机屏幕上完整显示，无横向滚动条，页面加载时间不超过 2 秒。</span>
+      </li>
+    </ul>
+  </div>
+
+  <!-- ===== FOOTER ===== -->
+  <footer class="footer">
+    <strong>商户端报表</strong> · 智享酒水库存系统<br>
+    林夕 · UI/UX Designer · 2026-06-30
+  </footer>
+
+</div><!-- .doc-wrapper -->
+
+</body>
+</html>
