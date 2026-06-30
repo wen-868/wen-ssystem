@@ -50,18 +50,18 @@ liquor-inventory-system/
 | 成员 | 职责 | 当前状态 |
 |------|------|---------|
 | 凌舟 | 项目管理、代码审计、任务分配 | — |
-| 林夕 | UI/UX 设计师 | 订单管理 Phase 12 待开始 |
-| 墨 | 管理后台 admin-web 前端 | 订单管理 Phase 12 待开始 |
-| 阿坚 | 后端 API | 订单管理 Phase 12 待开始 |
-| 阿澈 | 商户移动端 merchant-mobile 前端 | 订单管理 Phase 12 待开始 |
-| 苏然 | 测试工程师 / DAO 层 | 订单管理 Phase 12 待开始 |
+| 林夕 | UI/UX 设计师 | 系统设置 Phase 13 待开始 |
+| 墨 | 管理后台 admin-web 前端 | 系统设置 Phase 13 待开始 |
+| 阿坚 | 后端 API | 系统设置 Phase 13 待开始 |
+| 阿澈 | 商户移动端 merchant-mobile 前端 | 系统设置 Phase 13 待开始 |
+| 苏然 | 测试工程师 / DAO 层 | 系统设置 Phase 13 待开始 |
 
 ---
 
 ## 四、开发节奏
 
 1. **按一级模块纵向推进**：一个模块做完再做下一个（设计稿→后端→前端→联调）
-2. **模块顺序**：商品中心 ✅ → 销售管理 ✅ → 采购管理 ✅ → 库存管理 ✅ → 客户管理 ✅ → 财务往来 ✅ → 数据报表 ✅ → 营销中心 ✅ → 即时零售 ✅ → 订单管理 ⏳ → 系统设置 → 工作总台 → AI 助手
+2. **模块顺序**：商品中心 ✅ → 销售管理 ✅ → 采购管理 ✅ → 库存管理 ✅ → 客户管理 ✅ → 财务往来 ✅ → 数据报表 ✅ → 营销中心 ✅ → 即时零售 ✅ → 订单管理 ✅ → 系统设置 ⏳ → 工作总台 → AI 助手
 3. **每轮流程**：任务分解 → 分发 → 林夕出设计稿 → 阿坚后端 → 墨+阿澈前端 → 审计验收 → 合并推送 → 下一轮
 4. **设计稿提前**：林夕的设计稿需提前 1 天交付，避免阻塞前端开发
 5. **验收标准**：对照 `tasks/field-audit-product-center.md` 逐字段验证，无遗漏
@@ -158,7 +158,7 @@ liquor-inventory-system/
 - 关键缺失：9张表DDL + instant-retail-new.routes.ts路由文件 + 商户端完全空白
 - 阿坚 6项、林夕 6项、墨 6项、阿澈 4项、苏然 6项
 
-### Phase 12 · 订单管理模块（任务已分发）
+### Phase 12 · 订单管理模块（已完成 ✅）
 
 - 8 个二级模块，5个P0（全渠道订单聚合/分发路由/状态同步/异常处理/商品映射），3个P1（合并拆分/售后聚合/订单报表），约~361字段
 - 已有基础：6个订单API（listOrders/exportOrdersCsv/getOrderDetail/getOrderStatusStats/listSaleBills/exportSaleBillsCsv）、3个管理后台页面（Orders/OrderBoard/OrderTimeout）、1个商户端页面（OrdersView）、售后模块（aftersale.routes.ts）、超时处理（order-timeout.routes.ts）
@@ -168,6 +168,19 @@ liquor-inventory-system/
 - 墨 6项（管理后台：聚合/分发路由/状态同步/异常处理/商品映射/售后聚合）
 - 阿澈 4项（商户端：订单列表/订单详情/异常处理/售后）
 - 苏然 6项（DAO+测试：7表DAO/聚合测试/路由测试/同步测试/异常测试/前端测试）
+
+### Phase 13 · 系统设置模块（任务已分发）
+
+- 8 个二级模块，5个P0（门店管理/员工管理/角色权限/操作日志/参数配置），3个P1（审批流程/数据字典/系统通知），约~385字段
+- 已有基础：门店CRUD（employee.controller/service/routes）、员工CRUD（employee.controller/service）、RBAC角色权限（rbac.routes/controller/service）、操作日志（audit.routes/controller/service）、系统参数配置（sys-config.routes/controller/service）、审批流程（approval.routes/controllers/services）、系统通知（notification.routes/controller/service）
+- 管理后台已有：StoresView/EmployeesView/System.vue/SystemRoles/AuditLogView/ApprovalRules/ApprovalDetail/MyApprovals
+- 商户端已有：AdminStoresView/AdminStaffView/ProfileView
+- 关键缺失：数据字典完全空白、参数配置无独立管理后台页面、系统通知无管理后台页面、门店/员工/角色权限API需统一整合
+- 阿坚 6项（后端：门店API/员工API/角色权限API/操作日志API/参数配置API/审批流程API）
+- 林夕 6项（设计稿：门店/员工/角色权限/操作日志/参数配置/审批流程）
+- 墨 6项（管理后台：门店管理/员工管理/角色权限/操作日志/参数配置/审批流程）
+- 阿澈 4项（商户端：门店信息/员工列表/个人信息/通知）
+- 苏然 6项（DAO+测试：门店/员工/角色/日志/配置/审批）
 
 ---
 

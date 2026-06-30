@@ -1,4 +1,4 @@
-# 墨 · 订单管理模块 · 管理后台
+# 墨 · 系统设置模块 · 管理后台前端
 
 **日期**：2026-06-30
 **状态**：待开始
@@ -9,43 +9,108 @@
 
 | # | 任务 | 优先级 | 状态 |
 |---|------|--------|:---:|
-| 1 | OrderCenterView - 全渠道订单聚合 | P0 | :x: |
-| 2 | OrderRoutingView - 订单分发与路由 | P0 | :x: |
-| 3 | OrderSyncView - 订单状态同步 | P0 | :x: |
-| 4 | OrderExceptionView - 订单异常处理 | P0 | :x: |
-| 5 | OrderProductMapView - 全渠道商品映射 | P0 | :x: |
-| 6 | OrderAftersaleView - 订单售后聚合 | P1 | :x: |
+| 1 | 门店管理页面 - 完善列表+表单+详情 | P0 | :x: |
+| 2 | 员工管理页面 - 完善列表+表单+密码重置 | P0 | :x: |
+| 3 | 角色权限页面 - 完善权限树+用户分配 | P0 | :x: |
+| 4 | 操作日志页面 - 完善筛选+详情+导出 | P0 | :x: |
+| 5 | 参数配置页面 - 新建分组Tabs配置页 | P0 | :x: |
+| 6 | 审批流程页面 - 完善规则+审批+待办 | P1 | :x: |
 
 ---
 
 ## 详细说明
 
-### 1. OrderCenterView - 全渠道订单聚合
-- **文件**：`admin-web/src/views/OrderCenterView.vue`（新建）
-- **关键字段**：渠道Tab切换（全部/微信/抖音/美团/饿了么/京东/线下）、订单统计看板（今日订单数/今日金额/待处理数/异常数）、订单表格（channelOrderNo/channel/渠道订单号/channelStatus/customerName/customerPhone/totalAmount/orderStatus/paymentStatus/createdAt）、详情抽屉（渠道原始数据JSON展示/商品明细/金额明细/支付信息/操作日志）、手动拉取按钮
-- **说明**：实现全渠道订单聚合管理页面，顶部渠道Tab（使用el-tabs，每个Tab带渠道icon和今日订单数角标，通过badge显示），统计区（4个el-statistic卡片+渠道占比饼图echarts+订单趋势折线图），订单表格（el-table分页列表，列：渠道标签el-tag（不同渠道不同颜色）、渠道订单号、渠道状态、客户姓名+电话、商品摘要、订单金额、支付状态el-tag、订单状态el-tag、聚合时间，行操作：查看详情按钮+手动同步按钮），详情抽屉（el-drawer，左侧：订单基本信息表单+渠道原始数据el-descriptions+收货信息，右侧：商品明细el-table含渠道商品名/本地商品名/单价/数量/小计，底部：支付信息+操作日志el-timeline），筛选栏（渠道选择el-select+订单状态el-select+支付状态el-select+日期范围el-date-picker+搜索el-input+导出按钮el-button）。调用 `/api/admin/order-center/channel-orders` 系列接口。新增路由：`/order-center`，侧边栏菜单：订单管理 > 全渠道订单聚合。
+### 1. 门店管理页面 - 完善列表+表单+详情
+- **文件**：`admin-web/src/views/StoresView.vue`（改造）、`admin-web/src/views/SystemSettings.vue`（新建，统一入口页）
+- **现有代码**：`StoresView.vue`（门店列表+新增+编辑弹窗+微信信息拉取）、`System.vue`（门店Tab+员工Tab）
+- **改造内容**：
+  - 创建统一入口页 `SystemSettingsView.vue`，作为系统设置模块的导航容器
+  - 改造 `StoresView.vue`：接入 `/api/admin/system/stores` 新API
+  - 新增字段：营业时间（openTime/closeTime）、地理坐标（lng/lat）、门店头像（wxHeadImg预览）
+  - 新增功能：门店状态切换（营业中/已关闭/暂停中，三态切换）、门店详情抽屉（展示完整信息含地图定位）
+  - 状态标签优化：营业中(绿色)/已关闭(灰色)/暂停中(橙色)
+  - 表单校验：门店名称必填、电话格式校验、配送半径范围1-100
+  - 微信信息拉取：保留现有功能，输入AppID后拉取商户名称、客服电话、头像
+- **路由**：`/system/stores`（在 `router/index.ts` 中注册）
 
-### 2. OrderRoutingView - 订单分发与路由
-- **文件**：`admin-web/src/views/OrderRoutingView.vue`（新建）
-- **关键字段**：路由规则管理（ruleName/channel/storeId/priority/conditionJson/actionType/isEnabled）、规则编辑弹窗（条件构建器：区域/金额/商品类别/时间段配置）、分发日志（channelOrderId/ruleId/fromStoreId/toStoreId/dispatchStatus/dispatchReason/createdAt）、手动分发（选择订单+目标门店+确认）
-- **说明**：实现订单分发路由配置页面，包含两个Tab：路由规则管理（el-table列表含规则名称/适用渠道el-tag/适用门店/优先级/条件摘要/启用状态el-switch，操作列：编辑/删除按钮，新增/编辑弹窗el-dialog：规则名称el-input+渠道el-select多选+适用门店el-select+优先级el-input-number+条件构建器：区域选择el-cascader+金额范围el-slider+商品类别el-tree-select多选+时间段el-time-picker，动作选择：分配门店el-select/分配仓库el-select/拆分规则配置，启用开关el-switch），分发日志（el-table含订单号/渠道/触发规则/来源门店/目标门店/分发状态el-tag/分发时间/分发原因，筛选：状态el-select+日期范围+搜索），手动分发入口（在订单详情中增加"手动分发"按钮，弹出分发对话框el-dialog：选择目标门店el-select+目标仓库el-select+确认分发el-button）。分发看板（el-row 3列：各门店当前订单量+接单能力状态，使用el-progress展示负载率）。调用 `/api/admin/order-routing/rules` 和 `/api/admin/order-routing/dispatch-logs` 接口。新增路由：`/order-routing`，侧边栏菜单：订单管理 > 订单分发与路由。
+### 2. 员工管理页面 - 完善列表+表单+密码重置
+- **文件**：`admin-web/src/views/EmployeesView.vue`（改造）
+- **现有代码**：`EmployeesView.vue`（员工列表+搜索+新增编辑弹窗+启用/禁用）
+- **改造内容**：
+  - 接入 `/api/admin/system/employees` 新API
+  - 新增字段：工号（staffNo，自动生成+手动修改）、部门（department）、最后登录时间
+  - 新增功能：密码重置按钮（表格操作列，二次确认弹窗）、角色下拉（从RBAC角色表获取）
+  - 新增筛选：门店筛选（下拉选择）、角色筛选（下拉选择）
+  - 门店下拉选项：从 `/api/admin/system/stores` 获取
+  - 角色下拉选项：从 `/api/admin/system/roles` 获取
+  - 角色标签：管理员(红色danger)/店长(橙色warning)/员工(蓝色primary)
+  - 状态标签：在职(绿色success)/离职(灰色info)
+  - 表单校验：用户名必填、姓名必填、手机号格式校验、角色必选
+- **路由**：`/system/employees`（在 `router/index.ts` 中注册）
 
-### 3. OrderSyncView - 订单状态同步
-- **文件**：`admin-web/src/views/OrderSyncView.vue`（新建）
-- **关键字段**：同步统计（各渠道同步成功率/失败率/待同步数/今日同步总数）、同步日志（channelOrderId/channel/syncType/fromStatus/toStatus/syncResult/errorMessage/syncedAt）、手动同步操作（单订单同步+批量同步+全量同步）、定时任务配置（同步频率/同步范围/通知设置）
-- **说明**：实现订单状态同步管理页面，顶部同步统计区（4个el-statistic卡片：今日同步总数/成功数/失败数/待同步数，各渠道同步成功率echarts柱状图），同步日志（el-table含订单号+渠道el-tag、同步类型el-tag：PULL蓝色/PUSH绿色、来源状态->目标状态箭头动画、同步结果el-tag：成功/失败、错误信息el-tooltip+el-popover展示完整错误、同步时间，筛选：渠道el-select+类型el-select+结果el-select+日期范围），操作区（el-button组：单订单同步+批量同步选中+全量同步全部渠道，同步进度el-progress），定时任务配置区（el-descriptions：同步频率el-select每5分钟/每10分钟/每30分钟/每小时，同步范围el-select全部/指定渠道，同步开关el-switch，通知设置：失败告警el-switch+告警方式）。调用 `/api/admin/order-sync/logs` 和 `/api/admin/order-sync/stats` 接口。新增路由：`/order-sync`，侧边栏菜单：订单管理 > 订单状态同步。
+### 3. 角色权限页面 - 完善权限树+用户分配
+- **文件**：`admin-web/src/views/SystemRoles.vue`（改造）
+- **现有代码**：`SystemRoles.vue`（角色列表+权限树+创建编辑弹窗+分配用户弹窗）
+- **改造内容**：
+  - 接入 `/api/admin/system/roles` 新API
+  - 新增字段：数据权限范围（dataScope：全部/部门/门店/仅本人，下拉选择）
+  - 权限树增强：三级结构（模块→页面→按钮），每个节点支持 READ/WRITE/DELETE/EXPORT 四种操作类型
+  - 权限树数据结构更新：覆盖所有12个一级模块（新增订单管理/即时零售/系统设置等模块的权限节点）
+  - 新增 "系统设置" 权限模块：system:stores(门店管理)/system:employees(员工管理)/system:roles(角色权限)/system:audit(操作日志)/system:config(系统配置)/system:approval(审批流程)
+  - 分配用户弹窗：显示已分配用户列表，支持多选添加/移除
+  - 删除角色时校验：弹窗提示"该角色下已有N个用户，确认删除？"
+  - 角色编码自动生成：基于角色名称拼音首字母大写
+- **路由**：`/system/roles`（在 `router/index.ts` 中注册）
 
-### 4. OrderExceptionView - 订单异常处理
-- **文件**：`admin-web/src/views/OrderExceptionView.vue`（新建）
-- **关键字段**：异常统计（待处理数/今日新增/本周解决/平均处理时长）、异常列表（channelOrderId/channel/exceptionType/exceptionLevel/exceptionDetail/handleStatus/handlerId/createdAt）、异常详情（完整异常信息+关联订单+处理记录时间线）、处理操作（分配处理人+处理方案+标记已解决+关闭）
-- **说明**：实现订单异常处理中心页面，顶部异常统计区（4个el-statistic卡片：待处理异常数红色/今日新增异常数橙色/本周解决异常数绿色/平均处理时长，异常类型分布echarts饼图+渠道异常率echarts柱状图+异常趋势echarts折线图切换日/周/月），异常列表（el-table含异常级别el-tag：WARNING黄色/ERROR橙色/CRITICAL红色+图标、订单号、渠道el-tag、异常类型el-tag、异常详情摘要el-popover、处理状态el-tag、处理人、创建时间，行操作：处理/查看详情），异常详情弹窗（el-dialog：左侧：异常基本信息el-descriptions+异常详情JSON展示+关联订单信息，右侧：处理记录el-timeline含处理人/时间/方案/结果，底部：处理操作区：分配处理人el-select+处理方案el-input type=textarea+标记已解决el-button type=success+关闭异常el-button）。筛选栏：异常类型el-select多选+异常级别el-select+处理状态el-select+渠道el-select+日期范围+搜索。调用 `/api/admin/order-exception/list` 和 `/api/admin/order-exception/stats` 接口。新增路由：`/order-exception`，侧边栏菜单：订单管理 > 订单异常处理。
+### 4. 操作日志页面 - 完善筛选+详情+导出
+- **文件**：`admin-web/src/views/AuditLogView.vue`（改造）
+- **现有代码**：`AuditLogView.vue`（统计卡片+筛选栏+日志列表+详情抽屉+导出）
+- **改造内容**：
+  - 接入 `/api/admin/system/audit-logs` 新API
+  - 新增筛选：IP地址输入框、操作人姓名输入框
+  - 新增操作类型：IMPORT(导入)、APPROVE(审批)
+  - 新增操作类型标签颜色：IMPORT(紫色)、APPROVE(青色)
+  - 详情抽屉增强：JSON格式化显示（请求参数和变更数据使用代码高亮）
+  - 导出功能优化：支持导出当前筛选结果（CSV格式），导出时显示进度提示
+  - 新增功能：日志清理按钮（管理员可清理90天前日志，二次确认）
+  - 统计卡片优化：新增"导出操作"、"登录操作"统计
+- **路由**：`/system/audit-log`（在 `router/index.ts` 中注册）
 
-### 5. OrderProductMapView - 全渠道商品映射
-- **文件**：`admin-web/src/views/OrderProductMapView.vue`（新建）
-- **关键字段**：映射列表（channel/channelSkuId/channelProductName/channelPrice/localSkuId/localProductName/localPrice/syncStatus/lastSyncedAt）、映射编辑弹窗（渠道选择+渠道SKU+渠道商品名+渠道价格+本地SKU搜索选择）、批量导入（上传CSV/Excel+预览+确认）、未映射商品列表（快速映射入口）
-- **说明**：实现全渠道商品映射管理页面，顶部渠道Tab（el-tabs，每个Tab带已映射数/未映射数角标），映射列表（el-table含渠道el-tag、渠道SKU编码、渠道商品名、渠道价格、本地SKU编码、本地商品名、本地价格、同步状态el-tag、最后同步时间，行操作：编辑/删除/同步），操作栏（新增映射el-button+批量导入el-button+批量同步el-button+搜索el-input），新增/编辑映射弹窗（el-dialog：渠道el-select+渠道SKU编码el-input+渠道商品名el-input+渠道价格el-input-number+本地SKU搜索选择器el-select：支持按商品名/SKU编码搜索，选中后自动填充本地商品名/价格），批量导入流程（el-steps：上传文件el-upload->预览表格el-table->确认导入el-button->显示结果导入成功X条/失败X条/重复X条），未映射商品列表（el-tab-pane：显示各渠道订单中未匹配的商品，el-table含渠道/渠道SKU/渠道商品名/订单数，操作：快速映射el-button弹出快速映射弹窗）。调用 `/api/admin/order-product-map/list` 和 `/api/admin/order-product-map/batch-import` 接口。新增路由：`/order-product-map`，侧边栏菜单：订单管理 > 全渠道商品映射。
+### 5. 参数配置页面 - 新建分组Tabs配置页
+- **文件**：`admin-web/src/views/SystemConfigView.vue`（新建）
+- **现有代码**：无独立配置页面，`System.vue` 仅含门店和员工Tab
+- **新建内容**：
+  - 分组Tabs布局：通用配置/订单配置/支付配置/库存配置/通知配置
+  - 每个Tab内为表单布局：
+    - 通用配置Tab：公司名称(文本输入)、公司Logo(图片上传+预览)、联系电话(文本)、系统主题色(颜色选择器)
+    - 订单配置Tab：自动接单(开关)、订单超时时间(数字输入+分钟后缀)、订单自动取消时间(数字输入+分钟后缀)
+    - 支付配置Tab：微信支付(开关)、支付宝(开关)、线下支付(开关)
+    - 库存配置Tab：低库存预警阈值(数字输入)、保质期预警天数(数字输入)、自动补货(开关)
+    - 通知配置Tab：短信通知(开关)、微信通知(开关)、站内信(开关)
+  - 底部操作栏：保存按钮（批量保存所有分组配置）、重置按钮（恢复默认值）
+  - 接入 `/api/admin/system/configs` API：`GET /:group` 获取分组配置，`PUT /batch` 批量保存
+  - 配置保存后显示成功提示
+  - 每个配置项右侧显示说明文字（灰色小字）
+  - 页面宽度限制（max-width 800px），居中布局
+- **路由**：`/system/config`（在 `router/index.ts` 中注册）
 
-### 6. OrderAftersaleView - 订单售后聚合
-- **文件**：`admin-web/src/views/OrderAftersaleView.vue`（新建）
-- **关键字段**：售后列表（channelOrderId/channel/aftersaleNo/aftersaleType/reason/refundAmount/aftersaleStatus/handlerId/createdAt）、售后详情（完整售后信息+关联订单+处理记录）、售后统计（售后率/退款金额趋势/类型分布）、审核操作（通过/拒绝+理由+完成售后）
-- **说明**：实现订单售后聚合管理页面，顶部售后统计区（4个el-statistic卡片：售后总数/待审核数/今日新增/售后率，售后类型分布echarts饼图+渠道售后率echarts柱状图+退款金额趋势echarts折线图），售后列表（el-table含渠道el-tag、售后单号、关联订单号、售后类型el-tag：仅退款/退货退款/换货/维修、原因摘要、退款金额、售后状态el-tag：待审核/已通过/已拒绝/待收货/待质检/已完成/已关闭、处理人、创建时间，行操作：审核/查看详情），售后详情弹窗（el-dialog：左侧：售后基本信息el-descriptions+商品信息+退款金额，右侧：处理记录el-timeline+物流信息，底部：审核操作区：通过el-button type=success+拒绝el-button type=danger+拒绝原因el-input+完成售后el-button type=primary），筛选栏：渠道el-select+售后类型el-select+售后状态el-select+日期范围+搜索。审核操作需二次确认弹窗。调用 `/api/admin/order-aftersale/list` 和 `/api/admin/order-aftersale/stats` 接口。新增路由：`/order-aftersale`，侧边栏菜单：订单管理 > 订单售后聚合。复用现有 `AftersaleView.vue` 组件逻辑，扩展为全渠道版本。
+### 6. 审批流程页面 - 完善规则+审批+待办
+- **文件**：`admin-web/src/views/ApprovalRules.vue`（改造）、`admin-web/src/views/ApprovalDetail.vue`（改造）、`admin-web/src/views/MyApprovals.vue`（改造）
+- **现有代码**：`ApprovalRules.vue`（规则列表+Tab切换）、`ApprovalDetail.vue`（审批详情+时间线）、`MyApprovals.vue`（我的申请+提交审批）
+- **改造内容**：
+  - 接入 `/api/admin/system/approval` 新API
+  - 审批规则管理（`ApprovalRules.vue`）：
+    - 新增业务类型：价格变更(PRICE_CHANGE)、信用额度(CREDIT_LIMIT)
+    - 审批链配置交互优化：动态添加/删除审批级别，每个级别拖拽排序
+    - 新增SLA时效设置（小时输入）、升级级别设置
+    - 规则表单增加描述字段
+  - 审批详情（`ApprovalDetail.vue`）：
+    - 时间线颜色优化：通过(绿色)/拒绝(红色)/待审批(橙色)/已撤销(灰色)
+    - 新增审批操作按钮：通过/拒绝（仅待审批状态显示）
+    - 新增撤销按钮（申请人可撤销PENDING状态的审批）
+  - 我的申请（`MyApprovals.vue`）：
+    - 新增业务类型筛选
+    - 提交审批弹窗：选择审批规则、填写标题和内容
+    - 新增审批状态筛选（全部/审批中/已通过/已拒绝）
+  - 新增"我的待办"Tab（在审批规则页面）：展示当前用户待审批的任务列表
+- **路由**：`/system/approval`（在 `router/index.ts` 中注册）

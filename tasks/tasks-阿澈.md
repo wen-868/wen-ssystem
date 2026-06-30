@@ -1,4 +1,4 @@
-# 阿澈 · 订单管理模块 · 商户移动端
+# 阿澈 · 系统设置模块 · 商户移动端前端
 
 **日期**：2026-06-30
 **状态**：待开始
@@ -9,31 +9,96 @@
 
 | # | 任务 | 优先级 | 状态 |
 |---|------|--------|:---:|
-| 1 | 商户端订单列表 - 全渠道订单聚合展示 | P0 | :x: |
-| 2 | 商户端订单详情 - 订单信息+商品明细+操作 | P0 | :x: |
-| 3 | 商户端异常处理 - 异常订单识别+申诉 | P0 | :x: |
-| 4 | 商户端售后管理 - 售后申请+进度查询 | P1 | :x: |
+| 1 | 门店信息页面 - 完善门店展示+详情 | P0 | :x: |
+| 2 | 员工列表页面 - 完善员工列表+搜索 | P0 | :x: |
+| 3 | 个人信息页面 - 完善个人资料+安全设置 | P0 | :x: |
+| 4 | 通知页面 - 新建消息通知中心 | P1 | :x: |
 
 ---
 
 ## 详细说明
 
-### 1. 商户端订单列表 - 全渠道订单聚合展示
-- **文件**：`merchant-mobile/src/views/OrderCenterView.vue`（新建）
-- **关键字段**：渠道筛选（全部/微信/抖音/美团/饿了么/京东/线下）、状态筛选（全部/待处理/已确认/配送中/已完成/已取消）、订单卡片（channelOrderNo/channel/渠道标签+颜色区分/customerName/customerPhone/totalAmount/orderStatus/paymentStatus/商品摘要/createdAt）、数据概览（今日订单数/今日金额/待处理数/异常数）
-- **说明**：实现商户移动端全渠道订单列表页面。页面顶部数据概览区（4个van-grid卡片：今日订单数/今日金额/待处理订单数/异常订单数，点击可跳转对应筛选），渠道筛选栏（van-tabs横向滚动：全部+6个渠道Tab，每个Tab带渠道icon和颜色标识），状态筛选（van-dropdown-menu下拉：全部/待处理/已确认/配送中/已完成/已取消），订单卡片列表（van-list支持下拉刷新+上拉加载更多，每个van-cell卡片：顶部渠道标签van-tag颜色区分+订单号，中部客户姓名+电话+商品摘要，底部金额+状态标签van-tag+时间，点击进入详情），搜索功能（顶部搜索框van-search：搜索订单号/客户名/手机号）。异常订单标记：卡片右上角红色感叹号图标+异常原因简述。调用 `/api/admin/order-center/channel-orders` 接口（需适配移动端分页参数）。将 `OrdersView.vue` 中的现有逻辑迁移整合到本页面。
+### 1. 门店信息页面 - 完善门店展示+详情
+- **文件**：`merchant-mobile/src/views/AdminStoresView.vue`（改造）、`merchant-mobile/src/views/StoreDetailView.vue`（新建）
+- **现有代码**：`AdminStoresView.vue`（门店列表+搜索+新增/编辑弹窗）
+- **改造内容**：
+  - 门店列表：展示门店名称、地址、联系电话、营业状态（营业中/已关闭/暂停中）
+  - 列表项交互：左滑显示操作（查看详情、拨打电话）
+  - 新增门店详情页 `StoreDetailView.vue`：
+    - 展示门店完整信息：编码、名称、地址、联系电话、联系人、配送半径、营业时间、微信商户信息
+    - 地图定位展示（使用腾讯地图或高德地图组件显示门店位置）
+    - 一键拨打电话按钮
+    - 一键导航按钮（跳转第三方地图App）
+  - 列表加载：下拉刷新、上拉加载更多
+  - 搜索功能：门店名称搜索
+  - 状态标签：营业中(绿色)/已关闭(灰色)/暂停中(橙色)
+- **API 对接**：`GET /api/admin/system/stores`（门店列表），`GET /api/admin/system/stores/:id`（门店详情）
+- **路由**：`/admin/stores`（已有）、`/admin/stores/:id`（新建）
 
-### 2. 商户端订单详情 - 订单信息+商品明细+操作
-- **文件**：`merchant-mobile/src/views/OrderCenterDetailView.vue`（新建）
-- **关键字段**：订单基本信息（渠道/订单号/状态/时间）、商品明细（channelSkuName/localSkuName/price/quantity/subtotal）、金额明细（totalAmount/discountAmount/deliveryFee/payAmount）、配送信息（收货人/电话/地址/配送方式）、操作按钮（确认接单/拒单/开始配送/完成配送/取消订单）、状态流转时间线
-- **说明**：实现商户移动端订单详情页面。订单基本信息区（van-cell-group：渠道来源van-tag+订单号+订单状态van-tag+创建时间+支付时间），商品明细列表（van-card列表：商品名+规格+单价+数量+小计，底部合计金额），金额明细（van-cell-group：商品总额+优惠金额+配送费+实付金额，实付金额加粗），配送信息（van-cell-group：收货人+联系电话+收货地址+配送方式标签+备注），状态流转时间线（van-steps：下单->支付->确认->配送->完成，当前步骤高亮），操作按钮区（van-action-bar：根据订单状态显示不同按钮组合：待处理显示确认接单+拒单+拒单原因picker，已确认显示开始配送+取消订单，配送中显示完成配送，已完成显示查看售后）。操作确认弹窗（van-dialog：确认接单/确认拒单/确认完成等二次确认）。调用 `/api/admin/order-center/channel-orders/:id` 和 `/api/admin/order-routing/dispatch` 接口。扩展 `OrdersView.vue` 中的订单详情逻辑。
+### 2. 员工列表页面 - 完善员工列表+搜索
+- **文件**：`merchant-mobile/src/views/AdminStaffView.vue`（改造）、`merchant-mobile/src/views/StaffDetailView.vue`（新建）
+- **现有代码**：`AdminStaffView.vue`（员工列表+搜索+新增/编辑弹窗）
+- **改造内容**：
+  - 员工列表：展示姓名、工号、手机号、角色、所属门店、状态（在职/离职）
+  - 列表项交互：点击查看员工详情
+  - 新增员工详情页 `StaffDetailView.vue`：
+    - 展示员工完整信息：工号、姓名、手机号、角色、所属门店、职位、入职时间
+    - 一键拨打电话按钮
+    - 角色标签展示：管理员(红色)/店长(橙色)/员工(蓝色)
+  - 列表加载：下拉刷新、上拉加载更多
+  - 搜索功能：员工姓名/手机号搜索
+  - 筛选功能：按门店筛选、按角色筛选
+  - 状态标签：在职(绿色)/离职(灰色)
+  - 管理员权限：仅管理员可查看员工列表（`role: 'admin'`）
+- **API 对接**：`GET /api/admin/system/employees`（员工列表），`GET /api/admin/system/employees/:id`（员工详情）
+- **路由**：`/admin/staff`（已有）、`/admin/staff/:id`（新建）
 
-### 3. 商户端异常处理 - 异常订单识别+申诉
-- **文件**：`merchant-mobile/src/views/OrderExceptionView.vue`（新建）、`merchant-mobile/src/views/OrderExceptionDetailView.vue`（新建）
-- **关键字段**：异常列表（exceptionType/exceptionLevel/exceptionDetail/handleStatus/createdAt）、异常详情（异常类型+级别+详情+关联订单）、申诉入口（申诉原因+申诉说明+图片上传）、处理状态（待处理/处理中/已解决/已关闭）
-- **说明**：实现商户移动端异常订单处理页面，入口在订单列表页顶部异常提醒横幅（van-notice-bar：显示异常订单数，点击进入异常列表）。异常列表页（van-list下拉刷新+上拉加载更多，每个van-cell卡片：异常级别图标+颜色标签：WARNING黄色/ERROR橙色/CRITICAL红色、订单号、渠道van-tag、异常类型van-tag：缺货/取消/退款/超时/配送失败/支付失败、异常详情摘要、处理状态van-tag、创建时间），筛选（van-dropdown-menu：异常类型/异常级别/处理状态），点击进入异常详情。异常详情页（异常基本信息van-cell-group：异常类型+级别+渠道+订单号+创建时间，异常详情van-cell：完整异常描述，关联订单信息van-cell-group：订单基本信息+商品明细+金额，处理记录van-steps时间线：待处理->处理中->已解决/已关闭），申诉入口（页面底部van-action-bar：申诉按钮，点击弹出申诉表单van-dialog：申诉原因van-field+申诉说明van-field type=textarea+图片上传van-uploader，提交申诉）。调用 `/api/admin/order-exception/list` 和 `/api/admin/order-exception/:id` 接口。
+### 3. 个人信息页面 - 完善个人资料+安全设置
+- **文件**：`merchant-mobile/src/views/ProfileView.vue`（改造）、`merchant-mobile/src/views/ProfileEditView.vue`（新建）、`merchant-mobile/src/views/ChangePasswordView.vue`（新建）
+- **现有代码**：`ProfileView.vue`（个人信息展示：姓名/门店/角色/权限）
+- **改造内容**：
+  - 个人信息展示优化：
+    - 头像展示区（默认头像+角色标签）
+    - 信息卡片：姓名、手机号、角色、所属门店、门店地址
+    - 功能入口列表：编辑资料、修改密码、门店信息、通知设置、关于系统、退出登录
+  - 新增编辑资料页 `ProfileEditView.vue`：
+    - 可编辑字段：姓名、手机号、头像（拍照/相册选择）
+    - 表单校验：姓名必填、手机号格式校验
+    - 保存成功后返回上一页并刷新个人信息
+  - 新增修改密码页 `ChangePasswordView.vue`：
+    - 旧密码输入、新密码输入、确认新密码输入
+    - 密码强度校验：至少8位，包含字母和数字
+    - 两次新密码一致性校验
+    - 修改成功后自动退出登录，跳转登录页
+  - 门店信息入口：点击跳转门店详情页
+  - 通知设置入口：点击跳转通知页面
+- **API 对接**：`GET /api/store/me`（获取个人信息）、`PUT /api/admin/system/employees/:id`（更新个人资料）、`POST /api/admin/system/employees/:id/reset-password`（修改密码）
+- **路由**：`/profile`（已有）、`/profile/edit`（新建）、`/profile/change-password`（新建）
 
-### 4. 商户端售后管理 - 售后申请+进度查询
-- **文件**：`merchant-mobile/src/views/OrderAftersaleView.vue`（新建）、`merchant-mobile/src/views/OrderAftersaleDetailView.vue`（新建）
-- **关键字段**：售后列表（aftersaleNo/channelOrderId/aftersaleType/reason/refundAmount/aftersaleStatus/createdAt）、售后详情（售后类型+原因+退款金额+商品信息+处理进度）、售后申请（订单选择+售后类型+原因+说明+图片上传）、物流信息（退货运单号+物流公司+物流状态）
-- **说明**：实现商户移动端售后管理页面，入口在订单详情页底部售后按钮（仅已完成/已确认状态订单显示）。售后列表页（van-tabs：全部/待审核/已通过/已拒绝/已完成，van-list下拉刷新+上拉加载更多，每个van-cell卡片：售后单号+渠道van-tag+关联订单号+售后类型van-tag+原因摘要+退款金额+状态van-tag+创建时间），点击进入详情。售后详情页（售后基本信息van-cell-group：售后单号+类型+状态+渠道+创建时间，售后原因van-cell：原因+详细说明+图片展示van-image，退款信息van-cell-group：退款金额+退款方式+退款时间，商品信息van-card：商品名+规格+单价+数量+小计，物流信息van-cell-group：退货运单号+物流公司+物流状态，处理进度van-steps时间线）。售后申请页（从订单详情进入，表单：售后类型van-radio：仅退款/退货退款/换货/维修，售后原因van-field+详细说明van-field type=textarea+图片上传van-uploader+退款金额自动填充订单实付金额，提交申请van-button）。调用 `/api/admin/order-aftersale/list` 和 `/api/miniapp/aftersales` 接口（复用现有售后API，扩展全渠道支持）。整合现有售后相关逻辑到新页面。
+### 4. 通知页面 - 新建消息通知中心
+- **文件**：`merchant-mobile/src/views/NotificationView.vue`（新建）、`merchant-mobile/src/views/NotificationDetailView.vue`（新建）
+- **现有代码**：无独立通知页面，需全新开发
+- **新建内容**：
+  - 通知列表页 `NotificationView.vue`：
+    - 顶部Tab切换：全部/系统/订单/支付/预警/信用/召回
+    - 通知列表项：图标（类型图标）、标题、内容摘要、时间（相对时间：刚刚/X分钟前/X小时前/X天前）
+    - 未读通知：左侧蓝色圆点标记
+    - 已读通知：灰色背景
+    - 列表项交互：点击查看详情（自动标记已读）
+    - 顶部操作：全部标记已读按钮
+    - 列表加载：下拉刷新、上拉加载更多
+    - 空状态：无通知时显示空状态插画+提示文字
+  - 通知详情页 `NotificationDetailView.vue`：
+    - 通知标题、完整内容、发送时间、相关业务链接（如有）
+    - 相关业务跳转：如订单通知可跳转订单详情
+  - 底部导航栏：在"我的"Tab显示未读通知数量角标
+  - 未读数量：通过 `GET /api/miniapp/notifications/unread-count` 获取
+  - 通知类型图标映射：
+    - SYSTEM：系统图标（齿轮）
+    - ORDER：订单图标（订单）
+    - PAYMENT：支付图标（金币）
+    - ALERT：预警图标（铃铛）
+    - CREDIT：信用图标（盾牌）
+    - RECALL：召回图标（消息）
+- **API 对接**：`GET /api/miniapp/notifications`（通知列表）、`GET /api/miniapp/notifications/unread-count`（未读数量）、`PUT /api/miniapp/notifications/:id/read`（标记已读）、`POST /api/miniapp/notifications/read-all`（全部已读）
+- **路由**：`/notifications`（新建）、`/notifications/:id`（新建）

@@ -1,4 +1,4 @@
-# 阿坚 · 订单管理模块 · 后端核心
+# 阿坚 · 系统设置模块 · 后端核心
 
 **日期**：2026-06-30
 **状态**：待开始
@@ -9,57 +9,66 @@
 
 | # | 任务 | 优先级 | 状态 |
 |---|------|--------|:---:|
-| 1 | 全渠道订单聚合 - DDL迁移 + 聚合API | P0 | :x: |
-| 2 | 订单分发与路由 - 路由规则 + 分发API | P0 | :x: |
-| 3 | 订单状态同步 - 双向同步引擎 + 同步API | P0 | :x: |
-| 4 | 订单异常处理 - 异常检测 + 处理API | P0 | :x: |
-| 5 | 全渠道商品映射 - 映射表DDL + CRUD API | P0 | :x: |
-| 6 | 订单售后聚合 - 统一售后DDL + API | P1 | :x: |
+| 1 | 门店管理 API - 统一路由 + 完整CRUD | P0 | :x: |
+| 2 | 员工管理 API - 统一路由 + 完整CRUD | P0 | :x: |
+| 3 | 角色权限 API - 完善RBAC + 数据权限 | P0 | :x: |
+| 4 | 操作日志 API - 增强审计 + 导出 | P0 | :x: |
+| 5 | 参数配置 API - 完善配置 + 分组 | P0 | :x: |
+| 6 | 审批流程 API - 完善流程 + 通知 | P1 | :x: |
 
 ---
 
 ## 详细说明
 
-### 1. 全渠道订单聚合 - DDL迁移 + 聚合API
-- **文件**：`docs/migrations/add_order_management.sql`（新建）、`backend/src/routes/order-center.routes.ts`（新建）、`backend/src/controllers/admin/order-center.controller.ts`（新建）、`backend/src/services/admin/order-center.service.ts`（新建）
+### 1. 门店管理 API - 统一路由 + 完整CRUD
+- **文件**：`backend/src/routes/system-settings.routes.ts`（新建，统一路由入口）、`backend/src/controllers/admin/store-management.controller.ts`（新建）、`backend/src/services/admin/store-management.service.ts`（新建）
+- **现有代码**：门店CRUD散落在 `employee.controller.ts`（listStores/createStore/getStore/updateStore/getStoreWechatInfo）和 `store-control` 中，需整合到统一路由
 - **关键字段**：
-  - `channel_order` 表：channel_order_id、channel（WECHAT/DOUYIN/MEITUAN/JD/ELEME/OFFLINE）、channel_order_no、channel_status、tenant_id、store_id、customer_id、customer_name、customer_phone、total_amount、discount_amount、delivery_fee、pay_amount、order_status（PENDING/CONFIRMED/PROCESSING/SHIPPED/COMPLETED/CANCELLED）、payment_status（UNPAID/PAID/REFUNDED）、channel_raw_data（JSON）、pulled_at、synced_at、created_at、updated_at
-  - `channel_order_item` 表：channel_order_id、channel_sku_id、channel_sku_name、local_sku_id、local_sku_name、price、quantity、subtotal
-  - 聚合API：GET /admin/order-center/channel-orders（分页+渠道筛选+状态筛选+日期范围+搜索）、GET /admin/order-center/channel-orders/:id（详情含商品明细）、POST /admin/order-center/channel-orders/pull（手动拉取渠道订单）、GET /admin/order-center/channel-orders/stats（各渠道订单统计）
-- **说明**：创建全渠道订单聚合表，将所有渠道（微信小程序、抖音、美团、饿了么、京东、线下）的订单统一入库到 `channel_order` 表。实现聚合API支持多维度筛选（渠道、状态、日期、关键词）。渠道订单原始数据以JSON格式存储在 `channel_raw_data` 字段中，保留各平台特有字段。整合现有 `order.controller.ts` 的 `listOrders` 逻辑，复用 `order.service.ts` 中的查询方法。路由注册到 `server.ts`：`app.use("/api/admin/order-center", requireAuthWithTenant, orderCenterRouter)`。
+  - `stores` 表：id、store_code、name、address、contact、phone、delivery_radius、business_status（OPEN/CLOSED/SUSPENDED）、miniapp_appid、wx_merchant_name、wx_service_phone、wx_head_img、lng、lat、open_time、close_time、tenant_id、status（ACTIVE/INACTIVE）、created_at、updated_at
+  - 门店API：GET /admin/system/stores（分页+搜索）、POST /admin/system/stores（创建）、GET /admin/system/stores/:id（详情）、PUT /admin/system/stores/:id（更新）、DELETE /admin/system/stores/:id（软删除）、POST /admin/system/stores/:id/toggle（启用/停用）、GET /admin/system/stores/:id/wechat（微信信息拉取）
+- **说明**：将现有分散的门店管理代码整合到统一路由 `/api/admin/system/stores`。新增门店编码自动生成、门店营业状态管理（OPEN/CLOSED/SUSPENDED）、地理坐标字段（lng/lat）、营业时间字段。整合 `store-control` 的开店/关店/暂停/恢复逻辑到门店状态管理。保留微信小程序信息拉取功能。路由注册到 `server.ts`：`app.use("/api/admin/system", requireAuthWithTenant, systemSettingsRouter)`。
 
-### 2. 订单分发与路由 - 路由规则 + 分发API
-- **文件**：`backend/src/services/admin/order-routing.service.ts`（新建）、`backend/src/controllers/admin/order-routing.controller.ts`（新建）、`backend/src/routes/order-routing.routes.ts`（新建）
+### 2. 员工管理 API - 统一路由 + 完整CRUD
+- **文件**：`backend/src/controllers/admin/employee-management.controller.ts`（新建）、`backend/src/services/admin/employee-management.service.ts`（新建）
+- **现有代码**：`employee.controller.ts`（listStaff/createStaff/updateStaff/disableStaff）、`employee.service.ts`，需迁移到统一路由
 - **关键字段**：
-  - `order_routing_rule` 表：rule_name、channel、store_id、warehouse_id、priority、condition_json（JSON：区域/金额/商品类别/时间段等条件）、action_type（ASSIGN_STORE/ASSIGN_WAREHOUSE/SPLIT）、is_enabled、created_at、updated_at
-  - `order_dispatch_log` 表：channel_order_id、rule_id、from_store_id、to_store_id、from_warehouse_id、to_warehouse_id、dispatch_status（PENDING/ASSIGNED/FAILED）、dispatch_reason、created_at
-  - 路由API：GET /admin/order-routing/rules（规则列表）、POST /admin/order-routing/rules（创建规则）、PUT /admin/order-routing/rules/:id（更新规则）、DELETE /admin/order-routing/rules/:id（删除规则）、POST /admin/order-routing/dispatch（手动触发分发）、GET /admin/order-routing/dispatch-logs（分发日志）
-- **说明**：实现订单智能分发路由引擎。核心逻辑：订单到达后根据路由规则（区域、商品类别、仓库库存、门店接单能力）自动分配到对应门店/仓库。支持条件匹配（condition_json 存储匹配条件：region/amount_range/category_ids/time_range），支持优先级排序（priority越小越优先）。分发日志记录每次路由决策的原因和结果。路由注册：`app.use("/api/admin/order-routing", requireAuthWithTenant, orderRoutingRouter)`。
+  - `employees` 表：id、staff_no、username、real_name、mobile、password_hash、role_id、store_id、department_id、position、status（ACTIVE/INACTIVE）、last_login_at、tenant_id、created_at、updated_at
+  - 员工API：GET /admin/system/employees（分页+搜索+门店筛选+角色筛选）、POST /admin/system/employees（创建，含初始密码）、GET /admin/system/employees/:id（详情）、PUT /admin/system/employees/:id（更新）、DELETE /admin/system/employees/:id（软删除/离职）、POST /admin/system/employees/:id/reset-password（重置密码）、POST /admin/system/employees/:id/toggle（启用/禁用）
+- **说明**：将现有员工管理代码迁移到统一路由 `/api/admin/system/employees`。新增工号自动生成、角色关联（使用RBAC角色表）、部门归属字段。员工状态管理：在职(ACTIVE)/离职(INACTIVE)。与RBAC角色系统集成，分配角色时自动关联角色权限。新增密码重置功能，离职员工自动禁用账号。路由注册到统一 `systemSettingsRouter`。
 
-### 3. 订单状态同步 - 双向同步引擎 + 同步API
-- **文件**：`backend/src/services/admin/order-sync.service.ts`（新建）、`backend/src/controllers/admin/order-sync.controller.ts`（新建）、`backend/src/routes/order-sync.routes.ts`（新建）
+### 3. 角色权限 API - 完善RBAC + 数据权限
+- **文件**：`backend/src/controllers/admin/role-permission.controller.ts`（新建）、`backend/src/services/admin/role-permission.service.ts`（新建）
+- **现有代码**：`rbac.routes.ts`（listRoles/createRole/getRoleDetail/updateRole/deleteRole/getUserRoles/setUserRoles）、`rbac.controller.ts`、`rbac.service.ts`，需迁移到统一路由
 - **关键字段**：
-  - `order_sync_log` 表：channel_order_id、sync_type（PULL_STATUS/PUSH_STATUS）、from_status、to_status、channel、sync_result（SUCCESS/FAILED）、error_message、synced_at、created_at
-  - 同步API：GET /admin/order-sync/logs（同步日志分页）、POST /admin/order-sync/pull-status（手动拉取渠道订单状态）、POST /admin/order-sync/push-status（推送系统状态到渠道）、POST /admin/order-sync/batch-sync（批量同步）、GET /admin/order-sync/stats（同步统计）
-- **说明**：实现订单状态双向同步引擎。PULL：定时从各渠道（微信/抖音/美团/饿了么/京东）拉取订单最新状态，更新 `channel_order.order_status`；PUSH：当系统内订单状态变更时（如发货、完成），推送状态到对应渠道。同步日志记录每次同步的详细信息（来源状态、目标状态、结果、错误信息）。定时任务每5分钟执行一次状态拉取。复用现有 `instant-retail` 的平台适配器（JD/美团/饿了么）进行状态同步。路由注册：`app.use("/api/admin/order-sync", requireAuthWithTenant, orderSyncRouter)`。
+  - `sys_role` 表：id、role_name、role_code、description、permissions（JSON数组）、data_scope（ALL/DEPARTMENT/STORE/SELF）、status（ACTIVE/DISABLED）、tenant_id、created_at、updated_at
+  - `sys_role_menu` 表：id、role_id、menu_id、permission_type（READ/WRITE/DELETE/EXPORT）
+  - `sys_user_role` 表：id、user_id、role_id、tenant_id、created_at
+  - 角色API：GET /admin/system/roles（列表）、POST /admin/system/roles（创建）、GET /admin/system/roles/:id（详情含权限树）、PUT /admin/system/roles/:id（更新）、DELETE /admin/system/roles/:id（删除，校验无用户引用）、GET /admin/system/roles/:id/users（已分配用户）、POST /admin/system/roles/:id/assign-users（分配用户）、GET /admin/system/roles/permissions-tree（菜单权限树）
+- **说明**：将现有RBAC代码迁移到统一路由 `/api/admin/system/roles`。增强菜单权限树：支持三级菜单结构（一级模块/二级页面/三级按钮），每项权限支持READ/WRITE/DELETE/EXPORT四种操作类型。新增数据权限范围：ALL（全部数据）/DEPARTMENT（本部门）/STORE（本门店）/SELF（仅本人）。删除角色时校验是否有用户关联。权限树结构参考 `SystemRoles.vue` 中现有 `menuModules` 配置。路由注册到统一 `systemSettingsRouter`。
 
-### 4. 订单异常处理 - 异常检测 + 处理API
-- **文件**：`backend/src/services/admin/order-exception.service.ts`（新建）、`backend/src/controllers/admin/order-exception.controller.ts`（新建）、`backend/src/routes/order-exception.routes.ts`（新建）
+### 4. 操作日志 API - 增强审计 + 导出
+- **文件**：`backend/src/controllers/admin/audit-log.controller.ts`（新建）、`backend/src/services/admin/audit-log.service.ts`（新建）
+- **现有代码**：`audit.routes.ts`（listAuditLogs/getAuditStatistics）、`audit.controller.ts`、`audit.service.ts`，需迁移到统一路由
 - **关键字段**：
-  - `order_exception` 表：channel_order_id、exception_type（SHORTAGE/CANCEL/REFUND/TIMEOUT/DELIVERY_FAIL/PAYMENT_FAIL/OTHER）、exception_level（WARNING/ERROR/CRITICAL）、exception_detail（JSON：异常详情）、handle_status（PENDING/PROCESSING/RESOLVED/CLOSED）、handler_id、handle_remark、handle_result、created_at、handled_at、resolved_at
-  - 异常API：GET /admin/order-exception/list（异常列表分页+类型筛选+状态筛选）、GET /admin/order-exception/:id（异常详情）、POST /admin/order-exception/:id/handle（处理异常）、POST /admin/order-exception/:id/resolve（标记已解决）、GET /admin/order-exception/stats（异常统计：按类型/按渠道/按时间）
-- **说明**：实现订单异常统一处理中心。异常检测：自动检测缺货、取消、退款、超时、配送失败、支付失败等异常类型，生成异常记录。处理流程：PENDING（待处理）-> PROCESSING（处理中，分配处理人+填写处理方案）-> RESOLVED（已解决）/ CLOSED（已关闭）。异常统计：按类型（缺货占比/取消率/退款率）、按渠道（各渠道异常率）、按时间（异常趋势）生成统计。与现有 `order-timeout` 模块集成，超时异常自动流转到异常处理中心。路由注册：`app.use("/api/admin/order-exception", requireAuthWithTenant, orderExceptionRouter)`。
+  - `audit_log` 表（已有）：id、user_id、user_name、role、action（CREATE/UPDATE/DELETE/QUERY/LOGIN/EXPORT/IMPORT/APPROVE）、resource_type、resource_id、description、request_data（JSON）、change_data（JSON）、ip、user_agent、tenant_id、created_at
+  - 审计API：GET /admin/system/audit-logs（分页+多条件筛选）、GET /admin/system/audit-logs/statistics（统计：今日/新增/修改/删除/查询/用户数）、GET /admin/system/audit-logs/:id（详情含请求参数和变更数据）、GET /admin/system/audit-logs/export（导出CSV）、POST /admin/system/audit-logs/clean（清理N天前日志）
+- **说明**：将现有审计日志代码迁移到统一路由 `/api/admin/system/audit-logs`。增强筛选条件：支持按操作人、操作类型、资源类型、日期范围、IP地址组合筛选。新增日志详情接口（含请求参数和变更数据JSON）。新增CSV导出功能（复用现有 `exportAuditLogsCsv`）。新增日志清理功能（定时清理90天前的日志）。路由注册到统一 `systemSettingsRouter`。
 
-### 5. 全渠道商品映射 - 映射表DDL + CRUD API
-- **文件**：`docs/migrations/add_order_product_map.sql`（新建）、`backend/src/controllers/admin/order-product-map.controller.ts`（新建）、`backend/src/routes/order-product-map.routes.ts`（新建）、`backend/src/services/admin/order-product-map.service.ts`（新建）
+### 5. 参数配置 API - 完善配置 + 分组
+- **文件**：`backend/src/controllers/admin/system-config.controller.ts`（新建）、`backend/src/services/admin/system-config.service.ts`（新建）
+- **现有代码**：`sys-config.routes.ts`（getAllConfigs/getConfigByGroup/batchUpdateConfigs/createConfig）、`sys-config.controller.ts`、`sys-config.service.ts`，需迁移到统一路由
 - **关键字段**：
-  - `order_product_map` 表：channel（WECHAT/DOUYIN/MEITUAN/JD/ELEME）、store_id、local_sku_id、channel_sku_id、channel_spu_id、channel_product_name、channel_price、sync_status（UNSYNCED/SYNCED/FAILED）、last_synced_at、created_at、updated_at
-  - 映射API：GET /admin/order-product-map/list（分页+渠道筛选+状态筛选+搜索）、POST /admin/order-product-map（创建映射）、PUT /admin/order-product-map/:id（更新映射）、DELETE /admin/order-product-map/:id（删除映射）、POST /admin/order-product-map/batch-import（批量导入映射）、POST /admin/order-product-map/sync（手动触发同步）、GET /admin/order-product-map/mismatch（未映射商品列表）
-- **说明**：创建全渠道商品映射表，建立各渠道商品编码与系统本地SKU的对应关系。区别于 `platform_product_map`（即时零售专用），本表覆盖所有订单渠道（微信/抖音/线下等）。支持批量导入映射（CSV/Excel），支持手动创建和编辑映射关系。未映射商品列表：列出所有渠道订单中 `channel_sku_id` 未匹配到本地SKU的商品，提示管理员完成映射。复用 `instant-retail` 中的 `platform_product_map` 同步逻辑。路由注册：`app.use("/api/admin/order-product-map", requireAuthWithTenant, orderProductMapRouter)`。
+  - `sys_config` 表（已有）：id、config_key、config_value、config_group（GENERAL/ORDER/PAYMENT/INVENTORY/NOTIFICATION）、description、tenant_id、created_at、updated_at
+  - 配置组预设：GENERAL（通用：公司名称/Logo/联系电话）、ORDER（订单：自动接单/超时时间/取消时间）、PAYMENT（支付：微信支付/支付宝/线下支付开关）、INVENTORY（库存：低库存预警阈值/保质期预警天数）、NOTIFICATION（通知：短信/微信/站内信开关）
+  - 配置API：GET /admin/system/configs（全部配置）、GET /admin/system/configs/:group（按分组获取）、PUT /admin/system/configs/batch（批量更新）、POST /admin/system/configs（创建新配置）、DELETE /admin/system/configs/:id（删除配置）、GET /admin/system/configs/groups（获取分组列表）
+- **说明**：将现有系统配置代码迁移到统一路由 `/api/admin/system/configs`。新增配置分组预设（GENERAL/ORDER/PAYMENT/INVENTORY/NOTIFICATION），每个分组包含预设配置项。新增配置分组列表接口，前端可按分组展示。批量更新支持事务（全部成功或全部回滚）。新增配置缓存机制（Redis缓存5分钟），配置更新后自动刷新缓存。路由注册到统一 `systemSettingsRouter`。
 
-### 6. 订单售后聚合 - 统一售后DDL + API
-- **文件**：`docs/migrations/add_order_aftersale.sql`（新建）、`backend/src/controllers/admin/order-aftersale.controller.ts`（新建）、`backend/src/routes/order-aftersale.routes.ts`（新建）、`backend/src/services/admin/order-aftersale.service.ts`（新建）
+### 6. 审批流程 API - 完善流程 + 通知
+- **文件**：`backend/src/controllers/admin/approval-system.controller.ts`（新建）、`backend/src/services/admin/approval-system.service.ts`（新建）
+- **现有代码**：`approval.routes.ts`（rules/instances/tasks/notifications）、`approval-flow.controller.ts`、`approval-records.controller.ts`、`approval-flow.service.ts`、`approval-records.service.ts`，需迁移到统一路由
 - **关键字段**：
-  - `order_aftersale` 表：channel_order_id、channel、aftersale_no、aftersale_type（REFUND_ONLY/RETURN_REFUND/EXCHANGE/REPAIR）、reason、reason_detail、images（JSON数组）、refund_amount、aftersale_status（PENDING/APPROVED/REJECTED/WAIT_RECEIPT/WAIT_INSPECT/COMPLETED/CLOSED）、handler_id、handle_remark、return_logistics_no、return_logistics_company、channel_raw_data（JSON）、created_at、handled_at、completed_at
-  - 售后API：GET /admin/order-aftersale/list（分页+渠道筛选+类型筛选+状态筛选+搜索）、GET /admin/order-aftersale/:id（详情）、POST /admin/order-aftersale/:id/approve（审核通过）、POST /admin/order-aftersale/:id/reject（审核拒绝）、POST /admin/order-aftersale/:id/complete（完成售后）、GET /admin/order-aftersale/stats（售后统计：按类型/按渠道/按时间）
-- **说明**：创建全渠道售后统一聚合表，将各渠道的售后申请统一管理。整合现有 `aftersale.routes.ts` 中的售后逻辑，扩展为支持多渠道路由。售后状态流转：PENDING -> APPROVED/REJECTED -> WAIT_RECEIPT（退货收货）-> WAIT_INSPECT（质检）-> COMPLETED/CLOSED。退款金额自动关联渠道订单实付金额。售后统计：售后率（按渠道/按商品）、退款金额趋势、售后类型分布。路由注册：`app.use("/api/admin/order-aftersale", requireAuthWithTenant, orderAftersaleRouter)`。
+  - `approval_rule` 表（已有）：id、rule_name、business_type（PURCHASE_ORDER/SALE_RETURN/PRICE_CHANGE/CREDIT_LIMIT）、trigger_condition（JSON）、approval_chain（JSON：多级审批链）、sla_hours、escalation_level、status、tenant_id、created_at、updated_at
+  - `approval_instance` 表：id、instance_no、rule_id、rule_name、title、content、applicant_id、applicant_name、business_type、status（PENDING/APPROVED/REJECTED/CANCELLED）、current_step、tenant_id、created_at、updated_at
+  - `approval_task` 表：id、instance_id、step_level、approver_id、approver_name、status（PENDING/APPROVED/REJECTED）、comment、created_at、handled_at
+  - 审批API：GET /admin/system/approval/rules（规则列表）、POST /admin/system/approval/rules（创建规则）、PUT /admin/system/approval/rules/:id（更新规则）、GET /admin/system/approval/instances（审批实例列表）、POST /admin/system/approval/instances/submit（提交审批）、GET /admin/system/approval/instances/:instanceNo（审批详情）、GET /admin/system/approval/tasks（我的待办）、POST /admin/system/approval/tasks/:id/approve（通过）、POST /admin/system/approval/tasks/:id/reject（拒绝）
+- **说明**：将现有审批流程代码迁移到统一路由 `/api/admin/system/approval`。新增业务类型扩展：支持 PRICE_CHANGE（价格变更审批）、CREDIT_LIMIT（信用额度审批）。新增审批SLA超时自动提醒（定时任务检查超时任务，发送通知）。新增审批撤销功能（申请人可撤销PENDING状态的审批）。审批通过/拒绝后自动发送系统通知。路由注册到统一 `systemSettingsRouter`。

@@ -1,4 +1,4 @@
-# 苏然 · 订单管理模块 · DAO+测试
+# 苏然 · 系统设置模块 · DAO层 + 测试
 
 **日期**：2026-06-30
 **状态**：待开始
@@ -9,108 +9,173 @@
 
 | # | 任务 | 优先级 | 状态 |
 |---|------|--------|:---:|
-| 1 | 订单管理7表DAO - 全部新表的数据访问层 | P0 | :x: |
-| 2 | 全渠道订单聚合测试 - 多平台订单入库+查询+统计 | P0 | :x: |
-| 3 | 订单分发与路由测试 - 规则匹配+分发日志+异常路由 | P0 | :x: |
-| 4 | 订单状态同步测试 - 双向同步+定时任务+冲突处理 | P0 | :x: |
-| 5 | 订单异常处理测试 - 异常检测+处理流程+统计 | P0 | :x: |
-| 6 | 前端页面测试 - 管理后台6页+商户端4页 | P0 | :x: |
+| 1 | 门店管理 DAO + 测试 | P0 | :x: |
+| 2 | 员工管理 DAO + 测试 | P0 | :x: |
+| 3 | 角色权限 DAO + 测试 | P0 | :x: |
+| 4 | 操作日志 DAO + 测试 | P0 | :x: |
+| 5 | 参数配置 DAO + 测试 | P0 | :x: |
+| 6 | 审批流程 DAO + 测试 | P1 | :x: |
 
 ---
 
 ## 详细说明
 
-### 1. 订单管理7表DAO
-- **文件**：`backend/src/services/admin/dao/`（新建目录，包含 `channel-order.dao.ts`、`channel-order-item.dao.ts`、`order-routing-rule.dao.ts`、`order-dispatch-log.dao.ts`、`order-sync-log.dao.ts`、`order-exception.dao.ts`、`order-product-map.dao.ts`、`order-aftersale.dao.ts`）
-- **关键字段**：每表DAO需包含的方法 - `findById`、`findAll`（分页+筛选）、`create`、`update`、`delete`、`findByTenant`（租户隔离）
-- **说明**：为全部7+1张订单管理新表创建标准化的数据访问层（DAO），每个DAO文件需包含：
-  - `channel_order` DAO：findByChannelOrderId/findAll（分页+渠道筛选+状态筛选+支付状态筛选+日期范围+搜索）/create/updateStatus/updatePaymentStatus/batchInsert/getStatsByChannel（按渠道统计）
-  - `channel_order_item` DAO：findByChannelOrderId/batchCreate/deleteByChannelOrderId
-  - `order_routing_rule` DAO：findAll（分页+渠道筛选+启用状态筛选）/create/update/delete/updateStatus/findMatchingRules（根据条件匹配规则）
-  - `order_dispatch_log` DAO：findAll（分页+状态筛选+日期范围）/create/findByChannelOrderId
-  - `order_sync_log` DAO：findAll（分页+渠道筛选+类型筛选+结果筛选+日期范围）/create/batchCreate/getSyncStats（同步统计）
-  - `order_exception` DAO：findAll（分页+类型筛选+级别筛选+状态筛选+渠道筛选+日期范围）/create/updateStatus/updateHandler/getExceptionStats（异常统计：按类型/渠道/时间）
-  - `order_product_map` DAO：findByChannelSkuId/findByLocalSkuId/findAll（分页+渠道筛选+同步状态筛选+搜索）/create/update/updateSyncStatus/batchUpsert/delete/findUnmapped（未映射列表）
-  - `order_aftersale` DAO：findAll（分页+渠道筛选+类型筛选+状态筛选+日期范围+搜索）/create/updateStatus/updateHandler/getAftersaleStats（售后统计）
-  - 所有DAO方法必须使用 `queryWithTenant`/`queryOneWithTenant` 确保租户隔离
-  - 所有DAO方法返回 `Promise<T>` 类型，使用 TypeScript 泛型
+### 1. 门店管理 DAO + 测试
+- **文件**：`backend/src/dao/system/store.dao.ts`（新建）、`backend/src/__tests__/system/store.test.ts`（新建）
+- **DDL 文件**：`docs/migrations/add_system_settings.sql`（新建，统一DDL文件）
+- **现有代码**：门店CRUD逻辑在 `employee.service.ts` 中，需提取到独立DAO层
+- **DAO 方法**：
+  - `listStores(page, pageSize, keyword, tenantId)` - 分页查询门店列表，支持关键词搜索
+  - `getStoreById(id, tenantId)` - 根据ID查询门店详情
+  - `getStoreByCode(code, tenantId)` - 根据编码查询门店
+  - `createStore(data, tenantId)` - 创建门店
+  - `updateStore(id, data, tenantId)` - 更新门店
+  - `deleteStore(id, tenantId)` - 软删除门店
+  - `toggleStoreStatus(id, status, tenantId)` - 切换门店状态
+  - `getStoreCount(tenantId)` - 统计门店数量
+- **DDL 字段**：id、store_code、name、address、contact、phone、delivery_radius、business_status、miniapp_appid、wx_merchant_name、wx_service_phone、wx_head_img、lng、lat、open_time、close_time、tenant_id、status、created_at、updated_at（约20字段）
+- **测试用例**（至少8个）：
+  - 创建门店 - 正常流程
+  - 创建门店 - 编码重复校验
+  - 查询门店列表 - 分页+搜索
+  - 查询门店详情 - 正常流程
+  - 更新门店 - 正常流程
+  - 切换门店状态 - 启用/停用/暂停
+  - 软删除门店 - 正常流程
+  - 租户隔离 - 验证数据隔离
 
-### 2. 全渠道订单聚合测试
-- **文件**：`backend/tests/order-management/`（新建 `order-aggregation.test.ts`）
-- **关键字段**：渠道订单入库（channel_order + channel_order_item）、聚合查询（渠道筛选+状态筛选+日期范围+搜索）、聚合统计（按渠道统计订单数/金额）、渠道原始数据JSON存储解析
-- **说明**：编写全渠道订单聚合测试，覆盖以下场景：
-  - 订单入库：模拟6个渠道（微信/抖音/美团/饿了么/京东/线下）订单写入 channel_order 表，验证 channel_raw_data JSON字段正确存储各平台特有数据
-  - 聚合查询：按渠道筛选（单渠道+多渠道）、按状态筛选（待处理/已确认/已完成/已取消）、按支付状态筛选（未支付/已支付/已退款）、按日期范围（今天/本周/本月）、按关键词搜索（订单号/客户名/手机号）
-  - 分页查询：验证分页参数（page/pageSize）正确返回
-  - 订单详情：查询单个订单详情，验证 channel_order_item 关联数据正确返回
-  - 聚合统计：getStatsByChannel 验证各渠道订单数/金额/占比正确
-  - 手动拉取：POST /admin/order-center/channel-orders/pull 模拟拉取渠道订单
-  - 批量导入：批量插入100条订单，验证性能和数据完整性
-  - 错误处理：重复channel_order_id插入、无效渠道参数、空数据查询
-  - 使用 vitest 框架
+### 2. 员工管理 DAO + 测试
+- **文件**：`backend/src/dao/system/employee.dao.ts`（新建）、`backend/src/__tests__/system/employee.test.ts`（新建）
+- **现有代码**：员工CRUD逻辑在 `employee.service.ts` 中，需提取到独立DAO层
+- **DAO 方法**：
+  - `listEmployees(page, pageSize, keyword, storeId, roleId, tenantId)` - 分页查询员工列表，支持多条件筛选
+  - `getEmployeeById(id, tenantId)` - 根据ID查询员工详情
+  - `getEmployeeByStaffNo(staffNo, tenantId)` - 根据工号查询员工
+  - `getEmployeeByUsername(username, tenantId)` - 根据用户名查询员工
+  - `createEmployee(data, tenantId)` - 创建员工
+  - `updateEmployee(id, data, tenantId)` - 更新员工
+  - `deleteEmployee(id, tenantId)` - 软删除员工（离职）
+  - `toggleEmployeeStatus(id, status, tenantId)` - 切换员工状态
+  - `resetPassword(id, newPasswordHash, tenantId)` - 重置密码
+  - `updateLastLogin(id, tenantId)` - 更新最后登录时间
+- **DDL 字段**：id、staff_no、username、real_name、mobile、password_hash、role_id、store_id、department_id、position、status、last_login_at、tenant_id、created_at、updated_at（约15字段）
+- **测试用例**（至少8个）：
+  - 创建员工 - 正常流程
+  - 创建员工 - 用户名重复校验
+  - 创建员工 - 工号重复校验
+  - 查询员工列表 - 分页+多条件筛选
+  - 查询员工详情 - 正常流程
+  - 更新员工 - 正常流程
+  - 重置密码 - 正常流程
+  - 切换员工状态 - 启用/禁用
 
-### 3. 订单分发与路由测试
-- **文件**：`backend/tests/order-management/`（新建 `order-routing.test.ts`）
-- **关键字段**：路由规则CRUD、条件匹配（区域/金额/商品类别/时间段）、分发日志、手动分发、优先级排序
-- **说明**：编写订单分发路由测试，覆盖以下场景：
-  - 规则CRUD：创建路由规则（含条件JSON）、查询规则列表、更新规则、删除规则、启用/禁用规则
-  - 条件匹配：区域匹配（北京/上海/广州）、金额范围匹配（100-500、500-1000、1000+）、商品类别匹配（白酒/啤酒/红酒）、时间段匹配（仅工作时间/全天）
-  - 优先级排序：多个规则同时匹配时，验证按priority升序选择第一个匹配的规则
-  - 分发执行：模拟订单到达，验证自动匹配规则并分配到目标门店/仓库，dispatch_log正确记录
-  - 分发日志：查询分发日志，按状态筛选（已分配/失败），验证日志记录完整
-  - 手动分发：POST /admin/order-routing/dispatch 手动触发分发，验证可覆盖自动规则
-  - 规则冲突：多个规则条件重叠时，验证优先级高的规则优先生效
-  - 无匹配规则：订单无法匹配任何规则时，验证分发失败并记录原因
-  - 错误处理：无效规则条件JSON、目标门店不存在、并发分发
-  - 使用 vitest 框架
+### 3. 角色权限 DAO + 测试
+- **文件**：`backend/src/dao/system/role.dao.ts`（新建）、`backend/src/dao/system/menu.dao.ts`（新建）、`backend/src/__tests__/system/role.test.ts`（新建）
+- **现有代码**：RBAC逻辑在 `rbac.service.ts` 中，需提取到独立DAO层
+- **DAO 方法**：
+  - `listRoles(tenantId)` - 查询角色列表（含用户数统计）
+  - `getRoleById(id, tenantId)` - 查询角色详情（含权限列表）
+  - `getRoleByCode(code, tenantId)` - 根据编码查询角色
+  - `createRole(data, tenantId)` - 创建角色
+  - `updateRole(id, data, tenantId)` - 更新角色
+  - `deleteRole(id, tenantId)` - 删除角色（校验无用户引用）
+  - `getRoleUsers(roleId, tenantId)` - 查询角色下的用户列表
+  - `assignRoleUsers(roleId, userIds, tenantId)` - 分配用户到角色
+  - `removeRoleUser(roleId, userId, tenantId)` - 移除角色用户
+  - `getMenuTree(tenantId)` - 获取完整菜单权限树
+  - `getRolePermissions(roleId, tenantId)` - 获取角色权限列表
+  - `checkUserPermission(userId, tenantId, permCode)` - 检查用户权限
+- **DDL 表**：sys_role（约8字段）、sys_role_menu（约5字段）、sys_user_role（约4字段）
+- **测试用例**（至少8个）：
+  - 创建角色 - 正常流程
+  - 创建角色 - 编码重复校验
+  - 查询角色列表 - 含用户数统计
+  - 查询角色详情 - 含权限列表
+  - 更新角色 - 权限变更
+  - 分配用户 - 批量分配
+  - 删除角色 - 成功（无用户引用）
+  - 删除角色 - 失败（有用户引用）
 
-### 4. 订单状态同步测试
-- **文件**：`backend/tests/order-management/`（新建 `order-sync.test.ts`）
-- **关键字段**：PULL状态拉取（从渠道获取最新状态）、PUSH状态推送（推送系统状态到渠道）、同步日志、定时任务、冲突处理
-- **说明**：编写订单状态同步测试，覆盖以下场景：
-  - PULL状态拉取：模拟从渠道（微信/抖音/美团/饿了么/京东）拉取订单状态，验证 channel_order.order_status 正确更新，sync_log 正确记录
-  - PUSH状态推送：系统内订单状态变更（确认->配送->完成），验证推送状态到渠道，sync_log 正确记录
-  - 批量同步：POST /admin/order-sync/batch-sync 批量同步多个订单，验证全部成功/部分成功/全部失败
-  - 同步日志：查询同步日志，按渠道/类型/结果筛选，验证日志完整
-  - 同步统计：getSyncStats 验证各渠道同步成功率/失败率/待同步数正确
-  - 定时任务：模拟定时触发状态拉取，验证每5分钟执行一次
-  - 状态冲突：系统状态与渠道状态不一致时，验证冲突处理策略（以最后更新时间为准）
-  - 同步失败重试：模拟网络超时，验证重试机制（最多3次）
-  - 错误处理：渠道API不可用、Token过期、验签失败
-  - 使用 vitest 框架 + sinon fake timers 模拟定时任务
+### 4. 操作日志 DAO + 测试
+- **文件**：`backend/src/dao/system/audit.dao.ts`（新建）、`backend/src/__tests__/system/audit.test.ts`（新建）
+- **现有代码**：审计日志逻辑在 `audit.service.ts` 中，需提取到独立DAO层
+- **DAO 方法**：
+  - `listAuditLogs(params, tenantId)` - 分页查询日志列表，支持多条件筛选
+  - `getAuditLogById(id, tenantId)` - 查询日志详情
+  - `writeAuditLog(data, tenantId)` - 写入审计日志
+  - `getAuditStatistics(tenantId)` - 获取审计统计（今日/新增/修改/删除/查询/用户数）
+  - `cleanAuditLogs(days, tenantId)` - 清理N天前日志
+  - `exportAuditLogs(params, tenantId)` - 导出日志CSV
+- **DDL 表**：audit_log（已有，约12字段）
+- **测试用例**（至少8个）：
+  - 写入审计日志 - 正常流程
+  - 查询日志列表 - 分页+多条件筛选
+  - 查询日志列表 - 按操作类型筛选
+  - 查询日志列表 - 按日期范围筛选
+  - 查询日志详情 - 含请求参数和变更数据
+  - 获取审计统计 - 验证各项统计数值
+  - 清理旧日志 - 验证清理逻辑
+  - 导出日志 - 验证CSV格式
 
-### 5. 订单异常处理测试
-- **文件**：`backend/tests/order-management/`（新建 `order-exception.test.ts`）
-- **关键字段**：异常检测（缺货/取消/退款/超时/配送失败/支付失败）、异常处理流程（PENDING->PROCESSING->RESOLVED/CLOSED）、异常统计、关联订单查询
-- **说明**：编写订单异常处理测试，覆盖以下场景：
-  - 异常检测：模拟各种异常类型（缺货：库存不足时下单、取消：用户取消订单、退款：用户申请退款、超时：支付超时/配送超时、配送失败：骑手无法配送、支付失败：支付接口异常），验证自动生成 exception 记录
-  - 异常级别：验证缺货/超时/支付失败->ERROR，配送失败->CRITICAL，取消/退款->WARNING
-  - 处理流程：PENDING->分配处理人（PROCESSING）->填写处理方案->标记已解决（RESOLVED）/关闭（CLOSED），验证状态流转正确
-  - 异常统计：getExceptionStats 按类型（各类型数量/占比）、按渠道（各渠道异常率）、按时间（日/周/月趋势）验证统计正确
-  - 异常列表：分页查询+类型筛选+级别筛选+状态筛选+渠道筛选+日期范围
-  - 关联订单：查询异常详情时，验证关联的 channel_order 信息正确返回
-  - 批量处理：批量标记多个异常为已解决
-  - 与超时模块集成：订单超时后，验证自动生成超时类型异常记录
-  - 错误处理：重复异常记录、无效异常类型、无权限处理
-  - 使用 vitest 框架
+### 5. 参数配置 DAO + 测试
+- **文件**：`backend/src/dao/system/config.dao.ts`（新建）、`backend/src/__tests__/system/config.test.ts`（新建）
+- **现有代码**：配置逻辑在 `sys-config.service.ts` 中，需提取到独立DAO层
+- **DAO 方法**：
+  - `getAllConfigs(tenantId)` - 获取全部配置
+  - `getConfigsByGroup(group, tenantId)` - 按分组获取配置
+  - `getConfigByKey(key, tenantId)` - 根据Key获取配置值
+  - `batchUpdateConfigs(configs, tenantId)` - 批量更新配置（事务）
+  - `createConfig(data, tenantId)` - 创建配置项
+  - `deleteConfig(id, tenantId)` - 删除配置项
+  - `getConfigGroups(tenantId)` - 获取配置分组列表
+  - `initDefaultConfigs(tenantId)` - 初始化默认配置（租户注册时调用）
+- **DDL 表**：sys_config（已有，约6字段）
+- **预设配置项**（至少20个）：
+  - GENERAL: company_name, company_logo, contact_phone, system_theme
+  - ORDER: auto_accept_order, order_timeout_minutes, order_cancel_minutes
+  - PAYMENT: wechat_pay_enabled, alipay_enabled, offline_pay_enabled
+  - INVENTORY: low_stock_threshold, expiry_warning_days, auto_replenish
+  - NOTIFICATION: sms_enabled, wechat_notify_enabled, site_msg_enabled
+- **测试用例**（至少8个）：
+  - 获取全部配置 - 正常流程
+  - 按分组获取配置 - 正常流程
+  - 批量更新配置 - 正常流程
+  - 批量更新配置 - 事务回滚验证
+  - 创建配置项 - 正常流程
+  - 创建配置项 - Key重复校验
+  - 初始化默认配置 - 正常流程
+  - 租户隔离 - 验证数据隔离
 
-### 6. 前端页面测试
-- **文件**：`admin-web/src/__tests__/order-management/`（新建 `OrderCenterView.test.ts`、`OrderRoutingView.test.ts`、`OrderSyncView.test.ts`、`OrderExceptionView.test.ts`、`OrderProductMapView.test.ts`、`OrderAftersaleView.test.ts`）+ `merchant-mobile/src/__tests__/`（新建 `OrderCenterView.test.ts`、`OrderCenterDetailView.test.ts`、`OrderExceptionView.test.ts`、`OrderAftersaleView.test.ts`）
-- **关键字段**：页面渲染、组件交互、API调用Mock、表单验证、状态管理、错误处理
-- **说明**：编写前端页面测试，覆盖以下场景：
-  - 管理后台6页测试：
-    - OrderCenterView：渠道Tab切换+数据渲染、订单表格渲染+分页+筛选、详情抽屉打开+数据展示、统计看板渲染、手动拉取操作
-    - OrderRoutingView：规则列表渲染+CRUD、条件构建器交互、分发日志查询、手动分发操作
-    - OrderSyncView：同步日志渲染+筛选、同步统计展示、手动同步操作、定时任务配置
-    - OrderExceptionView：异常列表渲染+筛选、异常详情弹窗、处理操作（分配+处理方案+已解决）、统计图表渲染
-    - OrderProductMapView：映射列表渲染+渠道Tab、映射CRUD弹窗、批量导入流程、未映射列表
-    - OrderAftersaleView：售后列表渲染+筛选、售后详情弹窗、审核操作（通过/拒绝/完成）、统计图表渲染
-  - 商户端4页测试：
-    - OrderCenterView：订单卡片列表渲染+渠道筛选+状态筛选、下拉刷新+上拉加载、数据概览卡片
-    - OrderCenterDetailView：订单详情渲染+商品明细+金额明细+配送信息、操作按钮交互（确认/拒单/配送/完成）、状态流转时间线
-    - OrderExceptionView：异常列表渲染+筛选、异常详情+申诉表单、申诉提交
-    - OrderAftersaleView：售后列表渲染+状态Tab、售后详情+处理进度、售后申请表单
-  - Mock API调用（使用 vi.mock），验证请求参数和响应处理
-  - 表单验证测试（必填字段、格式校验、边界值）
-  - 错误处理测试（API错误、网络错误、空数据、无权限）
-  - 使用 vitest + @vue/test-utils + jsdom 环境
+### 6. 审批流程 DAO + 测试
+- **文件**：`backend/src/dao/system/approval-rule.dao.ts`（新建）、`backend/src/dao/system/approval-instance.dao.ts`（新建）、`backend/src/dao/system/approval-task.dao.ts`（新建）、`backend/src/__tests__/system/approval.test.ts`（新建）
+- **现有代码**：审批逻辑在 `approval-flow.service.ts` 和 `approval-records.service.ts` 中，需提取到独立DAO层
+- **DAO 方法**：
+  - 审批规则DAO：
+    - `listRules(page, pageSize, businessType, status, tenantId)` - 分页查询规则列表
+    - `getRuleById(id, tenantId)` - 查询规则详情
+    - `createRule(data, tenantId)` - 创建规则
+    - `updateRule(id, data, tenantId)` - 更新规则
+    - `deleteRule(id, tenantId)` - 删除规则
+  - 审批实例DAO：
+    - `listInstances(page, pageSize, applicantId, status, tenantId)` - 分页查询实例列表
+    - `getInstanceByNo(instanceNo, tenantId)` - 根据编号查询实例
+    - `createInstance(data, tenantId)` - 创建审批实例
+    - `updateInstanceStatus(instanceNo, status, currentStep, tenantId)` - 更新实例状态
+    - `cancelInstance(instanceNo, tenantId)` - 撤销审批
+  - 审批任务DAO：
+    - `listTasks(page, pageSize, approverId, status, tenantId)` - 分页查询待办任务
+    - `getTaskById(id, tenantId)` - 查询任务详情
+    - `createTask(data, tenantId)` - 创建审批任务
+    - `approveTask(id, comment, tenantId)` - 通过任务
+    - `rejectTask(id, comment, tenantId)` - 拒绝任务
+    - `getInstanceTasks(instanceNo, tenantId)` - 查询实例的所有任务
+- **DDL 表**：approval_rule（已有）、approval_instance（新建）、approval_task（新建）
+- **测试用例**（至少8个）：
+  - 创建审批规则 - 正常流程
+  - 创建审批规则 - 审批链配置校验
+  - 提交审批 - 自动生成审批任务
+  - 审批通过 - 流转到下一级
+  - 审批拒绝 - 终止审批流程
+  - 审批通过 - 最后一级完成
+  - 撤销审批 - 申请人撤销
+  - 查询待办任务 - 分页+状态筛选
