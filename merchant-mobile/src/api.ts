@@ -2199,3 +2199,181 @@ export function syncInstantRetailShelf(data?: { skuIds?: number[]; platform?: st
 export function syncSingleShelfItem(skuId: number, platform?: string) {
   return api.post(`/admin/instant-retail/shelf/${skuId}/sync`, { platform })
 }
+
+/* ========== Phase 12: 订单管理 ========== */
+
+export interface ChannelOrder {
+  channelOrderNo: string
+  channel: string
+  customerName: string
+  customerPhone: string
+  totalAmount: number
+  discountAmount: number
+  deliveryFee: number
+  payAmount: number
+  orderStatus: string
+  paymentStatus: string
+  itemsSummary: string
+  exceptionFlag: boolean
+  exceptionReason: string
+  createdAt: string
+}
+
+export interface ChannelOrderDetail extends ChannelOrder {
+  items: {
+    channelSkuName: string
+    localSkuName: string
+    price: number
+    quantity: number
+    subtotal: number
+  }[]
+  receiverName: string
+  receiverPhone: string
+  receiverAddress: string
+  deliveryMethod: string
+  remark: string
+  statusTimeline: {
+    status: string
+    time: string
+    label: string
+  }[]
+}
+
+export interface OrderCenterSummary {
+  todayCount: number
+  todayAmount: number
+  pendingCount: number
+  exceptionCount: number
+}
+
+export interface OrderException {
+  id: number
+  exceptionType: string
+  exceptionLevel: string
+  exceptionDetail: string
+  handleStatus: string
+  channelOrderNo: string
+  channel: string
+  createdAt: string
+}
+
+export interface OrderExceptionDetail extends OrderException {
+  orderInfo: ChannelOrderDetail | null
+  handleRecords: {
+    action: string
+    operator: string
+    remark: string
+    createdAt: string
+  }[]
+}
+
+export interface OrderAftersale {
+  aftersaleNo: string
+  channelOrderId: string
+  channel: string
+  aftersaleType: string
+  reason: string
+  refundAmount: number
+  aftersaleStatus: string
+  createdAt: string
+}
+
+export interface OrderAftersaleDetail extends OrderAftersale {
+  detail: string
+  images: string[]
+  refundMethod: string
+  refundTime: string
+  items: {
+    channelSkuName: string
+    price: number
+    quantity: number
+    subtotal: number
+  }[]
+  returnTrackingNo: string
+  returnLogistics: string
+  returnLogisticsStatus: string
+  progress: {
+    status: string
+    time: string
+    label: string
+  }[]
+}
+
+export function fetchOrderCenterSummary() {
+  return api.get('/admin/order-center/summary')
+}
+
+export function fetchChannelOrders(params: {
+  page?: number
+  pageSize?: number
+  channel?: string
+  status?: string
+  keyword?: string
+}) {
+  return api.get('/admin/order-center/channel-orders', { params })
+}
+
+export function fetchChannelOrderDetail(id: string) {
+  return api.get(`/admin/order-center/channel-orders/${id}`)
+}
+
+export function confirmChannelOrder(id: string) {
+  return api.post(`/admin/order-center/channel-orders/${id}/confirm`)
+}
+
+export function dispatchChannelOrder(id: string, data?: { courierName?: string; courierPhone?: string }) {
+  return api.post(`/admin/order-routing/dispatch`, { orderId: id, ...data })
+}
+
+export function completeChannelOrder(id: string) {
+  return api.post(`/admin/order-center/channel-orders/${id}/complete`)
+}
+
+export function cancelChannelOrder(id: string, reason: string) {
+  return api.post(`/admin/order-center/channel-orders/${id}/cancel`, { reason })
+}
+
+export function fetchOrderExceptions(params: {
+  page?: number
+  pageSize?: number
+  exceptionType?: string
+  exceptionLevel?: string
+  handleStatus?: string
+}) {
+  return api.get('/admin/order-exception/list', { params })
+}
+
+export function fetchOrderExceptionDetail(id: number) {
+  return api.get(`/admin/order-exception/${id}`)
+}
+
+export function appealOrderException(id: number, data: {
+  reason: string
+  detail: string
+  images?: string[]
+}) {
+  return api.post(`/admin/order-exception/${id}/appeal`, data)
+}
+
+export function fetchOrderAftersales(params: {
+  page?: number
+  pageSize?: number
+  status?: string
+}) {
+  return api.get('/admin/order-aftersale/list', { params })
+}
+
+export function fetchOrderAftersaleDetail(aftersaleNo: string) {
+  return api.get(`/admin/order-aftersale/${aftersaleNo}`)
+}
+
+export function createOrderAftersale(data: {
+  channelOrderId: string
+  aftersaleType: string
+  reason: string
+  detail: string
+  refundAmount: number
+  images?: string[]
+}) {
+  return api.post('/admin/order-aftersale/create', data)
+}

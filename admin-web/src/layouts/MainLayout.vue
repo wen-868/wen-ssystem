@@ -50,6 +50,12 @@
           <el-menu-item index="/orders">订单列表</el-menu-item>
           <el-menu-item index="/order-board">泳道看板</el-menu-item>
           <el-menu-item index="/order-timeout">超时处理</el-menu-item>
+          <el-menu-item index="/order-center">全渠道订单聚合</el-menu-item>
+          <el-menu-item index="/order-routing">订单分发与路由</el-menu-item>
+          <el-menu-item index="/order-sync">订单状态同步</el-menu-item>
+          <el-menu-item index="/order-exception">订单异常处理</el-menu-item>
+          <el-menu-item index="/order-product-map">全渠道商品映射</el-menu-item>
+          <el-menu-item index="/order-aftersale">订单售后聚合</el-menu-item>
         </el-sub-menu>
 
         <!-- 4. 采购管理 -->
@@ -304,6 +310,12 @@ const pageTitle = computed(() => {
     "/orders": "订单列表",
     "/order-board": "泳道看板",
     "/order-timeout": "超时处理",
+    "/order-center": "全渠道订单聚合",
+    "/order-routing": "订单分发与路由",
+    "/order-sync": "订单状态同步",
+    "/order-exception": "订单异常处理",
+    "/order-product-map": "全渠道商品映射",
+    "/order-aftersale": "订单售后聚合",
     "/purchase-orders": "采购订单",
     "/purchase-in-stocks": "采购入库",
     "/purchase-returns": "采购退货",

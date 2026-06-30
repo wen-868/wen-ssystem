@@ -1,0 +1,1642 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>39 · 订单分发与路由 — 设计规格文档</title>
+<style>
+  :root {
+    --brand: #1677FF;
+    --brand-light: #E6F4FF;
+    --text: #1F1F1F;
+    --text-secondary: #595959;
+    --text-muted: #8C8C8C;
+    --border: #E8E8E8;
+    --bg: #F5F5F5;
+    --white: #FFFFFF;
+    --success: #52C41A;
+    --warning: #FA8C16;
+    --danger: #FF4D4F;
+    --radius: 8px;
+    --shadow: 0 2px 8px rgba(0,0,0,0.08);
+    --wechat: #07C160;
+    --douyin: #010101;
+    --mt-yellow: #FFD101;
+    --ele-blue: #0085FF;
+    --jd-red: #E1251B;
+    --offline: #6B7280;
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    line-height: 1.6;
+  }
+
+  /* ========== Document Header ========== */
+  .doc-header {
+    background: linear-gradient(135deg, #1677FF 0%, #0958D9 100%);
+    color: var(--white);
+    padding: 40px 48px;
+  }
+  .doc-header h1 {
+    font-size: 28px;
+    font-weight: 600;
+    margin-bottom: 8px;
+  }
+  .doc-header .doc-meta {
+    font-size: 14px;
+    opacity: 0.85;
+    display: flex;
+    gap: 24px;
+    flex-wrap: wrap;
+  }
+  .doc-header .doc-meta span {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+  }
+
+  /* ========== Content Container ========== */
+  .doc-container {
+    max-width: 1400px;
+    margin: 0 auto;
+    padding: 32px 48px;
+  }
+
+  .section {
+    background: var(--white);
+    border-radius: var(--radius);
+    box-shadow: var(--shadow);
+    padding: 32px;
+    margin-bottom: 24px;
+  }
+  .section-title {
+    font-size: 20px;
+    font-weight: 600;
+    color: var(--text);
+    margin-bottom: 16px;
+    padding-bottom: 12px;
+    border-bottom: 2px solid var(--brand);
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .section-title::before {
+    content: '';
+    display: inline-block;
+    width: 4px;
+    height: 20px;
+    background: var(--brand);
+    border-radius: 2px;
+  }
+
+  /* ========== Mockup ========== */
+  .mockup {
+    background: #F0F2F5;
+    border-radius: 12px;
+    overflow: hidden;
+    box-shadow: 0 4px 24px rgba(0,0,0,0.12);
+    margin-bottom: 24px;
+  }
+
+  .mockup-header {
+    background: #001529;
+    height: 56px;
+    display: flex;
+    align-items: center;
+    padding: 0 24px;
+    gap: 32px;
+    color: #fff;
+  }
+  .mockup-header .logo {
+    font-size: 18px;
+    font-weight: 700;
+    color: #fff;
+    white-space: nowrap;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .mockup-header .logo-icon {
+    width: 28px;
+    height: 28px;
+    background: var(--brand);
+    border-radius: 6px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+  .mockup-header .logo-icon::before {
+    content: '';
+    width: 12px;
+    height: 12px;
+    border: 2px solid #fff;
+    border-radius: 3px;
+  }
+  .mockup-header nav {
+    display: flex;
+    gap: 4px;
+    flex: 1;
+  }
+  .mockup-header nav a {
+    color: rgba(255,255,255,0.65);
+    text-decoration: none;
+    padding: 8px 16px;
+    border-radius: 6px;
+    font-size: 14px;
+    transition: all 0.2s;
+  }
+  .mockup-header nav a.active {
+    color: #fff;
+    background: var(--brand);
+  }
+  .mockup-header .user-area {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    font-size: 14px;
+    color: rgba(255,255,255,0.85);
+  }
+  .mockup-header .avatar {
+    width: 32px;
+    height: 32px;
+    background: var(--brand);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 14px;
+    color: #fff;
+  }
+
+  .mockup-body {
+    display: flex;
+    min-height: 800px;
+  }
+
+  .mockup-sidebar {
+    width: 220px;
+    background: #fff;
+    border-right: 1px solid var(--border);
+    padding: 12px 0;
+    flex-shrink: 0;
+  }
+  .mockup-sidebar .menu-group {
+    margin-bottom: 4px;
+  }
+  .mockup-sidebar .menu-item {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 10px 24px;
+    font-size: 14px;
+    color: var(--text-secondary);
+    cursor: default;
+    transition: all 0.2s;
+    position: relative;
+  }
+  .mockup-sidebar .menu-item.active {
+    color: var(--brand);
+    background: var(--brand-light);
+    font-weight: 500;
+  }
+  .mockup-sidebar .menu-item.active::before {
+    content: '';
+    position: absolute;
+    left: 0;
+    top: 50%;
+    transform: translateY(-50%);
+    width: 3px;
+    height: 20px;
+    background: var(--brand);
+    border-radius: 0 2px 2px 0;
+  }
+  .mockup-sidebar .menu-icon {
+    width: 16px;
+    height: 16px;
+    border: 2px solid currentColor;
+    border-radius: 3px;
+    flex-shrink: 0;
+  }
+  .mockup-sidebar .menu-item.active .menu-icon {
+    background: var(--brand);
+    border-color: var(--brand);
+  }
+
+  .mockup-main {
+    flex: 1;
+    padding: 20px 24px;
+    overflow-y: auto;
+    background: #F0F2F5;
+  }
+
+  .mockup-page-title {
+    font-size: 18px;
+    font-weight: 600;
+    color: var(--text);
+    margin-bottom: 4px;
+  }
+  .mockup-breadcrumb {
+    font-size: 12px;
+    color: var(--text-muted);
+    margin-bottom: 16px;
+  }
+  .mockup-breadcrumb span {
+    color: var(--brand);
+  }
+
+  /* ========== Tabs ========== */
+  .mockup-tabs {
+    display: flex;
+    gap: 0;
+    border-bottom: 2px solid var(--border);
+    margin-bottom: 16px;
+    background: #fff;
+    border-radius: var(--radius) var(--radius) 0 0;
+    padding: 0 4px;
+  }
+  .mockup-tab {
+    padding: 12px 20px;
+    font-size: 14px;
+    color: var(--text-secondary);
+    cursor: default;
+    border-bottom: 2px solid transparent;
+    margin-bottom: -2px;
+    transition: all 0.2s;
+    font-weight: 500;
+  }
+  .mockup-tab.active {
+    color: var(--brand);
+    border-bottom-color: var(--brand);
+  }
+
+  /* ========== Shared Components ========== */
+  .btn {
+    padding: 6px 16px;
+    border-radius: 6px;
+    font-size: 13px;
+    border: 1px solid var(--border);
+    background: #fff;
+    color: var(--text);
+    cursor: default;
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    white-space: nowrap;
+  }
+  .btn-primary {
+    background: var(--brand);
+    color: #fff;
+    border-color: var(--brand);
+  }
+  .btn-sm {
+    padding: 4px 10px;
+    font-size: 12px;
+  }
+  .btn-link {
+    border: none;
+    background: none;
+    color: var(--brand);
+    padding: 0;
+    font-size: 13px;
+  }
+  .btn-danger {
+    background: #fff;
+    color: var(--danger);
+    border-color: var(--danger);
+  }
+
+  /* ========== Tags ========== */
+  .tag {
+    display: inline-block;
+    padding: 2px 8px;
+    border-radius: 4px;
+    font-size: 11px;
+    font-weight: 500;
+    white-space: nowrap;
+  }
+  .tag-success { background: #F6FFED; color: var(--success); border: 1px solid #B7EB8F; }
+  .tag-warning { background: #FFF7E6; color: var(--warning); border: 1px solid #FFD591; }
+  .tag-danger { background: #FFF2F0; color: var(--danger); border: 1px solid #FFCCC7; }
+  .tag-info { background: var(--brand-light); color: var(--brand); border: 1px solid #91CAFF; }
+  .tag-wechat { background: #E8F8EF; color: var(--wechat); border: 1px solid #B7EBD0; }
+  .tag-douyin { background: #F5F5F5; color: var(--douyin); border: 1px solid #D9D9D9; }
+  .tag-meituan { background: #FFF9E6; color: #CC9900; border: 1px solid #FFE58F; }
+  .tag-eleme { background: #E6F4FF; color: var(--ele-blue); border: 1px solid #91CAFF; }
+  .tag-jd { background: #FFF1F0; color: var(--jd-red); border: 1px solid #FFA39E; }
+  .tag-offline { background: #F3F4F6; color: var(--offline); border: 1px solid #D1D5DB; }
+
+  /* ========== Table ========== */
+  .mockup-table {
+    width: 100%;
+    border-collapse: collapse;
+    background: #fff;
+    border-radius: var(--radius);
+    overflow: hidden;
+    box-shadow: var(--shadow);
+    font-size: 13px;
+  }
+  .mockup-table thead {
+    background: #FAFAFA;
+  }
+  .mockup-table th {
+    padding: 12px 14px;
+    text-align: left;
+    font-weight: 600;
+    color: var(--text-secondary);
+    border-bottom: 1px solid var(--border);
+    white-space: nowrap;
+    font-size: 12px;
+  }
+  .mockup-table td {
+    padding: 12px 14px;
+    border-bottom: 1px solid var(--border);
+    color: var(--text);
+  }
+  .mockup-table tbody tr:hover {
+    background: var(--brand-light);
+  }
+
+  /* ========== Filter Bar ========== */
+  .filter-bar {
+    display: flex;
+    gap: 12px;
+    margin-bottom: 16px;
+    flex-wrap: wrap;
+    align-items: center;
+    background: #fff;
+    padding: 12px 16px;
+    border-radius: var(--radius);
+    box-shadow: var(--shadow);
+  }
+  .filter-bar label {
+    font-size: 12px;
+    color: var(--text-muted);
+    display: flex;
+    align-items: center;
+    gap: 4px;
+  }
+  .filter-bar select,
+  .filter-bar input {
+    padding: 6px 10px;
+    border: 1px solid var(--border);
+    border-radius: 4px;
+    font-size: 13px;
+    color: var(--text);
+    background: #fff;
+    outline: none;
+  }
+  .filter-bar select:focus,
+  .filter-bar input:focus {
+    border-color: var(--brand);
+  }
+
+  /* ========== Pagination ========== */
+  .pagination {
+    display: flex;
+    justify-content: flex-end;
+    align-items: center;
+    gap: 8px;
+    padding: 16px;
+    background: #fff;
+    border-radius: 0 0 var(--radius) var(--radius);
+    box-shadow: var(--shadow);
+    margin-top: -1px;
+    font-size: 13px;
+  }
+  .pagination .page-btn {
+    width: 32px;
+    height: 32px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border: 1px solid var(--border);
+    border-radius: 4px;
+    background: #fff;
+    color: var(--text);
+    font-size: 13px;
+    cursor: default;
+  }
+  .pagination .page-btn.active {
+    background: var(--brand);
+    color: #fff;
+    border-color: var(--brand);
+  }
+  .pagination .page-btn.disabled {
+    color: var(--text-muted);
+    opacity: 0.5;
+  }
+
+  /* ========== Switch ========== */
+  .switch {
+    width: 44px;
+    height: 22px;
+    background: var(--border);
+    border-radius: 11px;
+    position: relative;
+    cursor: default;
+    display: inline-block;
+    transition: background 0.2s;
+  }
+  .switch.on {
+    background: var(--success);
+  }
+  .switch::after {
+    content: '';
+    position: absolute;
+    width: 18px;
+    height: 18px;
+    background: #fff;
+    border-radius: 50%;
+    top: 2px;
+    left: 2px;
+    transition: left 0.2s;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.15);
+  }
+  .switch.on::after {
+    left: 24px;
+  }
+
+  /* ========== Modal ========== */
+  .modal-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(0,0,0,0.45);
+    z-index: 1000;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+  .modal {
+    background: #fff;
+    border-radius: 12px;
+    width: 720px;
+    max-height: 85vh;
+    overflow-y: auto;
+    box-shadow: 0 8px 40px rgba(0,0,0,0.15);
+  }
+  .modal-header {
+    padding: 20px 24px;
+    border-bottom: 1px solid var(--border);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    font-size: 16px;
+    font-weight: 600;
+    position: sticky;
+    top: 0;
+    background: #fff;
+    z-index: 10;
+  }
+  .modal-close {
+    width: 32px;
+    height: 32px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 4px;
+    cursor: default;
+    color: var(--text-muted);
+    font-size: 18px;
+    border: none;
+    background: none;
+  }
+  .modal-body {
+    padding: 24px;
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+  }
+  .modal-footer {
+    padding: 16px 24px;
+    border-top: 1px solid var(--border);
+    display: flex;
+    justify-content: flex-end;
+    gap: 12px;
+    position: sticky;
+    bottom: 0;
+    background: #fff;
+    z-index: 10;
+  }
+
+  /* Form Elements */
+  .form-group {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+  }
+  .form-group label {
+    font-size: 13px;
+    font-weight: 500;
+    color: var(--text);
+  }
+  .form-group input,
+  .form-group select,
+  .form-group textarea {
+    padding: 8px 12px;
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    font-size: 13px;
+    color: var(--text);
+    font-family: inherit;
+    outline: none;
+  }
+  .form-group input:focus,
+  .form-group select:focus,
+  .form-group textarea:focus {
+    border-color: var(--brand);
+    box-shadow: 0 0 0 2px var(--brand-light);
+  }
+  .form-row {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 16px;
+  }
+  .form-row-3 {
+    display: grid;
+    grid-template-columns: 1fr 1fr 1fr;
+    gap: 16px;
+  }
+
+  /* Checkbox Group */
+  .checkbox-group {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 12px;
+  }
+  .checkbox-item {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 13px;
+    color: var(--text);
+    padding: 6px 12px;
+    border: 1px solid var(--border);
+    border-radius: 4px;
+    background: #fff;
+  }
+  .checkbox-item.selected {
+    background: var(--brand-light);
+    border-color: var(--brand);
+    color: var(--brand);
+  }
+  .checkbox-cb {
+    width: 16px;
+    height: 16px;
+    border: 2px solid var(--border);
+    border-radius: 3px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+  .checkbox-item.selected .checkbox-cb {
+    background: var(--brand);
+    border-color: var(--brand);
+  }
+  .checkbox-item.selected .checkbox-cb::after {
+    content: '';
+    width: 5px;
+    height: 9px;
+    border: solid #fff;
+    border-width: 0 2px 2px 0;
+    transform: rotate(45deg);
+    margin-top: -2px;
+  }
+
+  /* Slider */
+  .slider-container {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+  .slider-track {
+    flex: 1;
+    height: 6px;
+    background: var(--border);
+    border-radius: 3px;
+    position: relative;
+  }
+  .slider-fill {
+    position: absolute;
+    height: 6px;
+    background: var(--brand);
+    border-radius: 3px;
+    left: 0;
+    right: 0;
+  }
+  .slider-thumb {
+    position: absolute;
+    width: 16px;
+    height: 16px;
+    background: #fff;
+    border: 2px solid var(--brand);
+    border-radius: 50%;
+    top: 50%;
+    transform: translate(-50%, -50%);
+  }
+  .slider-thumb.min { left: 5%; }
+  .slider-thumb.max { left: 100%; }
+  .slider-value {
+    font-size: 13px;
+    color: var(--text);
+    font-weight: 500;
+    min-width: 60px;
+    text-align: center;
+  }
+
+  /* ========== Store Cards ========== */
+  .store-cards {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 16px;
+    margin-bottom: 16px;
+  }
+  .store-card {
+    background: #fff;
+    border-radius: var(--radius);
+    padding: 20px;
+    box-shadow: var(--shadow);
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+  }
+  .store-card .store-name {
+    font-size: 15px;
+    font-weight: 600;
+    color: var(--text);
+  }
+  .store-card .store-meta {
+    font-size: 12px;
+    color: var(--text-muted);
+  }
+  .store-card .store-order-count {
+    font-size: 32px;
+    font-weight: 700;
+    color: var(--text);
+  }
+  .store-card .store-capacity {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 13px;
+  }
+  .store-capacity-dot {
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+    flex-shrink: 0;
+  }
+  .store-capacity-dot.idle { background: var(--success); }
+  .store-capacity-dot.busy { background: var(--warning); }
+  .store-capacity-dot.overload { background: var(--danger); }
+  .store-capacity-text.idle { color: var(--success); }
+  .store-capacity-text.busy { color: var(--warning); }
+  .store-capacity-text.overload { color: var(--danger); }
+
+  /* ========== Spec Table ========== */
+  .spec-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 13px;
+  }
+  .spec-table thead {
+    background: #FAFAFA;
+  }
+  .spec-table th {
+    padding: 10px 14px;
+    text-align: left;
+    font-weight: 600;
+    color: var(--text-secondary);
+    border: 1px solid var(--border);
+    font-size: 12px;
+  }
+  .spec-table td {
+    padding: 10px 14px;
+    border: 1px solid var(--border);
+    color: var(--text);
+  }
+  .spec-table .required {
+    color: var(--danger);
+    font-weight: 600;
+  }
+
+  /* ========== Checklist ========== */
+  .checklist {
+    list-style: none;
+    padding: 0;
+  }
+  .checklist li {
+    padding: 8px 0;
+    font-size: 14px;
+    display: flex;
+    align-items: flex-start;
+    gap: 10px;
+    border-bottom: 1px solid var(--border);
+  }
+  .checklist li:last-child {
+    border-bottom: none;
+  }
+  .checklist .checkbox {
+    width: 18px;
+    height: 18px;
+    border: 2px solid var(--border);
+    border-radius: 4px;
+    flex-shrink: 0;
+    margin-top: 2px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+  .checklist .checkbox.checked {
+    background: var(--success);
+    border-color: var(--success);
+  }
+  .checklist .checkbox.checked::after {
+    content: '';
+    width: 6px;
+    height: 10px;
+    border: solid #fff;
+    border-width: 0 2px 2px 0;
+    transform: rotate(45deg);
+    margin-top: -2px;
+  }
+
+  .desc-text {
+    color: var(--text-secondary);
+    font-size: 14px;
+    line-height: 1.8;
+  }
+
+  .text-mono {
+    font-family: "SF Mono", "Monaco", "Menlo", "Consolas", monospace;
+    font-size: 12px;
+    background: #F5F5F5;
+    padding: 2px 6px;
+    border-radius: 3px;
+    color: var(--text-secondary);
+  }
+</style>
+</head>
+<body>
+
+<!-- ========== Document Header ========== -->
+<div class="doc-header">
+  <h1>39 · 订单分发与路由 — 设计规格文档</h1>
+  <div class="doc-meta">
+    <span>版本：v1.0</span>
+    <span>日期：2026-06-30</span>
+    <span>作者：产品设计团队</span>
+    <span>状态：设计中</span>
+  </div>
+</div>
+
+<div class="doc-container">
+
+  <!-- ========== 页面总览 ========== -->
+  <div class="section">
+    <h2 class="section-title">页面总览</h2>
+    <p class="desc-text">
+      订单分发与路由模块负责将聚合后的全渠道订单，按照预设的规则自动分发到对应门店或仓库进行处理。
+      支持灵活的路由规则配置，包括按渠道、区域、金额范围、商品类别、时间段、适用门店等维度进行条件匹配，
+      并支持自动分配门店、分配仓库、订单拆分等动作。同时提供分发日志追溯和分发看板可视化功能，
+      帮助运营团队实时掌握各门店订单负载情况，支持手动干预分发决策。
+    </p>
+  </div>
+
+  <!-- ========== Mockup ========== -->
+  <div class="section">
+    <h2 class="section-title">Mockup — 订单分发与路由管理后台</h2>
+
+    <div class="mockup">
+      <!-- Header -->
+      <div class="mockup-header">
+        <div class="logo">
+          <div class="logo-icon"></div>
+          酒行管理系统
+        </div>
+        <nav>
+          <a href="#">工作台</a>
+          <a href="#" class="active">订单中心</a>
+          <a href="#">商品管理</a>
+          <a href="#">门店管理</a>
+          <a href="#">会员中心</a>
+          <a href="#">数据报表</a>
+          <a href="#">系统设置</a>
+        </nav>
+        <div class="user-area">
+          <span>管理员</span>
+          <div class="avatar">张</div>
+        </div>
+      </div>
+
+      <div class="mockup-body">
+        <!-- Sidebar -->
+        <div class="mockup-sidebar">
+          <div class="menu-group">
+            <div class="menu-item">
+              <div class="menu-icon"></div>
+              订单聚合
+            </div>
+            <div class="menu-item active">
+              <div class="menu-icon"></div>
+              订单路由
+            </div>
+            <div class="menu-item">
+              <div class="menu-icon"></div>
+              状态同步
+            </div>
+            <div class="menu-item">
+              <div class="menu-icon"></div>
+              异常处理
+            </div>
+            <div class="menu-item">
+              <div class="menu-icon"></div>
+              商品映射
+            </div>
+          </div>
+        </div>
+
+        <!-- Main -->
+        <div class="mockup-main">
+          <div class="mockup-page-title">订单分发与路由</div>
+          <div class="mockup-breadcrumb">订单中心 / <span>订单路由</span></div>
+
+          <!-- ===== Tabs ===== -->
+          <div class="mockup-tabs">
+            <div class="mockup-tab active">路由规则</div>
+            <div class="mockup-tab">分发日志</div>
+            <div class="mockup-tab">分发看板</div>
+          </div>
+
+          <!-- ============================================= -->
+          <!-- TAB 1: 路由规则 -->
+          <!-- ============================================= -->
+          <div style="background:#fff;border-radius:0 0 var(--radius) var(--radius);padding:16px;box-shadow:var(--shadow);margin-bottom:16px;">
+            <!-- Action Bar -->
+            <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;">
+              <button class="btn btn-primary">+ 新增规则</button>
+              <input type="text" placeholder="搜索规则名称" style="padding:6px 12px;border:1px solid var(--border);border-radius:6px;font-size:13px;width:240px;outline:none;">
+            </div>
+
+            <!-- Rule Table -->
+            <table class="mockup-table" style="margin-bottom:0;">
+              <thead>
+                <tr>
+                  <th>规则名称</th>
+                  <th>适用渠道</th>
+                  <th>优先级</th>
+                  <th>条件摘要</th>
+                  <th>启用状态</th>
+                  <th>操作</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td style="font-weight:500;">微信高端白酒</td>
+                  <td><span class="tag tag-wechat">微信</span></td>
+                  <td><span style="font-weight:600;color:var(--brand);">1</span></td>
+                  <td style="font-size:12px;color:var(--text-secondary);">金额 &ge; 1000 · 白酒类 · 北京区域</td>
+                  <td><span class="switch on"></span></td>
+                  <td><button class="btn btn-sm btn-link">编辑</button> <button class="btn btn-sm btn-link" style="color:var(--danger);">删除</button></td>
+                </tr>
+                <tr>
+                  <td style="font-weight:500;">美团大众订单</td>
+                  <td><span class="tag tag-meituan">美团</span></td>
+                  <td><span style="font-weight:600;color:var(--brand);">2</span></td>
+                  <td style="font-size:12px;color:var(--text-secondary);">金额 &lt; 500 · 啤酒/红酒 · 上海区域</td>
+                  <td><span class="switch on"></span></td>
+                  <td><button class="btn btn-sm btn-link">编辑</button> <button class="btn btn-sm btn-link" style="color:var(--danger);">删除</button></td>
+                </tr>
+                <tr>
+                  <td style="font-weight:500;">京东礼品订单</td>
+                  <td><span class="tag tag-jd">京东</span></td>
+                  <td><span style="font-weight:600;color:var(--brand);">3</span></td>
+                  <td style="font-size:12px;color:var(--text-secondary);">礼盒类 · 全国 · 优先分配旗舰店</td>
+                  <td><span class="switch on"></span></td>
+                  <td><button class="btn btn-sm btn-link">编辑</button> <button class="btn btn-sm btn-link" style="color:var(--danger);">删除</button></td>
+                </tr>
+                <tr>
+                  <td style="font-weight:500;">抖音直播订单</td>
+                  <td><span class="tag tag-douyin">抖音</span></td>
+                  <td><span style="font-weight:600;color:var(--brand);">4</span></td>
+                  <td style="font-size:12px;color:var(--text-secondary);">全部品类 · 华东区域 · 分配杭州仓库</td>
+                  <td><span class="switch on"></span></td>
+                  <td><button class="btn btn-sm btn-link">编辑</button> <button class="btn btn-sm btn-link" style="color:var(--danger);">删除</button></td>
+                </tr>
+                <tr>
+                  <td style="font-weight:500;">线下门店自提</td>
+                  <td><span class="tag tag-offline">线下</span></td>
+                  <td><span style="font-weight:600;color:var(--brand);">5</span></td>
+                  <td style="font-size:12px;color:var(--text-secondary);">黄酒/洋酒 · 华南区域 · 18:00后</td>
+                  <td><span class="switch"></span></td>
+                  <td><button class="btn btn-sm btn-link">编辑</button> <button class="btn btn-sm btn-link" style="color:var(--danger);">删除</button></td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ========== Rule Edit Modal ========== -->
+    <div class="mockup" style="margin-top:16px;">
+      <div class="modal" style="position:relative;width:100%;max-height:none;overflow:visible;box-shadow:none;border:1px solid var(--border);border-radius:12px;">
+        <div class="modal-header">
+          <span>新增路由规则</span>
+          <div class="modal-close">&times;</div>
+        </div>
+        <div class="modal-body">
+          <!-- Basic Info -->
+          <div style="border:1px solid var(--border);border-radius:8px;padding:16px;background:#FAFAFA;">
+            <h5 style="font-size:14px;font-weight:600;margin-bottom:12px;color:var(--text);">规则基本信息</h5>
+            <div class="form-row">
+              <div class="form-group">
+                <label>规则名称</label>
+                <input type="text" placeholder="请输入规则名称" value="微信高端白酒">
+              </div>
+              <div class="form-group">
+                <label>优先级</label>
+                <input type="number" value="1" placeholder="数字越小优先级越高">
+              </div>
+            </div>
+            <div class="form-group" style="margin-top:8px;">
+              <label>规则描述</label>
+              <textarea placeholder="请输入规则描述" style="min-height:60px;" rows="2">将微信渠道的高端白酒订单优先分配给北京旗舰店</textarea>
+            </div>
+          </div>
+
+          <!-- Condition Builder -->
+          <div style="border:1px solid var(--border);border-radius:8px;padding:16px;background:#FAFAFA;">
+            <h5 style="font-size:14px;font-weight:600;margin-bottom:12px;color:var(--text);">条件构建器</h5>
+
+            <div class="form-group" style="margin-bottom:12px;">
+              <label>适用渠道</label>
+              <div class="checkbox-group">
+                <div class="checkbox-item selected"><div class="checkbox-cb"></div>微信</div>
+                <div class="checkbox-item"><div class="checkbox-cb"></div>抖音</div>
+                <div class="checkbox-item"><div class="checkbox-cb"></div>美团</div>
+                <div class="checkbox-item"><div class="checkbox-cb"></div>饿了么</div>
+                <div class="checkbox-item"><div class="checkbox-cb"></div>京东</div>
+                <div class="checkbox-item"><div class="checkbox-cb"></div>线下</div>
+              </div>
+            </div>
+
+            <div class="form-row" style="margin-bottom:12px;">
+              <div class="form-group">
+                <label>适用区域（省）</label>
+                <select><option>全部</option><option>北京市</option><option>上海市</option><option>广东省</option><option>浙江省</option></select>
+              </div>
+              <div class="form-group">
+                <label>适用区域（市）</label>
+                <select><option>全部</option><option>北京</option><option>朝阳区</option><option>海淀区</option></select>
+              </div>
+            </div>
+
+            <div class="form-group" style="margin-bottom:12px;">
+              <label>金额范围</label>
+              <div class="slider-container">
+                <span class="slider-value" style="text-align:left;">&yen;0</span>
+                <div class="slider-track">
+                  <div class="slider-fill"></div>
+                  <div class="slider-thumb min"></div>
+                  <div class="slider-thumb max"></div>
+                </div>
+                <span class="slider-value" style="text-align:right;">&yen;50,000</span>
+              </div>
+            </div>
+
+            <div class="form-group" style="margin-bottom:12px;">
+              <label>商品类别</label>
+              <div class="checkbox-group">
+                <div class="checkbox-item selected"><div class="checkbox-cb"></div>白酒</div>
+                <div class="checkbox-item"><div class="checkbox-cb"></div>红酒</div>
+                <div class="checkbox-item"><div class="checkbox-cb"></div>啤酒</div>
+                <div class="checkbox-item"><div class="checkbox-cb"></div>洋酒</div>
+                <div class="checkbox-item"><div class="checkbox-cb"></div>黄酒</div>
+                <div class="checkbox-item"><div class="checkbox-cb"></div>礼盒</div>
+              </div>
+            </div>
+
+            <div class="form-row" style="margin-bottom:12px;">
+              <div class="form-group">
+                <label>时间段（开始）</label>
+                <input type="text" value="00:00" placeholder="HH:MM">
+              </div>
+              <div class="form-group">
+                <label>时间段（结束）</label>
+                <input type="text" value="23:59" placeholder="HH:MM">
+              </div>
+            </div>
+
+            <div class="form-group">
+              <label>适用门店</label>
+              <div class="checkbox-group">
+                <div class="checkbox-item selected"><div class="checkbox-cb"></div>北京朝阳旗舰店</div>
+                <div class="checkbox-item selected"><div class="checkbox-cb"></div>北京海淀中关村店</div>
+                <div class="checkbox-item"><div class="checkbox-cb"></div>上海静安店</div>
+                <div class="checkbox-item"><div class="checkbox-cb"></div>杭州西湖店</div>
+                <div class="checkbox-item"><div class="checkbox-cb"></div>广州天汇店</div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Action -->
+          <div style="border:1px solid var(--border);border-radius:8px;padding:16px;background:#FAFAFA;">
+            <h5 style="font-size:14px;font-weight:600;margin-bottom:12px;color:var(--text);">动作选择</h5>
+            <div class="form-row" style="margin-bottom:12px;">
+              <div class="form-group">
+                <label>分配门店</label>
+                <select><option>北京朝阳旗舰店</option><option>北京海淀中关村店</option><option>上海静安店</option><option>杭州西湖店</option><option>广州天汇店</option></select>
+              </div>
+              <div class="form-group">
+                <label>分配仓库</label>
+                <select><option>北京中心仓</option><option>上海中心仓</option><option>杭州前置仓</option><option>广州中心仓</option></select>
+              </div>
+            </div>
+            <div style="display:flex;align-items:center;justify-content:space-between;padding:12px;background:#fff;border:1px solid var(--border);border-radius:6px;">
+              <div>
+                <div style="font-size:13px;font-weight:500;">拆分规则</div>
+                <div style="font-size:12px;color:var(--text-muted);">开启后按条件自动拆分订单</div>
+              </div>
+              <span class="switch on"></span>
+            </div>
+            <div class="form-row" style="margin-top:12px;">
+              <div class="form-group">
+                <label>拆分条件</label>
+                <select>
+                  <option>按商品类别拆分</option>
+                  <option>按数量拆分</option>
+                  <option>按金额拆分</option>
+                </select>
+              </div>
+              <div class="form-group">
+                <label>拆分阈值</label>
+                <input type="number" value="5" placeholder="例如：超过5件拆分">
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button class="btn">取消</button>
+          <button class="btn btn-primary">保存规则</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ========== TAB 2: 分发日志 Mockup ========== -->
+  <div class="section">
+    <h2 class="section-title">Mockup — 分发日志（Tab 2）</h2>
+
+    <div class="mockup">
+      <div class="mockup-body">
+        <div class="mockup-sidebar">
+          <div class="menu-group">
+            <div class="menu-item"><div class="menu-icon"></div>订单聚合</div>
+            <div class="menu-item active"><div class="menu-icon"></div>订单路由</div>
+            <div class="menu-item"><div class="menu-icon"></div>状态同步</div>
+            <div class="menu-item"><div class="menu-icon"></div>异常处理</div>
+            <div class="menu-item"><div class="menu-icon"></div>商品映射</div>
+          </div>
+        </div>
+        <div class="mockup-main">
+          <div class="mockup-page-title">订单分发与路由</div>
+          <div class="mockup-breadcrumb">订单中心 / <span>订单路由</span></div>
+
+          <div class="mockup-tabs">
+            <div class="mockup-tab">路由规则</div>
+            <div class="mockup-tab active">分发日志</div>
+            <div class="mockup-tab">分发看板</div>
+          </div>
+
+          <!-- Filter Bar -->
+          <div class="filter-bar">
+            <label>分发状态
+              <select><option>全部</option><option>成功</option><option>失败</option><option>待处理</option></select>
+            </label>
+            <label>日期
+              <input type="text" value="2026-06-24 - 2026-06-30" style="width:200px;">
+            </label>
+            <input type="text" placeholder="搜索订单号 / 规则名称" style="width:220px;">
+          </div>
+
+          <!-- Log Table -->
+          <table class="mockup-table">
+            <thead>
+              <tr>
+                <th>订单号</th>
+                <th>渠道</th>
+                <th>触发规则</th>
+                <th>来源门店</th>
+                <th>目标门店</th>
+                <th>分发状态</th>
+                <th>分发时间</th>
+                <th>分发原因</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td><span class="text-mono">AGG2026063000123</span></td>
+                <td><span class="tag tag-wechat">微信</span></td>
+                <td>微信高端白酒</td>
+                <td>--</td>
+                <td>北京朝阳旗舰店</td>
+                <td><span class="tag tag-success">成功</span></td>
+                <td>2026-06-30 10:23:18</td>
+                <td style="font-size:12px;color:var(--text-secondary);">匹配规则【微信高端白酒】优先级1</td>
+              </tr>
+              <tr>
+                <td><span class="text-mono">AGG2026063000456</span></td>
+                <td><span class="tag tag-meituan">美团</span></td>
+                <td>美团大众订单</td>
+                <td>--</td>
+                <td>上海静安店</td>
+                <td><span class="tag tag-success">成功</span></td>
+                <td>2026-06-30 09:48:30</td>
+                <td style="font-size:12px;color:var(--text-secondary);">匹配规则【美团大众订单】优先级2</td>
+              </tr>
+              <tr>
+                <td><span class="text-mono">AGG2026063000789</span></td>
+                <td><span class="tag tag-jd">京东</span></td>
+                <td>京东礼品订单</td>
+                <td>--</td>
+                <td>北京朝阳旗舰店</td>
+                <td><span class="tag tag-success">成功</span></td>
+                <td>2026-06-30 08:55:12</td>
+                <td style="font-size:12px;color:var(--text-secondary);">匹配规则【京东礼品订单】优先级3</td>
+              </tr>
+              <tr>
+                <td><span class="text-mono">AGG2026062900321</span></td>
+                <td><span class="tag tag-douyin">抖音</span></td>
+                <td>抖音直播订单</td>
+                <td>--</td>
+                <td>杭州西湖店</td>
+                <td><span class="tag tag-success">成功</span></td>
+                <td>2026-06-29 21:45:08</td>
+                <td style="font-size:12px;color:var(--text-secondary);">匹配规则【抖音直播订单】优先级4</td>
+              </tr>
+              <tr>
+                <td><span class="text-mono">AGG2026062900654</span></td>
+                <td><span class="tag tag-eleme">饿了么</span></td>
+                <td>--</td>
+                <td>--</td>
+                <td>--</td>
+                <td><span class="tag tag-danger">失败</span></td>
+                <td>2026-06-29 18:30:45</td>
+                <td style="font-size:12px;color:var(--text-secondary);">无匹配规则，且目标门店库存不足</td>
+              </tr>
+              <tr>
+                <td><span class="text-mono">AGG2026062800987</span></td>
+                <td><span class="tag tag-offline">线下</span></td>
+                <td>线下门店自提</td>
+                <td>--</td>
+                <td>广州天汇店</td>
+                <td><span class="tag tag-warning">待处理</span></td>
+                <td>2026-06-28 20:15:00</td>
+                <td style="font-size:12px;color:var(--text-secondary);">规则已禁用，需人工确认分发</td>
+              </tr>
+            </tbody>
+          </table>
+
+          <div class="pagination">
+            <span>共 238 条记录</span>
+            <div class="page-btn disabled">&lt;</div>
+            <div class="page-btn active">1</div>
+            <div class="page-btn">2</div>
+            <div class="page-btn">3</div>
+            <div class="page-btn">...</div>
+            <div class="page-btn">24</div>
+            <div class="page-btn">&gt;</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ========== TAB 3: 分发看板 Mockup ========== -->
+  <div class="section">
+    <h2 class="section-title">Mockup — 分发看板（Tab 3）</h2>
+
+    <div class="mockup">
+      <div class="mockup-body">
+        <div class="mockup-sidebar">
+          <div class="menu-group">
+            <div class="menu-item"><div class="menu-icon"></div>订单聚合</div>
+            <div class="menu-item active"><div class="menu-icon"></div>订单路由</div>
+            <div class="menu-item"><div class="menu-icon"></div>状态同步</div>
+            <div class="menu-item"><div class="menu-icon"></div>异常处理</div>
+            <div class="menu-item"><div class="menu-icon"></div>商品映射</div>
+          </div>
+        </div>
+        <div class="mockup-main">
+          <div class="mockup-page-title">订单分发与路由</div>
+          <div class="mockup-breadcrumb">订单中心 / <span>订单路由</span></div>
+
+          <div class="mockup-tabs">
+            <div class="mockup-tab">路由规则</div>
+            <div class="mockup-tab">分发日志</div>
+            <div class="mockup-tab active">分发看板</div>
+          </div>
+
+          <!-- Store Cards -->
+          <div class="store-cards">
+            <div class="store-card">
+              <div class="store-name">北京朝阳旗舰店</div>
+              <div class="store-meta">北京市朝阳区建国路88号</div>
+              <div class="store-order-count">42</div>
+              <div style="font-size:12px;color:var(--text-muted);">当前订单量</div>
+              <div class="store-capacity">
+                <span class="store-capacity-dot idle"></span>
+                <span class="store-capacity-text idle">空闲 · 可接 18 单</span>
+              </div>
+            </div>
+            <div class="store-card">
+              <div class="store-name">北京海淀中关村店</div>
+              <div class="store-meta">北京市海淀区中关村大街1号</div>
+              <div class="store-order-count">28</div>
+              <div style="font-size:12px;color:var(--text-muted);">当前订单量</div>
+              <div class="store-capacity">
+                <span class="store-capacity-dot busy"></span>
+                <span class="store-capacity-text busy">忙碌 · 可接 8 单</span>
+              </div>
+            </div>
+            <div class="store-card">
+              <div class="store-name">上海静安店</div>
+              <div class="store-meta">上海市静安区南京西路1688号</div>
+              <div class="store-order-count">56</div>
+              <div style="font-size:12px;color:var(--text-muted);">当前订单量</div>
+              <div class="store-capacity">
+                <span class="store-capacity-dot overload"></span>
+                <span class="store-capacity-text overload">超载 · 可接 0 单</span>
+              </div>
+            </div>
+            <div class="store-card">
+              <div class="store-name">广州天汇店</div>
+              <div class="store-meta">广州市天河区天河路385号</div>
+              <div class="store-order-count">15</div>
+              <div style="font-size:12px;color:var(--text-muted);">当前订单量</div>
+              <div class="store-capacity">
+                <span class="store-capacity-dot idle"></span>
+                <span class="store-capacity-text idle">空闲 · 可接 25 单</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- Manual Dispatch Section -->
+          <div style="background:#fff;border-radius:var(--radius);padding:20px;box-shadow:var(--shadow);">
+            <h4 style="font-size:15px;font-weight:600;margin-bottom:16px;color:var(--text);">手动分发</h4>
+            <p style="font-size:13px;color:var(--text-muted);margin-bottom:12px;">选择待分发订单，手动指定目标门店或仓库进行分发</p>
+
+            <table class="mockup-table" style="margin-bottom:16px;">
+              <thead>
+                <tr>
+                  <th style="width:40px;"></th>
+                  <th>订单号</th>
+                  <th>渠道</th>
+                  <th>客户</th>
+                  <th>金额</th>
+                  <th>商品数</th>
+                  <th>当前状态</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td><div class="checkbox-cb" style="width:16px;height:16px;margin:0 auto;"></div></td>
+                  <td><span class="text-mono">AGG2026063000654</span></td>
+                  <td><span class="tag tag-eleme">饿了么</span></td>
+                  <td>赵六</td>
+                  <td>&yen;168</td>
+                  <td>1</td>
+                  <td><span class="tag tag-warning">待分发</span></td>
+                </tr>
+                <tr>
+                  <td><div class="checkbox-cb" style="width:16px;height:16px;margin:0 auto;background:var(--brand);border-color:var(--brand);"></div></td>
+                  <td><span class="text-mono">AGG2026063000789</span></td>
+                  <td><span class="tag tag-jd">京东</span></td>
+                  <td>孙七</td>
+                  <td>&yen;1,198</td>
+                  <td>2</td>
+                  <td><span class="tag tag-warning">待分发</span></td>
+                </tr>
+                <tr>
+                  <td><div class="checkbox-cb" style="width:16px;height:16px;margin:0 auto;"></div></td>
+                  <td><span class="text-mono">AGG2026063000987</span></td>
+                  <td><span class="tag tag-offline">线下</span></td>
+                  <td>周八</td>
+                  <td>&yen;1,099</td>
+                  <td>1</td>
+                  <td><span class="tag tag-warning">待分发</span></td>
+                </tr>
+              </tbody>
+            </table>
+
+            <div style="display:flex;align-items:center;gap:16px;padding:16px;background:#FAFAFA;border-radius:6px;">
+              <div class="form-group" style="flex:1;max-width:240px;">
+                <label style="font-size:12px;color:var(--text-muted);">目标门店</label>
+                <select style="width:100%;">
+                  <option>北京朝阳旗舰店</option>
+                  <option>北京海淀中关村店</option>
+                  <option>上海静安店</option>
+                  <option>广州天汇店</option>
+                </select>
+              </div>
+              <div class="form-group" style="flex:1;max-width:240px;">
+                <label style="font-size:12px;color:var(--text-muted);">目标仓库</label>
+                <select style="width:100%;">
+                  <option>北京中心仓</option>
+                  <option>上海中心仓</option>
+                  <option>杭州前置仓</option>
+                </select>
+              </div>
+              <button class="btn btn-primary" style="align-self:flex-end;">确认分发</button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ========== 字段规范 ========== -->
+  <div class="section">
+    <h2 class="section-title">字段规范</h2>
+
+    <h4 style="font-size:15px;margin-bottom:12px;color:var(--text);">路由规则字段</h4>
+    <table class="spec-table">
+      <thead>
+        <tr>
+          <th>字段名</th>
+          <th>类型</th>
+          <th>必填</th>
+          <th>说明</th>
+          <th>示例值</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>rule_id</td>
+          <td>String</td>
+          <td class="required">是</td>
+          <td>规则唯一编号</td>
+          <td>RULE-001</td>
+        </tr>
+        <tr>
+          <td>rule_name</td>
+          <td>String</td>
+          <td class="required">是</td>
+          <td>规则名称</td>
+          <td>微信高端白酒</td>
+        </tr>
+        <tr>
+          <td>priority</td>
+          <td>Integer</td>
+          <td class="required">是</td>
+          <td>优先级，数字越小优先级越高</td>
+          <td>1</td>
+        </tr>
+        <tr>
+          <td>channels</td>
+          <td>Array</td>
+          <td class="required">是</td>
+          <td>适用渠道列表</td>
+          <td>["wechat"]</td>
+        </tr>
+        <tr>
+          <td>region_province</td>
+          <td>String</td>
+          <td>否</td>
+          <td>适用省份</td>
+          <td>北京市</td>
+        </tr>
+        <tr>
+          <td>region_city</td>
+          <td>String</td>
+          <td>否</td>
+          <td>适用城市/区</td>
+          <td>朝阳区</td>
+        </tr>
+        <tr>
+          <td>min_amount</td>
+          <td>Decimal</td>
+          <td>否</td>
+          <td>最低金额</td>
+          <td>0.00</td>
+        </tr>
+        <tr>
+          <td>max_amount</td>
+          <td>Decimal</td>
+          <td>否</td>
+          <td>最高金额</td>
+          <td>50000.00</td>
+        </tr>
+        <tr>
+          <td>categories</td>
+          <td>Array</td>
+          <td>否</td>
+          <td>适用商品类别</td>
+          <td>["白酒"]</td>
+        </tr>
+        <tr>
+          <td>time_start</td>
+          <td>Time</td>
+          <td>否</td>
+          <td>时间段开始</td>
+          <td>00:00</td>
+        </tr>
+        <tr>
+          <td>time_end</td>
+          <td>Time</td>
+          <td>否</td>
+          <td>时间段结束</td>
+          <td>23:59</td>
+        </tr>
+        <tr>
+          <td>target_store</td>
+          <td>String</td>
+          <td class="required">是</td>
+          <td>目标门店ID</td>
+          <td>STORE-001</td>
+        </tr>
+        <tr>
+          <td>target_warehouse</td>
+          <td>String</td>
+          <td>否</td>
+          <td>目标仓库ID</td>
+          <td>WH-001</td>
+        </tr>
+        <tr>
+          <td>split_enabled</td>
+          <td>Boolean</td>
+          <td>否</td>
+          <td>是否启用拆分</td>
+          <td>true</td>
+        </tr>
+        <tr>
+          <td>split_condition</td>
+          <td>Enum</td>
+          <td>否</td>
+          <td>拆分条件：by_category/by_quantity/by_amount</td>
+          <td>by_category</td>
+        </tr>
+        <tr>
+          <td>enabled</td>
+          <td>Boolean</td>
+          <td class="required">是</td>
+          <td>启用状态</td>
+          <td>true</td>
+        </tr>
+      </tbody>
+    </table>
+
+    <h4 style="font-size:15px;margin:24px 0 12px;color:var(--text);">分发日志字段</h4>
+    <table class="spec-table">
+      <thead>
+        <tr>
+          <th>字段名</th>
+          <th>类型</th>
+          <th>必填</th>
+          <th>说明</th>
+          <th>示例值</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>log_id</td>
+          <td>String</td>
+          <td class="required">是</td>
+          <td>日志唯一编号</td>
+          <td>LOG-20260630001</td>
+        </tr>
+        <tr>
+          <td>order_id</td>
+          <td>String</td>
+          <td class="required">是</td>
+          <td>聚合订单号</td>
+          <td>AGG2026063000123</td>
+        </tr>
+        <tr>
+          <td>channel</td>
+          <td>Enum</td>
+          <td class="required">是</td>
+          <td>来源渠道</td>
+          <td>wechat</td>
+        </tr>
+        <tr>
+          <td>trigger_rule</td>
+          <td>String</td>
+          <td>否</td>
+          <td>触发的路由规则名称</td>
+          <td>微信高端白酒</td>
+        </tr>
+        <tr>
+          <td>source_store</td>
+          <td>String</td>
+          <td>否</td>
+          <td>来源门店</td>
+          <td>--</td>
+        </tr>
+        <tr>
+          <td>target_store</td>
+          <td>String</td>
+          <td class="required">是</td>
+          <td>目标门店</td>
+          <td>北京朝阳旗舰店</td>
+        </tr>
+        <tr>
+          <td>dispatch_status</td>
+          <td>Enum</td>
+          <td class="required">是</td>
+          <td>分发状态：success/failed/pending</td>
+          <td>success</td>
+        </tr>
+        <tr>
+          <td>dispatch_time</td>
+          <td>DateTime</td>
+          <td class="required">是</td>
+          <td>分发时间</td>
+          <td>2026-06-30T10:23:18Z</td>
+        </tr>
+        <tr>
+          <td>reason</td>
+          <td>String</td>
+          <td>否</td>
+          <td>分发原因或失败原因</td>
+          <td>匹配规则优先级1</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <!-- ========== 验收标准 ========== -->
+  <div class="section">
+    <h2 class="section-title">验收标准</h2>
+    <ul class="checklist">
+      <li>
+        <div class="checkbox"></div>
+        <span>路由规则Tab页默认展示，支持切换到分发日志和分发看板Tab，切换时数据正确加载</span>
+      </li>
+      <li>
+        <div class="checkbox"></div>
+        <span>路由规则列表展示所有已配置规则，包含规则名称、适用渠道、优先级、条件摘要、启用状态</span>
+      </li>
+      <li>
+        <div class="checkbox"></div>
+        <span>点击"新增规则"按钮打开规则编辑弹窗，弹窗包含规则基本信息、条件构建器、动作选择三个区域</span>
+      </li>
+      <li>
+        <div class="checkbox"></div>
+        <span>条件构建器支持多渠道多选、区域选择、金额范围滑块、商品类别多选、时间段选择、门店多选</span>
+      </li>
+      <li>
+        <div class="checkbox"></div>
+        <span>金额范围滑块支持拖拽调节最低和最高金额，实时显示当前值</span>
+      </li>
+      <li>
+        <div class="checkbox"></div>
+        <span>动作选择支持指定分配门店、分配仓库，拆分规则开关可独立控制</span>
+      </li>
+      <li>
+        <div class="checkbox"></div>
+        <span>启用/禁用开关操作即时生效，关闭后对应规则不再参与自动分发</span>
+      </li>
+      <li>
+        <div class="checkbox"></div>
+        <span>分发日志列表展示所有分发记录，支持按分发状态、日期范围、关键词筛选</span>
+      </li>
+      <li>
+        <div class="checkbox"></div>
+        <span>分发日志中失败记录高亮显示，并展示具体失败原因</span>
+      </li>
+      <li>
+        <div class="checkbox"></div>
+        <span>分发看板以卡片形式展示各门店当前订单量和接单能力状态（空闲/忙碌/超载）</span>
+      </li>
+      <li>
+        <div class="checkbox"></div>
+        <span>接单能力状态颜色正确：绿色空闲、黄色忙碌、红色超载</span>
+      </li>
+      <li>
+        <div class="checkbox"></div>
+        <span>手动分发功能支持勾选待分发订单，选择目标门店/仓库后确认分发</span>
+      </li>
+      <li>
+        <div class="checkbox"></div>
+        <span>规则优先级匹配正确：多个规则同时满足时，按优先级数值从小到大依次匹配</span>
+      </li>
+      <li>
+        <div class="checkbox"></div>
+        <span>分页组件功能正常，支持页码切换和总记录数展示</span>
+      </li>
+    </ul>
+  </div>
+
+</div>
+
+</body>
+</html>

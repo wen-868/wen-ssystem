@@ -1,0 +1,1630 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>42 · 全渠道商品映射 — 设计规格文档</title>
+<style>
+/* ===== CSS Variables ===== */
+:root {
+  --brand: #1677FF;
+  --brand-light: #E6F4FF;
+  --text: #1F1F1F;
+  --text-secondary: #595959;
+  --text-muted: #8C8C8C;
+  --border: #E8E8E8;
+  --bg: #F5F5F5;
+  --white: #FFFFFF;
+  --success: #52C41A;
+  --warning: #FAAD14;
+  --danger: #FF4D4F;
+  --radius: 8px;
+  --shadow: 0 2px 8px rgba(0,0,0,0.08);
+  --wechat: #07C160;
+  --douyin: #010101;
+  --mt-yellow: #FFD101;
+  --ele-blue: #0085FF;
+  --jd-red: #E1251B;
+  --offline: #6B7280;
+}
+
+/* ===== Reset & Base ===== */
+* { margin: 0; padding: 0; box-sizing: border-box; }
+body {
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", sans-serif;
+  background: #F0F2F5;
+  color: var(--text);
+  line-height: 1.6;
+  -webkit-font-smoothing: antialiased;
+}
+
+/* ===== Layout ===== */
+.container {
+  max-width: 1400px;
+  margin: 0 auto;
+  padding: 0 24px;
+}
+
+/* ===== Document Header ===== */
+.doc-header {
+  background: linear-gradient(135deg, #1677FF 0%, #0958D9 100%);
+  color: #fff;
+  padding: 48px 0 40px;
+  margin-bottom: 32px;
+}
+.doc-header .container { max-width: 1400px; }
+.doc-header h1 {
+  font-size: 28px;
+  font-weight: 700;
+  letter-spacing: -0.5px;
+}
+.doc-header .doc-meta {
+  margin-top: 12px;
+  font-size: 14px;
+  opacity: 0.85;
+  display: flex;
+  gap: 24px;
+}
+
+/* ===== Section ===== */
+.section {
+  background: var(--white);
+  border-radius: 12px;
+  padding: 32px;
+  margin-bottom: 24px;
+  box-shadow: 0 1px 4px rgba(0,0,0,0.04);
+}
+.section-title {
+  font-size: 20px;
+  font-weight: 600;
+  margin-bottom: 16px;
+  padding-bottom: 12px;
+  border-bottom: 2px solid var(--brand);
+  display: inline-block;
+}
+.section-desc {
+  color: var(--text-secondary);
+  font-size: 14px;
+  margin-bottom: 24px;
+  line-height: 1.8;
+}
+
+/* ===== Mockup Wrapper ===== */
+.mockup {
+  background: #EDEFF2;
+  border-radius: 8px;
+  overflow: hidden;
+  border: 1px solid var(--border);
+}
+
+/* ===== Mockup Header ===== */
+.mockup-header {
+  background: #001529;
+  color: #fff;
+  height: 48px;
+  display: flex;
+  align-items: center;
+  padding: 0 20px;
+  font-size: 14px;
+  font-weight: 500;
+}
+.mockup-header .logo {
+  font-size: 15px;
+  font-weight: 700;
+  color: #fff;
+  margin-right: 40px;
+  letter-spacing: 1px;
+}
+.mockup-header .nav-links {
+  display: flex;
+  gap: 28px;
+  list-style: none;
+}
+.mockup-header .nav-links li {
+  cursor: pointer;
+  opacity: 0.75;
+  font-size: 13px;
+  padding: 4px 0;
+  border-bottom: 2px solid transparent;
+  transition: all 0.2s;
+}
+.mockup-header .nav-links li:hover { opacity: 1; }
+.mockup-header .nav-links li.active { opacity: 1; border-bottom-color: var(--brand); }
+.mockup-header .header-right {
+  margin-left: auto;
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  font-size: 13px;
+  opacity: 0.8;
+}
+
+/* ===== Mockup Body ===== */
+.mockup-body {
+  display: flex;
+  min-height: 700px;
+}
+
+/* ===== Mockup Sidebar ===== */
+.mockup-sidebar {
+  width: 200px;
+  background: #001529;
+  color: rgba(255,255,255,0.65);
+  flex-shrink: 0;
+  padding: 12px 0;
+}
+.mockup-sidebar .menu-group {
+  padding: 8px 0;
+}
+.mockup-sidebar .menu-group-title {
+  padding: 8px 20px;
+  font-size: 11px;
+  text-transform: uppercase;
+  color: rgba(255,255,255,0.35);
+  letter-spacing: 1px;
+}
+.mockup-sidebar .menu-item {
+  padding: 10px 20px;
+  font-size: 13px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  transition: all 0.2s;
+  border-left: 3px solid transparent;
+}
+.mockup-sidebar .menu-item:hover {
+  color: #fff;
+  background: rgba(255,255,255,0.06);
+}
+.mockup-sidebar .menu-item.active {
+  color: #fff;
+  background: var(--brand);
+  border-left-color: #fff;
+}
+
+/* ===== Mockup Main ===== */
+.mockup-main {
+  flex: 1;
+  background: #F5F7FA;
+  padding: 20px;
+  overflow-y: auto;
+}
+
+.mockup-page-title {
+  font-size: 18px;
+  font-weight: 600;
+  color: var(--text);
+}
+.mockup-breadcrumb {
+  font-size: 12px;
+  color: var(--text-muted);
+  margin-bottom: 4px;
+}
+.mockup-breadcrumb span { color: var(--text); }
+
+/* ===== Channel Tabs ===== */
+.channel-tabs {
+  display: flex;
+  gap: 0;
+  background: var(--white);
+  border-radius: var(--radius) var(--radius) 0 0;
+  border-bottom: 1px solid var(--border);
+  overflow: hidden;
+}
+.channel-tab {
+  padding: 10px 16px;
+  font-size: 13px;
+  cursor: pointer;
+  color: var(--text-secondary);
+  position: relative;
+  border-bottom: 2px solid transparent;
+  transition: all 0.2s;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+.channel-tab:hover { color: var(--brand); }
+.channel-tab.active {
+  color: var(--brand);
+  border-bottom-color: var(--brand);
+  font-weight: 500;
+}
+.channel-tab .badge {
+  font-size: 11px;
+  padding: 1px 6px;
+  border-radius: 10px;
+  background: var(--bg);
+  color: var(--text-muted);
+}
+.channel-tab .badge.mapped { color: var(--success); }
+.channel-tab .badge.unmapped { color: var(--danger); }
+
+/* ===== Sub Tabs ===== */
+.sub-tabs {
+  display: flex;
+  gap: 0;
+  margin-bottom: 16px;
+  background: var(--white);
+  border-radius: var(--radius);
+  overflow: hidden;
+}
+.sub-tab {
+  padding: 8px 16px;
+  font-size: 12px;
+  cursor: pointer;
+  color: var(--text-secondary);
+  border-bottom: 2px solid transparent;
+  transition: all 0.2s;
+}
+.sub-tab:hover { color: var(--brand); }
+.sub-tab.active {
+  color: var(--brand);
+  border-bottom-color: var(--brand);
+  font-weight: 500;
+}
+.sub-tab .badge {
+  font-size: 11px;
+  padding: 1px 6px;
+  border-radius: 10px;
+  background: var(--bg);
+  margin-left: 4px;
+}
+
+/* ===== Action Bar ===== */
+.action-bar {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 16px;
+  background: var(--white);
+  border-radius: 0 0 var(--radius) var(--radius);
+  margin-bottom: 16px;
+  flex-wrap: wrap;
+}
+.btn {
+  padding: 7px 16px;
+  font-size: 13px;
+  border-radius: 6px;
+  border: 1px solid var(--border);
+  cursor: pointer;
+  background: var(--white);
+  color: var(--text);
+  transition: all 0.2s;
+  white-space: nowrap;
+}
+.btn:hover { border-color: var(--brand); color: var(--brand); }
+.btn-primary {
+  background: var(--brand);
+  color: #fff;
+  border-color: var(--brand);
+}
+.btn-primary:hover { background: #0958D9; border-color: #0958D9; color: #fff; }
+.btn-success {
+  background: var(--success);
+  color: #fff;
+  border-color: var(--success);
+}
+.btn-danger {
+  background: var(--danger);
+  color: #fff;
+  border-color: var(--danger);
+}
+.btn-sm {
+  padding: 3px 10px;
+  font-size: 12px;
+}
+.search-box {
+  margin-left: auto;
+  position: relative;
+}
+.search-box input {
+  width: 240px;
+  padding: 7px 12px 7px 32px;
+  font-size: 13px;
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  outline: none;
+  background: var(--bg);
+  transition: all 0.2s;
+}
+.search-box input:focus {
+  border-color: var(--brand);
+  background: var(--white);
+}
+.search-box .search-icon {
+  position: absolute;
+  left: 10px;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 14px;
+  height: 14px;
+  border: 1.5px solid var(--text-muted);
+  border-radius: 50%;
+}
+.search-box .search-icon::after {
+  content: '';
+  position: absolute;
+  width: 6px;
+  height: 1.5px;
+  background: var(--text-muted);
+  transform: rotate(45deg);
+  right: -3px;
+  bottom: 1px;
+}
+
+/* ===== Table ===== */
+.mockup-table {
+  width: 100%;
+  border-collapse: collapse;
+  background: var(--white);
+  border-radius: var(--radius);
+  overflow: hidden;
+  font-size: 13px;
+}
+.mockup-table thead {
+  background: #FAFAFA;
+}
+.mockup-table th {
+  padding: 12px 14px;
+  text-align: left;
+  font-weight: 500;
+  color: var(--text-secondary);
+  border-bottom: 1px solid var(--border);
+  white-space: nowrap;
+}
+.mockup-table td {
+  padding: 10px 14px;
+  border-bottom: 1px solid var(--border);
+  color: var(--text);
+}
+.mockup-table tr:hover td {
+  background: #FAFAFA;
+}
+.mockup-table .actions {
+  display: flex;
+  gap: 6px;
+}
+
+/* ===== Tags ===== */
+.tag {
+  display: inline-block;
+  padding: 2px 8px;
+  font-size: 11px;
+  border-radius: 4px;
+  font-weight: 500;
+  white-space: nowrap;
+}
+.tag-success { background: #F6FFED; color: var(--success); border: 1px solid #B7EB8F; }
+.tag-warning { background: #FFFBE6; color: #D48806; border: 1px solid #FFE58F; }
+.tag-danger { background: #FFF2F0; color: var(--danger); border: 1px solid #FFCCC7; }
+.tag-info { background: #E6F4FF; color: var(--brand); border: 1px solid #91CAFF; }
+.tag-channel {
+  padding: 2px 8px;
+  font-size: 11px;
+  border-radius: 4px;
+  font-weight: 500;
+  color: #fff;
+}
+.tag-wechat { background: var(--wechat); }
+.tag-douyin { background: var(--douyin); }
+.tag-mt { background: var(--mt-yellow); color: #333; }
+.tag-ele { background: var(--ele-blue); }
+.tag-jd { background: var(--jd-red); }
+
+/* ===== Pagination ===== */
+.pagination {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  padding: 16px;
+  background: var(--white);
+  border-radius: 0 0 var(--radius) var(--radius);
+  border-top: 1px solid var(--border);
+  font-size: 13px;
+}
+.pagination .page-item {
+  min-width: 32px;
+  height: 32px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  cursor: pointer;
+  color: var(--text-secondary);
+  transition: all 0.2s;
+}
+.pagination .page-item:hover { border-color: var(--brand); color: var(--brand); }
+.pagination .page-item.active {
+  background: var(--brand);
+  color: #fff;
+  border-color: var(--brand);
+}
+.pagination .page-item.disabled {
+  color: var(--text-muted);
+  cursor: not-allowed;
+}
+
+/* ===== Modal ===== */
+.modal-overlay {
+  position: fixed;
+  top: 0; left: 0; right: 0; bottom: 0;
+  background: rgba(0,0,0,0.45);
+  z-index: 1000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.modal {
+  background: var(--white);
+  border-radius: 12px;
+  width: 560px;
+  max-height: 80vh;
+  overflow-y: auto;
+  box-shadow: 0 8px 40px rgba(0,0,0,0.2);
+}
+.modal-header {
+  padding: 16px 20px;
+  border-bottom: 1px solid var(--border);
+  font-size: 16px;
+  font-weight: 600;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+.modal-close {
+  width: 28px;
+  height: 28px;
+  border: none;
+  background: none;
+  cursor: pointer;
+  font-size: 18px;
+  color: var(--text-muted);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 4px;
+}
+.modal-close:hover { background: var(--bg); }
+.modal-body { padding: 20px; }
+.modal-footer {
+  padding: 12px 20px;
+  border-top: 1px solid var(--border);
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+}
+
+/* ===== Form ===== */
+.form-group {
+  margin-bottom: 16px;
+}
+.form-label {
+  display: block;
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--text);
+  margin-bottom: 6px;
+}
+.form-label .required {
+  color: var(--danger);
+  margin-left: 2px;
+}
+.form-input, .form-select {
+  width: 100%;
+  padding: 8px 12px;
+  font-size: 13px;
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  outline: none;
+  transition: border-color 0.2s;
+}
+.form-input:focus, .form-select:focus {
+  border-color: var(--brand);
+  box-shadow: 0 0 0 2px rgba(22,119,255,0.1);
+}
+
+/* ===== Search Selector ===== */
+.search-selector {
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  overflow: hidden;
+}
+.search-selector .search-input {
+  width: 100%;
+  padding: 8px 12px;
+  font-size: 13px;
+  border: none;
+  outline: none;
+  border-bottom: 1px solid var(--border);
+}
+.search-selector .search-results {
+  max-height: 180px;
+  overflow-y: auto;
+}
+.search-selector .search-result-item {
+  padding: 10px 12px;
+  font-size: 13px;
+  cursor: pointer;
+  border-bottom: 1px solid var(--border);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  transition: background 0.15s;
+}
+.search-selector .search-result-item:hover {
+  background: var(--brand-light);
+}
+.search-selector .search-result-item:last-child {
+  border-bottom: none;
+}
+.search-selector .search-result-item .item-name {
+  color: var(--text);
+}
+.search-selector .search-result-item .item-sku {
+  color: var(--text-muted);
+  font-size: 12px;
+}
+.search-selector .search-result-item .item-price {
+  color: var(--danger);
+  font-weight: 500;
+  font-size: 12px;
+}
+
+/* ===== Upload Zone ===== */
+.upload-zone {
+  border: 2px dashed var(--border);
+  border-radius: 8px;
+  padding: 40px;
+  text-align: center;
+  cursor: pointer;
+  transition: all 0.2s;
+  background: #FAFAFA;
+}
+.upload-zone:hover {
+  border-color: var(--brand);
+  background: var(--brand-light);
+}
+.upload-zone .upload-icon {
+  width: 48px;
+  height: 48px;
+  margin: 0 auto 12px;
+  border: 2px solid var(--text-muted);
+  border-radius: 6px;
+  position: relative;
+}
+.upload-zone .upload-icon::before {
+  content: '';
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: 20px;
+  height: 2px;
+  background: var(--text-muted);
+}
+.upload-zone .upload-icon::after {
+  content: '';
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: 2px;
+  height: 20px;
+  background: var(--text-muted);
+}
+.upload-zone .upload-text {
+  font-size: 14px;
+  color: var(--text-secondary);
+}
+.upload-zone .upload-hint {
+  font-size: 12px;
+  color: var(--text-muted);
+  margin-top: 6px;
+}
+
+/* ===== Steps ===== */
+.steps {
+  display: flex;
+  align-items: center;
+  margin-bottom: 24px;
+}
+.step {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 13px;
+  color: var(--text-muted);
+}
+.step .step-num {
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 12px;
+  font-weight: 600;
+  border: 2px solid var(--border);
+  color: var(--text-muted);
+}
+.step.active .step-num {
+  border-color: var(--brand);
+  background: var(--brand);
+  color: #fff;
+}
+.step.done .step-num {
+  border-color: var(--success);
+  background: var(--success);
+  color: #fff;
+}
+.step.active { color: var(--brand); font-weight: 500; }
+.step.done { color: var(--success); }
+.step-line {
+  width: 60px;
+  height: 2px;
+  background: var(--border);
+  margin: 0 12px;
+}
+.step-line.done {
+  background: var(--success);
+}
+
+/* ===== Import Result ===== */
+.import-summary {
+  display: flex;
+  gap: 16px;
+  margin-bottom: 20px;
+}
+.import-stat {
+  flex: 1;
+  padding: 16px;
+  text-align: center;
+  border-radius: 8px;
+  font-size: 13px;
+}
+.import-stat .stat-num {
+  font-size: 28px;
+  font-weight: 700;
+}
+.import-stat.success { background: #F6FFED; }
+.import-stat.success .stat-num { color: var(--success); }
+.import-stat.fail { background: #FFF2F0; }
+.import-stat.fail .stat-num { color: var(--danger); }
+.import-stat.dup { background: #FFFBE6; }
+.import-stat.dup .stat-num { color: var(--warning); }
+
+/* ===== Alert Banner ===== */
+.alert-banner {
+  padding: 12px 16px;
+  border-radius: 6px;
+  font-size: 13px;
+  margin-bottom: 16px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.alert-warning {
+  background: #FFFBE6;
+  border: 1px solid #FFE58F;
+  color: #D48806;
+}
+
+/* ===== Stats Row ===== */
+.stats-row {
+  display: flex;
+  gap: 16px;
+  margin-bottom: 16px;
+}
+.stat-card {
+  flex: 1;
+  background: var(--white);
+  border-radius: var(--radius);
+  padding: 16px;
+  box-shadow: var(--shadow);
+}
+.stat-card .stat-label {
+  font-size: 12px;
+  color: var(--text-muted);
+  margin-bottom: 4px;
+}
+.stat-card .stat-value {
+  font-size: 24px;
+  font-weight: 700;
+  color: var(--text);
+}
+.stat-card .stat-value.danger { color: var(--danger); }
+
+/* ===== Spec Table ===== */
+.spec-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 13px;
+  margin-top: 12px;
+}
+.spec-table th, .spec-table td {
+  padding: 10px 14px;
+  border: 1px solid var(--border);
+  text-align: left;
+}
+.spec-table thead {
+  background: #FAFAFA;
+}
+.spec-table th {
+  font-weight: 600;
+  color: var(--text);
+}
+.spec-table td {
+  color: var(--text-secondary);
+}
+.spec-table .field-name {
+  font-weight: 500;
+  color: var(--text);
+  font-family: "SF Mono", "Menlo", "Monaco", monospace;
+  font-size: 12px;
+}
+.spec-table .field-type {
+  color: var(--brand);
+  font-family: "SF Mono", "Menlo", "Monaco", monospace;
+  font-size: 12px;
+}
+
+/* ===== Checklist ===== */
+.checklist {
+  list-style: none;
+  padding: 0;
+}
+.checklist li {
+  padding: 10px 0;
+  border-bottom: 1px solid var(--border);
+  font-size: 13px;
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  color: var(--text-secondary);
+}
+.checklist li:last-child { border-bottom: none; }
+.checklist .checkbox {
+  width: 18px;
+  height: 18px;
+  border: 2px solid var(--border);
+  border-radius: 4px;
+  flex-shrink: 0;
+  margin-top: 1px;
+  position: relative;
+  cursor: pointer;
+}
+.checklist .checkbox.checked {
+  background: var(--brand);
+  border-color: var(--brand);
+}
+.checklist .checkbox.checked::after {
+  content: '';
+  position: absolute;
+  left: 5px;
+  top: 1px;
+  width: 5px;
+  height: 9px;
+  border: solid #fff;
+  border-width: 0 2px 2px 0;
+  transform: rotate(45deg);
+}
+
+/* ===== Quick Map Button ===== */
+.btn-link {
+  background: none;
+  border: none;
+  color: var(--brand);
+  cursor: pointer;
+  font-size: 12px;
+  padding: 0;
+}
+.btn-link:hover { text-decoration: underline; }
+
+/* ===== Read-only Info ===== */
+.info-row {
+  display: flex;
+  padding: 8px 0;
+  font-size: 13px;
+  border-bottom: 1px solid var(--border);
+}
+.info-row:last-child { border-bottom: none; }
+.info-label {
+  width: 100px;
+  color: var(--text-muted);
+  flex-shrink: 0;
+}
+.info-value {
+  color: var(--text);
+}
+
+/* ===== Sidebar icon placeholders ===== */
+.menu-icon {
+  display: inline-block;
+  width: 14px;
+  height: 14px;
+  border: 1.5px solid currentColor;
+  border-radius: 2px;
+  opacity: 0.6;
+  flex-shrink: 0;
+}
+</style>
+</head>
+<body>
+
+<!-- ===== Document Header ===== -->
+<div class="doc-header">
+  <div class="container">
+    <h1>42 · 全渠道商品映射 — 设计规格文档</h1>
+    <div class="doc-meta">
+      <span>版本: v1.0</span>
+      <span>日期: 2026-06-30</span>
+      <span>状态: 设计中</span>
+      <span>负责人: 产品团队</span>
+    </div>
+  </div>
+</div>
+
+<div class="container">
+
+  <!-- ===== Page Overview ===== -->
+  <div class="section">
+    <div class="section-title">页面总览</div>
+    <div class="section-desc">
+      全渠道商品映射功能用于管理本地商品与各渠道（微信、抖音、美团、饿了么、京东等）平台商品的对应关系。
+      通过建立本地SKU与渠道SKU的映射关系，实现跨渠道商品数据的统一管理、价格同步及订单自动关联。
+      主要功能包括：映射关系的增删改查、批量导入导出、未映射商品快速匹配、渠道商品同步状态监控等。
+      目标用户为运营管理人员，使用场景为PC端后台管理系统。
+    </div>
+  </div>
+
+  <!-- ===== Mockup ===== -->
+  <div class="section">
+    <div class="section-title">界面模型</div>
+
+    <div class="mockup">
+
+      <!-- Top Navigation -->
+      <div class="mockup-header">
+        <span class="logo">O2O 管理系统</span>
+        <ul class="nav-links">
+          <li>工作台</li>
+          <li class="active">商品管理</li>
+          <li>订单管理</li>
+          <li>数据报表</li>
+          <li>系统设置</li>
+        </ul>
+        <div class="header-right">
+          <span>管理员</span>
+          <span>退出</span>
+        </div>
+      </div>
+
+      <div class="mockup-body">
+
+        <!-- Sidebar -->
+        <div class="mockup-sidebar">
+          <div class="menu-group">
+            <div class="menu-group-title">商品管理</div>
+            <div class="menu-item"><span class="menu-icon"></span> 商品列表</div>
+            <div class="menu-item active"><span class="menu-icon"></span> 商品映射</div>
+            <div class="menu-item"><span class="menu-icon"></span> 价格管理</div>
+            <div class="menu-item"><span class="menu-icon"></span> 库存管理</div>
+          </div>
+          <div class="menu-group">
+            <div class="menu-group-title">订单管理</div>
+            <div class="menu-item"><span class="menu-icon"></span> 订单列表</div>
+            <div class="menu-item"><span class="menu-icon"></span> 退款管理</div>
+          </div>
+          <div class="menu-group">
+            <div class="menu-group-title">数据报表</div>
+            <div class="menu-item"><span class="menu-icon"></span> 销售报表</div>
+            <div class="menu-item"><span class="menu-icon"></span> 渠道分析</div>
+          </div>
+        </div>
+
+        <!-- Main Content -->
+        <div class="mockup-main">
+
+          <div class="mockup-breadcrumb">商品管理 <span>/ 商品映射</span></div>
+          <div class="mockup-page-title" style="margin-bottom:16px;">全渠道商品映射</div>
+
+          <!-- ===== Channel Tabs ===== -->
+          <div class="channel-tabs">
+            <div class="channel-tab active">
+              全部<span class="badge mapped">已映射128</span><span class="badge unmapped">未映射15</span>
+            </div>
+            <div class="channel-tab">
+              微信<span class="badge mapped">已映射42</span><span class="badge unmapped">未映射5</span>
+            </div>
+            <div class="channel-tab">
+              抖音<span class="badge mapped">已映射31</span><span class="badge unmapped">未映射3</span>
+            </div>
+            <div class="channel-tab">
+              美团<span class="badge mapped">已映射28</span><span class="badge unmapped">未映射4</span>
+            </div>
+            <div class="channel-tab">
+              饿了么<span class="badge mapped">已映射15</span><span class="badge unmapped">未映射2</span>
+            </div>
+            <div class="channel-tab">
+              京东<span class="badge mapped">已映射12</span><span class="badge unmapped">未映射1</span>
+            </div>
+          </div>
+
+          <!-- ===== Action Bar ===== -->
+          <div class="action-bar">
+            <button class="btn btn-primary">+ 新增映射</button>
+            <button class="btn">批量导入</button>
+            <button class="btn">批量同步</button>
+            <div class="search-box">
+              <div class="search-icon"></div>
+              <input type="text" placeholder="渠道SKU / 本地商品名">
+            </div>
+          </div>
+
+          <!-- ===== Mapping Table ===== -->
+          <table class="mockup-table">
+            <thead>
+              <tr>
+                <th style="width:70px;">渠道</th>
+                <th>渠道SKU编码</th>
+                <th>渠道商品名</th>
+                <th>渠道价格</th>
+                <th>本地SKU编码</th>
+                <th>本地商品名</th>
+                <th>本地价格</th>
+                <th>同步状态</th>
+                <th>最后同步时间</th>
+                <th style="width:120px;">操作</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td><span class="tag tag-channel tag-wechat">微信</span></td>
+                <td>WX-SKU-20240101</td>
+                <td>茉莉花茶500ml</td>
+                <td>¥18.00</td>
+                <td>LOC-1001</td>
+                <td>茉莉花茶 500ml</td>
+                <td>¥15.00</td>
+                <td><span class="tag tag-success">已同步</span></td>
+                <td>2026-06-30 10:23</td>
+                <td class="actions">
+                  <button class="btn btn-sm">编辑</button>
+                  <button class="btn btn-sm btn-danger">删除</button>
+                  <button class="btn btn-sm">同步</button>
+                </td>
+              </tr>
+              <tr>
+                <td><span class="tag tag-channel tag-douyin">抖音</span></td>
+                <td>DY-88392211</td>
+                <td>鲜榨橙汁300ml*6瓶</td>
+                <td>¥49.90</td>
+                <td>LOC-1002</td>
+                <td>鲜榨橙汁 300ml*6</td>
+                <td>¥42.00</td>
+                <td><span class="tag tag-success">已同步</span></td>
+                <td>2026-06-30 09:15</td>
+                <td class="actions">
+                  <button class="btn btn-sm">编辑</button>
+                  <button class="btn btn-sm btn-danger">删除</button>
+                  <button class="btn btn-sm">同步</button>
+                </td>
+              </tr>
+              <tr>
+                <td><span class="tag tag-channel tag-mt">美团</span></td>
+                <td>MT-FOOD-5566</td>
+                <td>招牌红烧牛肉面</td>
+                <td>¥28.00</td>
+                <td>LOC-1003</td>
+                <td>红烧牛肉面(大份)</td>
+                <td>¥25.00</td>
+                <td><span class="tag tag-warning">未同步</span></td>
+                <td>2026-06-29 18:42</td>
+                <td class="actions">
+                  <button class="btn btn-sm">编辑</button>
+                  <button class="btn btn-sm btn-danger">删除</button>
+                  <button class="btn btn-sm btn-primary">同步</button>
+                </td>
+              </tr>
+              <tr>
+                <td><span class="tag tag-channel tag-ele">饿了么</span></td>
+                <td>ELM-998877</td>
+                <td>酸菜鱼单人套餐</td>
+                <td>¥35.00</td>
+                <td>LOC-1004</td>
+                <td>酸菜鱼套餐(1人份)</td>
+                <td>¥32.00</td>
+                <td><span class="tag tag-success">已同步</span></td>
+                <td>2026-06-30 08:00</td>
+                <td class="actions">
+                  <button class="btn btn-sm">编辑</button>
+                  <button class="btn btn-sm btn-danger">删除</button>
+                  <button class="btn btn-sm">同步</button>
+                </td>
+              </tr>
+              <tr>
+                <td><span class="tag tag-channel tag-jd">京东</span></td>
+                <td>JD-44556677</td>
+                <td>有机绿茶礼盒装250g</td>
+                <td>¥128.00</td>
+                <td>LOC-1005</td>
+                <td>有机绿茶 250g礼盒</td>
+                <td>¥118.00</td>
+                <td><span class="tag tag-success">已同步</span></td>
+                <td>2026-06-30 08:30</td>
+                <td class="actions">
+                  <button class="btn btn-sm">编辑</button>
+                  <button class="btn btn-sm btn-danger">删除</button>
+                  <button class="btn btn-sm">同步</button>
+                </td>
+              </tr>
+              <tr>
+                <td><span class="tag tag-channel tag-wechat">微信</span></td>
+                <td>WX-SKU-20240215</td>
+                <td>冰美式咖啡大杯</td>
+                <td>¥22.00</td>
+                <td>LOC-1006</td>
+                <td>冰美式(大杯)</td>
+                <td>¥19.00</td>
+                <td><span class="tag tag-danger">同步失败</span></td>
+                <td>2026-06-29 15:30</td>
+                <td class="actions">
+                  <button class="btn btn-sm">编辑</button>
+                  <button class="btn btn-sm btn-danger">删除</button>
+                  <button class="btn btn-sm btn-primary">重试</button>
+                </td>
+              </tr>
+              <tr>
+                <td><span class="tag tag-channel tag-douyin">抖音</span></td>
+                <td>DY-99001122</td>
+                <td>手工芋圆烧仙草</td>
+                <td>¥16.80</td>
+                <td>LOC-1007</td>
+                <td>芋圆烧仙草</td>
+                <td>¥14.00</td>
+                <td><span class="tag tag-warning">未同步</span></td>
+                <td>2026-06-29 20:10</td>
+                <td class="actions">
+                  <button class="btn btn-sm">编辑</button>
+                  <button class="btn btn-sm btn-danger">删除</button>
+                  <button class="btn btn-sm btn-primary">同步</button>
+                </td>
+              </tr>
+              <tr>
+                <td><span class="tag tag-channel tag-mt">美团</span></td>
+                <td>MT-FOOD-7788</td>
+                <td>双人烤肉套餐</td>
+                <td>¥168.00</td>
+                <td>LOC-1008</td>
+                <td>韩式烤肉双人餐</td>
+                <td>¥158.00</td>
+                <td><span class="tag tag-success">已同步</span></td>
+                <td>2026-06-30 07:45</td>
+                <td class="actions">
+                  <button class="btn btn-sm">编辑</button>
+                  <button class="btn btn-sm btn-danger">删除</button>
+                  <button class="btn btn-sm">同步</button>
+                </td>
+              </tr>
+              <tr>
+                <td><span class="tag tag-channel tag-ele">饿了么</span></td>
+                <td>ELM-334455</td>
+                <td>麻辣香锅(中辣)</td>
+                <td>¥42.00</td>
+                <td>LOC-1009</td>
+                <td>麻辣香锅 中辣</td>
+                <td>¥38.00</td>
+                <td><span class="tag tag-success">已同步</span></td>
+                <td>2026-06-30 09:00</td>
+                <td class="actions">
+                  <button class="btn btn-sm">编辑</button>
+                  <button class="btn btn-sm btn-danger">删除</button>
+                  <button class="btn btn-sm">同步</button>
+                </td>
+              </tr>
+              <tr>
+                <td><span class="tag tag-channel tag-jd">京东</span></td>
+                <td>JD-99887766</td>
+                <td>精品咖啡豆500g</td>
+                <td>¥89.00</td>
+                <td>LOC-1010</td>
+                <td>哥伦比亚咖啡豆 500g</td>
+                <td>¥79.00</td>
+                <td><span class="tag tag-warning">未同步</span></td>
+                <td>2026-06-28 22:00</td>
+                <td class="actions">
+                  <button class="btn btn-sm">编辑</button>
+                  <button class="btn btn-sm btn-danger">删除</button>
+                  <button class="btn btn-sm btn-primary">同步</button>
+                </td>
+              </tr>
+            </tbody>
+          </table>
+
+          <!-- ===== Pagination ===== -->
+          <div class="pagination">
+            <span class="page-item disabled">上一页</span>
+            <span class="page-item active">1</span>
+            <span class="page-item">2</span>
+            <span class="page-item">3</span>
+            <span class="page-item">4</span>
+            <span class="page-item">5</span>
+            <span class="page-item">...</span>
+            <span class="page-item">13</span>
+            <span class="page-item">下一页</span>
+            <span style="margin-left:12px;color:var(--text-muted);font-size:12px;">共 128 条</span>
+          </div>
+
+          <!-- ===== Add/Edit Modal ===== -->
+          <div style="margin-top:32px;padding:16px;background:var(--white);border-radius:var(--radius);border:1px dashed var(--border);">
+            <div style="font-size:14px;font-weight:600;margin-bottom:12px;color:var(--text-secondary);">新增/编辑映射弹窗</div>
+            <div class="modal" style="position:relative;z-index:auto;box-shadow:0 2px 12px rgba(0,0,0,0.12);margin:0 auto;">
+              <div class="modal-header">
+                <span>新增渠道商品映射</span>
+                <button class="modal-close">×</button>
+              </div>
+              <div class="modal-body">
+                <div class="form-group">
+                  <label class="form-label">渠道<span class="required">*</span></label>
+                  <select class="form-select">
+                    <option value="">请选择渠道</option>
+                    <option>微信</option>
+                    <option>抖音</option>
+                    <option>美团</option>
+                    <option>饿了么</option>
+                    <option>京东</option>
+                  </select>
+                </div>
+                <div class="form-group">
+                  <label class="form-label">渠道SKU编码<span class="required">*</span></label>
+                  <input class="form-input" type="text" placeholder="请输入渠道SKU编码">
+                </div>
+                <div class="form-group">
+                  <label class="form-label">渠道商品名<span class="required">*</span></label>
+                  <input class="form-input" type="text" placeholder="请输入渠道商品名称">
+                </div>
+                <div class="form-group">
+                  <label class="form-label">渠道价格<span class="required">*</span></label>
+                  <input class="form-input" type="text" placeholder="请输入渠道价格">
+                </div>
+                <div class="form-group">
+                  <label class="form-label">关联本地商品<span class="required">*</span></label>
+                  <div class="search-selector">
+                    <input class="search-input" type="text" placeholder="搜索本地商品（商品名/SKU编码）">
+                    <div class="search-results">
+                      <div class="search-result-item">
+                        <span class="item-name">茉莉花茶 500ml</span>
+                        <span class="item-sku">LOC-1001</span>
+                        <span class="item-price">¥15.00</span>
+                      </div>
+                      <div class="search-result-item">
+                        <span class="item-name">鲜榨橙汁 300ml*6</span>
+                        <span class="item-sku">LOC-1002</span>
+                        <span class="item-price">¥42.00</span>
+                      </div>
+                      <div class="search-result-item">
+                        <span class="item-name">红烧牛肉面(大份)</span>
+                        <span class="item-sku">LOC-1003</span>
+                        <span class="item-price">¥25.00</span>
+                      </div>
+                      <div class="search-result-item">
+                        <span class="item-name">酸菜鱼套餐(1人份)</span>
+                        <span class="item-sku">LOC-1004</span>
+                        <span class="item-price">¥32.00</span>
+                      </div>
+                      <div class="search-result-item">
+                        <span class="item-name">有机绿茶 250g礼盒</span>
+                        <span class="item-sku">LOC-1005</span>
+                        <span class="item-price">¥118.00</span>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+              <div class="modal-footer">
+                <button class="btn">取消</button>
+                <button class="btn btn-primary">保存</button>
+              </div>
+            </div>
+          </div>
+
+          <!-- ===== Batch Import Flow ===== -->
+          <div style="margin-top:32px;padding:16px;background:var(--white);border-radius:var(--radius);border:1px dashed var(--border);">
+            <div style="font-size:14px;font-weight:600;margin-bottom:12px;color:var(--text-secondary);">批量导入流程</div>
+
+            <!-- Steps -->
+            <div class="steps">
+              <div class="step done">
+                <span class="step-num">1</span>
+                <span>上传文件</span>
+              </div>
+              <div class="step-line done"></div>
+              <div class="step active">
+                <span class="step-num">2</span>
+                <span>预览数据</span>
+              </div>
+              <div class="step-line"></div>
+              <div class="step">
+                <span class="step-num">3</span>
+                <span>确认导入</span>
+              </div>
+            </div>
+
+            <!-- Step 1: Upload -->
+            <div style="margin-bottom:20px;">
+              <div style="font-size:13px;font-weight:500;color:var(--text);margin-bottom:8px;">步骤1：上传CSV/Excel文件</div>
+              <div class="upload-zone">
+                <div class="upload-icon"></div>
+                <div class="upload-text">点击或拖拽文件到此区域上传</div>
+                <div class="upload-hint">支持 .csv、.xlsx、.xls 格式，单个文件不超过 10MB</div>
+              </div>
+            </div>
+
+            <!-- Step 2: Preview -->
+            <div style="margin-bottom:20px;">
+              <div style="font-size:13px;font-weight:500;color:var(--text);margin-bottom:8px;">步骤2：数据预览</div>
+              <table class="mockup-table">
+                <thead>
+                  <tr>
+                    <th>渠道</th>
+                    <th>渠道SKU编码</th>
+                    <th>渠道商品名</th>
+                    <th>渠道价格</th>
+                    <th>本地SKU编码</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr>
+                    <td><span class="tag tag-channel tag-wechat">微信</span></td>
+                    <td>WX-20240501</td>
+                    <td>珍珠奶茶(大杯)</td>
+                    <td>¥16.00</td>
+                    <td>LOC-1101</td>
+                  </tr>
+                  <tr>
+                    <td><span class="tag tag-channel tag-douyin">抖音</span></td>
+                    <td>DY-20240502</td>
+                    <td>芒果冰沙</td>
+                    <td>¥22.00</td>
+                    <td>LOC-1102</td>
+                  </tr>
+                  <tr>
+                    <td><span class="tag tag-channel tag-mt">美团</span></td>
+                    <td>MT-20240503</td>
+                    <td>黄焖鸡米饭</td>
+                    <td>¥24.00</td>
+                    <td>LOC-1103</td>
+                  </tr>
+                  <tr>
+                    <td><span class="tag tag-channel tag-ele">饿了么</span></td>
+                    <td>ELM-20240504</td>
+                    <td>鱼香肉丝盖饭</td>
+                    <td>¥18.00</td>
+                    <td>LOC-1104</td>
+                  </tr>
+                  <tr>
+                    <td><span class="tag tag-channel tag-jd">京东</span></td>
+                    <td>JD-20240505</td>
+                    <td>云南普洱熟茶357g</td>
+                    <td>¥68.00</td>
+                    <td>LOC-1105</td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+
+            <!-- Step 3: Confirm -->
+            <div>
+              <div style="font-size:13px;font-weight:500;color:var(--text);margin-bottom:8px;">步骤3：确认导入</div>
+              <div class="import-summary">
+                <div class="import-stat success">
+                  <div class="stat-num">45</div>
+                  <div>成功</div>
+                </div>
+                <div class="import-stat fail">
+                  <div class="stat-num">3</div>
+                  <div>失败</div>
+                </div>
+                <div class="import-stat dup">
+                  <div class="stat-num">2</div>
+                  <div>重复</div>
+                </div>
+              </div>
+              <div style="font-size:12px;color:var(--text-muted);margin-bottom:8px;">失败原因：</div>
+              <div style="font-size:12px;color:var(--danger);line-height:1.8;">
+                · 第12行：本地SKU编码不存在 (LOC-9999)<br>
+                · 第28行：渠道价格格式错误<br>
+                · 第35行：渠道商品名为空
+              </div>
+            </div>
+          </div>
+
+          <!-- ===== Unmapped Products ===== -->
+          <div style="margin-top:32px;padding:16px;background:var(--white);border-radius:var(--radius);border:1px dashed var(--border);">
+            <div style="font-size:14px;font-weight:600;margin-bottom:12px;color:var(--text-secondary);">未映射商品列表</div>
+
+            <div class="sub-tabs">
+              <div class="sub-tab active">全部<span class="badge">15</span></div>
+              <div class="sub-tab">微信<span class="badge">5</span></div>
+              <div class="sub-tab">抖音<span class="badge">3</span></div>
+              <div class="sub-tab">美团<span class="badge">4</span></div>
+              <div class="sub-tab">饿了么<span class="badge">2</span></div>
+              <div class="sub-tab">京东<span class="badge">1</span></div>
+            </div>
+
+            <table class="mockup-table">
+              <thead>
+                <tr>
+                  <th>渠道</th>
+                  <th>渠道SKU编码</th>
+                  <th>渠道商品名</th>
+                  <th>关联订单数</th>
+                  <th>操作</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td><span class="tag tag-channel tag-wechat">微信</span></td>
+                  <td>WX-NEW-001</td>
+                  <td>抹茶拿铁(冰)</td>
+                  <td>23</td>
+                  <td><button class="btn btn-primary btn-sm">快速映射</button></td>
+                </tr>
+                <tr>
+                  <td><span class="tag tag-channel tag-douyin">抖音</span></td>
+                  <td>DY-NEW-002</td>
+                  <td>芝士葡萄(超大杯)</td>
+                  <td>18</td>
+                  <td><button class="btn btn-primary btn-sm">快速映射</button></td>
+                </tr>
+                <tr>
+                  <td><span class="tag tag-channel tag-mt">美团</span></td>
+                  <td>MT-NEW-003</td>
+                  <td>宫保鸡丁套餐</td>
+                  <td>31</td>
+                  <td><button class="btn btn-primary btn-sm">快速映射</button></td>
+                </tr>
+                <tr>
+                  <td><span class="tag tag-channel tag-ele">饿了么</span></td>
+                  <td>ELM-NEW-004</td>
+                  <td>糖醋里脊+米饭</td>
+                  <td>12</td>
+                  <td><button class="btn btn-primary btn-sm">快速映射</button></td>
+                </tr>
+                <tr>
+                  <td><span class="tag tag-channel tag-jd">京东</span></td>
+                  <td>JD-NEW-005</td>
+                  <td>铁观音清香型500g</td>
+                  <td>7</td>
+                  <td><button class="btn btn-primary btn-sm">快速映射</button></td>
+                </tr>
+              </tbody>
+            </table>
+
+            <!-- Quick Map Modal -->
+            <div style="margin-top:16px;">
+              <div style="font-size:12px;font-weight:500;color:var(--text-muted);margin-bottom:8px;">快速映射弹窗</div>
+              <div class="modal" style="position:relative;z-index:auto;box-shadow:0 2px 12px rgba(0,0,0,0.12);margin:0 auto;">
+                <div class="modal-header">
+                  <span>快速映射</span>
+                  <button class="modal-close">×</button>
+                </div>
+                <div class="modal-body">
+                  <div style="font-size:13px;font-weight:500;color:var(--text);margin-bottom:12px;">渠道商品信息（只读）</div>
+                  <div class="info-row">
+                    <span class="info-label">渠道</span>
+                    <span class="info-value"><span class="tag tag-channel tag-wechat">微信</span></span>
+                  </div>
+                  <div class="info-row">
+                    <span class="info-label">渠道SKU</span>
+                    <span class="info-value">WX-NEW-001</span>
+                  </div>
+                  <div class="info-row">
+                    <span class="info-label">商品名</span>
+                    <span class="info-value">抹茶拿铁(冰)</span>
+                  </div>
+                  <div class="info-row">
+                    <span class="info-label">关联订单</span>
+                    <span class="info-value">23 笔</span>
+                  </div>
+                  <div class="form-group" style="margin-top:16px;">
+                    <label class="form-label">关联本地商品<span class="required">*</span></label>
+                    <div class="search-selector">
+                      <input class="search-input" type="text" placeholder="搜索本地商品">
+                      <div class="search-results">
+                        <div class="search-result-item">
+                          <span class="item-name">抹茶拿铁 500ml</span>
+                          <span class="item-sku">LOC-1201</span>
+                          <span class="item-price">¥18.00</span>
+                        </div>
+                        <div class="search-result-item">
+                          <span class="item-name">抹茶拿铁(热)</span>
+                          <span class="item-sku">LOC-1202</span>
+                          <span class="item-price">¥18.00</span>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+                <div class="modal-footer">
+                  <button class="btn">取消</button>
+                  <button class="btn btn-primary">确定映射</button>
+                </div>
+              </div>
+            </div>
+          </div>
+
+        </div><!-- /mockup-main -->
+      </div><!-- /mockup-body -->
+    </div><!-- /mockup -->
+  </div>
+
+  <!-- ===== Field Spec Table ===== -->
+  <div class="section">
+    <div class="section-title">字段规范</div>
+
+    <h3 style="font-size:15px;margin:16px 0 8px;color:var(--text);">映射关系字段</h3>
+    <table class="spec-table">
+      <thead>
+        <tr>
+          <th>字段名</th>
+          <th>类型</th>
+          <th>必填</th>
+          <th>说明</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td class="field-name">mapping_id</td>
+          <td class="field-type">string</td>
+          <td>是</td>
+          <td>映射关系唯一标识</td>
+        </tr>
+        <tr>
+          <td class="field-name">channel</td>
+          <td class="field-type">enum</td>
+          <td>是</td>
+          <td>渠道类型：wechat/douyin/meituan/eleme/jd</td>
+        </tr>
+        <tr>
+          <td class="field-name">channel_sku_code</td>
+          <td class="field-type">string</td>
+          <td>是</td>
+          <td>渠道平台商品SKU编码</td>
+        </tr>
+        <tr>
+          <td class="field-name">channel_product_name</td>
+          <td class="field-type">string</td>
+          <td>是</td>
+          <td>渠道平台商品名称</td>
+        </tr>
+        <tr>
+          <td class="field-name">channel_price</td>
+          <td class="field-type">decimal</td>
+          <td>是</td>
+          <td>渠道平台商品价格，单位元</td>
+        </tr>
+        <tr>
+          <td class="field-name">local_sku_code</td>
+          <td class="field-type">string</td>
+          <td>是</td>
+          <td>本地系统商品SKU编码</td>
+        </tr>
+        <tr>
+          <td class="field-name">local_product_name</td>
+          <td class="field-type">string</td>
+          <td>是</td>
+          <td>本地系统商品名称</td>
+        </tr>
+        <tr>
+          <td class="field-name">local_price</td>
+          <td class="field-type">decimal</td>
+          <td>是</td>
+          <td>本地系统商品价格，单位元</td>
+        </tr>
+        <tr>
+          <td class="field-name">sync_status</td>
+          <td class="field-type">enum</td>
+          <td>是</td>
+          <td>同步状态：synced/pending/failed</td>
+        </tr>
+        <tr>
+          <td class="field-name">last_sync_time</td>
+          <td class="field-type">datetime</td>
+          <td>否</td>
+          <td>最后同步时间</td>
+        </tr>
+        <tr>
+          <td class="field-name">created_at</td>
+          <td class="field-type">datetime</td>
+          <td>是</td>
+          <td>创建时间</td>
+        </tr>
+        <tr>
+          <td class="field-name">updated_at</td>
+          <td class="field-type">datetime</td>
+          <td>是</td>
+          <td>更新时间</td>
+        </tr>
+      </tbody>
+    </table>
+
+    <h3 style="font-size:15px;margin:24px 0 8px;color:var(--text);">未映射商品字段</h3>
+    <table class="spec-table">
+      <thead>
+        <tr>
+          <th>字段名</th>
+          <th>类型</th>
+          <th>必填</th>
+          <th>说明</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td class="field-name">unmapped_id</td>
+          <td class="field-type">string</td>
+          <td>是</td>
+          <td>未映射商品记录唯一标识</td>
+        </tr>
+        <tr>
+          <td class="field-name">channel</td>
+          <td class="field-type">enum</td>
+          <td>是</td>
+          <td>渠道类型</td>
+        </tr>
+        <tr>
+          <td class="field-name">channel_sku_code</td>
+          <td class="field-type">string</td>
+          <td>是</td>
+          <td>渠道平台商品SKU编码</td>
+        </tr>
+        <tr>
+          <td class="field-name">channel_product_name</td>
+          <td class="field-type">string</td>
+          <td>是</td>
+          <td>渠道平台商品名称</td>
+        </tr>
+        <tr>
+          <td class="field-name">related_order_count</td>
+          <td class="field-type">integer</td>
+          <td>是</td>
+          <td>关联的订单数量</td>
+        </tr>
+        <tr>
+          <td class="field-name">first_seen_at</td>
+          <td class="field-type">datetime</td>
+          <td>是</td>
+          <td>首次发现时间</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <!-- ===== Checklist ===== -->
+  <div class="section">
+    <div class="section-title">验收标准</div>
+    <ul class="checklist">
+      <li><span class="checkbox checked"></span> 映射列表页面正确展示全渠道商品映射数据，支持按渠道Tab筛选</li>
+      <li><span class="checkbox checked"></span> 每个渠道Tab显示已映射数和未映射数角标，数据准确</li>
+      <li><span class="checkbox checked"></span> 搜索框支持按渠道SKU编码和本地商品名进行模糊搜索</li>
+      <li><span class="checkbox checked"></span> 新增映射弹窗：渠道下拉可选择全部渠道，本地SKU搜索选择器支持搜索并自动填充</li>
+      <li><span class="checkbox checked"></span> 编辑映射功能正常，可修改渠道商品信息和关联的本地商品</li>
+      <li><span class="checkbox checked"></span> 删除映射需二次确认，删除后列表刷新</li>
+      <li><span class="checkbox checked"></span> 批量导入：支持CSV/Excel文件上传，预览表格展示正确，确认后显示导入结果统计</li>
+      <li><span class="checkbox checked"></span> 批量导入失败行显示具体失败原因</li>
+      <li><span class="checkbox checked"></span> 批量同步功能可一键同步所有未同步的映射关系</li>
+      <li><span class="checkbox checked"></span> 同步状态标签正确显示：已同步(绿色)、未同步(黄色)、同步失败(红色)</li>
+      <li><span class="checkbox checked"></span> 未映射商品列表支持按渠道筛选，显示关联订单数</li>
+      <li><span class="checkbox checked"></span> 快速映射功能：弹窗只读展示渠道商品信息，选择本地商品后完成映射</li>
+      <li><span class="checkbox checked"></span> 分页功能正常，支持翻页和跳转</li>
+      <li><span class="checkbox checked"></span> 表格数据各列对齐正确，渠道标签颜色与渠道对应</li>
+    </ul>
+  </div>
+
+</div><!-- /container -->
+
+</body>
+</html>

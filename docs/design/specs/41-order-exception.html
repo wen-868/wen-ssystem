@@ -1,0 +1,1463 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>41 · 订单异常处理 — 设计规格文档</title>
+<style>
+/* ========== CSS Variables ========== */
+:root {
+  --brand: #1677FF;
+  --brand-light: #E6F4FF;
+  --text: #1F1F1F;
+  --text-secondary: #595959;
+  --text-muted: #8C8C8C;
+  --border: #E8E8E8;
+  --bg: #F5F5F5;
+  --white: #FFFFFF;
+  --success: #52C41A;
+  --warning: #FA8C16;
+  --danger: #FF4D4F;
+  --radius: 8px;
+  --shadow: 0 2px 8px rgba(0,0,0,0.08);
+
+  /* Channel Colors */
+  --wechat: #07C160;
+  --douyin: #010101;
+  --mt-yellow: #FFD101;
+  --ele-blue: #0085FF;
+  --jd-red: #E1251B;
+  --offline: #6B7280;
+
+  /* Exception Level Colors */
+  --critical: #EF4444;
+  --error: #F97316;
+  --warning-yl: #F59E0B;
+}
+
+* { margin: 0; padding: 0; box-sizing: border-box; }
+
+body {
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", sans-serif;
+  background: var(--bg);
+  color: var(--text);
+  line-height: 1.6;
+}
+
+/* ========== Document Header ========== */
+.doc-header {
+  background: linear-gradient(135deg, #EF4444 0%, #991B1B 100%);
+  color: #fff;
+  padding: 48px 60px 40px;
+}
+.doc-header h1 {
+  font-size: 28px;
+  font-weight: 700;
+  letter-spacing: 0.5px;
+}
+.doc-header .doc-meta {
+  margin-top: 12px;
+  font-size: 14px;
+  opacity: 0.85;
+  display: flex;
+  gap: 24px;
+}
+
+/* ========== Content Wrapper ========== */
+.doc-body {
+  max-width: 1400px;
+  margin: 0 auto;
+  padding: 32px 40px;
+}
+
+/* ========== Section Title ========== */
+.section-title {
+  font-size: 18px;
+  font-weight: 600;
+  color: var(--text);
+  margin: 32px 0 16px;
+  padding-bottom: 10px;
+  border-bottom: 2px solid #EF4444;
+  display: inline-block;
+}
+.section-title:first-child { margin-top: 0; }
+
+/* ========== Page Overview ========== */
+.overview-text {
+  color: var(--text-secondary);
+  font-size: 15px;
+  line-height: 1.8;
+  margin-bottom: 8px;
+  max-width: 900px;
+}
+
+/* ========== Mockup Frame ========== */
+.mockup {
+  background: var(--white);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow);
+  overflow: hidden;
+  border: 1px solid var(--border);
+  margin: 20px 0;
+}
+
+.mockup-header {
+  background: #001529;
+  color: #fff;
+  padding: 0 24px;
+  height: 48px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  font-size: 14px;
+}
+.mockup-header .logo {
+  font-weight: 700;
+  font-size: 16px;
+  letter-spacing: 1px;
+}
+.mockup-header .header-nav {
+  display: flex;
+  gap: 24px;
+}
+.mockup-header .header-nav a {
+  color: rgba(255,255,255,0.75);
+  text-decoration: none;
+  font-size: 13px;
+  transition: color 0.2s;
+}
+.mockup-header .header-nav a:hover { color: #fff; }
+.mockup-header .header-right {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  font-size: 13px;
+  color: rgba(255,255,255,0.75);
+}
+.mockup-header .avatar {
+  width: 28px; height: 28px;
+  border-radius: 50%;
+  background: #EF4444;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 12px;
+  font-weight: 600;
+  color: #fff;
+}
+
+.mockup-body {
+  display: flex;
+  min-height: 600px;
+}
+
+.mockup-sidebar {
+  width: 200px;
+  background: #FAFAFA;
+  border-right: 1px solid var(--border);
+  padding: 12px 0;
+  flex-shrink: 0;
+}
+.mockup-sidebar .nav-item {
+  padding: 10px 24px;
+  font-size: 13px;
+  color: var(--text-secondary);
+  cursor: pointer;
+  transition: all 0.2s;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.mockup-sidebar .nav-item:hover { background: #F0F0F0; }
+.mockup-sidebar .nav-item.active {
+  background: #FEF2F2;
+  color: #EF4444;
+  font-weight: 600;
+  border-right: 3px solid #EF4444;
+}
+.mockup-sidebar .nav-item .nav-dot {
+  width: 6px; height: 6px;
+  border-radius: 50%;
+  background: var(--text-muted);
+}
+.mockup-sidebar .nav-item.active .nav-dot { background: #EF4444; }
+
+.mockup-main {
+  flex: 1;
+  padding: 20px 24px;
+  overflow: hidden;
+}
+
+.mockup-page-title {
+  font-size: 18px;
+  font-weight: 600;
+  color: var(--text);
+  margin-bottom: 4px;
+}
+.mockup-breadcrumb {
+  font-size: 12px;
+  color: var(--text-muted);
+  margin-bottom: 20px;
+}
+.mockup-breadcrumb span { color: var(--text-secondary); }
+
+/* ========== Stats Row ========== */
+.stats-row {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 16px;
+  margin-bottom: 20px;
+}
+.stat-card {
+  background: var(--white);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 16px 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+.stat-card .stat-label {
+  font-size: 13px;
+  color: var(--text-muted);
+}
+.stat-card .stat-value {
+  font-size: 28px;
+  font-weight: 700;
+}
+.stat-card .stat-sub {
+  font-size: 12px;
+  color: var(--text-muted);
+}
+.stat-card.red .stat-value { color: var(--danger); }
+.stat-card.orange .stat-value { color: var(--warning); }
+.stat-card.green .stat-value { color: var(--success); }
+.stat-card.blue .stat-value { color: var(--brand); }
+
+/* ========== Chart Section ========== */
+.chart-section {
+  background: var(--white);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 20px;
+  margin-bottom: 20px;
+}
+.chart-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr;
+  gap: 24px;
+}
+.chart-block {
+  display: flex;
+  flex-direction: column;
+}
+.chart-block .chart-title {
+  font-size: 13px;
+  font-weight: 600;
+  margin-bottom: 14px;
+  color: var(--text);
+}
+
+/* Pie Chart (Conic Gradient) */
+.pie-chart-wrap {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+.pie-chart {
+  width: 120px; height: 120px;
+  border-radius: 50%;
+  background: conic-gradient(
+    #06B6D4 0% 35%,
+    #F59E0B 35% 63%,
+    #8B5CF6 63% 81%,
+    #EF4444 81% 91%,
+    #F97316 91% 97%,
+    #6B7280 97% 100%
+  );
+  flex-shrink: 0;
+  position: relative;
+}
+.pie-chart::after {
+  content: '';
+  position: absolute;
+  width: 60px; height: 60px;
+  background: #fff;
+  border-radius: 50%;
+  top: 50%; left: 50%;
+  transform: translate(-50%, -50%);
+}
+.pie-legend {
+  font-size: 11px;
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+}
+.pie-legend .legend-item {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+.pie-legend .legend-dot {
+  width: 8px; height: 8px;
+  border-radius: 2px;
+  flex-shrink: 0;
+}
+
+/* Bar Chart */
+.bar-chart { display: flex; flex-direction: column; gap: 10px; }
+.bar-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.bar-label {
+  width: 48px;
+  text-align: right;
+  font-size: 12px;
+  color: var(--text-secondary);
+  flex-shrink: 0;
+}
+.bar-track {
+  flex: 1;
+  height: 18px;
+  background: #F0F0F0;
+  border-radius: 3px;
+  overflow: hidden;
+  position: relative;
+}
+.bar-fill {
+  height: 100%;
+  border-radius: 3px;
+  transition: width 0.3s;
+}
+.bar-value {
+  width: 40px;
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--text);
+  flex-shrink: 0;
+}
+
+/* Line Chart (CSS Simulated) */
+.line-chart-wrap {
+  position: relative;
+  height: 140px;
+  display: flex;
+  flex-direction: column;
+}
+.line-chart-svg {
+  flex: 1;
+  position: relative;
+  border-left: 1px solid var(--border);
+  border-bottom: 1px solid var(--border);
+  margin-left: 4px;
+}
+.line-chart-svg svg {
+  width: 100%;
+  height: 100%;
+}
+.line-chart-xlabels {
+  display: flex;
+  justify-content: space-between;
+  font-size: 10px;
+  color: var(--text-muted);
+  padding: 4px 0 0 4px;
+}
+
+/* ========== Filter Row ========== */
+.filter-row {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+  align-items: center;
+  margin-bottom: 16px;
+  padding: 12px 16px;
+  background: #FAFAFA;
+  border-radius: var(--radius);
+  border: 1px solid var(--border);
+}
+.select-inline {
+  padding: 6px 10px;
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  font-size: 12px;
+  outline: none;
+  background: var(--white);
+  cursor: pointer;
+}
+.input-inline {
+  padding: 6px 10px;
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  font-size: 12px;
+  outline: none;
+  width: 120px;
+}
+.input-inline:focus { border-color: #EF4444; }
+.select-inline:focus { border-color: #EF4444; }
+
+/* ========== Buttons ========== */
+.btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 6px 14px;
+  border-radius: 6px;
+  font-size: 12px;
+  cursor: pointer;
+  border: 1px solid var(--border);
+  background: var(--white);
+  color: var(--text);
+  transition: all 0.2s;
+  white-space: nowrap;
+}
+.btn:hover { border-color: #EF4444; color: #EF4444; }
+.btn-primary {
+  background: #EF4444;
+  color: #fff;
+  border-color: #EF4444;
+}
+.btn-primary:hover { background: #DC2626; border-color: #DC2626; color: #fff; }
+.btn-sm { padding: 4px 10px; font-size: 11px; }
+.btn-xs { padding: 2px 7px; font-size: 10px; }
+
+/* ========== Tags ========== */
+.tag {
+  display: inline-block;
+  padding: 2px 8px;
+  border-radius: 4px;
+  font-size: 11px;
+  font-weight: 500;
+  line-height: 1.6;
+}
+.tag-success { background: #F6FFED; color: var(--success); border: 1px solid #B7EB8F; }
+.tag-warning { background: #FFF7E6; color: var(--warning); border: 1px solid #FFD591; }
+.tag-danger { background: #FFF2F0; color: var(--danger); border: 1px solid #FFCCC7; }
+.tag-info { background: var(--brand-light); color: var(--brand); border: 1px solid #91CAFF; }
+.tag-default { background: #FAFAFA; color: var(--text-muted); border: 1px solid var(--border); }
+
+.tag-critical { background: #FEF2F2; color: var(--critical); border: 1px solid #FECACA; }
+.tag-error { background: #FFF7ED; color: var(--error); border: 1px solid #FED7AA; }
+
+.channel-tag {
+  display: inline-block;
+  padding: 2px 8px;
+  border-radius: 4px;
+  font-size: 11px;
+  font-weight: 600;
+  color: #fff;
+}
+.channel-wechat { background: var(--wechat); }
+.channel-douyin { background: var(--douyin); }
+.channel-meituan { background: var(--mt-yellow); color: #333; }
+.channel-eleme { background: var(--ele-blue); }
+.channel-jd { background: var(--jd-red); }
+.channel-offline { background: var(--offline); }
+
+.exception-tag {
+  display: inline-block;
+  padding: 2px 8px;
+  border-radius: 4px;
+  font-size: 11px;
+  font-weight: 500;
+  color: #fff;
+}
+.ex-out-of-stock { background: #06B6D4; }
+.ex-cancel { background: #F59E0B; }
+.ex-refund { background: #8B5CF6; }
+.ex-timeout { background: #EF4444; }
+.ex-delivery-fail { background: #F97316; }
+.ex-pay-fail { background: #6B7280; }
+
+/* Level Badge */
+.level-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 11px;
+  font-weight: 600;
+}
+.level-icon {
+  width: 8px; height: 8px;
+  border-radius: 50%;
+  display: inline-block;
+}
+.level-warning .level-icon { background: var(--warning-yl); }
+.level-error .level-icon { background: var(--error); }
+.level-critical .level-icon { background: var(--critical); }
+.level-warning { color: var(--warning-yl); }
+.level-error { color: var(--error); }
+.level-critical { color: var(--critical); }
+
+/* ========== Table ========== */
+.mockup-table {
+  background: var(--white);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  overflow: hidden;
+  margin-bottom: 20px;
+}
+.mockup-table table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 12px;
+}
+.mockup-table th {
+  background: #FAFAFA;
+  padding: 10px 10px;
+  text-align: left;
+  font-weight: 600;
+  color: var(--text-secondary);
+  border-bottom: 1px solid var(--border);
+  white-space: nowrap;
+  font-size: 12px;
+}
+.mockup-table td {
+  padding: 9px 10px;
+  border-bottom: 1px solid var(--border);
+  color: var(--text);
+  vertical-align: middle;
+}
+.mockup-table tr:last-child td { border-bottom: none; }
+.mockup-table tr:hover td { background: #FAFAFA; }
+
+/* ========== Pagination ========== */
+.pagination {
+  display: flex;
+  justify-content: flex-end;
+  align-items: center;
+  gap: 8px;
+  padding: 12px 0;
+  font-size: 13px;
+  color: var(--text-secondary);
+}
+.pagination .page-btn {
+  width: 32px; height: 32px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  background: var(--white);
+  cursor: pointer;
+  font-size: 12px;
+  transition: all 0.2s;
+}
+.pagination .page-btn:hover { border-color: #EF4444; color: #EF4444; }
+.pagination .page-btn.active {
+  background: #EF4444;
+  color: #fff;
+  border-color: #EF4444;
+}
+.pagination .page-btn.disabled {
+  color: var(--text-muted);
+  cursor: not-allowed;
+  opacity: 0.5;
+}
+.pagination .page-info {
+  margin: 0 8px;
+  font-size: 12px;
+}
+
+/* ========== Modal Overlay ========== */
+.modal-overlay {
+  background: rgba(0,0,0,0.45);
+  position: relative;
+  padding: 40px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin: 20px 0;
+  border-radius: var(--radius);
+}
+.modal {
+  background: var(--white);
+  border-radius: var(--radius);
+  box-shadow: 0 4px 24px rgba(0,0,0,0.15);
+  width: 100%;
+  max-width: 1100px;
+  overflow: hidden;
+}
+.modal-header {
+  padding: 16px 24px;
+  border-bottom: 1px solid var(--border);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+.modal-header .modal-title {
+  font-size: 16px;
+  font-weight: 600;
+  color: var(--text);
+}
+.modal-close {
+  width: 28px; height: 28px;
+  border: none;
+  background: #F0F0F0;
+  border-radius: 50%;
+  cursor: pointer;
+  font-size: 14px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--text-muted);
+  transition: all 0.2s;
+}
+.modal-close:hover { background: #E0E0E0; color: var(--text); }
+.modal-body {
+  padding: 24px;
+  display: grid;
+  grid-template-columns: 1fr 1.2fr 1fr;
+  gap: 24px;
+}
+.modal-col {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+.modal-col .col-title {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--text);
+  padding-bottom: 8px;
+  border-bottom: 1px solid var(--border);
+}
+
+/* Info Grid */
+.info-grid {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  gap: 8px 12px;
+  font-size: 12px;
+}
+.info-grid .info-label {
+  color: var(--text-muted);
+  white-space: nowrap;
+}
+.info-grid .info-value {
+  color: var(--text);
+  font-weight: 500;
+}
+
+/* JSON Code Block */
+.code-block {
+  background: #1E1E1E;
+  color: #D4D4D4;
+  padding: 12px;
+  border-radius: 6px;
+  font-family: "SF Mono", "Menlo", "Monaco", monospace;
+  font-size: 11px;
+  line-height: 1.7;
+  overflow-x: auto;
+  white-space: pre;
+}
+.code-block .key { color: #9CDCFE; }
+.code-block .string { color: #CE9178; }
+.code-block .number { color: #B5CEA8; }
+.code-block .bool { color: #569CD6; }
+
+/* Timeline */
+.timeline {
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+  position: relative;
+}
+.timeline-item {
+  display: flex;
+  gap: 12px;
+  padding-bottom: 16px;
+  position: relative;
+}
+.timeline-item::before {
+  content: '';
+  position: absolute;
+  left: 7px;
+  top: 18px;
+  bottom: 0;
+  width: 2px;
+  background: var(--border);
+}
+.timeline-item:last-child::before { display: none; }
+.timeline-dot {
+  width: 16px; height: 16px;
+  border-radius: 50%;
+  flex-shrink: 0;
+  margin-top: 2px;
+  position: relative;
+  z-index: 1;
+}
+.timeline-dot.active { background: #EF4444; border: 3px solid #FECACA; }
+.timeline-dot.done { background: var(--success); border: 3px solid #B7EB8F; }
+.timeline-content {
+  font-size: 11px;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+.timeline-content .tl-title {
+  font-weight: 600;
+  color: var(--text);
+  font-size: 12px;
+}
+.timeline-content .tl-meta {
+  color: var(--text-muted);
+  font-size: 10px;
+}
+.timeline-content .tl-desc {
+  color: var(--text-secondary);
+  font-size: 11px;
+}
+
+/* Modal Footer */
+.modal-footer {
+  padding: 16px 24px;
+  border-top: 1px solid var(--border);
+  display: flex;
+  gap: 12px;
+  align-items: center;
+  justify-content: flex-end;
+  flex-wrap: wrap;
+}
+.modal-footer .btn { font-size: 13px; padding: 8px 18px; }
+
+/* ========== Spec Table ========== */
+.spec-table {
+  width: 100%;
+  border-collapse: collapse;
+  margin: 16px 0;
+  font-size: 13px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  overflow: hidden;
+}
+.spec-table th {
+  background: #FAFAFA;
+  padding: 10px 14px;
+  text-align: left;
+  font-weight: 600;
+  color: var(--text-secondary);
+  border-bottom: 1px solid var(--border);
+  font-size: 13px;
+  white-space: nowrap;
+}
+.spec-table td {
+  padding: 10px 14px;
+  border-bottom: 1px solid var(--border);
+  color: var(--text);
+  vertical-align: top;
+}
+.spec-table tr:last-child td { border-bottom: none; }
+.spec-table .code {
+  font-family: "SF Mono", "Menlo", "Monaco", monospace;
+  font-size: 12px;
+  background: #F5F5F5;
+  padding: 2px 6px;
+  border-radius: 3px;
+  color: #DC2626;
+}
+
+/* ========== Checklist ========== */
+.checklist {
+  list-style: none;
+  padding: 0;
+  margin: 16px 0;
+}
+.checklist li {
+  padding: 8px 0;
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  font-size: 14px;
+  color: var(--text);
+  border-bottom: 1px solid #F5F5F5;
+}
+.checklist li:last-child { border-bottom: none; }
+.checklist input[type="checkbox"] {
+  width: 16px; height: 16px;
+  margin-top: 2px;
+  accent-color: #EF4444;
+  flex-shrink: 0;
+}
+
+/* ========== Responsive ========== */
+@media (max-width: 1200px) {
+  .stats-row { grid-template-columns: repeat(2, 1fr); }
+  .chart-row { grid-template-columns: 1fr; }
+  .modal-body { grid-template-columns: 1fr; }
+  .filter-row { flex-direction: column; align-items: flex-start; }
+}
+</style>
+</head>
+<body>
+
+<!-- ========== Document Header ========== -->
+<header class="doc-header">
+  <h1>41 · 订单异常处理 — 设计规格文档</h1>
+  <div class="doc-meta">
+    <span>版本: v1.0</span>
+    <span>日期: 2026-06-30</span>
+    <span>状态: 设计中</span>
+    <span>负责人: 产品团队</span>
+  </div>
+</header>
+
+<div class="doc-body">
+
+<!-- ========== Page Overview ========== -->
+<h2 class="section-title">页面总览</h2>
+<p class="overview-text">
+  订单异常处理中心是 OMS 订单管理系统的核心模块之一，负责集中管理和处理多平台订单在流转过程中出现的各类异常情况。涵盖缺货、取消、退款、超时、配送失败、支付失败等异常类型，支持异常自动识别、分级告警、人工介入处理，并提供完整的处理记录追踪与统计分析功能，确保订单异常得到及时、高效的处理。
+</p>
+
+<!-- ========== Mockup ========== -->
+<h2 class="section-title">界面设计模型</h2>
+
+<div class="mockup">
+
+  <!-- Header -->
+  <div class="mockup-header">
+    <div class="logo">OMS 订单管理系统</div>
+    <div class="header-nav">
+      <a href="#">工作台</a>
+      <a href="#">订单管理</a>
+      <a href="#" style="color:#fff;">系统工具</a>
+      <a href="#">数据报表</a>
+      <a href="#">设置</a>
+    </div>
+    <div class="header-right">
+      <span>管理员</span>
+      <div class="avatar">A</div>
+    </div>
+  </div>
+
+  <!-- Body -->
+  <div class="mockup-body">
+    <!-- Sidebar -->
+    <div class="mockup-sidebar">
+      <div class="nav-item"><span class="nav-dot"></span> 订单列表</div>
+      <div class="nav-item"><span class="nav-dot"></span> 退款管理</div>
+      <div class="nav-item"><span class="nav-dot"></span> 状态同步</div>
+      <div class="nav-item active"><span class="nav-dot"></span> 异常处理</div>
+      <div class="nav-item"><span class="nav-dot"></span> 数据导出</div>
+      <div class="nav-item"><span class="nav-dot"></span> 渠道管理</div>
+      <div class="nav-item"><span class="nav-dot"></span> 系统配置</div>
+    </div>
+
+    <!-- Main -->
+    <div class="mockup-main">
+      <div class="mockup-page-title">订单异常处理中心</div>
+      <div class="mockup-breadcrumb">系统工具 <span>&gt; 异常处理</span></div>
+
+      <!-- Stats Row -->
+      <div class="stats-row">
+        <div class="stat-card red">
+          <div class="stat-label">待处理异常</div>
+          <div class="stat-value">23</div>
+          <div class="stat-sub">需立即处理: 5</div>
+        </div>
+        <div class="stat-card orange">
+          <div class="stat-label">今日新增</div>
+          <div class="stat-value">8</div>
+          <div class="stat-sub">较昨日 -3</div>
+        </div>
+        <div class="stat-card green">
+          <div class="stat-label">本周解决</div>
+          <div class="stat-value">47</div>
+          <div class="stat-sub">解决率 85.5%</div>
+        </div>
+        <div class="stat-card blue">
+          <div class="stat-label">平均处理时长</div>
+          <div class="stat-value">2.5h</div>
+          <div class="stat-sub">目标 &lt; 3h</div>
+        </div>
+      </div>
+
+      <!-- Chart Row: Pie + Bar + Line -->
+      <div class="chart-section">
+        <div class="chart-row">
+          <!-- Pie Chart -->
+          <div class="chart-block">
+            <div class="chart-title">异常类型分布</div>
+            <div class="pie-chart-wrap">
+              <div class="pie-chart"></div>
+              <div class="pie-legend">
+                <div class="legend-item"><span class="legend-dot" style="background:#06B6D4;"></span> 缺货 35%</div>
+                <div class="legend-item"><span class="legend-dot" style="background:#F59E0B;"></span> 取消 28%</div>
+                <div class="legend-item"><span class="legend-dot" style="background:#8B5CF6;"></span> 退款 18%</div>
+                <div class="legend-item"><span class="legend-dot" style="background:#EF4444;"></span> 超时 10%</div>
+                <div class="legend-item"><span class="legend-dot" style="background:#F97316;"></span> 配送失败 6%</div>
+                <div class="legend-item"><span class="legend-dot" style="background:#6B7280;"></span> 支付失败 3%</div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Bar Chart -->
+          <div class="chart-block">
+            <div class="chart-title">各渠道异常率</div>
+            <div class="bar-chart">
+              <div class="bar-row">
+                <span class="bar-label">京东</span>
+                <div class="bar-track"><div class="bar-fill" style="width:82%;background:var(--jd-red);"></div></div>
+                <span class="bar-value" style="color:var(--jd-red);">8.2%</span>
+              </div>
+              <div class="bar-row">
+                <span class="bar-label">饿了么</span>
+                <div class="bar-track"><div class="bar-fill" style="width:51%;background:var(--ele-blue);"></div></div>
+                <span class="bar-value">5.1%</span>
+              </div>
+              <div class="bar-row">
+                <span class="bar-label">美团</span>
+                <div class="bar-track"><div class="bar-fill" style="width:43%;background:var(--mt-yellow);"></div></div>
+                <span class="bar-value">4.3%</span>
+              </div>
+              <div class="bar-row">
+                <span class="bar-label">抖音</span>
+                <div class="bar-track"><div class="bar-fill" style="width:38%;background:var(--douyin);"></div></div>
+                <span class="bar-value">3.8%</span>
+              </div>
+              <div class="bar-row">
+                <span class="bar-label">微信</span>
+                <div class="bar-track"><div class="bar-fill" style="width:21%;background:var(--wechat);"></div></div>
+                <span class="bar-value">2.1%</span>
+              </div>
+              <div class="bar-row">
+                <span class="bar-label">线下</span>
+                <div class="bar-track"><div class="bar-fill" style="width:5%;background:var(--offline);"></div></div>
+                <span class="bar-value">0.5%</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- Line Chart -->
+          <div class="chart-block">
+            <div class="chart-title">异常趋势 (近7天)</div>
+            <div class="line-chart-wrap">
+              <div class="line-chart-svg">
+                <svg viewBox="0 0 280 120" preserveAspectRatio="none">
+                  <!-- Grid lines -->
+                  <line x1="0" y1="20" x2="280" y2="20" stroke="#F0F0F0" stroke-width="1"/>
+                  <line x1="0" y1="50" x2="280" y2="50" stroke="#F0F0F0" stroke-width="1"/>
+                  <line x1="0" y1="80" x2="280" y2="80" stroke="#F0F0F0" stroke-width="1"/>
+                  <line x1="0" y1="110" x2="280" y2="110" stroke="#F0F0F0" stroke-width="1"/>
+                  <!-- Area fill -->
+                  <polygon points="0,110 47,85 93,100 140,60 187,70 233,50 280,40 280,120 0,120" fill="rgba(239,68,68,0.1)"/>
+                  <!-- Line -->
+                  <polyline points="0,110 47,85 93,100 140,60 187,70 233,50 280,40" fill="none" stroke="#EF4444" stroke-width="2.5" stroke-linejoin="round" stroke-linecap="round"/>
+                  <!-- Dots -->
+                  <circle cx="0" cy="110" r="3.5" fill="#EF4444"/>
+                  <circle cx="47" cy="85" r="3.5" fill="#EF4444"/>
+                  <circle cx="93" cy="100" r="3.5" fill="#EF4444"/>
+                  <circle cx="140" cy="60" r="3.5" fill="#EF4444"/>
+                  <circle cx="187" cy="70" r="3.5" fill="#EF4444"/>
+                  <circle cx="233" cy="50" r="3.5" fill="#EF4444"/>
+                  <circle cx="280" cy="40" r="3.5" fill="#EF4444"/>
+                  <!-- Value labels -->
+                  <text x="0" y="106" fill="#EF4444" font-size="9" text-anchor="middle">5</text>
+                  <text x="47" y="81" fill="#EF4444" font-size="9" text-anchor="middle">8</text>
+                  <text x="93" y="96" fill="#EF4444" font-size="9" text-anchor="middle">6</text>
+                  <text x="140" y="56" fill="#EF4444" font-size="9" text-anchor="middle">12</text>
+                  <text x="187" y="66" fill="#EF4444" font-size="9" text-anchor="middle">10</text>
+                  <text x="233" y="46" fill="#EF4444" font-size="9" text-anchor="middle">14</text>
+                  <text x="280" y="36" fill="#EF4444" font-size="9" text-anchor="middle">16</text>
+                </svg>
+              </div>
+              <div class="line-chart-xlabels">
+                <span>06-24</span><span>06-25</span><span>06-26</span><span>06-27</span><span>06-28</span><span>06-29</span><span>06-30</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Filter Row -->
+      <div class="filter-row">
+        <select class="select-inline">
+          <option>全部异常类型</option>
+          <option>缺货</option><option>取消</option><option>退款</option>
+          <option>超时</option><option>配送失败</option><option>支付失败</option>
+        </select>
+        <select class="select-inline">
+          <option>全部级别</option>
+          <option>预警</option><option>错误</option><option>严重</option>
+        </select>
+        <select class="select-inline">
+          <option>全部状态</option>
+          <option>待处理</option><option>处理中</option>
+          <option>已解决</option><option>已关闭</option>
+        </select>
+        <select class="select-inline">
+          <option>全部渠道</option>
+          <option>微信</option><option>抖音</option><option>美团</option>
+          <option>饿了么</option><option>京东</option><option>线下</option>
+        </select>
+        <input type="text" class="input-inline" placeholder="开始日期">
+        <span style="color:var(--text-muted);">-</span>
+        <input type="text" class="input-inline" placeholder="结束日期">
+        <input type="text" class="input-inline" placeholder="搜索订单号" style="width:130px;">
+        <button class="btn btn-primary btn-sm">查询</button>
+        <button class="btn btn-sm">重置</button>
+      </div>
+
+      <!-- Exception Table -->
+      <div class="mockup-table">
+        <div style="padding:12px 16px;border-bottom:1px solid var(--border);">
+          <span style="font-size:14px;font-weight:600;">异常列表</span>
+        </div>
+        <table>
+          <thead>
+            <tr>
+              <th>级别</th>
+              <th>订单号</th>
+              <th>渠道</th>
+              <th>异常类型</th>
+              <th>异常详情</th>
+              <th>处理状态</th>
+              <th>处理人</th>
+              <th>创建时间</th>
+              <th>操作</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td><span class="level-badge level-critical"><span class="level-icon"></span> CRITICAL</span></td>
+              <td>ORD-20260630-101</td>
+              <td><span class="channel-tag channel-jd">京东</span></td>
+              <td><span class="exception-tag ex-out-of-stock">缺货</span></td>
+              <td>SKU-8821 库存不足，订单金额 1280.00，已通知采购</td>
+              <td><span class="tag tag-danger">待处理</span></td>
+              <td>-</td>
+              <td>06-30 14:50</td>
+              <td>
+                <button class="btn btn-primary btn-xs">处理</button>
+                <button class="btn btn-xs">详情</button>
+              </td>
+            </tr>
+            <tr>
+              <td><span class="level-badge level-error"><span class="level-icon"></span> ERROR</span></td>
+              <td>ORD-20260630-102</td>
+              <td><span class="channel-tag channel-douyin">抖音</span></td>
+              <td><span class="exception-tag ex-cancel">取消</span></td>
+              <td>用户申请取消订单，原因：不想要了</td>
+              <td><span class="tag tag-warning">处理中</span></td>
+              <td>张三</td>
+              <td>06-30 14:35</td>
+              <td>
+                <button class="btn btn-primary btn-xs">处理</button>
+                <button class="btn btn-xs">详情</button>
+              </td>
+            </tr>
+            <tr>
+              <td><span class="level-badge level-warning"><span class="level-icon"></span> WARNING</span></td>
+              <td>ORD-20260630-103</td>
+              <td><span class="channel-tag channel-meituan">美团</span></td>
+              <td><span class="exception-tag ex-refund">退款</span></td>
+              <td>退款申请金额 56.00，退款原因为商品质量问题</td>
+              <td><span class="tag tag-success">已解决</span></td>
+              <td>李四</td>
+              <td>06-30 14:20</td>
+              <td>
+                <button class="btn btn-xs">详情</button>
+              </td>
+            </tr>
+            <tr>
+              <td><span class="level-badge level-critical"><span class="level-icon"></span> CRITICAL</span></td>
+              <td>ORD-20260630-104</td>
+              <td><span class="channel-tag channel-eleme">饿了么</span></td>
+              <td><span class="exception-tag ex-timeout">超时</span></td>
+              <td>订单超时未处理，已超过承诺发货时间 2 小时</td>
+              <td><span class="tag tag-danger">待处理</span></td>
+              <td>-</td>
+              <td>06-30 14:10</td>
+              <td>
+                <button class="btn btn-primary btn-xs">处理</button>
+                <button class="btn btn-xs">详情</button>
+              </td>
+            </tr>
+            <tr>
+              <td><span class="level-badge level-error"><span class="level-icon"></span> ERROR</span></td>
+              <td>ORD-20260630-105</td>
+              <td><span class="channel-tag channel-wechat">微信</span></td>
+              <td><span class="exception-tag ex-delivery-fail">配送失败</span></td>
+              <td>快递员配送失败，原因：地址不详，已联系客户确认</td>
+              <td><span class="tag tag-warning">处理中</span></td>
+              <td>王五</td>
+              <td>06-30 13:55</td>
+              <td>
+                <button class="btn btn-primary btn-xs">处理</button>
+                <button class="btn btn-xs">详情</button>
+              </td>
+            </tr>
+            <tr>
+              <td><span class="level-badge level-warning"><span class="level-icon"></span> WARNING</span></td>
+              <td>ORD-20260630-106</td>
+              <td><span class="channel-tag channel-offline">线下</span></td>
+              <td><span class="exception-tag ex-pay-fail">支付失败</span></td>
+              <td>POS 支付异常，金额 398.00，需人工核实</td>
+              <td><span class="tag tag-default">已关闭</span></td>
+              <td>赵六</td>
+              <td>06-30 13:40</td>
+              <td>
+                <button class="btn btn-xs">详情</button>
+              </td>
+            </tr>
+            <tr>
+              <td><span class="level-badge level-error"><span class="level-icon"></span> ERROR</span></td>
+              <td>ORD-20260630-107</td>
+              <td><span class="channel-tag channel-jd">京东</span></td>
+              <td><span class="exception-tag ex-out-of-stock">缺货</span></td>
+              <td>预售商品 SKU-9921 采购延迟，预计到货 7/3</td>
+              <td><span class="tag tag-danger">待处理</span></td>
+              <td>-</td>
+              <td>06-30 13:25</td>
+              <td>
+                <button class="btn btn-primary btn-xs">处理</button>
+                <button class="btn btn-xs">详情</button>
+              </td>
+            </tr>
+            <tr>
+              <td><span class="level-badge level-warning"><span class="level-icon"></span> WARNING</span></td>
+              <td>ORD-20260630-108</td>
+              <td><span class="channel-tag channel-douyin">抖音</span></td>
+              <td><span class="exception-tag ex-refund">退款</span></td>
+              <td>部分退款申请，退 1/3 件商品，金额 89.00</td>
+              <td><span class="tag tag-success">已解决</span></td>
+              <td>张三</td>
+              <td>06-30 13:10</td>
+              <td>
+                <button class="btn btn-xs">详情</button>
+              </td>
+            </tr>
+            <tr>
+              <td><span class="level-badge level-critical"><span class="level-icon"></span> CRITICAL</span></td>
+              <td>ORD-20260630-109</td>
+              <td><span class="channel-tag channel-meituan">美团</span></td>
+              <td><span class="exception-tag ex-timeout">超时</span></td>
+              <td>外卖订单超时未配送，预计送达时间已过 30 分钟</td>
+              <td><span class="tag tag-warning">处理中</span></td>
+              <td>李四</td>
+              <td>06-30 12:50</td>
+              <td>
+                <button class="btn btn-primary btn-xs">处理</button>
+                <button class="btn btn-xs">详情</button>
+              </td>
+            </tr>
+            <tr>
+              <td><span class="level-badge level-error"><span class="level-icon"></span> ERROR</span></td>
+              <td>ORD-20260630-110</td>
+              <td><span class="channel-tag channel-eleme">饿了么</span></td>
+              <td><span class="exception-tag ex-cancel">取消</span></td>
+              <td>商家取消订单，原因：商品已下架</td>
+              <td><span class="tag tag-success">已解决</span></td>
+              <td>王五</td>
+              <td>06-30 12:30</td>
+              <td>
+                <button class="btn btn-xs">详情</button>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+
+        <!-- Pagination -->
+        <div class="pagination">
+          <span class="page-info">共 87 条</span>
+          <span class="page-btn disabled">&lt;</span>
+          <span class="page-btn active">1</span>
+          <span class="page-btn">2</span>
+          <span class="page-btn">3</span>
+          <span class="page-btn">4</span>
+          <span class="page-btn">&gt;</span>
+          <select class="select-inline" style="font-size:12px;width:auto;padding:4px 8px;">
+            <option>10条/页</option>
+            <option>20条/页</option>
+            <option>50条/页</option>
+          </select>
+        </div>
+      </div>
+
+    </div><!-- /mockup-main -->
+  </div><!-- /mockup-body -->
+</div><!-- /mockup -->
+
+<!-- ========== Exception Detail Modal ========== -->
+<h2 class="section-title">异常详情弹窗</h2>
+
+<div class="modal-overlay">
+  <div class="modal">
+    <div class="modal-header">
+      <span class="modal-title">异常详情 - ORD-20260630-101</span>
+      <button class="modal-close">X</button>
+    </div>
+    <div class="modal-body">
+      <!-- Left: Basic Info + JSON -->
+      <div class="modal-col">
+        <div class="col-title">异常基本信息</div>
+        <div class="info-grid">
+          <span class="info-label">异常ID:</span><span class="info-value">EXC-20260630-0042</span>
+          <span class="info-label">异常类型:</span><span class="info-value"><span class="exception-tag ex-out-of-stock">缺货</span></span>
+          <span class="info-label">异常级别:</span><span class="info-value"><span class="level-badge level-critical"><span class="level-icon"></span> CRITICAL</span></span>
+          <span class="info-label">处理状态:</span><span class="info-value"><span class="tag tag-danger">待处理</span></span>
+          <span class="info-label">创建时间:</span><span class="info-value">2026-06-30 14:50:22</span>
+          <span class="info-label">来源渠道:</span><span class="info-value"><span class="channel-tag channel-jd">京东</span></span>
+        </div>
+        <div style="margin-top:4px;">
+          <span style="font-size:12px;color:var(--text-muted);">异常详情 JSON:</span>
+          <div class="code-block"><span class="key">"exception"</span>: {
+  <span class="key">"type"</span>: <span class="string">"OUT_OF_STOCK"</span>,
+  <span class="key">"sku_id"</span>: <span class="string">"SKU-8821"</span>,
+  <span class="key">"required_qty"</span>: <span class="number">3</span>,
+  <span class="key">"available_qty"</span>: <span class="number">0</span>,
+  <span class="key">"order_amount"</span>: <span class="number">1280.00</span>,
+  <span class="key">"auto_notify"</span>: <span class="bool">true</span>
+}</div>
+        </div>
+      </div>
+
+      <!-- Middle: Related Order Info -->
+      <div class="modal-col">
+        <div class="col-title">关联订单信息</div>
+        <div class="info-grid">
+          <span class="info-label">订单号:</span><span class="info-value">ORD-20260630-101</span>
+          <span class="info-label">渠道:</span><span class="info-value"><span class="channel-tag channel-jd">京东</span></span>
+          <span class="info-label">客户:</span><span class="info-value">陈先生</span>
+          <span class="info-label">订单金额:</span><span class="info-value" style="color:var(--danger);">1280.00</span>
+          <span class="info-label">支付方式:</span><span class="info-value">微信支付</span>
+          <span class="info-label">下单时间:</span><span class="info-value">2026-06-30 12:15:00</span>
+        </div>
+        <div style="margin-top:4px;">
+          <span style="font-size:12px;color:var(--text-muted);">商品明细:</span>
+          <table style="width:100%;font-size:11px;border-collapse:collapse;margin-top:4px;border:1px solid var(--border);">
+            <tr style="background:#FAFAFA;"><td style="padding:4px 8px;border-bottom:1px solid var(--border);">SKU-8821</td><td style="padding:4px 8px;border-bottom:1px solid var(--border);">无线蓝牙耳机 Pro</td><td style="padding:4px 8px;border-bottom:1px solid var(--border);text-align:right;">x3</td><td style="padding:4px 8px;border-bottom:1px solid var(--border);text-align:right;">426.67</td></tr>
+          </table>
+        </div>
+        <div style="margin-top:4px;">
+          <span style="font-size:12px;color:var(--text-muted);">支付信息:</span>
+          <div class="info-grid" style="margin-top:4px;">
+            <span class="info-label">支付单号:</span><span class="info-value">PAY-20260630-8821</span>
+            <span class="info-label">支付状态:</span><span class="info-value"><span class="tag tag-success">已支付</span></span>
+            <span class="info-label">支付时间:</span><span class="info-value">2026-06-30 12:15:32</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Right: Timeline -->
+      <div class="modal-col">
+        <div class="col-title">处理记录</div>
+        <div class="timeline">
+          <div class="timeline-item">
+            <div class="timeline-dot done"></div>
+            <div class="timeline-content">
+              <span class="tl-title">异常创建</span>
+              <span class="tl-meta">系统自动 / 2026-06-30 14:50:22</span>
+              <span class="tl-desc">库存同步检测到 SKU-8821 库存不足，自动创建异常工单</span>
+            </div>
+          </div>
+          <div class="timeline-item">
+            <div class="timeline-dot done"></div>
+            <div class="timeline-content">
+              <span class="tl-title">自动分配</span>
+              <span class="tl-meta">系统自动 / 2026-06-30 14:50:25</span>
+              <span class="tl-desc">根据渠道分配规则，自动分配给京东渠道组</span>
+            </div>
+          </div>
+          <div class="timeline-item">
+            <div class="timeline-dot active"></div>
+            <div class="timeline-content">
+              <span class="tl-title">处理中</span>
+              <span class="tl-meta">待分配 / 当前状态</span>
+              <span class="tl-desc">等待人工介入处理，建议优先协调采购部门确认补货时间</span>
+            </div>
+          </div>
+          <div class="timeline-item">
+            <div class="timeline-dot" style="background:#D9D9D9;"></div>
+            <div class="timeline-content">
+              <span class="tl-title" style="color:var(--text-muted);">已解决</span>
+              <span class="tl-meta" style="color:var(--text-muted);">待完成</span>
+              <span class="tl-desc" style="color:var(--text-muted);">等待处理完成后自动流转</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Modal Footer Actions -->
+    <div class="modal-footer">
+      <span style="font-size:13px;color:var(--text-secondary);">分配处理人:</span>
+      <select class="select-inline" style="font-size:12px;">
+        <option>请选择处理人</option>
+        <option>张三</option>
+        <option>李四</option>
+        <option>王五</option>
+        <option>赵六</option>
+      </select>
+      <span style="font-size:13px;color:var(--text-secondary);margin-left:12px;">处理方案:</span>
+      <input type="text" class="input-inline" style="width:200px;font-size:12px;" placeholder="输入处理方案摘要">
+      <button class="btn btn-primary">标记已解决</button>
+      <button class="btn" style="border-color:#D9D9D9;">关闭异常</button>
+    </div>
+  </div>
+</div>
+
+<!-- ========== Field Spec Table ========== -->
+<h2 class="section-title">字段规范</h2>
+
+<h3 style="font-size:15px;margin:16px 0 10px;color:var(--text);">异常记录字段</h3>
+<table class="spec-table">
+  <thead>
+    <tr>
+      <th>字段名</th>
+      <th>类型</th>
+      <th>必填</th>
+      <th>说明</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td class="code">exception_id</td>
+      <td>String</td>
+      <td>是</td>
+      <td>异常记录唯一标识，格式 EXC-YYYYMMDD-NNNN</td>
+    </tr>
+    <tr>
+      <td class="code">order_no</td>
+      <td>String</td>
+      <td>是</td>
+      <td>关联订单号</td>
+    </tr>
+    <tr>
+      <td class="code">exception_type</td>
+      <td>Enum</td>
+      <td>是</td>
+      <td>异常类型：OUT_OF_STOCK / CANCEL / REFUND / TIMEOUT / DELIVERY_FAIL / PAY_FAIL</td>
+    </tr>
+    <tr>
+      <td class="code">exception_level</td>
+      <td>Enum</td>
+      <td>是</td>
+      <td>异常级别：WARNING(预警) / ERROR(错误) / CRITICAL(严重)</td>
+    </tr>
+    <tr>
+      <td class="code">channel</td>
+      <td>Enum</td>
+      <td>是</td>
+      <td>来源渠道：WECHAT / DOUYIN / MEITUAN / ELEME / JD / OFFLINE</td>
+    </tr>
+    <tr>
+      <td class="code">exception_detail</td>
+      <td>JSON</td>
+      <td>是</td>
+      <td>异常详情数据，JSON 格式，结构随异常类型不同而变化</td>
+    </tr>
+    <tr>
+      <td class="code">summary</td>
+      <td>String</td>
+      <td>是</td>
+      <td>异常摘要描述，最大 200 字符</td>
+    </tr>
+    <tr>
+      <td class="code">status</td>
+      <td>Enum</td>
+      <td>是</td>
+      <td>处理状态：PENDING / PROCESSING / RESOLVED / CLOSED</td>
+    </tr>
+    <tr>
+      <td class="code">assignee</td>
+      <td>String</td>
+      <td>否</td>
+      <td>处理人，初始为空</td>
+    </tr>
+    <tr>
+      <td class="code">created_at</td>
+      <td>DateTime</td>
+      <td>是</td>
+      <td>异常创建时间</td>
+    </tr>
+    <tr>
+      <td class="code">resolved_at</td>
+      <td>DateTime</td>
+      <td>否</td>
+      <td>异常解决时间</td>
+    </tr>
+  </tbody>
+</table>
+
+<h3 style="font-size:15px;margin:20px 0 10px;color:var(--text);">处理记录字段</h3>
+<table class="spec-table">
+  <thead>
+    <tr>
+      <th>字段名</th>
+      <th>类型</th>
+      <th>必填</th>
+      <th>说明</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td class="code">record_id</td>
+      <td>String</td>
+      <td>是</td>
+      <td>处理记录唯一标识</td>
+    </tr>
+    <tr>
+      <td class="code">exception_id</td>
+      <td>String</td>
+      <td>是</td>
+      <td>关联异常记录 ID</td>
+    </tr>
+    <tr>
+      <td class="code">action</td>
+      <td>Enum</td>
+      <td>是</td>
+      <td>处理动作：CREATE / ASSIGN / PROCESS / RESOLVE / CLOSE</td>
+    </tr>
+    <tr>
+      <td class="code">operator</td>
+      <td>String</td>
+      <td>是</td>
+      <td>操作人，系统自动操作为 "SYSTEM"</td>
+    </tr>
+    <tr>
+      <td class="code">solution</td>
+      <td>String</td>
+      <td>否</td>
+      <td>处理方案描述，RESOLVE 动作时必填</td>
+    </tr>
+    <tr>
+      <td class="code">result</td>
+      <td>String</td>
+      <td>否</td>
+      <td>处理结果摘要</td>
+    </tr>
+    <tr>
+      <td class="code">created_at</td>
+      <td>DateTime</td>
+      <td>是</td>
+      <td>记录创建时间</td>
+    </tr>
+  </tbody>
+</table>
+
+<!-- ========== Acceptance Checklist ========== -->
+<h2 class="section-title">验收标准</h2>
+<ul class="checklist">
+  <li><input type="checkbox"> 异常统计卡片正确展示待处理异常数、今日新增、本周解决数、平均处理时长</li>
+  <li><input type="checkbox"> 异常类型分布饼图使用 conic-gradient 正确展示各类型占比</li>
+  <li><input type="checkbox"> 各渠道异常率柱状图数据准确，异常率最高的渠道以醒目颜色标出</li>
+  <li><input type="checkbox"> 异常趋势折线图正确展示近 7 天异常数量变化趋势</li>
+  <li><input type="checkbox"> 筛选栏支持按异常类型、级别、处理状态、渠道、日期范围、订单号组合筛选</li>
+  <li><input type="checkbox"> 异常列表表格展示异常级别图标和颜色标签（WARNING黄色 / ERROR橙色 / CRITICAL红色）</li>
+  <li><input type="checkbox"> 异常列表包含至少 10 行数据，涵盖不同级别（CRITICAL/ERROR/WARNING）和类型</li>
+  <li><input type="checkbox"> 异常表格中"处理"按钮对"待处理"和"处理中"状态可见，"已解决"和"已关闭"仅显示"详情"</li>
+  <li><input type="checkbox"> 点击"详情"按钮弹出异常详情弹窗（含左中右三栏布局）</li>
+  <li><input type="checkbox"> 弹窗左侧展示异常基本信息（ID/类型/级别/状态/时间）和异常详情 JSON 代码块</li>
+  <li><input type="checkbox"> 弹窗中间展示关联订单信息（订单号/渠道/客户/金额/商品明细/支付信息）</li>
+  <li><input type="checkbox"> 弹窗右侧展示处理记录时间线（创建 -> 分配 -> 处理中 -> 已解决），含操作人/时间/方案</li>
+  <li><input type="checkbox"> 弹窗底部支持分配处理人、填写处理方案、标记已解决、关闭异常操作</li>
+  <li><input type="checkbox"> 分页组件支持翻页和每页条数切换</li>
+</ul>
+
+</div><!-- /doc-body -->
+
+</body>
+</html>

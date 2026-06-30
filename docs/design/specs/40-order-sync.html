@@ -1,0 +1,1213 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>40 · 订单状态同步 — 设计规格文档</title>
+<style>
+/* ========== CSS Variables ========== */
+:root {
+  --brand: #1677FF;
+  --brand-light: #E6F4FF;
+  --text: #1F1F1F;
+  --text-secondary: #595959;
+  --text-muted: #8C8C8C;
+  --border: #E8E8E8;
+  --bg: #F5F5F5;
+  --white: #FFFFFF;
+  --success: #52C41A;
+  --warning: #FA8C16;
+  --danger: #FF4D4F;
+  --radius: 8px;
+  --shadow: 0 2px 8px rgba(0,0,0,0.08);
+
+  /* Channel Colors */
+  --wechat: #07C160;
+  --douyin: #010101;
+  --mt-yellow: #FFD101;
+  --ele-blue: #0085FF;
+  --jd-red: #E1251B;
+  --offline: #6B7280;
+
+  /* Exception Level Colors */
+  --critical: #EF4444;
+  --error: #F97316;
+  --warning-yl: #F59E0B;
+}
+
+* { margin: 0; padding: 0; box-sizing: border-box; }
+
+body {
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", sans-serif;
+  background: var(--bg);
+  color: var(--text);
+  line-height: 1.6;
+}
+
+/* ========== Document Header ========== */
+.doc-header {
+  background: linear-gradient(135deg, #1677FF 0%, #0958D9 100%);
+  color: #fff;
+  padding: 48px 60px 40px;
+}
+.doc-header h1 {
+  font-size: 28px;
+  font-weight: 700;
+  letter-spacing: 0.5px;
+}
+.doc-header .doc-meta {
+  margin-top: 12px;
+  font-size: 14px;
+  opacity: 0.85;
+  display: flex;
+  gap: 24px;
+}
+
+/* ========== Content Wrapper ========== */
+.doc-body {
+  max-width: 1400px;
+  margin: 0 auto;
+  padding: 32px 40px;
+}
+
+/* ========== Section Title ========== */
+.section-title {
+  font-size: 18px;
+  font-weight: 600;
+  color: var(--text);
+  margin: 32px 0 16px;
+  padding-bottom: 10px;
+  border-bottom: 2px solid var(--brand);
+  display: inline-block;
+}
+.section-title:first-child { margin-top: 0; }
+
+/* ========== Page Overview ========== */
+.overview-text {
+  color: var(--text-secondary);
+  font-size: 15px;
+  line-height: 1.8;
+  margin-bottom: 8px;
+  max-width: 900px;
+}
+
+/* ========== Mockup Frame ========== */
+.mockup {
+  background: var(--white);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow);
+  overflow: hidden;
+  border: 1px solid var(--border);
+  margin: 20px 0;
+}
+
+.mockup-header {
+  background: #001529;
+  color: #fff;
+  padding: 0 24px;
+  height: 48px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  font-size: 14px;
+}
+.mockup-header .logo {
+  font-weight: 700;
+  font-size: 16px;
+  letter-spacing: 1px;
+}
+.mockup-header .header-nav {
+  display: flex;
+  gap: 24px;
+}
+.mockup-header .header-nav a {
+  color: rgba(255,255,255,0.75);
+  text-decoration: none;
+  font-size: 13px;
+  transition: color 0.2s;
+}
+.mockup-header .header-nav a:hover { color: #fff; }
+.mockup-header .header-right {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  font-size: 13px;
+  color: rgba(255,255,255,0.75);
+}
+.mockup-header .avatar {
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  background: var(--brand);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 12px;
+  font-weight: 600;
+  color: #fff;
+}
+
+.mockup-body {
+  display: flex;
+  min-height: 600px;
+}
+
+.mockup-sidebar {
+  width: 200px;
+  background: #FAFAFA;
+  border-right: 1px solid var(--border);
+  padding: 12px 0;
+  flex-shrink: 0;
+}
+.mockup-sidebar .nav-item {
+  padding: 10px 24px;
+  font-size: 13px;
+  color: var(--text-secondary);
+  cursor: pointer;
+  transition: all 0.2s;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.mockup-sidebar .nav-item:hover { background: #F0F0F0; }
+.mockup-sidebar .nav-item.active {
+  background: var(--brand-light);
+  color: var(--brand);
+  font-weight: 600;
+  border-right: 3px solid var(--brand);
+}
+.mockup-sidebar .nav-item .nav-dot {
+  width: 6px; height: 6px;
+  border-radius: 50%;
+  background: var(--text-muted);
+}
+.mockup-sidebar .nav-item.active .nav-dot { background: var(--brand); }
+
+.mockup-main {
+  flex: 1;
+  padding: 20px 24px;
+  overflow: hidden;
+}
+
+.mockup-page-title {
+  font-size: 18px;
+  font-weight: 600;
+  color: var(--text);
+  margin-bottom: 4px;
+}
+.mockup-breadcrumb {
+  font-size: 12px;
+  color: var(--text-muted);
+  margin-bottom: 20px;
+}
+.mockup-breadcrumb span { color: var(--text-secondary); }
+
+/* ========== Stats Row ========== */
+.stats-row {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 16px;
+  margin-bottom: 20px;
+}
+.stat-card {
+  background: var(--white);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 16px 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+.stat-card .stat-label {
+  font-size: 13px;
+  color: var(--text-muted);
+}
+.stat-card .stat-value {
+  font-size: 28px;
+  font-weight: 700;
+}
+.stat-card .stat-sub {
+  font-size: 12px;
+  color: var(--text-muted);
+}
+.stat-card.blue .stat-value { color: var(--brand); }
+.stat-card.green .stat-value { color: var(--success); }
+.stat-card.red .stat-value { color: var(--danger); }
+.stat-card.orange .stat-value { color: var(--warning); }
+
+/* ========== Bar Chart (CSS) ========== */
+.chart-section {
+  background: var(--white);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 20px;
+  margin-bottom: 20px;
+}
+.chart-section .chart-title {
+  font-size: 14px;
+  font-weight: 600;
+  margin-bottom: 16px;
+  color: var(--text);
+}
+.bar-chart { display: flex; flex-direction: column; gap: 12px; }
+.bar-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+.bar-label {
+  width: 60px;
+  text-align: right;
+  font-size: 13px;
+  color: var(--text-secondary);
+  flex-shrink: 0;
+}
+.bar-track {
+  flex: 1;
+  height: 24px;
+  background: #F0F0F0;
+  border-radius: 4px;
+  overflow: hidden;
+  position: relative;
+}
+.bar-fill {
+  height: 100%;
+  border-radius: 4px;
+  transition: width 0.3s;
+}
+.bar-value {
+  width: 60px;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--text);
+  flex-shrink: 0;
+}
+
+/* ========== Action Cards ========== */
+.action-card {
+  background: var(--white);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 20px;
+  margin-bottom: 20px;
+}
+.action-card .card-title {
+  font-size: 14px;
+  font-weight: 600;
+  margin-bottom: 16px;
+  color: var(--text);
+}
+.btn-row {
+  display: flex;
+  gap: 12px;
+  flex-wrap: wrap;
+  align-items: center;
+}
+.btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 16px;
+  border-radius: 6px;
+  font-size: 13px;
+  cursor: pointer;
+  border: 1px solid var(--border);
+  background: var(--white);
+  color: var(--text);
+  transition: all 0.2s;
+  white-space: nowrap;
+}
+.btn:hover { border-color: var(--brand); color: var(--brand); }
+.btn-primary {
+  background: var(--brand);
+  color: #fff;
+  border-color: var(--brand);
+}
+.btn-primary:hover { background: #0958D9; border-color: #0958D9; color: #fff; }
+.btn-danger {
+  background: var(--danger);
+  color: #fff;
+  border-color: var(--danger);
+}
+.btn-sm { padding: 4px 10px; font-size: 12px; }
+.btn-xs { padding: 2px 8px; font-size: 11px; }
+
+.input-inline {
+  padding: 8px 12px;
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  font-size: 13px;
+  width: 180px;
+  outline: none;
+  transition: border-color 0.2s;
+}
+.input-inline:focus { border-color: var(--brand); }
+
+.select-inline {
+  padding: 8px 12px;
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  font-size: 13px;
+  outline: none;
+  background: var(--white);
+  cursor: pointer;
+}
+
+/* ========== Progress Bar ========== */
+.progress-section {
+  margin-top: 16px;
+  padding-top: 16px;
+  border-top: 1px solid var(--border);
+}
+.progress-bar-wrap {
+  height: 8px;
+  background: #F0F0F0;
+  border-radius: 4px;
+  overflow: hidden;
+  margin-bottom: 8px;
+}
+.progress-bar-fill {
+  height: 100%;
+  background: var(--brand);
+  border-radius: 4px;
+  width: 50%;
+  transition: width 0.3s;
+}
+.progress-text {
+  font-size: 12px;
+  color: var(--text-muted);
+}
+
+/* ========== Config Section ========== */
+.config-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 24px;
+}
+.config-item {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+.config-item .config-label {
+  font-size: 13px;
+  color: var(--text-secondary);
+  font-weight: 500;
+}
+.checkbox-group {
+  display: flex;
+  gap: 16px;
+  flex-wrap: wrap;
+}
+.checkbox-group label {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 13px;
+  color: var(--text-secondary);
+  cursor: pointer;
+}
+.checkbox-group input[type="checkbox"] {
+  accent-color: var(--brand);
+  width: 15px; height: 15px;
+}
+
+/* Toggle Switch */
+.toggle {
+  position: relative;
+  display: inline-block;
+  width: 44px;
+  height: 24px;
+  cursor: pointer;
+}
+.toggle input { display: none; }
+.toggle .slider {
+  position: absolute;
+  top: 0; left: 0; right: 0; bottom: 0;
+  background: #D9D9D9;
+  border-radius: 12px;
+  transition: all 0.3s;
+}
+.toggle .slider::before {
+  content: '';
+  position: absolute;
+  width: 20px; height: 20px;
+  left: 2px; bottom: 2px;
+  background: #fff;
+  border-radius: 50%;
+  transition: all 0.3s;
+}
+.toggle input:checked + .slider { background: var(--brand); }
+.toggle input:checked + .slider::before { transform: translateX(20px); }
+
+/* ========== Tags ========== */
+.tag {
+  display: inline-block;
+  padding: 2px 8px;
+  border-radius: 4px;
+  font-size: 11px;
+  font-weight: 500;
+  line-height: 1.6;
+}
+.tag-success { background: #F6FFED; color: var(--success); border: 1px solid #B7EB8F; }
+.tag-warning { background: #FFF7E6; color: var(--warning); border: 1px solid #FFD591; }
+.tag-danger { background: #FFF2F0; color: var(--danger); border: 1px solid #FFCCC7; }
+.tag-info { background: var(--brand-light); color: var(--brand); border: 1px solid #91CAFF; }
+.tag-default { background: #FAFAFA; color: var(--text-muted); border: 1px solid var(--border); }
+
+.channel-tag {
+  display: inline-block;
+  padding: 2px 8px;
+  border-radius: 4px;
+  font-size: 11px;
+  font-weight: 600;
+  color: #fff;
+}
+.channel-wechat { background: var(--wechat); }
+.channel-douyin { background: var(--douyin); }
+.channel-meituan { background: var(--mt-yellow); color: #333; }
+.channel-eleme { background: var(--ele-blue); }
+.channel-jd { background: var(--jd-red); }
+.channel-offline { background: var(--offline); }
+
+/* ========== Filter Row ========== */
+.filter-row {
+  display: flex;
+  gap: 12px;
+  flex-wrap: wrap;
+  align-items: center;
+  margin-bottom: 16px;
+  padding: 12px 16px;
+  background: #FAFAFA;
+  border-radius: var(--radius);
+  border: 1px solid var(--border);
+}
+
+/* ========== Table ========== */
+.mockup-table {
+  background: var(--white);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  overflow: hidden;
+  margin-bottom: 20px;
+}
+.mockup-table table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 13px;
+}
+.mockup-table th {
+  background: #FAFAFA;
+  padding: 10px 12px;
+  text-align: left;
+  font-weight: 600;
+  color: var(--text-secondary);
+  border-bottom: 1px solid var(--border);
+  white-space: nowrap;
+  font-size: 12px;
+}
+.mockup-table td {
+  padding: 10px 12px;
+  border-bottom: 1px solid var(--border);
+  color: var(--text);
+  vertical-align: middle;
+}
+.mockup-table tr:last-child td { border-bottom: none; }
+.mockup-table tr:hover td { background: #FAFAFA; }
+
+.status-arrow {
+  color: var(--text-muted);
+  margin: 0 4px;
+  font-size: 12px;
+}
+.status-target { color: var(--brand); font-weight: 500; }
+.status-source { color: var(--text-muted); }
+
+/* Tooltip */
+.tooltip-trigger {
+  position: relative;
+  cursor: help;
+  color: var(--text-muted);
+  border-bottom: 1px dashed var(--text-muted);
+}
+.tooltip-trigger:hover .tooltip-content {
+  display: block;
+}
+.tooltip-content {
+  display: none;
+  position: absolute;
+  bottom: 100%;
+  left: 50%;
+  transform: translateX(-50%);
+  background: #333;
+  color: #fff;
+  padding: 6px 10px;
+  border-radius: 4px;
+  font-size: 11px;
+  white-space: nowrap;
+  z-index: 10;
+  margin-bottom: 4px;
+}
+
+/* ========== Pagination ========== */
+.pagination {
+  display: flex;
+  justify-content: flex-end;
+  align-items: center;
+  gap: 8px;
+  padding: 12px 0;
+  font-size: 13px;
+  color: var(--text-secondary);
+}
+.pagination .page-btn {
+  width: 32px; height: 32px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  background: var(--white);
+  cursor: pointer;
+  font-size: 12px;
+  transition: all 0.2s;
+}
+.pagination .page-btn:hover { border-color: var(--brand); color: var(--brand); }
+.pagination .page-btn.active {
+  background: var(--brand);
+  color: #fff;
+  border-color: var(--brand);
+}
+.pagination .page-btn.disabled {
+  color: var(--text-muted);
+  cursor: not-allowed;
+  opacity: 0.5;
+}
+.pagination .page-info {
+  margin: 0 8px;
+  font-size: 12px;
+}
+
+/* ========== Spec Table ========== */
+.spec-table {
+  width: 100%;
+  border-collapse: collapse;
+  margin: 16px 0;
+  font-size: 13px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  overflow: hidden;
+}
+.spec-table th {
+  background: #FAFAFA;
+  padding: 10px 14px;
+  text-align: left;
+  font-weight: 600;
+  color: var(--text-secondary);
+  border-bottom: 1px solid var(--border);
+  font-size: 13px;
+  white-space: nowrap;
+}
+.spec-table td {
+  padding: 10px 14px;
+  border-bottom: 1px solid var(--border);
+  color: var(--text);
+  vertical-align: top;
+}
+.spec-table tr:last-child td { border-bottom: none; }
+.spec-table .code {
+  font-family: "SF Mono", "Menlo", "Monaco", monospace;
+  font-size: 12px;
+  background: #F5F5F5;
+  padding: 2px 6px;
+  border-radius: 3px;
+  color: var(--danger);
+}
+
+/* ========== Checklist ========== */
+.checklist {
+  list-style: none;
+  padding: 0;
+  margin: 16px 0;
+}
+.checklist li {
+  padding: 8px 0;
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  font-size: 14px;
+  color: var(--text);
+  border-bottom: 1px solid #F5F5F5;
+}
+.checklist li:last-child { border-bottom: none; }
+.checklist input[type="checkbox"] {
+  width: 16px; height: 16px;
+  margin-top: 2px;
+  accent-color: var(--brand);
+  flex-shrink: 0;
+}
+
+/* Divider */
+.divider {
+  border: none;
+  border-top: 1px solid var(--border);
+  margin: 20px 0;
+}
+
+/* Confirm tooltip */
+.confirm-popover {
+  display: inline-block;
+  position: relative;
+}
+.confirm-popover .confirm-hint {
+  font-size: 11px;
+  color: var(--text-muted);
+  margin-left: 6px;
+}
+
+/* ========== Responsive ========== */
+@media (max-width: 1200px) {
+  .stats-row { grid-template-columns: repeat(2, 1fr); }
+  .config-row { flex-direction: column; }
+}
+</style>
+</head>
+<body>
+
+<!-- ========== Document Header ========== -->
+<header class="doc-header">
+  <h1>40 · 订单状态同步 — 设计规格文档</h1>
+  <div class="doc-meta">
+    <span>版本: v1.0</span>
+    <span>日期: 2026-06-30</span>
+    <span>状态: 设计中</span>
+    <span>负责人: 产品团队</span>
+  </div>
+</header>
+
+<div class="doc-body">
+
+<!-- ========== Page Overview ========== -->
+<h2 class="section-title">页面总览</h2>
+<p class="overview-text">
+  订单状态同步模块负责管理多平台（微信、抖音、美团、饿了么、京东、线下）订单状态的双向同步。支持手动同步、定时任务自动同步，并提供同步日志查询与统计分析功能。通过统一的同步中心，确保各渠道订单状态与系统内订单状态保持一致，降低人工核对成本，提升运营效率。
+</p>
+
+<!-- ========== Mockup ========== -->
+<h2 class="section-title">界面设计模型</h2>
+
+<div class="mockup">
+
+  <!-- Header -->
+  <div class="mockup-header">
+    <div class="logo">OMS 订单管理系统</div>
+    <div class="header-nav">
+      <a href="#">工作台</a>
+      <a href="#">订单管理</a>
+      <a href="#" style="color:#fff;">系统工具</a>
+      <a href="#">数据报表</a>
+      <a href="#">设置</a>
+    </div>
+    <div class="header-right">
+      <span>管理员</span>
+      <div class="avatar">A</div>
+    </div>
+  </div>
+
+  <!-- Body -->
+  <div class="mockup-body">
+    <!-- Sidebar -->
+    <div class="mockup-sidebar">
+      <div class="nav-item"><span class="nav-dot"></span> 订单列表</div>
+      <div class="nav-item"><span class="nav-dot"></span> 退款管理</div>
+      <div class="nav-item active"><span class="nav-dot"></span> 状态同步</div>
+      <div class="nav-item"><span class="nav-dot"></span> 异常处理</div>
+      <div class="nav-item"><span class="nav-dot"></span> 数据导出</div>
+      <div class="nav-item"><span class="nav-dot"></span> 渠道管理</div>
+      <div class="nav-item"><span class="nav-dot"></span> 系统配置</div>
+    </div>
+
+    <!-- Main -->
+    <div class="mockup-main">
+      <div class="mockup-page-title">订单状态同步</div>
+      <div class="mockup-breadcrumb">系统工具 <span>&gt; 状态同步</span></div>
+
+      <!-- Stats Row -->
+      <div class="stats-row">
+        <div class="stat-card blue">
+          <div class="stat-label">今日同步总数</div>
+          <div class="stat-value">328</div>
+          <div class="stat-sub">较昨日 +12.3%</div>
+        </div>
+        <div class="stat-card green">
+          <div class="stat-label">同步成功</div>
+          <div class="stat-value">305</div>
+          <div class="stat-sub">成功率 93.0%</div>
+        </div>
+        <div class="stat-card red">
+          <div class="stat-label">同步失败</div>
+          <div class="stat-value">18</div>
+          <div class="stat-sub">失败率 5.5%</div>
+        </div>
+        <div class="stat-card orange">
+          <div class="stat-label">待同步</div>
+          <div class="stat-value">5</div>
+          <div class="stat-sub">队列等待中</div>
+        </div>
+      </div>
+
+      <!-- Bar Chart: Channel Sync Rate -->
+      <div class="chart-section">
+        <div class="chart-title">各渠道同步成功率</div>
+        <div class="bar-chart">
+          <div class="bar-row">
+            <span class="bar-label">微信</span>
+            <div class="bar-track"><div class="bar-fill" style="width:96.5%;background:var(--success);"></div></div>
+            <span class="bar-value">96.5%</span>
+          </div>
+          <div class="bar-row">
+            <span class="bar-label">抖音</span>
+            <div class="bar-track"><div class="bar-fill" style="width:94.2%;background:var(--success);"></div></div>
+            <span class="bar-value">94.2%</span>
+          </div>
+          <div class="bar-row">
+            <span class="bar-label">美团</span>
+            <div class="bar-track"><div class="bar-fill" style="width:97.8%;background:var(--success);"></div></div>
+            <span class="bar-value">97.8%</span>
+          </div>
+          <div class="bar-row">
+            <span class="bar-label">饿了么</span>
+            <div class="bar-track"><div class="bar-fill" style="width:91.3%;background:var(--success);"></div></div>
+            <span class="bar-value">91.3%</span>
+          </div>
+          <div class="bar-row">
+            <span class="bar-label">京东</span>
+            <div class="bar-track"><div class="bar-fill" style="width:89.7%;background:var(--warning);"></div></div>
+            <span class="bar-value" style="color:var(--warning);">89.7%</span>
+          </div>
+          <div class="bar-row">
+            <span class="bar-label">线下</span>
+            <div class="bar-track"><div class="bar-fill" style="width:100%;background:var(--success);"></div></div>
+            <span class="bar-value">100%</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Action Card: Manual Sync -->
+      <div class="action-card">
+        <div class="card-title">手动同步</div>
+        <div class="btn-row">
+          <span style="font-size:13px;color:var(--text-secondary);">单订单同步:</span>
+          <input type="text" class="input-inline" placeholder="输入订单号">
+          <button class="btn btn-primary">立即同步</button>
+          <span style="color:var(--border);margin:0 8px;">|</span>
+          <span style="font-size:13px;color:var(--text-secondary);">批量同步:</span>
+          <select class="select-inline">
+            <option>选择渠道</option>
+            <option>微信</option>
+            <option>抖音</option>
+            <option>美团</option>
+            <option>饿了么</option>
+            <option>京东</option>
+          </select>
+          <button class="btn btn-primary">批量同步</button>
+          <span style="color:var(--border);margin:0 8px;">|</span>
+          <span style="font-size:13px;color:var(--text-secondary);">全量同步:</span>
+          <button class="btn btn-danger">全量同步所有渠道</button>
+          <span class="confirm-hint">确认后将同步全部渠道订单，耗时较长</span>
+        </div>
+        <!-- Progress -->
+        <div class="progress-section">
+          <div class="progress-bar-wrap">
+            <div class="progress-bar-fill"></div>
+          </div>
+          <div class="progress-text">正在同步 美团 订单... 45/78 (50%)</div>
+        </div>
+      </div>
+
+      <!-- Config Card: Scheduled Task -->
+      <div class="action-card">
+        <div class="card-title">定时任务配置</div>
+        <div class="config-row">
+          <div class="config-item">
+            <span class="config-label">同步频率</span>
+            <select class="select-inline">
+              <option>每5分钟</option>
+              <option>每10分钟</option>
+              <option selected>每30分钟</option>
+              <option>每小时</option>
+            </select>
+          </div>
+          <div class="config-item">
+            <span class="config-label">同步范围</span>
+            <div>
+              <label style="font-size:13px;margin-right:12px;"><input type="radio" name="scope" checked> 全部渠道</label>
+              <label style="font-size:13px;"><input type="radio" name="scope"> 指定渠道</label>
+            </div>
+            <div class="checkbox-group" style="margin-top:6px;">
+              <label><input type="checkbox" checked> 微信</label>
+              <label><input type="checkbox" checked> 抖音</label>
+              <label><input type="checkbox" checked> 美团</label>
+              <label><input type="checkbox" checked> 饿了么</label>
+              <label><input type="checkbox" checked> 京东</label>
+              <label><input type="checkbox" checked> 线下</label>
+            </div>
+          </div>
+          <div class="config-item">
+            <span class="config-label">同步开关</span>
+            <label class="toggle">
+              <input type="checkbox" checked>
+              <span class="slider"></span>
+            </label>
+            <span style="font-size:12px;margin-left:4px;color:var(--success);">已开启</span>
+          </div>
+          <div class="config-item">
+            <span class="config-label">通知设置</span>
+            <div style="display:flex;flex-direction:column;gap:8px;">
+              <label style="font-size:13px;display:flex;align-items:center;gap:6px;">
+                <input type="checkbox" checked> 失败告警
+              </label>
+              <div style="display:flex;gap:12px;align-items:center;">
+                <span style="font-size:13px;color:var(--text-secondary);">告警方式:</span>
+                <label style="font-size:13px;display:flex;align-items:center;gap:4px;"><input type="checkbox" checked> 站内信</label>
+                <label style="font-size:13px;display:flex;align-items:center;gap:4px;"><input type="checkbox"> 短信</label>
+                <label style="font-size:13px;display:flex;align-items:center;gap:4px;"><input type="checkbox" checked> 邮件</label>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Sync Log Table -->
+      <div class="mockup-table">
+        <div style="padding:12px 16px;border-bottom:1px solid var(--border);">
+          <span style="font-size:14px;font-weight:600;">同步日志</span>
+        </div>
+        <!-- Filter Row -->
+        <div class="filter-row">
+          <select class="select-inline" style="font-size:12px;">
+            <option>全部渠道</option>
+            <option>微信</option><option>抖音</option><option>美团</option>
+            <option>饿了么</option><option>京东</option><option>线下</option>
+          </select>
+          <select class="select-inline" style="font-size:12px;">
+            <option>全部类型</option>
+            <option>PULL</option><option>PUSH</option>
+          </select>
+          <select class="select-inline" style="font-size:12px;">
+            <option>全部结果</option>
+            <option>成功</option><option>失败</option>
+          </select>
+          <input type="text" class="input-inline" style="width:120px;font-size:12px;" placeholder="开始日期">
+          <span style="color:var(--text-muted);">-</span>
+          <input type="text" class="input-inline" style="width:120px;font-size:12px;" placeholder="结束日期">
+          <button class="btn btn-primary btn-sm">查询</button>
+          <button class="btn btn-sm">重置</button>
+        </div>
+        <table>
+          <thead>
+            <tr>
+              <th>订单号</th>
+              <th>渠道</th>
+              <th>同步类型</th>
+              <th>来源状态</th>
+              <th></th>
+              <th>目标状态</th>
+              <th>同步结果</th>
+              <th>错误信息</th>
+              <th>同步时间</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>ORD-20260630-001</td>
+              <td><span class="channel-tag channel-wechat">微信</span></td>
+              <td><span class="tag tag-info">PULL 拉取</span></td>
+              <td class="status-source">待发货</td>
+              <td class="status-arrow">&rarr;</td>
+              <td class="status-target">已发货</td>
+              <td><span class="tag tag-success">成功</span></td>
+              <td>-</td>
+              <td>2026-06-30 14:32:15</td>
+            </tr>
+            <tr>
+              <td>ORD-20260630-002</td>
+              <td><span class="channel-tag channel-douyin">抖音</span></td>
+              <td><span class="tag tag-info">PUSH 推送</span></td>
+              <td class="status-source">已发货</td>
+              <td class="status-arrow">&rarr;</td>
+              <td class="status-target">已签收</td>
+              <td><span class="tag tag-success">成功</span></td>
+              <td>-</td>
+              <td>2026-06-30 14:28:03</td>
+            </tr>
+            <tr>
+              <td>ORD-20260630-003</td>
+              <td><span class="channel-tag channel-meituan">美团</span></td>
+              <td><span class="tag tag-info">PULL 拉取</span></td>
+              <td class="status-source">待支付</td>
+              <td class="status-arrow">&rarr;</td>
+              <td class="status-target">已支付</td>
+              <td><span class="tag tag-success">成功</span></td>
+              <td>-</td>
+              <td>2026-06-30 14:20:47</td>
+            </tr>
+            <tr>
+              <td>ORD-20260630-004</td>
+              <td><span class="channel-tag channel-jd">京东</span></td>
+              <td><span class="tag tag-info">PULL 拉取</span></td>
+              <td class="status-source">待处理</td>
+              <td class="status-arrow">&rarr;</td>
+              <td class="status-target">处理中</td>
+              <td><span class="tag tag-danger">失败</span></td>
+              <td>
+                <span class="tooltip-trigger">查看详情
+                  <span class="tooltip-content">API超时: 京东接口响应超时(30s)</span>
+                </span>
+              </td>
+              <td>2026-06-30 14:15:22</td>
+            </tr>
+            <tr>
+              <td>ORD-20260630-005</td>
+              <td><span class="channel-tag channel-eleme">饿了么</span></td>
+              <td><span class="tag tag-info">PUSH 推送</span></td>
+              <td class="status-source">已接单</td>
+              <td class="status-arrow">&rarr;</td>
+              <td class="status-target">配送中</td>
+              <td><span class="tag tag-success">成功</span></td>
+              <td>-</td>
+              <td>2026-06-30 14:10:59</td>
+            </tr>
+            <tr>
+              <td>ORD-20260630-006</td>
+              <td><span class="channel-tag channel-offline">线下</span></td>
+              <td><span class="tag tag-info">PUSH 推送</span></td>
+              <td class="status-source">已支付</td>
+              <td class="status-arrow">&rarr;</td>
+              <td class="status-target">已完成</td>
+              <td><span class="tag tag-success">成功</span></td>
+              <td>-</td>
+              <td>2026-06-30 14:08:33</td>
+            </tr>
+            <tr>
+              <td>ORD-20260630-007</td>
+              <td><span class="channel-tag channel-wechat">微信</span></td>
+              <td><span class="tag tag-info">PULL 拉取</span></td>
+              <td class="status-source">已退款</td>
+              <td class="status-arrow">&rarr;</td>
+              <td class="status-target">已关闭</td>
+              <td><span class="tag tag-success">成功</span></td>
+              <td>-</td>
+              <td>2026-06-30 13:55:18</td>
+            </tr>
+            <tr>
+              <td>ORD-20260630-008</td>
+              <td><span class="channel-tag channel-douyin">抖音</span></td>
+              <td><span class="tag tag-info">PULL 拉取</span></td>
+              <td class="status-source">待支付</td>
+              <td class="status-arrow">&rarr;</td>
+              <td class="status-target">已取消</td>
+              <td><span class="tag tag-danger">失败</span></td>
+              <td>
+                <span class="tooltip-trigger">查看详情
+                  <span class="tooltip-content">签名验证失败: sign mismatch</span>
+                </span>
+              </td>
+              <td>2026-06-30 13:42:07</td>
+            </tr>
+            <tr>
+              <td>ORD-20260630-009</td>
+              <td><span class="channel-tag channel-meituan">美团</span></td>
+              <td><span class="tag tag-info">PUSH 推送</span></td>
+              <td class="status-source">配送中</td>
+              <td class="status-arrow">&rarr;</td>
+              <td class="status-target">已签收</td>
+              <td><span class="tag tag-success">成功</span></td>
+              <td>-</td>
+              <td>2026-06-30 13:30:44</td>
+            </tr>
+            <tr>
+              <td>ORD-20260630-010</td>
+              <td><span class="channel-tag channel-jd">京东</span></td>
+              <td><span class="tag tag-info">PUSH 推送</span></td>
+              <td class="status-source">待发货</td>
+              <td class="status-arrow">&rarr;</td>
+              <td class="status-target">已发货</td>
+              <td><span class="tag tag-success">成功</span></td>
+              <td>-</td>
+              <td>2026-06-30 13:22:11</td>
+            </tr>
+          </tbody>
+        </table>
+
+        <!-- Pagination -->
+        <div class="pagination">
+          <span class="page-info">共 156 条</span>
+          <span class="page-btn disabled">&lt;</span>
+          <span class="page-btn active">1</span>
+          <span class="page-btn">2</span>
+          <span class="page-btn">3</span>
+          <span class="page-btn">4</span>
+          <span class="page-btn">5</span>
+          <span class="page-btn">&gt;</span>
+          <select class="select-inline" style="font-size:12px;width:auto;padding:4px 8px;">
+            <option>10条/页</option>
+            <option>20条/页</option>
+            <option>50条/页</option>
+          </select>
+        </div>
+      </div>
+
+    </div><!-- /mockup-main -->
+  </div><!-- /mockup-body -->
+</div><!-- /mockup -->
+
+<!-- ========== Field Spec Table ========== -->
+<h2 class="section-title">字段规范</h2>
+
+<h3 style="font-size:15px;margin:16px 0 10px;color:var(--text);">同步日志字段</h3>
+<table class="spec-table">
+  <thead>
+    <tr>
+      <th>字段名</th>
+      <th>类型</th>
+      <th>必填</th>
+      <th>说明</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td class="code">sync_id</td>
+      <td>String</td>
+      <td>是</td>
+      <td>同步记录唯一标识，UUID v4</td>
+    </tr>
+    <tr>
+      <td class="code">order_no</td>
+      <td>String</td>
+      <td>是</td>
+      <td>订单号，格式 ORD-YYYYMMDD-NNN</td>
+    </tr>
+    <tr>
+      <td class="code">channel</td>
+      <td>Enum</td>
+      <td>是</td>
+      <td>渠道：WECHAT / DOUYIN / MEITUAN / ELEME / JD / OFFLINE</td>
+    </tr>
+    <tr>
+      <td class="code">sync_type</td>
+      <td>Enum</td>
+      <td>是</td>
+      <td>同步类型：PULL(拉取) / PUSH(推送)</td>
+    </tr>
+    <tr>
+      <td class="code">source_status</td>
+      <td>String</td>
+      <td>是</td>
+      <td>同步前的订单状态</td>
+    </tr>
+    <tr>
+      <td class="code">target_status</td>
+      <td>String</td>
+      <td>是</td>
+      <td>同步后的订单状态</td>
+    </tr>
+    <tr>
+      <td class="code">sync_result</td>
+      <td>Enum</td>
+      <td>是</td>
+      <td>同步结果：SUCCESS / FAIL</td>
+    </tr>
+    <tr>
+      <td class="code">error_msg</td>
+      <td>String</td>
+      <td>否</td>
+      <td>失败时的错误信息，最大 500 字符</td>
+    </tr>
+    <tr>
+      <td class="code">sync_time</td>
+      <td>DateTime</td>
+      <td>是</td>
+      <td>同步完成时间，格式 yyyy-MM-dd HH:mm:ss</td>
+    </tr>
+    <tr>
+      <td class="code">duration_ms</td>
+      <td>Integer</td>
+      <td>是</td>
+      <td>同步耗时，单位毫秒</td>
+    </tr>
+  </tbody>
+</table>
+
+<h3 style="font-size:15px;margin:20px 0 10px;color:var(--text);">定时任务配置字段</h3>
+<table class="spec-table">
+  <thead>
+    <tr>
+      <th>字段名</th>
+      <th>类型</th>
+      <th>默认值</th>
+      <th>说明</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td class="code">schedule_enabled</td>
+      <td>Boolean</td>
+      <td>true</td>
+      <td>定时同步开关</td>
+    </tr>
+    <tr>
+      <td class="code">sync_interval</td>
+      <td>Enum</td>
+      <td>EVERY_30_MIN</td>
+      <td>同步频率：EVERY_5_MIN / EVERY_10_MIN / EVERY_30_MIN / EVERY_HOUR</td>
+    </tr>
+    <tr>
+      <td class="code">sync_scope</td>
+      <td>Enum</td>
+      <td>ALL</td>
+      <td>同步范围：ALL(全部) / SPECIFIED(指定渠道)</td>
+    </tr>
+    <tr>
+      <td class="code">sync_channels</td>
+      <td>Array</td>
+      <td>[]</td>
+      <td>当 scope=SPECIFIED 时生效，指定渠道列表</td>
+    </tr>
+    <tr>
+      <td class="code">alert_on_fail</td>
+      <td>Boolean</td>
+      <td>false</td>
+      <td>失败时是否告警</td>
+    </tr>
+    <tr>
+      <td class="code">alert_channels</td>
+      <td>Array</td>
+      <td>[]</td>
+      <td>告警方式：IN_APP / SMS / EMAIL</td>
+    </tr>
+  </tbody>
+</table>
+
+<!-- ========== Acceptance Checklist ========== -->
+<h2 class="section-title">验收标准</h2>
+<ul class="checklist">
+  <li><input type="checkbox"> 支持手动输入单个订单号进行即时同步，同步完成后显示结果反馈</li>
+  <li><input type="checkbox"> 支持按渠道批量同步订单，同步前展示待同步订单数量确认</li>
+  <li><input type="checkbox"> 支持全量同步所有渠道订单，操作前弹出二次确认提示</li>
+  <li><input type="checkbox"> 同步进度条实时展示当前同步进度（百分比 + 已完成数/总数）</li>
+  <li><input type="checkbox"> 统计卡片正确展示今日同步总数、成功数、失败数、待同步数</li>
+  <li><input type="checkbox"> 各渠道同步成功率柱状图数据准确，低于90%的渠道以警告色标出</li>
+  <li><input type="checkbox"> 定时任务支持配置同步频率（5分钟/10分钟/30分钟/每小时）</li>
+  <li><input type="checkbox"> 定时任务支持选择全部渠道或指定渠道同步</li>
+  <li><input type="checkbox"> 同步开关可正常开启/关闭定时任务，关闭后不再自动执行</li>
+  <li><input type="checkbox"> 失败告警开关开启后，同步失败时按配置的告警方式发送通知</li>
+  <li><input type="checkbox"> 同步日志表格支持按渠道、同步类型、同步结果、日期范围筛选</li>
+  <li><input type="checkbox"> 同步日志表格展示 PULL/PUSH 类型标签，成功/失败结果标签颜色正确</li>
+  <li><input type="checkbox"> 失败记录的 Tooltip 可以查看详细错误信息</li>
+  <li><input type="checkbox"> 分页组件支持翻页和每页条数切换</li>
+</ul>
+
+</div><!-- /doc-body -->
+
+</body>
+</html>

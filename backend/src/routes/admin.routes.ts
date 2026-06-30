@@ -48,7 +48,12 @@ adminRouter.put("/products/:spuId/marketing-tags", requireAuthWithTenant, produc
 adminRouter.get("/orders", requireAuthWithTenant, orderController.listOrders);
 adminRouter.get("/orders/export-csv", requireAuthWithTenant, orderController.exportOrdersCsv);
 adminRouter.get("/orders/stats", requireAuthWithTenant, orderController.getOrderStatusStats);
+adminRouter.post("/orders/batch-status", requireAuthWithTenant, orderController.batchUpdateOrderStatus);
 adminRouter.get("/orders/:orderNo", requireAuthWithTenant, orderController.getOrderDetail);
+adminRouter.post("/orders/:orderNo/cancel", requireAuthWithTenant, orderController.cancelOrder);
+adminRouter.put("/orders/:orderNo/remark", requireAuthWithTenant, orderController.remarkOrder);
+adminRouter.put("/orders/:orderNo/status", requireAuthWithTenant, orderController.updateOrderStatus);
+adminRouter.get("/orders/:orderNo/logs", requireAuthWithTenant, orderController.getOrderOperationLogs);
 
 // ============ 销售单管理 ============
 adminRouter.get("/sale-bills", requireAuthWithTenant, orderController.listSaleBills);

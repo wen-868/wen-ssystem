@@ -63,6 +63,12 @@ const routes = [
       { path: "orders", name: "Orders", component: () => import("../views/Orders.vue"), meta: { roles: ["BOSS", "MGR"] } },
       { path: "order-board", name: "OrderBoard", component: () => import("../views/OrderBoardView.vue"), meta: { roles: ["BOSS", "MGR"] } },
       { path: "order-timeout", name: "OrderTimeout", component: () => import("../views/OrderTimeoutView.vue"), meta: { roles: ["BOSS", "MGR"] } },
+      { path: "order-center", name: "OrderCenter", component: () => import("../views/OrderCenterView.vue"), meta: { roles: ["BOSS"] } },
+      { path: "order-routing", name: "OrderRouting", component: () => import("../views/OrderRoutingView.vue"), meta: { roles: ["BOSS"] } },
+      { path: "order-sync", name: "OrderSync", component: () => import("../views/OrderSyncView.vue"), meta: { roles: ["BOSS"] } },
+      { path: "order-exception", name: "OrderException", component: () => import("../views/OrderExceptionView.vue"), meta: { roles: ["BOSS"] } },
+      { path: "order-product-map", name: "OrderProductMap", component: () => import("../views/OrderProductMapView.vue"), meta: { roles: ["BOSS"] } },
+      { path: "order-aftersale", name: "OrderAftersale", component: () => import("../views/OrderAftersaleView.vue"), meta: { roles: ["BOSS"] } },
       // 4. 采购管理
       { path: "purchase-orders", name: "PurchaseOrders", component: () => import("../views/PurchaseOrders.vue"), meta: { roles: ["BOSS"] } },
       { path: "purchase-in-stocks", name: "PurchaseInStocks", component: () => import("../views/PurchaseInStocks.vue"), meta: { roles: ["BOSS"] } },

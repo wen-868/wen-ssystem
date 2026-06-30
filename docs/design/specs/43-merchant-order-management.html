@@ -1,0 +1,1742 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>43 · 商户端订单管理 — 设计规格文档</title>
+<style>
+/* ===== CSS Variables ===== */
+:root {
+  --brand: #1677FF;
+  --brand-light: #E6F4FF;
+  --text: #1F1F1F;
+  --text-secondary: #595959;
+  --text-muted: #8C8C8C;
+  --border: #E8E8E8;
+  --bg: #F5F5F5;
+  --white: #FFFFFF;
+  --success: #52C41A;
+  --warning: #FAAD14;
+  --danger: #FF4D4F;
+  --radius: 8px;
+  --shadow: 0 2px 8px rgba(0,0,0,0.08);
+  --wechat: #07C160;
+  --douyin: #010101;
+  --mt-yellow: #FFD101;
+  --ele-blue: #0085FF;
+  --jd-red: #E1251B;
+  --offline: #6B7280;
+}
+
+/* ===== Reset & Base ===== */
+* { margin: 0; padding: 0; box-sizing: border-box; }
+body {
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", sans-serif;
+  background: #F0F2F5;
+  color: var(--text);
+  line-height: 1.6;
+  -webkit-font-smoothing: antialiased;
+}
+
+/* ===== Layout ===== */
+.container {
+  max-width: 1700px;
+  margin: 0 auto;
+  padding: 0 24px;
+}
+
+/* ===== Document Header ===== */
+.doc-header {
+  background: linear-gradient(135deg, #1677FF 0%, #0958D9 100%);
+  color: #fff;
+  padding: 48px 0 40px;
+  margin-bottom: 32px;
+}
+.doc-header .container { max-width: 1700px; }
+.doc-header h1 {
+  font-size: 28px;
+  font-weight: 700;
+  letter-spacing: -0.5px;
+}
+.doc-header .doc-meta {
+  margin-top: 12px;
+  font-size: 14px;
+  opacity: 0.85;
+  display: flex;
+  gap: 24px;
+}
+
+/* ===== Section ===== */
+.section {
+  background: var(--white);
+  border-radius: 12px;
+  padding: 32px;
+  margin-bottom: 24px;
+  box-shadow: 0 1px 4px rgba(0,0,0,0.04);
+}
+.section-title {
+  font-size: 20px;
+  font-weight: 600;
+  margin-bottom: 16px;
+  padding-bottom: 12px;
+  border-bottom: 2px solid var(--brand);
+  display: inline-block;
+}
+.section-desc {
+  color: var(--text-secondary);
+  font-size: 14px;
+  margin-bottom: 24px;
+  line-height: 1.8;
+}
+
+/* ===== Phone Frames Row ===== */
+.phones-row {
+  display: flex;
+  gap: 16px;
+  overflow-x: auto;
+  padding: 8px 0;
+  justify-content: center;
+  flex-wrap: wrap;
+}
+
+/* ===== Phone Frame ===== */
+.phone-frame {
+  width: 375px;
+  display: inline-block;
+  margin: 0 10px;
+  border: 6px solid #1F2937;
+  border-radius: 28px;
+  overflow: hidden;
+  box-shadow: 0 16px 48px rgba(0,0,0,0.25);
+  vertical-align: top;
+  background: #F5F5F5;
+  flex-shrink: 0;
+}
+.phone-frame .phone-status-bar {
+  background: #1F2937;
+  color: #fff;
+  font-size: 10px;
+  padding: 4px 16px;
+  display: flex;
+  justify-content: space-between;
+  height: 22px;
+  align-items: center;
+}
+.phone-frame .phone-content {
+  background: #F5F5F5;
+  min-height: 640px;
+  max-height: 720px;
+  overflow-y: auto;
+  font-size: 13px;
+}
+
+/* ===== Phone Common Components ===== */
+.phone-header {
+  background: var(--white);
+  padding: 12px 16px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  border-bottom: 1px solid #F0F0F0;
+  position: sticky;
+  top: 0;
+  z-index: 10;
+}
+.phone-header .back-btn {
+  width: 28px;
+  height: 28px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  color: var(--text);
+  font-size: 18px;
+  flex-shrink: 0;
+}
+.phone-header .header-title {
+  font-size: 16px;
+  font-weight: 600;
+  flex: 1;
+}
+.phone-header .header-icon {
+  width: 28px;
+  height: 28px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+}
+
+/* ===== Phone Bottom Nav ===== */
+.phone-bottom-nav {
+  background: var(--white);
+  display: flex;
+  border-top: 1px solid #F0F0F0;
+  position: sticky;
+  bottom: 0;
+  z-index: 10;
+}
+.phone-bottom-nav .nav-item {
+  flex: 1;
+  text-align: center;
+  padding: 6px 0 8px;
+  font-size: 10px;
+  color: var(--text-muted);
+  cursor: pointer;
+}
+.phone-bottom-nav .nav-item .nav-icon {
+  width: 20px;
+  height: 20px;
+  margin: 0 auto 2px;
+  border: 1.5px solid currentColor;
+  border-radius: 3px;
+}
+.phone-bottom-nav .nav-item.active {
+  color: var(--brand);
+}
+
+/* ===== Channel Tabs (Phone) ===== */
+.phone-tabs {
+  display: flex;
+  background: var(--white);
+  overflow-x: auto;
+  padding: 0 12px;
+  border-bottom: 1px solid #F0F0F0;
+  gap: 0;
+}
+.phone-tab {
+  padding: 10px 12px;
+  font-size: 12px;
+  color: var(--text-secondary);
+  white-space: nowrap;
+  cursor: pointer;
+  border-bottom: 2px solid transparent;
+  flex-shrink: 0;
+}
+.phone-tab.active {
+  color: var(--brand);
+  border-bottom-color: var(--brand);
+  font-weight: 500;
+}
+
+/* Phone sub-tabs */
+.phone-subtabs {
+  display: flex;
+  background: var(--white);
+  overflow-x: auto;
+  padding: 0 12px;
+  border-bottom: 1px solid #F0F0F0;
+  gap: 0;
+}
+.phone-subtab {
+  padding: 8px 12px;
+  font-size: 11px;
+  color: var(--text-secondary);
+  white-space: nowrap;
+  cursor: pointer;
+  border-bottom: 2px solid transparent;
+  flex-shrink: 0;
+}
+.phone-subtab.active {
+  color: var(--brand);
+  border-bottom-color: var(--brand);
+  font-weight: 500;
+}
+
+/* ===== Section Padding ===== */
+.phone-section {
+  padding: 12px;
+}
+
+/* ===== Stats Grid ===== */
+.stats-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+  margin-bottom: 12px;
+}
+.stat-card {
+  background: var(--white);
+  border-radius: 10px;
+  padding: 12px;
+  text-align: center;
+  position: relative;
+}
+.stat-card .stat-label {
+  font-size: 11px;
+  color: var(--text-muted);
+  margin-bottom: 4px;
+}
+.stat-card .stat-value {
+  font-size: 22px;
+  font-weight: 700;
+  color: var(--text);
+}
+.stat-card .stat-value.danger { color: var(--danger); }
+.stat-card .stat-badge {
+  position: absolute;
+  top: 6px;
+  right: 8px;
+  min-width: 16px;
+  height: 16px;
+  background: var(--danger);
+  color: #fff;
+  font-size: 9px;
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0 4px;
+}
+
+/* ===== Alert Banner ===== */
+.alert-banner {
+  padding: 10px 14px;
+  border-radius: 8px;
+  font-size: 12px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 12px;
+}
+.alert-banner.alert-warning {
+  background: #FFFBE6;
+  border: 1px solid #FFE58F;
+  color: #D48806;
+}
+.alert-banner .alert-icon {
+  width: 18px;
+  height: 18px;
+  border: 2px solid currentColor;
+  border-radius: 50%;
+  flex-shrink: 0;
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.alert-banner .alert-icon::after {
+  content: '';
+  width: 2px;
+  height: 6px;
+  background: currentColor;
+  position: absolute;
+  bottom: 2px;
+}
+
+/* ===== Order Card ===== */
+.order-card {
+  background: var(--white);
+  border-radius: 10px;
+  padding: 14px;
+  margin-bottom: 10px;
+  position: relative;
+  border-left: 3px solid transparent;
+}
+.order-card.pending {
+  border-left-color: var(--warning);
+}
+.order-card.abnormal {
+  border-left-color: var(--danger);
+}
+.order-card .card-header {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 8px;
+}
+.order-card .card-ch {
+  font-size: 11px;
+  color: var(--text-muted);
+}
+.order-card .card-info {
+  font-size: 12px;
+  color: var(--text-secondary);
+  margin-bottom: 4px;
+}
+.order-card .card-products {
+  font-size: 12px;
+  color: var(--text);
+  margin-bottom: 8px;
+  line-height: 1.5;
+}
+.order-card .card-bottom {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+.order-card .card-price {
+  font-size: 18px;
+  font-weight: 700;
+  color: #333;
+}
+.order-card .card-price .yen {
+  font-size: 13px;
+}
+.order-card .card-actions {
+  display: flex;
+  gap: 6px;
+}
+
+/* ===== Tags ===== */
+.tag {
+  display: inline-block;
+  padding: 2px 8px;
+  font-size: 10px;
+  border-radius: 4px;
+  font-weight: 500;
+  white-space: nowrap;
+}
+.tag-success { background: #F6FFED; color: var(--success); border: 1px solid #B7EB8F; }
+.tag-warning { background: #FFFBE6; color: #D48806; border: 1px solid #FFE58F; }
+.tag-danger { background: #FFF2F0; color: var(--danger); border: 1px solid #FFCCC7; }
+.tag-info { background: #E6F4FF; color: var(--brand); border: 1px solid #91CAFF; }
+.tag-purple { background: #F9F0FF; color: #722ED1; border: 1px solid #D3ADF7; }
+.tag-gray { background: #FAFAFA; color: #8C8C8C; border: 1px solid #D9D9D9; }
+.tag-channel {
+  padding: 2px 8px;
+  font-size: 10px;
+  border-radius: 4px;
+  font-weight: 500;
+  color: #fff;
+}
+.tag-wechat { background: var(--wechat); }
+.tag-douyin { background: var(--douyin); }
+.tag-mt { background: var(--mt-yellow); color: #333; }
+.tag-ele { background: var(--ele-blue); }
+.tag-jd { background: var(--jd-red); }
+.tag-offline { background: var(--offline); }
+
+/* ===== Phone Buttons ===== */
+.phone-btn {
+  padding: 6px 14px;
+  font-size: 12px;
+  border-radius: 6px;
+  border: 1px solid var(--border);
+  cursor: pointer;
+  background: var(--white);
+  color: var(--text);
+  white-space: nowrap;
+}
+.phone-btn-primary {
+  background: var(--brand);
+  color: #fff;
+  border-color: var(--brand);
+}
+.phone-btn-success {
+  background: var(--success);
+  color: #fff;
+  border-color: var(--success);
+}
+.phone-btn-danger {
+  background: var(--danger);
+  color: #fff;
+  border-color: var(--danger);
+}
+.phone-btn-gray {
+  background: #F5F5F5;
+  color: var(--text-secondary);
+  border-color: var(--border);
+}
+.phone-btn-block {
+  display: block;
+  width: 100%;
+  padding: 10px;
+  font-size: 14px;
+  border-radius: 8px;
+  font-weight: 500;
+}
+.phone-btn-lg {
+  padding: 10px 20px;
+  font-size: 14px;
+  border-radius: 8px;
+  font-weight: 500;
+}
+
+/* ===== Info Card ===== */
+.info-card {
+  background: var(--white);
+  border-radius: 10px;
+  padding: 14px;
+  margin-bottom: 10px;
+}
+.info-card .info-card-title {
+  font-size: 13px;
+  font-weight: 500;
+  margin-bottom: 10px;
+  padding-bottom: 8px;
+  border-bottom: 1px solid #F0F0F0;
+}
+.info-row {
+  display: flex;
+  padding: 5px 0;
+  font-size: 12px;
+}
+.info-label {
+  width: 66px;
+  color: var(--text-muted);
+  flex-shrink: 0;
+}
+.info-value {
+  color: var(--text);
+  flex: 1;
+}
+
+/* ===== Status Bar ===== */
+.status-bar {
+  text-align: center;
+  padding: 16px 0 12px;
+  background: var(--white);
+  margin-bottom: 10px;
+  border-radius: 10px;
+}
+.status-bar .status-text {
+  font-size: 18px;
+  font-weight: 700;
+  margin-bottom: 4px;
+}
+.status-bar .status-text.warning { color: #D48806; }
+.status-bar .status-text.info { color: var(--brand); }
+.status-bar .status-text.purple { color: #722ED1; }
+.status-bar .status-text.success { color: var(--success); }
+.status-bar .status-text.gray { color: #8C8C8C; }
+.status-bar .status-sub {
+  font-size: 11px;
+  color: var(--text-muted);
+}
+
+/* ===== Order Products ===== */
+.order-product-item {
+  display: flex;
+  gap: 10px;
+  padding: 8px 0;
+  border-bottom: 1px solid #F5F5F5;
+  align-items: flex-start;
+}
+.order-product-item:last-child { border-bottom: none; }
+.order-product-item .product-img {
+  width: 48px;
+  height: 48px;
+  background: #F0F0F0;
+  border-radius: 6px;
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 10px;
+  color: var(--text-muted);
+}
+.order-product-item .product-info {
+  flex: 1;
+  font-size: 12px;
+}
+.order-product-item .product-name {
+  color: var(--text);
+  margin-bottom: 2px;
+}
+.order-product-item .product-spec {
+  font-size: 11px;
+  color: var(--text-muted);
+}
+.order-product-item .product-price-qty {
+  display: flex;
+  justify-content: space-between;
+  margin-top: 4px;
+  font-size: 12px;
+}
+.order-product-item .product-price {
+  color: var(--text);
+}
+.order-product-item .product-qty {
+  color: var(--text-muted);
+}
+
+/* ===== Amount Summary ===== */
+.amount-row {
+  display: flex;
+  justify-content: space-between;
+  padding: 4px 0;
+  font-size: 12px;
+}
+.amount-row.total {
+  font-weight: 600;
+  font-size: 14px;
+  border-top: 1px solid #F0F0F0;
+  padding-top: 8px;
+  margin-top: 4px;
+}
+.amount-row.total .amount-value {
+  color: #D48806;
+  font-size: 16px;
+}
+
+/* ===== Note Card ===== */
+.note-card {
+  background: #FFFBE6;
+  border-radius: 10px;
+  padding: 14px;
+  margin-bottom: 10px;
+  font-size: 12px;
+  color: #8C6D1F;
+}
+
+/* ===== Bottom Action Bar ===== */
+.bottom-action {
+  background: var(--white);
+  padding: 10px 14px;
+  display: flex;
+  gap: 10px;
+  border-top: 1px solid #F0F0F0;
+  position: sticky;
+  bottom: 48px;
+  z-index: 5;
+}
+.bottom-action .btn-flex {
+  flex: 1;
+}
+
+/* ===== Timeline ===== */
+.timeline {
+  padding: 0;
+  list-style: none;
+}
+.timeline-item {
+  display: flex;
+  gap: 10px;
+  padding-bottom: 16px;
+  position: relative;
+  font-size: 12px;
+}
+.timeline-item:last-child { padding-bottom: 0; }
+.timeline-dot {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  background: var(--border);
+  flex-shrink: 0;
+  margin-top: 3px;
+  position: relative;
+  z-index: 2;
+}
+.timeline-dot.active {
+  background: var(--brand);
+  box-shadow: 0 0 0 3px rgba(22,119,255,0.2);
+}
+.timeline-dot.done {
+  background: var(--success);
+}
+.timeline-item:not(:last-child) .timeline-dot::after {
+  content: '';
+  position: absolute;
+  top: 10px;
+  left: 4px;
+  width: 2px;
+  height: calc(100% + 6px);
+  background: var(--border);
+}
+.timeline-content {
+  flex: 1;
+}
+.timeline-content .tl-title {
+  font-weight: 500;
+  color: var(--text);
+}
+.timeline-content .tl-time {
+  font-size: 11px;
+  color: var(--text-muted);
+}
+
+/* ===== Red Border Card ===== */
+.danger-card {
+  border: 1px solid var(--danger);
+  border-radius: 10px;
+  overflow: hidden;
+  margin-bottom: 10px;
+}
+.danger-card .danger-card-header {
+  background: #FFF2F0;
+  padding: 10px 14px;
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--danger);
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+.danger-card .danger-card-body {
+  padding: 14px;
+  background: var(--white);
+}
+
+/* ===== Refund Amount ===== */
+.refund-amount {
+  text-align: center;
+  padding: 16px;
+  background: var(--white);
+  border-radius: 10px;
+  margin-bottom: 10px;
+}
+.refund-amount .refund-label {
+  font-size: 12px;
+  color: var(--text-muted);
+  margin-bottom: 4px;
+}
+.refund-amount .refund-value {
+  font-size: 28px;
+  font-weight: 700;
+  color: var(--danger);
+}
+
+/* ===== Spec Table ===== */
+.spec-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 13px;
+  margin-top: 12px;
+}
+.spec-table th, .spec-table td {
+  padding: 10px 14px;
+  border: 1px solid var(--border);
+  text-align: left;
+}
+.spec-table thead {
+  background: #FAFAFA;
+}
+.spec-table th {
+  font-weight: 600;
+  color: var(--text);
+}
+.spec-table td {
+  color: var(--text-secondary);
+}
+.spec-table .field-name {
+  font-weight: 500;
+  color: var(--text);
+  font-family: "SF Mono", "Menlo", "Monaco", monospace;
+  font-size: 12px;
+}
+.spec-table .field-type {
+  color: var(--brand);
+  font-family: "SF Mono", "Menlo", "Monaco", monospace;
+  font-size: 12px;
+}
+
+/* ===== Checklist ===== */
+.checklist {
+  list-style: none;
+  padding: 0;
+}
+.checklist li {
+  padding: 10px 0;
+  border-bottom: 1px solid var(--border);
+  font-size: 13px;
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  color: var(--text-secondary);
+}
+.checklist li:last-child { border-bottom: none; }
+.checklist .checkbox {
+  width: 18px;
+  height: 18px;
+  border: 2px solid var(--border);
+  border-radius: 4px;
+  flex-shrink: 0;
+  margin-top: 1px;
+  position: relative;
+  cursor: pointer;
+}
+.checklist .checkbox.checked {
+  background: var(--brand);
+  border-color: var(--brand);
+}
+.checklist .checkbox.checked::after {
+  content: '';
+  position: absolute;
+  left: 5px;
+  top: 1px;
+  width: 5px;
+  height: 9px;
+  border: solid #fff;
+  border-width: 0 2px 2px 0;
+  transform: rotate(45deg);
+}
+
+/* ===== Dropdown Refresh ===== */
+.refresh-hint {
+  text-align: center;
+  padding: 12px;
+  font-size: 11px;
+  color: var(--text-muted);
+}
+.load-more {
+  text-align: center;
+  padding: 12px;
+  font-size: 11px;
+  color: var(--text-muted);
+}
+
+/* ===== Abnormal icon ===== */
+.abnormal-icon {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 11px;
+  color: var(--danger);
+}
+.abnormal-icon .ab-dot {
+  width: 6px;
+  height: 6px;
+  background: var(--danger);
+  border-radius: 50%;
+}
+
+/* ===== Search icon ===== */
+.search-icon-circle {
+  width: 18px;
+  height: 18px;
+  border: 2px solid var(--text);
+  border-radius: 50%;
+  position: relative;
+}
+.search-icon-circle::after {
+  content: '';
+  position: absolute;
+  width: 6px;
+  height: 2px;
+  background: var(--text);
+  transform: rotate(45deg);
+  right: -2px;
+  bottom: 1px;
+}
+
+/* ===== Product image placeholder ===== */
+.product-img-placeholder {
+  width: 48px;
+  height: 48px;
+  background: linear-gradient(135deg, #E8E8E8 0%, #F5F5F5 100%);
+  border-radius: 6px;
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 9px;
+  color: #BFBFBF;
+}
+</style>
+</head>
+<body>
+
+<!-- ===== Document Header ===== -->
+<div class="doc-header">
+  <div class="container">
+    <h1>43 · 商户端订单管理 — 设计规格文档</h1>
+    <div class="doc-meta">
+      <span>版本: v1.0</span>
+      <span>日期: 2026-06-30</span>
+      <span>状态: 设计中</span>
+      <span>负责人: 产品团队</span>
+    </div>
+  </div>
+</div>
+
+<div class="container">
+
+  <!-- ===== Page Overview ===== -->
+  <div class="section">
+    <div class="section-title">页面总览</div>
+    <div class="section-desc">
+      商户端订单管理是面向商户的移动端H5/小程序应用，提供订单全生命周期管理能力。
+      商户可通过该功能查看各渠道订单列表、处理订单状态流转（确认接单、配送、完成）、管理异常订单、处理售后申请等。
+      覆盖微信、抖音、美团、饿了么、京东及线下等全渠道订单，支持订单状态筛选、数据概览、异常预警等核心功能。
+      目标用户为商户运营人员，使用场景为手机端浏览器或小程序环境。
+    </div>
+  </div>
+
+  <!-- ===== Mockup ===== -->
+  <div class="section">
+    <div class="section-title">界面模型</div>
+
+    <div class="mockup">
+      <div style="padding:12px;font-size:12px;color:var(--text-muted);text-align:center;background:#EDEFF2;">
+        移动端H5/小程序 · 375px 手机视图
+      </div>
+
+      <div class="phones-row">
+
+        <!-- ===== Phone 1: Order List Page ===== -->
+        <div class="phone-frame">
+          <div class="phone-status-bar">
+            <span>9:41</span>
+            <span>订单管理</span>
+            <span>···</span>
+          </div>
+          <div class="phone-content">
+
+            <!-- Header -->
+            <div class="phone-header">
+              <span class="header-title">订单管理</span>
+              <div class="header-icon">
+                <div class="search-icon-circle"></div>
+              </div>
+            </div>
+
+            <div class="phone-section">
+
+              <!-- Stats Grid -->
+              <div class="stats-grid">
+                <div class="stat-card">
+                  <div class="stat-label">今日订单数</div>
+                  <div class="stat-value">32</div>
+                </div>
+                <div class="stat-card">
+                  <div class="stat-label">今日金额</div>
+                  <div class="stat-value">8,520</div>
+                </div>
+                <div class="stat-card">
+                  <div class="stat-label">待处理</div>
+                  <div class="stat-value danger">5</div>
+                  <div class="stat-badge">5</div>
+                </div>
+                <div class="stat-card">
+                  <div class="stat-label">异常</div>
+                  <div class="stat-value danger">2</div>
+                  <div class="stat-badge">2</div>
+                </div>
+              </div>
+
+              <!-- Alert Banner -->
+              <div class="alert-banner alert-warning">
+                <div class="alert-icon"></div>
+                <span style="flex:1;">您有2笔异常订单需要处理</span>
+                <span style="font-size:11px;color:#D48806;">></span>
+              </div>
+
+              <!-- Channel Tabs -->
+              <div class="phone-tabs">
+                <div class="phone-tab active">全部</div>
+                <div class="phone-tab">微信</div>
+                <div class="phone-tab">抖音</div>
+                <div class="phone-tab">美团</div>
+                <div class="phone-tab">饿了么</div>
+                <div class="phone-tab">京东</div>
+                <div class="phone-tab">线下</div>
+              </div>
+
+              <!-- Status Tabs -->
+              <div class="phone-subtabs">
+                <div class="phone-subtab active">待处理</div>
+                <div class="phone-subtab">已确认</div>
+                <div class="phone-subtab">配送中</div>
+                <div class="phone-subtab">已完成</div>
+                <div class="phone-subtab">已取消</div>
+              </div>
+
+              <div style="height:6px;"></div>
+
+              <!-- Order Card 1: pending -->
+              <div class="order-card pending">
+                <div class="card-header">
+                  <span class="tag tag-channel tag-wechat">微信</span>
+                  <span class="card-ch">ORD-20260630001</span>
+                  <span style="margin-left:auto;font-size:11px;color:var(--text-muted);">10:23</span>
+                </div>
+                <div class="card-info">张三 · 138****5678</div>
+                <div class="card-products">
+                  茉莉花茶500ml x2 · 鲜榨橙汁300ml x1
+                </div>
+                <div class="card-bottom">
+                  <div class="card-price"><span class="yen">¥</span>58.00</div>
+                  <div class="card-actions">
+                    <button class="phone-btn phone-btn-gray">拒单</button>
+                    <button class="phone-btn phone-btn-success">确认接单</button>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Order Card 2: abnormal -->
+              <div class="order-card abnormal">
+                <div class="card-header">
+                  <span class="tag tag-channel tag-mt">美团</span>
+                  <span class="card-ch">ORD-20260630002</span>
+                  <span style="margin-left:auto;font-size:11px;color:var(--text-muted);">09:45</span>
+                </div>
+                <div class="card-info">李四 · 139****2345</div>
+                <div class="card-products">
+                  招牌红烧牛肉面 x1 · 酸菜鱼单人套餐 x1
+                </div>
+                <div class="abnormal-icon" style="margin-bottom:6px;">
+                  <span class="ab-dot"></span> 缺货 - 红烧牛肉面库存不足
+                </div>
+                <div class="card-bottom">
+                  <div class="card-price"><span class="yen">¥</span>63.00</div>
+                  <div class="card-actions">
+                    <button class="phone-btn phone-btn-gray">拒单</button>
+                    <button class="phone-btn phone-btn-success">确认接单</button>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Order Card 3: confirmed -->
+              <div class="order-card">
+                <div class="card-header">
+                  <span class="tag tag-channel tag-douyin">抖音</span>
+                  <span class="card-ch">ORD-20260630003</span>
+                  <span style="margin-left:auto;font-size:11px;color:var(--text-muted);">09:15</span>
+                  <span class="tag tag-info">已确认</span>
+                </div>
+                <div class="card-info">王五 · 137****8901</div>
+                <div class="card-products">
+                  鲜榨橙汁300ml x3 · 手工芋圆烧仙草 x1
+                </div>
+                <div class="card-bottom">
+                  <div class="card-price"><span class="yen">¥</span>143.70</div>
+                  <div class="card-actions">
+                    <button class="phone-btn phone-btn-primary">开始配送</button>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Order Card 4: delivering -->
+              <div class="order-card">
+                <div class="card-header">
+                  <span class="tag tag-channel tag-ele">饿了么</span>
+                  <span class="card-ch">ORD-20260630004</span>
+                  <span style="margin-left:auto;font-size:11px;color:var(--text-muted);">08:30</span>
+                  <span class="tag tag-purple">配送中</span>
+                </div>
+                <div class="card-info">赵六 · 136****3456</div>
+                <div class="card-products">
+                  麻辣香锅(中辣) x1 · 冰美式咖啡大杯 x1
+                </div>
+                <div class="card-bottom">
+                  <div class="card-price"><span class="yen">¥</span>64.00</div>
+                  <div class="card-actions">
+                    <button class="phone-btn phone-btn-success">完成配送</button>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Refresh Hint -->
+              <div class="refresh-hint">下拉刷新</div>
+              <div class="load-more">上拉加载更多</div>
+
+            </div>
+
+            <!-- Bottom Nav -->
+            <div class="phone-bottom-nav">
+              <div class="nav-item">
+                <div class="nav-icon"></div>
+                首页
+              </div>
+              <div class="nav-item active">
+                <div class="nav-icon"></div>
+                订单
+              </div>
+              <div class="nav-item">
+                <div class="nav-icon"></div>
+                商品
+              </div>
+              <div class="nav-item">
+                <div class="nav-icon"></div>
+                我的
+              </div>
+            </div>
+
+          </div>
+        </div>
+
+        <!-- ===== Phone 2: Order Detail Page ===== -->
+        <div class="phone-frame">
+          <div class="phone-status-bar">
+            <span>9:41</span>
+            <span>订单详情</span>
+            <span>···</span>
+          </div>
+          <div class="phone-content">
+
+            <!-- Header -->
+            <div class="phone-header">
+              <div class="back-btn">&#8249;</div>
+              <span class="header-title">订单详情</span>
+            </div>
+
+            <div class="phone-section">
+
+              <!-- Status Bar -->
+              <div class="status-bar">
+                <div class="status-text warning">待处理</div>
+                <div class="status-sub">ORD-20260630001 · 2026-06-30 10:23</div>
+              </div>
+
+              <!-- Order Info Card -->
+              <div class="info-card">
+                <div class="info-card-title">订单基本信息</div>
+                <div class="info-row">
+                  <span class="info-label">渠道来源</span>
+                  <span class="info-value"><span class="tag tag-channel tag-wechat">微信</span></span>
+                </div>
+                <div class="info-row">
+                  <span class="info-label">订单号</span>
+                  <span class="info-value">ORD-20260630001</span>
+                </div>
+                <div class="info-row">
+                  <span class="info-label">支付方式</span>
+                  <span class="info-value">微信支付</span>
+                </div>
+                <div class="info-row">
+                  <span class="info-label">支付时间</span>
+                  <span class="info-value">2026-06-30 10:23:15</span>
+                </div>
+              </div>
+
+              <!-- Products Card -->
+              <div class="info-card">
+                <div class="info-card-title">商品明细</div>
+                <div class="order-product-item">
+                  <div class="product-img-placeholder">商品图</div>
+                  <div class="product-info">
+                    <div class="product-name">茉莉花茶500ml</div>
+                    <div class="product-spec">规格: 500ml/瓶</div>
+                    <div class="product-price-qty">
+                      <span class="product-price">¥18.00</span>
+                      <span class="product-qty">x2</span>
+                    </div>
+                  </div>
+                </div>
+                <div class="order-product-item">
+                  <div class="product-img-placeholder">商品图</div>
+                  <div class="product-info">
+                    <div class="product-name">鲜榨橙汁300ml</div>
+                    <div class="product-spec">规格: 300ml/瓶</div>
+                    <div class="product-price-qty">
+                      <span class="product-price">¥22.00</span>
+                      <span class="product-qty">x1</span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Amount Card -->
+              <div class="info-card">
+                <div class="info-card-title">金额明细</div>
+                <div class="amount-row">
+                  <span>商品总额</span>
+                  <span>¥58.00</span>
+                </div>
+                <div class="amount-row">
+                  <span>优惠金额</span>
+                  <span style="color:var(--danger);">-¥5.00</span>
+                </div>
+                <div class="amount-row">
+                  <span>配送费</span>
+                  <span>¥3.00</span>
+                </div>
+                <div class="amount-row total">
+                  <span>实付金额</span>
+                  <span class="amount-value">¥56.00</span>
+                </div>
+              </div>
+
+              <!-- Delivery Card -->
+              <div class="info-card">
+                <div class="info-card-title">配送信息</div>
+                <div class="info-row">
+                  <span class="info-label">收货人</span>
+                  <span class="info-value">张三</span>
+                </div>
+                <div class="info-row">
+                  <span class="info-label">电话</span>
+                  <span class="info-value">138****5678</span>
+                </div>
+                <div class="info-row">
+                  <span class="info-label">配送地址</span>
+                  <span class="info-value">北京市朝阳区望京SOHO T1栋 1206室</span>
+                </div>
+                <div class="info-row">
+                  <span class="info-label">配送方式</span>
+                  <span class="info-value">平台配送</span>
+                </div>
+                <div class="info-row">
+                  <span class="info-label">预计送达</span>
+                  <span class="info-value">2026-06-30 11:00</span>
+                </div>
+              </div>
+
+              <!-- Note Card -->
+              <div class="note-card">
+                <div style="font-weight:500;margin-bottom:4px;">订单备注</div>
+                <div>少冰，茉莉花茶不要加糖，谢谢。</div>
+              </div>
+
+              <!-- Bottom Action -->
+              <div class="bottom-action">
+                <button class="phone-btn phone-btn-gray btn-flex">拒单</button>
+                <button class="phone-btn phone-btn-success btn-flex" style="flex:2;">确认接单</button>
+              </div>
+
+            </div>
+
+            <!-- Bottom Nav -->
+            <div class="phone-bottom-nav">
+              <div class="nav-item"><div class="nav-icon"></div>首页</div>
+              <div class="nav-item active"><div class="nav-icon"></div>订单</div>
+              <div class="nav-item"><div class="nav-icon"></div>商品</div>
+              <div class="nav-item"><div class="nav-icon"></div>我的</div>
+            </div>
+
+          </div>
+        </div>
+
+        <!-- ===== Phone 3: Abnormal Order Detail ===== -->
+        <div class="phone-frame">
+          <div class="phone-status-bar">
+            <span>9:41</span>
+            <span>异常详情</span>
+            <span>···</span>
+          </div>
+          <div class="phone-content">
+
+            <!-- Header -->
+            <div class="phone-header">
+              <div class="back-btn">&#8249;</div>
+              <span class="header-title">异常详情</span>
+            </div>
+
+            <div class="phone-section">
+
+              <!-- Abnormal Info Card -->
+              <div class="danger-card">
+                <div class="danger-card-header">
+                  <span style="font-size:14px;line-height:1;">!</span> 异常信息
+                </div>
+                <div class="danger-card-body">
+                  <div class="info-row">
+                    <span class="info-label">异常类型</span>
+                    <span class="info-value"><span class="tag tag-danger">缺货</span></span>
+                  </div>
+                  <div class="info-row">
+                    <span class="info-label">异常级别</span>
+                    <span class="info-value"><span class="tag tag-danger">严重</span></span>
+                  </div>
+                  <div class="info-row">
+                    <span class="info-label">异常原因</span>
+                    <span class="info-value">红烧牛肉面库存不足，当前库存为0，无法满足订单需求</span>
+                  </div>
+                  <div class="info-row">
+                    <span class="info-label">创建时间</span>
+                    <span class="info-value">2026-06-30 09:45:00</span>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Related Order Card -->
+              <div class="info-card">
+                <div class="info-card-title">关联订单信息</div>
+                <div class="info-row">
+                  <span class="info-label">订单号</span>
+                  <span class="info-value">ORD-20260630002</span>
+                </div>
+                <div class="info-row">
+                  <span class="info-label">渠道</span>
+                  <span class="info-value"><span class="tag tag-channel tag-mt">美团</span></span>
+                </div>
+                <div class="info-row">
+                  <span class="info-label">客户</span>
+                  <span class="info-value">李四 · 139****2345</span>
+                </div>
+                <div class="info-row">
+                  <span class="info-label">金额</span>
+                  <span class="info-value">¥63.00</span>
+                </div>
+                <div style="margin-top:8px;font-size:12px;color:var(--text-muted);">商品: 招牌红烧牛肉面 x1, 酸菜鱼单人套餐 x1</div>
+              </div>
+
+              <!-- Suggestion Card -->
+              <div class="note-card">
+                <div style="font-weight:500;margin-bottom:4px;">处理建议</div>
+                <div>系统推荐方案：联系客户协商更换为同等价位商品（如麻辣香锅中辣），或由商户发起退款。</div>
+              </div>
+
+              <!-- Appeal Button -->
+              <button class="phone-btn phone-btn-primary phone-btn-block" style="margin-bottom:10px;">提交申诉</button>
+
+              <!-- Timeline -->
+              <div class="info-card">
+                <div class="info-card-title">处理记录</div>
+                <div class="timeline">
+                  <div class="timeline-item">
+                    <div class="timeline-dot active"></div>
+                    <div class="timeline-content">
+                      <div class="tl-title">已提交</div>
+                      <div class="tl-time">2026-06-30 09:46</div>
+                    </div>
+                  </div>
+                  <div class="timeline-item">
+                    <div class="timeline-dot"></div>
+                    <div class="timeline-content">
+                      <div class="tl-title">审核中</div>
+                      <div class="tl-time">--</div>
+                    </div>
+                  </div>
+                  <div class="timeline-item">
+                    <div class="timeline-dot"></div>
+                    <div class="timeline-content">
+                      <div class="tl-title">已解决</div>
+                      <div class="tl-time">--</div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+            </div>
+
+            <!-- Bottom Nav -->
+            <div class="phone-bottom-nav">
+              <div class="nav-item"><div class="nav-icon"></div>首页</div>
+              <div class="nav-item active"><div class="nav-icon"></div>订单</div>
+              <div class="nav-item"><div class="nav-icon"></div>商品</div>
+              <div class="nav-item"><div class="nav-icon"></div>我的</div>
+            </div>
+
+          </div>
+        </div>
+
+        <!-- ===== Phone 4: After-sales List + Detail ===== -->
+        <div class="phone-frame">
+          <div class="phone-status-bar">
+            <span>9:41</span>
+            <span>售后管理</span>
+            <span>···</span>
+          </div>
+          <div class="phone-content">
+
+            <!-- Header -->
+            <div class="phone-header">
+              <span class="header-title">售后管理</span>
+            </div>
+
+            <div class="phone-section">
+
+              <!-- After-sales Tabs -->
+              <div class="phone-subtabs" style="margin-bottom:10px;border-radius:8px;">
+                <div class="phone-subtab active">全部</div>
+                <div class="phone-subtab">退款中</div>
+                <div class="phone-subtab">已退款</div>
+                <div class="phone-subtab">已拒绝</div>
+              </div>
+
+              <!-- After-sales Card 1 -->
+              <div class="order-card">
+                <div class="card-header">
+                  <span style="font-weight:500;">AS-20260630001</span>
+                  <span style="font-size:11px;color:var(--text-muted);">关联: ORD-20260628005</span>
+                </div>
+                <div class="info-row">
+                  <span class="info-label">售后类型</span>
+                  <span class="info-value"><span class="tag tag-warning">退款</span></span>
+                </div>
+                <div class="info-row">
+                  <span class="info-label">状态</span>
+                  <span class="info-value"><span class="tag tag-warning">退款中</span></span>
+                </div>
+                <div class="card-bottom">
+                  <div class="card-price"><span class="yen">¥</span>22.00</div>
+                  <span style="font-size:11px;color:var(--text-muted);">2026-06-29 14:30</span>
+                </div>
+              </div>
+
+              <!-- After-sales Card 2 -->
+              <div class="order-card">
+                <div class="card-header">
+                  <span style="font-weight:500;">AS-20260630002</span>
+                  <span style="font-size:11px;color:var(--text-muted);">关联: ORD-20260625012</span>
+                </div>
+                <div class="info-row">
+                  <span class="info-label">售后类型</span>
+                  <span class="info-value"><span class="tag tag-purple">退货退款</span></span>
+                </div>
+                <div class="info-row">
+                  <span class="info-label">状态</span>
+                  <span class="info-value"><span class="tag tag-purple">退货中</span></span>
+                </div>
+                <div class="card-bottom">
+                  <div class="card-price"><span class="yen">¥</span>128.00</div>
+                  <span style="font-size:11px;color:var(--text-muted);">2026-06-28 09:15</span>
+                </div>
+              </div>
+
+              <!-- After-sales Card 3 -->
+              <div class="order-card">
+                <div class="card-header">
+                  <span style="font-weight:500;">AS-20260630003</span>
+                  <span style="font-size:11px;color:var(--text-muted);">关联: ORD-20260620008</span>
+                </div>
+                <div class="info-row">
+                  <span class="info-label">售后类型</span>
+                  <span class="info-value"><span class="tag tag-success">退款</span></span>
+                </div>
+                <div class="info-row">
+                  <span class="info-label">状态</span>
+                  <span class="info-value"><span class="tag tag-success">已退款</span></span>
+                </div>
+                <div class="card-bottom">
+                  <div class="card-price"><span class="yen">¥</span>35.00</div>
+                  <span style="font-size:11px;color:var(--text-muted);">2026-06-22 16:00</span>
+                </div>
+              </div>
+
+              <div style="height:16px;border-top:1px dashed var(--border);margin:12px 0;position:relative;">
+                <span style="position:absolute;top:-10px;left:50%;transform:translateX(-50%);background:#F5F5F5;padding:0 8px;font-size:11px;color:var(--text-muted);">点击进入售后详情</span>
+              </div>
+
+              <!-- ===== After-sales Detail ===== -->
+              <div style="background:var(--white);border-radius:10px;overflow:hidden;border:1px solid #F0F0F0;">
+
+                <!-- Detail Header -->
+                <div class="phone-header" style="border-bottom:1px solid #F0F0F0;">
+                  <div class="back-btn">&#8249;</div>
+                  <span class="header-title">售后详情</span>
+                </div>
+
+                <div style="padding:12px;">
+
+                  <!-- Status -->
+                  <div class="status-bar">
+                    <div class="status-text warning">退款处理中</div>
+                    <div class="status-sub">AS-20260630001 · 2026-06-29 14:30</div>
+                  </div>
+
+                  <!-- After-sales Info -->
+                  <div class="info-card">
+                    <div class="info-card-title">售后信息</div>
+                    <div class="info-row">
+                      <span class="info-label">售后类型</span>
+                      <span class="info-value"><span class="tag tag-warning">退款</span></span>
+                    </div>
+                    <div class="info-row">
+                      <span class="info-label">退款原因</span>
+                      <span class="info-value">商品质量问题</span>
+                    </div>
+                    <div class="info-row">
+                      <span class="info-label">退款金额</span>
+                      <span class="info-value" style="color:var(--danger);font-weight:500;">¥22.00</span>
+                    </div>
+                    <div class="info-row">
+                      <span class="info-label">问题说明</span>
+                      <span class="info-value">鲜榨橙汁瓶盖破损，液体泄漏</span>
+                    </div>
+                  </div>
+
+                  <!-- Product Info -->
+                  <div class="info-card">
+                    <div class="info-card-title">商品信息</div>
+                    <div class="order-product-item">
+                      <div class="product-img-placeholder">商品图</div>
+                      <div class="product-info">
+                        <div class="product-name">鲜榨橙汁300ml</div>
+                        <div class="product-spec">规格: 300ml/瓶</div>
+                        <div class="product-price-qty">
+                          <span class="product-price">¥22.00</span>
+                          <span class="product-qty">x1</span>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+
+                  <!-- Refund Amount -->
+                  <div class="refund-amount">
+                    <div class="refund-label">退款金额</div>
+                    <div class="refund-value">¥22.00</div>
+                  </div>
+
+                  <!-- Timeline -->
+                  <div class="info-card">
+                    <div class="info-card-title">处理进度</div>
+                    <div class="timeline">
+                      <div class="timeline-item">
+                        <div class="timeline-dot done"></div>
+                        <div class="timeline-content">
+                          <div class="tl-title">提交申请</div>
+                          <div class="tl-time">2026-06-29 14:30</div>
+                        </div>
+                      </div>
+                      <div class="timeline-item">
+                        <div class="timeline-dot active"></div>
+                        <div class="timeline-content">
+                          <div class="tl-title">商家审核</div>
+                          <div class="tl-time">审核中</div>
+                        </div>
+                      </div>
+                      <div class="timeline-item">
+                        <div class="timeline-dot"></div>
+                        <div class="timeline-content">
+                          <div class="tl-title">退款处理</div>
+                          <div class="tl-time">--</div>
+                        </div>
+                      </div>
+                      <div class="timeline-item">
+                        <div class="timeline-dot"></div>
+                        <div class="timeline-content">
+                          <div class="tl-title">已完成</div>
+                          <div class="tl-time">--</div>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+
+                  <!-- Logistics (for return) -->
+                  <div class="info-card">
+                    <div class="info-card-title">物流信息</div>
+                    <div class="info-row">
+                      <span class="info-label">退货单号</span>
+                      <span class="info-value">--</span>
+                    </div>
+                    <div class="info-row">
+                      <span class="info-label">快递公司</span>
+                      <span class="info-value">--</span>
+                    </div>
+                    <div class="info-row">
+                      <span class="info-label">物流状态</span>
+                      <span class="info-value">无需退货</span>
+                    </div>
+                  </div>
+
+                </div>
+              </div>
+
+            </div>
+
+            <!-- Bottom Nav -->
+            <div class="phone-bottom-nav">
+              <div class="nav-item"><div class="nav-icon"></div>首页</div>
+              <div class="nav-item active"><div class="nav-icon"></div>订单</div>
+              <div class="nav-item"><div class="nav-icon"></div>商品</div>
+              <div class="nav-item"><div class="nav-icon"></div>我的</div>
+            </div>
+
+          </div>
+        </div>
+
+      </div><!-- /phones-row -->
+    </div><!-- /mockup -->
+  </div>
+
+  <!-- ===== Field Spec Table ===== -->
+  <div class="section">
+    <div class="section-title">字段规范</div>
+
+    <h3 style="font-size:15px;margin:16px 0 8px;color:var(--text);">订单字段</h3>
+    <table class="spec-table">
+      <thead>
+        <tr>
+          <th>字段名</th>
+          <th>类型</th>
+          <th>必填</th>
+          <th>说明</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td class="field-name">order_id</td>
+          <td class="field-type">string</td>
+          <td>是</td>
+          <td>订单唯一标识</td>
+        </tr>
+        <tr>
+          <td class="field-name">channel</td>
+          <td class="field-type">enum</td>
+          <td>是</td>
+          <td>订单来源渠道：wechat/douyin/meituan/eleme/jd/offline</td>
+        </tr>
+        <tr>
+          <td class="field-name">order_status</td>
+          <td class="field-type">enum</td>
+          <td>是</td>
+          <td>订单状态：pending/confirmed/delivering/completed/cancelled</td>
+        </tr>
+        <tr>
+          <td class="field-name">customer_name</td>
+          <td class="field-type">string</td>
+          <td>是</td>
+          <td>客户姓名</td>
+        </tr>
+        <tr>
+          <td class="field-name">customer_phone</td>
+          <td class="field-type">string</td>
+          <td>是</td>
+          <td>客户联系电话</td>
+        </tr>
+        <tr>
+          <td class="field-name">total_amount</td>
+          <td class="field-type">decimal</td>
+          <td>是</td>
+          <td>订单总金额</td>
+        </tr>
+        <tr>
+          <td class="field-name">discount_amount</td>
+          <td class="field-type">decimal</td>
+          <td>否</td>
+          <td>优惠金额</td>
+        </tr>
+        <tr>
+          <td class="field-name">delivery_fee</td>
+          <td class="field-type">decimal</td>
+          <td>否</td>
+          <td>配送费</td>
+        </tr>
+        <tr>
+          <td class="field-name">paid_amount</td>
+          <td class="field-type">decimal</td>
+          <td>是</td>
+          <td>实付金额</td>
+        </tr>
+        <tr>
+          <td class="field-name">delivery_address</td>
+          <td class="field-type">string</td>
+          <td>否</td>
+          <td>配送地址</td>
+        </tr>
+        <tr>
+          <td class="field-name">delivery_method</td>
+          <td class="field-type">string</td>
+          <td>否</td>
+          <td>配送方式</td>
+        </tr>
+        <tr>
+          <td class="field-name">expected_delivery_time</td>
+          <td class="field-type">datetime</td>
+          <td>否</td>
+          <td>预计送达时间</td>
+        </tr>
+        <tr>
+          <td class="field-name">order_note</td>
+          <td class="field-type">string</td>
+          <td>否</td>
+          <td>订单备注</td>
+        </tr>
+        <tr>
+          <td class="field-name">is_abnormal</td>
+          <td class="field-type">boolean</td>
+          <td>是</td>
+          <td>是否为异常订单</td>
+        </tr>
+        <tr>
+          <td class="field-name">abnormal_type</td>
+          <td class="field-type">string</td>
+          <td>否</td>
+          <td>异常类型，如缺货、超时等</td>
+        </tr>
+        <tr>
+          <td class="field-name">created_at</td>
+          <td class="field-type">datetime</td>
+          <td>是</td>
+          <td>订单创建时间</td>
+        </tr>
+      </tbody>
+    </table>
+
+    <h3 style="font-size:15px;margin:24px 0 8px;color:var(--text);">售后字段</h3>
+    <table class="spec-table">
+      <thead>
+        <tr>
+          <th>字段名</th>
+          <th>类型</th>
+          <th>必填</th>
+          <th>说明</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td class="field-name">aftersale_id</td>
+          <td class="field-type">string</td>
+          <td>是</td>
+          <td>售后单唯一标识</td>
+        </tr>
+        <tr>
+          <td class="field-name">order_id</td>
+          <td class="field-type">string</td>
+          <td>是</td>
+          <td>关联的订单ID</td>
+        </tr>
+        <tr>
+          <td class="field-name">aftersale_type</td>
+          <td class="field-type">enum</td>
+          <td>是</td>
+          <td>售后类型：refund/return_refund</td>
+        </tr>
+        <tr>
+          <td class="field-name">aftersale_status</td>
+          <td class="field-type">enum</td>
+          <td>是</td>
+          <td>售后状态：pending/processing/refunding/completed/rejected</td>
+        </tr>
+        <tr>
+          <td class="field-name">refund_amount</td>
+          <td class="field-type">decimal</td>
+          <td>是</td>
+          <td>退款金额</td>
+        </tr>
+        <tr>
+          <td class="field-name">reason</td>
+          <td class="field-type">string</td>
+          <td>是</td>
+          <td>售后原因</td>
+        </tr>
+        <tr>
+          <td class="field-name">description</td>
+          <td class="field-type">string</td>
+          <td>否</td>
+          <td>问题说明</td>
+        </tr>
+        <tr>
+          <td class="field-name">return_logistics_no</td>
+          <td class="field-type">string</td>
+          <td>否</td>
+          <td>退货物流单号</td>
+        </tr>
+        <tr>
+          <td class="field-name">return_express_company</td>
+          <td class="field-type">string</td>
+          <td>否</td>
+          <td>退货快递公司</td>
+        </tr>
+        <tr>
+          <td class="field-name">created_at</td>
+          <td class="field-type">datetime</td>
+          <td>是</td>
+          <td>售后创建时间</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <!-- ===== Checklist ===== -->
+  <div class="section">
+    <div class="section-title">验收标准</div>
+    <ul class="checklist">
+      <li><span class="checkbox checked"></span> 订单列表页正确展示今日订单数、今日金额、待处理数、异常数四个数据概览卡片</li>
+      <li><span class="checkbox checked"></span> 异常提醒横幅在有异常订单时正确显示，点击可跳转异常订单列表</li>
+      <li><span class="checkbox checked"></span> 渠道筛选Tab（全部/微信/抖音/美团/饿了么/京东/线下）切换正常，数据过滤正确</li>
+      <li><span class="checkbox checked"></span> 状态筛选Tab（待处理/已确认/配送中/已完成/已取消）切换正常，数据过滤正确</li>
+      <li><span class="checkbox checked"></span> 待处理订单卡片左侧黄色边框高亮显示，底部操作按钮为"确认接单"和"拒单"</li>
+      <li><span class="checkbox checked"></span> 异常订单卡片左侧红色边框高亮，显示异常图标和原因简述</li>
+      <li><span class="checkbox checked"></span> 已确认状态的订单卡片底部显示"开始配送"按钮</li>
+      <li><span class="checkbox checked"></span> 配送中状态的订单卡片底部显示"完成配送"按钮</li>
+      <li><span class="checkbox checked"></span> 订单详情页正确展示订单状态、基本信息、商品明细、金额明细、配送信息、订单备注</li>
+      <li><span class="checkbox checked"></span> 订单详情页底部操作栏根据订单状态显示对应按钮（待处理/已确认/配送中/已完成）</li>
+      <li><span class="checkbox checked"></span> 异常订单详情页正确展示异常信息（类型、级别、原因）、关联订单、处理建议</li>
+      <li><span class="checkbox checked"></span> 异常订单详情页包含申诉入口按钮和处理记录时间线</li>
+      <li><span class="checkbox checked"></span> 售后列表页正确展示售后单，支持按售后状态Tab筛选</li>
+      <li><span class="checkbox checked"></span> 售后详情页正确展示售后信息、商品信息、退款金额、处理进度时间线</li>
+      <li><span class="checkbox checked"></span> 底部Tab导航正确高亮当前所在页面（订单Tab为active状态）</li>
+      <li><span class="checkbox checked"></span> 下拉刷新和上拉加载更多功能交互正常</li>
+      <li><span class="checkbox checked"></span> 各渠道标签颜色与渠道对应正确（微信绿、抖音黑、美团黄、饿了么蓝、京东红、线下灰）</li>
+      <li><span class="checkbox checked"></span> 所有金额显示格式统一，实付金额和退款金额使用醒目样式展示</li>
+    </ul>
+  </div>
+
+</div><!-- /container -->
+
+</body>
+</html>

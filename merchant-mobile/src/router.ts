@@ -112,7 +112,16 @@ const routes: RouteRecordRaw[] = [
   // 即时零售
   { path: '/instant-retail/orders', name: 'instant-retail-orders', component: () => import('./views/instant-retail/order-list.vue'), meta: { requiresAuth: true } },
   { path: '/instant-retail/orders/:platformOrderId', name: 'instant-retail-order-detail', component: () => import('./views/instant-retail/order-detail.vue'), meta: { requiresAuth: true } },
-  { path: '/instant-retail/inventory-sync', name: 'instant-retail-inventory-sync', component: () => import('./views/instant-retail/inventory-sync.vue'), meta: { requiresAuth: true } }
+  { path: '/instant-retail/inventory-sync', name: 'instant-retail-inventory-sync', component: () => import('./views/instant-retail/inventory-sync.vue'), meta: { requiresAuth: true } },
+  // 订单中心
+  { path: '/order-center', name: 'order-center', component: () => import('./views/OrderCenterView.vue'), meta: { requiresAuth: true } },
+  { path: '/order-center/detail/:channelOrderNo', name: 'order-center-detail', component: () => import('./views/OrderCenterDetailView.vue'), meta: { requiresAuth: true } },
+  // 异常订单
+  { path: '/order-exception', name: 'order-exception', component: () => import('./views/OrderExceptionView.vue'), meta: { requiresAuth: true } },
+  { path: '/order-exception/detail/:id', name: 'order-exception-detail', component: () => import('./views/OrderExceptionDetailView.vue'), meta: { requiresAuth: true } },
+  // 售后管理
+  { path: '/order-aftersale/list', name: 'order-aftersale-list', component: () => import('./views/OrderAftersaleView.vue'), meta: { requiresAuth: true } },
+  { path: '/order-aftersale/detail/:aftersaleNo', name: 'order-aftersale-detail', component: () => import('./views/OrderAftersaleDetailView.vue'), meta: { requiresAuth: true } }
 ]
 
 const router = createRouter({
