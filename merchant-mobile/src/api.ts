@@ -1434,3 +1434,125 @@ export function confirmSupplierStatement(statementNo: string) {
 export function disputeSupplierStatement(statementNo: string, remark: string) {
   return api.post(`/store/supplier-statements/${statementNo}/dispute`, { remark })
 }
+
+/* ========== Phase 6: 库存管理 ========== */
+
+export interface InventoryCheckRecord {
+  id: number
+  checkNo: string
+  check_no: string
+  storeId: number
+  storeName: string
+  warehouseName: string
+  warehouseId: number
+  warehouse_name: string
+  status: string
+  skuCount: number
+  sku_count: number
+  diffCount: number
+  diff_count: number
+  createdAt: string
+  created_at: string
+}
+
+export interface InventoryCheckItem {
+  id: number
+  skuId: number
+  skuName: string
+  skuCode: string
+  bookQty: number
+  book_qty: number
+  actualQty: number | null
+  actual_qty: number | null
+  diffQty: number | null
+  diff_qty: number | null
+  unitPrice: number
+  remark: string
+}
+
+export interface InventoryCheckDetail extends InventoryCheckRecord {
+  items: InventoryCheckItem[]
+}
+
+export function fetchInventoryChecks(params?: { page?: number; pageSize?: number; status?: string }) {
+  return api.get('/store/stock-checks/my', { params })
+}
+
+export function createInventoryCheck(data: { warehouseId: number; remark?: string }) {
+  return api.post('/store/stock-checks', data)
+}
+
+export function getInventoryCheckDetail(id: number) {
+  return api.get(`/store/stock-checks/${id}`)
+}
+
+export function updateInventoryCheckItem(checkId: number, itemId: number, data: { actualQty: number }) {
+  return api.put(`/store/stock-checks/${checkId}/items/${itemId}`, data)
+}
+
+export function submitInventoryCheck(id: number) {
+  return api.post(`/store/stock-checks/${id}/submit`)
+}
+
+export interface TransferOrderRecord {
+  id: number
+  transferNo: string
+  transfer_no: string
+  fromStoreId: number
+  fromStoreName: string
+  from_store_name: string
+  toStoreId: number
+  toStoreName: string
+  to_store_name: string
+  status: string
+  totalAmount: number
+  total_amount: number
+  totalQty: number
+  total_qty: number
+  expectedDate: string
+  expected_date: string
+  createdAt: string
+  created_at: string
+}
+
+export interface TransferOrderItem {
+  id: number
+  skuId: number
+  skuName: string
+  quantity: number
+  shippedQty: number
+  shipped_qty: number
+  receivedQty: number
+  received_qty: number
+  unitPrice: number
+}
+
+export interface TransferOrderDetail extends TransferOrderRecord {
+  items: TransferOrderItem[]
+}
+
+export function fetchTransferOrders(params?: { page?: number; pageSize?: number; status?: string }) {
+  return api.get('/store/transfers', { params })
+}
+
+export function createTransferOrder(data: {
+  fromStoreId: number
+  toStoreId: number
+  expectedDate?: string
+  remark?: string
+  items: { skuId: number; skuName: string; quantity: number; unitPrice: number }[]
+}) {
+  return api.post('/store/transfers', data)
+}
+
+export function getTransferOrderDetail(id: number) {
+  return api.get(`/store/transfers/${id}`)
+}
+
+export function confirmTransferOut(id: number) {
+  return api.post(`/store/transfers/${id}/ship`)
+}
+
+export function confirmTransferIn(id: number, items: { itemId: number; receivedQty: number }[]) {
+  return api.post(`/store/transfers/${id}/receive`, { items })
+}

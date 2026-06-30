@@ -80,7 +80,13 @@ const routes: RouteRecordRaw[] = [
   { path: '/suppliers/:id', name: 'supplier-detail', component: () => import('./views/SupplierDetailView.vue'), meta: { requiresAuth: true } },
   // 供应商对账
   { path: '/supplier-statements', name: 'supplier-statements', component: () => import('./views/SupplierStatementsView.vue'), meta: { requiresAuth: true } },
-  { path: '/supplier-statements/:statementNo', name: 'supplier-statement-detail', component: () => import('./views/SupplierStatementDetailView.vue'), meta: { requiresAuth: true } }
+  { path: '/supplier-statements/:statementNo', name: 'supplier-statement-detail', component: () => import('./views/SupplierStatementDetailView.vue'), meta: { requiresAuth: true } },
+  // 盘点管理
+  { path: '/inventory-checks', name: 'inventory-checks', component: () => import('./views/InventoryCheckView.vue'), meta: { requiresAuth: true } },
+  { path: '/inventory-checks/:checkNo/execute', name: 'inventory-check-execute', component: () => import('./views/InventoryCheckExecuteView.vue'), meta: { requiresAuth: true } },
+  // 调拨管理
+  { path: '/inventory-transfers', name: 'inventory-transfers', component: () => import('./views/InventoryTransferView.vue'), meta: { requiresAuth: true } },
+  { path: '/inventory-transfers/:transferNo', name: 'inventory-transfer-detail', component: () => import('./views/InventoryTransferDetailView.vue'), meta: { requiresAuth: true } }
 ]
 
 const router = createRouter({

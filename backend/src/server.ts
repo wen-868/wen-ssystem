@@ -61,6 +61,9 @@ import { commissionRouter } from "./routes/commission.routes.js";
 import { supplierStatementRouter } from "./routes/supplier-statement.routes.js";
 import { purchasePlanRouter } from "./routes/purchase-plan.routes.js";
 import { purchaseContractRouter } from "./routes/purchase-contract.routes.js";
+import { inventoryCostRouter } from "./routes/inventory-cost.routes.js";
+import { stockWarningRouter } from "./routes/stock-warning.routes.js";
+import { inventoryLossGainRouter } from "./routes/inventory-loss-gain.routes.js";
 
 const app = express();
 
@@ -155,6 +158,9 @@ app.use("/api/admin/commission", requireAuthWithTenant, commissionRouter);
 app.use("/api/admin/supplier-statements", requireAuthWithTenant, supplierStatementRouter);
 app.use("/api/admin/purchase-plans", requireAuthWithTenant, purchasePlanRouter);
 app.use("/api/admin/purchase-contracts", requireAuthWithTenant, purchaseContractRouter);
+app.use("/api/admin/inventory", requireAuthWithTenant, inventoryCostRouter);
+app.use("/api/admin/inventory", requireAuthWithTenant, inventoryLossGainRouter);
+app.use("/api/admin/stock-warnings", requireAuthWithTenant, stockWarningRouter);
 
 app.use(errorHandler);
 

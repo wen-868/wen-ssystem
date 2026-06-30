@@ -1,0 +1,245 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>17 - 库存成本核算页面设计 | 智享酒水库存系统</title>
+<style>
+:root {
+  --brand: #1677FF; --brand-light: #E6F4FF; --text: #1F2328; --text-secondary: #4B5563; --text-muted: #9CA3AF;
+  --border: #E5E7EB; --bg: #F5F7FA; --white: #FFF; --success: #10B981; --warning: #F59E0B; --danger: #EF4444;
+  --radius: 12px; --shadow: 0 2px 8px rgba(0,0,0,.06);
+}
+* { margin: 0; padding: 0; box-sizing: border-box; }
+body { font-family: -apple-system, BlinkMacSystemFont, 'PingFang SC', 'Microsoft YaHei', sans-serif; background: var(--bg); color: var(--text); line-height: 1.6; }
+.container { max-width: 1300px; margin: 0 auto; padding: 40px 24px; }
+.header { background: linear-gradient(135deg, #059669, #047857); color: #fff; padding: 48px 24px; text-align: center; }
+.header h1 { font-size: 2rem; font-weight: 700; margin-bottom: 8px; }
+.header p { font-size: 1rem; opacity: .85; }
+.section { background: var(--white); border-radius: var(--radius); padding: 32px; margin-bottom: 24px; box-shadow: var(--shadow); }
+.section h2 { font-size: 1.25rem; color: #059669; margin-bottom: 8px; padding-bottom: 12px; border-bottom: 2px solid #ECFDF5; }
+.section h3 { font-size: 1.05rem; margin: 20px 0 10px; }
+.section p.desc { color: var(--text-secondary); margin-bottom: 16px; font-size: .88rem; }
+
+.mockup { border: 1px solid var(--border); border-radius: var(--radius); overflow: hidden; background: #fff; margin: 16px 0; }
+.mockup-header { background: #fff; border-bottom: 1px solid #F0F0F0; padding: 0 20px; height: 56px; display: flex; align-items: center; justify-content: space-between; }
+.mockup-logo { font-size: 16px; font-weight: 700; color: var(--brand); display: flex; align-items: center; gap: 8px; }
+.mockup-logo-icon { width: 28px; height: 28px; background: linear-gradient(135deg, var(--brand), #0958D9); border-radius: 6px; }
+.mockup-nav { display: flex; gap: 4px; }
+.mockup-nav-item { padding: 6px 14px; border-radius: 6px; font-size: 13px; color: var(--text-secondary); }
+.mockup-nav-item.active { background: var(--brand-light); color: var(--brand); font-weight: 500; }
+.mockup-user { display: flex; align-items: center; gap: 8px; font-size: 13px; }
+.mockup-avatar { width: 32px; height: 32px; border-radius: 50%; background: var(--brand); display: flex; align-items: center; justify-content: center; color: #fff; font-size: 13px; font-weight: 600; }
+.mockup-body { display: flex; }
+.mockup-sidebar { width: 220px; background: #fff; border-right: 1px solid #F0F0F0; padding: 16px 0; min-height: 520px; }
+.mockup-sidebar-item { padding: 10px 20px; font-size: 13px; color: var(--text-secondary); display: flex; align-items: center; gap: 10px; }
+.mockup-sidebar-item.active { background: var(--brand-light); color: var(--brand); font-weight: 500; border-right: 3px solid var(--brand); }
+.mockup-sidebar-section { font-size: 11px; color: var(--text-muted); padding: 16px 20px 6px; font-weight: 600; text-transform: uppercase; }
+.mockup-main { flex: 1; padding: 20px 24px; background: var(--bg); }
+.mockup-page-title { font-size: 20px; font-weight: 700; margin-bottom: 4px; }
+.mockup-breadcrumb { font-size: 12px; color: var(--text-muted); margin-bottom: 12px; }
+.tag { padding: 2px 8px; border-radius: 4px; font-size: 11px; font-weight: 500; white-space: nowrap; }
+.tag-warning { background: #FEF3C7; color: #92400E; }
+.tag-success { background: #D1FAE5; color: #065F46; }
+.tag-danger { background: #FEE2E2; color: #991B1B; }
+.tag-info { background: #DBEAFE; color: #1E40AF; }
+
+.mockup-table { width: 100%; border-collapse: collapse; font-size: 12px; }
+.mockup-table th { background: #F8FAFC; padding: 10px 12px; text-align: left; font-weight: 600; color: var(--text-secondary); border-bottom: 1px solid var(--border); font-size: 11px; }
+.mockup-table td { padding: 10px 12px; border-bottom: 1px solid #F0F0F0; }
+.mockup-table tr:hover td { background: #F8FAFC; }
+
+.flow { display: flex; align-items: center; justify-content: center; gap: 12px; flex-wrap: wrap; padding: 20px; }
+.flow-step { background: var(--brand-light); border: 1px solid var(--brand); border-radius: 12px; padding: 14px 20px; text-align: center; font-size: 13px; font-weight: 500; min-width: 100px; }
+.flow-step .step-num { display: block; width: 24px; height: 24px; border-radius: 50%; background: var(--brand); color: #fff; font-size: 12px; line-height: 24px; margin: 0 auto 6px; }
+.flow-arrow { font-size: 20px; color: var(--brand); }
+
+.spec-table { width: 100%; border-collapse: collapse; margin: 16px 0; }
+.spec-table th, .spec-table td { padding: 10px 14px; text-align: left; border-bottom: 1px solid var(--border); font-size: .85rem; }
+.spec-table th { background: #ECFDF5; color: #059669; font-weight: 600; font-size: .8rem; }
+.spec-table tr:hover { background: #F8FAFC; }
+.spec-table code { background: #F1F5F9; padding: 2px 6px; border-radius: 4px; font-size: .82rem; }
+
+.stats-row { display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px; margin-bottom: 20px; }
+.stat-card { background: #fff; border-radius: 8px; padding: 18px; border: 1px solid var(--border); display: flex; flex-direction: column; gap: 8px; }
+.stat-card .stat-label { font-size: 12px; color: var(--text-muted); }
+.stat-card .stat-value { font-size: 24px; font-weight: 700; }
+.stat-card .stat-change { font-size: 11px; }
+.stat-card .stat-change.up { color: var(--success); }
+.stat-card .stat-change.down { color: var(--danger); }
+</style>
+</head>
+<body>
+
+<div class="header">
+  <h1>库存成本核算页面设计</h1>
+  <p>移动平均法 · SKU成本明细 · 成本趋势分析 — 库存财务核心</p>
+</div>
+
+<div class="container">
+
+  <!-- 1. 业务流程 -->
+  <div class="section">
+    <h2>1. 成本核算流程</h2>
+    <div class="flow">
+      <div class="flow-step"><span class="step-num">1</span>采购入库</div>
+      <div class="flow-arrow">→</div>
+      <div class="flow-step"><span class="step-num">2</span>更新移动平均成本</div>
+      <div class="flow-arrow">→</div>
+      <div class="flow-step"><span class="step-num">3</span>销售出库</div>
+      <div class="flow-arrow">→</div>
+      <div class="flow-step" style="background:#D1FAE5;border-color:#10B981;"><span class="step-num" style="background:#10B981;">4</span>计算当月成本</div>
+    </div>
+    <p class="desc" style="margin-top:16px;text-align:center;">采用移动加权平均法：每次入库后重新计算库存平均成本。出库按当前移动平均成本计价。</p>
+  </div>
+
+  <!-- 2. 成本核算列表 -->
+  <div class="section">
+    <h2>2. 库存成本核算表</h2>
+    <div class="mockup">
+      <div class="mockup-header">
+        <div class="mockup-logo"><div class="mockup-logo-icon"></div>智享酒水库存</div>
+        <div class="mockup-nav">
+          <span class="mockup-nav-item">仪表盘</span>
+          <span class="mockup-nav-item">库存管理</span>
+          <span class="mockup-nav-item">销售管理</span>
+          <span class="mockup-nav-item">采购管理</span>
+        </div>
+        <div class="mockup-user"><div class="mockup-avatar">财</div>财务</div>
+      </div>
+      <div class="mockup-body">
+        <div class="mockup-sidebar">
+          <div class="mockup-sidebar-section">库存管理</div>
+          <div class="mockup-sidebar-item">库存总览</div>
+          <div class="mockup-sidebar-item">入库管理</div>
+          <div class="mockup-sidebar-item">出库管理</div>
+          <div class="mockup-sidebar-item">库存盘点</div>
+          <div class="mockup-sidebar-item">库存调拨</div>
+          <div class="mockup-sidebar-item active">成本核算</div>
+          <div class="mockup-sidebar-item">库存预警</div>
+          <div class="mockup-sidebar-item">库存报表</div>
+        </div>
+        <div class="mockup-main">
+          <div class="mockup-breadcrumb">库存管理 / 成本核算</div>
+          <div class="mockup-page-title">库存成本核算</div>
+          <div style="display:flex;gap:12px;margin-bottom:16px;align-items:center;">
+            <select style="padding:6px 12px;border:1px solid var(--border);border-radius:6px;font-size:12px;"><option>2024年6月</option><option>2024年5月</option></select>
+            <select style="padding:6px 12px;border:1px solid var(--border);border-radius:6px;font-size:12px;"><option>全部品类</option><option>白酒</option><option>啤酒</option><option>红酒</option></select>
+          </div>
+          <div class="stats-row">
+            <div class="stat-card"><div class="stat-label">期末库存总值</div><div class="stat-value" style="color:var(--brand);">¥1,286,500</div><div class="stat-change up">↑ 8.5%</div></div>
+            <div class="stat-card"><div class="stat-label">本期入库成本</div><div class="stat-value">¥312,300</div><div class="stat-change up">↑ 12.3%</div></div>
+            <div class="stat-card"><div class="stat-label">本期出库成本</div><div class="stat-value">¥256,800</div><div class="stat-change down">↑ 5.1%</div></div>
+            <div class="stat-card"><div class="stat-label">SKU数量</div><div class="stat-value">86</div><div class="stat-change">持平</div></div>
+          </div>
+          <table class="mockup-table">
+            <thead><tr><th>SKU</th><th>品类</th><th>期初数量</th><th>期初成本</th><th>本期入库</th><th>本期出库</th><th>期末数量</th><th>期末成本</th><th>移动平均价</th><th>趋势</th></tr></thead>
+            <tbody>
+              <tr><td>茅台 飞天 53度</td><td>白酒</td><td>20箱</td><td>¥56,000</td><td>30箱</td><td>15箱</td><td>35箱</td><td>¥98,000</td><td>¥2,800</td><td><span class="tag tag-warning">↑ 2.3%</span></td></tr>
+              <tr><td>五粮液 普五 52度</td><td>白酒</td><td>40箱</td><td>¥38,000</td><td>20箱</td><td>25箱</td><td>35箱</td><td>¥33,250</td><td>¥950</td><td><span class="tag tag-info">持平</span></td></tr>
+              <tr><td>国窖1573 52度</td><td>白酒</td><td>50箱</td><td>¥40,000</td><td>10箱</td><td>30箱</td><td>30箱</td><td>¥24,000</td><td>¥800</td><td><span class="tag tag-success">↓ 1.5%</span></td></tr>
+              <tr><td>剑南春 水晶剑</td><td>白酒</td><td>15箱</td><td>¥5,250</td><td>20箱</td><td>10箱</td><td>25箱</td><td>¥8,750</td><td>¥350</td><td><span class="tag tag-info">持平</span></td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 3. 成本趋势图 -->
+  <div class="section">
+    <h2>3. 成本趋势分析</h2>
+    <div class="mockup">
+      <div class="mockup-header">
+        <div class="mockup-logo"><div class="mockup-logo-icon"></div>智享酒水库存</div>
+        <div class="mockup-nav">
+          <span class="mockup-nav-item">仪表盘</span>
+          <span class="mockup-nav-item">库存管理</span>
+          <span class="mockup-nav-item">销售管理</span>
+          <span class="mockup-nav-item">采购管理</span>
+        </div>
+        <div class="mockup-user"><div class="mockup-avatar">财</div>财务</div>
+      </div>
+      <div class="mockup-body">
+        <div class="mockup-sidebar">
+          <div class="mockup-sidebar-section">库存管理</div>
+          <div class="mockup-sidebar-item">库存总览</div>
+          <div class="mockup-sidebar-item">入库管理</div>
+          <div class="mockup-sidebar-item">出库管理</div>
+          <div class="mockup-sidebar-item">库存盘点</div>
+          <div class="mockup-sidebar-item">库存调拨</div>
+          <div class="mockup-sidebar-item active">成本核算</div>
+          <div class="mockup-sidebar-item">库存预警</div>
+          <div class="mockup-sidebar-item">库存报表</div>
+        </div>
+        <div class="mockup-main">
+          <div class="mockup-page-title">成本趋势 — 茅台 飞天 53度</div>
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-top:16px;">
+            <div style="background:#fff;border:1px solid var(--border);border-radius:8px;padding:16px;">
+              <div style="font-size:13px;font-weight:600;margin-bottom:12px;">移动平均成本走势（近6个月）</div>
+              <div style="display:flex;align-items:flex-end;gap:8px;height:120px;padding:8px 0;">
+                <div style="flex:1;text-align:center;"><div style="background:var(--brand);height:70px;border-radius:4px 4px 0 0;opacity:.6;"></div><div style="font-size:10px;margin-top:4px;">1月</div></div>
+                <div style="flex:1;text-align:center;"><div style="background:var(--brand);height:75px;border-radius:4px 4px 0 0;opacity:.7;"></div><div style="font-size:10px;margin-top:4px;">2月</div></div>
+                <div style="flex:1;text-align:center;"><div style="background:var(--brand);height:80px;border-radius:4px 4px 0 0;opacity:.8;"></div><div style="font-size:10px;margin-top:4px;">3月</div></div>
+                <div style="flex:1;text-align:center;"><div style="background:var(--brand);height:85px;border-radius:4px 4px 0 0;"></div><div style="font-size:10px;margin-top:4px;">4月</div></div>
+                <div style="flex:1;text-align:center;"><div style="background:var(--danger);height:90px;border-radius:4px 4px 0 0;"></div><div style="font-size:10px;margin-top:4px;">5月</div></div>
+                <div style="flex:1;text-align:center;"><div style="background:var(--danger);height:95px;border-radius:4px 4px 0 0;"></div><div style="font-size:10px;margin-top:4px;font-weight:700;">6月</div></div>
+              </div>
+              <div style="font-size:11px;color:var(--text-muted);text-align:center;margin-top:4px;">¥2,650 → ¥2,800（↑5.7%）</div>
+            </div>
+            <div style="background:#fff;border:1px solid var(--border);border-radius:8px;padding:16px;">
+              <div style="font-size:13px;font-weight:600;margin-bottom:12px;">库存数量与成本变动</div>
+              <table style="width:100%;font-size:12px;">
+                <tr style="border-bottom:1px solid var(--border);"><td style="padding:6px 0;">6月入库</td><td style="text-align:right;">+30箱</td><td style="text-align:right;">¥84,000</td><td style="text-align:right;color:var(--brand);">¥2,800/箱</td></tr>
+                <tr style="border-bottom:1px solid var(--border);"><td style="padding:6px 0;">6月出库</td><td style="text-align:right;">-15箱</td><td style="text-align:right;">¥42,000</td><td style="text-align:right;color:var(--warning);">¥2,800/箱</td></tr>
+                <tr><td style="padding:6px 0;font-weight:600;">期末结存</td><td style="text-align:right;font-weight:600;">35箱</td><td style="text-align:right;font-weight:600;">¥98,000</td><td style="text-align:right;font-weight:600;color:var(--danger);">¥2,800/箱</td></tr>
+              </table>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 4. 字段规范 -->
+  <div class="section">
+    <h2>4. 字段规范</h2>
+    <table class="spec-table">
+      <thead><tr><th>字段</th><th>类型</th><th>说明</th></tr></thead>
+      <tbody>
+        <tr><td><code>skuId</code></td><td>UUID</td><td>SKU唯一标识</td></tr>
+        <tr><td><code>skuName</code></td><td>String</td><td>SKU名称（含规格）</td></tr>
+        <tr><td><code>categoryName</code></td><td>String</td><td>品类名称</td></tr>
+        <tr><td><code>beginQty</code></td><td>Number</td><td>期初数量</td></tr>
+        <tr><td><code>beginCost</code></td><td>Decimal</td><td>期初成本总额</td></tr>
+        <tr><td><code>inQty</code></td><td>Number</td><td>本期入库数量</td></tr>
+        <tr><td><code>inCost</code></td><td>Decimal</td><td>本期入库成本</td></tr>
+        <tr><td><code>outQty</code></td><td>Number</td><td>本期出库数量</td></tr>
+        <tr><td><code>outCost</code></td><td>Decimal</td><td>本期出库成本（按移动平均价）</td></tr>
+        <tr><td><code>endQty</code></td><td>Number</td><td>期末数量</td></tr>
+        <tr><td><code>endCost</code></td><td>Decimal</td><td>期末成本总额</td></tr>
+        <tr><td><code>avgPrice</code></td><td>Decimal</td><td>移动平均单价 = 期末成本 / 期末数量</td></tr>
+        <tr><td><code>period</code></td><td>String</td><td>核算期间，格式 YYYY-MM</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <!-- 5. 验收标准 -->
+  <div class="section">
+    <h2>5. 验收标准</h2>
+    <table class="spec-table">
+      <thead><tr><th>#</th><th>验收项</th><th>标准</th></tr></thead>
+      <tbody>
+        <tr><td>1</td><td>成本明细表</td><td>按SKU展示期初/入库/出库/期末的数量和成本，支持按品类筛选</td></tr>
+        <tr><td>2</td><td>移动平均价</td><td>每次入库后实时计算：新均价 = (库存成本+入库成本) / (库存数量+入库数量)</td></tr>
+        <tr><td>3</td><td>成本趋势</td><td>展示近6个月移动平均成本变化趋势，柱状图可视化</td></tr>
+        <tr><td>4</td><td>汇总卡片</td><td>期末库存总值/本期入库成本/本期出库成本/SKU数</td></tr>
+        <tr><td>5</td><td>金额精度</td><td>所有金额保留2位小数，千分位格式化</td></tr>
+        <tr><td>6</td><td>期间筛选</td><td>支持按月切换核算期间</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+</div>
+</body>
+</html>

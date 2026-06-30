@@ -156,3 +156,26 @@ export const getSupplierRanking = asyncHandler(async (req, res) => {
   );
   res.json(ok(result));
 });
+// ============ 库存报表 ============
+
+export const getInventoryTurnover = asyncHandler(async (req, res) => {
+  const result = await reportService.getInventoryTurnover(
+    req.tenantId!,
+    req.query.startDate as string | undefined,
+    req.query.endDate as string | undefined
+  );
+  res.json(ok(result));
+});
+
+export const getInventoryAge = asyncHandler(async (req, res) => {
+  const result = await reportService.getInventoryAge(
+    req.tenantId!,
+    req.query.storeId ? Number(req.query.storeId) : undefined
+  );
+  res.json(ok(result));
+});
+
+export const getInventoryABC = asyncHandler(async (req, res) => {
+  const result = await reportService.getInventoryABC(req.tenantId!);
+  res.json(ok(result));
+});

@@ -91,6 +91,11 @@ adminRouter.get("/reports/purchase-summary", requireAuthWithTenant, reportContro
 adminRouter.get("/reports/purchase-trend", requireAuthWithTenant, reportController.getPurchaseTrend);
 adminRouter.get("/reports/supplier-ranking", requireAuthWithTenant, reportController.getSupplierRanking);
 
+// ============ 库存报表 ============
+adminRouter.get("/reports/inventory-turnover", requireAuthWithTenant, reportController.getInventoryTurnover);
+adminRouter.get("/reports/inventory-age", requireAuthWithTenant, reportController.getInventoryAge);
+adminRouter.get("/reports/inventory-abc", requireAuthWithTenant, reportController.getInventoryABC);
+
 // ============ 日结 ============
 adminRouter.post("/daily-settlements", requireAuthWithTenant, dailySettlementController.createDailySettlement);
 adminRouter.get("/daily-settlements", requireAuthWithTenant, dailySettlementController.listDailySettlements);

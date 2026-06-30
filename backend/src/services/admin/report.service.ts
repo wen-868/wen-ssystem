@@ -361,3 +361,78 @@ export async function getSupplierRanking(tenantId: string, startDate?: string, e
     params, tenantId
   );
 }
+// ============ 库存报表 ============
+
+export async function getInventoryTurnover(tenantId: string, startDate?: string, endDate?: string) {
+  const conditions: string[] = ["il.tenant_id = ?"];
+  const params: unknown[] = [tenantId];
+  if (startDate) { conditions.push("il.created_at >= ?"); params.push(startDate); }
+  if (endDate) { conditions.push("il.created_at <= ?"); params.push(endDate); }
+  const where = `WHERE ${conditions.join(" AND ")}`;
+  return queryWithTenant<any>(
+    `SELECT il.sku_id AS skuId, ps.sku_name AS skuName,
+            COALESCE(SUM(CASE WHEN il.change_type = 'OUT' THEN ABS(il.change_qty) ELSE 0 END), 0) AS outQty,
+            COALESCE(AVG(ib.physical_qty), 0) AS avgStock,
+            CASE WHEN COALESCE(AVG(ib.physical_qty), 0) > 0
+                 THEN ROUND(COALESCE(SUM(CASE WHEN il.change_type = 'OUT' THEN ABS(il.change_qty) ELSE 0 END), 0) / AVG(ib.physical_qty), 2)
+                 ELSE 0 END AS turnoverRate,
+            CASE WHEN COALESCE(SUM(CASE WHEN il.change_type = 'OUT' THEN ABS(il.change_qty) ELSE 0 END), 0) > 0
+                 THEN ROUND(30 / (COALESCE(SUM(CASE WHEN il.change_type = 'OUT' THEN ABS(il.change_qty) ELSE 0 END), 0) / GREATEST(AVG(ib.physical_qty), 1)), 1)
+                 ELSE 0 END AS turnoverDays
+     FROM inventory_ledger il
+     JOIN product_sku ps ON ps.id = il.sku_id AND ps.tenant_id = il.tenant_id
+     LEFT JOIN inventory_balance ib ON ib.sku_id = il.sku_id AND ib.tenant_id = il.tenant_id
+     ${where}
+     GROUP BY il.sku_id, ps.sku_name
+     ORDER BY turnoverRate DESC`,
+    params, tenantId
+  );
+}
+
+export async function getInventoryAge(tenantId: string, storeId?: number) {
+  const storeCondition = storeId ? "AND ib.store_id = ?" : "";
+  const params: unknown[] = [tenantId];
+  if (storeId) params.push(storeId);
+  return queryWithTenant<any>(
+    `SELECT ib.sku_id AS skuId, ps.sku_name AS skuName,
+            ib.physical_qty AS totalQty, ib.store_id AS storeId,
+            st.name AS storeName,
+            ibat.batch_no AS batchNo, ibat.production_date AS productionDate,
+            COALESCE(ibat.bottle_qty, 0) AS batchQty,
+            DATEDIFF(NOW(), COALESCE(ibat.production_date, ibat.created_at)) AS ageDays,
+            CASE WHEN DATEDIFF(NOW(), COALESCE(ibat.production_date, ibat.created_at)) <= 30 THEN '0-30天'
+                 WHEN DATEDIFF(NOW(), COALESCE(ibat.production_date, ibat.created_at)) <= 60 THEN '30-60天'
+                 WHEN DATEDIFF(NOW(), COALESCE(ibat.production_date, ibat.created_at)) <= 90 THEN '60-90天'
+                 ELSE '90天以上' END AS ageGroup
+     FROM inventory_balance ib
+     JOIN product_sku ps ON ps.id = ib.sku_id
+     LEFT JOIN store st ON st.id = ib.store_id
+     LEFT JOIN inventory_batch ibat ON ibat.sku_id = ib.sku_id AND ibat.tenant_id = ib.tenant_id
+     WHERE ib.tenant_id = ? ${storeCondition} AND ib.physical_qty > 0
+     ORDER BY ageDays DESC`,
+    params, tenantId
+  );
+}
+
+export async function getInventoryABC(tenantId: string) {
+  const items = await queryWithTenant<any>(
+    `SELECT sbi.sku_id AS skuId, ps.sku_name AS skuName,
+            COALESCE(SUM(sbi.subtotal_amount), 0) AS totalSales
+     FROM sale_bill_item sbi
+     JOIN product_sku ps ON ps.id = sbi.sku_id
+     WHERE sbi.tenant_id = ? AND sbi.created_at >= DATE_SUB(NOW(), INTERVAL 90 DAY)
+     GROUP BY sbi.sku_id, ps.sku_name
+     ORDER BY totalSales DESC`,
+    [tenantId], tenantId
+  );
+  const grandTotal = items.reduce((s: number, i: any) => s + Number(i.totalSales), 0);
+  let cumulative = 0;
+  return items.map((item: any) => {
+    cumulative += Number(item.totalSales);
+    const pct = grandTotal > 0 ? cumulative / grandTotal : 0;
+    let category = "C";
+    if (pct <= 0.7) category = "A";
+    else if (pct <= 0.9) category = "B";
+    return { skuId: item.skuId, skuName: item.skuName, totalSales: item.totalSales, cumulativePct: Math.round(pct * 10000) / 100, category };
+  });
+}
