@@ -6,7 +6,7 @@
 
 ## 当前状态
 
-- **当前模块**：库存管理 Phase 6（墨 0/3 未交付，等待中）
+- **当前模块**：库存管理 Phase 6（全部完成 ✅）
 - **下一模块**：客户管理
 - **更新日期**：2026-06-30
 
@@ -16,9 +16,7 @@
 
 | 阻塞 | 详情 | 状态 |
 |------|------|:---:|
-| 墨的 Phase 6 任务 | InventoryCost.vue / InventoryAlertConfig.vue / InventoryReports.vue 三个页面未交付 | 等待中 |
-
-> 墨的 Phase 6 任务完成后，立即进入客户管理模块。
+| 无 | — | — |
 
 ---
 
@@ -29,7 +27,7 @@
 | 商品中心 | ✅ |
 | 销售管理 | ✅ |
 | 采购管理 | ✅ |
-| 库存管理 | ✅ (墨 3 页面待补) |
+| 库存管理 | ✅ |
 | 客户管理 | ⏳ |
 | 财务往来 | ⬜ |
 | 数据报表 | ⬜ |
@@ -45,10 +43,11 @@
 
 | 成员 | 职责 | 分支 |
 |------|------|------|
-| 林夕 | UI/UX 设计稿 (`docs/design/specs/`) | trae/solo-agent-林夕 |
-| 墨 | 管理后台 admin-web 前端 | trae/solo-agent-墨 |
-| 阿坚 | 后端 API + DDL | trae/solo-agent-阿坚 |
-| 阿澈 | 商户移动端 merchant-mobile 前端 | trae/solo-agent-阿澈 |
+| 林夕 | UI/UX 设计稿 (`docs/design/specs/`) | trae/solo-agent-oqrXJp |
+| 墨 | 管理后台 admin-web 前端 | trae/solo-agent-4njSbh |
+| 阿坚 | 后端 API + DDL | trae/solo-agent-V9uC3J |
+| 阿澈 | 商户移动端 merchant-mobile 前端 | trae/solo-agent-tkoXzL |
+| 苏然 | 测试工程师 / DAO 层 | trae/solo-agent-4ikMYJ |
 
 ---
 
@@ -60,6 +59,7 @@
 - **响应格式**：`{ code: 0, data: ..., message: "ok" }`
 - **校验**：zod
 - **DDL 位置**：`docs/migrations/`
+- **API 基础路径**：admin-web 的 axios baseURL 为 `http://localhost:8080/api`，所以前端 API 路径以 `/admin/xxx` 开头
 
 ---
 
@@ -93,7 +93,10 @@
 | `docs/product-spec-v6-adapted.md` | 产品规格（12模块/106子模块/217表） |
 | `docs/MEMORY.md` | 团队全局记忆 |
 | `docs/WORKING-MEMORY.md` | 本文件，凌舟个人工作记忆 |
-| `tasks/tasks-*.md` | 4 人任务文件 |
+| `tasks/tasks-*.md` | 5 人任务文件 |
 | `backend/src/server.ts` | 路由注册入口 |
 | `backend/src/shared/auth.js` | 认证中间件 |
 | `backend/src/shared/db.js` | 数据库工具（含租户隔离函数） |
+| `admin-web/src/api.ts` | 管理后台 API 封装 |
+| `admin-web/src/router/index.ts` | 管理后台路由 |
+| `admin-web/src/layouts/MainLayout.vue` | 管理后台侧边栏菜单 |

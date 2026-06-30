@@ -79,6 +79,9 @@ const routes = [
       { path: "inventory-batch-price", name: "InventoryBatchPrice", component: () => import("../views/InventoryBatchPrice.vue"), meta: { roles: ["BOSS"] } },
       { path: "inventory-price-quote", name: "InventoryPriceQuote", component: () => import("../views/InventoryPriceQuote.vue"), meta: { roles: ["BOSS"] } },
       { path: "inventory-alerts", name: "InventoryAlerts", component: () => import("../views/InventoryAlerts.vue"), meta: { roles: ["BOSS", "MGR"] } },
+      { path: "inventory-cost", name: "InventoryCost", component: () => import("../views/InventoryCost.vue"), meta: { roles: ["BOSS"] } },
+      { path: "inventory-alert-config", name: "InventoryAlertConfig", component: () => import("../views/InventoryAlertConfig.vue"), meta: { roles: ["BOSS"] } },
+      { path: "inventory-reports", name: "InventoryReports", component: () => import("../views/InventoryReports.vue"), meta: { roles: ["BOSS"] } },
       // 6. 客户管理
       { path: "customers", name: "Customers", component: () => import("../views/CustomersView.vue"), meta: { roles: ["BOSS", "MGR"] } },
       { path: "credit", name: "Credit", component: () => import("../views/CreditView.vue"), meta: { roles: ["BOSS", "MGR"] } },

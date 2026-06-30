@@ -78,6 +78,9 @@
           <el-menu-item index="/inventory-transfer">库存调拨</el-menu-item>
           <el-menu-item index="/inventory-batch">批次追溯</el-menu-item>
           <el-menu-item index="/inventory-alerts">库存预警</el-menu-item>
+          <el-menu-item index="/inventory-cost">成本核算</el-menu-item>
+          <el-menu-item index="/inventory-alert-config">预警配置</el-menu-item>
+          <el-menu-item index="/inventory-reports">库存报表</el-menu-item>
         </el-sub-menu>
 
         <!-- 6. 客户管理 -->
@@ -290,6 +293,9 @@ const pageTitle = computed(() => {
     "/inventory-transfer": "库存调拨",
     "/inventory-batch": "批次追溯",
     "/inventory-alerts": "库存预警",
+    "/inventory-cost": "成本核算",
+    "/inventory-alert-config": "预警配置",
+    "/inventory-reports": "库存报表",
     "/customers": "客户列表",
     "/credit": "授信管理",
     "/products": "商品列表",
