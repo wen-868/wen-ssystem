@@ -1,8 +1,8 @@
-# 智享营销系统 · 产品功能清单 v6.0 · 酒水行业适配版
+# 智享营销系统 · 产品功能清单 v6.1 · 酒水行业适配版
 
-**版本**: v6.0 · 酒水行业适配版
-**日期**: 2026-06-26
-**更新**: 2026-06-26 V4.4.1（移动端统一：门店终端合并入商家移动端，域名精简为 4 个）
+**版本**: v6.1 · 酒水行业适配版
+**日期**: 2026-06-30
+**更新**: 2026-06-30 V6.1（补充5个已完成模块的完整字段定义：销售管理17表/280字段/73API、采购管理14表/230字段/48API、库存管理12表/170字段/55API、客户管理16表/210字段/66API、财务往来11表/180字段/52API，合计70表/~1070字段/294API）
 **来源**: 掌盘全行业 v6.0 模板 → 适配酒水饮料行业
 
 ---
@@ -176,6 +176,349 @@ required / unique / len[a,b] / range[a,b] / regex / enum / fk / logic / compare 
 
 > **酒水适配**: 保留临期退货（重要），删除工程类采购相关内容。
 
+### 采购管理 · 字段与表结构详解
+
+### 2.1 数据表定义
+
+#### 2.1.1 supplier（供应商表）
+
+| 字段名 | 类型 | 说明 |
+|--------|------|------|
+| id | BIGINT UNSIGNED AUTO_INCREMENT | 供应商ID |
+| supplier_code | VARCHAR(64) NOT NULL UNIQUE | 供应商编码 |
+| name | VARCHAR(128) NOT NULL | 供应商名称 |
+| short_name | VARCHAR(64) DEFAULT NULL | 简称 |
+| category | VARCHAR(32) DEFAULT NULL | 类别：酒厂/经销商/批发商 |
+| province | VARCHAR(64) DEFAULT NULL | 省 |
+| city | VARCHAR(64) DEFAULT NULL | 市 |
+| district | VARCHAR(64) DEFAULT NULL | 区 |
+| address | VARCHAR(255) DEFAULT NULL | 详细地址 |
+| credit_level | VARCHAR(16) DEFAULT 'B' | 信用等级：A/B/C/D |
+| settlement_type | VARCHAR(32) NOT NULL DEFAULT 'CASH' | 结算方式：CASH/MONTHLY/QUARTERLY |
+| settlement_day | INT DEFAULT NULL | 结算日 |
+| tax_rate | DECIMAL(8,4) NOT NULL DEFAULT 0.0000 | 默认税率 |
+| bank_name | VARCHAR(128) DEFAULT NULL | 开户银行 |
+| bank_account | VARCHAR(64) DEFAULT NULL | 银行账号 |
+| bank_account_name | VARCHAR(64) DEFAULT NULL | 开户名 |
+| status | TINYINT NOT NULL DEFAULT 1 | 状态 |
+| remark | VARCHAR(255) DEFAULT NULL | 备注 |
+| created_at | DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP | 创建时间 |
+| updated_at | DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE | 更新时间 |
+
+#### 2.1.2 supplier_contact（供应商联系人表）
+
+| 字段名 | 类型 | 说明 |
+|--------|------|------|
+| id | BIGINT UNSIGNED AUTO_INCREMENT | 联系人ID |
+| supplier_id | BIGINT UNSIGNED NOT NULL | 供应商ID |
+| name | VARCHAR(64) NOT NULL | 联系人姓名 |
+| mobile | VARCHAR(20) DEFAULT NULL | 手机号 |
+| phone | VARCHAR(32) DEFAULT NULL | 固定电话 |
+| email | VARCHAR(128) DEFAULT NULL | 邮箱 |
+| wechat | VARCHAR(64) DEFAULT NULL | 微信号 |
+| is_primary | TINYINT NOT NULL DEFAULT 0 | 是否主联系人 |
+| position | VARCHAR(64) DEFAULT NULL | 职位 |
+| remark | VARCHAR(255) DEFAULT NULL | 备注 |
+| created_at | DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP | 创建时间 |
+| updated_at | DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE | 更新时间 |
+
+#### 2.1.3 purchase_order（采购订单表）
+
+| 字段名 | 类型 | 说明 |
+|--------|------|------|
+| id | BIGINT UNSIGNED AUTO_INCREMENT | 采购订单ID |
+| order_no | VARCHAR(64) NOT NULL UNIQUE | 采购订单号 |
+| supplier_id | BIGINT UNSIGNED NOT NULL | 供应商ID |
+| supplier_name | VARCHAR(128) NOT NULL | 供应商名称快照 |
+| store_id | BIGINT UNSIGNED NOT NULL | 入库门店ID |
+| order_status | VARCHAR(32) NOT NULL DEFAULT 'DRAFT' | 订单状态：DRAFT/PENDING/APPROVED/PARTIAL/COMPLETED/CANCELLED |
+| goods_amount | DECIMAL(12,2) NOT NULL DEFAULT 0.00 | 商品金额 |
+| tax_amount | DECIMAL(12,2) NOT NULL DEFAULT 0.00 | 税额 |
+| discount_amount | DECIMAL(12,2) NOT NULL DEFAULT 0.00 | 优惠金额 |
+| payable_amount | DECIMAL(12,2) NOT NULL DEFAULT 0.00 | 应付金额 |
+| paid_amount | DECIMAL(12,2) NOT NULL DEFAULT 0.00 | 已付金额 |
+| unpaid_amount | DECIMAL(12,2) NOT NULL DEFAULT 0.00 | 未付金额 |
+| expected_date | DATE DEFAULT NULL | 预计到货日期 |
+| actual_date | DATE DEFAULT NULL | 实际到货日期 |
+| operator_id | BIGINT UNSIGNED NOT NULL | 制单人 |
+| auditor_id | BIGINT UNSIGNED DEFAULT NULL | 审核人 |
+| audited_at | DATETIME DEFAULT NULL | 审核时间 |
+| remark | VARCHAR(255) DEFAULT NULL | 备注 |
+| created_at | DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP | 创建时间 |
+| updated_at | DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE | 更新时间 |
+
+#### 2.1.4 purchase_order_item（采购订单明细表）
+
+| 字段名 | 类型 | 说明 |
+|--------|------|------|
+| id | BIGINT UNSIGNED AUTO_INCREMENT | 明细ID |
+| order_no | VARCHAR(64) NOT NULL | 采购订单号 |
+| sku_id | BIGINT UNSIGNED NOT NULL | SKU ID |
+| sku_name | VARCHAR(128) NOT NULL | SKU名称快照 |
+| barcode | VARCHAR(128) DEFAULT NULL | 条码快照 |
+| box_qty | INT NOT NULL DEFAULT 0 | 箱数 |
+| bottle_qty | INT NOT NULL DEFAULT 0 | 瓶数 |
+| total_bottle_qty | INT NOT NULL | 合计瓶数 |
+| unit_price | DECIMAL(12,2) NOT NULL | 采购单价（瓶） |
+| tax_rate | DECIMAL(8,4) NOT NULL DEFAULT 0.0000 | 税率 |
+| subtotal_amount | DECIMAL(12,2) NOT NULL | 小计金额 |
+| tax_amount | DECIMAL(12,2) NOT NULL DEFAULT 0.00 | 税额 |
+| total_amount | DECIMAL(12,2) NOT NULL | 含税小计 |
+| in_stocked_qty | INT NOT NULL DEFAULT 0 | 已入库数量 |
+| remark | VARCHAR(255) DEFAULT NULL | 备注 |
+| created_at | DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP | 创建时间 |
+
+#### 2.1.5 purchase_in_stock（采购入库单表）
+
+| 字段名 | 类型 | 说明 |
+|--------|------|------|
+| id | BIGINT UNSIGNED AUTO_INCREMENT | 采购入库单ID |
+| stock_no | VARCHAR(64) NOT NULL UNIQUE | 入库单号 |
+| order_no | VARCHAR(64) DEFAULT NULL | 关联采购订单号 |
+| supplier_id | BIGINT UNSIGNED NOT NULL | 供应商ID |
+| supplier_name | VARCHAR(128) NOT NULL | 供应商名称快照 |
+| store_id | BIGINT UNSIGNED NOT NULL | 入库门店ID |
+| stock_status | VARCHAR(32) NOT NULL DEFAULT 'PENDING' | 状态：PENDING/COMPLETED/VOIDED |
+| goods_amount | DECIMAL(12,2) NOT NULL DEFAULT 0.00 | 商品金额 |
+| tax_amount | DECIMAL(12,2) NOT NULL DEFAULT 0.00 | 税额 |
+| total_amount | DECIMAL(12,2) NOT NULL DEFAULT 0.00 | 合计金额 |
+| operator_id | BIGINT UNSIGNED NOT NULL | 入库人 |
+| auditor_id | BIGINT UNSIGNED DEFAULT NULL | 审核人 |
+| audited_at | DATETIME DEFAULT NULL | 审核时间 |
+| remark | VARCHAR(255) DEFAULT NULL | 备注 |
+| created_at | DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP | 创建时间 |
+| updated_at | DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE | 更新时间 |
+
+#### 2.1.6 purchase_in_stock_item（采购入库单明细表）
+
+| 字段名 | 类型 | 说明 |
+|--------|------|------|
+| id | BIGINT UNSIGNED AUTO_INCREMENT | 明细ID |
+| stock_no | VARCHAR(64) NOT NULL | 入库单号 |
+| sku_id | BIGINT UNSIGNED NOT NULL | SKU ID |
+| sku_name | VARCHAR(128) NOT NULL | SKU名称快照 |
+| box_qty | INT NOT NULL DEFAULT 0 | 箱数 |
+| bottle_qty | INT NOT NULL DEFAULT 0 | 瓶数 |
+| total_bottle_qty | INT NOT NULL | 合计瓶数 |
+| unit_price | DECIMAL(12,2) NOT NULL | 入库单价（瓶） |
+| tax_rate | DECIMAL(8,4) NOT NULL DEFAULT 0.0000 | 税率 |
+| subtotal_amount | DECIMAL(12,2) NOT NULL | 小计金额 |
+| tax_amount | DECIMAL(12,2) NOT NULL DEFAULT 0.00 | 税额 |
+| total_amount | DECIMAL(12,2) NOT NULL | 含税小计 |
+| batch_no | VARCHAR(64) DEFAULT NULL | 批次号 |
+| production_date | DATE DEFAULT NULL | 生产日期 |
+| expiry_date | DATE DEFAULT NULL | 有效期至 |
+| remark | VARCHAR(255) DEFAULT NULL | 备注 |
+| created_at | DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP | 创建时间 |
+
+#### 2.1.7 purchase_return（采购退货单表）
+
+| 字段名 | 类型 | 说明 |
+|--------|------|------|
+| id | BIGINT UNSIGNED AUTO_INCREMENT | 采购退货单ID |
+| return_no | VARCHAR(64) NOT NULL UNIQUE | 退货单号 |
+| order_no | VARCHAR(64) DEFAULT NULL | 关联采购订单号 |
+| stock_no | VARCHAR(64) DEFAULT NULL | 关联入库单号 |
+| supplier_id | BIGINT UNSIGNED NOT NULL | 供应商ID |
+| supplier_name | VARCHAR(128) NOT NULL | 供应商名称快照 |
+| store_id | BIGINT UNSIGNED NOT NULL | 退货门店ID |
+| return_status | VARCHAR(32) NOT NULL DEFAULT 'PENDING' | 状态：PENDING/COMPLETED/VOIDED |
+| goods_amount | DECIMAL(12,2) NOT NULL DEFAULT 0.00 | 商品金额 |
+| tax_amount | DECIMAL(12,2) NOT NULL DEFAULT 0.00 | 税额 |
+| total_amount | DECIMAL(12,2) NOT NULL DEFAULT 0.00 | 合计金额 |
+| refund_amount | DECIMAL(12,2) NOT NULL DEFAULT 0.00 | 应退金额 |
+| refunded_amount | DECIMAL(12,2) NOT NULL DEFAULT 0.00 | 已退金额 |
+| operator_id | BIGINT UNSIGNED NOT NULL | 退货人 |
+| auditor_id | BIGINT UNSIGNED DEFAULT NULL | 审核人 |
+| audited_at | DATETIME DEFAULT NULL | 审核时间 |
+| remark | VARCHAR(255) DEFAULT NULL | 备注 |
+| created_at | DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP | 创建时间 |
+| updated_at | DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE | 更新时间 |
+
+#### 2.1.8 purchase_return_item（采购退货单明细表）
+
+| 字段名 | 类型 | 说明 |
+|--------|------|------|
+| id | BIGINT UNSIGNED AUTO_INCREMENT | 明细ID |
+| return_no | VARCHAR(64) NOT NULL | 退货单号 |
+| sku_id | BIGINT UNSIGNED NOT NULL | SKU ID |
+| sku_name | VARCHAR(128) NOT NULL | SKU名称快照 |
+| box_qty | INT NOT NULL DEFAULT 0 | 箱数 |
+| bottle_qty | INT NOT NULL DEFAULT 0 | 瓶数 |
+| total_bottle_qty | INT NOT NULL | 合计瓶数 |
+| unit_price | DECIMAL(12,2) NOT NULL | 退货单价（瓶） |
+| tax_rate | DECIMAL(8,4) NOT NULL DEFAULT 0.0000 | 税率 |
+| subtotal_amount | DECIMAL(12,2) NOT NULL | 小计金额 |
+| tax_amount | DECIMAL(12,2) NOT NULL DEFAULT 0.00 | 税额 |
+| total_amount | DECIMAL(12,2) NOT NULL | 含税小计 |
+| reason | VARCHAR(255) DEFAULT NULL | 退货原因 |
+| created_at | DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP | 创建时间 |
+
+#### 2.1.9 purchase_payment（采购付款单表）
+
+| 字段名 | 类型 | 说明 |
+|--------|------|------|
+| id | BIGINT UNSIGNED AUTO_INCREMENT | 采购付款单ID |
+| payment_no | VARCHAR(64) NOT NULL UNIQUE | 付款单号 |
+| supplier_id | BIGINT UNSIGNED NOT NULL | 供应商ID |
+| supplier_name | VARCHAR(128) NOT NULL | 供应商名称快照 |
+| payment_type | VARCHAR(32) NOT NULL DEFAULT 'ORDER' | 付款类型：ORDER/RETURN/ADVANCE |
+| source_type | VARCHAR(32) DEFAULT NULL | 来源类型：PURCHASE_ORDER/PURCHASE_RETURN |
+| source_no | VARCHAR(64) DEFAULT NULL | 来源单号 |
+| amount | DECIMAL(12,2) NOT NULL | 付款金额 |
+| payment_method | VARCHAR(32) NOT NULL DEFAULT 'BANK' | 付款方式：BANK/CASH/WECHAT/ALIPAY |
+| bank_account | VARCHAR(64) DEFAULT NULL | 收款账号 |
+| bank_account_name | VARCHAR(64) DEFAULT NULL | 收款人 |
+| bank_name | VARCHAR(128) DEFAULT NULL | 收款银行 |
+| voucher_no | VARCHAR(64) DEFAULT NULL | 凭证号 |
+| payment_date | DATE NOT NULL | 付款日期 |
+| operator_id | BIGINT UNSIGNED NOT NULL | 付款人 |
+| status | VARCHAR(32) NOT NULL DEFAULT 'PENDING' | 状态：PENDING/COMPLETED/VOIDED |
+| remark | VARCHAR(255) DEFAULT NULL | 备注 |
+| created_at | DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP | 创建时间 |
+| updated_at | DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE | 更新时间 |
+
+#### 2.1.10 supplier_statement（供应商对账单表）
+
+| 字段名 | 类型 | 说明 |
+|--------|------|------|
+| id | BIGINT UNSIGNED AUTO_INCREMENT | 对账单ID |
+| statement_no | VARCHAR(30) NOT NULL UNIQUE | 对账单号 |
+| supplier_id | BIGINT UNSIGNED NOT NULL | 供应商ID |
+| period_start | DATE NOT NULL | 对账开始日期 |
+| period_end | DATE NOT NULL | 对账结束日期 |
+| total_purchase_amount | DECIMAL(12,2) NOT NULL DEFAULT 0.00 | 采购总额 |
+| total_paid_amount | DECIMAL(12,2) NOT NULL DEFAULT 0.00 | 已付总额 |
+| total_return_amount | DECIMAL(12,2) NOT NULL DEFAULT 0.00 | 退货总额 |
+| balance_amount | DECIMAL(12,2) GENERATED ALWAYS AS (total_purchase_amount - total_paid_amount - total_return_amount) STORED | 余额 |
+| status | ENUM('DRAFT','CONFIRMED','DISPUTED') NOT NULL DEFAULT 'DRAFT' | 状态 |
+| confirmed_by | BIGINT DEFAULT NULL | 确认人 |
+| confirmed_at | DATETIME DEFAULT NULL | 确认时间 |
+| remark | VARCHAR(500) DEFAULT NULL | 备注 |
+| created_at | DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP | 创建时间 |
+| updated_at | DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE | 更新时间 |
+
+#### 2.1.11 supplier_statement_item（供应商对账明细表）
+
+| 字段名 | 类型 | 说明 |
+|--------|------|------|
+| id | BIGINT UNSIGNED AUTO_INCREMENT | 明细ID |
+| statement_id | BIGINT UNSIGNED NOT NULL | 对账单ID |
+| purchase_order_id | BIGINT UNSIGNED NOT NULL | 采购订单ID |
+| purchase_amount | DECIMAL(12,2) NOT NULL DEFAULT 0.00 | 采购金额 |
+| payment_amount | DECIMAL(12,2) NOT NULL DEFAULT 0.00 | 付款金额 |
+| return_amount | DECIMAL(12,2) NOT NULL DEFAULT 0.00 | 退货金额 |
+| balance | DECIMAL(12,2) GENERATED ALWAYS AS (purchase_amount - payment_amount - return_amount) STORED | 余额 |
+
+#### 2.1.12 purchase_contract（采购合同表）
+
+| 字段名 | 类型 | 说明 |
+|--------|------|------|
+| id | BIGINT AUTO_INCREMENT | 合同ID |
+| contract_no | VARCHAR(32) NOT NULL | 合同编号 |
+| supplier_id | BIGINT NOT NULL | 供应商ID |
+| contract_name | VARCHAR(200) NOT NULL | 合同名称 |
+| contract_type | VARCHAR(20) NOT NULL DEFAULT 'PURCHASE' | 类型：PURCHASE/FRAMEWORK |
+| total_amount | DECIMAL(12,2) DEFAULT 0 | 合同总金额 |
+| paid_amount | DECIMAL(12,2) DEFAULT 0 | 已付金额 |
+| sign_date | DATE DEFAULT NULL | 签订日期 |
+| start_date | DATE DEFAULT NULL | 开始日期 |
+| end_date | DATE DEFAULT NULL | 结束日期 |
+| status | VARCHAR(20) NOT NULL DEFAULT 'DRAFT' | 状态：DRAFT/SIGNED/EXECUTING/COMPLETED/TERMINATED |
+| file_url | VARCHAR(500) DEFAULT NULL | 合同文件URL |
+| remark | VARCHAR(500) DEFAULT NULL | 备注 |
+| tenant_id | VARCHAR(64) NOT NULL DEFAULT '' | 租户ID |
+| created_at | DATETIME DEFAULT CURRENT_TIMESTAMP | 创建时间 |
+| updated_at | DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE | 更新时间 |
+
+#### 2.1.13 purchase_plan（采购计划表）
+
+| 字段名 | 类型 | 说明 |
+|--------|------|------|
+| id | BIGINT AUTO_INCREMENT | 计划ID |
+| plan_no | VARCHAR(32) NOT NULL | 计划编号 |
+| supplier_id | BIGINT NOT NULL | 供应商ID |
+| store_id | BIGINT NOT NULL | 门店ID |
+| plan_status | VARCHAR(20) NOT NULL DEFAULT 'DRAFT' | 状态：DRAFT/CONFIRMED/CONVERTED |
+| goods_amount | DECIMAL(12,2) DEFAULT 0 | 计划采购金额 |
+| tenant_id | VARCHAR(64) NOT NULL DEFAULT '' | 租户ID |
+| created_at | DATETIME DEFAULT CURRENT_TIMESTAMP | 创建时间 |
+| updated_at | DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE | 更新时间 |
+
+#### 2.1.14 purchase_plan_item（采购计划明细表）
+
+| 字段名 | 类型 | 说明 |
+|--------|------|------|
+| id | BIGINT AUTO_INCREMENT | 明细ID |
+| plan_no | VARCHAR(32) NOT NULL | 计划编号 |
+| sku_id | BIGINT NOT NULL | SKU ID |
+| suggest_qty | INT NOT NULL DEFAULT 0 | 建议采购量 |
+| current_stock | INT NOT NULL DEFAULT 0 | 当前库存 |
+| safety_stock | INT NOT NULL DEFAULT 0 | 安全库存 |
+| monthly_avg_sales | DECIMAL(10,2) DEFAULT 0 | 月均销量 |
+| in_transit_qty | INT DEFAULT 0 | 在途采购量 |
+| reason | VARCHAR(200) DEFAULT NULL | 补货原因 |
+| tenant_id | VARCHAR(64) NOT NULL DEFAULT '' | 租户ID |
+
+### 2.2 API端点
+
+| 方法 | 路径 | 说明 |
+|------|------|------|
+| GET | /api/suppliers | 供应商列表 |
+| GET | /api/suppliers/:id | 供应商详情 |
+| POST | /api/suppliers | 创建供应商 |
+| PUT | /api/suppliers/:id | 更新供应商 |
+| POST | /api/suppliers/:id/contacts | 添加联系人 |
+| DELETE | /api/suppliers/:id/contacts/:contactId | 删除联系人 |
+| GET | /api/suppliers/:id/purchase-orders | 供应商采购订单 |
+| GET | /api/suppliers/:id/payments | 供应商付款记录 |
+| GET | /api/suppliers/:id/products | 供应商供应商品 |
+| GET | /api/suppliers/:id/stats | 供应商统计 |
+| GET | /api/purchases | 采购订单列表 |
+| GET | /api/purchases/:orderNo | 采购订单详情 |
+| POST | /api/purchases | 创建采购订单 |
+| PUT | /api/purchases/:orderNo | 更新采购订单 |
+| DELETE | /api/purchases/:orderNo | 删除采购订单 |
+| POST | /api/purchases/:orderNo/submit | 提交审核 |
+| POST | /api/purchases/:orderNo/approve | 审核通过 |
+| POST | /api/purchases/:orderNo/cancel | 取消订单 |
+| POST | /api/purchases/:orderNo/in-stock | 执行入库 |
+| GET | /api/purchase-in-stocks | 入库单列表 |
+| GET | /api/purchase-in-stocks/:stockNo | 入库单详情 |
+| POST | /api/purchase-in-stocks | 创建入库单 |
+| POST | /api/purchase-in-stocks/:stockNo/approve | 审核入库单 |
+| POST | /api/purchase-in-stocks/:stockNo/void | 作废入库单 |
+| GET | /api/purchase-returns | 退货单列表 |
+| GET | /api/purchase-returns/:returnNo | 退货单详情 |
+| POST | /api/purchase-returns | 创建退货单 |
+| POST | /api/purchase-returns/:returnNo/approve | 审核退货单 |
+| POST | /api/purchase-returns/:returnNo/void | 作废退货单 |
+| GET | /api/purchase-payments | 付款单列表 |
+| GET | /api/purchase-payments/:paymentNo | 付款单详情 |
+| POST | /api/purchase-payments | 创建付款单 |
+| POST | /api/purchase-payments/:paymentNo/approve | 审核付款单 |
+| POST | /api/purchase-payments/:paymentNo/void | 作废付款单 |
+| POST | /api/supplier-statements/generate | 生成供应商对账单 |
+| GET | /api/supplier-statements | 对账单列表 |
+| GET | /api/supplier-statements/:statementNo | 对账单详情 |
+| POST | /api/supplier-statements/:statementNo/confirm | 确认对账单 |
+| POST | /api/supplier-statements/:statementNo/dispute | 争议对账单 |
+| GET | /api/purchase-contracts | 采购合同列表 |
+| POST | /api/purchase-contracts | 创建采购合同 |
+| PUT | /api/purchase-contracts/:contractNo | 更新采购合同 |
+| DELETE | /api/purchase-contracts/:contractNo | 删除采购合同 |
+| POST | /api/purchase-contracts/:contractNo/upload | 上传合同文件 |
+| GET | /api/purchase-plans/suggest | 采购建议 |
+| POST | /api/purchase-plans | 创建采购计划 |
+| GET | /api/purchase-plans | 采购计划列表 |
+| POST | /api/purchase-plans/:planNo/convert | 转为采购订单 |
+
+### 2.3 汇总统计
+
+- 表数量：14
+- 字段总数：约 230
+- API数量：48
+
 ---
 
 ## 第四部分：库存管理
@@ -273,6 +616,265 @@ required / unique / len[a,b] / range[a,b] / regex / enum / fk / logic / compare 
 - 不同客户看到的报价单使用各自的价格层级（门店看到批发价，不会看到出厂价）
 - 报价单有过期机制，过期后自动标记失效
 
+### 库存管理 · 字段与表结构详解
+
+### 3.1 数据表定义
+
+#### 3.1.1 inventory_balance（库存余额表）
+
+| 字段名 | 类型 | 说明 |
+|--------|------|------|
+| id | BIGINT UNSIGNED AUTO_INCREMENT | 库存余额ID |
+| store_id | BIGINT UNSIGNED NOT NULL | 门店ID |
+| sku_id | BIGINT UNSIGNED NOT NULL | SKU ID |
+| stock_type | VARCHAR(32) NOT NULL DEFAULT 'OFFLINE' | 库存类型：ONLINE/OFFLINE |
+| physical_qty | INT NOT NULL DEFAULT 0 | 物理库存 |
+| locked_qty | INT NOT NULL DEFAULT 0 | 锁定库存 |
+| available_qty | INT NOT NULL DEFAULT 0 | 可售库存 |
+| version | BIGINT UNSIGNED NOT NULL DEFAULT 0 | 乐观锁版本 |
+| updated_at | DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE | 更新时间 |
+| created_at | DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP | 创建时间 |
+
+#### 3.1.2 inventory_ledger（库存流水表）
+
+| 字段名 | 类型 | 说明 |
+|--------|------|------|
+| id | BIGINT UNSIGNED AUTO_INCREMENT | 库存流水ID |
+| ledger_no | VARCHAR(64) NOT NULL UNIQUE | 库存流水号 |
+| store_id | BIGINT UNSIGNED NOT NULL | 门店ID |
+| sku_id | BIGINT UNSIGNED NOT NULL | SKU ID |
+| stock_type | VARCHAR(32) NOT NULL | 库存类型：ONLINE/OFFLINE |
+| biz_type | VARCHAR(64) NOT NULL | 业务类型：ORDER_LOCK/ORDER_PAY/ORDER_CANCEL/SALE/ADJUST |
+| biz_no | VARCHAR(64) NOT NULL | 关联业务单号 |
+| change_qty | INT NOT NULL | 变动数量 |
+| before_qty | INT NOT NULL | 变动前物理库存 |
+| after_qty | INT NOT NULL | 变动后物理库存 |
+| before_locked_qty | INT NOT NULL DEFAULT 0 | 变动前锁定库存 |
+| after_locked_qty | INT NOT NULL DEFAULT 0 | 变动后锁定库存 |
+| operator_id | BIGINT UNSIGNED DEFAULT NULL | 操作人 |
+| idempotency_key | VARCHAR(128) NOT NULL UNIQUE | 幂等键 |
+| remark | VARCHAR(255) DEFAULT NULL | 备注 |
+| created_at | DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP | 创建时间 |
+
+#### 3.1.3 inventory_batch（库存批次表）
+
+| 字段名 | 类型 | 说明 |
+|--------|------|------|
+| id | INT UNSIGNED AUTO_INCREMENT | 批次ID |
+| store_id | INT NOT NULL | 门店ID |
+| sku_id | INT NOT NULL | SKU ID |
+| batch_no | VARCHAR(64) NOT NULL | 批次号 |
+| quantity | INT NOT NULL DEFAULT 0 | 批次数量 |
+| locked_quantity | INT NOT NULL DEFAULT 0 | 锁定数量 |
+| production_date | DATE DEFAULT NULL | 生产日期 |
+| expiry_date | DATE DEFAULT NULL | 过期日期 |
+| cost_price | DECIMAL(10,2) DEFAULT NULL | 成本价 |
+| supplier_id | INT DEFAULT NULL | 供应商ID |
+| inbound_order_id | INT DEFAULT NULL | 入库单ID |
+| created_at | DATETIME DEFAULT CURRENT_TIMESTAMP | 创建时间 |
+| updated_at | DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE | 更新时间 |
+
+#### 3.1.4 stock_check（盘点单表）
+
+| 字段名 | 类型 | 说明 |
+|--------|------|------|
+| id | BIGINT AUTO_INCREMENT | 盘点单ID |
+| check_no | VARCHAR(32) NOT NULL | 盘点编号 |
+| store_id | BIGINT NOT NULL | 门店ID |
+| check_status | VARCHAR(20) NOT NULL DEFAULT 'PENDING' | 状态：PENDING/CHECKING/CHECKED/AUDITED |
+| total_sku | INT DEFAULT 0 | 盘点SKU总数 |
+| checked_sku | INT DEFAULT 0 | 已盘点SKU数 |
+| profit_qty | INT DEFAULT 0 | 盘盈数量 |
+| loss_qty | INT DEFAULT 0 | 盘亏数量 |
+| operator_id | BIGINT DEFAULT NULL | 操作人ID |
+| auditor_id | BIGINT DEFAULT NULL | 审核人ID |
+| audited_at | DATETIME DEFAULT NULL | 审核时间 |
+| tenant_id | VARCHAR(64) NOT NULL DEFAULT '' | 租户ID |
+| created_at | DATETIME DEFAULT CURRENT_TIMESTAMP | 创建时间 |
+| updated_at | DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE | 更新时间 |
+
+#### 3.1.5 stock_check_item（盘点单明细表）
+
+| 字段名 | 类型 | 说明 |
+|--------|------|------|
+| id | BIGINT AUTO_INCREMENT | 明细ID |
+| check_no | VARCHAR(32) NOT NULL | 盘点编号 |
+| sku_id | BIGINT NOT NULL | SKU ID |
+| book_qty | INT NOT NULL DEFAULT 0 | 账面数量 |
+| actual_qty | INT DEFAULT NULL | 实际数量 |
+| diff_qty | INT DEFAULT 0 | 差异数量 |
+| diff_reason | VARCHAR(200) DEFAULT NULL | 差异原因 |
+| cost_price | DECIMAL(12,2) DEFAULT 0 | 成本价 |
+| tenant_id | VARCHAR(64) NOT NULL DEFAULT '' | 租户ID |
+
+#### 3.1.6 transfer_order（调拨单表）
+
+| 字段名 | 类型 | 说明 |
+|--------|------|------|
+| id | BIGINT AUTO_INCREMENT | 调拨单ID |
+| transfer_no | VARCHAR(32) NOT NULL | 调拨编号 |
+| from_store_id | BIGINT NOT NULL | 调出门店ID |
+| to_store_id | BIGINT NOT NULL | 调入门店ID |
+| transfer_status | VARCHAR(20) NOT NULL DEFAULT 'PENDING' | 状态：PENDING/SHIPPED/RECEIVED |
+| goods_amount | DECIMAL(12,2) DEFAULT 0 | 调拨金额 |
+| operator_id | BIGINT DEFAULT NULL | 操作人ID |
+| tenant_id | VARCHAR(64) NOT NULL DEFAULT '' | 租户ID |
+| created_at | DATETIME DEFAULT CURRENT_TIMESTAMP | 创建时间 |
+| updated_at | DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE | 更新时间 |
+
+#### 3.1.7 transfer_order_item（调拨单明细表）
+
+| 字段名 | 类型 | 说明 |
+|--------|------|------|
+| id | BIGINT AUTO_INCREMENT | 明细ID |
+| transfer_no | VARCHAR(32) NOT NULL | 调拨编号 |
+| sku_id | BIGINT NOT NULL | SKU ID |
+| box_qty | INT DEFAULT 0 | 箱数 |
+| bottle_qty | INT DEFAULT 0 | 瓶数 |
+| total_bottle_qty | INT NOT NULL DEFAULT 0 | 总瓶数 |
+| unit_price | DECIMAL(12,2) DEFAULT 0 | 单价 |
+| tenant_id | VARCHAR(64) NOT NULL DEFAULT '' | 租户ID |
+
+#### 3.1.8 expiry_alert_config（效期预警配置表）
+
+| 字段名 | 类型 | 说明 |
+|--------|------|------|
+| id | INT UNSIGNED AUTO_INCREMENT | 配置ID |
+| alert_level | TINYINT NOT NULL | 预警级别(1/2/3) |
+| level_name | VARCHAR(20) NOT NULL | 级别名称 |
+| days_before_expiry | INT NOT NULL | 提前天数 |
+| action | VARCHAR(20) NOT NULL | 动作：REMIND/RESTRICT/BLOCK |
+| color | VARCHAR(20) NOT NULL | 颜色值 |
+| enabled | TINYINT(1) NOT NULL DEFAULT 1 | 是否启用 |
+| description | VARCHAR(255) DEFAULT '' | 描述 |
+| created_at | DATETIME DEFAULT CURRENT_TIMESTAMP | 创建时间 |
+
+#### 3.1.9 expiry_alert_record（效期预警记录表）
+
+| 字段名 | 类型 | 说明 |
+|--------|------|------|
+| id | INT UNSIGNED AUTO_INCREMENT | 记录ID |
+| batch_id | INT NOT NULL | 批次ID |
+| store_id | INT NOT NULL | 门店ID |
+| sku_id | INT NOT NULL | SKU ID |
+| sku_name | VARCHAR(128) DEFAULT '' | 商品名称 |
+| batch_no | VARCHAR(64) DEFAULT '' | 批次号 |
+| production_date | DATE DEFAULT NULL | 生产日期 |
+| expiry_date | DATE DEFAULT NULL | 过期日期 |
+| days_remaining | INT NOT NULL | 剩余天数 |
+| alert_level | TINYINT NOT NULL | 预警级别 |
+| action_taken | VARCHAR(20) NOT NULL | 执行动作：REMIND/RESTRICT/BLOCK |
+| status | ENUM('PENDING','HANDLED','EXPIRED') NOT NULL DEFAULT 'PENDING' | 状态 |
+| handled_by | INT DEFAULT NULL | 处理人ID |
+| handled_at | DATETIME DEFAULT NULL | 处理时间 |
+| created_at | DATETIME DEFAULT CURRENT_TIMESTAMP | 创建时间 |
+
+#### 3.1.10 stock_warning_config（库存预警配置表）
+
+| 字段名 | 类型 | 说明 |
+|--------|------|------|
+| id | BIGINT AUTO_INCREMENT | 配置ID |
+| store_id | BIGINT NOT NULL | 门店ID |
+| sku_id | BIGINT NOT NULL | SKU ID |
+| min_qty | INT NOT NULL DEFAULT 0 | 最低库存阈值 |
+| max_qty | INT NOT NULL DEFAULT 0 | 最高库存阈值 |
+| enabled | TINYINT DEFAULT 1 | 是否启用 |
+| tenant_id | VARCHAR(64) NOT NULL DEFAULT '' | 租户ID |
+| created_at | DATETIME DEFAULT CURRENT_TIMESTAMP | 创建时间 |
+| updated_at | DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE | 更新时间 |
+
+#### 3.1.11 store_control_config（门店管控配置表）
+
+| 字段名 | 类型 | 说明 |
+|--------|------|------|
+| id | INT UNSIGNED AUTO_INCREMENT | 配置ID |
+| store_id | INT NOT NULL UNIQUE | 门店ID |
+| auto_open_time | TIME DEFAULT NULL | 自动开门时间 |
+| auto_close_time | TIME DEFAULT NULL | 自动关门时间 |
+| max_daily_orders | INT DEFAULT NULL | 每日最大订单数 |
+| max_order_amount | DECIMAL(10,2) DEFAULT NULL | 每日最大订单金额 |
+| suspended_reason | TEXT DEFAULT NULL | 暂停原因 |
+| created_at | DATETIME DEFAULT CURRENT_TIMESTAMP | 创建时间 |
+| updated_at | DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE | 更新时间 |
+
+#### 3.1.12 store_status_log（门店状态变更记录表）
+
+| 字段名 | 类型 | 说明 |
+|--------|------|------|
+| id | INT UNSIGNED AUTO_INCREMENT | 记录ID |
+| store_id | INT NOT NULL | 门店ID |
+| from_status | VARCHAR(20) NOT NULL | 变更前状态 |
+| to_status | VARCHAR(20) NOT NULL | 变更后状态 |
+| change_type | ENUM('MANUAL','SCHEDULED','AUTO') NOT NULL | 变更类型 |
+| operator_id | INT DEFAULT NULL | 操作人ID |
+| remark | VARCHAR(255) DEFAULT '' | 备注 |
+| created_at | DATETIME DEFAULT CURRENT_TIMESTAMP | 创建时间 |
+
+### 3.2 API端点
+
+| 方法 | 路径 | 说明 |
+|------|------|------|
+| GET | /api/inventory-batches/batches | 批次列表 |
+| GET | /api/inventory-batches/batches/fifo-suggestion/:storeId/:skuId | FIFO出库建议 |
+| GET | /api/inventory-batches/batches/:id | 批次详情 |
+| POST | /api/inventory-batches/batches | 创建批次 |
+| PUT | /api/inventory-batches/batches/:id | 更新批次 |
+| POST | /api/inventory-batches/batches/:id/split | 拆分批 |
+| GET | /api/inventory-batches/batches/:id/trace | 批次追溯 |
+| GET | /api/inventory-batches/products/:spuId/batches | 商品批次 |
+| GET | /api/inventory-batches/expiry-configs | 效期预警配置列表 |
+| POST | /api/inventory-batches/expiry-configs | 创建效期预警配置 |
+| PUT | /api/inventory-batches/expiry-configs/:id | 更新效期预警配置 |
+| DELETE | /api/inventory-batches/expiry-configs/:id | 删除效期预警配置 |
+| GET | /api/inventory-batches/expiry-alerts | 效期预警记录列表 |
+| GET | /api/inventory-batches/expiry-alerts/statistics | 效期预警统计 |
+| PUT | /api/inventory-batches/expiry-alerts/:id/handle | 处理效期预警 |
+| POST | /api/admin-stock-checks | 创建盘点单 |
+| GET | /api/admin-stock-checks | 盘点单列表 |
+| GET | /api/admin-stock-checks/:id | 盘点单详情 |
+| PUT | /api/admin-stock-checks/:id | 更新盘点单 |
+| POST | /api/admin-stock-checks/:id/start | 开始盘点 |
+| POST | /api/admin-stock-checks/:id/complete | 完成盘点 |
+| POST | /api/admin-stock-checks/:id/cancel | 取消盘点 |
+| POST | /api/admin-stock-checks/:id/handle-diff | 处理差异 |
+| GET | /api/admin-stock-checks/statistics | 盘点统计 |
+| GET | /api/store-stock-checks/my | 门店盘点列表 |
+| GET | /api/store-stock-checks/:id | 门店盘点详情 |
+| PUT | /api/store-stock-checks/:id/items/:itemId | 更新盘点明细 |
+| POST | /api/store-stock-checks/:id/submit | 提交盘点 |
+| GET | /api/stock-warnings | 库存预警列表 |
+| POST | /api/stock-warnings/config | 批量配置预警 |
+| GET | /api/stock-warnings/configs | 预警配置列表 |
+| POST | /api/admin-transfers | 创建调拨单 |
+| GET | /api/admin-transfers | 调拨单列表 |
+| GET | /api/admin-transfers/:id | 调拨单详情 |
+| PUT | /api/admin-transfers/:id | 更新调拨单 |
+| POST | /api/admin-transfers/:id/submit | 提交调拨单 |
+| POST | /api/admin-transfers/:id/approve | 审核调拨单 |
+| POST | /api/admin-transfers/:id/reject | 驳回调拨单 |
+| POST | /api/admin-transfers/:id/cancel | 取消调拨单 |
+| POST | /api/admin-transfers/:id/ship | 发货 |
+| POST | /api/store-transfers/:id/receive | 收货 |
+| GET | /api/store-transfers/in-transit | 在途调拨单 |
+| GET | /api/store-transfers/my-shipments | 我的发货 |
+| GET | /api/inventory-cost/cost-detail | 库存成本明细 |
+| GET | /api/inventory-cost/cost-trend | 库存成本趋势 |
+| POST | /api/inventory-loss-gains/report-loss-gain | 报损/报溢 |
+| GET | /api/inventory-loss-gains/loss-gains | 报损报溢列表 |
+| GET | /api/admin/inventory-balance | 库存余额列表 |
+| GET | /api/admin/inventory-logs | 库存流水列表 |
+| GET | /api/admin/inventory-alerts | 库存预警 |
+| GET | /api/store/inventory | 门店库存 |
+| POST | /api/store/inventory/adjust | 调整库存 |
+| GET | /api/store/inventory/logs | 门店库存流水 |
+| GET | /api/store/inventory/alerts | 门店库存预警 |
+
+### 3.3 汇总统计
+
+- 表数量：12
+- 字段总数：约 170
+- API数量：55
+
 ---
 
  ## 第五部分：销售管理
@@ -296,7 +898,416 @@ required / unique / len[a,b] / range[a,b] / regex / enum / fk / logic / compare 
 > **核心差异化**: 单据分享与在线收款闭环 ⭐⭐
 > - 销售开单后生成带 UUID 的分享链接
 > - 客户微信打开即可支付，支付完成自动回写状态
-> - 解决了"业务员跑单、客户欠款、对账难"痛点，酒水批发必备
+> 解决了"业务员跑单、客户欠款、对账难"痛点，酒水批发必备
+
+### 销售管理 · 字段与表结构详解
+
+### 1.1 数据表定义
+
+#### 1.1.1 sale_bill（线下销售单表）
+
+| 字段名 | 类型 | 说明 |
+|--------|------|------|
+| id | BIGINT UNSIGNED AUTO_INCREMENT | 销售单ID |
+| bill_no | VARCHAR(64) NOT NULL UNIQUE | 销售单号 |
+| store_id | BIGINT UNSIGNED NOT NULL | 门店ID |
+| customer_id | BIGINT UNSIGNED DEFAULT NULL | 客户ID |
+| customer_name | VARCHAR(64) DEFAULT NULL | 客户名称快照 |
+| customer_mobile | VARCHAR(20) DEFAULT NULL | 客户手机号快照 |
+| customer_type | VARCHAR(32) NOT NULL DEFAULT 'RETAIL' | 客户身份快照 |
+| sale_type | VARCHAR(32) NOT NULL DEFAULT 'CASH' | 销售类型：CASH(现销)/CREDIT(赊销) |
+| business_status | VARCHAR(32) NOT NULL DEFAULT 'CREATED' | 业务状态：DRAFT/CREATED/COMPLETED/VOIDED/RETURNED |
+| collection_status | VARCHAR(32) NOT NULL DEFAULT 'UNPAID' | 收款状态：UNPAID/PENDING/SHARED/PARTIAL/PAID/OVERDUE/CLOSED |
+| due_date | DATE DEFAULT NULL | 应收截止日期（赊销时） |
+| statement_id | BIGINT UNSIGNED DEFAULT NULL | 关联对账单ID |
+| goods_amount | DECIMAL(12,2) NOT NULL DEFAULT 0.00 | 商品金额 |
+| discount_amount | DECIMAL(12,2) NOT NULL DEFAULT 0.00 | 优惠金额 |
+| rounding_amount | DECIMAL(12,2) NOT NULL DEFAULT 0.00 | 抹零金额 |
+| receivable_amount | DECIMAL(12,2) NOT NULL DEFAULT 0.00 | 应收金额 |
+| received_amount | DECIMAL(12,2) NOT NULL DEFAULT 0.00 | 已收金额 |
+| unreceived_amount | DECIMAL(12,2) NOT NULL DEFAULT 0.00 | 未收金额 |
+| share_collection_count | INT NOT NULL DEFAULT 0 | 分享收款次数 |
+| last_share_time | DATETIME DEFAULT NULL | 最近分享时间 |
+| last_payment_time | DATETIME DEFAULT NULL | 最近收款时间 |
+| locked_amount_flag | TINYINT NOT NULL DEFAULT 0 | 金额是否锁定 |
+| operator_id | BIGINT UNSIGNED NOT NULL | 开单人 |
+| remark | VARCHAR(255) DEFAULT NULL | 客户可见备注 |
+| internal_remark | VARCHAR(255) DEFAULT NULL | 内部备注 |
+| void_reason | VARCHAR(255) DEFAULT NULL | 作废原因 |
+| created_at | DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP | 创建时间 |
+| updated_at | DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE | 更新时间 |
+
+#### 1.1.2 sale_bill_item（线下销售单明细表）
+
+| 字段名 | 类型 | 说明 |
+|--------|------|------|
+| id | BIGINT UNSIGNED AUTO_INCREMENT | 明细ID |
+| bill_no | VARCHAR(64) NOT NULL | 销售单号 |
+| sku_id | BIGINT UNSIGNED NOT NULL | SKU ID |
+| sku_name | VARCHAR(128) NOT NULL | SKU名称快照 |
+| box_qty | INT NOT NULL DEFAULT 0 | 箱数 |
+| bottle_qty | INT NOT NULL DEFAULT 0 | 瓶数 |
+| total_bottle_qty | INT NOT NULL | 合计瓶数 |
+| unit_price | DECIMAL(12,2) NOT NULL | 成交单价，按瓶 |
+| price_type | VARCHAR(32) NOT NULL | 价格类型：RETAIL/WHOLESALE/STORE |
+| subtotal_amount | DECIMAL(12,2) NOT NULL | 小计 |
+| trace_required | TINYINT NOT NULL DEFAULT 0 | 是否需要追溯 |
+| created_at | DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP | 创建时间 |
+
+#### 1.1.3 sale_return（销售退货单表）
+
+| 字段名 | 类型 | 说明 |
+|--------|------|------|
+| id | BIGINT UNSIGNED AUTO_INCREMENT | 销售退货单ID |
+| return_no | VARCHAR(64) NOT NULL UNIQUE | 退货单号 |
+| source_bill_no | VARCHAR(64) DEFAULT NULL | 关联销售单号 |
+| store_id | BIGINT UNSIGNED NOT NULL | 门店ID |
+| customer_id | BIGINT UNSIGNED DEFAULT NULL | 客户ID |
+| customer_name | VARCHAR(64) DEFAULT NULL | 客户名称快照 |
+| customer_mobile | VARCHAR(20) DEFAULT NULL | 客户手机号快照 |
+| return_status | VARCHAR(32) NOT NULL DEFAULT 'PENDING' | 状态：PENDING/COMPLETED/VOIDED |
+| goods_amount | DECIMAL(12,2) NOT NULL DEFAULT 0.00 | 商品金额 |
+| discount_amount | DECIMAL(12,2) NOT NULL DEFAULT 0.00 | 优惠金额 |
+| refund_amount | DECIMAL(12,2) NOT NULL DEFAULT 0.00 | 应退金额 |
+| refunded_amount | DECIMAL(12,2) NOT NULL DEFAULT 0.00 | 已退金额 |
+| refund_method | VARCHAR(32) DEFAULT NULL | 退款方式：CASH/WECHAT/BANK |
+| operator_id | BIGINT UNSIGNED NOT NULL | 退货人 |
+| auditor_id | BIGINT UNSIGNED DEFAULT NULL | 审核人 |
+| audited_at | DATETIME DEFAULT NULL | 审核时间 |
+| remark | VARCHAR(255) DEFAULT NULL | 备注 |
+| created_at | DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP | 创建时间 |
+| updated_at | DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE | 更新时间 |
+
+#### 1.1.4 sale_return_item（销售退货单明细表）
+
+| 字段名 | 类型 | 说明 |
+|--------|------|------|
+| id | BIGINT UNSIGNED AUTO_INCREMENT | 明细ID |
+| return_no | VARCHAR(64) NOT NULL | 退货单号 |
+| sku_id | BIGINT UNSIGNED NOT NULL | SKU ID |
+| sku_name | VARCHAR(128) NOT NULL | SKU名称快照 |
+| box_qty | INT NOT NULL DEFAULT 0 | 箱数 |
+| bottle_qty | INT NOT NULL DEFAULT 0 | 瓶数 |
+| total_bottle_qty | INT NOT NULL | 合计瓶数 |
+| unit_price | DECIMAL(12,2) NOT NULL | 退货单价（瓶） |
+| subtotal_amount | DECIMAL(12,2) NOT NULL | 小计 |
+| reason | VARCHAR(255) DEFAULT NULL | 退货原因 |
+| created_at | DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP | 创建时间 |
+
+#### 1.1.5 sale_payment（销售收款单表）
+
+| 字段名 | 类型 | 说明 |
+|--------|------|------|
+| id | BIGINT UNSIGNED AUTO_INCREMENT | 销售收款单ID |
+| receipt_no | VARCHAR(64) NOT NULL UNIQUE | 收款单号 |
+| source_type | VARCHAR(32) NOT NULL | 来源类型：SALE_BILL/SALE_RETURN/STATEMENT |
+| source_no | VARCHAR(64) NOT NULL | 来源单号 |
+| customer_id | BIGINT UNSIGNED DEFAULT NULL | 客户ID |
+| customer_name | VARCHAR(64) DEFAULT NULL | 客户名称快照 |
+| amount | DECIMAL(12,2) NOT NULL | 收款金额 |
+| payment_method | VARCHAR(32) NOT NULL DEFAULT 'CASH' | 收款方式：CASH/WECHAT/ALIPAY/BANK/COLLECTION |
+| voucher_no | VARCHAR(64) DEFAULT NULL | 凭证号 |
+| payment_date | DATE NOT NULL | 收款日期 |
+| operator_id | BIGINT UNSIGNED NOT NULL | 收款人 |
+| status | VARCHAR(32) NOT NULL DEFAULT 'COMPLETED' | 状态：COMPLETED/VOIDED |
+| remark | VARCHAR(255) DEFAULT NULL | 备注 |
+| created_at | DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP | 创建时间 |
+| updated_at | DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE | 更新时间 |
+
+#### 1.1.6 collection_link（分享收款链接表）
+
+| 字段名 | 类型 | 说明 |
+|--------|------|------|
+| id | BIGINT UNSIGNED AUTO_INCREMENT | 分享收款ID |
+| link_no | VARCHAR(64) NOT NULL UNIQUE | 分享收款单号 |
+| source_type | VARCHAR(32) NOT NULL | 来源类型：SALE_BILL/MINIAPP_ORDER/STATEMENT |
+| source_no | VARCHAR(64) NOT NULL | 来源单号 |
+| customer_id | BIGINT UNSIGNED DEFAULT NULL | 客户ID |
+| amount | DECIMAL(12,2) NOT NULL | 本次收款金额 |
+| tax_enabled | TINYINT NOT NULL DEFAULT 0 | 是否展示税率 |
+| tax_rate | DECIMAL(8,4) NOT NULL DEFAULT 0.0000 | 税率 |
+| tax_amount | DECIMAL(12,2) NOT NULL DEFAULT 0.00 | 税额 |
+| paid_amount | DECIMAL(12,2) NOT NULL DEFAULT 0.00 | 已支付金额 |
+| status | VARCHAR(32) NOT NULL DEFAULT 'PENDING' | 状态：PENDING/PARTIAL/PAID/EXPIRED/CLOSED |
+| share_channel | VARCHAR(32) NOT NULL | 分享方式：MINIAPP_CARD/LINK/IMAGE/QR_CODE |
+| share_user_id | BIGINT UNSIGNED NOT NULL | 分享人 |
+| share_time | DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP | 分享时间 |
+| expire_at | DATETIME NOT NULL | 过期时间 |
+| view_count | INT NOT NULL DEFAULT 0 | 查看次数 |
+| last_view_time | DATETIME DEFAULT NULL | 最近查看时间 |
+| pay_no | VARCHAR(64) DEFAULT NULL | 关联支付单号 |
+| token | VARCHAR(128) NOT NULL UNIQUE | 访问令牌 |
+| closed_reason | VARCHAR(255) DEFAULT NULL | 关闭原因 |
+| created_at | DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP | 创建时间 |
+| updated_at | DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE | 更新时间 |
+
+#### 1.1.7 collection_view_log（分享收款访问日志表）
+
+| 字段名 | 类型 | 说明 |
+|--------|------|------|
+| id | BIGINT UNSIGNED AUTO_INCREMENT | 日志ID |
+| link_no | VARCHAR(64) NOT NULL | 分享收款单号 |
+| ip | VARCHAR(64) DEFAULT NULL | 访问IP |
+| user_agent | VARCHAR(512) DEFAULT NULL | 用户代理 |
+| viewed_at | DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP | 访问时间 |
+
+#### 1.1.8 price_level（价格等级表）
+
+| 字段名 | 类型 | 说明 |
+|--------|------|------|
+| id | INT UNSIGNED AUTO_INCREMENT | 等级ID |
+| level_code | VARCHAR(32) NOT NULL UNIQUE | 等级编码 |
+| level_name | VARCHAR(64) NOT NULL | 等级名称 |
+| discount_rate | DECIMAL(5,4) DEFAULT 1.0000 | 折扣率 |
+| min_order_amount | DECIMAL(12,2) DEFAULT 0 | 最低订单金额门槛 |
+| description | VARCHAR(255) DEFAULT '' | 等级说明 |
+| sort_order | INT DEFAULT 0 | 排序 |
+| status | TINYINT DEFAULT 1 | 状态 |
+| created_at | DATETIME DEFAULT CURRENT_TIMESTAMP | 创建时间 |
+| updated_at | DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE | 更新时间 |
+
+#### 1.1.9 sku_price（阶梯价格表）
+
+| 字段名 | 类型 | 说明 |
+|--------|------|------|
+| id | INT UNSIGNED AUTO_INCREMENT | 价格ID |
+| sku_id | INT NOT NULL | SKU ID |
+| price_level_id | INT NOT NULL | 价格等级ID |
+| min_qty | INT DEFAULT 1 | 起订量 |
+| price | DECIMAL(12,2) NOT NULL | 单价 |
+| cost_price | DECIMAL(12,2) DEFAULT 0 | 成本价 |
+| suggested_retail_price | DECIMAL(12,2) DEFAULT 0 | 建议零售价 |
+| effective_start | DATE DEFAULT NULL | 生效开始日期 |
+| effective_end | DATE DEFAULT NULL | 生效结束日期 |
+| status | TINYINT DEFAULT 1 | 状态 |
+| created_at | DATETIME DEFAULT CURRENT_TIMESTAMP | 创建时间 |
+| updated_at | DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE | 更新时间 |
+
+#### 1.1.10 customer_price_binding（客户价格等级绑定表）
+
+| 字段名 | 类型 | 说明 |
+|--------|------|------|
+| id | INT UNSIGNED AUTO_INCREMENT | 绑定ID |
+| customer_id | INT NOT NULL UNIQUE | 客户ID |
+| price_level_id | INT NOT NULL | 价格等级ID |
+| apply_reason | VARCHAR(255) DEFAULT '' | 申请原因 |
+| status | ENUM('PENDING','APPROVED','REJECTED','EXPIRED') DEFAULT 'PENDING' | 状态 |
+| approved_by | INT DEFAULT NULL | 审批人 |
+| approved_at | DATETIME DEFAULT NULL | 审批时间 |
+| expire_at | DATETIME DEFAULT NULL | 到期时间 |
+| created_at | DATETIME DEFAULT CURRENT_TIMESTAMP | 创建时间 |
+| updated_at | DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE | 更新时间 |
+
+#### 1.1.11 customer_price（客户专属价格表）
+
+| 字段名 | 类型 | 说明 |
+|--------|------|------|
+| id | BIGINT AUTO_INCREMENT | 价格ID |
+| customer_id | BIGINT NOT NULL | 客户ID |
+| sku_id | BIGINT NOT NULL | SKU ID |
+| custom_price | DECIMAL(12,2) NOT NULL | 客户专属价格 |
+| effective_start | DATE DEFAULT NULL | 生效开始日期 |
+| effective_end | DATE DEFAULT NULL | 生效结束日期 |
+| status | TINYINT DEFAULT 1 | 状态 |
+| tenant_id | VARCHAR(64) NOT NULL DEFAULT '' | 租户ID |
+| created_at | DATETIME DEFAULT CURRENT_TIMESTAMP | 创建时间 |
+| updated_at | DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE | 更新时间 |
+
+#### 1.1.12 customer_credit（客户授信额度表）
+
+| 字段名 | 类型 | 说明 |
+|--------|------|------|
+| id | INT UNSIGNED AUTO_INCREMENT | 授信ID |
+| customer_id | INT NOT NULL UNIQUE | 客户ID |
+| credit_limit | DECIMAL(12,2) NOT NULL DEFAULT 0 | 授信总额度 |
+| credit_used | DECIMAL(12,2) NOT NULL DEFAULT 0 | 已用额度 |
+| credit_frozen | DECIMAL(12,2) NOT NULL DEFAULT 0 | 冻结额度 |
+| credit_available | DECIMAL(12,2) GENERATED ALWAYS AS (credit_limit - credit_used - credit_frozen) STORED | 可用额度 |
+| payment_term | ENUM('COD','NET_7','NET_15','NET_30','NET_60','NET_90') DEFAULT 'COD' | 账期 |
+| late_fee_rate | DECIMAL(6,4) DEFAULT 0.0005 | 日滞纳金费率 |
+| max_late_fee_rate | DECIMAL(6,4) DEFAULT 0.3 | 最高滞纳金比例 |
+| warning_threshold | DECIMAL(5,2) DEFAULT 0.80 | 预警阈值 |
+| overdue_freeze_days | INT DEFAULT 15 | 逾期自动冻结天数 |
+| status | ENUM('ACTIVE','FROZEN','CLOSED') DEFAULT 'ACTIVE' | 状态 |
+| freeze_reason | VARCHAR(255) DEFAULT NULL | 冻结原因 |
+| frozen_at | DATETIME DEFAULT NULL | 冻结时间 |
+| unfrozen_at | DATETIME DEFAULT NULL | 解冻时间 |
+| version | INT DEFAULT 1 | 乐观锁版本号 |
+| tenant_id | VARCHAR(36) NOT NULL DEFAULT 'default' | 租户ID |
+| created_at | DATETIME DEFAULT CURRENT_TIMESTAMP | 创建时间 |
+| updated_at | DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE | 更新时间 |
+
+#### 1.1.13 credit_operation_log（授信操作日志表）
+
+| 字段名 | 类型 | 说明 |
+|--------|------|------|
+| id | INT UNSIGNED AUTO_INCREMENT | 日志ID |
+| customer_id | INT NOT NULL | 客户ID |
+| operation_type | ENUM('ADJUST_LIMIT','OCCUPY','RELEASE','FREEZE','UNFREEZE','OVERDUE_DEDUCT','MANUAL_ADJUST') NOT NULL | 操作类型 |
+| amount | DECIMAL(12,2) NOT NULL | 变动金额 |
+| balance_before | DECIMAL(12,2) NOT NULL | 操作前可用额度 |
+| balance_after | DECIMAL(12,2) NOT NULL | 操作后可用额度 |
+| related_order_no | VARCHAR(64) DEFAULT NULL | 关联订单号 |
+| operator_id | INT NOT NULL | 操作人 |
+| remark | VARCHAR(255) DEFAULT '' | 备注 |
+| tenant_id | VARCHAR(36) NOT NULL DEFAULT 'default' | 租户ID |
+| created_at | DATETIME DEFAULT CURRENT_TIMESTAMP | 创建时间 |
+
+#### 1.1.14 collection_record（催收记录表）
+
+| 字段名 | 类型 | 说明 |
+|--------|------|------|
+| id | INT UNSIGNED AUTO_INCREMENT | 催收记录ID |
+| customer_id | INT NOT NULL | 客户ID |
+| receivable_no | VARCHAR(64) DEFAULT NULL | 关联应收单号 |
+| overdue_days | INT DEFAULT 0 | 逾期天数 |
+| overdue_amount | DECIMAL(12,2) DEFAULT 0 | 逾期金额 |
+| collection_level | ENUM('REMIND','LIGHT','MEDIUM','HEAVY','SEVERE') NOT NULL | 催收等级 |
+| collection_method | ENUM('SMS','PHONE','VISIT','LETTER','LEGAL') NOT NULL | 催收方式 |
+| collection_content | TEXT | 催收内容 |
+| contact_person | VARCHAR(64) DEFAULT '' | 联系人 |
+| contact_result | ENUM('PROMISED','REFUSED','NO_ANSWER','PARTIAL_PAID','DISPUTED') DEFAULT NULL | 催收结果 |
+| promised_amount | DECIMAL(12,2) DEFAULT NULL | 承诺还款金额 |
+| promised_date | DATE DEFAULT NULL | 承诺还款日期 |
+| next_follow_up_date | DATE DEFAULT NULL | 下次跟进日期 |
+| operator_id | INT NOT NULL | 操作人 |
+| tenant_id | VARCHAR(36) NOT NULL DEFAULT 'default' | 租户ID |
+| created_at | DATETIME DEFAULT CURRENT_TIMESTAMP | 创建时间 |
+
+#### 1.1.15 sales_commission_rule（销售提成规则表）
+
+| 字段名 | 类型 | 说明 |
+|--------|------|------|
+| id | BIGINT AUTO_INCREMENT | 规则ID |
+| rule_name | VARCHAR(100) NOT NULL | 规则名称 |
+| rule_type | VARCHAR(20) NOT NULL | 规则类型：FIXED_AMOUNT/FIXED_RATE/TIERED |
+| config | JSON NOT NULL | 规则配置JSON |
+| effective_start | DATE DEFAULT NULL | 生效开始日期 |
+| effective_end | DATE DEFAULT NULL | 生效结束日期 |
+| status | TINYINT DEFAULT 1 | 状态 |
+| remark | VARCHAR(500) DEFAULT NULL | 备注 |
+| tenant_id | VARCHAR(64) NOT NULL DEFAULT '' | 租户ID |
+| created_at | DATETIME DEFAULT CURRENT_TIMESTAMP | 创建时间 |
+| updated_at | DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE | 更新时间 |
+
+#### 1.1.16 sales_commission_record（销售提成记录表）
+
+| 字段名 | 类型 | 说明 |
+|--------|------|------|
+| id | BIGINT AUTO_INCREMENT | 记录ID |
+| record_no | VARCHAR(32) NOT NULL | 记录编号 |
+| bill_no | VARCHAR(32) NOT NULL | 销售单号 |
+| staff_id | BIGINT NOT NULL | 员工ID |
+| rule_id | BIGINT NOT NULL | 提成规则ID |
+| commission_amount | DECIMAL(12,2) NOT NULL | 提成金额 |
+| base_amount | DECIMAL(12,2) NOT NULL | 计算基数 |
+| rate | DECIMAL(6,4) DEFAULT NULL | 提成比例 |
+| status | VARCHAR(20) NOT NULL DEFAULT 'PENDING' | 状态：PENDING/SETTLED/CANCELLED |
+| settled_at | DATETIME DEFAULT NULL | 结算时间 |
+| tenant_id | VARCHAR(64) NOT NULL DEFAULT '' | 租户ID |
+| created_at | DATETIME DEFAULT CURRENT_TIMESTAMP | 创建时间 |
+
+#### 1.1.17 price_change_log（价格变更历史表）
+
+| 字段名 | 类型 | 说明 |
+|--------|------|------|
+| id | INT UNSIGNED AUTO_INCREMENT | 日志ID |
+| sku_id | INT NOT NULL | SKU ID |
+| price_level_id | INT NOT NULL | 价格等级ID |
+| old_price | DECIMAL(12,2) | 原价格 |
+| new_price | DECIMAL(12,2) | 新价格 |
+| change_reason | VARCHAR(255) DEFAULT '' | 变更原因 |
+| changed_by | INT NOT NULL | 变更人 |
+| created_at | DATETIME DEFAULT CURRENT_TIMESTAMP | 创建时间 |
+
+### 1.2 API端点
+
+| 方法 | 路径 | 说明 |
+|------|------|------|
+| GET | /api/admin/sale-bills | 销售单列表 |
+| GET | /api/admin/sale-bills/export-csv | 导出销售单CSV |
+| POST | /api/admin/sale-bills/batch-collection-link | 批量创建收款链接 |
+| POST | /api/admin/collection-links/:linkNo/revoke | 撤销收款链接 |
+| GET | /api/admin/collection-links | 收款链接列表 |
+| GET | /api/admin/collection-links/stats | 收款链接统计 |
+| GET | /api/share/collections/:token | 分享收款详情 |
+| GET | /api/share/collections/:token/page | H5支付页面数据 |
+| POST | /api/share/collections/:token/pay | 发起支付 |
+| POST | /api/share/collections/:token/wx-notify | 微信支付回调 |
+| GET | /api/sale-returns | 销售退货单列表 |
+| GET | /api/sale-returns/:returnNo | 退货单详情 |
+| POST | /api/sale-returns | 创建退货单 |
+| POST | /api/sale-returns/:returnNo/approve | 审核退货单 |
+| POST | /api/sale-returns/:returnNo/refund | 执行退款 |
+| GET | /api/sale-returns/sale-bills/:billNo | 查询关联销售单 |
+| GET | /api/commission/rules | 提成规则列表 |
+| POST | /api/commission/rules | 创建提成规则 |
+| PUT | /api/commission/rules/:id | 更新提成规则 |
+| DELETE | /api/commission/rules/:id | 删除提成规则 |
+| POST | /api/commission/calculate | 计算提成 |
+| POST | /api/commission/settle | 结算提成 |
+| GET | /api/commission/records | 提成记录列表 |
+| GET | /api/price/levels | 价格等级列表 |
+| POST | /api/price/levels | 创建价格等级 |
+| PUT | /api/price/levels/:id | 更新价格等级 |
+| DELETE | /api/price/levels/:id | 禁用价格等级 |
+| GET | /api/price/skus/:skuId/prices | 阶梯价格列表 |
+| POST | /api/price/skus/:skuId/prices | 设置阶梯价格 |
+| PUT | /api/price/prices/:id | 更新价格 |
+| DELETE | /api/price/prices/:id | 删除价格 |
+| POST | /api/price/best-price | 最优价查询 |
+| GET | /api/price/customer-bindings | 客户价格绑定列表 |
+| POST | /api/price/customer-bindings | 创建客户价格绑定 |
+| PUT | /api/price/customer-bindings/:id/approve | 审批绑定 |
+| PUT | /api/price/customer-bindings/:id/reject | 拒绝绑定 |
+| DELETE | /api/price/customer-bindings/:id | 取消绑定 |
+| GET | /api/price/change-logs | 价格变更日志 |
+| POST | /api/price/batch/preview | 批量调价预览 |
+| POST | /api/price/batch/execute | 批量调价执行 |
+| GET | /api/price/batch/logs | 批量调价日志 |
+| GET | /api/price/batch/:batchNo | 批量调价详情 |
+| GET | /api/credit/credits | 授信列表 |
+| GET | /api/credit/credits/:customerId | 授信详情 |
+| POST | /api/credit/credits/:customerId | 初始化授信 |
+| GET | /api/credit/credits/:customerId/check | 检查授信 |
+| POST | /api/credit/credits/:customerId/occupy | 占用额度 |
+| POST | /api/credit/credits/:customerId/release | 释放额度 |
+| POST | /api/credit/credits/:customerId/freeze | 冻结额度 |
+| POST | /api/credit/credits/:customerId/unfreeze | 解冻额度 |
+| PUT | /api/credit/credits/:customerId/limit | 调整额度 |
+| PUT | /api/credit/credits/:customerId/term | 调整账期 |
+| POST | /api/credit/credits/:customerId/evaluate | 信用评估 |
+| GET | /api/credit/credits/:customerId/intercept | 风控拦截检查 |
+| POST | /api/credit/credits/:customerId/auto-init | 自动初始化授信 |
+| GET | /api/credit/credits/strategy/collection | 催收策略配置 |
+| GET | /api/credit/credits/strategy/tiers | 信用等级体系 |
+| GET | /api/credit/collections | 催收记录列表 |
+| POST | /api/credit/collections | 创建催收记录 |
+| PUT | /api/credit/collections/:id | 更新催收记录 |
+| GET | /api/credit/collections/overdue | 逾期客户列表 |
+| POST | /api/credit/collections/auto-generate | 自动生成催收 |
+| POST | /api/credit/collections/batch-remind | 批量催收提醒 |
+| GET | /api/credit/collections/statistics | 催收统计 |
+| GET | /api/credit/risk-customers | 风险客户列表 |
+| GET | /api/credit/risk-list | 风险客户列表 |
+| GET | /api/customer-prices | 客户专属价格列表 |
+| POST | /api/customer-prices | 创建客户专属价格 |
+| PUT | /api/customer-prices/:id | 更新客户专属价格 |
+| DELETE | /api/customer-prices/:id | 删除客户专属价格 |
+| GET | /api/store/sale-bills | 门店销售单列表 |
+| POST | /api/store/sale-bills | 创建销售单 |
+| GET | /api/store/sale-bills/overdue | 逾期销售单 |
+| GET | /api/store/sale-bills/overdue/check | 检查逾期 |
+| GET | /api/store/sale-bills/:billNo | 销售单详情 |
+| POST | /api/store/sale-bills/:billNo/collection-link | 创建收款链接 |
+| POST | /api/store/sale-bills/:billNo/offline-payment | 线下收款 |
+| POST | /api/store/sale-bills/:billNo/payment | 销售单收款 |
+
+### 1.3 汇总统计
+
+- 表数量：17
+- 字段总数：约 280
+- API数量：73
 
 ---
 
@@ -527,6 +1538,339 @@ required / unique / len[a,b] / range[a,b] / regex / enum / fk / logic / compare 
 
 > **整合说明**: 原"客户与会员中心"整个整合到一级目录"客户管理"，删除了不相关的社交裂变内容。
 
+### 客户管理 · 字段与表结构详解
+
+### 4.1 数据表定义
+
+#### 4.1.1 member（会员客户表）
+
+| 字段名 | 类型 | 说明 |
+|--------|------|------|
+| id | BIGINT UNSIGNED AUTO_INCREMENT | 会员ID |
+| openid | VARCHAR(128) DEFAULT NULL UNIQUE | 微信openid |
+| unionid | VARCHAR(128) DEFAULT NULL | 微信unionid |
+| mobile | VARCHAR(20) NOT NULL UNIQUE | 手机号 |
+| name | VARCHAR(64) DEFAULT NULL | 客户名称 |
+| address | VARCHAR(255) DEFAULT NULL | 客户地址 |
+| remark | VARCHAR(500) DEFAULT NULL | 备注 |
+| customer_type | VARCHAR(32) NOT NULL DEFAULT 'RETAIL' | 客户身份：RETAIL/WHOLESALE |
+| settlement_type | VARCHAR(32) NOT NULL DEFAULT 'CASH' | 结算方式：CASH/ACCOUNT |
+| staff_id | BIGINT UNSIGNED DEFAULT NULL | 归属销售员ID |
+| points | INT NOT NULL DEFAULT 0 | 积分 |
+| level_code | VARCHAR(32) DEFAULT NULL | 会员等级 |
+| status | TINYINT NOT NULL DEFAULT 1 | 状态 |
+| last_order_at | DATETIME DEFAULT NULL | 最近下单时间 |
+| created_at | DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP | 创建时间 |
+| updated_at | DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE | 更新时间 |
+
+#### 4.1.2 customer_points（客户积分表）
+
+| 字段名 | 类型 | 说明 |
+|--------|------|------|
+| id | BIGINT AUTO_INCREMENT | 积分ID |
+| customer_id | BIGINT NOT NULL | 客户ID |
+| total_points | INT DEFAULT 0 | 累计积分 |
+| available_points | INT DEFAULT 0 | 可用积分 |
+| frozen_points | INT DEFAULT 0 | 冻结积分 |
+| tenant_id | VARCHAR(64) NOT NULL DEFAULT '' | 租户ID |
+| created_at | DATETIME DEFAULT CURRENT_TIMESTAMP | 创建时间 |
+| updated_at | DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE | 更新时间 |
+
+#### 4.1.3 points_record（积分变动记录表）
+
+| 字段名 | 类型 | 说明 |
+|--------|------|------|
+| id | BIGINT AUTO_INCREMENT | 记录ID |
+| record_no | VARCHAR(32) NOT NULL | 记录编号 |
+| customer_id | BIGINT NOT NULL | 客户ID |
+| type | VARCHAR(20) NOT NULL | 类型：EARN/REDEEM/EXPIRE/ADJUST |
+| points | INT NOT NULL | 积分变动数 |
+| balance_after | INT NOT NULL | 变动后余额 |
+| source_type | VARCHAR(20) DEFAULT NULL | 来源类型 |
+| source_no | VARCHAR(32) DEFAULT NULL | 来源单号 |
+| remark | VARCHAR(200) DEFAULT NULL | 备注 |
+| tenant_id | VARCHAR(64) NOT NULL DEFAULT '' | 租户ID |
+| created_at | DATETIME DEFAULT CURRENT_TIMESTAMP | 创建时间 |
+
+#### 4.1.4 points_rule（积分规则表）
+
+| 字段名 | 类型 | 说明 |
+|--------|------|------|
+| id | BIGINT AUTO_INCREMENT | 规则ID |
+| rule_name | VARCHAR(100) NOT NULL | 规则名称 |
+| earn_type | VARCHAR(20) NOT NULL | 获取方式：PURCHASE/SIGN_IN/BIRTHDAY/REFERRAL |
+| earn_rate | DECIMAL(6,4) DEFAULT 0 | 积分比例 |
+| daily_limit | INT DEFAULT 0 | 每日上限 |
+| enabled | TINYINT DEFAULT 1 | 是否启用 |
+| tenant_id | VARCHAR(64) NOT NULL DEFAULT '' | 租户ID |
+| created_at | DATETIME DEFAULT CURRENT_TIMESTAMP | 创建时间 |
+| updated_at | DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE | 更新时间 |
+
+#### 4.1.5 customer_level（客户等级表）
+
+| 字段名 | 类型 | 说明 |
+|--------|------|------|
+| id | BIGINT AUTO_INCREMENT | 等级ID |
+| customer_id | BIGINT NOT NULL | 客户ID |
+| level_name | VARCHAR(20) NOT NULL DEFAULT 'VIP1' | 等级名称 |
+| level_points | INT DEFAULT 0 | 当前等级积分 |
+| upgraded_at | DATETIME DEFAULT NULL | 升级时间 |
+| tenant_id | VARCHAR(64) NOT NULL DEFAULT '' | 租户ID |
+| created_at | DATETIME DEFAULT CURRENT_TIMESTAMP | 创建时间 |
+| updated_at | DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE | 更新时间 |
+
+#### 4.1.6 level_config（等级配置表）
+
+| 字段名 | 类型 | 说明 |
+|--------|------|------|
+| id | BIGINT AUTO_INCREMENT | 配置ID |
+| level_name | VARCHAR(20) NOT NULL | 等级名称 |
+| min_points | INT NOT NULL DEFAULT 0 | 最低积分 |
+| max_points | INT NOT NULL DEFAULT 0 | 最高积分 |
+| discount_rate | DECIMAL(4,2) DEFAULT 1.00 | 折扣率 |
+| benefits | JSON DEFAULT NULL | 权益配置 |
+| tenant_id | VARCHAR(64) NOT NULL DEFAULT '' | 租户ID |
+| created_at | DATETIME DEFAULT CURRENT_TIMESTAMP | 创建时间 |
+| updated_at | DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE | 更新时间 |
+
+#### 4.1.7 store_value_card（储值卡表）
+
+| 字段名 | 类型 | 说明 |
+|--------|------|------|
+| id | BIGINT AUTO_INCREMENT | 储值卡ID |
+| card_no | VARCHAR(32) NOT NULL | 卡号 |
+| customer_id | BIGINT NOT NULL | 客户ID |
+| customer_name | VARCHAR(100) DEFAULT NULL | 客户姓名 |
+| balance | DECIMAL(12,2) DEFAULT 0 | 当前余额 |
+| total_recharge | DECIMAL(12,2) DEFAULT 0 | 累计充值 |
+| total_consume | DECIMAL(12,2) DEFAULT 0 | 累计消费 |
+| status | VARCHAR(20) NOT NULL DEFAULT 'ACTIVE' | 状态：ACTIVE/FROZEN/CANCELLED |
+| tenant_id | VARCHAR(64) NOT NULL DEFAULT '' | 租户ID |
+| created_at | DATETIME DEFAULT CURRENT_TIMESTAMP | 创建时间 |
+| updated_at | DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE | 更新时间 |
+
+#### 4.1.8 store_value_transaction（储值卡交易记录表）
+
+| 字段名 | 类型 | 说明 |
+|--------|------|------|
+| id | BIGINT AUTO_INCREMENT | 交易ID |
+| trans_no | VARCHAR(32) NOT NULL | 交易编号 |
+| card_no | VARCHAR(32) NOT NULL | 卡号 |
+| customer_id | BIGINT NOT NULL | 客户ID |
+| type | VARCHAR(20) NOT NULL | 类型：RECHARGE/CONSUME/REFUND/ADJUST |
+| amount | DECIMAL(12,2) NOT NULL | 金额 |
+| balance_after | DECIMAL(12,2) NOT NULL | 交易后余额 |
+| pay_method | VARCHAR(20) DEFAULT NULL | 支付方式 |
+| source_no | VARCHAR(32) DEFAULT NULL | 来源单号 |
+| remark | VARCHAR(200) DEFAULT NULL | 备注 |
+| operator_id | BIGINT DEFAULT NULL | 操作人ID |
+| tenant_id | VARCHAR(64) NOT NULL DEFAULT '' | 租户ID |
+| created_at | DATETIME DEFAULT CURRENT_TIMESTAMP | 创建时间 |
+
+#### 4.1.9 customer_tag（客户标签表）
+
+| 字段名 | 类型 | 说明 |
+|--------|------|------|
+| id | BIGINT AUTO_INCREMENT | 标签ID |
+| tag_name | VARCHAR(50) NOT NULL | 标签名称 |
+| tag_type | VARCHAR(20) NOT NULL DEFAULT 'MANUAL' | 类型：MANUAL/AUTO |
+| tag_group | VARCHAR(50) DEFAULT NULL | 标签分组 |
+| tenant_id | VARCHAR(64) NOT NULL DEFAULT '' | 租户ID |
+| created_at | DATETIME DEFAULT CURRENT_TIMESTAMP | 创建时间 |
+
+#### 4.1.10 customer_tag_relation（客户标签关联表）
+
+| 字段名 | 类型 | 说明 |
+|--------|------|------|
+| id | BIGINT AUTO_INCREMENT | 关联ID |
+| customer_id | BIGINT NOT NULL | 客户ID |
+| tag_id | BIGINT NOT NULL | 标签ID |
+| tenant_id | VARCHAR(64) NOT NULL DEFAULT '' | 租户ID |
+| created_at | DATETIME DEFAULT CURRENT_TIMESTAMP | 创建时间 |
+
+#### 4.1.11 customer_profile（客户画像表）
+
+| 字段名 | 类型 | 说明 |
+|--------|------|------|
+| id | BIGINT AUTO_INCREMENT | 画像ID |
+| customer_id | BIGINT NOT NULL | 客户ID |
+| age_group | VARCHAR(20) DEFAULT NULL | 年龄段 |
+| gender | VARCHAR(10) DEFAULT NULL | 性别 |
+| prefer_category | VARCHAR(500) DEFAULT NULL | 偏好品类 |
+| prefer_brand | VARCHAR(500) DEFAULT NULL | 偏好品牌 |
+| avg_order_amount | DECIMAL(12,2) DEFAULT 0 | 平均客单价 |
+| total_order_count | INT DEFAULT 0 | 累计消费次数 |
+| last_order_at | DATETIME DEFAULT NULL | 最近消费时间 |
+| total_points | INT DEFAULT 0 | 累计积分 |
+| member_level | VARCHAR(20) DEFAULT NULL | 会员等级 |
+| lifecycle_stage | VARCHAR(20) DEFAULT 'PROSPECT' | 生命周期阶段 |
+| tenant_id | VARCHAR(64) NOT NULL DEFAULT '' | 租户ID |
+| updated_at | DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE | 更新时间 |
+
+#### 4.1.12 customer_care_rule（客户关怀规则表）
+
+| 字段名 | 类型 | 说明 |
+|--------|------|------|
+| id | BIGINT AUTO_INCREMENT | 规则ID |
+| rule_name | VARCHAR(100) NOT NULL | 规则名称 |
+| trigger_type | VARCHAR(20) NOT NULL | 触发类型：BIRTHDAY/HOLIDAY/INACTIVE/LEVEL_UP |
+| template_content | TEXT | 关怀内容模板 |
+| reward_points | INT DEFAULT 0 | 奖励积分 |
+| reward_coupon_id | BIGINT DEFAULT NULL | 奖励优惠券ID |
+| enabled | TINYINT DEFAULT 1 | 是否启用 |
+| tenant_id | VARCHAR(64) NOT NULL DEFAULT '' | 租户ID |
+| created_at | DATETIME DEFAULT CURRENT_TIMESTAMP | 创建时间 |
+| updated_at | DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE | 更新时间 |
+
+#### 4.1.13 customer_care_log（客户关怀记录表）
+
+| 字段名 | 类型 | 说明 |
+|--------|------|------|
+| id | BIGINT AUTO_INCREMENT | 记录ID |
+| customer_id | BIGINT NOT NULL | 客户ID |
+| rule_id | BIGINT NOT NULL | 关怀规则ID |
+| trigger_type | VARCHAR(20) NOT NULL | 触发类型 |
+| sent_content | TEXT | 发送内容 |
+| sent_at | DATETIME DEFAULT NULL | 发送时间 |
+| status | VARCHAR(20) NOT NULL DEFAULT 'PENDING' | 状态：PENDING/SENT/FAILED |
+| tenant_id | VARCHAR(64) NOT NULL DEFAULT '' | 租户ID |
+| created_at | DATETIME DEFAULT CURRENT_TIMESTAMP | 创建时间 |
+
+#### 4.1.14 customer_segment（客户分群表）
+
+| 字段名 | 类型 | 说明 |
+|--------|------|------|
+| id | BIGINT AUTO_INCREMENT | 分群ID |
+| segment_name | VARCHAR(100) NOT NULL | 分群名称 |
+| conditions | JSON NOT NULL | 分群条件 |
+| member_count | INT DEFAULT 0 | 成员数 |
+| auto_refresh | TINYINT DEFAULT 0 | 是否自动刷新 |
+| tenant_id | VARCHAR(64) NOT NULL DEFAULT '' | 租户ID |
+| created_at | DATETIME DEFAULT CURRENT_TIMESTAMP | 创建时间 |
+| updated_at | DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE | 更新时间 |
+
+#### 4.1.15 customer_segment_member（客户分群成员表）
+
+| 字段名 | 类型 | 说明 |
+|--------|------|------|
+| id | BIGINT AUTO_INCREMENT | 成员ID |
+| segment_id | BIGINT NOT NULL | 分群ID |
+| customer_id | BIGINT NOT NULL | 客户ID |
+| tenant_id | VARCHAR(64) NOT NULL DEFAULT '' | 租户ID |
+| created_at | DATETIME DEFAULT CURRENT_TIMESTAMP | 创建时间 |
+
+#### 4.1.16 customer_visit（客户拜访记录表）
+
+| 字段名 | 类型 | 说明 |
+|--------|------|------|
+| id | BIGINT UNSIGNED AUTO_INCREMENT | 拜访记录ID |
+| visit_no | VARCHAR(64) NOT NULL UNIQUE | 拜访单号 |
+| customer_id | BIGINT UNSIGNED NOT NULL | 客户ID |
+| customer_name | VARCHAR(64) NOT NULL | 客户名称快照 |
+| customer_mobile | VARCHAR(20) DEFAULT NULL | 客户手机号 |
+| store_id | BIGINT UNSIGNED NOT NULL | 所属门店ID |
+| visitor_id | BIGINT UNSIGNED NOT NULL | 拜访人(员工ID) |
+| visitor_name | VARCHAR(64) NOT NULL | 拜访人姓名 |
+| visit_type | VARCHAR(32) NOT NULL DEFAULT 'ONSITE' | 拜访类型：ONSITE/PHONE/ONLINE |
+| visit_purpose | VARCHAR(32) NOT NULL DEFAULT 'ROUTINE' | 拜访目的：ROUTINE/ORDER/COLLECTION/COMPLAINT/PROMOTION/AFTER_SALE |
+| visit_date | DATE NOT NULL | 拜访日期 |
+| start_time | DATETIME DEFAULT NULL | 拜访开始时间 |
+| end_time | DATETIME DEFAULT NULL | 拜访结束时间 |
+| duration_minutes | INT DEFAULT NULL | 拜访时长(分钟) |
+| address | VARCHAR(255) DEFAULT NULL | 拜访地址 |
+| latitude | DECIMAL(10,7) DEFAULT NULL | 纬度 |
+| longitude | DECIMAL(10,7) DEFAULT NULL | 经度 |
+| contact_person | VARCHAR(64) DEFAULT NULL | 联系人 |
+| contact_position | VARCHAR(64) DEFAULT NULL | 联系人职位 |
+| contact_mobile | VARCHAR(20) DEFAULT NULL | 联系人电话 |
+| visit_summary | TEXT | 拜访总结 |
+| follow_up_required | TINYINT(1) NOT NULL DEFAULT 0 | 是否需要跟进 |
+| follow_up_date | DATE DEFAULT NULL | 下次跟进日期 |
+| follow_up_content | VARCHAR(255) DEFAULT NULL | 跟进内容说明 |
+| next_action | VARCHAR(255) DEFAULT NULL | 下一步行动计划 |
+| status | VARCHAR(32) NOT NULL DEFAULT 'PLANNED' | 状态：PLANNED/VISITED/COMPLETED/CANCELLED |
+| related_order_no | VARCHAR(64) DEFAULT NULL | 关联订单号 |
+| images | JSON DEFAULT NULL | 拜访照片 |
+| remark | VARCHAR(255) DEFAULT NULL | 备注 |
+| tenant_id | VARCHAR(36) NOT NULL DEFAULT 'default' | 租户ID |
+| created_at | DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP | 创建时间 |
+| updated_at | DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE | 更新时间 |
+
+### 4.2 API端点
+
+| 方法 | 路径 | 说明 |
+|------|------|------|
+| GET | /api/admin/members | 客户列表 |
+| POST | /api/admin/members | 创建客户 |
+| GET | /api/admin/members/stats | 客户统计 |
+| GET | /api/admin/members/:id | 客户详情 |
+| PUT | /api/admin/members/:id | 更新客户 |
+| PUT | /api/admin/members/:id/disable | 禁用客户 |
+| PUT | /api/admin/members/:id/assign-staff | 分配销售员 |
+| GET | /api/admin/members/:id/purchase-stats | 客户采购统计 |
+| GET | /api/admin/members/:id/price-history | 客户价格历史 |
+| GET | /api/admin/members/:id/sale-bills | 客户销售单 |
+| GET | /api/admin/members/:id/payments | 客户付款记录 |
+| GET | /api/admin/members/:id/statements | 客户对账单 |
+| POST | /api/admin/members/register | 注册会员 |
+| GET | /api/admin/members/:id/member-card | 会员卡信息 |
+| PUT | /api/admin/members/:id/member-level | 更新会员等级 |
+| GET | /api/admin/members/benefits | 会员权益 |
+| GET | /api/admin/members/lifecycle/stages | 生命周期阶段 |
+| GET | /api/admin/members/lifecycle/trend | 生命周期趋势 |
+| GET | /api/admin/members/lifecycle/detail | 生命周期详情 |
+| GET | /api/points/rules | 积分规则列表 |
+| POST | /api/points/rules | 创建积分规则 |
+| PUT | /api/points/rules/:id | 更新积分规则 |
+| POST | /api/points/:id/points/adjust | 调整客户积分 |
+| GET | /api/points/:id/points/records | 客户积分记录 |
+| GET | /api/points/levels/config | 等级配置列表 |
+| POST | /api/points/levels/config | 创建等级配置 |
+| PUT | /api/points/levels/config/:id | 更新等级配置 |
+| GET | /api/store-value-cards | 储值卡列表 |
+| POST | /api/store-value-cards | 创建储值卡 |
+| GET | /api/store-value-cards/:cardNo | 储值卡详情 |
+| POST | /api/store-value-cards/:cardNo/recharge | 充值 |
+| POST | /api/store-value-cards/:cardNo/consume | 消费 |
+| POST | /api/store-value-cards/:cardNo/refund | 退款 |
+| POST | /api/store-value-cards/:cardNo/freeze | 冻结 |
+| POST | /api/store-value-cards/:cardNo/unfreeze | 解冻 |
+| GET | /api/store-value-cards/:cardNo/transactions | 交易记录 |
+| GET | /api/customer-tags | 标签列表 |
+| POST | /api/customer-tags | 创建标签 |
+| PUT | /api/customer-tags/:id | 更新标签 |
+| DELETE | /api/customer-tags/:id | 删除标签 |
+| POST | /api/customer-tags/:id/tags | 给客户打标签 |
+| DELETE | /api/customer-tags/:id/tags/:tagId | 移除客户标签 |
+| GET | /api/customer-tags/:id/profile | 客户画像 |
+| GET | /api/customer-segments | 分群列表 |
+| POST | /api/customer-segments | 创建分群 |
+| PUT | /api/customer-segments/:id | 更新分群 |
+| DELETE | /api/customer-segments/:id | 删除分群 |
+| POST | /api/customer-segments/:id/refresh | 刷新分群成员 |
+| GET | /api/customer-segments/:id/members | 分群成员列表 |
+| GET | /api/customer-care/rules | 关怀规则列表 |
+| POST | /api/customer-care/rules | 创建关怀规则 |
+| PUT | /api/customer-care/rules/:id | 更新关怀规则 |
+| DELETE | /api/customer-care/rules/:id | 删除关怀规则 |
+| GET | /api/customer-care/logs | 关怀记录列表 |
+| POST | /api/customer-care/rules/:id/execute | 执行关怀规则 |
+| GET | /api/customer-visits | 拜访列表 |
+| POST | /api/customer-visits | 创建拜访 |
+| GET | /api/customer-visits/:visitNo | 拜访详情 |
+| PUT | /api/customer-visits/:visitNo | 更新拜访 |
+| POST | /api/customer-visits/:visitNo/checkin | 签到 |
+| POST | /api/customer-visits/:visitNo/checkout | 签退 |
+| POST | /api/customer-visits/:visitNo/cancel | 取消拜访 |
+| GET | /api/customer-visits/follow-up/pending | 待跟进列表 |
+| GET | /api/customer-visits/statistics | 拜访统计 |
+
+### 4.3 汇总统计
+
+- 表数量：16
+- 字段总数：约 210
+- API数量：66
+
 ---
 
 ## 第九部分：营销中心
@@ -569,6 +1913,195 @@ required / unique / len[a,b] / range[a,b] / regex / enum / fk / logic / compare 
 | **合计** | | | **660** | 适配后保留 ~365 字段 |
 
 > **整合说明**: 原"财务与往来中心"更名为一级目录"财务往来"，符合我们的命名习惯。
+
+### 财务往来 · 字段与表结构详解
+
+### 5.1 数据表定义
+
+#### 5.1.1 receivable_account（应收账款表）
+
+| 字段名 | 类型 | 说明 |
+|--------|------|------|
+| id | BIGINT UNSIGNED AUTO_INCREMENT | 应收ID |
+| receivable_no | VARCHAR(64) NOT NULL UNIQUE | 应收单号 |
+| source_type | VARCHAR(32) NOT NULL | 来源类型：MINIAPP_ORDER/SALE_BILL |
+| source_no | VARCHAR(64) NOT NULL | 来源单号 |
+| store_id | BIGINT UNSIGNED NOT NULL | 门店ID |
+| customer_id | BIGINT UNSIGNED DEFAULT NULL | 客户ID |
+| customer_name | VARCHAR(64) DEFAULT NULL | 客户名称快照 |
+| customer_mobile | VARCHAR(20) DEFAULT NULL | 客户手机号快照 |
+| receivable_amount | DECIMAL(12,2) NOT NULL DEFAULT 0.00 | 应收金额 |
+| received_amount | DECIMAL(12,2) NOT NULL DEFAULT 0.00 | 已收金额 |
+| unreceived_amount | DECIMAL(12,2) NOT NULL DEFAULT 0.00 | 未收金额 |
+| status | VARCHAR(32) NOT NULL DEFAULT 'UNPAID' | 状态：UNPAID/PARTIAL/PAID/CLOSED |
+| last_payment_time | DATETIME DEFAULT NULL | 最近收款时间 |
+| created_at | DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP | 创建时间 |
+| updated_at | DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE | 更新时间 |
+
+#### 5.1.2 payment_order（支付单表）
+
+| 字段名 | 类型 | 说明 |
+|--------|------|------|
+| id | BIGINT UNSIGNED AUTO_INCREMENT | 支付单ID |
+| pay_no | VARCHAR(64) NOT NULL UNIQUE | 支付单号 |
+| source_type | VARCHAR(32) NOT NULL | 来源类型：MINIAPP_ORDER/SALE_BILL/COLLECTION_LINK |
+| source_no | VARCHAR(64) NOT NULL | 来源单号 |
+| channel | VARCHAR(32) NOT NULL DEFAULT 'WECHAT' | 支付渠道 |
+| amount | DECIMAL(12,2) NOT NULL | 支付金额 |
+| status | VARCHAR(32) NOT NULL DEFAULT 'PENDING' | 支付状态：PENDING/SUCCESS/FAILED/CLOSED/REFUNDED |
+| wx_prepay_id | VARCHAR(128) DEFAULT NULL | 微信预支付ID |
+| wx_transaction_id | VARCHAR(128) DEFAULT NULL UNIQUE | 微信交易号 |
+| callback_raw | JSON DEFAULT NULL | 回调原文 |
+| paid_at | DATETIME DEFAULT NULL | 支付成功时间 |
+| created_at | DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP | 创建时间 |
+| updated_at | DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE | 更新时间 |
+
+#### 5.1.3 refund_order（退款单表）
+
+| 字段名 | 类型 | 说明 |
+|--------|------|------|
+| id | BIGINT UNSIGNED AUTO_INCREMENT | 退款单ID |
+| refund_no | VARCHAR(64) NOT NULL UNIQUE | 退款单号 |
+| pay_no | VARCHAR(64) NOT NULL | 支付单号 |
+| source_type | VARCHAR(32) NOT NULL | 来源类型 |
+| source_no | VARCHAR(64) NOT NULL | 来源单号 |
+| amount | DECIMAL(12,2) NOT NULL | 退款金额 |
+| reason | VARCHAR(255) DEFAULT NULL | 退款原因 |
+| status | VARCHAR(32) NOT NULL DEFAULT 'PENDING' | 状态：PENDING/SUCCESS/FAILED |
+| wx_refund_id | VARCHAR(128) DEFAULT NULL | 微信退款单号 |
+| operator_id | BIGINT UNSIGNED DEFAULT NULL | 操作人 |
+| created_at | DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP | 创建时间 |
+| updated_at | DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE | 更新时间 |
+
+#### 5.1.4 customer_statement（客户对账单表）
+
+| 字段名 | 类型 | 说明 |
+|--------|------|------|
+| id | BIGINT UNSIGNED AUTO_INCREMENT | 对账单ID |
+| statement_no | VARCHAR(64) NOT NULL UNIQUE | 对账单号 |
+| customer_id | BIGINT UNSIGNED NOT NULL | 客户ID |
+| customer_name | VARCHAR(64) NOT NULL | 客户名称快照 |
+| customer_mobile | VARCHAR(20) DEFAULT NULL | 客户手机号快照 |
+| statement_type | VARCHAR(32) NOT NULL DEFAULT 'MONTHLY' | 对账类型：MONTHLY/QUARTERLY/CUSTOM |
+| start_date | DATE NOT NULL | 对账开始日期 |
+| end_date | DATE NOT NULL | 对账结束日期 |
+| opening_balance | DECIMAL(12,2) NOT NULL DEFAULT 0.00 | 期初余额 |
+| total_sales | DECIMAL(12,2) NOT NULL DEFAULT 0.00 | 本期销售 |
+| total_returns | DECIMAL(12,2) NOT NULL DEFAULT 0.00 | 本期退货 |
+| total_payments | DECIMAL(12,2) NOT NULL DEFAULT 0.00 | 本期收款 |
+| closing_balance | DECIMAL(12,2) NOT NULL DEFAULT 0.00 | 期末余额 |
+| status | VARCHAR(32) NOT NULL DEFAULT 'DRAFT' | 状态：DRAFT/CONFIRMED/PAID |
+| confirmed_at | DATETIME DEFAULT NULL | 确认时间 |
+| operator_id | BIGINT UNSIGNED NOT NULL | 制单人 |
+| remark | VARCHAR(255) DEFAULT NULL | 备注 |
+| created_at | DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP | 创建时间 |
+| updated_at | DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE | 更新时间 |
+
+#### 5.1.5 customer_payment（客户收款单表）
+
+| 字段名 | 类型 | 说明 |
+|--------|------|------|
+| id | BIGINT UNSIGNED AUTO_INCREMENT | 客户收款单ID |
+| receipt_no | VARCHAR(64) NOT NULL UNIQUE | 收款单号 |
+| customer_id | BIGINT UNSIGNED NOT NULL | 客户ID |
+| customer_name | VARCHAR(64) NOT NULL | 客户名称快照 |
+| amount | DECIMAL(12,2) NOT NULL | 收款金额 |
+| payment_method | VARCHAR(32) NOT NULL DEFAULT 'CASH' | 收款方式：CASH/BANK/WECHAT/ALIPAY/COLLECTION |
+| source_type | VARCHAR(32) DEFAULT NULL | 来源类型：SALE_BILL/STATEMENT |
+| source_no | VARCHAR(64) DEFAULT NULL | 来源单号 |
+| voucher_no | VARCHAR(64) DEFAULT NULL | 凭证号 |
+| payment_date | DATE NOT NULL | 收款日期 |
+| operator_id | BIGINT UNSIGNED NOT NULL | 收款人 |
+| status | VARCHAR(32) NOT NULL DEFAULT 'COMPLETED' | 状态：COMPLETED/VOIDED |
+| remark | VARCHAR(255) DEFAULT NULL | 备注 |
+| created_at | DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP | 创建时间 |
+| updated_at | DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE | 更新时间 |
+
+#### 5.1.6 sale_payment（销售收款单表）
+
+*(已在销售管理模块中定义，此处为财务往来引用)*
+
+#### 5.1.7 purchase_payment（采购付款单表）
+
+*(已在采购管理模块中定义，此处为财务往来引用)*
+
+#### 5.1.8 supplier_statement（供应商对账单表）
+
+*(已在采购管理模块中定义，此处为财务往来引用)*
+
+#### 5.1.9 supplier_statement_item（供应商对账明细表）
+
+*(已在采购管理模块中定义，此处为财务往来引用)*
+
+#### 5.1.10 customer_credit（客户授信额度表）
+
+*(已在销售管理模块中定义，此处为财务往来引用)*
+
+#### 5.1.11 collection_record（催收记录表）
+
+*(已在销售管理模块中定义，此处为财务往来引用)*
+
+### 5.2 API端点
+
+| 方法 | 路径 | 说明 |
+|------|------|------|
+| POST | /api/payment/orders | 创建支付单 |
+| POST | /api/payment/wx/callback | 微信支付回调 |
+| POST | /api/payment/refunds | 创建退款 |
+| GET | /api/payment/orders/:payNo | 支付单详情 |
+| GET | /api/payment/orders | 支付单列表 |
+| GET | /api/customer-payments | 客户收款单列表 |
+| GET | /api/customer-payments/:receiptNo | 收款单详情 |
+| POST | /api/customer-payments | 创建收款单 |
+| POST | /api/customer-payments/:receiptNo/void | 作废收款单 |
+| GET | /api/customer-statements | 客户对账单列表 |
+| GET | /api/customer-statements/:statementNo | 对账单详情 |
+| POST | /api/customer-statements | 创建对账单 |
+| POST | /api/customer-statements/:statementNo/confirm | 确认对账单 |
+| POST | /api/customer-statements/:statementNo/paid | 标记已结清 |
+| GET | /api/purchase-payments | 采购付款单列表 |
+| GET | /api/purchase-payments/:paymentNo | 付款单详情 |
+| POST | /api/purchase-payments | 创建付款单 |
+| POST | /api/purchase-payments/:paymentNo/approve | 审核付款单 |
+| POST | /api/purchase-payments/:paymentNo/void | 作废付款单 |
+| POST | /api/supplier-statements/generate | 生成供应商对账单 |
+| GET | /api/supplier-statements | 供应商对账单列表 |
+| GET | /api/supplier-statements/:statementNo | 对账单详情 |
+| POST | /api/supplier-statements/:statementNo/confirm | 确认对账单 |
+| POST | /api/supplier-statements/:statementNo/dispute | 争议对账单 |
+| GET | /api/admin/payment-orders | 支付单列表(Admin) |
+| GET | /api/admin/refund-orders | 退款单列表 |
+| GET | /api/admin/receivable-payable | 应收应付报表 |
+| GET | /api/admin/payment-analysis | 付款分析报表 |
+| GET | /api/admin/profit | 利润报表 |
+| GET | /api/store/receivables | 门店应收列表 |
+| POST | /api/store/receivables/:receivableNo/payment | 门店应收收款 |
+| GET | /api/store/collection-links | 门店收款链接 |
+| GET | /api/store/payment-orders | 门店支付单 |
+| GET | /api/store/refund-orders | 门店退款单 |
+| GET | /api/admin/daily-sales-trend | 每日销售趋势 |
+| POST | /api/admin/daily-settlements | 创建日结 |
+| GET | /api/admin/daily-settlements | 日结列表 |
+| GET | /api/admin/daily-settlements/:id | 日结详情 |
+| GET | /api/credit/credits | 授信列表 |
+| GET | /api/credit/credits/:customerId | 授信详情 |
+| POST | /api/credit/credits/:customerId | 初始化授信 |
+| GET | /api/credit/credits/:customerId/check | 检查授信 |
+| POST | /api/credit/credits/:customerId/occupy | 占用额度 |
+| POST | /api/credit/credits/:customerId/release | 释放额度 |
+| PUT | /api/credit/credits/:customerId/limit | 调整额度 |
+| GET | /api/credit/collections | 催收记录列表 |
+| POST | /api/credit/collections | 创建催收记录 |
+| GET | /api/credit/collections/overdue | 逾期客户 |
+| POST | /api/credit/collections/auto-generate | 自动生成催收 |
+| GET | /api/credit/collections/statistics | 催收统计 |
+| GET | /api/credit/risk-customers | 风险客户 |
+
+### 5.3 汇总统计
+
+- 表数量：11（含跨模块引用）
+- 字段总数：约 180
+- API数量：52
 
 ---
 
