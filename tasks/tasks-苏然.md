@@ -1,4 +1,4 @@
-# 苏然 · 数据报表模块 · 测试与DAO层
+# 苏然 . 营销中心模块 . DAO+测试
 
 **日期**：2026-06-30
 **状态**：待开始
@@ -9,132 +9,385 @@
 
 | # | 任务 | 优先级 | 状态 |
 |---|------|--------|:---:|
-| 1 | 报表汇总表DAO | P0 | ❌ |
-| 2 | 报表API集成测试 | P0 | ❌ |
-| 3 | 在线收款分析测试 | P0 | ❌ |
-| 4 | 报表汇总定时任务测试 | P0 | ❌ |
-| 5 | 报表导出功能测试 | P0 | ❌ |
-| 6 | 前端报表页面测试 | P0 | ❌ |
+| 1 | 营销新表DAO | P1 | PENDING |
+| 2 | 营销API集成测试 | P1 | PENDING |
+| 3 | 限时折扣+满赠测试 | P1 | PENDING |
+| 4 | 积分商城测试 | P1 | PENDING |
+| 5 | 营销看板数据测试 | P1 | PENDING |
+| 6 | 前端营销页面测试 | P1 | PENDING |
+
+> 跳过的P2模块：秒杀拼团、社群营销（不编写DAO和测试）
 
 ---
 
 ## 详细说明
 
-### 1. 报表汇总表DAO
-- **DAO 文件**：
-  - `backend/src/daos/report-sales-daily.dao.ts` — report_sales_daily 表数据访问层
-  - `backend/src/daos/report-collection-stats.dao.ts` — report_collection_stats 表数据访问层
-  - `backend/src/daos/report-product-sales.dao.ts` — report_product_sales 表数据访问层
-  - `backend/src/daos/report-customer-stats.dao.ts` — report_customer_stats 表数据访问层
-  - `backend/src/daos/report-inventory-daily.dao.ts` — report_inventory_daily 表数据访问层
-- **DAO 方法**（每个DAO通用）：
-  - `insertBatch(records)` — 批量插入汇总数据
-  - `upsertBatch(records)` — 批量插入或更新（ON DUPLICATE KEY UPDATE）
-  - `queryByDateRange(tenantId, startDate, endDate, storeId?)` — 按日期范围查询
-  - `queryByDate(tenantId, date, storeId?)` — 按单日查询
-  - `getLatestDate(tenantId, storeId?)` — 获取最新汇总日期
-  - `deleteByDate(tenantId, date)` — 删除指定日期数据（用于重跑）
-- **report_sales_daily 特有方法**：
-  - `aggregateFromOrders(tenantId, date)` — 从 orders 表聚合生成销售日报
-  - `getSalesTrend(tenantId, startDate, endDate, storeId?)` — 销售趋势查询
-  - `getStoreRanking(tenantId, date, storeId?)` — 门店排行查询
-- **report_collection_stats 特有方法**：
-  - `aggregateFromPayments(tenantId, date)` — 从 payments 表聚合生成收款统计
-  - `getChannelDistribution(tenantId, startDate, endDate, storeId?)` — 渠道分布查询
-  - `getFunnelData(tenantId, startDate, endDate, storeId?)` — 漏斗数据查询
-- **report_product_sales 特有方法**：
-  - `aggregateFromOrderItems(tenantId, date)` — 从 order_items 表聚合
-  - `getTopProducts(tenantId, date, limit, sortBy)` — 商品排行
-  - `getSlowMoving(tenantId, date, threshold)` — 滞销品查询
-  - `getABCAnalysis(tenantId, date)` — ABC分析
-- **report_customer_stats 特有方法**：
-  - `aggregateFromOrders(tenantId, date)` — 从 orders 表聚合
-  - `getRFMData(tenantId, date)` — RFM分析数据
-  - `getLostCustomers(tenantId, date, daysThreshold)` — 流失客户
-- **report_inventory_daily 特有方法**：
-  - `aggregateFromInventoryLogs(tenantId, date)` — 从 inventory_logs 表聚合
-  - `getAgingDistribution(tenantId, date)` — 库龄分布
-  - `getTurnoverTrend(tenantId, startDate, endDate)` — 周转天数趋势
+### 1. 营销新表DAO
 
-### 2. 报表API集成测试
-- **测试文件**：`backend/src/__tests__/report-api.integration.test.ts`
-- **测试范围**：验证所有42个报表API端点，确保路由统一后功能正常
-- **测试用例**：
-  - **经营总览（8个端点）**：概览数据、销售趋势、时段分布、门店排行、品类占比、支付方式分布、最近订单、环比计算
-  - **销售分析（7个端点）**：销售趋势（日/周/月粒度）、时段热力图、商品排行、客户排行、门店排行、业务员排行、同期对比
-  - **商品分析（5个端点）**：商品概览、畅销排行、滞销预警、毛利排行、ABC分析
-  - **客户分析（6个端点）**：客户概览、贡献排行、复购率、客单价分布、RFM分析、流失客户
-  - **库存分析（5个端点）**：库存概览、周转趋势、库龄分布、呆滞品预警、出入库趋势
-  - **采购分析（3个端点）**：采购概览、供应商排行、采购趋势
-  - **财务分析（5个端点）**：财务概览、利润趋势、收入结构、支出结构、现金流趋势
-  - **员工绩效（3个端点）**：员工概览、业绩排行、业绩趋势
-  - **验证点**：HTTP状态码200、响应JSON结构、分页参数、日期格式、商户隔离（tenant_id）、门店筛选、数据准确性
+- **接口/文件**：
+  - `backend/src/services/admin/marketing-limited-discount.dao.ts` -- 限时折扣数据访问层
+  - `backend/src/services/admin/marketing-gift-rule.dao.ts` -- 满赠规则数据访问层
+  - `backend/src/services/admin/marketing-points-mall.dao.ts` -- 积分商城数据访问层
+  - `backend/src/services/admin/marketing-material.dao.ts` -- 营销素材数据访问层
+  - 所有DAO文件统一放置在 `backend/src/services/admin/` 目录下
+- **关键功能**：
+  - **limited_discount DAO**：
+    - `findAll(filters)` -- 分页查询限时折扣活动列表（支持状态/时间/关键词筛选）
+    - `findById(id)` -- 根据ID查询详情
+    - `create(data)` -- 创建限时折扣活动
+    - `update(id, data)` -- 更新活动信息
+    - `delete(id)` -- 删除活动（软删除或硬删除）
+    - `updateStatus(id, status)` -- 更新活动状态
+    - `findProducts(discountId)` -- 查询关联商品列表
+    - `addProduct(discountId, productData)` -- 添加关联商品
+    - `removeProduct(discountId, productId)` -- 移除关联商品
+    - `updateProductStock(discountId, productId, quantity)` -- 更新商品库存（扣减/恢复）
+    - `findActiveByTenant(tenantId)` -- 查询租户下所有进行中的活动
+    - 查询需JOIN `limited_discount_product` 表获取商品信息
+  - **gift_rule DAO**：
+    - `findAll(filters)` -- 分页查询满赠规则列表
+    - `findById(id)` -- 查询规则详情（含层级列表）
+    - `create(data)` -- 创建满赠规则
+    - `update(id, data)` -- 更新规则
+    - `delete(id)` -- 删除规则
+    - `updateStatus(id, status)` -- 更新规则状态
+    - `findLevels(ruleId)` -- 查询规则层级列表
+    - `addLevel(ruleId, levelData)` -- 添加满赠层级
+    - `updateLevel(ruleId, levelId, data)` -- 更新层级
+    - `deleteLevel(ruleId, levelId)` -- 删除层级
+    - `incrementGiftCount(ruleId, levelId, count)` -- 增加赠品已赠送数量
+    - 查询需JOIN `gift_rule_level` 子表获取层级配置
+  - **points_product DAO**：
+    - `findAll(filters)` -- 分页查询兑换商品列表
+    - `findById(id)` -- 查询商品详情
+    - `create(data)` -- 创建兑换商品
+    - `update(id, data)` -- 更新商品
+    - `delete(id)` -- 删除商品
+    - `toggleStatus(id, status)` -- 上架/下架商品
+    - `decrementStock(id, quantity)` -- 扣减库存（带悲观锁或乐观锁）
+    - `incrementStock(id, quantity)` -- 恢复库存
+  - **points_exchange_record DAO**：
+    - `findAll(filters)` -- 分页查询兑换记录列表
+    - `findById(id)` -- 查询记录详情
+    - `create(data)` -- 创建兑换记录
+    - `updateStatus(id, status)` -- 更新记录状态
+    - `findByUser(userId, filters)` -- 查询用户兑换记录
+    - `countUserExchanges(userId, productId)` -- 统计用户兑换某商品次数
+    - `getTotalExchanged(productId)` -- 统计某商品总兑换量
+  - **marketing_material DAO**：
+    - `findAll(filters)` -- 分页查询素材列表（支持分类/类型/标签/场景筛选）
+    - `findById(id)` -- 查询素材详情
+    - `create(data)` -- 创建素材记录
+    - `update(id, data)` -- 更新素材信息
+    - `delete(id)` -- 删除素材
+    - `updateStatus(id, status)` -- 更新素材状态（发布/归档）
+    - `incrementDownloadCount(id)` -- 增加下载次数
+    - `incrementViewCount(id)` -- 增加查看次数
+    - `findCategories(tenantId)` -- 查询素材分类树
+    - `createCategory(data)` -- 创建分类
+    - `updateCategory(id, data)` -- 更新分类
+    - `deleteCategory(id)` -- 删除分类
+- **说明**：
+  - 所有DAO方法需使用参数化查询防止SQL注入
+  - 查询需包含租户隔离（tenant_id过滤）
+  - 库存相关操作需使用数据库事务保证原子性
+  - 数据库操作使用 `backend/src/shared/db.ts` 中的数据库连接
+  - 分页查询统一返回 `{ list, total, page, pageSize }` 格式
 
-### 3. 在线收款分析测试
-- **测试文件**：`backend/src/__tests__/collection-analysis.test.ts`
-- **测试用例**：
-  - **收款漏斗数据准确性**：构造测试数据（分享10笔→查看8笔→支付6笔→成功5笔），验证各环节数量和转化率计算正确（80%→75%→83.3%）
-  - **渠道转化率**：多渠道数据（微信/支付宝/银行卡），验证各渠道统计独立、转化率计算正确、合计一致
-  - **超时分析**：构造不同超时时长的订单，验证超时区间分段统计正确（<30min/30-60min/1-2h/2-24h/24h+）
-  - **边界条件**：零数据（新商户无收款记录）、单条数据、大量数据（10000+条）、跨天数据
-  - **退款场景**：含退款订单的收款统计，验证退款金额正确扣除
-  - **日期范围**：跨月/跨年查询，验证数据边界
-  - **商户隔离**：多商户数据，验证只返回当前商户数据
+---
 
-### 4. 报表汇总定时任务测试
-- **测试文件**：`backend/src/__tests__/report-summary-job.test.ts`
-- **测试用例**：
-  - **汇总功能**：执行定时任务，验证5张汇总表数据正确生成（与原始业务表数据对比）
-  - **汇总准确性**：
-    - report_sales_daily：对比 orders 表聚合销售额/订单数/毛利
-    - report_collection_stats：对比 payments 表聚合收款数据
-    - report_product_sales：对比 order_items 表聚合商品销售
-    - report_customer_stats：对比 orders 表聚合客户数据
-    - report_inventory_daily：对比 inventory_logs 表计算库存变动
-  - **幂等性**：重复执行同一日期的汇总任务，验证数据不重复、不翻倍
-  - **异常处理**：业务表无数据时汇总表为空记录、部分数据缺失时只汇总有效数据
-  - **定时调度**：验证 cron 表达式正确（每日凌晨2:00），手动触发立即执行
-  - **执行日志**：验证每次执行后记录日志（执行时间/耗时/数据量/状态）
-  - **历史数据回填**：指定日期范围回填历史汇总数据，验证逐日执行正确
+### 2. 营销API集成测试
 
-### 5. 报表导出功能测试
-- **测试文件**：`backend/src/__tests__/report-export.test.ts`
-- **测试用例**：
-  - **Excel导出**：
-    - 导出经营总览报表，验证Excel文件生成、表头正确、数据完整、样式（表头加粗/背景色/自动列宽）
-    - 各报表类型（sales/collection/product/customer/inventory/purchase/finance/staff/dashboard）逐一导出验证
-    - 自定义列导出：选择部分列导出，验证只导出选中列
-    - 带筛选条件导出：设置日期范围/门店/品类筛选后导出，验证数据符合筛选条件
-    - 合计行：验证Excel底部合计行数据正确
-  - **CSV导出**：
-    - 验证CSV UTF-8 BOM编码（Excel打开中文不乱码）
-    - 验证逗号分隔、引号包裹含特殊字符字段
-  - **大文件异步导出**：
-    - 构造超过10000条数据，验证走异步导出流程
-    - 验证返回任务ID，轮询获取下载链接
-    - 验证下载链接有效期和文件完整性
-  - **边界条件**：空数据导出（表头+空行或无数据提示）、单条数据导出
-  - **并发导出**：多用户同时导出不同报表，验证互不影响
+- **接口/文件**：
+  - `backend/tests/marketing-api.test.ts` -- 营销API集成测试文件
+  - 使用 vitest 或 jest 测试框架
+- **测试范围**：
+  - 验证所有现有营销端点（旧版）功能正常：
+    - 优惠券模板：CRUD + 启用/停用 + 统计
+    - 用户优惠券：列表查询 + 发放记录
+    - 满减活动：CRUD + 启用/停用
+    - 积分规则：查询/更新积分规则 + 积分记录查询
+    - 秒杀活动：CRUD + 启用/停用 + 统计（验证不报错即可）
+    - 拼团活动：CRUD + 启用/停用 + 团列表（验证不报错即可）
+    - 活动叠加规则：CRUD + 启用/停用
+    - 优惠试算：计算接口验证
+  - 验证所有新增营销端点功能正常：
+    - 限时折扣：CRUD + 启用/停用 + 商品关联
+    - 满赠规则：CRUD + 启用/停用 + 层级管理
+    - 积分商城商品：CRUD + 上架/下架
+    - 积分兑换：兑换 + 确认 + 取消
+    - 营销看板：总览 + 统计 + 趋势 + 排行 + 对比
+    - 营销素材：CRUD + 发布/归档 + 分类管理
+  - 验证路由合并后端点兼容性：
+    - 旧版路径 `/api/admin/marketing/coupons/templates` 和新版路径 `/api/admin/marketing/coupons` 均能正常工作
+    - 确认重复端点已合并，无功能丢失
+  - 验证认证中间件：
+    - 所有营销端点都需要 `requireAuthWithTenant` 中间件
+    - 未认证请求返回 401
+  - 验证租户隔离：
+    - 不同租户的营销数据相互隔离
+    - 查询只能返回当前租户的数据
+- **测试用例数量**：预计 80-100 个测试用例
+- **说明**：
+  - 使用 supertest 进行 HTTP 请求测试
+  - 测试前需准备测试数据库和测试租户数据
+  - 每个端点至少覆盖：正常请求、参数校验、权限校验、边界条件
+  - 测试结束后清理测试数据
 
-### 6. 前端报表页面测试
-- **测试文件**：`backend/src/__tests__/report-frontend-data.test.ts`
-- **测试用例**：
-  - **经营总览页面**：
-    - 概览卡片数据：验证销售额/订单数/毛利/客单价数值与后端一致
-    - 环比计算：验证环比增长率和箭头方向正确
-    - 迷你趋势图数据：验证近30日趋势数据点数量正确
-  - **销售分析页面**：
-    - 时段热力图数据：验证24小时×30天数据矩阵完整
-    - 排行数据：验证TOP20商品/客户/门店/业务员排序正确
-    - 同期对比：验证本期vs上期数据对比正确
-  - **商品分析页面**：
-    - 滞销预警：验证预警等级（红/橙/黄）判定逻辑正确
-    - ABC分析：验证A/B/C分类边界（70%/90%）正确
-  - **客户分析页面**：
-    - RFM分群：验证R/F/M评分计算逻辑和8群分类正确
-    - 复购率：验证复购率=复购客户数/总客户数计算正确
-  - **库存分析页面**：
-    - 周转天数：验证计算公式（平均库存/日均出库量）正确
-    - 库龄分布：验证分段统计正确
-  - **图表数据一致性**：同一报表页面中图表数据与表格数据一致
-  - **时间筛选一致性**：切换日期范围后所有图表/表格同步更新
+---
+
+### 3. 限时折扣+满赠测试
+
+- **接口/文件**：
+  - `backend/tests/limited-discount.test.ts` -- 限时折扣专项测试
+  - `backend/tests/gift-rule.test.ts` -- 满赠规则专项测试
+- **测试范围**：
+  - **限时折扣测试**：
+    - 规则校验：
+      - 创建活动参数校验（名称必填、时间范围必填、折扣值>0）
+      - 折扣类型校验（PERCENT/FIXED枚举值）
+      - 折扣值范围校验（百分比1-99，固定金额>0）
+      - 库存数量校验（>=0，整数）
+      - 每人限购数量<=总库存
+    - 时间边界测试：
+      - 活动开始时间不能晚于结束时间
+      - 活动开始时间不能为过去时间（创建时）
+      - 活动已开始后不可修改开始时间
+      - 活动结束后自动变更为ENDED状态
+      - 定时生效测试（设置未来开始时间，到时自动变为ACTIVE）
+    - 库存联动测试：
+      - 创建活动时初始化库存
+      - 下单扣减库存（原子性）
+      - 库存扣减到0自动变为SOLD_OUT状态
+      - 取消订单恢复库存
+      - 并发扣减库存（多个请求同时扣减，最终库存正确）
+    - 商品关联测试：
+      - 添加适用商品（校验商品存在）
+      - 移除适用商品
+      - 重复添加同一商品（去重或报错）
+      - 商品下架后活动中的处理
+    - 状态流转测试：
+      - DRAFT -> PENDING -> ACTIVE -> PAUSED -> ACTIVE -> ENDED
+      - DRAFT -> PENDING -> ACTIVE -> SOLD_OUT
+      - 非法状态转换拒绝
+  - **满赠规则测试**：
+    - 规则校验：
+      - 创建规则参数校验（名称必填、时间范围必填）
+      - 满赠条件类型校验（AMOUNT/QUANTITY/BOTH）
+      - 满赠阈值>0
+      - 至少配置一个满赠层级
+      - 层级满足金额必须递增
+    - 满赠层级测试：
+      - 添加层级（校验赠品商品存在）
+      - 删除层级
+      - 层级排序（按满足金额升序）
+      - 层级赠品库存校验（库存不足时警告）
+    - 库存联动测试：
+      - 启用时校验赠品库存充足
+      - 赠品赠送后库存扣减
+      - 赠品库存不足时规则自动暂停
+      - 取消订单恢复赠品库存
+    - 时间边界测试：
+      - 同限时折扣的时间校验逻辑
+    - 状态流转测试：
+      - DRAFT -> ACTIVE -> PAUSED -> ACTIVE -> ENDED
+      - DRAFT -> ACTIVE -> DEPLETED（赠品耗尽）
+- **测试用例数量**：预计 60-80 个测试用例
+- **说明**：
+  - 并发库存扣减测试需要使用多个并发请求验证原子性
+  - 时间边界测试可能需要 mock 时间或使用短时效的活动
+  - 状态流转测试需覆盖所有合法和非法转换路径
+
+---
+
+### 4. 积分商城测试
+
+- **接口/文件**：
+  - `backend/tests/points-mall.test.ts` -- 积分商城专项测试
+- **测试范围**：
+  - **兑换商品管理测试**：
+    - 商品CRUD：创建/查询/更新/删除
+    - 商品上架/下架：下架后不可兑换
+    - 商品参数校验：积分值>0、库存>=0
+    - 排序权重设置
+    - 图片上传关联
+  - **兑换流程测试**：
+    - 正常兑换流程：
+      - 用户积分充足 + 商品库存充足 -> 兑换成功
+      - 验证：积分扣减正确、库存扣减正确、兑换记录创建
+    - 积分不足：
+      - 用户积分 < 所需积分 -> 兑换失败，返回积分不足错误
+      - 验证：积分未扣减、库存未扣减
+    - 库存不足：
+      - 商品库存为0 -> 兑换失败，返回库存不足错误
+      - 验证：积分未扣减
+    - 兑换次数限制：
+      - 超出每人限兑次数 -> 兑换失败
+      - 超出总量限兑次数 -> 兑换失败
+    - 商品下架时兑换：
+      - 商品已下架 -> 兑换失败
+  - **积分扣减测试**：
+    - 兑换成功积分正确扣减
+    - 取消兑换积分正确退回
+    - 积分扣减后余额不能为负
+    - 并发兑换积分扣减原子性（同一用户同时兑换多个商品）
+  - **库存扣减测试**：
+    - 兑换成功库存正确扣减
+    - 取消兑换库存正确恢复
+    - 库存扣减到0后商品状态变更
+    - 并发兑换库存扣减原子性
+    - 库存扣减不能为负
+  - **兑换记录测试**：
+    - 记录创建：兑换成功自动创建记录，状态PENDING
+    - 记录确认：确认后状态变更为CONFIRMED
+    - 记录取消：取消后状态变更为CANCELLED + 积分退回 + 库存恢复
+    - 记录查询：按用户/商品/状态/时间筛选
+    - 兑换编号唯一性
+  - **事务测试**：
+    - 积分扣减成功但库存扣减失败 -> 事务回滚（积分恢复）
+    - 库存扣减成功但记录创建失败 -> 事务回滚
+    - 模拟数据库异常 -> 事务回滚
+  - **边界条件测试**：
+    - 积分刚好等于所需积分
+    - 库存刚好只剩1件
+    - 最后一次兑换机会
+    - 超大兑换数量
+- **测试用例数量**：预计 50-70 个测试用例
+- **说明**：
+  - 事务测试是核心，需验证积分+库存+记录三者的原子性
+  - 并发兑换测试需要使用多个并发请求
+  - 积分扣减需关联 points_record 表（积分流水记录）
+
+---
+
+### 5. 营销看板数据测试
+
+- **接口/文件**：
+  - `backend/tests/marketing-dashboard.test.ts` -- 营销看板数据测试
+- **测试范围**：
+  - **活动效果统计准确性**：
+    - 活动总览统计：
+      - 验证 total_activities 与实际活动数量一致
+      - 验证 active_activities 与状态为ACTIVE的活动数量一致
+      - 验证 ended_activities 与状态为ENDED的活动数量一致
+    - 参与人数统计：
+      - 单个活动参与人数 = 关联订单中参与该活动的用户数（去重）
+      - 新参与人数 vs 重复参与人数 统计正确
+    - 转化率统计：
+      - 转化率 = 参与后下单用户数 / 参与用户数 * 100%
+      - 验证公式计算正确
+    - 优惠金额统计：
+      - 总优惠金额 = 所有活动优惠金额之和
+      - 平均优惠金额 = 总优惠金额 / 参与订单数
+      - 优惠金额与订单实际优惠一致
+    - ROI统计：
+      - ROI = (活动带来GMV - 活动成本) / 活动成本 * 100%
+      - 活动成本 = 优惠金额 + 其他成本
+      - 验证ROI计算正确
+  - **优惠券统计准确性**：
+    - 发放数量统计：coupon_issued = 所有已发放优惠券数量
+    - 使用数量统计：coupon_used = 所有已核销优惠券数量
+    - 核销率 = coupon_used / coupon_issued * 100%
+    - 按券类型分别统计
+  - **趋势数据测试**：
+    - 按天聚合：每天的数据正确汇总
+    - 按周聚合：每周的数据正确汇总
+    - 按月聚合：每月的数据正确汇总
+    - 时间范围筛选：指定日期范围的数据正确
+    - 边界日期：包含开始日和结束日的数据
+  - **活动排行测试**：
+    - 按ROI排行：从高到低排序正确
+    - 按参与人数排行：排序正确
+    - 按转化率排行：排序正确
+    - 只返回指定数量的排行
+  - **活动对比测试**：
+    - 多活动对比数据正确
+    - 每个活动的各维度数据独立正确
+    - 对比表中高亮最优值
+  - **数据一致性测试**：
+    - 看板数据与原始表数据一致
+    - 同一活动在不同看板API中数据一致
+    - 新增活动后看板数据实时更新
+  - **空数据测试**：
+    - 无活动时各API返回空数据而非报错
+    - 无优惠券时统计返回0
+    - 趋势数据无数据时返回空数组
+- **测试用例数量**：预计 40-50 个测试用例
+- **说明**：
+  - 测试前需准备已知的测试数据集（种子数据）
+  - 统计准确性测试需手动计算预期值并与API返回值对比
+  - 趋势数据测试需覆盖不同时间粒度
+  - 数据集需包含：不同状态的活动、不同时间范围的活动、不同租户的数据
+
+---
+
+### 6. 前端营销页面测试
+
+- **接口/文件**：
+  - `backend/tests/frontend-marketing.test.ts` -- 前端页面功能验证测试
+  - 使用 Playwright 或 agent-browser 进行端到端测试
+- **测试范围**：
+  - **管理后台页面测试**：
+    - 营销中心统一入口：
+      - 页面加载正常，Tab切换正常
+      - 活动概览卡片数据正确展示
+      - 搜索筛选功能正常
+    - 限时折扣管理页面：
+      - 列表加载正常，分页正常
+      - 新建/编辑对话框正常打开和提交
+      - 商品选择器功能正常
+      - 启用/停用/删除操作正常
+      - 表单校验正常（必填项/格式校验）
+    - 满赠管理页面：
+      - 列表加载正常
+      - 多级满赠层级编辑器功能正常
+      - 赠品选择器功能正常
+      - 库存联动提示正常显示
+    - 积分商城管理页面：
+      - 商品卡片网格正常展示
+      - 新建/编辑商品功能正常
+      - 兑换记录列表正常
+      - 确认/取消兑换操作正常
+    - 营销看板页面：
+      - ECharts图表正常渲染
+      - 时间筛选器联动图表正常
+      - 活动对比表功能正常
+      - 响应式resize正常
+    - 营销素材库页面：
+      - 分类树正常展示和筛选
+      - 素材上传功能正常
+      - 网格/列表视图切换正常
+      - 素材详情弹窗正常
+  - **商户端页面测试**：
+    - 营销中心入口：
+      - 底部导航栏营销Tab正常显示
+      - 轮播Banner正常展示
+      - 活动入口卡片正常跳转
+    - 优惠券页面：
+      - 可用券/领取中心/我的券包Tab切换正常
+      - 优惠券领取功能正常
+      - 领取后状态更新正常
+      - 券卡片各类型正确展示
+    - 限时折扣页面：
+      - 倒计时组件正常显示和更新
+      - 商品列表正常加载
+      - 商品卡片点击跳转正常
+    - 积分商城页面：
+      - 积分余额正常展示
+      - 兑换商品列表正常加载
+      - 兑换功能正常（积分充足/不足两种情况）
+      - 兑换记录正常展示
+      - 积分明细正常展示
+  - **响应式测试**：
+    - 管理后台在1440px和1024px下正常显示
+    - 商户端在375px下正常显示
+    - 组件在不同屏幕尺寸下不溢出
+  - **空状态测试**：
+    - 各页面在无数据时显示空状态占位
+    - 搜索无结果时显示空状态
+- **测试用例数量**：预计 40-60 个测试用例
+- **说明**：
+  - 使用 Playwright 进行端到端测试
+  - 测试前需启动开发服务器和测试数据库
+  - 页面测试可结合截图对比验证UI正确性
+  - 优先验证核心功能流程，次要验证边界和异常情况

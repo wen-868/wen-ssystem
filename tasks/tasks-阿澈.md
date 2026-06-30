@@ -1,4 +1,4 @@
-# 阿澈 · 数据报表模块 · 商户移动端
+# 阿澈 . 营销中心模块 . 商户移动端
 
 **日期**：2026-06-30
 **状态**：待开始
@@ -9,76 +9,197 @@
 
 | # | 任务 | 优先级 | 状态 |
 |---|------|--------|:---:|
-| 1 | 商户端报表完善 | P0 | ❌ |
-| 2 | 商户端收款分析 | P0 | ❌ |
-| 3 | 商户端库存分析 | P0 | ❌ |
-| 4 | 商户端客户分析 | P0 | ❌ |
+| 1 | 商户端营销中心 | P1 | PENDING |
+| 2 | 商户端优惠券页面 | P1 | PENDING |
+| 3 | 商户端秒杀+限时折扣页面 | P1 | PENDING |
+| 4 | 商户端积分商城页面 | P1 | PENDING |
+
+> 跳过的P2模块：秒杀拼团、社群营销（商户端不实现）
 
 ---
 
 ## 详细说明
 
-### 1. 商户端报表完善
-- **文件**：完善 `merchant-mobile/src/views/ReportsView.vue`（当前仅2个tab页）
-- **功能**：
-  - 顶部日期切换：今日/昨日/本周/本月，默认今日
-  - 底部Tab导航增加：经营概览/销售/库存/客户/财务/收款，共6个tab
-  - **经营概览Tab**（已有基础，完善）：
-    - 4个卡片：今日销售额/订单数/毛利/客单价，含环比箭头
-    - 近7日销售趋势迷你折线图（v-charts或ECharts精简版）
-    - 最近订单列表（5条）：单号/客户/金额/状态
-  - **销售Tab**（新增）：
-    - 日/周/月销售趋势折线图
-    - 商品销售排行TOP10列表（商品名/销量/销售额）
-    - 客户消费排行TOP10列表（客户名/消费金额）
-    - 下拉刷新加载更多
-  - **库存Tab**（新增）：跳转逻辑转到库存分析页，展示概览数据
-  - **客户Tab**（新增）：跳转逻辑转到客户分析页，展示概览数据
-  - **财务Tab**（新增）：
-    - 本月收入/支出/利润3个卡片
-    - 收支趋势折线图（近6月）
-    - 费用分类饼图
-  - **收款Tab**（新增）：跳转逻辑转到收款分析页，展示概览数据
-  - 适配移动端：卡片式布局，触摸滑动切换Tab，下拉刷新
-- **API**：`fetchBusinessOverview`、`fetchSalesTrend`、`fetchRecentOrders`、`fetchProductRanking`、`fetchCustomerRanking`、`fetchFinanceOverview`、`fetchFinanceTrend`、`fetchExpenseCategory`
-- **路由**：`/reports`（现有路由保持不变）
+### 1. 商户端营销中心
 
-### 2. 商户端收款分析
-- **文件**：新建 `merchant-mobile/src/views/CollectionAnalysisView.vue`
-- **功能**：
-  - 日期筛选：本月/近30天/自定义
-  - 收款总览卡片：累计收款/本月收款/待收金额/退款率，4个卡片横向排列
-  - 收款趋势图：近30日收款金额折线图（移动端适配，小尺寸）
-  - 渠道分布饼图：微信/支付宝/银行卡/现金/其他渠道收款占比
-  - 待收列表：客户名/金额/到期日/状态（正常/逾期），逾期红色标记，支持按客户筛选
-  - 收款记录列表：日期/客户/金额/渠道/状态，支持上拉加载更多（分页）
-  - 收款记录详情：点击展开，显示收款单号/客户/金额/渠道/核销明细/备注
-  - 下拉刷新
-- **API**：`fetchCollectionSummary`、`fetchCollectionTrend`、`fetchChannelDistribution`、`fetchPendingReceivables`、`fetchReceiptList`
-- **路由**：`/reports/collection`
+- **接口/文件**：
+  - `merchant-mobile/src/views/MarketingCenter.vue` -- 营销中心主页面
+  - `merchant-mobile/src/router/index.ts` -- 更新路由配置，新增营销Tab
+  - `merchant-mobile/src/api.ts` -- 新增营销相关API调用
+- **关键组件**：
+  - 底部导航栏更新：
+    - 在现有导航栏中新增"营销"Tab（图标：horn/促销喇叭图标）
+    - 营销Tab右上角角标：当前有效活动数量（红点+数字）
+    - 路由路径：`/marketing`
+  - 营销中心首页布局：
+    - 顶部轮播Banner（el-carousel 或 swiper）：
+      - 展示当前热门促销活动（如"全场满200减30"、"限时折扣专区"）
+      - 自动轮播，3秒间隔，支持手动滑动
+      - Banner点击跳转对应活动详情
+    - 活动分类入口卡片（2列网格布局）：
+      - 优惠券入口卡片：券图标 + "优惠券"标题 + 可领取券数量角标 + 描述"领券享优惠"
+      - 限时折扣入口卡片：闪电图标 + "限时折扣"标题 + 进行中活动倒计时 + 描述"限时特价抢购"
+      - 积分商城入口卡片：金币图标 + "积分商城"标题 + 当前积分余额 + 描述"积分兑好礼"
+      - 秒杀入口卡片（P2暂不实现）：灰色置灰 + "即将上线"标签
+    - 卡片点击跳转：优惠券 -> `/marketing/coupons`，限时折扣 -> `/marketing/limited-discount`，积分商城 -> `/marketing/points-mall`
+  - 下拉刷新：支持 pull-to-refresh 刷新活动数据
+  - 空状态：无活动时显示 el-empty 占位图 + "暂无营销活动" 文案
+  - 移动端适配：375px 基准，卡片间距 12px，卡片圆角 12px，阴影效果
+- **说明**：
+  - 商户端是移动端H5（可能嵌入微信小程序 WebView），设计需轻量高效
+  - 底部导航栏需与现有导航架构兼容（需要确认当前导航栏实现方式）
+  - 营销Tab红点角标通过轮询或WebSocket实时更新
+  - 轮播Banner图片从营销素材库获取（关联活动Banner素材）
 
-### 3. 商户端库存分析
-- **文件**：新建 `merchant-mobile/src/views/InventoryAnalysisView.vue`
-- **功能**：
-  - 库存概览卡片：库存总额/库存SKU数/呆滞品数量/周转天数，4个卡片
-  - 库存预警列表：预警商品列表（商品名/库存量/库龄/预警等级），红/橙/黄标签分级，点击查看详情
-  - 呆滞品列表：按库龄排序的呆滞品（商品名/品类/库存量/库龄），支持筛选预警等级
-  - 库存价值排行TOP10：按库存金额排序的商品列表（商品名/库存金额/库存量）
-  - 出入库记录：最近出库/入库记录列表（日期/商品名/数量/类型），支持分页
-  - 安全库存预警：库存低于安全库存的商品列表（商品名/库存量/安全库存/缺口）
-  - 下拉刷新
-- **API**：`fetchInventoryOverview`、`fetchInventoryAlerts`、`fetchSlowMovingList`、`fetchInventoryValueRanking`、`fetchInventoryLogs`、`fetchSafetyStockAlerts`
-- **路由**：`/reports/inventory`
+---
 
-### 4. 商户端客户分析
-- **文件**：新建 `merchant-mobile/src/views/CustomerAnalysisView.vue`
-- **功能**：
-  - 客户概览卡片：客户总数/本月新增/活跃客户/流失客户，4个卡片
-  - 客户贡献排行TOP20：客户名/消费金额/订单数/最近消费，支持按金额/订单数排序
-  - 客户采购排行：按采购商品数量/金额排序的客户列表
-  - 新客/老客分布：饼图展示新客（首次消费本月）/老客/流失客（超过90天未消费）占比
-  - 客户详情：点击客户进入详情页，展示客户基本信息/消费记录列表/消费趋势迷你图
-  - 客户搜索：支持按客户名/手机号搜索
-  - 下拉刷新
-- **API**：`fetchCustomerOverview`、`fetchCustomerContribution`、`fetchCustomerPurchaseRanking`、`fetchCustomerTypeDistribution`、`fetchCustomerDetail`、`fetchCustomerOrders`
-- **路由**：`/reports/customers`、`/reports/customers/:customerId`
+### 2. 商户端优惠券页面
+
+- **接口/文件**：
+  - `merchant-mobile/src/views/MarketingCoupons.vue` -- 优惠券页面
+  - `merchant-mobile/src/components/CouponCard.vue` -- 优惠券卡片组件
+  - `merchant-mobile/src/api.ts` -- 新增优惠券相关API调用
+- **关键组件**：
+  - 顶部Tab切换栏（sticky定位）：
+    - 可用券（默认）、领取中心、我的券包
+    - Tab切换时带动画下划线
+  - 可用券Tab：
+    - 可领取优惠券列表（垂直滚动）：
+      - 券卡片 `CouponCard` 组件设计：
+        - 左侧：面值/折扣（大字号，红色/橙色），如"满100减20"、"8.5折"、"免邮"
+        - 右侧：券名称、使用条件（满X元可用）、有效期（YYYY.MM.DD - YYYY.MM.DD）
+        - 底部：适用范围（全部商品/指定分类/指定商品）
+        - 右下角：领取按钮（el-button type="primary"），已领取变为"已领取"灰色
+      - 领取按钮点击：
+        - 调用领取API
+        - 成功：按钮变为"已领取" + 领取成功Toast + 券飘入我的券包动画
+        - 失败：Toast提示失败原因（已领完/已领取/不符合条件）
+        - 领取进度：券卡片显示"已领取X/总数"进度条
+    - 下拉刷新、上拉加载更多
+    - 空状态："暂无可用优惠券"
+  - 领取中心Tab：
+    - 领取中心列表（同可用券布局）
+    - 顶部可能有"限时领取"Banner
+    - 券按领取热度排序
+  - 我的券包Tab：
+    - 已领取优惠券列表，按状态分组：
+      - 未使用券（默认展开）：显示完整券信息 + "去使用"按钮（跳转商品列表/下单页）
+      - 已使用券（折叠）：显示券信息 + 使用时间 + 关联订单号
+      - 已过期券（折叠）：显示券信息 + 灰色遮罩
+    - 券状态筛选：全部/未使用/已使用/已过期
+    - 下拉刷新、上拉加载更多
+    - 空状态："暂无优惠券"
+  - 优惠券详情弹窗（底部弹出 sheet）：
+    - 券完整信息：面值、使用条件、有效期、适用范围
+    - 使用说明（富文本）
+    - 可用商品列表（部分展示）
+    - 关闭按钮
+- **说明**：
+  - 优惠券卡片是核心复用组件，需抽离为独立 `CouponCard.vue`
+  - 券卡片需支持多种券类型：满减券(FIXED)、折扣券(PERCENT)、免邮券(SHIPPING)、赠品券(FREE_GIFT)
+  - 领取动画参考微信卡券领取效果（券从底部飞入）
+  - 我的券包中"去使用"按钮根据券类型跳转不同页面
+  - API调用：`GET /api/miniapp/marketing/coupons/available`（可用券）、`POST /api/miniapp/marketing/coupons/receive`（领取）、`GET /api/miniapp/marketing/coupons/my`（我的券）
+
+---
+
+### 3. 商户端秒杀+限时折扣页面
+
+- **接口/文件**：
+  - `merchant-mobile/src/views/MarketingLimitedDiscount.vue` -- 限时折扣页面
+  - `merchant-mobile/src/components/DiscountProductCard.vue` -- 折扣商品卡片组件
+  - `merchant-mobile/src/components/CountdownTimer.vue` -- 倒计时组件
+  - `merchant-mobile/src/api.ts` -- 新增限时折扣相关API调用
+- **关键组件**：
+  - 限时折扣页面：
+    - 顶部倒计时Banner（sticky定位）：
+      - 显示当前进行中的限时折扣活动
+      - 倒计时组件 `CountdownTimer`：距结束 HH:MM:SS
+      - 倒计时结束切换为"已结束"状态
+      - 背景：促销红色渐变，白色文字
+    - 折扣商品列表（垂直滚动，2列网格布局）：
+      - 商品卡片 `DiscountProductCard` 组件设计：
+        - 商品图片（顶部，带折扣标签角标，如"-30%"）
+        - 商品名称（2行截断）
+        - 价格行：折扣价（红色大字号） + 原价（灰色删除线小字号）
+        - 已售进度条：`已售X/总库存` 进度条
+        - 库存标签：库存紧张（红色标签）/ 库存充足（绿色标签）
+        - 底部：立即抢购按钮（红色，全宽）
+      - 商品卡片点击进入商品详情
+      - 下拉刷新、上拉加载更多
+    - 限时折扣专区切换：
+      - 如有多个活动，顶部Tab可切换不同活动
+    - 空状态："暂无进行中的限时折扣活动"
+  - 秒杀页面（P2，暂不实现）：
+    - 灰色置灰页面 + "秒杀功能即将上线，敬请期待" 文案
+    - 路由 `/marketing/seckill` 但页面显示占位内容
+  - 倒计时组件 `CountdownTimer` 实现：
+    - 入参：`endTime` (时间戳)
+    - 显示：天-时-分-秒（小于1天时只显示时-分-秒）
+    - 颜色：>1小时白色，<1小时红色，<10分钟脉冲闪烁
+    - 倒计时归零触发 `@timeup` 事件
+    - 使用 `requestAnimationFrame` 或 `setInterval(1s)` 驱动
+  - 移动端适配：375px 基准，2列网格，卡片间距 8px
+- **说明**：
+  - 秒杀页面（P2）仅占位，显示"即将上线"引导页
+  - 限时折扣商品卡片需突出紧迫感和优惠力度
+  - 倒计时组件需封装为独立组件，支持服务端时间校准
+  - 商品卡片点击跳转到商品详情页（需传递折扣活动上下文）
+  - API调用：`GET /api/miniapp/marketing/limited-discounts/active`（进行中活动）、`GET /api/miniapp/marketing/limited-discounts/:id/products`（活动商品列表）
+
+---
+
+### 4. 商户端积分商城页面
+
+- **接口/文件**：
+  - `merchant-mobile/src/views/MarketingPointsMall.vue` -- 积分商城页面
+  - `merchant-mobile/src/components/PointsProductCard.vue` -- 积分商品卡片组件
+  - `merchant-mobile/src/api.ts` -- 新增积分商城相关API调用
+- **关键组件**：
+  - 顶部积分余额展示区：
+    - 积分余额（大字号，金币黄 `#F9CA24`）：
+      - 如 "1,280 积分"
+      - 右侧"积分明细"入口链接（右箭头图标）
+    - 积分获取提示："如何获取积分？" 链接（跳转积分规则页）
+    - 背景：渐变卡片（浅金色到白色）
+  - 兑换商品列表（垂直滚动，2列网格布局）：
+    - 商品卡片 `PointsProductCard` 组件设计：
+      - 商品图片（顶部，正方形）
+      - 商品名称（2行截断）
+      - 所需积分（大字号，积分黄色 `#F9CA24`）+ "积分" 文字
+      - 市场参考价（灰色删除线小字号）
+      - 库存余量：`剩余X件`（库存<10时红色警告）
+      - 底部：兑换按钮
+        - 积分充足：黄色按钮 "立即兑换"
+        - 积分不足：灰色按钮 "积分不足" + 差值提示
+        - 库存为0：灰色按钮 "已兑完"
+      - 商品卡片点击进入商品详情
+    - 下拉刷新、上拉加载更多
+  - 商品详情底部弹出（Bottom Sheet）：
+    - 商品大图轮播
+    - 商品名称、所需积分
+    - 商品详细描述
+    - 兑换规则说明（每人限兑X次、总量限兑X次）
+    - 库存余量
+    - 兑换按钮（底部固定）
+    - 兑换确认弹窗：
+      - 确认信息：商品名称、消耗积分、当前积分余额、兑换后积分余额
+      - 确认/取消按钮
+  - 兑换记录页面（子页面或弹窗）：
+    - 兑换记录列表：
+      - 每项：商品图片缩略图、商品名称、消耗积分、兑换时间、状态标签
+      - 状态：待确认（黄）、已确认（绿）、已取消（灰）
+    - 点击记录查看详情
+    - 下拉刷新、上拉加载更多
+    - 空状态："暂无兑换记录"
+  - 积分明细页面：
+    - 积分变动记录列表：变动原因、变动数量（+/-）、变动时间、余额
+    - 筛选：全部/获取/消耗
+    - 下拉刷新、上拉加载更多
+  - 移动端适配：375px 基准，2列网格，卡片间距 8px，触控按钮最小 44px
+- **说明**：
+  - 积分商城设计需突出"免费兑换"的心智
+  - 兑换确认弹窗需清晰展示积分消耗信息
+  - 积分不足时引导用户了解如何获取积分
+  - 兑换按钮点击后需调用兑换API，成功展示成功动画
+  - API调用：`GET /api/miniapp/marketing/points-mall/products`（商品列表）、`POST /api/miniapp/marketing/points-mall/exchange`（兑换）、`GET /api/miniapp/marketing/points-mall/exchange-records`（兑换记录）、`GET /api/miniapp/marketing/points/my-records`（积分明细）

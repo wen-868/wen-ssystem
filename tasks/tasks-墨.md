@@ -1,4 +1,4 @@
-# 墨 · 数据报表模块 · 管理后台
+# 墨 . 营销中心模块 . 管理后台
 
 **日期**：2026-06-30
 **状态**：待开始
@@ -9,99 +9,207 @@
 
 | # | 任务 | 优先级 | 状态 |
 |---|------|--------|:---:|
-| 1 | 经营总览完善 | P0 | ❌ |
-| 2 | 销售分析页面 | P0 | ❌ |
-| 3 | 在线收款专项分析页面 | P0 | ❌ |
-| 4 | 商品分析页面 | P0 | ❌ |
-| 5 | 客户分析页面 | P0 | ❌ |
-| 6 | 库存分析页面 | P0 | ❌ |
+| 1 | 营销中心统一重构 | P1 | PENDING |
+| 2 | 限时折扣管理页面 | P1 | PENDING |
+| 3 | 满赠管理页面 | P1 | PENDING |
+| 4 | 积分商城管理页面 | P1 | PENDING |
+| 5 | 营销看板页面 | P1 | PENDING |
+| 6 | 营销素材库页面 | P1 | PENDING |
+
+> 跳过的P2模块：秒杀拼团、社群营销管理页面
 
 ---
 
 ## 详细说明
 
-### 1. 经营总览完善
-- **文件**：完善 `admin-web/src/views/Reports.vue`
-- **功能**：
-  - 日期切换栏：今日/昨日/本周/本月/自定义日期范围，默认今日
-  - 顶部4个概要卡片：今日销售额/今日订单数/今日毛利/客单价，每卡片含环比增长箭头（红色↑/绿色↓）和百分比
-  - 销售趋势迷你图：近30日销售额/订单数双轴混合图（折线+柱状），使用ECharts
-  - 时段销售对比：今日vs昨日按小时销售额对比柱状图（双色柱）
-  - 门店排行：各门店销售额/订单数/毛利横向柱状图TOP10
-  - 品类销售占比：饼图（ECharts）
-  - 支付方式分布：饼图（ECharts）
-  - 最近订单列表：最新10笔订单，显示单号/客户/金额/状态/时间
-  - 自动刷新：每60秒自动刷新数据（可配置开关）
-- **API**：`fetchBusinessOverview`、`fetchSalesTrend`、`fetchHourlySales`、`fetchStoreRanking`、`fetchCategoryDistribution`、`fetchPaymentDistribution`、`fetchRecentOrders`
-- **路由**：`/reports`（现有路由保持不变）
+### 1. 营销中心统一重构
 
-### 2. 销售分析页面
-- **文件**：新建 `admin-web/src/views/SalesAnalysis.vue`
-- **功能**：
-  - 日期筛选：预设日/周/月/自定义，门店筛选（多选）
-  - 销售趋势折线图：销售额+订单数+客单价三线，支持日/周/月粒度切换，ECharts双Y轴
-  - 时段热力图：横轴日期（近30天）×纵轴小时（0-23），颜色深浅表示销售额大小，ECharts heatmap
-  - 商品销售排行TOP20：商品名/品类/销量/销售额/毛利/毛利率，支持按各列排序，支持导出
-  - 客户消费排行TOP20：客户名/消费金额/订单数/客单价/最近消费，支持排序
-  - 门店销售排行TOP10：门店名/销售额/订单数/毛利，柱状图+表格
-  - 业务员销售排行TOP10：业务员名/销售额/订单数/毛利，柱状图+表格
-  - 同期对比表：本期vs上期（销售额/订单数/客单价/毛利），含变化金额和百分比
-  - 销售日报明细表：日期/销售额/订单数/客单价/退款金额/退款率，分页加载
-- **API**：`fetchSalesTrend`、`fetchHourlyHeatmap`、`fetchProductRanking`、`fetchCustomerRanking`、`fetchStoreRanking`、`fetchStaffRanking`、`fetchYoYComparison`、`fetchDailySalesDetail`
-- **路由**：`/reports/sales`
+- **接口/文件**：
+  - `admin-web/src/views/MarketingView.vue` -- 重构后的统一营销中心入口
+  - `admin-web/src/views/MarketingPromotion.vue` -- 废弃（功能合并）
+  - `admin-web/src/views/MarketingTags.vue` -- 保留，作为标签管理子页面
+  - `admin-web/src/router/index.ts` -- 更新路由配置
+- **关键组件**：
+  - 顶部概览卡片行：活动总数、进行中、即将开始、已结束（使用 `el-statistic` 或自定义卡片）
+  - Tab 导航栏：优惠券、满减满赠、限时折扣、秒杀拼团（灰色置灰+即将上线标签）、积分商城、活动叠加
+  - 每个 Tab 下为独立子组件，按需加载（`defineAsyncComponent`）
+  - 搜索筛选栏：全局搜索（活动名称/编码）、状态筛选、时间范围筛选
+  - 批量操作栏：批量启用、批量停用、批量删除
+- **说明**：
+  - 合并 MarketingView.vue（优惠券管理）和 MarketingPromotion.vue（秒杀/拼团/满减）为统一入口
+  - 采用 Tab 切换架构，各子模块独立组件，避免单文件过大
+  - 秒杀拼团Tab标记为"即将上线"并置灰不可点击
+  - 路由统一为 `/marketing`，移除旧路由 `/marketing-promotion`
+  - 已有优惠券管理功能完整保留，仅调整组件嵌套结构
 
-### 3. 在线收款专项分析页面
-- **文件**：新建 `admin-web/src/views/CollectionAnalysis.vue`
-- **功能**：
-  - 日期/门店/渠道筛选
-  - 收款总览卡片：累计收款总额/本月收款/今日收款/待收金额/退款率/平均收款周期，6个卡片
-  - 收款漏斗图：ECharts funnel，分享数→查看数→支付数→支付成功数，每环节标注数量和转化率
-  - 收款趋势图：近30日收款金额/笔数双轴折线图，支持按渠道拆分（每条渠道一条线）
-  - 渠道分布饼图：微信/支付宝/银行卡/现金/其他，含金额和占比
-  - 渠道转化率对比表：渠道/分享数/查看数/支付数/支付金额/转化率/占比，表格形式
-  - 超时未付分析：超时订单列表（订单号/客户/金额/超时时长/创建时间），超时区间分布饼图（<30min/30-60min/1-2h/2-24h/24h+），超时率趋势折线图
-  - 退款分析：退款金额/退款率趋势折线图，退款原因分类饼图
-- **API**：`fetchCollectionSummary`、`fetchCollectionFunnel`、`fetchCollectionTrend`、`fetchChannelDistribution`、`fetchChannelConversion`、`fetchTimeoutAnalysis`、`fetchRefundAnalysis`
-- **路由**：`/reports/collection`
+---
 
-### 4. 商品分析页面
-- **文件**：完善 `admin-web/src/views/ReportsProducts.vue`（当前为占位页）
-- **功能**：
-  - 日期/品类/门店筛选
-  - 商品概览卡片：SKU总数/动销SKU数/动销率/库存总额/库存周转天数
-  - 畅销TOP20排行榜：商品名/品类/销量/销售额/毛利/毛利率，表格+柱状图可视化，支持排序切换（按销量/销售额/毛利）
-  - 滞销预警列表：商品名/品类/库存量/最近30天销量/滞销天数/预警等级，预警等级用红（>90天）/橙（60-90天）/黄（30-60天）标签，支持筛选预警等级
-  - 毛利排行：商品名/品类/销售额/成本/毛利/毛利率，支持正序/倒序切换，TOP20柱状图
-  - 品类销售分析：各品类销售额/销量/毛利/占比，饼图+柱状图
-  - 商品ABC分析：A类（前70%销售额）/B类（70-90%）/C类（90-100%），饼图展示三类SKU数和销售额占比
-  - 新品表现：近30天上架新品销售额排行TOP10
-- **API**：`fetchProductOverview`、`fetchProductRanking`、`fetchSlowMoving`、`fetchProfitRanking`、`fetchCategoryAnalysis`、`fetchABCAnalysis`、`fetchNewProductPerformance`
-- **路由**：`/reports/products`
+### 2. 限时折扣管理页面
 
-### 5. 客户分析页面
-- **文件**：新建 `admin-web/src/views/CustomerAnalysis.vue`
-- **功能**：
-  - 日期/门店筛选
-  - 客户概览卡片：客户总数/本月新增/活跃客户数/流失客户数/复购率
-  - 客户贡献排行TOP20：客户名/累计消费金额/订单数/客单价/最近消费日期，表格+柱状图
-  - 复购率趋势：按月统计复购率折线图（ECharts），近12月
-  - 客单价分布：区间柱状图（<100/100-300/300-500/500-1000/1000-3000/3000+），展示各区间客户数和订单数
-  - RFM分析：RFM分群结果表格（客户群体/客户数/消费金额/占比），散点图可视化（R-F、F-M两个维度可切换），支持点击分群查看客户明细
-  - 新增客户趋势：按月新增客户数折线图，近12月
-  - 流失客户预警：超过N天（可配置，默认90天）未消费客户列表，含流失趋势折线图
-- **API**：`fetchCustomerOverview`、`fetchCustomerContribution`、`fetchRepurchaseTrend`、`fetchAvgOrderValueDistribution`、`fetchRFMAnalysis`、`fetchNewCustomerTrend`、`fetchLostCustomerAnalysis`
-- **路由**：`/reports/customers`
+- **接口/文件**：
+  - `admin-web/src/views/MarketingLimitedDiscount.vue` -- 限时折扣管理页面
+  - `admin-web/src/api.ts` -- 新增限时折扣相关API调用
+- **关键组件**：
+  - 折扣活动列表表格：
+    - 列：活动编码、活动名称、折扣类型（百分比/固定金额）、折扣值、时间范围、适用商品数、已售/总库存、状态、操作
+    - 状态标签：DRAFT(灰)、PENDING(蓝)、ACTIVE(绿)、PAUSED(黄)、ENDED(红)、SOLD_OUT(橙)
+    - 操作列：编辑、启用/停用、删除
+    - 分页：el-pagination，默认每页20条
+  - 新建/编辑折扣活动对话框（el-dialog，宽度 800px）：
+    - 基本信息：活动名称（el-input）、活动描述（el-input type=textarea）、时间范围（el-date-picker type=datetimerange）
+    - 折扣规则：折扣类型（el-radio-group: 百分比/固定金额）、折扣值（el-input-number）
+    - 最低消费金额（el-input-number）
+    - 库存设置：总库存（el-input-number）、每人限购（el-input-number）、每单限购（el-input-number）
+    - 商品选择器：弹窗选择适用商品（el-transfer 或 el-table + 多选），支持搜索/分类筛选
+    - 表单校验：活动名称必填、时间范围必填且开始<结束、折扣值>0、库存>=0
+  - 商品关联管理：
+    - 已选商品列表：商品名称、原价、折扣价、库存、已售
+    - 批量设置折扣价（支持公式：原价*折扣率 或 统一折扣价）
+    - 移除商品功能
+  - 启用校验提示：库存不足/时间冲突/商品已下架等风险提示
+- **说明**：
+  - 参考 MarketingPromotion.vue 中秒杀模块的交互模式
+  - 商品选择器需支持分页加载和搜索
+  - 折扣价可批量计算或逐个设置
+  - 时间选择器默认精确到分钟，支持定时生效
 
-### 6. 库存分析页面
-- **文件**：完善 `admin-web/src/views/InventoryReports.vue`（当前为占位页）
-- **功能**：
-  - 日期/品类/门店/仓库筛选
-  - 库存概览卡片：库存总额/库存总量（箱/瓶）/库存SKU数/呆滞品数量/平均周转天数
-  - 库存周转天数趋势：近12月周转天数折线图（ECharts），含行业参考线
-  - 库龄分布：按入库时间分段（<30天/30-60天/60-90天/90-180天/180天+）的库存金额/占比，堆叠柱状图+饼图
-  - 呆滞品预警列表：商品名/品类/库存量/库龄/最近出库日期/预警等级（红>180天/橙90-180天/黄60-90天），支持筛选和导出
-  - 库存价值排行TOP20：按库存金额排序，表格+柱状图
-  - 出入库趋势：近30日入库/出库数量/金额双轴折线图
-  - 安全库存预警：库存低于安全库存的商品列表，含库存量/安全库存量/缺口量
-- **API**：`fetchInventoryOverview`、`fetchTurnoverTrend`、`fetchInventoryAging`、`fetchSlowMovingInventory`、`fetchInventoryValueRanking`、`fetchInOutTrend`、`fetchSafetyStockAlert`
-- **路由**：`/reports/inventory`
+---
+
+### 3. 满赠管理页面
+
+- **接口/文件**：
+  - `admin-web/src/views/MarketingGiftRule.vue` -- 满赠规则管理页面
+  - `admin-web/src/api.ts` -- 新增满赠规则相关API调用
+- **关键组件**：
+  - 满赠规则列表表格：
+    - 列：规则编码、规则名称、满赠类型（满金额/满件数/两者）、时间范围、适用商品数、赠品库存、已赠数量、状态、操作
+    - 状态标签：同限时折扣
+    - 操作列：编辑、启用/停用、删除
+  - 新建/编辑满赠规则对话框（el-dialog，宽度 900px）：
+    - 基本信息：规则名称、规则描述、时间范围
+    - 满赠条件：条件类型（el-radio: 满金额/满件数/两者）、满赠阈值（满X元 或 满X件）
+    - 适用范围：el-radio 全部商品/指定分类/指定商品，选择商品时弹出商品选择器
+    - 多级满赠配置（核心组件）：
+      - 层级列表（el-table 内嵌）：
+        - 列：层级序号、满足金额、赠品商品、赠送数量、操作
+        - 添加层级按钮（el-button +）
+        - 每行可独立设置：满足金额阈值（el-input-number）、赠品商品（el-select 搜索商品）、赠送数量（el-input-number）
+        - 层级自动排序（按满足金额升序）
+      - 层级预览：满100元赠A商品1件，满200元赠B商品2件
+    - 赠品库存联动：选择赠品后自动显示当前库存，库存不足红色警告
+    - 表单校验：规则名称必填、时间范围必填、至少配置一个满赠层级、赠品库存>0
+  - 赠品商品选择器：弹窗搜索商品，展示商品名称/库存/图片缩略图
+- **说明**：
+  - 多级满赠层级编辑器是核心交互，需直观展示阶梯关系
+  - 赠品选择时实时显示库存，不足时禁止选择或警告提示
+  - 参考 MarketingPromotion.vue 中满减模块的交互模式
+
+---
+
+### 4. 积分商城管理页面
+
+- **接口/文件**：
+  - `admin-web/src/views/MarketingPointsMall.vue` -- 积分商城管理页面
+  - `admin-web/src/api.ts` -- 新增积分商城相关API调用
+- **关键组件**：
+  - 顶部统计卡片行：
+    - 兑换商品总数、上架商品数、总兑换量、总消耗积分（el-statistic）
+  - 兑换商品管理Tab：
+    - 商品卡片网格（el-row + el-col，4列）：
+      - 卡片内容：商品图片（el-image，支持预览）、商品名称、所需积分（大字号红色）、市场参考价（删除线灰色）、库存余量/总库存、状态标签
+      - 操作按钮：编辑、上架/下架、删除
+      - 库存不足商品显示"已兑完"半透明遮罩
+    - 新建/编辑商品对话框（el-dialog，宽度 700px）：
+      - 商品图片上传（el-upload + 图片裁剪）
+      - 商品名称（el-input）、商品描述（el-input type=textarea）
+      - 所需积分（el-input-number, min=1）、市场参考价（el-input-number）
+      - 库存设置：总库存、每人限兑次数、总限兑次数
+      - 排序权重（el-input-number）
+    - 搜索筛选：关键词搜索、状态筛选（上架/下架）
+  - 兑换记录Tab：
+    - 兑换记录表格：
+      - 列：兑换编号、用户信息（姓名/手机号）、商品名称、消耗积分、兑换数量、兑换时间、状态
+      - 状态筛选：全部/待确认/已确认/已取消
+      - 操作：确认兑换（el-popconfirm）、取消兑换（el-popconfirm + 退回积分提示）
+      - 分页：el-pagination
+    - 时间范围筛选：el-date-picker
+    - 导出兑换记录：el-button @click导出Excel
+- **说明**：
+  - 商品卡片布局参考电商后台商品管理，突出积分价值感
+  - 图片上传支持预览和裁剪（cropperjs或el-upload自带）
+  - 确认/取消兑换需二次确认弹窗，展示影响说明
+
+---
+
+### 5. 营销看板页面
+
+- **接口/文件**：
+  - `admin-web/src/views/MarketingDashboard.vue` -- 营销看板页面
+  - `admin-web/src/api.ts` -- 新增看板相关API调用
+- **关键组件**：
+  - 顶部概览卡片行（6个卡片，el-row + el-col）：
+    - 活动总数、进行中、已结束、参与总人数、发放优惠券数、核销率
+    - 每个卡片使用 el-statistic 组件，带图标和趋势箭头
+  - 图表区域（使用 ECharts，通过 echarts 库）：
+    - 活动参与趋势图（折线图）：X轴-日期，Y轴-参与人数，支持日/周/月切换
+    - 活动转化率趋势图（双Y轴折线图）：参与人数（柱状图）+ 转化率（折线图，%）
+    - 活动ROI排行（横向柱状图）：各活动ROI对比，从高到低排序
+    - 活动类型分布（饼图）：优惠券/满减/限时折扣/满赠/积分各类型占比
+    - 优惠券使用趋势（面积图）：发放量 vs 使用量 vs 核销率
+  - 活动对比表（el-table）：
+    - 选择2-4个活动进行对比
+    - 对比维度：参与人数、转化率、订单数、GMV、优惠金额、ROI
+    - 每个维度高亮最优值
+  - 时间筛选器（el-date-picker + 快捷按钮）：
+    - 快捷按钮：今天、本周、本月、近30天、自定义
+    - 日期范围选择器联动所有图表
+  - 活动类型筛选（el-select 多选）
+- **说明**：
+  - 需要安装 echarts 依赖（`npm install echarts`）
+  - 图表使用统一的 ECharts 主题色，参考 01-design-system-spec.html
+  - 图表需支持响应式 resize
+  - 数据为空时显示 el-empty 占位
+
+---
+
+### 6. 营销素材库页面
+
+- **接口/文件**：
+  - `admin-web/src/views/MarketingMaterial.vue` -- 营销素材库页面
+  - `admin-web/src/api.ts` -- 新增素材库相关API调用
+- **关键组件**：
+  - 左侧分类树（el-tree）：
+    - 节点：全部素材、海报、优惠券背景、秒杀背景、公众号文章、其他
+    - 支持右键菜单（新增子分类、重命名、删除）
+    - 选中分类后右侧素材列表联动筛选
+  - 右侧素材管理区：
+    - 顶部操作栏：
+      - 搜索输入框（el-input，支持素材名称搜索）
+      - 类型筛选（el-select：图片/视频/文档/HTML）
+      - 使用场景筛选（el-select）
+      - 标签筛选（el-select 多选）
+      - 上传按钮（el-upload，支持多文件拖拽上传）
+      - 视图切换（列表视图/网格视图）
+    - 素材网格视图（el-row + el-col，响应式列数）：
+      - 素材卡片：缩略图（el-image，支持lightbox预览）、素材名称、分类标签、使用场景标签
+      - 卡片hover：显示操作按钮（发布/归档、编辑、删除）
+      - 状态角标：DRAFT(灰)、PUBLISHED(绿)、ARCHIVED(灰)
+    - 素材列表视图（el-table）：
+      - 列：缩略图、素材名称、类型、分类、标签、大小、使用次数、状态、更新时间、操作
+    - 素材详情对话框（el-dialog）：
+      - 大图预览区（el-image，支持缩放）
+      - 素材信息：名称、编码、类型、格式、尺寸、大小、分类、标签
+      - 使用统计：下载次数、查看次数、使用次数
+      - 关联活动：关联活动名称+链接
+      - 操作按钮：下载、发布/归档、编辑、删除
+  - 上传对话框（el-dialog）：
+    - 拖拽上传区（el-upload drag）
+    - 上传进度条（el-progress）
+    - 上传后自动填充：素材名称（默认取文件名）、类型自动识别
+    - 补充信息：分类选择、标签输入（el-tag 动态添加）、使用场景选择
+  - 分页：el-pagination
+- **说明**：
+  - 素材上传支持 jpg/png/gif/webp/svg/mp4/mov/pdf/html
+  - 图片类素材自动生成缩略图展示
+  - 分类树支持最多3级嵌套
+  - 删除素材需二次确认，提示关联活动可能受影响
