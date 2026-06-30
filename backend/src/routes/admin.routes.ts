@@ -11,10 +11,10 @@ import * as dailySettlementController from "../controllers/admin/daily-settlemen
 export const adminRouter = Router();
 
 // ============ Auth ============
-adminRouter.post("/auth/login", authController.login);
-adminRouter.get("/auth/me", requireAuthWithTenant, authController.getMe);
-adminRouter.get("/auth/settings", requireAuthWithTenant, authController.getSettings);
-adminRouter.put("/auth/settings", requireAuthWithTenant, authController.updateSettings);
+// 注意：login 路由已移至 server.ts 单独挂载（无需认证）
+// adminRouter.get("/auth/me", requireAuthWithTenant, authController.getMe);
+// adminRouter.get("/auth/settings", requireAuthWithTenant, authController.getSettings);
+// adminRouter.put("/auth/settings", requireAuthWithTenant, authController.updateSettings);
 
 // ============ 员工管理 ============
 adminRouter.get("/staff", requireAuth, employeeController.listStaff);

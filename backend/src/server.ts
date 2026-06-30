@@ -1,12 +1,14 @@
 import cors from "cors";
 import express from "express";
 import helmet from "helmet";
+import rateLimit from "express-rate-limit";
 import { env } from "./shared/env.js";
 import { initDatabase } from "./shared/db.js";
 import { errorHandler } from "./shared/error-handler.js";
 import { requireAuth } from "./shared/auth.js";
 import { tenantMiddleware } from "./shared/tenant.js";
 import { adminRouter } from "./routes/admin.routes.js";
+import * as authController from "./controllers/admin/auth.controller.js";
 import { storeRouter } from "./routes/store.routes.js";
 import { miniappRouter } from "./routes/miniapp.routes.js";
 import { paymentRouter } from "./routes/payment.routes.js";
@@ -62,8 +64,16 @@ import { purchaseContractRouter } from "./routes/purchase-contract.routes.js";
 
 const app = express();
 
+// 全局 Rate Limiting：每IP每分钟100请求
+app.use(rateLimit({ windowMs: 60_000, max: 100, standardHeaders: true, legacyHeaders: false }));
+// 登录接口 Rate Limiting：每IP每15分钟5次（防暴力破解）
+const loginLimiter = rateLimit({ windowMs: 15 * 60_000, max: 5, message: "登录请求过于频繁，请15分钟后再试", standardHeaders: true, legacyHeaders: false });
+
 app.use(helmet());
-app.use(cors());
+const allowedOrigins = process.env.CORS_ORIGINS
+  ? process.env.CORS_ORIGINS.split(",").map(s => s.trim())
+  : ["https://admin.onepan.cn", "https://m.onepan.cn", "https://store.onepan.cn"];
+app.use(cors({ origin: allowedOrigins, credentials: true }));
 app.use(express.json({ limit: "2mb" }));
 
 // 认证 + 租户隔离组合中间件
@@ -82,18 +92,27 @@ app.use("/api/admin/suppliers", requireAuthWithTenant, supplierRouter);
 app.use("/api/admin/purchase-orders", requireAuthWithTenant, purchaseRouter);
 app.use("/api/store/sale-returns", requireAuthWithTenant, saleReturnRouter);
 app.use("/api/admin/sale-returns", requireAuthWithTenant, saleReturnRouter);
-app.use("/api/admin", adminRouter);
-app.use("/api/admin/reports", reportRouter);
-app.use("/api/admin/alerts", alertRouter);
-app.use("/api/admin/dashboard", dashboardRouter);
+// 登录接口（无需认证，但受 Rate Limiting 保护）
+app.post("/api/admin/auth/login", loginLimiter, authController.login);
+app.post("/api/store/auth/login", loginLimiter, authController.login);
+// 认证后的用户接口
+app.get("/api/admin/auth/me", requireAuthWithTenant, authController.getMe);
+app.get("/api/admin/auth/settings", requireAuthWithTenant, authController.getSettings);
+app.put("/api/admin/auth/settings", requireAuthWithTenant, authController.updateSettings);
+app.post("/api/admin/auth/change-password", requireAuthWithTenant, authController.changePassword);
+
+app.use("/api/admin", requireAuthWithTenant, adminRouter);
+app.use("/api/admin/reports", requireAuthWithTenant, reportRouter);
+app.use("/api/admin/alerts", requireAuthWithTenant, alertRouter);
+app.use("/api/admin/dashboard", requireAuthWithTenant, dashboardRouter);
 app.use("/api/store", storeRouter);
 app.use("/api/miniapp", miniappRouter);
 app.use("/api/pay", paymentRouter);
 app.use("/api/share", shareRouter);
-app.use("/api/instant-retail", instantRetailRouter);
+app.use("/api/instant-retail", requireAuthWithTenant, instantRetailRouter);
 app.use("/api/miniapp/cart", requireAuthWithTenant, miniappCartRouter);
 app.use("/api/miniapp/aftersales", miniappAftersaleRouter);
-app.use("/api/admin/aftersales", adminAftersaleRouter);
+app.use("/api/admin/aftersales", requireAuthWithTenant, adminAftersaleRouter);
 app.use("/api/admin/prices", requireAuthWithTenant, priceRouter);
 app.use("/api/admin/credits", requireAuthWithTenant, creditRouter);
 app.use("/api/admin/trace", requireAuthWithTenant, adminTraceRouter);
@@ -121,15 +140,15 @@ app.use("/api/admin/purchase-returns", requireAuthWithTenant, purchaseReturnRout
 app.use("/api/store/customer-statements", requireAuthWithTenant, customerStatementRouter);
 app.use("/api/store/customer-payments", requireAuthWithTenant, customerPaymentRouter);
 app.use("/api/admin/customer-visits", requireAuthWithTenant, customerVisitRouter);
-app.use("/api/admin/products/categories", categoryRouter);
-app.use("/api/admin/brands", brandRouter);
-app.use("/api/admin/units", unitRouter);
+app.use("/api/admin/products/categories", requireAuthWithTenant, categoryRouter);
+app.use("/api/admin/brands", requireAuthWithTenant, brandRouter);
+app.use("/api/admin/units", requireAuthWithTenant, unitRouter);
 app.use("/api/admin/approval", requireAuthWithTenant, approvalRouter);
 app.use("/api/admin/tenants", requireAuthWithTenant, tenantRouter);
 app.use("/api/admin/subscriptions", requireAuthWithTenant, subscriptionRouter);
 app.use("/api/admin/customer-merge", requireAuthWithTenant, customerMergeRouter);
 app.use("/api/admin/marketing-new", requireAuthWithTenant, marketingNewRouter);
-app.use("/api/admin", tagRouter);
+app.use("/api/admin", requireAuthWithTenant, tagRouter);
 app.use("/api/platform", requireAuthWithTenant, platformRouter);
 app.use("/api/admin/customer-prices", requireAuthWithTenant, customerPriceRouter);
 app.use("/api/admin/commission", requireAuthWithTenant, commissionRouter);

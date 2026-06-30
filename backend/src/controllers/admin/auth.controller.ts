@@ -3,6 +3,15 @@ import { asyncHandler } from "../../shared/async-handler.js";
 import { ok } from "../../shared/response.js";
 import * as authService from "../../services/admin/auth.service.js";
 
+// 密码强度校验：至少8位，必须含大小写字母+数字
+function validatePasswordStrength(password: string): { valid: boolean; message?: string } {
+  if (password.length < 8) return { valid: false, message: "密码长度不能少于8位" };
+  if (!/[A-Z]/.test(password)) return { valid: false, message: "密码必须包含至少一个大写字母" };
+  if (!/[a-z]/.test(password)) return { valid: false, message: "密码必须包含至少一个小写字母" };
+  if (!/[0-9]/.test(password)) return { valid: false, message: "密码必须包含至少一个数字" };
+  return { valid: true };
+}
+
 export const login = asyncHandler(async (req, res) => {
   const body = z.object({ username: z.string(), password: z.string() }).parse(req.body);
   try {
@@ -10,6 +19,24 @@ export const login = asyncHandler(async (req, res) => {
     res.json(ok(result));
   } catch (e: any) {
     res.status(401).json({ code: "401", message: e.message });
+  }
+});
+
+export const changePassword = asyncHandler(async (req, res) => {
+  const body = z.object({
+    oldPassword: z.string(),
+    newPassword: z.string()
+  }).parse(req.body);
+  const strengthCheck = validatePasswordStrength(body.newPassword);
+  if (!strengthCheck.valid) {
+    res.status(400).json({ code: "400", message: strengthCheck.message });
+    return;
+  }
+  try {
+    const result = await authService.changePassword(req.user!.id, body.oldPassword, body.newPassword);
+    res.json(ok(result));
+  } catch (e: any) {
+    res.status(400).json({ code: "400", message: e.message });
   }
 });
 

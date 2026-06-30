@@ -14,7 +14,7 @@ export async function login(username: string, password: string) {
     `SELECT r.role_code
      FROM sys_user_role ur
      JOIN sys_role r ON r.id = ur.role_id
-     WHERE ur.user_id = ? AND r.status = 'ACTIVE'`,
+     WHERE ur.user_id = ? AND r.status = 1`,
     [account.id]
   );
   const roleCodes = roles.map((r: any) => r.role_code);
