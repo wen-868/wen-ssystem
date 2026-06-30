@@ -1,29 +1,42 @@
 import { Router } from "express";
-import * as platformController from "../controllers/platform/platform.controller.js";
+import { query, queryOne } from "../shared/db.js";
+import { asyncHandler } from "../shared/async-handler.js";
+import { ok, fail } from "../shared/response.js";
 
 export const platformRouter = Router();
 
-// 数据总览
-platformRouter.get("/overview", platformController.getOverview);
+// GET /api/platform/overview - 平台总览（租户数、用户数、订单数等）
+platformRouter.get("/overview", asyncHandler(async (req, res) => {
+  try {
+    const tenantCount = await queryOne<any>("SELECT COUNT(*) AS count FROM tenant WHERE status = 'ACTIVE'");
+    const userCount = await queryOne<any>("SELECT COUNT(*) AS count FROM sys_user WHERE status = 1");
+    const storeCount = await queryOne<any>("SELECT COUNT(*) AS count FROM store WHERE status = 1");
+    const orderCount = await queryOne<any>("SELECT COUNT(*) AS count FROM sale_order WHERE deleted = 0");
 
-// 租户管理
-platformRouter.get("/tenants", platformController.listTenants);
-platformRouter.get("/tenants/:tenantId", platformController.getTenantDetail);
-platformRouter.post("/tenants", platformController.createTenant);
-platformRouter.put("/tenants/:tenantId", platformController.updateTenant);
+    res.json(ok({
+      tenantCount: tenantCount?.count ?? 0,
+      userCount: userCount?.count ?? 0,
+      storeCount: storeCount?.count ?? 0,
+      orderCount: orderCount?.count ?? 0
+    }));
+  } catch (err: any) {
+    res.status(500).json(fail(err.message || "服务器错误"));
+  }
+}));
 
-// 平台管理员
-platformRouter.get("/admins", platformController.listAdmins);
-platformRouter.post("/admins", platformController.createAdmin);
-platformRouter.put("/admins/:id/status", platformController.updateAdminStatus);
+// GET /api/platform/tenants - 平台租户列表
+platformRouter.get("/tenants", asyncHandler(async (req, res) => {
+  try {
+    const tenants = await query<any>(
+      "SELECT id, tenant_name, status, created_at FROM tenant ORDER BY id DESC LIMIT 100"
+    );
+    res.json(ok(tenants ?? []));
+  } catch (err: any) {
+    res.status(500).json(fail(err.message || "服务器错误"));
+  }
+}));
 
-// 订阅管理
-platformRouter.get("/subscriptions", platformController.listSubscriptions);
-platformRouter.post("/subscriptions", platformController.createSubscription);
-
-// 系统配置
-platformRouter.get("/configs", platformController.listConfigs);
-platformRouter.put("/configs/:key", platformController.updateConfig);
-
-// 操作日志
-platformRouter.get("/audit-logs", platformController.listAuditLogs);
+// GET /api/platform/health - 平台健康检查
+platformRouter.get("/health", asyncHandler(async (_req, res) => {
+  res.json(ok({ status: "healthy", timestamp: new Date().toISOString() }));
+}));

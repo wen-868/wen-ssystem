@@ -1,27 +1,58 @@
-import { query, queryOne } from "../../shared/db.js";
+import { query, queryOne, pool } from "../../shared/db.js";
+import type { Pool } from "mysql2/promise";
 
-export async function listNotifications(params: {
-  page: number;
-  pageSize: number;
+export interface SendNotificationParams {
+  recipientId: number;
+  recipientType: "ADMIN" | "MERCHANT" | "CONSUMER";
+  title: string;
+  content: string;
+  type: "SYSTEM" | "ORDER" | "PAYMENT" | "ALERT" | "CREDIT" | "RECALL";
+  relatedId?: number | null;
+  relatedType?: string | null;
   tenantId: string;
-  type?: string;
-  isRead?: number;
-}) {
-  const { page, pageSize, tenantId, type, isRead } = params;
-  const offset = (page - 1) * pageSize;
-  const conditions: string[] = ["n.tenant_id = ?"];
-  const queryParams: unknown[] = [tenantId];
+}
 
-  if (type) {
+export async function sendNotification(
+  dbPool: Pool,
+  params: SendNotificationParams
+): Promise<number> {
+  const [result] = await dbPool.query(
+    `INSERT INTO notification (recipient_id, recipient_type, title, content, type, related_id, related_type, tenant_id)
+     VALUES (?, ?, ?, ?, ?, ?, ?, ?)`,
+    [
+      params.recipientId,
+      params.recipientType,
+      params.title,
+      params.content,
+      params.type,
+      params.relatedId ?? null,
+      params.relatedType ?? null,
+      params.tenantId
+    ]
+  );
+  return (result as any).insertId;
+}
+
+// ========== 管理后台通知 ==========
+
+export async function listNotifications(
+  tenantId: string, filters: { type?: string; isRead?: number },
+  page: number, pageSize: number
+) {
+  const conditions: string[] = ["n.tenant_id = ?"];
+  const params: unknown[] = [tenantId];
+
+  if (filters.type) {
     conditions.push("n.type = ?");
-    queryParams.push(type);
+    params.push(filters.type);
   }
-  if (isRead !== undefined) {
+  if (filters.isRead !== undefined) {
     conditions.push("n.is_read = ?");
-    queryParams.push(isRead);
+    params.push(filters.isRead);
   }
 
   const where = `WHERE ${conditions.join(" AND ")}`;
+  const offset = (page - 1) * pageSize;
 
   const records = await query<any>(
     `SELECT n.id, n.recipient_id AS recipientId, n.recipient_type AS recipientType,
@@ -33,31 +64,31 @@ export async function listNotifications(params: {
      ${where}
      ORDER BY n.sent_at DESC
      LIMIT ? OFFSET ?`,
-    [...queryParams, pageSize, offset]
+    [...params, pageSize, offset]
   );
 
   const totalRow = await queryOne<any>(
     `SELECT COUNT(*) AS total FROM notification n ${where}`,
-    queryParams
+    params
   );
 
   return {
     total: Number(totalRow?.total ?? 0),
     page,
     pageSize,
-    records,
+    records
   };
 }
 
-export async function getUnreadCount(recipientId: number, recipientType: string, tenantId: string) {
+export async function getUnreadCount(tenantId: string, userId: number) {
   const count = await queryOne<any>(
-    `SELECT COUNT(*) AS count FROM notification WHERE recipient_id = ? AND recipient_type = ? AND is_read = 0 AND tenant_id = ?`,
-    [recipientId, recipientType, tenantId]
+    `SELECT COUNT(*) AS count FROM notification WHERE recipient_id = ? AND recipient_type = 'ADMIN' AND is_read = 0 AND tenant_id = ?`,
+    [userId, tenantId]
   );
   return { count: Number(count?.count ?? 0) };
 }
 
-export async function markAsRead(id: number, tenantId: string) {
+export async function markAsRead(tenantId: string, id: number) {
   await query(
     `UPDATE notification SET is_read = 1, read_at = NOW() WHERE id = ? AND tenant_id = ? AND is_read = 0`,
     [id, tenantId]
@@ -65,49 +96,20 @@ export async function markAsRead(id: number, tenantId: string) {
   return { marked: true };
 }
 
-export async function markAllAsRead(recipientId: number, recipientType: string, tenantId: string) {
+export async function markAllRead(tenantId: string, userId: number) {
   await query(
     `UPDATE notification SET is_read = 1, read_at = NOW()
-     WHERE recipient_id = ? AND recipient_type = ? AND is_read = 0 AND tenant_id = ?`,
-    [recipientId, recipientType, tenantId]
+     WHERE recipient_id = ? AND recipient_type = 'ADMIN' AND is_read = 0 AND tenant_id = ?`,
+    [userId, tenantId]
   );
   return { marked: true };
 }
 
-export async function sendNotification(params: {
-  recipientId: number;
-  recipientType: string;
-  title: string;
-  content: string;
-  type: string;
-  relatedId?: number | null;
-  relatedType?: string | null;
-  tenantId: string;
-}) {
-  const result = await query<{ insertId: number }>(
-    `INSERT INTO notification (recipient_id, recipient_type, title, content, type, related_id, related_type, tenant_id)
-     VALUES (?, ?, ?, ?, ?, ?, ?, ?)`,
-    [
-      params.recipientId,
-      params.recipientType,
-      params.title,
-      params.content,
-      params.type,
-      params.relatedId ?? null,
-      params.relatedType ?? null,
-      params.tenantId,
-    ]
-  );
-  return { id: (result as any).insertId, sent: true };
-}
+// ========== 小程序通知 ==========
 
-export async function listMiniappNotifications(params: {
-  page: number;
-  pageSize: number;
-  recipientId: number;
-  tenantId: string;
-}) {
-  const { page, pageSize, recipientId, tenantId } = params;
+export async function listMyNotifications(
+  tenantId: string, userId: number, page: number, pageSize: number
+) {
   const offset = (page - 1) * pageSize;
 
   const records = await query<any>(
@@ -118,26 +120,43 @@ export async function listMiniappNotifications(params: {
      WHERE recipient_id = ? AND recipient_type = 'CONSUMER' AND tenant_id = ?
      ORDER BY sent_at DESC
      LIMIT ? OFFSET ?`,
-    [recipientId, tenantId, pageSize, offset]
+    [userId, tenantId, pageSize, offset]
   );
 
   const totalRow = await queryOne<any>(
     `SELECT COUNT(*) AS total FROM notification WHERE recipient_id = ? AND recipient_type = 'CONSUMER' AND tenant_id = ?`,
-    [recipientId, tenantId]
+    [userId, tenantId]
   );
 
   return {
     total: Number(totalRow?.total ?? 0),
     page,
     pageSize,
-    records,
+    records
   };
 }
 
-export async function getMiniappUnreadCount(recipientId: number, tenantId: string) {
+export async function getMyUnreadCount(tenantId: string, userId: number) {
   const count = await queryOne<any>(
     `SELECT COUNT(*) AS count FROM notification WHERE recipient_id = ? AND recipient_type = 'CONSUMER' AND is_read = 0 AND tenant_id = ?`,
-    [recipientId, tenantId]
+    [userId, tenantId]
   );
   return { count: Number(count?.count ?? 0) };
+}
+
+export async function markMyRead(tenantId: string, id: number) {
+  await query(
+    `UPDATE notification SET is_read = 1, read_at = NOW() WHERE id = ? AND tenant_id = ? AND is_read = 0`,
+    [id, tenantId]
+  );
+  return { marked: true };
+}
+
+export async function markMyAllRead(tenantId: string, userId: number) {
+  await query(
+    `UPDATE notification SET is_read = 1, read_at = NOW()
+     WHERE recipient_id = ? AND recipient_type = 'CONSUMER' AND is_read = 0 AND tenant_id = ?`,
+    [userId, tenantId]
+  );
+  return { marked: true };
 }

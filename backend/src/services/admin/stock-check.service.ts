@@ -1,21 +1,19 @@
 import { query, queryOne, transaction } from "../../shared/db.js";
 import { makeBizNo } from "../../shared/id.js";
 
-// ==================== Admin 盘点 ====================
+// ==================== Admin 端 ====================
 
-export interface CreateStockCheckBody {
-  storeId: number;
-  remark?: string;
-}
-
-export async function createStockCheck(body: CreateStockCheckBody, tenantId: string) {
+export async function createCheck(params: {
+  storeId: number; remark: string; tenantId: string;
+}) {
+  const { storeId, remark, tenantId } = params;
   const checkNo = makeBizNo("PD");
 
   const result = await transaction(async (conn) => {
     const [insertResult] = await conn.execute(
       `INSERT INTO stock_check (check_no, store_id, status, remark, tenant_id)
        VALUES (?, ?, 'DRAFT', ?, ?)`,
-      [checkNo, body.storeId, body.remark ?? "", tenantId] as any[]
+      [checkNo, storeId, remark, tenantId] as any[]
     );
     return (insertResult as any).insertId;
   });
@@ -23,26 +21,22 @@ export async function createStockCheck(body: CreateStockCheckBody, tenantId: str
   return { checkId: result, checkNo };
 }
 
-export interface ListStockChecksParams {
-  page: number;
-  pageSize: number;
-  tenantId: string;
-  storeId?: number;
-  status?: "DRAFT" | "CHECKING" | "COMPLETED" | "CANCELLED";
-}
-
-export async function listStockChecks(params: ListStockChecksParams) {
-  const offset = (params.page - 1) * params.pageSize;
+export async function listChecks(params: {
+  page: number; pageSize: number; tenantId: string;
+  storeId?: number; status?: string;
+}) {
+  const { page, pageSize, tenantId, storeId, status } = params;
+  const offset = (page - 1) * pageSize;
   const conditions: string[] = ["sc.tenant_id = ?"];
-  const values: unknown[] = [params.tenantId];
+  const values: unknown[] = [tenantId];
 
-  if (params.storeId) {
+  if (storeId !== undefined) {
     conditions.push("sc.store_id = ?");
-    values.push(params.storeId);
+    values.push(storeId);
   }
-  if (params.status) {
+  if (status) {
     conditions.push("sc.status = ?");
-    values.push(params.status);
+    values.push(status);
   }
 
   const where = conditions.join(" AND ");
@@ -54,7 +48,7 @@ export async function listStockChecks(params: ListStockChecksParams) {
      WHERE ${where}
      ORDER BY sc.created_at DESC
      LIMIT ? OFFSET ?`,
-    [...values, params.pageSize, offset]
+    [...values, pageSize, offset]
   );
 
   const totalRow = await queryOne<any>(
@@ -62,10 +56,10 @@ export async function listStockChecks(params: ListStockChecksParams) {
     values
   );
 
-  return { total: totalRow?.total ?? 0, page: params.page, pageSize: params.pageSize, records };
+  return { total: totalRow?.total ?? 0, page, pageSize, records };
 }
 
-export async function getStockCheckStatistics(tenantId: string) {
+export async function getStatistics(tenantId: string) {
   const monthStart = new Date();
   monthStart.setDate(1);
   monthStart.setHours(0, 0, 0, 0);
@@ -93,7 +87,7 @@ export async function getStockCheckStatistics(tenantId: string) {
   };
 }
 
-export async function getStockCheckDetail(id: number, tenantId: string) {
+export async function getCheckDetail(id: number, tenantId: string) {
   const check = await queryOne<any>(
     `SELECT sc.*, s.name AS store_name
      FROM stock_check sc
@@ -102,7 +96,7 @@ export async function getStockCheckDetail(id: number, tenantId: string) {
     [id, tenantId]
   );
 
-  if (!check) return null;
+  if (!check) throw Object.assign(new Error("盘点单不存在"), { statusCode: 404 });
 
   const items = await query<any>(
     "SELECT * FROM stock_check_item WHERE check_id = ? AND tenant_id = ?",
@@ -112,11 +106,7 @@ export async function getStockCheckDetail(id: number, tenantId: string) {
   return { ...check, items };
 }
 
-export interface UpdateStockCheckBody {
-  remark?: string;
-}
-
-export async function updateStockCheck(id: number, body: UpdateStockCheckBody, tenantId: string) {
+export async function updateCheck(id: number, tenantId: string, body: { remark?: string }) {
   await transaction(async (conn) => {
     const [rows] = await conn.execute<any[]>(
       "SELECT * FROM stock_check WHERE id = ? AND tenant_id = ? FOR UPDATE",
@@ -127,17 +117,14 @@ export async function updateStockCheck(id: number, body: UpdateStockCheckBody, t
     if (check.status !== "DRAFT") throw new Error("仅草稿状态可编辑");
 
     if (body.remark !== undefined) {
-      await conn.execute(
-        "UPDATE stock_check SET remark = ? WHERE id = ? AND tenant_id = ?",
-        [body.remark, id, tenantId] as any[]
-      );
+      await conn.execute("UPDATE stock_check SET remark = ? WHERE id = ? AND tenant_id = ?", [body.remark, id, tenantId] as any[]);
     }
   });
 
   return { checkId: id };
 }
 
-export async function startStockCheck(id: number, tenantId: string) {
+export async function startCheck(id: number, tenantId: string) {
   await transaction(async (conn) => {
     const [rows] = await conn.execute<any[]>(
       "SELECT * FROM stock_check WHERE id = ? AND tenant_id = ? FOR UPDATE",
@@ -177,7 +164,7 @@ export async function startStockCheck(id: number, tenantId: string) {
   return { checkId: id };
 }
 
-export async function completeStockCheck(id: number, tenantId: string) {
+export async function completeCheck(id: number, tenantId: string) {
   await transaction(async (conn) => {
     const [rows] = await conn.execute<any[]>(
       "SELECT * FROM stock_check WHERE id = ? AND tenant_id = ? FOR UPDATE",
@@ -206,7 +193,7 @@ export async function completeStockCheck(id: number, tenantId: string) {
   return { checkId: id };
 }
 
-export async function cancelStockCheck(id: number, tenantId: string) {
+export async function cancelCheck(id: number, tenantId: string) {
   await transaction(async (conn) => {
     const [rows] = await conn.execute<any[]>(
       "SELECT * FROM stock_check WHERE id = ? AND tenant_id = ? FOR UPDATE",
@@ -227,15 +214,15 @@ export async function cancelStockCheck(id: number, tenantId: string) {
   return { checkId: id };
 }
 
-export interface HandleDiffBody {
-  itemId: number;
-}
+export async function handleDiff(params: {
+  checkId: number; itemId: number; tenantId: string; userId: number;
+}) {
+  const { checkId, itemId, tenantId, userId } = params;
 
-export async function handleDiff(id: number, body: HandleDiffBody, tenantId: string, userId: number) {
   await transaction(async (conn) => {
     const [checkRows] = await conn.execute<any[]>(
       "SELECT * FROM stock_check WHERE id = ? AND tenant_id = ? FOR UPDATE",
-      [id, tenantId]
+      [checkId, tenantId]
     );
     const check = (checkRows as any[])[0];
     if (!check) throw new Error("盘点单不存在");
@@ -243,7 +230,7 @@ export async function handleDiff(id: number, body: HandleDiffBody, tenantId: str
 
     const [itemRows] = await conn.execute<any[]>(
       "SELECT * FROM stock_check_item WHERE id = ? AND check_id = ? AND tenant_id = ? FOR UPDATE",
-      [body.itemId, id, tenantId]
+      [itemId, checkId, tenantId]
     );
     const item = (itemRows as any[])[0];
     if (!item) throw new Error("明细不存在");
@@ -251,6 +238,7 @@ export async function handleDiff(id: number, body: HandleDiffBody, tenantId: str
     if (item.diff_qty === 0) throw new Error("无差异需要处理");
 
     const diffQty = item.diff_qty;
+
     const [invRows] = await conn.execute<any[]>(
       "SELECT * FROM inventory_balance WHERE store_id = ? AND sku_id = ? AND tenant_id = ? FOR UPDATE",
       [check.store_id, item.sku_id, tenantId]
@@ -281,17 +269,17 @@ export async function handleDiff(id: number, body: HandleDiffBody, tenantId: str
 
     await conn.execute(
       "UPDATE stock_check_item SET handled = 1 WHERE id = ? AND tenant_id = ?",
-      [body.itemId, tenantId] as any[]
+      [itemId, tenantId] as any[]
     );
   });
 
-  return { checkId: id };
+  return { checkId };
 }
 
-// ==================== Store 盘点 ====================
+// ==================== Store 端 ====================
 
-export async function getMyStockChecks(storeId: number, tenantId: string) {
-  return query<any>(
+export async function listMyChecks(storeId: number, tenantId: string) {
+  const records = await query<any>(
     `SELECT sc.*, s.name AS store_name
      FROM stock_check sc
      LEFT JOIN store s ON s.id = sc.store_id AND s.tenant_id = sc.tenant_id
@@ -299,13 +287,34 @@ export async function getMyStockChecks(storeId: number, tenantId: string) {
      ORDER BY sc.created_at DESC`,
     [storeId, tenantId]
   );
+
+  return records;
 }
 
-export interface UpdateItemBody {
-  actualQty: number;
+export async function getMyCheckDetail(id: number, tenantId: string) {
+  const check = await queryOne<any>(
+    `SELECT sc.*, s.name AS store_name
+     FROM stock_check sc
+     LEFT JOIN store s ON s.id = sc.store_id AND s.tenant_id = sc.tenant_id
+     WHERE sc.id = ? AND sc.tenant_id = ?`,
+    [id, tenantId]
+  );
+
+  if (!check) throw Object.assign(new Error("盘点单不存在"), { statusCode: 404 });
+
+  const items = await query<any>(
+    "SELECT * FROM stock_check_item WHERE check_id = ? AND tenant_id = ?",
+    [id, tenantId]
+  );
+
+  return { ...check, items };
 }
 
-export async function updateItem(checkId: number, itemId: number, body: UpdateItemBody, tenantId: string) {
+export async function updateItemQty(params: {
+  checkId: number; itemId: number; actualQty: number; tenantId: string;
+}) {
+  const { checkId, itemId, actualQty, tenantId } = params;
+
   await transaction(async (conn) => {
     const [rows] = await conn.execute<any[]>(
       "SELECT * FROM stock_check WHERE id = ? AND tenant_id = ? FOR UPDATE",
@@ -327,19 +336,19 @@ export async function updateItem(checkId: number, itemId: number, body: UpdateIt
       [item.sku_id, tenantId]
     );
     const unitPrice = (skuRows as any[])[0]?.cost_price ?? 0;
-    const diffQty = body.actualQty - item.system_qty;
+    const diffQty = actualQty - item.system_qty;
     const diffAmount = Math.abs(diffQty) * Number(unitPrice);
 
     await conn.execute(
       "UPDATE stock_check_item SET actual_qty = ?, diff_amount = ? WHERE id = ? AND tenant_id = ?",
-      [body.actualQty, diffAmount, itemId, tenantId] as any[]
+      [actualQty, diffAmount, itemId, tenantId] as any[]
     );
   });
 
   return { checkId, itemId };
 }
 
-export async function submitStockCheck(id: number, tenantId: string) {
+export async function submitCheck(id: number, tenantId: string) {
   await transaction(async (conn) => {
     const [rows] = await conn.execute<any[]>(
       "SELECT * FROM stock_check WHERE id = ? AND tenant_id = ? FOR UPDATE",

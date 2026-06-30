@@ -1457,6 +1457,24 @@ export async function importProducts(payload: { rows: Record<string, unknown>[];
   return data.data;
 }
 
+// ==================== Product Tag Group APIs ====================
+export async function fetchProductTagGroups() {
+  const { data } = await api.get("/admin/product-tag-groups");
+  return data.data;
+}
+export async function createProductTagGroup(payload: { groupCode: string; groupName: string; description?: string; sortNo?: number }) {
+  const { data } = await api.post("/admin/product-tag-groups", payload);
+  return data.data;
+}
+export async function updateProductTagGroup(id: number, payload: { groupName?: string; description?: string; sortNo?: number; status?: string }) {
+  const { data } = await api.put(`/admin/product-tag-groups/${id}`, payload);
+  return data.data;
+}
+export async function deleteProductTagGroup(id: number) {
+  const { data } = await api.delete(`/admin/product-tag-groups/${id}`);
+  return data.data;
+}
+
 // ==================== Product Tag APIs ====================
 export async function fetchProductTags(params?: { keyword?: string; tagType?: string; status?: string; page?: number; pageSize?: number }) {
   const { data } = await api.get("/admin/product-tags", { params: { page: 1, pageSize: 20, ...params } });
@@ -1514,6 +1532,18 @@ export async function deleteMarketingTag(id: number) {
   const { data } = await api.delete(`/admin/marketing/tags/${id}`);
   return data.data;
 }
+export async function fetchMarketingTagsByType() {
+  const { data } = await api.get("/admin/marketing/tags/by-type");
+  return data.data;
+}
+export async function fetchProductMarketingTags(productId: number) {
+  const { data } = await api.get(`/admin/products/${productId}/marketing-tags`);
+  return data.data;
+}
+export async function setProductMarketingTags(productId: number, tagIds: number[]) {
+  const { data } = await api.put(`/admin/products/${productId}/marketing-tags`, { tagIds });
+  return data.data;
+}
 
 // ==================== Daily Settlement APIs ====================
 export async function fetchDailySettlements(params?: { page?: number; pageSize?: number; dateStart?: string; dateEnd?: string }) {
@@ -1555,47 +1585,47 @@ export async function exportSaleBillsCsv(params?: { keyword?: string; status?: s
 
 // ==================== Phase 6: 库存成本核算 API ====================
 export async function fetchInventoryCostDetail(params?: { page?: number; pageSize?: number; storeId?: number; keyword?: string }) {
-  const { data } = await api.get("/admin/inventory/cost-detail", { params: { page: 1, pageSize: 20, ...params } });
+  const { data } = await api.get("/admin/inventory-cost/cost-detail", { params: { page: 1, pageSize: 20, ...params } });
   return data.data;
 }
 export async function fetchInventoryCostTrend(params?: { skuId?: number; days?: number }) {
-  const { data } = await api.get("/admin/inventory/cost-trend", { params });
+  const { data } = await api.get("/admin/inventory-cost/cost-trend", { params });
   return data.data;
 }
 
 // ==================== Phase 6: 库存预警配置 API ====================
 export async function fetchStockWarningConfigs(params?: { page?: number; pageSize?: number; storeId?: number }) {
-  const { data } = await api.get("/admin/stock-warnings/configs", { params: { page: 1, pageSize: 20, ...params } });
+  const { data } = await api.get("/admin/stock-warning/configs", { params: { page: 1, pageSize: 20, ...params } });
   return data.data;
 }
 export async function fetchStockWarnings(params?: { page?: number; pageSize?: number; storeId?: number }) {
-  const { data } = await api.get("/admin/stock-warnings", { params: { page: 1, pageSize: 20, ...params } });
+  const { data } = await api.get("/admin/stock-warning/warnings", { params: { page: 1, pageSize: 20, ...params } });
   return data.data;
 }
 export async function createStockWarningConfig(payload: { storeId: number; skuIds: number[]; minQty: number; maxQty: number }) {
-  const { data } = await api.post("/admin/stock-warnings/config", payload);
+  const { data } = await api.post("/admin/stock-warning/config", payload);
   return data.data;
 }
 export async function updateStockWarningConfig(id: number, payload: { minQty?: number; maxQty?: number; enabled?: number }) {
-  const { data } = await api.put(`/admin/stock-warnings/configs/${id}`, payload);
+  const { data } = await api.put(`/admin/stock-warning/configs/${id}`, payload);
   return data.data;
 }
 export async function deleteStockWarningConfig(id: number) {
-  const { data } = await api.delete(`/admin/stock-warnings/configs/${id}`);
+  const { data } = await api.delete(`/admin/stock-warning/configs/${id}`);
   return data.data;
 }
 
 // ==================== Phase 6: 库存报表 API ====================
 export async function fetchInventoryTurnover(params?: { page?: number; pageSize?: number; storeId?: number }) {
-  const { data } = await api.get("/admin/reports/inventory-turnover", { params: { page: 1, pageSize: 20, ...params } });
+  const { data } = await api.get("/reports/inventory-turnover", { params: { page: 1, pageSize: 20, ...params } });
   return data.data;
 }
 export async function fetchInventoryAge(params?: { storeId?: number }) {
-  const { data } = await api.get("/admin/reports/inventory-age", { params });
+  const { data } = await api.get("/reports/inventory-age", { params });
   return data.data;
 }
 export async function fetchInventoryABC(params?: { storeId?: number }) {
-  const { data } = await api.get("/admin/reports/inventory-abc", { params });
+  const { data } = await api.get("/reports/inventory-abc", { params });
   return data.data;
 }
 
@@ -1603,190 +1633,346 @@ export async function fetchInventoryABC(params?: { storeId?: number }) {
 
 // --- 积分与等级 ---
 export async function fetchPointsRules() {
-  const { data } = await api.get("/admin/members/rules");
+  const { data } = await api.get("/admin/customers/points-rules");
   return data.data;
 }
 export async function createPointsRule(payload: { name: string; earnType: string; earnRatio: number; dailyLimit: number }) {
-  const { data } = await api.post("/admin/members/rules", payload);
+  const { data } = await api.post("/admin/customers/points-rules", payload);
   return data.data;
 }
 export async function updatePointsRule(id: number, payload: { name?: string; earnRatio?: number; dailyLimit?: number; status?: string }) {
-  const { data } = await api.put(`/admin/members/rules/${id}`, payload);
+  const { data } = await api.put(`/admin/customers/points-rules/${id}`, payload);
   return data.data;
 }
 export async function deletePointsRule(id: number) {
-  const { data } = await api.delete(`/admin/members/rules/${id}`);
+  const { data } = await api.delete(`/admin/customers/points-rules/${id}`);
   return data.data;
 }
 export async function fetchPointsRecords(params?: { customerId?: number; page?: number; pageSize?: number }) {
-  const { data } = await api.get(`/admin/members/${params?.customerId}/points/records`, { params: { page: 1, pageSize: 20 } });
+  const { data } = await api.get("/admin/customers/points-records", { params: { page: 1, pageSize: 20, ...params } });
   return data.data;
 }
 export async function adjustCustomerPoints(customerId: number, payload: { points: number; remark: string }) {
-  const { data } = await api.post(`/admin/members/${customerId}/points/adjust`, payload);
+  const { data } = await api.post(`/admin/customers/customers/${customerId}/points/adjust`, payload);
   return data.data;
 }
 export async function fetchLevelConfigs() {
-  const { data } = await api.get("/admin/members/levels/config");
+  const { data } = await api.get("/admin/customers/level-configs");
   return data.data;
 }
 export async function createLevelConfig(payload: { name: string; minPoints: number; maxPoints: number; discountRate: number; benefits: string }) {
-  const { data } = await api.post("/admin/members/levels/config", payload);
+  const { data } = await api.post("/admin/customers/level-configs", payload);
   return data.data;
 }
 export async function updateLevelConfig(id: number, payload: { name?: string; minPoints?: number; maxPoints?: number; discountRate?: number; benefits?: string; status?: string }) {
-  const { data } = await api.put(`/admin/members/levels/config/${id}`, payload);
+  const { data } = await api.put(`/admin/customers/level-configs/${id}`, payload);
   return data.data;
 }
 export async function deleteLevelConfig(id: number) {
-  const { data } = await api.delete(`/admin/members/levels/config/${id}`);
+  const { data } = await api.delete(`/admin/customers/level-configs/${id}`);
+  return data.data;
+}
+export async function fetchLevelUpgradeRecords(params?: { customerId?: number; page?: number; pageSize?: number }) {
+  const { data } = await api.get("/admin/customers/level-upgrade-records", { params: { page: 1, pageSize: 20, ...params } });
+  return data.data;
+}
+export async function updateMemberLevel(customerId: number, payload: { levelId: number; reason: string }) {
+  const { data } = await api.post(`/admin/customers/customers/${customerId}/level`, payload);
   return data.data;
 }
 
 // --- 储值卡 ---
 export async function fetchStoreValueCards(params?: { keyword?: string; status?: string; page?: number; pageSize?: number }) {
-  const { data } = await api.get("/admin/store-value-cards", { params: { page: 1, pageSize: 20, ...params } });
+  const { data } = await api.get("/admin/customers/store-value-cards", { params: { page: 1, pageSize: 20, ...params } });
   return data.data;
 }
 export async function createStoreValueCard(payload: { customerId: number; amount: number }) {
-  const { data } = await api.post("/admin/store-value-cards", payload);
+  const { data } = await api.post("/admin/customers/store-value-cards", payload);
   return data.data;
 }
-export async function rechargeStoreValueCard(cardNo: string, payload: { amount: number; paymentMethod: string; remark: string }) {
-  const { data } = await api.post(`/admin/store-value-cards/${cardNo}/recharge`, payload);
+export async function rechargeStoreValueCard(id: number, payload: { amount: number; paymentMethod: string; remark: string }) {
+  const { data } = await api.post(`/admin/customers/store-value-cards/${id}/recharge`, payload);
   return data.data;
 }
-export async function consumeStoreValueCard(cardNo: string, payload: { amount: number; source: string; remark: string }) {
-  const { data } = await api.post(`/admin/store-value-cards/${cardNo}/consume`, payload);
+export async function consumeStoreValueCard(id: number, payload: { amount: number; source: string; remark: string }) {
+  const { data } = await api.post(`/admin/customers/store-value-cards/${id}/consume`, payload);
   return data.data;
 }
-export async function refundStoreValueCard(cardNo: string, payload: { amount: number; remark: string }) {
-  const { data } = await api.post(`/admin/store-value-cards/${cardNo}/refund`, payload);
+export async function refundStoreValueCard(id: number, payload: { amount: number; remark: string }) {
+  const { data } = await api.post(`/admin/customers/store-value-cards/${id}/refund`, payload);
   return data.data;
 }
-export async function freezeStoreValueCard(cardNo: string) {
-  const { data } = await api.post(`/admin/store-value-cards/${cardNo}/freeze`);
+export async function freezeStoreValueCard(id: number) {
+  const { data } = await api.post(`/admin/customers/store-value-cards/${id}/freeze`);
   return data.data;
 }
-export async function unfreezeStoreValueCard(cardNo: string) {
-  const { data } = await api.post(`/admin/store-value-cards/${cardNo}/unfreeze`);
+export async function unfreezeStoreValueCard(id: number) {
+  const { data } = await api.post(`/admin/customers/store-value-cards/${id}/unfreeze`);
   return data.data;
 }
-export async function fetchStoreValueTransactions(cardNo: string, params?: { page?: number; pageSize?: number }) {
-  const { data } = await api.get(`/admin/store-value-cards/${cardNo}/transactions`, { params: { page: 1, pageSize: 20, ...params } });
+export async function fetchStoreValueTransactions(params?: { cardId?: number; page?: number; pageSize?: number }) {
+  const { data } = await api.get("/admin/customers/store-value-transactions", { params: { page: 1, pageSize: 20, ...params } });
   return data.data;
 }
 
 // --- 会员体系 ---
 export async function registerMember(payload: { name: string; mobile: string; password: string; referrerId?: number }) {
-  const { data } = await api.post("/admin/members/register", payload);
+  const { data } = await api.post("/admin/customers/members/register", payload);
   return data.data;
 }
 export async function fetchMemberCard(customerId: number) {
-  const { data } = await api.get(`/admin/members/${customerId}/member-card`);
+  const { data } = await api.get(`/admin/customers/customers/${customerId}/card`);
   return data.data;
 }
 export async function fetchMemberBenefits() {
-  const { data } = await api.get("/admin/members/benefits");
+  const { data } = await api.get("/admin/customers/member-benefits");
   return data.data;
 }
-export async function updateMemberLevel(customerId: number, payload: { levelId: number; reason: string }) {
-  const { data } = await api.put(`/admin/members/${customerId}/member-level`, payload);
+export async function updateMemberBenefits(levelId: number, payload: { benefits: { benefitCode: string; enabled: number; configValue?: string }[] }) {
+  const { data } = await api.put(`/admin/customers/member-benefits/${levelId}`, payload);
   return data.data;
 }
 
 // --- 客户标签 ---
 export async function fetchCustomerTags(params?: { tagGroup?: string; page?: number; pageSize?: number }) {
-  const { data } = await api.get("/admin/members/tags", { params: { page: 1, pageSize: 20, ...params } });
+  const { data } = await api.get("/admin/customers/customer-tags", { params: { page: 1, pageSize: 20, ...params } });
   return data.data;
 }
 export async function createCustomerTag(payload: { name: string; tagGroup: string; tagType: string; color: string; sortNo?: number }) {
-  const { data } = await api.post("/admin/members/tags", payload);
+  const { data } = await api.post("/admin/customers/customer-tags", payload);
   return data.data;
 }
 export async function updateCustomerTag(id: number, payload: { name?: string; tagGroup?: string; color?: string; sortNo?: number }) {
-  const { data } = await api.put(`/admin/members/tags/${id}`, payload);
+  const { data } = await api.put(`/admin/customers/customer-tags/${id}`, payload);
   return data.data;
 }
 export async function deleteCustomerTag(id: number) {
-  const { data } = await api.delete(`/admin/members/tags/${id}`);
+  const { data } = await api.delete(`/admin/customers/customer-tags/${id}`);
   return data.data;
 }
-export async function addCustomerTag(customerId: number, tagId: number) {
-  const { data } = await api.post(`/admin/members/tags/${customerId}/tags`, { tagId });
+export async function addCustomerTag(payload: { customerId: number; tagId: number }) {
+  const { data } = await api.post("/admin/customers/customer-tags/add", payload);
   return data.data;
 }
-export async function removeCustomerTag(customerId: number, tagId: number) {
-  const { data } = await api.delete(`/admin/members/tags/${customerId}/tags/${tagId}`);
+export async function removeCustomerTag(payload: { customerId: number; tagId: number }) {
+  const { data } = await api.post("/admin/customers/customer-tags/remove", payload);
   return data.data;
 }
-export async function fetchCustomerProfile(customerId: number) {
-  const { data } = await api.get(`/admin/members/tags/${customerId}/profile`);
+export async function getCustomerTags(customerId: number) {
+  const { data } = await api.get(`/admin/customers/customers/${customerId}/tags`);
   return data.data;
 }
 
-// --- 客户关怀 ---
+// --- 客户画像 ---
+export async function fetchCustomerProfile(customerId: number) {
+  const { data } = await api.get(`/admin/customers/customers/${customerId}/profile`);
+  return data.data;
+}
+export async function updateCustomerProfile(customerId: number, payload: { ageRange?: string; gender?: string; preferCategories?: string; preferBrands?: string; lifecycleStage?: string }) {
+  const { data } = await api.put(`/admin/customers/customers/${customerId}/profile`, payload);
+  return data.data;
+}
+
+// --- 关怀规则 ---
 export async function fetchCareRules() {
-  const { data } = await api.get("/admin/members/care/rules");
+  const { data } = await api.get("/admin/customers/care-rules");
   return data.data;
 }
 export async function createCareRule(payload: { name: string; triggerType: string; contentTemplate: string; rewardPoints: number }) {
-  const { data } = await api.post("/admin/members/care/rules", payload);
+  const { data } = await api.post("/admin/customers/care-rules", payload);
   return data.data;
 }
 export async function updateCareRule(id: number, payload: { name?: string; triggerType?: string; contentTemplate?: string; rewardPoints?: number }) {
-  const { data } = await api.put(`/admin/members/care/rules/${id}`, payload);
+  const { data } = await api.put(`/admin/customers/care-rules/${id}`, payload);
   return data.data;
 }
 export async function deleteCareRule(id: number) {
-  const { data } = await api.delete(`/admin/members/care/rules/${id}`);
+  const { data } = await api.delete(`/admin/customers/care-rules/${id}`);
   return data.data;
 }
 export async function executeCareRule(id: number) {
-  const { data } = await api.post(`/admin/members/care/rules/${id}/execute`);
+  const { data } = await api.post(`/admin/customers/care-rules/${id}/execute`);
   return data.data;
 }
 export async function fetchCareLogs(params?: { page?: number; pageSize?: number; ruleId?: number }) {
-  const { data } = await api.get("/admin/members/care/logs", { params: { page: 1, pageSize: 20, ...params } });
+  const { data } = await api.get("/admin/customers/care-logs", { params: { page: 1, pageSize: 20, ...params } });
   return data.data;
 }
 
 // --- 生命周期 ---
 export async function fetchLifecycleStages() {
-  const { data } = await api.get("/admin/members/lifecycle/stages");
+  const { data } = await api.get("/admin/customers/lifecycle/stages");
   return data.data;
 }
 export async function fetchLifecycleTrend() {
-  const { data } = await api.get("/admin/members/lifecycle/trend");
+  const { data } = await api.get("/admin/customers/lifecycle/trend");
   return data.data;
 }
 export async function fetchLifecycleDetail(params?: { page?: number; pageSize?: number; stage?: string }) {
-  const { data } = await api.get("/admin/members/lifecycle/detail", { params: { page: 1, pageSize: 20, ...params } });
+  const { data } = await api.get("/admin/customers/lifecycle/detail", { params: { page: 1, pageSize: 20, ...params } });
   return data.data;
 }
 
 // --- 客户分群 ---
 export async function fetchSegments() {
-  const { data } = await api.get("/admin/members/segments");
+  const { data } = await api.get("/admin/customers/segments");
   return data.data;
 }
 export async function createSegment(payload: { name: string; conditions: Record<string, unknown>; refreshType: string }) {
-  const { data } = await api.post("/admin/members/segments", payload);
+  const { data } = await api.post("/admin/customers/segments", payload);
   return data.data;
 }
 export async function updateSegment(id: number, payload: { name?: string; conditions?: Record<string, unknown>; refreshType?: string }) {
-  const { data } = await api.put(`/admin/members/segments/${id}`, payload);
+  const { data } = await api.put(`/admin/customers/segments/${id}`, payload);
   return data.data;
 }
 export async function deleteSegment(id: number) {
-  const { data } = await api.delete(`/admin/members/segments/${id}`);
+  const { data } = await api.delete(`/admin/customers/segments/${id}`);
   return data.data;
 }
 export async function refreshSegment(id: number) {
-  const { data } = await api.post(`/admin/members/segments/${id}/refresh`);
+  const { data } = await api.post(`/admin/customers/segments/${id}/refresh`);
   return data.data;
 }
 export async function fetchSegmentMembers(segmentId: number, params?: { page?: number; pageSize?: number }) {
-  const { data } = await api.get(`/admin/members/segments/${segmentId}/members`, { params: { page: 1, pageSize: 20, ...params } });
+  const { data } = await api.get(`/admin/customers/segments/${segmentId}/members`, { params: { page: 1, pageSize: 20, ...params } });
+  return data.data;
+}
+
+// ==================== Phase 8: 财务往来 API ====================
+
+// --- 收款 ---
+export async function fetchReceipts(params?: { customerId?: number; status?: string; dateStart?: string; dateEnd?: string; page?: number; pageSize?: number }) {
+  const { data } = await api.get("/admin/finance/receipts", { params: { page: 1, pageSize: 20, ...params } });
+  return data.data;
+}
+export async function createReceipt(payload: { customerId: number; amount: number; paymentMethod: string; bankAccount: string; date: string }) {
+  const { data } = await api.post("/admin/finance/receipts", payload);
+  return data.data;
+}
+export async function getReceiptDetail(id: number) {
+  const { data } = await api.get(`/admin/finance/receipts/${id}`);
+  return data.data;
+}
+export async function writeoffReceipt(id: number, payload: { billIds: number[]; amounts: number[] }) {
+  const { data } = await api.post(`/admin/finance/receipts/${id}/writeoff`, payload);
+  return data.data;
+}
+export async function voidReceipt(id: number) {
+  const { data } = await api.post(`/admin/finance/receipts/${id}/void`);
+  return data.data;
+}
+
+// --- 付款 ---
+export async function fetchPaymentsNew(params?: { supplierId?: number; type?: string; status?: string; dateStart?: string; dateEnd?: string; page?: number; pageSize?: number }) {
+  const { data } = await api.get("/admin/finance/payments", { params: { page: 1, pageSize: 20, ...params } });
+  return data.data;
+}
+export async function createPaymentNew(payload: { supplierId: number; amount: number; type: string; paymentMethod: string; bankAccount: string; date: string }) {
+  const { data } = await api.post("/admin/finance/payments", payload);
+  return data.data;
+}
+export async function getPaymentDetail(id: number) {
+  const { data } = await api.get(`/admin/finance/payments/${id}`);
+  return data.data;
+}
+export async function writeoffPayment(id: number, payload: { billIds: number[]; amounts: number[] }) {
+  const { data } = await api.post(`/admin/finance/payments/${id}/writeoff`, payload);
+  return data.data;
+}
+export async function voidPayment(id: number) {
+  const { data } = await api.post(`/admin/finance/payments/${id}/void`);
+  return data.data;
+}
+
+// --- 应收应付汇总 ---
+export async function fetchReceivablesSummary(params?: { dateStart?: string; dateEnd?: string }) {
+  const { data } = await api.get("/admin/finance/receivables-summary", { params });
+  return data.data;
+}
+export async function fetchPayablesSummary(params?: { dateStart?: string; dateEnd?: string }) {
+  const { data } = await api.get("/admin/finance/payables-summary", { params });
+  return data.data;
+}
+
+// --- 费用 ---
+export async function fetchExpenses(params?: { expenseType?: string; status?: string; dateStart?: string; dateEnd?: string; page?: number; pageSize?: number }) {
+  const { data } = await api.get("/admin/finance/expenses", { params: { page: 1, pageSize: 20, ...params } });
+  return data.data;
+}
+export async function createExpense(payload: { expenseType: string; category: string; amount: number; payee: string; paymentMethod: string; bankAccount: string; invoiceNo: string; expenseDate: string; remark: string }) {
+  const { data } = await api.post("/admin/finance/expenses", payload);
+  return data.data;
+}
+export async function getExpenseDetail(id: number) {
+  const { data } = await api.get(`/admin/finance/expenses/${id}`);
+  return data.data;
+}
+export async function approveExpense(id: number, approved: boolean) {
+  const { data } = await api.post(`/admin/finance/expenses/${id}/approve`, { approved });
+  return data.data;
+}
+export async function voidExpense(id: number) {
+  const { data } = await api.post(`/admin/finance/expenses/${id}/void`);
+  return data.data;
+}
+export async function fetchExpenseSummary(params?: { dateStart?: string; dateEnd?: string }) {
+  const { data } = await api.get("/admin/finance/expense-summary", { params });
+  return data.data;
+}
+
+// --- 对账 ---
+export async function fetchCustomerReconciliation(params?: { status?: string; dateStart?: string; dateEnd?: string; page?: number; pageSize?: number }) {
+  const { data } = await api.get("/admin/finance/reconciliation/customer", { params: { page: 1, pageSize: 20, ...params } });
+  return data.data;
+}
+export async function fetchCustomerReconciliationDetail(id: number) {
+  const { data } = await api.get(`/admin/finance/reconciliation/customer/${id}`);
+  return data.data;
+}
+export async function confirmCustomerReconciliation(id: number) {
+  const { data } = await api.post(`/admin/finance/reconciliation/customer/${id}/confirm`);
+  return data.data;
+}
+export async function fetchSupplierReconciliation(params?: { status?: string; dateStart?: string; dateEnd?: string; page?: number; pageSize?: number }) {
+  const { data } = await api.get("/admin/finance/reconciliation/supplier", { params: { page: 1, pageSize: 20, ...params } });
+  return data.data;
+}
+export async function fetchSupplierReconciliationDetail(id: number) {
+  const { data } = await api.get(`/admin/finance/reconciliation/supplier/${id}`);
+  return data.data;
+}
+export async function confirmSupplierReconciliation(id: number) {
+  const { data } = await api.post(`/admin/finance/reconciliation/supplier/${id}/confirm`);
+  return data.data;
+}
+export async function generateReconciliation(payload: { reconType: string; entityId: number; periodStart: string; periodEnd: string }) {
+  const { data } = await api.post("/admin/finance/reconciliation/generate", payload);
+  return data.data;
+}
+
+// --- 驾驶舱 ---
+export async function fetchFinanceDashboard() {
+  const { data } = await api.get("/admin/finance/dashboard");
+  return data.data;
+}
+export async function fetchCashFlow(params?: { range?: string }) {
+  const { data } = await api.get("/admin/finance/cash-flow", { params });
+  return data.data;
+}
+export async function fetchProfitTrend(params?: { range?: string }) {
+  const { data } = await api.get("/admin/finance/profit-trend", { params });
+  return data.data;
+}
+export async function fetchTopCustomersAR() {
+  const { data } = await api.get("/admin/finance/top-customers-ar");
+  return data.data;
+}
+export async function fetchTopSuppliersAP() {
+  const { data } = await api.get("/admin/finance/top-suppliers-ap");
+  return data.data;
+}
+export async function fetchDailyReport(params?: { month?: string }) {
+  const { data } = await api.get("/admin/finance/daily-report", { params });
   return data.data;
 }

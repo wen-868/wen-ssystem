@@ -1557,7 +1557,7 @@ export function confirmTransferIn(id: number, items: { itemId: number; receivedQ
   return api.post(`/store/transfers/${id}/receive`, { items })
 }
 
-// ==================== Phase 7: 客户管理 API ====================
+/* ========== Phase 7: 客户管理 ========== */
 
 export interface CustomerPointsData {
   userId: number
@@ -1573,7 +1573,9 @@ export interface PointsRecord {
   type: string
   amount: number
   balance: number
-  source: string
+  sourceType: string
+  sourceId: string
+  remark: string
   createdAt: string
 }
 
@@ -1595,6 +1597,8 @@ export interface StoreValueCard {
   customerId: number
   balance: number
   status: string
+  totalRecharged: number
+  totalConsumed: number
   createdAt: string
 }
 
@@ -1604,7 +1608,8 @@ export interface StoreValueTransaction {
   type: string
   amount: number
   balance: number
-  source: string
+  paymentMethod: string
+  remark: string
   createdAt: string
 }
 
@@ -1628,7 +1633,12 @@ export interface MemberCardData {
   points: number
   levelCode: string
   levelName: string
-  storeValueBalance: number
+  levelIcon: string
+  discount: number
+  status: number
+  createdAt: string
+  recentOrders: { id: number; saleNo: string; receivableAmount: number; createdAt: string }[]
+  benefits: string[]
 }
 
 export interface MemberBenefit {
@@ -1637,6 +1647,7 @@ export interface MemberBenefit {
   icon: string
   discount: number
   benefits: string[]
+  minPoints: number
 }
 
 export function fetchMemberCard(customerId: number) {
@@ -1653,6 +1664,7 @@ export interface CustomerTag {
   tagName: string
   groupId: number
   groupName: string
+  color: string
 }
 
 export interface CustomerProfile {
@@ -1661,8 +1673,7 @@ export interface CustomerProfile {
   levelCode: string
   customerType: string
   orderCount: number
-  totalAmount: number
-  tags: CustomerTag[]
+  avgOrderAmount: number
 }
 
 export function fetchCustomerTags(customerId: number) {
@@ -1683,4 +1694,129 @@ export function removeCustomerTag(customerId: number, tagId: number) {
 
 export function fetchCustomerProfile(customerId: number) {
   return api.get(`/store/customer-tags/customer/${customerId}/profile`)
+}
+
+/* ========== Phase 8: 财务往来 ========== */
+
+export interface ReceiptRecord {
+  id: number
+  receiptNo: string
+  receipt_no: string
+  customerId: number
+  customerName: string
+  customer_name: string
+  amount: number
+  paymentMethod: string
+  payment_method: string
+  status: string
+  remark: string
+  createdAt: string
+  created_at: string
+}
+
+export function fetchReceipts(params?: { customer_id?: number; status?: string; start_date?: string; end_date?: string; page?: number; pageSize?: number }) {
+  return api.get('/store/customer-payments', { params })
+}
+
+export function createReceipt(data: { customer_id: number; customer_name: string; amount: number; payment_method: string; remark?: string }) {
+  return api.post('/store/customer-payments', data)
+}
+
+export function getReceiptDetail(receiptNo: string) {
+  return api.get(`/store/customer-payments/${receiptNo}`)
+}
+
+export interface CustomerReceivable {
+  receivableNo: string
+  receivable_no: string
+  sourceType: string
+  source_type: string
+  sourceNo: string
+  source_no: string
+  customerName: string
+  customer_name: string
+  customerMobile: string
+  customer_mobile: string
+  receivableAmount: number
+  receivable_amount: number
+  receivedAmount: number
+  received_amount: number
+  unreceivedAmount: number
+  unreceived_amount: number
+  status: string
+  createdAt: string
+  created_at: string
+}
+
+export function fetchCustomerReceivables(customerId: number) {
+  return api.get('/store/receivables', { params: { keyword: String(customerId) } })
+}
+
+export function fetchReceivablesSummary(customerId: number) {
+  return api.get('/store/receivables', { params: { keyword: String(customerId) } })
+}
+
+export interface ExpenseRecord {
+  expenseNo: string
+  expense_no: string
+  type: string
+  category: string
+  amount: number
+  payee: string
+  paymentMethod: string
+  payment_method: string
+  remark: string
+  invoiceUrl: string
+  invoice_url: string
+  createdAt: string
+  created_at: string
+}
+
+export function createExpense(data: { type: string; category: string; amount: number; payee: string; paymentMethod: string; remark?: string; invoiceUrl?: string }) {
+  return api.post('/store/expenses', data)
+}
+
+export function fetchExpenses(params?: { type?: string; startDate?: string; endDate?: string; page?: number; pageSize?: number }) {
+  return api.get('/store/expenses', { params })
+}
+
+export interface ReconciliationRecord {
+  id: number
+  statementNo: string
+  statement_no: string
+  customerId: number
+  customer_id: number
+  customerName: string
+  customer_name: string
+  startDate: string
+  start_date: string
+  endDate: string
+  end_date: string
+  openingBalance: number
+  opening_balance: number
+  totalSales: number
+  total_sales: number
+  totalReceived: number
+  total_received: number
+  closingBalance: number
+  closing_balance: number
+  status: string
+  createdAt: string
+  created_at: string
+}
+
+export interface ReconciliationDetail extends ReconciliationRecord {
+  details: { date: string; billNo: string; bill_no: string; summary: string; receivable: number; received: number; balance: number }[]
+}
+
+export function fetchCustomerReconciliation(params?: { customer_id?: number; status?: string; start_date?: string; end_date?: string; page?: number; pageSize?: number }) {
+  return api.get('/store/customer-statements', { params })
+}
+
+export function fetchCustomerReconciliationDetail(statementNo: string) {
+  return api.get(`/store/customer-statements/${statementNo}`)
+}
+
+export function confirmCustomerReconciliation(statementNo: string) {
+  return api.post(`/store/customer-statements/${statementNo}/confirm`)
 }

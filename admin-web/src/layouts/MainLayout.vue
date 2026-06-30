@@ -145,6 +145,12 @@
           <el-menu-item index="/finance/collection">收款链接</el-menu-item>
           <el-menu-item index="/customer-statements">客户对账</el-menu-item>
           <el-menu-item index="/finance/profit">经营利润</el-menu-item>
+          <el-menu-item index="/finance/receipts">收款管理</el-menu-item>
+          <el-menu-item index="/finance/payments">付款管理</el-menu-item>
+          <el-menu-item index="/finance/receivables-payables">应收应付</el-menu-item>
+          <el-menu-item index="/finance/expenses">费用管理</el-menu-item>
+          <el-menu-item index="/finance/reconciliation">对账中心</el-menu-item>
+          <el-menu-item index="/finance/dashboard">财务驾驶舱</el-menu-item>
         </el-sub-menu>
 
         <!-- 10. 数据报表 -->
@@ -329,6 +335,12 @@ const pageTitle = computed(() => {
     "/finance/collection": "收款链接",
     "/customer-statements": "客户对账",
     "/finance/profit": "经营利润",
+    "/finance/receipts": "收款管理",
+    "/finance/payments": "付款管理",
+    "/finance/receivables-payables": "应收应付",
+    "/finance/expenses": "费用管理",
+    "/finance/reconciliation": "对账中心",
+    "/finance/dashboard": "财务驾驶舱",
     "/reports": "销售统计",
     "/reports/products": "商品排行",
     "/reports/employees": "员工业绩",

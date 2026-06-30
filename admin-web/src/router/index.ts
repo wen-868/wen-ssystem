@@ -82,9 +82,6 @@ const routes = [
       { path: "inventory-cost", name: "InventoryCost", component: () => import("../views/InventoryCost.vue"), meta: { roles: ["BOSS"] } },
       { path: "inventory-alert-config", name: "InventoryAlertConfig", component: () => import("../views/InventoryAlertConfig.vue"), meta: { roles: ["BOSS"] } },
       { path: "inventory-reports", name: "InventoryReports", component: () => import("../views/InventoryReports.vue"), meta: { roles: ["BOSS"] } },
-      // 6. 客户管理
-      { path: "customers", name: "Customers", component: () => import("../views/CustomersView.vue"), meta: { roles: ["BOSS", "MGR"] } },
-      { path: "credit", name: "Credit", component: () => import("../views/CreditView.vue"), meta: { roles: ["BOSS", "MGR"] } },
       { path: "points-rules", name: "PointsRules", component: () => import("../views/PointsRules.vue"), meta: { roles: ["BOSS"] } },
       { path: "level-config", name: "LevelConfig", component: () => import("../views/LevelConfig.vue"), meta: { roles: ["BOSS"] } },
       { path: "store-value-cards", name: "StoreValueCards", component: () => import("../views/StoreValueCards.vue"), meta: { roles: ["BOSS"] } },
@@ -94,6 +91,9 @@ const routes = [
       { path: "customer-care", name: "CustomerCareRules", component: () => import("../views/CustomerCareRules.vue"), meta: { roles: ["BOSS"] } },
       { path: "customer-lifecycle", name: "CustomerLifecycle", component: () => import("../views/CustomerLifecycle.vue"), meta: { roles: ["BOSS"] } },
       { path: "customer-segments", name: "CustomerSegments", component: () => import("../views/CustomerSegments.vue"), meta: { roles: ["BOSS"] } },
+      // 6. 客户管理
+      { path: "customers", name: "Customers", component: () => import("../views/CustomersView.vue"), meta: { roles: ["BOSS", "MGR"] } },
+      { path: "credit", name: "Credit", component: () => import("../views/CreditView.vue"), meta: { roles: ["BOSS", "MGR"] } },
       // 7. 商品中心
       { path: "products", name: "Products", component: () => import("../views/Products.vue"), meta: { roles: ["BOSS", "MGR"] } },
       { path: "products/categories", name: "ProductCategories", component: () => import("../views/ProductCategories.vue"), meta: { roles: ["BOSS"] } },
@@ -118,6 +118,12 @@ const routes = [
       { path: "finance/collection", name: "FinanceCollection", component: () => import("../views/FinanceCollection.vue"), meta: { roles: ["BOSS"] } },
       { path: "customer-statements", name: "CustomerStatements", component: () => import("../views/CustomerStatements.vue"), meta: { roles: ["BOSS"] } },
       { path: "finance/profit", name: "FinanceProfit", component: () => import("../views/FinanceProfit.vue"), meta: { roles: ["BOSS"] } },
+      { path: "finance/receipts", name: "FinanceReceipts", component: () => import("../views/ReceiptsView.vue"), meta: { roles: ["BOSS"] } },
+      { path: "finance/payments", name: "FinancePayments", component: () => import("../views/PaymentsNewView.vue"), meta: { roles: ["BOSS"] } },
+      { path: "finance/receivables-payables", name: "FinanceReceivablesPayables", component: () => import("../views/ReceivablesPayables.vue"), meta: { roles: ["BOSS"] } },
+      { path: "finance/expenses", name: "FinanceExpenses", component: () => import("../views/ExpensesView.vue"), meta: { roles: ["BOSS"] } },
+      { path: "finance/reconciliation", name: "FinanceReconciliation", component: () => import("../views/ReconciliationView.vue"), meta: { roles: ["BOSS"] } },
+      { path: "finance/dashboard", name: "FinanceDashboard", component: () => import("../views/FinanceDashboard.vue"), meta: { roles: ["BOSS"] } },
       // 10. 数据报表
       { path: "reports", name: "Reports", component: () => import("../views/Reports.vue"), meta: { roles: ["BOSS", "MGR"] } },
       { path: "reports/purchase", name: "PurchaseReports", component: () => import("../views/PurchaseReports.vue"), meta: { roles: ["BOSS", "MGR"] } },

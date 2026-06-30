@@ -1,0 +1,60 @@
+-- 银行账户
+CREATE TABLE IF NOT EXISTS bank_account (
+  id BIGINT AUTO_INCREMENT PRIMARY KEY,
+  account_name VARCHAR(100) NOT NULL COMMENT '账户名称',
+  bank_name VARCHAR(100) NOT NULL COMMENT '银行名称',
+  account_no VARCHAR(50) NOT NULL COMMENT '账号',
+  account_type VARCHAR(20) DEFAULT 'GENERAL' COMMENT '类型: GENERAL/SAVING/CREDIT',
+  balance DECIMAL(12,2) DEFAULT 0 COMMENT '当前余额',
+  status VARCHAR(20) NOT NULL DEFAULT 'ACTIVE' COMMENT '状态: ACTIVE/FROZEN/CLOSED',
+  tenant_id VARCHAR(64) NOT NULL DEFAULT '',
+  created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+  updated_at DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  UNIQUE KEY uk_account_no (account_no, tenant_id),
+  INDEX idx_tenant (tenant_id)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='银行账户';
+
+-- 费用表
+CREATE TABLE IF NOT EXISTS expense (
+  id BIGINT AUTO_INCREMENT PRIMARY KEY,
+  expense_no VARCHAR(32) NOT NULL COMMENT '费用编号',
+  expense_type VARCHAR(20) NOT NULL DEFAULT 'DAILY' COMMENT '类型: DAILY/RENT/UTILITY/SALARY/TAX/OTHER',
+  category VARCHAR(50) DEFAULT NULL COMMENT '费用分类',
+  amount DECIMAL(12,2) NOT NULL COMMENT '金额',
+  payee VARCHAR(100) DEFAULT NULL COMMENT '收款方',
+  payment_method VARCHAR(20) DEFAULT NULL COMMENT '付款方式',
+  bank_account_id BIGINT DEFAULT NULL COMMENT '付款账户',
+  invoice_no VARCHAR(50) DEFAULT NULL COMMENT '发票号',
+  expense_date DATE DEFAULT NULL COMMENT '费用日期',
+  status VARCHAR(20) NOT NULL DEFAULT 'PENDING' COMMENT '状态: PENDING/APPROVED/PAID/VOIDED',
+  remark VARCHAR(500) DEFAULT NULL COMMENT '备注',
+  operator_id BIGINT DEFAULT NULL COMMENT '操作人ID',
+  tenant_id VARCHAR(64) NOT NULL DEFAULT '',
+  created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+  updated_at DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  UNIQUE KEY uk_expense_no (expense_no, tenant_id),
+  INDEX idx_type (expense_type),
+  INDEX idx_status (status),
+  INDEX idx_tenant (tenant_id)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='费用';
+
+-- 票据表
+CREATE TABLE IF NOT EXISTS invoice (
+  id BIGINT AUTO_INCREMENT PRIMARY KEY,
+  invoice_no VARCHAR(50) NOT NULL COMMENT '发票号',
+  invoice_type VARCHAR(10) NOT NULL COMMENT '类型: IN/OUT',
+  related_type VARCHAR(20) DEFAULT NULL COMMENT '关联业务类型',
+  related_no VARCHAR(32) DEFAULT NULL COMMENT '关联业务单号',
+  amount DECIMAL(12,2) NOT NULL COMMENT '金额',
+  tax_rate DECIMAL(4,2) DEFAULT 0 COMMENT '税率',
+  tax_amount DECIMAL(12,2) DEFAULT 0 COMMENT '税额',
+  issue_date DATE DEFAULT NULL COMMENT '开票日期',
+  issuer VARCHAR(100) DEFAULT NULL COMMENT '开票方',
+  status VARCHAR(20) NOT NULL DEFAULT 'PENDING' COMMENT '状态: PENDING/ISSUED/VERIFIED',
+  tenant_id VARCHAR(64) NOT NULL DEFAULT '',
+  created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+  UNIQUE KEY uk_invoice_no (invoice_no, invoice_type, tenant_id),
+  INDEX idx_type (invoice_type),
+  INDEX idx_related (related_no),
+  INDEX idx_tenant (tenant_id)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='票据';

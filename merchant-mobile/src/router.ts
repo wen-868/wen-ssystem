@@ -87,10 +87,20 @@ const routes: RouteRecordRaw[] = [
   // 调拨管理
   { path: '/inventory-transfers', name: 'inventory-transfers', component: () => import('./views/InventoryTransferView.vue'), meta: { requiresAuth: true } },
   { path: '/inventory-transfers/:transferNo', name: 'inventory-transfer-detail', component: () => import('./views/InventoryTransferDetailView.vue'), meta: { requiresAuth: true } },
+  // 客户积分
   { path: '/customer-points/:customerId', name: 'customer-points', component: () => import('./views/CustomerPointsView.vue'), meta: { requiresAuth: true } },
+  // 储值卡
   { path: '/store-value-card/:customerId', name: 'store-value-card', component: () => import('./views/StoreValueCardView.vue'), meta: { requiresAuth: true } },
+  // 会员卡
   { path: '/member-card/:customerId', name: 'member-card', component: () => import('./views/MemberCardView.vue'), meta: { requiresAuth: true } },
-  { path: '/customer-tags/:customerId', name: 'customer-tags-edit', component: () => import('./views/CustomerTagEditView.vue'), meta: { requiresAuth: true } }
+  // 客户标签
+  { path: '/customer-tags/:customerId', name: 'customer-tags', component: () => import('./views/CustomerTagEditView.vue'), meta: { requiresAuth: true } },
+  // 财务往来
+  { path: '/receipts', name: 'receipts', component: () => import('./views/ReceiptListView.vue'), meta: { requiresAuth: true } },
+  { path: '/customer-receivables/:customerId', name: 'customer-receivables', component: () => import('./views/CustomerReceivableView.vue'), meta: { requiresAuth: true } },
+  { path: '/expense-create', name: 'expense-create', component: () => import('./views/ExpenseCreateView.vue'), meta: { requiresAuth: true } },
+  { path: '/reconciliation', name: 'reconciliation', component: () => import('./views/ReconciliationMobileView.vue'), meta: { requiresAuth: true } },
+  { path: '/reconciliation/:customerId', name: 'reconciliation-detail', component: () => import('./views/ReconciliationMobileView.vue'), meta: { requiresAuth: true } }
 ]
 
 const router = createRouter({

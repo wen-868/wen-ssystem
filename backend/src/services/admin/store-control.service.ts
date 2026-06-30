@@ -1,9 +1,9 @@
 import { query, queryOne, transaction } from "../../shared/db.js";
 
-// ==================== Admin 管控配置 ====================
+// ==================== Admin 端 ====================
 
-export async function listConfigs(tenantId: string) {
-  return query<any>(
+export async function getConfigs(tenantId: string) {
+  const records = await query<any>(
     `SELECT scc.*, s.name AS store_name, s.status AS store_status
      FROM store_control_config scc
      LEFT JOIN store s ON s.id = scc.store_id AND s.tenant_id = scc.tenant_id
@@ -11,26 +11,27 @@ export async function listConfigs(tenantId: string) {
      ORDER BY scc.id ASC`,
     [tenantId]
   );
+  return records;
 }
 
 export async function getConfig(storeId: number, tenantId: string) {
-  return queryOne<any>(
+  const config = await queryOne<any>(
     `SELECT scc.*, s.name AS store_name, s.status AS store_status
      FROM store_control_config scc
      LEFT JOIN store s ON s.id = scc.store_id AND s.tenant_id = scc.tenant_id
      WHERE scc.store_id = ? AND scc.tenant_id = ?`,
     [storeId, tenantId]
   );
+  return config ?? null;
 }
 
-export interface UpdateConfigBody {
-  autoOpenTime?: string | null;
-  autoCloseTime?: string | null;
-  maxDailyOrders?: number | null;
-  maxOrderAmount?: number | null;
-}
+export async function upsertConfig(params: {
+  storeId: number; tenantId: string;
+  autoOpenTime?: string | null; autoCloseTime?: string | null;
+  maxDailyOrders?: number | null; maxOrderAmount?: number | null;
+}) {
+  const { storeId, tenantId, autoOpenTime, autoCloseTime, maxDailyOrders, maxOrderAmount } = params;
 
-export async function updateConfig(storeId: number, body: UpdateConfigBody, tenantId: string) {
   await transaction(async (conn) => {
     const [existing] = await conn.execute<any[]>(
       "SELECT id FROM store_control_config WHERE store_id = ? AND tenant_id = ?",
@@ -40,10 +41,10 @@ export async function updateConfig(storeId: number, body: UpdateConfigBody, tena
     if ((existing as any[]).length > 0) {
       const sets: string[] = [];
       const values: unknown[] = [];
-      if (body.autoOpenTime !== undefined) { sets.push("auto_open_time = ?"); values.push(body.autoOpenTime); }
-      if (body.autoCloseTime !== undefined) { sets.push("auto_close_time = ?"); values.push(body.autoCloseTime); }
-      if (body.maxDailyOrders !== undefined) { sets.push("max_daily_orders = ?"); values.push(body.maxDailyOrders); }
-      if (body.maxOrderAmount !== undefined) { sets.push("max_order_amount = ?"); values.push(body.maxOrderAmount); }
+      if (autoOpenTime !== undefined) { sets.push("auto_open_time = ?"); values.push(autoOpenTime); }
+      if (autoCloseTime !== undefined) { sets.push("auto_close_time = ?"); values.push(autoCloseTime); }
+      if (maxDailyOrders !== undefined) { sets.push("max_daily_orders = ?"); values.push(maxDailyOrders); }
+      if (maxOrderAmount !== undefined) { sets.push("max_order_amount = ?"); values.push(maxOrderAmount); }
       if (sets.length > 0) {
         values.push(storeId, tenantId);
         await conn.execute(`UPDATE store_control_config SET ${sets.join(", ")} WHERE store_id = ? AND tenant_id = ?`, values as any[]);
@@ -52,7 +53,7 @@ export async function updateConfig(storeId: number, body: UpdateConfigBody, tena
       await conn.execute(
         `INSERT INTO store_control_config (store_id, auto_open_time, auto_close_time, max_daily_orders, max_order_amount, tenant_id)
          VALUES (?, ?, ?, ?, ?, ?)`,
-        [storeId, body.autoOpenTime ?? null, body.autoCloseTime ?? null, body.maxDailyOrders ?? null, body.maxOrderAmount ?? null, tenantId] as any[]
+        [storeId, autoOpenTime ?? null, autoCloseTime ?? null, maxDailyOrders ?? null, maxOrderAmount ?? null, tenantId] as any[]
       );
     }
   });
@@ -60,9 +61,11 @@ export async function updateConfig(storeId: number, body: UpdateConfigBody, tena
   return { storeId };
 }
 
-// ==================== Admin 门店操作 ====================
+export async function openStore(params: {
+  storeId: number; tenantId: string; userId: number;
+}) {
+  const { storeId, tenantId, userId } = params;
 
-export async function openStore(storeId: number, tenantId: string, userId: number) {
   await transaction(async (conn) => {
     const [rows] = await conn.execute<any[]>(
       "SELECT status FROM store WHERE id = ? AND tenant_id = ? FOR UPDATE",
@@ -86,7 +89,11 @@ export async function openStore(storeId: number, tenantId: string, userId: numbe
   return { storeId, status: "OPEN" };
 }
 
-export async function closeStore(storeId: number, tenantId: string, userId: number) {
+export async function closeStore(params: {
+  storeId: number; tenantId: string; userId: number;
+}) {
+  const { storeId, tenantId, userId } = params;
+
   await transaction(async (conn) => {
     const [rows] = await conn.execute<any[]>(
       "SELECT status FROM store WHERE id = ? AND tenant_id = ? FOR UPDATE",
@@ -110,7 +117,11 @@ export async function closeStore(storeId: number, tenantId: string, userId: numb
   return { storeId, status: "CLOSED" };
 }
 
-export async function suspendStore(storeId: number, tenantId: string, userId: number, reason?: string) {
+export async function suspendStore(params: {
+  storeId: number; tenantId: string; userId: number; reason?: string;
+}) {
+  const { storeId, tenantId, userId, reason } = params;
+
   await transaction(async (conn) => {
     const [rows] = await conn.execute<any[]>(
       "SELECT status FROM store WHERE id = ? AND tenant_id = ? FOR UPDATE",
@@ -120,6 +131,7 @@ export async function suspendStore(storeId: number, tenantId: string, userId: nu
     if (!store) throw new Error("门店不存在");
 
     const fromStatus = store.status || "OPEN";
+    const remark = reason || "手动暂停营业";
     await conn.execute(
       "UPDATE store SET status = 'SUSPENDED' WHERE id = ? AND tenant_id = ?",
       [storeId, tenantId] as any[]
@@ -127,20 +139,24 @@ export async function suspendStore(storeId: number, tenantId: string, userId: nu
     await conn.execute(
       `INSERT INTO store_status_log (store_id, from_status, to_status, change_type, operator_id, remark, tenant_id)
        VALUES (?, ?, 'SUSPENDED', 'MANUAL', ?, ?, ?)`,
-      [storeId, fromStatus, userId, reason || "手动暂停营业", tenantId] as any[]
+      [storeId, fromStatus, userId, remark, tenantId] as any[]
     );
     await conn.execute(
       `INSERT INTO store_control_config (store_id, suspended_reason, tenant_id)
        VALUES (?, ?, ?)
        ON DUPLICATE KEY UPDATE suspended_reason = ?`,
-      [storeId, reason || "手动暂停营业", tenantId, reason || "手动暂停营业"] as any[]
+      [storeId, remark, tenantId, remark] as any[]
     );
   });
 
   return { storeId, status: "SUSPENDED" };
 }
 
-export async function resumeStore(storeId: number, tenantId: string, userId: number) {
+export async function resumeStore(params: {
+  storeId: number; tenantId: string; userId: number;
+}) {
+  const { storeId, tenantId, userId } = params;
+
   await transaction(async (conn) => {
     const [rows] = await conn.execute<any[]>(
       "SELECT status FROM store WHERE id = ? AND tenant_id = ? FOR UPDATE",
@@ -168,28 +184,22 @@ export async function resumeStore(storeId: number, tenantId: string, userId: num
   return { storeId, status: "OPEN" };
 }
 
-// ==================== Admin 状态日志 ====================
-
-export interface ListStatusLogsParams {
-  page: number;
-  pageSize: number;
-  tenantId: string;
-  storeId?: number;
-  changeType?: "MANUAL" | "SCHEDULED" | "AUTO";
-}
-
-export async function listStatusLogs(params: ListStatusLogsParams) {
-  const offset = (params.page - 1) * params.pageSize;
+export async function getLogs(params: {
+  page: number; pageSize: number; tenantId: string;
+  storeId?: number; changeType?: string;
+}) {
+  const { page, pageSize, tenantId, storeId, changeType } = params;
+  const offset = (page - 1) * pageSize;
   const conditions: string[] = ["ssl.tenant_id = ?"];
-  const values: unknown[] = [params.tenantId];
+  const values: unknown[] = [tenantId];
 
-  if (params.storeId) {
+  if (storeId !== undefined) {
     conditions.push("ssl.store_id = ?");
-    values.push(params.storeId);
+    values.push(storeId);
   }
-  if (params.changeType) {
+  if (changeType) {
     conditions.push("ssl.change_type = ?");
-    values.push(params.changeType);
+    values.push(changeType);
   }
 
   const where = conditions.join(" AND ");
@@ -201,18 +211,15 @@ export async function listStatusLogs(params: ListStatusLogsParams) {
      WHERE ${where}
      ORDER BY ssl.created_at DESC
      LIMIT ? OFFSET ?`,
-    [...values, params.pageSize, offset]
+    [...values, pageSize, offset]
   );
 
-  const totalRow = await queryOne<any>(
-    `SELECT COUNT(*) AS total FROM store_status_log ssl WHERE ${where}`,
-    values
-  );
+  const totalRow = await queryOne<any>(`SELECT COUNT(*) AS total FROM store_status_log ssl WHERE ${where}`, values);
 
-  return { total: totalRow?.total ?? 0, page: params.page, pageSize: params.pageSize, records };
+  return { total: totalRow?.total ?? 0, page, pageSize, records };
 }
 
-// ==================== Store 门店端 ====================
+// ==================== Store 端 ====================
 
 export async function getStoreStatus(storeId: number, tenantId: string) {
   const store = await queryOne<any>(
@@ -233,15 +240,11 @@ export async function getStoreStatus(storeId: number, tenantId: string) {
   };
 }
 
-export interface ListMyLogsParams {
-  page: number;
-  pageSize: number;
-  storeId: number;
-  tenantId: string;
-}
-
-export async function listMyLogs(params: ListMyLogsParams) {
-  const offset = (params.page - 1) * params.pageSize;
+export async function getMyLogs(params: {
+  storeId: number; tenantId: string; page: number; pageSize: number;
+}) {
+  const { storeId, tenantId, page, pageSize } = params;
+  const offset = (page - 1) * pageSize;
 
   const records = await query<any>(
     `SELECT ssl.*, s.name AS store_name
@@ -250,13 +253,51 @@ export async function listMyLogs(params: ListMyLogsParams) {
      WHERE ssl.store_id = ? AND ssl.tenant_id = ?
      ORDER BY ssl.created_at DESC
      LIMIT ? OFFSET ?`,
-    [params.storeId, params.tenantId, params.pageSize, offset]
+    [storeId, tenantId, pageSize, offset]
   );
 
   const totalRow = await queryOne<any>(
     "SELECT COUNT(*) AS total FROM store_status_log WHERE store_id = ? AND tenant_id = ?",
-    [params.storeId, params.tenantId]
+    [storeId, tenantId]
   );
 
-  return { total: totalRow?.total ?? 0, page: params.page, pageSize: params.pageSize, records };
+  return { total: totalRow?.total ?? 0, page, pageSize, records };
+}
+
+// ==================== 定时检查器辅助函数 ====================
+
+export async function getTenantIds() {
+  const tenantRows = await query<any>(
+    "SELECT DISTINCT tenant_id FROM store_control_config"
+  );
+  return tenantRows.map((r: any) => r.tenant_id).filter(Boolean);
+}
+
+export async function getConfigsForCheck(tenantId: string) {
+  return query<any>(
+    `SELECT scc.*, s.status AS current_status, s.name AS store_name
+     FROM store_control_config scc
+     JOIN store s ON s.id = scc.store_id AND s.tenant_id = scc.tenant_id
+     WHERE scc.tenant_id = ?
+       AND s.status IN ('OPEN', 'CLOSED')`,
+    [tenantId]
+  );
+}
+
+export async function getOrderCount(storeId: number, tenantId: string, conn: any) {
+  const [orderRows] = await conn.execute(
+    `SELECT COUNT(*) AS order_count FROM sale_bill
+     WHERE store_id = ? AND tenant_id = ? AND DATE(created_at) = CURDATE() AND business_status NOT IN ('DRAFT', 'VOIDED')`,
+    [storeId, tenantId]
+  );
+  return (orderRows as any[])[0]?.order_count ?? 0;
+}
+
+export async function getOrderAmount(storeId: number, tenantId: string, conn: any) {
+  const [amountRows] = await conn.execute(
+    `SELECT COALESCE(SUM(receivable_amount), 0) AS total_amount FROM sale_bill
+     WHERE store_id = ? AND tenant_id = ? AND DATE(created_at) = CURDATE() AND business_status NOT IN ('DRAFT', 'VOIDED')`,
+    [storeId, tenantId]
+  );
+  return Number((amountRows as any[])[0]?.total_amount ?? 0);
 }
