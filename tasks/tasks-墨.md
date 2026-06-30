@@ -1,4 +1,4 @@
-# 墨 · 客户管理模块 · 管理后台
+# 墨 · 财务往来模块 · 管理后台
 
 **日期**：2026-06-30
 **状态**：待开始
@@ -9,101 +9,87 @@
 
 | # | 任务 | 优先级 | 状态 |
 |---|------|--------|:---:|
-| 1 | 积分与等级管理页面 | P0 | ❌ |
-| 2 | 储值卡管理页面 | P0 | ❌ |
-| 3 | 会员体系页面（会员卡/权益/注册） | P0 | ❌ |
-| 4 | 客户标签与画像页面 | P1 | ❌ |
-| 5 | 客户关怀规则页面 | P1 | ❌ |
-| 6 | 生命周期看板页面 | P1 | ❌ |
-| 7 | 客户分群页面 | P1 | ❌ |
+| 1 | 收款管理页面 | P0 | ❌ |
+| 2 | 付款管理页面 | P0 | ❌ |
+| 3 | 应收应付汇总页面 | P0 | ❌ |
+| 4 | 费用管理页面 | P0 | ❌ |
+| 5 | 对账中心页面 | P0 | ❌ |
+| 6 | 老板财务驾驶舱页面 | P0 | ❌ |
 
 ---
 
 ## 详细说明
 
-### 1. 积分与等级管理页面
-- **文件**：新建 `admin-web/src/views/PointsRules.vue` + `admin-web/src/views/LevelConfig.vue`
-- **PointsRules.vue 功能**：
-  - 积分规则列表（规则名称/获取方式/比例/每日上限/状态）
-  - 新增/编辑规则弹窗（获取方式：消费/签到/生日/推荐，积分比例，每日上限）
-  - 积分明细弹窗（客户/变动类型/积分/余额/来源/时间）
-  - 手动调整积分（选择客户+增减积分+备注）
-- **LevelConfig.vue 功能**：
-  - 等级配置表（等级名称/最低积分/最高积分/折扣率/权益描述）
-  - 新增/编辑等级配置弹窗
-  - 升级记录表（客户/原等级/新等级/升级时间）
-- **API**：`fetchPointsRules`、`createPointsRule`、`updatePointsRule`、`fetchLevelConfigs`、`createLevelConfig`、`updateLevelConfig`、`fetchCustomerPoints`、`adjustCustomerPoints`、`fetchPointsRecords`
-- **路由**：`/customers/points-rules`、`/customers/level-config`
-
-### 2. 储值卡管理页面
-- **文件**：新建 `admin-web/src/views/StoreValueCards.vue`
+### 1. 收款管理页面
+- **文件**：新建 `admin-web/src/views/ReceiptsView.vue`
 - **功能**：
-  - 储值卡列表（卡号/客户名称/余额/累计充值/累计消费/状态）
-  - 状态筛选：正常/冻结/已注销
-  - 开卡弹窗（选择客户+初始充值金额）
-  - 充值弹窗（充值金额+支付方式）
-  - 消费扣款（选择销售单关联扣款）
-  - 退款弹窗（退款金额+原因）
-  - 冻结/解冻操作
-  - 交易明细表（交易号/类型/金额/余额/来源/时间）
-- **API**：`fetchStoreValueCards`、`createStoreValueCard`、`rechargeStoreValueCard`、`consumeStoreValueCard`、`refundStoreValueCard`、`freezeStoreValueCard`、`unfreezeStoreValueCard`、`fetchStoreValueTransactions`
-- **路由**：`/customers/store-value-cards`
+  - 收款单列表（单号/客户/金额/收款方式/日期/状态）
+  - 筛选：客户/日期范围/状态/收款方式
+  - 新建收款单弹窗（选择客户→自动加载应收列表→输入收款金额→选择支付方式+银行账户）
+  - 核销应收弹窗（勾选应收记录+输入核销金额）
+  - 收款单详情（含核销明细列表）
+  - 作废操作
+- **API**：`fetchReceipts`、`createReceipt`、`getReceiptDetail`、`writeoffReceipt`、`voidReceipt`
+- **路由**：`/finance/receipts`
 
-### 3. 会员体系页面
-- **文件**：新建 `admin-web/src/views/MemberSystem.vue`
+### 2. 付款管理页面
+- **文件**：新建 `admin-web/src/views/PaymentsNewView.vue`
 - **功能**：
-  - 会员卡展示区（卡面设计：等级图标/会员名/积分/有效期/二维码）
-  - 会员列表增强（现有 CustomersView 基础上增加等级/积分/储值余额列）
-  - 会员注册表单（姓名/手机号/初始密码/推荐人）
-  - 权益配置页（各等级对应折扣率、生日礼包、优先配送等权益开关）
-  - 手动调整等级（选择客户+目标等级+原因）
-- **API**：`registerMember`、`fetchMemberCard`、`updateMemberLevel`、`fetchMemberBenefits`、`updateMemberBenefits`
-- **路由**：`/customers/member-system`、扩展现有 `/customers` 路由
+  - 付款单列表（单号/供应商/金额/类型/付款方式/日期/状态）
+  - 筛选：供应商/类型(采购/费用/其他)/日期范围/状态
+  - 新建付款单弹窗（选择供应商→自动加载应付列表→输入付款金额→选择支付方式+银行账户）
+  - 核销应付弹窗
+  - 付款单详情（含核销明细）
+  - 作废操作
+- **API**：`fetchPaymentsNew`、`createPaymentNew`、`getPaymentDetail`、`writeoffPayment`、`voidPayment`
+- **路由**：`/finance/payments`
 
-### 4. 客户标签与画像页面
-- **文件**：新建 `admin-web/src/views/CustomerTags.vue` + `admin-web/src/views/CustomerProfile.vue`
-- **CustomerTags.vue 功能**：
-  - 标签列表（标签名/分组/类型/关联客户数/操作）
-  - 新增/编辑标签弹窗
-  - 为客户打标签（选择客户+多选标签）
-  - 自动标签规则配置（消费金额阈值/频次/品类偏好）
-- **CustomerProfile.vue 功能**：
-  - 客户画像卡片（基本信息/年龄/性别/偏好品类/偏好品牌/平均客单价/累计消费次数）
-  - 消费趋势图（ECharts 折线图：近12月消费金额）
-  - 标签云展示（客户已打标签可视化）
-  - 生命周期阶段标签
-- **API**：`fetchCustomerTags`、`createCustomerTag`、`updateCustomerTag`、`deleteCustomerTag`、`addCustomerTag`、`removeCustomerTag`、`fetchCustomerProfile`
-- **路由**：`/customers/tags`、`/customers/:id/profile`
-
-### 5. 客户关怀规则页面
-- **文件**：新建 `admin-web/src/views/CustomerCareRules.vue`
+### 3. 应收应付汇总页面
+- **文件**：新建 `admin-web/src/views/ReceivablesPayables.vue`
 - **功能**：
-  - 规则列表（名称/触发类型/奖励/状态/上次执行时间）
-  - 规则编辑弹窗（触发类型：生日/节日/沉睡唤醒/等级升级，内容模板，奖励积分/优惠券）
-  - 关怀记录表（客户/触发类型/发送内容/发送时间/状态）
-  - 手动执行关怀（选择规则点击执行）
-- **API**：`fetchCareRules`、`createCareRule`、`updateCareRule`、`deleteCareRule`、`executeCareRule`、`fetchCareLogs`
-- **路由**：`/customers/care-rules`
-
-### 6. 生命周期看板页面
-- **文件**：新建 `admin-web/src/views/CustomerLifecycle.vue`
-- **功能**：
-  - 阶段漏斗图（ECharts 漏斗：潜客/新客/活跃/沉睡/流失，带数量+占比）
-  - 阶段卡片（5个el-card：各阶段客户数+环比变化）
-  - 转化趋势图（ECharts 折线图：近12月各阶段变化趋势）
-  - 阶段明细表（客户/当前阶段/停留天数/最后消费时间/累计消费金额）
+  - Tab切换应收/应付
+  - 应收汇总：顶部卡片（总额/已收/未收/逾期金额）、客户排行柱状图（ECharts）、账龄分析饼图（ECharts，0-30/30-60/60-90/90+天）、应收明细表（客户/单据/金额/已收/余额/逾期天数）
+  - 应付汇总：对称设计，供应商维度
   - 日期范围筛选
-- **API**：`fetchLifecycleStages`、`fetchLifecycleTrend`、`fetchLifecycleDetail`
-- **路由**：`/customers/lifecycle`
+  - 点击客户/供应商跳转对账详情
+- **API**：`fetchReceivablesSummary`、`fetchPayablesSummary`、`fetchReceivablesAging`、`fetchPayablesAging`
+- **路由**：`/finance/receivables-payables`
 
-### 7. 客户分群页面
-- **文件**：新建 `admin-web/src/views/CustomerSegments.vue`
+### 4. 费用管理页面
+- **文件**：新建 `admin-web/src/views/ExpensesView.vue`
 - **功能**：
-  - 分群列表（名称/条件摘要/成员数/更新方式/更新时间）
-  - 分群条件编辑弹窗（多条件组合：消费金额范围/频次范围/品类/注册时间/标签/地区）
-  - 分群成员列表（客户名称/手机/等级/标签/最后消费）
-  - 刷新分群按钮
-  - 导出分群成员 CSV
-  - 群发营销（跳转营销中心，预填分群）
-- **API**：`fetchSegments`、`createSegment`、`updateSegment`、`deleteSegment`、`refreshSegment`、`fetchSegmentMembers`
-- **路由**：`/customers/segments`
+  - 费用列表（单号/类型/分类/金额/收款方/日期/状态）
+  - 筛选：类型/分类/日期范围/状态
+  - 新建费用弹窗（类型：日常/差旅/办公/运输/其他，分类，金额，收款方，支付方式，银行账户，发票号，日期，备注）
+  - 审批流程按钮（待审批→审批通过/驳回）
+  - 作废操作
+  - 费用汇总统计（按月/按分类，ECharts柱状图+饼图）
+- **API**：`fetchExpenses`、`createExpense`、`getExpenseDetail`、`updateExpense`、`approveExpense`、`voidExpense`、`fetchExpenseSummary`
+- **路由**：`/finance/expenses`
+
+### 5. 对账中心页面
+- **文件**：新建 `admin-web/src/views/ReconciliationView.vue`
+- **功能**：
+  - Tab切换客户对账/供应商对账
+  - 客户对账列表（客户/期初余额/本期应收/本期收款/期末余额/状态）
+  - 对账详情弹窗（表头：日期/单据号/摘要/应收/收款/余额，底部合计行，确认对账按钮）
+  - 确认对账后状态变为"已确认"并锁定
+  - 供应商对账对称设计
+  - 日期范围筛选（默认本月）
+  - 导出对账单
+- **API**：`fetchCustomerReconciliation`、`fetchCustomerReconciliationDetail`、`confirmCustomerReconciliation`、`fetchSupplierReconciliation`、`fetchSupplierReconciliationDetail`、`confirmSupplierReconciliation`
+- **路由**：`/finance/reconciliation`
+
+### 6. 老板财务驾驶舱页面
+- **文件**：新建 `admin-web/src/views/FinanceDashboard.vue`
+- **功能**：
+  - 顶部4个概要卡片（本月收入/本月支出/应收余额/应付余额，含环比箭头）
+  - 现金流趋势图（ECharts双折线：收入/支出，近12月）
+  - 利润趋势图（ECharts三线：收入/支出/利润，近12月）
+  - 应收TOP5客户横向柱状图
+  - 应付TOP5供应商横向柱状图
+  - 费用分类占比饼图
+  - 本月资金日报表（日期/收入/支出/余额）
+  - 日期范围切换（本月/本季/本年）
+- **API**：`fetchFinanceDashboard`、`fetchCashFlow`、`fetchProfitTrend`、`fetchTopCustomersAR`、`fetchTopSuppliersAP`、`fetchDailyReport`
+- **路由**：`/finance/dashboard`，设置为首选首页入口

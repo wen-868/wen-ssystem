@@ -1556,3 +1556,131 @@ export function confirmTransferOut(id: number) {
 export function confirmTransferIn(id: number, items: { itemId: number; receivedQty: number }[]) {
   return api.post(`/store/transfers/${id}/receive`, { items })
 }
+
+// ==================== Phase 7: 客户管理 API ====================
+
+export interface CustomerPointsData {
+  userId: number
+  points: number
+  totalEarned: number
+  totalSpent: number
+  updatedAt?: string
+}
+
+export interface PointsRecord {
+  id: number
+  userId: number
+  type: string
+  amount: number
+  balance: number
+  source: string
+  createdAt: string
+}
+
+export function fetchCustomerPoints(customerId: number) {
+  return api.get(`/store/points/customer/${customerId}`)
+}
+
+export function fetchCustomerPointsRecords(customerId: number, type?: string) {
+  return api.get(`/store/points/customer/${customerId}/records`, { params: { type } })
+}
+
+export function adjustCustomerPoints(customerId: number, payload: { amount: number; reason: string }) {
+  return api.post(`/store/points/customer/${customerId}/adjust`, payload)
+}
+
+export interface StoreValueCard {
+  id: number
+  cardNo: string
+  customerId: number
+  balance: number
+  status: string
+  createdAt: string
+}
+
+export interface StoreValueTransaction {
+  id: number
+  cardNo: string
+  type: string
+  amount: number
+  balance: number
+  source: string
+  createdAt: string
+}
+
+export function fetchStoreValueCard(customerId: number) {
+  return api.get(`/store/store-value-cards/customer/${customerId}`)
+}
+
+export function rechargeStoreValueCard(customerId: number, payload: { amount: number; paymentMethod: string }) {
+  return api.post(`/store/store-value-cards/customer/${customerId}/recharge`, payload)
+}
+
+export function fetchStoreValueTransactions(cardNo: string) {
+  return api.get(`/store/store-value-cards/transactions/${cardNo}`)
+}
+
+export interface MemberCardData {
+  memberId: number
+  name: string
+  mobile: string
+  customerType: string
+  points: number
+  levelCode: string
+  levelName: string
+  storeValueBalance: number
+}
+
+export interface MemberBenefit {
+  code: string
+  name: string
+  icon: string
+  discount: number
+  benefits: string[]
+}
+
+export function fetchMemberCard(customerId: number) {
+  return api.get(`/store/member-cards/customer/${customerId}`)
+}
+
+export function fetchMemberBenefits() {
+  return api.get('/store/member-cards/benefits')
+}
+
+export interface CustomerTag {
+  id: number
+  tagId: number
+  tagName: string
+  groupId: number
+  groupName: string
+}
+
+export interface CustomerProfile {
+  name: string
+  points: number
+  levelCode: string
+  customerType: string
+  orderCount: number
+  totalAmount: number
+  tags: CustomerTag[]
+}
+
+export function fetchCustomerTags(customerId: number) {
+  return api.get(`/store/customer-tags/customer/${customerId}`)
+}
+
+export function fetchAllTags() {
+  return api.get('/store/customer-tags/all')
+}
+
+export function addCustomerTag(customerId: number, tagId: number) {
+  return api.post(`/store/customer-tags/customer/${customerId}`, { tagId })
+}
+
+export function removeCustomerTag(customerId: number, tagId: number) {
+  return api.delete(`/store/customer-tags/customer/${customerId}/${tagId}`)
+}
+
+export function fetchCustomerProfile(customerId: number) {
+  return api.get(`/store/customer-tags/customer/${customerId}/profile`)
+}

@@ -1,0 +1,224 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>19 - 储值卡管理页面设计 | 智享酒水库存系统</title>
+<style>
+:root {
+  --brand: #1677FF; --brand-light: #E6F4FF; --text: #1F2328; --text-secondary: #4B5563; --text-muted: #9CA3AF;
+  --border: #E5E7EB; --bg: #F5F7FA; --white: #FFF; --success: #10B981; --warning: #F59E0B; --danger: #EF4444;
+  --gold: #C69C6D; --radius: 12px; --shadow: 0 2px 8px rgba(0,0,0,.06);
+}
+* { margin: 0; padding: 0; box-sizing: border-box; }
+body { font-family: -apple-system, BlinkMacSystemFont, 'PingFang SC', 'Microsoft YaHei', sans-serif; background: var(--bg); color: var(--text); line-height: 1.6; }
+.container { max-width: 1300px; margin: 0 auto; padding: 40px 24px; }
+.header { background: linear-gradient(135deg, #7C3AED, #5B21B6); color: #fff; padding: 48px 24px; text-align: center; }
+.header h1 { font-size: 2rem; font-weight: 700; margin-bottom: 8px; }
+.header p { font-size: 1rem; opacity: .85; }
+.section { background: var(--white); border-radius: var(--radius); padding: 32px; margin-bottom: 24px; box-shadow: var(--shadow); }
+.section h2 { font-size: 1.25rem; color: #7C3AED; margin-bottom: 8px; padding-bottom: 12px; border-bottom: 2px solid #F5F3FF; }
+.section h3 { font-size: 1.05rem; margin: 20px 0 10px; }
+.section p.desc { color: var(--text-secondary); margin-bottom: 16px; font-size: .88rem; }
+
+.mockup { border: 1px solid var(--border); border-radius: var(--radius); overflow: hidden; background: #fff; margin: 16px 0; }
+.mockup-header { background: #fff; border-bottom: 1px solid #F0F0F0; padding: 0 20px; height: 56px; display: flex; align-items: center; justify-content: space-between; }
+.mockup-logo { font-size: 16px; font-weight: 700; color: var(--brand); display: flex; align-items: center; gap: 8px; }
+.mockup-logo-icon { width: 28px; height: 28px; background: linear-gradient(135deg, var(--brand), #0958D9); border-radius: 6px; }
+.mockup-nav { display: flex; gap: 4px; }
+.mockup-nav-item { padding: 6px 14px; border-radius: 6px; font-size: 13px; color: var(--text-secondary); }
+.mockup-user { display: flex; align-items: center; gap: 8px; font-size: 13px; }
+.mockup-avatar { width: 32px; height: 32px; border-radius: 50%; background: var(--brand); display: flex; align-items: center; justify-content: center; color: #fff; font-size: 13px; font-weight: 600; }
+.mockup-body { display: flex; }
+.mockup-sidebar { width: 220px; background: #fff; border-right: 1px solid #F0F0F0; padding: 16px 0; min-height: 460px; }
+.mockup-sidebar-item { padding: 10px 20px; font-size: 13px; color: var(--text-secondary); }
+.mockup-sidebar-item.active { background: #F5F3FF; color: #7C3AED; font-weight: 500; border-right: 3px solid #7C3AED; }
+.mockup-sidebar-section { font-size: 11px; color: var(--text-muted); padding: 16px 20px 6px; font-weight: 600; text-transform: uppercase; }
+.mockup-main { flex: 1; padding: 20px 24px; background: var(--bg); }
+.mockup-page-title { font-size: 20px; font-weight: 700; margin-bottom: 4px; }
+.mockup-breadcrumb { font-size: 12px; color: var(--text-muted); margin-bottom: 12px; }
+.tag { padding: 2px 8px; border-radius: 4px; font-size: 11px; font-weight: 500; white-space: nowrap; }
+.tag-success { background: #D1FAE5; color: #065F46; }
+.tag-danger { background: #FEE2E2; color: #991B1B; }
+.tag-warning { background: #FEF3C7; color: #92400E; }
+.tag-info { background: #DBEAFE; color: #1E40AF; }
+
+.mockup-table { width: 100%; border-collapse: collapse; font-size: 12px; }
+.mockup-table th { background: #F8FAFC; padding: 10px 12px; text-align: left; font-weight: 600; color: var(--text-secondary); border-bottom: 1px solid var(--border); font-size: 11px; }
+.mockup-table td { padding: 10px 12px; border-bottom: 1px solid #F0F0F0; }
+.mockup-table tr:hover td { background: #F8FAFC; }
+
+.spec-table { width: 100%; border-collapse: collapse; margin: 16px 0; }
+.spec-table th, .spec-table td { padding: 10px 14px; text-align: left; border-bottom: 1px solid var(--border); font-size: .85rem; }
+.spec-table th { background: #F5F3FF; color: #7C3AED; font-weight: 600; font-size: .8rem; }
+.spec-table tr:hover { background: #F8FAFC; }
+.spec-table code { background: #F1F5F9; padding: 2px 6px; border-radius: 4px; font-size: .82rem; }
+
+.stats-row { display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px; margin-bottom: 20px; }
+.stat-card { background: #fff; border-radius: 8px; padding: 18px; border: 1px solid var(--border); display: flex; flex-direction: column; gap: 8px; }
+.stat-card .stat-label { font-size: 12px; color: var(--text-muted); }
+.stat-card .stat-value { font-size: 24px; font-weight: 700; }
+
+.modal-overlay { background: rgba(0,0,0,.4); padding: 24px; border-radius: 12px; }
+.modal { background: #fff; border-radius: 12px; padding: 24px; max-width: 440px; margin: 0 auto; }
+.modal h3 { font-size: 16px; margin-bottom: 16px; }
+.modal .form-row { display: flex; gap: 12px; margin-bottom: 12px; }
+.modal .form-row label { font-size: 12px; color: var(--text-secondary); display: block; margin-bottom: 4px; }
+.modal .form-row input, .modal .form-row select { width: 100%; padding: 8px 10px; border: 1px solid var(--border); border-radius: 6px; font-size: 13px; }
+.modal .btn-row { display: flex; justify-content: flex-end; gap: 8px; margin-top: 16px; }
+.btn-primary { padding: 8px 20px; background: #7C3AED; color: #fff; border: none; border-radius: 6px; font-size: 13px; cursor: pointer; }
+.btn-secondary { padding: 8px 20px; background: #fff; color: var(--text); border: 1px solid var(--border); border-radius: 6px; font-size: 13px; cursor: pointer; }
+</style>
+</head>
+<body>
+
+<div class="header">
+  <h1>储值卡管理页面设计</h1>
+  <p>开卡 · 充值 · 消费 · 退款 — 储值卡全生命周期</p>
+</div>
+
+<div class="container">
+
+  <!-- 1. 储值卡列表 -->
+  <div class="section">
+    <h2>1. 储值卡列表</h2>
+    <div class="mockup">
+      <div class="mockup-header">
+        <div class="mockup-logo"><div class="mockup-logo-icon"></div>智享酒水库存</div>
+        <div class="mockup-nav"><span class="mockup-nav-item">客户管理</span></div>
+        <div class="mockup-user"><div class="mockup-avatar">管</div>管理员</div>
+      </div>
+      <div class="mockup-body">
+        <div class="mockup-sidebar">
+          <div class="mockup-sidebar-section">客户管理</div>
+          <div class="mockup-sidebar-item">客户列表</div>
+          <div class="mockup-sidebar-item">积分与等级</div>
+          <div class="mockup-sidebar-item active">储值卡</div>
+          <div class="mockup-sidebar-item">会员体系</div>
+          <div class="mockup-sidebar-item">标签与画像</div>
+          <div class="mockup-sidebar-item">客户关怀</div>
+          <div class="mockup-sidebar-item">生命周期</div>
+          <div class="mockup-sidebar-item">客户分群</div>
+        </div>
+        <div class="mockup-main">
+          <div class="mockup-breadcrumb">客户管理 / 储值卡</div>
+          <div class="mockup-page-title">储值卡管理</div>
+          <div class="stats-row">
+            <div class="stat-card"><div class="stat-label">总发卡数</div><div class="stat-value" style="color:#7C3AED;">856</div></div>
+            <div class="stat-card"><div class="stat-label">储值余额</div><div class="stat-value" style="color:var(--success);">¥128,500</div></div>
+            <div class="stat-card"><div class="stat-label">本月充值</div><div class="stat-value">¥38,200</div></div>
+            <div class="stat-card"><div class="stat-label">本月消费</div><div class="stat-value">¥26,800</div></div>
+          </div>
+          <div style="display:flex;gap:8px;margin-bottom:16px;">
+            <button style="padding:6px 16px;background:#7C3AED;color:#fff;border:none;border-radius:6px;font-size:12px;cursor:pointer;">+ 开卡</button>
+            <select style="padding:6px 12px;border:1px solid var(--border);border-radius:6px;font-size:12px;"><option>全部状态</option><option>正常</option><option>冻结</option><option>已注销</option></select>
+          </div>
+          <table class="mockup-table">
+            <thead><tr><th>卡号</th><th>客户</th><th>余额</th><th>累计充值</th><th>开卡日期</th><th>状态</th><th>操作</th></tr></thead>
+            <tbody>
+              <tr><td>SV0001</td><td>张三</td><td style="font-weight:700;color:var(--success);">¥5,280</td><td>¥20,000</td><td>2024-01-15</td><td><span class="tag tag-success">正常</span></td><td><a href="#" style="color:var(--brand);font-size:12px;">充值</a> <a href="#" style="color:var(--danger);font-size:12px;">冻结</a></td></tr>
+              <tr><td>SV0002</td><td>李四</td><td style="font-weight:700;">¥1,050</td><td>¥5,000</td><td>2024-03-20</td><td><span class="tag tag-success">正常</span></td><td><a href="#" style="color:var(--brand);font-size:12px;">充值</a></td></tr>
+              <tr><td>SV0003</td><td>王五</td><td style="font-weight:700;color:var(--text-muted);">¥0</td><td>¥3,000</td><td>2024-02-10</td><td><span class="tag tag-warning">冻结</span></td><td><a href="#" style="color:var(--brand);font-size:12px;">解冻</a></td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 2. 开卡 & 充值弹窗 -->
+  <div class="section">
+    <h2>2. 开卡与充值弹窗</h2>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;">
+      <div class="modal-overlay" style="background:var(--bg);">
+        <div class="modal">
+          <h3>开卡</h3>
+          <div class="form-row"><div style="flex:1;"><label>客户</label><select><option>请选择客户</option><option>张三</option><option>李四</option></select></div></div>
+          <div class="form-row"><div style="flex:1;"><label>初始充值金额</label><input type="text" value="¥1,000"></div></div>
+          <div class="form-row"><div style="flex:1;"><label>支付方式</label><select><option>微信支付</option><option>现金</option></select></div></div>
+          <div class="btn-row"><button class="btn-secondary">取消</button><button class="btn-primary">确认开卡</button></div>
+        </div>
+      </div>
+      <div class="modal-overlay" style="background:var(--bg);">
+        <div class="modal">
+          <h3>充值 — 张三 (SV0001)</h3>
+          <div class="form-row"><div style="flex:1;"><label>当前余额</label><div style="padding:8px 0;font-size:18px;font-weight:700;color:var(--success);">¥5,280</div></div></div>
+          <div class="form-row"><div style="flex:1;"><label>充值金额</label><input type="text" value="¥2,000"></div></div>
+          <div class="form-row"><div style="flex:1;"><label>支付方式</label><select><option>微信支付</option><option>现金</option></select></div></div>
+          <div class="btn-row"><button class="btn-secondary">取消</button><button class="btn-primary">确认充值</button></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 3. 消费记录 -->
+  <div class="section">
+    <h2>3. 消费记录</h2>
+    <div class="mockup">
+      <div class="mockup-header">
+        <div class="mockup-logo"><div class="mockup-logo-icon"></div>智享酒水库存</div>
+        <div class="mockup-nav"><span class="mockup-nav-item">客户管理</span></div>
+        <div class="mockup-user"><div class="mockup-avatar">管</div>管理员</div>
+      </div>
+      <div class="mockup-body">
+        <div class="mockup-sidebar">
+          <div class="mockup-sidebar-section">客户管理</div>
+          <div class="mockup-sidebar-item active">储值卡</div>
+        </div>
+        <div class="mockup-main">
+          <div class="mockup-page-title">消费记录 — 张三 (SV0001)</div>
+          <table class="mockup-table">
+            <thead><tr><th>时间</th><th>类型</th><th>金额</th><th>余额</th><th>关联订单</th><th>备注</th></tr></thead>
+            <tbody>
+              <tr><td>06-29 16:30</td><td style="color:var(--danger);">消费</td><td>-¥850</td><td>¥5,280</td><td>XSDD240629001</td><td>购买茅台2箱</td></tr>
+              <tr><td>06-25 10:00</td><td style="color:var(--success);">充值</td><td>+¥2,000</td><td>¥6,130</td><td>—</td><td>微信充值</td></tr>
+              <tr><td>06-20 14:00</td><td style="color:var(--danger);">消费</td><td>-¥1,200</td><td>¥4,130</td><td>XSDD240620003</td><td>购买五粮液</td></tr>
+              <tr><td>06-01 09:00</td><td style="color:var(--success);">开卡充值</td><td>+¥5,000</td><td>¥5,330</td><td>—</td><td>首次开卡</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 4. 字段规范 -->
+  <div class="section">
+    <h2>4. 字段规范</h2>
+    <table class="spec-table">
+      <thead><tr><th>字段</th><th>类型</th><th>说明</th></tr></thead>
+      <tbody>
+        <tr><td><code>cardNo</code></td><td>String</td><td>卡号，格式 SV + 序号</td></tr>
+        <tr><td><code>customerId</code></td><td>UUID</td><td>客户ID</td></tr>
+        <tr><td><code>customerName</code></td><td>String</td><td>客户名称</td></tr>
+        <tr><td><code>balance</code></td><td>Decimal</td><td>当前余额</td></tr>
+        <tr><td><code>totalRecharge</code></td><td>Decimal</td><td>累计充值金额</td></tr>
+        <tr><td><code>totalConsume</code></td><td>Decimal</td><td>累计消费金额</td></tr>
+        <tr><td><code>status</code></td><td>Enum</td><td>ACTIVE / FROZEN / CANCELLED</td></tr>
+        <tr><td><code>openDate</code></td><td>Date</td><td>开卡日期</td></tr>
+        <tr><td><code>records</code></td><td>Array</td><td>充值/消费记录列表</td></tr>
+        <tr><td><code>record.type</code></td><td>Enum</td><td>RECHARGE / CONSUME / REFUND</td></tr>
+        <tr><td><code>record.amount</code></td><td>Decimal</td><td>变动金额（正=充值，负=消费）</td></tr>
+        <tr><td><code>record.balanceAfter</code></td><td>Decimal</td><td>变动后余额</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <!-- 5. 验收标准 -->
+  <div class="section">
+    <h2>5. 验收标准</h2>
+    <table class="spec-table">
+      <thead><tr><th>#</th><th>验收项</th><th>标准</th></tr></thead>
+      <tbody>
+        <tr><td>1</td><td>开卡</td><td>弹窗选择客户+初始金额+支付方式，确认后生成卡号</td></tr>
+        <tr><td>2</td><td>充值</td><td>支持多次充值，余额累加，生成充值记录</td></tr>
+        <tr><td>3</td><td>消费</td><td>关联销售订单自动扣减余额，余额不足提示</td></tr>
+        <tr><td>4</td><td>冻结/解冻</td><td>支持冻结卡片（禁止消费），解冻恢复</td></tr>
+        <tr><td>5</td><td>消费记录</td><td>完整展示充值/消费/退款流水，按时间倒序</td></tr>
+        <tr><td>6</td><td>退款</td><td>支持退款操作，退回余额，生成退款记录</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+</div>
+</body>
+</html>

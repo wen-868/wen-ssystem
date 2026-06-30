@@ -1,4 +1,4 @@
-# 阿澈 · 客户管理模块 · 商户移动端
+# 阿澈 · 财务往来模块 · 商户移动端
 
 **日期**：2026-06-30
 **状态**：待开始
@@ -9,53 +9,51 @@
 
 | # | 任务 | 优先级 | 状态 |
 |---|------|--------|:---:|
-| 1 | 客户积分明细页 | P0 | ❌ |
-| 2 | 储值卡管理页 | P0 | ❌ |
-| 3 | 会员卡展示页 | P0 | ❌ |
-| 4 | 客户标签编辑页 | P1 | ❌ |
+| 1 | 收款记录页 | P0 | ❌ |
+| 2 | 客户应收明细页 | P0 | ❌ |
+| 3 | 费用登记页 | P1 | ❌ |
+| 4 | 对账单页 | P0 | ❌ |
 
 ---
 
 ## 详细说明
 
-### 1. 客户积分明细页
-- **文件**：新建 `merchant-mobile/src/views/CustomerPointsView.vue`
+### 1. 收款记录页
+- **文件**：新建 `merchant-mobile/src/views/ReceiptListView.vue`
 - **功能**：
-  - 积分余额卡片（当前积分/累计积分/等级）
-  - 积分获取记录列表（时间/来源/积分/余额）
-  - 积分消耗记录列表
-  - 手动调整积分（管理员权限，输入积分+原因）
-  - 积分规则说明（消费积分比例等）
-- **API**：`fetchCustomerPoints(customerId)`、`fetchCustomerPointsRecords(customerId, type)`、`adjustCustomerPoints(customerId, payload)`
-- **路由**：`/customer-points/:customerId`
+  - 收款单列表（客户名称/金额/方式/日期/状态）
+  - 筛选：客户/日期范围
+  - 收款单详情（客户信息/金额/核销明细/备注）
+  - 快速收款入口（选择客户→输入金额→选择方式→确认）
+- **API**：`fetchReceipts`、`createReceipt`、`getReceiptDetail`
+- **路由**：`/receipts`
 
-### 2. 储值卡管理页
-- **文件**：新建 `merchant-mobile/src/views/StoreValueCardView.vue`
+### 2. 客户应收明细页
+- **文件**：新建 `merchant-mobile/src/views/CustomerReceivableView.vue`
 - **功能**：
-  - 储值卡余额展示（卡片样式：余额/卡号/状态）
-  - 充值操作（输入金额+选择支付方式）
-  - 消费记录列表（时间/类型/金额/余额）
-  - 快速充值（固定金额按钮：100/200/500/1000）
-- **API**：`fetchStoreValueCard(customerId)`、`rechargeStoreValueCard(cardNo, payload)`、`fetchStoreValueTransactions(cardNo)`
-- **路由**：`/store-value-card/:customerId`
+  - 客户应收汇总卡片（总额/已收/未收/逾期）
+  - 应收明细列表（单据号/日期/金额/已收/余额/逾期天数）
+  - 逾期标记（红色标签）
+  - 快速收款按钮（跳转收款页并预填客户）
+- **API**：`fetchCustomerReceivables(customerId)`、`fetchReceivablesSummary(customerId)`
+- **路由**：`/customer-receivables/:customerId`
 
-### 3. 会员卡展示页
-- **文件**：新建 `merchant-mobile/src/views/MemberCardView.vue`
+### 3. 费用登记页
+- **文件**：新建 `merchant-mobile/src/views/ExpenseCreateView.vue`
 - **功能**：
-  - 会员卡正面（等级图标/会员名/积分/有效期/二维码）
-  - 会员权益列表（各等级对应折扣/生日礼包/优先配送等）
-  - 积分快速查看入口
-  - 储值卡快速查看入口
-  - 消费记录最近3笔
-- **API**：`fetchMemberCard(customerId)`、`fetchMemberBenefits()`
-- **路由**：`/member-card/:customerId`
+  - 费用登记表单（类型/分类/金额/收款方/支付方式/备注/拍照上传发票）
+  - 费用类型快捷选择（日常/差旅/办公/运输）
+  - 拍照上传发票（调用手机相机）
+  - 费用列表查看（最近30条）
+- **API**：`createExpense`、`fetchExpenses`
+- **路由**：`/expense-create`、`/expenses`
 
-### 4. 客户标签编辑页
-- **文件**：新建 `merchant-mobile/src/views/CustomerTagEditView.vue`
+### 4. 对账单页
+- **文件**：新建 `merchant-mobile/src/views/ReconciliationMobileView.vue`
 - **功能**：
-  - 标签云展示（当前客户已打标签，可删除）
-  - 可选标签列表（分组展示，点击添加/移除）
-  - 客户画像简要信息（偏好品类/消费频次/平均客单价）
-  - 保存标签变更
-- **API**：`fetchCustomerTags(customerId)`、`fetchAllTags()`、`addCustomerTag(customerId, tagId)`、`removeCustomerTag(customerId, tagId)`
-- **路由**：`/customer-tags/:customerId`
+  - 对账单列表（客户/供应商/期初/本期/余额/状态）
+  - 对账详情（日期/单据号/摘要/应收/收款/余额）
+  - 确认对账按钮（确认后签名确认）
+  - 日期范围选择
+- **API**：`fetchCustomerReconciliation`、`fetchCustomerReconciliationDetail`、`confirmCustomerReconciliation`
+- **路由**：`/reconciliation`、`/reconciliation/:customerId`

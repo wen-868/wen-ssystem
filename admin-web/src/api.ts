@@ -1598,3 +1598,195 @@ export async function fetchInventoryABC(params?: { storeId?: number }) {
   const { data } = await api.get("/admin/reports/inventory-abc", { params });
   return data.data;
 }
+
+// ==================== Phase 7: 客户管理 API ====================
+
+// --- 积分与等级 ---
+export async function fetchPointsRules() {
+  const { data } = await api.get("/admin/members/rules");
+  return data.data;
+}
+export async function createPointsRule(payload: { name: string; earnType: string; earnRatio: number; dailyLimit: number }) {
+  const { data } = await api.post("/admin/members/rules", payload);
+  return data.data;
+}
+export async function updatePointsRule(id: number, payload: { name?: string; earnRatio?: number; dailyLimit?: number; status?: string }) {
+  const { data } = await api.put(`/admin/members/rules/${id}`, payload);
+  return data.data;
+}
+export async function deletePointsRule(id: number) {
+  const { data } = await api.delete(`/admin/members/rules/${id}`);
+  return data.data;
+}
+export async function fetchPointsRecords(params?: { customerId?: number; page?: number; pageSize?: number }) {
+  const { data } = await api.get(`/admin/members/${params?.customerId}/points/records`, { params: { page: 1, pageSize: 20 } });
+  return data.data;
+}
+export async function adjustCustomerPoints(customerId: number, payload: { points: number; remark: string }) {
+  const { data } = await api.post(`/admin/members/${customerId}/points/adjust`, payload);
+  return data.data;
+}
+export async function fetchLevelConfigs() {
+  const { data } = await api.get("/admin/members/levels/config");
+  return data.data;
+}
+export async function createLevelConfig(payload: { name: string; minPoints: number; maxPoints: number; discountRate: number; benefits: string }) {
+  const { data } = await api.post("/admin/members/levels/config", payload);
+  return data.data;
+}
+export async function updateLevelConfig(id: number, payload: { name?: string; minPoints?: number; maxPoints?: number; discountRate?: number; benefits?: string; status?: string }) {
+  const { data } = await api.put(`/admin/members/levels/config/${id}`, payload);
+  return data.data;
+}
+export async function deleteLevelConfig(id: number) {
+  const { data } = await api.delete(`/admin/members/levels/config/${id}`);
+  return data.data;
+}
+
+// --- 储值卡 ---
+export async function fetchStoreValueCards(params?: { keyword?: string; status?: string; page?: number; pageSize?: number }) {
+  const { data } = await api.get("/admin/store-value-cards", { params: { page: 1, pageSize: 20, ...params } });
+  return data.data;
+}
+export async function createStoreValueCard(payload: { customerId: number; amount: number }) {
+  const { data } = await api.post("/admin/store-value-cards", payload);
+  return data.data;
+}
+export async function rechargeStoreValueCard(cardNo: string, payload: { amount: number; paymentMethod: string; remark: string }) {
+  const { data } = await api.post(`/admin/store-value-cards/${cardNo}/recharge`, payload);
+  return data.data;
+}
+export async function consumeStoreValueCard(cardNo: string, payload: { amount: number; source: string; remark: string }) {
+  const { data } = await api.post(`/admin/store-value-cards/${cardNo}/consume`, payload);
+  return data.data;
+}
+export async function refundStoreValueCard(cardNo: string, payload: { amount: number; remark: string }) {
+  const { data } = await api.post(`/admin/store-value-cards/${cardNo}/refund`, payload);
+  return data.data;
+}
+export async function freezeStoreValueCard(cardNo: string) {
+  const { data } = await api.post(`/admin/store-value-cards/${cardNo}/freeze`);
+  return data.data;
+}
+export async function unfreezeStoreValueCard(cardNo: string) {
+  const { data } = await api.post(`/admin/store-value-cards/${cardNo}/unfreeze`);
+  return data.data;
+}
+export async function fetchStoreValueTransactions(cardNo: string, params?: { page?: number; pageSize?: number }) {
+  const { data } = await api.get(`/admin/store-value-cards/${cardNo}/transactions`, { params: { page: 1, pageSize: 20, ...params } });
+  return data.data;
+}
+
+// --- 会员体系 ---
+export async function registerMember(payload: { name: string; mobile: string; password: string; referrerId?: number }) {
+  const { data } = await api.post("/admin/members/register", payload);
+  return data.data;
+}
+export async function fetchMemberCard(customerId: number) {
+  const { data } = await api.get(`/admin/members/${customerId}/member-card`);
+  return data.data;
+}
+export async function fetchMemberBenefits() {
+  const { data } = await api.get("/admin/members/benefits");
+  return data.data;
+}
+export async function updateMemberLevel(customerId: number, payload: { levelId: number; reason: string }) {
+  const { data } = await api.put(`/admin/members/${customerId}/member-level`, payload);
+  return data.data;
+}
+
+// --- 客户标签 ---
+export async function fetchCustomerTags(params?: { tagGroup?: string; page?: number; pageSize?: number }) {
+  const { data } = await api.get("/admin/members/tags", { params: { page: 1, pageSize: 20, ...params } });
+  return data.data;
+}
+export async function createCustomerTag(payload: { name: string; tagGroup: string; tagType: string; color: string; sortNo?: number }) {
+  const { data } = await api.post("/admin/members/tags", payload);
+  return data.data;
+}
+export async function updateCustomerTag(id: number, payload: { name?: string; tagGroup?: string; color?: string; sortNo?: number }) {
+  const { data } = await api.put(`/admin/members/tags/${id}`, payload);
+  return data.data;
+}
+export async function deleteCustomerTag(id: number) {
+  const { data } = await api.delete(`/admin/members/tags/${id}`);
+  return data.data;
+}
+export async function addCustomerTag(customerId: number, tagId: number) {
+  const { data } = await api.post(`/admin/members/tags/${customerId}/tags`, { tagId });
+  return data.data;
+}
+export async function removeCustomerTag(customerId: number, tagId: number) {
+  const { data } = await api.delete(`/admin/members/tags/${customerId}/tags/${tagId}`);
+  return data.data;
+}
+export async function fetchCustomerProfile(customerId: number) {
+  const { data } = await api.get(`/admin/members/tags/${customerId}/profile`);
+  return data.data;
+}
+
+// --- 客户关怀 ---
+export async function fetchCareRules() {
+  const { data } = await api.get("/admin/members/care/rules");
+  return data.data;
+}
+export async function createCareRule(payload: { name: string; triggerType: string; contentTemplate: string; rewardPoints: number }) {
+  const { data } = await api.post("/admin/members/care/rules", payload);
+  return data.data;
+}
+export async function updateCareRule(id: number, payload: { name?: string; triggerType?: string; contentTemplate?: string; rewardPoints?: number }) {
+  const { data } = await api.put(`/admin/members/care/rules/${id}`, payload);
+  return data.data;
+}
+export async function deleteCareRule(id: number) {
+  const { data } = await api.delete(`/admin/members/care/rules/${id}`);
+  return data.data;
+}
+export async function executeCareRule(id: number) {
+  const { data } = await api.post(`/admin/members/care/rules/${id}/execute`);
+  return data.data;
+}
+export async function fetchCareLogs(params?: { page?: number; pageSize?: number; ruleId?: number }) {
+  const { data } = await api.get("/admin/members/care/logs", { params: { page: 1, pageSize: 20, ...params } });
+  return data.data;
+}
+
+// --- 生命周期 ---
+export async function fetchLifecycleStages() {
+  const { data } = await api.get("/admin/members/lifecycle/stages");
+  return data.data;
+}
+export async function fetchLifecycleTrend() {
+  const { data } = await api.get("/admin/members/lifecycle/trend");
+  return data.data;
+}
+export async function fetchLifecycleDetail(params?: { page?: number; pageSize?: number; stage?: string }) {
+  const { data } = await api.get("/admin/members/lifecycle/detail", { params: { page: 1, pageSize: 20, ...params } });
+  return data.data;
+}
+
+// --- 客户分群 ---
+export async function fetchSegments() {
+  const { data } = await api.get("/admin/members/segments");
+  return data.data;
+}
+export async function createSegment(payload: { name: string; conditions: Record<string, unknown>; refreshType: string }) {
+  const { data } = await api.post("/admin/members/segments", payload);
+  return data.data;
+}
+export async function updateSegment(id: number, payload: { name?: string; conditions?: Record<string, unknown>; refreshType?: string }) {
+  const { data } = await api.put(`/admin/members/segments/${id}`, payload);
+  return data.data;
+}
+export async function deleteSegment(id: number) {
+  const { data } = await api.delete(`/admin/members/segments/${id}`);
+  return data.data;
+}
+export async function refreshSegment(id: number) {
+  const { data } = await api.post(`/admin/members/segments/${id}/refresh`);
+  return data.data;
+}
+export async function fetchSegmentMembers(segmentId: number, params?: { page?: number; pageSize?: number }) {
+  const { data } = await api.get(`/admin/members/segments/${segmentId}/members`, { params: { page: 1, pageSize: 20, ...params } });
+  return data.data;
+}

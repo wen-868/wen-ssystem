@@ -91,6 +91,15 @@
           </template>
           <el-menu-item index="/customers">客户列表</el-menu-item>
           <el-menu-item index="/credit">授信管理</el-menu-item>
+          <el-menu-item index="/points-rules">积分规则</el-menu-item>
+          <el-menu-item index="/level-config">等级配置</el-menu-item>
+          <el-menu-item index="/store-value-cards">储值卡</el-menu-item>
+          <el-menu-item index="/member-system">会员体系</el-menu-item>
+          <el-menu-item index="/customer-tags">客户标签</el-menu-item>
+          <el-menu-item index="/customer-profile">客户画像</el-menu-item>
+          <el-menu-item index="/customer-care">关怀规则</el-menu-item>
+          <el-menu-item index="/customer-lifecycle">生命周期</el-menu-item>
+          <el-menu-item index="/customer-segments">客户分群</el-menu-item>
         </el-sub-menu>
 
         <!-- 7. 商品中心 -->
@@ -298,6 +307,15 @@ const pageTitle = computed(() => {
     "/inventory-reports": "库存报表",
     "/customers": "客户列表",
     "/credit": "授信管理",
+    "/points-rules": "积分规则",
+    "/level-config": "等级配置",
+    "/store-value-cards": "储值卡",
+    "/member-system": "会员体系",
+    "/customer-tags": "客户标签",
+    "/customer-profile": "客户画像",
+    "/customer-care": "关怀规则",
+    "/customer-lifecycle": "生命周期",
+    "/customer-segments": "客户分群",
     "/products": "商品列表",
     "/products/categories": "商品分类",
     "/products/brands": "品牌管理",

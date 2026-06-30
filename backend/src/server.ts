@@ -64,6 +64,11 @@ import { purchaseContractRouter } from "./routes/purchase-contract.routes.js";
 import { inventoryCostRouter } from "./routes/inventory-cost.routes.js";
 import { stockWarningRouter } from "./routes/stock-warning.routes.js";
 import { inventoryLossGainRouter } from "./routes/inventory-loss-gain.routes.js";
+import { pointsRouter } from "./routes/points.routes.js";
+import { storeValueCardRouter } from "./routes/store-value-card.routes.js";
+import { customerTagRouter } from "./routes/customer-tag.routes.js";
+import { customerCareRouter } from "./routes/customer-care.routes.js";
+import { customerSegmentRouter } from "./routes/customer-segment.routes.js";
 
 const app = express();
 
@@ -161,6 +166,11 @@ app.use("/api/admin/purchase-contracts", requireAuthWithTenant, purchaseContract
 app.use("/api/admin/inventory", requireAuthWithTenant, inventoryCostRouter);
 app.use("/api/admin/inventory", requireAuthWithTenant, inventoryLossGainRouter);
 app.use("/api/admin/stock-warnings", requireAuthWithTenant, stockWarningRouter);
+app.use("/api/admin/members", requireAuthWithTenant, pointsRouter);
+app.use("/api/admin/store-value-cards", requireAuthWithTenant, storeValueCardRouter);
+app.use("/api/admin/members/tags", requireAuthWithTenant, customerTagRouter);
+app.use("/api/admin/members/care", requireAuthWithTenant, customerCareRouter);
+app.use("/api/admin/members/segments", requireAuthWithTenant, customerSegmentRouter);
 
 app.use(errorHandler);
 

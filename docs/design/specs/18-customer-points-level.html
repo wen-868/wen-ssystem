@@ -1,0 +1,232 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>18 - 积分与等级管理页面设计 | 智享酒水库存系统</title>
+<style>
+:root {
+  --brand: #1677FF; --brand-light: #E6F4FF; --text: #1F2328; --text-secondary: #4B5563; --text-muted: #9CA3AF;
+  --border: #E5E7EB; --bg: #F5F7FA; --white: #FFF; --success: #10B981; --warning: #F59E0B; --danger: #EF4444;
+  --gold: #C69C6D; --radius: 12px; --shadow: 0 2px 8px rgba(0,0,0,.06);
+}
+* { margin: 0; padding: 0; box-sizing: border-box; }
+body { font-family: -apple-system, BlinkMacSystemFont, 'PingFang SC', 'Microsoft YaHei', sans-serif; background: var(--bg); color: var(--text); line-height: 1.6; }
+.container { max-width: 1300px; margin: 0 auto; padding: 40px 24px; }
+.header { background: linear-gradient(135deg, #C69C6D, #8B6914); color: #fff; padding: 48px 24px; text-align: center; }
+.header h1 { font-size: 2rem; font-weight: 700; margin-bottom: 8px; }
+.header p { font-size: 1rem; opacity: .85; }
+.section { background: var(--white); border-radius: var(--radius); padding: 32px; margin-bottom: 24px; box-shadow: var(--shadow); }
+.section h2 { font-size: 1.25rem; color: #8B6914; margin-bottom: 8px; padding-bottom: 12px; border-bottom: 2px solid #FFF7ED; }
+.section h3 { font-size: 1.05rem; margin: 20px 0 10px; }
+.section p.desc { color: var(--text-secondary); margin-bottom: 16px; font-size: .88rem; }
+
+.mockup { border: 1px solid var(--border); border-radius: var(--radius); overflow: hidden; background: #fff; margin: 16px 0; }
+.mockup-header { background: #fff; border-bottom: 1px solid #F0F0F0; padding: 0 20px; height: 56px; display: flex; align-items: center; justify-content: space-between; }
+.mockup-logo { font-size: 16px; font-weight: 700; color: var(--brand); display: flex; align-items: center; gap: 8px; }
+.mockup-logo-icon { width: 28px; height: 28px; background: linear-gradient(135deg, var(--brand), #0958D9); border-radius: 6px; }
+.mockup-nav { display: flex; gap: 4px; }
+.mockup-nav-item { padding: 6px 14px; border-radius: 6px; font-size: 13px; color: var(--text-secondary); }
+.mockup-user { display: flex; align-items: center; gap: 8px; font-size: 13px; }
+.mockup-avatar { width: 32px; height: 32px; border-radius: 50%; background: var(--brand); display: flex; align-items: center; justify-content: center; color: #fff; font-size: 13px; font-weight: 600; }
+.mockup-body { display: flex; }
+.mockup-sidebar { width: 220px; background: #fff; border-right: 1px solid #F0F0F0; padding: 16px 0; min-height: 520px; }
+.mockup-sidebar-item { padding: 10px 20px; font-size: 13px; color: var(--text-secondary); }
+.mockup-sidebar-item.active { background: #FFF7ED; color: #8B6914; font-weight: 500; border-right: 3px solid var(--gold); }
+.mockup-sidebar-section { font-size: 11px; color: var(--text-muted); padding: 16px 20px 6px; font-weight: 600; text-transform: uppercase; }
+.mockup-main { flex: 1; padding: 20px 24px; background: var(--bg); }
+.mockup-page-title { font-size: 20px; font-weight: 700; margin-bottom: 4px; }
+.mockup-breadcrumb { font-size: 12px; color: var(--text-muted); margin-bottom: 12px; }
+.tag { padding: 2px 8px; border-radius: 4px; font-size: 11px; font-weight: 500; white-space: nowrap; }
+.tag-warning { background: #FEF3C7; color: #92400E; }
+.tag-success { background: #D1FAE5; color: #065F46; }
+.tag-danger { background: #FEE2E2; color: #991B1B; }
+.tag-info { background: #DBEAFE; color: #1E40AF; }
+.tag-gold { background: #FFF7ED; color: #8B6914; }
+
+.mockup-table { width: 100%; border-collapse: collapse; font-size: 12px; }
+.mockup-table th { background: #F8FAFC; padding: 10px 12px; text-align: left; font-weight: 600; color: var(--text-secondary); border-bottom: 1px solid var(--border); font-size: 11px; }
+.mockup-table td { padding: 10px 12px; border-bottom: 1px solid #F0F0F0; }
+.mockup-table tr:hover td { background: #F8FAFC; }
+
+.spec-table { width: 100%; border-collapse: collapse; margin: 16px 0; }
+.spec-table th, .spec-table td { padding: 10px 14px; text-align: left; border-bottom: 1px solid var(--border); font-size: .85rem; }
+.spec-table th { background: #FFF7ED; color: #8B6914; font-weight: 600; font-size: .8rem; }
+.spec-table tr:hover { background: #F8FAFC; }
+.spec-table code { background: #F1F5F9; padding: 2px 6px; border-radius: 4px; font-size: .82rem; }
+
+.stats-row { display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px; margin-bottom: 20px; }
+.stat-card { background: #fff; border-radius: 8px; padding: 18px; border: 1px solid var(--border); display: flex; flex-direction: column; gap: 8px; }
+.stat-card .stat-label { font-size: 12px; color: var(--text-muted); }
+.stat-card .stat-value { font-size: 24px; font-weight: 700; }
+.stat-card .stat-change { font-size: 11px; }
+
+.level-badge { display: inline-block; padding: 4px 12px; border-radius: 20px; font-size: 12px; font-weight: 600; color: #fff; }
+.level-gold { background: linear-gradient(135deg, #C69C6D, #8B6914); }
+.level-silver { background: linear-gradient(135deg, #94A3B8, #64748B); }
+.level-bronze { background: linear-gradient(135deg, #D97706, #92400E); }
+.level-normal { background: #94A3B8; }
+</style>
+</head>
+<body>
+
+<div class="header">
+  <h1>积分与等级管理页面设计</h1>
+  <p>积分规则配置 · 等级体系 · 积分明细 · 升级记录</p>
+</div>
+
+<div class="container">
+
+  <!-- 1. 积分规则列表 -->
+  <div class="section">
+    <h2>1. 积分规则配置</h2>
+    <div class="mockup">
+      <div class="mockup-header">
+        <div class="mockup-logo"><div class="mockup-logo-icon"></div>智享酒水库存</div>
+        <div class="mockup-nav"><span class="mockup-nav-item">客户管理</span></div>
+        <div class="mockup-user"><div class="mockup-avatar">管</div>管理员</div>
+      </div>
+      <div class="mockup-body">
+        <div class="mockup-sidebar">
+          <div class="mockup-sidebar-section">客户管理</div>
+          <div class="mockup-sidebar-item">客户列表</div>
+          <div class="mockup-sidebar-item active">积分与等级</div>
+          <div class="mockup-sidebar-item">储值卡</div>
+          <div class="mockup-sidebar-item">会员体系</div>
+          <div class="mockup-sidebar-item">标签与画像</div>
+          <div class="mockup-sidebar-item">客户关怀</div>
+          <div class="mockup-sidebar-item">生命周期</div>
+          <div class="mockup-sidebar-item">客户分群</div>
+        </div>
+        <div class="mockup-main">
+          <div class="mockup-breadcrumb">客户管理 / 积分与等级</div>
+          <div class="mockup-page-title">积分与等级管理</div>
+          <div style="display:flex;gap:8px;margin-bottom:16px;background:var(--bg);border-radius:6px;padding:2px;">
+            <button style="padding:5px 14px;background:#fff;border:1px solid var(--border);border-radius:4px;font-size:12px;font-weight:500;">积分规则</button>
+            <button style="padding:5px 14px;background:transparent;border:none;font-size:12px;color:var(--text-secondary);">等级配置</button>
+            <button style="padding:5px 14px;background:transparent;border:none;font-size:12px;color:var(--text-secondary);">积分明细</button>
+          </div>
+          <div style="display:flex;gap:8px;margin-bottom:16px;">
+            <button style="padding:6px 16px;background:var(--gold);color:#fff;border:none;border-radius:6px;font-size:12px;cursor:pointer;">+ 新增规则</button>
+          </div>
+          <table class="mockup-table">
+            <thead><tr><th>规则名称</th><th>获取方式</th><th>积分比例</th><th>单笔上限</th><th>状态</th><th>操作</th></tr></thead>
+            <tbody>
+              <tr><td>消费积分</td><td>消费金额 ¥1 = 1积分</td><td>100%</td><td>500</td><td><span class="tag tag-success">启用</span></td><td><a href="#" style="color:var(--brand);font-size:12px;">编辑</a></td></tr>
+              <tr><td>签到积分</td><td>每日签到</td><td>10积分/次</td><td>10</td><td><span class="tag tag-success">启用</span></td><td><a href="#" style="color:var(--brand);font-size:12px;">编辑</a></td></tr>
+              <tr><td>生日积分</td><td>生日当天</td><td>100积分/次</td><td>100</td><td><span class="tag tag-success">启用</span></td><td><a href="#" style="color:var(--brand);font-size:12px;">编辑</a></td></tr>
+              <tr><td>推荐积分</td><td>推荐新客户注册</td><td>200积分/人</td><td>—</td><td><span class="tag tag-warning">暂停</span></td><td><a href="#" style="color:var(--brand);font-size:12px;">编辑</a></td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 2. 等级配置 -->
+  <div class="section">
+    <h2>2. 等级配置表</h2>
+    <div class="mockup">
+      <div class="mockup-header">
+        <div class="mockup-logo"><div class="mockup-logo-icon"></div>智享酒水库存</div>
+        <div class="mockup-nav"><span class="mockup-nav-item">客户管理</span></div>
+        <div class="mockup-user"><div class="mockup-avatar">管</div>管理员</div>
+      </div>
+      <div class="mockup-body">
+        <div class="mockup-sidebar">
+          <div class="mockup-sidebar-section">客户管理</div>
+          <div class="mockup-sidebar-item active">积分与等级</div>
+          <div class="mockup-sidebar-item">储值卡</div>
+          <div class="mockup-sidebar-item">会员体系</div>
+        </div>
+        <div class="mockup-main">
+          <div class="mockup-page-title">等级配置</div>
+          <table class="mockup-table">
+            <thead><tr><th>等级</th><th>积分区间</th><th>折扣率</th><th>升级奖励</th><th>生日礼遇</th><th>专属客服</th><th>客户数</th></tr></thead>
+            <tbody>
+              <tr><td><span class="level-badge level-gold">黄金会员</span></td><td>≥5,000</td><td>92折</td><td>500积分</td><td>✓</td><td>✓</td><td>128</td></tr>
+              <tr><td><span class="level-badge level-silver">白银会员</span></td><td>1,000~4,999</td><td>95折</td><td>200积分</td><td>✓</td><td>—</td><td>356</td></tr>
+              <tr><td><span class="level-badge level-bronze">青铜会员</span></td><td>100~999</td><td>98折</td><td>50积分</td><td>—</td><td>—</td><td>512</td></tr>
+              <tr><td><span class="level-badge level-normal">普通会员</span></td><td>0~99</td><td>无</td><td>—</td><td>—</td><td>—</td><td>1,204</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 3. 积分明细 -->
+  <div class="section">
+    <h2>3. 积分明细表</h2>
+    <div class="mockup">
+      <div class="mockup-header">
+        <div class="mockup-logo"><div class="mockup-logo-icon"></div>智享酒水库存</div>
+        <div class="mockup-nav"><span class="mockup-nav-item">客户管理</span></div>
+        <div class="mockup-user"><div class="mockup-avatar">管</div>管理员</div>
+      </div>
+      <div class="mockup-body">
+        <div class="mockup-sidebar">
+          <div class="mockup-sidebar-section">客户管理</div>
+          <div class="mockup-sidebar-item active">积分与等级</div>
+          <div class="mockup-sidebar-item">储值卡</div>
+          <div class="mockup-sidebar-item">会员体系</div>
+        </div>
+        <div class="mockup-main">
+          <div class="mockup-page-title">积分明细</div>
+          <div style="display:flex;gap:12px;margin-bottom:16px;">
+            <select style="padding:6px 12px;border:1px solid var(--border);border-radius:6px;font-size:12px;"><option>全部类型</option><option>获取</option><option>消耗</option></select>
+          </div>
+          <table class="mockup-table">
+            <thead><tr><th>客户</th><th>变动</th><th>余额</th><th>来源</th><th>时间</th></tr></thead>
+            <tbody>
+              <tr><td>张三</td><td style="color:var(--success);">+500</td><td>5,280</td><td>消费积分</td><td>06-29 16:30</td></tr>
+              <tr><td>李四</td><td style="color:var(--success);">+10</td><td>1,050</td><td>签到积分</td><td>06-29 09:00</td></tr>
+              <tr><td>王五</td><td style="color:var(--danger);">-200</td><td>380</td><td>积分兑换</td><td>06-28 14:20</td></tr>
+              <tr><td>赵六</td><td style="color:var(--success);">+100</td><td>620</td><td>生日积分</td><td>06-28 00:00</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 4. 字段规范 -->
+  <div class="section">
+    <h2>4. 字段规范</h2>
+    <table class="spec-table">
+      <thead><tr><th>字段</th><th>类型</th><th>说明</th></tr></thead>
+      <tbody>
+        <tr><td><code>ruleName</code></td><td>String</td><td>积分规则名称</td></tr>
+        <tr><td><code>earnType</code></td><td>Enum</td><td>获取方式：PURCHASE / CHECKIN / BIRTHDAY / REFERRAL</td></tr>
+        <tr><td><code>earnRatio</code></td><td>Decimal</td><td>积分比例（如消费1元=1积分）</td></tr>
+        <tr><td><code>maxPerDay</code></td><td>Number</td><td>单日积分上限</td></tr>
+        <tr><td><code>levelName</code></td><td>String</td><td>等级名称：黄金/白银/青铜/普通</td></tr>
+        <tr><td><code>minPoints</code></td><td>Number</td><td>等级最低积分</td></tr>
+        <tr><td><code>discountRate</code></td><td>Decimal</td><td>折扣率（如0.92=92折）</td></tr>
+        <tr><td><code>upgradeReward</code></td><td>Number</td><td>升级奖励积分</td></tr>
+        <tr><td><code>customerId</code></td><td>UUID</td><td>客户ID</td></tr>
+        <tr><td><code>changePoints</code></td><td>Number</td><td>积分变动（正=获取，负=消耗）</td></tr>
+        <tr><td><code>balancePoints</code></td><td>Number</td><td>变动后余额</td></tr>
+        <tr><td><code>source</code></td><td>String</td><td>积分来源说明</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <!-- 5. 验收标准 -->
+  <div class="section">
+    <h2>5. 验收标准</h2>
+    <table class="spec-table">
+      <thead><tr><th>#</th><th>验收项</th><th>标准</th></tr></thead>
+      <tbody>
+        <tr><td>1</td><td>积分规则CRUD</td><td>支持新增/编辑/启用/暂停积分规则</td></tr>
+        <tr><td>2</td><td>等级配置</td><td>4级等级体系，折扣率/奖励/权益可配置</td></tr>
+        <tr><td>3</td><td>积分明细</td><td>展示所有积分变动记录，支持按类型筛选</td></tr>
+        <tr><td>4</td><td>等级升级</td><td>积分达到阈值自动升级，记录升级历史</td></tr>
+        <tr><td>5</td><td>积分余额</td><td>积分变动后余额实时更新，不可为负</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+</div>
+</body>
+</html>

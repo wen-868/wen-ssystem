@@ -86,7 +86,11 @@ const routes: RouteRecordRaw[] = [
   { path: '/inventory-checks/:checkNo/execute', name: 'inventory-check-execute', component: () => import('./views/InventoryCheckExecuteView.vue'), meta: { requiresAuth: true } },
   // 调拨管理
   { path: '/inventory-transfers', name: 'inventory-transfers', component: () => import('./views/InventoryTransferView.vue'), meta: { requiresAuth: true } },
-  { path: '/inventory-transfers/:transferNo', name: 'inventory-transfer-detail', component: () => import('./views/InventoryTransferDetailView.vue'), meta: { requiresAuth: true } }
+  { path: '/inventory-transfers/:transferNo', name: 'inventory-transfer-detail', component: () => import('./views/InventoryTransferDetailView.vue'), meta: { requiresAuth: true } },
+  { path: '/customer-points/:customerId', name: 'customer-points', component: () => import('./views/CustomerPointsView.vue'), meta: { requiresAuth: true } },
+  { path: '/store-value-card/:customerId', name: 'store-value-card', component: () => import('./views/StoreValueCardView.vue'), meta: { requiresAuth: true } },
+  { path: '/member-card/:customerId', name: 'member-card', component: () => import('./views/MemberCardView.vue'), meta: { requiresAuth: true } },
+  { path: '/customer-tags/:customerId', name: 'customer-tags-edit', component: () => import('./views/CustomerTagEditView.vue'), meta: { requiresAuth: true } }
 ]
 
 const router = createRouter({

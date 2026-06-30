@@ -7,6 +7,8 @@ import * as orderController from "../controllers/admin/order.controller.js";
 import * as customerController from "../controllers/admin/customer.controller.js";
 import * as reportController from "../controllers/admin/report.controller.js";
 import * as dailySettlementController from "../controllers/admin/daily-settlement.controller.js";
+import * as memberController from "../controllers/admin/member.controller.js";
+import * as lifecycleController from "../controllers/admin/customer-lifecycle.controller.js";
 
 export const adminRouter = Router();
 
@@ -105,3 +107,12 @@ adminRouter.get("/daily-settlements/:id", requireAuthWithTenant, dailySettlement
 // ============ 供应商管理 (admin) — 见 supplier.routes.ts ============
 // ============ 销售退货 (admin) — 见 sale-return.routes.ts ============
 // ============ 客户对账/收款 (admin) — 见 customer-statement.routes.ts / customer-payment.routes.ts ============
+
+// ============ Phase 7: 会员体系 & 生命周期 ============
+adminRouter.post("/members/register", requireAuthWithTenant, memberController.registerMember);
+adminRouter.get("/members/:id/member-card", requireAuthWithTenant, memberController.getMemberCard);
+adminRouter.put("/members/:id/member-level", requireAuthWithTenant, memberController.updateMemberLevel);
+adminRouter.get("/members/benefits", requireAuthWithTenant, memberController.getMemberBenefits);
+adminRouter.get("/members/lifecycle/stages", requireAuthWithTenant, lifecycleController.getLifecycleStages);
+adminRouter.get("/members/lifecycle/trend", requireAuthWithTenant, lifecycleController.getLifecycleTrend);
+adminRouter.get("/members/lifecycle/detail", requireAuthWithTenant, lifecycleController.getLifecycleDetail);

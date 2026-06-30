@@ -85,6 +85,15 @@ const routes = [
       // 6. 客户管理
       { path: "customers", name: "Customers", component: () => import("../views/CustomersView.vue"), meta: { roles: ["BOSS", "MGR"] } },
       { path: "credit", name: "Credit", component: () => import("../views/CreditView.vue"), meta: { roles: ["BOSS", "MGR"] } },
+      { path: "points-rules", name: "PointsRules", component: () => import("../views/PointsRules.vue"), meta: { roles: ["BOSS"] } },
+      { path: "level-config", name: "LevelConfig", component: () => import("../views/LevelConfig.vue"), meta: { roles: ["BOSS"] } },
+      { path: "store-value-cards", name: "StoreValueCards", component: () => import("../views/StoreValueCards.vue"), meta: { roles: ["BOSS"] } },
+      { path: "member-system", name: "MemberSystem", component: () => import("../views/MemberSystem.vue"), meta: { roles: ["BOSS"] } },
+      { path: "customer-tags", name: "CustomerTags", component: () => import("../views/CustomerTags.vue"), meta: { roles: ["BOSS"] } },
+      { path: "customer-profile", name: "CustomerProfile", component: () => import("../views/CustomerProfile.vue"), meta: { roles: ["BOSS"] } },
+      { path: "customer-care", name: "CustomerCareRules", component: () => import("../views/CustomerCareRules.vue"), meta: { roles: ["BOSS"] } },
+      { path: "customer-lifecycle", name: "CustomerLifecycle", component: () => import("../views/CustomerLifecycle.vue"), meta: { roles: ["BOSS"] } },
+      { path: "customer-segments", name: "CustomerSegments", component: () => import("../views/CustomerSegments.vue"), meta: { roles: ["BOSS"] } },
       // 7. 商品中心
       { path: "products", name: "Products", component: () => import("../views/Products.vue"), meta: { roles: ["BOSS", "MGR"] } },
       { path: "products/categories", name: "ProductCategories", component: () => import("../views/ProductCategories.vue"), meta: { roles: ["BOSS"] } },
