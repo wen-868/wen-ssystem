@@ -2097,3 +2097,105 @@ export function fetchMyPointsRecords(params?: { page?: number; pageSize?: number
 export function fetchPointsRule() {
   return api.get('/store/marketing/points/rule')
 }
+
+/* ========== Phase 11: 即时零售 ========== */
+
+export interface InstantRetailOrder {
+  id: number
+  platformOrderId: string
+  platform: string
+  storeId: number
+  status: string
+  orderDataJson: string
+  orderAmount: number
+  deliveryFee: number
+  discountAmount: number
+  actualAmount: number
+  receiverName: string
+  receiverPhone: string
+  receiverAddress: string
+  createdAt: string
+  updatedAt: string
+}
+
+export interface InstantRetailOrderDetail extends InstantRetailOrder {
+  items: {
+    skuId: number
+    skuName: string
+    quantity: number
+    unitPrice: number
+    subtotal: number
+  }[]
+}
+
+export interface InstantRetailOrderSummary {
+  todayCount: number
+  pendingCount: number
+  deliveringCount: number
+  completedCount: number
+}
+
+export interface InstantRetailShelfItem {
+  localSkuId: number
+  productName: string
+  skuName: string
+  localStock: number
+  jdStock: number
+  meituanStock: number
+  elemeStock: number
+  syncStatus: string
+  lastSyncTime: string
+}
+
+export interface SyncSummary {
+  syncedCount: number
+  pendingCount: number
+  failedCount: number
+  lastSyncTime: string
+}
+
+export function fetchInstantRetailOrders(params: {
+  page?: number
+  pageSize?: number
+  platform?: string
+  status?: string
+}) {
+  return api.get('/store/instant-retail/orders', { params })
+}
+
+export function fetchInstantRetailOrderDetail(platformOrderId: string) {
+  return api.get(`/store/instant-retail/orders/${platformOrderId}`)
+}
+
+export function confirmInstantRetailOrder(platformOrderId: string) {
+  return api.post(`/store/instant-retail/orders/${platformOrderId}/confirm`)
+}
+
+export function startInstantRetailDelivery(platformOrderId: string, data?: { courierName?: string; courierPhone?: string }) {
+  return api.post(`/store/instant-retail/orders/${platformOrderId}/start-delivery`, data)
+}
+
+export function completeInstantRetailDelivery(platformOrderId: string) {
+  return api.post(`/store/instant-retail/orders/${platformOrderId}/complete-delivery`)
+}
+
+export function cancelInstantRetailOrder(platformOrderId: string, reason?: string) {
+  return api.post(`/store/instant-retail/orders/${platformOrderId}/cancel`, { reason })
+}
+
+export function fetchInstantRetailShelf(params?: {
+  keyword?: string
+  platform?: string
+  page?: number
+  pageSize?: number
+}) {
+  return api.get('/admin/instant-retail/shelf', { params })
+}
+
+export function syncInstantRetailShelf(data?: { skuIds?: number[]; platform?: string }) {
+  return api.post('/admin/instant-retail/shelf/sync', data)
+}
+
+export function syncSingleShelfItem(skuId: number, platform?: string) {
+  return api.post(`/admin/instant-retail/shelf/${skuId}/sync`, { platform })
+}

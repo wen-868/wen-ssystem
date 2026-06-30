@@ -1,0 +1,726 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>34 · 60秒接单工作台 — 设计规格文档</title>
+<style>
+:root {
+  --brand: #EF4444;
+  --brand-light: #FEE2E2;
+  --text: #1F2328;
+  --text-secondary: #4B5563;
+  --text-muted: #9CA3AF;
+  --border: #E5E7EB;
+  --bg: #F5F7FA;
+  --white: #FFF;
+  --success: #10B981;
+  --warning: #F59E0B;
+  --danger: #EF4444;
+  --info: #3B82F6;
+  --radius: 12px;
+  --shadow: 0 2px 8px rgba(0,0,0,.06);
+  --jd-red: #E1251B;
+  --mt-yellow: #FFD101;
+  --ele-blue: #0085FF;
+  --dark-bg: #0F172A;
+  --dark-card: #1E293B;
+  --dark-border: #334155;
+  --gold: #F59E0B;
+}
+* { margin: 0; padding: 0; box-sizing: border-box; }
+body { font-family: -apple-system, BlinkMacSystemFont, 'PingFang SC', 'Microsoft YaHei', sans-serif; background: var(--bg); color: var(--text); line-height: 1.6; }
+.container { max-width: 1480px; margin: 0 auto; padding: 40px 24px; }
+.header { background: linear-gradient(135deg, #0F172A, #1E293B); color: #fff; padding: 48px 24px; text-align: center; position: relative; overflow: hidden; }
+.header::before { content: ''; position: absolute; top: 0; left: 0; right: 0; height: 4px; background: linear-gradient(90deg, #EF4444, #F59E0B, #10B981); }
+.header h1 { font-size: 2rem; font-weight: 700; margin-bottom: 8px; }
+.header h1 .accent { color: #EF4444; }
+.header p { font-size: 1rem; opacity: .85; }
+.section { background: var(--white); border-radius: var(--radius); padding: 32px; margin-bottom: 24px; box-shadow: var(--shadow); }
+.section h2 { font-size: 1.25rem; color: var(--danger); margin-bottom: 8px; padding-bottom: 12px; border-bottom: 2px solid #FFF0F0; }
+.section h3 { font-size: 1.05rem; margin: 20px 0 10px; color: var(--text); }
+.section p.desc { color: var(--text-secondary); margin-bottom: 16px; font-size: .88rem; }
+.section p { margin: 8px 0; font-size: .88rem; }
+
+/* Mockup */
+.mockup { background: var(--dark-bg); border-radius: 8px; overflow: hidden; box-shadow: 0 4px 24px rgba(0,0,0,.15); margin: 16px 0; }
+.mockup-header { background: var(--dark-card); padding: 16px 24px; display: flex; align-items: center; justify-content: space-between; border-bottom: 1px solid var(--dark-border); }
+.mockup-header-left { display: flex; align-items: center; gap: 16px; }
+.mockup-store-name { color: #fff; font-size: 18px; font-weight: 600; }
+.mockup-time { font-family: 'Courier New', monospace; font-size: 24px; color: #fff; font-weight: 700; letter-spacing: 1px; }
+.mockup-status { display: flex; align-items: center; gap: 6px; }
+.mockup-status-dot { width: 10px; height: 10px; border-radius: 50%; background: var(--success); animation: breathe 2s ease-in-out infinite; }
+.mockup-status-text { color: var(--success); font-size: 14px; font-weight: 500; }
+.mockup-header-right { display: flex; align-items: center; gap: 16px; }
+.mockup-icon-btn { width: 36px; height: 36px; border-radius: 8px; background: rgba(255,255,255,.1); display: flex; align-items: center; justify-content: center; cursor: pointer; transition: background .2s; }
+.mockup-icon-btn:hover { background: rgba(255,255,255,.2); }
+.sound-icon { width: 18px; height: 18px; position: relative; }
+.sound-icon::before { content: ''; position: absolute; left: 0; top: 50%; transform: translateY(-50%); width: 0; height: 0; border-style: solid; border-width: 6px 8px 6px 0; border-color: transparent #fff transparent transparent; }
+.sound-icon::after { content: ''; position: absolute; right: 0; top: 50%; transform: translateY(-50%); width: 10px; height: 10px; border: 2px solid #fff; border-left: none; border-radius: 0 10px 10px 0; }
+.refresh-icon { width: 18px; height: 18px; border: 2px solid #fff; border-radius: 50%; border-top-color: transparent; position: relative; }
+.refresh-icon::after { content: ''; position: absolute; top: -2px; right: -3px; width: 0; height: 0; border-style: solid; border-width: 4px 0 4px 4px; border-color: transparent transparent transparent #fff; }
+.fullscreen-icon { width: 18px; height: 18px; position: relative; }
+.fullscreen-icon::before { content: ''; position: absolute; top: 0; left: 0; width: 6px; height: 6px; border-top: 2px solid #fff; border-left: 2px solid #fff; }
+.fullscreen-icon::after { content: ''; position: absolute; bottom: 0; right: 0; width: 6px; height: 6px; border-bottom: 2px solid #fff; border-right: 2px solid #fff; }
+
+/* Stats Row */
+.stats-row { display: flex; gap: 16px; padding: 20px 24px; background: var(--dark-card); border-bottom: 1px solid var(--dark-border); }
+.stat-card { flex: 1; background: rgba(255,255,255,.05); border-radius: 10px; padding: 16px 20px; border: 1px solid var(--dark-border); }
+.stat-card-label { color: var(--text-muted); font-size: 13px; margin-bottom: 6px; }
+.stat-card-value { font-size: 28px; font-weight: 700; color: #fff; }
+.stat-card-value.gold { color: var(--gold); }
+.stat-card-value.green { color: var(--success); }
+.stat-card-value.warning { color: var(--warning); }
+.stat-card-value.info { color: var(--info); }
+
+/* New Order Popup */
+.new-order-popup { position: relative; padding: 24px; background: var(--dark-bg); display: flex; justify-content: center; }
+.new-order-card { width: 560px; background: var(--dark-card); border-radius: 16px; border: 2px solid var(--danger); position: relative; animation: pulse-border 1.5s ease-in-out infinite; overflow: hidden; }
+@keyframes pulse-border {
+  0%, 100% { box-shadow: 0 0 0 0 rgba(239,68,68,.4); }
+  50% { box-shadow: 0 0 0 12px rgba(239,68,68,0); }
+}
+.new-order-header { display: flex; align-items: center; justify-content: space-between; padding: 16px 20px; border-bottom: 1px solid var(--dark-border); }
+.new-order-platform { display: flex; align-items: center; gap: 12px; }
+.platform-tag { padding: 4px 12px; border-radius: 6px; font-size: 13px; font-weight: 600; color: #fff; }
+.platform-tag.jd { background: var(--jd-red); }
+.platform-tag.mt { background: var(--mt-yellow); color: #333; }
+.platform-tag.ele { background: var(--ele-blue); }
+.new-order-no { color: #fff; font-size: 15px; font-weight: 500; }
+.countdown-ring { position: relative; width: 72px; height: 72px; }
+.countdown-ring svg { width: 100%; height: 100%; transform: rotate(-90deg); }
+.countdown-ring circle { fill: none; stroke-width: 4; }
+.countdown-ring .bg { stroke: rgba(255,255,255,.1); }
+.countdown-ring .progress { stroke: var(--success); stroke-linecap: round; stroke-dasharray: 207; stroke-dashoffset: 0; transition: stroke-dashoffset 1s linear; }
+.countdown-ring-text { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); font-family: 'Courier New', monospace; font-size: 20px; font-weight: 700; color: #fff; }
+
+.new-order-body { padding: 20px; }
+.user-info { display: flex; align-items: center; gap: 12px; margin-bottom: 16px; }
+.user-avatar { width: 44px; height: 44px; border-radius: 50%; background: linear-gradient(135deg, #667eea, #764ba2); display: flex; align-items: center; justify-content: center; color: #fff; font-weight: 600; font-size: 16px; }
+.user-details { flex: 1; }
+.user-name { color: #fff; font-size: 15px; font-weight: 600; margin-bottom: 2px; }
+.user-phone { color: var(--text-muted); font-size: 13px; }
+.user-address { color: var(--text-muted); font-size: 13px; margin-top: 2px; }
+
+.order-items { max-height: 120px; overflow-y: auto; margin-bottom: 12px; border: 1px solid var(--dark-border); border-radius: 8px; padding: 8px; }
+.order-item { display: flex; justify-content: space-between; align-items: center; padding: 6px 8px; color: #fff; font-size: 13px; }
+.order-item-name { flex: 1; }
+.order-item-qty { color: var(--text-muted); margin: 0 12px; }
+.order-item-price { color: var(--gold); font-weight: 500; }
+
+.order-note { background: rgba(245,158,11,.15); border: 1px solid rgba(245,158,11,.3); border-radius: 8px; padding: 10px 12px; margin-bottom: 16px; }
+.order-note-label { color: var(--warning); font-size: 12px; font-weight: 600; margin-bottom: 4px; }
+.order-note-text { color: #fff; font-size: 13px; }
+
+.order-amount { display: flex; flex-direction: column; gap: 6px; padding-top: 12px; border-top: 1px solid var(--dark-border); }
+.amount-row { display: flex; justify-content: space-between; font-size: 13px; }
+.amount-row .label { color: var(--text-muted); }
+.amount-row .value { color: #fff; }
+.amount-row.total { margin-top: 4px; padding-top: 8px; border-top: 1px dashed var(--dark-border); }
+.amount-row.total .label { color: #fff; font-weight: 600; font-size: 14px; }
+.amount-row.total .value { color: var(--gold); font-size: 22px; font-weight: 700; }
+
+.new-order-actions { display: flex; gap: 12px; padding: 0 20px 20px; }
+.btn { flex: 1; height: 64px; border: none; border-radius: 12px; font-size: 20px; font-weight: 600; cursor: pointer; transition: all .2s; }
+.btn-reject { background: rgba(255,255,255,.1); color: var(--text-muted); border: 1px solid var(--dark-border); }
+.btn-reject:hover { background: rgba(255,255,255,.15); }
+.btn-accept { background: var(--success); color: #fff; }
+.btn-accept:hover { background: #059669; }
+
+/* Reject Modal */
+.reject-modal { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); width: 380px; background: var(--dark-card); border-radius: 12px; padding: 20px; border: 1px solid var(--dark-border); z-index: 10; }
+.reject-modal-title { color: #fff; font-size: 16px; font-weight: 600; margin-bottom: 16px; }
+.reject-reason-list { display: flex; flex-direction: column; gap: 8px; margin-bottom: 16px; }
+.reject-reason-item { display: flex; align-items: center; gap: 10px; padding: 10px 12px; background: rgba(255,255,255,.05); border-radius: 8px; cursor: pointer; border: 1px solid transparent; }
+.reject-reason-item.selected { border-color: var(--danger); background: rgba(239,68,68,.1); }
+.reject-reason-radio { width: 18px; height: 18px; border-radius: 50%; border: 2px solid var(--dark-border); position: relative; }
+.reject-reason-item.selected .reject-reason-radio { border-color: var(--danger); }
+.reject-reason-item.selected .reject-reason-radio::after { content: ''; position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); width: 10px; height: 10px; border-radius: 50%; background: var(--danger); }
+.reject-reason-text { color: #fff; font-size: 14px; }
+.reject-modal-actions { display: flex; gap: 10px; }
+.reject-modal-actions .btn { height: 44px; font-size: 14px; border-radius: 8px; }
+
+/* Order Board Columns */
+.order-board { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 16px; padding: 20px 24px; background: var(--dark-bg); }
+.board-column { display: flex; flex-direction: column; gap: 12px; }
+.board-column-header { padding: 12px 16px; border-radius: 10px 10px 0 0; display: flex; align-items: center; justify-content: space-between; }
+.board-column-header.pending { background: rgba(245,158,11,.15); border-bottom: 2px solid var(--warning); }
+.board-column-header.progress { background: rgba(59,130,246,.15); border-bottom: 2px solid var(--info); }
+.board-column-header.done { background: rgba(16,185,129,.15); border-bottom: 2px solid var(--success); }
+.column-title { font-size: 16px; font-weight: 600; }
+.column-title.pending { color: var(--warning); }
+.column-title.progress { color: var(--info); }
+.column-title.done { color: var(--success); }
+.column-count { background: rgba(255,255,255,.15); color: #fff; padding: 2px 10px; border-radius: 12px; font-size: 13px; font-weight: 600; }
+
+.order-card { background: var(--dark-card); border-radius: 10px; padding: 14px; border: 1px solid var(--dark-border); }
+.order-card-top { display: flex; align-items: center; justify-content: space-between; margin-bottom: 10px; }
+.order-card-platform { display: flex; align-items: center; gap: 8px; }
+.order-card-no { color: #fff; font-size: 13px; font-weight: 500; }
+.order-card-time { color: var(--text-muted); font-size: 12px; }
+
+.order-card-items { color: var(--text-muted); font-size: 12px; margin-bottom: 10px; line-height: 1.5; }
+.order-card-items .more { color: var(--info); }
+
+.order-card-bottom { display: flex; align-items: center; justify-content: space-between; }
+.order-card-amount { color: var(--gold); font-size: 16px; font-weight: 700; }
+.order-card-countdown { display: flex; align-items: center; gap: 4px; font-family: 'Courier New', monospace; font-size: 14px; font-weight: 600; color: var(--warning); }
+.order-card-countdown.danger { color: var(--danger); }
+.order-card-actions { display: flex; gap: 6px; }
+.order-card-btn { padding: 4px 12px; border-radius: 6px; font-size: 12px; font-weight: 500; border: none; cursor: pointer; }
+.order-card-btn.accept { background: var(--success); color: #fff; }
+.order-card-btn.reject { background: rgba(255,255,255,.1); color: var(--text-muted); border: 1px solid var(--dark-border); }
+
+/* Progress Order */
+.rider-info { display: flex; align-items: center; gap: 8px; margin-bottom: 10px; }
+.rider-avatar { width: 28px; height: 28px; border-radius: 50%; background: linear-gradient(135deg, #f093fb, #f5576c); display: flex; align-items: center; justify-content: center; color: #fff; font-size: 12px; font-weight: 600; }
+.rider-name { color: #fff; font-size: 13px; font-weight: 500; }
+.rider-phone { color: var(--text-muted); font-size: 12px; }
+
+.delivery-status { display: inline-flex; align-items: center; gap: 4px; padding: 2px 8px; border-radius: 4px; font-size: 11px; font-weight: 500; margin-bottom: 8px; }
+.delivery-status.picking { background: rgba(245,158,11,.15); color: var(--warning); }
+.delivery-status.delivering { background: rgba(59,130,246,.15); color: var(--info); }
+
+.eta { color: var(--text-muted); font-size: 12px; margin-bottom: 8px; }
+.progress-bar { height: 6px; background: rgba(255,255,255,.1); border-radius: 3px; overflow: hidden; }
+.progress-bar-fill { height: 100%; background: var(--info); border-radius: 3px; }
+
+/* Done Order */
+.order-card.done { opacity: .6; }
+.done-time { color: var(--text-muted); font-size: 12px; }
+
+/* Bottom Bar */
+.mockup-bottom-bar { display: flex; align-items: center; justify-content: space-between; padding: 14px 24px; background: var(--dark-card); border-top: 1px solid var(--dark-border); }
+.bottom-bar-left { display: flex; gap: 10px; }
+.bottom-btn { padding: 8px 16px; border-radius: 8px; font-size: 13px; font-weight: 500; border: 1px solid var(--dark-border); background: rgba(255,255,255,.05); color: #fff; cursor: pointer; transition: all .2s; }
+.bottom-btn:hover { background: rgba(255,255,255,.1); }
+.bottom-btn.primary { background: var(--success); border-color: var(--success); }
+.bottom-btn.danger { background: var(--danger); border-color: var(--danger); }
+
+.bottom-bar-right { display: flex; align-items: center; gap: 12px; }
+.auto-accept-toggle { display: flex; align-items: center; gap: 8px; color: #fff; font-size: 13px; }
+.toggle-switch { width: 40px; height: 22px; background: rgba(255,255,255,.1); border-radius: 11px; position: relative; cursor: pointer; border: 1px solid var(--dark-border); }
+.toggle-switch.on { background: var(--success); border-color: var(--success); }
+.toggle-switch::after { content: ''; position: absolute; top: 2px; left: 2px; width: 16px; height: 16px; border-radius: 50%; background: #fff; transition: transform .2s; }
+.toggle-switch.on::after { transform: translateX(18px); }
+
+/* Sound Description */
+.sound-section { margin-top: 20px; padding: 16px; background: #F8FAFC; border-radius: 8px; }
+.sound-section h4 { font-size: 14px; margin-bottom: 10px; color: var(--text); }
+.sound-list { display: flex; flex-direction: column; gap: 8px; }
+.sound-item { display: flex; align-items: center; gap: 10px; font-size: 13px; color: var(--text-secondary); }
+.sound-icon-sm { width: 16px; height: 16px; position: relative; flex-shrink: 0; }
+.sound-icon-sm::before { content: ''; position: absolute; left: 0; top: 50%; transform: translateY(-50%); width: 0; height: 0; border-style: solid; border-width: 5px 6px 5px 0; border-color: transparent #6B7280 transparent transparent; }
+.sound-icon-sm::after { content: ''; position: absolute; right: 0; top: 50%; transform: translateY(-50%); width: 8px; height: 8px; border: 2px solid #6B7280; border-left: none; border-radius: 0 8px 8px 0; }
+
+/* Spec Table */
+.spec-table { width: 100%; border-collapse: collapse; margin: 16px 0; }
+.spec-table th, .spec-table td { padding: 10px 14px; text-align: left; border-bottom: 1px solid var(--border); font-size: .85rem; }
+.spec-table th { background: #FFF0F0; color: var(--danger); font-weight: 600; font-size: .8rem; }
+.spec-table tr:hover { background: #F8FAFC; }
+.spec-table code { background: #F1F5F9; padding: 2px 6px; border-radius: 4px; font-size: .82rem; }
+
+/* Checklist */
+.checklist { list-style: none; padding: 0; }
+.checklist li { padding: 8px 0 8px 28px; position: relative; font-size: .88rem; color: var(--text-secondary); border-bottom: 1px solid #F0F0F0; }
+.checklist li::before { content: ''; position: absolute; left: 0; top: 10px; width: 16px; height: 16px; border: 2px solid var(--border); border-radius: 4px; }
+.checklist li:last-child { border-bottom: none; }
+
+@keyframes breathe {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.4; }
+}
+</style>
+</head>
+<body>
+
+<div class="header">
+  <h1>34 · <span class="accent">60秒接单工作台</span> — 设计规格文档</h1>
+  <p>门店大屏展示 · 实时接单 · 多平台订单统一管理</p>
+</div>
+
+<div class="container">
+
+  <!-- 1. 页面总览 -->
+  <div class="section">
+    <h2>1. 页面总览</h2>
+    <p class="desc">60秒接单工作台是面向门店的大屏实时接单系统，用于集中展示来自京东秒送、美团外卖、饿了么三大平台的订单，支持60秒倒计时接单、订单状态跟踪、批量操作等功能。设计采用深色主题，确保门店后厨等环境下的可读性和醒目性。</p>
+    <h3>核心功能</h3>
+    <p>• 新订单弹窗提示，60秒倒计时自动接单/拒单</p>
+    <p>• 三列订单看板：待接单、进行中、已完成</p>
+    <p>• 多平台订单统一展示（京东/美团/饿了么）</p>
+    <p>• 实时数据统计：今日订单、销售额、待接单、配送中</p>
+    <p>• 音效提醒：新订单、超时告警、操作确认</p>
+    <p>• 批量操作：批量接单、批量拒单、自动接单开关</p>
+  </div>
+
+  <!-- 2. Mockup 区域 -->
+  <div class="section">
+    <h2>2. Mockup 设计</h2>
+    <p class="desc">大屏接单工作台设计稿，1440px宽度模拟，深色主题，适用于门店大屏展示场景。</p>
+
+    <div class="mockup">
+      <!-- 顶部状态栏 -->
+      <div class="mockup-header">
+        <div class="mockup-header-left">
+          <div class="mockup-store-name">智享酒水旗舰店</div>
+          <div class="mockup-time">14:32:08</div>
+          <div class="mockup-status">
+            <span class="mockup-status-dot"></span>
+            <span class="mockup-status-text">营业中</span>
+          </div>
+        </div>
+        <div class="mockup-header-right">
+          <div class="mockup-icon-btn" title="音效开关">
+            <div class="sound-icon"></div>
+          </div>
+          <div class="mockup-icon-btn" title="刷新">
+            <div class="refresh-icon"></div>
+          </div>
+          <div class="mockup-icon-btn" title="全屏">
+            <div class="fullscreen-icon"></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- 数据统计卡片 -->
+      <div class="stats-row">
+        <div class="stat-card">
+          <div class="stat-card-label">今日订单</div>
+          <div class="stat-card-value info">128</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-card-label">今日销售额</div>
+          <div class="stat-card-value gold">¥12,580</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-card-label">待接单</div>
+          <div class="stat-card-value warning">5</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-card-label">配送中</div>
+          <div class="stat-card-value green">12</div>
+        </div>
+      </div>
+
+      <!-- 新订单弹出卡片 -->
+      <div class="new-order-popup">
+        <div class="new-order-card">
+          <div class="new-order-header">
+            <div class="new-order-platform">
+              <span class="platform-tag mt">美团外卖</span>
+              <span class="new-order-no">MT202401150001</span>
+            </div>
+            <div class="countdown-ring">
+              <svg viewBox="0 0 72 72">
+                <circle class="bg" cx="36" cy="36" r="33"></circle>
+                <circle class="progress" cx="36" cy="36" r="33" style="stroke-dashoffset: 69;"></circle>
+              </svg>
+              <div class="countdown-ring-text">40s</div>
+            </div>
+          </div>
+          <div class="new-order-body">
+            <div class="user-info">
+              <div class="user-avatar">张</div>
+              <div class="user-details">
+                <div class="user-name">张先生</div>
+                <div class="user-phone">138****8888</div>
+                <div class="user-address">朝阳区建国路88号SOHO现代城A座1201</div>
+              </div>
+            </div>
+            <div class="order-items">
+              <div class="order-item">
+                <span class="order-item-name">青岛啤酒经典500ml</span>
+                <span class="order-item-qty">x2</span>
+                <span class="order-item-price">¥16.00</span>
+              </div>
+              <div class="order-item">
+                <span class="order-item-name">百威啤酒330ml</span>
+                <span class="order-item-qty">x6</span>
+                <span class="order-item-price">¥48.00</span>
+              </div>
+              <div class="order-item">
+                <span class="order-item-name">哈尔滨啤酒冰纯500ml</span>
+                <span class="order-item-qty">x4</span>
+                <span class="order-item-price">¥32.00</span>
+              </div>
+              <div class="order-item">
+                <span class="order-item-name">花生毛豆拼盘</span>
+                <span class="order-item-qty">x1</span>
+                <span class="order-item-price">¥18.00</span>
+              </div>
+            </div>
+            <div class="order-note">
+              <div class="order-note-label">订单备注</div>
+              <div class="order-note-text">请尽快送达，谢谢！不要放门口，敲门即可。</div>
+            </div>
+            <div class="order-amount">
+              <div class="amount-row">
+                <span class="label">商品金额</span>
+                <span class="value">¥114.00</span>
+              </div>
+              <div class="amount-row">
+                <span class="label">配送费</span>
+                <span class="value">¥5.00</span>
+              </div>
+              <div class="amount-row">
+                <span class="label">优惠</span>
+                <span class="value">-¥10.00</span>
+              </div>
+              <div class="amount-row total">
+                <span class="label">实付金额</span>
+                <span class="value">¥109.00</span>
+              </div>
+            </div>
+          </div>
+          <div class="new-order-actions">
+            <button class="btn btn-reject">拒单</button>
+            <button class="btn btn-accept">接单</button>
+          </div>
+
+          <!-- 拒单原因弹窗 -->
+          <div class="reject-modal" style="display: none;">
+            <div class="reject-modal-title">选择拒单原因</div>
+            <div class="reject-reason-list">
+              <div class="reject-reason-item selected">
+                <div class="reject-reason-radio"></div>
+                <span class="reject-reason-text">库存不足</span>
+              </div>
+              <div class="reject-reason-item">
+                <div class="reject-reason-radio"></div>
+                <span class="reject-reason-text">地址超区</span>
+              </div>
+              <div class="reject-reason-item">
+                <div class="reject-reason-radio"></div>
+                <span class="reject-reason-text">其他原因</span>
+              </div>
+            </div>
+            <div class="reject-modal-actions">
+              <button class="btn btn-reject" style="flex: 1;">取消</button>
+              <button class="btn btn-accept" style="flex: 1; background: var(--danger);">确认拒单</button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- 三列订单看板 -->
+      <div class="order-board">
+        <!-- 待接单列 -->
+        <div class="board-column">
+          <div class="board-column-header pending">
+            <span class="column-title pending">待接单</span>
+            <span class="column-count">5</span>
+          </div>
+
+          <div class="order-card">
+            <div class="order-card-top">
+              <div class="order-card-platform">
+                <span class="platform-tag jd" style="font-size: 11px; padding: 2px 8px;">京东</span>
+                <span class="order-card-no">JD202401150023</span>
+              </div>
+              <span class="order-card-time">2分钟前</span>
+            </div>
+            <div class="order-card-items">
+              牛栏山二锅头52度 x2<br/>
+              红牛功能饮料 x4<span class="more"> +2件</span>
+            </div>
+            <div class="order-card-bottom">
+              <span class="order-card-amount">¥128.00</span>
+              <div class="order-card-countdown danger">
+                <span>15s</span>
+              </div>
+            </div>
+          </div>
+
+          <div class="order-card">
+            <div class="order-card-top">
+              <div class="order-card-platform">
+                <span class="platform-tag ele" style="font-size: 11px; padding: 2px 8px;">饿了么</span>
+                <span class="order-card-no">EL202401150045</span>
+              </div>
+              <span class="order-card-time">1分钟前</span>
+            </div>
+            <div class="order-card-items">
+              雪花啤酒勇闯天涯 x12
+            </div>
+            <div class="order-card-bottom">
+              <span class="order-card-amount">¥96.00</span>
+              <div class="order-card-countdown">
+                <span>45s</span>
+              </div>
+            </div>
+          </div>
+
+          <div class="order-card">
+            <div class="order-card-top">
+              <div class="order-card-platform">
+                <span class="platform-tag mt" style="font-size: 11px; padding: 2px 8px;">美团</span>
+                <span class="order-card-no">MT202401150067</span>
+              </div>
+              <span class="order-card-time">3分钟前</span>
+            </div>
+            <div class="order-card-items">
+              五粮液52度 x1<br/>
+              可口可乐 x2<span class="more"> +1件</span>
+            </div>
+            <div class="order-card-bottom">
+              <span class="order-card-amount">¥588.00</span>
+              <div class="order-card-countdown danger">
+                <span>08s</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- 进行中列 -->
+        <div class="board-column">
+          <div class="board-column-header progress">
+            <span class="column-title progress">进行中</span>
+            <span class="column-count">12</span>
+          </div>
+
+          <div class="order-card">
+            <div class="order-card-top">
+              <div class="order-card-platform">
+                <span class="platform-tag mt" style="font-size: 11px; padding: 2px 8px;">美团</span>
+                <span class="order-card-no">MT202401150050</span>
+              </div>
+            </div>
+            <div class="rider-info">
+              <div class="rider-avatar">李</div>
+              <div>
+                <div class="rider-name">李师傅</div>
+                <div class="rider-phone">139****6666</div>
+              </div>
+            </div>
+            <span class="delivery-status delivering">配送中</span>
+            <div class="eta">预计 14:45 送达</div>
+            <div class="progress-bar">
+              <div class="progress-bar-fill" style="width: 65%;"></div>
+            </div>
+          </div>
+
+          <div class="order-card">
+            <div class="order-card-top">
+              <div class="order-card-platform">
+                <span class="platform-tag jd" style="font-size: 11px; padding: 2px 8px;">京东</span>
+                <span class="order-card-no">JD202401150018</span>
+              </div>
+            </div>
+            <div class="rider-info">
+              <div class="rider-avatar">王</div>
+              <div>
+                <div class="rider-name">王师傅</div>
+                <div class="rider-phone">137****5555</div>
+              </div>
+            </div>
+            <span class="delivery-status picking">取货中</span>
+            <div class="eta">预计 14:50 送达</div>
+            <div class="progress-bar">
+              <div class="progress-bar-fill" style="width: 20%;"></div>
+            </div>
+          </div>
+
+          <div class="order-card">
+            <div class="order-card-top">
+              <div class="order-card-platform">
+                <span class="platform-tag ele" style="font-size: 11px; padding: 2px 8px;">饿了么</span>
+                <span class="order-card-no">EL202401150032</span>
+              </div>
+            </div>
+            <div class="rider-info">
+              <div class="rider-avatar">赵</div>
+              <div>
+                <div class="rider-name">赵师傅</div>
+                <div class="rider-phone">136****7777</div>
+              </div>
+            </div>
+            <span class="delivery-status delivering">配送中</span>
+            <div class="eta">预计 14:40 送达</div>
+            <div class="progress-bar">
+              <div class="progress-bar-fill" style="width: 85%;"></div>
+            </div>
+          </div>
+        </div>
+
+        <!-- 已完成列 -->
+        <div class="board-column">
+          <div class="board-column-header done">
+            <span class="column-title done">已完成</span>
+            <span class="column-count">87</span>
+          </div>
+
+          <div class="order-card done">
+            <div class="order-card-top">
+              <div class="order-card-platform">
+                <span class="platform-tag mt" style="font-size: 11px; padding: 2px 8px;">美团</span>
+                <span class="order-card-no">MT202401150048</span>
+              </div>
+            </div>
+            <div class="order-card-items">
+              青岛啤酒经典500ml x12
+            </div>
+            <div class="order-card-bottom">
+              <span class="order-card-amount">¥96.00</span>
+              <span class="done-time">14:25 完成</span>
+            </div>
+          </div>
+
+          <div class="order-card done">
+            <div class="order-card-top">
+              <div class="order-card-platform">
+                <span class="platform-tag jd" style="font-size: 11px; padding: 2px 8px;">京东</span>
+                <span class="order-card-no">JD202401150015</span>
+              </div>
+            </div>
+            <div class="order-card-items">
+              茅台飞天53度 x1<span class="more"> +2件</span>
+            </div>
+            <div class="order-card-bottom">
+              <span class="order-card-amount">¥2,588.00</span>
+              <span class="done-time">14:18 完成</span>
+            </div>
+          </div>
+
+          <div class="order-card done">
+            <div class="order-card-top">
+              <div class="order-card-platform">
+                <span class="platform-tag ele" style="font-size: 11px; padding: 2px 8px;">饿了么</span>
+                <span class="order-card-no">EL202401150028</span>
+              </div>
+            </div>
+            <div class="order-card-items">
+              哈尔滨啤酒冰纯 x24
+            </div>
+            <div class="order-card-bottom">
+              <span class="order-card-amount">¥192.00</span>
+              <span class="done-time">14:10 完成</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- 底部操作栏 -->
+      <div class="mockup-bottom-bar">
+        <div class="bottom-bar-left">
+          <button class="bottom-btn primary">批量接单</button>
+          <button class="bottom-btn danger">批量拒单</button>
+          <button class="bottom-btn">全部标记已读</button>
+        </div>
+        <div class="bottom-bar-right">
+          <div class="auto-accept-toggle">
+            <span>自动接单</span>
+            <div class="toggle-switch on"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 音效说明 -->
+    <div class="sound-section">
+      <h4>音效提示说明</h4>
+      <div class="sound-list">
+        <div class="sound-item">
+          <div class="sound-icon-sm"></div>
+          <span><strong>新订单提示音</strong> - "叮"一声清脆提示，有新订单进入时播放</span>
+        </div>
+        <div class="sound-item">
+          <div class="sound-icon-sm"></div>
+          <span><strong>超时告警音</strong> - 急促蜂鸣声，倒计时剩余10秒时开始，频率逐渐加快</span>
+        </div>
+        <div class="sound-item">
+          <div class="sound-icon-sm"></div>
+          <span><strong>拒单确认提示音</strong> - 短促"嘀"声，拒单操作确认时播放</span>
+        </div>
+        <div class="sound-item">
+          <div class="sound-icon-sm"></div>
+          <span><strong>接单成功提示音</strong> - 轻快"叮咚"声，接单成功时播放</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 3. 字段规范表 -->
+  <div class="section">
+    <h2>3. 字段规范表</h2>
+
+    <h3>3.1 订单表字段</h3>
+    <table class="spec-table">
+      <thead>
+        <tr><th>字段名</th><th>类型</th><th>必填</th><th>说明</th></tr>
+      </thead>
+      <tbody>
+        <tr><td><code>order_id</code></td><td>string</td><td>是</td><td>平台订单号，唯一标识</td></tr>
+        <tr><td><code>platform</code></td><td>enum</td><td>是</td><td>平台来源：jd / meituan / eleme</td></tr>
+        <tr><td><code>status</code></td><td>enum</td><td>是</td><td>订单状态：pending / accepted / delivering / completed / rejected</td></tr>
+        <tr><td><code>user_name</code></td><td>string</td><td>是</td><td>用户昵称</td></tr>
+        <tr><td><code>user_phone</code></td><td>string</td><td>是</td><td>用户手机号（脱敏显示）</td></tr>
+        <tr><td><code>address</code></td><td>string</td><td>是</td><td>配送地址</td></tr>
+        <tr><td><code>items</code></td><td>array</td><td>是</td><td>商品明细列表</td></tr>
+        <tr><td><code>total_amount</code></td><td>decimal</td><td>是</td><td>实付金额（元）</td></tr>
+        <tr><td><code>delivery_fee</code></td><td>decimal</td><td>是</td><td>配送费（元）</td></tr>
+        <tr><td><code>discount</code></td><td>decimal</td><td>否</td><td>优惠金额（元）</td></tr>
+        <tr><td><code>remark</code></td><td>string</td><td>否</td><td>订单备注</td></tr>
+        <tr><td><code>countdown</code></td><td>integer</td><td>是</td><td>接单倒计时（秒），默认60秒</td></tr>
+        <tr><td><code>created_at</code></td><td>datetime</td><td>是</td><td>下单时间</td></tr>
+      </tbody>
+    </table>
+
+    <h3>3.2 配送表字段</h3>
+    <table class="spec-table">
+      <thead>
+        <tr><th>字段名</th><th>类型</th><th>必填</th><th>说明</th></tr>
+      </thead>
+      <tbody>
+        <tr><td><code>delivery_id</code></td><td>string</td><td>是</td><td>配送单号</td></tr>
+        <tr><td><code>order_id</code></td><td>string</td><td>是</td><td>关联订单号</td></tr>
+        <tr><td><code>rider_name</code></td><td>string</td><td>是</td><td>骑手姓名</td></tr>
+        <tr><td><code>rider_phone</code></td><td>string</td><td>是</td><td>骑手手机号（脱敏显示）</td></tr>
+        <tr><td><code>status</code></td><td>enum</td><td>是</td><td>配送状态：picking / delivering / arrived</td></tr>
+        <tr><td><code>estimated_arrival</code></td><td>datetime</td><td>是</td><td>预计送达时间</td></tr>
+        <tr><td><code>progress</code></td><td>integer</td><td>是</td><td>配送进度百分比（0-100）</td></tr>
+      </tbody>
+    </table>
+
+    <h3>3.3 操作日志字段</h3>
+    <table class="spec-table">
+      <thead>
+        <tr><th>字段名</th><th>类型</th><th>必填</th><th>说明</th></tr>
+      </thead>
+      <tbody>
+        <tr><td><code>log_id</code></td><td>string</td><td>是</td><td>日志ID</td></tr>
+        <tr><td><code>order_id</code></td><td>string</td><td>是</td><td>关联订单号</td></tr>
+        <tr><td><code>action</code></td><td>enum</td><td>是</td><td>操作类型：accept / reject / batch_accept / batch_reject</td></tr>
+        <tr><td><code>operator</code></td><td>string</td><td>是</td><td>操作人</td></tr>
+        <tr><td><code>reason</code></td><td>string</td><td>否</td><td>拒单原因（拒单时必填）</td></tr>
+        <tr><td><code>created_at</code></td><td>datetime</td><td>是</td><td>操作时间</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <!-- 4. 验收标准清单 -->
+  <div class="section">
+    <h2>4. 验收标准清单</h2>
+    <p class="desc">以下为设计验收检查项，确保设计质量和用户体验。</p>
+    <ul class="checklist">
+      <li>大屏可读性：深色主题下文字对比度不低于 4.5:1，远距离清晰可辨</li>
+      <li>倒计时准确性：60秒倒计时精度误差不超过 0.5秒，支持暂停/继续</li>
+      <li>倒计时颜色渐变：从绿色（60-40s）→ 黄色（40-20s）→ 红色（20-0s）</li>
+      <li>新订单弹窗动画：脉冲边框动画流畅，不遮挡其他订单列表</li>
+      <li>音效提醒：新订单、超时告警、操作确认音区分明显，可独立开关</li>
+      <li>多平台标识：京东/美团/饿了么平台色值准确，品牌辨识度高</li>
+      <li>三列布局：待接单/进行中/已完成三列等宽，卡片间距一致</li>
+      <li>批量操作：批量接单/拒单支持多选，操作前有确认弹窗</li>
+      <li>自动接单：自动接单开关状态持久化，开启时有明确视觉提示</li>
+      <li>拒单流程：拒单需选择原因，支持自定义原因输入</li>
+      <li>实时刷新：订单状态实时更新，刷新按钮手动触发有加载状态</li>
+      <li>全屏模式：支持全屏/退出全屏切换，全屏下布局自适应</li>
+      <li>响应式：支持 1280px ~ 1920px 屏幕宽度自适应</li>
+      <li>数据统计：今日订单、销售额等数据准确，与实际订单一致</li>
+    </ul>
+  </div>
+
+</div>
+
+</body>
+</html>

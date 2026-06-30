@@ -1,0 +1,2250 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>32 · 小程序店铺 — 设计规格文档</title>
+<style>
+:root {
+  --brand: #D4AF37;
+  --brand-light: #F4E4BC;
+  --text: #FFFFFF;
+  --text-secondary: #B8B8D1;
+  --text-muted: #6B6B8A;
+  --border: #2A2A4A;
+  --bg: #0D0D1A;
+  --white: #FFFFFF;
+  --success: #52C41A;
+  --warning: #FAAD14;
+  --danger: #FF4D4F;
+  --radius: 12px;
+  --shadow: 0 4px 16px rgba(0, 0, 0, 0.3);
+  --gold: #D4AF37;
+  --gold-light: #F4E4BC;
+  --dark-bg: #1A1A2E;
+  --dark-card: #16213E;
+}
+
+* { margin: 0; padding: 0; box-sizing: border-box; }
+
+body {
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'PingFang SC', 'Hiragino Sans GB', 'Microsoft YaHei', sans-serif;
+  background: var(--bg);
+  color: var(--text);
+  line-height: 1.6;
+}
+
+.doc-header {
+  background: linear-gradient(135deg, #1A1A2E 0%, #16213E 50%, #0F3460 100%);
+  padding: 60px 40px;
+  text-align: center;
+  border-bottom: 2px solid var(--gold);
+}
+
+.doc-header h1 {
+  font-size: 36px;
+  font-weight: 700;
+  color: var(--gold);
+  letter-spacing: 2px;
+  margin-bottom: 12px;
+  text-shadow: 0 2px 8px rgba(212, 175, 55, 0.3);
+}
+
+.doc-header .subtitle {
+  font-size: 16px;
+  color: var(--text-secondary);
+  letter-spacing: 4px;
+}
+
+.doc-container {
+  max-width: 1800px;
+  margin: 0 auto;
+  padding: 40px 32px;
+}
+
+.section {
+  margin-bottom: 48px;
+}
+
+.section-title {
+  font-size: 24px;
+  font-weight: 600;
+  color: var(--gold);
+  margin-bottom: 20px;
+  padding-bottom: 12px;
+  border-bottom: 2px solid var(--border);
+  position: relative;
+}
+
+.section-title::after {
+  content: '';
+  position: absolute;
+  bottom: -2px;
+  left: 0;
+  width: 80px;
+  height: 2px;
+  background: var(--gold);
+}
+
+.section-desc {
+  color: var(--text-secondary);
+  margin-bottom: 24px;
+  font-size: 15px;
+}
+
+.overview-card {
+  background: var(--dark-card);
+  border-radius: var(--radius);
+  padding: 28px 32px;
+  border: 1px solid var(--border);
+}
+
+.overview-card p {
+  color: var(--text-secondary);
+  margin-bottom: 12px;
+}
+
+.overview-card ul {
+  list-style: none;
+  padding-left: 0;
+}
+
+.overview-card li {
+  color: var(--text-secondary);
+  padding: 8px 0;
+  padding-left: 20px;
+  position: relative;
+}
+
+.overview-card li::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  top: 16px;
+  width: 6px;
+  height: 6px;
+  background: var(--gold);
+  border-radius: 50%;
+}
+
+.mockups-wrapper {
+  text-align: center;
+  padding: 20px 0;
+  overflow-x: auto;
+  white-space: nowrap;
+}
+
+.phone-frame {
+  width: 375px;
+  display: inline-block;
+  margin: 0 12px;
+  border: 6px solid #1A1A2E;
+  border-radius: 28px;
+  overflow: hidden;
+  box-shadow: 0 16px 48px rgba(0, 0, 0, 0.4);
+  vertical-align: top;
+  white-space: normal;
+  background: var(--dark-bg);
+}
+
+.phone-label {
+  text-align: center;
+  font-size: 14px;
+  color: var(--gold);
+  margin-top: 16px;
+  font-weight: 500;
+}
+
+.status-bar {
+  height: 44px;
+  background: var(--dark-bg);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0 20px;
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--white);
+}
+
+.status-icons {
+  display: flex;
+  gap: 6px;
+  align-items: center;
+}
+
+.signal-icon {
+  width: 16px;
+  height: 12px;
+  background: linear-gradient(to top, var(--white) 0%, var(--white) 100%);
+  clip-path: polygon(0 100%, 25% 100%, 25% 70%, 50% 70%, 50% 40%, 75% 40%, 75% 20%, 100% 20%, 100% 100%);
+  opacity: 0.9;
+}
+
+.battery-icon {
+  width: 24px;
+  height: 12px;
+  border: 1.5px solid var(--white);
+  border-radius: 3px;
+  position: relative;
+}
+
+.battery-icon::after {
+  content: '';
+  position: absolute;
+  right: -4px;
+  top: 3px;
+  width: 2px;
+  height: 4px;
+  background: var(--white);
+  border-radius: 0 2px 2px 0;
+}
+
+.battery-icon::before {
+  content: '';
+  position: absolute;
+  left: 1px;
+  top: 1px;
+  width: 16px;
+  height: 6px;
+  background: var(--white);
+  border-radius: 1px;
+}
+
+.phone-content {
+  height: 667px;
+  overflow-y: auto;
+  background: var(--dark-bg);
+  position: relative;
+}
+
+.phone-content::-webkit-scrollbar {
+  display: none;
+}
+
+.page-content {
+  padding-bottom: 60px;
+}
+
+.search-bar {
+  padding: 12px 16px;
+  background: var(--dark-bg);
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.search-input {
+  flex: 1;
+  height: 36px;
+  background: var(--dark-card);
+  border: 1px solid var(--gold);
+  border-radius: 18px;
+  display: flex;
+  align-items: center;
+  padding: 0 14px;
+  font-size: 13px;
+  color: var(--text-muted);
+}
+
+.search-icon {
+  width: 16px;
+  height: 16px;
+  border: 2px solid var(--gold);
+  border-radius: 50%;
+  margin-right: 8px;
+  position: relative;
+}
+
+.search-icon::after {
+  content: '';
+  position: absolute;
+  bottom: -6px;
+  right: -6px;
+  width: 8px;
+  height: 2px;
+  background: var(--gold);
+  transform: rotate(45deg);
+  border-radius: 1px;
+}
+
+.banner-area {
+  margin: 0 16px 16px;
+  height: 160px;
+  background: linear-gradient(135deg, #1A1A2E 0%, #16213E 50%, #0F3460 100%);
+  border-radius: var(--radius);
+  position: relative;
+  overflow: hidden;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: 1px solid rgba(212, 175, 55, 0.3);
+}
+
+.banner-area .banner-text {
+  font-size: 28px;
+  font-weight: 700;
+  color: var(--gold);
+  text-shadow: 0 2px 8px rgba(0,0,0,0.5);
+}
+
+.banner-dots {
+  position: absolute;
+  bottom: 10px;
+  left: 50%;
+  transform: translateX(-50%);
+  display: flex;
+  gap: 6px;
+}
+
+.banner-dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.4);
+}
+
+.banner-dot.active {
+  width: 18px;
+  border-radius: 3px;
+  background: var(--gold);
+}
+
+.notice-bar {
+  margin: 0 16px 16px;
+  height: 36px;
+  background: rgba(212, 175, 55, 0.1);
+  border-radius: 18px;
+  display: flex;
+  align-items: center;
+  padding: 0 14px;
+  gap: 8px;
+  font-size: 12px;
+  color: var(--gold-light);
+  overflow: hidden;
+}
+
+.horn-icon {
+  width: 16px;
+  height: 16px;
+  flex-shrink: 0;
+  position: relative;
+}
+
+.horn-icon::before {
+  content: '';
+  position: absolute;
+  left: 2px;
+  top: 3px;
+  width: 10px;
+  height: 10px;
+  border-left: 3px solid var(--gold);
+  border-top: 3px solid var(--gold);
+  border-bottom: 3px solid var(--gold);
+  border-radius: 50% 0 0 50%;
+}
+
+.category-nav {
+  display: grid;
+  grid-template-columns: repeat(6, 1fr);
+  gap: 8px;
+  padding: 0 12px 20px;
+}
+
+.category-item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+}
+
+.category-icon {
+  width: 44px;
+  height: 44px;
+  background: rgba(212, 175, 55, 0.15);
+  border-radius: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: 1px solid rgba(212, 175, 55, 0.3);
+}
+
+.category-icon-shape {
+  width: 22px;
+  height: 22px;
+  background: var(--gold);
+  border-radius: 4px;
+  opacity: 0.8;
+}
+
+.category-text {
+  font-size: 11px;
+  color: var(--text-secondary);
+}
+
+.section-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 16px 12px;
+}
+
+.section-header-title {
+  font-size: 16px;
+  font-weight: 600;
+  color: var(--gold);
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.section-header-title::before {
+  content: '';
+  width: 3px;
+  height: 16px;
+  background: var(--gold);
+  border-radius: 2px;
+}
+
+.section-header-more {
+  font-size: 12px;
+  color: var(--text-muted);
+}
+
+.product-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+  padding: 0 12px 20px;
+}
+
+.product-card {
+  background: var(--dark-card);
+  border-radius: 10px;
+  overflow: hidden;
+  border: 1px solid var(--border);
+}
+
+.product-img {
+  width: 100%;
+  height: 120px;
+  background: linear-gradient(135deg, #2A2A4A, #16213E);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+}
+
+.product-img-placeholder {
+  width: 40px;
+  height: 60px;
+  background: rgba(212, 175, 55, 0.3);
+  border-radius: 4px;
+}
+
+.product-sales-tag {
+  position: absolute;
+  top: 6px;
+  left: 6px;
+  background: rgba(212, 175, 55, 0.9);
+  color: var(--dark-bg);
+  font-size: 10px;
+  padding: 2px 6px;
+  border-radius: 8px;
+  font-weight: 600;
+}
+
+.product-info {
+  padding: 8px 10px;
+}
+
+.product-name {
+  font-size: 12px;
+  color: var(--text);
+  line-height: 1.4;
+  height: 34px;
+  overflow: hidden;
+  margin-bottom: 6px;
+}
+
+.product-price-row {
+  display: flex;
+  align-items: baseline;
+  gap: 6px;
+}
+
+.product-price {
+  font-size: 18px;
+  font-weight: 700;
+  color: var(--gold);
+}
+
+.product-price-origin {
+  font-size: 11px;
+  color: var(--text-muted);
+  text-decoration: line-through;
+}
+
+.hot-ranking {
+  margin: 0 16px 20px;
+  background: var(--dark-card);
+  border-radius: var(--radius);
+  padding: 14px 16px;
+  border: 1px solid var(--border);
+}
+
+.hot-ranking-title {
+  font-size: 15px;
+  font-weight: 600;
+  color: var(--gold);
+  margin-bottom: 12px;
+}
+
+.hot-item {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 8px 0;
+  border-bottom: 1px solid var(--border);
+}
+
+.hot-item:last-child {
+  border-bottom: none;
+}
+
+.hot-rank {
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 12px;
+  font-weight: 700;
+  background: var(--text-muted);
+  color: var(--white);
+  flex-shrink: 0;
+}
+
+.hot-rank.top1 {
+  background: linear-gradient(135deg, #FFD700, #D4AF37);
+  color: var(--dark-bg);
+}
+
+.hot-rank.top2 {
+  background: linear-gradient(135deg, #C0C0C0, #A0A0A0);
+  color: var(--dark-bg);
+}
+
+.hot-rank.top3 {
+  background: linear-gradient(135deg, #CD7F32, #A0522D);
+  color: var(--white);
+}
+
+.hot-product-name {
+  flex: 1;
+  font-size: 13px;
+  color: var(--text-secondary);
+}
+
+.hot-product-price {
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--gold);
+}
+
+.tab-bar {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  height: 60px;
+  background: var(--dark-card);
+  border-top: 1px solid var(--border);
+  display: flex;
+  z-index: 10;
+}
+
+.tab-item {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  font-size: 10px;
+  color: var(--text-muted);
+}
+
+.tab-item.active {
+  color: var(--gold);
+}
+
+.tab-icon {
+  width: 22px;
+  height: 22px;
+  border: 1.5px solid currentColor;
+  border-radius: 4px;
+  opacity: 0.8;
+}
+
+.tab-icon.home { border-radius: 4px 4px 50% 50%; }
+.tab-icon.cart { border-radius: 6px; }
+.tab-icon.me { border-radius: 50%; }
+
+.detail-header {
+  height: 44px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 16px;
+  background: var(--dark-bg);
+}
+
+.back-btn, .share-btn {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.1);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.back-arrow {
+  width: 10px;
+  height: 10px;
+  border-left: 2px solid var(--white);
+  border-bottom: 2px solid var(--white);
+  transform: rotate(45deg);
+  margin-left: 3px;
+}
+
+.share-icon {
+  width: 12px;
+  height: 12px;
+  border: 2px solid var(--white);
+  border-radius: 50%;
+  position: relative;
+}
+
+.share-icon::after {
+  content: '';
+  position: absolute;
+  top: -6px;
+  right: -4px;
+  width: 8px;
+  height: 2px;
+  background: var(--white);
+  transform: rotate(-45deg);
+}
+
+.detail-banner {
+  height: 280px;
+  background: linear-gradient(135deg, #1A1A2E 0%, #16213E 100%);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+}
+
+.detail-banner-placeholder {
+  width: 80px;
+  height: 180px;
+  background: rgba(212, 175, 55, 0.3);
+  border-radius: 6px;
+}
+
+.banner-page-indicator {
+  position: absolute;
+  bottom: 12px;
+  right: 16px;
+  background: rgba(0, 0, 0, 0.5);
+  color: var(--white);
+  font-size: 12px;
+  padding: 4px 10px;
+  border-radius: 12px;
+}
+
+.detail-price-section {
+  background: var(--dark-card);
+  padding: 16px;
+  border-bottom: 1px solid var(--border);
+}
+
+.detail-price-row {
+  display: flex;
+  align-items: baseline;
+  gap: 10px;
+  margin-bottom: 8px;
+}
+
+.detail-price {
+  font-size: 28px;
+  font-weight: 700;
+  color: var(--gold);
+}
+
+.detail-price-origin {
+  font-size: 14px;
+  color: var(--text-muted);
+  text-decoration: line-through;
+}
+
+.promo-tag {
+  display: inline-block;
+  background: rgba(255, 77, 79, 0.2);
+  color: var(--danger);
+  font-size: 11px;
+  padding: 2px 8px;
+  border-radius: 4px;
+  margin-left: 8px;
+}
+
+.detail-name {
+  font-size: 17px;
+  font-weight: 600;
+  color: var(--text);
+  margin-bottom: 6px;
+}
+
+.detail-desc {
+  font-size: 13px;
+  color: var(--text-muted);
+  line-height: 1.5;
+}
+
+.info-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 14px 16px;
+  background: var(--dark-card);
+  border-bottom: 1px solid var(--border);
+}
+
+.info-row-label {
+  font-size: 14px;
+  color: var(--text-secondary);
+}
+
+.info-row-value {
+  font-size: 14px;
+  color: var(--text);
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.arrow-right {
+  width: 8px;
+  height: 8px;
+  border-right: 1.5px solid var(--text-muted);
+  border-top: 1.5px solid var(--text-muted);
+  transform: rotate(45deg);
+}
+
+.detail-images {
+  margin: 12px 16px;
+}
+
+.detail-images-title {
+  font-size: 15px;
+  font-weight: 600;
+  color: var(--text);
+  margin-bottom: 12px;
+  padding-left: 10px;
+  border-left: 3px solid var(--gold);
+}
+
+.detail-image-block {
+  height: 200px;
+  background: linear-gradient(180deg, #1A1A2E, #0F3460);
+  border-radius: var(--radius);
+  margin-bottom: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--text-muted);
+  font-size: 13px;
+}
+
+.bottom-action-bar {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  height: 56px;
+  background: var(--dark-card);
+  border-top: 1px solid var(--border);
+  display: flex;
+  align-items: center;
+  padding: 0 12px;
+  gap: 12px;
+  z-index: 20;
+}
+
+.action-icon-btn {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  font-size: 10px;
+  color: var(--text-secondary);
+  position: relative;
+  min-width: 40px;
+}
+
+.action-icon-shape {
+  width: 20px;
+  height: 20px;
+  border: 1.5px solid currentColor;
+  border-radius: 4px;
+  margin-bottom: 2px;
+}
+
+.cart-badge {
+  position: absolute;
+  top: -2px;
+  right: 0;
+  min-width: 16px;
+  height: 16px;
+  background: var(--danger);
+  color: var(--white);
+  font-size: 10px;
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0 4px;
+}
+
+.btn-add-cart, .btn-buy-now {
+  flex: 1;
+  height: 38px;
+  border-radius: 19px;
+  font-size: 14px;
+  font-weight: 600;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.btn-add-cart {
+  background: rgba(212, 175, 55, 0.2);
+  color: var(--gold);
+  border: 1px solid var(--gold);
+}
+
+.btn-buy-now {
+  background: linear-gradient(135deg, #FFD700, #D4AF37);
+  color: var(--dark-bg);
+}
+
+.spec-modal-overlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.6);
+  z-index: 100;
+  display: flex;
+  align-items: flex-end;
+}
+
+.spec-modal {
+  width: 100%;
+  background: var(--dark-card);
+  border-radius: 16px 16px 0 0;
+  padding: 20px 16px 24px;
+}
+
+.spec-modal-header {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  margin-bottom: 20px;
+}
+
+.spec-modal-img {
+  width: 70px;
+  height: 90px;
+  background: linear-gradient(135deg, #2A2A4A, #16213E);
+  border-radius: 8px;
+}
+
+.spec-modal-info {
+  flex: 1;
+}
+
+.spec-modal-price {
+  font-size: 22px;
+  font-weight: 700;
+  color: var(--gold);
+  margin-bottom: 4px;
+}
+
+.spec-modal-selected {
+  font-size: 13px;
+  color: var(--text-muted);
+}
+
+.spec-modal-close {
+  width: 24px;
+  height: 24px;
+  color: var(--text-muted);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.spec-group {
+  margin-bottom: 16px;
+}
+
+.spec-group-title {
+  font-size: 14px;
+  color: var(--text);
+  margin-bottom: 10px;
+  font-weight: 500;
+}
+
+.spec-options {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.spec-option {
+  padding: 6px 16px;
+  background: var(--dark-bg);
+  border: 1px solid var(--border);
+  border-radius: 16px;
+  font-size: 13px;
+  color: var(--text-secondary);
+}
+
+.spec-option.active {
+  background: rgba(212, 175, 55, 0.15);
+  border-color: var(--gold);
+  color: var(--gold);
+}
+
+.spec-qty-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-top: 16px;
+  padding-top: 16px;
+  border-top: 1px solid var(--border);
+}
+
+.spec-qty-label {
+  font-size: 14px;
+  color: var(--text);
+}
+
+.qty-stepper {
+  display: flex;
+  align-items: center;
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  overflow: hidden;
+}
+
+.qty-btn {
+  width: 32px;
+  height: 32px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--text-secondary);
+  font-size: 16px;
+  background: var(--dark-bg);
+}
+
+.qty-value {
+  width: 40px;
+  height: 32px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 14px;
+  color: var(--text);
+  border-left: 1px solid var(--border);
+  border-right: 1px solid var(--border);
+}
+
+.list-page-main {
+  display: flex;
+  height: calc(667px - 44px - 60px);
+}
+
+.category-tree {
+  width: 90px;
+  background: var(--dark-card);
+  overflow-y: auto;
+}
+
+.category-tree-item {
+  padding: 14px 10px;
+  font-size: 13px;
+  color: var(--text-secondary);
+  text-align: center;
+  position: relative;
+  border-bottom: 1px solid var(--border);
+}
+
+.category-tree-item.active {
+  background: var(--dark-bg);
+  color: var(--gold);
+  font-weight: 600;
+}
+
+.category-tree-item.active::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 3px;
+  height: 24px;
+  background: var(--gold);
+  border-radius: 0 2px 2px 0;
+}
+
+.product-list-area {
+  flex: 1;
+  overflow-y: auto;
+}
+
+.filter-bar {
+  display: flex;
+  align-items: center;
+  height: 44px;
+  padding: 0 12px;
+  background: var(--dark-card);
+  border-bottom: 1px solid var(--border);
+  gap: 4px;
+}
+
+.filter-item {
+  flex: 1;
+  text-align: center;
+  font-size: 13px;
+  color: var(--text-secondary);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+}
+
+.filter-item.active {
+  color: var(--gold);
+  font-weight: 500;
+}
+
+.sort-arrow {
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+}
+
+.sort-arrow-up, .sort-arrow-down {
+  width: 0;
+  height: 0;
+  border-left: 4px solid transparent;
+  border-right: 4px solid transparent;
+}
+
+.sort-arrow-up {
+  border-bottom: 5px solid currentColor;
+  opacity: 0.5;
+}
+
+.sort-arrow-down {
+  border-top: 5px solid currentColor;
+  opacity: 0.5;
+}
+
+.filter-item.active .sort-arrow-up,
+.filter-item.active .sort-arrow-down {
+  opacity: 1;
+}
+
+.list-product-card {
+  display: flex;
+  gap: 12px;
+  padding: 12px;
+  background: var(--dark-card);
+  margin-bottom: 8px;
+  border-bottom: 1px solid var(--border);
+}
+
+.list-product-img {
+  width: 90px;
+  height: 90px;
+  background: linear-gradient(135deg, #2A2A4A, #16213E);
+  border-radius: 8px;
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.list-product-img-ph {
+  width: 30px;
+  height: 50px;
+  background: rgba(212, 175, 55, 0.3);
+  border-radius: 3px;
+}
+
+.list-product-info {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+}
+
+.list-product-name {
+  font-size: 14px;
+  color: var(--text);
+  line-height: 1.4;
+}
+
+.list-product-spec {
+  font-size: 12px;
+  color: var(--text-muted);
+  margin-top: 4px;
+}
+
+.list-product-bottom {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.list-product-price {
+  font-size: 18px;
+  font-weight: 700;
+  color: var(--gold);
+}
+
+.list-product-sales {
+  font-size: 11px;
+  color: var(--text-muted);
+  margin-left: 6px;
+}
+
+.add-cart-btn {
+  width: 28px;
+  height: 28px;
+  background: var(--gold);
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--dark-bg);
+  font-size: 18px;
+  font-weight: 600;
+}
+
+.cart-page-header {
+  height: 44px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--dark-bg);
+  font-size: 17px;
+  font-weight: 600;
+  color: var(--text);
+}
+
+.cart-shop-row {
+  display: flex;
+  align-items: center;
+  padding: 12px 16px;
+  background: var(--dark-card);
+  border-bottom: 1px solid var(--border);
+  gap: 10px;
+}
+
+.cart-checkbox {
+  width: 20px;
+  height: 20px;
+  border: 2px solid var(--text-muted);
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+
+.cart-checkbox.checked {
+  background: var(--gold);
+  border-color: var(--gold);
+  position: relative;
+}
+
+.cart-checkbox.checked::after {
+  content: '';
+  position: absolute;
+  left: 5px;
+  top: 2px;
+  width: 5px;
+  height: 10px;
+  border: 2px solid var(--dark-bg);
+  border-left: none;
+  border-top: none;
+  transform: rotate(45deg);
+}
+
+.cart-shop-name {
+  flex: 1;
+  font-size: 15px;
+  font-weight: 500;
+  color: var(--text);
+}
+
+.cart-shop-icon {
+  width: 20px;
+  height: 20px;
+  border: 1.5px solid var(--gold);
+  border-radius: 4px;
+}
+
+.cart-item {
+  display: flex;
+  align-items: center;
+  padding: 12px 16px;
+  background: var(--dark-card);
+  gap: 12px;
+  border-bottom: 1px solid var(--border);
+}
+
+.cart-item-img {
+  width: 70px;
+  height: 70px;
+  background: linear-gradient(135deg, #2A2A4A, #16213E);
+  border-radius: 8px;
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.cart-item-img-ph {
+  width: 24px;
+  height: 40px;
+  background: rgba(212, 175, 55, 0.3);
+  border-radius: 2px;
+}
+
+.cart-item-info {
+  flex: 1;
+  min-width: 0;
+}
+
+.cart-item-name {
+  font-size: 13px;
+  color: var(--text);
+  line-height: 1.4;
+  margin-bottom: 4px;
+}
+
+.cart-item-spec {
+  font-size: 12px;
+  color: var(--text-muted);
+  margin-bottom: 8px;
+}
+
+.cart-item-bottom {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.cart-item-price {
+  font-size: 16px;
+  font-weight: 600;
+  color: var(--gold);
+}
+
+.cart-item-qty {
+  display: flex;
+  align-items: center;
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  overflow: hidden;
+}
+
+.cart-item-qty-btn {
+  width: 26px;
+  height: 26px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 14px;
+  color: var(--text-secondary);
+  background: var(--dark-bg);
+}
+
+.cart-item-qty-val {
+  width: 34px;
+  height: 26px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 13px;
+  color: var(--text);
+  border-left: 1px solid var(--border);
+  border-right: 1px solid var(--border);
+}
+
+.promo-bar {
+  margin: 12px 16px;
+  height: 40px;
+  background: linear-gradient(90deg, rgba(212, 175, 55, 0.9), rgba(212, 175, 55, 0.7));
+  border-radius: 20px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--dark-bg);
+  gap: 6px;
+}
+
+.empty-cart {
+  padding: 80px 20px;
+  text-align: center;
+}
+
+.empty-cart-icon {
+  width: 80px;
+  height: 80px;
+  border: 2px solid var(--text-muted);
+  border-radius: 16px;
+  margin: 0 auto 20px;
+  position: relative;
+  opacity: 0.5;
+}
+
+.empty-cart-icon::before {
+  content: '';
+  position: absolute;
+  top: -10px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 30px;
+  height: 10px;
+  border: 2px solid var(--text-muted);
+  border-bottom: none;
+  border-radius: 10px 10px 0 0;
+}
+
+.empty-cart-text {
+  font-size: 15px;
+  color: var(--text-muted);
+  margin-bottom: 20px;
+}
+
+.empty-cart-btn {
+  display: inline-block;
+  padding: 10px 36px;
+  background: var(--gold);
+  color: var(--dark-bg);
+  font-size: 14px;
+  font-weight: 600;
+  border-radius: 20px;
+}
+
+.cart-bottom-bar {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  height: 56px;
+  background: var(--dark-card);
+  border-top: 1px solid var(--border);
+  display: flex;
+  align-items: center;
+  padding: 0 16px;
+  gap: 12px;
+  z-index: 10;
+}
+
+.cart-select-all {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 13px;
+  color: var(--text-secondary);
+}
+
+.cart-total {
+  flex: 1;
+  text-align: right;
+}
+
+.cart-total-label {
+  font-size: 13px;
+  color: var(--text-secondary);
+  margin-right: 4px;
+}
+
+.cart-total-price {
+  font-size: 20px;
+  font-weight: 700;
+  color: var(--gold);
+}
+
+.btn-checkout {
+  height: 40px;
+  padding: 0 24px;
+  background: linear-gradient(135deg, #FFD700, #D4AF37);
+  color: var(--dark-bg);
+  font-size: 15px;
+  font-weight: 600;
+  border-radius: 20px;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  position: relative;
+}
+
+.checkout-badge {
+  position: absolute;
+  top: -6px;
+  right: -6px;
+  min-width: 18px;
+  height: 18px;
+  background: var(--danger);
+  color: var(--white);
+  font-size: 11px;
+  border-radius: 9px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0 5px;
+}
+
+.spec-table {
+  width: 100%;
+  border-collapse: collapse;
+  background: var(--dark-card);
+  border-radius: var(--radius);
+  overflow: hidden;
+  margin-bottom: 24px;
+}
+
+.spec-table caption {
+  text-align: left;
+  font-size: 16px;
+  font-weight: 600;
+  color: var(--gold);
+  padding: 0 0 12px 0;
+}
+
+.spec-table th,
+.spec-table td {
+  padding: 12px 16px;
+  text-align: left;
+  border-bottom: 1px solid var(--border);
+  font-size: 14px;
+}
+
+.spec-table th {
+  background: rgba(212, 175, 55, 0.1);
+  color: var(--gold);
+  font-weight: 600;
+}
+
+.spec-table td {
+  color: var(--text-secondary);
+}
+
+.spec-table tr:last-child td {
+  border-bottom: none;
+}
+
+.checklist {
+  background: var(--dark-card);
+  border-radius: var(--radius);
+  padding: 20px 24px;
+  border: 1px solid var(--border);
+}
+
+.checklist-item {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  padding: 10px 0;
+  border-bottom: 1px solid var(--border);
+}
+
+.checklist-item:last-child {
+  border-bottom: none;
+}
+
+.checklist-checkbox {
+  width: 20px;
+  height: 20px;
+  border: 2px solid var(--text-muted);
+  border-radius: 4px;
+  flex-shrink: 0;
+  margin-top: 1px;
+}
+
+.checklist-text {
+  font-size: 14px;
+  color: var(--text-secondary);
+  line-height: 1.6;
+}
+
+@media (max-width: 1200px) {
+  .doc-container {
+    padding: 24px 16px;
+  }
+}
+</style>
+</head>
+<body>
+
+<header class="doc-header">
+  <h1>32 · 小程序店铺</h1>
+  <p class="subtitle">设计规格文档 — 酒类行业 C 端小程序</p>
+</header>
+
+<div class="doc-container">
+
+  <section class="section">
+    <h2 class="section-title">页面总览</h2>
+    <div class="overview-card">
+      <p>本设计规格文档描述了酒类行业 C 端小程序店铺的完整用户界面设计，涵盖用户从浏览商品到下单购买的全流程。</p>
+      <p style="margin-top: 16px;"><strong style="color: var(--gold);">核心功能模块：</strong></p>
+      <ul>
+        <li>店铺首页：轮播 Banner、分类导航、精选推荐、热销排行榜</li>
+        <li>商品列表：分类筛选、排序、商品展示</li>
+        <li>商品详情：多图轮播、规格选择、配送信息、加入购物车</li>
+        <li>购物车：商品管理、满减提示、结算功能</li>
+        <li>个人中心：订单管理、地址管理、会员权益（后续扩展）</li>
+      </ul>
+      <p style="margin-top: 16px;"><strong style="color: var(--gold);">设计风格：</strong>深色主调搭配金色点缀，营造高端酒类品牌质感，突出产品尊贵属性。</p>
+    </div>
+  </section>
+
+  <section class="section">
+    <h2 class="section-title">页面 Mockup</h2>
+    <p class="section-desc">以下展示小程序店铺四个核心页面的高保真设计效果，基于 375px 宽度的移动端标准尺寸。</p>
+    
+    <div class="mockups-wrapper">
+      
+      <div>
+        <div class="phone-frame">
+          <div class="status-bar">
+            <span>9:41</span>
+            <div class="status-icons">
+              <div class="signal-icon"></div>
+              <div class="battery-icon"></div>
+            </div>
+          </div>
+          <div class="phone-content">
+            <div class="page-content">
+              <div class="search-bar">
+                <div class="search-input">
+                  <div class="search-icon"></div>
+                  <span>搜索美酒佳酿</span>
+                </div>
+              </div>
+              
+              <div class="banner-area">
+                <div class="banner-text">甄选美酒</div>
+                <div class="banner-dots">
+                  <div class="banner-dot active"></div>
+                  <div class="banner-dot"></div>
+                  <div class="banner-dot"></div>
+                </div>
+              </div>
+              
+              <div class="notice-bar">
+                <div class="horn-icon"></div>
+                <span>新店开业 全场满199减30 限时特惠中...</span>
+              </div>
+              
+              <div class="category-nav">
+                <div class="category-item">
+                  <div class="category-icon"><div class="category-icon-shape"></div></div>
+                  <span class="category-text">白酒</span>
+                </div>
+                <div class="category-item">
+                  <div class="category-icon"><div class="category-icon-shape"></div></div>
+                  <span class="category-text">红酒</span>
+                </div>
+                <div class="category-item">
+                  <div class="category-icon"><div class="category-icon-shape"></div></div>
+                  <span class="category-text">啤酒</span>
+                </div>
+                <div class="category-item">
+                  <div class="category-icon"><div class="category-icon-shape"></div></div>
+                  <span class="category-text">洋酒</span>
+                </div>
+                <div class="category-item">
+                  <div class="category-icon"><div class="category-icon-shape"></div></div>
+                  <span class="category-text">黄酒</span>
+                </div>
+                <div class="category-item">
+                  <div class="category-icon"><div class="category-icon-shape"></div></div>
+                  <span class="category-text">礼盒</span>
+                </div>
+              </div>
+              
+              <div class="section-header">
+                <span class="section-header-title">精选推荐</span>
+                <span class="section-header-more">查看更多 &gt;</span>
+              </div>
+              
+              <div class="product-grid">
+                <div class="product-card">
+                  <div class="product-img">
+                    <div class="product-img-placeholder"></div>
+                    <span class="product-sales-tag">热销</span>
+                  </div>
+                  <div class="product-info">
+                    <div class="product-name">贵州茅台酒 53度 酱香型白酒</div>
+                    <div class="product-price-row">
+                      <span class="product-price">¥1499</span>
+                      <span class="product-price-origin">¥1699</span>
+                    </div>
+                  </div>
+                </div>
+                <div class="product-card">
+                  <div class="product-img">
+                    <div class="product-img-placeholder"></div>
+                  </div>
+                  <div class="product-info">
+                    <div class="product-name">法国波尔多干红葡萄酒 750ml</div>
+                    <div class="product-price-row">
+                      <span class="product-price">¥298</span>
+                      <span class="product-price-origin">¥398</span>
+                    </div>
+                  </div>
+                </div>
+                <div class="product-card">
+                  <div class="product-img">
+                    <div class="product-img-placeholder"></div>
+                  </div>
+                  <div class="product-info">
+                    <div class="product-name">青岛啤酒经典1903 500ml*12罐</div>
+                    <div class="product-price-row">
+                      <span class="product-price">¥79</span>
+                      <span class="product-price-origin">¥99</span>
+                    </div>
+                  </div>
+                </div>
+                <div class="product-card">
+                  <div class="product-img">
+                    <div class="product-img-placeholder"></div>
+                    <span class="product-sales-tag">新品</span>
+                  </div>
+                  <div class="product-info">
+                    <div class="product-name">轩尼诗XO干邑白兰地 700ml</div>
+                    <div class="product-price-row">
+                      <span class="product-price">¥1680</span>
+                      <span class="product-price-origin">¥1980</span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+              
+              <div class="hot-ranking">
+                <div class="hot-ranking-title">热销 TOP 榜</div>
+                <div class="hot-item">
+                  <div class="hot-rank top1">1</div>
+                  <div class="hot-product-name">飞天茅台 53度 500ml</div>
+                  <div class="hot-product-price">¥1499</div>
+                </div>
+                <div class="hot-item">
+                  <div class="hot-rank top2">2</div>
+                  <div class="hot-product-name">五粮液 52度 500ml</div>
+                  <div class="hot-product-price">¥999</div>
+                </div>
+                <div class="hot-item">
+                  <div class="hot-rank top3">3</div>
+                  <div class="hot-product-name">拉菲传奇干红葡萄酒</div>
+                  <div class="hot-product-price">¥358</div>
+                </div>
+                <div class="hot-item">
+                  <div class="hot-rank">4</div>
+                  <div class="hot-product-name">百威啤酒 500ml*18罐</div>
+                  <div class="hot-product-price">¥89</div>
+                </div>
+              </div>
+            </div>
+            
+            <div class="tab-bar">
+              <div class="tab-item active">
+                <div class="tab-icon home"></div>
+                <span>首页</span>
+              </div>
+              <div class="tab-item">
+                <div class="tab-icon"></div>
+                <span>分类</span>
+              </div>
+              <div class="tab-item">
+                <div class="tab-icon cart"></div>
+                <span>购物车</span>
+              </div>
+              <div class="tab-item">
+                <div class="tab-icon me"></div>
+                <span>我的</span>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="phone-label">页面 1：店铺首页</div>
+      </div>
+
+      <div>
+        <div class="phone-frame">
+          <div class="status-bar">
+            <span>9:41</span>
+            <div class="status-icons">
+              <div class="signal-icon"></div>
+              <div class="battery-icon"></div>
+            </div>
+          </div>
+          <div class="phone-content">
+            <div class="detail-header">
+              <div class="back-btn"><div class="back-arrow"></div></div>
+              <div class="share-btn"><div class="share-icon"></div></div>
+            </div>
+            
+            <div class="detail-banner">
+              <div class="detail-banner-placeholder"></div>
+              <div class="banner-page-indicator">1 / 5</div>
+            </div>
+            
+            <div class="detail-price-section">
+              <div class="detail-price-row">
+                <span class="detail-price">¥1499</span>
+                <span class="detail-price-origin">¥1699</span>
+                <span class="promo-tag">限时特惠</span>
+              </div>
+              <div class="detail-name">贵州茅台酒 飞天茅台 53度 酱香型白酒 500ml 单瓶装</div>
+              <div class="detail-desc">经典酱香，回味悠长，送礼自饮两相宜</div>
+            </div>
+            
+            <div class="info-row">
+              <span class="info-row-label">已选规格</span>
+              <span class="info-row-value">500ml · 单瓶装 <div class="arrow-right"></div></span>
+            </div>
+            
+            <div class="info-row">
+              <span class="info-row-label">配送</span>
+              <span class="info-row-value" style="font-size: 12px;">免运费 · 预计30分钟送达 · 正品保障 <div class="arrow-right"></div></span>
+            </div>
+            
+            <div class="detail-images">
+              <div class="detail-images-title">商品详情</div>
+              <div class="detail-image-block">商品详情图文介绍</div>
+              <div class="detail-image-block">产品参数规格</div>
+            </div>
+            
+            <div class="bottom-action-bar">
+              <div class="action-icon-btn">
+                <div class="action-icon-shape" style="border-radius: 50%;"></div>
+                <span>客服</span>
+              </div>
+              <div class="action-icon-btn">
+                <div class="action-icon-shape" style="border-radius: 2px;"></div>
+                <span>收藏</span>
+              </div>
+              <div class="action-icon-btn">
+                <div class="action-icon-shape" style="border-radius: 6px;"></div>
+                <span>购物车</span>
+                <div class="cart-badge">3</div>
+              </div>
+              <div class="btn-add-cart">加入购物车</div>
+              <div class="btn-buy-now">立即购买</div>
+            </div>
+            
+            <div class="spec-modal-overlay" style="display: none;">
+              <div class="spec-modal">
+                <div class="spec-modal-header">
+                  <div class="spec-modal-img"></div>
+                  <div class="spec-modal-info">
+                    <div class="spec-modal-price">¥1499</div>
+                    <div class="spec-modal-selected">已选：500ml 单瓶装</div>
+                  </div>
+                  <div class="spec-modal-close">✕</div>
+                </div>
+                
+                <div class="spec-group">
+                  <div class="spec-group-title">规格</div>
+                  <div class="spec-options">
+                    <div class="spec-option active">500ml</div>
+                    <div class="spec-option">375ml</div>
+                    <div class="spec-option">1L</div>
+                    <div class="spec-option">1.5L</div>
+                  </div>
+                </div>
+                
+                <div class="spec-group">
+                  <div class="spec-group-title">包装</div>
+                  <div class="spec-options">
+                    <div class="spec-option active">单瓶装</div>
+                    <div class="spec-option">双瓶礼盒</div>
+                    <div class="spec-option">整箱6瓶</div>
+                  </div>
+                </div>
+                
+                <div class="spec-qty-row">
+                  <span class="spec-qty-label">购买数量</span>
+                  <div class="qty-stepper">
+                    <div class="qty-btn">−</div>
+                    <div class="qty-value">1</div>
+                    <div class="qty-btn">+</div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="phone-label">页面 2：商品详情页</div>
+      </div>
+
+      <div>
+        <div class="phone-frame">
+          <div class="status-bar">
+            <span>9:41</span>
+            <div class="status-icons">
+              <div class="signal-icon"></div>
+              <div class="battery-icon"></div>
+            </div>
+          </div>
+          <div class="phone-content">
+            <div class="search-bar">
+              <div class="search-input">
+                <div class="search-icon"></div>
+                <span>搜索商品</span>
+              </div>
+            </div>
+            
+            <div class="list-page-main">
+              <div class="category-tree">
+                <div class="category-tree-item active">白酒</div>
+                <div class="category-tree-item">红酒</div>
+                <div class="category-tree-item">啤酒</div>
+                <div class="category-tree-item">洋酒</div>
+                <div class="category-tree-item">黄酒</div>
+                <div class="category-tree-item">果酒</div>
+                <div class="category-tree-item">清酒</div>
+                <div class="category-tree-item">礼盒装</div>
+                <div class="category-tree-item">特价专区</div>
+              </div>
+              
+              <div class="product-list-area">
+                <div class="filter-bar">
+                  <div class="filter-item active">综合</div>
+                  <div class="filter-item">销量</div>
+                  <div class="filter-item">
+                    价格
+                    <div class="sort-arrow">
+                      <div class="sort-arrow-up"></div>
+                      <div class="sort-arrow-down"></div>
+                    </div>
+                  </div>
+                  <div class="filter-item">筛选</div>
+                </div>
+                
+                <div class="list-product-card">
+                  <div class="list-product-img">
+                    <div class="list-product-img-ph"></div>
+                  </div>
+                  <div class="list-product-info">
+                    <div>
+                      <div class="list-product-name">飞天茅台 53度 酱香型白酒</div>
+                      <div class="list-product-spec">500ml · 单瓶装</div>
+                    </div>
+                    <div class="list-product-bottom">
+                      <div>
+                        <span class="list-product-price">¥1499</span>
+                        <span class="list-product-sales">月销2000+</span>
+                      </div>
+                      <div class="add-cart-btn">+</div>
+                    </div>
+                  </div>
+                </div>
+                
+                <div class="list-product-card">
+                  <div class="list-product-img">
+                    <div class="list-product-img-ph"></div>
+                  </div>
+                  <div class="list-product-info">
+                    <div>
+                      <div class="list-product-name">五粮液 52度 浓香型白酒</div>
+                      <div class="list-product-spec">500ml · 单瓶装</div>
+                    </div>
+                    <div class="list-product-bottom">
+                      <div>
+                        <span class="list-product-price">¥999</span>
+                        <span class="list-product-sales">月销1500+</span>
+                      </div>
+                      <div class="add-cart-btn">+</div>
+                    </div>
+                  </div>
+                </div>
+                
+                <div class="list-product-card">
+                  <div class="list-product-img">
+                    <div class="list-product-img-ph"></div>
+                  </div>
+                  <div class="list-product-info">
+                    <div>
+                      <div class="list-product-name">泸州老窖 特曲 52度</div>
+                      <div class="list-product-spec">500ml · 单瓶装</div>
+                    </div>
+                    <div class="list-product-bottom">
+                      <div>
+                        <span class="list-product-price">¥288</span>
+                        <span class="list-product-sales">月销800+</span>
+                      </div>
+                      <div class="add-cart-btn">+</div>
+                    </div>
+                  </div>
+                </div>
+                
+                <div class="list-product-card">
+                  <div class="list-product-img">
+                    <div class="list-product-img-ph"></div>
+                  </div>
+                  <div class="list-product-info">
+                    <div>
+                      <div class="list-product-name">剑南春 水晶剑 52度</div>
+                      <div class="list-product-spec">500ml · 单瓶装</div>
+                    </div>
+                    <div class="list-product-bottom">
+                      <div>
+                        <span class="list-product-price">¥458</span>
+                        <span class="list-product-sales">月销600+</span>
+                      </div>
+                      <div class="add-cart-btn">+</div>
+                    </div>
+                  </div>
+                </div>
+                
+                <div class="list-product-card">
+                  <div class="list-product-img">
+                    <div class="list-product-img-ph"></div>
+                  </div>
+                  <div class="list-product-info">
+                    <div>
+                      <div class="list-product-name">汾酒 青花20 53度清香型</div>
+                      <div class="list-product-spec">500ml · 单瓶装</div>
+                    </div>
+                    <div class="list-product-bottom">
+                      <div>
+                        <span class="list-product-price">¥398</span>
+                        <span class="list-product-sales">月销500+</span>
+                      </div>
+                      <div class="add-cart-btn">+</div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+            
+            <div class="tab-bar">
+              <div class="tab-item">
+                <div class="tab-icon home"></div>
+                <span>首页</span>
+              </div>
+              <div class="tab-item active">
+                <div class="tab-icon"></div>
+                <span>分类</span>
+              </div>
+              <div class="tab-item">
+                <div class="tab-icon cart"></div>
+                <span>购物车</span>
+              </div>
+              <div class="tab-item">
+                <div class="tab-icon me"></div>
+                <span>我的</span>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="phone-label">页面 3：商品列表页</div>
+      </div>
+
+      <div>
+        <div class="phone-frame">
+          <div class="status-bar">
+            <span>9:41</span>
+            <div class="status-icons">
+              <div class="signal-icon"></div>
+              <div class="battery-icon"></div>
+            </div>
+          </div>
+          <div class="phone-content">
+            <div class="cart-page-header">购物车</div>
+            
+            <div class="cart-shop-row">
+              <div class="cart-checkbox checked"></div>
+              <div class="cart-shop-icon"></div>
+              <span class="cart-shop-name">臻品酒坊旗舰店</span>
+            </div>
+            
+            <div class="cart-item">
+              <div class="cart-checkbox checked"></div>
+              <div class="cart-item-img">
+                <div class="cart-item-img-ph"></div>
+              </div>
+              <div class="cart-item-info">
+                <div class="cart-item-name">飞天茅台 53度 酱香型白酒</div>
+                <div class="cart-item-spec">500ml · 单瓶装</div>
+                <div class="cart-item-bottom">
+                  <span class="cart-item-price">¥1499</span>
+                  <div class="cart-item-qty">
+                    <div class="cart-item-qty-btn">−</div>
+                    <div class="cart-item-qty-val">1</div>
+                    <div class="cart-item-qty-btn">+</div>
+                  </div>
+                </div>
+              </div>
+            </div>
+            
+            <div class="cart-item">
+              <div class="cart-checkbox checked"></div>
+              <div class="cart-item-img">
+                <div class="cart-item-img-ph"></div>
+              </div>
+              <div class="cart-item-info">
+                <div class="cart-item-name">法国波尔多干红葡萄酒</div>
+                <div class="cart-item-spec">750ml · 双支装</div>
+                <div class="cart-item-bottom">
+                  <span class="cart-item-price">¥298</span>
+                  <div class="cart-item-qty">
+                    <div class="cart-item-qty-btn">−</div>
+                    <div class="cart-item-qty-val">2</div>
+                    <div class="cart-item-qty-btn">+</div>
+                  </div>
+                </div>
+              </div>
+            </div>
+            
+            <div class="cart-item">
+              <div class="cart-checkbox"></div>
+              <div class="cart-item-img">
+                <div class="cart-item-img-ph"></div>
+              </div>
+              <div class="cart-item-info">
+                <div class="cart-item-name">青岛啤酒经典1903</div>
+                <div class="cart-item-spec">500ml*12罐</div>
+                <div class="cart-item-bottom">
+                  <span class="cart-item-price">¥79</span>
+                  <div class="cart-item-qty">
+                    <div class="cart-item-qty-btn">−</div>
+                    <div class="cart-item-qty-val">1</div>
+                    <div class="cart-item-qty-btn">+</div>
+                  </div>
+                </div>
+              </div>
+            </div>
+            
+            <div class="promo-bar">
+              再买 125 元可减 50 元
+            </div>
+            
+            <div class="cart-bottom-bar">
+              <div class="cart-select-all">
+                <div class="cart-checkbox checked"></div>
+                <span>全选</span>
+              </div>
+              <div class="cart-total">
+                <span class="cart-total-label">合计:</span>
+                <span class="cart-total-price">¥2095</span>
+              </div>
+              <div class="btn-checkout">
+                去结算
+                <div class="checkout-badge">3</div>
+              </div>
+            </div>
+            
+            <div class="tab-bar">
+              <div class="tab-item">
+                <div class="tab-icon home"></div>
+                <span>首页</span>
+              </div>
+              <div class="tab-item">
+                <div class="tab-icon"></div>
+                <span>分类</span>
+              </div>
+              <div class="tab-item active">
+                <div class="tab-icon cart"></div>
+                <span>购物车</span>
+              </div>
+              <div class="tab-item">
+                <div class="tab-icon me"></div>
+                <span>我的</span>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="phone-label">页面 4：购物车页</div>
+      </div>
+      
+    </div>
+  </section>
+
+  <section class="section">
+    <h2 class="section-title">字段规范表</h2>
+    <p class="section-desc">以下定义了小程序店铺核心业务模块的数据字段规范。</p>
+    
+    <table class="spec-table">
+      <caption>商品表（product）</caption>
+      <thead>
+        <tr>
+          <th>字段名</th>
+          <th>类型</th>
+          <th>必填</th>
+          <th>说明</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr><td>id</td><td>bigint</td><td>是</td><td>商品ID，主键</td></tr>
+        <tr><td>name</td><td>varchar(200)</td><td>是</td><td>商品名称</td></tr>
+        <tr><td>category_id</td><td>bigint</td><td>是</td><td>分类ID</td></tr>
+        <tr><td>price</td><td>decimal(10,2)</td><td>是</td><td>零售价</td></tr>
+        <tr><td>original_price</td><td>decimal(10,2)</td><td>否</td><td>原价</td></tr>
+        <tr><td>stock</td><td>int</td><td>是</td><td>库存数量</td></tr>
+        <tr><td>sales</td><td>int</td><td>否</td><td>销量</td></tr>
+        <tr><td>images</td><td>json</td><td>是</td><td>商品图片列表</td></tr>
+        <tr><td>description</td><td>text</td><td>否</td><td>商品详情</td></tr>
+        <tr><td>specs</td><td>json</td><td>否</td><td>规格属性列表</td></tr>
+        <tr><td>status</td><td>tinyint</td><td>是</td><td>状态：0下架 1上架</td></tr>
+        <tr><td>sort_order</td><td>int</td><td>否</td><td>排序值</td></tr>
+      </tbody>
+    </table>
+    
+    <table class="spec-table">
+      <caption>购物车表（cart）</caption>
+      <thead>
+        <tr>
+          <th>字段名</th>
+          <th>类型</th>
+          <th>必填</th>
+          <th>说明</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr><td>id</td><td>bigint</td><td>是</td><td>购物车ID，主键</td></tr>
+        <tr><td>user_id</td><td>bigint</td><td>是</td><td>用户ID</td></tr>
+        <tr><td>product_id</td><td>bigint</td><td>是</td><td>商品ID</td></tr>
+        <tr><td>sku_id</td><td>bigint</td><td>否</td><td>SKU ID</td></tr>
+        <tr><td>spec_text</td><td>varchar(200)</td><td>否</td><td>规格描述文本</td></tr>
+        <tr><td>quantity</td><td>int</td><td>是</td><td>数量</td></tr>
+        <tr><td>price</td><td>decimal(10,2)</td><td>是</td><td>加入购物车时的单价</td></tr>
+        <tr><td>selected</td><td>tinyint</td><td>是</td><td>是否选中：0否 1是</td></tr>
+        <tr><td>created_at</td><td>datetime</td><td>是</td><td>创建时间</td></tr>
+        <tr><td>updated_at</td><td>datetime</td><td>是</td><td>更新时间</td></tr>
+      </tbody>
+    </table>
+    
+    <table class="spec-table">
+      <caption>订单表（order）</caption>
+      <thead>
+        <tr>
+          <th>字段名</th>
+          <th>类型</th>
+          <th>必填</th>
+          <th>说明</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr><td>id</td><td>bigint</td><td>是</td><td>订单ID，主键</td></tr>
+        <tr><td>order_no</td><td>varchar(32)</td><td>是</td><td>订单号，唯一</td></tr>
+        <tr><td>user_id</td><td>bigint</td><td>是</td><td>用户ID</td></tr>
+        <tr><td>total_amount</td><td>decimal(10,2)</td><td>是</td><td>订单总金额</td></tr>
+        <tr><td>pay_amount</td><td>decimal(10,2)</td><td>是</td><td>实付金额</td></tr>
+        <tr><td>freight</td><td>decimal(10,2)</td><td>否</td><td>运费</td></tr>
+        <tr><td>discount_amount</td><td>decimal(10,2)</td><td>否</td><td>优惠金额</td></tr>
+        <tr><td>status</td><td>tinyint</td><td>是</td><td>订单状态：0待付款 1待接单 2配送中 3已完成 4已取消</td></tr>
+        <tr><td>pay_status</td><td>tinyint</td><td>是</td><td>支付状态：0未支付 1已支付 2已退款</td></tr>
+        <tr><td>delivery_type</td><td>tinyint</td><td>是</td><td>配送方式：1配送 2自提</td></tr>
+        <tr><td>address_info</td><td>json</td><td>是</td><td>收货地址信息</td></tr>
+        <tr><td>remark</td><td>varchar(500)</td><td>否</td><td>订单备注</td></tr>
+        <tr><td>created_at</td><td>datetime</td><td>是</td><td>下单时间</td></tr>
+        <tr><td>pay_time</td><td>datetime</td><td>否</td><td>支付时间</td></tr>
+        <tr><td>finish_time</td><td>datetime</td><td>否</td><td>完成时间</td></tr>
+      </tbody>
+    </table>
+  </section>
+
+  <section class="section">
+    <h2 class="section-title">验收标准清单</h2>
+    <p class="section-desc">以下是小程序店铺上线前必须满足的验收标准，共 14 项检查点。</p>
+    
+    <div class="checklist">
+      <div class="checklist-item">
+        <div class="checklist-checkbox"></div>
+        <div class="checklist-text">店铺首页轮播图支持自动轮播和手动滑动切换，轮播指示点正确显示当前位置</div>
+      </div>
+      <div class="checklist-item">
+        <div class="checklist-checkbox"></div>
+        <div class="checklist-text">分类导航点击可跳转到对应分类的商品列表页，当前分类高亮显示</div>
+      </div>
+      <div class="checklist-item">
+        <div class="checklist-checkbox"></div>
+        <div class="checklist-text">搜索栏支持输入关键词搜索商品，搜索历史记录功能正常</div>
+      </div>
+      <div class="checklist-item">
+        <div class="checklist-checkbox"></div>
+        <div class="checklist-text">精选推荐商品瀑布流展示正确，商品卡片显示图片、名称、价格、销量信息完整</div>
+      </div>
+      <div class="checklist-item">
+        <div class="checklist-checkbox"></div>
+        <div class="checklist-text">热销排行榜正确显示销量前 10 名商品，前三名显示金色/银色/铜色徽章</div>
+      </div>
+      <div class="checklist-item">
+        <div class="checklist-checkbox"></div>
+        <div class="checklist-text">商品详情页多图轮播正常，支持手势滑动和页码指示</div>
+      </div>
+      <div class="checklist-item">
+        <div class="checklist-checkbox"></div>
+        <div class="checklist-text">规格选择弹窗可正常弹出和关闭，规格选项点击切换，选中状态金色边框高亮</div>
+      </div>
+      <div class="checklist-item">
+        <div class="checklist-checkbox"></div>
+        <div class="checklist-text">商品数量加减器功能正常，数量不能小于1，不能超过库存</div>
+      </div>
+      <div class="checklist-item">
+        <div class="checklist-checkbox"></div>
+        <div class="checklist-text">加入购物车按钮点击后有反馈提示，购物车角标数量实时更新</div>
+      </div>
+      <div class="checklist-item">
+        <div class="checklist-checkbox"></div>
+        <div class="checklist-text">购物车商品支持单选和全选，合计金额随选中状态实时计算</div>
+      </div>
+      <div class="checklist-item">
+        <div class="checklist-checkbox"></div>
+        <div class="checklist-text">购物车商品数量可修改，删除商品有确认提示，左滑删除交互流畅</div>
+      </div>
+      <div class="checklist-item">
+        <div class="checklist-checkbox"></div>
+        <div class="checklist-text">满减提示条正确显示距离满减门槛的差额，满足条件时显示已享受优惠</div>
+      </div>
+      <div class="checklist-item">
+        <div class="checklist-checkbox"></div>
+        <div class="checklist-text">底部 Tab 导航切换流畅，当前页面对应 Tab 金色高亮显示</div>
+      </div>
+      <div class="checklist-item">
+        <div class="checklist-checkbox"></div>
+        <div class="checklist-text">空购物车状态显示正确，点击"去逛逛"可跳转到首页</div>
+      </div>
+    </div>
+  </section>
+
+</div>
+
+</body>
+</html>

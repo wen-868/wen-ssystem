@@ -1,0 +1,985 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>36 · 配送管理+履约调度 — 设计规格文档</title>
+<style>
+:root {
+  --brand: #1677FF; --brand-light: #E6F4FF; --text: #1F2328; --text-secondary: #4B5563; --text-muted: #9CA3AF;
+  --border: #E5E7EB; --bg: #F5F7FA; --white: #FFF; --success: #10B981; --warning: #F59E0B; --danger: #EF4444;
+  --radius: 12px; --shadow: 0 2px 8px rgba(0,0,0,.06);
+  --jd-red: #E1251B; --mt-yellow: #FFD101; --ele-blue: #0085FF;
+}
+* { margin: 0; padding: 0; box-sizing: border-box; }
+body { font-family: -apple-system, BlinkMacSystemFont, 'PingFang SC', 'Microsoft YaHei', sans-serif; background: var(--bg); color: var(--text); line-height: 1.6; }
+.container { max-width: 1400px; margin: 0 auto; padding: 40px 24px; }
+.header { background: linear-gradient(135deg, #1677FF, #0958D9); color: #fff; padding: 48px 24px; text-align: center; }
+.header h1 { font-size: 2rem; font-weight: 700; margin-bottom: 8px; }
+.header p { font-size: 1rem; opacity: .85; }
+.section { background: var(--white); border-radius: var(--radius); padding: 32px; margin-bottom: 24px; box-shadow: var(--shadow); }
+.section h2 { font-size: 1.25rem; color: var(--brand); margin-bottom: 8px; padding-bottom: 12px; border-bottom: 2px solid var(--brand-light); }
+.section h3 { font-size: 1.05rem; margin: 20px 0 10px; color: var(--text); }
+.section p.desc { color: var(--text-secondary); margin-bottom: 16px; font-size: .88rem; }
+
+/* Mockup Layout */
+.mockup { border: 1px solid var(--border); border-radius: 8px; overflow: hidden; background: var(--white); }
+.mockup-header { height: 56px; background: #1F2937; display: flex; align-items: center; padding: 0 20px; color: #fff; }
+.mockup-header .logo { width: 32px; height: 32px; background: var(--brand); border-radius: 6px; display: flex; align-items: center; justify-content: center; font-weight: 700; font-size: 14px; margin-right: 12px; }
+.mockup-header .title { font-size: 14px; font-weight: 600; }
+.mockup-header .user { margin-left: auto; display: flex; align-items: center; gap: 8px; font-size: 12px; }
+.mockup-header .user-avatar { width: 28px; height: 28px; background: #4B5563; border-radius: 50%; }
+.mockup-body { display: flex; min-height: 600px; }
+.mockup-sidebar { width: 200px; background: #FAFBFC; border-right: 1px solid var(--border); padding: 16px 0; flex-shrink: 0; }
+.mockup-sidebar .menu-group { margin-bottom: 16px; }
+.mockup-sidebar .menu-title { font-size: 11px; color: var(--text-muted); padding: 0 16px 8px; text-transform: uppercase; }
+.mockup-sidebar .menu-item { padding: 10px 16px; font-size: 13px; color: var(--text-secondary); cursor: pointer; display: flex; align-items: center; gap: 10px; }
+.mockup-sidebar .menu-item.active { background: var(--brand-light); color: var(--brand); font-weight: 600; border-right: 3px solid var(--brand); }
+.mockup-sidebar .menu-icon { width: 18px; height: 18px; border-radius: 4px; background: currentColor; opacity: .6; display: inline-block; }
+.mockup-main { flex: 1; padding: 20px; overflow: auto; }
+.mockup-page-title { font-size: 18px; font-weight: 600; margin-bottom: 4px; }
+.mockup-breadcrumb { font-size: 12px; color: var(--text-muted); margin-bottom: 20px; }
+
+/* Tabs */
+.mockup-tabs { display: flex; border-bottom: 1px solid var(--border); margin-bottom: 20px; gap: 0; }
+.mockup-tab { padding: 10px 20px; font-size: 13px; color: var(--text-secondary); cursor: pointer; border-bottom: 2px solid transparent; }
+.mockup-tab.active { color: var(--brand); border-bottom-color: var(--brand); font-weight: 600; }
+.tab-content { display: none; }
+.tab-content.active { display: block; }
+
+/* Stat Cards */
+.stats-row { display: flex; gap: 16px; margin-bottom: 20px; flex-wrap: wrap; }
+.stat-card { flex: 1; min-width: 140px; background: var(--white); border: 1px solid var(--border); border-radius: 8px; padding: 16px; }
+.stat-card .stat-label { font-size: 12px; color: var(--text-muted); margin-bottom: 6px; }
+.stat-card .stat-value { font-size: 24px; font-weight: 700; color: var(--text); }
+.stat-card .stat-trend { font-size: 11px; margin-top: 4px; color: var(--success); }
+.stat-card .stat-trend.down { color: var(--danger); }
+
+/* Tag */
+.tag { display: inline-block; padding: 2px 8px; border-radius: 4px; font-size: 11px; font-weight: 500; }
+.tag-danger { background: #FEE2E2; color: #991B1B; }
+.tag-success { background: #D1FAE5; color: #065F46; }
+.tag-warning { background: #FEF3C7; color: #92400E; }
+.tag-info { background: #DBEAFE; color: #1E40AF; }
+.tag-default { background: #F3F4F6; color: #4B5563; }
+.tag-jd { background: #FEE2E2; color: var(--jd-red); }
+.tag-mt { background: #FFFBEB; color: #92400E; }
+.tag-ele { background: #DBEAFE; color: var(--ele-blue); }
+
+/* Delivery Type Cards */
+.delivery-types { display: flex; gap: 16px; margin-bottom: 24px; }
+.delivery-type-card { flex: 1; border: 2px solid var(--border); border-radius: 10px; padding: 20px; cursor: pointer; transition: all .2s; background: var(--white); }
+.delivery-type-card.active { border-color: var(--brand); background: var(--brand-light); }
+.delivery-type-card .card-icon { width: 48px; height: 48px; border-radius: 10px; background: #F3F4F6; display: flex; align-items: center; justify-content: center; margin-bottom: 12px; }
+.delivery-type-card.active .card-icon { background: var(--brand); color: #fff; }
+.delivery-type-card .card-title { font-size: 15px; font-weight: 600; margin-bottom: 4px; display: flex; align-items: center; gap: 8px; }
+.delivery-type-card .card-desc { font-size: 12px; color: var(--text-muted); }
+.delivery-type-card .radio { display: inline-block; width: 16px; height: 16px; border: 2px solid var(--border); border-radius: 50%; }
+.delivery-type-card.active .radio { border-color: var(--brand); background: var(--brand); box-shadow: inset 0 0 0 3px #fff; }
+
+/* Form Cards */
+.form-card { background: #FAFBFC; border: 1px solid var(--border); border-radius: 8px; padding: 20px; margin-bottom: 20px; }
+.form-card .card-title { font-size: 14px; font-weight: 600; margin-bottom: 16px; color: var(--text); }
+.form-row { display: flex; gap: 16px; margin-bottom: 16px; flex-wrap: wrap; }
+.form-item { flex: 1; min-width: 200px; }
+.form-item label { display: block; font-size: 12px; color: var(--text-secondary); margin-bottom: 6px; }
+.form-item input, .form-item select { width: 100%; height: 36px; padding: 0 12px; border: 1px solid var(--border); border-radius: 6px; font-size: 13px; background: #fff; }
+.form-item .input-suffix { position: relative; }
+.form-item .input-suffix span { position: absolute; right: 12px; top: 50%; transform: translateY(-50%); font-size: 12px; color: var(--text-muted); }
+
+/* Map Placeholder */
+.map-placeholder { height: 300px; background: #F3F4F6; border-radius: 8px; display: flex; align-items: center; justify-content: center; position: relative; margin-bottom: 16px; overflow: hidden; }
+.map-placeholder::before { content: ''; position: absolute; width: 180px; height: 180px; border: 2px dashed var(--brand); border-radius: 50%; opacity: .5; }
+.map-placeholder::after { content: ''; position: absolute; width: 12px; height: 12px; background: var(--brand); border-radius: 50%; box-shadow: 0 0 0 4px rgba(22,119,255,.2); }
+.map-placeholder .map-text { color: var(--text-muted); font-size: 14px; z-index: 1; }
+
+/* Slider */
+.slider-row { display: flex; align-items: center; gap: 16px; }
+.slider-row .slider { flex: 1; height: 4px; background: var(--border); border-radius: 2px; position: relative; }
+.slider-row .slider-fill { position: absolute; left: 0; top: 0; height: 100%; width: 30%; background: var(--brand); border-radius: 2px; }
+.slider-row .slider-thumb { position: absolute; left: 30%; top: 50%; transform: translate(-50%, -50%); width: 16px; height: 16px; background: var(--brand); border-radius: 50%; border: 2px solid #fff; box-shadow: 0 2px 4px rgba(0,0,0,.2); }
+.slider-row input { width: 80px; height: 32px; text-align: center; border: 1px solid var(--border); border-radius: 6px; font-size: 13px; }
+
+/* Buttons */
+.btn { padding: 8px 20px; border-radius: 6px; font-size: 13px; font-weight: 500; cursor: pointer; border: none; display: inline-block; }
+.btn-primary { background: var(--brand); color: #fff; }
+.btn-default { background: #fff; color: var(--text); border: 1px solid var(--border); }
+.btn-success { background: var(--success); color: #fff; }
+.btn-warning { background: var(--warning); color: #fff; }
+.btn-danger { background: var(--danger); color: #fff; }
+.btn-sm { padding: 4px 12px; font-size: 12px; }
+.btn-block { display: block; width: 100%; }
+.btn-row { display: flex; gap: 12px; justify-content: flex-end; }
+
+/* Filter Bar */
+.filter-bar { display: flex; gap: 12px; align-items: center; margin-bottom: 16px; flex-wrap: wrap; }
+.filter-bar .status-tabs { display: flex; gap: 0; border: 1px solid var(--border); border-radius: 6px; overflow: hidden; }
+.filter-bar .status-tab { padding: 6px 14px; font-size: 12px; color: var(--text-secondary); cursor: pointer; background: #fff; border-right: 1px solid var(--border); }
+.filter-bar .status-tab:last-child { border-right: none; }
+.filter-bar .status-tab.active { background: var(--brand); color: #fff; }
+.filter-bar select, .filter-bar input { height: 32px; padding: 0 10px; border: 1px solid var(--border); border-radius: 6px; font-size: 12px; }
+.filter-bar .search { flex: 1; max-width: 280px; }
+
+/* Table */
+.mockup-table { width: 100%; border-collapse: collapse; font-size: 12px; }
+.mockup-table th { background: #F9FAFB; padding: 12px; text-align: left; font-weight: 600; color: var(--text-secondary); border-bottom: 1px solid var(--border); font-size: 11px; }
+.mockup-table td { padding: 12px; border-bottom: 1px solid var(--border); }
+.mockup-table tr:hover { background: #F8FAFC; }
+.mockup-table .actions { display: flex; gap: 8px; }
+.mockup-table .link { color: var(--brand); cursor: pointer; font-size: 12px; }
+
+/* Modal */
+.modal-overlay { position: fixed; inset: 0; background: rgba(0,0,0,.45); display: flex; align-items: center; justify-content: center; z-index: 100; }
+.modal { background: #fff; border-radius: 10px; width: 600px; max-height: 80vh; overflow: auto; }
+.modal-header { padding: 16px 20px; border-bottom: 1px solid var(--border); display: flex; align-items: center; justify-content: space-between; }
+.modal-header .modal-title { font-size: 15px; font-weight: 600; }
+.modal-body { padding: 20px; }
+.modal-close { width: 24px; height: 24px; display: flex; align-items: center; justify-content: center; cursor: pointer; color: var(--text-muted); }
+
+/* Timeline */
+.timeline { position: relative; padding-left: 24px; margin: 16px 0; }
+.timeline::before { content: ''; position: absolute; left: 7px; top: 4px; bottom: 4px; width: 2px; background: var(--border); }
+.timeline-item { position: relative; margin-bottom: 20px; }
+.timeline-item:last-child { margin-bottom: 0; }
+.timeline-item .dot { position: absolute; left: -24px; top: 2px; width: 16px; height: 16px; border-radius: 50%; background: var(--border); border: 3px solid #fff; box-shadow: 0 0 0 1px var(--border); }
+.timeline-item.active .dot { background: var(--brand); box-shadow: 0 0 0 1px var(--brand); }
+.timeline-item.done .dot { background: var(--success); box-shadow: 0 0 0 1px var(--success); }
+.timeline-item .time { font-size: 11px; color: var(--text-muted); margin-bottom: 2px; }
+.timeline-item .title { font-size: 13px; font-weight: 600; margin-bottom: 2px; }
+.timeline-item .desc { font-size: 12px; color: var(--text-secondary); }
+.timeline-item .operator { font-size: 11px; color: var(--text-muted); margin-top: 2px; }
+
+/* Info Cards in Modal */
+.info-card-row { display: flex; gap: 16px; margin-top: 16px; }
+.info-card { flex: 1; background: #FAFBFC; border-radius: 8px; padding: 14px; }
+.info-card .info-title { font-size: 12px; font-weight: 600; margin-bottom: 8px; color: var(--text); }
+.info-card .info-row { font-size: 12px; color: var(--text-secondary); margin-bottom: 4px; display: flex; justify-content: space-between; }
+.info-card .info-row span:last-child { color: var(--text); font-weight: 500; }
+
+/* Kanban Board */
+.kanban-board { display: flex; gap: 16px; }
+.kanban-column { flex: 1; background: #F3F4F6; border-radius: 8px; padding: 12px; min-height: 400px; }
+.kanban-column .col-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 12px; }
+.kanban-column .col-title { font-size: 13px; font-weight: 600; }
+.kanban-column .col-count { padding: 2px 8px; border-radius: 10px; font-size: 11px; font-weight: 600; }
+.kanban-column.pending .col-count { background: #FEF3C7; color: #92400E; }
+.kanban-column.preparing .col-count { background: #DBEAFE; color: #1E40AF; }
+.kanban-column.delivering .col-count { background: #EDE9FE; color: #6D28D9; }
+.kanban-column.done .col-count { background: #D1FAE5; color: #065F46; }
+
+.kanban-card { background: #fff; border-radius: 8px; padding: 12px; margin-bottom: 10px; border-left: 3px solid var(--border); cursor: move; box-shadow: 0 1px 3px rgba(0,0,0,.05); }
+.kanban-card.danger { border-left-color: var(--danger); background: #FEF2F2; }
+.kanban-card.warning { border-left-color: var(--warning); background: #FFFBEB; }
+.kanban-card .card-top { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 6px; }
+.kanban-card .order-no { font-size: 12px; font-weight: 600; }
+.kanban-card .amount { font-size: 13px; font-weight: 700; color: var(--danger); }
+.kanban-card .customer { font-size: 11px; color: var(--text-secondary); margin-bottom: 6px; }
+.kanban-card .products { font-size: 11px; color: var(--text-muted); margin-bottom: 8px; }
+.kanban-card .card-bottom { display: flex; justify-content: space-between; align-items: center; }
+.kanban-card .countdown { font-size: 11px; color: var(--danger); font-weight: 600; }
+.kanban-card .countdown.normal { color: var(--text-muted); font-weight: 400; }
+
+/* Spec Table */
+.spec-table { width: 100%; border-collapse: collapse; margin: 16px 0; }
+.spec-table th, .spec-table td { padding: 10px 14px; text-align: left; border-bottom: 1px solid var(--border); font-size: .85rem; }
+.spec-table th { background: var(--brand-light); color: var(--brand); font-weight: 600; font-size: .8rem; }
+.spec-table tr:hover { background: #F8FAFC; }
+.spec-table code { background: #F1F5F9; padding: 2px 6px; border-radius: 4px; font-size: .82rem; }
+
+/* Checklist */
+.checklist { list-style: none; padding: 0; }
+.checklist li { padding: 8px 0 8px 28px; position: relative; font-size: .88rem; color: var(--text-secondary); border-bottom: 1px solid #F0F0F0; }
+.checklist li::before { content: ''; position: absolute; left: 0; top: 10px; width: 16px; height: 16px; border: 2px solid var(--border); border-radius: 4px; }
+.checklist li:last-child { border-bottom: none; }
+
+/* Modal Map */
+.modal-map { height: 160px; background: #F3F4F6; border-radius: 8px; display: flex; align-items: center; justify-content: center; margin-top: 16px; position: relative; overflow: hidden; }
+.modal-map::before { content: ''; position: absolute; width: 60%; height: 60%; border: 2px dashed var(--border); border-radius: 50%; }
+.modal-map .rider-pos { position: absolute; width: 12px; height: 12px; background: var(--brand); border-radius: 50%; box-shadow: 0 0 0 4px rgba(22,119,255,.3); animation: pulse 2s infinite; }
+@keyframes pulse { 0%,100% { box-shadow: 0 0 0 4px rgba(22,119,255,.3); } 50% { box-shadow: 0 0 0 8px rgba(22,119,255,.1); } }
+
+/* Warning icon */
+.warn-icon { display: inline-flex; width: 16px; height: 16px; border-radius: 50%; background: var(--danger); color: #fff; align-items: center; justify-content: center; font-size: 10px; font-weight: 700; margin-right: 4px; }
+</style>
+</head>
+<body>
+
+<div class="header">
+  <h1>36 · 配送管理+履约调度 — 设计规格文档</h1>
+  <p>管理后台 · 配送配置 · 配送记录 · 履约看板</p>
+</div>
+
+<div class="container">
+
+  <!-- 1. 页面总览 -->
+  <div class="section">
+    <h2>1. 页面总览</h2>
+    <p class="desc">配送管理与履约调度模块是订单履约全流程的核心控制中心，支持多种配送方式的配置与管理、配送订单的全生命周期跟踪、以及履约状态的可视化看板。通过Tab切换三大功能区：配送配置、配送记录、履约看板，帮助运营人员高效管理订单配送流程。</p>
+    <p class="desc">设计目标：统一多渠道配送配置入口、提升配送单跟踪效率、可视化履约全流程、降低订单超时率。</p>
+  </div>
+
+  <!-- 2. Mockup 区域 -->
+  <div class="section">
+    <h2>2. 管理后台原型</h2>
+    <p class="desc">完整管理后台页面，包含顶部导航栏、左侧导航树、中央工作区三大Tab（配送配置 | 配送记录 | 履约看板）。</p>
+
+    <div class="mockup">
+      <!-- Header -->
+      <div class="mockup-header">
+        <div class="logo">智</div>
+        <div class="title">智享酒水库存管理系统</div>
+        <div class="user">
+          <span>管理员</span>
+          <div class="user-avatar"></div>
+        </div>
+      </div>
+
+      <div class="mockup-body">
+        <!-- Sidebar -->
+        <div class="mockup-sidebar">
+          <div class="menu-group">
+            <div class="menu-title">工作台</div>
+            <div class="menu-item"><span class="menu-icon"></span>首页概览</div>
+            <div class="menu-item"><span class="menu-icon"></span>数据报表</div>
+          </div>
+          <div class="menu-group">
+            <div class="menu-title">订单管理</div>
+            <div class="menu-item"><span class="menu-icon"></span>订单管理</div>
+            <div class="menu-item active"><span class="menu-icon"></span>配送管理</div>
+            <div class="menu-item"><span class="menu-icon"></span>售后管理</div>
+          </div>
+          <div class="menu-group">
+            <div class="menu-title">商品库存</div>
+            <div class="menu-item"><span class="menu-icon"></span>商品管理</div>
+            <div class="menu-item"><span class="menu-icon"></span>库存管理</div>
+            <div class="menu-item"><span class="menu-icon"></span>采购管理</div>
+          </div>
+          <div class="menu-group">
+            <div class="menu-title">营销中心</div>
+            <div class="menu-item"><span class="menu-icon"></span>营销活动</div>
+            <div class="menu-item"><span class="menu-icon"></span>优惠券</div>
+          </div>
+          <div class="menu-group">
+            <div class="menu-title">系统设置</div>
+            <div class="menu-item"><span class="menu-icon"></span>门店管理</div>
+            <div class="menu-item"><span class="menu-icon"></span>员工管理</div>
+          </div>
+        </div>
+
+        <!-- Main -->
+        <div class="mockup-main">
+          <div class="mockup-breadcrumb">订单管理 / 配送管理</div>
+          <div class="mockup-page-title">配送管理与履约调度</div>
+
+          <!-- Tabs -->
+          <div class="mockup-tabs">
+            <div class="mockup-tab active" onclick="switchTab(event, 'tab-config')">配送配置</div>
+            <div class="mockup-tab" onclick="switchTab(event, 'tab-records')">配送记录</div>
+            <div class="mockup-tab" onclick="switchTab(event, 'tab-board')">履约看板</div>
+          </div>
+
+          <!-- Tab 1: 配送配置 -->
+          <div id="tab-config" class="tab-content active">
+            
+            <!-- 配送类型选择器 -->
+            <div class="form-card">
+              <div class="card-title">配送方式</div>
+              <div class="delivery-types">
+                <div class="delivery-type-card active" onclick="selectDeliveryType(this)">
+                  <div class="card-icon">
+                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                      <circle cx="12" cy="12" r="10"></circle>
+                      <path d="M8 12h8M12 8v8"></path>
+                    </svg>
+                  </div>
+                  <div class="card-title"><span class="radio"></span>自配送</div>
+                  <div class="card-desc">商家自有骑手团队配送，支持骑手管理、配送范围自定义</div>
+                </div>
+                <div class="delivery-type-card" onclick="selectDeliveryType(this)">
+                  <div class="card-icon">
+                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                      <rect x="2" y="7" width="20" height="14" rx="2"></rect>
+                      <path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16"></path>
+                    </svg>
+                  </div>
+                  <div class="card-title"><span class="radio"></span>平台配送</div>
+                  <div class="card-desc">接入京东到家、美团、饿了么等平台，使用平台骑手配送</div>
+                </div>
+                <div class="delivery-type-card" onclick="selectDeliveryType(this)">
+                  <div class="card-icon">
+                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                      <path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"></path>
+                    </svg>
+                  </div>
+                  <div class="card-title"><span class="radio"></span>第三方配送</div>
+                  <div class="card-desc">接入达达、闪送、顺丰同城等第三方即时配送服务商</div>
+                </div>
+              </div>
+            </div>
+
+            <!-- 自配送参数表单 -->
+            <div class="form-card">
+              <div class="card-title">自配送参数配置</div>
+              <div class="form-row">
+                <div class="form-item">
+                  <label>配送费</label>
+                  <div class="input-suffix">
+                    <input type="text" value="5.00">
+                    <span>元</span>
+                  </div>
+                </div>
+                <div class="form-item">
+                  <label>免配送费门槛</label>
+                  <div class="input-suffix">
+                    <input type="text" value="68">
+                    <span>元</span>
+                  </div>
+                </div>
+                <div class="form-item">
+                  <label>配送半径</label>
+                  <div class="input-suffix">
+                    <input type="text" value="5">
+                    <span>km</span>
+                  </div>
+                </div>
+              </div>
+              <div class="form-row">
+                <div class="form-item">
+                  <label>预计送达时间</label>
+                  <div class="input-suffix">
+                    <input type="text" value="45">
+                    <span>分钟</span>
+                  </div>
+                </div>
+                <div class="form-item">
+                  <label>联系电话</label>
+                  <input type="text" value="400-888-8888">
+                </div>
+                <div class="form-item">
+                  <label>骑手管理</label>
+                  <button class="btn btn-default" style="height:36px;">骑手管理入口 →</button>
+                </div>
+              </div>
+            </div>
+
+            <!-- 配送范围设置 -->
+            <div class="form-card">
+              <div class="card-title">配送范围设置</div>
+              <div class="map-placeholder">
+                <div class="map-text">地图组件 — 配送范围设置</div>
+              </div>
+              <div class="form-row">
+                <div class="form-item" style="flex: 2;">
+                  <label>配送中心点地址</label>
+                  <div style="display:flex; gap:8px;">
+                    <input type="text" value="北京市朝阳区建国路88号SOHO现代城" style="flex:1;">
+                    <button class="btn btn-default">自动定位</button>
+                  </div>
+                </div>
+              </div>
+              <div class="form-row">
+                <div class="form-item">
+                  <label>配送半径</label>
+                  <div class="slider-row">
+                    <div class="slider">
+                      <div class="slider-fill" style="width:40%;"></div>
+                      <div class="slider-thumb" style="left:40%;"></div>
+                    </div>
+                    <input type="text" value="4">
+                    <span style="font-size:12px;color:var(--text-muted);">km</span>
+                  </div>
+                  <div style="display:flex;justify-content:space-between;font-size:10px;color:var(--text-muted);margin-top:4px;">
+                    <span>1km</span><span>5km</span><span>10km</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <div class="btn-row">
+              <button class="btn btn-default">恢复默认</button>
+              <button class="btn btn-primary">保存配置</button>
+            </div>
+          </div>
+
+          <!-- Tab 2: 配送记录 -->
+          <div id="tab-records" class="tab-content">
+            
+            <!-- 筛选栏 -->
+            <div class="filter-bar">
+              <div class="status-tabs">
+                <div class="status-tab active">全部</div>
+                <div class="status-tab">待接单</div>
+                <div class="status-tab">配送中</div>
+                <div class="status-tab">已送达</div>
+                <div class="status-tab">已取消</div>
+              </div>
+              <select>
+                <option>全部配送方式</option>
+                <option>自配送</option>
+                <option>平台配送</option>
+                <option>第三方配送</option>
+              </select>
+              <input type="text" value="2026-07-01 ~ 2026-07-01" style="width:200px;">
+              <input type="text" class="search" placeholder="搜索配送单号/订单号/骑手/用户">
+            </div>
+
+            <!-- 统计卡片 -->
+            <div class="stats-row">
+              <div class="stat-card">
+                <div class="stat-label">今日配送单</div>
+                <div class="stat-value">128</div>
+                <div class="stat-trend">↑ 12.5% 较昨日</div>
+              </div>
+              <div class="stat-card">
+                <div class="stat-label">平均配送时长</div>
+                <div class="stat-value">38<span style="font-size:14px;color:var(--text-muted);">分钟</span></div>
+                <div class="stat-trend">↓ 5.2% 较昨日</div>
+              </div>
+              <div class="stat-card">
+                <div class="stat-label">准时率</div>
+                <div class="stat-value">96.2<span style="font-size:14px;color:var(--text-muted);">%</span></div>
+                <div class="stat-trend">↑ 1.8% 较昨日</div>
+              </div>
+              <div class="stat-card">
+                <div class="stat-label">配送中</div>
+                <div class="stat-value">23</div>
+                <div class="stat-trend" style="color:var(--warning);">实时</div>
+              </div>
+            </div>
+
+            <!-- 配送记录表格 -->
+            <table class="mockup-table">
+              <thead>
+                <tr>
+                  <th>配送单号</th>
+                  <th>关联订单号</th>
+                  <th>骑手信息</th>
+                  <th>配送方式</th>
+                  <th>配送状态</th>
+                  <th>取货时间</th>
+                  <th>送达时间</th>
+                  <th>配送时长</th>
+                  <th>配送费</th>
+                  <th>操作</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td><strong>PS2026070100128</strong></td>
+                  <td>OD2026070100256</td>
+                  <td>张伟 · 138****5678</td>
+                  <td><span class="tag tag-default">自配送</span></td>
+                  <td><span class="tag tag-success">已送达</span></td>
+                  <td>14:23:15</td>
+                  <td>14:58:42</td>
+                  <td>35分27秒</td>
+                  <td>¥5.00</td>
+                  <td class="actions">
+                    <span class="link">查看</span>
+                    <span class="link">联系骑手</span>
+                  </td>
+                </tr>
+                <tr>
+                  <td><strong>PS2026070100127</strong></td>
+                  <td>OD2026070100255</td>
+                  <td>李娜 · 139****1234</td>
+                  <td><span class="tag tag-mt">美团配送</span></td>
+                  <td><span class="tag tag-info">配送中</span></td>
+                  <td>14:45:20</td>
+                  <td>—</td>
+                  <td>进行中</td>
+                  <td>¥8.00</td>
+                  <td class="actions">
+                    <span class="link">查看</span>
+                    <span class="link">联系骑手</span>
+                  </td>
+                </tr>
+                <tr>
+                  <td><strong>PS2026070100126</strong></td>
+                  <td>OD2026070100254</td>
+                  <td>王强 · 137****9876</td>
+                  <td><span class="tag tag-jd">京东到家</span></td>
+                  <td><span class="tag tag-warning">待接单</span></td>
+                  <td>—</td>
+                  <td>—</td>
+                  <td>—</td>
+                  <td>¥6.00</td>
+                  <td class="actions">
+                    <span class="link">查看</span>
+                    <span class="link">联系骑手</span>
+                  </td>
+                </tr>
+                <tr>
+                  <td><strong>PS2026070100125</strong></td>
+                  <td>OD2026070100253</td>
+                  <td>刘洋 · 136****5432</td>
+                  <td><span class="tag tag-default">自配送</span></td>
+                  <td><span class="tag tag-danger">已取消</span></td>
+                  <td>13:50:08</td>
+                  <td>—</td>
+                  <td>—</td>
+                  <td>¥0.00</td>
+                  <td class="actions">
+                    <span class="link">查看</span>
+                    <span class="link">联系骑手</span>
+                  </td>
+                </tr>
+                <tr>
+                  <td><strong>PS2026070100124</strong></td>
+                  <td>OD2026070100252</td>
+                  <td>陈斌 · 135****7654</td>
+                  <td><span class="tag tag-ele">饿了么</span></td>
+                  <td><span class="tag tag-success">已送达</span></td>
+                  <td>13:28:45</td>
+                  <td>14:05:12</td>
+                  <td>36分27秒</td>
+                  <td>¥7.00</td>
+                  <td class="actions">
+                    <span class="link">查看</span>
+                    <span class="link">联系骑手</span>
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+
+            <!-- 配送详情弹窗示意 -->
+            <h3 style="margin-top:32px;">配送详情弹窗</h3>
+            <div class="modal-overlay" style="position:relative; background:rgba(0,0,0,.1); margin-top:16px;">
+              <div class="modal">
+                <div class="modal-header">
+                  <div class="modal-title">配送详情 <span class="tag tag-info" style="margin-left:8px;">配送中</span></div>
+                  <div class="modal-close">×</div>
+                </div>
+                <div class="modal-body">
+                  <div style="font-size:13px;color:var(--text-muted);margin-bottom:8px;">配送单号：PS2026070100127</div>
+                  
+                  <h4 style="font-size:13px;margin-bottom:8px;">配送进度</h4>
+                  <div class="timeline">
+                    <div class="timeline-item done">
+                      <div class="dot"></div>
+                      <div class="time">2026-07-01 14:40:00</div>
+                      <div class="title">待接单</div>
+                      <div class="desc">订单已提交，等待骑手接单</div>
+                      <div class="operator">操作人：系统</div>
+                    </div>
+                    <div class="timeline-item done">
+                      <div class="dot"></div>
+                      <div class="time">2026-07-01 14:42:15</div>
+                      <div class="title">已接单</div>
+                      <div class="desc">骑手李娜已接单，正在前往取货点</div>
+                      <div class="operator">操作人：李娜（骑手）</div>
+                    </div>
+                    <div class="timeline-item done">
+                      <div class="dot"></div>
+                      <div class="time">2026-07-01 14:45:20</div>
+                      <div class="title">骑手取货</div>
+                      <div class="desc">骑手已到达取货点，商品已取货</div>
+                      <div class="operator">操作人：李娜（骑手）</div>
+                    </div>
+                    <div class="timeline-item active">
+                      <div class="dot"></div>
+                      <div class="time">2026-07-01 14:55:30</div>
+                      <div class="title">配送中</div>
+                      <div class="desc">骑手正在配送途中，预计10分钟后送达</div>
+                      <div class="operator">操作人：李娜（骑手）</div>
+                    </div>
+                    <div class="timeline-item">
+                      <div class="dot"></div>
+                      <div class="time">—</div>
+                      <div class="title">已送达</div>
+                      <div class="desc">商品已送达收货人</div>
+                      <div class="operator">—</div>
+                    </div>
+                  </div>
+
+                  <div class="info-card-row">
+                    <div class="info-card">
+                      <div class="info-title">订单信息</div>
+                      <div class="info-row"><span>订单号</span><span>OD2026070100255</span></div>
+                      <div class="info-row"><span>下单时间</span><span>14:35:22</span></div>
+                      <div class="info-row"><span>实付金额</span><span>¥256.00</span></div>
+                    </div>
+                    <div class="info-card">
+                      <div class="info-title">骑手信息</div>
+                      <div class="info-row"><span>姓名</span><span>李娜</span></div>
+                      <div class="info-row"><span>电话</span><span>139****1234</span></div>
+                      <div class="info-row"><span>骑手评分</span><span>4.9</span></div>
+                    </div>
+                  </div>
+
+                  <div class="modal-map">
+                    <div style="color:var(--text-muted);font-size:12px;z-index:1;">骑手实时位置追踪</div>
+                    <div class="rider-pos" style="left:55%; top:45%;"></div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Tab 3: 履约看板 -->
+          <div id="tab-board" class="tab-content">
+            
+            <div class="filter-bar">
+              <div class="status-tabs">
+                <div class="status-tab active">今日</div>
+                <div class="status-tab">昨日</div>
+                <div class="status-tab">近7天</div>
+              </div>
+              <div style="margin-left:auto; font-size:12px; color:var(--text-muted);">数据更新时间：2026-07-01 15:00:00</div>
+            </div>
+
+            <div class="stats-row">
+              <div class="stat-card">
+                <div class="stat-label">总单量</div>
+                <div class="stat-value">128</div>
+                <div class="stat-trend">↑ 12.5% 较昨日</div>
+              </div>
+              <div class="stat-card">
+                <div class="stat-label">待接单</div>
+                <div class="stat-value" style="color:var(--warning);">12</div>
+                <div class="stat-trend" style="color:var(--warning);">3单即将超时</div>
+              </div>
+              <div class="stat-card">
+                <div class="stat-label">备货中</div>
+                <div class="stat-value" style="color:var(--brand);">28</div>
+                <div class="stat-trend" style="color:var(--brand);">正常</div>
+              </div>
+              <div class="stat-card">
+                <div class="stat-label">配送中</div>
+                <div class="stat-value" style="color:#8B5CF6;">35</div>
+                <div class="stat-trend" style="color:#8B5CF6;">正常</div>
+              </div>
+              <div class="stat-card">
+                <div class="stat-label">已完成</div>
+                <div class="stat-value" style="color:var(--success);">53</div>
+                <div class="stat-trend">准时率 96.2%</div>
+              </div>
+            </div>
+
+            <div class="kanban-board">
+              <!-- 待接单 -->
+              <div class="kanban-column pending">
+                <div class="col-header">
+                  <div class="col-title">待接单</div>
+                  <div class="col-count">12</div>
+                </div>
+
+                <div class="kanban-card danger">
+                  <div class="card-top">
+                    <div class="order-no">OD2026070100268</div>
+                    <div class="amount">¥328.00</div>
+                  </div>
+                  <div class="customer">王先生 · 138****5678</div>
+                  <div class="products">茅台飞天53度500ml x1...</div>
+                  <div class="card-bottom">
+                    <span class="tag tag-warning">超时风险</span>
+                    <span class="countdown"><span class="warn-icon">!</span>剩余 02:15</span>
+                  </div>
+                </div>
+
+                <div class="kanban-card">
+                  <div class="card-top">
+                    <div class="order-no">OD2026070100267</div>
+                    <div class="amount">¥168.00</div>
+                  </div>
+                  <div class="customer">李女士 · 139****1234</div>
+                  <div class="products">五粮液普五52度500ml x1</div>
+                  <div class="card-bottom">
+                    <span class="tag tag-jd">京东</span>
+                    <span class="countdown normal">剩余 08:30</span>
+                  </div>
+                </div>
+
+                <div class="kanban-card warning">
+                  <div class="card-top">
+                    <div class="order-no">OD2026070100266</div>
+                    <div class="amount">¥256.00</div>
+                  </div>
+                  <div class="customer">张先生 · 137****9876</div>
+                  <div class="products">国窖1573 x1 + 啤酒 x2...</div>
+                  <div class="card-bottom">
+                    <span class="tag tag-warning">缺货预警</span>
+                    <span class="countdown normal">剩余 12:45</span>
+                  </div>
+                </div>
+
+                <div class="kanban-card">
+                  <div class="card-top">
+                    <div class="order-no">OD2026070100265</div>
+                    <div class="amount">¥88.00</div>
+                  </div>
+                  <div class="customer">刘女士 · 136****5432</div>
+                  <div class="products">青岛啤酒 x12</div>
+                  <div class="card-bottom">
+                    <span class="tag tag-mt">美团</span>
+                    <span class="countdown normal">剩余 15:20</span>
+                  </div>
+                </div>
+              </div>
+
+              <!-- 备货中 -->
+              <div class="kanban-column preparing">
+                <div class="col-header">
+                  <div class="col-title">备货中</div>
+                  <div class="col-count">28</div>
+                </div>
+
+                <div class="kanban-card">
+                  <div class="card-top">
+                    <div class="order-no">OD2026070100260</div>
+                    <div class="amount">¥598.00</div>
+                  </div>
+                  <div class="customer">陈先生 · 135****7654</div>
+                  <div class="products">五粮液 x2 + 红酒 x2...</div>
+                  <div class="card-bottom">
+                    <span class="tag tag-ele">饿了么</span>
+                    <span class="countdown normal">备货剩余 05:10</span>
+                  </div>
+                </div>
+
+                <div class="kanban-card">
+                  <div class="card-top">
+                    <div class="order-no">OD2026070100259</div>
+                    <div class="amount">¥128.00</div>
+                  </div>
+                  <div class="customer">赵女士 · 134****3210</div>
+                  <div class="products">百威啤酒 x24</div>
+                  <div class="card-bottom">
+                    <span class="tag tag-default">自配送</span>
+                    <span class="countdown normal">备货剩余 08:45</span>
+                  </div>
+                </div>
+
+                <div class="kanban-card">
+                  <div class="card-top">
+                    <div class="order-no">OD2026070100258</div>
+                    <div class="amount">¥888.00</div>
+                  </div>
+                  <div class="customer">孙先生 · 133****6543</div>
+                  <div class="products">茅台飞天53度 x2</div>
+                  <div class="card-bottom">
+                    <span class="tag tag-jd">京东</span>
+                    <span class="countdown normal">备货剩余 10:30</span>
+                  </div>
+                </div>
+              </div>
+
+              <!-- 配送中 -->
+              <div class="kanban-column delivering">
+                <div class="col-header">
+                  <div class="col-title">配送中</div>
+                  <div class="col-count">35</div>
+                </div>
+
+                <div class="kanban-card">
+                  <div class="card-top">
+                    <div class="order-no">OD2026070100257</div>
+                    <div class="amount">¥256.00</div>
+                  </div>
+                  <div class="customer">周女士 · 132****9876</div>
+                  <div class="products">国窖1573 52度 x1</div>
+                  <div class="card-bottom">
+                    <span class="tag tag-mt">美团</span>
+                    <span class="countdown normal">预计 15:10 送达</span>
+                  </div>
+                </div>
+
+                <div class="kanban-card danger">
+                  <div class="card-top">
+                    <div class="order-no">OD2026070100256</div>
+                    <div class="amount">¥428.00</div>
+                  </div>
+                  <div class="customer">吴先生 · 131****5432</div>
+                  <div class="products">洋酒套装 x1 + 红酒 x3</div>
+                  <div class="card-bottom">
+                    <span class="tag tag-danger">配送超时</span>
+                    <span class="countdown"><span class="warn-icon">!</span>已超时 08:15</span>
+                  </div>
+                </div>
+
+                <div class="kanban-card">
+                  <div class="card-top">
+                    <div class="order-no">OD2026070100255</div>
+                    <div class="amount">¥168.00</div>
+                  </div>
+                  <div class="customer">郑女士 · 130****7654</div>
+                  <div class="products">青岛啤酒 x24 + 小吃</div>
+                  <div class="card-bottom">
+                    <span class="tag tag-default">自配送</span>
+                    <span class="countdown normal">预计 15:20 送达</span>
+                  </div>
+                </div>
+              </div>
+
+              <!-- 已完成 -->
+              <div class="kanban-column done">
+                <div class="col-header">
+                  <div class="col-title">已完成</div>
+                  <div class="col-count">53</div>
+                </div>
+
+                <div class="kanban-card">
+                  <div class="card-top">
+                    <div class="order-no">OD2026070100254</div>
+                    <div class="amount">¥328.00</div>
+                  </div>
+                  <div class="customer">冯先生 · 139****8765</div>
+                  <div class="products">茅台飞天53度 x1</div>
+                  <div class="card-bottom">
+                    <span class="tag tag-success">准时送达</span>
+                    <span class="countdown normal">耗时 32分钟</span>
+                  </div>
+                </div>
+
+                <div class="kanban-card">
+                  <div class="card-top">
+                    <div class="order-no">OD2026070100253</div>
+                    <div class="amount">¥98.00</div>
+                  </div>
+                  <div class="customer">陈女士 · 138****4321</div>
+                  <div class="products">雪花啤酒 x12</div>
+                  <div class="card-bottom">
+                    <span class="tag tag-success">准时送达</span>
+                    <span class="countdown normal">耗时 28分钟</span>
+                  </div>
+                </div>
+
+                <div class="kanban-card">
+                  <div class="card-top">
+                    <div class="order-no">OD2026070100252</div>
+                    <div class="amount">¥568.00</div>
+                  </div>
+                  <div class="customer">褚先生 · 137****1098</div>
+                  <div class="products">五粮液 x1 + 红酒 x2</div>
+                  <div class="card-bottom">
+                    <span class="tag tag-success">准时送达</span>
+                    <span class="countdown normal">耗时 35分钟</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 3. 字段规范表 -->
+  <div class="section">
+    <h2>3. 字段规范表</h2>
+
+    <h3>3.1 配送配置字段</h3>
+    <table class="spec-table">
+      <thead>
+        <tr><th>字段名</th><th>类型</th><th>说明</th><th>示例</th></tr>
+      </thead>
+      <tbody>
+        <tr><td><code>deliveryType</code></td><td>Enum</td><td>配送类型：自配送/平台配送/第三方配送</td><td>SELF</td></tr>
+        <tr><td><code>deliveryFee</code></td><td>Number</td><td>基础配送费（元）</td><td>5.00</td></tr>
+        <tr><td><code>freeDeliveryThreshold</code></td><td>Number</td><td>免配送费门槛（元），0表示不免</td><td>68.00</td></tr>
+        <tr><td><code>deliveryRadius</code></td><td>Number</td><td>配送半径（公里）</td><td>5</td></tr>
+        <tr><td><code>estimatedDeliveryTime</code></td><td>Number</td><td>预计送达时间（分钟）</td><td>45</td></tr>
+        <tr><td><code>contactPhone</code></td><td>String</td><td>联系电话</td><td>400-888-8888</td></tr>
+        <tr><td><code>centerAddress</code></td><td>String</td><td>配送中心点地址</td><td>北京市朝阳区建国路88号</td></tr>
+        <tr><td><code>centerLng</code></td><td>Number</td><td>中心点经度</td><td>116.4632</td></tr>
+        <tr><td><code>centerLat</code></td><td>Number</td><td>中心点纬度</td><td>39.9075</td></tr>
+        <tr><td><code>platformProvider</code></td><td>Enum</td><td>平台配送服务商：京东/美团/饿了么</td><td>MEITUAN</td></tr>
+        <tr><td><code>feeBearer</code></td><td>Enum</td><td>配送费承担方：商家/用户/分摊</td><td>MERCHANT</td></tr>
+        <tr><td><code>subsidyAmount</code></td><td>Number</td><td>配送补贴金额（元）</td><td>2.00</td></tr>
+        <tr><td><code>thirdPartyProvider</code></td><td>Enum</td><td>第三方配送：达达/闪送/顺丰同城</td><td>DADA</td></tr>
+        <tr><td><code>apiKeyConfigured</code></td><td>Boolean</td><td>API密钥是否已配置</td><td>true</td></tr>
+      </tbody>
+    </table>
+
+    <h3>3.2 配送记录字段</h3>
+    <table class="spec-table">
+      <thead>
+        <tr><th>字段名</th><th>类型</th><th>说明</th><th>示例</th></tr>
+      </thead>
+      <tbody>
+        <tr><td><code>deliveryId</code></td><td>String</td><td>配送单号</td><td>PS2026070100128</td></tr>
+        <tr><td><code>orderId</code></td><td>String</td><td>关联订单号</td><td>OD2026070100256</td></tr>
+        <tr><td><code>riderId</code></td><td>String</td><td>骑手ID</td><td>RD001</td></tr>
+        <tr><td><code>riderName</code></td><td>String</td><td>骑手姓名</td><td>张伟</td></tr>
+        <tr><td><code>riderPhone</code></td><td>String</td><td>骑手电话</td><td>138****5678</td></tr>
+        <tr><td><code>deliveryMethod</code></td><td>Enum</td><td>配送方式：自配送/美团/京东/饿了么/达达等</td><td>SELF</td></tr>
+        <tr><td><code>status</code></td><td>Enum</td><td>配送状态：待接单/已接单/取货中/配送中/已送达/已取消</td><td>DELIVERED</td></tr>
+        <tr><td><code>pickupTime</code></td><td>DateTime</td><td>取货时间</td><td>2026-07-01 14:23:15</td></tr>
+        <tr><td><code>deliveredTime</code></td><td>DateTime</td><td>送达时间</td><td>2026-07-01 14:58:42</td></tr>
+        <tr><td><code>actualDuration</code></td><td>Number</td><td>实际配送时长（分钟）</td><td>35.5</td></tr>
+        <tr><td><code>deliveryFee</code></td><td>Number</td><td>配送费（元）</td><td>5.00</td></tr>
+        <tr><td><code>recipientName</code></td><td>String</td><td>收货人姓名</td><td>王先生</td></tr>
+        <tr><td><code>recipientPhone</code></td><td>String</td><td>收货人电话</td><td>139****8765</td></tr>
+        <tr><td><code>deliveryAddress</code></td><td>String</td><td>配送地址</td><td>北京市朝阳区...</td></tr>
+      </tbody>
+    </table>
+
+    <h3>3.3 履约节点字段</h3>
+    <table class="spec-table">
+      <thead>
+        <tr><th>字段名</th><th>类型</th><th>说明</th><th>示例</th></tr>
+      </thead>
+      <tbody>
+        <tr><td><code>nodeId</code></td><td>String</td><td>节点ID</td><td>NODE001</td></tr>
+        <tr><td><code>nodeType</code></td><td>Enum</td><td>节点类型：PENDING_ORDER/ORDER_ACCEPTED/PICKED_UP/DELIVERING/DELIVERED/CANCELLED</td><td>DELIVERING</td></tr>
+        <tr><td><code>nodeName</code></td><td>String</td><td>节点名称</td><td>配送中</td></tr>
+        <tr><td><code>occurTime</code></td><td>DateTime</td><td>节点发生时间</td><td>2026-07-01 14:55:30</td></tr>
+        <tr><td><code>operatorId</code></td><td>String</td><td>操作人ID</td><td>RD002</td></tr>
+        <tr><td><code>operatorName</code></td><td>String</td><td>操作人姓名</td><td>李娜</td></tr>
+        <tr><td><code>operatorType</code></td><td>Enum</td><td>操作人类型：系统/商家/骑手/用户</td><td>RIDER</td></tr>
+        <tr><td><code>remark</code></td><td>String</td><td>节点备注</td><td>骑手正在配送途中</td></tr>
+        <tr><td><code>isCurrent</code></td><td>Boolean</td><td>是否当前节点</td><td>true</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <!-- 4. 验收标准 -->
+  <div class="section">
+    <h2>4. 验收标准</h2>
+    <ul class="checklist">
+      <li>页面采用经典后台布局：顶部导航栏(56px) + 左侧导航树(200px) + 中央工作区</li>
+      <li>左侧导航树中"配送管理"为激活态，带蓝色背景和右侧蓝色竖条</li>
+      <li>中央工作区顶部显示面包屑导航和页面标题</li>
+      <li>三大Tab（配送配置/配送记录/履约看板）切换流畅，激活态蓝色底部边框</li>
+      <li>配送配置页支持三种配送方式卡片选择，选中态有蓝色边框和蓝色背景</li>
+      <li>每种配送方式对应展开不同的参数配置表单（自配送/平台/第三方）</li>
+      <li>配送范围设置包含地图占位区域、中心地址输入、半径滑块(1-10km)</li>
+      <li>地图占位区域显示中心圆点和半径虚线圆形示意</li>
+      <li>底部操作栏右对齐放置"恢复默认"和"保存配置"按钮</li>
+      <li>配送记录页顶部有状态标签页（全部/待接单/配送中/已送达/已取消）筛选</li>
+      <li>配送记录页展示4个统计卡片：今日配送单、平均配送时长、准时率、配送中</li>
+      <li>配送记录表格包含10列，支持查看详情和联系骑手操作</li>
+      <li>配送状态标签使用不同颜色：已送达绿/配送中蓝/待接单黄/已取消红</li>
+      <li>配送详情弹窗包含垂直时间线，展示5个履约节点的状态流转</li>
+      <li>时间线节点已完成显示绿色、进行中显示蓝色、未开始显示灰色</li>
+      <li>详情弹窗底部展示订单信息、骑手信息两个并排卡片</li>
+      <li>详情弹窗包含骑手实时位置追踪地图占位</li>
+      <li>履约看板页顶部有5个概览卡片：总单量/待接单/备货中/配送中/已完成</li>
+      <li>履约看板为四列Kanban布局，每列顶部有带颜色的数量徽标</li>
+      <li>Kanban卡片支持拖拽（视觉上cursor:move），显示订单号、用户、金额、商品摘要</li>
+      <li>超时订单卡片红色左边框 + 警告图标 + 红色倒计时</li>
+      <li>缺货订单卡片黄色左边框 + 缺货预警标签</li>
+      <li>每张订单卡片底部显示当前状态标签和剩余时间倒计时</li>
+      <li>字段规范表按配送配置/配送记录/履约节点三类分别列出</li>
+      <li>验收标准至少包含12条checkbox，覆盖布局、交互、数据展示各方面</li>
+    </ul>
+  </div>
+
+</div>
+
+<script>
+function switchTab(event, tabId) {
+  document.querySelectorAll('.mockup-tab').forEach(t => t.classList.remove('active'));
+  document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
+  event.target.classList.add('active');
+  document.getElementById(tabId).classList.add('active');
+}
+function selectDeliveryType(el) {
+  document.querySelectorAll('.delivery-type-card').forEach(c => c.classList.remove('active'));
+  el.classList.add('active');
+}
+</script>
+
+</body>
+</html>

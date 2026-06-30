@@ -108,7 +108,11 @@ const routes: RouteRecordRaw[] = [
   { path: '/marketing', name: 'marketing', component: () => import('./views/MarketingCenter.vue'), meta: { requiresAuth: true } },
   { path: '/marketing/coupons', name: 'marketing-coupons', component: () => import('./views/MarketingCoupons.vue'), meta: { requiresAuth: true } },
   { path: '/marketing/limited-discount', name: 'marketing-limited-discount', component: () => import('./views/MarketingLimitedDiscount.vue'), meta: { requiresAuth: true } },
-  { path: '/marketing/points-mall', name: 'marketing-points-mall', component: () => import('./views/MarketingPointsMall.vue'), meta: { requiresAuth: true } }
+  { path: '/marketing/points-mall', name: 'marketing-points-mall', component: () => import('./views/MarketingPointsMall.vue'), meta: { requiresAuth: true } },
+  // 即时零售
+  { path: '/instant-retail/orders', name: 'instant-retail-orders', component: () => import('./views/instant-retail/order-list.vue'), meta: { requiresAuth: true } },
+  { path: '/instant-retail/orders/:platformOrderId', name: 'instant-retail-order-detail', component: () => import('./views/instant-retail/order-detail.vue'), meta: { requiresAuth: true } },
+  { path: '/instant-retail/inventory-sync', name: 'instant-retail-inventory-sync', component: () => import('./views/instant-retail/inventory-sync.vue'), meta: { requiresAuth: true } }
 ]
 
 const router = createRouter({
