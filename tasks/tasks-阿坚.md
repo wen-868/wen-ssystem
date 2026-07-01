@@ -1,7 +1,8 @@
-# 阿坚 · 工作总台模块 · 后端 API
+# 阿坚 · Bug修复 · 后端
 
-**日期**：2026-07-01
+**日期**：2026-07-02
 **状态**：待开始
+**来源**：全面审查报告 + WorkBuddy 测试报告交叉核对
 
 ---
 
@@ -9,67 +10,123 @@
 
 | # | 任务 | 优先级 | 状态 |
 |---|------|--------|:---:|
-| 1 | 经营概览聚合 API | P0 | ❌ |
-| 2 | 待办提醒 API | P0 | ❌ |
-| 3 | 快捷入口配置 API | P0 | ❌ |
-| 4 | 消息通知 API | P0 | ❌ |
-
----
-
-## 审计发现
-
-### 已有基础设施
-- **路由**：`admin.routes.ts` 第77-86行有 `/dashboard`、`/daily-sales-trend`、`/store-sales-performance`、`/inventory-alerts`，均指向 `report.controller.ts`
-- **控制器**：`report.controller.ts` 有 `getDashboard` 方法，返回基础指标（salesAmount/orderCount/pendingCollectionAmount/inventoryWarningCount/pendingOrderCount）
-- **服务**：`report.service.ts` 有 `getDashboard` 查询今日销售、待收、订单、预警
-- **通知**：`notification.routes.ts` 已有完整通知API（list/getUnreadCount/markAsRead/markAllRead/send），`notification.service.ts` 和 `notification.controller.ts` 齐全
-- **通知表**：`notification` 表已存在于 `init_database.sql`（第1259行），含 recipient_id/recipient_type/title/content/type/related_id/related_type/is_read/sent_at/read_at
-
-### 关键缺失
-- **无待办表**：没有 `todo` / `remind` 表，待办提醒完全空白
-- **无快捷入口表**：没有 `quick_entry` / `shortcut` 配置表
-- **经营概览过于简单**：仅4个指标，缺少今日订单数/今日客户数/毛利/环比/同比/趋势等
-- **通知未覆盖商户端**：当前 `listMyNotifications` 仅查询 `recipient_type = 'CONSUMER'`，需支持 `MERCHANT`
+| 1 | 修复 `auth.service.ts` 状态类型冲突 | P0 | ❌ |
+| 2 | 补充 `auth.service.ts` 的 `changePassword` 函数 | P0 | ❌ |
+| 3 | 修复 `report.controller.ts` 的 `req.userId` | P0 | ❌ |
+| 4 | 修复 `alert.routes.ts` ↔ `alert.controller.ts` 函数名不匹配（6处） | P0 | ❌ |
+| 5 | 修复 `notification.routes.ts` ↔ `notification.controller.ts` 函数名不匹配（8处） | P0 | ❌ |
+| 6 | 修复 `stock-check.routes.ts` ↔ `stock-check.controller.ts` 对象属性访问错误（11处） | P0 | ❌ |
+| 7 | 修复 `store-control.routes.ts` ↔ `store-control.controller.ts` 对象属性访问错误（10处） | P0 | ❌ |
+| 8 | 补充 `order.controller.ts` 缺失的5个函数 | P0 | ❌ |
+| 9 | 修复 `store.routes.ts` 中 `batchController.listBatchesBySpu` 和 `getTraceChain` 缺失 | P0 | ❌ |
+| 10 | 修复即时零售3个适配器的 `platformCall`/`useMock` 引用错误 | P0 | ❌ |
+| 11 | 修复 `instant-retail-new.routes.ts` 17个缺失的零售管理函数 | P0 | ❌ |
+| 12 | 安装 `node-cron` 到 package.json | P1 | ❌ |
 
 ---
 
 ## 详细说明
 
-### 1. 经营概览聚合 API
-- **接口**：`GET /api/admin/dashboard/overview`（增强现有）、`GET /api/admin/dashboard/sales-trend`（增强）、`GET /api/admin/dashboard/category-pie`（新增）、`GET /api/admin/dashboard/top-products`（新增）、`GET /api/admin/dashboard/top-customers`（新增）、`GET /api/admin/dashboard/recent-alerts`（增强）
-- **文件**：`backend/src/routes/admin.routes.ts`（扩展）、`backend/src/controllers/admin/dashboard.controller.ts`（新建独立控制器）、`backend/src/services/admin/dashboard.service.ts`（新建独立服务）
-- **关键字段**（~40字段）：
-  - 核心指标：今日销售额/今日订单数/今日客户数/今日毛利/环比增长率/同比增长率/客单价/毛利率
-  - 销售趋势：近7天/近30天 日销售额/订单量/毛利趋势
-  - 品类分布：品类销售额/占比/环比
-  - Top排行：Top10商品销售额/销量/毛利率、Top10客户销售额/订单数/客单价
-  - 预警汇总：低库存SKU数/临期商品数/待收款金额/待处理订单数
-- **说明**：将现有 `report.controller.ts` 中的 dashboard 相关方法独立为新文件，按~40字段定义完整聚合。经营概览从销售/采购/库存/客户/财务5个维度做聚合查询。注意使用 `tenant_id` 隔离。
+### 1. 修复 `auth.service.ts` 状态类型冲突 ⚡ 最危险
+- **文件**：`backend/src/services/admin/auth.service.ts`
+- **问题**：第 10 行 `account.status !== 1` 和第 17 行 `r.status = 1`，用数字比较，但 `docs/migrate_v2.sql` 把 status 改成了 VARCHAR(16)，值为 `'ACTIVE'`/`'DISABLED'`
+- **后果**：执行 migrate_v2.sql 后所有用户无法登录
+- **修复方案**：**回滚 migrate_v2.sql 中的状态类型变更**（第 15、21 行），保持 TINYINT(1)。删除 migrate_v2.sql 中将数字转字符串的第 24-27 行数据迁移。原因：改代码比改数据库安全，且其他模块也依赖数字类型 status
+- **验证**：修改后运行单元测试 `npx vitest run tests/auth.test.ts` 确保通过
 
-### 2. 待办提醒 API
-- **接口**：`GET /api/admin/todos`、`POST /api/admin/todos`、`PUT /api/admin/todos/:id`、`DELETE /api/admin/todos/:id`、`GET /api/admin/todos/stats`（按类型统计数量）
-- **DDL**：`docs/migrations/add_todo_table.sql`（新建）
-- **文件**：`backend/src/controllers/admin/todo.controller.ts`（新建）、`backend/src/services/admin/todo.service.ts`（新建）、`backend/src/routes/todo.routes.ts`（新建）
-- **关键字段**（~30字段）：
-  - 待办表 `todo`：id/title/content/type(`INVENTORY_ALERT`/`ORDER_PENDING`/`PAYMENT_OVERDUE`/`PURCHASE_APPROVAL`/`RETURN_PENDING`/`CUSTOMER_FOLLOW`)/priority(`HIGH`/`MEDIUM`/`LOW`)/status(`PENDING`/`DONE`)/source_type/source_id/assignee_id/assignee_name/due_date/created_at/updated_at/tenant_id
-  - 自动生成规则：库存预警→低库存SKU/订单待处理→待支付订单/支付逾期→超期应收款/采购审批→待审批采购单/退货待处理→待审核退货单/客户跟进→长期未下单客户
-- **说明**：设计 `todo` 表存储待办条目。实现自动生成逻辑：每次查询时从各业务表聚合生成待办（或通过定时任务/触发器）。支持手动创建/完成/删除。stats 接口返回各类型待办数量供前端红点/角标展示。
+### 2. 补充 `auth.service.ts` 的 `changePassword` 函数
+- **文件**：`backend/src/services/admin/auth.service.ts`、`backend/src/controllers/admin/auth.controller.ts`
+- **问题**：`auth.controller.ts` 第 36 行调用 `authService.changePassword(req.user!.id, body.oldPassword, body.newPassword)`，但 service 中无此函数
+- **修复**：在 `auth.service.ts` 中添加 `changePassword(userId, oldPassword, newPassword)` 函数
+  - 校验旧密码：`bcrypt.compare(oldPassword, user.password_hash)`
+  - 校验新密码强度（最少8位）
+  - 哈希新密码：`bcrypt.hash(newPassword, 10)`
+  - 更新数据库
+- **验证**：运行单元测试
 
-### 3. 快捷入口配置 API
-- **接口**：`GET /api/admin/quick-entries`、`POST /api/admin/quick-entries`、`PUT /api/admin/quick-entries/:id`、`DELETE /api/admin/quick-entries/:id`、`PUT /api/admin/quick-entries/sort`（拖拽排序）
-- **DDL**：`docs/migrations/add_quick_entry_table.sql`（新建）
-- **文件**：`backend/src/controllers/admin/quick-entry.controller.ts`（新建）、`backend/src/services/admin/quick-entry.service.ts`（新建）、`backend/src/routes/quick-entry.routes.ts`（新建）
-- **关键字段**（~20字段）：
-  - 快捷入口表 `quick_entry`：id/name/icon/route/type(`ADMIN`/`MERCHANT`)/sort_order/is_enabled/group_name/role_filter(JSON，限制可见角色)/created_at/updated_at/tenant_id
-  - 默认预设：管理后台8个（销售开单/采购入库/库存查询/客户管理/商品管理/对账中心/数据报表/系统设置），商户端6个（开单收款/采购订单/库存管理/客户管理/对账单/销售报表）
-- **说明**：快捷入口需支持配置化，管理后台可自定义排序和显示/隐藏。支持分组（group_name）。role_filter 控制不同角色看到不同入口。默认预置常用入口，商户可自行调整。
+### 3. 修复 `report.controller.ts` 的 `req.userId`
+- **文件**：`backend/src/controllers/admin/report.controller.ts`
+- **问题**：第 94 行使用 `req.userId!`，Express Request 类型没有 `userId` 属性
+- **修复**：改为 `req.user!.id`
 
-### 4. 消息通知 API
-- **接口**：增强现有 `GET /api/admin/notifications`（支持按时间范围筛选）、`GET /api/admin/notifications/unread-count`（已有）、`POST /api/admin/notifications/send`（已有）、新增 `GET /api/admin/notifications/type-stats`（各类型未读统计）
-- **文件**：`backend/src/routes/notification.routes.ts`（扩展）、`backend/src/controllers/notification.controller.ts`（扩展）、`backend/src/services/admin/notification.service.ts`（扩展）
-- **关键字段**（~20字段）：
-  - 通知表 `notification`（已有）：id/recipient_id/recipient_type/title/content/type/summary/related_id/related_type/is_read/sent_at/read_at/created_at/tenant_id
-  - 需补充：summary 字段（摘要，用于列表展示，避免加载全部 content）
-  - 通知类型：SYSTEM/ORDER/PAYMENT/ALERT/CREDIT/RECALL（已有）
-  - 自动触发场景：库存预警（库存低于阈值时自动发送）、订单状态变更（新订单/取消/退款）、支付提醒（逾期未付）、系统公告
-- **说明**：现有通知系统基础扎实，主要是增强：1) 补充 `summary` 字段到表中；2) 新增 `type-stats` 接口；3) 完善商户端通知支持（当前 `listMyNotifications` 只查 `CONSUMER`，需改为支持 `MERCHANT`）；4) 在 `server.ts` 中确认路由注册正确。
+### 4. 修复 `alert.routes.ts` ↔ `alert.controller.ts`（6处不匹配）
+- **路由期望**：`listAlerts`, `getAlertCounts`, `handleAlert`, `listAlertRules`, `updateAlertRule`, `runCheck`
+- **Controller 实际**：`list`, `count`, `handle`, `rules`, `updateRule`, `check`
+- **修复方案**：修改 `alert.routes.ts`，将函数引用改为匹配 controller 的实际导出名：
+  - `ctrl.listAlerts` → `ctrl.list`
+  - `ctrl.getAlertCounts` → `ctrl.count`
+  - `ctrl.handleAlert` → `ctrl.handle`
+  - `ctrl.listAlertRules` → `ctrl.rules`
+  - `ctrl.updateAlertRule` → `ctrl.updateRule`
+  - `ctrl.runCheck` → `ctrl.check`
+
+### 5. 修复 `notification.routes.ts` ↔ `notification.controller.ts`（8处不匹配）
+- **路由期望**：`listNotifications`, `getUnreadCount`, `markAsRead`, `markAllAsRead`, `listMiniappNotifications`, `getMiniappUnreadCount`, `markMiniappAsRead`, `markMiniappAllAsRead`
+- **Controller 实际**：`list`, `unreadCount`, `markRead`, `markAllRead`, `myList`, `myUnreadCount`, `myMarkRead`, `myMarkAllRead`
+- **修复方案**：修改 `notification.routes.ts`，将函数引用改为匹配 controller 的实际导出名
+
+### 6. 修复 `stock-check.routes.ts` ↔ `stock-check.controller.ts`（11处）
+- **问题**：Controller 导出 `adminStockCheck = { create, list, statistics, detail, update, start, complete, cancel, handleDiff }` 和 `storeStockCheck = { my, detail, updateItem, submit }` 对象，路由使用 `ctrl.create` 无法访问
+- **修复方案**：修改 `stock-check.routes.ts`，将 `ctrl.xxx` 改为 `ctrl.adminStockCheck.xxx`（admin 端）或 `ctrl.storeStockCheck.xxx`（store 端），同时修正函数名差异：
+  - `ctrl.getStatistics` → `ctrl.adminStockCheck.statistics`
+  - `ctrl.getDetail` → `ctrl.adminStockCheck.detail`
+  - `ctrl.getMyList` → `ctrl.storeStockCheck.my`
+
+### 7. 修复 `store-control.routes.ts` ↔ `store-control.controller.ts`（10处）
+- **同问题6**：Controller 导出 `adminStoreControl = {...}` 和 `storeStoreControl = {...}` 对象
+- **修复方案**：修改 `store-control.routes.ts`：
+  - `ctrl.listConfigs` → `ctrl.adminStoreControl.getConfigs`
+  - `ctrl.updateConfig` → `ctrl.adminStoreControl.upsertConfig`
+  - `ctrl.openStore` → `ctrl.adminStoreControl.open`
+  - `ctrl.closeStore` → `ctrl.adminStoreControl.close`
+  - `ctrl.suspendStore` → `ctrl.adminStoreControl.suspend`
+  - `ctrl.resumeStore` → `ctrl.adminStoreControl.resume`
+  - `ctrl.listStatusLogs` → `ctrl.adminStoreControl.getLogs`
+  - `ctrl.getStoreStatus` → `ctrl.storeStoreControl.status`
+  - `ctrl.listMyLogs` → `ctrl.storeStoreControl.myLogs`
+
+### 8. 补充 `order.controller.ts` 缺失的 5 个函数
+- **文件**：`backend/src/controllers/admin/order.controller.ts`（当前仅 67 行，6 个函数）
+- **缺失函数**：
+  - `cancelOrder` — 取消订单（更新状态为 CANCELLED，记录原因）
+  - `remarkOrder` — 备注订单（更新 remark 字段）
+  - `updateOrderStatus` — 更新订单状态（通用状态流转）
+  - `getOrderOperationLogs` — 获取订单操作日志（查询 order_operation_log 表）
+  - `batchUpdateOrderStatus` — 批量更新订单状态（批量操作）
+- **实现要求**：每个函数需要使用 `req.tenantId!` 做租户隔离，使用 zod 校验参数
+- **注意**：如果对应的 service 层函数也不存在，需要同时补充
+
+### 9. 修复 `store.routes.ts` 的 batchController 引用
+- **文件**：`backend/src/routes/store.routes.ts`
+- **问题**：`batchController.listBatchesBySpu` 和 `batchController.getTraceChain` 在 `controllers/inventory-batch.controller.ts`（非 admin）中不存在
+- **修复方案**：
+  - 方案 A：将 `store.routes.ts` 中的 import 改为 `../controllers/admin/inventory-batch.controller.js`，并将 `listBatchesBySpu` 改为 `getProductBatches`，`getTraceChain` 改为 `getBatchTrace`
+  - 方案 B：在 `controllers/inventory-batch.controller.ts`（非 admin）中添加这两个函数的 store 端版本
+
+### 10. 修复即时零售 3 个适配器的引用错误
+- **文件**：
+  - `backend/src/services/instant-retail/adapters/jd-adapter.ts`
+  - `backend/src/services/instant-retail/adapters/eleme-adapter.ts`
+  - `backend/src/services/instant-retail/adapters/meituan-adapter.ts`
+- **问题**：第 10 行 `import { platformCall, useMock } from "../http-client.js"`，但 `http-client.ts` 导出的是 `isMock()` 函数和 `HttpClient` 类
+- **修复方案**：修改 3 个适配器的 import 和调用：
+  - `platformCall(...)` → 使用 `HttpClient` 实例的方法
+  - `useMock()` → 改为 `isMock()`
+
+### 11. 修复 `instant-retail-new.routes.ts` 17 个缺失函数
+- **文件**：`backend/src/routes/instant-retail-new.routes.ts`、`backend/src/controllers/admin/instant-retail.controller.ts`
+- **问题**：路由引用了 `getShopConfig`, `saveShopConfig`, `listCategories`, `createCategory`, `updateCategory`, `deleteCategory`, `listRetailProducts`, `addRetailProduct`, `updateRetailProduct`, `deleteRetailProduct`, `updateRetailOrderStatus`, `listBanners`, `createBanner`, `updateBanner`, `deleteBanner` — controller 中均不存在
+- **修复方案**：在 `instant-retail.controller.ts` 中补充这些函数，或者**注释掉路由中尚未实现的部分**，避免服务启动失败（推荐先注释，后续再实现）
+
+### 12. 安装 `node-cron`
+- **命令**：`cd backend && npm install node-cron@3 && npm install -D @types/node-cron`
+- **原因**：`report-aggregation.job.ts` 引用了 node-cron，但未安装
+
+---
+
+## 验收标准
+
+1. `cd backend && npx tsc --noEmit` 编译错误数为 0
+2. `cd backend && npx vitest run` 149 个单元测试全部通过
+3. `USE_MOCK_DB=true JWT_SECRET=test-secret npx tsx src/server.ts` 服务能正常启动（无 Route.xxx() requires callback 报错）
+4. 安全修复未被回退：JWT_SECRET 无 fallback、.env.production 在 .gitignore
