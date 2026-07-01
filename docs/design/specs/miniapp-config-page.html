@@ -1,0 +1,1601 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>小程序配置 — 设计规格文档</title>
+<style>
+/* ================================================================== */
+/* CSS Variables                                                        */
+/* ================================================================== */
+:root {
+  --brand: #1677FF;
+  --brand-light: #E6F4FF;
+  --text: #1F1F1F;
+  --text-secondary: #595959;
+  --text-muted: #8C8C8C;
+  --border: #E8E8E8;
+  --bg: #F5F5F5;
+  --white: #FFFFFF;
+  --success: #52C41A;
+  --warning: #FAAD14;
+  --danger: #FF4D4F;
+  --radius: 8px;
+  --shadow: 0 2px 8px rgba(0,0,0,0.08);
+}
+
+/* ================================================================== */
+/* Global Reset & Base                                                  */
+/* ================================================================== */
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+body {
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", "Helvetica Neue", Arial, sans-serif;
+  font-size: 14px;
+  color: var(--text);
+  background: #F0F2F5;
+  line-height: 1.6;
+}
+
+/* ================================================================== */
+/* Document Header                                                      */
+/* ================================================================== */
+.doc-header {
+  background: linear-gradient(135deg, #1677FF 0%, #0958D9 100%);
+  color: #fff;
+  padding: 40px 48px;
+}
+.doc-header h1 {
+  font-size: 28px;
+  font-weight: 600;
+  margin-bottom: 8px;
+}
+.doc-header .doc-meta {
+  font-size: 14px;
+  opacity: 0.85;
+}
+
+/* ================================================================== */
+/* Content Wrapper                                                      */
+/* ================================================================== */
+.content-wrapper {
+  max-width: 1400px;
+  margin: 0 auto;
+  padding: 32px 48px;
+}
+
+/* ================================================================== */
+/* Section Titles                                                       */
+/* ================================================================== */
+.section-title {
+  font-size: 20px;
+  font-weight: 600;
+  color: var(--text);
+  margin-bottom: 16px;
+  padding-bottom: 12px;
+  border-bottom: 2px solid var(--brand);
+}
+.section-subtitle {
+  font-size: 16px;
+  font-weight: 600;
+  color: var(--text);
+  margin: 24px 0 12px;
+}
+
+/* ================================================================== */
+/* Overview Card                                                        */
+/* ================================================================== */
+.overview-card {
+  background: var(--white);
+  border-radius: var(--radius);
+  padding: 24px;
+  box-shadow: var(--shadow);
+  margin-bottom: 32px;
+}
+.overview-card p {
+  color: var(--text-secondary);
+  margin-bottom: 12px;
+}
+.overview-card .feature-list {
+  display: flex;
+  gap: 16px;
+  flex-wrap: wrap;
+  margin-top: 12px;
+}
+.overview-card .feature-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  background: var(--brand-light);
+  padding: 8px 16px;
+  border-radius: 20px;
+  font-size: 13px;
+  color: var(--brand);
+  font-weight: 500;
+}
+
+/* ================================================================== */
+/* Mockup Container                                                     */
+/* ================================================================== */
+.mockup {
+  background: var(--white);
+  border-radius: var(--radius);
+  box-shadow: 0 4px 16px rgba(0,0,0,0.12);
+  margin-bottom: 32px;
+  overflow: hidden;
+  border: 1px solid var(--border);
+}
+
+/* ------------------------------------------------------------------ */
+/* Mockup Header (Top Navigation)                                      */
+/* ------------------------------------------------------------------ */
+.mockup-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  height: 52px;
+  padding: 0 20px;
+  background: #001529;
+  color: #fff;
+}
+.mockup-header .header-left {
+  display: flex;
+  align-items: center;
+  gap: 32px;
+}
+.mockup-header .logo {
+  font-size: 16px;
+  font-weight: 700;
+  letter-spacing: 1px;
+}
+.mockup-header .nav-menu {
+  display: flex;
+  gap: 0;
+  list-style: none;
+}
+.mockup-header .nav-menu li {
+  padding: 0 16px;
+  height: 52px;
+  line-height: 52px;
+  cursor: pointer;
+  font-size: 13px;
+  color: rgba(255,255,255,0.65);
+  transition: all 0.2s;
+}
+.mockup-header .nav-menu li.active {
+  color: #fff;
+  background: var(--brand);
+}
+.mockup-header .nav-menu li:hover {
+  color: #fff;
+}
+.mockup-header .header-right {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+.mockup-header .user-avatar {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  background: #87D068;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 14px;
+  font-weight: 600;
+  color: #fff;
+}
+
+/* ------------------------------------------------------------------ */
+/* Mockup Body (Sidebar + Main)                                        */
+/* ------------------------------------------------------------------ */
+.mockup-body {
+  display: flex;
+  min-height: 1200px;
+}
+
+/* ------------------------------------------------------------------ */
+/* Mockup Sidebar                                                      */
+/* ------------------------------------------------------------------ */
+.mockup-sidebar {
+  width: 220px;
+  background: #FAFAFA;
+  border-right: 1px solid var(--border);
+  padding: 12px 0;
+  flex-shrink: 0;
+}
+.mockup-sidebar .sidebar-group {
+  margin-bottom: 4px;
+}
+.mockup-sidebar .sidebar-group-title {
+  padding: 8px 20px;
+  font-size: 12px;
+  color: var(--text-muted);
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+.mockup-sidebar .sidebar-item {
+  padding: 10px 20px 10px 28px;
+  font-size: 13px;
+  color: var(--text-secondary);
+  cursor: pointer;
+  transition: all 0.2s;
+  position: relative;
+}
+.mockup-sidebar .sidebar-item:hover {
+  color: var(--brand);
+  background: var(--brand-light);
+}
+.mockup-sidebar .sidebar-item.active {
+  color: var(--brand);
+  background: var(--brand-light);
+  font-weight: 600;
+}
+.mockup-sidebar .sidebar-item.active::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  top: 0;
+  bottom: 0;
+  width: 3px;
+  background: var(--brand);
+}
+
+/* ------------------------------------------------------------------ */
+/* Mockup Main                                                         */
+/* ------------------------------------------------------------------ */
+.mockup-main {
+  flex: 1;
+  padding: 20px 24px;
+  background: #fff;
+  overflow-y: auto;
+}
+.mockup-page-title {
+  font-size: 18px;
+  font-weight: 600;
+  color: var(--text);
+  margin-bottom: 4px;
+}
+.mockup-breadcrumb {
+  font-size: 12px;
+  color: var(--text-muted);
+  margin-bottom: 20px;
+}
+.mockup-breadcrumb span {
+  color: var(--text-secondary);
+}
+.mockup-breadcrumb span.current {
+  color: var(--text);
+}
+
+/* ------------------------------------------------------------------ */
+/* Platform Tabs                                                       */
+/* ------------------------------------------------------------------ */
+.platform-tabs {
+  display: flex;
+  gap: 0;
+  border-bottom: 2px solid var(--border);
+  margin-bottom: 20px;
+}
+.platform-tab {
+  padding: 10px 24px;
+  font-size: 14px;
+  color: var(--text-secondary);
+  cursor: pointer;
+  border-bottom: 2px solid transparent;
+  margin-bottom: -2px;
+  transition: all 0.2s;
+  font-weight: 500;
+}
+.platform-tab:hover {
+  color: var(--brand);
+}
+.platform-tab.active {
+  color: var(--brand);
+  border-bottom-color: var(--brand);
+  font-weight: 600;
+}
+
+/* ------------------------------------------------------------------ */
+/* Alert / Notice Card                                                 */
+/* ------------------------------------------------------------------ */
+.alert-card {
+  background: #FFFBE6;
+  border: 1px solid #FFE58F;
+  border-radius: var(--radius);
+  padding: 12px 16px;
+  margin-bottom: 20px;
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  font-size: 13px;
+  color: #8C6D00;
+  line-height: 1.6;
+}
+.alert-card .alert-icon {
+  flex-shrink: 0;
+  width: 18px;
+  height: 18px;
+  margin-top: 1px;
+  color: var(--warning);
+  font-weight: 700;
+  font-size: 16px;
+  text-align: center;
+  line-height: 18px;
+}
+
+/* ------------------------------------------------------------------ */
+/* Config Card                                                         */
+/* ------------------------------------------------------------------ */
+.config-card {
+  background: var(--white);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 20px;
+  margin-bottom: 20px;
+}
+.config-card .card-title {
+  font-size: 15px;
+  font-weight: 600;
+  color: var(--text);
+  margin-bottom: 16px;
+  padding-bottom: 12px;
+  border-bottom: 1px solid var(--border);
+}
+.form-group {
+  margin-bottom: 16px;
+}
+.form-group:last-child {
+  margin-bottom: 0;
+}
+.form-label {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--text);
+  margin-bottom: 6px;
+}
+.form-label .required {
+  color: var(--danger);
+}
+.form-input {
+  width: 100%;
+  max-width: 480px;
+  height: 36px;
+  padding: 0 12px;
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  font-size: 13px;
+  color: var(--text);
+  background: #fff;
+  outline: none;
+  transition: border-color 0.2s;
+}
+.form-input:focus {
+  border-color: var(--brand);
+  box-shadow: 0 0 0 2px rgba(22,119,255,0.1);
+}
+.form-input::placeholder {
+  color: var(--text-muted);
+}
+.form-hint {
+  font-size: 12px;
+  color: var(--text-muted);
+  margin-top: 4px;
+}
+.input-with-icon {
+  position: relative;
+  max-width: 480px;
+}
+.input-with-icon .form-input {
+  width: 100%;
+  padding-right: 36px;
+}
+.eye-icon {
+  position: absolute;
+  right: 10px;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 20px;
+  height: 20px;
+  cursor: pointer;
+  opacity: 0.45;
+  transition: opacity 0.2s;
+}
+.eye-icon:hover {
+  opacity: 0.8;
+}
+.eye-icon::before {
+  content: '';
+  position: absolute;
+  left: 2px;
+  top: 5px;
+  width: 10px;
+  height: 10px;
+  border: 2px solid var(--text-secondary);
+  border-radius: 50%;
+}
+.eye-icon::after {
+  content: '';
+  position: absolute;
+  left: 5px;
+  top: 8px;
+  width: 4px;
+  height: 4px;
+  background: var(--text-secondary);
+  border-radius: 50%;
+}
+
+/* ------------------------------------------------------------------ */
+/* Image Upload                                                        */
+/* ------------------------------------------------------------------ */
+.image-upload {
+  width: 80px;
+  height: 80px;
+  border: 2px dashed var(--border);
+  border-radius: var(--radius);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: border-color 0.2s;
+  position: relative;
+  overflow: hidden;
+}
+.image-upload:hover {
+  border-color: var(--brand);
+}
+.image-upload .upload-placeholder {
+  font-size: 12px;
+  color: var(--text-muted);
+  text-align: center;
+  line-height: 1.4;
+}
+.image-upload .upload-preview {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+.image-upload.has-preview {
+  border-style: solid;
+  border-color: var(--border);
+}
+
+/* ------------------------------------------------------------------ */
+/* Template Selection                                                  */
+/* ------------------------------------------------------------------ */
+.template-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 16px;
+}
+.template-card {
+  border: 2px solid var(--border);
+  border-radius: var(--radius);
+  overflow: hidden;
+  cursor: pointer;
+  transition: all 0.2s;
+  position: relative;
+  background: #fff;
+}
+.template-card:hover {
+  border-color: #91CAFF;
+  box-shadow: 0 4px 12px rgba(22,119,255,0.1);
+}
+.template-card.selected {
+  border-color: #1677FF;
+  border-width: 2px;
+  box-shadow: 0 2px 8px rgba(22,119,255,0.15);
+}
+.template-card.selected::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  right: 0;
+  width: 0;
+  height: 0;
+  border-style: solid;
+  border-width: 0 28px 28px 0;
+  border-color: transparent #1677FF transparent transparent;
+}
+.template-card.selected::before {
+  content: '';
+  position: absolute;
+  top: 3px;
+  right: 3px;
+  width: 12px;
+  height: 6px;
+  border-left: 2px solid #fff;
+  border-bottom: 2px solid #fff;
+  transform: rotate(-45deg);
+  z-index: 1;
+}
+.template-thumb {
+  height: 120px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 14px;
+  font-weight: 600;
+  color: rgba(0,0,0,0.4);
+}
+.template-thumb.thumb-blue {
+  background: linear-gradient(135deg, #E6F4FF 0%, #BAE0FF 100%);
+}
+.template-thumb.thumb-orange {
+  background: linear-gradient(135deg, #FFF2E8 0%, #FFD8BF 100%);
+}
+.template-thumb.thumb-dark {
+  background: linear-gradient(135deg, #2C2C2C 0%, #1A1A1A 100%);
+  color: rgba(255,255,255,0.4);
+}
+.template-info {
+  padding: 12px;
+}
+.template-name {
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--text);
+  margin-bottom: 4px;
+}
+.template-desc {
+  font-size: 12px;
+  color: var(--text-muted);
+  line-height: 1.5;
+}
+.template-preview-btn {
+  display: inline-block;
+  margin-top: 12px;
+  font-size: 13px;
+  color: var(--brand);
+  cursor: pointer;
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+.template-preview-btn:hover {
+  color: #0958D9;
+}
+
+/* ------------------------------------------------------------------ */
+/* Action Area                                                         */
+/* ------------------------------------------------------------------ */
+.action-area {
+  margin-bottom: 20px;
+  padding: 20px;
+  background: #FAFAFA;
+  border-radius: var(--radius);
+  border: 1px solid var(--border);
+}
+.action-row {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  flex-wrap: wrap;
+}
+.btn-publish {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  height: 40px;
+  padding: 0 28px;
+  background: var(--brand);
+  color: #fff;
+  border: none;
+  border-radius: 6px;
+  font-size: 15px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+.btn-publish:hover {
+  background: #0958D9;
+  box-shadow: 0 4px 12px rgba(22,119,255,0.3);
+}
+.btn-publish:disabled {
+  background: #91CAFF;
+  cursor: not-allowed;
+  box-shadow: none;
+}
+.btn-retry {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  height: 32px;
+  padding: 0 16px;
+  background: #fff;
+  color: var(--brand);
+  border: 1px solid var(--brand);
+  border-radius: 6px;
+  font-size: 13px;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+.btn-retry:hover {
+  background: var(--brand-light);
+}
+
+/* Spinner */
+.spinner {
+  display: inline-block;
+  width: 16px;
+  height: 16px;
+  border: 2px solid rgba(255,255,255,0.3);
+  border-top-color: #fff;
+  border-radius: 50%;
+  animation: spin 0.8s linear infinite;
+}
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+
+/* Status area */
+.status-info {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  font-size: 13px;
+  color: var(--text-secondary);
+}
+.status-info .version {
+  font-weight: 600;
+  color: var(--text);
+}
+
+/* Tags */
+.tag {
+  display: inline-block;
+  padding: 2px 10px;
+  border-radius: 4px;
+  font-size: 12px;
+  font-weight: 500;
+  line-height: 1.8;
+}
+.tag-success {
+  background: #F6FFED;
+  color: var(--success);
+  border: 1px solid #B7EB8F;
+}
+.tag-warning {
+  background: #FFFBE6;
+  color: #D48806;
+  border: 1px solid #FFE58F;
+}
+.tag-danger {
+  background: #FFF2F0;
+  color: var(--danger);
+  border: 1px solid #FFCCC7;
+}
+.tag-info {
+  background: var(--brand-light);
+  color: var(--brand);
+  border: 1px solid #91CAFF;
+}
+.tag-gray {
+  background: #FAFAFA;
+  color: var(--text-muted);
+  border: 1px solid var(--border);
+}
+
+/* ------------------------------------------------------------------ */
+/* Result Modal (inline mockup)                                        */
+/* ------------------------------------------------------------------ */
+.result-modal {
+  margin-top: 12px;
+  padding: 16px 20px;
+  border-radius: var(--radius);
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  font-size: 13px;
+}
+.result-modal.result-success {
+  background: #F6FFED;
+  border: 1px solid #B7EB8F;
+}
+.result-modal.result-error {
+  background: #FFF2F0;
+  border: 1px solid #FFCCC7;
+}
+.result-modal .result-icon {
+  flex-shrink: 0;
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 12px;
+  font-weight: 700;
+  color: #fff;
+  margin-top: 1px;
+}
+.result-modal .result-icon.icon-success {
+  background: var(--success);
+}
+.result-modal .result-icon.icon-error {
+  background: var(--danger);
+}
+.result-modal .result-content {
+  flex: 1;
+}
+.result-modal .result-title {
+  font-weight: 600;
+  margin-bottom: 2px;
+}
+.result-modal.result-success .result-title {
+  color: var(--success);
+}
+.result-modal.result-error .result-title {
+  color: var(--danger);
+}
+.result-modal .result-detail {
+  color: var(--text-secondary);
+  font-size: 12px;
+  line-height: 1.6;
+}
+
+/* ------------------------------------------------------------------ */
+/* Mockup Table                                                        */
+/* ------------------------------------------------------------------ */
+.mockup-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 13px;
+}
+.mockup-table thead th {
+  background: #FAFAFA;
+  padding: 10px 12px;
+  text-align: left;
+  font-weight: 600;
+  color: var(--text-secondary);
+  border-bottom: 1px solid var(--border);
+  white-space: nowrap;
+}
+.mockup-table tbody td {
+  padding: 10px 12px;
+  border-bottom: 1px solid var(--border);
+  color: var(--text);
+}
+.mockup-table tbody tr:hover {
+  background: #FAFAFA;
+}
+.mockup-table .cell-error {
+  color: var(--danger);
+  font-size: 12px;
+  max-width: 180px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* ------------------------------------------------------------------ */
+/* Pagination                                                          */
+/* ------------------------------------------------------------------ */
+.pagination {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 4px;
+  margin-top: 12px;
+  font-size: 13px;
+}
+.pagination .page-btn {
+  min-width: 32px;
+  height: 32px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  background: #fff;
+  cursor: pointer;
+  color: var(--text-secondary);
+  transition: all 0.2s;
+}
+.pagination .page-btn:hover {
+  border-color: var(--brand);
+  color: var(--brand);
+}
+.pagination .page-btn.active {
+  background: var(--brand);
+  border-color: var(--brand);
+  color: #fff;
+}
+.pagination .page-btn.disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+.pagination .page-info {
+  margin: 0 8px;
+  color: var(--text-muted);
+}
+
+/* ================================================================== */
+/* Stats Row                                                           */
+/* ================================================================== */
+.stats-row {
+  display: flex;
+  gap: 16px;
+  margin-bottom: 20px;
+  flex-wrap: wrap;
+}
+.stat-card {
+  flex: 1;
+  min-width: 180px;
+  background: #fff;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 16px 20px;
+}
+.stat-card .stat-label {
+  font-size: 12px;
+  color: var(--text-muted);
+  margin-bottom: 8px;
+}
+.stat-card .stat-value {
+  font-size: 24px;
+  font-weight: 700;
+  color: var(--text);
+}
+
+/* ------------------------------------------------------------------ */
+/* Preview Modal (inline)                                              */
+/* ------------------------------------------------------------------ */
+.preview-modal-overlay {
+  margin-top: 12px;
+  padding: 20px;
+  background: rgba(0,0,0,0.04);
+  border-radius: var(--radius);
+  border: 1px dashed var(--border);
+}
+.preview-modal-overlay .preview-title {
+  font-size: 14px;
+  font-weight: 600;
+  margin-bottom: 12px;
+  color: var(--text);
+}
+.preview-carousel {
+  display: flex;
+  gap: 12px;
+  overflow-x: auto;
+  padding-bottom: 8px;
+}
+.preview-slide {
+  flex-shrink: 0;
+  width: 200px;
+  height: 300px;
+  border-radius: var(--radius);
+  border: 1px solid var(--border);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--text-muted);
+  font-size: 12px;
+}
+.preview-slide.slide-1 { background: linear-gradient(180deg, #1677FF 0%, #E6F4FF 60%, #fff 100%); }
+.preview-slide.slide-2 { background: linear-gradient(180deg, #1677FF 0%, #fff 40%, #F5F5F5 100%); }
+.preview-slide.slide-3 { background: linear-gradient(180deg, #fff 0%, #E6F4FF 50%, #1677FF 100%); }
+
+/* ================================================================== */
+/* Spec Table                                                          */
+/* ================================================================== */
+.spec-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 13px;
+  margin-bottom: 32px;
+  background: #fff;
+  border-radius: var(--radius);
+  overflow: hidden;
+  box-shadow: var(--shadow);
+}
+.spec-table thead th {
+  background: #FAFAFA;
+  padding: 12px 16px;
+  text-align: left;
+  font-weight: 600;
+  color: var(--text);
+  border-bottom: 2px solid var(--border);
+  white-space: nowrap;
+}
+.spec-table thead th:first-child {
+  border-radius: var(--radius) 0 0 0;
+}
+.spec-table thead th:last-child {
+  border-radius: 0 var(--radius) 0 0;
+}
+.spec-table tbody td {
+  padding: 10px 16px;
+  border-bottom: 1px solid var(--border);
+  color: var(--text-secondary);
+  vertical-align: top;
+}
+.spec-table tbody tr:last-child td {
+  border-bottom: none;
+}
+.spec-table tbody td:first-child {
+  font-weight: 600;
+  color: var(--text);
+  white-space: nowrap;
+}
+.spec-table .spec-required {
+  color: var(--danger);
+}
+.spec-table .spec-optional {
+  color: var(--text-muted);
+}
+
+/* ================================================================== */
+/* Checklist                                                           */
+/* ================================================================== */
+.checklist {
+  list-style: none;
+  padding: 0;
+  background: #fff;
+  border-radius: var(--radius);
+  box-shadow: var(--shadow);
+}
+.checklist li {
+  padding: 12px 20px;
+  border-bottom: 1px solid var(--border);
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  font-size: 14px;
+  color: var(--text);
+}
+.checklist li:last-child {
+  border-bottom: none;
+}
+.checklist .check-box {
+  flex-shrink: 0;
+  width: 18px;
+  height: 18px;
+  border: 2px solid var(--border);
+  border-radius: 3px;
+  margin-top: 2px;
+  position: relative;
+  transition: all 0.2s;
+}
+.checklist .check-item-done .check-box {
+  background: var(--success);
+  border-color: var(--success);
+}
+.checklist .check-item-done .check-box::after {
+  content: '';
+  position: absolute;
+  left: 4px;
+  top: 1px;
+  width: 6px;
+  height: 10px;
+  border: solid #fff;
+  border-width: 0 2px 2px 0;
+  transform: rotate(45deg);
+}
+.checklist .check-item-done .check-label {
+  color: var(--text-muted);
+  text-decoration: line-through;
+}
+
+/* ================================================================== */
+/* Responsive Tweaks                                                   */
+/* ================================================================== */
+@media (max-width: 900px) {
+  .template-grid {
+    grid-template-columns: 1fr;
+  }
+  .mockup-sidebar {
+    width: 180px;
+  }
+  .content-wrapper {
+    padding: 16px;
+  }
+}
+</style>
+</head>
+<body>
+
+<!-- ================================================================== -->
+<!-- Document Header                                                     -->
+<!-- ================================================================== -->
+<div class="doc-header">
+  <h1>小程序配置 — 设计规格文档</h1>
+  <div class="doc-meta">版本 1.0  |  2026-07-01  |  管理后台 / 系统设置 / 小程序配置</div>
+</div>
+
+<!-- ================================================================== -->
+<!-- Content                                                             -->
+<!-- ================================================================== -->
+<div class="content-wrapper">
+
+  <!-- ================================================================ -->
+  <!-- Page Overview                                                     -->
+  <!-- ================================================================ -->
+  <h2 class="section-title">页面总览</h2>
+  <div class="overview-card">
+    <p>小程序配置页面是管理后台"系统设置"模块下的核心页面，用于管理多平台小程序的凭证信息、模板选择与一键发布流程。支持微信、支付宝、抖音、快手四个主流平台，管理员可通过平台 Tab 切换完成各平台小程序的独立配置与发布。</p>
+    <div class="feature-list">
+      <span class="feature-item">平台 Tab 切换</span>
+      <span class="feature-item">凭证配置</span>
+      <span class="feature-item">模板选择</span>
+      <span class="feature-item">一键发布</span>
+      <span class="feature-item">发布历史</span>
+      <span class="feature-item">多平台管理</span>
+    </div>
+  </div>
+
+  <!-- ================================================================ -->
+  <!-- Mockup Area                                                       -->
+  <!-- ================================================================ -->
+  <h2 class="section-title">页面模型</h2>
+  <div class="mockup">
+
+    <!-- Mockup Header -->
+    <div class="mockup-header">
+      <div class="header-left">
+        <div class="logo">酒水商城 · 管理后台</div>
+        <ul class="nav-menu">
+          <li>工作台</li>
+          <li>商品管理</li>
+          <li>订单管理</li>
+          <li class="active">系统设置</li>
+        </ul>
+      </div>
+      <div class="header-right">
+        <span style="font-size:13px;opacity:0.85;">管理员</span>
+        <div class="user-avatar">A</div>
+      </div>
+    </div>
+
+    <!-- Mockup Body -->
+    <div class="mockup-body">
+
+      <!-- Sidebar -->
+      <div class="mockup-sidebar">
+        <div class="sidebar-group">
+          <div class="sidebar-group-title">系统设置</div>
+          <div class="sidebar-item">基本信息</div>
+          <div class="sidebar-item">支付配置</div>
+          <div class="sidebar-item active">小程序配置</div>
+          <div class="sidebar-item">消息通知</div>
+          <div class="sidebar-item">权限管理</div>
+          <div class="sidebar-item">操作日志</div>
+        </div>
+      </div>
+
+      <!-- Main Content -->
+      <div class="mockup-main">
+        <div class="mockup-page-title">小程序配置</div>
+        <div class="mockup-breadcrumb">
+          <span>系统设置</span> / <span class="current">小程序配置</span>
+        </div>
+
+        <!-- Stats Row -->
+        <div class="stats-row">
+          <div class="stat-card">
+            <div class="stat-label">已配置平台</div>
+            <div class="stat-value">3</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-label">已发布版本</div>
+            <div class="stat-value">12</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-label">最新版本</div>
+            <div class="stat-value">v2.4.1</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-label">发布成功率</div>
+            <div class="stat-value" style="color:var(--success);">91.7%</div>
+          </div>
+        </div>
+
+        <!-- Platform Tabs -->
+        <div class="platform-tabs">
+          <div class="platform-tab active">微信</div>
+          <div class="platform-tab">支付宝</div>
+          <div class="platform-tab">抖音</div>
+          <div class="platform-tab">快手</div>
+        </div>
+
+        <!-- ============================================================ -->
+        <!-- Warning Notice                                                 -->
+        <!-- ============================================================ -->
+        <div class="alert-card">
+          <div class="alert-icon">!</div>
+          <div>
+            注意：此处填写的是微信「小程序」AppID，来自 <strong>mp.weixin.qq.com</strong>（公众平台），不是支付 AppID。
+          </div>
+        </div>
+
+        <!-- ============================================================ -->
+        <!-- Credential Config Card                                        -->
+        <!-- ============================================================ -->
+        <div class="config-card">
+          <div class="card-title">凭证配置</div>
+
+          <div class="form-group">
+            <div class="form-label"><span class="required">*</span> 小程序 AppID</div>
+            <input class="form-input" type="text" placeholder="请输入微信小程序 AppID" value="wx1234567890abcdef">
+            <div class="form-hint">来自微信公众平台 mp.weixin.qq.com</div>
+          </div>
+
+          <div class="form-group">
+            <div class="form-label"><span class="required">*</span> 小程序 AppSecret</div>
+            <div class="input-with-icon">
+              <input class="form-input" type="password" placeholder="请输入小程序 AppSecret" value="••••••••••••••••">
+              <div class="eye-icon" title="显示/隐藏"></div>
+            </div>
+            <div class="form-hint">敏感字段，加密存储</div>
+          </div>
+
+          <div class="form-group">
+            <div class="form-label"><span class="required">*</span> 小程序名称</div>
+            <input class="form-input" type="text" placeholder="请输入小程序名称" value="酒水优选">
+            <div class="form-hint">将显示在小程序顶部</div>
+          </div>
+
+          <div class="form-group">
+            <div class="form-label">小程序图标</div>
+            <div class="image-upload has-preview">
+              <div class="upload-placeholder" style="position:absolute;inset:0;display:flex;align-items:center;justify-content:center;background:var(--brand-light);">
+                <span style="font-size:24px;color:var(--brand);">+</span>
+              </div>
+            </div>
+            <div class="form-hint">建议尺寸 144x144px，PNG 格式</div>
+          </div>
+        </div>
+
+        <!-- ============================================================ -->
+        <!-- Template Selection Card                                        -->
+        <!-- ============================================================ -->
+        <div class="config-card">
+          <div class="card-title">选择小程序模板</div>
+
+          <div class="template-grid">
+            <div class="template-card selected">
+              <div class="template-thumb thumb-blue">经典蓝白</div>
+              <div class="template-info">
+                <div class="template-name">经典蓝白</div>
+                <div class="template-desc">蓝白配色，简洁大方，适合大多数酒水商家</div>
+              </div>
+            </div>
+            <div class="template-card">
+              <div class="template-thumb thumb-orange">暖橙商务</div>
+              <div class="template-info">
+                <div class="template-name">暖橙商务</div>
+                <div class="template-desc">暖橙色调，温暖亲切，适合中高端酒水门店</div>
+              </div>
+            </div>
+            <div class="template-card">
+              <div class="template-thumb thumb-dark">深色臻品</div>
+              <div class="template-info">
+                <div class="template-name">深色臻品</div>
+                <div class="template-desc">深色高级感，黑金配色，适合高端酒品专卖</div>
+              </div>
+            </div>
+          </div>
+
+          <div class="template-preview-btn">点击查看大图预览</div>
+
+          <!-- Inline Preview Modal -->
+          <div class="preview-modal-overlay">
+            <div class="preview-title">经典蓝白 — 模板预览</div>
+            <div class="preview-carousel">
+              <div class="preview-slide slide-1">首页截图</div>
+              <div class="preview-slide slide-2">商品列表截图</div>
+              <div class="preview-slide slide-3">商品详情截图</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- ============================================================ -->
+        <!-- Action Area                                                    -->
+        <!-- ============================================================ -->
+        <div class="action-area">
+          <div class="action-row">
+            <button class="btn-publish" disabled>
+              <span class="spinner"></span> 正在编译发布...
+            </button>
+            <div class="status-info">
+              <span class="tag tag-gray">draft</span>
+              <span class="version">当前版本: v2.4.0</span>
+              <span style="color:var(--text-muted);">2026-06-28 14:32:10</span>
+            </div>
+          </div>
+
+          <!-- Release Result (Success) -->
+          <div class="result-modal result-success" style="margin-top:16px;">
+            <div class="result-icon icon-success">&#10003;</div>
+            <div class="result-content">
+              <div class="result-title">发布成功</div>
+              <div class="result-detail">
+                版本号: v2.4.1<br>
+                发布时间: 2026-07-01 10:15:32<br>
+                模板: 经典蓝白
+              </div>
+            </div>
+          </div>
+
+          <!-- Release Result (Error) -->
+          <div class="result-modal result-error" style="margin-top:12px;">
+            <div class="result-icon icon-error">&#10007;</div>
+            <div class="result-content">
+              <div class="result-title">发布失败</div>
+              <div class="result-detail">
+                错误信息: 小程序代码包大小超过限制（当前 2.8MB，限制 2MB）<br>
+                <button class="btn-retry" style="margin-top:8px;">重新发布</button>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- ============================================================ -->
+        <!-- Publish History Card                                           -->
+        <!-- ============================================================ -->
+        <div class="config-card">
+          <div class="card-title">发布历史</div>
+
+          <table class="mockup-table">
+            <thead>
+              <tr>
+                <th>版本号</th>
+                <th>模板</th>
+                <th>操作</th>
+                <th>结果</th>
+                <th>错误信息</th>
+                <th>发布时间</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td><strong>v2.4.1</strong></td>
+                <td>经典蓝白</td>
+                <td>发布</td>
+                <td><span class="tag tag-success">成功</span></td>
+                <td>—</td>
+                <td>2026-07-01 10:15:32</td>
+              </tr>
+              <tr>
+                <td><strong>v2.4.0</strong></td>
+                <td>经典蓝白</td>
+                <td>更新</td>
+                <td><span class="tag tag-danger">失败</span></td>
+                <td class="cell-error">代码包大小超过限制（2.8MB / 2MB）</td>
+                <td>2026-06-28 14:32:10</td>
+              </tr>
+              <tr>
+                <td><strong>v2.3.0</strong></td>
+                <td>暖橙商务</td>
+                <td>发布</td>
+                <td><span class="tag tag-success">成功</span></td>
+                <td>—</td>
+                <td>2026-06-15 09:22:45</td>
+              </tr>
+              <tr>
+                <td><strong>v2.2.1</strong></td>
+                <td>暖橙商务</td>
+                <td>更新</td>
+                <td><span class="tag tag-success">成功</span></td>
+                <td>—</td>
+                <td>2026-06-10 16:08:21</td>
+              </tr>
+              <tr>
+                <td><strong>v2.2.0</strong></td>
+                <td>深色臻品</td>
+                <td>发布</td>
+                <td><span class="tag tag-danger">失败</span></td>
+                <td class="cell-error">AppSecret 校验失败，请检查凭证配置</td>
+                <td>2026-06-05 11:47:03</td>
+              </tr>
+              <tr>
+                <td><strong>v2.1.0</strong></td>
+                <td>经典蓝白</td>
+                <td>发布</td>
+                <td><span class="tag tag-success">成功</span></td>
+                <td>—</td>
+                <td>2026-05-28 08:30:55</td>
+              </tr>
+              <tr>
+                <td><strong>v2.0.0</strong></td>
+                <td>经典蓝白</td>
+                <td>发布</td>
+                <td><span class="tag tag-success">成功</span></td>
+                <td>—</td>
+                <td>2026-05-20 15:12:40</td>
+              </tr>
+            </tbody>
+          </table>
+
+          <!-- Pagination -->
+          <div class="pagination">
+            <span class="page-info">共 24 条</span>
+            <span class="page-btn disabled">&lt;</span>
+            <span class="page-btn active">1</span>
+            <span class="page-btn">2</span>
+            <span class="page-btn">3</span>
+            <span class="page-btn">4</span>
+            <span class="page-btn">&gt;</span>
+          </div>
+        </div>
+
+      </div><!-- /mockup-main -->
+    </div><!-- /mockup-body -->
+  </div><!-- /mockup -->
+
+  <!-- ================================================================ -->
+  <!-- Field Specification Tables                                        -->
+  <!-- ================================================================ -->
+  <h2 class="section-title">字段规范</h2>
+
+  <h3 class="section-subtitle">小程序配置字段</h3>
+  <table class="spec-table">
+    <thead>
+      <tr>
+        <th>字段名</th>
+        <th>类型</th>
+        <th>必填</th>
+        <th>说明</th>
+        <th>示例</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td>app_id</td>
+        <td>string</td>
+        <td class="spec-required">是</td>
+        <td>小程序 AppID，来自对应平台开放平台</td>
+        <td>wx1234567890abcdef</td>
+      </tr>
+      <tr>
+        <td>app_secret</td>
+        <td>string</td>
+        <td class="spec-required">是</td>
+        <td>小程序 AppSecret，加密存储，前端不可明文展示</td>
+        <td>enc:aes256:xxx...</td>
+      </tr>
+      <tr>
+        <td>app_name</td>
+        <td>string</td>
+        <td class="spec-required">是</td>
+        <td>小程序名称，显示在小程序顶部</td>
+        <td>酒水优选</td>
+      </tr>
+      <tr>
+        <td>app_icon</td>
+        <td>string (url)</td>
+        <td class="spec-optional">否</td>
+        <td>小程序图标 URL，建议 144x144px PNG</td>
+        <td>https://cdn.example.com/icon.png</td>
+      </tr>
+      <tr>
+        <td>platform</td>
+        <td>enum</td>
+        <td class="spec-required">是</td>
+        <td>平台类型：wechat / alipay / douyin / kuaishou</td>
+        <td>wechat</td>
+      </tr>
+    </tbody>
+  </table>
+
+  <h3 class="section-subtitle">模板字段</h3>
+  <table class="spec-table">
+    <thead>
+      <tr>
+        <th>字段名</th>
+        <th>类型</th>
+        <th>必填</th>
+        <th>说明</th>
+        <th>示例</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td>template_id</td>
+        <td>string (uuid)</td>
+        <td class="spec-required">是</td>
+        <td>模板唯一标识</td>
+        <td>tpl_abc123...</td>
+      </tr>
+      <tr>
+        <td>template_name</td>
+        <td>string</td>
+        <td class="spec-required">是</td>
+        <td>模板名称</td>
+        <td>经典蓝白</td>
+      </tr>
+      <tr>
+        <td>template_description</td>
+        <td>string</td>
+        <td class="spec-optional">否</td>
+        <td>模板描述文案</td>
+        <td>蓝白配色，简洁大方...</td>
+      </tr>
+      <tr>
+        <td>template_thumbnail</td>
+        <td>string (url)</td>
+        <td class="spec-required">是</td>
+        <td>模板缩略图 URL</td>
+        <td>https://cdn.example.com/thumb.png</td>
+      </tr>
+      <tr>
+        <td>template_screenshots</td>
+        <td>array[string]</td>
+        <td class="spec-optional">否</td>
+        <td>大图预览截图列表，用于轮播展示</td>
+        <td>["url1","url2","url3"]</td>
+      </tr>
+      <tr>
+        <td>status</td>
+        <td>enum</td>
+        <td class="spec-required">是</td>
+        <td>模板状态：active / inactive</td>
+        <td>active</td>
+      </tr>
+    </tbody>
+  </table>
+
+  <h3 class="section-subtitle">发布日志字段</h3>
+  <table class="spec-table">
+    <thead>
+      <tr>
+        <th>字段名</th>
+        <th>类型</th>
+        <th>必填</th>
+        <th>说明</th>
+        <th>示例</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td>publish_id</td>
+        <td>string (uuid)</td>
+        <td class="spec-required">是</td>
+        <td>发布日志唯一标识</td>
+        <td>pub_xyz789...</td>
+      </tr>
+      <tr>
+        <td>version</td>
+        <td>string</td>
+        <td class="spec-required">是</td>
+        <td>发布版本号，遵循 semver</td>
+        <td>v2.4.1</td>
+      </tr>
+      <tr>
+        <td>platform</td>
+        <td>enum</td>
+        <td class="spec-required">是</td>
+        <td>发布平台：wechat / alipay / douyin / kuaishou</td>
+        <td>wechat</td>
+      </tr>
+      <tr>
+        <td>template_name</td>
+        <td>string</td>
+        <td class="spec-required">是</td>
+        <td>发布时使用的模板名称</td>
+        <td>经典蓝白</td>
+      </tr>
+      <tr>
+        <td>action</td>
+        <td>enum</td>
+        <td class="spec-required">是</td>
+        <td>操作类型：publish / update</td>
+        <td>publish</td>
+      </tr>
+      <tr>
+        <td>result</td>
+        <td>enum</td>
+        <td class="spec-required">是</td>
+        <td>发布结果：success / failure</td>
+        <td>success</td>
+      </tr>
+      <tr>
+        <td>error_message</td>
+        <td>string</td>
+        <td class="spec-optional">否</td>
+        <td>失败时的错误信息</td>
+        <td>代码包大小超过限制</td>
+      </tr>
+      <tr>
+        <td>publish_time</td>
+        <td>datetime</td>
+        <td class="spec-required">是</td>
+        <td>发布时间</td>
+        <td>2026-07-01 10:15:32</td>
+      </tr>
+      <tr>
+        <td>status</td>
+        <td>enum</td>
+        <td class="spec-required">是</td>
+        <td>当前生效状态：draft / published</td>
+        <td>published</td>
+      </tr>
+    </tbody>
+  </table>
+
+  <!-- ================================================================ -->
+  <!-- Acceptance Criteria                                               -->
+  <!-- ================================================================ -->
+  <h2 class="section-title">验收标准</h2>
+  <ul class="checklist">
+    <li class="check-item-done">
+      <span class="check-box"></span>
+      <span class="check-label">页面顶部显示"小程序配置"标题及面包屑导航"系统设置 / 小程序配置"</span>
+    </li>
+    <li>
+      <span class="check-box"></span>
+      <span class="check-label">平台 Tab 切换栏显示微信、支付宝、抖音、快手四个选项，默认选中微信</span>
+    </li>
+    <li>
+      <span class="check-box"></span>
+      <span class="check-label">点击不同平台 Tab 时，下方凭证配置、模板选择、发布历史等区域内容切换为对应平台数据</span>
+    </li>
+    <li>
+      <span class="check-box"></span>
+      <span class="check-label">重要提示区域以黄色背景卡片展示，文案明确指出 AppID 来源平台</span>
+    </li>
+    <li class="check-item-done">
+      <span class="check-box"></span>
+      <span class="check-label">AppID 输入框支持输入英文字母、数字及特殊字符，无长度限制校验提示</span>
+    </li>
+    <li>
+      <span class="check-box"></span>
+      <span class="check-label">AppSecret 输入框默认以 password 类型显示密文，旁边有眼睛图标可切换明文/密文</span>
+    </li>
+    <li>
+      <span class="check-box"></span>
+      <span class="check-label">小程序图标上传区域显示虚线边框，点击可触发文件选择，支持预览已上传图片</span>
+    </li>
+    <li>
+      <span class="check-box"></span>
+      <span class="check-label">模板选择区以 3 列网格展示模板卡片，每张卡片包含缩略图、名称和描述</span>
+    </li>
+    <li>
+      <span class="check-box"></span>
+      <span class="check-label">选中模板卡片时，边框变为蓝色（2px solid #1677FF），右上角出现蓝色勾选图标</span>
+    </li>
+    <li class="check-item-done">
+      <span class="check-box"></span>
+      <span class="check-label">点击"查看大图预览"可弹出预览弹窗，支持多张截图轮播查看</span>
+    </li>
+    <li>
+      <span class="check-box"></span>
+      <span class="check-label">一键发布按钮点击后进入 loading 状态，显示 spinner 及"正在编译发布..."文案</span>
+    </li>
+    <li>
+      <span class="check-box"></span>
+      <span class="check-label">发布成功后显示绿色结果卡片，包含版本号、模板名称和发布时间</span>
+    </li>
+    <li>
+      <span class="check-box"></span>
+      <span class="check-label">发布失败后显示红色结果卡片，包含错误信息及"重新发布"按钮</span>
+    </li>
+    <li>
+      <span class="check-box"></span>
+      <span class="check-label">发布历史表格包含版本号、模板、操作、结果、错误信息、发布时间六列</span>
+    </li>
+    <li>
+      <span class="check-box"></span>
+      <span class="check-label">发布历史表格中成功记录显示绿色"成功"标签，失败记录显示红色"失败"标签</span>
+    </li>
+    <li>
+      <span class="check-box"></span>
+      <span class="check-label">发布历史表格支持分页，底部显示页码和总条数</span>
+    </li>
+    <li>
+      <span class="check-box"></span>
+      <span class="check-label">左侧导航树中"小程序配置"菜单项高亮显示，与其他菜单项区分</span>
+    </li>
+    <li>
+      <span class="check-box"></span>
+      <span class="check-label">页面顶部统计卡片显示已配置平台数、已发布版本数、最新版本号和发布成功率</span>
+    </li>
+  </ul>
+
+</div><!-- /content-wrapper -->
+
+</body>
+</html>
