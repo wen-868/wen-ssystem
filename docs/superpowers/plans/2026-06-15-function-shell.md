@@ -61,7 +61,7 @@ Expected: FAIL，提示 `admin-web/src/App.vue 缺少 activeNav` 或后续新增
     <el-card class="login-card">
       <template #header>
         <div>
-          <h1>智享营销系统管理后台</h1>
+          <h1>智享全链管理系统管理后台</h1>
           <p class="muted">请先登录，登录后进入正式后台工作台。</p>
         </div>
       </template>
@@ -80,7 +80,7 @@ Expected: FAIL，提示 `admin-web/src/App.vue 缺少 activeNav` 或后续新增
   </div>
   <div v-else class="layout">
     <aside class="side">
-      <h1>智享营销系统管理后台</h1>
+      <h1>智享全链管理系统管理后台</h1>
       <button
         v-for="item in nav"
         :key="item"

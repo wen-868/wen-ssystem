@@ -2,7 +2,7 @@
 
 > **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
 
-**Goal:** 把当前演示型智享营销系统补齐为第一阶段正式可用版本，覆盖后台基础管理、门店收银、小程序正式配置、基础数据权限和上线验收。
+**Goal:** 把当前演示型智享全链管理系统补齐为第一阶段正式可用版本，覆盖后台基础管理、门店收银、小程序正式配置、基础数据权限和上线验收。
 
 **Architecture:** 先落地共享后端能力和种子数据，再让后台、门店端、小程序三条 UI/业务线并行开发，最后用验收脚本统一收口。第一阶段以线下收款闭环为核心，真实微信支付、退款审核、高级报表和复杂 RBAC 放到第二阶段。
 

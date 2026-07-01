@@ -1,7 +1,7 @@
 
 #!/usr/bin/env node
 // ============================================================
-// 智享营销系统 - 接口自动化测试集合
+// 智享全链管理系统 - 接口自动化测试集合
 // 覆盖: 认证、商品、门店、订单、销售单、库存、客户、收款、
 //       挂单、报表、分享收款、响应结构一致性、权限、安全
 // 运行方式: node tests/api-test-suite.mjs
@@ -101,7 +101,7 @@ function assertHasFields(obj, fields) {
 
 async function run() {
   console.log(`\n${COLORS.magenta}====================================================${COLORS.reset}`);
-  console.log(`智享营销系统 - 接口自动化测试集`);
+  console.log(`智享全链管理系统 - 接口自动化测试集`);
   console.log(`测试目标: ${BASE_URL}`);
   console.log(`开始时间: ${new Date().toLocaleString()}`);
   console.log(`${COLORS.magenta}====================================================${COLORS.reset}`);

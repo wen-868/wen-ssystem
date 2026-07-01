@@ -122,7 +122,37 @@ shareRouter.post("/collections/:token/pay", asyncHandler(async (req, res) => {
 
 // 微信支付回调
 shareRouter.post("/collections/:token/wx-notify", asyncHandler(async (req, res) => {
-  const { payNo, transactionId, payAmount } = req.body;
+  // 微信支付签名验证
+  const { wechatPay } = await import("../shared/wechat-pay.js");
+  const headers = req.headers as Record<string, string>;
+  const bodyStr = JSON.stringify(req.body);
+
+  if (!wechatPay.verifyNotifySignature(headers, bodyStr)) {
+    res.status(401).json({ code: "401", message: "签名验证失败" });
+    return;
+  }
+
+  // 解密通知数据（微信 v3 API 使用 AES-256-GCM 加密）
+  const { resource } = req.body;
+  let payNo: string | undefined, transactionId: string | undefined, payAmount: number | undefined;
+  if (resource && resource.ciphertext) {
+    try {
+      const decrypted = wechatPay.decryptNotifyData(resource.associated_data, resource.nonce, resource.ciphertext);
+      const data = JSON.parse(decrypted);
+      payNo = data.out_trade_no;
+      transactionId = data.transaction_id;
+      payAmount = data.amount?.payer_total ? Number(data.amount.payer_total) / 100 : undefined;
+    } catch {
+      res.status(400).json({ code: "400", message: "通知数据解密失败" });
+      return;
+    }
+  } else {
+    // 兼容 v2 API 明文回调
+    payNo = req.body.payNo ?? req.body.out_trade_no;
+    transactionId = req.body.transactionId ?? req.body.transaction_id;
+    payAmount = req.body.payAmount ?? req.body.total_fee;
+  }
+
   const link = await queryOne<any>("SELECT link_no, source_no, amount, paid_amount, status FROM collection_link WHERE token = ?", [req.params.token]);
   if (!link) {
     res.status(404).json({ code: "404", message: "收款链接不存在" });

@@ -172,7 +172,7 @@ async function apiChecks() {
   check("门店库存调整", adjust.body?.code === "0");
 }
 
-console.log("智享营销系统 MySQL 冒烟测试");
+console.log("智享全链管理系统 MySQL 冒烟测试");
 console.log(`数据库：${DB.host}:${DB.port}/${DB.database}`);
 console.log(`API：${API_BASE}`);
 

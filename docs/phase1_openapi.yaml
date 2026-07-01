@@ -1,6 +1,6 @@
 openapi: 3.0.3
 info:
-  title: 智享营销系统第 1 阶段 API
+  title: 智享全链管理系统第 1 阶段 API
   version: 1.0.0
   description: >
     第 1 阶段 MVP 接口定义，覆盖后台管理、门店端、小程序端、微信支付、销售单微信分享收款。

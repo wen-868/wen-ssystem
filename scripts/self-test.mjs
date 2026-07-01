@@ -30,7 +30,7 @@ const auth = { Authorization: `Bearer ${token}` };
 
 console.log("登录成功:", login.user.username, login.user.roles.join(","));
 
-const dashboard = await request("/admin/reports/dashboard", { headers: auth });
+const dashboard = await request("/admin/dashboard", { headers: auth });
 console.log("看板数据:", dashboard);
 
 const products = await request("/admin/products", { headers: auth });

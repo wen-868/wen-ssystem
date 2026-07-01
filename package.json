@@ -2,7 +2,7 @@
   "name": "zhixiang-marketing-system",
   "private": true,
   "version": "0.1.0",
-  "description": "智享营销系统第 1 阶段 MVP 多端工程骨架",
+  "description": "智享全链管理系统第 1 阶段 MVP 多端工程骨架",
   "workspaces": [
     "backend",
     "admin-web",

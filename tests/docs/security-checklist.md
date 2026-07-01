@@ -1,5 +1,5 @@
 
-# 智享营销系统 - 安全测试清单 (Security Checklist)
+# 智享全链管理系统 - 安全测试清单 (Security Checklist)
 
 > 版本: v1.0 · 适用范围: 本系统所有接口、前端、数据库
 
