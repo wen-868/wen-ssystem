@@ -200,6 +200,18 @@ liquor-inventory-system/
 
 > **🎉 12 个模块全部开发完成！项目进入收尾阶段。**
 
+### Bug修复阶段 · 编译错误清零（已完成 ✅）
+
+- **审查日期**：2026-07-02
+- **背景**：全面审查发现 205 个编译错误 + 3 个运行时风险 + 2 个安全隐患
+- **阿坚 12项** ✅：auth.service 状态冲突回滚 + changePassword 补充 + report.userId 修复 + alert/notification/stock-check/store-control 共 35 个函数名不匹配 + order.controller 5 个函数 + store.routes batchController + 3 个即时零售适配器 + node-cron 安装
+- **墨 5项** ✅：admin-web 60 个 TS 错误 + CustomerVisit API 修复 + wangeditor 类型声明 + store-terminal .env 清理
+- **阿澈 3项** ✅：merchant-mobile 45 个 TS 错误 + 未使用变量清理 + 类型不匹配修复
+- **林夕 2项** ✅：微信支付签名验证（validatePlatformSignature）+ 冗余路由删除（instant-retail/menu-permission/quote）
+- **凌舟 4项** ✅：server.ts workbench 恢复 + db.ts executeWithTenant + http-client.ts 类型修复 + node-cron 安装
+- **编译结果**：后端 100→0 ✅ | admin-web 60→0 ✅ | merchant-mobile 45→0 ✅
+- **安全验证**：JWT_SECRET 无 fallback ✅ | .gitignore 含 .env ✅ | auth.service.ts 状态校验正常 ✅ | wechat-pay 签名验证已实现 ✅
+
 ---
 
 ## 七、产品规格关键数据
