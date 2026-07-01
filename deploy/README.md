@@ -1,4 +1,4 @@
-# 智享营销系统公测部署指南
+# 智享全链管理系统公测部署指南
 
 本文档用于公测服务器部署。默认假设服务器为 Ubuntu 22.04，代码路径为 `/opt/zhixiang/liquor-inventory-system`。
 

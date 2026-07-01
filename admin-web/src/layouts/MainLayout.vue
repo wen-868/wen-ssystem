@@ -2,7 +2,7 @@
   <div class="layout">
     <aside class="side" :class="{ 'is-collapsed': isMenuCollapsed && !isCashierMode, 'is-hidden': isCashierMode }">
       <div class="sidebar-header">
-        <h1 v-show="!isMenuCollapsed">智享营销系统</h1>
+        <h1 v-show="!isMenuCollapsed">智享全链管理系统</h1>
         <h1 v-show="isMenuCollapsed">智享</h1>
         <el-button
           class="collapse-btn"
@@ -413,7 +413,7 @@ const pageTitle = computed(() => {
     "/instant-retail/platform": "平台对接",
     "/instant-retail/order-board": "接单工作台"
   };
-  return titles[route.path] || "智享营销系统";
+  return titles[route.path] || "智享全链管理系统";
 });
 
 function toggleCashierMode() {

@@ -3,7 +3,7 @@
     <el-card class="login-card">
       <template #header>
         <div>
-          <h1>智享营销系统管理后台</h1>
+          <h1>智享全链管理系统管理后台</h1>
           <p class="muted">请先登录，登录后进入正式后台工作台。</p>
         </div>
       </template>

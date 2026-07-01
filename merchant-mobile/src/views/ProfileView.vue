@@ -210,7 +210,7 @@ const showAboutDialog = ref(false)
         <div class="about-icon">
           <van-icon name="gem-o" size="48" color="var(--color-primary)" />
         </div>
-        <h3 class="about-name">智享营销系统</h3>
+        <h3 class="about-name">智享全链管理系统</h3>
         <p class="about-version">版本号：v1.0.0</p>
       </div>
     </van-dialog>
