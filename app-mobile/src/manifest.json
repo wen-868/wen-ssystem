@@ -1,0 +1,84 @@
+{
+  "name": "智享全链",
+  "appid": "__UNI__ZHIXIANG",
+  "description": "智享全链管理系统",
+  "versionName": "1.0.0",
+  "versionCode": "100",
+  "transformPx": false,
+  "app-plus": {
+    "usingComponents": true,
+    "nvueStyleCompiler": "uni-app",
+    "compilerVersion": 3,
+    "splashscreen": {
+      "alwaysShowBeforeRender": true,
+      "waiting": true,
+      "autoclose": true,
+      "delay": 0
+    },
+    "modules": {
+      "Payment": {},
+      "Push": {},
+      "OAuth": {}
+    },
+    "distribute": {
+      "android": {
+        "permissions": [
+          "<uses-permission android:name=\"android.permission.INTERNET\"/>",
+          "<uses-permission android:name=\"android.permission.CAMERA\"/>",
+          "<uses-permission android:name=\"android.permission.ACCESS_NETWORK_STATE\"/>",
+          "<uses-permission android:name=\"android.permission.ACCESS_WIFI_STATE\"/>"
+        ],
+        "packagename": "com.zhixiang.app",
+        "minSdkVersion": 21,
+        "targetSdkVersion": 33
+      },
+      "ios": {
+        "appid": "com.zhixiang.app",
+        "UIBackgroundModes": [],
+        "dSYMs": false
+      },
+      "sdkConfigs": {
+        "payment": {
+          "weixin": {
+            "appid": "wx_appid_placeholder",
+            "UniversalLinks": ""
+          }
+        }
+      }
+    },
+    "networkTimeout": {
+      "request": 30000,
+      "connectSocket": 30000,
+      "uploadFile": 60000,
+      "downloadFile": 60000
+    }
+  },
+  "h5": {
+    "title": "智享全链",
+    "router": {
+      "mode": "hash",
+      "base": "/"
+    },
+    "async": {
+      "loading": "加载中",
+      "error": "加载失败",
+      "delay": 200,
+      "timeout": 30000
+    }
+  },
+  "mp-weixin": {
+    "appid": "wx_appid_placeholder",
+    "setting": {
+      "urlCheck": false,
+      "es6": true,
+      "postcss": true,
+      "minified": true
+    },
+    "usingComponents": true,
+    "permission": {
+      "scope.userLocation": {
+        "desc": "获取位置信息用于门店管理"
+      }
+    }
+  }
+}

@@ -1,0 +1,91 @@
+/* 主题色 */
+$uni-color-primary: #1677FF;
+$uni-color-success: #10B981;
+$uni-color-warning: #F59E0B;
+$uni-color-error: #EF4444;
+$uni-color-info: #909399;
+
+/* 文字色 */
+$uni-text-color: #333333;
+$uni-text-color-grey: #999999;
+$uni-text-color-placeholder: #C0C4CC;
+
+/* 背景色 */
+$uni-bg-color: #FFFFFF;
+$uni-bg-color-grey: #F5F5F5;
+$uni-bg-color-hover: #F0F0F0;
+
+/* 边框 */
+$uni-border-color: #E5E5E5;
+$uni-border-radius: 8px;
+
+/* 间距 */
+$uni-spacing-sm: 8px;
+$uni-spacing-base: 16px;
+$uni-spacing-lg: 24px;
+
+/* 字体 */
+$uni-font-size-sm: 12px;
+$uni-font-size-base: 14px;
+$uni-font-size-lg: 16px;
+$uni-font-size-xl: 18px;
+
+/* 页面容器 */
+.page-container {
+  min-height: 100vh;
+  background-color: $uni-bg-color-grey;
+  padding-bottom: constant(safe-area-inset-bottom);
+  padding-bottom: env(safe-area-inset-bottom);
+}
+
+/* 卡片 */
+.card {
+  background: $uni-bg-color;
+  border-radius: 12px;
+  padding: 16px;
+  margin: 12px 16px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+}
+
+/* 指标网格 */
+.metric-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 12px;
+  padding: 0 16px;
+}
+
+.metric {
+  background: $uni-bg-color;
+  border-radius: 12px;
+  padding: 16px;
+  text-align: center;
+}
+
+.metric-value {
+  font-size: 24px;
+  font-weight: 700;
+  color: $uni-color-primary;
+}
+
+.metric-label {
+  font-size: 12px;
+  color: $uni-text-color-grey;
+  margin-top: 4px;
+}
+
+/* 按钮 */
+.btn-primary {
+  background: $uni-color-primary;
+  color: #fff;
+  border: none;
+  border-radius: 8px;
+  padding: 12px 24px;
+  font-size: 16px;
+}
+
+/* 安全区域 */
+.safe-bottom {
+  padding-bottom: constant(safe-area-inset-bottom);
+  padding-bottom: env(safe-area-inset-bottom);
+}

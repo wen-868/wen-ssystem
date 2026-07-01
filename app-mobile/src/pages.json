@@ -1,0 +1,237 @@
+{
+  "easycom": {
+    "autoscan": true,
+    "custom": {
+      "^uni-(.*)": "@dcloudio/uni-ui/lib/uni-$1/uni-$1.vue"
+    }
+  },
+  "pages": [
+    {
+      "path": "pages/login/login",
+      "style": {
+        "navigationBarTitleText": "登录",
+        "navigationStyle": "custom"
+      }
+    },
+    {
+      "path": "pages/home/home",
+      "style": {
+        "navigationBarTitleText": "智享全链",
+        "navigationBarBackgroundColor": "#1677FF",
+        "navigationBarTextStyle": "white"
+      }
+    },
+    {
+      "path": "pages/orders/orders",
+      "style": {
+        "navigationBarTitleText": "订单管理"
+      }
+    },
+    {
+      "path": "pages/orders/order-detail",
+      "style": {
+        "navigationBarTitleText": "订单详情"
+      }
+    },
+    {
+      "path": "pages/products/products",
+      "style": {
+        "navigationBarTitleText": "商品管理"
+      }
+    },
+    {
+      "path": "pages/products/product-detail",
+      "style": {
+        "navigationBarTitleText": "商品详情"
+      }
+    },
+    {
+      "path": "pages/inventory/inventory",
+      "style": {
+        "navigationBarTitleText": "库存管理"
+      }
+    },
+    {
+      "path": "pages/customers/customers",
+      "style": {
+        "navigationBarTitleText": "客户管理"
+      }
+    },
+    {
+      "path": "pages/customers/customer-detail",
+      "style": {
+        "navigationBarTitleText": "客户详情"
+      }
+    },
+    {
+      "path": "pages/sales/create-sale",
+      "style": {
+        "navigationBarTitleText": "开单"
+      }
+    },
+    {
+      "path": "pages/sales/sale-bills",
+      "style": {
+        "navigationBarTitleText": "销售单"
+      }
+    },
+    {
+      "path": "pages/reports/reports",
+      "style": {
+        "navigationBarTitleText": "数据报表"
+      }
+    },
+    {
+      "path": "pages/reports/sales-reports",
+      "style": {
+        "navigationBarTitleText": "销售报表"
+      }
+    },
+    {
+      "path": "pages/marketing/marketing",
+      "style": {
+        "navigationBarTitleText": "营销中心"
+      }
+    },
+    {
+      "path": "pages/marketing/coupons",
+      "style": {
+        "navigationBarTitleText": "优惠券"
+      }
+    },
+    {
+      "path": "pages/profile/profile",
+      "style": {
+        "navigationBarTitleText": "我的"
+      }
+    },
+    {
+      "path": "pages/profile/edit",
+      "style": {
+        "navigationBarTitleText": "编辑资料"
+      }
+    },
+    {
+      "path": "pages/notifications/notifications",
+      "style": {
+        "navigationBarTitleText": "消息通知"
+      }
+    },
+    {
+      "path": "pages/todos/todos",
+      "style": {
+        "navigationBarTitleText": "待办事项"
+      }
+    },
+    {
+      "path": "pages/purchase/orders",
+      "style": {
+        "navigationBarTitleText": "采购订单"
+      }
+    },
+    {
+      "path": "pages/purchase/in-stock",
+      "style": {
+        "navigationBarTitleText": "采购入库"
+      }
+    },
+    {
+      "path": "pages/suppliers/suppliers",
+      "style": {
+        "navigationBarTitleText": "供应商"
+      }
+    },
+    {
+      "path": "pages/statements/statements",
+      "style": {
+        "navigationBarTitleText": "客户对账"
+      }
+    },
+    {
+      "path": "pages/instant-retail/orders",
+      "style": {
+        "navigationBarTitleText": "即时零售"
+      }
+    },
+    {
+      "path": "pages/order-center/order-center",
+      "style": {
+        "navigationBarTitleText": "订单中心"
+      }
+    },
+    {
+      "path": "pages/order-exception/exception",
+      "style": {
+        "navigationBarTitleText": "异常订单"
+      }
+    },
+    {
+      "path": "pages/order-aftersale/aftersale",
+      "style": {
+        "navigationBarTitleText": "售后管理"
+      }
+    },
+    {
+      "path": "pages/admin/admin",
+      "style": {
+        "navigationBarTitleText": "管理后台"
+      }
+    },
+    {
+      "path": "pages/receipts/receipts",
+      "style": {
+        "navigationBarTitleText": "财务往来"
+      }
+    },
+    {
+      "path": "pages/transfer/transfer",
+      "style": {
+        "navigationBarTitleText": "库存调拨"
+      }
+    }
+  ],
+  "globalStyle": {
+    "navigationBarTextStyle": "black",
+    "navigationBarTitleText": "智享全链",
+    "navigationBarBackgroundColor": "#FFFFFF",
+    "backgroundColor": "#F5F5F5"
+  },
+  "tabBar": {
+    "color": "#999999",
+    "selectedColor": "#1677FF",
+    "backgroundColor": "#FFFFFF",
+    "borderStyle": "black",
+    "list": [
+      {
+        "pagePath": "pages/home/home",
+        "text": "首页",
+        "iconPath": "static/tabbar/home.svg",
+        "selectedIconPath": "static/tabbar/home-active.svg"
+      },
+      {
+        "pagePath": "pages/orders/orders",
+        "text": "订单",
+        "iconPath": "static/tabbar/order.svg",
+        "selectedIconPath": "static/tabbar/order-active.svg"
+      },
+      {
+        "pagePath": "pages/sales/create-sale",
+        "text": "开单",
+        "iconPath": "static/tabbar/add.svg",
+        "selectedIconPath": "static/tabbar/add-active.svg"
+      },
+      {
+        "pagePath": "pages/products/products",
+        "text": "商品",
+        "iconPath": "static/tabbar/product.svg",
+        "selectedIconPath": "static/tabbar/product-active.svg"
+      },
+      {
+        "pagePath": "pages/profile/profile",
+        "text": "我的",
+        "iconPath": "static/tabbar/user.svg",
+        "selectedIconPath": "static/tabbar/user-active.svg"
+      }
+    ]
+  }
+}
