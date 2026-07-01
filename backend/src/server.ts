@@ -82,6 +82,7 @@ import { reconciliationRouter } from "./routes/reconciliation.routes.js";
 import { operationLogRouter } from "./routes/operation-log.routes.js";
 import { sysUserRouter } from "./routes/sys-user.routes.js";
 import { systemRouter } from "./routes/system.routes.js";
+import { workbenchRouter } from "./routes/workbench.routes.js";
 
 const app = express();
 
@@ -196,6 +197,7 @@ app.use("/api/admin/reconciliation", requireAuthWithTenant, reconciliationRouter
 app.use("/api/admin/operation-logs", requireAuthWithTenant, operationLogRouter);
 app.use("/api/admin/sys-users", requireAuthWithTenant, sysUserRouter);
 app.use("/api/system", systemRouter);
+app.use("/api/admin", requireAuthWithTenant, workbenchRouter);
 
 app.use(errorHandler);
 

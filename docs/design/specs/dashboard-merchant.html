@@ -1,0 +1,1208 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>商户端工作台 — 设计规格文档</title>
+<style>
+/* ========== CSS Variables ========== */
+:root {
+  --brand: #1677FF;
+  --brand-light: #E6F4FF;
+  --text: #1F2937;
+  --text-secondary: #4B5563;
+  --text-muted: #9CA3AF;
+  --border: #E5E7EB;
+  --bg: #F3F4F6;
+  --white: #FFFFFF;
+  --success: #10B981;
+  --warning: #F59E0B;
+  --danger: #EF4444;
+  --info: #3B82F6;
+  --radius: 8px;
+  --shadow: 0 1px 3px rgba(0,0,0,0.10), 0 1px 2px rgba(0,0,0,0.06);
+}
+
+/* ========== Reset & Base ========== */
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+body {
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang SC", "Microsoft YaHei", sans-serif;
+  background: var(--bg);
+  color: var(--text);
+  line-height: 1.6;
+  padding-bottom: 60px;
+}
+
+/* ========== Document Header ========== */
+.doc-header {
+  background: linear-gradient(135deg, #1677FF 0%, #0958D9 100%);
+  color: #fff;
+  padding: 48px 40px 40px;
+  text-align: center;
+}
+.doc-header h1 { font-size: 28px; font-weight: 700; letter-spacing: 0.5px; }
+.doc-header .subtitle { font-size: 14px; opacity: 0.85; margin-top: 8px; }
+
+/* ========== Section Containers ========== */
+.section {
+  max-width: 1200px;
+  margin: 32px auto;
+  padding: 0 24px;
+}
+.section-title {
+  font-size: 20px;
+  font-weight: 700;
+  color: var(--text);
+  margin-bottom: 16px;
+  padding-bottom: 10px;
+  border-bottom: 2px solid var(--brand);
+  display: inline-block;
+}
+.section-desc {
+  font-size: 14px;
+  color: var(--text-secondary);
+  margin-bottom: 24px;
+  line-height: 1.8;
+}
+
+/* ========== Phone Frames Wrapper ========== */
+.phone-frames-wrapper {
+  display: flex;
+  justify-content: center;
+  flex-wrap: wrap;
+  gap: 30px;
+  margin-bottom: 32px;
+}
+
+/* ========== Phone Frame ========== */
+.phone-frame {
+  width: 375px;
+  display: inline-block;
+  margin: 0 10px;
+  border: 6px solid #1F2937;
+  border-radius: 28px;
+  overflow: hidden;
+  box-shadow: 0 16px 48px rgba(0,0,0,0.25);
+  vertical-align: top;
+  background: #F5F5F5;
+  max-height: 800px;
+  overflow-y: auto;
+}
+.phone-frame::-webkit-scrollbar { width: 0; }
+
+/* ========== Phone Status Bar ========== */
+.phone-status-bar {
+  background: #1F2937;
+  color: #fff;
+  font-size: 11px;
+  padding: 6px 16px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+.phone-status-bar .status-icons {
+  display: flex;
+  gap: 4px;
+  align-items: center;
+}
+.phone-status-bar .status-battery {
+  width: 22px; height: 10px;
+  border: 1px solid #fff;
+  border-radius: 2px;
+  position: relative;
+  margin-left: 2px;
+}
+.phone-status-bar .status-battery::after {
+  content: '';
+  position: absolute;
+  right: -3px; top: 2px;
+  width: 2px; height: 4px;
+  background: #fff;
+  border-radius: 0 1px 1px 0;
+}
+.phone-status-bar .status-battery-inner {
+  height: 100%;
+  width: 70%;
+  background: #fff;
+  margin: 1px;
+  border-radius: 1px;
+}
+
+/* ========== Phone Title Bar ========== */
+.phone-title-bar {
+  background: #1F2937;
+  color: #fff;
+  padding: 8px 16px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+.phone-title-bar .store-name {
+  font-size: 15px;
+  font-weight: 600;
+}
+.phone-title-bar .title-right {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+.phone-title-bar .role-tag {
+  font-size: 11px;
+  background: #F59E0B;
+  color: #fff;
+  padding: 2px 8px;
+  border-radius: 10px;
+  font-weight: 500;
+}
+.phone-title-bar .msg-bell-mobile {
+  position: relative;
+  width: 18px; height: 18px;
+  border: 2px solid #fff;
+  border-radius: 3px 3px 5px 5px;
+  background: transparent;
+}
+.phone-title-bar .msg-bell-mobile::before {
+  content: '';
+  position: absolute;
+  top: -2px; left: 50%;
+  transform: translateX(-50%);
+  width: 6px; height: 2px;
+  background: #fff;
+  border-radius: 1px;
+}
+.phone-title-bar .msg-bell-mobile::after {
+  content: '3';
+  position: absolute;
+  top: -7px; right: -8px;
+  width: 16px; height: 16px;
+  background: var(--danger);
+  border-radius: 50%;
+  font-size: 10px;
+  line-height: 16px;
+  text-align: center;
+  color: #fff;
+  font-weight: 700;
+}
+
+/* ========== Phone Content ========== */
+.phone-content {
+  padding: 12px;
+  background: #F5F5F5;
+}
+
+/* ========== Date Display ========== */
+.phone-date {
+  font-size: 12px;
+  color: var(--text-muted);
+  margin-bottom: 12px;
+  padding: 0 2px;
+}
+
+/* ========== Mobile Stats Grid ========== */
+.mobile-stats-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+  margin-bottom: 12px;
+}
+.mobile-stat-card {
+  background: var(--white);
+  border-radius: 10px;
+  padding: 12px;
+  box-shadow: var(--shadow);
+}
+.mobile-stat-card .ms-label {
+  font-size: 11px;
+  color: var(--text-muted);
+  margin-bottom: 4px;
+}
+.mobile-stat-card .ms-value {
+  font-size: 20px;
+  font-weight: 700;
+  color: var(--text);
+}
+.mobile-stat-card .ms-value.gold { color: #D97706; }
+.mobile-stat-card .ms-value.orange { color: var(--warning); }
+.mobile-stat-card .ms-value.red { color: var(--danger); }
+.mobile-stat-card .ms-change {
+  font-size: 11px;
+  display: flex;
+  align-items: center;
+  gap: 3px;
+  margin-top: 2px;
+}
+.mobile-stat-card .ms-change.up { color: var(--success); }
+.mobile-stat-card .ms-change-arrow {
+  width: 0; height: 0;
+  border-left: 3px solid transparent;
+  border-right: 3px solid transparent;
+  border-bottom: 5px solid var(--success);
+}
+.mobile-stat-card .ms-warn-icon {
+  display: inline-block;
+  width: 16px; height: 16px;
+  border: 2px solid var(--danger);
+  border-radius: 50%;
+  text-align: center;
+  line-height: 12px;
+  font-size: 11px;
+  font-weight: 700;
+  color: var(--danger);
+  margin-left: 6px;
+  vertical-align: middle;
+}
+
+/* ========== Todo Alert Section ========== */
+.todo-alert-section {
+  margin-bottom: 12px;
+}
+.todo-alert-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 8px;
+}
+.todo-alert-header h3 {
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--text);
+}
+.todo-alert-header .more-link {
+  font-size: 12px;
+  color: var(--brand);
+}
+.todo-alert-scroll {
+  display: flex;
+  gap: 8px;
+  overflow-x: auto;
+  padding-bottom: 4px;
+  -webkit-overflow-scrolling: touch;
+}
+.todo-alert-scroll::-webkit-scrollbar { height: 0; }
+.todo-alert-card {
+  min-width: 200px;
+  background: var(--white);
+  border-radius: 10px;
+  padding: 12px;
+  box-shadow: var(--shadow);
+  border-left: 4px solid;
+  flex-shrink: 0;
+}
+.todo-alert-card.danger { border-color: var(--danger); }
+.todo-alert-card.warning { border-color: var(--warning); }
+.todo-alert-card.info { border-color: var(--info); }
+.todo-alert-card .ta-title {
+  font-size: 12px;
+  font-weight: 600;
+  margin-bottom: 4px;
+}
+.todo-alert-card.danger .ta-title { color: var(--danger); }
+.todo-alert-card.warning .ta-title { color: #D97706; }
+.todo-alert-card.info .ta-title { color: var(--info); }
+.todo-alert-card .ta-desc {
+  font-size: 11px;
+  color: var(--text-secondary);
+  line-height: 1.5;
+}
+
+/* ========== Sales Trend ========== */
+.sales-trend-section {
+  background: var(--white);
+  border-radius: 10px;
+  padding: 14px;
+  margin-bottom: 12px;
+  box-shadow: var(--shadow);
+}
+.sales-trend-section h3 {
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--text);
+  margin-bottom: 12px;
+}
+.bar-chart-7d {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  height: 120px;
+  gap: 6px;
+  padding: 0 4px;
+  border-bottom: 1px solid var(--border);
+  margin-bottom: 6px;
+}
+.bar-chart-7d .bar-col {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  flex: 1;
+  height: 100%;
+  justify-content: flex-end;
+}
+.bar-chart-7d .bar-col .bar {
+  width: 100%;
+  max-width: 30px;
+  border-radius: 4px 4px 0 0;
+  background: #E5E7EB;
+  transition: height 0.3s;
+}
+.bar-chart-7d .bar-col .bar.active { background: var(--brand); }
+.bar-chart-7d .bar-col .bar-value {
+  font-size: 9px;
+  color: var(--text-muted);
+  margin-bottom: 4px;
+}
+.bar-chart-7d-labels {
+  display: flex;
+  justify-content: space-between;
+  font-size: 10px;
+  color: var(--text-muted);
+  padding: 0 4px;
+}
+
+/* ========== Quick Entry Grid (Mobile) ========== */
+.mobile-quick-entry {
+  background: var(--white);
+  border-radius: 10px;
+  padding: 14px;
+  margin-bottom: 12px;
+  box-shadow: var(--shadow);
+}
+.mobile-quick-entry h3 {
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--text);
+  margin-bottom: 12px;
+}
+.mobile-quick-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 12px;
+}
+.mobile-quick-item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+  cursor: default;
+}
+.mobile-quick-icon {
+  width: 44px; height: 44px;
+  border-radius: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.mobile-quick-icon.blue { background: var(--brand-light); border: 2px solid var(--brand); }
+.mobile-quick-icon.green { background: #D1FAE5; border: 2px solid var(--success); }
+.mobile-quick-icon.orange { background: #FEF3C7; border: 2px solid var(--warning); }
+.mobile-quick-icon.purple { background: #EDE9FE; border: 2px solid #8B5CF6; }
+.mobile-quick-icon .mq-icon-shape {
+  width: 18px; height: 18px;
+}
+.mobile-quick-icon .mq-icon-shape.square { background: currentColor; border-radius: 3px; }
+.mobile-quick-icon .mq-icon-shape.circle { background: currentColor; border-radius: 50%; }
+.mobile-quick-icon .mq-icon-shape.triangle {
+  width: 0; height: 0;
+  border-left: 9px solid transparent;
+  border-right: 9px solid transparent;
+  border-bottom: 16px solid currentColor;
+  background: none;
+}
+.mobile-quick-icon.blue .mq-icon-shape { color: var(--brand); }
+.mobile-quick-icon.green .mq-icon-shape { color: var(--success); }
+.mobile-quick-icon.orange .mq-icon-shape { color: var(--warning); }
+.mobile-quick-icon.purple .mq-icon-shape { color: #8B5CF6; }
+.mobile-quick-item .mq-label {
+  font-size: 11px;
+  color: var(--text-secondary);
+  text-align: center;
+}
+
+/* ========== News Notification Section ========== */
+.news-section {
+  background: var(--white);
+  border-radius: 10px;
+  padding: 14px;
+  margin-bottom: 12px;
+  box-shadow: var(--shadow);
+}
+.news-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 10px;
+}
+.news-header h3 {
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--text);
+}
+.news-header .view-all {
+  font-size: 12px;
+  color: var(--brand);
+}
+.news-item {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  padding: 8px 0;
+  border-bottom: 1px solid var(--bg);
+}
+.news-item:last-child { border-bottom: none; }
+.news-item .news-icon-dot {
+  width: 8px; height: 8px;
+  border-radius: 50%;
+  margin-top: 5px;
+  flex-shrink: 0;
+}
+.news-item .news-icon-dot.system { background: var(--brand); }
+.news-item .news-icon-dot.order { background: var(--success); }
+.news-item .news-icon-dot.payment { background: var(--warning); }
+.news-item .news-body {
+  flex: 1;
+  min-width: 0;
+}
+.news-item .news-title {
+  font-size: 12px;
+  color: var(--text);
+  font-weight: 500;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.news-item .news-time {
+  font-size: 10px;
+  color: var(--text-muted);
+  white-space: nowrap;
+}
+
+/* ========== Bottom Tab Bar ========== */
+.bottom-tab-bar {
+  display: flex;
+  background: #fff;
+  border-top: 1px solid var(--border);
+  padding: 6px 0;
+  padding-bottom: max(6px, env(safe-area-inset-bottom));
+}
+.bottom-tab-item {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+  cursor: default;
+  padding: 4px 0;
+}
+.bottom-tab-item .tab-icon {
+  width: 22px; height: 22px;
+  border: 2px solid var(--text-muted);
+  border-radius: 4px;
+}
+.bottom-tab-item.active .tab-icon { border-color: var(--brand); background: var(--brand-light); }
+.bottom-tab-item .tab-label {
+  font-size: 10px;
+  color: var(--text-muted);
+}
+.bottom-tab-item.active .tab-label { color: var(--brand); font-weight: 600; }
+
+/* ========== Phone 2: Todo List Page ========== */
+.phone-todo-header {
+  background: #1F2937;
+  color: #fff;
+  padding: 8px 16px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+.phone-todo-header .back-btn {
+  width: 0; height: 0;
+  border-top: 6px solid transparent;
+  border-bottom: 6px solid transparent;
+  border-right: 10px solid #fff;
+  cursor: default;
+}
+.phone-todo-header .todo-title {
+  font-size: 15px;
+  font-weight: 600;
+}
+
+/* ========== Todo Tabs ========== */
+.todo-tabs {
+  display: flex;
+  background: #fff;
+  border-bottom: 1px solid var(--border);
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+}
+.todo-tabs::-webkit-scrollbar { height: 0; }
+.todo-tab-item {
+  padding: 10px 14px;
+  font-size: 12px;
+  color: var(--text-secondary);
+  white-space: nowrap;
+  cursor: default;
+  border-bottom: 2px solid transparent;
+  flex-shrink: 0;
+}
+.todo-tab-item.active {
+  color: var(--brand);
+  border-bottom-color: var(--brand);
+  font-weight: 600;
+}
+.todo-tab-item .tab-count {
+  display: inline-block;
+  background: var(--bg);
+  border-radius: 10px;
+  padding: 0 6px;
+  font-size: 10px;
+  margin-left: 4px;
+  color: var(--text-muted);
+}
+.todo-tab-item.active .tab-count {
+  background: var(--brand-light);
+  color: var(--brand);
+}
+
+/* ========== Todo List ========== */
+.todo-list {
+  padding: 10px;
+  background: #F5F5F5;
+}
+.todo-card {
+  background: #fff;
+  border-radius: 10px;
+  padding: 12px;
+  margin-bottom: 8px;
+  box-shadow: var(--shadow);
+  border-left: 4px solid;
+}
+.todo-card.danger { border-color: var(--danger); }
+.todo-card.warning { border-color: var(--warning); }
+.todo-card.info { border-color: var(--info); }
+.todo-card .todo-card-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  margin-bottom: 6px;
+}
+.todo-card .todo-card-title {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--text);
+}
+.todo-card .todo-card-body {
+  font-size: 11px;
+  color: var(--text-secondary);
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-bottom: 8px;
+}
+.todo-card .todo-card-body span {
+  background: var(--bg);
+  padding: 2px 8px;
+  border-radius: 4px;
+}
+.todo-card .todo-card-action {
+  display: flex;
+  justify-content: flex-end;
+}
+.todo-card .todo-btn {
+  padding: 5px 14px;
+  border-radius: 14px;
+  font-size: 11px;
+  font-weight: 500;
+  border: 1px solid var(--border);
+  background: #fff;
+  color: var(--text-secondary);
+  cursor: default;
+}
+.todo-card.danger .todo-btn { border-color: var(--danger); color: var(--danger); }
+.todo-card.warning .todo-btn { border-color: var(--warning); color: #D97706; }
+.todo-card.info .todo-btn { border-color: var(--info); color: var(--info); }
+
+/* ========== Pull to Refresh ========== */
+.pull-refresh-hint {
+  text-align: center;
+  padding: 12px;
+  font-size: 11px;
+  color: var(--text-muted);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+}
+.pull-refresh-hint .refresh-dot {
+  width: 4px; height: 4px;
+  border-radius: 50%;
+  background: var(--text-muted);
+}
+
+/* ========== Tags ========== */
+.tag {
+  display: inline-block;
+  padding: 2px 8px;
+  border-radius: 4px;
+  font-size: 11px;
+  font-weight: 500;
+}
+.tag-success { background: #D1FAE5; color: #065F46; }
+.tag-warning { background: #FEF3C7; color: #92400E; }
+.tag-danger { background: #FEE2E2; color: #991B1B; }
+.tag-info { background: #DBEAFE; color: #1E40AF; }
+
+/* ========== Spec Table ========== */
+.spec-table {
+  width: 100%;
+  border-collapse: collapse;
+  background: var(--white);
+  border-radius: var(--radius);
+  overflow: hidden;
+  box-shadow: var(--shadow);
+  margin-bottom: 32px;
+}
+.spec-table thead {
+  background: #F9FAFB;
+}
+.spec-table th {
+  padding: 12px 16px;
+  text-align: left;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--text-secondary);
+  border-bottom: 1px solid var(--border);
+}
+.spec-table td {
+  padding: 10px 16px;
+  font-size: 13px;
+  color: var(--text);
+  border-bottom: 1px solid var(--border);
+}
+.spec-table tbody tr:last-child td { border-bottom: none; }
+.spec-table .field-type {
+  font-family: "SF Mono", "Fira Code", monospace;
+  font-size: 12px;
+  background: var(--bg);
+  padding: 2px 6px;
+  border-radius: 4px;
+  color: var(--text-secondary);
+}
+
+/* ========== Checklist ========== */
+.checklist {
+  list-style: none;
+  background: var(--white);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow);
+  padding: 20px;
+}
+.checklist li {
+  padding: 8px 0;
+  font-size: 14px;
+  color: var(--text);
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  border-bottom: 1px solid var(--bg);
+}
+.checklist li:last-child { border-bottom: none; }
+.checklist li::before {
+  content: '';
+  width: 16px; height: 16px;
+  min-width: 16px;
+  border: 2px solid var(--border);
+  border-radius: 3px;
+  margin-top: 2px;
+  background: var(--white);
+}
+</style>
+</head>
+<body>
+
+<!-- ========== Document Header ========== -->
+<div class="doc-header">
+  <h1>商户端工作台 — 设计规格文档</h1>
+  <div class="subtitle">版本 1.0  |  2026-07-01  |  移动端 Dashboard</div>
+</div>
+
+<!-- ========== Page Overview ========== -->
+<div class="section">
+  <h2 class="section-title">页面总览</h2>
+  <p class="section-desc">
+    商户端工作台是面向门店店长和店员的核心工作入口，在移动端（手机）上使用。页面聚焦商户日常经营所需的关键数据与待办事项，帮助商户快速掌握当日经营状况、及时处理待办任务。页面采用移动端常见的卡片式布局，自上而下依次展示核心指标、待办提醒、销售趋势、快捷入口、消息通知等模块，底部固定 Tab 导航栏支持快速切换功能模块。
+  </p>
+</div>
+
+<!-- ========== Mockup ========== -->
+<div class="section">
+  <h2 class="section-title">页面 Mockup</h2>
+  <p class="section-desc">以下为商户端移动工作台的两个核心页面模型，使用 375px 手机框展示。</p>
+
+  <div class="phone-frames-wrapper">
+
+    <!-- ===== Phone 1: Merchant Home ===== -->
+    <div class="phone-frame">
+
+      <!-- Status Bar -->
+      <div class="phone-status-bar">
+        <span>9:41</span>
+        <div class="status-icons">
+          <span style="font-size:11px;">5G</span>
+          <div class="status-battery"><div class="status-battery-inner"></div></div>
+        </div>
+      </div>
+
+      <!-- Title Bar -->
+      <div class="phone-title-bar">
+        <span class="store-name">张记酒行旗舰店</span>
+        <div class="title-right">
+          <span class="role-tag">店长</span>
+          <div class="msg-bell-mobile"></div>
+        </div>
+      </div>
+
+      <!-- Content -->
+      <div class="phone-content">
+
+        <!-- Date -->
+        <div class="phone-date">2026年7月1日 星期三</div>
+
+        <!-- Stats Grid 2x2 -->
+        <div class="mobile-stats-grid">
+          <div class="mobile-stat-card">
+            <div class="ms-label">今日销售额</div>
+            <div class="ms-value gold">￥8,520</div>
+            <div class="ms-change up">
+              <span class="ms-change-arrow"></span>12.5%
+            </div>
+          </div>
+          <div class="mobile-stat-card">
+            <div class="ms-label">今日收款</div>
+            <div class="ms-value">￥6,200</div>
+            <div class="ms-change up">
+              <span class="ms-change-arrow"></span>8.1%
+            </div>
+          </div>
+          <div class="mobile-stat-card">
+            <div class="ms-label">待配送订单</div>
+            <div class="ms-value orange">5</div>
+          </div>
+          <div class="mobile-stat-card">
+            <div class="ms-label">待收款金额</div>
+            <div class="ms-value red">￥2,320<span class="ms-warn-icon">!</span></div>
+          </div>
+        </div>
+
+        <!-- Todo Alert - Horizontal Scroll -->
+        <div class="todo-alert-section">
+          <div class="todo-alert-header">
+            <h3>待办提醒</h3>
+            <span class="more-link">更多</span>
+          </div>
+          <div class="todo-alert-scroll">
+            <div class="todo-alert-card danger">
+              <div class="ta-title">库存预警</div>
+              <div class="ta-desc">3件商品库存不足，请及时补货</div>
+            </div>
+            <div class="todo-alert-card warning">
+              <div class="ta-title">订单待处理</div>
+              <div class="ta-desc">5笔订单待接单，请尽快处理</div>
+            </div>
+            <div class="todo-alert-card info">
+              <div class="ta-title">客户跟进</div>
+              <div class="ta-desc">2位客户本月未复购，建议跟进</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Sales Trend 7-day -->
+        <div class="sales-trend-section">
+          <h3>近7天销售趋势</h3>
+          <div class="bar-chart-7d">
+            <div class="bar-col">
+              <div class="bar-value">￥6.2k</div>
+              <div class="bar" style="height:55%"></div>
+            </div>
+            <div class="bar-col">
+              <div class="bar-value">￥7.1k</div>
+              <div class="bar" style="height:63%"></div>
+            </div>
+            <div class="bar-col">
+              <div class="bar-value">￥5.8k</div>
+              <div class="bar" style="height:52%"></div>
+            </div>
+            <div class="bar-col">
+              <div class="bar-value">￥8.5k</div>
+              <div class="bar active" style="height:76%"></div>
+            </div>
+            <div class="bar-col">
+              <div class="bar-value">￥7.8k</div>
+              <div class="bar" style="height:70%"></div>
+            </div>
+            <div class="bar-col">
+              <div class="bar-value">￥6.9k</div>
+              <div class="bar" style="height:62%"></div>
+            </div>
+            <div class="bar-col">
+              <div class="bar-value">￥8.5k</div>
+              <div class="bar" style="height:76%"></div>
+            </div>
+          </div>
+          <div class="bar-chart-7d-labels">
+            <span>6/25</span><span>6/26</span><span>6/27</span><span>6/28</span><span>6/29</span><span>6/30</span><span>7/1</span>
+          </div>
+        </div>
+
+        <!-- Quick Entry 3x2 -->
+        <div class="mobile-quick-entry">
+          <h3>快捷入口</h3>
+          <div class="mobile-quick-grid">
+            <div class="mobile-quick-item">
+              <div class="mobile-quick-icon blue"><div class="mq-icon-shape square"></div></div>
+              <span class="mq-label">新增订单</span>
+            </div>
+            <div class="mobile-quick-item">
+              <div class="mobile-quick-icon green"><div class="mq-icon-shape triangle"></div></div>
+              <span class="mq-label">扫码收款</span>
+            </div>
+            <div class="mobile-quick-item">
+              <div class="mobile-quick-icon orange"><div class="mq-icon-shape square"></div></div>
+              <span class="mq-label">库存查询</span>
+            </div>
+            <div class="mobile-quick-item">
+              <div class="mobile-quick-icon purple"><div class="mq-icon-shape circle"></div></div>
+              <span class="mq-label">客户管理</span>
+            </div>
+            <div class="mobile-quick-item">
+              <div class="mobile-quick-icon blue"><div class="mq-icon-shape circle"></div></div>
+              <span class="mq-label">数据报表</span>
+            </div>
+            <div class="mobile-quick-item">
+              <div class="mobile-quick-icon green"><div class="mq-icon-shape square"></div></div>
+              <span class="mq-label">营销活动</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- News Notifications -->
+        <div class="news-section">
+          <div class="news-header">
+            <h3>最新消息</h3>
+            <span class="view-all">查看全部</span>
+          </div>
+          <div class="news-item">
+            <div class="news-icon-dot system"></div>
+            <div class="news-body">
+              <div class="news-title">系统升级通知：V3.2版本将于今晚22:00进行更新</div>
+            </div>
+            <div class="news-time">10:30</div>
+          </div>
+          <div class="news-item">
+            <div class="news-icon-dot order"></div>
+            <div class="news-body">
+              <div class="news-title">新订单提醒：客户李明远下单金额￥2,580</div>
+            </div>
+            <div class="news-time">09:15</div>
+          </div>
+          <div class="news-item">
+            <div class="news-icon-dot payment"></div>
+            <div class="news-body">
+              <div class="news-title">收款到账：客户王建国已支付￥12,500</div>
+            </div>
+            <div class="news-time">昨天</div>
+          </div>
+        </div>
+
+      </div><!-- /phone-content -->
+
+      <!-- Bottom Tab Bar -->
+      <div class="bottom-tab-bar">
+        <div class="bottom-tab-item active">
+          <div class="tab-icon"></div>
+          <span class="tab-label">首页</span>
+        </div>
+        <div class="bottom-tab-item">
+          <div class="tab-icon"></div>
+          <span class="tab-label">订单</span>
+        </div>
+        <div class="bottom-tab-item">
+          <div class="tab-icon"></div>
+          <span class="tab-label">营销</span>
+        </div>
+        <div class="bottom-tab-item">
+          <div class="tab-icon"></div>
+          <span class="tab-label">商品</span>
+        </div>
+        <div class="bottom-tab-item">
+          <div class="tab-icon"></div>
+          <span class="tab-label">我的</span>
+        </div>
+      </div>
+    </div><!-- /phone-frame -->
+
+    <!-- ===== Phone 2: Todo List ===== -->
+    <div class="phone-frame">
+
+      <!-- Status Bar -->
+      <div class="phone-status-bar">
+        <span>9:41</span>
+        <div class="status-icons">
+          <span style="font-size:11px;">5G</span>
+          <div class="status-battery"><div class="status-battery-inner"></div></div>
+        </div>
+      </div>
+
+      <!-- Todo Header -->
+      <div class="phone-todo-header">
+        <span class="back-btn"></span>
+        <span class="todo-title">待办事项</span>
+      </div>
+
+      <!-- Todo Tabs -->
+      <div class="todo-tabs">
+        <div class="todo-tab-item active">
+          全部<span class="tab-count">10</span>
+        </div>
+        <div class="todo-tab-item">
+          库存预警<span class="tab-count">3</span>
+        </div>
+        <div class="todo-tab-item">
+          订单待处理<span class="tab-count">5</span>
+        </div>
+        <div class="todo-tab-item">
+          客户跟进<span class="tab-count">2</span>
+        </div>
+      </div>
+
+      <!-- Todo List -->
+      <div class="todo-list">
+
+        <!-- Inventory Alert Card -->
+        <div class="todo-card danger">
+          <div class="todo-card-header">
+            <span class="todo-card-title">库存预警</span>
+            <span class="tag tag-danger">紧急</span>
+          </div>
+          <div class="todo-card-body">
+            <span>飞天茅台53度</span><span>库存: 2</span><span>阈值: 10</span>
+          </div>
+          <div class="todo-card-action">
+            <span class="todo-btn">处理</span>
+          </div>
+        </div>
+
+        <div class="todo-card danger">
+          <div class="todo-card-header">
+            <span class="todo-card-title">库存预警</span>
+            <span class="tag tag-danger">紧急</span>
+          </div>
+          <div class="todo-card-body">
+            <span>五粮液普五</span><span>库存: 3</span><span>阈值: 10</span>
+          </div>
+          <div class="todo-card-action">
+            <span class="todo-btn">处理</span>
+          </div>
+        </div>
+
+        <div class="todo-card danger">
+          <div class="todo-card-header">
+            <span class="todo-card-title">库存预警</span>
+            <span class="tag tag-warning">注意</span>
+          </div>
+          <div class="todo-card-body">
+            <span>剑南春水晶剑</span><span>库存: 4</span><span>阈值: 8</span>
+          </div>
+          <div class="todo-card-action">
+            <span class="todo-btn">处理</span>
+          </div>
+        </div>
+
+        <!-- Order Pending Card -->
+        <div class="todo-card warning">
+          <div class="todo-card-header">
+            <span class="todo-card-title">订单待处理</span>
+            <span class="tag tag-warning">待接单</span>
+          </div>
+          <div class="todo-card-body">
+            <span>ORD-0701-001</span><span>李明远</span><span>￥2,580</span><span>10:30</span>
+          </div>
+          <div class="todo-card-action">
+            <span class="todo-btn">接单</span>
+          </div>
+        </div>
+
+        <div class="todo-card warning">
+          <div class="todo-card-header">
+            <span class="todo-card-title">订单待处理</span>
+            <span class="tag tag-warning">待接单</span>
+          </div>
+          <div class="todo-card-body">
+            <span>ORD-0701-002</span><span>王建国</span><span>￥1,860</span><span>09:15</span>
+          </div>
+          <div class="todo-card-action">
+            <span class="todo-btn">接单</span>
+          </div>
+        </div>
+
+        <!-- Customer Follow-up Card -->
+        <div class="todo-card info">
+          <div class="todo-card-header">
+            <span class="todo-card-title">客户跟进</span>
+            <span class="tag tag-info">待跟进</span>
+          </div>
+          <div class="todo-card-body">
+            <span>赵文博</span><span>最后消费: 2026-05-20</span><span>累计消费: ￥5.5万</span>
+          </div>
+          <div class="todo-card-action">
+            <span class="todo-btn">联系</span>
+          </div>
+        </div>
+
+        <div class="todo-card info">
+          <div class="todo-card-header">
+            <span class="todo-card-title">客户跟进</span>
+            <span class="tag tag-info">待跟进</span>
+          </div>
+          <div class="todo-card-body">
+            <span>刘伟</span><span>最后消费: 2026-05-15</span><span>累计消费: ￥4.5万</span>
+          </div>
+          <div class="todo-card-action">
+            <span class="todo-btn">联系</span>
+          </div>
+        </div>
+
+        <!-- Pull to Refresh -->
+        <div class="pull-refresh-hint">
+          <span class="refresh-dot"></span>
+          <span class="refresh-dot"></span>
+          <span class="refresh-dot"></span>
+          下拉刷新
+        </div>
+
+      </div><!-- /todo-list -->
+
+    </div><!-- /phone-frame -->
+
+  </div><!-- /phone-frames-wrapper -->
+</div>
+
+<!-- ========== Field Specification ========== -->
+<div class="section">
+  <h2 class="section-title">字段规范</h2>
+  <p class="section-desc">以下为商户端工作台核心数据指标及待办事项的字段定义规范。</p>
+
+  <table class="spec-table">
+    <thead>
+      <tr>
+        <th>字段名称</th>
+        <th>字段标识</th>
+        <th>数据类型</th>
+        <th>显示格式</th>
+        <th>说明</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td>今日销售额</td>
+        <td><span class="field-type">today_sales</span></td>
+        <td>Decimal(12,2)</td>
+        <td>￥x,xxx</td>
+        <td>当前门店当日累计销售额</td>
+      </tr>
+      <tr>
+        <td>今日收款</td>
+        <td><span class="field-type">today_collected</span></td>
+        <td>Decimal(12,2)</td>
+        <td>￥x,xxx</td>
+        <td>当日已确认收款金额</td>
+      </tr>
+      <tr>
+        <td>待配送订单</td>
+        <td><span class="field-type">pending_delivery</span></td>
+        <td>Integer</td>
+        <td>数字</td>
+        <td>已接单待配送的订单数量</td>
+      </tr>
+      <tr>
+        <td>待收款金额</td>
+        <td><span class="field-type">pending_receivables</span></td>
+        <td>Decimal(12,2)</td>
+        <td>￥x,xxx</td>
+        <td>已发货未收款订单总额</td>
+      </tr>
+      <tr>
+        <td>库存预警数</td>
+        <td><span class="field-type">inventory_alert_count</span></td>
+        <td>Integer</td>
+        <td>数字</td>
+        <td>低于安全库存阈值的SKU数量</td>
+      </tr>
+      <tr>
+        <td>待接单数</td>
+        <td><span class="field-type">pending_accept</span></td>
+        <td>Integer</td>
+        <td>数字</td>
+        <td>待商户确认接单的订单数</td>
+      </tr>
+      <tr>
+        <td>客户跟进数</td>
+        <td><span class="field-type">follow_up_count</span></td>
+        <td>Integer</td>
+        <td>数字</td>
+        <td>本月未复购需跟进的客户数</td>
+      </tr>
+      <tr>
+        <td>销售环比变化</td>
+        <td><span class="field-type">sales_change_pct</span></td>
+        <td>Decimal(5,2)</td>
+        <td>+xx.x%</td>
+        <td>与昨日销售对比的变化率</td>
+      </tr>
+      <tr>
+        <td>待办类型</td>
+        <td><span class="field-type">todo_type</span></td>
+        <td>Enum</td>
+        <td>—</td>
+        <td>inventory_alert / order_pending / customer_followup</td>
+      </tr>
+      <tr>
+        <td>待办优先级</td>
+        <td><span class="field-type">todo_priority</span></td>
+        <td>Enum</td>
+        <td>—</td>
+        <td>urgent(紧急) / warning(注意) / normal(普通)</td>
+      </tr>
+    </tbody>
+  </table>
+</div>
+
+<!-- ========== Acceptance Checklist ========== -->
+<div class="section">
+  <h2 class="section-title">验收标准</h2>
+  <p class="section-desc">以下为商户端工作台页面及待办列表页的功能与交互验收清单。</p>
+
+  <ul class="checklist">
+    <li>商户首页在 375px 宽度下所有卡片布局正确，无横向溢出</li>
+    <li>顶部标题栏正确显示门店名称和角色标签"店长"</li>
+    <li>消息铃铛正确显示未读消息红色角标数字"3"</li>
+    <li>日期显示当前日期和星期，格式为"YYYY年M月D日 星期X"</li>
+    <li>核心指标 2x2 网格布局，今日销售额以金色大字突出显示</li>
+    <li>待收款金额指标卡片正确显示红色警告图标</li>
+    <li>待办提醒区域支持横向滑动，展示 3 张不同级别的待办卡片</li>
+    <li>待办提醒卡片左侧边框颜色与级别匹配（红/橙/蓝）</li>
+    <li>近7天销售趋势柱状图正确渲染 7 根柱子，最高柱高亮蓝色</li>
+    <li>快捷入口 3x2 宫格布局，6 个入口图标和文字正确显示</li>
+    <li>最新消息区域展示 3 条通知摘要，含图标和发布时间</li>
+    <li>底部 Tab 导航栏"首页"处于 active 高亮状态</li>
+    <li>点击"更多"链接可跳转至待办事项列表页</li>
+    <li>待办事项页顶部有返回按钮和标题"待办事项"</li>
+    <li>待办 Tab 切换栏正确显示各分类及数量角标</li>
+    <li>默认选中"全部"Tab，展示所有待办卡片</li>
+    <li>库存预警卡片使用红色左边框，订单待处理使用橙色左边框，客户跟进使用蓝色左边框</li>
+    <li>每个待办卡片显示详细信息（商品名/库存/阈值 或 订单号/客户/金额/时间）</li>
+    <li>待办卡片底部有对应的操作按钮（处理/接单/联系）</li>
+    <li>页面底部显示下拉刷新提示</li>
+  </ul>
+</div>
+
+</body>
+</html>

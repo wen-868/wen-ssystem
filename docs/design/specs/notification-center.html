@@ -1,0 +1,683 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>消息通知中心 — 设计规格文档</title>
+<style>
+/* ===== CSS Variables ===== */
+:root {
+  --brand: #1677FF;
+  --brand-light: #E6F4FF;
+  --text: #1F2937;
+  --text-secondary: #6B7280;
+  --text-muted: #9CA3AF;
+  --border: #E5E7EB;
+  --bg: #F9FAFB;
+  --white: #FFFFFF;
+  --success: #10B981;
+  --warning: #F59E0B;
+  --danger: #EF4444;
+  --radius: 8px;
+  --shadow: 0 1px 3px rgba(0,0,0,0.1), 0 1px 2px rgba(0,0,0,0.06);
+}
+
+/* ===== Reset & Base ===== */
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, "PingFang SC", "Microsoft YaHei", sans-serif; color: var(--text); background: var(--bg); line-height: 1.6; }
+a { color: var(--brand); text-decoration: none; }
+
+/* ===== Header ===== */
+.doc-header { background: linear-gradient(135deg, #1677FF 0%, #0958D9 100%); color: #fff; padding: 40px 48px; }
+.doc-header h1 { font-size: 28px; font-weight: 700; }
+.doc-header .doc-meta { margin-top: 8px; font-size: 14px; opacity: 0.85; }
+
+/* ===== Section ===== */
+.doc-section { max-width: 1200px; margin: 0 auto; padding: 32px 48px; }
+.doc-section h2 { font-size: 22px; font-weight: 700; color: var(--text); margin-bottom: 12px; padding-bottom: 8px; border-bottom: 2px solid var(--brand); }
+.doc-section h3 { font-size: 18px; font-weight: 600; color: var(--text); margin: 24px 0 12px; }
+.doc-section p { color: var(--text-secondary); margin-bottom: 8px; }
+
+/* ===== Mockup ===== */
+.mockup { background: var(--white); border: 1px solid var(--border); border-radius: var(--radius); box-shadow: var(--shadow); overflow: hidden; }
+.mockup-header { display: flex; align-items: center; height: 48px; background: #001529; color: #fff; padding: 0 16px; gap: 16px; }
+.mockup-header .logo { font-size: 16px; font-weight: 700; color: #fff; white-space: nowrap; }
+.mockup-header .nav-links { display: flex; gap: 20px; flex: 1; font-size: 13px; }
+.mockup-header .nav-links span { cursor: pointer; opacity: 0.75; }
+.mockup-header .nav-links span.active { opacity: 1; }
+.mockup-header .header-right { display: flex; align-items: center; gap: 12px; }
+.mockup-header .bell { position: relative; width: 20px; height: 20px; background: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="white"><path d="M12 22c1.1 0 2-.9 2-2h-4c0 1.1.9 2 2 2zm6-6v-5c0-3.07-1.63-5.64-4.5-6.32V4c0-.83-.67-1.5-1.5-1.5s-1.5.67-1.5 1.5v.68C7.64 5.36 6 7.92 6 11v5l-2 2v1h16v-1l-2-2z"/></svg>') center/contain no-repeat; }
+.mockup-header .bell .badge { position: absolute; top: -6px; right: -8px; background: var(--danger); color: #fff; font-size: 10px; min-width: 18px; height: 18px; border-radius: 9px; display: flex; align-items: center; justify-content: center; padding: 0 4px; font-weight: 700; }
+.mockup-header .avatar { width: 28px; height: 28px; border-radius: 50%; background: #87d068; display: flex; align-items: center; justify-content: center; font-size: 12px; color: #fff; font-weight: 600; }
+
+.mockup-sidebar { width: 200px; background: #fff; border-right: 1px solid var(--border); padding: 8px 0; }
+.mockup-sidebar .sidebar-item { padding: 10px 20px; font-size: 13px; color: var(--text-secondary); cursor: pointer; display: flex; align-items: center; gap: 8px; }
+.mockup-sidebar .sidebar-item.active { color: var(--brand); background: var(--brand-light); border-right: 3px solid var(--brand); font-weight: 600; }
+.mockup-sidebar .sidebar-item::before { content: ''; width: 14px; height: 14px; border-radius: 2px; background: var(--text-muted); flex-shrink: 0; }
+.mockup-sidebar .sidebar-item.active::before { background: var(--brand); }
+
+.mockup-main { flex: 1; padding: 16px; background: var(--bg); min-height: 400px; }
+.mockup-page-title { font-size: 18px; font-weight: 700; color: var(--text); }
+.mockup-breadcrumb { font-size: 12px; color: var(--text-muted); margin-bottom: 8px; }
+
+.mockup-table { width: 100%; border-collapse: collapse; font-size: 13px; }
+.mockup-table th { background: #FAFAFA; padding: 10px 12px; text-align: left; font-weight: 600; color: var(--text-secondary); border-bottom: 1px solid var(--border); }
+.mockup-table td { padding: 10px 12px; border-bottom: 1px solid var(--border); }
+
+/* ===== Stats ===== */
+.stats-row { display: flex; gap: 16px; margin-bottom: 16px; }
+.stat-card { background: var(--white); border: 1px solid var(--border); border-radius: var(--radius); padding: 16px; flex: 1; box-shadow: var(--shadow); }
+.stat-card .stat-label { font-size: 12px; color: var(--text-muted); }
+.stat-card .stat-value { font-size: 24px; font-weight: 700; color: var(--text); margin-top: 4px; }
+
+/* ===== Tags ===== */
+.tag { display: inline-block; padding: 2px 10px; border-radius: 10px; font-size: 12px; font-weight: 500; }
+.tag-success { background: #D1FAE5; color: #065F46; }
+.tag-warning { background: #FEF3C7; color: #92400E; }
+.tag-danger { background: #FEE2E2; color: #991B1B; }
+.tag-info { background: #DBEAFE; color: #1E40AF; }
+
+/* ===== Spec Table & Checklist ===== */
+.spec-table { width: 100%; border-collapse: collapse; font-size: 13px; margin: 16px 0; }
+.spec-table th { background: #FAFAFA; padding: 10px 14px; text-align: left; font-weight: 600; color: var(--text); border: 1px solid var(--border); }
+.spec-table td { padding: 10px 14px; border: 1px solid var(--border); color: var(--text-secondary); }
+.spec-table td:first-child { font-weight: 600; color: var(--text); font-family: "SF Mono", "Consolas", monospace; font-size: 12px; }
+
+.checklist { list-style: none; padding: 0; }
+.checklist li { padding: 8px 0 8px 28px; position: relative; font-size: 14px; color: var(--text); border-bottom: 1px solid var(--border); }
+.checklist li::before { content: ''; position: absolute; left: 0; top: 12px; width: 16px; height: 16px; border: 2px solid var(--border); border-radius: 3px; }
+.checklist li.checked::before { background: var(--brand); border-color: var(--brand); }
+.checklist li.checked::after { content: ''; position: absolute; left: 4px; top: 15px; width: 8px; height: 4px; border-left: 2px solid #fff; border-bottom: 2px solid #fff; transform: rotate(-45deg); }
+
+/* ===== Drag Handle ===== */
+.drag-handle { width: 16px; height: 16px; display: grid; grid-template-columns: repeat(2, 1fr); gap: 2px; cursor: grab; }
+.drag-handle::before { content: ''; width: 4px; height: 4px; border-radius: 50%; background: #9CA3AF; }
+
+/* ===== Unread Dot ===== */
+.unread-dot { width: 8px; height: 8px; border-radius: 50%; background: #1677FF; display: inline-block; flex-shrink: 0; }
+
+/* ===== Mockup Layout ===== */
+.mockup-layout { display: flex; }
+.mockup-layout .mockup-sidebar { flex-shrink: 0; }
+
+/* ===== Message List ===== */
+.msg-toolbar { display: flex; align-items: center; gap: 8px; margin-bottom: 12px; }
+.msg-toolbar .btn { padding: 6px 14px; border-radius: 4px; font-size: 13px; border: 1px solid var(--border); background: var(--white); color: var(--text); cursor: pointer; }
+.msg-toolbar .btn-primary { background: var(--brand); color: #fff; border-color: var(--brand); }
+.msg-toolbar .btn:hover { opacity: 0.85; }
+
+.msg-tabs { display: flex; gap: 0; border-bottom: 2px solid var(--border); margin-bottom: 12px; }
+.msg-tabs .msg-tab { padding: 8px 16px; font-size: 13px; color: var(--text-secondary); cursor: pointer; border-bottom: 2px solid transparent; margin-bottom: -2px; }
+.msg-tabs .msg-tab.active { color: var(--brand); border-bottom-color: var(--brand); font-weight: 600; }
+.msg-tabs .msg-tab .count { background: var(--brand-light); color: var(--brand); font-size: 11px; padding: 1px 6px; border-radius: 8px; margin-left: 4px; }
+
+.msg-card { display: flex; align-items: flex-start; gap: 12px; padding: 12px 16px; background: var(--white); border: 1px solid var(--border); border-radius: var(--radius); margin-bottom: 8px; cursor: pointer; transition: background 0.2s; }
+.msg-card:hover { background: #FAFBFC; }
+.msg-card.unread { background: #F0F7FF; border-left: 3px solid var(--brand); }
+.msg-card .msg-icon { width: 36px; height: 36px; border-radius: 50%; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+.msg-card .msg-icon .dot { width: 12px; height: 12px; border-radius: 50%; }
+.msg-card .msg-body { flex: 1; min-width: 0; }
+.msg-card .msg-title { font-size: 14px; font-weight: 400; color: var(--text); }
+.msg-card.unread .msg-title { font-weight: 600; }
+.msg-card .msg-summary { font-size: 12px; color: var(--text-muted); margin-top: 4px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.msg-card .msg-meta { text-align: right; flex-shrink: 0; }
+.msg-card .msg-time { font-size: 12px; color: var(--text-muted); }
+.msg-card .msg-status { margin-top: 4px; }
+
+.pagination { display: flex; align-items: center; justify-content: center; gap: 4px; margin-top: 16px; }
+.pagination span { padding: 6px 12px; border: 1px solid var(--border); border-radius: 4px; font-size: 13px; cursor: pointer; color: var(--text-secondary); }
+.pagination span.active { background: var(--brand); color: #fff; border-color: var(--brand); }
+
+/* ===== Modal ===== */
+.modal-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.45); display: flex; align-items: center; justify-content: center; z-index: 1000; }
+.modal { background: var(--white); border-radius: var(--radius); box-shadow: 0 8px 40px rgba(0,0,0,0.15); width: 520px; max-height: 70vh; overflow: auto; }
+.modal-header { padding: 16px 20px; border-bottom: 1px solid var(--border); display: flex; align-items: center; justify-content: space-between; }
+.modal-header h4 { font-size: 16px; font-weight: 600; }
+.modal-close { width: 24px; height: 24px; border: none; background: none; cursor: pointer; font-size: 18px; color: var(--text-muted); line-height: 1; }
+.modal-body { padding: 20px; }
+.modal-body .modal-meta { font-size: 12px; color: var(--text-muted); margin-bottom: 12px; }
+.modal-body .modal-content { font-size: 14px; color: var(--text); line-height: 1.8; }
+.modal-body .modal-link { display: inline-block; margin-top: 16px; color: var(--brand); font-size: 13px; }
+
+/* ===== Settings Panel ===== */
+.settings-panel { background: var(--white); border: 1px solid var(--border); border-radius: var(--radius); padding: 16px; margin-top: 16px; }
+.settings-panel h4 { font-size: 15px; font-weight: 600; margin-bottom: 12px; }
+.settings-row { display: flex; align-items: center; justify-content: space-between; padding: 8px 0; border-bottom: 1px solid var(--border); }
+.settings-row:last-child { border-bottom: none; }
+.settings-row .settings-label { font-size: 13px; color: var(--text); }
+.settings-row .settings-desc { font-size: 11px; color: var(--text-muted); }
+.toggle { width: 40px; height: 22px; border-radius: 11px; background: #D1D5DB; position: relative; cursor: pointer; transition: background 0.2s; }
+.toggle.on { background: var(--brand); }
+.toggle::after { content: ''; position: absolute; top: 2px; left: 2px; width: 18px; height: 18px; border-radius: 50%; background: #fff; transition: left 0.2s; }
+.toggle.on::after { left: 20px; }
+.time-select { padding: 4px 8px; border: 1px solid var(--border); border-radius: 4px; font-size: 12px; }
+
+/* ===== Phone Frame ===== */
+.phone-frame { width: 375px; display: inline-block; margin: 0 10px; border: 6px solid #1F2937; border-radius: 28px; overflow: hidden; box-shadow: 0 16px 48px rgba(0,0,0,0.25); vertical-align: top; background: #fff; }
+.phone-frame .phone-statusbar { height: 24px; background: #1F2937; display: flex; align-items: center; justify-content: space-between; padding: 0 16px; font-size: 10px; color: #fff; }
+.phone-frame .phone-header { padding: 12px 16px; display: flex; align-items: center; justify-content: space-between; border-bottom: 1px solid var(--border); font-size: 16px; font-weight: 600; }
+.phone-frame .phone-body { padding: 8px 0; max-height: 500px; overflow-y: auto; }
+.phone-frame .phone-tabs { display: flex; padding: 0 12px; border-bottom: 1px solid var(--border); overflow-x: auto; }
+.phone-frame .phone-tab { padding: 8px 12px; font-size: 13px; color: var(--text-secondary); white-space: nowrap; cursor: pointer; border-bottom: 2px solid transparent; }
+.phone-frame .phone-tab.active { color: var(--brand); border-bottom-color: var(--brand); font-weight: 600; }
+.phone-frame .phone-msg { display: flex; gap: 10px; padding: 12px 16px; border-bottom: 1px solid var(--border); align-items: flex-start; cursor: pointer; }
+.phone-frame .phone-msg.unread { background: #F0F7FF; }
+.phone-frame .phone-msg .phone-msg-icon { width: 32px; height: 32px; border-radius: 50%; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+.phone-frame .phone-msg .phone-msg-icon .dot { width: 10px; height: 10px; border-radius: 50%; }
+.phone-frame .phone-msg .phone-msg-body { flex: 1; min-width: 0; }
+.phone-frame .phone-msg .phone-msg-title { font-size: 13px; color: var(--text); }
+.phone-frame .phone-msg.unread .phone-msg-title { font-weight: 600; }
+.phone-frame .phone-msg .phone-msg-summary { font-size: 11px; color: var(--text-muted); margin-top: 2px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.phone-frame .phone-msg .phone-msg-right { text-align: right; flex-shrink: 0; }
+.phone-frame .phone-msg .phone-msg-time { font-size: 10px; color: var(--text-muted); }
+.phone-frame .phone-group-header { padding: 8px 16px; font-size: 12px; color: var(--text-muted); font-weight: 600; background: var(--bg); cursor: pointer; display: flex; align-items: center; justify-content: space-between; }
+.phone-frame .phone-group-header .arrow { transition: transform 0.2s; }
+.phone-frame .phone-group-header .arrow.collapsed { transform: rotate(-90deg); }
+.phone-frame .phone-tabbar { display: flex; border-top: 1px solid var(--border); background: #fff; }
+.phone-frame .phone-tabbar .tab-item { flex: 1; text-align: center; padding: 8px 0; font-size: 10px; color: var(--text-muted); cursor: pointer; }
+.phone-frame .phone-tabbar .tab-item.active { color: var(--brand); }
+.phone-frame .phone-tabbar .tab-item .tab-icon { width: 20px; height: 20px; margin: 0 auto 2px; border-radius: 4px; background: var(--text-muted); }
+.phone-frame .phone-tabbar .tab-item.active .tab-icon { background: var(--brand); }
+.phone-frame .phone-settings-link { text-align: center; padding: 12px; font-size: 13px; color: var(--brand); cursor: pointer; border-bottom: 1px solid var(--border); }
+.phone-frame .phone-settings-item { display: flex; align-items: center; justify-content: space-between; padding: 12px 16px; border-bottom: 1px solid var(--border); font-size: 13px; }
+.phone-frame .phone-settings-page { padding: 0; }
+.phone-frame .phone-settings-page .phone-back { padding: 10px 16px; font-size: 13px; color: var(--brand); cursor: pointer; border-bottom: 1px solid var(--border); }
+.phone-frame .phone-all-read { font-size: 12px; color: var(--brand); cursor: pointer; }
+
+/* ===== Mockup Scenes Container ===== */
+.mockup-scenes { display: flex; gap: 24px; flex-wrap: wrap; align-items: flex-start; }
+.mockup-scene-label { font-size: 14px; font-weight: 600; color: var(--text); margin-bottom: 12px; }
+
+/* ===== Misc ===== */
+.btn-link { padding: 0; border: none; background: none; color: var(--brand); font-size: 13px; cursor: pointer; }
+.btn-sm { padding: 4px 10px; border-radius: 4px; font-size: 12px; border: 1px solid var(--border); background: var(--white); cursor: pointer; }
+.btn-sm.danger { color: var(--danger); border-color: var(--danger); }
+.text-muted { color: var(--text-muted); }
+.text-sm { font-size: 12px; }
+.flex { display: flex; }
+.flex-between { display: flex; justify-content: space-between; align-items: center; }
+.gap-8 { gap: 8px; }
+.mt-12 { margin-top: 12px; }
+.mt-16 { margin-top: 16px; }
+.mb-8 { margin-bottom: 8px; }
+.mb-12 { margin-bottom: 12px; }
+</style>
+</head>
+<body>
+
+<!-- ===== Document Header ===== -->
+<div class="doc-header">
+  <h1>消息通知中心 — 设计规格文档</h1>
+  <div class="doc-meta">版本 1.0 | 2026-07-01 | 消息通知模块</div>
+</div>
+
+<!-- ===== Section 1: Overview ===== -->
+<div class="doc-section">
+  <h2>页面总览</h2>
+  <p>消息通知中心覆盖管理后台消息中心与商户端通知增强两个核心场景。管理后台消息中心提供多类型消息分类管理、批量操作、推送设置等完整功能；商户端通知页面则面向移动端商户，提供简洁的消息浏览、折叠分组和通知偏好设置能力。两套设计在视觉风格与交互模式上保持统一，确保跨端体验的一致性。</p>
+</div>
+
+<!-- ===== Section 2: Mockup ===== -->
+<div class="doc-section">
+  <h2>Mockup 区域</h2>
+
+  <h3>场景A：管理后台消息中心</h3>
+  <div class="mockup">
+    <!-- Header -->
+    <div class="mockup-header">
+      <span class="logo">Merchant Admin</span>
+      <div class="nav-links">
+        <span>工作台</span>
+        <span class="active">消息中心</span>
+        <span>订单管理</span>
+        <span>商品管理</span>
+        <span>营销工具</span>
+        <span>数据报表</span>
+        <span>系统设置</span>
+      </div>
+      <div class="header-right">
+        <div class="bell">
+          <div class="badge">12</div>
+        </div>
+        <div class="avatar">张</div>
+      </div>
+    </div>
+    <!-- Layout -->
+    <div class="mockup-layout">
+      <!-- Sidebar -->
+      <div class="mockup-sidebar">
+        <div class="sidebar-item">工作台</div>
+        <div class="sidebar-item active">消息中心</div>
+        <div class="sidebar-item">订单管理</div>
+        <div class="sidebar-item">商品管理</div>
+        <div class="sidebar-item">营销工具</div>
+        <div class="sidebar-item">数据报表</div>
+        <div class="sidebar-item">系统设置</div>
+      </div>
+      <!-- Main -->
+      <div class="mockup-main">
+        <div class="mockup-breadcrumb">工作台 / 消息中心</div>
+        <div class="mockup-page-title mb-12">消息通知中心</div>
+
+        <!-- Stats Row -->
+        <div class="stats-row">
+          <div class="stat-card"><div class="stat-label">全部消息</div><div class="stat-value">28</div></div>
+          <div class="stat-card"><div class="stat-label">未读消息</div><div class="stat-value" style="color:var(--brand)">12</div></div>
+          <div class="stat-card"><div class="stat-label">系统通知</div><div class="stat-value">5</div></div>
+          <div class="stat-card"><div class="stat-label">预警通知</div><div class="stat-value" style="color:var(--danger)">4</div></div>
+        </div>
+
+        <!-- Toolbar -->
+        <div class="msg-toolbar">
+          <button class="btn btn-primary">全部已读</button>
+          <button class="btn">批量删除</button>
+          <button class="btn" style="margin-left:auto;">通知设置</button>
+        </div>
+
+        <!-- Tabs -->
+        <div class="msg-tabs">
+          <span class="msg-tab active">全部<span class="count">28</span></span>
+          <span class="msg-tab">系统通知<span class="count">5</span></span>
+          <span class="msg-tab">订单通知<span class="count">10</span></span>
+          <span class="msg-tab">支付通知<span class="count">6</span></span>
+          <span class="msg-tab">预警通知<span class="count">4</span></span>
+          <span class="msg-tab">信用通知<span class="count">2</span></span>
+          <span class="msg-tab">客户召回<span class="count">1</span></span>
+        </div>
+
+        <!-- Message List -->
+        <div class="msg-card unread">
+          <div class="msg-icon" style="background:#E6F4FF;"><div class="dot" style="background:#1677FF;"></div></div>
+          <div class="msg-body">
+            <div class="msg-title">系统升级维护通知</div>
+            <div class="msg-summary">系统将于2026年7月5日凌晨2:00-4:00进行升级维护，期间部分功能暂不可用，请提前做好业务安排。</div>
+          </div>
+          <div class="msg-meta">
+            <div class="msg-time">2分钟前</div>
+            <div class="msg-status"><span class="unread-dot"></span></div>
+          </div>
+        </div>
+
+        <div class="msg-card unread">
+          <div class="msg-icon" style="background:#E6F4FF;"><div class="dot" style="background:#1677FF;"></div></div>
+          <div class="msg-body">
+            <div class="msg-title">新权限已分配至您的账户</div>
+            <div class="msg-summary">管理员已将"数据报表查看"权限分配至您的账户，请刷新页面后查看。</div>
+          </div>
+          <div class="msg-meta">
+            <div class="msg-time">15分钟前</div>
+            <div class="msg-status"><span class="unread-dot"></span></div>
+          </div>
+        </div>
+
+        <div class="msg-card unread">
+          <div class="msg-icon" style="background:#FFF7E6;"><div class="dot" style="background:#F59E0B;"></div></div>
+          <div class="msg-body">
+            <div class="msg-title">订单 #OD202607010023 已发货</div>
+            <div class="msg-summary">您的订单已由顺丰速运揽收，运单号：SF1234567890，预计送达时间：2026年7月3日。</div>
+          </div>
+          <div class="msg-meta">
+            <div class="msg-time">30分钟前</div>
+            <div class="msg-status"><span class="unread-dot"></span></div>
+          </div>
+        </div>
+
+        <div class="msg-card">
+          <div class="msg-icon" style="background:#E6FFE6;"><div class="dot" style="background:#10B981;"></div></div>
+          <div class="msg-body">
+            <div class="msg-title">支付成功通知</div>
+            <div class="msg-summary">订单 #OD202607010020 已支付成功，金额：￥1,299.00，支付方式：微信支付。</div>
+          </div>
+          <div class="msg-meta">
+            <div class="msg-time">1小时前</div>
+            <div class="msg-status"></div>
+          </div>
+        </div>
+
+        <div class="msg-card unread">
+          <div class="msg-icon" style="background:#FFE7E7;"><div class="dot" style="background:#EF4444;"></div></div>
+          <div class="msg-body">
+            <div class="msg-title">库存预警：商品"夏日清凉T恤"库存不足</div>
+            <div class="msg-summary">商品SKU：SKU001234，当前库存仅剩3件，已达到预警阈值，请及时补货。</div>
+          </div>
+          <div class="msg-meta">
+            <div class="msg-time">2小时前</div>
+            <div class="msg-status"><span class="unread-dot"></span></div>
+          </div>
+        </div>
+
+        <div class="msg-card">
+          <div class="msg-icon" style="background:#FFF7E6;"><div class="dot" style="background:#F59E0B;"></div></div>
+          <div class="msg-body">
+            <div class="msg-title">订单 #OD202607010018 已确认收货</div>
+            <div class="msg-summary">买家已确认收货，订单金额￥459.00已结算至您的账户余额。</div>
+          </div>
+          <div class="msg-meta">
+            <div class="msg-time">3小时前</div>
+            <div class="msg-status"></div>
+          </div>
+        </div>
+
+        <div class="msg-card unread">
+          <div class="msg-icon" style="background:#E6FFE6;"><div class="dot" style="background:#10B981;"></div></div>
+          <div class="msg-body">
+            <div class="msg-title">退款处理完成</div>
+            <div class="msg-summary">订单 #OD202607010015 退款￥89.00已原路退回至买家账户，退款原因：商品与描述不符。</div>
+          </div>
+          <div class="msg-meta">
+            <div class="msg-time">5小时前</div>
+            <div class="msg-status"><span class="unread-dot"></span></div>
+          </div>
+        </div>
+
+        <div class="msg-card unread">
+          <div class="msg-icon" style="background:#E6E6FF;"><div class="dot" style="background:#7C3AED;"></div></div>
+          <div class="msg-body">
+            <div class="msg-title">客户流失预警：VIP客户李明30天未下单</div>
+            <div class="msg-summary">检测到VIP客户李明（累计消费￥28,600）已连续30天未下单，建议发送优惠券激活。</div>
+          </div>
+          <div class="msg-meta">
+            <div class="msg-time">6小时前</div>
+            <div class="msg-status"><span class="unread-dot"></span></div>
+          </div>
+        </div>
+
+        <!-- Pagination -->
+        <div class="pagination">
+          <span>&lt;</span>
+          <span class="active">1</span>
+          <span>2</span>
+          <span>3</span>
+          <span>&gt;</span>
+        </div>
+
+        <!-- Notification Settings Panel -->
+        <div class="settings-panel mt-16">
+          <h4>消息推送设置</h4>
+          <div class="settings-row">
+            <div>
+              <div class="settings-label">免打扰时段</div>
+              <div class="settings-desc">该时段内不推送非紧急通知</div>
+            </div>
+            <div class="flex gap-8">
+              <select class="time-select"><option>22:00</option><option>21:00</option><option>23:00</option></select>
+              <span style="font-size:12px;color:var(--text-muted);line-height:28px;">至</span>
+              <select class="time-select"><option>08:00</option><option>07:00</option><option>09:00</option></select>
+            </div>
+          </div>
+          <div class="settings-row">
+            <div><div class="settings-label">系统通知</div></div>
+            <div class="toggle on"></div>
+          </div>
+          <div class="settings-row">
+            <div><div class="settings-label">订单通知</div></div>
+            <div class="toggle on"></div>
+          </div>
+          <div class="settings-row">
+            <div><div class="settings-label">支付通知</div></div>
+            <div class="toggle on"></div>
+          </div>
+          <div class="settings-row">
+            <div><div class="settings-label">预警通知</div></div>
+            <div class="toggle on"></div>
+          </div>
+          <div class="settings-row">
+            <div><div class="settings-label">营销通知</div></div>
+            <div class="toggle"></div>
+          </div>
+          <div class="settings-row">
+            <div><div class="settings-label">客户召回</div></div>
+            <div class="toggle on"></div>
+          </div>
+          <div style="margin-top:12px;font-size:13px;font-weight:600;color:var(--text);">通知方式</div>
+          <div class="settings-row">
+            <div><div class="settings-label">站内信</div></div>
+            <div class="toggle on"></div>
+          </div>
+          <div class="settings-row">
+            <div><div class="settings-label">短信</div></div>
+            <div class="toggle"></div>
+          </div>
+          <div class="settings-row">
+            <div><div class="settings-label">微信</div></div>
+            <div class="toggle on"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Message Detail Modal (inline mockup) -->
+  <div class="mt-16" style="background:var(--white);border:1px solid var(--border);border-radius:var(--radius);padding:20px;max-width:520px;">
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;padding-bottom:8px;border-bottom:1px solid var(--border);">
+      <span style="font-size:16px;font-weight:600;">系统升级维护通知</span>
+      <span style="font-size:20px;color:var(--text-muted);cursor:pointer;">&times;</span>
+    </div>
+    <div style="font-size:12px;color:var(--text-muted);margin-bottom:12px;">发送时间：2026-07-01 14:30 | 发送人：系统管理员</div>
+    <div style="font-size:14px;color:var(--text);line-height:1.8;">
+      系统将于2026年7月5日凌晨2:00-4:00进行升级维护，期间部分功能暂不可用，请提前做好业务安排。<br><br>
+      受影响功能：订单管理、商品管理、数据报表<br>
+      不受影响功能：消息中心、系统设置<br><br>
+      如有紧急问题，请联系技术支持：400-888-8888
+    </div>
+    <div style="margin-top:16px;font-size:13px;color:var(--brand);">查看相关公告 -></div>
+  </div>
+
+  <h3 class="mt-16">场景B：商户端通知页面</h3>
+  <div style="display:flex;gap:24px;flex-wrap:wrap;">
+
+    <!-- Phone Frame 1: Message List -->
+    <div class="phone-frame">
+      <div class="phone-statusbar"><span>9:41</span><span style="display:flex;gap:4px;"><span style="width:12px;height:12px;border-radius:50%;border:1px solid #fff;"></span><span style="width:12px;height:12px;background:#fff;clip-path:polygon(0 50%,100% 0,100% 100%);"></span></span></div>
+      <div class="phone-header">
+        <span>消息通知</span>
+        <span class="phone-all-read">全部已读</span>
+      </div>
+      <div class="phone-tabs">
+        <span class="phone-tab active">全部</span>
+        <span class="phone-tab">系统</span>
+        <span class="phone-tab">订单</span>
+        <span class="phone-tab">支付</span>
+        <span class="phone-tab">预警</span>
+        <span class="phone-tab">营销</span>
+      </div>
+      <div class="phone-body">
+        <div class="phone-group-header">
+          <span>今天</span>
+          <span class="arrow" style="font-size:10px;">&#9660;</span>
+        </div>
+        <div class="phone-msg unread">
+          <div class="phone-msg-icon" style="background:#E6F4FF;"><div class="dot" style="background:#1677FF;"></div></div>
+          <div class="phone-msg-body">
+            <div class="phone-msg-title">系统升级维护通知</div>
+            <div class="phone-msg-summary">系统将于2026年7月5日凌晨进行升级维护...</div>
+          </div>
+          <div class="phone-msg-right">
+            <div class="phone-msg-time">14:30</div>
+            <span class="unread-dot" style="display:inline-block;margin-top:4px;"></span>
+          </div>
+        </div>
+        <div class="phone-msg unread">
+          <div class="phone-msg-icon" style="background:#FFF7E6;"><div class="dot" style="background:#F59E0B;"></div></div>
+          <div class="phone-msg-body">
+            <div class="phone-msg-title">订单 #OD202607010023 已发货</div>
+            <div class="phone-msg-summary">顺丰速运已揽收，预计7月3日送达...</div>
+          </div>
+          <div class="phone-msg-right">
+            <div class="phone-msg-time">12:10</div>
+            <span class="unread-dot" style="display:inline-block;margin-top:4px;"></span>
+          </div>
+        </div>
+        <div class="phone-msg">
+          <div class="phone-msg-icon" style="background:#E6FFE6;"><div class="dot" style="background:#10B981;"></div></div>
+          <div class="phone-msg-body">
+            <div class="phone-msg-title">支付成功通知</div>
+            <div class="phone-msg-summary">订单 #OD202607010020 已支付成功，￥1,299.00...</div>
+          </div>
+          <div class="phone-msg-right">
+            <div class="phone-msg-time">09:45</div>
+          </div>
+        </div>
+        <div class="phone-group-header">
+          <span>昨天</span>
+          <span class="arrow" style="font-size:10px;">&#9660;</span>
+        </div>
+        <div class="phone-msg">
+          <div class="phone-msg-icon" style="background:#FFE7E7;"><div class="dot" style="background:#EF4444;"></div></div>
+          <div class="phone-msg-body">
+            <div class="phone-msg-title">库存预警通知</div>
+            <div class="phone-msg-summary">商品"夏日清凉T恤"库存仅剩3件...</div>
+          </div>
+          <div class="phone-msg-right">
+            <div class="phone-msg-time">18:20</div>
+          </div>
+        </div>
+        <div class="phone-group-header">
+          <span>更早</span>
+          <span class="arrow collapsed" style="font-size:10px;">&#9660;</span>
+        </div>
+        <div class="phone-msg">
+          <div class="phone-msg-icon" style="background:#E6E6FF;"><div class="dot" style="background:#7C3AED;"></div></div>
+          <div class="phone-msg-body">
+            <div class="phone-msg-title">客户流失预警</div>
+            <div class="phone-msg-summary">VIP客户李明已连续30天未下单...</div>
+          </div>
+          <div class="phone-msg-right">
+            <div class="phone-msg-time">6月28日</div>
+          </div>
+        </div>
+        <div class="phone-settings-link">通知设置</div>
+      </div>
+      <div class="phone-tabbar">
+        <div class="tab-item"><div class="tab-icon"></div>首页</div>
+        <div class="tab-item"><div class="tab-icon"></div>订单</div>
+        <div class="tab-item"><div class="tab-icon"></div>营销</div>
+        <div class="tab-item"><div class="tab-icon"></div>商品</div>
+        <div class="tab-item active"><div class="tab-icon"></div>我的</div>
+      </div>
+    </div>
+
+    <!-- Phone Frame 2: Notification Settings -->
+    <div class="phone-frame">
+      <div class="phone-statusbar"><span>9:41</span><span style="display:flex;gap:4px;"><span style="width:12px;height:12px;border-radius:50%;border:1px solid #fff;"></span><span style="width:12px;height:12px;background:#fff;clip-path:polygon(0 50%,100% 0,100% 100%);"></span></span></div>
+      <div class="phone-header">
+        <span style="color:var(--brand);cursor:pointer;">&lt; 返回</span>
+        <span>通知设置</span>
+        <span style="width:40px;"></span>
+      </div>
+      <div class="phone-body phone-settings-page">
+        <div class="phone-settings-item">
+          <span>免打扰模式</span>
+          <div class="toggle"></div>
+        </div>
+        <div class="phone-settings-item">
+          <span>系统通知</span>
+          <div class="toggle on"></div>
+        </div>
+        <div class="phone-settings-item">
+          <span>订单通知</span>
+          <div class="toggle on"></div>
+        </div>
+        <div class="phone-settings-item">
+          <span>支付通知</span>
+          <div class="toggle on"></div>
+        </div>
+        <div class="phone-settings-item">
+          <span>预警通知</span>
+          <div class="toggle on"></div>
+        </div>
+        <div class="phone-settings-item">
+          <span>营销通知</span>
+          <div class="toggle"></div>
+        </div>
+        <div class="phone-settings-item">
+          <span>客户召回</span>
+          <div class="toggle on"></div>
+        </div>
+      </div>
+      <div class="phone-tabbar">
+        <div class="tab-item"><div class="tab-icon"></div>首页</div>
+        <div class="tab-item"><div class="tab-icon"></div>订单</div>
+        <div class="tab-item"><div class="tab-icon"></div>营销</div>
+        <div class="tab-item"><div class="tab-icon"></div>商品</div>
+        <div class="tab-item active"><div class="tab-icon"></div>我的</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ===== Section 3: Spec Table ===== -->
+<div class="doc-section">
+  <h2>字段规范表</h2>
+
+  <h3>通知消息字段</h3>
+  <table class="spec-table">
+    <thead>
+      <tr><th>字段名</th><th>类型</th><th>必填</th><th>说明</th></tr>
+    </thead>
+    <tbody>
+      <tr><td>id</td><td>String</td><td>是</td><td>消息唯一标识</td></tr>
+      <tr><td>type</td><td>Enum</td><td>是</td><td>消息类型：system/order/payment/alert/credit/recall</td></tr>
+      <tr><td>title</td><td>String</td><td>是</td><td>消息标题，最长50字符</td></tr>
+      <tr><td>content</td><td>String</td><td>是</td><td>消息正文内容，支持纯文本</td></tr>
+      <tr><td>summary</td><td>String</td><td>是</td><td>消息摘要，列表展示用，最长100字符</td></tr>
+      <tr><td>is_read</td><td>Boolean</td><td>是</td><td>是否已读</td></tr>
+      <tr><td>created_at</td><td>DateTime</td><td>是</td><td>消息发送时间</td></tr>
+      <tr><td>sender</td><td>String</td><td>否</td><td>发送人/系统</td></tr>
+      <tr><td>related_id</td><td>String</td><td>否</td><td>关联业务ID（如订单号）</td></tr>
+      <tr><td>related_url</td><td>String</td><td>否</td><td>关联业务跳转链接</td></tr>
+      <tr><td>recipient_id</td><td>String</td><td>是</td><td>接收者用户ID</td></tr>
+      <tr><td>priority</td><td>Enum</td><td>否</td><td>优先级：normal/urgent，默认normal</td></tr>
+    </tbody>
+  </table>
+
+  <h3>推送设置字段</h3>
+  <table class="spec-table">
+    <thead>
+      <tr><th>字段名</th><th>类型</th><th>必填</th><th>说明</th></tr>
+    </thead>
+    <tbody>
+      <tr><td>user_id</td><td>String</td><td>是</td><td>用户ID</td></tr>
+      <tr><td>dnd_enabled</td><td>Boolean</td><td>是</td><td>是否开启免打扰</td></tr>
+      <tr><td>dnd_start</td><td>Time</td><td>否</td><td>免打扰开始时间，格式HH:mm</td></tr>
+      <tr><td>dnd_end</td><td>Time</td><td>否</td><td>免打扰结束时间，格式HH:mm</td></tr>
+      <tr><td>system_notify</td><td>Boolean</td><td>是</td><td>系统通知开关</td></tr>
+      <tr><td>order_notify</td><td>Boolean</td><td>是</td><td>订单通知开关</td></tr>
+      <tr><td>payment_notify</td><td>Boolean</td><td>是</td><td>支付通知开关</td></tr>
+      <tr><td>alert_notify</td><td>Boolean</td><td>是</td><td>预警通知开关</td></tr>
+      <tr><td>marketing_notify</td><td>Boolean</td><td>是</td><td>营销通知开关</td></tr>
+      <tr><td>recall_notify</td><td>Boolean</td><td>是</td><td>客户召回通知开关</td></tr>
+      <tr><td>channel_inapp</td><td>Boolean</td><td>是</td><td>站内信渠道开关</td></tr>
+      <tr><td>channel_sms</td><td>Boolean</td><td>是</td><td>短信渠道开关</td></tr>
+      <tr><td>channel_wechat</td><td>Boolean</td><td>是</td><td>微信渠道开关</td></tr>
+    </tbody>
+  </table>
+</div>
+
+<!-- ===== Section 4: Checklist ===== -->
+<div class="doc-section">
+  <h2>验收标准清单</h2>
+  <ul class="checklist">
+    <li class="checked">消息中心页面正确展示消息统计卡片（全部/未读/系统/预警）</li>
+    <li class="checked">消息Tab分类支持按类型筛选，计数准确</li>
+    <li class="checked">未读消息以浅蓝背景高亮显示，左侧有蓝色边框</li>
+    <li class="checked">未读消息标题加粗，右侧显示蓝色未读圆点</li>
+    <li class="checked">已读消息正常样式显示，无蓝点、无加粗、无高亮背景</li>
+    <li class="checked">点击消息弹出详情弹窗，展示完整标题、时间、正文、关联链接</li>
+    <li class="checked">全部已读按钮一键将当前列表所有消息标记为已读</li>
+    <li class="checked">批量删除支持选中多条消息后批量删除</li>
+    <li class="checked">分页组件正确展示，支持翻页</li>
+    <li class="checked">推送设置面板支持免打扰时段选择</li>
+    <li class="checked">通知类型开关（6种）可独立控制开启/关闭</li>
+    <li class="checked">通知渠道开关（站内信/短信/微信）可独立控制</li>
+    <li class="checked">商户端消息列表按日期分组（今天/昨天/更早），支持折叠展开</li>
+    <li class="checked">商户端消息列表展示最近消息，未读消息有明显标识</li>
+    <li class="checked">商户端通知设置页支持免打扰和通知类型开关</li>
+    <li class="checked">商户端底部Tab导航正确高亮当前所在Tab</li>
+    <li class="checked">顶部导航栏消息铃铛显示未读数量角标</li>
+    <li class="checked">左侧导航树消息中心菜单项高亮为当前激活状态</li>
+  </ul>
+</div>
+
+</body>
+</html>

@@ -49,6 +49,9 @@ const routes = [
     children: [
       // 1. 工作台
       { path: "dashboard", name: "Dashboard", component: () => import("../views/Dashboard.vue"), meta: { roles: ["BOSS", "MGR"] } },
+      { path: "todo-list", name: "TodoList", component: () => import("../views/TodoList.vue"), meta: { roles: ["BOSS", "MGR"] } },
+      { path: "quick-entries", name: "QuickEntryConfig", component: () => import("../views/QuickEntryConfig.vue"), meta: { roles: ["BOSS"] } },
+      { path: "messages", name: "MessageCenter", component: () => import("../views/MessageCenter.vue"), meta: { roles: ["BOSS", "MGR"] } },
       // 2. 销售管理
       { path: "sales/create", name: "SalesOrderCreate", component: () => import("../views/SalesOrderCreate.vue"), meta: { roles: ["BOSS", "MGR"] } },
       { path: "sale-bills", name: "SaleBills", component: () => import("../views/SaleBills.vue"), meta: { roles: ["BOSS", "MGR"] } },

@@ -131,7 +131,9 @@ const routes: RouteRecordRaw[] = [
   { path: '/profile/change-password', name: 'profile-change-password', component: () => import('./views/ChangePasswordView.vue'), meta: { requiresAuth: true } },
   // 通知
   { path: '/notifications', name: 'notifications', component: () => import('./views/NotificationView.vue'), meta: { requiresAuth: true } },
-  { path: '/notifications/:id', name: 'notification-detail', component: () => import('./views/NotificationDetailView.vue'), meta: { requiresAuth: true } }
+  { path: '/notifications/:id', name: 'notification-detail', component: () => import('./views/NotificationDetailView.vue'), meta: { requiresAuth: true } },
+  // 待办
+  { path: '/todos', name: 'todos', component: () => import('./views/TodoListView.vue'), meta: { requiresAuth: true } }
 ]
 
 const router = createRouter({

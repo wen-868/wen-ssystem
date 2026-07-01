@@ -50,18 +50,18 @@ liquor-inventory-system/
 | 成员 | 职责 | 当前状态 |
 |------|------|---------|
 | 凌舟 | 项目管理、代码审计、任务分配 | — |
-| 林夕 | UI/UX 设计师 | 工作总台 Phase 14 待开始 |
-| 墨 | 管理后台 admin-web 前端 | 工作总台 Phase 14 待开始 |
-| 阿坚 | 后端 API | 工作总台 Phase 14 待开始 |
-| 阿澈 | 商户移动端 merchant-mobile 前端 | 工作总台 Phase 14 待开始 |
-| 苏然 | 测试工程师 / DAO 层 | 工作总台 Phase 14 待开始 |
+| 林夕 | UI/UX 设计师 | 全部模块已完成 ✅ |
+| 墨 | 管理后台 admin-web 前端 | 全部模块已完成 ✅ |
+| 阿坚 | 后端 API | 全部模块已完成 ✅ |
+| 阿澈 | 商户移动端 merchant-mobile 前端 | 全部模块已完成 ✅ |
+| 苏然 | 测试工程师 / DAO 层 | 全部模块已完成 ✅ |
 
 ---
 
 ## 四、开发节奏
 
 1. **按一级模块纵向推进**：一个模块做完再做下一个（设计稿→后端→前端→联调）
-2. **模块顺序**：商品中心 ✅ → 销售管理 ✅ → 采购管理 ✅ → 库存管理 ✅ → 客户管理 ✅ → 财务往来 ✅ → 数据报表 ✅ → 营销中心 ✅ → 即时零售 ✅ → 订单管理 ✅ → 系统设置 ✅ → 工作总台 ⏳
+2. **模块顺序**：商品中心 ✅ → 销售管理 ✅ → 采购管理 ✅ → 库存管理 ✅ → 客户管理 ✅ → 财务往来 ✅ → 数据报表 ✅ → 营销中心 ✅ → 即时零售 ✅ → 订单管理 ✅ → 系统设置 ✅ → 工作总台 ✅
 3. **每轮流程**：任务分解 → 分发 → 林夕出设计稿 → 阿坚后端 → 墨+阿澈前端 → 审计验收 → 合并推送 → 下一轮
 4. **设计稿提前**：林夕的设计稿需提前 1 天交付，避免阻塞前端开发
 5. **验收标准**：对照 `tasks/field-audit-product-center.md` 逐字段验证，无遗漏
@@ -182,18 +182,23 @@ liquor-inventory-system/
 - 阿澈 4项（商户端：门店信息/员工列表/个人信息/通知）
 - 苏然 6项（DAO+测试：门店/员工/角色/日志/配置/审批）
 
-### Phase 14 · 工作总台模块（任务已分发）
+### Phase 14 · 工作总台模块（已完成 ✅）
 
 - 5 个二级模块，全部 P0（经营概览~40 / 待办提醒~30 / 快捷入口~20 / 消息通知~20 / 数据看板~35），合计约145字段
 - 已有基础：`admin-web/Dashboard.vue` 基础框架、`report.controller` 基础 getDashboard API、`notification` 表结构已存在、消息通知基础API已存在
 - 管理后台已有：Dashboard.vue（基础经营概览）、FinanceDashboard.vue、MarketingDashboard.vue
 - 商户端已有：HomeView.vue（首页框架）、NotificationView.vue + NotificationDetailView.vue（消息通知页面）
-- 关键缺失：待办提醒聚合API、快捷入口可配置API、完整经营概览聚合、完整数据看板多图表展示
-- 阿坚 4项（后端：经营概览聚合API/待办提醒API/快捷入口配置API/消息通知API）
-- 林夕 4项（设计稿：管理后台工作台/商户端工作台/消息通知/快捷入口）
-- 墨 4项（管理后台：经营概览Dashboard/待办提醒/快捷入口/消息中心 页面）
-- 阿澈 4项（商户端：商户首页Dashboard/待办列表/消息中心/快捷入口 页面）
-- 苏然 4项（测试：Dashboard API测试/待办测试/消息测试/前端页面测试）
+- **新增后端**：workbench.routes.ts（待办/快捷入口/消息通知路由）、todo.controller + service、quick-entry.controller + service、notification-center.controller + service、dashboard 路由/控制器/服务增强
+- **新增管理后台**：TodoList.vue（待办提醒）、QuickEntryConfig.vue（快捷入口配置）、MessageCenter.vue（消息中心）、Dashboard.vue 增强
+- **新增商户端**：TodoListView.vue（待办列表）、HomeView.vue + NotificationView.vue 增强
+- **新增设计稿**：dashboard-admin.html、dashboard-merchant.html、notification-center.html、quick-entry-config.html
+- 阿坚 4项 ✅（后端：经营概览聚合API/待办提醒API/快捷入口配置API/消息通知API）
+- 林夕 4项 ✅（设计稿：管理后台工作台/商户端工作台/消息通知/快捷入口）
+- 墨 4项 ✅（管理后台：经营概览Dashboard/待办提醒/快捷入口/消息中心 页面）
+- 阿澈 4项 ✅（商户端：商户首页Dashboard/待办列表/消息中心/快捷入口）
+- 苏然 4项 ✅（测试：Dashboard API测试/待办测试/消息测试/前端页面测试）
+
+> **🎉 12 个模块全部开发完成！项目进入收尾阶段。**
 
 ---
 

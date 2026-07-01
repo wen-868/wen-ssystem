@@ -224,6 +224,10 @@ function injectDeleteTenant(sql: string, params: unknown[], tenantId: string): {
   return injectUpdateTenant(sql, params, tenantId);
 }
 
+export async function executeWithTenant(sql: string, params: unknown[] = [], tenantId: string): Promise<void> {
+  await queryWithTenant(sql, params, tenantId);
+}
+
 export async function transaction<T>(runner: (conn: mysql.PoolConnection) => Promise<T>) {
   if (env.USE_MOCK_DB) {
     return runner(mockConn);

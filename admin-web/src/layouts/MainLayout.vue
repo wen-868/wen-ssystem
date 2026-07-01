@@ -23,6 +23,18 @@
           <el-icon><HomeFilled /></el-icon>
           <template #title>工作台</template>
         </el-menu-item>
+        <el-menu-item index="/todo-list">
+          <el-icon><Bell /></el-icon>
+          <template #title>待办提醒</template>
+        </el-menu-item>
+        <el-menu-item index="/quick-entries">
+          <el-icon><Grid /></el-icon>
+          <template #title>快捷入口</template>
+        </el-menu-item>
+        <el-menu-item index="/messages">
+          <el-icon><ChatDotRound /></el-icon>
+          <template #title>消息中心</template>
+        </el-menu-item>
 
         <!-- 2. 销售管理 -->
         <el-sub-menu index="sales">
@@ -264,7 +276,7 @@
 import { computed, onMounted, ref } from "vue";
 import { useRoute, useRouter } from "vue-router";
 import { ElMessage } from "element-plus";
-import { HomeFilled, Goods, Document, ShoppingCart, Box, User, Files, Shop, Coin, Present, DataAnalysis, Setting, Expand, Fold } from "@element-plus/icons-vue";
+import { HomeFilled, Goods, Document, ShoppingCart, Box, User, Files, Shop, Coin, Present, DataAnalysis, Setting, Expand, Fold, Bell, Grid, ChatDotRound } from "@element-plus/icons-vue";
 import { formatDate } from "../utils/format";
 
 const route = useRoute();
@@ -300,6 +312,9 @@ const activeMenu = computed(() => route.path);
 const pageTitle = computed(() => {
   const titles: Record<string, string> = {
     "/dashboard": "工作总台",
+    "/todo-list": "待办提醒",
+    "/quick-entries": "快捷入口",
+    "/messages": "消息中心",
     "/sales/create": "销售开单",
     "/sale-bills": "销售单据",
     "/sale-returns": "销售退货",

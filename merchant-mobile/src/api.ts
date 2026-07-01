@@ -2474,3 +2474,129 @@ export function markNotificationRead(id: number) {
 export function markAllNotificationsRead() {
   return api.post('/miniapp/notifications/read-all')
 }
+
+/* ========== Phase 14: 工作台 ========== */
+
+export interface DashboardOverviewData {
+  todaySalesAmount: number
+  todayOrderCount: number
+  todayReceivedAmount: number
+  pendingDeliveryCount: number
+  unReceivedAmount: number
+  todayCustomerCount: number
+  monthSalesAmount: number
+  storeId: number
+  storeName: string
+}
+
+export interface DashboardSalesTrendRecord {
+  date: string
+  amount: number
+  orderCount: number
+}
+
+export interface DashboardTopProduct {
+  productName: string
+  skuName: string
+  salesAmount: number
+  salesCount: number
+  percentage: number
+}
+
+export interface DashboardTopCustomer {
+  customerName: string
+  orderCount: number
+  totalAmount: number
+  percentage: number
+}
+
+export interface DashboardCategoryDistribution {
+  categoryName: string
+  amount: number
+  percentage: number
+}
+
+export interface TodoItem {
+  id: number
+  type: string
+  title: string
+  summary: string
+  priority: string
+  status: string
+  dueDate: string
+  relatedId: string
+  relatedType: string
+  createdAt: string
+}
+
+export interface TodoStats {
+  totalCount: number
+  pendingCount: number
+  typeStats: { type: string; count: number; label: string }[]
+}
+
+export interface QuickEntryItem {
+  id: number
+  text: string
+  icon: string
+  route: string
+  sortOrder: number
+  groupName: string
+  visible: boolean
+}
+
+export function fetchDashboardOverview() {
+  return api.get('/store/dashboard/overview')
+}
+
+export function fetchDashboardSalesTrend(days?: number) {
+  return api.get('/store/dashboard/sales-trend', { params: { days: days || 7 } })
+}
+
+export function fetchDashboardTopProducts(limit?: number) {
+  return api.get('/store/dashboard/top-products', { params: { limit: limit || 5 } })
+}
+
+export function fetchDashboardTopCustomers(limit?: number) {
+  return api.get('/store/dashboard/top-customers', { params: { limit: limit || 5 } })
+}
+
+export function fetchDashboardCategoryDistribution() {
+  return api.get('/store/dashboard/category-distribution')
+}
+
+export function fetchTodos(params?: {
+  page?: number
+  pageSize?: number
+  type?: string
+  priority?: string
+  status?: string
+}) {
+  return api.get('/admin/todos', { params })
+}
+
+export function fetchTodoStats() {
+  return api.get('/admin/todos/stats')
+}
+
+export function completeTodo(id: number) {
+  return api.put(`/admin/todos/${id}`, { status: 'DONE' })
+}
+
+export function ignoreTodo(id: number) {
+  return api.put(`/admin/todos/${id}`, { status: 'IGNORED' })
+}
+
+export function createTodo(data: {
+  title: string
+  type: string
+  priority: string
+  dueDate?: string
+  remark?: string
+}) {
+  return api.post('/admin/todos', data)
+}
+
+export function fetchQuickEntries(type?: string) {
+  return api.get('/admin/quick-entries', { params: { type: type || 'MERCHANT' } })
+}

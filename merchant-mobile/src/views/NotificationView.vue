@@ -7,6 +7,25 @@
       right-text="全部已读"
       @click-right="onMarkAllRead"
     />
+
+    <!-- 推送设置入口 -->
+    <van-cell
+      title="推送设置"
+      icon="setting-o"
+      is-link
+      @click="showSettings = true"
+      class="settings-cell"
+    />
+
+    <!-- 时间筛选 -->
+    <van-dropdown-menu>
+      <van-dropdown-item
+        v-model="timeFilter"
+        :options="timeOptions"
+        @change="onTimeFilterChange"
+      />
+    </van-dropdown-menu>
+
     <van-tabs v-model:active="activeTab" sticky @change="onTabChange">
       <van-tab v-for="tab in tabs" :key="tab.type" :title="tab.label" />
     </van-tabs>
@@ -27,7 +46,10 @@
           @click="goToDetail(item)"
         >
           <template #icon>
-            <div class="notification-icon-wrapper">
+            <div
+              class="notification-icon-wrapper"
+              :style="{ background: iconBgMap[item.type] || '#f0f2f5' }"
+            >
               <van-icon :name="iconMap[item.type] || 'bullhorn-o'" size="20" />
               <span v-if="!item.isRead" class="unread-dot" />
             </div>
@@ -40,11 +62,86 @@
         </van-cell>
       </van-list>
     </van-pull-refresh>
+
+    <!-- 推送设置弹窗 -->
+    <van-popup
+      v-model:show="showSettings"
+      position="bottom"
+      :style="{ height: '65%' }"
+      round
+      closeable
+      safe-area-inset-bottom
+    >
+      <div class="settings-popup">
+        <h3 class="settings-title">推送设置</h3>
+
+        <van-cell-group inset>
+          <van-cell title="免打扰模式" center>
+            <template #right-icon>
+              <van-switch v-model="pushSettings.dndEnabled" size="24" />
+            </template>
+          </van-cell>
+        </van-cell-group>
+
+        <van-cell-group v-if="pushSettings.dndEnabled" inset style="margin-top: 12px">
+          <van-cell title="免打扰时段" center>
+            <template #right-icon>
+              <span class="dnd-time-range" @click="showDndStartPicker = true">
+                {{ pushSettings.dndStart }} — {{ pushSettings.dndEnd }}
+              </span>
+            </template>
+          </van-cell>
+        </van-cell-group>
+
+        <van-cell-group inset style="margin-top: 12px">
+          <van-cell
+            v-for="typeItem in typeSwitchList"
+            :key="typeItem.type"
+            :title="typeItem.label"
+            center
+          >
+            <template #right-icon>
+              <van-switch
+                v-model="pushSettings.typeSwitches[typeItem.type]"
+                size="24"
+              />
+            </template>
+          </van-cell>
+        </van-cell-group>
+
+        <div class="settings-footer">
+          <van-button type="primary" block round @click="savePushSettings">
+            保存设置
+          </van-button>
+        </div>
+      </div>
+    </van-popup>
+
+    <!-- 时间选择弹窗 -->
+    <van-popup v-model:show="showDndStartPicker" position="bottom" round>
+      <van-datetime-picker
+        v-model="dndStartPickerValue"
+        type="time"
+        title="选择开始时间"
+        @confirm="onDndStartConfirm"
+        @cancel="showDndStartPicker = false"
+      />
+    </van-popup>
+
+    <van-popup v-model:show="showDndEndPicker" position="bottom" round>
+      <van-datetime-picker
+        v-model="dndEndPickerValue"
+        type="time"
+        title="选择结束时间"
+        @confirm="onDndEndConfirm"
+        @cancel="showDndEndPicker = false"
+      />
+    </van-popup>
   </div>
 </template>
 
 <script setup lang="ts">
-import { ref } from 'vue'
+import { ref, reactive } from 'vue'
 import { useRouter } from 'vue-router'
 import { showToast, showSuccessToast } from 'vant'
 import {
@@ -75,6 +172,125 @@ const iconMap: Record<string, string> = {
   RECALL: 'chat-o'
 }
 
+const iconBgMap: Record<string, string> = {
+  SYSTEM: '#f0f2f5',
+  ORDER: '#e8f4fd',
+  PAYMENT: '#fff7e6',
+  ALERT: '#fff0f0',
+  CREDIT: '#e6f7ff',
+  RECALL: '#f0ffe6'
+}
+
+/* ========== 时间筛选 ========== */
+const timeFilter = ref(0)
+const timeOptions = [
+  { text: '全部', value: 0 },
+  { text: '今天', value: 1 },
+  { text: '本周', value: 2 },
+  { text: '本月', value: 3 }
+]
+
+function getTimeRange(): { startDate?: string; endDate?: string } {
+  const now = new Date()
+  switch (timeFilter.value) {
+    case 1: {
+      const today = now.toISOString().slice(0, 10)
+      return { startDate: today, endDate: today }
+    }
+    case 2: {
+      const day = now.getDay()
+      const monday = new Date(now)
+      monday.setDate(now.getDate() - (day === 0 ? 6 : day - 1))
+      const sunday = new Date(monday)
+      sunday.setDate(monday.getDate() + 6)
+      return {
+        startDate: monday.toISOString().slice(0, 10),
+        endDate: sunday.toISOString().slice(0, 10)
+      }
+    }
+    case 3: {
+      const firstDay = new Date(now.getFullYear(), now.getMonth(), 1)
+      const lastDay = new Date(now.getFullYear(), now.getMonth() + 1, 0)
+      return {
+        startDate: firstDay.toISOString().slice(0, 10),
+        endDate: lastDay.toISOString().slice(0, 10)
+      }
+    }
+    default:
+      return {}
+  }
+}
+
+/* ========== 推送设置 ========== */
+const showSettings = ref(false)
+const showDndStartPicker = ref(false)
+const showDndEndPicker = ref(false)
+const dndStartPickerValue = ref(['22', '00'])
+const dndEndPickerValue = ref(['08', '00'])
+
+const pushSettings = reactive({
+  dndEnabled: false,
+  dndStart: '22:00',
+  dndEnd: '08:00',
+  typeSwitches: {
+    SYSTEM: true,
+    ORDER: true,
+    PAYMENT: true,
+    ALERT: true,
+    CREDIT: true,
+    RECALL: true
+  } as Record<string, boolean>
+})
+
+const typeSwitchList = [
+  { type: 'SYSTEM', label: '系统通知' },
+  { type: 'ORDER', label: '订单通知' },
+  { type: 'PAYMENT', label: '支付通知' },
+  { type: 'ALERT', label: '预警通知' },
+  { type: 'CREDIT', label: '信用通知' },
+  { type: 'RECALL', label: '召回通知' }
+]
+
+function onDndStartConfirm({ selectedValues }: { selectedValues: string[] }) {
+  pushSettings.dndStart = selectedValues.join(':')
+  showDndStartPicker.value = false
+  showDndEndPicker.value = true
+}
+
+function onDndEndConfirm({ selectedValues }: { selectedValues: string[] }) {
+  pushSettings.dndEnd = selectedValues.join(':')
+  showDndEndPicker.value = false
+}
+
+function savePushSettings() {
+  localStorage.setItem('notification_push_settings', JSON.stringify(pushSettings))
+  showSuccessToast('设置已保存')
+  showSettings.value = false
+}
+
+function loadPushSettings() {
+  try {
+    const saved = localStorage.getItem('notification_push_settings')
+    if (saved) {
+      const parsed = JSON.parse(saved)
+      if (parsed.dndEnabled !== undefined) pushSettings.dndEnabled = parsed.dndEnabled
+      if (parsed.dndStart) pushSettings.dndStart = parsed.dndStart
+      if (parsed.dndEnd) pushSettings.dndEnd = parsed.dndEnd
+      if (parsed.typeSwitches) {
+        Object.assign(pushSettings.typeSwitches, parsed.typeSwitches)
+      }
+      // 初始化时间选择器值
+      const [sh, sm] = pushSettings.dndStart.split(':')
+      const [eh, em] = pushSettings.dndEnd.split(':')
+      dndStartPickerValue.value = [sh || '22', sm || '00']
+      dndEndPickerValue.value = [eh || '08', em || '00']
+    }
+  } catch {
+    // 忽略
+  }
+}
+
+/* ========== 通知列表 ========== */
 const activeTab = ref(0)
 const notifications = ref<NotificationItem[]>([])
 const loading = ref(false)
@@ -104,6 +320,7 @@ async function loadNotifications(reset: boolean) {
   loading.value = true
   try {
     const currentType = tabs[activeTab.value]?.type ?? ''
+    const timeRange = getTimeRange()
     const res = await fetchNotifications({
       page: page.value,
       pageSize: 20,
@@ -112,10 +329,22 @@ async function loadNotifications(reset: boolean) {
     const data = res.data as any
     const items = (data?.records ?? data ?? []) as NotificationItem[]
     const total = data?.total ?? items.length
+
+    // 客户端时间筛选
+    let filtered = items
+    if (timeRange.startDate && timeRange.endDate) {
+      const start = new Date(timeRange.startDate + 'T00:00:00')
+      const end = new Date(timeRange.endDate + 'T23:59:59')
+      filtered = items.filter((item) => {
+        const d = new Date(item.createdAt)
+        return d >= start && d <= end
+      })
+    }
+
     if (reset) {
-      notifications.value = items
+      notifications.value = filtered
     } else {
-      notifications.value.push(...items)
+      notifications.value.push(...filtered)
     }
     if (notifications.value.length >= total) {
       finished.value = true
@@ -139,6 +368,10 @@ function onRefresh() {
 }
 
 function onTabChange() {
+  loadNotifications(true)
+}
+
+function onTimeFilterChange() {
   loadNotifications(true)
 }
 
@@ -173,6 +406,9 @@ async function goToDetail(item: NotificationItem) {
     }
   })
 }
+
+// 初始化加载设置
+loadPushSettings()
 </script>
 
 <style scoped>
@@ -181,6 +417,12 @@ async function goToDetail(item: NotificationItem) {
   background: #f7f8fa;
 }
 
+/* ===== 推送设置入口 ===== */
+.settings-cell {
+  margin: 0;
+}
+
+/* ===== 通知图标 ===== */
 .notification-icon-wrapper {
   position: relative;
   display: flex;
@@ -189,7 +431,6 @@ async function goToDetail(item: NotificationItem) {
   width: 36px;
   height: 36px;
   margin-right: 12px;
-  background: #f0f2f5;
   border-radius: 50%;
 }
 
@@ -224,5 +465,28 @@ async function goToDetail(item: NotificationItem) {
   color: #999;
   flex-shrink: 0;
   margin-left: 8px;
+}
+
+/* ===== 推送设置弹窗 ===== */
+.settings-popup {
+  padding: 24px 0 16px;
+}
+
+.settings-title {
+  text-align: center;
+  font-size: 18px;
+  font-weight: 600;
+  color: #323233;
+  margin: 0 0 20px;
+}
+
+.settings-footer {
+  padding: 24px 16px;
+}
+
+.dnd-time-range {
+  font-size: 14px;
+  color: var(--color-primary);
+  cursor: pointer;
 }
 </style>
