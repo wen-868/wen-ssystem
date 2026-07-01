@@ -1,10 +1,22 @@
 import { queryWithTenant, queryOneWithTenant } from "../../shared/db.js";
 import crypto from "crypto";
 
-export async function getConfig(tenantId: string) {
-  const row = await queryOneWithTenant<any>(
-    "SELECT * FROM miniapp_config WHERE tenant_id = ?",
+export async function listConfigs(tenantId: string) {
+  const rows = await queryWithTenant<any>(
+    "SELECT id, platform, app_id AS appId, app_name AS appName, app_icon AS appIcon, status, template_id AS templateId, publish_version AS appVersion, published_at AS publishedAt, created_at AS createdAt, updated_at AS updatedAt FROM miniapp_config WHERE tenant_id = ? ORDER BY platform",
     [tenantId],
+    tenantId
+  );
+  return rows.map((row: any) => ({
+    ...row,
+    appSecret: "***",
+  }));
+}
+
+export async function getConfig(tenantId: string, platform: string = "WECHAT") {
+  const row = await queryOneWithTenant<any>(
+    "SELECT * FROM miniapp_config WHERE tenant_id = ? AND platform = ?",
+    [tenantId, platform],
     tenantId
   );
   if (!row) return null;
@@ -40,10 +52,10 @@ export async function getConfig(tenantId: string) {
   };
 }
 
-export async function saveConfig(tenantId: string, body: any) {
+export async function saveConfig(tenantId: string, platform: string = "WECHAT", body: any) {
   const existing = await queryOneWithTenant<any>(
-    "SELECT id FROM miniapp_config WHERE tenant_id = ?",
-    [tenantId],
+    "SELECT id FROM miniapp_config WHERE tenant_id = ? AND platform = ?",
+    [tenantId, platform],
     tenantId
   );
 
@@ -100,19 +112,20 @@ export async function saveConfig(tenantId: string, body: any) {
     }
 
     if (sets.length > 0) {
-      params.push(tenantId);
+      params.push(tenantId, platform);
       await queryWithTenant(
-        `UPDATE miniapp_config SET ${sets.join(", ")}, updated_at = NOW() WHERE tenant_id = ?`,
+        `UPDATE miniapp_config SET ${sets.join(", ")}, updated_at = NOW() WHERE tenant_id = ? AND platform = ?`,
         params,
         tenantId
       );
     }
   } else {
     await queryWithTenant(
-      `INSERT INTO miniapp_config (tenant_id, app_id, app_secret, app_name, app_description, app_icon, app_version, status, audit_status, contact_name, contact_email, contact_phone, domain_whitelist, business_domain, webview_domain, privacy_url, service_agreement_url, qrcode_url, required_privacy_setting, allow_guest, allow_location, allow_phone, allow_share, allow_subscribe, allow_payment)
-       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+      `INSERT INTO miniapp_config (tenant_id, platform, app_id, app_secret, app_name, app_description, app_icon, app_version, status, audit_status, contact_name, contact_email, contact_phone, domain_whitelist, business_domain, webview_domain, privacy_url, service_agreement_url, qrcode_url, required_privacy_setting, allow_guest, allow_location, allow_phone, allow_share, allow_subscribe, allow_payment)
+       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
       [
         tenantId,
+        platform,
         body.appId || "",
         body.appSecret || "",
         body.appName || "",
@@ -144,10 +157,10 @@ export async function saveConfig(tenantId: string, body: any) {
   return { success: true };
 }
 
-export async function getPrivacySettings(tenantId: string) {
+export async function getPrivacySettings(tenantId: string, platform: string = "WECHAT") {
   const row = await queryOneWithTenant<any>(
-    "SELECT required_privacy_setting AS requiredPrivacySetting, allow_guest AS allowGuest, allow_location AS allowLocation, allow_phone AS allowPhone, allow_share AS allowShare, allow_subscribe AS allowSubscribe, allow_payment AS allowPayment, privacy_url AS privacyUrl, service_agreement_url AS serviceAgreementUrl FROM miniapp_config WHERE tenant_id = ?",
-    [tenantId],
+    "SELECT required_privacy_setting AS requiredPrivacySetting, allow_guest AS allowGuest, allow_location AS allowLocation, allow_phone AS allowPhone, allow_share AS allowShare, allow_subscribe AS allowSubscribe, allow_payment AS allowPayment, privacy_url AS privacyUrl, service_agreement_url AS serviceAgreementUrl FROM miniapp_config WHERE tenant_id = ? AND platform = ?",
+    [tenantId, platform],
     tenantId
   );
   if (!row) return null;
@@ -164,10 +177,10 @@ export async function getPrivacySettings(tenantId: string) {
   };
 }
 
-export async function savePrivacySettings(tenantId: string, body: any) {
+export async function savePrivacySettings(tenantId: string, body: any, platform: string = "WECHAT") {
   const existing = await queryOneWithTenant<any>(
-    "SELECT id FROM miniapp_config WHERE tenant_id = ?",
-    [tenantId],
+    "SELECT id FROM miniapp_config WHERE tenant_id = ? AND platform = ?",
+    [tenantId, platform],
     tenantId
   );
 
@@ -193,19 +206,20 @@ export async function savePrivacySettings(tenantId: string, body: any) {
     if (body.serviceAgreementUrl !== undefined) { sets.push("service_agreement_url = ?"); params.push(body.serviceAgreementUrl); }
 
     if (sets.length > 0) {
-      params.push(tenantId);
+      params.push(tenantId, platform);
       await queryWithTenant(
-        `UPDATE miniapp_config SET ${sets.join(", ")}, updated_at = NOW() WHERE tenant_id = ?`,
+        `UPDATE miniapp_config SET ${sets.join(", ")}, updated_at = NOW() WHERE tenant_id = ? AND platform = ?`,
         params,
         tenantId
       );
     }
   } else {
     await queryWithTenant(
-      `INSERT INTO miniapp_config (tenant_id, required_privacy_setting, allow_guest, allow_location, allow_phone, allow_share, allow_subscribe, allow_payment, privacy_url, service_agreement_url)
-       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+      `INSERT INTO miniapp_config (tenant_id, platform, required_privacy_setting, allow_guest, allow_location, allow_phone, allow_share, allow_subscribe, allow_payment, privacy_url, service_agreement_url)
+       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
       [
         tenantId,
+        platform,
         body.requiredPrivacySetting ? 1 : 0,
         body.allowGuest !== false ? 1 : 0,
         body.allowLocation !== false ? 1 : 0,
@@ -222,10 +236,10 @@ export async function savePrivacySettings(tenantId: string, body: any) {
   return { success: true };
 }
 
-export async function getDomainSettings(tenantId: string) {
+export async function getDomainSettings(tenantId: string, platform: string = "WECHAT") {
   const row = await queryOneWithTenant<any>(
-    "SELECT domain_whitelist AS domainWhitelist, business_domain AS businessDomain, webview_domain AS webviewDomain FROM miniapp_config WHERE tenant_id = ?",
-    [tenantId],
+    "SELECT domain_whitelist AS domainWhitelist, business_domain AS businessDomain, webview_domain AS webviewDomain FROM miniapp_config WHERE tenant_id = ? AND platform = ?",
+    [tenantId, platform],
     tenantId
   );
   if (!row) return { domainWhitelist: [], businessDomain: [], webviewDomain: [] };
@@ -236,10 +250,10 @@ export async function getDomainSettings(tenantId: string) {
   };
 }
 
-export async function saveDomainSettings(tenantId: string, body: any) {
+export async function saveDomainSettings(tenantId: string, body: any, platform: string = "WECHAT") {
   const existing = await queryOneWithTenant<any>(
-    "SELECT id FROM miniapp_config WHERE tenant_id = ?",
-    [tenantId],
+    "SELECT id FROM miniapp_config WHERE tenant_id = ? AND platform = ?",
+    [tenantId, platform],
     tenantId
   );
 
@@ -250,27 +264,27 @@ export async function saveDomainSettings(tenantId: string, body: any) {
     if (body.businessDomain !== undefined) { sets.push("business_domain = ?"); params.push(JSON.stringify(body.businessDomain)); }
     if (body.webviewDomain !== undefined) { sets.push("webview_domain = ?"); params.push(JSON.stringify(body.webviewDomain)); }
     if (sets.length > 0) {
-      params.push(tenantId);
+      params.push(tenantId, platform);
       await queryWithTenant(
-        `UPDATE miniapp_config SET ${sets.join(", ")}, updated_at = NOW() WHERE tenant_id = ?`,
+        `UPDATE miniapp_config SET ${sets.join(", ")}, updated_at = NOW() WHERE tenant_id = ? AND platform = ?`,
         params,
         tenantId
       );
     }
   } else {
     await queryWithTenant(
-      "INSERT INTO miniapp_config (tenant_id, domain_whitelist, business_domain, webview_domain) VALUES (?, ?, ?, ?)",
-      [tenantId, JSON.stringify(body.domainWhitelist || []), JSON.stringify(body.businessDomain || []), JSON.stringify(body.webviewDomain || [])],
+      "INSERT INTO miniapp_config (tenant_id, platform, domain_whitelist, business_domain, webview_domain) VALUES (?, ?, ?, ?, ?)",
+      [tenantId, platform, JSON.stringify(body.domainWhitelist || []), JSON.stringify(body.businessDomain || []), JSON.stringify(body.webviewDomain || [])],
       tenantId
     );
   }
   return { success: true };
 }
 
-export async function getFeatures(tenantId: string) {
+export async function getFeatures(tenantId: string, platform: string = "WECHAT") {
   const row = await queryOneWithTenant<any>(
-    "SELECT app_id AS appId, app_name AS appName, status, template_id AS templateId, allow_guest AS allowGuest, allow_location AS allowLocation, allow_phone AS allowPhone, allow_share AS allowShare, allow_subscribe AS allowSubscribe, allow_payment AS allowPayment FROM miniapp_config WHERE tenant_id = ?",
-    [tenantId],
+    "SELECT app_id AS appId, app_name AS appName, status, template_id AS templateId, allow_guest AS allowGuest, allow_location AS allowLocation, allow_phone AS allowPhone, allow_share AS allowShare, allow_subscribe AS allowSubscribe, allow_payment AS allowPayment FROM miniapp_config WHERE tenant_id = ? AND platform = ?",
+    [tenantId, platform],
     tenantId
   );
   if (!row) return null;
@@ -290,10 +304,10 @@ export async function getFeatures(tenantId: string) {
   };
 }
 
-export async function saveFeatures(tenantId: string, body: any) {
+export async function saveFeatures(tenantId: string, body: any, platform: string = "WECHAT") {
   const existing = await queryOneWithTenant<any>(
-    "SELECT id FROM miniapp_config WHERE tenant_id = ?",
-    [tenantId],
+    "SELECT id FROM miniapp_config WHERE tenant_id = ? AND platform = ?",
+    [tenantId, platform],
     tenantId
   );
   if (existing) {
@@ -314,9 +328,9 @@ export async function saveFeatures(tenantId: string, body: any) {
       }
     }
     if (sets.length > 0) {
-      params.push(tenantId);
+      params.push(tenantId, platform);
       await queryWithTenant(
-        `UPDATE miniapp_config SET ${sets.join(", ")}, updated_at = NOW() WHERE tenant_id = ?`,
+        `UPDATE miniapp_config SET ${sets.join(", ")}, updated_at = NOW() WHERE tenant_id = ? AND platform = ?`,
         params,
         tenantId
       );
@@ -325,10 +339,10 @@ export async function saveFeatures(tenantId: string, body: any) {
   return { success: true };
 }
 
-export async function getAppId(tenantId: string): Promise<string | null> {
+export async function getAppId(tenantId: string, platform: string = "WECHAT"): Promise<string | null> {
   const row = await queryOneWithTenant<any>(
-    "SELECT app_id AS appId FROM miniapp_config WHERE tenant_id = ?",
-    [tenantId],
+    "SELECT app_id AS appId FROM miniapp_config WHERE tenant_id = ? AND platform = ?",
+    [tenantId, platform],
     tenantId
   );
   return row?.appId || null;

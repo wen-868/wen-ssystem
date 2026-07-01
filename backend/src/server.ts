@@ -202,9 +202,9 @@ app.use("/api/admin/operation-logs", requireAuthWithTenant, operationLogRouter);
 app.use("/api/admin/sys-users", requireAuthWithTenant, sysUserRouter);
 app.use("/api/system", systemRouter);
 app.use("/api/admin", requireAuthWithTenant, workbenchRouter);
-app.use("/api/admin/payment-config", requireAuthWithTenant, paymentConfigRouter);
+app.use("/api/admin/payment", requireAuthWithTenant, paymentConfigRouter);
 app.use("/api/admin/miniapp", requireAuthWithTenant, miniappConfigRouter);
-app.use("/api/admin/sync", requireAuthWithTenant, syncRouter);
+app.use("/api/miniapp/sync", requireAuthWithTenant, syncRouter);
 
 app.use(errorHandler);
 

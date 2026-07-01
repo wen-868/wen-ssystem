@@ -9,15 +9,22 @@ const router = Router();
 
 // ==================== Phase B: 小程序配置 ====================
 
-// 获取配置
-router.get("/config", asyncHandler(async (req: any, res: any) => {
-  const result = await configSvc.getConfig(req.tenantId!);
+// 所有平台配置列表
+router.get("/configs", asyncHandler(async (req: any, res: any) => {
+  const result = await configSvc.listConfigs(req.tenantId!);
   res.json(ok(result));
 }));
 
-// 保存配置
-router.put("/config", asyncHandler(async (req: any, res: any) => {
-  const result = await configSvc.saveConfig(req.tenantId!, req.body);
+// 获取指定平台配置
+router.get("/configs/:platform", asyncHandler(async (req: any, res: any) => {
+  const result = await configSvc.getConfig(req.tenantId!, req.params.platform);
+  if (!result) { res.status(404).json({ code: "404", message: "平台配置不存在" }); return; }
+  res.json(ok(result));
+}));
+
+// 保存指定平台配置
+router.put("/configs/:platform", asyncHandler(async (req: any, res: any) => {
+  const result = await configSvc.saveConfig(req.tenantId!, req.params.platform, req.body);
   res.json(ok(result));
 }));
 
@@ -141,7 +148,7 @@ router.post("/publish/audit", asyncHandler(async (req: any, res: any) => {
 }));
 
 // 发布历史
-router.get("/publish/history", asyncHandler(async (req: any, res: any) => {
+router.get("/publish-logs", asyncHandler(async (req: any, res: any) => {
   const page = Number(req.query.page || 1);
   const pageSize = Number(req.query.pageSize || 20);
   const result = await publishSvc.getPublishHistory(req.tenantId!, page, pageSize);

@@ -1,6 +1,33 @@
 import { queryWithTenant } from "../../shared/db.js";
 
 /**
+ * 获取指定时间之后的价格变更列表
+ */
+export async function getChangesSince(tenantId: string, since: string) {
+  const rows = await queryWithTenant<any>(
+    "SELECT id, product_id AS productId, old_price AS oldPrice, new_price AS newPrice, changed_at AS changedAt FROM price_change_log WHERE tenant_id = ? AND changed_at > ? ORDER BY changed_at ASC",
+    [tenantId, since || "1970-01-01"],
+    tenantId
+  );
+  return rows;
+}
+
+/**
+ * 根据 ID 列表批量获取最新价格
+ */
+export async function getPricesByIds(tenantId: string, ids: number[]) {
+  if (!ids || ids.length === 0) return [];
+  const placeholders = ids.map(() => "?").join(",");
+  const rows = await queryWithTenant<any>(
+    `SELECT id AS skuId, spu_id AS spuId, price, cost_price AS costPrice, market_price AS marketPrice
+     FROM sku WHERE tenant_id = ? AND id IN (${placeholders})`,
+    [tenantId, ...ids],
+    tenantId
+  );
+  return rows;
+}
+
+/**
  * 价格同步服务：将商品价格同步到小程序端缓存
  */
 export async function syncPrices(tenantId: string, skuIds?: number[]) {

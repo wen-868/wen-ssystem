@@ -8,6 +8,20 @@ const router = Router();
 
 // ==================== 价格同步 ====================
 
+// 价格变更列表（轮询接口）
+router.get("/check", asyncHandler(async (req: any, res: any) => {
+  const since = req.query.since as string;
+  const result = await priceSyncSvc.getChangesSince(req.tenantId!, since);
+  res.json(ok(result));
+}));
+
+// 最新价格（批量查询）
+router.get("/prices", asyncHandler(async (req: any, res: any) => {
+  const ids = (req.query.ids as string)?.split(",").map(Number) || [];
+  const result = await priceSyncSvc.getPricesByIds(req.tenantId!, ids);
+  res.json(ok(result));
+}));
+
 // 全量同步价格
 router.post("/price", asyncHandler(async (req: any, res: any) => {
   const skuIds = req.body.skuIds || undefined;

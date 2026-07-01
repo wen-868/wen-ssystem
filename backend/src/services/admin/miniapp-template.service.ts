@@ -81,27 +81,27 @@ export async function setDefaultTemplate(tenantId: string, id: number) {
   return { success: true };
 }
 
-export async function applyTemplate(tenantId: string, templateId: number) {
+export async function applyTemplate(tenantId: string, templateId: number, platform: string = "WECHAT") {
   const template = await getTemplateDetail(tenantId, templateId);
   if (!template) throw new Error("模板不存在");
   await queryWithTenant(
-    "UPDATE miniapp_config SET template_id = ?, updated_at = NOW() WHERE tenant_id = ?",
-    [templateId, tenantId],
+    "UPDATE miniapp_config SET template_id = ?, updated_at = NOW() WHERE tenant_id = ? AND platform = ?",
+    [templateId, tenantId, platform],
     tenantId
   );
   return { success: true, templateName: template.name };
 }
 
-export async function getPreviewConfig(tenantId: string) {
+export async function getPreviewConfig(tenantId: string, platform: string = "WECHAT") {
   const [config, template] = await Promise.all([
     queryOneWithTenant<any>(
-      "SELECT app_id AS appId, app_name AS appName, template_id AS templateId, status FROM miniapp_config WHERE tenant_id = ?",
-      [tenantId],
+      "SELECT app_id AS appId, app_name AS appName, template_id AS templateId, status FROM miniapp_config WHERE tenant_id = ? AND platform = ?",
+      [tenantId, platform],
       tenantId
     ),
     queryOneWithTenant<any>(
-      "SELECT t.id, t.name, t.config_json AS configJson FROM miniapp_config c JOIN miniapp_template t ON c.template_id = t.id WHERE c.tenant_id = ?",
-      [tenantId],
+      "SELECT t.id, t.name, t.config_json AS configJson FROM miniapp_config c JOIN miniapp_template t ON c.template_id = t.id WHERE c.tenant_id = ? AND c.platform = ?",
+      [tenantId, platform],
       tenantId
     ),
   ]);

@@ -8,19 +8,19 @@ const router = Router();
 // ==================== 支付渠道配置 ====================
 
 // 获取某个渠道的配置项列表
-router.get("/channel/:provider", asyncHandler(async (req: any, res: any) => {
+router.get("/configs/:provider", asyncHandler(async (req: any, res: any) => {
   const result = await service.getChannelConfig(req.tenantId!, req.params.provider);
   res.json(ok(result));
 }));
 
 // 保存渠道配置
-router.put("/channel/:provider", asyncHandler(async (req: any, res: any) => {
+router.put("/configs/:provider", asyncHandler(async (req: any, res: any) => {
   const result = await service.saveChannelConfig(req.tenantId!, req.params.provider, req.body);
   res.json(ok(result));
 }));
 
 // 检测渠道是否配置完整
-router.get("/channel/:provider/ready", asyncHandler(async (req: any, res: any) => {
+router.get("/configs/:provider/ready", asyncHandler(async (req: any, res: any) => {
   const ready = await service.isProviderReady(req.tenantId!, req.params.provider);
   res.json(ok({ ready }));
 }));
@@ -32,7 +32,7 @@ router.get("/status", asyncHandler(async (req: any, res: any) => {
 }));
 
 // 测试连接
-router.post("/channel/:provider/test", asyncHandler(async (req: any, res: any) => {
+router.post("/configs/:provider/test", asyncHandler(async (req: any, res: any) => {
   const result = await service.testConnection(req.tenantId!, req.params.provider);
   res.json(ok(result));
 }));

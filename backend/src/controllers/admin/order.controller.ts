@@ -10,7 +10,11 @@ export const requirePaymentReady = asyncHandler(async (req: any, res: any, next:
   const provider = req.body.provider || req.query.provider || "wechat_pay";
   const ready = await isProviderReady(req.tenantId!, provider);
   if (!ready) {
-    res.status(400).json({ code: "400", message: `支付渠道 ${provider} 未配置完整，请先完成支付配置` });
+    res.status(400).json({
+      code: "PAYMENT_NOT_CONFIGURED",
+      message: "请先配置微信支付",
+      provider: "wechat_pay",
+    });
     return;
   }
   next();
