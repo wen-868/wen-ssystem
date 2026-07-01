@@ -15,26 +15,26 @@ Phase A 和 Phase B 可以并行开发。Phase C 依赖 Phase B 的页面框架�
 
 ---
 
-## 阿坚 — DB 建表 + 数据迁移
+## 阿坚 — DB 迁移 + 后端全部
+
+### 前置：DB 迁移
 
 执行 SQL 迁移脚本：`docs/sql/migrate_v3_payment_miniapp.sql`
 
 **验收标准：**
-- 5张新表（payment_config / bank_account / miniapp_config / miniapp_template / miniapp_publish_log / price_change_log）全部创建成功
+- 6张新表（payment_config / bank_account / miniapp_config / miniapp_template / miniapp_publish_log / price_change_log）全部创建成功
 - 初始数据（微信支付配置项、支付宝配置项、3套模板）插入成功
 - 无 SQL 语法错误
 
 ---
 
-## 后端任务分配
+### Phase A：支付配置
 
-### 中国白（后端）— Phase A：支付配置
-
-**任务：**
+**文件：**
 
 | # | 文件 | 内容 |
 |---|------|------|
-| 1 | `backend/src/services/admin/payment-config.service.ts` | 新建。实现 PaymentConfigService：getChannelConfig / saveChannelConfig / isProviderReady / testConnection，以及银行账号 CRUD。敏感字段（api_v3_key/private_key/app_secret）使用 AES-256-GCM 加密存储 |
+| 1 | `backend/src/services/admin/payment-config.service.ts` | 新建。PaymentConfigService：getChannelConfig / saveChannelConfig / isProviderReady / testConnection + 银行账号 CRUD。敏感字段（api_v3_key/private_key/app_secret）使用 AES-256-GCM 加密存储 |
 | 2 | `backend/src/routes/payment-config.routes.ts` | 新建。路由注册，所有接口需要 `requireAuthWithTenant` |
 | 3 | `backend/src/shared/wechat-pay.ts` | 改造。构造函数从 `env` 读取改为接收 `config` 对象。新增 `static async fromTenant(tenantId)` 静态工厂方法 |
 | 4 | `backend/src/controllers/admin/order.controller.ts` | 修改。支付触发点增加 `isProviderReady()` 检测，未配置返回 `PAYMENT_NOT_CONFIGURED`（code: 400） |
@@ -62,13 +62,13 @@ POST   /api/admin/payment/bank-accounts/:id/default → 设为默认
 
 ---
 
-### 中国白（后端）— Phase B：小程序配置
+### Phase B：小程序配置
 
-**任务：**
+**文件：**
 
 | # | 文件 | 内容 |
 |---|------|------|
-| 1 | `backend/src/services/admin/miniapp-config.service.ts` | 新建。实现 MiniappConfigService：listConfigs / getConfig / saveConfig / getStatus |
+| 1 | `backend/src/services/admin/miniapp-config.service.ts` | 新建。MiniappConfigService：listConfigs / getConfig / saveConfig / getStatus |
 | 2 | `backend/src/routes/miniapp-config.routes.ts` | 新建。路由注册 |
 | 3 | `backend/src/server.ts` | 修改。注册 `miniapp-config.routes.ts` |
 
@@ -88,13 +88,13 @@ GET  /api/admin/miniapp/templates/:id        → 模板详情
 
 ---
 
-### 中国白（后端）— Phase C：模板系统
+### Phase C：模板系统
 
-**任务：**
+**文件：**
 
 | # | 文件 | 内容 |
 |---|------|------|
-| 1 | `backend/src/services/admin/miniapp-template.service.ts` | 新建。实现 listTemplates / getTemplate |
+| 1 | `backend/src/services/admin/miniapp-template.service.ts` | 新建。listTemplates / getTemplate |
 | 2 | `backend/src/routes/miniapp-config.routes.ts` | 修改。注册模板路由 |
 
 **验收标准：**
@@ -102,13 +102,13 @@ GET  /api/admin/miniapp/templates/:id        → 模板详情
 
 ---
 
-### 中国白（后端）— Phase D：一键发布 + 实时同步
+### Phase D：一键发布 + 实时同步
 
-**任务：**
+**文件：**
 
 | # | 文件 | 内容 |
 |---|------|------|
-| 1 | `backend/src/services/admin/miniapp-publish.service.ts` | 新建。实现发布流程：读取配置 → 配置注入 → 编译 → miniprogram-ci 上传 → 记录日志 |
+| 1 | `backend/src/services/admin/miniapp-publish.service.ts` | 新建。发布流程：读取配置 → 配置注入 → 编译 → miniprogram-ci 上传 → 记录日志 |
 | 2 | `backend/src/services/sync/price-sync.service.ts` | 新建。价格变更事件广播 + price_change_log 写入 |
 | 3 | `backend/src/services/sync/product-sync.service.ts` | 新建。商品上下架事件广播 |
 | 4 | `backend/src/routes/sync.routes.ts` | 新建。同步轮询接口 |
@@ -129,11 +129,11 @@ GET  /api/miniapp/sync/prices?ids=1,2,3       → 最新价格
 
 ---
 
-## 前端任务分配
+## 墨 — 管理后台前端全部
 
-### 阿文（前端）— Phase A：支付配置页面
+### Phase A：支付配置页面
 
-**任务：**
+**文件：**
 
 | # | 文件 | 内容 |
 |---|------|------|
@@ -151,53 +151,50 @@ GET  /api/miniapp/sync/prices?ids=1,2,3       → 最新价格
 - 3个Tab切换正常
 - 凭证保存成功后刷新显示脱敏值
 - 测试连接按钮可触发后端接口
-- 未配置时支付触发弹窗："请先配置微信支付" → [去配置] 跳转
 
 ---
 
-### 阿文（前端）— Phase B：小程序配置页面
+### Phase B：小程序配置页面
 
-**任务：**
+**文件：**
 
 | # | 文件 | 内容 |
 |---|------|------|
-| 1 | `admin-web/src/views/MiniappConfigView.vue` | 新建。独立页面，顶部平台Tab（微信/支付宝/抖音/快手），下方凭证表单 + 模板选择区 + 一键发布按钮 + 发布历史列表 |
+| 1 | `admin-web/src/views/MiniappConfigView.vue` | 新建。顶部平台Tab（微信/支付宝/抖音/快手），下方凭证表单 + 一键发布按钮 + 发布历史列表 |
 | 2 | `admin-web/src/router/index.ts` | 修改。新增 `/system/miniapp` 路由 |
 | 3 | `admin-web/src/layouts/MainLayout.vue` | 修改。设置菜单下增加"小程序配置" |
 | 4 | `admin-web/src/api.ts` | 修改。新增小程序配置相关 API 调用 |
 
 **重要提醒：**
 - 小程序 AppID 处有明显提示："注意：此处填写的是微信「小程序」AppID，来自 mp.weixin.qq.com（公众平台），不是支付 AppID"
-- 模板选择区：3张卡片网格排列，点击选中态高亮
 
 **验收标准：**
 - 平台Tab切换正常
 - 凭证保存后刷新
-- 模板卡片可选中
 
 ---
 
-### 阿文（前端）— Phase C：模板选择 + 一键发布
+### Phase C：模板选择 + 一键发布UI
 
-**任务：**
+**文件：**
 
 | # | 文件 | 内容 |
 |---|------|------|
-| 1 | `admin-web/src/views/MiniappConfigView.vue` | 修改。模板选择区增加卡片大图预览、选中态。一键发布按钮 + 发布中loading + 结果弹窗（成功/失败） |
+| 1 | `admin-web/src/views/MiniappConfigView.vue` | 修改。增加模板选择区域（3张卡片网格 + 选中态 + 大图预览）。一键发布按钮 + 发布中loading + 结果弹窗（成功/失败） |
 | 2 | `admin-web/src/views/MiniappConfigView.vue` | 修改。底部增加发布历史列表（时间/版本/操作/结果） |
 | 3 | `admin-web/src/api.ts` | 修改。新增发布相关 API |
 
 **验收标准：**
+- 模板卡片可选中，选中态高亮
 - 一键发布按钮触发后端发布流程
-- 发布中显示 loading
-- 成功/失败有明确反馈
+- 发布中显示 loading，成功/失败有明确反馈
 - 发布历史列表正常展示
 
 ---
 
-### 阿文（前端）— Phase D：支付检测弹窗（通用组件）
+### Phase D：支付检测弹窗
 
-**任务：**
+**文件：**
 
 | # | 文件 | 内容 |
 |---|------|------|
@@ -211,27 +208,11 @@ GET  /api/miniapp/sync/prices?ids=1,2,3       → 最新价格
 
 ---
 
-## 阿林（小程序端）— Phase D：实时同步客户端
+## 阿澈 — 小程序端
 
-**任务：**
+### Phase D：配置注入模板 + 实时同步
 
-| # | 文件 | 内容 |
-|---|------|------|
-| 1 | `app-mobile/src/utils/sync.js` | 新建。SyncManager：WebSocket 连接 + 断开轮询 + onShow 刷新 |
-| 2 | `app-mobile/src/pages/products/products.vue` | 修改。集成 SyncManager，价格变更时自动刷新 |
-| 3 | `app-mobile/src/pages/home/home.vue` | 修改。集成 SyncManager |
-
-**验收标准：**
-- WebSocket 连接成功
-- 收到价格变更推送后商品列表价格刷新
-- WebSocket 断开后自动切换到轮询（30秒间隔）
-- 页面 onShow 时主动拉取最新价格
-
----
-
-## 阿林（小程序端）— Phase D：配置注入模板
-
-**任务：**
+**配置注入模板：**
 
 | # | 文件 | 内容 |
 |---|------|------|
@@ -268,18 +249,58 @@ __SHOW_BRAND_STORY__    → 是否显示品牌故事
 
 ---
 
+**实时同步客户端：**
+
+| # | 文件 | 内容 |
+|---|------|------|
+| 1 | `app-mobile/src/utils/sync.js` | 新建。SyncManager：WebSocket 连接 + 断开轮询 + onShow 刷新 |
+| 2 | `app-mobile/src/pages/products/products.vue` | 修改。集成 SyncManager，价格变更时自动刷新 |
+| 3 | `app-mobile/src/pages/home/home.vue` | 修改。集成 SyncManager |
+
+**验收标准：**
+- WebSocket 连接成功
+- 收到价格变更推送后商品列表价格刷新
+- WebSocket 断开后自动切换到轮询（30秒间隔）
+- 页面 onShow 时主动拉取最新价格
+
+---
+
+## 苏然 — 测试
+
+### Phase E：联调测试
+
+| # | 内容 |
+|---|------|
+| 1 | 全流程联调：支付配置 → 小程序配置 → 模板选择 → 一键发布 → 价格同步 |
+| 2 | 边界情况：未配置支付/小程序时的各入口提示、密钥脱敏显示、银行账号 CRUD |
+| 3 | 验证实时同步：后台调价 → 小程序端价格实时更新 |
+| 4 | 验证一键发布：配置 → 选择模板 → 发布 → 发布历史 |
+
+---
+
+## 林夕 — UI 设计（按需）
+
+| # | 内容 |
+|---|------|
+| 1 | 支付配置页面设计稿（如需） |
+| 2 | 小程序配置页面设计稿（如需） |
+| 3 | 3套模板预览截图（如需） |
+
+---
+
 ## 汇总
 
-| 成员 | Phase A | Phase B | Phase C | Phase D |
-|------|---------|---------|---------|---------|
-| 阿坚 | DB迁移 | — | — | — |
-| 中国白（后端） | 支付配置服务+路由+WechatPay改造 | 小程序配置服务+路由 | 模板服务+路由 | 发布引擎+同步服务 |
-| 阿文（前端） | 支付配置页面 | 小程序配置页面 | 模板选择+一键发布UI | 支付检测弹窗 |
-| 阿林（小程序） | — | — | — | 实时同步客户端+配置注入模板 |
+| 成员 | Phase A | Phase B | Phase C | Phase D | Phase E |
+|------|---------|---------|---------|---------|---------|
+| 阿坚 | 支付配置服务+路由+WechatPay改造 | 小程序配置服务+路由 | 模板服务+路由 | 发布引擎+同步服务 | — |
+| 墨 | 支付配置页面 | 小程序配置页面 | 模板选择+一键发布UI | 支付检测弹窗 | — |
+| 阿澈 | — | — | — | 配置注入模板+实时同步客户端 | — |
+| 苏然 | — | — | — | — | 联调测试 |
+| 林夕 | — | — | — | — | 设计稿（按需） |
 
 **执行顺序：**
 1. 阿坚先执行 DB 迁移（所有人依赖）
-2. 中国白和阿文可并行开始 Phase A 和 Phase B
-3. 中国白完成 Phase B 后进入 Phase C，阿文完成 Phase B 后进入 Phase C
-4. 中国白和阿林可并行开始 Phase D
-5. 全部完成后联调 Phase E
+2. 阿坚和墨可并行开始 Phase A 和 Phase B
+3. 阿坚和墨完成 Phase B 后进入 Phase C
+4. 阿坚和阿澈可并行开始 Phase D
+5. 全部完成后苏然联调测试 Phase E
