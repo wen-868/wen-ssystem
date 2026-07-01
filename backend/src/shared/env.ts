@@ -1,5 +1,7 @@
 import "dotenv/config";
 
+declare const process: any;
+
 export const env = {
   PORT: Number(process.env.PORT || 8080),
   NODE_ENV: process.env.NODE_ENV || "production",

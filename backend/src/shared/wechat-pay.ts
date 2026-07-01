@@ -2,6 +2,8 @@ import crypto from 'crypto';
 import fs from 'fs';
 import { env } from './env.js';
 
+declare const Buffer: any;
+
 interface WechatPayConfig {
   appId: string;
   mchId: string;
