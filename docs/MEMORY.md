@@ -50,18 +50,18 @@ liquor-inventory-system/
 | 成员 | 职责 | 当前状态 |
 |------|------|---------|
 | 凌舟 | 项目管理、代码审计、任务分配 | — |
-| 林夕 | UI/UX 设计师 | 系统设置 Phase 13 待开始 |
-| 墨 | 管理后台 admin-web 前端 | 系统设置 Phase 13 待开始 |
-| 阿坚 | 后端 API | 系统设置 Phase 13 待开始 |
-| 阿澈 | 商户移动端 merchant-mobile 前端 | 系统设置 Phase 13 待开始 |
-| 苏然 | 测试工程师 / DAO 层 | 系统设置 Phase 13 待开始 |
+| 林夕 | UI/UX 设计师 | 工作总台 Phase 14 待开始 |
+| 墨 | 管理后台 admin-web 前端 | 工作总台 Phase 14 待开始 |
+| 阿坚 | 后端 API | 工作总台 Phase 14 待开始 |
+| 阿澈 | 商户移动端 merchant-mobile 前端 | 工作总台 Phase 14 待开始 |
+| 苏然 | 测试工程师 / DAO 层 | 工作总台 Phase 14 待开始 |
 
 ---
 
 ## 四、开发节奏
 
 1. **按一级模块纵向推进**：一个模块做完再做下一个（设计稿→后端→前端→联调）
-2. **模块顺序**：商品中心 ✅ → 销售管理 ✅ → 采购管理 ✅ → 库存管理 ✅ → 客户管理 ✅ → 财务往来 ✅ → 数据报表 ✅ → 营销中心 ✅ → 即时零售 ✅ → 订单管理 ✅ → 系统设置 ⏳ → 工作总台
+2. **模块顺序**：商品中心 ✅ → 销售管理 ✅ → 采购管理 ✅ → 库存管理 ✅ → 客户管理 ✅ → 财务往来 ✅ → 数据报表 ✅ → 营销中心 ✅ → 即时零售 ✅ → 订单管理 ✅ → 系统设置 ✅ → 工作总台 ⏳
 3. **每轮流程**：任务分解 → 分发 → 林夕出设计稿 → 阿坚后端 → 墨+阿澈前端 → 审计验收 → 合并推送 → 下一轮
 4. **设计稿提前**：林夕的设计稿需提前 1 天交付，避免阻塞前端开发
 5. **验收标准**：对照 `tasks/field-audit-product-center.md` 逐字段验证，无遗漏
@@ -169,7 +169,7 @@ liquor-inventory-system/
 - 阿澈 4项（商户端：订单列表/订单详情/异常处理/售后）
 - 苏然 6项（DAO+测试：7表DAO/聚合测试/路由测试/同步测试/异常测试/前端测试）
 
-### Phase 13 · 系统设置模块（任务已分发）
+### Phase 13 · 系统设置模块（已完成 ✅）
 
 - 8 个二级模块，5个P0（门店管理/员工管理/角色权限/操作日志/参数配置），3个P1（审批流程/数据字典/系统通知），约~385字段
 - 已有基础：门店CRUD（employee.controller/service/routes）、员工CRUD（employee.controller/service）、RBAC角色权限（rbac.routes/controller/service）、操作日志（audit.routes/controller/service）、系统参数配置（sys-config.routes/controller/service）、审批流程（approval.routes/controllers/services）、系统通知（notification.routes/controller/service）
@@ -181,6 +181,19 @@ liquor-inventory-system/
 - 墨 6项（管理后台：门店管理/员工管理/角色权限/操作日志/参数配置/审批流程）
 - 阿澈 4项（商户端：门店信息/员工列表/个人信息/通知）
 - 苏然 6项（DAO+测试：门店/员工/角色/日志/配置/审批）
+
+### Phase 14 · 工作总台模块（任务已分发）
+
+- 5 个二级模块，全部 P0（经营概览~40 / 待办提醒~30 / 快捷入口~20 / 消息通知~20 / 数据看板~35），合计约145字段
+- 已有基础：`admin-web/Dashboard.vue` 基础框架、`report.controller` 基础 getDashboard API、`notification` 表结构已存在、消息通知基础API已存在
+- 管理后台已有：Dashboard.vue（基础经营概览）、FinanceDashboard.vue、MarketingDashboard.vue
+- 商户端已有：HomeView.vue（首页框架）、NotificationView.vue + NotificationDetailView.vue（消息通知页面）
+- 关键缺失：待办提醒聚合API、快捷入口可配置API、完整经营概览聚合、完整数据看板多图表展示
+- 阿坚 4项（后端：经营概览聚合API/待办提醒API/快捷入口配置API/消息通知API）
+- 林夕 4项（设计稿：管理后台工作台/商户端工作台/消息通知/快捷入口）
+- 墨 4项（管理后台：经营概览Dashboard/待办提醒/快捷入口/消息中心 页面）
+- 阿澈 4项（商户端：商户首页Dashboard/待办列表/消息中心/快捷入口 页面）
+- 苏然 4项（测试：Dashboard API测试/待办测试/消息测试/前端页面测试）
 
 ---
 
