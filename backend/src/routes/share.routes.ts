@@ -123,7 +123,8 @@ shareRouter.post("/collections/:token/pay", asyncHandler(async (req, res) => {
 // 微信支付回调
 shareRouter.post("/collections/:token/wx-notify", asyncHandler(async (req, res) => {
   // 微信支付签名验证
-  const { wechatPay } = await import("../shared/wechat-pay.js");
+  const { WechatPay } = await import("../shared/wechat-pay.js");
+  const wechatPay = new WechatPay();
   const headers = req.headers as Record<string, string>;
   const bodyStr = JSON.stringify(req.body);
 
