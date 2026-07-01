@@ -1,0 +1,1129 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>参数配置 — 设计规格文档</title>
+<style>
+:root {
+  --brand: #1677FF;
+  --brand-light: #E6F4FF;
+  --text: #1F1F1F;
+  --text-secondary: #595959;
+  --text-muted: #8C8C8C;
+  --border: #E5E7EB;
+  --bg: #F5F5F5;
+  --white: #FFFFFF;
+  --success: #52C41A;
+  --warning: #FA8C16;
+  --danger: #FF4D4F;
+  --radius: 8px;
+  --shadow: 0 2px 8px rgba(0,0,0,0.08);
+}
+
+* { margin: 0; padding: 0; box-sizing: border-box; }
+
+body {
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'PingFang SC', 'Microsoft YaHei', sans-serif;
+  background: var(--bg);
+  color: var(--text);
+  line-height: 1.6;
+}
+
+/* Document Header */
+.doc-header {
+  background: linear-gradient(135deg, #1677FF 0%, #0958D9 100%);
+  color: #fff;
+  padding: 32px 48px;
+}
+.doc-header h1 {
+  font-size: 24px;
+  font-weight: 600;
+  margin-bottom: 4px;
+}
+.doc-header .doc-meta {
+  font-size: 13px;
+  opacity: 0.85;
+}
+
+/* Content Layout */
+.doc-container {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 32px 48px;
+}
+.doc-section {
+  margin-bottom: 40px;
+}
+.doc-section h2 {
+  font-size: 20px;
+  font-weight: 600;
+  color: var(--text);
+  margin-bottom: 12px;
+  padding-bottom: 8px;
+  border-bottom: 2px solid var(--brand);
+}
+.doc-section h3 {
+  font-size: 16px;
+  font-weight: 600;
+  margin: 24px 0 12px;
+  color: var(--text-secondary);
+}
+.doc-section p {
+  color: var(--text-secondary);
+  font-size: 14px;
+  margin-bottom: 16px;
+}
+
+/* Mockup Area */
+.mockup {
+  background: var(--white);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow);
+  overflow: hidden;
+  margin-bottom: 24px;
+}
+
+/* Mockup Header */
+.mockup-header {
+  background: var(--white);
+  border-bottom: 1px solid var(--border);
+  padding: 0 24px;
+  height: 52px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+.mockup-header .logo {
+  font-size: 16px;
+  font-weight: 700;
+  color: var(--text);
+}
+.mockup-header .logo span {
+  color: var(--brand);
+}
+.mockup-header .header-right {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  font-size: 13px;
+  color: var(--text-secondary);
+}
+.mockup-header .avatar {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  background: var(--brand-light);
+  color: var(--brand);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 13px;
+  font-weight: 600;
+}
+
+/* Mockup Body */
+.mockup-body {
+  display: flex;
+  min-height: 520px;
+}
+
+/* Mockup Sidebar */
+.mockup-sidebar {
+  width: 220px;
+  background: #FAFBFC;
+  border-right: 1px solid var(--border);
+  padding: 16px 0;
+  flex-shrink: 0;
+}
+.mockup-sidebar .menu-group {
+  margin-bottom: 8px;
+}
+.mockup-sidebar .menu-group-title {
+  font-size: 11px;
+  color: var(--text-muted);
+  text-transform: uppercase;
+  padding: 8px 20px 4px;
+  letter-spacing: 0.5px;
+}
+.mockup-sidebar .menu-item {
+  padding: 10px 20px;
+  font-size: 13px;
+  color: var(--text-secondary);
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  transition: background 0.2s;
+  border-left: 3px solid transparent;
+}
+.mockup-sidebar .menu-item:hover {
+  background: #F0F5FF;
+}
+.mockup-sidebar .menu-item.active {
+  background: var(--brand-light);
+  color: var(--brand);
+  border-left-color: var(--brand);
+  font-weight: 600;
+}
+.mockup-sidebar .menu-icon {
+  width: 16px;
+  height: 16px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 14px;
+  color: inherit;
+}
+
+/* Mockup Main */
+.mockup-main {
+  flex: 1;
+  padding: 20px 24px;
+  overflow-y: auto;
+  background: var(--bg);
+}
+.mockup-page-title {
+  font-size: 18px;
+  font-weight: 600;
+  color: var(--text);
+  margin-bottom: 4px;
+}
+.mockup-breadcrumb {
+  font-size: 12px;
+  color: var(--text-muted);
+  margin-bottom: 20px;
+}
+.mockup-breadcrumb span {
+  color: var(--text-secondary);
+}
+
+/* Tabs */
+.mockup-tabs {
+  display: flex;
+  gap: 0;
+  border-bottom: 2px solid var(--border);
+  margin-bottom: 20px;
+}
+.mockup-tabs .tab-item {
+  padding: 10px 20px;
+  font-size: 13px;
+  color: var(--text-secondary);
+  cursor: pointer;
+  border-bottom: 2px solid transparent;
+  margin-bottom: -2px;
+  transition: color 0.2s, border-color 0.2s;
+  font-weight: 500;
+}
+.mockup-tabs .tab-item:hover {
+  color: var(--brand);
+}
+.mockup-tabs .tab-item.active {
+  color: var(--brand);
+  border-bottom-color: var(--brand);
+  font-weight: 600;
+}
+
+/* Config Cards */
+.config-card {
+  background: var(--white);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 20px;
+  margin-bottom: 16px;
+}
+.config-card .card-title {
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--text);
+  margin-bottom: 16px;
+  padding-bottom: 8px;
+  border-bottom: 1px solid var(--bg);
+}
+
+/* Form */
+.form-group {
+  margin-bottom: 16px;
+}
+.form-group:last-child {
+  margin-bottom: 0;
+}
+.form-label {
+  display: block;
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--text);
+  margin-bottom: 6px;
+}
+.form-input {
+  width: 100%;
+  max-width: 400px;
+  height: 36px;
+  padding: 0 12px;
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  font-size: 13px;
+  color: var(--text);
+  background: var(--white);
+  outline: none;
+  transition: border-color 0.2s;
+}
+.form-input:focus {
+  border-color: var(--brand);
+  box-shadow: 0 0 0 2px rgba(22,119,255,0.1);
+}
+.form-input-number {
+  width: 120px;
+}
+
+/* Input with unit */
+.input-with-unit {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.input-with-unit .unit-label {
+  font-size: 13px;
+  color: var(--text-secondary);
+}
+
+/* Toggle Switch */
+.toggle-switch {
+  position: relative;
+  display: inline-block;
+  width: 44px;
+  height: 24px;
+}
+.toggle-switch input {
+  opacity: 0;
+  width: 0;
+  height: 0;
+}
+.toggle-slider {
+  position: absolute;
+  cursor: pointer;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: #D9D9D9;
+  border-radius: 24px;
+  transition: 0.3s;
+}
+.toggle-slider::before {
+  content: '';
+  position: absolute;
+  height: 20px;
+  width: 20px;
+  left: 2px;
+  bottom: 2px;
+  background: white;
+  border-radius: 50%;
+  transition: 0.3s;
+}
+.toggle-switch input:checked + .toggle-slider {
+  background: var(--brand);
+}
+.toggle-switch input:checked + .toggle-slider::before {
+  transform: translateX(20px);
+}
+
+/* Image Upload */
+.image-upload {
+  width: 100px;
+  height: 100px;
+  border: 2px dashed var(--border);
+  border-radius: var(--radius);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  position: relative;
+  overflow: hidden;
+  transition: border-color 0.2s;
+}
+.image-upload:hover {
+  border-color: var(--brand);
+}
+.image-upload .upload-icon {
+  font-size: 24px;
+  color: var(--text-muted);
+}
+.image-upload .upload-text {
+  font-size: 11px;
+  color: var(--text-muted);
+  text-align: center;
+  line-height: 1.4;
+}
+.image-upload.has-preview {
+  border-style: solid;
+  border-color: var(--border);
+}
+.image-upload.has-preview .upload-icon,
+.image-upload.has-preview .upload-text {
+  display: none;
+}
+.image-upload .preview-img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+.image-upload-container {
+  display: flex;
+  align-items: flex-end;
+  gap: 12px;
+}
+.image-upload-container .upload-hint {
+  font-size: 12px;
+  color: var(--text-muted);
+  margin-bottom: 8px;
+}
+
+/* Color Picker */
+.color-picker {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+.color-swatch {
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  background: #1677FF;
+  border: 2px solid var(--border);
+  cursor: pointer;
+  position: relative;
+}
+.color-swatch::after {
+  content: '';
+  position: absolute;
+  inset: 3px;
+  border-radius: 50%;
+  border: 2px solid rgba(255,255,255,0.5);
+}
+.color-palette {
+  display: flex;
+  gap: 6px;
+}
+.color-palette .color-option {
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  cursor: pointer;
+  border: 2px solid transparent;
+  transition: border-color 0.2s;
+}
+.color-palette .color-option:hover {
+  border-color: var(--text);
+}
+.color-palette .color-option.selected {
+  border-color: var(--text);
+  box-shadow: 0 0 0 2px var(--white), 0 0 0 4px var(--brand);
+}
+
+/* Expandable Config */
+.expandable-config {
+  margin-top: 12px;
+  padding: 16px;
+  background: var(--bg);
+  border-radius: var(--radius);
+  border: 1px solid var(--border);
+}
+.expandable-config .form-group {
+  margin-bottom: 12px;
+}
+.expandable-config .form-group:last-child {
+  margin-bottom: 0;
+}
+
+/* Checkbox Group */
+.checkbox-group {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 16px;
+}
+.checkbox-group label {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 13px;
+  color: var(--text);
+  cursor: pointer;
+}
+.checkbox-group input[type="checkbox"] {
+  width: 16px;
+  height: 16px;
+  accent-color: var(--brand);
+}
+
+/* Fixed Action Bar */
+.mockup-action-bar {
+  background: var(--white);
+  border-top: 1px solid var(--border);
+  padding: 12px 24px;
+  display: flex;
+  gap: 12px;
+  justify-content: flex-end;
+}
+.btn-primary {
+  background: var(--brand);
+  color: #fff;
+  border: none;
+  padding: 8px 24px;
+  border-radius: 6px;
+  font-size: 13px;
+  cursor: pointer;
+  font-weight: 500;
+  transition: background 0.2s;
+}
+.btn-primary:hover {
+  background: #0958D9;
+}
+.btn-default {
+  background: var(--white);
+  color: var(--text);
+  border: 1px solid var(--border);
+  padding: 8px 24px;
+  border-radius: 6px;
+  font-size: 13px;
+  cursor: pointer;
+  font-weight: 500;
+  transition: all 0.2s;
+}
+.btn-default:hover {
+  border-color: var(--brand);
+  color: var(--brand);
+}
+
+/* Spec Table */
+.spec-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 13px;
+  background: var(--white);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  overflow: hidden;
+}
+.spec-table thead {
+  background: #FAFBFC;
+}
+.spec-table th {
+  padding: 12px 16px;
+  text-align: left;
+  font-weight: 600;
+  color: var(--text);
+  border-bottom: 1px solid var(--border);
+  font-size: 12px;
+}
+.spec-table td {
+  padding: 12px 16px;
+  border-bottom: 1px solid var(--border);
+  color: var(--text-secondary);
+}
+.spec-table tr:last-child td {
+  border-bottom: none;
+}
+.spec-table .code-tag {
+  display: inline-block;
+  background: var(--brand-light);
+  color: var(--brand);
+  padding: 2px 8px;
+  border-radius: 4px;
+  font-size: 12px;
+  font-family: 'Courier New', monospace;
+}
+
+/* Checklist */
+.checklist {
+  list-style: none;
+  padding: 0;
+}
+.checklist li {
+  padding: 8px 0;
+  font-size: 14px;
+  color: var(--text-secondary);
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  border-bottom: 1px solid var(--border);
+}
+.checklist li:last-child {
+  border-bottom: none;
+}
+.checklist li input[type="checkbox"] {
+  width: 16px;
+  height: 16px;
+  accent-color: var(--brand);
+  flex-shrink: 0;
+  margin-top: 2px;
+}
+
+/* Tag */
+.tag {
+  display: inline-block;
+  padding: 2px 10px;
+  border-radius: 4px;
+  font-size: 12px;
+  font-weight: 500;
+}
+.tag-success { background: #F6FFED; color: var(--success); border: 1px solid #B7EB8F; }
+.tag-warning { background: #FFF7E6; color: var(--warning); border: 1px solid #FFD591; }
+.tag-danger { background: #FFF2F0; color: var(--danger); border: 1px solid #FFCCC7; }
+.tag-info { background: var(--brand-light); color: var(--brand); border: 1px solid #91CAFF; }
+
+/* Stats Row */
+.stats-row {
+  display: flex;
+  gap: 16px;
+  margin-bottom: 20px;
+}
+.stat-card {
+  flex: 1;
+  background: var(--white);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 16px;
+  min-width: 0;
+}
+.stat-card .stat-value {
+  font-size: 24px;
+  font-weight: 700;
+  color: var(--text);
+}
+.stat-card .stat-label {
+  font-size: 12px;
+  color: var(--text-muted);
+  margin-top: 4px;
+}
+
+/* Hidden state for tabs */
+.tab-panel { display: none; }
+.tab-panel.active { display: block; }
+
+/* Code block */
+.code-block {
+  background: #1E293B;
+  color: #E2E8F0;
+  padding: 16px;
+  border-radius: 8px;
+  font-family: 'Courier New', monospace;
+  font-size: 13px;
+  overflow-x: auto;
+  line-height: 1.6;
+}
+</style>
+</head>
+<body>
+
+<!-- Document Header -->
+<header class="doc-header">
+  <h1>参数配置 — 设计规格文档</h1>
+  <div class="doc-meta">版本 v2.0 | 2026-07-01 | 系统管理模块</div>
+</header>
+
+<div class="doc-container">
+
+  <!-- 页面总览 -->
+  <section class="doc-section">
+    <h2>页面总览</h2>
+    <p>系统参数配置功能用于统一管理平台全局业务参数。管理员可通过此页面配置公司信息、订单规则、支付通道、库存策略及通知设置等核心参数。所有配置项按业务域分组为五个Tab页，支持即时保存与重置，变更后实时生效。</p>
+  </section>
+
+  <!-- Mockup -->
+  <section class="doc-section">
+    <h2>界面设计模型</h2>
+
+    <div class="mockup">
+      <!-- Top Navigation -->
+      <div class="mockup-header">
+        <div class="logo">智<span>云</span>管理系统</div>
+        <div class="header-right">
+          <span>通知</span>
+          <span>帮助</span>
+          <div class="avatar">管</div>
+        </div>
+      </div>
+
+      <!-- Body -->
+      <div class="mockup-body">
+        <!-- Sidebar -->
+        <div class="mockup-sidebar">
+          <div class="menu-group">
+            <div class="menu-group-title">系统管理</div>
+            <div class="menu-item active">
+              <span class="menu-icon">[=]</span> 参数配置
+            </div>
+            <div class="menu-item">
+              <span class="menu-icon">[U]</span> 用户管理
+            </div>
+            <div class="menu-item">
+              <span class="menu-icon">[R]</span> 角色管理
+            </div>
+            <div class="menu-item">
+              <span class="menu-icon">[L]</span> 操作日志
+            </div>
+          </div>
+          <div class="menu-group">
+            <div class="menu-group-title">业务管理</div>
+            <div class="menu-item">
+              <span class="menu-icon">[O]</span> 订单管理
+            </div>
+            <div class="menu-item">
+              <span class="menu-icon">[P]</span> 商品管理
+            </div>
+            <div class="menu-item">
+              <span class="menu-icon">[S]</span> 库存管理
+            </div>
+          </div>
+        </div>
+
+        <!-- Main Content -->
+        <div class="mockup-main">
+          <div class="mockup-page-title">参数配置</div>
+          <div class="mockup-breadcrumb">首页 / <span>系统管理</span> / 参数配置</div>
+
+          <!-- Tabs -->
+          <div class="mockup-tabs">
+            <div class="tab-item active">通用配置</div>
+            <div class="tab-item">订单配置</div>
+            <div class="tab-item">支付配置</div>
+            <div class="tab-item">库存配置</div>
+            <div class="tab-item">通知配置</div>
+          </div>
+
+          <!-- Tab Panel 1: 通用配置 -->
+          <div class="tab-panel active" id="tab-general">
+            <div class="config-card">
+              <div class="card-title">基本信息</div>
+              <div class="form-group">
+                <label class="form-label">公司名称</label>
+                <input class="form-input" type="text" value="智云科技有限公司" placeholder="请输入公司名称">
+              </div>
+              <div class="form-group">
+                <label class="form-label">公司Logo</label>
+                <div class="image-upload-container">
+                  <div class="image-upload has-preview">
+                    <div class="preview-img" style="background: linear-gradient(135deg, #1677FF, #0958D9); display: flex; align-items: center; justify-content: center; color: #fff; font-size: 20px; font-weight: 700;">Z</div>
+                  </div>
+                  <div>
+                    <div class="upload-hint">建议尺寸 200x200px<br>支持 PNG/JPG 格式</div>
+                  </div>
+                </div>
+              </div>
+              <div class="form-group">
+                <label class="form-label">联系电话</label>
+                <input class="form-input" type="text" value="400-888-9999" placeholder="请输入联系电话">
+              </div>
+              <div class="form-group">
+                <label class="form-label">系统主题色</label>
+                <div class="color-picker">
+                  <div class="color-swatch" style="background: #1677FF;"></div>
+                  <div class="color-palette">
+                    <div class="color-option selected" style="background: #1677FF;"></div>
+                    <div class="color-option" style="background: #F5222D;"></div>
+                    <div class="color-option" style="background: #FA8C16;"></div>
+                    <div class="color-option" style="background: #52C41A;"></div>
+                    <div class="color-option" style="background: #722ED1;"></div>
+                    <div class="color-option" style="background: #13C2C2;"></div>
+                    <div class="color-option" style="background: #EB2F96;"></div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Tab Panel 2: 订单配置 -->
+          <div class="tab-panel" id="tab-order">
+            <div class="config-card">
+              <div class="card-title">订单参数</div>
+              <div class="form-group">
+                <label class="form-label">自动接单</label>
+                <label class="toggle-switch">
+                  <input type="checkbox" checked>
+                  <span class="toggle-slider"></span>
+                </label>
+              </div>
+              <div class="form-group">
+                <label class="form-label">订单超时时间</label>
+                <div class="input-with-unit">
+                  <input class="form-input form-input-number" type="number" value="30" min="1" max="999">
+                  <span class="unit-label">分钟</span>
+                </div>
+              </div>
+              <div class="form-group">
+                <label class="form-label">订单自动取消时间</label>
+                <div class="input-with-unit">
+                  <input class="form-input form-input-number" type="number" value="120" min="1" max="9999">
+                  <span class="unit-label">分钟</span>
+                </div>
+              </div>
+              <div class="form-group">
+                <label class="form-label">自动确认收货天数</label>
+                <div class="input-with-unit">
+                  <input class="form-input form-input-number" type="number" value="15" min="1" max="365">
+                  <span class="unit-label">天</span>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Tab Panel 3: 支付配置 -->
+          <div class="tab-panel" id="tab-payment">
+            <div class="config-card">
+              <div class="card-title">支付通道</div>
+              <div class="form-group">
+                <label class="form-label">微信支付</label>
+                <div style="display: flex; align-items: center; gap: 12px;">
+                  <label class="toggle-switch">
+                    <input type="checkbox" checked>
+                    <span class="toggle-slider"></span>
+                  </label>
+                  <span style="font-size: 13px; color: var(--success); font-weight: 500;">已启用</span>
+                </div>
+                <div class="expandable-config">
+                  <div class="form-group">
+                    <label class="form-label">AppID</label>
+                    <input class="form-input" type="text" value="wx1234567890abcdef" placeholder="请输入微信AppID">
+                  </div>
+                  <div class="form-group">
+                    <label class="form-label">商户号</label>
+                    <input class="form-input" type="text" value="1234567890" placeholder="请输入商户号">
+                  </div>
+                  <div class="form-group">
+                    <label class="form-label">API密钥</label>
+                    <input class="form-input" type="password" value="••••••••••••••••" placeholder="请输入API密钥">
+                  </div>
+                </div>
+              </div>
+              <div class="form-group">
+                <label class="form-label">支付宝</label>
+                <div style="display: flex; align-items: center; gap: 12px;">
+                  <label class="toggle-switch">
+                    <input type="checkbox" checked>
+                    <span class="toggle-slider"></span>
+                  </label>
+                  <span style="font-size: 13px; color: var(--success); font-weight: 500;">已启用</span>
+                </div>
+                <div class="expandable-config">
+                  <div class="form-group">
+                    <label class="form-label">AppID</label>
+                    <input class="form-input" type="text" value="2021001234567890" placeholder="请输入支付宝AppID">
+                  </div>
+                  <div class="form-group">
+                    <label class="form-label">应用私钥</label>
+                    <input class="form-input" type="password" value="••••••••••••••••" placeholder="请输入应用私钥">
+                  </div>
+                  <div class="form-group">
+                    <label class="form-label">支付宝公钥</label>
+                    <input class="form-input" type="password" value="••••••••••••••••" placeholder="请输入支付宝公钥">
+                  </div>
+                </div>
+              </div>
+              <div class="form-group">
+                <label class="form-label">线下支付</label>
+                <div style="display: flex; align-items: center; gap: 12px;">
+                  <label class="toggle-switch">
+                    <input type="checkbox">
+                    <span class="toggle-slider"></span>
+                  </label>
+                  <span style="font-size: 13px; color: var(--text-muted);">已禁用</span>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Tab Panel 4: 库存配置 -->
+          <div class="tab-panel" id="tab-inventory">
+            <div class="config-card">
+              <div class="card-title">库存策略</div>
+              <div class="form-group">
+                <label class="form-label">低库存预警阈值</label>
+                <div class="input-with-unit">
+                  <input class="form-input form-input-number" type="number" value="10" min="1" max="9999">
+                  <span class="unit-label">件</span>
+                </div>
+              </div>
+              <div class="form-group">
+                <label class="form-label">保质期预警天数</label>
+                <div class="input-with-unit">
+                  <input class="form-input form-input-number" type="number" value="30" min="1" max="365">
+                  <span class="unit-label">天</span>
+                </div>
+              </div>
+              <div class="form-group">
+                <label class="form-label">自动补货</label>
+                <div style="display: flex; align-items: center; gap: 12px;">
+                  <label class="toggle-switch">
+                    <input type="checkbox" checked>
+                    <span class="toggle-slider"></span>
+                  </label>
+                  <span style="font-size: 13px; color: var(--success); font-weight: 500;">已启用</span>
+                </div>
+              </div>
+              <div class="form-group">
+                <label class="form-label">自动补货阈值</label>
+                <div class="input-with-unit">
+                  <input class="form-input form-input-number" type="number" value="20" min="1" max="9999">
+                  <span class="unit-label">件</span>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Tab Panel 5: 通知配置 -->
+          <div class="tab-panel" id="tab-notification">
+            <div class="config-card">
+              <div class="card-title">通知渠道</div>
+              <div class="form-group">
+                <label class="form-label">短信通知</label>
+                <div style="display: flex; align-items: center; gap: 12px;">
+                  <label class="toggle-switch">
+                    <input type="checkbox" checked>
+                    <span class="toggle-slider"></span>
+                  </label>
+                  <span style="font-size: 13px; color: var(--success); font-weight: 500;">已启用</span>
+                </div>
+              </div>
+              <div class="form-group">
+                <label class="form-label">微信通知</label>
+                <div style="display: flex; align-items: center; gap: 12px;">
+                  <label class="toggle-switch">
+                    <input type="checkbox" checked>
+                    <span class="toggle-slider"></span>
+                  </label>
+                  <span style="font-size: 13px; color: var(--success); font-weight: 500;">已启用</span>
+                </div>
+              </div>
+              <div class="form-group">
+                <label class="form-label">站内信</label>
+                <div style="display: flex; align-items: center; gap: 12px;">
+                  <label class="toggle-switch">
+                    <input type="checkbox">
+                    <span class="toggle-slider"></span>
+                  </label>
+                  <span style="font-size: 13px; color: var(--text-muted);">已禁用</span>
+                </div>
+              </div>
+            </div>
+            <div class="config-card">
+              <div class="card-title">通知事件</div>
+              <div class="form-group">
+                <label class="form-label">触发事件</label>
+                <div class="checkbox-group">
+                  <label><input type="checkbox" checked> 订单通知</label>
+                  <label><input type="checkbox" checked> 库存预警</label>
+                  <label><input type="checkbox" checked> 异常告警</label>
+                  <label><input type="checkbox"> 系统公告</label>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Fixed Action Bar -->
+      <div class="mockup-action-bar">
+        <button class="btn-default">重置</button>
+        <button class="btn-primary">保存配置</button>
+      </div>
+    </div>
+  </section>
+
+  <!-- 字段规范表 -->
+  <section class="doc-section">
+    <h2>字段规范</h2>
+    <table class="spec-table">
+      <thead>
+        <tr>
+          <th>配置项</th>
+          <th>字段标识</th>
+          <th>类型</th>
+          <th>所属分组</th>
+          <th>默认值</th>
+          <th>说明</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>公司名称</td>
+          <td><span class="code-tag">company_name</span></td>
+          <td>String</td>
+          <td>通用配置</td>
+          <td>智云科技有限公司</td>
+          <td>系统全局显示的公司名称，最大50字符</td>
+        </tr>
+        <tr>
+          <td>公司Logo</td>
+          <td><span class="code-tag">company_logo</span></td>
+          <td>String(URL)</td>
+          <td>通用配置</td>
+          <td>—</td>
+          <td>图片URL，支持 PNG/JPG，建议 200x200px</td>
+        </tr>
+        <tr>
+          <td>联系电话</td>
+          <td><span class="code-tag">contact_phone</span></td>
+          <td>String</td>
+          <td>通用配置</td>
+          <td>400-888-9999</td>
+          <td>对外公示的联系电话</td>
+        </tr>
+        <tr>
+          <td>系统主题色</td>
+          <td><span class="code-tag">theme_color</span></td>
+          <td>String(Hex)</td>
+          <td>通用配置</td>
+          <td>#1677FF</td>
+          <td>十六进制颜色值，影响全局UI色调</td>
+        </tr>
+        <tr>
+          <td>自动接单</td>
+          <td><span class="code-tag">auto_accept</span></td>
+          <td>Boolean</td>
+          <td>订单配置</td>
+          <td>true</td>
+          <td>开启后新订单自动接单，无需人工确认</td>
+        </tr>
+        <tr>
+          <td>订单超时时间</td>
+          <td><span class="code-tag">order_timeout</span></td>
+          <td>Integer</td>
+          <td>订单配置</td>
+          <td>30</td>
+          <td>单位分钟，超时未支付自动取消</td>
+        </tr>
+        <tr>
+          <td>订单自动取消时间</td>
+          <td><span class="code-tag">auto_cancel_time</span></td>
+          <td>Integer</td>
+          <td>订单配置</td>
+          <td>120</td>
+          <td>单位分钟，已接单但未处理的订单自动取消</td>
+        </tr>
+        <tr>
+          <td>自动确认收货天数</td>
+          <td><span class="code-tag">auto_confirm_days</span></td>
+          <td>Integer</td>
+          <td>订单配置</td>
+          <td>15</td>
+          <td>发货后天数，超时自动确认收货</td>
+        </tr>
+        <tr>
+          <td>微信支付</td>
+          <td><span class="code-tag">wechat_pay.enabled</span></td>
+          <td>Boolean</td>
+          <td>支付配置</td>
+          <td>true</td>
+          <td>开启后需填写 AppID、商户号、API密钥</td>
+        </tr>
+        <tr>
+          <td>支付宝</td>
+          <td><span class="code-tag">alipay.enabled</span></td>
+          <td>Boolean</td>
+          <td>支付配置</td>
+          <td>true</td>
+          <td>开启后需填写 AppID、私钥、公钥</td>
+        </tr>
+        <tr>
+          <td>线下支付</td>
+          <td><span class="code-tag">offline_pay</span></td>
+          <td>Boolean</td>
+          <td>支付配置</td>
+          <td>false</td>
+          <td>开启后支持货到付款等线下支付方式</td>
+        </tr>
+        <tr>
+          <td>低库存预警阈值</td>
+          <td><span class="code-tag">low_stock_threshold</span></td>
+          <td>Integer</td>
+          <td>库存配置</td>
+          <td>10</td>
+          <td>库存低于此数量时触发预警</td>
+        </tr>
+        <tr>
+          <td>保质期预警天数</td>
+          <td><span class="code-tag">expiry_warning_days</span></td>
+          <td>Integer</td>
+          <td>库存配置</td>
+          <td>30</td>
+          <td>距离保质期不足此天数时触发预警</td>
+        </tr>
+        <tr>
+          <td>自动补货</td>
+          <td><span class="code-tag">auto_replenish</span></td>
+          <td>Boolean</td>
+          <td>库存配置</td>
+          <td>true</td>
+          <td>开启后低于阈值自动生成补货单</td>
+        </tr>
+        <tr>
+          <td>自动补货阈值</td>
+          <td><span class="code-tag">replenish_threshold</span></td>
+          <td>Integer</td>
+          <td>库存配置</td>
+          <td>20</td>
+          <td>触发自动补货的库存数量</td>
+        </tr>
+        <tr>
+          <td>短信通知</td>
+          <td><span class="code-tag">notify.sms</span></td>
+          <td>Boolean</td>
+          <td>通知配置</td>
+          <td>true</td>
+          <td>开启后通过短信渠道发送通知</td>
+        </tr>
+        <tr>
+          <td>微信通知</td>
+          <td><span class="code-tag">notify.wechat</span></td>
+          <td>Boolean</td>
+          <td>通知配置</td>
+          <td>true</td>
+          <td>开启后通过微信渠道发送通知</td>
+        </tr>
+        <tr>
+          <td>站内信</td>
+          <td><span class="code-tag">notify.in_app</span></td>
+          <td>Boolean</td>
+          <td>通知配置</td>
+          <td>false</td>
+          <td>开启后通过站内信渠道发送通知</td>
+        </tr>
+        <tr>
+          <td>通知事件</td>
+          <td><span class="code-tag">notify.events</span></td>
+          <td>Array[String]</td>
+          <td>通知配置</td>
+          <td>["订单通知","库存预警","异常告警"]</td>
+          <td>多选，控制哪些事件触发通知</td>
+        </tr>
+      </tbody>
+    </table>
+  </section>
+
+  <!-- 验收标准 -->
+  <section class="doc-section">
+    <h2>验收标准</h2>
+    <ul class="checklist">
+      <li><input type="checkbox"> 页面顶部显示"参数配置"标题，导航面包屑正确显示层级路径</li>
+      <li><input type="checkbox"> 左侧导航树中"参数配置"菜单项高亮为激活状态</li>
+      <li><input type="checkbox"> 五个分组Tab（通用配置/订单配置/支付配置/库存配置/通知配置）可正常切换</li>
+      <li><input type="checkbox"> 通用配置：公司名称输入框正常输入，Logo上传区显示虚线边框和预览图</li>
+      <li><input type="checkbox"> 通用配置：系统主题色选择器展示圆形色块及调色板，点击可切换颜色</li>
+      <li><input type="checkbox"> 订单配置：自动接单开关默认开启，超时时间等数字输入框带单位标签</li>
+      <li><input type="checkbox"> 支付配置：微信支付/支付宝开关开启时展开对应配置项（AppID/商户号/密钥等）</li>
+      <li><input type="checkbox"> 支付配置：线下支付开关关闭时不展开配置项</li>
+      <li><input type="checkbox"> 库存配置：自动补货开启时显示自动补货阈值输入框</li>
+      <li><input type="checkbox"> 通知配置：通知事件多选checkbox组正常工作，至少包含4个事件选项</li>
+      <li><input type="checkbox"> 底部固定操作栏始终可见，包含"保存配置"蓝色主按钮和"重置"按钮</li>
+      <li><input type="checkbox"> 点击"保存配置"按钮后触发保存逻辑，所有配置项值正确提交</li>
+      <li><input type="checkbox"> 点击"重置"按钮后所有配置项恢复为上次保存的值</li>
+      <li><input type="checkbox"> 字段规范表完整列出所有配置项的字段标识、类型、默认值等属性</li>
+    </ul>
+  </section>
+
+</div>
+
+</body>
+</html>

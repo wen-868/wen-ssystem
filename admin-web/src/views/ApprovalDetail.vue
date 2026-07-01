@@ -1,123 +1,227 @@
 <template>
   <div class="page">
-    <el-card>
-      <template #header>
-        <div class="card-header">
-          <span>审批详情</span>
-          <div class="header-actions">
-            <el-button @click="goBack">返回列表</el-button>
-          </div>
-        </div>
+    <PageCard title="审批详情">
+      <template #extra>
+        <el-button @click="router.back()">返回</el-button>
       </template>
 
-      <div v-loading="loading">
-        <template v-if="detail">
-          <el-descriptions :column="2" border style="margin-bottom: 24px">
-            <el-descriptions-item label="审批标题">{{ detail.title }}</el-descriptions-item>
-            <el-descriptions-item label="状态">
-              <el-tag v-if="detail.status === 'PENDING'" type="warning">审批中</el-tag>
-              <el-tag v-else-if="detail.status === 'APPROVED'" type="success">已通过</el-tag>
-              <el-tag v-else-if="detail.status === 'REJECTED'" type="danger">已拒绝</el-tag>
-              <el-tag v-else>{{ detail.status }}</el-tag>
-            </el-descriptions-item>
-            <el-descriptions-item label="申请人">{{ detail.applicant }}</el-descriptions-item>
-            <el-descriptions-item label="提交时间">{{ formatDate(detail.createdAt) }}</el-descriptions-item>
-            <el-descriptions-item label="审批内容" :span="2">{{ detail.content }}</el-descriptions-item>
-          </el-descriptions>
+      <el-descriptions :column="2" border style="margin-bottom: 20px">
+        <el-descriptions-item label="审批编号">{{ detail.approvalNo }}</el-descriptions-item>
+        <el-descriptions-item label="标题">{{ detail.title }}</el-descriptions-item>
+        <el-descriptions-item label="业务类型">
+          <el-tag :type="businessTypeTagType(detail.businessType)">{{ businessTypeLabel(detail.businessType) }}</el-tag>
+        </el-descriptions-item>
+        <el-descriptions-item label="申请人">{{ detail.applicant }}</el-descriptions-item>
+        <el-descriptions-item label="申请时间">{{ formatDate(detail.createdAt) }}</el-descriptions-item>
+        <el-descriptions-item label="状态">
+          <el-tag :type="statusTagType(detail.status)">{{ statusLabel(detail.status) }}</el-tag>
+        </el-descriptions-item>
+      </el-descriptions>
 
-          <h3 style="margin-bottom: 16px; font-size: 16px; font-weight: 600">审批历史</h3>
-          <el-timeline v-if="detail.steps && detail.steps.length">
-            <el-timeline-item
-              v-for="(step, index) in detail.steps"
-              :key="index"
-              :timestamp="formatDate(step.createdAt)"
-              placement="top"
-              :color="step.status === 'APPROVED' ? '#67c23a' : step.status === 'REJECTED' ? '#f56c6c' : '#409eff'"
-            >
-              <el-card shadow="never">
-                <div class="step-header">
-                  <span class="step-approver">{{ step.approver }}</span>
-                  <el-tag v-if="step.status === 'APPROVED'" type="success" size="small">已通过</el-tag>
-                  <el-tag v-else-if="step.status === 'REJECTED'" type="danger" size="small">已拒绝</el-tag>
-                  <el-tag v-else-if="step.status === 'PENDING'" type="warning" size="small">待审批</el-tag>
-                  <el-tag v-else size="small">{{ step.status }}</el-tag>
-                </div>
-                <div v-if="step.comment" class="step-comment">审批意见：{{ step.comment }}</div>
-              </el-card>
-            </el-timeline-item>
-          </el-timeline>
-          <el-empty v-else description="暂无审批记录" :image-size="80" />
+      <el-card shadow="never" style="margin-bottom: 20px">
+        <template #header><span class="card-title">审批内容</span></template>
+        <pre class="content-json">{{ formatJson(detail.approvalContent) }}</pre>
+      </el-card>
+
+      <el-card shadow="never" style="margin-bottom: 20px">
+        <template #header><span class="card-title">审批时间线</span></template>
+        <el-timeline v-if="detail.approvalNodes && detail.approvalNodes.length">
+          <el-timeline-item
+            v-for="(node, index) in detail.approvalNodes"
+            :key="index"
+            :timestamp="formatDate(node.approvalTime)"
+            :color="timelineColor(node.result)"
+            placement="top"
+          >
+            <div class="timeline-node">
+              <div class="node-header">
+                <span class="node-approver">{{ node.approver }}</span>
+                <el-tag :type="nodeResultTagType(node.result)" size="small">{{ nodeResultLabel(node.result) }}</el-tag>
+              </div>
+              <div v-if="node.opinion" class="node-opinion">{{ node.opinion }}</div>
+            </div>
+          </el-timeline-item>
+        </el-timeline>
+        <el-empty v-else description="暂无审批记录" :image-size="60" />
+      </el-card>
+
+      <div class="action-bar">
+        <template v-if="isCurrentApprover && detail.status === 'PENDING'">
+          <el-button type="success" @click="handleApprove">通过</el-button>
+          <el-button type="danger" @click="handleReject">拒绝</el-button>
         </template>
-        <el-empty v-else-if="!loading" description="暂无数据" :image-size="80" />
+        <template v-if="isApplicant && detail.status === 'PENDING'">
+          <el-button type="warning" @click="handleCancel">撤销</el-button>
+        </template>
+        <el-button @click="router.back()">返回</el-button>
       </div>
-    </el-card>
+    </PageCard>
   </div>
 </template>
 
 <script setup lang="ts">
 import { onMounted, ref } from "vue";
 import { useRoute, useRouter } from "vue-router";
-import { ElMessage } from "element-plus";
-import { fetchApprovalInstanceDetail } from "../api";
+import { ElMessage, ElMessageBox } from "element-plus";
+import { fetchApprovalDetail, approveApproval, rejectApproval, cancelApproval } from "../api";
+import PageCard from "../components/PageCard.vue";
 import { formatDate } from "../utils/format";
 
 const route = useRoute();
 const router = useRouter();
 
-const loading = ref(false);
-const detail = ref<any>(null);
+const businessTypeOptions = [
+  { value: "PURCHASE", label: "采购审批" },
+  { value: "SALE", label: "销售审批" },
+  { value: "REFUND", label: "退款审批" },
+  { value: "PRICE_CHANGE", label: "价格变更" },
+  { value: "CREDIT_LIMIT", label: "信用额度" }
+];
 
-function getErrorMessage(error: unknown, fallback: string) {
-  const anyError = error as { response?: { data?: { message?: string } }; message?: string };
-  return anyError?.response?.data?.message || anyError?.message || fallback;
+function businessTypeLabel(v: string) {
+  return businessTypeOptions.find(t => t.value === v)?.label || v;
 }
 
+function businessTypeTagType(v: string) {
+  const map: Record<string, string> = {
+    PURCHASE: "", SALE: "success", REFUND: "warning", PRICE_CHANGE: "", CREDIT_LIMIT: ""
+  };
+  return map[v] || "";
+}
+
+function statusLabel(v: string) {
+  const map: Record<string, string> = {
+    PENDING: "审批中", APPROVED: "已通过", REJECTED: "已拒绝", CANCELLED: "已撤销"
+  };
+  return map[v] || v;
+}
+
+function statusTagType(v: string) {
+  const map: Record<string, string> = {
+    PENDING: "warning", APPROVED: "success", REJECTED: "danger", CANCELLED: "info"
+  };
+  return map[v] || "";
+}
+
+function timelineColor(result: string) {
+  const map: Record<string, string> = {
+    APPROVED: "#67c23a", REJECTED: "#f56c6c", PENDING: "#e6a23c", CANCELLED: "#909399"
+  };
+  return map[result] || "#909399";
+}
+
+function nodeResultLabel(result: string) {
+  const map: Record<string, string> = {
+    APPROVED: "通过", REJECTED: "拒绝", PENDING: "待审批", CANCELLED: "已撤销"
+  };
+  return map[result] || result;
+}
+
+function nodeResultTagType(result: string) {
+  const map: Record<string, string> = {
+    APPROVED: "success", REJECTED: "danger", PENDING: "warning", CANCELLED: "info"
+  };
+  return map[result] || "info";
+}
+
+function formatJson(content: any) {
+  if (!content) return "-";
+  if (typeof content === "string") {
+    try { return JSON.stringify(JSON.parse(content), null, 2); } catch { return content; }
+  }
+  return JSON.stringify(content, null, 2);
+}
+
+const detail = ref<any>({});
+const isCurrentApprover = ref(false);
+const isApplicant = ref(false);
+
 async function loadDetail() {
-  const instanceNo = route.params.instanceNo as string;
-  if (!instanceNo) return;
-  loading.value = true;
+  const id = Number(route.params.id);
+  if (!id) { ElMessage.error("缺少审批ID"); router.back(); return; }
   try {
-    detail.value = await fetchApprovalInstanceDetail(instanceNo);
+    const data = await fetchApprovalDetail(id);
+    detail.value = data;
+    isCurrentApprover.value = data.isCurrentApprover || false;
+    isApplicant.value = data.isApplicant || false;
   } catch (e: any) {
-    ElMessage.error(getErrorMessage(e, "加载审批详情失败"));
-  } finally {
-    loading.value = false;
+    ElMessage.error(e.response?.data?.message || "加载详情失败");
+    router.back();
   }
 }
 
-function goBack() {
-  router.push("/approval");
+async function handleApprove() {
+  try {
+    const { value: opinion } = await ElMessageBox.prompt("请输入审批意见", "审批通过", {
+      confirmButtonText: "确认通过",
+      type: "success"
+    });
+    await approveApproval(detail.value.id, { opinion: opinion || "" });
+    ElMessage.success("审批通过");
+    loadDetail();
+  } catch { /* 取消操作 */ }
 }
 
-onMounted(() => {
-  loadDetail();
-});
+async function handleReject() {
+  try {
+    const { value: opinion } = await ElMessageBox.prompt("请输入拒绝原因", "审批拒绝", {
+      confirmButtonText: "确认拒绝",
+      type: "error"
+    });
+    await rejectApproval(detail.value.id, { opinion: opinion || "" });
+    ElMessage.success("已拒绝");
+    loadDetail();
+  } catch { /* 取消操作 */ }
+}
+
+async function handleCancel() {
+  try { await ElMessageBox.confirm("确定撤销该审批吗？", "确认撤销", { type: "warning" }); } catch { return; }
+  try {
+    await cancelApproval(detail.value.id);
+    ElMessage.success("已撤销");
+    loadDetail();
+  } catch (e: any) { ElMessage.error(e.response?.data?.message || "撤销失败"); }
+}
+
+onMounted(() => { loadDetail(); });
 </script>
 
 <style scoped>
-.page {
-  padding: 0;
+.page { padding: 0; }
+.card-title {
+  font-weight: 600;
+  font-size: 15px;
 }
-.card-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
+.content-json {
+  background: #f5f7fa;
+  padding: 16px;
+  border-radius: 4px;
+  font-size: 13px;
+  line-height: 1.6;
+  white-space: pre-wrap;
+  word-break: break-all;
+  margin: 0;
 }
-.header-actions {
-  display: flex;
-  align-items: center;
+.timeline-node {
+  padding-bottom: 4px;
 }
-.step-header {
+.node-header {
   display: flex;
   align-items: center;
   gap: 8px;
 }
-.step-approver {
-  font-weight: 600;
+.node-approver {
+  font-weight: 500;
 }
-.step-comment {
-  margin-top: 8px;
-  color: var(--text-secondary);
+.node-opinion {
+  margin-top: 6px;
+  color: #606266;
   font-size: 13px;
+}
+.action-bar {
+  display: flex;
+  gap: 12px;
+  justify-content: flex-end;
+  padding-top: 8px;
 }
 </style>

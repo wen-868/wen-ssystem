@@ -79,6 +79,9 @@ import { paymentNewRouter } from "./routes/payment-new.routes.js";
 import { receivableRouter } from "./routes/receivable.routes.js";
 import { expenseRouter } from "./routes/expense.routes.js";
 import { reconciliationRouter } from "./routes/reconciliation.routes.js";
+import { operationLogRouter } from "./routes/operation-log.routes.js";
+import { sysUserRouter } from "./routes/sys-user.routes.js";
+import { systemRouter } from "./routes/system.routes.js";
 
 const app = express();
 
@@ -190,6 +193,9 @@ app.use("/api/admin/payments-new", requireAuthWithTenant, paymentNewRouter);
 app.use("/api/admin/receivables", requireAuthWithTenant, receivableRouter);
 app.use("/api/admin/expenses", requireAuthWithTenant, expenseRouter);
 app.use("/api/admin/reconciliation", requireAuthWithTenant, reconciliationRouter);
+app.use("/api/admin/operation-logs", requireAuthWithTenant, operationLogRouter);
+app.use("/api/admin/sys-users", requireAuthWithTenant, sysUserRouter);
+app.use("/api/system", systemRouter);
 
 app.use(errorHandler);
 

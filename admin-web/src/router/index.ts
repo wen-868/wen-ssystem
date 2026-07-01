@@ -154,7 +154,11 @@ const routes = [
       { path: "stores", name: "Stores", component: () => import("../views/StoresView.vue"), meta: { roles: ["BOSS"] } },
       { path: "system/roles", name: "SystemRoles", component: () => import("../views/SystemRoles.vue"), meta: { roles: ["BOSS"] } },
       { path: "audit-log", name: "AuditLog", component: () => import("../views/AuditLogView.vue"), meta: { roles: ["BOSS"] } },
-      { path: "system", name: "System", component: () => import("../views/System.vue"), meta: { roles: ["BOSS"] } }
+      { path: "system", name: "System", component: () => import("../views/System.vue"), meta: { roles: ["BOSS"] } },
+      { path: "system/config", name: "SystemConfig", component: () => import("../views/SystemConfigView.vue"), meta: { roles: ["BOSS"] } },
+      { path: "system/approval/rules", name: "ApprovalRules", component: () => import("../views/ApprovalRules.vue"), meta: { roles: ["BOSS"] } },
+      { path: "system/approval/detail/:id", name: "ApprovalDetail", component: () => import("../views/ApprovalDetail.vue"), meta: { roles: ["BOSS"] } },
+      { path: "system/approval/my", name: "MyApprovals", component: () => import("../views/MyApprovals.vue"), meta: { roles: ["BOSS"] } }
     ]
   },
   { path: "/:pathMatch(.*)*", name: "NotFound", component: NotFound, meta: { requiresAuth: false } }

@@ -2377,3 +2377,100 @@ export function createOrderAftersale(data: {
 }) {
   return api.post('/admin/order-aftersale/create', data)
 }
+
+/* ========== Phase 13: 系统设置 ========== */
+
+export interface StoreDetailRecord {
+  id: number
+  storeCode: string
+  name: string
+  address: string
+  contact: string
+  phone: string
+  deliveryRadius: number
+  businessStatus: string
+  businessHours: string
+  wechatMerchantName: string
+  latitude: number
+  longitude: number
+  createdAt: string
+}
+
+export interface EmployeeDetailRecord {
+  staffId: number
+  username: string
+  realName: string
+  mobile: string
+  role: string
+  roleName: string
+  storeId: number
+  storeName: string
+  position: string
+  status: number
+  hireDate: string
+  createdAt: string
+}
+
+export interface NotificationItem {
+  id: number
+  type: string
+  title: string
+  content: string
+  summary: string
+  isRead: boolean
+  relatedId: string
+  relatedType: string
+  createdAt: string
+}
+
+export interface NotificationDetail extends NotificationItem {
+  fullContent: string
+  relatedLink: string
+}
+
+export function fetchStoreDetail(id: number) {
+  return api.get(`/admin/system/stores/${id}`)
+}
+
+export function fetchEmployeeDetail(staffId: number) {
+  return api.get(`/admin/system/employees/${staffId}`)
+}
+
+export function fetchStoreProfile() {
+  return api.get('/store/me')
+}
+
+export function updateUserProfile(data: {
+  realName?: string
+  mobile?: string
+  avatar?: string
+}) {
+  return api.put('/store/me', data)
+}
+
+export function changePassword(data: {
+  oldPassword: string
+  newPassword: string
+}) {
+  return api.post('/store/auth/change-password', data)
+}
+
+export function fetchNotifications(params: {
+  page?: number
+  pageSize?: number
+  type?: string
+}) {
+  return api.get('/miniapp/notifications', { params })
+}
+
+export function fetchNotificationUnreadCount() {
+  return api.get('/miniapp/notifications/unread-count')
+}
+
+export function markNotificationRead(id: number) {
+  return api.put(`/miniapp/notifications/${id}/read`)
+}
+
+export function markAllNotificationsRead() {
+  return api.post('/miniapp/notifications/read-all')
+}

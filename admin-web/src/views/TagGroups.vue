@@ -2,17 +2,21 @@
   <div class="page">
     <PageCard title="标签分组管理">
       <template #extra>
-        <el-button type="primary" @click="openTagGroupDialog()">新增标签分组</el-button>
-        <el-button @click="loadData">刷新</el-button>
+        <el-button type="primary" @click="openGroupDialog()">新增分组</el-button>
+        <el-button @click="loadAll">刷新</el-button>
       </template>
 
-      <el-tabs v-model="activeTab" @tab-change="onTabChange">
-        <el-tab-pane v-for="group in tagGroups" :key="group.value" :label="group.label" :name="group.value">
-          <div class="group-header">
-            <span class="group-desc">共 {{ groupTags.length }} 个标签</span>
-            <el-button type="primary" size="small" @click="openTagDialog()">新增标签</el-button>
+      <el-tabs v-model="activeTab" @tab-change="onTabChange" type="card" closable @tab-remove="handleTabRemove">
+        <el-tab-pane v-for="g in tagGroups" :key="g.groupCode" :label="g.groupName" :name="g.groupCode" :closable="false">
+          <div class="group-meta">
+            <span class="meta-desc">{{ g.description || '暂无描述' }}</span>
+            <div class="meta-actions">
+              <el-button size="small" @click="openGroupDialog(g)">编辑分组</el-button>
+              <el-button size="small" type="primary" @click="openTagDialog()">新增标签</el-button>
+            </div>
           </div>
           <el-table :data="groupTags" v-loading="tagLoading" stripe>
+            <el-table-column type="index" label="#" width="60" align="center" />
             <el-table-column prop="name" label="标签名称" min-width="160" />
             <el-table-column prop="sortNo" label="排序" width="80" align="center" />
             <el-table-column prop="status" label="状态" width="80" align="center">
@@ -22,12 +26,16 @@
                 </el-tag>
               </template>
             </el-table-column>
+            <el-table-column prop="remark" label="备注" min-width="160" show-overflow-tooltip />
             <el-table-column prop="createdAt" label="创建时间" width="160">
               <template #default="{ row }">{{ formatDate(row.createdAt) }}</template>
             </el-table-column>
-            <el-table-column label="操作" width="140" fixed="right">
+            <el-table-column label="操作" width="160" fixed="right">
               <template #default="{ row }">
                 <el-button size="small" link type="primary" @click="openTagDialog(row)">编辑</el-button>
+                <el-button size="small" link type="success" @click="toggleTagStatus(row)">
+                  {{ row.status === 'active' ? '停用' : '启用' }}
+                </el-button>
                 <el-popconfirm title="确定删除？" @confirm="deleteTagItem(row.id)">
                   <template #reference>
                     <el-button size="small" link type="danger">删除</el-button>
@@ -36,26 +44,42 @@
               </template>
             </el-table-column>
           </el-table>
+          <el-pagination
+            class="pagination"
+            v-model:current-page="tagPage"
+            v-model:page-size="tagPageSize"
+            :total="tagTotal"
+            :page-sizes="[10, 20, 50, 100]"
+            layout="total, sizes, prev, pager, next, jumper"
+            @size-change="loadTags"
+            @current-change="loadTags"
+          />
         </el-tab-pane>
       </el-tabs>
     </PageCard>
 
     <!-- 标签弹窗 -->
-    <el-dialog v-model="tagDialogVisible" :title="editingTag ? '编辑标签' : '新增标签'" width="450px">
-      <el-form ref="tagFormRef" :model="tagForm" label-width="80px">
-        <el-form-item label="标签名称" prop="name">
-          <el-input v-model="tagForm.name" placeholder="请输入标签名称" />
+    <el-dialog v-model="tagDialogVisible" :title="editingTag ? '编辑标签' : '新增标签'" width="480px">
+      <el-form ref="tagFormRef" :model="tagForm" label-width="90px">
+        <el-form-item label="标签名称" prop="name" required>
+          <el-input v-model="tagForm.name" placeholder="请输入标签名称" maxlength="50" show-word-limit />
         </el-form-item>
-        <el-form-item label="标签类型" prop="tagType">
+        <el-form-item label="所属分组" prop="tagType" required>
           <el-select v-model="tagForm.tagType" :disabled="!!editingTag" style="width: 100%">
-            <el-option v-for="g in tagGroups" :key="g.value" :label="g.label" :value="g.value" />
+            <el-option v-for="g in tagGroups" :key="g.groupCode" :label="g.groupName" :value="g.groupCode" />
           </el-select>
         </el-form-item>
         <el-form-item label="排序">
-          <el-input-number v-model="tagForm.sortNo" :min="0" style="width: 100%" />
+          <el-input-number v-model="tagForm.sortNo" :min="0" :max="999" style="width: 100%" />
+        </el-form-item>
+        <el-form-item label="状态">
+          <el-radio-group v-model="tagForm.status">
+            <el-radio value="active">启用</el-radio>
+            <el-radio value="inactive">停用</el-radio>
+          </el-radio-group>
         </el-form-item>
         <el-form-item label="备注">
-          <el-input v-model="tagForm.remark" type="textarea" :rows="2" />
+          <el-input v-model="tagForm.remark" type="textarea" :rows="3" maxlength="255" show-word-limit />
         </el-form-item>
       </el-form>
       <template #footer>
@@ -64,14 +88,26 @@
       </template>
     </el-dialog>
 
-    <!-- 标签分组弹窗（管理 tag_type 元数据） -->
-    <el-dialog v-model="groupDialogVisible" :title="editingGroup ? '编辑分组' : '新增标签分组'" width="420px">
-      <el-form ref="groupFormRef" :model="groupForm" label-width="80px">
-        <el-form-item label="分组标识" prop="value">
-          <el-input v-model="groupForm.value" placeholder="如: aroma" :disabled="!!editingGroup" />
+    <!-- 分组弹窗 -->
+    <el-dialog v-model="groupDialogVisible" :title="editingGroup ? '编辑分组' : '新增标签分组'" width="480px">
+      <el-form ref="groupFormRef" :model="groupForm" label-width="90px">
+        <el-form-item label="分组编码" prop="groupCode" required>
+          <el-input v-model="groupForm.groupCode" placeholder="如: aroma" :disabled="!!editingGroup" />
         </el-form-item>
-        <el-form-item label="分组名称" prop="label">
-          <el-input v-model="groupForm.label" placeholder="如: 香型" />
+        <el-form-item label="分组名称" prop="groupName" required>
+          <el-input v-model="groupForm.groupName" placeholder="如: 香型" maxlength="50" show-word-limit />
+        </el-form-item>
+        <el-form-item label="排序">
+          <el-input-number v-model="groupForm.sortNo" :min="0" :max="999" style="width: 100%" />
+        </el-form-item>
+        <el-form-item label="状态">
+          <el-radio-group v-model="groupForm.status">
+            <el-radio value="active">启用</el-radio>
+            <el-radio value="inactive">停用</el-radio>
+          </el-radio-group>
+        </el-form-item>
+        <el-form-item label="描述">
+          <el-input v-model="groupForm.description" type="textarea" :rows="3" maxlength="255" show-word-limit />
         </el-form-item>
       </el-form>
       <template #footer>
@@ -87,7 +123,10 @@ import { ref, reactive, onMounted } from "vue";
 import { ElMessage } from "element-plus";
 import PageCard from "../components/PageCard.vue";
 import { formatDate } from "../utils/format";
-import { api } from "../api";
+import {
+  fetchProductTagGroups, createProductTagGroup, updateProductTagGroup, deleteProductTagGroup,
+  fetchProductTags, createProductTag, updateProductTag, deleteProductTag
+} from "../api";
 
 const activeTab = ref("");
 const tagLoading = ref(false);
@@ -97,46 +136,59 @@ const tagDialogVisible = ref(false);
 const groupDialogVisible = ref(false);
 const editingTag = ref<any>(null);
 const editingGroup = ref<any>(null);
-const allTags = ref<any[]>([]);
-
-const TAG_TYPE_LABELS: Record<string, string> = {
-  aroma: "香型", alcohol_level: "度数段", region: "产区", scene: "场景", vintage: "年份"
-};
-
-const tagGroups = ref<{ value: string; label: string }[]>([
-  { value: "aroma", label: "香型" },
-  { value: "alcohol_level", label: "度数段" },
-  { value: "region", label: "产区" },
-  { value: "scene", label: "场景" },
-  { value: "vintage", label: "年份" }
-]);
-
-const tagForm = reactive({ name: "", tagType: "", sortNo: 0, remark: "" });
-const groupForm = reactive({ value: "", label: "" });
-
+const tagGroups = ref<any[]>([]);
 const groupTags = ref<any[]>([]);
+const tagPage = ref(1);
+const tagPageSize = ref(20);
+const tagTotal = ref(0);
 
-async function loadData() {
+const tagForm = reactive({ name: "", tagType: "", sortNo: 0, status: "active", remark: "" });
+const groupForm = reactive({ groupCode: "", groupName: "", sortNo: 0, status: "active", description: "" });
+
+async function loadGroups() {
+  try {
+    const list = await fetchProductTagGroups() || [];
+    tagGroups.value = list;
+    if (!activeTab.value && list.length > 0) {
+      activeTab.value = list[0].groupCode;
+    }
+  } catch (e: any) {
+    ElMessage.error(e.response?.data?.message || "加载分组失败");
+  }
+}
+
+async function loadTags() {
+  if (!activeTab.value) return;
   tagLoading.value = true;
   try {
-    const { data } = await api.get("/admin/product-tags", { params: { pageSize: 999 } });
-    allTags.value = (data.data?.records || data.data || []);
-    if (!activeTab.value && tagGroups.value.length > 0) {
-      activeTab.value = tagGroups.value[0].value;
+    const res: any = await fetchProductTags({
+      tagType: activeTab.value, page: tagPage.value, pageSize: tagPageSize.value
+    });
+    if (res && res.records !== undefined) {
+      groupTags.value = res.records;
+      tagTotal.value = res.total;
+    } else {
+      groupTags.value = res || [];
+      tagTotal.value = (res || []).length;
     }
-    filterTags();
-  } catch {
-    ElMessage.error("加载标签失败");
+  } catch (e: any) {
+    ElMessage.error(e.response?.data?.message || "加载标签失败");
   } finally {
     tagLoading.value = false;
   }
 }
 
-function filterTags() {
-  groupTags.value = allTags.value.filter((t: any) => t.tagType === activeTab.value);
+async function loadAll() {
+  await loadGroups();
+  await loadTags();
 }
 
-function onTabChange() { filterTags(); }
+function onTabChange() {
+  tagPage.value = 1;
+  loadTags();
+}
+
+function handleTabRemove() { /* closable false so not used */ }
 
 function openTagDialog(row?: any) {
   editingTag.value = row || null;
@@ -144,11 +196,13 @@ function openTagDialog(row?: any) {
     tagForm.name = row.name;
     tagForm.tagType = row.tagType;
     tagForm.sortNo = row.sortNo || 0;
+    tagForm.status = row.status || "active";
     tagForm.remark = row.remark || "";
   } else {
     tagForm.name = "";
     tagForm.tagType = activeTab.value;
     tagForm.sortNo = 0;
+    tagForm.status = "active";
     tagForm.remark = "";
   }
   tagDialogVisible.value = true;
@@ -156,24 +210,24 @@ function openTagDialog(row?: any) {
 
 async function handleTagSubmit() {
   if (!tagForm.name || !tagForm.tagType) {
-    ElMessage.warning("标签名称和类型不能为空");
+    ElMessage.warning("标签名称和所属分组不能为空");
     return;
   }
   tagSubmitLoading.value = true;
   try {
     if (editingTag.value) {
-      await api.put(`/admin/product-tags/${editingTag.value.id}`, {
+      await updateProductTag(editingTag.value.id, {
         name: tagForm.name, tagType: tagForm.tagType, sortNo: tagForm.sortNo, remark: tagForm.remark
       });
       ElMessage.success("更新成功");
     } else {
-      await api.post("/admin/product-tags", {
+      await createProductTag({
         name: tagForm.name, tagType: tagForm.tagType, sortNo: tagForm.sortNo, remark: tagForm.remark
       });
       ElMessage.success("创建成功");
     }
     tagDialogVisible.value = false;
-    loadData();
+    loadTags();
   } catch (e: any) {
     ElMessage.error(e.response?.data?.message || "保存失败");
   } finally {
@@ -181,54 +235,87 @@ async function handleTagSubmit() {
   }
 }
 
+async function toggleTagStatus(row: any) {
+  const nextStatus = row.status === "active" ? "inactive" : "active";
+  try {
+    await updateProductTag(row.id, { status: nextStatus } as any);
+    ElMessage.success("操作成功");
+    loadTags();
+  } catch (e: any) {
+    ElMessage.error(e.response?.data?.message || "操作失败");
+  }
+}
+
 async function deleteTagItem(id: number) {
   try {
-    await api.delete(`/admin/product-tags/${id}`);
+    await deleteProductTag(id);
     ElMessage.success("删除成功");
-    loadData();
+    loadTags();
   } catch (e: any) {
     ElMessage.error(e.response?.data?.message || "删除失败");
   }
 }
 
-function openTagGroupDialog(row?: any) {
+function openGroupDialog(row?: any) {
   editingGroup.value = row || null;
   if (row) {
-    groupForm.value = row.value;
-    groupForm.label = row.label;
+    groupForm.groupCode = row.groupCode;
+    groupForm.groupName = row.groupName;
+    groupForm.sortNo = row.sortNo || 0;
+    groupForm.status = row.status || "active";
+    groupForm.description = row.description || "";
   } else {
-    groupForm.value = "";
-    groupForm.label = "";
+    groupForm.groupCode = "";
+    groupForm.groupName = "";
+    groupForm.sortNo = 0;
+    groupForm.status = "active";
+    groupForm.description = "";
   }
   groupDialogVisible.value = true;
 }
 
 async function handleGroupSubmit() {
-  if (!groupForm.value || !groupForm.label) {
-    ElMessage.warning("分组标识和名称不能为空");
+  if (!groupForm.groupCode || !groupForm.groupName) {
+    ElMessage.warning("分组编码和名称不能为空");
     return;
   }
   groupSubmitLoading.value = true;
   try {
     if (editingGroup.value) {
-      const idx = tagGroups.value.findIndex(g => g.value === editingGroup.value.value);
-      if (idx >= 0) {
-        tagGroups.value[idx] = { ...groupForm };
-      }
+      await updateProductTagGroup(editingGroup.value.id, {
+        groupName: groupForm.groupName, sortNo: groupForm.sortNo, status: groupForm.status, description: groupForm.description
+      });
+      ElMessage.success("更新成功");
     } else {
-      tagGroups.value.push({ ...groupForm });
+      await createProductTagGroup({
+        groupCode: groupForm.groupCode, groupName: groupForm.groupName,
+        sortNo: groupForm.sortNo, description: groupForm.description
+      });
+      ElMessage.success("创建成功");
     }
-    ElMessage.success("保存成功");
     groupDialogVisible.value = false;
+    loadAll();
+  } catch (e: any) {
+    ElMessage.error(e.response?.data?.message || "保存失败");
   } finally {
     groupSubmitLoading.value = false;
   }
 }
 
-onMounted(() => { loadData(); });
+onMounted(() => { loadAll(); });
 </script>
 
 <style scoped>
-.group-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; }
-.group-desc { color: #909399; font-size: 13px; }
+.group-meta {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 12px;
+  padding: 8px 12px;
+  background: #f5f7fa;
+  border-radius: 6px;
+}
+.meta-desc { color: #909399; font-size: 13px; }
+.meta-actions { display: flex; gap: 8px; }
+.pagination { margin-top: 16px; display: flex; justify-content: flex-end; }
 </style>

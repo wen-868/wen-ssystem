@@ -55,7 +55,7 @@ export async function createProduct(payload: unknown) {
 }
 
 export async function fetchStores() {
-  const { data } = await api.get("/admin/stores");
+  const { data } = await api.get("/admin/system/stores");
   return data.data;
 }
 
@@ -85,12 +85,12 @@ export async function fetchMemberPriceHistory(memberId: number, skuId: number) {
 }
 
 export async function createStore(payload: { code: string; name: string; address?: string; phone?: string }) {
-  const { data } = await api.post("/admin/stores", payload);
+  const { data } = await api.post("/admin/system/stores", payload);
   return data.data;
 }
 
 export function fetchStoreDetail(id: number) {
-  return api.get(`/admin/stores/${id}`)
+  return api.get(`/admin/system/stores/${id}`)
 }
 
 export function updateStore(id: number, data: {
@@ -100,17 +100,25 @@ export function updateStore(id: number, data: {
   phone?: string
   deliveryRadius?: number
   businessStatus?: string
+  openTime?: string
+  closeTime?: string
+  lng?: string
+  lat?: string
+  wxHeadImg?: string
   miniappAppid?: string
   wxMerchantName?: string
   wxServicePhone?: string
-  wxHeadImg?: string
   wxQrcodeUrl?: string
 }) {
-  return api.patch(`/admin/stores/${id}`, data)
+  return api.put(`/admin/system/stores/${id}`, data)
+}
+
+export function updateStoreStatus(id: number, status: string) {
+  return api.patch(`/admin/system/stores/${id}/status`, { status })
 }
 
 export function fetchWxInfo(storeId: number) {
-  return api.post(`/admin/stores/${storeId}/fetch-wx-info`)
+  return api.post(`/admin/system/stores/${storeId}/wx-fetch`)
 }
 
 export async function updateProductPrice(skuId: number, payload: { retailPrice?: number; wholesalePrice?: number; miniappPrice?: number; storePrice?: number; costPrice?: number }) {
@@ -528,6 +536,48 @@ export async function updateStaff(id: number, payload: { username?: string; real
 
 export async function toggleStaffStatus(id: number, status: number) {
   const { data } = await api.patch(`/admin/staff/${id}/status`, { status });
+  return data.data;
+}
+
+// ==================== Employee Management APIs (system) ====================
+export async function fetchEmployees(params?: { keyword?: string; storeId?: number; roleId?: number; page?: number; pageSize?: number }) {
+  const { data } = await api.get("/admin/system/employees", { params: { page: 1, pageSize: 20, ...params } });
+  return data.data;
+}
+
+export async function fetchEmployeeDetail(id: number) {
+  const { data } = await api.get(`/admin/system/employees/${id}`);
+  return data.data;
+}
+
+export async function createEmployee(payload: { username: string; realName: string; mobile: string; staffNo?: string; department?: string; role?: string; storeId?: number }) {
+  const { data } = await api.post("/admin/system/employees", payload);
+  return data.data;
+}
+
+export async function updateEmployee(id: number, payload: { username?: string; realName?: string; mobile?: string; staffNo?: string; department?: string; role?: string; storeId?: number }) {
+  const { data } = await api.put(`/admin/system/employees/${id}`, payload);
+  return data.data;
+}
+
+export async function toggleEmployeeStatus(id: number, status: number) {
+  const { data } = await api.patch(`/admin/system/employees/${id}/status`, { status });
+  return data.data;
+}
+
+export async function resetEmployeePassword(id: number, payload: { newPassword: string }) {
+  const { data } = await api.post(`/admin/system/employees/${id}/reset-password`, payload);
+  return data.data;
+}
+
+// ==================== System APIs ====================
+export async function fetchSystemRoles() {
+  const { data } = await api.get("/admin/system/roles");
+  return data.data;
+}
+
+export async function fetchSystemStores() {
+  const { data } = await api.get("/admin/system/stores");
   return data.data;
 }
 
@@ -1039,12 +1089,16 @@ export async function calculatePromotion(payload: unknown) {
 }
 
 // ==================== Audit Log APIs ====================
-export async function fetchAuditLogs(params?: { page?: number; pageSize?: number; userId?: number; action?: string; resourceType?: string; dateStart?: string; dateEnd?: string }) {
-  const { data } = await api.get("/admin/audit-logs", { params: { page: 1, pageSize: 20, ...params } });
+export async function fetchAuditLogs(params?: { page?: number; pageSize?: number; userId?: number; action?: string; resourceType?: string; dateStart?: string; dateEnd?: string; ip?: string; userName?: string }) {
+  const { data } = await api.get("/admin/system/audit-logs", { params: { page: 1, pageSize: 20, ...params } });
   return data.data;
 }
 export async function fetchAuditLogStatistics() {
-  const { data } = await api.get("/admin/audit-logs/statistics");
+  const { data } = await api.get("/admin/system/audit-logs/statistics");
+  return data.data;
+}
+export async function cleanAuditLogs(days: number) {
+  const { data } = await api.post("/admin/system/audit-logs/clean", { days });
   return data.data;
 }
 
@@ -1073,8 +1127,8 @@ export async function exportPaymentsCsv(params?: { status?: string }) {
   const { data } = await api.get("/admin/export/payments", { params, responseType: "blob" });
   return data as Blob;
 }
-export async function exportAuditLogsCsv(params?: { action?: string; resourceType?: string; dateStart?: string; dateEnd?: string }) {
-  const { data } = await api.get("/admin/export/audit-logs", { params, responseType: "blob" });
+export async function exportAuditLogsCsv(params?: { action?: string; resourceType?: string; dateStart?: string; dateEnd?: string; ip?: string; userName?: string; userId?: number }) {
+  const { data } = await api.get("/admin/system/audit-logs/export", { params, responseType: "blob" });
   return data as Blob;
 }
 
@@ -1184,23 +1238,31 @@ export async function fetchReplenishmentSuggestions() {
 
 // ==================== RBAC / Role APIs ====================
 export async function fetchRoles() {
-  const { data } = await api.get("/admin/roles");
+  const { data } = await api.get("/admin/system/roles");
   return data.data;
 }
 export async function fetchRoleDetail(id: number) {
-  const { data } = await api.get(`/admin/roles/${id}`);
+  const { data } = await api.get(`/admin/system/roles/${id}`);
   return data.data;
 }
 export async function createRole(payload: unknown) {
-  const { data } = await api.post("/admin/roles", payload);
+  const { data } = await api.post("/admin/system/roles", payload);
   return data.data;
 }
 export async function updateRole(id: number, payload: unknown) {
-  const { data } = await api.put(`/admin/roles/${id}`, payload);
+  const { data } = await api.put(`/admin/system/roles/${id}`, payload);
   return data.data;
 }
 export async function deleteRole(id: number) {
-  const { data } = await api.delete(`/admin/roles/${id}`);
+  const { data } = await api.delete(`/admin/system/roles/${id}`);
+  return data.data;
+}
+export async function fetchRoleUsers(id: number) {
+  const { data } = await api.get(`/admin/system/roles/${id}/users`);
+  return data.data;
+}
+export async function assignRoleUsers(id: number, userIds: number[]) {
+  const { data } = await api.post(`/admin/system/roles/${id}/users`, { userIds });
   return data.data;
 }
 export async function fetchUserRoles(userId: number) {
@@ -1974,5 +2036,47 @@ export async function fetchTopSuppliersAP() {
 }
 export async function fetchDailyReport(params?: { month?: string }) {
   const { data } = await api.get("/admin/finance/daily-report", { params });
+  return data.data;
+}
+
+// ==================== Approval System APIs ====================
+export async function fetchApprovalRules(params?: { page?: number; pageSize?: number }) {
+  const { data } = await api.get("/admin/system/approval/rules", { params: { page: 1, pageSize: 20, ...params } });
+  return data.data;
+}
+export async function createApprovalRule(payload: any) {
+  const { data } = await api.post("/admin/system/approval/rules", payload);
+  return data.data;
+}
+export async function updateApprovalRule(id: number, payload: any) {
+  const { data } = await api.put(`/admin/system/approval/rules/${id}`, payload);
+  return data.data;
+}
+export async function deleteApprovalRule(id: number) {
+  const { data } = await api.delete(`/admin/system/approval/rules/${id}`);
+  return data.data;
+}
+export async function fetchMyApplications(params?: { page?: number; pageSize?: number; businessType?: string; status?: string }) {
+  const { data } = await api.get("/admin/system/approval/my-applications", { params: { page: 1, pageSize: 20, ...params } });
+  return data.data;
+}
+export async function submitApproval(payload: { ruleId: number; title: string; content: string }) {
+  const { data } = await api.post("/admin/system/approval/submit", payload);
+  return data.data;
+}
+export async function fetchApprovalDetail(id: number) {
+  const { data } = await api.get(`/admin/system/approval/detail/${id}`);
+  return data.data;
+}
+export async function approveApproval(id: number, payload?: { opinion?: string }) {
+  const { data } = await api.post(`/admin/system/approval/${id}/approve`, payload || {});
+  return data.data;
+}
+export async function rejectApproval(id: number, payload?: { opinion?: string }) {
+  const { data } = await api.post(`/admin/system/approval/${id}/reject`, payload || {});
+  return data.data;
+}
+export async function cancelApproval(id: number) {
+  const { data } = await api.post(`/admin/system/approval/${id}/cancel`);
   return data.data;
 }

@@ -1,0 +1,1072 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>员工管理 — 设计规格文档</title>
+<style>
+  :root {
+    --brand: #1677FF;
+    --brand-light: #E6F4FF;
+    --text: #1F1F1F;
+    --text-secondary: #595959;
+    --text-muted: #8C8C8C;
+    --border: #E8E8E8;
+    --bg: #F5F5F5;
+    --white: #FFFFFF;
+    --success: #52C41A;
+    --warning: #FA8C16;
+    --danger: #FF4D4F;
+    --radius: 6px;
+    --shadow: 0 2px 8px rgba(0,0,0,0.08);
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", "Helvetica Neue", Arial, sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    line-height: 1.6;
+    font-size: 14px;
+  }
+
+  /* ========== Document Header ========== */
+  .doc-header {
+    background: linear-gradient(135deg, #1677FF 0%, #0958D9 100%);
+    color: var(--white);
+    padding: 40px 60px;
+  }
+  .doc-header h1 { font-size: 28px; font-weight: 600; margin-bottom: 8px; }
+  .doc-header .doc-subtitle { font-size: 14px; opacity: 0.85; }
+
+  /* ========== Container ========== */
+  .doc-container {
+    max-width: 1400px;
+    margin: 0 auto;
+    padding: 32px 60px;
+  }
+
+  /* ========== Section ========== */
+  .doc-section { margin-bottom: 40px; }
+  .doc-section h2 {
+    font-size: 20px;
+    font-weight: 600;
+    color: var(--text);
+    margin-bottom: 16px;
+    padding-bottom: 12px;
+    border-bottom: 2px solid var(--brand);
+  }
+  .doc-section h3 {
+    font-size: 16px;
+    font-weight: 600;
+    color: var(--text);
+    margin: 24px 0 12px;
+  }
+  .doc-section p {
+    color: var(--text-secondary);
+    margin-bottom: 12px;
+  }
+
+  /* ========== Mockup ========== */
+  .mockup {
+    background: var(--bg);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    overflow: hidden;
+    box-shadow: var(--shadow);
+  }
+
+  .mockup-header {
+    background: #001529;
+    color: var(--white);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0 24px;
+    height: 56px;
+  }
+  .mockup-header .logo {
+    font-size: 18px;
+    font-weight: 700;
+    color: var(--white);
+    letter-spacing: 1px;
+  }
+  .mockup-header .nav-menu {
+    display: flex;
+    gap: 0;
+    list-style: none;
+  }
+  .mockup-header .nav-menu li {
+    padding: 0 20px;
+    height: 56px;
+    display: flex;
+    align-items: center;
+    cursor: pointer;
+    font-size: 14px;
+    color: rgba(255,255,255,0.65);
+    transition: all 0.2s;
+  }
+  .mockup-header .nav-menu li:hover { color: var(--white); }
+  .mockup-header .nav-menu li.active {
+    color: var(--white);
+    background: rgba(255,255,255,0.1);
+  }
+  .mockup-header .user-avatar {
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
+    background: var(--brand);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 14px;
+    font-weight: 600;
+    color: var(--white);
+  }
+
+  .mockup-body {
+    display: flex;
+    min-height: 600px;
+  }
+
+  .mockup-sidebar {
+    width: 220px;
+    background: #001529;
+    color: rgba(255,255,255,0.65);
+    flex-shrink: 0;
+    padding: 8px 0;
+  }
+  .mockup-sidebar .menu-group-title {
+    font-size: 12px;
+    color: rgba(255,255,255,0.35);
+    padding: 16px 24px 8px;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+  }
+  .mockup-sidebar .menu-item {
+    padding: 10px 24px 10px 40px;
+    font-size: 14px;
+    cursor: pointer;
+    position: relative;
+    transition: all 0.2s;
+  }
+  .mockup-sidebar .menu-item:hover { color: var(--white); }
+  .mockup-sidebar .menu-item.active {
+    color: var(--white);
+    background: var(--brand);
+  }
+  .mockup-sidebar .menu-item .menu-dot {
+    position: absolute;
+    left: 20px;
+    top: 50%;
+    transform: translateY(-50%);
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    background: rgba(255,255,255,0.35);
+  }
+  .mockup-sidebar .menu-item.active .menu-dot { background: var(--white); }
+
+  .mockup-main {
+    flex: 1;
+    background: var(--white);
+    padding: 24px;
+    overflow: auto;
+  }
+
+  .mockup-page-title {
+    font-size: 18px;
+    font-weight: 600;
+    color: var(--text);
+    margin-bottom: 4px;
+  }
+  .mockup-breadcrumb {
+    font-size: 13px;
+    color: var(--text-muted);
+    margin-bottom: 20px;
+  }
+  .mockup-breadcrumb span { color: var(--text-secondary); }
+
+  /* ========== Stats Row ========== */
+  .stats-row {
+    display: flex;
+    gap: 16px;
+    margin-bottom: 20px;
+  }
+  .stat-card {
+    flex: 1;
+    background: var(--white);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 20px;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+  }
+  .stat-card .stat-label {
+    font-size: 13px;
+    color: var(--text-muted);
+  }
+  .stat-card .stat-value {
+    font-size: 28px;
+    font-weight: 700;
+    color: var(--text);
+  }
+  .stat-card .stat-value.success { color: var(--success); }
+  .stat-card .stat-value.warning { color: var(--warning); }
+  .stat-card .stat-value.danger { color: var(--danger); }
+
+  /* ========== Toolbar / Filter ========== */
+  .mockup-toolbar {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 16px;
+    gap: 12px;
+    flex-wrap: wrap;
+  }
+  .mockup-filter {
+    display: flex;
+    gap: 10px;
+    align-items: center;
+    flex-wrap: wrap;
+  }
+  .mockup-toolbar .search-input {
+    width: 240px;
+    height: 36px;
+    padding: 0 12px;
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    font-size: 13px;
+    color: var(--text);
+    outline: none;
+  }
+  .mockup-toolbar .search-input:focus { border-color: var(--brand); }
+  .mockup-toolbar .search-input::placeholder { color: var(--text-muted); }
+
+  .filter-select {
+    height: 36px;
+    padding: 0 30px 0 12px;
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    font-size: 13px;
+    color: var(--text);
+    outline: none;
+    background: var(--white);
+    cursor: pointer;
+    appearance: none;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath d='M2 4l4 4 4-4' fill='none' stroke='%238C8C8C' stroke-width='1.5'/%3E%3C/svg%3E");
+    background-repeat: no-repeat;
+    background-position: right 10px center;
+    min-width: 120px;
+  }
+  .filter-select:focus { border-color: var(--brand); }
+
+  .btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    height: 36px;
+    padding: 0 16px;
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    font-size: 13px;
+    cursor: pointer;
+    background: var(--white);
+    color: var(--text);
+    transition: all 0.2s;
+    gap: 6px;
+    white-space: nowrap;
+  }
+  .btn:hover { border-color: var(--brand); color: var(--brand); }
+  .btn-primary {
+    background: var(--brand);
+    border-color: var(--brand);
+    color: var(--white);
+  }
+  .btn-primary:hover { background: #4096FF; border-color: #4096FF; color: var(--white); }
+  .btn-sm { height: 28px; padding: 0 10px; font-size: 12px; }
+  .btn-text { border: none; background: none; color: var(--brand); padding: 0 8px; cursor: pointer; }
+  .btn-text:hover { background: var(--brand-light); }
+  .btn-text.danger { color: var(--danger); }
+  .btn-text.danger:hover { background: #FFF1F0; }
+  .btn-text.warning { color: var(--warning); }
+  .btn-text.warning:hover { background: #FFF7E6; }
+
+  /* ========== Table ========== */
+  .mockup-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 13px;
+  }
+  .mockup-table th {
+    background: #FAFAFA;
+    padding: 12px 16px;
+    text-align: left;
+    font-weight: 600;
+    color: var(--text);
+    border-bottom: 1px solid var(--border);
+    white-space: nowrap;
+  }
+  .mockup-table td {
+    padding: 12px 16px;
+    border-bottom: 1px solid var(--border);
+    color: var(--text-secondary);
+  }
+  .mockup-table tbody tr:hover { background: #FAFAFA; }
+  .mockup-table .actions {
+    display: flex;
+    gap: 4px;
+  }
+
+  /* ========== Tags ========== */
+  .tag {
+    display: inline-block;
+    padding: 2px 10px;
+    border-radius: 10px;
+    font-size: 12px;
+    font-weight: 500;
+    line-height: 20px;
+  }
+  .tag-success { background: #F6FFED; color: var(--success); border: 1px solid #B7EB8F; }
+  .tag-warning { background: #FFF7E6; color: var(--warning); border: 1px solid #FFD591; }
+  .tag-danger { background: #FFF1F0; color: var(--danger); border: 1px solid #FFA39E; }
+  .tag-info { background: #E6F4FF; color: var(--brand); border: 1px solid #91CAFF; }
+  .tag-default { background: #FAFAFA; color: var(--text-muted); border: 1px solid var(--border); }
+
+  /* ========== Pagination ========== */
+  .mockup-pagination {
+    display: flex;
+    justify-content: flex-end;
+    align-items: center;
+    padding: 16px 0 0;
+    gap: 8px;
+    font-size: 13px;
+    color: var(--text-secondary);
+  }
+  .mockup-pagination .page-btn {
+    width: 32px;
+    height: 32px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    cursor: pointer;
+    background: var(--white);
+    font-size: 13px;
+    color: var(--text-secondary);
+  }
+  .mockup-pagination .page-btn.active {
+    background: var(--brand);
+    border-color: var(--brand);
+    color: var(--white);
+  }
+  .mockup-pagination .page-btn:hover:not(.active) { border-color: var(--brand); color: var(--brand); }
+
+  /* ========== Modal ========== */
+  .modal-overlay {
+    position: fixed;
+    top: 0; left: 0; right: 0; bottom: 0;
+    background: rgba(0,0,0,0.45);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 1000;
+  }
+  .modal {
+    background: var(--white);
+    border-radius: 8px;
+    box-shadow: 0 6px 16px rgba(0,0,0,0.12);
+    width: 640px;
+    max-height: 80vh;
+    overflow-y: auto;
+  }
+  .modal-header {
+    padding: 20px 24px 0;
+    font-size: 16px;
+    font-weight: 600;
+    color: var(--text);
+  }
+  .modal-body {
+    padding: 20px 24px;
+  }
+  .modal-footer {
+    padding: 0 24px 20px;
+    display: flex;
+    justify-content: flex-end;
+    gap: 10px;
+  }
+
+  /* ========== Confirm Modal ========== */
+  .confirm-modal {
+    background: var(--white);
+    border-radius: 8px;
+    box-shadow: 0 6px 16px rgba(0,0,0,0.12);
+    width: 420px;
+  }
+  .confirm-modal .modal-body {
+    text-align: center;
+    padding: 32px 24px 20px;
+  }
+  .confirm-modal .confirm-icon {
+    width: 48px;
+    height: 48px;
+    border-radius: 50%;
+    background: #FFF7E6;
+    border: 3px solid var(--warning);
+    margin: 0 auto 16px;
+    position: relative;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+  .confirm-modal .confirm-icon::after {
+    content: "!";
+    color: var(--warning);
+    font-size: 24px;
+    font-weight: 700;
+  }
+  .confirm-modal .confirm-msg {
+    font-size: 14px;
+    color: var(--text-secondary);
+    line-height: 1.8;
+  }
+  .confirm-modal .confirm-msg strong {
+    color: var(--text);
+    font-weight: 600;
+  }
+
+  /* ========== Form ========== */
+  .form-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 16px 20px;
+  }
+  .form-item {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+  }
+  .form-item.full { grid-column: 1 / -1; }
+  .form-item label {
+    font-size: 13px;
+    font-weight: 500;
+    color: var(--text);
+  }
+  .form-item .required::after {
+    content: " *";
+    color: var(--danger);
+  }
+  .form-input {
+    height: 36px;
+    padding: 0 12px;
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    font-size: 13px;
+    color: var(--text);
+    outline: none;
+    width: 100%;
+  }
+  .form-input:focus { border-color: var(--brand); box-shadow: 0 0 0 2px rgba(22,119,255,0.1); }
+  .form-input::placeholder { color: var(--text-muted); }
+  .form-input.muted {
+    color: var(--text-muted);
+    background: #FAFAFA;
+  }
+  .form-select {
+    height: 36px;
+    padding: 0 12px;
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    font-size: 13px;
+    color: var(--text);
+    outline: none;
+    background: var(--white);
+    width: 100%;
+    cursor: pointer;
+    appearance: none;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath d='M2 4l4 4 4-4' fill='none' stroke='%238C8C8C' stroke-width='1.5'/%3E%3C/svg%3E");
+    background-repeat: no-repeat;
+    background-position: right 10px center;
+  }
+  .form-select:focus { border-color: var(--brand); }
+
+  /* ========== Spec Table ========== */
+  .spec-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 13px;
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    overflow: hidden;
+  }
+  .spec-table th {
+    background: #FAFAFA;
+    padding: 10px 16px;
+    text-align: left;
+    font-weight: 600;
+    color: var(--text);
+    border-bottom: 2px solid var(--border);
+    white-space: nowrap;
+  }
+  .spec-table td {
+    padding: 10px 16px;
+    border-bottom: 1px solid var(--border);
+    color: var(--text-secondary);
+  }
+  .spec-table tbody tr:hover { background: #FAFAFA; }
+  .spec-table .code {
+    font-family: "SFMono-Regular", Consolas, "Liberation Mono", Menlo, monospace;
+    font-size: 12px;
+    background: #F5F5F5;
+    padding: 1px 6px;
+    border-radius: 3px;
+    color: var(--danger);
+    white-space: nowrap;
+  }
+
+  /* ========== Checklist ========== */
+  .checklist {
+    list-style: none;
+    padding: 0;
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 8px 24px;
+  }
+  .checklist li {
+    display: flex;
+    align-items: flex-start;
+    gap: 8px;
+    font-size: 13px;
+    color: var(--text-secondary);
+    padding: 6px 0;
+  }
+  .checklist li .cb {
+    width: 16px;
+    height: 16px;
+    border: 1px solid var(--border);
+    border-radius: 3px;
+    flex-shrink: 0;
+    margin-top: 2px;
+    cursor: pointer;
+    background: var(--white);
+  }
+
+  /* ========== Responsive ========== */
+  @media (max-width: 768px) {
+    .doc-container { padding: 20px; }
+    .doc-header { padding: 32px 20px; }
+    .mockup-body { flex-direction: column; }
+    .mockup-sidebar { width: 100%; }
+    .form-grid { grid-template-columns: 1fr; }
+    .checklist { grid-template-columns: 1fr; }
+    .stats-row { flex-wrap: wrap; }
+    .stat-card { min-width: calc(50% - 8px); }
+    .mockup-filter { flex-direction: column; }
+  }
+</style>
+</head>
+<body>
+
+<!-- ========== Document Header ========== -->
+<div class="doc-header">
+  <h1>员工管理 — 设计规格文档</h1>
+  <div class="doc-subtitle">系统管理 / 员工管理 / 设计规格 v1.0</div>
+</div>
+
+<div class="doc-container">
+
+  <!-- ========== Page Overview ========== -->
+  <div class="doc-section">
+    <h2>页面总览</h2>
+    <p>员工管理模块负责维护连锁门店所有员工的基础信息，包括员工账号创建、信息编辑、角色分配、门店归属、离职/复职、密码重置等功能。管理员可通过工号、姓名、手机号快速搜索，结合门店、角色、状态等多维度筛选快速定位目标员工。</p>
+  </div>
+
+  <!-- ========== Mockup ========== -->
+  <div class="doc-section">
+    <h2>界面模型</h2>
+
+    <div class="mockup">
+      <!-- Header -->
+      <div class="mockup-header">
+        <div class="logo">连锁门店管理系统</div>
+        <ul class="nav-menu">
+          <li>工作台</li>
+          <li>数据统计</li>
+          <li>订单管理</li>
+          <li class="active">系统设置</li>
+        </ul>
+        <div class="user-avatar">管</div>
+      </div>
+
+      <!-- Body -->
+      <div class="mockup-body">
+        <!-- Sidebar -->
+        <div class="mockup-sidebar">
+          <div class="menu-group-title">系统设置</div>
+          <div class="menu-item"><span class="menu-dot"></span>门店管理</div>
+          <div class="menu-item active"><span class="menu-dot"></span>员工管理</div>
+          <div class="menu-item"><span class="menu-dot"></span>角色权限</div>
+          <div class="menu-item"><span class="menu-dot"></span>操作日志</div>
+          <div class="menu-item"><span class="menu-dot"></span>参数配置</div>
+          <div class="menu-item"><span class="menu-dot"></span>审批流程</div>
+        </div>
+
+        <!-- Main -->
+        <div class="mockup-main">
+          <div class="mockup-breadcrumb">系统设置 <span>/ 员工管理</span></div>
+          <div class="mockup-page-title">员工管理</div>
+
+          <!-- Stats -->
+          <div class="stats-row">
+            <div class="stat-card">
+              <div class="stat-label">员工总数</div>
+              <div class="stat-value">15</div>
+            </div>
+            <div class="stat-card">
+              <div class="stat-label">在职</div>
+              <div class="stat-value success">13</div>
+            </div>
+            <div class="stat-card">
+              <div class="stat-label">离职</div>
+              <div class="stat-value danger">2</div>
+            </div>
+            <div class="stat-card">
+              <div class="stat-label">本月新增</div>
+              <div class="stat-value">3</div>
+            </div>
+          </div>
+
+          <!-- Filter Toolbar -->
+          <div class="mockup-toolbar">
+            <div class="mockup-filter">
+              <input class="search-input" type="text" placeholder="搜索工号 / 姓名 / 手机号">
+              <select class="filter-select">
+                <option value="">所属门店</option>
+                <option value="ST001">朝阳旗舰店</option>
+                <option value="ST002">海淀中关村店</option>
+                <option value="ST003">浦东陆家嘴店</option>
+                <option value="ST005">天河城店</option>
+              </select>
+              <select class="filter-select">
+                <option value="">角色筛选</option>
+                <option value="admin">管理员</option>
+                <option value="manager">店长</option>
+                <option value="staff">员工</option>
+              </select>
+              <select class="filter-select" style="min-width:100px;">
+                <option value="">状态</option>
+                <option value="active">在职</option>
+                <option value="inactive">离职</option>
+              </select>
+            </div>
+            <button class="btn btn-primary">
+              <span style="font-size:16px;line-height:1;">+</span> 新增员工
+            </button>
+          </div>
+
+          <!-- Table -->
+          <table class="mockup-table">
+            <thead>
+              <tr>
+                <th>工号</th>
+                <th>姓名</th>
+                <th>手机号</th>
+                <th>所属门店</th>
+                <th>角色</th>
+                <th>职位</th>
+                <th>状态</th>
+                <th>入职时间</th>
+                <th>操作</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td>EMP001</td>
+                <td>张建国</td>
+                <td>138****6789</td>
+                <td>朝阳旗舰店</td>
+                <td><span class="tag tag-danger">管理员</span></td>
+                <td>系统管理员</td>
+                <td><span class="tag tag-success">在职</span></td>
+                <td>2023-06-01</td>
+                <td class="actions">
+                  <button class="btn btn-text btn-sm">编辑</button>
+                  <button class="btn btn-text danger btn-sm">离职</button>
+                  <button class="btn btn-text warning btn-sm">重置密码</button>
+                </td>
+              </tr>
+              <tr>
+                <td>EMP002</td>
+                <td>李明辉</td>
+                <td>139****5678</td>
+                <td>朝阳旗舰店</td>
+                <td><span class="tag tag-warning">店长</span></td>
+                <td>店长</td>
+                <td><span class="tag tag-success">在职</span></td>
+                <td>2023-08-15</td>
+                <td class="actions">
+                  <button class="btn btn-text btn-sm">编辑</button>
+                  <button class="btn btn-text danger btn-sm">离职</button>
+                  <button class="btn btn-text warning btn-sm">重置密码</button>
+                </td>
+              </tr>
+              <tr>
+                <td>EMP003</td>
+                <td>王丽华</td>
+                <td>136****3456</td>
+                <td>海淀中关村店</td>
+                <td><span class="tag tag-warning">店长</span></td>
+                <td>店长</td>
+                <td><span class="tag tag-success">在职</span></td>
+                <td>2023-09-01</td>
+                <td class="actions">
+                  <button class="btn btn-text btn-sm">编辑</button>
+                  <button class="btn btn-text danger btn-sm">离职</button>
+                  <button class="btn btn-text warning btn-sm">重置密码</button>
+                </td>
+              </tr>
+              <tr>
+                <td>EMP004</td>
+                <td>赵志强</td>
+                <td>137****2345</td>
+                <td>海淀中关村店</td>
+                <td><span class="tag tag-info">员工</span></td>
+                <td>收银员</td>
+                <td><span class="tag tag-success">在职</span></td>
+                <td>2024-02-10</td>
+                <td class="actions">
+                  <button class="btn btn-text btn-sm">编辑</button>
+                  <button class="btn btn-text danger btn-sm">离职</button>
+                  <button class="btn btn-text warning btn-sm">重置密码</button>
+                </td>
+              </tr>
+              <tr>
+                <td>EMP005</td>
+                <td>陈晓芳</td>
+                <td>135****7890</td>
+                <td>浦东陆家嘴店</td>
+                <td><span class="tag tag-danger">管理员</span></td>
+                <td>区域经理</td>
+                <td><span class="tag tag-success">在职</span></td>
+                <td>2023-07-20</td>
+                <td class="actions">
+                  <button class="btn btn-text btn-sm">编辑</button>
+                  <button class="btn btn-text danger btn-sm">离职</button>
+                  <button class="btn btn-text warning btn-sm">重置密码</button>
+                </td>
+              </tr>
+              <tr>
+                <td>EMP006</td>
+                <td>刘伟</td>
+                <td>133****0123</td>
+                <td>浦东陆家嘴店</td>
+                <td><span class="tag tag-info">员工</span></td>
+                <td>配送员</td>
+                <td><span class="tag tag-success">在职</span></td>
+                <td>2024-04-05</td>
+                <td class="actions">
+                  <button class="btn btn-text btn-sm">编辑</button>
+                  <button class="btn btn-text danger btn-sm">离职</button>
+                  <button class="btn btn-text warning btn-sm">重置密码</button>
+                </td>
+              </tr>
+              <tr>
+                <td>EMP007</td>
+                <td>孙丽萍</td>
+                <td>158****4567</td>
+                <td>天河城店</td>
+                <td><span class="tag tag-info">员工</span></td>
+                <td>导购员</td>
+                <td><span class="tag tag-success">在职</span></td>
+                <td>2024-05-18</td>
+                <td class="actions">
+                  <button class="btn btn-text btn-sm">编辑</button>
+                  <button class="btn btn-text danger btn-sm">离职</button>
+                  <button class="btn btn-text warning btn-sm">重置密码</button>
+                </td>
+              </tr>
+              <tr>
+                <td>EMP008</td>
+                <td>周文博</td>
+                <td>159****8901</td>
+                <td>徐汇滨江店</td>
+                <td><span class="tag tag-info">员工</span></td>
+                <td>库管员</td>
+                <td><span class="tag tag-default">离职</span></td>
+                <td>2024-01-08</td>
+                <td class="actions">
+                  <button class="btn btn-text btn-sm">编辑</button>
+                  <button class="btn btn-text btn-sm">复职</button>
+                  <button class="btn btn-text warning btn-sm">重置密码</button>
+                </td>
+              </tr>
+            </tbody>
+            <tfoot>
+              <tr>
+                <td>EMP009</td>
+                <td>吴海燕</td>
+                <td>152****3456</td>
+                <td>南山科技园店</td>
+                <td><span class="tag tag-info">员工</span></td>
+                <td>客服专员</td>
+                <td><span class="tag tag-default">离职</span></td>
+                <td>2023-11-12</td>
+                <td class="actions">
+                  <button class="btn btn-text btn-sm">编辑</button>
+                  <button class="btn btn-text btn-sm">复职</button>
+                  <button class="btn btn-text warning btn-sm">重置密码</button>
+                </td>
+              </tr>
+            </tfoot>
+          </table>
+
+          <!-- Pagination -->
+          <div class="mockup-pagination">
+            <span>共 9 条</span>
+            <span class="page-btn">&lt;</span>
+            <span class="page-btn active">1</span>
+            <span class="page-btn">&gt;</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ========== Modal: Add/Edit Employee ========== -->
+  <div class="doc-section">
+    <h2>新增/编辑员工弹窗</h2>
+    <div class="mockup" style="background:rgba(0,0,0,0.45);padding:60px;display:flex;justify-content:center;">
+      <div class="modal" style="position:static;box-shadow:0 6px 16px rgba(0,0,0,0.12);">
+        <div class="modal-header">新增员工</div>
+        <div class="modal-body">
+          <div class="form-grid">
+            <div class="form-item">
+              <label class="required">工号</label>
+              <input class="form-input muted" type="text" value="EMP010" readonly>
+            </div>
+            <div class="form-item">
+              <label class="required">用户名</label>
+              <input class="form-input" type="text" placeholder="请输入用户名">
+            </div>
+            <div class="form-item">
+              <label class="required">姓名</label>
+              <input class="form-input" type="text" placeholder="请输入姓名">
+            </div>
+            <div class="form-item">
+              <label class="required">手机号</label>
+              <input class="form-input" type="text" placeholder="请输入手机号">
+            </div>
+            <div class="form-item">
+              <label class="required">所属门店</label>
+              <select class="form-select">
+                <option value="">请选择所属门店</option>
+                <option value="ST001">朝阳旗舰店</option>
+                <option value="ST002">海淀中关村店</option>
+                <option value="ST003">浦东陆家嘴店</option>
+                <option value="ST004">徐汇滨江店</option>
+                <option value="ST005">天河城店</option>
+                <option value="ST006">南山科技园店</option>
+              </select>
+            </div>
+            <div class="form-item">
+              <label class="required">角色</label>
+              <select class="form-select">
+                <option value="">请选择角色</option>
+                <option value="admin">管理员</option>
+                <option value="manager">店长</option>
+                <option value="staff">员工</option>
+              </select>
+            </div>
+            <div class="form-item">
+              <label>职位</label>
+              <input class="form-input" type="text" placeholder="请输入职位">
+            </div>
+            <div class="form-item">
+              <label class="required">状态</label>
+              <select class="form-select">
+                <option value="active">在职</option>
+                <option value="inactive">离职</option>
+              </select>
+            </div>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button class="btn">取消</button>
+          <button class="btn btn-primary">保存</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ========== Confirm: Reset Password ========== -->
+  <div class="doc-section">
+    <h2>密码重置确认弹窗</h2>
+    <div class="mockup" style="background:rgba(0,0,0,0.45);padding:60px;display:flex;justify-content:center;">
+      <div class="confirm-modal" style="position:static;box-shadow:0 6px 16px rgba(0,0,0,0.12);">
+        <div class="modal-body">
+          <div class="confirm-icon"></div>
+          <div class="confirm-msg">
+            确认重置员工 <strong>张建国</strong> 的密码？<br>重置后密码将变为初始密码。
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button class="btn">取消</button>
+          <button class="btn btn-primary">确认重置</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ========== Field Spec Table ========== -->
+  <div class="doc-section">
+    <h2>字段规范</h2>
+    <table class="spec-table">
+      <thead>
+        <tr>
+          <th>字段名</th>
+          <th>数据类型</th>
+          <th>必填</th>
+          <th>说明</th>
+          <th>示例值</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td><span class="code">emp_code</span></td>
+          <td>VARCHAR(20)</td>
+          <td>是</td>
+          <td>工号，系统自动生成</td>
+          <td>EMP001</td>
+        </tr>
+        <tr>
+          <td><span class="code">username</span></td>
+          <td>VARCHAR(50)</td>
+          <td>是</td>
+          <td>用户名，登录账号，唯一</td>
+          <td>zhangjianguo</td>
+        </tr>
+        <tr>
+          <td><span class="code">real_name</span></td>
+          <td>VARCHAR(50)</td>
+          <td>是</td>
+          <td>员工真实姓名</td>
+          <td>张建国</td>
+        </tr>
+        <tr>
+          <td><span class="code">phone</span></td>
+          <td>VARCHAR(20)</td>
+          <td>是</td>
+          <td>手机号，唯一</td>
+          <td>138****6789</td>
+        </tr>
+        <tr>
+          <td><span class="code">store_code</span></td>
+          <td>VARCHAR(20)</td>
+          <td>是</td>
+          <td>所属门店编码，关联门店表</td>
+          <td>ST001</td>
+        </tr>
+        <tr>
+          <td><span class="code">role</span></td>
+          <td>VARCHAR(20)</td>
+          <td>是</td>
+          <td>角色：admin-管理员 manager-店长 staff-员工</td>
+          <td>admin</td>
+        </tr>
+        <tr>
+          <td><span class="code">position</span></td>
+          <td>VARCHAR(50)</td>
+          <td>否</td>
+          <td>职位名称</td>
+          <td>系统管理员</td>
+        </tr>
+        <tr>
+          <td><span class="code">status</span></td>
+          <td>TINYINT</td>
+          <td>是</td>
+          <td>状态：1-在职 0-离职</td>
+          <td>1</td>
+        </tr>
+        <tr>
+          <td><span class="code">password</span></td>
+          <td>VARCHAR(128)</td>
+          <td>是</td>
+          <td>密码哈希值（加密存储）</td>
+          <td>$2a$10$...</td>
+        </tr>
+        <tr>
+          <td><span class="code">hire_date</span></td>
+          <td>DATE</td>
+          <td>是</td>
+          <td>入职日期</td>
+          <td>2023-06-01</td>
+        </tr>
+        <tr>
+          <td><span class="code">leave_date</span></td>
+          <td>DATE</td>
+          <td>否</td>
+          <td>离职日期</td>
+          <td>2024-12-31</td>
+        </tr>
+        <tr>
+          <td><span class="code">last_login_at</span></td>
+          <td>DATETIME</td>
+          <td>否</td>
+          <td>最后登录时间</td>
+          <td>2024-06-30 18:00:00</td>
+        </tr>
+        <tr>
+          <td><span class="code">created_at</span></td>
+          <td>DATETIME</td>
+          <td>是</td>
+          <td>创建时间</td>
+          <td>2023-06-01 09:00:00</td>
+        </tr>
+        <tr>
+          <td><span class="code">updated_at</span></td>
+          <td>DATETIME</td>
+          <td>是</td>
+          <td>最后修改时间</td>
+          <td>2024-06-28 15:42:10</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <!-- ========== Acceptance Checklist ========== -->
+  <div class="doc-section">
+    <h2>验收标准</h2>
+    <ul class="checklist">
+      <li><span class="cb"></span>员工列表页面正常加载，表头与数据列对齐</li>
+      <li><span class="cb"></span>搜索框支持按工号进行模糊搜索</li>
+      <li><span class="cb"></span>搜索框支持按姓名进行模糊搜索</li>
+      <li><span class="cb"></span>搜索框支持按手机号进行模糊搜索</li>
+      <li><span class="cb"></span>门店筛选下拉框正确加载全部门店列表</li>
+      <li><span class="cb"></span>角色筛选下拉框支持按管理员/店长/员工筛选</li>
+      <li><span class="cb"></span>状态筛选下拉框支持按在职/离职筛选</li>
+      <li><span class="cb"></span>角色标签正确显示：管理员（红色）、店长（橙色）、员工（蓝色）</li>
+      <li><span class="cb"></span>状态标签正确显示：在职（绿色）、离职（灰色）</li>
+      <li><span class="cb"></span>点击新增员工按钮弹出新增弹窗，表单字段完整</li>
+      <li><span class="cb"></span>工号自动生成，格式为 EMP + 三位数字序号</li>
+      <li><span class="cb"></span>表单必填字段（工号、用户名、姓名、手机号、所属门店、角色、状态）校验提示</li>
+      <li><span class="cb"></span>手机号格式校验（11位数字，1开头）</li>
+      <li><span class="cb"></span>用户名唯一性校验，重复时给出提示</li>
+      <li><span class="cb"></span>点击编辑按钮加载对应员工数据到弹窗表单</li>
+      <li><span class="cb"></span>点击离职按钮，在职员工变更为离职状态</li>
+      <li><span class="cb"></span>点击复职按钮，离职员工恢复为在职状态</li>
+      <li><span class="cb"></span>点击重置密码按钮弹出二次确认弹窗</li>
+      <li><span class="cb"></span>密码重置确认弹窗提示内容包含员工姓名</li>
+      <li><span class="cb"></span>确认重置后密码还原为初始密码，并提示成功</li>
+      <li><span class="cb"></span>分页组件正常翻页，显示总条数</li>
+      <li><span class="cb"></span>统计卡片数据（员工总数/在职/离职/本月新增）与列表数据一致</li>
+      <li><span class="cb"></span>所有操作均有 loading 状态与成功/失败提示</li>
+    </ul>
+  </div>
+
+</div>
+
+</body>
+</html>

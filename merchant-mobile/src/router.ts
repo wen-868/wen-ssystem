@@ -38,6 +38,8 @@ const routes: RouteRecordRaw[] = [
     component: () => import('./views/ProfileView.vue'),
     meta: { requiresAuth: true, tab: 'profile' }
   },
+  { path: '/profile/edit', name: 'profile-edit', component: () => import('./views/ProfileEditView.vue'), meta: { requiresAuth: true } },
+  { path: '/profile/change-password', name: 'profile-change-password', component: () => import('./views/ChangePasswordView.vue'), meta: { requiresAuth: true } },
   { path: '/orders', name: 'orders', component: () => import('./views/OrdersView.vue'), meta: { requiresAuth: true } },
   { path: '/inventory', name: 'inventory', component: () => import('./views/InventoryView.vue'), meta: { requiresAuth: true } },
   { path: '/customers', name: 'customers', component: () => import('./views/CustomersView.vue'), meta: { requiresAuth: true } },
@@ -54,8 +56,10 @@ const routes: RouteRecordRaw[] = [
   { path: '/inventory-adjust', name: 'inventory-adjust', component: () => import('./views/InventoryAdjustView.vue'), meta: { requiresAuth: true } },
   { path: '/admin', name: 'admin', component: () => import('./views/AdminView.vue'), meta: { requiresAuth: true, role: 'admin' } },
   { path: '/admin/products', name: 'admin-products', component: () => import('./views/AdminProductsView.vue'), meta: { requiresAuth: true, role: 'admin' } },
+  { path: '/admin/staff/:staffId', name: 'admin-staff-detail', component: () => import('./views/StaffDetailView.vue'), meta: { requiresAuth: true, role: 'admin' } },
   { path: '/admin/staff', name: 'admin-staff', component: () => import('./views/AdminStaffView.vue'), meta: { requiresAuth: true, role: 'admin' } },
   { path: '/admin/stores', name: 'admin-stores', component: () => import('./views/AdminStoresView.vue'), meta: { requiresAuth: true, role: 'admin' } },
+  { path: '/admin/stores/:id', name: 'store-detail', component: () => import('./views/StoreDetailView.vue'), meta: { requiresAuth: true, role: 'admin' } },
   { path: '/admin/prices', name: 'admin-prices', component: () => import('./views/AdminPricesView.vue'), meta: { requiresAuth: true, role: 'admin' } },
   { path: '/share-collection', name: 'share-collection', component: () => import('./views/ShareCollectionView.vue'), meta: { requiresAuth: true } },
   // 销售退货
@@ -121,7 +125,13 @@ const routes: RouteRecordRaw[] = [
   { path: '/order-exception/detail/:id', name: 'order-exception-detail', component: () => import('./views/OrderExceptionDetailView.vue'), meta: { requiresAuth: true } },
   // 售后管理
   { path: '/order-aftersale/list', name: 'order-aftersale-list', component: () => import('./views/OrderAftersaleView.vue'), meta: { requiresAuth: true } },
-  { path: '/order-aftersale/detail/:aftersaleNo', name: 'order-aftersale-detail', component: () => import('./views/OrderAftersaleDetailView.vue'), meta: { requiresAuth: true } }
+  { path: '/order-aftersale/detail/:aftersaleNo', name: 'order-aftersale-detail', component: () => import('./views/OrderAftersaleDetailView.vue'), meta: { requiresAuth: true } },
+  // 系统设置
+  { path: '/profile/edit', name: 'profile-edit', component: () => import('./views/ProfileEditView.vue'), meta: { requiresAuth: true } },
+  { path: '/profile/change-password', name: 'profile-change-password', component: () => import('./views/ChangePasswordView.vue'), meta: { requiresAuth: true } },
+  // 通知
+  { path: '/notifications', name: 'notifications', component: () => import('./views/NotificationView.vue'), meta: { requiresAuth: true } },
+  { path: '/notifications/:id', name: 'notification-detail', component: () => import('./views/NotificationDetailView.vue'), meta: { requiresAuth: true } }
 ]
 
 const router = createRouter({
