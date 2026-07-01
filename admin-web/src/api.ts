@@ -2110,4 +2110,24 @@ export const updateTenant = (id: number, data: any) => api.put(`/admin/tenants/$
 export const changeTenantStatus = (id: number, status: string) => api.patch(`/admin/tenants/${id}/status`, { status });
 export const fetchTenantDetail = (id: number) => api.get(`/admin/tenants/${id}`);
 export const fetchTenantModules = (id: number) => api.get(`/admin/tenants/${id}/modules`);
+
+// ==================== Payment Config APIs ====================
+export const fetchPaymentConfig = (provider: string) => api.get(`/admin/payment/configs/${provider}`);
+export const savePaymentConfig = (provider: string, data: any) => api.put(`/admin/payment/configs/${provider}`, data);
+export const testPaymentConnection = (provider: string) => api.post(`/admin/payment/configs/${provider}/test`);
+export const fetchPaymentStatus = () => api.get('/admin/payment/status');
+export const fetchBankAccounts = () => api.get('/admin/payment/bank-accounts');
+export const createBankAccount = (data: any) => api.post('/admin/payment/bank-accounts', data);
+export const updateBankAccount = (id: number, data: any) => api.put(`/admin/payment/bank-accounts/${id}`, data);
+export const deleteBankAccount = (id: number) => api.delete(`/admin/payment/bank-accounts/${id}`);
+export const setDefaultBankAccount = (id: number) => api.post(`/admin/payment/bank-accounts/${id}/default`);
+
+// ==================== Miniapp Config APIs ====================
+export const fetchMiniappConfigs = () => api.get('/admin/miniapp/configs');
+export const fetchMiniappConfig = (platform: string) => api.get(`/admin/miniapp/configs/${platform}`);
+export const saveMiniappConfig = (platform: string, data: any) => api.put(`/admin/miniapp/configs/${platform}`, data);
+export const fetchMiniappTemplates = () => api.get('/admin/miniapp/templates');
+export const fetchMiniappTemplate = (id: number) => api.get(`/admin/miniapp/templates/${id}`);
+export const publishMiniapp = (data: any) => api.post('/admin/miniapp/publish', data);
+export const fetchMiniappPublishLogs = (params: any) => api.get('/admin/miniapp/publish-logs', { params });
 export const setTenantModules = (id: number, data: any) => api.put(`/admin/tenants/${id}/modules`, data);
