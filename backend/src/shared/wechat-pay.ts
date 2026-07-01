@@ -1,8 +1,7 @@
 import crypto from 'crypto';
 import fs from 'fs';
 import { env } from './env.js';
-
-declare const Buffer: any;
+import { queryOneWithTenant } from './db.js';
 
 interface WechatPayConfig {
   appId: string;
@@ -19,18 +18,45 @@ export class WechatPay {
   private privateKey: string;
   private platformCert: string;
 
-  constructor() {
+  constructor(config?: Partial<WechatPayConfig>) {
     this.config = {
-      appId: env.WECHAT_APP_ID,
-      mchId: env.WECHAT_MCH_ID,
-      serialNo: env.WECHAT_PAY_SERIAL_NO,
-      privateKeyPath: env.WECHAT_PAY_PRIVATE_KEY_PATH,
-      platformCertPath: env.WECHAT_PAY_PLATFORM_CERT_PATH,
-      apiV3Key: env.WECHAT_PAY_API_V3_KEY,
-      notifyUrl: env.WECHAT_PAY_NOTIFY_URL
+      appId: config?.appId || env.WECHAT_APP_ID,
+      mchId: config?.mchId || env.WECHAT_MCH_ID,
+      serialNo: config?.serialNo || env.WECHAT_PAY_SERIAL_NO,
+      privateKeyPath: config?.privateKeyPath || env.WECHAT_PAY_PRIVATE_KEY_PATH,
+      platformCertPath: config?.platformCertPath || env.WECHAT_PAY_PLATFORM_CERT_PATH,
+      apiV3Key: config?.apiV3Key || env.WECHAT_PAY_API_V3_KEY,
+      notifyUrl: config?.notifyUrl || env.WECHAT_PAY_NOTIFY_URL
     };
     this.privateKey = this.loadPrivateKey();
     this.platformCert = this.loadPlatformCert();
+  }
+
+  /**
+   * 从租户的 payment_config 表中加载微信支付实例
+   */
+  static async fromTenant(tenantId: string): Promise<WechatPay | null> {
+    const keys = ['app_id', 'mch_id', 'api_v3_key', 'serial_no', 'private_key_path', 'notify_url'];
+    const config: Record<string, string> = {};
+
+    for (const key of keys) {
+      const row = await queryOneWithTenant<any>(
+        "SELECT config_value AS configValue FROM payment_config WHERE tenant_id = ? AND provider = 'wechat_pay' AND config_key = ?",
+        [tenantId, key],
+        tenantId
+      );
+      if (!row?.configValue) return null;
+      config[key] = row.configValue;
+    }
+
+    return new WechatPay({
+      appId: config.app_id || undefined,
+      mchId: config.mch_id || undefined,
+      serialNo: config.serial_no || undefined,
+      privateKeyPath: config.private_key_path || undefined,
+      apiV3Key: config.api_v3_key || undefined,
+      notifyUrl: config.notify_url || undefined,
+    });
   }
 
   private loadPrivateKey(): string {

@@ -1,6 +1,20 @@
 import { asyncHandler } from "../../shared/async-handler.js";
 import { ok } from "../../shared/response.js";
 import * as orderService from "../../services/admin/order.service.js";
+import { isProviderReady } from "../../services/admin/payment-config.service.js";
+
+/**
+ * 支付前置检查中间件：确保支付渠道已配置
+ */
+export const requirePaymentReady = asyncHandler(async (req: any, res: any, next: any) => {
+  const provider = req.body.provider || req.query.provider || "wechat_pay";
+  const ready = await isProviderReady(req.tenantId!, provider);
+  if (!ready) {
+    res.status(400).json({ code: "400", message: `支付渠道 ${provider} 未配置完整，请先完成支付配置` });
+    return;
+  }
+  next();
+});
 
 export const listOrders = asyncHandler(async (req, res) => {
   const tenantId = req.tenantId!;
