@@ -64,8 +64,8 @@ export function signToken(user: AuthUser) {
   return jwt.sign(user, env.JWT_SECRET, { expiresIn: "8h" });
 }
 
-export function requireRoles(allowedRoles: string[]): RequestHandler {
-  return (req, res, next) => {
+export function requireRoles(allowedRoles: string[]): any {
+  return (req: any, res: any, next: any) => {
     if (!req.user) {
       res.status(401).json({ code: "401", message: "未登录" });
       return;
@@ -78,7 +78,7 @@ export function requireRoles(allowedRoles: string[]): RequestHandler {
   };
 }
 
-export const requireAuth: RequestHandler = (req, res, next) => {
+export const requireAuth: any = (req: any, res: any, next: any) => {
   const authorization = req.headers.authorization || "";
   const token = authorization.replace(/^Bearer\s+/i, "");
   if (!token) {

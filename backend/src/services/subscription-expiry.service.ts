@@ -1,6 +1,6 @@
 import { query, queryOne } from "../shared/db.js";
 
-let schedulerInterval: NodeJS.Timeout | null = null;
+let schedulerInterval: any | null = null;
 
 /**
  * 订阅到期检查服务

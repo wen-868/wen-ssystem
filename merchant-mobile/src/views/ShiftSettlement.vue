@@ -146,7 +146,7 @@ onMounted(() => {
             </template>
           </van-cell>
           <van-field
-            v-model.number="actualAmount"
+            v-model.number="actualAmount as any"
             label="实际金额"
             type="number"
             placeholder="请输入实际清点金额"

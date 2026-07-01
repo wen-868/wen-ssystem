@@ -323,10 +323,10 @@ async function handleGenerate() {
   try {
     const period = generateForm.period!;
     await generateReconciliation({
-      type: activeTab.value === "customer" ? "CUSTOMER" : "SUPPLIER",
-      entityId: generateForm.entityId,
-      dateStart: formatDateOnly(period[0]),
-      dateEnd: formatDateOnly(period[1])
+      reconType: activeTab.value === "customer" ? "CUSTOMER" : "SUPPLIER",
+      entityId: generateForm.entityId || 0,
+      periodStart: formatDateOnly(period[0]),
+      periodEnd: formatDateOnly(period[1])
     });
     ElMessage.success("对账单生成成功");
     generateVisible.value = false;

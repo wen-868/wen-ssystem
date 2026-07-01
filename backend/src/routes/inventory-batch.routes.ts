@@ -57,5 +57,5 @@ export function startExpiryScanner() {
       expiryScannerRunning = false;
     }
   }, 60 * 1000);
-  timer.unref();
+  (timer as any).unref();
 }

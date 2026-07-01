@@ -161,8 +161,8 @@ async function loadCustomerContribution() {
   customerContribLoading.value = true
   try {
     const res = await fetchSalesRanking({
-      startDate: dateRange.value[0] || undefined,
-      endDate: dateRange.value[1] || undefined
+      dateStart: dateRange.value[0] || undefined,
+      dateEnd: dateRange.value[1] || undefined
     })
     customerContribData.value = res.data?.records ?? res.data ?? []
   } catch {

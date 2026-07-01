@@ -20,7 +20,6 @@ const presets = [
   { label: '近30天', value: 'last30' },
   { label: '自定义', value: 'custom' }
 ]
-const showDatePicker = ref(false)
 const customStart = ref('')
 const customEnd = ref('')
 
@@ -54,8 +53,6 @@ const maxTrendAmount = computed(() => {
 })
 
 const totalCollection = computed(() => trendData.value.reduce((s, i) => s + i.totalAmount, 0))
-const totalPaymentCount = computed(() => trendData.value.reduce((s, i) => s + i.paymentCount, 0))
-
 async function loadData() {
   loading.value = true
   try {
@@ -146,7 +143,7 @@ function methodLabel(m: string): string {
     <!-- 日期筛选 -->
     <div class="preset-row">
       <span v-for="p in presets" :key="p.value" class="preset-chip" :class="{ active: datePreset === p.value }"
-        @click="datePreset = p.value; onPresetChange()">{{ p.label }}</span>
+        @click="datePreset = p.value as any; onPresetChange()">{{ p.label }}</span>
     </div>
 
     <van-pull-refresh v-model="refreshing" @refresh="onRefresh">

@@ -243,7 +243,7 @@ async function handleCreateCardSubmit() {
     if (!valid) return;
     createCardSubmitLoading.value = true;
     try {
-      await createStoreValueCard(createCardForm);
+      await createStoreValueCard({ ...createCardForm, customerId: Number(createCardForm.customerId) });
       ElMessage.success("储值卡已创建");
       createCardVisible.value = false;
       loadCards();
@@ -403,7 +403,8 @@ async function handleShowTransactions(row: any) {
 async function loadTransactions() {
   transactionsLoading.value = true;
   try {
-    const data = await fetchStoreValueTransactions(currentTxnCardId.value, {
+    const data = await fetchStoreValueTransactions({
+      cardId: Number(currentTxnCardId.value),
       page: transactionsPage.value,
       pageSize: transactionsPageSize.value
     });

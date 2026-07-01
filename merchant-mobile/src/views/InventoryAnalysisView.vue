@@ -186,7 +186,7 @@ function logTypeLabel(t: string): string {
         <div class="filter-row">
           <span v-for="f in [{ label: '全部', value: 'all' }, { label: '缺货', value: 'danger' }, { label: '紧缺', value: 'warn' }, { label: '正常', value: 'normal' }]" :key="f.value"
             class="preset-chip" :class="{ active: alertFilter === f.value }"
-            @click="alertFilter = f.value; onAlertFilterChange()">{{ f.label }}</span>
+            @click="alertFilter = f.value as any; onAlertFilterChange()">{{ f.label }}</span>
         </div>
         <div class="card">
           <div v-if="filteredAlerts.length === 0" class="empty-hint">暂无预警</div>

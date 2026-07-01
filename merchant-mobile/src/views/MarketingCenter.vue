@@ -31,10 +31,9 @@ const banners = ref<{ id: number; title: string; desc: string; color: string }[]
   { id: 3, title: '积分兑好礼', desc: '积分当钱花', color: '#F9CA24' }
 ])
 const bannerIdx = ref(0)
-let bannerTimer: ReturnType<typeof setInterval> | null = null
 
 function startBanner() {
-  bannerTimer = setInterval(() => {
+  setInterval(() => {
     bannerIdx.value = (bannerIdx.value + 1) % banners.value.length
   }, 3000)
 }

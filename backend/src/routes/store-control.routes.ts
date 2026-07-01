@@ -44,7 +44,7 @@ export function startStoreControlScheduler() {
       storeControlRunning = false;
     }
   }, 60 * 1000);
-  timer.unref();
+  (timer as any).unref();
 }
 
 async function runStoreControlCheck() {

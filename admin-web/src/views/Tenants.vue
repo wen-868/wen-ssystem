@@ -139,12 +139,12 @@ function getErrorMessage(error: unknown, fallback: string) {
 async function loadTenants() {
   loading.value = true;
   try {
-    const data = await fetchTenants({
+    const data = (await fetchTenants({
       page: page.value,
       pageSize: pageSize.value,
       keyword: keyword.value || undefined,
       status: statusFilter.value || undefined
-    });
+    })).data;
     const list = data.records || data.list || [];
     total.value = data.total || list.length;
     tenants.value = list;
@@ -197,7 +197,7 @@ async function handleSubmit() {
     submitLoading.value = true;
     try {
       if (isEdit.value) {
-        await updateTenant(editingTenantId.value, { ...form });
+        await updateTenant(Number(editingTenantId.value), { ...form });
         ElMessage.success("租户已更新");
       } else {
         await createTenant({ ...form });
@@ -222,7 +222,7 @@ async function handleToggleStatus(row: any) {
       cancelButtonText: "取消",
       type: "warning"
     });
-    await changeTenantStatus(row.tenantId, { status: newStatus });
+    await changeTenantStatus(row.tenantId, newStatus);
     ElMessage.success(`租户已${action}`);
     loadTenants();
   } catch (e: any) {

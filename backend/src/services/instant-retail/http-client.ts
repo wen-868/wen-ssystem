@@ -10,7 +10,7 @@ import { env } from "../../shared/env.js";
 
 /** 仅当显式设置 INSTANT_RETAIL_MOCK=true 时才启用 Mock */
 export function isMock(): boolean {
-  return env.INSTANT_RETAIL_MOCK;
+  return env.INSTANT_RETAIL_MOCK === 'true';
 }
 
 export interface HttpClientOptions {
@@ -92,4 +92,47 @@ export class HttpClient {
       clearTimeout(timer);
     }
   }
+}
+
+// ==================== 平台调用封装 ====================
+
+/**
+ * 统一的平台 API 调用封装
+ * 支持 Mock 降级和 token 自动刷新
+ */
+export async function platformCall<T>(
+  platform: string,
+  url: string,
+  options: { method: string; body?: unknown; headers?: Record<string, string> },
+  onTokenRefresh: () => Promise<any>,
+  mockFallback: () => Promise<T>
+): Promise<T> {
+  if (useMock()) {
+    return mockFallback();
+  }
+  // 真实调用逻辑（简化版）
+  try {
+    const client = new HttpClient({ baseURL: "", timeout: 15000 });
+    const res = await (client as any).fetch(options.method, url, {
+      headers: options.headers,
+      body: options.body,
+    });
+    return res as T;
+  } catch (err: any) {
+    if (err.message?.includes("401") || err.message?.includes("403")) {
+      await onTokenRefresh();
+      const client = new HttpClient({ baseURL: "", timeout: 15000 });
+      const res = await (client as any).fetch(options.method, url, {
+        headers: options.headers,
+        body: options.body,
+      });
+      return res as T;
+    }
+    throw err;
+  }
+}
+
+/** 是否启用 Mock 模式 */
+export function useMock(): boolean {
+  return isMock();
 }

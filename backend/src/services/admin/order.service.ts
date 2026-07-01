@@ -1,4 +1,5 @@
-import { query, queryOne, queryWithTenant, queryOneWithTenant } from "../../shared/db.js";
+import { query, queryOne, queryWithTenant, queryOneWithTenant, transaction } from "../../shared/db.js";
+import { makeBizNo } from "../../shared/id.js";
 
 export async function listOrders(
   page: number,
@@ -241,4 +242,123 @@ export async function exportSaleBillsCsv(
   ]);
   const csv = `\uFEFF${[header, ...rows].map((line) => line.map(escapeCsv).join(",")).join("\n")}`;
   return { csv, filename: `sale-bills-${new Date().toISOString().slice(0, 10)}.csv` };
+}
+
+// ========== Phase 12: 订单状态管理 ==========
+
+const VALID_TRANSITIONS: Record<string, string[]> = {
+  PENDING: ["ACCEPTED", "CANCELLED"],
+  ACCEPTED: ["DELIVERING", "CANCELLED"],
+  DELIVERING: ["COMPLETED"],
+  COMPLETED: [],
+  CANCELLED: [],
+};
+
+export function validateStatusTransition(from: string, to: string): boolean {
+  const allowed = VALID_TRANSITIONS[from];
+  return allowed ? allowed.includes(to) : false;
+}
+
+export async function cancelOrder(orderNo: string, reason: string, operatorId: number | null, operatorName: string, tenantId: string) {
+  const order = await queryOneWithTenant<any>(
+    "SELECT * FROM miniapp_order WHERE order_no = ? AND tenant_id = ?",
+    [orderNo, tenantId],
+    tenantId
+  );
+  if (!order) throw new Error("订单不存在");
+  if (order.order_status === "CANCELLED") throw new Error("订单已取消");
+  if (order.order_status === "COMPLETED") throw new Error("已完成订单无法取消");
+
+  await transaction(async (conn) => {
+    await conn.execute(
+      "UPDATE miniapp_order SET order_status = 'CANCELLED', pay_status = CASE WHEN pay_status = 'UNPAID' THEN 'CANCELLED' ELSE pay_status END, updated_at = NOW() WHERE order_no = ? AND tenant_id = ?",
+      [orderNo, tenantId]
+    );
+    // 释放库存
+    const items = await conn.execute<any[]>(
+      "SELECT sku_id, qty FROM miniapp_order_item WHERE order_no = ?",
+      [orderNo]
+    );
+    for (const item of (items[0] as any[])) {
+      await conn.execute(
+        "UPDATE inventory_balance SET available_qty = available_qty + ?, locked_qty = locked_qty - ? WHERE sku_id = ? AND tenant_id = ?",
+        [item.qty, item.qty, item.sku_id, tenantId]
+      );
+    }
+    // 记录操作日志
+    const logNo = makeBizNo("LOG");
+    await conn.execute(
+      "INSERT INTO operation_log (log_no, module, action, biz_no, operator_id, operator_name, remark, tenant_id) VALUES (?, 'ORDER', 'CANCEL', ?, ?, ?, ?, ?)",
+      [logNo, orderNo, operatorId ?? 0, operatorName, reason || "管理员取消订单", tenantId]
+    );
+  });
+  return { orderNo, status: "CANCELLED" };
+}
+
+export async function remarkOrder(orderNo: string, remark: string, operatorId: number | null, operatorName: string, tenantId: string) {
+  const order = await queryOneWithTenant<any>(
+    "SELECT * FROM miniapp_order WHERE order_no = ? AND tenant_id = ?",
+    [orderNo, tenantId],
+    tenantId
+  );
+  if (!order) throw new Error("订单不存在");
+
+  await queryWithTenant(
+    "UPDATE miniapp_order SET remark = ?, updated_at = NOW() WHERE order_no = ? AND tenant_id = ?",
+    [remark, orderNo, tenantId],
+    tenantId
+  );
+  const logNo = makeBizNo("LOG");
+  await queryWithTenant(
+    "INSERT INTO operation_log (log_no, module, action, biz_no, operator_id, operator_name, remark, tenant_id) VALUES (?, 'ORDER', 'REMARK', ?, ?, ?, ?, ?)",
+    [logNo, orderNo, operatorId ?? 0, operatorName, remark, tenantId],
+    tenantId
+  );
+  return { orderNo, remark };
+}
+
+export async function updateOrderStatus(orderNo: string, targetStatus: string, operatorId: number | null, operatorName: string, remark: string | null, tenantId: string) {
+  const order = await queryOneWithTenant<any>(
+    "SELECT * FROM miniapp_order WHERE order_no = ? AND tenant_id = ?",
+    [orderNo, tenantId],
+    tenantId
+  );
+  if (!order) throw new Error("订单不存在");
+  if (!validateStatusTransition(order.order_status, targetStatus)) {
+    throw new Error(`订单状态不能从 ${order.order_status} 变更为 ${targetStatus}`);
+  }
+
+  await queryWithTenant(
+    "UPDATE miniapp_order SET order_status = ?, updated_at = NOW() WHERE order_no = ? AND tenant_id = ?",
+    [targetStatus, orderNo, tenantId],
+    tenantId
+  );
+  const logNo = makeBizNo("LOG");
+  await queryWithTenant(
+    "INSERT INTO operation_log (log_no, module, action, biz_no, operator_id, operator_name, remark, tenant_id) VALUES (?, 'ORDER', 'STATUS_CHANGE', ?, ?, ?, ?, ?)",
+    [logNo, orderNo, operatorId ?? 0, operatorName, remark || `状态变更: ${order.order_status} -> ${targetStatus}`, tenantId],
+    tenantId
+  );
+  return { orderNo, fromStatus: order.order_status, toStatus: targetStatus };
+}
+
+export async function batchUpdateOrderStatus(orderNos: string[], targetStatus: string, operatorId: number | null, operatorName: string, tenantId: string) {
+  const results: { orderNo: string; success: boolean; error?: string }[] = [];
+  for (const orderNo of orderNos) {
+    try {
+      await updateOrderStatus(orderNo, targetStatus, operatorId, operatorName, null, tenantId);
+      results.push({ orderNo, success: true });
+    } catch (err: any) {
+      results.push({ orderNo, success: false, error: err.message });
+    }
+  }
+  return { results, total: orderNos.length, successCount: results.filter(r => r.success).length };
+}
+
+export async function getOrderOperationLogs(orderNo: string, tenantId: string) {
+  return queryWithTenant<any>(
+    "SELECT log_no AS logNo, module, action, biz_no AS bizNo, operator_id AS operatorId, operator_name AS operatorName, remark, created_at AS createdAt FROM operation_log WHERE biz_no = ? AND module = 'ORDER' AND tenant_id = ? ORDER BY created_at DESC",
+    [orderNo, tenantId],
+    tenantId
+  );
 }

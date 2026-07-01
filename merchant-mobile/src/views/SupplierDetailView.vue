@@ -12,15 +12,8 @@ const detail = ref<SupplierDetail | null>(null)
 const stats = ref<SupplierStats | null>(null)
 const products = ref<SupplierProductRecord[]>([])
 const loading = ref(true)
-const activeTab = ref(0)
-
 function formatPrice(price: number | null | undefined): string {
   return Number(price ?? 0).toFixed(2)
-}
-
-function formatDate(dateStr: string) {
-  if (!dateStr) return '-'
-  return dateStr.split('T')[0] || dateStr.slice(0, 10)
 }
 
 onMounted(async () => {

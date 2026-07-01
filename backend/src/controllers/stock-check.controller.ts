@@ -143,3 +143,17 @@ export const storeStockCheck = {
     }
   }),
 };
+
+// 扁平导出：routes 层引用的名称
+export const create = adminStockCheck.create;
+export const getStatistics = adminStockCheck.statistics;
+export const list = adminStockCheck.list;
+export const getDetail = adminStockCheck.detail;
+export const update = adminStockCheck.update;
+export const start = adminStockCheck.start;
+export const complete = adminStockCheck.complete;
+export const cancel = adminStockCheck.cancel;
+export const handleDiff = adminStockCheck.handleDiff;
+export const getMyList = storeStockCheck.my;
+export const updateItem = storeStockCheck.updateItem;
+export const submit = storeStockCheck.submit;

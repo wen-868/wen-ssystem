@@ -142,9 +142,7 @@ async function search() {
   loading.value = true;
   try {
     const res = await fetchCustomerTags({
-      keyword: searchForm.keyword || undefined,
       tagGroup: searchForm.tagGroup || undefined,
-      tagType: searchForm.tagType || undefined,
       page: page.value,
       pageSize: pageSize.value
     });
@@ -183,7 +181,7 @@ async function handleSubmit() {
   submitLoading.value = true;
   try {
     if (editing.value) {
-      await updateCustomerTag(editingItem.value.id, { name: form.name, tagGroup: form.tagGroup, tagType: form.tagType, color: form.color, sortNo: form.sortNo });
+      await updateCustomerTag(editingItem.value.id, { name: form.name, tagGroup: form.tagGroup, color: form.color, sortNo: form.sortNo });
       ElMessage.success("更新成功");
     } else {
       await createCustomerTag({ name: form.name, tagGroup: form.tagGroup, tagType: form.tagType, color: form.color, sortNo: form.sortNo });
@@ -223,7 +221,7 @@ async function handleAddTag() {
   }
   tagLoading.value = true;
   try {
-    await addCustomerTag({ memberId: tagCustomerForm.memberId, tagIds: tagCustomerForm.tagIds });
+    await addCustomerTag({ customerId: tagCustomerForm.memberId, tagId: tagCustomerForm.tagIds[0] });
     ElMessage.success("打标签成功");
     tagCustomerVisible.value = false;
     await search();

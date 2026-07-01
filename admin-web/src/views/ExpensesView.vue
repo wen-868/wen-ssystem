@@ -348,7 +348,7 @@ function openApprove(row: any) {
 
 async function handleApprove() {
   try {
-    await approveExpense(approveTarget.value.id, { action: "APPROVE" });
+    await approveExpense(approveTarget.value.id, true);
     ElMessage.success("审批通过");
     approveVisible.value = false;
     await loadData();
@@ -360,7 +360,7 @@ async function handleApprove() {
 async function handleReject() {
   try {
     await ElMessageBox.confirm("确认驳回该费用申请？", "提示", { confirmButtonText: "确定", cancelButtonText: "取消", type: "warning" });
-    await approveExpense(approveTarget.value.id, { action: "REJECT" });
+    await approveExpense(approveTarget.value.id, false);
     ElMessage.success("已驳回");
     approveVisible.value = false;
     await loadData();

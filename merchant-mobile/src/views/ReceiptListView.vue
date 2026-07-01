@@ -20,16 +20,11 @@ const createMethod = ref('CASH')
 const createRemark = ref('')
 const creating = ref(false)
 
-const PAYMENT_METHODS = ['CASH', 'WECHAT', 'ALIPAY', 'TRANSFER']
 const METHOD_MAP: Record<string, string> = { CASH: '现金', WECHAT: '微信', ALIPAY: '支付宝', TRANSFER: '转账' }
 
 function formatDate(dateStr: string) {
   if (!dateStr) return '-'
   return dateStr.split('T')[0] || dateStr.slice(0, 10)
-}
-function formatDateTime(dateStr: string) {
-  if (!dateStr) return '-'
-  return dateStr.replace('T', ' ').slice(0, 19)
 }
 function formatPrice(price: number | null | undefined): string {
   return Number(price ?? 0).toFixed(2)
@@ -116,7 +111,7 @@ onMounted(() => { loadData() })
       <div class="create-popup">
         <h3>快速收款</h3>
         <van-cell-group inset>
-          <van-field v-model.number="createCustomerId" label="客户ID" placeholder="请输入客户ID" />
+          <van-field v-model.number="createCustomerId as any" label="客户ID" placeholder="请输入客户ID" />
           <van-field v-model="createCustomerName" label="客户名称" placeholder="请输入客户名称" />
           <van-field v-model.number="createAmount" type="number" label="金额" placeholder="请输入收款金额" />
           <van-field v-model="createMethod" label="方式" placeholder="CASH/WECHAT/ALIPAY/TRANSFER" />

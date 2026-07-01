@@ -109,3 +109,15 @@ export const storeStoreControl = {
     res.json(ok(result));
   }),
 };
+
+// 扁平导出：routes 层引用的名称
+export const listConfigs = adminStoreControl.getConfigs;
+export const getConfig = adminStoreControl.getConfig;
+export const updateConfig = adminStoreControl.upsertConfig;
+export const openStore = adminStoreControl.open;
+export const closeStore = adminStoreControl.close;
+export const suspendStore = adminStoreControl.suspend;
+export const resumeStore = adminStoreControl.resume;
+export const listStatusLogs = adminStoreControl.getLogs;
+export const getStoreStatus = storeStoreControl.status;
+export const listMyLogs = storeStoreControl.myLogs;

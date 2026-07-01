@@ -12,10 +12,6 @@ const detail = ref<InventoryCheckDetail | null>(null)
 const loading = ref(true)
 const submitting = ref(false)
 
-function formatPrice(price: number | null | undefined): string {
-  return Number(price ?? 0).toFixed(2)
-}
-
 async function loadDetail() {
   loading.value = true
   try {

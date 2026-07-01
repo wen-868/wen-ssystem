@@ -72,7 +72,7 @@ onMounted(() => {
         </div>
         <h1 class="staff-name">{{ detail.realName }}</h1>
         <van-tag
-          :type="roleColorMap[detail.role] || 'default'"
+          :type="(roleColorMap[detail.role] as any) || 'default'"
           size="large"
           plain
         >
@@ -96,7 +96,7 @@ onMounted(() => {
         </van-cell>
         <van-cell title="角色">
           <van-tag
-            :type="roleColorMap[detail.role] || 'default'"
+            :type="(roleColorMap[detail.role] as any) || 'default'"
             size="medium"
           >
             {{ detail.roleName || roleNameMap[detail.role] || detail.role }}
@@ -107,7 +107,7 @@ onMounted(() => {
         <van-cell title="入职时间" :value="detail.hireDate || detail.createdAt || '-' " />
         <van-cell title="状态">
           <van-tag
-            :type="statusMap[detail.status]?.type || 'default'"
+            :type="(statusMap[detail.status]?.type as any) || 'default'"
             size="medium"
           >
             {{ statusMap[detail.status]?.text || (detail.status === 1 ? '在职' : '离职') }}

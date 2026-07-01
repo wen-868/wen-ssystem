@@ -135,6 +135,10 @@ export async function queryOneWithTenant<T = any>(sql: string, params: unknown[]
   return rows[0] ?? null;
 }
 
+export async function executeWithTenant(sql: string, params: unknown[] = [], tenantId: string): Promise<void> {
+  await queryWithTenant(sql, params, tenantId);
+}
+
 /**
  * 解析 SQL 并注入 tenant_id 条件
  */
@@ -222,10 +226,6 @@ function injectUpdateTenant(sql: string, params: unknown[], tenantId: string): {
  */
 function injectDeleteTenant(sql: string, params: unknown[], tenantId: string): { modifiedSql: string; modifiedParams: unknown[] } {
   return injectUpdateTenant(sql, params, tenantId);
-}
-
-export async function executeWithTenant(sql: string, params: unknown[] = [], tenantId: string): Promise<void> {
-  await queryWithTenant(sql, params, tenantId);
 }
 
 export async function transaction<T>(runner: (conn: mysql.PoolConnection) => Promise<T>) {

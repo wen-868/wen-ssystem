@@ -148,7 +148,7 @@ async function loadStats() {
       params.dateStart = filters.dateRange[0];
       params.dateEnd = filters.dateRange[1];
     }
-    const data = await fetchCustomerVisitStatistics(params);
+    const data = (await fetchCustomerVisitStatistics(params)).data;
     summary.totalVisits = data.totalVisits || 0;
     summary.completedVisits = data.completedVisits || 0;
     summary.completionRate = data.completionRate || 0;

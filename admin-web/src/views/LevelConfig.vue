@@ -287,7 +287,7 @@ async function handleManualUpgradeSubmit() {
     if (!valid) return;
     manualUpgradeSubmitLoading.value = true;
     try {
-      await updateMemberLevel(manualUpgradeForm);
+      await updateMemberLevel(Number(manualUpgradeForm.customerId), { levelId: Number(manualUpgradeForm.levelId), reason: manualUpgradeForm.reason });
       ElMessage.success("会员等级已更新");
       manualUpgradeVisible.value = false;
     } catch (e: any) {

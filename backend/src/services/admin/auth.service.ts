@@ -73,3 +73,13 @@ export async function updateSettings(userId: number, defaultHomepage: string | n
   );
   return { success: true };
 }
+
+export async function changePassword(userId: number, oldPassword: string, newPassword: string) {
+  const user = await queryOne<any>("SELECT id, password_hash AS passwordHash FROM sys_user WHERE id = ?", [userId]);
+  if (!user) throw new Error("用户不存在");
+  if (!(await verifyPassword(oldPassword, user.passwordHash))) throw new Error("旧密码错误");
+  const { hashPassword } = await import("../../shared/password.js");
+  const hashed = await hashPassword(newPassword);
+  await queryWithTenant("UPDATE sys_user SET password_hash = ?, updated_at = NOW() WHERE id = ?", [hashed, userId], "default");
+  return { message: "密码修改成功" };
+}

@@ -289,11 +289,11 @@ function getErrorMessage(error: unknown, fallback: string) {
 async function loadSubscriptions() {
   subLoading.value = true;
   try {
-    const data = await fetchSubscriptions({
+    const data = (await fetchSubscriptions({
       page: subPage.value,
       pageSize: subPageSize.value,
       status: subStatusFilter.value || undefined
-    });
+    })).data;
     const list = data.records || data.list || [];
     subTotal.value = data.total || list.length;
     subscriptions.value = list;
@@ -306,10 +306,10 @@ async function loadSubscriptions() {
 
 async function loadAlerts() {
   try {
-    const [expiring, expired] = await Promise.all([
+    const [expiring, expired] = (await Promise.all([
       fetchExpiringSubscriptions(),
       fetchExpiredSubscriptions()
-    ]);
+    ])).map((r: any) => r.data);
     expiringList.value = expiring || [];
     expiredList.value = expired || [];
   } catch {
@@ -319,7 +319,7 @@ async function loadAlerts() {
 
 async function loadTenantList() {
   try {
-    const data = await fetchTenants({ pageSize: 999 });
+    const data = (await fetchTenants({ pageSize: 999 })).data;
     tenantList.value = data.records || data.list || [];
   } catch {
     // ignore
@@ -328,7 +328,7 @@ async function loadTenantList() {
 
 async function loadPlanList() {
   try {
-    const data = await fetchSubscriptionPlans({ pageSize: 999 });
+    const data = (await fetchSubscriptionPlans({ pageSize: 999 })).data;
     planList.value = data.records || data.list || [];
   } catch {
     // ignore
@@ -369,7 +369,7 @@ async function handleSubSubmit() {
     subSubmitLoading.value = true;
     try {
       if (isSubEdit.value) {
-        await changeSubscriptionPlan(editingSubId.value, { planId: subForm.planId });
+        await changeSubscriptionPlan(Number(editingSubId.value), { planId: subForm.planId });
         ElMessage.success("套餐已变更");
       } else {
         await createSubscription({ tenantId: subForm.tenantId, planId: subForm.planId, startDate: subForm.startDate || undefined });
@@ -428,10 +428,10 @@ async function handleRenew(row: any) {
 async function loadPlans() {
   planLoading.value = true;
   try {
-    const data = await fetchSubscriptionPlans({
+    const data = (await fetchSubscriptionPlans({
       page: planPage.value,
       pageSize: planPageSize.value
-    });
+    })).data;
     const list = data.records || data.list || [];
     planTotal.value = data.total || list.length;
     plans.value = list;
@@ -494,7 +494,7 @@ async function handlePlanSubmit() {
     planSubmitLoading.value = true;
     try {
       if (isPlanEdit.value) {
-        await updateSubscriptionPlan(editingPlanId.value, { ...planForm });
+        await updateSubscriptionPlan(Number(editingPlanId.value), { ...planForm });
         ElMessage.success("套餐已更新");
       } else {
         await createSubscriptionPlan({ ...planForm });

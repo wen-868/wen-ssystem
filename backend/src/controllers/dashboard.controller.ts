@@ -44,22 +44,3 @@ export const getRecentAlerts = asyncHandler(async (req, res) => {
   const result = await service.getRecentAlerts(req.tenantId!, limit);
   res.json(ok(result));
 });
-
-// ========== Phase 14: 工作台增强 ==========
-
-export const getTodos = asyncHandler(async (req, res) => {
-  const result = await service.getTodos(req.tenantId!);
-  res.json(ok(result));
-});
-
-export const getRecentOrders = asyncHandler(async (req, res) => {
-  const limit = Math.min(Number(req.query.limit || 5), 20);
-  const result = await service.getRecentOrders(req.tenantId!, limit);
-  res.json(ok(result));
-});
-
-export const getSalesTrendByDay = asyncHandler(async (req, res) => {
-  const days = Math.min(Number(req.query.days || 7), 90);
-  const result = await service.getSalesTrendByDay(req.tenantId!, days);
-  res.json(ok(result));
-});

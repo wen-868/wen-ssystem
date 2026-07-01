@@ -387,7 +387,7 @@ onMounted(() => {
                     <span class="title-text">{{ item.title }}</span>
                     <van-tag
                       :type="(PRIORITY_MAP[item.priority]?.type as any) || 'default'"
-                      size="small"
+                      :size="('small' as any)"
                       plain
                     >
                       {{ PRIORITY_MAP[item.priority]?.label || item.priority }}
@@ -449,7 +449,6 @@ onMounted(() => {
               is-link
               readonly
               clickable
-              :model-value="TYPE_MAP[createForm.type]?.label || createForm.type"
               @click="showTypePicker = true"
             />
             <van-field
@@ -459,7 +458,6 @@ onMounted(() => {
               is-link
               readonly
               clickable
-              :model-value="PRIORITY_MAP[createForm.priority]?.label || createForm.priority"
               @click="showPriorityPicker = true"
             />
             <van-field

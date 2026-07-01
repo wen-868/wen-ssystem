@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { onMounted, ref } from 'vue'
-import { useRouter, useRoute } from 'vue-router'
+import { useRouter } from 'vue-router'
 import {
   fetchCustomerContribution,
   fetchCustomers,
@@ -13,7 +13,6 @@ import {
 } from '../api'
 
 const router = useRouter()
-const route = useRoute()
 
 /* ========== 数据 ========== */
 const loading = ref(false)

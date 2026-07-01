@@ -103,7 +103,7 @@ function handleAvatarClick() {
           label="姓名"
           placeholder="请输入姓名"
           required
-          :error="errors.realName"
+          :error="!!errors.realName"
           :error-message="errors.realName"
         />
         <van-field
@@ -111,7 +111,7 @@ function handleAvatarClick() {
           label="手机号"
           type="tel"
           placeholder="请输入手机号"
-          :error="errors.mobile"
+          required
           :error-message="errors.mobile"
         />
       </van-cell-group>

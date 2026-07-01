@@ -19,10 +19,6 @@ const recharging = ref(false)
 
 const QUICK_AMOUNTS = [100, 200, 500, 1000]
 
-function formatDate(dateStr: string) {
-  if (!dateStr) return '-'
-  return dateStr.split('T')[0] || dateStr.slice(0, 10)
-}
 function formatDateTime(dateStr: string) {
   if (!dateStr) return '-'
   return dateStr.replace('T', ' ').slice(0, 19)

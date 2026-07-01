@@ -77,7 +77,7 @@ onMounted(async () => {
       <div class="section-card" v-if="benefits.length > 0 || card.benefits.length > 0">
         <h3 class="section-title">会员权益</h3>
         <div class="benefits-list">
-          <div v-for="(b, idx) in (card.benefits.length > 0 ? card.benefits : benefits.find(b => b.code === card.levelCode)?.benefits ?? [])" :key="idx" class="benefit-item">
+          <div v-for="(b, idx) in (card!.benefits.length > 0 ? card!.benefits : benefits.find(b => b.code === card!.levelCode)?.benefits ?? [])" :key="idx" class="benefit-item">
             <van-icon name="checked" size="14" color="var(--color-success)" />
             <span>{{ b }}</span>
           </div>

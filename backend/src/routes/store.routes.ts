@@ -26,7 +26,7 @@ export const storeSaleBillItemSchema = z.object({
   totalBottleQty: z.number().optional(),
   unitPrice: z.number().optional(),
   priceType: z.enum(["RETAIL", "WHOLESALE", "STORE"]).optional()
-}).transform((item, ctx) => {
+}).transform((item: any, ctx: any) => {
   const totalBottleQty = item.totalBottleQty ?? item.quantity;
   if (totalBottleQty == null || totalBottleQty <= 0) {
     ctx.addIssue({ code: z.ZodIssueCode.custom, message: "totalBottleQty 或 quantity 必须大于 0" });

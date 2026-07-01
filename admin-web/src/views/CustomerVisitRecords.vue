@@ -353,7 +353,7 @@ async function loadVisits() {
       params.dateStart = filters.dateRange[0];
       params.dateEnd = filters.dateRange[1];
     }
-    const data = await fetchCustomerVisits(params);
+    const data = (await fetchCustomerVisits(params)).data;
     visits.value = data.records || [];
     total.value = data.total || 0;
   } catch (e: any) {
@@ -477,7 +477,7 @@ async function handleCancel(row: any) {
 
 async function openDetailDialog(row: any) {
   try {
-    detail.value = await fetchCustomerVisitDetail(row.visitNo);
+    detail.value = (await fetchCustomerVisitDetail(row.visitNo)).data;
     detailDialogVisible.value = true;
   } catch (e: any) {
     ElMessage.error(getErrorMessage(e, "获取拜访详情失败"));

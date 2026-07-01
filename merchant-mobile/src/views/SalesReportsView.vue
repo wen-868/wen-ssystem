@@ -1,7 +1,6 @@
 <script setup lang="ts">
 import { onMounted, ref, computed } from 'vue'
 import { useRouter } from 'vue-router'
-import { showToast } from 'vant'
 import { fetchSalesTrend, fetchProductRanking, fetchSalesRanking } from '../api'
 
 const router = useRouter()
@@ -20,12 +19,6 @@ function getDefaultRange(): [string, string] {
   const ago = new Date(now)
   ago.setDate(ago.getDate() - 7)
   return [formatDateParam(ago), formatDateParam(now)]
-}
-
-function getMonthRange(): [string, string] {
-  const now = new Date()
-  const start = new Date(now.getFullYear(), now.getMonth(), 1)
-  return [formatDateParam(start), formatDateParam(now)]
 }
 
 function onDateConfirm(values: [Date, Date]) {
@@ -62,13 +55,13 @@ const maxDailyAmount = ref(0)
 
 async function loadAll() {
   const [start, end] = dateRange.value[0] ? dateRange.value : getDefaultRange()
-  const params = { startDate: start, endDate: end }
+  const params = { dateStart: start, dateEnd: end }
 
   try {
     const [trendRes, rankingRes, staffRes] = await Promise.all([
-      fetchSalesTrend({ startDate: start, endDate: end }).catch(() => ({ data: null })),
-      fetchProductRanking(params).catch(() => ({ data: null })),
-      fetchSalesRanking(params).catch(() => ({ data: null }))
+      fetchSalesTrend({ dateStart: start, dateEnd: end } as any).catch(() => ({ data: null })),
+      fetchProductRanking(params as any).catch(() => ({ data: null })),
+      fetchSalesRanking(params as any).catch(() => ({ data: null }))
     ])
 
     // 趋势数据

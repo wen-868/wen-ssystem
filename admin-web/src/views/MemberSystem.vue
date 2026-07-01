@@ -104,7 +104,7 @@ async function handleRegister() {
     if (!valid) return;
     registerSubmitLoading.value = true;
     try {
-      await registerMember(registerForm);
+      await registerMember({ ...registerForm, referrerId: Number(registerForm.referrerId) || undefined });
       ElMessage.success("会员注册成功");
       registerForm.name = "";
       registerForm.mobile = "";
@@ -145,7 +145,7 @@ async function handleEditBenefits() {
 async function handleBenefitsSubmit() {
   benefitsSubmitLoading.value = true;
   try {
-    await updateMemberBenefits(benefitsEditList.value);
+    await updateMemberBenefits(0, { benefits: benefitsEditList.value });
     ElMessage.success("权益已更新");
     benefitsDialogVisible.value = false;
     loadBenefits();

@@ -139,14 +139,15 @@ let apTopInstance: echarts.ECharts | null = null;
 
 async function loadData() {
   try {
-    const params = { range: rangeType.value };
+    const rangeParams = { range: rangeType.value };
+    const monthParams = { month: rangeType.value };
     const [dashRes, cashRes, profitRes, arTopRes, apTopRes, dailyRes] = await Promise.all([
-      fetchFinanceDashboard(params),
-      fetchCashFlow(params),
-      fetchProfitTrend(params),
-      fetchTopCustomersAR(params),
-      fetchTopSuppliersAP(params),
-      fetchDailyReport(params)
+      fetchFinanceDashboard(),
+      fetchCashFlow(rangeParams),
+      fetchProfitTrend(rangeParams),
+      fetchTopCustomersAR(),
+      fetchTopSuppliersAP(),
+      fetchDailyReport(monthParams)
     ]);
 
     if (dashRes) {

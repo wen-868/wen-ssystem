@@ -1,11 +1,13 @@
 import { Router } from "express";
 import { z } from "zod";
 import jwt from "jsonwebtoken";
-import crypto from "node:crypto";
+import crypto from "crypto";
 import { asyncHandler } from "../shared/async-handler.js";
 import { env } from "../shared/env.js";
 import { ok, fail } from "../shared/response.js";
 import { createWechatController } from "../controllers/wechat.controller.js";
+
+declare const Buffer: any;
 
 export const wechatRouter = Router();
 

@@ -63,7 +63,7 @@ export class ElemeAdapter extends AbstractPlatformAdapter {
       async () => {
         throw new Error("[ELEME] Cannot refresh token: no credentials");
       },
-      async () => {
+      (async () => {
         console.info("[ELEME] Mock authenticate");
         const expireAt = new Date(Date.now() + 7200 * 1000);
         const creds: PlatformCredentials = {
@@ -79,7 +79,7 @@ export class ElemeAdapter extends AbstractPlatformAdapter {
         };
         this.credentials = creds;
         return creds;
-      }
+      }) as any
     );
 
     const token = useMock()
@@ -210,13 +210,13 @@ export class ElemeAdapter extends AbstractPlatformAdapter {
         },
       },
       () => this.authenticate(),
-      async () => {
+      (async () => {
         const mockOrders: UnifiedOrder[] = Array.from({ length: Math.min(limit, 3) }).map((_, i) =>
           this.createMockOrder(`ELM${Date.now()}${i}`, params?.status ?? "PENDING")
         );
         console.info(`[ELEME] Mock synced ${mockOrders.length} orders`);
         return { orders: mockOrders, hasMore: false, nextCursor: undefined };
-      }
+      }) as any
     );
 
     if (useMock()) {
@@ -319,7 +319,7 @@ export class ElemeAdapter extends AbstractPlatformAdapter {
         console.info(`[ELEME] Mock cancel order: ${platformOrderId}, reason: ${reason ?? "N/A"}`);
         return { body: { success: true } };
       }
-    ).then((r) => r.body?.success ?? true);
+    ).then((r: any) => r.body?.success ?? true);
   }
 
   async syncProducts(params?: { cursor?: string; limit?: number }): Promise<{
@@ -346,7 +346,7 @@ export class ElemeAdapter extends AbstractPlatformAdapter {
         },
       },
       () => this.authenticate(),
-      async () => {
+      (async () => {
         const mockProducts: UnifiedProduct[] = Array.from({ length: Math.min(limit, 2) }).map((_, i) => ({
           localSkuId: `local_sku_${i}`,
           platformSkuId: `eleme_sku_${i}`,
@@ -367,7 +367,7 @@ export class ElemeAdapter extends AbstractPlatformAdapter {
         }));
         console.info(`[ELEME] Mock synced ${mockProducts.length} products`);
         return { products: mockProducts, hasMore: false, nextCursor: undefined };
-      }
+      }) as any
     );
 
     if (useMock()) {

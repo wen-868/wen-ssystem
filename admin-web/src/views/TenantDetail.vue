@@ -87,7 +87,7 @@ const selectedModules = ref<string[]>([]);
 const dialogVisible = ref(false);
 const formRef = ref<FormInstance>();
 
-const tenantId = route.params.tenantId as string;
+const tenantId = Number(route.params.tenantId);
 
 const form = reactive({
   name: "",
@@ -108,7 +108,7 @@ function getErrorMessage(error: unknown, fallback: string) {
 async function loadTenantDetail() {
   loading.value = true;
   try {
-    const data = await fetchTenantDetail(tenantId);
+    const data = (await fetchTenantDetail(tenantId)).data;
     tenant.value = data;
   } catch (e: any) {
     ElMessage.error(getErrorMessage(e, "加载租户详情失败"));
@@ -120,7 +120,7 @@ async function loadTenantDetail() {
 async function loadModules() {
   modulesLoading.value = true;
   try {
-    const data = await fetchTenantModules(tenantId);
+    const data = (await fetchTenantModules(tenantId)).data;
     allModules.value = data.available || data.allModules || [];
     selectedModules.value = data.enabled || data.currentModules || [];
   } catch (e: any) {
@@ -138,7 +138,7 @@ async function handleToggleStatus(newStatus: string) {
       cancelButtonText: "取消",
       type: "warning"
     });
-    await changeTenantStatus(tenantId, { status: newStatus });
+    await changeTenantStatus(tenantId, newStatus);
     ElMessage.success(`租户已${action}`);
     loadTenantDetail();
   } catch (e: any) {

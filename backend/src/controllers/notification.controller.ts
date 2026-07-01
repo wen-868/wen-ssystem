@@ -103,3 +103,13 @@ export const myMarkAllRead = asyncHandler(async (req, res) => {
   const result = await service.markMyAllRead(req.tenantId!, userId);
   res.json(ok(result));
 });
+
+// 别名：routes 层引用的名称
+export const listNotifications = list;
+export const getUnreadCount = unreadCount;
+export const markAsRead = markRead;
+export const markAllAsRead = markAllRead;
+export const listMiniappNotifications = myList;
+export const getMiniappUnreadCount = myUnreadCount;
+export const markMiniappAsRead = myMarkRead;
+export const markMiniappAllAsRead = myMarkAllRead;

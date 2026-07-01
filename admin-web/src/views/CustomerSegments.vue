@@ -148,11 +148,7 @@ function formatConditions(cond: any) {
 async function search() {
   loading.value = true;
   try {
-    const res = await fetchSegments({
-      keyword: searchForm.keyword || undefined,
-      page: page.value,
-      pageSize: pageSize.value
-    });
+    const res = await fetchSegments();
     list.value = res.records || res.list || [];
     total.value = res.total || 0;
   } catch { ElMessage.error("加载分群失败"); }

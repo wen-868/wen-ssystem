@@ -18,19 +18,6 @@ const adjustAmount = ref(0)
 const adjustReason = ref('')
 const adjusting = ref(false)
 
-const LEVEL_MAP: Record<string, string> = {
-  NORMAL: '普通会员',
-  VIP: 'VIP会员',
-  GOLD: '金卡会员',
-  DIAMOND: '钻石会员',
-  WHOLESALE: '批发客户'
-}
-
-function formatDate(dateStr: string) {
-  if (!dateStr) return '-'
-  return dateStr.split('T')[0] || dateStr.slice(0, 10)
-}
-
 function formatDateTime(dateStr: string) {
   if (!dateStr) return '-'
   return dateStr.replace('T', ' ').slice(0, 19)

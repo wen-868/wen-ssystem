@@ -83,7 +83,7 @@ async function handleSubmit() {
           type="password"
           placeholder="请输入旧密码"
           required
-          :error="errors.oldPassword"
+          :error="!!errors.oldPassword"
           :error-message="errors.oldPassword"
         />
         <van-field
@@ -92,7 +92,7 @@ async function handleSubmit() {
           type="password"
           placeholder="请输入新密码"
           required
-          :error="errors.newPassword"
+          :error="!!errors.newPassword"
           :error-message="errors.newPassword"
         />
         <van-field
@@ -101,7 +101,7 @@ async function handleSubmit() {
           type="password"
           placeholder="请再次输入新密码"
           required
-          :error="errors.confirmPassword"
+          :error="!!errors.confirmPassword"
           :error-message="errors.confirmPassword"
         />
       </van-cell-group>

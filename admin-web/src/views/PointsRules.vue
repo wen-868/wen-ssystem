@@ -247,7 +247,7 @@ async function loadRecords() {
   recordsLoading.value = true;
   try {
     const data = await fetchPointsRecords({
-      customerId: recordSearch.customerId || undefined,
+      customerId: Number(recordSearch.customerId) || undefined,
       page: recordsPage.value,
       pageSize: recordsPageSize.value
     });
@@ -277,7 +277,7 @@ async function handleAdjustSubmit() {
     if (!valid) return;
     adjustSubmitLoading.value = true;
     try {
-      await adjustCustomerPoints(adjustForm);
+      await adjustCustomerPoints(Number(adjustForm.customerId), { points: adjustForm.points, remark: adjustForm.remark });
       ElMessage.success("积分调整成功");
       adjustDialogVisible.value = false;
       adjustForm.customerId = "";

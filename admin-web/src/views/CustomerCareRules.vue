@@ -134,12 +134,7 @@ const logPageSize = ref(20);
 async function search() {
   loading.value = true;
   try {
-    const res = await fetchCareRules({
-      keyword: searchForm.keyword || undefined,
-      triggerType: searchForm.triggerType || undefined,
-      page: page.value,
-      pageSize: pageSize.value
-    });
+    const res = await fetchCareRules();
     rules.value = res.records || res.list || [];
     total.value = res.total || 0;
   } catch { ElMessage.error("加载规则失败"); }

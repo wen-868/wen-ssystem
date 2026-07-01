@@ -50,7 +50,7 @@ export const setRoleDataPermissions = asyncHandler(async (req, res) => {
       filterValue: z.string()
     }))
   }).parse(req.body);
-  await menuPermissionService.setRoleDataPermissions(roleId, body.dataPermissions.map(dp => ({ ...dp, roleId })), req.tenantId!);
+  await menuPermissionService.setRoleDataPermissions(roleId, body.dataPermissions.map((dp: any) => ({ ...dp, roleId })), req.tenantId!);
   res.json(ok({ roleId, count: body.dataPermissions.length }));
 });
 
@@ -71,6 +71,6 @@ export const setRoleFieldPermissions = asyncHandler(async (req, res) => {
       permissionType: z.string().min(1)
     }))
   }).parse(req.body);
-  await menuPermissionService.setRoleFieldPermissions(roleId, body.fieldPermissions.map(fp => ({ ...fp, roleId })), req.tenantId!);
+  await menuPermissionService.setRoleFieldPermissions(roleId, body.fieldPermissions.map((fp: any) => ({ ...fp, roleId })), req.tenantId!);
   res.json(ok({ roleId, count: body.fieldPermissions.length }));
 });

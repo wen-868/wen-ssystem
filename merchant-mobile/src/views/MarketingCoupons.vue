@@ -101,11 +101,6 @@ function onTabChange() {
 onMounted(() => {
   loadAvailable()
 })
-
-/* 工具函数 */
-function formatMoney(v: number): string {
-  return v.toLocaleString('zh-CN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })
-}
 </script>
 
 <template>

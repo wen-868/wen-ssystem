@@ -63,7 +63,7 @@ export class MeituanAdapter extends AbstractPlatformAdapter {
       async () => {
         throw new Error("[MEITUAN] Cannot refresh token: no credentials");
       },
-      async () => {
+      (async () => {
         console.info("[MEITUAN] Mock authenticate");
         const expireAt = new Date(Date.now() + 7200 * 1000);
         const creds: PlatformCredentials = {
@@ -79,7 +79,7 @@ export class MeituanAdapter extends AbstractPlatformAdapter {
         };
         this.credentials = creds;
         return creds;
-      }
+      }) as any
     );
 
     const token = useMock()
@@ -213,13 +213,13 @@ export class MeituanAdapter extends AbstractPlatformAdapter {
         },
       },
       () => this.authenticate(),
-      async () => {
+      (async () => {
         const mockOrders: UnifiedOrder[] = Array.from({ length: Math.min(limit, 3) }).map((_, i) =>
           this.createMockOrder(`MT${Date.now()}${i}`, params?.status ?? "PENDING")
         );
         console.info(`[MEITUAN] Mock synced ${mockOrders.length} orders`);
         return { orders: mockOrders, hasMore: false, nextCursor: undefined };
-      }
+      }) as any
     );
 
     if (useMock()) {
@@ -320,7 +320,7 @@ export class MeituanAdapter extends AbstractPlatformAdapter {
         console.info(`[MEITUAN] Mock cancel order: ${platformOrderId}, reason: ${reason ?? "N/A"}`);
         return { data: { success: true } };
       }
-    ).then((r) => r.data?.success ?? true);
+    ).then((r: any) => r.data?.success ?? true);
   }
 
   async syncProducts(params?: { cursor?: string; limit?: number }): Promise<{
@@ -347,7 +347,7 @@ export class MeituanAdapter extends AbstractPlatformAdapter {
         },
       },
       () => this.authenticate(),
-      async () => {
+      (async () => {
         const mockProducts: UnifiedProduct[] = Array.from({ length: Math.min(limit, 2) }).map((_, i) => ({
           localSkuId: `local_sku_${i}`,
           platformSkuId: `meituan_sku_${i}`,
@@ -368,7 +368,7 @@ export class MeituanAdapter extends AbstractPlatformAdapter {
         }));
         console.info(`[MEITUAN] Mock synced ${mockProducts.length} products`);
         return { products: mockProducts, hasMore: false, nextCursor: undefined };
-      }
+      }) as any
     );
 
     if (useMock()) {

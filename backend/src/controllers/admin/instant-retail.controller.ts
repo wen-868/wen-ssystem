@@ -6,6 +6,7 @@
 import { asyncHandler } from "../../shared/async-handler.js";
 import { ok } from "../../shared/response.js";
 import * as instantRetailService from "../../services/admin/instant-retail.service.js";
+import * as retailShopSvc from "../../services/instant-retail/retail-shop.service.js";
 
 // ────────────────────────────────────────────────────────────────────────────
 // Webhook 端点
@@ -193,4 +194,125 @@ export const cancelOrder = asyncHandler(async (req, res) => {
     return;
   }
   res.json(ok({ platformOrderId: result.platformOrderId, success: result.success, status: result.status }));
+});
+
+// ────────────────────────────────────────────────────────────────────────────
+// 零售门店管理端点 (Phase 11)
+// ────────────────────────────────────────────────────────────────────────────
+
+export const getShopConfig = asyncHandler(async (req, res) => {
+  const tenantId = req.tenantId!;
+  const storeId = req.query.storeId ? Number(req.query.storeId) : undefined;
+  const result = await retailShopSvc.getShopConfig(storeId, tenantId);
+  res.json(ok(result));
+});
+
+export const saveShopConfig = asyncHandler(async (req, res) => {
+  const tenantId = req.tenantId!;
+  const storeId = req.query.storeId ? Number(req.query.storeId) : undefined;
+  const result = await retailShopSvc.saveShopConfig(storeId, req.body as any, tenantId);
+  res.json(ok(result));
+});
+
+export const listCategories = asyncHandler(async (req, res) => {
+  const tenantId = req.tenantId!;
+  const storeId = req.query.storeId ? Number(req.query.storeId) : undefined;
+  const result = await retailShopSvc.listCategories(storeId, tenantId);
+  res.json(ok(result));
+});
+
+export const createCategory = asyncHandler(async (req, res) => {
+  const tenantId = req.tenantId!;
+  const storeId = req.query.storeId ? Number(req.query.storeId) : undefined;
+  const result = await retailShopSvc.createCategory(storeId, req.body as any, tenantId);
+  res.json(ok(result));
+});
+
+export const updateCategory = asyncHandler(async (req, res) => {
+  const tenantId = req.tenantId!;
+  const result = await retailShopSvc.updateCategory(Number(req.params.id), req.body as any, tenantId);
+  res.json(ok(result));
+});
+
+export const deleteCategory = asyncHandler(async (req, res) => {
+  const tenantId = req.tenantId!;
+  await retailShopSvc.deleteCategory(Number(req.params.id), tenantId);
+  res.json(ok({ deleted: true }));
+});
+
+export const listRetailProducts = asyncHandler(async (req, res) => {
+  const tenantId = req.tenantId!;
+  const page = Number(req.query.page || 1);
+  const pageSize = Number(req.query.pageSize || 20);
+  const storeId = req.query.storeId ? Number(req.query.storeId) : undefined;
+  const result = await retailShopSvc.listRetailProducts({ storeId, tenantId, page, pageSize });
+  res.json(ok(result));
+});
+
+export const addRetailProduct = asyncHandler(async (req, res) => {
+  const tenantId = req.tenantId!;
+  const storeId = req.query.storeId ? Number(req.query.storeId) : undefined;
+  const result = await retailShopSvc.addRetailProduct(storeId, req.body as any, tenantId);
+  res.json(ok(result));
+});
+
+export const updateRetailProduct = asyncHandler(async (req, res) => {
+  const tenantId = req.tenantId!;
+  const result = await retailShopSvc.updateRetailProduct(Number(req.params.id), req.body as any, tenantId);
+  res.json(ok(result));
+});
+
+export const deleteRetailProduct = asyncHandler(async (req, res) => {
+  const tenantId = req.tenantId!;
+  await retailShopSvc.deleteRetailProduct(Number(req.params.id), tenantId);
+  res.json(ok({ deleted: true }));
+});
+
+export const listRetailOrders = asyncHandler(async (req, res) => {
+  const tenantId = req.tenantId!;
+  const page = Number(req.query.page || 1);
+  const pageSize = Number(req.query.pageSize || 20);
+  const storeId = req.query.storeId ? Number(req.query.storeId) : undefined;
+  const result = await retailShopSvc.listRetailOrders({ storeId, tenantId, page, pageSize });
+  res.json(ok(result));
+});
+
+export const getRetailOrderDetail = asyncHandler(async (req, res) => {
+  const tenantId = req.tenantId!;
+  const result = await retailShopSvc.getRetailOrderDetail(req.params.orderNo, tenantId);
+  if (!result) { res.status(404).json({ code: "404", message: "订单不存在" }); return; }
+  res.json(ok(result));
+});
+
+export const updateRetailOrderStatus = asyncHandler(async (req, res) => {
+  const tenantId = req.tenantId!;
+  const body = req.body as any;
+  const result = await retailShopSvc.updateRetailOrderStatus(req.params.orderNo, body.status, body.reason, tenantId);
+  res.json(ok(result));
+});
+
+export const listBanners = asyncHandler(async (req, res) => {
+  const tenantId = req.tenantId!;
+  const storeId = req.query.storeId ? Number(req.query.storeId) : undefined;
+  const result = await retailShopSvc.listBanners(storeId, tenantId);
+  res.json(ok(result));
+});
+
+export const createBanner = asyncHandler(async (req, res) => {
+  const tenantId = req.tenantId!;
+  const storeId = req.query.storeId ? Number(req.query.storeId) : undefined;
+  const result = await retailShopSvc.createBanner(storeId, req.body as any, tenantId);
+  res.json(ok(result));
+});
+
+export const updateBanner = asyncHandler(async (req, res) => {
+  const tenantId = req.tenantId!;
+  const result = await retailShopSvc.updateBanner(Number(req.params.id), req.body as any, tenantId);
+  res.json(ok(result));
+});
+
+export const deleteBanner = asyncHandler(async (req, res) => {
+  const tenantId = req.tenantId!;
+  await retailShopSvc.deleteBanner(Number(req.params.id), tenantId);
+  res.json(ok({ deleted: true }));
 });

@@ -185,9 +185,9 @@ async function postHttpsJson(url: string, body: object): Promise<{ ok: boolean; 
             "Content-Length": Buffer.byteLength(payload)
           }
         },
-        (res) => {
+        (res: any) => {
           let data = "";
-          res.on("data", (c) => (data += c));
+          res.on("data", (c: any) => (data += c));
           res.on("end", () => {
             try {
               resolve({ ok: res.statusCode === 200, status: res.statusCode || 0, data: JSON.parse(data || "{}") });
@@ -197,7 +197,7 @@ async function postHttpsJson(url: string, body: object): Promise<{ ok: boolean; 
           });
         }
       );
-      req.on("error", (err) => {
+      req.on("error", (err: any) => {
         resolve({ ok: false, status: 0, data: { error: String(err) } });
       });
       req.write(payload);

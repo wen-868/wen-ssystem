@@ -303,12 +303,11 @@ async function handleCreate() {
   submitLoading.value = true;
   try {
     await createReceipt({
-      customerId: form.customerId,
-      billIds: form.billIds,
+      customerId: form.customerId || 0,
       amount: form.amount,
       paymentMethod: form.paymentMethod,
       bankAccount: form.bankAccount,
-      receiptDate: formatDateOnly(form.receiptDate)
+      date: formatDateOnly(form.receiptDate)
     });
     ElMessage.success("收款创建成功");
     dialogVisible.value = false;
@@ -343,7 +342,7 @@ async function handleWriteoff() {
       writeoffLoading.value = false;
       return;
     }
-    await writeoffReceipt(writeoffTarget.value.id, { details });
+    await writeoffReceipt(writeoffTarget.value.id, { billIds: details.map((d: any) => d.billId), amounts: details.map((d: any) => d.amount) });
     ElMessage.success("核销成功");
     writeoffVisible.value = false;
     await loadData();

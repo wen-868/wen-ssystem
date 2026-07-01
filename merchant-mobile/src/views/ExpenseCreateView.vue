@@ -20,12 +20,6 @@ const invoiceUrl = ref('')
 const creating = ref(false)
 
 const TYPES = ['日常', '差旅', '办公', '运输']
-const TYPE_CATEGORIES: Record<string, string[]> = {
-  '日常': ['水电', '房租', '工资', '通讯', '其他'],
-  '差旅': ['交通', '住宿', '餐饮', '其他'],
-  '办公': ['文具', '耗材', '设备', '其他'],
-  '运输': ['油费', '过路费', '维修', '其他']
-}
 
 function formatDate(dateStr: string) {
   if (!dateStr) return '-'

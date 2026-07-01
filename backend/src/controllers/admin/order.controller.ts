@@ -65,3 +65,69 @@ export const exportSaleBillsCsv = asyncHandler(async (req, res) => {
   res.setHeader("content-disposition", `attachment; filename="${result.filename}"`);
   res.send(result.csv);
 });
+
+// ========== Phase 12: 订单状态管理 ==========
+
+export const cancelOrder = asyncHandler(async (req, res) => {
+  const tenantId = req.tenantId!;
+  const orderNo = req.params.orderNo;
+  const reason = String(req.body.reason || "");
+  const operatorId = (req as any).user?.id ?? null;
+  const operatorName = (req as any).user?.username ?? "系统用户";
+  try {
+    const result = await orderService.cancelOrder(orderNo, reason, operatorId, operatorName, tenantId);
+    res.json(ok(result));
+  } catch (err: any) {
+    res.status(400).json({ code: "400", message: err.message });
+  }
+});
+
+export const remarkOrder = asyncHandler(async (req, res) => {
+  const tenantId = req.tenantId!;
+  const orderNo = req.params.orderNo;
+  const remark = String(req.body.remark || "");
+  const operatorId = (req as any).user?.id ?? null;
+  const operatorName = (req as any).user?.username ?? "系统用户";
+  try {
+    const result = await orderService.remarkOrder(orderNo, remark, operatorId, operatorName, tenantId);
+    res.json(ok(result));
+  } catch (err: any) {
+    res.status(400).json({ code: "400", message: err.message });
+  }
+});
+
+export const updateOrderStatus = asyncHandler(async (req, res) => {
+  const tenantId = req.tenantId!;
+  const orderNo = req.params.orderNo;
+  const targetStatus = String(req.body.status || "");
+  const remark = req.body.remark ? String(req.body.remark) : null;
+  const operatorId = (req as any).user?.id ?? null;
+  const operatorName = (req as any).user?.username ?? "系统用户";
+  try {
+    const result = await orderService.updateOrderStatus(orderNo, targetStatus, operatorId, operatorName, remark, tenantId);
+    res.json(ok(result));
+  } catch (err: any) {
+    res.status(400).json({ code: "400", message: err.message });
+  }
+});
+
+export const batchUpdateOrderStatus = asyncHandler(async (req, res) => {
+  const tenantId = req.tenantId!;
+  const orderNos: string[] = req.body.orderNos || [];
+  const targetStatus = String(req.body.status || "");
+  const operatorId = (req as any).user?.id ?? null;
+  const operatorName = (req as any).user?.username ?? "系统用户";
+  if (!orderNos.length) {
+    res.status(400).json({ code: "400", message: "订单号列表不能为空" });
+    return;
+  }
+  const result = await orderService.batchUpdateOrderStatus(orderNos, targetStatus, operatorId, operatorName, tenantId);
+  res.json(ok(result));
+});
+
+export const getOrderOperationLogs = asyncHandler(async (req, res) => {
+  const tenantId = req.tenantId!;
+  const orderNo = req.params.orderNo;
+  const result = await orderService.getOrderOperationLogs(orderNo, tenantId);
+  res.json(ok(result));
+});

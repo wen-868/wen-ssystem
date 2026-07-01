@@ -59,12 +59,6 @@ const STATUS_MAP: Record<string, { text: string; type: string }> = {
   CANCELLED: { text: '已取消', type: 'default' }
 }
 
-const EXCEPTION_LEVEL_COLOR: Record<string, string> = {
-  WARNING: '#F59E0B',
-  ERROR: '#F97316',
-  CRITICAL: '#EF4444'
-}
-
 /* ========== 数据概览 ========== */
 
 const summary = ref<OrderCenterSummary>({
@@ -180,10 +174,6 @@ function getChannelInfo(channel: string) {
     label: CHANNEL_LABEL_MAP[channel] || channel,
     color: CHANNEL_COLOR_MAP[channel] || '#999'
   }
-}
-
-function getExceptionColor(level: string) {
-  return EXCEPTION_LEVEL_COLOR[level] || '#EF4444'
 }
 
 function formatAmount(amount: number) {

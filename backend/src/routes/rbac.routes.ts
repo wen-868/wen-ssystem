@@ -10,7 +10,7 @@ export const rbacRouter = Router();
 // ========== 权限验证中间件 ==========
 
 export function requirePermission(permCode: string): RequestHandler {
-  return (req, res, next) => {
+  return (req: any, res: any, next: any) => {
     const user = req.user as AuthUser | undefined;
     const tenantId = (req as any).tenantId as number | undefined;
     if (!user) {

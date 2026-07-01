@@ -2080,3 +2080,34 @@ export async function cancelApproval(id: number) {
   const { data } = await api.post(`/admin/system/approval/${id}/cancel`);
   return data.data;
 }
+
+// ==================== CustomerVisit APIs ====================
+export const fetchCustomerVisits = (params: any) => api.get('/admin/customer-visits', { params });
+export const createCustomerVisit = (data: any) => api.post('/admin/customer-visits', data);
+export const checkinCustomerVisit = (id: number, data?: any) => api.post(`/admin/customer-visits/${id}/checkin`, data);
+export const checkoutCustomerVisit = (id: number, data?: any) => api.post(`/admin/customer-visits/${id}/checkout`, data);
+export const cancelCustomerVisit = (id: number) => api.post(`/admin/customer-visits/${id}/cancel`);
+export const fetchCustomerVisitDetail = (id: number) => api.get(`/admin/customer-visits/${id}`);
+export const fetchCustomerVisitStatistics = (params: any) => api.get('/admin/customer-visits/statistics', { params });
+
+// ==================== Subscription APIs ====================
+export const fetchSubscriptions = (params: any) => api.get('/admin/subscriptions', { params });
+export const fetchSubscriptionPlans = (params?: any) => api.get('/admin/subscription-plans', { params });
+export const createSubscription = (data: any) => api.post('/admin/subscriptions', data);
+export const createSubscriptionPlan = (data: any) => api.post('/admin/subscription-plans', data);
+export const updateSubscriptionPlan = (id: number, data: any) => api.put(`/admin/subscription-plans/${id}`, data);
+export const changeSubscriptionPlan = (id: number, data: any) => api.put(`/admin/subscriptions/${id}/change-plan`, data);
+export const cancelSubscription = (id: number) => api.post(`/admin/subscriptions/${id}/cancel`);
+export const paySubscription = (id: number) => api.post(`/admin/subscriptions/${id}/pay`);
+export const renewSubscription = (id: number) => api.post(`/admin/subscriptions/${id}/renew`);
+export const fetchExpiringSubscriptions = () => api.get('/admin/subscriptions/expiring');
+export const fetchExpiredSubscriptions = () => api.get('/admin/subscriptions/expired');
+
+// ==================== Tenant APIs ====================
+export const fetchTenants = (params: any) => api.get('/admin/tenants', { params });
+export const createTenant = (data: any) => api.post('/admin/tenants', data);
+export const updateTenant = (id: number, data: any) => api.put(`/admin/tenants/${id}`, data);
+export const changeTenantStatus = (id: number, status: string) => api.patch(`/admin/tenants/${id}/status`, { status });
+export const fetchTenantDetail = (id: number) => api.get(`/admin/tenants/${id}`);
+export const fetchTenantModules = (id: number) => api.get(`/admin/tenants/${id}/modules`);
+export const setTenantModules = (id: number, data: any) => api.put(`/admin/tenants/${id}/modules`, data);

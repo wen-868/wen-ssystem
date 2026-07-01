@@ -224,10 +224,6 @@ function canComplete(status: string) {
   return status === 'DELIVERING'
 }
 
-function canCancel(status: string) {
-  return status === 'PENDING' || status === 'CONFIRMED'
-}
-
 function isCompleted(status: string) {
   return status === 'COMPLETED'
 }
@@ -437,8 +433,8 @@ onMounted(() => {
       <div class="popup-dialog">
         <h3>选择拒单原因</h3>
         <van-picker
-          :columns="REJECT_REASONS"
-          v-model="rejectReason"
+          :columns="REJECT_REASONS as any"
+          v-model="rejectReason as any"
           title=""
         />
         <div class="dialog-actions">

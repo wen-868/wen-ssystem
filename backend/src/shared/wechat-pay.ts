@@ -7,6 +7,7 @@ interface WechatPayConfig {
   mchId: string;
   serialNo: string;
   privateKeyPath: string;
+  platformCertPath: string;
   apiV3Key: string;
   notifyUrl: string;
 }
@@ -14,6 +15,7 @@ interface WechatPayConfig {
 export class WechatPay {
   private config: WechatPayConfig;
   private privateKey: string;
+  private platformCert: string;
 
   constructor() {
     this.config = {
@@ -21,10 +23,12 @@ export class WechatPay {
       mchId: env.WECHAT_MCH_ID,
       serialNo: env.WECHAT_PAY_SERIAL_NO,
       privateKeyPath: env.WECHAT_PAY_PRIVATE_KEY_PATH,
+      platformCertPath: env.WECHAT_PAY_PLATFORM_CERT_PATH,
       apiV3Key: env.WECHAT_PAY_API_V3_KEY,
       notifyUrl: env.WECHAT_PAY_NOTIFY_URL
     };
     this.privateKey = this.loadPrivateKey();
+    this.platformCert = this.loadPlatformCert();
   }
 
   private loadPrivateKey(): string {
@@ -32,6 +36,13 @@ export class WechatPay {
       return '';
     }
     return fs.readFileSync(this.config.privateKeyPath, 'utf8');
+  }
+
+  private loadPlatformCert(): string {
+    if (!this.config.platformCertPath || !fs.existsSync(this.config.platformCertPath)) {
+      return '';
+    }
+    return fs.readFileSync(this.config.platformCertPath, 'utf8');
   }
 
   private sign(data: string): string {
@@ -188,9 +199,19 @@ export class WechatPay {
       return false;
     }
 
-    const signatureStr = `${wechatpayTimestamp}\n${wechatpayNonce}\n${body}\n`;
-    
-    return true;
+    if (!this.platformCert) {
+      return false;
+    }
+
+    const message = `${wechatpayTimestamp}\n${wechatpayNonce}\n${body}\n`;
+
+    try {
+      const verify = crypto.createVerify('RSA-SHA256');
+      verify.update(message);
+      return verify.verify(this.platformCert, wechatpaySignature, 'base64');
+    } catch {
+      return false;
+    }
   }
 
   public decryptNotifyData(associatedData: string, nonce: string, ciphertext: string): string {

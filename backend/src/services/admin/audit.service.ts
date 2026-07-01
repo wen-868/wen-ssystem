@@ -102,7 +102,7 @@ export function writeAuditLog(p: LogAuditParams): void {
        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
       [p.userId, p.userName, p.role, p.action, p.resourceType, p.resourceId ?? null, p.detail ?? null, ip, userAgent, p.tenantId]
     )
-    .catch((err) => {
+    .catch((err: any) => {
       console.error("[audit] 写入审计日志失败:", err);
     });
 }

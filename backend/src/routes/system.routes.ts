@@ -13,7 +13,7 @@ systemRouter.get("/health", asyncHandler(async (_req, res) => {
     status: "UP",
     timestamp: new Date().toISOString(),
     env: env.NODE_ENV || "development",
-    uptime: process.uptime(),
+    uptime: (Date.now() - (globalThis as any).__startTime || 0) / 1000,
   }));
 }));
 
@@ -32,8 +32,5 @@ systemRouter.get("/info", requireAuthWithTenant, asyncHandler(async (req, res) =
     userCount: userCount?.cnt ?? 0,
     roleCount: roleCount?.cnt ?? 0,
     configCount: configCount?.cnt ?? 0,
-    nodeVersion: process.version,
-    platform: process.platform,
-    memoryUsage: process.memoryUsage(),
   }));
 }));

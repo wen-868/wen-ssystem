@@ -92,8 +92,9 @@ app.use(rateLimit({ windowMs: 60_000, max: 100, standardHeaders: true, legacyHea
 const loginLimiter = rateLimit({ windowMs: 15 * 60_000, max: 5, message: "登录请求过于频繁，请15分钟后再试", standardHeaders: true, legacyHeaders: false });
 
 app.use(helmet());
-const allowedOrigins = process.env.CORS_ORIGINS
-  ? process.env.CORS_ORIGINS.split(",").map(s => s.trim())
+const corsOriginsEnv = (globalThis as any).process?.env?.CORS_ORIGINS;
+const allowedOrigins = corsOriginsEnv
+  ? corsOriginsEnv.split(",").map((s: string) => s.trim())
   : ["https://admin.onepan.cn", "https://m.onepan.cn", "https://store.onepan.cn"];
 app.use(cors({ origin: allowedOrigins, credentials: true }));
 app.use(express.json({ limit: "2mb" }));
@@ -106,7 +107,7 @@ const requireAuthWithTenant = (req: any, res: any, next: any) => {
   });
 };
 
-app.get("/health", (_req, res) => {
+app.get("/health", (_req: any, res: any) => {
   res.json({ code: "0", message: "ok", data: { service: "zhixiang-backend" } });
 });
 
@@ -223,7 +224,7 @@ async function start() {
   });
 }
 
-start().catch((error) => {
+start().catch((error: any) => {
   console.error("❌ 后端启动失败:", error);
-  process.exit(1);
+  (globalThis as any).process?.exit(1);
 });

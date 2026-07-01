@@ -157,7 +157,7 @@ sysUserRouter.put("/:id", requireAuthWithTenant, asyncHandler(async (req, res) =
   if (!existing) { res.status(404).json({ code: "404", message: "用户不存在" }); return; }
 
   const updates: string[] = [];
-  const sqlParams: unknown[] = [];
+  const sqlParams: any[] = [];
 
   if (body.realName !== undefined) { updates.push("real_name = ?"); sqlParams.push(body.realName); }
   if (body.mobile !== undefined) { updates.push("mobile = ?"); sqlParams.push(body.mobile); }

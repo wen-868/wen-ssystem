@@ -31,7 +31,7 @@ export function requirePriceFieldAccess(...fieldNames: string[]) {
         user,
         "PRICE_FIELD_ACCESS_DENIED",
         `用户尝试访问敏感价格字段: ${blocked.join(", ")}`,
-        req.originalUrl,
+        (req as any).originalUrl,
         req.tenantId || "unknown"
       );
 
@@ -58,7 +58,7 @@ export function requirePriceLevelAccess(codeParam: string = "levelCode") {
     }
 
     const user = req.user;
-    const levelCode = (req.query as any)[codeParam] || (req.body as any)?.[codeParam];
+    const levelCode = ((req as any).query as any)[codeParam] || ((req as any).body as any)?.[codeParam];
 
     if (levelCode) {
       const allowed = await canAccessPriceLevel(user, levelCode as string, req.tenantId || "unknown");
@@ -67,7 +67,7 @@ export function requirePriceLevelAccess(codeParam: string = "levelCode") {
           user,
           "PRICE_LEVEL_ACCESS_DENIED",
           `用户尝试访问价格等级: ${levelCode}`,
-          req.originalUrl,
+          (req as any).originalUrl,
           req.tenantId || "unknown"
         );
 
@@ -102,7 +102,7 @@ export function requirePriceManagementAccess() {
         user,
         "PRICE_MANAGEMENT_DENIED",
         "用户尝试执行价格管理操作",
-        req.originalUrl,
+        (req as any).originalUrl,
         req.tenantId || "unknown"
       );
 

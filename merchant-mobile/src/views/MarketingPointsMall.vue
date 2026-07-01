@@ -38,9 +38,7 @@ const pointsProducts = ref([
 ])
 
 /* 兑换记录 */
-const exchangeRecords = ref<any[]>([])
 const exchangePage = ref(1)
-const exchangeFinished = ref(false)
 
 /* 子Tab */
 const subTab = ref('products')
@@ -81,7 +79,7 @@ function onLoadMore() {
   loadPointsRecords()
 }
 
-function onProductClick(id: number) {
+function onProductClick(_id: number) {
   showToast('商品详情')
 }
 
@@ -111,18 +109,9 @@ onMounted(() => {
   loadData()
 })
 
-/* 工具函数 */
-function formatMoney(v: number): string {
-  return v.toLocaleString('zh-CN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })
-}
-
 function formatDate(dateStr: string): string {
   if (!dateStr) return ''
   return dateStr.slice(0, 16).replace('T', ' ')
-}
-
-function recordTypeLabel(t: string): string {
-  return t === 'EARN' ? '获取' : t === 'SPEND' ? '消耗' : t
 }
 </script>
 
