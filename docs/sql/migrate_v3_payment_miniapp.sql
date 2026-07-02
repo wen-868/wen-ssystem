@@ -11,7 +11,7 @@
 CREATE TABLE IF NOT EXISTS payment_config (
   id            INT AUTO_INCREMENT PRIMARY KEY,
   tenant_id     VARCHAR(64)  NOT NULL,
-  provider      VARCHAR(20)  NOT NULL COMMENT 'wechat_pay/alipay/unionpay',
+  provider      VARCHAR(20)  NOT NULL COMMENT 'wechat/alipay/unionpay',
   config_key    VARCHAR(64)  NOT NULL,
   config_value  TEXT         NOT NULL,
   is_encrypted  TINYINT      NOT NULL DEFAULT 0 COMMENT '是否加密存储',
@@ -24,13 +24,13 @@ CREATE TABLE IF NOT EXISTS payment_config (
 
 -- 微信支付初始配置（DEFAULT 租户模板）
 INSERT INTO payment_config (tenant_id, provider, config_key, config_value, is_encrypted, description, sort_order) VALUES
-('DEFAULT', 'wechat_pay', 'enabled', '0', 0, '是否启用', 1),
-('DEFAULT', 'wechat_pay', 'app_id', '', 0, '微信支付 AppID（来自 pay.weixin.qq.com，非小程序AppID）', 2),
-('DEFAULT', 'wechat_pay', 'mch_id', '', 0, '微信支付商户号', 3),
-('DEFAULT', 'wechat_pay', 'api_v3_key', '', 1, 'API v3 密钥', 4),
-('DEFAULT', 'wechat_pay', 'serial_no', '', 0, '证书序列号', 5),
-('DEFAULT', 'wechat_pay', 'private_key', '', 1, '商户私钥(PEM)', 6),
-('DEFAULT', 'wechat_pay', 'notify_url', '', 0, '支付回调通知地址', 7);
+('DEFAULT', 'wechat', 'enabled', '0', 0, '是否启用', 1),
+('DEFAULT', 'wechat', 'app_id', '', 0, '微信支付 AppID（来自 pay.weixin.qq.com，非小程序AppID）', 2),
+('DEFAULT', 'wechat', 'mch_id', '', 0, '微信支付商户号', 3),
+('DEFAULT', 'wechat', 'api_v3_key', '', 1, 'API v3 密钥', 4),
+('DEFAULT', 'wechat', 'serial_no', '', 0, '证书序列号', 5),
+('DEFAULT', 'wechat', 'private_key', '', 1, '商户私钥(PEM)', 6),
+('DEFAULT', 'wechat', 'notify_url', '', 0, '支付回调通知地址', 7);
 
 -- 支付宝初始配置
 INSERT INTO payment_config (tenant_id, provider, config_key, config_value, is_encrypted, description, sort_order) VALUES

@@ -46,26 +46,43 @@ export async function getChannelConfig(tenantId: string, provider: string) {
 }
 
 export async function saveChannelConfig(tenantId: string, provider: string, body: Record<string, string>) {
-  for (const [key, value] of Object.entries(body)) {
+  // camelCase → snake_case 映射
+  const KEY_MAP: Record<string, string> = {
+    appId: "app_id", mchId: "mch_id", apiV3Key: "api_v3_key",
+    serialNo: "serial_no", privateKey: "private_key", notifyUrl: "notify_url",
+    enabled: "enabled", appSecret: "app_secret", apiKey: "api_key",
+    apiSecret: "api_secret", clientSecret: "client_secret", authToken: "auth_token",
+    alipayPublicKey: "alipay_public_key", signKey: "sign_key", encryptKey: "encrypt_key",
+    appPrivateKey: "app_private_key", password: "password", secret: "secret",
+    platformCertPath: "platform_cert_path", platformCert: "platform_cert",
+  };
+  const SENSITIVE_KEYS = [
+    "private_key", "api_key", "api_secret", "app_secret", "mch_id", "mch_key",
+    "serial_no", "client_secret", "auth_token", "app_id", "app_private_key",
+    "alipay_public_key", "sign_key", "encrypt_key", "password", "secret",
+  ];
+
+  for (const [rawKey, value] of Object.entries(body)) {
+    const key = KEY_MAP[rawKey] || rawKey; // 已是 snake_case 则保持
+    const isSensitive = SENSITIVE_KEYS.includes(key);
     const existing = await queryOneWithTenant<any>(
       "SELECT id, is_encrypted AS isEncrypted FROM payment_config WHERE tenant_id = ? AND provider = ? AND config_key = ?",
       [tenantId, provider, key],
       tenantId
     );
-    const isEncrypted = existing?.isEncrypted === 1;
-    const storedValue = isEncrypted ? encrypt(value) : value;
+    const wasEncrypted = existing?.isEncrypted === 1;
+    const storedValue = (wasEncrypted || isSensitive) ? encrypt(value) : value;
 
     if (existing) {
       await queryWithTenant(
-        "UPDATE payment_config SET config_value = ?, updated_at = NOW() WHERE id = ?",
-        [storedValue, existing.id],
+        "UPDATE payment_config SET config_value = ?, is_encrypted = ?, updated_at = NOW() WHERE id = ?",
+        [storedValue, isSensitive ? 1 : 0, existing.id],
         tenantId
       );
     } else {
-      // 插入新配置项（默认不加密）
       await queryWithTenant(
-        "INSERT INTO payment_config (tenant_id, provider, config_key, config_value, is_encrypted, description) VALUES (?, ?, ?, ?, 0, ?)",
-        [tenantId, provider, key, value, key],
+        "INSERT INTO payment_config (tenant_id, provider, config_key, config_value, is_encrypted, description) VALUES (?, ?, ?, ?, ?, ?)",
+        [tenantId, provider, key, storedValue, isSensitive ? 1 : 0, key],
         tenantId
       );
     }
@@ -74,7 +91,7 @@ export async function saveChannelConfig(tenantId: string, provider: string, body
 }
 
 export async function isProviderReady(tenantId: string, provider: string): Promise<boolean> {
-  if (provider === "wechat_pay") {
+  if (provider === "wechat") {
     const requiredKeys = ["enabled", "app_id", "mch_id", "api_v3_key", "serial_no", "private_key", "notify_url"];
     for (const key of requiredKeys) {
       const row = await queryOneWithTenant<any>(
@@ -110,7 +127,7 @@ export async function isProviderReady(tenantId: string, provider: string): Promi
 }
 
 export async function getPaymentStatus(tenantId: string) {
-  const providers = ["wechat_pay", "alipay"];
+  const providers = ["wechat", "alipay"];
   const result: Record<string, { configured: boolean; enabled: boolean }> = {};
   for (const provider of providers) {
     const enabled = await queryOneWithTenant<any>(
@@ -131,7 +148,7 @@ export async function testConnection(tenantId: string, provider: string): Promis
   const ready = await isProviderReady(tenantId, provider);
   if (!ready) {
     // 列出缺失的配置项
-    const requiredKeys = provider === "wechat_pay"
+    const requiredKeys = provider === "wechat"
       ? ["app_id", "mch_id", "api_v3_key", "serial_no", "private_key", "notify_url"]
       : ["app_id", "private_key", "alipay_public_key", "notify_url"];
     const missing: string[] = [];

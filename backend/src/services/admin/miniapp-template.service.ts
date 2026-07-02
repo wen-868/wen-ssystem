@@ -1,35 +1,70 @@
 import { queryWithTenant, queryOneWithTenant } from "../../shared/db.js";
 
+function safeJsonParse(val: any, fallback: any) {
+  if (!val) return fallback;
+  if (typeof val === "object") return val;
+  try { return JSON.parse(val); } catch { return fallback; }
+}
+
 export async function listTemplates(tenantId: string) {
-  return queryWithTenant<any>(
-    "SELECT id, name, description, version, category, thumbnail, status, config_json AS configJson, page_count AS pageCount, component_count AS componentCount, is_default AS isDefault, created_at AS createdAt, updated_at AS updatedAt FROM miniapp_template WHERE tenant_id = ? ORDER BY sort_order, id",
+  const rows = await queryWithTenant<any>(
+    `SELECT id, name, description, thumbnail, preview_urls, style_config, page_config, version, status, sort_order, created_at AS createdAt, updated_at AS updatedAt
+     FROM miniapp_template WHERE (tenant_id = ? OR tenant_id = 'DEFAULT') AND status = 'active'
+     ORDER BY sort_order ASC, id ASC`,
     [tenantId],
     tenantId
   );
+  return rows.map((row: any) => ({
+    id: row.id,
+    name: row.name,
+    description: row.description,
+    thumbnail: row.thumbnail,
+    previewUrls: safeJsonParse(row.preview_urls, []),
+    styleConfig: safeJsonParse(row.style_config, {}),
+    pageConfig: safeJsonParse(row.page_config, {}),
+    version: row.version,
+    status: row.status,
+    sortOrder: row.sort_order,
+    createdAt: row.createdAt,
+    updatedAt: row.updatedAt,
+  }));
 }
 
 export async function getTemplateDetail(tenantId: string, id: number) {
-  return queryOneWithTenant<any>(
-    "SELECT id, name, description, version, category, thumbnail, status, config_json AS configJson, page_count AS pageCount, component_count AS componentCount, is_default AS isDefault, sort_order AS sortOrder, created_at AS createdAt, updated_at AS updatedAt FROM miniapp_template WHERE id = ? AND tenant_id = ?",
+  const row = await queryOneWithTenant<any>(
+    `SELECT id, name, description, thumbnail, preview_urls, style_config, page_config, version, status, sort_order, created_at AS createdAt, updated_at AS updatedAt
+     FROM miniapp_template WHERE id = ? AND (tenant_id = ? OR tenant_id = 'DEFAULT')`,
     [id, tenantId],
     tenantId
   );
+  if (!row) return null;
+  return {
+    id: row.id,
+    name: row.name,
+    description: row.description,
+    thumbnail: row.thumbnail,
+    previewUrls: safeJsonParse(row.preview_urls, []),
+    styleConfig: safeJsonParse(row.style_config, {}),
+    pageConfig: safeJsonParse(row.page_config, {}),
+    version: row.version,
+    status: row.status,
+    sortOrder: row.sort_order,
+    createdAt: row.createdAt,
+    updatedAt: row.updatedAt,
+  };
 }
 
 export async function createTemplate(tenantId: string, body: any) {
   const result = await queryWithTenant(
-    "INSERT INTO miniapp_template (tenant_id, name, description, version, category, thumbnail, status, config_json, page_count, component_count, is_default, sort_order) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)",
-    [tenantId, body.name, body.description || "", body.version || "1.0.0", body.category || "general", body.thumbnail || "", body.status || "draft", JSON.stringify(body.configJson || {}), body.pageCount || 0, body.componentCount || 0, body.isDefault ? 1 : 0, body.sortOrder || 0],
+    `INSERT INTO miniapp_template (tenant_id, name, description, thumbnail, preview_urls, style_config, page_config, version, status, sort_order)
+     VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+    [tenantId, body.name, body.description || "", body.thumbnail || "",
+      JSON.stringify(body.previewUrls || []),
+      JSON.stringify(body.styleConfig || {}),
+      JSON.stringify(body.pageConfig || {}),
+      body.version || "1.0.0", body.status || "active", body.sortOrder || 0],
     tenantId
   );
-  // 如果设为默认，取消其他默认
-  if (body.isDefault) {
-    await queryWithTenant(
-      "UPDATE miniapp_template SET is_default = 0 WHERE tenant_id = ? AND id != ?",
-      [tenantId, (result as any).insertId],
-      tenantId
-    );
-  }
   return { id: (result as any).insertId };
 }
 
@@ -37,17 +72,16 @@ export async function updateTemplate(tenantId: string, id: number, body: any) {
   const sets: string[] = [];
   const params: any[] = [];
   const map: Record<string, string> = {
-    name: "name", description: "description", version: "version",
-    category: "category", thumbnail: "thumbnail", status: "status",
-    configJson: "config_json", pageCount: "page_count",
-    componentCount: "component_count", isDefault: "is_default",
-    sortOrder: "sort_order",
+    name: "name", description: "description", thumbnail: "thumbnail",
+    previewUrls: "preview_urls", styleConfig: "style_config", pageConfig: "page_config",
+    version: "version", status: "status", sortOrder: "sort_order",
   };
   for (const [key, col] of Object.entries(map)) {
     if (body[key] !== undefined) {
       let val = body[key];
-      if (key === "isDefault") val = val ? 1 : 0;
-      if (key === "configJson") val = JSON.stringify(val);
+      if (key === "previewUrls" || key === "styleConfig" || key === "pageConfig") {
+        val = JSON.stringify(val);
+      }
       sets.push(`${col} = ?`);
       params.push(val);
     }
@@ -55,15 +89,8 @@ export async function updateTemplate(tenantId: string, id: number, body: any) {
   if (sets.length > 0) {
     params.push(id, tenantId);
     await queryWithTenant(
-      `UPDATE miniapp_template SET ${sets.join(", ")}, updated_at = NOW() WHERE id = ? AND tenant_id = ?`,
+      `UPDATE miniapp_template SET ${sets.join(", ")}, updated_at = NOW() WHERE id = ? AND (tenant_id = ? OR tenant_id = 'DEFAULT')`,
       params,
-      tenantId
-    );
-  }
-  if (body.isDefault) {
-    await queryWithTenant(
-      "UPDATE miniapp_template SET is_default = 0 WHERE tenant_id = ? AND id != ?",
-      [tenantId, id],
       tenantId
     );
   }
@@ -71,13 +98,11 @@ export async function updateTemplate(tenantId: string, id: number, body: any) {
 }
 
 export async function deleteTemplate(tenantId: string, id: number) {
-  await queryWithTenant("DELETE FROM miniapp_template WHERE id = ? AND tenant_id = ?", [id, tenantId], tenantId);
-  return { success: true };
-}
-
-export async function setDefaultTemplate(tenantId: string, id: number) {
-  await queryWithTenant("UPDATE miniapp_template SET is_default = 0 WHERE tenant_id = ?", [tenantId], tenantId);
-  await queryWithTenant("UPDATE miniapp_template SET is_default = 1 WHERE id = ? AND tenant_id = ?", [id, tenantId], tenantId);
+  await queryWithTenant(
+    "DELETE FROM miniapp_template WHERE id = ? AND (tenant_id = ? OR tenant_id = 'DEFAULT')",
+    [id, tenantId],
+    tenantId
+  );
   return { success: true };
 }
 
@@ -100,7 +125,7 @@ export async function getPreviewConfig(tenantId: string, platform: string = "WEC
       tenantId
     ),
     queryOneWithTenant<any>(
-      "SELECT t.id, t.name, t.config_json AS configJson FROM miniapp_config c JOIN miniapp_template t ON c.template_id = t.id WHERE c.tenant_id = ? AND c.platform = ?",
+      "SELECT t.id, t.name, t.style_config AS styleConfig FROM miniapp_config c JOIN miniapp_template t ON c.template_id = t.id WHERE c.tenant_id = ? AND c.platform = ?",
       [tenantId, platform],
       tenantId
     ),
@@ -109,6 +134,6 @@ export async function getPreviewConfig(tenantId: string, platform: string = "WEC
     appId: config?.appId,
     appName: config?.appName,
     status: config?.status,
-    template: template ? { id: template.id, name: template.name, configJson: template.configJson } : null,
+    template: template ? { id: template.id, name: template.name, styleConfig: safeJsonParse(template.styleConfig, {}) } : null,
   };
 }

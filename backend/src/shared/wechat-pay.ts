@@ -3,11 +3,27 @@ import fs from 'fs';
 import { env } from './env.js';
 import { queryOneWithTenant } from './db.js';
 
+function decrypt(ciphertext: string): string {
+  if (!ciphertext) return "";
+  const ENCRYPTION_KEY = (globalThis as any).process?.env?.PAYMENT_ENCRYPTION_KEY || "zhixiang-payment-enc-key-32chr!!";
+  const parts = ciphertext.split(":");
+  if (parts.length !== 3) return ciphertext;
+  const iv = Buffer.from(parts[0], "hex");
+  const authTag = Buffer.from(parts[1], "hex");
+  const encrypted = parts[2];
+  const decipher = crypto.createDecipheriv("aes-256-gcm", Buffer.from(ENCRYPTION_KEY, "utf8"), iv);
+  decipher.setAuthTag(authTag);
+  let decrypted = decipher.update(encrypted, "hex", "utf8");
+  decrypted += decipher.final("utf8");
+  return decrypted;
+}
+
 interface WechatPayConfig {
   appId: string;
   mchId: string;
   serialNo: string;
   privateKeyPath: string;
+  privateKey?: string;
   platformCertPath: string;
   apiV3Key: string;
   notifyUrl: string;
@@ -28,7 +44,7 @@ export class WechatPay {
       apiV3Key: config?.apiV3Key || env.WECHAT_PAY_API_V3_KEY,
       notifyUrl: config?.notifyUrl || env.WECHAT_PAY_NOTIFY_URL
     };
-    this.privateKey = this.loadPrivateKey();
+    this.privateKey = config?.privateKey || this.loadPrivateKey();
     this.platformCert = this.loadPlatformCert();
   }
 
@@ -36,24 +52,29 @@ export class WechatPay {
    * 从租户的 payment_config 表中加载微信支付实例
    */
   static async fromTenant(tenantId: string): Promise<WechatPay | null> {
-    const keys = ['app_id', 'mch_id', 'api_v3_key', 'serial_no', 'private_key_path', 'notify_url'];
+    const keys = ['app_id', 'mch_id', 'api_v3_key', 'serial_no', 'private_key', 'notify_url'];
     const config: Record<string, string> = {};
 
     for (const key of keys) {
       const row = await queryOneWithTenant<any>(
-        "SELECT config_value AS configValue FROM payment_config WHERE tenant_id = ? AND provider = 'wechat_pay' AND config_key = ?",
+        "SELECT config_value AS configValue, is_encrypted AS isEncrypted FROM payment_config WHERE tenant_id = ? AND provider = 'wechat' AND config_key = ?",
         [tenantId, key],
         tenantId
       );
       if (!row?.configValue) return null;
-      config[key] = row.configValue;
+      // 解密敏感字段
+      if (row.isEncrypted === 1) {
+        config[key] = decrypt(row.configValue);
+      } else {
+        config[key] = row.configValue;
+      }
     }
 
     return new WechatPay({
       appId: config.app_id || undefined,
       mchId: config.mch_id || undefined,
       serialNo: config.serial_no || undefined,
-      privateKeyPath: config.private_key_path || undefined,
+      privateKey: config.private_key || undefined,
       apiV3Key: config.api_v3_key || undefined,
       notifyUrl: config.notify_url || undefined,
     });

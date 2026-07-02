@@ -23,7 +23,7 @@ export async function publish(tenantId: string, body: any, platform: string = "W
 
   // 记录发布日志
   const publishLogId = await queryWithTenant(
-    "INSERT INTO miniapp_publish_log (tenant_id, platform, version, remark, status) VALUES (?, ?, ?, ?, 'published')",
+    "INSERT INTO miniapp_publish_log (tenant_id, platform, version, remark, status, action, result) VALUES (?, ?, ?, ?, 'published', 'publish', 'success')",
     [tenantId, platform, version, remark],
     tenantId
   );
@@ -43,7 +43,7 @@ export async function rollback(tenantId: string, version: string, platform: stri
     tenantId
   );
   await queryWithTenant(
-    "INSERT INTO miniapp_publish_log (tenant_id, platform, version, remark, status) VALUES (?, ?, ?, ?, 'rollback')",
+    "INSERT INTO miniapp_publish_log (tenant_id, platform, version, remark, status, action, result) VALUES (?, ?, ?, ?, 'rollback', 'rollback', 'success')",
     [tenantId, platform, version, `回滚到版本 ${version}`],
     tenantId
   );
@@ -58,7 +58,7 @@ export async function submitAudit(tenantId: string, body: any, platform: string 
   );
 
   await queryWithTenant(
-    "INSERT INTO miniapp_publish_log (tenant_id, platform, version, remark, status) VALUES (?, ?, ?, ?, 'audit_submitted')",
+    "INSERT INTO miniapp_publish_log (tenant_id, platform, version, remark, status, action, result) VALUES (?, ?, ?, ?, 'audit_submitted', 'audit_submit', 'success')",
     [tenantId, platform, body.version || `1.0.${Date.now()}`, body.remark || ""],
     tenantId
   );
