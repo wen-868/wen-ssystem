@@ -121,8 +121,8 @@ export async function saveConfig(tenantId: string, platform: string = "WECHAT", 
     }
   } else {
     await queryWithTenant(
-      `INSERT INTO miniapp_config (tenant_id, platform, app_id, app_secret, app_name, app_description, app_icon, app_version, status, audit_status, contact_name, contact_email, contact_phone, domain_whitelist, business_domain, webview_domain, privacy_url, service_agreement_url, qrcode_url, required_privacy_setting, allow_guest, allow_location, allow_phone, allow_share, allow_subscribe, allow_payment)
-       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+      `INSERT INTO miniapp_config (tenant_id, platform, app_id, app_secret, app_name, app_description, app_icon, app_version, status, audit_status, audit_reason, template_id, publish_version, published_at, contact_name, contact_email, contact_phone, domain_whitelist, business_domain, webview_domain, privacy_url, service_agreement_url, qrcode_url, required_privacy_setting, allow_guest, allow_location, allow_phone, allow_share, allow_subscribe, allow_payment)
+       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
       [
         tenantId,
         platform,
@@ -134,6 +134,10 @@ export async function saveConfig(tenantId: string, platform: string = "WECHAT", 
         body.appVersion || "",
         body.status || "draft",
         body.auditStatus || "pending",
+        body.auditReason || "",
+        body.templateId || null,
+        body.publishVersion || "",
+        body.publishedAt || null,
         body.contactName || "",
         body.contactEmail || "",
         body.contactPhone || "",

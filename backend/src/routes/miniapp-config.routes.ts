@@ -97,12 +97,6 @@ router.delete("/templates/:id", asyncHandler(async (req: any, res: any) => {
   res.json(ok(result));
 }));
 
-// 设为默认模板
-router.put("/templates/:id/default", asyncHandler(async (req: any, res: any) => {
-  const result = await templateSvc.setDefaultTemplate(req.tenantId!, Number(req.params.id));
-  res.json(ok(result));
-}));
-
 // 应用模板到小程序
 router.post("/templates/:id/apply", asyncHandler(async (req: any, res: any) => {
   try {

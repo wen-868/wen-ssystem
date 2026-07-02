@@ -170,7 +170,7 @@
               </template>
             </el-table-column>
             <el-table-column prop="accountName" label="开户名" min-width="120" />
-            <el-table-column prop="bankBranch" label="开户行" min-width="160" />
+            <el-table-column prop="branchName" label="开户行" min-width="160" />
             <el-table-column label="是否默认" width="100">
               <template #default="{ row }">
                 <el-tag v-if="row.isDefault" type="success" size="small">默认</el-tag>
@@ -223,8 +223,8 @@
         <el-form-item label="开户名" prop="accountName">
           <el-input v-model="bankForm.accountName" placeholder="请输入开户名" />
         </el-form-item>
-        <el-form-item label="开户行" prop="bankBranch">
-          <el-input v-model="bankForm.bankBranch" placeholder="请输入开户行" />
+        <el-form-item label="开户行" prop="branchName">
+          <el-input v-model="bankForm.branchName" placeholder="请输入开户行" />
         </el-form-item>
         <el-form-item label="设为默认">
           <el-switch v-model="bankForm.isDefault" />
@@ -367,7 +367,7 @@ interface BankForm {
   bankName: string;
   accountNo: string;
   accountName: string;
-  bankBranch: string;
+  branchName: string;
   isDefault: boolean;
 }
 
@@ -375,7 +375,7 @@ const bankForm = reactive<BankForm>({
   bankName: "",
   accountNo: "",
   accountName: "",
-  bankBranch: "",
+  branchName: "",
   isDefault: false
 });
 
@@ -383,7 +383,7 @@ const bankFormRules = {
   bankName: [{ required: true, message: "请输入银行名称", trigger: "blur" }],
   accountNo: [{ required: true, message: "请输入银行账号", trigger: "blur" }],
   accountName: [{ required: true, message: "请输入开户名", trigger: "blur" }],
-  bankBranch: [{ required: true, message: "请输入开户行", trigger: "blur" }]
+  branchName: [{ required: true, message: "请输入开户行", trigger: "blur" }]
 };
 
 /* ── 脱敏显示 ── */
@@ -471,7 +471,7 @@ async function handleSaveConfig(provider: string) {
     wechatSaving.value = true;
     try {
       await api.put("/admin/payment/configs/wechat", {
-        enabled: wechatConfig.enabled,
+        enabled: wechatConfig.enabled ? "1" : "0",
         mchId: wechatConfig.mchId,
         appId: wechatConfig.appId,
         apiV3Key: wechatConfig.apiV3Key,
@@ -489,7 +489,7 @@ async function handleSaveConfig(provider: string) {
     alipaySaving.value = true;
     try {
       await api.put("/admin/payment/configs/alipay", {
-        enabled: alipayConfig.enabled,
+        enabled: alipayConfig.enabled ? "1" : "0",
         appId: alipayConfig.appId,
         privateKey: alipayRawPrivateKey.value,
         alipayPublicKey: alipayRawPublicKey.value,
@@ -542,7 +542,7 @@ function handleAddBankAccount() {
   bankForm.bankName = "";
   bankForm.accountNo = "";
   bankForm.accountName = "";
-  bankForm.bankBranch = "";
+  bankForm.branchName = "";
   bankForm.isDefault = false;
   bankDialogVisible.value = true;
 }
@@ -553,7 +553,7 @@ function handleEditBankAccount(row: any) {
   bankForm.bankName = row.bankName || "";
   bankForm.accountNo = row.accountNo || "";
   bankForm.accountName = row.accountName || "";
-  bankForm.bankBranch = row.bankBranch || "";
+  bankForm.branchName = row.branchName || "";
   bankForm.isDefault = !!row.isDefault;
   bankDialogVisible.value = true;
 }
@@ -568,7 +568,7 @@ async function handleBankSubmit() {
       bankName: bankForm.bankName,
       accountNo: bankForm.accountNo,
       accountName: bankForm.accountName,
-      bankBranch: bankForm.bankBranch,
+      branchName: bankForm.branchName,
       isDefault: bankForm.isDefault
     };
 
