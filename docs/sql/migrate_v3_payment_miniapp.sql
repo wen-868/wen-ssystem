@@ -74,11 +74,35 @@ CREATE TABLE IF NOT EXISTS miniapp_config (
   app_id          VARCHAR(64)  NOT NULL DEFAULT '' COMMENT '小程序 AppID（来自公众平台/开放平台）',
   app_secret      VARCHAR(512) NOT NULL DEFAULT '' COMMENT 'AppSecret（加密存储）',
   app_name        VARCHAR(64)  NOT NULL DEFAULT '' COMMENT '小程序名称',
+  app_description VARCHAR(255) NOT NULL DEFAULT '' COMMENT '小程序描述',
   app_icon        VARCHAR(512) NOT NULL DEFAULT '' COMMENT '小程序图标URL',
+  app_version     VARCHAR(20)  NOT NULL DEFAULT '' COMMENT '应用版本号',
   template_id     INT          NULL     COMMENT '关联 miniapp_template.id',
   status          VARCHAR(20)  NOT NULL DEFAULT 'draft' COMMENT 'draft/published',
+  audit_status    VARCHAR(20)  NOT NULL DEFAULT 'pending' COMMENT 'pending/submitted/approved/rejected',
+  audit_reason    VARCHAR(512) NOT NULL DEFAULT '' COMMENT '审核原因/备注',
   publish_version VARCHAR(20)  NOT NULL DEFAULT '' COMMENT '发布版本号',
   published_at    DATETIME     NULL,
+  -- 联系人信息
+  contact_name    VARCHAR(64)  NOT NULL DEFAULT '' COMMENT '联系人姓名',
+  contact_email   VARCHAR(128) NOT NULL DEFAULT '' COMMENT '联系人邮箱',
+  contact_phone   VARCHAR(32)  NOT NULL DEFAULT '' COMMENT '联系人电话',
+  -- 域名设置
+  domain_whitelist JSON        NULL     COMMENT '域名白名单 ["url1","url2"]',
+  business_domain  JSON        NULL     COMMENT '业务域名',
+  webview_domain   JSON        NULL     COMMENT 'webview域名',
+  -- 其他
+  qrcode_url      VARCHAR(512) NOT NULL DEFAULT '' COMMENT '小程序码URL',
+  privacy_url     VARCHAR(512) NOT NULL DEFAULT '' COMMENT '隐私协议URL',
+  service_agreement_url VARCHAR(512) NOT NULL DEFAULT '' COMMENT '服务协议URL',
+  -- 隐私和功能开关
+  required_privacy_setting TINYINT NOT NULL DEFAULT 0 COMMENT '是否强制隐私设置',
+  allow_guest     TINYINT      NOT NULL DEFAULT 1 COMMENT '允许游客访问',
+  allow_location  TINYINT      NOT NULL DEFAULT 1 COMMENT '允许获取位置',
+  allow_phone     TINYINT      NOT NULL DEFAULT 1 COMMENT '允许获取手机号',
+  allow_share     TINYINT      NOT NULL DEFAULT 1 COMMENT '允许分享',
+  allow_subscribe TINYINT      NOT NULL DEFAULT 1 COMMENT '允许订阅消息',
+  allow_payment   TINYINT      NOT NULL DEFAULT 1 COMMENT '允许支付',
   created_at      DATETIME     NOT NULL DEFAULT CURRENT_TIMESTAMP,
   updated_at      DATETIME     NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
   UNIQUE KEY uk_tenant_platform (tenant_id, platform)
@@ -90,6 +114,7 @@ CREATE TABLE IF NOT EXISTS miniapp_config (
 
 CREATE TABLE IF NOT EXISTS miniapp_template (
   id           INT AUTO_INCREMENT PRIMARY KEY,
+  tenant_id    VARCHAR(64)  NOT NULL DEFAULT 'DEFAULT' COMMENT '租户ID（DEFAULT=全局模板）',
   name         VARCHAR(64)  NOT NULL COMMENT '模板名称',
   description  VARCHAR(255) NOT NULL DEFAULT '' COMMENT '模板描述',
   thumbnail    VARCHAR(512) NOT NULL DEFAULT '' COMMENT '缩略图URL',
@@ -104,22 +129,22 @@ CREATE TABLE IF NOT EXISTS miniapp_template (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='小程序模板';
 
 -- 初始3套模板
-INSERT INTO miniapp_template (name, description, style_config, page_config, sort_order, status) VALUES
-(
+INSERT INTO miniapp_template (tenant_id, name, description, style_config, page_config, sort_order, status) VALUES
+('DEFAULT',
   '经典蓝白',
   '蓝白配色，简洁大方，适合大多数酒水商家',
   '{"primaryColor":"#1677FF","secondaryColor":"#E6F4FF","backgroundColor":"#F5F5F5","fontFamily":"PingFang SC","borderRadius":"8px","tabBarStyle":"default"}',
   '{"homeLayout":"standard","productCardStyle":"grid","orderFlowStyle":"step","showBanner":true,"showCategoryNav":true,"showSearchBar":true}',
   1, 'active'
 ),
-(
+('DEFAULT',
   '暖橙商务',
   '暖橙色调，温暖亲切，适合中高端酒水门店',
   '{"primaryColor":"#FA8C16","secondaryColor":"#FFF7E6","backgroundColor":"#FAFAFA","fontFamily":"PingFang SC","borderRadius":"12px","tabBarStyle":"rounded"}',
   '{"homeLayout":"featured","productCardStyle":"list","orderFlowStyle":"simple","showBanner":true,"showCategoryNav":true,"showSearchBar":true,"showPromotionBanner":true}',
   2, 'active'
 ),
-(
+('DEFAULT',
   '深色臻品',
   '深色高级感，黑金配色，适合高端酒品专卖',
   '{"primaryColor":"#1A1A2E","secondaryColor":"#E8D5B7","backgroundColor":"#0D0D0D","fontFamily":"PingFang SC","borderRadius":"4px","tabBarStyle":"dark","darkMode":true}',
@@ -134,11 +159,13 @@ INSERT INTO miniapp_template (name, description, style_config, page_config, sort
 CREATE TABLE IF NOT EXISTS miniapp_publish_log (
   id          INT AUTO_INCREMENT PRIMARY KEY,
   tenant_id   VARCHAR(64)  NOT NULL,
-  platform    VARCHAR(20)  NOT NULL,
+  platform    VARCHAR(20)  NOT NULL DEFAULT 'WECHAT',
   template_id INT          NULL,
   action      VARCHAR(20)  NOT NULL COMMENT 'publish/update/offline',
   version     VARCHAR(20)  NOT NULL DEFAULT '',
   result      VARCHAR(20)  NOT NULL COMMENT 'success/failed',
+  remark      VARCHAR(512) NOT NULL DEFAULT '' COMMENT '发布备注',
+  status      VARCHAR(20)  NOT NULL DEFAULT '' COMMENT '状态: published/rollback/audit_submitted',
   error_msg   TEXT         NULL,
   created_at  DATETIME     NOT NULL DEFAULT CURRENT_TIMESTAMP,
   KEY idx_tenant_platform (tenant_id, platform)

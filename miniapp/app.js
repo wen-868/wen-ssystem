@@ -1,12 +1,33 @@
 const theme = require('./config/theme')
 
+// 读取平台配置模板（支持占位符注入）
+let platformConfig = null
+try {
+  const configTemplate = require('./config.template')
+  platformConfig = configTemplate.config
+  theme = configTemplate.theme
+} catch (e) {
+  // config.template.js 不存在时使用默认配置
+  platformConfig = {
+    apiBase: 'https://api.onepan.cn/api',
+    storeId: 1,
+    storeName: '智享商城',
+    payment: { enablePay: true },
+    sync: { wsUrl: 'wss://ws.onepan.cn/sync', pollIntervalMs: 10000, enabled: true },
+    pageConfig: { homeMode: 'standard', showSearch: true, showCart: true, showPrice: true, showWholesalePrice: false, showStock: true, showCategory: true, orderButtonText: '加入下单' }
+  }
+}
+
 App({
   globalData: {
-    apiBase: "https://api.onepan.cn/api",
+    apiBase: platformConfig.apiBase,
     demoMode: false,
     theme: theme,
     token: "",       // 微信登录token
-    wxUserInfo: null // 微信用户信息
+    wxUserInfo: null, // 微信用户信息
+    platformConfig: platformConfig, // 平台配置
+    storeId: platformConfig.storeId,
+    storeName: platformConfig.storeName
   },
 
   onLaunch() {

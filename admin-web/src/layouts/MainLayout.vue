@@ -217,6 +217,8 @@
           <el-menu-item index="/system/config">参数配置</el-menu-item>
           <el-menu-item index="/system/approval/rules">审批规则</el-menu-item>
           <el-menu-item index="/system/approval/my">我的申请</el-menu-item>
+          <el-menu-item index="/system/payment">支付配置</el-menu-item>
+          <el-menu-item index="/system/miniapp">小程序配置</el-menu-item>
         </el-sub-menu>
       </el-menu>
     </aside>
@@ -404,6 +406,8 @@ const pageTitle = computed(() => {
     "/system/approval/rules": "审批规则",
     "/system/approval/detail": "审批详情",
     "/system/approval/my": "我的申请",
+    "/system/payment": "支付配置",
+    "/system/miniapp": "小程序配置",
     "/instant-retail/config": "小程序配置",
     "/instant-retail/shelf": "商品货架",
     "/instant-retail/orders": "小程序订单",
