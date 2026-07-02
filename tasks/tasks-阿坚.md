@@ -1,7 +1,7 @@
 # 阿坚 · Phase 16 · 字段对齐修复 · 后端
 
 **日期**：2026-07-02
-**状态**：待开始
+**状态**：✅ 全部完成（已合并 main）
 **来源**：Phase 15 字段级审计 — DDL vs Service vs 前端 三方对齐
 
 ---
@@ -10,13 +10,13 @@
 
 | # | 任务 | 优先级 | 状态 |
 |---|------|--------|:---:|
-| 1 | 重写 `miniapp-template.service.ts` 匹配 DDL 字段 | **P0** | ❌ |
-| 2 | 修复 `wechat-pay.ts` `fromTenant()` 字段名 | **P0** | ❌ |
-| 3 | 修复 `payment-config.service.ts` provider 校验 | **P0** | ❌ |
-| 4 | 修复 `payment-config.service.ts` config_key 统一 snake_case | **P0** | ❌ |
-| 5 | 修复 `miniapp-publish.service.ts` INSERT 缺失 `action`/`result` | **P0** | ❌ |
-| 6 | 修复 `miniapp-config.service.ts` INSERT 缺失字段 | P1 | ❌ |
-| 7 | 修复 `payment-config.service.ts` `is_encrypted` 硬编码 0 | P1 | ❌ |
+| 1 | 重写 `miniapp-template.service.ts` 匹配 DDL 字段 | **P0** | ✅ |
+| 2 | 修复 `wechat-pay.ts` `fromTenant()` 字段名 | **P0** | ✅ |
+| 3 | 修复 `payment-config.service.ts` provider 校验 | **P0** | ✅ |
+| 4 | 修复 `payment-config.service.ts` config_key 统一 snake_case | **P0** | ✅ |
+| 5 | 修复 `miniapp-publish.service.ts` INSERT 缺失 `action`/`result` | **P0** | ✅ |
+| 6 | 修复 `miniapp-config.service.ts` INSERT 缺失字段 | P1 | ✅ |
+| 7 | 修复 `payment-config.service.ts` `is_encrypted` 硬编码 0 | P1 | ✅ |
 
 ---
 

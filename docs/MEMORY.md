@@ -222,13 +222,41 @@ liquor-inventory-system/
 - **林夕** ✅：设计稿通过
 - **合并提交**：`ea5f941` — 26 文件 +3362 行
 
-### Phase 16 · 字段对齐修复（进行中 🔄）
+### Phase 16 · 字段对齐修复（已完成 ✅）
 
 - **审计日期**：2026-07-02
-- **背景**：Phase 15 字段级审计发现大量 DDL vs Service vs 前端三方字段不一致
-- **阿坚 7项** 🔄：miniapp-template.service重写(虚构字段→DDL实际字段) + wechat-pay.private_key_path→private_key + payment-config.provider统一 + config_key camelCase→snake_case映射 + miniapp-publish INSERT补action/result + miniapp-config INSERT补缺失字段 + is_encrypted智能判断
-- **墨 5项** 🔄：PaymentConfigView enabled值类型修复 + setDefaultBankAccount post→put + bankBranch→branchName + MiniappConfigView enabled移除→status + 补充字段
-- **阿澈 1项** 🔄：config.template.js 占位符与 publish 服务替换逻辑对齐
+- **背景**：Phase 15 字段级审计发现 31 个 DDL vs Service vs 前端三方字段不一致
+- **阿坚 7项** ✅：miniapp-template.service重写(虚构字段→DDL字段) + wechat-pay.private_key→private_key + payment-config KEY_MAP+SENSITIVE_KEYS + miniapp-publish INSERT action/result + miniapp-config INSERT补充字段 + is_encrypted智能判断
+- **墨 5项** ✅：PaymentConfigView enabled→"1"/"0" + bankBranch→branchName + api.ts setDefaultBankAccount PUT + MiniappConfigView enabled保留（UI兼容）
+- **阿澈 1项** ✅：config.template.js 24个占位符与 publish 服务替换逻辑完全对齐
+- **合并提交**：`75e1966` — 11 文件 +295/-93 行
+- **墨补充提交**：`7559602` — MiniappConfigView enabled→status + appDescription/appIcon
+
+### 全局认证修复（2026-07-02）
+
+- **审查日期**：2026-07-02
+- **发现问题**：
+  1. **P0**：`PaymentConfigView.vue` 银行默认账号 API 调用 `POST` 但后端路由是 `PUT`（405 错误）
+  2. **P0**：4 个页面直接用原始 `axios` 而非 `api` 实例，导致所有请求缺少 `Authorization` 头和 401 处理
+     - `MiniappConfigView.vue`（Phase 15 小程序配置）
+     - `QuickEntryConfig.vue`（Phase 14 快捷入口）
+     - `MessageCenter.vue`（Phase 14 消息中心）
+     - `TodoList.vue`（Phase 14 待办提醒）
+- **修复提交**：`fa69e69` — 5 文件，+28/-28 行
+
+### Phase 17 · 技术债务清理（待安排 📋）
+
+- **核查日期**：2026-07-03
+- **背景**：全面架构审查发现的技术债务和安全问题
+- **P0 安全** 🔄：`/api/system` 路由无认证中间件 — 需立即添加 `requireAuthWithTenant`
+- **P1 安全** 🔄：docker-compose MySQL 3306/Redis 6379 端口对外暴露 — 生产环境应移除 ports 映射
+- **P1 质量** 🔄：后端 `any` 类型 436 处 — 分批替换为具体类型
+- **P2 质量** 🔄：前端 33 处 setTimeout/setInterval 未在 onUnmounted 清理
+- **P2 规范** 🔄：全部项目无 ESLint/Prettier 配置
+- **核查结论**：
+  - 单体后端 78 路由文件 — 当前阶段合理，暂不拆分
+  - 前端框架混用 — **不存在**，全部 Vue 3，无 React
+  - 测试覆盖 — 后端 1.6%（6/375），前端 0%，后续逐步补充关键路径测试
 
 ---
 
