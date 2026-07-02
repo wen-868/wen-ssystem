@@ -8,6 +8,7 @@
 |------|:---:|
 | P17-A 14张缺失表DDL | ⚠️ 10/14 |
 | P17-B 19张Phase表迁移 | ✅ |
+| P17-C 路由拆分（6个独立路由） | ✅ 新增 |
 | P18-C 权限矩阵+监控 | ✅ |
 | P19-C 营销P1后端 | ✅ |
 | P19-D 系统P1后端 | ✅ |
@@ -15,7 +16,7 @@
 | P20-D 系统P1前端 | ✅ |
 | P21-C 营销P2 | ✅ |
 
-> 🔴 **待补**: `add_retail_announcement.sql`, `add_retail_cart.sql`, `add_retail_consumer_address.sql`, `add_report_permission_matrix.sql`
+> 🔴 **待补4个DDL**: `add_retail_announcement.sql`, `add_retail_cart.sql`, `add_retail_consumer_address.sql`, `add_report_permission_matrix.sql`
 
 ---
 
