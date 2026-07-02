@@ -47,8 +47,19 @@
                 <el-input v-model="currentConfig.appVersion" placeholder="请输入小程序版本号" />
               </el-form-item>
 
-              <el-form-item label="启用">
-                <el-switch v-model="currentConfig.enabled" />
+              <el-form-item label="小程序描述" prop="appDescription">
+                <el-input v-model="currentConfig.appDescription" placeholder="请输入小程序描述" />
+              </el-form-item>
+
+              <el-form-item label="小程序图标" prop="appIcon">
+                <el-input v-model="currentConfig.appIcon" placeholder="请输入图标URL" />
+              </el-form-item>
+
+              <el-form-item label="状态">
+                <el-select v-model="currentConfig.status" style="width: 200px">
+                  <el-option label="草稿" value="draft" />
+                  <el-option label="已发布" value="published" />
+                </el-select>
               </el-form-item>
 
               <el-form-item>
@@ -232,11 +243,11 @@ const activePlatform = ref("wechat");
 const configLoading = ref(false);
 const saving = ref(false);
 
-const configs = reactive<Record<string, { appId: string; appSecret: string; appName: string; appVersion: string; enabled: boolean }>>({
-  wechat: { appId: "", appSecret: "", appName: "", appVersion: "", enabled: false },
-  alipay: { appId: "", appSecret: "", appName: "", appVersion: "", enabled: false },
-  douyin: { appId: "", appSecret: "", appName: "", appVersion: "", enabled: false },
-  kuaishou: { appId: "", appSecret: "", appName: "", appVersion: "", enabled: false },
+const configs = reactive<Record<string, { appId: string; appSecret: string; appName: string; appVersion: string; appDescription: string; appIcon: string; status: string }>>({
+  wechat: { appId: "", appSecret: "", appName: "", appVersion: "", appDescription: "", appIcon: "", status: "draft" },
+  alipay: { appId: "", appSecret: "", appName: "", appVersion: "", appDescription: "", appIcon: "", status: "draft" },
+  douyin: { appId: "", appSecret: "", appName: "", appVersion: "", appDescription: "", appIcon: "", status: "draft" },
+  kuaishou: { appId: "", appSecret: "", appName: "", appVersion: "", appDescription: "", appIcon: "", status: "draft" },
 });
 
 const currentConfig = computed(() => configs[activePlatform.value]);
@@ -268,7 +279,9 @@ async function loadConfig(platform: string) {
         appSecret: res.data.appSecret || "",
         appName: res.data.appName || "",
         appVersion: res.data.appVersion || "",
-        enabled: !!res.data.enabled,
+        appDescription: res.data.appDescription || "",
+        appIcon: res.data.appIcon || "",
+        status: res.data.status || "draft",
       };
     }
   } catch {
