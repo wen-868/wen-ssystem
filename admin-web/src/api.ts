@@ -2195,17 +2195,17 @@ export const fetchExpiringSubscriptions = () => api.get('/admin/subscriptions/ex
 export const fetchExpiredSubscriptions = () => api.get('/admin/subscriptions/expired');
 
 // ==================== 秒杀 ====================
-export function getSeckillProducts(params?: any) { return api.get('/admin/seckill-products', { params }); }
-export function createSeckillProduct(data: any) { return api.post('/admin/seckill-products', data); }
-export function updateSeckillProduct(id: number, data: any) { return api.put(`/admin/seckill-products/${id}`, data); }
-export function deleteSeckillProduct(id: number) { return api.delete(`/admin/seckill-products/${id}`); }
+export function getSeckillProducts(params?: any) { return api.get('/admin/marketing/seckill', { params }); }
+export function createSeckillProduct(data: any) { return api.post('/admin/marketing/seckill', data); }
+export function updateSeckillProduct(id: number, data: any) { return api.put(`/admin/marketing/seckill/${id}`, data); }
+export function deleteSeckillProduct(id: number) { return api.delete(`/admin/marketing/seckill/${id}`); }
 
 // ==================== 拼团 ====================
-export function getGroupBuyActivities(params?: any) { return api.get('/admin/group-buy-activities', { params }); }
-export function createGroupBuyActivity(data: any) { return api.post('/admin/group-buy-activities', data); }
-export function updateGroupBuyActivity(id: number, data: any) { return api.put(`/admin/group-buy-activities/${id}`, data); }
-export function deleteGroupBuyActivity(id: number) { return api.delete(`/admin/group-buy-activities/${id}`); }
-export function getGroupBuyRecords(params?: any) { return api.get('/admin/group-buy-records', { params }); }
+export function getGroupBuyActivities(params?: any) { return api.get('/admin/marketing/group-buy/activities', { params }); }
+export function createGroupBuyActivity(data: any) { return api.post('/admin/marketing/group-buy/activities', data); }
+export function updateGroupBuyActivity(id: number, data: any) { return api.put(`/admin/marketing/group-buy/activities/${id}`, data); }
+export function deleteGroupBuyActivity(id: number) { return api.delete(`/admin/marketing/group-buy/activities/${id}`); }
+export function getGroupBuyRecords(params?: any) { return api.get('/admin/marketing/group-buy/records', { params }); }
 
 // ==================== Tenant APIs ====================
 export const fetchTenants = (params: any) => api.get('/admin/tenants', { params });
@@ -2258,9 +2258,9 @@ export function updateDepartment(id: number, data: any) { return api.put(`/admin
 export function deleteDepartment(id: number) { return api.delete(`/admin/departments/${id}`); }
 
 // ==================== 用户会话（阿澈） ====================
-export function getUserSessions(params?: any) { return api.get('/admin/user-sessions', { params }); }
-export function revokeSession(id: number) { return api.delete(`/admin/user-sessions/${id}`); }
-export function getOnlineStats() { return api.get('/admin/user-sessions/stats'); }
+export function getUserSessions(params?: any) { return api.get('/admin/sessions', { params }); }
+export function revokeSession(id: number) { return api.delete(`/admin/sessions/${id}`); }
+export function getOnlineStats() { return api.get('/admin/sessions/stats'); }
 
 // ==================== 零售公告（墨） ====================
 export async function fetchRetailAnnouncements(params?: { storeId?: number; keyword?: string; page?: number; pageSize?: number }) {

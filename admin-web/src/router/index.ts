@@ -157,8 +157,8 @@ const routes = [
       { path: "marketing/dashboard", name: "MarketingDashboard", component: () => import("../views/MarketingDashboard.vue"), meta: { roles: ["BOSS"] } },
       { path: "marketing/materials", name: "MarketingMaterial", component: () => import("../views/MarketingMaterial.vue"), meta: { roles: ["BOSS"] } },
       { path: "aftersale", name: "Aftersale", component: () => import("../views/AftersaleView.vue"), meta: { roles: ["BOSS"] } },
-      { path: "seckill", name: "Seckill", component: () => import("../views/SeckillProduct.vue"), meta: { title: "秒杀管理", roles: ["BOSS"] } },
-      { path: "group-buy", name: "GroupBuy", component: () => import("../views/GroupBuyActivity.vue"), meta: { title: "拼团管理", roles: ["BOSS"] } },
+      { path: "marketing/seckill", name: "SeckillManage", component: () => import("../views/SeckillManage.vue"), meta: { title: "秒杀管理", roles: ["BOSS"] } },
+      { path: "marketing/group-buy", name: "GroupBuyManage", component: () => import("../views/GroupBuyManage.vue"), meta: { title: "拼团管理", roles: ["BOSS"] } },
       // 12. 系统管理
       { path: "employees", name: "Employees", component: () => import("../views/EmployeesView.vue"), meta: { roles: ["BOSS"] } },
       { path: "stores", name: "Stores", component: () => import("../views/StoresView.vue"), meta: { roles: ["BOSS"] } },

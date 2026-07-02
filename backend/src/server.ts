@@ -98,6 +98,12 @@ import { platformReconciliationRouter } from "./routes/platform-reconciliation.r
 import { platformReviewRouter } from "./routes/platform-review.routes.js";
 import { customReportRouter } from "./routes/custom-report.routes.js";
 import { consumerAddressRouter } from "./routes/retail-consumer-address.routes.js";
+import { pointsMallRouter } from "./routes/points-mall.routes.js";
+import { marketingAssetRouter } from "./routes/marketing-asset.routes.js";
+import { departmentRouter } from "./routes/department.routes.js";
+import { userSessionRouter } from "./routes/user-session.routes.js";
+import { seckillRouter } from "./routes/seckill.routes.js";
+import { groupBuyRouter } from "./routes/group-buy.routes.js";
 
 const app = express();
 
@@ -167,6 +173,12 @@ app.use("/api/admin/marketing/gift-rules", requireAuthWithTenant, marketingGiftR
 app.use("/api/admin/marketing/points-mall", requireAuthWithTenant, marketingPointsMallRouter);
 app.use("/api/admin/marketing/dashboard", requireAuthWithTenant, marketingDashboardRouter);
 app.use("/api/admin/marketing/materials", requireAuthWithTenant, marketingMaterialRouter);
+app.use("/api/admin/marketing/seckill", requireAuthWithTenant, seckillRouter);
+app.use("/api/admin/marketing/group-buy", requireAuthWithTenant, groupBuyRouter);
+app.use("/api/admin/points-mall", requireAuthWithTenant, pointsMallRouter);
+app.use("/api/admin/marketing-assets", requireAuthWithTenant, marketingAssetRouter);
+app.use("/api/admin/departments", requireAuthWithTenant, departmentRouter);
+app.use("/api/admin/sessions", requireAuthWithTenant, userSessionRouter);
 app.use("/api/miniapp/wechat", wechatRouter);
 app.use("/api/admin/order-timeout", requireAuthWithTenant, orderTimeoutRouter);
 app.use("/api/admin/purchase-payments", requireAuthWithTenant, purchasePaymentRouter);
