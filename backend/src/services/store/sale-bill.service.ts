@@ -51,7 +51,7 @@ export async function getSaleBillDetail(billNo: string, tenantId: string) {
   if (!bill) return null;
   const items = await queryWithTenant<any>(
     `SELECT sku_id AS skuId, sku_name AS skuName, box_qty AS boxQty, bottle_qty AS bottleQty,
-            total_bottle_qty AS totalBottleQty, unit_price AS unitPrice, subtotal_amount AS subtotalAmount
+            total_bottle_qty AS totalBottleQty, unit_price AS unitPrice, unit, barcode, spec, subtotal_amount AS subtotalAmount
      FROM sale_bill_item WHERE bill_no = ?`,
     [billNo],
     tenantId
@@ -74,11 +74,16 @@ export async function createSaleBill(params: {
     const member = customerId
       ? await queryOneWithTenant<any>("SELECT id, name, mobile, customer_type FROM member WHERE id = ? AND tenant_id = ?", [customerId, tenantId], tenantId)
       : null;
+    // 查询门店信息作为法律凭证快照
+    const store = await queryOneWithTenant<any>(
+      "SELECT name, address, contact_mobile FROM store WHERE id = ? AND tenant_id = ?",
+      [storeId, tenantId], tenantId
+    );
     let goodsAmount = 0;
     const itemSnapshots = [];
     for (const item of items) {
       const price = await queryOneWithTenant<any>(
-        `SELECT s.sku_name, pp.retail_price, pp.wholesale_price, pp.store_price
+        `SELECT s.sku_name, s.unit, s.barcode, s.spec, pp.retail_price, pp.wholesale_price, pp.store_price
          FROM product_sku s JOIN product_price pp ON pp.sku_id = s.id AND pp.tenant_id = s.tenant_id
          WHERE s.id = ? AND s.tenant_id = ?`,
         [item.skuId, tenantId],
@@ -91,25 +96,35 @@ export async function createSaleBill(params: {
         : Number(price.store_price ?? price.retail_price));
       const subtotal = computedPrice * item.totalBottleQty;
       goodsAmount += subtotal;
-      itemSnapshots.push({ ...item, skuName: price.sku_name, unitPrice: computedPrice, subtotalAmount: subtotal, priceType: item.priceType ?? (customerType === "WHOLESALE" ? "WHOLESALE" : "STORE") });
+      itemSnapshots.push({
+        ...item,
+        skuName: price.sku_name,
+        unitPrice: computedPrice,
+        subtotalAmount: subtotal,
+        priceType: item.priceType ?? (customerType === "WHOLESALE" ? "WHOLESALE" : "STORE"),
+        unit: price.unit ?? '瓶',
+        barcode: price.barcode ?? null,
+        spec: price.spec ?? null,
+      });
     }
     const receivableAmount = Math.max(0, goodsAmount - discountAmount - roundingAmount);
     await conn.execute(
-      `INSERT INTO sale_bill (bill_no, store_id, customer_id, customer_name, customer_mobile, customer_type,
+      `INSERT INTO sale_bill (bill_no, store_id, store_name, store_address, store_contact, customer_id, customer_name, customer_mobile, customer_type,
                               sale_type, business_status, collection_status, goods_amount, discount_amount, rounding_amount,
                               receivable_amount, received_amount, unreceived_amount, due_date, operator_id, remark, internal_remark, tenant_id)
-       VALUES (?, ?, ?, ?, ?, ?, ?, 'CREATED', 'UNPAID', ?, ?, ?, ?, 0, ?, ?, ?, ?, ?, ?)`,
+       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'CREATED', 'UNPAID', ?, ?, ?, ?, 0, ?, ?, ?, ?, ?, ?, ?)`,
       [
-        billNo, storeId, customerId ?? null, member?.name ?? customerName ?? null, member?.mobile ?? customerMobile ?? null,
+        billNo, storeId, store?.name ?? null, store?.address ?? null, store?.contact_mobile ?? null,
+        customerId ?? null, member?.name ?? customerName ?? null, member?.mobile ?? customerMobile ?? null,
         member?.customer_type ?? "RETAIL", saleType, goodsAmount, discountAmount, roundingAmount, receivableAmount, receivableAmount,
         saleType === "CREDIT" ? dueDate ?? null : null, userId, remark ?? null, internalRemark ?? null, tenantId
       ]
     );
     for (const item of itemSnapshots) {
       await conn.execute(
-        `INSERT INTO sale_bill_item (bill_no, sku_id, sku_name, box_qty, bottle_qty, total_bottle_qty, unit_price, price_type, subtotal_amount)
-         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`,
-        [billNo, item.skuId, item.skuName, item.boxQty, item.bottleQty, item.totalBottleQty, item.unitPrice, item.priceType, item.subtotalAmount]
+        `INSERT INTO sale_bill_item (bill_no, sku_id, sku_name, box_qty, bottle_qty, total_bottle_qty, unit_price, price_type, unit, barcode, spec, subtotal_amount)
+         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+        [billNo, item.skuId, item.skuName, item.boxQty, item.bottleQty, item.totalBottleQty, item.unitPrice, item.priceType, item.unit ?? '瓶', item.barcode ?? null, item.spec ?? null, item.subtotalAmount]
       );
     }
     return { billNo, storeId, businessStatus: "CREATED", collectionStatus: "UNPAID", receivableAmount, receivedAmount: 0, unreceivedAmount: receivableAmount, items: itemSnapshots };
@@ -119,9 +134,10 @@ export async function createSaleBill(params: {
 export async function createCollectionLink(params: {
   billNo: string; shareChannel: string; amount: number;
   taxEnabled: boolean; taxRate: number; expireHours: number;
+  displayConfig?: Record<string, boolean>; documentTitle?: string;
   remark?: string; userId: number; tenantId: string;
 }) {
-  const { billNo, shareChannel, amount, taxEnabled, taxRate, expireHours, remark, userId, tenantId } = params;
+  const { billNo, shareChannel, amount, taxEnabled, taxRate, expireHours, displayConfig, documentTitle, remark, userId, tenantId } = params;
   const bill = await queryOneWithTenant<any>("SELECT bill_no, unreceived_amount FROM sale_bill WHERE bill_no = ? AND tenant_id = ?", [billNo, tenantId], tenantId);
   if (!bill) throw new Error("销售单不存在");
   if (amount <= 0 || amount > Number(bill.unreceived_amount)) throw new Error("收款金额必须大于0且不能超过未收金额");
@@ -129,9 +145,9 @@ export async function createCollectionLink(params: {
   const token = makeToken();
   const taxAmount = taxEnabled ? Number((amount * taxRate).toFixed(2)) : 0;
   await queryWithTenant(
-    `INSERT INTO collection_link (link_no, source_type, source_no, amount, paid_amount, status, share_channel, share_user_id, expire_at, token, tax_enabled, tax_rate, tax_amount, tenant_id)
-     VALUES (?, 'SALE_BILL', ?, ?, 0, 'PENDING', ?, ?, DATE_ADD(NOW(), INTERVAL ? HOUR), ?, ?, ?, ?, ?)`,
-    [linkNo, billNo, amount, shareChannel, userId, expireHours, token, taxEnabled ? 1 : 0, taxRate, taxAmount, tenantId],
+    `INSERT INTO collection_link (link_no, source_type, source_no, amount, paid_amount, status, share_channel, share_user_id, expire_at, token, tax_enabled, tax_rate, tax_amount, display_config, document_title, tenant_id)
+     VALUES (?, 'SALE_BILL', ?, ?, 0, 'PENDING', ?, ?, DATE_ADD(NOW(), INTERVAL ? HOUR), ?, ?, ?, ?, ?, ?, ?)`,
+    [linkNo, billNo, amount, shareChannel, userId, expireHours, token, taxEnabled ? 1 : 0, taxRate, taxAmount, JSON.stringify(displayConfig ?? {}), documentTitle ?? '销售单', tenantId],
     tenantId
   );
   await queryWithTenant(

@@ -1284,8 +1284,29 @@ export interface ShareCollectionDetail {
   taxRate: number
   taxAmount: number
   customerName: string
+  customerMobile: string
   storeName: string
+  storeAddress: string
+  storeContact: string
+  billNo: string
+  saleType: string
+  goodsAmount: number
+  discountAmount: number
+  receivableAmount: number
+  receivedAmount: number
+  unreceivedAmount: number
+  businessStatus: string
+  displayConfig: ShareDisplayConfig
+  documentTitle: string
+  createdAt: string
   items: ShareCollectionItem[]
+}
+
+export interface ShareDisplayConfig {
+  showBarcode: boolean
+  showUnit: boolean
+  showSpec: boolean
+  showTax: boolean
 }
 
 export interface ShareCollectionItem {
@@ -1295,6 +1316,9 @@ export interface ShareCollectionItem {
   bottleQty: number
   totalBottleQty: number
   unitPrice: number
+  unit: string
+  barcode: string | null
+  spec: string | null
   subtotalAmount: number
 }
 

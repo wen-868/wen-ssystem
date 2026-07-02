@@ -6,14 +6,20 @@ import { ok } from "../shared/response.js";
 
 export const shareRouter = Router();
 
+// 获取分享单据完整数据（法律凭证视图）
 shareRouter.get("/collections/:token", asyncHandler(async (req, res) => {
   const link = await queryOne<any>(
     `SELECT cl.link_no AS linkNo, cl.source_type AS sourceType, cl.source_no AS sourceNo, cl.amount, cl.paid_amount AS paidAmount,
             cl.status, cl.expire_at AS expireAt, cl.tax_enabled AS taxEnabled, cl.tax_rate AS taxRate, cl.tax_amount AS taxAmount,
-            sb.customer_name AS customerName, st.name AS storeName
+            cl.display_config AS displayConfig, cl.document_title AS documentTitle,
+            sb.customer_name AS customerName, sb.customer_mobile AS customerMobile,
+            sb.store_name AS storeName, sb.store_address AS storeAddress, sb.store_contact AS storeContact,
+            sb.bill_no AS billNo, sb.sale_type AS saleType, sb.goods_amount AS goodsAmount,
+            sb.discount_amount AS discountAmount, sb.receivable_amount AS receivableAmount,
+            sb.received_amount AS receivedAmount, sb.unreceived_amount AS unreceivedAmount,
+            sb.business_status AS businessStatus, sb.created_at AS createdAt
      FROM collection_link cl
      JOIN sale_bill sb ON sb.bill_no = cl.source_no
-     JOIN store st ON st.id = sb.store_id
      WHERE cl.token = ?`,
     [req.params.token]
   );
@@ -22,22 +28,31 @@ shareRouter.get("/collections/:token", asyncHandler(async (req, res) => {
     return;
   }
   await query("UPDATE collection_link SET view_count = view_count + 1, last_view_time = NOW() WHERE link_no = ?", [link.linkNo]);
+
+  // 获取单据明细（含单位、条形码、规格等法律凭证关键字段）
   const items = await query<any>(
     `SELECT sku_id AS skuId, sku_name AS skuName, box_qty AS boxQty, bottle_qty AS bottleQty,
-            total_bottle_qty AS totalBottleQty, unit_price AS unitPrice, subtotal_amount AS subtotalAmount
+            total_bottle_qty AS totalBottleQty, unit_price AS unitPrice, unit, barcode, spec, subtotal_amount AS subtotalAmount
      FROM sale_bill_item WHERE bill_no = ?`,
     [link.sourceNo]
   );
-  res.json(ok({ ...link, items }));
+
+  res.json(ok({
+    ...link,
+    items,
+    // 默认显示配置（如果未设置）
+    displayConfig: link.displayConfig ?? { showBarcode: true, showUnit: true, showSpec: true, showTax: false },
+  }));
 }));
 
-// H5支付页 — 返回页面渲染所需数据
+// H5支付页 — 返回页面渲染所需数据（完整法律凭证）
 shareRouter.get("/collections/:token/page", asyncHandler(async (req, res) => {
   const link = await queryOne<any>(
     `SELECT cl.link_no AS linkNo, cl.source_type AS sourceType, cl.source_no AS sourceNo,
             cl.amount, cl.paid_amount AS paidAmount, cl.status,
             cl.expire_at AS expireAt, cl.tax_enabled AS taxEnabled,
             cl.tax_rate AS taxRate, cl.tax_amount AS taxAmount,
+            cl.display_config AS displayConfig, cl.document_title AS documentTitle,
             cl.share_channel AS shareChannel, cl.created_at AS createdAt
      FROM collection_link cl
      WHERE cl.token = ?`,
@@ -65,36 +80,52 @@ shareRouter.get("/collections/:token/page", asyncHandler(async (req, res) => {
     res.status(400).json({ code: "400", message: "收款链接已撤销" });
     return;
   }
+
+  // 获取单据完整数据（法律凭证 + 门店信息已快照在 sale_bill 中）
   const bill = await queryOne<any>(
     `SELECT sb.bill_no AS billNo, sb.customer_name AS customerName,
             sb.customer_mobile AS customerMobile, sb.customer_type AS customerType,
             sb.receivable_amount AS receivableAmount, sb.received_amount AS receivedAmount,
-            sb.unreceived_amount AS unreceivedAmount, sb.store_id AS storeId,
-            st.name AS storeName
+            sb.unreceived_amount AS unreceivedAmount,
+            sb.store_name AS storeName, sb.store_address AS storeAddress, sb.store_contact AS storeContact,
+            sb.goods_amount AS goodsAmount, sb.discount_amount AS discountAmount,
+            sb.sale_type AS saleType, sb.business_status AS businessStatus,
+            sb.created_at AS createdAt
      FROM sale_bill sb
-     JOIN store st ON st.id = sb.store_id
      WHERE sb.bill_no = ?`,
     [link.sourceNo]
   );
+
+  // 获取单据明细（含单位、条形码、规格）
   const items = await query<any>(
     `SELECT sku_id AS skuId, sku_name AS skuName,
             box_qty AS boxQty, bottle_qty AS bottleQty,
             total_bottle_qty AS totalBottleQty,
-            unit_price AS unitPrice, subtotal_amount AS subtotalAmount
+            unit_price AS unitPrice, unit, barcode, spec,
+            subtotal_amount AS subtotalAmount
      FROM sale_bill_item WHERE bill_no = ?`,
     [link.sourceNo]
   );
+
   await query("UPDATE collection_link SET view_count = view_count + 1, last_view_time = NOW() WHERE link_no = ?", [link.linkNo]);
+
   res.json(ok({
     linkNo: link.linkNo, token: req.params.token,
     amount: link.amount, paidAmount: link.paidAmount,
     status: link.status, expireAt: link.expireAt, expired,
     taxEnabled: link.taxEnabled, taxRate: link.taxRate, taxAmount: link.taxAmount,
+    displayConfig: link.displayConfig ?? { showBarcode: true, showUnit: true, showSpec: true, showTax: false },
+    documentTitle: link.documentTitle ?? '销售单',
     shareChannel: link.shareChannel, createdAt: link.createdAt,
     customerName: bill?.customerName ?? "", customerMobile: bill?.customerMobile ?? "",
-    customerType: bill?.customerType ?? "", storeName: bill?.storeName ?? "",
+    customerType: bill?.customerType ?? "",
+    storeName: bill?.storeName ?? "", storeAddress: bill?.storeAddress ?? "", storeContact: bill?.storeContact ?? "",
     receivableAmount: bill?.receivableAmount ?? 0, receivedAmount: bill?.receivedAmount ?? 0,
-    unreceivedAmount: bill?.unreceivedAmount ?? 0, items
+    unreceivedAmount: bill?.unreceivedAmount ?? 0,
+    goodsAmount: bill?.goodsAmount ?? 0, discountAmount: bill?.discountAmount ?? 0,
+    saleType: bill?.saleType ?? "", businessStatus: bill?.businessStatus ?? "",
+    billCreatedAt: bill?.createdAt ?? "",
+    items
   }));
 }));
 

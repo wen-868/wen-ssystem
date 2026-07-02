@@ -1179,6 +1179,9 @@ required / unique / len[a,b] / range[a,b] / regex / enum / fk / logic / compare 
 | id | BIGINT UNSIGNED AUTO_INCREMENT | 销售单ID |
 | bill_no | VARCHAR(64) NOT NULL UNIQUE | 销售单号 |
 | store_id | BIGINT UNSIGNED NOT NULL | 门店ID |
+| store_name | VARCHAR(128) DEFAULT NULL | 门店名称快照（法律凭证） |
+| store_address | VARCHAR(255) DEFAULT NULL | 门店地址快照（法律凭证） |
+| store_contact | VARCHAR(64) DEFAULT NULL | 门店联系电话快照（法律凭证） |
 | customer_id | BIGINT UNSIGNED DEFAULT NULL | 客户ID |
 | customer_name | VARCHAR(64) DEFAULT NULL | 客户名称快照 |
 | customer_mobile | VARCHAR(20) DEFAULT NULL | 客户手机号快照 |
@@ -1218,6 +1221,9 @@ required / unique / len[a,b] / range[a,b] / regex / enum / fk / logic / compare 
 | total_bottle_qty | INT NOT NULL | 合计瓶数 |
 | unit_price | DECIMAL(12,2) NOT NULL | 成交单价，按瓶 |
 | price_type | VARCHAR(32) NOT NULL | 价格类型：RETAIL/WHOLESALE/STORE |
+| unit | VARCHAR(16) NOT NULL DEFAULT '瓶' | 计量单位快照（法律凭证） |
+| barcode | VARCHAR(128) DEFAULT NULL | 条形码快照（法律凭证） |
+| spec | VARCHAR(128) DEFAULT NULL | 规格快照（法律凭证） |
 | subtotal_amount | DECIMAL(12,2) NOT NULL | 小计 |
 | trace_required | TINYINT NOT NULL DEFAULT 0 | 是否需要追溯 |
 | created_at | DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP | 创建时间 |
@@ -1305,6 +1311,8 @@ required / unique / len[a,b] / range[a,b] / regex / enum / fk / logic / compare 
 | last_view_time | DATETIME DEFAULT NULL | 最近查看时间 |
 | pay_no | VARCHAR(64) DEFAULT NULL | 关联支付单号 |
 | token | VARCHAR(128) NOT NULL UNIQUE | 访问令牌 |
+| display_config | JSON DEFAULT NULL | 显示配置（showBarcode/showUnit/showSpec/showTax） |
+| document_title | VARCHAR(128) NOT NULL DEFAULT '销售单' | 单据标题（可自定义） |
 | closed_reason | VARCHAR(255) DEFAULT NULL | 关闭原因 |
 | created_at | DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP | 创建时间 |
 | updated_at | DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE | 更新时间 |

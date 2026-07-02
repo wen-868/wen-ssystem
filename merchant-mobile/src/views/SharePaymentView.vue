@@ -1,8 +1,8 @@
 <script setup lang="ts">
-import { ref, onMounted, onUnmounted } from 'vue'
+import { ref, computed, onMounted, onUnmounted } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { showToast } from 'vant'
-import { fetchCollectionLinkByToken, payCollectionByToken, type ShareCollectionDetail } from '../api'
+import { fetchCollectionLinkByToken, payCollectionByToken, type ShareCollectionDetail, type ShareDisplayConfig } from '../api'
 
 const route = useRoute()
 const router = useRouter()
@@ -13,7 +13,22 @@ const paying = ref(false)
 const detail = ref<ShareCollectionDetail | null>(null)
 const errorState = ref<'expired' | 'paid' | 'cancelled' | 'invalid' | null>(null)
 const countdown = ref('')
+const showFullVoucher = ref(false)
 let countdownTimer: ReturnType<typeof setInterval> | null = null
+
+const displayConfig = computed<ShareDisplayConfig>(() => {
+  return detail.value?.displayConfig ?? { showBarcode: true, showUnit: true, showSpec: true, showTax: false }
+})
+
+const documentTitle = computed(() => {
+  return detail.value?.documentTitle || '销售单'
+})
+
+function formatDate(dateStr: string | null | undefined): string {
+  if (!dateStr) return '--'
+  const d = new Date(dateStr)
+  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')} ${String(d.getHours()).padStart(2, '0')}:${String(d.getMinutes()).padStart(2, '0')}`
+}
 
 function startCountdown(expireAt: string) {
   stopCountdown()
@@ -85,7 +100,6 @@ async function handlePay() {
     detail.value!.status = 'PAID'
     errorState.value = 'paid'
     stopCountdown()
-    // 跳转支付结果页
     router.replace({ name: 'share-payment-result', query: { status: 'success', token } })
   } catch {
     showToast('支付失败，请重试')
@@ -121,14 +135,12 @@ async function handlePay() {
 
     <!-- 正常内容 -->
     <template v-else-if="detail">
-      <!-- 商家信息 -->
-      <div class="store-card">
-        <div class="store-icon">
-          <van-icon name="shop-o" size="28" color="var(--color-primary)" />
-        </div>
-        <div class="store-info">
-          <div class="store-name">{{ detail.storeName }}</div>
-          <div class="store-customer">收款对象：{{ detail.customerName || '散客' }}</div>
+      <!-- 单据标题 -->
+      <div class="document-header">
+        <h1 class="document-title">{{ documentTitle }}</h1>
+        <div class="document-meta">
+          <span class="doc-no">单号：{{ detail.billNo }}</span>
+          <span class="doc-type">{{ detail.saleType === 'CREDIT' ? '赊销' : '现销' }}</span>
         </div>
       </div>
 
@@ -147,21 +159,91 @@ async function handlePay() {
         </div>
       </div>
 
-      <!-- 商品明细 -->
-      <div class="items-card">
-        <h3 class="items-title">商品明细</h3>
-        <div v-for="item in detail.items" :key="item.skuId" class="item-row">
-          <div class="item-name">
-            <span>{{ item.skuName }}</span>
-            <span class="item-qty">×{{ item.totalBottleQty }}</span>
-          </div>
-          <div class="item-price">¥{{ formatPrice(item.unitPrice) }}</div>
+      <!-- 往来方信息 -->
+      <div class="party-card">
+        <div class="party-section">
+          <div class="party-label">销售方（供方）</div>
+          <div class="party-name">{{ detail.storeName }}</div>
+          <div v-if="detail.storeAddress" class="party-detail">{{ detail.storeAddress }}</div>
+          <div v-if="detail.storeContact" class="party-detail">电话：{{ detail.storeContact }}</div>
         </div>
-        <div class="items-total">
-          <span>合计</span>
-          <span class="items-total-amount">¥{{ formatPrice(detail.amount) }}</span>
+        <div class="party-divider"></div>
+        <div class="party-section">
+          <div class="party-label">购买方（需方）</div>
+          <div class="party-name">{{ detail.customerName || '散客' }}</div>
+          <div v-if="detail.customerMobile" class="party-detail">电话：{{ detail.customerMobile }}</div>
         </div>
       </div>
+
+      <!-- 商品明细 — 法律凭证核心 -->
+      <div class="voucher-card">
+        <h3 class="voucher-title">商品明细</h3>
+        <div class="voucher-table">
+          <div class="voucher-header">
+            <span class="col-name">产品名称</span>
+            <span v-if="displayConfig.showSpec" class="col-spec">规格</span>
+            <span v-if="displayConfig.showUnit" class="col-unit">单位</span>
+            <span class="col-qty">数量</span>
+            <span class="col-price">单价</span>
+            <span v-if="displayConfig.showBarcode" class="col-barcode">条形码</span>
+            <span class="col-subtotal">金额</span>
+          </div>
+          <div v-for="item in detail.items" :key="item.skuId" class="voucher-row">
+            <span class="col-name">{{ item.skuName }}</span>
+            <span v-if="displayConfig.showSpec" class="col-spec">{{ item.spec || '--' }}</span>
+            <span v-if="displayConfig.showUnit" class="col-unit">{{ item.unit || '瓶' }}</span>
+            <span class="col-qty">{{ item.totalBottleQty }}</span>
+            <span class="col-price">¥{{ formatPrice(item.unitPrice) }}</span>
+            <span v-if="displayConfig.showBarcode" class="col-barcode">{{ item.barcode || '--' }}</span>
+            <span class="col-subtotal">¥{{ formatPrice(item.subtotalAmount) }}</span>
+          </div>
+        </div>
+
+        <!-- 金额汇总 -->
+        <div class="voucher-summary">
+          <div class="summary-row">
+            <span>商品金额</span>
+            <span>¥{{ formatPrice(detail.goodsAmount) }}</span>
+          </div>
+          <div v-if="detail.discountAmount > 0" class="summary-row discount">
+            <span>优惠金额</span>
+            <span>-¥{{ formatPrice(detail.discountAmount) }}</span>
+          </div>
+          <div v-if="detail.taxEnabled && displayConfig.showTax" class="summary-row tax">
+            <span>税额（{{ (detail.taxRate * 100).toFixed(0) }}%）</span>
+            <span>¥{{ formatPrice(detail.taxAmount) }}</span>
+          </div>
+          <div class="summary-row total">
+            <span>应收金额</span>
+            <span class="total-amount">¥{{ formatPrice(detail.receivableAmount) }}</span>
+          </div>
+          <div v-if="detail.receivedAmount > 0" class="summary-row">
+            <span>已收金额</span>
+            <span>¥{{ formatPrice(detail.receivedAmount) }}</span>
+          </div>
+          <div v-if="detail.unreceivedAmount > 0" class="summary-row unreceived">
+            <span>未收金额</span>
+            <span>¥{{ formatPrice(detail.unreceivedAmount) }}</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- 单据备注 -->
+      <div class="voucher-footer">
+        <div class="footer-item">
+          <span class="footer-label">开单日期</span>
+          <span>{{ formatDate(detail.createdAt) }}</span>
+        </div>
+        <div class="footer-item">
+          <span class="footer-label">单据状态</span>
+          <span class="status-tag" :class="'status-' + (detail.businessStatus || '').toLowerCase()">
+            {{ detail.businessStatus === 'CREATED' ? '已开单' : detail.businessStatus === 'COMPLETED' ? '已完成' : detail.businessStatus === 'VOIDED' ? '已作废' : detail.businessStatus || '--' }}
+          </span>
+        </div>
+      </div>
+
+      <!-- 法律声明 -->
+      <p class="legal-notice">本单据为电子凭证，与纸质单据具有同等法律效力</p>
 
       <!-- 支付按钮 -->
       <div class="pay-section">
@@ -187,7 +269,8 @@ async function handlePay() {
 .share-payment-view {
   min-height: 100vh;
   background: #f5f5f5;
-  padding: 20px 16px;
+  padding: 16px;
+  padding-bottom: 32px;
 }
 
 .loading-center {
@@ -216,44 +299,45 @@ async function handlePay() {
   line-height: 1.6;
 }
 
-.store-card {
+/* 单据标题 */
+.document-header {
+  text-align: center;
+  padding: 16px 0 8px;
+}
+
+.document-title {
+  margin: 0 0 8px;
+  font-size: 20px;
+  font-weight: 700;
+  color: var(--text-primary);
+  letter-spacing: 2px;
+}
+
+.document-meta {
   display: flex;
+  justify-content: center;
   align-items: center;
   gap: 12px;
-  padding: 16px;
-  background: #fff;
-  border-radius: 12px;
-  margin-bottom: 12px;
-}
-
-.store-icon {
-  width: 48px;
-  height: 48px;
-  border-radius: 12px;
-  background: var(--color-primary-soft);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
-
-.store-name {
-  font-size: 16px;
-  font-weight: 600;
-  color: var(--text-primary);
-}
-
-.store-customer {
   font-size: 13px;
   color: var(--text-secondary);
-  margin-top: 4px;
+}
+
+.doc-type {
+  display: inline-block;
+  padding: 2px 8px;
+  background: #e8f5e9;
+  color: #2e7d32;
+  border-radius: 4px;
+  font-size: 12px;
 }
 
 .countdown-bar {
   display: flex;
   align-items: center;
+  justify-content: center;
   gap: 6px;
   padding: 8px 16px;
-  margin-bottom: 12px;
+  margin: 8px 0 12px;
   background: #fff3e0;
   border-radius: 8px;
   font-size: 13px;
@@ -263,7 +347,7 @@ async function handlePay() {
 
 .amount-card {
   text-align: center;
-  padding: 24px;
+  padding: 20px;
   background: #fff;
   border-radius: 12px;
   margin-bottom: 12px;
@@ -287,67 +371,176 @@ async function handlePay() {
   color: var(--color-success);
 }
 
-.items-card {
+/* 往来方信息 */
+.party-card {
+  display: flex;
   background: #fff;
   border-radius: 12px;
   padding: 16px;
-  margin-bottom: 24px;
+  margin-bottom: 12px;
 }
 
-.items-title {
+.party-section {
+  flex: 1;
+}
+
+.party-divider {
+  width: 1px;
+  background: #eee;
+  margin: 0 16px;
+}
+
+.party-label {
+  font-size: 12px;
+  color: var(--text-muted);
+  margin-bottom: 6px;
+}
+
+.party-name {
+  font-size: 15px;
+  font-weight: 600;
+  color: var(--text-primary);
+  margin-bottom: 4px;
+}
+
+.party-detail {
+  font-size: 12px;
+  color: var(--text-secondary);
+  line-height: 1.5;
+}
+
+/* 商品明细表格 */
+.voucher-card {
+  background: #fff;
+  border-radius: 12px;
+  padding: 16px;
+  margin-bottom: 12px;
+  overflow-x: auto;
+}
+
+.voucher-title {
   margin: 0 0 12px;
   font-size: 15px;
   font-weight: 600;
   color: var(--text-primary);
 }
 
-.item-row {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  padding: 8px 0;
-  border-bottom: 1px solid #f5f5f5;
+.voucher-table {
+  min-width: 100%;
 }
 
-.item-row:last-of-type {
+.voucher-header {
+  display: flex;
+  padding: 8px 0;
+  border-bottom: 2px solid #333;
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--text-secondary);
+}
+
+.voucher-row {
+  display: flex;
+  padding: 10px 0;
+  border-bottom: 1px solid #f0f0f0;
+  font-size: 13px;
+  color: var(--text-primary);
+}
+
+.voucher-row:last-child {
   border-bottom: none;
 }
 
-.item-name {
-  font-size: 14px;
-  color: var(--text-primary);
-  display: flex;
-  align-items: center;
-  gap: 8px;
+.col-name { flex: 2; min-width: 80px; }
+.col-spec { flex: 1; min-width: 60px; text-align: center; }
+.col-unit { flex: 0.5; min-width: 40px; text-align: center; }
+.col-qty { flex: 0.5; min-width: 40px; text-align: right; }
+.col-price { flex: 1; min-width: 60px; text-align: right; }
+.col-barcode { flex: 1; min-width: 80px; text-align: center; font-size: 11px; color: var(--text-muted); word-break: break-all; }
+.col-subtotal { flex: 1; min-width: 60px; text-align: right; font-weight: 500; }
+
+/* 金额汇总 */
+.voucher-summary {
+  margin-top: 12px;
+  padding-top: 12px;
+  border-top: 1px solid #eee;
 }
 
-.item-qty {
-  font-size: 12px;
-  color: var(--text-secondary);
-}
-
-.item-price {
-  font-size: 14px;
-  color: var(--text-secondary);
-  font-weight: 500;
-}
-
-.items-total {
+.summary-row {
   display: flex;
   justify-content: flex-end;
   align-items: center;
-  gap: 8px;
-  padding-top: 12px;
-  border-top: 1px solid #eee;
-  margin-top: 8px;
-  font-size: 15px;
-  font-weight: 600;
-  color: var(--text-primary);
+  gap: 16px;
+  padding: 4px 0;
+  font-size: 13px;
+  color: var(--text-secondary);
 }
 
-.items-total-amount {
+.summary-row.discount {
+  color: var(--color-danger);
+}
+
+.summary-row.tax {
+  color: #f57c00;
+}
+
+.summary-row.total {
+  font-size: 15px;
+  font-weight: 700;
+  color: var(--text-primary);
+  padding-top: 8px;
+  border-top: 1px dashed #ddd;
+  margin-top: 4px;
+}
+
+.total-amount {
   color: var(--color-danger);
   font-size: 18px;
+}
+
+.summary-row.unreceived {
+  color: var(--color-warning);
+  font-weight: 500;
+}
+
+/* 单据尾部 */
+.voucher-footer {
+  background: #fff;
+  border-radius: 12px;
+  padding: 12px 16px;
+  margin-bottom: 12px;
+}
+
+.footer-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 4px 0;
+  font-size: 13px;
+}
+
+.footer-label {
+  color: var(--text-secondary);
+}
+
+.status-tag {
+  display: inline-block;
+  padding: 2px 8px;
+  border-radius: 4px;
+  font-size: 12px;
+}
+
+.status-created { background: #e3f2fd; color: #1565c0; }
+.status-completed { background: #e8f5e9; color: #2e7d32; }
+.status-voided { background: #fbe9e7; color: #bf360c; }
+
+/* 法律声明 */
+.legal-notice {
+  text-align: center;
+  font-size: 11px;
+  color: var(--text-muted);
+  margin: 0 0 20px;
+  padding: 0 16px;
+  line-height: 1.5;
 }
 
 .pay-section {
