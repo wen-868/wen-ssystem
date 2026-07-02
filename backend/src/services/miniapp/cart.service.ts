@@ -1,4 +1,4 @@
-import { queryWithTenant, queryOneWithTenant } from "../../shared/db.js";
+import { query, queryOne, queryWithTenant, queryOneWithTenant } from "../../shared/db.js";
 
 export async function getCartList(tenantId: string, customerId: number, customerType: string) {
   const rows = await queryWithTenant<any>(
@@ -114,4 +114,62 @@ export async function getCartCount(tenantId: string, customerId: number) {
     tenantId
   );
   return { count: Number(row?.total ?? 0) };
+}
+
+// ========== 零售购物车 (retail_cart) ==========
+
+export async function addToRetailCart(userId: number, storeId: number, skuId: number, boxQty: number, bottleQty: number) {
+  await query(
+    `INSERT INTO retail_cart (user_id, store_id, sku_id, box_qty, bottle_qty, checked)
+     VALUES (?, ?, ?, ?, ?, 1)
+     ON DUPLICATE KEY UPDATE box_qty = box_qty + ?, bottle_qty = bottle_qty + ?`,
+    [userId, storeId, skuId, boxQty, bottleQty, boxQty, bottleQty]
+  );
+  return { success: true, message: "已加入零售购物车" };
+}
+
+export async function removeFromRetailCart(userId: number, skuId: number) {
+  await query(
+    `DELETE FROM retail_cart WHERE user_id = ? AND sku_id = ?`,
+    [userId, skuId]
+  );
+  return { success: true, message: "已从零售购物车移除" };
+}
+
+export async function updateRetailCartItem(userId: number, skuId: number, checked: number, boxQty?: number, bottleQty?: number) {
+  await query(
+    `UPDATE retail_cart
+     SET checked = ?, box_qty = COALESCE(?, box_qty), bottle_qty = COALESCE(?, bottle_qty)
+     WHERE user_id = ? AND sku_id = ?`,
+    [checked, boxQty ?? null, bottleQty ?? null, userId, skuId]
+  );
+  return { success: true, message: "已更新零售购物车" };
+}
+
+export async function getRetailCart(userId: number, storeId: number) {
+  const rows = await query<any>(
+    `SELECT c.*, s.sku_name, p.name AS spu_name, p.main_image AS image, pp.retail_price
+     FROM retail_cart c
+     JOIN product_sku s ON s.id = c.sku_id
+     JOIN product_spu p ON p.id = s.spu_id
+     JOIN product_price pp ON pp.sku_id = s.id
+     WHERE c.user_id = ? AND c.store_id = ?`,
+    [userId, storeId]
+  );
+  const items = rows.map((row: any) => ({
+    id: row.id,
+    userId: row.user_id,
+    storeId: row.store_id,
+    skuId: row.sku_id,
+    boxQty: row.box_qty,
+    bottleQty: row.bottle_qty,
+    checked: row.checked,
+    skuName: row.sku_name,
+    spuName: row.spu_name,
+    image: row.image,
+    retailPrice: row.retail_price,
+    createdAt: row.created_at,
+    updatedAt: row.updated_at
+  }));
+  return { items };
 }
