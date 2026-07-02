@@ -1,7 +1,7 @@
 # 墨 · Phase 16 · 字段对齐修复 · 管理后台前端
 
 **日期**：2026-07-02
-**状态**：✅ 已验收（3/5 完成，2 项 UI 增强延期）
+**状态**：✅ 全部完成（已合并 main）
 **来源**：Phase 15 字段级审计 — 前端表单字段 vs 后端 DDL/API 对齐
 
 ---
@@ -14,7 +14,7 @@
 | 2 | 修复 `PaymentConfigView.vue` enabled 值类型 | **P0** | ✅ |
 | 3 | 修复 `setDefaultBankAccount` HTTP 方法为 PUT | **P0** | ✅ |
 | 4 | 修复 `PaymentConfigView.vue` 银行表单 `bankBranch` → `branchName` | P1 | ✅ |
-| 5 | 补充 `MiniappConfigView.vue` 表单字段 | P1 | ⏳ |
+| 5 | 补充 `MiniappConfigView.vue` 表单字段 | P1 | ✅ |
 
 ---
 

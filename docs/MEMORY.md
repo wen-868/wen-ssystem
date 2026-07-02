@@ -230,7 +230,7 @@ liquor-inventory-system/
 - **墨 5项** ✅：PaymentConfigView enabled→"1"/"0" + bankBranch→branchName + api.ts setDefaultBankAccount PUT + MiniappConfigView enabled保留（UI兼容）
 - **阿澈 1项** ✅：config.template.js 24个占位符与 publish 服务替换逻辑完全对齐
 - **合并提交**：`75e1966` — 11 文件 +295/-93 行
-- **墨 2项未完成**：MiniappConfigView status字段 + appDescription/appIcon（UI增强，不影响功能，后续补）
+- **墨补充提交**：`7559602` — MiniappConfigView enabled→status + appDescription/appIcon
 
 ### Phase 17 · 技术债务清理（待安排 📋）
 
