@@ -33,6 +33,7 @@ Page({
   },
 
   _syncManager: null,
+  _syncHandlers: {},
 
   onLoad() {
     this._initPageConfig()
@@ -220,38 +221,39 @@ Page({
 
       this._syncManager = getSyncManager()
 
-      // 监听商品更新
-      this._syncManager.on(EVENT_TYPES.PRODUCTS_UPDATED, (data) => {
-        console.log('[Sync] 商品更新:', data)
-        this.loadProducts()
-      })
-
-      // 监听价格变更
-      this._syncManager.on(EVENT_TYPES.PRICE_CHANGED, (data) => {
-        console.log('[Sync] 价格变更:', data)
-        this.loadProducts()
-      })
-
-      // 监听库存更新
-      this._syncManager.on(EVENT_TYPES.STOCK_UPDATED, (data) => {
-        console.log('[Sync] 库存更新:', data)
-        this.loadProducts()
-      })
-
-      // 监听连接状态
-      this._syncManager.on(EVENT_TYPES.CONNECTION_STATUS, (status) => {
-        const statusMap = {
-          'connected': '已连接',
-          'connecting': '连接中',
-          'disconnected': '未连接',
-          'reconnecting': '重连中',
-          'degraded': '轮询模式'
+      // 保存 handler 引用，供 off() 时使用
+      this._syncHandlers = {
+        onProductsUpdated: (data) => {
+          console.log('[Sync] 商品更新:', data)
+          this.loadProducts()
+        },
+        onPriceChanged: (data) => {
+          console.log('[Sync] 价格变更:', data)
+          this.loadProducts()
+        },
+        onStockUpdated: (data) => {
+          console.log('[Sync] 库存更新:', data)
+          this.loadProducts()
+        },
+        onConnectionStatus: (status) => {
+          const statusMap = {
+            'connected': '已连接',
+            'connecting': '连接中',
+            'disconnected': '未连接',
+            'reconnecting': '重连中',
+            'degraded': '轮询模式'
+          }
+          this.setData({
+            syncStatus: status.status,
+            syncStatusText: statusMap[status.status] || status.status
+          })
         }
-        this.setData({
-          syncStatus: status.status,
-          syncStatusText: statusMap[status.status] || status.status
-        })
-      })
+      }
+
+      this._syncManager.on(EVENT_TYPES.PRODUCTS_UPDATED, this._syncHandlers.onProductsUpdated)
+      this._syncManager.on(EVENT_TYPES.PRICE_CHANGED, this._syncHandlers.onPriceChanged)
+      this._syncManager.on(EVENT_TYPES.STOCK_UPDATED, this._syncHandlers.onStockUpdated)
+      this._syncManager.on(EVENT_TYPES.CONNECTION_STATUS, this._syncHandlers.onConnectionStatus)
 
       this._syncManager.start()
     } catch (e) {
@@ -260,11 +262,12 @@ Page({
   },
 
   _stopSync() {
-    if (this._syncManager) {
-      this._syncManager.off(EVENT_TYPES.PRODUCTS_UPDATED)
-      this._syncManager.off(EVENT_TYPES.PRICE_CHANGED)
-      this._syncManager.off(EVENT_TYPES.STOCK_UPDATED)
-      this._syncManager.off(EVENT_TYPES.CONNECTION_STATUS)
+    if (this._syncManager && this._syncHandlers) {
+      this._syncManager.off(EVENT_TYPES.PRODUCTS_UPDATED, this._syncHandlers.onProductsUpdated)
+      this._syncManager.off(EVENT_TYPES.PRICE_CHANGED, this._syncHandlers.onPriceChanged)
+      this._syncManager.off(EVENT_TYPES.STOCK_UPDATED, this._syncHandlers.onStockUpdated)
+      this._syncManager.off(EVENT_TYPES.CONNECTION_STATUS, this._syncHandlers.onConnectionStatus)
+      this._syncHandlers = {}
       this._syncManager = null
     }
   },
