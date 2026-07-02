@@ -33,13 +33,34 @@ const router = createRouter({
           component: () => import('../views/tenant/TenantDetail.vue'),
           meta: { title: '租户详情' },
         },
+        // 报表权限矩阵（阿澈 P18-C）
+        {
+          path: 'report-permissions',
+          name: 'ReportPermission',
+          component: () => import('../views/ReportPermission.vue'),
+          meta: { title: '报表权限矩阵' },
+        },
+        // 系统配置（阿澈 P18-C）
+        {
+          path: 'sys-config',
+          name: 'SysConfig',
+          component: () => import('../views/SysConfigView.vue'),
+          meta: { title: '系统配置' },
+        },
+        // 监控告警（阿澈 P18-C）
+        {
+          path: 'monitor',
+          name: 'Monitor',
+          component: () => import('../views/MonitorView.vue'),
+          meta: { title: '监控告警' },
+        },
       ],
     },
   ],
 })
 
 router.beforeEach((to, _from, next) => {
-  document.title = (to.meta.title as string) || '至象平台总后台'
+  document.title = (to.meta.title as string) || '智享全链管理系统'
   const authStore = useAuthStore()
   if (to.path !== '/login' && !authStore.token) {
     next('/login')

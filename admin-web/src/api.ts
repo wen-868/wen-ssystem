@@ -2191,6 +2191,19 @@ export const renewSubscription = (id: number) => api.post(`/admin/subscriptions/
 export const fetchExpiringSubscriptions = () => api.get('/admin/subscriptions/expiring');
 export const fetchExpiredSubscriptions = () => api.get('/admin/subscriptions/expired');
 
+// ==================== 秒杀 ====================
+export function getSeckillProducts(params?: any) { return api.get('/admin/seckill-products', { params }); }
+export function createSeckillProduct(data: any) { return api.post('/admin/seckill-products', data); }
+export function updateSeckillProduct(id: number, data: any) { return api.put(`/admin/seckill-products/${id}`, data); }
+export function deleteSeckillProduct(id: number) { return api.delete(`/admin/seckill-products/${id}`); }
+
+// ==================== 拼团 ====================
+export function getGroupBuyActivities(params?: any) { return api.get('/admin/group-buy-activities', { params }); }
+export function createGroupBuyActivity(data: any) { return api.post('/admin/group-buy-activities', data); }
+export function updateGroupBuyActivity(id: number, data: any) { return api.put(`/admin/group-buy-activities/${id}`, data); }
+export function deleteGroupBuyActivity(id: number) { return api.delete(`/admin/group-buy-activities/${id}`); }
+export function getGroupBuyRecords(params?: any) { return api.get('/admin/group-buy-records', { params }); }
+
 // ==================== Tenant APIs ====================
 export const fetchTenants = (params: any) => api.get('/admin/tenants', { params });
 export const createTenant = (data: any) => api.post('/admin/tenants', data);
@@ -2199,3 +2212,29 @@ export const changeTenantStatus = (id: number, status: string) => api.patch(`/ad
 export const fetchTenantDetail = (id: number) => api.get(`/admin/tenants/${id}`);
 export const fetchTenantModules = (id: number) => api.get(`/admin/tenants/${id}/modules`);
 export const setTenantModules = (id: number, data: any) => api.put(`/admin/tenants/${id}/modules`, data);
+
+// ==================== 积分商城 ====================
+export function getPointsMallItems(params?: any) { return api.get('/admin/points-mall/items', { params }); }
+export function createPointsMallItem(data: any) { return api.post('/admin/points-mall/items', data); }
+export function updatePointsMallItem(id: number, data: any) { return api.put(`/admin/points-mall/items/${id}`, data); }
+export function deletePointsMallItem(id: number) { return api.delete(`/admin/points-mall/items/${id}`); }
+export function getPointsMallOrders(params?: any) { return api.get('/admin/points-mall/orders', { params }); }
+export function deliverPointsMallOrder(id: number, data?: any) { return api.post(`/admin/points-mall/orders/${id}/deliver`, data); }
+
+// ==================== 营销素材 ====================
+export function getMarketingAssets(params?: any) { return api.get('/admin/marketing-assets', { params }); }
+export function createMarketingAsset(data: any) { return api.post('/admin/marketing-assets', data); }
+export function updateMarketingAsset(id: number, data: any) { return api.put(`/admin/marketing-assets/${id}`, data); }
+export function deleteMarketingAsset(id: number) { return api.delete(`/admin/marketing-assets/${id}`); }
+
+// ==================== 部门管理 ====================
+export function getDepartments(params?: any) { return api.get('/admin/departments', { params }); }
+export function getDepartmentTree() { return api.get('/admin/departments/tree'); }
+export function createDepartment(data: any) { return api.post('/admin/departments', data); }
+export function updateDepartment(id: number, data: any) { return api.put(`/admin/departments/${id}`, data); }
+export function deleteDepartment(id: number) { return api.delete(`/admin/departments/${id}`); }
+
+// ==================== 用户会话 ====================
+export function getUserSessions(params?: any) { return api.get('/admin/user-sessions', { params }); }
+export function revokeSession(id: number) { return api.delete(`/admin/user-sessions/${id}`); }
+export function getOnlineStats() { return api.get('/admin/user-sessions/stats'); }

@@ -1,0 +1,32 @@
+-- 来源: phase10_marketing.sql
+CREATE TABLE IF NOT EXISTS user_coupon (
+  id INT AUTO_INCREMENT PRIMARY KEY,
+  coupon_no VARCHAR(32) NOT NULL UNIQUE COMMENT '优惠券编号',
+  template_id INT NOT NULL COMMENT '模板ID',
+  user_id INT NOT NULL COMMENT '用户ID（客户ID）',
+  coupon_type VARCHAR(32) NOT NULL COMMENT '优惠券类型',
+  coupon_name VARCHAR(128) NOT NULL COMMENT '优惠券名称',
+  coupon_value DECIMAL(10,2) NOT NULL COMMENT '优惠值',
+  min_purchase DECIMAL(10,2) NOT NULL DEFAULT 0 COMMENT '最低消费金额',
+  max_discount DECIMAL(10,2) COMMENT '最大优惠金额',
+  applicable_scope VARCHAR(32) NOT NULL COMMENT '适用范围',
+  applicable_ids JSON COMMENT '适用范围ID列表',
+  source VARCHAR(32) NOT NULL COMMENT '来源（RECEIVE/SEND/ACTIVITY）',
+  status VARCHAR(16) NOT NULL DEFAULT 'UNUSED' COMMENT '状态（UNUSED/USED/EXPIRED/LOCKED）',
+  valid_start DATETIME NOT NULL COMMENT '生效时间',
+  valid_end DATETIME NOT NULL COMMENT '失效时间',
+  used_at DATETIME COMMENT '使用时间',
+  used_order_no VARCHAR(64) COMMENT '使用的订单号',
+  used_amount DECIMAL(10,2) COMMENT '使用的订单金额',
+  discount_amount DECIMAL(10,2) COMMENT '实际优惠金额',
+  tenant_id VARCHAR(36) NOT NULL COMMENT '租户ID',
+  created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  updated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  
+  INDEX idx_coupon_no (coupon_no),
+  INDEX idx_template (template_id),
+  INDEX idx_user (user_id),
+  INDEX idx_status (status),
+  INDEX idx_valid (valid_start, valid_end),
+  INDEX idx_tenant (tenant_id)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='用户优惠券表';

@@ -4,10 +4,14 @@
   <view style="font-size: 42rpx; font-weight: 700; margin-top: 12rpx;">{{theme.brandName}}</view>
   <view class="muted" style="margin-top: 20rpx;">{{theme.brandSlogan}}</view>
   <view wx:if="{{errorText}}" style="margin-top: 20rpx; color: #9b1c31;">{{errorText}}</view>
+  <!-- 同步状态指示器 -->
+  <view wx:if="{{syncStatus !== 'connected'}}" class="sync-badge sync-{{syncStatus}}">
+    {{syncStatusText}}
+  </view>
 </view>
 
-<!-- 搜索框 -->
-<view class="search-bar">
+<!-- 搜索框（根据配置显示） -->
+<view wx:if="{{pageConfig.showSearch}}" class="search-bar">
   <input
     class="search-input"
     placeholder="搜索商品名称"
@@ -29,8 +33,11 @@
     <view style="flex: 1; margin-left: 20rpx;">
       <view style="font-size: 34rpx; font-weight: 700;">{{item.name}}</view>
       <view class="muted" style="margin-top: 12rpx;">{{item.skuName}}</view>
-      <view class="price" style="margin-top: 18rpx;">¥{{item.price}}</view>
-      <view class="muted" style="margin-top: 12rpx;">可售库存：{{item.availableQty}}，价格类型：{{item.priceType}}</view>
+      <view wx:if="{{pageConfig.showPrice}}" class="price" style="margin-top: 18rpx;">¥{{item.price}}</view>
+      <view wx:if="{{pageConfig.showWholesalePrice && item.wholesalePrice}}" style="font-size: 28rpx; color: #9b1c31; margin-top: 8rpx;">
+        批发价：¥{{item.wholesalePrice}}（{{item.minWholesaleQty}}件起批）
+      </view>
+      <view wx:if="{{pageConfig.showStock}}" class="muted" style="margin-top: 12rpx;">可售库存：{{item.availableQty}}，价格类型：{{item.priceType}}</view>
       <view style="display: flex; align-items: center; margin-top: 20rpx;">
         <text style="font-size: 28rpx; margin-right: 16rpx;">数量：</text>
         <button class="stepper" data-sku-id="{{item.skuId}}" data-delta="-1" bindtap="changeQty" disabled="{{item._qty <= 1}}">-</button>
@@ -38,8 +45,8 @@
         <button class="stepper" data-sku-id="{{item.skuId}}" data-delta="1" bindtap="changeQty" disabled="{{item._qty >= item.availableQty}}">+</button>
       </view>
       <view style="display: flex; align-items: center; gap: 16rpx; margin-top: 20rpx;">
-        <button class="primary" style="flex:1; margin-top: 0;" data-sku-id="{{item.skuId}}" bindtap="handleBuy">加入下单</button>
-        <button class="cart-add-btn" data-sku-id="{{item.skuId}}" bindtap="addToCart">加入购物车</button>
+        <button class="primary" style="flex:1; margin-top: 0;" data-sku-id="{{item.skuId}}" bindtap="handleBuy">{{pageConfig.orderButtonText}}</button>
+        <button wx:if="{{pageConfig.showCart}}" class="cart-add-btn" data-sku-id="{{item.skuId}}" bindtap="addToCart">加入购物车</button>
       </view>
     </view>
   </view>
@@ -49,7 +56,7 @@
   <view class="muted">暂无在售商品，请先让管理员上架。</view>
 </view>
 
-<view class="card" wx:if="{{cartItems.length > 0}}" style="background: var(--cart-bg-color); border: 2rpx solid var(--cart-border-color);">
+<view wx:if="{{pageConfig.showCart && cartItems.length > 0}}" class="card" style="background: var(--cart-bg-color); border: 2rpx solid var(--cart-border-color);">
   <view style="font-size: 34rpx; font-weight: 700; color: #e6a23c;">待下单清单</view>
   <view wx:for="{{cartItems}}" wx:key="skuId" style="display: flex; justify-content: space-between; margin-top: 16rpx; font-size: 28rpx;">
     <text>{{item.name}} ×{{item.qty}}</text>

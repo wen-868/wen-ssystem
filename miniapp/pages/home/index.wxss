@@ -74,3 +74,16 @@
   line-height: 1.4;
   white-space: nowrap;
 }
+
+/* 同步状态指示器 */
+.sync-badge {
+  margin-top: 16rpx;
+  padding: 8rpx 20rpx;
+  border-radius: 999rpx;
+  font-size: 22rpx;
+  display: inline-block;
+}
+.sync-connecting { background: #FFF7E6; color: #D97706; }
+.sync-reconnecting { background: #FFF0F0; color: #DC2626; }
+.sync-disconnected { background: #F0F2F5; color: #9CA3AF; }
+.sync-degraded { background: #FFF7E6; color: #D97706; }
