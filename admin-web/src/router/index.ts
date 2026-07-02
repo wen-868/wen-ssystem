@@ -152,6 +152,8 @@ const routes = [
       { path: "marketing/dashboard", name: "MarketingDashboard", component: () => import("../views/MarketingDashboard.vue"), meta: { roles: ["BOSS"] } },
       { path: "marketing/materials", name: "MarketingMaterial", component: () => import("../views/MarketingMaterial.vue"), meta: { roles: ["BOSS"] } },
       { path: "aftersale", name: "Aftersale", component: () => import("../views/AftersaleView.vue"), meta: { roles: ["BOSS"] } },
+      { path: "seckill", name: "Seckill", component: () => import("../views/SeckillProduct.vue"), meta: { title: "秒杀管理", roles: ["BOSS"] } },
+      { path: "group-buy", name: "GroupBuy", component: () => import("../views/GroupBuyActivity.vue"), meta: { title: "拼团管理", roles: ["BOSS"] } },
       // 12. 系统管理
       { path: "employees", name: "Employees", component: () => import("../views/EmployeesView.vue"), meta: { roles: ["BOSS"] } },
       { path: "stores", name: "Stores", component: () => import("../views/StoresView.vue"), meta: { roles: ["BOSS"] } },
@@ -161,7 +163,12 @@ const routes = [
       { path: "system/config", name: "SystemConfig", component: () => import("../views/SystemConfigView.vue"), meta: { roles: ["BOSS"] } },
       { path: "system/approval/rules", name: "ApprovalRules", component: () => import("../views/ApprovalRules.vue"), meta: { roles: ["BOSS"] } },
       { path: "system/approval/detail/:id", name: "ApprovalDetail", component: () => import("../views/ApprovalDetail.vue"), meta: { roles: ["BOSS"] } },
-      { path: "system/approval/my", name: "MyApprovals", component: () => import("../views/MyApprovals.vue"), meta: { roles: ["BOSS"] } }
+      { path: "system/approval/my", name: "MyApprovals", component: () => import("../views/MyApprovals.vue"), meta: { roles: ["BOSS"] } },
+      // 13. 积分商城 + 营销素材 + 部门管理 + 会话管理
+      { path: "points-mall", name: "PointsMall", component: () => import("../views/PointsMall.vue"), meta: { title: "积分商城", roles: ["BOSS"] } },
+      { path: "marketing-asset", name: "MarketingAsset", component: () => import("../views/MarketingAsset.vue"), meta: { title: "营销素材", roles: ["BOSS"] } },
+      { path: "departments", name: "DepartmentManage", component: () => import("../views/DepartmentManage.vue"), meta: { title: "部门管理", roles: ["BOSS"] } },
+      { path: "sessions", name: "SessionManage", component: () => import("../views/SessionManage.vue"), meta: { title: "会话管理", roles: ["BOSS"] } }
     ]
   },
   { path: "/:pathMatch(.*)*", name: "NotFound", component: NotFound, meta: { requiresAuth: false } }
