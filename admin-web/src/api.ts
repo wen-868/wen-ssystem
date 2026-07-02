@@ -1477,6 +1477,9 @@ export async function fetchOrderBoardData() {
   return data.data;
 }
 
+export const fetchRetailCartAnalysis = (params?: { keyword?: string; page?: number; pageSize?: number }) =>
+  api.get("/admin/retail-cart/analysis", { params });
+
 // ==================== Brand APIs ====================
 export async function fetchBrands(params?: { keyword?: string; status?: string; page?: number; pageSize?: number }) {
   const { data } = await api.get("/admin/brands", { params: { page: 1, pageSize: 20, ...params } });

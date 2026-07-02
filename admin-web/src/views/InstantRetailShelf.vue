@@ -1,6 +1,8 @@
 <template>
   <div class="page">
-    <div class="shelf-layout">
+    <el-tabs v-model="activeTab" class="page-tabs">
+      <el-tab-pane label="商品管理" name="products">
+        <div class="shelf-layout">
       <div class="category-sidebar">
         <el-card class="sidebar-card">
           <div class="sidebar-header">
@@ -346,6 +348,80 @@
         <el-button type="primary" :loading="batchTagLoading" @click="handleBatchTag">确认设置</el-button>
       </template>
     </el-dialog>
+      </el-tab-pane>
+      <el-tab-pane label="购物车分析" name="cart-analysis">
+        <div class="cart-analysis">
+          <el-row :gutter="16" class="cart-stats-row">
+            <el-col :span="8">
+              <el-card shadow="hover">
+                <div class="stat-card">
+                  <div class="stat-label">当前购物车商品数</div>
+                  <div class="stat-value">{{ cartStats.totalItems }}</div>
+                </div>
+              </el-card>
+            </el-col>
+            <el-col :span="8">
+              <el-card shadow="hover">
+                <div class="stat-card">
+                  <div class="stat-label">加购用户数</div>
+                  <div class="stat-value">{{ cartStats.totalUsers }}</div>
+                </div>
+              </el-card>
+            </el-col>
+            <el-col :span="8">
+              <el-card shadow="hover">
+                <div class="stat-card">
+                  <div class="stat-label">热门加购SKU数</div>
+                  <div class="stat-value">{{ cartStats.topSkus }}</div>
+                </div>
+              </el-card>
+            </el-col>
+          </el-row>
+
+          <el-card class="cart-search-card">
+            <div class="cart-search-bar">
+              <el-input
+                v-model="cartKeyword"
+                placeholder="搜索用户ID/SKU名称"
+                clearable
+                style="width: 320px"
+                @clear="loadCartAnalysis"
+                @keyup.enter="loadCartAnalysis"
+              >
+                <template #prefix>
+                  <el-icon><Search /></el-icon>
+                </template>
+              </el-input>
+              <el-button type="primary" @click="loadCartAnalysis">搜索</el-button>
+            </div>
+          </el-card>
+
+          <el-card>
+            <el-table :data="cartItems" v-loading="cartLoading" stripe>
+              <el-table-column prop="userId" label="用户ID" width="120" />
+              <el-table-column prop="skuName" label="SKU名称" min-width="200" />
+              <el-table-column prop="boxQty" label="箱数" width="100" align="center" />
+              <el-table-column prop="bottleQty" label="瓶数" width="100" align="center" />
+              <el-table-column prop="addTime" label="加入时间" width="180" />
+              <template #empty>
+                <el-empty description="暂无购物车数据" />
+              </template>
+            </el-table>
+            <div class="pagination">
+              <el-pagination
+                background
+                layout="total, sizes, prev, pager, next, jumper"
+                :total="cartTotal"
+                :page-size="cartPageSize"
+                :current-page="cartPage"
+                @size-change="handleCartSizeChange"
+                @current-change="handleCartPageChange"
+              />
+            </div>
+          </el-card>
+        </div>
+      </el-tab-pane>
+    </el-tabs>
   </div>
 </template>
 
@@ -353,6 +429,7 @@
 import { onMounted, reactive, ref, computed } from "vue";
 import { ElMessage, ElMessageBox, type FormInstance, type FormRules } from "element-plus";
 import { Search, Plus, Refresh } from "@element-plus/icons-vue";
+import { fetchRetailCartAnalysis } from "@/api";
 
 const loading = ref(false);
 const products = ref<any[]>([]);
@@ -364,6 +441,66 @@ const statusFilter = ref("");
 const tagFilter = ref("");
 const currentCategoryId = ref<number | null>(null);
 const selectedIds = ref<number[]>([]);
+const activeTab = ref("products");
+
+// ==================== 购物车分析 ====================
+const cartKeyword = ref("");
+const cartLoading = ref(false);
+const cartItems = ref<any[]>([]);
+const cartTotal = ref(0);
+const cartPage = ref(1);
+const cartPageSize = ref(20);
+const cartStats = reactive({
+  totalItems: 0,
+  totalUsers: 0,
+  topSkus: 0
+});
+
+const mockCartItems = Array.from({ length: 28 }, (_, i) => ({
+  id: i + 1,
+  userId: `USER${String(1000 + i).padStart(4, '0')}`,
+  skuName: [
+    "有机西红柿 500g", "富士苹果 约1kg", "伊利纯牛奶 250ml*12盒",
+    "乐事薯片 原味 75g", "农夫山泉 550ml*24瓶", "清风抽纸 3层100抽*6包",
+    "金龙鱼调和油 5L", "海天酱油 500ml", "双汇火腿肠 30g*10支",
+    "奥利奥饼干 原味 116g"
+  ][i % 10],
+  boxQty: Math.floor(Math.random() * 5) + 1,
+  bottleQty: Math.floor(Math.random() * 24) + 1,
+  addTime: new Date(Date.now() - Math.floor(Math.random() * 7 * 24 * 60 * 60 * 1000)).toLocaleString("zh-CN")
+}));
+
+function loadCartAnalysis() {
+  cartLoading.value = true;
+  setTimeout(() => {
+    let filtered = [...mockCartItems];
+    if (cartKeyword.value) {
+      const kw = cartKeyword.value.toLowerCase();
+      filtered = filtered.filter(item =>
+        item.userId.toLowerCase().includes(kw) ||
+        item.skuName.toLowerCase().includes(kw)
+      );
+    }
+    const start = (cartPage.value - 1) * cartPageSize.value;
+    cartItems.value = filtered.slice(start, start + cartPageSize.value);
+    cartTotal.value = filtered.length;
+    cartStats.totalItems = mockCartItems.length;
+    cartStats.totalUsers = new Set(mockCartItems.map(i => i.userId)).size;
+    cartStats.topSkus = new Set(mockCartItems.map(i => i.skuName)).size;
+    cartLoading.value = false;
+  }, 300);
+}
+
+function handleCartSizeChange(size: number) {
+  cartPageSize.value = size;
+  cartPage.value = 1;
+  loadCartAnalysis();
+}
+
+function handleCartPageChange(p: number) {
+  cartPage.value = p;
+  loadCartAnalysis();
+}
 
 const categoryTree = ref<any[]>([]);
 
@@ -876,6 +1013,7 @@ function handleBatchTag() {
 onMounted(() => {
   loadCategories();
   loadData();
+  loadCartAnalysis();
 });
 </script>
 
@@ -1011,5 +1149,42 @@ onMounted(() => {
   color: var(--el-text-color-secondary);
   display: block;
   margin-top: 4px;
+}
+.page-tabs {
+  height: 100%;
+}
+.page-tabs :deep(.el-tabs__content) {
+  height: calc(100% - 40px);
+}
+.page-tabs :deep(.el-tab-pane) {
+  height: 100%;
+}
+.cart-analysis {
+  padding: 0;
+}
+.cart-stats-row {
+  margin-bottom: 16px;
+}
+.stat-card {
+  text-align: center;
+  padding: 8px 0;
+}
+.stat-label {
+  font-size: 14px;
+  color: var(--el-text-color-secondary);
+  margin-bottom: 8px;
+}
+.stat-value {
+  font-size: 32px;
+  font-weight: 700;
+  color: var(--el-color-primary);
+}
+.cart-search-card {
+  margin-bottom: 16px;
+}
+.cart-search-bar {
+  display: flex;
+  align-items: center;
+  gap: 12px;
 }
 </style>
