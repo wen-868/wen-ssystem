@@ -232,6 +232,18 @@ liquor-inventory-system/
 - **合并提交**：`75e1966` — 11 文件 +295/-93 行
 - **墨补充提交**：`7559602` — MiniappConfigView enabled→status + appDescription/appIcon
 
+### 全局认证修复（2026-07-02）
+
+- **审查日期**：2026-07-02
+- **发现问题**：
+  1. **P0**：`PaymentConfigView.vue` 银行默认账号 API 调用 `POST` 但后端路由是 `PUT`（405 错误）
+  2. **P0**：4 个页面直接用原始 `axios` 而非 `api` 实例，导致所有请求缺少 `Authorization` 头和 401 处理
+     - `MiniappConfigView.vue`（Phase 15 小程序配置）
+     - `QuickEntryConfig.vue`（Phase 14 快捷入口）
+     - `MessageCenter.vue`（Phase 14 消息中心）
+     - `TodoList.vue`（Phase 14 待办提醒）
+- **修复提交**：`fa69e69` — 5 文件，+28/-28 行
+
 ### Phase 17 · 技术债务清理（待安排 📋）
 
 - **核查日期**：2026-07-03
