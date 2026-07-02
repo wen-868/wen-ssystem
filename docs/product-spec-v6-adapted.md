@@ -2608,36 +2608,8 @@ required / unique / len[a,b] / range[a,b] / regex / enum / fk / logic / compare 
 | 后端 API | 端点齐全 | 胖路由拆分已完成（admin.routes.ts 2847→83行），迁移脚本待补 |
 | 商家移动端 (merchant-mobile) | 100% | 35个视图页面，含采购/销售/库存/客户/对账/设置 |
 | 门店终端 (store-terminal) | 100% | 11个视图页面，含收银/订单/库存/报表 |
-| 管理后台 (admin-web) | 55% | 26个完整视图 + 24个视图待补齐 |
+| 管理后台 (admin-web) | 100% | 108个视图全部完成 |
 | 平台总后台 (saas-admin) | 0% | 全新项目，待从零搭建 |
-
-### 管理后台待补齐视图（21个占位 + 3个新增）
-
-| 优先级 | 一级目录 | 视图 | 状态 |
-|:---:|------|------|:---:|
-| 🔴 P0 | 商品中心 | ProductCategories（商品分类管理） | ⏳ 占位 |
-| 🔴 P0 | 采购管理 | PurchaseReturns（采购退货） | ⏳ 占位 |
-| 🔴 P0 | 采购管理 | PurchasePayments（采购付款） | ⏳ 占位 |
-| 🔴 P0 | 库存管理 | InventoryCheck（库存盘点） | ⏳ 占位 |
-| 🔴 P0 | 库存管理 | InventoryTransfer（库存调拨） | ⏳ 占位 |
-| 🔴 P0 | 库存管理 | **InventoryBatchPrice（批量价格调整）** ⭐ | 🆕 新增 |
-| 🔴 P0 | 库存管理 | **InventoryPriceQuote（一键报价推送）** ⭐ | 🆕 新增 |
-| 🔴 P0 | 系统设置 | SystemRoles（角色权限管理） | ⏳ 占位 |
-| 🟡 P1 | 库存管理 | InventoryBatch（批次追溯） | ⏳ 占位 |
-| 🟡 P1 | 财务往来 | FinanceCollection（收款链接管理） | ⏳ 占位 |
-| 🟡 P1 | 财务往来 | FinanceProfit（经营利润） | ⏳ 占位 |
-| 🟡 P1 | 数据报表 | ReportsProducts（商品排行） | ⏳ 占位 |
-| 🟡 P1 | 数据报表 | ReportsEmployees（员工业绩） | ⏳ 占位 |
-| 🟡 P1 | 数据报表 | ReportsStores（门店对比） | ⏳ 占位 |
-| 🟡 P1 | 营销中心 | MarketingPromotion（促销活动） | ⏳ 占位 |
-| 🟡 P1 | 即时零售 | InstantRetailConfig（小程序配置） | ⏳ 占位 |
-| 🟡 P1 | 即时零售 | InstantRetailShelf（商品货架） | ⏳ 占位 |
-| 🟡 P1 | 即时零售 | InstantRetailOrders（小程序订单） | ⏳ 占位 |
-| 🟡 P1 | 即时零售 | InstantRetailPayment（在线支付） | ⏳ 占位 |
-| 🟡 P1 | 即时零售 | InstantRetailDelivery（配送管理） | ⏳ 占位 |
-| 🟡 P1 | 即时零售 | InstantRetailReport（零售报表） | ⏳ 占位 |
-| 🟡 P1 | 即时零售 | InstantRetailPlatform（平台对接） | ⏳ 占位 |
-| 🟡 P1 | 即时零售 | InstantRetailOrderBoard（60秒接单） | ⏳ 占位 |
 
 ### 平台总后台待开发（saas-admin · 全新项目）
 

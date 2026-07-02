@@ -429,7 +429,7 @@
 import { onMounted, reactive, ref, computed } from "vue";
 import { ElMessage, ElMessageBox, type FormInstance, type FormRules } from "element-plus";
 import { Search, Plus, Refresh } from "@element-plus/icons-vue";
-import { fetchRetailCartAnalysis } from "@/api";
+import { fetchRetailCartAnalysis } from "../api";
 
 const loading = ref(false);
 const products = ref<any[]>([]);
