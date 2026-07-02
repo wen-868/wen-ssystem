@@ -11,7 +11,7 @@ CREATE TABLE IF NOT EXISTS stock_check (
   operator_id BIGINT DEFAULT NULL COMMENT '操作人ID',
   auditor_id BIGINT DEFAULT NULL COMMENT '审核人ID',
   audited_at DATETIME DEFAULT NULL COMMENT '审核时间',
-  tenant_id VARCHAR(64) NOT NULL DEFAULT '',
+  tenant_id VARCHAR(36) NOT NULL DEFAULT '',
   created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
   updated_at DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
   UNIQUE KEY uk_check_no (check_no, tenant_id),
@@ -30,7 +30,7 @@ CREATE TABLE IF NOT EXISTS stock_check_item (
   diff_qty INT DEFAULT 0 COMMENT '差异数量',
   diff_reason VARCHAR(200) DEFAULT NULL COMMENT '差异原因',
   cost_price DECIMAL(12,2) DEFAULT 0 COMMENT '成本价',
-  tenant_id VARCHAR(64) NOT NULL DEFAULT '',
+  tenant_id VARCHAR(36) NOT NULL DEFAULT '',
   INDEX idx_check_no (check_no),
   INDEX idx_sku (sku_id),
   INDEX idx_tenant (tenant_id)

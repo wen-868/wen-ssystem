@@ -6,7 +6,7 @@
 -- 1. 限时折扣活动
 CREATE TABLE IF NOT EXISTS `limited_discount` (
   `id` BIGINT AUTO_INCREMENT PRIMARY KEY,
-  `activity_code` VARCHAR(32) NOT NULL COMMENT '活动编码',
+  `activity_code` VARCHAR(36) NOT NULL COMMENT '活动编码',
   `activity_name` VARCHAR(100) NOT NULL COMMENT '活动名称',
   `activity_desc` VARCHAR(500) DEFAULT NULL COMMENT '活动描述',
   `discount_type` VARCHAR(20) NOT NULL DEFAULT 'PERCENT' COMMENT '折扣类型: PERCENT/FIXED',
@@ -23,7 +23,7 @@ CREATE TABLE IF NOT EXISTS `limited_discount` (
   `status` VARCHAR(20) NOT NULL DEFAULT 'DRAFT' COMMENT '状态: DRAFT/PENDING/ACTIVE/PAUSED/ENDED/SOLD_OUT',
   `participant_count` INT NOT NULL DEFAULT 0 COMMENT '参与人数',
   `total_sales_amount` DECIMAL(12,2) NOT NULL DEFAULT 0.00 COMMENT '销售总额',
-  `tenant_id` VARCHAR(32) NOT NULL COMMENT '租户ID',
+  `tenant_id` VARCHAR(36) NOT NULL COMMENT '租户ID',
   `created_by` BIGINT DEFAULT NULL COMMENT '创建人',
   `created_at` DATETIME DEFAULT CURRENT_TIMESTAMP,
   `updated_at` DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
@@ -41,7 +41,7 @@ CREATE TABLE IF NOT EXISTS `limited_discount_product` (
   `discount_price` DECIMAL(10,2) NOT NULL COMMENT '折扣价',
   `stock` INT NOT NULL DEFAULT 0 COMMENT '活动库存',
   `sold_count` INT NOT NULL DEFAULT 0 COMMENT '已售数量',
-  `tenant_id` VARCHAR(32) NOT NULL,
+  `tenant_id` VARCHAR(36) NOT NULL,
   `created_at` DATETIME DEFAULT CURRENT_TIMESTAMP,
   KEY `idx_discount_id` (`discount_id`),
   KEY `idx_product_id` (`product_id`)
@@ -50,7 +50,7 @@ CREATE TABLE IF NOT EXISTS `limited_discount_product` (
 -- 2. 满赠规则
 CREATE TABLE IF NOT EXISTS `gift_rule` (
   `id` BIGINT AUTO_INCREMENT PRIMARY KEY,
-  `rule_code` VARCHAR(32) NOT NULL COMMENT '规则编码',
+  `rule_code` VARCHAR(36) NOT NULL COMMENT '规则编码',
   `rule_name` VARCHAR(100) NOT NULL COMMENT '规则名称',
   `rule_desc` VARCHAR(500) DEFAULT NULL COMMENT '规则描述',
   `threshold_type` VARCHAR(20) NOT NULL DEFAULT 'AMOUNT' COMMENT '门槛类型: AMOUNT/QUANTITY/BOTH',
@@ -66,7 +66,7 @@ CREATE TABLE IF NOT EXISTS `gift_rule` (
   `status` VARCHAR(20) NOT NULL DEFAULT 'DRAFT' COMMENT '状态: DRAFT/ACTIVE/PAUSED/ENDED/DEPLETED',
   `participant_count` INT NOT NULL DEFAULT 0 COMMENT '参与人数',
   `gift_sent_count` INT NOT NULL DEFAULT 0 COMMENT '赠送件数',
-  `tenant_id` VARCHAR(32) NOT NULL COMMENT '租户ID',
+  `tenant_id` VARCHAR(36) NOT NULL COMMENT '租户ID',
   `created_by` BIGINT DEFAULT NULL,
   `created_at` DATETIME DEFAULT CURRENT_TIMESTAMP,
   `updated_at` DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
@@ -83,7 +83,7 @@ CREATE TABLE IF NOT EXISTS `gift_rule_level` (
   `gift_sku_id` BIGINT DEFAULT NULL COMMENT '赠品SKU ID',
   `gift_quantity` INT NOT NULL DEFAULT 1 COMMENT '赠送数量',
   `sort_order` INT NOT NULL DEFAULT 0 COMMENT '排序',
-  `tenant_id` VARCHAR(32) NOT NULL,
+  `tenant_id` VARCHAR(36) NOT NULL,
   `created_at` DATETIME DEFAULT CURRENT_TIMESTAMP,
   KEY `idx_rule_id` (`rule_id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='满赠规则层级';
@@ -91,7 +91,7 @@ CREATE TABLE IF NOT EXISTS `gift_rule_level` (
 -- 3. 积分商城商品
 CREATE TABLE IF NOT EXISTS `points_product` (
   `id` BIGINT AUTO_INCREMENT PRIMARY KEY,
-  `product_code` VARCHAR(32) NOT NULL COMMENT '商品编码',
+  `product_code` VARCHAR(36) NOT NULL COMMENT '商品编码',
   `product_name` VARCHAR(100) NOT NULL COMMENT '商品名称',
   `product_image` VARCHAR(500) DEFAULT NULL COMMENT '商品图片',
   `product_desc` VARCHAR(500) DEFAULT NULL COMMENT '商品描述',
@@ -103,7 +103,7 @@ CREATE TABLE IF NOT EXISTS `points_product` (
   `market_price` DECIMAL(10,2) DEFAULT NULL COMMENT '参考市场价',
   `status` VARCHAR(20) NOT NULL DEFAULT 'ON' COMMENT '状态: ON/OFF',
   `sort_order` INT NOT NULL DEFAULT 0 COMMENT '排序',
-  `tenant_id` VARCHAR(32) NOT NULL,
+  `tenant_id` VARCHAR(36) NOT NULL,
   `created_at` DATETIME DEFAULT CURRENT_TIMESTAMP,
   `updated_at` DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
   KEY `idx_tenant_status` (`tenant_id`, `status`)
@@ -112,7 +112,7 @@ CREATE TABLE IF NOT EXISTS `points_product` (
 -- 3.1 积分兑换记录
 CREATE TABLE IF NOT EXISTS `points_exchange_record` (
   `id` BIGINT AUTO_INCREMENT PRIMARY KEY,
-  `record_no` VARCHAR(32) NOT NULL COMMENT '兑换编号',
+  `record_no` VARCHAR(36) NOT NULL COMMENT '兑换编号',
   `product_id` BIGINT NOT NULL COMMENT '商品ID',
   `user_id` BIGINT NOT NULL COMMENT '用户ID',
   `points_used` INT NOT NULL COMMENT '消耗积分',
@@ -120,7 +120,7 @@ CREATE TABLE IF NOT EXISTS `points_exchange_record` (
   `status` VARCHAR(20) NOT NULL DEFAULT 'PENDING' COMMENT '状态: PENDING/CONFIRMED/CANCELLED',
   `delivery_type` VARCHAR(20) DEFAULT 'SELF_PICKUP' COMMENT '配送方式: SELF_PICKUP/DELIVERY',
   `delivery_status` VARCHAR(20) DEFAULT NULL COMMENT '配送状态',
-  `tenant_id` VARCHAR(32) NOT NULL,
+  `tenant_id` VARCHAR(36) NOT NULL,
   `created_at` DATETIME DEFAULT CURRENT_TIMESTAMP,
   `updated_at` DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
   KEY `idx_tenant_user` (`tenant_id`, `user_id`),
@@ -131,7 +131,7 @@ CREATE TABLE IF NOT EXISTS `points_exchange_record` (
 -- 4. 营销素材
 CREATE TABLE IF NOT EXISTS `marketing_material` (
   `id` BIGINT AUTO_INCREMENT PRIMARY KEY,
-  `material_code` VARCHAR(32) NOT NULL COMMENT '素材编码',
+  `material_code` VARCHAR(36) NOT NULL COMMENT '素材编码',
   `material_name` VARCHAR(100) NOT NULL COMMENT '素材名称',
   `material_desc` VARCHAR(500) DEFAULT NULL COMMENT '素材描述',
   `material_type` VARCHAR(20) NOT NULL COMMENT '素材类型: IMAGE/VIDEO/DOCUMENT/HTML',
@@ -149,7 +149,7 @@ CREATE TABLE IF NOT EXISTS `marketing_material` (
   `download_count` INT NOT NULL DEFAULT 0 COMMENT '下载次数',
   `view_count` INT NOT NULL DEFAULT 0 COMMENT '查看次数',
   `use_count` INT NOT NULL DEFAULT 0 COMMENT '使用次数',
-  `tenant_id` VARCHAR(32) NOT NULL,
+  `tenant_id` VARCHAR(36) NOT NULL,
   `created_by` BIGINT DEFAULT NULL,
   `created_at` DATETIME DEFAULT CURRENT_TIMESTAMP,
   `updated_at` DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
@@ -164,7 +164,7 @@ CREATE TABLE IF NOT EXISTS `material_category` (
   `name` VARCHAR(50) NOT NULL COMMENT '分类名称',
   `parent_id` BIGINT DEFAULT NULL COMMENT '父分类ID',
   `sort_order` INT NOT NULL DEFAULT 0,
-  `tenant_id` VARCHAR(32) NOT NULL,
+  `tenant_id` VARCHAR(36) NOT NULL,
   `created_at` DATETIME DEFAULT CURRENT_TIMESTAMP,
   KEY `idx_tenant` (`tenant_id`),
   KEY `idx_parent` (`parent_id`)

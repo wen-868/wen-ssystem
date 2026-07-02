@@ -196,14 +196,14 @@ export function fetchCustomerLedgers(params: {
   startDate?: string
   endDate?: string
 }) {
-  return api.get('/store/customer-ledgers', { params })
+  return api.get('/store/customer-statements', { params })
 }
 
 export function fetchCustomerLedgerDetail(memberId: number, params: {
   startDate?: string
   endDate?: string
 }) {
-  return api.get(`/store/customer-ledgers/${memberId}`, { params })
+  return api.get(`/store/customer-statements/${memberId}`, { params })
 }
 
 /* ========== 应收 ========== */
@@ -396,49 +396,49 @@ export interface ReceivablePayableData {
 }
 
 export function fetchBusinessOverview() {
-  return api.get('/store/reports/business-overview')
+  return api.get('/admin/reports/business-overview')
 }
 
 export function fetchSalesTrend(params?: { granularity?: string }) {
-  return api.get('/store/reports/sales-trend', { params })
+  return api.get('/admin/reports/sales-trend', { params })
 }
 
 export function fetchSalesRanking(params: { dimension?: string; dateStart?: string; dateEnd?: string; limit?: number }) {
-  return api.get('/store/reports/sales-ranking', { params })
+  return api.get('/admin/reports/sales-ranking', { params })
 }
 
 export function fetchCustomerContribution(params: { dateStart?: string; dateEnd?: string; page?: number; pageSize?: number }) {
-  return api.get('/store/reports/customer-contribution', { params })
+  return api.get('/admin/reports/customer-contribution', { params })
 }
 
 export function fetchInventorySummary(params?: { groupBy?: string }) {
-  return api.get('/store/reports/inventory-summary', { params })
+  return api.get('/admin/reports/inventory-summary', { params })
 }
 
 export function fetchInventoryAgeData() {
-  return api.get('/store/reports/inventory-age')
+  return api.get('/admin/reports/inventory-age')
 }
 
 export function fetchReceivablePayable(params?: { dateStart?: string; dateEnd?: string }) {
-  return api.get('/store/reports/receivable-payable', { params })
+  return api.get('/admin/reports/receivable-payable', { params })
 }
 
 export function fetchProfitData(params?: { dateStart?: string; dateEnd?: string }) {
-  return api.get('/store/reports/profit', { params })
+  return api.get('/admin/reports/profit', { params })
 }
 
 export function fetchPaymentAnalysis(params?: { dateStart?: string; dateEnd?: string; groupBy?: string }) {
-  return api.get('/store/reports/payment-analysis', { params })
+  return api.get('/admin/reports/payment-analysis', { params })
 }
 
 /* ========== 兼容旧接口 ========== */
 
 export function fetchProductRanking(params: { startDate?: string; endDate?: string }) {
-  return api.get('/store/reports/sales-ranking', { params: { ...params, dimension: 'product' } })
+  return api.get('/admin/reports/sales-ranking', { params: { ...params, dimension: 'product' } })
 }
 
 export function fetchProfitAnalysis(params: { startDate?: string; endDate?: string }) {
-  return api.get('/store/reports/profit', { params })
+  return api.get('/admin/reports/profit', { params })
 }
 
 /* ========== 销售单 ========== */
@@ -710,7 +710,7 @@ export function fetchAdminProducts(params: { page?: number; pageSize?: number; k
 }
 
 export function fetchAdminCustomers(params: { page?: number; pageSize?: number; keyword?: string }) {
-  return api.get('/admin/customers', { params })
+  return api.get('/admin/members', { params })
 }
 
 export function createAdminProduct(data: {
@@ -971,11 +971,11 @@ export function fetchPurchaseOrders(params: {
   orderStatus?: string
   supplierId?: number
 }) {
-  return api.get('/store/purchase-orders', { params })
+  return api.get('/admin/purchase-orders', { params })
 }
 
 export function fetchPurchaseOrderDetail(purchaseNo: string | number) {
-  return api.get(`/store/purchase-orders/${purchaseNo}`)
+  return api.get(`/admin/purchase-orders/${purchaseNo}`)
 }
 
 export function createPurchaseOrder(data: {
@@ -997,7 +997,7 @@ export function createPurchaseOrder(data: {
     remark?: string
   }[]
 }) {
-  return api.post('/store/purchase-orders', data)
+  return api.post('/admin/purchase-orders', data)
 }
 
 export function updatePurchaseOrder(purchaseNo: string, data: {
@@ -1013,27 +1013,27 @@ export function updatePurchaseOrder(purchaseNo: string, data: {
     remark?: string
   }[]
 }) {
-  return api.put(`/store/purchase-orders/${purchaseNo}`, data)
+  return api.put(`/admin/purchase-orders/${purchaseNo}`, data)
 }
 
 export function deletePurchaseOrder(purchaseNo: string) {
-  return api.delete(`/store/purchase-orders/${purchaseNo}`)
+  return api.delete(`/admin/purchase-orders/${purchaseNo}`)
 }
 
 export function submitPurchaseOrder(purchaseNo: string) {
-  return api.post(`/store/purchase-orders/${purchaseNo}/submit`)
+  return api.post(`/admin/purchase-orders/${purchaseNo}/submit`)
 }
 
 export function approvePurchaseOrder(purchaseNo: string) {
-  return api.post(`/store/purchase-orders/${purchaseNo}/approve`)
+  return api.post(`/admin/purchase-orders/${purchaseNo}/approve`)
 }
 
 export function cancelPurchaseOrder(purchaseNo: string | number, reason?: string) {
-  return api.post(`/store/purchase-orders/${purchaseNo}/cancel`, { reason })
+  return api.post(`/admin/purchase-orders/${purchaseNo}/cancel`, { reason })
 }
 
 export function confirmPurchaseOrder(purchaseNo: string | number) {
-  return api.post(`/store/purchase-orders/${purchaseNo}/confirm`)
+  return api.post(`/admin/purchase-orders/${purchaseNo}/confirm`)
 }
 
 /* ========== 采购入库 ========== */
@@ -1048,7 +1048,7 @@ export function purchaseInStock(data: {
     bottleQty?: number
   }[]
 }) {
-  return api.post(`/store/purchase-orders/${data.purchaseNo}/in-stock`, data)
+  return api.post(`/admin/purchase-orders/${data.purchaseNo}/in-stock`, data)
 }
 
 /* ========== 采购入库记录 ========== */
@@ -1100,15 +1100,15 @@ export function fetchPurchaseInStocks(params: {
   status?: string
   stockStatus?: string
 }) {
-  return api.get('/store/purchase-in-stocks', { params })
+  return api.get('/admin/purchase-in-stocks', { params })
 }
 
 export function fetchPurchaseInStockDetail(stockNo: string | number) {
-  return api.get(`/store/purchase-in-stocks/${stockNo}`)
+  return api.get(`/admin/purchase-in-stocks/${stockNo}`)
 }
 
 export function confirmPurchaseInStock(stockNo: string | number) {
-  return api.post(`/store/purchase-in-stocks/${stockNo}/confirm`)
+  return api.post(`/admin/purchase-in-stocks/${stockNo}/approve`)
 }
 
 /* ========== 采购退货 ========== */
@@ -1163,11 +1163,11 @@ export function fetchPurchaseReturns(params: {
   returnStatus?: string
   supplierId?: number
 }) {
-  return api.get('/store/purchase-returns', { params })
+  return api.get('/admin/purchase-returns', { params })
 }
 
 export function fetchPurchaseReturnDetail(returnNo: string | number) {
-  return api.get(`/store/purchase-returns/${returnNo}`)
+  return api.get(`/admin/purchase-returns/${returnNo}`)
 }
 
 export function createPurchaseReturn(data: {
@@ -1183,13 +1183,13 @@ export function createPurchaseReturn(data: {
     reason?: string
   }[]
 }) {
-  return api.post('/store/purchase-returns', data)
+  return api.post('/admin/purchase-returns', data)
 }
 
 export type CreatePurchaseReturnParams = Parameters<typeof createPurchaseReturn>[0]
 
 export function approvePurchaseReturn(returnNo: string) {
-  return api.post(`/store/purchase-returns/${returnNo}/approve`)
+  return api.post(`/admin/purchase-returns/${returnNo}/approve`)
 }
 
 /* ========== 客户往来账 ========== */
@@ -1246,7 +1246,7 @@ export function generateStatement(data: {
   periodStart: string
   periodEnd: string
 }) {
-  return api.post('/store/customer-statements/generate', data)
+  return api.post('/store/customer-statements', data)
 }
 
 export function confirmStatement(statementNo: string) {
@@ -1259,7 +1259,7 @@ export function recordStatementPayment(statementNo: string, data: {
   paymentDate: string
   remark?: string
 }) {
-  return api.post(`/store/customer-statements/${statementNo}/payment`, data)
+  return api.post(`/store/customer-statements/${statementNo}/paid`, data)
 }
 
 export function fetchStatementPayments(params: {
@@ -1527,19 +1527,19 @@ export function fetchSuppliers(params: {
   page?: number
   pageSize?: number
 }) {
-  return api.get('/store/suppliers', { params })
+  return api.get('/admin/suppliers', { params })
 }
 
 export function fetchSupplierDetail(id: number) {
-  return api.get(`/store/suppliers/${id}`)
+  return api.get(`/admin/suppliers/${id}`)
 }
 
 export function fetchSupplierProducts(id: number, params?: { page?: number; pageSize?: number; keyword?: string }) {
-  return api.get(`/store/suppliers/${id}/products`, { params })
+  return api.get(`/admin/suppliers/${id}/products`, { params })
 }
 
 export function fetchSupplierStats(id: number) {
-  return api.get(`/store/suppliers/${id}/stats`)
+  return api.get(`/admin/suppliers/${id}/stats`)
 }
 
 /* ========== Phase 5: 供应商对账 ========== */
@@ -1587,7 +1587,7 @@ export function fetchSupplierStatements(params: {
   page?: number
   pageSize?: number
 }) {
-  return api.get('/store/supplier-statements', { params })
+  return api.get('/admin/supplier-statements', { params })
 }
 
 export function generateSupplierStatement(data: {
@@ -1597,19 +1597,19 @@ export function generateSupplierStatement(data: {
   end_date: string
   remark?: string
 }) {
-  return api.post('/store/supplier-statements', data)
+  return api.post('/admin/supplier-statements', data)
 }
 
 export function getSupplierStatementDetail(statementNo: string) {
-  return api.get(`/store/supplier-statements/${statementNo}`)
+  return api.get(`/admin/supplier-statements/${statementNo}`)
 }
 
 export function confirmSupplierStatement(statementNo: string) {
-  return api.post(`/store/supplier-statements/${statementNo}/confirm`)
+  return api.post(`/admin/supplier-statements/${statementNo}/confirm`)
 }
 
 export function disputeSupplierStatement(statementNo: string, remark: string) {
-  return api.post(`/store/supplier-statements/${statementNo}/dispute`, { remark })
+  return api.post(`/admin/supplier-statements/${statementNo}/dispute`, { remark })
 }
 
 /* ========== Phase 6: 库存管理 ========== */
@@ -1652,23 +1652,23 @@ export interface InventoryCheckDetail extends InventoryCheckRecord {
 }
 
 export function fetchInventoryChecks(params?: { page?: number; pageSize?: number; status?: string }) {
-  return api.get('/store/stock-checks/my', { params })
+  return api.get('/admin/stock-checks/my', { params })
 }
 
 export function createInventoryCheck(data: { warehouseId: number; remark?: string }) {
-  return api.post('/store/stock-checks', data)
+  return api.post('/admin/stock-checks', data)
 }
 
 export function getInventoryCheckDetail(id: number) {
-  return api.get(`/store/stock-checks/${id}`)
+  return api.get(`/admin/stock-checks/${id}`)
 }
 
 export function updateInventoryCheckItem(checkId: number, itemId: number, data: { actualQty: number }) {
-  return api.put(`/store/stock-checks/${checkId}/items/${itemId}`, data)
+  return api.put(`/admin/stock-checks/${checkId}/items/${itemId}`, data)
 }
 
 export function submitInventoryCheck(id: number) {
-  return api.post(`/store/stock-checks/${id}/submit`)
+  return api.post(`/admin/stock-checks/${id}/submit`)
 }
 
 export interface TransferOrderRecord {
@@ -1709,7 +1709,7 @@ export interface TransferOrderDetail extends TransferOrderRecord {
 }
 
 export function fetchTransferOrders(params?: { page?: number; pageSize?: number; status?: string }) {
-  return api.get('/store/transfers', { params })
+  return api.get('/admin/transfers', { params })
 }
 
 export function createTransferOrder(data: {
@@ -1719,19 +1719,19 @@ export function createTransferOrder(data: {
   remark?: string
   items: { skuId: number; skuName: string; quantity: number; unitPrice: number }[]
 }) {
-  return api.post('/store/transfers', data)
+  return api.post('/admin/transfers', data)
 }
 
 export function getTransferOrderDetail(id: number) {
-  return api.get(`/store/transfers/${id}`)
+  return api.get(`/admin/transfers/${id}`)
 }
 
 export function confirmTransferOut(id: number) {
-  return api.post(`/store/transfers/${id}/ship`)
+  return api.post(`/admin/transfers/${id}/ship`)
 }
 
 export function confirmTransferIn(id: number, items: { itemId: number; receivedQty: number }[]) {
-  return api.post(`/store/transfers/${id}/receive`, { items })
+  return api.post(`/admin/transfers/${id}/receive`, { items })
 }
 
 /* ========== Phase 7: 客户管理 ========== */
@@ -1757,15 +1757,15 @@ export interface PointsRecord {
 }
 
 export function fetchCustomerPoints(customerId: number) {
-  return api.get(`/store/points/customer/${customerId}`)
+  return api.get(`/admin/members/${customerId}`)
 }
 
 export function fetchCustomerPointsRecords(customerId: number, type?: string) {
-  return api.get(`/store/points/customer/${customerId}/records`, { params: { type } })
+  return api.get(`/admin/members/${customerId}/records`, { params: { type } })
 }
 
 export function adjustCustomerPoints(customerId: number, payload: { amount: number; reason: string }) {
-  return api.post(`/store/points/customer/${customerId}/adjust`, payload)
+  return api.post(`/admin/members/${customerId}/adjust`, payload)
 }
 
 export interface StoreValueCard {
@@ -1791,15 +1791,15 @@ export interface StoreValueTransaction {
 }
 
 export function fetchStoreValueCard(customerId: number) {
-  return api.get(`/store/store-value-cards/customer/${customerId}`)
+  return api.get(`/admin/store-value-cards/${customerId}`)
 }
 
 export function rechargeStoreValueCard(customerId: number, payload: { amount: number; paymentMethod: string }) {
-  return api.post(`/store/store-value-cards/customer/${customerId}/recharge`, payload)
+  return api.post(`/admin/store-value-cards/${customerId}/recharge`, payload)
 }
 
 export function fetchStoreValueTransactions(cardNo: string) {
-  return api.get(`/store/store-value-cards/transactions/${cardNo}`)
+  return api.get(`/admin/store-value-cards/${cardNo}`)
 }
 
 export interface MemberCardData {
@@ -1828,11 +1828,11 @@ export interface MemberBenefit {
 }
 
 export function fetchMemberCard(customerId: number) {
-  return api.get(`/store/member-cards/customer/${customerId}`)
+  return api.get(`/admin/members/customer/${customerId}`)
 }
 
 export function fetchMemberBenefits() {
-  return api.get('/store/member-cards/benefits')
+  return api.get('/admin/members/benefits')
 }
 
 export interface CustomerTag {
@@ -1854,23 +1854,23 @@ export interface CustomerProfile {
 }
 
 export function fetchCustomerTags(customerId: number) {
-  return api.get(`/store/customer-tags/customer/${customerId}`)
+  return api.get(`/admin/members/tags/customer/${customerId}`)
 }
 
 export function fetchAllTags() {
-  return api.get('/store/customer-tags/all')
+  return api.get('/admin/members/tags/all')
 }
 
 export function addCustomerTag(customerId: number, tagId: number) {
-  return api.post(`/store/customer-tags/customer/${customerId}`, { tagId })
+  return api.post(`/admin/members/tags/customer/${customerId}`, { tagId })
 }
 
 export function removeCustomerTag(customerId: number, tagId: number) {
-  return api.delete(`/store/customer-tags/customer/${customerId}/${tagId}`)
+  return api.delete(`/admin/members/tags/customer/${customerId}/${tagId}`)
 }
 
 export function fetchCustomerProfile(customerId: number) {
-  return api.get(`/store/customer-tags/customer/${customerId}/profile`)
+  return api.get(`/admin/members/tags/customer/${customerId}/profile`)
 }
 
 /* ========== Phase 8: 财务往来 ========== */
@@ -1950,11 +1950,11 @@ export interface ExpenseRecord {
 }
 
 export function createExpense(data: { type: string; category: string; amount: number; payee: string; paymentMethod: string; remark?: string; invoiceUrl?: string }) {
-  return api.post('/store/expenses', data)
+  return api.post('/admin/expenses', data)
 }
 
 export function fetchExpenses(params?: { type?: string; startDate?: string; endDate?: string; page?: number; pageSize?: number }) {
-  return api.get('/store/expenses', { params })
+  return api.get('/admin/expenses', { params })
 }
 
 export interface ReconciliationRecord {
@@ -2083,43 +2083,43 @@ export interface FullReductionItem {
 }
 
 export function fetchCouponTemplates(params?: { page?: number; pageSize?: number; status?: string }) {
-  return api.get('/store/marketing/coupons/templates', { params })
+  return api.get('/admin/marketing/coupons/templates', { params })
 }
 
 export function fetchAvailableCoupons() {
-  return api.get('/store/marketing/coupons/available')
+  return api.get('/admin/marketing/coupons/available')
 }
 
 export function fetchCouponStatistics() {
-  return api.get('/store/marketing/coupons/statistics')
+  return api.get('/admin/marketing/coupons/statistics')
 }
 
 export function claimCoupon(templateId: number) {
-  return api.post(`/store/marketing/coupons/claim/${templateId}`)
+  return api.post(`/admin/marketing/coupons/claim/${templateId}`)
 }
 
 export function fetchMyCoupons(params?: { page?: number; pageSize?: number; status?: string }) {
-  return api.get('/store/marketing/coupons/my', { params })
+  return api.get('/admin/marketing/coupons/my', { params })
 }
 
 export function fetchActiveFlashSales() {
-  return api.get('/store/marketing/flash-sales/active')
+  return api.get('/admin/marketing/flash-sales/active')
 }
 
 export function fetchActiveLimitedDiscounts() {
-  return api.get('/store/marketing/limited-discounts/active')
+  return api.get('/admin/marketing/limited-discounts/active')
 }
 
 export function fetchMyPoints() {
-  return api.get('/store/marketing/points/my')
+  return api.get('/admin/marketing/points/my')
 }
 
 export function fetchMyPointsRecords(params?: { page?: number; pageSize?: number; type?: string }) {
-  return api.get('/store/marketing/points/my-records', { params })
+  return api.get('/admin/marketing/points/my-records', { params })
 }
 
 export function fetchPointsRule() {
-  return api.get('/store/marketing/points/rule')
+  return api.get('/admin/marketing/points/rule')
 }
 
 /* ========== Phase 11: 即时零售 ========== */
@@ -2184,27 +2184,27 @@ export function fetchInstantRetailOrders(params: {
   platform?: string
   status?: string
 }) {
-  return api.get('/store/instant-retail/orders', { params })
+  return api.get('/instant-retail/store/instant-retail/orders', { params })
 }
 
 export function fetchInstantRetailOrderDetail(platformOrderId: string) {
-  return api.get(`/store/instant-retail/orders/${platformOrderId}`)
+  return api.get(`/instant-retail/store/instant-retail/orders/${platformOrderId}`)
 }
 
 export function confirmInstantRetailOrder(platformOrderId: string) {
-  return api.post(`/store/instant-retail/orders/${platformOrderId}/confirm`)
+  return api.post(`/instant-retail/store/instant-retail/orders/${platformOrderId}/confirm`)
 }
 
 export function startInstantRetailDelivery(platformOrderId: string, data?: { courierName?: string; courierPhone?: string }) {
-  return api.post(`/store/instant-retail/orders/${platformOrderId}/start-delivery`, data)
+  return api.post(`/instant-retail/store/instant-retail/orders/${platformOrderId}/start-delivery`, data)
 }
 
 export function completeInstantRetailDelivery(platformOrderId: string) {
-  return api.post(`/store/instant-retail/orders/${platformOrderId}/complete-delivery`)
+  return api.post(`/instant-retail/store/instant-retail/orders/${platformOrderId}/complete-delivery`)
 }
 
 export function cancelInstantRetailOrder(platformOrderId: string, reason?: string) {
-  return api.post(`/store/instant-retail/orders/${platformOrderId}/cancel`, { reason })
+  return api.post(`/instant-retail/store/instant-retail/orders/${platformOrderId}/cancel`, { reason })
 }
 
 export function fetchInstantRetailShelf(params?: {
@@ -2453,11 +2453,11 @@ export interface NotificationDetail extends NotificationItem {
 }
 
 export function fetchStoreDetail(id: number) {
-  return api.get(`/admin/system/stores/${id}`)
+  return api.get(`/admin/stores/${id}`)
 }
 
 export function fetchEmployeeDetail(staffId: number) {
-  return api.get(`/admin/system/employees/${staffId}`)
+  return api.get(`/admin/sys-users/${staffId}`)
 }
 
 export function fetchStoreProfile() {
@@ -2570,23 +2570,23 @@ export interface QuickEntryItem {
 }
 
 export function fetchDashboardOverview() {
-  return api.get('/store/dashboard/overview')
+  return api.get('/admin/dashboard/overview')
 }
 
 export function fetchDashboardSalesTrend(days?: number) {
-  return api.get('/store/dashboard/sales-trend', { params: { days: days || 7 } })
+  return api.get('/admin/dashboard/sales-trend', { params: { days: days || 7 } })
 }
 
 export function fetchDashboardTopProducts(limit?: number) {
-  return api.get('/store/dashboard/top-products', { params: { limit: limit || 5 } })
+  return api.get('/admin/dashboard/top-products', { params: { limit: limit || 5 } })
 }
 
 export function fetchDashboardTopCustomers(limit?: number) {
-  return api.get('/store/dashboard/top-customers', { params: { limit: limit || 5 } })
+  return api.get('/admin/dashboard/top-customers', { params: { limit: limit || 5 } })
 }
 
 export function fetchDashboardCategoryDistribution() {
-  return api.get('/store/dashboard/category-distribution')
+  return api.get('/admin/dashboard/category-distribution')
 }
 
 export function fetchTodos(params?: {

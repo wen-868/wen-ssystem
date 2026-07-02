@@ -7,7 +7,7 @@ CREATE TABLE IF NOT EXISTS customer_price (
   effective_start DATE DEFAULT NULL COMMENT '生效开始日期',
   effective_end DATE DEFAULT NULL COMMENT '生效结束日期',
   status TINYINT DEFAULT 1 COMMENT '状态 1=启用 0=停用',
-  tenant_id VARCHAR(64) NOT NULL DEFAULT '',
+  tenant_id VARCHAR(36) NOT NULL DEFAULT '',
   created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
   updated_at DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
   UNIQUE KEY uk_customer_sku (customer_id, sku_id, tenant_id),

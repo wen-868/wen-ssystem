@@ -6,7 +6,7 @@
 -- 1. 销售日报汇总
 CREATE TABLE IF NOT EXISTS `report_sales_daily` (
   `id` BIGINT AUTO_INCREMENT PRIMARY KEY,
-  `tenant_id` VARCHAR(32) NOT NULL COMMENT '租户ID',
+  `tenant_id` VARCHAR(36) NOT NULL COMMENT '租户ID',
   `store_id` BIGINT NOT NULL COMMENT '门店ID',
   `report_date` DATE NOT NULL COMMENT '报表日期',
   `order_count` INT NOT NULL DEFAULT 0 COMMENT '订单数',
@@ -28,7 +28,7 @@ CREATE TABLE IF NOT EXISTS `report_sales_daily` (
 -- 2. 收款统计汇总
 CREATE TABLE IF NOT EXISTS `report_collection_stats` (
   `id` BIGINT AUTO_INCREMENT PRIMARY KEY,
-  `tenant_id` VARCHAR(32) NOT NULL COMMENT '租户ID',
+  `tenant_id` VARCHAR(36) NOT NULL COMMENT '租户ID',
   `store_id` BIGINT NOT NULL COMMENT '门店ID',
   `report_date` DATE NOT NULL COMMENT '报表日期',
   `total_links` INT NOT NULL DEFAULT 0 COMMENT '生成链接数',
@@ -48,7 +48,7 @@ CREATE TABLE IF NOT EXISTS `report_collection_stats` (
 -- 3. 商品销售汇总
 CREATE TABLE IF NOT EXISTS `report_product_sales` (
   `id` BIGINT AUTO_INCREMENT PRIMARY KEY,
-  `tenant_id` VARCHAR(32) NOT NULL COMMENT '租户ID',
+  `tenant_id` VARCHAR(36) NOT NULL COMMENT '租户ID',
   `store_id` BIGINT NOT NULL COMMENT '门店ID',
   `report_date` DATE NOT NULL COMMENT '报表日期',
   `sku_id` BIGINT NOT NULL COMMENT 'SKU ID',
@@ -68,7 +68,7 @@ CREATE TABLE IF NOT EXISTS `report_product_sales` (
 -- 4. 客户统计汇总
 CREATE TABLE IF NOT EXISTS `report_customer_stats` (
   `id` BIGINT AUTO_INCREMENT PRIMARY KEY,
-  `tenant_id` VARCHAR(32) NOT NULL COMMENT '租户ID',
+  `tenant_id` VARCHAR(36) NOT NULL COMMENT '租户ID',
   `store_id` BIGINT NOT NULL COMMENT '门店ID',
   `report_date` DATE NOT NULL COMMENT '报表日期',
   `total_customers` INT NOT NULL DEFAULT 0 COMMENT '累计客户数',
@@ -88,7 +88,7 @@ CREATE TABLE IF NOT EXISTS `report_customer_stats` (
 -- 5. 库存日报汇总
 CREATE TABLE IF NOT EXISTS `report_inventory_daily` (
   `id` BIGINT AUTO_INCREMENT PRIMARY KEY,
-  `tenant_id` VARCHAR(32) NOT NULL COMMENT '租户ID',
+  `tenant_id` VARCHAR(36) NOT NULL COMMENT '租户ID',
   `store_id` BIGINT NOT NULL COMMENT '门店ID',
   `report_date` DATE NOT NULL COMMENT '报表日期',
   `total_sku_count` INT NOT NULL DEFAULT 0 COMMENT 'SKU品种数',
