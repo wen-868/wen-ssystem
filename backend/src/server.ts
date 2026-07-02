@@ -86,6 +86,7 @@ import { operationLogRouter } from "./routes/operation-log.routes.js";
 import { sysUserRouter } from "./routes/sys-user.routes.js";
 import { systemRouter } from "./routes/system.routes.js";
 import { workbenchRouter } from "./routes/workbench.routes.js";
+import { consumerAddressRouter } from "./routes/retail-consumer-address.routes.js";
 
 const app = express();
 
@@ -206,6 +207,7 @@ app.use("/api/system", systemRouter);
 app.use("/api/admin", requireAuthWithTenant, workbenchRouter);
 
 app.use("/api", retailAnnouncementRouter);
+app.use("/api", consumerAddressRouter);
 
 app.use(errorHandler);
 
