@@ -215,7 +215,7 @@
 
 <script setup lang="ts">
 import { computed, onMounted, reactive, ref } from "vue";
-import axios from "axios";
+import { api } from "../api";
 import { ElMessage, type FormInstance, type FormRules } from "element-plus";
 import { Check, CircleCheck, CircleClose, Loading } from "@element-plus/icons-vue";
 import PageCard from "../components/PageCard.vue";
@@ -272,7 +272,7 @@ function setFormRef(platform: string, el: any) {
 async function loadConfig(platform: string) {
   configLoading.value = true;
   try {
-    const { data: res } = await axios.get(`/api/admin/miniapp/configs/${platform}`);
+    const { data: res } = await api.get(`/admin/miniapp/configs/${platform}`);
     if (res?.data) {
       configs[platform] = {
         appId: res.data.appId || "",
@@ -303,7 +303,7 @@ async function saveConfig() {
     if (!valid) return;
     saving.value = true;
     try {
-      await axios.put(`/api/admin/miniapp/configs/${activePlatform.value}`, {
+      await api.put(`/admin/miniapp/configs/${activePlatform.value}`, {
         ...currentConfig.value,
       });
       ElMessage.success("保存成功");
@@ -332,7 +332,7 @@ const previewVisible = ref(false);
 async function loadTemplates() {
   templateLoading.value = true;
   try {
-    const { data: res } = await axios.get("/api/admin/miniapp/templates");
+    const { data: res } = await api.get("/admin/miniapp/templates");
     if (res?.data) {
       templates.value = res.data;
     }
@@ -367,7 +367,7 @@ const publishResultData = reactive({
 async function handlePublish() {
   publishing.value = true;
   try {
-    const { data: res } = await axios.post("/api/admin/miniapp/publish", {
+    const { data: res } = await api.post("/admin/miniapp/publish", {
       platform: activePlatform.value,
       templateId: selectedTemplate.value?.id || "",
       version: publishVersion.value || undefined,
@@ -401,7 +401,7 @@ const logsTotal = ref(0);
 async function loadPublishLogs() {
   logsLoading.value = true;
   try {
-    const { data: res } = await axios.get("/api/admin/miniapp/publish-logs", {
+    const { data: res } = await api.get("/admin/miniapp/publish-logs", {
       params: {
         page: logsPage.value,
         pageSize: logsPageSize.value,

@@ -146,7 +146,7 @@
 import { ref, reactive, onMounted } from "vue";
 import { ElMessage, ElMessageBox } from "element-plus";
 import { ArrowUp, ArrowDown, HomeFilled, ShoppingCart, Document, Box, User, Goods, Shop, Coin, DataAnalysis, Setting, List, Tickets, Bell, Present, Star, Edit } from "@element-plus/icons-vue";
-import axios from "axios";
+import { api } from "../api";
 import PageCard from "../components/PageCard.vue";
 
 const iconOptions = ["HomeFilled", "ShoppingCart", "Document", "Box", "User", "Goods", "Shop", "Coin", "DataAnalysis", "Setting", "List", "Tickets", "Bell", "Present", "Star", "Edit"];
@@ -217,7 +217,7 @@ function moveDown(index: number) {
 
 async function loadData() {
   try {
-    const { data: res } = await axios.get("/api/admin/quick-entries");
+    const { data: res } = await api.get("/admin/quick-entries");
     const data = res.data || res;
     const list = Array.isArray(data) ? data : (data.records || data.list || []);
     entries.value = list;
@@ -247,7 +247,7 @@ async function handleSave() {
   try {
     const item = editingItem.value;
     if (item.id && item.id > 0) {
-      await axios.put(`/api/admin/quick-entries/${item.id}`, {
+      await api.put(`/admin/quick-entries/${item.id}`, {
         name: form.name,
         icon: form.icon,
         route: form.route,
@@ -256,7 +256,7 @@ async function handleSave() {
         visibleRoles: form.visibleRoles
       });
     } else {
-      await axios.post("/api/admin/quick-entries", {
+      await api.post("/admin/quick-entries", {
         name: form.name,
         icon: form.icon,
         route: form.route,
@@ -278,7 +278,7 @@ async function handleDeleteEntry(item: any) {
   try {
     await ElMessageBox.confirm("确认删除该入口？", "提示", { type: "warning" });
     if (item.id && item.id > 0) {
-      await axios.delete(`/api/admin/quick-entries/${item.id}`);
+      await api.delete(`/admin/quick-entries/${item.id}`);
     }
     ElMessage.success("删除成功");
     editingItem.value = null;
@@ -290,7 +290,7 @@ async function handleDeleteEntry(item: any) {
 async function handleSaveSort() {
   try {
     const ids = entries.value.map(e => e.id);
-    await axios.put("/api/admin/quick-entries/sort", { ids });
+    await api.put("/admin/quick-entries/sort", { ids });
     ElMessage.success("排序已保存");
   } catch (e: any) {
     ElMessage.error(e.response?.data?.message || "排序保存失败");
@@ -327,7 +327,7 @@ async function handleAdd() {
   if (!valid) return;
   addLoading.value = true;
   try {
-    await axios.post("/api/admin/quick-entries", {
+    await api.post("/admin/quick-entries", {
       name: addForm.name,
       icon: addForm.icon,
       route: addForm.route,
