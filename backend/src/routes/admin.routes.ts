@@ -131,3 +131,25 @@ adminRouter.get("/finance/cash-flow", requireAuthWithTenant, financeDashboardCon
 adminRouter.get("/finance/profit-trend", requireAuthWithTenant, financeDashboardController.getProfitTrend);
 adminRouter.get("/finance/top-customers-ar", requireAuthWithTenant, financeDashboardController.getTopCustomersAR);
 adminRouter.get("/finance/top-suppliers-ap", requireAuthWithTenant, financeDashboardController.getTopSuppliersAP);
+
+// ============ Phase 16: 小程序发布配置 ============
+import * as miniappPublishService from "../services/admin/miniapp-publish.service.js";
+adminRouter.get("/miniapp-publish/configs", requireAuthWithTenant, async (req, res) => {
+  try {
+    const configs = await miniappPublishService.getPublishConfigs((req as any).tenantId);
+    res.json({ code: "0", data: configs });
+  } catch (e: any) {
+    res.status(500).json({ code: "1", message: e.message });
+  }
+});
+adminRouter.get("/miniapp-publish/validate", requireAuthWithTenant, async (req, res) => {
+  try {
+    const result = await miniappPublishService.validatePlaceholders((req as any).tenantId);
+    res.json({ code: "0", data: result });
+  } catch (e: any) {
+    res.status(500).json({ code: "1", message: e.message });
+  }
+});
+adminRouter.get("/miniapp-publish/placeholders", requireAuthWithTenant, (_req, res) => {
+  res.json({ code: "0", data: miniappPublishService.getTemplatePlaceholders() });
+});
