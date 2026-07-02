@@ -58,7 +58,13 @@ const routes = [
       // 平台配置
       { path: "settings", name: "Settings", component: () => import("../views/Settings.vue"), meta: { roles: ["ADMIN"] } },
       // 操作日志
-      { path: "audit-logs", name: "AuditLogs", component: () => import("../views/AuditLogs.vue"), meta: { roles: ["ADMIN"] } }
+      { path: "audit-logs", name: "AuditLogs", component: () => import("../views/AuditLogs.vue"), meta: { roles: ["ADMIN"] } },
+      // 权限矩阵
+      { path: "report-permissions", name: "ReportPermission", component: () => import("../views/ReportPermission.vue"), meta: { roles: ["ADMIN"] } },
+      // 系统配置
+      { path: "sys-config", name: "SysConfig", component: () => import("../views/SysConfigView.vue"), meta: { roles: ["ADMIN"] } },
+      // 监控告警
+      { path: "monitor", name: "Monitor", component: () => import("../views/MonitorView.vue"), meta: { roles: ["ADMIN"] } }
     ]
   },
   { path: "/:pathMatch(.*)*", redirect: "/dashboard" }
