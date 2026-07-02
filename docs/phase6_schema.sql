@@ -2,27 +2,10 @@
 -- Phase 6 Schema: 采购付款、供应商对账、RBAC、消息通知
 -- ============================================================
 
--- ========== 采购付款单 ==========
-CREATE TABLE IF NOT EXISTS purchase_payment (
-  id BIGINT AUTO_INCREMENT PRIMARY KEY,
-  payment_no VARCHAR(30) NOT NULL UNIQUE,
-  purchase_order_id BIGINT NOT NULL,
-  supplier_id BIGINT NOT NULL,
-  payment_amount DECIMAL(12,2) NOT NULL DEFAULT 0.00,
-  payment_method ENUM('BANK_TRANSFER','CASH','CHECK','OTHER') NOT NULL DEFAULT 'BANK_TRANSFER',
-  bank_account VARCHAR(100) DEFAULT NULL,
-  remark VARCHAR(500) DEFAULT NULL,
-  status ENUM('PENDING','APPROVED','PAID','CANCELLED') NOT NULL DEFAULT 'PENDING',
-  approved_by BIGINT DEFAULT NULL,
-  approved_at DATETIME DEFAULT NULL,
-  paid_at DATETIME DEFAULT NULL,
-  paid_by BIGINT DEFAULT NULL,
-  created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
-  updated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
-  INDEX idx_supplier_id (supplier_id),
-  INDEX idx_purchase_order_id (purchase_order_id),
-  INDEX idx_status (status)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='采购付款单';
+-- ========== 采购付款单（⚠ 已废弃，正确版本在 phase2_schema.sql） ==========
+-- purchase_payment 表在 phase2_schema.sql 中定义，此处保留注释供参考。
+-- 两个版本字段不兼容：phase2版含 supplier_name/source_type/source_no/payment_type/voucher_no 等。
+-- 如需创建表请使用 init_database.sql 中的合并版本。
 
 -- ========== 供应商对账单 ==========
 CREATE TABLE IF NOT EXISTS supplier_statement (
