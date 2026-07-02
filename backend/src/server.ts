@@ -63,6 +63,7 @@ import { startStoreControlScheduler } from "./services/admin/store-control-sched
 import "./jobs/report-aggregation.job.js";
 import { tagRouter } from "./routes/tag.routes.js";
 import { platformRouter } from "./routes/platform.routes.js";
+import { platformTenantRouter } from "./routes/platform-tenant.routes.js";
 import { customerPriceRouter } from "./routes/customer-price.routes.js";
 import { commissionRouter } from "./routes/commission.routes.js";
 import { supplierStatementRouter } from "./routes/supplier-statement.routes.js";
@@ -182,6 +183,7 @@ app.use("/api/admin/subscriptions", requireAuthWithTenant, subscriptionRouter);
 app.use("/api/admin/customer-merge", requireAuthWithTenant, customerMergeRouter);
 app.use("/api/admin", requireAuthWithTenant, tagRouter);
 app.use("/api/platform", requireAuthWithTenant, platformRouter);
+app.use("/api/platform/tenants", platformTenantRouter);
 app.use("/api/admin/customer-prices", requireAuthWithTenant, customerPriceRouter);
 app.use("/api/admin/commission", requireAuthWithTenant, commissionRouter);
 app.use("/api/admin/supplier-statements", requireAuthWithTenant, supplierStatementRouter);
