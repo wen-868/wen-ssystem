@@ -2131,3 +2131,31 @@ export const fetchMiniappTemplate = (id: number) => api.get(`/admin/miniapp/temp
 export const publishMiniapp = (data: any) => api.post('/admin/miniapp/publish', data);
 export const fetchMiniappPublishLogs = (params: any) => api.get('/admin/miniapp/publish-logs', { params });
 export const setTenantModules = (id: number, data: any) => api.put(`/admin/tenants/${id}/modules`, data);
+
+// ==================== Retail Announcement APIs ====================
+export async function fetchRetailAnnouncements(params?: { storeId?: number; keyword?: string; page?: number; pageSize?: number }) {
+  const { data } = await api.get("/admin/retail-announcements", { params: { page: 1, pageSize: 20, ...params } });
+  return data.data;
+}
+export async function createRetailAnnouncement(payload: { storeId: number; title: string; content: string; isTop: boolean; startTime: string; endTime: string }) {
+  const { data } = await api.post("/admin/retail-announcements", payload);
+  return data.data;
+}
+export async function updateRetailAnnouncement(id: number, payload: { storeId?: number; title?: string; content?: string; isTop?: boolean; startTime?: string; endTime?: string; status?: string }) {
+  const { data } = await api.put(`/admin/retail-announcements/${id}`, payload);
+  return data.data;
+}
+export async function deleteRetailAnnouncement(id: number) {
+  const { data } = await api.delete(`/admin/retail-announcements/${id}`);
+  return data.data;
+}
+
+// ==================== Consumer Address APIs ====================
+export async function fetchConsumerAddresses(params?: { userId?: number | string; page?: number; pageSize?: number }) {
+  const { data } = await api.get("/admin/consumer-addresses", { params: { page: 1, pageSize: 20, ...params } });
+  return data.data;
+}
+export async function fetchConsumerAddressDetail(id: number) {
+  const { data } = await api.get(`/admin/consumer-addresses/${id}`);
+  return data.data;
+}
