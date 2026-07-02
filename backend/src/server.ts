@@ -11,7 +11,9 @@ import { adminRouter } from "./routes/admin.routes.js";
 import * as authController from "./controllers/admin/auth.controller.js";
 import { storeRouter } from "./routes/store.routes.js";
 import { miniappRouter } from "./routes/miniapp.routes.js";
+import { miniappConfigRouter } from "./routes/miniapp-config.routes.js";
 import { paymentRouter } from "./routes/payment.routes.js";
+import { paymentConfigRouter } from "./routes/payment-config.routes.js";
 import { shareRouter } from "./routes/share.routes.js";
 import { instantRetailRouter } from "./routes/instant-retail-new.routes.js";
 import { reportRouter } from "./routes/report.routes.js";
@@ -80,8 +82,10 @@ import { customerSegmentRouter } from "./routes/customer-segment.routes.js";
 import { receiptRouter } from "./routes/receipt.routes.js";
 import { paymentNewRouter } from "./routes/payment-new.routes.js";
 import { receivableRouter } from "./routes/receivable.routes.js";
+import { reportPermissionRouter } from "./routes/report-permission.routes.js";
 import { expenseRouter } from "./routes/expense.routes.js";
 import { reconciliationRouter } from "./routes/reconciliation.routes.js";
+import { retailAnnouncementRouter } from "./routes/retail-announcement.routes.js";
 import { operationLogRouter } from "./routes/operation-log.routes.js";
 import { sysUserRouter } from "./routes/sys-user.routes.js";
 import { systemRouter } from "./routes/system.routes.js";
@@ -93,6 +97,7 @@ import { orderSyncLogRouter } from "./routes/miniapp-order-sync.routes.js";
 import { platformReconciliationRouter } from "./routes/platform-reconciliation.routes.js";
 import { platformReviewRouter } from "./routes/platform-review.routes.js";
 import { customReportRouter } from "./routes/custom-report.routes.js";
+import { consumerAddressRouter } from "./routes/retail-consumer-address.routes.js";
 
 const app = express();
 
@@ -140,7 +145,9 @@ app.use("/api/admin/alerts", requireAuthWithTenant, alertRouter);
 app.use("/api/admin/dashboard", requireAuthWithTenant, dashboardRouter);
 app.use("/api/store", storeRouter);
 app.use("/api/miniapp", miniappRouter);
+app.use("/api/admin/miniapp", requireAuthWithTenant, miniappConfigRouter);
 app.use("/api/pay", paymentRouter);
+app.use("/api/admin/payment", requireAuthWithTenant, paymentConfigRouter);
 app.use("/api/share", shareRouter);
 app.use("/api/instant-retail", requireAuthWithTenant, instantRetailRouter);
 app.use("/api/miniapp/cart", requireAuthWithTenant, miniappCartRouter);
@@ -217,6 +224,10 @@ app.use("/api/admin/order-sync-logs", requireAuthWithTenant, orderSyncLogRouter)
 app.use("/api/admin/platform-reconciliations", requireAuthWithTenant, platformReconciliationRouter);
 app.use("/api/admin/platform-reviews", requireAuthWithTenant, platformReviewRouter);
 app.use("/api/admin/reports", requireAuthWithTenant, customReportRouter);
+
+app.use("/api", retailAnnouncementRouter);
+app.use("/api", consumerAddressRouter);
+app.use("/api", reportPermissionRouter);
 
 app.use(errorHandler);
 

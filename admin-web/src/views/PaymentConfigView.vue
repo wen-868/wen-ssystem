@@ -611,7 +611,7 @@ async function handleDeleteBankAccount(row: any) {
 
 async function handleSetDefault(row: any) {
   try {
-    await api.put(`/admin/payment/bank-accounts/${row.id}/default`);
+    await api.post(`/admin/payment/bank-accounts/${row.id}/default`);
     ElMessage.success("设为默认成功");
     await loadBankAccounts();
   } catch (e: any) {

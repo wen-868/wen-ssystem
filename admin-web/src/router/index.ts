@@ -125,6 +125,7 @@ const routes = [
       { path: "instant-retail/report", name: "InstantRetailReport", component: () => import("../views/InstantRetailReport.vue"), meta: { roles: ["BOSS"] } },
       { path: "instant-retail/platform", name: "InstantRetailPlatform", component: () => import("../views/InstantRetailPlatform.vue"), meta: { roles: ["BOSS"] } },
       { path: "instant-retail/order-board", name: "InstantRetailOrderBoard", component: () => import("../views/InstantRetailOrderBoard.vue"), meta: { roles: ["BOSS"] } },
+      { path: "instant-retail/announcements", name: "RetailAnnouncements", component: () => import("../views/RetailAnnouncement.vue"), meta: { roles: ["BOSS"] } },
       // 9. 财务管理
       { path: "payments", name: "Payments", component: () => import("../views/PaymentsView.vue"), meta: { roles: ["BOSS"] } },
       { path: "finance/collection", name: "FinanceCollection", component: () => import("../views/FinanceCollection.vue"), meta: { roles: ["BOSS"] } },
@@ -166,15 +167,18 @@ const routes = [
       { path: "system", name: "System", component: () => import("../views/System.vue"), meta: { roles: ["BOSS"] } },
       { path: "system/config", name: "SystemConfig", component: () => import("../views/SystemConfigView.vue"), meta: { roles: ["BOSS"] } },
       { path: "system/approval/rules", name: "ApprovalRules", component: () => import("../views/ApprovalRules.vue"), meta: { roles: ["BOSS"] } },
+      { path: "report-permissions", name: "ReportPermissions", component: () => import("../views/ReportPermission.vue"), meta: { roles: ["BOSS"] } },
       { path: "system/approval/detail/:id", name: "ApprovalDetail", component: () => import("../views/ApprovalDetail.vue"), meta: { roles: ["BOSS"] } },
       { path: "system/approval/my", name: "MyApprovals", component: () => import("../views/MyApprovals.vue"), meta: { roles: ["BOSS"] } },
 { path: "system/payment", name: "PaymentConfig", component: () => import("../views/PaymentConfigView.vue"), meta: { roles: ["BOSS"] } },
       { path: "system/miniapp", name: "MiniappConfig", component: () => import("../views/MiniappConfigView.vue"), meta: { roles: ["BOSS"] } },
-      // 13. 积分商城 + 营销素材 + 部门管理 + 会话管理（阿澈 P20-C/D）
+      // 积分商城 + 营销素材 + 部门管理 + 会话管理（阿澈 P20-C/D）
       { path: "points-mall", name: "PointsMall", component: () => import("../views/PointsMall.vue"), meta: { title: "积分商城", roles: ["BOSS"] } },
       { path: "marketing-asset", name: "MarketingAsset", component: () => import("../views/MarketingAsset.vue"), meta: { title: "营销素材", roles: ["BOSS"] } },
       { path: "departments", name: "DepartmentManage", component: () => import("../views/DepartmentManage.vue"), meta: { title: "部门管理", roles: ["BOSS"] } },
-      { path: "sessions", name: "SessionManage", component: () => import("../views/SessionManage.vue"), meta: { title: "会话管理", roles: ["BOSS"] } }
+      { path: "sessions", name: "SessionManage", component: () => import("../views/SessionManage.vue"), meta: { title: "会话管理", roles: ["BOSS"] } },
+      // 消费者地址（墨 P20-B）
+      { path: "consumer-addresses", name: "ConsumerAddresses", component: () => import("../views/ConsumerAddress.vue"), meta: { roles: ["BOSS"] } }
     ]
   },
   { path: "/:pathMatch(.*)*", name: "NotFound", component: NotFound, meta: { requiresAuth: false } }

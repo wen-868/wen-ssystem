@@ -47,19 +47,8 @@
                 <el-input v-model="currentConfig.appVersion" placeholder="请输入小程序版本号" />
               </el-form-item>
 
-              <el-form-item label="小程序描述" prop="appDescription">
-                <el-input v-model="currentConfig.appDescription" placeholder="请输入小程序描述" />
-              </el-form-item>
-
-              <el-form-item label="小程序图标" prop="appIcon">
-                <el-input v-model="currentConfig.appIcon" placeholder="请输入图标URL" />
-              </el-form-item>
-
-              <el-form-item label="状态">
-                <el-select v-model="currentConfig.status" style="width: 200px">
-                  <el-option label="草稿" value="draft" />
-                  <el-option label="已发布" value="published" />
-                </el-select>
+              <el-form-item label="启用">
+                <el-switch v-model="currentConfig.enabled" />
               </el-form-item>
 
               <el-form-item>
@@ -215,7 +204,7 @@
 
 <script setup lang="ts">
 import { computed, onMounted, reactive, ref } from "vue";
-import { api } from "../api";
+import axios from "axios";
 import { ElMessage, type FormInstance, type FormRules } from "element-plus";
 import { Check, CircleCheck, CircleClose, Loading } from "@element-plus/icons-vue";
 import PageCard from "../components/PageCard.vue";
@@ -243,11 +232,11 @@ const activePlatform = ref("wechat");
 const configLoading = ref(false);
 const saving = ref(false);
 
-const configs = reactive<Record<string, { appId: string; appSecret: string; appName: string; appVersion: string; appDescription: string; appIcon: string; status: string }>>({
-  wechat: { appId: "", appSecret: "", appName: "", appVersion: "", appDescription: "", appIcon: "", status: "draft" },
-  alipay: { appId: "", appSecret: "", appName: "", appVersion: "", appDescription: "", appIcon: "", status: "draft" },
-  douyin: { appId: "", appSecret: "", appName: "", appVersion: "", appDescription: "", appIcon: "", status: "draft" },
-  kuaishou: { appId: "", appSecret: "", appName: "", appVersion: "", appDescription: "", appIcon: "", status: "draft" },
+const configs = reactive<Record<string, { appId: string; appSecret: string; appName: string; appVersion: string; enabled: boolean }>>({
+  wechat: { appId: "", appSecret: "", appName: "", appVersion: "", enabled: false },
+  alipay: { appId: "", appSecret: "", appName: "", appVersion: "", enabled: false },
+  douyin: { appId: "", appSecret: "", appName: "", appVersion: "", enabled: false },
+  kuaishou: { appId: "", appSecret: "", appName: "", appVersion: "", enabled: false },
 });
 
 const currentConfig = computed(() => configs[activePlatform.value]);
@@ -272,16 +261,14 @@ function setFormRef(platform: string, el: any) {
 async function loadConfig(platform: string) {
   configLoading.value = true;
   try {
-    const { data: res } = await api.get(`/admin/miniapp/configs/${platform}`);
+    const { data: res } = await axios.get(`/api/admin/miniapp/configs/${platform}`);
     if (res?.data) {
       configs[platform] = {
         appId: res.data.appId || "",
         appSecret: res.data.appSecret || "",
         appName: res.data.appName || "",
         appVersion: res.data.appVersion || "",
-        appDescription: res.data.appDescription || "",
-        appIcon: res.data.appIcon || "",
-        status: res.data.status || "draft",
+        enabled: !!res.data.enabled,
       };
     }
   } catch {
@@ -303,7 +290,7 @@ async function saveConfig() {
     if (!valid) return;
     saving.value = true;
     try {
-      await api.put(`/admin/miniapp/configs/${activePlatform.value}`, {
+      await axios.put(`/api/admin/miniapp/configs/${activePlatform.value}`, {
         ...currentConfig.value,
       });
       ElMessage.success("保存成功");
@@ -332,7 +319,7 @@ const previewVisible = ref(false);
 async function loadTemplates() {
   templateLoading.value = true;
   try {
-    const { data: res } = await api.get("/admin/miniapp/templates");
+    const { data: res } = await axios.get("/api/admin/miniapp/templates");
     if (res?.data) {
       templates.value = res.data;
     }
@@ -367,7 +354,7 @@ const publishResultData = reactive({
 async function handlePublish() {
   publishing.value = true;
   try {
-    const { data: res } = await api.post("/admin/miniapp/publish", {
+    const { data: res } = await axios.post("/api/admin/miniapp/publish", {
       platform: activePlatform.value,
       templateId: selectedTemplate.value?.id || "",
       version: publishVersion.value || undefined,
@@ -401,7 +388,7 @@ const logsTotal = ref(0);
 async function loadPublishLogs() {
   logsLoading.value = true;
   try {
-    const { data: res } = await api.get("/admin/miniapp/publish-logs", {
+    const { data: res } = await axios.get("/api/admin/miniapp/publish-logs", {
       params: {
         page: logsPage.value,
         pageSize: logsPageSize.value,

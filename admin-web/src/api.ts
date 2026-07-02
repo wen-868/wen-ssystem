@@ -1477,6 +1477,9 @@ export async function fetchOrderBoardData() {
   return data.data;
 }
 
+export const fetchRetailCartAnalysis = (params?: { keyword?: string; page?: number; pageSize?: number }) =>
+  api.get("/admin/retail-cart/analysis", { params });
+
 // ==================== Brand APIs ====================
 export async function fetchBrands(params?: { keyword?: string; status?: string; page?: number; pageSize?: number }) {
   const { data } = await api.get("/admin/brands", { params: { page: 1, pageSize: 20, ...params } });
@@ -2233,7 +2236,7 @@ export const publishMiniapp = (data: any) => api.post('/admin/miniapp/publish', 
 export const fetchMiniappPublishLogs = (params: any) => api.get('/admin/miniapp/publish-logs', { params });
 export const setTenantModules = (id: number, data: any) => api.put(`/admin/tenants/${id}/modules`, data);
 
-// ==================== 积分商城 ====================
+// ==================== 积分商城（阿澈） ====================
 export function getPointsMallItems(params?: any) { return api.get('/admin/points-mall/items', { params }); }
 export function createPointsMallItem(data: any) { return api.post('/admin/points-mall/items', data); }
 export function updatePointsMallItem(id: number, data: any) { return api.put(`/admin/points-mall/items/${id}`, data); }
@@ -2241,20 +2244,57 @@ export function deletePointsMallItem(id: number) { return api.delete(`/admin/poi
 export function getPointsMallOrders(params?: any) { return api.get('/admin/points-mall/orders', { params }); }
 export function deliverPointsMallOrder(id: number, data?: any) { return api.post(`/admin/points-mall/orders/${id}/deliver`, data); }
 
-// ==================== 营销素材 ====================
+// ==================== 营销素材（阿澈） ====================
 export function getMarketingAssets(params?: any) { return api.get('/admin/marketing-assets', { params }); }
 export function createMarketingAsset(data: any) { return api.post('/admin/marketing-assets', data); }
 export function updateMarketingAsset(id: number, data: any) { return api.put(`/admin/marketing-assets/${id}`, data); }
 export function deleteMarketingAsset(id: number) { return api.delete(`/admin/marketing-assets/${id}`); }
 
-// ==================== 部门管理 ====================
+// ==================== 部门管理（阿澈） ====================
 export function getDepartments(params?: any) { return api.get('/admin/departments', { params }); }
 export function getDepartmentTree() { return api.get('/admin/departments/tree'); }
 export function createDepartment(data: any) { return api.post('/admin/departments', data); }
 export function updateDepartment(id: number, data: any) { return api.put(`/admin/departments/${id}`, data); }
 export function deleteDepartment(id: number) { return api.delete(`/admin/departments/${id}`); }
 
-// ==================== 用户会话 ====================
+// ==================== 用户会话（阿澈） ====================
 export function getUserSessions(params?: any) { return api.get('/admin/user-sessions', { params }); }
 export function revokeSession(id: number) { return api.delete(`/admin/user-sessions/${id}`); }
 export function getOnlineStats() { return api.get('/admin/user-sessions/stats'); }
+
+// ==================== 零售公告（墨） ====================
+export async function fetchRetailAnnouncements(params?: { storeId?: number; keyword?: string; page?: number; pageSize?: number }) {
+  const { data } = await api.get("/admin/retail-announcements", { params: { page: 1, pageSize: 20, ...params } });
+  return data.data;
+}
+export async function createRetailAnnouncement(payload: { storeId: number; title: string; content: string; isTop: boolean; startTime: string; endTime: string }) {
+  const { data } = await api.post("/admin/retail-announcements", payload);
+  return data.data;
+}
+export async function updateRetailAnnouncement(id: number, payload: { storeId?: number; title?: string; content?: string; isTop?: boolean; startTime?: string; endTime?: string; status?: string }) {
+  const { data } = await api.put(`/admin/retail-announcements/${id}`, payload);
+  return data.data;
+}
+export async function deleteRetailAnnouncement(id: number) {
+  const { data } = await api.delete(`/admin/retail-announcements/${id}`);
+  return data.data;
+}
+
+// ==================== 消费者地址（墨） ====================
+export async function fetchConsumerAddresses(params?: { userId?: number | string; page?: number; pageSize?: number }) {
+  const { data } = await api.get("/admin/consumer-addresses", { params: { page: 1, pageSize: 20, ...params } });
+  return data.data;
+}
+export async function fetchConsumerAddressDetail(id: number) {
+  const { data } = await api.get(`/admin/consumer-addresses/${id}`);
+  return data.data;
+}
+
+// ==================== 报表权限（墨） ====================
+export const fetchReportPermissionMatrix = () => api.get("/admin/report-permissions/matrix");
+export const saveReportPermissionMatrix = (data: Array<{ role_id: number; report_code: string; store_scope: string }>) =>
+  api.put("/admin/report-permissions/matrix", data);
+export const fetchRbacRoles = async () => {
+  const { data } = await api.get("/admin/rbac/roles");
+  return data.data;
+};

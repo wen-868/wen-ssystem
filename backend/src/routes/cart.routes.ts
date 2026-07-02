@@ -17,3 +17,9 @@ miniappCartRouter.get("/cart/count", requireAuthWithTenant, cartController.getCa
 // 结算
 miniappCartRouter.post("/checkout/preview", requireAuthWithTenant, cartController.checkoutPreview);
 miniappCartRouter.post("/checkout/create", requireAuthWithTenant, cartController.createCheckoutOrder);
+
+// 零售购物车
+miniappCartRouter.post("/retail-cart/add", requireAuthWithTenant, cartController.addToRetailCart);
+miniappCartRouter.delete("/retail-cart/:skuId", requireAuthWithTenant, cartController.removeFromRetailCart);
+miniappCartRouter.put("/retail-cart/:skuId", requireAuthWithTenant, cartController.updateRetailCartItem);
+miniappCartRouter.get("/retail-cart", requireAuthWithTenant, cartController.getRetailCart);
