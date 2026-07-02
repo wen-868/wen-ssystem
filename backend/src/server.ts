@@ -89,6 +89,9 @@ import { workbenchRouter } from "./routes/workbench.routes.js";
 import paymentConfigRouter from "./routes/payment-config.routes.js";
 import miniappConfigRouter from "./routes/miniapp-config.routes.js";
 import syncRouter from "./routes/sync.routes.js";
+import { orderSyncLogRouter } from "./routes/miniapp-order-sync.routes.js";
+import { platformReconciliationRouter } from "./routes/platform-reconciliation.routes.js";
+import { platformReviewRouter } from "./routes/platform-review.routes.js";
 
 const app = express();
 
@@ -209,6 +212,9 @@ app.use("/api/admin", requireAuthWithTenant, workbenchRouter);
 app.use("/api/admin/payment", requireAuthWithTenant, paymentConfigRouter);
 app.use("/api/admin/miniapp", requireAuthWithTenant, miniappConfigRouter);
 app.use("/api/miniapp/sync", requireAuthWithTenant, syncRouter);
+app.use("/api/admin/order-sync-logs", requireAuthWithTenant, orderSyncLogRouter);
+app.use("/api/admin/platform-reconciliations", requireAuthWithTenant, platformReconciliationRouter);
+app.use("/api/admin/platform-reviews", requireAuthWithTenant, platformReviewRouter);
 
 app.use(errorHandler);
 
