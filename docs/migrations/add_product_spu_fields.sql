@@ -1,6 +1,8 @@
 -- 商品中心字段补齐（Phase 2）
 -- 日期：2026-06-28
 -- 说明：补齐 product_spu / product_sku / product_category 缺失字段
+-- 注意：ADD COLUMN IF NOT EXISTS 为 MariaDB 语法，MySQL 8.0 请使用
+--       add_tenant_id.sql 中的 add_column_if_not_exists 存储过程替代
 
 ALTER TABLE product_spu
   ADD COLUMN IF NOT EXISTS brand VARCHAR(128) DEFAULT NULL COMMENT '品牌',

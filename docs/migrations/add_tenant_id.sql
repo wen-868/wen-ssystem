@@ -59,25 +59,15 @@ END$$
 DELIMITER ;
 
 -- ============================================================
--- 第1步：新建 tenant 表
+-- 第1步：tenant 表（已由 029_add_tenant.sql 创建，此处跳过）
+-- 注意：029_add_tenant.sql 使用 id INT AUTO_INCREMENT，引用 tenant 时请使用 INT 类型
 -- ============================================================
-CREATE TABLE IF NOT EXISTS tenant (
-  id VARCHAR(36) PRIMARY KEY COMMENT '租户ID（UUID）',
-  name VARCHAR(100) NOT NULL COMMENT '租户名称（公司名）',
-  contact_name VARCHAR(50) COMMENT '联系人',
-  contact_phone VARCHAR(20) COMMENT '联系电话',
-  plan VARCHAR(20) DEFAULT 'basic' COMMENT '套餐：basic/professional/enterprise',
-  status TINYINT DEFAULT 1 COMMENT '1=正常 0=停用',
-  expire_at DATETIME COMMENT '到期时间',
-  created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
-  updated_at DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
-  INDEX idx_tenant_status (status),
-  INDEX idx_tenant_expire (expire_at)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='租户表';
-
-INSERT INTO tenant (id, name, contact_name, contact_phone, plan, status)
-VALUES ('default', '默认租户', '系统管理员', '13800138000', 'basic', 1)
-ON DUPLICATE KEY UPDATE updated_at = NOW();
+-- 如果 tenant 表尚未创建，取消下面的注释来执行：
+-- CREATE TABLE IF NOT EXISTS tenant (
+--   id INT AUTO_INCREMENT PRIMARY KEY COMMENT '租户ID',
+--   ... 字段定义见 029_add_tenant.sql
+-- ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='租户表';
+-- 注意：tenant 表数据由 029_add_tenant.sql 初始化，此处不重复插入
 
 -- ============================================================
 -- 第2步：为所有表添加 tenant_id 字段
@@ -183,16 +173,16 @@ CALL add_column_if_not_exists('notification', 'tenant_id', "VARCHAR(36) NOT NULL
 CALL add_column_if_not_exists('operation_log', 'tenant_id', "VARCHAR(36) NOT NULL DEFAULT 'default' COMMENT '租户ID' AFTER id");
 CALL add_column_if_not_exists('product_price_log', 'tenant_id', "VARCHAR(36) NOT NULL DEFAULT 'default' COMMENT '租户ID' AFTER id");
 
--- 审批流程相关
-CALL add_column_if_not_exists('approval_rule', 'tenant_id', "VARCHAR(36) NOT NULL DEFAULT 'default' COMMENT '租户ID' AFTER id");
-CALL add_column_if_not_exists('approval_instance', 'tenant_id', "VARCHAR(36) NOT NULL DEFAULT 'default' COMMENT '租户ID' AFTER id");
-CALL add_column_if_not_exists('approval_task', 'tenant_id', "VARCHAR(36) NOT NULL DEFAULT 'default' COMMENT '租户ID' AFTER id");
-CALL add_column_if_not_exists('approval_log', 'tenant_id', "VARCHAR(36) NOT NULL DEFAULT 'default' COMMENT '租户ID' AFTER id");
-CALL add_column_if_not_exists('approval_approver', 'tenant_id', "VARCHAR(36) NOT NULL DEFAULT 'default' COMMENT '租户ID' AFTER id");
-CALL add_column_if_not_exists('approval_notification', 'tenant_id', "VARCHAR(36) NOT NULL DEFAULT 'default' COMMENT '租户ID' AFTER id");
+-- 审批流程相关（TODO: 审批模块DDL尚未创建，启用前需先创建对应表）
+-- CALL add_column_if_not_exists('approval_rule', 'tenant_id', "VARCHAR(36) NOT NULL DEFAULT 'default' COMMENT '租户ID' AFTER id");
+-- CALL add_column_if_not_exists('approval_instance', 'tenant_id', "VARCHAR(36) NOT NULL DEFAULT 'default' COMMENT '租户ID' AFTER id");
+-- CALL add_column_if_not_exists('approval_task', 'tenant_id', "VARCHAR(36) NOT NULL DEFAULT 'default' COMMENT '租户ID' AFTER id");
+-- CALL add_column_if_not_exists('approval_log', 'tenant_id', "VARCHAR(36) NOT NULL DEFAULT 'default' COMMENT '租户ID' AFTER id");
+-- CALL add_column_if_not_exists('approval_approver', 'tenant_id', "VARCHAR(36) NOT NULL DEFAULT 'default' COMMENT '租户ID' AFTER id");
+-- CALL add_column_if_not_exists('approval_notification', 'tenant_id', "VARCHAR(36) NOT NULL DEFAULT 'default' COMMENT '租户ID' AFTER id");
 
--- 每日结算
-CALL add_column_if_not_exists('daily_settlement', 'tenant_id', "VARCHAR(36) NOT NULL DEFAULT 'default' COMMENT '租户ID' AFTER id");
+-- 每日结算（TODO: daily_settlement 表尚未创建，启用前需先创建对应表）
+-- CALL add_column_if_not_exists('daily_settlement', 'tenant_id', "VARCHAR(36) NOT NULL DEFAULT 'default' COMMENT '租户ID' AFTER id");
 
 -- ============================================================
 -- 第3步：为所有表添加 tenant_id 索引
@@ -260,13 +250,14 @@ CALL add_index_if_not_exists('credit_operation_log', 'idx_credit_operation_log_t
 CALL add_index_if_not_exists('notification', 'idx_notification_tenant', '(tenant_id)');
 CALL add_index_if_not_exists('operation_log', 'idx_operation_log_tenant', '(tenant_id)');
 CALL add_index_if_not_exists('product_price_log', 'idx_product_price_log_tenant', '(tenant_id)');
-CALL add_index_if_not_exists('approval_rule', 'idx_approval_rule_tenant', '(tenant_id)');
-CALL add_index_if_not_exists('approval_instance', 'idx_approval_instance_tenant', '(tenant_id)');
-CALL add_index_if_not_exists('approval_task', 'idx_approval_task_tenant', '(tenant_id)');
-CALL add_index_if_not_exists('approval_log', 'idx_approval_log_tenant', '(tenant_id)');
-CALL add_index_if_not_exists('approval_approver', 'idx_approval_approver_tenant', '(tenant_id)');
-CALL add_index_if_not_exists('approval_notification', 'idx_approval_notification_tenant', '(tenant_id)');
-CALL add_index_if_not_exists('daily_settlement', 'idx_daily_settlement_tenant', '(tenant_id)');
+-- TODO: 审批模块DDL尚未创建，启用前需先创建对应表
+-- CALL add_index_if_not_exists('approval_rule', 'idx_approval_rule_tenant', '(tenant_id)');
+-- CALL add_index_if_not_exists('approval_instance', 'idx_approval_instance_tenant', '(tenant_id)');
+-- CALL add_index_if_not_exists('approval_task', 'idx_approval_task_tenant', '(tenant_id)');
+-- CALL add_index_if_not_exists('approval_log', 'idx_approval_log_tenant', '(tenant_id)');
+-- CALL add_index_if_not_exists('approval_approver', 'idx_approval_approver_tenant', '(tenant_id)');
+-- CALL add_index_if_not_exists('approval_notification', 'idx_approval_notification_tenant', '(tenant_id)');
+-- CALL add_index_if_not_exists('daily_settlement', 'idx_daily_settlement_tenant', '(tenant_id)');
 
 -- ============================================================
 -- 第4步：更新 sys_user 表的租户关系（默认租户）

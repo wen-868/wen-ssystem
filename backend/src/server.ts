@@ -82,7 +82,6 @@ import { customerSegmentRouter } from "./routes/customer-segment.routes.js";
 import { receiptRouter } from "./routes/receipt.routes.js";
 import { paymentNewRouter } from "./routes/payment-new.routes.js";
 import { receivableRouter } from "./routes/receivable.routes.js";
-import { reportPermissionRouter } from "./routes/report-permission.routes.js";
 import { expenseRouter } from "./routes/expense.routes.js";
 import { reconciliationRouter } from "./routes/reconciliation.routes.js";
 import { retailAnnouncementRouter } from "./routes/retail-announcement.routes.js";
@@ -90,8 +89,6 @@ import { operationLogRouter } from "./routes/operation-log.routes.js";
 import { sysUserRouter } from "./routes/sys-user.routes.js";
 import { systemRouter } from "./routes/system.routes.js";
 import { workbenchRouter } from "./routes/workbench.routes.js";
-import paymentConfigRouter from "./routes/payment-config.routes.js";
-import miniappConfigRouter from "./routes/miniapp-config.routes.js";
 import syncRouter from "./routes/sync.routes.js";
 import { orderSyncLogRouter } from "./routes/miniapp-order-sync.routes.js";
 import { platformReconciliationRouter } from "./routes/platform-reconciliation.routes.js";
@@ -229,17 +226,13 @@ app.use("/api/admin/operation-logs", requireAuthWithTenant, operationLogRouter);
 app.use("/api/admin/sys-users", requireAuthWithTenant, sysUserRouter);
 app.use("/api/system", systemRouter);
 app.use("/api/admin", requireAuthWithTenant, workbenchRouter);
-app.use("/api/admin/payment", requireAuthWithTenant, paymentConfigRouter);
-app.use("/api/admin/miniapp", requireAuthWithTenant, miniappConfigRouter);
+app.use("/api/admin/custom-reports", requireAuthWithTenant, customReportRouter);
 app.use("/api/miniapp/sync", requireAuthWithTenant, syncRouter);
 app.use("/api/admin/order-sync-logs", requireAuthWithTenant, orderSyncLogRouter);
 app.use("/api/admin/platform-reconciliations", requireAuthWithTenant, platformReconciliationRouter);
 app.use("/api/admin/platform-reviews", requireAuthWithTenant, platformReviewRouter);
-app.use("/api/admin/reports", requireAuthWithTenant, customReportRouter);
-
 app.use("/api", retailAnnouncementRouter);
 app.use("/api", consumerAddressRouter);
-app.use("/api", reportPermissionRouter);
 
 app.use(errorHandler);
 

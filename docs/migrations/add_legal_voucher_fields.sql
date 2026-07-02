@@ -5,6 +5,8 @@
 --   1. sale_bill_item 增加 unit/barcode/spec 快照字段
 --   2. sale_bill 增加 store_name/store_address/store_contact 法律凭证字段
 --   3. collection_link 增加 display_config/document_title 自定义显示配置
+-- 注意：ADD COLUMN IF NOT EXISTS 为 MariaDB 语法，MySQL 8.0 请使用
+--       add_tenant_id.sql 中的 add_column_if_not_exists 存储过程替代
 -- ============================================================
 
 -- 1. sale_bill_item 增加快照字段
