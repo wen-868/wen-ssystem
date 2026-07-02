@@ -1,0 +1,37 @@
+-- 来源: phase9_tenant_subscription.sql
+CREATE TABLE IF NOT EXISTS subscription (
+  id INT AUTO_INCREMENT PRIMARY KEY,
+  subscription_no VARCHAR(32) NOT NULL UNIQUE COMMENT '订阅编号（如：SUB20260623001）',
+  tenant_id INT NOT NULL COMMENT '租户ID',
+  plan_id INT NOT NULL COMMENT '套餐ID',
+  plan_name VARCHAR(64) NOT NULL COMMENT '套餐名称（冗余）',
+  plan_type VARCHAR(32) NOT NULL COMMENT '套餐类型',
+  start_date DATE NOT NULL COMMENT '开始日期',
+  end_date DATE NOT NULL COMMENT '结束日期',
+  duration_days INT NOT NULL COMMENT '有效天数',
+  price DECIMAL(10,2) NOT NULL COMMENT '订阅价格',
+  payment_status VARCHAR(16) NOT NULL DEFAULT 'UNPAID' COMMENT '支付状态（UNPAID/PAID/PARTIAL/REFUNDED）',
+  payment_method VARCHAR(32) COMMENT '支付方式（WECHAT/ALIPAY/BANK_TRANSFER/CASH）',
+  paid_at DATETIME COMMENT '支付时间',
+  transaction_no VARCHAR(128) COMMENT '交易流水号',
+  auto_renew TINYINT(1) NOT NULL DEFAULT 0 COMMENT '是否自动续费',
+  renew_price DECIMAL(10,2) COMMENT '续费价格',
+  status VARCHAR(16) NOT NULL DEFAULT 'ACTIVE' COMMENT '状态（ACTIVE/EXPIRED/CANCELLED/SUSPENDED）',
+  cancel_reason VARCHAR(255) COMMENT '取消原因',
+  cancelled_at DATETIME COMMENT '取消时间',
+  expire_notify_sent TINYINT(1) NOT NULL DEFAULT 0 COMMENT '是否已发送到期通知',
+  expire_notify_at DATETIME COMMENT '到期通知发送时间',
+  remark VARCHAR(500) COMMENT '备注',
+  created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  updated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  
+  INDEX idx_subscription_no (subscription_no),
+  INDEX idx_subscription_tenant (tenant_id),
+  INDEX idx_subscription_plan (plan_id),
+  INDEX idx_subscription_status (status),
+  INDEX idx_subscription_end_date (end_date),
+  INDEX idx_subscription_payment (payment_status),
+  
+  FOREIGN KEY (tenant_id) REFERENCES tenant(id) ON DELETE CASCADE,
+  FOREIGN KEY (plan_id) REFERENCES subscription_plan(id) ON DELETE RESTRICT
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='订阅表';

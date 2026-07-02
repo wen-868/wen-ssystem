@@ -1,0 +1,31 @@
+-- 来源: phase10_marketing.sql
+CREATE TABLE IF NOT EXISTS coupon_template (
+  id INT AUTO_INCREMENT PRIMARY KEY,
+  template_code VARCHAR(32) NOT NULL UNIQUE COMMENT '模板编码',
+  template_name VARCHAR(128) NOT NULL COMMENT '模板名称',
+  coupon_type VARCHAR(32) NOT NULL COMMENT '优惠券类型（AMOUNT/DISCOUNT/GIFT）',
+  coupon_value DECIMAL(10,2) NOT NULL COMMENT '优惠值（金额/折扣率）',
+  min_purchase DECIMAL(10,2) NOT NULL DEFAULT 0 COMMENT '最低消费金额',
+  max_discount DECIMAL(10,2) COMMENT '最大优惠金额（折扣券用）',
+  applicable_scope VARCHAR(32) NOT NULL DEFAULT 'ALL' COMMENT '适用范围（ALL/CATEGORY/PRODUCT/STORE）',
+  applicable_ids JSON COMMENT '适用范围ID列表（商品ID/分类ID/门店ID）',
+  total_quantity INT NOT NULL DEFAULT 0 COMMENT '发行总量（0表示不限量）',
+  issued_quantity INT NOT NULL DEFAULT 0 COMMENT '已发行数量',
+  used_quantity INT NOT NULL DEFAULT 0 COMMENT '已使用数量',
+  per_limit INT NOT NULL DEFAULT 1 COMMENT '每人限领数量',
+  valid_type VARCHAR(32) NOT NULL COMMENT '有效期类型（FIXED/DAYS）',
+  valid_start DATETIME COMMENT '固定开始时间',
+  valid_end DATETIME COMMENT '固定结束时间',
+  valid_days INT COMMENT '领取后有效天数',
+  status VARCHAR(16) NOT NULL DEFAULT 'DRAFT' COMMENT '状态（DRAFT/ACTIVE/PAUSED/EXPIRED/DEPLETED）',
+  description VARCHAR(500) COMMENT '使用说明',
+  tenant_id VARCHAR(36) NOT NULL COMMENT '租户ID',
+  created_by INT COMMENT '创建人ID',
+  created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  updated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  
+  INDEX idx_template_code (template_code),
+  INDEX idx_template_status (status),
+  INDEX idx_template_tenant (tenant_id),
+  INDEX idx_template_valid (valid_start, valid_end)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='优惠券模板表';
