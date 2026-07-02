@@ -1,7 +1,21 @@
 # 阿澈 — 智享全链管理系统 v7.0 任务清单 (P17→P22)
 
 > 总工作量：10天 | P0: 5天 | P1: 3.5天 | P2: 1.5天  
+> **状态：⚠️ 核心完成，4个DDL待补（2026-07-02 已合并到main）**  
 > 开始前请先阅读：`docs/task-plan-v7.md`（总体规划）、`docs/task-breakdown-v7.md`（完整字段定义）
+
+| 任务 | 状态 |
+|------|:---:|
+| P17-A 14张缺失表DDL | ⚠️ 10/14 |
+| P17-B 19张Phase表迁移 | ✅ |
+| P18-C 权限矩阵+监控 | ✅ |
+| P19-C 营销P1后端 | ✅ |
+| P19-D 系统P1后端 | ✅ |
+| P20-C 营销P1前端 | ✅ |
+| P20-D 系统P1前端 | ✅ |
+| P21-C 营销P2 | ✅ |
+
+> 🔴 **待补**: `add_retail_announcement.sql`, `add_retail_cart.sql`, `add_retail_consumer_address.sql`, `add_report_permission_matrix.sql`
 
 ---
 
