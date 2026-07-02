@@ -1338,8 +1338,28 @@ export async function mockExecute(sql: string, params: unknown[] = []) {
 
   // 供应商 UPDATE
   if (s.includes("update supplier set") && s.includes("where id")) {
-    const supplier = state.suppliers.find((sup: Row) => sup.id === Number(params[params.length - 2]));
+    const id = Number(params[params.length - 2]);
+    const supplier = state.suppliers.find((sup: Row) => sup.id === id);
     if (supplier) {
+      const setClause = s.match(/set (.+?) where/);
+      if (setClause) {
+        const assignments = setClause[1].split(",").map((a: string) => a.trim());
+        let paramIdx = 0;
+        for (const assign of assignments) {
+          const eqMatch = assign.match(/^(\w+)\s*=\s*(.+)$/);
+          if (!eqMatch) continue;
+          const col = eqMatch[1].trim();
+          const val = eqMatch[2].trim();
+          if (val === "?") {
+            (supplier as any)[col] = params[paramIdx];
+            paramIdx++;
+          } else if (val === "now()" || val === "current_timestamp") {
+            (supplier as any)[col] = new Date().toISOString();
+          } else if (val.startsWith("'") && val.endsWith("'")) {
+            (supplier as any)[col] = val.slice(1, -1);
+          }
+        }
+      }
       supplier.updated_at = new Date().toISOString();
     }
     return result();
@@ -1519,6 +1539,8 @@ export async function mockExecute(sql: string, params: unknown[] = []) {
     const id = state.saleReturns.length + 1;
     const statusMatch = s.match(/return_status[^,]*,\s*'([^']+)'/);
     const returnStatus = statusMatch ? statusMatch[1].toUpperCase() : "PENDING";
+    const refundedMatch = s.match(/refunded_amount[^,]*,\s*(\d+)/);
+    const refundedAmount = refundedMatch ? Number(refundedMatch[1]) : 0;
     state.saleReturns.push({
       id,
       return_no: params[0],
@@ -1531,10 +1553,11 @@ export async function mockExecute(sql: string, params: unknown[] = []) {
       goods_amount: params[6],
       discount_amount: params[7],
       refund_amount: params[8],
-      refunded_amount: params[9],
-      refund_method: params[10],
-      operator_id: params[11],
-      remark: params[12],
+      refunded_amount: refundedAmount,
+      refund_method: null,
+      operator_id: params[9],
+      remark: params[10],
+      tenant_id: params[11],
       created_at: new Date().toISOString(),
     });
     return result(id);
@@ -1560,24 +1583,26 @@ export async function mockExecute(sql: string, params: unknown[] = []) {
   // 客户对账单 INSERT
   if (s.includes("insert into customer_statement (")) {
     const id = state.customerStatements.length + 1;
-    const statusMatch = s.match(/statement_status[^,]*,\s*'([^']+)'/);
-    const stmtStatus = statusMatch ? statusMatch[1].toUpperCase() : "PENDING";
+    const statusMatch = s.match(/status[^,]*,\s*'([^']+)'/);
+    const stmtStatus = statusMatch ? statusMatch[1].toUpperCase() : "DRAFT";
     state.customerStatements.push({
       id,
       statement_no: params[0],
       customer_id: params[1],
       customer_name: params[2],
-      start_date: params[3],
-      end_date: params[4],
-      statement_status: stmtStatus,
-      opening_balance: params[5],
-      total_sales: params[6],
-      total_returns: params[7],
-      total_payments: params[8],
-      closing_balance: params[9],
+      customer_mobile: params[3],
+      statement_type: params[4],
+      start_date: params[5],
+      end_date: params[6],
+      opening_balance: params[7],
+      total_sales: params[8],
+      total_returns: params[9],
+      total_payments: params[10],
+      closing_balance: params[11],
       status: stmtStatus,
-      operator_id: params[10],
-      remark: params[11],
+      operator_id: params[12],
+      remark: params[13],
+      tenant_id: params[14],
       created_at: new Date().toISOString(),
     });
     return result(id);
@@ -1675,8 +1700,12 @@ export async function mockExecute(sql: string, params: unknown[] = []) {
     const returnNo = params[params.length - 1] as string;
     const ret = state.saleReturns.find((r: Row) => r.return_no === returnNo);
     if (ret) {
-      if (params[0] !== undefined) ret.return_status = params[0] as string;
-      if (params[1] !== undefined) ret.refund_method = params[1] as string;
+      const statusMatch = s.match(/return_status = '([^']+)'/);
+      if (statusMatch) ret.return_status = statusMatch[1].toUpperCase();
+      const refundMatch = s.match(/refund_method = \?/);
+      if (refundMatch && params.length >= 2) ret.refund_method = params[0] as string;
+      const refundedMatch = s.match(/refunded_amount = refund_amount/);
+      if (refundedMatch) ret.refunded_amount = ret.refund_amount;
       ret.updated_at = new Date().toISOString();
     }
     return result();
@@ -1687,7 +1716,8 @@ export async function mockExecute(sql: string, params: unknown[] = []) {
     const stmtNo = params[params.length - 1] as string;
     const stmt = state.customerStatements.find((s: Row) => s.statement_no === stmtNo);
     if (stmt) {
-      if (params[0] !== undefined) stmt.status = params[0] as string;
+      const statusMatch = s.match(/set status = '([^']+)'/);
+      if (statusMatch) stmt.status = statusMatch[1].toUpperCase();
       stmt.updated_at = new Date().toISOString();
     }
     return result();
@@ -1705,6 +1735,19 @@ export async function mockExecute(sql: string, params: unknown[] = []) {
   }
 
   return result();
+}
+
+async function mockExecuteWrapper(sql: string, params: unknown[] = []) {
+  const s = sql.toLowerCase().replace(/\s+/g, " ");
+  if (s.startsWith("select") || s.startsWith("show")) {
+    const rows = await mockQuery(sql, params);
+    return [rows, undefined];
+  }
+  const okPacket = await mockExecute(sql, params);
+  const result: any = [okPacket, undefined];
+  result.insertId = okPacket.insertId;
+  result.affectedRows = okPacket.affectedRows;
+  return result;
 }
 
 export function resetMockDb() {
@@ -1725,6 +1768,6 @@ export function resetMockDb() {
 }
 
 export const mockConn = {
-  execute: mockExecute,
+  execute: mockExecuteWrapper,
   query: async (sql: string, params: unknown[] = []) => [await mockQuery(sql, params), undefined]
 } as any;
