@@ -222,13 +222,15 @@ liquor-inventory-system/
 - **林夕** ✅：设计稿通过
 - **合并提交**：`ea5f941` — 26 文件 +3362 行
 
-### Phase 16 · 字段对齐修复（进行中 🔄）
+### Phase 16 · 字段对齐修复（已完成 ✅）
 
 - **审计日期**：2026-07-02
-- **背景**：Phase 15 字段级审计发现大量 DDL vs Service vs 前端三方字段不一致
-- **阿坚 7项** 🔄：miniapp-template.service重写(虚构字段→DDL实际字段) + wechat-pay.private_key_path→private_key + payment-config.provider统一 + config_key camelCase→snake_case映射 + miniapp-publish INSERT补action/result + miniapp-config INSERT补缺失字段 + is_encrypted智能判断
-- **墨 5项** 🔄：PaymentConfigView enabled值类型修复 + setDefaultBankAccount post→put + bankBranch→branchName + MiniappConfigView enabled移除→status + 补充字段
-- **阿澈 1项** 🔄：config.template.js 占位符与 publish 服务替换逻辑对齐
+- **背景**：Phase 15 字段级审计发现 31 个 DDL vs Service vs 前端三方字段不一致
+- **阿坚 7项** ✅：miniapp-template.service重写(虚构字段→DDL字段) + wechat-pay.private_key→private_key + payment-config KEY_MAP+SENSITIVE_KEYS + miniapp-publish INSERT action/result + miniapp-config INSERT补充字段 + is_encrypted智能判断
+- **墨 5项** ✅：PaymentConfigView enabled→"1"/"0" + bankBranch→branchName + api.ts setDefaultBankAccount PUT + MiniappConfigView enabled保留（UI兼容）
+- **阿澈 1项** ✅：config.template.js 24个占位符与 publish 服务替换逻辑完全对齐
+- **合并提交**：`75e1966` — 11 文件 +295/-93 行
+- **墨 2项未完成**：MiniappConfigView status字段 + appDescription/appIcon（UI增强，不影响功能，后续补）
 
 ### Phase 17 · 技术债务清理（待安排 📋）
 
