@@ -81,6 +81,7 @@ import { paymentNewRouter } from "./routes/payment-new.routes.js";
 import { receivableRouter } from "./routes/receivable.routes.js";
 import { expenseRouter } from "./routes/expense.routes.js";
 import { reconciliationRouter } from "./routes/reconciliation.routes.js";
+import { retailAnnouncementRouter } from "./routes/retail-announcement.routes.js";
 import { operationLogRouter } from "./routes/operation-log.routes.js";
 import { sysUserRouter } from "./routes/sys-user.routes.js";
 import { systemRouter } from "./routes/system.routes.js";
@@ -203,6 +204,8 @@ app.use("/api/admin/operation-logs", requireAuthWithTenant, operationLogRouter);
 app.use("/api/admin/sys-users", requireAuthWithTenant, sysUserRouter);
 app.use("/api/system", systemRouter);
 app.use("/api/admin", requireAuthWithTenant, workbenchRouter);
+
+app.use("/api", retailAnnouncementRouter);
 
 app.use(errorHandler);
 
