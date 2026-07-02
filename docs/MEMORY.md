@@ -212,6 +212,16 @@ liquor-inventory-system/
 - **编译结果**：后端 100→0 ✅ | admin-web 60→0 ✅ | merchant-mobile 45→0 ✅
 - **安全验证**：JWT_SECRET 无 fallback ✅ | .gitignore 含 .env ✅ | auth.service.ts 状态校验正常 ✅ | wechat-pay 签名验证已实现 ✅
 
+### Phase 15 · 支付配置 + 小程序平台（已完成 ✅）
+
+- **审查日期**：2026-07-01 ~ 2026-07-03
+- **背景**：新增支付配置独立二级菜单 + 小程序多平台配置/模板/一键发布 + 实时价格同步
+- **阿坚 13项** ✅：payment-config.service(含银行账号CRUD) + miniapp-config.service + miniapp-template.service + miniapp-publish.service + sync/price-sync.service + sync/product-sync.service + payment-config.routes + miniapp-config.routes + sync.routes + wechat-pay.fromTenant + server.ts路由注册 + order.controller.requirePaymentReady + sales.controller
+- **墨 6项** ✅：PaymentConfigView(微信支付/支付宝/银行账号三Tab) + MiniappConfigView(四平台/三模板/发布历史) + PaymentCheckModal + router路由 + MainLayout菜单 + api.ts
+- **阿澈 6项** ✅：config.template.js(25个__XXX__占位符) + utils/sync.js(SyncManager) + app.js(平台配置注入) + home/index.js(SyncManager集成+off修复) + home/index.wxml + home/index.wxss
+- **林夕** ✅：设计稿通过
+- **合并提交**：`ea5f941` — 26 文件 +3362 行
+
 ---
 
 ## 七、产品规格关键数据
