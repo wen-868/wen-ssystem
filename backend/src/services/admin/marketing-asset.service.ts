@@ -1,0 +1,38 @@
+import { query, queryOne } from "../../shared/db.js";
+
+export async function getMarketingAssets(tenantId: string, params?: { type?: string; category?: string; status?: string; page?: number; pageSize?: number }) {
+  const page = params?.page || 1;
+  const pageSize = params?.pageSize || 20;
+  const offset = (page - 1) * pageSize;
+  let where = "WHERE 1=1";
+  const vals: any[] = [];
+  if (params?.type) { where += " AND type = ?"; vals.push(params.type); }
+  if (params?.category) { where += " AND category = ?"; vals.push(params.category); }
+  if (params?.status) { where += " AND status = ?"; vals.push(params.status); }
+  const [rows, total] = await Promise.all([
+    query<any>(`SELECT * FROM marketing_asset ${where} ORDER BY id DESC LIMIT ${offset}, ${pageSize}`, vals),
+    queryOne<any>(`SELECT COUNT(*) AS cnt FROM marketing_asset ${where}`, vals)
+  ]);
+  return { records: rows, total: total?.cnt || 0, page, pageSize };
+}
+
+export async function createMarketingAsset(data: any) {
+  const result = await query(
+    `INSERT INTO marketing_asset (name, type, url, thumbnail_url, content, category, tags, file_size, status) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+    [data.name, data.type, data.url, data.thumbnailUrl, data.content, data.category, JSON.stringify(data.tags || []), data.fileSize, data.status || 'ACTIVE']
+  );
+  return { id: (result as any).insertId };
+}
+
+export async function updateMarketingAsset(id: number, data: any) {
+  await query(
+    `UPDATE marketing_asset SET name=?, category=?, tags=?, status=? WHERE id=?`,
+    [data.name, data.category, JSON.stringify(data.tags || []), data.status, id]
+  );
+  return { success: true };
+}
+
+export async function deleteMarketingAsset(id: number) {
+  await query(`DELETE FROM marketing_asset WHERE id=?`, [id]);
+  return { success: true };
+}

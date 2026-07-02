@@ -1633,6 +1633,94 @@ export async function fetchCustomerStats() {
   return data.data;
 }
 
+// ==================== Order Sync Log APIs ====================
+export async function fetchOrderSyncLogs(params?: { page?: number; pageSize?: number; orderNo?: string; status?: number }) {
+  const { data } = await api.get("/admin/order-sync-logs", { params: { page: 1, pageSize: 20, ...params } });
+  return data.data;
+}
+export async function retryOrderSync(orderNo: string) {
+  const { data } = await api.post(`/admin/order-sync-logs/${orderNo}/retry`);
+  return data.data;
+}
+
+// ==================== Platform Reconciliation APIs ====================
+export async function fetchPlatformReconciliations(params?: { page?: number; pageSize?: number; reconciliationNo?: string; platformName?: string; status?: number }) {
+  const { data } = await api.get("/admin/platform-reconciliations", { params: { page: 1, pageSize: 20, ...params } });
+  return data.data;
+}
+export async function createPlatformReconciliation(payload: { reconciliationNo: string; platformNo: string; platformName: string; type: number; amount: number; status: number; recordedAt?: string }) {
+  const { data } = await api.post("/admin/platform-reconciliations", payload);
+  return data.data;
+}
+export async function updatePlatformReconciliation(id: number, payload: { status?: number; amount?: number }) {
+  const { data } = await api.put(`/admin/platform-reconciliations/${id}`, payload);
+  return data.data;
+}
+export async function fetchPlatformReconciliationDetail(id: number) {
+  const { data } = await api.get(`/admin/platform-reconciliations/${id}`);
+  return data.data;
+}
+
+// ==================== Platform Review APIs ====================
+export async function fetchPlatformReviews(params?: { page?: number; pageSize?: number; platformName?: string; reviewType?: number; status?: number }) {
+  const { data } = await api.get("/admin/platform-reviews", { params: { page: 1, pageSize: 20, ...params } });
+  return data.data;
+}
+export async function replyPlatformReview(id: number, replyContent: string) {
+  const { data } = await api.post(`/admin/platform-reviews/${id}/reply`, { replyContent });
+  return data.data;
+}
+export async function fetchPlatformReviewStats() {
+  const { data } = await api.get("/admin/platform-reviews/stats");
+  return data.data;
+}
+
+// ==================== Custom Report APIs ====================
+export async function fetchReportTemplates(params?: { page?: number; pageSize?: number; keyword?: string; type?: string }) {
+  const { data } = await api.get("/admin/reports/templates", { params: { page: 1, pageSize: 20, ...params } });
+  return data.data;
+}
+export async function createReportTemplate(payload: { name: string; type: string; config?: unknown; description?: string }) {
+  const { data } = await api.post("/admin/reports/templates", payload);
+  return data.data;
+}
+export async function updateReportTemplate(id: number, payload: { name?: string; type?: string; config?: unknown; description?: string; status?: string }) {
+  const { data } = await api.put(`/admin/reports/templates/${id}`, payload);
+  return data.data;
+}
+export async function deleteReportTemplate(id: number) {
+  const { data } = await api.delete(`/admin/reports/templates/${id}`);
+  return data.data;
+}
+export async function executeReportTemplate(id: number, params?: { dateStart?: string; dateEnd?: string }) {
+  const { data } = await api.post(`/admin/reports/templates/${id}/execute`, params || {});
+  return data.data;
+}
+export async function fetchReportSchedules(params?: { page?: number; pageSize?: number; keyword?: string; status?: string }) {
+  const { data } = await api.get("/admin/reports/schedules", { params: { page: 1, pageSize: 20, ...params } });
+  return data.data;
+}
+export async function createReportSchedule(payload: { name: string; templateId: number; cronExpression: string; exportFormat: string; recipients?: string }) {
+  const { data } = await api.post("/admin/reports/schedules", payload);
+  return data.data;
+}
+export async function updateReportSchedule(id: number, payload: { name?: string; templateId?: number; cronExpression?: string; exportFormat?: string; recipients?: string }) {
+  const { data } = await api.put(`/admin/reports/schedules/${id}`, payload);
+  return data.data;
+}
+export async function deleteReportSchedule(id: number) {
+  const { data } = await api.delete(`/admin/reports/schedules/${id}`);
+  return data.data;
+}
+export async function toggleReportSchedule(id: number, status: string) {
+  const { data } = await api.put(`/admin/reports/schedules/${id}/toggle`, { status });
+  return data.data;
+}
+export async function runReportSchedule(id: number) {
+  const { data } = await api.post(`/admin/reports/schedules/${id}/run`);
+  return data.data;
+}
+
 // ==================== Inventory Balance API ====================
 export async function fetchInventoryBalanceList() {
   const { data } = await api.get("/admin/inventory-balance");
@@ -2103,6 +2191,19 @@ export const renewSubscription = (id: number) => api.post(`/admin/subscriptions/
 export const fetchExpiringSubscriptions = () => api.get('/admin/subscriptions/expiring');
 export const fetchExpiredSubscriptions = () => api.get('/admin/subscriptions/expired');
 
+// ==================== 秒杀 ====================
+export function getSeckillProducts(params?: any) { return api.get('/admin/seckill-products', { params }); }
+export function createSeckillProduct(data: any) { return api.post('/admin/seckill-products', data); }
+export function updateSeckillProduct(id: number, data: any) { return api.put(`/admin/seckill-products/${id}`, data); }
+export function deleteSeckillProduct(id: number) { return api.delete(`/admin/seckill-products/${id}`); }
+
+// ==================== 拼团 ====================
+export function getGroupBuyActivities(params?: any) { return api.get('/admin/group-buy-activities', { params }); }
+export function createGroupBuyActivity(data: any) { return api.post('/admin/group-buy-activities', data); }
+export function updateGroupBuyActivity(id: number, data: any) { return api.put(`/admin/group-buy-activities/${id}`, data); }
+export function deleteGroupBuyActivity(id: number) { return api.delete(`/admin/group-buy-activities/${id}`); }
+export function getGroupBuyRecords(params?: any) { return api.get('/admin/group-buy-records', { params }); }
+
 // ==================== Tenant APIs ====================
 export const fetchTenants = (params: any) => api.get('/admin/tenants', { params });
 export const createTenant = (data: any) => api.post('/admin/tenants', data);
@@ -2131,3 +2232,29 @@ export const fetchMiniappTemplate = (id: number) => api.get(`/admin/miniapp/temp
 export const publishMiniapp = (data: any) => api.post('/admin/miniapp/publish', data);
 export const fetchMiniappPublishLogs = (params: any) => api.get('/admin/miniapp/publish-logs', { params });
 export const setTenantModules = (id: number, data: any) => api.put(`/admin/tenants/${id}/modules`, data);
+
+// ==================== 积分商城 ====================
+export function getPointsMallItems(params?: any) { return api.get('/admin/points-mall/items', { params }); }
+export function createPointsMallItem(data: any) { return api.post('/admin/points-mall/items', data); }
+export function updatePointsMallItem(id: number, data: any) { return api.put(`/admin/points-mall/items/${id}`, data); }
+export function deletePointsMallItem(id: number) { return api.delete(`/admin/points-mall/items/${id}`); }
+export function getPointsMallOrders(params?: any) { return api.get('/admin/points-mall/orders', { params }); }
+export function deliverPointsMallOrder(id: number, data?: any) { return api.post(`/admin/points-mall/orders/${id}/deliver`, data); }
+
+// ==================== 营销素材 ====================
+export function getMarketingAssets(params?: any) { return api.get('/admin/marketing-assets', { params }); }
+export function createMarketingAsset(data: any) { return api.post('/admin/marketing-assets', data); }
+export function updateMarketingAsset(id: number, data: any) { return api.put(`/admin/marketing-assets/${id}`, data); }
+export function deleteMarketingAsset(id: number) { return api.delete(`/admin/marketing-assets/${id}`); }
+
+// ==================== 部门管理 ====================
+export function getDepartments(params?: any) { return api.get('/admin/departments', { params }); }
+export function getDepartmentTree() { return api.get('/admin/departments/tree'); }
+export function createDepartment(data: any) { return api.post('/admin/departments', data); }
+export function updateDepartment(id: number, data: any) { return api.put(`/admin/departments/${id}`, data); }
+export function deleteDepartment(id: number) { return api.delete(`/admin/departments/${id}`); }
+
+// ==================== 用户会话 ====================
+export function getUserSessions(params?: any) { return api.get('/admin/user-sessions', { params }); }
+export function revokeSession(id: number) { return api.delete(`/admin/user-sessions/${id}`); }
+export function getOnlineStats() { return api.get('/admin/user-sessions/stats'); }

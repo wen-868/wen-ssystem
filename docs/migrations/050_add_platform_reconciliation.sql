@@ -1,0 +1,20 @@
+CREATE TABLE IF NOT EXISTS platform_reconciliation (
+  id BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+  platform VARCHAR(32) NOT NULL COMMENT '平台',
+  reconciliation_date DATE NOT NULL COMMENT '对账日期',
+  platform_order_count INT NOT NULL DEFAULT 0 COMMENT '平台订单数',
+  platform_amount DECIMAL(12,2) NOT NULL DEFAULT 0.00 COMMENT '平台金额',
+  system_order_count INT NOT NULL DEFAULT 0 COMMENT '系统订单数',
+  system_amount DECIMAL(12,2) NOT NULL DEFAULT 0.00 COMMENT '系统金额',
+  diff_count INT NOT NULL DEFAULT 0 COMMENT '差异单数',
+  diff_amount DECIMAL(12,2) NOT NULL DEFAULT 0.00 COMMENT '差异金额',
+  commission_amount DECIMAL(12,2) DEFAULT NULL COMMENT '佣金金额',
+  status VARCHAR(32) NOT NULL DEFAULT 'PENDING' COMMENT '状态：PENDING/MATCHED/DIFF/ADJUSTED',
+  operator_id BIGINT UNSIGNED DEFAULT NULL COMMENT '对账人',
+  adjusted_at DATETIME DEFAULT NULL COMMENT '调整时间',
+  created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  updated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  UNIQUE KEY uk_platform_date (platform, reconciliation_date),
+  INDEX idx_status (status),
+  INDEX idx_created (created_at)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='平台对账表';

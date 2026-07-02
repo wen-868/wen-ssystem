@@ -1,6 +1,6 @@
 import fs from "node:fs";
 import path from "node:path";
-import { queryWithTenant, queryOneWithTenant, query } from "../../shared/db.js";
+import { queryWithTenant, queryOneWithTenant, query, queryOne } from "../../shared/db.js";
 
 // ========== 占位符 → sys_config key 映射 ==========
 
@@ -33,8 +33,6 @@ const PLACEHOLDER_CONFIG_MAP: Record<string, string> = {
 
 const ALL_PLACEHOLDERS = Object.keys(PLACEHOLDER_CONFIG_MAP);
 
-// ========== 默认值（本地开发兜底） ==========
-
 const DEFAULT_VALUES: Record<string, string> = {
   __API_BASE__: "https://api.onepan.cn/api",
   __STORE_ID__: "1",
@@ -62,7 +60,7 @@ const DEFAULT_VALUES: Record<string, string> = {
   __NAV_TEXT_COLOR__: "#ffffff",
 };
 
-// ========== 占位符替换 ==========
+// ========== 模板占位符替换 ==========
 
 export async function getPublishConfigs(tenantId: string): Promise<Record<string, string>> {
   const configKeys = Object.values(PLACEHOLDER_CONFIG_MAP);
@@ -137,7 +135,7 @@ export function getTemplatePlaceholders(): string[] {
   return [...ALL_PLACEHOLDERS];
 }
 
-// ========== 发布操作 ==========
+// ========== 发布/回滚/审核 ==========
 
 export async function publish(tenantId: string, body: any, platform: string = "WECHAT") {
   const config = await queryOneWithTenant<any>(

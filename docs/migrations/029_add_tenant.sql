@@ -1,0 +1,31 @@
+-- 来源: phase9_tenant_subscription.sql
+CREATE TABLE IF NOT EXISTS tenant (
+  id INT AUTO_INCREMENT PRIMARY KEY,
+  tenant_code VARCHAR(32) NOT NULL UNIQUE COMMENT '租户编码（如：T20260623001）',
+  company_name VARCHAR(128) NOT NULL COMMENT '公司名称',
+  company_short_name VARCHAR(64) COMMENT '公司简称',
+  contact_person VARCHAR(64) NOT NULL COMMENT '联系人',
+  contact_mobile VARCHAR(20) NOT NULL COMMENT '联系电话',
+  contact_email VARCHAR(128) COMMENT '联系邮箱',
+  province VARCHAR(64) COMMENT '省份',
+  city VARCHAR(64) COMMENT '城市',
+  district VARCHAR(64) COMMENT '区县',
+  address VARCHAR(255) COMMENT '详细地址',
+  business_license VARCHAR(128) COMMENT '营业执照号',
+  legal_person VARCHAR(64) COMMENT '法人代表',
+  industry VARCHAR(64) COMMENT '所属行业',
+  company_scale VARCHAR(32) COMMENT '公司规模（如：1-10人、11-50人等）',
+  source VARCHAR(32) DEFAULT 'MANUAL' COMMENT '来源（MANUAL/SELF_REGISTER/INVITATION）',
+  status VARCHAR(16) NOT NULL DEFAULT 'ACTIVE' COMMENT '状态（ACTIVE/SUSPENDED/EXPIRED/CLOSED）',
+  suspend_reason VARCHAR(255) COMMENT '停用原因',
+  suspended_at DATETIME COMMENT '停用时间',
+  expire_at DATETIME COMMENT '到期时间（冗余字段，便于查询）',
+  remark VARCHAR(500) COMMENT '备注',
+  created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  updated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  
+  INDEX idx_tenant_code (tenant_code),
+  INDEX idx_tenant_status (status),
+  INDEX idx_tenant_expire (expire_at),
+  INDEX idx_tenant_mobile (contact_mobile)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='租户表';
