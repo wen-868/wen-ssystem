@@ -2162,3 +2162,12 @@ export async function fetchConsumerAddressDetail(id: number) {
   const { data } = await api.get(`/admin/consumer-addresses/${id}`);
   return data.data;
 }
+
+// ==================== Report Permission APIs ====================
+export const fetchReportPermissionMatrix = () => api.get("/admin/report-permissions/matrix");
+export const saveReportPermissionMatrix = (data: Array<{ role_id: number; report_code: string; store_scope: string }>) =>
+  api.put("/admin/report-permissions/matrix", data);
+export const fetchRbacRoles = async () => {
+  const { data } = await api.get("/admin/rbac/roles");
+  return data.data;
+};

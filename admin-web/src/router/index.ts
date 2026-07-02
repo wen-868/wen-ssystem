@@ -161,6 +161,7 @@ const routes = [
       { path: "system", name: "System", component: () => import("../views/System.vue"), meta: { roles: ["BOSS"] } },
       { path: "system/config", name: "SystemConfig", component: () => import("../views/SystemConfigView.vue"), meta: { roles: ["BOSS"] } },
       { path: "system/approval/rules", name: "ApprovalRules", component: () => import("../views/ApprovalRules.vue"), meta: { roles: ["BOSS"] } },
+      { path: "report-permissions", name: "ReportPermissions", component: () => import("../views/ReportPermission.vue"), meta: { roles: ["BOSS"] } },
       { path: "system/approval/detail/:id", name: "ApprovalDetail", component: () => import("../views/ApprovalDetail.vue"), meta: { roles: ["BOSS"] } },
       { path: "system/approval/my", name: "MyApprovals", component: () => import("../views/MyApprovals.vue"), meta: { roles: ["BOSS"] } },
       { path: "system/payment", name: "PaymentConfig", component: () => import("../views/PaymentConfigView.vue"), meta: { roles: ["BOSS"] } },
