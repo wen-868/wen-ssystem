@@ -5,9 +5,12 @@ export default defineConfig({
     environment: "node",
     globals: true,
     testTimeout: 30000,
+    include: ["tests/**/*.test.ts", "src/__tests__/**/*.test.ts"],
+    setupFiles: ["src/__tests__/setup.ts"],
     env: {
       NODE_ENV: "test",
-      USE_MOCK_DB: "true"
+      USE_MOCK_DB: "true",
+      JWT_SECRET: "test-secret-key-for-vitest"
     }
   }
 });

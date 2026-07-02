@@ -228,3 +228,5 @@ start().catch((error: any) => {
   console.error("❌ 后端启动失败:", error);
   (globalThis as any).process?.exit(1);
 });
+
+export { app };

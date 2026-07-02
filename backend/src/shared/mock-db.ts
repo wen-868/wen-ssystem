@@ -70,7 +70,7 @@ const pendingProduct: {
 } = {};
 
 function result(insertId: number = Date.now()) {
-  return [{ insertId, affectedRows: 1 }, undefined] as any;
+  return { insertId, affectedRows: 1 } as any;
 }
 
 export async function mockQuery<T = any>(sql: string, params: unknown[] = []) {
@@ -793,8 +793,9 @@ export async function mockQuery<T = any>(sql: string, params: unknown[] = []) {
     return state.supplierContacts.filter((c: Row) => c.supplier_id === Number(params[0])) as T[];
   }
   if (s.includes("insert into supplier_contact")) {
+    const id = state.supplierContacts.length + 1;
     state.supplierContacts.push({
-      id: state.supplierContacts.length + 1,
+      id,
       supplier_id: params[0],
       name: params[1],
       mobile: params[2],
@@ -805,7 +806,7 @@ export async function mockQuery<T = any>(sql: string, params: unknown[] = []) {
       position: params[7],
       remark: params[8],
     });
-    return result();
+    return [result(id)] as T[];
   }
   if (s.includes("delete from supplier_contact")) {
     state.supplierContacts = state.supplierContacts.filter((c: Row) => c.supplier_id !== Number(params[0]));
@@ -826,6 +827,31 @@ export async function mockQuery<T = any>(sql: string, params: unknown[] = []) {
     const order = state.purchaseOrders.find((o: Row) => o.id === Number(params[0]));
     return order ? [order] as T[] : [];
   }
+  if (s.includes("from purchase_order") && s.includes("where order_no")) {
+    const orderNo = typeof params[0] === "string" ? params[0] : String(params[0]);
+    const order = state.purchaseOrders.find((o: Row) => o.order_no === orderNo);
+    if (!order) return [] as T[];
+    // Map to camelCase as expected by service aliases
+    return [{
+      id: order.id,
+      orderNo: order.order_no,
+      supplierId: order.supplier_id,
+      supplierName: order.supplier_name,
+      storeId: order.store_id,
+      status: order.order_status,
+      goodsAmount: order.goods_amount,
+      taxAmount: order.tax_amount,
+      discountAmount: order.discount_amount,
+      payableAmount: order.payable_amount,
+      paidAmount: order.paid_amount,
+      unpaidAmount: order.unpaid_amount,
+      expectedDate: order.expected_date,
+      remark: order.remark,
+      createdDate: order.created_at,
+      updatedDate: order.updated_at,
+      tenant_id: order.tenant_id,
+    }] as T[];
+  }
   if (s.includes("from purchase_order") && !s.includes("count(*)")) {
     const filtered = s.includes("where supplier_id") ? state.purchaseOrders.filter((o: Row) => o.supplier_id === Number(params[0])) : state.purchaseOrders;
     return filtered as T[];
@@ -845,6 +871,10 @@ export async function mockQuery<T = any>(sql: string, params: unknown[] = []) {
   }
 
   // 采购入库相关
+  if (s.includes("from purchase_in_stock") && s.includes("where stock_no")) {
+    const stock = state.purchaseInStocks.find((st: Row) => st.stock_no === params[0]);
+    return stock ? [stock] as T[] : [];
+  }
   if (s.includes("from purchase_in_stock") && s.includes("count(*)")) {
     return [{ total: state.purchaseInStocks.length }] as T[];
   }
@@ -860,6 +890,10 @@ export async function mockQuery<T = any>(sql: string, params: unknown[] = []) {
   }
 
   // 采购退货相关
+  if (s.includes("from purchase_return") && s.includes("where return_no")) {
+    const ret = state.purchaseReturns.find((r: Row) => r.return_no === params[0]);
+    return ret ? [ret] as T[] : [];
+  }
   if (s.includes("from purchase_return") && s.includes("count(*)")) {
     return [{ total: state.purchaseReturns.length }] as T[];
   }
@@ -868,6 +902,10 @@ export async function mockQuery<T = any>(sql: string, params: unknown[] = []) {
   }
 
   // 销售退货相关
+  if (s.includes("from sale_return") && s.includes("where return_no")) {
+    const ret = state.saleReturns.find((r: Row) => r.return_no === params[0]);
+    return ret ? [ret] as T[] : [];
+  }
   if (s.includes("from sale_return") && s.includes("count(*)")) {
     return [{ total: state.saleReturns.length }] as T[];
   }
@@ -883,6 +921,10 @@ export async function mockQuery<T = any>(sql: string, params: unknown[] = []) {
   }
 
   // 客户对账单相关
+  if (s.includes("from customer_statement") && s.includes("where statement_no")) {
+    const stmt = state.customerStatements.find((st: Row) => st.statement_no === params[0]);
+    return stmt ? [stmt] as T[] : [];
+  }
   if (s.includes("from customer_statement") && s.includes("count(*)")) {
     return [{ total: state.customerStatements.length }] as T[];
   }
@@ -895,6 +937,10 @@ export async function mockQuery<T = any>(sql: string, params: unknown[] = []) {
   }
 
   // 客户付款相关
+  if (s.includes("from customer_payment") && s.includes("where receipt_no")) {
+    const payment = state.customerPayments.find((p: Row) => p.receipt_no === params[0]);
+    return payment ? [payment] as T[] : [];
+  }
   if (s.includes("from customer_payment") && s.includes("count(*)")) {
     return [{ total: state.customerPayments.length }] as T[];
   }
@@ -977,6 +1023,12 @@ export async function mockQuery<T = any>(sql: string, params: unknown[] = []) {
   }
   if (s.includes("count(*) as cnt from purchase_order") && s.includes("supplier_id") && s.includes("order_status not in")) {
     return [{ cnt: 0 }] as T[];
+  }
+
+  // 未匹配的 INSERT/UPDATE/DELETE 委托给 mockExecute
+  const s2 = s.toLowerCase().replace(/\s+/g, " ").replace(/`/g, "");
+  if (s2.startsWith("insert") || s2.startsWith("update") || s2.startsWith("delete")) {
+    return [await mockExecute(sql, params)] as any;
   }
 
   return [] as T[];
@@ -1286,14 +1338,8 @@ export async function mockExecute(sql: string, params: unknown[] = []) {
 
   // 供应商 UPDATE
   if (s.includes("update supplier set") && s.includes("where id")) {
-    const supplier = state.suppliers.find((sup: Row) => sup.id === Number(params[params.length - 1]));
+    const supplier = state.suppliers.find((sup: Row) => sup.id === Number(params[params.length - 2]));
     if (supplier) {
-      // params are dynamic based on which fields are set
-      for (let i = 0; i < params.length - 1; i++) {
-        if (params[i] !== undefined) {
-          // Field mapping handled by caller
-        }
-      }
       supplier.updated_at = new Date().toISOString();
     }
     return result();
@@ -1302,22 +1348,26 @@ export async function mockExecute(sql: string, params: unknown[] = []) {
   // 采购订单 INSERT
   if (s.includes("insert into purchase_order (")) {
     const id = state.purchaseOrders.length + 1;
+    // order_status is a SQL literal (e.g. 'DRAFT'), not in params
+    const statusMatch = s.match(/order_status[^,]*,\s*'([^']+)'/);
+    const orderStatus = statusMatch ? statusMatch[1].toUpperCase() : "DRAFT";
     state.purchaseOrders.push({
       id,
       order_no: params[0],
       supplier_id: params[1],
       supplier_name: params[2],
       store_id: params[3],
-      order_status: params[4],
-      goods_amount: params[5],
-      tax_amount: params[6],
-      discount_amount: params[7],
-      payable_amount: params[8],
-      paid_amount: params[9],
-      unpaid_amount: params[10],
-      expected_date: params[11],
-      operator_id: params[12],
-      remark: params[13],
+      order_status: orderStatus,
+      goods_amount: params[4],
+      tax_amount: params[5],
+      discount_amount: params[6],
+      payable_amount: params[7],
+      paid_amount: params[8],
+      unpaid_amount: params[9],
+      expected_date: params[10],
+      operator_id: params[11],
+      remark: params[12],
+      tenant_id: params[13],
       created_at: new Date().toISOString(),
       updated_at: new Date().toISOString(),
     });
@@ -1353,14 +1403,13 @@ export async function mockExecute(sql: string, params: unknown[] = []) {
   }
 
   // 采购订单 UPDATE (状态变更等)
-  if (s.includes("update purchase_order set") && s.includes("where id")) {
-    const order = state.purchaseOrders.find((o: Row) => o.id === Number(params[params.length - 1]));
+  if (s.includes("update purchase_order set") && s.includes("order_no")) {
+    const orderNo = params[params.length - 2]; // order_no is second-to-last before tenant_id
+    const order = state.purchaseOrders.find((o: Row) => o.order_no === orderNo);
     if (order) {
-      if (s.includes("order_status = 'cancelled'")) order.order_status = "CANCELLED";
-      if (s.includes("order_status = 'approved'")) order.order_status = "APPROVED";
-      if (s.includes("order_status = ?")) {
-        // Dynamic status update
-      }
+      const status = params[0] as string;
+      if (status) order.order_status = status;
+      if (params[1] !== undefined) order.auditor_id = params[1]; // for approve
       order.updated_at = new Date().toISOString();
     }
     return result();
@@ -1376,6 +1425,8 @@ export async function mockExecute(sql: string, params: unknown[] = []) {
   // 采购入库单 INSERT
   if (s.includes("insert into purchase_in_stock (")) {
     const id = state.purchaseInStocks.length + 1;
+    const statusMatch = s.match(/stock_status[^,]*,\s*'([^']+)'/);
+    const stockStatus = statusMatch ? statusMatch[1].toUpperCase() : "PENDING";
     state.purchaseInStocks.push({
       id,
       stock_no: params[0],
@@ -1383,12 +1434,12 @@ export async function mockExecute(sql: string, params: unknown[] = []) {
       supplier_id: params[2],
       supplier_name: params[3],
       store_id: params[4],
-      stock_status: params[5],
-      goods_amount: params[6],
-      tax_amount: params[7],
-      total_amount: params[8],
-      operator_id: params[9],
-      remark: params[10],
+      stock_status: stockStatus,
+      goods_amount: params[5],
+      tax_amount: params[6],
+      total_amount: params[7],
+      operator_id: params[8],
+      remark: params[9],
       created_at: new Date().toISOString(),
     });
     return result(id);
@@ -1420,6 +1471,8 @@ export async function mockExecute(sql: string, params: unknown[] = []) {
   // 采购退货 INSERT
   if (s.includes("insert into purchase_return (")) {
     const id = state.purchaseReturns.length + 1;
+    const statusMatch = s.match(/return_status[^,]*,\s*'([^']+)'/);
+    const returnStatus = statusMatch ? statusMatch[1].toUpperCase() : "PENDING";
     state.purchaseReturns.push({
       id,
       return_no: params[0],
@@ -1428,14 +1481,14 @@ export async function mockExecute(sql: string, params: unknown[] = []) {
       supplier_id: params[3],
       supplier_name: params[4],
       store_id: params[5],
-      return_status: params[6],
-      goods_amount: params[7],
-      tax_amount: params[8],
-      total_amount: params[9],
-      refund_amount: params[10],
-      refunded_amount: params[11],
-      operator_id: params[12],
-      remark: params[13],
+      return_status: returnStatus,
+      goods_amount: params[6],
+      tax_amount: params[7],
+      total_amount: params[8],
+      refund_amount: params[9],
+      refunded_amount: params[10],
+      operator_id: params[11],
+      remark: params[12],
       created_at: new Date().toISOString(),
     });
     return result(id);
@@ -1464,6 +1517,8 @@ export async function mockExecute(sql: string, params: unknown[] = []) {
   // 销售退货 INSERT
   if (s.includes("insert into sale_return (")) {
     const id = state.saleReturns.length + 1;
+    const statusMatch = s.match(/return_status[^,]*,\s*'([^']+)'/);
+    const returnStatus = statusMatch ? statusMatch[1].toUpperCase() : "PENDING";
     state.saleReturns.push({
       id,
       return_no: params[0],
@@ -1472,14 +1527,14 @@ export async function mockExecute(sql: string, params: unknown[] = []) {
       customer_id: params[3],
       customer_name: params[4],
       customer_mobile: params[5],
-      return_status: params[6],
-      goods_amount: params[7],
-      discount_amount: params[8],
-      refund_amount: params[9],
-      refunded_amount: params[10],
-      refund_method: params[11],
-      operator_id: params[12],
-      remark: params[13],
+      return_status: returnStatus,
+      goods_amount: params[6],
+      discount_amount: params[7],
+      refund_amount: params[8],
+      refunded_amount: params[9],
+      refund_method: params[10],
+      operator_id: params[11],
+      remark: params[12],
       created_at: new Date().toISOString(),
     });
     return result(id);
@@ -1505,23 +1560,24 @@ export async function mockExecute(sql: string, params: unknown[] = []) {
   // 客户对账单 INSERT
   if (s.includes("insert into customer_statement (")) {
     const id = state.customerStatements.length + 1;
+    const statusMatch = s.match(/statement_status[^,]*,\s*'([^']+)'/);
+    const stmtStatus = statusMatch ? statusMatch[1].toUpperCase() : "PENDING";
     state.customerStatements.push({
       id,
       statement_no: params[0],
       customer_id: params[1],
       customer_name: params[2],
-      customer_mobile: params[3],
-      statement_type: params[4],
-      start_date: params[5],
-      end_date: params[6],
-      opening_balance: params[7],
-      total_sales: params[8],
-      total_returns: params[9],
-      total_payments: params[10],
-      closing_balance: params[11],
-      status: params[12],
-      operator_id: params[13],
-      remark: params[14],
+      start_date: params[3],
+      end_date: params[4],
+      statement_status: stmtStatus,
+      opening_balance: params[5],
+      total_sales: params[6],
+      total_returns: params[7],
+      total_payments: params[8],
+      closing_balance: params[9],
+      status: stmtStatus,
+      operator_id: params[10],
+      remark: params[11],
       created_at: new Date().toISOString(),
     });
     return result(id);
@@ -1530,6 +1586,8 @@ export async function mockExecute(sql: string, params: unknown[] = []) {
   // 客户付款 INSERT
   if (s.includes("insert into customer_payment (")) {
     const id = state.customerPayments.length + 1;
+    const statusMatch = s.match(/status[^,]*,\s*'([^']+)'/);
+    const payStatus = statusMatch ? statusMatch[1].toUpperCase() : "COMPLETED";
     state.customerPayments.push({
       id,
       receipt_no: params[0],
@@ -1537,13 +1595,13 @@ export async function mockExecute(sql: string, params: unknown[] = []) {
       customer_name: params[2],
       amount: params[3],
       payment_method: params[4],
-      source_type: params[5],
-      source_no: params[6],
-      voucher_no: params[7],
-      payment_date: params[8],
+      payment_date: params[5],
+      source_type: params[6],
+      source_no: params[7],
+      voucher_no: params[8],
       operator_id: params[9],
-      status: params[10],
-      remark: params[11],
+      status: payStatus,
+      remark: params[10],
       created_at: new Date().toISOString(),
     });
     return result(id);
@@ -1590,7 +1648,80 @@ export async function mockExecute(sql: string, params: unknown[] = []) {
     return result();
   }
 
+  // 采购入库单 UPDATE (审批/作废)
+  if (s.includes("update purchase_in_stock set") && s.includes("stock_no")) {
+    const stockNo = params[params.length - 1] as string;
+    const stock = state.purchaseInStocks.find((st: Row) => st.stock_no === stockNo);
+    if (stock) {
+      stock.stock_status = "COMPLETED";
+      stock.updated_at = new Date().toISOString();
+    }
+    return result();
+  }
+
+  // 采购退货单 UPDATE (审批/作废)
+  if (s.includes("update purchase_return set") && s.includes("return_no")) {
+    const returnNo = params[params.length - 1] as string;
+    const ret = state.purchaseReturns.find((r: Row) => r.return_no === returnNo);
+    if (ret) {
+      if (params[0] !== undefined) ret.return_status = params[0] as string;
+      ret.updated_at = new Date().toISOString();
+    }
+    return result();
+  }
+
+  // 销售退货单 UPDATE (审批/退款)
+  if (s.includes("update sale_return set") && s.includes("return_no")) {
+    const returnNo = params[params.length - 1] as string;
+    const ret = state.saleReturns.find((r: Row) => r.return_no === returnNo);
+    if (ret) {
+      if (params[0] !== undefined) ret.return_status = params[0] as string;
+      if (params[1] !== undefined) ret.refund_method = params[1] as string;
+      ret.updated_at = new Date().toISOString();
+    }
+    return result();
+  }
+
+  // 客户对账单 UPDATE (确认/标记已付)
+  if (s.includes("update customer_statement set") && s.includes("statement_no")) {
+    const stmtNo = params[params.length - 1] as string;
+    const stmt = state.customerStatements.find((s: Row) => s.statement_no === stmtNo);
+    if (stmt) {
+      if (params[0] !== undefined) stmt.status = params[0] as string;
+      stmt.updated_at = new Date().toISOString();
+    }
+    return result();
+  }
+
+  // 客户付款 UPDATE (作废)
+  if (s.includes("update customer_payment set") && s.includes("receipt_no")) {
+    const receiptNo = params[params.length - 1] as string;
+    const payment = state.customerPayments.find((p: Row) => p.receipt_no === receiptNo);
+    if (payment) {
+      if (params[0] !== undefined) payment.status = params[0] as string;
+      payment.updated_at = new Date().toISOString();
+    }
+    return result();
+  }
+
   return result();
+}
+
+export function resetMockDb() {
+  state.suppliers = [];
+  state.supplierContacts = [];
+  state.purchaseOrders = [];
+  state.purchaseOrderItems = [];
+  state.purchaseInStocks = [];
+  state.purchaseInStockItems = [];
+  state.purchaseReturns = [];
+  state.purchaseReturnItems = [];
+  state.purchasePayments = [];
+  state.saleReturns = [];
+  state.saleReturnItems = [];
+  state.customerStatements = [];
+  state.customerPayments = [];
+  state.salePayments = [];
 }
 
 export const mockConn = {

@@ -222,6 +222,8 @@ class SaleReturnService {
     );
     if (!returnOrder) return null;
 
+    console.log("[DEBUG approve]", "returnOrder.return_status:", JSON.stringify(returnOrder.return_status), "returnOrder:", JSON.stringify(returnOrder));
+
     if (returnOrder.return_status !== "PENDING") {
       throw new Error("只有待审核状态的退货单可以审核");
     }

@@ -314,7 +314,7 @@ class PurchaseService {
           order_no, supplier_id, supplier_name, store_id, order_status,
           goods_amount, tax_amount, discount_amount, payable_amount,
           paid_amount, unpaid_amount, expected_date, operator_id, remark, tenant_id
-        ) VALUES (?, ?, ?, ?, 'PENDING', ?, ?, ?, ?, 0, ?, ?, ?, ?, ?)`,
+        ) VALUES (?, ?, ?, ?, 'DRAFT', ?, ?, ?, ?, 0, ?, ?, ?, ?, ?)`,
         [
           orderNo,
           dto.supplierId,
