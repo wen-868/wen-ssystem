@@ -2120,7 +2120,7 @@ export const fetchBankAccounts = () => api.get('/admin/payment/bank-accounts');
 export const createBankAccount = (data: any) => api.post('/admin/payment/bank-accounts', data);
 export const updateBankAccount = (id: number, data: any) => api.put(`/admin/payment/bank-accounts/${id}`, data);
 export const deleteBankAccount = (id: number) => api.delete(`/admin/payment/bank-accounts/${id}`);
-export const setDefaultBankAccount = (id: number) => api.post(`/admin/payment/bank-accounts/${id}/default`);
+export const setDefaultBankAccount = (id: number) => api.put(`/admin/payment/bank-accounts/${id}/default`);
 
 // ==================== Miniapp Config APIs ====================
 export const fetchMiniappConfigs = () => api.get('/admin/miniapp/configs');
