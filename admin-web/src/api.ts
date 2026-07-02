@@ -1675,6 +1675,52 @@ export async function fetchPlatformReviewStats() {
   return data.data;
 }
 
+// ==================== Custom Report APIs ====================
+export async function fetchReportTemplates(params?: { page?: number; pageSize?: number; keyword?: string; type?: string }) {
+  const { data } = await api.get("/admin/reports/templates", { params: { page: 1, pageSize: 20, ...params } });
+  return data.data;
+}
+export async function createReportTemplate(payload: { name: string; type: string; config?: unknown; description?: string }) {
+  const { data } = await api.post("/admin/reports/templates", payload);
+  return data.data;
+}
+export async function updateReportTemplate(id: number, payload: { name?: string; type?: string; config?: unknown; description?: string; status?: string }) {
+  const { data } = await api.put(`/admin/reports/templates/${id}`, payload);
+  return data.data;
+}
+export async function deleteReportTemplate(id: number) {
+  const { data } = await api.delete(`/admin/reports/templates/${id}`);
+  return data.data;
+}
+export async function executeReportTemplate(id: number, params?: { dateStart?: string; dateEnd?: string }) {
+  const { data } = await api.post(`/admin/reports/templates/${id}/execute`, params || {});
+  return data.data;
+}
+export async function fetchReportSchedules(params?: { page?: number; pageSize?: number; keyword?: string; status?: string }) {
+  const { data } = await api.get("/admin/reports/schedules", { params: { page: 1, pageSize: 20, ...params } });
+  return data.data;
+}
+export async function createReportSchedule(payload: { name: string; templateId: number; cronExpression: string; exportFormat: string; recipients?: string }) {
+  const { data } = await api.post("/admin/reports/schedules", payload);
+  return data.data;
+}
+export async function updateReportSchedule(id: number, payload: { name?: string; templateId?: number; cronExpression?: string; exportFormat?: string; recipients?: string }) {
+  const { data } = await api.put(`/admin/reports/schedules/${id}`, payload);
+  return data.data;
+}
+export async function deleteReportSchedule(id: number) {
+  const { data } = await api.delete(`/admin/reports/schedules/${id}`);
+  return data.data;
+}
+export async function toggleReportSchedule(id: number, status: string) {
+  const { data } = await api.put(`/admin/reports/schedules/${id}/toggle`, { status });
+  return data.data;
+}
+export async function runReportSchedule(id: number) {
+  const { data } = await api.post(`/admin/reports/schedules/${id}/run`);
+  return data.data;
+}
+
 // ==================== Inventory Balance API ====================
 export async function fetchInventoryBalanceList() {
   const { data } = await api.get("/admin/inventory-balance");

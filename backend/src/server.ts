@@ -92,6 +92,7 @@ import syncRouter from "./routes/sync.routes.js";
 import { orderSyncLogRouter } from "./routes/miniapp-order-sync.routes.js";
 import { platformReconciliationRouter } from "./routes/platform-reconciliation.routes.js";
 import { platformReviewRouter } from "./routes/platform-review.routes.js";
+import { customReportRouter } from "./routes/custom-report.routes.js";
 
 const app = express();
 
@@ -215,6 +216,7 @@ app.use("/api/miniapp/sync", requireAuthWithTenant, syncRouter);
 app.use("/api/admin/order-sync-logs", requireAuthWithTenant, orderSyncLogRouter);
 app.use("/api/admin/platform-reconciliations", requireAuthWithTenant, platformReconciliationRouter);
 app.use("/api/admin/platform-reviews", requireAuthWithTenant, platformReviewRouter);
+app.use("/api/admin/reports", requireAuthWithTenant, customReportRouter);
 
 app.use(errorHandler);
 

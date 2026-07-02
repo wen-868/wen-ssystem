@@ -146,6 +146,7 @@ const routes = [
       { path: "reports/collection-analysis", name: "CollectionAnalysis", component: () => import("../views/CollectionAnalysis.vue"), meta: { roles: ["BOSS", "MGR"] } },
       { path: "reports/customers", name: "CustomerAnalysis", component: () => import("../views/CustomerAnalysis.vue"), meta: { roles: ["BOSS"] } },
       { path: "reports/inventory", name: "InventoryReports", component: () => import("../views/InventoryReports.vue"), meta: { roles: ["BOSS"] } },
+      { path: "custom-reports", name: "CustomReports", component: () => import("../views/CustomReport.vue"), meta: { roles: ["BOSS"] } },
       // 11. 营销推广
       { path: "marketing", name: "Marketing", component: () => import("../views/MarketingView.vue"), meta: { roles: ["BOSS"] } },
       { path: "marketing/tags", name: "MarketingTags", component: () => import("../views/MarketingTags.vue"), meta: { roles: ["BOSS", "MGR"] } },
