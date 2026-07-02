@@ -154,104 +154,23 @@ adminRouter.get("/miniapp-publish/placeholders", requireAuthWithTenant, (_req, r
   res.json({ code: "0", data: miniappPublishService.getTemplatePlaceholders() });
 });
 
-// ============ Phase 21-C: 秒杀 ============
-import * as seckillService from "../services/admin/seckill.service.js";
-adminRouter.get("/seckill-products", requireAuthWithTenant, async (req, res) => {
-  try { const data = await seckillService.getSeckillProducts((req as any).tenantId, req.query); res.json({ code: "0", data }); } catch (e: any) { res.status(500).json({ code: "1", message: e.message }); }
-});
-adminRouter.post("/seckill-products", requireAuthWithTenant, async (req, res) => {
-  try { const data = await seckillService.createSeckillProduct(req.body); res.json({ code: "0", data }); } catch (e: any) { res.status(500).json({ code: "1", message: e.message }); }
-});
-adminRouter.put("/seckill-products/:id", requireAuthWithTenant, async (req, res) => {
-  try { const data = await seckillService.updateSeckillProduct(Number(req.params.id), req.body); res.json({ code: "0", data }); } catch (e: any) { res.status(500).json({ code: "1", message: e.message }); }
-});
-adminRouter.delete("/seckill-products/:id", requireAuthWithTenant, async (req, res) => {
-  try { const data = await seckillService.deleteSeckillProduct(Number(req.params.id)); res.json({ code: "0", data }); } catch (e: any) { res.status(500).json({ code: "1", message: e.message }); }
-});
+// ============ Phase 21-C: 秒杀 (独立路由文件) ============
+// 已迁移至 seckill.routes.ts, 挂载于 /api/admin/marketing/seckill
 
-// ============ Phase 21-C: 拼团 ============
-import * as groupBuyService from "../services/admin/group-buy.service.js";
-adminRouter.get("/group-buy-activities", requireAuthWithTenant, async (req, res) => {
-  try { const data = await groupBuyService.getGroupBuyActivities((req as any).tenantId, req.query); res.json({ code: "0", data }); } catch (e: any) { res.status(500).json({ code: "1", message: e.message }); }
-});
-adminRouter.post("/group-buy-activities", requireAuthWithTenant, async (req, res) => {
-  try { const data = await groupBuyService.createGroupBuyActivity(req.body); res.json({ code: "0", data }); } catch (e: any) { res.status(500).json({ code: "1", message: e.message }); }
-});
-adminRouter.put("/group-buy-activities/:id", requireAuthWithTenant, async (req, res) => {
-  try { const data = await groupBuyService.updateGroupBuyActivity(Number(req.params.id), req.body); res.json({ code: "0", data }); } catch (e: any) { res.status(500).json({ code: "1", message: e.message }); }
-});
-adminRouter.delete("/group-buy-activities/:id", requireAuthWithTenant, async (req, res) => {
-  try { const data = await groupBuyService.deleteGroupBuyActivity(Number(req.params.id)); res.json({ code: "0", data }); } catch (e: any) { res.status(500).json({ code: "1", message: e.message }); }
-});
-adminRouter.get("/group-buy-records", requireAuthWithTenant, async (req, res) => {
-  try { const data = await groupBuyService.getGroupBuyRecords((req as any).tenantId, req.query); res.json({ code: "0", data }); } catch (e: any) { res.status(500).json({ code: "1", message: e.message }); }
-});
+// ============ Phase 21-C: 拼团 (独立路由文件) ============
+// 已迁移至 group-buy.routes.ts, 挂载于 /api/admin/marketing/group-buy
 
-// ============ Phase 19-C: 积分商城 ============
-import * as pointsMallService from "../services/admin/points-mall.service.js";
-adminRouter.get("/points-mall/items", requireAuthWithTenant, async (req, res) => {
-  try { const data = await pointsMallService.getPointsMallItems((req as any).tenantId, req.query); res.json({ code: "0", data }); } catch (e: any) { res.status(500).json({ code: "1", message: e.message }); }
-});
-adminRouter.post("/points-mall/items", requireAuthWithTenant, async (req, res) => {
-  try { const data = await pointsMallService.createPointsMallItem(req.body); res.json({ code: "0", data }); } catch (e: any) { res.status(500).json({ code: "1", message: e.message }); }
-});
-adminRouter.put("/points-mall/items/:id", requireAuthWithTenant, async (req, res) => {
-  try { const data = await pointsMallService.updatePointsMallItem(Number(req.params.id), req.body); res.json({ code: "0", data }); } catch (e: any) { res.status(500).json({ code: "1", message: e.message }); }
-});
-adminRouter.delete("/points-mall/items/:id", requireAuthWithTenant, async (req, res) => {
-  try { const data = await pointsMallService.deletePointsMallItem(Number(req.params.id)); res.json({ code: "0", data }); } catch (e: any) { res.status(500).json({ code: "1", message: e.message }); }
-});
-adminRouter.get("/points-mall/orders", requireAuthWithTenant, async (req, res) => {
-  try { const data = await pointsMallService.getPointsMallOrders((req as any).tenantId, req.query); res.json({ code: "0", data }); } catch (e: any) { res.status(500).json({ code: "1", message: e.message }); }
-});
-adminRouter.post("/points-mall/orders/:id/deliver", requireAuthWithTenant, async (req, res) => {
-  try { const data = await pointsMallService.deliverPointsMallOrder(Number(req.params.id), req.body); res.json({ code: "0", data }); } catch (e: any) { res.status(500).json({ code: "1", message: e.message }); }
-});
+// ============ Phase 19-C: 积分商城 (独立路由文件) ============
+// 已迁移至 points-mall.routes.ts, 挂载于 /api/admin/points-mall
 
-// ============ Phase 19-C: 营销素材 ============
-import * as marketingAssetService from "../services/admin/marketing-asset.service.js";
-adminRouter.get("/marketing-assets", requireAuthWithTenant, async (req, res) => {
-  try { const data = await marketingAssetService.getMarketingAssets((req as any).tenantId, req.query); res.json({ code: "0", data }); } catch (e: any) { res.status(500).json({ code: "1", message: e.message }); }
-});
-adminRouter.post("/marketing-assets", requireAuthWithTenant, async (req, res) => {
-  try { const data = await marketingAssetService.createMarketingAsset(req.body); res.json({ code: "0", data }); } catch (e: any) { res.status(500).json({ code: "1", message: e.message }); }
-});
-adminRouter.put("/marketing-assets/:id", requireAuthWithTenant, async (req, res) => {
-  try { const data = await marketingAssetService.updateMarketingAsset(Number(req.params.id), req.body); res.json({ code: "0", data }); } catch (e: any) { res.status(500).json({ code: "1", message: e.message }); }
-});
-adminRouter.delete("/marketing-assets/:id", requireAuthWithTenant, async (req, res) => {
-  try { const data = await marketingAssetService.deleteMarketingAsset(Number(req.params.id)); res.json({ code: "0", data }); } catch (e: any) { res.status(500).json({ code: "1", message: e.message }); }
-});
+// ============ Phase 19-C: 营销素材 (独立路由文件) ============
+// 已迁移至 marketing-asset.routes.ts, 挂载于 /api/admin/marketing-assets
 
-// ============ Phase 19-D: 部门管理 ============
-import * as departmentService from "../services/admin/department.service.js";
-adminRouter.get("/departments", requireAuthWithTenant, async (req, res) => {
-  try { const data = await departmentService.getDepartments((req as any).tenantId, req.query); res.json({ code: "0", data }); } catch (e: any) { res.status(500).json({ code: "1", message: e.message }); }
-});
-adminRouter.get("/departments/tree", requireAuthWithTenant, async (req, res) => {
-  try { const data = await departmentService.getDepartmentTree((req as any).tenantId); res.json({ code: "0", data }); } catch (e: any) { res.status(500).json({ code: "1", message: e.message }); }
-});
-adminRouter.post("/departments", requireAuthWithTenant, async (req, res) => {
-  try { const data = await departmentService.createDepartment(req.body); res.json({ code: "0", data }); } catch (e: any) { res.status(500).json({ code: "1", message: e.message }); }
-});
-adminRouter.put("/departments/:id", requireAuthWithTenant, async (req, res) => {
-  try { const data = await departmentService.updateDepartment(Number(req.params.id), req.body); res.json({ code: "0", data }); } catch (e: any) { res.status(500).json({ code: "1", message: e.message }); }
-});
-adminRouter.delete("/departments/:id", requireAuthWithTenant, async (req, res) => {
-  try { const data = await departmentService.deleteDepartment(Number(req.params.id)); res.json({ code: "0", data }); } catch (e: any) { res.status(500).json({ code: "1", message: e.message }); }
-});
+// ============ Phase 19-D: 部门管理 (独立路由文件) ============
+// 已迁移至 department.routes.ts, 挂载于 /api/admin/departments
 
-// ============ Phase 19-D: 用户会话 ============
-import * as userSessionService from "../services/admin/user-session.service.js";
-adminRouter.get("/user-sessions", requireAuthWithTenant, async (req, res) => {
-  try { const data = await userSessionService.getUserSessions((req as any).tenantId, req.query); res.json({ code: "0", data }); } catch (e: any) { res.status(500).json({ code: "1", message: e.message }); }
-});
-adminRouter.delete("/user-sessions/:id", requireAuthWithTenant, async (req, res) => {
-  try { const data = await userSessionService.revokeSession(Number(req.params.id)); res.json({ code: "0", data }); } catch (e: any) { res.status(500).json({ code: "1", message: e.message }); }
-});
-adminRouter.get("/user-sessions/stats", requireAuthWithTenant, async (_req, res) => {
-  try { const data = await userSessionService.getOnlineStats(); res.json({ code: "0", data }); } catch (e: any) { res.status(500).json({ code: "1", message: e.message }); }
-});
+// ============ Phase 19-D: 用户会话 (独立路由文件) ============
+// 已迁移至 user-session.routes.ts, 挂载于 /api/admin/sessions
 
 // ============ Phase 18-C: 权限矩阵 ============
 import * as reportPermissionService from "../services/admin/report-permission.service.js";
