@@ -1633,6 +1633,48 @@ export async function fetchCustomerStats() {
   return data.data;
 }
 
+// ==================== Order Sync Log APIs ====================
+export async function fetchOrderSyncLogs(params?: { page?: number; pageSize?: number; orderNo?: string; status?: number }) {
+  const { data } = await api.get("/admin/order-sync-logs", { params: { page: 1, pageSize: 20, ...params } });
+  return data.data;
+}
+export async function retryOrderSync(orderNo: string) {
+  const { data } = await api.post(`/admin/order-sync-logs/${orderNo}/retry`);
+  return data.data;
+}
+
+// ==================== Platform Reconciliation APIs ====================
+export async function fetchPlatformReconciliations(params?: { page?: number; pageSize?: number; reconciliationNo?: string; platformName?: string; status?: number }) {
+  const { data } = await api.get("/admin/platform-reconciliations", { params: { page: 1, pageSize: 20, ...params } });
+  return data.data;
+}
+export async function createPlatformReconciliation(payload: { reconciliationNo: string; platformNo: string; platformName: string; type: number; amount: number; status: number; recordedAt?: string }) {
+  const { data } = await api.post("/admin/platform-reconciliations", payload);
+  return data.data;
+}
+export async function updatePlatformReconciliation(id: number, payload: { status?: number; amount?: number }) {
+  const { data } = await api.put(`/admin/platform-reconciliations/${id}`, payload);
+  return data.data;
+}
+export async function fetchPlatformReconciliationDetail(id: number) {
+  const { data } = await api.get(`/admin/platform-reconciliations/${id}`);
+  return data.data;
+}
+
+// ==================== Platform Review APIs ====================
+export async function fetchPlatformReviews(params?: { page?: number; pageSize?: number; platformName?: string; reviewType?: number; status?: number }) {
+  const { data } = await api.get("/admin/platform-reviews", { params: { page: 1, pageSize: 20, ...params } });
+  return data.data;
+}
+export async function replyPlatformReview(id: number, replyContent: string) {
+  const { data } = await api.post(`/admin/platform-reviews/${id}/reply`, { replyContent });
+  return data.data;
+}
+export async function fetchPlatformReviewStats() {
+  const { data } = await api.get("/admin/platform-reviews/stats");
+  return data.data;
+}
+
 // ==================== Inventory Balance API ====================
 export async function fetchInventoryBalanceList() {
   const { data } = await api.get("/admin/inventory-balance");
