@@ -230,6 +230,20 @@ liquor-inventory-system/
 - **墨 5项** 🔄：PaymentConfigView enabled值类型修复 + setDefaultBankAccount post→put + bankBranch→branchName + MiniappConfigView enabled移除→status + 补充字段
 - **阿澈 1项** 🔄：config.template.js 占位符与 publish 服务替换逻辑对齐
 
+### Phase 17 · 技术债务清理（待安排 📋）
+
+- **核查日期**：2026-07-03
+- **背景**：全面架构审查发现的技术债务和安全问题
+- **P0 安全** 🔄：`/api/system` 路由无认证中间件 — 需立即添加 `requireAuthWithTenant`
+- **P1 安全** 🔄：docker-compose MySQL 3306/Redis 6379 端口对外暴露 — 生产环境应移除 ports 映射
+- **P1 质量** 🔄：后端 `any` 类型 436 处 — 分批替换为具体类型
+- **P2 质量** 🔄：前端 33 处 setTimeout/setInterval 未在 onUnmounted 清理
+- **P2 规范** 🔄：全部项目无 ESLint/Prettier 配置
+- **核查结论**：
+  - 单体后端 78 路由文件 — 当前阶段合理，暂不拆分
+  - 前端框架混用 — **不存在**，全部 Vue 3，无 React
+  - 测试覆盖 — 后端 1.6%（6/375），前端 0%，后续逐步补充关键路径测试
+
 ---
 
 ## 七、产品规格关键数据
