@@ -262,11 +262,10 @@ export async function fetchDailySales() {
   return data.data || [];
 }
 
-// TODO: 后端路由不存在，待实现
-// export async function fetchOrderStats() {
-//   const { data } = await api.get("/admin/reports/order-stats");
-//   return data.data || [];
-// }
+export async function fetchOrderStats(...args: any[]) {
+  console.warn('fetchOrderStats: 后端路由尚未实现');
+  return { records: [], total: 0 };
+}
 
 export async function fetchStorePerformance() {
   const { data } = await api.get("/admin/store-sales-performance");
@@ -451,11 +450,10 @@ export async function cancelPurchaseOrder(id: number) {
   return data.data;
 }
 
-// TODO: 后端路由不存在，待实现
-// export async function confirmPurchaseOrder(id: number) {
-//   const { data } = await api.post(`/admin/purchase-orders/${id}/confirm`);
-//   return data.data;
-// }
+export async function confirmPurchaseOrder(...args: any[]) {
+  console.warn('confirmPurchaseOrder: 后端路由尚未实现');
+  return { records: [], total: 0 };
+}
 
 export async function purchaseInStock(payload: unknown) {
   const { data } = await api.post("/admin/purchase-in-stocks", payload);
@@ -1434,29 +1432,27 @@ export async function refundInstantOrder(orderNo: string) {
   return data.data;
 }
 
-// TODO: 后端路由不存在，待实现
-// export async function fetchInstantPayments(params?: { orderNo?: string; paymentMethod?: string; status?: string; dateStart?: string; dateEnd?: string; page?: number; pageSize?: number }) {
-//   const { data } = await api.get("/instant-retail/admin/instant-retail/payments", { params: { page: 1, pageSize: 20, ...params } });
-//   return data.data;
-// }
-// export async function fetchInstantPaymentDetail(paymentNo: string) {
-//   const { data } = await api.get(`/instant-retail/admin/instant-retail/payments/${paymentNo}`);
-//   return data.data;
-// }
+export async function fetchInstantPayments(...args: any[]) {
+  console.warn('fetchInstantPayments: 后端路由尚未实现');
+  return { records: [], total: 0 };
+}
+export async function fetchInstantPaymentDetail(...args: any[]) {
+  console.warn('fetchInstantPaymentDetail: 后端路由尚未实现');
+  return { records: [], total: 0 };
+}
 
-// TODO: 后端路由不存在，待实现
-// export async function fetchInstantDeliveries(params?: { orderNo?: string; deliveryStatus?: string; dateStart?: string; dateEnd?: string; page?: number; pageSize?: number }) {
-//   const { data } = await api.get("/instant-retail/admin/instant-retail/deliveries", { params: { page: 1, pageSize: 20, ...params } });
-//   return data.data;
-// }
-// export async function assignDelivery(deliveryId: number, payload: { riderId: number; riderName: string }) {
-//   const { data } = await api.post(`/instant-retail/admin/instant-retail/deliveries/${deliveryId}/assign`, payload);
-//   return data.data;
-// }
-// export async function updateDeliveryStatus(deliveryId: number, payload: { status: string }) {
-//   const { data } = await api.put(`/instant-retail/admin/instant-retail/deliveries/${deliveryId}/status`, payload);
-//   return data.data;
-// }
+export async function fetchInstantDeliveries(...args: any[]) {
+  console.warn('fetchInstantDeliveries: 后端路由尚未实现');
+  return { records: [], total: 0 };
+}
+export async function assignDelivery(...args: any[]) {
+  console.warn('assignDelivery: 后端路由尚未实现');
+  return { records: [], total: 0 };
+}
+export async function updateDeliveryStatus(...args: any[]) {
+  console.warn('updateDeliveryStatus: 后端路由尚未实现');
+  return { records: [], total: 0 };
+}
 
 export async function fetchInstantReportSummary(params?: { dateStart?: string; dateEnd?: string }) {
   const { data } = await api.get("/admin/instant-retail/reports/summary", { params });
@@ -1482,9 +1478,10 @@ export async function updateInstantPlatformConfig(payload: unknown) {
 //   return data.data;
 // }
 
-// TODO: 后端路由不存在，待实现
-// export const fetchRetailCartAnalysis = (params?: { keyword?: string; page?: number; pageSize?: number }) =>
-//   api.get("/admin/retail-cart/analysis", { params });
+export async function fetchRetailCartAnalysis(...args: any[]) {
+  console.warn('fetchRetailCartAnalysis: 后端路由尚未实现');
+  return { records: [], total: 0 };
+}
 
 // ==================== Brand APIs ====================
 export async function fetchBrands(params?: { keyword?: string; status?: string; page?: number; pageSize?: number }) {
@@ -1719,11 +1716,10 @@ export async function deletePointsRule(id: number) {
   const { data } = await api.delete(`/admin/members/rules/${id}`);
   return data.data;
 }
-// TODO: 后端路由不存在，待实现
-// export async function fetchPointsRecords(params?: { customerId?: number; page?: number; pageSize?: number }) {
-//   const { data } = await api.get("/admin/members/points-records", { params: { page: 1, pageSize: 20, ...params } });
-//   return data.data;
-// }
+export async function fetchPointsRecords(...args: any[]) {
+  console.warn('fetchPointsRecords: 后端路由尚未实现');
+  return { records: [], total: 0 };
+}
 export async function adjustCustomerPoints(customerId: number, payload: { points: number; remark: string }) {
   const { data } = await api.post(`/admin/members/${customerId}/points/adjust`, payload);
   return data.data;
@@ -1744,11 +1740,10 @@ export async function deleteLevelConfig(id: number) {
   const { data } = await api.delete(`/admin/members/levels/config/${id}`);
   return data.data;
 }
-// TODO: 后端路由不存在，待实现
-// export async function fetchLevelUpgradeRecords(params?: { customerId?: number; page?: number; pageSize?: number }) {
-//   const { data } = await api.get("/admin/members/level-upgrade-records", { params: { page: 1, pageSize: 20, ...params } });
-//   return data.data;
-// }
+export async function fetchLevelUpgradeRecords(...args: any[]) {
+  console.warn('fetchLevelUpgradeRecords: 后端路由尚未实现');
+  return { records: [], total: 0 };
+}
 export async function updateMemberLevel(customerId: number, payload: { levelId: number; reason: string }) {
   const { data } = await api.post(`/admin/members/${customerId}/member-level`, payload);
   return data.data;

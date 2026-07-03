@@ -207,7 +207,7 @@ const itemRules: FormRules = {
 async function loadItems() {
   itemsLoading.value = true;
   try {
-    const data = await getPointsMallItems({ page: itemsPage.value, pageSize: itemsPageSize.value });
+    const data = await getPointsMallItems({ page: itemsPage.value, pageSize: itemsPageSize.value }) as any;
     items.value = data.records || [];
     itemsTotal.value = data.total || 0;
   } catch (e: any) {
@@ -319,7 +319,7 @@ async function loadOrders() {
       pageSize: ordersPageSize.value,
       keyword: orderSearch.keyword || undefined,
       status: orderSearch.status || undefined
-    });
+    }) as any;
     orders.value = data.records || [];
     ordersTotal.value = data.total || 0;
   } catch (e: any) {

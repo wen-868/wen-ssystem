@@ -193,7 +193,7 @@ async function loadAssets() {
     if (searchKeyword.value) params.keyword = searchKeyword.value;
     if (activeTab.value !== "all") params.type = activeTab.value;
     if (searchCategory.value) params.category = searchCategory.value;
-    const data = await getMarketingAssets(params);
+    const data = await getMarketingAssets(params) as any;
     assets.value = data.records || [];
     total.value = data.total || 0;
   } catch (e: any) {

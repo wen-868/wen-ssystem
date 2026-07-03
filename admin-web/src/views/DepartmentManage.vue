@@ -192,7 +192,7 @@ function getParentName(nodeId: number): string {
 
 async function loadTree() {
   try {
-    const data = await getDepartmentTree();
+    const data = await getDepartmentTree() as any;
     treeData.value = Array.isArray(data) ? data : (data.records || []);
   } catch (e: any) {
     ElMessage.error(getErrorMessage(e, "加载部门树失败"));
