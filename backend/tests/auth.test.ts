@@ -10,7 +10,7 @@
  */
 
 import jwt from "jsonwebtoken";
-const vi = { fn: jest.fn } as any;
+import { vi } from "vitest";
 
 // ========== 常量 ==========
 
