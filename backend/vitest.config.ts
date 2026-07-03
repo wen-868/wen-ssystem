@@ -11,6 +11,10 @@ export default defineConfig({
       NODE_ENV: "test",
       USE_MOCK_DB: "true",
       JWT_SECRET: "test-secret-key-for-vitest"
-    }
+    },
+    // 抑制 Zod 校验错误输出到 stderr（Edge Case 测试故意传入非法数据）
+    onConsoleLog(log: string, type: "stdout" | "stderr"): false | void {
+      if (type === "stderr" && log.includes("ZodError")) return false;
+    },
   }
 });

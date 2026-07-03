@@ -224,9 +224,12 @@ async function start() {
   });
 }
 
-start().catch((error: any) => {
-  console.error("❌ 后端启动失败:", error);
-  (globalThis as any).process?.exit(1);
-});
+// 仅在非测试环境启动 server（测试环境由 supertest 自行管理连接）
+if (process.env.NODE_ENV !== "test") {
+  start().catch((error: any) => {
+    console.error("❌ 后端启动失败:", error);
+    (globalThis as any).process?.exit(1);
+  });
+}
 
 export { app };
