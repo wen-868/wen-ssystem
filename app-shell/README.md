@@ -10,6 +10,14 @@
 
 ---
 
+## 为什么之前白屏
+
+Vite 默认构建输出 `<script type="module" crossorigin>`。在 HBuilder 5+App WebView 中，HTML 从 `file://` 协议加载，ES Module 受 CORS 限制，`file://` 没有 CORS 响应头，导致 JS 文件加载失败，页面白屏。
+
+**解决方案**：引入 `@vitejs/plugin-legacy`，同时生成 `nomodule` 的 legacy 版本（通过 SystemJS 加载），WebView 会自动使用 legacy 脚本。
+
+---
+
 ## HBuilder 云打包步骤
 
 1. HBuilder 菜单 → **文件 → 打开目录**，选择 `app-shell` 文件夹
@@ -46,8 +54,17 @@
 
 ```bash
 cd merchant-mobile
-npm install && npm run build
+npm install
+npm run build
 cp -r dist/* ../app-shell/www/
 cd ../app-shell
 # 然后在 HBuilder 中重新云打包
 ```
+
+## 打包产物说明
+
+构建后 `www/` 包含两类文件：
+- **legacy 版本**（`*-legacy-*.js`）：通过 `<script nomodule>` 加载，使用 SystemJS，适用于 WebView `file://` 协议
+- **现代版本**（`index-*.js`, `vant-*.js`, `vue-vendor-*.js`）：通过 `<script type="module">` 加载，适用于浏览器 HTTP 访问
+
+HBuilder 5+App WebView 会自动使用 legacy 版本。
