@@ -20,6 +20,13 @@ VITE_API_BASE=/api npm --workspace admin-web run build
 VITE_API_BASE=/api npm --workspace merchant-mobile run build
 VITE_API_BASE=/api npm --workspace store-terminal run build
 
+echo "==> 执行数据库迁移"
+set +e
+if [ -f "${PROJECT_DIR}/docs/migrations/add_tenant_id.sql" ]; then
+  mysql -u"${DB_USER:-root}" -p"${DB_PASSWORD:-}" "${DB_NAME:-liquor_inventory}" < "${PROJECT_DIR}/docs/migrations/add_tenant_id.sql" 2>&1 || echo "  迁移警告（可能已执行过）"
+fi
+set -e
+
 echo "==> 重载 Nginx"
 nginx -t && nginx -s reload
 
