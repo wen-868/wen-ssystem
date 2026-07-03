@@ -14,6 +14,33 @@ export async function getGroupBuyActivities(tenantId: string, params?: { status?
   return { records: rows, total: total?.cnt || 0, page, pageSize };
 }
 
+export async function getGroupBuyRecordDetail(groupNo: string) {
+  const record = await queryOne<any>(
+    `SELECT gbr.*, gba.product_id AS productId, p.name AS productName
+     FROM group_buy_record gbr
+     LEFT JOIN group_buy_activity gba ON gbr.activity_id = gba.id
+     LEFT JOIN product p ON gba.product_id = p.id
+     WHERE gbr.group_no = ?`,
+    [groupNo]
+  );
+  if (!record) {
+    throw new Error('拼团记录不存在');
+  }
+  const members = await query<any>(
+    `SELECT * FROM group_buy_member WHERE group_no = ? ORDER BY joined_at ASC`,
+    [groupNo]
+  );
+  return { ...record, members };
+}
+
+export async function cancelGroupBuyRecord(groupNo: string) {
+  await query(
+    `UPDATE group_buy_record SET status = 'CANCELLED' WHERE group_no = ? AND status IN ('PENDING', 'IN_PROGRESS')`,
+    [groupNo]
+  );
+  return { success: true };
+}
+
 export async function createGroupBuyActivity(data: any) {
   const result = await query(
     `INSERT INTO group_buy_activity (product_id, group_price, min_group_size, max_group_size, start_time, end_time, status) VALUES (?, ?, ?, ?, ?, ?, ?)`,

@@ -2,6 +2,7 @@ import crypto from "node:crypto";
 import { query, queryOne, transaction } from "../shared/db.js";
 import { makeBizNo } from "../shared/id.js";
 import { calcReservation, getInitialMiniappOrderState, completeOrderDelivery } from "../shared/fulfillment.js";
+import { signToken, type AuthUser } from "../shared/auth.js";
 
 // ========== Dev Token Store ==========
 export const devTokenStore = new Map<string, { memberId: number; customerType: string; createdAt: number }>();
@@ -13,10 +14,16 @@ export function devLogin() {
   return { token, memberId: 1, customerType: "RETAIL" };
 }
 
-// ========== Dev Auth 登录 ==========
+// ========== Dev Auth 登录（返回 JWT） ==========
 export function devAuthLogin() {
-  const token = crypto.randomBytes(32).toString("hex");
-  devTokenStore.set(token, { memberId: 1, customerType: "RETAIL", createdAt: Date.now() });
+  const devUser: AuthUser = {
+    id: 1,
+    username: "miniapp_dev",
+    roles: ["CUSTOMER"],
+    storeId: null,
+    tenantId: "default"
+  };
+  const token = signToken(devUser);
   return { token, memberId: 1, customerType: "RETAIL" };
 }
 
@@ -242,9 +249,9 @@ export async function getOrderDetail(tenantId: string, orderNo: string, anonymou
 }
 
 // ========== 确认收货 ==========
-export async function confirmReceipt(orderNo: string) {
+export async function confirmReceipt(orderNo: string, tenantId: string) {
   const result = await transaction(async (conn) => {
-    return completeOrderDelivery(conn, orderNo, null, makeBizNo);
+    return completeOrderDelivery(conn, orderNo, null, tenantId, makeBizNo);
   });
   return result;
 }

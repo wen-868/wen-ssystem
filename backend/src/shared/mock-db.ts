@@ -250,7 +250,7 @@ export async function mockQuery<T = any>(sql: string, params: unknown[] = []) {
       } else if (s.includes("physical_qty = physical_qty -") && s.includes("locked_qty = greatest(locked_qty -")) {
         // 配送完成：扣 physical_qty 和 locked_qty
         inv.physicalQty = Number(inv.physicalQty) - Number(params[0]);
-        inv.lockedQty = Math.max(0, Number(inv.lockedQty) - Number(params[2]));
+        inv.lockedQty = Math.max(0, Number(inv.lockedQty) - Number(params[1]));
       } else if (s.includes("physical_qty = physical_qty -")) {
         // 门店销售：扣 physical_qty 和 available_qty
         inv.physicalQty = Number(inv.physicalQty) - Number(params[0]);
@@ -289,7 +289,7 @@ export async function mockQuery<T = any>(sql: string, params: unknown[] = []) {
     }) as T[];
   }
   if (s.includes("from inventory_balance") && s.includes("physical_qty") && s.includes("where store_id")) {
-    const stockType = params.length >= 3 ? params[2] : (s.includes("stock_type = 'offline'") ? "OFFLINE" : params[2]);
+    const stockType = s.includes("stock_type = 'offline'") ? "OFFLINE" : s.includes("stock_type = 'online'") ? "ONLINE" : (params.length >= 3 ? String(params[2]) : "OFFLINE");
     const inv = state.inventory.find(
       (i) => i.storeId === params[0] && i.skuId === params[1] && i.stockType === stockType
     );
@@ -601,13 +601,18 @@ export async function mockQuery<T = any>(sql: string, params: unknown[] = []) {
       operatorId = params[7];
       remark = String(params[9] ?? "");
     } else {
-      // 履约类：ORDER_LOCK, ORDER_COMPLETE, ORDER_REJECT, ORDER_CANCEL
-      stockType = String(params[3]);
-      bizType = String(params[4]);
-      bizNo = String(params[5]);
-      changeQty = Number(params[6]);
-      operatorId = params[11];
-      remark = String(params[13] ?? "");
+      // 履约类：stockType 和 bizType 是 SQL 字面量，从 SQL 中提取
+      stockType = s.includes("'online'") ? "ONLINE" : s.includes("'offline'") ? "OFFLINE" : "ONLINE";
+      if (s.includes("'order_lock'")) bizType = "ORDER_LOCK";
+      else if (s.includes("'order_complete'")) bizType = "ORDER_COMPLETE";
+      else if (s.includes("'order_reject'")) bizType = "ORDER_REJECT";
+      else if (s.includes("'order_cancel'")) bizType = "ORDER_CANCEL";
+      else bizType = "ADJUST";
+      // 所有履约类 INSERT 参数结构一致：[ledgerNo, storeId, skuId, bizNo, changeQty, ..., operatorId, idempotencyKey, remark, tenantId]
+      bizNo = String(params[3]);
+      changeQty = Number(params[4]);
+      operatorId = params[params.length - 4]; // 倒数第4个: operator_id
+      remark = String(params[params.length - 2] ?? ""); // 倒数第2个: remark
     }
     const beforeQty = 0;
     const afterQty = 0;
@@ -1070,19 +1075,19 @@ export async function mockExecute(sql: string, params: unknown[] = []) {
       bill_no: params[0],
       storeId: params[1],
       store_id: params[1],
-      customerId: params[2],
-      customerName: params[3],
-      customerMobile: params[4],
-      customerType: params[5],
+      customerId: params[5],
+      customerName: params[6],
+      customerMobile: params[7],
+      customerType: params[8],
       businessStatus: "CREATED",
       collectionStatus: "UNPAID",
-      goodsAmount: params[6],
-      receivableAmount: params[9],
-      receivable_amount: params[9],
+      goodsAmount: params[10],
+      receivableAmount: params[13],
+      receivable_amount: params[13],
       receivedAmount: 0,
       received_amount: 0,
-      unreceivedAmount: params[10],
-      unreceived_amount: params[10],
+      unreceivedAmount: params[14],
+      unreceived_amount: params[14],
       createdAt: new Date().toISOString()
     });
     return result();
@@ -1119,35 +1124,39 @@ export async function mockExecute(sql: string, params: unknown[] = []) {
       totalBottleQty: params[5],
       unitPrice: params[6],
       priceType: params[7],
-      subtotalAmount: params[8]
+      subtotalAmount: params[params.length - 1] // subtotal_amount 始终是最后一个参数（tenant_id 之前）
     });
     return result();
   }
   if (s.includes("insert into miniapp_order")) {
+    // Variant 1 (miniapp.service.ts): member_id 硬编码为 1，无 discount_amount/shipping_fee，15 个参数
+    // Variant 2 (checkout/cart): member_id 为参数，有 discount_amount/shipping_fee，18 个参数
+    const hasDiscount = s.includes("discount_amount");
+    const offset = hasDiscount ? 1 : 0; // Variant 2 多一个 member_id 参数
     state.miniappOrders.push({
       orderNo: params[0],
       order_no: params[0],
-      storeId: params[1],
-      store_id: params[1],
-      customerType: params[2],
-      customer_type: params[2],
-      fulfillmentType: params[3],
-      fulfillment_type: params[3],
-      orderStatus: params[4] ?? "PENDING_PAYMENT",
-      order_status: params[4] ?? "PENDING_PAYMENT",
-      payStatus: params[5] ?? "UNPAID",
-      pay_status: params[5] ?? "UNPAID",
-      settlementType: params[6] ?? "CASH",
-      settlement_type: params[6] ?? "CASH",
-      deliveryStatus: params[7] ?? "WAITING",
-      delivery_status: params[7] ?? "WAITING",
-      goodsAmount: params[8],
-      payableAmount: params[9],
-      payable_amount: params[9],
-      receiverName: params[10],
-      receiverMobile: params[11],
-      receiverAddress: params[12],
-      remark: params[13],
+      storeId: params[1 + offset],
+      store_id: params[1 + offset],
+      customerType: params[2 + offset],
+      customer_type: params[2 + offset],
+      fulfillmentType: params[3 + offset],
+      fulfillment_type: params[3 + offset],
+      orderStatus: params[4 + offset] ?? "PENDING_PAYMENT",
+      order_status: params[4 + offset] ?? "PENDING_PAYMENT",
+      payStatus: params[5 + offset] ?? "UNPAID",
+      pay_status: params[5 + offset] ?? "UNPAID",
+      settlementType: params[6 + offset] ?? "CASH",
+      settlement_type: params[6 + offset] ?? "CASH",
+      deliveryStatus: params[7 + offset] ?? "WAITING",
+      delivery_status: params[7 + offset] ?? "WAITING",
+      goodsAmount: params[8 + offset],
+      payableAmount: hasDiscount ? params[12] : params[9],
+      payable_amount: hasDiscount ? params[12] : params[9],
+      receiverName: hasDiscount ? params[13] : params[10],
+      receiverMobile: hasDiscount ? params[14] : params[11],
+      receiverAddress: hasDiscount ? params[15] : params[12],
+      remark: hasDiscount ? params[16] : params[13],
       createdAt: new Date().toISOString()
     });
     return result();
