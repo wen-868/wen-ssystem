@@ -1,4 +1,5 @@
 import { Router } from "express";
+import type { Request, Response } from "express";
 import { requireAuth, requireAuthWithTenant } from "../shared/auth.js";
 import * as authController from "../controllers/admin/auth.controller.js";
 import * as employeeController from "../controllers/admin/employee.controller.js";
@@ -176,13 +177,13 @@ adminRouter.get("/miniapp-publish/placeholders", requireAuthWithTenant, (_req, r
 import * as reportPermissionService from "../services/admin/report-permission.service.js";
 adminRouter.get("/report-permissions", requireAuthWithTenant, async (req, res) => {
   try {
-    const data = await reportPermissionService.getReportPermissions((req as any).tenantId);
+    const data = await reportPermissionService.getMatrix();
     res.json({ code: "0", data });
   } catch (e: any) { res.status(500).json({ code: "1", message: e.message }); }
 });
 adminRouter.put("/report-permissions", requireAuthWithTenant, async (req, res) => {
   try {
-    const result = await reportPermissionService.saveReportPermissions((req as any).tenantId, req.body.permissions || []);
+    const result = await reportPermissionService.saveMatrix(req.body.permissions || []);
     res.json({ code: "0", data: result });
   } catch (e: any) { res.status(500).json({ code: "1", message: e.message }); }
 });

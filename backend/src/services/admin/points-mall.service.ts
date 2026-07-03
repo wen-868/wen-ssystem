@@ -30,6 +30,14 @@ export async function updatePointsMallItem(id: number, data: any) {
   return { success: true };
 }
 
+export async function cancelPointsMallOrder(id: number) {
+  await query(
+    `UPDATE points_mall_order SET status='CANCELLED', cancelled_at=NOW() WHERE id=? AND status='PENDING'`,
+    [id]
+  );
+  return { success: true };
+}
+
 export async function deletePointsMallItem(id: number) {
   await query(`DELETE FROM points_mall_item WHERE id=?`, [id]);
   return { success: true };

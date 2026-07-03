@@ -13,7 +13,7 @@ export const getCollectionLink = asyncHandler(async (req, res) => {
 
 export const payCollection = asyncHandler(async (req, res) => {
   try {
-    const result = await service.payCollectionLink(req.params.token);
+    const result = await service.payCollection(req.params.token);
     res.json(ok(result));
   } catch (e: any) {
     res.status(e.statusCode || 400).json({ code: String(e.statusCode || 400), message: e.message });
