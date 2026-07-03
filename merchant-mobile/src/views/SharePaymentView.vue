@@ -13,7 +13,6 @@ const paying = ref(false)
 const detail = ref<ShareCollectionDetail | null>(null)
 const errorState = ref<'expired' | 'paid' | 'cancelled' | 'invalid' | null>(null)
 const countdown = ref('')
-const showFullVoucher = ref(false)
 let countdownTimer: ReturnType<typeof setInterval> | null = null
 
 const displayConfig = computed<ShareDisplayConfig>(() => {
