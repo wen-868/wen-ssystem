@@ -276,8 +276,8 @@ export async function cancelOrder(orderNo: string, reason: string, operatorId: n
     );
     // 释放库存
     const items = await conn.execute<any[]>(
-      "SELECT sku_id, qty FROM miniapp_order_item WHERE order_no = ?",
-      [orderNo]
+      "SELECT sku_id, qty FROM miniapp_order_item WHERE order_no = ? AND tenant_id = ?",
+      [orderNo, tenantId]
     );
     for (const item of (items[0] as any[])) {
       await conn.execute(
@@ -303,17 +303,17 @@ export async function remarkOrder(orderNo: string, remark: string, operatorId: n
   );
   if (!order) throw new Error("订单不存在");
 
-  await queryWithTenant(
-    "UPDATE miniapp_order SET remark = ?, updated_at = NOW() WHERE order_no = ? AND tenant_id = ?",
-    [remark, orderNo, tenantId],
-    tenantId
-  );
-  const logNo = makeBizNo("LOG");
-  await queryWithTenant(
-    "INSERT INTO operation_log (log_no, module, action, biz_no, operator_id, operator_name, remark, tenant_id) VALUES (?, 'ORDER', 'REMARK', ?, ?, ?, ?, ?)",
-    [logNo, orderNo, operatorId ?? 0, operatorName, remark, tenantId],
-    tenantId
-  );
+  await transaction(async (conn) => {
+    await conn.execute(
+      "UPDATE miniapp_order SET remark = ?, updated_at = NOW() WHERE order_no = ? AND tenant_id = ?",
+      [remark, orderNo, tenantId]
+    );
+    const logNo = makeBizNo("LOG");
+    await conn.execute(
+      "INSERT INTO operation_log (log_no, module, action, biz_no, operator_id, operator_name, remark, tenant_id) VALUES (?, 'ORDER', 'REMARK', ?, ?, ?, ?, ?)",
+      [logNo, orderNo, operatorId ?? 0, operatorName, remark, tenantId]
+    );
+  });
   return { orderNo, remark };
 }
 
@@ -328,17 +328,17 @@ export async function updateOrderStatus(orderNo: string, targetStatus: string, o
     throw new Error(`订单状态不能从 ${order.order_status} 变更为 ${targetStatus}`);
   }
 
-  await queryWithTenant(
-    "UPDATE miniapp_order SET order_status = ?, updated_at = NOW() WHERE order_no = ? AND tenant_id = ?",
-    [targetStatus, orderNo, tenantId],
-    tenantId
-  );
-  const logNo = makeBizNo("LOG");
-  await queryWithTenant(
-    "INSERT INTO operation_log (log_no, module, action, biz_no, operator_id, operator_name, remark, tenant_id) VALUES (?, 'ORDER', 'STATUS_CHANGE', ?, ?, ?, ?, ?)",
-    [logNo, orderNo, operatorId ?? 0, operatorName, remark || `状态变更: ${order.order_status} -> ${targetStatus}`, tenantId],
-    tenantId
-  );
+  await transaction(async (conn) => {
+    await conn.execute(
+      "UPDATE miniapp_order SET order_status = ?, updated_at = NOW() WHERE order_no = ? AND tenant_id = ?",
+      [targetStatus, orderNo, tenantId]
+    );
+    const logNo = makeBizNo("LOG");
+    await conn.execute(
+      "INSERT INTO operation_log (log_no, module, action, biz_no, operator_id, operator_name, remark, tenant_id) VALUES (?, 'ORDER', 'STATUS_CHANGE', ?, ?, ?, ?, ?)",
+      [logNo, orderNo, operatorId ?? 0, operatorName, remark || `状态变更: ${order.order_status} -> ${targetStatus}`, tenantId]
+    );
+  });
   return { orderNo, fromStatus: order.order_status, toStatus: targetStatus };
 }
 

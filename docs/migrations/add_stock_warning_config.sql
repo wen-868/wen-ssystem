@@ -6,7 +6,7 @@ CREATE TABLE IF NOT EXISTS stock_warning_config (
   min_qty INT NOT NULL DEFAULT 0 COMMENT '最低库存阈值',
   max_qty INT NOT NULL DEFAULT 0 COMMENT '最高库存阈值',
   enabled TINYINT DEFAULT 1 COMMENT '是否启用',
-  tenant_id VARCHAR(36) NOT NULL DEFAULT '',
+  tenant_id VARCHAR(64) NOT NULL DEFAULT '',
   created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
   updated_at DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
   UNIQUE KEY uk_store_sku (store_id, sku_id, tenant_id),

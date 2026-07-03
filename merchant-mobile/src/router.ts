@@ -1,4 +1,4 @@
-import { createRouter, createWebHashHistory } from 'vue-router'
+import { createRouter, createWebHistory } from 'vue-router'
 import type { RouteRecordRaw } from 'vue-router'
 
 const routes: RouteRecordRaw[] = [
@@ -126,6 +126,9 @@ const routes: RouteRecordRaw[] = [
   // 售后管理
   { path: '/order-aftersale/list', name: 'order-aftersale-list', component: () => import('./views/OrderAftersaleView.vue'), meta: { requiresAuth: true } },
   { path: '/order-aftersale/detail/:aftersaleNo', name: 'order-aftersale-detail', component: () => import('./views/OrderAftersaleDetailView.vue'), meta: { requiresAuth: true } },
+  // 系统设置
+  { path: '/profile/edit', name: 'profile-edit', component: () => import('./views/ProfileEditView.vue'), meta: { requiresAuth: true } },
+  { path: '/profile/change-password', name: 'profile-change-password', component: () => import('./views/ChangePasswordView.vue'), meta: { requiresAuth: true } },
   // 通知
   { path: '/notifications', name: 'notifications', component: () => import('./views/NotificationView.vue'), meta: { requiresAuth: true } },
   { path: '/notifications/:id', name: 'notification-detail', component: () => import('./views/NotificationDetailView.vue'), meta: { requiresAuth: true } },
@@ -134,7 +137,7 @@ const routes: RouteRecordRaw[] = [
 ]
 
 const router = createRouter({
-  history: createWebHashHistory(),
+  history: createWebHistory(),
   routes
 })
 

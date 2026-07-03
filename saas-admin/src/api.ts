@@ -196,29 +196,3 @@ export function updatePlatformConfig(data: any) {
 export function getAuditLogs(params?: { keyword?: string; action?: string; userId?: number; page?: number; pageSize?: number }) {
   return api.get<any, { data: ApiResult<any> }>("/admin/audit-logs", { params: { page: 1, pageSize: 20, ...params } });
 }
-
-// ==================== 权限矩阵 ====================
-export function getReportPermissions() {
-  return api.get<any, { data: ApiResult<any> }>("/admin/report-permissions");
-}
-
-export function saveReportPermissions(permissions: any[]) {
-  return api.put<any, { data: ApiResult<any> }>("/admin/report-permissions", { permissions });
-}
-
-// ==================== 监控告警 ====================
-export function getDbStatus() {
-  return api.get<any, { data: ApiResult<any> }>("/admin/monitor/db-status");
-}
-
-export function getApiStats() {
-  return api.get<any, { data: ApiResult<any> }>("/admin/monitor/api-stats");
-}
-
-export function getExpiringTenants() {
-  return api.get<any, { data: ApiResult<any> }>("/admin/monitor/expiring-tenants");
-}
-
-export function notifyExpiringTenants(tenantIds: number[]) {
-  return api.post<any, { data: ApiResult<any> }>("/admin/monitor/notify-expiring", { tenantIds });
-}

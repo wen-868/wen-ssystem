@@ -114,7 +114,24 @@ export async function queryOne<T = any>(sql: string, params: unknown[] = []) {
  */
 export async function queryWithTenant<T = any>(sql: string, params: unknown[] = [], tenantId: string): Promise<T[]> {
   if (env.USE_MOCK_DB) {
-    return mockQuery<T>(sql, params);
+    // 在 mock 模式下也验证 SQL 是否包含 tenant_id 条件，防止生产环境跨租户数据泄露
+    const lowerSql = sql.toLowerCase();
+    const hasTenantId = lowerSql.includes('tenant_id');
+    if (!hasTenantId) {
+      console.warn(`[mock-db] WARNING: queryWithTenant 调用缺少 tenant_id 条件: ${sql.substring(0, 100)}`);
+    }
+    const result = await mockQuery<T>(sql, params);
+    // 对结果进行租户过滤（模拟生产环境的租户隔离）
+    if (Array.isArray(result) && result.length > 0) {
+      const firstRow = result[0] as any;
+      if (firstRow && typeof firstRow === 'object') {
+        const tenantKey = 'tenant_id' in firstRow ? 'tenant_id' : ('tenantId' in firstRow ? 'tenantId' : null);
+        if (tenantKey) {
+          return result.filter((row: any) => row[tenantKey] === tenantId) as T[];
+        }
+      }
+    }
+    return result;
   }
   
   const { modifiedSql, modifiedParams } = injectTenantCondition(sql, params, tenantId);

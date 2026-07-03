@@ -291,10 +291,9 @@ class SupplierService {
     );
     if (!supplier) return null;
 
-    const contacts = await queryWithTenant<any>(
+    const contacts = await query<any>(
       "SELECT * FROM supplier_contact WHERE supplier_id = ? ORDER BY is_primary DESC, id ASC",
-      [id],
-      ctx.tenantId
+      [id]
     );
 
     const result = mapSupplierDetailRow(supplier);
@@ -394,14 +393,13 @@ class SupplierService {
     if (!supplier) return null;
 
     if (dto.isPrimary) {
-      await queryWithTenant(
+      await query(
         "UPDATE supplier_contact SET is_primary = 0 WHERE supplier_id = ?",
-        [supplierId],
-        ctx.tenantId
+        [supplierId]
       );
     }
 
-    const [result] = await queryWithTenant<any>(
+    const [result] = await query<any>(
       `INSERT INTO supplier_contact (supplier_id, name, mobile, phone, email, wechat, is_primary, position, remark)
        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`,
       [
@@ -414,8 +412,7 @@ class SupplierService {
         dto.isPrimary ? 1 : 0,
         dto.position || null,
         dto.remark || null,
-      ],
-      ctx.tenantId
+      ]
     );
 
     const contactId = result?.insertId ?? 0;
@@ -433,17 +430,15 @@ class SupplierService {
     const supplier = await this.findById(supplierId, ctx.tenantId);
     if (!supplier) return null;
 
-    const contact = await queryOneWithTenant<SupplierContact>(
+    const contact = await queryOne<SupplierContact>(
       "SELECT * FROM supplier_contact WHERE id = ? AND supplier_id = ?",
-      [contactId, supplierId],
-      ctx.tenantId
+      [contactId, supplierId]
     );
     if (!contact) return false;
 
-    await queryWithTenant(
+    await query(
       "DELETE FROM supplier_contact WHERE id = ?",
-      [contactId],
-      ctx.tenantId
+      [contactId]
     );
 
     await queryWithTenant(

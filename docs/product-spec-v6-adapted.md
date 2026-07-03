@@ -930,9 +930,6 @@ required / unique / len[a,b] / range[a,b] / regex / enum / fk / logic / compare 
 | last_share_time | DATETIME DEFAULT NULL | 最近分享时间 |
 | last_payment_time | DATETIME DEFAULT NULL | 最近收款时间 |
 | locked_amount_flag | TINYINT NOT NULL DEFAULT 0 | 金额是否锁定 |
-| store_name | VARCHAR(128) DEFAULT NULL | 门店名称快照 |
-| store_address | VARCHAR(255) DEFAULT NULL | 门店地址快照 |
-| store_contact | VARCHAR(64) DEFAULT NULL | 门店联系方式快照 |
 | operator_id | BIGINT UNSIGNED NOT NULL | 开单人 |
 | remark | VARCHAR(255) DEFAULT NULL | 客户可见备注 |
 | internal_remark | VARCHAR(255) DEFAULT NULL | 内部备注 |
@@ -954,9 +951,6 @@ required / unique / len[a,b] / range[a,b] / regex / enum / fk / logic / compare 
 | unit_price | DECIMAL(12,2) NOT NULL | 成交单价，按瓶 |
 | price_type | VARCHAR(32) NOT NULL | 价格类型：RETAIL/WHOLESALE/STORE |
 | subtotal_amount | DECIMAL(12,2) NOT NULL | 小计 |
-| unit | VARCHAR(32) DEFAULT NULL | 单位快照 |
-| barcode | VARCHAR(64) DEFAULT NULL | 条码快照 |
-| spec | VARCHAR(64) DEFAULT NULL | 规格快照 |
 | trace_required | TINYINT NOT NULL DEFAULT 0 | 是否需要追溯 |
 | created_at | DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP | 创建时间 |
 
@@ -1033,8 +1027,6 @@ required / unique / len[a,b] / range[a,b] / regex / enum / fk / logic / compare 
 | tax_enabled | TINYINT NOT NULL DEFAULT 0 | 是否展示税率 |
 | tax_rate | DECIMAL(8,4) NOT NULL DEFAULT 0.0000 | 税率 |
 | tax_amount | DECIMAL(12,2) NOT NULL DEFAULT 0.00 | 税额 |
-| display_config | JSON DEFAULT NULL | 展示配置（含logo/标题/颜色等） |
-| document_title | VARCHAR(128) DEFAULT NULL | 单据标题 |
 | paid_amount | DECIMAL(12,2) NOT NULL DEFAULT 0.00 | 已支付金额 |
 | status | VARCHAR(32) NOT NULL DEFAULT 'PENDING' | 状态：PENDING/PARTIAL/PAID/EXPIRED/CLOSED |
 | share_channel | VARCHAR(32) NOT NULL | 分享方式：MINIAPP_CARD/LINK/IMAGE/QR_CODE |
@@ -1335,61 +1327,6 @@ required / unique / len[a,b] / range[a,b] / regex / enum / fk / logic / compare 
 | 8. 全渠道商品映射 | 🔴 P0 | 平台商品编码 ↔ 系统商品 | ~50 | 保留 |
 | **合计** | | | **361** | 适配后保留 ~260 字段（删减非必须） |
 
-### 订单管理 · 字段与表结构详解
-
-### 6.1 数据表定义
-
-#### 6.1.1 miniapp_order_sync_log（小程序订单同步日志表）
-
-| 字段名 | 类型 | 说明 |
-|--------|------|------|
-| id | BIGINT UNSIGNED AUTO_INCREMENT | 日志ID |
-| order_no | VARCHAR(64) NOT NULL | 订单号 |
-| platform | VARCHAR(32) NOT NULL | 平台 |
-| sync_type | VARCHAR(32) NOT NULL | 同步类型：STATUS/SKU/PRICE/STOCK |
-| sync_direction | VARCHAR(32) NOT NULL | 方向：PUSH_TO_PLATFORM/PULL_FROM_PLATFORM |
-| request_data | JSON DEFAULT NULL | 请求数据 |
-| response_data | JSON DEFAULT NULL | 响应数据 |
-| status | VARCHAR(32) NOT NULL | 状态：SUCCESS/FAILED |
-| error_msg | VARCHAR(512) DEFAULT NULL | 错误信息 |
-| created_at | DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP | 创建时间 |
-
-#### 6.1.2 platform_reconciliation（平台对账表）
-
-| 字段名 | 类型 | 说明 |
-|--------|------|------|
-| id | BIGINT UNSIGNED AUTO_INCREMENT | 对账ID |
-| platform | VARCHAR(32) NOT NULL | 平台 |
-| reconciliation_date | DATE NOT NULL | 对账日期 |
-| platform_order_count | INT NOT NULL DEFAULT 0 | 平台订单数 |
-| platform_amount | DECIMAL(12,2) NOT NULL DEFAULT 0.00 | 平台金额 |
-| system_order_count | INT NOT NULL DEFAULT 0 | 系统订单数 |
-| system_amount | DECIMAL(12,2) NOT NULL DEFAULT 0.00 | 系统金额 |
-| diff_count | INT NOT NULL DEFAULT 0 | 差异单数 |
-| diff_amount | DECIMAL(12,2) NOT NULL DEFAULT 0.00 | 差异金额 |
-| commission_amount | DECIMAL(12,2) DEFAULT NULL | 佣金金额 |
-| status | VARCHAR(32) NOT NULL DEFAULT 'PENDING' | 状态：PENDING/MATCHED/DIFF/ADJUSTED |
-| operator_id | BIGINT UNSIGNED DEFAULT NULL | 对账人 |
-| adjusted_at | DATETIME DEFAULT NULL | 调整时间 |
-| created_at | DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP | 创建时间 |
-| updated_at | DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE | 更新时间 |
-
-#### 6.1.3 platform_review（平台评价表）
-
-| 字段名 | 类型 | 说明 |
-|--------|------|------|
-| id | BIGINT UNSIGNED AUTO_INCREMENT | 评价ID |
-| platform | VARCHAR(32) NOT NULL | 平台 |
-| platform_review_id | VARCHAR(128) DEFAULT NULL | 平台评价ID |
-| order_no | VARCHAR(64) NOT NULL | 关联订单号 |
-| rating | TINYINT NOT NULL | 评分：1-5 |
-| content | TEXT DEFAULT NULL | 评价内容 |
-| reply_content | VARCHAR(500) DEFAULT NULL | 回复内容 |
-| replied_at | DATETIME DEFAULT NULL | 回复时间 |
-| synced_at | DATETIME DEFAULT NULL | 同步时间 |
-| created_at | DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP | 创建时间 |
-| updated_at | DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE | 更新时间 |
-
 ---
 
 ## 第七部分：即时零售
@@ -1579,55 +1516,6 @@ required / unique / len[a,b] / range[a,b] / regex / enum / fk / logic / compare 
 | R. 零售经营分析 | 🟡 P1 | 小程序+各平台销售、毛利分析 | ~40 |
 
 > **酒水适配**: 小程序是自营客户流量入口，外卖平台是公域流量入口，两者都要保留 P0 核心模块。小程序B端批发下单功能是酒水行业的核心差异化。
-
-### 即时零售 · 字段与表结构详解
-
-### 7.1 数据表定义
-
-#### 7.1.1 retail_announcement（小程序公告表）
-
-| 字段名 | 类型 | 说明 |
-|--------|------|------|
-| id | BIGINT UNSIGNED AUTO_INCREMENT | 公告ID |
-| store_id | BIGINT UNSIGNED NOT NULL | 门店ID |
-| title | VARCHAR(128) NOT NULL | 公告标题 |
-| content | TEXT NOT NULL | 公告内容 |
-| is_top | TINYINT NOT NULL DEFAULT 0 | 是否置顶 |
-| start_time | DATETIME DEFAULT NULL | 开始展示时间 |
-| end_time | DATETIME DEFAULT NULL | 结束展示时间 |
-| status | TINYINT NOT NULL DEFAULT 1 | 状态 |
-| created_at | DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP | 创建时间 |
-| updated_at | DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE | 更新时间 |
-
-#### 7.1.2 retail_cart（购物车表）
-
-| 字段名 | 类型 | 说明 |
-|--------|------|------|
-| id | BIGINT UNSIGNED AUTO_INCREMENT | 购物车ID |
-| user_id | BIGINT UNSIGNED NOT NULL | 用户ID |
-| store_id | BIGINT UNSIGNED NOT NULL | 门店ID |
-| sku_id | BIGINT UNSIGNED NOT NULL | SKU ID |
-| box_qty | INT NOT NULL DEFAULT 0 | 箱数 |
-| bottle_qty | INT NOT NULL DEFAULT 0 | 瓶数 |
-| checked | TINYINT NOT NULL DEFAULT 1 | 是否选中 |
-| created_at | DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP | 创建时间 |
-| updated_at | DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE | 更新时间 |
-
-#### 7.1.3 retail_consumer_address（消费者收货地址表）
-
-| 字段名 | 类型 | 说明 |
-|--------|------|------|
-| id | BIGINT UNSIGNED AUTO_INCREMENT | 地址ID |
-| user_id | BIGINT UNSIGNED NOT NULL | 用户ID |
-| name | VARCHAR(64) NOT NULL | 收货人姓名 |
-| mobile | VARCHAR(20) NOT NULL | 收货人手机 |
-| province | VARCHAR(64) NOT NULL | 省 |
-| city | VARCHAR(64) NOT NULL | 市 |
-| district | VARCHAR(64) NOT NULL | 区 |
-| detail | VARCHAR(255) NOT NULL | 详细地址 |
-| is_default | TINYINT NOT NULL DEFAULT 0 | 是否默认地址 |
-| created_at | DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP | 创建时间 |
-| updated_at | DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE | 更新时间 |
 
 ---
 
@@ -2004,56 +1892,6 @@ required / unique / len[a,b] / range[a,b] / regex / enum / fk / logic / compare 
 
 > **酒水适配**: 删除秒杀拼团、社群分销等不适合酒水批发的功能。保留满减满赠、优惠券。
 
-### 营销中心 · 字段与表结构详解
-
-### 9.1 数据表定义
-
-#### 9.1.1 points_mall_item（积分商城商品表）
-
-| 字段名 | 类型 | 说明 |
-|--------|------|------|
-| id | BIGINT UNSIGNED AUTO_INCREMENT | 商品ID |
-| name | VARCHAR(128) NOT NULL | 商品名称 |
-| image | VARCHAR(512) DEFAULT NULL | 商品图片 |
-| points_required | INT NOT NULL | 所需积分 |
-| stock | INT NOT NULL DEFAULT 0 | 库存 |
-| per_user_limit | INT NOT NULL DEFAULT 1 | 每人限兑 |
-| start_time | DATETIME DEFAULT NULL | 开始时间 |
-| end_time | DATETIME DEFAULT NULL | 结束时间 |
-| status | VARCHAR(32) NOT NULL DEFAULT 'ACTIVE' | 状态：ACTIVE/INACTIVE |
-| created_at | DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP | 创建时间 |
-| updated_at | DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE | 更新时间 |
-
-#### 9.1.2 points_mall_order（积分兑换订单表）
-
-| 字段名 | 类型 | 说明 |
-|--------|------|------|
-| id | BIGINT UNSIGNED AUTO_INCREMENT | 订单ID |
-| order_no | VARCHAR(64) NOT NULL UNIQUE | 订单号 |
-| user_id | BIGINT UNSIGNED NOT NULL | 用户ID |
-| item_id | BIGINT UNSIGNED NOT NULL | 兑换商品ID |
-| points_used | INT NOT NULL | 消耗积分 |
-| qty | INT NOT NULL DEFAULT 1 | 兑换数量 |
-| status | VARCHAR(32) NOT NULL DEFAULT 'PENDING' | 状态：PENDING/DELIVERED/CANCELLED |
-| delivery_address | JSON DEFAULT NULL | 收货地址 |
-| created_at | DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP | 创建时间 |
-| updated_at | DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE | 更新时间 |
-
-#### 9.1.3 marketing_asset（营销素材表）
-
-| 字段名 | 类型 | 说明 |
-|--------|------|------|
-| id | BIGINT UNSIGNED AUTO_INCREMENT | 素材ID |
-| name | VARCHAR(128) NOT NULL | 素材名称 |
-| type | VARCHAR(32) NOT NULL | 素材类型：IMAGE/VIDEO/COPYWRITING |
-| content | TEXT DEFAULT NULL | 素材内容（文案） |
-| file_url | VARCHAR(512) DEFAULT NULL | 文件URL |
-| tags | JSON DEFAULT NULL | 素材标签 |
-| category | VARCHAR(32) DEFAULT NULL | 素材分类 |
-| status | VARCHAR(32) NOT NULL DEFAULT 'ACTIVE' | 状态 |
-| created_at | DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP | 创建时间 |
-| updated_at | DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE | 更新时间 |
-
 ---
 
 ## 第十部分：财务往来（整合原财务与往来中心，原财务管理改名）
@@ -2285,38 +2123,6 @@ required / unique / len[a,b] / range[a,b] / regex / enum / fk / logic / compare 
 | 10. 自定义报表与导出 | 🟢 P2 | 用户自定义报表 | ~120 | 放P2 |
 | **合计** | | | **560** | 适配后保留 ~340 字段 |
 
-### 数据报表 · 字段与表结构详解
-
-### 11.1 数据表定义
-
-#### 11.1.1 custom_report_template（自定义报表模板表）
-
-| 字段名 | 类型 | 说明 |
-|--------|------|------|
-| id | BIGINT UNSIGNED AUTO_INCREMENT | 模板ID |
-| name | VARCHAR(128) NOT NULL | 模板名称 |
-| type | VARCHAR(32) NOT NULL | 报表类型：SALES/INVENTORY/FINANCE/CUSTOMER |
-| config | JSON NOT NULL | 报表配置（指标、维度、筛选条件） |
-| creator_id | BIGINT UNSIGNED NOT NULL | 创建人 |
-| status | TINYINT NOT NULL DEFAULT 1 | 状态 |
-| created_at | DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP | 创建时间 |
-| updated_at | DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE | 更新时间 |
-
-#### 11.1.2 custom_report_schedule（定时报表导出表）
-
-| 字段名 | 类型 | 说明 |
-|--------|------|------|
-| id | BIGINT UNSIGNED AUTO_INCREMENT | 任务ID |
-| template_id | BIGINT UNSIGNED NOT NULL | 模板ID |
-| name | VARCHAR(128) NOT NULL | 任务名称 |
-| cron_expression | VARCHAR(64) NOT NULL | 定时表达式 |
-| export_format | VARCHAR(16) DEFAULT 'EXCEL' | 导出格式：EXCEL/PDF |
-| recipients | JSON DEFAULT NULL | 接收人列表 |
-| last_run_at | DATETIME DEFAULT NULL | 上次执行时间 |
-| status | VARCHAR(32) NOT NULL DEFAULT 'ACTIVE' | 状态：ACTIVE/PAUSED |
-| created_at | DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP | 创建时间 |
-| updated_at | DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE | 更新时间 |
-
 ---
 
 ## 第十二部分：系统设置（原门店、组织与权限 + 系统管理）
@@ -2336,48 +2142,6 @@ required / unique / len[a,b] / range[a,b] / regex / enum / fk / logic / compare 
 | 9. 多店调拨与共享 | 🟢 P2 | 跨店库存共享 | ~40 | 连锁需要，放P2 |
 | 10. 总部-分店报表权限 | 🟢 P2 | 报表权限矩阵 | 50 | 放P2 |
 | **合计** | | | **470** | 适配后保留 ~300 字段 |
-
-### 系统设置 · 字段与表结构详解
-
-### 12.1 数据表定义
-
-#### 12.1.1 sys_department（部门表）
-
-| 字段名 | 类型 | 说明 |
-|--------|------|------|
-| id | BIGINT UNSIGNED AUTO_INCREMENT | 部门ID |
-| parent_id | BIGINT UNSIGNED DEFAULT NULL | 父部门ID |
-| name | VARCHAR(64) NOT NULL | 部门名称 |
-| store_id | BIGINT UNSIGNED DEFAULT NULL | 所属门店 |
-| sort_order | INT NOT NULL DEFAULT 0 | 排序 |
-| status | TINYINT NOT NULL DEFAULT 1 | 状态 |
-| created_at | DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP | 创建时间 |
-| updated_at | DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE | 更新时间 |
-
-#### 12.1.2 user_session（用户会话表）
-
-| 字段名 | 类型 | 说明 |
-|--------|------|------|
-| id | BIGINT UNSIGNED AUTO_INCREMENT | 会话ID |
-| user_id | BIGINT UNSIGNED NOT NULL | 用户ID |
-| token | VARCHAR(512) NOT NULL | 会话令牌 |
-| device_type | VARCHAR(32) DEFAULT NULL | 设备类型：WEB/MINIAPP/IOS/ANDROID |
-| device_info | VARCHAR(255) DEFAULT NULL | 设备信息 |
-| ip | VARCHAR(64) DEFAULT NULL | IP地址 |
-| expires_at | DATETIME NOT NULL | 过期时间 |
-| last_activity_at | DATETIME DEFAULT NULL | 最后活跃时间 |
-| created_at | DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP | 创建时间 |
-
-#### 12.1.3 report_permission_matrix（报表权限矩阵表）
-
-| 字段名 | 类型 | 说明 |
-|--------|------|------|
-| id | BIGINT UNSIGNED AUTO_INCREMENT | 权限ID |
-| role_id | BIGINT UNSIGNED NOT NULL | 角色ID |
-| report_code | VARCHAR(64) NOT NULL | 报表编码 |
-| store_scope | VARCHAR(32) NOT NULL DEFAULT 'SELF' | 门店范围：SELF/CHILDREN/ALL |
-| created_at | DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP | 创建时间 |
-| updated_at | DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE | 更新时间 |
 
 ---
 
@@ -2844,20 +2608,46 @@ required / unique / len[a,b] / range[a,b] / regex / enum / fk / logic / compare 
 | 后端 API | 端点齐全 | 胖路由拆分已完成（admin.routes.ts 2847→83行），迁移脚本待补 |
 | 商家移动端 (merchant-mobile) | 100% | 35个视图页面，含采购/销售/库存/客户/对账/设置 |
 | 门店终端 (store-terminal) | 100% | 11个视图页面，含收银/订单/库存/报表 |
-| 管理后台 (admin-web) | 100% | 108个视图全部完成 |
-| 平台总后台 (saas-admin) | 100% | 租户/套餐/订阅/看板/配置/日志全部完成 |
-| **数据库表总数** | **95** | init_database.sql (62) + 迁移脚本 (33) |
+| 管理后台 (admin-web) | 55% | 26个完整视图 + 24个视图待补齐 |
+| 平台总后台 (saas-admin) | 0% | 全新项目，待从零搭建 |
 
-### 平台总后台（saas-admin · 已完成）
+### 管理后台待补齐视图（21个占位 + 3个新增）
+
+| 优先级 | 一级目录 | 视图 | 状态 |
+|:---:|------|------|:---:|
+| 🔴 P0 | 商品中心 | ProductCategories（商品分类管理） | ⏳ 占位 |
+| 🔴 P0 | 采购管理 | PurchaseReturns（采购退货） | ⏳ 占位 |
+| 🔴 P0 | 采购管理 | PurchasePayments（采购付款） | ⏳ 占位 |
+| 🔴 P0 | 库存管理 | InventoryCheck（库存盘点） | ⏳ 占位 |
+| 🔴 P0 | 库存管理 | InventoryTransfer（库存调拨） | ⏳ 占位 |
+| 🔴 P0 | 库存管理 | **InventoryBatchPrice（批量价格调整）** ⭐ | 🆕 新增 |
+| 🔴 P0 | 库存管理 | **InventoryPriceQuote（一键报价推送）** ⭐ | 🆕 新增 |
+| 🔴 P0 | 系统设置 | SystemRoles（角色权限管理） | ⏳ 占位 |
+| 🟡 P1 | 库存管理 | InventoryBatch（批次追溯） | ⏳ 占位 |
+| 🟡 P1 | 财务往来 | FinanceCollection（收款链接管理） | ⏳ 占位 |
+| 🟡 P1 | 财务往来 | FinanceProfit（经营利润） | ⏳ 占位 |
+| 🟡 P1 | 数据报表 | ReportsProducts（商品排行） | ⏳ 占位 |
+| 🟡 P1 | 数据报表 | ReportsEmployees（员工业绩） | ⏳ 占位 |
+| 🟡 P1 | 数据报表 | ReportsStores（门店对比） | ⏳ 占位 |
+| 🟡 P1 | 营销中心 | MarketingPromotion（促销活动） | ⏳ 占位 |
+| 🟡 P1 | 即时零售 | InstantRetailConfig（小程序配置） | ⏳ 占位 |
+| 🟡 P1 | 即时零售 | InstantRetailShelf（商品货架） | ⏳ 占位 |
+| 🟡 P1 | 即时零售 | InstantRetailOrders（小程序订单） | ⏳ 占位 |
+| 🟡 P1 | 即时零售 | InstantRetailPayment（在线支付） | ⏳ 占位 |
+| 🟡 P1 | 即时零售 | InstantRetailDelivery（配送管理） | ⏳ 占位 |
+| 🟡 P1 | 即时零售 | InstantRetailReport（零售报表） | ⏳ 占位 |
+| 🟡 P1 | 即时零售 | InstantRetailPlatform（平台对接） | ⏳ 占位 |
+| 🟡 P1 | 即时零售 | InstantRetailOrderBoard（60秒接单） | ⏳ 占位 |
+
+### 平台总后台待开发（saas-admin · 全新项目）
 
 | 优先级 | 模块 | 视图 | 状态 |
 |:---:|------|------|:---:|
-| 🔴 P0 | 租户管理 | Tenants（租户列表/详情/模块授权） | ✅ 已完成 |
-| 🔴 P0 | 套餐管理 | Packages + PackageForm（套餐定义/功能模块/价格） | ✅ 已完成 |
-| 🔴 P0 | 订阅管理 | Subscriptions + SubscriptionDetail（订阅记录/续费/变更/取消） | ✅ 已完成 |
-| 🔴 P0 | 平台看板 | Dashboard（经营指标/收入趋势/套餐分布/租户状态） | ✅ 已完成 |
-| 🔴 P0 | 平台配置 | Settings（全局参数配置） | ✅ 已完成 |
-| 🔴 P0 | 操作日志 | AuditLogs（操作审计日志） | ✅ 已完成 |
+| 🔴 P0 | 租户管理 | TenantList（租户列表/审核/详情） | 🆕 待开发 |
+| 🔴 P0 | 套餐管理 | PlanList（套餐定义/功能开关） | 🆕 待开发 |
+| 🔴 P0 | 订阅管理 | SubscriptionList（订阅记录/续费/升降级） | 🆕 待开发 |
+| 🔴 P0 | 平台看板 | PlatformDashboard（经营指标/趋势/收入） | 🆕 待开发 |
+| 🔴 P0 | 平台配置 | PlatformConfig（全局参数/公告/维护模式） | 🆕 待开发 |
 
 ### 补齐排期
 

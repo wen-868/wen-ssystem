@@ -241,10 +241,10 @@ export async function updateProduct(spuId: number, body: {
 export async function disableProduct(spuId: number, tenantId: string) {
   const existing = await queryOneWithTenant<any>("SELECT id, name, status FROM product_spu WHERE id = ? AND tenant_id = ?", [spuId, tenantId], tenantId);
   if (!existing) {
-    return { code: "404", message: "商品不存在" };
+    throw Object.assign(new Error("商品不存在"), { statusCode: 404 });
   }
   if (existing.status === "OFF_SALE") {
-    return { code: "400", message: "商品已停售" };
+    throw Object.assign(new Error("商品已停售"), { statusCode: 400 });
   }
   await queryWithTenant("UPDATE product_spu SET status = 'OFF_SALE', updated_at = NOW() WHERE id = ? AND tenant_id = ?", [spuId, tenantId], tenantId);
   return { spuId, name: existing.name };

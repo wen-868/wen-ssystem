@@ -1,6 +1,42 @@
 import { Router } from "express";
 import { requireAuthWithTenant } from "../shared/auth.js";
+import { pool } from "../shared/db.js";
+import type { Pool } from "mysql2/promise";
 import * as ctrl from "../controllers/notification.controller.js";
+
+// ========== 通知发送工具函数（被其他模块引用） ==========
+
+export interface SendNotificationParams {
+  recipientId: number;
+  recipientType: "ADMIN" | "MERCHANT" | "CONSUMER";
+  title: string;
+  content: string;
+  type: "SYSTEM" | "ORDER" | "PAYMENT" | "ALERT" | "CREDIT" | "RECALL";
+  relatedId?: number | null;
+  relatedType?: string | null;
+  tenantId: string;
+}
+
+export async function sendNotification(
+  dbPool: Pool,
+  params: SendNotificationParams
+): Promise<number> {
+  const [result] = await dbPool.query(
+    `INSERT INTO notification (recipient_id, recipient_type, title, content, type, related_id, related_type, tenant_id)
+     VALUES (?, ?, ?, ?, ?, ?, ?, ?)`,
+    [
+      params.recipientId,
+      params.recipientType,
+      params.title,
+      params.content,
+      params.type,
+      params.relatedId ?? null,
+      params.relatedType ?? null,
+      params.tenantId
+    ]
+  );
+  return (result as any).insertId;
+}
 
 // ========== 管理后台通知路由 ==========
 

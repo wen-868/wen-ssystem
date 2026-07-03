@@ -6,9 +6,9 @@ USE liquor_inventory;
 
 INSERT INTO sys_user (id, username, password_hash, real_name, mobile, store_id, status)
 VALUES
-  (1, 'admin', '$2b$10$BxsXQunnhzFxD4ixTsIMr.K8wkE7yk1601Cq66SxqvMlx5tuo60/2', '系统管理员', '13800000000', NULL, 1),
-  (2, 'store_manager', '$2b$10$BxsXQunnhzFxD4ixTsIMr.K8wkE7yk1601Cq66SxqvMlx5tuo60/2', '默认店长', '13800000001', 1, 1),
-  (3, 'store_operator', '$2b$10$BxsXQunnhzFxD4ixTsIMr.K8wkE7yk1601Cq66SxqvMlx5tuo60/2', '默认店员', '13800000002', 1, 1)
+  (1, 'admin', '240be518fabd2724ddb6f04eeb1da5967448d7e831c08c8fa822809f74c720a9', '系统管理员', '13800000000', NULL, 1),
+  (2, 'store_manager', '240be518fabd2724ddb6f04eeb1da5967448d7e831c08c8fa822809f74c720a9', '默认店长', '13800000001', 1, 1),
+  (3, 'store_operator', '240be518fabd2724ddb6f04eeb1da5967448d7e831c08c8fa822809f74c720a9', '默认店员', '13800000002', 1, 1)
 ON DUPLICATE KEY UPDATE
   password_hash = VALUES(password_hash),
   real_name = VALUES(real_name),

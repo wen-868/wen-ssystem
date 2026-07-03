@@ -11,9 +11,7 @@ import { adminRouter } from "./routes/admin.routes.js";
 import * as authController from "./controllers/admin/auth.controller.js";
 import { storeRouter } from "./routes/store.routes.js";
 import { miniappRouter } from "./routes/miniapp.routes.js";
-import { miniappConfigRouter } from "./routes/miniapp-config.routes.js";
 import { paymentRouter } from "./routes/payment.routes.js";
-import { paymentConfigRouter } from "./routes/payment-config.routes.js";
 import { shareRouter } from "./routes/share.routes.js";
 import { instantRetailRouter } from "./routes/instant-retail-new.routes.js";
 import { reportRouter } from "./routes/report.routes.js";
@@ -23,7 +21,7 @@ import { miniappCartRouter } from "./routes/cart.routes.js";
 import { miniappAftersaleRouter, adminAftersaleRouter } from "./routes/aftersale.routes.js";
 import { startAlertScheduler } from "./services/alert.service.js";
 import { inventoryBatchRouter, startExpiryScanner } from "./routes/inventory-batch.routes.js";
-import { adminStoreControlRouter, storeStoreControlRouter } from "./routes/store-control.routes.js";
+import { adminStoreControlRouter, storeStoreControlRouter, startStoreControlScheduler } from "./routes/store-control.routes.js";
 import { priceRouter } from "./routes/price.routes.js";
 import { creditRouter } from "./routes/credit.routes.js";
 import { adminTraceRouter, miniappTraceRouter } from "./routes/trace.routes.js";
@@ -34,7 +32,7 @@ import { marketingPointsMallRouter } from "./routes/marketing-points-mall.routes
 import { marketingDashboardRouter } from "./routes/marketing-dashboard.routes.js";
 import { marketingMaterialRouter } from "./routes/marketing-material.routes.js";
 import { wechatRouter } from "./routes/wechat.routes.js";
-import { orderTimeoutRouter } from "./routes/order-timeout.routes.js";
+import { orderTimeoutRouter, startOrderTimeoutScanner } from "./routes/order-timeout.routes.js";
 import { purchasePaymentRouter } from "./routes/purchase-payment.routes.js";
 import { rbacRouter } from "./routes/rbac.routes.js";
 import { adminNotificationRouter, miniappNotificationRouter } from "./routes/notification.routes.js";
@@ -60,12 +58,9 @@ import { subscriptionRouter } from "./routes/subscription.routes.js";
 import { customerMergeRouter } from "./routes/customer-merge.routes.js";
 import { startOverdueScanner } from "./services/overdue-scanner.service.js";
 import { startSubscriptionExpiryScanner } from "./services/subscription-expiry.service.js";
-import { startOrderTimeoutScanner } from "./services/admin/order-timeout-scanner.service.js";
-import { startStoreControlScheduler } from "./services/admin/store-control-scheduler.service.js";
 import "./jobs/report-aggregation.job.js";
 import { tagRouter } from "./routes/tag.routes.js";
 import { platformRouter } from "./routes/platform.routes.js";
-import { platformTenantRouter } from "./routes/platform-tenant.routes.js";
 import { customerPriceRouter } from "./routes/customer-price.routes.js";
 import { commissionRouter } from "./routes/commission.routes.js";
 import { supplierStatementRouter } from "./routes/supplier-statement.routes.js";
@@ -84,28 +79,18 @@ import { paymentNewRouter } from "./routes/payment-new.routes.js";
 import { receivableRouter } from "./routes/receivable.routes.js";
 import { expenseRouter } from "./routes/expense.routes.js";
 import { reconciliationRouter } from "./routes/reconciliation.routes.js";
-import { retailAnnouncementRouter } from "./routes/retail-announcement.routes.js";
 import { operationLogRouter } from "./routes/operation-log.routes.js";
 import { sysUserRouter } from "./routes/sys-user.routes.js";
 import { systemRouter } from "./routes/system.routes.js";
 import { workbenchRouter } from "./routes/workbench.routes.js";
-import syncRouter from "./routes/sync.routes.js";
-import { orderSyncLogRouter } from "./routes/miniapp-order-sync.routes.js";
-import { platformReconciliationRouter } from "./routes/platform-reconciliation.routes.js";
-import { platformReviewRouter } from "./routes/platform-review.routes.js";
-import { customReportRouter } from "./routes/custom-report.routes.js";
-import { consumerAddressRouter } from "./routes/retail-consumer-address.routes.js";
-import { pointsMallRouter } from "./routes/points-mall.routes.js";
-import { marketingAssetRouter } from "./routes/marketing-asset.routes.js";
-import { departmentRouter } from "./routes/department.routes.js";
-import { userSessionRouter } from "./routes/user-session.routes.js";
-import { seckillRouter } from "./routes/seckill.routes.js";
-import { groupBuyRouter } from "./routes/group-buy.routes.js";
 
 const app = express();
 
-// 全局 Rate Limiting：每IP每分钟100请求
-app.use(rateLimit({ windowMs: 60_000, max: 100, standardHeaders: true, legacyHeaders: false }));
+// 测试环境不禁用限流，避免影响测试
+if (process.env.NODE_ENV !== "test") {
+  // 全局 Rate Limiting：每IP每分钟100请求
+  app.use(rateLimit({ windowMs: 60_000, max: 100, standardHeaders: true, legacyHeaders: false }));
+}
 // 登录接口 Rate Limiting：每IP每15分钟5次（防暴力破解）
 const loginLimiter = rateLimit({ windowMs: 15 * 60_000, max: 5, message: "登录请求过于频繁，请15分钟后再试", standardHeaders: true, legacyHeaders: false });
 
@@ -148,9 +133,7 @@ app.use("/api/admin/alerts", requireAuthWithTenant, alertRouter);
 app.use("/api/admin/dashboard", requireAuthWithTenant, dashboardRouter);
 app.use("/api/store", storeRouter);
 app.use("/api/miniapp", miniappRouter);
-app.use("/api/admin/miniapp", requireAuthWithTenant, miniappConfigRouter);
 app.use("/api/pay", paymentRouter);
-app.use("/api/admin/payment", requireAuthWithTenant, paymentConfigRouter);
 app.use("/api/share", shareRouter);
 app.use("/api/instant-retail", requireAuthWithTenant, instantRetailRouter);
 app.use("/api/miniapp/cart", requireAuthWithTenant, miniappCartRouter);
@@ -170,12 +153,6 @@ app.use("/api/admin/marketing/gift-rules", requireAuthWithTenant, marketingGiftR
 app.use("/api/admin/marketing/points-mall", requireAuthWithTenant, marketingPointsMallRouter);
 app.use("/api/admin/marketing/dashboard", requireAuthWithTenant, marketingDashboardRouter);
 app.use("/api/admin/marketing/materials", requireAuthWithTenant, marketingMaterialRouter);
-app.use("/api/admin/marketing/seckill", requireAuthWithTenant, seckillRouter);
-app.use("/api/admin/marketing/group-buy", requireAuthWithTenant, groupBuyRouter);
-app.use("/api/admin/points-mall", requireAuthWithTenant, pointsMallRouter);
-app.use("/api/admin/marketing-assets", requireAuthWithTenant, marketingAssetRouter);
-app.use("/api/admin/departments", requireAuthWithTenant, departmentRouter);
-app.use("/api/admin/sessions", requireAuthWithTenant, userSessionRouter);
 app.use("/api/miniapp/wechat", wechatRouter);
 app.use("/api/admin/order-timeout", requireAuthWithTenant, orderTimeoutRouter);
 app.use("/api/admin/purchase-payments", requireAuthWithTenant, purchasePaymentRouter);
@@ -203,7 +180,6 @@ app.use("/api/admin/subscriptions", requireAuthWithTenant, subscriptionRouter);
 app.use("/api/admin/customer-merge", requireAuthWithTenant, customerMergeRouter);
 app.use("/api/admin", requireAuthWithTenant, tagRouter);
 app.use("/api/platform", requireAuthWithTenant, platformRouter);
-app.use("/api/platform/tenants", platformTenantRouter);
 app.use("/api/admin/customer-prices", requireAuthWithTenant, customerPriceRouter);
 app.use("/api/admin/commission", requireAuthWithTenant, commissionRouter);
 app.use("/api/admin/supplier-statements", requireAuthWithTenant, supplierStatementRouter);
@@ -226,13 +202,6 @@ app.use("/api/admin/operation-logs", requireAuthWithTenant, operationLogRouter);
 app.use("/api/admin/sys-users", requireAuthWithTenant, sysUserRouter);
 app.use("/api/system", systemRouter);
 app.use("/api/admin", requireAuthWithTenant, workbenchRouter);
-app.use("/api/admin/custom-reports", requireAuthWithTenant, customReportRouter);
-app.use("/api/miniapp/sync", requireAuthWithTenant, syncRouter);
-app.use("/api/admin/order-sync-logs", requireAuthWithTenant, orderSyncLogRouter);
-app.use("/api/admin/platform-reconciliations", requireAuthWithTenant, platformReconciliationRouter);
-app.use("/api/admin/platform-reviews", requireAuthWithTenant, platformReviewRouter);
-app.use("/api", retailAnnouncementRouter);
-app.use("/api", consumerAddressRouter);
 
 app.use(errorHandler);
 
@@ -258,7 +227,12 @@ async function start() {
   });
 }
 
-start().catch((error: any) => {
-  console.error("❌ 后端启动失败:", error);
-  (globalThis as any).process?.exit(1);
-});
+// 仅在非测试环境启动 server（测试环境由 supertest 自行管理连接）
+if (process.env.NODE_ENV !== "test") {
+  start().catch((error: any) => {
+    console.error("❌ 后端启动失败:", error);
+    (globalThis as any).process?.exit(1);
+  });
+}
+
+export { app };

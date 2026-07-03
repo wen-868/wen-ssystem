@@ -26,21 +26,19 @@ export async function list(params: {
     queryParams.push(dateEnd);
   }
 
-  const whereClause = conditions.length > 0 ? " AND " + conditions.join(" AND ") : "";
+  const whereClause = " AND tenant_id = ?" + (conditions.length > 0 ? " AND " + conditions.join(" AND ") : "");
   const offset = (page - 1) * pageSize;
-  const stocks = await queryWithTenant<any>(
+  const stocks = await query<any>(
     `SELECT * FROM purchase_in_stock WHERE 1=1${whereClause} ORDER BY created_at DESC LIMIT ? OFFSET ?`,
-    [...queryParams, pageSize, offset],
-    tenantId
+    [tenantId, ...queryParams, pageSize, offset]
   );
   return stocks;
 }
 
 export async function getDetail(stockNo: string, tenantId: string) {
-  const stock = await queryOneWithTenant<any>(
-    "SELECT * FROM purchase_in_stock WHERE stock_no = ?",
-    [stockNo],
-    tenantId
+  const stock = await queryOne<any>(
+    "SELECT * FROM purchase_in_stock WHERE stock_no = ? AND tenant_id = ?",
+    [stockNo, tenantId]
   );
   if (!stock) throw Object.assign(new Error("入库单不存在"), { statusCode: 404 });
   const items = await query<any>(
@@ -101,16 +99,15 @@ export async function create(body: {
 }
 
 export async function approve(stockNo: string, tenantId: string, userId: number, username: string) {
-  const stock = await queryOneWithTenant<any>(
-    "SELECT id, stock_status, store_id FROM purchase_in_stock WHERE stock_no = ?",
-    [stockNo],
-    tenantId
+  const stock = await queryOne<any>(
+    "SELECT id, stock_status, store_id FROM purchase_in_stock WHERE stock_no = ? AND tenant_id = ?",
+    [stockNo, tenantId]
   );
   if (!stock) throw Object.assign(new Error("入库单不存在"), { statusCode: 404 });
   if (stock.stock_status !== "PENDING") throw Object.assign(new Error("只有待审核状态的入库单可以审核"), { statusCode: 400 });
 
   await transaction(async (conn) => {
-    await conn.query("UPDATE purchase_in_stock SET stock_status = 'COMPLETED', auditor_id = ?, audited_at = NOW() WHERE stock_no = ?", [userId, stockNo]);
+    await conn.query("UPDATE purchase_in_stock SET stock_status = 'COMPLETED', auditor_id = ?, audited_at = NOW() WHERE stock_no = ? AND tenant_id = ?", [userId, stockNo, tenantId]);
     const [itemRows] = await conn.query("SELECT sku_id, total_bottle_qty, batch_no, production_date, expiry_date FROM purchase_in_stock_item WHERE stock_no = ?", [stockNo]);
 
     for (const item of (itemRows as any[])) {
@@ -156,15 +153,14 @@ export async function approve(stockNo: string, tenantId: string, userId: number,
 }
 
 export async function voidStock(stockNo: string, tenantId: string, userId: number, username: string) {
-  const stock = await queryOneWithTenant<any>(
-    "SELECT id, stock_status FROM purchase_in_stock WHERE stock_no = ?",
-    [stockNo],
-    tenantId
+  const stock = await queryOne<any>(
+    "SELECT id, stock_status FROM purchase_in_stock WHERE stock_no = ? AND tenant_id = ?",
+    [stockNo, tenantId]
   );
   if (!stock) throw Object.assign(new Error("入库单不存在"), { statusCode: 404 });
   if (stock.stock_status !== "PENDING") throw Object.assign(new Error("只有待审核状态的入库单可以作废"), { statusCode: 400 });
 
-  await queryWithTenant("UPDATE purchase_in_stock SET stock_status = 'VOIDED' WHERE stock_no = ?", [stockNo], tenantId);
+  await query("UPDATE purchase_in_stock SET stock_status = 'VOIDED' WHERE stock_no = ? AND tenant_id = ?", [stockNo, tenantId]);
   await queryWithTenant(
     "INSERT INTO operation_log (module, action, target_id, target_type, user_id, user_name, detail, tenant_id) VALUES (?, ?, ?, ?, ?, ?, ?, ?)",
     ["purchase_in_stock", "VOID", stockNo, "purchase_in_stock", userId, username, `作废入库单: ${stockNo}`, tenantId],
@@ -312,7 +308,7 @@ export async function listPurchaseInStocks(params: {
   }
 
   const where = `WHERE ${conditions.join(" AND ")}`;
-  const records = await queryWithTenant<any>(
+  const records = await query<any>(
     `SELECT id, stock_no AS stockNo, order_no AS orderNo, supplier_id AS supplierId,
             supplier_name AS supplierName, store_id AS storeId, stock_status AS stockStatus,
             goods_amount AS goodsAmount, tax_amount AS taxAmount, total_amount AS totalAmount,
@@ -322,13 +318,11 @@ export async function listPurchaseInStocks(params: {
      ${where}
      ORDER BY created_at DESC
      LIMIT ? OFFSET ?`,
-    [...queryParams, pageSize, offset],
-    tenantId
+    [...queryParams, pageSize, offset]
   );
-  const totalRow = await queryOneWithTenant<any>(
+  const totalRow = await queryOne<any>(
     `SELECT COUNT(*) AS total FROM purchase_in_stock ${where}`,
-    queryParams,
-    tenantId
+    queryParams
   );
   return { total: totalRow?.total ?? 0, page, pageSize, records };
 }
@@ -348,7 +342,7 @@ export async function getPurchaseInStockDetail(id: number, tenantId: string) {
   if (!stock) {
     throw Object.assign(new Error("入库单不存在"), { statusCode: 404 });
   }
-  const items = await queryWithTenant<any>(
+  const items = await query<any>(
     `SELECT id, stock_no AS stockNo, sku_id AS skuId, sku_name AS skuName,
             box_qty AS boxQty, bottle_qty AS bottleQty, total_bottle_qty AS totalBottleQty,
             unit_price AS unitPrice, tax_rate AS taxRate,
@@ -356,8 +350,7 @@ export async function getPurchaseInStockDetail(id: number, tenantId: string) {
             batch_no AS batchNo, production_date AS productionDate, expiry_date AS expiryDate,
             remark
      FROM purchase_in_stock_item WHERE stock_no = ?`,
-    [stock.stockNo],
-    tenantId
+    [stock.stockNo]
   );
   return { ...stock, items };
 }

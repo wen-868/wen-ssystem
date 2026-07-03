@@ -1,5 +1,4 @@
 const { injectTheme } = require('../../utils/theme')
-const { getSyncManager, EVENT_TYPES } = require('../../utils/sync')
 
 Page({
   data: {
@@ -15,48 +14,18 @@ Page({
     showEmpty: false,
     keyword: "",
     theme: {},
-    themeCssVars: "",
-    // 页面配置（从平台配置注入）
-    pageConfig: {
-      homeMode: 'standard',
-      showSearch: true,
-      showCart: true,
-      showPrice: true,
-      showWholesalePrice: false,
-      showStock: true,
-      showCategory: true,
-      orderButtonText: '加入下单'
-    },
-    // 同步状态
-    syncStatus: 'disconnected',
-    syncStatusText: '未连接'
+    themeCssVars: ""
   },
-
-  _syncManager: null,
-  _syncHandlers: {},
-
   onLoad() {
-    this._initPageConfig()
-    this.loadProducts()
+    this.loadProducts();
   },
-
   onReady() {
-    injectTheme(this)
+    injectTheme(this);
   },
-
   onShow() {
-    this.loadProducts()
-    this.loadCartCount()
-    injectTheme(this)
-    this._startSync()
-  },
-
-  onHide() {
-    this._stopSync()
-  },
-
-  onUnload() {
-    this._stopSync()
+    this.loadProducts();
+    this.loadCartCount();
+    injectTheme(this);
   },
   onPullDownRefresh() {
     this.loadProducts(() => wx.stopPullDownRefresh());
@@ -195,81 +164,6 @@ Page({
   },
   clearCart() {
     this.setData({ cartItems: [], cartTotal: 0 });
-  },
-
-  // ========== 页面配置初始化 ==========
-
-  _initPageConfig() {
-    try {
-      const app = getApp()
-      const platformConfig = app.globalData.platformConfig
-      if (platformConfig && platformConfig.pageConfig) {
-        this.setData({ pageConfig: platformConfig.pageConfig })
-      }
-    } catch (e) {
-      // 使用默认配置
-    }
-  },
-
-  // ========== 实时同步 ==========
-
-  _startSync() {
-    try {
-      const app = getApp()
-      const syncConfig = app.globalData.platformConfig.sync
-      if (!syncConfig || !syncConfig.enabled) return
-
-      this._syncManager = getSyncManager()
-
-      // 保存 handler 引用，供 off() 时使用
-      this._syncHandlers = {
-        onProductsUpdated: (data) => {
-          console.log('[Sync] 商品更新:', data)
-          this.loadProducts()
-        },
-        onPriceChanged: (data) => {
-          console.log('[Sync] 价格变更:', data)
-          this.loadProducts()
-        },
-        onStockUpdated: (data) => {
-          console.log('[Sync] 库存更新:', data)
-          this.loadProducts()
-        },
-        onConnectionStatus: (status) => {
-          const statusMap = {
-            'connected': '已连接',
-            'connecting': '连接中',
-            'disconnected': '未连接',
-            'reconnecting': '重连中',
-            'degraded': '轮询模式'
-          }
-          this.setData({
-            syncStatus: status.status,
-            syncStatusText: statusMap[status.status] || status.status
-          })
-        }
-      }
-
-      this._syncManager.on(EVENT_TYPES.PRODUCTS_UPDATED, this._syncHandlers.onProductsUpdated)
-      this._syncManager.on(EVENT_TYPES.PRICE_CHANGED, this._syncHandlers.onPriceChanged)
-      this._syncManager.on(EVENT_TYPES.STOCK_UPDATED, this._syncHandlers.onStockUpdated)
-      this._syncManager.on(EVENT_TYPES.CONNECTION_STATUS, this._syncHandlers.onConnectionStatus)
-
-      this._syncManager.start()
-    } catch (e) {
-      console.error('[Sync] 启动失败:', e)
-    }
-  },
-
-  _stopSync() {
-    if (this._syncManager && this._syncHandlers) {
-      this._syncManager.off(EVENT_TYPES.PRODUCTS_UPDATED, this._syncHandlers.onProductsUpdated)
-      this._syncManager.off(EVENT_TYPES.PRICE_CHANGED, this._syncHandlers.onPriceChanged)
-      this._syncManager.off(EVENT_TYPES.STOCK_UPDATED, this._syncHandlers.onStockUpdated)
-      this._syncManager.off(EVENT_TYPES.CONNECTION_STATUS, this._syncHandlers.onConnectionStatus)
-      this._syncHandlers = {}
-      this._syncManager = null
-    }
   },
   onNameInput(e) { this.setData({ receiverName: e.detail.value }); },
   onMobileInput(e) { this.setData({ receiverMobile: e.detail.value }); },

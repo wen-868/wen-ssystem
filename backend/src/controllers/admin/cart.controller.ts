@@ -2,7 +2,6 @@ import { z } from "zod";
 import { asyncHandler } from "../../shared/async-handler.js";
 import { ok, fail } from "../../shared/response.js";
 import * as cartService from "../../services/admin/cart.service.js";
-import * as retailCartService from "../../services/miniapp/cart.service.js";
 
 function getCustomerId(req: any): number {
   return Number(req.user!.id) || 1;
@@ -132,44 +131,4 @@ export const createCheckoutOrder = asyncHandler(async (req, res) => {
     settlementType
   });
   res.json(ok(order));
-});
-
-// ========== 零售购物车 ==========
-
-export const addToRetailCart = asyncHandler(async (req, res) => {
-  const userId = Number(req.user!.id);
-  const body = z.object({
-    storeId: z.number().int().positive(),
-    skuId: z.number().int().positive(),
-    boxQty: z.number().int().min(0).default(0),
-    bottleQty: z.number().int().min(0).default(0)
-  }).parse(req.body);
-  const result = await retailCartService.addToRetailCart(userId, body.storeId, body.skuId, body.boxQty, body.bottleQty);
-  res.json(ok(result));
-});
-
-export const removeFromRetailCart = asyncHandler(async (req, res) => {
-  const userId = Number(req.user!.id);
-  const skuId = Number(req.params.skuId);
-  const result = await retailCartService.removeFromRetailCart(userId, skuId);
-  res.json(ok(result));
-});
-
-export const updateRetailCartItem = asyncHandler(async (req, res) => {
-  const userId = Number(req.user!.id);
-  const skuId = Number(req.params.skuId);
-  const body = z.object({
-    checked: z.number().int().min(0).max(1),
-    boxQty: z.number().int().min(0).optional(),
-    bottleQty: z.number().int().min(0).optional()
-  }).parse(req.body);
-  const result = await retailCartService.updateRetailCartItem(userId, skuId, body.checked, body.boxQty, body.bottleQty);
-  res.json(ok(result));
-});
-
-export const getRetailCart = asyncHandler(async (req, res) => {
-  const userId = Number(req.user!.id);
-  const storeId = Number(req.query.storeId || 1);
-  const result = await retailCartService.getRetailCart(userId, storeId);
-  res.json(ok(result));
 });

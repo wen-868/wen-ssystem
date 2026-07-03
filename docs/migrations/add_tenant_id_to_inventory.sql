@@ -1,15 +1,12 @@
 -- 核心库存表补 tenant_id 列
--- 依赖：需先执行 add_tenant_id.sql 中的 add_column_if_not_exists / add_index_if_not_exists 存储过程
--- MySQL 8.0 兼容版本
-
-CALL add_column_if_not_exists('inventory_balance', 'tenant_id', "VARCHAR(36) NOT NULL DEFAULT 'default' COMMENT '租户ID' AFTER id");
-CALL add_column_if_not_exists('inventory_batch', 'tenant_id', "VARCHAR(36) NOT NULL DEFAULT 'default' COMMENT '租户ID' AFTER id");
-CALL add_column_if_not_exists('inventory_ledger', 'tenant_id', "VARCHAR(36) NOT NULL DEFAULT 'default' COMMENT '租户ID' AFTER id");
+ALTER TABLE inventory_balance ADD COLUMN IF NOT EXISTS tenant_id VARCHAR(64) NOT NULL DEFAULT '' AFTER id;
+ALTER TABLE inventory_batch ADD COLUMN IF NOT EXISTS tenant_id VARCHAR(64) NOT NULL DEFAULT '' AFTER id;
+ALTER TABLE inventory_ledger ADD COLUMN IF NOT EXISTS tenant_id VARCHAR(64) NOT NULL DEFAULT '' AFTER id;
 
 -- 为 tenant_id 添加索引
-CALL add_index_if_not_exists('inventory_balance', 'idx_tenant_ib', '(tenant_id)');
-CALL add_index_if_not_exists('inventory_batch', 'idx_tenant_ibat', '(tenant_id)');
-CALL add_index_if_not_exists('inventory_ledger', 'idx_tenant_il', '(tenant_id)');
+CREATE INDEX IF NOT EXISTS idx_tenant_ib ON inventory_balance(tenant_id);
+CREATE INDEX IF NOT EXISTS idx_tenant_ibat ON inventory_batch(tenant_id);
+CREATE INDEX IF NOT EXISTS idx_tenant_il ON inventory_ledger(tenant_id);
 
 -- 损益表
 CREATE TABLE IF NOT EXISTS inventory_loss_gain (
@@ -24,7 +21,7 @@ CREATE TABLE IF NOT EXISTS inventory_loss_gain (
   reason VARCHAR(200) DEFAULT NULL COMMENT '原因',
   operator_id BIGINT DEFAULT NULL COMMENT '操作人ID',
   status VARCHAR(20) NOT NULL DEFAULT 'PENDING' COMMENT '状态: PENDING/CONFIRMED',
-  tenant_id VARCHAR(36) NOT NULL DEFAULT 'default' COMMENT '租户ID',
+  tenant_id VARCHAR(64) NOT NULL DEFAULT '',
   created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
   updated_at DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
   UNIQUE KEY uk_lg_no (lg_no, tenant_id),

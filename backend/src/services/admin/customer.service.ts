@@ -40,7 +40,8 @@ export async function createCustomer(tenantId: string, body: { name: string; mob
     [body.name, body.mobile, body.customerType, body.staffId ?? null, levelCode, tenantId],
     tenantId
   );
-  const memberId = result?.[0]?.insertId ?? Date.now();
+  const memberId = result?.[0]?.insertId;
+  if (!memberId) throw new Error("创建客户失败");
   return { memberId, name: body.name, mobile: body.mobile, customerType: body.customerType, staffId: body.staffId ?? null };
 }
 

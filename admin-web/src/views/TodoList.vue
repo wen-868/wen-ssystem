@@ -136,7 +136,7 @@
 <script setup lang="ts">
 import { ref, reactive, onMounted } from "vue";
 import { ElMessage, ElMessageBox } from "element-plus";
-import { api } from "../api";
+import axios from "axios";
 import PageCard from "../components/PageCard.vue";
 import { formatDate } from "../utils/format";
 
@@ -202,7 +202,7 @@ function isOverdue(date: string) {
 
 async function loadStats() {
   try {
-    const { data: res } = await api.get("/admin/todos/stats");
+    const { data: res } = await axios.get("/api/admin/todos/stats");
     const stats = res.data || res || {};
     statCards.value.forEach(card => {
       card.count = stats[card.type] || 0;
@@ -213,7 +213,7 @@ async function loadStats() {
 async function search() {
   loading.value = true;
   try {
-    const { data: res } = await api.get("/admin/todos", {
+    const { data: res } = await axios.get("/api/admin/todos", {
       params: {
         page: page.value,
         pageSize: pageSize.value,
@@ -249,7 +249,7 @@ async function loadData() {
 async function handleComplete(row: any) {
   try {
     await ElMessageBox.confirm("确认完成该待办？", "提示", { type: "info" });
-    await api.put(`/admin/todos/${row.id}/complete`);
+    await axios.put(`/api/admin/todos/${row.id}/complete`);
     ElMessage.success("已完成");
     await loadData();
   } catch { /* cancelled */ }
@@ -258,7 +258,7 @@ async function handleComplete(row: any) {
 async function handleDismiss(row: any) {
   try {
     await ElMessageBox.confirm("确认忽略该待办？", "提示", { type: "info" });
-    await api.put(`/admin/todos/${row.id}/dismiss`);
+    await axios.put(`/api/admin/todos/${row.id}/dismiss`);
     ElMessage.success("已忽略");
     await loadData();
   } catch { /* cancelled */ }
@@ -267,7 +267,7 @@ async function handleDismiss(row: any) {
 async function handleDelete(row: any) {
   try {
     await ElMessageBox.confirm("确认删除该待办？", "提示", { type: "warning" });
-    await api.delete(`/admin/todos/${row.id}`);
+    await axios.delete(`/api/admin/todos/${row.id}`);
     ElMessage.success("删除成功");
     await loadData();
   } catch { /* cancelled */ }
@@ -307,7 +307,7 @@ async function handleCreate() {
   if (!valid) return;
   submitLoading.value = true;
   try {
-    await api.post("/admin/todos", {
+    await axios.post("/api/admin/todos", {
       title: form.title,
       type: form.type,
       priority: form.priority,

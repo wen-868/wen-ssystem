@@ -1,72 +1,103 @@
-import { createRouter, createWebHashHistory } from 'vue-router'
-import { useAuthStore } from '../stores/auth'
+import { createRouter, createWebHistory } from "vue-router";
+import MainLayout from "../layouts/MainLayout.vue";
+import LoginView from "../views/LoginView.vue";
+
+function parseJwtExp(token: string): number | null {
+  try {
+    const parts = token.split(".");
+    if (parts.length !== 3) return null;
+    const payload = JSON.parse(atob(parts[1]));
+    return payload.exp ? payload.exp * 1000 : null;
+  } catch {
+    return null;
+  }
+}
+
+function isTokenExpired(): boolean {
+  const token = localStorage.getItem("saas_token");
+  if (!token) return true;
+  const exp = parseJwtExp(token);
+  if (!exp) return false;
+  return Date.now() >= exp;
+}
+
+function getUserRole(): string | null {
+  try {
+    const user = JSON.parse(localStorage.getItem("saas_user") || "{}");
+    return user.role || null;
+  } catch {
+    return null;
+  }
+}
+
+const routes = [
+  {
+    path: "/login",
+    name: "Login",
+    component: LoginView,
+    meta: { requiresAuth: false }
+  },
+  {
+    path: "/",
+    component: MainLayout,
+    redirect: "/dashboard",
+    meta: { requiresAuth: true, roles: ["ADMIN"] },
+    children: [
+      // 工作台
+      { path: "dashboard", name: "Dashboard", component: () => import("../views/Dashboard.vue"), meta: { roles: ["ADMIN"] } },
+      // 租户管理
+      { path: "tenants", name: "Tenants", component: () => import("../views/Tenants.vue"), meta: { roles: ["ADMIN"] } },
+      { path: "tenants/:id", name: "TenantDetail", component: () => import("../views/TenantDetail.vue"), meta: { roles: ["ADMIN"] } },
+      // 套餐管理
+      { path: "packages", name: "Packages", component: () => import("../views/Packages.vue"), meta: { roles: ["ADMIN"] } },
+      { path: "packages/create", name: "PackageCreate", component: () => import("../views/PackageForm.vue"), meta: { roles: ["ADMIN"] } },
+      { path: "packages/:id/edit", name: "PackageEdit", component: () => import("../views/PackageForm.vue"), meta: { roles: ["ADMIN"] } },
+      // 订阅管理
+      { path: "subscriptions", name: "Subscriptions", component: () => import("../views/Subscriptions.vue"), meta: { roles: ["ADMIN"] } },
+      { path: "subscriptions/:id", name: "SubscriptionDetail", component: () => import("../views/SubscriptionDetail.vue"), meta: { roles: ["ADMIN"] } },
+      // 平台配置
+      { path: "settings", name: "Settings", component: () => import("../views/Settings.vue"), meta: { roles: ["ADMIN"] } },
+      // 操作日志
+      { path: "audit-logs", name: "AuditLogs", component: () => import("../views/AuditLogs.vue"), meta: { roles: ["ADMIN"] } }
+    ]
+  },
+  { path: "/:pathMatch(.*)*", redirect: "/dashboard" }
+];
 
 const router = createRouter({
-  history: createWebHashHistory(),
-  routes: [
-    {
-      path: '/login',
-      name: 'Login',
-      component: () => import('../views/login/PlatformLogin.vue'),
-      meta: { title: '平台登录' },
-    },
-    {
-      path: '/',
-      component: () => import('../layouts/PlatformLayout.vue'),
-      redirect: '/tenants',
-      children: [
-        {
-          path: 'tenants',
-          name: 'TenantList',
-          component: () => import('../views/tenant/TenantList.vue'),
-          meta: { title: '租户管理' },
-        },
-        {
-          path: 'tenants/create',
-          name: 'TenantCreate',
-          component: () => import('../views/tenant/TenantForm.vue'),
-          meta: { title: '新增租户' },
-        },
-        {
-          path: 'tenants/:id',
-          name: 'TenantDetail',
-          component: () => import('../views/tenant/TenantDetail.vue'),
-          meta: { title: '租户详情' },
-        },
-        // 报表权限矩阵（阿澈 P18-C）
-        {
-          path: 'report-permissions',
-          name: 'ReportPermission',
-          component: () => import('../views/ReportPermission.vue'),
-          meta: { title: '报表权限矩阵' },
-        },
-        // 系统配置（阿澈 P18-C）
-        {
-          path: 'sys-config',
-          name: 'SysConfig',
-          component: () => import('../views/SysConfigView.vue'),
-          meta: { title: '系统配置' },
-        },
-        // 监控告警（阿澈 P18-C）
-        {
-          path: 'monitor',
-          name: 'Monitor',
-          component: () => import('../views/MonitorView.vue'),
-          meta: { title: '监控告警' },
-        },
-      ],
-    },
-  ],
-})
+  history: createWebHistory(),
+  routes
+});
 
 router.beforeEach((to, _from, next) => {
-  document.title = (to.meta.title as string) || '智享全链管理系统'
-  const authStore = useAuthStore()
-  if (to.path !== '/login' && !authStore.token) {
-    next('/login')
-  } else {
-    next()
-  }
-})
+  const token = localStorage.getItem("saas_token");
+  const expired = token && isTokenExpired();
 
-export default router
+  if (expired) {
+    localStorage.removeItem("saas_token");
+    localStorage.removeItem("saas_user");
+    if (to.path !== "/login") {
+      next("/login");
+      return;
+    }
+  }
+
+  if (to.meta.requiresAuth !== false && !token) {
+    next("/login");
+  } else if (to.path === "/login" && token) {
+    next("/dashboard");
+  } else {
+    // 角色权限检查
+    const allowedRoles = to.meta.roles as string[] | undefined;
+    if (allowedRoles && allowedRoles.length > 0) {
+      const userRole = getUserRole();
+      if (userRole && !allowedRoles.includes(userRole)) {
+        next("/dashboard");
+        return;
+      }
+    }
+    next();
+  }
+});
+
+export default router;

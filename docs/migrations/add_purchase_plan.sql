@@ -6,7 +6,7 @@ CREATE TABLE IF NOT EXISTS purchase_plan (
   store_id BIGINT NOT NULL COMMENT '门店ID',
   plan_status VARCHAR(20) NOT NULL DEFAULT 'DRAFT' COMMENT '状态: DRAFT/CONFIRMED/CONVERTED',
   goods_amount DECIMAL(12,2) DEFAULT 0 COMMENT '计划采购金额',
-  tenant_id VARCHAR(36) NOT NULL DEFAULT '',
+  tenant_id VARCHAR(64) NOT NULL DEFAULT '',
   created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
   updated_at DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
   UNIQUE KEY uk_plan_no (plan_no, tenant_id),
@@ -26,7 +26,7 @@ CREATE TABLE IF NOT EXISTS purchase_plan_item (
   monthly_avg_sales DECIMAL(10,2) DEFAULT 0 COMMENT '月均销量',
   in_transit_qty INT DEFAULT 0 COMMENT '在途采购量',
   reason VARCHAR(200) DEFAULT NULL COMMENT '补货原因',
-  tenant_id VARCHAR(36) NOT NULL DEFAULT '',
+  tenant_id VARCHAR(64) NOT NULL DEFAULT '',
   INDEX idx_plan_no (plan_no),
   INDEX idx_sku (sku_id),
   INDEX idx_tenant (tenant_id)
