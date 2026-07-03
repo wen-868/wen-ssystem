@@ -133,10 +133,9 @@ class SaleReturnService {
     );
     if (!returnOrder) return null;
 
-    const items = await queryWithTenant<SaleReturnItem>(
+    const items = await query<SaleReturnItem>(
       "SELECT * FROM sale_return_item WHERE return_no = ?",
-      [returnNo],
-      ctx.tenantId
+      [returnNo]
     );
 
     return { ...returnOrder, items };
@@ -240,10 +239,10 @@ class SaleReturnService {
       const itemRows = items as any[];
       for (const item of itemRows) {
         await conn.execute(
-          `INSERT INTO inventory_balance (store_id, sku_id, quantity, tenant_id)
-           VALUES (?, ?, ?, ?)
-           ON DUPLICATE KEY UPDATE quantity = quantity + ?`,
-          [returnOrder.store_id, item.sku_id, item.total_bottle_qty, ctx.tenantId, item.total_bottle_qty]
+          `INSERT INTO inventory_balance (store_id, sku_id, physical_qty, available_qty, tenant_id)
+           VALUES (?, ?, ?, ?, ?)
+           ON DUPLICATE KEY UPDATE physical_qty = physical_qty + ?, available_qty = available_qty + ?`,
+          [returnOrder.store_id, item.sku_id, item.total_bottle_qty, item.total_bottle_qty, ctx.tenantId, item.total_bottle_qty, item.total_bottle_qty]
         );
       }
 

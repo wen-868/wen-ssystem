@@ -1675,10 +1675,11 @@ export async function mockExecute(sql: string, params: unknown[] = []) {
 
   // 采购入库单 UPDATE (审批/作废)
   if (s.includes("update purchase_in_stock set") && s.includes("stock_no")) {
-    const stockNo = params[params.length - 1] as string;
+    const stockNo = (s.includes("and tenant_id") ? params[params.length - 2] : params[params.length - 1]) as string;
     const stock = state.purchaseInStocks.find((st: Row) => st.stock_no === stockNo);
     if (stock) {
-      stock.stock_status = "COMPLETED";
+      if (s.includes("stock_status = 'completed'")) stock.stock_status = "COMPLETED";
+      else if (s.includes("stock_status = 'voided'")) stock.stock_status = "VOIDED";
       stock.updated_at = new Date().toISOString();
     }
     return result();
@@ -1686,10 +1687,11 @@ export async function mockExecute(sql: string, params: unknown[] = []) {
 
   // 采购退货单 UPDATE (审批/作废)
   if (s.includes("update purchase_return set") && s.includes("return_no")) {
-    const returnNo = params[params.length - 1] as string;
+    const returnNo = (s.includes("and tenant_id") ? params[params.length - 2] : params[params.length - 1]) as string;
     const ret = state.purchaseReturns.find((r: Row) => r.return_no === returnNo);
     if (ret) {
-      if (params[0] !== undefined) ret.return_status = params[0] as string;
+      if (s.includes("return_status = 'completed'")) ret.return_status = "COMPLETED";
+      else if (s.includes("return_status = 'voided'")) ret.return_status = "VOIDED";
       ret.updated_at = new Date().toISOString();
     }
     return result();
@@ -1713,7 +1715,7 @@ export async function mockExecute(sql: string, params: unknown[] = []) {
 
   // 客户对账单 UPDATE (确认/标记已付)
   if (s.includes("update customer_statement set") && s.includes("statement_no")) {
-    const stmtNo = params[params.length - 1] as string;
+    const stmtNo = (s.includes("and tenant_id") ? params[params.length - 2] : params[params.length - 1]) as string;
     const stmt = state.customerStatements.find((s: Row) => s.statement_no === stmtNo);
     if (stmt) {
       const statusMatch = s.match(/set status = '([^']+)'/);
@@ -1725,7 +1727,7 @@ export async function mockExecute(sql: string, params: unknown[] = []) {
 
   // 客户付款 UPDATE (作废)
   if (s.includes("update customer_payment set") && s.includes("receipt_no")) {
-    const receiptNo = params[params.length - 1] as string;
+    const receiptNo = (s.includes("and tenant_id") ? params[params.length - 2] : params[params.length - 1]) as string;
     const payment = state.customerPayments.find((p: Row) => p.receipt_no === receiptNo);
     if (payment) {
       if (params[0] !== undefined) payment.status = params[0] as string;

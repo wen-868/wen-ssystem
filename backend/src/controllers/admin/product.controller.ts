@@ -115,12 +115,12 @@ export const updateProduct = asyncHandler(async (req, res) => {
 export const disableProduct = asyncHandler(async (req, res) => {
   const tenantId = req.tenantId!;
   const spuId = Number(req.params.spuId);
-  const result = await productService.disableProduct(spuId, tenantId);
-  if (result.code) {
-    res.status(Number(result.code)).json({ code: result.code, message: result.message });
-    return;
+  try {
+    const result = await productService.disableProduct(spuId, tenantId);
+    res.json(ok(result));
+  } catch (e: any) {
+    res.status(e.statusCode || 400).json({ code: String(e.statusCode || 400), message: e.message });
   }
-  res.json(ok(result));
 });
 
 export const getProductPriceHistory = asyncHandler(async (req, res) => {

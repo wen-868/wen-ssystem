@@ -265,7 +265,7 @@ class PurchaseService {
 
     if (!order) return null;
 
-    const items = await queryWithTenant<PurchaseOrderItemVO>(
+    const items = await query<PurchaseOrderItemVO>(
       `SELECT sku_id AS skuId, sku_name AS skuName, barcode, box_qty AS boxQty,
               bottle_qty AS bottleQty, total_bottle_qty AS totalBottleQty,
               unit_price AS unitPrice, tax_rate AS taxRate,
@@ -274,8 +274,7 @@ class PurchaseService {
               remark
        FROM purchase_order_item
        WHERE order_no = ?`,
-      [orderNo],
-      ctx.tenantId
+      [orderNo]
     );
 
     return { ...order, items };
@@ -566,12 +565,11 @@ class PurchaseService {
       throw new Error("只有已审核的订单可以入库");
     }
 
-    const orderItems = await queryWithTenant<any>(
+    const orderItems = await query<any>(
       `SELECT sku_id, COALESCE(in_stocked_qty, 0) AS in_stocked_qty
        FROM purchase_order_item
        WHERE order_no = ?`,
-      [orderNo],
-      ctx.tenantId
+      [orderNo]
     );
     const itemMap = new Map<number, any>(orderItems.map((i: any) => [i.sku_id, i]));
 
@@ -589,10 +587,10 @@ class PurchaseService {
         );
 
         await conn.execute(
-          `INSERT INTO inventory_balance (store_id, sku_id, quantity, tenant_id)
-           VALUES (?, ?, ?, ?)
-           ON DUPLICATE KEY UPDATE quantity = quantity + ?`,
-          [order.storeId, item.skuId, inStockBottleQty, ctx.tenantId, inStockBottleQty]
+          `INSERT INTO inventory_balance (store_id, sku_id, physical_qty, available_qty, tenant_id)
+           VALUES (?, ?, ?, ?, ?)
+           ON DUPLICATE KEY UPDATE physical_qty = physical_qty + ?, available_qty = available_qty + ?`,
+          [order.storeId, item.skuId, inStockBottleQty, inStockBottleQty, ctx.tenantId, inStockBottleQty, inStockBottleQty]
         );
       }
 

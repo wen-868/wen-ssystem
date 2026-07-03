@@ -26,21 +26,19 @@ export async function list(params: {
     queryParams.push(dateEnd);
   }
 
-  const whereClause = conditions.length > 0 ? " AND " + conditions.join(" AND ") : "";
+  const whereClause = " AND tenant_id = ?" + (conditions.length > 0 ? " AND " + conditions.join(" AND ") : "");
   const offset = (page - 1) * pageSize;
-  const statements = await queryWithTenant<any>(
+  const statements = await query<any>(
     `SELECT * FROM customer_statement WHERE 1=1${whereClause} ORDER BY created_at DESC LIMIT ? OFFSET ?`,
-    [...queryParams, pageSize, offset],
-    tenantId
+    [tenantId, ...queryParams, pageSize, offset]
   );
   return statements;
 }
 
 export async function getDetail(statementNo: string, tenantId: string) {
-  const statement = await queryOneWithTenant<any>(
-    "SELECT * FROM customer_statement WHERE statement_no = ?",
-    [statementNo],
-    tenantId
+  const statement = await queryOne<any>(
+    "SELECT * FROM customer_statement WHERE statement_no = ? AND tenant_id = ?",
+    [statementNo, tenantId]
   );
   if (!statement) throw Object.assign(new Error("对账单不存在"), { statusCode: 404 });
 
@@ -124,15 +122,14 @@ export async function create(body: {
 }
 
 export async function confirm(statementNo: string, tenantId: string, userId: number, username: string) {
-  const statement = await queryOneWithTenant<any>(
-    "SELECT id, status FROM customer_statement WHERE statement_no = ?",
-    [statementNo],
-    tenantId
+  const statement = await queryOne<any>(
+    "SELECT id, status FROM customer_statement WHERE statement_no = ? AND tenant_id = ?",
+    [statementNo, tenantId]
   );
   if (!statement) throw Object.assign(new Error("对账单不存在"), { statusCode: 404 });
   if (statement.status !== "DRAFT") throw Object.assign(new Error("只有草稿状态的对账单可以确认"), { statusCode: 400 });
 
-  await queryWithTenant("UPDATE customer_statement SET status = 'CONFIRMED', confirmed_at = NOW() WHERE statement_no = ?", [statementNo], tenantId);
+  await query("UPDATE customer_statement SET status = 'CONFIRMED', confirmed_at = NOW() WHERE statement_no = ? AND tenant_id = ?", [statementNo, tenantId]);
   await queryWithTenant(
     "INSERT INTO operation_log (module, action, target_id, target_type, user_id, user_name, detail, tenant_id) VALUES (?, ?, ?, ?, ?, ?, ?, ?)",
     ["customer_statement", "CONFIRM", statementNo, "customer_statement", userId, username, `确认对账单: ${statementNo}`, tenantId],
@@ -142,15 +139,14 @@ export async function confirm(statementNo: string, tenantId: string, userId: num
 }
 
 export async function markPaid(statementNo: string, tenantId: string, userId: number, username: string) {
-  const statement = await queryOneWithTenant<any>(
-    "SELECT id, status FROM customer_statement WHERE statement_no = ?",
-    [statementNo],
-    tenantId
+  const statement = await queryOne<any>(
+    "SELECT id, status FROM customer_statement WHERE statement_no = ? AND tenant_id = ?",
+    [statementNo, tenantId]
   );
   if (!statement) throw Object.assign(new Error("对账单不存在"), { statusCode: 404 });
   if (statement.status !== "CONFIRMED") throw Object.assign(new Error("只有已确认状态的对账单可以标记结清"), { statusCode: 400 });
 
-  await queryWithTenant("UPDATE customer_statement SET status = 'PAID' WHERE statement_no = ?", [statementNo], tenantId);
+  await query("UPDATE customer_statement SET status = 'PAID' WHERE statement_no = ? AND tenant_id = ?", [statementNo, tenantId]);
   await queryWithTenant(
     "INSERT INTO operation_log (module, action, target_id, target_type, user_id, user_name, detail, tenant_id) VALUES (?, ?, ?, ?, ?, ?, ?, ?)",
     ["customer_statement", "PAID", statementNo, "customer_statement", userId, username, `标记结清: ${statementNo}`, tenantId],

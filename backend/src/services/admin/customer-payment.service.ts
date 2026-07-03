@@ -26,21 +26,19 @@ export async function list(params: {
     queryParams.push(dateEnd);
   }
 
-  const whereClause = conditions.length > 0 ? " AND " + conditions.join(" AND ") : "";
+  const whereClause = " AND tenant_id = ?" + (conditions.length > 0 ? " AND " + conditions.join(" AND ") : "");
   const offset = (page - 1) * pageSize;
-  const payments = await queryWithTenant<any>(
+  const payments = await query<any>(
     `SELECT * FROM customer_payment WHERE 1=1${whereClause} ORDER BY created_at DESC LIMIT ? OFFSET ?`,
-    [...queryParams, pageSize, offset],
-    tenantId
+    [tenantId, ...queryParams, pageSize, offset]
   );
   return payments;
 }
 
 export async function getDetail(receiptNo: string, tenantId: string) {
-  const payment = await queryOneWithTenant<any>(
-    "SELECT * FROM customer_payment WHERE receipt_no = ?",
-    [receiptNo],
-    tenantId
+  const payment = await queryOne<any>(
+    "SELECT * FROM customer_payment WHERE receipt_no = ? AND tenant_id = ?",
+    [receiptNo, tenantId]
   );
   if (!payment) throw Object.assign(new Error("收款单不存在"), { statusCode: 404 });
   return payment;
@@ -90,16 +88,15 @@ export async function create(body: {
 }
 
 export async function voidPayment(receiptNo: string, tenantId: string, userId: number, username: string) {
-  const payment = await queryOneWithTenant<any>(
-    "SELECT id, status, source_type, source_no, amount FROM customer_payment WHERE receipt_no = ?",
-    [receiptNo],
-    tenantId
+  const payment = await queryOne<any>(
+    "SELECT id, status, source_type, source_no, amount FROM customer_payment WHERE receipt_no = ? AND tenant_id = ?",
+    [receiptNo, tenantId]
   );
   if (!payment) throw Object.assign(new Error("收款单不存在"), { statusCode: 404 });
   if (payment.status !== "COMPLETED") throw Object.assign(new Error("只有已完成状态的收款单可以作废"), { statusCode: 400 });
 
   await transaction(async (conn) => {
-    await conn.query("UPDATE customer_payment SET status = 'VOIDED' WHERE receipt_no = ?", [receiptNo]);
+    await conn.query("UPDATE customer_payment SET status = 'VOIDED' WHERE receipt_no = ? AND tenant_id = ?", [receiptNo, tenantId]);
 
     if (payment.source_type === "SALE_BILL" && payment.source_no) {
       const [billRows] = await conn.query(

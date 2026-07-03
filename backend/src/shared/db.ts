@@ -114,6 +114,12 @@ export async function queryOne<T = any>(sql: string, params: unknown[] = []) {
  */
 export async function queryWithTenant<T = any>(sql: string, params: unknown[] = [], tenantId: string): Promise<T[]> {
   if (env.USE_MOCK_DB) {
+    // 在 mock 模式下也验证 SQL 是否包含 tenant_id 条件，防止生产环境跨租户数据泄露
+    const lowerSql = sql.toLowerCase();
+    const hasTenantId = lowerSql.includes('tenant_id');
+    if (!hasTenantId) {
+      console.warn(`[mock-db] WARNING: queryWithTenant 调用缺少 tenant_id 条件: ${sql.substring(0, 100)}`);
+    }
     return mockQuery<T>(sql, params);
   }
   

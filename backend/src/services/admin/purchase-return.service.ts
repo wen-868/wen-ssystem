@@ -26,21 +26,19 @@ export async function list(params: {
     queryParams.push(dateEnd);
   }
 
-  const whereClause = conditions.length > 0 ? " AND " + conditions.join(" AND ") : "";
+  const whereClause = " AND tenant_id = ?" + (conditions.length > 0 ? " AND " + conditions.join(" AND ") : "");
   const offset = (page - 1) * pageSize;
-  const returns = await queryWithTenant<any>(
+  const returns = await query<any>(
     `SELECT * FROM purchase_return WHERE 1=1${whereClause} ORDER BY created_at DESC LIMIT ? OFFSET ?`,
-    [...queryParams, pageSize, offset],
-    tenantId
+    [tenantId, ...queryParams, pageSize, offset]
   );
   return returns;
 }
 
 export async function getDetail(returnNo: string, tenantId: string) {
-  const returnOrder = await queryOneWithTenant<any>(
-    "SELECT * FROM purchase_return WHERE return_no = ?",
-    [returnNo],
-    tenantId
+  const returnOrder = await queryOne<any>(
+    "SELECT * FROM purchase_return WHERE return_no = ? AND tenant_id = ?",
+    [returnNo, tenantId]
   );
   if (!returnOrder) throw Object.assign(new Error("退货单不存在"), { statusCode: 404 });
   const items = await query<any>(
@@ -99,16 +97,15 @@ export async function create(body: {
 }
 
 export async function approve(returnNo: string, tenantId: string, userId: number, username: string) {
-  const returnOrder = await queryOneWithTenant<any>(
-    "SELECT id, return_status, store_id FROM purchase_return WHERE return_no = ?",
-    [returnNo],
-    tenantId
+  const returnOrder = await queryOne<any>(
+    "SELECT id, return_status, store_id FROM purchase_return WHERE return_no = ? AND tenant_id = ?",
+    [returnNo, tenantId]
   );
   if (!returnOrder) throw Object.assign(new Error("退货单不存在"), { statusCode: 404 });
   if (returnOrder.return_status !== "PENDING") throw Object.assign(new Error("只有待审核状态的退货单可以审核"), { statusCode: 400 });
 
   await transaction(async (conn) => {
-    await conn.query("UPDATE purchase_return SET return_status = 'COMPLETED', auditor_id = ?, audited_at = NOW() WHERE return_no = ?", [userId, returnNo]);
+    await conn.query("UPDATE purchase_return SET return_status = 'COMPLETED', auditor_id = ?, audited_at = NOW() WHERE return_no = ? AND tenant_id = ?", [userId, returnNo, tenantId]);
     const [itemRows] = await conn.query("SELECT sku_id, total_bottle_qty FROM purchase_return_item WHERE return_no = ?", [returnNo]);
 
     for (const item of (itemRows as any[])) {
@@ -153,15 +150,14 @@ export async function approve(returnNo: string, tenantId: string, userId: number
 }
 
 export async function voidReturn(returnNo: string, tenantId: string, userId: number, username: string) {
-  const returnOrder = await queryOneWithTenant<any>(
-    "SELECT id, return_status FROM purchase_return WHERE return_no = ?",
-    [returnNo],
-    tenantId
+  const returnOrder = await queryOne<any>(
+    "SELECT id, return_status FROM purchase_return WHERE return_no = ? AND tenant_id = ?",
+    [returnNo, tenantId]
   );
   if (!returnOrder) throw Object.assign(new Error("退货单不存在"), { statusCode: 404 });
   if (returnOrder.return_status !== "PENDING") throw Object.assign(new Error("只有待审核状态的退货单可以作废"), { statusCode: 400 });
 
-  await queryWithTenant("UPDATE purchase_return SET return_status = 'VOIDED' WHERE return_no = ?", [returnNo], tenantId);
+  await query("UPDATE purchase_return SET return_status = 'VOIDED' WHERE return_no = ? AND tenant_id = ?", [returnNo, tenantId]);
   await queryWithTenant(
     "INSERT INTO operation_log (module, action, target_id, target_type, user_id, user_name, detail, tenant_id) VALUES (?, ?, ?, ?, ?, ?, ?, ?)",
     ["purchase_return", "VOID", returnNo, "purchase_return", userId, username, `作废退货单: ${returnNo}`, tenantId],
@@ -285,7 +281,7 @@ export async function listPurchaseReturns(params: {
   }
 
   const where = `WHERE ${conditions.join(" AND ")}`;
-  const records = await queryWithTenant<any>(
+  const records = await query<any>(
     `SELECT id, return_no AS returnNo, order_no AS orderNo, stock_no AS stockNo,
             supplier_id AS supplierId, supplier_name AS supplierName, store_id AS storeId,
             return_status AS returnStatus,
@@ -296,13 +292,11 @@ export async function listPurchaseReturns(params: {
      ${where}
      ORDER BY created_at DESC
      LIMIT ? OFFSET ?`,
-    [...queryParams, pageSize, offset],
-    tenantId
+    [...queryParams, pageSize, offset]
   );
-  const totalRow = await queryOneWithTenant<any>(
+  const totalRow = await queryOne<any>(
     `SELECT COUNT(*) AS total FROM purchase_return ${where}`,
-    queryParams,
-    tenantId
+    queryParams
   );
   return { total: totalRow?.total ?? 0, page, pageSize, records };
 }
