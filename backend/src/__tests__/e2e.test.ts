@@ -164,5 +164,180 @@ describe("Phase 2 E2E Flow", () => {
         });
       expect(returnRes.status).toBe(200);
     });
+
+    it("full customer → statement → payment → void flow", async () => {
+      // Create customer statement
+      const stmtRes = await request(app)
+        .post("/api/store/customer-statements")
+        .set("Authorization", `Bearer ${TOKEN}`)
+        .send({
+          customer_id: 1, customer_name: "E2E完整流客户",
+          start_date: "2025-06-01", end_date: "2025-06-30", statement_type: "MONTHLY"
+        });
+      expect(stmtRes.status).toBe(200);
+      const stmtNo = stmtRes.body.data.statement_no;
+
+      // Confirm statement
+      const confirmRes = await request(app)
+        .post(`/api/store/customer-statements/${stmtNo}/confirm`)
+        .set("Authorization", `Bearer ${TOKEN}`);
+      expect(confirmRes.status).toBe(200);
+
+      // Create payment
+      const paymentRes = await request(app)
+        .post("/api/store/customer-payments")
+        .set("Authorization", `Bearer ${TOKEN}`)
+        .send({
+          customer_id: 1, customer_name: "E2E完整流客户", amount: 1000,
+          payment_method: "WECHAT", payment_date: "2025-06-15",
+          source_type: "STATEMENT", source_no: stmtNo
+        });
+      expect(paymentRes.status).toBe(200);
+      const paymentNo = paymentRes.body.data.receipt_no;
+
+      // Void payment
+      const voidRes = await request(app)
+        .post(`/api/store/customer-payments/${paymentNo}/void`)
+        .set("Authorization", `Bearer ${TOKEN}`);
+      expect(voidRes.status).toBe(200);
+    });
+
+    it("purchase order with multiple items full lifecycle", async () => {
+      // Create order with 3 items
+      const createRes = await request(app)
+        .post("/api/admin/purchase-orders")
+        .set("Authorization", `Bearer ${TOKEN}`)
+        .send({
+          supplierId: 1, supplierName: "多商品E2E供应商", storeId: 1,
+          items: [
+            { skuId: 1, skuName: "商品A", boxQty: 2, bottleQty: 0, unitPrice: 100, taxRate: 0.13 },
+            { skuId: 2, skuName: "商品B", boxQty: 1, bottleQty: 6, unitPrice: 200, taxRate: 0.13 },
+            { skuId: 3, skuName: "商品C", boxQty: 0, bottleQty: 10, unitPrice: 50, taxRate: 0 }
+          ]
+        });
+      expect(createRes.status).toBe(200);
+      const orderNo = createRes.body.data.purchaseNo;
+      expect(orderNo).toBeTruthy();
+
+      // Get detail and verify items
+      const detailRes = await request(app)
+        .get(`/api/admin/purchase-orders/${orderNo}`)
+        .set("Authorization", `Bearer ${TOKEN}`);
+      expect(detailRes.status).toBe(200);
+
+      // Submit
+      const submitRes = await request(app)
+        .post(`/api/admin/purchase-orders/${orderNo}/submit`)
+        .set("Authorization", `Bearer ${TOKEN}`);
+      expect(submitRes.status).toBe(200);
+
+      // Approve
+      const approveRes = await request(app)
+        .post(`/api/admin/purchase-orders/${orderNo}/approve`)
+        .set("Authorization", `Bearer ${TOKEN}`);
+      expect(approveRes.status).toBe(200);
+
+      // Verify status after approval
+      const afterApprove = await request(app)
+        .get(`/api/admin/purchase-orders/${orderNo}`)
+        .set("Authorization", `Bearer ${TOKEN}`);
+      expect(afterApprove.status).toBe(200);
+    });
+
+    it("sale return full cycle: create → approve → refund", async () => {
+      const createRes = await request(app)
+        .post("/api/store/sale-returns")
+        .set("Authorization", `Bearer ${TOKEN}`)
+        .send({
+          customerId: 1, customerName: "E2E销售退货客户", storeId: 1,
+          items: [{ skuId: 1, skuName: "E2E退货商品", boxQty: 0, bottleQty: 3, unitPrice: 150, reason: "质量问题" }]
+        });
+      expect(createRes.status).toBe(200);
+      const returnNo = createRes.body.data.returnNo;
+      expect(returnNo).toBeTruthy();
+
+      // Check initial status
+      const detail = await request(app)
+        .get(`/api/store/sale-returns/${returnNo}`)
+        .set("Authorization", `Bearer ${TOKEN}`);
+      expect(detail.status).toBe(200);
+      expect(detail.body.data.return_status).toBe("PENDING");
+
+      // Approve
+      const approveRes = await request(app)
+        .post(`/api/store/sale-returns/${returnNo}/approve`)
+        .set("Authorization", `Bearer ${TOKEN}`);
+      expect(approveRes.status).toBe(200);
+
+      // Check approved status
+      const afterApprove = await request(app)
+        .get(`/api/store/sale-returns/${returnNo}`)
+        .set("Authorization", `Bearer ${TOKEN}`);
+      expect(afterApprove.body.data.return_status).toBe("COMPLETED");
+
+      // Refund
+      const refundRes = await request(app)
+        .post(`/api/store/sale-returns/${returnNo}/refund`)
+        .set("Authorization", `Bearer ${TOKEN}`)
+        .send({ refundMethod: "WECHAT" });
+      expect(refundRes.status).toBe(200);
+    });
+
+    it("supplier CRUD with contacts full flow", async () => {
+      // Create supplier
+      const createRes = await request(app)
+        .post("/api/admin/suppliers")
+        .set("Authorization", `Bearer ${TOKEN}`)
+        .send({
+          name: "E2E完整供应商",
+          shortName: "E2E供应",
+          supplyType: "白酒",
+          category: "品牌商",
+          province: "广东省",
+          city: "深圳市",
+          district: "南山区",
+          address: "科技园路1号",
+          creditLevel: "A",
+          settlementType: "MONTHLY",
+          settlementDay: 15,
+          taxRate: 0.13
+        });
+      expect(createRes.status).toBe(200);
+      const supplierId = createRes.body.data.id;
+
+      // Add contact 1
+      const c1 = await request(app)
+        .post(`/api/admin/suppliers/${supplierId}/contacts`)
+        .set("Authorization", `Bearer ${TOKEN}`)
+        .send({ name: "张经理", phone: "13900139001", position: "采购经理" });
+      expect(c1.status).toBe(200);
+
+      // Add contact 2
+      const c2 = await request(app)
+        .post(`/api/admin/suppliers/${supplierId}/contacts`)
+        .set("Authorization", `Bearer ${TOKEN}`)
+        .send({ name: "李主管", phone: "13900139002", position: "财务主管" });
+      expect(c2.status).toBe(200);
+
+      // Get detail with contacts
+      const detailRes = await request(app)
+        .get(`/api/admin/suppliers/${supplierId}`)
+        .set("Authorization", `Bearer ${TOKEN}`);
+      expect(detailRes.status).toBe(200);
+      expect(detailRes.body.data.name).toBe("E2E完整供应商");
+
+      // Update supplier
+      const updateRes = await request(app)
+        .put(`/api/admin/suppliers/${supplierId}`)
+        .set("Authorization", `Bearer ${TOKEN}`)
+        .send({ name: "E2E完整供应商(已更新)", creditLevel: "AA" });
+      expect(updateRes.status).toBe(200);
+
+      // Verify update
+      const afterUpdate = await request(app)
+        .get(`/api/admin/suppliers/${supplierId}`)
+        .set("Authorization", `Bearer ${TOKEN}`);
+      expect(afterUpdate.body.data.name).toBe("E2E完整供应商(已更新)");
+    });
   });
 });

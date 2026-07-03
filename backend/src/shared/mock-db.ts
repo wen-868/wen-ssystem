@@ -1329,6 +1329,7 @@ export async function mockExecute(sql: string, params: unknown[] = []) {
       bank_account: params[13],
       bank_account_name: params[14],
       remark: params[15],
+      tenant_id: params[16],
       status: 1,
       created_at: new Date().toISOString(),
       updated_at: new Date().toISOString(),
@@ -1371,6 +1372,8 @@ export async function mockExecute(sql: string, params: unknown[] = []) {
     // order_status is a SQL literal (e.g. 'DRAFT'), not in params
     const statusMatch = s.match(/order_status[^,]*,\s*'([^']+)'/);
     const orderStatus = statusMatch ? statusMatch[1].toUpperCase() : "DRAFT";
+    // tenant_id is usually the last parameter
+    const tenantId = params[params.length - 1] as string || "default";
     state.purchaseOrders.push({
       id,
       order_no: params[0],
@@ -1387,7 +1390,7 @@ export async function mockExecute(sql: string, params: unknown[] = []) {
       expected_date: params[10],
       operator_id: params[11],
       remark: params[12],
-      tenant_id: params[13],
+      tenant_id: tenantId,
       created_at: new Date().toISOString(),
       updated_at: new Date().toISOString(),
     });

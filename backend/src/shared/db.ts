@@ -120,7 +120,18 @@ export async function queryWithTenant<T = any>(sql: string, params: unknown[] = 
     if (!hasTenantId) {
       console.warn(`[mock-db] WARNING: queryWithTenant 调用缺少 tenant_id 条件: ${sql.substring(0, 100)}`);
     }
-    return mockQuery<T>(sql, params);
+    const result = await mockQuery<T>(sql, params);
+    // 对结果进行租户过滤（模拟生产环境的租户隔离）
+    if (Array.isArray(result) && result.length > 0) {
+      const firstRow = result[0] as any;
+      if (firstRow && typeof firstRow === 'object') {
+        const tenantKey = 'tenant_id' in firstRow ? 'tenant_id' : ('tenantId' in firstRow ? 'tenantId' : null);
+        if (tenantKey) {
+          return result.filter((row: any) => row[tenantKey] === tenantId) as T[];
+        }
+      }
+    }
+    return result;
   }
   
   const { modifiedSql, modifiedParams } = injectTenantCondition(sql, params, tenantId);
