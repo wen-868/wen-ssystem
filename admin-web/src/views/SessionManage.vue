@@ -83,7 +83,7 @@ function getErrorMessage(error: unknown, fallback: string) {
 
 async function loadStats() {
   try {
-    const data = await getOnlineStats();
+    const data = await getOnlineStats() as any;
     onlineCount.value = data?.onlineCount ?? data?.total ?? 0;
   } catch {
     // ignore
@@ -95,7 +95,7 @@ async function loadSessions() {
   try {
     const params: any = { page: page.value, pageSize: pageSize.value };
     if (searchKeyword.value) params.keyword = searchKeyword.value;
-    const data = await getUserSessions(params);
+    const data = await getUserSessions(params) as any;
     sessions.value = data.records || [];
     total.value = data.total || 0;
   } catch (e: any) {
