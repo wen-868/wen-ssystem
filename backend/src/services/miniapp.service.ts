@@ -249,9 +249,9 @@ export async function getOrderDetail(tenantId: string, orderNo: string, anonymou
 }
 
 // ========== 确认收货 ==========
-export async function confirmReceipt(orderNo: string) {
+export async function confirmReceipt(orderNo: string, tenantId: string) {
   const result = await transaction(async (conn) => {
-    return completeOrderDelivery(conn, orderNo, null, makeBizNo);
+    return completeOrderDelivery(conn, orderNo, null, tenantId, makeBizNo);
   });
   return result;
 }

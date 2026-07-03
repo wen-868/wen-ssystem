@@ -86,9 +86,9 @@ export async function startDelivery(orderNo: string, tenantId: string, userId: n
   return { orderNo, status: "DELIVERING" };
 }
 
-export async function completeDelivery(orderNo: string, userId: number | null) {
+export async function completeDelivery(orderNo: string, userId: number | null, tenantId: string) {
   return transaction(async (conn) => {
-    return completeOrderDelivery(conn, orderNo, userId ?? null, makeBizNo);
+    return completeOrderDelivery(conn, orderNo, userId ?? null, tenantId, makeBizNo);
   });
 }
 
