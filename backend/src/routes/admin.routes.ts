@@ -135,7 +135,7 @@ adminRouter.get("/finance/top-suppliers-ap", requireAuthWithTenant, financeDashb
 
 // ============ Phase 16: 小程序发布配置 ============
 import * as miniappPublishService from "../services/admin/miniapp-publish.service.js";
-adminRouter.get("/miniapp-publish/configs", requireAuthWithTenant, async (req, res) => {
+adminRouter.get("/miniapp-publish/configs", requireAuthWithTenant, async (req: Request, res: Response) => {
   try {
     const configs = await miniappPublishService.getPublishConfigs((req as any).tenantId);
     res.json({ code: "0", data: configs });
@@ -143,7 +143,7 @@ adminRouter.get("/miniapp-publish/configs", requireAuthWithTenant, async (req, r
     res.status(500).json({ code: "1", message: e.message });
   }
 });
-adminRouter.get("/miniapp-publish/validate", requireAuthWithTenant, async (req, res) => {
+adminRouter.get("/miniapp-publish/validate", requireAuthWithTenant, async (req: Request, res: Response) => {
   try {
     const result = await miniappPublishService.validatePlaceholders((req as any).tenantId);
     res.json({ code: "0", data: result });
@@ -151,7 +151,7 @@ adminRouter.get("/miniapp-publish/validate", requireAuthWithTenant, async (req, 
     res.status(500).json({ code: "1", message: e.message });
   }
 });
-adminRouter.get("/miniapp-publish/placeholders", requireAuthWithTenant, (_req, res) => {
+adminRouter.get("/miniapp-publish/placeholders", requireAuthWithTenant, (_req: Request, res: Response) => {
   res.json({ code: "0", data: miniappPublishService.getTemplatePlaceholders() });
 });
 
@@ -175,13 +175,13 @@ adminRouter.get("/miniapp-publish/placeholders", requireAuthWithTenant, (_req, r
 
 // ============ Phase 18-C: 权限矩阵 ============
 import * as reportPermissionService from "../services/admin/report-permission.service.js";
-adminRouter.get("/report-permissions", requireAuthWithTenant, async (req, res) => {
+adminRouter.get("/report-permissions", requireAuthWithTenant, async (req: Request, res: Response) => {
   try {
     const data = await reportPermissionService.getMatrix();
     res.json({ code: "0", data });
   } catch (e: any) { res.status(500).json({ code: "1", message: e.message }); }
 });
-adminRouter.put("/report-permissions", requireAuthWithTenant, async (req, res) => {
+adminRouter.put("/report-permissions", requireAuthWithTenant, async (req: Request, res: Response) => {
   try {
     const result = await reportPermissionService.saveMatrix(req.body.permissions || []);
     res.json({ code: "0", data: result });
@@ -190,25 +190,25 @@ adminRouter.put("/report-permissions", requireAuthWithTenant, async (req, res) =
 
 // ============ Phase 18-C: 监控告警 ============
 import * as monitorService from "../services/admin/monitor.service.js";
-adminRouter.get("/monitor/db-status", requireAuthWithTenant, async (_req, res) => {
+adminRouter.get("/monitor/db-status", requireAuthWithTenant, async (_req: Request, res: Response) => {
   try {
     const data = await monitorService.getDbStatus();
     res.json({ code: "0", data });
   } catch (e: any) { res.status(500).json({ code: "1", message: e.message }); }
 });
-adminRouter.get("/monitor/api-stats", requireAuthWithTenant, async (_req, res) => {
+adminRouter.get("/monitor/api-stats", requireAuthWithTenant, async (_req: Request, res: Response) => {
   try {
     const data = await monitorService.getApiStats();
     res.json({ code: "0", data });
   } catch (e: any) { res.status(500).json({ code: "1", message: e.message }); }
 });
-adminRouter.get("/monitor/expiring-tenants", requireAuthWithTenant, async (_req, res) => {
+adminRouter.get("/monitor/expiring-tenants", requireAuthWithTenant, async (_req: Request, res: Response) => {
   try {
     const data = await monitorService.getExpiringTenants();
     res.json({ code: "0", data });
   } catch (e: any) { res.status(500).json({ code: "1", message: e.message }); }
 });
-adminRouter.post("/monitor/notify-expiring", requireAuthWithTenant, async (req, res) => {
+adminRouter.post("/monitor/notify-expiring", requireAuthWithTenant, async (req: Request, res: Response) => {
   try {
     const result = await monitorService.notifyExpiringTenants(req.body.tenantIds || []);
     res.json({ code: "0", data: result });
