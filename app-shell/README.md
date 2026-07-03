@@ -2,43 +2,29 @@
 
 ## 项目说明
 
-这是 `merchant-mobile`（Vue 3 + Vite 门店移动端）的 **Cordova 原生 App 壳项目**。
+这是 `merchant-mobile`（Vue 3 + Vite 门店移动端）的 **HBuilder 5+App 壳项目**。
 
-`www/` 目录下是已经构建好的前端产物（`npm run build` 生成），直接封装为 Android APK。
+`www/` 目录下是已经构建好的前端产物，直接封装为 Android APK。
+
+**HBuilder 项目类型：5+App（Webview 壳）**
 
 ---
 
-## 快速打包（两种方式）
+## HBuilder 云打包步骤
 
-### 方式一：HBuilder 云打包（最简单，推荐）
-
-1. 用 HBuilder 打开本目录（`app-shell`）
-2. 确保左侧项目树能看到 `www/index.html`
+1. HBuilder 菜单 → **文件 → 打开目录**，选择 `app-shell` 文件夹
+2. 项目树结构：
+   ```
+   app-shell
+   ├── manifest.json    ← HBuilder 配置文件
+   ├── README.md
+   └── www
+       ├── index.html
+       └── assets
+   ```
 3. 菜单 → **发行 → 原生 App-云打包**
-4. 选择 **Android（apk包）**
-5. 包名已配置为 `uni.app.ZHIXIANG`，应用名"智享全链"
-6. 点击打包，等待云端生成 APK
-
-### 方式二：本地 Cordova 打包（需要环境）
-
-前置要求：Node.js、Java JDK 17、Android SDK、Gradle
-
-```bash
-# 进入壳项目
-cd app-shell
-
-# 安装 Cordova CLI
-npm install -g cordova
-
-# 添加 Android 平台
-cordova platform add android
-
-# 调试包
-cordova build android
-
-# 正式签名包
-cordova build android --release
-```
+4. 包名 `uni.app.ZHIXIANG`，应用名"智享全链"
+5. 点击打包，等待云端生成 APK
 
 ---
 
@@ -49,24 +35,19 @@ cordova build android --release
 | 应用名称 | 智享全链 |
 | 包名 | uni.app.ZHIXIANG |
 | 版本 | 1.0.0 |
-| 最低 Android 版本 | API 24 (Android 7.0) |
-| 目标 Android 版本 | API 34 (Android 14) |
+| 最低 Android | API 24 (Android 7.0) |
+| 目标 Android | API 34 (Android 14) |
 | 屏幕方向 | 竖屏 |
-| 状态栏颜色 | #1989fa |
+| 状态栏 | #1989fa |
 
 ---
 
 ## 更新前端代码后重新打包
 
-如果 `merchant-mobile` 源码有修改：
-
 ```bash
 cd merchant-mobile
-npm install
-npm run build
-
-# 复制新构建产物到壳项目
+npm install && npm run build
 cp -r dist/* ../app-shell/www/
-
-# 然后重新执行上面的打包步骤
+cd ../app-shell
+# 然后在 HBuilder 中重新云打包
 ```

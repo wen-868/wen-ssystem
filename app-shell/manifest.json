@@ -1,0 +1,75 @@
+{
+    "@platforms": ["android", "iOS"],
+    "id": "uni.app.ZHIXIANG",
+    "name": "智享全链",
+    "version": {
+        "name": "1.0.0",
+        "code": "100"
+    },
+    "description": "酒水进销存管理系统 - 门店移动端",
+    "developer": {
+        "name": "智享全链团队"
+    },
+    "permissions": {
+        "Internet": {},
+        "Console": {}
+    },
+    "plus": {
+        "splashscreen": {
+            "autoclose": true,
+            "delay": 2000,
+            "waiting": true
+        },
+        "statusbar": {
+            "immersed": false,
+            "style": "light",
+            "background": "#1989fa"
+        },
+        "popGesture": "close",
+        "runmode": "normal",
+        "distribute": {
+            "google": {
+                "permissions": [
+                    "<uses-permission android:name=\"android.permission.INTERNET\"/>",
+                    "<uses-permission android:name=\"android.permission.ACCESS_NETWORK_STATE\"/>",
+                    "<uses-permission android:name=\"android.permission.ACCESS_WIFI_STATE\"/>"
+                ]
+            },
+            "android": {
+                "packagename": "uni.app.ZHIXIANG",
+                "minSdkVersion": "24",
+                "targetSdkVersion": "34",
+                "abiFilters": ["armeabi-v7a", "arm64-v8a", "x86"],
+                "permissions": [
+                    "<uses-permission android:name=\"android.permission.INTERNET\"/>",
+                    "<uses-permission android:name=\"android.permission.ACCESS_NETWORK_STATE\"/>",
+                    "<uses-permission android:name=\"android.permission.ACCESS_WIFI_STATE\"/>"
+                ]
+            },
+            "ios": {
+                "appid": "",
+                "mobileprovision": "",
+                "p12": "",
+                "password": "",
+                "devices": "iphone",
+                "deploymentTarget": "12.0",
+                "privacyDescription": {
+                    "NSPhotoLibraryUsageDescription": "用于上传商品图片",
+                    "NSCameraUsageDescription": "用于扫码识别商品"
+                }
+            },
+            "sdkConfigs": {}
+        },
+        "useragent": {
+            "value": "Mozilla/5.0 (Linux; Android 10; K) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Mobile Safari/537.36",
+            "concatenate": true
+        },
+        "webView": {
+            "minUserAgent": "Mozilla/5.0 (Linux; Android 10; K) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Mobile Safari/537.36"
+        }
+    },
+    "appid": "__UNI__ZHIXIANG",
+    "launch_path": "index.html",
+    "icons": {},
+    "app-type": "webapp"
+}
