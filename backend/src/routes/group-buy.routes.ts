@@ -24,8 +24,8 @@ groupBuyRouter.get("/records", requireAuthWithTenant, async (req: Request, res: 
   try { const data = await groupBuyService.getGroupBuyRecords((req as any).tenantId, req.query); res.json({ code: "0", data }); } catch (e: any) { res.status(500).json({ code: "1", message: e.message }); }
 });
 groupBuyRouter.get("/records/:groupNo", requireAuthWithTenant, async (req: Request, res: Response) => {
-  try { const data = await groupBuyService.getGroupBuyDetail(req.params.groupNo); res.json({ code: "0", data }); } catch (e: any) { res.status(500).json({ code: "1", message: e.message }); }
+  try { const data = await groupBuyService.getGroupBuyRecordDetail(req.params.groupNo); res.json({ code: "0", data }); } catch (e: any) { res.status(500).json({ code: "1", message: e.message }); }
 });
 groupBuyRouter.put("/records/:groupNo/cancel", requireAuthWithTenant, async (req: Request, res: Response) => {
-  try { const data = await groupBuyService.cancelGroupBuy(req.params.groupNo); res.json({ code: "0", data }); } catch (e: any) { res.status(500).json({ code: "1", message: e.message }); }
+  try { const data = await groupBuyService.cancelGroupBuyRecord(req.params.groupNo); res.json({ code: "0", data }); } catch (e: any) { res.status(500).json({ code: "1", message: e.message }); }
 });
