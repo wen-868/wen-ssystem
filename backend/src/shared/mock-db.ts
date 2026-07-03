@@ -289,7 +289,7 @@ export async function mockQuery<T = any>(sql: string, params: unknown[] = []) {
     }) as T[];
   }
   if (s.includes("from inventory_balance") && s.includes("physical_qty") && s.includes("where store_id")) {
-    const stockType = params.length >= 3 ? params[2] : (s.includes("stock_type = 'offline'") ? "OFFLINE" : params[2]);
+    const stockType = s.includes("stock_type = 'offline'") ? "OFFLINE" : s.includes("stock_type = 'online'") ? "ONLINE" : (params.length >= 3 ? String(params[2]) : "OFFLINE");
     const inv = state.inventory.find(
       (i) => i.storeId === params[0] && i.skuId === params[1] && i.stockType === stockType
     );
@@ -1018,19 +1018,19 @@ export async function mockExecute(sql: string, params: unknown[] = []) {
       bill_no: params[0],
       storeId: params[1],
       store_id: params[1],
-      customerId: params[2],
-      customerName: params[3],
-      customerMobile: params[4],
-      customerType: params[5],
+      customerId: params[5],
+      customerName: params[6],
+      customerMobile: params[7],
+      customerType: params[8],
       businessStatus: "CREATED",
       collectionStatus: "UNPAID",
-      goodsAmount: params[6],
-      receivableAmount: params[9],
-      receivable_amount: params[9],
+      goodsAmount: params[10],
+      receivableAmount: params[13],
+      receivable_amount: params[13],
       receivedAmount: 0,
       received_amount: 0,
-      unreceivedAmount: params[10],
-      unreceived_amount: params[10],
+      unreceivedAmount: params[14],
+      unreceived_amount: params[14],
       createdAt: new Date().toISOString()
     });
     return result();

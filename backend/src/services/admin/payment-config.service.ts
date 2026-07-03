@@ -1,5 +1,9 @@
 import { queryWithTenant, queryOneWithTenant, executeWithTenant } from "../../shared/db.js";
 
+export async function isProviderReady(tenantId: string, provider: string): Promise<boolean> {
+  return PaymentConfigService.isProviderReady(tenantId, provider);
+}
+
 export class PaymentConfigService {
   // 获取渠道配置（敏感字段脱敏：返回 ***）
   static async getChannelConfig(tenantId: string, provider: string) {

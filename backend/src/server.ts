@@ -105,9 +105,11 @@ import { groupBuyRouter } from "./routes/group-buy.routes.js";
 const app = express();
 
 // 全局 Rate Limiting：每IP每分钟100请求
-app.use(rateLimit({ windowMs: 60_000, max: 100, standardHeaders: true, legacyHeaders: false }));
-// 登录接口 Rate Limiting：每IP每15分钟5次（防暴力破解）
-const loginLimiter = rateLimit({ windowMs: 15 * 60_000, max: 5, message: "登录请求过于频繁，请15分钟后再试", standardHeaders: true, legacyHeaders: false });
+app.use(rateLimit({ windowMs: 60_000, max: env.NODE_ENV === "development" ? 1000 : 100, standardHeaders: true, legacyHeaders: false }));
+// 登录接口 Rate Limiting：每IP每15分钟5次（防暴力破解），开发环境不限制
+const loginLimiter = env.NODE_ENV === "development"
+  ? ((_req: any, _res: any, next: any) => next())
+  : rateLimit({ windowMs: 15 * 60_000, max: 5, message: "登录请求过于频繁，请15分钟后再试", standardHeaders: true, legacyHeaders: false });
 
 app.use(helmet());
 const corsOriginsEnv = (globalThis as any).process?.env?.CORS_ORIGINS;
