@@ -1,0 +1,2419 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>智享全链管理系统 - 酒水行业数字化管理专家 | onepan.cn</title>
+<meta name="description" content="智享全链管理系统（onepan.cn）是酒水行业一站式数字化管理解决方案，覆盖库存管理、采购供应链、销售全链路、数据看板、小程序商城等核心功能。">
+<meta name="keywords" content="酒水管理,库存管理,酒水行业ERP,供应链管理,多门店管理,小程序商城">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+SC:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+<style>
+/* ==================== Design Tokens ==================== */
+:root {
+  --color-primary: #1677FF;
+  --color-primary-hover: #409EFF;
+  --color-primary-active: #0958D9;
+  --color-primary-soft: #E6F4FF;
+  --color-primary-bg: #F0F7FF;
+
+  --color-gold: #C69C6D;
+  --color-gold-light: #D4A574;
+  --color-gold-soft: #FFF8E1;
+  --color-gold-bg: #FFFDF7;
+
+  --gray-50: #F9FAFB;
+  --gray-100: #F3F4F6;
+  --gray-200: #E5E7EB;
+  --gray-300: #D1D5DB;
+  --gray-400: #9CA3AF;
+  --gray-500: #6B7280;
+  --gray-600: #4B5563;
+  --gray-700: #374151;
+  --gray-800: #1F2937;
+  --gray-900: #111827;
+
+  --color-success: #10B981;
+  --color-success-soft: #D1FAE5;
+  --color-warning: #F59E0B;
+  --color-warning-soft: #FEF3C7;
+  --color-danger: #EF4444;
+  --color-danger-soft: #FEE2E2;
+  --color-info: #3B82F6;
+  --color-info-soft: #DBEAFE;
+
+  --text-primary: #1F2328;
+  --text-secondary: #4B5563;
+  --text-muted: #9CA3AF;
+  --text-inverse: #FFFFFF;
+
+  --bg-page: #F5F7FA;
+  --bg-card: #FFFFFF;
+  --bg-soft: #F5F7FA;
+
+  --border-normal: #E5E7EB;
+  --border-light: #F0F0F0;
+  --border-focus: #1677FF;
+
+  --radius-xs: 4px;
+  --radius-sm: 8px;
+  --radius-md: 12px;
+  --radius-lg: 16px;
+  --radius-xl: 20px;
+  --radius-full: 9999px;
+
+  --shadow-xs: 0 1px 2px rgba(0,0,0,0.04);
+  --shadow-sm: 0 1px 3px rgba(0,0,0,0.06), 0 1px 2px rgba(0,0,0,0.04);
+  --shadow-md: 0 4px 6px rgba(0,0,0,0.04), 0 2px 4px rgba(0,0,0,0.04);
+  --shadow-lg: 0 10px 15px rgba(0,0,0,0.06), 0 4px 6px rgba(0,0,0,0.04);
+  --shadow-xl: 0 20px 40px rgba(0,0,0,0.08);
+
+  --transition-fast: 0.15s ease;
+  --transition-normal: 0.25s ease;
+  --transition-slow: 0.35s ease;
+  --transition-spring: 0.35s cubic-bezier(0.34, 1.56, 0.64, 1);
+
+  --dark-bg: #0A1628;
+  --dark-bg-secondary: #16213E;
+  --dark-bg-card: #1A2740;
+  --dark-border: rgba(255,255,255,0.1);
+  --dark-text-primary: #FFFFFF;
+  --dark-text-secondary: rgba(255,255,255,0.7);
+  --dark-text-muted: rgba(255,255,255,0.4);
+
+  --container-max: 1200px;
+}
+
+/* ==================== Reset & Base ==================== */
+*, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+html { scroll-behavior: smooth; font-size: 16px; }
+body {
+  font-family: 'Noto Sans SC', -apple-system, BlinkMacSystemFont, 'Segoe UI', 'PingFang SC', 'Microsoft YaHei', sans-serif;
+  color: var(--text-primary);
+  background: var(--bg-page);
+  line-height: 1.6;
+  overflow-x: hidden;
+}
+a { text-decoration: none; color: inherit; transition: color var(--transition-fast); }
+ul { list-style: none; }
+img { max-width: 100%; display: block; }
+button { font-family: inherit; cursor: pointer; border: none; background: none; }
+
+.container { max-width: var(--container-max); margin: 0 auto; padding: 0 32px; }
+
+/* ==================== Utility ==================== */
+.text-primary { color: var(--color-primary); }
+.text-white { color: #FFFFFF; }
+.text-center { text-align: center; }
+.section-padding { padding: 100px 0; }
+
+/* ==================== Scroll Animations ==================== */
+.fade-up {
+  opacity: 0;
+  transform: translateY(30px);
+  transition: opacity 0.8s ease, transform 0.8s ease;
+}
+.fade-up.visible {
+  opacity: 1;
+  transform: translateY(0);
+}
+.fade-up.delay-1 { transition-delay: 0.1s; }
+.fade-up.delay-2 { transition-delay: 0.2s; }
+.fade-up.delay-3 { transition-delay: 0.3s; }
+.fade-up.delay-4 { transition-delay: 0.4s; }
+.fade-up.delay-5 { transition-delay: 0.5s; }
+.fade-up.delay-6 { transition-delay: 0.6s; }
+.fade-up.delay-7 { transition-delay: 0.7s; }
+.fade-up.delay-8 { transition-delay: 0.8s; }
+
+/* ==================== Buttons ==================== */
+.btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 12px 32px;
+  border-radius: var(--radius-sm);
+  font-size: 0.95rem;
+  font-weight: 500;
+  transition: all var(--transition-normal);
+  cursor: pointer;
+  white-space: nowrap;
+}
+.btn-primary {
+  background: var(--color-primary);
+  color: #FFFFFF;
+  box-shadow: 0 2px 8px rgba(22, 119, 255, 0.2);
+}
+.btn-primary:hover {
+  background: var(--color-primary-hover);
+  transform: translateY(-2px);
+  box-shadow: 0 6px 16px rgba(22, 119, 255, 0.3);
+}
+.btn-primary:active {
+  background: var(--color-primary-active);
+  transform: translateY(0);
+}
+.btn-outline {
+  background: transparent;
+  color: #FFFFFF;
+  border: 1px solid rgba(255,255,255,0.3);
+}
+.btn-outline:hover {
+  border-color: var(--color-primary);
+  color: var(--color-primary);
+  background: rgba(22, 119, 255, 0.05);
+}
+.btn-outline-light {
+  background: transparent;
+  color: var(--color-primary);
+  border: 1px solid var(--color-primary);
+}
+.btn-outline-light:hover {
+  background: var(--color-primary);
+  color: #FFFFFF;
+}
+.btn-lg { padding: 16px 44px; font-size: 1.05rem; }
+.btn-white {
+  background: #FFFFFF;
+  color: var(--color-primary);
+  box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+}
+.btn-white:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 20px rgba(0,0,0,0.15);
+}
+
+/* ==================== Header / Nav ==================== */
+.header {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  z-index: 1000;
+  padding: 16px 0;
+  transition: all var(--transition-normal);
+}
+.header.scrolled {
+  background: rgba(10, 22, 40, 0.92);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  padding: 12px 0;
+  box-shadow: 0 2px 20px rgba(0,0,0,0.3);
+}
+.nav {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+.nav-logo {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-size: 1.2rem;
+  font-weight: 700;
+  color: #FFFFFF;
+}
+.nav-logo .logo-icon {
+  width: 36px;
+  height: 36px;
+  background: linear-gradient(135deg, var(--color-primary), var(--color-primary-active));
+  border-radius: var(--radius-sm);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 800;
+  font-size: 0.85rem;
+  color: #FFF;
+}
+.nav-menu {
+  display: flex;
+  align-items: center;
+  gap: 36px;
+}
+.nav-menu a {
+  color: rgba(255,255,255,0.8);
+  font-size: 0.9rem;
+  font-weight: 400;
+  transition: color var(--transition-fast);
+  position: relative;
+}
+.nav-menu a:hover {
+  color: #FFFFFF;
+}
+.nav-menu a.active {
+  color: #FFFFFF;
+  font-weight: 500;
+}
+.nav-menu a.active::after {
+  content: '';
+  position: absolute;
+  bottom: -6px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 20px;
+  height: 2px;
+  background: var(--color-primary);
+  border-radius: 2px;
+}
+.nav-actions {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+.nav-actions .login-link {
+  color: rgba(255,255,255,0.8);
+  font-size: 0.9rem;
+  padding: 8px 12px;
+}
+.nav-actions .login-link:hover { color: #FFFFFF; }
+.nav-actions .btn { padding: 8px 20px; font-size: 0.85rem; }
+.nav-toggle {
+  display: none;
+  width: 32px;
+  height: 32px;
+  flex-direction: column;
+  justify-content: center;
+  gap: 5px;
+  cursor: pointer;
+}
+.nav-toggle span {
+  display: block;
+  width: 24px;
+  height: 2px;
+  background: #FFFFFF;
+  border-radius: 2px;
+  transition: all var(--transition-normal);
+}
+.nav-toggle.active span:nth-child(1) { transform: translateY(7px) rotate(45deg); }
+.nav-toggle.active span:nth-child(2) { opacity: 0; }
+.nav-toggle.active span:nth-child(3) { transform: translateY(-7px) rotate(-45deg); }
+
+/* Mobile Nav */
+.mobile-menu {
+  display: none;
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(10, 22, 40, 0.98);
+  backdrop-filter: blur(20px);
+  z-index: 999;
+  padding: 80px 32px 32px;
+  flex-direction: column;
+  gap: 8px;
+}
+.mobile-menu.active { display: flex; }
+.mobile-menu a {
+  color: rgba(255,255,255,0.8);
+  font-size: 1.1rem;
+  padding: 14px 0;
+  border-bottom: 1px solid rgba(255,255,255,0.1);
+}
+.mobile-menu a:hover { color: var(--color-primary); }
+
+/* ==================== Hero ==================== */
+.hero {
+  position: relative;
+  min-height: 100vh;
+  background: linear-gradient(135deg, var(--dark-bg) 0%, #0F3460 100%);
+  display: flex;
+  align-items: center;
+  overflow: hidden;
+  padding-top: 80px;
+}
+.hero-particles {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  pointer-events: none;
+}
+.hero-particles canvas {
+  width: 100%;
+  height: 100%;
+}
+.hero-glow {
+  position: absolute;
+  top: 10%;
+  right: 10%;
+  width: 500px;
+  height: 500px;
+  background: radial-gradient(circle, rgba(22, 119, 255, 0.15) 0%, transparent 70%);
+  border-radius: 50%;
+  pointer-events: none;
+}
+.hero-glow-2 {
+  position: absolute;
+  bottom: 10%;
+  left: 5%;
+  width: 400px;
+  height: 400px;
+  background: radial-gradient(circle, rgba(22, 119, 255, 0.1) 0%, transparent 70%);
+  border-radius: 50%;
+  pointer-events: none;
+}
+.hero-content {
+  position: relative;
+  z-index: 2;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 60px;
+  align-items: center;
+}
+.hero-text .badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 16px;
+  background: rgba(22, 119, 255, 0.1);
+  border: 1px solid rgba(22, 119, 255, 0.3);
+  border-radius: var(--radius-full);
+  color: var(--color-primary);
+  font-size: 0.8rem;
+  font-weight: 500;
+  margin-bottom: 24px;
+}
+.hero-text .badge .dot {
+  width: 6px;
+  height: 6px;
+  background: var(--color-primary);
+  border-radius: 50%;
+  animation: pulse 2s ease-in-out infinite;
+}
+@keyframes pulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.5; }
+}
+.hero-text h1 {
+  font-size: 3.2rem;
+  font-weight: 800;
+  line-height: 1.2;
+  color: #FFFFFF;
+  letter-spacing: -0.02em;
+  margin-bottom: 20px;
+}
+.hero-text h1 .highlight {
+  background: linear-gradient(135deg, var(--color-primary), #409EFF);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+.hero-text .subtitle {
+  font-size: 1.1rem;
+  color: var(--dark-text-secondary);
+  line-height: 1.8;
+  margin-bottom: 32px;
+  max-width: 520px;
+}
+.hero-btns {
+  display: flex;
+  gap: 16px;
+  margin-bottom: 48px;
+  flex-wrap: wrap;
+}
+.hero-stats {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 24px;
+  padding-top: 32px;
+  border-top: 1px solid rgba(255,255,255,0.1);
+}
+.hero-stat .num {
+  font-size: 1.8rem;
+  font-weight: 700;
+  color: var(--color-primary);
+  line-height: 1;
+  margin-bottom: 6px;
+}
+.hero-stat .label {
+  font-size: 0.8rem;
+  color: var(--dark-text-muted);
+}
+.hero-mockup {
+  position: relative;
+  animation: float 6s ease-in-out infinite;
+}
+@keyframes float {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-20px); }
+}
+.hero-mockup .mockup-card {
+  background: var(--dark-bg-card);
+  border: 1px solid var(--dark-border);
+  border-radius: var(--radius-lg);
+  padding: 20px;
+  box-shadow: 0 30px 60px rgba(0,0,0,0.4);
+}
+.hero-mockup .mockup-header {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 16px;
+  padding-bottom: 12px;
+  border-bottom: 1px solid var(--dark-border);
+}
+.hero-mockup .mockup-dot {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  background: #EF4444;
+}
+.hero-mockup .mockup-dot:nth-child(2) { background: #F59E0B; }
+.hero-mockup .mockup-dot:nth-child(3) { background: #10B981; }
+.hero-mockup .mockup-title {
+  margin-left: auto;
+  font-size: 0.75rem;
+  color: var(--dark-text-muted);
+}
+.hero-mockup .mockup-body {
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr;
+  gap: 12px;
+  margin-bottom: 16px;
+}
+.hero-mockup .mockup-widget {
+  background: rgba(255,255,255,0.03);
+  border: 1px solid var(--dark-border);
+  border-radius: var(--radius-sm);
+  padding: 14px;
+}
+.hero-mockup .mockup-widget .w-num {
+  font-size: 1.2rem;
+  font-weight: 700;
+  color: #FFF;
+  margin-bottom: 4px;
+}
+.hero-mockup .mockup-widget .w-label {
+  font-size: 0.7rem;
+  color: var(--dark-text-muted);
+}
+.hero-mockup .mockup-widget .w-trend {
+  font-size: 0.7rem;
+  color: var(--color-success);
+  margin-top: 6px;
+}
+.hero-mockup .mockup-chart {
+  height: 120px;
+  background: rgba(255,255,255,0.03);
+  border: 1px solid var(--dark-border);
+  border-radius: var(--radius-sm);
+  display: flex;
+  align-items: flex-end;
+  padding: 12px;
+  gap: 6px;
+}
+.hero-mockup .chart-bar {
+  flex: 1;
+  background: linear-gradient(to top, var(--color-primary), var(--color-primary-hover));
+  border-radius: 3px 3px 0 0;
+  opacity: 0.8;
+}
+.hero-mockup .chart-bar:nth-child(1) { height: 40%; }
+.hero-mockup .chart-bar:nth-child(2) { height: 65%; }
+.hero-mockup .chart-bar:nth-child(3) { height: 50%; }
+.hero-mockup .chart-bar:nth-child(4) { height: 80%; }
+.hero-mockup .chart-bar:nth-child(5) { height: 60%; }
+.hero-mockup .chart-bar:nth-child(6) { height: 90%; }
+.hero-mockup .chart-bar:nth-child(7) { height: 75%; }
+
+/* ==================== Section Common ==================== */
+.section { padding: 100px 0; }
+.section-dark { background: var(--dark-bg); color: #FFF; }
+.section-light { background: var(--bg-page); }
+.section-white { background: #FFFFFF; }
+.section-head {
+  text-align: center;
+  max-width: 700px;
+  margin: 0 auto 64px;
+}
+.section-tag {
+  display: inline-block;
+  padding: 6px 18px;
+  background: var(--color-primary-soft);
+  color: var(--color-primary);
+  border-radius: var(--radius-full);
+  font-size: 0.8rem;
+  font-weight: 500;
+  margin-bottom: 16px;
+}
+.section-dark .section-tag {
+  background: rgba(22, 119, 255, 0.15);
+  color: var(--color-primary);
+}
+.section-title {
+  font-size: 2.5rem;
+  font-weight: 700;
+  line-height: 1.3;
+  letter-spacing: -0.01em;
+  margin-bottom: 16px;
+}
+.section-dark .section-title { color: #FFF; }
+.section-desc {
+  font-size: 1.05rem;
+  color: var(--text-secondary);
+  line-height: 1.8;
+}
+.section-dark .section-desc { color: var(--dark-text-secondary); }
+
+/* ==================== Features ==================== */
+.features-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 24px;
+}
+.feature-card {
+  background: #FFFFFF;
+  border: 1px solid var(--border-normal);
+  border-radius: var(--radius-md);
+  padding: 32px 28px;
+  transition: all var(--transition-normal);
+  cursor: pointer;
+}
+.feature-card:hover {
+  transform: translateY(-6px);
+  box-shadow: var(--shadow-xl);
+  border-color: var(--color-primary);
+}
+.feature-icon {
+  width: 56px;
+  height: 56px;
+  background: linear-gradient(135deg, var(--color-primary), var(--color-primary-active));
+  border-radius: var(--radius-md);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.5rem;
+  margin-bottom: 20px;
+  transition: transform var(--transition-spring);
+}
+.feature-card:hover .feature-icon {
+  transform: scale(1.1);
+}
+.feature-card h3 {
+  font-size: 1.1rem;
+  font-weight: 600;
+  margin-bottom: 10px;
+  color: var(--text-primary);
+}
+.feature-card p {
+  font-size: 0.88rem;
+  color: var(--text-secondary);
+  line-height: 1.7;
+  margin-bottom: 16px;
+}
+.feature-tags {
+  display: flex;
+  gap: 6px;
+  flex-wrap: wrap;
+}
+.feature-tags span {
+  padding: 3px 10px;
+  background: var(--color-primary-soft);
+  color: var(--color-primary);
+  border-radius: var(--radius-xs);
+  font-size: 0.72rem;
+  font-weight: 500;
+}
+
+/* ==================== Demo Section ==================== */
+.demo-wrapper {
+  display: grid;
+  grid-template-columns: 200px 1fr;
+  gap: 40px;
+  align-items: start;
+}
+.demo-tabs {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+.demo-tab {
+  padding: 16px 20px;
+  background: rgba(255,255,255,0.03);
+  border: 1px solid var(--dark-border);
+  border-radius: var(--radius-sm);
+  color: var(--dark-text-secondary);
+  font-size: 0.9rem;
+  text-align: left;
+  transition: all var(--transition-fast);
+  cursor: pointer;
+}
+.demo-tab:hover {
+  background: rgba(255,255,255,0.06);
+  color: #FFF;
+}
+.demo-tab.active {
+  background: rgba(22, 119, 255, 0.15);
+  border-color: var(--color-primary);
+  color: #FFF;
+  font-weight: 500;
+}
+.demo-display {
+  position: relative;
+  background: var(--dark-bg-card);
+  border: 1px solid var(--dark-border);
+  border-radius: var(--radius-lg);
+  padding: 24px;
+  min-height: 420px;
+  overflow: hidden;
+}
+.demo-slides {
+  position: relative;
+  width: 100%;
+  height: 100%;
+}
+.demo-slide {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  opacity: 0;
+  transition: opacity 0.5s ease;
+  pointer-events: none;
+}
+.demo-slide.active {
+  opacity: 1;
+  pointer-events: auto;
+  position: relative;
+}
+.demo-slide .slide-title {
+  font-size: 1.2rem;
+  font-weight: 600;
+  color: #FFF;
+  margin-bottom: 20px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+.demo-slide .slide-title::before {
+  content: '';
+  width: 4px;
+  height: 20px;
+  background: var(--color-primary);
+  border-radius: 2px;
+}
+.demo-mockup {
+  background: rgba(0,0,0,0.2);
+  border: 1px solid var(--dark-border);
+  border-radius: var(--radius-md);
+  padding: 20px;
+  height: 320px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--dark-text-muted);
+  font-size: 0.9rem;
+}
+.demo-dots {
+  display: flex;
+  justify-content: center;
+  gap: 8px;
+  margin-top: 24px;
+}
+.demo-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: rgba(255,255,255,0.2);
+  cursor: pointer;
+  transition: all var(--transition-fast);
+}
+.demo-dot.active {
+  background: var(--color-primary);
+  width: 24px;
+  border-radius: 4px;
+}
+
+/* Dashboard mockup details */
+.dash-mockup {
+  display: grid;
+  grid-template-columns: 200px 1fr;
+  height: 100%;
+  gap: 16px;
+}
+.dash-sidebar {
+  background: rgba(0,0,0,0.2);
+  border-radius: var(--radius-sm);
+  padding: 16px 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+.dash-sidebar-item {
+  padding: 10px 12px;
+  border-radius: 6px;
+  font-size: 0.78rem;
+  color: var(--dark-text-secondary);
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.dash-sidebar-item.active {
+  background: rgba(22, 119, 255, 0.2);
+  color: #FFF;
+}
+.dash-sidebar-item .ico {
+  width: 16px;
+  height: 16px;
+  border-radius: 4px;
+  background: currentColor;
+  opacity: 0.6;
+}
+.dash-main {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+.dash-cards {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 10px;
+}
+.dash-card {
+  background: rgba(0,0,0,0.2);
+  border-radius: var(--radius-sm);
+  padding: 12px;
+}
+.dash-card .dn {
+  font-size: 1rem;
+  font-weight: 700;
+  color: #FFF;
+}
+.dash-card .dl {
+  font-size: 0.68rem;
+  color: var(--dark-text-muted);
+  margin-top: 4px;
+}
+.dash-chart-area {
+  flex: 1;
+  background: rgba(0,0,0,0.2);
+  border-radius: var(--radius-sm);
+  display: flex;
+  align-items: flex-end;
+  padding: 16px;
+  gap: 8px;
+}
+
+/* Mobile mockup */
+.mobile-mockup {
+  width: 200px;
+  height: 380px;
+  background: #1a1a2e;
+  border-radius: 28px;
+  padding: 12px;
+  margin: 0 auto;
+  border: 2px solid var(--dark-border);
+}
+.mobile-mockup .m-notch {
+  width: 60px;
+  height: 6px;
+  background: var(--dark-border);
+  border-radius: 3px;
+  margin: 0 auto 16px;
+}
+.mobile-mockup .m-header {
+  font-size: 0.75rem;
+  color: #FFF;
+  font-weight: 600;
+  margin-bottom: 12px;
+  text-align: center;
+}
+.mobile-mockup .m-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 10px;
+  margin-bottom: 12px;
+}
+.mobile-mockup .m-item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+}
+.mobile-mockup .m-ic {
+  width: 32px;
+  height: 32px;
+  background: rgba(22, 119, 255, 0.2);
+  border-radius: 8px;
+}
+.mobile-mockup .m-it {
+  font-size: 0.6rem;
+  color: var(--dark-text-muted);
+}
+.mobile-mockup .m-list {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+.mobile-mockup .m-li {
+  background: rgba(255,255,255,0.03);
+  border-radius: 6px;
+  padding: 8px;
+  font-size: 0.65rem;
+  color: var(--dark-text-secondary);
+}
+
+/* Store terminal mockup */
+.store-mockup {
+  width: 100%;
+  height: 100%;
+  display: grid;
+  grid-template-columns: 2fr 1fr;
+  gap: 12px;
+}
+.store-left {
+  background: rgba(0,0,0,0.2);
+  border-radius: var(--radius-sm);
+  padding: 12px;
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 8px;
+  align-content: start;
+}
+.store-item {
+  background: rgba(255,255,255,0.03);
+  border-radius: 6px;
+  padding: 10px;
+  text-align: center;
+  font-size: 0.7rem;
+  color: var(--dark-text-secondary);
+}
+.store-item .si-p {
+  color: var(--color-primary);
+  font-weight: 600;
+  margin-top: 4px;
+}
+.store-right {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+.store-cart {
+  flex: 1;
+  background: rgba(0,0,0,0.2);
+  border-radius: var(--radius-sm);
+  padding: 12px;
+  font-size: 0.7rem;
+  color: var(--dark-text-muted);
+}
+.store-total {
+  background: rgba(22, 119, 255, 0.2);
+  border-radius: var(--radius-sm);
+  padding: 12px;
+  text-align: center;
+}
+.store-total .st-num {
+  font-size: 1rem;
+  font-weight: 700;
+  color: #FFF;
+}
+.store-total .st-label {
+  font-size: 0.65rem;
+  color: var(--dark-text-muted);
+}
+
+/* Miniapp mockup */
+.miniapp-mockup {
+  width: 220px;
+  height: 380px;
+  background: #F8FAFC;
+  border-radius: 28px;
+  padding: 12px;
+  margin: 0 auto;
+  border: 2px solid var(--dark-border);
+}
+.miniapp-mockup .ma-top {
+  height: 20px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  margin-bottom: 8px;
+}
+.miniapp-mockup .ma-dot {
+  width: 5px;
+  height: 5px;
+  border-radius: 50%;
+  background: var(--gray-400);
+}
+.miniapp-mockup .ma-capsule {
+  width: 70px;
+  height: 24px;
+  border: 1px solid var(--gray-200);
+  border-radius: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+}
+.miniapp-mockup .ma-capsule span {
+  width: 14px;
+  height: 14px;
+  border-radius: 50%;
+  background: var(--gray-200);
+}
+.miniapp-mockup .ma-banner {
+  height: 60px;
+  background: linear-gradient(135deg, var(--color-primary), var(--color-primary-active));
+  border-radius: 10px;
+  margin-bottom: 10px;
+}
+.miniapp-mockup .ma-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 8px;
+  margin-bottom: 10px;
+}
+.miniapp-mockup .ma-gi {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+}
+.miniapp-mockup .ma-gic {
+  width: 28px;
+  height: 28px;
+  background: var(--color-primary-soft);
+  border-radius: 8px;
+}
+.miniapp-mockup .ma-gt {
+  font-size: 0.55rem;
+  color: var(--text-secondary);
+}
+.miniapp-mockup .ma-product {
+  background: #FFF;
+  border: 1px solid var(--gray-100);
+  border-radius: 8px;
+  padding: 8px;
+  margin-bottom: 6px;
+  display: flex;
+  gap: 8px;
+}
+.miniapp-mockup .ma-pimg {
+  width: 40px;
+  height: 40px;
+  background: var(--gray-100);
+  border-radius: 6px;
+}
+.miniapp-mockup .ma-pinfo {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+}
+.miniapp-mockup .ma-pname {
+  font-size: 0.6rem;
+  color: var(--text-primary);
+}
+.miniapp-mockup .ma-pprice {
+  font-size: 0.65rem;
+  color: var(--color-primary);
+  font-weight: 600;
+}
+.miniapp-mockup .ma-tabbar {
+  display: flex;
+  justify-content: space-around;
+  padding-top: 8px;
+  border-top: 1px solid var(--gray-100);
+  margin-top: auto;
+}
+.miniapp-mockup .ma-tab {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+  font-size: 0.55rem;
+  color: var(--gray-400);
+}
+.miniapp-mockup .ma-tab.active { color: var(--color-primary); }
+.miniapp-mockup .ma-tab .ti {
+  width: 18px;
+  height: 18px;
+  border-radius: 4px;
+  background: currentColor;
+  opacity: 0.5;
+}
+
+/* ==================== Scenarios ==================== */
+.scenarios-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 32px;
+}
+.scenario-card {
+  background: #FFFFFF;
+  border: 1px solid var(--border-normal);
+  border-radius: var(--radius-lg);
+  overflow: hidden;
+  transition: all var(--transition-normal);
+  cursor: pointer;
+}
+.scenario-card:hover {
+  transform: translateY(-8px);
+  box-shadow: var(--shadow-xl);
+  border-color: var(--color-primary);
+}
+.scenario-illustration {
+  height: 180px;
+  background: linear-gradient(135deg, var(--color-primary-soft), var(--color-primary-bg));
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 3.5rem;
+  position: relative;
+  overflow: hidden;
+}
+.scenario-illustration::before {
+  content: '';
+  position: absolute;
+  top: -50%;
+  right: -50%;
+  width: 200px;
+  height: 200px;
+  background: radial-gradient(circle, rgba(22,119,255,0.1) 0%, transparent 70%);
+  border-radius: 50%;
+}
+.scenario-content {
+  padding: 28px;
+}
+.scenario-content h3 {
+  font-size: 1.25rem;
+  font-weight: 600;
+  margin-bottom: 10px;
+  color: var(--text-primary);
+}
+.scenario-content p {
+  font-size: 0.9rem;
+  color: var(--text-secondary);
+  line-height: 1.7;
+  margin-bottom: 16px;
+}
+.scenario-features {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-bottom: 20px;
+}
+.scenario-features li {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 0.85rem;
+  color: var(--text-secondary);
+}
+.scenario-features li::before {
+  content: '';
+  width: 16px;
+  height: 16px;
+  background: var(--color-primary-soft);
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='10' viewBox='0 0 24 24' fill='none' stroke='%231677FF' stroke-width='3' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='20 6 9 17 4 12'%3E%3C/polyline%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: center;
+}
+.scenario-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  color: var(--color-primary);
+  font-size: 0.9rem;
+  font-weight: 500;
+  transition: gap var(--transition-fast);
+}
+.scenario-card:hover .scenario-link {
+  gap: 10px;
+}
+
+/* ==================== Multi-device ==================== */
+.devices-wrapper {
+  text-align: center;
+}
+.devices-row {
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+  gap: 32px;
+  margin-bottom: 48px;
+  flex-wrap: wrap;
+}
+.device-item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 16px;
+  cursor: pointer;
+  transition: transform var(--transition-normal);
+}
+.device-item:hover {
+  transform: translateY(-8px);
+}
+.device-icon {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all var(--transition-normal);
+}
+.device-item:hover .device-icon {
+  filter: drop-shadow(0 0 20px rgba(22, 119, 255, 0.5));
+}
+.device-pc {
+  width: 120px;
+  height: 90px;
+  background: var(--dark-bg-card);
+  border: 2px solid var(--dark-border);
+  border-radius: 8px 8px 0 0;
+  position: relative;
+}
+.device-pc::after {
+  content: '';
+  position: absolute;
+  bottom: -20px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 60px;
+  height: 12px;
+  background: var(--dark-border);
+  border-radius: 0 0 6px 6px;
+}
+.device-pc::before {
+  content: '';
+  position: absolute;
+  bottom: -30px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 80px;
+  height: 6px;
+  background: var(--dark-border);
+  border-radius: 3px;
+}
+.device-mobile {
+  width: 50px;
+  height: 95px;
+  background: var(--dark-bg-card);
+  border: 2px solid var(--dark-border);
+  border-radius: 10px;
+  position: relative;
+}
+.device-mobile::after {
+  content: '';
+  position: absolute;
+  top: 6px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 20px;
+  height: 3px;
+  background: var(--dark-border);
+  border-radius: 2px;
+}
+.device-tablet {
+  width: 80px;
+  height: 105px;
+  background: var(--dark-bg-card);
+  border: 2px solid var(--dark-border);
+  border-radius: 10px;
+  position: relative;
+}
+.device-tablet::after {
+  content: '';
+  position: absolute;
+  top: 50%;
+  right: 4px;
+  transform: translateY(-50%);
+  width: 4px;
+  height: 12px;
+  background: var(--dark-border);
+  border-radius: 2px;
+}
+.device-terminal {
+  width: 100px;
+  height: 110px;
+  background: var(--dark-bg-card);
+  border: 2px solid var(--dark-border);
+  border-radius: 8px;
+  position: relative;
+}
+.device-terminal::after {
+  content: '';
+  position: absolute;
+  bottom: 8px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 50px;
+  height: 20px;
+  background: var(--dark-border);
+  border-radius: 4px;
+}
+.device-qr {
+  width: 85px;
+  height: 85px;
+  background: #FFF;
+  border: 2px solid var(--dark-border);
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.6rem;
+  color: var(--text-muted);
+}
+.device-name {
+  font-size: 0.9rem;
+  color: #FFF;
+  font-weight: 500;
+}
+.device-desc {
+  font-size: 0.75rem;
+  color: var(--dark-text-muted);
+}
+.download-links {
+  display: flex;
+  justify-content: center;
+  gap: 16px;
+  flex-wrap: wrap;
+}
+.download-links .btn { min-width: 160px; }
+
+/* ==================== Stats / Social Proof ==================== */
+.stats-row {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 48px;
+  margin-bottom: 80px;
+  text-align: center;
+}
+.stat-item .stat-num {
+  font-size: 3rem;
+  font-weight: 800;
+  background: linear-gradient(135deg, var(--color-primary), var(--color-primary-active));
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  line-height: 1;
+  margin-bottom: 10px;
+}
+.stat-item .stat-label {
+  font-size: 0.95rem;
+  color: var(--text-secondary);
+  font-weight: 500;
+}
+.testimonials {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 24px;
+}
+.testimonial-card {
+  background: #FFFFFF;
+  border: 1px solid var(--border-normal);
+  border-radius: var(--radius-md);
+  padding: 28px;
+  transition: all var(--transition-normal);
+}
+.testimonial-card:hover {
+  transform: translateY(-4px);
+  box-shadow: var(--shadow-lg);
+}
+.testimonial-quote {
+  font-size: 2rem;
+  color: var(--color-primary);
+  line-height: 1;
+  margin-bottom: 12px;
+  opacity: 0.3;
+}
+.testimonial-text {
+  font-size: 0.92rem;
+  color: var(--text-secondary);
+  line-height: 1.8;
+  margin-bottom: 20px;
+  min-height: 100px;
+}
+.testimonial-author {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding-top: 16px;
+  border-top: 1px solid var(--border-light);
+}
+.testimonial-avatar {
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, var(--color-primary), var(--color-primary-active));
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #FFF;
+  font-weight: 600;
+  font-size: 0.95rem;
+}
+.testimonial-info .name {
+  font-size: 0.9rem;
+  font-weight: 600;
+  color: var(--text-primary);
+}
+.testimonial-info .role {
+  font-size: 0.78rem;
+  color: var(--text-muted);
+  margin-top: 2px;
+}
+
+/* ==================== CTA Section ==================== */
+.cta-section {
+  background: linear-gradient(135deg, var(--color-primary) 0%, var(--color-primary-active) 100%);
+  position: relative;
+  overflow: hidden;
+}
+.cta-section::before {
+  content: '';
+  position: absolute;
+  top: -100px;
+  right: -100px;
+  width: 400px;
+  height: 400px;
+  background: radial-gradient(circle, rgba(255,255,255,0.1) 0%, transparent 70%);
+  border-radius: 50%;
+}
+.cta-section::after {
+  content: '';
+  position: absolute;
+  bottom: -150px;
+  left: -100px;
+  width: 500px;
+  height: 500px;
+  background: radial-gradient(circle, rgba(255,255,255,0.08) 0%, transparent 70%);
+  border-radius: 50%;
+}
+.cta-content {
+  position: relative;
+  z-index: 2;
+  text-align: center;
+  max-width: 700px;
+  margin: 0 auto;
+}
+.cta-content h2 {
+  font-size: 2.5rem;
+  font-weight: 700;
+  color: #FFFFFF;
+  margin-bottom: 16px;
+  letter-spacing: -0.01em;
+}
+.cta-content p {
+  font-size: 1.05rem;
+  color: rgba(255,255,255,0.85);
+  margin-bottom: 32px;
+  line-height: 1.8;
+}
+.cta-btns {
+  display: flex;
+  gap: 16px;
+  justify-content: center;
+  margin-bottom: 20px;
+  flex-wrap: wrap;
+}
+.cta-note {
+  font-size: 0.85rem;
+  color: rgba(255,255,255,0.6);
+}
+
+/* ==================== Footer ==================== */
+.footer {
+  background: var(--dark-bg);
+  color: var(--dark-text-secondary);
+  padding: 64px 0 0;
+  border-top: 1px solid var(--dark-border);
+}
+.footer-grid {
+  display: grid;
+  grid-template-columns: 2fr 1fr 1fr 1fr 1fr;
+  gap: 48px;
+  margin-bottom: 48px;
+}
+.footer-brand .logo {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-size: 1.2rem;
+  font-weight: 700;
+  color: #FFFFFF;
+  margin-bottom: 16px;
+}
+.footer-brand .logo .logo-icon {
+  width: 36px;
+  height: 36px;
+  background: linear-gradient(135deg, var(--color-primary), var(--color-primary-active));
+  border-radius: var(--radius-sm);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 800;
+  font-size: 0.85rem;
+  color: #FFF;
+}
+.footer-brand p {
+  font-size: 0.88rem;
+  line-height: 1.8;
+  color: var(--dark-text-muted);
+  margin-bottom: 20px;
+  max-width: 300px;
+}
+.footer-social {
+  display: flex;
+  gap: 12px;
+}
+.footer-social a {
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  background: rgba(255,255,255,0.05);
+  border: 1px solid var(--dark-border);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.8rem;
+  color: var(--dark-text-secondary);
+  transition: all var(--transition-fast);
+}
+.footer-social a:hover {
+  background: var(--color-primary);
+  border-color: var(--color-primary);
+  color: #FFF;
+}
+.footer-col h4 {
+  font-size: 0.95rem;
+  font-weight: 600;
+  color: #FFFFFF;
+  margin-bottom: 20px;
+}
+.footer-col ul {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+.footer-col ul li a {
+  font-size: 0.85rem;
+  color: var(--dark-text-muted);
+  transition: color var(--transition-fast);
+}
+.footer-col ul li a:hover {
+  color: var(--color-primary);
+}
+.footer-bottom {
+  border-top: 1px solid var(--dark-border);
+  padding: 24px 0;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: 0.8rem;
+  color: var(--dark-text-muted);
+  flex-wrap: wrap;
+  gap: 12px;
+}
+.footer-bottom a:hover { color: var(--color-primary); }
+
+/* ==================== Responsive ==================== */
+@media (max-width: 1024px) {
+  .hero-content { grid-template-columns: 1fr; gap: 40px; text-align: center; }
+  .hero-text .subtitle { margin-left: auto; margin-right: auto; }
+  .hero-btns { justify-content: center; }
+  .hero-stats { justify-items: center; }
+  .hero-mockup { max-width: 500px; margin: 0 auto; }
+  .features-grid { grid-template-columns: repeat(3, 1fr); }
+  .demo-wrapper { grid-template-columns: 1fr; }
+  .demo-tabs { flex-direction: row; flex-wrap: wrap; }
+  .demo-tab { flex: 1; min-width: 120px; text-align: center; }
+  .scenarios-grid { grid-template-columns: repeat(2, 1fr); }
+  .stats-row { grid-template-columns: repeat(2, 1fr); gap: 32px; }
+  .testimonials { grid-template-columns: 1fr; }
+  .footer-grid { grid-template-columns: 1fr 1fr 1fr; }
+  .footer-brand { grid-column: 1 / -1; }
+}
+@media (max-width: 768px) {
+  .container { padding: 0 20px; }
+  .section { padding: 64px 0; }
+  .section-title { font-size: 1.8rem; }
+  .nav-menu { display: none; }
+  .nav-actions .login-link { display: none; }
+  .nav-toggle { display: flex; }
+  .hero { min-height: auto; padding: 100px 0 60px; }
+  .hero-text h1 { font-size: 2rem; }
+  .hero-text .subtitle { font-size: 0.95rem; }
+  .hero-stats { grid-template-columns: repeat(2, 1fr); gap: 20px; }
+  .hero-stat .num { font-size: 1.4rem; }
+  .hero-btns { flex-direction: column; align-items: center; }
+  .hero-btns .btn { width: 100%; max-width: 280px; }
+  .features-grid { grid-template-columns: repeat(2, 1fr); gap: 16px; }
+  .feature-card { padding: 24px 20px; }
+  .feature-icon { width: 48px; height: 48px; font-size: 1.2rem; }
+  .scenarios-grid { grid-template-columns: 1fr; }
+  .devices-row { gap: 20px; }
+  .stats-row { grid-template-columns: repeat(2, 1fr); gap: 24px; }
+  .stat-item .stat-num { font-size: 2rem; }
+  .cta-content h2 { font-size: 1.8rem; }
+  .cta-btns { flex-direction: column; align-items: center; }
+  .cta-btns .btn { width: 100%; max-width: 280px; }
+  .footer-grid { grid-template-columns: 1fr 1fr; gap: 32px; }
+  .footer-brand { grid-column: 1 / -1; }
+  .footer-bottom { flex-direction: column; text-align: center; }
+  .dash-mockup { grid-template-columns: 1fr; }
+  .dash-sidebar { display: none; }
+}
+@media (max-width: 480px) {
+  .features-grid { grid-template-columns: 1fr; }
+  .hero-stats { grid-template-columns: 1fr; }
+  .stats-row { grid-template-columns: 1fr; }
+  .demo-tab { min-width: auto; font-size: 0.8rem; padding: 12px; }
+  .footer-grid { grid-template-columns: 1fr; }
+}
+</style>
+</head>
+<body>
+
+<!-- ========== Header / Navigation ========== -->
+<header class="header" id="header">
+  <div class="container">
+    <nav class="nav">
+      <a href="#" class="nav-logo">
+        <span class="logo-icon">智</span>
+        <span>智享全链</span>
+      </a>
+      <div class="nav-menu" id="navMenu">
+        <a href="#hero" class="active">首页</a>
+        <a href="#features">产品功能</a>
+        <a href="#demo">产品演示</a>
+        <a href="#scenarios">解决方案</a>
+        <a href="#devices">下载中心</a>
+        <a href="#stats">客户案例</a>
+        <a href="#about">关于我们</a>
+      </div>
+      <div class="nav-actions">
+        <a href="https://admin.onepan.cn" class="login-link">登录</a>
+        <a href="#cta" class="btn btn-primary">免费试用</a>
+      </div>
+      <div class="nav-toggle" id="navToggle" aria-label="菜单">
+        <span></span><span></span><span></span>
+      </div>
+    </nav>
+  </div>
+</header>
+
+<!-- Mobile Menu -->
+<div class="mobile-menu" id="mobileMenu">
+  <a href="#hero" class="mobile-link">首页</a>
+  <a href="#features" class="mobile-link">产品功能</a>
+  <a href="#demo" class="mobile-link">产品演示</a>
+  <a href="#scenarios" class="mobile-link">解决方案</a>
+  <a href="#devices" class="mobile-link">下载中心</a>
+  <a href="#stats" class="mobile-link">客户案例</a>
+  <a href="#about" class="mobile-link">关于我们</a>
+  <a href="https://admin.onepan.cn" class="mobile-link" style="margin-top:16px;color:var(--color-primary);">登录后台</a>
+  <a href="#cta" class="btn btn-primary" style="margin-top:16px;text-align:center;">免费试用</a>
+</div>
+
+<!-- ========== Hero Section ========== -->
+<section class="hero" id="hero">
+  <div class="hero-glow"></div>
+  <div class="hero-glow-2"></div>
+  <div class="hero-particles"><canvas id="particlesCanvas"></canvas></div>
+  <div class="container">
+    <div class="hero-content">
+      <div class="hero-text fade-up">
+        <div class="badge">
+          <span class="dot"></span>
+          <span>onepan.cn 智享全链 · 酒水行业首选</span>
+        </div>
+        <h1>酒水行业<br><span class="highlight">数字化管理专家</span></h1>
+        <p class="subtitle">覆盖采购、库存、销售、财务、营销全链路，助力酒水企业实现数字化转型，提升经营效率，降低运营成本。</p>
+        <div class="hero-btns">
+          <a href="#cta" class="btn btn-primary btn-lg">免费试用 30 天</a>
+          <a href="#demo" class="btn btn-outline btn-lg">预约演示</a>
+        </div>
+        <div class="hero-stats">
+          <div class="hero-stat">
+            <div class="num" data-count="500">0</div>
+            <div class="label">服务商家</div>
+          </div>
+          <div class="hero-stat">
+            <div class="num" data-count="50000">0</div>
+            <div class="label">管理SKU</div>
+          </div>
+          <div class="hero-stat">
+            <div class="num" data-count="10000">0</div>
+            <div class="label">日处理订单</div>
+          </div>
+          <div class="hero-stat">
+            <div class="num" data-count="99.9" data-suffix="%">0</div>
+            <div class="label">系统稳定性</div>
+          </div>
+        </div>
+      </div>
+      <div class="hero-mockup fade-up delay-2">
+        <div class="mockup-card">
+          <div class="mockup-header">
+            <span class="mockup-dot"></span>
+            <span class="mockup-dot"></span>
+            <span class="mockup-dot"></span>
+            <span class="mockup-title">智享全链 · 管理后台</span>
+          </div>
+          <div class="mockup-body">
+            <div class="mockup-widget">
+              <div class="w-num">1,286</div>
+              <div class="w-label">今日销售</div>
+              <div class="w-trend">↑ 12.5%</div>
+            </div>
+            <div class="mockup-widget">
+              <div class="w-num">528</div>
+              <div class="w-label">库存预警</div>
+              <div class="w-trend" style="color:var(--color-warning);">↑ 8.3%</div>
+            </div>
+            <div class="mockup-widget">
+              <div class="w-num">32</div>
+              <div class="w-label">待处理订单</div>
+              <div class="w-trend">↓ 5.2%</div>
+            </div>
+          </div>
+          <div class="mockup-chart">
+            <div class="chart-bar"></div>
+            <div class="chart-bar"></div>
+            <div class="chart-bar"></div>
+            <div class="chart-bar"></div>
+            <div class="chart-bar"></div>
+            <div class="chart-bar"></div>
+            <div class="chart-bar"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ========== Features Section ========== -->
+<section class="section section-light" id="features">
+  <div class="container">
+    <div class="section-head fade-up">
+      <span class="section-tag">核心功能</span>
+      <h2 class="section-title">一站式覆盖经营全场景</h2>
+      <p class="section-desc">8大核心功能模块，从采购到销售，从库存到财务，全方位满足酒水企业数字化管理需求</p>
+    </div>
+    <div class="features-grid">
+      <div class="feature-card fade-up delay-1">
+        <div class="feature-icon">📦</div>
+        <h3>库存管理</h3>
+        <p>智能库存预警、批次效期管理、全程溯源追踪，让库存清晰可控</p>
+        <div class="feature-tags">
+          <span>智能预警</span><span>效期管理</span><span>批次追溯</span>
+        </div>
+      </div>
+      <div class="feature-card fade-up delay-2">
+        <div class="feature-icon">🏪</div>
+        <h3>多门店管控</h3>
+        <p>多门店数据隔离、智能调拨、实时监控，统一管理轻松高效</p>
+        <div class="feature-tags">
+          <span>数据隔离</span><span>智能调拨</span><span>实时监控</span>
+        </div>
+      </div>
+      <div class="feature-card fade-up delay-3">
+        <div class="feature-icon">🚚</div>
+        <h3>采购供应链</h3>
+        <p>供应商管理、智能采购计划、多方比价，优化采购成本</p>
+        <div class="feature-tags">
+          <span>供应商管理</span><span>智能计划</span><span>多方比价</span>
+        </div>
+      </div>
+      <div class="feature-card fade-up delay-4">
+        <div class="feature-icon">💰</div>
+        <h3>销售全链路</h3>
+        <p>快速开单、客户档案、会员营销，提升销售效率和客户粘性</p>
+        <div class="feature-tags">
+          <span>快速开单</span><span>客户管理</span><span>会员营销</span>
+        </div>
+      </div>
+      <div class="feature-card fade-up delay-5">
+        <div class="feature-icon">📊</div>
+        <h3>数据看板</h3>
+        <p>实时数据大屏、多维度报表、智能分析，助力科学决策</p>
+        <div class="feature-tags">
+          <span>数据大屏</span><span>多维度报表</span><span>智能分析</span>
+        </div>
+      </div>
+      <div class="feature-card fade-up delay-6">
+        <div class="feature-icon">📱</div>
+        <h3>小程序商城</h3>
+        <p>线上下单、零售营销、会员体系，打造私域流量增长引擎</p>
+        <div class="feature-tags">
+          <span>线上下单</span><span>零售营销</span><span>会员体系</span>
+        </div>
+      </div>
+      <div class="feature-card fade-up delay-7">
+        <div class="feature-icon">👥</div>
+        <h3>客户管理</h3>
+        <p>客户档案、授信管理、价格体系，精细化客户运营</p>
+        <div class="feature-tags">
+          <span>客户档案</span><span>授信管理</span><span>价格体系</span>
+        </div>
+      </div>
+      <div class="feature-card fade-up delay-8">
+        <div class="feature-icon">💳</div>
+        <h3>财务管理</h3>
+        <p>应收账款、资金流水、自动核销，财务工作更轻松</p>
+        <div class="feature-tags">
+          <span>应收账款</span><span>资金流水</span><span>自动核销</span>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ========== Demo Section ========== -->
+<section class="section section-dark" id="demo">
+  <div class="container">
+    <div class="section-head fade-up">
+      <span class="section-tag">产品演示</span>
+      <h2 class="section-title">看产品长什么样</h2>
+      <p class="section-desc">多端协同，数据互通，随时随地管理你的生意</p>
+    </div>
+    <div class="demo-wrapper fade-up delay-1">
+      <div class="demo-tabs" id="demoTabs">
+        <button class="demo-tab active" data-tab="dashboard">管理后台</button>
+        <button class="demo-tab" data-tab="mobile">移动端APP</button>
+        <button class="demo-tab" data-tab="store">门店终端</button>
+        <button class="demo-tab" data-tab="miniapp">小程序商城</button>
+      </div>
+      <div class="demo-display">
+        <div class="demo-slides" id="demoSlides">
+          <div class="demo-slide active" data-slide="dashboard">
+            <div class="slide-title">管理后台 · 数据总览</div>
+            <div class="dash-mockup">
+              <div class="dash-sidebar">
+                <div class="dash-sidebar-item active"><span class="ico"></span>工作台</div>
+                <div class="dash-sidebar-item"><span class="ico"></span>库存管理</div>
+                <div class="dash-sidebar-item"><span class="ico"></span>采购管理</div>
+                <div class="dash-sidebar-item"><span class="ico"></span>销售管理</div>
+                <div class="dash-sidebar-item"><span class="ico"></span>客户管理</div>
+                <div class="dash-sidebar-item"><span class="ico"></span>财务管理</div>
+                <div class="dash-sidebar-item"><span class="ico"></span>数据报表</div>
+                <div class="dash-sidebar-item"><span class="ico"></span>系统设置</div>
+              </div>
+              <div class="dash-main">
+                <div class="dash-cards">
+                  <div class="dash-card"><div class="dn">¥128.6K</div><div class="dl">今日销售</div></div>
+                  <div class="dash-card"><div class="dn">528</div><div class="dl">库存预警</div></div>
+                  <div class="dash-card"><div class="dn">32</div><div class="dl">待处理订单</div></div>
+                  <div class="dash-card"><div class="dn">98.5%</div><div class="dl">履约率</div></div>
+                </div>
+                <div class="dash-chart-area">
+                  <div style="flex:1;background:linear-gradient(to top,rgba(22,119,255,0.3),transparent);border-radius:4px 4px 0 0;height:40%;"></div>
+                  <div style="flex:1;background:linear-gradient(to top,rgba(22,119,255,0.5),transparent);border-radius:4px 4px 0 0;height:65%;"></div>
+                  <div style="flex:1;background:linear-gradient(to top,rgba(22,119,255,0.4),transparent);border-radius:4px 4px 0 0;height:50%;"></div>
+                  <div style="flex:1;background:linear-gradient(to top,rgba(22,119,255,0.6),transparent);border-radius:4px 4px 0 0;height:80%;"></div>
+                  <div style="flex:1;background:linear-gradient(to top,rgba(22,119,255,0.45),transparent);border-radius:4px 4px 0 0;height:60%;"></div>
+                  <div style="flex:1;background:linear-gradient(to top,rgba(22,119,255,0.7),transparent);border-radius:4px 4px 0 0;height:90%;"></div>
+                  <div style="flex:1;background:linear-gradient(to top,rgba(22,119,255,0.55),transparent);border-radius:4px 4px 0 0;height:75%;"></div>
+                </div>
+              </div>
+            </div>
+          </div>
+          <div class="demo-slide" data-slide="mobile">
+            <div class="slide-title">移动端 · 随时管理</div>
+            <div style="height:320px;display:flex;align-items:center;justify-content:center;">
+              <div class="mobile-mockup">
+                <div class="m-notch"></div>
+                <div class="m-header">工作台</div>
+                <div class="m-grid">
+                  <div class="m-item"><div class="m-ic"></div><div class="m-it">库存</div></div>
+                  <div class="m-item"><div class="m-ic"></div><div class="m-it">采购</div></div>
+                  <div class="m-item"><div class="m-ic"></div><div class="m-it">销售</div></div>
+                  <div class="m-item"><div class="m-ic"></div><div class="m-it">客户</div></div>
+                  <div class="m-item"><div class="m-ic"></div><div class="m-it">财务</div></div>
+                  <div class="m-item"><div class="m-ic"></div><div class="m-it">报表</div></div>
+                  <div class="m-item"><div class="m-ic"></div><div class="m-it">审批</div></div>
+                  <div class="m-item"><div class="m-ic"></div><div class="m-it">消息</div></div>
+                </div>
+                <div class="m-list">
+                  <div class="m-li">📋 今日待办：5 项待处理</div>
+                  <div class="m-li">🔔 库存预警：3 个商品告急</div>
+                  <div class="m-li">📈 本周销售增长 12.5%</div>
+                </div>
+              </div>
+            </div>
+          </div>
+          <div class="demo-slide" data-slide="store">
+            <div class="slide-title">门店终端 · 快速收银</div>
+            <div style="height:320px;">
+              <div class="store-mockup">
+                <div class="store-left">
+                  <div class="store-item">飞天茅台<div class="si-p">¥1499</div></div>
+                  <div class="store-item">五粮液<div class="si-p">¥1099</div></div>
+                  <div class="store-item">国窖1573<div class="si-p">¥980</div></div>
+                  <div class="store-item">剑南春<div class="si-p">¥458</div></div>
+                  <div class="store-item">洋河梦之蓝<div class="si-p">¥688</div></div>
+                  <div class="store-item">汾酒青花<div class="si-p">¥598</div></div>
+                  <div class="store-item">古井贡酒<div class="si-p">¥388</div></div>
+                  <div class="store-item">水井坊<div class="si-p">¥528</div></div>
+                  <div class="store-item">郎酒青花<div class="si-p">¥1188</div></div>
+                </div>
+                <div class="store-right">
+                  <div class="store-cart">
+                    购物车（3件）<br><br>
+                    飞天茅台 x1 ¥1499<br>
+                    五粮液 x2 ¥2198<br>
+                    ----------------<br>
+                    合计：¥3697
+                  </div>
+                  <div class="store-total">
+                    <div class="st-num">¥3,697</div>
+                    <div class="st-label">点击结算</div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+          <div class="demo-slide" data-slide="miniapp">
+            <div class="slide-title">小程序商城 · 私域增长</div>
+            <div style="height:320px;display:flex;align-items:center;justify-content:center;">
+              <div class="miniapp-mockup">
+                <div class="ma-top">
+                  <div class="ma-dot"></div>
+                  <div class="ma-dot"></div>
+                  <div class="ma-dot"></div>
+                  <div class="ma-capsule"><span></span><span></span></div>
+                </div>
+                <div class="ma-banner"></div>
+                <div class="ma-grid">
+                  <div class="ma-gi"><div class="ma-gic"></div><div class="ma-gt">新品</div></div>
+                  <div class="ma-gi"><div class="ma-gic"></div><div class="ma-gt">爆款</div></div>
+                  <div class="ma-gi"><div class="ma-gic"></div><div class="ma-gt">优惠</div></div>
+                  <div class="ma-gi"><div class="ma-gic"></div><div class="ma-gt">会员</div></div>
+                </div>
+                <div class="ma-product">
+                  <div class="ma-pimg"></div>
+                  <div class="ma-pinfo">
+                    <div class="ma-pname">飞天茅台 53度 500ml</div>
+                    <div class="ma-pprice">¥1499</div>
+                  </div>
+                </div>
+                <div class="ma-product">
+                  <div class="ma-pimg"></div>
+                  <div class="ma-pinfo">
+                    <div class="ma-pname">五粮液 普五 52度</div>
+                    <div class="ma-pprice">¥1099</div>
+                  </div>
+                </div>
+                <div class="ma-tabbar">
+                  <div class="ma-tab active"><div class="ti"></div>首页</div>
+                  <div class="ma-tab"><div class="ti"></div>分类</div>
+                  <div class="ma-tab"><div class="ti"></div>购物车</div>
+                  <div class="ma-tab"><div class="ti"></div>我的</div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="demo-dots" id="demoDots">
+          <span class="demo-dot active" data-dot="dashboard"></span>
+          <span class="demo-dot" data-dot="mobile"></span>
+          <span class="demo-dot" data-dot="store"></span>
+          <span class="demo-dot" data-dot="miniapp"></span>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ========== Scenarios Section ========== -->
+<section class="section section-white" id="scenarios">
+  <div class="container">
+    <div class="section-head fade-up">
+      <span class="section-tag">行业方案</span>
+      <h2 class="section-title">为你的业务量身定制</h2>
+      <p class="section-desc">针对酒水行业不同规模、不同业态的企业，提供专属数字化解决方案</p>
+    </div>
+    <div class="scenarios-grid">
+      <div class="scenario-card fade-up delay-1">
+        <div class="scenario-illustration">🏪</div>
+        <div class="scenario-content">
+          <h3>单店酒行</h3>
+          <p>适合单体烟酒门店，聚焦进销存管理和会员营销，快速上手，轻松经营。</p>
+          <ul class="scenario-features">
+            <li>快速开单收银，提升门店效率</li>
+            <li>库存效期管理，避免过期损失</li>
+            <li>会员积分营销，提升客户复购</li>
+            <li>移动端随时查看经营数据</li>
+          </ul>
+          <a href="#cta" class="scenario-link">了解更多 →</a>
+        </div>
+      </div>
+      <div class="scenario-card fade-up delay-2">
+        <div class="scenario-illustration">🏬</div>
+        <div class="scenario-content">
+          <h3>连锁酒业</h3>
+          <p>适合多门店连锁企业，统一管控、智能调拨、数据汇总，规模化经营更轻松。</p>
+          <ul class="scenario-features">
+            <li>多门店数据隔离与统一管理</li>
+            <li>智能库存调拨，优化库存结构</li>
+            <li>统一价格体系，规范门店经营</li>
+            <li>总部数据看板，全局掌控</li>
+          </ul>
+          <a href="#cta" class="scenario-link">了解更多 →</a>
+        </div>
+      </div>
+      <div class="scenario-card fade-up delay-3">
+        <div class="scenario-illustration">🏭</div>
+        <div class="scenario-content">
+          <h3>批发经销商</h3>
+          <p>适合酒水批发/经销商企业，客户管理、订单配送、财务对账，全链路数字化。</p>
+          <ul class="scenario-features">
+            <li>客户分级管理，差异化价格</li>
+            <li>授信额度管控，降低坏账风险</li>
+            <li>订单配送跟踪，提升服务体验</li>
+            <li>自动对账核销，财务更轻松</li>
+          </ul>
+          <a href="#cta" class="scenario-link">了解更多 →</a>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ========== Multi-device Section ========== -->
+<section class="section section-dark" id="devices">
+  <div class="container">
+    <div class="section-head fade-up">
+      <span class="section-tag">多端覆盖</span>
+      <h2 class="section-title">随时随地管理生意</h2>
+      <p class="section-desc">Web端、移动端、门店终端、小程序多端协同，数据实时同步</p>
+    </div>
+    <div class="devices-wrapper fade-up delay-1">
+      <div class="devices-row">
+        <div class="device-item">
+          <div class="device-icon"><div class="device-pc"></div></div>
+          <div class="device-name">Web 管理后台</div>
+          <div class="device-desc">全面功能，数据总览</div>
+        </div>
+        <div class="device-item">
+          <div class="device-icon"><div class="device-mobile"></div></div>
+          <div class="device-name">移动端 APP</div>
+          <div class="device-desc">移动办公，随时管理</div>
+        </div>
+        <div class="device-item">
+          <div class="device-icon"><div class="device-tablet"></div></div>
+          <div class="device-name">平板 HD 版</div>
+          <div class="device-desc">大屏体验，高效操作</div>
+        </div>
+        <div class="device-item">
+          <div class="device-icon"><div class="device-terminal"></div></div>
+          <div class="device-name">门店收银终端</div>
+          <div class="device-desc">快速开单，便捷收银</div>
+        </div>
+        <div class="device-item">
+          <div class="device-icon"><div class="device-qr">扫码<br>体验</div></div>
+          <div class="device-name">小程序商城</div>
+          <div class="device-desc">私域流量，线上营销</div>
+        </div>
+      </div>
+      <div class="download-links">
+        <a href="#cta" class="btn btn-white btn-lg">立即免费试用</a>
+        <a href="#demo" class="btn btn-outline btn-lg">查看产品演示</a>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ========== Stats / Social Proof Section ========== -->
+<section class="section section-light" id="stats">
+  <div class="container">
+    <div class="section-head fade-up">
+      <span class="section-tag">客户信赖</span>
+      <h2 class="section-title">值得信赖的数字</h2>
+      <p class="section-desc">500+ 酒水企业的共同选择，用数据见证实力</p>
+    </div>
+    <div class="stats-row fade-up delay-1">
+      <div class="stat-item">
+        <div class="stat-num" data-count="500" data-suffix="+">0</div>
+        <div class="stat-label">服务商家</div>
+      </div>
+      <div class="stat-item">
+        <div class="stat-num" data-count="50000" data-suffix="+">0</div>
+        <div class="stat-label">管理 SKU 数</div>
+      </div>
+      <div class="stat-item">
+        <div class="stat-num" data-count="10000" data-suffix="+">0</div>
+        <div class="stat-label">日处理订单</div>
+      </div>
+      <div class="stat-item">
+        <div class="stat-num" data-count="365" data-suffix="+">0</div>
+        <div class="stat-label">稳定运行天数</div>
+      </div>
+    </div>
+    <div class="testimonials">
+      <div class="testimonial-card fade-up delay-2">
+        <div class="testimonial-quote">"</div>
+        <p class="testimonial-text">使用智享全链后，我们的库存管理效率提升了60%，过期损耗降低了80%，数据报表功能让决策更科学。强烈推荐给同行！</p>
+        <div class="testimonial-author">
+          <div class="testimonial-avatar">张</div>
+          <div class="testimonial-info">
+            <div class="name">张总</div>
+            <div class="role">某连锁酒企 · 总经理</div>
+          </div>
+        </div>
+      </div>
+      <div class="testimonial-card fade-up delay-3">
+        <div class="testimonial-quote">"</div>
+        <p class="testimonial-text">从单店到5家连锁，智享全链一直陪伴我们成长。多门店管控和智能调拨功能太实用了，总部管理非常轻松。</p>
+        <div class="testimonial-author">
+          <div class="testimonial-avatar">李</div>
+          <div class="testimonial-info">
+            <div class="name">李总</div>
+            <div class="role">某酒业连锁 · 运营总监</div>
+          </div>
+        </div>
+      </div>
+      <div class="testimonial-card fade-up delay-4">
+        <div class="testimonial-quote">"</div>
+        <p class="testimonial-text">客户管理和财务对账功能解决了我们的大难题，以前对账要花一周，现在几小时搞定。小程序商城也带来了新的增长。</p>
+        <div class="testimonial-author">
+          <div class="testimonial-avatar">王</div>
+          <div class="testimonial-info">
+            <div class="name">王总</div>
+            <div class="role">某批发企业 · 财务总监</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ========== CTA Section ========== -->
+<section class="section cta-section" id="cta">
+  <div class="container">
+    <div class="cta-content fade-up">
+      <h2>免费试用 30 天，开启酒水数字化经营</h2>
+      <p>无需信用卡，随时可取消，专业团队在线支持，助你快速上手</p>
+      <div class="cta-btns">
+        <a href="https://admin.onepan.cn" class="btn btn-white btn-lg">立即免费试用</a>
+        <a href="#demo" class="btn btn-outline btn-lg">预约产品演示</a>
+      </div>
+      <div class="cta-note">已有 500+ 酒水企业信赖 · 99.9% 系统稳定性 · 7x24 技术支持</div>
+    </div>
+  </div>
+</section>
+
+<!-- ========== Footer ========== -->
+<footer class="footer" id="about">
+  <div class="container">
+    <div class="footer-grid">
+      <div class="footer-brand">
+        <div class="logo">
+          <span class="logo-icon">智</span>
+          <span>智享全链</span>
+        </div>
+        <p>智享全链管理系统（onepan.cn）是酒水行业一站式数字化管理解决方案，致力于帮助酒水企业实现数字化转型。</p>
+        <div class="footer-social">
+          <a href="#" title="微信">微</a>
+          <a href="#" title="电话">☎</a>
+          <a href="#" title="邮箱">✉</a>
+        </div>
+      </div>
+      <div class="footer-col">
+        <h4>产品</h4>
+        <ul>
+          <li><a href="#features">库存管理</a></li>
+          <li><a href="#features">采购供应链</a></li>
+          <li><a href="#features">销售全链路</a></li>
+          <li><a href="#features">数据看板</a></li>
+          <li><a href="#features">小程序商城</a></li>
+          <li><a href="#features">财务管理</a></li>
+        </ul>
+      </div>
+      <div class="footer-col">
+        <h4>解决方案</h4>
+        <ul>
+          <li><a href="#scenarios">单店酒行方案</a></li>
+          <li><a href="#scenarios">连锁酒业方案</a></li>
+          <li><a href="#scenarios">批发经销方案</a></li>
+          <li><a href="#devices">多端协同</a></li>
+        </ul>
+      </div>
+      <div class="footer-col">
+        <h4>资源</h4>
+        <ul>
+          <li><a href="#">帮助文档</a></li>
+          <li><a href="#">API 接口</a></li>
+          <li><a href="#demo">产品演示</a></li>
+          <li><a href="#">更新日志</a></li>
+          <li><a href="#">常见问题</a></li>
+        </ul>
+      </div>
+      <div class="footer-col">
+        <h4>关于</h4>
+        <ul>
+          <li><a href="#about">公司介绍</a></li>
+          <li><a href="#stats">客户案例</a></li>
+          <li><a href="#">联系我们</a></li>
+          <li><a href="#">加入我们</a></li>
+          <li><a href="#">隐私政策</a></li>
+          <li><a href="#">服务条款</a></li>
+        </ul>
+      </div>
+    </div>
+    <div class="footer-bottom">
+      <div>&copy; 2026 onepan.cn 智享全链管理系统. All rights reserved.</div>
+      <div>
+        <a href="#">ICP备案号：京ICP备XXXXXXXX号</a>
+        &nbsp;|&nbsp;
+        <a href="#">京公网安备 XXXXXXXXXXXXXX号</a>
+      </div>
+    </div>
+  </div>
+</footer>
+
+<script>
+/* ==================== Header Scroll Effect ==================== */
+const header = document.getElementById('header');
+window.addEventListener('scroll', () => {
+  if (window.scrollY > 50) {
+    header.classList.add('scrolled');
+  } else {
+    header.classList.remove('scrolled');
+  }
+});
+
+/* ==================== Mobile Menu ==================== */
+const navToggle = document.getElementById('navToggle');
+const mobileMenu = document.getElementById('mobileMenu');
+const mobileLinks = document.querySelectorAll('.mobile-link');
+
+navToggle.addEventListener('click', () => {
+  navToggle.classList.toggle('active');
+  mobileMenu.classList.toggle('active');
+  document.body.style.overflow = mobileMenu.classList.contains('active') ? 'hidden' : '';
+});
+
+mobileLinks.forEach(link => {
+  link.addEventListener('click', () => {
+    navToggle.classList.remove('active');
+    mobileMenu.classList.remove('active');
+    document.body.style.overflow = '';
+  });
+});
+
+/* ==================== Scroll Fade-up Animation ==================== */
+const fadeElements = document.querySelectorAll('.fade-up');
+const observerOptions = {
+  threshold: 0.1,
+  rootMargin: '0px 0px -50px 0px'
+};
+
+const observer = new IntersectionObserver((entries) => {
+  entries.forEach(entry => {
+    if (entry.isIntersecting) {
+      entry.target.classList.add('visible');
+    }
+  });
+}, observerOptions);
+
+fadeElements.forEach(el => observer.observe(el));
+
+/* ==================== Number Counter Animation ==================== */
+function animateCounter(el) {
+  const target = parseFloat(el.getAttribute('data-count'));
+  const suffix = el.getAttribute('data-suffix') || '';
+  const duration = 2000;
+  const startTime = performance.now();
+  const isFloat = target % 1 !== 0;
+
+  function update(currentTime) {
+    const elapsed = currentTime - startTime;
+    const progress = Math.min(elapsed / duration, 1);
+    const easeOut = 1 - Math.pow(1 - progress, 3);
+    const current = target * easeOut;
+
+    if (isFloat) {
+      el.textContent = current.toFixed(1) + suffix;
+    } else {
+      el.textContent = Math.floor(current).toLocaleString() + suffix;
+    }
+
+    if (progress < 1) {
+      requestAnimationFrame(update);
+    } else {
+      el.textContent = (isFloat ? target.toFixed(1) : target.toLocaleString()) + suffix;
+    }
+  }
+
+  requestAnimationFrame(update);
+}
+
+const counterObserver = new IntersectionObserver((entries) => {
+  entries.forEach(entry => {
+    if (entry.isIntersecting && !entry.target.dataset.animated) {
+      entry.target.dataset.animated = 'true';
+      animateCounter(entry.target);
+    }
+  });
+}, { threshold: 0.5 });
+
+document.querySelectorAll('[data-count]').forEach(el => {
+  counterObserver.observe(el);
+});
+
+/* ==================== Demo Tabs ==================== */
+const demoTabs = document.querySelectorAll('.demo-tab');
+const demoSlides = document.querySelectorAll('.demo-slide');
+const demoDots = document.querySelectorAll('.demo-dot');
+let currentDemo = 'dashboard';
+let demoAutoPlay;
+
+function switchDemo(tabName) {
+  currentDemo = tabName;
+  demoTabs.forEach(tab => {
+    tab.classList.toggle('active', tab.dataset.tab === tabName);
+  });
+  demoSlides.forEach(slide => {
+    slide.classList.toggle('active', slide.dataset.slide === tabName);
+  });
+  demoDots.forEach(dot => {
+    dot.classList.toggle('active', dot.dataset.dot === tabName);
+  });
+}
+
+demoTabs.forEach(tab => {
+  tab.addEventListener('click', () => {
+    switchDemo(tab.dataset.tab);
+    resetDemoAutoPlay();
+  });
+});
+
+demoDots.forEach(dot => {
+  dot.addEventListener('click', () => {
+    switchDemo(dot.dataset.dot);
+    resetDemoAutoPlay();
+  });
+});
+
+const demoOrder = ['dashboard', 'mobile', 'store', 'miniapp'];
+function startDemoAutoPlay() {
+  demoAutoPlay = setInterval(() => {
+    const currentIndex = demoOrder.indexOf(currentDemo);
+    const nextIndex = (currentIndex + 1) % demoOrder.length;
+    switchDemo(demoOrder[nextIndex]);
+  }, 5000);
+}
+
+function resetDemoAutoPlay() {
+  clearInterval(demoAutoPlay);
+  startDemoAutoPlay();
+}
+
+const demoSection = document.getElementById('demo');
+const demoSectionObserver = new IntersectionObserver((entries) => {
+  entries.forEach(entry => {
+    if (entry.isIntersecting) {
+      startDemoAutoPlay();
+    } else {
+      clearInterval(demoAutoPlay);
+    }
+  });
+}, { threshold: 0.3 });
+
+demoSectionObserver.observe(demoSection);
+
+/* ==================== Particles Background ==================== */
+const canvas = document.getElementById('particlesCanvas');
+const ctx = canvas.getContext('2d');
+let particles = [];
+let particleCount = 60;
+
+function resizeCanvas() {
+  const rect = canvas.parentElement.getBoundingClientRect();
+  canvas.width = rect.width;
+  canvas.height = rect.height;
+}
+
+function createParticles() {
+  particles = [];
+  for (let i = 0; i < particleCount; i++) {
+    particles.push({
+      x: Math.random() * canvas.width,
+      y: Math.random() * canvas.height,
+      size: Math.random() * 2 + 1,
+      speedX: (Math.random() - 0.5) * 0.5,
+      speedY: (Math.random() - 0.5) * 0.5,
+      opacity: Math.random() * 0.5 + 0.1
+    });
+  }
+}
+
+function drawParticles() {
+  ctx.clearRect(0, 0, canvas.width, canvas.height);
+  particles.forEach(p => {
+    ctx.beginPath();
+    ctx.arc(p.x, p.y, p.size, 0, Math.PI * 2);
+    ctx.fillStyle = `rgba(22, 119, 255, ${p.opacity})`;
+    ctx.fill();
+    p.x += p.speedX;
+    p.y += p.speedY;
+    if (p.x < 0) p.x = canvas.width;
+    if (p.x > canvas.width) p.x = 0;
+    if (p.y < 0) p.y = canvas.height;
+    if (p.y > canvas.height) p.y = 0;
+  });
+  requestAnimationFrame(drawParticles);
+}
+
+if (canvas && ctx) {
+  resizeCanvas();
+  createParticles();
+  drawParticles();
+  window.addEventListener('resize', () => {
+    resizeCanvas();
+    createParticles();
+  });
+}
+
+/* ==================== Active Nav Link on Scroll ==================== */
+const sections = document.querySelectorAll('section[id]');
+const navLinks = document.querySelectorAll('.nav-menu a');
+
+function updateActiveNav() {
+  const scrollY = window.scrollY + 100;
+  sections.forEach(section => {
+    const top = section.offsetTop;
+    const height = section.offsetHeight;
+    const id = section.getAttribute('id');
+    if (scrollY >= top && scrollY < top + height) {
+      navLinks.forEach(link => {
+        link.classList.toggle('active', link.getAttribute('href') === '#' + id);
+      });
+    }
+  });
+}
+
+window.addEventListener('scroll', updateActiveNav);
+
+/* ==================== Smooth Scroll for anchor links ==================== */
+document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+  anchor.addEventListener('click', function(e) {
+    const href = this.getAttribute('href');
+    if (href === '#') return;
+    const target = document.querySelector(href);
+    if (target) {
+      e.preventDefault();
+      const offsetTop = target.offsetTop - 60;
+      window.scrollTo({
+        top: offsetTop,
+        behavior: 'smooth'
+      });
+    }
+  });
+});
+</script>
+
+</body>
+</html>
