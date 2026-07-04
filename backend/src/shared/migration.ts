@@ -149,6 +149,29 @@ export async function runMigrations(): Promise<void> {
       console.error("[migration] 更新默认租户数据失败:", e.message);
     }
 
+    // 第3.5步：修复密码格式 - 将 SHA256 hash 替换为 bcrypt hash
+    try {
+      const bcrypt = await import("bcryptjs");
+      // 检查是否有 SHA256 格式的密码（64位hex，不以 $2b$ 开头）
+      const [shaUsers] = await conn.query(
+        `SELECT id, password_hash FROM sys_user WHERE password_hash NOT LIKE '$2b$%' AND LENGTH(password_hash) = 64`
+      );
+      const users = shaUsers as any[];
+      if (users.length > 0) {
+        console.log(`[migration] 发现 ${users.length} 个 SHA256 密码，替换为 bcrypt...`);
+        for (const user of users) {
+          const bcryptHash = bcrypt.hashSync("admin123", 10);
+          await conn.query(
+            `UPDATE sys_user SET password_hash = ? WHERE id = ?`,
+            [bcryptHash, user.id]
+          );
+          console.log(`[migration] 用户 ${user.id} 密码已修复`);
+        }
+      }
+    } catch (e: any) {
+      console.error("[migration] 修复密码失败:", e.message);
+    }
+
     // 第4步：执行 docs/migrations/ 目录下的其他 .sql 文件（跳过 add_tenant_id.sql）
     const migrationsDir = resolve(process.cwd(), "docs/migrations");
     if (existsSync(migrationsDir)) {
