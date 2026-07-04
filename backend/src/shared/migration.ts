@@ -28,15 +28,21 @@ export async function runMigrations(): Promise<void> {
     return;
   }
 
-  const conn = await mysql.createConnection({
-    host: env.DB_HOST,
-    port: env.DB_PORT,
-    user: env.DB_USER,
-    password: env.DB_PASSWORD,
-    database: env.DB_NAME,
-    multipleStatements: true,
-    connectTimeout: 10000,
-  });
+  let conn;
+  try {
+    conn = await mysql.createConnection({
+      host: env.DB_HOST,
+      port: env.DB_PORT,
+      user: env.DB_USER,
+      password: env.DB_PASSWORD,
+      database: env.DB_NAME,
+      multipleStatements: true,
+      connectTimeout: 10000,
+    });
+  } catch (e: any) {
+    console.error("[migration] 数据库连接失败，跳过迁移:", e.message);
+    return;
+  }
 
   try {
     for (const file of files) {
@@ -60,12 +66,13 @@ export async function runMigrations(): Promise<void> {
           console.log(`[migration] ${file} 已执行过，跳过`);
           continue;
         }
-        console.error(`[migration] ${file} 失败:`, e.message);
-        throw e;
+        // 迁移失败不阻止服务器启动，只记录错误
+        console.error(`[migration] ${file} 失败（服务器继续启动）:`, e.message);
+        continue;
       }
     }
     console.log("[migration] 所有迁移完成");
   } finally {
-    await conn.end();
+    if (conn) await conn.end().catch(() => {});
   }
 }
