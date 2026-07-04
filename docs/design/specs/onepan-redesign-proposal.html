@@ -24,10 +24,9 @@
   --radius-sm: 8px;
   --shadow: 0 4px 24px rgba(0,0,0,0.08);
   --shadow-lg: 0 12px 48px rgba(0,0,0,0.12);
-  /* Onepan brand */
-  --gold: #C8A45C;
-  --gold-light: #E8D5B7;
-  --gold-dark: #A67C2E;
+  /* System brand */
+  --brand-dark: #0958D9;
+  --brand-darker: #003EB3;
   --dark: #0A1628;
   --dark-secondary: #16213E;
   --dark-card: #1A2740;
@@ -58,7 +57,7 @@ h4 { font-size: 1rem; font-weight: 600; }
   text-align: center;
 }
 .proposal-header h1 { font-size: 2.25rem; margin-bottom: 8px; }
-.proposal-header .sub { color: var(--gold); font-size: 1.05rem; opacity: 0.9; }
+.proposal-header .sub { color: var(--brand-light); font-size: 1.05rem; opacity: 0.9; }
 .proposal-header .meta {
   margin-top: 16px;
   font-size: 0.85rem;
@@ -82,7 +81,7 @@ h4 { font-size: 1rem; font-weight: 600; }
 .section-title .num {
   display: inline-flex; align-items: center; justify-content: center;
   width: 32px; height: 32px; border-radius: 8px;
-  background: linear-gradient(135deg, var(--gold), var(--gold-dark));
+  background: linear-gradient(135deg, var(--brand), var(--brand-dark));
   color: #FFF; font-size: 0.9rem; font-weight: 700; flex-shrink: 0;
 }
 .section-desc {
@@ -189,10 +188,10 @@ h4 { font-size: 1rem; font-weight: 600; }
 .wire-nav .nav-l { display: flex; gap: 32px; align-items: center; }
 .wire-nav .nav-r { display: flex; gap: 12px; align-items: center; }
 .wire-nav .nav-item { font-size: 0.8rem; opacity: 0.7; }
-.wire-nav .nav-item.active { opacity: 1; color: var(--gold); }
+.wire-nav .nav-item.active { opacity: 1; color: var(--brand); }
 .wire-nav .nav-btn {
-  padding: 6px 16px; border: 1px solid var(--gold);
-  border-radius: 4px; font-size: 0.8rem; color: var(--gold);
+  padding: 6px 16px; border: 1px solid var(--brand);
+  border-radius: 4px; font-size: 0.8rem; color: var(--brand);
 }
 /* Hero */
 .wire-hero {
@@ -207,18 +206,18 @@ h4 { font-size: 1rem; font-weight: 600; }
 }
 .wire-hero .hero-txt .badge {
   display: inline-block; padding: 4px 12px;
-  border: 1px solid var(--gold); border-radius: 20px;
-  font-size: 0.7rem; color: var(--gold); margin-bottom: 16px;
+  border: 1px solid var(--brand); border-radius: 20px;
+  font-size: 0.7rem; color: var(--brand); margin-bottom: 16px;
 }
 .wire-hero .hero-txt .h1 { font-size: 2rem; font-weight: 800; line-height: 1.3; }
-.wire-hero .hero-txt .h1 .hl { color: var(--gold); }
+.wire-hero .hero-txt .h1 .hl { color: var(--brand); }
 .wire-hero .hero-txt .sub { font-size: 0.9rem; opacity: 0.7; margin: 16px 0; }
 .wire-hero .hero-txt .btns { display: flex; gap: 12px; }
 .wire-hero .hero-txt .btns span {
   padding: 10px 28px; border-radius: 6px; font-size: 0.85rem;
 }
-.wire-hero .hero-txt .btns .primary { background: var(--gold); color: var(--dark); }
-.wire-hero .hero-txt .btns .outline { border: 1px solid var(--gold); color: var(--gold); }
+.wire-hero .hero-txt .btns .primary { background: var(--brand); color: var(--dark); }
+.wire-hero .hero-txt .btns .outline { border: 1px solid var(--brand); color: var(--brand); }
 .wire-hero .hero-mockup {
   flex: 1; max-width: 480px;
   height: 360px; background: rgba(255,255,255,0.05);
@@ -237,7 +236,7 @@ h4 { font-size: 1rem; font-weight: 600; }
   font-size: 0.8rem; min-height: 72px;
 }
 .wire-stats .stat { text-align: center; }
-.wire-stats .stat .n { font-size: 1.3rem; font-weight: 700; color: var(--gold); }
+.wire-stats .stat .n { font-size: 1.3rem; font-weight: 700; color: var(--brand); }
 .wire-stats .stat .l { font-size: 0.7rem; opacity: 0.6; }
 /* Features */
 .wire-features {
@@ -252,7 +251,7 @@ h4 { font-size: 1rem; font-weight: 600; }
 }
 .wire-features .f-card .ficon {
   width: 40px; height: 40px; border-radius: 8px;
-  background: var(--gold); opacity: 0.2;
+  background: var(--brand); opacity: 0.2;
 }
 .wire-features .f-card .fname { font-size: 0.8rem; font-weight: 600; }
 .wire-features .f-card .ftags { font-size: 0.65rem; opacity: 0.4; }
@@ -283,14 +282,14 @@ h4 { font-size: 1rem; font-weight: 600; }
 }
 /* CTA */
 .wire-cta {
-  background: linear-gradient(135deg, var(--gold), var(--gold-dark));
-  padding: 48px; text-align: center; color: var(--dark);
+  background: linear-gradient(135deg, var(--brand), var(--brand-dark));
+  padding: 48px; text-align: center; color: #FFF;
 }
 .wire-cta .c-title { font-size: 1.3rem; font-weight: 700; }
 .wire-cta .c-sub { font-size: 0.8rem; opacity: 0.7; margin: 8px 0 16px; }
 .wire-cta .c-btn {
-  display: inline-block; padding: 10px 32px; background: var(--dark);
-  color: #FFF; border-radius: 6px; font-size: 0.85rem;
+  display: inline-block; padding: 10px 32px; background: #FFF;
+  color: var(--brand); border-radius: 6px; font-size: 0.85rem; font-weight: 600;
 }
 /* Footer */
 .wire-footer {
@@ -309,7 +308,7 @@ h4 { font-size: 1rem; font-weight: 600; }
 }
 .feature-detail .num-badge {
   width: 36px; height: 36px; border-radius: 50%;
-  background: var(--gold); color: #FFF; font-weight: 700;
+  background: var(--brand); color: #FFF; font-weight: 700;
   display: flex; align-items: center; justify-content: center;
   flex-shrink: 0; font-size: 0.9rem;
 }
@@ -319,7 +318,7 @@ h4 { font-size: 1rem; font-weight: 600; }
   display: flex; gap: 6px; flex-wrap: wrap; margin-top: 8px;
 }
 .feature-detail .content .tags span {
-  padding: 3px 10px; background: #FFF7E6; color: var(--gold-dark);
+  padding: 3px 10px; background: #E6F4FF; color: var(--brand-dark);
   border-radius: 4px; font-size: 0.75rem; font-weight: 500;
 }
 
@@ -417,7 +416,7 @@ h4 { font-size: 1rem; font-weight: 600; }
 }
 .page-flow .flow-block .f-num {
   width: 24px; height: 24px; border-radius: 50%;
-  background: var(--gold); color: #FFF; font-size: 0.7rem;
+  background: var(--brand); color: #FFF; font-size: 0.7rem;
   display: inline-flex; align-items: center; justify-content: center;
   margin-bottom: 6px;
 }
@@ -430,12 +429,12 @@ h4 { font-size: 1rem; font-weight: 600; }
 
 /* Highlight box */
 .highlight-box {
-  background: linear-gradient(135deg, #FFF7E6, #FFFBF0);
-  border: 1px solid var(--gold-light);
+  background: linear-gradient(135deg, #E6F4FF, #F0F8FF);
+  border: 1px solid var(--brand-light);
   border-radius: var(--radius);
   padding: 20px 24px; margin-bottom: 20px;
 }
-.highlight-box h4 { color: var(--gold-dark); margin-bottom: 6px; }
+.highlight-box h4 { color: var(--brand); margin-bottom: 6px; }
 .highlight-box p { font-size: 0.85rem; color: var(--text-secondary); }
 
 /* Responsive */
@@ -636,7 +635,7 @@ h4 { font-size: 1rem; font-weight: 600; }
       <div class="flow-block">
         <div class="f-num">8</div>
         <div class="f-title">CTA</div>
-        <div class="f-desc">金色渐变 + 转化入口</div>
+        <div class="f-desc">蓝色渐变 + 转化入口</div>
       </div>
       <div class="flow-arrow">&rarr;</div>
       <div class="flow-block">
@@ -685,10 +684,10 @@ h4 { font-size: 1rem; font-weight: 600; }
       <div class="num-badge">3</div>
       <div class="content">
         <h4>功能矩阵 &mdash; 浅色背景，4列大卡片（浅色背景）</h4>
-        <p>9个功能模块改为4列大卡片布局（2行x4列 + 1个居中），但只有8个核心模块。每张卡片含：大图标(金色渐变圆形)、标题、2行描述、3个功能标签。</p>
-        <p>卡片hover：上浮 translateY(-4px) + shadow加深，图标区域金色渐变放大。</p>
+        <p>9个功能模块改为4列大卡片布局（2行x4列 + 1个居中），但只有8个核心模块。每张卡片含：大图标(蓝色渐变圆形)、标题、2行描述、3个功能标签。</p>
+        <p>卡片hover：上浮 translateY(-4px) + shadow加深，图标区域蓝色渐变放大。</p>
         <div class="tags">
-          <span>4列网格</span><span>hover动效</span><span>金色图标</span>
+          <span>4列网格</span><span>hover动效</span><span>蓝色图标</span>
         </div>
       </div>
     </div>
@@ -711,7 +710,7 @@ h4 { font-size: 1rem; font-weight: 600; }
       <div class="content">
         <h4>行业场景方案 &mdash; 浅色背景，3列场景卡片</h4>
         <p>3张横向大卡片：单店酒行 / 连锁酒业 / 批发经销商。每张卡片含：场景插画、适用描述、核心功能列表、了解更多链接。</p>
-        <p>卡片hover：整体放大 + 边框金色高亮。</p>
+        <p>卡片hover：整体放大 + 边框蓝色高亮。</p>
         <div class="tags">
           <span>3列场景</span><span>插画</span><span>hover放大</span>
         </div>
@@ -724,7 +723,7 @@ h4 { font-size: 1rem; font-weight: 600; }
         <h4>多端覆盖 &mdash; 深色背景，设备实物展示 + 二维码</h4>
         <p>中间：5个设备图标排列（PC / 手机 / 平板 / 收银机 / 小程序码），每个设备下方有标签和入口链接。</p>
         <p>小程序单独展示二维码占位图。</p>
-        <p>设备图标hover：发光效果（box-shadow金色）。</p>
+        <p>设备图标hover：发光效果（box-shadow蓝色）。</p>
         <div class="tags">
           <span>5设备展示</span><span>二维码</span><span>hover发光</span>
         </div>
@@ -746,11 +745,11 @@ h4 { font-size: 1rem; font-weight: 600; }
     <div class="feature-detail">
       <div class="num-badge">8</div>
       <div class="content">
-        <h4>CTA 转化区 &mdash; 金色渐变背景，强转化引导</h4>
+        <h4>CTA 转化区 &mdash; 蓝色渐变背景，强转化引导</h4>
         <p>大标题「免费试用 30 天，开启酒水数字化经营」+ 副标题 + 大按钮「立即免费试用」+ 小字「无需信用卡，随时可取消」。</p>
-        <p>背景：金色渐变（#C8A45C -> #E8C876），文字深色，大按钮白色/深色反转。</p>
+        <p>背景：蓝色渐变（#1677FF -> #0958D9），文字白色，大按钮白色/深色反转。</p>
         <div class="tags">
-          <span>金色渐变</span><span>强CTA</span><span>信任文字</span>
+          <span>蓝色渐变</span><span>强CTA</span><span>信任文字</span>
         </div>
       </div>
     </div>
@@ -784,7 +783,7 @@ h4 { font-size: 1rem; font-weight: 600; }
         <!-- Nav -->
         <div class="wire-row wire-nav">
           <div class="nav-l">
-            <span style="font-size:1rem;color:var(--gold);">OP</span>
+            <span style="font-size:1rem;color:var(--brand);">OP</span>
             <span>智享全链</span>
             <span class="nav-item active">首页</span>
             <span class="nav-item">产品</span>
@@ -845,7 +844,7 @@ h4 { font-size: 1rem; font-weight: 600; }
             <div class="device">移动端</div>
           </div>
           <div style="display:flex;gap:8px;margin-top:12px;">
-            <span style="width:8px;height:8px;border-radius:50%;background:var(--gold);"></span>
+            <span style="width:8px;height:8px;border-radius:50%;background:var(--brand);"></span>
             <span style="width:8px;height:8px;border-radius:50%;background:rgba(255,255,255,0.2);"></span>
             <span style="width:8px;height:8px;border-radius:50%;background:rgba(255,255,255,0.2);"></span>
           </div>
@@ -877,14 +876,14 @@ h4 { font-size: 1rem; font-weight: 600; }
         <div class="wire-row" style="background:#F8FAFC;padding:48px;min-height:180px;flex-direction:column;gap:12px;">
           <div style="font-size:0.9rem;color:var(--text-muted);">数据背书 &amp; 客户评价</div>
           <div style="display:flex;gap:24px;width:100%;justify-content:center;">
-            <div style="text-align:center;"><div style="font-size:1.5rem;font-weight:700;color:var(--gold);">500+</div><div style="font-size:0.7rem;color:var(--text-muted);">服务商家</div></div>
-            <div style="text-align:center;"><div style="font-size:1.5rem;font-weight:700;color:var(--gold);">50,000+</div><div style="font-size:0.7rem;color:var(--text-muted);">管理SKU</div></div>
-            <div style="text-align:center;"><div style="font-size:1.5rem;font-weight:700;color:var(--gold);">10,000+</div><div style="font-size:0.7rem;color:var(--text-muted);">日处理订单</div></div>
-            <div style="text-align:center;"><div style="font-size:1.5rem;font-weight:700;color:var(--gold);">1,000+</div><div style="font-size:0.7rem;color:var(--text-muted);">稳定运行(天)</div></div>
+            <div style="text-align:center;"><div style="font-size:1.5rem;font-weight:700;color:var(--brand);">500+</div><div style="font-size:0.7rem;color:var(--text-muted);">服务商家</div></div>
+            <div style="text-align:center;"><div style="font-size:1.5rem;font-weight:700;color:var(--brand);">50,000+</div><div style="font-size:0.7rem;color:var(--text-muted);">管理SKU</div></div>
+            <div style="text-align:center;"><div style="font-size:1.5rem;font-weight:700;color:var(--brand);">10,000+</div><div style="font-size:0.7rem;color:var(--text-muted);">日处理订单</div></div>
+            <div style="text-align:center;"><div style="font-size:1.5rem;font-weight:700;color:var(--brand);">1,000+</div><div style="font-size:0.7rem;color:var(--text-muted);">稳定运行(天)</div></div>
           </div>
         </div>
 
-        <!-- CTA (gold) -->
+        <!-- CTA (brand) -->
         <div class="wire-row wire-cta">
           <div>
             <div class="c-title">免费试用 30 天，开启酒水数字化经营</div>
@@ -915,7 +914,7 @@ h4 { font-size: 1rem; font-weight: 600; }
     <div class="section-title">
       <span class="num">6</span> 色彩体系 &amp; 设计Token
     </div>
-    <p class="section-desc">保留酒行业金色 + 深蓝色基调，增加浅色模式形成交替节奏：</p>
+    <p class="section-desc">统一系统蓝色 + 深蓝色基调，增加浅色模式形成交替节奏：</p>
 
     <table class="spec-table">
       <thead>
@@ -923,9 +922,9 @@ h4 { font-size: 1rem; font-weight: 600; }
       </thead>
       <tbody>
         <tr><td>--primary-dark</td><td style="color:#0A1628;font-weight:700;">#0A1628</td><td>深色背景、导航栏</td><td>保留现有品牌色</td></tr>
-        <tr><td>--primary-gold</td><td style="color:#C8A45C;font-weight:700;">#C8A45C</td><td>品牌强调色、按钮、图标</td><td>保留</td></tr>
-        <tr><td>--primary-gold-light</td><td style="color:#E8D5B7;font-weight:700;">#E8D5B7</td><td>金色浅色、边框</td><td>新增</td></tr>
-        <tr><td>--primary-gold-dark</td><td style="color:#A67C2E;font-weight:700;">#A67C2E</td><td>金色深色、渐变终点</td><td>新增</td></tr>
+        <tr><td>--primary-blue</td><td style="color:#1677FF;font-weight:700;">#1677FF</td><td>品牌主色、按钮、强调元素</td><td>系统统一主色</td></tr>
+        <tr><td>--primary-blue-light</td><td style="color:#E6F4FF;font-weight:700;">#E6F4FF</td><td>浅蓝背景、标签底色</td><td>系统统一浅色</td></tr>
+        <tr><td>--primary-blue-dark</td><td style="color:#0958D9;font-weight:700;">#0958D9</td><td>深蓝、渐变终点、hover态</td><td>系统统一深色</td></tr>
         <tr><td>--bg-light</td><td style="color:#F8FAFC;font-weight:700;">#F8FAFC</td><td>浅色Section背景</td><td>新增，交替使用</td></tr>
         <tr><td>--bg-card</td><td style="color:#FFFFFF;font-weight:700;">#FFFFFF</td><td>卡片背景</td><td>新增</td></tr>
         <tr><td>--bg-dark-secondary</td><td style="color:#16213E;font-weight:700;">#16213E</td><td>深色第二层级</td><td>新增</td></tr>
@@ -977,7 +976,7 @@ h4 { font-size: 1rem; font-weight: 600; }
         <tr><td>数字滚动</td><td>数据背书区</td><td>requestAnimationFrame 缓动计数</td><td>从0滚动到目标数字，ease-out 2s</td></tr>
         <tr><td>Hero Mockup浮动</td><td>Hero区</td><td>CSS animation translateY</td><td>上下浮动 10px，3s ease-in-out 循环</td></tr>
         <tr><td>卡片hover</td><td>功能卡片/场景卡片</td><td>CSS transition</td><td>translateY(-4px) + shadow加深</td></tr>
-        <tr><td>设备hover发光</td><td>多端覆盖</td><td>CSS box-shadow</td><td>金色光晕扩散</td></tr>
+        <tr><td>设备hover发光</td><td>多端覆盖</td><td>CSS box-shadow</td><td>蓝色光晕扩散</td></tr>
         <tr><td>导航毛玻璃</td><td>Header</td><td>scroll事件 + backdrop-filter</td><td>滚动超过80px后激活</td></tr>
         <tr><td>Demo轮播</td><td>Demo展示区</td><td>setInterval + CSS transition</td><td>5秒自动切换，淡入淡出</td></tr>
         <tr><td>粒子背景</td><td>Hero区</td><td>Canvas 或 CSS dot grid</td><td>微粒子缓慢移动，增加科技感</td></tr>
@@ -1003,7 +1002,7 @@ h4 { font-size: 1rem; font-weight: 600; }
         <tr><td>场景方案</td><td>为你的业务量身定制</td><td>单店酒行/连锁酒业/批发经销商 3场景</td></tr>
         <tr><td>多端覆盖</td><td>随时随地管理生意</td><td>Web后台/移动端/门店终端/桌面版/小程序 5端入口</td></tr>
         <tr><td>数据背书</td><td>值得信赖的数字</td><td>500+商家/50000+SKU/10000+日订单 + 客户评价</td></tr>
-        <tr><td>CTA</td><td>免费试用30天</td><td>金色渐变背景，大按钮，信任文字</td></tr>
+        <tr><td>CTA</td><td>免费试用30天</td><td>蓝色渐变背景，大按钮，信任文字</td></tr>
         <tr><td>Footer</td><td>--</td><td>产品/资源/关于/联系 4列</td></tr>
       </tbody>
     </table>
@@ -1019,20 +1018,20 @@ h4 { font-size: 1rem; font-weight: 600; }
     <ul class="checklist">
       <li class="pending">Hero增加产品Dashboard Mockup截图（右侧浮动卡片）</li>
       <li class="pending">Hero背景增加粒子/点阵动画效果</li>
-      <li class="pending">Section深浅交替：深-浅-深-浅-深-浅-金-深</li>
+      <li class="pending">Section深浅交替：深-浅-深-浅-深-浅-蓝-深</li>
       <li class="pending">功能介绍从3x3改为4x2网格，视觉更平衡</li>
       <li class="pending">新增产品Demo展示Section（4端截图轮播）</li>
       <li class="pending">新增行业场景方案Section（3个场景卡片）</li>
       <li class="pending">多端覆盖Section改为设备实物展示+发光动效</li>
       <li class="pending">新增数据背书Section（数字滚动+客户评价）</li>
-      <li class="pending">新增底部CTA Section（金色渐变，强转化）</li>
+      <li class="pending">新增底部CTA Section（蓝色渐变，强转化）</li>
       <li class="pending">Footer从1行扩展到4列完整页脚</li>
       <li class="pending">导航栏增加产品/解决方案/下载/文档/关于子菜单</li>
       <li class="pending">增加hover动效（卡片上浮、设备发光）</li>
       <li class="pending">增加滚动渐入动画（IntersectionObserver）</li>
       <li class="pending">增加数字滚动动画（requestAnimationFrame）</li>
       <li class="pending">移动端响应式适配（汉堡菜单+单列布局）</li>
-      <li class="pending">保留现有品牌色（金色#C8A45C + 深蓝#0A1628）</li>
+      <li class="pending">采用系统统一品牌色（蓝色#1677FF + 深蓝#0A1628）</li>
       <li class="pending">新增浅色背景色#F8FAFC用于交替Section</li>
       <li class="pending">更新SEO meta标签适配新结构</li>
     </ul>
