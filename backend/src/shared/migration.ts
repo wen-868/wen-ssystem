@@ -42,7 +42,8 @@ const TABLES_NEED_TENANT_ID: string[] = [
  * mysql2 的 query() 可以直接执行 DDL
  */
 async function safeAddColumn(conn: mysql.Connection, table: string): Promise<void> {
-  const sql = `ALTER TABLE \`${table}\` ADD COLUMN \`tenant_id\` VARCHAR(36) NOT NULL DEFAULT 'default' COMMENT '租户ID' AFTER \`id\``;
+  // 不使用 AFTER 子句，避免列位置冲突
+  const sql = `ALTER TABLE \`${table}\` ADD COLUMN \`tenant_id\` VARCHAR(36) NOT NULL DEFAULT 'default' COMMENT '租户ID'`;
   try {
     await conn.query(sql);
     console.log(`[migration] ${table}: 已添加 tenant_id`);
@@ -50,6 +51,7 @@ async function safeAddColumn(conn: mysql.Connection, table: string): Promise<voi
     if (e.code === "ER_DUP_FIELDNAME" || e.message?.includes("Duplicate column")) {
       console.log(`[migration] ${table}: tenant_id 已存在，跳过`);
     } else {
+      console.error(`[migration] ${table} ADD COLUMN 失败 [${e.code}]: ${e.message}`);
       throw e;
     }
   }

@@ -38,10 +38,19 @@ systemRouter.get("/info", requireAuthWithTenant, asyncHandler(async (req, res) =
 
 // ========== 数据库迁移（临时，部署后手动触发） ==========
 systemRouter.post("/migrate", asyncHandler(async (_req, res) => {
+  const logs: string[] = [];
+  const origLog = console.log;
+  const origError = console.error;
+  console.log = (...args: any[]) => { logs.push(args.join(" ")); origLog(...args); };
+  console.error = (...args: any[]) => { logs.push("ERROR: " + args.join(" ")); origError(...args); };
   try {
     await runMigrations();
-    res.json(ok({ result: "迁移执行成功" }));
+    console.log = origLog;
+    console.error = origError;
+    res.json(ok({ result: "迁移执行成功", logs }));
   } catch (e: any) {
-    res.status(500).json({ code: "500", message: `迁移失败: ${e.message}` });
+    console.log = origLog;
+    console.error = origError;
+    res.status(500).json({ code: "500", message: `迁移失败: ${e.message}`, logs });
   }
 }));
