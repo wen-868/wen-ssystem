@@ -2,7 +2,7 @@ import { z } from "zod";
 import { asyncHandler } from "../../shared/async-handler.js";
 import { ok } from "../../shared/response.js";
 import * as saleBillService from "../../services/store/sale-bill.service.js";
-import { storeSaleBillItemSchema } from "../../routes/store.routes.js";
+import { storeSaleBillItemSchema } from "../../routes/store-sale-bill.routes.js";
 
 export const listSaleBills = asyncHandler(async (req, res) => {
   const result = await saleBillService.listSaleBills({
