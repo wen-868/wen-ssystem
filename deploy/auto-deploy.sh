@@ -23,6 +23,10 @@ VITE_API_BASE=/api npm --workspace admin-web run build
 VITE_API_BASE=/api npm --workspace merchant-mobile run build
 VITE_API_BASE=/api npm --workspace store-terminal run build
 
+echo "==> 部署官网"
+mkdir -p /var/www/www-onepan
+cp -rf www/index.html /var/www/www-onepan/index.html
+
 echo "==> 重载 Nginx"
 nginx -t && nginx -s reload
 
