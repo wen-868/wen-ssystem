@@ -20,18 +20,6 @@ VITE_API_BASE=/api npm --workspace admin-web run build
 VITE_API_BASE=/api npm --workspace merchant-mobile run build
 VITE_API_BASE=/api npm --workspace store-terminal run build
 
-echo "==> 执行数据库迁移"
-set +e
-if [ -f "${PROJECT_DIR}/docs/migrations/add_tenant_id.sql" ]; then
-  node "${PROJECT_DIR}/scripts/run-migration.mjs" "${PROJECT_DIR}/docs/migrations/add_tenant_id.sql" 2>&1
-  MIGRATION_EXIT=$?
-  if [ $MIGRATION_EXIT -ne 0 ]; then
-    echo "  ⚠️ 数据库迁移失败（退出码 $MIGRATION_EXIT），请手动执行："
-    echo "     node scripts/run-migration.mjs docs/migrations/add_tenant_id.sql"
-  fi
-fi
-set -e
-
 echo "==> 重载 Nginx"
 nginx -t && nginx -s reload
 

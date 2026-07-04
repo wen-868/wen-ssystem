@@ -32,7 +32,7 @@ export const startDelivery = asyncHandler(async (req, res) => {
 });
 
 export const completeDelivery = asyncHandler(async (req, res) => {
-  const result = await orderService.completeDelivery(req.params.orderNo, req.user!.id ?? null, req.tenantId!);
+  const result = await orderService.completeDelivery(req.params.orderNo, req.user!.id ?? null);
   res.json(ok(result));
 });
 

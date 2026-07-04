@@ -30,18 +30,14 @@ const login = await request("/admin/auth/login", {
 });
 const auth = { Authorization: `Bearer ${login.token}` };
 
-// 小程序端登录获取 token
-const miniLogin = await request("/miniapp/auth/login", { method: "POST" });
-const miniAuth = { Authorization: `Bearer ${miniLogin.token}` };
-
-const miniProducts = await request("/miniapp/products?storeId=1", { headers: miniAuth });
+const miniProducts = await request("/miniapp/products?storeId=1");
 if (typeof miniProducts[0]?.availableQty !== "number" || Number.isNaN(miniProducts[0].availableQty)) {
   throw new Error(`小程序 availableQty 应为数字，实际为 ${miniProducts[0]?.availableQty}`);
 }
 
 const miniOrder = await request("/miniapp/orders", {
   method: "POST",
-  headers: { ...miniAuth, "x-customer-type": "RETAIL" },
+  headers: { "x-customer-type": "RETAIL" },
   body: JSON.stringify({
     storeId: 1,
     fulfillmentType: "PICKUP",
@@ -64,12 +60,14 @@ if (filteredOrders.total !== filteredOrders.records.length) {
 
 const offlineInventory = await request("/store/inventory?storeId=1", { headers: auth });
 const offlineRows = Array.isArray(offlineInventory) ? offlineInventory : offlineInventory.records;
-// 无条件补足线下库存（隔离其他测试干扰）
-await request("/store/inventory/adjust", {
-  method: "POST",
-  headers: auth,
-  body: JSON.stringify({ storeId: 1, skuId: 1, stockType: "OFFLINE", change: 10, remark: "QA回归补足测试库存" })
-});
+const offlineSku = offlineRows.find((row) => Number(row.skuId) === 1 && row.stockType === "OFFLINE");
+if (Number(offlineSku?.availableQty ?? 0) < 1) {
+  await request("/store/inventory/adjust", {
+    method: "POST",
+    headers: auth,
+    body: JSON.stringify({ storeId: 1, skuId: 1, stockType: "OFFLINE", change: 5, remark: "QA回归补足测试库存" })
+  });
+}
 
 const saleBill = await request("/store/sale-bills", {
   method: "POST",
@@ -86,27 +84,11 @@ if (saleBill.items?.[0]?.unitPrice !== expectedStorePrice) {
   throw new Error(`销售单默认单价应为当前门店价/零售价 ${expectedStorePrice}，实际为 ${saleBill.items?.[0]?.unitPrice}`);
 }
 
-// 再次补足库存并重试离线收款（隔离并发测试干扰）
-let offlinePaymentDone = false;
-for (let attempt = 0; attempt < 3; attempt++) {
-  await request("/store/inventory/adjust", {
-    method: "POST",
-    headers: auth,
-    body: JSON.stringify({ storeId: 1, skuId: 1, stockType: "OFFLINE", change: 50, remark: "QA回归补足测试库存" })
-  });
-  try {
-    await request(`/store/sale-bills/${saleBill.billNo}/offline-payment`, {
-      method: "POST",
-      headers: auth,
-      body: JSON.stringify({ amount: 50, paymentMethod: "CASH" })
-    });
-    offlinePaymentDone = true;
-    break;
-  } catch (e) {
-    if (attempt >= 2) throw e;
-    console.log(`  离线收款重试 ${attempt + 1}/3...`);
-  }
-}
+await request(`/store/sale-bills/${saleBill.billNo}/offline-payment`, {
+  method: "POST",
+  headers: auth,
+  body: JSON.stringify({ amount: 50, paymentMethod: "CASH" })
+});
 const saleBillDetail = await request(`/store/sale-bills/${saleBill.billNo}`, { headers: auth });
 const expectedUnreceived = expectedStorePrice - 50;
 if (Number(saleBillDetail.receivedAmount) !== 50 || Number(saleBillDetail.unreceivedAmount) !== expectedUnreceived) {
@@ -120,7 +102,6 @@ async function testWholesaleOrderReservation() {
   const res = await request("/miniapp/orders", {
     method: "POST",
     headers: {
-      ...miniAuth,
       "x-customer-type": "WHOLESALE"
     },
     body: JSON.stringify({
@@ -144,7 +125,6 @@ async function testWholesaleDeliveryLifecycle() {
   const order = await request("/miniapp/orders", {
     method: "POST",
     headers: {
-      ...miniAuth,
       "x-customer-type": "WHOLESALE",
       "x-settlement-type": "ACCOUNT"
     },
@@ -180,7 +160,6 @@ async function testReceivableCollection() {
   const order = await request("/miniapp/orders", {
     method: "POST",
     headers: {
-      ...miniAuth,
       "x-customer-type": "WHOLESALE",
       "x-settlement-type": "ACCOUNT"
     },

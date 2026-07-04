@@ -72,7 +72,7 @@ export const getOrderDetail = asyncHandler(async (req, res) => {
 });
 
 export const confirmReceipt = asyncHandler(async (req, res) => {
-  const result = await service.confirmReceipt(req.params.orderNo, req.tenantId!);
+  const result = await service.confirmReceipt(req.params.orderNo);
   res.json(ok(result));
 });
 
