@@ -2,13 +2,19 @@
   "name": "admin-web",
   "version": "0.1.0",
   "type": "module",
+  "main": "electron/main.js",
   "scripts": {
     "dev": "vite --host 0.0.0.0",
     "build": "vue-tsc -b && vite build",
-    "preview": "vite preview --host 0.0.0.0"
+    "preview": "vite preview --host 0.0.0.0",
+    "electron:dev": "npm run build && electron .",
+    "electron:build": "npm run build && electron-builder",
+    "electron:build:win": "npm run build && electron-builder --win"
   },
   "dependencies": {
     "@vitejs/plugin-vue": "^5.0.5",
+    "@wangeditor/editor": "^5.1.23",
+    "@wangeditor/editor-for-vue": "^5.1.12",
     "axios": "^1.7.2",
     "echarts": "^6.1.0",
     "element-plus": "^2.7.6",
@@ -16,8 +22,49 @@
     "vue-router": "^4.4.0"
   },
   "devDependencies": {
+    "electron": "^31.0.0",
+    "electron-builder": "^24.13.3",
     "typescript": "^5.5.3",
     "vite": "^5.3.3",
     "vue-tsc": "^2.0.26"
+  },
+  "build": {
+    "appId": "com.zhixiang.admin",
+    "productName": "智享全链管理系统",
+    "directories": {
+      "output": "release"
+    },
+    "files": [
+      "dist/**/*",
+      "electron/**/*"
+    ],
+    "win": {
+      "target": [
+        {
+          "target": "nsis",
+          "arch": [
+            "x64"
+          ]
+        },
+        {
+          "target": "portable",
+          "arch": [
+            "x64"
+          ]
+        }
+      ],
+      "icon": "public/icon.png"
+    },
+    "nsis": {
+      "oneClick": false,
+      "allowToChangeInstallationDirectory": true,
+      "createDesktopShortcut": true,
+      "createStartMenuShortcut": true,
+      "shortcutName": "智享全链管理系统"
+    },
+    "mac": {
+      "target": "dmg",
+      "icon": "public/icon.png"
+    }
   }
 }

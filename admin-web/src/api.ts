@@ -1,6 +1,10 @@
 import axios from "axios";
 
 function resolveApiBase() {
+  // Electron 桌面环境：通过 preload 获取远程 API 地址
+  if (typeof window !== "undefined" && window.electronAPI) {
+    return window.electronAPI.apiBase || "http://159.75.153.59/api";
+  }
   const configured = import.meta.env.VITE_API_BASE;
   if (configured) return configured;
   if (typeof window !== "undefined" && window.location.hostname.endsWith(".onepan.cn")) {
