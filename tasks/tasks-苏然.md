@@ -10,10 +10,32 @@
 
 | # | 任务 | 优先级 | 状态 |
 |---|------|--------|:---:|
-| 1 | 确保阿坚修复后服务能启动（集成测试） | P0 | ❌ |
-| 2 | 运行自测脚本 `scripts/self-test.mjs` 验证核心 API | P1 | ❌ |
-| 3 | 验证所有路由-Controller 函数一致性 | P1 | ❌ |
-| 4 | 补充测试覆盖率配置 | P2 | ❌ |
+| 1 | 确保阿坚修复后服务能启动（集成测试） | P0 | ✅ |
+| 2 | 运行自测脚本 `scripts/self-test.mjs` 验证核心 API | P1 | ✅ |
+| 3 | 验证所有路由-Controller 函数一致性 | P1 | ✅ |
+| 4 | 补充测试覆盖率配置 | P2 | ✅ |
+| 5 | 错误自动反馈功能 — 全量测试验证 | P0 | ❌ |
+
+---
+
+## 🔴 新任务：错误自动反馈功能测试
+
+**来源**：苏然测试报告 — 全局无错误自动反馈功能
+**开发**：墨负责全线开发（tasks-墨.md）
+**测试**：苏然
+
+| # | 测试项 | 方法 | 验收标准 |
+|---|--------|------|---------|
+| 1 | 后端 error_logs 写入验证 | 触发 ZodError → 查 error_logs 表 | 有记录，error_type=validation |
+| 2 | 后端 500 错误写入 | 触发 500 → 查 error_logs 表 | 有记录，error_type=unknown |
+| 3 | 后端 500 飞书告警 | 触发 500 → 检查飞书群 | 收到告警消息 |
+| 4 | 后端 400 不告警 | 触发 400 → 检查飞书群 | 无告警 |
+| 5 | uncaughtException 捕获 | 模拟未捕获异常 → 查 error_logs | 有记录，error_type=uncaughtException |
+| 6 | unhandledRejection 捕获 | 模拟未处理 Promise → 查 error_logs | 有记录，error_type=unhandledRejection |
+| 7 | 前端错误上报 | admin-web 触发 JS 错误 → 查 error_logs | 有记录，source=frontend |
+| 8 | 前端错误不阻塞用户 | 断开网络 → 触发错误 | 页面无白屏，无卡死 |
+| 9 | 错误日志查询页面 | 访问 ErrorLogView | 列表正常显示，筛选正常 |
+| 10 | 写日志失败不影响响应 | 模拟 DB 不可用 → 触发错误 | 正常返回 500，不崩溃 |
 
 ---
 
