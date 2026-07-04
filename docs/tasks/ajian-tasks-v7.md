@@ -360,3 +360,28 @@ app.use('/api/admin/reports', requireAuthWithTenant, customReportRouter);
 | 8 | 客户拜访→跟进→关联订单 | customer_visit → follow_up |
 | 9 | 平台评价→回复→同步 | platform_review → reply |
 | 10 | 部门管理→权限继承 | sys_department + sys_user_role |
+
+---
+
+## 🔴 紧急修复任务 (2026-07-04 凌舟分派)
+
+### 修复-1: auto-routes.ts 导致测试全部 404 [P0] — 预计 0.5天
+
+**问题**：合并 4 个分支后，`npx vitest run` 125 个测试失败，全部返回 404。
+
+**根因**：`backend/src/shared/auto-routes.ts` 第 79 行硬编码 `.routes.ts` 过滤器：
+```typescript
+files = readdirSync(routesDir).filter((f) => f.endsWith(".routes.ts"));
+```
+vitest 加载 `dist/` 编译产物时，`dist/routes/` 只有 `.routes.js` 文件，过滤器返回空数组 → 0 条路由注册 → 全部 404。
+
+**修复方向**：
+1. 让 `auto-routes.ts` 动态检测文件扩展名：`.routes.ts` 或 `.routes.js`
+2. 或确保 vitest 始终从 TypeScript 源码（而非 dist/ 编译产物）加载模块
+3. 测试验证：`npx vitest run` 从 125 失败 → 目标 ≤ 10 失败
+
+**次要修复**：`tests/auth.test.ts` 中 `jest.fn()` → `vi.fn()`（4 个测试失败，vitest 不兼容 jest）
+
+**关联文件**：
+- `backend/src/shared/auto-routes.ts`
+- `backend/tests/auth.test.ts`

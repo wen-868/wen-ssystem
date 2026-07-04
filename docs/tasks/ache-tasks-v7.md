@@ -681,3 +681,38 @@ app.use('/api/admin/marketing/group-buy', requireAuthWithTenant, groupBuyRouter)
 | 8 | 会话管理→踢下线→过期 | user_session 强制删除 + 过期自动清理 |
 | 9 | 平台对账→差异计算 | platform_reconciliation diff_count/diff_amount |
 | 10 | 报表权限矩阵→保存→验证 | report_permission_matrix 批量保存 → 按角色查询 |
+
+---
+
+## 🔴 紧急修复任务 (2026-07-04 凌舟分派)
+
+### 修复-1: 官网 onepan.cn 无法访问 [P0] — 预计 1天
+
+**问题**：合并后 `www.onepan.cn` 和 `onepan.cn` 无法访问。
+
+**根因分析**：
+
+1. **Nginx 重复 server_name 冲突**：`deploy/nginx-production.conf` 中两个 server 块争抢 `www.onepan.cn onepan.cn`（第 14 行和第 150 行），Nginx 只使用第一个匹配的，第二个是死代码。
+
+2. **两套官网方案并存**：
+   - 方案 A：`www/index.html`（静态 HTML，深色主题）→ 部署到 `/var/www/www-onepan`
+   - 方案 B：`website/`（Vue+Vite 项目，浅色蓝色主题）→ 部署到 `/var/www/website`
+   - 当前 `auto-deploy.sh` 部署方案 A，但方案 B 的 nginx 配置是死代码
+
+3. **website/ Vue 项目未构建**：`website/dist/` 目录不存在，从未执行过 `npm run build`
+
+4. **部署脚本缺失官网步骤**：`deploy-production.sh` 不包含官网文件部署
+
+**修复方向**：
+1. 与墨确认最终官网方案（静态 HTML 还是 Vue 项目），统一为一套
+2. 修复 `deploy/nginx-production.conf`：删除重复的 server 块，保留唯一 onepan.cn 配置
+3. 如是 Vue 方案：构建 `website/` → `npm run build` 生成 `dist/`
+4. 补充 `deploy-production.sh` 和 `auto-deploy.sh` 的官网部署步骤
+5. 验证：`nginx -t` 无语法错误，访问 `onepan.cn` 正常显示页面
+
+**关联文件**：
+- `deploy/nginx-production.conf`
+- `deploy/deploy-production.sh`
+- `deploy/auto-deploy.sh`
+- `website/` 或 `www/index.html`（取决于最终方案）
+- `landing-page/index.html`（来自 oqrXJp 分支的另一个设计稿，可参考）
