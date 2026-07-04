@@ -7,6 +7,7 @@ import { initDatabase } from "./shared/db.js";
 import { errorHandler } from "./shared/error-handler.js";
 import { requireAuth } from "./shared/auth.js";
 import { tenantMiddleware } from "./shared/tenant.js";
+import { runMigrations } from "./shared/migration.js";
 import { adminRouter } from "./routes/admin.routes.js";
 import * as authController from "./controllers/admin/auth.controller.js";
 import { storeRouter } from "./routes/store.routes.js";
@@ -208,6 +209,7 @@ app.use(errorHandler);
 async function start() {
   if (!env.USE_MOCK_DB) {
     await initDatabase();
+    await runMigrations();
   }
 
   app.listen(env.PORT, () => {
