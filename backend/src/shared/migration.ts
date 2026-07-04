@@ -311,6 +311,30 @@ export async function runMigrations(): Promise<void> {
       ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='用户建议反馈表'
     `, "创建 system_feedback 表");
 
+    // 5.5.6 创建 error_logs 表（错误收集系统）
+    await safeExec(conn, `
+      CREATE TABLE IF NOT EXISTS error_logs (
+        id BIGINT UNSIGNED NOT NULL AUTO_INCREMENT COMMENT '错误日志ID',
+        error_type VARCHAR(64) NOT NULL COMMENT '错误类型',
+        severity VARCHAR(16) NOT NULL DEFAULT 'ERROR' COMMENT '严重级别: WARN/ERROR/FATAL',
+        message TEXT NOT NULL COMMENT '错误消息',
+        stack TEXT DEFAULT NULL COMMENT '堆栈信息',
+        request_url VARCHAR(500) DEFAULT NULL COMMENT '请求URL',
+        request_method VARCHAR(10) DEFAULT NULL COMMENT '请求方法',
+        status_code INT DEFAULT NULL COMMENT 'HTTP状态码',
+        user_id BIGINT UNSIGNED DEFAULT NULL COMMENT '用户ID',
+        tenant_id VARCHAR(36) NOT NULL DEFAULT 'default' COMMENT '租户ID',
+        source VARCHAR(16) NOT NULL DEFAULT 'backend' COMMENT '来源: backend/frontend',
+        created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+        PRIMARY KEY (id),
+        KEY idx_error_logs_type (error_type),
+        KEY idx_error_logs_severity (severity),
+        KEY idx_error_logs_source (source),
+        KEY idx_error_logs_tenant (tenant_id),
+        KEY idx_error_logs_created (created_at)
+      ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='错误日志表'
+    `, "创建 error_logs 表");
+
     // ============================================================
     // 第6步：执行其他 SQL 迁移文件
     // ============================================================
