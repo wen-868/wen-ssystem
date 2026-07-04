@@ -1,11 +1,11 @@
-import { Router } from "express";
+import { Router, type Request, type Response } from "express";
 import { requireAuthWithTenant } from "../shared/auth.js";
 import * as service from "../services/admin/unit-group.service.js";
 
 export const unitGroupRouter = Router();
 
 // 单位组列表
-unitGroupRouter.get("/", requireAuthWithTenant, async (req, res) => {
+unitGroupRouter.get("/", requireAuthWithTenant, async (req: Request, res: Response) => {
   try {
     const data = await service.listGroups((req as any).tenantId, {
       keyword: req.query.keyword as string | undefined,
@@ -18,7 +18,7 @@ unitGroupRouter.get("/", requireAuthWithTenant, async (req, res) => {
 });
 
 // 获取单个单位组
-unitGroupRouter.get("/:id", requireAuthWithTenant, async (req, res) => {
+unitGroupRouter.get("/:id", requireAuthWithTenant, async (req: Request, res: Response) => {
   try {
     const data = await service.getGroup(Number(req.params.id), (req as any).tenantId);
     res.json({ code: "0", data });
@@ -28,7 +28,7 @@ unitGroupRouter.get("/:id", requireAuthWithTenant, async (req, res) => {
 });
 
 // 创建单位组
-unitGroupRouter.post("/", requireAuthWithTenant, async (req, res) => {
+unitGroupRouter.post("/", requireAuthWithTenant, async (req: Request, res: Response) => {
   try {
     const data = await service.createGroup(req.body, (req as any).tenantId);
     res.json({ code: "0", data });
@@ -38,7 +38,7 @@ unitGroupRouter.post("/", requireAuthWithTenant, async (req, res) => {
 });
 
 // 更新单位组
-unitGroupRouter.put("/:id", requireAuthWithTenant, async (req, res) => {
+unitGroupRouter.put("/:id", requireAuthWithTenant, async (req: Request, res: Response) => {
   try {
     const data = await service.updateGroup(Number(req.params.id), req.body, (req as any).tenantId);
     res.json({ code: "0", data });
@@ -48,7 +48,7 @@ unitGroupRouter.put("/:id", requireAuthWithTenant, async (req, res) => {
 });
 
 // 删除单位组
-unitGroupRouter.delete("/:id", requireAuthWithTenant, async (req, res) => {
+unitGroupRouter.delete("/:id", requireAuthWithTenant, async (req: Request, res: Response) => {
   try {
     const data = await service.deleteGroup(Number(req.params.id), (req as any).tenantId);
     res.json({ code: "0", data });

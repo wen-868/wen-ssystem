@@ -2104,17 +2104,17 @@ export const fetchExpiringSubscriptions = () => api.get('/admin/subscriptions/ex
 export const fetchExpiredSubscriptions = () => api.get('/admin/subscriptions/expired');
 
 // ==================== 秒杀 ====================
-export function getSeckillProducts(params?: any) { return api.get('/admin/marketing/seckill', { params }); }
-export function createSeckillProduct(data: any) { return api.post('/admin/marketing/seckill', data); }
-export function updateSeckillProduct(id: number, data: any) { return api.put(`/admin/marketing/seckill/${id}`, data); }
-export function deleteSeckillProduct(id: number) { return api.delete(`/admin/marketing/seckill/${id}`); }
+export async function getSeckillProducts(params?: any) { const { data } = await api.get('/admin/marketing/seckill', { params }); return data.data; }
+export async function createSeckillProduct(data: any) { const { data: res } = await api.post('/admin/marketing/seckill', data); return res.data; }
+export async function updateSeckillProduct(id: number, data: any) { const { data: res } = await api.put(`/admin/marketing/seckill/${id}`, data); return res.data; }
+export async function deleteSeckillProduct(id: number) { const { data: res } = await api.delete(`/admin/marketing/seckill/${id}`); return res.data; }
 
 // ==================== 拼团 ====================
-export function getGroupBuyActivities(params?: any) { return api.get('/admin/marketing/group-buy/activities', { params }); }
-export function createGroupBuyActivity(data: any) { return api.post('/admin/marketing/group-buy/activities', data); }
-export function updateGroupBuyActivity(id: number, data: any) { return api.put(`/admin/marketing/group-buy/activities/${id}`, data); }
-export function deleteGroupBuyActivity(id: number) { return api.delete(`/admin/marketing/group-buy/activities/${id}`); }
-export function getGroupBuyRecords(params?: any) { return api.get('/admin/marketing/group-buy/records', { params }); }
+export async function getGroupBuyActivities(params?: any) { const { data } = await api.get('/admin/marketing/group-buy/activities', { params }); return data.data; }
+export async function createGroupBuyActivity(data: any) { const { data: res } = await api.post('/admin/marketing/group-buy/activities', data); return res.data; }
+export async function updateGroupBuyActivity(id: number, data: any) { const { data: res } = await api.put(`/admin/marketing/group-buy/activities/${id}`, data); return res.data; }
+export async function deleteGroupBuyActivity(id: number) { const { data: res } = await api.delete(`/admin/marketing/group-buy/activities/${id}`); return res.data; }
+export async function getGroupBuyRecords(params?: any) { const { data } = await api.get('/admin/marketing/group-buy/records', { params }); return data.data; }
 
 // ==================== Tenant APIs ====================
 export const fetchTenants = (params: any) => api.get('/admin/tenants', { params });
@@ -2126,27 +2126,27 @@ export const fetchTenantModules = (id: number) => api.get(`/admin/tenants/${id}/
 export const setTenantModules = (id: number, data: any) => api.put(`/admin/tenants/${id}/modules`, data);
 
 // ==================== 积分商城 ====================
-export function getPointsMallItems(params?: any) { return api.get('/admin/points-mall/items', { params }); }
-export function createPointsMallItem(data: any) { return api.post('/admin/points-mall/items', data); }
-export function updatePointsMallItem(id: number, data: any) { return api.put(`/admin/points-mall/items/${id}`, data); }
-export function deletePointsMallItem(id: number) { return api.delete(`/admin/points-mall/items/${id}`); }
-export function getPointsMallOrders(params?: any) { return api.get('/admin/points-mall/orders', { params }); }
-export function deliverPointsMallOrder(id: number, data?: any) { return api.post(`/admin/points-mall/orders/${id}/deliver`, data); }
+export async function getPointsMallItems(params?: any) { const { data } = await api.get('/admin/points-mall/items', { params }); return data.data; }
+export async function createPointsMallItem(data: any) { const { data: res } = await api.post('/admin/points-mall/items', data); return res.data; }
+export async function updatePointsMallItem(id: number, data: any) { const { data: res } = await api.put(`/admin/points-mall/items/${id}`, data); return res.data; }
+export async function deletePointsMallItem(id: number) { const { data: res } = await api.delete(`/admin/points-mall/items/${id}`); return res.data; }
+export async function getPointsMallOrders(params?: any) { const { data } = await api.get('/admin/points-mall/orders', { params }); return data.data; }
+export async function deliverPointsMallOrder(id: number, data?: any) { const { data: res } = await api.post(`/admin/points-mall/orders/${id}/deliver`, data); return res.data; }
 
 // ==================== 营销素材 ====================
-export function getMarketingAssets(params?: any) { return api.get('/admin/marketing-assets', { params }); }
-export function createMarketingAsset(data: any) { return api.post('/admin/marketing-assets', data); }
-export function updateMarketingAsset(id: number, data: any) { return api.put(`/admin/marketing-assets/${id}`, data); }
-export function deleteMarketingAsset(id: number) { return api.delete(`/admin/marketing-assets/${id}`); }
+export async function getMarketingAssets(params?: any) { const { data } = await api.get('/admin/marketing-assets', { params }); return data.data; }
+export async function createMarketingAsset(data: any) { const { data: res } = await api.post('/admin/marketing-assets', data); return res.data; }
+export async function updateMarketingAsset(id: number, data: any) { const { data: res } = await api.put(`/admin/marketing-assets/${id}`, data); return res.data; }
+export async function deleteMarketingAsset(id: number) { const { data: res } = await api.delete(`/admin/marketing-assets/${id}`); return res.data; }
 
 // ==================== 部门管理 ====================
-export function getDepartments(params?: any) { return api.get('/admin/departments', { params }); }
-export function getDepartmentTree() { return api.get('/admin/departments/tree'); }
-export function createDepartment(data: any) { return api.post('/admin/departments', data); }
-export function updateDepartment(id: number, data: any) { return api.put(`/admin/departments/${id}`, data); }
-export function deleteDepartment(id: number) { return api.delete(`/admin/departments/${id}`); }
+export async function getDepartments(params?: any) { const { data } = await api.get('/admin/departments', { params }); return data.data; }
+export async function getDepartmentTree() { const { data } = await api.get('/admin/departments/tree'); return data.data; }
+export async function createDepartment(data: any) { const { data: res } = await api.post('/admin/departments', data); return res.data; }
+export async function updateDepartment(id: number, data: any) { const { data: res } = await api.put(`/admin/departments/${id}`, data); return res.data; }
+export async function deleteDepartment(id: number) { const { data: res } = await api.delete(`/admin/departments/${id}`); return res.data; }
 
 // ==================== 用户会话 ====================
-export function getUserSessions(params?: any) { return api.get('/admin/sessions', { params }); }
-export function revokeSession(id: number) { return api.delete(`/admin/sessions/${id}`); }
-export function getOnlineStats() { return api.get('/admin/sessions/stats'); }
+export async function getUserSessions(params?: any) { const { data } = await api.get('/admin/sessions', { params }); return data.data; }
+export async function revokeSession(id: number) { const { data: res } = await api.delete(`/admin/sessions/${id}`); return res.data; }
+export async function getOnlineStats() { const { data } = await api.get('/admin/sessions/stats'); return data.data; }
