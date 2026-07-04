@@ -36,13 +36,8 @@ export const updateStaff = asyncHandler(async (req, res) => {
 });
 
 export const disableStaff = asyncHandler(async (req, res) => {
-  try {
-    const result = await employeeService.disableStaff(Number(req.params.id), req.user!.tenantId);
-    res.json(ok(result));
-  } catch (e: any) {
-    const statusCode = e.statusCode || 400;
-    res.status(statusCode).json({ code: String(statusCode), message: e.message });
-  }
+  const result = await employeeService.disableStaff(Number(req.params.id), req.user!.tenantId);
+  res.json(ok(result));
 });
 
 export const listStores = asyncHandler(async (req, res) => {
@@ -68,39 +63,24 @@ export const createStore = asyncHandler(async (req, res) => {
 });
 
 export const getStore = asyncHandler(async (req, res) => {
-  try {
-    const result = await employeeService.getStore(Number(req.params.id), req.tenantId!);
-    res.json(ok(result));
-  } catch (e: any) {
-    const statusCode = e.statusCode || 400;
-    res.status(statusCode).json({ code: String(statusCode), message: e.message });
-  }
+  const result = await employeeService.getStore(Number(req.params.id), req.tenantId!);
+  res.json(ok(result));
 });
 
 export const updateStore = asyncHandler(async (req, res) => {
-  try {
-    const body = z.object({
-      name: z.string().optional(),
-      address: z.string().optional(),
-      phone: z.string().optional(),
-      status: z.number().optional(),
-      longitude: z.number().optional(),
-      latitude: z.number().optional()
-    }).parse(req.body);
-    const result = await employeeService.updateStore(Number(req.params.id), body, req.tenantId!);
-    res.json(ok(result));
-  } catch (e: any) {
-    const statusCode = e.statusCode || 400;
-    res.status(statusCode).json({ code: String(statusCode), message: e.message });
-  }
+  const body = z.object({
+    name: z.string().optional(),
+    address: z.string().optional(),
+    phone: z.string().optional(),
+    status: z.number().optional(),
+    longitude: z.number().optional(),
+    latitude: z.number().optional()
+  }).parse(req.body);
+  const result = await employeeService.updateStore(Number(req.params.id), body, req.tenantId!);
+  res.json(ok(result));
 });
 
 export const getStoreWechatInfo = asyncHandler(async (req, res) => {
-  try {
-    const result = await employeeService.getStoreWechatInfo(Number(req.params.id), req.tenantId!);
-    res.json(ok(result));
-  } catch (e: any) {
-    const statusCode = e.statusCode || 400;
-    res.status(statusCode).json({ code: String(statusCode), message: e.message });
-  }
+  const result = await employeeService.getStoreWechatInfo(Number(req.params.id), req.tenantId!);
+  res.json(ok(result));
 });

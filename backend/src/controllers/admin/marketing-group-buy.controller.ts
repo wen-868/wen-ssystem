@@ -32,57 +32,37 @@ export const listGroupBuys = asyncHandler(async (req, res) => {
 });
 
 export const getGroupBuy = asyncHandler(async (req, res) => {
-  try {
-    const result = await groupBuyService.getGroupBuy(Number(req.params.id), req.tenantId!);
-    res.json(ok(result));
-  } catch (e: any) {
-    const statusCode = e.statusCode || 400;
-    res.status(statusCode).json({ code: String(statusCode), message: e.message });
-  }
+  const result = await groupBuyService.getGroupBuy(Number(req.params.id), req.tenantId!);
+  res.json(ok(result));
 });
 
 export const updateGroupBuy = asyncHandler(async (req, res) => {
-  try {
-    const body = z.object({
-      name: z.string().min(1).max(128).optional(),
-      productId: z.number().int().positive().optional(),
-      skuId: z.number().int().positive().optional(),
-      groupPrice: z.number().min(0).optional(),
-      originalPrice: z.number().min(0).optional(),
-      minGroupSize: z.number().int().min(2).optional(),
-      maxGroupSize: z.number().int().min(2).optional(),
-      timeLimitHours: z.number().int().min(1).optional(),
-      totalStock: z.number().int().min(0).optional(),
-      startTime: z.string().min(1).optional(),
-      endTime: z.string().min(1).optional()
-    }).parse(req.body);
+  const body = z.object({
+    name: z.string().min(1).max(128).optional(),
+    productId: z.number().int().positive().optional(),
+    skuId: z.number().int().positive().optional(),
+    groupPrice: z.number().min(0).optional(),
+    originalPrice: z.number().min(0).optional(),
+    minGroupSize: z.number().int().min(2).optional(),
+    maxGroupSize: z.number().int().min(2).optional(),
+    timeLimitHours: z.number().int().min(1).optional(),
+    totalStock: z.number().int().min(0).optional(),
+    startTime: z.string().min(1).optional(),
+    endTime: z.string().min(1).optional()
+  }).parse(req.body);
 
-    const result = await groupBuyService.updateGroupBuy(Number(req.params.id), body, req.tenantId!);
-    res.json(ok(result));
-  } catch (e: any) {
-    const statusCode = e.statusCode || 400;
-    res.status(statusCode).json({ code: String(statusCode), message: e.message });
-  }
+  const result = await groupBuyService.updateGroupBuy(Number(req.params.id), body, req.tenantId!);
+  res.json(ok(result));
 });
 
 export const deleteGroupBuy = asyncHandler(async (req, res) => {
-  try {
-    const result = await groupBuyService.deleteGroupBuy(Number(req.params.id), req.tenantId!);
-    res.json(ok(result));
-  } catch (e: any) {
-    const statusCode = e.statusCode || 400;
-    res.status(statusCode).json({ code: String(statusCode), message: e.message });
-  }
+  const result = await groupBuyService.deleteGroupBuy(Number(req.params.id), req.tenantId!);
+  res.json(ok(result));
 });
 
 export const activateGroupBuy = asyncHandler(async (req, res) => {
-  try {
-    const result = await groupBuyService.activateGroupBuy(Number(req.params.id), req.tenantId!);
-    res.json(ok(result));
-  } catch (e: any) {
-    const statusCode = e.statusCode || 400;
-    res.status(statusCode).json({ code: String(statusCode), message: e.message });
-  }
+  const result = await groupBuyService.activateGroupBuy(Number(req.params.id), req.tenantId!);
+  res.json(ok(result));
 });
 
 export const listGroupBuyTeams = asyncHandler(async (req, res) => {
@@ -107,54 +87,39 @@ export const listActiveGroupBuys = asyncHandler(async (req, res) => {
 });
 
 export const createGroupBuyTeam = asyncHandler(async (req, res) => {
-  try {
-    const activityId = Number(req.params.id);
-    const body = z.object({
-      userId: z.number().int().positive(),
-      quantity: z.number().int().min(1).default(1)
-    }).parse(req.body);
+  const activityId = Number(req.params.id);
+  const body = z.object({
+    userId: z.number().int().positive(),
+    quantity: z.number().int().min(1).default(1)
+  }).parse(req.body);
 
-    const result = await groupBuyService.createGroupBuyTeam(
-      activityId,
-      body.userId,
-      body.quantity,
-      req.tenantId!
-    );
-    res.json(ok(result));
-  } catch (e: any) {
-    const statusCode = e.statusCode || 400;
-    res.status(statusCode).json({ code: String(statusCode), message: e.message });
-  }
+  const result = await groupBuyService.createGroupBuyTeam(
+    activityId,
+    body.userId,
+    body.quantity,
+    req.tenantId!
+  );
+  res.json(ok(result));
 });
 
 export const getGroupBuyTeam = asyncHandler(async (req, res) => {
-  try {
-    const teamId = Number(req.params.teamId);
-    const result = await groupBuyService.getGroupBuyTeam(teamId, req.tenantId!);
-    res.json(ok(result));
-  } catch (e: any) {
-    const statusCode = e.statusCode || 400;
-    res.status(statusCode).json({ code: String(statusCode), message: e.message });
-  }
+  const teamId = Number(req.params.teamId);
+  const result = await groupBuyService.getGroupBuyTeam(teamId, req.tenantId!);
+  res.json(ok(result));
 });
 
 export const joinGroupBuyTeam = asyncHandler(async (req, res) => {
-  try {
-    const teamId = Number(req.params.teamId);
-    const body = z.object({
-      userId: z.number().int().positive(),
-      quantity: z.number().int().min(1).default(1)
-    }).parse(req.body);
+  const teamId = Number(req.params.teamId);
+  const body = z.object({
+    userId: z.number().int().positive(),
+    quantity: z.number().int().min(1).default(1)
+  }).parse(req.body);
 
-    const result = await groupBuyService.joinGroupBuyTeam(
-      teamId,
-      body.userId,
-      body.quantity,
-      req.tenantId!
-    );
-    res.json(ok(result));
-  } catch (e: any) {
-    const statusCode = e.statusCode || 400;
-    res.status(statusCode).json({ code: String(statusCode), message: e.message });
-  }
+  const result = await groupBuyService.joinGroupBuyTeam(
+    teamId,
+    body.userId,
+    body.quantity,
+    req.tenantId!
+  );
+  res.json(ok(result));
 });

@@ -15,17 +15,13 @@ export const receiveTransferOrder = asyncHandler(async (req, res) => {
   const tenantId = req.tenantId!;
   const userId = req.user!.id;
 
-  try {
-    const result = await transferExecutionService.receiveTransferOrder(
-      id,
-      tenantId,
-      userId ?? null,
-      body.items
-    );
-    res.json(ok(result));
-  } catch (e: any) {
-    res.status(400).json(fail(e.message));
-  }
+  const result = await transferExecutionService.receiveTransferOrder(
+    id,
+    tenantId,
+    userId ?? null,
+    body.items
+  );
+  res.json(ok(result));
 });
 
 export const getInTransitOrders = asyncHandler(async (req, res) => {

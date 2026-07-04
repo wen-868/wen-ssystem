@@ -1,4 +1,5 @@
 import { Router } from "express";
+import type { RouteConfig } from "../shared/auto-routes.js";
 import { requireAuthWithTenant } from "../shared/auth.js";
 import * as cartController from "../controllers/admin/cart.controller.js";
 
@@ -17,3 +18,9 @@ miniappCartRouter.get("/cart/count", requireAuthWithTenant, cartController.getCa
 // 结算
 miniappCartRouter.post("/checkout/preview", requireAuthWithTenant, cartController.checkoutPreview);
 miniappCartRouter.post("/checkout/create", requireAuthWithTenant, cartController.createCheckoutOrder);
+// ========== 路由自动发现配置 ==========
+export const routeConfig: RouteConfig = {
+  prefix: "/api/miniapp/cart",
+  router: miniappCartRouter,
+  auth: "requireAuthWithTenant",
+};

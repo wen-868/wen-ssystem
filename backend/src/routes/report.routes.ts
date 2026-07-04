@@ -1,4 +1,5 @@
 import { Router } from "express";
+import type { RouteConfig } from "../shared/auto-routes.js";
 import { requireAuthWithTenant } from "../shared/auth.js";
 import * as salesReportController from "../controllers/admin/report/sales-report.controller.js";
 import * as customerReportController from "../controllers/admin/report/customer-report.controller.js";
@@ -52,3 +53,9 @@ reportRouter.get("/customer/lost-customer", requireAuthWithTenant, reportCustome
 
 // ==================== Phase 9: 报表导出 ====================
 reportRouter.post("/export", requireAuthWithTenant, reportExportController.exportReport);
+// ========== 路由自动发现配置 ==========
+export const routeConfig: RouteConfig = {
+  prefix: "/api/admin/reports",
+  router: reportRouter,
+  auth: "requireAuthWithTenant",
+};

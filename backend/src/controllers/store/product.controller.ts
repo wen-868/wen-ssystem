@@ -30,10 +30,6 @@ export const getCategories = asyncHandler(async (req, res) => {
 
 export const getProductDetail = asyncHandler(async (req, res) => {
   const tenantId = req.tenantId!;
-  try {
-    const result = await productService.getProductDetail(Number(req.params.spuId), tenantId);
-    res.json(ok(result));
-  } catch (e: any) {
-    res.status(e.statusCode || 404).json({ code: String(e.statusCode || 404), message: e.message });
-  }
+  const result = await productService.getProductDetail(Number(req.params.spuId), tenantId);
+  res.json(ok(result));
 });

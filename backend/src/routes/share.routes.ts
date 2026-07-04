@@ -1,4 +1,5 @@
 import { Router } from "express";
+import type { RouteConfig } from "../shared/auto-routes.js";
 import { asyncHandler } from "../shared/async-handler.js";
 import { query, queryOne } from "../shared/db.js";
 import { makeBizNo } from "../shared/id.js";
@@ -191,3 +192,9 @@ shareRouter.post("/collections/:token/wx-notify", asyncHandler(async (req, res) 
   }
   res.json(ok({ payNo, linkNo: link.link_no, status: newStatus, paidAmount: newPaid }));
 }));
+// ========== 路由自动发现配置 ==========
+export const routeConfig: RouteConfig = {
+  prefix: "/api/share",
+  router: shareRouter,
+  auth: "none",
+};

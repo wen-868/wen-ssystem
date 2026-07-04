@@ -1,4 +1,5 @@
 import { Router } from "express";
+import type { RouteConfig } from "../shared/auto-routes.js";
 import { requireAuthWithTenant } from "../shared/auth.js";
 import * as customerVisitController from "../controllers/admin/customer-visit.controller.js";
 
@@ -30,3 +31,9 @@ customerVisitRouter.get("/follow-up/pending", requireAuthWithTenant, customerVis
 
 // 拜访统计
 customerVisitRouter.get("/statistics", requireAuthWithTenant, customerVisitController.getVisitStatistics);
+// ========== 路由自动发现配置 ==========
+export const routeConfig: RouteConfig = {
+  prefix: "/api/admin/customer-visits",
+  router: customerVisitRouter,
+  auth: "requireAuthWithTenant",
+};

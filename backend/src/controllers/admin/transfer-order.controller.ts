@@ -20,20 +20,16 @@ export const createTransferOrder = asyncHandler(async (req, res) => {
   const tenantId = req.tenantId!;
   const userId = req.user!.id;
 
-  try {
-    const result = await transferOrderService.createTransferOrder({
-      tenantId,
-      userId: userId ?? null,
-      fromStoreId: body.fromStoreId,
-      toStoreId: body.toStoreId,
-      expectedDate: body.expectedDate,
-      remark: body.remark,
-      items: body.items
-    });
-    res.json(ok(result));
-  } catch (e: any) {
-    res.status(400).json(fail(e.message));
-  }
+  const result = await transferOrderService.createTransferOrder({
+    tenantId,
+    userId: userId ?? null,
+    fromStoreId: body.fromStoreId,
+    toStoreId: body.toStoreId,
+    expectedDate: body.expectedDate,
+    remark: body.remark,
+    items: body.items
+  });
+  res.json(ok(result));
 });
 
 export const listTransferOrders = asyncHandler(async (req, res) => {
@@ -71,16 +67,8 @@ export const getTransferOrderDetail = asyncHandler(async (req, res) => {
   const id = z.coerce.number().parse(req.params.id);
   const tenantId = req.tenantId!;
 
-  try {
-    const result = await transferOrderService.getTransferOrderDetail(id, tenantId);
-    res.json(ok(result));
-  } catch (e: any) {
-    if (e.statusCode === 404) {
-      res.status(404).json(fail(e.message));
-    } else {
-      res.status(400).json(fail(e.message));
-    }
-  }
+  const result = await transferOrderService.getTransferOrderDetail(id, tenantId);
+  res.json(ok(result));
 });
 
 export const updateTransferOrder = asyncHandler(async (req, res) => {
@@ -98,28 +86,20 @@ export const updateTransferOrder = asyncHandler(async (req, res) => {
 
   const tenantId = req.tenantId!;
 
-  try {
-    const result = await transferOrderService.updateTransferOrder(id, tenantId, {
-      expectedDate: body.expectedDate,
-      remark: body.remark,
-      items: body.items
-    });
-    res.json(ok(result));
-  } catch (e: any) {
-    res.status(400).json(fail(e.message));
-  }
+  const result = await transferOrderService.updateTransferOrder(id, tenantId, {
+    expectedDate: body.expectedDate,
+    remark: body.remark,
+    items: body.items
+  });
+  res.json(ok(result));
 });
 
 export const submitTransferOrder = asyncHandler(async (req, res) => {
   const id = z.coerce.number().parse(req.params.id);
   const tenantId = req.tenantId!;
 
-  try {
-    const result = await transferOrderService.submitTransferOrder(id, tenantId);
-    res.json(ok(result));
-  } catch (e: any) {
-    res.status(400).json(fail(e.message));
-  }
+  const result = await transferOrderService.submitTransferOrder(id, tenantId);
+  res.json(ok(result));
 });
 
 export const approveTransferOrder = asyncHandler(async (req, res) => {
@@ -127,22 +107,14 @@ export const approveTransferOrder = asyncHandler(async (req, res) => {
   const tenantId = req.tenantId!;
   const userId = req.user!.id;
 
-  try {
-    const result = await transferOrderService.approveTransferOrder(id, tenantId, userId ?? null);
-    res.json(ok(result));
-  } catch (e: any) {
-    res.status(400).json(fail(e.message));
-  }
+  const result = await transferOrderService.approveTransferOrder(id, tenantId, userId ?? null);
+  res.json(ok(result));
 });
 
 export const rejectTransferOrder = asyncHandler(async (req, res) => {
   const id = z.coerce.number().parse(req.params.id);
   const tenantId = req.tenantId!;
 
-  try {
-    const result = await transferOrderService.rejectTransferOrder(id, tenantId);
-    res.json(ok(result));
-  } catch (e: any) {
-    res.status(400).json(fail(e.message));
-  }
+  const result = await transferOrderService.rejectTransferOrder(id, tenantId);
+  res.json(ok(result));
 });

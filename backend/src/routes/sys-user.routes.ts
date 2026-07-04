@@ -1,4 +1,5 @@
 import { Router } from "express";
+import type { RouteConfig } from "../shared/auto-routes.js";
 import { z } from "zod";
 import { requireAuthWithTenant } from "../shared/auth.js";
 import { asyncHandler } from "../shared/async-handler.js";
@@ -238,3 +239,9 @@ sysUserRouter.delete("/:id", requireAuthWithTenant, asyncHandler(async (req, res
 
   res.json(ok({ deleted: true }));
 }));
+// ========== 路由自动发现配置 ==========
+export const routeConfig: RouteConfig = {
+  prefix: "/api/admin/sys-users",
+  router: sysUserRouter,
+  auth: "requireAuthWithTenant",
+};

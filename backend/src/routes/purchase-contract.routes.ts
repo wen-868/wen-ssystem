@@ -1,4 +1,5 @@
 import { Router } from "express";
+import type { RouteConfig } from "../shared/auto-routes.js";
 import { requireAuthWithTenant } from "../shared/auth.js";
 import * as purchaseContractController from "../controllers/admin/purchase-contract.controller.js";
 
@@ -9,3 +10,9 @@ purchaseContractRouter.post("/", requireAuthWithTenant, purchaseContractControll
 purchaseContractRouter.put("/:contractNo", requireAuthWithTenant, purchaseContractController.updatePurchaseContract);
 purchaseContractRouter.delete("/:contractNo", requireAuthWithTenant, purchaseContractController.deletePurchaseContract);
 purchaseContractRouter.post("/:contractNo/upload", requireAuthWithTenant, purchaseContractController.uploadContractFile);
+// ========== 路由自动发现配置 ==========
+export const routeConfig: RouteConfig = {
+  prefix: "/api/admin/purchase-contracts",
+  router: purchaseContractRouter,
+  auth: "requireAuthWithTenant",
+};

@@ -18,43 +18,27 @@ export const createCustomer = asyncHandler(async (req, res) => {
 });
 
 export const getCustomerDetail = asyncHandler(async (req, res) => {
-  try {
-    const result = await customerService.getCustomerDetail(req.tenantId!, Number(req.params.memberId));
-    res.json(ok(result));
-  } catch (e: any) {
-    res.status(e.statusCode || 404).json({ code: String(e.statusCode || 404), message: e.message });
-  }
+  const result = await customerService.getCustomerDetail(req.tenantId!, Number(req.params.memberId));
+  res.json(ok(result));
 });
 
 export const updateCustomer = asyncHandler(async (req, res) => {
-  try {
-    const result = await customerService.updateCustomer(req.tenantId!, Number(req.params.memberId), req.body);
-    res.json(ok(result));
-  } catch (e: any) {
-    res.status(e.statusCode || 404).json({ code: String(e.statusCode || 404), message: e.message });
-  }
+  const result = await customerService.updateCustomer(req.tenantId!, Number(req.params.memberId), req.body);
+  res.json(ok(result));
 });
 
 export const disableCustomer = asyncHandler(async (req, res) => {
-  try {
-    const result = await customerService.disableCustomer(req.tenantId!, Number(req.params.memberId));
-    res.json(ok(result));
-  } catch (e: any) {
-    res.status(e.statusCode || 400).json({ code: String(e.statusCode || 400), message: e.message });
-  }
+  const result = await customerService.disableCustomer(req.tenantId!, Number(req.params.memberId));
+  res.json(ok(result));
 });
 
 export const assignStaffToCustomer = asyncHandler(async (req, res) => {
-  try {
-    const result = await customerService.assignStaffToCustomer(
-      req.tenantId!,
-      Number(req.params.memberId),
-      Number(req.body.staffId)
-    );
-    res.json(ok(result));
-  } catch (e: any) {
-    res.status(e.statusCode || 404).json({ code: String(e.statusCode || 404), message: e.message });
-  }
+  const result = await customerService.assignStaffToCustomer(
+    req.tenantId!,
+    Number(req.params.memberId),
+    Number(req.body.staffId)
+  );
+  res.json(ok(result));
 });
 
 export const getCustomerPriceHistory = asyncHandler(async (req, res) => {

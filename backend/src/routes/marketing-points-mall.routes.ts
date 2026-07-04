@@ -1,4 +1,5 @@
 import { Router } from "express";
+import type { RouteConfig } from "../shared/auto-routes.js";
 import { requireAuthWithTenant } from "../shared/auth.js";
 import * as pointsMallController from "../controllers/admin/marketing-points-mall.controller.js";
 
@@ -16,3 +17,9 @@ marketingPointsMallRouter.get("/exchange-records/:id", requireAuthWithTenant, po
 marketingPointsMallRouter.post("/exchange", requireAuthWithTenant, pointsMallController.exchangeProduct);
 marketingPointsMallRouter.post("/exchange-records/:id/cancel", requireAuthWithTenant, pointsMallController.cancelExchange);
 marketingPointsMallRouter.post("/exchange-records/:id/confirm", requireAuthWithTenant, pointsMallController.confirmExchange);
+// ========== 路由自动发现配置 ==========
+export const routeConfig: RouteConfig = {
+  prefix: "/api/admin/marketing/points-mall",
+  router: marketingPointsMallRouter,
+  auth: "requireAuthWithTenant",
+};

@@ -54,12 +54,8 @@ export const initCredit = asyncHandler(async (req, res) => {
     overdueFreezeDays: z.number().int().min(0).default(15)
   }).parse(req.body);
 
-  try {
-    const result = await creditLimitService.initCredit(customerId, body, ctx);
-    res.json(ok(result));
-  } catch (e: any) {
-    res.status(e.statusCode || 400).json({ code: String(e.statusCode || 400), message: e.message });
-  }
+  const result = await creditLimitService.initCredit(customerId, body, ctx);
+  res.json(ok(result));
 });
 
 export const checkCredit = asyncHandler(async (req, res) => {
@@ -67,12 +63,8 @@ export const checkCredit = asyncHandler(async (req, res) => {
   const customerId = Number(req.params.customerId);
   const amount = Number(req.query.amount || 0);
 
-  try {
-    const result = await creditLimitService.checkCredit(customerId, amount, ctx);
-    res.json(ok(result));
-  } catch (e: any) {
-    res.status(e.statusCode || 404).json({ code: String(e.statusCode || 404), message: e.message });
-  }
+  const result = await creditLimitService.checkCredit(customerId, amount, ctx);
+  res.json(ok(result));
 });
 
 export const occupyCredit = asyncHandler(async (req, res) => {
@@ -84,12 +76,8 @@ export const occupyCredit = asyncHandler(async (req, res) => {
     orderNo: z.string().max(64)
   }).parse(req.body);
 
-  try {
-    const result = await creditLimitService.occupyCredit(customerId, body, ctx);
-    res.json(ok(result));
-  } catch (e: any) {
-    res.status(e.statusCode || 400).json({ code: String(e.statusCode || 400), message: e.message });
-  }
+  const result = await creditLimitService.occupyCredit(customerId, body, ctx);
+  res.json(ok(result));
 });
 
 export const releaseCredit = asyncHandler(async (req, res) => {
@@ -102,12 +90,8 @@ export const releaseCredit = asyncHandler(async (req, res) => {
     remark: z.string().max(255).default("释放额度")
   }).parse(req.body);
 
-  try {
-    const result = await creditLimitService.releaseCredit(customerId, body, ctx);
-    res.json(ok(result));
-  } catch (e: any) {
-    res.status(e.statusCode || 400).json({ code: String(e.statusCode || 400), message: e.message });
-  }
+  const result = await creditLimitService.releaseCredit(customerId, body, ctx);
+  res.json(ok(result));
 });
 
 export const freezeCredit = asyncHandler(async (req, res) => {
@@ -119,12 +103,8 @@ export const freezeCredit = asyncHandler(async (req, res) => {
     reason: z.string().max(255).default("手动冻结")
   }).parse(req.body);
 
-  try {
-    const result = await creditLimitService.freezeCredit(customerId, body, ctx);
-    res.json(ok(result));
-  } catch (e: any) {
-    res.status(e.statusCode || 400).json({ code: String(e.statusCode || 400), message: e.message });
-  }
+  const result = await creditLimitService.freezeCredit(customerId, body, ctx);
+  res.json(ok(result));
 });
 
 export const unfreezeCredit = asyncHandler(async (req, res) => {
@@ -136,12 +116,8 @@ export const unfreezeCredit = asyncHandler(async (req, res) => {
     reason: z.string().max(255).default("手动解冻")
   }).parse(req.body);
 
-  try {
-    const result = await creditLimitService.unfreezeCredit(customerId, body, ctx);
-    res.json(ok(result));
-  } catch (e: any) {
-    res.status(e.statusCode || 400).json({ code: String(e.statusCode || 400), message: e.message });
-  }
+  const result = await creditLimitService.unfreezeCredit(customerId, body, ctx);
+  res.json(ok(result));
 });
 
 export const getCollectionList = asyncHandler(async (req, res) => {
@@ -178,12 +154,8 @@ export const createCollection = asyncHandler(async (req, res) => {
     nextFollowUpDate: z.string().nullable().optional()
   }).parse(req.body);
 
-  try {
-    const result = await creditCollectionService.createCollection(body, ctx);
-    res.json(ok(result));
-  } catch (e: any) {
-    res.status(e.statusCode || 400).json({ code: String(e.statusCode || 400), message: e.message });
-  }
+  const result = await creditCollectionService.createCollection(body, ctx);
+  res.json(ok(result));
 });
 
 export const updateCollection = asyncHandler(async (req, res) => {
@@ -198,12 +170,8 @@ export const updateCollection = asyncHandler(async (req, res) => {
     collectionContent: z.string().optional()
   }).parse(req.body);
 
-  try {
-    const result = await creditCollectionService.updateCollection(collectionId, body, ctx);
-    res.json(ok(result));
-  } catch (e: any) {
-    res.status(e.statusCode || 404).json({ code: String(e.statusCode || 404), message: e.message });
-  }
+  const result = await creditCollectionService.updateCollection(collectionId, body, ctx);
+  res.json(ok(result));
 });
 
 export const getOverdueCustomers = asyncHandler(async (req, res) => {
@@ -248,12 +216,8 @@ export const evaluateCredit = asyncHandler(async (req, res) => {
   const ctx = getServiceContext(req);
   const customerId = Number(req.params.customerId);
 
-  try {
-    const result = await creditScoringService.evaluateCreditScore(customerId, ctx);
-    res.json(ok(result));
-  } catch (e: any) {
-    res.status(e.statusCode || 400).json({ code: String(e.statusCode || 400), message: e.message });
-  }
+  const result = await creditScoringService.evaluateCreditScore(customerId, ctx);
+  res.json(ok(result));
 });
 
 /** 赊销拦截检查 */
@@ -262,12 +226,8 @@ export const checkCreditIntercept = asyncHandler(async (req, res) => {
   const customerId = Number(req.params.customerId);
   const amount = Number(req.query.amount || 0);
 
-  try {
-    const result = await creditScoringService.interceptCredit(customerId, amount, ctx);
-    res.json(ok(result));
-  } catch (e: any) {
-    res.status(e.statusCode || 400).json({ code: String(e.statusCode || 400), message: e.message });
-  }
+  const result = await creditScoringService.interceptCredit(customerId, amount, ctx);
+  res.json(ok(result));
 });
 
 /** 自动授信初始化 */
@@ -275,12 +235,8 @@ export const autoInitCredit = asyncHandler(async (req, res) => {
   const ctx = getServiceContext(req);
   const customerId = Number(req.params.customerId);
 
-  try {
-    const result = await creditScoringService.autoInitCredit(customerId, ctx);
-    res.json(ok(result));
-  } catch (e: any) {
-    res.status(e.statusCode || 400).json({ code: String(e.statusCode || 400), message: e.message });
-  }
+  const result = await creditScoringService.autoInitCredit(customerId, ctx);
+  res.json(ok(result));
 });
 
 /** 自动生成催收任务 */

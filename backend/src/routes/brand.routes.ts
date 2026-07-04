@@ -1,4 +1,5 @@
 import { Router } from "express";
+import type { RouteConfig } from "../shared/auto-routes.js";
 import { z } from "zod";
 import { asyncHandler } from "../shared/async-handler.js";
 import { requireAuthWithTenant } from "../shared/auth.js";
@@ -53,3 +54,9 @@ brandRouter.delete("/:id", requireAuthWithTenant, asyncHandler(async (req, res) 
     res.status(e.statusCode || 400).json({ code: String(e.statusCode || 400), message: e.message });
   }
 }));
+// ========== 路由自动发现配置 ==========
+export const routeConfig: RouteConfig = {
+  prefix: "/api/admin/brands",
+  router: brandRouter,
+  auth: "requireAuthWithTenant",
+};

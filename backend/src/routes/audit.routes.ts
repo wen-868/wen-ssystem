@@ -1,4 +1,5 @@
 import { Router } from "express";
+import type { RouteConfig } from "../shared/auto-routes.js";
 import { requireAuthWithTenant } from "../shared/auth.js";
 import * as ctrl from "../controllers/audit.controller.js";
 import { writeAuditLog } from "../services/admin/audit.service.js";
@@ -28,3 +29,9 @@ export interface LogAuditParams {
 export function logAudit(p: LogAuditParams): void {
   writeAuditLog(p);
 }
+// ========== 路由自动发现配置 ==========
+export const routeConfig: RouteConfig = {
+  prefix: "/api/admin/audit-logs",
+  router: auditRouter,
+  auth: "requireAuthWithTenant",
+};

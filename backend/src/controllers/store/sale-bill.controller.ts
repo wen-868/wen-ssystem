@@ -55,22 +55,18 @@ export const createCollectionLink = asyncHandler(async (req, res) => {
     expireHours: z.number().default(72),
     remark: z.string().optional()
   }).parse(req.body);
-  try {
-    const result = await saleBillService.createCollectionLink({
-      billNo: req.params.billNo,
-      shareChannel: body.shareChannel,
-      amount: body.amount,
-      taxEnabled: body.taxEnabled,
-      taxRate: body.taxRate,
-      expireHours: body.expireHours,
-      remark: body.remark,
-      userId: req.user!.id ?? 0,
-      tenantId: req.tenantId!
-    });
-    res.json(ok(result));
-  } catch (e: any) {
-    res.status(400).json({ code: "400", message: e.message });
-  }
+  const result = await saleBillService.createCollectionLink({
+    billNo: req.params.billNo,
+    shareChannel: body.shareChannel,
+    amount: body.amount,
+    taxEnabled: body.taxEnabled,
+    taxRate: body.taxRate,
+    expireHours: body.expireHours,
+    remark: body.remark,
+    userId: req.user!.id ?? 0,
+    tenantId: req.tenantId!
+  });
+  res.json(ok(result));
 });
 
 export const offlinePayment = asyncHandler(async (req, res) => {
@@ -79,17 +75,13 @@ export const offlinePayment = asyncHandler(async (req, res) => {
     paymentMethod: z.enum(["CASH", "TRANSFER", "OTHER_WECHAT", "ALIPAY"]),
     remark: z.string().optional()
   }).parse(req.body);
-  try {
-    const result = await saleBillService.offlinePayment({
-      billNo: req.params.billNo, amount: body.amount,
-      paymentMethod: body.paymentMethod, remark: body.remark,
-      userId: req.user!.id ?? 0, username: req.user!.username ?? "系统用户",
-      tenantId: req.tenantId!
-    });
-    res.json(ok(result));
-  } catch (e: any) {
-    res.status(400).json({ code: "400", message: e.message });
-  }
+  const result = await saleBillService.offlinePayment({
+    billNo: req.params.billNo, amount: body.amount,
+    paymentMethod: body.paymentMethod, remark: body.remark,
+    userId: req.user!.id ?? 0, username: req.user!.username ?? "系统用户",
+    tenantId: req.tenantId!
+  });
+  res.json(ok(result));
 });
 
 export const paymentOnSaleBill = asyncHandler(async (req, res) => {
@@ -98,17 +90,13 @@ export const paymentOnSaleBill = asyncHandler(async (req, res) => {
     paymentMethod: z.enum(["CASH", "TRANSFER", "OTHER_WECHAT", "ALIPAY"]),
     remark: z.string().optional()
   }).parse(req.body);
-  try {
-    const result = await saleBillService.paymentOnSaleBill({
-      billNo: req.params.billNo, amount: body.amount,
-      paymentMethod: body.paymentMethod, remark: body.remark,
-      userId: req.user!.id ?? 0, username: req.user!.username ?? "系统用户",
-      tenantId: req.tenantId!
-    });
-    res.json(ok(result));
-  } catch (e: any) {
-    res.status(400).json({ code: "400", message: e.message });
-  }
+  const result = await saleBillService.paymentOnSaleBill({
+    billNo: req.params.billNo, amount: body.amount,
+    paymentMethod: body.paymentMethod, remark: body.remark,
+    userId: req.user!.id ?? 0, username: req.user!.username ?? "系统用户",
+    tenantId: req.tenantId!
+  });
+  res.json(ok(result));
 });
 
 export const listOverdueBills = asyncHandler(async (req, res) => {

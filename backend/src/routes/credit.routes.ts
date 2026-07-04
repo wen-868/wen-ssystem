@@ -1,4 +1,5 @@
 import { Router } from "express";
+import type { RouteConfig } from "../shared/auto-routes.js";
 import { requireAuthWithTenant } from "../shared/auth.js";
 import * as creditController from "../controllers/admin/credit.controller.js";
 import * as creditAdjustController from "../controllers/admin/credit-adjust.controller.js";
@@ -47,3 +48,9 @@ creditRouter.get("/collections/statistics", requireAuthWithTenant, creditControl
 // ========================================================================
 creditRouter.get("/risk-customers", requireAuthWithTenant, creditController.getRiskCustomers);
 creditRouter.get("/risk-list", requireAuthWithTenant, creditController.getRiskCustomers);
+// ========== 路由自动发现配置 ==========
+export const routeConfig: RouteConfig = {
+  prefix: "/api/admin/credits",
+  router: creditRouter,
+  auth: "requireAuthWithTenant",
+};

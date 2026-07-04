@@ -14,12 +14,8 @@ export function createPaymentController(wechatPay: WechatPay) {
       description: z.string().optional()
     }).parse(req.body);
 
-    try {
-      const result = await service.createPaymentOrder(body, req.tenantId!, wechatPay);
-      res.json(ok(result));
-    } catch (error) {
-      res.status(500).json({ code: "500", message: (error as Error).message });
-    }
+    const result = await service.createPaymentOrder(body, req.tenantId!, wechatPay);
+    res.json(ok(result));
   });
 
   const handleWxCallback = asyncHandler(async (req, res) => {
@@ -41,18 +37,14 @@ export function createPaymentController(wechatPay: WechatPay) {
       reason: z.string()
     }).parse(req.body);
 
-    try {
-      const result = await service.createRefund(body, req.tenantId!, wechatPay);
+    const result = await service.createRefund(body, req.tenantId!, wechatPay);
 
-      if (!result.success) {
-        res.status(Number(result.code) || 400).json({ code: result.code, message: result.message });
-        return;
-      }
-
-      res.json(ok(result.data));
-    } catch (error) {
-      res.status(500).json({ code: "500", message: (error as Error).message });
+    if (!result.success) {
+      res.status(Number(result.code) || 400).json({ code: result.code, message: result.message });
+      return;
     }
+
+    res.json(ok(result.data));
   });
 
   const getPaymentOrder = asyncHandler(async (req, res) => {

@@ -63,12 +63,8 @@ export const getOrders = asyncHandler(async (req, res) => {
 
 export const getOrderDetail = asyncHandler(async (req, res) => {
   const anonymousMemberId = String(req.headers["x-anonymous-member-id"] || "");
-  try {
-    const result = await service.getOrderDetail(req.tenantId!, req.params.orderNo, anonymousMemberId);
-    res.json(ok(result));
-  } catch (e: any) {
-    res.status(e.statusCode || 404).json({ code: String(e.statusCode || 404), message: e.message });
-  }
+  const result = await service.getOrderDetail(req.tenantId!, req.params.orderNo, anonymousMemberId);
+  res.json(ok(result));
 });
 
 export const confirmReceipt = asyncHandler(async (req, res) => {
@@ -86,10 +82,6 @@ export const getStatements = asyncHandler(async (req, res) => {
 
 export const getStatementDetail = asyncHandler(async (req, res) => {
   const anonymousMemberId = String(req.headers["x-anonymous-member-id"] || "");
-  try {
-    const result = await service.getStatementDetail(req.tenantId!, req.params.id, anonymousMemberId);
-    res.json(ok(result));
-  } catch (e: any) {
-    res.status(e.statusCode || 404).json({ code: String(e.statusCode || 404), message: e.message });
-  }
+  const result = await service.getStatementDetail(req.tenantId!, req.params.id, anonymousMemberId);
+  res.json(ok(result));
 });

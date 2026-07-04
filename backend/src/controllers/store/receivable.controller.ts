@@ -21,18 +21,14 @@ export const paymentOnReceivable = asyncHandler(async (req, res) => {
     paymentMethod: z.enum(["CASH", "TRANSFER", "OTHER_WECHAT", "ALIPAY"]),
     remark: z.string().optional()
   }).parse(req.body);
-  try {
-    const result = await svc.paymentOnReceivable({
-      receivableNo: req.params.receivableNo,
-      amount: body.amount,
-      paymentMethod: body.paymentMethod,
-      remark: body.remark,
-      tenantId: req.tenantId!
-    });
-    res.json(ok(result));
-  } catch (e: any) {
-    res.status(400).json({ code: "400", message: e.message });
-  }
+  const result = await svc.paymentOnReceivable({
+    receivableNo: req.params.receivableNo,
+    amount: body.amount,
+    paymentMethod: body.paymentMethod,
+    remark: body.remark,
+    tenantId: req.tenantId!
+  });
+  res.json(ok(result));
 });
 
 export const getDashboard = asyncHandler(async (req, res) => {

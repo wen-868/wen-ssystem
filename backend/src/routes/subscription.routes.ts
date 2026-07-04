@@ -1,4 +1,5 @@
 import { Router } from "express";
+import type { RouteConfig } from "../shared/auto-routes.js";
 import { requireAuthWithTenant } from "../shared/auth.js";
 import * as subscriptionPlanController from "../controllers/admin/subscription-plan.controller.js";
 import * as subscriptionController from "../controllers/admin/subscription.controller.js";
@@ -24,3 +25,9 @@ subscriptionRouter.post("/:subscriptionId/pay", requireAuthWithTenant, subscript
 subscriptionRouter.post("/:subscriptionId/renew", requireAuthWithTenant, subscriptionRenewalController.renewSubscription);
 subscriptionRouter.get("/expiring/list", requireAuthWithTenant, subscriptionRenewalController.listExpiring);
 subscriptionRouter.get("/expired/list", requireAuthWithTenant, subscriptionRenewalController.listExpired);
+// ========== 路由自动发现配置 ==========
+export const routeConfig: RouteConfig = {
+  prefix: "/api/admin/subscriptions",
+  router: subscriptionRouter,
+  auth: "requireAuthWithTenant",
+};

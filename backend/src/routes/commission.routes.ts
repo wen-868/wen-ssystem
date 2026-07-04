@@ -1,4 +1,5 @@
 import { Router } from "express";
+import type { RouteConfig } from "../shared/auto-routes.js";
 import { requireAuthWithTenant } from "../shared/auth.js";
 import * as commissionController from "../controllers/admin/commission.controller.js";
 
@@ -14,3 +15,9 @@ commissionRouter.delete("/rules/:id", requireAuthWithTenant, commissionControlle
 commissionRouter.post("/calculate", requireAuthWithTenant, commissionController.calculateCommissions);
 commissionRouter.post("/settle", requireAuthWithTenant, commissionController.settleCommissions);
 commissionRouter.get("/records", requireAuthWithTenant, commissionController.listCommissionRecords);
+// ========== 路由自动发现配置 ==========
+export const routeConfig: RouteConfig = {
+  prefix: "/api/admin/commission",
+  router: commissionRouter,
+  auth: "requireAuthWithTenant",
+};

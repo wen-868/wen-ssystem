@@ -1,4 +1,5 @@
 import { Router } from "express";
+import type { RouteConfig } from "../shared/auto-routes.js";
 import { requireAuthWithTenant } from "../shared/auth.js";
 import * as svcController from "../controllers/admin/store-value-card.controller.js";
 
@@ -12,3 +13,9 @@ storeValueCardRouter.post("/:cardNo/refund", requireAuthWithTenant, svcControlle
 storeValueCardRouter.post("/:cardNo/freeze", requireAuthWithTenant, svcController.freezeCard);
 storeValueCardRouter.post("/:cardNo/unfreeze", requireAuthWithTenant, svcController.unfreezeCard);
 storeValueCardRouter.get("/:cardNo/transactions", requireAuthWithTenant, svcController.listStoreValueTransactions);
+// ========== 路由自动发现配置 ==========
+export const routeConfig: RouteConfig = {
+  prefix: "/api/admin/store-value-cards",
+  router: storeValueCardRouter,
+  auth: "requireAuthWithTenant",
+};

@@ -4,6 +4,7 @@ import { requireAuthWithTenant } from "../shared/auth.js";
 import { asyncHandler } from "../shared/async-handler.js";
 import { ok, fail } from "../shared/response.js";
 import * as ctrl from "../controllers/aftersale.controller.js";
+import type { RouteConfig } from "../shared/auto-routes.js";
 
 // ========== 售后工单 - 小程序端路由 ==========
 export const miniappAftersaleRouter = Router();
@@ -113,3 +114,9 @@ adminAftersaleRouter.post("/aftersales/:id/complete", requireAuthWithTenant, asy
 
 // GET /aftersales/statistics - 售后统计
 adminAftersaleRouter.get("/aftersales/statistics", requireAuthWithTenant, ctrl.adminGetStatistics);
+
+// ========== 路由自动发现配置 ==========
+export const routeConfigs: RouteConfig[] = [
+  { prefix: "/api/miniapp/aftersales", router: miniappAftersaleRouter, auth: "none" },
+  { prefix: "/api/admin/aftersales", router: adminAftersaleRouter, auth: "requireAuthWithTenant" },
+];

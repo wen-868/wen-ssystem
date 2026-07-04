@@ -3,12 +3,8 @@ import { ok } from "../../shared/response.js";
 import * as authService from "../../services/store/auth.service.js";
 
 export const login = asyncHandler(async (req, res) => {
-  try {
-    const result = await authService.login(req.body.username, req.body.password);
-    res.json(ok(result));
-  } catch (e: any) {
-    res.status(401).json({ code: "401", message: e.message });
-  }
+  const result = await authService.login(req.body.username, req.body.password);
+  res.json(ok(result));
 });
 
 export const getMe = asyncHandler(async (req, res) => {

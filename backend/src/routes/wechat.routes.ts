@@ -1,4 +1,5 @@
 import { Router } from "express";
+import type { RouteConfig } from "../shared/auto-routes.js";
 import { z } from "zod";
 import jwt from "jsonwebtoken";
 import crypto from "crypto";
@@ -93,3 +94,9 @@ wechatRouter.post("/auth/bind", requireWxAuth, ctrl.bind);
 
 // ==================== 解除绑定 ====================
 wechatRouter.post("/auth/unbind", requireWxAuth, ctrl.unbind);
+// ========== 路由自动发现配置 ==========
+export const routeConfig: RouteConfig = {
+  prefix: "/api/miniapp/wechat",
+  router: wechatRouter,
+  auth: "none",
+};

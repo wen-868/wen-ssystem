@@ -78,12 +78,8 @@ export const getCollectionLinkStats = asyncHandler(async (req, res) => {
 });
 
 export const revokeCollectionLink = asyncHandler(async (req, res) => {
-  try {
-    const result = await reportService.revokeCollectionLink(req.params.linkNo, req.tenantId!);
-    res.json(ok(result));
-  } catch (e: any) {
-    res.status(400).json({ code: "400", message: e.message });
-  }
+  const result = await reportService.revokeCollectionLink(req.params.linkNo, req.tenantId!);
+  res.json(ok(result));
 });
 
 export const batchCreateCollectionLinks = asyncHandler(async (req, res) => {

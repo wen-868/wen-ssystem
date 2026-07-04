@@ -1,4 +1,5 @@
 import { Router } from "express";
+import type { RouteConfig } from "../shared/auto-routes.js";
 import { requireAuth, requireAuthWithTenant } from "../shared/auth.js";
 import * as authController from "../controllers/admin/auth.controller.js";
 import * as employeeController from "../controllers/admin/employee.controller.js";
@@ -131,3 +132,9 @@ adminRouter.get("/finance/cash-flow", requireAuthWithTenant, financeDashboardCon
 adminRouter.get("/finance/profit-trend", requireAuthWithTenant, financeDashboardController.getProfitTrend);
 adminRouter.get("/finance/top-customers-ar", requireAuthWithTenant, financeDashboardController.getTopCustomersAR);
 adminRouter.get("/finance/top-suppliers-ap", requireAuthWithTenant, financeDashboardController.getTopSuppliersAP);
+// ========== 路由自动发现配置 ==========
+export const routeConfig: RouteConfig = {
+  prefix: "/api/admin",
+  router: adminRouter,
+  auth: "requireAuthWithTenant",
+};

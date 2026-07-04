@@ -1,6 +1,7 @@
 import { Router } from "express";
 import { requireAuthWithTenant } from "../shared/auth.js";
 import * as ctrl from "../controllers/stock-check.controller.js";
+import type { RouteConfig } from "../shared/auto-routes.js";
 
 // ==================== Admin 盘点路由 ====================
 export const adminStockCheckRouter = Router();
@@ -24,3 +25,9 @@ storeStockCheckRouter.get("/my", ctrl.getMyList);
 storeStockCheckRouter.get("/:id", ctrl.getDetail);
 storeStockCheckRouter.put("/:id/items/:itemId", ctrl.updateItem);
 storeStockCheckRouter.post("/:id/submit", ctrl.submit);
+
+// ========== 路由自动发现配置 ==========
+export const routeConfigs: RouteConfig[] = [
+  { prefix: "/api/admin/stock-checks", router: adminStockCheckRouter, auth: "requireAuthWithTenant" },
+  { prefix: "/api/store/stock-checks", router: storeStockCheckRouter, auth: "requireAuthWithTenant" },
+];

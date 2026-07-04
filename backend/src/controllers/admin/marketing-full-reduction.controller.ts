@@ -33,66 +33,41 @@ export const listFullReductions = asyncHandler(async (req, res) => {
 });
 
 export const getFullReduction = asyncHandler(async (req, res) => {
-  try {
-    const result = await fullReductionService.getFullReduction(Number(req.params.id), req.tenantId!);
-    res.json(ok(result));
-  } catch (e: any) {
-    const statusCode = e.statusCode || 400;
-    res.status(statusCode).json({ code: String(statusCode), message: e.message });
-  }
+  const result = await fullReductionService.getFullReduction(Number(req.params.id), req.tenantId!);
+  res.json(ok(result));
 });
 
 export const updateFullReduction = asyncHandler(async (req, res) => {
-  try {
-    const body = z.object({
-      name: z.string().min(1).max(128).optional(),
-      rules: z.array(z.object({
-        minAmount: z.number().min(0),
-        reduceAmount: z.number().min(0)
-      })).min(1).optional(),
-      applicableScope: z.enum(["ALL", "CATEGORY", "BRAND", "SKU"]).optional(),
-      applicableIds: z.array(z.number().int()).nullable().optional(),
-      startTime: z.string().min(1).optional(),
-      endTime: z.string().min(1).optional(),
-      priority: z.number().int().optional(),
-      stackable: z.boolean().optional(),
-      description: z.string().max(512).optional()
-    }).parse(req.body);
+  const body = z.object({
+    name: z.string().min(1).max(128).optional(),
+    rules: z.array(z.object({
+      minAmount: z.number().min(0),
+      reduceAmount: z.number().min(0)
+    })).min(1).optional(),
+    applicableScope: z.enum(["ALL", "CATEGORY", "BRAND", "SKU"]).optional(),
+    applicableIds: z.array(z.number().int()).nullable().optional(),
+    startTime: z.string().min(1).optional(),
+    endTime: z.string().min(1).optional(),
+    priority: z.number().int().optional(),
+    stackable: z.boolean().optional(),
+    description: z.string().max(512).optional()
+  }).parse(req.body);
 
-    const result = await fullReductionService.updateFullReduction(Number(req.params.id), body, req.tenantId!);
-    res.json(ok(result));
-  } catch (e: any) {
-    const statusCode = e.statusCode || 400;
-    res.status(statusCode).json({ code: String(statusCode), message: e.message });
-  }
+  const result = await fullReductionService.updateFullReduction(Number(req.params.id), body, req.tenantId!);
+  res.json(ok(result));
 });
 
 export const deleteFullReduction = asyncHandler(async (req, res) => {
-  try {
-    const result = await fullReductionService.deleteFullReduction(Number(req.params.id), req.tenantId!);
-    res.json(ok(result));
-  } catch (e: any) {
-    const statusCode = e.statusCode || 400;
-    res.status(statusCode).json({ code: String(statusCode), message: e.message });
-  }
+  const result = await fullReductionService.deleteFullReduction(Number(req.params.id), req.tenantId!);
+  res.json(ok(result));
 });
 
 export const activateFullReduction = asyncHandler(async (req, res) => {
-  try {
-    const result = await fullReductionService.activateFullReduction(Number(req.params.id), req.tenantId!);
-    res.json(ok(result));
-  } catch (e: any) {
-    const statusCode = e.statusCode || 400;
-    res.status(statusCode).json({ code: String(statusCode), message: e.message });
-  }
+  const result = await fullReductionService.activateFullReduction(Number(req.params.id), req.tenantId!);
+  res.json(ok(result));
 });
 
 export const pauseFullReduction = asyncHandler(async (req, res) => {
-  try {
-    const result = await fullReductionService.pauseFullReduction(Number(req.params.id), req.tenantId!);
-    res.json(ok(result));
-  } catch (e: any) {
-    const statusCode = e.statusCode || 400;
-    res.status(statusCode).json({ code: String(statusCode), message: e.message });
-  }
+  const result = await fullReductionService.pauseFullReduction(Number(req.params.id), req.tenantId!);
+  res.json(ok(result));
 });

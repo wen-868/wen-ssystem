@@ -1,4 +1,5 @@
 import { Router } from "express";
+import type { RouteConfig } from "../shared/auto-routes.js";
 import { requireAuthWithTenant } from "../shared/auth.js";
 import * as todoCtrl from "../controllers/admin/todo.controller.js";
 import * as quickEntryCtrl from "../controllers/admin/quick-entry.controller.js";
@@ -28,3 +29,9 @@ workbenchRouter.get("/wb-notifications/type-stats", requireAuthWithTenant, notif
 workbenchRouter.put("/wb-notifications/:id/read", requireAuthWithTenant, notificationCtrl.markAsRead);
 workbenchRouter.post("/wb-notifications/read-all", requireAuthWithTenant, notificationCtrl.markAllRead);
 workbenchRouter.delete("/wb-notifications/:id", requireAuthWithTenant, notificationCtrl.deleteNotification);
+// ========== 路由自动发现配置 ==========
+export const routeConfig: RouteConfig = {
+  prefix: "/api/admin",
+  router: workbenchRouter,
+  auth: "requireAuthWithTenant",
+};

@@ -17,21 +17,13 @@ export const createRole = asyncHandler(async (req, res) => {
     dataScope: z.enum(["ALL", "DEPARTMENT", "STORE", "SELF"]).default("SELF")
   }).parse(req.body);
 
-  try {
-    const record = await service.createRole(body, req.tenantId!);
-    res.json(ok(record));
-  } catch (e: any) {
-    res.status(e.statusCode || 400).json({ code: String(e.statusCode || 400), message: e.message });
-  }
+  const record = await service.createRole(body, req.tenantId!);
+  res.json(ok(record));
 });
 
 export const getRoleDetail = asyncHandler(async (req, res) => {
-  try {
-    const record = await service.getRoleDetail(Number(req.params.id), req.tenantId!);
-    res.json(ok(record));
-  } catch (e: any) {
-    res.status(e.statusCode || 404).json({ code: String(e.statusCode || 404), message: e.message });
-  }
+  const record = await service.getRoleDetail(Number(req.params.id), req.tenantId!);
+  res.json(ok(record));
 });
 
 export const updateRole = asyncHandler(async (req, res) => {
@@ -43,21 +35,13 @@ export const updateRole = asyncHandler(async (req, res) => {
     status: z.enum(["ACTIVE", "DISABLED"]).optional()
   }).parse(req.body);
 
-  try {
-    const record = await service.updateRole(Number(req.params.id), body, req.tenantId!);
-    res.json(ok(record));
-  } catch (e: any) {
-    res.status(e.statusCode || 400).json({ code: String(e.statusCode || 400), message: e.message });
-  }
+  const record = await service.updateRole(Number(req.params.id), body, req.tenantId!);
+  res.json(ok(record));
 });
 
 export const deleteRole = asyncHandler(async (req, res) => {
-  try {
-    const result = await service.deleteRole(Number(req.params.id), req.tenantId!);
-    res.json(ok(result));
-  } catch (e: any) {
-    res.status(e.statusCode || 400).json({ code: String(e.statusCode || 400), message: e.message });
-  }
+  const result = await service.deleteRole(Number(req.params.id), req.tenantId!);
+  res.json(ok(result));
 });
 
 export const getUserRoles = asyncHandler(async (req, res) => {
@@ -70,10 +54,6 @@ export const setUserRoles = asyncHandler(async (req, res) => {
     roleIds: z.array(z.number().int().positive())
   }).parse(req.body);
 
-  try {
-    const records = await service.setUserRoles(Number(req.params.userId), body.roleIds, req.tenantId!);
-    res.json(ok(records));
-  } catch (e: any) {
-    res.status(e.statusCode || 400).json({ code: String(e.statusCode || 400), message: e.message });
-  }
+  const records = await service.setUserRoles(Number(req.params.userId), body.roleIds, req.tenantId!);
+  res.json(ok(records));
 });

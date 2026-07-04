@@ -1,6 +1,7 @@
 import { Router } from "express";
 import { requireAuthWithTenant } from "../shared/auth.js";
 import * as ctrl from "../controllers/store-control.controller.js";
+import type { RouteConfig } from "../shared/auto-routes.js";
 
 // ==================== 管理端路由器（admin） ====================
 
@@ -145,3 +146,9 @@ async function runStoreControlCheck() {
     });
   }
 }
+
+// ========== 路由自动发现配置 ==========
+export const routeConfigs: RouteConfig[] = [
+  { prefix: "/api/admin/store-control", router: adminStoreControlRouter, auth: "requireAuthWithTenant" },
+  { prefix: "/api/store/control", router: storeStoreControlRouter, auth: "requireAuthWithTenant" },
+];

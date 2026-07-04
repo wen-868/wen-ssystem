@@ -1,4 +1,5 @@
 import { Router } from "express";
+import type { RouteConfig } from "../shared/auto-routes.js";
 import { z } from "zod";
 import { asyncHandler } from "../shared/async-handler.js";
 import { requireAuthWithTenant } from "../shared/auth.js";
@@ -123,3 +124,8 @@ saleReturnRouter.get("/sale-bills/:billNo", requireAuthWithTenant, asyncHandler(
 
   res.json(ok(bill));
 }));
+// ========== 路由自动发现配置 ==========
+export const routeConfigs: RouteConfig[] = [
+  { prefix: "/api/store/sale-returns", router: saleReturnRouter, auth: "requireAuthWithTenant" },
+  { prefix: "/api/admin/sale-returns", router: saleReturnRouter, auth: "requireAuthWithTenant" },
+];

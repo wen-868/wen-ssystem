@@ -1,4 +1,5 @@
 import { Router } from "express";
+import type { RouteConfig } from "../shared/auto-routes.js";
 import { requireAuthWithTenant } from "../shared/auth.js";
 import * as controller from "../controllers/admin/inventory-batch.controller.js";
 import * as service from "../services/admin/inventory-batch.service.js";
@@ -59,3 +60,9 @@ export function startExpiryScanner() {
   }, 60 * 1000);
   (timer as any).unref();
 }
+// ========== 路由自动发现配置 ==========
+export const routeConfig: RouteConfig = {
+  prefix: "/api/admin/inventory-batch",
+  router: inventoryBatchRouter,
+  auth: "requireAuthWithTenant",
+};

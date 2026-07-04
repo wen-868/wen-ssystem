@@ -1,4 +1,5 @@
 import { Router } from "express";
+import type { RouteConfig } from "../shared/auto-routes.js";
 import { requireAuthWithTenant } from "../shared/auth.js";
 import * as platformIntegrationController from "../controllers/instant-retail/platform-integration.controller.js";
 import * as orderReceivingController from "../controllers/instant-retail/order-receiving.controller.js";
@@ -100,3 +101,9 @@ storeRouter.post("/orders/:platformOrderId/confirm", orderReceivingController.co
 storeRouter.post("/orders/:platformOrderId/cancel", orderReceivingController.cancelOrder);
 storeRouter.post("/orders/:platformOrderId/start-delivery", fulfillmentController.startDelivery);
 storeRouter.post("/orders/:platformOrderId/complete-delivery", fulfillmentController.completeDelivery);
+// ========== 路由自动发现配置 ==========
+export const routeConfig: RouteConfig = {
+  prefix: "/api/instant-retail",
+  router: instantRetailRouter,
+  auth: "requireAuthWithTenant",
+};

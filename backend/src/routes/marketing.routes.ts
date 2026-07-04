@@ -7,6 +7,7 @@ import * as flashSaleController from "../controllers/admin/marketing-flash-sale.
 import * as groupBuyController from "../controllers/admin/marketing-group-buy.controller.js";
 import * as stackRuleController from "../controllers/admin/marketing-stack-rule.controller.js";
 import * as calculationController from "../controllers/admin/marketing-calculation.controller.js";
+import type { RouteConfig } from "../shared/auto-routes.js";
 
 export const adminMarketingRouter = Router();
 export const miniappMarketingRouter = Router();
@@ -95,3 +96,9 @@ miniappMarketingRouter.post("/group-buys/teams/join", groupBuyController.joinGro
 
 // 小程序 - 试算
 miniappMarketingRouter.post("/calculate", calculationController.calculatePromotion);
+
+// ========== 路由自动发现配置 ==========
+export const routeConfigs: RouteConfig[] = [
+  { prefix: "/api/admin/marketing", router: adminMarketingRouter, auth: "requireAuthWithTenant" },
+  { prefix: "/api/miniapp/marketing", router: miniappMarketingRouter, auth: "none" },
+];

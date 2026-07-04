@@ -16,12 +16,8 @@ export const list = asyncHandler(async (req, res) => {
 });
 
 export const getDetail = asyncHandler(async (req, res) => {
-  try {
-    const result = await service.getDetail(req.params.stockNo, req.tenantId!);
-    res.json(ok(result));
-  } catch (e: any) {
-    res.status(e.statusCode || 404).json({ code: String(e.statusCode || 404), message: e.message });
-  }
+  const result = await service.getDetail(req.params.stockNo, req.tenantId!);
+  res.json(ok(result));
 });
 
 export const create = asyncHandler(async (req, res) => {
@@ -30,19 +26,11 @@ export const create = asyncHandler(async (req, res) => {
 });
 
 export const approve = asyncHandler(async (req, res) => {
-  try {
-    const result = await service.approve(req.params.stockNo, req.tenantId!, req.user!.id, req.user!.username);
-    res.json(ok(result));
-  } catch (e: any) {
-    res.status(e.statusCode || 400).json({ code: String(e.statusCode || 400), message: e.message });
-  }
+  const result = await service.approve(req.params.stockNo, req.tenantId!, req.user!.id, req.user!.username);
+  res.json(ok(result));
 });
 
 export const voidStock = asyncHandler(async (req, res) => {
-  try {
-    const result = await service.voidStock(req.params.stockNo, req.tenantId!, req.user!.id, req.user!.username);
-    res.json(ok(result));
-  } catch (e: any) {
-    res.status(e.statusCode || 400).json({ code: String(e.statusCode || 400), message: e.message });
-  }
+  const result = await service.voidStock(req.params.stockNo, req.tenantId!, req.user!.id, req.user!.username);
+  res.json(ok(result));
 });

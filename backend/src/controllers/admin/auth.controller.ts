@@ -14,12 +14,8 @@ function validatePasswordStrength(password: string): { valid: boolean; message?:
 
 export const login = asyncHandler(async (req, res) => {
   const body = z.object({ username: z.string(), password: z.string() }).parse(req.body);
-  try {
-    const result = await authService.login(body.username, body.password);
-    res.json(ok(result));
-  } catch (e: any) {
-    res.status(401).json({ code: "401", message: e.message });
-  }
+  const result = await authService.login(body.username, body.password);
+  res.json(ok(result));
 });
 
 export const changePassword = asyncHandler(async (req, res) => {
@@ -32,12 +28,8 @@ export const changePassword = asyncHandler(async (req, res) => {
     res.status(400).json({ code: "400", message: strengthCheck.message });
     return;
   }
-  try {
-    const result = await authService.changePassword(req.user!.id, body.oldPassword, body.newPassword);
-    res.json(ok(result));
-  } catch (e: any) {
-    res.status(400).json({ code: "400", message: e.message });
-  }
+  const result = await authService.changePassword(req.user!.id, body.oldPassword, body.newPassword);
+  res.json(ok(result));
 });
 
 export const getMe = asyncHandler(async (req, res) => {

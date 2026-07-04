@@ -1,4 +1,5 @@
 import { Router } from "express";
+import type { RouteConfig } from "../shared/auto-routes.js";
 import { requireAuthWithTenant } from "../shared/auth.js";
 import * as ctrl from "../controllers/export.controller.js";
 
@@ -12,3 +13,9 @@ exportRouter.get("/purchase-orders", requireAuthWithTenant, ctrl.exportPurchaseO
 exportRouter.get("/payments", requireAuthWithTenant, ctrl.exportPayments);
 exportRouter.get("/sales-orders", requireAuthWithTenant, ctrl.exportSalesOrders);
 exportRouter.get("/audit-logs", requireAuthWithTenant, ctrl.exportAuditLogs);
+// ========== 路由自动发现配置 ==========
+export const routeConfig: RouteConfig = {
+  prefix: "/api/admin/export",
+  router: exportRouter,
+  auth: "requireAuthWithTenant",
+};

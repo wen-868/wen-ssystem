@@ -1,4 +1,5 @@
 import { Router } from "express";
+import type { RouteConfig } from "../shared/auto-routes.js";
 import { requireAuthWithTenant } from "../shared/auth.js";
 import * as dashboardController from "../controllers/admin/marketing-dashboard.controller.js";
 
@@ -12,3 +13,9 @@ marketingDashboardRouter.get("/coupon-stats", requireAuthWithTenant, dashboardCo
 marketingDashboardRouter.get("/trend", requireAuthWithTenant, dashboardController.getMarketingTrend);
 marketingDashboardRouter.get("/activity-ranking", requireAuthWithTenant, dashboardController.getActivityRanking);
 marketingDashboardRouter.get("/activity-comparison", requireAuthWithTenant, dashboardController.getActivityComparison);
+// ========== 路由自动发现配置 ==========
+export const routeConfig: RouteConfig = {
+  prefix: "/api/admin/marketing/dashboard",
+  router: marketingDashboardRouter,
+  auth: "requireAuthWithTenant",
+};

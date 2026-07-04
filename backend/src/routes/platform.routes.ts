@@ -1,4 +1,5 @@
 import { Router } from "express";
+import type { RouteConfig } from "../shared/auto-routes.js";
 import { query, queryOne } from "../shared/db.js";
 import { asyncHandler } from "../shared/async-handler.js";
 import { ok, fail } from "../shared/response.js";
@@ -37,3 +38,9 @@ platformRouter.get("/tenants", asyncHandler(async (req, res) => {
 }));
 
 // 健康检查已移至 server.ts 公开路由（无需认证）
+// ========== 路由自动发现配置 ==========
+export const routeConfig: RouteConfig = {
+  prefix: "/api/platform",
+  router: platformRouter,
+  auth: "requireAuthWithTenant",
+};

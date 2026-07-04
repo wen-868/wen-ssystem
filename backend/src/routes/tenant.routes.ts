@@ -1,4 +1,5 @@
 import { Router } from "express";
+import type { RouteConfig } from "../shared/auto-routes.js";
 import { requireAuthWithTenant } from "../shared/auth.js";
 import * as ctrl from "../controllers/tenant.controller.js";
 
@@ -10,3 +11,9 @@ tenantRouter.put("/:tenantId", requireAuthWithTenant, ctrl.updateTenant);
 tenantRouter.put("/:tenantId/status", requireAuthWithTenant, ctrl.changeTenantStatus);
 tenantRouter.get("/:tenantId/modules", requireAuthWithTenant, ctrl.getTenantModules);
 tenantRouter.put("/:tenantId/modules", requireAuthWithTenant, ctrl.setTenantModules);
+// ========== 路由自动发现配置 ==========
+export const routeConfig: RouteConfig = {
+  prefix: "/api/admin/tenants",
+  router: tenantRouter,
+  auth: "requireAuthWithTenant",
+};

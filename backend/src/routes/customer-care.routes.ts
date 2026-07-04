@@ -1,4 +1,5 @@
 import { Router } from "express";
+import type { RouteConfig } from "../shared/auto-routes.js";
 import { requireAuthWithTenant } from "../shared/auth.js";
 import * as careController from "../controllers/admin/customer-care.controller.js";
 
@@ -9,3 +10,9 @@ customerCareRouter.put("/rules/:id", requireAuthWithTenant, careController.updat
 customerCareRouter.delete("/rules/:id", requireAuthWithTenant, careController.deleteCareRule);
 customerCareRouter.get("/logs", requireAuthWithTenant, careController.listCareLogs);
 customerCareRouter.post("/rules/:id/execute", requireAuthWithTenant, careController.executeCareRule);
+// ========== 路由自动发现配置 ==========
+export const routeConfig: RouteConfig = {
+  prefix: "/api/admin/members/care",
+  router: customerCareRouter,
+  auth: "requireAuthWithTenant",
+};

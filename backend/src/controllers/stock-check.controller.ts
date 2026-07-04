@@ -32,67 +32,43 @@ export const adminStockCheck = {
   }),
 
   detail: asyncHandler(async (req, res) => {
-    try {
-      const id = z.coerce.number().parse(req.params.id);
-      const result = await service.getCheckDetail(id, req.tenantId!);
-      res.json(ok(result));
-    } catch (e: any) {
-      res.status(e.statusCode || 404).json(fail(e.message));
-    }
+    const id = z.coerce.number().parse(req.params.id);
+    const result = await service.getCheckDetail(id, req.tenantId!);
+    res.json(ok(result));
   }),
 
   update: asyncHandler(async (req, res) => {
-    try {
-      const id = z.coerce.number().parse(req.params.id);
-      const body = z.object({ remark: z.string().optional() }).parse(req.body);
-      const result = await service.updateCheck(id, req.tenantId!, body);
-      res.json(ok(result));
-    } catch (e: any) {
-      res.status(400).json(fail(e.message));
-    }
+    const id = z.coerce.number().parse(req.params.id);
+    const body = z.object({ remark: z.string().optional() }).parse(req.body);
+    const result = await service.updateCheck(id, req.tenantId!, body);
+    res.json(ok(result));
   }),
 
   start: asyncHandler(async (req, res) => {
-    try {
-      const id = z.coerce.number().parse(req.params.id);
-      const result = await service.startCheck(id, req.tenantId!);
-      res.json(ok(result));
-    } catch (e: any) {
-      res.status(400).json(fail(e.message));
-    }
+    const id = z.coerce.number().parse(req.params.id);
+    const result = await service.startCheck(id, req.tenantId!);
+    res.json(ok(result));
   }),
 
   complete: asyncHandler(async (req, res) => {
-    try {
-      const id = z.coerce.number().parse(req.params.id);
-      const result = await service.completeCheck(id, req.tenantId!);
-      res.json(ok(result));
-    } catch (e: any) {
-      res.status(400).json(fail(e.message));
-    }
+    const id = z.coerce.number().parse(req.params.id);
+    const result = await service.completeCheck(id, req.tenantId!);
+    res.json(ok(result));
   }),
 
   cancel: asyncHandler(async (req, res) => {
-    try {
-      const id = z.coerce.number().parse(req.params.id);
-      const result = await service.cancelCheck(id, req.tenantId!);
-      res.json(ok(result));
-    } catch (e: any) {
-      res.status(400).json(fail(e.message));
-    }
+    const id = z.coerce.number().parse(req.params.id);
+    const result = await service.cancelCheck(id, req.tenantId!);
+    res.json(ok(result));
   }),
 
   handleDiff: asyncHandler(async (req, res) => {
-    try {
-      const id = z.coerce.number().parse(req.params.id);
-      const body = z.object({ itemId: z.number().int().positive() }).parse(req.body);
-      const result = await service.handleDiff({
-        checkId: id, itemId: body.itemId, tenantId: req.tenantId!, userId: req.user!.id
-      });
-      res.json(ok(result));
-    } catch (e: any) {
-      res.status(400).json(fail(e.message));
-    }
+    const id = z.coerce.number().parse(req.params.id);
+    const body = z.object({ itemId: z.number().int().positive() }).parse(req.body);
+    const result = await service.handleDiff({
+      checkId: id, itemId: body.itemId, tenantId: req.tenantId!, userId: req.user!.id
+    });
+    res.json(ok(result));
   }),
 };
 
@@ -110,37 +86,25 @@ export const storeStockCheck = {
   }),
 
   detail: asyncHandler(async (req, res) => {
-    try {
-      const id = z.coerce.number().parse(req.params.id);
-      const result = await service.getMyCheckDetail(id, req.tenantId!);
-      res.json(ok(result));
-    } catch (e: any) {
-      res.status(e.statusCode || 404).json(fail(e.message));
-    }
+    const id = z.coerce.number().parse(req.params.id);
+    const result = await service.getMyCheckDetail(id, req.tenantId!);
+    res.json(ok(result));
   }),
 
   updateItem: asyncHandler(async (req, res) => {
-    try {
-      const id = z.coerce.number().parse(req.params.id);
-      const itemId = z.coerce.number().parse(req.params.itemId);
-      const body = z.object({ actualQty: z.number().int().min(0) }).parse(req.body);
-      const result = await service.updateItemQty({
-        checkId: id, itemId, actualQty: body.actualQty, tenantId: req.tenantId!
-      });
-      res.json(ok(result));
-    } catch (e: any) {
-      res.status(400).json(fail(e.message));
-    }
+    const id = z.coerce.number().parse(req.params.id);
+    const itemId = z.coerce.number().parse(req.params.itemId);
+    const body = z.object({ actualQty: z.number().int().min(0) }).parse(req.body);
+    const result = await service.updateItemQty({
+      checkId: id, itemId, actualQty: body.actualQty, tenantId: req.tenantId!
+    });
+    res.json(ok(result));
   }),
 
   submit: asyncHandler(async (req, res) => {
-    try {
-      const id = z.coerce.number().parse(req.params.id);
-      const result = await service.submitCheck(id, req.tenantId!);
-      res.json(ok(result));
-    } catch (e: any) {
-      res.status(400).json(fail(e.message));
-    }
+    const id = z.coerce.number().parse(req.params.id);
+    const result = await service.submitCheck(id, req.tenantId!);
+    res.json(ok(result));
   }),
 };
 

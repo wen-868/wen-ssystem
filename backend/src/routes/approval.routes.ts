@@ -1,4 +1,5 @@
 import { Router } from "express";
+import type { RouteConfig } from "../shared/auto-routes.js";
 import { requireAuthWithTenant } from "../shared/auth.js";
 import * as approvalFlowController from "../controllers/admin/approval-flow.controller.js";
 import * as approvalRecordsController from "../controllers/admin/approval-records.controller.js";
@@ -25,3 +26,9 @@ approvalRouter.post("/tasks/:id/reject", approvalRecordsController.rejectTask);
 // 审批通知
 approvalRouter.get("/notifications", approvalRecordsController.listNotifications);
 approvalRouter.post("/notifications/:id/read", approvalRecordsController.markNotificationRead);
+// ========== 路由自动发现配置 ==========
+export const routeConfig: RouteConfig = {
+  prefix: "/api/admin/approval",
+  router: approvalRouter,
+  auth: "requireAuthWithTenant",
+};

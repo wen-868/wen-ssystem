@@ -1,4 +1,5 @@
 import { Router } from "express";
+import type { RouteConfig } from "../shared/auto-routes.js";
 import { requireAuthWithTenant } from "../shared/auth.js";
 import * as tagController from "../controllers/admin/tag.controller.js";
 
@@ -22,3 +23,9 @@ tagRouter.delete("/tags/:id", requireAuthWithTenant, tagController.deleteTag);
 
 tagRouter.get("/products/:spuId/tags", requireAuthWithTenant, tagController.getProductTags);
 tagRouter.put("/products/:spuId/tags", requireAuthWithTenant, tagController.setProductTags);
+// ========== 路由自动发现配置 ==========
+export const routeConfig: RouteConfig = {
+  prefix: "/api/admin",
+  router: tagRouter,
+  auth: "requireAuthWithTenant",
+};

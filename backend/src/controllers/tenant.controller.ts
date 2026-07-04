@@ -14,12 +14,8 @@ export const listTenants = asyncHandler(async (req, res) => {
 });
 
 export const getTenantDetail = asyncHandler(async (req, res) => {
-  try {
-    const result = await service.getTenantDetail(Number(req.params.tenantId));
-    res.json(ok(result));
-  } catch (e: any) {
-    res.status(e.statusCode || 404).json({ code: String(e.statusCode || 404), message: e.message });
-  }
+  const result = await service.getTenantDetail(Number(req.params.tenantId));
+  res.json(ok(result));
 });
 
 export const createTenant = asyncHandler(async (req, res) => {
@@ -63,12 +59,8 @@ export const updateTenant = asyncHandler(async (req, res) => {
     remark: z.string().max(500).optional(),
   }).parse(req.body);
 
-  try {
-    const result = await service.updateTenant(Number(req.params.tenantId), body, req.user!.id, req.user!.username);
-    res.json(ok(result));
-  } catch (e: any) {
-    res.status(e.statusCode || 404).json({ code: String(e.statusCode || 404), message: e.message });
-  }
+  const result = await service.updateTenant(Number(req.params.tenantId), body, req.user!.id, req.user!.username);
+  res.json(ok(result));
 });
 
 export const changeTenantStatus = asyncHandler(async (req, res) => {
@@ -77,12 +69,8 @@ export const changeTenantStatus = asyncHandler(async (req, res) => {
     reason: z.string().max(255).optional(),
   }).parse(req.body);
 
-  try {
-    const result = await service.changeTenantStatus(Number(req.params.tenantId), body, req.user!.id, req.user!.username);
-    res.json(ok(result));
-  } catch (e: any) {
-    res.status(e.statusCode || 404).json({ code: String(e.statusCode || 404), message: e.message });
-  }
+  const result = await service.changeTenantStatus(Number(req.params.tenantId), body, req.user!.id, req.user!.username);
+  res.json(ok(result));
 });
 
 export const getTenantModules = asyncHandler(async (req, res) => {
@@ -102,10 +90,6 @@ export const setTenantModules = asyncHandler(async (req, res) => {
     })),
   }).parse(req.body);
 
-  try {
-    const result = await service.setTenantModules(Number(req.params.tenantId), body, req.user!.id, req.user!.username);
-    res.json(ok(result));
-  } catch (e: any) {
-    res.status(e.statusCode || 404).json({ code: String(e.statusCode || 404), message: e.message });
-  }
+  const result = await service.setTenantModules(Number(req.params.tenantId), body, req.user!.id, req.user!.username);
+  res.json(ok(result));
 });

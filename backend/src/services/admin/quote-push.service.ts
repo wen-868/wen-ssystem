@@ -519,7 +519,7 @@ export async function pushQuote(
  * 通过分享令牌查看报价单（无需登录）
  */
 export async function viewQuoteByToken(shareToken: string): Promise<QuoteDetail | null> {
-  const rows = await query<any[]>(
+  const rows = await query<any>(
     `SELECT q.id, q.quote_no AS quoteNo, q.title, q.customer_name AS customerName,
             q.status, q.valid_days AS validDays, q.expire_at AS expireAt,
             q.total_amount AS totalAmount, q.total_sku AS totalSku,

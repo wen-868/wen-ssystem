@@ -61,12 +61,8 @@ export const listProducts = asyncHandler(async (req, res) => {
 // 6. 添加商品到即时零售
 export const addProduct = asyncHandler(async (req, res) => {
   const tenantId = req.tenantId!;
-  try {
-    const result = await service.addRetailProduct(req.body, tenantId);
-    res.json(ok(result));
-  } catch (e: any) {
-    res.status(e.statusCode || 404).json({ code: String(e.statusCode || 404), message: e.message });
-  }
+  const result = await service.addRetailProduct(req.body, tenantId);
+  res.json(ok(result));
 });
 
 // ────────────────────────────────────────────────────────────────────────────
@@ -91,27 +87,19 @@ export const listOrders = asyncHandler(async (req, res) => {
 // 8. 订单详情 + items
 export const getOrderDetail = asyncHandler(async (req, res) => {
   const tenantId = req.tenantId!;
-  try {
-    const result = await service.getRetailOrderDetail(req.params.orderNo, tenantId);
-    res.json(ok(result));
-  } catch (e: any) {
-    res.status(e.statusCode || 404).json({ code: String(e.statusCode || 404), message: e.message });
-  }
+  const result = await service.getRetailOrderDetail(req.params.orderNo, tenantId);
+  res.json(ok(result));
 });
 
 // 9. 更新订单状态
 export const updateOrderStatus = asyncHandler(async (req, res) => {
   const tenantId = req.tenantId!;
-  try {
-    const result = await service.updateRetailOrderStatus({
-      orderNo: req.params.orderNo,
-      tenantId,
-      ...req.body
-    });
-    res.json(ok(result));
-  } catch (e: any) {
-    res.status(e.statusCode || 404).json({ code: String(e.statusCode || 404), message: e.message });
-  }
+  const result = await service.updateRetailOrderStatus({
+    orderNo: req.params.orderNo,
+    tenantId,
+    ...req.body
+  });
+  res.json(ok(result));
 });
 
 // ────────────────────────────────────────────────────────────────────────────

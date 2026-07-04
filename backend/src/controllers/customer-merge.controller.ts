@@ -10,12 +10,8 @@ export const detectDuplicates = asyncHandler(async (req, res) => {
 });
 
 export const getCustomerRelations = asyncHandler(async (req, res) => {
-  try {
-    const result = await service.getCustomerRelations(req.tenantId!, Number(req.params.customerId));
-    res.json(ok(result));
-  } catch (e: any) {
-    res.status(e.statusCode || 404).json({ code: String(e.statusCode || 404), message: e.message });
-  }
+  const result = await service.getCustomerRelations(req.tenantId!, Number(req.params.customerId));
+  res.json(ok(result));
 });
 
 export const mergeCustomers = asyncHandler(async (req, res) => {
@@ -28,12 +24,8 @@ export const mergeCustomers = asyncHandler(async (req, res) => {
     mergeRemark: z.boolean().default(false),
   }).parse(req.body);
 
-  try {
-    const result = await service.mergeCustomers(req.tenantId!, body, req.user!.id, req.user!.username);
-    res.json(ok(result));
-  } catch (e: any) {
-    res.status(e.statusCode || 400).json({ code: String(e.statusCode || 400), message: e.message });
-  }
+  const result = await service.mergeCustomers(req.tenantId!, body, req.user!.id, req.user!.username);
+  res.json(ok(result));
 });
 
 export const getDuplicateGroups = asyncHandler(async (req, res) => {

@@ -46,16 +46,12 @@ export function createWechatController(
       return;
     }
 
-    try {
-      const decrypted = aesDecrypt(encryptedData, iv, wxUser.session_key);
-      const phoneData = JSON.parse(decrypted) as { phoneNumber: string; purePhoneNumber: string; watermark?: any };
-      const phone = phoneData.phoneNumber || phoneData.purePhoneNumber;
+    const decrypted = aesDecrypt(encryptedData, iv, wxUser.session_key);
+    const phoneData = JSON.parse(decrypted) as { phoneNumber: string; purePhoneNumber: string; watermark?: any };
+    const phone = phoneData.phoneNumber || phoneData.purePhoneNumber;
 
-      const result = await service.decryptPhone(decoded.wxUserId, phone);
-      res.json(ok(result));
-    } catch {
-      res.status(400).json(fail("手机号解密失败，请重试", "400"));
-    }
+    const result = await service.decryptPhone(decoded.wxUserId, phone);
+    res.json(ok(result));
   });
 
   const updateProfile = asyncHandler(async (req, res) => {

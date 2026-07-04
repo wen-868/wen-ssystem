@@ -30,65 +30,40 @@ export const listFlashSales = asyncHandler(async (req, res) => {
 });
 
 export const getFlashSale = asyncHandler(async (req, res) => {
-  try {
-    const result = await flashSaleService.getFlashSale(Number(req.params.id), req.tenantId!);
-    res.json(ok(result));
-  } catch (e: any) {
-    const statusCode = e.statusCode || 400;
-    res.status(statusCode).json({ code: String(statusCode), message: e.message });
-  }
+  const result = await flashSaleService.getFlashSale(Number(req.params.id), req.tenantId!);
+  res.json(ok(result));
 });
 
 export const updateFlashSale = asyncHandler(async (req, res) => {
-  try {
-    const body = z.object({
-      name: z.string().min(1).max(128).optional(),
-      productId: z.number().int().positive().optional(),
-      skuId: z.number().int().positive().optional(),
-      flashPrice: z.number().min(0).optional(),
-      originalPrice: z.number().min(0).optional(),
-      totalStock: z.number().int().min(0).optional(),
-      limitPerUser: z.number().int().min(1).optional(),
-      startTime: z.string().min(1).optional(),
-      endTime: z.string().min(1).optional()
-    }).parse(req.body);
+  const body = z.object({
+    name: z.string().min(1).max(128).optional(),
+    productId: z.number().int().positive().optional(),
+    skuId: z.number().int().positive().optional(),
+    flashPrice: z.number().min(0).optional(),
+    originalPrice: z.number().min(0).optional(),
+    totalStock: z.number().int().min(0).optional(),
+    limitPerUser: z.number().int().min(1).optional(),
+    startTime: z.string().min(1).optional(),
+    endTime: z.string().min(1).optional()
+  }).parse(req.body);
 
-    const result = await flashSaleService.updateFlashSale(Number(req.params.id), body, req.tenantId!);
-    res.json(ok(result));
-  } catch (e: any) {
-    const statusCode = e.statusCode || 400;
-    res.status(statusCode).json({ code: String(statusCode), message: e.message });
-  }
+  const result = await flashSaleService.updateFlashSale(Number(req.params.id), body, req.tenantId!);
+  res.json(ok(result));
 });
 
 export const deleteFlashSale = asyncHandler(async (req, res) => {
-  try {
-    const result = await flashSaleService.deleteFlashSale(Number(req.params.id), req.tenantId!);
-    res.json(ok(result));
-  } catch (e: any) {
-    const statusCode = e.statusCode || 400;
-    res.status(statusCode).json({ code: String(statusCode), message: e.message });
-  }
+  const result = await flashSaleService.deleteFlashSale(Number(req.params.id), req.tenantId!);
+  res.json(ok(result));
 });
 
 export const activateFlashSale = asyncHandler(async (req, res) => {
-  try {
-    const result = await flashSaleService.activateFlashSale(Number(req.params.id), req.tenantId!);
-    res.json(ok(result));
-  } catch (e: any) {
-    const statusCode = e.statusCode || 400;
-    res.status(statusCode).json({ code: String(statusCode), message: e.message });
-  }
+  const result = await flashSaleService.activateFlashSale(Number(req.params.id), req.tenantId!);
+  res.json(ok(result));
 });
 
 export const pauseFlashSale = asyncHandler(async (req, res) => {
-  try {
-    const result = await flashSaleService.pauseFlashSale(Number(req.params.id), req.tenantId!);
-    res.json(ok(result));
-  } catch (e: any) {
-    const statusCode = e.statusCode || 400;
-    res.status(statusCode).json({ code: String(statusCode), message: e.message });
-  }
+  const result = await flashSaleService.pauseFlashSale(Number(req.params.id), req.tenantId!);
+  res.json(ok(result));
 });
 
 export const getFlashSaleStatistics = asyncHandler(async (req, res) => {
@@ -102,22 +77,17 @@ export const listActiveFlashSales = asyncHandler(async (req, res) => {
 });
 
 export const buyFlashSale = asyncHandler(async (req, res) => {
-  try {
-    const flashSaleId = Number(req.params.id);
-    const body = z.object({
-      userId: z.number().int().positive(),
-      quantity: z.number().int().min(1)
-    }).parse(req.body);
+  const flashSaleId = Number(req.params.id);
+  const body = z.object({
+    userId: z.number().int().positive(),
+    quantity: z.number().int().min(1)
+  }).parse(req.body);
 
-    const result = await flashSaleService.buyFlashSale(
-      flashSaleId,
-      body.userId,
-      body.quantity,
-      req.tenantId!
-    );
-    res.json(ok(result));
-  } catch (e: any) {
-    const statusCode = e.statusCode || 400;
-    res.status(statusCode).json({ code: String(statusCode), message: e.message });
-  }
+  const result = await flashSaleService.buyFlashSale(
+    flashSaleId,
+    body.userId,
+    body.quantity,
+    req.tenantId!
+  );
+  res.json(ok(result));
 });

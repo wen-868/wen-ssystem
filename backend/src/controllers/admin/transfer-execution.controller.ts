@@ -7,12 +7,8 @@ export const cancelTransferOrder = asyncHandler(async (req, res) => {
   const id = z.coerce.number().parse(req.params.id);
   const tenantId = req.tenantId!;
 
-  try {
-    const result = await transferExecutionService.cancelTransferOrder(id, tenantId);
-    res.json(ok(result));
-  } catch (e: any) {
-    res.status(400).json(fail(e.message));
-  }
+  const result = await transferExecutionService.cancelTransferOrder(id, tenantId);
+  res.json(ok(result));
 });
 
 export const shipTransferOrder = asyncHandler(async (req, res) => {
@@ -20,10 +16,6 @@ export const shipTransferOrder = asyncHandler(async (req, res) => {
   const tenantId = req.tenantId!;
   const userId = req.user!.id;
 
-  try {
-    const result = await transferExecutionService.shipTransferOrder(id, tenantId, userId ?? null);
-    res.json(ok(result));
-  } catch (e: any) {
-    res.status(400).json(fail(e.message));
-  }
+  const result = await transferExecutionService.shipTransferOrder(id, tenantId, userId ?? null);
+  res.json(ok(result));
 });

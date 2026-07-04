@@ -1,4 +1,5 @@
 import { Router } from "express";
+import type { RouteConfig } from "../shared/auto-routes.js";
 import { z } from "zod";
 import { asyncHandler } from "../shared/async-handler.js";
 import { requireAuthWithTenant, getUserAccessInfo, signToken } from "../shared/auth.js";
@@ -112,3 +113,9 @@ storeRouter.get("/tags", tagController.listTags);
 storeRouter.get("/tag-groups", tagController.listGroups);
 storeRouter.get("/batches/:id", batchController.getBatchDetail);
 storeRouter.get("/batches/:id/trace", batchController.getTraceChain);
+// ========== 路由自动发现配置 ==========
+export const routeConfig: RouteConfig = {
+  prefix: "/api/store",
+  router: storeRouter,
+  auth: "none",
+};

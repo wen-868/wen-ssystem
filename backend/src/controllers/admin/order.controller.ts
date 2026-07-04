@@ -74,12 +74,8 @@ export const cancelOrder = asyncHandler(async (req, res) => {
   const reason = String(req.body.reason || "");
   const operatorId = (req as any).user?.id ?? null;
   const operatorName = (req as any).user?.username ?? "系统用户";
-  try {
-    const result = await orderService.cancelOrder(orderNo, reason, operatorId, operatorName, tenantId);
-    res.json(ok(result));
-  } catch (err: any) {
-    res.status(400).json({ code: "400", message: err.message });
-  }
+  const result = await orderService.cancelOrder(orderNo, reason, operatorId, operatorName, tenantId);
+  res.json(ok(result));
 });
 
 export const remarkOrder = asyncHandler(async (req, res) => {
@@ -88,12 +84,8 @@ export const remarkOrder = asyncHandler(async (req, res) => {
   const remark = String(req.body.remark || "");
   const operatorId = (req as any).user?.id ?? null;
   const operatorName = (req as any).user?.username ?? "系统用户";
-  try {
-    const result = await orderService.remarkOrder(orderNo, remark, operatorId, operatorName, tenantId);
-    res.json(ok(result));
-  } catch (err: any) {
-    res.status(400).json({ code: "400", message: err.message });
-  }
+  const result = await orderService.remarkOrder(orderNo, remark, operatorId, operatorName, tenantId);
+  res.json(ok(result));
 });
 
 export const updateOrderStatus = asyncHandler(async (req, res) => {
@@ -103,12 +95,8 @@ export const updateOrderStatus = asyncHandler(async (req, res) => {
   const remark = req.body.remark ? String(req.body.remark) : null;
   const operatorId = (req as any).user?.id ?? null;
   const operatorName = (req as any).user?.username ?? "系统用户";
-  try {
-    const result = await orderService.updateOrderStatus(orderNo, targetStatus, operatorId, operatorName, remark, tenantId);
-    res.json(ok(result));
-  } catch (err: any) {
-    res.status(400).json({ code: "400", message: err.message });
-  }
+  const result = await orderService.updateOrderStatus(orderNo, targetStatus, operatorId, operatorName, remark, tenantId);
+  res.json(ok(result));
 });
 
 export const batchUpdateOrderStatus = asyncHandler(async (req, res) => {

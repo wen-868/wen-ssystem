@@ -1,4 +1,5 @@
 import { Router } from "express";
+import type { RouteConfig } from "../shared/auto-routes.js";
 import { requireAuthWithTenant } from "../shared/auth.js";
 import * as ctrl from "../controllers/purchase-payment.controller.js";
 
@@ -8,3 +9,9 @@ purchasePaymentRouter.get("/:paymentNo", requireAuthWithTenant, ctrl.getDetail);
 purchasePaymentRouter.post("/", requireAuthWithTenant, ctrl.create);
 purchasePaymentRouter.post("/:paymentNo/approve", requireAuthWithTenant, ctrl.approve);
 purchasePaymentRouter.post("/:paymentNo/void", requireAuthWithTenant, ctrl.voidPayment);
+// ========== 路由自动发现配置 ==========
+export const routeConfig: RouteConfig = {
+  prefix: "/api/admin/purchase-payments",
+  router: purchasePaymentRouter,
+  auth: "requireAuthWithTenant",
+};

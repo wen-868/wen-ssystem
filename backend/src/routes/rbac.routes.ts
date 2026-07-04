@@ -1,4 +1,5 @@
 import { Router } from "express";
+import type { RouteConfig } from "../shared/auto-routes.js";
 import type { RequestHandler } from "express";
 import { requireAuthWithTenant } from "../shared/auth.js";
 import * as ctrl from "../controllers/rbac.controller.js";
@@ -49,3 +50,9 @@ rbacRouter.delete("/:id", requireAuthWithTenant, ctrl.deleteRole);
 
 rbacRouter.get("/users/:userId/roles", requireAuthWithTenant, ctrl.getUserRoles);
 rbacRouter.put("/users/:userId/roles", requireAuthWithTenant, ctrl.setUserRoles);
+// ========== 路由自动发现配置 ==========
+export const routeConfig: RouteConfig = {
+  prefix: "/api/admin/roles",
+  router: rbacRouter,
+  auth: "requireAuthWithTenant",
+};

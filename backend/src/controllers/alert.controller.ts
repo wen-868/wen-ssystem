@@ -26,19 +26,15 @@ export const handle = asyncHandler(async (req, res) => {
     remark: z.string().optional()
   }).parse(req.body);
 
-  try {
-    const result = await service.handleAlert(
-      Number(req.params.id),
-      req.tenantId!,
-      body.action,
-      body.remark,
-      (req as any).user?.id ?? 0,
-      (req as any).user?.username ?? "system"
-    );
-    res.json(ok(result));
-  } catch (e: any) {
-    res.status(e.statusCode || 400).json({ code: String(e.statusCode || 400), message: e.message });
-  }
+  const result = await service.handleAlert(
+    Number(req.params.id),
+    req.tenantId!,
+    body.action,
+    body.remark,
+    (req as any).user?.id ?? 0,
+    (req as any).user?.username ?? "system"
+  );
+  res.json(ok(result));
 });
 
 export const rules = asyncHandler(async (req, res) => {
@@ -53,12 +49,8 @@ export const updateRule = asyncHandler(async (req, res) => {
     description: z.string().optional()
   }).parse(req.body);
 
-  try {
-    const result = await service.updateAlertRule(Number(req.params.id), req.tenantId!, body);
-    res.json(ok(result));
-  } catch (e: any) {
-    res.status(e.statusCode || 400).json({ code: String(e.statusCode || 400), message: e.message });
-  }
+  const result = await service.updateAlertRule(Number(req.params.id), req.tenantId!, body);
+  res.json(ok(result));
 });
 
 export const check = asyncHandler(async (req, res) => {

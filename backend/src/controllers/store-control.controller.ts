@@ -30,52 +30,36 @@ export const adminStoreControl = {
   }),
 
   open: asyncHandler(async (req, res) => {
-    try {
-      const storeId = z.coerce.number().parse(req.params.storeId);
-      const result = await service.openStore({
-        storeId, tenantId: req.tenantId!, userId: req.user!.id
-      });
-      res.json(ok(result));
-    } catch (e: any) {
-      res.status(400).json(fail(e.message));
-    }
+    const storeId = z.coerce.number().parse(req.params.storeId);
+    const result = await service.openStore({
+      storeId, tenantId: req.tenantId!, userId: req.user!.id
+    });
+    res.json(ok(result));
   }),
 
   close: asyncHandler(async (req, res) => {
-    try {
-      const storeId = z.coerce.number().parse(req.params.storeId);
-      const result = await service.closeStore({
-        storeId, tenantId: req.tenantId!, userId: req.user!.id
-      });
-      res.json(ok(result));
-    } catch (e: any) {
-      res.status(400).json(fail(e.message));
-    }
+    const storeId = z.coerce.number().parse(req.params.storeId);
+    const result = await service.closeStore({
+      storeId, tenantId: req.tenantId!, userId: req.user!.id
+    });
+    res.json(ok(result));
   }),
 
   suspend: asyncHandler(async (req, res) => {
-    try {
-      const storeId = z.coerce.number().parse(req.params.storeId);
-      const body = z.object({ reason: z.string().optional() }).parse(req.body);
-      const result = await service.suspendStore({
-        storeId, tenantId: req.tenantId!, userId: req.user!.id, reason: body.reason
-      });
-      res.json(ok(result));
-    } catch (e: any) {
-      res.status(400).json(fail(e.message));
-    }
+    const storeId = z.coerce.number().parse(req.params.storeId);
+    const body = z.object({ reason: z.string().optional() }).parse(req.body);
+    const result = await service.suspendStore({
+      storeId, tenantId: req.tenantId!, userId: req.user!.id, reason: body.reason
+    });
+    res.json(ok(result));
   }),
 
   resume: asyncHandler(async (req, res) => {
-    try {
-      const storeId = z.coerce.number().parse(req.params.storeId);
-      const result = await service.resumeStore({
-        storeId, tenantId: req.tenantId!, userId: req.user!.id
-      });
-      res.json(ok(result));
-    } catch (e: any) {
-      res.status(400).json(fail(e.message));
-    }
+    const storeId = z.coerce.number().parse(req.params.storeId);
+    const result = await service.resumeStore({
+      storeId, tenantId: req.tenantId!, userId: req.user!.id
+    });
+    res.json(ok(result));
   }),
 
   getLogs: asyncHandler(async (req, res) => {

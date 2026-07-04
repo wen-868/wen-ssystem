@@ -1,4 +1,5 @@
 import { Router } from "express";
+import type { RouteConfig } from "../shared/auto-routes.js";
 import { requireAuthWithTenant } from "../shared/auth.js";
 import * as limitedDiscountController from "../controllers/admin/marketing-limited-discount.controller.js";
 
@@ -15,3 +16,9 @@ marketingLimitedDiscountRouter.post("/:id/pause", requireAuthWithTenant, limited
 marketingLimitedDiscountRouter.get("/:id/products", requireAuthWithTenant, limitedDiscountController.getDiscountProducts);
 marketingLimitedDiscountRouter.post("/:id/products", requireAuthWithTenant, limitedDiscountController.addDiscountProduct);
 marketingLimitedDiscountRouter.delete("/:id/products/:productId", requireAuthWithTenant, limitedDiscountController.removeDiscountProduct);
+// ========== 路由自动发现配置 ==========
+export const routeConfig: RouteConfig = {
+  prefix: "/api/admin/marketing/limited-discounts",
+  router: marketingLimitedDiscountRouter,
+  auth: "requireAuthWithTenant",
+};

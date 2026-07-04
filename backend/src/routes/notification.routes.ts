@@ -3,6 +3,7 @@ import { requireAuthWithTenant } from "../shared/auth.js";
 import { pool } from "../shared/db.js";
 import type { Pool } from "mysql2/promise";
 import * as ctrl from "../controllers/notification.controller.js";
+import type { RouteConfig } from "../shared/auto-routes.js";
 
 // ========== 通知发送工具函数（被其他模块引用） ==========
 
@@ -56,3 +57,9 @@ miniappNotificationRouter.get("/", requireAuthWithTenant, ctrl.listMiniappNotifi
 miniappNotificationRouter.get("/unread-count", requireAuthWithTenant, ctrl.getMiniappUnreadCount);
 miniappNotificationRouter.put("/:id/read", requireAuthWithTenant, ctrl.markMiniappAsRead);
 miniappNotificationRouter.post("/read-all", requireAuthWithTenant, ctrl.markMiniappAllAsRead);
+
+// ========== 路由自动发现配置 ==========
+export const routeConfigs: RouteConfig[] = [
+  { prefix: "/api/admin/notifications", router: adminNotificationRouter, auth: "requireAuthWithTenant" },
+  { prefix: "/api/miniapp/notifications", router: miniappNotificationRouter, auth: "none" },
+];

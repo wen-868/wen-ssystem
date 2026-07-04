@@ -19,14 +19,9 @@ export const listCouponTemplates = asyncHandler(async (req, res) => {
 });
 
 export const getCouponTemplate = asyncHandler(async (req, res) => {
-  try {
-    const templateId = Number(req.params.templateId);
-    const result = await couponService.getCouponTemplate(templateId, req.tenantId!);
-    res.json(ok(result));
-  } catch (e: any) {
-    const statusCode = e.statusCode || 400;
-    res.status(statusCode).json({ code: String(statusCode), message: e.message });
-  }
+  const templateId = Number(req.params.templateId);
+  const result = await couponService.getCouponTemplate(templateId, req.tenantId!);
+  res.json(ok(result));
 });
 
 export const createCouponTemplate = asyncHandler(async (req, res) => {
@@ -58,60 +53,50 @@ export const createCouponTemplate = asyncHandler(async (req, res) => {
 });
 
 export const updateCouponTemplate = asyncHandler(async (req, res) => {
-  try {
-    const templateId = Number(req.params.templateId);
-    const body = z.object({
-      templateName: z.string().min(1).max(128).optional(),
-      couponValue: z.number().min(0).optional(),
-      minPurchase: z.number().min(0).optional(),
-      maxDiscount: z.number().min(0).optional(),
-      applicableScope: z.enum(["ALL", "CATEGORY", "PRODUCT", "STORE"]).optional(),
-      applicableIds: z.any().optional(),
-      totalQuantity: z.number().int().min(0).optional(),
-      perLimit: z.number().int().min(1).optional(),
-      validType: z.enum(["FIXED", "DAYS"]).optional(),
-      validStart: z.string().optional(),
-      validEnd: z.string().optional(),
-      validDays: z.number().int().min(1).optional(),
-      description: z.string().max(500).optional(),
-      status: z.enum(["DRAFT", "ACTIVE", "PAUSED"]).optional(),
-    }).parse(req.body);
+  const templateId = Number(req.params.templateId);
+  const body = z.object({
+    templateName: z.string().min(1).max(128).optional(),
+    couponValue: z.number().min(0).optional(),
+    minPurchase: z.number().min(0).optional(),
+    maxDiscount: z.number().min(0).optional(),
+    applicableScope: z.enum(["ALL", "CATEGORY", "PRODUCT", "STORE"]).optional(),
+    applicableIds: z.any().optional(),
+    totalQuantity: z.number().int().min(0).optional(),
+    perLimit: z.number().int().min(1).optional(),
+    validType: z.enum(["FIXED", "DAYS"]).optional(),
+    validStart: z.string().optional(),
+    validEnd: z.string().optional(),
+    validDays: z.number().int().min(1).optional(),
+    description: z.string().max(500).optional(),
+    status: z.enum(["DRAFT", "ACTIVE", "PAUSED"]).optional(),
+  }).parse(req.body);
 
-    const result = await couponService.updateCouponTemplate(
-      templateId,
-      body,
-      req.tenantId!,
-      req.user!.id,
-      req.user!.username
-    );
+  const result = await couponService.updateCouponTemplate(
+    templateId,
+    body,
+    req.tenantId!,
+    req.user!.id,
+    req.user!.username
+  );
 
-    res.json(ok(result));
-  } catch (e: any) {
-    const statusCode = e.statusCode || 400;
-    res.status(statusCode).json({ code: String(statusCode), message: e.message });
-  }
+  res.json(ok(result));
 });
 
 export const issueCoupons = asyncHandler(async (req, res) => {
-  try {
-    const templateId = Number(req.params.templateId);
-    const body = z.object({
-      userIds: z.array(z.number().int().positive()).min(1),
-    }).parse(req.body);
+  const templateId = Number(req.params.templateId);
+  const body = z.object({
+    userIds: z.array(z.number().int().positive()).min(1),
+  }).parse(req.body);
 
-    const result = await couponService.issueCoupons(
-      templateId,
-      body.userIds,
-      req.tenantId!,
-      req.user!.id,
-      req.user!.username
-    );
+  const result = await couponService.issueCoupons(
+    templateId,
+    body.userIds,
+    req.tenantId!,
+    req.user!.id,
+    req.user!.username
+  );
 
-    res.json(ok(result));
-  } catch (e: any) {
-    const statusCode = e.statusCode || 400;
-    res.status(statusCode).json({ code: String(statusCode), message: e.message });
-  }
+  res.json(ok(result));
 });
 
 export const listUserCoupons = asyncHandler(async (req, res) => {
@@ -168,50 +153,40 @@ export const createPromotion = asyncHandler(async (req, res) => {
 });
 
 export const updatePromotion = asyncHandler(async (req, res) => {
-  try {
-    const activityId = Number(req.params.activityId);
-    const body = z.object({
-      activityName: z.string().min(1).max(128).optional(),
-      activityDesc: z.string().max(500).optional(),
-      startTime: z.string().optional(),
-      endTime: z.string().optional(),
-      applicableScope: z.enum(["ALL", "CATEGORY", "PRODUCT", "STORE"]).optional(),
-      applicableIds: z.any().optional(),
-      rules: z.any().optional(),
-      maxParticipants: z.number().int().min(0).optional(),
-      priority: z.number().int().optional(),
-      stackable: z.number().int().min(0).max(1).optional(),
-      status: z.enum(["DRAFT", "ACTIVE", "PAUSED", "ENDED"]).optional(),
-    }).parse(req.body);
+  const activityId = Number(req.params.activityId);
+  const body = z.object({
+    activityName: z.string().min(1).max(128).optional(),
+    activityDesc: z.string().max(500).optional(),
+    startTime: z.string().optional(),
+    endTime: z.string().optional(),
+    applicableScope: z.enum(["ALL", "CATEGORY", "PRODUCT", "STORE"]).optional(),
+    applicableIds: z.any().optional(),
+    rules: z.any().optional(),
+    maxParticipants: z.number().int().min(0).optional(),
+    priority: z.number().int().optional(),
+    stackable: z.number().int().min(0).max(1).optional(),
+    status: z.enum(["DRAFT", "ACTIVE", "PAUSED", "ENDED"]).optional(),
+  }).parse(req.body);
 
-    const result = await promotionService.updatePromotion(
-      activityId,
-      body,
-      req.tenantId!,
-      req.user!.id,
-      req.user!.username
-    );
+  const result = await promotionService.updatePromotion(
+    activityId,
+    body,
+    req.tenantId!,
+    req.user!.id,
+    req.user!.username
+  );
 
-    res.json(ok(result));
-  } catch (e: any) {
-    const statusCode = e.statusCode || 400;
-    res.status(statusCode).json({ code: String(statusCode), message: e.message });
-  }
+  res.json(ok(result));
 });
 
 export const calculateDiscount = asyncHandler(async (req, res) => {
-  try {
-    const body = z.object({
-      userId: z.number().int().positive(),
-      orderAmount: z.number().min(0),
-      productIds: z.array(z.number().int().positive()),
-      couponNo: z.string().optional(),
-    }).parse(req.body);
+  const body = z.object({
+    userId: z.number().int().positive(),
+    orderAmount: z.number().min(0),
+    productIds: z.array(z.number().int().positive()),
+    couponNo: z.string().optional(),
+  }).parse(req.body);
 
-    const result = await promotionService.calculateDiscount(body, req.tenantId!);
-    res.json(ok(result));
-  } catch (e: any) {
-    const statusCode = e.statusCode || 400;
-    res.status(statusCode).json({ code: String(statusCode), message: e.message });
-  }
+  const result = await promotionService.calculateDiscount(body, req.tenantId!);
+  res.json(ok(result));
 });

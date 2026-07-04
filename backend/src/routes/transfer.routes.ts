@@ -3,6 +3,7 @@ import { requireAuthWithTenant } from "../shared/auth.js";
 import * as transferOrderController from "../controllers/admin/transfer-order.controller.js";
 import * as adminTransferExecutionController from "../controllers/admin/transfer-execution.controller.js";
 import * as storeTransferExecutionController from "../controllers/store/transfer-execution.controller.js";
+import type { RouteConfig } from "../shared/auto-routes.js";
 
 // ==================== Admin 调拨路由 ====================
 export const adminTransferRouter = Router();
@@ -27,3 +28,9 @@ export const storeTransferRouter = Router();
 storeTransferRouter.post("/:id/receive", storeTransferExecutionController.receiveTransferOrder);
 storeTransferRouter.get("/in-transit", storeTransferExecutionController.getInTransitOrders);
 storeTransferRouter.get("/my-shipments", storeTransferExecutionController.getMyShipments);
+
+// ========== 路由自动发现配置 ==========
+export const routeConfigs: RouteConfig[] = [
+  { prefix: "/api/admin/transfers", router: adminTransferRouter, auth: "requireAuthWithTenant" },
+  { prefix: "/api/store/transfers", router: storeTransferRouter, auth: "requireAuthWithTenant" },
+];

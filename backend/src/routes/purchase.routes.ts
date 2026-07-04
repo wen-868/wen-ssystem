@@ -1,4 +1,5 @@
 import { Router } from "express";
+import type { RouteConfig } from "../shared/auto-routes.js";
 import { z } from "zod";
 import { asyncHandler } from "../shared/async-handler.js";
 import { requireAuthWithTenant } from "../shared/auth.js";
@@ -197,3 +198,9 @@ purchaseRouter.post("/:orderNo/in-stock", requireAuthWithTenant, asyncHandler(as
     res.status(400).json({ code: "400", message: e.message });
   }
 }));
+// ========== 路由自动发现配置 ==========
+export const routeConfig: RouteConfig = {
+  prefix: "/api/admin/purchase-orders",
+  router: purchaseRouter,
+  auth: "requireAuthWithTenant",
+};

@@ -1,4 +1,5 @@
 import { Router } from "express";
+import type { RouteConfig } from "../shared/auto-routes.js";
 import { requireAuthWithTenant } from "../shared/auth.js";
 import { requirePriceManagementAccess, requirePriceChangeLogAccess, priceResponseFilter } from "../shared/price-guard-middleware.js";
 import * as priceLevelController from "../controllers/admin/price-level.controller.js";
@@ -37,3 +38,9 @@ priceRouter.post("/batch/preview", requireAuthWithTenant, requirePriceManagement
 priceRouter.post("/batch/execute", requireAuthWithTenant, requirePriceManagementAccess(), batchPriceController.executeBatchAdjustment);
 priceRouter.get("/batch/logs", requireAuthWithTenant, requirePriceChangeLogAccess(), batchPriceController.listBatchLogs);
 priceRouter.get("/batch/:batchNo", requireAuthWithTenant, requirePriceChangeLogAccess(), batchPriceController.getBatchDetail);
+// ========== 路由自动发现配置 ==========
+export const routeConfig: RouteConfig = {
+  prefix: "/api/admin/prices",
+  router: priceRouter,
+  auth: "requireAuthWithTenant",
+};

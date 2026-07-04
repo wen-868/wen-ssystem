@@ -2,6 +2,7 @@ import { Router } from "express";
 import { requireAuthWithTenant } from "../shared/auth.js";
 import * as traceConfigController from "../controllers/admin/trace-config.controller.js";
 import * as traceRecordsController from "../controllers/admin/trace-records.controller.js";
+import type { RouteConfig } from "../shared/auto-routes.js";
 
 // ========== Admin 追溯路由 ==========
 export const adminTraceRouter = Router();
@@ -36,3 +37,9 @@ export const miniappTraceRouter = Router();
 
 miniappTraceRouter.get("/c/query/:traceCode", traceRecordsController.consumerQueryTrace);
 miniappTraceRouter.post("/c/verify", traceRecordsController.consumerVerifyTraceCode);
+
+// ========== 路由自动发现配置 ==========
+export const routeConfigs: RouteConfig[] = [
+  { prefix: "/api/admin/trace", router: adminTraceRouter, auth: "requireAuthWithTenant" },
+  { prefix: "/api/miniapp/trace", router: miniappTraceRouter, auth: "none" },
+];

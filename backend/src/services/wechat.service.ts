@@ -18,7 +18,7 @@ export async function login(wxData: { openid: string; session_key: string; union
     const result = await query<{ insertId: number }>(
       "INSERT INTO wx_user (openid, unionid, session_key, last_login_at) VALUES (?, ?, ?, NOW())",
       [wxData.openid, wxData.unionid || null, wxData.session_key]
-    );
+    ) as any;
     wxUserId = result.insertId as unknown as number;
   }
 

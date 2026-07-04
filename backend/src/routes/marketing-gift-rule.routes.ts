@@ -1,4 +1,5 @@
 import { Router } from "express";
+import type { RouteConfig } from "../shared/auto-routes.js";
 import { requireAuthWithTenant } from "../shared/auth.js";
 import * as giftRuleController from "../controllers/admin/marketing-gift-rule.controller.js";
 
@@ -15,3 +16,9 @@ marketingGiftRuleRouter.post("/:id/pause", requireAuthWithTenant, giftRuleContro
 marketingGiftRuleRouter.post("/:id/levels", requireAuthWithTenant, giftRuleController.addGiftRuleLevel);
 marketingGiftRuleRouter.put("/:id/levels/:levelId", requireAuthWithTenant, giftRuleController.updateGiftRuleLevel);
 marketingGiftRuleRouter.delete("/:id/levels/:levelId", requireAuthWithTenant, giftRuleController.deleteGiftRuleLevel);
+// ========== 路由自动发现配置 ==========
+export const routeConfig: RouteConfig = {
+  prefix: "/api/admin/marketing/gift-rules",
+  router: marketingGiftRuleRouter,
+  auth: "requireAuthWithTenant",
+};
