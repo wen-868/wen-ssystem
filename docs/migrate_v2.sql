@@ -14,10 +14,10 @@ ALTER TABLE sys_role ADD COLUMN permissions JSON DEFAULT NULL COMMENT '权限列
 -- 3. sys_role: data_scope 默认值
 ALTER TABLE sys_role ALTER COLUMN data_scope SET DEFAULT 'SELF';
 
--- 7. member: 添加 settlement_type 字段（旧表可能缺失）
+-- 4. member: 添加 settlement_type 字段（旧表可能缺失）
 ALTER TABLE member ADD COLUMN settlement_type VARCHAR(32) NOT NULL DEFAULT 'CASH' COMMENT '结算方式：CASH/ACCOUNT' AFTER customer_type;
 
--- 8. supplier: 添加 settlement_type 字段（旧表可能缺失）
+-- 5. supplier: 添加 settlement_type 字段（旧表可能缺失）
 ALTER TABLE supplier ADD COLUMN settlement_type VARCHAR(32) NOT NULL DEFAULT 'MONTHLY' COMMENT '结算方式：CASH/MONTHLY' AFTER credit_level;
 
 SET FOREIGN_KEY_CHECKS = 1;
