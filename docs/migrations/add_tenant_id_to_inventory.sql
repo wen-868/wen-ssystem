@@ -1,12 +1,13 @@
 -- 核心库存表补 tenant_id 列
-ALTER TABLE inventory_balance ADD COLUMN IF NOT EXISTS tenant_id VARCHAR(64) NOT NULL DEFAULT '' AFTER id;
-ALTER TABLE inventory_batch ADD COLUMN IF NOT EXISTS tenant_id VARCHAR(64) NOT NULL DEFAULT '' AFTER id;
-ALTER TABLE inventory_ledger ADD COLUMN IF NOT EXISTS tenant_id VARCHAR(64) NOT NULL DEFAULT '' AFTER id;
+-- 注意：不使用 ADD COLUMN IF NOT EXISTS，由迁移引擎容错处理
+ALTER TABLE inventory_balance ADD COLUMN tenant_id VARCHAR(64) NOT NULL DEFAULT '' AFTER id;
+ALTER TABLE inventory_batch ADD COLUMN tenant_id VARCHAR(64) NOT NULL DEFAULT '' AFTER id;
+ALTER TABLE inventory_ledger ADD COLUMN tenant_id VARCHAR(64) NOT NULL DEFAULT '' AFTER id;
 
 -- 为 tenant_id 添加索引
-CREATE INDEX IF NOT EXISTS idx_tenant_ib ON inventory_balance(tenant_id);
-CREATE INDEX IF NOT EXISTS idx_tenant_ibat ON inventory_batch(tenant_id);
-CREATE INDEX IF NOT EXISTS idx_tenant_il ON inventory_ledger(tenant_id);
+CREATE INDEX idx_tenant_ib ON inventory_balance(tenant_id);
+CREATE INDEX idx_tenant_ibat ON inventory_batch(tenant_id);
+CREATE INDEX idx_tenant_il ON inventory_ledger(tenant_id);
 
 -- 损益表
 CREATE TABLE IF NOT EXISTS inventory_loss_gain (

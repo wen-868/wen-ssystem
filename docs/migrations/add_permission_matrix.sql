@@ -2,8 +2,7 @@
 -- 执行时间：2026-06-26
 -- 负责人：阿坚
 -- 说明：新建菜单权限表、数据权限表、字段权限表，并初始化8角色完整权限矩阵
-
-USE liquor_inventory;
+-- 注意：status 字段类型为 TINYINT，值为 1/0，非 'ACTIVE'/'INACTIVE'
 
 -- ============================================================
 -- 第1步：删除旧表（如果存在）
@@ -80,16 +79,16 @@ DELETE FROM sys_role_permission WHERE tenant_id = 'default';
 DELETE FROM sys_user_role WHERE tenant_id = 'default';
 DELETE FROM sys_role WHERE tenant_id = 'default';
 
--- 插入8角色
+-- 插入8角色（status 字段为 TINYINT，使用 1 而非 'ACTIVE'）
 INSERT INTO sys_role (id, role_code, role_name, description, data_scope, permissions, status, tenant_id) VALUES
-(1, 'SUPER_ADMIN', '超级管理员', '拥有系统全部权限，可管理所有租户和门店', 'ALL', '["*"]', 'ACTIVE', 'default'),
-(2, 'STORE_MANAGER', '门店店长', '管理本门店的销售、库存、客户、员工', 'STORE', '["store:*","sale:*","customer:*","inventory:*","report:*","dashboard:*"]', 'ACTIVE', 'default'),
-(3, 'SALES_STAFF', '销售员', '负责线下销售开单、客户管理、客户拜访', 'SELF', '["sale:create","sale:view","customer:view","customer:visit","dashboard:view"]', 'ACTIVE', 'default'),
-(4, 'PURCHASE_STAFF', '采购员', '负责采购订单、供应商管理、采购入库', 'SELF', '["purchase:*","supplier:*","inventory:inbound","report:purchase"]', 'ACTIVE', 'default'),
-(5, 'WAREHOUSE_STAFF', '仓管员', '负责库存管理、出入库、盘点、调拨', 'STORE', '["inventory:*","trace:*","transfer:*","stock-check:*"]', 'ACTIVE', 'default'),
-(6, 'FINANCE_STAFF', '财务', '负责收款、付款、对账、财务报表', 'ALL', '["finance:*","report:*","customer:statement","supplier:statement","dashboard:view"]', 'ACTIVE', 'default'),
-(7, 'CUSTOMER_SERVICE', '客服', '负责客户服务、售后处理、小程序订单', 'STORE', '["customer:view","aftersale:*","miniapp:*","notification:view"]', 'ACTIVE', 'default'),
-(8, 'READONLY', '只读观察员', '仅查看权限，不可编辑任何数据', 'ALL', '["*:view"]', 'ACTIVE', 'default');
+(1, 'SUPER_ADMIN', '超级管理员', '拥有系统全部权限，可管理所有租户和门店', 'ALL', '["*"]', 1, 'default'),
+(2, 'STORE_MANAGER', '门店店长', '管理本门店的销售、库存、客户、员工', 'STORE', '["store:*","sale:*","customer:*","inventory:*","report:*","dashboard:*"]', 1, 'default'),
+(3, 'SALES_STAFF', '销售员', '负责线下销售开单、客户管理、客户拜访', 'SELF', '["sale:create","sale:view","customer:view","customer:visit","dashboard:view"]', 1, 'default'),
+(4, 'PURCHASE_STAFF', '采购员', '负责采购订单、供应商管理、采购入库', 'SELF', '["purchase:*","supplier:*","inventory:inbound","report:purchase"]', 1, 'default'),
+(5, 'WAREHOUSE_STAFF', '仓管员', '负责库存管理、出入库、盘点、调拨', 'STORE', '["inventory:*","trace:*","transfer:*","stock-check:*"]', 1, 'default'),
+(6, 'FINANCE_STAFF', '财务', '负责收款、付款、对账、财务报表', 'ALL', '["finance:*","report:*","customer:statement","supplier:statement","dashboard:view"]', 1, 'default'),
+(7, 'CUSTOMER_SERVICE', '客服', '负责客户服务、售后处理、小程序订单', 'STORE', '["customer:view","aftersale:*","miniapp:*","notification:view"]', 1, 'default'),
+(8, 'READONLY', '只读观察员', '仅查看权限，不可编辑任何数据', 'ALL', '["*:view"]', 1, 'default');
 
 -- ============================================================
 -- 第6步：初始化菜单树
@@ -220,17 +219,7 @@ INSERT INTO sys_menu (id, parent_id, menu_code, menu_name, menu_type, sort_no, t
 (273, 101, 'system:role:edit',    '编辑角色', 'BUTTON', 2, 'default');
 
 -- ============================================================
--- 第7步：初始化角色-菜单关联（通过 sys_role.menus JSON）
--- 为每个角色分配菜单权限
--- 注意：sys_role 表已有 permissions 字段（JSON），此处复用
--- 实际菜单权限由 sys_menu 表 + 角色-菜单关联表控制
--- ============================================================
-
--- 超级管理员 - 拥有所有菜单
--- 其他角色通过前端根据 role_code 过滤菜单树
-
--- ============================================================
--- 第8步：初始化数据权限（行级过滤规则）
+-- 第7步：初始化数据权限（行级过滤规则）
 -- ============================================================
 
 -- 门店店长：只能看自己门店的数据
@@ -258,7 +247,7 @@ INSERT INTO sys_data_permission (role_id, table_name, field_name, condition_type
 (7, 'miniapp_order', 'store_id', 'OWN', 'current_user.store_id', '客服只能查看本门店订单', 'default');
 
 -- ============================================================
--- 第9步：初始化字段权限（字段可见性/可编辑性）
+-- 第8步：初始化字段权限（字段可见性/可编辑性）
 -- ============================================================
 
 -- 价格敏感字段：批发价、成本价仅管理员/财务/采购可见
