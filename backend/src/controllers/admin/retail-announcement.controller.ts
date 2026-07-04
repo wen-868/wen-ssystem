@@ -1,5 +1,23 @@
+import { z } from "zod";
 import { asyncHandler } from "../../shared/async-handler.js";
 import * as retailAnnouncementService from "../../services/instant-retail/retail-announcement.service.js";
+
+const createAnnouncementSchema = z.object({
+  store_id: z.number().int().positive(),
+  title: z.string().min(1).max(200),
+  content: z.string().min(1).max(5000),
+  is_top: z.number().int().min(0).max(1).optional(),
+  start_time: z.string().optional(),
+  end_time: z.string().optional(),
+});
+
+const updateAnnouncementSchema = z.object({
+  title: z.string().min(1).max(200).optional(),
+  content: z.string().min(1).max(5000).optional(),
+  is_top: z.number().int().min(0).max(1).optional(),
+  start_time: z.string().optional(),
+  end_time: z.string().optional(),
+});
 
 export const listAnnouncements = asyncHandler(async (req, res) => {
   const storeId = req.query.storeId ? Number(req.query.storeId) : undefined;
@@ -12,11 +30,8 @@ export const listAnnouncements = asyncHandler(async (req, res) => {
 });
 
 export const createAnnouncement = asyncHandler(async (req, res) => {
-  const { store_id, title, content, is_top, start_time, end_time } = req.body;
-  if (!store_id || !title || !content) {
-    res.status(400).json({ code: "400", message: "store_id, title, content are required" });
-    return;
-  }
+  const body = createAnnouncementSchema.parse(req.body);
+  const { store_id, title, content, is_top, start_time, end_time } = body;
   const result = await retailAnnouncementService.createAnnouncement({
     store_id,
     title,
@@ -30,7 +45,8 @@ export const createAnnouncement = asyncHandler(async (req, res) => {
 
 export const updateAnnouncement = asyncHandler(async (req, res) => {
   const id = Number(req.params.id);
-  const { title, content, is_top, start_time, end_time } = req.body;
+  const body = updateAnnouncementSchema.parse(req.body);
+  const { title, content, is_top, start_time, end_time } = body;
   const result = await retailAnnouncementService.updateAnnouncement(id, {
     title,
     content,

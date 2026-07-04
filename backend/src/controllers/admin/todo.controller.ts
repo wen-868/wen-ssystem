@@ -1,6 +1,16 @@
+import { z } from "zod";
 import { asyncHandler } from "../../shared/async-handler.js";
 import { ok } from "../../shared/response.js";
 import * as todoService from "../../services/admin/todo.service.js";
+
+const createTodoSchema = z.object({
+  title: z.string().min(1).max(200),
+  type: z.enum(["ORDER", "PURCHASE", "STOCK", "CUSTOMER", "OTHER"]),
+  priority: z.enum(["HIGH", "MEDIUM", "LOW"]),
+  dueDate: z.string().optional(),
+  remark: z.string().max(500).optional(),
+  source: z.string().max(200).optional(),
+});
 
 export const listTodos = asyncHandler(async (req, res) => {
   const tenantId = req.tenantId!;
@@ -21,11 +31,8 @@ export const getTodoStats = asyncHandler(async (req, res) => {
 
 export const createTodo = asyncHandler(async (req, res) => {
   const tenantId = req.tenantId!;
-  const { title, type, priority, dueDate, remark, source } = req.body;
-  if (!title || !type || !priority) {
-    res.status(400).json({ code: "400", message: "title、type、priority 为必填项" });
-    return;
-  }
+  const body = createTodoSchema.parse(req.body);
+  const { title, type, priority, dueDate, remark, source } = body;
   const result = await todoService.createTodo(tenantId, { title, type, priority, dueDate, remark, source });
   res.json(ok(result));
 });

@@ -1,10 +1,41 @@
+import { z } from "zod";
 import { Request, Response } from "express";
 import { asyncHandler } from "../../shared/async-handler.js";
 import { ok } from "../../shared/response.js";
 import * as svc from "../../services/admin/marketing-points-mall.service.js";
 
+const createPointsProductSchema = z.object({
+  name: z.string().min(1).max(200),
+  description: z.string().max(2000).optional(),
+  imageUrl: z.string().optional(),
+  pointsRequired: z.number().int().positive(),
+  stock: z.number().int().min(0),
+  limitPerUser: z.number().int().positive().optional(),
+  status: z.enum(["ON", "OFF"]).default("ON"),
+  sortNo: z.number().int().default(0),
+});
+
+const updatePointsProductSchema = z.object({
+  name: z.string().min(1).max(200).optional(),
+  description: z.string().max(2000).optional(),
+  imageUrl: z.string().optional(),
+  pointsRequired: z.number().int().positive().optional(),
+  stock: z.number().int().min(0).optional(),
+  limitPerUser: z.number().int().positive().optional(),
+  status: z.enum(["ON", "OFF"]).optional(),
+  sortNo: z.number().int().optional(),
+});
+
+const exchangeProductSchema = z.object({
+  pointsProductId: z.number().int().positive(),
+  quantity: z.number().int().min(1).default(1),
+  addressId: z.number().int().positive().optional(),
+  remark: z.string().max(500).optional(),
+});
+
 export const createPointsProduct = asyncHandler(async (req: Request, res: Response) => {
-  const result = await svc.createPointsProduct(req.body, req.tenantId!);
+  const body = createPointsProductSchema.parse(req.body);
+  const result = await svc.createPointsProduct(body, req.tenantId!);
   res.json(ok(result));
 });
 
@@ -20,7 +51,8 @@ export const getPointsProductDetail = asyncHandler(async (req: Request, res: Res
 });
 
 export const updatePointsProduct = asyncHandler(async (req: Request, res: Response) => {
-  const result = await svc.updatePointsProduct(Number(req.params.id), req.body, req.tenantId!);
+  const body = updatePointsProductSchema.parse(req.body);
+  const result = await svc.updatePointsProduct(Number(req.params.id), body, req.tenantId!);
   res.json(ok(result));
 });
 
@@ -46,7 +78,8 @@ export const getExchangeRecordDetail = asyncHandler(async (req: Request, res: Re
 });
 
 export const exchangeProduct = asyncHandler(async (req: Request, res: Response) => {
-  const result = await svc.exchangeProduct(req.body, req.tenantId!);
+  const body = exchangeProductSchema.parse(req.body);
+  const result = await svc.exchangeProduct(body as any, req.tenantId!);
   res.json(ok(result));
 });
 

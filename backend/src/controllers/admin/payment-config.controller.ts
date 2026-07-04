@@ -1,5 +1,32 @@
+import { z } from "zod";
 import { Request, Response } from "express";
 import { PaymentConfigService } from "../../services/admin/payment-config.service.js";
+
+const saveChannelConfigSchema = z.object({
+  appId: z.string().min(1),
+  appSecret: z.string().min(1),
+  mchId: z.string().optional(),
+  apiKey: z.string().optional(),
+  certPath: z.string().optional(),
+  notifyUrl: z.string().optional(),
+  enabled: z.boolean().optional(),
+});
+
+const createBankAccountSchema = z.object({
+  bankName: z.string().min(1).max(100),
+  accountName: z.string().min(1).max(100),
+  accountNumber: z.string().min(1).max(50),
+  isDefault: z.boolean().optional(),
+  remark: z.string().max(200).optional(),
+});
+
+const updateBankAccountSchema = z.object({
+  bankName: z.string().min(1).max(100).optional(),
+  accountName: z.string().min(1).max(100).optional(),
+  accountNumber: z.string().min(1).max(50).optional(),
+  isDefault: z.boolean().optional(),
+  remark: z.string().max(200).optional(),
+});
 
 export async function getChannelConfig(req: Request, res: Response) {
   const data = await PaymentConfigService.getChannelConfig(req.tenantId!, req.params.provider);
@@ -7,7 +34,8 @@ export async function getChannelConfig(req: Request, res: Response) {
 }
 
 export async function saveChannelConfig(req: Request, res: Response) {
-  const data = await PaymentConfigService.saveChannelConfig(req.tenantId!, req.params.provider, req.body);
+  const body = saveChannelConfigSchema.parse(req.body);
+  const data = await PaymentConfigService.saveChannelConfig(req.tenantId!, req.params.provider, body);
   res.json({ code: "0", message: "保存成功", data });
 }
 
@@ -27,12 +55,14 @@ export async function listBankAccounts(req: Request, res: Response) {
 }
 
 export async function createBankAccount(req: Request, res: Response) {
-  const data = await PaymentConfigService.createBankAccount(req.tenantId!, req.body);
+  const body = createBankAccountSchema.parse(req.body);
+  const data = await PaymentConfigService.createBankAccount(req.tenantId!, body);
   res.json({ code: "0", message: "创建成功", data });
 }
 
 export async function updateBankAccount(req: Request, res: Response) {
-  const data = await PaymentConfigService.updateBankAccount(req.tenantId!, Number(req.params.id), req.body);
+  const body = updateBankAccountSchema.parse(req.body);
+  const data = await PaymentConfigService.updateBankAccount(req.tenantId!, Number(req.params.id), body);
   res.json({ code: "0", message: "更新成功", data });
 }
 

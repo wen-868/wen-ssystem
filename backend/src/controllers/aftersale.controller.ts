@@ -1,6 +1,50 @@
+import { z } from "zod";
 import { asyncHandler } from "../shared/async-handler.js";
 import { ok, fail } from "../shared/response.js";
 import * as service from "../services/admin/aftersale.service.js";
+
+// ── Zod schemas ──
+const createAftersaleSchema = z.object({
+  orderNo: z.string().min(1),
+  aftersaleType: z.enum(["REFUND_ONLY", "RETURN_REFUND", "EXCHANGE", "REPAIR"]),
+  reason: z.string().min(1).max(500),
+  refundAmount: z.number().min(0).optional(),
+  description: z.string().max(2000).optional(),
+  images: z.array(z.string()).optional(),
+  items: z.array(z.object({
+    skuId: z.number().int().positive(),
+    quantity: z.number().int().min(1),
+    reason: z.string().optional(),
+  })).optional(),
+});
+
+const submitReturnLogisticsSchema = z.object({
+  logisticsCompany: z.string().min(1),
+  logisticsNo: z.string().min(1),
+  logisticsPhone: z.string().optional(),
+  remark: z.string().max(500).optional(),
+});
+
+const rateAftersaleSchema = z.object({
+  rating: z.number().int().min(1).max(5),
+  comment: z.string().max(500).optional(),
+});
+
+const approveRejectAftersaleSchema = z.object({
+  processRemark: z.string().max(500).optional(),
+  version: z.number().int().positive().optional(),
+});
+
+const inspectAftersaleSchema = z.object({
+  inspectResult: z.enum(["PASS", "FAIL"]),
+  inspectRemark: z.string().max(500).optional(),
+  inspectImages: z.array(z.string()).optional(),
+  refundAmount: z.number().min(0).optional(),
+});
+
+const completeAftersaleSchema = z.object({
+  completeRemark: z.string().max(500).optional(),
+});
 
 // ==================== 标签常量 ====================
 export const AFTERSALE_TYPE_LABELS: Record<string, string> = {
@@ -28,11 +72,14 @@ export const AFTERSALE_STATUS_LABELS: Record<string, string> = {
 export const miniappCreateAftersale = asyncHandler(async (req, res) => {
   const tenantId = req.tenantId!;
   const customerId = Number(req.user!.id || req.headers["x-customer-id"] || 1);
+  const body = createAftersaleSchema.parse(req.body);
   const result = await service.createAftersale({
     tenantId,
     customerId,
-    ...req.body
-  });
+    ...body,
+    items: body.items ?? [],
+    refundAmount: body.refundAmount ?? 0,
+  } as any);
   res.json(ok(result));
 });
 
@@ -80,24 +127,28 @@ export const miniappCancelAftersale = asyncHandler(async (req, res) => {
 export const miniappSubmitReturnLogistics = asyncHandler(async (req, res) => {
   const tenantId = req.tenantId!;
   const customerId = Number(req.user!.id || req.headers["x-customer-id"] || 1);
+  const body = submitReturnLogisticsSchema.parse(req.body);
   const result = await service.submitReturnLogistics({
     aftersaleNo: req.params.aftersaleNo,
     customerId,
     tenantId,
-    ...req.body
-  });
+    returnLogisticsCompany: body.logisticsCompany,
+    returnLogisticsNo: body.logisticsNo,
+  } as any);
   res.json(ok(result));
 });
 
 export const miniappRateAftersale = asyncHandler(async (req, res) => {
   const tenantId = req.tenantId!;
   const customerId = Number(req.user!.id || req.headers["x-customer-id"] || 1);
+  const body = rateAftersaleSchema.parse(req.body);
   const result = await service.rateAftersale({
     aftersaleNo: req.params.aftersaleNo,
     customerId,
     tenantId,
-    ...req.body
-  });
+    satisfaction: body.rating,
+    customerComment: body.comment,
+  } as any);
   res.json(ok(result));
 });
 
@@ -141,8 +192,9 @@ export const adminGetAftersaleDetail = asyncHandler(async (req, res) => {
 export const adminApproveAftersale = asyncHandler(async (req, res) => {
   const tenantId = req.tenantId!;
   const operatorId = req.user!.id;
+  const body = approveRejectAftersaleSchema.parse(req.body);
   const result = await service.approveAftersale(
-    Number(req.params.id), tenantId, operatorId, req.body.processRemark, req.body.version
+    Number(req.params.id), tenantId, operatorId, body.processRemark ?? "", body.version
   );
   res.json(ok(result));
 });
@@ -150,8 +202,9 @@ export const adminApproveAftersale = asyncHandler(async (req, res) => {
 export const adminRejectAftersale = asyncHandler(async (req, res) => {
   const tenantId = req.tenantId!;
   const operatorId = req.user!.id;
+  const body = approveRejectAftersaleSchema.parse(req.body);
   const result = await service.rejectAftersale(
-    Number(req.params.id), tenantId, operatorId, req.body.processRemark, req.body.version
+    Number(req.params.id), tenantId, operatorId, body.processRemark ?? "", body.version
   );
   res.json(ok(result));
 });
@@ -165,11 +218,12 @@ export const adminConfirmReceipt = asyncHandler(async (req, res) => {
 export const adminInspectAftersale = asyncHandler(async (req, res) => {
   const tenantId = req.tenantId!;
   const operatorId = req.user!.id;
+  const body = inspectAftersaleSchema.parse(req.body);
   const result = await service.inspectAftersale({
     id: Number(req.params.id),
     tenantId,
     operatorId,
-    ...req.body
+    ...body
   });
   res.json(ok(result));
 });
@@ -177,11 +231,12 @@ export const adminInspectAftersale = asyncHandler(async (req, res) => {
 export const adminCompleteAftersale = asyncHandler(async (req, res) => {
   const tenantId = req.tenantId!;
   const operatorId = req.user!.id;
+  const body = completeAftersaleSchema.parse(req.body);
   const result = await service.completeAftersale({
     id: Number(req.params.id),
     tenantId,
     operatorId,
-    ...req.body
+    ...body
   });
   res.json(ok(result));
 });

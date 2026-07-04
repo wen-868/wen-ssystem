@@ -1,6 +1,22 @@
+import { z } from "zod";
 import { asyncHandler } from "../../shared/async-handler.js";
 import { ok } from "../../shared/response.js";
 import * as customerPriceService from "../../services/admin/customer-price.service.js";
+
+const createCustomerPriceSchema = z.object({
+  customerId: z.number().int().positive(),
+  skuId: z.number().int().positive(),
+  customPrice: z.number().min(0),
+  effectiveStart: z.string().optional(),
+  effectiveEnd: z.string().optional(),
+});
+
+const updateCustomerPriceSchema = z.object({
+  customPrice: z.number().min(0).optional(),
+  effectiveStart: z.string().optional(),
+  effectiveEnd: z.string().optional(),
+  status: z.number().int().optional(),
+});
 
 export const listCustomerPrices = asyncHandler(async (req, res) => {
   const result = await customerPriceService.listCustomerPrices({
@@ -14,7 +30,8 @@ export const listCustomerPrices = asyncHandler(async (req, res) => {
 });
 
 export const createCustomerPrice = asyncHandler(async (req, res) => {
-  const { customerId, skuId, customPrice, effectiveStart, effectiveEnd } = req.body;
+  const body = createCustomerPriceSchema.parse(req.body);
+  const { customerId, skuId, customPrice, effectiveStart, effectiveEnd } = body;
   const result = await customerPriceService.createCustomerPrice({
     customerId, skuId, customPrice, effectiveStart, effectiveEnd,
     tenantId: req.tenantId!
@@ -23,7 +40,8 @@ export const createCustomerPrice = asyncHandler(async (req, res) => {
 });
 
 export const updateCustomerPrice = asyncHandler(async (req, res) => {
-  const { customPrice, effectiveStart, effectiveEnd, status } = req.body;
+  const body = updateCustomerPriceSchema.parse(req.body);
+  const { customPrice, effectiveStart, effectiveEnd, status } = body;
   const result = await customerPriceService.updateCustomerPrice(Number(req.params.id), {
     customPrice, effectiveStart, effectiveEnd, status,
     tenantId: req.tenantId!

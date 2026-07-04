@@ -1,6 +1,52 @@
+import { z } from "zod";
 import { asyncHandler } from "../shared/async-handler.js";
 import { ok } from "../shared/response.js";
 import * as service from "../services/admin/instant-retail.service.js";
+
+// ── Zod schemas ──
+const saveShopConfigSchema = z.object({
+  shopName: z.string().min(1).max(100),
+  logo: z.string().optional(),
+  banner: z.string().optional(),
+  description: z.string().optional(),
+  businessHours: z.string().optional(),
+  phone: z.string().optional(),
+  address: z.string().optional(),
+  latitude: z.number().optional(),
+  longitude: z.number().optional(),
+  deliveryRange: z.number().optional(),
+  deliveryFee: z.number().optional(),
+  minOrderAmount: z.number().optional(),
+  status: z.enum(["OPEN", "CLOSED", "RESTING"]).optional(),
+});
+
+const createCategorySchema = z.object({
+  name: z.string().min(1).max(50),
+  sortNo: z.number().int().default(0),
+  icon: z.string().optional(),
+});
+
+const addProductSchema = z.object({
+  skuId: z.number().int().positive(),
+  retailPrice: z.number().positive(),
+  stock: z.number().int().min(0),
+  isRecommended: z.boolean().optional(),
+  isHot: z.boolean().optional(),
+  isNew: z.boolean().optional(),
+  sortNo: z.number().int().default(0),
+});
+
+const updateOrderStatusSchema = z.object({
+  status: z.enum(["CONFIRMED", "PREPARING", "DELIVERING", "COMPLETED", "CANCELLED"]),
+  reason: z.string().max(500).optional(),
+});
+
+const createBannerSchema = z.object({
+  title: z.string().min(1).max(100),
+  imageUrl: z.string().min(1),
+  linkUrl: z.string().optional(),
+  sortNo: z.number().int().default(0),
+});
 
 // ────────────────────────────────────────────────────────────────────────────
 // 店铺配置管理
@@ -16,7 +62,8 @@ export const getShopConfig = asyncHandler(async (req, res) => {
 // 2. 创建/更新店铺配置
 export const saveShopConfig = asyncHandler(async (req, res) => {
   const tenantId = req.tenantId!;
-  const result = await service.saveShopConfig(req.body, tenantId);
+  const body = saveShopConfigSchema.parse(req.body);
+  const result = await service.saveShopConfig(body as any, tenantId);
   res.json(ok(result));
 });
 
@@ -34,7 +81,8 @@ export const listCategories = asyncHandler(async (req, res) => {
 // 4. 创建分类
 export const createCategory = asyncHandler(async (req, res) => {
   const tenantId = req.tenantId!;
-  const result = await service.createCategory(req.body, tenantId);
+  const body = createCategorySchema.parse(req.body);
+  const result = await service.createCategory(body as any, tenantId);
   res.json(ok(result));
 });
 
@@ -61,7 +109,8 @@ export const listProducts = asyncHandler(async (req, res) => {
 // 6. 添加商品到即时零售
 export const addProduct = asyncHandler(async (req, res) => {
   const tenantId = req.tenantId!;
-  const result = await service.addRetailProduct(req.body, tenantId);
+  const body = addProductSchema.parse(req.body);
+  const result = await service.addRetailProduct(body as any, tenantId);
   res.json(ok(result));
 });
 
@@ -94,11 +143,13 @@ export const getOrderDetail = asyncHandler(async (req, res) => {
 // 9. 更新订单状态
 export const updateOrderStatus = asyncHandler(async (req, res) => {
   const tenantId = req.tenantId!;
+  const body = updateOrderStatusSchema.parse(req.body);
   const result = await service.updateRetailOrderStatus({
     orderNo: req.params.orderNo,
     tenantId,
-    ...req.body
-  });
+    orderStatus: body.status,
+    cancelReason: body.reason,
+  } as any);
   res.json(ok(result));
 });
 
@@ -116,6 +167,7 @@ export const listBanners = asyncHandler(async (req, res) => {
 // 11. 创建轮播图
 export const createBanner = asyncHandler(async (req, res) => {
   const tenantId = req.tenantId!;
-  const result = await service.createBanner(req.body, tenantId);
+  const body = createBannerSchema.parse(req.body);
+  const result = await service.createBanner(body as any, tenantId);
   res.json(ok(result));
 });

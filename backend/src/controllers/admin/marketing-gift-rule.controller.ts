@@ -1,10 +1,47 @@
+import { z } from "zod";
 import { Request, Response } from "express";
 import { asyncHandler } from "../../shared/async-handler.js";
 import { ok } from "../../shared/response.js";
 import * as svc from "../../services/admin/marketing-gift-rule.service.js";
 
+const createGiftRuleSchema = z.object({
+  name: z.string().min(1).max(200),
+  triggerType: z.enum(["AMOUNT", "QUANTITY"]),
+  triggerValue: z.number().positive(),
+  startTime: z.string().min(1),
+  endTime: z.string().min(1),
+  status: z.enum(["DRAFT", "ACTIVE", "PAUSED"]).default("DRAFT"),
+  description: z.string().max(2000).optional(),
+  applicableScope: z.enum(["ALL", "SPECIFIC"]).default("ALL"),
+  levels: z.array(z.object({
+    name: z.string().min(1).max(100),
+    giftSkuId: z.number().int().positive(),
+    giftQuantity: z.number().int().positive(),
+    sortNo: z.number().int().default(0),
+  })).min(1).optional(),
+});
+
+const updateGiftRuleSchema = z.object({
+  name: z.string().min(1).max(200).optional(),
+  triggerType: z.enum(["AMOUNT", "QUANTITY"]).optional(),
+  triggerValue: z.number().positive().optional(),
+  startTime: z.string().optional(),
+  endTime: z.string().optional(),
+  status: z.enum(["DRAFT", "ACTIVE", "PAUSED"]).optional(),
+  description: z.string().max(2000).optional(),
+  applicableScope: z.enum(["ALL", "SPECIFIC"]).optional(),
+});
+
+const giftRuleLevelSchema = z.object({
+  name: z.string().min(1).max(100),
+  giftSkuId: z.number().int().positive(),
+  giftQuantity: z.number().int().positive(),
+  sortNo: z.number().int().default(0),
+});
+
 export const createGiftRule = asyncHandler(async (req: Request, res: Response) => {
-  const result = await svc.createGiftRule(req.body, req.tenantId!, req.user!.id);
+  const body = createGiftRuleSchema.parse(req.body);
+  const result = await svc.createGiftRule(body, req.tenantId!, req.user!.id);
   res.json(ok(result));
 });
 
@@ -20,7 +57,8 @@ export const getGiftRuleDetail = asyncHandler(async (req: Request, res: Response
 });
 
 export const updateGiftRule = asyncHandler(async (req: Request, res: Response) => {
-  const result = await svc.updateGiftRule(Number(req.params.id), req.body, req.tenantId!);
+  const body = updateGiftRuleSchema.parse(req.body);
+  const result = await svc.updateGiftRule(Number(req.params.id), body, req.tenantId!);
   res.json(ok(result));
 });
 
@@ -40,12 +78,14 @@ export const pauseGiftRule = asyncHandler(async (req: Request, res: Response) =>
 });
 
 export const addGiftRuleLevel = asyncHandler(async (req: Request, res: Response) => {
-  await svc.addGiftRuleLevel(Number(req.params.id), req.body, req.tenantId!);
+  const body = giftRuleLevelSchema.parse(req.body);
+  await svc.addGiftRuleLevel(Number(req.params.id), body, req.tenantId!);
   res.json(ok(null));
 });
 
 export const updateGiftRuleLevel = asyncHandler(async (req: Request, res: Response) => {
-  await svc.updateGiftRuleLevel(Number(req.params.id), Number(req.params.levelId), req.body, req.tenantId!);
+  const body = giftRuleLevelSchema.partial().parse(req.body);
+  await svc.updateGiftRuleLevel(Number(req.params.id), Number(req.params.levelId), body, req.tenantId!);
   res.json(ok(null));
 });
 

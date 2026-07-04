@@ -1,10 +1,44 @@
+import { z } from "zod";
 import { Request, Response } from "express";
 import { asyncHandler } from "../../shared/async-handler.js";
 import { ok } from "../../shared/response.js";
 import * as svc from "../../services/admin/marketing-material.service.js";
 
+const createMaterialSchema = z.object({
+  name: z.string().min(1).max(200),
+  materialType: z.enum(["IMAGE", "VIDEO", "TEXT", "FILE"]),
+  url: z.string().optional(),
+  content: z.string().optional(),
+  categoryId: z.number().int().positive().optional(),
+  tags: z.array(z.string()).optional(),
+  remark: z.string().max(500).optional(),
+});
+
+const updateMaterialSchema = z.object({
+  name: z.string().min(1).max(200).optional(),
+  url: z.string().optional(),
+  content: z.string().optional(),
+  categoryId: z.number().int().positive().optional(),
+  tags: z.array(z.string()).optional(),
+  remark: z.string().max(500).optional(),
+  status: z.enum(["DRAFT", "PUBLISHED", "ARCHIVED"]).optional(),
+});
+
+const createMaterialCategorySchema = z.object({
+  name: z.string().min(1).max(100),
+  parentId: z.number().int().positive().optional(),
+  sortNo: z.number().int().default(0),
+});
+
+const updateMaterialCategorySchema = z.object({
+  name: z.string().min(1).max(100).optional(),
+  parentId: z.number().int().positive().optional(),
+  sortNo: z.number().int().optional(),
+});
+
 export const createMaterial = asyncHandler(async (req: Request, res: Response) => {
-  const result = await svc.createMaterial(req.body, req.tenantId!, req.user!.id);
+  const body = createMaterialSchema.parse(req.body);
+  const result = await svc.createMaterial(body, req.tenantId!, req.user!.id);
   res.json(ok(result));
 });
 
@@ -20,7 +54,8 @@ export const getMaterialDetail = asyncHandler(async (req: Request, res: Response
 });
 
 export const updateMaterial = asyncHandler(async (req: Request, res: Response) => {
-  const result = await svc.updateMaterial(Number(req.params.id), req.body, req.tenantId!);
+  const body = updateMaterialSchema.parse(req.body);
+  const result = await svc.updateMaterial(Number(req.params.id), body, req.tenantId!);
   res.json(ok(result));
 });
 
@@ -45,12 +80,14 @@ export const getMaterialCategories = asyncHandler(async (req: Request, res: Resp
 });
 
 export const createMaterialCategory = asyncHandler(async (req: Request, res: Response) => {
-  const result = await svc.createMaterialCategory(req.body, req.tenantId!);
+  const body = createMaterialCategorySchema.parse(req.body);
+  const result = await svc.createMaterialCategory(body, req.tenantId!);
   res.json(ok(result));
 });
 
 export const updateMaterialCategory = asyncHandler(async (req: Request, res: Response) => {
-  await svc.updateMaterialCategory(Number(req.params.id), req.body, req.tenantId!);
+  const body = updateMaterialCategorySchema.parse(req.body);
+  await svc.updateMaterialCategory(Number(req.params.id), body, req.tenantId!);
   res.json(ok(null));
 });
 

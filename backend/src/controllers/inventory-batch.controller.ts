@@ -1,6 +1,46 @@
+import { z } from "zod";
 import { asyncHandler } from "../shared/async-handler.js";
 import { ok } from "../shared/response.js";
 import * as service from "../services/admin/inventory-batch.service.js";
+
+// ── Zod schemas ──
+const createBatchSchema = z.object({
+  skuId: z.number().int().positive(),
+  batchNo: z.string().min(1).max(100),
+  quantity: z.number().int().positive(),
+  productionDate: z.string().optional(),
+  expiryDate: z.string().optional(),
+  storeId: z.number().int().positive(),
+  purchasePrice: z.number().min(0).optional(),
+  remark: z.string().max(500).optional(),
+});
+
+const updateBatchSchema = z.object({
+  batchNo: z.string().min(1).max(100).optional(),
+  quantity: z.number().int().positive().optional(),
+  productionDate: z.string().optional(),
+  expiryDate: z.string().optional(),
+  purchasePrice: z.number().min(0).optional(),
+  remark: z.string().max(500).optional(),
+  status: z.enum(["ACTIVE", "FROZEN", "EXPIRED"]).optional(),
+});
+
+const splitBatchSchema = z.object({
+  quantity: z.number().int().positive(),
+  newBatchNo: z.string().min(1).max(100).optional(),
+  remark: z.string().max(500).optional(),
+});
+
+const createExpiryConfigSchema = z.object({
+  skuId: z.number().int().positive(),
+  warningDays: z.number().int().min(1),
+  dangerDays: z.number().int().min(1),
+});
+
+const updateExpiryConfigSchema = z.object({
+  warningDays: z.number().int().min(1).optional(),
+  dangerDays: z.number().int().min(1).optional(),
+});
 
 // ==================== 批次管理 ====================
 
@@ -26,19 +66,22 @@ export const getBatchDetail = asyncHandler(async (req, res) => {
 });
 
 export const createBatch = asyncHandler(async (req, res) => {
-  const result = await service.createBatch(req.tenantId!, req.body as any);
+  const body = createBatchSchema.parse(req.body);
+  const result = await service.createBatch(req.tenantId!, body as any);
   res.json(ok(result));
 });
 
 export const updateBatch = asyncHandler(async (req, res) => {
   const id = Number(req.params.id);
-  const result = await service.updateBatch(req.tenantId!, id, req.body as any);
+  const body = updateBatchSchema.parse(req.body);
+  const result = await service.updateBatch(req.tenantId!, id, body as any);
   res.json(ok(result));
 });
 
 export const splitBatch = asyncHandler(async (req, res) => {
   const id = Number(req.params.id);
-  const result = await service.splitBatch(req.tenantId!, id, req.body as any);
+  const body = splitBatchSchema.parse(req.body);
+  const result = await service.splitBatch(req.tenantId!, id, body as any);
   res.json(ok(result));
 });
 
@@ -57,13 +100,15 @@ export const listExpiryConfigs = asyncHandler(async (req, res) => {
 });
 
 export const createExpiryConfig = asyncHandler(async (req, res) => {
-  const result = await service.createExpiryConfig(req.tenantId!, req.body as any);
+  const body = createExpiryConfigSchema.parse(req.body);
+  const result = await service.createExpiryConfig(req.tenantId!, body as any);
   res.json(ok(result));
 });
 
 export const updateExpiryConfig = asyncHandler(async (req, res) => {
   const id = Number(req.params.id);
-  const result = await service.updateExpiryConfig(req.tenantId!, id, req.body as any);
+  const body = updateExpiryConfigSchema.parse(req.body);
+  const result = await service.updateExpiryConfig(req.tenantId!, id, body as any);
   res.json(ok(result));
 });
 

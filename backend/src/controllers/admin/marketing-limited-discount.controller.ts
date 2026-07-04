@@ -1,10 +1,42 @@
+import { z } from "zod";
 import { Request, Response } from "express";
 import { asyncHandler } from "../../shared/async-handler.js";
 import { ok } from "../../shared/response.js";
 import * as svc from "../../services/admin/marketing-limited-discount.service.js";
 
+const createLimitedDiscountSchema = z.object({
+  name: z.string().min(1).max(200),
+  discountType: z.enum(["PERCENTAGE", "FIXED"]),
+  discountValue: z.number().positive(),
+  startTime: z.string().min(1),
+  endTime: z.string().min(1),
+  limitPerUser: z.number().int().positive().optional(),
+  totalLimit: z.number().int().positive().optional(),
+  status: z.enum(["DRAFT", "ACTIVE", "PAUSED"]).default("DRAFT"),
+  description: z.string().max(2000).optional(),
+  applicableScope: z.enum(["ALL", "SPECIFIC"]).default("ALL"),
+});
+
+const updateLimitedDiscountSchema = z.object({
+  name: z.string().min(1).max(200).optional(),
+  discountType: z.enum(["PERCENTAGE", "FIXED"]).optional(),
+  discountValue: z.number().positive().optional(),
+  startTime: z.string().optional(),
+  endTime: z.string().optional(),
+  limitPerUser: z.number().int().positive().optional(),
+  totalLimit: z.number().int().positive().optional(),
+  status: z.enum(["DRAFT", "ACTIVE", "PAUSED"]).optional(),
+  description: z.string().max(2000).optional(),
+  applicableScope: z.enum(["ALL", "SPECIFIC"]).optional(),
+});
+
+const addDiscountProductSchema = z.object({
+  skuIds: z.array(z.number().int().positive()).min(1),
+});
+
 export const createLimitedDiscount = asyncHandler(async (req: Request, res: Response) => {
-  const result = await svc.createLimitedDiscount(req.body, req.tenantId!, req.user!.id);
+  const body = createLimitedDiscountSchema.parse(req.body);
+  const result = await svc.createLimitedDiscount(body, req.tenantId!, req.user!.id);
   res.json(ok(result));
 });
 
@@ -20,7 +52,8 @@ export const getLimitedDiscountDetail = asyncHandler(async (req: Request, res: R
 });
 
 export const updateLimitedDiscount = asyncHandler(async (req: Request, res: Response) => {
-  const result = await svc.updateLimitedDiscount(Number(req.params.id), req.body, req.tenantId!);
+  const body = updateLimitedDiscountSchema.parse(req.body);
+  const result = await svc.updateLimitedDiscount(Number(req.params.id), body, req.tenantId!);
   res.json(ok(result));
 });
 
@@ -45,7 +78,8 @@ export const getDiscountProducts = asyncHandler(async (req: Request, res: Respon
 });
 
 export const addDiscountProduct = asyncHandler(async (req: Request, res: Response) => {
-  await svc.addDiscountProduct(Number(req.params.id), req.body, req.tenantId!);
+  const body = addDiscountProductSchema.parse(req.body);
+  await svc.addDiscountProduct(Number(req.params.id), body, req.tenantId!);
   res.json(ok(null));
 });
 

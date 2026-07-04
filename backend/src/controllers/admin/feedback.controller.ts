@@ -1,15 +1,28 @@
+import { z } from "zod";
 import { Request, Response } from "express";
 import { insertFeedback, listFeedbacks, updateFeedbackStatus } from "../../services/admin/feedback.service.js";
 import { ok } from "../../shared/response.js";
 
+const submitFeedbackSchema = z.object({
+  type: z.enum(["BUG", "FEATURE", "IMPROVEMENT", "OTHER"]),
+  title: z.string().min(1).max(200),
+  content: z.string().min(1).max(5000),
+  contact: z.string().max(200).optional(),
+  screenshot_urls: z.string().optional(),
+  page_url: z.string().optional(),
+  browser_info: z.string().optional(),
+});
+
+const updateFeedbackSchema = z.object({
+  status: z.enum(["PENDING", "PROCESSING", "RESOLVED", "REJECTED"]),
+  reply: z.string().max(2000).optional(),
+});
+
 export async function submitFeedback(req: Request, res: Response) {
-  const { type, title, content, contact, screenshot_urls, page_url, browser_info } = req.body;
+  const body = submitFeedbackSchema.parse(req.body);
+  const { type, title, content, contact, screenshot_urls, page_url, browser_info } = body;
   const tenant_id = (req as any).tenantId || "default";
   const user_id = (req as any).userId;
-
-  if (!type || !title || !content) {
-    return res.status(400).json({ code: "400", message: "类型、标题和内容不能为空" });
-  }
 
   const id = await insertFeedback({
     type,
@@ -44,12 +57,9 @@ export async function getFeedbacks(req: Request, res: Response) {
 
 export async function updateFeedback(req: Request, res: Response) {
   const { id } = req.params;
-  const { status, reply } = req.body;
+  const body = updateFeedbackSchema.parse(req.body);
+  const { status, reply } = body;
   const tenant_id = (req as any).tenantId || "default";
-
-  if (!id) {
-    return res.status(400).json({ code: "400", message: "缺少反馈ID" });
-  }
 
   await updateFeedbackStatus(parseInt(id, 10), status, reply, tenant_id);
   res.json(ok({ result: "更新成功" }));

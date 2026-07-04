@@ -3,10 +3,106 @@
  * 只做参数提取和响应封装，业务逻辑委托给 Service
  */
 
+import { z } from "zod";
 import { asyncHandler } from "../../shared/async-handler.js";
 import { ok } from "../../shared/response.js";
 import * as instantRetailService from "../../services/admin/instant-retail.service.js";
 import * as retailShopSvc from "../../services/instant-retail/retail-shop.service.js";
+
+// ── Zod schemas ──
+const upsertConfigSchema = z.object({
+  platform: z.enum(["JD", "MEITUAN", "ELEME"]),
+  appKey: z.string().min(1),
+  appSecret: z.string().min(1),
+  shopId: z.string().optional(),
+  shopName: z.string().optional(),
+  enabled: z.boolean().optional(),
+});
+
+const saveShopConfigSchema = z.object({
+  shopName: z.string().min(1).max(100),
+  logo: z.string().optional(),
+  banner: z.string().optional(),
+  description: z.string().optional(),
+  businessHours: z.string().optional(),
+  phone: z.string().optional(),
+  address: z.string().optional(),
+  latitude: z.number().optional(),
+  longitude: z.number().optional(),
+  deliveryRange: z.number().optional(),
+  deliveryFee: z.number().optional(),
+  minOrderAmount: z.number().optional(),
+  status: z.enum(["OPEN", "CLOSED", "RESTING"]).optional(),
+});
+
+const createCategorySchema = z.object({
+  name: z.string().min(1).max(50),
+  sortNo: z.number().int().default(0),
+  icon: z.string().optional(),
+});
+
+const updateCategorySchema = z.object({
+  name: z.string().min(1).max(50).optional(),
+  sortNo: z.number().int().optional(),
+  icon: z.string().optional(),
+});
+
+const addRetailProductSchema = z.object({
+  skuId: z.number().int().positive(),
+  retailPrice: z.number().positive(),
+  stock: z.number().int().min(0),
+  isRecommended: z.boolean().optional(),
+  isHot: z.boolean().optional(),
+  isNew: z.boolean().optional(),
+  sortNo: z.number().int().default(0),
+});
+
+const updateRetailProductSchema = z.object({
+  retailPrice: z.number().positive().optional(),
+  stock: z.number().int().min(0).optional(),
+  isRecommended: z.boolean().optional(),
+  isHot: z.boolean().optional(),
+  isNew: z.boolean().optional(),
+  sortNo: z.number().int().optional(),
+  status: z.enum(["ON", "OFF"]).optional(),
+});
+
+const createBannerSchema = z.object({
+  title: z.string().min(1).max(100),
+  imageUrl: z.string().url().or(z.string().min(1)),
+  linkUrl: z.string().optional(),
+  sortNo: z.number().int().default(0),
+});
+
+const updateBannerSchema = z.object({
+  title: z.string().min(1).max(100).optional(),
+  imageUrl: z.string().url().or(z.string().min(1)).optional(),
+  linkUrl: z.string().optional(),
+  sortNo: z.number().int().optional(),
+  status: z.enum(["ON", "OFF"]).optional(),
+});
+
+const updateRetailOrderStatusSchema = z.object({
+  status: z.enum(["CONFIRMED", "PREPARING", "DELIVERING", "COMPLETED", "CANCELLED"]),
+  reason: z.string().max(500).optional(),
+});
+
+const syncBodySchema = z.object({
+  startTime: z.string().optional(),
+  endTime: z.string().optional(),
+  pageSize: z.number().int().min(1).max(100).optional(),
+});
+
+const startDeliverySchema = z.object({
+  deliveryCompany: z.string().optional(),
+  deliveryNo: z.string().optional(),
+  deliveryMan: z.string().optional(),
+  deliveryPhone: z.string().optional(),
+});
+
+const cancelOrderSchema = z.object({
+  reason: z.string().min(1).max(500),
+});
 
 // ────────────────────────────────────────────────────────────────────────────
 // Webhook 端点
@@ -64,7 +160,8 @@ export const getConfigByPlatform = asyncHandler(async (req, res) => {
 
 export const upsertConfig = asyncHandler(async (req, res) => {
   const tenantId = req.tenantId!;
-  const result = await instantRetailService.upsertConfig(req.body, tenantId);
+  const body = upsertConfigSchema.parse(req.body);
+  const result = await instantRetailService.upsertConfig(body, tenantId);
   res.json(ok(result));
 });
 
@@ -84,7 +181,8 @@ export const testConnection = asyncHandler(async (req, res) => {
 
 export const syncOrders = asyncHandler(async (req, res) => {
   const tenantId = req.tenantId!;
-  const result = await instantRetailService.syncOrders(req.params.platform, req.body, tenantId);
+  const body = syncBodySchema.parse(req.body);
+  const result = await instantRetailService.syncOrders(req.params.platform, body, tenantId);
   if (!result.found) {
     res.status(404).json({ code: "404", message: "平台配置不存在" });
     return;
@@ -94,7 +192,8 @@ export const syncOrders = asyncHandler(async (req, res) => {
 
 export const syncProducts = asyncHandler(async (req, res) => {
   const tenantId = req.tenantId!;
-  const result = await instantRetailService.syncProducts(req.params.platform, req.body, tenantId);
+  const body = syncBodySchema.parse(req.body);
+  const result = await instantRetailService.syncProducts(req.params.platform, body, tenantId);
   if (!result.found) {
     res.status(404).json({ code: "404", message: "平台配置不存在" });
     return;
@@ -152,7 +251,8 @@ export const confirmOrder = asyncHandler(async (req, res) => {
 
 export const startDelivery = asyncHandler(async (req, res) => {
   const tenantId = req.tenantId!;
-  const result = await instantRetailService.startDelivery(req.params.platformOrderId, req.body, tenantId);
+  const body = startDeliverySchema.parse(req.body);
+  const result = await instantRetailService.startDelivery(req.params.platformOrderId, body, tenantId);
   if (!result.found) {
     res.status(404).json({ code: "404", message: "订单不存在" });
     return;
@@ -180,9 +280,10 @@ export const completeDelivery = asyncHandler(async (req, res) => {
 
 export const cancelOrder = asyncHandler(async (req, res) => {
   const tenantId = req.tenantId!;
+  const body = cancelOrderSchema.parse(req.body);
   const result = await instantRetailService.cancelOrder(
     req.params.platformOrderId,
-    req.body.reason,
+    body.reason,
     tenantId
   );
   if (!result.found) {
@@ -210,7 +311,8 @@ export const getShopConfig = asyncHandler(async (req, res) => {
 export const saveShopConfig = asyncHandler(async (req, res) => {
   const tenantId = req.tenantId!;
   const storeId = req.query.storeId ? Number(req.query.storeId) : undefined;
-  const result = await retailShopSvc.saveShopConfig(storeId, req.body as any, tenantId);
+  const body = saveShopConfigSchema.parse(req.body);
+  const result = await retailShopSvc.saveShopConfig(storeId, body as any, tenantId);
   res.json(ok(result));
 });
 
@@ -224,13 +326,15 @@ export const listCategories = asyncHandler(async (req, res) => {
 export const createCategory = asyncHandler(async (req, res) => {
   const tenantId = req.tenantId!;
   const storeId = req.query.storeId ? Number(req.query.storeId) : undefined;
-  const result = await retailShopSvc.createCategory(storeId, req.body as any, tenantId);
+  const body = createCategorySchema.parse(req.body);
+  const result = await retailShopSvc.createCategory(storeId, body as any, tenantId);
   res.json(ok(result));
 });
 
 export const updateCategory = asyncHandler(async (req, res) => {
   const tenantId = req.tenantId!;
-  const result = await retailShopSvc.updateCategory(Number(req.params.id), req.body as any, tenantId);
+  const body = updateCategorySchema.parse(req.body);
+  const result = await retailShopSvc.updateCategory(Number(req.params.id), body as any, tenantId);
   res.json(ok(result));
 });
 
@@ -252,13 +356,15 @@ export const listRetailProducts = asyncHandler(async (req, res) => {
 export const addRetailProduct = asyncHandler(async (req, res) => {
   const tenantId = req.tenantId!;
   const storeId = req.query.storeId ? Number(req.query.storeId) : undefined;
-  const result = await retailShopSvc.addRetailProduct(storeId, req.body as any, tenantId);
+  const body = addRetailProductSchema.parse(req.body);
+  const result = await retailShopSvc.addRetailProduct(storeId, body as any, tenantId);
   res.json(ok(result));
 });
 
 export const updateRetailProduct = asyncHandler(async (req, res) => {
   const tenantId = req.tenantId!;
-  const result = await retailShopSvc.updateRetailProduct(Number(req.params.id), req.body as any, tenantId);
+  const body = updateRetailProductSchema.parse(req.body);
+  const result = await retailShopSvc.updateRetailProduct(Number(req.params.id), body as any, tenantId);
   res.json(ok(result));
 });
 
@@ -286,7 +392,7 @@ export const getRetailOrderDetail = asyncHandler(async (req, res) => {
 
 export const updateRetailOrderStatus = asyncHandler(async (req, res) => {
   const tenantId = req.tenantId!;
-  const body = req.body as any;
+  const body = updateRetailOrderStatusSchema.parse(req.body);
   const result = await retailShopSvc.updateRetailOrderStatus(req.params.orderNo, body.status, body.reason, tenantId);
   res.json(ok(result));
 });
@@ -301,13 +407,15 @@ export const listBanners = asyncHandler(async (req, res) => {
 export const createBanner = asyncHandler(async (req, res) => {
   const tenantId = req.tenantId!;
   const storeId = req.query.storeId ? Number(req.query.storeId) : undefined;
-  const result = await retailShopSvc.createBanner(storeId, req.body as any, tenantId);
+  const body = createBannerSchema.parse(req.body);
+  const result = await retailShopSvc.createBanner(storeId, body as any, tenantId);
   res.json(ok(result));
 });
 
 export const updateBanner = asyncHandler(async (req, res) => {
   const tenantId = req.tenantId!;
-  const result = await retailShopSvc.updateBanner(Number(req.params.id), req.body as any, tenantId);
+  const body = updateBannerSchema.parse(req.body);
+  const result = await retailShopSvc.updateBanner(Number(req.params.id), body as any, tenantId);
   res.json(ok(result));
 });
 

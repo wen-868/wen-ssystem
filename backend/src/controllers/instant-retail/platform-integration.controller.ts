@@ -1,6 +1,22 @@
+import { z } from "zod";
 import { asyncHandler } from "../../shared/async-handler.js";
 import { ok } from "../../shared/response.js";
 import * as platformIntegrationService from "../../services/instant-retail/platform-integration.service.js";
+
+const upsertConfigSchema = z.object({
+  platform: z.enum(["JD", "MEITUAN", "ELEME"]),
+  appKey: z.string().min(1),
+  appSecret: z.string().min(1),
+  shopId: z.string().optional(),
+  shopName: z.string().optional(),
+  enabled: z.boolean().optional(),
+});
+
+const syncBodySchema = z.object({
+  startTime: z.string().optional(),
+  endTime: z.string().optional(),
+  pageSize: z.number().int().min(1).max(100).optional(),
+});
 
 export const handleJdWebhook = asyncHandler(async (req, res) => {
   const rawBody = req.body ?? {};
@@ -50,7 +66,8 @@ export const getConfigByPlatform = asyncHandler(async (req, res) => {
 
 export const upsertConfig = asyncHandler(async (req, res) => {
   const tenantId = req.tenantId!;
-  const result = await platformIntegrationService.upsertConfig(req.body, tenantId);
+  const body = upsertConfigSchema.parse(req.body);
+  const result = await platformIntegrationService.upsertConfig(body, tenantId);
   res.json(ok(result));
 });
 
@@ -70,7 +87,8 @@ export const testConnection = asyncHandler(async (req, res) => {
 
 export const syncOrders = asyncHandler(async (req, res) => {
   const tenantId = req.tenantId!;
-  const result = await platformIntegrationService.syncOrders(req.params.platform, req.body, tenantId);
+  const body = syncBodySchema.parse(req.body);
+  const result = await platformIntegrationService.syncOrders(req.params.platform, body, tenantId);
   if (!result.found) {
     res.status(404).json({ code: "404", message: "平台配置不存在" });
     return;
@@ -80,7 +98,8 @@ export const syncOrders = asyncHandler(async (req, res) => {
 
 export const syncProducts = asyncHandler(async (req, res) => {
   const tenantId = req.tenantId!;
-  const result = await platformIntegrationService.syncProducts(req.params.platform, req.body, tenantId);
+  const body = syncBodySchema.parse(req.body);
+  const result = await platformIntegrationService.syncProducts(req.params.platform, body, tenantId);
   if (!result.found) {
     res.status(404).json({ code: "404", message: "平台配置不存在" });
     return;

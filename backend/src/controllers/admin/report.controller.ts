@@ -1,6 +1,17 @@
+import { z } from "zod";
 import { asyncHandler } from "../../shared/async-handler.js";
 import { ok } from "../../shared/response.js";
 import * as reportService from "../../services/admin/report.service.js";
+
+// ── Zod schemas ──
+const batchCreateCollectionLinksSchema = z.object({
+  billNos: z.array(z.string().min(1)).min(1),
+  shareChannel: z.string().min(1).max(50).optional(),
+  amount: z.number().positive().optional(),
+  taxEnabled: z.boolean().optional(),
+  taxRate: z.number().min(0).max(1).optional(),
+  expireHours: z.number().int().positive().default(72),
+});
 
 export const getDashboard = asyncHandler(async (req, res) => {
   const result = await reportService.getDashboard(req.tenantId!);
@@ -83,9 +94,10 @@ export const revokeCollectionLink = asyncHandler(async (req, res) => {
 });
 
 export const batchCreateCollectionLinks = asyncHandler(async (req, res) => {
-  const { billNos, shareChannel, amount, taxEnabled, taxRate, expireHours } = req.body;
+  const body = batchCreateCollectionLinksSchema.parse(req.body);
+  const { billNos, shareChannel, amount, taxEnabled, taxRate, expireHours } = body;
   const result = await (await import("../../services/store/sale-bill.service.js")).batchCreateCollectionLinks({
-    billNos, shareChannel, amount, taxEnabled, taxRate,
+    billNos, shareChannel: shareChannel ?? "", amount, taxEnabled: taxEnabled ?? false, taxRate: taxRate ?? 0,
     expireHours: expireHours ?? 72,
     userId: req.userId!,
     tenantId: req.tenantId!

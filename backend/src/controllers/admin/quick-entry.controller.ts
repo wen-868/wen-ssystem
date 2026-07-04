@@ -1,6 +1,29 @@
+import { z } from "zod";
 import { asyncHandler } from "../../shared/async-handler.js";
 import { ok } from "../../shared/response.js";
 import * as quickEntryService from "../../services/admin/quick-entry.service.js";
+
+const createQuickEntrySchema = z.object({
+  name: z.string().min(1).max(50),
+  icon: z.string().min(1),
+  route: z.string().min(1),
+  group: z.string().max(50).optional(),
+  enabled: z.boolean().default(true),
+  visibleRoles: z.array(z.string()).optional(),
+});
+
+const updateQuickEntrySchema = z.object({
+  name: z.string().min(1).max(50).optional(),
+  icon: z.string().optional(),
+  route: z.string().optional(),
+  group: z.string().max(50).optional(),
+  enabled: z.boolean().optional(),
+  visibleRoles: z.array(z.string()).optional(),
+});
+
+const sortQuickEntriesSchema = z.object({
+  ids: z.array(z.number().int().positive()).min(1),
+});
 
 export const listQuickEntries = asyncHandler(async (req, res) => {
   const tenantId = req.tenantId!;
@@ -11,11 +34,8 @@ export const listQuickEntries = asyncHandler(async (req, res) => {
 
 export const createQuickEntry = asyncHandler(async (req, res) => {
   const tenantId = req.tenantId!;
-  const { name, icon, route, group, enabled, visibleRoles } = req.body;
-  if (!name || !icon || !route) {
-    res.status(400).json({ code: "400", message: "name、icon、route 为必填项" });
-    return;
-  }
+  const body = createQuickEntrySchema.parse(req.body);
+  const { name, icon, route, group, enabled, visibleRoles } = body;
   const result = await quickEntryService.createQuickEntry(tenantId, {
     name, icon, route, group, enabled, visibleRoles
   });
@@ -25,7 +45,8 @@ export const createQuickEntry = asyncHandler(async (req, res) => {
 export const updateQuickEntry = asyncHandler(async (req, res) => {
   const tenantId = req.tenantId!;
   const id = Number(req.params.id);
-  const { name, icon, route, group, enabled, visibleRoles } = req.body;
+  const body = updateQuickEntrySchema.parse(req.body);
+  const { name, icon, route, group, enabled, visibleRoles } = body;
   const result = await quickEntryService.updateQuickEntry(tenantId, id, {
     name, icon, route, group, enabled, visibleRoles
   });
@@ -41,11 +62,8 @@ export const deleteQuickEntry = asyncHandler(async (req, res) => {
 
 export const sortQuickEntries = asyncHandler(async (req, res) => {
   const tenantId = req.tenantId!;
-  const { ids } = req.body;
-  if (!ids || !Array.isArray(ids)) {
-    res.status(400).json({ code: "400", message: "ids 为必填的数组" });
-    return;
-  }
+  const body = sortQuickEntriesSchema.parse(req.body);
+  const { ids } = body;
   const result = await quickEntryService.sortQuickEntries(tenantId, ids);
   res.json(ok(result));
 });

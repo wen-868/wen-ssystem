@@ -1,6 +1,26 @@
+import { z } from "zod";
 import { asyncHandler } from "../../shared/async-handler.js";
 import { ok } from "../../shared/response.js";
 import * as orderService from "../../services/admin/order.service.js";
+
+// ── Zod schemas ──
+const cancelOrderSchema = z.object({
+  reason: z.string().max(500).default(""),
+});
+
+const remarkOrderSchema = z.object({
+  remark: z.string().max(1000).default(""),
+});
+
+const updateOrderStatusSchema = z.object({
+  status: z.string().min(1),
+  remark: z.string().max(500).optional(),
+});
+
+const batchUpdateOrderStatusSchema = z.object({
+  orderNos: z.array(z.string().min(1)).min(1),
+  status: z.string().min(1),
+});
 
 export const listOrders = asyncHandler(async (req, res) => {
   const tenantId = req.tenantId!;
@@ -71,7 +91,8 @@ export const exportSaleBillsCsv = asyncHandler(async (req, res) => {
 export const cancelOrder = asyncHandler(async (req, res) => {
   const tenantId = req.tenantId!;
   const orderNo = req.params.orderNo;
-  const reason = String(req.body.reason || "");
+  const body = cancelOrderSchema.parse(req.body);
+  const reason = body.reason;
   const operatorId = (req as any).user?.id ?? null;
   const operatorName = (req as any).user?.username ?? "系统用户";
   const result = await orderService.cancelOrder(orderNo, reason, operatorId, operatorName, tenantId);
@@ -81,7 +102,8 @@ export const cancelOrder = asyncHandler(async (req, res) => {
 export const remarkOrder = asyncHandler(async (req, res) => {
   const tenantId = req.tenantId!;
   const orderNo = req.params.orderNo;
-  const remark = String(req.body.remark || "");
+  const body = remarkOrderSchema.parse(req.body);
+  const remark = body.remark;
   const operatorId = (req as any).user?.id ?? null;
   const operatorName = (req as any).user?.username ?? "系统用户";
   const result = await orderService.remarkOrder(orderNo, remark, operatorId, operatorName, tenantId);
@@ -91,8 +113,9 @@ export const remarkOrder = asyncHandler(async (req, res) => {
 export const updateOrderStatus = asyncHandler(async (req, res) => {
   const tenantId = req.tenantId!;
   const orderNo = req.params.orderNo;
-  const targetStatus = String(req.body.status || "");
-  const remark = req.body.remark ? String(req.body.remark) : null;
+  const body = updateOrderStatusSchema.parse(req.body);
+  const targetStatus = body.status;
+  const remark = body.remark ?? null;
   const operatorId = (req as any).user?.id ?? null;
   const operatorName = (req as any).user?.username ?? "系统用户";
   const result = await orderService.updateOrderStatus(orderNo, targetStatus, operatorId, operatorName, remark, tenantId);
@@ -101,8 +124,9 @@ export const updateOrderStatus = asyncHandler(async (req, res) => {
 
 export const batchUpdateOrderStatus = asyncHandler(async (req, res) => {
   const tenantId = req.tenantId!;
-  const orderNos: string[] = req.body.orderNos || [];
-  const targetStatus = String(req.body.status || "");
+  const body = batchUpdateOrderStatusSchema.parse(req.body);
+  const orderNos: string[] = body.orderNos;
+  const targetStatus = body.status;
   const operatorId = (req as any).user?.id ?? null;
   const operatorName = (req as any).user?.username ?? "系统用户";
   if (!orderNos.length) {

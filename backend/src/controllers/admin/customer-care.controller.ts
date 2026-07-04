@@ -1,14 +1,34 @@
+import { z } from "zod";
 import { asyncHandler } from "../../shared/async-handler.js";
 import { ok } from "../../shared/response.js";
 import * as careService from "../../services/admin/customer-care.service.js";
 
+const createCareRuleSchema = z.object({
+  ruleName: z.string().min(1).max(100),
+  triggerType: z.string().min(1).max(50),
+  templateContent: z.string().max(5000).optional(),
+  rewardPoints: z.number().int().min(0).optional(),
+  rewardCouponId: z.number().int().positive().optional(),
+});
+
+const updateCareRuleSchema = z.object({
+  ruleName: z.string().min(1).max(100).optional(),
+  triggerType: z.string().min(1).max(50).optional(),
+  templateContent: z.string().max(5000).optional(),
+  rewardPoints: z.number().int().min(0).optional(),
+  rewardCouponId: z.number().int().positive().optional(),
+  enabled: z.number().int().min(0).max(1).optional(),
+});
+
 export const listCareRules = asyncHandler(async (req, res) => { res.json(ok(await careService.listCareRules(req.tenantId!))); });
 export const createCareRule = asyncHandler(async (req, res) => {
-  const { ruleName, triggerType, templateContent, rewardPoints, rewardCouponId } = req.body;
+  const body = createCareRuleSchema.parse(req.body);
+  const { ruleName, triggerType, templateContent, rewardPoints, rewardCouponId } = body;
   res.json(ok(await careService.createCareRule({ ruleName, triggerType, templateContent, rewardPoints, rewardCouponId, tenantId: req.tenantId! })));
 });
 export const updateCareRule = asyncHandler(async (req, res) => {
-  const { ruleName, triggerType, templateContent, rewardPoints, rewardCouponId, enabled } = req.body;
+  const body = updateCareRuleSchema.parse(req.body);
+  const { ruleName, triggerType, templateContent, rewardPoints, rewardCouponId, enabled } = body;
   res.json(ok(await careService.updateCareRule(Number(req.params.id), { ruleName, triggerType, templateContent, rewardPoints, rewardCouponId, enabled, tenantId: req.tenantId! })));
 });
 export const deleteCareRule = asyncHandler(async (req, res) => { res.json(ok(await careService.deleteCareRule(Number(req.params.id), req.tenantId!))); });

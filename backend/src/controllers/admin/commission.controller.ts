@@ -1,6 +1,35 @@
+import { z } from "zod";
 import { asyncHandler } from "../../shared/async-handler.js";
 import { ok } from "../../shared/response.js";
 import * as commissionService from "../../services/admin/commission.service.js";
+
+const createCommissionRuleSchema = z.object({
+  ruleName: z.string().min(1).max(100),
+  ruleType: z.enum(["FIXED", "RATIO", "TIERED"]),
+  config: z.record(z.any()),
+  effectiveStart: z.string().optional(),
+  effectiveEnd: z.string().optional(),
+  remark: z.string().max(500).optional(),
+});
+
+const updateCommissionRuleSchema = z.object({
+  ruleName: z.string().min(1).max(100).optional(),
+  ruleType: z.enum(["FIXED", "RATIO", "TIERED"]).optional(),
+  config: z.record(z.any()).optional(),
+  effectiveStart: z.string().optional(),
+  effectiveEnd: z.string().optional(),
+  status: z.enum(["ACTIVE", "INACTIVE"]).optional(),
+  remark: z.string().max(500).optional(),
+});
+
+const calculateCommissionsSchema = z.object({
+  startDate: z.string().min(1),
+  endDate: z.string().min(1),
+});
+
+const settleCommissionsSchema = z.object({
+  recordNos: z.array(z.string().min(1)).min(1),
+});
 
 // 规则 CRUD
 export const listCommissionRules = asyncHandler(async (req, res) => {
@@ -9,20 +38,22 @@ export const listCommissionRules = asyncHandler(async (req, res) => {
 });
 
 export const createCommissionRule = asyncHandler(async (req, res) => {
-  const { ruleName, ruleType, config, effectiveStart, effectiveEnd, remark } = req.body;
+  const body = createCommissionRuleSchema.parse(req.body);
+  const { ruleName, ruleType, config, effectiveStart, effectiveEnd, remark } = body;
   const result = await commissionService.createCommissionRule({
     ruleName, ruleType, config, effectiveStart, effectiveEnd, remark,
     tenantId: req.tenantId!
-  });
+  } as any);
   res.json(ok(result));
 });
 
 export const updateCommissionRule = asyncHandler(async (req, res) => {
-  const { ruleName, ruleType, config, effectiveStart, effectiveEnd, status, remark } = req.body;
+  const body = updateCommissionRuleSchema.parse(req.body);
+  const { ruleName, ruleType, config, effectiveStart, effectiveEnd, status, remark } = body;
   const result = await commissionService.updateCommissionRule(Number(req.params.id), {
     ruleName, ruleType, config, effectiveStart, effectiveEnd, status, remark,
     tenantId: req.tenantId!
-  });
+  } as any);
   res.json(ok(result));
 });
 
@@ -33,7 +64,8 @@ export const deleteCommissionRule = asyncHandler(async (req, res) => {
 
 // 计算引擎
 export const calculateCommissions = asyncHandler(async (req, res) => {
-  const { startDate, endDate } = req.body;
+  const body = calculateCommissionsSchema.parse(req.body);
+  const { startDate, endDate } = body;
   const result = await commissionService.calculateCommissions({
     startDate, endDate, tenantId: req.tenantId!
   });
@@ -41,7 +73,8 @@ export const calculateCommissions = asyncHandler(async (req, res) => {
 });
 
 export const settleCommissions = asyncHandler(async (req, res) => {
-  const { recordNos } = req.body;
+  const body = settleCommissionsSchema.parse(req.body);
+  const { recordNos } = body;
   const result = await commissionService.settleCommissions({
     recordNos, tenantId: req.tenantId!
   });
