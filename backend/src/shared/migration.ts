@@ -270,6 +270,9 @@ export async function runMigrations(): Promise<void> {
 
     // 5.5.4 为 product_spu 表添加缺失字段（商品列表需要）
     const spuColumns = [
+      { name: "brand", def: "VARCHAR(128) DEFAULT NULL COMMENT '品牌'" },
+      { name: "unit", def: "VARCHAR(32) DEFAULT NULL COMMENT '单位'" },
+      { name: "specs", def: "VARCHAR(256) DEFAULT NULL COMMENT '规格'" },
       { name: "alcohol_content", def: "VARCHAR(32) DEFAULT NULL COMMENT '酒精度数'" },
       { name: "origin", def: "VARCHAR(128) DEFAULT NULL COMMENT '产地'" },
       { name: "sale_channels", def: "JSON DEFAULT NULL COMMENT '销售渠道'" },
