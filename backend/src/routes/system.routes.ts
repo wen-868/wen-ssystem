@@ -4,6 +4,7 @@ import { asyncHandler } from "../shared/async-handler.js";
 import { queryOne } from "../shared/db.js";
 import { ok } from "../shared/response.js";
 import { env } from "../shared/env.js";
+import { runMigrations } from "../shared/migration.js";
 
 export const systemRouter = Router();
 
@@ -33,4 +34,14 @@ systemRouter.get("/info", requireAuthWithTenant, asyncHandler(async (req, res) =
     roleCount: roleCount?.cnt ?? 0,
     configCount: configCount?.cnt ?? 0,
   }));
+}));
+
+// ========== 数据库迁移（临时，部署后手动触发） ==========
+systemRouter.post("/migrate", asyncHandler(async (_req, res) => {
+  try {
+    await runMigrations();
+    res.json(ok({ result: "迁移执行成功" }));
+  } catch (e: any) {
+    res.status(500).json({ code: "500", message: `迁移失败: ${e.message}` });
+  }
 }));
