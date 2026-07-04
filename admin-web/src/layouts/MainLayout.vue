@@ -214,9 +214,13 @@
           <el-menu-item index="/stores">门店管理</el-menu-item>
           <el-menu-item index="/system/roles">角色权限</el-menu-item>
           <el-menu-item index="/audit-log">操作日志</el-menu-item>
+          <el-menu-item index="/error-log">错误日志</el-menu-item>
           <el-menu-item index="/system/config">参数配置</el-menu-item>
           <el-menu-item index="/system/approval/rules">审批规则</el-menu-item>
           <el-menu-item index="/system/approval/my">我的申请</el-menu-item>
+          <el-menu-item index="/system/payment">支付配置</el-menu-item>
+          <el-menu-item index="/system/miniapp">小程序配置</el-menu-item>
+          <el-menu-item index="/monitor">监控告警</el-menu-item>
         </el-sub-menu>
       </el-menu>
     </aside>
@@ -399,12 +403,16 @@ const pageTitle = computed(() => {
     "/stores": "门店管理",
     "/system/roles": "角色权限",
     "/audit-log": "操作日志",
+    "/error-log": "错误日志",
     "/system": "系统配置",
     "/system/config": "参数配置",
     "/system/approval/rules": "审批规则",
     "/system/approval/detail": "审批详情",
     "/system/approval/my": "我的申请",
-    "/instant-retail/config": "小程序配置",
+    "/system/payment": "支付配置",
+      "/system/miniapp": "小程序配置",
+      "/monitor": "监控告警",
+      "/instant-retail/config": "小程序配置",
     "/instant-retail/shelf": "商品货架",
     "/instant-retail/orders": "小程序订单",
     "/instant-retail/payment": "在线支付",

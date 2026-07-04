@@ -122,6 +122,7 @@ const routes = [
       { path: "instant-retail/report", name: "InstantRetailReport", component: () => import("../views/InstantRetailReport.vue"), meta: { roles: ["BOSS"] } },
       { path: "instant-retail/platform", name: "InstantRetailPlatform", component: () => import("../views/InstantRetailPlatform.vue"), meta: { roles: ["BOSS"] } },
       { path: "instant-retail/order-board", name: "InstantRetailOrderBoard", component: () => import("../views/InstantRetailOrderBoard.vue"), meta: { roles: ["BOSS"] } },
+      { path: "instant-retail/announcements", name: "RetailAnnouncements", component: () => import("../views/RetailAnnouncement.vue"), meta: { roles: ["BOSS"] } },
       // 9. 财务管理
       { path: "payments", name: "Payments", component: () => import("../views/PaymentsView.vue"), meta: { roles: ["BOSS"] } },
       { path: "finance/collection", name: "FinanceCollection", component: () => import("../views/FinanceCollection.vue"), meta: { roles: ["BOSS"] } },
@@ -157,11 +158,17 @@ const routes = [
       { path: "stores", name: "Stores", component: () => import("../views/StoresView.vue"), meta: { roles: ["BOSS"] } },
       { path: "system/roles", name: "SystemRoles", component: () => import("../views/SystemRoles.vue"), meta: { roles: ["BOSS"] } },
       { path: "audit-log", name: "AuditLog", component: () => import("../views/AuditLogView.vue"), meta: { roles: ["BOSS"] } },
+      { path: "error-log", name: "ErrorLog", component: () => import("../views/ErrorLogView.vue"), meta: { roles: ["BOSS"] } },
       { path: "system", name: "System", component: () => import("../views/System.vue"), meta: { roles: ["BOSS"] } },
       { path: "system/config", name: "SystemConfig", component: () => import("../views/SystemConfigView.vue"), meta: { roles: ["BOSS"] } },
       { path: "system/approval/rules", name: "ApprovalRules", component: () => import("../views/ApprovalRules.vue"), meta: { roles: ["BOSS"] } },
+      { path: "report-permissions", name: "ReportPermissions", component: () => import("../views/ReportPermission.vue"), meta: { roles: ["BOSS"] } },
       { path: "system/approval/detail/:id", name: "ApprovalDetail", component: () => import("../views/ApprovalDetail.vue"), meta: { roles: ["BOSS"] } },
-      { path: "system/approval/my", name: "MyApprovals", component: () => import("../views/MyApprovals.vue"), meta: { roles: ["BOSS"] } }
+      { path: "system/approval/my", name: "MyApprovals", component: () => import("../views/MyApprovals.vue"), meta: { roles: ["BOSS"] } },
+      { path: "system/payment", name: "PaymentConfig", component: () => import("../views/PaymentConfigView.vue"), meta: { roles: ["BOSS"] } },
+      { path: "system/miniapp", name: "MiniappConfig", component: () => import("../views/MiniappConfigView.vue"), meta: { roles: ["BOSS"] } },
+      { path: "monitor", name: "Monitor", component: () => import("../views/MonitorView.vue"), meta: { roles: ["BOSS"] } },
+      { path: "consumer-addresses", name: "ConsumerAddresses", component: () => import("../views/ConsumerAddress.vue"), meta: { roles: ["BOSS"] } }
     ]
   },
   { path: "/:pathMatch(.*)*", name: "NotFound", component: NotFound, meta: { requiresAuth: false } }

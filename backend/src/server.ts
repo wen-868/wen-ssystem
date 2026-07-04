@@ -84,8 +84,60 @@ import { operationLogRouter } from "./routes/operation-log.routes.js";
 import { sysUserRouter } from "./routes/sys-user.routes.js";
 import { systemRouter } from "./routes/system.routes.js";
 import { workbenchRouter } from "./routes/workbench.routes.js";
+import { errorLogRouter } from "./routes/error-log.routes.js";
+import { monitorRouter } from "./routes/monitor.routes.js";
+import { insertErrorLog } from "./services/admin/error-log.service.js";
+import { reportToLingZhou } from "./shared/feishu-report.js";
 
 const app = express();
+
+// 全局未捕获异常
+process.on("uncaughtException", (err: Error) => {
+  console.error("💥 [uncaughtException] 未捕获的异常:", err);
+  insertErrorLog({
+    error_type: "uncaughtException",
+    severity: "FATAL",
+    message: err.message || "未捕获的异常",
+    stack: err.stack,
+    source: "backend",
+  }).catch(() => {});
+  reportToLingZhou({
+    phase: "系统错误告警",
+    status: "BLOCKED",
+    summary: `[FATAL] uncaughtException: ${err.message || "未捕获的异常"}`,
+    details: [
+      { label: "错误类型", value: "uncaughtException" },
+      { label: "错误消息", value: err.message || "未知" },
+      { label: "堆栈", value: (err.stack || "").split("\n").slice(0, 3).join("\n") },
+    ],
+    reporter: "系统自动告警",
+    webhookUrl: process.env.FEISHU_ALERT_WEBHOOK_URL || process.env.FEISHU_WEBHOOK_URL,
+  }).catch(() => {});
+});
+
+process.on("unhandledRejection", (reason: any, promise: Promise<any>) => {
+  console.error("💥 [unhandledRejection] 未处理的 Promise 拒绝:", reason);
+  const message = reason instanceof Error ? reason.message : String(reason);
+  const stack = reason instanceof Error ? reason.stack : undefined;
+  insertErrorLog({
+    error_type: "unhandledRejection",
+    severity: "ERROR",
+    message,
+    stack,
+    source: "backend",
+  }).catch(() => {});
+  reportToLingZhou({
+    phase: "系统错误告警",
+    status: "BLOCKED",
+    summary: `[ERROR] unhandledRejection: ${message}`,
+    details: [
+      { label: "错误类型", value: "unhandledRejection" },
+      { label: "错误消息", value: message },
+    ],
+    reporter: "系统自动告警",
+    webhookUrl: process.env.FEISHU_ALERT_WEBHOOK_URL || process.env.FEISHU_WEBHOOK_URL,
+  }).catch(() => {});
+});
 
 // 测试环境不禁用限流，避免影响测试
 if (process.env.NODE_ENV !== "test") {
@@ -203,6 +255,8 @@ app.use("/api/admin/operation-logs", requireAuthWithTenant, operationLogRouter);
 app.use("/api/admin/sys-users", requireAuthWithTenant, sysUserRouter);
 app.use("/api/system", systemRouter);
 app.use("/api/admin", requireAuthWithTenant, workbenchRouter);
+app.use("/api/admin", errorLogRouter);
+app.use("/api/admin/monitor", requireAuthWithTenant, monitorRouter);
 
 app.use(errorHandler);
 
