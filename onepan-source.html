@@ -1,0 +1,1006 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>智享全链管理系统 - 酒水行业数字化管理专家 | onepan.cn</title>
+<meta name="description" content="智享全链管理系统（onepan.cn）是酒水行业一站式数字化管理解决方案，覆盖库存管理、采购供应链、销售全链路、数据看板、小程序商城等核心功能。">
+<meta name="keywords" content="酒水管理,库存管理,酒水行业ERP,供应链管理,多门店管理,小程序商城">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+SC:wght@300;400;500;700;900&display=swap" rel="stylesheet">
+<style>
+/* ==================== Reset & Base ==================== */
+*, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+html { scroll-behavior: smooth; font-size: 16px; }
+body {
+  font-family: 'Noto Sans SC', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  color: #FFFFFF;
+  background: #0A1628;
+  line-height: 1.6;
+  overflow-x: hidden;
+}
+a { text-decoration: none; color: inherit; transition: color 0.3s; }
+ul { list-style: none; }
+img { max-width: 100%; }
+
+/* ==================== Utility ==================== */
+.container { max-width: 1200px; margin: 0 auto; padding: 0 24px; }
+.section-title {
+  text-align: center;
+  font-size: 2.25rem;
+  font-weight: 700;
+  margin-bottom: 0.5rem;
+  letter-spacing: 0.02em;
+}
+.section-subtitle {
+  text-align: center;
+  color: rgba(255,255,255,0.6);
+  font-size: 1.05rem;
+  margin-bottom: 3.5rem;
+}
+.gold { color: #C8A45C; }
+.btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 14px 36px;
+  border-radius: 8px;
+  font-size: 1rem;
+  font-weight: 500;
+  cursor: pointer;
+  border: none;
+  transition: all 0.3s ease;
+  font-family: inherit;
+}
+.btn-primary {
+  background: linear-gradient(135deg, #C8A45C, #E8C876);
+  color: #0A1628;
+  box-shadow: 0 4px 20px rgba(200,164,92,0.3);
+}
+.btn-primary:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 30px rgba(200,164,92,0.5);
+}
+.btn-outline {
+  background: transparent;
+  color: #C8A45C;
+  border: 1.5px solid rgba(200,164,92,0.5);
+}
+.btn-outline:hover {
+  background: rgba(200,164,92,0.1);
+  border-color: #C8A45C;
+}
+
+/* ==================== Scroll Animation ==================== */
+.fade-up {
+  opacity: 0;
+  transform: translateY(40px);
+  transition: opacity 0.7s ease, transform 0.7s ease;
+}
+.fade-up.visible {
+  opacity: 1;
+  transform: translateY(0);
+}
+.fade-up-delay-1 { transition-delay: 0.1s; }
+.fade-up-delay-2 { transition-delay: 0.2s; }
+.fade-up-delay-3 { transition-delay: 0.3s; }
+.fade-up-delay-4 { transition-delay: 0.4s; }
+.fade-up-delay-5 { transition-delay: 0.5s; }
+
+/* ==================== Navigation ==================== */
+.navbar {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  z-index: 1000;
+  padding: 0 24px;
+  transition: background 0.3s, box-shadow 0.3s, padding 0.3s;
+}
+.navbar.scrolled {
+  background: rgba(10,22,40,0.95);
+  backdrop-filter: blur(12px);
+  box-shadow: 0 2px 20px rgba(0,0,0,0.3);
+  padding-top: 0;
+}
+.navbar-inner {
+  max-width: 1200px;
+  margin: 0 auto;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  height: 72px;
+}
+.navbar.scrolled .navbar-inner { height: 64px; }
+.logo {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-size: 1.35rem;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+}
+.logo-icon {
+  width: 36px;
+  height: 36px;
+  background: linear-gradient(135deg, #C8A45C, #E8C876);
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 900;
+  font-size: 1.1rem;
+  color: #0A1628;
+}
+.nav-links {
+  display: flex;
+  align-items: center;
+  gap: 32px;
+}
+.nav-links a {
+  font-size: 0.95rem;
+  color: rgba(255,255,255,0.75);
+  font-weight: 400;
+  position: relative;
+  padding: 4px 0;
+}
+.nav-links a::after {
+  content: '';
+  position: absolute;
+  bottom: -2px;
+  left: 0;
+  width: 0;
+  height: 2px;
+  background: #C8A45C;
+  transition: width 0.3s;
+}
+.nav-links a:hover { color: #FFFFFF; }
+.nav-links a:hover::after { width: 100%; }
+.nav-login {
+  padding: 8px 24px;
+  background: transparent;
+  border: 1.5px solid rgba(200,164,92,0.5);
+  color: #C8A45C;
+  border-radius: 6px;
+  font-size: 0.9rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.3s;
+  font-family: inherit;
+}
+.nav-login:hover {
+  background: rgba(200,164,92,0.1);
+  border-color: #C8A45C;
+}
+/* Mobile hamburger */
+.hamburger {
+  display: none;
+  flex-direction: column;
+  gap: 5px;
+  cursor: pointer;
+  background: none;
+  border: none;
+  padding: 4px;
+}
+.hamburger span {
+  display: block;
+  width: 24px;
+  height: 2px;
+  background: #fff;
+  border-radius: 2px;
+  transition: all 0.3s;
+}
+.hamburger.active span:nth-child(1) { transform: rotate(45deg) translate(5px, 5px); }
+.hamburger.active span:nth-child(2) { opacity: 0; }
+.hamburger.active span:nth-child(3) { transform: rotate(-45deg) translate(5px, -5px); }
+
+/* ==================== Hero ==================== */
+.hero {
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  position: relative;
+  overflow: hidden;
+  padding-top: 72px;
+}
+.hero::before {
+  content: '';
+  position: absolute;
+  top: -50%;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 900px;
+  height: 900px;
+  background: radial-gradient(circle, rgba(200,164,92,0.12) 0%, transparent 70%);
+  pointer-events: none;
+}
+.hero::after {
+  content: '';
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  height: 200px;
+  background: linear-gradient(to top, #0A1628, transparent);
+  pointer-events: none;
+}
+.hero-content {
+  position: relative;
+  z-index: 1;
+  max-width: 800px;
+  padding: 0 24px;
+}
+.hero-badge {
+  display: inline-block;
+  padding: 6px 20px;
+  border: 1px solid rgba(200,164,92,0.3);
+  border-radius: 50px;
+  font-size: 0.85rem;
+  color: #C8A45C;
+  margin-bottom: 28px;
+  background: rgba(200,164,92,0.05);
+}
+.hero h1 {
+  font-size: 3.25rem;
+  font-weight: 900;
+  line-height: 1.25;
+  margin-bottom: 20px;
+  letter-spacing: 0.02em;
+}
+.hero h1 .highlight {
+  background: linear-gradient(135deg, #C8A45C, #E8C876);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+.hero-sub {
+  font-size: 1.15rem;
+  color: rgba(255,255,255,0.65);
+  max-width: 620px;
+  margin: 0 auto 40px;
+  line-height: 1.8;
+}
+.hero-buttons {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 16px;
+  flex-wrap: wrap;
+}
+.hero-stats {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 48px;
+  margin-top: 64px;
+  padding-top: 40px;
+  border-top: 1px solid rgba(255,255,255,0.08);
+}
+.hero-stat-item {
+  text-align: center;
+}
+.hero-stat-num {
+  font-size: 2rem;
+  font-weight: 700;
+  color: #C8A45C;
+}
+.hero-stat-label {
+  font-size: 0.85rem;
+  color: rgba(255,255,255,0.5);
+  margin-top: 4px;
+}
+
+/* ==================== Features ==================== */
+.features {
+  padding: 100px 0;
+  position: relative;
+}
+.features::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 1px;
+  background: linear-gradient(90deg, transparent, rgba(200,164,92,0.2), transparent);
+}
+.features-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 28px;
+}
+.feature-card {
+  background: linear-gradient(145deg, rgba(255,255,255,0.04), rgba(255,255,255,0.01));
+  border: 1px solid rgba(255,255,255,0.06);
+  border-radius: 16px;
+  padding: 36px 28px;
+  transition: all 0.4s ease;
+  position: relative;
+  overflow: hidden;
+}
+.feature-card::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 3px;
+  background: linear-gradient(90deg, transparent, #C8A45C, transparent);
+  opacity: 0;
+  transition: opacity 0.4s;
+}
+.feature-card:hover {
+  transform: translateY(-6px);
+  border-color: rgba(200,164,92,0.2);
+  box-shadow: 0 12px 40px rgba(0,0,0,0.3);
+}
+.feature-card:hover::before { opacity: 1; }
+.feature-icon {
+  width: 56px;
+  height: 56px;
+  border-radius: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.5rem;
+  margin-bottom: 20px;
+  background: rgba(200,164,92,0.1);
+  border: 1px solid rgba(200,164,92,0.15);
+}
+.feature-card h3 {
+  font-size: 1.2rem;
+  font-weight: 600;
+  margin-bottom: 12px;
+}
+.feature-card p {
+  font-size: 0.92rem;
+  color: rgba(255,255,255,0.55);
+  line-height: 1.7;
+  margin-bottom: 16px;
+}
+.feature-tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+.feature-tag {
+  padding: 4px 12px;
+  background: rgba(200,164,92,0.08);
+  border: 1px solid rgba(200,164,92,0.12);
+  border-radius: 4px;
+  font-size: 0.78rem;
+  color: rgba(200,164,92,0.85);
+}
+
+/* ==================== Download Center ==================== */
+.download {
+  padding: 100px 0;
+  position: relative;
+}
+.download::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 1px;
+  background: linear-gradient(90deg, transparent, rgba(200,164,92,0.2), transparent);
+}
+.download-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 24px;
+}
+.download-card {
+  background: linear-gradient(145deg, rgba(255,255,255,0.03), rgba(255,255,255,0.01));
+  border: 1px solid rgba(255,255,255,0.06);
+  border-radius: 16px;
+  padding: 36px 28px;
+  text-align: center;
+  transition: all 0.4s ease;
+}
+.download-card:hover {
+  border-color: rgba(200,164,92,0.25);
+  transform: translateY(-4px);
+  box-shadow: 0 8px 30px rgba(0,0,0,0.2);
+}
+.download-card.wide {
+  grid-column: span 3;
+  max-width: 400px;
+  justify-self: center;
+}
+.download-icon {
+  width: 60px;
+  height: 60px;
+  margin: 0 auto 20px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 2rem;
+  background: rgba(200,164,92,0.08);
+  border-radius: 14px;
+  border: 1px solid rgba(200,164,92,0.12);
+}
+.download-card h3 {
+  font-size: 1.1rem;
+  font-weight: 600;
+  margin-bottom: 8px;
+}
+.download-card .desc {
+  font-size: 0.88rem;
+  color: rgba(255,255,255,0.5);
+  margin-bottom: 20px;
+  line-height: 1.6;
+}
+.download-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 10px 24px;
+  background: rgba(200,164,92,0.1);
+  border: 1px solid rgba(200,164,92,0.25);
+  border-radius: 6px;
+  color: #C8A45C;
+  font-size: 0.9rem;
+  font-weight: 500;
+  transition: all 0.3s;
+}
+.download-link:hover {
+  background: rgba(200,164,92,0.18);
+  border-color: #C8A45C;
+}
+.download-link svg {
+  width: 16px;
+  height: 16px;
+}
+.qrcode-placeholder {
+  width: 140px;
+  height: 140px;
+  margin: 16px auto;
+  border: 2px dashed rgba(200,164,92,0.25);
+  border-radius: 12px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  color: rgba(200,164,92,0.5);
+  font-size: 0.8rem;
+}
+.qrcode-placeholder svg {
+  width: 32px;
+  height: 32px;
+  opacity: 0.5;
+}
+
+/* ==================== Advantages ==================== */
+.advantages {
+  padding: 100px 0;
+  position: relative;
+}
+.advantages::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 1px;
+  background: linear-gradient(90deg, transparent, rgba(200,164,92,0.2), transparent);
+}
+.adv-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 28px;
+}
+.adv-card {
+  text-align: center;
+  padding: 40px 24px;
+  background: linear-gradient(145deg, rgba(255,255,255,0.03), rgba(255,255,255,0.005));
+  border: 1px solid rgba(255,255,255,0.06);
+  border-radius: 16px;
+  transition: all 0.4s;
+}
+.adv-card:hover {
+  border-color: rgba(200,164,92,0.2);
+  transform: translateY(-4px);
+}
+.adv-icon {
+  width: 64px;
+  height: 64px;
+  margin: 0 auto 20px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.75rem;
+  background: rgba(200,164,92,0.08);
+  border-radius: 50%;
+  border: 1px solid rgba(200,164,92,0.12);
+}
+.adv-card h3 {
+  font-size: 1.15rem;
+  font-weight: 600;
+  margin-bottom: 12px;
+}
+.adv-card p {
+  font-size: 0.88rem;
+  color: rgba(255,255,255,0.55);
+  line-height: 1.7;
+}
+
+/* ==================== Footer ==================== */
+.footer {
+  padding: 48px 0 32px;
+  border-top: 1px solid rgba(255,255,255,0.06);
+}
+.footer-inner {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 16px;
+}
+.footer-logo {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-weight: 600;
+  font-size: 1rem;
+}
+.footer-logo .logo-icon {
+  width: 28px;
+  height: 28px;
+  font-size: 0.85rem;
+}
+.footer-info {
+  font-size: 0.85rem;
+  color: rgba(255,255,255,0.4);
+  display: flex;
+  gap: 20px;
+  flex-wrap: wrap;
+}
+.footer-info a {
+  color: rgba(255,255,255,0.4);
+  transition: color 0.3s;
+}
+.footer-info a:hover { color: #C8A45C; }
+
+/* ==================== Responsive ==================== */
+@media (max-width: 1024px) {
+  .features-grid { grid-template-columns: repeat(2, 1fr); }
+  .download-grid { grid-template-columns: repeat(2, 1fr); }
+  .download-card.wide { grid-column: span 2; }
+  .adv-grid { grid-template-columns: repeat(2, 1fr); }
+}
+@media (max-width: 768px) {
+  .hamburger { display: flex; }
+  .nav-links {
+    position: fixed;
+    top: 0;
+    right: -100%;
+    width: 260px;
+    height: 100vh;
+    background: rgba(10,22,40,0.98);
+    backdrop-filter: blur(12px);
+    flex-direction: column;
+    padding: 80px 32px 32px;
+    gap: 24px;
+    transition: right 0.3s ease;
+    box-shadow: -4px 0 20px rgba(0,0,0,0.3);
+  }
+  .nav-links.open { right: 0; }
+  .nav-links a { font-size: 1.05rem; }
+  .hero h1 { font-size: 2.25rem; }
+  .hero-sub { font-size: 1rem; }
+  .hero-stats { gap: 24px; flex-wrap: wrap; }
+  .hero-stat-num { font-size: 1.5rem; }
+  .section-title { font-size: 1.75rem; }
+  .features-grid { grid-template-columns: 1fr; }
+  .download-grid { grid-template-columns: 1fr; }
+  .download-card.wide { grid-column: span 1; max-width: 100%; }
+  .adv-grid { grid-template-columns: 1fr; }
+  .hero-buttons { flex-direction: column; }
+  .hero-buttons .btn { width: 100%; }
+  .footer-inner { flex-direction: column; text-align: center; }
+  .footer-info { justify-content: center; }
+}
+@media (max-width: 480px) {
+  .hero h1 { font-size: 1.85rem; }
+  .section-title { font-size: 1.5rem; }
+  .feature-card { padding: 28px 20px; }
+  .hero-stats { gap: 16px; }
+}
+</style>
+</head>
+<body>
+
+<!-- ========== Navigation ========== -->
+<nav class="navbar" id="navbar">
+  <div class="navbar-inner">
+    <a href="#" class="logo">
+      <div class="logo-icon">OP</div>
+      <span>智享全链</span>
+    </a>
+    <div class="nav-links" id="navLinks">
+      <a href="#features">产品功能</a>
+      <a href="#download">下载中心</a>
+      <a href="#about">关于我们</a>
+      <a href="https://admin.onepan.cn" class="nav-login">登录</a>
+    </div>
+    <button class="hamburger" id="hamburger" aria-label="菜单">
+      <span></span><span></span><span></span>
+    </button>
+  </div>
+</nav>
+
+<!-- ========== Hero ========== -->
+<section class="hero" id="hero">
+  <div class="hero-content">
+    <div class="hero-badge fade-up">onepan.cn</div>
+    <h1 class="fade-up fade-up-delay-1">酒水行业<br><span class="highlight">数字化管理专家</span></h1>
+    <p class="hero-sub fade-up fade-up-delay-2">
+      智享全链管理系统，覆盖采购、库存、销售、财务、营销全链路，助力酒水企业实现数字化转型，降本增效，数据驱动经营决策。
+    </p>
+    <div class="hero-buttons fade-up fade-up-delay-3">
+      <a href="https://admin.onepan.cn" class="btn btn-primary">免费试用</a>
+      <a href="#features" class="btn btn-outline">了解更多</a>
+    </div>
+    <div class="hero-stats fade-up fade-up-delay-4">
+      <div class="hero-stat-item">
+        <div class="hero-stat-num">9</div>
+        <div class="hero-stat-label">核心功能模块</div>
+      </div>
+      <div class="hero-stat-item">
+        <div class="hero-stat-num">5+</div>
+        <div class="hero-stat-label">多端覆盖</div>
+      </div>
+      <div class="hero-stat-item">
+        <div class="hero-stat-num">99.9%</div>
+        <div class="hero-stat-label">系统稳定性</div>
+      </div>
+      <div class="hero-stat-item">
+        <div class="hero-stat-num">24/7</div>
+        <div class="hero-stat-label">技术支持</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ========== Features ========== -->
+<section class="features" id="features">
+  <div class="container">
+    <h2 class="section-title fade-up">核心<span class="gold">功能</span></h2>
+    <p class="section-subtitle fade-up fade-up-delay-1">一站式覆盖酒水企业经营全场景</p>
+    <div class="features-grid">
+
+      <!-- 智能库存管理 -->
+      <div class="feature-card fade-up">
+        <div class="feature-icon">
+          <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#C8A45C" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 16V8a2 2 0 00-1-1.73l-7-4a2 2 0 00-2 0l-7 4A2 2 0 003 8v8a2 2 0 001 1.73l7 4a2 2 0 002 0l7-4A2 2 0 0021 16z"/><polyline points="3.27 6.96 12 12.01 20.73 6.96"/><line x1="12" y1="22.08" x2="12" y2="12"/></svg>
+        </div>
+        <h3>智能库存管理</h3>
+        <p>精细化库存管控，实时掌握每一瓶酒的去向，减少损耗，提升周转效率。</p>
+        <div class="feature-tags">
+          <span class="feature-tag">库存预警</span>
+          <span class="feature-tag">效期管理</span>
+          <span class="feature-tag">批次追溯</span>
+        </div>
+      </div>
+
+      <!-- 多门店管控 -->
+      <div class="feature-card fade-up fade-up-delay-1">
+        <div class="feature-icon">
+          <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#C8A45C" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="3" width="20" height="14" rx="2"/><line x1="8" y1="21" x2="16" y2="21"/><line x1="12" y1="17" x2="12" y2="21"/><path d="M6 10h.01M10 10h.01"/></svg>
+        </div>
+        <h3>多门店管控</h3>
+        <p>总部统一管理，门店独立运营，库存实时共享，调配高效灵活。</p>
+        <div class="feature-tags">
+          <span class="feature-tag">门店数据隔离</span>
+          <span class="feature-tag">统一调配</span>
+          <span class="feature-tag">实时监控</span>
+        </div>
+      </div>
+
+      <!-- 采购供应链 -->
+      <div class="feature-card fade-up fade-up-delay-2">
+        <div class="feature-icon">
+          <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#C8A45C" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="9" cy="21" r="1"/><circle cx="20" cy="21" r="1"/><path d="M1 1h4l2.68 13.39a2 2 0 002 1.61h9.72a2 2 0 002-1.61L23 6H6"/></svg>
+        </div>
+        <h3>采购供应链</h3>
+        <p>从采购计划到入库管理，全流程数字化，智能比价降低采购成本。</p>
+        <div class="feature-tags">
+          <span class="feature-tag">供应商管理</span>
+          <span class="feature-tag">采购计划</span>
+          <span class="feature-tag">智能比价</span>
+        </div>
+      </div>
+
+      <!-- 销售全链路 -->
+      <div class="feature-card fade-up fade-up-delay-3">
+        <div class="feature-icon">
+          <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#C8A45C" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 000 7h5a3.5 3.5 0 010 7H6"/></svg>
+        </div>
+        <h3>销售全链路</h3>
+        <p>开单收银一体化，客户精细化管理，会员体系助力复购增长。</p>
+        <div class="feature-tags">
+          <span class="feature-tag">开单收银</span>
+          <span class="feature-tag">客户管理</span>
+          <span class="feature-tag">会员体系</span>
+        </div>
+      </div>
+
+      <!-- 数据看板 -->
+      <div class="feature-card fade-up fade-up-delay-4">
+        <div class="feature-icon">
+          <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#C8A45C" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2"/><line x1="3" y1="9" x2="21" y2="9"/><line x1="9" y1="21" x2="9" y2="9"/></svg>
+        </div>
+        <h3>数据看板</h3>
+        <p>实时经营大屏，多维度数据报表，趋势分析辅助科学决策。</p>
+        <div class="feature-tags">
+          <span class="feature-tag">实时大屏</span>
+          <span class="feature-tag">多维报表</span>
+          <span class="feature-tag">趋势分析</span>
+        </div>
+      </div>
+
+      <!-- 小程序商城 -->
+      <div class="feature-card fade-up fade-up-delay-5">
+        <div class="feature-icon">
+          <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#C8A45C" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="5" y="2" width="14" height="20" rx="2"/><line x1="12" y1="18" x2="12.01" y2="18"/></svg>
+        </div>
+        <h3>小程序商城</h3>
+        <p>打通线上线下，线上下单即时配送，营销活动拉动业绩增长。</p>
+        <div class="feature-tags">
+          <span class="feature-tag">线上下单</span>
+          <span class="feature-tag">即时零售</span>
+          <span class="feature-tag">营销活动</span>
+        </div>
+      </div>
+
+      <!-- 客户管理 -->
+      <div class="feature-card fade-up">
+        <div class="feature-icon">
+          <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#C8A45C" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 00-3-3.87"/><path d="M16 3.13a4 4 0 010 7.75"/></svg>
+        </div>
+        <h3>客户管理</h3>
+        <p>客户档案、标签分组、授信额度、专属价格体系，精细化客户运营。</p>
+        <div class="feature-tags">
+          <span class="feature-tag">客户档案</span>
+          <span class="feature-tag">授信额度</span>
+          <span class="feature-tag">专属价格</span>
+        </div>
+      </div>
+
+      <!-- 营销管理 -->
+      <div class="feature-card fade-up fade-up-delay-1">
+        <div class="feature-icon">
+          <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#C8A45C" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polygon points="10 8 16 12 10 16 10 8"/></svg>
+        </div>
+        <h3>营销管理</h3>
+        <p>优惠券、满减、团购、秒杀、积分商城等多种工具，助力销量持续增长。</p>
+        <div class="feature-tags">
+          <span class="feature-tag">优惠券</span>
+          <span class="feature-tag">团购秒杀</span>
+          <span class="feature-tag">积分体系</span>
+        </div>
+      </div>
+
+      <!-- 财务管理 -->
+      <div class="feature-card fade-up fade-up-delay-2">
+        <div class="feature-icon">
+          <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#C8A45C" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="2" width="16" height="20" rx="2"/><line x1="8" y1="6" x2="16" y2="6"/><line x1="8" y1="10" x2="16" y2="10"/><line x1="8" y1="14" x2="12" y2="14"/></svg>
+        </div>
+        <h3>财务管理</h3>
+        <p>应收应付、收支流水、对账核销，财务数据一目了然，经营心中有数。</p>
+        <div class="feature-tags">
+          <span class="feature-tag">应收应付</span>
+          <span class="feature-tag">收支流水</span>
+          <span class="feature-tag">对账核销</span>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</section>
+
+<!-- ========== Download Center ========== -->
+<section class="download" id="download">
+  <div class="container">
+    <h2 class="section-title fade-up">下载<span class="gold">中心</span></h2>
+    <p class="section-subtitle fade-up fade-up-delay-1">多端同步，随时随地管理您的酒水生意</p>
+    <div class="download-grid">
+
+      <!-- 管理后台 -->
+      <a href="https://admin.onepan.cn" target="_blank" class="download-card fade-up" style="cursor:pointer;">
+        <div class="download-icon">
+          <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#C8A45C" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="3" width="20" height="14" rx="2"/><line x1="8" y1="21" x2="16" y2="21"/><line x1="12" y1="17" x2="12" y2="21"/></svg>
+        </div>
+        <h3>管理后台</h3>
+        <p class="desc">全功能Web管理后台<br>推荐电脑浏览器访问</p>
+        <span class="download-link">
+          立即进入
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg>
+        </span>
+      </a>
+
+      <!-- 移动端 -->
+      <a href="https://m.onepan.cn" target="_blank" class="download-card fade-up fade-up-delay-1" style="cursor:pointer;">
+        <div class="download-icon">
+          <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#C8A45C" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="5" y="2" width="14" height="20" rx="2"/><line x1="12" y1="18" x2="12.01" y2="18"/></svg>
+        </div>
+        <h3>移动端</h3>
+        <p class="desc">手机浏览器端<br>随时查看经营数据</p>
+        <span class="download-link">
+          立即访问
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg>
+        </span>
+      </a>
+
+      <!-- 门店终端 -->
+      <a href="https://store.onepan.cn" target="_blank" class="download-card fade-up fade-up-delay-2" style="cursor:pointer;">
+        <div class="download-icon">
+          <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#C8A45C" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="2" width="16" height="20" rx="2"/><line x1="8" y1="6" x2="16" y2="6"/><line x1="8" y1="10" x2="10" y2="10"/><line x1="14" y1="10" x2="16" y2="10"/><line x1="8" y1="14" x2="10" y2="14"/><line x1="14" y1="14" x2="16" y2="14"/><line x1="8" y1="18" x2="10" y2="18"/><line x1="14" y1="18" x2="16" y2="18"/></svg>
+        </div>
+        <h3>门店终端</h3>
+        <p class="desc">门店收银专用界面<br>适配触屏与扫码设备</p>
+        <span class="download-link">
+          立即进入
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg>
+        </span>
+      </a>
+
+      <!-- Windows 桌面版 -->
+      <a href="https://github.com/wen-868/wen-ssystem/releases" target="_blank" class="download-card fade-up fade-up-delay-3" style="cursor:pointer;">
+        <div class="download-icon">
+          <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#C8A45C" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="3" width="20" height="14" rx="2"/><line x1="2" y1="10" x2="22" y2="10"/><polygon points="10 3 14 3 14 10 10 10"/></svg>
+        </div>
+        <h3>Windows 桌面版</h3>
+        <p class="desc">离线可用，性能更强<br>适合店内固定工位使用</p>
+        <span class="download-link">
+          前往下载
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg>
+        </span>
+      </a>
+
+      <!-- 小程序 -->
+      <div class="download-card download-card wide fade-up fade-up-delay-4" style="cursor:default;">
+        <div class="download-icon">
+          <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#C8A45C" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2"/><line x1="7" y1="8" x2="17" y2="8"/><line x1="7" y1="12" x2="17" y2="12"/><line x1="7" y1="16" x2="13" y2="16"/></svg>
+        </div>
+        <h3>微信小程序</h3>
+        <p class="desc">微信搜索「智享全链」或扫描下方二维码</p>
+        <div class="qrcode-placeholder">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/><rect x="14" y="14" width="3" height="3"/><line x1="21" y1="14" x2="21" y2="14.01"/><line x1="21" y1="21" x2="21" y2="21.01"/></svg>
+          <span>小程序码</span>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</section>
+
+<!-- ========== Advantages ========== -->
+<section class="advantages" id="about">
+  <div class="container">
+    <h2 class="section-title fade-up">产品<span class="gold">优势</span></h2>
+    <p class="section-subtitle fade-up fade-up-delay-1">值得信赖的酒水行业管理解决方案</p>
+    <div class="adv-grid">
+
+      <div class="adv-card fade-up">
+        <div class="adv-icon">
+          <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#C8A45C" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+        </div>
+        <h3>安全可靠</h3>
+        <p>银行级数据加密，多重备份机制，完善的权限管控体系，保障企业数据资产安全。</p>
+      </div>
+
+      <div class="adv-card fade-up fade-up-delay-1">
+        <div class="adv-icon">
+          <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#C8A45C" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="3" width="20" height="14" rx="2"/><line x1="8" y1="21" x2="16" y2="21"/><line x1="12" y1="17" x2="12" y2="21"/></svg>
+        </div>
+        <h3>多端适配</h3>
+        <p>Web后台、移动端、门店终端、桌面客户端、小程序，全场景覆盖，数据实时同步。</p>
+      </div>
+
+      <div class="adv-card fade-up fade-up-delay-2">
+        <div class="adv-icon">
+          <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#C8A45C" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="16 18 22 12 16 6"/><polyline points="8 6 2 12 8 18"/></svg>
+        </div>
+        <h3>灵活扩展</h3>
+        <p>模块化架构设计，按需开通功能，支持自定义报表与业务流程，随业务成长灵活扩展。</p>
+      </div>
+
+      <div class="adv-card fade-up fade-up-delay-3">
+        <div class="adv-icon">
+          <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#C8A45C" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+        </div>
+        <h3>智能预警</h3>
+        <p>库存不足、效期临近、异常订单等关键事件自动预警推送，防患于未然，减少经营风险。</p>
+      </div>
+
+    </div>
+  </div>
+</section>
+
+<!-- ========== Footer ========== -->
+<footer class="footer">
+  <div class="container">
+    <div class="footer-inner">
+      <div class="footer-logo">
+        <div class="logo-icon">OP</div>
+        <span>智享全链</span>
+      </div>
+      <div class="footer-info">
+        <span>&copy; 2026 onepan.cn 智享全链管理系统</span>
+        <a href="https://beian.miit.gov.cn/" target="_blank" rel="nofollow noopener">ICP备案号：京ICP备XXXXXXXX号</a>
+      </div>
+    </div>
+  </div>
+</footer>
+
+<!-- ========== JavaScript ========== -->
+<script>
+(function() {
+  // Navbar scroll effect
+  var navbar = document.getElementById('navbar');
+  var scrolled = false;
+  window.addEventListener('scroll', function() {
+    if (window.scrollY > 60 && !scrolled) {
+      navbar.classList.add('scrolled');
+      scrolled = true;
+    } else if (window.scrollY <= 60 && scrolled) {
+      navbar.classList.remove('scrolled');
+      scrolled = false;
+    }
+  });
+
+  // Mobile menu toggle
+  var hamburger = document.getElementById('hamburger');
+  var navLinks = document.getElementById('navLinks');
+  hamburger.addEventListener('click', function() {
+    hamburger.classList.toggle('active');
+    navLinks.classList.toggle('open');
+  });
+  // Close menu when a link is clicked
+  var links = navLinks.querySelectorAll('a');
+  links.forEach(function(link) {
+    link.addEventListener('click', function() {
+      hamburger.classList.remove('active');
+      navLinks.classList.remove('open');
+    });
+  });
+
+  // Scroll reveal animation
+  var fadeElements = document.querySelectorAll('.fade-up');
+  var observer = new IntersectionObserver(function(entries) {
+    entries.forEach(function(entry) {
+      if (entry.isIntersecting) {
+        entry.target.classList.add('visible');
+        observer.unobserve(entry.target);
+      }
+    });
+  }, {
+    threshold: 0.12,
+    rootMargin: '0px 0px -40px 0px'
+  });
+  fadeElements.forEach(function(el) {
+    observer.observe(el);
+  });
+
+  // Smooth scroll for anchor links
+  document.querySelectorAll('a[href^="#"]').forEach(function(anchor) {
+    anchor.addEventListener('click', function(e) {
+      e.preventDefault();
+      var target = document.querySelector(this.getAttribute('href'));
+      if (target) {
+        target.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      }
+    });
+  });
+})();
+</script>
+
+</body>
+</html>
