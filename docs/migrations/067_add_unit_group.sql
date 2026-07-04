@@ -14,6 +14,7 @@ CREATE TABLE IF NOT EXISTS unit_group (
 CREATE TABLE IF NOT EXISTS unit_group_item (
   id BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
   group_id BIGINT UNSIGNED NOT NULL COMMENT '单位组ID',
+  tenant_id VARCHAR(64) NOT NULL DEFAULT 'default' COMMENT '租户ID',
   name VARCHAR(32) NOT NULL COMMENT '单位名称（箱/包/条/合/个）',
   level INT NOT NULL DEFAULT 0 COMMENT '层级（0为最高级，数字越大层级越低）',
   conversion_rate DECIMAL(15,4) NOT NULL DEFAULT 1 COMMENT '换算率（1上级单位=conversion_rate本级单位）',
@@ -21,6 +22,7 @@ CREATE TABLE IF NOT EXISTS unit_group_item (
   created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
   updated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
   INDEX idx_group (group_id),
+  INDEX idx_tenant (tenant_id),
   INDEX idx_level (group_id, level),
   CONSTRAINT fk_item_group FOREIGN KEY (group_id) REFERENCES unit_group(id) ON DELETE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='单位层级明细表';
