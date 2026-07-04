@@ -24,6 +24,9 @@ api.interceptors.response.use(
       localStorage.removeItem('merchant_token')
       window.dispatchEvent(new Event('auth:logout'))
       showToast('登录已过期，请重新登录')
+    } else {
+      const msg = error.response?.data?.message || error.message || '请求失败'
+      showToast(msg)
     }
     return Promise.reject(error)
   }

@@ -1,4 +1,5 @@
 import axios from "axios";
+import { ElMessage } from "element-plus";
 
 function resolveApiBase() {
   // Electron 桌面环境：通过 preload 获取远程 API 地址
@@ -33,6 +34,9 @@ api.interceptors.response.use(
       if (typeof window !== "undefined") {
         window.dispatchEvent(new Event("auth:logout"));
       }
+    } else {
+      const msg = error?.response?.data?.message || error?.message || "请求失败";
+      ElMessage.error(msg);
     }
     return Promise.reject(error);
   }
@@ -2241,7 +2245,6 @@ export async function notifyExpiringTenants(tenantIds: number[]) {
   const { data } = await api.post("/admin/monitor/notify-expiring", { tenantIds });
   return data.data;
 }
-
 // ==================== 积分商城 ====================
 export async function getPointsMallItems(params?: any) { const { data } = await api.get('/admin/points-mall/items', { params }); return data.data; }
 export async function createPointsMallItem(data: any) { const { data: res } = await api.post('/admin/points-mall/items', data); return res.data; }

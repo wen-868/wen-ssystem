@@ -7,7 +7,8 @@
     "backend",
     "admin-web",
     "store-terminal",
-    "merchant-mobile"
+    "merchant-mobile",
+    "website"
   ],
   "scripts": {
     "dev:backend": "npm --workspace backend run dev",
@@ -15,8 +16,10 @@
     "dev:admin": "npm --workspace admin-web run dev",
     "dev:store": "npm --workspace store-terminal run dev",
     "dev:merchant": "npm --workspace merchant-mobile run dev",
+    "dev:website": "npm --workspace website run dev",
     "build": "npm --workspaces run build",
     "build:merchant": "npm --workspace merchant-mobile run build",
+    "build:website": "npm --workspace website run build",
     "build:store-beta": "node scripts/build-store-beta.mjs",
     "build:mobile-beta": "node scripts/build-mobile-beta.mjs",
     "build:beta": "npm run build:store-beta && npm run build:mobile-beta",

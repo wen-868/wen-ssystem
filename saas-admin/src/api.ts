@@ -196,3 +196,20 @@ export function updatePlatformConfig(data: any) {
 export function getAuditLogs(params?: { keyword?: string; action?: string; userId?: number; page?: number; pageSize?: number }) {
   return api.get<any, { data: ApiResult<any> }>("/admin/audit-logs", { params: { page: 1, pageSize: 20, ...params } });
 }
+
+// ==================== 监控告警 ====================
+export function fetchDbStatus() {
+  return api.get<any, { data: ApiResult<any> }>("/admin/monitor/db-status");
+}
+
+export function fetchApiStats() {
+  return api.get<any, { data: ApiResult<any> }>("/admin/monitor/api-stats");
+}
+
+export function fetchExpiringTenants(days?: number) {
+  return api.get<any, { data: ApiResult<any> }>("/admin/monitor/expiring-tenants", { params: { days } });
+}
+
+export function notifyExpiringTenants(tenantIds: number[]) {
+  return api.post<any, { data: ApiResult<any> }>("/admin/monitor/notify-expiring", { tenantIds });
+}

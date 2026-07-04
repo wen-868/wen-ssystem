@@ -1318,4 +1318,22 @@ app.use('/api/admin/marketing/group-buy', requireAuthWithTenant, groupBuyRouter)
 // Phase 21 - 营销中心P2
 { path: 'marketing/seckill', name: 'SeckillManage', component: () => import('@/views/SeckillManage.vue') },
 { path: 'marketing/group-buy', name: 'GroupBuyManage', component: () => import('@/views/GroupBuyManage.vue') },
-```
+
+---
+
+## 苏然测试报告 · 高风险标记
+
+**检测时间**：2026-07-03
+**检测人**：苏然
+
+**发现**：系统无错误自动反馈功能
+
+| 缺失项 | 风险等级 |
+|--------|:---:|
+| 错误日志持久化 | 🔴 高 |
+| 全局未捕获异常监听 | 🔴 高 |
+| 错误自动通知管理员 | 🔴 高 |
+| 前端全局错误捕获 | 🟡 中 |
+| 前端错误上报 | 🟡 中 |
+
+**处理**：已分配为 tasks-墨.md 任务（11 项），全线开发中。
