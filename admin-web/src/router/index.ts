@@ -168,6 +168,7 @@ const routes = [
       { path: "system/payment", name: "PaymentConfig", component: () => import("../views/PaymentConfigView.vue"), meta: { roles: ["BOSS"] } },
       { path: "system/miniapp", name: "MiniappConfig", component: () => import("../views/MiniappConfigView.vue"), meta: { roles: ["BOSS"] } },
       { path: "monitor", name: "Monitor", component: () => import("../views/MonitorView.vue"), meta: { roles: ["BOSS"] } },
+      { path: "system/feedback", name: "Feedback", component: () => import("../views/FeedbackView.vue"), meta: { roles: ["BOSS"] } },
       { path: "consumer-addresses", name: "ConsumerAddresses", component: () => import("../views/ConsumerAddress.vue"), meta: { roles: ["BOSS"] } }
     ]
   },

@@ -86,6 +86,7 @@ import { systemRouter } from "./routes/system.routes.js";
 import { workbenchRouter } from "./routes/workbench.routes.js";
 import { errorLogRouter } from "./routes/error-log.routes.js";
 import { monitorRouter } from "./routes/monitor.routes.js";
+import { feedbackRouter } from "./routes/feedback.routes.js";
 import { insertErrorLog } from "./services/admin/error-log.service.js";
 import { reportToLingZhou } from "./shared/feishu-report.js";
 
@@ -257,6 +258,7 @@ app.use("/api/system", systemRouter);
 app.use("/api/admin", requireAuthWithTenant, workbenchRouter);
 app.use("/api/admin", errorLogRouter);
 app.use("/api/admin/monitor", requireAuthWithTenant, monitorRouter);
+app.use("/api/admin", feedbackRouter);
 
 app.use(errorHandler);
 

@@ -286,6 +286,31 @@ export async function runMigrations(): Promise<void> {
       );
     }
 
+    // 5.5.5 创建 system_feedback 表（建议反馈功能）
+    await safeExec(conn, `
+      CREATE TABLE IF NOT EXISTS system_feedback (
+        id BIGINT UNSIGNED NOT NULL AUTO_INCREMENT COMMENT '反馈ID',
+        type VARCHAR(16) NOT NULL COMMENT '类型: BUG/FEATURE/IMPROVEMENT/OTHER',
+        title VARCHAR(200) NOT NULL COMMENT '标题',
+        content TEXT NOT NULL COMMENT '内容',
+        contact VARCHAR(100) DEFAULT NULL COMMENT '联系方式',
+        screenshot_urls TEXT DEFAULT NULL COMMENT '截图URL列表(JSON)',
+        page_url VARCHAR(500) DEFAULT NULL COMMENT '提交页面URL',
+        browser_info VARCHAR(500) DEFAULT NULL COMMENT '浏览器信息',
+        status VARCHAR(16) NOT NULL DEFAULT 'PENDING' COMMENT '状态: PENDING/PROCESSING/RESOLVED/REJECTED',
+        reply TEXT DEFAULT NULL COMMENT '管理员回复',
+        user_id BIGINT UNSIGNED DEFAULT NULL COMMENT '提交用户ID',
+        tenant_id VARCHAR(36) NOT NULL DEFAULT 'default' COMMENT '租户ID',
+        created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+        updated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+        PRIMARY KEY (id),
+        KEY idx_feedback_type (type),
+        KEY idx_feedback_status (status),
+        KEY idx_feedback_tenant (tenant_id),
+        KEY idx_feedback_user (user_id)
+      ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='用户建议反馈表'
+    `, "创建 system_feedback 表");
+
     // ============================================================
     // 第6步：执行其他 SQL 迁移文件
     // ============================================================

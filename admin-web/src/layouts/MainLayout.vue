@@ -221,6 +221,7 @@
           <el-menu-item index="/system/payment">支付配置</el-menu-item>
           <el-menu-item index="/system/miniapp">小程序配置</el-menu-item>
           <el-menu-item index="/monitor">监控告警</el-menu-item>
+          <el-menu-item index="/system/feedback">建议反馈</el-menu-item>
         </el-sub-menu>
       </el-menu>
     </aside>
@@ -412,6 +413,7 @@ const pageTitle = computed(() => {
     "/system/payment": "支付配置",
       "/system/miniapp": "小程序配置",
       "/monitor": "监控告警",
+    "/system/feedback": "建议反馈",
       "/instant-retail/config": "小程序配置",
     "/instant-retail/shelf": "商品货架",
     "/instant-retail/orders": "小程序订单",

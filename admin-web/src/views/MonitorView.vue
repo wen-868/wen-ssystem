@@ -14,7 +14,7 @@
         <el-col :xs="24" :sm="12" :md="6">
           <div class="stat-item">
             <div class="stat-icon db-icon">
-              <el-icon><HardDrive /></el-icon>
+              <el-icon><Monitor /></el-icon>
             </div>
             <div class="stat-content">
               <div class="stat-label">数据库状态</div>
@@ -126,7 +126,7 @@
 import { onMounted, onUnmounted, ref, nextTick } from "vue";
 import { ElMessage } from "element-plus";
 import * as echarts from "echarts";
-import { Refresh, HardDrive, DataLine, Warning, Timer, Bell } from "@element-plus/icons-vue";
+import { Refresh, Monitor, DataLine, Warning, Timer, Bell } from "@element-plus/icons-vue";
 import { fetchDbStatus, fetchApiStats, fetchExpiringTenants, notifyExpiringTenants } from "../api";
 
 interface DbStatus {
