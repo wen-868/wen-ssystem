@@ -5,6 +5,7 @@ import rateLimit from "express-rate-limit";
 import { env } from "./shared/env.js";
 import { initDatabase } from "./shared/db.js";
 import { errorHandler } from "./shared/error-handler.js";
+import { errorResponseInterceptor } from "./shared/error-response-interceptor.js";
 import { requireAuth } from "./shared/auth.js";
 import { tenantMiddleware } from "./shared/tenant.js";
 import { runMigrations } from "./shared/migration.js";
@@ -99,8 +100,7 @@ process.on("uncaughtException", (err: Error) => {
     error_type: "uncaughtException",
     severity: "FATAL",
     message: err.message || "未捕获的异常",
-    stack: err.stack,
-    source: "backend",
+    stack: err.stack || undefined,
   }).catch(() => {});
   reportToLingZhou({
     phase: "系统错误告警",
@@ -109,7 +109,7 @@ process.on("uncaughtException", (err: Error) => {
     details: [
       { label: "错误类型", value: "uncaughtException" },
       { label: "错误消息", value: err.message || "未知" },
-      { label: "堆栈", value: (err.stack || "").split("\n").slice(0, 3).join("\n") },
+      { label: "堆栈", value: (err.stack || "").split("\n").slice(0, 5).join("\n") },
     ],
     reporter: "系统自动告警",
     webhookUrl: process.env.FEISHU_ALERT_WEBHOOK_URL || process.env.FEISHU_WEBHOOK_URL,
@@ -118,14 +118,13 @@ process.on("uncaughtException", (err: Error) => {
 
 process.on("unhandledRejection", (reason: any, promise: Promise<any>) => {
   console.error("💥 [unhandledRejection] 未处理的 Promise 拒绝:", reason);
-  const message = reason instanceof Error ? reason.message : String(reason);
-  const stack = reason instanceof Error ? reason.stack : undefined;
+  const message = reason?.message || String(reason) || "未处理的 Promise 拒绝";
+  const stack = reason?.stack || undefined;
   insertErrorLog({
     error_type: "unhandledRejection",
     severity: "ERROR",
     message,
     stack,
-    source: "backend",
   }).catch(() => {});
   reportToLingZhou({
     phase: "系统错误告警",
@@ -134,6 +133,7 @@ process.on("unhandledRejection", (reason: any, promise: Promise<any>) => {
     details: [
       { label: "错误类型", value: "unhandledRejection" },
       { label: "错误消息", value: message },
+      { label: "堆栈", value: (stack || "").split("\n").slice(0, 5).join("\n") || "N/A" },
     ],
     reporter: "系统自动告警",
     webhookUrl: process.env.FEISHU_ALERT_WEBHOOK_URL || process.env.FEISHU_WEBHOOK_URL,
@@ -155,6 +155,7 @@ const allowedOrigins = corsOriginsEnv
   : ["https://admin.onepan.cn", "https://m.onepan.cn", "https://store.onepan.cn"];
 app.use(cors({ origin: allowedOrigins, credentials: true }));
 app.use(express.json({ limit: "2mb" }));
+app.use(errorResponseInterceptor);
 
 // 认证 + 租户隔离组合中间件
 const requireAuthWithTenant = (req: any, res: any, next: any) => {
