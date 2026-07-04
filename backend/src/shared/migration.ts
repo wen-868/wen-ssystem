@@ -217,11 +217,71 @@ export async function runMigrations(): Promise<void> {
     // ============================================================
     // 第5步：修复 sys_role 表 status 字段值为整数
     // ============================================================
-    // add_permission_matrix.sql 尝试插入 'ACTIVE' 到 TINYINT 列
     await safeExec(conn,
       "UPDATE sys_role SET status = 1 WHERE status = 'ACTIVE'",
       "修复 sys_role.status"
     );
+
+    // ============================================================
+    // 第5.5步：创建缺失的表 + 添加缺失的字段
+    // ============================================================
+    console.log("[migration] 创建缺失的表和字段...");
+
+    // 5.5.1 创建 stock_warning 表（看板需要）
+    await safeExec(conn, `
+      CREATE TABLE IF NOT EXISTS stock_warning (
+        id BIGINT UNSIGNED NOT NULL AUTO_INCREMENT COMMENT '预警ID',
+        sku_id BIGINT UNSIGNED NOT NULL COMMENT 'SKU ID',
+        sku_name VARCHAR(128) DEFAULT NULL COMMENT 'SKU名称',
+        current_stock INT NOT NULL DEFAULT 0 COMMENT '当前库存',
+        warning_level VARCHAR(32) NOT NULL DEFAULT 'WARNING' COMMENT '预警级别: URGENT/WARNING/INFO',
+        status VARCHAR(32) NOT NULL DEFAULT 'ACTIVE' COMMENT '状态: ACTIVE/RESOLVED',
+        tenant_id VARCHAR(36) NOT NULL DEFAULT 'default' COMMENT '租户ID',
+        created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+        updated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+        PRIMARY KEY (id),
+        KEY idx_stock_warning_sku (sku_id),
+        KEY idx_stock_warning_level (warning_level),
+        KEY idx_stock_warning_status (status),
+        KEY idx_stock_warning_tenant (tenant_id)
+      ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='库存预警表'
+    `, "创建 stock_warning 表");
+
+    // 5.5.2 为 store 表添加缺失字段（门店列表需要）
+    const storeColumns = [
+      { name: "miniapp_appid", def: "VARCHAR(128) DEFAULT NULL COMMENT '小程序appid'" },
+      { name: "wx_merchant_name", def: "VARCHAR(128) DEFAULT NULL COMMENT '微信商户名称'" },
+      { name: "wx_service_phone", def: "VARCHAR(32) DEFAULT NULL COMMENT '微信客服电话'" },
+      { name: "wx_head_img", def: "VARCHAR(512) DEFAULT NULL COMMENT '微信头像URL'" },
+      { name: "wx_qrcode_url", def: "VARCHAR(512) DEFAULT NULL COMMENT '微信二维码URL'" },
+    ];
+    for (const col of storeColumns) {
+      await safeExec(conn,
+        `ALTER TABLE store ADD COLUMN \`${col.name}\` ${col.def}`,
+        `store.${col.name}`
+      );
+    }
+
+    // 5.5.3 为 sys_user 表添加 email 字段（用户列表需要）
+    await safeExec(conn,
+      "ALTER TABLE sys_user ADD COLUMN `email` VARCHAR(128) DEFAULT NULL COMMENT '邮箱'",
+      "sys_user.email"
+    );
+
+    // 5.5.4 为 product_spu 表添加缺失字段（商品列表需要）
+    const spuColumns = [
+      { name: "alcohol_content", def: "VARCHAR(32) DEFAULT NULL COMMENT '酒精度数'" },
+      { name: "origin", def: "VARCHAR(128) DEFAULT NULL COMMENT '产地'" },
+      { name: "sale_channels", def: "JSON DEFAULT NULL COMMENT '销售渠道'" },
+      { name: "description", def: "VARCHAR(512) DEFAULT NULL COMMENT '商品简介'" },
+      { name: "marketing_tags", def: "JSON DEFAULT NULL COMMENT '营销标签'" },
+    ];
+    for (const col of spuColumns) {
+      await safeExec(conn,
+        `ALTER TABLE product_spu ADD COLUMN \`${col.name}\` ${col.def}`,
+        `product_spu.${col.name}`
+      );
+    }
 
     // ============================================================
     // 第6步：执行其他 SQL 迁移文件
