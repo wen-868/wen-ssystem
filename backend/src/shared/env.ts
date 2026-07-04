@@ -19,7 +19,7 @@ export const env = {
   ADMIN_DOMAIN: process.env.ADMIN_DOMAIN || "admin.onepan.cn",
   MERCHANT_DOMAIN: process.env.MERCHANT_DOMAIN || "m.onepan.cn",
   STORE_DOMAIN: process.env.STORE_DOMAIN || "store.onepan.cn",
-  WECHAT_APP_ID: process.env.WECHAT_APP_ID || "",
+  WECHAT_APP_ID: process.env.WECHAT_APP_ID || "1442871774",
   WECHAT_APP_SECRET: process.env.WECHAT_APP_SECRET || "",
   WECHAT_MCH_ID: process.env.WECHAT_MCH_ID || "",
   WECHAT_PAY_SERIAL_NO: process.env.WECHAT_PAY_SERIAL_NO || "",
