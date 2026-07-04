@@ -11,20 +11,8 @@ ALTER TABLE sys_role ADD COLUMN description VARCHAR(200) DEFAULT NULL COMMENT '�
 -- 2. sys_role: 添加 permissions 字段
 ALTER TABLE sys_role ADD COLUMN permissions JSON DEFAULT NULL COMMENT '权限列表（JSON格式）' AFTER data_scope;
 
--- 3. sys_role: status TINYINT -> VARCHAR(16)
-ALTER TABLE sys_role MODIFY COLUMN status VARCHAR(16) NOT NULL DEFAULT 'ACTIVE' COMMENT '状态：ACTIVE/DISABLED';
-
--- 4. sys_role: data_scope 默认值
+-- 3. sys_role: data_scope 默认值
 ALTER TABLE sys_role ALTER COLUMN data_scope SET DEFAULT 'SELF';
-
--- 5. sys_user: status TINYINT -> VARCHAR(16)
-ALTER TABLE sys_user MODIFY COLUMN status VARCHAR(16) NOT NULL DEFAULT 'ACTIVE' COMMENT '状态：ACTIVE/DISABLED';
-
--- 6. 数据迁移
-UPDATE sys_role SET status = 'ACTIVE' WHERE status = '1';
-UPDATE sys_role SET status = 'DISABLED' WHERE status = '0';
-UPDATE sys_user SET status = 'ACTIVE' WHERE status = '1';
-UPDATE sys_user SET status = 'DISABLED' WHERE status = '0';
 
 -- 7. member: 添加 settlement_type 字段（旧表可能缺失）
 ALTER TABLE member ADD COLUMN settlement_type VARCHAR(32) NOT NULL DEFAULT 'CASH' COMMENT '结算方式：CASH/ACCOUNT' AFTER customer_type;

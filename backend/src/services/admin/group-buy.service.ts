@@ -76,3 +76,24 @@ export async function getGroupBuyRecords(tenantId: string, params?: { activityId
   ]);
   return { records: rows, total: total?.cnt || 0, page, pageSize };
 }
+
+export async function getGroupBuyDetail(groupNo: string) {
+  const row = await queryOne<any>(
+    `SELECT gbr.*, gba.product_id AS productId, p.name AS productName, gba.group_price AS groupPrice, gba.min_group_size AS minGroupSize
+     FROM group_buy_record gbr
+     LEFT JOIN group_buy_activity gba ON gbr.activity_id = gba.id
+     LEFT JOIN product p ON gba.product_id = p.id
+     WHERE gbr.group_no = ?`,
+    [groupNo]
+  );
+  if (!row) throw new Error("拼团记录不存在");
+  return row;
+}
+
+export async function cancelGroupBuy(groupNo: string) {
+  await query(
+    `UPDATE group_buy_record SET status='CANCELLED', cancelled_at=NOW() WHERE group_no=? AND status IN ('ACTIVE','PENDING')`,
+    [groupNo]
+  );
+  return { success: true };
+}

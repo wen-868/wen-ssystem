@@ -99,7 +99,7 @@ export const batchCreateCollectionLinks = asyncHandler(async (req, res) => {
   const result = await (await import("../../services/store/sale-bill.service.js")).batchCreateCollectionLinks({
     billNos, shareChannel: shareChannel ?? "", amount, taxEnabled: taxEnabled ?? false, taxRate: taxRate ?? 0,
     expireHours: expireHours ?? 72,
-    userId: req.userId!,
+    userId: req.user!.id,
     tenantId: req.tenantId!
   });
   res.json(ok(result));

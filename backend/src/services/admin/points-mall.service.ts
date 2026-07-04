@@ -64,3 +64,11 @@ export async function deliverPointsMallOrder(id: number, data: { trackingNo?: st
   );
   return { success: true };
 }
+
+export async function cancelPointsMallOrder(id: number) {
+  await query(
+    `UPDATE points_mall_order SET status='CANCELLED', cancelled_at=NOW() WHERE id=? AND status='PENDING'`,
+    [id]
+  );
+  return { success: true };
+}

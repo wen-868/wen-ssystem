@@ -2110,6 +2110,18 @@ export const renewSubscription = (id: number) => api.post(`/admin/subscriptions/
 export const fetchExpiringSubscriptions = () => api.get('/admin/subscriptions/expiring');
 export const fetchExpiredSubscriptions = () => api.get('/admin/subscriptions/expired');
 
+// ==================== 秒杀 ====================
+export async function getSeckillProducts(params?: any) { const { data } = await api.get('/admin/marketing/seckill', { params }); return data.data; }
+export async function createSeckillProduct(data: any) { const { data: res } = await api.post('/admin/marketing/seckill', data); return res.data; }
+export async function updateSeckillProduct(id: number, data: any) { const { data: res } = await api.put(`/admin/marketing/seckill/${id}`, data); return res.data; }
+export async function deleteSeckillProduct(id: number) { const { data: res } = await api.delete(`/admin/marketing/seckill/${id}`); return res.data; }
+
+// ==================== 拼团 ====================
+export async function getGroupBuyActivities(params?: any) { const { data } = await api.get('/admin/marketing/group-buy/activities', { params }); return data.data; }
+export async function createGroupBuyActivity(data: any) { const { data: res } = await api.post('/admin/marketing/group-buy/activities', data); return res.data; }
+export async function updateGroupBuyActivity(id: number, data: any) { const { data: res } = await api.put(`/admin/marketing/group-buy/activities/${id}`, data); return res.data; }
+export async function deleteGroupBuyActivity(id: number) { const { data: res } = await api.delete(`/admin/marketing/group-buy/activities/${id}`); return res.data; }
+export async function getGroupBuyRecords(params?: any) { const { data } = await api.get('/admin/marketing/group-buy/records', { params }); return data.data; }
 // ==================== Tenant APIs ====================
 export const fetchTenants = (params: any) => api.get('/admin/tenants', { params });
 export const createTenant = (data: any) => api.post('/admin/tenants', data);
@@ -2229,3 +2241,29 @@ export async function notifyExpiringTenants(tenantIds: number[]) {
   const { data } = await api.post("/admin/monitor/notify-expiring", { tenantIds });
   return data.data;
 }
+
+// ==================== 积分商城 ====================
+export async function getPointsMallItems(params?: any) { const { data } = await api.get('/admin/points-mall/items', { params }); return data.data; }
+export async function createPointsMallItem(data: any) { const { data: res } = await api.post('/admin/points-mall/items', data); return res.data; }
+export async function updatePointsMallItem(id: number, data: any) { const { data: res } = await api.put(`/admin/points-mall/items/${id}`, data); return res.data; }
+export async function deletePointsMallItem(id: number) { const { data: res } = await api.delete(`/admin/points-mall/items/${id}`); return res.data; }
+export async function getPointsMallOrders(params?: any) { const { data } = await api.get('/admin/points-mall/orders', { params }); return data.data; }
+export async function deliverPointsMallOrder(id: number, data?: any) { const { data: res } = await api.post(`/admin/points-mall/orders/${id}/deliver`, data); return res.data; }
+
+// ==================== 营销素材 ====================
+export async function getMarketingAssets(params?: any) { const { data } = await api.get('/admin/marketing-assets', { params }); return data.data; }
+export async function createMarketingAsset(data: any) { const { data: res } = await api.post('/admin/marketing-assets', data); return res.data; }
+export async function updateMarketingAsset(id: number, data: any) { const { data: res } = await api.put(`/admin/marketing-assets/${id}`, data); return res.data; }
+export async function deleteMarketingAsset(id: number) { const { data: res } = await api.delete(`/admin/marketing-assets/${id}`); return res.data; }
+
+// ==================== 部门管理 ====================
+export async function getDepartments(params?: any) { const { data } = await api.get('/admin/departments', { params }); return data.data; }
+export async function getDepartmentTree() { const { data } = await api.get('/admin/departments/tree'); return data.data; }
+export async function createDepartment(data: any) { const { data: res } = await api.post('/admin/departments', data); return res.data; }
+export async function updateDepartment(id: number, data: any) { const { data: res } = await api.put(`/admin/departments/${id}`, data); return res.data; }
+export async function deleteDepartment(id: number) { const { data: res } = await api.delete(`/admin/departments/${id}`); return res.data; }
+
+// ==================== 用户会话 ====================
+export async function getUserSessions(params?: any) { const { data } = await api.get('/admin/sessions', { params }); return data.data; }
+export async function revokeSession(id: number) { const { data: res } = await api.delete(`/admin/sessions/${id}`); return res.data; }
+export async function getOnlineStats() { const { data } = await api.get('/admin/sessions/stats'); return data.data; }
