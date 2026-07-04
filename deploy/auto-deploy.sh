@@ -20,6 +20,14 @@ VITE_API_BASE=/api npm --workspace admin-web run build
 VITE_API_BASE=/api npm --workspace merchant-mobile run build
 VITE_API_BASE=/api npm --workspace store-terminal run build
 
+echo "==> 构建官网"
+npm --workspace website run build
+
+echo "==> 部署官网到 /var/www/website"
+rm -rf /var/www/website
+mkdir -p /var/www/website
+cp -r "${PROJECT_DIR}/website/dist/"* /var/www/website/
+
 echo "==> 重载 Nginx"
 nginx -t && nginx -s reload
 
