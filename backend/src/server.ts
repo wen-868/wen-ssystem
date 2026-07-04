@@ -88,8 +88,57 @@ import { sysUserRouter } from "./routes/sys-user.routes.js";
 import { systemRouter } from "./routes/system.routes.js";
 import { workbenchRouter } from "./routes/workbench.routes.js";
 import { consumerAddressRouter } from "./routes/retail-consumer-address.routes.js";
+import { errorLogRouter } from "./routes/error-log.routes.js";
+import { insertErrorLog } from "./services/admin/error-log.service.js";
+import { reportToLingZhou } from "./shared/feishu-report.js";
 
 const app = express();
+
+process.on("uncaughtException", (err: Error) => {
+  console.error("💥 [uncaughtException] 未捕获的异常:", err);
+  insertErrorLog({
+    error_type: "uncaughtException",
+    severity: "FATAL",
+    message: err.message || "未捕获的异常",
+    stack: err.stack || undefined,
+  }).catch(() => {});
+  reportToLingZhou({
+    phase: "系统错误告警",
+    status: "BLOCKED",
+    summary: `[FATAL] uncaughtException: ${err.message || "未捕获的异常"}`,
+    details: [
+      { label: "错误类型", value: "uncaughtException" },
+      { label: "错误消息", value: err.message || "未知" },
+      { label: "堆栈", value: (err.stack || "").split("\n").slice(0, 5).join("\n") },
+    ],
+    reporter: "系统自动告警",
+    webhookUrl: process.env.FEISHU_ALERT_WEBHOOK_URL || process.env.FEISHU_WEBHOOK_URL,
+  }).catch(() => {});
+});
+
+process.on("unhandledRejection", (reason: any, promise: Promise<any>) => {
+  console.error("💥 [unhandledRejection] 未处理的 Promise 拒绝:", reason);
+  const message = reason?.message || String(reason) || "未处理的 Promise 拒绝";
+  const stack = reason?.stack || undefined;
+  insertErrorLog({
+    error_type: "unhandledRejection",
+    severity: "ERROR",
+    message,
+    stack,
+  }).catch(() => {});
+  reportToLingZhou({
+    phase: "系统错误告警",
+    status: "BLOCKED",
+    summary: `[ERROR] unhandledRejection: ${message}`,
+    details: [
+      { label: "错误类型", value: "unhandledRejection" },
+      { label: "错误消息", value: message },
+      { label: "堆栈", value: (stack || "").split("\n").slice(0, 5).join("\n") || "N/A" },
+    ],
+    reporter: "系统自动告警",
+    webhookUrl: process.env.FEISHU_ALERT_WEBHOOK_URL || process.env.FEISHU_WEBHOOK_URL,
+  }).catch(() => {});
+});
 
 // 全局 Rate Limiting：每IP每分钟100请求
 app.use(rateLimit({ windowMs: 60_000, max: 100, standardHeaders: true, legacyHeaders: false }));
@@ -210,6 +259,7 @@ app.use("/api/admin", requireAuthWithTenant, workbenchRouter);
 app.use("/api", retailAnnouncementRouter);
 app.use("/api", consumerAddressRouter);
 app.use("/api", reportPermissionRouter);
+app.use("/api/admin", errorLogRouter);
 
 app.use(errorHandler);
 

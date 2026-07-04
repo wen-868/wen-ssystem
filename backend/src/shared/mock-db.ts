@@ -45,6 +45,7 @@ const state = {
   inventoryLogs: [] as Row[],
   receivables: [] as Row[],
   operationLogs: [] as Row[],
+  errorLogs: [] as Row[],
   platformCredentials: [] as Row[],
   platformOrders: [] as Row[],
   // ===== 第一/二阶段新增表 =====
@@ -678,6 +679,95 @@ export async function mockQuery<T = any>(sql: string, params: unknown[] = []) {
       createdAt: new Date().toISOString()
     });
     return [] as T[];
+  }
+
+  // error_logs 表支持
+  if (s.includes("from error_logs") && s.includes("count(*) as total")) {
+    let filtered = state.errorLogs;
+    let paramIdx = 0;
+    if (s.includes("error_type = ?")) {
+      filtered = filtered.filter((e: Row) => e.error_type === params[paramIdx]);
+      paramIdx++;
+    }
+    if (s.includes("severity = ?")) {
+      filtered = filtered.filter((e: Row) => e.severity === params[paramIdx]);
+      paramIdx++;
+    }
+    if (s.includes("source = ?")) {
+      filtered = filtered.filter((e: Row) => e.source === params[paramIdx]);
+      paramIdx++;
+    }
+    if (s.includes("message like")) {
+      const kw = String(params[paramIdx]).replace(/%/g, "").toLowerCase();
+      filtered = filtered.filter((e: Row) =>
+        String(e.message || "").toLowerCase().includes(kw) ||
+        String(e.request_url || "").toLowerCase().includes(kw)
+      );
+    }
+    return [{ total: filtered.length }] as T[];
+  }
+  if (s.includes("from error_logs") && s.includes("order by created_at desc")) {
+    let filtered = state.errorLogs;
+    let paramIdx = 0;
+    if (s.includes("error_type = ?")) {
+      filtered = filtered.filter((e: Row) => e.error_type === params[paramIdx]);
+      paramIdx++;
+    }
+    if (s.includes("severity = ?")) {
+      filtered = filtered.filter((e: Row) => e.severity === params[paramIdx]);
+      paramIdx++;
+    }
+    if (s.includes("source = ?")) {
+      filtered = filtered.filter((e: Row) => e.source === params[paramIdx]);
+      paramIdx++;
+    }
+    if (s.includes("message like")) {
+      const kw = String(params[paramIdx]).replace(/%/g, "").toLowerCase();
+      filtered = filtered.filter((e: Row) =>
+        String(e.message || "").toLowerCase().includes(kw) ||
+        String(e.request_url || "").toLowerCase().includes(kw)
+      );
+      paramIdx += 2;
+    }
+    const sorted = [...filtered].sort((a: Row, b: Row) =>
+      new Date(b.created_at || b.createdAt).getTime() - new Date(a.created_at || a.createdAt).getTime()
+    );
+    const pageSize = Number(params[paramIdx]) || 20;
+    const offset = Number(params[paramIdx + 1]) || 0;
+    return sorted.slice(offset, offset + pageSize) as T[];
+  }
+  if (s.includes("from error_logs")) {
+    return state.errorLogs as T[];
+  }
+  if (s.includes("insert into error_logs")) {
+    const id = state.errorLogs.length + 1;
+    state.errorLogs.push({
+      id,
+      error_type: params[0],
+      severity: params[1],
+      message: params[2],
+      stack: params[3] || null,
+      request_url: params[4] || null,
+      request_method: params[5] || null,
+      status_code: params[6] || null,
+      user_id: params[7] || null,
+      tenant_id: params[8] || null,
+      source: params[9] || "backend",
+      created_at: new Date().toISOString(),
+      createdAt: new Date().toISOString(),
+    });
+    return result(id);
+  }
+  if (s.includes("delete from error_logs") && s.includes("created_at <")) {
+    const retainDays = Number(params[0]) || 30;
+    const cutoff = new Date();
+    cutoff.setDate(cutoff.getDate() - retainDays);
+    const beforeLen = state.errorLogs.length;
+    state.errorLogs = state.errorLogs.filter((e: Row) => {
+      const t = new Date(e.created_at || e.createdAt).getTime();
+      return t >= cutoff.getTime();
+    });
+    return [{ affectedRows: beforeLen - state.errorLogs.length }] as T[];
   }
 
   // platform_config / platform_order 支持

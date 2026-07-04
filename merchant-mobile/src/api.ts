@@ -2600,3 +2600,22 @@ export function createTodo(data: {
 export function fetchQuickEntries(type?: string) {
   return api.get('/admin/quick-entries', { params: { type: type || 'MERCHANT' } })
 }
+
+/* ========== 错误上报 ========== */
+let _isReportingError = false
+let _lastReportTime = 0
+
+export function reportFrontendError(payload: {
+  error_type?: string
+  message: string
+  stack?: string
+  url?: string
+}) {
+  const now = Date.now()
+  if (_isReportingError || now - _lastReportTime < 1000) return
+  _isReportingError = true
+  _lastReportTime = now
+  api.post('/admin/error-report', payload).catch(() => {}).finally(() => {
+    _isReportingError = false
+  })
+}

@@ -2171,3 +2171,37 @@ export const fetchRbacRoles = async () => {
   const { data } = await api.get("/admin/rbac/roles");
   return data.data;
 };
+
+// ==================== Error Log APIs ====================
+let isReportingError = false;
+let lastReportTime = 0;
+
+export async function reportFrontendError(payload: {
+  error_type?: string;
+  message: string;
+  stack?: string;
+  url?: string;
+}) {
+  const now = Date.now();
+  if (isReportingError || now - lastReportTime < 1000) return;
+  isReportingError = true;
+  lastReportTime = now;
+  try {
+    await api.post("/admin/error-report", payload);
+  } catch {
+  } finally {
+    isReportingError = false;
+  }
+}
+
+export async function fetchErrorLogs(params?: {
+  error_type?: string;
+  severity?: string;
+  source?: string;
+  keyword?: string;
+  page?: number;
+  pageSize?: number;
+}) {
+  const { data } = await api.get("/admin/error-logs", { params: { page: 1, pageSize: 20, ...params } });
+  return data.data;
+}
