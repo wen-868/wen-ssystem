@@ -101,7 +101,7 @@ export async function getApiStats(): Promise<ApiStats> {
     totalRequests,
     errorCount: totalErrorCount,
     errorRate: totalRequests > 0 ? Math.round((totalErrorCount / totalRequests) * 100 * 100) / 100 : 0,
-    avgResponseTime: Math.round(Math.random() * 50 + 20),
+    avgResponseTime: 0, // TODO: 接入 APM 或中间件计时后改为真实数据
     statusCodes,
     todayErrorCount,
     weeklyErrorTrend,

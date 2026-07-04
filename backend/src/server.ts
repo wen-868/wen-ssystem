@@ -88,6 +88,7 @@ import { workbenchRouter } from "./routes/workbench.routes.js";
 import { errorLogRouter } from "./routes/error-log.routes.js";
 import { monitorRouter } from "./routes/monitor.routes.js";
 import { feedbackRouter } from "./routes/feedback.routes.js";
+import { unitGroupRouter } from "./routes/unit-group.routes.js";
 import { insertErrorLog } from "./services/admin/error-log.service.js";
 import { reportToLingZhou } from "./shared/feishu-report.js";
 
@@ -260,6 +261,7 @@ app.use("/api/admin", requireAuthWithTenant, workbenchRouter);
 app.use("/api/admin", errorLogRouter);
 app.use("/api/admin/monitor", requireAuthWithTenant, monitorRouter);
 app.use("/api/admin", feedbackRouter);
+app.use("/api/admin/unit-groups", unitGroupRouter);
 
 app.use(errorHandler);
 

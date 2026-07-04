@@ -1,0 +1,2709 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>小程序模板预览 — 设计规格文档</title>
+<style>
+/* ========== CSS Variables ========== */
+:root {
+  --brand: #1677FF;
+  --brand-light: #E6F4FF;
+  --text: #1F1F1F;
+  --text-secondary: #595959;
+  --text-muted: #8C8C8C;
+  --border: #E8E8E8;
+  --bg: #F5F5F5;
+  --white: #FFFFFF;
+  --success: #52C41A;
+  --warning: #FAAD14;
+  --danger: #FF4D4F;
+  --radius: 8px;
+  --shadow: 0 2px 8px rgba(0,0,0,0.08);
+
+  /* Template-specific colors */
+  --template-blue: #1677FF;
+  --template-blue-light: #E6F4FF;
+  --template-orange: #FA8C16;
+  --template-orange-light: #FFF7E6;
+  --template-dark: #1A1A2E;
+  --template-gold: #E8D5B7;
+  --template-dark-bg: #0D0D0D;
+}
+
+/* ========== Global Reset ========== */
+*, *::before, *::after {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+body {
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", "Helvetica Neue", Arial, sans-serif;
+  color: var(--text);
+  background: #F0F2F5;
+  line-height: 1.6;
+  -webkit-font-smoothing: antialiased;
+}
+
+/* ========== Document Header ========== */
+.doc-header {
+  background: linear-gradient(135deg, #1677FF 0%, #0958D9 100%);
+  color: var(--white);
+  padding: 48px 64px 40px;
+  text-align: center;
+}
+
+.doc-header h1 {
+  font-size: 32px;
+  font-weight: 700;
+  letter-spacing: 1px;
+  margin-bottom: 8px;
+}
+
+.doc-header .doc-subtitle {
+  font-size: 14px;
+  opacity: 0.85;
+  font-weight: 400;
+}
+
+.doc-header .doc-meta {
+  margin-top: 16px;
+  font-size: 13px;
+  opacity: 0.7;
+}
+
+/* ========== Container ========== */
+.doc-container {
+  max-width: 1320px;
+  margin: 0 auto;
+  padding: 32px 24px;
+}
+
+/* ========== Section ========== */
+.doc-section {
+  margin-bottom: 48px;
+}
+
+.section-title {
+  font-size: 24px;
+  font-weight: 700;
+  color: var(--text);
+  margin-bottom: 8px;
+  padding-bottom: 12px;
+  border-bottom: 2px solid var(--brand);
+}
+
+.section-desc {
+  font-size: 14px;
+  color: var(--text-secondary);
+  margin-bottom: 24px;
+  line-height: 1.8;
+}
+
+/* ========== Overview Cards ========== */
+.overview-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 24px;
+  margin-top: 8px;
+}
+
+.overview-card {
+  background: var(--white);
+  border-radius: 12px;
+  padding: 28px 24px;
+  box-shadow: var(--shadow);
+  border-left: 4px solid var(--brand);
+  transition: transform 0.2s, box-shadow 0.2s;
+}
+
+.overview-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 24px rgba(0,0,0,0.12);
+}
+
+.overview-card.card-blue {
+  border-left-color: var(--template-blue);
+}
+
+.overview-card.card-orange {
+  border-left-color: var(--template-orange);
+}
+
+.overview-card.card-dark {
+  border-left-color: var(--template-gold);
+}
+
+.overview-card h3 {
+  font-size: 18px;
+  font-weight: 700;
+  margin-bottom: 8px;
+}
+
+.overview-card .card-tag {
+  display: inline-block;
+  font-size: 12px;
+  padding: 2px 10px;
+  border-radius: 12px;
+  margin-bottom: 12px;
+  font-weight: 500;
+}
+
+.overview-card.card-blue .card-tag {
+  background: var(--template-blue-light);
+  color: var(--template-blue);
+}
+
+.overview-card.card-orange .card-tag {
+  background: var(--template-orange-light);
+  color: var(--template-orange);
+}
+
+.overview-card.card-dark .card-tag {
+  background: rgba(232,213,183,0.15);
+  color: var(--template-gold);
+}
+
+.overview-card p {
+  font-size: 13px;
+  color: var(--text-secondary);
+  line-height: 1.7;
+}
+
+/* ========== Template Section ========== */
+.template-section {
+  background: var(--white);
+  border-radius: 12px;
+  padding: 32px;
+  margin-bottom: 40px;
+  box-shadow: var(--shadow);
+}
+
+.template-section-header {
+  margin-bottom: 24px;
+  padding-bottom: 16px;
+  border-bottom: 1px solid var(--border);
+}
+
+.template-section-header .template-title {
+  font-size: 22px;
+  font-weight: 700;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.template-section-header .template-desc {
+  font-size: 14px;
+  color: var(--text-secondary);
+  margin-top: 6px;
+}
+
+.template-theme-dot {
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+  display: inline-block;
+  flex-shrink: 0;
+}
+
+.template-theme-dot.dot-blue {
+  background: var(--template-blue);
+}
+
+.template-theme-dot.dot-orange {
+  background: var(--template-orange);
+}
+
+.template-theme-dot.dot-gold {
+  background: var(--template-gold);
+}
+
+/* ========== Phone Mockup Area ========== */
+.phone-mockups-row {
+  display: flex;
+  gap: 16px;
+  justify-content: center;
+  flex-wrap: wrap;
+}
+
+.phone-frame {
+  width: 375px;
+  display: inline-block;
+  margin: 0 8px;
+  border: 6px solid #1F2937;
+  border-radius: 28px;
+  overflow: hidden;
+  box-shadow: 0 16px 48px rgba(0,0,0,0.25);
+  vertical-align: top;
+  background: #FFFFFF;
+}
+
+/* ========== Status Bar ========== */
+.phone-status-bar {
+  height: 28px;
+  background: inherit;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 20px;
+  font-size: 11px;
+  font-weight: 600;
+}
+
+.phone-status-bar .status-time {
+  flex: 1;
+}
+
+.phone-status-bar .status-icons {
+  display: flex;
+  gap: 4px;
+  align-items: center;
+}
+
+.status-icons .status-dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: currentColor;
+}
+
+/* ========== Phone Content ========== */
+.phone-content {
+  min-height: 600px;
+  position: relative;
+}
+
+/* ========== Template 1: Classic Blue-White ========== */
+.template-standard .phone-frame {
+  background: #F5F5F5;
+}
+
+.template-standard .phone-status-bar {
+  background: #FFFFFF;
+  color: #1F1F1F;
+  border-bottom: 1px solid #F0F0F0;
+}
+
+/* --- Page: Home --- */
+.page-home-standard {
+  background: #F5F5F5;
+}
+
+.page-home-standard .search-bar {
+  background: #FFFFFF;
+  padding: 10px 16px;
+}
+
+.page-home-standard .search-input {
+  display: flex;
+  align-items: center;
+  background: #F5F5F5;
+  border-radius: 8px;
+  padding: 8px 12px;
+  font-size: 13px;
+  color: var(--text-muted);
+}
+
+.page-home-standard .search-input .search-icon {
+  width: 14px;
+  height: 14px;
+  border: 2px solid #8C8C8C;
+  border-radius: 50%;
+  margin-right: 8px;
+  position: relative;
+}
+
+.page-home-standard .search-input .search-icon::after {
+  content: '';
+  position: absolute;
+  width: 6px;
+  height: 2px;
+  background: #8C8C8C;
+  bottom: -2px;
+  right: -2px;
+  transform: rotate(45deg);
+  border-radius: 1px;
+}
+
+.page-home-standard .banner {
+  margin: 12px 16px;
+  height: 120px;
+  background: linear-gradient(135deg, #1677FF 0%, #69B1FF 100%);
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #FFFFFF;
+  font-size: 16px;
+  font-weight: 600;
+}
+
+.page-home-standard .category-nav {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 16px;
+  padding: 0 16px;
+  margin: 16px 0;
+}
+
+.page-home-standard .category-item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+}
+
+.page-home-standard .category-icon {
+  width: 48px;
+  height: 48px;
+  background: #FFFFFF;
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.page-home-standard .category-icon-inner {
+  width: 24px;
+  height: 24px;
+  background: #E6F4FF;
+  border-radius: 6px;
+}
+
+.page-home-standard .category-label {
+  font-size: 11px;
+  color: var(--text);
+}
+
+.page-home-standard .section-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0 16px;
+  margin: 8px 0;
+}
+
+.page-home-standard .section-header .section-label {
+  font-size: 15px;
+  font-weight: 700;
+}
+
+.page-home-standard .section-header .section-more {
+  font-size: 12px;
+  color: var(--text-muted);
+}
+
+.page-home-standard .product-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 10px;
+  padding: 0 16px 16px;
+}
+
+.page-home-standard .product-card {
+  background: #FFFFFF;
+  border-radius: 8px;
+  overflow: hidden;
+}
+
+.page-home-standard .product-card .product-img {
+  height: 140px;
+  background: #E8E8E8;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #BFBFBF;
+  font-size: 12px;
+}
+
+.page-home-standard .product-card .product-info {
+  padding: 10px;
+}
+
+.page-home-standard .product-card .product-name {
+  font-size: 13px;
+  font-weight: 500;
+  margin-bottom: 4px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.page-home-standard .product-card .product-price {
+  font-size: 16px;
+  font-weight: 700;
+  color: #FF4D4F;
+}
+
+.page-home-standard .product-card .product-price .unit {
+  font-size: 12px;
+  font-weight: 400;
+}
+
+.page-home-standard .product-card .product-sales {
+  font-size: 11px;
+  color: var(--text-muted);
+  margin-top: 2px;
+}
+
+/* --- Page: Product List --- */
+.page-list-standard {
+  background: #F5F5F5;
+  display: flex;
+  height: 100%;
+}
+
+.page-list-standard .category-sidebar {
+  width: 100px;
+  background: #FFFFFF;
+  border-right: 1px solid #F0F0F0;
+  overflow-y: auto;
+  flex-shrink: 0;
+}
+
+.page-list-standard .category-sidebar-item {
+  padding: 14px 10px;
+  font-size: 12px;
+  text-align: center;
+  color: var(--text-secondary);
+  border-left: 3px solid transparent;
+  cursor: pointer;
+}
+
+.page-list-standard .category-sidebar-item.active {
+  color: var(--template-blue);
+  background: #E6F4FF;
+  border-left-color: var(--template-blue);
+  font-weight: 600;
+}
+
+.page-list-standard .list-main {
+  flex: 1;
+  padding: 12px;
+  overflow-y: auto;
+}
+
+.page-list-standard .list-product-card {
+  background: #FFFFFF;
+  border-radius: 8px;
+  margin-bottom: 10px;
+  display: flex;
+  padding: 10px;
+}
+
+.page-list-standard .list-product-card .list-product-img {
+  width: 90px;
+  height: 90px;
+  background: #E8E8E8;
+  border-radius: 6px;
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #BFBFBF;
+  font-size: 11px;
+}
+
+.page-list-standard .list-product-card .list-product-info {
+  flex: 1;
+  padding-left: 10px;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+}
+
+.page-list-standard .list-product-card .list-product-name {
+  font-size: 13px;
+  font-weight: 500;
+}
+
+.page-list-standard .list-product-card .list-product-spec {
+  font-size: 11px;
+  color: var(--text-muted);
+}
+
+.page-list-standard .list-product-card .list-product-bottom {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.page-list-standard .list-product-card .list-product-price {
+  font-size: 16px;
+  font-weight: 700;
+  color: #FF4D4F;
+}
+
+.page-list-standard .list-product-card .step-btn {
+  background: var(--template-blue);
+  color: #FFFFFF;
+  border: none;
+  border-radius: 6px;
+  padding: 4px 14px;
+  font-size: 12px;
+  font-weight: 500;
+}
+
+/* --- Page: Product Detail --- */
+.page-detail-standard {
+  background: #F5F5F5;
+}
+
+.page-detail-standard .detail-gallery {
+  height: 280px;
+  background: #E8E8E8;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #BFBFBF;
+  font-size: 14px;
+  position: relative;
+}
+
+.page-detail-standard .detail-gallery .gallery-dots {
+  position: absolute;
+  bottom: 12px;
+  display: flex;
+  gap: 6px;
+}
+
+.page-detail-standard .detail-gallery .gallery-dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: rgba(255,255,255,0.5);
+}
+
+.page-detail-standard .detail-gallery .gallery-dot.active {
+  background: #FFFFFF;
+  width: 16px;
+  border-radius: 3px;
+}
+
+.page-detail-standard .detail-info {
+  background: #FFFFFF;
+  padding: 16px;
+  margin: 0 0 10px;
+}
+
+.page-detail-standard .detail-name {
+  font-size: 16px;
+  font-weight: 600;
+  margin-bottom: 8px;
+}
+
+.page-detail-standard .detail-price-row {
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+  margin-bottom: 8px;
+}
+
+.page-detail-standard .detail-price {
+  font-size: 24px;
+  font-weight: 700;
+  color: var(--template-blue);
+}
+
+.page-detail-standard .detail-price .unit {
+  font-size: 14px;
+}
+
+.page-detail-standard .detail-price-original {
+  font-size: 13px;
+  color: var(--text-muted);
+  text-decoration: line-through;
+}
+
+.page-detail-standard .detail-sales {
+  font-size: 12px;
+  color: var(--text-muted);
+  margin-bottom: 12px;
+}
+
+.page-detail-standard .detail-spec-section {
+  background: #FFFFFF;
+  padding: 16px;
+  margin-bottom: 10px;
+}
+
+.page-detail-standard .detail-spec-title {
+  font-size: 14px;
+  font-weight: 600;
+  margin-bottom: 10px;
+}
+
+.page-detail-standard .spec-tags {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.page-detail-standard .spec-tag {
+  padding: 6px 14px;
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  font-size: 12px;
+  color: var(--text);
+  background: #FAFAFA;
+}
+
+.page-detail-standard .spec-tag.active {
+  border-color: var(--template-blue);
+  background: var(--template-blue-light);
+  color: var(--template-blue);
+}
+
+.page-detail-standard .detail-add-btn {
+  margin: 0 16px 16px;
+  background: var(--template-blue);
+  color: #FFFFFF;
+  border: none;
+  border-radius: 8px;
+  padding: 14px;
+  width: calc(100% - 32px);
+  font-size: 15px;
+  font-weight: 600;
+  text-align: center;
+}
+
+/* ========== Template 2: Warm Orange Business ========== */
+.template-featured .phone-frame {
+  background: #FAFAFA;
+}
+
+.template-featured .phone-status-bar {
+  background: #FFFFFF;
+  color: #1F1F1F;
+  border-bottom: 1px solid #F0F0F0;
+}
+
+/* --- Page: Home --- */
+.page-home-featured {
+  background: #FAFAFA;
+}
+
+.page-home-featured .search-bar {
+  background: #FFFFFF;
+  padding: 10px 16px;
+}
+
+.page-home-featured .search-input {
+  display: flex;
+  align-items: center;
+  background: #F5F5F5;
+  border-radius: 12px;
+  padding: 8px 12px;
+  font-size: 13px;
+  color: var(--text-muted);
+}
+
+.page-home-featured .search-input .search-icon {
+  width: 14px;
+  height: 14px;
+  border: 2px solid #8C8C8C;
+  border-radius: 50%;
+  margin-right: 8px;
+  position: relative;
+}
+
+.page-home-featured .search-input .search-icon::after {
+  content: '';
+  position: absolute;
+  width: 6px;
+  height: 2px;
+  background: #8C8C8C;
+  bottom: -2px;
+  right: -2px;
+  transform: rotate(45deg);
+  border-radius: 1px;
+}
+
+.page-home-featured .promo-banner {
+  margin: 12px 16px;
+  height: 130px;
+  background: linear-gradient(135deg, #FA8C16 0%, #FFC069 100%);
+  border-radius: 12px;
+  display: flex;
+  align-items: center;
+  padding: 0 24px;
+  color: #FFFFFF;
+  font-size: 16px;
+  font-weight: 700;
+  position: relative;
+  overflow: hidden;
+}
+
+.page-home-featured .promo-banner .promo-tag {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  background: #FF4D4F;
+  color: #FFFFFF;
+  font-size: 10px;
+  padding: 2px 8px;
+  border-radius: 8px;
+  font-weight: 500;
+}
+
+.page-home-featured .category-nav {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 16px;
+  padding: 0 16px;
+  margin: 16px 0;
+}
+
+.page-home-featured .category-item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+}
+
+.page-home-featured .category-icon {
+  width: 48px;
+  height: 48px;
+  background: #FFFFFF;
+  border-radius: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.04);
+}
+
+.page-home-featured .category-icon-inner {
+  width: 24px;
+  height: 24px;
+  background: #FFF7E6;
+  border-radius: 8px;
+}
+
+.page-home-featured .category-label {
+  font-size: 11px;
+  color: var(--text);
+}
+
+.page-home-featured .section-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0 16px;
+  margin: 8px 0;
+}
+
+.page-home-featured .section-header .section-label {
+  font-size: 15px;
+  font-weight: 700;
+}
+
+.page-home-featured .section-header .section-more {
+  font-size: 12px;
+  color: var(--text-muted);
+}
+
+.page-home-featured .recommend-list {
+  padding: 0 16px 16px;
+}
+
+.page-home-featured .recommend-card {
+  background: #FFFFFF;
+  border-radius: 12px;
+  margin-bottom: 10px;
+  display: flex;
+  padding: 12px;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.03);
+}
+
+.page-home-featured .recommend-card .recommend-img {
+  width: 110px;
+  height: 110px;
+  background: #E8E8E8;
+  border-radius: 10px;
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #BFBFBF;
+  font-size: 11px;
+}
+
+.page-home-featured .recommend-card .recommend-info {
+  flex: 1;
+  padding-left: 12px;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+}
+
+.page-home-featured .recommend-card .recommend-name {
+  font-size: 14px;
+  font-weight: 500;
+}
+
+.page-home-featured .recommend-card .recommend-desc {
+  font-size: 11px;
+  color: var(--text-muted);
+}
+
+.page-home-featured .recommend-card .recommend-price {
+  font-size: 18px;
+  font-weight: 700;
+  color: var(--template-orange);
+}
+
+/* --- Page: Product List --- */
+.page-list-featured {
+  background: #FAFAFA;
+}
+
+.page-list-featured .filter-bar {
+  background: #FFFFFF;
+  padding: 12px 16px;
+  display: flex;
+  gap: 8px;
+  border-bottom: 1px solid #F0F0F0;
+}
+
+.page-list-featured .filter-item {
+  padding: 6px 14px;
+  background: #F5F5F5;
+  border-radius: 12px;
+  font-size: 12px;
+  color: var(--text-secondary);
+}
+
+.page-list-featured .filter-item.active {
+  background: #FFF7E6;
+  color: var(--template-orange);
+  font-weight: 500;
+}
+
+.page-list-featured .list-content {
+  padding: 12px 16px;
+}
+
+.page-list-featured .list-card {
+  background: #FFFFFF;
+  border-radius: 12px;
+  margin-bottom: 12px;
+  overflow: hidden;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.03);
+}
+
+.page-list-featured .list-card .list-card-img {
+  height: 180px;
+  background: #E8E8E8;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #BFBFBF;
+  font-size: 13px;
+}
+
+.page-list-featured .list-card .list-card-info {
+  padding: 12px;
+}
+
+.page-list-featured .list-card .list-card-name {
+  font-size: 14px;
+  font-weight: 500;
+  margin-bottom: 4px;
+}
+
+.page-list-featured .list-card .list-card-desc {
+  font-size: 11px;
+  color: var(--text-muted);
+  margin-bottom: 8px;
+}
+
+.page-list-featured .list-card .list-card-bottom {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.page-list-featured .list-card .list-card-price {
+  font-size: 18px;
+  font-weight: 700;
+  color: var(--template-orange);
+}
+
+.page-list-featured .list-card .list-card-btn {
+  background: var(--template-orange);
+  color: #FFFFFF;
+  border: none;
+  border-radius: 12px;
+  padding: 6px 16px;
+  font-size: 12px;
+  font-weight: 500;
+}
+
+/* --- Page: Product Detail --- */
+.page-detail-featured {
+  background: #FAFAFA;
+}
+
+.page-detail-featured .detail-gallery {
+  height: 300px;
+  background: #E8E8E8;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #BFBFBF;
+  font-size: 14px;
+  position: relative;
+}
+
+.page-detail-featured .detail-gallery .gallery-dots {
+  position: absolute;
+  bottom: 12px;
+  display: flex;
+  gap: 6px;
+}
+
+.page-detail-featured .detail-gallery .gallery-dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: rgba(255,255,255,0.5);
+}
+
+.page-detail-featured .detail-gallery .gallery-dot.active {
+  background: #FFFFFF;
+  width: 16px;
+  border-radius: 3px;
+}
+
+.page-detail-featured .detail-info {
+  background: #FFFFFF;
+  padding: 16px;
+  margin: 0 0 10px;
+  border-radius: 12px;
+  margin: 0 12px 10px;
+}
+
+.page-detail-featured .detail-promo-tag {
+  display: inline-block;
+  background: #FFF7E6;
+  color: var(--template-orange);
+  font-size: 11px;
+  padding: 2px 8px;
+  border-radius: 8px;
+  margin-bottom: 8px;
+  font-weight: 500;
+}
+
+.page-detail-featured .detail-name {
+  font-size: 16px;
+  font-weight: 600;
+  margin-bottom: 8px;
+}
+
+.page-detail-featured .detail-price-row {
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+  margin-bottom: 8px;
+}
+
+.page-detail-featured .detail-price {
+  font-size: 26px;
+  font-weight: 700;
+  color: var(--template-orange);
+}
+
+.page-detail-featured .detail-price .unit {
+  font-size: 14px;
+}
+
+.page-detail-featured .detail-price-original {
+  font-size: 13px;
+  color: var(--text-muted);
+  text-decoration: line-through;
+}
+
+.page-detail-featured .detail-sales {
+  font-size: 12px;
+  color: var(--text-muted);
+  margin-bottom: 12px;
+}
+
+.page-detail-featured .detail-spec-section {
+  background: #FFFFFF;
+  padding: 16px;
+  margin: 0 12px 10px;
+  border-radius: 12px;
+}
+
+.page-detail-featured .detail-spec-title {
+  font-size: 14px;
+  font-weight: 600;
+  margin-bottom: 10px;
+}
+
+.page-detail-featured .spec-tags {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.page-detail-featured .spec-tag {
+  padding: 8px 16px;
+  border: 1px solid #E8E8E8;
+  border-radius: 12px;
+  font-size: 12px;
+  color: var(--text);
+  background: #FAFAFA;
+}
+
+.page-detail-featured .spec-tag.active {
+  border-color: var(--template-orange);
+  background: #FFF7E6;
+  color: var(--template-orange);
+}
+
+.page-detail-featured .detail-add-btn {
+  margin: 0 12px 16px;
+  background: var(--template-orange);
+  color: #FFFFFF;
+  border: none;
+  border-radius: 12px;
+  padding: 16px;
+  width: calc(100% - 24px);
+  font-size: 16px;
+  font-weight: 600;
+  text-align: center;
+}
+
+/* ========== Template 3: Dark Premium ========== */
+.template-premium .phone-frame {
+  background: #0D0D0D;
+}
+
+.template-premium .phone-status-bar {
+  background: #1A1A2E;
+  color: #E8D5B7;
+  border-bottom: 1px solid #2A2A3E;
+}
+
+/* --- Page: Home --- */
+.page-home-premium {
+  background: #0D0D0D;
+}
+
+.page-home-premium .brand-story {
+  background: linear-gradient(135deg, #1A1A2E 0%, #2A1A3E 100%);
+  padding: 20px 16px;
+  text-align: center;
+  border-bottom: 1px solid #2A2A3E;
+}
+
+.page-home-premium .brand-story .brand-title {
+  font-size: 16px;
+  font-weight: 700;
+  color: #E8D5B7;
+  margin-bottom: 4px;
+  letter-spacing: 2px;
+}
+
+.page-home-premium .brand-story .brand-subtitle {
+  font-size: 11px;
+  color: rgba(232,213,183,0.6);
+  letter-spacing: 1px;
+}
+
+.page-home-premium .banner {
+  margin: 16px;
+  height: 130px;
+  background: linear-gradient(135deg, #2A2A3E 0%, #1A1A2E 100%);
+  border-radius: 4px;
+  border: 1px solid #2A2A3E;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #E8D5B7;
+  font-size: 15px;
+  font-weight: 500;
+  letter-spacing: 1px;
+}
+
+.page-home-premium .section-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0 16px;
+  margin: 8px 0;
+}
+
+.page-home-premium .section-header .section-label {
+  font-size: 15px;
+  font-weight: 700;
+  color: #FFFFFF;
+}
+
+.page-home-premium .section-header .section-more {
+  font-size: 12px;
+  color: rgba(232,213,183,0.4);
+}
+
+.page-home-premium .recommend-list {
+  padding: 0 16px 16px;
+}
+
+.page-home-premium .recommend-card {
+  background: #1A1A2E;
+  border-radius: 4px;
+  margin-bottom: 10px;
+  overflow: hidden;
+  border: 1px solid #2A2A3E;
+}
+
+.page-home-premium .recommend-card .recommend-img {
+  height: 160px;
+  background: #2A2A3E;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #4A4A5E;
+  font-size: 12px;
+}
+
+.page-home-premium .recommend-card .recommend-info {
+  padding: 12px;
+}
+
+.page-home-premium .recommend-card .recommend-name {
+  font-size: 14px;
+  font-weight: 500;
+  color: #FFFFFF;
+  margin-bottom: 4px;
+}
+
+.page-home-premium .recommend-card .recommend-desc {
+  font-size: 11px;
+  color: rgba(255,255,255,0.4);
+  margin-bottom: 8px;
+}
+
+.page-home-premium .recommend-card .recommend-price {
+  font-size: 18px;
+  font-weight: 700;
+  color: #E8D5B7;
+}
+
+/* --- Page: Product List --- */
+.page-list-premium {
+  background: #0D0D0D;
+}
+
+.page-list-premium .list-header {
+  padding: 16px;
+  border-bottom: 1px solid #2A2A3E;
+}
+
+.page-list-premium .list-header .list-title {
+  font-size: 16px;
+  font-weight: 700;
+  color: #FFFFFF;
+  margin-bottom: 4px;
+}
+
+.page-list-premium .list-header .list-count {
+  font-size: 12px;
+  color: rgba(255,255,255,0.4);
+}
+
+.page-list-premium .list-content {
+  padding: 16px;
+}
+
+.page-list-premium .list-card {
+  background: #1A1A2E;
+  border-radius: 4px;
+  margin-bottom: 12px;
+  overflow: hidden;
+  border: 1px solid #2A2A3E;
+}
+
+.page-list-premium .list-card .list-card-img {
+  height: 200px;
+  background: #2A2A3E;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #4A4A5E;
+  font-size: 13px;
+}
+
+.page-list-premium .list-card .list-card-info {
+  padding: 14px;
+}
+
+.page-list-premium .list-card .list-card-name {
+  font-size: 15px;
+  font-weight: 500;
+  color: #FFFFFF;
+  margin-bottom: 4px;
+}
+
+.page-list-premium .list-card .list-card-desc {
+  font-size: 11px;
+  color: rgba(255,255,255,0.4);
+  margin-bottom: 10px;
+}
+
+.page-list-premium .list-card .list-card-bottom {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.page-list-premium .list-card .list-card-price {
+  font-size: 20px;
+  font-weight: 700;
+  color: #E8D5B7;
+}
+
+.page-list-premium .list-card .list-card-btn {
+  background: transparent;
+  border: 1px solid #E8D5B7;
+  color: #E8D5B7;
+  border-radius: 4px;
+  padding: 6px 16px;
+  font-size: 12px;
+  font-weight: 500;
+}
+
+/* --- Page: Product Detail --- */
+.page-detail-premium {
+  background: #0D0D0D;
+}
+
+.page-detail-premium .detail-gallery-full {
+  height: 350px;
+  background: #1A1A2E;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #4A4A5E;
+  font-size: 14px;
+  position: relative;
+}
+
+.page-detail-premium .detail-gallery-full .gallery-dots {
+  position: absolute;
+  bottom: 12px;
+  display: flex;
+  gap: 6px;
+}
+
+.page-detail-premium .detail-gallery-full .gallery-dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: rgba(232,213,183,0.3);
+}
+
+.page-detail-premium .detail-gallery-full .gallery-dot.active {
+  background: #E8D5B7;
+  width: 16px;
+  border-radius: 3px;
+}
+
+.page-detail-premium .detail-info {
+  background: #1A1A2E;
+  padding: 20px 16px;
+  border-bottom: 1px solid #2A2A3E;
+}
+
+.page-detail-premium .detail-name {
+  font-size: 18px;
+  font-weight: 600;
+  color: #FFFFFF;
+  margin-bottom: 10px;
+}
+
+.page-detail-premium .detail-price-row {
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+  margin-bottom: 8px;
+}
+
+.page-detail-premium .detail-price {
+  font-size: 28px;
+  font-weight: 700;
+  color: #E8D5B7;
+}
+
+.page-detail-premium .detail-price .unit {
+  font-size: 14px;
+}
+
+.page-detail-premium .detail-price-original {
+  font-size: 13px;
+  color: rgba(255,255,255,0.3);
+  text-decoration: line-through;
+}
+
+.page-detail-premium .detail-sales {
+  font-size: 12px;
+  color: rgba(255,255,255,0.4);
+  margin-bottom: 12px;
+}
+
+.page-detail-premium .brand-story-detail {
+  background: #1A1A2E;
+  padding: 16px;
+  border-bottom: 1px solid #2A2A3E;
+}
+
+.page-detail-premium .brand-story-detail .story-title {
+  font-size: 14px;
+  font-weight: 600;
+  color: #E8D5B7;
+  margin-bottom: 8px;
+}
+
+.page-detail-premium .brand-story-detail .story-text {
+  font-size: 12px;
+  color: rgba(255,255,255,0.5);
+  line-height: 1.8;
+}
+
+.page-detail-premium .detail-add-btn {
+  margin: 16px;
+  background: #E8D5B7;
+  color: #0D0D0D;
+  border: none;
+  border-radius: 4px;
+  padding: 16px;
+  width: calc(100% - 32px);
+  font-size: 16px;
+  font-weight: 700;
+  text-align: center;
+  letter-spacing: 2px;
+}
+
+/* ========== Bottom Tab Bar ========== */
+.tab-bar {
+  display: flex;
+  justify-content: space-around;
+  align-items: center;
+  padding: 8px 0 6px;
+  background: #FFFFFF;
+  border-top: 1px solid #F0F0F0;
+}
+
+.tab-bar .tab-item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 3px;
+  font-size: 10px;
+  color: var(--text-muted);
+  flex: 1;
+}
+
+.tab-bar .tab-item.active {
+  color: var(--template-blue);
+}
+
+.tab-bar .tab-icon {
+  width: 22px;
+  height: 22px;
+  background: #E8E8E8;
+  border-radius: 4px;
+}
+
+.tab-bar .tab-item.active .tab-icon {
+  background: var(--template-blue);
+}
+
+/* Tab Bar - Featured */
+.tab-bar-featured {
+  display: flex;
+  justify-content: space-around;
+  align-items: center;
+  padding: 8px 0 6px;
+  background: #FFFFFF;
+  border-top: 1px solid #F0F0F0;
+}
+
+.tab-bar-featured .tab-item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 3px;
+  font-size: 10px;
+  color: var(--text-muted);
+  flex: 1;
+}
+
+.tab-bar-featured .tab-item.active {
+  color: var(--template-orange);
+}
+
+.tab-bar-featured .tab-icon {
+  width: 22px;
+  height: 22px;
+  background: #E8E8E8;
+  border-radius: 8px;
+}
+
+.tab-bar-featured .tab-item.active .tab-icon {
+  background: var(--template-orange);
+}
+
+/* Tab Bar - Premium */
+.tab-bar-premium {
+  display: flex;
+  justify-content: space-around;
+  align-items: center;
+  padding: 8px 0 6px;
+  background: #1A1A2E;
+  border-top: 1px solid #2A2A3E;
+}
+
+.tab-bar-premium .tab-item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 3px;
+  font-size: 10px;
+  color: rgba(255,255,255,0.3);
+  flex: 1;
+}
+
+.tab-bar-premium .tab-item.active {
+  color: #E8D5B7;
+}
+
+.tab-bar-premium .tab-icon {
+  width: 22px;
+  height: 22px;
+  background: #2A2A3E;
+  border-radius: 2px;
+}
+
+.tab-bar-premium .tab-item.active .tab-icon {
+  background: #E8D5B7;
+}
+
+/* ========== Phone Labels ========== */
+.phone-label {
+  text-align: center;
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--text-secondary);
+  margin-bottom: 8px;
+  margin-top: 4px;
+}
+
+/* ========== Spec Table ========== */
+.spec-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 13px;
+  margin-top: 16px;
+}
+
+.spec-table thead th {
+  background: #FAFAFA;
+  padding: 12px 16px;
+  text-align: left;
+  font-weight: 600;
+  border-bottom: 2px solid var(--border);
+  color: var(--text);
+  white-space: nowrap;
+}
+
+.spec-table tbody td {
+  padding: 12px 16px;
+  border-bottom: 1px solid var(--border);
+  color: var(--text-secondary);
+  vertical-align: top;
+}
+
+.spec-table tbody tr:hover {
+  background: #FAFAFA;
+}
+
+.spec-table .col-label {
+  font-weight: 600;
+  color: var(--text);
+  white-space: nowrap;
+}
+
+/* ========== Color Swatch ========== */
+.color-swatch {
+  display: inline-block;
+  width: 20px;
+  height: 20px;
+  border-radius: 4px;
+  margin-right: 6px;
+  vertical-align: middle;
+  border: 1px solid rgba(0,0,0,0.1);
+}
+
+.color-swatch.swatch-blue {
+  background: #1677FF;
+}
+
+.color-swatch.swatch-blue-light {
+  background: #E6F4FF;
+}
+
+.color-swatch.swatch-orange {
+  background: #FA8C16;
+}
+
+.color-swatch.swatch-orange-light {
+  background: #FFF7E6;
+}
+
+.color-swatch.swatch-dark {
+  background: #1A1A2E;
+}
+
+.color-swatch.swatch-gold {
+  background: #E8D5B7;
+}
+
+/* ========== Checklist ========== */
+.checklist {
+  list-style: none;
+  padding: 0;
+  margin-top: 16px;
+}
+
+.checklist li {
+  padding: 10px 16px;
+  margin-bottom: 6px;
+  background: #FAFAFA;
+  border-radius: 6px;
+  font-size: 13px;
+  color: var(--text);
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  border-left: 3px solid transparent;
+  transition: background 0.2s;
+}
+
+.checklist li:hover {
+  background: #F0F0F0;
+}
+
+.checklist li .check-box {
+  width: 16px;
+  height: 16px;
+  border: 2px solid var(--border);
+  border-radius: 3px;
+  flex-shrink: 0;
+  margin-top: 2px;
+  position: relative;
+}
+
+.checklist li.checked {
+  border-left-color: var(--success);
+}
+
+.checklist li.checked .check-box {
+  background: var(--success);
+  border-color: var(--success);
+}
+
+.checklist li.checked .check-box::after {
+  content: '';
+  position: absolute;
+  left: 3px;
+  top: 0px;
+  width: 6px;
+  height: 10px;
+  border: solid #FFFFFF;
+  border-width: 0 2px 2px 0;
+  transform: rotate(45deg);
+}
+
+.checklist li .check-label {
+  flex: 1;
+  line-height: 1.5;
+}
+
+/* ========== Stats Row ========== */
+.stats-row {
+  display: flex;
+  gap: 16px;
+  flex-wrap: wrap;
+  margin-top: 16px;
+}
+
+.stat-card {
+  background: var(--white);
+  border-radius: 8px;
+  padding: 20px 24px;
+  box-shadow: var(--shadow);
+  flex: 1;
+  min-width: 200px;
+  text-align: center;
+}
+
+.stat-card .stat-value {
+  font-size: 28px;
+  font-weight: 700;
+  color: var(--brand);
+}
+
+.stat-card .stat-label {
+  font-size: 13px;
+  color: var(--text-muted);
+  margin-top: 4px;
+}
+
+/* ========== Tag Styles ========== */
+.tag {
+  display: inline-block;
+  font-size: 11px;
+  padding: 2px 10px;
+  border-radius: 4px;
+  font-weight: 500;
+}
+
+.tag-success {
+  background: #F6FFED;
+  color: #52C41A;
+  border: 1px solid #B7EB8F;
+}
+
+.tag-warning {
+  background: #FFFBE6;
+  color: #FAAD14;
+  border: 1px solid #FFE58F;
+}
+
+.tag-danger {
+  background: #FFF2F0;
+  color: #FF4D4F;
+  border: 1px solid #FFCCC7;
+}
+
+.tag-info {
+  background: #E6F4FF;
+  color: #1677FF;
+  border: 1px solid #91CAFF;
+}
+
+/* ========== Mockup Styles ========== */
+.mockup {
+  position: relative;
+}
+
+.mockup-header {
+  background: #FAFAFA;
+  padding: 12px 16px;
+  border-bottom: 1px solid var(--border);
+  font-weight: 600;
+  font-size: 14px;
+}
+
+.mockup-sidebar {
+  width: 100px;
+  border-right: 1px solid var(--border);
+  background: #FAFAFA;
+}
+
+.mockup-main {
+  padding: 16px;
+}
+
+.mockup-table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.mockup-page-title {
+  font-size: 16px;
+  font-weight: 700;
+  margin-bottom: 12px;
+}
+
+.mockup-breadcrumb {
+  font-size: 12px;
+  color: var(--text-muted);
+  margin-bottom: 12px;
+}
+
+/* ========== Footer ========== */
+.doc-footer {
+  text-align: center;
+  padding: 32px;
+  color: var(--text-muted);
+  font-size: 12px;
+  border-top: 1px solid var(--border);
+  margin-top: 48px;
+}
+
+/* ========== Responsive ========== */
+@media (max-width: 1280px) {
+  .phone-mockups-row {
+    gap: 12px;
+  }
+  .phone-frame {
+    width: 320px;
+    margin: 0 4px;
+  }
+  .overview-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 768px) {
+  .doc-header {
+    padding: 32px 24px 28px;
+  }
+  .doc-header h1 {
+    font-size: 22px;
+  }
+  .doc-container {
+    padding: 16px;
+  }
+  .template-section {
+    padding: 20px;
+  }
+  .phone-mockups-row {
+    flex-direction: column;
+    align-items: center;
+  }
+  .phone-frame {
+    width: 320px;
+  }
+}
+</style>
+</head>
+<body>
+
+<!-- ========== Document Header ========== -->
+<header class="doc-header">
+  <h1>小程序模板预览 — 设计规格文档</h1>
+  <p class="doc-subtitle">三套小程序模板视觉预览与设计规范对照</p>
+  <p class="doc-meta">版本 1.0 | 2026-07-01 | 设计规格部</p>
+</header>
+
+<div class="doc-container">
+
+  <!-- ========== Page Overview ========== -->
+  <section class="doc-section">
+    <h2 class="section-title">设计理念与使用场景</h2>
+    <p class="section-desc">
+      以下三套小程序模板分别针对不同定位的酒水商家，提供差异化视觉风格与交互体验。
+      每套模板均包含首页、商品列表、商品详情三个核心页面，商家可根据自身品牌调性和目标客群灵活选用。
+    </p>
+
+    <div class="stats-row">
+      <div class="stat-card">
+        <div class="stat-value">3</div>
+        <div class="stat-label">模板套数</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-value">9</div>
+        <div class="stat-label">页面总数</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-value">3</div>
+        <div class="stat-label">配色方案</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-value">3</div>
+        <div class="stat-label">交互风格</div>
+      </div>
+    </div>
+
+    <div class="overview-grid" style="margin-top: 24px;">
+      <div class="overview-card card-blue">
+        <span class="card-tag">模板一</span>
+        <h3>经典蓝白</h3>
+        <p>蓝白配色，简洁大方，适合大多数酒水商家。采用标准电商布局，商品展示清晰，下单流程顺畅。适用于日常快消型酒水店铺，追求高效转化与普适性体验。</p>
+      </div>
+      <div class="overview-card card-orange">
+        <span class="card-tag">模板二</span>
+        <h3>暖橙商务</h3>
+        <p>暖橙色调，温暖亲切，适合中高端酒水门店。大图卡片式展示，促销氛围浓厚，强调品牌温度与消费仪式感。适用于注重品牌形象与客户体验的品质酒庄、精品酒行。</p>
+      </div>
+      <div class="overview-card card-dark">
+        <span class="card-tag">模板三</span>
+        <h3>深色臻品</h3>
+        <p>深色高级感，黑金配色，适合高端酒品专卖。极简主义设计，全屏沉浸式体验，突出产品质感与稀缺性。适用于高端洋酒、陈年白酒、收藏级酒品的专属店铺。</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- ========== Template 1: Classic Blue-White ========== -->
+  <section class="doc-section">
+    <h2 class="section-title">模板一：经典蓝白</h2>
+
+    <div class="template-section template-standard">
+      <div class="template-section-header">
+        <div class="template-title">
+          <span class="template-theme-dot dot-blue"></span>
+          经典蓝白
+        </div>
+        <div class="template-desc">蓝白配色，简洁大方，适合大多数酒水商家 | 主题色 #1677FF | 辅助色 #E6F4FF | 背景 #F5F5F5 | 圆角 8px</div>
+      </div>
+
+      <div class="phone-mockups-row">
+        <!-- Phone 1: Home -->
+        <div>
+          <div class="phone-label">页面一：首页</div>
+          <div class="phone-frame">
+            <div class="phone-status-bar">
+              <span class="status-time">9:41</span>
+              <span class="status-icons">
+                <span class="status-dot"></span>
+                <span class="status-dot"></span>
+                <span class="status-dot"></span>
+              </span>
+            </div>
+            <div class="phone-content page-home-standard">
+              <div class="search-bar">
+                <div class="search-input">
+                  <span class="search-icon"></span>
+                  搜索酒水商品
+                </div>
+              </div>
+              <div class="banner">精选好酒 限时特惠</div>
+              <div class="category-nav">
+                <div class="category-item">
+                  <div class="category-icon"><div class="category-icon-inner"></div></div>
+                  <span class="category-label">白酒</span>
+                </div>
+                <div class="category-item">
+                  <div class="category-icon"><div class="category-icon-inner"></div></div>
+                  <span class="category-label">红酒</span>
+                </div>
+                <div class="category-item">
+                  <div class="category-icon"><div class="category-icon-inner"></div></div>
+                  <span class="category-label">啤酒</span>
+                </div>
+                <div class="category-item">
+                  <div class="category-icon"><div class="category-icon-inner"></div></div>
+                  <span class="category-label">洋酒</span>
+                </div>
+              </div>
+              <div class="section-header">
+                <span class="section-label">热销推荐</span>
+                <span class="section-more">更多</span>
+              </div>
+              <div class="product-grid">
+                <div class="product-card">
+                  <div class="product-img">商品图片</div>
+                  <div class="product-info">
+                    <div class="product-name">茅台飞天53度</div>
+                    <div class="product-price"><span class="unit">¥</span>1499</div>
+                    <div class="product-sales">已售 2.3万件</div>
+                  </div>
+                </div>
+                <div class="product-card">
+                  <div class="product-img">商品图片</div>
+                  <div class="product-info">
+                    <div class="product-name">五粮液普五52度</div>
+                    <div class="product-price"><span class="unit">¥</span>1299</div>
+                    <div class="product-sales">已售 1.8万件</div>
+                  </div>
+                </div>
+                <div class="product-card">
+                  <div class="product-img">商品图片</div>
+                  <div class="product-info">
+                    <div class="product-name">拉菲传奇波尔多</div>
+                    <div class="product-price"><span class="unit">¥</span>388</div>
+                    <div class="product-sales">已售 5,600件</div>
+                  </div>
+                </div>
+                <div class="product-card">
+                  <div class="product-img">商品图片</div>
+                  <div class="product-info">
+                    <div class="product-name">轩尼诗VSOP</div>
+                    <div class="product-price"><span class="unit">¥</span>568</div>
+                    <div class="product-sales">已售 9,200件</div>
+                  </div>
+                </div>
+              </div>
+              <div class="tab-bar">
+                <div class="tab-item active">
+                  <div class="tab-icon"></div>
+                  <span>首页</span>
+                </div>
+                <div class="tab-item">
+                  <div class="tab-icon"></div>
+                  <span>分类</span>
+                </div>
+                <div class="tab-item">
+                  <div class="tab-icon"></div>
+                  <span>购物车</span>
+                </div>
+                <div class="tab-item">
+                  <div class="tab-icon"></div>
+                  <span>我的</span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Phone 2: Product List -->
+        <div>
+          <div class="phone-label">页面二：商品列表</div>
+          <div class="phone-frame">
+            <div class="phone-status-bar">
+              <span class="status-time">9:41</span>
+              <span class="status-icons">
+                <span class="status-dot"></span>
+                <span class="status-dot"></span>
+                <span class="status-dot"></span>
+              </span>
+            </div>
+            <div class="phone-content page-list-standard">
+              <div class="category-sidebar">
+                <div class="category-sidebar-item active">白酒</div>
+                <div class="category-sidebar-item">红酒</div>
+                <div class="category-sidebar-item">啤酒</div>
+                <div class="category-sidebar-item">洋酒</div>
+                <div class="category-sidebar-item">黄酒</div>
+                <div class="category-sidebar-item">果酒</div>
+                <div class="category-sidebar-item">礼盒</div>
+              </div>
+              <div class="list-main">
+                <div class="list-product-card">
+                  <div class="list-product-img">商品图片</div>
+                  <div class="list-product-info">
+                    <div class="list-product-name">茅台飞天53度 500ml</div>
+                    <div class="list-product-spec">规格：500ml / 53度</div>
+                    <div class="list-product-bottom">
+                      <span class="list-product-price">¥1499</span>
+                      <span class="step-btn">+ 选规格</span>
+                    </div>
+                  </div>
+                </div>
+                <div class="list-product-card">
+                  <div class="list-product-img">商品图片</div>
+                  <div class="list-product-info">
+                    <div class="list-product-name">五粮液普五52度</div>
+                    <div class="list-product-spec">规格：500ml / 52度</div>
+                    <div class="list-product-bottom">
+                      <span class="list-product-price">¥1299</span>
+                      <span class="step-btn">+ 选规格</span>
+                    </div>
+                  </div>
+                </div>
+                <div class="list-product-card">
+                  <div class="list-product-img">商品图片</div>
+                  <div class="list-product-info">
+                    <div class="list-product-name">国窖1573 52度</div>
+                    <div class="list-product-spec">规格：500ml / 52度</div>
+                    <div class="list-product-bottom">
+                      <span class="list-product-price">¥1099</span>
+                      <span class="step-btn">+ 选规格</span>
+                    </div>
+                  </div>
+                </div>
+                <div class="list-product-card">
+                  <div class="list-product-img">商品图片</div>
+                  <div class="list-product-info">
+                    <div class="list-product-name">剑南春水晶剑52度</div>
+                    <div class="list-product-spec">规格：500ml / 52度</div>
+                    <div class="list-product-bottom">
+                      <span class="list-product-price">¥458</span>
+                      <span class="step-btn">+ 选规格</span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Phone 3: Product Detail -->
+        <div>
+          <div class="phone-label">页面三：商品详情</div>
+          <div class="phone-frame">
+            <div class="phone-status-bar">
+              <span class="status-time">9:41</span>
+              <span class="status-icons">
+                <span class="status-dot"></span>
+                <span class="status-dot"></span>
+                <span class="status-dot"></span>
+              </span>
+            </div>
+            <div class="phone-content page-detail-standard">
+              <div class="detail-gallery">
+                商品大图轮播
+                <div class="gallery-dots">
+                  <span class="gallery-dot active"></span>
+                  <span class="gallery-dot"></span>
+                  <span class="gallery-dot"></span>
+                </div>
+              </div>
+              <div class="detail-info">
+                <div class="detail-name">茅台飞天53度 500ml 酱香型白酒</div>
+                <div class="detail-price-row">
+                  <span class="detail-price"><span class="unit">¥</span>1499</span>
+                  <span class="detail-price-original">¥1799</span>
+                </div>
+                <div class="detail-sales">月销 2.3万件 | 好评率 99.2%</div>
+              </div>
+              <div class="detail-spec-section">
+                <div class="detail-spec-title">选择规格</div>
+                <div class="spec-tags">
+                  <span class="spec-tag active">500ml</span>
+                  <span class="spec-tag">1000ml</span>
+                  <span class="spec-tag">礼盒装</span>
+                </div>
+              </div>
+              <div class="detail-add-btn">加入购物车</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ========== Template 2: Warm Orange Business ========== -->
+  <section class="doc-section">
+    <h2 class="section-title">模板二：暖橙商务</h2>
+
+    <div class="template-section template-featured">
+      <div class="template-section-header">
+        <div class="template-title">
+          <span class="template-theme-dot dot-orange"></span>
+          暖橙商务
+        </div>
+        <div class="template-desc">暖橙色调，温暖亲切，适合中高端酒水门店 | 主题色 #FA8C16 | 辅助色 #FFF7E6 | 背景 #FAFAFA | 圆角 12px</div>
+      </div>
+
+      <div class="phone-mockups-row">
+        <!-- Phone 1: Home -->
+        <div>
+          <div class="phone-label">页面一：首页</div>
+          <div class="phone-frame">
+            <div class="phone-status-bar">
+              <span class="status-time">9:41</span>
+              <span class="status-icons">
+                <span class="status-dot"></span>
+                <span class="status-dot"></span>
+                <span class="status-dot"></span>
+              </span>
+            </div>
+            <div class="phone-content page-home-featured">
+              <div class="search-bar">
+                <div class="search-input">
+                  <span class="search-icon"></span>
+                  搜索佳酿美酒
+                </div>
+              </div>
+              <div class="promo-banner">
+                中秋团圆酒 全场8折
+                <span class="promo-tag">限时</span>
+              </div>
+              <div class="category-nav">
+                <div class="category-item">
+                  <div class="category-icon"><div class="category-icon-inner"></div></div>
+                  <span class="category-label">白酒</span>
+                </div>
+                <div class="category-item">
+                  <div class="category-icon"><div class="category-icon-inner"></div></div>
+                  <span class="category-label">红酒</span>
+                </div>
+                <div class="category-item">
+                  <div class="category-icon"><div class="category-icon-inner"></div></div>
+                  <span class="category-label">礼盒</span>
+                </div>
+                <div class="category-item">
+                  <div class="category-icon"><div class="category-icon-inner"></div></div>
+                  <span class="category-label">洋酒</span>
+                </div>
+              </div>
+              <div class="section-header">
+                <span class="section-label">为你推荐</span>
+                <span class="section-more">更多</span>
+              </div>
+              <div class="recommend-list">
+                <div class="recommend-card">
+                  <div class="recommend-img">商品图片</div>
+                  <div class="recommend-info">
+                    <div class="recommend-name">茅台飞天53度</div>
+                    <div class="recommend-desc">酱香突出，幽雅细腻</div>
+                    <div class="recommend-price">¥1499</div>
+                  </div>
+                </div>
+                <div class="recommend-card">
+                  <div class="recommend-img">商品图片</div>
+                  <div class="recommend-info">
+                    <div class="recommend-name">拉菲古堡干红</div>
+                    <div class="recommend-desc">波尔多列级名庄，经典年份</div>
+                    <div class="recommend-price">¥6888</div>
+                  </div>
+                </div>
+                <div class="recommend-card">
+                  <div class="recommend-img">商品图片</div>
+                  <div class="recommend-info">
+                    <div class="recommend-name">麦卡伦18年单一麦芽</div>
+                    <div class="recommend-desc">苏格兰高地，雪莉桶陈酿</div>
+                    <div class="recommend-price">¥2880</div>
+                  </div>
+                </div>
+              </div>
+              <div class="tab-bar-featured">
+                <div class="tab-item active">
+                  <div class="tab-icon"></div>
+                  <span>首页</span>
+                </div>
+                <div class="tab-item">
+                  <div class="tab-icon"></div>
+                  <span>分类</span>
+                </div>
+                <div class="tab-item">
+                  <div class="tab-icon"></div>
+                  <span>促销</span>
+                </div>
+                <div class="tab-item">
+                  <div class="tab-icon"></div>
+                  <span>购物车</span>
+                </div>
+                <div class="tab-item">
+                  <div class="tab-icon"></div>
+                  <span>我的</span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Phone 2: Product List -->
+        <div>
+          <div class="phone-label">页面二：商品列表</div>
+          <div class="phone-frame">
+            <div class="phone-status-bar">
+              <span class="status-time">9:41</span>
+              <span class="status-icons">
+                <span class="status-dot"></span>
+                <span class="status-dot"></span>
+                <span class="status-dot"></span>
+              </span>
+            </div>
+            <div class="phone-content page-list-featured">
+              <div class="filter-bar">
+                <span class="filter-item active">全部</span>
+                <span class="filter-item">白酒</span>
+                <span class="filter-item">红酒</span>
+                <span class="filter-item">洋酒</span>
+                <span class="filter-item">价格</span>
+              </div>
+              <div class="list-content">
+                <div class="list-card">
+                  <div class="list-card-img">商品图片</div>
+                  <div class="list-card-info">
+                    <div class="list-card-name">茅台飞天53度 500ml</div>
+                    <div class="list-card-desc">酱香型白酒 | 贵州省茅台镇</div>
+                    <div class="list-card-bottom">
+                      <span class="list-card-price">¥1499</span>
+                      <span class="list-card-btn">立即购买</span>
+                    </div>
+                  </div>
+                </div>
+                <div class="list-card">
+                  <div class="list-card-img">商品图片</div>
+                  <div class="list-card-info">
+                    <div class="list-card-name">五粮液普五52度</div>
+                    <div class="list-card-desc">浓香型白酒 | 四川省宜宾市</div>
+                    <div class="list-card-bottom">
+                      <span class="list-card-price">¥1299</span>
+                      <span class="list-card-btn">立即购买</span>
+                    </div>
+                  </div>
+                </div>
+                <div class="list-card">
+                  <div class="list-card-img">商品图片</div>
+                  <div class="list-card-info">
+                    <div class="list-card-name">轩尼诗XO干邑</div>
+                    <div class="list-card-desc">法国干邑 | 陈年佳酿</div>
+                    <div class="list-card-bottom">
+                      <span class="list-card-price">¥1680</span>
+                      <span class="list-card-btn">立即购买</span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Phone 3: Product Detail -->
+        <div>
+          <div class="phone-label">页面三：商品详情</div>
+          <div class="phone-frame">
+            <div class="phone-status-bar">
+              <span class="status-time">9:41</span>
+              <span class="status-icons">
+                <span class="status-dot"></span>
+                <span class="status-dot"></span>
+                <span class="status-dot"></span>
+              </span>
+            </div>
+            <div class="phone-content page-detail-featured">
+              <div class="detail-gallery">
+                商品大图展示
+                <div class="gallery-dots">
+                  <span class="gallery-dot active"></span>
+                  <span class="gallery-dot"></span>
+                  <span class="gallery-dot"></span>
+                </div>
+              </div>
+              <div class="detail-info">
+                <span class="detail-promo-tag">限时特惠</span>
+                <div class="detail-name">茅台飞天53度 500ml 酱香型白酒 国酒之巅</div>
+                <div class="detail-price-row">
+                  <span class="detail-price"><span class="unit">¥</span>1499</span>
+                  <span class="detail-price-original">¥1799</span>
+                </div>
+                <div class="detail-sales">月销 2.3万件 | 好评率 99.2%</div>
+              </div>
+              <div class="detail-spec-section">
+                <div class="detail-spec-title">选择规格</div>
+                <div class="spec-tags">
+                  <span class="spec-tag active">500ml 单瓶</span>
+                  <span class="spec-tag">1000ml 装</span>
+                  <span class="spec-tag">礼盒套装</span>
+                </div>
+              </div>
+              <div class="detail-add-btn">立即购买</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ========== Template 3: Dark Premium ========== -->
+  <section class="doc-section">
+    <h2 class="section-title">模板三：深色臻品</h2>
+
+    <div class="template-section template-premium">
+      <div class="template-section-header">
+        <div class="template-title">
+          <span class="template-theme-dot dot-gold"></span>
+          深色臻品
+        </div>
+        <div class="template-desc">深色高级感，黑金配色，适合高端酒品专卖 | 主题色 #1A1A2E | 辅助色 #E8D5B7(金色) | 背景 #0D0D0D | 圆角 4px</div>
+      </div>
+
+      <div class="phone-mockups-row">
+        <!-- Phone 1: Home -->
+        <div>
+          <div class="phone-label">页面一：首页</div>
+          <div class="phone-frame">
+            <div class="phone-status-bar">
+              <span class="status-time">9:41</span>
+              <span class="status-icons">
+                <span class="status-dot"></span>
+                <span class="status-dot"></span>
+                <span class="status-dot"></span>
+              </span>
+            </div>
+            <div class="phone-content page-home-premium">
+              <div class="brand-story">
+                <div class="brand-title">臻品酒庄</div>
+                <div class="brand-subtitle">SINCE 1892 · 百年传承</div>
+              </div>
+              <div class="banner">典藏系列 · 限量发售</div>
+              <div class="section-header">
+                <span class="section-label">精选臻品</span>
+                <span class="section-more">更多</span>
+              </div>
+              <div class="recommend-list">
+                <div class="recommend-card">
+                  <div class="recommend-img">商品图片</div>
+                  <div class="recommend-info">
+                    <div class="recommend-name">罗曼尼康帝 2015</div>
+                    <div class="recommend-desc">勃艮第特级园 · 全球限量</div>
+                    <div class="recommend-price">¥158,000</div>
+                  </div>
+                </div>
+                <div class="recommend-card">
+                  <div class="recommend-img">商品图片</div>
+                  <div class="recommend-info">
+                    <div class="recommend-name">麦卡伦72年莱俪水晶瓶</div>
+                    <div class="recommend-desc">全球限量600瓶 · 收藏级珍品</div>
+                    <div class="recommend-price">¥680,000</div>
+                  </div>
+                </div>
+              </div>
+              <div class="tab-bar-premium">
+                <div class="tab-item active">
+                  <div class="tab-icon"></div>
+                  <span>首页</span>
+                </div>
+                <div class="tab-item">
+                  <div class="tab-icon"></div>
+                  <span>发现</span>
+                </div>
+                <div class="tab-item">
+                  <div class="tab-icon"></div>
+                  <span>购物车</span>
+                </div>
+                <div class="tab-item">
+                  <div class="tab-icon"></div>
+                  <span>我的</span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Phone 2: Product List -->
+        <div>
+          <div class="phone-label">页面二：商品列表</div>
+          <div class="phone-frame">
+            <div class="phone-status-bar">
+              <span class="status-time">9:41</span>
+              <span class="status-icons">
+                <span class="status-dot"></span>
+                <span class="status-dot"></span>
+                <span class="status-dot"></span>
+              </span>
+            </div>
+            <div class="phone-content page-list-premium">
+              <div class="list-header">
+                <div class="list-title">全部藏品</div>
+                <div class="list-count">共 28 件珍品</div>
+              </div>
+              <div class="list-content">
+                <div class="list-card">
+                  <div class="list-card-img">商品图片</div>
+                  <div class="list-card-info">
+                    <div class="list-card-name">罗曼尼康帝 2015</div>
+                    <div class="list-card-desc">DRC · 勃艮第 · 黑皮诺</div>
+                    <div class="list-card-bottom">
+                      <span class="list-card-price">¥158,000</span>
+                      <span class="list-card-btn">鉴赏</span>
+                    </div>
+                  </div>
+                </div>
+                <div class="list-card">
+                  <div class="list-card-img">商品图片</div>
+                  <div class="list-card-info">
+                    <div class="list-card-name">麦卡伦72年莱俪水晶瓶</div>
+                    <div class="list-card-desc">苏格兰 · 单一麦芽 · 水晶瓶</div>
+                    <div class="list-card-bottom">
+                      <span class="list-card-price">¥680,000</span>
+                      <span class="list-card-btn">鉴赏</span>
+                    </div>
+                  </div>
+                </div>
+                <div class="list-card">
+                  <div class="list-card-img">商品图片</div>
+                  <div class="list-card-info">
+                    <div class="list-card-name">茅台80年陈酿</div>
+                    <div class="list-card-desc">酱香型 · 限量发行 · 收藏级</div>
+                    <div class="list-card-bottom">
+                      <span class="list-card-price">¥258,000</span>
+                      <span class="list-card-btn">鉴赏</span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Phone 3: Product Detail -->
+        <div>
+          <div class="phone-label">页面三：商品详情</div>
+          <div class="phone-frame">
+            <div class="phone-status-bar">
+              <span class="status-time">9:41</span>
+              <span class="status-icons">
+                <span class="status-dot"></span>
+                <span class="status-dot"></span>
+                <span class="status-dot"></span>
+              </span>
+            </div>
+            <div class="phone-content page-detail-premium">
+              <div class="detail-gallery-full">
+                全屏商品展示
+                <div class="gallery-dots">
+                  <span class="gallery-dot active"></span>
+                  <span class="gallery-dot"></span>
+                  <span class="gallery-dot"></span>
+                </div>
+              </div>
+              <div class="detail-info">
+                <div class="detail-name">罗曼尼康帝 2015 年份</div>
+                <div class="detail-price-row">
+                  <span class="detail-price"><span class="unit">¥</span>158,000</span>
+                  <span class="detail-price-original">¥188,000</span>
+                </div>
+                <div class="detail-sales">全球限量 6000 瓶 | 已售 12 瓶</div>
+              </div>
+              <div class="brand-story-detail">
+                <div class="story-title">品牌故事</div>
+                <div class="story-text">罗曼尼康帝酒庄（Domaine de la Romanee-Conti），简称DRC，位于法国勃艮第核心产区，拥有超过五百年的酿酒历史，被誉为"世界酒王"。每一瓶DRC都是匠心与时间的艺术结晶。</div>
+              </div>
+              <div class="detail-add-btn">立即典藏</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ========== Template Comparison Table ========== -->
+  <section class="doc-section">
+    <h2 class="section-title">模板对比表</h2>
+    <p class="section-desc">
+      三套模板的 styleConfig 核心参数对比，涵盖色彩、字体、圆角、TabBar风格、暗色模式支持、首页布局、商品卡片风格及下单流程风格。
+    </p>
+
+    <div style="overflow-x: auto;">
+      <table class="spec-table">
+        <thead>
+          <tr>
+            <th style="width: 16%;">配置项</th>
+            <th style="width: 28%;">经典蓝白 (standard)</th>
+            <th style="width: 28%;">暖橙商务 (featured)</th>
+            <th style="width: 28%;">深色臻品 (premium)</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td class="col-label">主题色</td>
+            <td><span class="color-swatch swatch-blue"></span>#1677FF</td>
+            <td><span class="color-swatch swatch-orange"></span>#FA8C16</td>
+            <td><span class="color-swatch swatch-dark"></span>#1A1A2E</td>
+          </tr>
+          <tr>
+            <td class="col-label">辅助色</td>
+            <td><span class="color-swatch swatch-blue-light"></span>#E6F4FF</td>
+            <td><span class="color-swatch swatch-orange-light"></span>#FFF7E6</td>
+            <td><span class="color-swatch swatch-gold"></span>#E8D5B7 (金色)</td>
+          </tr>
+          <tr>
+            <td class="col-label">背景色</td>
+            <td>#F5F5F5</td>
+            <td>#FAFAFA</td>
+            <td>#0D0D0D</td>
+          </tr>
+          <tr>
+            <td class="col-label">字体</td>
+            <td>PingFang SC, 系统默认</td>
+            <td>PingFang SC, 系统默认</td>
+            <td>PingFang SC, 系统默认</td>
+          </tr>
+          <tr>
+            <td class="col-label">圆角</td>
+            <td>8px</td>
+            <td>12px</td>
+            <td>4px</td>
+          </tr>
+          <tr>
+            <td class="col-label">TabBar风格</td>
+            <td>默认风格，4个Tab（首页/分类/购物车/我的）</td>
+            <td>圆角风格，5个Tab（首页/分类/促销/购物车/我的）</td>
+            <td>深色风格，4个Tab（首页/发现/购物车/我的）</td>
+          </tr>
+          <tr>
+            <td class="col-label">暗色模式</td>
+            <td><span class="tag tag-danger">不支持</span></td>
+            <td><span class="tag tag-danger">不支持</span></td>
+            <td><span class="tag tag-success">支持（原生深色）</span></td>
+          </tr>
+          <tr>
+            <td class="col-label">首页布局</td>
+            <td>搜索栏 + 轮播Banner + 分类图标(4个) + 2列商品网格</td>
+            <td>搜索栏 + 促销Banner + 分类图标(4个) + 大图推荐列表</td>
+            <td>品牌故事 + 轮播Banner + 大图卡片推荐</td>
+          </tr>
+          <tr>
+            <td class="col-label">商品卡片风格</td>
+            <td>2列网格，小图+名称+价格+销量</td>
+            <td>大图列表，横图+名称+描述+价格</td>
+            <td>大图卡片，竖图+名称+描述+价格</td>
+          </tr>
+          <tr>
+            <td class="col-label">下单流程风格</td>
+            <td>Step式：选规格 → 加入购物车</td>
+            <td>List式：筛选 → 立即购买</td>
+            <td>Minimal式：鉴赏 → 立即典藏</td>
+          </tr>
+          <tr>
+            <td class="col-label">价格颜色</td>
+            <td>#FF4D4F (红色)</td>
+            <td>#FA8C16 (橙色)</td>
+            <td>#E8D5B7 (金色)</td>
+          </tr>
+          <tr>
+            <td class="col-label">按钮风格</td>
+            <td>填充蓝色，圆角8px</td>
+            <td>填充橙色，圆角12px</td>
+            <td>金色边框/填充，圆角4px</td>
+          </tr>
+          <tr>
+            <td class="col-label">适用场景</td>
+            <td>日常快消型酒水店铺</td>
+            <td>品质酒庄、精品酒行</td>
+            <td>高端洋酒、收藏级酒品</td>
+          </tr>
+          <tr>
+            <td class="col-label">氛围定位</td>
+            <td><span class="tag tag-info">简洁高效</span></td>
+            <td><span class="tag tag-warning">温暖亲和</span></td>
+            <td><span class="tag tag-success">高端奢华</span></td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  <!-- ========== Acceptance Checklist ========== -->
+  <section class="doc-section">
+    <h2 class="section-title">验收标准清单</h2>
+    <p class="section-desc">
+      以下验收标准用于确保三套小程序模板的视觉还原度、交互完整性和代码质量。所有条目均需在交付前通过验证。
+    </p>
+
+    <ul class="checklist">
+      <li class="checked">
+        <span class="check-box"></span>
+        <span class="check-label">模板一（经典蓝白）主题色为 #1677FF，辅助色为 #E6F4FF，背景色为 #F5F5F5，圆角为 8px</span>
+      </li>
+      <li class="checked">
+        <span class="check-box"></span>
+        <span class="check-label">模板二（暖橙商务）主题色为 #FA8C16，辅助色为 #FFF7E6，背景色为 #FAFAFA，圆角为 12px</span>
+      </li>
+      <li class="checked">
+        <span class="check-box"></span>
+        <span class="check-label">模板三（深色臻品）主题色为 #1A1A2E，辅助色为 #E8D5B7(金色)，背景色为 #0D0D0D，圆角为 4px</span>
+      </li>
+      <li>
+        <span class="check-box"></span>
+        <span class="check-label">每套模板包含3个页面：首页、商品列表、商品详情，共计9个页面</span>
+      </li>
+      <li>
+        <span class="check-box"></span>
+        <span class="check-label">手机框样式为 375px 宽度，6px 深色边框，28px 圆角，带阴影效果</span>
+      </li>
+      <li>
+        <span class="check-box"></span>
+        <span class="check-label">每个手机页面包含状态栏（时间与信号图标）</span>
+      </li>
+      <li>
+        <span class="check-box"></span>
+        <span class="check-label">模板一首页包含：搜索栏、轮播Banner、4个分类图标、2列商品网格、底部Tab导航</span>
+      </li>
+      <li>
+        <span class="check-box"></span>
+        <span class="check-label">模板一商品列表包含：左侧分类树、右侧商品卡片列表（step式下单流程）</span>
+      </li>
+      <li>
+        <span class="check-box"></span>
+        <span class="check-label">模板一商品详情包含：商品大图轮播、蓝色价格区、规格选择、加入购物车按钮</span>
+      </li>
+      <li>
+        <span class="check-box"></span>
+        <span class="check-label">模板二首页包含：搜索栏、促销Banner、4个分类图标、大图推荐列表、底部Tab导航（含促销Tab）</span>
+      </li>
+      <li>
+        <span class="check-box"></span>
+        <span class="check-label">模板二商品列表包含：筛选栏、大卡片列表（list式下单流程）</span>
+      </li>
+      <li>
+        <span class="check-box"></span>
+        <span class="check-label">模板二商品详情包含：商品大图、橙色价格区、促销标签、规格选择、大按钮</span>
+      </li>
+      <li>
+        <span class="check-box"></span>
+        <span class="check-label">模板三首页包含：品牌故事区、轮播Banner、大图卡片推荐、深色Tab导航</span>
+      </li>
+      <li>
+        <span class="check-box"></span>
+        <span class="check-label">模板三商品列表包含：大卡片列表（minimal式下单流程），深色背景白色文字</span>
+      </li>
+      <li>
+        <span class="check-box"></span>
+        <span class="check-label">模板三商品详情包含：全屏商品大图、金色价格区、品牌故事、底部金色大按钮</span>
+      </li>
+      <li>
+        <span class="check-box"></span>
+        <span class="check-label">模板三所有文字使用白色/金色配色，深色背景</span>
+      </li>
+      <li>
+        <span class="check-box"></span>
+        <span class="check-label">商品信息展示包含：名称、价格（大字）、销量</span>
+      </li>
+      <li>
+        <span class="check-box"></span>
+        <span class="check-label">所有交互元素（按钮、标签、搜索框）均有视觉呈现</span>
+      </li>
+      <li>
+        <span class="check-box"></span>
+        <span class="check-label">模板对比表包含14项styleConfig对比维度</span>
+      </li>
+      <li>
+        <span class="check-box"></span>
+        <span class="check-label">CSS变量已定义：--brand, --brand-light, --text, --text-secondary, --text-muted, --border, --bg, --white, --success, --warning, --danger, --radius, --shadow</span>
+      </li>
+      <li>
+        <span class="check-box"></span>
+        <span class="check-label">模板专属CSS变量已定义：--template-blue, --template-blue-light, --template-orange, --template-orange-light, --template-dark, --template-gold, --template-dark-bg</span>
+      </li>
+      <li>
+        <span class="check-box"></span>
+        <span class="check-label">所有mockup类名已使用：.mockup, .mockup-header, .mockup-sidebar, .mockup-main, .mockup-table, .mockup-page-title, .mockup-breadcrumb</span>
+      </li>
+      <li>
+        <span class="check-box"></span>
+        <span class="check-label">.stat-card 和 .stats-row 样式已应用于统计卡片区域</span>
+      </li>
+      <li>
+        <span class="check-box"></span>
+        <span class="check-label">.tag, .tag-success, .tag-warning, .tag-danger, .tag-info 样式已定义并应用</span>
+      </li>
+      <li>
+        <span class="check-box"></span>
+        <span class="check-label">.spec-table 样式已应用于模板对比表</span>
+      </li>
+      <li>
+        <span class="check-box"></span>
+        <span class="check-label">.checklist 样式已应用于验收标准列表，至少包含15条checkbox</span>
+      </li>
+      <li>
+        <span class="check-box"></span>
+        <span class="check-label">文档头部为渐变背景（#1677FF → #0958D9），标题为"小程序模板预览 — 设计规格文档"</span>
+      </li>
+      <li>
+        <span class="check-box"></span>
+        <span class="check-label">页面不使用任何emoji图标</span>
+      </li>
+      <li>
+        <span class="check-box"></span>
+        <span class="check-label">所有文字内容使用中文</span>
+      </li>
+      <li>
+        <span class="check-box"></span>
+        <span class="check-label">HTML文件为完整独立文件，不依赖任何外部资源</span>
+      </li>
+    </ul>
+  </section>
+
+  <!-- ========== Footer ========== -->
+  <footer class="doc-footer">
+    <p>小程序模板预览 — 设计规格文档 | 版本 1.0 | 2026-07-01</p>
+    <p>本文件为自包含HTML设计文档，无需外部依赖即可在浏览器中完整预览</p>
+  </footer>
+
+</div>
+
+</body>
+</html>

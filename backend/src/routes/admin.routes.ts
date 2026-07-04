@@ -20,10 +20,10 @@ export const adminRouter = Router();
 // adminRouter.put("/auth/settings", requireAuthWithTenant, authController.updateSettings);
 
 // ============ 员工管理 ============
-adminRouter.get("/staff", requireAuth, employeeController.listStaff);
-adminRouter.post("/staff", requireAuth, employeeController.createStaff);
-adminRouter.put("/staff/:id", requireAuth, employeeController.updateStaff);
-adminRouter.put("/staff/:id/disable", requireAuth, employeeController.disableStaff);
+adminRouter.get("/staff", requireAuthWithTenant, employeeController.listStaff);
+adminRouter.post("/staff", requireAuthWithTenant, employeeController.createStaff);
+adminRouter.put("/staff/:id", requireAuthWithTenant, employeeController.updateStaff);
+adminRouter.put("/staff/:id/disable", requireAuthWithTenant, employeeController.disableStaff);
 
 // ============ 门店管理 ============
 adminRouter.get("/stores", requireAuthWithTenant, employeeController.listStores);
