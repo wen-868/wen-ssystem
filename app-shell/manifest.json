@@ -12,18 +12,27 @@
     },
     "permissions": {
         "Internet": {},
-        "Console": {}
+        "Console": {},
+        "Cache": {},
+        "Storage": {},
+        "NativeUI": {},
+        "Runtime": {},
+        "Device": {},
+        "NetworkInfo": {},
+        "Downloader": {},
+        "Uploader": {},
+        "Gallery": {},
+        "Barcode": {}
     },
     "plus": {
         "splashscreen": {
-            "autoclose": true,
-            "delay": 2000,
+            "autoclose": false,
             "waiting": true
         },
         "statusbar": {
             "immersed": false,
-            "style": "light",
-            "background": "#1989fa"
+            "style": "dark",
+            "background": "#1677FF"
         },
         "popGesture": "close",
         "runmode": "normal",
@@ -32,7 +41,11 @@
                 "permissions": [
                     "<uses-permission android:name=\"android.permission.INTERNET\"/>",
                     "<uses-permission android:name=\"android.permission.ACCESS_NETWORK_STATE\"/>",
-                    "<uses-permission android:name=\"android.permission.ACCESS_WIFI_STATE\"/>"
+                    "<uses-permission android:name=\"android.permission.ACCESS_WIFI_STATE\"/>",
+                    "<uses-permission android:name=\"android.permission.READ_EXTERNAL_STORAGE\"/>",
+                    "<uses-permission android:name=\"android.permission.WRITE_EXTERNAL_STORAGE\"/>",
+                    "<uses-permission android:name=\"android.permission.CAMERA\"/>",
+                    "<uses-permission android:name=\"android.permission.VIBRATE\"/>"
                 ]
             },
             "android": {
@@ -43,7 +56,11 @@
                 "permissions": [
                     "<uses-permission android:name=\"android.permission.INTERNET\"/>",
                     "<uses-permission android:name=\"android.permission.ACCESS_NETWORK_STATE\"/>",
-                    "<uses-permission android:name=\"android.permission.ACCESS_WIFI_STATE\"/>"
+                    "<uses-permission android:name=\"android.permission.ACCESS_WIFI_STATE\"/>",
+                    "<uses-permission android:name=\"android.permission.READ_EXTERNAL_STORAGE\"/>",
+                    "<uses-permission android:name=\"android.permission.WRITE_EXTERNAL_STORAGE\"/>",
+                    "<uses-permission android:name=\"android.permission.CAMERA\"/>",
+                    "<uses-permission android:name=\"android.permission.VIBRATE\"/>"
                 ]
             },
             "ios": {
@@ -54,22 +71,65 @@
                 "devices": "iphone",
                 "deploymentTarget": "12.0",
                 "privacyDescription": {
-                    "NSPhotoLibraryUsageDescription": "用于上传商品图片",
-                    "NSCameraUsageDescription": "用于扫码识别商品"
+                    "NSPhotoLibraryUsageDescription": "用于上传商品图片和门店照片",
+                    "NSCameraUsageDescription": "用于扫码识别商品条码和拍摄商品照片",
+                    "NSPhotoLibraryAddUsageDescription": "用于保存商品图片到相册"
                 }
             },
-            "sdkConfigs": {}
+            "sdkConfigs": {
+                "cache": {
+                    "mode": "auto"
+                },
+                "speech": {},
+                "statics": {}
+            },
+            "icons": {
+                "android": {
+                    "mdpi": "",
+                    "ldpi": "",
+                    "hdpi": "",
+                    "xhdpi": "",
+                    "xxhdpi": "",
+                    "xxxhdpi": ""
+                },
+                "ios": {
+                    "appstore": "",
+                    "iphone": {
+                        "iphone": "",
+                        "iphone@2x": "",
+                        "iphone@3x": ""
+                    }
+                }
+            },
+            "splashscreen": {
+                "android": {
+                    "mdpi": "",
+                    "hdpi": "",
+                    "xhdpi": "",
+                    "xxhdpi": ""
+                },
+                "ios": {
+                    "iphone": {
+                        "iphone": "",
+                        "iphone@2x": "",
+                        "iphone@3x": ""
+                    }
+                }
+            }
         },
         "useragent": {
             "value": "Mozilla/5.0 (Linux; Android 10; K) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Mobile Safari/537.36",
             "concatenate": true
         },
         "webView": {
-            "minUserAgent": "Mozilla/5.0 (Linux; Android 10; K) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Mobile Safari/537.36"
+            "minUserAgent": "Mozilla/5.0 (Linux; Android 10; K) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Mobile Safari/537.36",
+            "kernel": "WKWebview",
+            "cacheMode": "default",
+            "blockNetworkImage": false
         }
     },
     "appid": "__UNI__ZHIXIANG",
-    "launch_path": "index.html",
+    "launch_path": "splash.html",
     "icons": {},
     "app-type": "webapp"
 }
