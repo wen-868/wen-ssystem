@@ -1,4 +1,5 @@
 import { query, queryOne } from "../../shared/db.js";
+import { getStats } from "../../shared/response-time-tracker.js";
 
 export interface DbStatus {
   connection: "connected" | "disconnected" | "error";
@@ -53,7 +54,10 @@ export async function getDbStatus(): Promise<DbStatus> {
 
 export async function getApiStats(): Promise<ApiStats> {
   const today = new Date().toISOString().split("T")[0];
-  
+
+  // 从响应时间追踪器获取真实统计数据（最近 60 秒滑动窗口）
+  const trackerStats = getStats();
+
   const [todayErrors, totalErrors, weeklyData] = await Promise.all([
     queryOne(
       `SELECT COUNT(*) AS count FROM error_logs WHERE DATE(created_at) = ?`,
@@ -76,16 +80,20 @@ export async function getApiStats(): Promise<ApiStats> {
      GROUP BY status_code`
   );
 
-  const statusCodes: Record<number, number> = {};
+  // 合并追踪器实时状态码与数据库历史状态码
+  const statusCodes: Record<number, number> = { ...trackerStats.statusCodes };
   if (Array.isArray(statusCodeResult)) {
     for (const row of statusCodeResult) {
-      statusCodes[(row as any).status_code] = (row as any).count;
+      const code = (row as any).status_code;
+      statusCodes[code] = (statusCodes[code] || 0) + (row as any).count;
     }
   }
 
   const todayErrorCount = (todayErrors as any)?.count || 0;
   const totalErrorCount = (totalErrors as any)?.count || 0;
-  const totalRequests = totalErrorCount * 20;
+
+  // totalRequests: 使用追踪器采集的真实请求数
+  const totalRequests = trackerStats.totalRequests;
 
   const weeklyErrorTrend: { date: string; count: number }[] = [];
   if (Array.isArray(weeklyData)) {
@@ -101,7 +109,7 @@ export async function getApiStats(): Promise<ApiStats> {
     totalRequests,
     errorCount: totalErrorCount,
     errorRate: totalRequests > 0 ? Math.round((totalErrorCount / totalRequests) * 100 * 100) / 100 : 0,
-    avgResponseTime: 0, // TODO: 接入 APM 或中间件计时后改为真实数据
+    avgResponseTime: trackerStats.avgResponseTime,
     statusCodes,
     todayErrorCount,
     weeklyErrorTrend,

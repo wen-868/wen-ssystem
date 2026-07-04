@@ -6,6 +6,7 @@ import { env } from "./shared/env.js";
 import { initDatabase } from "./shared/db.js";
 import { errorHandler } from "./shared/error-handler.js";
 import { errorResponseInterceptor } from "./shared/error-response-interceptor.js";
+import { responseTimeTracker } from "./shared/response-time-tracker.js";
 import { requireAuthWithTenant } from "./shared/auth.js";
 import { runMigrations } from "./shared/migration.js";
 import { setupRoutes } from "./shared/auto-routes.js";
@@ -84,6 +85,7 @@ const allowedOrigins = corsOriginsEnv
   : ["https://admin.onepan.cn", "https://m.onepan.cn", "https://store.onepan.cn"];
 app.use(cors({ origin: allowedOrigins, credentials: true }));
 app.use(express.json({ limit: "2mb" }));
+app.use(responseTimeTracker);
 app.use(errorResponseInterceptor);
 
 // 公开健康检查（无需认证，供外部监控使用）
