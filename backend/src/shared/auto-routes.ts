@@ -29,7 +29,13 @@ export interface RouteConfig {
 function isRouter(value: unknown): value is Router {
   if (!value || typeof value !== "object") return false;
   const v = value as Record<string, unknown>;
-  return typeof v.use === "function" && typeof v.get === "function" && typeof v.post === "function";
+  // Express Router 识别：检查 use + get + post 方法，或 handle 函数（Express 内部路由分发）
+  const hasUse = typeof v.use === "function";
+  const hasGet = typeof v.get === "function";
+  const hasPost = typeof v.post === "function";
+  // 备选：Router 实例的 handle 函数也是 Router 特征
+  const hasHandle = typeof v.handle === "function";
+  return (hasUse && hasGet && hasPost) || (hasHandle && hasUse);
 }
 
 /**
@@ -76,7 +82,7 @@ export async function setupRoutes(app: Express): Promise<void> {
 
   let files: string[];
   try {
-    files = readdirSync(routesDir).filter((f) => f.endsWith(".routes.ts"));
+    files = readdirSync(routesDir).filter((f) => f.endsWith(".routes.ts") || f.endsWith(".routes.js"));
   } catch {
     console.warn("[auto-routes] routes/ 目录不存在，跳过路由自动发现");
     return;
@@ -101,7 +107,7 @@ export async function setupRoutes(app: Express): Promise<void> {
     // ---------- 优先级 1：routeConfigs（数组） ----------
     if (Array.isArray(mod.routeConfigs)) {
       for (const cfg of mod.routeConfigs as RouteConfig[]) {
-        if (cfg && cfg.prefix && isRouter(cfg.router)) {
+        if (cfg && cfg.prefix) {
           configs.push(cfg);
         }
       }
@@ -110,13 +116,13 @@ export async function setupRoutes(app: Express): Promise<void> {
 
     // ---------- 优先级 2：routeConfig（单个对象） ----------
     const routeConfig = mod.routeConfig as RouteConfig | undefined;
-    if (routeConfig && routeConfig.prefix && isRouter(routeConfig.router)) {
+    if (routeConfig && routeConfig.prefix) {
       configs.push(routeConfig);
       continue;
     }
 
     // ---------- 优先级 3：向后兼容 —— 收集所有 Router 导出 ----------
-    const routerEntries = Object.entries(mod).filter(([, v]) => isRouter(v));
+    const routerEntries = Object.entries(mod).filter(([, v]) => v && typeof v === "object" && "use" in v && "get" in v);
 
     if (routerEntries.length === 1) {
       const [name, router] = routerEntries;
@@ -135,6 +141,9 @@ export async function setupRoutes(app: Express): Promise<void> {
         `[auto-routes] ${file}: 检测到 ${routerEntries.length} 个 Router 导出但无 routeConfigs。` +
           ` 请添加 routeConfigs 导出以启用自动注册。导出列表: ${routerEntries.map(([k]) => k).join(", ")}`
       );
+    } else {
+      const keys = Object.keys(mod).slice(0, 5);
+      console.warn(`[auto-routes] ${file}: 无 Router 导出，keys=${keys.join(",")}`);
     }
     // routerEntries.length === 0 → 无 Router 导出，跳过（可能只导出工具函数）
   }
