@@ -58,7 +58,9 @@ const routes = [
       // 平台配置
       { path: "settings", name: "Settings", component: () => import("../views/Settings.vue"), meta: { roles: ["ADMIN"] } },
       // 操作日志
-      { path: "audit-logs", name: "AuditLogs", component: () => import("../views/AuditLogs.vue"), meta: { roles: ["ADMIN"] } }
+      { path: "audit-logs", name: "AuditLogs", component: () => import("../views/AuditLogs.vue"), meta: { roles: ["ADMIN"] } },
+      // 监控告警
+      { path: "monitor", name: "Monitor", component: () => import("../views/MonitorView.vue"), meta: { roles: ["ADMIN"] } }
     ]
   },
   { path: "/:pathMatch(.*)*", redirect: "/dashboard" }

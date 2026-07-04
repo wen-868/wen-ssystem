@@ -38,6 +38,16 @@
           <el-icon><List /></el-icon>
           <template #title>操作日志</template>
         </el-menu-item>
+
+        <el-menu-item index="/monitor">
+          <el-icon><Monitor /></el-icon>
+          <template #title>监控告警</template>
+        </el-menu-item>
+
+        <el-menu-item index="/error-logs">
+          <el-icon><WarningFilled /></el-icon>
+          <template #title>错误日志</template>
+        </el-menu-item>
       </el-menu>
     </aside>
 
@@ -70,7 +80,10 @@ const activeMenu = computed(() => {
   if (path.startsWith("/tenants")) return "/tenants";
   if (path.startsWith("/packages")) return "/packages";
   if (path.startsWith("/subscriptions")) return "/subscriptions";
+  if (path.startsWith("/monitor")) return "/monitor";
+  if (path.startsWith("/error-logs")) return "/error-logs";
   if (path.startsWith("/settings")) return "/settings";
+  if (path.startsWith("/audit-logs")) return "/audit-logs";
   return "/dashboard";
 });
 
@@ -80,7 +93,10 @@ const pageTitle = computed(() => {
     "/tenants": "租户管理",
     "/packages": "套餐管理",
     "/subscriptions": "订阅管理",
-    "/settings": "平台配置"
+    "/settings": "平台配置",
+    "/audit-logs": "操作日志",
+    "/monitor": "监控告警",
+    "/error-logs": "错误日志"
   };
   for (const [prefix, title] of Object.entries(map)) {
     if (route.path.startsWith(prefix)) return title;
