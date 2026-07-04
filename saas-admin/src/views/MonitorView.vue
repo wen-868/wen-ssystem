@@ -8,10 +8,18 @@
         <el-card shadow="hover">
           <template #header><span>数据库状态</span></template>
           <div v-loading="dbLoading">
-            <el-statistic title="当前连接数" :value="dbStatus.connections" />
-            <el-statistic title="慢查询数" :value="dbStatus.slowQueries" style="margin-top: 12px;" />
+            <el-statistic title="数据库">
+              <template #default>
+                <el-tag :type="connectionTag(dbStatus.connection)" size="small">{{ dbStatus.database || '-' }}</el-tag>
+              </template>
+            </el-statistic>
+            <el-statistic title="连接状态" style="margin-top: 12px;">
+              <template #default>
+                <el-tag :type="connectionTag(dbStatus.connection)" size="small">{{ connectionLabel(dbStatus.connection) }}</el-tag>
+              </template>
+            </el-statistic>
+            <el-statistic title="数据表数量" :value="dbStatus.tableCount" style="margin-top: 12px;" />
             <el-statistic title="运行时间" :value="dbStatus.uptime" :formatter="(v: number) => formatUptime(v)" style="margin-top: 12px;" />
-            <el-statistic title="内存使用" :value="dbStatus.memoryUsage" :formatter="(v: number) => formatMemory(v)" style="margin-top: 12px;" />
           </div>
         </el-card>
       </el-col>
@@ -19,9 +27,10 @@
         <el-card shadow="hover">
           <template #header><span>API 统计</span></template>
           <div v-loading="apiLoading">
-            <el-statistic title="QPS (次/秒)" :value="apiStats.qps" />
+            <el-statistic title="总请求数" :value="apiStats.totalRequests" />
             <el-statistic title="平均响应时间 (ms)" :value="apiStats.avgResponseTime" style="margin-top: 12px;" />
-            <el-statistic title="错误率 (%)" :value="apiStats.errorRate" style="margin-top: 12px;" />
+            <el-statistic title="今日错误数" :value="apiStats.todayErrorCount" style="margin-top: 12px;" />
+            <el-statistic title="累计错误数" :value="apiStats.errorCount" style="margin-top: 12px;" />
           </div>
         </el-card>
       </el-col>
@@ -29,9 +38,26 @@
         <el-card shadow="hover">
           <template #header><span>系统信息</span></template>
           <div>
-            <el-statistic title="在线租户数" :value="0" />
-            <el-statistic title="今日活跃用户" :value="0" style="margin-top: 12px;" />
-            <el-statistic title="待处理告警" :value="0" style="margin-top: 12px;" />
+            <el-statistic title="HTTP 状态码分布" style="margin-bottom: 8px;">
+              <template #default>
+                <div v-if="apiStats.statusCodes && Object.keys(apiStats.statusCodes).length > 0" style="font-size: 13px;">
+                  <span v-for="(count, code) in apiStats.statusCodes" :key="code" style="margin-right: 12px;">
+                    <el-tag :type="statusCodeTag(String(code))" size="small" effect="plain">{{ code }}: {{ count }}</el-tag>
+                  </span>
+                </div>
+                <span v-else style="color: #909399;">暂无数据</span>
+              </template>
+            </el-statistic>
+            <el-statistic title="周错误趋势" style="margin-top: 12px;">
+              <template #default>
+                <div v-if="apiStats.weeklyErrorTrend && apiStats.weeklyErrorTrend.length > 0" style="font-size: 13px;">
+                  <span v-for="(item, idx) in apiStats.weeklyErrorTrend" :key="idx" style="margin-right: 8px;">
+                    <el-tag :type="item.count > 0 ? 'danger' : 'success'" size="small" effect="plain">{{ item.date }}: {{ item.count }}</el-tag>
+                  </span>
+                </div>
+                <span v-else style="color: #909399;">暂无数据</span>
+              </template>
+            </el-statistic>
           </div>
         </el-card>
       </el-col>
@@ -56,10 +82,10 @@
         <el-table-column prop="tenantCode" label="租户编码" width="140" />
         <el-table-column prop="companyName" label="公司名称" min-width="180" />
         <el-table-column prop="expireAt" label="到期时间" width="180" />
-        <el-table-column prop="daysRemaining" label="剩余天数" width="100" align="center">
+        <el-table-column prop="daysLeft" label="剩余天数" width="100" align="center">
           <template #default="{ row }">
-            <el-tag :type="row.daysRemaining <= 3 ? 'danger' : row.daysRemaining <= 5 ? 'warning' : 'info'" size="small">
-              {{ row.daysRemaining }} 天
+            <el-tag :type="row.daysLeft <= 3 ? 'danger' : row.daysLeft <= 5 ? 'warning' : 'info'" size="small">
+              {{ row.daysLeft }} 天
             </el-tag>
           </template>
         </el-table-column>
@@ -85,19 +111,48 @@ const expiringLoading = ref(false)
 const notifying = ref(false)
 
 const dbStatus = reactive({
-  connections: 0,
-  slowQueries: 0,
-  uptime: 0,
-  memoryUsage: 0
+  connection: '',
+  database: '',
+  tableCount: 0,
+  uptime: 0
 })
 
 const apiStats = reactive({
-  qps: 0,
+  totalRequests: 0,
   avgResponseTime: 0,
-  errorRate: '0.00'
+  errorCount: 0,
+  todayErrorCount: 0,
+  statusCodes: {} as Record<string, number>,
+  weeklyErrorTrend: [] as { date: string; count: number }[]
 })
 
 const expiringTenants = ref<any[]>([])
+
+function connectionTag(status: string): string {
+  const map: Record<string, string> = {
+    connected: 'success',
+    disconnected: 'warning',
+    error: 'danger'
+  }
+  return map[status] || 'info'
+}
+
+function connectionLabel(status: string): string {
+  const map: Record<string, string> = {
+    connected: '已连接',
+    disconnected: '已断开',
+    error: '连接异常'
+  }
+  return map[status] || status || '-'
+}
+
+function statusCodeTag(code: string): string {
+  const num = Number(code)
+  if (num >= 200 && num < 300) return 'success'
+  if (num >= 300 && num < 400) return 'info'
+  if (num >= 400 && num < 500) return 'warning'
+  return 'danger'
+}
 
 function formatUptime(seconds: number): string {
   const d = Math.floor(seconds / 86400)
@@ -106,11 +161,6 @@ function formatUptime(seconds: number): string {
   if (d > 0) return `${d}天 ${h}小时 ${m}分钟`
   if (h > 0) return `${h}小时 ${m}分钟`
   return `${m}分钟`
-}
-
-function formatMemory(bytes: number): string {
-  const mb = bytes / (1024 * 1024)
-  return mb.toFixed(1) + ' MB'
 }
 
 async function fetchDbStatus() {
