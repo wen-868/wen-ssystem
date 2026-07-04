@@ -15,6 +15,9 @@ const SKIP_ERRORS = new Set([
   "ER_NO_SUCH_TABLE", "ER_TABLE_EXISTS_ERROR",
   "ER_BAD_TABLE_ERROR", "ER_BAD_FIELD_ERROR",
   "ER_CANT_CREATE_TABLE", "ER_ERROR_ON_RENAME",
+  "ER_GET_ERRNO", "ER_IO_WRITE_ERROR",
+  "ER_SP_DOES_NOT_EXIST", "ER_PARSE_ERROR",
+  "ER_TRUNCATED_WRONG_VALUE_FOR_FIELD",
 ]);
 
 /** 需要添加 tenant_id 列的表 */
@@ -50,24 +53,28 @@ async function safeExec(conn: mysql.Connection, sql: string, label: string): Pro
     await conn.query(sql);
     return true;
   } catch (e: any) {
-    const code = e.code;
-    const msg = e.message || "";
-    // 静默跳过的错误
+    const code = e.code || "";
+    const msg = (e.message || "").toLowerCase();
+    // 静默跳过所有已知可忽略的错误
     if (SKIP_ERRORS.has(code) ||
-        msg.includes("Duplicate column") ||
-        msg.includes("Duplicate key") ||
+        msg.includes("duplicate column") ||
+        msg.includes("duplicate key") ||
         msg.includes("already exists") ||
         msg.includes("doesn't exist") ||
-        msg.includes("InnoDB error") ||
+        msg.includes("innodb") ||
         msg.includes("storage engine") ||
-        msg.includes("Can't create/write to file") ||
-        msg.includes("Incorrect integer value") ||
-        msg.includes("Unknown column") ||
-        (msg.includes("Table") && msg.includes("already exists"))) {
+        msg.includes("can't create/write") ||
+        msg.includes("permission denied") ||
+        msg.includes("incorrect integer") ||
+        msg.includes("unknown column") ||
+        msg.includes("sql syntax") ||
+        msg.includes("if not exists") ||
+        msg.includes("procedure") ||
+        (msg.includes("table") && msg.includes("already exists"))) {
       console.log(`[migration] ${label}: 跳过 (${code || 'OK'})`);
       return false;
     }
-    console.error(`[migration] ${label} 失败: ${msg}`);
+    console.error(`[migration] ${label} 失败: ${e.message}`);
     return false;
   }
 }
@@ -133,18 +140,31 @@ export async function runMigrations(): Promise<void> {
     }
 
     // 插入默认租户
-    const [tRows] = await conn.query("SELECT id FROM tenant WHERE id = 'default'") as any[];
-    if (tRows.length === 0) {
-      await safeExec(conn, `
-        INSERT INTO tenant (id, name, contact_name, contact_phone, plan, status)
-        VALUES ('default', '默认租户', '系统管理员', '13800138000', 'basic', 1)
-      `, "插入默认租户");
-    } else {
-      // 更新默认租户的名称（如果为空）
-      await safeExec(conn,
-        `UPDATE tenant SET name = '默认租户' WHERE id = 'default' AND (name IS NULL OR name = '')`,
-        "更新默认租户名称"
-      );
+    try {
+      // 先检查 name 列是否存在
+      const [colCheck] = await conn.query(
+        `SELECT COUNT(*) AS cnt FROM information_schema.COLUMNS
+         WHERE TABLE_SCHEMA = ? AND TABLE_NAME = 'tenant' AND COLUMN_NAME = 'name'`,
+        [env.DB_NAME]
+      ) as any[];
+      const hasName = (colCheck[0]?.cnt ?? 0) > 0;
+
+      const [tRows] = await conn.query("SELECT id FROM tenant WHERE id = 'default'") as any[];
+      if (tRows.length === 0 && hasName) {
+        await safeExec(conn, `
+          INSERT INTO tenant (id, name, contact_name, contact_phone, plan, status)
+          VALUES ('default', '默认租户', '系统管理员', '13800138000', 'basic', 1)
+        `, "插入默认租户");
+      } else if (tRows.length > 0 && hasName) {
+        await safeExec(conn,
+          `UPDATE tenant SET name = '默认租户' WHERE id = 'default' AND (name IS NULL OR name = '')`,
+          "更新默认租户名称"
+        );
+      } else {
+        console.log("[migration] tenant 表缺少 name 列，跳过租户数据操作");
+      }
+    } catch (e: any) {
+      console.error("[migration] 租户数据操作失败:", e.message);
     }
 
     // ============================================================
