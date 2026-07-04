@@ -11,5 +11,16 @@ export default defineConfig({
         changeOrigin: true
       }
     }
+  },
+  build: {
+    rollupOptions: {
+      output: {
+        manualChunks(id) {
+          if (id.includes("node_modules/echarts")) return "echarts";
+          if (id.includes("node_modules/element-plus")) return "element-plus";
+          if (id.includes("node_modules")) return "vendor";
+        }
+      }
+    }
   }
 });

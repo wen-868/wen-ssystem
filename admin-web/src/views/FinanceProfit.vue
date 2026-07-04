@@ -178,7 +178,7 @@ function renderBarChart() {
   const costs = data.map((d: any) => Number(d.cost) || 0);
 
   const canvas = document.createElement("canvas");
-  barChartRef.value.innerHTML = "";
+  while (barChartRef.value.firstChild) barChartRef.value.removeChild(barChartRef.value.firstChild);
   barChartRef.value.appendChild(canvas);
 
   const ctx = canvas.getContext("2d");
@@ -259,7 +259,7 @@ function renderLineChart() {
   const profits = data.map((d: any) => Number(d.profit) || 0);
 
   const canvas = document.createElement("canvas");
-  lineChartRef.value.innerHTML = "";
+  while (lineChartRef.value.firstChild) lineChartRef.value.removeChild(lineChartRef.value.firstChild);
   lineChartRef.value.appendChild(canvas);
 
   const ctx = canvas.getContext("2d");
