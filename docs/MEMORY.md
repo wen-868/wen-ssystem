@@ -258,3 +258,30 @@ liquor-inventory-system/
 3. 凌舟审计通过后提取代码合并到 main（不直接 merge 分支，避免带入无关改动）
 4. 推送 main 到远程仓库
 5. 更新 `tasks/tasks-{人名}.md` 状态
+
+---
+
+## 十、苏然 · 测试状态（2026-07-03）
+
+### 测试结果
+- **15 个测试文件，275 个测试，全部通过** ✅
+- 集成测试 58 个（`phase1-phase2-integration.test.ts`）
+- E2E 测试 9 个（`e2e.test.ts`）
+- 单元测试 208 个（各模块独立测试）
+
+### 质量检查
+- TypeScript 编译：零错误 ✅
+- 服务启动（mock 模式）：正常 ✅
+- 路由-Controller 一致性：531/531 有效 ✅
+- 自测脚本：`backend/scripts/self-test.mjs` ✅
+- 路由检查脚本：`backend/scripts/check-routes.cjs` ✅
+- 覆盖率配置：已添加到 `vitest.config.ts`（目标 80%）
+
+### 我踩过的坑
+1. mock-db INSERT 语句中 SQL 字面量不算参数，tenant_id 取 `params[params.length - 1]`
+2. 测试环境必须 `NODE_ENV !== "test"` 禁用 rateLimit，否则 429
+3. vitest 用 `import { vi }` 不是 `jest.fn`
+4. 字段命名混用：采购订单返回 `purchaseNo`（camelCase），其他返回 snake_case
+5. 退款方式仅支持 CASH/WECHAT/BANK，不支持 ALIPAY
+6. mock-db 状态跨测试持久化，`resetMockDb()` 只在 `beforeAll` 调用一次
+7. 合并分支用 `-X theirs` 策略，合并后必跑全量测试

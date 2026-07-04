@@ -16,5 +16,18 @@ export default defineConfig({
     onConsoleLog(log: string, type: "stdout" | "stderr"): false | void {
       if (type === "stderr" && log.includes("ZodError")) return false;
     },
+    // 测试覆盖率配置
+    coverage: {
+      provider: "v8",
+      reporter: ["text", "lcov"],
+      include: ["src/**/*.ts"],
+      exclude: ["src/__tests__/**", "tests/**", "src/shared/mock-db.ts"],
+      thresholds: {
+        branches: 80,
+        functions: 80,
+        lines: 80,
+        statements: 80,
+      },
+    },
   }
 });
