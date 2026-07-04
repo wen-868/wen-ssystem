@@ -1,6 +1,6 @@
 import { asyncHandler } from "../../shared/async-handler.js";
 import { ok } from "../../shared/response.js";
-import { getDbStatus, getApiStats, getExpiringTenants, notifyExpiringTenants } from "../services/admin/monitor.service.js";
+import { getDbStatus, getApiStats, getExpiringTenants, notifyExpiringTenants } from "../../services/admin/monitor.service.js";
 
 export const getDbStatusCtrl = asyncHandler(async (_req: any, res: any) => {
   const status = await getDbStatus();

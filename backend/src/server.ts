@@ -5,6 +5,7 @@ import rateLimit from "express-rate-limit";
 import { env } from "./shared/env.js";
 import { initDatabase } from "./shared/db.js";
 import { errorHandler } from "./shared/error-handler.js";
+import { errorResponseInterceptor } from "./shared/error-response-interceptor.js";
 import { requireAuth } from "./shared/auth.js";
 import { tenantMiddleware } from "./shared/tenant.js";
 import { adminRouter } from "./routes/admin.routes.js";
@@ -153,6 +154,8 @@ const allowedOrigins = corsOriginsEnv
   : ["https://admin.onepan.cn", "https://m.onepan.cn", "https://store.onepan.cn"];
 app.use(cors({ origin: allowedOrigins, credentials: true }));
 app.use(express.json({ limit: "2mb" }));
+
+app.use(errorResponseInterceptor);
 
 // 认证 + 租户隔离组合中间件
 const requireAuthWithTenant = (req: any, res: any, next: any) => {

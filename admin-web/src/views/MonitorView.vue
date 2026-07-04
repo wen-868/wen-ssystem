@@ -58,7 +58,7 @@
             </div>
             <div class="stat-content">
               <div class="stat-label">平均响应时间</div>
-              <div class="stat-value">{{ apiStats.avgResponseTime }}ms</div>
+              <div class="stat-value">{{ apiStats.avgResponseTime !== null ? apiStats.avgResponseTime + 'ms' : '暂无' }}</div>
               <div class="stat-detail">响应状态码分布</div>
             </div>
           </div>
@@ -140,8 +140,8 @@ interface ApiStats {
   totalRequests: number;
   errorCount: number;
   errorRate: number;
-  avgResponseTime: number;
-  statusCodes: Record<number, number>;
+  avgResponseTime: number | null;
+  statusCodes: Record<string, number>;
   todayErrorCount: number;
   weeklyErrorTrend: { date: string; count: number }[];
 }
@@ -161,7 +161,7 @@ const apiStats = ref<ApiStats>({
   totalRequests: 0,
   errorCount: 0,
   errorRate: 0,
-  avgResponseTime: 0,
+  avgResponseTime: null,
   statusCodes: {},
   todayErrorCount: 0,
   weeklyErrorTrend: [],

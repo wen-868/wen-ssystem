@@ -11,8 +11,8 @@ export interface ApiStats {
   totalRequests: number;
   errorCount: number;
   errorRate: number;
-  avgResponseTime: number;
-  statusCodes: Record<number, number>;
+  avgResponseTime: number | null;
+  statusCodes: Record<string, number>;
   todayErrorCount: number;
   weeklyErrorTrend: { date: string; count: number }[];
 }
@@ -101,7 +101,7 @@ export async function getApiStats(): Promise<ApiStats> {
     totalRequests,
     errorCount: totalErrorCount,
     errorRate: totalRequests > 0 ? Math.round((totalErrorCount / totalRequests) * 100 * 100) / 100 : 0,
-    avgResponseTime: Math.round(Math.random() * 50 + 20),
+    avgResponseTime: null,
     statusCodes,
     todayErrorCount,
     weeklyErrorTrend,
