@@ -1,4 +1,5 @@
 import axios from "axios";
+import { ElMessage } from "element-plus";
 
 function resolveApiBase() {
   const configured = import.meta.env.VITE_API_BASE;
@@ -29,6 +30,9 @@ api.interceptors.response.use(
       if (typeof window !== "undefined") {
         window.dispatchEvent(new Event("auth:logout"));
       }
+    } else {
+      const msg = error?.response?.data?.message || error?.message || "请求失败";
+      ElMessage.error(msg);
     }
     return Promise.reject(error);
   }

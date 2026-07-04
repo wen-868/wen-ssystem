@@ -39,13 +39,11 @@ export function normalizeStoreSaleBillItem(input: unknown) {
   return storeSaleBillItemSchema.parse(input);
 }
 
-// Auth (无需认证)
-// 注意：login 路由已移至 server.ts 单独挂载（无需认证）
-// storeRouter.post("/auth/login", authController.login);
-storeRouter.get("/me", authController.getMe);
-
 // 需要认证
 storeRouter.use(requireAuthWithTenant);
+
+// 门店当前用户信息
+storeRouter.get("/me", authController.getMe);
 
 // 门店信息
 storeRouter.get("/info", authController.getStoreInfo);

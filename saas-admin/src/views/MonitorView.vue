@@ -19,7 +19,7 @@
             <div class="stat-content">
               <div class="stat-label">数据库状态</div>
               <div class="stat-value" :class="dbStatus.connection">
-                {{ dbStatus.connection === 'connected' ? '正常' : dbStatus.connection === 'error' ? '异常' : '断开' }}
+                {{ dbStatus.connection === 'connected' ? '正常' : '异常' }}
               </div>
               <div class="stat-detail">表数量: {{ dbStatus.tableCount }}</div>
             </div>
@@ -98,12 +98,7 @@
           </el-button>
         </div>
       </template>
-      <el-table
-        :data="expiringTenants"
-        size="small"
-        @selection-change="handleTenantSelection"
-        empty-text="暂无即将到期的租户"
-      >
+      <el-table :data="expiringTenants" size="small" @selection-change="handleTenantSelection" empty-text="暂无即将到期的租户">
         <el-table-column type="selection" width="50" />
         <el-table-column prop="companyName" label="公司名称" min-width="180" />
         <el-table-column prop="tenantCode" label="租户编码" width="120" />
@@ -125,12 +120,12 @@
 <script setup lang="ts">
 import { onMounted, onUnmounted, ref, nextTick } from "vue";
 import { ElMessage } from "element-plus";
-import * as echarts from "echarts";
 import { Refresh, Monitor, DataLine, Warning, Timer, Bell } from "@element-plus/icons-vue";
+import * as echarts from "echarts";
 import { fetchDbStatus, fetchApiStats, fetchExpiringTenants, notifyExpiringTenants } from "../api";
 
 interface DbStatus {
-  connection: "connected" | "disconnected" | "error";
+  connection: string;
   database: string;
   uptime: number;
   tableCount: number;
@@ -158,20 +153,13 @@ interface ExpiringTenant {
 
 const dbStatus = ref<DbStatus>({ connection: "disconnected", database: "", uptime: 0, tableCount: 0 });
 const apiStats = ref<ApiStats>({
-  totalRequests: 0,
-  errorCount: 0,
-  errorRate: 0,
-  avgResponseTime: null,
-  statusCodes: {},
-  todayErrorCount: 0,
-  weeklyErrorTrend: [],
+  totalRequests: 0, errorCount: 0, errorRate: 0, avgResponseTime: null,
+  statusCodes: {}, todayErrorCount: 0, weeklyErrorTrend: [],
 });
 const expiringTenants = ref<ExpiringTenant[]>([]);
 const selectedTenants = ref<number[]>([]);
-
 const errorTrendChartRef = ref<HTMLElement | null>(null);
 const statusCodeChartRef = ref<HTMLElement | null>(null);
-
 let errorTrendChart: echarts.ECharts | null = null;
 let statusCodeChart: echarts.ECharts | null = null;
 
@@ -196,8 +184,8 @@ async function refreshData() {
 
 async function loadDbStatus() {
   try {
-    const data = await fetchDbStatus();
-    dbStatus.value = data;
+    const { data } = await fetchDbStatus();
+    dbStatus.value = data.data;
   } catch {
     dbStatus.value = { connection: "error", database: "", uptime: 0, tableCount: 0 };
   }
@@ -205,27 +193,19 @@ async function loadDbStatus() {
 
 async function loadApiStats() {
   try {
-    const data = await fetchApiStats();
-    apiStats.value = data;
+    const { data } = await fetchApiStats();
+    apiStats.value = data.data;
     await nextTick();
     renderCharts();
   } catch {
-    apiStats.value = {
-      totalRequests: 0,
-      errorCount: 0,
-      errorRate: 0,
-      avgResponseTime: 0,
-      statusCodes: {},
-      todayErrorCount: 0,
-      weeklyErrorTrend: [],
-    };
+    /* ignore */
   }
 }
 
 async function loadExpiringTenants() {
   try {
-    const data = await fetchExpiringTenants();
-    expiringTenants.value = data;
+    const { data } = await fetchExpiringTenants();
+    expiringTenants.value = data.data || [];
   } catch {
     expiringTenants.value = [];
   }
@@ -247,73 +227,22 @@ async function handleNotifyTenants() {
 }
 
 function renderCharts() {
-  renderErrorTrendChart();
-  renderStatusCodeChart();
-}
-
-function renderErrorTrendChart() {
-  if (!errorTrendChartRef.value) return;
-  if (!errorTrendChart) {
-    errorTrendChart = echarts.init(errorTrendChartRef.value);
-  }
-
-  const dates = apiStats.value.weeklyErrorTrend.map((d) => d.date);
-  const counts = apiStats.value.weeklyErrorTrend.map((d) => d.count);
-
-  errorTrendChart.setOption(
-    {
+  if (errorTrendChartRef.value) {
+    if (!errorTrendChart) errorTrendChart = echarts.init(errorTrendChartRef.value);
+    errorTrendChart.setOption({
       tooltip: { trigger: "axis" },
-      grid: { left: "3%", right: "4%", bottom: "3%", top: "8%", containLabel: true },
-      xAxis: { type: "category", data: dates, boundaryGap: false },
-      yAxis: { type: "value", min: 0 },
-      series: [
-        {
-          name: "错误数",
-          type: "line",
-          data: counts,
-          smooth: true,
-          symbol: "circle",
-          symbolSize: 6,
-          lineStyle: { width: 2, color: "#f56c6c" },
-          itemStyle: { color: "#f56c6c" },
-          areaStyle: {
-            color: new echarts.graphic.LinearGradient(0, 0, 0, 1, [
-              { offset: 0, color: "rgba(245,108,108,0.3)" },
-              { offset: 1, color: "rgba(245,108,108,0.05)" },
-            ]),
-          },
-        },
-      ],
-    },
-    { notMerge: true }
-  );
-}
-
-function renderStatusCodeChart() {
-  if (!statusCodeChartRef.value) return;
-  if (!statusCodeChart) {
-    statusCodeChart = echarts.init(statusCodeChartRef.value);
+      xAxis: { type: "category", data: apiStats.value.weeklyErrorTrend.map((d) => d.date.slice(5)) },
+      yAxis: { type: "value" },
+      series: [{ data: apiStats.value.weeklyErrorTrend.map((d) => d.count), type: "line", smooth: true, areaStyle: { color: "rgba(26,115,232,.1)" }, lineStyle: { color: "#1a73e8" }, itemStyle: { color: "#1a73e8" } }],
+    });
   }
-
-  statusCodeChart.setOption(
-    {
-      tooltip: { trigger: "item", formatter: "{b}: {c} ({d}%)" },
-      legend: { type: "scroll", orient: "vertical", right: 10, top: "center", itemWidth: 12, itemHeight: 12 },
-      series: [
-        {
-          type: "pie",
-          radius: ["50%", "75%"],
-          center: ["40%", "50%"],
-          avoidLabelOverlap: false,
-          itemStyle: { borderRadius: 4, borderColor: "#fff", borderWidth: 2 },
-          label: { show: false },
-          emphasis: { label: { show: true, fontSize: 14, fontWeight: "bold" } },
-          data: statusCodeData(),
-        },
-      ],
-    },
-    { notMerge: true }
-  );
+  if (statusCodeChartRef.value) {
+    if (!statusCodeChart) statusCodeChart = echarts.init(statusCodeChartRef.value);
+    statusCodeChart.setOption({
+      tooltip: { trigger: "item" },
+      series: [{ type: "pie", radius: ["40%", "70%"], data: statusCodeData(), label: { show: false } }],
+    });
+  }
 }
 
 function handleResize() {
@@ -322,7 +251,7 @@ function handleResize() {
 }
 
 onMounted(async () => {
-  await refreshData();
+  await Promise.all([loadDbStatus(), loadApiStats(), loadExpiringTenants()]);
   window.addEventListener("resize", handleResize);
 });
 
@@ -334,127 +263,23 @@ onUnmounted(() => {
 </script>
 
 <style scoped>
-.monitor-page {
-  padding: 4px;
-}
-
-.card-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-}
-
-.stats-card :deep(.el-card__body) {
-  padding: 0;
-}
-
-.stat-item {
-  display: flex;
-  align-items: center;
-  gap: 16px;
-  padding: 20px;
-  border-bottom: 1px solid #f0f0f0;
-}
-
-.stat-icon {
-  width: 48px;
-  height: 48px;
-  border-radius: 12px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 24px;
-}
-
-.db-icon {
-  background: linear-gradient(135deg, #67c23a 0%, #85ce61 100%);
-  color: #fff;
-}
-
-.request-icon {
-  background: linear-gradient(135deg, #409eff 0%, #66b1ff 100%);
-  color: #fff;
-}
-
-.error-icon {
-  background: linear-gradient(135deg, #f56c6c 0%, #f89898 100%);
-  color: #fff;
-}
-
-.response-icon {
-  background: linear-gradient(135deg, #e6a23c 0%, #ebb563 100%);
-  color: #fff;
-}
-
-.stat-content {
-  flex: 1;
-}
-
-.stat-label {
-  font-size: 13px;
-  color: #909399;
-  margin-bottom: 4px;
-}
-
-.stat-value {
-  font-size: 24px;
-  font-weight: 700;
-  color: #303133;
-}
-
-.stat-value.warning {
-  color: #f56c6c;
-}
-
-.stat-value.connected {
-  color: #67c23a;
-}
-
-.stat-value.error {
-  color: #f56c6c;
-}
-
-.stat-value.disconnected {
-  color: #e6a23c;
-}
-
-.stat-detail {
-  font-size: 12px;
-  color: #c0c4cc;
-  margin-top: 4px;
-}
-
-.chart-card {
-  min-height: 320px;
-}
-
-.chart-card :deep(.el-card__body) {
-  padding: 12px 16px;
-}
-
-.chart-container {
-  width: 100%;
-  height: 260px;
-}
-
-.chart-empty {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  height: 260px;
-}
-
-.tenant-card :deep(.el-table__row:hover) {
-  background: #f5f7fa;
-}
-
-.danger {
-  color: #f56c6c;
-  font-weight: 600;
-}
-
-.warning {
-  color: #e6a23c;
-  font-weight: 600;
-}
+.monitor-page { padding: 20px; }
+.card-header { display: flex; justify-content: space-between; align-items: center; }
+.stat-item { display: flex; align-items: center; gap: 12px; padding: 8px 0; }
+.stat-icon { width: 44px; height: 44px; border-radius: 10px; display: flex; align-items: center; justify-content: center; font-size: 1.25rem; }
+.db-icon { background: #dbeafe; color: #2563eb; }
+.request-icon { background: #e0e7ff; color: #4f46e5; }
+.error-icon { background: #fee2e2; color: #dc2626; }
+.response-icon { background: #d1fae5; color: #059669; }
+.stat-content { flex: 1; }
+.stat-label { font-size: 13px; color: #6b7280; }
+.stat-value { font-size: 1.25rem; font-weight: 700; }
+.stat-value.connected { color: #16a34a; }
+.stat-value.error { color: #dc2626; }
+.stat-value.warning { color: #ea580c; }
+.stat-detail { font-size: 12px; color: #9ca3af; margin-top: 2px; }
+.chart-container { height: 280px; }
+.chart-empty { height: 280px; display: flex; align-items: center; justify-content: center; }
+.danger { color: #dc2626; font-weight: 600; }
+.warning { color: #ea580c; font-weight: 600; }
 </style>

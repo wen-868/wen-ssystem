@@ -38,6 +38,11 @@
           <el-icon><List /></el-icon>
           <template #title>操作日志</template>
         </el-menu-item>
+
+        <el-menu-item index="/monitor">
+          <el-icon><Monitor /></el-icon>
+          <template #title>监控告警</template>
+        </el-menu-item>
       </el-menu>
     </aside>
 
