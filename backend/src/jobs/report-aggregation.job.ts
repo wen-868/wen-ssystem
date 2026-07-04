@@ -190,7 +190,7 @@ async function aggregateInventoryDaily(tenantId: string, storeId: number, date: 
 // 每日汇总主函数
 async function runDailyAggregation() {
   const today = new Date().toISOString().slice(0, 10);
-  console.log(`[报表定时任务] 开始汇总 ${today} 的数据...`);
+  console.error("[报表定时任务] 开始汇总", today, "的数据...");
   try {
     const tenants = await getTenants();
     for (const tenantId of tenants) {
@@ -203,7 +203,7 @@ async function runDailyAggregation() {
         await aggregateInventoryDaily(tenantId, storeId, today);
       }
     }
-    console.log(`[报表定时任务] 汇总完成: ${tenants.length} 个租户`);
+    console.error("[报表定时任务] 汇总完成:", tenants.length, "个租户");
   } catch (err) {
     console.error("[报表定时任务] 汇总失败:", err);
   }

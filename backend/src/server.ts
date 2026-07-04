@@ -158,6 +158,11 @@ app.use(cors({ origin: allowedOrigins, credentials: true }));
 app.use(express.json({ limit: "2mb" }));
 app.use(errorResponseInterceptor);
 
+// 公开健康检查（无需认证，供外部监控使用）
+app.get("/api/platform/health", (_req, res) => {
+  res.json({ code: "0", data: { status: "healthy", timestamp: new Date().toISOString() } });
+});
+
 // 认证 + 租户隔离组合中间件
 const requireAuthWithTenant = (req: any, res: any, next: any) => {
   requireAuth(req, res, (err?: any) => {

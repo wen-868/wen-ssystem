@@ -80,10 +80,10 @@ const ctrl = createWechatController(code2Session, aesDecrypt, signWxToken);
 wechatRouter.post("/auth/login", ctrl.login);
 
 // ==================== 解密手机号 ====================
-wechatRouter.post("/auth/decrypt-phone", ctrl.decryptPhone);
+wechatRouter.post("/auth/decrypt-phone", requireWxAuth, ctrl.decryptPhone);
 
 // ==================== 更新用户资料 ====================
-wechatRouter.put("/auth/profile", ctrl.updateProfile);
+wechatRouter.put("/auth/profile", requireWxAuth, ctrl.updateProfile);
 
 // ==================== 获取当前用户信息 ====================
 wechatRouter.get("/auth/profile", requireWxAuth, ctrl.getProfile);

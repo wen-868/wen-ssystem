@@ -15,6 +15,34 @@ request.interceptors.request.use((config) => {
   return config
 })
 
+// ==================== HTTP 错误上报 ====================
+let isReportingError = false
+let lastReportTime = 0
+
+function reportHttpError(payload: {
+  error_type: string
+  message: string
+  url: string
+  method: string
+  status_code: number
+}) {
+  const now = Date.now()
+  if (isReportingError || now - lastReportTime < 1000) return
+  isReportingError = true
+  lastReportTime = now
+  fetch('/api/admin/error-report', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({
+      ...payload,
+      source: 'saas-admin',
+      timestamp: new Date().toISOString(),
+    }),
+  }).catch(() => {}).finally(() => {
+    isReportingError = false
+  })
+}
+
 request.interceptors.response.use(
   (response) => {
     const data = response.data
@@ -30,6 +58,18 @@ request.interceptors.response.use(
       authStore.logout()
       window.location.hash = '#/login'
     }
+
+    // 上报 HTTP 错误（状态码 >= 400）
+    if (error.response && error.response.status >= 400) {
+      reportHttpError({
+        error_type: 'http_error',
+        message: error.message || '网络请求失败',
+        url: error.config?.url || '',
+        method: error.config?.method?.toUpperCase() || 'GET',
+        status_code: error.response.status,
+      })
+    }
+
     ElMessage.error(error.message || '网络错误')
     return Promise.reject(error)
   }

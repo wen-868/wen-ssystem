@@ -36,7 +36,4 @@ platformRouter.get("/tenants", asyncHandler(async (req, res) => {
   }
 }));
 
-// GET /api/platform/health - 平台健康检查
-platformRouter.get("/health", asyncHandler(async (_req, res) => {
-  res.json(ok({ status: "healthy", timestamp: new Date().toISOString() }));
-}));
+// 健康检查已移至 server.ts 公开路由（无需认证）
