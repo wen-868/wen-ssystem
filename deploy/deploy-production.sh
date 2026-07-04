@@ -123,10 +123,16 @@ mkdir -p /var/www/store-terminal
 cp -r /tmp/deploy/store-terminal-dist/* /var/www/store-terminal/
 echo "  ✓ 门店终端部署完成"
 
+# 官网
+rm -rf /var/www/website
+mkdir -p /var/www/website
+cp -r /tmp/deploy/website-dist/* /var/www/website/
+echo "  ✓ 官网部署完成"
+
 # ===== 6. DNS 解析提示 =====
 echo ""
 echo "[6/10] 检查 DNS 解析..."
-SUBDOMAINS=("api" "admin" "m" "store")
+SUBDOMAINS=("www" "api" "admin" "m" "store")
 ALL_OK=true
 for sub in "${SUBDOMAINS[@]}"; do
   FULL="${sub}.${DOMAIN}"
@@ -153,9 +159,9 @@ fi
 echo ""
 echo "[7/10] 配置 SSL 证书..."
 if [ "$SKIP_SSL" = false ]; then
-  certbot --nginx -d api.${DOMAIN} -d admin.${DOMAIN} -d m.${DOMAIN} -d store.${DOMAIN} --non-interactive --agree-tos --email admin@${DOMAIN} 2>/dev/null || {
+  certbot --nginx -d www.${DOMAIN} -d ${DOMAIN} -d api.${DOMAIN} -d admin.${DOMAIN} -d m.${DOMAIN} -d store.${DOMAIN} --non-interactive --agree-tos --email admin@${DOMAIN} 2>/dev/null || {
     echo "  ⚠ SSL 证书申请失败，将使用 HTTP"
-    echo "  请手动运行: certbot --nginx -d api.${DOMAIN} -d admin.${DOMAIN} -d m.${DOMAIN} -d store.${DOMAIN}"
+    echo "  请手动运行: certbot --nginx -d www.${DOMAIN} -d ${DOMAIN} -d api.${DOMAIN} -d admin.${DOMAIN} -d m.${DOMAIN} -d store.${DOMAIN}"
   }
   echo "  ✓ SSL 证书配置完成"
 else
@@ -252,6 +258,24 @@ server {
         add_header Cache-Control "no-cache";
     }
 }
+
+# 官网
+server {
+    listen 80;
+    server_name www.onepan.cn onepan.cn;
+
+    root /var/www/website;
+    index index.html;
+
+    location / {
+        try_files $uri $uri/ /index.html;
+    }
+
+    location ~* \.(css|js|png|jpg|jpeg|gif|ico|svg|woff2)$ {
+        expires 30d;
+        add_header Cache-Control "public, immutable";
+    }
+}
 NGINX_HTTP
 fi
 
@@ -282,6 +306,7 @@ echo "  部署完成！"
 echo "=========================================="
 echo ""
 echo "访问地址:"
+echo "  官网:        https://www.onepan.cn"
 echo "  后端 API:    https://api.onepan.cn"
 echo "  管理后台:    https://admin.onepan.cn"
 echo "  商家端 H5:   https://m.onepan.cn"
@@ -291,6 +316,6 @@ echo "待办事项:"
 echo "  1. 修改 /root/liquor-inventory-system/backend/.env 中的数据库密码"
 echo "  2. 修改 /root/liquor-inventory-system/backend/.env 中的 JWT_SECRET"
 echo "  3. 配置 DNS 解析（如未完成）"
-echo "  4. 申请 SSL 证书（如未完成）: certbot --nginx -d api.onepan.cn -d admin.onepan.cn -d m.onepan.cn -d store.onepan.cn"
+echo "  4. 申请 SSL 证书（如未完成）: certbot --nginx -d www.onepan.cn -d onepan.cn -d api.onepan.cn -d admin.onepan.cn -d m.onepan.cn -d store.onepan.cn"
 echo "  5. 填写微信小程序 AppID 和支付配置"
 echo ""
