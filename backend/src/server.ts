@@ -52,6 +52,7 @@ import { customerVisitRouter } from "./routes/customer-visit.routes.js";
 import { categoryRouter } from "./routes/category.routes.js";
 import { brandRouter } from "./routes/brand.routes.js";
 import { unitRouter } from "./routes/unit.routes.js";
+import { unitGroupRouter } from "./routes/unit-group.routes.js";
 import { approvalRouter } from "./routes/approval.routes.js";
 import { tenantRouter } from "./routes/tenant.routes.js";
 import { subscriptionRouter } from "./routes/subscription.routes.js";
@@ -183,6 +184,7 @@ app.use("/api/admin/customer-visits", requireAuthWithTenant, customerVisitRouter
 app.use("/api/admin/products/categories", requireAuthWithTenant, categoryRouter);
 app.use("/api/admin/brands", requireAuthWithTenant, brandRouter);
 app.use("/api/admin/units", requireAuthWithTenant, unitRouter);
+app.use("/api/admin/unit-groups", requireAuthWithTenant, unitGroupRouter);
 app.use("/api/admin/approval", requireAuthWithTenant, approvalRouter);
 app.use("/api/admin/tenants", requireAuthWithTenant, tenantRouter);
 app.use("/api/admin/subscriptions", requireAuthWithTenant, subscriptionRouter);
