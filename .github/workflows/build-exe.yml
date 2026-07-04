@@ -1,0 +1,38 @@
+name: Build Windows EXE
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - "admin-web/**"
+  workflow_dispatch:
+
+jobs:
+  build-windows:
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+      - name: Install deps
+        working-directory: admin-web
+        run: npm install
+      - name: Build Vite
+        working-directory: admin-web
+        run: npx vite build
+      - name: Build Electron EXE
+        working-directory: admin-web
+        run: npx electron-builder --win --publish=never
+      - name: Upload artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: 智享全链管理系统-Windows
+          path: admin-web/release/*.exe
+      - name: Upload to release
+        uses: softprops/action-gh-release@v2
+        if: startsWith(github.ref, 'refs/tags/')
+        with:
+          files: admin-web/release/*.exe
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
