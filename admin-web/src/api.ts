@@ -2205,3 +2205,23 @@ export async function fetchErrorLogs(params?: {
   const { data } = await api.get("/admin/error-logs", { params: { page: 1, pageSize: 20, ...params } });
   return data.data;
 }
+
+export async function fetchDbStatus() {
+  const { data } = await api.get("/admin/monitor/db-status");
+  return data.data;
+}
+
+export async function fetchApiStats() {
+  const { data } = await api.get("/admin/monitor/api-stats");
+  return data.data;
+}
+
+export async function fetchExpiringTenants(days?: number) {
+  const { data } = await api.get("/admin/monitor/expiring-tenants", { params: { days } });
+  return data.data;
+}
+
+export async function notifyExpiringTenants(tenantIds: number[]) {
+  const { data } = await api.post("/admin/monitor/notify-expiring", { tenantIds });
+  return data.data;
+}

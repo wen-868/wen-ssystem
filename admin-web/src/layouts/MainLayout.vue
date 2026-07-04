@@ -220,6 +220,7 @@
           <el-menu-item index="/system/approval/my">我的申请</el-menu-item>
           <el-menu-item index="/system/payment">支付配置</el-menu-item>
           <el-menu-item index="/system/miniapp">小程序配置</el-menu-item>
+          <el-menu-item index="/monitor">监控告警</el-menu-item>
         </el-sub-menu>
       </el-menu>
     </aside>
@@ -409,8 +410,9 @@ const pageTitle = computed(() => {
     "/system/approval/detail": "审批详情",
     "/system/approval/my": "我的申请",
     "/system/payment": "支付配置",
-    "/system/miniapp": "小程序配置",
-    "/instant-retail/config": "小程序配置",
+      "/system/miniapp": "小程序配置",
+      "/monitor": "监控告警",
+      "/instant-retail/config": "小程序配置",
     "/instant-retail/shelf": "商品货架",
     "/instant-retail/orders": "小程序订单",
     "/instant-retail/payment": "在线支付",
