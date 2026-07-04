@@ -581,6 +581,20 @@ export async function fetchSystemStores() {
   return data.data;
 }
 
+// ==================== Session / Online Stats APIs ====================
+export async function getUserSessions(...args: any[]) {
+  console.warn('getUserSessions: 后端路由尚未实现');
+  return { list: [], total: 0 } as any;
+}
+export async function revokeSession(...args: any[]) {
+  console.warn('revokeSession: 后端路由尚未实现');
+  return { success: true } as any;
+}
+export async function getOnlineStats(...args: any[]) {
+  console.warn('getOnlineStats: 后端路由尚未实现');
+  return { stats: {} } as any;
+}
+
 // ==================== Product Edit API ====================
 export async function updateProduct(spuId: number, payload: { name?: string; barcode?: string; category?: string; brand?: string; unit?: string; boxRatio?: number; specs?: string }) {
   const { data } = await api.put(`/admin/products/${spuId}`, payload);
@@ -2111,3 +2125,204 @@ export const changeTenantStatus = (id: number, status: string) => api.patch(`/ad
 export const fetchTenantDetail = (id: number) => api.get(`/admin/tenants/${id}`);
 export const fetchTenantModules = (id: number) => api.get(`/admin/tenants/${id}/modules`);
 export const setTenantModules = (id: number, data: any) => api.put(`/admin/tenants/${id}/modules`, data);
+
+// ==================== STUBS: 后端路由尚未实现 ====================
+// 以下函数为前端视图引用但后端路由尚未实现的占位，构建时不会报错
+
+export const fetchRbacRoles = fetchRoles;
+
+export async function getDepartmentTree(...args: any[]) {
+  console.warn('getDepartmentTree: 后端路由尚未实现');
+  return { data: [] } as any;
+}
+export async function createDepartment(...args: any[]) {
+  console.warn('createDepartment: 后端路由尚未实现');
+  return { data: {} } as any;
+}
+export async function updateDepartment(...args: any[]) {
+  console.warn('updateDepartment: 后端路由尚未实现');
+  return { data: {} } as any;
+}
+export async function deleteDepartment(...args: any[]) {
+  console.warn('deleteDepartment: 后端路由尚未实现');
+  return { success: true } as any;
+}
+
+export async function fetchConsumerAddresses(...args: any[]) {
+  console.warn('fetchConsumerAddresses: 后端路由尚未实现');
+  return { data: { list: [], total: 0 } } as any;
+}
+
+export async function getMarketingAssets(...args: any[]) {
+  console.warn('getMarketingAssets: 后端路由尚未实现');
+  return { data: { list: [], total: 0 } } as any;
+}
+export async function createMarketingAsset(...args: any[]) {
+  console.warn('createMarketingAsset: 后端路由尚未实现');
+  return { data: {} } as any;
+}
+export async function updateMarketingAsset(...args: any[]) {
+  console.warn('updateMarketingAsset: 后端路由尚未实现');
+  return { data: {} } as any;
+}
+export async function deleteMarketingAsset(...args: any[]) {
+  console.warn('deleteMarketingAsset: 后端路由尚未实现');
+  return { success: true } as any;
+}
+
+export async function fetchMiniappConfig(...args: any[]) {
+  console.warn('fetchMiniappConfig: 后端路由尚未实现');
+  return { data: {} } as any;
+}
+export async function fetchMiniappPublishLogs(...args: any[]) {
+  console.warn('fetchMiniappPublishLogs: 后端路由尚未实现');
+  return { data: { records: [], total: 0 } } as any;
+}
+export async function fetchMiniappTemplates(...args: any[]) {
+  console.warn('fetchMiniappTemplates: 后端路由尚未实现');
+  return { data: [] } as any;
+}
+export async function publishMiniapp(...args: any[]) {
+  console.warn('publishMiniapp: 后端路由尚未实现');
+  return { records: [], total: 0 } as any;
+}
+export async function saveMiniappConfig(...args: any[]) {
+  console.warn('saveMiniappConfig: 后端路由尚未实现');
+  return { success: true } as any;
+}
+
+export async function getPointsMallItems(...args: any[]) {
+  console.warn('getPointsMallItems: 后端路由尚未实现');
+  return { data: { list: [], total: 0 } } as any;
+}
+export async function createPointsMallItem(...args: any[]) {
+  console.warn('createPointsMallItem: 后端路由尚未实现');
+  return { data: {} } as any;
+}
+export async function updatePointsMallItem(...args: any[]) {
+  console.warn('updatePointsMallItem: 后端路由尚未实现');
+  return { data: {} } as any;
+}
+export async function deletePointsMallItem(...args: any[]) {
+  console.warn('deletePointsMallItem: 后端路由尚未实现');
+  return { success: true } as any;
+}
+export async function getPointsMallOrders(...args: any[]) {
+  console.warn('getPointsMallOrders: 后端路由尚未实现');
+  return { data: { list: [], total: 0 } } as any;
+}
+export async function deliverPointsMallOrder(...args: any[]) {
+  console.warn('deliverPointsMallOrder: 后端路由尚未实现');
+  return { success: true } as any;
+}
+
+export async function fetchReportPermissionMatrix(...args: any[]) {
+  console.warn('fetchReportPermissionMatrix: 后端路由尚未实现');
+  return { data: {} } as any;
+}
+export async function saveReportPermissionMatrix(...args: any[]) {
+  console.warn('saveReportPermissionMatrix: 后端路由尚未实现');
+  return { success: true } as any;
+}
+
+export async function fetchRetailAnnouncements(...args: any[]) {
+  console.warn('fetchRetailAnnouncements: 后端路由尚未实现');
+  return { records: [], total: 0 } as any;
+}
+export async function createRetailAnnouncement(...args: any[]) {
+  console.warn('createRetailAnnouncement: 后端路由尚未实现');
+  return { data: {} } as any;
+}
+export async function updateRetailAnnouncement(...args: any[]) {
+  console.warn('updateRetailAnnouncement: 后端路由尚未实现');
+  return { data: {} } as any;
+}
+export async function deleteRetailAnnouncement(...args: any[]) {
+  console.warn('deleteRetailAnnouncement: 后端路由尚未实现');
+  return { success: true } as any;
+}
+
+export async function fetchPlatformReconciliationDetail(...args: any[]) {
+  console.warn('fetchPlatformReconciliationDetail: 后端路由尚未实现');
+  return { data: {} } as any;
+}
+export async function fetchPlatformReviewStats(...args: any[]) {
+  console.warn('fetchPlatformReviewStats: 后端路由尚未实现');
+  return { stats: {} } as any;
+}
+
+export async function runReportSchedule(...args: any[]) {
+  console.warn('runReportSchedule: 后端路由尚未实现');
+  return { success: true } as any;
+}
+export async function updateReportSchedule(...args: any[]) {
+  console.warn('updateReportSchedule: 后端路由尚未实现');
+  return { success: true } as any;
+}
+export async function deleteReportSchedule(...args: any[]) {
+  console.warn('deleteReportSchedule: 后端路由尚未实现');
+  return { success: true } as any;
+}
+export async function toggleReportSchedule(...args: any[]) {
+  console.warn('toggleReportSchedule: 后端路由尚未实现');
+  return { success: true } as any;
+}
+export async function fetchReportSchedules(...args: any[]) {
+  console.warn('fetchReportSchedules: 后端路由尚未实现');
+  return { data: { list: [], total: 0 } } as any;
+}
+export async function createReportSchedule(...args: any[]) {
+  console.warn('createReportSchedule: 后端路由尚未实现');
+  return { success: true } as any;
+}
+export async function executeReportTemplate(...args: any[]) {
+  console.warn('executeReportTemplate: 后端路由尚未实现');
+  return { success: true } as any;
+}
+export async function createReportTemplate(...args: any[]) {
+  console.warn('createReportTemplate: 后端路由尚未实现');
+  return { success: true } as any;
+}
+export async function updateReportTemplate(...args: any[]) {
+  console.warn('updateReportTemplate: 后端路由尚未实现');
+  return { success: true } as any;
+}
+export async function deleteReportTemplate(...args: any[]) {
+  console.warn('deleteReportTemplate: 后端路由尚未实现');
+  return { success: true } as any;
+}
+export async function fetchReportTemplates(...args: any[]) {
+  console.warn('fetchReportTemplates: 后端路由尚未实现');
+  return { data: { list: [], total: 0 } } as any;
+}
+
+export async function fetchOrderSyncLogs(...args: any[]) {
+  console.warn('fetchOrderSyncLogs: 后端路由尚未实现');
+  return { data: { list: [], total: 0 } } as any;
+}
+export async function retryOrderSync(...args: any[]) {
+  console.warn('retryOrderSync: 后端路由尚未实现');
+  return { success: true } as any;
+}
+
+export async function fetchPlatformReconciliations(...args: any[]) {
+  console.warn('fetchPlatformReconciliations: 后端路由尚未实现');
+  return { data: { list: [], total: 0 } } as any;
+}
+export async function createPlatformReconciliation(...args: any[]) {
+  console.warn('createPlatformReconciliation: 后端路由尚未实现');
+  return { data: {} } as any;
+}
+export async function updatePlatformReconciliation(...args: any[]) {
+  console.warn('updatePlatformReconciliation: 后端路由尚未实现');
+  return { data: {} } as any;
+}
+
+export async function fetchPlatformReviews(...args: any[]) {
+  console.warn('fetchPlatformReviews: 后端路由尚未实现');
+  return { data: { list: [], total: 0 } } as any;
+}
+export async function replyPlatformReview(...args: any[]) {
+  console.warn('replyPlatformReview: 后端路由尚未实现');
+  return { success: true } as any;
+}
