@@ -2,9 +2,10 @@ import { ZodError, type ZodIssue } from "zod";
 import { fail } from "./response.js";
 import { insertErrorLog } from "../services/admin/error-log.service.js";
 import { reportToLingZhou } from "./feishu-report.js";
+import { logger } from "./logger.js";
 
 export const errorHandler: any = (err: any, req: any, res: any, _next: any) => {
-  console.error(err);
+  logger.error(`[${req.method}] ${req.originalUrl || req.url} — ${err?.message || "未知错误"}`, err);
 
   const requestUrl = req?.originalUrl || req?.url || "";
   const requestMethod = req?.method || "";

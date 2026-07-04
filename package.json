@@ -8,6 +8,7 @@
     "admin-web",
     "store-terminal",
     "merchant-mobile",
+    "saas-admin",
     "website"
   ],
   "scripts": {
@@ -37,6 +38,7 @@
     "test:acceptance:production": "node scripts/acceptance-production.mjs"
   },
   "devDependencies": {
+    "esbuild": "^0.28.1",
     "wait-on": "^9.0.10"
   },
   "dependencies": {

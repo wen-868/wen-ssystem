@@ -88,7 +88,7 @@ function renderChart() {
   if (data.length === 0) return;
 
   const canvas = document.createElement("canvas");
-  chartRef.value.innerHTML = "";
+  while (chartRef.value.firstChild) chartRef.value.removeChild(chartRef.value.firstChild);
   chartRef.value.appendChild(canvas);
 
   const ctx = canvas.getContext("2d");

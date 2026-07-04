@@ -30,8 +30,8 @@ const platforms = reactive({
     status: "connected",
     lastConnectTime: "2024-01-15 10:30:00",
     tokenExpireTime: "2025-01-15 10:30:00",
-    appKey: "jd_app_key_xxxxxx",
-    appSecret: "jd_app_secret_xxxxxx",
+    appKey: "",
+    appSecret: "",
     merchantId: "JD_MCH_001",
     storeId: "store_001",
     storeName: "旗舰店（总店）",
@@ -45,7 +45,7 @@ const platforms = reactive({
       2
     ),
     webhookUrl: "https://api.example.com/webhook/instant/jd",
-    signSecret: "jd_sign_secret_abc123xyz",
+    signSecret: "",
     syncLogs: [
       { id: 1, type: "订单", time: "2024-01-15 10:25:00", status: "成功", count: 23 },
       { id: 2, type: "商品", time: "2024-01-15 10:20:00", status: "成功", count: 156 },
@@ -105,7 +105,7 @@ const platforms = reactive({
       2
     ),
     webhookUrl: "https://api.example.com/webhook/instant/eleme",
-    signSecret: "eleme_sign_secret_ghi789rst",
+    signSecret: "",
     syncLogs: []
   }
 });
