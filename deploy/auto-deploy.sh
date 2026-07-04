@@ -12,6 +12,9 @@ git reset --hard origin/main
 echo "==> 安装依赖"
 npm install --production=false
 
+echo "==> 运行数据库迁移"
+node scripts/run-migration.mjs docs/migrations/add_tenant_id.sql || echo "迁移跳过（可能已执行）"
+
 echo "==> 构建后端"
 npm --workspace backend run build
 
