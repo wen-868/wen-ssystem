@@ -25,6 +25,7 @@ export const errorHandler: any = (err: any, _req: any, res: any, _next: any) => 
     return;
   }
 
-  // 未知错误：返回 500
-  res.status(500).json(fail("服务器内部错误", "500"));
+  // 未知错误：返回 500（临时暴露详细错误以便诊断）
+  const detail = err && err.message ? ` ${err.message}` : "";
+  res.status(500).json(fail("服务器内部错误" + detail, "500"));
 };
