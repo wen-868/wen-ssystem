@@ -1,4 +1,5 @@
 import { Router } from "express";
+import logger from "../shared/logger.js";
 import { requireAuthWithTenant } from "../shared/auth.js";
 import * as controller from "../controllers/admin/inventory-batch.controller.js";
 import * as service from "../services/admin/inventory-batch.service.js";
@@ -39,7 +40,7 @@ inventoryBatchRouter.put("/expiry-alerts/:id/handle", controller.handleExpiryAle
 let expiryScannerRunning = false;
 
 export function startExpiryScanner() {
-  console.info("[效期扫描器] 已启动，每60秒检查一次（凌晨2点执行全量扫描）");
+  logger.info("[效期扫描器] 已启动，每60秒检查一次（凌晨2点执行全量扫描）");
 
   const timer = setInterval(async () => {
     if (expiryScannerRunning) return;
@@ -50,9 +51,9 @@ export function startExpiryScanner() {
     expiryScannerRunning = true;
     try {
       await service.runExpiryScan();
-      console.info("[效期扫描器] 扫描完成");
+      logger.info("[效期扫描器] 扫描完成");
     } catch (error) {
-      console.error("[效期扫描器] 扫描失败:", error);
+      logger.error("[效期扫描器] 扫描失败:", error);
     } finally {
       expiryScannerRunning = false;
     }

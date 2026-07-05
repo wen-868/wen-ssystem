@@ -7,6 +7,7 @@
  */
 
 import { env } from "../../shared/env.js";
+import logger from "../../shared/logger.js";
 
 /** 仅当显式设置 INSTANT_RETAIL_MOCK=true 时才启用 Mock */
 export function isMock(): boolean {
@@ -34,7 +35,7 @@ export class HttpClient {
 
   async get<T = unknown>(path: string, opts?: RequestOptions): Promise<T> {
     if (isMock()) {
-      console.info(`[HttpClient] Mock GET ${this.baseURL}${path}`);
+      logger.info(`[HttpClient] Mock GET ${this.baseURL}${path}`);
       return {} as T;
     }
     return this.fetch<T>("GET", path, opts);
@@ -42,7 +43,7 @@ export class HttpClient {
 
   async post<T = unknown>(path: string, opts?: RequestOptions): Promise<T> {
     if (isMock()) {
-      console.info(`[HttpClient] Mock POST ${this.baseURL}${path}`);
+      logger.info(`[HttpClient] Mock POST ${this.baseURL}${path}`);
       return {} as T;
     }
     return this.fetch<T>("POST", path, opts);
@@ -50,7 +51,7 @@ export class HttpClient {
 
   async put<T = unknown>(path: string, opts?: RequestOptions): Promise<T> {
     if (isMock()) {
-      console.info(`[HttpClient] Mock PUT ${this.baseURL}${path}`);
+      logger.info(`[HttpClient] Mock PUT ${this.baseURL}${path}`);
       return {} as T;
     }
     return this.fetch<T>("PUT", path, opts);
@@ -58,7 +59,7 @@ export class HttpClient {
 
   async delete<T = unknown>(path: string, opts?: RequestOptions): Promise<T> {
     if (isMock()) {
-      console.info(`[HttpClient] Mock DELETE ${this.baseURL}${path}`);
+      logger.info(`[HttpClient] Mock DELETE ${this.baseURL}${path}`);
       return {} as T;
     }
     return this.fetch<T>("DELETE", path, opts);

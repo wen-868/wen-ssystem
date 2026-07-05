@@ -1,5 +1,6 @@
 import https from "node:https";
 import { URL } from "node:url";
+import logger from "./logger.js";
 
 /**
  * 飞书工作汇报 — 通过群机器人 webhook 发送消息
@@ -211,8 +212,8 @@ async function postHttpsJson(url: string, body: object): Promise<{ ok: boolean; 
 export async function reportToLingZhou(opts: ReportOptions): Promise<{ ok: boolean; status: number; data: any }> {
   const webhook = opts.webhookUrl || process.env.FEISHU_WEBHOOK_URL;
   if (!webhook) {
-    console.warn("⚠ [feishu-report] 未配置 FEISHU_WEBHOOK_URL，跳过飞书消息发送。");
-    console.info("— 汇报摘要 —\n" + buildTextContent(opts) + "\n— — —");
+    logger.warn("⚠ [feishu-report] 未配置 FEISHU_WEBHOOK_URL，跳过飞书消息发送。");
+    logger.info("— 汇报摘要 —\n" + buildTextContent(opts) + "\n— — —");
     return { ok: false, status: 0, data: { error: "NO_WEBHOOK" } };
   }
 
@@ -220,16 +221,16 @@ export async function reportToLingZhou(opts: ReportOptions): Promise<{ ok: boole
   const result = await postHttpsJson(webhook, body);
 
   if (result.ok) {
-    console.info("✅ [feishu-report] 已发送汇报到飞书群：", opts.phase);
+    logger.info("✅ [feishu-report] 已发送汇报到飞书群：", opts.phase);
   } else {
-    console.warn("⚠ [feishu-report] 飞书消息发送失败:", result.status, result.data);
+    logger.warn("⚠ [feishu-report] 飞书消息发送失败:", result.status, result.data);
     // 降级为纯文本格式重试一次
     const fallback = await postHttpsJson(webhook, {
       msg_type: "text",
       content: { text: buildTextContent(opts) }
     });
     if (fallback.ok) {
-      console.info("✅ [feishu-report] 已以文本格式重新发送汇报。");
+      logger.info("✅ [feishu-report] 已以文本格式重新发送汇报。");
       return fallback;
     }
   }

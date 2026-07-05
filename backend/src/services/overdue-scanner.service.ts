@@ -1,4 +1,5 @@
 import { query } from "../shared/db.js";
+import logger from "../shared/logger.js";
 
 async function getAllActiveTenants(): Promise<string[]> {
   const rows = await query<any>(
@@ -34,7 +35,7 @@ export async function scanOverdueCreditBills(tenantId?: string): Promise<number>
     totalAffected += affectedRows;
 
     if (affectedRows > 0) {
-      console.info(`[OverdueScanner] 租户 ${tid}: 标记 ${affectedRows} 笔赊销单为超期`);
+      logger.info(`[OverdueScanner] 租户 ${tid}: 标记 ${affectedRows} 笔赊销单为超期`);
     }
   }
 
@@ -43,19 +44,19 @@ export async function scanOverdueCreditBills(tenantId?: string): Promise<number>
 
 export function startOverdueScanner() {
   scanOverdueCreditBills().catch(err => {
-    console.error("[OverdueScanner] 启动扫描失败:", err);
+    logger.error("[OverdueScanner] 启动扫描失败:", err);
   });
 
   const interval = setInterval(() => {
     const now = new Date();
     if (now.getHours() === 1 && now.getMinutes() === 0) {
       scanOverdueCreditBills().catch(err => {
-        console.error("[OverdueScanner] 定时扫描失败:", err);
+        logger.error("[OverdueScanner] 定时扫描失败:", err);
       });
     }
   }, 60 * 1000);
 
-  console.info("[OverdueScanner] 超期检测定时任务已启动");
+  logger.info("[OverdueScanner] 超期检测定时任务已启动");
 
   return () => clearInterval(interval);
 }

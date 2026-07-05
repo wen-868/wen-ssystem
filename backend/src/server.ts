@@ -2,6 +2,7 @@ import cors from "cors";
 import express from "express";
 import helmet from "helmet";
 import rateLimit from "express-rate-limit";
+import logger from "./shared/logger.js";
 import { env } from "./shared/env.js";
 import { initDatabase } from "./shared/db.js";
 import { errorHandler } from "./shared/error-handler.js";
@@ -64,6 +65,8 @@ import "./jobs/report-aggregation.job.js";
 import { tagRouter } from "./routes/tag.routes.js";
 import { platformRouter } from "./routes/platform.routes.js";
 import { platformTenantRouter } from "./routes/platform-tenant.routes.js";
+import { platformAuthRouter } from "./routes/platform-auth.routes.js";
+import { platformMonitorRouter } from "./routes/platform-monitor.routes.js";
 import { customerPriceRouter } from "./routes/customer-price.routes.js";
 import { commissionRouter } from "./routes/commission.routes.js";
 import { supplierStatementRouter } from "./routes/supplier-statement.routes.js";
@@ -187,7 +190,9 @@ app.use("/api/admin/subscriptions", requireAuthWithTenant, subscriptionRouter);
 app.use("/api/admin/customer-merge", requireAuthWithTenant, customerMergeRouter);
 app.use("/api/admin", requireAuthWithTenant, tagRouter);
 app.use("/api/platform", requireAuthWithTenant, platformRouter);
+app.use("/api/platform/auth", platformAuthRouter);
 app.use("/api/platform/tenants", platformTenantRouter);
+app.use("/api/platform/monitor", platformMonitorRouter);
 app.use("/api/admin/customer-prices", requireAuthWithTenant, customerPriceRouter);
 app.use("/api/admin/commission", requireAuthWithTenant, commissionRouter);
 app.use("/api/admin/supplier-statements", requireAuthWithTenant, supplierStatementRouter);
@@ -226,7 +231,7 @@ async function start() {
   }
 
   app.listen(env.PORT, () => {
-    console.info(`zhixiang-backend listening on http://localhost:${env.PORT}`);
+    logger.info(`zhixiang-backend listening on http://localhost:${env.PORT}`);
     // 启动预警定时检查
     startAlertScheduler();
     // 启动效期扫描器
@@ -243,6 +248,6 @@ async function start() {
 }
 
 start().catch((error: any) => {
-  console.error("❌ 后端启动失败:", error);
+  logger.error("❌ 后端启动失败:", error);
   (globalThis as any).process?.exit(1);
 });

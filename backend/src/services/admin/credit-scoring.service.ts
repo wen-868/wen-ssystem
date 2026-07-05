@@ -9,6 +9,7 @@
  */
 
 import { queryWithTenant, queryOneWithTenant } from "../../shared/db.js";
+import logger from "../../shared/logger.js";
 import type { ServiceContext } from "../../types/index.js";
 
 /** 评分维度权重 */
@@ -265,7 +266,7 @@ export async function autoInitCredit(
     ctx.tenantId
   );
 
-  console.info(`[Credit] Auto-init credit for customer ${customerId}: limit=${DEFAULT_NEW_CUSTOMER_LIMIT}, term=NET_7`);
+  logger.info(`[Credit] Auto-init credit for customer ${customerId}: limit=${DEFAULT_NEW_CUSTOMER_LIMIT}, term=NET_7`);
 
   return {
     creditLimit: DEFAULT_NEW_CUSTOMER_LIMIT,
@@ -422,7 +423,7 @@ export async function autoGenerateCollections(ctx: ServiceContext): Promise<{
     });
   }
 
-  console.info(`[Credit] Auto-generated ${details.length} collection tasks`);
+  logger.info(`[Credit] Auto-generated ${details.length} collection tasks`);
 
   return { generated: details.length, details };
 }

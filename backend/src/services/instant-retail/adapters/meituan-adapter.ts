@@ -8,6 +8,7 @@
 
 import { AbstractPlatformAdapter } from "../base-adapter.js";
 import { platformCall, useMock } from "../http-client.js";
+import logger from "../../../shared/logger.js";
 import type {
   PlatformCredentials,
   PlatformType,
@@ -64,7 +65,7 @@ export class MeituanAdapter extends AbstractPlatformAdapter {
         throw new Error("[MEITUAN] Cannot refresh token: no credentials");
       },
       (async () => {
-        console.info("[MEITUAN] Mock authenticate");
+        logger.info("[MEITUAN] Mock authenticate");
         const expireAt = new Date(Date.now() + 7200 * 1000);
         const creds: PlatformCredentials = {
           platform: "MEITUAN",
@@ -217,7 +218,7 @@ export class MeituanAdapter extends AbstractPlatformAdapter {
         const mockOrders: UnifiedOrder[] = Array.from({ length: Math.min(limit, 3) }).map((_, i) =>
           this.createMockOrder(`MT${Date.now()}${i}`, params?.status ?? "PENDING")
         );
-        console.info(`[MEITUAN] Mock synced ${mockOrders.length} orders`);
+        logger.info(`[MEITUAN] Mock synced ${mockOrders.length} orders`);
         return { orders: mockOrders, hasMore: false, nextCursor: undefined };
       }) as any
     );
@@ -227,7 +228,7 @@ export class MeituanAdapter extends AbstractPlatformAdapter {
     }
 
     const orders = result.data.order_list.map((o: Record<string, unknown>) => this.mapToUnifiedOrder(o, storeId));
-    console.info(`[MEITUAN] Synced ${orders.length} orders`);
+    logger.info(`[MEITUAN] Synced ${orders.length} orders`);
 
     return {
       orders,
@@ -251,7 +252,7 @@ export class MeituanAdapter extends AbstractPlatformAdapter {
       },
       () => this.authenticate(),
       async () => {
-        console.info(`[MEITUAN] Mock confirm order: ${platformOrderId}`);
+        logger.info(`[MEITUAN] Mock confirm order: ${platformOrderId}`);
         return { data: { success: true } };
       }
     ).then((r: any) => r.data?.success ?? true);
@@ -274,7 +275,7 @@ export class MeituanAdapter extends AbstractPlatformAdapter {
       },
       () => this.authenticate(),
       async () => {
-        console.info(`[MEITUAN] Mock start delivery: ${platformOrderId}`);
+        logger.info(`[MEITUAN] Mock start delivery: ${platformOrderId}`);
         return { data: { success: true } };
       }
     ).then((r: any) => r.data?.success ?? true);
@@ -295,7 +296,7 @@ export class MeituanAdapter extends AbstractPlatformAdapter {
       },
       () => this.authenticate(),
       async () => {
-        console.info(`[MEITUAN] Mock complete delivery: ${platformOrderId}`);
+        logger.info(`[MEITUAN] Mock complete delivery: ${platformOrderId}`);
         return { data: { success: true } };
       }
     ).then((r: any) => r.data?.success ?? true);
@@ -317,7 +318,7 @@ export class MeituanAdapter extends AbstractPlatformAdapter {
       },
       () => this.authenticate(),
       async () => {
-        console.info(`[MEITUAN] Mock cancel order: ${platformOrderId}, reason: ${reason ?? "N/A"}`);
+        logger.info(`[MEITUAN] Mock cancel order: ${platformOrderId}, reason: ${reason ?? "N/A"}`);
         return { data: { success: true } };
       }
     ).then((r: any) => r.data?.success ?? true);
@@ -366,7 +367,7 @@ export class MeituanAdapter extends AbstractPlatformAdapter {
           platform: "MEITUAN" as PlatformType,
           storeId,
         }));
-        console.info(`[MEITUAN] Mock synced ${mockProducts.length} products`);
+        logger.info(`[MEITUAN] Mock synced ${mockProducts.length} products`);
         return { products: mockProducts, hasMore: false, nextCursor: undefined };
       }) as any
     );
@@ -376,7 +377,7 @@ export class MeituanAdapter extends AbstractPlatformAdapter {
     }
 
     const products = result.data.product_list.map((p: Record<string, unknown>) => this.mapToUnifiedProduct(p, storeId));
-    console.info(`[MEITUAN] Synced ${products.length} products`);
+    logger.info(`[MEITUAN] Synced ${products.length} products`);
 
     return {
       products,
@@ -408,7 +409,7 @@ export class MeituanAdapter extends AbstractPlatformAdapter {
       },
       () => this.authenticate(),
       async () => {
-        console.info(`[MEITUAN] Mock updating inventory for ${params.length} items`);
+        logger.info(`[MEITUAN] Mock updating inventory for ${params.length} items`);
         return {
           data: {
             results: params.map((p) => ({
@@ -431,7 +432,7 @@ export class MeituanAdapter extends AbstractPlatformAdapter {
     const expectedSign = this.sign({ payload: payloadStr, timestamp: ts, app_secret: appSecret });
     const valid = expectedSign === signature;
 
-    console.info(`[MEITUAN] Webhook verification: ${valid ? "passed" : "failed"}`);
+    logger.info(`[MEITUAN] Webhook verification: ${valid ? "passed" : "failed"}`);
 
     return {
       valid,

@@ -1,4 +1,5 @@
 import { query, queryOne, queryWithTenant, queryOneWithTenant, transaction } from "../../shared/db.js";
+import logger from "../../shared/logger.js";
 import { makeBizNo } from "../../shared/id.js";
 import { detectChangedFields, syncChangedFields } from "../../shared/field-sync.js";
 import { syncProductFullChain, syncProductStatus, syncProductPrice } from "../../shared/product-sync.js";
@@ -166,7 +167,7 @@ export async function updateProductStatus(spuId: number, status: string, tenantI
   }
 
   syncProductStatus(spuId, status, tenantId).catch(err => {
-    console.error("[ProductSync] 状态同步异常:", err.message);
+    logger.error("[ProductSync] 状态同步异常:", err.message);
   });
 
   return { spuId, status };
@@ -223,15 +224,15 @@ export async function updateProduct(spuId: number, body: {
   });
   if (changedFields.length > 0) {
     syncChangedFields("product_spu", spuId, changedFields, tenantId).catch(err => {
-      console.error("[FieldSync] 商品字段同步异常:", err.message);
+      logger.error("[FieldSync] 商品字段同步异常:", err.message);
     });
 
     syncProductFullChain(spuId, changedFields, tenantId).then(summary => {
       if (summary.failCount > 0) {
-        console.warn(`[ProductSync] 全链路同步部分失败: ${summary.failCount}/${summary.totalTargets}`, summary.stages.filter(s => !s.success));
+        logger.warn(`[ProductSync] 全链路同步部分失败: ${summary.failCount}/${summary.totalTargets}`, summary.stages.filter(s => !s.success));
       }
     }).catch(err => {
-      console.error("[ProductSync] 全链路同步异常:", err.message);
+      logger.error("[ProductSync] 全链路同步异常:", err.message);
     });
   }
 
@@ -324,7 +325,7 @@ export async function updateProductPrice(skuId: number, body: {
 
     if (skuInfo?.spu_id) {
       syncProductPrice(skuInfo.spu_id, changedTypes, tenantId).catch(err => {
-        console.error("[ProductSync] 价格同步异常:", err.message);
+        logger.error("[ProductSync] 价格同步异常:", err.message);
       });
     }
   }

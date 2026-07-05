@@ -8,6 +8,7 @@
 
 import { AbstractPlatformAdapter } from "../base-adapter.js";
 import { platformCall, useMock } from "../http-client.js";
+import logger from "../../../shared/logger.js";
 import type {
   PlatformCredentials,
   PlatformType,
@@ -66,7 +67,7 @@ export class JdAdapter extends AbstractPlatformAdapter {
         throw new Error("[JD] Cannot refresh token: no credentials");
       },
       (async () => {
-        console.info("[JD] Mock authenticate");
+        logger.info("[JD] Mock authenticate");
         const expireAt = new Date(Date.now() + 7200 * 1000);
         const creds: PlatformCredentials = {
           platform: "JD",
@@ -217,7 +218,7 @@ export class JdAdapter extends AbstractPlatformAdapter {
         const mockOrders: UnifiedOrder[] = Array.from({ length: Math.min(limit, 3) }).map((_, i) =>
           this.createMockOrder(`JD${Date.now()}${i}`, params?.status ?? "PENDING")
         );
-        console.info(`[JD] Mock synced ${mockOrders.length} orders`);
+        logger.info(`[JD] Mock synced ${mockOrders.length} orders`);
         return { orders: mockOrders, hasMore: false, nextCursor: undefined };
       }) as any
     );
@@ -229,7 +230,7 @@ export class JdAdapter extends AbstractPlatformAdapter {
     const orders = result.data.orderList.map((o: Record<string, unknown>) => this.mapToUnifiedOrder(o, storeId));
     const hasMore = result.data.pageNo * result.data.pageSize < result.data.totalCount;
 
-    console.info(`[JD] Synced ${orders.length} orders`);
+    logger.info(`[JD] Synced ${orders.length} orders`);
 
     return {
       orders,
@@ -253,7 +254,7 @@ export class JdAdapter extends AbstractPlatformAdapter {
       },
       () => this.authenticate(),
       async () => {
-        console.info(`[JD] Mock confirm order: ${platformOrderId}`);
+        logger.info(`[JD] Mock confirm order: ${platformOrderId}`);
         return { code: 0, msg: "success" };
       }
     ).then((r: any) => r.code === 0);
@@ -276,7 +277,7 @@ export class JdAdapter extends AbstractPlatformAdapter {
       },
       () => this.authenticate(),
       async () => {
-        console.info(`[JD] Mock start delivery: ${platformOrderId}`);
+        logger.info(`[JD] Mock start delivery: ${platformOrderId}`);
         return { code: 0, msg: "success" };
       }
     ).then((r: any) => r.code === 0);
@@ -297,7 +298,7 @@ export class JdAdapter extends AbstractPlatformAdapter {
       },
       () => this.authenticate(),
       async () => {
-        console.info(`[JD] Mock complete delivery: ${platformOrderId}`);
+        logger.info(`[JD] Mock complete delivery: ${platformOrderId}`);
         return { code: 0, msg: "success" };
       }
     ).then((r: any) => r.code === 0);
@@ -319,7 +320,7 @@ export class JdAdapter extends AbstractPlatformAdapter {
       },
       () => this.authenticate(),
       async () => {
-        console.info(`[JD] Mock cancel order: ${platformOrderId}, reason: ${reason ?? "N/A"}`);
+        logger.info(`[JD] Mock cancel order: ${platformOrderId}, reason: ${reason ?? "N/A"}`);
         return { code: 0, msg: "success" };
       }
     ).then((r: any) => r.code === 0);
@@ -370,7 +371,7 @@ export class JdAdapter extends AbstractPlatformAdapter {
           platform: "JD" as PlatformType,
           storeId,
         }));
-        console.info(`[JD] Mock synced ${mockProducts.length} products`);
+        logger.info(`[JD] Mock synced ${mockProducts.length} products`);
         return { products: mockProducts, hasMore: false, nextCursor: undefined };
       }) as any
     );
@@ -382,7 +383,7 @@ export class JdAdapter extends AbstractPlatformAdapter {
     const products = result.data.skuList.map((p: Record<string, unknown>) => this.mapToUnifiedProduct(p, storeId));
     const hasMore = result.data.pageNo * result.data.pageSize < result.data.totalCount;
 
-    console.info(`[JD] Synced ${products.length} products`);
+    logger.info(`[JD] Synced ${products.length} products`);
 
     return {
       products,
@@ -416,7 +417,7 @@ export class JdAdapter extends AbstractPlatformAdapter {
       },
       () => this.authenticate(),
       async () => {
-        console.info(`[JD] Mock updating inventory for ${params.length} items`);
+        logger.info(`[JD] Mock updating inventory for ${params.length} items`);
         return {
           code: 0,
           msg: "success",
@@ -441,7 +442,7 @@ export class JdAdapter extends AbstractPlatformAdapter {
     const expectedSign = this.md5(`${payloadStr}${ts}${appSecret}`);
     const valid = expectedSign === signature;
 
-    console.info(`[JD] Webhook verification: ${valid ? "passed" : "failed"}`);
+    logger.info(`[JD] Webhook verification: ${valid ? "passed" : "failed"}`);
 
     return {
       valid,

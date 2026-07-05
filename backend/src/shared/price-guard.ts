@@ -11,6 +11,7 @@
  */
 
 import type { AuthUser } from "./auth.js";
+import logger from "./logger.js";
 import { queryWithTenant } from "./db.js";
 
 // ─── 角色价格可见性矩阵 ───────────────────────────────────────
@@ -139,7 +140,7 @@ export async function logUnauthorizedAccess(
     );
   } catch {
     // 审计日志写入失败不应影响主流程
-    console.error("[PriceGuard] Failed to log unauthorized access attempt");
+    logger.error("[PriceGuard] Failed to log unauthorized access attempt");
   }
 }
 

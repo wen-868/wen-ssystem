@@ -1,4 +1,5 @@
 import { z } from "zod";
+import logger from "../../shared/logger.js";
 import { query, queryOne, queryWithTenant, queryOneWithTenant, transaction } from "../../shared/db.js";
 import { getAdapter, parsePlatformType, parseUnifiedOrder } from "./adapters/index.js";
 import type { PlatformType } from "./types.js";
@@ -20,7 +21,7 @@ export function buildWebhookResponse(platform: PlatformType, success: boolean, m
 export async function handleWebhook(platform: PlatformType, rawBody: any, signature: string, timestamp: string) {
   const config = await getPlatformConfig(platform);
   if (!config) {
-    console.warn(`[Webhook] ${platform} 无配置，跳过处理`);
+    logger.warn(`[Webhook] ${platform} 无配置，跳过处理`);
     return { success: true, response: buildWebhookResponse(platform, true), status: 200 };
   }
 
@@ -28,7 +29,7 @@ export async function handleWebhook(platform: PlatformType, rawBody: any, signat
 
   const verifyResult = await adapter.verifyWebhook(rawBody, signature, timestamp);
   if (!verifyResult.valid) {
-    console.warn(`[Webhook] ${platform} 验签失败`, { signature, timestamp });
+    logger.warn(`[Webhook] ${platform} 验签失败`, { signature, timestamp });
     return { success: false, response: buildWebhookResponse(platform, false, "验签失败"), status: 400 };
   }
 

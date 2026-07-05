@@ -1,4 +1,5 @@
 import { queryWithTenant, queryOneWithTenant, transaction } from "../../shared/db.js";
+import logger from "../../shared/logger.js";
 import { syncChangedFields } from "../../shared/field-sync.js";
 
 interface CategoryRow {
@@ -65,7 +66,7 @@ export async function update(id: number, body: {
   // 同步分类名称到 product_spu / product_sku
   if (body.name !== undefined) {
     syncChangedFields("product_category", id, ["name"], tenantId).catch(err => {
-      console.error("[FieldSync] 分类名称同步异常:", err.message);
+      logger.error("[FieldSync] 分类名称同步异常:", err.message);
     });
   }
 
