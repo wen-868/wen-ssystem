@@ -292,8 +292,8 @@
     </el-card>
 
     <el-dialog v-model="couponDialogVisible" title="新建优惠券" width="560px">
-      <el-form :model="couponForm" label-width="100px">
-        <el-form-item label="优惠券名称">
+      <el-form ref="formRef" :model="couponForm" :rules="rules" label-width="100px">
+        <el-form-item label="优惠券名称" prop="name">
           <el-input v-model="couponForm.name" placeholder="请输入优惠券名称" />
         </el-form-item>
         <el-form-item label="类型">
@@ -398,6 +398,11 @@ const couponForm = reactive({
   validRange: [] as any[],
 });
 
+const formRef = ref()
+const rules = {
+  name: [{ required: true, message: '请输入优惠券名称', trigger: 'blur' }]
+}
+
 async function loadCoupons() {
   couponLoading.value = true;
   try {
@@ -428,6 +433,7 @@ function handleCouponPageChange(p: number) {
 }
 
 async function submitCoupon() {
+  const valid = await formRef.value?.validate().catch(() => false); if (!valid) return;
   if (!couponForm.name) {
     ElMessage.warning("请输入优惠券名称");
     return;

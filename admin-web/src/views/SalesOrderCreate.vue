@@ -12,10 +12,10 @@
           <!-- 基础信息 -->
           <el-card shadow="never" class="info-card">
             <template #header><span class="card-title">基础信息</span></template>
-            <el-form :model="form" label-width="100px" size="default">
+            <el-form ref="formRef" :model="form" :rules="rules" label-width="100px" size="default">
               <el-row :gutter="16">
                 <el-col :span="12">
-                  <el-form-item label="客户" required>
+                  <el-form-item label="客户" required prop="customerId">
                     <el-select
                       v-model="form.customerId"
                       filterable
@@ -45,7 +45,7 @@
               </el-row>
               <el-row :gutter="16" v-if="form.saleType === 'CREDIT'">
                 <el-col :span="12">
-                  <el-form-item label="应收截止日期" required>
+                  <el-form-item label="应收截止日期" required prop="dueDate">
                     <el-date-picker v-model="form.dueDate" type="date" placeholder="选择日期" style="width:100%" />
                   </el-form-item>
                 </el-col>
@@ -181,6 +181,23 @@ const form = reactive({
   wipeAmount: 0
 });
 
+const formRef = ref();
+const rules = {
+  customerId: [{ required: true, message: "请选择客户", trigger: "change" }],
+  dueDate: [
+    {
+      validator: (_rule: any, _value: any, callback: any) => {
+        if (form.saleType === "CREDIT" && !form.dueDate) {
+          callback(new Error("请选择应收截止日期"));
+        } else {
+          callback();
+        }
+      },
+      trigger: "change"
+    }
+  ]
+};
+
 const customerOptions = ref<any[]>([]);
 const customerLoading = ref(false);
 const productOptions = ref<Record<number, any[]>>({});
@@ -259,16 +276,9 @@ async function handleSaveDraft() {
 }
 
 async function handleSubmit() {
-  if (!form.customerId) {
-    ElMessage.warning("请选择客户");
-    return;
-  }
+  const valid = await formRef.value?.validate().catch(() => false); if (!valid) return;
   if (form.items.length === 0) {
     ElMessage.warning("请添加至少一个商品");
-    return;
-  }
-  if (form.saleType === "CREDIT" && !form.dueDate) {
-    ElMessage.warning("赊销订单请选择应收截止日期");
     return;
   }
   try {

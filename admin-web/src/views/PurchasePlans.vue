@@ -46,8 +46,8 @@
 
     <!-- 新建计划弹窗 -->
     <el-dialog v-model="createVisible" title="新建采购计划" width="700px" :close-on-click-modal="false">
-      <el-form :model="createForm" label-width="100px">
-        <el-form-item label="计划名称">
+      <el-form ref="formRef" :model="createForm" :rules="rules" label-width="100px">
+        <el-form-item label="计划名称" prop="planName">
           <el-input v-model="createForm.planName" placeholder="如：6月补货计划" />
         </el-form-item>
         <el-form-item label="供应商">
@@ -176,6 +176,10 @@ const suppliers = ref<any[]>([]);
 
 const createVisible = ref(false);
 const createLoading = ref(false);
+const formRef = ref();
+const rules = {
+  planName: [{ required: true, message: "请输入计划名称", trigger: "blur" }]
+};
 const createForm = ref({ planName: "", supplierId: null as number | null, items: [] as any[], remark: "" });
 
 const replenishVisible = ref(false);
@@ -236,6 +240,8 @@ function removeItem(index: number) {
 }
 
 async function handleCreate() {
+  const valid = await formRef.value?.validate().catch(() => false);
+  if (!valid) return;
   if (!createForm.value.planName) { ElMessage.warning("请输入计划名称"); return; }
   if (createForm.value.items.length === 0) { ElMessage.warning("请添加商品"); return; }
   createLoading.value = true;

@@ -45,8 +45,8 @@
 
     <!-- 生成对账单弹窗 -->
     <el-dialog v-model="genVisible" title="生成对账单" width="450px" :close-on-click-modal="false">
-      <el-form :model="genForm" label-width="100px">
-        <el-form-item label="供应商">
+      <el-form ref="formRef" :model="genForm" :rules="rules" label-width="100px">
+        <el-form-item label="供应商" prop="supplierId">
           <el-select v-model="genForm.supplierId" filterable placeholder="请选择供应商" style="width: 100%">
             <el-option v-for="s in suppliers" :key="s.id" :label="s.name" :value="s.id" />
           </el-select>
@@ -154,6 +154,10 @@ const suppliers = ref<any[]>([]);
 
 const genVisible = ref(false);
 const genLoading = ref(false);
+const formRef = ref();
+const rules = {
+  supplierId: [{ required: true, message: "请选择供应商", trigger: "change" }]
+};
 const genForm = ref({ supplierId: null as number | null, dateRange: null as [string, string] | null });
 
 const detailVisible = ref(false);
@@ -204,6 +208,8 @@ function showGenerateDialog() {
 }
 
 async function handleGenerate() {
+  const valid = await formRef.value?.validate().catch(() => false);
+  if (!valid) return;
   if (!genForm.value.supplierId) { ElMessage.warning("请选择供应商"); return; }
   if (!genForm.value.dateRange || !genForm.value.dateRange[0] || !genForm.value.dateRange[1]) {
     ElMessage.warning("请选择对账期间"); return;

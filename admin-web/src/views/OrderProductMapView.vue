@@ -114,10 +114,10 @@
 
     <!-- 新增/编辑映射弹窗 -->
     <el-dialog v-model="mapDialogVisible" :title="editingMap ? '编辑映射' : '新增映射'" width="800px" top="5vh">
-      <el-form :model="mapForm" label-width="120px">
+      <el-form ref="formRef" :model="mapForm" :rules="rules" label-width="120px">
         <el-row :gutter="20">
           <el-col :span="12">
-            <el-form-item label="渠道">
+            <el-form-item label="渠道" prop="channelType">
               <el-select v-model="mapForm.channelType" placeholder="请选择渠道" style="width: 100%">
                 <el-option v-for="ch in channelTypes.filter(c => c !== 'ALL')" :key="ch" :label="channelNames[ch]" :value="ch" />
               </el-select>
@@ -345,6 +345,10 @@ function handlePageChange(p: number) { page.value = p; }
 // ── 新增/编辑映射 ──
 const mapDialogVisible = ref(false);
 const editingMap = ref<any>(null);
+const formRef = ref()
+const rules = {
+  channelType: [{ required: true, message: '请选择渠道', trigger: 'change' }]
+}
 const mapForm = ref({
   channelType: "",
   channelSkuId: "",
@@ -401,7 +405,8 @@ function handleLocalSkuChange(val: number | null) {
   }
 }
 
-function handleSaveMap() {
+async function handleSaveMap() {
+  const valid = await formRef.value?.validate().catch(() => false); if (!valid) return;
   ElMessage.success(editingMap.value ? "映射已更新" : "映射已创建");
   mapDialogVisible.value = false;
 }

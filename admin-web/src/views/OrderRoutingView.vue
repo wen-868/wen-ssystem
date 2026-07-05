@@ -132,10 +132,10 @@
 
     <!-- 新增/编辑规则弹窗 -->
     <el-dialog v-model="ruleDialogVisible" :title="isEditRule ? '编辑路由规则' : '新增路由规则'" width="800px" destroy-on-close>
-      <el-form :model="ruleForm" label-width="100px">
+      <el-form ref="formRef" :model="ruleForm" :rules="rules" label-width="100px">
         <el-row :gutter="16">
           <el-col :span="12">
-            <el-form-item label="规则名称">
+            <el-form-item label="规则名称" prop="ruleName">
               <el-input v-model="ruleForm.ruleName" placeholder="请输入规则名称" />
             </el-form-item>
           </el-col>
@@ -329,6 +329,10 @@ const categoryOptions = [
 const ruleDialogVisible = ref(false)
 const isEditRule = ref(false)
 const editingRuleId = ref<number | null>(null)
+const formRef = ref()
+const rules = {
+  ruleName: [{ required: true, message: '请输入规则名称', trigger: 'blur' }]
+}
 
 const ruleForm = ref({
   ruleName: '',
@@ -391,7 +395,8 @@ function openRuleDialog(row?: any) {
   ruleDialogVisible.value = true
 }
 
-function handleSaveRule() {
+async function handleSaveRule() {
+  const valid = await formRef.value?.validate().catch(() => false); if (!valid) return;
   if (!ruleForm.value.ruleName) {
     ElMessage.warning('请输入规则名称')
     return
