@@ -1,4 +1,5 @@
 import { query, queryOne } from "../shared/db.js";
+import logger from "../shared/logger.js";
 
 let schedulerInterval: any | null = null;
 
@@ -9,7 +10,7 @@ let schedulerInterval: any | null = null;
  * 2. 检查已过期但未停用的订阅，自动停用租户
  */
 export async function checkSubscriptionExpiry() {
-  console.info("[SubscriptionExpiry] 开始检查订阅到期...");
+  logger.info("[SubscriptionExpiry] 开始检查订阅到期...");
 
   try {
     // 1. 检查7天内即将到期的订阅
@@ -28,10 +29,10 @@ export async function checkSubscriptionExpiry() {
     );
 
     for (const sub of expiringSoon) {
-      console.info(`[SubscriptionExpiry] 订阅 ${sub.subscription_no} 将在 ${sub.days_remaining} 天后到期`);
+      logger.info(`[SubscriptionExpiry] 订阅 ${sub.subscription_no} 将在 ${sub.days_remaining} 天后到期`);
 
       // 发送到期提醒（这里只是记录日志，实际应该对接短信/邮件服务）
-      console.info(`[SubscriptionExpiry] 发送到期提醒给 ${sub.company_name} (${sub.contact_mobile})`);
+      logger.info(`[SubscriptionExpiry] 发送到期提醒给 ${sub.company_name} (${sub.contact_mobile})`);
 
       // 标记已发送通知
       await query(
@@ -41,7 +42,7 @@ export async function checkSubscriptionExpiry() {
 
       // 如果是自动续费，创建续费订单
       if (sub.auto_renew) {
-        console.info(`[SubscriptionExpiry] 订阅 ${sub.subscription_no} 开启自动续费，创建续费订单`);
+        logger.info(`[SubscriptionExpiry] 订阅 ${sub.subscription_no} 开启自动续费，创建续费订单`);
         // 这里可以调用创建续费订单的逻辑
       }
     }
@@ -60,7 +61,7 @@ export async function checkSubscriptionExpiry() {
     );
 
     for (const sub of expired) {
-      console.info(`[SubscriptionExpiry] 订阅 ${sub.subscription_no} 已过期 ${sub.overdue_days} 天`);
+      logger.info(`[SubscriptionExpiry] 订阅 ${sub.subscription_no} 已过期 ${sub.overdue_days} 天`);
 
       // 自动停用租户
       await query(
@@ -75,12 +76,12 @@ export async function checkSubscriptionExpiry() {
         [sub.id]
       );
 
-      console.info(`[SubscriptionExpiry] 租户 ${sub.company_name} 已自动停用`);
+      logger.info(`[SubscriptionExpiry] 租户 ${sub.company_name} 已自动停用`);
     }
 
-    console.info(`[SubscriptionExpiry] 检查完成，发现 ${expiringSoon.length} 个即将到期，${expired.length} 个已过期`);
+    logger.info(`[SubscriptionExpiry] 检查完成，发现 ${expiringSoon.length} 个即将到期，${expired.length} 个已过期`);
   } catch (error) {
-    console.error("[SubscriptionExpiry] 检查失败:", error);
+    logger.error("[SubscriptionExpiry] 检查失败:", error);
   }
 }
 
@@ -90,11 +91,11 @@ export async function checkSubscriptionExpiry() {
  */
 export function startSubscriptionExpiryScanner() {
   if (schedulerInterval) {
-    console.info("[SubscriptionExpiry] 定时任务已在运行");
+    logger.info("[SubscriptionExpiry] 定时任务已在运行");
     return;
   }
 
-  console.info("[SubscriptionExpiry] 启动订阅到期检查定时任务");
+  logger.info("[SubscriptionExpiry] 启动订阅到期检查定时任务");
 
   // 启动时立即执行一次
   checkSubscriptionExpiry();
@@ -116,6 +117,6 @@ export function stopSubscriptionExpiryScanner() {
   if (schedulerInterval) {
     clearInterval(schedulerInterval);
     schedulerInterval = null;
-    console.info("[SubscriptionExpiry] 定时任务已停止");
+    logger.info("[SubscriptionExpiry] 定时任务已停止");
   }
 }

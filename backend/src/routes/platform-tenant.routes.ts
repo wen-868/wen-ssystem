@@ -8,6 +8,9 @@ import {
 
 export const platformTenantRouter = Router();
 
+// 所有平台租户管理接口需要平台管理员认证
+platformTenantRouter.use(requirePlatformAuth);
+
 // GET /api/platform/tenants - 租户列表
 platformTenantRouter.get("/", asyncHandler(async (req: any, res: any) => {
   const page = Number(req.query.page || 1);

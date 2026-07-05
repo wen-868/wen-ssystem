@@ -10,6 +10,7 @@
  * 3. 可选：在 Controller 层使用 fieldSyncMiddleware 自动拦截
  */
 
+import logger from "./logger.js";
 import { queryWithTenant } from "./db.js";
 
 // ─── 类型定义 ─────────────────────────────────────────────────
@@ -355,7 +356,7 @@ export async function syncChangedFields(
           success: false,
           error: err.message
         });
-        console.error(`[FieldSync] 同步失败: ${mapping.sourceTable}.${mapping.sourceField} → ${mapping.targetTable}.${mapping.targetField}`, err.message);
+        logger.error(`[FieldSync] 同步失败: ${mapping.sourceTable}.${mapping.sourceField} → ${mapping.targetTable}.${mapping.targetField}`, err.message);
       }
     }
   }

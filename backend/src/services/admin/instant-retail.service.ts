@@ -5,6 +5,7 @@
  */
 
 import { z } from "zod";
+import logger from "../../shared/logger.js";
 import { query, queryWithTenant, queryOneWithTenant, transaction } from "../../shared/db.js";
 import { getAdapter, parsePlatformType, parseUnifiedOrder } from "../instant-retail/adapters/index.js";
 import type { PlatformType } from "../instant-retail/types.js";
@@ -30,7 +31,7 @@ function buildWebhookResponse(platform: PlatformType, success: boolean, message?
 export async function handleWebhook(platform: PlatformType, rawBody: any, signature: string, timestamp: string) {
   const config = await getPlatformConfig(platform);
   if (!config) {
-    console.warn(`[Webhook] ${platform} 无配置，跳过处理`);
+    logger.warn(`[Webhook] ${platform} 无配置，跳过处理`);
     return { status: 200, response: buildWebhookResponse(platform, true) };
   }
 
@@ -38,7 +39,7 @@ export async function handleWebhook(platform: PlatformType, rawBody: any, signat
 
   const verifyResult = await adapter.verifyWebhook(rawBody, signature, timestamp);
   if (!verifyResult.valid) {
-    console.warn(`[Webhook] ${platform} 验签失败`, { signature, timestamp });
+    logger.warn(`[Webhook] ${platform} 验签失败`, { signature, timestamp });
     return { status: 400, response: buildWebhookResponse(platform, false, "验签失败") };
   }
 

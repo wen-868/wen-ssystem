@@ -1,29 +1,6 @@
-import { z } from "zod";
 import { asyncHandler } from "../../shared/async-handler.js";
 import { ok } from "../../shared/response.js";
 import * as customerService from "../../services/admin/customer.service.js";
-
-const createCustomerSchema = z.object({
-  name: z.string().min(1).max(100),
-  mobile: z.string().max(20).optional(),
-  customerType: z.enum(["PERSONAL", "COMPANY"]).default("PERSONAL"),
-  address: z.string().max(500).optional(),
-  remark: z.string().max(500).optional(),
-  staffId: z.number().int().positive().optional(),
-});
-
-const updateCustomerSchema = z.object({
-  name: z.string().min(1).max(100).optional(),
-  mobile: z.string().max(20).optional(),
-  customerType: z.enum(["PERSONAL", "COMPANY"]).optional(),
-  address: z.string().max(500).optional(),
-  remark: z.string().max(500).optional(),
-  status: z.enum(["ACTIVE", "INACTIVE"]).optional(),
-});
-
-const assignStaffSchema = z.object({
-  staffId: z.number().int().positive(),
-});
 
 export const listMembers = asyncHandler(async (req, res) => {
   const result = await customerService.listMembers(
@@ -36,8 +13,7 @@ export const listMembers = asyncHandler(async (req, res) => {
 });
 
 export const createCustomer = asyncHandler(async (req, res) => {
-  const body = createCustomerSchema.parse(req.body);
-  const result = await customerService.createCustomer(req.tenantId!, body as any);
+  const result = await customerService.createCustomer(req.tenantId!, req.body);
   res.json(ok(result));
 });
 
@@ -47,8 +23,7 @@ export const getCustomerDetail = asyncHandler(async (req, res) => {
 });
 
 export const updateCustomer = asyncHandler(async (req, res) => {
-  const body = updateCustomerSchema.parse(req.body);
-  const result = await customerService.updateCustomer(req.tenantId!, Number(req.params.memberId), body as any);
+  const result = await customerService.updateCustomer(req.tenantId!, Number(req.params.memberId), req.body);
   res.json(ok(result));
 });
 
@@ -58,11 +33,10 @@ export const disableCustomer = asyncHandler(async (req, res) => {
 });
 
 export const assignStaffToCustomer = asyncHandler(async (req, res) => {
-  const body = assignStaffSchema.parse(req.body);
   const result = await customerService.assignStaffToCustomer(
     req.tenantId!,
     Number(req.params.memberId),
-    body.staffId
+    Number(req.body.staffId)
   );
   res.json(ok(result));
 });

@@ -1,4 +1,5 @@
 import { query, transaction } from "../../shared/db.js";
+import logger from "../../shared/logger.js";
 
 let scannerRunning = false;
 
@@ -101,7 +102,7 @@ async function processTimeoutConfig(config: {
           [order.id, config.order_type, config.timeout_type, config.action, String(err), tenantId]
         );
       } catch {
-        console.error(`订单超时处理失败 [订单ID=${order.id} 租户ID=${tenantId}]:`, err);
+        logger.error(`订单超时处理失败 [订单ID=${order.id} 租户ID=${tenantId}]:`, err);
       }
     }
   }
@@ -131,7 +132,7 @@ export function startOrderTimeoutScanner() {
         await processTimeoutConfig(config);
       }
     } catch (err) {
-      console.error("[OrderTimeoutScanner] 扫描出错:", err);
+      logger.error("[OrderTimeoutScanner] 扫描出错:", err);
     }
   }, SCAN_INTERVAL);
 
@@ -139,5 +140,5 @@ export function startOrderTimeoutScanner() {
     (timer as any).unref();
   }
 
-  console.info("[OrderTimeoutScanner] 订单超时扫描器已启动，每60秒扫描一次");
+  logger.info("[OrderTimeoutScanner] 订单超时扫描器已启动，每60秒扫描一次");
 }

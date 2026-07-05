@@ -7,6 +7,7 @@
  */
 
 import crypto from 'crypto';
+import logger from '../../shared/logger.js';
 import type {
   AdapterInterface,
   PlatformCredentials,
@@ -111,7 +112,7 @@ export abstract class AbstractPlatformAdapter implements AdapterInterface {
    * @returns 是否成功
    */
   async rejectOrder(platformOrderId: string, _reason?: string): Promise<boolean> {
-    console.warn(`[${this.platform}] rejectOrder not implemented for ${platformOrderId}`);
+    logger.warn(`[${this.platform}] rejectOrder not implemented for ${platformOrderId}`);
     return false;
   }
 

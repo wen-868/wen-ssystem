@@ -8,6 +8,7 @@
 
 import { AbstractPlatformAdapter } from "../base-adapter.js";
 import { platformCall, useMock } from "../http-client.js";
+import logger from "../../../shared/logger.js";
 import type {
   PlatformCredentials,
   PlatformType,
@@ -64,7 +65,7 @@ export class ElemeAdapter extends AbstractPlatformAdapter {
         throw new Error("[ELEME] Cannot refresh token: no credentials");
       },
       (async () => {
-        console.info("[ELEME] Mock authenticate");
+        logger.info("[ELEME] Mock authenticate");
         const expireAt = new Date(Date.now() + 7200 * 1000);
         const creds: PlatformCredentials = {
           platform: "ELEME",
@@ -214,7 +215,7 @@ export class ElemeAdapter extends AbstractPlatformAdapter {
         const mockOrders: UnifiedOrder[] = Array.from({ length: Math.min(limit, 3) }).map((_, i) =>
           this.createMockOrder(`ELM${Date.now()}${i}`, params?.status ?? "PENDING")
         );
-        console.info(`[ELEME] Mock synced ${mockOrders.length} orders`);
+        logger.info(`[ELEME] Mock synced ${mockOrders.length} orders`);
         return { orders: mockOrders, hasMore: false, nextCursor: undefined };
       }) as any
     );
@@ -226,7 +227,7 @@ export class ElemeAdapter extends AbstractPlatformAdapter {
     const orders = result.body.dataList.map((o: Record<string, unknown>) => this.mapToUnifiedOrder(o, storeId));
     const hasMore = result.body.currentPage * result.body.pageSize < result.body.totalCount;
 
-    console.info(`[ELEME] Synced ${orders.length} orders`);
+    logger.info(`[ELEME] Synced ${orders.length} orders`);
 
     return {
       orders,
@@ -250,7 +251,7 @@ export class ElemeAdapter extends AbstractPlatformAdapter {
       },
       () => this.authenticate(),
       async () => {
-        console.info(`[ELEME] Mock confirm order: ${platformOrderId}`);
+        logger.info(`[ELEME] Mock confirm order: ${platformOrderId}`);
         return { body: { success: true } };
       }
     ).then((r: any) => r.body?.success ?? true);
@@ -273,7 +274,7 @@ export class ElemeAdapter extends AbstractPlatformAdapter {
       },
       () => this.authenticate(),
       async () => {
-        console.info(`[ELEME] Mock start delivery: ${platformOrderId}`);
+        logger.info(`[ELEME] Mock start delivery: ${platformOrderId}`);
         return { body: { success: true } };
       }
     ).then((r: any) => r.body?.success ?? true);
@@ -294,7 +295,7 @@ export class ElemeAdapter extends AbstractPlatformAdapter {
       },
       () => this.authenticate(),
       async () => {
-        console.info(`[ELEME] Mock complete delivery: ${platformOrderId}`);
+        logger.info(`[ELEME] Mock complete delivery: ${platformOrderId}`);
         return { body: { success: true } };
       }
     ).then((r: any) => r.body?.success ?? true);
@@ -316,7 +317,7 @@ export class ElemeAdapter extends AbstractPlatformAdapter {
       },
       () => this.authenticate(),
       async () => {
-        console.info(`[ELEME] Mock cancel order: ${platformOrderId}, reason: ${reason ?? "N/A"}`);
+        logger.info(`[ELEME] Mock cancel order: ${platformOrderId}, reason: ${reason ?? "N/A"}`);
         return { body: { success: true } };
       }
     ).then((r: any) => r.body?.success ?? true);
@@ -365,7 +366,7 @@ export class ElemeAdapter extends AbstractPlatformAdapter {
           platform: "ELEME" as PlatformType,
           storeId,
         }));
-        console.info(`[ELEME] Mock synced ${mockProducts.length} products`);
+        logger.info(`[ELEME] Mock synced ${mockProducts.length} products`);
         return { products: mockProducts, hasMore: false, nextCursor: undefined };
       }) as any
     );
@@ -377,7 +378,7 @@ export class ElemeAdapter extends AbstractPlatformAdapter {
     const products = result.body.dataList.map((p: Record<string, unknown>) => this.mapToUnifiedProduct(p, storeId));
     const hasMore = result.body.currentPage * result.body.pageSize < result.body.totalCount;
 
-    console.info(`[ELEME] Synced ${products.length} products`);
+    logger.info(`[ELEME] Synced ${products.length} products`);
 
     return {
       products,
@@ -409,7 +410,7 @@ export class ElemeAdapter extends AbstractPlatformAdapter {
       },
       () => this.authenticate(),
       async () => {
-        console.info(`[ELEME] Mock updating inventory for ${params.length} items`);
+        logger.info(`[ELEME] Mock updating inventory for ${params.length} items`);
         return {
           body: {
             results: params.map((p) => ({
@@ -432,7 +433,7 @@ export class ElemeAdapter extends AbstractPlatformAdapter {
     const expectedSign = this.hmacSha256(`${payloadStr}${ts}`, appSecret);
     const valid = expectedSign === signature;
 
-    console.info(`[ELEME] Webhook verification: ${valid ? "passed" : "failed"}`);
+    logger.info(`[ELEME] Webhook verification: ${valid ? "passed" : "failed"}`);
 
     return {
       valid,

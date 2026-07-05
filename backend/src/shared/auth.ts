@@ -94,3 +94,24 @@ export const requireAuth: any = (req: any, res: any, next: any) => {
 };
 
 export const requireAuthWithTenant = [requireAuth, tenantMiddleware] as RequestHandler[];
+
+// 平台总后台认证：验证 platform_admin JWT
+export const requirePlatformAuth: any = (req: any, res: any, next: any) => {
+  const authorization = req.headers.authorization || "";
+  const token = authorization.replace(/^Bearer\s+/i, "");
+  if (!token) {
+    res.status(401).json({ code: "401", message: "未登录" });
+    return;
+  }
+  try {
+    const decoded = jwt.verify(token, env.JWT_SECRET) as any;
+    if (decoded.type !== "platform_admin") {
+      res.status(403).json({ code: "403", message: "无权限" });
+      return;
+    }
+    req.user = decoded;
+    next();
+  } catch {
+    res.status(401).json({ code: "401", message: "登录已失效" });
+  }
+};

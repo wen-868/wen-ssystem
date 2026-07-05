@@ -2,6 +2,7 @@ import cors from "cors";
 import express from "express";
 import helmet from "helmet";
 import rateLimit from "express-rate-limit";
+import logger from "./shared/logger.js";
 import { env } from "./shared/env.js";
 import { initDatabase } from "./shared/db.js";
 import { errorHandler } from "./shared/error-handler.js";
@@ -20,6 +21,40 @@ import { startSubscriptionExpiryScanner } from "./services/subscription-expiry.s
 import "./jobs/report-aggregation.job.js";
 import { insertErrorLog } from "./services/admin/error-log.service.js";
 import { reportToLingZhou } from "./shared/feishu-report.js";
+import { tagRouter } from "./routes/tag.routes.js";
+import { platformRouter } from "./routes/platform.routes.js";
+import { platformTenantRouter } from "./routes/platform-tenant.routes.js";
+import { platformAuthRouter } from "./routes/platform-auth.routes.js";
+import { platformMonitorRouter } from "./routes/platform-monitor.routes.js";
+import { customerPriceRouter } from "./routes/customer-price.routes.js";
+import { commissionRouter } from "./routes/commission.routes.js";
+import { supplierStatementRouter } from "./routes/supplier-statement.routes.js";
+import { purchasePlanRouter } from "./routes/purchase-plan.routes.js";
+import { purchaseContractRouter } from "./routes/purchase-contract.routes.js";
+import { inventoryCostRouter } from "./routes/inventory-cost.routes.js";
+import { stockWarningRouter } from "./routes/stock-warning.routes.js";
+import { inventoryLossGainRouter } from "./routes/inventory-loss-gain.routes.js";
+import { pointsRouter } from "./routes/points.routes.js";
+import { storeValueCardRouter } from "./routes/store-value-card.routes.js";
+import { customerTagRouter } from "./routes/customer-tag.routes.js";
+import { customerCareRouter } from "./routes/customer-care.routes.js";
+import { customerSegmentRouter } from "./routes/customer-segment.routes.js";
+import { receiptRouter } from "./routes/receipt.routes.js";
+import { paymentNewRouter } from "./routes/payment-new.routes.js";
+import { receivableRouter } from "./routes/receivable.routes.js";
+import { expenseRouter } from "./routes/expense.routes.js";
+import { reconciliationRouter } from "./routes/reconciliation.routes.js";
+import { operationLogRouter } from "./routes/operation-log.routes.js";
+import { sysUserRouter } from "./routes/sys-user.routes.js";
+import { systemRouter } from "./routes/system.routes.js";
+import { workbenchRouter } from "./routes/workbench.routes.js";
+import paymentConfigRouter from "./routes/payment-config.routes.js";
+import miniappConfigRouter from "./routes/miniapp-config.routes.js";
+import syncRouter from "./routes/sync.routes.js";
+import { orderSyncLogRouter } from "./routes/miniapp-order-sync.routes.js";
+import { platformReconciliationRouter } from "./routes/platform-reconciliation.routes.js";
+import { platformReviewRouter } from "./routes/platform-review.routes.js";
+import { customReportRouter } from "./routes/custom-report.routes.js";
 
 const app = express();
 
@@ -118,7 +153,7 @@ async function start() {
   }
 
   app.listen(env.PORT, () => {
-    console.info(`zhixiang-backend listening on http://localhost:${env.PORT}`);
+    logger.info(`zhixiang-backend listening on http://localhost:${env.PORT}`);
     // 启动预警定时检查
     startAlertScheduler();
     // 启动效期扫描器
@@ -137,7 +172,7 @@ async function start() {
 // 仅在非测试环境启动 server（测试环境由 supertest 自行管理连接）
 if (process.env.NODE_ENV !== "test") {
   start().catch((error: any) => {
-    console.error("❌ 后端启动失败:", error);
+    logger.error("❌ 后端启动失败:", error);
     (globalThis as any).process?.exit(1);
   });
 }

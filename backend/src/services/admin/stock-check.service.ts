@@ -15,7 +15,7 @@ export async function createCheck(params: {
        VALUES (?, ?, 'DRAFT', ?, ?)`,
       [checkNo, storeId, remark, tenantId] as any[]
     );
-    return (insertResult as any).insertId;
+    return (insertResult as unknown as Record<string, unknown>).insertId;
   });
 
   return { checkId: result, checkNo };
@@ -41,7 +41,7 @@ export async function listChecks(params: {
 
   const where = conditions.join(" AND ");
 
-  const records = await query<any>(
+  const records = await query<Record<string, unknown>>(
     `SELECT sc.*, s.name AS store_name
      FROM stock_check sc
      LEFT JOIN store s ON s.id = sc.store_id AND s.tenant_id = sc.tenant_id
@@ -51,7 +51,7 @@ export async function listChecks(params: {
     [...values, pageSize, offset]
   );
 
-  const totalRow = await queryOne<any>(
+  const totalRow = await queryOne<Record<string, unknown>>(
     `SELECT COUNT(*) AS total FROM stock_check sc WHERE ${where}`,
     values
   );
@@ -65,17 +65,17 @@ export async function getStatistics(tenantId: string) {
   monthStart.setHours(0, 0, 0, 0);
   const monthStartStr = monthStart.toISOString().slice(0, 10);
 
-  const monthTotal = await queryOne<any>(
+  const monthTotal = await queryOne<Record<string, unknown>>(
     "SELECT COUNT(*) AS total FROM stock_check WHERE created_at >= ? AND tenant_id = ?",
     [monthStartStr, tenantId]
   );
 
-  const diffCount = await queryOne<any>(
+  const diffCount = await queryOne<Record<string, unknown>>(
     "SELECT COUNT(*) AS total FROM stock_check WHERE status = 'COMPLETED' AND diff_sku > 0 AND created_at >= ? AND tenant_id = ?",
     [monthStartStr, tenantId]
   );
 
-  const diffAmount = await queryOne<any>(
+  const diffAmount = await queryOne<Record<string, unknown>>(
     "SELECT COALESCE(SUM(diff_amount), 0) AS total FROM stock_check WHERE status = 'COMPLETED' AND created_at >= ? AND tenant_id = ?",
     [monthStartStr, tenantId]
   );
@@ -88,7 +88,7 @@ export async function getStatistics(tenantId: string) {
 }
 
 export async function getCheckDetail(id: number, tenantId: string) {
-  const check = await queryOne<any>(
+  const check = await queryOne<Record<string, unknown>>(
     `SELECT sc.*, s.name AS store_name
      FROM stock_check sc
      LEFT JOIN store s ON s.id = sc.store_id AND s.tenant_id = sc.tenant_id
@@ -98,7 +98,7 @@ export async function getCheckDetail(id: number, tenantId: string) {
 
   if (!check) throw Object.assign(new Error("盘点单不存在"), { statusCode: 404 });
 
-  const items = await query<any>(
+  const items = await query<Record<string, unknown>>(
     "SELECT * FROM stock_check_item WHERE check_id = ? AND tenant_id = ?",
     [id, tenantId]
   );
@@ -108,11 +108,11 @@ export async function getCheckDetail(id: number, tenantId: string) {
 
 export async function updateCheck(id: number, tenantId: string, body: { remark?: string }) {
   await transaction(async (conn) => {
-    const [rows] = await conn.execute<any[]>(
+    const [rows] = await conn.execute(
       "SELECT * FROM stock_check WHERE id = ? AND tenant_id = ? FOR UPDATE",
       [id, tenantId]
     );
-    const check = (rows as any[])[0];
+    const check = (rows as unknown as Record<string, unknown>[])[0];
     if (!check) throw new Error("盘点单不存在");
     if (check.status !== "DRAFT") throw new Error("仅草稿状态可编辑");
 
@@ -126,21 +126,21 @@ export async function updateCheck(id: number, tenantId: string, body: { remark?:
 
 export async function startCheck(id: number, tenantId: string) {
   await transaction(async (conn) => {
-    const [rows] = await conn.execute<any[]>(
+    const [rows] = await conn.execute(
       "SELECT * FROM stock_check WHERE id = ? AND tenant_id = ? FOR UPDATE",
       [id, tenantId]
     );
-    const check = (rows as any[])[0];
+    const check = (rows as unknown as Record<string, unknown>[])[0];
     if (!check) throw new Error("盘点单不存在");
     if (check.status !== "DRAFT") throw new Error("仅草稿状态可开始盘点");
 
-    const [skuRows] = await conn.execute<any[]>(
+    const [skuRows] = await conn.execute(
       `SELECT ib.sku_id, ps.sku_name, ib.batch_no, ib.quantity
        FROM inventory_batch ib
        LEFT JOIN product_sku ps ON ps.id = ib.sku_id AND ps.tenant_id = ib.tenant_id
        WHERE ib.store_id = ? AND ib.quantity > 0 AND ib.tenant_id = ?
        ORDER BY ib.sku_id, ib.batch_no`,
-      [check.store_id, tenantId]
+      [check.store_id, tenantId] as any[]
     );
 
     await conn.execute("DELETE FROM stock_check_item WHERE check_id = ? AND tenant_id = ?", [id, tenantId]);
@@ -166,15 +166,15 @@ export async function startCheck(id: number, tenantId: string) {
 
 export async function completeCheck(id: number, tenantId: string) {
   await transaction(async (conn) => {
-    const [rows] = await conn.execute<any[]>(
+    const [rows] = await conn.execute(
       "SELECT * FROM stock_check WHERE id = ? AND tenant_id = ? FOR UPDATE",
       [id, tenantId]
     );
-    const check = (rows as any[])[0];
+    const check = (rows as unknown as Record<string, unknown>[])[0];
     if (!check) throw new Error("盘点单不存在");
     if (check.status !== "CHECKING") throw new Error("仅盘点中状态可完成");
 
-    const [summaryRows] = await conn.execute<any[]>(
+    const [summaryRows] = await conn.execute(
       `SELECT
          COUNT(*) AS total_sku,
          SUM(CASE WHEN diff_qty != 0 THEN 1 ELSE 0 END) AS diff_sku,
@@ -182,7 +182,7 @@ export async function completeCheck(id: number, tenantId: string) {
        FROM stock_check_item WHERE check_id = ? AND tenant_id = ?`,
       [id, tenantId]
     );
-    const summary = (summaryRows as any[])[0];
+    const summary = (summaryRows as unknown as Record<string, unknown>[])[0];
 
     await conn.execute(
       "UPDATE stock_check SET status = 'COMPLETED', completed_at = NOW(), total_sku = ?, diff_sku = ?, diff_amount = ? WHERE id = ? AND tenant_id = ?",
@@ -195,11 +195,11 @@ export async function completeCheck(id: number, tenantId: string) {
 
 export async function cancelCheck(id: number, tenantId: string) {
   await transaction(async (conn) => {
-    const [rows] = await conn.execute<any[]>(
+    const [rows] = await conn.execute(
       "SELECT * FROM stock_check WHERE id = ? AND tenant_id = ? FOR UPDATE",
       [id, tenantId]
     );
-    const check = (rows as any[])[0];
+    const check = (rows as unknown as Record<string, unknown>[])[0];
     if (!check) throw new Error("盘点单不存在");
     if (check.status !== "DRAFT" && check.status !== "CHECKING") {
       throw new Error("仅草稿或盘点中状态可取消");
@@ -220,30 +220,30 @@ export async function handleDiff(params: {
   const { checkId, itemId, tenantId, userId } = params;
 
   await transaction(async (conn) => {
-    const [checkRows] = await conn.execute<any[]>(
+    const [checkRows] = await conn.execute(
       "SELECT * FROM stock_check WHERE id = ? AND tenant_id = ? FOR UPDATE",
       [checkId, tenantId]
     );
-    const check = (checkRows as any[])[0];
+    const check = (checkRows as unknown as Record<string, unknown>[])[0];
     if (!check) throw new Error("盘点单不存在");
     if (check.status !== "COMPLETED") throw new Error("仅已完成状态可处理差异");
 
-    const [itemRows] = await conn.execute<any[]>(
+    const [itemRows] = await conn.execute(
       "SELECT * FROM stock_check_item WHERE id = ? AND check_id = ? AND tenant_id = ? FOR UPDATE",
       [itemId, checkId, tenantId]
     );
-    const item = (itemRows as any[])[0];
+    const item = (itemRows as unknown as Record<string, unknown>[])[0];
     if (!item) throw new Error("明细不存在");
     if (item.handled) throw new Error("该差异已处理");
     if (item.diff_qty === 0) throw new Error("无差异需要处理");
 
-    const diffQty = item.diff_qty;
+    const diffQty = Number(item.diff_qty);
 
-    const [invRows] = await conn.execute<any[]>(
+    const [invRows] = await conn.execute(
       "SELECT * FROM inventory_balance WHERE store_id = ? AND sku_id = ? AND tenant_id = ? FOR UPDATE",
-      [check.store_id, item.sku_id, tenantId]
+      [check.store_id, item.sku_id, tenantId] as any[]
     );
-    const inv = (invRows as any[])[0];
+    const inv = (invRows as unknown as Record<string, unknown>[])[0];
 
     if (inv) {
       await conn.execute(
@@ -279,7 +279,7 @@ export async function handleDiff(params: {
 // ==================== Store 端 ====================
 
 export async function listMyChecks(storeId: number, tenantId: string) {
-  const records = await query<any>(
+  const records = await query<Record<string, unknown>>(
     `SELECT sc.*, s.name AS store_name
      FROM stock_check sc
      LEFT JOIN store s ON s.id = sc.store_id AND s.tenant_id = sc.tenant_id
@@ -292,7 +292,7 @@ export async function listMyChecks(storeId: number, tenantId: string) {
 }
 
 export async function getMyCheckDetail(id: number, tenantId: string) {
-  const check = await queryOne<any>(
+  const check = await queryOne<Record<string, unknown>>(
     `SELECT sc.*, s.name AS store_name
      FROM stock_check sc
      LEFT JOIN store s ON s.id = sc.store_id AND s.tenant_id = sc.tenant_id
@@ -302,7 +302,7 @@ export async function getMyCheckDetail(id: number, tenantId: string) {
 
   if (!check) throw Object.assign(new Error("盘点单不存在"), { statusCode: 404 });
 
-  const items = await query<any>(
+  const items = await query<Record<string, unknown>>(
     "SELECT * FROM stock_check_item WHERE check_id = ? AND tenant_id = ?",
     [id, tenantId]
   );
@@ -316,27 +316,27 @@ export async function updateItemQty(params: {
   const { checkId, itemId, actualQty, tenantId } = params;
 
   await transaction(async (conn) => {
-    const [rows] = await conn.execute<any[]>(
+    const [rows] = await conn.execute(
       "SELECT * FROM stock_check WHERE id = ? AND tenant_id = ? FOR UPDATE",
       [checkId, tenantId]
     );
-    const check = (rows as any[])[0];
+    const check = (rows as unknown as Record<string, unknown>[])[0];
     if (!check) throw new Error("盘点单不存在");
     if (check.status !== "CHECKING") throw new Error("仅盘点中状态可录入");
 
-    const [itemRows] = await conn.execute<any[]>(
+    const [itemRows] = await conn.execute(
       "SELECT * FROM stock_check_item WHERE id = ? AND check_id = ? AND tenant_id = ? FOR UPDATE",
       [itemId, checkId, tenantId]
     );
-    const item = (itemRows as any[])[0];
+    const item = (itemRows as unknown as Record<string, unknown>[])[0];
     if (!item) throw new Error("明细不存在");
 
-    const [skuRows] = await conn.execute<any[]>(
+    const [skuRows] = await conn.execute(
       "SELECT cost_price FROM product_sku WHERE id = ? AND tenant_id = ?",
-      [item.sku_id, tenantId]
+      [item.sku_id, tenantId] as any[]
     );
-    const unitPrice = (skuRows as any[])[0]?.cost_price ?? 0;
-    const diffQty = actualQty - item.system_qty;
+    const unitPrice = (skuRows as unknown as Record<string, unknown>[])[0]?.cost_price ?? 0;
+    const diffQty = actualQty - Number(item.system_qty);
     const diffAmount = Math.abs(diffQty) * Number(unitPrice);
 
     await conn.execute(
@@ -350,15 +350,15 @@ export async function updateItemQty(params: {
 
 export async function submitCheck(id: number, tenantId: string) {
   await transaction(async (conn) => {
-    const [rows] = await conn.execute<any[]>(
+    const [rows] = await conn.execute(
       "SELECT * FROM stock_check WHERE id = ? AND tenant_id = ? FOR UPDATE",
       [id, tenantId]
     );
-    const check = (rows as any[])[0];
+    const check = (rows as unknown as Record<string, unknown>[])[0];
     if (!check) throw new Error("盘点单不存在");
     if (check.status !== "CHECKING") throw new Error("仅盘点中状态可提交");
 
-    const [summaryRows] = await conn.execute<any[]>(
+    const [summaryRows] = await conn.execute(
       `SELECT
          COUNT(*) AS total_sku,
          SUM(CASE WHEN diff_qty != 0 THEN 1 ELSE 0 END) AS diff_sku,
@@ -366,7 +366,7 @@ export async function submitCheck(id: number, tenantId: string) {
        FROM stock_check_item WHERE check_id = ? AND tenant_id = ?`,
       [id, tenantId]
     );
-    const summary = (summaryRows as any[])[0];
+    const summary = (summaryRows as unknown as Record<string, unknown>[])[0];
 
     await conn.execute(
       "UPDATE stock_check SET status = 'COMPLETED', completed_at = NOW(), total_sku = ?, diff_sku = ?, diff_amount = ? WHERE id = ? AND tenant_id = ?",

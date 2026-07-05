@@ -39,7 +39,7 @@ export async function createTransferOrder(params: CreateTransferOrderParams) {
        VALUES (?, ?, ?, 'DRAFT', ?, ?, ?, ?, ?, ?)`,
       [transferNo, fromStoreId, toStoreId, expectedDate ?? null, totalAmount, totalItems, remark, userId ?? null, tenantId] as any[]
     );
-    const orderId = (insertResult as any).insertId;
+    const orderId = (insertResult as unknown as Record<string, unknown>).insertId;
 
     for (const item of items) {
       const subtotal = item.quantity * item.unitPrice;
@@ -91,7 +91,7 @@ export async function listTransferOrders(params: ListTransferOrdersParams) {
 
   const where = conditions.join(" AND ");
 
-  const records = await queryWithTenant<any>(
+  const records = await queryWithTenant<Record<string, unknown>>(
     `SELECT to.*, fs.name AS from_store_name, ts.name AS to_store_name
      FROM transfer_order to
      LEFT JOIN store fs ON fs.id = to.from_store_id AND fs.tenant_id = to.tenant_id
@@ -103,7 +103,7 @@ export async function listTransferOrders(params: ListTransferOrdersParams) {
     tenantId
   );
 
-  const totalRow = await queryOneWithTenant<any>(
+  const totalRow = await queryOneWithTenant<Record<string, unknown>>(
     `SELECT COUNT(*) AS total FROM transfer_order to WHERE ${where}`,
     values,
     tenantId
@@ -118,19 +118,19 @@ export async function getTransferStatistics(tenantId: string) {
   monthStart.setHours(0, 0, 0, 0);
   const monthStartStr = monthStart.toISOString().slice(0, 10);
 
-  const monthTotal = await queryOneWithTenant<any>(
+  const monthTotal = await queryOneWithTenant<Record<string, unknown>>(
     "SELECT COUNT(*) AS total FROM transfer_order WHERE created_at >= ?",
     [monthStartStr],
     tenantId
   );
 
-  const transitCount = await queryOneWithTenant<any>(
+  const transitCount = await queryOneWithTenant<Record<string, unknown>>(
     "SELECT COUNT(*) AS total FROM transfer_order WHERE status = 'TRANSIT'",
     [],
     tenantId
   );
 
-  const receivedCount = await queryOneWithTenant<any>(
+  const receivedCount = await queryOneWithTenant<Record<string, unknown>>(
     "SELECT COUNT(*) AS total FROM transfer_order WHERE status = 'RECEIVED'",
     [],
     tenantId
@@ -144,7 +144,7 @@ export async function getTransferStatistics(tenantId: string) {
 }
 
 export async function getTransferOrderDetail(id: number, tenantId: string) {
-  const order = await queryOneWithTenant<any>(
+  const order = await queryOneWithTenant<Record<string, unknown>>(
     `SELECT to.*, fs.name AS from_store_name, ts.name AS to_store_name
      FROM transfer_order to
      LEFT JOIN store fs ON fs.id = to.from_store_id AND fs.tenant_id = to.tenant_id
@@ -158,7 +158,7 @@ export async function getTransferOrderDetail(id: number, tenantId: string) {
     throw Object.assign(new Error("调拨单不存在"), { statusCode: 404 });
   }
 
-  const items = await queryWithTenant<any>(
+  const items = await queryWithTenant<Record<string, unknown>>(
     "SELECT * FROM transfer_order_item WHERE transfer_order_id = ?",
     [id],
     tenantId
@@ -177,11 +177,11 @@ export async function updateTransferOrder(id: number, tenantId: string, params: 
   const { expectedDate, remark, items } = params;
 
   await transaction(async (conn) => {
-    const [rows] = await conn.execute<any[]>(
+    const [rows] = await conn.execute(
       "SELECT * FROM transfer_order WHERE id = ? AND tenant_id = ? FOR UPDATE",
       [id, tenantId]
     );
-    const order = (rows as any[])[0];
+    const order = (rows as unknown as Record<string, unknown>[])[0];
     if (!order) throw new Error("调拨单不存在");
     if (order.status !== "DRAFT") throw new Error("仅草稿状态可编辑");
 
@@ -215,11 +215,11 @@ export async function updateTransferOrder(id: number, tenantId: string, params: 
 
 export async function submitTransferOrder(id: number, tenantId: string) {
   await transaction(async (conn) => {
-    const [rows] = await conn.execute<any[]>(
+    const [rows] = await conn.execute(
       "SELECT * FROM transfer_order WHERE id = ? AND tenant_id = ? FOR UPDATE",
       [id, tenantId]
     );
-    const order = (rows as any[])[0];
+    const order = (rows as unknown as Record<string, unknown>[])[0];
     if (!order) throw new Error("调拨单不存在");
     if (order.status !== "DRAFT") throw new Error("仅草稿状态可提交");
 
@@ -234,11 +234,11 @@ export async function submitTransferOrder(id: number, tenantId: string) {
 
 export async function approveTransferOrder(id: number, tenantId: string, userId: number | null) {
   await transaction(async (conn) => {
-    const [rows] = await conn.execute<any[]>(
+    const [rows] = await conn.execute(
       "SELECT * FROM transfer_order WHERE id = ? AND tenant_id = ? FOR UPDATE",
       [id, tenantId]
     );
-    const order = (rows as any[])[0];
+    const order = (rows as unknown as Record<string, unknown>[])[0];
     if (!order) throw new Error("调拨单不存在");
     if (order.status !== "PENDING") throw new Error("仅待审核状态可审批");
 
@@ -253,11 +253,11 @@ export async function approveTransferOrder(id: number, tenantId: string, userId:
 
 export async function rejectTransferOrder(id: number, tenantId: string) {
   await transaction(async (conn) => {
-    const [rows] = await conn.execute<any[]>(
+    const [rows] = await conn.execute(
       "SELECT * FROM transfer_order WHERE id = ? AND tenant_id = ? FOR UPDATE",
       [id, tenantId]
     );
-    const order = (rows as any[])[0];
+    const order = (rows as unknown as Record<string, unknown>[])[0];
     if (!order) throw new Error("调拨单不存在");
     if (order.status !== "PENDING") throw new Error("仅待审核状态可拒绝");
 

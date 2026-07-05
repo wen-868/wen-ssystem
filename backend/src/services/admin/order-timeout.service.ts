@@ -1,4 +1,5 @@
 import { query, queryOne, transaction } from "../../shared/db.js";
+import logger from "../../shared/logger.js";
 
 export async function getConfigs(tenantId: string) {
   return query<any>(
@@ -247,7 +248,7 @@ export async function processTimeoutConfig(config: {
           [order.id, config.order_type, config.timeout_type, config.action, String(err), tenantId]
         );
       } catch {
-        console.error(`订单超时处理失败 [订单ID=${order.id} 租户ID=${tenantId}]:`, err);
+        logger.error(`订单超时处理失败 [订单ID=${order.id} 租户ID=${tenantId}]:`, err);
       }
     }
   }

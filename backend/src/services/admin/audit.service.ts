@@ -1,4 +1,5 @@
 import { query, queryOne, pool } from "../../shared/db.js";
+import logger from "../../shared/logger.js";
 import type { Request } from "express";
 
 export async function listAuditLogs(params: {
@@ -103,6 +104,6 @@ export function writeAuditLog(p: LogAuditParams): void {
       [p.userId, p.userName, p.role, p.action, p.resourceType, p.resourceId ?? null, p.detail ?? null, ip, userAgent, p.tenantId]
     )
     .catch((err: any) => {
-      console.error("[audit] 写入审计日志失败:", err);
+      logger.error("[audit] 写入审计日志失败:", err);
     });
 }

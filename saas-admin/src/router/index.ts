@@ -1,4 +1,4 @@
-import { createRouter, createWebHistory } from "vue-router";
+import { createRouter, createWebHashHistory } from "vue-router";
 import MainLayout from "../layouts/MainLayout.vue";
 import LoginView from "../views/LoginView.vue";
 
@@ -67,9 +67,47 @@ const routes = [
 ];
 
 const router = createRouter({
-  history: createWebHistory(),
-  routes
-});
+  history: createWebHashHistory(),
+  routes: [
+    {
+      path: '/login',
+      name: 'Login',
+      component: () => import('../views/login/PlatformLogin.vue'),
+      meta: { title: '平台登录' },
+    },
+    {
+      path: '/',
+      component: () => import('../layouts/PlatformLayout.vue'),
+      redirect: '/tenants',
+      children: [
+        {
+          path: 'tenants',
+          name: 'TenantList',
+          component: () => import('../views/tenant/TenantList.vue'),
+          meta: { title: '租户管理' },
+        },
+        {
+          path: 'tenants/create',
+          name: 'TenantCreate',
+          component: () => import('../views/tenant/TenantForm.vue'),
+          meta: { title: '新增租户' },
+        },
+        {
+          path: 'tenants/:id',
+          name: 'TenantDetail',
+          component: () => import('../views/tenant/TenantDetail.vue'),
+          meta: { title: '租户详情' },
+        },
+        {
+          path: 'monitor',
+          name: 'Monitor',
+          component: () => import('../views/monitor/MonitorView.vue'),
+          meta: { title: '系统监控' },
+        },
+      ],
+    },
+  ],
+})
 
 router.beforeEach((to, _from, next) => {
   const token = localStorage.getItem("saas_token");

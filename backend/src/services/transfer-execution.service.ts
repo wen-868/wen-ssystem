@@ -2,11 +2,11 @@ import { queryWithTenant, transaction } from "../shared/db.js";
 
 export async function cancelTransferOrder(id: number, tenantId: string) {
   await transaction(async (conn) => {
-    const [rows] = await conn.execute<any[]>(
+    const [rows] = await conn.execute(
       "SELECT * FROM transfer_order WHERE id = ? AND tenant_id = ? FOR UPDATE",
       [id, tenantId]
     );
-    const order = (rows as any[])[0];
+    const order = (rows as unknown as Record<string, unknown>[])[0];
     if (!order) throw new Error("调拨单不存在");
     if (order.status !== "DRAFT" && order.status !== "PENDING") {
       throw new Error("仅草稿或待审核状态可取消");
@@ -23,29 +23,29 @@ export async function cancelTransferOrder(id: number, tenantId: string) {
 
 export async function shipTransferOrder(id: number, tenantId: string, userId: number | null) {
   await transaction(async (conn) => {
-    const [rows] = await conn.execute<any[]>(
+    const [rows] = await conn.execute(
       "SELECT * FROM transfer_order WHERE id = ? AND tenant_id = ? FOR UPDATE",
       [id, tenantId]
     );
-    const order = (rows as any[])[0];
+    const order = (rows as unknown as Record<string, unknown>[])[0];
     if (!order) throw new Error("调拨单不存在");
     if (order.status !== "APPROVED") throw new Error("仅已审核状态可发货");
 
-    const [itemRows] = await conn.execute<any[]>(
+    const [itemRows] = await conn.execute(
       "SELECT * FROM transfer_order_item WHERE transfer_order_id = ? AND tenant_id = ?",
       [id, tenantId]
     );
-    const items = itemRows as any[];
+    const items = itemRows as unknown as Record<string, unknown>[];
 
     for (const item of items) {
-      const shipQty = item.quantity - item.transferred_qty;
+      const shipQty = Number(item.quantity) - Number(item.transferred_qty);
       if (shipQty <= 0) continue;
 
-      const [invRows] = await conn.execute<any[]>(
+      const [invRows] = await conn.execute(
         "SELECT * FROM inventory_balance WHERE store_id = ? AND sku_id = ? AND tenant_id = ? FOR UPDATE",
-        [order.from_store_id, item.sku_id, tenantId]
+        [order.from_store_id, item.sku_id, tenantId] as any[]
       );
-      const inv = (invRows as any[])[0];
+      const inv = (invRows as unknown as Record<string, unknown>[])[0];
       if (!inv || Number(inv.available_qty) < shipQty) {
         throw new Error(`SKU ${item.sku_name} 库存不足，可用 ${inv?.available_qty ?? 0}，需要 ${shipQty}`);
       }
@@ -90,34 +90,34 @@ export interface ReceiveItem {
 
 export async function receiveTransferOrder(id: number, tenantId: string, userId: number | null, items: ReceiveItem[]) {
   await transaction(async (conn) => {
-    const [rows] = await conn.execute<any[]>(
+    const [rows] = await conn.execute(
       "SELECT * FROM transfer_order WHERE id = ? AND tenant_id = ? FOR UPDATE",
       [id, tenantId]
     );
-    const order = (rows as any[])[0];
+    const order = (rows as unknown as Record<string, unknown>[])[0];
     if (!order) throw new Error("调拨单不存在");
     if (order.status !== "TRANSIT") throw new Error("仅在途状态可收货");
 
     let allReceived = true;
 
     for (const item of items) {
-      const [itemRows] = await conn.execute<any[]>(
+      const [itemRows] = await conn.execute(
         "SELECT * FROM transfer_order_item WHERE id = ? AND transfer_order_id = ? AND tenant_id = ? FOR UPDATE",
         [item.itemId, id, tenantId]
       );
-      const detail = (itemRows as any[])[0];
+      const detail = (itemRows as unknown as Record<string, unknown>[])[0];
       if (!detail) throw new Error("明细不存在");
 
-      const remaining = detail.quantity - detail.received_qty;
+      const remaining = Number(detail.quantity) - Number(detail.received_qty);
       if (item.receivedQty > remaining) {
         throw new Error(`SKU ${detail.sku_name} 收货数量超出待收数量(剩余 ${remaining})`);
       }
 
-      const [invRows] = await conn.execute<any[]>(
+      const [invRows] = await conn.execute(
         "SELECT * FROM inventory_balance WHERE store_id = ? AND sku_id = ? AND tenant_id = ? FOR UPDATE",
-        [order.to_store_id, detail.sku_id, tenantId]
+        [order.to_store_id, detail.sku_id, tenantId] as any[]
       );
-      const inv = (invRows as any[])[0];
+      const inv = (invRows as unknown as Record<string, unknown>[])[0];
 
       if (inv) {
         await conn.execute(
@@ -150,12 +150,12 @@ export async function receiveTransferOrder(id: number, tenantId: string, userId:
         [id, item.itemId, order.to_store_id, detail.sku_id, item.receivedQty, userId ?? null, tenantId] as any[]
       );
 
-      const [checkRows] = await conn.execute<any[]>(
+      const [checkRows] = await conn.execute(
         "SELECT received_qty, quantity FROM transfer_order_item WHERE transfer_order_id = ? AND tenant_id = ?",
         [id, tenantId]
       );
-      for (const row of checkRows as any[]) {
-        if (row.received_qty < row.quantity) {
+      for (const row of checkRows as unknown as Record<string, unknown>[]) {
+        if (Number(row.received_qty) < Number(row.quantity)) {
           allReceived = false;
           break;
         }

@@ -1,4 +1,5 @@
 import { query, queryOne, transaction } from "../shared/db.js";
+import logger from "../shared/logger.js";
 import { makeBizNo } from "../shared/id.js";
 
 async function getAllActiveTenants(): Promise<string[]> {
@@ -562,14 +563,14 @@ export async function runCheck(tenantId: string) {
 
 export function startAlertScheduler() {
   const intervalMs = 60 * 60 * 1000;
-  console.info(`[预警引擎] 定时检查已启动，间隔 ${intervalMs / 1000} 秒`);
+  logger.info(`[预警引擎] 定时检查已启动，间隔 ${intervalMs / 1000} 秒`);
 
   setTimeout(async () => {
     try {
       const result = await runAllAlertChecks();
-      console.info(`[预警引擎] 首次检查完成，新增预警 ${result.total} 条`);
+      logger.info(`[预警引擎] 首次检查完成，新增预警 ${result.total} 条`);
     } catch (error) {
-      console.error("[预警引擎] 首次检查失败:", error);
+      logger.error("[预警引擎] 首次检查失败:", error);
     }
   }, 30 * 1000);
 
@@ -577,10 +578,10 @@ export function startAlertScheduler() {
     try {
       const result = await runAllAlertChecks();
       if (result.total > 0) {
-        console.info(`[预警引擎] 定时检查完成，新增预警 ${result.total} 条`);
+        logger.info(`[预警引擎] 定时检查完成，新增预警 ${result.total} 条`);
       }
     } catch (error) {
-      console.error("[预警引擎] 定时检查失败:", error);
+      logger.error("[预警引擎] 定时检查失败:", error);
     }
   }, intervalMs);
 }

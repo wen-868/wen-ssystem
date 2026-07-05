@@ -1,36 +1,40 @@
-type LogLevel = "debug" | "info" | "warn" | "error";
+import pino from "pino";
 
-const LOG_LEVELS: Record<LogLevel, number> = { debug: 0, info: 1, warn: 2, error: 3 };
+const pinoLogger = pino({
+  level: process.env.LOG_LEVEL || "info",
+  transport: process.env.NODE_ENV !== "production"
+    ? { target: "pino-pretty", options: { colorize: true, translateTime: "SYS:standard" } }
+    : undefined,
+  serializers: {
+    err: pino.stdSerializers.err,
+    error: pino.stdSerializers.err,
+  },
+});
 
-const currentLevel: LogLevel = (process.env.LOG_LEVEL as LogLevel) || (process.env.NODE_ENV === "production" ? "info" : "debug");
-
-function shouldLog(level: LogLevel): boolean {
-  return LOG_LEVELS[level] >= LOG_LEVELS[currentLevel];
+// 兼容 console 风格调用：logger.info("msg", obj) 或 logger.error("msg", err)
+function createLogger() {
+  return {
+    info: (msg: string, ...args: unknown[]) => {
+      if (args.length === 0) pinoLogger.info(msg);
+      else if (args.length === 1 && args[0] instanceof Error) pinoLogger.info({ err: args[0] }, msg);
+      else pinoLogger.info({ extra: args }, msg);
+    },
+    error: (msg: string, ...args: unknown[]) => {
+      if (args.length === 0) pinoLogger.error(msg);
+      else if (args.length === 1 && args[0] instanceof Error) pinoLogger.error({ err: args[0] }, msg);
+      else pinoLogger.error({ extra: args }, msg);
+    },
+    warn: (msg: string, ...args: unknown[]) => {
+      if (args.length === 0) pinoLogger.warn(msg);
+      else if (args.length === 1 && args[0] instanceof Error) pinoLogger.warn({ err: args[0] }, msg);
+      else pinoLogger.warn({ extra: args }, msg);
+    },
+    debug: (msg: string, ...args: unknown[]) => {
+      if (args.length === 0) pinoLogger.debug(msg);
+      else if (args.length === 1 && args[0] instanceof Error) pinoLogger.debug({ err: args[0] }, msg);
+      else pinoLogger.debug({ extra: args }, msg);
+    },
+  };
 }
 
-function timestamp(): string {
-  return new Date().toISOString();
-}
-
-export const logger = {
-  debug: (message: string, meta?: any) => {
-    if (shouldLog("debug")) {
-      console.debug(`[${timestamp()}] [DEBUG] ${message}`, meta !== undefined ? meta : "");
-    }
-  },
-  info: (message: string, meta?: any) => {
-    if (shouldLog("info")) {
-      console.info(`[${timestamp()}] [INFO] ${message}`, meta !== undefined ? meta : "");
-    }
-  },
-  warn: (message: string, meta?: any) => {
-    if (shouldLog("warn")) {
-      console.warn(`[${timestamp()}] [WARN] ${message}`, meta !== undefined ? meta : "");
-    }
-  },
-  error: (message: string, meta?: any) => {
-    if (shouldLog("error")) {
-      console.error(`[${timestamp()}] [ERROR] ${message}`, meta !== undefined ? meta : "");
-    }
-  },
-};
+export default createLogger();

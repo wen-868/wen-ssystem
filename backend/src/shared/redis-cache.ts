@@ -5,8 +5,8 @@
  */
 
 import { Redis } from "ioredis";
+import logger from "./logger.js";
 import { env } from "../shared/env.js";
-import { logger } from "./logger.js";
 
 let redis: Redis | null = null;
 
@@ -25,7 +25,7 @@ function getRedis(): Redis {
     });
 
     redis.on("error", (err: Error) => {
-      logger.error("[Redis] Connection error: " + err.message);
+      logger.error("[Redis] Connection error:", err.message);
     });
 
     redis.on("connect", () => {
@@ -58,7 +58,7 @@ export async function cacheGet<T>(
     await r.setex(key, ttl, JSON.stringify(data));
     return data;
   } catch (err) {
-    logger.error(`[Redis] cacheGet failed for key ${key}: ${err instanceof Error ? err.message : err}`);
+    logger.error(`[Redis] cacheGet failed for key ${key}:`, err instanceof Error ? err.message : err);
     // 降级：直接查询数据库
     return fetcher();
   }
@@ -72,7 +72,7 @@ export async function cacheDel(key: string): Promise<void> {
     const r = getRedis();
     await r.del(key);
   } catch (err) {
-    logger.error(`[Redis] cacheDel failed for key ${key}: ${err instanceof Error ? err.message : err}`);
+    logger.error(`[Redis] cacheDel failed for key ${key}:`, err instanceof Error ? err.message : err);
   }
 }
 
@@ -88,7 +88,7 @@ export async function cacheDelPattern(pattern: string): Promise<void> {
       logger.info(`[Redis] Deleted ${keys.length} keys matching: ${pattern}`);
     }
   } catch (err) {
-    logger.error(`[Redis] cacheDelPattern failed for ${pattern}: ${err instanceof Error ? err.message : err}`);
+    logger.error(`[Redis] cacheDelPattern failed for ${pattern}:`, err instanceof Error ? err.message : err);
   }
 }
 
