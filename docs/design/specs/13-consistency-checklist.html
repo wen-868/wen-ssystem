@@ -3,27 +3,27 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>13 - 三端一致性检查清单 | 供应链管理系统</title>
+<title>13 - UI一致性检查清单 | 智享酒水库存系统</title>
 <style>
 :root {
-  --brand: #4F46E5; --brand-light: #EEF2FF; --text: #1E293B; --text-secondary: #64748B;
-  --border: #E2E8F0; --bg: #F8FAFC; --white: #FFFFFF; --success: #10B981; --warning: #F59E0B; --danger: #EF4444;
+  --brand: #1677FF; --brand-light: #E6F4FF; --text: #1E293B; --text-secondary: #64748B;
+  --border: #E5E7EB; --bg: #F5F7FA; --white: #FFFFFF; --success: #10B981; --warning: #F59E0B; --danger: #EF4444;
   --radius: 12px; --shadow: 0 1px 3px rgba(0,0,0,.08);
 }
 * { margin: 0; padding: 0; box-sizing: border-box; }
 body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; background: var(--bg); color: var(--text); line-height: 1.6; }
 .container { max-width: 1200px; margin: 0 auto; padding: 40px 24px; }
-.header { background: linear-gradient(135deg, #EA580C, #DC2626); color: #fff; padding: 48px 24px; text-align: center; }
+.header { background: linear-gradient(135deg, #1677FF, #0958D9); color: #fff; padding: 48px 24px; text-align: center; }
 .header h1 { font-size: 2.2rem; font-weight: 700; margin-bottom: 8px; }
 .header p { font-size: 1.05rem; opacity: .85; }
 .section { background: var(--white); border-radius: var(--radius); box-shadow: var(--shadow); padding: 32px; margin-bottom: 24px; }
-.section h2 { font-size: 1.35rem; color: #EA580C; margin-bottom: 8px; padding-bottom: 12px; border-bottom: 2px solid #FFF7ED; }
+.section h2 { font-size: 1.35rem; color: #1677FF; margin-bottom: 8px; padding-bottom: 12px; border-bottom: 2px solid #E6F4FF; }
 .section h3 { font-size: 1.1rem; margin: 20px 0 12px; color: var(--text); }
 .section p.desc { color: var(--text-secondary); margin-bottom: 16px; font-size: .9rem; }
 .spec-table { width: 100%; border-collapse: collapse; margin: 16px 0; }
 .spec-table th, .spec-table td { padding: 10px 12px; text-align: left; border-bottom: 1px solid var(--border); vertical-align: top; font-size: .88rem; }
-.spec-table th { background: #FFF7ED; color: #EA580C; font-weight: 600; font-size: .8rem; text-transform: uppercase; }
-.spec-table tr:hover { background: #FFF7ED; }
+.spec-table th { background: #E6F4FF; color: #1677FF; font-weight: 600; font-size: .8rem; text-transform: uppercase; }
+.spec-table tr:hover { background: #E6F4FF; }
 .spec-table code { background: #F1F5F9; padding: 2px 6px; border-radius: 4px; font-size: .82rem; }
 .status { display: inline-block; padding: 3px 10px; border-radius: 12px; font-size: .72rem; font-weight: 600; }
 .status-pass { background: #D1FAE5; color: #065F46; }
@@ -39,8 +39,8 @@ body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-
 <body>
 
 <div class="header">
-  <h1>三端一致性检查清单</h1>
-  <p>Cross-Platform Consistency Checklist — Admin Web / Merchant Mobile / Store Terminal</p>
+  <h1>UI 一致性检查清单 v2.0</h1>
+  <p>R8-L2 admin-web UI Consistency Review — 林夕 / 2026-07-05</p>
 </div>
 
 <div class="container">
@@ -50,9 +50,9 @@ body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-
     <h2>1. 检查概览</h2>
     <p class="desc">确保供应链管理系统在 Admin Web、商家移动端、门店终端三端保持视觉与交互一致性</p>
     <div class="summary-grid">
-      <div class="summary-card" style="background:#EEF2FF;">
-        <div class="number" style="color:#4F46E5;">8</div>
-        <div class="label" style="color:#4F46E5;">检查维度</div>
+      <div class="summary-card" style="background:#E6F4FF;">
+        <div class="number" style="color:#1677FF;">8</div>
+        <div class="label" style="color:#1677FF;">检查维度</div>
       </div>
       <div class="summary-card" style="background:#ECFDF5;">
         <div class="number" style="color:#059669;">42</div>
@@ -71,11 +71,169 @@ body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-
 
   <!-- 2. 颜色与品牌一致性 -->
   <div class="section">
-    <h2>2. 颜色与品牌一致性</h2>
+    <h2>2. admin-web 代码审查发现（R8-L2）</h2>
+    <p class="desc">对 admin-web 项目进行 UI 一致性审查，检查 5 个维度：颜色方案、表单布局、表格样式、Dialog/Drawer 样式、按钮样式</p>
+
+    <h3>2.1 颜色方案</h3>
+    <table class="spec-table">
+      <thead><tr><th>#</th><th>文件</th><th>问题</th><th>严重度</th><th>建议</th></tr></thead>
+      <tbody>
+        <tr>
+          <td>C1</td>
+          <td><code>tokens.css</code></td>
+          <td class="status status-pass">✅ 设计令牌体系完整，品牌主色 #1677FF 正确</td>
+          <td>—</td>
+          <td>无需修改</td>
+        </tr>
+        <tr>
+          <td>C2</td>
+          <td><code>Reports.vue</code></td>
+          <td>❌ 图表渐变使用硬编码色值 <code>#667eea</code> <code>#764ba2</code> <code>#f093fb</code> 等，未使用设计令牌</td>
+          <td class="status status-warn">中</td>
+          <td>替换为 <code>var(--color-primary)</code> 系列令牌</td>
+        </tr>
+        <tr>
+          <td>C3</td>
+          <td><code>Reports.vue</code></td>
+          <td>❌ 状态点颜色硬编码 <code>#67c23a</code> <code>#e6a23c</code> <code>#409eff</code> <code>#f56c6c</code> <code>#909399</code></td>
+          <td class="status status-warn">中</td>
+          <td>替换为 <code>var(--color-success)</code> <code>var(--color-warning)</code> <code>var(--color-info)</code> <code>var(--color-danger)</code> <code>var(--gray-400)</code></td>
+        </tr>
+        <tr>
+          <td>C4</td>
+          <td><code>Orders.vue</code></td>
+          <td>❌ 错误色使用硬编码 <code>#f56c6c</code> 而非 <code>var(--color-danger)</code></td>
+          <td class="status status-warn">低</td>
+          <td>替换为 <code>var(--color-danger)</code></td>
+        </tr>
+        <tr>
+          <td>C5</td>
+          <td><code>Reports.vue</code></td>
+          <td>❌ "orders" 标题颜色硬编码 <code>#303133</code> <code>#606266</code> <code>#909399</code></td>
+          <td class="status status-warn">低</td>
+          <td>替换为 <code>var(--text-primary)</code> <code>var(--text-secondary)</code> <code>var(--text-muted)</code></td>
+        </tr>
+      </tbody>
+    </table>
+
+    <h3>2.2 表单布局</h3>
+    <table class="spec-table">
+      <thead><tr><th>#</th><th>文件</th><th>问题</th><th>严重度</th><th>建议</th></tr></thead>
+      <tbody>
+        <tr>
+          <td>F1</td>
+          <td><code>PlatformPanel.vue</code></td>
+          <td>⚠️ 表单缺少 <code>ref</code> 和 <code>:rules</code>，仅使用 <code>:model</code></td>
+          <td class="status status-warn">中</td>
+          <td>补充 <code>ref="formRef"</code> 和 <code>:rules</code></td>
+        </tr>
+        <tr>
+          <td>F2</td>
+          <td><code>SeckillManage.vue</code></td>
+          <td>⚠️ 使用行内 <code>:rules</code> 而非集中式 <code>formRules</code> 对象</td>
+          <td class="status status-warn">低</td>
+          <td>提取为统一 <code>formRules</code> 便于维护</td>
+        </tr>
+        <tr>
+          <td>F3</td>
+          <td><code>Suppliers.vue</code></td>
+          <td>⚠️ 筛选表单缺 <code>ref</code> 和 <code>:rules</code></td>
+          <td class="status status-warn">低</td>
+          <td>筛选用表单可放宽，但建议保留 <code>ref</code></td>
+        </tr>
+        <tr>
+          <td>F4</td>
+          <td>大部分表单</td>
+          <td class="status status-pass">✅ 使用 ref + :model + :rules 三件套</td>
+          <td>—</td>
+          <td>无需修改</td>
+        </tr>
+      </tbody>
+    </table>
+
+    <h3>2.3 表格样式</h3>
+    <table class="spec-table">
+      <thead><tr><th>#</th><th>文件</th><th>问题</th><th>严重度</th><th>建议</th></tr></thead>
+      <tbody>
+        <tr>
+          <td>T1</td>
+          <td><code>DataTable.vue</code></td>
+          <td class="status status-pass">✅ 统一表格组件，使用 <code>el-table</code> + stripe + 分页</td>
+          <td>—</td>
+          <td>无需修改</td>
+        </tr>
+        <tr>
+          <td>T2</td>
+          <td><code>tokens.css</code></td>
+          <td class="status status-pass">✅ 表格令牌完整（--table-header-bg, --table-row-hover, --table-stripe, --table-border, --table-row-height）</td>
+          <td>—</td>
+          <td>无需修改</td>
+        </tr>
+      </tbody>
+    </table>
+
+    <h3>2.4 Dialog/Drawer 样式</h3>
+    <table class="spec-table">
+      <thead><tr><th>#</th><th>文件</th><th>问题</th><th>严重度</th><th>建议</th></tr></thead>
+      <tbody>
+        <tr>
+          <td>D1</td>
+          <td><code>DetailDrawer.vue</code></td>
+          <td class="status status-pass">✅ 统一抽屉组件，使用 <code>el-drawer</code> + close-on-click-modal 禁止</td>
+          <td>—</td>
+          <td>无需修改</td>
+        </tr>
+        <tr>
+          <td>D2</td>
+          <td>各处弹窗</td>
+          <td class="status status-pass">✅ 使用 Element Plus 标准 el-dialog / el-drawer</td>
+          <td>—</td>
+          <td>无需修改</td>
+        </tr>
+      </tbody>
+    </table>
+
+    <h3>2.5 按钮样式</h3>
+    <table class="spec-table">
+      <thead><tr><th>#</th><th>文件</th><th>问题</th><th>严重度</th><th>建议</th></tr></thead>
+      <tbody>
+        <tr>
+          <td>B1</td>
+          <td>全部视图</td>
+          <td class="status status-pass">✅ 使用 Element Plus 标准按钮类型（primary/success/warning/danger），无自定义按钮样式</td>
+          <td>—</td>
+          <td>无需修改</td>
+        </tr>
+      </tbody>
+    </table>
+
+    <h3>审查结论</h3>
+    <div class="summary-grid">
+      <div class="summary-card" style="background:#ECFDF5;">
+        <div class="number" style="color:#059669;">9</div>
+        <div class="label" style="color:#059669;">通过项</div>
+      </div>
+      <div class="summary-card" style="background:#FEF3C7;">
+        <div class="number" style="color:#D97706;">5</div>
+        <div class="label" style="color:#D97706;">待修复项</div>
+      </div>
+      <div class="summary-card" style="background:#FEE2E2;">
+        <div class="number" style="color:#EF4444;">0</div>
+        <div class="label" style="color:#EF4444;">致命项</div>
+      </div>
+    </div>
+    <p style="margin-top:16px;font-size:.85rem;color:var(--text-secondary);">
+      <strong>结论：</strong>admin-web 整体 UI 一致性良好。Design Token 体系完善，组件使用规范。
+      主要问题集中在 <code>Reports.vue</code> 图表颜色硬编码，需替换为设计令牌。
+      表单三件套（ref + :model + :rules）在新增/编辑弹窗中基本合规，仅筛选表单可适当放宽。
+    </p>
+  </div>
+
+  <!-- 3. 颜色与品牌一致性 -->
     <table class="spec-table">
       <thead><tr><th>#</th><th>检查项</th><th>Admin Web</th><th>Merchant Mobile</th><th>Store Terminal</th><th>标准</th></tr></thead>
       <tbody>
-        <tr><td>2.1</td><td>品牌主色</td><td class="status status-pass">#4F46E5</td><td class="status status-pass">#4F46E5</td><td class="status status-pass">#4F46E5</td><td>三端一致</td></tr>
+        <tr><td>2.1</td><td>品牌主色</td><td class="status status-pass">#1677FF</td><td class="status status-pass">#1677FF</td><td class="status status-pass">#1677FF</td><td>三端一致</td></tr>
         <tr><td>2.2</td><td>成功色</td><td class="status status-pass">#10B981</td><td class="status status-pass">#10B981</td><td class="status status-pass">#10B981</td><td>三端一致</td></tr>
         <tr><td>2.3</td><td>警告色</td><td class="status status-pass">#F59E0B</td><td class="status status-pass">#F59E0B</td><td class="status status-pass">#F59E0B</td><td>三端一致</td></tr>
         <tr><td>2.4</td><td>错误/危险色</td><td class="status status-pass">#EF4444</td><td class="status status-pass">#EF4444</td><td class="status status-pass">#EF4444</td><td>三端一致</td></tr>
@@ -89,7 +247,7 @@ body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-
 
   <!-- 3. 字体排版一致性 -->
   <div class="section">
-    <h2>3. 字体排版一致性</h2>
+    <h2>4. 字体排版一致性</h2>
     <table class="spec-table">
       <thead><tr><th>#</th><th>检查项</th><th>Admin Web</th><th>Merchant Mobile</th><th>Store Terminal</th><th>标准</th></tr></thead>
       <tbody>
@@ -104,7 +262,7 @@ body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-
 
   <!-- 4. 间距系统一致性 -->
   <div class="section">
-    <h2>4. 间距系统一致性</h2>
+    <h2>5. 间距系统一致性</h2>
     <table class="spec-table">
       <thead><tr><th>#</th><th>检查项</th><th>Admin Web</th><th>Merchant Mobile</th><th>Store Terminal</th><th>标准</th></tr></thead>
       <tbody>
@@ -118,7 +276,7 @@ body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-
 
   <!-- 5. 组件行为一致性 -->
   <div class="section">
-    <h2>5. 组件行为一致性</h2>
+    <h2>6. 组件行为一致性</h2>
     <table class="spec-table">
       <thead><tr><th>#</th><th>检查项</th><th>Admin Web</th><th>Merchant Mobile</th><th>Store Terminal</th><th>标准</th></tr></thead>
       <tbody>
@@ -136,7 +294,7 @@ body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-
 
   <!-- 6. 数据展示一致性 -->
   <div class="section">
-    <h2>6. 数据展示一致性</h2>
+    <h2>7. 数据展示一致性</h2>
     <table class="spec-table">
       <thead><tr><th>#</th><th>检查项</th><th>Admin Web</th><th>Merchant Mobile</th><th>Store Terminal</th><th>标准</th></tr></thead>
       <tbody>
@@ -151,7 +309,7 @@ body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-
 
   <!-- 7. 导航一致性 -->
   <div class="section">
-    <h2>7. 导航与信息架构一致性</h2>
+    <h2>8. 导航与信息架构一致性</h2>
     <table class="spec-table">
       <thead><tr><th>#</th><th>检查项</th><th>Admin Web</th><th>Merchant Mobile</th><th>Store Terminal</th><th>标准</th></tr></thead>
       <tbody>
@@ -165,7 +323,7 @@ body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-
 
   <!-- 8. 交互模式一致性 -->
   <div class="section">
-    <h2>8. 交互模式一致性</h2>
+    <h2>9. 交互模式一致性</h2>
     <table class="spec-table">
       <thead><tr><th>#</th><th>检查项</th><th>Admin Web</th><th>Merchant Mobile</th><th>Store Terminal</th><th>标准</th></tr></thead>
       <tbody>
@@ -181,7 +339,7 @@ body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-
 
   <!-- 9. 设计Token一致性 -->
   <div class="section">
-    <h2>9. 设计Token一致性</h2>
+    <h2>10. 设计Token一致性</h2>
     <table class="spec-table">
       <thead><tr><th>#</th><th>Token类别</th><th>Admin Web</th><th>Merchant Mobile</th><th>Store Terminal</th><th>标准</th></tr></thead>
       <tbody>
@@ -196,7 +354,7 @@ body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-
 
   <!-- 10. 合规总结 -->
   <div class="section">
-    <h2>10. 合规总结</h2>
+    <h2>11. 合规总结</h2>
     <div class="summary-grid">
       <div class="summary-card" style="background:#ECFDF5;">
         <div class="number" style="color:#059669;">32</div>

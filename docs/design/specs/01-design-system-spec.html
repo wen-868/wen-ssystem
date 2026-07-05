@@ -65,8 +65,8 @@ body { font-family: var(--font-family); background: var(--bg-page); color: var(-
 
 <div class="header">
   <h1>智享酒水库存系统</h1>
-  <p>设计系统规范 v3.0 — Design System Specification</p>
-  <p style="margin-top:8px;font-size:13px;opacity:0.7">林夕 / UI/UX Designer / 2026-06-29</p>
+  <p>设计系统规范 v3.1 — Design System Specification</p>
+  <p style="margin-top:8px;font-size:13px;opacity:0.7">林夕 / UI/UX Designer / 2026-07-05 · 对齐项目统一标准 v1.1</p>
 </div>
 
 <div class="container">
@@ -75,6 +75,7 @@ body { font-family: var(--font-family); background: var(--bg-page); color: var(-
 <div class="toc">
   <h3>目录</h3>
   <ol>
+    <li><a href="#projects">前端项目列表</a></li>
     <li><a href="#brand">品牌色系</a></li>
     <li><a href="#semantic">语义色系</a></li>
     <li><a href="#neutral">中性灰阶</a></li>
@@ -84,10 +85,28 @@ body { font-family: var(--font-family); background: var(--bg-page); color: var(-
     <li><a href="#shadow">阴影层级</a></li>
     <li><a href="#motion">动效系统</a></li>
     <li><a href="#components">组件令牌</a></li>
+    <li><a href="#form">表单设计规范</a></li>
+    <li><a href="#error">错误提示设计</a></li>
+    <li><a href="#price">价格展示设计</a></li>
     <li><a href="#dark-mode">暗色模式</a></li>
     <li><a href="#responsive">响应式断点</a></li>
     <li><a href="#a11y">无障碍设计</a></li>
   </ol>
+</div>
+
+<!-- 0. Frontend Projects -->
+<div class="section" id="projects">
+  <h2><span class="badge badge-primary">00</span> 前端项目列表</h2>
+  <p style="color:var(--text-secondary);margin-bottom:16px">对齐项目统一标准 第六章，当前系统包含 5 个前端项目，设计规范覆盖全部项目。</p>
+  <table class="token-table">
+    <tr><th>项目</th><th>技术栈</th><th>用户</th><th>状态</th><th>设计关注点</th></tr>
+    <tr><td><strong>admin-web</strong></td><td>Vue3 + Element Plus</td><td>管理后台（PC）</td><td><span class="badge badge-primary">已有</span></td><td>数据密集型界面、表格、表单、Dashboard</td></tr>
+    <tr><td><strong>app-mobile</strong></td><td>uni-app (Vue3)</td><td>商户端移动端</td><td><span class="badge badge-primary">已有</span></td><td>移动端交互、触屏手势、小屏适配</td></tr>
+    <tr><td><strong>app-shell</strong></td><td>静态 Shell</td><td>移动端壳工程</td><td><span class="badge badge-primary">已有</span></td><td>启动屏、加载态、离线提示</td></tr>
+    <tr><td><strong>saas-admin</strong></td><td>Vue3 + Element Plus</td><td>平台总后台</td><td><span class="badge" style="background:#FEF3C7;color:#F59E0B">待建</span></td><td>超级管理界面、多租户管理、计费</td></tr>
+    <tr><td><strong>store-terminal</strong></td><td>Vue3 + Element Plus</td><td>门店收银终端</td><td><span class="badge" style="background:#FEF3C7;color:#F59E0B">待建</span></td><td>收银台布局、大屏触控、快速操作</td></tr>
+  </table>
+  <p style="margin-top:16px;color:var(--text-muted);font-size:13px">注：admin-web 和 store-terminal 为同一套代码，通过角色权限切换视图。app-mobile 和 app-shell 同理。设计时需同时考虑管理视图和收银视图的 UI 差异。</p>
 </div>
 
 <!-- 1. Brand Colors -->
@@ -309,9 +328,203 @@ body { font-family: var(--font-family); background: var(--bg-page); color: var(-
   </table>
 </div>
 
-<!-- 10. Dark Mode -->
+<!-- 11. Form Design -->
+<div class="section" id="form">
+  <h2><span class="badge badge-primary">11</span> 表单设计规范</h2>
+  <p style="color:var(--text-secondary);margin-bottom:16px">对齐项目统一标准 第六章，Element Plus 表单校验必须使用"三件套"模式：<code>ref</code> + <code>:model</code> + <code>:rules</code>，三者缺一不可。</p>
+
+  <h3>表单三件套 — UI 表现</h3>
+  <table class="token-table">
+    <tr><th>要素</th><th>Vue 写法</th><th>UI 影响</th><th>缺失后果</th></tr>
+    <tr>
+      <td><strong>ref</strong></td>
+      <td class="token-value">ref="formRef"</td>
+      <td>提供表单实例引用，用于 <code>formRef.validate()</code> 手动触发校验</td>
+      <td>无法用 JS 调起校验，提交按钮时报错 <code>Cannot read properties of undefined</code></td>
+    </tr>
+    <tr>
+      <td><strong>:model</strong></td>
+      <td class="token-value">:model="formData"</td>
+      <td>绑定表单数据对象，校验器读取 model 中的字段值进行验证</td>
+      <td>校验规则虽然定义了，但校验器读不到数据，校验永远不触发</td>
+    </tr>
+    <tr>
+      <td><strong>:rules</strong></td>
+      <td class="token-value">:rules="formRules"</td>
+      <td>定义校验规则，控制每个字段的验证逻辑和错误提示文案</td>
+      <td>表单提交无校验，脏数据直接入库</td>
+    </tr>
+  </table>
+
+  <h3>校验规则 UI 状态</h3>
+  <table class="token-table">
+    <tr><th>状态</th><th>样式</th><th>触发时机</th><th>说明</th></tr>
+    <tr><td>默认</td><td>输入框正常边框 <code>#DCDFE6</code></td><td>初始加载</td><td>无任何交互前的状态</td></tr>
+    <tr><td>聚焦</td><td>边框变蓝 <code>#1677FF</code> + 外发光 <code>0 0 0 3px rgba(22,119,255,0.1)</code></td><td>click/focus</td><td>用户正在输入</td></tr>
+    <tr><td>校验通过</td><td>边框变绿 <code>#10B981</code> + 绿色对勾图标</td><td>blur 后校验通过</td><td>输入格式正确，可提交</td></tr>
+    <tr><td>校验失败</td><td>边框变红 <code>#EF4444</code> + 红色错误文字（12px）</td><td>blur 后校验失败</td><td>输入格式错误，不可提交</td></tr>
+    <tr><td>禁用</td><td>灰色背景 <code>#F5F7FA</code> + 灰色文字 <code>#C0C4CC</code></td><td>条件禁用</td><td>不可编辑状态</td></tr>
+  </table>
+
+  <h3>提交按钮规范</h3>
+  <table class="token-table">
+    <tr><th>场景</th><th>按钮样式</th><th>说明</th></tr>
+    <tr><td>新增/编辑弹窗</td><td>主按钮"确定"（蓝色）+ 次要按钮"取消"（默认）</td><td>右对齐，确定在右</td></tr>
+    <tr><td>表单页</td><td>主按钮"保存"（蓝色）+ 次要按钮"重置"（默认）</td><td>左对齐，保存后 toast 提示</td></tr>
+    <tr><td>批量操作</td><td>主按钮"批量确认"（蓝色）</td><td>选中项高亮后启用</td></tr>
+    <tr><td>危险操作</td><td>主按钮"确认删除"（红色 <code>#EF4444</code>）</td><td>需二次确认弹窗</td></tr>
+  </table>
+</div>
+
+<!-- 12. Error Prompt Design -->
+<div class="section" id="error">
+  <h2><span class="badge badge-primary">12</span> 错误提示设计</h2>
+  <p style="color:var(--text-secondary);margin-bottom:16px">对齐项目统一标准 第三章（全局返回体），所有错误提示必须包含 <code>traceId</code>，方便问题追踪和飞书告警定位。</p>
+
+  <h3>统一错误返回体</h3>
+  <div style="background:#1E293B;border-radius:8px;padding:16px;margin-bottom:16px;font-family:monospace;font-size:13px;color:#E5E7EB">
+    {<br>
+    &nbsp;&nbsp;"code": "400",<br>
+    &nbsp;&nbsp;"msg": "参数错误：商品名称不能为空",<br>
+    &nbsp;&nbsp;"traceId": "a1b2c3d4-e5f6-7890-abcd-ef1234567890",<br>
+    &nbsp;&nbsp;"apiCost": 1<br>
+    }
+  </div>
+
+  <h3>错误提示 UI 分类</h3>
+  <table class="token-table">
+    <tr><th>类型</th><th>UI 组件</th><th>位置</th><th>内容要点</th></tr>
+    <tr>
+      <td><strong>表单字段错误</strong></td>
+      <td>el-form-item 下方红色文字</td>
+      <td>输入框正下方</td>
+      <td>仅显示错误描述，不显示 traceId（避免干扰用户）</td>
+    </tr>
+    <tr>
+      <td><strong>操作失败 Toast</strong></td>
+      <td>ElMessage.error()</td>
+      <td>页面顶部居中</td>
+      <td>"操作失败，请稍后重试。追踪ID: a1b2c3d4" <br>traceId 使用灰色小字 11px 显示在错误描述下方</td>
+    </tr>
+    <tr>
+      <td><strong>批量操作失败</strong></td>
+      <td>ElMessageBox.alert()</td>
+      <td>页面居中弹窗</td>
+      <td>弹窗标题"操作异常"，正文列出失败项 + traceId，底部"复制追踪ID"按钮</td>
+    </tr>
+    <tr>
+      <td><strong>系统级错误</strong></td>
+      <td>ElNotification</td>
+      <td>右上角通知</td>
+      <td>标题"系统异常"，内容"错误码: 500 · 追踪ID: xxx"，持续 5 秒，可手动关闭</td>
+    </tr>
+    <tr>
+      <td><strong>网络超时</strong></td>
+      <td>ElMessage.warning()</td>
+      <td>页面顶部居中</td>
+      <td>"网络请求超时，请检查网络连接后重试。" + 重试按钮</td>
+    </tr>
+    <tr>
+      <td><strong>401 未认证</strong></td>
+      <td>ElMessageBox.confirm()</td>
+      <td>页面居中弹窗</td>
+      <td>"登录已过期，请重新登录。" → 确认后跳转登录页</td>
+    </tr>
+    <tr>
+      <td><strong>403 权限不足</strong></td>
+      <td>ElMessage.error()</td>
+      <td>页面顶部居中</td>
+      <td>"您没有权限执行此操作。"</td>
+    </tr>
+    <tr>
+      <td><strong>404 资源不存在</strong></td>
+      <td>ElMessage.error()</td>
+      <td>页面顶部居中</td>
+      <td>"请求的资源不存在或已被删除。"</td>
+    </tr>
+  </table>
+
+  <h3>traceId 展示规范</h3>
+  <div style="background:var(--gray-50);border:1px solid var(--gray-200);border-radius:8px;padding:16px;margin-top:12px">
+    <p style="font-size:14px;margin-bottom:8px"><strong>规则：</strong></p>
+    <ul style="padding-left:20px;font-size:13px;color:var(--text-secondary);line-height:2">
+      <li>traceId 在 Toast/弹窗中显示为灰色小字（11px, <code>#9CA3AF</code>），附在错误描述下方</li>
+      <li>traceId 支持一键复制（点击或右侧复制按钮）</li>
+      <li>弹窗中的 traceId 附带"复制追踪ID"按钮，复制后按钮变为"已复制"（绿色）</li>
+      <li>表单字段级别的校验错误<strong>不显示</strong> traceId，避免信息过载</li>
+      <li>traceId 格式：UUID v4（36 字符），显示为 <code>a1b2c3d4-e5f6-7890-abcd-ef1234567890</code></li>
+    </ul>
+  </div>
+</div>
+
+<!-- 13. Price Display Design -->
+<div class="section" id="price">
+  <h2><span class="badge badge-primary">13</span> 价格展示设计</h2>
+  <p style="color:var(--text-secondary);margin-bottom:16px">对齐项目统一标准 第五章（价格隔离），不同角色看到不同价格，UI 上必须明确区分批发价、零售价、成本价。</p>
+
+  <h3>价格类型与 UI 区分</h3>
+  <table class="token-table">
+    <tr><th>价格类型</th><th>UI 颜色</th><th>字体</th><th>前缀/后缀</th><th>可见角色</th></tr>
+    <tr>
+      <td><strong>零售价</strong></td>
+      <td><code>#1F2328</code> 黑色</td>
+      <td>font-weight: 600, 16px</td>
+      <td>¥ 前缀</td>
+      <td>全部角色</td>
+    </tr>
+    <tr>
+      <td><strong>批发价</strong></td>
+      <td><code>#1677FF</code> 蓝色</td>
+      <td>font-weight: 600, 16px</td>
+      <td>¥ 前缀 + "批发"标签</td>
+      <td>批发商、管理员</td>
+    </tr>
+    <tr>
+      <td><strong>成本价</strong></td>
+      <td><code>#9CA3AF</code> 灰色</td>
+      <td>font-weight: 400, 14px</td>
+      <td>¥ 前缀 + "成本"标签</td>
+      <td>仅管理员</td>
+    </tr>
+    <tr>
+      <td><strong>划线价（原价）</strong></td>
+      <td><code>#9CA3AF</code> 灰色 + 删除线</td>
+      <td>font-weight: 400, 13px</td>
+      <td>¥ 前缀 + text-decoration: line-through</td>
+      <td>全部角色</td>
+    </tr>
+    <tr>
+      <td><strong>会员价</strong></td>
+      <td><code>#EF4444</code> 红色</td>
+      <td>font-weight: 600, 16px</td>
+      <td>¥ 前缀 + "会员"标签</td>
+      <td>会员、管理员</td>
+    </tr>
+  </table>
+
+  <h3>价格展示布局方案</h3>
+  <table class="token-table">
+    <tr><th>场景</th><th>布局</th><th>说明</th></tr>
+    <tr><td><strong>商品列表</strong></td><td>零售价(大) 批发价(小蓝) 成本价(小灰)</td><td>三行并排或纵向排列，根据角色权限显示对应行</td></tr>
+    <tr><td><strong>商品详情</strong></td><td>零售价(大) + 划线价(小灰) / 批发价(蓝标签) / 成本价(灰标签)</td><td>价格区域用浅灰背景区分，标签用 22px 圆角小标签</td></tr>
+    <tr><td><strong>销售开单</strong></td><td>根据客户类型自动切换价格类型</td><td>零售客户显示零售价，批发客户显示批发价，不可手动切换</td></tr>
+    <tr><td><strong>采购管理</strong></td><td>成本价为主要显示，批发/零售价为参考</td><td>成本价字体加粗，批发/零售价用灰色小字辅助显示</td></tr>
+    <tr><td><strong>数据报表</strong></td><td>金额列根据角色过滤，无权限列显示"***"</td><td>管理员可见全部，普通用户仅见自己有权限的价格</td></tr>
+  </table>
+
+  <h3>价格标签组件规范</h3>
+  <div style="display:flex;gap:12px;flex-wrap:wrap;margin:16px 0">
+    <div style="display:inline-flex;align-items:center;gap:4px;padding:2px 8px;background:#E6F4FF;color:#1677FF;border-radius:4px;font-size:11px;font-weight:500">批发</div>
+    <div style="display:inline-flex;align-items:center;gap:4px;padding:2px 8px;background:#F3F4F6;color:#6B7280;border-radius:4px;font-size:11px;font-weight:500">成本</div>
+    <div style="display:inline-flex;align-items:center;gap:4px;padding:2px 8px;background:#FEE2E2;color:#EF4444;border-radius:4px;font-size:11px;font-weight:500">会员</div>
+    <div style="display:inline-flex;align-items:center;gap:4px;padding:2px 8px;background:#FEF3C7;color:#F59E0B;border-radius:4px;font-size:11px;font-weight:500">促销</div>
+  </div>
+  <p style="color:var(--text-muted);font-size:12px;margin-top:8px">价格标签使用 11px 小字，高度 20px，圆角 4px，紧跟价格数字右侧显示。</p>
+</div>
+
+<!-- 14. Dark Mode -->
 <div class="section" id="dark-mode">
-  <h2><span class="badge badge-primary">10</span> 暗色模式</h2>
+  <h2><span class="badge badge-primary">14</span> 暗色模式</h2>
   <p style="color:var(--text-secondary);margin-bottom:16px">通过 <code>prefers-color-scheme: dark</code> 媒体查询自动切换，同时支持 <code>[data-theme="dark"]</code> 手动切换。</p>
   <div style="display:grid;grid-template-columns:1fr 1fr;gap:24px">
     <div style="background:#fff;border:1px solid var(--gray-200);border-radius:8px;padding:16px">
@@ -337,7 +550,7 @@ body { font-family: var(--font-family); background: var(--bg-page); color: var(-
 
 <!-- 11. Responsive -->
 <div class="section" id="responsive">
-  <h2><span class="badge badge-primary">11</span> 响应式断点</h2>
+  <h2><span class="badge badge-primary">15</span> 响应式断点</h2>
   <table class="token-table">
     <tr><th>断点</th><th>值</th><th>设备</th><th>布局策略</th></tr>
     <tr><td>sm</td><td class="token-value">640px</td><td>大屏手机</td><td>单列、堆叠</td></tr>
@@ -346,18 +559,20 @@ body { font-family: var(--font-family); background: var(--bg-page); color: var(-
     <tr><td>xl</td><td class="token-value">1280px</td><td>桌面显示器</td><td>完整布局、仪表盘</td></tr>
     <tr><td>2xl</td><td class="token-value">1536px</td><td>大屏显示器</td><td>宽屏优化、最大宽度</td></tr>
   </table>
-  <h3>三端适配方案</h3>
+  <h3>五端适配方案</h3>
   <table class="token-table">
     <tr><th>端</th><th>基准宽度</th><th>组件库</th><th>适配策略</th></tr>
     <tr><td>admin-web</td><td>1440px Desk</td><td>Element Plus</td><td>弹性布局 + 侧边栏折叠</td></tr>
-    <tr><td>merchant-mobile</td><td>375px Mobile</td><td>Vant 4</td><td>移动端优先，rem 适配</td></tr>
+    <tr><td>app-mobile</td><td>375px Mobile</td><td>uni-app 内置组件</td><td>移动端优先，rpx 适配</td></tr>
+    <tr><td>app-shell</td><td>375px Mobile</td><td>原生 Shell</td><td>启动屏、WebView 容器</td></tr>
+    <tr><td>saas-admin</td><td>1440px Desk</td><td>Element Plus</td><td>弹性布局 + 多租户切换</td></tr>
     <tr><td>store-terminal</td><td>1024px Tablet</td><td>Element Plus</td><td>固定宽度，触屏优化</td></tr>
   </table>
 </div>
 
 <!-- 12. Accessibility -->
 <div class="section" id="a11y">
-  <h2><span class="badge badge-primary">12</span> 无障碍设计</h2>
+  <h2><span class="badge badge-primary">16</span> 无障碍设计</h2>
   <table class="token-table">
     <tr><th>特性</th><th>实现</th><th>标准</th></tr>
     <tr><td>减少动画</td><td class="token-value">prefers-reduced-motion: reduce</td><td>WCAG 2.2.2</td></tr>
@@ -372,8 +587,8 @@ body { font-family: var(--font-family); background: var(--bg-page); color: var(-
 </div>
 
 <div class="footer">
-  <p>智享酒水库存系统 · 设计系统规范 v3.0</p>
-  <p>林夕 · UI/UX Designer · 2026-06-29</p>
+  <p>智享酒水库存系统 · 设计系统规范 v3.1</p>
+  <p>林夕 · UI/UX Designer · 2026-07-05 · 对齐项目统一标准 v1.1</p>
 </div>
 
 </body>
