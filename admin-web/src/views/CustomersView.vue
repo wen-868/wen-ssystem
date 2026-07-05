@@ -49,6 +49,15 @@
             <el-tag v-else>{{ row.status }}</el-tag>
           </template>
         </el-table-column>
+        <el-table-column prop="address" label="地址" min-width="140" show-overflow-tooltip />
+        <el-table-column prop="settlementType" label="结算方式" width="100">
+          <template #default="{ row }">
+            <el-tag v-if="row.settlementType === 'CASH'" type="success">现金</el-tag>
+            <el-tag v-else-if="row.settlementType === 'ACCOUNT'" type="warning">挂账</el-tag>
+            <el-tag v-else>{{ row.settlementType }}</el-tag>
+          </template>
+        </el-table-column>
+        <el-table-column prop="remark" label="备注" min-width="120" show-overflow-tooltip />
         <el-table-column label="操作" width="240" fixed="right">
           <template #default="{ row }">
             <el-button size="small" link type="primary" @click="handleAssignMember(row)">分配给管理员</el-button>

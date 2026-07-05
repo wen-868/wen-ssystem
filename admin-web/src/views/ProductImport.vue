@@ -34,7 +34,7 @@
       <!-- Step 2: 字段映射 -->
       <div v-if="step === 1" class="step-content">
         <el-alert title="请将文件列映射到商品字段" type="info" :closable="false" style="margin-bottom: 16px" />
-        <el-form label-width="120px">
+        <el-form ref="mappingFormRef" :model="mapping" :rules="mappingRules" label-width="120px">
           <el-form-item v-for="field in fields" :key="field.key" :label="field.label">
             <el-select v-model="mapping[field.key]" placeholder="选择对应列" clearable style="width: 240px">
               <el-option v-for="col in fileColumns" :key="col" :label="col" :value="col" />
@@ -86,7 +86,7 @@
 
 <script setup lang="ts">
 import { ref, reactive } from "vue";
-import { ElMessage } from "element-plus";
+import { ElMessage, type FormRules } from "element-plus";
 import { Upload } from "@element-plus/icons-vue";
 import PageCard from "../components/PageCard.vue";
 import { api } from "../api";
@@ -112,6 +112,11 @@ const fields = [
 ];
 
 const mapping = reactive<Record<string, string>>({});
+
+const mappingFormRef = ref();
+const mappingRules: FormRules = {
+  name: [{ required: true, message: "请映射商品名称列", trigger: "change" }]
+};
 
 function handleFileChange(file: any) {
   uploadFile.value = file.raw || file;

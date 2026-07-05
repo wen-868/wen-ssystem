@@ -81,7 +81,7 @@
     </el-card>
 
     <el-dialog v-model="dialogVisible" title="新建采购订单" width="720px">
-      <el-form :model="form" label-width="100px">
+      <el-form ref="formRef" :model="form" :rules="rules" label-width="100px">
         <el-row :gutter="20">
           <el-col :span="12">
             <el-form-item label="供应商">
@@ -180,7 +180,7 @@
 
 <script setup lang="ts">
 import { computed, onMounted, reactive, ref } from "vue";
-import { ElMessage, ElMessageBox } from "element-plus";
+import { ElMessage, ElMessageBox, type FormRules } from "element-plus";
 import { Plus } from "@element-plus/icons-vue";
 import {
   cancelPurchaseOrder,
@@ -212,6 +212,12 @@ const defaultForm = {
 };
 
 const form = reactive({ ...defaultForm, items: [{ ...defaultForm.items[0] }] });
+
+const formRef = ref();
+const rules: FormRules = {
+  supplierId: [{ required: true, message: "请选择供应商", trigger: "change" }],
+  storeId: [{ required: true, message: "请选择门店", trigger: "change" }]
+};
 
 const totalAmount = computed(() => {
   return form.items.reduce((sum, item) => sum + (item.totalBottleQty || 0) * (item.unitPrice || 0), 0);
@@ -308,10 +314,8 @@ function handleInStock(row: any) {
 }
 
 async function handleCreate() {
-  if (!form.supplierId) {
-    ElMessage.warning("请选择供应商");
-    return;
-  }
+  const valid = await formRef.value?.validate().catch(() => false);
+  if (!valid) return;
   if (form.items.length === 0 || !form.items.some(i => i.skuName && i.totalBottleQty > 0)) {
     ElMessage.warning("请添加有效的商品明细");
     return;

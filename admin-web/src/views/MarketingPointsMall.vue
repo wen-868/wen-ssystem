@@ -216,7 +216,7 @@
       width="700px"
       @close="resetProductForm"
     >
-      <el-form :model="productForm" label-width="100px">
+      <el-form ref="productFormRef" :model="productForm" :rules="productRules" label-width="100px">
         <el-form-item label="商品图片">
           <el-upload
             action="#"
@@ -265,7 +265,7 @@
 
 <script setup lang="ts">
 import { ref, reactive, computed } from "vue";
-import { ElMessage } from "element-plus";
+import { ElMessage, type FormRules } from "element-plus";
 import { Goods, CircleCheck, ShoppingCart, Coin, Plus } from "@element-plus/icons-vue";
 
 // ==================== Mock 数据 ====================
@@ -373,6 +373,13 @@ const productForm = reactive({
   sortOrder: 1,
 });
 
+const productFormRef = ref();
+const productRules: FormRules = {
+  productName: [{ required: true, message: "请输入商品名称", trigger: "blur" }],
+  pointsRequired: [{ required: true, message: "请输入所需积分", trigger: "blur" }],
+  totalStock: [{ required: true, message: "请输入总库存", trigger: "blur" }]
+};
+
 function openProductDialog(product?: any) {
   if (product) {
     editingProduct.value = product;
@@ -425,11 +432,9 @@ function handleProductImageRemove() {
   productForm.productImage = "";
 }
 
-function submitProduct() {
-  if (!productForm.productName) {
-    ElMessage.warning("请输入商品名称");
-    return;
-  }
+async function submitProduct() {
+  const valid = await productFormRef.value?.validate().catch(() => false);
+  if (!valid) return;
   if (editingProduct.value) {
     Object.assign(editingProduct.value, productForm);
     ElMessage.success("修改成功");

@@ -43,7 +43,7 @@
     </PageCard>
 
     <el-dialog v-model="dialogVisible" :title="isEdit ? '编辑规则' : '新增规则'" width="520px" :close-on-click-modal="false">
-      <el-form :model="form" label-width="100px">
+      <el-form ref="formRef" :model="form" :rules="rules" label-width="100px">
         <el-form-item label="规则名称">
           <el-input v-model="form.name" placeholder="如：基础提成规则" />
         </el-form-item>
@@ -100,7 +100,7 @@
 
 <script setup lang="ts">
 import { onMounted, ref } from "vue";
-import { ElMessage, ElMessageBox } from "element-plus";
+import { ElMessage, ElMessageBox, type FormRules } from "element-plus";
 import { fetchCommissionRules, createCommissionRule, updateCommissionRule, deleteCommissionRule } from "../api";
 import PageCard from "../components/PageCard.vue";
 import DataTable from "../components/DataTable.vue";
@@ -116,6 +116,12 @@ const isEdit = ref(false);
 const editId = ref<number | null>(null);
 const submitLoading = ref(false);
 const form = ref({ name: "", ruleType: "RATIO", config: { rate: 5 } as any, dateRange: null as [string, string] | null, remark: "" });
+
+const formRef = ref();
+const rules: FormRules = {
+  name: [{ required: true, message: "请输入规则名称", trigger: "blur" }],
+  ruleType: [{ required: true, message: "请选择规则类型", trigger: "change" }]
+};
 
 const columns = [
   { prop: "name", label: "规则名称", minWidth: 150 },
@@ -179,7 +185,8 @@ function showEditDialog(row: any) {
 }
 
 async function handleSubmit() {
-  if (!form.value.name) { ElMessage.warning("请输入规则名称"); return; }
+  const valid = await formRef.value?.validate().catch(() => false);
+  if (!valid) return;
   submitLoading.value = true;
   try {
     const payload = {

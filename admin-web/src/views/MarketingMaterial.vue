@@ -324,7 +324,7 @@
         <el-progress :percentage="uploadProgress" :stroke-width="12" />
       </div>
 
-      <el-form :model="uploadForm" label-width="100px" style="margin-top: 16px">
+      <el-form ref="uploadFormRef" :model="uploadForm" :rules="uploadRules" label-width="100px" style="margin-top: 16px">
         <el-form-item label="素材名称">
           <el-input v-model="uploadForm.materialName" placeholder="默认取文件名" />
         </el-form-item>
@@ -379,7 +379,7 @@
 
 <script setup lang="ts">
 import { ref, reactive, nextTick } from "vue";
-import { ElMessage, ElMessageBox } from "element-plus";
+import { ElMessage, ElMessageBox, type FormRules } from "element-plus";
 import { Grid, List, Upload, UploadFilled } from "@element-plus/icons-vue";
 
 // ==================== Mock 数据 ====================
@@ -609,6 +609,12 @@ const uploadForm = reactive({
   scene: "",
 });
 
+const uploadFormRef = ref();
+const uploadRules: FormRules = {
+  materialName: [{ required: true, message: "请输入素材名称", trigger: "blur" }],
+  categoryId: [{ required: true, message: "请选择素材分类", trigger: "change" }]
+};
+
 function handleUploadChange(file: any) {
   if (!uploadForm.materialName) {
     const name = file.name.replace(/\.[^/.]+$/, "");
@@ -644,11 +650,13 @@ function resetUploadForm() {
   uploadProgress.value = 0;
 }
 
-function submitUpload() {
+async function submitUpload() {
   if (uploadFileList.value.length === 0) {
     ElMessage.warning("请选择文件");
     return;
   }
+  const valid = await uploadFormRef.value?.validate().catch(() => false);
+  if (!valid) return;
 
   uploadProgress.value = 0;
   const timer = setInterval(() => {

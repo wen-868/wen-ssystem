@@ -64,7 +64,7 @@
     <PageCard v-if="selectedProducts.length > 0" title="价格调整">
       <div class="adjust-panel">
         <div class="adjust-config">
-          <el-form label-width="100px" inline>
+          <el-form ref="adjustFormRef" :model="adjustForm" :rules="adjustRules" label-width="100px" inline>
             <el-form-item label="调整方式">
               <el-select v-model="adjustMethod" style="width: 180px" @change="onAdjustMethodChange">
                 <el-option label="固定金额调整" value="fixed" />
@@ -174,8 +174,8 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed, onMounted } from "vue";
-import { ElMessage } from "element-plus";
+import { ref, reactive, computed, onMounted } from "vue";
+import { ElMessage, type FormRules } from "element-plus";
 import PageCard from "../components/PageCard.vue";
 import { formatDate, formatYuan } from "../utils/format";
 import { fetchProducts, updateProductPrice, fetchPriceChangeLogs } from "../api";
@@ -193,12 +193,11 @@ const productTableRef = ref();
 
 const selectedProducts = ref<any[]>([]);
 
+const adjustFormRef = ref();
+const adjustForm = reactive({});
+const adjustRules: FormRules = {};
 const adjustMethod = ref("fixed");
 const adjustPriceType = ref("retailPrice");
-const adjustValue = ref(0);
-const adjustPercent = ref(0);
-const referencePriceType = ref("retailPrice");
-const adjustLoading = ref(false);
 
 const historyLogs = ref<any[]>([]);
 const historyLoading = ref(false);

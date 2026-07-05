@@ -193,6 +193,52 @@
             </el-form-item>
           </el-col>
         </el-row>
+        <el-row :gutter="20">
+          <el-col :span="8">
+            <el-form-item label="单位">
+              <el-input v-model="form.unit" placeholder="如：瓶、箱" />
+            </el-form-item>
+          </el-col>
+          <el-col :span="8">
+            <el-form-item label="规格">
+              <el-input v-model="form.specs" placeholder="如：500ml*12" />
+            </el-form-item>
+          </el-col>
+          <el-col :span="8">
+            <el-form-item label="排序号">
+              <el-input-number v-model="form.sortNo" :min="0" style="width: 100%" />
+            </el-form-item>
+          </el-col>
+        </el-row>
+        <el-row :gutter="20">
+          <el-col :span="8">
+            <el-form-item label="新品">
+              <el-switch v-model="form.isNew" />
+            </el-form-item>
+          </el-col>
+          <el-col :span="8">
+            <el-form-item label="推荐">
+              <el-switch v-model="form.isRecommend" />
+            </el-form-item>
+          </el-col>
+          <el-col :span="8">
+            <el-form-item label="成本价">
+              <el-input-number v-model="form.costPrice" :min="0" :precision="2" style="width: 100%" />
+            </el-form-item>
+          </el-col>
+        </el-row>
+        <el-row :gutter="20">
+          <el-col :span="12">
+            <el-form-item label="门店价">
+              <el-input-number v-model="form.storePrice" :min="0" :precision="2" style="width: 100%" />
+            </el-form-item>
+          </el-col>
+          <el-col :span="12">
+            <el-form-item label="商品描述">
+              <el-input v-model="form.description" type="textarea" :rows="2" placeholder="商品描述" />
+            </el-form-item>
+          </el-col>
+        </el-row>
         <el-divider content-position="left">SKU 信息 (至少添加一个)</el-divider>
         <div v-for="(sku, idx) in form.skus" :key="idx" class="sku-row">
           <div class="sku-header">
@@ -250,6 +296,40 @@
             <el-col :span="8">
               <el-form-item label="追溯">
                 <el-switch v-model="sku.traceEnabled" />
+              </el-form-item>
+            </el-col>
+          </el-row>
+          <el-row :gutter="16">
+            <el-col :span="8">
+              <el-form-item label="成本价">
+                <el-input-number v-model="sku.costPrice" :min="0" :precision="2" style="width: 100%" />
+              </el-form-item>
+            </el-col>
+            <el-col :span="8">
+              <el-form-item label="门店价">
+                <el-input-number v-model="sku.storePrice" :min="0" :precision="2" style="width: 100%" />
+              </el-form-item>
+            </el-col>
+            <el-col :span="8">
+              <el-form-item label="净含量">
+                <el-input v-model="sku.volume" placeholder="如：500ml" />
+              </el-form-item>
+            </el-col>
+          </el-row>
+          <el-row :gutter="16">
+            <el-col :span="8">
+              <el-form-item label="包装类型">
+                <el-input v-model="sku.packaging" placeholder="如：瓶装" />
+              </el-form-item>
+            </el-col>
+            <el-col :span="8">
+              <el-form-item label="基本单位">
+                <el-input v-model="sku.baseUnit" placeholder="如：瓶" />
+              </el-form-item>
+            </el-col>
+            <el-col :span="8">
+              <el-form-item label="箱单位">
+                <el-input v-model="sku.boxUnit" placeholder="如：箱" />
               </el-form-item>
             </el-col>
           </el-row>
@@ -442,9 +522,17 @@ const defaultForm = {
   alcoholContent: null as number | null,
   origin: "",
   saleChannels: ["MINIAPP", "STORE"] as string[],
+  unit: "",
+  specs: "",
+  sortNo: 0,
+  isNew: false,
+  isRecommend: false,
+  description: "",
   imageUrls: "",
   marketingTags: "",
-  skus: [{ skuName: "", barcode: "", boxRatio: 1, temperature: "NORMAL", traceEnabled: false, warningThreshold: 0, retailPrice: 0, wholesalePrice: null as number | null, miniappPrice: null as number | null }]
+  costPrice: 0,
+  storePrice: 0,
+  skus: [{ skuName: "", barcode: "", boxRatio: 1, temperature: "NORMAL", traceEnabled: false, warningThreshold: 0, retailPrice: 0, wholesalePrice: null as number | null, miniappPrice: null as number | null, costPrice: 0, storePrice: 0, volume: "", packaging: "", baseUnit: "", boxUnit: "" }]
 };
 const form = reactive(JSON.parse(JSON.stringify(defaultForm)));
 
@@ -464,7 +552,8 @@ function groupSpus(raw: any[]): any[] {
       spu = {
         spuId: r.spuId, spuCode: r.spuCode, name: r.name, mainImage: r.mainImage,
         alcoholContent: r.alcoholContent, origin: r.origin, saleChannels: r.saleChannels,
-        detail: r.detail, imageUrls: r.imageUrls, marketingTags: r.marketingTags,
+        unit: r.unit, specs: r.specs, sortNo: r.sortNo, isNew: r.isNew, isRecommend: r.isRecommend,
+        detail: r.detail, description: r.description, imageUrls: r.imageUrls, marketingTags: r.marketingTags,
         availableQty: r.availableQty,
         categoryName: r.categoryName, brandName: r.brandName,
         status: r.status, createdAt: r.createdAt, updatedAt: r.updatedAt,
@@ -477,7 +566,8 @@ function groupSpus(raw: any[]): any[] {
       retailPrice: r.retailPrice, wholesalePrice: r.wholesalePrice,
       miniappPrice: r.miniappPrice, storePrice: r.storePrice, costPrice: r.costPrice,
       boxRatio: r.boxRatio, temperature: r.temperature, traceEnabled: r.traceEnabled,
-      warningThreshold: r.warningThreshold
+      warningThreshold: r.warningThreshold,
+      volume: r.volume, packaging: r.packaging, baseUnit: r.baseUnit, boxUnit: r.boxUnit
     });
   }
   for (const [_, spu] of map) {
@@ -532,14 +622,25 @@ function openEditDialog(row: any) {
   form.alcoholContent = row.alcoholContent || null;
   form.origin = row.origin || "";
   form.saleChannels = parseChannels(row.saleChannels);
+  form.unit = row.unit || "";
+  form.specs = row.specs || "";
+  form.sortNo = row.sortNo || 0;
+  form.isNew = !!row.isNew;
+  form.isRecommend = !!row.isRecommend;
+  form.description = row.description || "";
   form.imageUrls = row.imageUrls || "";
   form.marketingTags = row.marketingTags || "";
+  form.costPrice = row.costPrice || 0;
+  form.storePrice = row.storePrice || 0;
   form.skus = (row._skus || []).map((s: any) => ({
     skuName: s.skuName, barcode: s.barcode, boxRatio: s.boxRatio || 1,
     temperature: s.temperature || "NORMAL", traceEnabled: !!s.traceEnabled,
     warningThreshold: s.warningThreshold || 0,
     retailPrice: s.retailPrice || 0, wholesalePrice: s.wholesalePrice || null,
-    miniappPrice: s.miniappPrice || null
+    miniappPrice: s.miniappPrice || null,
+    costPrice: s.costPrice || 0, storePrice: s.storePrice || 0,
+    volume: s.volume || "", packaging: s.packaging || "",
+    baseUnit: s.baseUnit || "", boxUnit: s.boxUnit || ""
   }));
   if (form.skus.length === 0) {
     form.skus = [JSON.parse(JSON.stringify(defaultForm.skus[0]))];
@@ -548,7 +649,7 @@ function openEditDialog(row: any) {
 }
 
 function addSku() {
-  form.skus.push({ skuName: "", barcode: "", boxRatio: 1, temperature: "NORMAL", traceEnabled: false, warningThreshold: 0, retailPrice: 0, wholesalePrice: null, miniappPrice: null });
+  form.skus.push({ skuName: "", barcode: "", boxRatio: 1, temperature: "NORMAL", traceEnabled: false, warningThreshold: 0, retailPrice: 0, wholesalePrice: null, miniappPrice: null, costPrice: 0, storePrice: 0, volume: "", packaging: "", baseUnit: "", boxUnit: "" });
 }
 function removeSku(idx: number) { form.skus.splice(idx, 1); }
 
@@ -562,6 +663,9 @@ async function handleSubmit() {
         await api.put(`/admin/products/${editSpuId.value}`, {
           name: form.name, category: form.categoryId, brand: form.brandId,
           alcoholContent: form.alcoholContent, origin: form.origin,
+          unit: form.unit, specs: form.specs, sortNo: form.sortNo,
+          isNew: form.isNew, isRecommend: form.isRecommend,
+          description: form.description,
           imageUrls: form.imageUrls || undefined,
           marketingTags: form.marketingTags || undefined
         });
@@ -570,15 +674,22 @@ async function handleSubmit() {
         await api.post("/admin/products", {
           name: form.name, categoryId: form.categoryId, brandId: form.brandId || undefined,
           mainImage: form.mainImage || undefined,
+          unit: form.unit, specs: form.specs, sortNo: form.sortNo,
+          isNew: form.isNew, isRecommend: form.isRecommend,
+          description: form.description,
           imageUrls: form.imageUrls || undefined,
           marketingTags: form.marketingTags || undefined,
+          costPrice: form.costPrice, storePrice: form.storePrice,
           saleChannels: form.saleChannels,
           skus: form.skus.map((s: any) => ({
             skuName: s.skuName, barcode: s.barcode, boxRatio: s.boxRatio,
             temperature: s.temperature, traceEnabled: s.traceEnabled,
             warningThreshold: s.warningThreshold,
-            costPrice: 0, retailPrice: s.retailPrice,
-            wholesalePrice: s.wholesalePrice, miniappPrice: s.miniappPrice
+            costPrice: s.costPrice, retailPrice: s.retailPrice,
+            wholesalePrice: s.wholesalePrice, miniappPrice: s.miniappPrice,
+            storePrice: s.storePrice,
+            volume: s.volume, packaging: s.packaging,
+            baseUnit: s.baseUnit, boxUnit: s.boxUnit
           }))
         });
         ElMessage.success("创建成功");

@@ -153,7 +153,7 @@
     </el-drawer>
 
     <el-dialog v-model="inspectDialogVisible" title="质检处理" width="480px">
-      <el-form :model="inspectForm" label-width="100px">
+      <el-form ref="inspectFormRef" :model="inspectForm" :rules="inspectRules" label-width="100px">
         <el-form-item label="质检结果">
           <el-radio-group v-model="inspectForm.result">
             <el-radio value="PASS">通过</el-radio>
@@ -174,7 +174,7 @@
 
 <script setup lang="ts">
 import { onMounted, reactive, ref } from "vue";
-import { ElMessage, ElMessageBox } from "element-plus";
+import { ElMessage, ElMessageBox, type FormRules } from "element-plus";
 import {
   fetchAfterSales,
   fetchAfterSaleStatistics,
@@ -202,6 +202,11 @@ const inspectForm = reactive({
   result: "PASS",
   remark: "",
 });
+
+const inspectFormRef = ref();
+const inspectRules: FormRules = {
+  result: [{ required: true, message: "请选择质检结果", trigger: "change" }]
+};
 
 function getErrorMessage(error: unknown, fallback: string) {
   const anyError = error as { response?: { data?: { message?: string } }; message?: string };
@@ -312,6 +317,8 @@ function handleInspect(row: any) {
 
 async function submitInspect() {
   if (!currentAftersale.value) return;
+  const valid = await inspectFormRef.value?.validate().catch(() => false);
+  if (!valid) return;
   inspectLoading.value = true;
   try {
     await inspectAfterSale(currentAftersale.value.id, inspectForm);
