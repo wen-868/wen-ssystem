@@ -1,4 +1,4 @@
--- 商品表添加 brand_id 外键
+-- 编号: 069, 描述: 商品SPU增加品牌ID, 创建人: 阿坚, 日期: 2026-07-05
 -- 日期：2026-07-05
 -- 说明：product_spu.brand 是 VARCHAR(128) 存储品牌名，改为 brand_id 引用 brand 表
 

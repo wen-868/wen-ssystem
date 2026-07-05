@@ -1,4 +1,4 @@
--- 采购计划表
+-- 编号: 084, 描述: 采购计划, 创建人: 阿坚, 日期: 2026-07-05
 CREATE TABLE IF NOT EXISTS purchase_plan (
   id BIGINT AUTO_INCREMENT PRIMARY KEY,
   plan_no VARCHAR(32) NOT NULL COMMENT '计划编号',

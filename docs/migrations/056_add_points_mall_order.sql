@@ -1,3 +1,4 @@
+-- 编号: 056, 描述: 添加积分商城订单表, 创建人: 阿坚, 日期: 2026-07-05
 CREATE TABLE IF NOT EXISTS points_mall_order (
   id BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
   order_no VARCHAR(64) NOT NULL COMMENT '订单号',

@@ -1,3 +1,4 @@
+-- 编号: 063, 描述: 添加验证码表, 创建人: 阿坚, 日期: 2026-07-05
 CREATE TABLE IF NOT EXISTS verification_code (
   id BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
   mobile VARCHAR(20) NOT NULL COMMENT '手机号',

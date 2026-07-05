@@ -1,3 +1,4 @@
+-- 编号: 051, 描述: 添加平台审核表, 创建人: 阿坚, 日期: 2026-07-05
 CREATE TABLE IF NOT EXISTS platform_review (
   id BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
   platform VARCHAR(32) NOT NULL COMMENT '平台',

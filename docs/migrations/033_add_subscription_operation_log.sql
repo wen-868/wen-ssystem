@@ -1,4 +1,4 @@
--- 来源: phase9_tenant_subscription.sql
+-- 编号: 033, 描述: 添加订阅操作日志表, 创建人: 阿坚, 日期: 2026-07-05
 CREATE TABLE IF NOT EXISTS subscription_operation_log (
   id INT AUTO_INCREMENT PRIMARY KEY,
   subscription_id INT NOT NULL COMMENT '订阅ID',

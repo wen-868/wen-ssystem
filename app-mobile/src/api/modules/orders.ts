@@ -1,12 +1,16 @@
 import { get, post } from '../request'
 
 export interface OrderItem {
+  id?: number
   skuId: number
   skuName: string
+  productName?: string
   boxQty: number
   bottleQty: number
   totalBottleQty: number
+  quantity?: number
   unitPrice: number
+  totalPrice?: number
   subtotalAmount: number
 }
 
@@ -14,6 +18,8 @@ export interface OrderInfo {
   orderNo: string
   customerName: string
   customerMobile?: string
+  customerAddress?: string
+  remark?: string
   status: string
   statusLabel: string
   totalAmount: number
@@ -25,6 +31,7 @@ export interface OrderInfo {
 }
 
 export interface OrderLog {
+  id?: number
   action: string
   operator: string
   remark?: string

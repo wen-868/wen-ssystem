@@ -22,7 +22,7 @@
         <view class="item-row" v-for="(item, index) in saleItems" :key="index">
           <view class="item-info">
             <text class="item-name">{{ item.productName }}</text>
-            <text class="item-price">¥{{ item.price.toFixed(2) }}</text>
+            <text class="item-price">¥{{ (item.price ?? 0).toFixed(2) }}</text>
           </view>
           <view class="item-quantity">
             <view class="qty-btn" @tap="decreaseQty(index)">-</view>
@@ -34,7 +34,7 @@
             />
             <view class="qty-btn" @tap="increaseQty(index)">+</view>
           </view>
-          <text class="item-total">¥{{ item.total.toFixed(2) }}</text>
+          <text class="item-total">¥{{ (item.total ?? 0).toFixed(2) }}</text>
           <view class="item-delete" @tap="removeItem(index)">&#xe615;</view>
         </view>
 
@@ -96,7 +96,7 @@ const remark = ref('')
 const submitting = ref(false)
 
 const totalAmount = computed(() => {
-  return saleItems.reduce((sum, item) => sum + item.total, 0)
+  return saleItems.reduce((sum, item) => sum + (item.total ?? 0), 0)
 })
 
 const canSubmit = computed(() => {
@@ -114,21 +114,24 @@ function showProductPicker() {
 }
 
 function decreaseQty(index: number) {
-  if (saleItems[index].quantity > 1) {
-    saleItems[index].quantity--
-    saleItems[index].total = saleItems[index].price * saleItems[index].quantity
+  const item = saleItems[index]!
+  if ((item.quantity ?? 0) > 1) {
+    item.quantity = (item.quantity ?? 0) - 1
+    item.total = (item.price ?? 0) * (item.quantity ?? 0)
   }
 }
 
 function increaseQty(index: number) {
-  saleItems[index].quantity++
-  saleItems[index].total = saleItems[index].price * saleItems[index].quantity
+  const item = saleItems[index]!
+  item.quantity = (item.quantity ?? 0) + 1
+  item.total = (item.price ?? 0) * (item.quantity ?? 0)
 }
 
 function onQtyChange(index: number) {
-  const qty = Math.max(1, Number(saleItems[index].quantity) || 1)
-  saleItems[index].quantity = qty
-  saleItems[index].total = saleItems[index].price * qty
+  const item = saleItems[index]!
+  const qty = Math.max(1, Number(item.quantity) || 1)
+  item.quantity = qty
+  item.total = (item.price ?? 0) * qty
 }
 
 function removeItem(index: number) {

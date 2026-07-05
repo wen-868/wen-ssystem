@@ -1,4 +1,4 @@
--- 收款单
+-- 编号: 086, 描述: 收款支付, 创建人: 阿坚, 日期: 2026-07-05
 CREATE TABLE IF NOT EXISTS receipt (
   id BIGINT AUTO_INCREMENT PRIMARY KEY,
   receipt_no VARCHAR(32) NOT NULL COMMENT '收款单号',

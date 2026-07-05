@@ -3,6 +3,9 @@ import { get, post } from '../request'
 export interface SaleItem {
   productId: number
   productName: string
+  price?: number
+  quantity?: number
+  total?: number
   boxQty: number
   bottleQty: number
   unitPrice: number

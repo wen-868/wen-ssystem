@@ -8,7 +8,7 @@ export interface UserInfo {
   name: string
   account: string
   avatar?: string
-  roles?: string[]
+  roles: string[]
   storeId?: number
   storeName?: string
 }

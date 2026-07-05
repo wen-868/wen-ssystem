@@ -1,3 +1,4 @@
+-- 编号: 061, 描述: 添加自定义报表计划表, 创建人: 阿坚, 日期: 2026-07-05
 CREATE TABLE IF NOT EXISTS custom_report_schedule (
   id BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
   template_id BIGINT UNSIGNED NOT NULL COMMENT '模板ID',

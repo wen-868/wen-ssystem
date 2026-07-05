@@ -1,4 +1,4 @@
--- 来源: phase9_tenant_subscription.sql
+-- 编号: 031, 描述: 添加订阅表, 创建人: 阿坚, 日期: 2026-07-05
 CREATE TABLE IF NOT EXISTS subscription (
   id INT AUTO_INCREMENT PRIMARY KEY,
   subscription_no VARCHAR(32) NOT NULL UNIQUE COMMENT '订阅编号（如：SUB20260623001）',

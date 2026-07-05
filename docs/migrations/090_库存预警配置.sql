@@ -1,4 +1,4 @@
--- 库存预警配置表
+-- 编号: 090, 描述: 库存预警配置, 创建人: 阿坚, 日期: 2026-07-05
 CREATE TABLE IF NOT EXISTS stock_warning_config (
   id BIGINT AUTO_INCREMENT PRIMARY KEY,
   store_id BIGINT NOT NULL COMMENT '门店ID',

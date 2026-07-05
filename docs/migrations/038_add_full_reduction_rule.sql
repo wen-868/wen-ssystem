@@ -1,4 +1,4 @@
--- 来源: phase10_marketing.sql
+-- 编号: 038, 描述: 添加满减规则表, 创建人: 阿坚, 日期: 2026-07-05
 CREATE TABLE IF NOT EXISTS full_reduction_rule (
   id INT AUTO_INCREMENT PRIMARY KEY,
   activity_id INT NOT NULL COMMENT '活动ID',

@@ -1,4 +1,4 @@
--- 核心库存表补 tenant_id 列
+-- 编号: 093, 描述: 库存增加租户ID, 创建人: 阿坚, 日期: 2026-07-05
 -- 注意：不使用 ADD COLUMN IF NOT EXISTS，由迁移引擎容错处理
 ALTER TABLE inventory_balance ADD COLUMN tenant_id VARCHAR(64) NOT NULL DEFAULT '' AFTER id;
 ALTER TABLE inventory_batch ADD COLUMN tenant_id VARCHAR(64) NOT NULL DEFAULT '' AFTER id;

@@ -1,4 +1,4 @@
--- 储值卡表
+-- 编号: 091, 描述: 储值卡, 创建人: 阿坚, 日期: 2026-07-05
 CREATE TABLE IF NOT EXISTS store_value_card (
   id BIGINT AUTO_INCREMENT PRIMARY KEY,
   card_no VARCHAR(32) NOT NULL COMMENT '卡号',

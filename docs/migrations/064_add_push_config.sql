@@ -1,3 +1,4 @@
+-- 编号: 064, 描述: 添加推送配置表, 创建人: 阿坚, 日期: 2026-07-05
 CREATE TABLE IF NOT EXISTS push_config (
   id BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
   user_id BIGINT UNSIGNED NOT NULL COMMENT '用户ID',

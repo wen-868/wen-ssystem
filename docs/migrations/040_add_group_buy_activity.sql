@@ -1,4 +1,4 @@
--- 来源: phase10_marketing.sql
+-- 编号: 040, 描述: 添加团购活动表, 创建人: 阿坚, 日期: 2026-07-05
 CREATE TABLE IF NOT EXISTS group_buy_activity (
   id INT AUTO_INCREMENT PRIMARY KEY,
   activity_id INT NOT NULL COMMENT '活动ID',

@@ -1,4 +1,4 @@
--- 来源: phase10_marketing.sql
+-- 编号: 043, 描述: 添加促销叠加规则表, 创建人: 阿坚, 日期: 2026-07-05
 CREATE TABLE IF NOT EXISTS promotion_stack_rule (
   id INT AUTO_INCREMENT PRIMARY KEY,
   rule_name VARCHAR(128) NOT NULL COMMENT '规则名称',

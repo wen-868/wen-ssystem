@@ -41,7 +41,7 @@
             </view>
             <view class="stock-row">
               <text class="stock-label">安全库存</text>
-              <text class="stock-value stock-value--safe">{{ item.safeStock }}</text>
+              <text class="stock-value stock-value--safe">{{ item.safetyStock }}</text>
               <text class="stock-unit" v-if="item.unit">{{ item.unit }}</text>
             </view>
           </view>
@@ -99,7 +99,7 @@ function getBarClass(item: InventoryItem): string {
 }
 
 function getBarWidth(item: InventoryItem): string {
-  const maxStock = item.safeStock * 2
+  const maxStock = item.safetyStock * 2
   const ratio = Math.min(item.stock / maxStock, 1)
   return (ratio * 100).toFixed(0) + '%'
 }

@@ -1,4 +1,4 @@
--- 客户专属价格表
+-- 编号: 072, 描述: 客户价格, 创建人: 阿坚, 日期: 2026-07-05
 CREATE TABLE IF NOT EXISTS customer_price (
   id BIGINT AUTO_INCREMENT PRIMARY KEY,
   customer_id BIGINT NOT NULL COMMENT '客户ID',

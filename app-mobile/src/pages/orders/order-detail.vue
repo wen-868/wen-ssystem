@@ -42,9 +42,9 @@
           <text class="info-label">客户名称</text>
           <text class="info-value">{{ order.customerName }}</text>
         </view>
-        <view class="info-row" v-if="order.customerPhone">
+        <view class="info-row" v-if="order.customerMobile">
           <text class="info-label">联系电话</text>
-          <text class="info-value">{{ order.customerPhone }}</text>
+          <text class="info-value">{{ order.customerMobile }}</text>
         </view>
         <view class="info-row" v-if="order.customerAddress">
           <text class="info-label">地址</text>
@@ -61,7 +61,7 @@
             <text class="item-spec">x{{ item.quantity }}</text>
           </view>
           <text class="item-price">¥{{ item.unitPrice.toFixed(2) }}</text>
-          <text class="item-total">¥{{ item.totalPrice.toFixed(2) }}</text>
+          <text class="item-total">¥{{ (item.totalPrice ?? 0).toFixed(2) }}</text>
         </view>
         <view class="item-summary">
           <text class="summary-label">合计</text>
