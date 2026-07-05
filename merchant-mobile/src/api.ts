@@ -20,13 +20,28 @@ api.interceptors.response.use(
     return response
   },
   (error) => {
-    if (error.response?.status === 401) {
-      localStorage.removeItem('merchant_token')
-      window.dispatchEvent(new Event('auth:logout'))
-      showToast('登录已过期，请重新登录')
+    if (error.response) {
+      const status = error.response.status
+      const msg = error.response.data?.message || ''
+      if (status === 401) {
+        localStorage.removeItem('merchant_token')
+        window.dispatchEvent(new Event('auth:logout'))
+        showToast('登录已过期，请重新登录')
+      } else if (status === 403) {
+        showToast('没有权限访问')
+      } else if (status === 404) {
+        showToast('请求的资源不存在')
+      } else if (status >= 500) {
+        showToast(msg || '服务器错误，请稍后重试')
+      } else if (status === 400) {
+        showToast(msg || '请求参数有误')
+      } else {
+        showToast(msg || '请求失败')
+      }
+    } else if (error.code === 'ECONNABORTED') {
+      showToast('请求超时，请重试')
     } else {
-      const msg = error.response?.data?.message || error.message || '请求失败'
-      showToast(msg)
+      showToast('网络连接失败，请检查网络')
     }
     return Promise.reject(error)
   }

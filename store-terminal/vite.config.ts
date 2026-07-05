@@ -10,10 +10,12 @@ export default defineConfig({
     outDir: "dist",
     assetsDir: "assets",
     sourcemap: false,
+    minify: "terser",
     rollupOptions: {
       output: {
         manualChunks: {
-          element: ["element-plus"]
+          element: ["element-plus"],
+          vendor: ["vue", "vue-router", "axios"]
         }
       }
     }

@@ -8,6 +8,12 @@
     "build": "vue-tsc -b && vite build",
     "preview": "vite preview --host 0.0.0.0 --port 4175"
   },
+  "overrides": {
+    "esbuild": "0.25.12",
+    "vite": {
+      "esbuild": "0.25.12"
+    }
+  },
   "dependencies": {
     "@vitejs/plugin-vue": "^5.0.5",
     "axios": "^1.7.2",
@@ -17,7 +23,8 @@
     "vue-tsc": "^2.0.21"
   },
   "devDependencies": {
+    "esbuild": "^0.25.12",
     "typescript": "^5.9.3",
-    "vite": "^5.3.1"
+    "vite": "^5.4.21"
   }
 }

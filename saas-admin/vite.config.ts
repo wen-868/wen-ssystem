@@ -13,12 +13,15 @@ export default defineConfig({
     }
   },
   build: {
+    outDir: "dist",
+    assetsDir: "assets",
+    sourcemap: false,
     rollupOptions: {
       output: {
-        manualChunks(id) {
-          if (id.includes("node_modules/echarts")) return "echarts";
-          if (id.includes("node_modules/element-plus")) return "element-plus";
-          if (id.includes("node_modules")) return "vendor";
+        manualChunks: {
+          element: ["element-plus"],
+          echarts: ["echarts"],
+          vendor: ["vue", "vue-router", "axios"]
         }
       }
     }

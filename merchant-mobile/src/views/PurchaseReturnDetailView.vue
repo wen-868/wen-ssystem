@@ -15,13 +15,21 @@
             </van-tag>
           </template>
         </van-cell>
+        <van-cell title="退款状态">
+          <template #value>
+            <van-tag :type="getRefundStatusType(detail.returnStatus) as any">
+              {{ getRefundStatusText(detail.returnStatus) }}
+            </van-tag>
+          </template>
+        </van-cell>
         <van-cell title="创建时间" :value="formatDate(detail.createdAt)" />
       </van-cell-group>
       
       <!-- 供应商信息 -->
       <van-cell-group inset style="margin-top: 12px">
-        <van-cell title="供应商名称" :value="detail.supplierName || '-'" />
-        <van-cell v-if="detail.sourceBillNo" title="原采购单号" :value="detail.sourceBillNo" />
+        <van-cell title="供应商名称" :value="detail.supplierName || '--'" />
+        <van-cell v-if="detail.purchaseNo" title="原采购单号" :value="detail.purchaseNo" />
+        <van-cell v-if="detail.orderNo" title="关联订单号" :value="detail.orderNo" />
       </van-cell-group>
       
       <!-- 退货商品 -->
@@ -35,7 +43,7 @@
           >
             <div class="item-header">
               <div class="item-name">{{ item.skuName }}</div>
-              <div class="item-amount">¥{{ formatMoney(item.subtotal) }}</div>
+              <div class="item-amount">¥{{ formatMoney(item.subtotalAmount) }}</div>
             </div>
             <div class="item-body">
               <div class="info-row">
@@ -46,23 +54,28 @@
                 <span class="label">单价：</span>
                 <span class="value">¥{{ formatMoney(item.unitPrice) }}</span>
               </div>
+              <div class="info-row" v-if="item.reason">
+                <span class="label">原因：</span>
+                <span class="value">{{ item.reason }}</span>
+              </div>
             </div>
           </div>
         </div>
       </van-cell-group>
       
       <!-- 退货原因 -->
-      <van-cell-group inset style="margin-top: 12px" v-if="detail.reason">
-        <van-cell title="退货原因" :label="detail.reason" />
+      <van-cell-group inset style="margin-top: 12px">
+        <van-cell title="退货原因" :label="detail.reason || '--'" />
       </van-cell-group>
       
       <!-- 金额信息 -->
       <van-cell-group inset style="margin-top: 12px">
-        <van-cell title="退货金额" :value="`¥${formatMoney(detail.totalAmount)}`" />
+        <van-cell title="退货金额" :value="`¥${formatMoney(detail.refundAmount)}`" />
+        <van-cell title="已退款金额" :value="`¥${formatMoney(detail.refundedAmount)}`" />
       </van-cell-group>
     </template>
     
-    <van-empty v-else description="采购退货单不存在" />
+    <van-empty v-else description="退货单不存在" />
   </div>
 </template>
 
@@ -70,18 +83,18 @@
 import { ref, onMounted } from 'vue'
 import { useRoute } from 'vue-router'
 import { showToast } from 'vant'
-import { fetchPurchaseReturnDetail } from '../api'
+import { fetchPurchaseReturnDetail, type PurchaseReturnDetail } from '../api'
 
 const route = useRoute()
 
 const loading = ref(true)
-const detail = ref<any>(null)
+const detail = ref<PurchaseReturnDetail | null>(null)
 
 onMounted(async () => {
   const returnNo = route.params.returnNo as string
   try {
     const res = await fetchPurchaseReturnDetail(returnNo)
-    detail.value = (res as any).data
+    detail.value = res.data.data || res.data
   } catch (error) {
     showToast('加载失败')
   } finally {
@@ -109,14 +122,31 @@ function getStatusText(status: string) {
   return map[status] || status
 }
 
+function getRefundStatusType(status: string) {
+  const map: Record<string, string> = {
+    UNPAID: 'warning',
+    PARTIAL: 'primary',
+    PAID: 'success'
+  }
+  return map[status] || 'default'
+}
+
+function getRefundStatusText(status: string) {
+  const map: Record<string, string> = {
+    UNPAID: '待退款',
+    PARTIAL: '部分退款',
+    PAID: '已退款'
+  }
+  return map[status] || status
+}
+
 function formatDate(dateStr: string) {
-  if (!dateStr) return '-'
   const date = new Date(dateStr)
   return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}-${String(date.getDate()).padStart(2, '0')} ${String(date.getHours()).padStart(2, '0')}:${String(date.getMinutes()).padStart(2, '0')}`
 }
 
 function formatMoney(amount: number) {
-  return (amount || 0).toFixed(2)
+  return amount.toFixed(2)
 }
 </script>
 
