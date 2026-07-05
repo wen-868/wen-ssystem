@@ -597,7 +597,7 @@ async function search() {
     spuList.value = groupSpus(res.records || []);
     total.value = res.total || 0;
   } catch (e: any) {
-    ElMessage.error(e.response?.data?.message || "加载失败");
+    ElMessage.error(e.response?.data?.msg || "加载失败");
   } finally { loading.value = false; }
 }
 
@@ -697,7 +697,7 @@ async function handleSubmit() {
       dialogVisible.value = false;
       search();
     } catch (e: any) {
-      ElMessage.error(e.response?.data?.message || "保存失败");
+      ElMessage.error(e.response?.data?.msg || "保存失败");
     } finally { submitLoading.value = false; }
   });
 }
@@ -708,7 +708,7 @@ async function toggleStatus(row: any) {
     await api.patch(`/admin/products/${row.spuId}/status`, { status: newStatus });
     ElMessage.success(newStatus === "ON_SALE" ? "已上架" : "已下架");
     search();
-  } catch (e: any) { ElMessage.error(e.response?.data?.message || "操作失败"); }
+  } catch (e: any) { ElMessage.error(e.response?.data?.msg || "操作失败"); }
 }
 
 // ---------- Detail Drawer ----------
@@ -742,7 +742,7 @@ async function saveDetailTags() {
     await api.put(`/admin/products/${detailSpu.value.spuId}/tags`, { tagIds: detailTagIds.value });
     ElMessage.success("标签已保存");
   } catch (e: any) {
-    ElMessage.error(e.response?.data?.message || "保存失败");
+    ElMessage.error(e.response?.data?.msg || "保存失败");
   } finally { tagSubmitLoading.value = false; }
 }
 
@@ -777,7 +777,7 @@ async function handleSkuPriceUpdate() {
     skuPriceVisible.value = false;
     search();
   } catch (e: any) {
-    ElMessage.error(e.response?.data?.message || "改价失败");
+    ElMessage.error(e.response?.data?.msg || "改价失败");
   } finally { skuPriceLoading.value = false; }
 }
 

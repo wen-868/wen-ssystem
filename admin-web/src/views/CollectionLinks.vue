@@ -182,7 +182,7 @@ async function loadList() {
     records.value = data.records || [];
     total.value = data.total || 0;
   } catch (e: any) {
-    ElMessage.error(e.response?.data?.message || "加载失败");
+    ElMessage.error(e.response?.data?.msg || "加载失败");
   } finally {
     loading.value = false;
   }
@@ -220,7 +220,7 @@ async function handleBatchCreate() {
     loadList();
     loadStats();
   } catch (e: any) {
-    ElMessage.error(e.response?.data?.message || "生成失败");
+    ElMessage.error(e.response?.data?.msg || "生成失败");
   } finally {
     batchLoading.value = false;
   }
@@ -236,7 +236,7 @@ async function handleRevoke(row: any) {
     loadList();
     loadStats();
   } catch (e: any) {
-    ElMessage.error(e.response?.data?.message || "撤销失败");
+    ElMessage.error(e.response?.data?.msg || "撤销失败");
   }
 }
 

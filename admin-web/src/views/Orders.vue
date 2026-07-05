@@ -175,7 +175,7 @@ async function loadOrders() {
     orders.value = Array.isArray(data) ? data : (data.records || []);
     total.value = data.total || orders.value.length;
   } catch (e: any) {
-    ElMessage.error(e.response?.data?.message || "加载失败");
+    ElMessage.error(e.response?.data?.msg || "加载失败");
   } finally {
     loading.value = false;
   }
@@ -197,7 +197,7 @@ async function viewDetail(row: any) {
     currentOrder.value = await fetchOrderDetail(row.orderNo);
     detailVisible.value = true;
   } catch (e: any) {
-    ElMessage.error(e.response?.data?.message || "加载详情失败");
+    ElMessage.error(e.response?.data?.msg || "加载详情失败");
   }
 }
 

@@ -368,7 +368,7 @@ async function handlePublish() {
     loadPublishLogs();
   } catch (err: any) {
     publishSuccess.value = false;
-    publishResultData.errorMsg = err?.response?.data?.message || err?.message || "发布失败，请稍后重试";
+    publishResultData.errorMsg = err?.response?.data?.msg || err?.message || "发布失败，请稍后重试";
     publishResultData.version = "";
     publishResultData.publishedAt = "";
     ElMessage.error("发布失败");

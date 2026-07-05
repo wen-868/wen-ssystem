@@ -222,7 +222,7 @@ async function loadList() {
     records.value = data.records || [];
     total.value = data.total || 0;
   } catch (e: any) {
-    ElMessage.error(e.response?.data?.message || "加载失败");
+    ElMessage.error(e.response?.data?.msg || "加载失败");
   } finally {
     loading.value = false;
   }
@@ -280,7 +280,7 @@ async function handleSubmit() {
     dialogVisible.value = false;
     loadList();
   } catch (e: any) {
-    ElMessage.error(e.response?.data?.message || "保存失败");
+    ElMessage.error(e.response?.data?.msg || "保存失败");
   } finally {
     submitLoading.value = false;
   }
@@ -295,7 +295,7 @@ async function handleDelete(row: any) {
     ElMessage.success("已删除");
     loadList();
   } catch (e: any) {
-    ElMessage.error(e.response?.data?.message || "删除失败");
+    ElMessage.error(e.response?.data?.msg || "删除失败");
   }
 }
 
@@ -327,7 +327,7 @@ async function handleBatchSubmit() {
     batchVisible.value = false;
     loadList();
   } catch (e: any) {
-    ElMessage.error(e.response?.data?.message || "设置失败");
+    ElMessage.error(e.response?.data?.msg || "设置失败");
   } finally {
     batchLoading.value = false;
   }

@@ -78,7 +78,7 @@ const pageSize = ref(20);
 
 function getErrorMessage(error: unknown, fallback: string) {
   const e = error as any;
-  return e?.response?.data?.message || e?.message || fallback;
+  return e?.response?.data?.msg || e?.message || fallback;
 }
 
 async function loadStats() {

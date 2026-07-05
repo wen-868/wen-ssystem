@@ -322,7 +322,7 @@ async function loadChecks() {
     tableData.value = data.records || [];
     pagination.total = data.total || 0;
   } catch (e: any) {
-    ElMessage.error(e.response?.data?.message || "加载失败");
+    ElMessage.error(e.response?.data?.msg || "加载失败");
   } finally {
     loading.value = false;
   }
@@ -373,7 +373,7 @@ async function handleStart(row: any) {
     loadChecks();
   } catch (e: any) {
     if (e !== "cancel") {
-      ElMessage.error(e.response?.data?.message || "操作失败");
+      ElMessage.error(e.response?.data?.msg || "操作失败");
     }
   }
 }
@@ -386,7 +386,7 @@ async function handleComplete(row: any) {
     loadChecks();
   } catch (e: any) {
     if (e !== "cancel") {
-      ElMessage.error(e.response?.data?.message || "操作失败");
+      ElMessage.error(e.response?.data?.msg || "操作失败");
     }
   }
 }
@@ -399,7 +399,7 @@ async function handleCancel(row: any) {
     loadChecks();
   } catch (e: any) {
     if (e !== "cancel") {
-      ElMessage.error(e.response?.data?.message || "操作失败");
+      ElMessage.error(e.response?.data?.msg || "操作失败");
     }
   }
 }
@@ -416,7 +416,7 @@ async function handleDiff(row: any) {
     loadChecks();
   } catch (e: any) {
     if (e !== "cancel") {
-      ElMessage.error(e.response?.data?.message || "操作失败");
+      ElMessage.error(e.response?.data?.msg || "操作失败");
     }
   }
 }
@@ -432,7 +432,7 @@ async function handleSubmit() {
       dialogVisible.value = false;
       loadChecks();
     } catch (e: any) {
-      ElMessage.error(e.response?.data?.message || "创建失败");
+      ElMessage.error(e.response?.data?.msg || "创建失败");
     } finally {
       submitLoading.value = false;
     }

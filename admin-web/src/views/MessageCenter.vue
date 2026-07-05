@@ -217,7 +217,7 @@ async function search() {
     list.value = data.records || data.list || [];
     total.value = data.total || 0;
   } catch (e: any) {
-    ElMessage.error(e.response?.data?.message || "加载失败");
+    ElMessage.error(e.response?.data?.msg || "加载失败");
   } finally {
     loading.value = false;
   }

@@ -70,8 +70,8 @@ const pageSize = ref(20);
 const userId = ref("");
 
 function getErrorMessage(error: unknown, fallback: string) {
-  const anyError = error as { response?: { data?: { message?: string } }; message?: string };
-  return anyError?.response?.data?.message || anyError?.message || fallback;
+  const anyError = error as { response?: { data?: { msg?: string; message?: string } }; message?: string };
+  return anyError?.response?.data?.msg || anyError?.message || fallback;
 }
 
 async function loadData() {

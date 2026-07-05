@@ -191,7 +191,7 @@ async function loadList() {
     list.value = d.list || [];
     total.value = d.total || 0;
   } catch (e: any) {
-    ElMessage.error("加载失败: " + (e.response?.data?.message || e.message));
+    ElMessage.error("加载失败: " + (e.response?.data?.msg || e.message));
   } finally {
     loading.value = false;
   }
@@ -215,7 +215,7 @@ async function handleSubmit() {
     form.contact = "";
     loadList();
   } catch (e: any) {
-    ElMessage.error("提交失败: " + (e.response?.data?.message || e.message));
+    ElMessage.error("提交失败: " + (e.response?.data?.msg || e.message));
   } finally {
     submitting.value = false;
   }
@@ -232,7 +232,7 @@ async function handleStatus(row: any, status: string) {
     ElMessage.success("状态更新成功");
     loadList();
   } catch (e: any) {
-    ElMessage.error("更新失败: " + (e.response?.data?.message || e.message));
+    ElMessage.error("更新失败: " + (e.response?.data?.msg || e.message));
   }
 }
 

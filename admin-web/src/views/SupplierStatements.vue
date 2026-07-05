@@ -195,7 +195,7 @@ async function loadList() {
     records.value = data.records || [];
     total.value = data.total || 0;
   } catch (e: any) {
-    ElMessage.error(e.response?.data?.message || "加载失败");
+    ElMessage.error(e.response?.data?.msg || "加载失败");
   } finally {
     loading.value = false;
   }
@@ -227,7 +227,7 @@ async function handleGenerate() {
     genVisible.value = false;
     loadList();
   } catch (e: any) {
-    ElMessage.error(e.response?.data?.message || "生成失败");
+    ElMessage.error(e.response?.data?.msg || "生成失败");
   } finally {
     genLoading.value = false;
   }
@@ -239,7 +239,7 @@ async function viewDetail(row: any) {
     currentDetail.value = data;
     detailVisible.value = true;
   } catch (e: any) {
-    ElMessage.error(e.response?.data?.message || "加载失败");
+    ElMessage.error(e.response?.data?.msg || "加载失败");
   }
 }
 
@@ -250,7 +250,7 @@ async function handleConfirm(row: any) {
     ElMessage.success("对账已确认");
     loadList();
   } catch (e: any) {
-    ElMessage.error(e.response?.data?.message || "确认失败");
+    ElMessage.error(e.response?.data?.msg || "确认失败");
   }
 }
 
@@ -268,7 +268,7 @@ async function handleDisputeSubmit() {
     disputeVisible.value = false;
     loadList();
   } catch (e: any) {
-    ElMessage.error(e.response?.data?.message || "操作失败");
+    ElMessage.error(e.response?.data?.msg || "操作失败");
   } finally {
     disputeLoading.value = false;
   }

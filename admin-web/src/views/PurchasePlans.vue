@@ -216,7 +216,7 @@ async function loadList() {
     records.value = data.records || [];
     total.value = data.total || 0;
   } catch (e: any) {
-    ElMessage.error(e.response?.data?.message || "加载失败");
+    ElMessage.error(e.response?.data?.msg || "加载失败");
   } finally {
     loading.value = false;
   }
@@ -260,7 +260,7 @@ async function handleCreate() {
     createVisible.value = false;
     loadList();
   } catch (e: any) {
-    ElMessage.error(e.response?.data?.message || "创建失败");
+    ElMessage.error(e.response?.data?.msg || "创建失败");
   } finally {
     createLoading.value = false;
   }
@@ -273,7 +273,7 @@ async function showReplenishDialog() {
     const data = await fetchReplenishmentSuggestions();
     suggestions.value = Array.isArray(data) ? data : [];
   } catch (e: any) {
-    ElMessage.error(e.response?.data?.message || "获取建议失败");
+    ElMessage.error(e.response?.data?.msg || "获取建议失败");
   } finally {
     suggestLoading.value = false;
   }
@@ -296,7 +296,7 @@ async function createFromReplenish() {
     replenishVisible.value = false;
     loadList();
   } catch (e: any) {
-    ElMessage.error(e.response?.data?.message || "生成失败");
+    ElMessage.error(e.response?.data?.msg || "生成失败");
   } finally {
     replenishCreateLoading.value = false;
   }
@@ -308,7 +308,7 @@ async function viewDetail(row: any) {
     currentDetail.value = data;
     detailVisible.value = true;
   } catch (e: any) {
-    ElMessage.error(e.response?.data?.message || "加载失败");
+    ElMessage.error(e.response?.data?.msg || "加载失败");
   }
 }
 
@@ -318,7 +318,7 @@ async function handleApprove(row: any) {
     await approvePurchasePlan(row.id);
     ElMessage.success("审批通过");
     loadList();
-  } catch (e: any) { ElMessage.error(e.response?.data?.message || "审批失败"); }
+  } catch (e: any) { ElMessage.error(e.response?.data?.msg || "审批失败"); }
 }
 
 async function handleConvert(row: any) {
@@ -327,7 +327,7 @@ async function handleConvert(row: any) {
     const result = await convertPurchasePlanToOrder(row.id);
     ElMessage.success(`已生成采购订单 ${result.orderNo}`);
     loadList();
-  } catch (e: any) { ElMessage.error(e.response?.data?.message || "转换失败"); }
+  } catch (e: any) { ElMessage.error(e.response?.data?.msg || "转换失败"); }
 }
 
 async function handleCancel(row: any) {
@@ -336,7 +336,7 @@ async function handleCancel(row: any) {
     await cancelPurchasePlan(row.id);
     ElMessage.success("已取消");
     loadList();
-  } catch (e: any) { ElMessage.error(e.response?.data?.message || "取消失败"); }
+  } catch (e: any) { ElMessage.error(e.response?.data?.msg || "取消失败"); }
 }
 
 onMounted(() => { loadList(); });

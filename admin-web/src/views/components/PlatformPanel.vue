@@ -30,25 +30,25 @@
           <span class="section-title">密钥配置</span>
         </div>
       </template>
-      <el-form :model="localPlatform" label-width="100px" class="config-form">
+      <el-form ref="configFormRef" :model="localPlatform" :rules="configRules" label-width="100px" class="config-form">
         <el-row :gutter="24">
           <el-col :span="12">
-            <el-form-item label="App Key">
+            <el-form-item label="App Key" prop="appKey">
               <el-input v-model="localPlatform.appKey" placeholder="请输入App Key" show-password />
             </el-form-item>
           </el-col>
           <el-col :span="12">
-            <el-form-item label="App Secret">
+            <el-form-item label="App Secret" prop="appSecret">
               <el-input v-model="localPlatform.appSecret" type="password" placeholder="请输入App Secret" show-password />
             </el-form-item>
           </el-col>
           <el-col :span="12">
-            <el-form-item label="商户ID">
+            <el-form-item label="商户ID" prop="merchantId">
               <el-input v-model="localPlatform.merchantId" placeholder="请输入商户ID" />
             </el-form-item>
           </el-col>
           <el-col :span="12">
-            <el-form-item label="绑定门店">
+            <el-form-item label="绑定门店" prop="storeId">
               <el-select v-model="localPlatform.storeId" placeholder="请选择门店" style="width: 100%">
                 <el-option label="旗舰店（总店）" value="store_001" />
                 <el-option label="美团专属店" value="store_002" />
@@ -147,7 +147,7 @@
 
 <script setup lang="ts">
 import { computed, reactive, ref } from "vue";
-import { ElMessage } from "element-plus";
+import { ElMessage, type FormRules } from "element-plus";
 
 interface PlatformData {
   key: string;
@@ -182,6 +182,14 @@ const props = defineProps<{
 
 const localPlatform = reactive({ ...props.platform });
 
+const configFormRef = ref();
+const configRules: FormRules = {
+  appKey: [{ required: true, message: "请输入App Key", trigger: "blur" }],
+  appSecret: [{ required: true, message: "请输入App Secret", trigger: "blur" }],
+  merchantId: [{ required: true, message: "请输入商户ID", trigger: "blur" }],
+  storeId: [{ required: true, message: "请选择绑定门店", trigger: "change" }],
+};
+
 const saveLoading = ref(false);
 const testLoading = ref(false);
 const syncOrderLoading = ref(false);
@@ -212,7 +220,9 @@ function handleEnableChange(val: boolean) {
   ElMessage.info(`${val ? "启用" : "停用"}${localPlatform.name}`);
 }
 
-function handleSave() {
+async function handleSave() {
+  const valid = await configFormRef.value?.validate().catch(() => false);
+  if (!valid) return;
   saveLoading.value = true;
   testResult.value = null;
   setTimeout(() => {

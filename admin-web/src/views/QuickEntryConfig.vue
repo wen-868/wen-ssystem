@@ -235,7 +235,7 @@ async function loadData() {
       selectEntry(entries.value[0]);
     }
   } catch (e: any) {
-    ElMessage.error(e.response?.data?.message || "加载失败");
+    ElMessage.error(e.response?.data?.msg || "加载失败");
   }
 }
 
@@ -268,7 +268,7 @@ async function handleSave() {
     ElMessage.success("保存成功");
     await loadData();
   } catch (e: any) {
-    ElMessage.error(e.response?.data?.message || "保存失败");
+    ElMessage.error(e.response?.data?.msg || "保存失败");
   } finally {
     saveLoading.value = false;
   }
@@ -293,7 +293,7 @@ async function handleSaveSort() {
     await axios.put("/api/admin/quick-entries/sort", { ids });
     ElMessage.success("排序已保存");
   } catch (e: any) {
-    ElMessage.error(e.response?.data?.message || "排序保存失败");
+    ElMessage.error(e.response?.data?.msg || "排序保存失败");
   }
 }
 
@@ -339,7 +339,7 @@ async function handleAdd() {
     dialogVisible.value = false;
     await loadData();
   } catch (e: any) {
-    ElMessage.error(e.response?.data?.message || "新增失败");
+    ElMessage.error(e.response?.data?.msg || "新增失败");
   } finally {
     addLoading.value = false;
   }

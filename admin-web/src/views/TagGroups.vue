@@ -163,7 +163,7 @@ async function loadGroups() {
       activeTab.value = list[0].groupCode;
     }
   } catch (e: any) {
-    ElMessage.error(e.response?.data?.message || "加载分组失败");
+    ElMessage.error(e.response?.data?.msg || "加载分组失败");
   }
 }
 
@@ -182,7 +182,7 @@ async function loadTags() {
       tagTotal.value = (res || []).length;
     }
   } catch (e: any) {
-    ElMessage.error(e.response?.data?.message || "加载标签失败");
+    ElMessage.error(e.response?.data?.msg || "加载标签失败");
   } finally {
     tagLoading.value = false;
   }
@@ -237,7 +237,7 @@ async function handleTagSubmit() {
     tagDialogVisible.value = false;
     loadTags();
   } catch (e: any) {
-    ElMessage.error(e.response?.data?.message || "保存失败");
+    ElMessage.error(e.response?.data?.msg || "保存失败");
   } finally {
     tagSubmitLoading.value = false;
   }
@@ -250,7 +250,7 @@ async function toggleTagStatus(row: any) {
     ElMessage.success("操作成功");
     loadTags();
   } catch (e: any) {
-    ElMessage.error(e.response?.data?.message || "操作失败");
+    ElMessage.error(e.response?.data?.msg || "操作失败");
   }
 }
 
@@ -260,7 +260,7 @@ async function deleteTagItem(id: number) {
     ElMessage.success("删除成功");
     loadTags();
   } catch (e: any) {
-    ElMessage.error(e.response?.data?.message || "删除失败");
+    ElMessage.error(e.response?.data?.msg || "删除失败");
   }
 }
 
@@ -302,7 +302,7 @@ async function handleGroupSubmit() {
     groupDialogVisible.value = false;
     loadAll();
   } catch (e: any) {
-    ElMessage.error(e.response?.data?.message || "保存失败");
+    ElMessage.error(e.response?.data?.msg || "保存失败");
   } finally {
     groupSubmitLoading.value = false;
   }

@@ -312,7 +312,7 @@ async function loadStores() {
     const end = start + storePageSize.value;
     stores.value = list.slice(start, end);
   } catch (e: any) {
-    ElMessage.error(e.response?.data?.message || "加载失败");
+    ElMessage.error(e.response?.data?.msg || "加载失败");
   } finally {
     storeLoading.value = false;
   }
@@ -338,7 +338,7 @@ async function loadStaff() {
     const end = start + staffPageSize.value;
     staffList.value = list.slice(start, end);
   } catch (e: any) {
-    ElMessage.error(e.response?.data?.message || "加载失败");
+    ElMessage.error(e.response?.data?.msg || "加载失败");
   } finally {
     staffLoading.value = false;
   }
@@ -423,7 +423,7 @@ async function handleStoreSubmit() {
       Object.assign(storeForm, defaultStoreForm);
       loadStores();
     } catch (e: any) {
-      ElMessage.error(e.response?.data?.message || "保存失败");
+      ElMessage.error(e.response?.data?.msg || "保存失败");
     } finally {
       storeSubmitLoading.value = false;
     }
@@ -468,7 +468,7 @@ async function handleStaffSubmit() {
       Object.assign(staffForm, defaultStaffForm);
       loadStaff();
     } catch (e: any) {
-      ElMessage.error(e.response?.data?.message || "保存失败");
+      ElMessage.error(e.response?.data?.msg || "保存失败");
     } finally {
       staffSubmitLoading.value = false;
     }

@@ -228,7 +228,7 @@ async function loadDailySales() {
     const data = await fetchDailySales();
     dailySales.value = Array.isArray(data) ? data : (data.records || data || []);
   } catch (e: any) {
-    ElMessage.error(e.response?.data?.message || "加载销售趋势失败");
+    ElMessage.error(e.response?.data?.msg || "加载销售趋势失败");
   } finally {
     dailySalesLoading.value = false;
   }
@@ -240,7 +240,7 @@ async function loadOrderStats() {
     const data = await fetchOrderStats();
     orderStats.value = Array.isArray(data) ? data : (data.records || data || []);
   } catch (e: any) {
-    ElMessage.error(e.response?.data?.message || "加载订单统计失败");
+    ElMessage.error(e.response?.data?.msg || "加载订单统计失败");
   } finally {
     orderStatsLoading.value = false;
   }
@@ -252,7 +252,7 @@ async function loadStorePerformance() {
     const data = await fetchStorePerformance();
     storePerformance.value = Array.isArray(data) ? data : (data.records || data || []);
   } catch (e: any) {
-    ElMessage.error(e.response?.data?.message || "加载门店业绩失败");
+    ElMessage.error(e.response?.data?.msg || "加载门店业绩失败");
   } finally {
     storePerformanceLoading.value = false;
   }

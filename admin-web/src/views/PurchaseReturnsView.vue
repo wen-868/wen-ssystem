@@ -111,7 +111,7 @@ async function loadReturns() {
     returns.value = res.list || [];
     total.value = res.total || 0;
   } catch (e: any) {
-    ElMessage.error(e?.response?.data?.message || "加载失败");
+    ElMessage.error(e?.response?.data?.msg || "加载失败");
   } finally {
     loading.value = false;
   }
