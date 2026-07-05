@@ -32,7 +32,7 @@
 - 优先级：P0
 - 负责人：阿坚
 - 预计：0.5天
-- 状态：待开始
+- 状态：已完成
 - 文件：`backend/src/services/admin/customer.service.ts`（createCustomer L35-46）
 - 问题：创建客户时只接受 name/mobile/customerType/staffId，update API 已支持 address/remark/settlementType，但 create API 未同步
 - 修复：createCustomer 补充 address/remark/settlementType 参数，与 updateCustomer 字段对齐
@@ -41,7 +41,7 @@
 - 优先级：P0
 - 负责人：阿坚
 - 预计：0.5天
-- 状态：待开始
+- 状态：已完成
 - 文件：`backend/src/services/admin/product.service.ts`
 - 问题：product_spu.brand 是 VARCHAR(128) 存储品牌名，但存在独立的 brand 表（id/name/logo）。前端传 brandId 数字 ID，后端当字符串存储
 - 修复：添加 brand_id 字段（ALTER TABLE）；迁移现有 brand 字符串到 brand_id；后端 createProduct/updateProduct 改为接受 brandId
@@ -50,7 +50,7 @@
 - 优先级：P1
 - 负责人：阿坚
 - 预计：0.5天
-- 状态：待开始
+- 状态：已完成
 - 文件：费用管理 `admin-web/src/api.ts`（L1972-1989）vs `backend/src/routes/expense.routes.ts`；审批 `admin-web/src/api.ts`（L2054-2091）vs `backend/src/routes/approval.routes.ts`
 - 问题：费用管理前端调 `/api/admin/finance/expenses`，后端注册 `/api/admin/expenses`；审批前端调 `/api/admin/system/approval/...`，后端注册 `/api/admin/approval/...`。前端多加了 `/finance/` 和 `/system/` 段
 - 修复：以后端路径为准，前端去掉多余的路径段
@@ -59,7 +59,7 @@
 - 优先级：P1
 - 负责人：阿坚
 - 预计：0.5天
-- 状态：待开始
+- 状态：已完成
 - 文件：`backend/src/routes/approval.routes.ts` + 审批 service
 - 问题：审批规则支持 PURCHASE/SALE/REFUND/PRICE_CHANGE/CREDIT_LIMIT，缺少 EXPENSE。费用审批走独立流程（ExpensesView 内置 approve/void）
 - 修复：补充 EXPENSE 类型，确认是否纳入系统审批流程
@@ -184,9 +184,9 @@
 
 ## 汇总
 
-| 负责人 | P0 | P1 | P2 | 总预计 |
-|:---:|:---:|:---:|:---:|:---:|
-| 阿坚 | 2 | 3 | 2 | 5.5 天 |
-| 墨 | 3 | 4 | 1 | 6.5 天 |
-| 阿澈 | 0 | 1 | 0 | 0.5 天 |
-| **合计** | **5** | **8** | **3** | **12.5 天** |
+| 负责人 | P0 | P1 | P2 | 已完成 | 待开始 | 总预计 |
+|:---:|:---:|:---:|:---:|:---:|:---:|:---:|
+| 阿坚 | 0 | 1 | 2 | 4（R3-1~R3-4） | 3 | 3.5 天 |
+| 墨 | 3 | 4 | 1 | 0 | 8 | 6.5 天 |
+| 阿澈 | 0 | 1 | 0 | 0 | 1 | 0.5 天 |
+| **合计** | **3** | **6** | **3** | **4** | **12** | **10.5 天** |
