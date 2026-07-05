@@ -8,90 +8,66 @@ export const listVisits = asyncHandler(async (req, res) => {
 });
 
 export const getVisitDetail = asyncHandler(async (req, res) => {
-  try {
-    const result = await customerVisitService.getVisitDetail(req.tenantId!, req.params.visitNo);
-    res.json(ok(result));
-  } catch (e: any) {
-    res.status(e.statusCode || 404).json({ code: String(e.statusCode || 404), message: e.message });
-  }
+  const result = await customerVisitService.getVisitDetail(req.tenantId!, req.params.visitNo);
+  res.json(ok(result));
 });
 
 export const createVisit = asyncHandler(async (req, res) => {
-  try {
-    const body = customerVisitService.createVisitSchema.parse(req.body);
-    const result = await customerVisitService.createVisit(
-      req.tenantId!,
-      req.user!.id,
-      req.user!.username,
-      req.user!.realName,
-      body
-    );
-    res.json(ok(result));
-  } catch (e: any) {
-    res.status(e.statusCode || 400).json({ code: String(e.statusCode || 400), message: e.message });
-  }
+  const body = customerVisitService.createVisitSchema.parse(req.body);
+  const result = await customerVisitService.createVisit(
+    req.tenantId!,
+    req.user!.id,
+    req.user!.username,
+    req.user!.realName,
+    body
+  );
+  res.json(ok(result));
 });
 
 export const updateVisit = asyncHandler(async (req, res) => {
-  try {
-    const body = customerVisitService.updateVisitSchema.parse(req.body);
-    const result = await customerVisitService.updateVisit(
-      req.tenantId!,
-      req.user!.id,
-      req.user!.username,
-      req.params.visitNo,
-      body
-    );
-    res.json(ok(result));
-  } catch (e: any) {
-    res.status(e.statusCode || 404).json({ code: String(e.statusCode || 404), message: e.message });
-  }
+  const body = customerVisitService.updateVisitSchema.parse(req.body);
+  const result = await customerVisitService.updateVisit(
+    req.tenantId!,
+    req.user!.id,
+    req.user!.username,
+    req.params.visitNo,
+    body
+  );
+  res.json(ok(result));
 });
 
 export const checkin = asyncHandler(async (req, res) => {
-  try {
-    const body = customerVisitService.checkinSchema.parse(req.body);
-    const result = await customerVisitService.checkin(
-      req.tenantId!,
-      req.user!.id,
-      req.user!.username,
-      req.params.visitNo,
-      body
-    );
-    res.json(ok(result));
-  } catch (e: any) {
-    res.status(e.statusCode || 400).json({ code: String(e.statusCode || 400), message: e.message });
-  }
+  const body = customerVisitService.checkinSchema.parse(req.body);
+  const result = await customerVisitService.checkin(
+    req.tenantId!,
+    req.user!.id,
+    req.user!.username,
+    req.params.visitNo,
+    body
+  );
+  res.json(ok(result));
 });
 
 export const checkout = asyncHandler(async (req, res) => {
-  try {
-    const body = customerVisitService.checkoutSchema.parse(req.body);
-    const result = await customerVisitService.checkout(
-      req.tenantId!,
-      req.user!.id,
-      req.user!.username,
-      req.params.visitNo,
-      body
-    );
-    res.json(ok(result));
-  } catch (e: any) {
-    res.status(e.statusCode || 400).json({ code: String(e.statusCode || 400), message: e.message });
-  }
+  const body = customerVisitService.checkoutSchema.parse(req.body);
+  const result = await customerVisitService.checkout(
+    req.tenantId!,
+    req.user!.id,
+    req.user!.username,
+    req.params.visitNo,
+    body
+  );
+  res.json(ok(result));
 });
 
 export const cancelVisit = asyncHandler(async (req, res) => {
-  try {
-    const result = await customerVisitService.cancelVisit(
-      req.tenantId!,
-      req.user!.id,
-      req.user!.username,
-      req.params.visitNo
-    );
-    res.json(ok(result));
-  } catch (e: any) {
-    res.status(e.statusCode || 400).json({ code: String(e.statusCode || 400), message: e.message });
-  }
+  const result = await customerVisitService.cancelVisit(
+    req.tenantId!,
+    req.user!.id,
+    req.user!.username,
+    req.params.visitNo
+  );
+  res.json(ok(result));
 });
 
 export const listPendingFollowUps = asyncHandler(async (req, res) => {

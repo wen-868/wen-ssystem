@@ -28,16 +28,12 @@ export const AFTERSALE_STATUS_LABELS: Record<string, string> = {
 export const miniappCreateAftersale = asyncHandler(async (req, res) => {
   const tenantId = req.tenantId!;
   const customerId = Number(req.user!.id || req.headers["x-customer-id"] || 1);
-  try {
-    const result = await service.createAftersale({
-      tenantId,
-      customerId,
-      ...req.body
-    });
-    res.json(ok(result));
-  } catch (e: any) {
-    res.status(e.statusCode || 400).json(fail(e.message));
-  }
+  const result = await service.createAftersale({
+    tenantId,
+    customerId,
+    ...req.body
+  });
+  res.json(ok(result));
 });
 
 export const miniappListMyAftersales = asyncHandler(async (req, res) => {
@@ -62,63 +58,47 @@ export const miniappListMyAftersales = asyncHandler(async (req, res) => {
 export const miniappGetAftersaleDetail = asyncHandler(async (req, res) => {
   const tenantId = req.tenantId!;
   const customerId = Number(req.user!.id || req.headers["x-customer-id"] || 1);
-  try {
-    const row = await service.getAftersaleDetail(req.params.aftersaleNo, customerId, tenantId);
-    res.json(ok({
-      ...row,
-      items: typeof row.items === "string" ? JSON.parse(row.items) : row.items,
-      images: typeof row.images === "string" ? JSON.parse(row.images) : row.images,
-      inspectImages: typeof row.inspect_images === "string" ? JSON.parse(row.inspect_images) : row.inspect_images,
-      aftersaleTypeLabel: AFTERSALE_TYPE_LABELS[row.aftersale_type] || row.aftersale_type,
-      statusLabel: AFTERSALE_STATUS_LABELS[row.status] || row.status,
-      refundAmount: Number(row.refund_amount)
-    }));
-  } catch (e: any) {
-    res.status(e.statusCode || 404).json(fail(e.message));
-  }
+  const row = await service.getAftersaleDetail(req.params.aftersaleNo, customerId, tenantId);
+  res.json(ok({
+    ...row,
+    items: typeof row.items === "string" ? JSON.parse(row.items) : row.items,
+    images: typeof row.images === "string" ? JSON.parse(row.images) : row.images,
+    inspectImages: typeof row.inspect_images === "string" ? JSON.parse(row.inspect_images) : row.inspect_images,
+    aftersaleTypeLabel: AFTERSALE_TYPE_LABELS[row.aftersale_type] || row.aftersale_type,
+    statusLabel: AFTERSALE_STATUS_LABELS[row.status] || row.status,
+    refundAmount: Number(row.refund_amount)
+  }));
 });
 
 export const miniappCancelAftersale = asyncHandler(async (req, res) => {
   const tenantId = req.tenantId!;
   const customerId = Number(req.user!.id || req.headers["x-customer-id"] || 1);
-  try {
-    const result = await service.cancelAftersale(req.params.aftersaleNo, customerId, tenantId);
-    res.json(ok(result));
-  } catch (e: any) {
-    res.status(e.statusCode || 400).json(fail(e.message));
-  }
+  const result = await service.cancelAftersale(req.params.aftersaleNo, customerId, tenantId);
+  res.json(ok(result));
 });
 
 export const miniappSubmitReturnLogistics = asyncHandler(async (req, res) => {
   const tenantId = req.tenantId!;
   const customerId = Number(req.user!.id || req.headers["x-customer-id"] || 1);
-  try {
-    const result = await service.submitReturnLogistics({
-      aftersaleNo: req.params.aftersaleNo,
-      customerId,
-      tenantId,
-      ...req.body
-    });
-    res.json(ok(result));
-  } catch (e: any) {
-    res.status(e.statusCode || 400).json(fail(e.message));
-  }
+  const result = await service.submitReturnLogistics({
+    aftersaleNo: req.params.aftersaleNo,
+    customerId,
+    tenantId,
+    ...req.body
+  });
+  res.json(ok(result));
 });
 
 export const miniappRateAftersale = asyncHandler(async (req, res) => {
   const tenantId = req.tenantId!;
   const customerId = Number(req.user!.id || req.headers["x-customer-id"] || 1);
-  try {
-    const result = await service.rateAftersale({
-      aftersaleNo: req.params.aftersaleNo,
-      customerId,
-      tenantId,
-      ...req.body
-    });
-    res.json(ok(result));
-  } catch (e: any) {
-    res.status(e.statusCode || 400).json(fail(e.message));
-  }
+  const result = await service.rateAftersale({
+    aftersaleNo: req.params.aftersaleNo,
+    customerId,
+    tenantId,
+    ...req.body
+  });
+  res.json(ok(result));
 });
 
 // ==================== 管理端 ====================
@@ -146,88 +126,64 @@ export const adminListAftersales = asyncHandler(async (req, res) => {
 
 export const adminGetAftersaleDetail = asyncHandler(async (req, res) => {
   const tenantId = req.tenantId!;
-  try {
-    const row = await service.getAftersaleDetailById(Number(req.params.id), tenantId);
-    res.json(ok({
-      ...row,
-      items: typeof row.items === "string" ? JSON.parse(row.items) : row.items,
-      images: typeof row.images === "string" ? JSON.parse(row.images) : row.images,
-      inspectImages: typeof row.inspect_images === "string" ? JSON.parse(row.inspect_images) : row.inspect_images,
-      aftersaleTypeLabel: AFTERSALE_TYPE_LABELS[row.aftersale_type] || row.aftersale_type,
-      statusLabel: AFTERSALE_STATUS_LABELS[row.status] || row.status,
-      refundAmount: Number(row.refund_amount)
-    }));
-  } catch (e: any) {
-    res.status(e.statusCode || 404).json(fail(e.message));
-  }
+  const row = await service.getAftersaleDetailById(Number(req.params.id), tenantId);
+  res.json(ok({
+    ...row,
+    items: typeof row.items === "string" ? JSON.parse(row.items) : row.items,
+    images: typeof row.images === "string" ? JSON.parse(row.images) : row.images,
+    inspectImages: typeof row.inspect_images === "string" ? JSON.parse(row.inspect_images) : row.inspect_images,
+    aftersaleTypeLabel: AFTERSALE_TYPE_LABELS[row.aftersale_type] || row.aftersale_type,
+    statusLabel: AFTERSALE_STATUS_LABELS[row.status] || row.status,
+    refundAmount: Number(row.refund_amount)
+  }));
 });
 
 export const adminApproveAftersale = asyncHandler(async (req, res) => {
   const tenantId = req.tenantId!;
   const operatorId = req.user!.id;
-  try {
-    const result = await service.approveAftersale(
-      Number(req.params.id), tenantId, operatorId, req.body.processRemark, req.body.version
-    );
-    res.json(ok(result));
-  } catch (e: any) {
-    res.status(e.statusCode || 400).json(fail(e.message));
-  }
+  const result = await service.approveAftersale(
+    Number(req.params.id), tenantId, operatorId, req.body.processRemark, req.body.version
+  );
+  res.json(ok(result));
 });
 
 export const adminRejectAftersale = asyncHandler(async (req, res) => {
   const tenantId = req.tenantId!;
   const operatorId = req.user!.id;
-  try {
-    const result = await service.rejectAftersale(
-      Number(req.params.id), tenantId, operatorId, req.body.processRemark, req.body.version
-    );
-    res.json(ok(result));
-  } catch (e: any) {
-    res.status(e.statusCode || 400).json(fail(e.message));
-  }
+  const result = await service.rejectAftersale(
+    Number(req.params.id), tenantId, operatorId, req.body.processRemark, req.body.version
+  );
+  res.json(ok(result));
 });
 
 export const adminConfirmReceipt = asyncHandler(async (req, res) => {
   const tenantId = req.tenantId!;
-  try {
-    const result = await service.confirmReceipt(Number(req.params.id), tenantId);
-    res.json(ok(result));
-  } catch (e: any) {
-    res.status(e.statusCode || 400).json(fail(e.message));
-  }
+  const result = await service.confirmReceipt(Number(req.params.id), tenantId);
+  res.json(ok(result));
 });
 
 export const adminInspectAftersale = asyncHandler(async (req, res) => {
   const tenantId = req.tenantId!;
   const operatorId = req.user!.id;
-  try {
-    const result = await service.inspectAftersale({
-      id: Number(req.params.id),
-      tenantId,
-      operatorId,
-      ...req.body
-    });
-    res.json(ok(result));
-  } catch (e: any) {
-    res.status(e.statusCode || 400).json(fail(e.message));
-  }
+  const result = await service.inspectAftersale({
+    id: Number(req.params.id),
+    tenantId,
+    operatorId,
+    ...req.body
+  });
+  res.json(ok(result));
 });
 
 export const adminCompleteAftersale = asyncHandler(async (req, res) => {
   const tenantId = req.tenantId!;
   const operatorId = req.user!.id;
-  try {
-    const result = await service.completeAftersale({
-      id: Number(req.params.id),
-      tenantId,
-      operatorId,
-      ...req.body
-    });
-    res.json(ok(result));
-  } catch (e: any) {
-    res.status(e.statusCode || 400).json(fail(e.message));
-  }
+  const result = await service.completeAftersale({
+    id: Number(req.params.id),
+    tenantId,
+    operatorId,
+    ...req.body
+  });
+  res.json(ok(result));
 });
 
 export const adminGetStatistics = asyncHandler(async (req, res) => {

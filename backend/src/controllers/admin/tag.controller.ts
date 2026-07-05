@@ -22,27 +22,19 @@ export const createGroup = asyncHandler(async (req, res) => {
 });
 
 export const updateGroup = asyncHandler(async (req, res) => {
-  try {
-    const body = z.object({
-      name: z.string().min(1).max(64).optional(),
-      code: z.string().min(1).max(64).optional(),
-      sortNo: z.number().int().optional(),
-      isMultiple: z.boolean().optional(),
-    }).parse(req.body);
-    const result = await tagService.updateGroup(Number(req.params.id), body, req.tenantId!);
-    res.json(ok(result));
-  } catch (e: any) {
-    res.status(e.statusCode || 400).json({ code: String(e.statusCode || 400), message: e.message });
-  }
+  const body = z.object({
+    name: z.string().min(1).max(64).optional(),
+    code: z.string().min(1).max(64).optional(),
+    sortNo: z.number().int().optional(),
+    isMultiple: z.boolean().optional(),
+  }).parse(req.body);
+  const result = await tagService.updateGroup(Number(req.params.id), body, req.tenantId!);
+  res.json(ok(result));
 });
 
 export const deleteGroup = asyncHandler(async (req, res) => {
-  try {
-    const result = await tagService.deleteGroup(Number(req.params.id), req.tenantId!);
-    res.json(ok(result));
-  } catch (e: any) {
-    res.status(e.statusCode || 400).json({ code: String(e.statusCode || 400), message: e.message });
-  }
+  const result = await tagService.deleteGroup(Number(req.params.id), req.tenantId!);
+  res.json(ok(result));
 });
 
 // ==================== 标签值管理 ====================
@@ -64,26 +56,18 @@ export const createTag = asyncHandler(async (req, res) => {
 });
 
 export const updateTag = asyncHandler(async (req, res) => {
-  try {
-    const body = z.object({
-      groupId: z.number().int().positive().optional(),
-      name: z.string().min(1).max(64).optional(),
-      sortNo: z.number().int().optional(),
-    }).parse(req.body);
-    const result = await tagService.updateTag(Number(req.params.id), body, req.tenantId!);
-    res.json(ok(result));
-  } catch (e: any) {
-    res.status(e.statusCode || 400).json({ code: String(e.statusCode || 400), message: e.message });
-  }
+  const body = z.object({
+    groupId: z.number().int().positive().optional(),
+    name: z.string().min(1).max(64).optional(),
+    sortNo: z.number().int().optional(),
+  }).parse(req.body);
+  const result = await tagService.updateTag(Number(req.params.id), body, req.tenantId!);
+  res.json(ok(result));
 });
 
 export const deleteTag = asyncHandler(async (req, res) => {
-  try {
-    const result = await tagService.deleteTag(Number(req.params.id), req.tenantId!);
-    res.json(ok(result));
-  } catch (e: any) {
-    res.status(e.statusCode || 400).json({ code: String(e.statusCode || 400), message: e.message });
-  }
+  const result = await tagService.deleteTag(Number(req.params.id), req.tenantId!);
+  res.json(ok(result));
 });
 
 // ==================== 商品标签关联 ====================

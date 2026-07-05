@@ -41,12 +41,8 @@ export const createBatch = asyncHandler(async (req, res) => {
     inboundOrderId: z.number().optional()
   }).parse(req.body);
 
-  try {
-    const result = await service.createBatch(req.tenantId!, body);
-    res.json(ok({ batchId: result }));
-  } catch (err: any) {
-    res.status(400).json(fail(err.message));
-  }
+  const result = await service.createBatch(req.tenantId!, body);
+  res.json(ok({ batchId: result }));
 });
 
 export const updateBatch = asyncHandler(async (req, res) => {
@@ -69,12 +65,8 @@ export const splitBatch = asyncHandler(async (req, res) => {
     newBatchNo: z.string().min(1)
   }).parse(req.body);
 
-  try {
-    const result = await service.splitBatch(req.tenantId!, id, body);
-    res.json(ok({ newBatchId: result }));
-  } catch (err: any) {
-    res.status(400).json(fail(err.message));
-  }
+  const result = await service.splitBatch(req.tenantId!, id, body);
+  res.json(ok({ newBatchId: result }));
 });
 
 export const getFifoSuggestion = asyncHandler(async (req, res) => {
@@ -87,12 +79,8 @@ export const getFifoSuggestion = asyncHandler(async (req, res) => {
 // ==================== 批次追溯 ====================
 
 export const getBatchTrace = asyncHandler(async (req, res) => {
-  try {
-    const trace = await service.getBatchTrace(req.tenantId!, Number(req.params.id));
-    res.json(ok(trace));
-  } catch (err: any) {
-    res.status(err.statusCode || 404).json({ code: String(err.statusCode || 404), message: err.message });
-  }
+  const trace = await service.getBatchTrace(req.tenantId!, Number(req.params.id));
+  res.json(ok(trace));
 });
 
 export const getProductBatches = asyncHandler(async (req, res) => {

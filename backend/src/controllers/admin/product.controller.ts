@@ -14,12 +14,8 @@ export const listProducts = asyncHandler(async (req, res) => {
 
 export const getProductDetail = asyncHandler(async (req, res) => {
   const tenantId = req.tenantId!;
-  try {
-    const result = await productService.getProductDetail(Number(req.params.spuId), tenantId);
-    res.json(ok(result));
-  } catch (e: any) {
-    res.status(e.statusCode || 404).json({ code: String(e.statusCode || 404), message: e.message });
-  }
+  const result = await productService.getProductDetail(Number(req.params.spuId), tenantId);
+  res.json(ok(result));
 });
 
 export const createProduct = asyncHandler(async (req, res) => {
@@ -139,16 +135,8 @@ export const updateProductPrice = asyncHandler(async (req, res) => {
     miniappPrice: z.number().nullable().optional(),
     storePrice: z.number().nullable().optional()
   }).parse(req.body);
-  try {
-    const result = await productService.updateProductPrice(skuId, body, tenantId, req.user!.id ?? 0);
-    res.json(ok(result));
-  } catch (err: any) {
-    if (err.statusCode === 404) {
-      res.status(404).json({ code: "404", message: err.message });
-      return;
-    }
-    throw err;
-  }
+  const result = await productService.updateProductPrice(skuId, body, tenantId, req.user!.id ?? 0);
+  res.json(ok(result));
 });
 
 export const importProducts = asyncHandler(async (req, res) => {
