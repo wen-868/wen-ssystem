@@ -77,7 +77,7 @@
 
     <!-- 回复对话框 -->
     <el-dialog title="回复审核" v-model="dialogVisible" width="500px">
-      <el-form :model="replyForm" label-width="80px">
+      <el-form ref="replyFormRef" :model="replyForm" :rules="replyRules" label-width="80px">
         <el-form-item label="平台名称">
           <span>{{ replyForm.platformName }}</span>
         </el-form-item>
@@ -86,7 +86,7 @@
             {{ getReviewTypeLabel(replyForm.reviewType) }}
           </el-tag>
         </el-form-item>
-        <el-form-item label="回复内容">
+        <el-form-item label="回复内容" prop="replyContent">
           <el-input v-model="replyForm.replyContent" type="textarea" :rows="4" placeholder="请输入回复内容" />
         </el-form-item>
       </el-form>
@@ -100,7 +100,7 @@
 
 <script setup lang="ts">
 import { ref, reactive, onMounted } from "vue";
-import { ElMessage } from "element-plus";
+import { ElMessage, type FormRules } from "element-plus";
 import { fetchPlatformReviews, replyPlatformReview, fetchPlatformReviewStats } from "@/api";
 
 const records = ref<any[]>([]);
@@ -124,6 +124,11 @@ const replyForm = reactive({
   reviewType: 0,
   replyContent: "",
 });
+
+const replyFormRef = ref();
+const replyRules: FormRules = {
+  replyContent: [{ required: true, message: "请输入回复内容", trigger: "blur" }],
+};
 
 const reviewTypeMap: Record<number, { label: string; tag: string }> = {
   1: { label: "商品", tag: "primary" },
@@ -190,10 +195,8 @@ const showReplyDialog = (row: any) => {
 };
 
 const handleReply = async () => {
-  if (!replyForm.replyContent.trim()) {
-    ElMessage.warning("请输入回复内容");
-    return;
-  }
+  const valid = await replyFormRef.value?.validate().catch(() => false);
+  if (!valid) return;
   replying.value = true;
   try {
     await replyPlatformReview(replyId.value!, replyForm.replyContent);

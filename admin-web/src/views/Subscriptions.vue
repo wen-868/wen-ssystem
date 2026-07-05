@@ -281,8 +281,8 @@ const planRules: FormRules = {
 };
 
 function getErrorMessage(error: unknown, fallback: string) {
-  const anyError = error as { response?: { data?: { message?: string } }; message?: string };
-  return anyError?.response?.data?.message || anyError?.message || fallback;
+  const anyError = error as { response?: { data?: { msg?: string; message?: string } }; message?: string };
+  return anyError?.response?.data?.msg || anyError?.message || fallback;
 }
 
 // ==================== 订阅管理方法 ====================

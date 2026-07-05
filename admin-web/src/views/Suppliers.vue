@@ -402,7 +402,7 @@ async function loadSuppliers() {
     tableData.value = data.records || [];
     pagination.total = data.total || 0;
   } catch (e: any) {
-    ElMessage.error(e.response?.data?.message || "加载失败");
+    ElMessage.error(e.response?.data?.msg || "加载失败");
   } finally {
     loading.value = false;
   }
@@ -462,7 +462,7 @@ async function handleToggleStatus(row: any) {
     loadSuppliers();
   } catch (e: any) {
     if (e !== "cancel") {
-      ElMessage.error(e.response?.data?.message || "操作失败");
+      ElMessage.error(e.response?.data?.msg || "操作失败");
     }
   }
 }
@@ -503,7 +503,7 @@ async function handleSubmit() {
       dialogVisible.value = false;
       loadSuppliers();
     } catch (e: any) {
-      ElMessage.error(e.response?.data?.message || "保存失败");
+      ElMessage.error(e.response?.data?.msg || "保存失败");
     } finally {
       submitLoading.value = false;
     }

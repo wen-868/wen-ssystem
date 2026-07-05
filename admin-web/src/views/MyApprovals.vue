@@ -167,7 +167,7 @@ async function search() {
     records.value = data.records || data.list || [];
     total.value = data.total || 0;
   } catch (e: any) {
-    ElMessage.error(e.response?.data?.message || "加载失败");
+    ElMessage.error(e.response?.data?.msg || "加载失败");
   } finally {
     loading.value = false;
   }
@@ -210,7 +210,7 @@ async function handleSubmit() {
     dialogVisible.value = false;
     search();
   } catch (e: any) {
-    ElMessage.error(e.response?.data?.message || "提交失败");
+    ElMessage.error(e.response?.data?.msg || "提交失败");
   } finally {
     submitLoading.value = false;
   }
@@ -226,7 +226,7 @@ async function handleCancel(row: any) {
     await cancelApproval(row.id);
     ElMessage.success("已撤销");
     search();
-  } catch (e: any) { ElMessage.error(e.response?.data?.message || "撤销失败"); }
+  } catch (e: any) { ElMessage.error(e.response?.data?.msg || "撤销失败"); }
 }
 
 onMounted(() => { search(); loadRules(); });

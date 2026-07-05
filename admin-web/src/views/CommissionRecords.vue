@@ -153,7 +153,7 @@ async function loadList() {
     records.value = data.records || [];
     total.value = data.total || 0;
   } catch (e: any) {
-    ElMessage.error(e.response?.data?.message || "加载失败");
+    ElMessage.error(e.response?.data?.msg || "加载失败");
   } finally {
     loading.value = false;
   }
@@ -178,7 +178,7 @@ async function handleCalc() {
     loadList();
     loadStats();
   } catch (e: any) {
-    ElMessage.error(e.response?.data?.message || "计算失败");
+    ElMessage.error(e.response?.data?.msg || "计算失败");
   } finally {
     calcLoading.value = false;
   }
@@ -196,7 +196,7 @@ async function handleSettle() {
     loadList();
     loadStats();
   } catch (e: any) {
-    ElMessage.error(e.response?.data?.message || "结算失败");
+    ElMessage.error(e.response?.data?.msg || "结算失败");
   }
 }
 

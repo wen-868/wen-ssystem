@@ -178,7 +178,7 @@ async function doImport() {
     result.fail = res.fail || 0;
     step.value = 3;
   } catch (e: any) {
-    ElMessage.error(e.response?.data?.message || "导入失败");
+    ElMessage.error(e.response?.data?.msg || "导入失败");
   } finally {
     importLoading.value = false;
   }

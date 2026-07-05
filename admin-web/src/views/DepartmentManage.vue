@@ -166,7 +166,7 @@ const cascaderOptions = computed(() => {
 
 function getErrorMessage(error: unknown, fallback: string) {
   const e = error as any;
-  return e?.response?.data?.message || e?.message || fallback;
+  return e?.response?.data?.msg || e?.message || fallback;
 }
 
 function findNodeById(data: any[], id: number): any | null {

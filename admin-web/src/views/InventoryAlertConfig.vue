@@ -260,7 +260,7 @@ async function handleConfigSubmit() {
     configDialogVisible.value = false;
     await Promise.all([loadConfigs(), loadWarnings()]);
   } catch (e: any) {
-    ElMessage.error(e.response?.data?.message || "保存失败");
+    ElMessage.error(e.response?.data?.msg || "保存失败");
   } finally {
     configSubmitLoading.value = false;
   }

@@ -308,7 +308,7 @@ async function handleSubmit() {
     form.discountAmount = 0;
     form.wipeAmount = 0;
   } catch (e: any) {
-    ElMessage.error(e?.response?.data?.message || "创建订单失败");
+    ElMessage.error(e?.response?.data?.msg || "创建订单失败");
   }
 }
 </script>

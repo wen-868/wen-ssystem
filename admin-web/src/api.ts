@@ -41,7 +41,7 @@ api.interceptors.response.use(
     }
 
     const { status, data } = error.response;
-    const msg = data?.message || error?.message || "请求失败";
+    const msg = data?.msg || error?.message || "请求失败";
 
     switch (status) {
       case 401:
@@ -70,8 +70,8 @@ api.interceptors.response.use(
 /** 从 Axios 错误中提取错误消息 */
 export function getErrorMessage(error: unknown, fallback: string): string {
   if (error && typeof error === "object" && "response" in error) {
-    const axiosError = error as { response?: { data?: { message?: string } } };
-    return axiosError.response?.data?.message || fallback;
+    const axiosError = error as { response?: { data?: { msg?: string; message?: string } } };
+    return axiosError.response?.data?.msg || axiosError.response?.data?.message || fallback;
   }
   return fallback;
 }

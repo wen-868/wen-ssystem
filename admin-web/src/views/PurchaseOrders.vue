@@ -238,7 +238,7 @@ async function loadOrders() {
     orders.value = data.records || [];
     total.value = data.total || 0;
   } catch (e: any) {
-    ElMessage.error(e.response?.data?.message || "加载失败");
+    ElMessage.error(e.response?.data?.msg || "加载失败");
   } finally {
     loading.value = false;
   }
@@ -279,7 +279,7 @@ async function viewDetail(row: any) {
     currentOrder.value = await fetchPurchaseOrderDetail(row.id);
     detailVisible.value = true;
   } catch (e: any) {
-    ElMessage.error(e.response?.data?.message || "加载详情失败");
+    ElMessage.error(e.response?.data?.msg || "加载详情失败");
   }
 }
 
@@ -291,7 +291,7 @@ async function handleConfirm(row: any) {
     loadOrders();
   } catch (e: any) {
     if (e !== "cancel") {
-      ElMessage.error(e.response?.data?.message || "确认失败");
+      ElMessage.error(e.response?.data?.msg || "确认失败");
     }
   }
 }
@@ -304,7 +304,7 @@ async function handleCancel(row: any) {
     loadOrders();
   } catch (e: any) {
     if (e !== "cancel") {
-      ElMessage.error(e.response?.data?.message || "取消失败");
+      ElMessage.error(e.response?.data?.msg || "取消失败");
     }
   }
 }
@@ -328,7 +328,7 @@ async function handleCreate() {
     Object.assign(form, { ...defaultForm, items: [{ skuId: 0, skuName: "", bottleQty: 1, totalBottleQty: 1, unitPrice: 0 }] });
     loadOrders();
   } catch (e: any) {
-    ElMessage.error(e.response?.data?.message || "创建失败");
+    ElMessage.error(e.response?.data?.msg || "创建失败");
   } finally {
     submitLoading.value = false;
   }

@@ -67,33 +67,33 @@
 
     <!-- 创建/编辑对话框 -->
     <el-dialog :title="dialogTitle" v-model="dialogVisible" width="500px" @close="resetForm">
-      <el-form :model="form" label-width="100px">
-        <el-form-item label="对账单号" v-if="!isEdit">
+      <el-form ref="formRef" :model="form" :rules="formRules" label-width="100px">
+        <el-form-item label="对账单号" prop="reconciliationNo" v-if="!isEdit">
           <el-input v-model="form.reconciliationNo" placeholder="请输入对账单号" />
         </el-form-item>
-        <el-form-item label="平台编号">
+        <el-form-item label="平台编号" prop="platformNo">
           <el-input v-model="form.platformNo" placeholder="请输入平台编号" />
         </el-form-item>
-        <el-form-item label="平台名称">
+        <el-form-item label="平台名称" prop="platformName">
           <el-input v-model="form.platformName" placeholder="请输入平台名称" />
         </el-form-item>
-        <el-form-item label="类型">
+        <el-form-item label="类型" prop="type">
           <el-select v-model="form.type" placeholder="请选择类型">
             <el-option label="订单" :value="1" />
             <el-option label="退款" :value="2" />
           </el-select>
         </el-form-item>
-        <el-form-item label="金额">
+        <el-form-item label="金额" prop="amount">
           <el-input-number v-model="form.amount" :min="0" :precision="2" style="width: 100%" />
         </el-form-item>
-        <el-form-item label="状态" v-if="isEdit">
+        <el-form-item label="状态" prop="status" v-if="isEdit">
           <el-select v-model="form.status" placeholder="请选择状态">
             <el-option label="初始" :value="0" />
             <el-option label="成功" :value="1" />
             <el-option label="失败" :value="2" />
           </el-select>
         </el-form-item>
-        <el-form-item label="记录时间">
+        <el-form-item label="记录时间" prop="recordedAt">
           <el-date-picker v-model="form.recordedAt" type="datetime" placeholder="选择记录时间" style="width: 100%" />
         </el-form-item>
       </el-form>
@@ -125,7 +125,7 @@
 
 <script setup lang="ts">
 import { ref, reactive, onMounted } from "vue";
-import { ElMessage } from "element-plus";
+import { ElMessage, type FormRules } from "element-plus";
 import {
   fetchPlatformReconciliations, createPlatformReconciliation,
   updatePlatformReconciliation, fetchPlatformReconciliationDetail,
@@ -158,6 +158,16 @@ const form = reactive({
   status: 0,
   recordedAt: null as string | null,
 });
+
+const formRef = ref();
+const formRules: FormRules = {
+  reconciliationNo: [{ required: true, message: "请输入对账单号", trigger: "blur" }],
+  platformNo: [{ required: true, message: "请输入平台编号", trigger: "blur" }],
+  platformName: [{ required: true, message: "请输入平台名称", trigger: "blur" }],
+  type: [{ required: true, message: "请选择类型", trigger: "change" }],
+  amount: [{ required: true, message: "请输入金额", trigger: "blur" }],
+  recordedAt: [{ required: true, message: "请选择记录时间", trigger: "change" }],
+};
 
 const statusMap: Record<number, { label: string; type: string }> = {
   0: { label: "初始", type: "info" },
@@ -248,6 +258,8 @@ const resetForm = () => {
 };
 
 const handleSubmit = async () => {
+  const valid = await formRef.value?.validate().catch(() => false);
+  if (!valid) return;
   submitting.value = true;
   try {
     if (isEdit.value && editId.value) {

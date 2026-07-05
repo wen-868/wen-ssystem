@@ -481,7 +481,7 @@ async function handleSaveConfig(provider: string) {
       });
       ElMessage.success("微信支付配置保存成功");
     } catch (e: any) {
-      ElMessage.error(e?.response?.data?.message || e?.message || "保存失败");
+      ElMessage.error(e?.response?.data?.msg || e?.message || "保存失败");
     } finally {
       wechatSaving.value = false;
     }
@@ -497,7 +497,7 @@ async function handleSaveConfig(provider: string) {
       });
       ElMessage.success("支付宝配置保存成功");
     } catch (e: any) {
-      ElMessage.error(e?.response?.data?.message || e?.message || "保存失败");
+      ElMessage.error(e?.response?.data?.msg || e?.message || "保存失败");
     } finally {
       alipaySaving.value = false;
     }
@@ -529,7 +529,7 @@ async function handleTestConnection(provider: string) {
     await api.post(`/admin/payment/configs/${provider}/test`, payload);
     ElMessage.success(provider === "wechat" ? "微信支付连接测试成功" : "支付宝连接测试成功");
   } catch (e: any) {
-    ElMessage.error(e?.response?.data?.message || e?.message || "连接测试失败");
+    ElMessage.error(e?.response?.data?.msg || e?.message || "连接测试失败");
   } finally {
     testingRef.value = false;
   }
@@ -583,7 +583,7 @@ async function handleBankSubmit() {
     bankDialogVisible.value = false;
     await loadBankAccounts();
   } catch (e: any) {
-    ElMessage.error(e?.response?.data?.message || e?.message || "操作失败");
+    ElMessage.error(e?.response?.data?.msg || e?.message || "操作失败");
   } finally {
     bankSubmitting.value = false;
   }
@@ -605,7 +605,7 @@ async function handleDeleteBankAccount(row: any) {
     ElMessage.success("删除成功");
     await loadBankAccounts();
   } catch (e: any) {
-    ElMessage.error(e?.response?.data?.message || e?.message || "删除失败");
+    ElMessage.error(e?.response?.data?.msg || e?.message || "删除失败");
   }
 }
 
@@ -615,7 +615,7 @@ async function handleSetDefault(row: any) {
     ElMessage.success("设为默认成功");
     await loadBankAccounts();
   } catch (e: any) {
-    ElMessage.error(e?.response?.data?.message || e?.message || "操作失败");
+    ElMessage.error(e?.response?.data?.msg || e?.message || "操作失败");
   }
 }
 

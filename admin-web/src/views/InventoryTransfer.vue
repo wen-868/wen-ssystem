@@ -363,7 +363,7 @@ async function loadTransfers() {
     tableData.value = data.records || [];
     pagination.total = data.total || 0;
   } catch (e: any) {
-    ElMessage.error(e.response?.data?.message || "加载失败");
+    ElMessage.error(e.response?.data?.msg || "加载失败");
   } finally {
     loading.value = false;
   }
@@ -415,7 +415,7 @@ async function handleApprove(row: any) {
     loadTransfers();
   } catch (e: any) {
     if (e !== "cancel") {
-      ElMessage.error(e.response?.data?.message || "操作失败");
+      ElMessage.error(e.response?.data?.msg || "操作失败");
     }
   }
 }
@@ -428,7 +428,7 @@ async function handleSubmitTransfer(row: any) {
     loadTransfers();
   } catch (e: any) {
     if (e !== "cancel") {
-      ElMessage.error(e.response?.data?.message || "操作失败");
+      ElMessage.error(e.response?.data?.msg || "操作失败");
     }
   }
 }
@@ -441,7 +441,7 @@ async function handleReject(row: any) {
     loadTransfers();
   } catch (e: any) {
     if (e !== "cancel") {
-      ElMessage.error(e.response?.data?.message || "操作失败");
+      ElMessage.error(e.response?.data?.msg || "操作失败");
     }
   }
 }
@@ -454,7 +454,7 @@ async function handleShip(row: any) {
     loadTransfers();
   } catch (e: any) {
     if (e !== "cancel") {
-      ElMessage.error(e.response?.data?.message || "操作失败");
+      ElMessage.error(e.response?.data?.msg || "操作失败");
     }
   }
 }
@@ -467,7 +467,7 @@ async function handleReceive(row: any) {
     loadTransfers();
   } catch (e: any) {
     if (e !== "cancel") {
-      ElMessage.error(e.response?.data?.message || "操作失败");
+      ElMessage.error(e.response?.data?.msg || "操作失败");
     }
   }
 }
@@ -480,7 +480,7 @@ async function handleCancelTransfer(row: any) {
     loadTransfers();
   } catch (e: any) {
     if (e !== "cancel") {
-      ElMessage.error(e.response?.data?.message || "操作失败");
+      ElMessage.error(e.response?.data?.msg || "操作失败");
     }
   }
 }
@@ -500,7 +500,7 @@ async function handleSave() {
       dialogVisible.value = false;
       loadTransfers();
     } catch (e: any) {
-      ElMessage.error(e.response?.data?.message || "创建失败");
+      ElMessage.error(e.response?.data?.msg || "创建失败");
     } finally {
       submitLoading.value = false;
     }

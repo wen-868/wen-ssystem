@@ -197,7 +197,7 @@ async function loadCategories() {
       const list = data.data?.records || data.data || [];
       treeData.value = buildTree(list);
     } catch (e: any) {
-      ElMessage.error(e.response?.data?.message || "加载分类失败");
+      ElMessage.error(e.response?.data?.msg || "加载分类失败");
       treeData.value = [];
     }
   }
@@ -296,7 +296,7 @@ async function handleDelete() {
     loadCategories();
   } catch (e: any) {
     if (e !== "cancel") {
-      ElMessage.error(e.response?.data?.message || "删除失败");
+      ElMessage.error(e.response?.data?.msg || "删除失败");
     }
   }
 }
@@ -319,7 +319,7 @@ async function handleSubmit() {
       currentNode.value = null;
       loadCategories();
     } catch (e: any) {
-      ElMessage.error(e.response?.data?.message || "保存失败");
+      ElMessage.error(e.response?.data?.msg || "保存失败");
     } finally {
       submitLoading.value = false;
     }
@@ -355,7 +355,7 @@ async function handleNodeDrop(draggingNode: any, dropNode: any, dropType: string
     ElMessage.success("排序已更新");
     loadCategories();
   } catch (e: any) {
-    ElMessage.error(e.response?.data?.message || "排序更新失败");
+    ElMessage.error(e.response?.data?.msg || "排序更新失败");
   }
 }
 

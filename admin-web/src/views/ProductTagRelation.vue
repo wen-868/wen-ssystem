@@ -98,7 +98,7 @@ async function searchProducts() {
       } catch { p._tags = []; }
     }
   } catch (e: any) {
-    ElMessage.error(e.response?.data?.message || "加载失败");
+    ElMessage.error(e.response?.data?.msg || "加载失败");
   } finally {
     loading.value = false;
   }
@@ -134,7 +134,7 @@ async function handleSaveTags() {
       return { id, name: "" };
     });
   } catch (e: any) {
-    ElMessage.error(e.response?.data?.message || "保存失败");
+    ElMessage.error(e.response?.data?.msg || "保存失败");
   } finally {
     tagSubmitLoading.value = false;
   }

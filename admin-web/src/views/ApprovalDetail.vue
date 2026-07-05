@@ -145,7 +145,7 @@ async function loadDetail() {
     isCurrentApprover.value = data.isCurrentApprover || false;
     isApplicant.value = data.isApplicant || false;
   } catch (e: any) {
-    ElMessage.error(e.response?.data?.message || "加载详情失败");
+    ElMessage.error(e.response?.data?.msg || "加载详情失败");
     router.back();
   }
 }
@@ -180,7 +180,7 @@ async function handleCancel() {
     await cancelApproval(detail.value.id);
     ElMessage.success("已撤销");
     loadDetail();
-  } catch (e: any) { ElMessage.error(e.response?.data?.message || "撤销失败"); }
+  } catch (e: any) { ElMessage.error(e.response?.data?.msg || "撤销失败"); }
 }
 
 onMounted(() => { loadDetail(); });

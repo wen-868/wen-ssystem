@@ -231,7 +231,7 @@ async function handleSave() {
     await api.put("/admin/system/configs/batch", payload);
     ElMessage.success("配置保存成功");
   } catch (e: any) {
-    ElMessage.error(e?.response?.data?.message || e?.message || "保存失败");
+    ElMessage.error(e?.response?.data?.msg || e?.message || "保存失败");
   } finally {
     saveLoading.value = false;
   }

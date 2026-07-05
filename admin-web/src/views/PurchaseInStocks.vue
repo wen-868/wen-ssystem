@@ -233,7 +233,7 @@ async function loadInStocks() {
     inStocks.value = Array.isArray(data) ? data : (data.records || []);
     total.value = data.total || inStocks.value.length;
   } catch (e: any) {
-    ElMessage.error(e.response?.data?.message || "加载失败");
+    ElMessage.error(e.response?.data?.msg || "加载失败");
   } finally {
     loading.value = false;
   }
@@ -290,7 +290,7 @@ async function handleConfirm(row: any) {
     loadInStocks();
   } catch (e: any) {
     if (e !== "cancel") {
-      ElMessage.error(e.response?.data?.message || "操作失败");
+      ElMessage.error(e.response?.data?.msg || "操作失败");
     }
   }
 }
@@ -302,7 +302,7 @@ async function handleVoid(row: any) {
     loadInStocks();
   } catch (e: any) {
     if (e !== "cancel") {
-      ElMessage.error(e.response?.data?.message || "操作失败");
+      ElMessage.error(e.response?.data?.msg || "操作失败");
     }
   }
 }
@@ -326,7 +326,7 @@ async function handleCreate() {
     Object.assign(form, { ...defaultForm, items: [{ skuId: 0, skuName: "", skuCode: "", quantity: 1, unitPrice: 0 }] });
     loadInStocks();
   } catch (e: any) {
-    ElMessage.error(e.response?.data?.message || "创建失败");
+    ElMessage.error(e.response?.data?.msg || "创建失败");
   } finally {
     submitLoading.value = false;
   }

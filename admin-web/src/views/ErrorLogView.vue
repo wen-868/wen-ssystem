@@ -167,8 +167,8 @@ const currentLog = ref<any>(null);
 const totalStats = ref<any>({ total: 0, fatal: 0, error: 0, warn: 0, backend: 0, frontend: 0 });
 
 function getErrorMessage(error: unknown, fallback: string) {
-  const anyError = error as { response?: { data?: { message?: string } }; message?: string };
-  return anyError?.response?.data?.message || anyError?.message || fallback;
+  const anyError = error as { response?: { data?: { msg?: string; message?: string } }; message?: string };
+  return anyError?.response?.data?.msg || anyError?.message || fallback;
 }
 
 async function loadLogs() {

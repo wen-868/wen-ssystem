@@ -101,21 +101,21 @@
 
     <!-- 模板编辑对话框 -->
     <el-dialog :title="templateDialogTitle" v-model="templateDialogVisible" width="600px" @close="resetTemplateForm">
-      <el-form :model="templateForm" label-width="100px">
-        <el-form-item label="模板名称">
+      <el-form ref="templateFormRef" :model="templateForm" :rules="templateRules" label-width="100px">
+        <el-form-item label="模板名称" prop="name">
           <el-input v-model="templateForm.name" placeholder="请输入模板名称" />
         </el-form-item>
-        <el-form-item label="报表类型">
+        <el-form-item label="报表类型" prop="type">
           <el-select v-model="templateForm.type" placeholder="请选择类型" :disabled="templateEditId !== null">
             <el-option label="销售" value="sales" />
             <el-option label="库存" value="inventory" />
             <el-option label="订单" value="orders" />
           </el-select>
         </el-form-item>
-        <el-form-item label="描述">
+        <el-form-item label="描述" prop="description">
           <el-input v-model="templateForm.description" type="textarea" :rows="2" placeholder="请输入描述" />
         </el-form-item>
-        <el-form-item label="维度">
+        <el-form-item label="维度" prop="config.dimensions">
           <el-select v-model="templateForm.config.dimensions" multiple placeholder="请选择维度" style="width: 100%">
             <el-option label="日期" value="DATE(created_at)" />
             <el-option label="门店" value="store_id" />
@@ -123,7 +123,7 @@
             <el-option label="客户" value="customer_id" />
           </el-select>
         </el-form-item>
-        <el-form-item label="指标">
+        <el-form-item label="指标" prop="config.metrics">
           <el-select v-model="templateForm.config.metrics" multiple placeholder="请选择指标" style="width: 100%">
             <el-option label="销售额" value="SUM(amount) AS total_amount" />
             <el-option label="订单数" value="COUNT(*) AS order_count" />
@@ -140,26 +140,26 @@
 
     <!-- 定时任务编辑对话框 -->
     <el-dialog :title="scheduleDialogTitle" v-model="scheduleDialogVisible" width="500px" @close="resetScheduleForm">
-      <el-form :model="scheduleForm" label-width="100px">
-        <el-form-item label="任务名称">
+      <el-form ref="scheduleFormRef" :model="scheduleForm" :rules="scheduleRules" label-width="100px">
+        <el-form-item label="任务名称" prop="name">
           <el-input v-model="scheduleForm.name" placeholder="请输入任务名称" />
         </el-form-item>
-        <el-form-item label="关联模板">
+        <el-form-item label="关联模板" prop="templateId">
           <el-select v-model="scheduleForm.templateId" placeholder="请选择模板" style="width: 100%">
             <el-option v-for="t in allTemplates" :key="t.id" :label="t.name" :value="t.id" />
           </el-select>
         </el-form-item>
-        <el-form-item label="CRON表达式">
+        <el-form-item label="CRON表达式" prop="cronExpression">
           <el-input v-model="scheduleForm.cronExpression" placeholder="如: 0 8 * * 1-5" />
         </el-form-item>
-        <el-form-item label="导出格式">
+        <el-form-item label="导出格式" prop="exportFormat">
           <el-select v-model="scheduleForm.exportFormat" placeholder="请选择格式">
             <el-option label="CSV" value="csv" />
             <el-option label="Excel" value="xlsx" />
             <el-option label="PDF" value="pdf" />
           </el-select>
         </el-form-item>
-        <el-form-item label="接收人">
+        <el-form-item label="接收人" prop="recipients">
           <el-input v-model="scheduleForm.recipients" placeholder="多个邮箱用逗号分隔" />
         </el-form-item>
       </el-form>
@@ -173,7 +173,7 @@
 
 <script setup lang="ts">
 import { ref, reactive, onMounted } from "vue";
-import { ElMessage, ElMessageBox } from "element-plus";
+import { ElMessage, ElMessageBox, type FormRules } from "element-plus";
 import {
   fetchReportTemplates, createReportTemplate, updateReportTemplate,
   deleteReportTemplate, executeReportTemplate,
@@ -194,6 +194,7 @@ const templateTotal = ref(0);
 const templateDialogVisible = ref(false);
 const templateEditId = ref<number | null>(null);
 const templateDialogTitle = ref("新建模板");
+const templateFormRef = ref();
 
 const templateSearch = reactive({ keyword: "", type: "" });
 
@@ -203,6 +204,13 @@ const templateForm = reactive({
   description: "",
   config: { dimensions: [] as string[], metrics: [] as string[] },
 });
+
+const templateRules: FormRules = {
+  name: [{ required: true, message: "请输入模板名称", trigger: "blur" }],
+  type: [{ required: true, message: "请选择报表类型", trigger: "change" }],
+  "config.dimensions": [{ required: true, message: "请选择维度", trigger: "change" }],
+  "config.metrics": [{ required: true, message: "请选择指标", trigger: "change" }],
+};
 
 const getTypeLabel = (type: string) => {
   const map: Record<string, string> = { sales: "销售", inventory: "库存", orders: "订单" };
@@ -255,6 +263,8 @@ const resetTemplateForm = () => {
 };
 
 const handleTemplateSubmit = async () => {
+  const valid = await templateFormRef.value?.validate().catch(() => false);
+  if (!valid) return;
   templateSubmitting.value = true;
   try {
     if (templateEditId.value) {
@@ -307,6 +317,7 @@ const scheduleTotal = ref(0);
 const scheduleDialogVisible = ref(false);
 const scheduleEditId = ref<number | null>(null);
 const scheduleDialogTitle = ref("新建定时任务");
+const scheduleFormRef = ref();
 
 const scheduleSearch = reactive({ keyword: "" });
 
@@ -317,6 +328,13 @@ const scheduleForm = reactive({
   exportFormat: "csv",
   recipients: "",
 });
+
+const scheduleRules: FormRules = {
+  name: [{ required: true, message: "请输入任务名称", trigger: "blur" }],
+  templateId: [{ required: true, message: "请选择关联模板", trigger: "change" }],
+  cronExpression: [{ required: true, message: "请输入CRON表达式", trigger: "blur" }],
+  exportFormat: [{ required: true, message: "请选择导出格式", trigger: "change" }],
+};
 
 const fetchSchedules = async () => {
   scheduleLoading.value = true;
@@ -358,6 +376,8 @@ const resetScheduleForm = () => {
 };
 
 const handleScheduleSubmit = async () => {
+  const valid = await scheduleFormRef.value?.validate().catch(() => false);
+  if (!valid) return;
   scheduleSubmitting.value = true;
   try {
     if (scheduleEditId.value) {
