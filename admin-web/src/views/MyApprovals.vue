@@ -49,8 +49,8 @@
     </PageCard>
 
     <el-dialog v-model="dialogVisible" title="提交审批" width="560px" :close-on-click-modal="false">
-      <el-form :model="submitForm" label-width="100px">
-        <el-form-item label="审批规则">
+      <el-form ref="formRef" :model="submitForm" :rules="rules" label-width="100px">
+        <el-form-item label="审批规则" prop="ruleId">
           <el-select v-model="submitForm.ruleId" style="width: 100%" placeholder="请选择审批规则" @change="onRuleChange">
             <el-option
               v-for="r in ruleOptions"
@@ -141,6 +141,10 @@ const columns = [
 
 const dialogVisible = ref(false);
 const submitLoading = ref(false);
+const formRef = ref();
+const rules = {
+  ruleId: [{ required: true, message: "请选择审批规则", trigger: "change" }]
+};
 const ruleOptions = ref<any[]>([]);
 const submitForm = reactive({
   ruleId: null as number | null,
@@ -192,6 +196,8 @@ function showSubmitDialog() {
 }
 
 async function handleSubmit() {
+  const valid = await formRef.value?.validate().catch(() => false);
+  if (!valid) return;
   if (!submitForm.ruleId) { ElMessage.warning("请选择审批规则"); return; }
   if (!submitForm.title) { ElMessage.warning("请输入标题"); return; }
   submitLoading.value = true;

@@ -47,8 +47,8 @@
 
     <!-- 新增/编辑弹窗 -->
     <el-dialog v-model="dialogVisible" :title="isEdit ? '编辑专属价格' : '新增专属价格'" width="500px" :close-on-click-modal="false">
-      <el-form :model="form" label-width="100px">
-        <el-form-item label="客户">
+      <el-form ref="formRef" :model="form" :rules="rules" label-width="100px">
+        <el-form-item label="客户" prop="customerId">
           <el-select v-model="form.customerId" filterable placeholder="请选择客户" style="width: 100%" :disabled="isEdit" @change="onCustomerChange">
             <el-option v-for="c in customers" :key="c.id" :label="c.name" :value="c.id" />
           </el-select>
@@ -155,6 +155,10 @@ const dialogVisible = ref(false);
 const isEdit = ref(false);
 const editId = ref<number | null>(null);
 const submitLoading = ref(false);
+const formRef = ref();
+const rules = {
+  customerId: [{ required: true, message: "请选择客户", trigger: "change" }]
+};
 const form = ref({ customerId: null as number | null, customerName: "" as string, skuId: null as number | null, skuName: "" as string, standardPrice: 0, customPrice: 0, dateRange: null as [string, string] | null, remark: "" });
 
 const batchVisible = ref(false);
@@ -250,6 +254,8 @@ function showEditDialog(row: any) {
 }
 
 async function handleSubmit() {
+  const valid = await formRef.value?.validate().catch(() => false);
+  if (!valid) return;
   if (!form.value.customerId || !form.value.skuId) { ElMessage.warning("请选择客户和商品"); return; }
   submitLoading.value = true;
   try {

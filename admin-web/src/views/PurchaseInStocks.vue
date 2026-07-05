@@ -71,10 +71,10 @@
     </el-card>
 
     <el-dialog v-model="dialogVisible" title="新建采购入库" width="720px">
-      <el-form :model="form" label-width="100px">
+      <el-form ref="formRef" :model="form" :rules="rules" label-width="100px">
         <el-row :gutter="20">
           <el-col :span="12">
-            <el-form-item label="关联采购单">
+            <el-form-item label="关联采购单" prop="relatedOrderNo">
               <el-input v-model="form.relatedOrderNo" placeholder="请输入关联采购单号" />
             </el-form-item>
           </el-col>
@@ -200,6 +200,10 @@ const suppliers = ref<any[]>([]);
 const stores = ref<any[]>([]);
 const dialogVisible = ref(false);
 const detailVisible = ref(false);
+const formRef = ref();
+const rules = {
+  relatedOrderNo: [{ required: true, message: "请输入关联采购单号", trigger: "blur" }]
+};
 const currentInStock = ref<any>(null);
 
 const defaultForm = {
@@ -304,6 +308,8 @@ async function handleVoid(row: any) {
 }
 
 async function handleCreate() {
+  const valid = await formRef.value?.validate().catch(() => false);
+  if (!valid) return;
   if (!form.supplierId) {
     ElMessage.warning("请选择供应商");
     return;
