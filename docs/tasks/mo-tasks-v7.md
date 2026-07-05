@@ -363,3 +363,56 @@ app.use('/api/admin/report-permissions', requireAuthWithTenant, reportPermission
 
 **文件**：ReportsProducts.vue, ReportsEmployees.vue, ReportsStores.vue, FinanceProfit.vue  
 **修复**：改用 `while (el.firstChild) el.removeChild(el.firstChild)`。
+
+---
+
+## 🔴 凌舟后台验收 — 字段完整度问题 (2026-07-05 凌舟分派)
+
+> 凌舟实际验收后台时发现的数据完整性问题。
+
+### 修复-1: 客户管理新增表单只有3个字段 [P0] — 预计 2天
+
+**文件**：`admin-web/src/views/CustomersView.vue`（新增弹窗 L64-83）
+
+**现状**：新增客户表单仅 3 个字段（name、mobile、customerType），数据库 member 表有 17 个字段。
+
+**缺失字段**：
+- `address`（客户地址）— 必补
+- `remark`（备注）— 必补
+- `settlement_type`（结算方式：CASH/ACCOUNT）— 必补
+- `staff_id`（归属销售员）— 下拉选择
+
+**列表展示也缺失**：address、settlement_type、points、level_code、status、last_order_at、remark。
+
+**另外**：客户画像、标签、生命周期、关怀、授信、拜访、对账、储值卡、会员等级、专属价格、分群等 11 个子模块全部散落在独立页面，客户详情页无法一站式查看。
+
+### 修复-2: 商品信息表单缺失14个数据库字段 [P0] — 预计 2天
+
+**文件**：`admin-web/src/views/Products.vue`
+
+**缺失字段**：
+- SPU 层：unit、specs、sort_no、is_new、is_recommend、description、image_urls（轮播图）、marketing_tags
+- 价格层：cost_price（成本价，当前硬编码为0）、store_price（门店价）
+- SKU 层：volume（净含量）、packaging（包装类型）、base_unit、box_unit
+
+**品牌 Bug**：创建商品时前端未发送 `brand` 字段 → 品牌信息丢失。编辑时把数字 ID 当品牌名写入 VARCHAR 字段。
+
+**商品标签**：product_tag 标签体系在详情抽屉中独立加载，新建/编辑商品时无法一并设置。
+
+**库存**：后端返回 availableQty 但前端列表/详情均不显示。
+
+### 修复-3: 分类前端硬限制2级 [P1] — 预计 0.5天
+
+**文件**：`admin-web/src/views/ProductCategories.vue` L333-337
+
+**问题**：`allowDrop` 函数中 `dropNode.level < 2` 硬限制最多 2 级分类，后端无此限制。
+
+**确认**：是否需要支持三级分类？如需要则改为 `dropNode.level < 3`。
+
+### 修复-4: 审批规则缺少EXPENSE类型 [P1] — 预计 0.5天
+
+**文件**：`admin-web/src/views/ApprovalRules.vue` L103-109
+
+**现状**：审批规则支持 PURCHASE/SALE/REFUND/PRICE_CHANGE/CREDIT_LIMIT，缺少 EXPENSE 类型。
+
+**费用审批**：当前在 ExpensesView 中走独立审批流程（内置 approve/void 按钮），未集成到系统审批体系。需确认是否要统一。

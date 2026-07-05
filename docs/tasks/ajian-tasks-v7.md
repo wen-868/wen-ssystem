@@ -405,3 +405,43 @@ app.use('/api/admin/reports', requireAuthWithTenant, customReportRouter);
 
 **问题**：单文件包含 83 个端点，难以维护。  
 **修复**：按业务模块拆分为独立路由文件。
+
+---
+
+## 🔴 凌舟后台验收 — 后端问题 (2026-07-05 凌舟分派)
+
+> 凌舟实际验收后台时发现的数据完整性问题，后端侧修复。
+
+### 修复-1: 客户 create API 不支持 address/remark/settlement_type [P0] — 预计 0.5天
+
+**文件**：`backend/src/services/admin/customer.service.ts`（`createCustomer` L35-46）
+
+**问题**：创建客户时只接受 name/mobile/customerType/staffId，不支持 address、remark、settlement_type。update API 已支持这些字段，但 create API 未同步。
+
+**修复**：createCustomer 补充 address/remark/settlementType 参数，与 updateCustomer 字段对齐。
+
+### 修复-2: product_spu 缺少 brand_id 外键 [P0] — 预计 0.5天
+
+**问题**：`product_spu.brand` 是 VARCHAR(128) 存储品牌名，但存在独立的 `brand` 表（id/name/logo）。前端传 brandId 数字 ID，后端当字符串存储 → 品牌关联混乱。
+
+**修复**：
+1. 添加 `product_spu.brand_id` 字段（ALTER TABLE + 外键）
+2. 迁移现有 brand 字符串到 brand_id
+3. 后端 createProduct/updateProduct 改为接受 brandId
+
+### 修复-3: 前后端 API 路径不匹配 [P1] — 预计 0.5天
+
+**问题**：
+- 费用管理：前端调 `/api/admin/finance/expenses`，后端注册 `/api/admin/expenses`
+- 审批规则：前端调 `/api/admin/system/approval/...`，后端注册 `/api/admin/approval/...`
+- 前端多加了 `/finance/` 和 `/system/` 段，存在路由断连风险
+
+**修复**：确认哪个路径是正确的，统一前后端。建议以后端路径为准，前端去 `/finance/` 和 `/system/` 段。
+
+### 修复-4: 审批规则缺少 EXPENSE 业务类型 [P1] — 预计 0.5天
+
+**文件**：`backend/src/routes/approval.routes.ts` + 审批 service
+
+**问题**：审批规则支持 PURCHASE/SALE/REFUND/PRICE_CHANGE/CREDIT_LIMIT，缺少 EXPENSE。费用审批目前走独立流程（ExpensesView 内置 approve/void），未集成到系统审批体系。
+
+**确认**：费用审批是否要纳入系统审批流程？如需则补充 EXPENSE 类型。
