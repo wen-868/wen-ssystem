@@ -41,7 +41,7 @@ export async function insertFeedback(entry: FeedbackEntry): Promise<number> {
     entry.browser_info || null,
     entry.user_id || null,
     entry.tenant_id,
-  ]) as any;
+  ]) as { insertId: number };
   return result.insertId;
 }
 

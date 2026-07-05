@@ -35,7 +35,7 @@ export const listAddresses = asyncHandler(async (req, res) => {
 export const createAddress = asyncHandler(async (req, res) => {
   const userId = Number(req.user!.id);
   const body = createAddressSchema.parse(req.body);
-  const data = await addressService.createAddress(userId, body as any);
+  const data = await addressService.createAddress(userId, body as Record<string, unknown>);
   res.json({ code: "0", message: "ok", data });
 });
 
@@ -43,7 +43,7 @@ export const updateAddress = asyncHandler(async (req, res) => {
   const userId = Number(req.user!.id);
   const id = Number(req.params.id);
   const body = updateAddressSchema.parse(req.body);
-  await addressService.updateAddress(id, userId, body as any);
+  await addressService.updateAddress(id, userId, body as Record<string, unknown>);
   res.json({ code: "0", message: "ok", data: null });
 });
 

@@ -52,7 +52,7 @@ async function safeExec(conn: mysql.Connection, sql: string, label: string): Pro
   try {
     await conn.query(sql);
     return true;
-  } catch (e: any) {
+  } catch (e: unknown) {
     const code = e.code || "";
     const msg = (e.message || "").toLowerCase();
     // 静默跳过所有已知可忽略的错误
@@ -93,7 +93,7 @@ export async function runMigrations(): Promise<void> {
       multipleStatements: true,
       connectTimeout: 10000,
     });
-  } catch (e: any) {
+  } catch (e: unknown) {
     console.error("[migration] 数据库连接失败:", e.message);
     return;
   }
@@ -146,10 +146,10 @@ export async function runMigrations(): Promise<void> {
         `SELECT COUNT(*) AS cnt FROM information_schema.COLUMNS
          WHERE TABLE_SCHEMA = ? AND TABLE_NAME = 'tenant' AND COLUMN_NAME = 'name'`,
         [env.DB_NAME]
-      ) as any[];
+      ) as Record<string, unknown>[];
       const hasName = (colCheck[0]?.cnt ?? 0) > 0;
 
-      const [tRows] = await conn.query("SELECT id FROM tenant WHERE id = 'default'") as any[];
+      const [tRows] = await conn.query("SELECT id FROM tenant WHERE id = 'default'") as Record<string, unknown>[];
       if (tRows.length === 0 && hasName) {
         await safeExec(conn, `
           INSERT INTO tenant (id, name, contact_name, contact_phone, plan, status)
@@ -163,7 +163,7 @@ export async function runMigrations(): Promise<void> {
       } else {
         console.log("[migration] tenant 表缺少 name 列，跳过租户数据操作");
       }
-    } catch (e: any) {
+    } catch (e: unknown) {
       console.error("[migration] 租户数据操作失败:", e.message);
     }
 
@@ -202,7 +202,7 @@ export async function runMigrations(): Promise<void> {
       const [shaUsers] = await conn.query(
         "SELECT id, password_hash FROM sys_user WHERE password_hash NOT LIKE '$2b$%' AND LENGTH(password_hash) = 64"
       );
-      const users = shaUsers as any[];
+      const users = shaUsers as Record<string, unknown>[];
       if (users.length > 0) {
         console.log(`[migration] 修复 ${users.length} 个 SHA256 密码为 bcrypt...`);
         const hash = bcrypt.hashSync("admin123", 10);
@@ -210,7 +210,7 @@ export async function runMigrations(): Promise<void> {
           await conn.query("UPDATE sys_user SET password_hash = ? WHERE id = ?", [hash, user.id]);
         }
       }
-    } catch (e: any) {
+    } catch (e: unknown) {
       console.error("[migration] 密码修复失败:", e.message);
     }
 
@@ -375,7 +375,7 @@ export async function runMigrations(): Promise<void> {
     }
 
     console.log("[migration] 所有迁移完成");
-  } catch (e: any) {
+  } catch (e: unknown) {
     console.error("[migration] 迁移过程出错:", e.message);
   } finally {
     if (conn) await conn.end().catch(() => {});

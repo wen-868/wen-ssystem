@@ -31,7 +31,7 @@ export async function scanOverdueCreditBills(tenantId?: string): Promise<number>
       [tid]
     );
 
-    const affectedRows = (result as any)?.affectedRows || 0;
+    const affectedRows = (result as { affectedRows?: number } | null)?.affectedRows || 0;
     totalAffected += affectedRows;
 
     if (affectedRows > 0) {

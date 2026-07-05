@@ -43,7 +43,7 @@ export const createCommissionRule = asyncHandler(async (req, res) => {
   const result = await commissionService.createCommissionRule({
     ruleName, ruleType, config, effectiveStart, effectiveEnd, remark,
     tenantId: req.tenantId!
-  } as any);
+  } as Record<string, unknown>);
   res.json(ok(result));
 });
 
@@ -53,7 +53,7 @@ export const updateCommissionRule = asyncHandler(async (req, res) => {
   const result = await commissionService.updateCommissionRule(Number(req.params.id), {
     ruleName, ruleType, config, effectiveStart, effectiveEnd, status, remark,
     tenantId: req.tenantId!
-  } as any);
+  } as Record<string, unknown>);
   res.json(ok(result));
 });
 

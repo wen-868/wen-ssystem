@@ -114,7 +114,7 @@ export async function platformCall<T>(
   // 真实调用逻辑（简化版）
   try {
     const client = new HttpClient({ baseURL: "", timeout: 15000 });
-    const res = await (client as any).fetch(options.method, url, {
+    const res = await (client as { fetch: (method: string, url: string, opts: unknown) => Promise<unknown> }).fetch(options.method, url, {
       headers: options.headers,
       body: options.body,
     });
@@ -123,7 +123,7 @@ export async function platformCall<T>(
     if (err.message?.includes("401") || err.message?.includes("403")) {
       await onTokenRefresh();
       const client = new HttpClient({ baseURL: "", timeout: 15000 });
-      const res = await (client as any).fetch(options.method, url, {
+      const res = await (client as { fetch: (method: string, url: string, opts: unknown) => Promise<unknown> }).fetch(options.method, url, {
         headers: options.headers,
         body: options.body,
       });

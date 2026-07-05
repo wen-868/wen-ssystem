@@ -80,7 +80,7 @@ export class ElemeAdapter extends AbstractPlatformAdapter {
         };
         this.credentials = creds;
         return creds;
-      }) as any
+      }) as Record<string, unknown>
     );
 
     const token = useMock()
@@ -217,7 +217,7 @@ export class ElemeAdapter extends AbstractPlatformAdapter {
         );
         logger.info(`[ELEME] Mock synced ${mockOrders.length} orders`);
         return { orders: mockOrders, hasMore: false, nextCursor: undefined };
-      }) as any
+      }) as Record<string, unknown>
     );
 
     if (useMock()) {
@@ -368,7 +368,7 @@ export class ElemeAdapter extends AbstractPlatformAdapter {
         }));
         logger.info(`[ELEME] Mock synced ${mockProducts.length} products`);
         return { products: mockProducts, hasMore: false, nextCursor: undefined };
-      }) as any
+      }) as Record<string, unknown>
     );
 
     if (useMock()) {

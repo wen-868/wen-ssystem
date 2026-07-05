@@ -247,7 +247,7 @@ export async function updatePurchaseOrder(id: number, params: {
     if (updates.length > 0) {
       updates.push("updated_at = NOW()");
       updateParams.push(id, tenantId);
-      await conn.execute({ sql: `UPDATE purchase_order SET ${updates.join(", ")} WHERE id = ? AND tenant_id = ?`, values: updateParams } as any);
+      await conn.execute({ sql: `UPDATE purchase_order SET ${updates.join(", ")} WHERE id = ? AND tenant_id = ?`, values: updateParams } as { sql: string; values: unknown[] });
     }
   });
 

@@ -91,7 +91,7 @@ sysUserRouter.post("/", requireAuthWithTenant, asyncHandler(async (req, res) => 
        VALUES (?, ?, ?, ?, ?, 'ACTIVE', ?)`,
       [body.username, hashedPassword, body.realName, body.mobile ?? null, body.email ?? null, tenantId]
     );
-    const userId = (result as any).insertId;
+    const userId = (result as { insertId: number }).insertId;
 
     // 分配角色
     for (const roleId of body.roleIds) {

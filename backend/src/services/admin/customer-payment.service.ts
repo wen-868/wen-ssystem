@@ -66,7 +66,7 @@ export async function create(body: {
         "SELECT receivable_amount, received_amount FROM sale_bill WHERE bill_no = ?",
         [body.source_no]
       );
-      const billRow = (billRows as any[])?.[0];
+      const billRow = (billRows as Record<string, unknown>[])?.[0];
       if (billRow) {
         const newReceivedAmount = Number(billRow.received_amount) + Number(body.amount);
         const newUnreceivedAmount = Number(billRow.receivable_amount) - newReceivedAmount;
@@ -103,7 +103,7 @@ export async function voidPayment(receiptNo: string, tenantId: string, userId: n
         "SELECT receivable_amount, received_amount FROM sale_bill WHERE bill_no = ?",
         [payment.source_no]
       );
-      const billRow = (billRows as any[])?.[0];
+      const billRow = (billRows as Record<string, unknown>[])?.[0];
       if (billRow) {
         const newReceivedAmount = Number(billRow.received_amount) - Number(payment.amount);
         const newUnreceivedAmount = Number(billRow.receivable_amount) - newReceivedAmount;

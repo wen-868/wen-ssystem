@@ -114,7 +114,7 @@ if (process.env.NODE_ENV !== "test") {
 const loginLimiter = rateLimit({ windowMs: 15 * 60_000, max: 5, message: "登录请求过于频繁，请15分钟后再试", standardHeaders: true, legacyHeaders: false });
 
 app.use(helmet());
-const corsOriginsEnv = (globalThis as any).process?.env?.CORS_ORIGINS;
+const corsOriginsEnv = (globalThis as typeof globalThis & { process: NodeJS.Process }).process?.env?.CORS_ORIGINS;
 const allowedOrigins = corsOriginsEnv
   ? corsOriginsEnv.split(",").map((s: string) => s.trim())
   : ["https://admin.onepan.cn", "https://m.onepan.cn", "https://store.onepan.cn"];
@@ -173,7 +173,7 @@ async function start() {
 if (process.env.NODE_ENV !== "test") {
   start().catch((error: any) => {
     logger.error("❌ 后端启动失败:", error);
-    (globalThis as any).process?.exit(1);
+    (globalThis as typeof globalThis & { process: NodeJS.Process }).process?.exit(1);
   });
 }
 

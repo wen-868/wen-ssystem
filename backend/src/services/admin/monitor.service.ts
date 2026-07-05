@@ -31,7 +31,7 @@ export interface ExpiringTenant {
 export async function getDbStatus(): Promise<DbStatus> {
   try {
     const result = await queryOne("SELECT DATABASE() AS database_name");
-    const dbName = (result as any)?.database_name || "unknown";
+    const dbName = (result as { database_name?: string } | null)?.database_name || "unknown";
 
     const tablesResult = await query("SHOW TABLES");
     const tableCount = Array.isArray(tablesResult) ? tablesResult.length : 0;
@@ -84,13 +84,13 @@ export async function getApiStats(): Promise<ApiStats> {
   const statusCodes: Record<number, number> = { ...trackerStats.statusCodes };
   if (Array.isArray(statusCodeResult)) {
     for (const row of statusCodeResult) {
-      const code = (row as any).status_code;
-      statusCodes[code] = (statusCodes[code] || 0) + (row as any).count;
+      const code = (row as Record<string, unknown>).status_code;
+      statusCodes[code] = (statusCodes[code] || 0) + (row as Record<string, unknown>).count;
     }
   }
 
-  const todayErrorCount = (todayErrors as any)?.count || 0;
-  const totalErrorCount = (totalErrors as any)?.count || 0;
+  const todayErrorCount = (todayErrors as { count?: number } | null)?.count || 0;
+  const totalErrorCount = (totalErrors as { count?: number } | null)?.count || 0;
 
   // totalRequests: 使用追踪器采集的真实请求数
   const totalRequests = trackerStats.totalRequests;
@@ -99,8 +99,8 @@ export async function getApiStats(): Promise<ApiStats> {
   if (Array.isArray(weeklyData)) {
     for (const row of weeklyData) {
       weeklyErrorTrend.push({
-        date: (row as any).date,
-        count: (row as any).count || 0,
+        date: (row as Record<string, unknown>).date,
+        count: (row as Record<string, unknown>).count || 0,
       });
     }
   }

@@ -279,7 +279,7 @@ export async function cancelOrder(orderNo: string, reason: string, operatorId: n
       "SELECT sku_id, qty FROM miniapp_order_item WHERE order_no = ? AND tenant_id = ?",
       [orderNo, tenantId]
     );
-    for (const item of (items[0] as any[])) {
+    for (const item of (items[0])) {
       await conn.execute(
         "UPDATE inventory_balance SET available_qty = available_qty + ?, locked_qty = locked_qty - ? WHERE sku_id = ? AND tenant_id = ?",
         [item.qty, item.qty, item.sku_id, tenantId]

@@ -31,7 +31,7 @@ platformMonitorRouter.get("/", requirePlatformAuth, asyncHandler(async (_req, re
   const uptime = Math.floor(process.uptime());
 
   // Store last error for monitoring
-  const originalHandler = (process as any)._lastUncaughtError;
+  const originalHandler = (process as { _lastUncaughtError?: unknown })._lastUncaughtError;
   if (originalHandler) {
     lastError = String(originalHandler);
   }

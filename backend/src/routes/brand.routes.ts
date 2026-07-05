@@ -40,7 +40,7 @@ brandRouter.put("/:id", requireAuthWithTenant, asyncHandler(async (req, res) => 
     }).parse(req.body);
     const result = await service.update(Number(req.params.id), body, req.tenantId!);
     res.json(ok(result));
-  } catch (e: any) {
+  } catch (e: unknown) {
     res.status(e.statusCode || 400).json({ code: String(e.statusCode || 400), message: e.message });
   }
 }));
@@ -50,7 +50,7 @@ brandRouter.delete("/:id", requireAuthWithTenant, asyncHandler(async (req, res) 
   try {
     const result = await service.remove(Number(req.params.id), req.tenantId!);
     res.json(ok(result));
-  } catch (e: any) {
+  } catch (e: unknown) {
     res.status(e.statusCode || 400).json({ code: String(e.statusCode || 400), message: e.message });
   }
 }));

@@ -55,7 +55,7 @@ export function createWechatController(
   });
 
   const updateProfile = asyncHandler(async (req, res) => {
-    const wxUser = (req as any).wxUser;
+    const wxUser = (req as { wxUser?: Record<string, unknown> }).wxUser;
     if (!wxUser) {
       res.status(401).json(fail("未登录", "401"));
       return;
@@ -71,7 +71,7 @@ export function createWechatController(
   });
 
   const getProfile = asyncHandler(async (req, res) => {
-    const wxUser = (req as any).wxUser;
+    const wxUser = (req as { wxUser?: Record<string, unknown> }).wxUser;
     const userInfo = await service.getProfile(wxUser.id);
 
     if (!userInfo) {
@@ -83,7 +83,7 @@ export function createWechatController(
   });
 
   const bind = asyncHandler(async (req, res) => {
-    const wxUser = (req as any).wxUser;
+    const wxUser = (req as { wxUser?: Record<string, unknown> }).wxUser;
     const body = z.object({
       username: z.string().min(1),
       password: z.string().min(1),
@@ -101,7 +101,7 @@ export function createWechatController(
   });
 
   const unbind = asyncHandler(async (req, res) => {
-    const wxUser = (req as any).wxUser;
+    const wxUser = (req as { wxUser?: Record<string, unknown> }).wxUser;
     const body = z.object({
       systemUserId: z.number().int().positive(),
     }).parse(req.body);

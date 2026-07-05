@@ -86,7 +86,7 @@ saleReturnRouter.post("/:returnNo/approve", requireAuthWithTenant, asyncHandler(
       return;
     }
     res.json(ok(result));
-  } catch (e: any) {
+  } catch (e: unknown) {
     res.status(400).json({ code: "400", message: e.message });
   }
 }));
@@ -106,7 +106,7 @@ saleReturnRouter.post("/:returnNo/refund", requireAuthWithTenant, asyncHandler(a
       return;
     }
     res.json(ok(result));
-  } catch (e: any) {
+  } catch (e: unknown) {
     res.status(400).json({ code: "400", message: e.message });
   }
 }));

@@ -247,9 +247,9 @@ export async function issueCoupons(
         `SELECT COUNT(*) AS count FROM user_coupon
          WHERE template_id = ? AND user_id = ? AND tenant_id = ?`,
         [templateId, uid, tenantId]
-      ) as unknown as any[];
+      ) as unknown as Record<string, unknown>[];
 
-      const userCouponCount = (userCouponCountRows as any[])[0];
+      const userCouponCount = (userCouponCountRows as Record<string, unknown>[])[0];
 
       if (userCouponCount && userCouponCount.count >= template.per_limit) {
         continue;

@@ -59,7 +59,7 @@ export function startExpiryScanner() {
       expiryScannerRunning = false;
     }
   }, 60 * 1000);
-  (timer as any).unref();
+  (timer as { unref: () => void }).unref();
 }
 // ========== 路由自动发现配置 ==========
 export const routeConfig: RouteConfig = {

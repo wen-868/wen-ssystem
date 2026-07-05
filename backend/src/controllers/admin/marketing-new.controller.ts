@@ -143,7 +143,7 @@ export const createPromotion = asyncHandler(async (req, res) => {
   }).parse(req.body);
 
   const result = await promotionService.createPromotion(
-    body as any,
+    body as Record<string, unknown>,
     req.tenantId!,
     req.user!.id,
     req.user!.username

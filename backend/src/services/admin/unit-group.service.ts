@@ -99,7 +99,7 @@ export async function createGroup(body: { name: string; items: UnitGroupItem[] }
     "INSERT INTO unit_group (name, tenant_id, status) VALUES (?, ?, 1)",
     [body.name, tenantId], tenantId
   );
-  const groupId = (result as any).insertId;
+  const groupId = (result as { insertId: number }).insertId;
 
   if (body.items && body.items.length > 0) {
     await insertItems(groupId, body.items, tenantId);

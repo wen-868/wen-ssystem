@@ -193,13 +193,13 @@ export async function setRoleMenuPermissions(
 ): Promise<void> {
   await transaction(async (conn) => {
     // 删除旧的菜单权限
-    await (conn as any).execute(
+    await (conn as { execute: (sql: string, params?: unknown[]) => Promise<unknown> }).execute(
       "DELETE FROM sys_role_menu WHERE role_id = ?",
       [roleId]
     );
     // 插入新的菜单权限
     for (const menuId of menuIds) {
-      await (conn as any).execute(
+      await (conn as { execute: (sql: string, params?: unknown[]) => Promise<unknown> }).execute(
         "INSERT INTO sys_role_menu (role_id, menu_id) VALUES (?, ?)",
         [roleId, menuId]
       );
@@ -213,12 +213,12 @@ export async function setRoleDataPermissions(
   tenantId: string
 ): Promise<void> {
   await transaction(async (conn) => {
-    await (conn as any).execute(
+    await (conn as { execute: (sql: string, params?: unknown[]) => Promise<unknown> }).execute(
       "DELETE FROM sys_data_permission WHERE role_id = ?",
       [roleId]
     );
     for (const dp of dataPermissions) {
-      await (conn as any).execute(
+      await (conn as { execute: (sql: string, params?: unknown[]) => Promise<unknown> }).execute(
         `INSERT INTO sys_data_permission (role_id, table_name, field_name, filter_type, filter_value)
          VALUES (?, ?, ?, ?, ?)`,
         [roleId, dp.tableName, dp.fieldName, dp.filterType, dp.filterValue]
@@ -233,12 +233,12 @@ export async function setRoleFieldPermissions(
   tenantId: string
 ): Promise<void> {
   await transaction(async (conn) => {
-    await (conn as any).execute(
+    await (conn as { execute: (sql: string, params?: unknown[]) => Promise<unknown> }).execute(
       "DELETE FROM sys_field_permission WHERE role_id = ?",
       [roleId]
     );
     for (const fp of fieldPermissions) {
-      await (conn as any).execute(
+      await (conn as { execute: (sql: string, params?: unknown[]) => Promise<unknown> }).execute(
         `INSERT INTO sys_field_permission (role_id, table_name, field_name, permission_type)
          VALUES (?, ?, ?, ?)`,
         [roleId, fp.tableName, fp.fieldName, fp.permissionType]

@@ -116,7 +116,7 @@ export async function createTenant(body: {
       ]
     );
 
-    const tenantId = (result as any).insertId;
+    const tenantId = (result as { insertId: number }).insertId;
 
     await conn.execute(
       `INSERT INTO operation_log (module, action, target_id, target_type, user_id, user_name, detail, tenant_id)

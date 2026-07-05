@@ -108,12 +108,12 @@ export async function approve(returnNo: string, tenantId: string, userId: number
     await conn.query("UPDATE purchase_return SET return_status = 'COMPLETED', auditor_id = ?, audited_at = NOW() WHERE return_no = ? AND tenant_id = ?", [userId, returnNo, tenantId]);
     const [itemRows] = await conn.query("SELECT sku_id, total_bottle_qty FROM purchase_return_item WHERE return_no = ?", [returnNo]);
 
-    for (const item of (itemRows as any[])) {
+    for (const item of (itemRows as Record<string, unknown>[])) {
       const [balanceRows] = await conn.query(
         "SELECT physical_qty FROM inventory_balance WHERE store_id = ? AND sku_id = ? AND stock_type = 'OFFLINE'",
         [returnOrder.store_id, item.sku_id]
       );
-      const currentQty = (balanceRows as any[])?.[0]?.physical_qty || 0;
+      const currentQty = (balanceRows as Record<string, unknown>[])?.[0]?.physical_qty || 0;
       if (currentQty < item.total_bottle_qty) {
         throw new Error(`库存不足: SKU ${item.sku_id} 当前库存 ${currentQty}, 退货数量 ${item.total_bottle_qty}`);
       }
@@ -128,7 +128,7 @@ export async function approve(returnNo: string, tenantId: string, userId: number
         "SELECT physical_qty FROM inventory_balance WHERE store_id = ? AND sku_id = ? AND stock_type = 'OFFLINE'",
         [returnOrder.store_id, item.sku_id]
       );
-      const afterQty = (newBalanceRows as any[])?.[0]?.physical_qty || 0;
+      const afterQty = (newBalanceRows as Record<string, unknown>[])?.[0]?.physical_qty || 0;
       const beforeQty = afterQty + item.total_bottle_qty;
 
       const ledgerNo = makeBizNo("LL");

@@ -106,7 +106,7 @@ export async function createPlatformSubscription(
   );
 
   return {
-    id: (result as any).insertId as number,
+    id: (result as { insertId: number }).insertId as number,
     orderNo,
     tenantId,
     planCode,

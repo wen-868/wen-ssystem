@@ -14,7 +14,7 @@ export async function cancelTransferOrder(id: number, tenantId: string) {
 
     await conn.execute(
       "UPDATE transfer_order SET status = 'CANCELLED' WHERE id = ? AND tenant_id = ?",
-      [id, tenantId] as any[]
+      [id, tenantId]
     );
   });
 
@@ -43,7 +43,7 @@ export async function shipTransferOrder(id: number, tenantId: string, userId: nu
 
       const [invRows] = await conn.execute(
         "SELECT * FROM inventory_balance WHERE store_id = ? AND sku_id = ? AND tenant_id = ? FOR UPDATE",
-        [order.from_store_id, item.sku_id, tenantId] as any[]
+        [order.from_store_id, item.sku_id, tenantId]
       );
       const inv = (invRows as unknown as Record<string, unknown>[])[0];
       if (!inv || Number(inv.available_qty) < shipQty) {
@@ -52,31 +52,31 @@ export async function shipTransferOrder(id: number, tenantId: string, userId: nu
 
       await conn.execute(
         "UPDATE inventory_balance SET available_qty = available_qty - ?, locked_qty = locked_qty + ? WHERE store_id = ? AND sku_id = ? AND tenant_id = ?",
-        [shipQty, shipQty, order.from_store_id, item.sku_id, tenantId] as any[]
+        [shipQty, shipQty, order.from_store_id, item.sku_id, tenantId]
       );
 
       await conn.execute(
         `INSERT INTO inventory_ledger (store_id, sku_id, sku_name, change_type, change_qty, before_qty, after_qty, ref_no, operator_id, created_at, tenant_id)
          SELECT ?, ?, ?, 'TRANSFER_OUT', ?, available_qty, available_qty - ?, ?, ?, NOW(), ?
          FROM inventory_balance WHERE store_id = ? AND sku_id = ? AND tenant_id = ?`,
-        [order.from_store_id, item.sku_id, item.sku_name, shipQty, shipQty, order.transfer_no, userId ?? null, tenantId, order.from_store_id, item.sku_id, tenantId] as any[]
+        [order.from_store_id, item.sku_id, item.sku_name, shipQty, shipQty, order.transfer_no, userId ?? null, tenantId, order.from_store_id, item.sku_id, tenantId]
       );
 
       await conn.execute(
         "UPDATE transfer_order_item SET transferred_qty = transferred_qty + ? WHERE id = ? AND tenant_id = ?",
-        [shipQty, item.id, tenantId] as any[]
+        [shipQty, item.id, tenantId]
       );
 
       await conn.execute(
         `INSERT INTO transfer_stock_log (transfer_order_id, item_id, store_id, sku_id, direction, quantity, operator_id, tenant_id)
          VALUES (?, ?, ?, ?, 'OUT', ?, ?, ?)`,
-        [id, item.id, order.from_store_id, item.sku_id, shipQty, userId ?? null, tenantId] as any[]
+        [id, item.id, order.from_store_id, item.sku_id, shipQty, userId ?? null, tenantId]
       );
     }
 
     await conn.execute(
       "UPDATE transfer_order SET status = 'TRANSIT' WHERE id = ? AND tenant_id = ?",
-      [id, tenantId] as any[]
+      [id, tenantId]
     );
   });
 
@@ -115,20 +115,20 @@ export async function receiveTransferOrder(id: number, tenantId: string, userId:
 
       const [invRows] = await conn.execute(
         "SELECT * FROM inventory_balance WHERE store_id = ? AND sku_id = ? AND tenant_id = ? FOR UPDATE",
-        [order.to_store_id, detail.sku_id, tenantId] as any[]
+        [order.to_store_id, detail.sku_id, tenantId]
       );
       const inv = (invRows as unknown as Record<string, unknown>[])[0];
 
       if (inv) {
         await conn.execute(
           "UPDATE inventory_balance SET available_qty = available_qty + ?, locked_qty = GREATEST(locked_qty - ?, 0) WHERE store_id = ? AND sku_id = ? AND tenant_id = ?",
-          [item.receivedQty, item.receivedQty, order.to_store_id, detail.sku_id, tenantId] as any[]
+          [item.receivedQty, item.receivedQty, order.to_store_id, detail.sku_id, tenantId]
         );
       } else {
         await conn.execute(
           `INSERT INTO inventory_balance (store_id, sku_id, sku_name, available_qty, locked_qty, tenant_id)
            VALUES (?, ?, ?, ?, 0, ?)`,
-          [order.to_store_id, detail.sku_id, detail.sku_name, item.receivedQty, tenantId] as any[]
+          [order.to_store_id, detail.sku_id, detail.sku_name, item.receivedQty, tenantId]
         );
       }
 
@@ -136,18 +136,18 @@ export async function receiveTransferOrder(id: number, tenantId: string, userId:
         `INSERT INTO inventory_ledger (store_id, sku_id, sku_name, change_type, change_qty, before_qty, after_qty, ref_no, operator_id, created_at, tenant_id)
          SELECT ?, ?, ?, 'TRANSFER_IN', ?, available_qty - ?, available_qty, ?, ?, NOW(), ?
          FROM inventory_balance WHERE store_id = ? AND sku_id = ? AND tenant_id = ?`,
-        [order.to_store_id, detail.sku_id, detail.sku_name, item.receivedQty, item.receivedQty, order.transfer_no, userId ?? null, tenantId, order.to_store_id, detail.sku_id, tenantId] as any[]
+        [order.to_store_id, detail.sku_id, detail.sku_name, item.receivedQty, item.receivedQty, order.transfer_no, userId ?? null, tenantId, order.to_store_id, detail.sku_id, tenantId]
       );
 
       await conn.execute(
         "UPDATE transfer_order_item SET received_qty = received_qty + ? WHERE id = ? AND tenant_id = ?",
-        [item.receivedQty, item.itemId, tenantId] as any[]
+        [item.receivedQty, item.itemId, tenantId]
       );
 
       await conn.execute(
         `INSERT INTO transfer_stock_log (transfer_order_id, item_id, store_id, sku_id, direction, quantity, operator_id, tenant_id)
          VALUES (?, ?, ?, ?, 'IN', ?, ?, ?)`,
-        [id, item.itemId, order.to_store_id, detail.sku_id, item.receivedQty, userId ?? null, tenantId] as any[]
+        [id, item.itemId, order.to_store_id, detail.sku_id, item.receivedQty, userId ?? null, tenantId]
       );
 
       const [checkRows] = await conn.execute(
@@ -165,7 +165,7 @@ export async function receiveTransferOrder(id: number, tenantId: string, userId:
     if (allReceived) {
       await conn.execute(
         "UPDATE transfer_order SET status = 'RECEIVED', actual_date = CURDATE(), received_by = ?, received_at = NOW() WHERE id = ? AND tenant_id = ?",
-        [userId ?? null, id, tenantId] as any[]
+        [userId ?? null, id, tenantId]
       );
     }
   });

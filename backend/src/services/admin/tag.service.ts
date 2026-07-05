@@ -59,7 +59,7 @@ export async function deleteGroup(id: number, tenantId: string) {
   const [tagRows] = await queryWithTenant<any>(
     "SELECT COUNT(*) AS cnt FROM product_tag WHERE group_id = ?", [id], tenantId
   );
-  if ((tagRows as any[])?.[0]?.cnt > 0) {
+  if ((tagRows as Record<string, unknown>[])?.[0]?.cnt > 0) {
     throw Object.assign(new Error("该标签组下有标签，无法删除"), { statusCode: 400 });
   }
 
@@ -130,7 +130,7 @@ export async function deleteTag(id: number, tenantId: string) {
   const [relRows] = await queryWithTenant<any>(
     "SELECT COUNT(*) AS cnt FROM product_tag_relation WHERE tag_id = ?", [id], tenantId
   );
-  if ((relRows as any[])?.[0]?.cnt > 0) {
+  if ((relRows as Record<string, unknown>[])?.[0]?.cnt > 0) {
     throw Object.assign(new Error("该标签有商品引用，无法删除"), { statusCode: 400 });
   }
 

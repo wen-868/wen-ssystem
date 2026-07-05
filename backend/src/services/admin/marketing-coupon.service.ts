@@ -336,9 +336,9 @@ export async function claimCoupon(templateId: number, userId: number, tenantId: 
        WHERE id = ? AND tenant_id = ? AND status = 'ACTIVE' AND start_time <= ? AND end_time >= ?
        FOR UPDATE`,
       [templateId, tenantId, now, now]
-    ) as unknown as any[];
+    ) as unknown as Record<string, unknown>[];
 
-    const template = (templateRows as any[])[0];
+    const template = (templateRows as Record<string, unknown>[])[0];
     if (!template) {
       throw Object.assign(new Error("优惠券不存在或已过期"), { statusCode: 404 });
     }
@@ -352,9 +352,9 @@ export async function claimCoupon(templateId: number, userId: number, tenantId: 
        JOIN coupon_template ct ON ct.id = uc.template_id AND ct.tenant_id = ?
        WHERE uc.template_id = ? AND uc.user_id = ? AND uc.status = 'AVAILABLE'`,
       [tenantId, templateId, userId]
-    ) as unknown as any[];
+    ) as unknown as Record<string, unknown>[];
 
-    if ((existingRows as any[]).length > 0) {
+    if ((existingRows as Record<string, unknown>[]).length > 0) {
       throw Object.assign(new Error("您已领取过该优惠券"), { statusCode: 400 });
     }
 

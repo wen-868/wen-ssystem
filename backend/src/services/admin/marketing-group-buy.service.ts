@@ -275,7 +275,7 @@ export async function createGroupBuyTeam(
        WHERE id = ? AND tenant_id = ? AND status = 'ACTIVE' AND start_time <= ? AND end_time >= ?
        FOR UPDATE`,
       [activityId, tenantId, now, now]
-    ) as unknown as any[][];
+    ) as unknown as Record<string, unknown>[][];
 
     const activity = (activityRows as unknown as Record<string, unknown>[])[0];
     if (!activity) {
@@ -292,15 +292,15 @@ export async function createGroupBuyTeam(
     const [teamResult] = await conn.execute(
       `INSERT INTO group_buy_team (activity_id, leader_id, current_size, target_size, status, expires_at, tenant_id)
        VALUES (?, ?, 1, ?, 'PENDING', ?, ?)`,
-      [activityId, userId, activity.min_group_size, expiresAt, tenantId] as any[]
-    ) as unknown as any[][];
+      [activityId, userId, activity.min_group_size, expiresAt, tenantId]
+    ) as unknown as Record<string, unknown>[][];
 
     const teamId = (teamResult as unknown as Record<string, unknown>).insertId;
 
     await conn.execute(
       `INSERT INTO group_buy_member (team_id, user_id, is_leader, tenant_id)
        VALUES (?, ?, 1, ?)`,
-      [teamId, userId, tenantId] as any[]
+      [teamId, userId, tenantId]
     );
 
     await conn.execute(
@@ -313,8 +313,8 @@ export async function createGroupBuyTeam(
               current_size AS currentSize, target_size AS targetSize,
               status, expires_at AS expiresAt, created_at AS createdAt
        FROM group_buy_team WHERE id = ? AND tenant_id = ?`,
-      [teamId, tenantId] as any[]
-    ) as unknown as any[][];
+      [teamId, tenantId]
+    ) as unknown as Record<string, unknown>[][];
 
     return (teamRows as unknown as Record<string, unknown>[])[0];
   });
@@ -367,7 +367,7 @@ export async function joinGroupBuyTeam(
        WHERE gbt.id = ? AND gbt.tenant_id = ? AND gbt.status = 'PENDING' AND gbt.expires_at > ?
        FOR UPDATE`,
       [tenantId, teamId, tenantId, now]
-    ) as unknown as any[][];
+    ) as unknown as Record<string, unknown>[][];
 
     const team = (teamRows as unknown as Record<string, unknown>[])[0];
     if (!team) {
@@ -377,7 +377,7 @@ export async function joinGroupBuyTeam(
     const [memberRows] = await conn.execute(
       `SELECT id FROM group_buy_member WHERE team_id = ? AND user_id = ? AND tenant_id = ?`,
       [teamId, userId, tenantId]
-    ) as unknown as any[][];
+    ) as unknown as Record<string, unknown>[][];
 
     if ((memberRows as unknown as Record<string, unknown>[]).length > 0) {
       throw Object.assign(new Error("您已参与该团"), { statusCode: 400 });
@@ -415,7 +415,7 @@ export async function joinGroupBuyTeam(
 
     await conn.execute(
       `UPDATE group_buy SET sold_count = sold_count + ? WHERE id = ? AND tenant_id = ?`,
-      [quantity, team.activity_id, tenantId] as any[]
+      [quantity, team.activity_id, tenantId]
     );
   });
 

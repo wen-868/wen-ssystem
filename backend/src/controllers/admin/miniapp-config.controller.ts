@@ -51,7 +51,7 @@ export async function publish(req: Request, res: Response) {
     platform: body.platform,
     templateId: body.templateId,
     version: body.version,
-    operator: (req as any).user?.name || 'admin'
+    operator: (req as { user?: { id: number } }).user?.name || 'admin'
   });
   res.json({ code: "0", message: "发布成功", data });
 }

@@ -234,9 +234,9 @@ class SaleReturnService {
       const [items] = await conn.execute(
         "SELECT sku_id, total_bottle_qty FROM sale_return_item WHERE return_no = ?",
         [returnNo]
-      ) as any;
+      ) as [Record<string, unknown>[], unknown];
 
-      const itemRows = items as any[];
+      const itemRows = items as Record<string, unknown>[];
       for (const item of itemRows) {
         await conn.execute(
           `INSERT INTO inventory_balance (store_id, sku_id, physical_qty, available_qty, tenant_id)

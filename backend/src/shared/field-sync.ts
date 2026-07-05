@@ -345,7 +345,7 @@ export async function syncChangedFields(
         results.push({
           targetTable: mapping.targetTable,
           targetField: mapping.targetField,
-          affectedRows: (result as any)?.affectedRows ?? 0,
+          affectedRows: (result as { affectedRows?: number } | null)?.affectedRows ?? 0,
           success: true
         });
       } catch (err: any) {

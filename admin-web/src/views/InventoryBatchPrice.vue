@@ -65,29 +65,29 @@
       <div class="adjust-panel">
         <div class="adjust-config">
           <el-form ref="adjustFormRef" :model="adjustForm" :rules="adjustRules" label-width="100px" inline>
-            <el-form-item label="调整方式">
-              <el-select v-model="adjustMethod" style="width: 180px" @change="onAdjustMethodChange">
+            <el-form-item label="调整方式" prop="adjustMethod">
+              <el-select v-model="adjustForm.adjustMethod" style="width: 180px" @change="onAdjustMethodChange">
                 <el-option label="固定金额调整" value="fixed" />
                 <el-option label="百分比调整" value="percent" />
                 <el-option label="单商品调整" value="single" />
                 <el-option label="按参考价调整" value="reference" />
               </el-select>
             </el-form-item>
-            <el-form-item label="价格类型">
-              <el-select v-model="adjustPriceType" style="width: 150px">
+            <el-form-item label="价格类型" prop="adjustPriceType">
+              <el-select v-model="adjustForm.adjustPriceType" style="width: 150px">
                 <el-option label="零售价" value="retailPrice" />
                 <el-option label="批发价" value="wholesalePrice" />
                 <el-option label="小程序价" value="miniappPrice" />
               </el-select>
             </el-form-item>
-            <el-form-item v-if="adjustMethod === 'fixed'" label="调整金额">
-              <el-input-number v-model="adjustValue" :min="-999999" :precision="2" style="width: 160px" />
+            <el-form-item v-if="adjustForm.adjustMethod === 'fixed'" label="调整金额" prop="adjustValue">
+              <el-input-number v-model="adjustForm.adjustValue" :min="-999999" :precision="2" style="width: 160px" />
             </el-form-item>
-            <el-form-item v-if="adjustMethod === 'percent'" label="调整比例(%)">
-              <el-input-number v-model="adjustPercent" :min="-100" :max="100" :precision="1" style="width: 160px" />
+            <el-form-item v-if="adjustForm.adjustMethod === 'percent'" label="调整比例(%)" prop="adjustPercent">
+              <el-input-number v-model="adjustForm.adjustPercent" :min="-100" :max="100" :precision="1" style="width: 160px" />
             </el-form-item>
-            <el-form-item v-if="adjustMethod === 'reference'" label="参考价类型">
-              <el-select v-model="referencePriceType" style="width: 150px">
+            <el-form-item v-if="adjustForm.adjustMethod === 'reference'" label="参考价类型" prop="referencePriceType">
+              <el-select v-model="adjustForm.referencePriceType" style="width: 150px">
                 <el-option label="零售价" value="retailPrice" />
                 <el-option label="批发价" value="wholesalePrice" />
               </el-select>
@@ -194,10 +194,21 @@ const productTableRef = ref();
 const selectedProducts = ref<any[]>([]);
 
 const adjustFormRef = ref();
-const adjustForm = reactive({});
-const adjustRules: FormRules = {};
-const adjustMethod = ref("fixed");
-const adjustPriceType = ref("retailPrice");
+const adjustLoading = ref(false);
+const adjustForm = reactive({
+  adjustMethod: "fixed",
+  adjustPriceType: "retailPrice",
+  adjustValue: 0,
+  adjustPercent: 0,
+  referencePriceType: "retailPrice"
+});
+const adjustRules: FormRules = {
+  adjustMethod: [{ required: true, message: "请选择调整方式", trigger: "change" }],
+  adjustPriceType: [{ required: true, message: "请选择价格类型", trigger: "change" }],
+  adjustValue: [{ required: true, message: "请输入调整金额", trigger: "blur" }],
+  adjustPercent: [{ required: true, message: "请输入调整比例", trigger: "blur" }],
+  referencePriceType: [{ required: true, message: "请选择参考价类型", trigger: "change" }]
+};
 
 const historyLogs = ref<any[]>([]);
 const historyLoading = ref(false);
@@ -207,15 +218,15 @@ const historyPageSize = ref(20);
 
 const previewData = computed(() => {
   return selectedProducts.value.map((p) => {
-    const oldPrice = Number(p[adjustPriceType.value]) || 0;
+    const oldPrice = Number(p[adjustForm.adjustPriceType]) || 0;
     let newPrice = oldPrice;
 
-    if (adjustMethod.value === "fixed") {
-      newPrice = oldPrice + adjustValue.value;
-    } else if (adjustMethod.value === "percent") {
-      newPrice = oldPrice * (1 + adjustPercent.value / 100);
-    } else if (adjustMethod.value === "reference") {
-      newPrice = Number(p[referencePriceType.value]) || 0;
+    if (adjustForm.adjustMethod === "fixed") {
+      newPrice = oldPrice + adjustForm.adjustValue;
+    } else if (adjustForm.adjustMethod === "percent") {
+      newPrice = oldPrice * (1 + adjustForm.adjustPercent / 100);
+    } else if (adjustForm.adjustMethod === "reference") {
+      newPrice = Number(p[adjustForm.referencePriceType]) || 0;
     }
 
     newPrice = Math.max(0, Math.round(newPrice * 100) / 100);
@@ -235,8 +246,8 @@ function handleSelectionChange(rows: any[]) {
 }
 
 function onAdjustMethodChange() {
-  adjustValue.value = 0;
-  adjustPercent.value = 0;
+  adjustForm.adjustValue = 0;
+  adjustForm.adjustPercent = 0;
 }
 
 async function searchProducts() {
@@ -270,7 +281,7 @@ async function executeAdjust() {
     for (const item of previewData.value) {
       try {
         await updateProductPrice(item.id, {
-          [adjustPriceType.value]: item.newPrice
+          [adjustForm.adjustPriceType]: item.newPrice
         });
       } catch {
         failCount++;

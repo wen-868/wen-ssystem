@@ -13,7 +13,7 @@ export async function createCheck(params: {
     const [insertResult] = await conn.execute(
       `INSERT INTO stock_check (check_no, store_id, status, remark, tenant_id)
        VALUES (?, ?, 'DRAFT', ?, ?)`,
-      [checkNo, storeId, remark, tenantId] as any[]
+      [checkNo, storeId, remark, tenantId]
     );
     return (insertResult as unknown as Record<string, unknown>).insertId;
   });
@@ -117,7 +117,7 @@ export async function updateCheck(id: number, tenantId: string, body: { remark?:
     if (check.status !== "DRAFT") throw new Error("仅草稿状态可编辑");
 
     if (body.remark !== undefined) {
-      await conn.execute("UPDATE stock_check SET remark = ? WHERE id = ? AND tenant_id = ?", [body.remark, id, tenantId] as any[]);
+      await conn.execute("UPDATE stock_check SET remark = ? WHERE id = ? AND tenant_id = ?", [body.remark, id, tenantId]);
     }
   });
 
@@ -140,7 +140,7 @@ export async function startCheck(id: number, tenantId: string) {
        LEFT JOIN product_sku ps ON ps.id = ib.sku_id AND ps.tenant_id = ib.tenant_id
        WHERE ib.store_id = ? AND ib.quantity > 0 AND ib.tenant_id = ?
        ORDER BY ib.sku_id, ib.batch_no`,
-      [check.store_id, tenantId] as any[]
+      [check.store_id, tenantId]
     );
 
     await conn.execute("DELETE FROM stock_check_item WHERE check_id = ? AND tenant_id = ?", [id, tenantId]);
@@ -150,14 +150,14 @@ export async function startCheck(id: number, tenantId: string) {
       await conn.execute(
         `INSERT INTO stock_check_item (check_id, sku_id, sku_name, batch_no, system_qty, actual_qty, diff_amount, tenant_id)
          VALUES (?, ?, ?, ?, ?, 0, 0, ?)`,
-        [id, row.sku_id, row.sku_name || "", row.batch_no || "", row.quantity, tenantId] as any[]
+        [id, row.sku_id, row.sku_name || "", row.batch_no || "", row.quantity, tenantId]
       );
       totalSku++;
     }
 
     await conn.execute(
       "UPDATE stock_check SET status = 'CHECKING', total_sku = ? WHERE id = ? AND tenant_id = ?",
-      [totalSku, id, tenantId] as any[]
+      [totalSku, id, tenantId]
     );
   });
 
@@ -186,7 +186,7 @@ export async function completeCheck(id: number, tenantId: string) {
 
     await conn.execute(
       "UPDATE stock_check SET status = 'COMPLETED', completed_at = NOW(), total_sku = ?, diff_sku = ?, diff_amount = ? WHERE id = ? AND tenant_id = ?",
-      [summary.total_sku, summary.diff_sku, summary.diff_amount, id, tenantId] as any[]
+      [summary.total_sku, summary.diff_sku, summary.diff_amount, id, tenantId]
     );
   });
 
@@ -241,21 +241,21 @@ export async function handleDiff(params: {
 
     const [invRows] = await conn.execute(
       "SELECT * FROM inventory_balance WHERE store_id = ? AND sku_id = ? AND tenant_id = ? FOR UPDATE",
-      [check.store_id, item.sku_id, tenantId] as any[]
+      [check.store_id, item.sku_id, tenantId]
     );
     const inv = (invRows as unknown as Record<string, unknown>[])[0];
 
     if (inv) {
       await conn.execute(
         "UPDATE inventory_balance SET available_qty = available_qty + ? WHERE store_id = ? AND sku_id = ? AND tenant_id = ?",
-        [diffQty, check.store_id, item.sku_id, tenantId] as any[]
+        [diffQty, check.store_id, item.sku_id, tenantId]
       );
     } else {
       if (diffQty > 0) {
         await conn.execute(
           `INSERT INTO inventory_balance (store_id, sku_id, sku_name, available_qty, locked_qty, tenant_id)
            VALUES (?, ?, ?, ?, 0, ?)`,
-          [check.store_id, item.sku_id, item.sku_name, diffQty, tenantId] as any[]
+          [check.store_id, item.sku_id, item.sku_name, diffQty, tenantId]
         );
       }
     }
@@ -264,12 +264,12 @@ export async function handleDiff(params: {
     await conn.execute(
       `INSERT INTO inventory_ledger (store_id, sku_id, sku_name, change_type, change_qty, ref_no, operator_id, created_at, tenant_id)
        VALUES (?, ?, ?, ?, ?, ?, ?, NOW(), ?)`,
-      [check.store_id, item.sku_id, item.sku_name, changeType, Math.abs(diffQty), check.check_no, userId ?? null, tenantId] as any[]
+      [check.store_id, item.sku_id, item.sku_name, changeType, Math.abs(diffQty), check.check_no, userId ?? null, tenantId]
     );
 
     await conn.execute(
       "UPDATE stock_check_item SET handled = 1 WHERE id = ? AND tenant_id = ?",
-      [itemId, tenantId] as any[]
+      [itemId, tenantId]
     );
   });
 
@@ -333,7 +333,7 @@ export async function updateItemQty(params: {
 
     const [skuRows] = await conn.execute(
       "SELECT cost_price FROM product_sku WHERE id = ? AND tenant_id = ?",
-      [item.sku_id, tenantId] as any[]
+      [item.sku_id, tenantId]
     );
     const unitPrice = (skuRows as unknown as Record<string, unknown>[])[0]?.cost_price ?? 0;
     const diffQty = actualQty - Number(item.system_qty);
@@ -341,7 +341,7 @@ export async function updateItemQty(params: {
 
     await conn.execute(
       "UPDATE stock_check_item SET actual_qty = ?, diff_amount = ? WHERE id = ? AND tenant_id = ?",
-      [actualQty, diffAmount, itemId, tenantId] as any[]
+      [actualQty, diffAmount, itemId, tenantId]
     );
   });
 
@@ -370,7 +370,7 @@ export async function submitCheck(id: number, tenantId: string) {
 
     await conn.execute(
       "UPDATE stock_check SET status = 'COMPLETED', completed_at = NOW(), total_sku = ?, diff_sku = ?, diff_amount = ? WHERE id = ? AND tenant_id = ?",
-      [summary.total_sku, summary.diff_sku, summary.diff_amount, id, tenantId] as any[]
+      [summary.total_sku, summary.diff_sku, summary.diff_amount, id, tenantId]
     );
   });
 

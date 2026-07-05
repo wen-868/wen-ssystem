@@ -76,7 +76,7 @@ export async function listErrorLogs(params: {
     queryOne(`SELECT COUNT(*) AS total FROM error_logs ${where}`, values),
   ]);
 
-  return { items: rows, total: (countResult as any)?.total || 0 };
+  return { items: rows, total: (countResult as { total?: number } | null)?.total || 0 };
 }
 
 export async function cleanupOldLogs(retainDays: number = 30): Promise<number> {
@@ -84,5 +84,5 @@ export async function cleanupOldLogs(retainDays: number = 30): Promise<number> {
     `DELETE FROM error_logs WHERE created_at < DATE_SUB(NOW(), INTERVAL ? DAY)`,
     [retainDays]
   );
-  return (result as any)?.affectedRows || 0;
+  return (result as { affectedRows?: number } | null)?.affectedRows || 0;
 }

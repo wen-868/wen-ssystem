@@ -82,7 +82,7 @@ export class JdAdapter extends AbstractPlatformAdapter {
         };
         this.credentials = creds;
         return creds;
-      }) as any
+      }) as Record<string, unknown>
     );
 
     const token = useMock()
@@ -220,7 +220,7 @@ export class JdAdapter extends AbstractPlatformAdapter {
         );
         logger.info(`[JD] Mock synced ${mockOrders.length} orders`);
         return { orders: mockOrders, hasMore: false, nextCursor: undefined };
-      }) as any
+      }) as Record<string, unknown>
     );
 
     if (useMock()) {
@@ -373,7 +373,7 @@ export class JdAdapter extends AbstractPlatformAdapter {
         }));
         logger.info(`[JD] Mock synced ${mockProducts.length} products`);
         return { products: mockProducts, hasMore: false, nextCursor: undefined };
-      }) as any
+      }) as Record<string, unknown>
     );
 
     if (useMock()) {

@@ -267,9 +267,9 @@ export async function buyFlashSale(
        WHERE id = ? AND tenant_id = ? AND status = 'ACTIVE' AND start_time <= ? AND end_time >= ?
        FOR UPDATE`,
       [flashSaleId, tenantId, now, now]
-    ) as unknown as any[];
+    ) as unknown as Record<string, unknown>[];
 
-    const flash = (flashRows as any[])[0];
+    const flash = (flashRows as Record<string, unknown>[])[0];
     if (!flash) {
       throw Object.assign(new Error("秒杀活动不存在或已结束"), { statusCode: 404 });
     }
@@ -285,9 +285,9 @@ export async function buyFlashSale(
        JOIN flash_sale fs ON fs.id = fsr.flash_sale_id AND fs.tenant_id = ?
        WHERE fsr.flash_sale_id = ? AND fsr.user_id = ?`,
       [tenantId, flashSaleId, userId]
-    ) as unknown as any[];
+    ) as unknown as Record<string, unknown>[];
 
-    const purchased = Number((purchaseRows as any[])[0]?.totalQty || 0);
+    const purchased = Number((purchaseRows as Record<string, unknown>[])[0]?.totalQty || 0);
     if (purchased + quantity > Number(flash.limit_per_user)) {
       throw Object.assign(
         new Error(`每人限购${flash.limit_per_user}件，您已购买${purchased}件`),

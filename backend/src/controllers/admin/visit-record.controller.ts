@@ -3,7 +3,7 @@ import { ok } from "../../shared/response.js";
 import * as visitRecordService from "../../services/admin/visit-record.service.js";
 
 export const listVisitRecords = asyncHandler(async (req, res) => {
-  const result = await visitRecordService.listVisitRecords(req.tenantId!, req.query as any);
+  const result = await visitRecordService.listVisitRecords(req.tenantId!, req.query as Record<string, unknown>);
   res.json(ok(result));
 });
 

@@ -86,7 +86,7 @@ export const createPurchaseOrder = asyncHandler(async (req, res) => {
     operatorId: req.user!.id ?? 0,
     expectedDate: body.expectedDate,
     remark: body.remark,
-    items: body.items as any
+    items: body.items as unknown[]
   });
   res.json(ok(result));
 });
@@ -99,7 +99,7 @@ export const updatePurchaseOrder = asyncHandler(async (req, res) => {
       tenantId: req.tenantId!,
       expectedDate: body.expectedDate,
       remark: body.remark,
-      items: body.items as any
+      items: body.items as unknown[]
     }
   );
   res.json(ok(result));
@@ -130,7 +130,7 @@ export const purchaseInStock = asyncHandler(async (req, res) => {
       tenantId: req.tenantId!,
       operatorId: req.user!.id ?? 0,
       remark: body.remark,
-      items: body.items as any
+      items: body.items as unknown[]
     }
   );
   res.json(ok(result));
@@ -167,7 +167,7 @@ export const purchaseReturn = asyncHandler(async (req, res) => {
     tenantId: req.tenantId!,
     operatorId: req.user!.id ?? 0,
     remark: body.remark,
-    items: body.items as any
+    items: body.items as unknown[]
   });
   res.json(ok(result));
 });

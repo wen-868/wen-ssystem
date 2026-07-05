@@ -15,7 +15,8 @@ function resolveApiBase() {
 }
 
 export const api = axios.create({
-  baseURL: resolveApiBase()
+  baseURL: resolveApiBase(),
+  timeout: 30000
 });
 
 api.interceptors.request.use((config) => {
@@ -29,7 +30,11 @@ api.interceptors.request.use((config) => {
 api.interceptors.response.use(
   (response) => response,
   (error) => {
-    // 网络错误：无响应
+    if (error.code === "ECONNABORTED" || error.message?.includes("timeout")) {
+      ElMessage.error("请求超时，请重试");
+      return Promise.reject(error);
+    }
+
     if (!error.response) {
       ElMessage.error("网络连接失败，请检查网络");
       return Promise.reject(error);

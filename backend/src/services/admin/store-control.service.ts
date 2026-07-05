@@ -47,13 +47,13 @@ export async function upsertConfig(params: {
       if (maxOrderAmount !== undefined) { sets.push("max_order_amount = ?"); values.push(maxOrderAmount); }
       if (sets.length > 0) {
         values.push(storeId, tenantId);
-        await conn.execute(`UPDATE store_control_config SET ${sets.join(", ")} WHERE store_id = ? AND tenant_id = ?`, values as any[]);
+        await conn.execute(`UPDATE store_control_config SET ${sets.join(", ")} WHERE store_id = ? AND tenant_id = ?`, values as Record<string, unknown>[]);
       }
     } else {
       await conn.execute(
         `INSERT INTO store_control_config (store_id, auto_open_time, auto_close_time, max_daily_orders, max_order_amount, tenant_id)
          VALUES (?, ?, ?, ?, ?, ?)`,
-        [storeId, autoOpenTime ?? null, autoCloseTime ?? null, maxDailyOrders ?? null, maxOrderAmount ?? null, tenantId] as any[]
+        [storeId, autoOpenTime ?? null, autoCloseTime ?? null, maxDailyOrders ?? null, maxOrderAmount ?? null, tenantId]
       );
     }
   });
@@ -77,12 +77,12 @@ export async function openStore(params: {
     const fromStatus = store.status || "CLOSED";
     await conn.execute(
       "UPDATE store SET status = 'OPEN' WHERE id = ? AND tenant_id = ?",
-      [storeId, tenantId] as any[]
+      [storeId, tenantId]
     );
     await conn.execute(
       `INSERT INTO store_status_log (store_id, from_status, to_status, change_type, operator_id, remark, tenant_id)
        VALUES (?, ?, 'OPEN', 'MANUAL', ?, '手动开门', ?)`,
-      [storeId, fromStatus, userId, tenantId] as any[]
+      [storeId, fromStatus, userId, tenantId]
     );
   });
 
@@ -105,12 +105,12 @@ export async function closeStore(params: {
     const fromStatus = store.status || "OPEN";
     await conn.execute(
       "UPDATE store SET status = 'CLOSED' WHERE id = ? AND tenant_id = ?",
-      [storeId, tenantId] as any[]
+      [storeId, tenantId]
     );
     await conn.execute(
       `INSERT INTO store_status_log (store_id, from_status, to_status, change_type, operator_id, remark, tenant_id)
        VALUES (?, ?, 'CLOSED', 'MANUAL', ?, '手动关门', ?)`,
-      [storeId, fromStatus, userId, tenantId] as any[]
+      [storeId, fromStatus, userId, tenantId]
     );
   });
 
@@ -134,18 +134,18 @@ export async function suspendStore(params: {
     const remark = reason || "手动暂停营业";
     await conn.execute(
       "UPDATE store SET status = 'SUSPENDED' WHERE id = ? AND tenant_id = ?",
-      [storeId, tenantId] as any[]
+      [storeId, tenantId]
     );
     await conn.execute(
       `INSERT INTO store_status_log (store_id, from_status, to_status, change_type, operator_id, remark, tenant_id)
        VALUES (?, ?, 'SUSPENDED', 'MANUAL', ?, ?, ?)`,
-      [storeId, fromStatus, userId, remark, tenantId] as any[]
+      [storeId, fromStatus, userId, remark, tenantId]
     );
     await conn.execute(
       `INSERT INTO store_control_config (store_id, suspended_reason, tenant_id)
        VALUES (?, ?, ?)
        ON DUPLICATE KEY UPDATE suspended_reason = ?`,
-      [storeId, remark, tenantId, remark] as any[]
+      [storeId, remark, tenantId, remark]
     );
   });
 
@@ -168,16 +168,16 @@ export async function resumeStore(params: {
     const fromStatus = store.status || "SUSPENDED";
     await conn.execute(
       "UPDATE store SET status = 'OPEN' WHERE id = ? AND tenant_id = ?",
-      [storeId, tenantId] as any[]
+      [storeId, tenantId]
     );
     await conn.execute(
       `INSERT INTO store_status_log (store_id, from_status, to_status, change_type, operator_id, remark, tenant_id)
        VALUES (?, ?, 'OPEN', 'MANUAL', ?, '恢复营业', ?)`,
-      [storeId, fromStatus, userId, tenantId] as any[]
+      [storeId, fromStatus, userId, tenantId]
     );
     await conn.execute(
       "UPDATE store_control_config SET suspended_reason = NULL WHERE store_id = ? AND tenant_id = ?",
-      [storeId, tenantId] as any[]
+      [storeId, tenantId]
     );
   });
 

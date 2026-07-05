@@ -85,7 +85,7 @@ export async function remove(id: number, tenantId: string) {
     "SELECT COUNT(*) AS cnt FROM product_category WHERE parent_id = ? AND tenant_id = ?",
     [id, tenantId], tenantId
   );
-  if ((childRows as any[])?.[0]?.cnt > 0) {
+  if ((childRows as Record<string, unknown>[])?.[0]?.cnt > 0) {
     throw Object.assign(new Error("请先删除子分类"), { statusCode: 400 });
   }
 
@@ -94,7 +94,7 @@ export async function remove(id: number, tenantId: string) {
     "SELECT COUNT(*) AS cnt FROM product_spu WHERE category_id = ? AND tenant_id = ?",
     [id, tenantId], tenantId
   );
-  if ((productRows as any[])?.[0]?.cnt > 0) {
+  if ((productRows as Record<string, unknown>[])?.[0]?.cnt > 0) {
     throw Object.assign(new Error("该分类下有商品，无法删除"), { statusCode: 400 });
   }
 

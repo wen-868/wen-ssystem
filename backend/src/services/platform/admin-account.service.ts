@@ -104,7 +104,7 @@ export async function createPlatformAdmin(params: PlatformAdminCreate) {
   );
 
   return {
-    id: (result as any).insertId as number,
+    id: (result as { insertId: number }).insertId as number,
     username: params.username,
     realName: params.realName,
     role: params.role

@@ -124,7 +124,7 @@ export async function queryWithTenant<T = any>(sql: string, params: unknown[] = 
     const result = await mockQuery<T>(sql, params);
     // 对结果进行租户过滤（模拟生产环境的租户隔离）
     if (Array.isArray(result) && result.length > 0) {
-      const firstRow = result[0] as any;
+      const firstRow = result[0] as Record<string, unknown>;
       if (firstRow && typeof firstRow === 'object') {
         const tenantKey = 'tenant_id' in firstRow ? 'tenant_id' : ('tenantId' in firstRow ? 'tenantId' : null);
         if (tenantKey) {

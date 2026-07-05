@@ -89,8 +89,8 @@ export async function handleWxCallback(
         [out_trade_no]
       );
 
-      if (order[0] && (order[0] as any[]).length > 0) {
-        const { source_type, source_no } = (order[0] as any[])[0];
+      if (order[0] && (order[0]).length > 0) {
+        const { source_type, source_no } = (order[0])[0];
 
         if (source_type === 'SALE_BILL') {
           await conn.execute(

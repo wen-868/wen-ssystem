@@ -19,8 +19,8 @@ export const errorHandler: ErrorRequestHandler = (err, _req, res, _next) => {
 
   // 业务错误：带有 statusCode 属性的错误，返回对应状态码
   if (err && typeof err === "object" && "statusCode" in err) {
-    const status = (err as any).statusCode as number;
-    const message = (err as any).message || "请求错误";
+    const status = (err as { statusCode?: number }).statusCode as number;
+    const message = (err as { message?: string }).message || "请求错误";
     const code = String(status);
     res.status(status).json(fail(message, code));
     return;

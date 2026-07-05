@@ -164,7 +164,7 @@ export async function createProduct(body: {
 
 export async function updateProductStatus(spuId: number, status: string, tenantId: string) {
   const result = await queryWithTenant("UPDATE product_spu SET status = ?, updated_at = NOW() WHERE id = ? AND tenant_id = ?", [status, spuId, tenantId], tenantId);
-  if (!result || (result as any).affectedRows === 0) {
+  if (!result || (result as { affectedRows: number }).affectedRows === 0) {
     return null;
   }
 

@@ -330,7 +330,7 @@ class SupplierService {
           dto.bankAccountName || null, dto.remark || null, ctx.tenantId
         ]
       );
-      supplierId = (result as any).insertId;
+      supplierId = (result as { insertId: number }).insertId;
 
       if (dto.contactPerson) {
         await conn.execute(
@@ -356,9 +356,9 @@ class SupplierService {
     const params: unknown[] = [];
 
     for (const [dtoKey, dbCol] of Object.entries(SUPPLIER_FIELD_MAP)) {
-      if (dtoKey in dto && (dto as any)[dtoKey] !== undefined) {
+      if (dtoKey in dto && (dto as Record<string, unknown>)[dtoKey] !== undefined) {
         updates.push(`${dbCol} = ?`);
-        params.push((dto as any)[dtoKey]);
+        params.push((dto as Record<string, unknown>)[dtoKey]);
       }
     }
 

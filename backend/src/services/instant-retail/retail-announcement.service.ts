@@ -19,7 +19,7 @@ export async function createAnnouncement(data: {
     "INSERT INTO retail_announcement (store_id, title, content, is_top, start_time, end_time, status) VALUES (?, ?, ?, ?, ?, ?, 1)",
     [data.store_id, data.title, data.content, data.is_top ?? 0, data.start_time ?? null, data.end_time ?? null]
   );
-  return { id: (result as any).insertId };
+  return { id: (result as { insertId: number }).insertId };
 }
 
 export async function updateAnnouncement(

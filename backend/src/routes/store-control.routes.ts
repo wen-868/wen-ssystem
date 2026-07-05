@@ -45,7 +45,7 @@ export function startStoreControlScheduler() {
       storeControlRunning = false;
     }
   }, 60 * 1000);
-  (timer as any).unref();
+  (timer as { unref: () => void }).unref();
 }
 
 async function runStoreControlCheck() {
@@ -107,7 +107,7 @@ async function runStoreControlCheck() {
              WHERE store_id = ? AND tenant_id = ? AND DATE(created_at) = CURDATE() AND business_status NOT IN ('DRAFT', 'VOIDED')`,
             [config.store_id, tenantId]
           );
-          const orderCount = (orderRows as any[])[0]?.order_count ?? 0;
+          const orderCount = (orderRows as Record<string, unknown>[])[0]?.order_count ?? 0;
           if (orderCount >= config.max_daily_orders) {
             await conn.execute(
               "UPDATE store SET status = 'CLOSED' WHERE id = ? AND tenant_id = ? AND status = 'OPEN'",
@@ -128,7 +128,7 @@ async function runStoreControlCheck() {
              WHERE store_id = ? AND tenant_id = ? AND DATE(created_at) = CURDATE() AND business_status NOT IN ('DRAFT', 'VOIDED')`,
             [config.store_id, tenantId]
           );
-          const totalAmount = Number((amountRows as any[])[0]?.total_amount ?? 0);
+          const totalAmount = Number((amountRows as Record<string, unknown>[])[0]?.total_amount ?? 0);
           if (totalAmount >= config.max_order_amount) {
             await conn.execute(
               "UPDATE store SET status = 'CLOSED' WHERE id = ? AND tenant_id = ? AND status = 'OPEN'",

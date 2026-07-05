@@ -48,10 +48,10 @@ export async function setSkuPrices(
       const existing = await conn.execute(
         "SELECT id, price FROM sku_price WHERE sku_id = ? AND price_level_id = ? AND min_qty = ? AND tenant_id = ?",
         [skuId, item.priceLevelId, item.minQty, tenantId]
-      ) as any;
+      ) as [Record<string, unknown>[], unknown];
 
-      if ((existing[0] as any[]).length > 0) {
-        const oldRecord = (existing[0] as any[])[0];
+      if ((existing[0]).length > 0) {
+        const oldRecord = (existing[0])[0];
         await conn.execute(
           `UPDATE sku_price
            SET price = ?, cost_price = ?, suggested_retail_price = ?,

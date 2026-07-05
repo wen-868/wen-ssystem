@@ -80,7 +80,7 @@ export class MeituanAdapter extends AbstractPlatformAdapter {
         };
         this.credentials = creds;
         return creds;
-      }) as any
+      }) as Record<string, unknown>
     );
 
     const token = useMock()
@@ -220,7 +220,7 @@ export class MeituanAdapter extends AbstractPlatformAdapter {
         );
         logger.info(`[MEITUAN] Mock synced ${mockOrders.length} orders`);
         return { orders: mockOrders, hasMore: false, nextCursor: undefined };
-      }) as any
+      }) as Record<string, unknown>
     );
 
     if (useMock()) {
@@ -369,7 +369,7 @@ export class MeituanAdapter extends AbstractPlatformAdapter {
         }));
         logger.info(`[MEITUAN] Mock synced ${mockProducts.length} products`);
         return { products: mockProducts, hasMore: false, nextCursor: undefined };
-      }) as any
+      }) as Record<string, unknown>
     );
 
     if (useMock()) {

@@ -37,7 +37,7 @@ export async function createTransferOrder(params: CreateTransferOrderParams) {
     const [insertResult] = await conn.execute(
       `INSERT INTO transfer_order (transfer_no, from_store_id, to_store_id, status, expected_date, total_amount, total_items, remark, created_by, tenant_id)
        VALUES (?, ?, ?, 'DRAFT', ?, ?, ?, ?, ?, ?)`,
-      [transferNo, fromStoreId, toStoreId, expectedDate ?? null, totalAmount, totalItems, remark, userId ?? null, tenantId] as any[]
+      [transferNo, fromStoreId, toStoreId, expectedDate ?? null, totalAmount, totalItems, remark, userId ?? null, tenantId]
     );
     const orderId = (insertResult as unknown as Record<string, unknown>).insertId;
 
@@ -46,7 +46,7 @@ export async function createTransferOrder(params: CreateTransferOrderParams) {
       await conn.execute(
         `INSERT INTO transfer_order_item (transfer_order_id, sku_id, sku_name, quantity, unit_price, subtotal, tenant_id)
          VALUES (?, ?, ?, ?, ?, ?, ?)`,
-        [orderId, item.skuId, item.skuName, item.quantity, item.unitPrice, subtotal, tenantId] as any[]
+        [orderId, item.skuId, item.skuName, item.quantity, item.unitPrice, subtotal, tenantId]
       );
     }
 
@@ -191,7 +191,7 @@ export async function updateTransferOrder(id: number, tenantId: string, params: 
     if (remark !== undefined) { sets.push("remark = ?"); values.push(remark); }
     if (sets.length > 0) {
       values.push(id, tenantId);
-      await conn.execute(`UPDATE transfer_order SET ${sets.join(", ")} WHERE id = ? AND tenant_id = ?`, values as any[]);
+      await conn.execute(`UPDATE transfer_order SET ${sets.join(", ")} WHERE id = ? AND tenant_id = ?`, values as Record<string, unknown>[]);
     }
 
     if (items && items.length > 0) {
@@ -203,10 +203,10 @@ export async function updateTransferOrder(id: number, tenantId: string, params: 
         await conn.execute(
           `INSERT INTO transfer_order_item (transfer_order_id, sku_id, sku_name, quantity, unit_price, subtotal, tenant_id)
            VALUES (?, ?, ?, ?, ?, ?, ?)`,
-          [id, item.skuId, item.skuName, item.quantity, item.unitPrice, subtotal, tenantId] as any[]
+          [id, item.skuId, item.skuName, item.quantity, item.unitPrice, subtotal, tenantId]
         );
       }
-      await conn.execute("UPDATE transfer_order SET total_amount = ?, total_items = ? WHERE id = ? AND tenant_id = ?", [totalAmount, items.length, id, tenantId] as any[]);
+      await conn.execute("UPDATE transfer_order SET total_amount = ?, total_items = ? WHERE id = ? AND tenant_id = ?", [totalAmount, items.length, id, tenantId]);
     }
   });
 
@@ -225,7 +225,7 @@ export async function submitTransferOrder(id: number, tenantId: string) {
 
     await conn.execute(
       "UPDATE transfer_order SET status = 'PENDING' WHERE id = ? AND tenant_id = ?",
-      [id, tenantId] as any[]
+      [id, tenantId]
     );
   });
 
@@ -244,7 +244,7 @@ export async function approveTransferOrder(id: number, tenantId: string, userId:
 
     await conn.execute(
       "UPDATE transfer_order SET status = 'APPROVED', approved_by = ?, approved_at = NOW() WHERE id = ? AND tenant_id = ?",
-      [userId ?? null, id, tenantId] as any[]
+      [userId ?? null, id, tenantId]
     );
   });
 
@@ -263,7 +263,7 @@ export async function rejectTransferOrder(id: number, tenantId: string) {
 
     await conn.execute(
       "UPDATE transfer_order SET status = 'DRAFT', approved_by = NULL, approved_at = NULL WHERE id = ? AND tenant_id = ?",
-      [id, tenantId] as any[]
+      [id, tenantId]
     );
   });
 

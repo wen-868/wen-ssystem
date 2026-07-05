@@ -12,9 +12,9 @@ async function getBestPrice(
   skuId: number,
   quantity: number
 ): Promise<number> {
-  const dbQuery = conn
-    ? ((sql: string, params: unknown[]) => conn.query(sql, params)) as any
-    : ((sql: string, params: unknown[]) => queryWithTenant(sql, params, tenantId));
+  const dbQuery: (sql: string, params: unknown[]) => Promise<unknown> = conn
+    ? (sql, params) => conn.query(sql, params)
+    : (sql, params) => queryWithTenant(sql, params, tenantId);
 
   // 1. 协议价
   const [bindingRows] = await dbQuery(
@@ -59,7 +59,7 @@ async function calcMarketingDiscount(
   const doQueryOne = async (sql: string, params: any[]) => {
     if (conn) {
       const [rows] = await conn.execute(sql, params);
-      return (rows as any[])[0] ?? null;
+      return (rows as Record<string, unknown>[])[0] ?? null;
     }
     return queryOneWithTenant<any>(sql, params, tenantId);
   };
@@ -195,7 +195,7 @@ export async function updateCartItemQuantity(tenantId: string, customerId: numbe
       [quantity, customerId, skuId],
       tenantId
     );
-    if ((result as any).affectedRows === 0) {
+    if ((result as { affectedRows: number }).affectedRows === 0) {
       return { success: false, message: "购物车中无此商品" };
     }
     return { success: true, message: "已更新" };

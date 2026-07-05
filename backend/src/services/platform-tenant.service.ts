@@ -81,7 +81,7 @@ export async function createTenant(data: {
     [data.tenantName, data.contactName, data.contactMobile, data.contactEmail || "", data.expireAt || null]
   );
 
-  const tenantId = (result as any).insertId;
+  const tenantId = (result as { insertId: number }).insertId;
   const hashedPassword = await bcrypt.hash(data.adminPassword, 10);
 
   await query(

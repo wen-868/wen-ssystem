@@ -13,7 +13,7 @@ export const rbacRouter = Router();
 export function requirePermission(permCode: string): RequestHandler {
   return (req: any, res: any, next: any) => {
     const user = req.user as AuthUser | undefined;
-    const tenantId = (req as any).tenantId as number | undefined;
+    const tenantId = (req as { tenantId?: number }).tenantId as number | undefined;
     if (!user) {
       res.status(401).json({ code: "401", message: "未登录" });
       return;

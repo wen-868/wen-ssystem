@@ -112,8 +112,8 @@ export async function deleteRole(id: number, tenantId: string) {
   }
 
   await transaction(async (conn) => {
-    await (conn as any).execute("DELETE FROM sys_user_role WHERE role_id = ? AND tenant_id = ?", [id, tenantId]);
-    await (conn as any).execute("DELETE FROM sys_role WHERE id = ? AND tenant_id = ?", [id, tenantId]);
+    await (conn as { execute: (sql: string, params?: unknown[]) => Promise<unknown> }).execute("DELETE FROM sys_user_role WHERE role_id = ? AND tenant_id = ?", [id, tenantId]);
+    await (conn as { execute: (sql: string, params?: unknown[]) => Promise<unknown> }).execute("DELETE FROM sys_role WHERE id = ? AND tenant_id = ?", [id, tenantId]);
   });
 
   return { deleted: true };
@@ -154,9 +154,9 @@ export async function setUserRoles(userId: number, roleIds: number[], tenantId: 
   }
 
   await transaction(async (conn) => {
-    await (conn as any).execute("DELETE FROM sys_user_role WHERE user_id = ? AND tenant_id = ?", [userId, tenantId]);
+    await (conn as { execute: (sql: string, params?: unknown[]) => Promise<unknown> }).execute("DELETE FROM sys_user_role WHERE user_id = ? AND tenant_id = ?", [userId, tenantId]);
     for (const roleId of roleIds) {
-      await (conn as any).execute(
+      await (conn as { execute: (sql: string, params?: unknown[]) => Promise<unknown> }).execute(
         "INSERT INTO sys_user_role (user_id, role_id, tenant_id) VALUES (?, ?, ?)",
         [userId, roleId, tenantId]
       );

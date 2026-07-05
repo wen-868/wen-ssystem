@@ -45,7 +45,7 @@ async function calcMarketingDiscount(
 
   const doQueryOne = async (sql: string, params: unknown[]) => {
     if (conn) {
-      const [rows] = await conn.execute(sql, params as any[]);
+      const [rows] = await conn.execute(sql, params as Record<string, unknown>[]);
       return (rows as unknown as Record<string, unknown>[])[0] ?? null;
     }
     return queryOneWithTenant<Record<string, unknown>>(sql, params, tenantId);
@@ -295,7 +295,7 @@ export async function createCheckoutOrder(params: {
       await conn.execute(
         `INSERT INTO miniapp_order_item (order_no, sku_id, sku_name, qty, reserved_qty, unreserved_qty, unit_price, price_type, subtotal_amount, tenant_id)
          VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
-        [orderNo, item.skuId, item.skuName, item.qty, item.reservedQty, item.unreservedQty, item.unitPrice, item.priceType, item.subtotal, tenantId] as any[]
+        [orderNo, item.skuId, item.skuName, item.qty, item.reservedQty, item.unreservedQty, item.unitPrice, item.priceType, item.subtotal, tenantId]
       );
 
       if (customerType === "WHOLESALE" && Number(item.reservedQty) > 0) {
@@ -303,14 +303,14 @@ export async function createCheckoutOrder(params: {
           `UPDATE inventory_balance
            SET locked_qty = locked_qty + ?, available_qty = GREATEST(available_qty - ?, 0), updated_at = NOW()
            WHERE store_id = ? AND sku_id = ? AND stock_type = 'ONLINE' AND tenant_id = ?`,
-          [item.reservedQty, item.reservedQty, storeId, item.skuId, tenantId] as any[]
+          [item.reservedQty, item.reservedQty, storeId, item.skuId, tenantId]
         );
         await conn.execute(
           `INSERT INTO inventory_ledger (ledger_no, store_id, sku_id, stock_type, biz_type, biz_no,
                                          change_qty, before_qty, after_qty, before_locked_qty, after_locked_qty,
                                          operator_id, idempotency_key, remark, tenant_id)
            VALUES (?, ?, ?, 'ONLINE', 'ORDER_LOCK', ?, 0, 0, 0, 0, ?, NULL, ?, ?, ?)`,
-          [makeBizNo("IL"), storeId, item.skuId, orderNo, item.reservedQty, `ORDER_LOCK:${orderNo}:${item.skuId}`, "批发订货占用库存", tenantId] as any[]
+          [makeBizNo("IL"), storeId, item.skuId, orderNo, item.reservedQty, `ORDER_LOCK:${orderNo}:${item.skuId}`, "批发订货占用库存", tenantId]
         );
       }
     }
@@ -319,7 +319,7 @@ export async function createCheckoutOrder(params: {
     const placeholders = cartSkuIds.map(() => "?").join(",");
     await conn.execute(
       `DELETE FROM cart_item WHERE customer_id = ? AND tenant_id = ? AND sku_id IN (${placeholders})`,
-      [customerId, tenantId, ...cartSkuIds] as any[]
+      [customerId, tenantId, ...cartSkuIds]
     );
 
     return {

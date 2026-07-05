@@ -79,7 +79,7 @@ export const getExchangeRecordDetail = asyncHandler(async (req: Request, res: Re
 
 export const exchangeProduct = asyncHandler(async (req: Request, res: Response) => {
   const body = exchangeProductSchema.parse(req.body);
-  const result = await svc.exchangeProduct(body as any, req.tenantId!);
+  const result = await svc.exchangeProduct(body as Record<string, unknown>, req.tenantId!);
   res.json(ok(result));
 });
 

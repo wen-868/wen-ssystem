@@ -21,8 +21,8 @@ export function errorResponseInterceptor(
     if (statusCode >= 400) {
       const requestUrl = req.originalUrl || req.url || "";
       const requestMethod = req.method || "";
-      const userId = (req as any).user?.id || null;
-      const tenantId = (req as any).tenantId || null;
+      const userId = (req as { user?: { id: number } }).user?.id || null;
+      const tenantId = (req as { tenantId?: number }).tenantId || null;
 
       const message = body?.message || body?.msg || "请求错误";
       const errorType = statusCode >= 500

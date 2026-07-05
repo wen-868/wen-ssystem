@@ -63,7 +63,7 @@ export const getShopConfig = asyncHandler(async (req, res) => {
 export const saveShopConfig = asyncHandler(async (req, res) => {
   const tenantId = req.tenantId!;
   const body = saveShopConfigSchema.parse(req.body);
-  const result = await service.saveShopConfig(body as any, tenantId);
+  const result = await service.saveShopConfig(body as Record<string, unknown>, tenantId);
   res.json(ok(result));
 });
 
@@ -82,7 +82,7 @@ export const listCategories = asyncHandler(async (req, res) => {
 export const createCategory = asyncHandler(async (req, res) => {
   const tenantId = req.tenantId!;
   const body = createCategorySchema.parse(req.body);
-  const result = await service.createCategory(body as any, tenantId);
+  const result = await service.createCategory(body as Record<string, unknown>, tenantId);
   res.json(ok(result));
 });
 
@@ -110,7 +110,7 @@ export const listProducts = asyncHandler(async (req, res) => {
 export const addProduct = asyncHandler(async (req, res) => {
   const tenantId = req.tenantId!;
   const body = addProductSchema.parse(req.body);
-  const result = await service.addRetailProduct(body as any, tenantId);
+  const result = await service.addRetailProduct(body as Record<string, unknown>, tenantId);
   res.json(ok(result));
 });
 
@@ -149,7 +149,7 @@ export const updateOrderStatus = asyncHandler(async (req, res) => {
     tenantId,
     orderStatus: body.status,
     cancelReason: body.reason,
-  } as any);
+  } as Record<string, unknown>);
   res.json(ok(result));
 });
 
@@ -168,6 +168,6 @@ export const listBanners = asyncHandler(async (req, res) => {
 export const createBanner = asyncHandler(async (req, res) => {
   const tenantId = req.tenantId!;
   const body = createBannerSchema.parse(req.body);
-  const result = await service.createBanner(body as any, tenantId);
+  const result = await service.createBanner(body as Record<string, unknown>, tenantId);
   res.json(ok(result));
 });

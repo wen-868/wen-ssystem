@@ -37,7 +37,7 @@ export async function saveShopConfig(storeId: number | undefined, data: any, ten
        data.min_order_amount ?? 0, data.delivery_fee ?? 0, data.delivery_radius ?? null, data.estimated_delivery_time ?? null,
        data.announcement ?? null, data.status ?? "OPEN", tenantId], tenantId
     );
-    return { id: (result as any).insertId };
+    return { id: (result as { insertId: number }).insertId };
   }
 }
 
@@ -62,7 +62,7 @@ export async function createCategory(storeId: number | undefined, data: any, ten
     "INSERT INTO retail_category (category_name, category_icon, parent_id, sort_order, status, store_id, tenant_id) VALUES (?, ?, ?, ?, ?, ?, ?)",
     [data.category_name, data.category_icon ?? null, data.parent_id ?? null, data.sort_order ?? 0, data.status ?? "ON", storeId ?? null, tenantId], tenantId
   );
-  return { id: (result as any).insertId };
+  return { id: (result as { insertId: number }).insertId };
 }
 
 export async function updateCategory(id: number, data: any, tenantId: string) {
@@ -110,7 +110,7 @@ export async function addRetailProduct(storeId: number | undefined, data: any, t
      data.stock ?? 0, 0, data.is_recommended ? 1 : 0, data.is_hot ? 1 : 0, data.is_new ? 1 : 0,
      data.sort_order ?? 0, data.status ?? "ON", storeId ?? null, tenantId], tenantId
   );
-  return { id: (result as any).insertId };
+  return { id: (result as { insertId: number }).insertId };
 }
 
 export async function updateRetailProduct(id: number, data: any, tenantId: string) {
@@ -194,7 +194,7 @@ export async function createBanner(storeId: number | undefined, data: any, tenan
      data.sort_order ?? 0, data.status ?? "ON", data.start_time ?? null, data.end_time ?? null,
      storeId ?? null, tenantId], tenantId
   );
-  return { id: (result as any).insertId };
+  return { id: (result as { insertId: number }).insertId };
 }
 
 export async function updateBanner(id: number, data: any, tenantId: string) {

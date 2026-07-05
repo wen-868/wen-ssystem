@@ -65,7 +65,7 @@ function aesDecrypt(encryptedData: string, iv: string, sessionKey: string): stri
   const ivBuf = Buffer.from(iv, "base64");
 
   const decipher = crypto.createDecipheriv("aes-128-cbc", sessionKeyBuf, ivBuf);
-  let decrypted = decipher.update(encryptedBuf, undefined as any, "utf8");
+  let decrypted = decipher.update(encryptedBuf, undefined as unknown, "utf8");
   decrypted += decipher.final("utf8");
   return decrypted;
 }

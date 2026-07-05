@@ -76,28 +76,28 @@ export async function create(body: {
        FROM sale_bill WHERE customer_id = ? AND created_at < ? AND collection_status IN ('UNPAID', 'PARTIAL') AND business_status = 'CREATED'`,
       [body.customer_id, body.start_date]
     );
-    const openingBalance = Number((openingRows as any[])?.[0]?.opening_balance || 0);
+    const openingBalance = Number((openingRows as Record<string, unknown>[])?.[0]?.opening_balance || 0);
 
     const [salesRows] = await conn.query(
       `SELECT COALESCE(SUM(receivable_amount), 0) AS total_sales
        FROM sale_bill WHERE customer_id = ? AND created_at BETWEEN ? AND ? AND business_status = 'CREATED'`,
       [body.customer_id, body.start_date, body.end_date]
     );
-    const totalSales = Number((salesRows as any[])?.[0]?.total_sales || 0);
+    const totalSales = Number((salesRows as Record<string, unknown>[])?.[0]?.total_sales || 0);
 
     const [returnsRows] = await conn.query(
       `SELECT COALESCE(SUM(refund_amount), 0) AS total_returns
        FROM sale_return WHERE customer_id = ? AND created_at BETWEEN ? AND ? AND return_status = 'COMPLETED'`,
       [body.customer_id, body.start_date, body.end_date]
     );
-    const totalReturns = Number((returnsRows as any[])?.[0]?.total_returns || 0);
+    const totalReturns = Number((returnsRows as Record<string, unknown>[])?.[0]?.total_returns || 0);
 
     const [paymentsRows] = await conn.query(
       `SELECT COALESCE(SUM(amount), 0) AS total_payments
        FROM customer_payment WHERE customer_id = ? AND payment_date BETWEEN ? AND ? AND status = 'COMPLETED'`,
       [body.customer_id, body.start_date, body.end_date]
     );
-    const totalPayments = Number((paymentsRows as any[])?.[0]?.total_payments || 0);
+    const totalPayments = Number((paymentsRows as Record<string, unknown>[])?.[0]?.total_payments || 0);
 
     const closingBalance = openingBalance + totalSales - totalReturns - totalPayments;
 

@@ -453,7 +453,7 @@ class PurchaseService {
         params.push(orderNo, ctx.tenantId);
         await conn.execute(
           `UPDATE purchase_order SET ${updates.join(", ")} WHERE order_no = ? AND tenant_id = ?`,
-          params as any[]
+          params as Record<string, unknown>[]
         );
       }
 
@@ -597,7 +597,7 @@ class PurchaseService {
       const [rows] = (await conn.execute(
         "SELECT total_bottle_qty, in_stocked_qty FROM purchase_order_item WHERE order_no = ?",
         [orderNo]
-      )) as any;
+      )) as [Record<string, unknown>[], unknown];
       const totalOrdered = rows.reduce((sum: number, i: any) => sum + Number(i.total_bottle_qty), 0);
       const totalInStocked = rows.reduce((sum: number, i: any) => sum + Number(i.in_stocked_qty || 0), 0);
 

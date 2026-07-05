@@ -99,7 +99,7 @@ export async function updateBatch(tenantId: string, id: number, body: {
 
     if (sets.length === 0) return;
     values.push(id, tenantId);
-    await conn.execute(`UPDATE inventory_batch SET ${sets.join(", ")} WHERE id = ? AND tenant_id = ?`, values as any[]);
+    await conn.execute(`UPDATE inventory_batch SET ${sets.join(", ")} WHERE id = ? AND tenant_id = ?`, values as Record<string, unknown>[]);
   });
 }
 
@@ -121,7 +121,7 @@ export async function splitBatch(tenantId: string, id: number, body: { splitQuan
     const [insertResult] = await conn.execute(
       `INSERT INTO inventory_batch (store_id, sku_id, batch_no, quantity, locked_quantity, production_date, expiry_date, cost_price, supplier_id, inbound_order_id, tenant_id)
        VALUES (?, ?, ?, ?, 0, ?, ?, ?, ?, ?, ?)`,
-      [batch.store_id, batch.sku_id, body.newBatchNo, body.splitQuantity, batch.production_date, batch.expiry_date, batch.cost_price, batch.supplier_id, batch.inbound_order_id, tenantId] as any[]
+      [batch.store_id, batch.sku_id, body.newBatchNo, body.splitQuantity, batch.production_date, batch.expiry_date, batch.cost_price, batch.supplier_id, batch.inbound_order_id, tenantId]
     );
     return (insertResult as unknown as Record<string, unknown>).insertId;
   });
@@ -291,7 +291,7 @@ export async function handleExpiryAlert(tenantId: string, id: number, userId: nu
   await transaction(async (conn) => {
     await conn.execute(
       `UPDATE expiry_alert_record SET status = 'HANDLED', handled_by = ?, handled_at = NOW() WHERE id = ? AND tenant_id = ?`,
-      [userId ?? null, id, tenantId] as any[]
+      [userId ?? null, id, tenantId]
     );
   });
 }
@@ -358,7 +358,7 @@ export async function runExpiryScan() {
           "SELECT DATEDIFF(?, CURDATE()) AS days_remaining",
           [batch.expiry_date]
         );
-        const daysRemaining = Number((rows as any[])[0]?.days_remaining) ?? 0;
+        const daysRemaining = Number((rows as Record<string, unknown>[])[0]?.days_remaining) ?? 0;
 
         let matchedConfig: Record<string, unknown> | null = null;
         for (const config of configs) {
@@ -383,7 +383,7 @@ export async function runExpiryScan() {
           [batch.id, tenantId, matchedConfig.alert_level]
         );
 
-        if ((existing as any[]).length > 0) {
+        if ((existing as Record<string, unknown>[]).length > 0) {
           await conn.execute(
             "UPDATE expiry_alert_record SET days_remaining = ? WHERE batch_id = ? AND tenant_id = ? AND alert_level = ? AND status = 'PENDING'",
             [daysRemaining, batch.id, tenantId, matchedConfig.alert_level]

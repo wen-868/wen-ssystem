@@ -2,6 +2,7 @@
  * mock-db 聚合导出模块
  * 将所有领域模块的 mock handlers 组合成与原 mock-db.ts 完全兼容的接口
  */
+import mysql from "mysql2/promise";
 import { resetMockDb } from "./mock-db-state.js";
 import { queryHandlers as systemQuery, executeHandlers as systemExecute } from "./mock-db-system.js";
 import { queryHandlers as storeQuery, executeHandlers as storeExecute } from "./mock-db-store.js";
@@ -62,12 +63,12 @@ export async function mockExecute(sql: string, params: unknown[] = []) {
       return result;
     }
   }
-  return [{ insertId: Date.now(), affectedRows: 1 }, undefined] as any;
+  return [{ insertId: Date.now(), affectedRows: 1 }, undefined] as [mysql.ResultSetHeader, undefined];
 }
 
-export const mockConn = {
+export const mockConn: mysql.PoolConnection = {
   execute: mockExecute,
   query: async (sql: string, params: unknown[] = []) => [await mockQuery(sql, params), undefined]
-} as any;
+} as unknown as mysql.PoolConnection;
 
 export { resetMockDb };

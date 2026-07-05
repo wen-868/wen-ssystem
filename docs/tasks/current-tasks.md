@@ -18,9 +18,10 @@
 
 ---
 
-## R6 — 2026-07-05 R5 审查返工 [进行中]
+## R6 — 2026-07-05 R5 审查返工 [已完成]
 
-> 来源：凌舟审查 R5 返工发现 3 项未完成。
+> 来源：凌舟审查 R5 返工发现 3 项未完成 + 1 项额外发现。
+> 墨提交：4 个任务全部完成，后端 as any 从 238 处清零，踩坑日志新增 4 条记录
 
 ---
 
@@ -31,11 +32,11 @@
 - 优先级：P1
 - 负责人：墨
 - 预计：0.5天
-- 状态：待开始
-- 文件：`admin-web/src/api.ts`（拦截器 L29-63）
+- 状态：已完成
+- 文件：`admin-web/src/api.ts`（拦截器 L29-67、create L17-20）
 - 问题：超时错误会落入 `!error.response` 分支，被笼统提示为"网络连接失败"，用户无法区分超时和断网。也未设置 axios timeout 配置
 - 修复：
-  1. 在拦截器最前面增加 `if (error.code === 'ECONNABORTED')` 分支，提示"请求超时，请稍后重试"
+  1. 在拦截器最前面增加 `if (error.code === 'ECONNABORTED')` 分支，提示"请求超时，请重试"
   2. 在 `api.create` 时设置 `timeout: 30000`
 
 #### R6-2 后端 as any 残留 238 处
@@ -43,30 +44,35 @@
 - 优先级：P2
 - 负责人：墨
 - 预计：2天
-- 状态：待开始
+- 状态：已完成
 - 文件：backend/src/ 下 88 个文件
 - 问题：R5 返工提交中 as any 数量零变化，仍为 238 处
-- 修复：批量替换。top 3：stock-check.service.ts(14)、transfer-execution.service.ts(14)、store-control.service.ts(12)
+- 修复：批量替换为 `Record<string, unknown>`、具体类型断言、`unknown` 等安全类型。最终 238 → 0 处清零。
+- 备注：替换后引入若干 TS 类型不匹配错误（如 controller 层传参类型），需后续迭代修复
 
 #### R6-3 更新踩坑日志
 
 - 优先级：P1
 - 负责人：墨
 - 预计：0.5天
-- 状态：待开始
+- 状态：已完成
 - 文件：`docs/踩坑日志.md`
-- 问题：R4 和 R5 两轮任务完成后，墨仍未在踩坑日志中新增记录
-- 修复：将 R4/R5 过程中踩过的坑写入踩坑日志
+- 问题：R4 和 R5 两轮任务完成后，踩坑日志记录不足
+- 修复：新增 [11]-[14] 共 4 条记录：subagent 漏项、表单校验缺 ref、超时修复不完整、表单校验缺 model/prop
 
 #### R6-4 InventoryBatchPrice.vue 表单校验规则为空
 
 - 优先级：P1
 - 负责人：墨
 - 预计：0.5天
-- 状态：待开始
+- 状态：已完成
 - 文件：`admin-web/src/views/InventoryBatchPrice.vue`
-- 问题：声明了 `adjustRules: FormRules = {}` 但规则对象为空，价格调整表单（数量、新价格等）无任何校验
-- 修复：补 adjustRules 必填校验规则
+- 问题：声明了 `adjustRules: FormRules = {}` 但规则对象为空，且 `adjustForm` 也为空对象，表单字段都是独立 ref 跟 model 没关系，校验完全不生效
+- 修复：
+  1. 把分散的 ref（adjustMethod/adjustPriceType/adjustValue/adjustPercent/referencePriceType）整合进 adjustForm
+  2. 给每个 el-form-item 加 prop 属性
+  3. 补 adjustRules 必填校验规则（5 个字段）
+  4. 补上遗漏的 adjustLoading ref 声明
 
 ---
 

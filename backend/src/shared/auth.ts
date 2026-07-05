@@ -104,7 +104,7 @@ export const requirePlatformAuth: RequestHandler = (req, res, next) => {
     return;
   }
   try {
-    const decoded = jwt.verify(token, env.JWT_SECRET) as any;
+    const decoded = jwt.verify(token, env.JWT_SECRET) as { type?: string; id?: number; tenantId?: number };
     if (decoded.type !== "platform_admin") {
       res.status(403).json({ code: "403", message: "无权限" });
       return;

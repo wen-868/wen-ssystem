@@ -67,21 +67,21 @@ export const getBatchDetail = asyncHandler(async (req, res) => {
 
 export const createBatch = asyncHandler(async (req, res) => {
   const body = createBatchSchema.parse(req.body);
-  const result = await service.createBatch(req.tenantId!, body as any);
+  const result = await service.createBatch(req.tenantId!, body as Record<string, unknown>);
   res.json(ok(result));
 });
 
 export const updateBatch = asyncHandler(async (req, res) => {
   const id = Number(req.params.id);
   const body = updateBatchSchema.parse(req.body);
-  const result = await service.updateBatch(req.tenantId!, id, body as any);
+  const result = await service.updateBatch(req.tenantId!, id, body as Record<string, unknown>);
   res.json(ok(result));
 });
 
 export const splitBatch = asyncHandler(async (req, res) => {
   const id = Number(req.params.id);
   const body = splitBatchSchema.parse(req.body);
-  const result = await service.splitBatch(req.tenantId!, id, body as any);
+  const result = await service.splitBatch(req.tenantId!, id, body as Record<string, unknown>);
   res.json(ok(result));
 });
 
@@ -101,14 +101,14 @@ export const listExpiryConfigs = asyncHandler(async (req, res) => {
 
 export const createExpiryConfig = asyncHandler(async (req, res) => {
   const body = createExpiryConfigSchema.parse(req.body);
-  const result = await service.createExpiryConfig(req.tenantId!, body as any);
+  const result = await service.createExpiryConfig(req.tenantId!, body as Record<string, unknown>);
   res.json(ok(result));
 });
 
 export const updateExpiryConfig = asyncHandler(async (req, res) => {
   const id = Number(req.params.id);
   const body = updateExpiryConfigSchema.parse(req.body);
-  const result = await service.updateExpiryConfig(req.tenantId!, id, body as any);
+  const result = await service.updateExpiryConfig(req.tenantId!, id, body as Record<string, unknown>);
   res.json(ok(result));
 });
 

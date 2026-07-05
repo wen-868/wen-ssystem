@@ -86,7 +86,7 @@ purchaseRouter.post("/:orderNo/submit", requireAuthWithTenant, asyncHandler(asyn
       return;
     }
     res.json(ok(result));
-  } catch (e: any) {
+  } catch (e: unknown) {
     res.status(400).json({ code: "400", message: e.message });
   }
 }));
@@ -102,7 +102,7 @@ purchaseRouter.post("/:orderNo/approve", requireAuthWithTenant, asyncHandler(asy
       return;
     }
     res.json(ok(result));
-  } catch (e: any) {
+  } catch (e: unknown) {
     res.status(400).json({ code: "400", message: e.message });
   }
 }));
@@ -118,7 +118,7 @@ purchaseRouter.post("/:orderNo/cancel", requireAuthWithTenant, asyncHandler(asyn
       return;
     }
     res.json(ok(result));
-  } catch (e: any) {
+  } catch (e: unknown) {
     res.status(400).json({ code: "400", message: e.message });
   }
 }));
@@ -152,7 +152,7 @@ purchaseRouter.put("/:orderNo", requireAuthWithTenant, asyncHandler(async (req, 
       return;
     }
     res.json(ok(result));
-  } catch (e: any) {
+  } catch (e: unknown) {
     res.status(400).json({ code: "400", message: e.message });
   }
 }));
@@ -168,7 +168,7 @@ purchaseRouter.delete("/:orderNo", requireAuthWithTenant, asyncHandler(async (re
       return;
     }
     res.json(ok(result));
-  } catch (e: any) {
+  } catch (e: unknown) {
     res.status(400).json({ code: "400", message: e.message });
   }
 }));
@@ -194,7 +194,7 @@ purchaseRouter.post("/:orderNo/in-stock", requireAuthWithTenant, asyncHandler(as
       return;
     }
     res.json(ok(result));
-  } catch (e: any) {
+  } catch (e: unknown) {
     res.status(400).json({ code: "400", message: e.message });
   }
 }));

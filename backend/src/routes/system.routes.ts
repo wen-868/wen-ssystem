@@ -15,7 +15,7 @@ systemRouter.get("/health", asyncHandler(async (_req, res) => {
     status: "UP",
     timestamp: new Date().toISOString(),
     env: env.NODE_ENV || "development",
-    uptime: (Date.now() - (globalThis as any).__startTime || 0) / 1000,
+    uptime: (Date.now() - (globalThis as { __startTime?: number }).__startTime || 0) / 1000,
   }));
 }));
 
@@ -49,7 +49,7 @@ systemRouter.post("/migrate", asyncHandler(async (_req, res) => {
     console.log = origLog;
     console.error = origError;
     res.json(ok({ result: "迁移执行成功", logs }));
-  } catch (e: any) {
+  } catch (e: unknown) {
     console.log = origLog;
     console.error = origError;
     res.status(500).json({ code: "500", message: `迁移失败: ${e.message}`, logs });

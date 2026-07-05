@@ -30,7 +30,7 @@ export async function sendNotification(
       params.tenantId
     ]
   );
-  return (result as any).insertId;
+  return (result as { insertId: number }).insertId;
 }
 
 // ========== 管理后台通知 ==========
