@@ -1,9 +1,9 @@
-import { asyncHandler } from "../../shared/async-handler.js";
+import { asyncHandler } from "../../middleware/async-handler.js";
 import { ok } from "../../shared/response.js";
 import * as customerVisitService from "../../services/admin/customer-visit.service.js";
 
 export const listVisits = asyncHandler(async (req, res) => {
-  const result = await customerVisitService.listVisits(req.tenantId!, req.query as Record<string, unknown>);
+  const result = await customerVisitService.listVisits(req.tenantId!, req.query as any);
   res.json(ok(result));
 });
 

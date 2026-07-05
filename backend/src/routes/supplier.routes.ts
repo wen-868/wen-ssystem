@@ -1,9 +1,9 @@
 import { Router } from "express";
 import type { RouteConfig } from "../shared/auto-routes.js";
 import { z } from "zod";
-import { asyncHandler } from "../shared/async-handler.js";
-import { requireAuthWithTenant } from "../shared/auth.js";
-import { ok } from "../shared/response.js";
+import { asyncHandler } from "../middleware/async-handler.js";
+import { requireAuthWithTenant } from "../middleware/auth.js";
+import { ok, fail } from "../shared/response.js";
 import { supplierService } from "../services/supplier.service.js";
 import type { ServiceContext } from "../types/index.js";
 
@@ -41,7 +41,7 @@ supplierRouter.get("/:id", requireAuthWithTenant, asyncHandler(async (req, res) 
   const supplier = await supplierService.getDetail(Number(id), ctx);
 
   if (!supplier) {
-    res.status(404).json({ code: "404", message: "供应商不存在" });
+    res.status(404).json(fail("供应商不存在", "404"));
     return;
   }
 
@@ -101,7 +101,7 @@ supplierRouter.put("/:id", requireAuthWithTenant, asyncHandler(async (req, res) 
   const success = await supplierService.update(Number(id), body, ctx);
 
   if (!success) {
-    res.status(404).json({ code: "404", message: "供应商不存在" });
+    res.status(404).json(fail("供应商不存在", "404"));
     return;
   }
 
@@ -126,7 +126,7 @@ supplierRouter.post("/:id/contacts", requireAuthWithTenant, asyncHandler(async (
   const result = await supplierService.addContact(Number(id), body, ctx);
 
   if (!result) {
-    res.status(404).json({ code: "404", message: "供应商不存在" });
+    res.status(404).json(fail("供应商不存在", "404"));
     return;
   }
 
@@ -140,12 +140,12 @@ supplierRouter.delete("/:id/contacts/:contactId", requireAuthWithTenant, asyncHa
   const result = await supplierService.deleteContact(Number(id), Number(contactId), ctx);
 
   if (result === null) {
-    res.status(404).json({ code: "404", message: "供应商不存在" });
+    res.status(404).json(fail("供应商不存在", "404"));
     return;
   }
 
   if (!result) {
-    res.status(404).json({ code: "404", message: "联系人不存在" });
+    res.status(404).json(fail("联系人不存在", "404"));
     return;
   }
 
@@ -166,7 +166,7 @@ supplierRouter.get("/:id/purchase-orders", requireAuthWithTenant, asyncHandler(a
   );
 
   if (!result) {
-    res.status(404).json({ code: "404", message: "供应商不存在" });
+    res.status(404).json(fail("供应商不存在", "404"));
     return;
   }
 
@@ -186,7 +186,7 @@ supplierRouter.get("/:id/payments", requireAuthWithTenant, asyncHandler(async (r
   );
 
   if (!result) {
-    res.status(404).json({ code: "404", message: "供应商不存在" });
+    res.status(404).json(fail("供应商不存在", "404"));
     return;
   }
 
@@ -207,7 +207,7 @@ supplierRouter.get("/:id/products", requireAuthWithTenant, asyncHandler(async (r
   );
 
   if (!result) {
-    res.status(404).json({ code: "404", message: "供应商不存在" });
+    res.status(404).json(fail("供应商不存在", "404"));
     return;
   }
 
@@ -221,7 +221,7 @@ supplierRouter.get("/:id/stats", requireAuthWithTenant, asyncHandler(async (req,
   const stats = await supplierService.getStats(Number(id), ctx);
 
   if (!stats) {
-    res.status(404).json({ code: "404", message: "供应商不存在" });
+    res.status(404).json(fail("供应商不存在", "404"));
     return;
   }
 

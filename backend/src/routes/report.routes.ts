@@ -1,6 +1,6 @@
 import { Router } from "express";
 import type { RouteConfig } from "../shared/auto-routes.js";
-import { requireAuthWithTenant } from "../shared/auth.js";
+import { requireAuthWithTenant } from "../middleware/auth.js";
 import * as salesReportController from "../controllers/admin/report/sales-report.controller.js";
 import * as customerReportController from "../controllers/admin/report/customer-report.controller.js";
 import * as productReportController from "../controllers/admin/report/product-report.controller.js";

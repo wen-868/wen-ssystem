@@ -1,5 +1,5 @@
 import { Router } from "express";
-import { requireAuthWithTenant } from "../shared/auth.js";
+import { requireAuthWithTenant } from "../middleware/auth.js";
 import * as traceConfigController from "../controllers/admin/trace-config.controller.js";
 import * as traceRecordsController from "../controllers/admin/trace-records.controller.js";
 import type { RouteConfig } from "../shared/auto-routes.js";

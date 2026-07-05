@@ -4,8 +4,8 @@
  */
 
 import { z } from "zod";
-import { asyncHandler } from "../../shared/async-handler.js";
-import { ok } from "../../shared/response.js";
+import { asyncHandler } from "../../middleware/async-handler.js";
+import { ok, fail } from "../../shared/response.js";
 import * as instantRetailService from "../../services/admin/instant-retail.service.js";
 import * as retailShopSvc from "../../services/instant-retail/retail-shop.service.js";
 
@@ -152,7 +152,7 @@ export const getConfigByPlatform = asyncHandler(async (req, res) => {
   const tenantId = req.tenantId!;
   const result = await instantRetailService.getConfigByPlatform(req.params.platform, tenantId);
   if (!result) {
-    res.status(404).json({ code: "404", message: "平台配置不存在" });
+    res.status(404).json(fail("平台配置不存在", "404"));
     return;
   }
   res.json(ok(result));
@@ -169,11 +169,11 @@ export const testConnection = asyncHandler(async (req, res) => {
   const tenantId = req.tenantId!;
   const result = await instantRetailService.testConnection(req.params.platform, tenantId);
   if (!result.found) {
-    res.status(404).json({ code: "404", message: "平台配置不存在" });
+    res.status(404).json(fail("平台配置不存在", "404"));
     return;
   }
   if (!result.connected) {
-    res.status(502).json({ code: "502", message: `连接失败: ${result.error}` });
+    res.status(502).json(fail(`连接失败: ${result.error}`, "502"));
     return;
   }
   res.json(ok({ platform: result.platform, connected: true, tokenUpdated: result.tokenUpdated }));
@@ -184,7 +184,7 @@ export const syncOrders = asyncHandler(async (req, res) => {
   const body = syncBodySchema.parse(req.body);
   const result = await instantRetailService.syncOrders(req.params.platform, body, tenantId);
   if (!result.found) {
-    res.status(404).json({ code: "404", message: "平台配置不存在" });
+    res.status(404).json(fail("平台配置不存在", "404"));
     return;
   }
   res.json(ok({ platform: result.platform, synced: result.synced, hasMore: result.hasMore }));
@@ -195,7 +195,7 @@ export const syncProducts = asyncHandler(async (req, res) => {
   const body = syncBodySchema.parse(req.body);
   const result = await instantRetailService.syncProducts(req.params.platform, body, tenantId);
   if (!result.found) {
-    res.status(404).json({ code: "404", message: "平台配置不存在" });
+    res.status(404).json(fail("平台配置不存在", "404"));
     return;
   }
   res.json(ok({ platform: result.platform, synced: result.synced, hasMore: result.hasMore }));
@@ -225,7 +225,7 @@ export const getOrderDetail = asyncHandler(async (req, res) => {
   const tenantId = req.tenantId!;
   const result = await instantRetailService.getOrderDetail(req.params.platformOrderId, tenantId);
   if (!result) {
-    res.status(404).json({ code: "404", message: "订单不存在" });
+    res.status(404).json(fail("订单不存在", "404"));
     return;
   }
   res.json(ok(result));
@@ -239,11 +239,11 @@ export const confirmOrder = asyncHandler(async (req, res) => {
   const tenantId = req.tenantId!;
   const result = await instantRetailService.confirmOrder(req.params.platformOrderId, tenantId);
   if (!result.found) {
-    res.status(404).json({ code: "404", message: "订单不存在" });
+    res.status(404).json(fail("订单不存在", "404"));
     return;
   }
   if (!result.configFound) {
-    res.status(404).json({ code: "404", message: "平台配置不存在" });
+    res.status(404).json(fail("平台配置不存在", "404"));
     return;
   }
   res.json(ok({ platformOrderId: result.platformOrderId, success: result.success, status: result.status }));
@@ -254,11 +254,11 @@ export const startDelivery = asyncHandler(async (req, res) => {
   const body = startDeliverySchema.parse(req.body);
   const result = await instantRetailService.startDelivery(req.params.platformOrderId, body, tenantId);
   if (!result.found) {
-    res.status(404).json({ code: "404", message: "订单不存在" });
+    res.status(404).json(fail("订单不存在", "404"));
     return;
   }
   if (!result.configFound) {
-    res.status(404).json({ code: "404", message: "平台配置不存在" });
+    res.status(404).json(fail("平台配置不存在", "404"));
     return;
   }
   res.json(ok({ platformOrderId: result.platformOrderId, success: result.success, status: result.status }));
@@ -268,11 +268,11 @@ export const completeDelivery = asyncHandler(async (req, res) => {
   const tenantId = req.tenantId!;
   const result = await instantRetailService.completeDelivery(req.params.platformOrderId, tenantId);
   if (!result.found) {
-    res.status(404).json({ code: "404", message: "订单不存在" });
+    res.status(404).json(fail("订单不存在", "404"));
     return;
   }
   if (!result.configFound) {
-    res.status(404).json({ code: "404", message: "平台配置不存在" });
+    res.status(404).json(fail("平台配置不存在", "404"));
     return;
   }
   res.json(ok({ platformOrderId: result.platformOrderId, success: result.success, status: result.status }));
@@ -287,11 +287,11 @@ export const cancelOrder = asyncHandler(async (req, res) => {
     tenantId
   );
   if (!result.found) {
-    res.status(404).json({ code: "404", message: "订单不存在" });
+    res.status(404).json(fail("订单不存在", "404"));
     return;
   }
   if (!result.configFound) {
-    res.status(404).json({ code: "404", message: "平台配置不存在" });
+    res.status(404).json(fail("平台配置不存在", "404"));
     return;
   }
   res.json(ok({ platformOrderId: result.platformOrderId, success: result.success, status: result.status }));
@@ -312,7 +312,7 @@ export const saveShopConfig = asyncHandler(async (req, res) => {
   const tenantId = req.tenantId!;
   const storeId = req.query.storeId ? Number(req.query.storeId) : undefined;
   const body = saveShopConfigSchema.parse(req.body);
-  const result = await retailShopSvc.saveShopConfig(storeId, body as Record<string, unknown>, tenantId);
+  const result = await retailShopSvc.saveShopConfig(storeId, body as any, tenantId);
   res.json(ok(result));
 });
 
@@ -327,14 +327,14 @@ export const createCategory = asyncHandler(async (req, res) => {
   const tenantId = req.tenantId!;
   const storeId = req.query.storeId ? Number(req.query.storeId) : undefined;
   const body = createCategorySchema.parse(req.body);
-  const result = await retailShopSvc.createCategory(storeId, body as Record<string, unknown>, tenantId);
+  const result = await retailShopSvc.createCategory(storeId, body as any, tenantId);
   res.json(ok(result));
 });
 
 export const updateCategory = asyncHandler(async (req, res) => {
   const tenantId = req.tenantId!;
   const body = updateCategorySchema.parse(req.body);
-  const result = await retailShopSvc.updateCategory(Number(req.params.id), body as Record<string, unknown>, tenantId);
+  const result = await retailShopSvc.updateCategory(Number(req.params.id), body as any, tenantId);
   res.json(ok(result));
 });
 
@@ -357,14 +357,14 @@ export const addRetailProduct = asyncHandler(async (req, res) => {
   const tenantId = req.tenantId!;
   const storeId = req.query.storeId ? Number(req.query.storeId) : undefined;
   const body = addRetailProductSchema.parse(req.body);
-  const result = await retailShopSvc.addRetailProduct(storeId, body as Record<string, unknown>, tenantId);
+  const result = await retailShopSvc.addRetailProduct(storeId, body as any, tenantId);
   res.json(ok(result));
 });
 
 export const updateRetailProduct = asyncHandler(async (req, res) => {
   const tenantId = req.tenantId!;
   const body = updateRetailProductSchema.parse(req.body);
-  const result = await retailShopSvc.updateRetailProduct(Number(req.params.id), body as Record<string, unknown>, tenantId);
+  const result = await retailShopSvc.updateRetailProduct(Number(req.params.id), body as any, tenantId);
   res.json(ok(result));
 });
 
@@ -386,7 +386,7 @@ export const listRetailOrders = asyncHandler(async (req, res) => {
 export const getRetailOrderDetail = asyncHandler(async (req, res) => {
   const tenantId = req.tenantId!;
   const result = await retailShopSvc.getRetailOrderDetail(req.params.orderNo, tenantId);
-  if (!result) { res.status(404).json({ code: "404", message: "订单不存在" }); return; }
+  if (!result) { res.status(404).json(fail("订单不存在", "404")); return; }
   res.json(ok(result));
 });
 
@@ -408,14 +408,14 @@ export const createBanner = asyncHandler(async (req, res) => {
   const tenantId = req.tenantId!;
   const storeId = req.query.storeId ? Number(req.query.storeId) : undefined;
   const body = createBannerSchema.parse(req.body);
-  const result = await retailShopSvc.createBanner(storeId, body as Record<string, unknown>, tenantId);
+  const result = await retailShopSvc.createBanner(storeId, body as any, tenantId);
   res.json(ok(result));
 });
 
 export const updateBanner = asyncHandler(async (req, res) => {
   const tenantId = req.tenantId!;
   const body = updateBannerSchema.parse(req.body);
-  const result = await retailShopSvc.updateBanner(Number(req.params.id), body as Record<string, unknown>, tenantId);
+  const result = await retailShopSvc.updateBanner(Number(req.params.id), body as any, tenantId);
   res.json(ok(result));
 });
 

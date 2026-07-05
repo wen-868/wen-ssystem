@@ -1,11 +1,12 @@
 import { Router } from "express";
 import type { RouteConfig } from "../shared/auto-routes.js";
 import type { RequestHandler } from "express";
-import { requireAuthWithTenant } from "../shared/auth.js";
+import { requireAuthWithTenant } from "../middleware/auth.js";
 import * as ctrl from "../controllers/rbac.controller.js";
 import { checkUserPermission as checkUserPermissionService } from "../services/admin/rbac.service.js";
-import type { AuthUser } from "../shared/auth.js";
+import type { AuthUser } from "../middleware/auth.js";
 
+import { fail } from '../shared/response.js';
 export const rbacRouter = Router();
 
 // ========== 权限验证中间件 ==========
@@ -13,9 +14,9 @@ export const rbacRouter = Router();
 export function requirePermission(permCode: string): RequestHandler {
   return (req: any, res: any, next: any) => {
     const user = req.user as AuthUser | undefined;
-    const tenantId = (req as { tenantId?: number }).tenantId as number | undefined;
+    const tenantId = (req as { tenantId?: number }).tenantId as any as number | undefined;
     if (!user) {
-      res.status(401).json({ code: "401", message: "未登录" });
+      res.status(401).json(fail("未登录", "401"));
       return;
     }
     if (user.roles.includes("SUPER_ADMIN")) {
@@ -26,10 +27,10 @@ export function requirePermission(permCode: string): RequestHandler {
       if (hasPermission) {
         next();
       } else {
-        res.status(403).json({ code: "403", message: `无权限执行此操作，需要权限: ${permCode}` });
+        res.status(403).json(fail(`无权限执行此操作，需要权限: ${permCode}`, "403"));
       }
     }).catch(() => {
-      res.status(500).json({ code: "500", message: "权限检查失败" });
+      res.status(500).json(fail("权限检查失败", "500"));
     });
   };
 }

@@ -21,7 +21,7 @@ export class CreditAdjustService {
       ctx.tenantId
     );
 
-    if ((result as { affectedRows: number }).affectedRows === 0) {
+    if ((result as unknown as { affectedRows: number }).affectedRows === 0) {
       const err: any = new Error("授信记录不存在或已关闭");
       err.statusCode = 404;
       throw err;

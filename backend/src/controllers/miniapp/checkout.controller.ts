@@ -1,5 +1,5 @@
 import { z } from "zod";
-import { asyncHandler } from "../../shared/async-handler.js";
+import { asyncHandler } from "../../middleware/async-handler.js";
 import { ok, fail } from "../../shared/response.js";
 import * as checkoutService from "../../services/miniapp/checkout.service.js";
 

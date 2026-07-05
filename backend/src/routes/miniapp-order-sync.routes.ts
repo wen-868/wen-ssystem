@@ -1,7 +1,7 @@
 import { Router } from "express";
 import { z } from "zod";
-import { requireAuthWithTenant } from "../shared/auth.js";
-import { asyncHandler } from "../shared/async-handler.js";
+import { requireAuthWithTenant } from "../middleware/auth.js";
+import { asyncHandler } from "../middleware/async-handler.js";
 import { ok } from "../shared/response.js";
 import * as syncLogService from "../services/admin/miniapp-order-sync.service.js";
 

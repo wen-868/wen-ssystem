@@ -1,9 +1,9 @@
 import { Router } from "express";
 import type { RouteConfig } from "../shared/auto-routes.js";
-import { requireAuthWithTenant } from "../shared/auth.js";
-import { asyncHandler } from "../shared/async-handler.js";
+import { requireAuthWithTenant } from "../middleware/auth.js";
+import { asyncHandler } from "../middleware/async-handler.js";
 import { queryOne } from "../shared/db.js";
-import { ok } from "../shared/response.js";
+import { ok, fail } from "../shared/response.js";
 import { env } from "../shared/env.js";
 import { runMigrations } from "../shared/migration.js";
 
@@ -15,7 +15,7 @@ systemRouter.get("/health", asyncHandler(async (_req, res) => {
     status: "UP",
     timestamp: new Date().toISOString(),
     env: env.NODE_ENV || "development",
-    uptime: (Date.now() - (globalThis as { __startTime?: number }).__startTime || 0) / 1000,
+    uptime: (Date.now() - ((globalThis as { __startTime?: number }).__startTime ?? 0)) / 1000,
   }));
 }));
 
@@ -49,10 +49,10 @@ systemRouter.post("/migrate", asyncHandler(async (_req, res) => {
     console.log = origLog;
     console.error = origError;
     res.json(ok({ result: "迁移执行成功", logs }));
-  } catch (e: unknown) {
+  } catch (e: any) {
     console.log = origLog;
     console.error = origError;
-    res.status(500).json({ code: "500", message: `迁移失败: ${e.message}`, logs });
+    res.status(500).json({ ...fail(`迁移失败: ${e.message}`, "500"), logs });
   }
 }));
 // ========== 路由自动发现配置 ==========

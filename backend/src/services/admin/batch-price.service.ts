@@ -331,7 +331,7 @@ export async function executeBatchPriceAdjustment(
         [newPrice, row.priceId, tenantId]
       );
 
-      if ((updateResult as { affectedRows: number }).affectedRows > 0) {
+      if ((updateResult as unknown as { affectedRows: number }).affectedRows > 0) {
         updatedCount++;
 
         // 记录价格变更日志

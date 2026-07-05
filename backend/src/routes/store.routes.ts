@@ -1,7 +1,7 @@
 import { Router } from "express";
 import { z } from "zod";
-import { asyncHandler } from "../shared/async-handler.js";
-import { requireAuthWithTenant, getUserAccessInfo, signToken } from "../shared/auth.js";
+import { asyncHandler } from "../middleware/async-handler.js";
+import { requireAuthWithTenant, getUserAccessInfo, signToken } from "../middleware/auth.js";
 import { query, queryOne } from "../shared/db.js";
 import { ok } from "../shared/response.js";
 import * as authController from "../controllers/store/auth.controller.js";

@@ -1,6 +1,6 @@
 import { z } from "zod";
-import { asyncHandler } from "../shared/async-handler.js";
-import { ok } from "../shared/response.js";
+import { asyncHandler } from "../middleware/async-handler.js";
+import { ok, fail } from "../shared/response.js";
 import type { WechatPay } from "../shared/wechat-pay.js";
 import * as service from "../services/admin/payment.service.js";
 
@@ -23,11 +23,11 @@ export function createPaymentController(wechatPay: WechatPay) {
     const result = await service.handleWxCallback(headers, req.body, wechatPay);
 
     if (!result.success) {
-      res.status(400).json({ code: result.code, message: result.message });
+      res.status(400).json(fail(result.message, result.code));
       return;
     }
 
-    res.json({ code: result.code, message: result.message });
+    res.json(ok());
   });
 
   const createRefund = asyncHandler(async (req, res) => {
@@ -40,7 +40,7 @@ export function createPaymentController(wechatPay: WechatPay) {
     const result = await service.createRefund(body, req.tenantId!, wechatPay);
 
     if (!result.success) {
-      res.status(Number(result.code) || 400).json({ code: result.code, message: result.message });
+      res.status(Number(result.code || "") || 400).json(fail(result.message || "", result.code as any));
       return;
     }
 
@@ -52,7 +52,7 @@ export function createPaymentController(wechatPay: WechatPay) {
     const order = await service.getPaymentOrder(payNo, req.tenantId!);
 
     if (!order) {
-      res.status(404).json({ code: "404", message: "支付订单不存在" });
+      res.status(404).json(fail("支付订单不存在", "404"));
       return;
     }
 

@@ -1,5 +1,5 @@
 import { z } from "zod";
-import { asyncHandler } from "../../shared/async-handler.js";
+import { asyncHandler } from "../../middleware/async-handler.js";
 import { ok } from "../../shared/response.js";
 import { creditAdjustService } from "../../services/admin/credit-adjust.service.js";
 import type { ServiceContext } from "../../types/index.js";

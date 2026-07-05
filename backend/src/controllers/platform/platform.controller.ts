@@ -1,6 +1,6 @@
 import { z } from "zod";
-import { asyncHandler } from "../../shared/async-handler.js";
-import { ok } from "../../shared/response.js";
+import { asyncHandler } from "../../middleware/async-handler.js";
+import { ok, fail } from "../../shared/response.js";
 import * as tenantAdminService from "../../services/platform/tenant-admin.service.js";
 import * as adminAccountService from "../../services/platform/admin-account.service.js";
 import * as overviewService from "../../services/platform/platform-overview.service.js";
@@ -29,7 +29,7 @@ export const getTenantDetail = asyncHandler(async (req, res) => {
 
   const result = await tenantAdminService.getPlatformTenantDetail(tenantId);
   if (!result) {
-    res.status(404).json({ code: "404", message: "租户不存在" });
+    res.status(404).json(fail("租户不存在", "404"));
     return;
   }
   res.json(ok(result));

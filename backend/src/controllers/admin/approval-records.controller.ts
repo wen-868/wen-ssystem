@@ -1,6 +1,6 @@
 import { z } from "zod";
-import { asyncHandler } from "../../shared/async-handler.js";
-import { ok } from "../../shared/response.js";
+import { asyncHandler } from "../../middleware/async-handler.js";
+import { ok, fail } from "../../shared/response.js";
 import * as approvalRecordsService from "../../services/admin/approval-records.service.js";
 
 export const listInstances = asyncHandler(async (req, res) => {
@@ -37,7 +37,7 @@ export const getInstanceDetail = asyncHandler(async (req, res) => {
   const tenantId = req.tenantId!;
   const result = await approvalRecordsService.getInstanceDetail(req.params.instanceNo, tenantId);
   if (!result) {
-    res.status(404).json({ code: "404", message: "审批实例不存在" });
+    res.status(404).json(fail("审批实例不存在", "404"));
     return;
   }
   res.json(ok(result));

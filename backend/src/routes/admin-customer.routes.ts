@@ -1,6 +1,6 @@
 import { Router } from "express";
 import type { RouteConfig } from "../shared/auto-routes.js";
-import { requireAuthWithTenant } from "../shared/auth.js";
+import { requireAuthWithTenant } from "../middleware/auth.js";
 import * as customerController from "../controllers/admin/customer.controller.js";
 import * as memberController from "../controllers/admin/member.controller.js";
 import * as lifecycleController from "../controllers/admin/customer-lifecycle.controller.js";

@@ -1,5 +1,5 @@
 import { Router } from "express";
-import { requireAuthWithTenant } from "../shared/auth.js";
+import { requireAuthWithTenant } from "../middleware/auth.js";
 import * as flashSaleController from "../controllers/admin/marketing-flash-sale.controller.js";
 import type { RouteConfig } from "../shared/auto-routes.js";
 

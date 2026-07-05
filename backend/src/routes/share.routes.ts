@@ -1,9 +1,9 @@
 import { Router } from "express";
 import type { RouteConfig } from "../shared/auto-routes.js";
-import { asyncHandler } from "../shared/async-handler.js";
+import { asyncHandler } from "../middleware/async-handler.js";
 import { query, queryOne } from "../shared/db.js";
 import { makeBizNo } from "../shared/id.js";
-import { ok } from "../shared/response.js";
+import { ok, fail } from "../shared/response.js";
 
 export const shareRouter = Router();
 
@@ -19,7 +19,7 @@ shareRouter.get("/collections/:token", asyncHandler(async (req, res) => {
     [req.params.token]
   );
   if (!link) {
-    res.status(404).json({ code: "404", message: "收款单不存在或已失效" });
+    res.status(404).json(fail("收款单不存在或已失效", "404"));
     return;
   }
   await query("UPDATE collection_link SET view_count = view_count + 1, last_view_time = NOW() WHERE link_no = ?", [link.linkNo]);
@@ -45,7 +45,7 @@ shareRouter.get("/collections/:token/page", asyncHandler(async (req, res) => {
     [req.params.token]
   );
   if (!link) {
-    res.status(404).json({ code: "404", message: "收款单不存在或已失效" });
+    res.status(404).json(fail("收款单不存在或已失效", "404"));
     return;
   }
   const now = new Date();
@@ -55,15 +55,15 @@ shareRouter.get("/collections/:token/page", asyncHandler(async (req, res) => {
     link.status = "EXPIRED";
   }
   if (link.status === "EXPIRED") {
-    res.status(410).json({ code: "410", message: "收款链接已过期" });
+    res.status(410).json(fail("收款链接已过期", "410"));
     return;
   }
   if (link.status === "PAID") {
-    res.status(400).json({ code: "400", message: "该收款单已支付" });
+    res.status(400).json(fail("该收款单已支付", "400"));
     return;
   }
   if (link.status === "REVOKED") {
-    res.status(400).json({ code: "400", message: "收款链接已撤销" });
+    res.status(400).json(fail("收款链接已撤销", "400"));
     return;
   }
   const bill = await queryOne<any>(
@@ -102,7 +102,7 @@ shareRouter.get("/collections/:token/page", asyncHandler(async (req, res) => {
 shareRouter.post("/collections/:token/pay", asyncHandler(async (req, res) => {
   const link = await queryOne<any>("SELECT link_no, amount, status FROM collection_link WHERE token = ?", [req.params.token]);
   if (!link || !["PENDING", "PARTIAL"].includes(link.status)) {
-    res.status(400).json({ code: "400", message: "收款单不可支付" });
+    res.status(400).json(fail("收款单不可支付", "400"));
     return;
   }
   const payNo = makeBizNo("ZF");
@@ -130,7 +130,7 @@ shareRouter.post("/collections/:token/wx-notify", asyncHandler(async (req, res) 
   const bodyStr = JSON.stringify(req.body);
 
   if (!wechatPay.verifyNotifySignature(headers, bodyStr)) {
-    res.status(401).json({ code: "401", message: "签名验证失败" });
+    res.status(401).json(fail("签名验证失败", "401"));
     return;
   }
 
@@ -145,7 +145,7 @@ shareRouter.post("/collections/:token/wx-notify", asyncHandler(async (req, res) 
       transactionId = data.transaction_id;
       payAmount = data.amount?.payer_total ? Number(data.amount.payer_total) / 100 : undefined;
     } catch {
-      res.status(400).json({ code: "400", message: "通知数据解密失败" });
+      res.status(400).json(fail("通知数据解密失败", "400"));
       return;
     }
   } else {
@@ -157,7 +157,7 @@ shareRouter.post("/collections/:token/wx-notify", asyncHandler(async (req, res) 
 
   const link = await queryOne<any>("SELECT link_no, source_no, amount, paid_amount, status FROM collection_link WHERE token = ?", [req.params.token]);
   if (!link) {
-    res.status(404).json({ code: "404", message: "收款链接不存在" });
+    res.status(404).json(fail("收款链接不存在", "404"));
     return;
   }
   if (link.status === "PAID") {
@@ -165,7 +165,7 @@ shareRouter.post("/collections/:token/wx-notify", asyncHandler(async (req, res) 
     return;
   }
   if (link.status === "REVOKED" || link.status === "EXPIRED") {
-    res.status(400).json({ code: "400", message: "收款链接已失效" });
+    res.status(400).json(fail("收款链接已失效", "400"));
     return;
   }
   const wxPayAmount = payAmount ?? link.amount;

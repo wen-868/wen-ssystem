@@ -53,8 +53,8 @@ async function safeExec(conn: mysql.Connection, sql: string, label: string): Pro
     await conn.query(sql);
     return true;
   } catch (e: unknown) {
-    const code = e.code || "";
-    const msg = (e.message || "").toLowerCase();
+    const code = (e as any).code || "";
+    const msg = ((e as any).message || "").toLowerCase();
     // 静默跳过所有已知可忽略的错误
     if (SKIP_ERRORS.has(code) ||
         msg.includes("duplicate column") ||
@@ -74,7 +74,7 @@ async function safeExec(conn: mysql.Connection, sql: string, label: string): Pro
       console.log(`[migration] ${label}: 跳过 (${code || 'OK'})`);
       return false;
     }
-    console.error(`[migration] ${label} 失败: ${e.message}`);
+    console.error(`[migration] ${label} 失败: ${(e as any).message}`);
     return false;
   }
 }
@@ -94,7 +94,7 @@ export async function runMigrations(): Promise<void> {
       connectTimeout: 10000,
     });
   } catch (e: unknown) {
-    console.error("[migration] 数据库连接失败:", e.message);
+    console.error("[migration] 数据库连接失败:", (e as any).message);
     return;
   }
 
@@ -146,16 +146,16 @@ export async function runMigrations(): Promise<void> {
         `SELECT COUNT(*) AS cnt FROM information_schema.COLUMNS
          WHERE TABLE_SCHEMA = ? AND TABLE_NAME = 'tenant' AND COLUMN_NAME = 'name'`,
         [env.DB_NAME]
-      ) as Record<string, unknown>[];
-      const hasName = (colCheck[0]?.cnt ?? 0) > 0;
+      ) as unknown as Record<string, unknown>[];
+      const hasName = ((colCheck[0] as any)?.cnt ?? 0) > 0;
 
-      const [tRows] = await conn.query("SELECT id FROM tenant WHERE id = 'default'") as Record<string, unknown>[];
-      if (tRows.length === 0 && hasName) {
+      const [tRows] = await conn.query("SELECT id FROM tenant WHERE id = 'default'") as unknown as Record<string, unknown>[];
+      if ((tRows as unknown as any[]).length === 0 && hasName) {
         await safeExec(conn, `
           INSERT INTO tenant (id, name, contact_name, contact_phone, plan, status)
           VALUES ('default', '默认租户', '系统管理员', '13800138000', 'basic', 1)
         `, "插入默认租户");
-      } else if (tRows.length > 0 && hasName) {
+      } else if ((tRows as unknown as any[]).length > 0 && hasName) {
         await safeExec(conn,
           `UPDATE tenant SET name = '默认租户' WHERE id = 'default' AND (name IS NULL OR name = '')`,
           "更新默认租户名称"
@@ -164,7 +164,7 @@ export async function runMigrations(): Promise<void> {
         console.log("[migration] tenant 表缺少 name 列，跳过租户数据操作");
       }
     } catch (e: unknown) {
-      console.error("[migration] 租户数据操作失败:", e.message);
+      console.error("[migration] 租户数据操作失败:", (e as any).message);
     }
 
     // ============================================================
@@ -211,7 +211,7 @@ export async function runMigrations(): Promise<void> {
         }
       }
     } catch (e: unknown) {
-      console.error("[migration] 密码修复失败:", e.message);
+      console.error("[migration] 密码修复失败:", (e as any).message);
     }
 
     // ============================================================
@@ -376,7 +376,7 @@ export async function runMigrations(): Promise<void> {
 
     console.log("[migration] 所有迁移完成");
   } catch (e: unknown) {
-    console.error("[migration] 迁移过程出错:", e.message);
+    console.error("[migration] 迁移过程出错:", (e as any).message);
   } finally {
     if (conn) await conn.end().catch(() => {});
   }

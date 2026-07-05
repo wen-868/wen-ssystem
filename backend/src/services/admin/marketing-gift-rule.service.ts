@@ -1,5 +1,5 @@
 import { queryWithTenant, queryOneWithTenant } from "../../shared/db.js";
-import { makeBizNo } from "../../shared/biz-no.js";
+import { makeBizNo } from "../../shared/id.js";
 
 export async function createGiftRule(data: any, tenantId: string, userId: number) {
   const code = makeBizNo("MZ");

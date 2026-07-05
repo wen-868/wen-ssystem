@@ -1,5 +1,6 @@
 import { z } from "zod";
-import { asyncHandler } from "../../shared/async-handler.js";
+import { asyncHandler } from "../../middleware/async-handler.js";
+import { ok, fail } from "../../shared/response.js";
 import * as retailAnnouncementService from "../../services/instant-retail/retail-announcement.service.js";
 
 const createAnnouncementSchema = z.object({
@@ -22,11 +23,11 @@ const updateAnnouncementSchema = z.object({
 export const listAnnouncements = asyncHandler(async (req, res) => {
   const storeId = req.query.storeId ? Number(req.query.storeId) : undefined;
   if (!storeId) {
-    res.status(400).json({ code: "400", message: "storeId is required" });
+    res.status(400).json(fail("storeId is required"));
     return;
   }
   const result = await retailAnnouncementService.listAnnouncements(storeId);
-  res.json({ code: "0", message: "ok", data: result });
+  res.json(ok(result));
 });
 
 export const createAnnouncement = asyncHandler(async (req, res) => {
@@ -40,7 +41,7 @@ export const createAnnouncement = asyncHandler(async (req, res) => {
     start_time,
     end_time,
   });
-  res.json({ code: "0", message: "ok", data: result });
+  res.json(ok(result));
 });
 
 export const updateAnnouncement = asyncHandler(async (req, res) => {
@@ -54,21 +55,21 @@ export const updateAnnouncement = asyncHandler(async (req, res) => {
     start_time,
     end_time,
   });
-  res.json({ code: "0", message: "ok", data: result });
+  res.json(ok(result));
 });
 
 export const deleteAnnouncement = asyncHandler(async (req, res) => {
   const id = Number(req.params.id);
   await retailAnnouncementService.deleteAnnouncement(id);
-  res.json({ code: "0", message: "ok", data: { deleted: true } });
+  res.json(ok({ deleted: true }));
 });
 
 export const getActiveAnnouncements = asyncHandler(async (req, res) => {
   const storeId = req.query.storeId ? Number(req.query.storeId) : undefined;
   if (!storeId) {
-    res.status(400).json({ code: "400", message: "storeId is required" });
+    res.status(400).json(fail("storeId is required"));
     return;
   }
   const result = await retailAnnouncementService.getActiveAnnouncements(storeId);
-  res.json({ code: "0", message: "ok", data: result });
+  res.json(ok(result));
 });

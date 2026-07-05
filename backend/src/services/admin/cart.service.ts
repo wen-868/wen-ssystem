@@ -17,31 +17,31 @@ async function getBestPrice(
     : (sql, params) => queryWithTenant(sql, params, tenantId);
 
   // 1. 协议价
-  const [bindingRows] = await dbQuery(
+  const bindingRows = (await dbQuery(
     `SELECT cpb.price FROM customer_price_binding cpb
      WHERE cpb.customer_id = ? AND cpb.sku_id = ? AND cpb.status = 'ACTIVE'
      ORDER BY cpb.updated_at DESC LIMIT 1`,
     [customerId, skuId]
-  );
+  ) as any[])[0];
   const binding = bindingRows[0];
   if (binding) return Number(binding.price);
 
   // 2. 阶梯价
-  const [tierRows] = await dbQuery(
+  const tierRows = (await dbQuery(
     `SELECT sp.price FROM sku_price sp
      WHERE sp.sku_id = ? AND sp.min_qty <= ? AND sp.status = 1
      ORDER BY sp.min_qty DESC LIMIT 1`,
     [skuId, quantity]
-  );
-  const tierPrice = tierRows[0];
+  ) as any[])[0];
+  const tierPrice = (tierRows as any[])[0];
   if (tierPrice) return Number(tierPrice.price);
 
   // 3. 零售价
-  const [retailRows] = await dbQuery(
+  const retailRows = (await dbQuery(
     `SELECT pp.retail_price FROM product_price pp WHERE pp.sku_id = ?`,
     [skuId]
-  );
-  const retail = retailRows[0];
+  ) as any[])[0];
+  const retail = (retailRows as any[])[0];
   return retail ? Number(retail.retail_price) : 0;
 }
 
@@ -195,7 +195,7 @@ export async function updateCartItemQuantity(tenantId: string, customerId: numbe
       [quantity, customerId, skuId],
       tenantId
     );
-    if ((result as { affectedRows: number }).affectedRows === 0) {
+    if ((result as unknown as { affectedRows: number }).affectedRows === 0) {
       return { success: false, message: "购物车中无此商品" };
     }
     return { success: true, message: "已更新" };

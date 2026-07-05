@@ -1,5 +1,5 @@
 import { Router } from "express";
-import { requireAuthWithTenant } from "../shared/auth.js";
+import { requireAuthWithTenant } from "../middleware/auth.js";
 import * as transferOrderController from "../controllers/admin/transfer-order.controller.js";
 import * as adminTransferExecutionController from "../controllers/admin/transfer-execution.controller.js";
 import * as storeTransferExecutionController from "../controllers/store/transfer-execution.controller.js";

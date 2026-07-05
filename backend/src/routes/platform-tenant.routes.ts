@@ -1,6 +1,7 @@
 import { Router } from "express";
-import { asyncHandler } from "../shared/async-handler.js";
-import { ok } from "../shared/response.js";
+import { asyncHandler } from "../middleware/async-handler.js";
+import { requirePlatformAuth } from "../middleware/auth.js";
+import { ok, fail } from "../shared/response.js";
 import {
   listTenants, getTenantById, checkTenantNameExists,
   createTenant, updateTenant, toggleTenantStatus
@@ -24,7 +25,7 @@ platformTenantRouter.get("/", asyncHandler(async (req: any, res: any) => {
 platformTenantRouter.get("/:id", asyncHandler(async (req: any, res: any) => {
   const tenant = await getTenantById(Number(req.params.id));
   if (!tenant) {
-    res.status(404).json({ code: "404", message: "租户不存在" });
+    res.status(404).json(fail("租户不存在", "404"));
     return;
   }
   res.json(ok(tenant));
@@ -35,13 +36,13 @@ platformTenantRouter.post("/", asyncHandler(async (req: any, res: any) => {
   const { tenantName, contactName, contactMobile, contactEmail, adminUsername, adminPassword, expireAt } = req.body;
 
   if (!tenantName || !contactName || !contactMobile || !adminUsername || !adminPassword) {
-    res.status(400).json({ code: "400", message: "缺少必填字段" });
+    res.status(400).json(fail("缺少必填字段", "400"));
     return;
   }
 
   const exists = await checkTenantNameExists(tenantName);
   if (exists) {
-    res.status(400).json({ code: "400", message: "租户名称已存在" });
+    res.status(400).json(fail("租户名称已存在", "400"));
     return;
   }
 
@@ -66,7 +67,7 @@ platformTenantRouter.put("/:id", asyncHandler(async (req: any, res: any) => {
 platformTenantRouter.post("/:id/toggle", asyncHandler(async (req: any, res: any) => {
   const { status } = req.body;
   if (!["ACTIVE", "DISABLED"].includes(status)) {
-    res.status(400).json({ code: "400", message: "无效的状态值" });
+    res.status(400).json(fail("无效的状态值", "400"));
     return;
   }
   await toggleTenantStatus(Number(req.params.id), status);

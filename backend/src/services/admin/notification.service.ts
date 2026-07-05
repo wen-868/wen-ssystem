@@ -1,5 +1,4 @@
 import { query, queryOne, pool } from "../../shared/db.js";
-import type { Pool } from "mysql2/promise";
 
 export interface SendNotificationParams {
   recipientId: number;
@@ -13,10 +12,9 @@ export interface SendNotificationParams {
 }
 
 export async function sendNotification(
-  dbPool: Pool,
   params: SendNotificationParams
 ): Promise<number> {
-  const [result] = await dbPool.query(
+  const [result] = await pool.query(
     `INSERT INTO notification (recipient_id, recipient_type, title, content, type, related_id, related_type, tenant_id)
      VALUES (?, ?, ?, ?, ?, ?, ?, ?)`,
     [
@@ -30,7 +28,7 @@ export async function sendNotification(
       params.tenantId
     ]
   );
-  return (result as { insertId: number }).insertId;
+  return (result as unknown as { insertId: number }).insertId;
 }
 
 // ========== 管理后台通知 ==========

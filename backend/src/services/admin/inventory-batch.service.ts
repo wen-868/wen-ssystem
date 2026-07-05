@@ -69,7 +69,7 @@ export async function createBatch(tenantId: string, body: {
   supplierId?: number; inboundOrderId?: number;
 }) {
   return transaction(async (conn) => {
-    const existing = await conn.execute(
+    const existing = await (conn as any).execute(
       "SELECT id FROM inventory_batch WHERE batch_no = ? AND store_id = ? AND tenant_id = ?",
       [body.batchNo, body.storeId, tenantId]
     );
@@ -77,7 +77,7 @@ export async function createBatch(tenantId: string, body: {
       throw new Error("批次号已存在");
     }
 
-    const [insertResult] = await conn.execute(
+    const [insertResult] = await (conn as any).execute(
       `INSERT INTO inventory_batch (store_id, sku_id, batch_no, quantity, production_date, expiry_date, cost_price, supplier_id, inbound_order_id, tenant_id)
        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
       [body.storeId, body.skuId, body.batchNo, body.quantity, body.productionDate ?? null, body.expiryDate ?? null, body.costPrice ?? null, body.supplierId ?? null, body.inboundOrderId ?? null, tenantId]
@@ -99,13 +99,13 @@ export async function updateBatch(tenantId: string, id: number, body: {
 
     if (sets.length === 0) return;
     values.push(id, tenantId);
-    await conn.execute(`UPDATE inventory_batch SET ${sets.join(", ")} WHERE id = ? AND tenant_id = ?`, values as Record<string, unknown>[]);
+    await (conn as any).execute(`UPDATE inventory_batch SET ${sets.join(", ")} WHERE id = ? AND tenant_id = ?`, values as any[]);
   });
 }
 
 export async function splitBatch(tenantId: string, id: number, body: { splitQuantity: number; newBatchNo: string }) {
   return transaction(async (conn) => {
-    const [rows] = await conn.execute(
+    const [rows] = await (conn as any).execute(
       "SELECT * FROM inventory_batch WHERE id = ? AND tenant_id = ? FOR UPDATE",
       [id, tenantId]
     );
@@ -113,12 +113,12 @@ export async function splitBatch(tenantId: string, id: number, body: { splitQuan
     if (!batch) throw new Error("批次不存在");
     if (Number(batch.quantity) < body.splitQuantity) throw new Error("拆分数量不能大于批次数量");
 
-    await conn.execute(
+    await (conn as any).execute(
       "UPDATE inventory_batch SET quantity = quantity - ? WHERE id = ? AND tenant_id = ?",
       [body.splitQuantity, id, tenantId]
     );
 
-    const [insertResult] = await conn.execute(
+    const [insertResult] = await (conn as any).execute(
       `INSERT INTO inventory_batch (store_id, sku_id, batch_no, quantity, locked_quantity, production_date, expiry_date, cost_price, supplier_id, inbound_order_id, tenant_id)
        VALUES (?, ?, ?, ?, 0, ?, ?, ?, ?, ?, ?)`,
       [batch.store_id, batch.sku_id, body.newBatchNo, body.splitQuantity, batch.production_date, batch.expiry_date, batch.cost_price, batch.supplier_id, batch.inbound_order_id, tenantId]
@@ -289,7 +289,7 @@ export async function listExpiryAlerts(tenantId: string, params: {
 
 export async function handleExpiryAlert(tenantId: string, id: number, userId: number) {
   await transaction(async (conn) => {
-    await conn.execute(
+    await (conn as any).execute(
       `UPDATE expiry_alert_record SET status = 'HANDLED', handled_by = ?, handled_at = NOW() WHERE id = ? AND tenant_id = ?`,
       [userId ?? null, id, tenantId]
     );
@@ -354,7 +354,7 @@ export async function runExpiryScan() {
 
     await transaction(async (conn) => {
       for (const batch of batches) {
-        const [rows] = await conn.execute(
+        const [rows] = await (conn as any).execute(
           "SELECT DATEDIFF(?, CURDATE()) AS days_remaining",
           [batch.expiry_date]
         );
@@ -369,7 +369,7 @@ export async function runExpiryScan() {
         }
 
         if (daysRemaining < 0) {
-          await conn.execute(
+          await (conn as any).execute(
             "UPDATE expiry_alert_record SET status = 'EXPIRED' WHERE batch_id = ? AND tenant_id = ? AND status = 'PENDING'",
             [batch.id, tenantId]
           );
@@ -378,27 +378,27 @@ export async function runExpiryScan() {
 
         if (!matchedConfig) continue;
 
-        const [existing] = await conn.execute(
+        const [existing] = await (conn as any).execute(
           "SELECT id FROM expiry_alert_record WHERE batch_id = ? AND tenant_id = ? AND alert_level = ? AND status = 'PENDING'",
           [batch.id, tenantId, matchedConfig.alert_level]
         );
 
         if ((existing as Record<string, unknown>[]).length > 0) {
-          await conn.execute(
+          await (conn as any).execute(
             "UPDATE expiry_alert_record SET days_remaining = ? WHERE batch_id = ? AND tenant_id = ? AND alert_level = ? AND status = 'PENDING'",
             [daysRemaining, batch.id, tenantId, matchedConfig.alert_level]
           );
           continue;
         }
 
-        await conn.execute(
+        await (conn as any).execute(
           `INSERT INTO expiry_alert_record (tenant_id, batch_id, store_id, sku_id, sku_name, batch_no, production_date, expiry_date, days_remaining, alert_level, action_taken, status)
            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'PENDING')`,
           [tenantId, batch.id, batch.store_id, batch.sku_id, batch.sku_name || "", batch.batch_no, batch.production_date, batch.expiry_date, daysRemaining, matchedConfig.alert_level, matchedConfig.action]
         );
 
         if (matchedConfig.action === "BLOCK") {
-          await conn.execute(
+          await (conn as any).execute(
             "UPDATE inventory_batch SET locked_quantity = quantity WHERE id = ? AND tenant_id = ? AND locked_quantity < quantity",
             [batch.id, tenantId]
           );

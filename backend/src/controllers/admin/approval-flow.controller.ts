@@ -1,6 +1,6 @@
 import { z } from "zod";
-import { asyncHandler } from "../../shared/async-handler.js";
-import { ok } from "../../shared/response.js";
+import { asyncHandler } from "../../middleware/async-handler.js";
+import { ok, fail } from "../../shared/response.js";
 import * as approvalFlowService from "../../services/admin/approval-flow.service.js";
 
 export const listRules = asyncHandler(async (req, res) => {
@@ -56,7 +56,7 @@ export const updateRule = asyncHandler(async (req, res) => {
 
   const result = await approvalFlowService.updateRule(id, body, tenantId);
   if (!result) {
-    res.status(404).json({ code: "404", message: "规则不存在" });
+    res.status(404).json(fail("规则不存在", "404"));
     return;
   }
   res.json(ok(result));

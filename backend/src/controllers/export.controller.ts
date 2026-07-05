@@ -1,4 +1,4 @@
-import { asyncHandler } from "../shared/async-handler.js";
+import { asyncHandler } from "../middleware/async-handler.js";
 import * as service from "../services/admin/export.service.js";
 
 /** CSV字段转义 */

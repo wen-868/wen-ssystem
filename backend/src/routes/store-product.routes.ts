@@ -1,6 +1,6 @@
 import { Router } from "express";
 import type { RouteConfig } from "../shared/auto-routes.js";
-import { requireAuthWithTenant } from "../shared/auth.js";
+import { requireAuthWithTenant } from "../middleware/auth.js";
 import * as productController from "../controllers/store/product.controller.js";
 import * as tagController from "../controllers/admin/tag.controller.js";
 import * as batchController from "../controllers/inventory-batch.controller.js";

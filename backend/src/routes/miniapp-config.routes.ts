@@ -1,5 +1,5 @@
 import { Router } from "express";
-import { requireAuthWithTenant } from "../shared/auth.js";
+import { requireAuthWithTenant } from "../middleware/auth.js";
 import * as ctrl from "../controllers/admin/miniapp-config.controller.js";
 
 export const miniappConfigRouter = Router();

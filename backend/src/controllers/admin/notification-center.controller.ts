@@ -1,4 +1,4 @@
-import { asyncHandler } from "../../shared/async-handler.js";
+import { asyncHandler } from "../../middleware/async-handler.js";
 import { ok } from "../../shared/response.js";
 import * as notificationCenterService from "../../services/admin/notification-center.service.js";
 

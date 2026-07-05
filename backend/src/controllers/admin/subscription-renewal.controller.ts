@@ -1,5 +1,5 @@
 import { z } from "zod";
-import { asyncHandler } from "../../shared/async-handler.js";
+import { asyncHandler } from "../../middleware/async-handler.js";
 import { ok } from "../../shared/response.js";
 import * as subscriptionRenewalService from "../../services/admin/subscription-renewal.service.js";
 
@@ -19,8 +19,8 @@ export const renewSubscription = asyncHandler(async (req, res) => {
     req.user!.username,
     tenantId
   );
-  if ((result as Record<string, unknown>).code) {
-    res.status(Number((result as Record<string, unknown>).code)).json(result);
+  if ((result as any).code) {
+    res.status(Number((result as any).code)).json(result);
     return;
   }
   res.json(ok(result));

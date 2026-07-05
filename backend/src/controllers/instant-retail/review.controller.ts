@@ -1,6 +1,6 @@
 import { Request, Response } from "express";
-import { asyncHandler } from "../../shared/async-handler.js";
-import { ok } from "../../shared/response.js";
+import { asyncHandler } from "../../middleware/async-handler.js";
+import { ok, fail } from "../../shared/response.js";
 import * as svc from "../../services/instant-retail/review.service.js";
 
 export const listReviews = asyncHandler(async (req: Request, res: Response) => {
@@ -17,7 +17,7 @@ export const listReviews = asyncHandler(async (req: Request, res: Response) => {
 
 export const getReviewDetail = asyncHandler(async (req: Request, res: Response) => {
   const result = await svc.getReviewDetail(Number(req.params.id), req.tenantId!);
-  if (!result) { res.status(404).json({ code: "404", message: "评价不存在" }); return; }
+  if (!result) { res.status(404).json(fail("评价不存在", "404")); return; }
   res.json(ok(result));
 });
 

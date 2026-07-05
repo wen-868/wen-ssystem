@@ -1,6 +1,6 @@
 import { Router } from "express";
 import type { RouteConfig } from "../shared/auto-routes.js";
-import { requireAuthWithTenant } from "../shared/auth.js";
+import { requireAuthWithTenant } from "../middleware/auth.js";
 import { query, transaction } from "../shared/db.js";
 import * as ctrl from "../controllers/order-timeout.controller.js";
 

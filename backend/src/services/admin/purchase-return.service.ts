@@ -114,8 +114,8 @@ export async function approve(returnNo: string, tenantId: string, userId: number
         [returnOrder.store_id, item.sku_id]
       );
       const currentQty = (balanceRows as Record<string, unknown>[])?.[0]?.physical_qty || 0;
-      if (currentQty < item.total_bottle_qty) {
-        throw new Error(`库存不足: SKU ${item.sku_id} 当前库存 ${currentQty}, 退货数量 ${item.total_bottle_qty}`);
+      if (currentQty < (item as any).total_bottle_qty) {
+      throw new Error(`库存不足: SKU ${item.sku_id} 当前库存 ${currentQty}, 退货数量 ${(item as any).total_bottle_qty}`);
       }
 
       await conn.query(
@@ -129,14 +129,14 @@ export async function approve(returnNo: string, tenantId: string, userId: number
         [returnOrder.store_id, item.sku_id]
       );
       const afterQty = (newBalanceRows as Record<string, unknown>[])?.[0]?.physical_qty || 0;
-      const beforeQty = afterQty + item.total_bottle_qty;
+      const beforeQty = afterQty + (item as any).total_bottle_qty;
 
       const ledgerNo = makeBizNo("LL");
       await conn.query(
         `INSERT INTO inventory_ledger (ledger_no, store_id, sku_id, stock_type, biz_type, biz_no,
           change_qty, before_qty, after_qty, operator_id, idempotency_key, remark, tenant_id)
          VALUES (?, ?, ?, 'OFFLINE', 'PURCHASE_RETURN', ?, ?, ?, ?, ?, ?, ?, ?)`,
-        [ledgerNo, returnOrder.store_id, item.sku_id, returnNo, -item.total_bottle_qty, beforeQty, afterQty,
+        [ledgerNo, returnOrder.store_id, item.sku_id, returnNo, -(item as any).total_bottle_qty, beforeQty, afterQty,
           userId, `${returnNo}_${item.sku_id}`, `采购退货出库: ${returnNo}`, tenantId]
       );
     }

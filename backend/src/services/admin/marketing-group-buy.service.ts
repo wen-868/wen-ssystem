@@ -268,7 +268,7 @@ export async function createGroupBuyTeam(
   const now = new Date().toISOString();
 
   const result = await transaction(async (conn) => {
-    const [activityRows] = await conn.execute(
+    const [activityRows] = await (conn as any).execute(
       `SELECT id, group_price, min_group_size, max_group_size, time_limit_hours,
               total_stock, sold_count, status, start_time, end_time
        FROM group_buy
@@ -289,7 +289,7 @@ export async function createGroupBuyTeam(
 
     const expiresAt = new Date(Date.now() + Number(activity.time_limit_hours) * 3600 * 1000).toISOString();
 
-    const [teamResult] = await conn.execute(
+    const [teamResult] = await (conn as any).execute(
       `INSERT INTO group_buy_team (activity_id, leader_id, current_size, target_size, status, expires_at, tenant_id)
        VALUES (?, ?, 1, ?, 'PENDING', ?, ?)`,
       [activityId, userId, activity.min_group_size, expiresAt, tenantId]
@@ -297,18 +297,18 @@ export async function createGroupBuyTeam(
 
     const teamId = (teamResult as unknown as Record<string, unknown>).insertId;
 
-    await conn.execute(
+    await (conn as any).execute(
       `INSERT INTO group_buy_member (team_id, user_id, is_leader, tenant_id)
        VALUES (?, ?, 1, ?)`,
       [teamId, userId, tenantId]
     );
 
-    await conn.execute(
+    await (conn as any).execute(
       `UPDATE group_buy SET sold_count = sold_count + ? WHERE id = ? AND tenant_id = ?`,
       [quantity, activityId, tenantId]
     );
 
-    const [teamRows] = await conn.execute(
+    const [teamRows] = await (conn as any).execute(
       `SELECT id, activity_id AS activityId, leader_id AS leaderId,
               current_size AS currentSize, target_size AS targetSize,
               status, expires_at AS expiresAt, created_at AS createdAt
@@ -359,7 +359,7 @@ export async function joinGroupBuyTeam(
   const now = new Date().toISOString();
 
   await transaction(async (conn) => {
-    const [teamRows] = await conn.execute(
+    const [teamRows] = await (conn as any).execute(
       `SELECT gbt.id, gbt.activity_id, gbt.current_size, gbt.target_size, gbt.status, gbt.expires_at,
               gb.max_group_size, gb.total_stock, gb.sold_count, gb.status AS activityStatus
        FROM group_buy_team gbt
@@ -374,7 +374,7 @@ export async function joinGroupBuyTeam(
       throw Object.assign(new Error("拼团组不存在或已结束"), { statusCode: 404 });
     }
 
-    const [memberRows] = await conn.execute(
+    const [memberRows] = await (conn as any).execute(
       `SELECT id FROM group_buy_member WHERE team_id = ? AND user_id = ? AND tenant_id = ?`,
       [teamId, userId, tenantId]
     ) as unknown as Record<string, unknown>[][];
@@ -392,7 +392,7 @@ export async function joinGroupBuyTeam(
       throw Object.assign(new Error("拼团库存不足"), { statusCode: 400 });
     }
 
-    await conn.execute(
+    await (conn as any).execute(
       `INSERT INTO group_buy_member (team_id, user_id, is_leader, tenant_id) VALUES (?, ?, 0, ?)`,
       [teamId, userId, tenantId]
     );
@@ -400,7 +400,7 @@ export async function joinGroupBuyTeam(
     const newSize = Number(team.current_size) + 1;
     const isCompleted = newSize >= Number(team.target_size);
 
-    await conn.execute(
+    await (conn as any).execute(
       `UPDATE group_buy_team
        SET current_size = ?, status = ?, completed_at = ?
        WHERE id = ? AND tenant_id = ?`,
@@ -413,7 +413,7 @@ export async function joinGroupBuyTeam(
       ]
     );
 
-    await conn.execute(
+    await (conn as any).execute(
       `UPDATE group_buy SET sold_count = sold_count + ? WHERE id = ? AND tenant_id = ?`,
       [quantity, team.activity_id, tenantId]
     );

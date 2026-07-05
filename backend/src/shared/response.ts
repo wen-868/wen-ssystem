@@ -1,7 +1,9 @@
+import { v4 as uuid } from "uuid";
+
 export function ok<T>(data?: T) {
-  return { code: "0", message: "成功", data };
+  return { code: "0", msg: "成功", data, traceId: uuid(), apiCost: 1 };
 }
 
-export function fail(message: string, code = "400") {
-  return { code, message };
+export function fail(msg: string, code = "400") {
+  return { code, msg, traceId: uuid(), apiCost: 1 };
 }

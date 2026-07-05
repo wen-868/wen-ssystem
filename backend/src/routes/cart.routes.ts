@@ -1,6 +1,6 @@
 import { Router } from "express";
 import type { RouteConfig } from "../shared/auto-routes.js";
-import { requireAuthWithTenant } from "../shared/auth.js";
+import { requireAuthWithTenant } from "../middleware/auth.js";
 import * as cartController from "../controllers/admin/cart.controller.js";
 
 // ========== 购物车路由（小程序端，需认证） ==========

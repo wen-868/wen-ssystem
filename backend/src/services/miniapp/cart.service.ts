@@ -82,7 +82,7 @@ export async function updateCartItemQuantity(tenantId: string, customerId: numbe
       [quantity, customerId, skuId],
       tenantId
     );
-    if ((result as { affectedRows: number }).affectedRows === 0) {
+    if ((result as unknown as { affectedRows: number }).affectedRows === 0) {
       return { success: false, message: "购物车中无此商品" };
     }
     return { success: true, message: "已更新" };

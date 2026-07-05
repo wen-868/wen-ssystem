@@ -260,7 +260,7 @@ export async function buyFlashSale(
   const now = new Date().toISOString();
 
   await transaction(async (conn) => {
-    const [flashRows] = await conn.execute(
+    const [flashRows] = await (conn as any).execute(
       `SELECT id, flash_price, total_stock, sold_count, limit_per_user, status,
               start_time, end_time
        FROM flash_sale
@@ -269,7 +269,7 @@ export async function buyFlashSale(
       [flashSaleId, tenantId, now, now]
     ) as unknown as Record<string, unknown>[];
 
-    const flash = (flashRows as Record<string, unknown>[])[0];
+    const flash = (flashRows as unknown as Record<string, unknown>[])[0];
     if (!flash) {
       throw Object.assign(new Error("秒杀活动不存在或已结束"), { statusCode: 404 });
     }
@@ -279,7 +279,7 @@ export async function buyFlashSale(
       throw Object.assign(new Error("秒杀库存不足"), { statusCode: 400 });
     }
 
-    const [purchaseRows] = await conn.execute(
+    const [purchaseRows] = await (conn as any).execute(
       `SELECT COALESCE(SUM(quantity), 0) AS totalQty
        FROM flash_sale_record fsr
        JOIN flash_sale fs ON fs.id = fsr.flash_sale_id AND fs.tenant_id = ?
@@ -287,7 +287,7 @@ export async function buyFlashSale(
       [tenantId, flashSaleId, userId]
     ) as unknown as Record<string, unknown>[];
 
-    const purchased = Number((purchaseRows as Record<string, unknown>[])[0]?.totalQty || 0);
+    const purchased = Number((purchaseRows as unknown as Record<string, unknown>[])[0]?.totalQty || 0);
     if (purchased + quantity > Number(flash.limit_per_user)) {
       throw Object.assign(
         new Error(`每人限购${flash.limit_per_user}件，您已购买${purchased}件`),
@@ -295,12 +295,12 @@ export async function buyFlashSale(
       );
     }
 
-    await conn.execute(
+    await (conn as any).execute(
       `UPDATE flash_sale SET sold_count = sold_count + ? WHERE id = ? AND tenant_id = ?`,
       [quantity, flashSaleId, tenantId]
     );
 
-    await conn.execute(
+    await (conn as any).execute(
       `INSERT INTO flash_sale_record (flash_sale_id, user_id, quantity, price, tenant_id)
        VALUES (?, ?, ?, ?, ?)`,
       [flashSaleId, userId, quantity, flash.flash_price, tenantId]

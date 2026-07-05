@@ -1,5 +1,5 @@
 import { z } from "zod";
-import { asyncHandler } from "../../shared/async-handler.js";
+import { asyncHandler } from "../../middleware/async-handler.js";
 import { ok } from "../../shared/response.js";
 import * as commissionService from "../../services/admin/commission.service.js";
 
@@ -43,7 +43,7 @@ export const createCommissionRule = asyncHandler(async (req, res) => {
   const result = await commissionService.createCommissionRule({
     ruleName, ruleType, config, effectiveStart, effectiveEnd, remark,
     tenantId: req.tenantId!
-  } as Record<string, unknown>);
+  } as any);
   res.json(ok(result));
 });
 
@@ -53,7 +53,7 @@ export const updateCommissionRule = asyncHandler(async (req, res) => {
   const result = await commissionService.updateCommissionRule(Number(req.params.id), {
     ruleName, ruleType, config, effectiveStart, effectiveEnd, status, remark,
     tenantId: req.tenantId!
-  } as Record<string, unknown>);
+  } as any);
   res.json(ok(result));
 });
 

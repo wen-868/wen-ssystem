@@ -1,14 +1,15 @@
 import { Router } from "express";
 import type { RouteConfig } from "../shared/auto-routes.js";
-import { requireAuthWithTenant } from "../shared/auth.js";
+import { requireAuthWithTenant } from "../middleware/auth.js";
 import * as orderReceivingController from "../controllers/instant-retail/order-receiving.controller.js";
 import * as fulfillmentController from "../controllers/instant-retail/fulfillment.controller.js";
 
+import { fail } from '../shared/response.js';
 export const instantRetailStoreRouter = Router();
 
 const storeAuth = [requireAuthWithTenant, (req: any, res: any, next: any) => {
   if (!req.user.storeId && !req.user.roles?.includes("SUPER_ADMIN")) {
-    res.status(403).json({ code: "403", message: "无门店权限" });
+    res.status(403).json(fail("无门店权限", "403"));
     return;
   }
   next();

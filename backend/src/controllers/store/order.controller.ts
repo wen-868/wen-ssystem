@@ -1,5 +1,5 @@
-import { asyncHandler } from "../../shared/async-handler.js";
-import { ok } from "../../shared/response.js";
+import { asyncHandler } from "../../middleware/async-handler.js";
+import { ok, fail } from "../../shared/response.js";
 import * as orderService from "../../services/store/order.service.js";
 
 export const listOrders = asyncHandler(async (req, res) => {
@@ -15,19 +15,19 @@ export const listOrders = asyncHandler(async (req, res) => {
 
 export const getOrderDetail = asyncHandler(async (req, res) => {
   const order = await orderService.getOrderDetail(req.params.orderNo, req.tenantId!);
-  if (!order) { res.status(404).json({ code: "404", message: "订单不存在" }); return; }
+  if (!order) { res.status(404).json(fail("订单不存在", "404")); return; }
   res.json(ok(order));
 });
 
 export const acceptOrder = asyncHandler(async (req, res) => {
   const result = await orderService.acceptOrder(req.params.orderNo, req.tenantId!);
-  if (!result) { res.status(404).json({ code: "404", message: "订单不存在" }); return; }
+  if (!result) { res.status(404).json(fail("订单不存在", "404")); return; }
   res.json(ok(result));
 });
 
 export const startDelivery = asyncHandler(async (req, res) => {
   const result = await orderService.startDelivery(req.params.orderNo, req.tenantId!, req.user!.id ?? null, req.user!.username ?? "系统用户");
-  if (!result) { res.status(400).json({ code: "400", message: "订单不存在或状态不允许开始配送" }); return; }
+  if (!result) { res.status(400).json(fail("订单不存在或状态不允许开始配送", "400")); return; }
   res.json(ok(result));
 });
 

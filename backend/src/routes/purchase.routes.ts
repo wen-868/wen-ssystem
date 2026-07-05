@@ -1,9 +1,9 @@
 import { Router } from "express";
 import type { RouteConfig } from "../shared/auto-routes.js";
 import { z } from "zod";
-import { asyncHandler } from "../shared/async-handler.js";
-import { requireAuthWithTenant } from "../shared/auth.js";
-import { ok } from "../shared/response.js";
+import { asyncHandler } from "../middleware/async-handler.js";
+import { requireAuthWithTenant } from "../middleware/auth.js";
+import { ok, fail } from "../shared/response.js";
 import { purchaseService } from "../services/purchase.service.js";
 import type { ServiceContext } from "../types/index.js";
 
@@ -43,7 +43,7 @@ purchaseRouter.get("/:orderNo", requireAuthWithTenant, asyncHandler(async (req, 
   const order = await purchaseService.getDetail(orderNo, ctx);
 
   if (!order) {
-    res.status(404).json({ code: "404", message: "采购订单不存在" });
+    res.status(404).json(fail("采购订单不存在", "404"));
     return;
   }
 
@@ -82,12 +82,12 @@ purchaseRouter.post("/:orderNo/submit", requireAuthWithTenant, asyncHandler(asyn
   try {
     const result = await purchaseService.submit(orderNo, ctx);
     if (!result) {
-      res.status(404).json({ code: "404", message: "采购订单不存在" });
+      res.status(404).json(fail("采购订单不存在", "404"));
       return;
     }
     res.json(ok(result));
-  } catch (e: unknown) {
-    res.status(400).json({ code: "400", message: e.message });
+  } catch (e: any) {
+    res.status(400).json(fail(e.message, "400"));
   }
 }));
 
@@ -98,12 +98,12 @@ purchaseRouter.post("/:orderNo/approve", requireAuthWithTenant, asyncHandler(asy
   try {
     const result = await purchaseService.approve(orderNo, ctx);
     if (!result) {
-      res.status(404).json({ code: "404", message: "采购订单不存在" });
+      res.status(404).json(fail("采购订单不存在", "404"));
       return;
     }
     res.json(ok(result));
-  } catch (e: unknown) {
-    res.status(400).json({ code: "400", message: e.message });
+  } catch (e: any) {
+    res.status(400).json(fail(e.message, "400"));
   }
 }));
 
@@ -114,12 +114,12 @@ purchaseRouter.post("/:orderNo/cancel", requireAuthWithTenant, asyncHandler(asyn
   try {
     const result = await purchaseService.cancel(orderNo, ctx);
     if (!result) {
-      res.status(404).json({ code: "404", message: "采购订单不存在" });
+      res.status(404).json(fail("采购订单不存在", "404"));
       return;
     }
     res.json(ok(result));
-  } catch (e: unknown) {
-    res.status(400).json({ code: "400", message: e.message });
+  } catch (e: any) {
+    res.status(400).json(fail(e.message, "400"));
   }
 }));
 
@@ -148,12 +148,12 @@ purchaseRouter.put("/:orderNo", requireAuthWithTenant, asyncHandler(async (req, 
   try {
     const result = await purchaseService.updateOrder(orderNo, body, ctx);
     if (!result) {
-      res.status(404).json({ code: "404", message: "采购订单不存在" });
+      res.status(404).json(fail("采购订单不存在", "404"));
       return;
     }
     res.json(ok(result));
-  } catch (e: unknown) {
-    res.status(400).json({ code: "400", message: e.message });
+  } catch (e: any) {
+    res.status(400).json(fail(e.message, "400"));
   }
 }));
 
@@ -164,12 +164,12 @@ purchaseRouter.delete("/:orderNo", requireAuthWithTenant, asyncHandler(async (re
   try {
     const result = await purchaseService.delete(orderNo, ctx);
     if (!result) {
-      res.status(404).json({ code: "404", message: "采购订单不存在" });
+      res.status(404).json(fail("采购订单不存在", "404"));
       return;
     }
     res.json(ok(result));
-  } catch (e: unknown) {
-    res.status(400).json({ code: "400", message: e.message });
+  } catch (e: any) {
+    res.status(400).json(fail(e.message, "400"));
   }
 }));
 
@@ -190,12 +190,12 @@ purchaseRouter.post("/:orderNo/in-stock", requireAuthWithTenant, asyncHandler(as
   try {
     const result = await purchaseService.inStock(orderNo, body, ctx);
     if (!result) {
-      res.status(404).json({ code: "404", message: "采购订单不存在" });
+      res.status(404).json(fail("采购订单不存在", "404"));
       return;
     }
     res.json(ok(result));
-  } catch (e: unknown) {
-    res.status(400).json({ code: "400", message: e.message });
+  } catch (e: any) {
+    res.status(400).json(fail(e.message, "400"));
   }
 }));
 // ========== 路由自动发现配置 ==========

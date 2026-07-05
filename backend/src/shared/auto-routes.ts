@@ -2,7 +2,7 @@ import type { Express, Router } from "express";
 import { readdirSync } from "fs";
 import { fileURLToPath } from "url";
 import { dirname, join } from "path";
-import { requireAuth, requireAuthWithTenant } from "./auth.js";
+import { requireAuth, requireAuthWithTenant } from "../middleware/auth.js";
 
 /**
  * 路由配置项

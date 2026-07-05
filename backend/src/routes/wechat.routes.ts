@@ -3,7 +3,7 @@ import type { RouteConfig } from "../shared/auto-routes.js";
 import { z } from "zod";
 import jwt from "jsonwebtoken";
 import crypto from "crypto";
-import { asyncHandler } from "../shared/async-handler.js";
+import { asyncHandler } from "../middleware/async-handler.js";
 import { env } from "../shared/env.js";
 import { ok, fail } from "../shared/response.js";
 import { createWechatController } from "../controllers/wechat.controller.js";
@@ -65,8 +65,8 @@ function aesDecrypt(encryptedData: string, iv: string, sessionKey: string): stri
   const ivBuf = Buffer.from(iv, "base64");
 
   const decipher = crypto.createDecipheriv("aes-128-cbc", sessionKeyBuf, ivBuf);
-  let decrypted = decipher.update(encryptedBuf, undefined as unknown, "utf8");
-  decrypted += decipher.final("utf8");
+  let decrypted = decipher.update(encryptedBuf as any, undefined as any, "utf8") as any;
+  decrypted = (decrypted + decipher.final("utf8")) as string;
   return decrypted;
 }
 

@@ -1,4 +1,4 @@
-import { asyncHandler } from "../shared/async-handler.js";
+import { asyncHandler } from "../middleware/async-handler.js";
 import { ok, fail } from "../shared/response.js";
 import * as service from "../services/admin/aftersale.service.js";
 
@@ -64,8 +64,8 @@ export const miniappGetAftersaleDetail = asyncHandler(async (req, res) => {
     items: typeof row.items === "string" ? JSON.parse(row.items) : row.items,
     images: typeof row.images === "string" ? JSON.parse(row.images) : row.images,
     inspectImages: typeof row.inspect_images === "string" ? JSON.parse(row.inspect_images) : row.inspect_images,
-    aftersaleTypeLabel: AFTERSALE_TYPE_LABELS[row.aftersale_type] || row.aftersale_type,
-    statusLabel: AFTERSALE_STATUS_LABELS[row.status] || row.status,
+    aftersaleTypeLabel: AFTERSALE_TYPE_LABELS[(row as any).aftersale_type] || (row as any).aftersale_type,
+    statusLabel: AFTERSALE_STATUS_LABELS[(row as any).status] || (row as any).status,
     refundAmount: Number(row.refund_amount)
   }));
 });
@@ -132,8 +132,8 @@ export const adminGetAftersaleDetail = asyncHandler(async (req, res) => {
     items: typeof row.items === "string" ? JSON.parse(row.items) : row.items,
     images: typeof row.images === "string" ? JSON.parse(row.images) : row.images,
     inspectImages: typeof row.inspect_images === "string" ? JSON.parse(row.inspect_images) : row.inspect_images,
-    aftersaleTypeLabel: AFTERSALE_TYPE_LABELS[row.aftersale_type] || row.aftersale_type,
-    statusLabel: AFTERSALE_STATUS_LABELS[row.status] || row.status,
+    aftersaleTypeLabel: AFTERSALE_TYPE_LABELS[(row as any).aftersale_type] || (row as any).aftersale_type,
+    statusLabel: AFTERSALE_STATUS_LABELS[(row as any).status] || (row as any).status,
     refundAmount: Number(row.refund_amount)
   }));
 });

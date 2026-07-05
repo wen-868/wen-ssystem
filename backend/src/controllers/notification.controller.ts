@@ -1,7 +1,6 @@
 import { z } from "zod";
-import { asyncHandler } from "../shared/async-handler.js";
-import { ok } from "../shared/response.js";
-import { pool } from "../shared/db.js";
+import { asyncHandler } from "../middleware/async-handler.js";
+import { ok, fail } from "../shared/response.js";
 import * as service from "../services/admin/notification.service.js";
 
 // ========== 管理后台通知 Controller ==========
@@ -45,7 +44,7 @@ export const send = asyncHandler(async (req, res) => {
     relatedType: z.string().max(50).optional()
   }).parse(req.body);
 
-  const id = await service.sendNotification(pool, {
+  const id = await service.sendNotification({
     recipientId: body.recipientId,
     recipientType: body.recipientType,
     title: body.title,
@@ -64,7 +63,7 @@ export const send = asyncHandler(async (req, res) => {
 export const myList = asyncHandler(async (req, res) => {
   const userId = req.user!.id;
   if (!userId) {
-    res.status(401).json({ code: "401", message: "未登录" });
+    res.status(401).json(fail("未登录", "401"));
     return;
   }
 
@@ -80,7 +79,7 @@ export const myList = asyncHandler(async (req, res) => {
 export const myUnreadCount = asyncHandler(async (req, res) => {
   const userId = req.user!.id;
   if (!userId) {
-    res.status(401).json({ code: "401", message: "未登录" });
+    res.status(401).json(fail("未登录", "401"));
     return;
   }
 
@@ -96,7 +95,7 @@ export const myMarkRead = asyncHandler(async (req, res) => {
 export const myMarkAllRead = asyncHandler(async (req, res) => {
   const userId = req.user!.id;
   if (!userId) {
-    res.status(401).json({ code: "401", message: "未登录" });
+    res.status(401).json(fail("未登录", "401"));
     return;
   }
 

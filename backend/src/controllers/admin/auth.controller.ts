@@ -1,6 +1,6 @@
 import { z } from "zod";
-import { asyncHandler } from "../../shared/async-handler.js";
-import { ok } from "../../shared/response.js";
+import { asyncHandler } from "../../middleware/async-handler.js";
+import { ok, fail } from "../../shared/response.js";
 import * as authService from "../../services/admin/auth.service.js";
 
 // 密码强度校验：至少8位，必须含大小写字母+数字
@@ -25,7 +25,7 @@ export const changePassword = asyncHandler(async (req, res) => {
   }).parse(req.body);
   const strengthCheck = validatePasswordStrength(body.newPassword);
   if (!strengthCheck.valid) {
-    res.status(400).json({ code: "400", message: strengthCheck.message });
+    res.status(400).json(fail(strengthCheck.message || "", "400"));
     return;
   }
   const result = await authService.changePassword(req.user!.id, body.oldPassword, body.newPassword);

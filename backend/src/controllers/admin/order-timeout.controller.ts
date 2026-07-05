@@ -1,4 +1,4 @@
-import { asyncHandler } from "../../shared/async-handler.js";
+import { asyncHandler } from "../../middleware/async-handler.js";
 import { ok, fail } from "../../shared/response.js";
 import * as service from "../../services/admin/order-timeout.service.js";
 import { z } from "zod";

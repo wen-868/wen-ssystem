@@ -1,6 +1,6 @@
 import { z } from "zod";
-import { asyncHandler } from "../../shared/async-handler.js";
-import { ok } from "../../shared/response.js";
+import { asyncHandler } from "../../middleware/async-handler.js";
+import { ok, fail } from "../../shared/response.js";
 import * as pointsService from "../../services/admin/marketing-points.service.js";
 
 export const getPointsRule = asyncHandler(async (req, res) => {
@@ -41,7 +41,7 @@ export const getUserPoints = asyncHandler(async (req, res) => {
 export const listMyPointsRecords = asyncHandler(async (req, res) => {
   const userId = Number(req.user?.id || req.query.userId || 0);
   if (!userId) {
-    res.status(400).json({ code: "400", message: "缺少用户ID" });
+    res.status(400).json(fail("缺少用户ID", "400"));
     return;
   }
   const page = Number(req.query.page || 1);

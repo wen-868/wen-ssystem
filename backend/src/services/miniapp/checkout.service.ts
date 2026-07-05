@@ -45,7 +45,7 @@ async function calcMarketingDiscount(
 
   const doQueryOne = async (sql: string, params: unknown[]) => {
     if (conn) {
-      const [rows] = await conn.execute(sql, params as Record<string, unknown>[]);
+      const [rows] = await (conn as any).execute(sql, params as any[]);
       return (rows as unknown as Record<string, unknown>[])[0] ?? null;
     }
     return queryOneWithTenant<Record<string, unknown>>(sql, params, tenantId);
@@ -276,7 +276,7 @@ export async function createCheckoutOrder(params: {
     const shippingFee = goodsAmount >= 99 ? 0 : 10;
     const payableAmount = Number((goodsAmount - discountAmount + shippingFee).toFixed(2));
 
-    await conn.execute(
+    await (conn as any).execute(
       `INSERT INTO miniapp_order (order_no, member_id, store_id, customer_type, fulfillment_type, order_status, pay_status,
                                   settlement_type, delivery_status, goods_amount, discount_amount, shipping_fee, payable_amount,
                                   receiver_name, receiver_mobile, receiver_address, remark, expire_at, tenant_id)
@@ -292,20 +292,20 @@ export async function createCheckoutOrder(params: {
     );
 
     for (const item of orderItems) {
-      await conn.execute(
+      await (conn as any).execute(
         `INSERT INTO miniapp_order_item (order_no, sku_id, sku_name, qty, reserved_qty, unreserved_qty, unit_price, price_type, subtotal_amount, tenant_id)
          VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
         [orderNo, item.skuId, item.skuName, item.qty, item.reservedQty, item.unreservedQty, item.unitPrice, item.priceType, item.subtotal, tenantId]
       );
 
       if (customerType === "WHOLESALE" && Number(item.reservedQty) > 0) {
-        await conn.execute(
+        await (conn as any).execute(
           `UPDATE inventory_balance
            SET locked_qty = locked_qty + ?, available_qty = GREATEST(available_qty - ?, 0), updated_at = NOW()
            WHERE store_id = ? AND sku_id = ? AND stock_type = 'ONLINE' AND tenant_id = ?`,
           [item.reservedQty, item.reservedQty, storeId, item.skuId, tenantId]
         );
-        await conn.execute(
+        await (conn as any).execute(
           `INSERT INTO inventory_ledger (ledger_no, store_id, sku_id, stock_type, biz_type, biz_no,
                                          change_qty, before_qty, after_qty, before_locked_qty, after_locked_qty,
                                          operator_id, idempotency_key, remark, tenant_id)
@@ -317,7 +317,7 @@ export async function createCheckoutOrder(params: {
 
     const cartSkuIds = cartItems.map((c: Record<string, unknown>) => c.skuId);
     const placeholders = cartSkuIds.map(() => "?").join(",");
-    await conn.execute(
+    await (conn as any).execute(
       `DELETE FROM cart_item WHERE customer_id = ? AND tenant_id = ? AND sku_id IN (${placeholders})`,
       [customerId, tenantId, ...cartSkuIds]
     );

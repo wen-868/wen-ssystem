@@ -3,9 +3,9 @@ import jwt from "jsonwebtoken";
 import bcrypt from "bcryptjs";
 import { queryOne } from "../shared/db.js";
 import { env } from "../shared/env.js";
-import { asyncHandler } from "../shared/async-handler.js";
-import { ok } from "../shared/response.js";
-import { requirePlatformAuth } from "../shared/auth.js";
+import { asyncHandler } from "../middleware/async-handler.js";
+import { ok, fail } from "../shared/response.js";
+import { requirePlatformAuth } from "../middleware/auth.js";
 
 export const platformAuthRouter = Router();
 
@@ -13,7 +13,7 @@ export const platformAuthRouter = Router();
 platformAuthRouter.post("/login", asyncHandler(async (req: any, res: any) => {
   const { username, password } = req.body;
   if (!username || !password) {
-    res.status(400).json({ code: "400", message: "用户名和密码不能为空" });
+    res.status(400).json(fail("用户名和密码不能为空", "400"));
     return;
   }
 
@@ -23,7 +23,7 @@ platformAuthRouter.post("/login", asyncHandler(async (req: any, res: any) => {
   );
 
   if (!admin || !(await bcrypt.compare(password, admin.password))) {
-    res.status(401).json({ code: "401", message: "用户名或密码错误" });
+    res.status(401).json(fail("用户名或密码错误", "401"));
     return;
   }
 
@@ -43,7 +43,7 @@ platformAuthRouter.get("/me", requirePlatformAuth, asyncHandler(async (req: any,
     [req.user.id]
   );
   if (!admin) {
-    res.status(404).json({ code: "404", message: "管理员不存在" });
+    res.status(404).json(fail("管理员不存在", "404"));
     return;
   }
   res.json(ok({ id: admin.id, username: admin.username, realName: admin.real_name }));

@@ -1,5 +1,5 @@
-import { asyncHandler } from "../../shared/async-handler.js";
-import { ok } from "../../shared/response.js";
+import { asyncHandler } from "../../middleware/async-handler.js";
+import { ok, fail } from "../../shared/response.js";
 import * as authService from "../../services/store/auth.service.js";
 
 export const login = asyncHandler(async (req, res) => {
@@ -13,6 +13,6 @@ export const getMe = asyncHandler(async (req, res) => {
 
 export const getStoreInfo = asyncHandler(async (req, res) => {
   const store = await authService.getStoreInfo(req.user?.storeId ?? 1, req.tenantId!);
-  if (!store) { res.status(404).json({ code: "1", message: "门店不存在" }); return; }
+  if (!store) { res.status(404).json(fail("门店不存在", "1")); return; }
   res.json(ok(store));
 });

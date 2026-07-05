@@ -330,7 +330,7 @@ class SupplierService {
           dto.bankAccountName || null, dto.remark || null, ctx.tenantId
         ]
       );
-      supplierId = (result as { insertId: number }).insertId;
+      supplierId = (result as unknown as unknown as { insertId: number }).insertId;
 
       if (dto.contactPerson) {
         await conn.execute(

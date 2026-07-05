@@ -1,8 +1,8 @@
 import { Router } from "express";
 import type { RouteConfig } from "../shared/auto-routes.js";
 import { z } from "zod";
-import { asyncHandler } from "../shared/async-handler.js";
-import { requireAuthWithTenant } from "../shared/auth.js";
+import { asyncHandler } from "../middleware/async-handler.js";
+import { requireAuthWithTenant } from "../middleware/auth.js";
 import { ok } from "../shared/response.js";
 import * as service from "../services/admin/brand.service.js";
 
@@ -40,7 +40,7 @@ brandRouter.put("/:id", requireAuthWithTenant, asyncHandler(async (req, res) => 
     }).parse(req.body);
     const result = await service.update(Number(req.params.id), body, req.tenantId!);
     res.json(ok(result));
-  } catch (e: unknown) {
+  } catch (e: any) {
     res.status(e.statusCode || 400).json({ code: String(e.statusCode || 400), message: e.message });
   }
 }));
@@ -50,7 +50,7 @@ brandRouter.delete("/:id", requireAuthWithTenant, asyncHandler(async (req, res) 
   try {
     const result = await service.remove(Number(req.params.id), req.tenantId!);
     res.json(ok(result));
-  } catch (e: unknown) {
+  } catch (e: any) {
     res.status(e.statusCode || 400).json({ code: String(e.statusCode || 400), message: e.message });
   }
 }));

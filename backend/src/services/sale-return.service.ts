@@ -162,7 +162,7 @@ class SaleReturnService {
     const refundAmount = goodsAmount - discountAmount;
 
     await transaction(async (conn) => {
-      await conn.execute(
+      await (conn as any).execute(
         `INSERT INTO sale_return (
           return_no, source_bill_no, store_id, customer_id, customer_name, customer_mobile,
           return_status, goods_amount, discount_amount, refund_amount, refunded_amount,
@@ -185,7 +185,7 @@ class SaleReturnService {
       );
 
       for (const item of itemsWithAmount) {
-        await conn.execute(
+        await (conn as any).execute(
           `INSERT INTO sale_return_item (
             return_no, sku_id, sku_name, box_qty, bottle_qty, total_bottle_qty,
             unit_price, subtotal_amount, reason
@@ -204,7 +204,7 @@ class SaleReturnService {
         );
       }
 
-      await conn.execute(
+      await (conn as any).execute(
         "INSERT INTO operation_log (module, action, target_id, target_type, user_id, user_name, detail, tenant_id) VALUES (?, ?, ?, ?, ?, ?, ?, ?)",
         ["sale_return", "CREATE", returnNo, "sale_return", ctx.userId, ctx.username, `创建退货单: ${returnNo}`, ctx.tenantId]
       );
@@ -226,19 +226,19 @@ class SaleReturnService {
     }
 
     await transaction(async (conn) => {
-      await conn.execute(
+      await (conn as any).execute(
         "UPDATE sale_return SET return_status = 'COMPLETED', auditor_id = ?, audited_at = NOW() WHERE return_no = ?",
         [ctx.userId, returnNo]
       );
 
-      const [items] = await conn.execute(
+      const [items] = await (conn as any).execute(
         "SELECT sku_id, total_bottle_qty FROM sale_return_item WHERE return_no = ?",
         [returnNo]
       ) as [Record<string, unknown>[], unknown];
 
       const itemRows = items as Record<string, unknown>[];
       for (const item of itemRows) {
-        await conn.execute(
+        await (conn as any).execute(
           `INSERT INTO inventory_balance (store_id, sku_id, physical_qty, available_qty, tenant_id)
            VALUES (?, ?, ?, ?, ?)
            ON DUPLICATE KEY UPDATE physical_qty = physical_qty + ?, available_qty = available_qty + ?`,
@@ -248,7 +248,7 @@ class SaleReturnService {
 
       if (itemRows.length > 0) {
         const totalQty = itemRows.reduce((sum: number, i: any) => sum + i.total_bottle_qty, 0);
-        await conn.execute(
+        await (conn as any).execute(
           `INSERT INTO inventory_ledger (
             store_id, sku_id, change_type, change_qty, before_qty, after_qty,
             source_no, source_type, operator_id, remark, tenant_id
@@ -267,7 +267,7 @@ class SaleReturnService {
         );
       }
 
-      await conn.execute(
+      await (conn as any).execute(
         "INSERT INTO operation_log (module, action, target_id, target_type, user_id, user_name, detail, tenant_id) VALUES (?, ?, ?, ?, ?, ?, ?, ?)",
         ["sale_return", "APPROVE", returnNo, "sale_return", ctx.userId, ctx.username, `审核通过: ${returnNo}`, ctx.tenantId]
       );
@@ -293,12 +293,12 @@ class SaleReturnService {
     }
 
     await transaction(async (conn) => {
-      await conn.execute(
+      await (conn as any).execute(
         "UPDATE sale_return SET refunded_amount = refund_amount, refund_method = ? WHERE return_no = ?",
         [dto.refundMethod, returnNo]
       );
 
-      await conn.execute(
+      await (conn as any).execute(
         "INSERT INTO operation_log (module, action, target_id, target_type, user_id, user_name, detail, tenant_id) VALUES (?, ?, ?, ?, ?, ?, ?, ?)",
         ["sale_return", "REFUND", returnNo, "sale_return", ctx.userId, ctx.username, `确认退款: ${returnNo}, 方式: ${dto.refundMethod}`, ctx.tenantId]
       );

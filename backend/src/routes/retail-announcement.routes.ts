@@ -1,5 +1,5 @@
 import { Router } from "express";
-import { requireAuth } from "../shared/auth.js";
+import { requireAuth } from "../middleware/auth.js";
 import * as retailAnnouncementController from "../controllers/admin/retail-announcement.controller.js";
 
 export const retailAnnouncementRouter = Router();

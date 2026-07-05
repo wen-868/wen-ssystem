@@ -1,9 +1,8 @@
 import { z } from "zod";
 import jwt from "jsonwebtoken";
-import { asyncHandler } from "../shared/async-handler.js";
+import { asyncHandler } from "../middleware/async-handler.js";
 import { env } from "../shared/env.js";
 import { ok, fail } from "../shared/response.js";
-import { queryOne } from "../shared/db.js";
 import * as service from "../services/wechat.service.js";
 
 // 这些函数需要从路由文件中传入（因为它们在路由文件中定义）
@@ -37,10 +36,7 @@ export function createWechatController(
     }
     const decoded = jwt.verify(token, env.JWT_SECRET) as { wxUserId: number; openid: string };
 
-    const wxUser = await queryOne<{ session_key: string }>(
-      "SELECT session_key FROM wx_user WHERE id = ?",
-      [decoded.wxUserId]
-    );
+    const wxUser = await service.getSessionKey(decoded.wxUserId);
     if (!wxUser || !wxUser.session_key) {
       res.status(400).json(fail("session_key不存在，请重新登录", "400"));
       return;
@@ -66,13 +62,13 @@ export function createWechatController(
       avatarUrl: z.string().max(512).optional(),
     }).parse(req.body);
 
-    await service.updateProfile(wxUser.id, body);
+    await service.updateProfile((wxUser as any).id, body);
     res.json(ok({ message: "更新成功" }));
   });
 
   const getProfile = asyncHandler(async (req, res) => {
     const wxUser = (req as { wxUser?: Record<string, unknown> }).wxUser;
-    const userInfo = await service.getProfile(wxUser.id);
+    const userInfo = await service.getProfile((wxUser as any).id);
 
     if (!userInfo) {
       res.status(404).json(fail("用户不存在", "404"));
@@ -90,7 +86,7 @@ export function createWechatController(
       bindingType: z.enum(["ADMIN", "MERCHANT", "CONSUMER"]),
     }).parse(req.body);
 
-    const result = await service.bindUser(wxUser.id, body);
+    const result = await service.bindUser((wxUser as any).id, body);
 
     if (!result.success) {
       res.status(400).json(fail(result.message!, result.code));
@@ -106,7 +102,7 @@ export function createWechatController(
       systemUserId: z.number().int().positive(),
     }).parse(req.body);
 
-    const result = await service.unbindUser(wxUser.id, body.systemUserId);
+    const result = await service.unbindUser((wxUser as any).id, body.systemUserId);
 
     if (!result.success) {
       res.status(400).json(fail(result.message!, result.code));

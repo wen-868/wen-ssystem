@@ -1,5 +1,5 @@
 import { z } from "zod";
-import { asyncHandler } from "../../shared/async-handler.js";
+import { asyncHandler } from "../../middleware/async-handler.js";
 import { ok } from "../../shared/response.js";
 import * as couponService from "../../services/admin/marketing-new-coupon.service.js";
 import * as promotionService from "../../services/admin/marketing-new-promotion.service.js";
@@ -143,7 +143,7 @@ export const createPromotion = asyncHandler(async (req, res) => {
   }).parse(req.body);
 
   const result = await promotionService.createPromotion(
-    body as Record<string, unknown>,
+    body as any,
     req.tenantId!,
     req.user!.id,
     req.user!.username

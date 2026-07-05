@@ -1,5 +1,5 @@
 import { z } from "zod";
-import { asyncHandler } from "../../shared/async-handler.js";
+import { asyncHandler } from "../../middleware/async-handler.js";
 import { ok } from "../../shared/response.js";
 import * as purchaseOrderService from "../../services/admin/purchase-order.service.js";
 import * as purchaseInStockService from "../../services/admin/purchase-in-stock.service.js";
@@ -86,7 +86,7 @@ export const createPurchaseOrder = asyncHandler(async (req, res) => {
     operatorId: req.user!.id ?? 0,
     expectedDate: body.expectedDate,
     remark: body.remark,
-    items: body.items as unknown[]
+    items: body.items as any[]
   });
   res.json(ok(result));
 });
@@ -99,7 +99,7 @@ export const updatePurchaseOrder = asyncHandler(async (req, res) => {
       tenantId: req.tenantId!,
       expectedDate: body.expectedDate,
       remark: body.remark,
-      items: body.items as unknown[]
+      items: body.items as any[]
     }
   );
   res.json(ok(result));
@@ -130,7 +130,7 @@ export const purchaseInStock = asyncHandler(async (req, res) => {
       tenantId: req.tenantId!,
       operatorId: req.user!.id ?? 0,
       remark: body.remark,
-      items: body.items as unknown[]
+      items: body.items as any[]
     }
   );
   res.json(ok(result));
@@ -167,7 +167,7 @@ export const purchaseReturn = asyncHandler(async (req, res) => {
     tenantId: req.tenantId!,
     operatorId: req.user!.id ?? 0,
     remark: body.remark,
-    items: body.items as unknown[]
+    items: body.items as any[]
   });
   res.json(ok(result));
 });

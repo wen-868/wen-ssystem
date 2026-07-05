@@ -1,6 +1,6 @@
 import { z } from "zod";
-import { asyncHandler } from "../../shared/async-handler.js";
-import { ok } from "../../shared/response.js";
+import { asyncHandler } from "../../middleware/async-handler.js";
+import { ok, fail } from "../../shared/response.js";
 import * as subscriptionService from "../../services/admin/subscription.service.js";
 
 export const listSubscriptions = asyncHandler(async (req, res) => {
@@ -24,7 +24,7 @@ export const getSubscription = asyncHandler(async (req, res) => {
   const subscriptionId = Number(req.params.subscriptionId);
   const result = await subscriptionService.getSubscription(subscriptionId, tenantId);
   if (!result) {
-    res.status(404).json({ code: "404", message: "订阅不存在" });
+    res.status(404).json(fail("订阅不存在", "404"));
     return;
   }
   res.json(ok(result));
@@ -47,8 +47,8 @@ export const createSubscription = asyncHandler(async (req, res) => {
     req.user!.username,
     tenantId
   );
-  if ((result as Record<string, unknown>).code) {
-    res.status(Number((result as Record<string, unknown>).code)).json(result);
+  if ((result as any).code) {
+    res.status(Number((result as any).code)).json(result);
     return;
   }
   res.json(ok(result));
@@ -70,8 +70,8 @@ export const changePlan = asyncHandler(async (req, res) => {
     req.user!.username,
     tenantId
   );
-  if ((result as Record<string, unknown>).code) {
-    res.status(Number((result as Record<string, unknown>).code)).json(result);
+  if ((result as any).code) {
+    res.status(Number((result as any).code)).json(result);
     return;
   }
   res.json(ok(result));
@@ -91,8 +91,8 @@ export const cancelSubscription = asyncHandler(async (req, res) => {
     req.user!.username,
     tenantId
   );
-  if ((result as Record<string, unknown>).code) {
-    res.status(Number((result as Record<string, unknown>).code)).json(result);
+  if ((result as any).code) {
+    res.status(Number((result as any).code)).json(result);
     return;
   }
   res.json(ok(result));
@@ -113,8 +113,8 @@ export const paySubscription = asyncHandler(async (req, res) => {
     req.user!.username,
     tenantId
   );
-  if ((result as Record<string, unknown>).code) {
-    res.status(Number((result as Record<string, unknown>).code)).json(result);
+  if ((result as any).code) {
+    res.status(Number((result as any).code)).json(result);
     return;
   }
   res.json(ok(result));

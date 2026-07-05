@@ -1,4 +1,4 @@
-import { asyncHandler } from "../../shared/async-handler.js";
+import { asyncHandler } from "../../middleware/async-handler.js";
 import { ok } from "../../shared/response.js";
 import * as memberService from "../../services/admin/member.service.js";
 

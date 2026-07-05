@@ -1,7 +1,7 @@
 import { describe, it, expect, beforeAll, beforeEach } from "vitest";
 import request from "supertest";
 import { app } from "../server.js";
-import { signToken } from "../shared/auth.js";
+import { signToken } from "../middleware/auth.js";
 import { resetMockDb } from "../shared/mock-db.js";
 
 const TOKEN = signToken({

@@ -1,6 +1,6 @@
 import { Router } from "express";
 import type { RouteConfig } from "../shared/auto-routes.js";
-import { requireAuthWithTenant } from "../shared/auth.js";
+import { requireAuthWithTenant } from "../middleware/auth.js";
 import * as approvalFlowController from "../controllers/admin/approval-flow.controller.js";
 import * as approvalRecordsController from "../controllers/admin/approval-records.controller.js";
 

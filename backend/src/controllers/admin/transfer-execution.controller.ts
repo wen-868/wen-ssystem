@@ -1,4 +1,4 @@
-import { asyncHandler } from "../../shared/async-handler.js";
+import { asyncHandler } from "../../middleware/async-handler.js";
 import { ok, fail } from "../../shared/response.js";
 import { z } from "zod";
 import * as transferExecutionService from "../../services/transfer-execution.service.js";

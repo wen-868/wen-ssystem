@@ -1,8 +1,8 @@
 import { Router } from "express";
 import type { RouteConfig } from "../shared/auto-routes.js";
 import { z } from "zod";
-import { requireAuthWithTenant } from "../shared/auth.js";
-import { asyncHandler } from "../shared/async-handler.js";
+import { requireAuthWithTenant } from "../middleware/auth.js";
+import { asyncHandler } from "../middleware/async-handler.js";
 import { query, queryOne } from "../shared/db.js";
 import { ok } from "../shared/response.js";
 

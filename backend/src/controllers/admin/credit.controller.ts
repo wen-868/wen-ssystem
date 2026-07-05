@@ -1,6 +1,6 @@
 import { z } from "zod";
-import { asyncHandler } from "../../shared/async-handler.js";
-import { ok } from "../../shared/response.js";
+import { asyncHandler } from "../../middleware/async-handler.js";
+import { ok, fail } from "../../shared/response.js";
 import * as creditLimitService from "../../services/admin/credit-limit.service.js";
 import * as creditCollectionService from "../../services/admin/credit-collection.service.js";
 import * as creditRiskService from "../../services/admin/credit-risk.service.js";
@@ -34,7 +34,7 @@ export const getCreditDetail = asyncHandler(async (req, res) => {
   const record = await creditLimitService.getCreditDetail(customerId, ctx);
 
   if (!record) {
-    res.status(404).json({ code: "404", message: "该客户尚未开通授信" });
+    res.status(404).json(fail("该客户尚未开通授信", "404"));
     return;
   }
 

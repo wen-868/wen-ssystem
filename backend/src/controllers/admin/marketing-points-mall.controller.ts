@@ -1,6 +1,6 @@
 import { z } from "zod";
 import { Request, Response } from "express";
-import { asyncHandler } from "../../shared/async-handler.js";
+import { asyncHandler } from "../../middleware/async-handler.js";
 import { ok } from "../../shared/response.js";
 import * as svc from "../../services/admin/marketing-points-mall.service.js";
 
@@ -79,7 +79,7 @@ export const getExchangeRecordDetail = asyncHandler(async (req: Request, res: Re
 
 export const exchangeProduct = asyncHandler(async (req: Request, res: Response) => {
   const body = exchangeProductSchema.parse(req.body);
-  const result = await svc.exchangeProduct(body as Record<string, unknown>, req.tenantId!);
+  const result = await svc.exchangeProduct(body as any, req.tenantId!);
   res.json(ok(result));
 });
 

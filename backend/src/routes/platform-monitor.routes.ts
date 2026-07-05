@@ -1,6 +1,6 @@
 import { Router } from "express";
-import { requirePlatformAuth } from "../shared/auth.js";
-import { asyncHandler } from "../shared/async-handler.js";
+import { requirePlatformAuth } from "../middleware/auth.js";
+import { asyncHandler } from "../middleware/async-handler.js";
 import { ok } from "../shared/response.js";
 
 export const platformMonitorRouter = Router();

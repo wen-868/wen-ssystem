@@ -22,7 +22,7 @@ export async function submitFeedback(req: Request, res: Response) {
   const body = submitFeedbackSchema.parse(req.body);
   const { type, title, content, contact, screenshot_urls, page_url, browser_info } = body;
   const tenant_id = req.tenantId || "default";
-  const user_id = (req as { user?: { id: number } }).userId;
+  const user_id = (req as { user?: { id: number } }).user?.id;
 
   const id = await insertFeedback({
     type,

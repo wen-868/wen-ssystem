@@ -20,7 +20,7 @@ export async function createConfig(tenantId: string, body: {
     "INSERT INTO order_timeout_config (order_type, timeout_type, timeout_minutes, action, enabled, description, tenant_id) VALUES (?, ?, ?, ?, ?, ?, ?)",
     [body.orderType, body.timeoutType, body.timeoutMinutes, body.action, body.enabled ? 1 : 0, body.description || null, tenantId]
   );
-  return { id: (result as { insertId: number }).insertId };
+  return { id: (result as unknown as unknown as { insertId: number }).insertId };
 }
 
 export async function updateConfig(tenantId: string, id: number, body: {

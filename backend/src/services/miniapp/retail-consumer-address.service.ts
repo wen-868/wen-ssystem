@@ -45,7 +45,7 @@ export async function createAddress(userId: number, data: CreateAddressInput) {
   const result = await query<any>(
     `INSERT INTO retail_consumer_address (user_id, name, mobile, province, city, district, detail, is_default) VALUES (?, ?, ?, ?, ?, ?, ?, ?)`,
     [userId, data.name, data.mobile, data.province, data.city, data.district, data.detail, data.is_default ?? 0]
-  ) as { insertId: number };
+  ) as unknown as unknown as { insertId: number };
   return { id: result.insertId };
 }
 

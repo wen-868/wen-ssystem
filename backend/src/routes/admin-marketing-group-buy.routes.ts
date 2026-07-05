@@ -1,5 +1,5 @@
 import { Router } from "express";
-import { requireAuthWithTenant } from "../shared/auth.js";
+import { requireAuthWithTenant } from "../middleware/auth.js";
 import * as groupBuyController from "../controllers/admin/marketing-group-buy.controller.js";
 import type { RouteConfig } from "../shared/auto-routes.js";
 

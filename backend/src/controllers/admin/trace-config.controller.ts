@@ -1,6 +1,6 @@
 import { z } from "zod";
-import { asyncHandler } from "../../shared/async-handler.js";
-import { ok } from "../../shared/response.js";
+import { asyncHandler } from "../../middleware/async-handler.js";
+import { ok, fail } from "../../shared/response.js";
 import * as traceConfigService from "../../services/admin/trace-config.service.js";
 
 export const listConfigs = asyncHandler(async (req, res) => {
@@ -47,7 +47,7 @@ export const updateConfig = asyncHandler(async (req, res) => {
   }).parse(req.body);
   const result = await traceConfigService.updateConfig(configId, body, tenantId);
   if (!result) {
-    res.status(404).json({ code: "404", message: "配置不存在" });
+    res.status(404).json(fail("配置不存在", "404"));
     return;
   }
   res.json(ok(result));
@@ -58,7 +58,7 @@ export const deleteConfig = asyncHandler(async (req, res) => {
   const configId = Number(req.params.id);
   const success = await traceConfigService.deleteConfig(configId, tenantId);
   if (!success) {
-    res.status(404).json({ code: "404", message: "配置不存在" });
+    res.status(404).json(fail("配置不存在", "404"));
     return;
   }
   res.json(ok({ deleted: true }));

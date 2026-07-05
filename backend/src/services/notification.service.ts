@@ -30,5 +30,5 @@ export async function sendNotification(
       params.tenantId,
     ]
   );
-  return (result as { insertId: number }).insertId;
+  return (result as unknown as { insertId: number }).insertId;
 }

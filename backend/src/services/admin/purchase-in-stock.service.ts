@@ -124,7 +124,7 @@ export async function approve(stockNo: string, tenantId: string, userId: number,
         [stock.store_id, item.sku_id]
       );
       const afterQty = Number((balanceRows as Record<string, unknown>[])?.[0]?.physical_qty) || 0;
-      const beforeQty = afterQty - item.total_bottle_qty;
+      const beforeQty = afterQty - (item as any).total_bottle_qty;
 
       const ledgerNo = makeBizNo("LL");
       await conn.query(
@@ -263,7 +263,7 @@ export async function purchaseInStock(id: number, params: {
        FROM purchase_order_item WHERE order_no = ?`,
       [order.orderNo]
     );
-    const remainingQty = Number((remaining as unknown[][])[0]?.[0]?.remainingQty ?? 0);
+    const remainingQty = Number(((remaining as any)[0])?.[0]?.remainingQty ?? 0);
     const newStatus = remainingQty <= 0 ? "COMPLETED" : "PARTIAL";
     await conn.execute(
       `UPDATE purchase_order SET order_status = ?, actual_date = CURDATE(), updated_at = NOW() WHERE id = ? AND tenant_id = ?`,

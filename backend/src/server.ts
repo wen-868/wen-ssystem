@@ -5,10 +5,11 @@ import rateLimit from "express-rate-limit";
 import logger from "./shared/logger.js";
 import { env } from "./shared/env.js";
 import { initDatabase } from "./shared/db.js";
-import { errorHandler } from "./shared/error-handler.js";
+import { ok } from "./shared/response.js";
+import { errorHandler } from "./middleware/error-handler.js";
 import { errorResponseInterceptor } from "./shared/error-response-interceptor.js";
-import { responseTimeTracker } from "./shared/response-time-tracker.js";
-import { requireAuthWithTenant } from "./shared/auth.js";
+import { responseTimeTracker } from "./middleware/response-tracker.js";
+import { requireAuthWithTenant } from "./middleware/auth.js";
 import { runMigrations } from "./shared/migration.js";
 import { setupRoutes } from "./shared/auto-routes.js";
 import * as authController from "./controllers/admin/auth.controller.js";
@@ -125,11 +126,11 @@ app.use(errorResponseInterceptor);
 
 // 公开健康检查（无需认证，供外部监控使用）
 app.get("/api/platform/health", (_req, res) => {
-  res.json({ code: "0", data: { status: "healthy", timestamp: new Date().toISOString() } });
+  res.json(ok({ status: "healthy", timestamp: new Date().toISOString() }));
 });
 
 app.get("/health", (_req: any, res: any) => {
-  res.json({ code: "0", message: "ok", data: { service: "zhixiang-backend" } });
+  res.json(ok({ service: "zhixiang-backend" }));
 });
 
 // 登录接口（无需认证，但受 Rate Limiting 保护）

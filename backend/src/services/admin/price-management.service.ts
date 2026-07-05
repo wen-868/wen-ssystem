@@ -45,14 +45,14 @@ export async function setSkuPrices(
 
   await transaction(async (conn) => {
     for (const item of prices) {
-      const existing = await conn.execute(
+      const existing = await (conn as any).execute(
         "SELECT id, price FROM sku_price WHERE sku_id = ? AND price_level_id = ? AND min_qty = ? AND tenant_id = ?",
         [skuId, item.priceLevelId, item.minQty, tenantId]
       ) as [Record<string, unknown>[], unknown];
 
       if ((existing[0]).length > 0) {
         const oldRecord = (existing[0])[0];
-        await conn.execute(
+        await (conn as any).execute(
           `UPDATE sku_price
            SET price = ?, cost_price = ?, suggested_retail_price = ?,
                effective_start = ?, effective_end = ?, status = 1, updated_at = NOW()
@@ -61,14 +61,14 @@ export async function setSkuPrices(
            item.effectiveStart, item.effectiveEnd, oldRecord.id, tenantId]
         );
         if (Number(oldRecord.price) !== item.price) {
-          await conn.execute(
+          await (conn as any).execute(
             `INSERT INTO price_change_log (sku_id, price_level_id, old_price, new_price, change_reason, changed_by, tenant_id)
              VALUES (?, ?, ?, ?, ?, ?, ?)`,
             [skuId, item.priceLevelId, oldRecord.price, item.price, "批量更新阶梯价", userId, tenantId]
           );
         }
       } else {
-        await conn.execute(
+        await (conn as any).execute(
           `INSERT INTO sku_price (sku_id, price_level_id, min_qty, price, cost_price, suggested_retail_price, effective_start, effective_end, tenant_id)
            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`,
           [skuId, item.priceLevelId, item.minQty, item.price, item.costPrice, item.suggestedRetailPrice,

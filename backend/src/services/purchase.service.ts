@@ -308,7 +308,7 @@ class PurchaseService {
     const totalAmount = goodsAmount + taxAmount - discountAmount;
 
     await transaction(async (conn) => {
-      await conn.execute(
+      await (conn as any).execute(
         `INSERT INTO purchase_order (
           order_no, supplier_id, supplier_name, store_id, order_status,
           goods_amount, tax_amount, discount_amount, payable_amount,
@@ -332,7 +332,7 @@ class PurchaseService {
       );
 
       for (const item of itemsWithAmount) {
-        await conn.execute(
+        await (conn as any).execute(
           `INSERT INTO purchase_order_item (
             order_no, sku_id, sku_name, barcode, box_qty, bottle_qty, total_bottle_qty,
             unit_price, tax_rate, subtotal_amount, tax_amount, total_amount, remark
@@ -355,7 +355,7 @@ class PurchaseService {
         );
       }
 
-      await conn.execute(
+      await (conn as any).execute(
         `INSERT INTO operation_log (module, action, target_id, target_type, user_id, user_name, detail, tenant_id)
          VALUES (?, ?, ?, ?, ?, ?, ?, ?)`,
         ["purchase", "CREATE", orderNo, "purchase_order", ctx.userId, ctx.username, `创建采购订单: ${orderNo}`, ctx.tenantId]
@@ -422,9 +422,9 @@ class PurchaseService {
         updates.push("goods_amount = ?", "tax_amount = ?", "payable_amount = ?", "unpaid_amount = ?");
         params.push(goodsAmount, taxAmount, totalAmount, totalAmount);
 
-        await conn.execute("DELETE FROM purchase_order_item WHERE order_no = ?", [orderNo]);
+        await (conn as any).execute("DELETE FROM purchase_order_item WHERE order_no = ?", [orderNo]);
         for (const item of itemsWithAmount) {
-          await conn.execute(
+          await (conn as any).execute(
             `INSERT INTO purchase_order_item (
               order_no, sku_id, sku_name, barcode, box_qty, bottle_qty, total_bottle_qty,
               unit_price, tax_rate, subtotal_amount, tax_amount, total_amount, remark
@@ -451,13 +451,13 @@ class PurchaseService {
       if (updates.length > 0) {
         updates.push("updated_at = NOW()");
         params.push(orderNo, ctx.tenantId);
-        await conn.execute(
+        await (conn as any).execute(
           `UPDATE purchase_order SET ${updates.join(", ")} WHERE order_no = ? AND tenant_id = ?`,
-          params as Record<string, unknown>[]
+          params as any[]
         );
       }
 
-      await conn.execute(
+      await (conn as any).execute(
         `INSERT INTO operation_log (module, action, target_id, target_type, user_id, user_name, detail, tenant_id)
          VALUES (?, ?, ?, ?, ?, ?, ?, ?)`,
         ["purchase", "UPDATE", orderNo, "purchase_order", ctx.userId, ctx.username, `修改采购订单: ${orderNo}`, ctx.tenantId]
@@ -476,9 +476,9 @@ class PurchaseService {
     }
 
     await transaction(async (conn) => {
-      await conn.execute("DELETE FROM purchase_order_item WHERE order_no = ?", [orderNo]);
-      await conn.execute("DELETE FROM purchase_order WHERE order_no = ? AND tenant_id = ?", [orderNo, ctx.tenantId]);
-      await conn.execute(
+      await (conn as any).execute("DELETE FROM purchase_order_item WHERE order_no = ?", [orderNo]);
+      await (conn as any).execute("DELETE FROM purchase_order WHERE order_no = ? AND tenant_id = ?", [orderNo, ctx.tenantId]);
+      await (conn as any).execute(
         `INSERT INTO operation_log (module, action, target_id, target_type, user_id, user_name, detail, tenant_id)
          VALUES (?, ?, ?, ?, ?, ?, ?, ?)`,
         ["purchase", "DELETE", orderNo, "purchase_order", ctx.userId, ctx.username, `删除采购订单: ${orderNo}`, ctx.tenantId]
@@ -581,12 +581,12 @@ class PurchaseService {
         const inStockBottleQty = item.boxQty * 12 + item.bottleQty;
         const newInStockedQty = Number(orderItem.in_stocked_qty || 0) + inStockBottleQty;
 
-        await conn.execute(
+        await (conn as any).execute(
           "UPDATE purchase_order_item SET in_stocked_qty = ? WHERE order_no = ? AND sku_id = ?",
           [newInStockedQty, orderNo, item.skuId]
         );
 
-        await conn.execute(
+        await (conn as any).execute(
           `INSERT INTO inventory_balance (store_id, sku_id, physical_qty, available_qty, tenant_id)
            VALUES (?, ?, ?, ?, ?)
            ON DUPLICATE KEY UPDATE physical_qty = physical_qty + ?, available_qty = available_qty + ?`,
@@ -594,7 +594,7 @@ class PurchaseService {
         );
       }
 
-      const [rows] = (await conn.execute(
+      const [rows] = (await (conn as any).execute(
         "SELECT total_bottle_qty, in_stocked_qty FROM purchase_order_item WHERE order_no = ?",
         [orderNo]
       )) as [Record<string, unknown>[], unknown];
@@ -606,12 +606,12 @@ class PurchaseService {
         warehouseStatus = "FULL";
       }
 
-      await conn.execute("UPDATE purchase_order SET warehouse_status = ?, updated_at = NOW() WHERE order_no = ?", [
+      await (conn as any).execute("UPDATE purchase_order SET warehouse_status = ?, updated_at = NOW() WHERE order_no = ?", [
         warehouseStatus,
         orderNo,
       ]);
 
-      await conn.execute(
+      await (conn as any).execute(
         `INSERT INTO operation_log (module, action, target_id, target_type, user_id, user_name, detail, tenant_id)
          VALUES (?, ?, ?, ?, ?, ?, ?, ?)`,
         ["purchase", "IN_STOCK", orderNo, "purchase_order", ctx.userId, ctx.username, `采购入库: ${orderNo}`, ctx.tenantId]

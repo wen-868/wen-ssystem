@@ -33,7 +33,7 @@ export async function upsertConfig(params: {
   const { storeId, tenantId, autoOpenTime, autoCloseTime, maxDailyOrders, maxOrderAmount } = params;
 
   await transaction(async (conn) => {
-    const [existing] = await conn.execute(
+    const [existing] = await (conn as any).execute(
       "SELECT id FROM store_control_config WHERE store_id = ? AND tenant_id = ?",
       [storeId, tenantId]
     );
@@ -47,10 +47,10 @@ export async function upsertConfig(params: {
       if (maxOrderAmount !== undefined) { sets.push("max_order_amount = ?"); values.push(maxOrderAmount); }
       if (sets.length > 0) {
         values.push(storeId, tenantId);
-        await conn.execute(`UPDATE store_control_config SET ${sets.join(", ")} WHERE store_id = ? AND tenant_id = ?`, values as Record<string, unknown>[]);
+        await (conn as any).execute(`UPDATE store_control_config SET ${sets.join(", ")} WHERE store_id = ? AND tenant_id = ?`, values as any[]);
       }
     } else {
-      await conn.execute(
+      await (conn as any).execute(
         `INSERT INTO store_control_config (store_id, auto_open_time, auto_close_time, max_daily_orders, max_order_amount, tenant_id)
          VALUES (?, ?, ?, ?, ?, ?)`,
         [storeId, autoOpenTime ?? null, autoCloseTime ?? null, maxDailyOrders ?? null, maxOrderAmount ?? null, tenantId]
@@ -67,7 +67,7 @@ export async function openStore(params: {
   const { storeId, tenantId, userId } = params;
 
   await transaction(async (conn) => {
-    const [rows] = await conn.execute(
+    const [rows] = await (conn as any).execute(
       "SELECT status FROM store WHERE id = ? AND tenant_id = ? FOR UPDATE",
       [storeId, tenantId]
     );
@@ -75,11 +75,11 @@ export async function openStore(params: {
     if (!store) throw new Error("门店不存在");
 
     const fromStatus = store.status || "CLOSED";
-    await conn.execute(
+    await (conn as any).execute(
       "UPDATE store SET status = 'OPEN' WHERE id = ? AND tenant_id = ?",
       [storeId, tenantId]
     );
-    await conn.execute(
+    await (conn as any).execute(
       `INSERT INTO store_status_log (store_id, from_status, to_status, change_type, operator_id, remark, tenant_id)
        VALUES (?, ?, 'OPEN', 'MANUAL', ?, '手动开门', ?)`,
       [storeId, fromStatus, userId, tenantId]
@@ -95,7 +95,7 @@ export async function closeStore(params: {
   const { storeId, tenantId, userId } = params;
 
   await transaction(async (conn) => {
-    const [rows] = await conn.execute(
+    const [rows] = await (conn as any).execute(
       "SELECT status FROM store WHERE id = ? AND tenant_id = ? FOR UPDATE",
       [storeId, tenantId]
     );
@@ -103,11 +103,11 @@ export async function closeStore(params: {
     if (!store) throw new Error("门店不存在");
 
     const fromStatus = store.status || "OPEN";
-    await conn.execute(
+    await (conn as any).execute(
       "UPDATE store SET status = 'CLOSED' WHERE id = ? AND tenant_id = ?",
       [storeId, tenantId]
     );
-    await conn.execute(
+    await (conn as any).execute(
       `INSERT INTO store_status_log (store_id, from_status, to_status, change_type, operator_id, remark, tenant_id)
        VALUES (?, ?, 'CLOSED', 'MANUAL', ?, '手动关门', ?)`,
       [storeId, fromStatus, userId, tenantId]
@@ -123,7 +123,7 @@ export async function suspendStore(params: {
   const { storeId, tenantId, userId, reason } = params;
 
   await transaction(async (conn) => {
-    const [rows] = await conn.execute(
+    const [rows] = await (conn as any).execute(
       "SELECT status FROM store WHERE id = ? AND tenant_id = ? FOR UPDATE",
       [storeId, tenantId]
     );
@@ -132,16 +132,16 @@ export async function suspendStore(params: {
 
     const fromStatus = store.status || "OPEN";
     const remark = reason || "手动暂停营业";
-    await conn.execute(
+    await (conn as any).execute(
       "UPDATE store SET status = 'SUSPENDED' WHERE id = ? AND tenant_id = ?",
       [storeId, tenantId]
     );
-    await conn.execute(
+    await (conn as any).execute(
       `INSERT INTO store_status_log (store_id, from_status, to_status, change_type, operator_id, remark, tenant_id)
        VALUES (?, ?, 'SUSPENDED', 'MANUAL', ?, ?, ?)`,
       [storeId, fromStatus, userId, remark, tenantId]
     );
-    await conn.execute(
+    await (conn as any).execute(
       `INSERT INTO store_control_config (store_id, suspended_reason, tenant_id)
        VALUES (?, ?, ?)
        ON DUPLICATE KEY UPDATE suspended_reason = ?`,
@@ -158,7 +158,7 @@ export async function resumeStore(params: {
   const { storeId, tenantId, userId } = params;
 
   await transaction(async (conn) => {
-    const [rows] = await conn.execute(
+    const [rows] = await (conn as any).execute(
       "SELECT status FROM store WHERE id = ? AND tenant_id = ? FOR UPDATE",
       [storeId, tenantId]
     );
@@ -166,16 +166,16 @@ export async function resumeStore(params: {
     if (!store) throw new Error("门店不存在");
 
     const fromStatus = store.status || "SUSPENDED";
-    await conn.execute(
+    await (conn as any).execute(
       "UPDATE store SET status = 'OPEN' WHERE id = ? AND tenant_id = ?",
       [storeId, tenantId]
     );
-    await conn.execute(
+    await (conn as any).execute(
       `INSERT INTO store_status_log (store_id, from_status, to_status, change_type, operator_id, remark, tenant_id)
        VALUES (?, ?, 'OPEN', 'MANUAL', ?, '恢复营业', ?)`,
       [storeId, fromStatus, userId, tenantId]
     );
-    await conn.execute(
+    await (conn as any).execute(
       "UPDATE store_control_config SET suspended_reason = NULL WHERE store_id = ? AND tenant_id = ?",
       [storeId, tenantId]
     );
@@ -285,7 +285,7 @@ export async function getConfigsForCheck(tenantId: string) {
 }
 
 export async function getOrderCount(storeId: number, tenantId: string, conn: { execute: (sql: string, params: unknown[]) => Promise<unknown[]> }) {
-  const [orderRows] = await conn.execute(
+  const [orderRows] = await (conn as any).execute(
     `SELECT COUNT(*) AS order_count FROM sale_bill
      WHERE store_id = ? AND tenant_id = ? AND DATE(created_at) = CURDATE() AND business_status NOT IN ('DRAFT', 'VOIDED')`,
     [storeId, tenantId]
@@ -294,7 +294,7 @@ export async function getOrderCount(storeId: number, tenantId: string, conn: { e
 }
 
 export async function getOrderAmount(storeId: number, tenantId: string, conn: { execute: (sql: string, params: unknown[]) => Promise<unknown[]> }) {
-  const [amountRows] = await conn.execute(
+  const [amountRows] = await (conn as any).execute(
     `SELECT COALESCE(SUM(receivable_amount), 0) AS total_amount FROM sale_bill
      WHERE store_id = ? AND tenant_id = ? AND DATE(created_at) = CURDATE() AND business_status NOT IN ('DRAFT', 'VOIDED')`,
     [storeId, tenantId]

@@ -1,6 +1,6 @@
 import { z } from "zod";
-import { asyncHandler } from "../shared/async-handler.js";
-import { ok } from "../shared/response.js";
+import { asyncHandler } from "../middleware/async-handler.js";
+import { ok, fail } from "../shared/response.js";
 import * as service from "../services/admin/inventory-batch.service.js";
 
 // ── Zod schemas ──
@@ -59,7 +59,7 @@ export const getBatchDetail = asyncHandler(async (req, res) => {
   const id = Number(req.params.id);
   const batch = await service.getBatchDetail(req.tenantId!, id);
   if (!batch) {
-    res.status(404).json({ code: "1", message: "批次不存在" });
+    res.status(404).json(fail("批次不存在", "1"));
     return;
   }
   res.json(ok(batch));
@@ -67,21 +67,21 @@ export const getBatchDetail = asyncHandler(async (req, res) => {
 
 export const createBatch = asyncHandler(async (req, res) => {
   const body = createBatchSchema.parse(req.body);
-  const result = await service.createBatch(req.tenantId!, body as Record<string, unknown>);
+  const result = await service.createBatch(req.tenantId!, body as any);
   res.json(ok(result));
 });
 
 export const updateBatch = asyncHandler(async (req, res) => {
   const id = Number(req.params.id);
   const body = updateBatchSchema.parse(req.body);
-  const result = await service.updateBatch(req.tenantId!, id, body as Record<string, unknown>);
+  const result = await service.updateBatch(req.tenantId!, id, body as any);
   res.json(ok(result));
 });
 
 export const splitBatch = asyncHandler(async (req, res) => {
   const id = Number(req.params.id);
   const body = splitBatchSchema.parse(req.body);
-  const result = await service.splitBatch(req.tenantId!, id, body as Record<string, unknown>);
+  const result = await service.splitBatch(req.tenantId!, id, body as any);
   res.json(ok(result));
 });
 
@@ -101,14 +101,14 @@ export const listExpiryConfigs = asyncHandler(async (req, res) => {
 
 export const createExpiryConfig = asyncHandler(async (req, res) => {
   const body = createExpiryConfigSchema.parse(req.body);
-  const result = await service.createExpiryConfig(req.tenantId!, body as Record<string, unknown>);
+  const result = await service.createExpiryConfig(req.tenantId!, body as any);
   res.json(ok(result));
 });
 
 export const updateExpiryConfig = asyncHandler(async (req, res) => {
   const id = Number(req.params.id);
   const body = updateExpiryConfigSchema.parse(req.body);
-  const result = await service.updateExpiryConfig(req.tenantId!, id, body as Record<string, unknown>);
+  const result = await service.updateExpiryConfig(req.tenantId!, id, body as any);
   res.json(ok(result));
 });
 
@@ -148,6 +148,6 @@ export const getTraceChain = asyncHandler(async (req, res) => {
   const id = Number(req.params.id);
   // 批次追溯链：返回批次详情 + 相关操作日志
   const batch = await service.getBatchDetail(req.tenantId!, id);
-  if (!batch) { res.status(404).json({ code: "1", message: "批次不存在" }); return; }
+  if (!batch) { res.status(404).json(fail("批次不存在", "1")); return; }
   res.json(ok({ batch, traceLogs: [] }));
 });

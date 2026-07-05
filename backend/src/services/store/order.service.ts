@@ -64,7 +64,7 @@ export async function acceptOrder(orderNo: string, tenantId: string) {
     [orderNo, tenantId],
     tenantId
   );
-  if (!result || (result as { affectedRows: number }).affectedRows === 0) return null;
+  if (!result || (result as unknown as { affectedRows: number }).affectedRows === 0) return null;
   return { orderNo, status: "ACCEPTED" };
 }
 
@@ -76,7 +76,7 @@ export async function startDelivery(orderNo: string, tenantId: string, userId: n
     [orderNo, tenantId],
     tenantId
   );
-  if (!result || (result as { affectedRows: number }).affectedRows === 0) return null;
+  if (!result || (result as unknown as { affectedRows: number }).affectedRows === 0) return null;
   await queryWithTenant(
     `INSERT INTO operation_log (operator_id, operator_name, module, action, biz_no, after_data, tenant_id)
      VALUES (?, ?, 'ORDER_DELIVERY', 'START_DELIVERY', ?, JSON_OBJECT('status', 'DELIVERING'), ?)`,

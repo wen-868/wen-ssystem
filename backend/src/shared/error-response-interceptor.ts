@@ -48,8 +48,8 @@ export function errorResponseInterceptor(
         request_url: requestUrl,
         request_method: requestMethod,
         status_code: statusCode,
-        user_id: userId,
-        tenant_id: tenantId,
+        user_id: userId as any,
+        tenant_id: tenantId as any,
       }).catch(() => {});
 
       if (statusCode >= 500) {

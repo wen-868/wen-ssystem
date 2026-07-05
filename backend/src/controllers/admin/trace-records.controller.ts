@@ -1,7 +1,7 @@
 import { z } from "zod";
-import { asyncHandler } from "../../shared/async-handler.js";
-import { ok } from "../../shared/response.js";
-import { getTenantId } from "../../shared/tenant.js";
+import { asyncHandler } from "../../middleware/async-handler.js";
+import { ok, fail } from "../../shared/response.js";
+import { getTenantId } from "../../middleware/tenant.js";
 import * as traceRecordsService from "../../services/admin/trace-records.service.js";
 
 export const generateTraceCodes = asyncHandler(async (req, res) => {
@@ -47,7 +47,7 @@ export const getTraceCodeDetail = asyncHandler(async (req, res) => {
   const traceCode = req.params.traceCode;
   const result = await traceRecordsService.getTraceCodeDetail(traceCode, tenantId);
   if (!result) {
-    res.status(404).json({ code: "404", message: "追溯码不存在" });
+    res.status(404).json(fail("追溯码不存在", "404"));
     return;
   }
   res.json(ok(result));
@@ -76,7 +76,7 @@ export const updateTraceCodeStatus = asyncHandler(async (req, res) => {
     tenantId
   );
   if (!result) {
-    res.status(404).json({ code: "404", message: "追溯码不存在" });
+    res.status(404).json(fail("追溯码不存在", "404"));
     return;
   }
   res.json(ok(result));
@@ -93,7 +93,7 @@ export const queryTraceChain = asyncHandler(async (req, res) => {
   const traceCode = req.params.traceCode;
   const result = await traceRecordsService.queryTraceChain(traceCode, tenantId);
   if (!result) {
-    res.status(404).json({ code: "404", message: "追溯码不存在" });
+    res.status(404).json(fail("追溯码不存在", "404"));
     return;
   }
   res.json(ok(result));
@@ -144,7 +144,7 @@ export const getRecallDetail = asyncHandler(async (req, res) => {
   const recallNo = req.params.recallNo;
   const result = await traceRecordsService.getRecallDetail(recallNo, tenantId);
   if (!result) {
-    res.status(404).json({ code: "404", message: "召回记录不存在" });
+    res.status(404).json(fail("召回记录不存在", "404"));
     return;
   }
   res.json(ok(result));
@@ -159,12 +159,12 @@ export const executeRecall = asyncHandler(async (req, res) => {
     req.user!.username ?? "system",
     tenantId
   );
-  if ((result as Record<string, unknown>).notFound) {
+  if ((result as any).notFound) {
     res.status(404).json({ message: "追踪记录不存在" });
     return;
   }
-  if ((result as Record<string, unknown>).alreadyEnded) {
-    res.status(400).json({ code: "400", message: "该召回已结束，无法执行" });
+  if ((result as any).alreadyEnded) {
+    res.status(400).json(fail("该召回已结束，无法执行", "400"));
     return;
   }
   res.json(ok(result));
@@ -178,12 +178,12 @@ export const completeRecall = asyncHandler(async (req, res) => {
     totalReturned: z.number().int().min(0).default(0)
   }).parse(req.body);
   const result = await traceRecordsService.completeRecall(recallNo, body, tenantId);
-  if ((result as Record<string, unknown>).notFound) {
+  if ((result as any).notFound) {
     res.status(404).json({ message: "追踪记录不存在" });
     return;
   }
-  if ((result as Record<string, unknown>).alreadyEnded) {
-    res.status(400).json({ code: "400", message: "该召回已结束" });
+  if ((result as any).alreadyEnded) {
+    res.status(400).json(fail("该召回已结束", "400"));
     return;
   }
   res.json(ok(result));
@@ -194,7 +194,7 @@ export const consumerQueryTrace = asyncHandler(async (req, res) => {
   const traceCode = req.params.traceCode;
   const result = await traceRecordsService.consumerQueryTrace(traceCode, tenantId);
   if (!result) {
-    res.status(404).json({ code: "404", message: "追溯码不存在" });
+    res.status(404).json(fail("追溯码不存在", "404"));
     return;
   }
   res.json(ok(result));

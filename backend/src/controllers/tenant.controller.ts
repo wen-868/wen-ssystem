@@ -1,5 +1,5 @@
 import { z } from "zod";
-import { asyncHandler } from "../shared/async-handler.js";
+import { asyncHandler } from "../middleware/async-handler.js";
 import { ok } from "../shared/response.js";
 import * as service from "../services/admin/tenant.service.js";
 

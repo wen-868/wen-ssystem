@@ -1,6 +1,6 @@
 import { z } from "zod";
-import { asyncHandler } from "../../shared/async-handler.js";
-import { ok } from "../../shared/response.js";
+import { asyncHandler } from "../../middleware/async-handler.js";
+import { ok, fail } from "../../shared/response.js";
 import * as quotePushService from "../../services/admin/quote-push.service.js";
 
 export const previewQuote = asyncHandler(async (req, res) => {
@@ -64,7 +64,7 @@ export const getQuoteDetail = asyncHandler(async (req, res) => {
 
   const result = await quotePushService.getQuoteDetail(quoteId, tenantId);
   if (!result) {
-    res.status(404).json({ code: "404", message: "报价单不存在" });
+    res.status(404).json(fail("报价单不存在", "404"));
     return;
   }
   res.json(ok(result));
@@ -95,7 +95,7 @@ export const viewQuoteByToken = asyncHandler(async (req, res) => {
 
   const result = await quotePushService.viewQuoteByToken(shareToken);
   if (!result) {
-    res.status(404).json({ code: "404", message: "报价单不存在或已过期" });
+    res.status(404).json(fail("报价单不存在或已过期", "404"));
     return;
   }
   res.json(ok(result));

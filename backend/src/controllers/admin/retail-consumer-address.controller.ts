@@ -1,5 +1,6 @@
 import { z } from "zod";
-import { asyncHandler } from "../../shared/async-handler.js";
+import { asyncHandler } from "../../middleware/async-handler.js";
+import { ok } from "../../shared/response.js";
 import * as addressService from "../../services/miniapp/retail-consumer-address.service.js";
 
 const createAddressSchema = z.object({
@@ -29,34 +30,34 @@ const updateAddressSchema = z.object({
 export const listAddresses = asyncHandler(async (req, res) => {
   const userId = Number(req.user!.id);
   const data = await addressService.listAddresses(userId);
-  res.json({ code: "0", message: "ok", data });
+  res.json(ok(data));
 });
 
 export const createAddress = asyncHandler(async (req, res) => {
   const userId = Number(req.user!.id);
   const body = createAddressSchema.parse(req.body);
-  const data = await addressService.createAddress(userId, body as Record<string, unknown>);
-  res.json({ code: "0", message: "ok", data });
+  const data = await addressService.createAddress(userId, body as any);
+  res.json(ok(data));
 });
 
 export const updateAddress = asyncHandler(async (req, res) => {
   const userId = Number(req.user!.id);
   const id = Number(req.params.id);
   const body = updateAddressSchema.parse(req.body);
-  await addressService.updateAddress(id, userId, body as Record<string, unknown>);
-  res.json({ code: "0", message: "ok", data: null });
+  await addressService.updateAddress(id, userId, body as any);
+  res.json(ok(null));
 });
 
 export const deleteAddress = asyncHandler(async (req, res) => {
   const userId = Number(req.user!.id);
   const id = Number(req.params.id);
   await addressService.deleteAddress(id, userId);
-  res.json({ code: "0", message: "ok", data: null });
+  res.json(ok(null));
 });
 
 export const setDefault = asyncHandler(async (req, res) => {
   const userId = Number(req.user!.id);
   const id = Number(req.params.id);
   await addressService.setDefault(id, userId);
-  res.json({ code: "0", message: "ok", data: null });
+  res.json(ok(null));
 });

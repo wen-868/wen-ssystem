@@ -1,5 +1,5 @@
 import { Router } from "express";
-import { requireAuthWithTenant } from "../shared/auth.js";
+import { requireAuthWithTenant } from "../middleware/auth.js";
 import { pool } from "../shared/db.js";
 import type { Pool } from "mysql2/promise";
 import * as ctrl from "../controllers/notification.controller.js";
@@ -36,7 +36,7 @@ export async function sendNotification(
       params.tenantId
     ]
   );
-  return (result as { insertId: number }).insertId;
+  return (result as unknown as { insertId: number }).insertId;
 }
 
 // ========== 管理后台通知路由 ==========

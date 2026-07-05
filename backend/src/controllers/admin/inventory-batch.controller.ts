@@ -1,4 +1,4 @@
-import { asyncHandler } from "../../shared/async-handler.js";
+import { asyncHandler } from "../../middleware/async-handler.js";
 import { ok, fail } from "../../shared/response.js";
 import * as service from "../../services/admin/inventory-batch.service.js";
 import { z } from "zod";
@@ -22,7 +22,7 @@ export const getBatchDetail = asyncHandler(async (req, res) => {
   const id = z.coerce.number().parse(req.params.id);
   const batch = await service.getBatchDetail(req.tenantId!, id);
   if (!batch) {
-    res.status(404).json({ code: "1", message: "批次不存在" });
+    res.status(404).json(fail("批次不存在", "1"));
     return;
   }
   res.json(ok(batch));

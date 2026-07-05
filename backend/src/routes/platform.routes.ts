@@ -1,7 +1,7 @@
 import { Router } from "express";
 import type { RouteConfig } from "../shared/auto-routes.js";
 import { query, queryOne } from "../shared/db.js";
-import { asyncHandler } from "../shared/async-handler.js";
+import { asyncHandler } from "../middleware/async-handler.js";
 import { ok, fail } from "../shared/response.js";
 
 export const platformRouter = Router();
@@ -21,7 +21,7 @@ platformRouter.get("/overview", asyncHandler(async (req, res) => {
       orderCount: orderCount?.count ?? 0
     }));
   } catch (err: any) {
-    res.status(500).json(fail(err.message || "服务器错误"));
+    res.status(500).json(fail((err as any).message || "服务器错误"));
   }
 }));
 
@@ -33,7 +33,7 @@ platformRouter.get("/tenants", asyncHandler(async (req, res) => {
     );
     res.json(ok(tenants ?? []));
   } catch (err: any) {
-    res.status(500).json(fail(err.message || "服务器错误"));
+    res.status(500).json(fail((err as any).message || "服务器错误"));
   }
 }));
 

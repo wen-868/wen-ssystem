@@ -1,5 +1,5 @@
 import { query, queryOne } from "../../shared/db.js";
-import { getStats } from "../../shared/response-time-tracker.js";
+import { getStats } from "../../middleware/response-tracker.js";
 
 export interface DbStatus {
   connection: "connected" | "disconnected" | "error";
@@ -84,8 +84,8 @@ export async function getApiStats(): Promise<ApiStats> {
   const statusCodes: Record<number, number> = { ...trackerStats.statusCodes };
   if (Array.isArray(statusCodeResult)) {
     for (const row of statusCodeResult) {
-      const code = (row as Record<string, unknown>).status_code;
-      statusCodes[code] = (statusCodes[code] || 0) + (row as Record<string, unknown>).count;
+      const code = (row as Record<string, any>).status_code;
+      statusCodes[code] = (statusCodes[code] || 0) + (row as Record<string, any>).count;
     }
   }
 
@@ -99,8 +99,8 @@ export async function getApiStats(): Promise<ApiStats> {
   if (Array.isArray(weeklyData)) {
     for (const row of weeklyData) {
       weeklyErrorTrend.push({
-        date: (row as Record<string, unknown>).date,
-        count: (row as Record<string, unknown>).count || 0,
+        date: (row as Record<string, any>).date,
+        count: (row as Record<string, any>).count || 0,
       });
     }
   }

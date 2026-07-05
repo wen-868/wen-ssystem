@@ -84,7 +84,7 @@ export async function createUser(tenantId: string, input: CreateUserInput, opera
        VALUES (?, ?, ?, ?, ?, 'ACTIVE', ?)`,
       [input.username, hashedPassword, input.realName, input.mobile ?? null, input.email ?? null, tenantId]
     );
-    const userId = (result as { insertId: number }).insertId;
+    const userId = (result as unknown as { insertId: number }).insertId;
 
     for (const roleId of input.roleIds) {
       await conn.execute(

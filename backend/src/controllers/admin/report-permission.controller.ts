@@ -1,4 +1,5 @@
 import { z } from "zod";
+import { ok } from "../../shared/response.js";
 import * as service from "../../services/admin/report-permission.service.js";
 
 const saveMatrixSchema = z.object({
@@ -11,12 +12,12 @@ const saveMatrixSchema = z.object({
 
 export async function getMatrix(_req: any, res: any) {
   const rows = await service.getMatrix();
-  res.json({ code: "0", message: "ok", data: rows });
+  res.json(ok(rows));
 }
 
 export async function saveMatrix(req: any, res: any) {
   const body = saveMatrixSchema.parse(req.body);
   const data = body.permissions;
   await service.saveMatrix(data);
-  res.json({ code: "0", message: "ok" });
+  res.json(ok());
 }

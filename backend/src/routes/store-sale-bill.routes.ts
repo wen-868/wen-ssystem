@@ -1,7 +1,7 @@
 import { Router } from "express";
 import type { RouteConfig } from "../shared/auto-routes.js";
 import { z } from "zod";
-import { requireAuthWithTenant } from "../shared/auth.js";
+import { requireAuthWithTenant } from "../middleware/auth.js";
 import * as saleBillController from "../controllers/store/sale-bill.controller.js";
 
 export const storeSaleBillRouter = Router();

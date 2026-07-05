@@ -1,7 +1,7 @@
 import { Router } from "express";
 import type { RouteConfig } from "../shared/auto-routes.js";
-import { requireAuthWithTenant } from "../shared/auth.js";
-import { requirePriceManagementAccess, requirePriceChangeLogAccess, priceResponseFilter } from "../shared/price-guard-middleware.js";
+import { requireAuthWithTenant } from "../middleware/auth.js";
+import { requirePriceManagementAccess, requirePriceChangeLogAccess, priceResponseFilter } from "../middleware/price-guard.js";
 import * as priceLevelController from "../controllers/admin/price-level.controller.js";
 import * as priceManagementController from "../controllers/admin/price-management.controller.js";
 import * as batchPriceController from "../controllers/admin/batch-price.controller.js";

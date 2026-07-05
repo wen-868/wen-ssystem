@@ -1,9 +1,9 @@
 import { Router } from "express";
 import type { RouteConfig } from "../shared/auto-routes.js";
 import { z } from "zod";
-import { asyncHandler } from "../shared/async-handler.js";
-import { requireAuthWithTenant } from "../shared/auth.js";
-import { ok } from "../shared/response.js";
+import { asyncHandler } from "../middleware/async-handler.js";
+import { requireAuthWithTenant } from "../middleware/auth.js";
+import { ok, fail } from "../shared/response.js";
 import { saleReturnService } from "../services/sale-return.service.js";
 import type { ServiceContext } from "../types/index.js";
 
@@ -44,7 +44,7 @@ saleReturnRouter.get("/:returnNo", requireAuthWithTenant, asyncHandler(async (re
   const returnOrder = await saleReturnService.getDetail(returnNo, ctx);
 
   if (!returnOrder) {
-    res.status(404).json({ code: "404", message: "退货单不存在" });
+    res.status(404).json(fail("退货单不存在", "404"));
     return;
   }
 
@@ -82,12 +82,12 @@ saleReturnRouter.post("/:returnNo/approve", requireAuthWithTenant, asyncHandler(
   try {
     const result = await saleReturnService.approve(returnNo, ctx);
     if (!result) {
-      res.status(404).json({ code: "404", message: "退货单不存在" });
+      res.status(404).json(fail("退货单不存在", "404"));
       return;
     }
     res.json(ok(result));
-  } catch (e: unknown) {
-    res.status(400).json({ code: "400", message: e.message });
+  } catch (e: any) {
+    res.status(400).json(fail(e.message, "400"));
   }
 }));
 
@@ -102,12 +102,12 @@ saleReturnRouter.post("/:returnNo/refund", requireAuthWithTenant, asyncHandler(a
   try {
     const result = await saleReturnService.refund(returnNo, body, ctx);
     if (!result) {
-      res.status(404).json({ code: "404", message: "退货单不存在" });
+      res.status(404).json(fail("退货单不存在", "404"));
       return;
     }
     res.json(ok(result));
-  } catch (e: unknown) {
-    res.status(400).json({ code: "400", message: e.message });
+  } catch (e: any) {
+    res.status(400).json(fail(e.message, "400"));
   }
 }));
 
@@ -118,7 +118,7 @@ saleReturnRouter.get("/sale-bills/:billNo", requireAuthWithTenant, asyncHandler(
   const bill = await saleReturnService.getSaleBill(billNo, ctx);
 
   if (!bill) {
-    res.status(404).json({ code: "404", message: "销售单不存在" });
+    res.status(404).json(fail("销售单不存在", "404"));
     return;
   }
 

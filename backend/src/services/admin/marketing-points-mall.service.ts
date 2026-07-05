@@ -1,5 +1,5 @@
 import { queryWithTenant, queryOneWithTenant } from "../../shared/db.js";
-import { makeBizNo } from "../../shared/biz-no.js";
+import { makeBizNo } from "../../shared/id.js";
 
 export async function createPointsProduct(data: any, tenantId: string) {
   const code = makeBizNo("JF");

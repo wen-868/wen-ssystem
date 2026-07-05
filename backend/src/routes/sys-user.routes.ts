@@ -1,10 +1,10 @@
 import { Router } from "express";
 import type { RouteConfig } from "../shared/auto-routes.js";
 import { z } from "zod";
-import { requireAuthWithTenant } from "../shared/auth.js";
-import { asyncHandler } from "../shared/async-handler.js";
+import { requireAuthWithTenant } from "../middleware/auth.js";
+import { asyncHandler } from "../middleware/async-handler.js";
 import { query, queryOne, transaction } from "../shared/db.js";
-import { ok } from "../shared/response.js";
+import { ok, fail } from "../shared/response.js";
 import bcrypt from "bcryptjs";
 
 export const sysUserRouter = Router();
@@ -79,7 +79,7 @@ sysUserRouter.post("/", requireAuthWithTenant, asyncHandler(async (req, res) => 
     [body.username, tenantId]
   );
   if (existing) {
-    res.status(400).json({ code: "400", message: "用户名已存在" });
+    res.status(400).json(fail("用户名已存在", "400"));
     return;
   }
 
@@ -91,7 +91,7 @@ sysUserRouter.post("/", requireAuthWithTenant, asyncHandler(async (req, res) => 
        VALUES (?, ?, ?, ?, ?, 'ACTIVE', ?)`,
       [body.username, hashedPassword, body.realName, body.mobile ?? null, body.email ?? null, tenantId]
     );
-    const userId = (result as { insertId: number }).insertId;
+    const userId = (result as unknown as { insertId: number }).insertId;
 
     // 分配角色
     for (const roleId of body.roleIds) {
@@ -128,7 +128,7 @@ sysUserRouter.get("/:id", requireAuthWithTenant, asyncHandler(async (req, res) =
      FROM sys_user WHERE id = ? AND tenant_id = ?`,
     [id, tenantId]
   );
-  if (!user) { res.status(404).json({ code: "404", message: "用户不存在" }); return; }
+  if (!user) { res.status(404).json(fail("用户不存在", "404")); return; }
 
   const roles = await query<any>(
     `SELECT r.id, r.role_name AS roleName, r.role_code AS roleCode
@@ -155,7 +155,7 @@ sysUserRouter.put("/:id", requireAuthWithTenant, asyncHandler(async (req, res) =
   }).parse(req.body);
 
   const existing = await queryOne<any>("SELECT id FROM sys_user WHERE id = ? AND tenant_id = ?", [id, tenantId]);
-  if (!existing) { res.status(404).json({ code: "404", message: "用户不存在" }); return; }
+  if (!existing) { res.status(404).json(fail("用户不存在", "404")); return; }
 
   const updates: string[] = [];
   const sqlParams: any[] = [];
@@ -205,7 +205,7 @@ sysUserRouter.post("/:id/reset-password", requireAuthWithTenant, asyncHandler(as
   }).parse(req.body);
 
   const existing = await queryOne<any>("SELECT id, username FROM sys_user WHERE id = ? AND tenant_id = ?", [id, tenantId]);
-  if (!existing) { res.status(404).json({ code: "404", message: "用户不存在" }); return; }
+  if (!existing) { res.status(404).json(fail("用户不存在", "404")); return; }
 
   const hashedPassword = await bcrypt.hash(body.newPassword, 10);
   await query("UPDATE sys_user SET password_hash = ?, updated_at = NOW() WHERE id = ? AND tenant_id = ?", [hashedPassword, id, tenantId]);
@@ -225,7 +225,7 @@ sysUserRouter.delete("/:id", requireAuthWithTenant, asyncHandler(async (req, res
   const id = Number(req.params.id);
 
   const existing = await queryOne<any>("SELECT id, username FROM sys_user WHERE id = ? AND tenant_id = ?", [id, tenantId]);
-  if (!existing) { res.status(404).json({ code: "404", message: "用户不存在" }); return; }
+  if (!existing) { res.status(404).json(fail("用户不存在", "404")); return; }
 
   await transaction(async (conn) => {
     await conn.execute("DELETE FROM sys_user_role WHERE user_id = ? AND tenant_id = ?", [id, tenantId]);

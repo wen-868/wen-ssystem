@@ -1,5 +1,5 @@
 import { query, queryOne, queryWithTenant, queryOneWithTenant } from "../../shared/db.js";
-import { signToken, getUserAccessInfo, AuthUser } from "../../shared/auth.js";
+import { signToken, getUserAccessInfo, AuthUser } from "../../middleware/auth.js";
 import { verifyPassword } from "../../shared/password.js";
 
 export async function login(username: string, password: string) {

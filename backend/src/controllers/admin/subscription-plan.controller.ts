@@ -1,6 +1,6 @@
 import { z } from "zod";
-import { asyncHandler } from "../../shared/async-handler.js";
-import { ok } from "../../shared/response.js";
+import { asyncHandler } from "../../middleware/async-handler.js";
+import { ok, fail } from "../../shared/response.js";
 import * as subscriptionPlanService from "../../services/admin/subscription-plan.service.js";
 
 export const listPlans = asyncHandler(async (req, res) => {
@@ -13,7 +13,7 @@ export const getPlan = asyncHandler(async (req, res) => {
   const planId = Number(req.params.planId);
   const record = await subscriptionPlanService.getPlan(planId);
   if (!record) {
-    res.status(404).json({ code: "404", message: "套餐不存在" });
+    res.status(404).json(fail("套餐不存在", "404"));
     return;
   }
   res.json(ok(record));
@@ -65,7 +65,7 @@ export const updatePlan = asyncHandler(async (req, res) => {
 
   const result = await subscriptionPlanService.updatePlan(planId, body);
   if (!result) {
-    res.status(404).json({ code: "404", message: "套餐不存在" });
+    res.status(404).json(fail("套餐不存在", "404"));
     return;
   }
   res.json(ok(result));

@@ -1,6 +1,6 @@
 import { Router } from "express";
 import type { RouteConfig } from "../shared/auto-routes.js";
-import { requireAuthWithTenant } from "../shared/auth.js";
+import { requireAuthWithTenant } from "../middleware/auth.js";
 import * as ctrl from "../controllers/audit.controller.js";
 import { writeAuditLog } from "../services/admin/audit.service.js";
 import type { Request } from "express";

@@ -1,6 +1,6 @@
 import { z } from "zod";
-import { asyncHandler } from "../../shared/async-handler.js";
-import { ok } from "../../shared/response.js";
+import { asyncHandler } from "../../middleware/async-handler.js";
+import { ok, fail } from "../../shared/response.js";
 import * as orderService from "../../services/admin/order.service.js";
 
 // ── Zod schemas ──
@@ -50,7 +50,7 @@ export const getOrderDetail = asyncHandler(async (req, res) => {
   const tenantId = req.tenantId!;
   const result = await orderService.getOrderDetail(req.params.orderNo, tenantId);
   if (!result) {
-    res.status(404).json({ code: "404", message: "订单不存在" });
+    res.status(404).json(fail("订单不存在", "404"));
     return;
   }
   res.json(ok(result));
@@ -130,7 +130,7 @@ export const batchUpdateOrderStatus = asyncHandler(async (req, res) => {
   const operatorId = req.user?.id ?? null;
   const operatorName = req.user?.username ?? "系统用户";
   if (!orderNos.length) {
-    res.status(400).json({ code: "400", message: "订单号列表不能为空" });
+    res.status(400).json(fail("订单号列表不能为空", "400"));
     return;
   }
   const result = await orderService.batchUpdateOrderStatus(orderNos, targetStatus, operatorId, operatorName, tenantId);

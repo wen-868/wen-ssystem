@@ -1,6 +1,6 @@
 import { z } from "zod";
-import { asyncHandler } from "../../shared/async-handler.js";
-import { ok } from "../../shared/response.js";
+import { asyncHandler } from "../../middleware/async-handler.js";
+import { ok, fail } from "../../shared/response.js";
 import * as productService from "../../services/admin/product.service.js";
 
 export const listProducts = asyncHandler(async (req, res) => {
@@ -77,7 +77,7 @@ export const updateProductStatus = asyncHandler(async (req, res) => {
   const body = z.object({ status: z.enum(["DRAFT", "ON_SALE", "OFF_SALE"]) }).parse(req.body);
   const result = await productService.updateProductStatus(Number(req.params.spuId), body.status, tenantId);
   if (!result) {
-    res.status(404).json({ code: "404", message: "商品不存在" });
+    res.status(404).json(fail("商品不存在", "404"));
     return;
   }
   res.json(ok(result));
@@ -102,7 +102,7 @@ export const updateProduct = asyncHandler(async (req, res) => {
   }).parse(req.body);
   const result = await productService.updateProduct(spuId, body, tenantId);
   if (!result) {
-    res.status(404).json({ code: "404", message: "商品不存在" });
+    res.status(404).json(fail("商品不存在", "404"));
     return;
   }
   res.json(ok(result));
@@ -139,7 +139,7 @@ export const importProducts = asyncHandler(async (req, res) => {
   const tenantId = req.tenantId!;
   const rows = req.body.rows;
   if (!Array.isArray(rows) || rows.length === 0) {
-    res.status(400).json({ code: "400", message: "请提供有效的导入数据" });
+    res.status(400).json(fail("请提供有效的导入数据", "400"));
     return;
   }
   const result = await productService.importProducts(rows, tenantId);

@@ -1,6 +1,6 @@
 import { z } from "zod";
-import { asyncHandler } from "../../shared/async-handler.js";
-import { ok } from "../../shared/response.js";
+import { asyncHandler } from "../../middleware/async-handler.js";
+import { ok, fail } from "../../shared/response.js";
 import * as platformIntegrationService from "../../services/instant-retail/platform-integration.service.js";
 
 const upsertConfigSchema = z.object({
@@ -58,7 +58,7 @@ export const getConfigByPlatform = asyncHandler(async (req, res) => {
   const tenantId = req.tenantId!;
   const result = await platformIntegrationService.getConfigByPlatform(req.params.platform, tenantId);
   if (!result) {
-    res.status(404).json({ code: "404", message: "平台配置不存在" });
+    res.status(404).json(fail("平台配置不存在", "404"));
     return;
   }
   res.json(ok(result));
@@ -75,11 +75,11 @@ export const testConnection = asyncHandler(async (req, res) => {
   const tenantId = req.tenantId!;
   const result = await platformIntegrationService.testConnection(req.params.platform, tenantId);
   if (!result.found) {
-    res.status(404).json({ code: "404", message: "平台配置不存在" });
+    res.status(404).json(fail("平台配置不存在", "404"));
     return;
   }
   if (!result.connected) {
-    res.status(502).json({ code: "502", message: `连接失败: ${result.error}` });
+    res.status(502).json(fail(`连接失败: ${result.error}`, "502"));
     return;
   }
   res.json(ok({ platform: result.platform, connected: true, tokenUpdated: result.tokenUpdated }));
@@ -90,7 +90,7 @@ export const syncOrders = asyncHandler(async (req, res) => {
   const body = syncBodySchema.parse(req.body);
   const result = await platformIntegrationService.syncOrders(req.params.platform, body, tenantId);
   if (!result.found) {
-    res.status(404).json({ code: "404", message: "平台配置不存在" });
+    res.status(404).json(fail("平台配置不存在", "404"));
     return;
   }
   res.json(ok({ platform: result.platform, synced: result.synced, hasMore: result.hasMore }));
@@ -101,7 +101,7 @@ export const syncProducts = asyncHandler(async (req, res) => {
   const body = syncBodySchema.parse(req.body);
   const result = await platformIntegrationService.syncProducts(req.params.platform, body, tenantId);
   if (!result.found) {
-    res.status(404).json({ code: "404", message: "平台配置不存在" });
+    res.status(404).json(fail("平台配置不存在", "404"));
     return;
   }
   res.json(ok({ platform: result.platform, synced: result.synced, hasMore: result.hasMore }));

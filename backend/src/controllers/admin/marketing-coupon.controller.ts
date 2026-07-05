@@ -1,6 +1,6 @@
 import { z } from "zod";
-import { asyncHandler } from "../../shared/async-handler.js";
-import { ok } from "../../shared/response.js";
+import { asyncHandler } from "../../middleware/async-handler.js";
+import { ok, fail } from "../../shared/response.js";
 import * as couponService from "../../services/admin/marketing-coupon.service.js";
 
 export const createCouponTemplate = asyncHandler(async (req, res) => {
@@ -97,7 +97,7 @@ export const claimCoupon = asyncHandler(async (req, res) => {
   const templateId = Number(req.params.templateId);
   const userId = Number(req.user?.id || req.body.userId || req.query.userId || 0);
   if (!userId) {
-    res.status(400).json({ code: "400", message: "缺少用户ID" });
+    res.status(400).json(fail("缺少用户ID", "400"));
     return;
   }
   const result = await couponService.claimCoupon(templateId, userId, req.tenantId!);
@@ -107,7 +107,7 @@ export const claimCoupon = asyncHandler(async (req, res) => {
 export const listMyCoupons = asyncHandler(async (req, res) => {
   const userId = Number(req.user?.id || req.query.userId || 0);
   if (!userId) {
-    res.status(400).json({ code: "400", message: "缺少用户ID" });
+    res.status(400).json(fail("缺少用户ID", "400"));
     return;
   }
   const page = Number(req.query.page || 1);

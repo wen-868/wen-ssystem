@@ -338,12 +338,12 @@ export async function claimCoupon(templateId: number, userId: number, tenantId: 
       [templateId, tenantId, now, now]
     ) as unknown as Record<string, unknown>[];
 
-    const template = (templateRows as Record<string, unknown>[])[0];
+    const template = (templateRows as unknown as Record<string, unknown>[])[0];
     if (!template) {
       throw Object.assign(new Error("优惠券不存在或已过期"), { statusCode: 404 });
     }
 
-    if (template.total_count > 0 && template.claimed_count >= template.total_count) {
+    if ((template as any).total_count > 0 && (template as any).claimed_count >= (template as any).total_count) {
       throw Object.assign(new Error("优惠券已被领完"), { statusCode: 400 });
     }
 
@@ -354,7 +354,7 @@ export async function claimCoupon(templateId: number, userId: number, tenantId: 
       [tenantId, templateId, userId]
     ) as unknown as Record<string, unknown>[];
 
-    if ((existingRows as Record<string, unknown>[]).length > 0) {
+    if ((existingRows as unknown as Record<string, unknown>[]).length > 0) {
       throw Object.assign(new Error("您已领取过该优惠券"), { statusCode: 400 });
     }
 

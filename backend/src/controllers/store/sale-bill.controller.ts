@@ -1,6 +1,6 @@
 import { z } from "zod";
-import { asyncHandler } from "../../shared/async-handler.js";
-import { ok } from "../../shared/response.js";
+import { asyncHandler } from "../../middleware/async-handler.js";
+import { ok, fail } from "../../shared/response.js";
 import * as saleBillService from "../../services/store/sale-bill.service.js";
 import { storeSaleBillItemSchema } from "../../routes/store-sale-bill.routes.js";
 
@@ -18,7 +18,7 @@ export const listSaleBills = asyncHandler(async (req, res) => {
 
 export const getSaleBillDetail = asyncHandler(async (req, res) => {
   const bill = await saleBillService.getSaleBillDetail(req.params.billNo, req.tenantId!);
-  if (!bill) { res.status(404).json({ code: "404", message: "销售单不存在" }); return; }
+  if (!bill) { res.status(404).json(fail("销售单不存在", "404")); return; }
   res.json(ok(bill));
 });
 
