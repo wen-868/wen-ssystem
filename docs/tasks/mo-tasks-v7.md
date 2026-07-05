@@ -330,3 +330,36 @@ app.use('/api/admin/report-permissions', requireAuthWithTenant, reportPermission
 | 1 | `product-spec-v6-adapted.md` | 最终同步：所有Section字段完整，完成度100% |
 | 2 | `README.md` | 更新项目版本号 v6.2 → v7.0 |
 | 3 | Git tag | `git tag v7.0` |
+
+---
+
+## 🔴 苏然测试报告 v2 修复任务 (2026-07-05 凌舟分派)
+
+> 来源：`docs/test-report-global-2026-07-04-v2.md`（苏然第二轮全局深度测试）
+
+### 修复-1: admin-web 构建失败 — wangeditor 不兼容 Vue 3.4+ [P0] — 预计 1天
+
+**文件**：`admin-web/package.json`  
+**问题**：`@wangeditor/editor-for-vue@^1.0.2` 不兼容 Vue 3.4+ 的 ESM 导出，导致 `vite build` 失败。  
+**修复**：升级到 `@wangeditor/editor-for-vue@next` 或替换为 Tiptap/Quill。
+
+### 修复-2: admin-web api.ts 零错误处理 [P0] — 预计 1天
+
+**文件**：`admin-web/src/api.ts`（2113 行）  
+**问题**：0 处 try-catch，拦截器只处理了 401，403/404/500 全部静默失败。  
+**参考**：store-terminal 的 api.ts 有 41 个 catch 块。
+
+### 修复-3: 28 个表单无输入校验 [P1] — 预计 1.5天
+
+**涉及文件**：AftersaleView, CommissionRules, PurchaseOrders, ApprovalRules, SystemConfigView, InventoryBatch, SalesOrderCreate, MyApprovals, TagGroups, PlatformPanel, OrderRoutingView, CollectionLinks, OrderTimeoutView, SaleReturnsView, InventoryBatchPrice, CommissionRecords, OrderProductMapView, MarketingMaterial, CustomerProfile, MarketingView, CreditView, PurchaseInStocks, InventoryAlertConfig, PurchasePlans, ProductImport, SupplierStatements, MarketingPointsMall, CustomerPrices
+
+### 修复-4: InstantRetailPlatform.vue 硬编码假密钥 [P1] — 预计 0.5天
+
+**文件**：`admin-web/src/views/InstantRetailPlatform.vue`  
+**位置**：第 34/48/65/79/108 行，5 处假密钥如 `"jd_app_secret_xxxxxx"`。  
+**修复**：改为空字符串，由后端 API 返回真实配置。
+
+### 修复-5: 5 处 echarts 图表使用 innerHTML 清理 [P2] — 预计 0.5天
+
+**文件**：ReportsProducts.vue, ReportsEmployees.vue, ReportsStores.vue, FinanceProfit.vue  
+**修复**：改用 `while (el.firstChild) el.removeChild(el.firstChild)`。

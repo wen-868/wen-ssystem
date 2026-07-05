@@ -716,3 +716,39 @@ app.use('/api/admin/marketing/group-buy', requireAuthWithTenant, groupBuyRouter)
 - `deploy/auto-deploy.sh`
 - `website/` 或 `www/index.html`（取决于最终方案）
 - `landing-page/index.html`（来自 oqrXJp 分支的另一个设计稿，可参考）
+
+---
+
+## 🔴 苏然测试报告 v2 修复任务 (2026-07-05 凌舟分派)
+
+> 来源：`docs/test-report-global-2026-07-04-v2.md`（苏然第二轮全局深度测试）
+
+### 修复-1: merchant-mobile 缺失视图 PurchaseReturnDetailView [P0] — 预计 0.5天
+
+**文件**：`merchant-mobile/src/router.ts`  
+**问题**：路由引用 `src/views/PurchaseReturnDetailView.vue`，但该文件不存在，访问时白屏。  
+**对比**：上次测试的 3 个缺失视图已修复（order-list、order-detail、inventory-sync），仅剩此 1 个。
+
+### 修复-2: merchant-mobile api.ts 错误处理严重不足 [P0] — 预计 1天
+
+**文件**：`merchant-mobile/src/api.ts`（2602 行）  
+**问题**：仅 1 处 try-catch，拦截器只处理了 401，403/404/500 全部静默失败。  
+**参考**：store-terminal 的 api.ts 有 41 个 catch 块。
+
+### 修复-3: 四个前端项目 npm 安全漏洞 [P1] — 预计 0.5天
+
+**漏洞**：
+- vite <=6.4.2（CWE-22 路径遍历，严重）→ 升级到 6.4.3+
+- esbuild <=0.24.2（CWE-346）→ 升级到 0.25+
+
+**涉及项目**：admin-web, merchant-mobile, saas-admin, store-terminal（需与墨、阿坚协调）
+
+### 修复-4: saas-admin + store-terminal 构建产物过大 [P1] — 预计 0.5天
+
+| 项目 | chunk | 大小 |
+|------|-------|------|
+| saas-admin | Dashboard | 1.13 MB |
+| saas-admin | index | 1.09 MB |
+| store-terminal | element-plus | 1.00 MB |
+
+**修复**：配置 `build.rollupOptions.output.manualChunks` 拆分 element-plus。

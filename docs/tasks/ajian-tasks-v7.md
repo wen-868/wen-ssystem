@@ -363,25 +363,45 @@ app.use('/api/admin/reports', requireAuthWithTenant, customReportRouter);
 
 ---
 
-## 🔴 紧急修复任务 (2026-07-04 凌舟分派)
+## 🔴 苏然测试报告 v2 修复任务 (2026-07-05 凌舟分派)
 
-### 修复-1: auto-routes.ts 导致测试全部 404 [P0] — 预计 0.5天
+> 来源：`docs/test-report-global-2026-07-04-v2.md`（苏然第二轮全局深度测试）
 
-**问题**：合并 4 个分支后，`npx vitest run` 125 个测试失败，全部返回 404。
+### 修复-1: 47个Controller中168个try-catch绕过error-handler [P0] — 预计 2天
 
-**根因**：`backend/src/shared/auto-routes.ts` 第 79 行硬编码 `.routes.ts` 过滤器：
-```typescript
-files = readdirSync(routesDir).filter((f) => f.endsWith(".routes.ts"));
-```
-vitest 加载 `dist/` 编译产物时，`dist/routes/` 只有 `.routes.js` 文件，过滤器返回空数组 → 0 条路由注册 → 全部 404。
+**问题**：47 个 controller 的 168 个 try-catch 块直接 `res.status().json()` 返回错误，导致 `errorHandler`、飞书告警、错误日志持久化全部失效。
 
-**修复方向**：
-1. 让 `auto-routes.ts` 动态检测文件扩展名：`.routes.ts` 或 `.routes.js`
-2. 或确保 vitest 始终从 TypeScript 源码（而非 dist/ 编译产物）加载模块
-3. 测试验证：`npx vitest run` 从 125 失败 → 目标 ≤ 10 失败
+**涉及最严重的文件**：
+- `aftersale.controller.ts` — 11 处
+- `credit.controller.ts` — 11 处
+- `stock-check.controller.ts` — 9 处
+- `marketing-group-buy.controller.ts` — 7 处
+- 其余 43 个 controller 各 1-6 处
 
-**次要修复**：`tests/auth.test.ts` 中 `jest.fn()` → `vi.fn()`（4 个测试失败，vitest 不兼容 jest）
+**修复方向**：移除 controller 中的 try-catch，让 `asyncHandler` 自动传递错误到 `errorHandler`。在 service 层抛出带 `statusCode` 的业务错误。
 
-**关联文件**：
-- `backend/src/shared/auto-routes.ts`
-- `backend/tests/auth.test.ts`
+### 修复-2: Store `/me` 端点无认证保护 [P0] — 预计 0.5天
+
+**文件**：`backend/src/routes/store.routes.ts`  
+**问题**：`/me` 路由在 `requireAuthWithTenant` 中间件之前注册，未认证用户访问时 `req.user!` 非空断言导致崩溃。  
+**修复**：将 `/me` 移到 `requireAuthWithTenant` 之后。
+
+### 修复-3: saas-admin MonitorView 路由未注册 [P1] — 预计 0.5天
+
+**文件**：`saas-admin/src/router/index.ts`  
+**问题**：路由文件中完全没有 MonitorView 配置。同时 MonitorView.vue 前端字段与后端 API 返回不一致（`connections`/`qps` vs `connection`/`errorCount`）。
+
+### 修复-4: 缺少统一日志框架 [P1] — 预计 1天
+
+**问题**：36 处 `console.log/error/warn` 分布在 21 个文件中，无结构化日志、无日志级别、无轮转。
+
+**修复方向**：引入 winston 或 pino，替换所有 `console.*` 调用。
+
+### 修复-5: 338处 `as any` 类型断言 [P2] — 预计 1天
+
+**最严重的文件**：`stock-check.service.ts`(26)、`transfer-execution.service.ts`(20)、`store-control.service.ts`(19)
+
+### 修复-6: 胖路由 admin.routes.ts 83个端点 [P2] — 预计 1天
+
+**问题**：单文件包含 83 个端点，难以维护。  
+**修复**：按业务模块拆分为独立路由文件。
