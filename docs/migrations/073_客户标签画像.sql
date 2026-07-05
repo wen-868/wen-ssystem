@@ -1,4 +1,4 @@
--- 客户标签
+-- 编号: 073, 描述: 客户标签画像, 创建人: 阿坚, 日期: 2026-07-05
 CREATE TABLE IF NOT EXISTS customer_tag (
   id BIGINT AUTO_INCREMENT PRIMARY KEY,
   tag_name VARCHAR(50) NOT NULL COMMENT '标签名称',

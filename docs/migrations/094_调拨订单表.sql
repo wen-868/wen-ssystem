@@ -1,4 +1,4 @@
--- 调拨单表
+-- 编号: 094, 描述: 调拨订单表, 创建人: 阿坚, 日期: 2026-07-05
 CREATE TABLE IF NOT EXISTS transfer_order (
   id BIGINT AUTO_INCREMENT PRIMARY KEY,
   transfer_no VARCHAR(32) NOT NULL COMMENT '调拨编号',

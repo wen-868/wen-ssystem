@@ -1,4 +1,4 @@
--- 来源: phase10_marketing.sql
+-- 编号: 035, 描述: 添加优惠券模板表, 创建人: 阿坚, 日期: 2026-07-05
 CREATE TABLE IF NOT EXISTS coupon_template (
   id INT AUTO_INCREMENT PRIMARY KEY,
   template_code VARCHAR(32) NOT NULL UNIQUE COMMENT '模板编码',

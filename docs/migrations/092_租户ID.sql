@@ -1,4 +1,4 @@
--- tenant_id 数据隔离迁移脚本（MySQL 8.0+ 兼容版）
+-- 编号: 092, 描述: 租户ID, 创建人: 阿坚, 日期: 2026-07-05
 -- 执行时间：2026-06-27
 -- 负责人：阿坚
 -- 修复：将 ALTER TABLE IF EXISTS / ADD COLUMN IF NOT EXISTS / ADD INDEX IF NOT EXISTS

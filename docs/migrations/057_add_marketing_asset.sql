@@ -1,3 +1,4 @@
+-- 编号: 057, 描述: 添加营销资产表, 创建人: 阿坚, 日期: 2026-07-05
 CREATE TABLE IF NOT EXISTS marketing_asset (
   id BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
   name VARCHAR(128) NOT NULL COMMENT '素材名称',

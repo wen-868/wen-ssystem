@@ -1,3 +1,4 @@
+-- 编号: 058, 描述: 添加系统部门表, 创建人: 阿坚, 日期: 2026-07-05
 CREATE TABLE IF NOT EXISTS sys_department (
   id BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
   parent_id BIGINT UNSIGNED DEFAULT NULL COMMENT '父部门ID',

@@ -1,4 +1,4 @@
--- 购物车表
+-- 编号: 053, 描述: 添加零售购物车表, 创建人: 阿坚, 日期: 2026-07-05
 CREATE TABLE IF NOT EXISTS retail_cart (
   id BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
   user_id BIGINT UNSIGNED NOT NULL COMMENT '用户ID',

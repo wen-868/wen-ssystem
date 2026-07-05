@@ -1,4 +1,4 @@
--- 商品中心字段补齐（Phase 2）
+-- 编号: 081, 描述: 商品SPU扩展字段, 创建人: 阿坚, 日期: 2026-07-05
 -- 日期：2026-06-28
 -- 说明：补齐 product_spu / product_sku / product_category 缺失字段
 -- 注意：不使用 ADD COLUMN IF NOT EXISTS（需要 MySQL 8.0.32+），由迁移引擎容错处理

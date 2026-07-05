@@ -1,4 +1,4 @@
--- 积分记录表
+-- 编号: 071, 描述: 客户积分, 创建人: 阿坚, 日期: 2026-07-05
 CREATE TABLE IF NOT EXISTS customer_points (
   id BIGINT AUTO_INCREMENT PRIMARY KEY,
   customer_id BIGINT NOT NULL COMMENT '客户ID',

@@ -1,3 +1,4 @@
+-- 编号: 049, 描述: 添加订单同步日志表, 创建人: 阿坚, 日期: 2026-07-05
 CREATE TABLE IF NOT EXISTS miniapp_order_sync_log (
   id BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
   order_no VARCHAR(64) NOT NULL COMMENT '订单号',

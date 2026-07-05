@@ -1,4 +1,4 @@
--- 来源: phase10_marketing.sql
+-- 编号: 044, 描述: 添加营销操作日志表, 创建人: 阿坚, 日期: 2026-07-05
 CREATE TABLE IF NOT EXISTS marketing_operation_log (
   id INT AUTO_INCREMENT PRIMARY KEY,
   module VARCHAR(32) NOT NULL COMMENT '模块（coupon/promotion/seckill/group_buy）',

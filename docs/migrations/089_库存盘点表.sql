@@ -1,4 +1,4 @@
--- 盘点单表
+-- 编号: 089, 描述: 库存盘点表, 创建人: 阿坚, 日期: 2026-07-05
 CREATE TABLE IF NOT EXISTS stock_check (
   id BIGINT AUTO_INCREMENT PRIMARY KEY,
   check_no VARCHAR(32) NOT NULL COMMENT '盘点编号',

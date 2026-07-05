@@ -1,4 +1,4 @@
--- 银行账户
+-- 编号: 068, 描述: 银行费用发票, 创建人: 阿坚, 日期: 2026-07-05
 CREATE TABLE IF NOT EXISTS bank_account (
   id BIGINT AUTO_INCREMENT PRIMARY KEY,
   account_name VARCHAR(100) NOT NULL COMMENT '账户名称',

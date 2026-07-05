@@ -1,4 +1,4 @@
--- 销售提成规则表
+-- 编号: 088, 描述: 销售佣金, 创建人: 阿坚, 日期: 2026-07-05
 CREATE TABLE IF NOT EXISTS sales_commission_rule (
   id BIGINT AUTO_INCREMENT PRIMARY KEY,
   rule_name VARCHAR(100) NOT NULL COMMENT '规则名称',

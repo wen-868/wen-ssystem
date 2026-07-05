@@ -1,4 +1,4 @@
--- 来源: phase10_marketing.sql
+-- 编号: 042, 描述: 添加团购参与者表, 创建人: 阿坚, 日期: 2026-07-05
 CREATE TABLE IF NOT EXISTS group_buy_participant (
   id INT AUTO_INCREMENT PRIMARY KEY,
   group_id INT NOT NULL COMMENT '拼团记录ID',
