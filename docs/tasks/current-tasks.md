@@ -11,89 +11,75 @@
 ### R1 — 2026-07-05 苏然测试报告 v2 [已完成]
 ### R2 — 2026-07-05 凌舟后台验收 [已完成]
 ### R3 — 2026-07-05 阿坚后端修复 [已完成]
-### R4 — 2026-07-05 前端字段完整度修复 [大部分已完成，2项需返工]
+### R4 — 2026-07-05 前端字段完整度修复 [已完成]
+### R5 — 2026-07-05 R4 审查返工 [部分完成，3项待补]
 
-> 墨提交 de3d2d6，96 个文件，凌舟审查结果如下。
+> 墨提交 cf008e0，9 个文件。R5-1/R5-2 通过，R5-3/R5-4/R5-5 未完成。
 
 ---
 
-## R5 — 2026-07-05 R4 审查返工 [进行中]
+## R6 — 2026-07-05 R5 审查返工 [进行中]
 
-> 来源：凌舟审查 R4-1 发现 2 项不达标。
+> 来源：凌舟审查 R5 返工发现 3 项未完成。
 
 ---
 
 ### 墨 · 返工任务
 
-#### R5-1 商品信息表单补全 12 个缺失字段
-
-- 优先级：P0
-- 负责人：墨
-- 预计：2天
-- 状态：待开始
-- 文件：`admin-web/src/views/Products.vue`
-- 问题：R4-1 要求补充 12 个字段（unit、specs、sortNo、isNew、isRecommend、description、costPrice、storePrice、volume、packaging、baseUnit、boxUnit），墨只做了品牌 Bug 修复和库存列展示，12 个表单字段全部未补
-- 修复：在商品编辑弹窗中补全 12 个字段的输入控件，按 SPU/价格/SKU 分区展示
-
-#### R5-2 客户管理列表补 3 列
-
-- 优先级：P1
-- 负责人：墨
-- 预计：0.5天
-- 状态：待开始
-- 文件：`admin-web/src/views/CustomersView.vue`
-- 问题：新增表单已补 address/remark/settlementType，但列表仍缺少 address、settlementType、remark 三列展示
-- 修复：列表补 address、settlementType（CASH 显示"现金"/ACCOUNT 显示"挂账"）、remark 列
-
-#### R5-3 api.ts 补超时错误处理
+#### R6-1 api.ts 补超时错误处理
 
 - 优先级：P1
 - 负责人：墨
 - 预计：0.5天
 - 状态：待开始
 - 文件：`admin-web/src/api.ts`（拦截器 L29-63）
-- 问题：已处理 401/403/404/500/网络错误，但缺少超时专项处理（ECONNABORTED）
-- 修复：在拦截器中增加 `error.code === 'ECONNABORTED'` 分支，提示"请求超时，请重试"
+- 问题：超时错误会落入 `!error.response` 分支，被笼统提示为"网络连接失败"，用户无法区分超时和断网。也未设置 axios timeout 配置
+- 修复：
+  1. 在拦截器最前面增加 `if (error.code === 'ECONNABORTED')` 分支，提示"请求超时，请稍后重试"
+  2. 在 `api.create` 时设置 `timeout: 30000`
 
-#### R5-4 后端 as any 残留 238 处
+#### R6-2 后端 as any 残留 238 处
 
 - 优先级：P2
 - 负责人：墨
 - 预计：2天
 - 状态：待开始
-- 文件：backend/src/services/ 下 88 个文件（top 3：stock-check 14处、transfer-execution 14处、store-control 12处）
-- 问题：从 ~300 降至 238（仅减 20%），清理不彻底
-- 修复：批量替换剩余 238 处 as any 为安全类型
+- 文件：backend/src/ 下 88 个文件
+- 问题：R5 返工提交中 as any 数量零变化，仍为 238 处
+- 修复：批量替换。top 3：stock-check.service.ts(14)、transfer-execution.service.ts(14)、store-control.service.ts(12)
 
-#### R5-5 更新踩坑日志
+#### R6-3 更新踩坑日志
 
 - 优先级：P1
 - 负责人：墨
 - 预计：0.5天
 - 状态：待开始
 - 文件：`docs/踩坑日志.md`
-- 问题：墨完成任务后未在踩坑日志中新增记录，违反项目规则
-- 修复：将 R4-1 过程中踩过的坑写入踩坑日志
+- 问题：R4 和 R5 两轮任务完成后，墨仍未在踩坑日志中新增记录
+- 修复：将 R4/R5 过程中踩过的坑写入踩坑日志
+
+#### R6-4 InventoryBatchPrice.vue 表单校验规则为空
+
+- 优先级：P1
+- 负责人：墨
+- 预计：0.5天
+- 状态：待开始
+- 文件：`admin-web/src/views/InventoryBatchPrice.vue`
+- 问题：声明了 `adjustRules: FormRules = {}` 但规则对象为空，价格调整表单（数量、新价格等）无任何校验
+- 修复：补 adjustRules 必填校验规则
 
 ---
 
-## R4 审查结果汇总
+## R5 审查结果汇总
 
 | 子项 | 内容 | 结果 |
 |------|------|:---:|
-| A | 客户管理表单字段 | 表单通过，列表缺 3 列 |
-| B | 商品信息字段补充 | 不通过（12 字段全未补） |
-| C | api.ts 错误处理 | 部分通过（缺超时） |
-| D | 分类三级 | 通过 |
-| E | 审批 EXPENSE 类型 | 通过 |
-| F | 硬编码密钥清空 | 通过 |
-| G | 表单校验（15个） | 通过 |
-| H | innerHTML 清除 | 通过（0 残留） |
-| I | controller try-catch | 通过（130→0） |
-| J | as any 清理 | 部分通过（300→238，降 20%） |
-| K | admin.routes.ts 拆分 | 通过（→19 个子路由） |
-| L | npm 安全漏洞 | 通过（vite≥6.4.3, esbuild≥0.25） |
-| M | 踩坑日志更新 | 未完成 |
+| R5-1 | 商品信息补 12 字段 | **通过**（14 字段全补） |
+| R5-2 | 客户列表补 3 列 | **通过**（address/settlementType/remark） |
+| R5-3 | api.ts 超时处理 | **未完成** |
+| R5-4 | 后端 as any 残留 | **未完成**（238 处零变化） |
+| R5-5 | 更新踩坑日志 | **未完成** |
+| 额外 | 表单校验补充 | **6/7 完成**（InventoryBatchPrice 规则为空） |
 
 ---
 
@@ -101,4 +87,4 @@
 
 | 负责人 | 任务 | 预计 |
 |:---:|------|:---:|
-| 墨 | R5-1~R5-5 返工任务 | 5.5 天 |
+| 墨 | R6-1~R6-4 返工任务 | 3.5 天 |
