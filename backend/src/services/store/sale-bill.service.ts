@@ -1,5 +1,7 @@
 import { query, queryOne, queryWithTenant, queryOneWithTenant, transaction } from "../../shared/db.js";
 import { makeBizNo, makeToken } from "../../shared/id.js";
+import { computeSellingPrice, getPriceType, type CustomerType } from "../../shared/fulfillment.js";
+import { updateTraceCodesBySkuList } from "../../shared/trace-code.js";
 
 export async function listSaleBills(params: {
   page: number; pageSize: number; storeId: number | null;
@@ -86,12 +88,10 @@ export async function createSaleBill(params: {
       );
       if (!price) throw new Error(`SKU不存在：${item.skuId}`);
       const customerType = member?.customer_type ?? "RETAIL";
-      const computedPrice = item.unitPrice ?? (item.priceType === "WHOLESALE" || customerType === "WHOLESALE"
-        ? Number(price.wholesale_price ?? price.retail_price)
-        : Number(price.store_price ?? price.retail_price));
+      const computedPrice = item.unitPrice ?? computeSellingPrice(customerType as CustomerType, price.wholesale_price, price.store_price, price.retail_price);
       const subtotal = computedPrice * item.totalBottleQty;
       goodsAmount += subtotal;
-      itemSnapshots.push({ ...item, skuName: price.sku_name, unitPrice: computedPrice, subtotalAmount: subtotal, priceType: item.priceType ?? (customerType === "WHOLESALE" ? "WHOLESALE" : "STORE") });
+      itemSnapshots.push({ ...item, skuName: price.sku_name, unitPrice: computedPrice, subtotalAmount: subtotal, priceType: item.priceType ?? getPriceType(customerType as CustomerType) });
     }
     const receivableAmount = Math.max(0, goodsAmount - discountAmount - roundingAmount);
     await conn.execute(
@@ -112,6 +112,13 @@ export async function createSaleBill(params: {
         [billNo, item.skuId, item.skuName, item.boxQty, item.bottleQty, item.totalBottleQty, item.unitPrice, item.priceType, item.subtotalAmount]
       );
     }
+
+    // R9-2: 出库自动更新追溯码
+    const skuIds = [...new Set(itemSnapshots.map(it => it.skuId))];
+    if (skuIds.length > 0) {
+      await updateTraceCodesBySkuList(conn, tenantId, billNo, skuIds);
+    }
+
     return { billNo, storeId, businessStatus: "CREATED", collectionStatus: "UNPAID", receivableAmount, receivedAmount: 0, unreceivedAmount: receivableAmount, items: itemSnapshots };
   });
 }

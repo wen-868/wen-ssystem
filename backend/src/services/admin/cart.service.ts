@@ -1,7 +1,7 @@
 import mysql from "mysql2/promise";
 import { queryWithTenant, queryOneWithTenant, transaction } from "../../shared/db.js";
 import { makeBizNo } from "../../shared/id.js";
-import { calcReservation, getInitialMiniappOrderState, completeOrderDelivery } from "../../shared/fulfillment.js";
+import { calcReservation, getInitialMiniappOrderState, completeOrderDelivery, shouldReserveStock, type CustomerType } from "../../shared/fulfillment.js";
 import { constants } from "../../config/constants.js";
 
 // ========== 私有辅助函数 ==========
@@ -131,7 +131,7 @@ export async function getCartList(tenantId: string, customerId: number, customer
     tenantId
   );
   const items = rows.map((row: any) => {
-    const wholesaleVisible = customerType === "WHOLESALE" && row.wholesalePrice != null;
+    const wholesaleVisible = shouldReserveStock(customerType as CustomerType) && row.wholesalePrice != null;
     const price = wholesaleVisible ? Number(row.wholesalePrice) : Number(row.miniappPrice ?? row.retailPrice);
     return {
       id: row.id,
@@ -360,7 +360,7 @@ export async function createCheckoutOrder(params: {
     if (cartItems.length === 0) throw new Error("购物车为空");
 
     const orderNo = makeBizNo("DD");
-    const initialState = getInitialMiniappOrderState(customerType === "WHOLESALE" ? "WHOLESALE" : "RETAIL");
+    const initialState = getInitialMiniappOrderState(customerType as CustomerType);
     let goodsAmount = 0;
     const orderItems: any[] = [];
 
@@ -385,11 +385,11 @@ export async function createCheckoutOrder(params: {
       );
       const inv = (inventory as unknown as Record<string, unknown>[])[0];
       const availableQty = Number(inv?.available_qty ?? 0);
-      if (availableQty < qty && customerType === "RETAIL") {
+      if (availableQty < qty && !shouldReserveStock(customerType as CustomerType)) {
         throw new Error(`商品 ${priceRow.sku_name} 库存不足（可售：${availableQty}）`);
       }
 
-      const reservation = customerType === "WHOLESALE"
+      const reservation = shouldReserveStock(customerType as CustomerType)
         ? calcReservation({ orderQty: qty, availableQty })
         : { reservedQty: 0, unreservedQty: qty };
 
@@ -434,7 +434,7 @@ export async function createCheckoutOrder(params: {
         [orderNo, item.skuId, item.skuName, item.qty, item.reservedQty, item.unreservedQty, item.unitPrice, item.priceType, item.subtotal, tenantId]
       );
 
-      if (customerType === "WHOLESALE" && item.reservedQty > 0) {
+      if (shouldReserveStock(customerType as CustomerType) && item.reservedQty > 0) {
         await conn.execute(
           `UPDATE inventory_balance
            SET locked_qty = locked_qty + ?, available_qty = GREATEST(available_qty - ?, 0), updated_at = NOW()

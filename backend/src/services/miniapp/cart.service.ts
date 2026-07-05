@@ -1,4 +1,5 @@
 import { queryWithTenant, queryOneWithTenant } from "../../shared/db.js";
+import { shouldReserveStock, type CustomerType } from "../../shared/fulfillment.js";
 
 export async function getCartList(tenantId: string, customerId: number, customerType: string) {
   const rows = await queryWithTenant<any>(
@@ -17,7 +18,7 @@ export async function getCartList(tenantId: string, customerId: number, customer
     tenantId
   );
   const items = rows.map((row: any) => {
-    const wholesaleVisible = customerType === "WHOLESALE" && row.wholesalePrice != null;
+    const wholesaleVisible = shouldReserveStock(customerType as CustomerType) && row.wholesalePrice != null;
     const price = wholesaleVisible ? Number(row.wholesalePrice) : Number(row.miniappPrice ?? row.retailPrice);
     return {
       id: row.id,

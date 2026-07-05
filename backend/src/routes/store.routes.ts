@@ -2,6 +2,7 @@ import { Router } from "express";
 import { z } from "zod";
 import { asyncHandler } from "../middleware/async-handler.js";
 import { requireAuthWithTenant, getUserAccessInfo, signToken } from "../middleware/auth.js";
+import { priceResponseFilter } from "../middleware/price-guard.js";
 import { query, queryOne } from "../shared/db.js";
 import { ok } from "../shared/response.js";
 import * as authController from "../controllers/store/auth.controller.js";
@@ -16,6 +17,8 @@ import * as batchController from "../controllers/inventory-batch.controller.js";
 import * as shiftController from "../controllers/store/shift.controller.js";
 
 export const storeRouter = Router();
+
+storeRouter.use(priceResponseFilter());
 
 // 导出 Schema 供 Controller 使用（保持向后兼容）
 export const storeSaleBillItemSchema = z.object({

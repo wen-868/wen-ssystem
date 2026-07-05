@@ -1,9 +1,12 @@
 import { Router } from "express";
 import type { RouteConfig } from "../shared/auto-routes.js";
 import { requireAuthWithTenant } from "../middleware/auth.js";
+import { priceResponseFilter } from "../middleware/price-guard.js";
 import * as orderController from "../controllers/admin/order.controller.js";
 
 export const adminOrderRouter = Router();
+
+adminOrderRouter.use(priceResponseFilter());
 
 // ============ 订单管理 ============
 adminOrderRouter.get("/orders", requireAuthWithTenant, orderController.listOrders);

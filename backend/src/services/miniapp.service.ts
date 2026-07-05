@@ -1,7 +1,8 @@
 import crypto from "node:crypto";
 import { query, queryOne, transaction } from "../shared/db.js";
 import { makeBizNo } from "../shared/id.js";
-import { calcReservation, getInitialMiniappOrderState, completeOrderDelivery } from "../shared/fulfillment.js";
+import { calcReservation, getInitialMiniappOrderState, completeOrderDelivery, getMemberLevelLabel, shouldReserveStock, computeSellingPrice, type CustomerType } from "../shared/fulfillment.js";
+import { updateTraceCodesBySkuList } from "../shared/trace-code.js";
 
 // ========== Dev Token Store ==========
 export const devTokenStore = new Map<string, { memberId: number; customerType: string; createdAt: number }>();
@@ -27,7 +28,7 @@ export function getProfile(customerType: string) {
     nickname: "微信演示用户",
     mobile: "139****0001",
     customerType,
-    memberLevel: customerType === "WHOLESALE" ? "批发客户" : "普通会员",
+    memberLevel: getMemberLevelLabel(customerType as CustomerType),
     points: 120
   };
 }
@@ -51,7 +52,7 @@ export async function getProducts(storeId: number, keyword: string, customerType
   );
 
   const data = rows.map((row: any) => {
-    const wholesaleVisible = customerType === "WHOLESALE" && row.wholesalePrice != null;
+    const wholesaleVisible = shouldReserveStock(customerType as CustomerType) && row.wholesalePrice != null;
     const price = wholesaleVisible ? Number(row.wholesalePrice) : Number(row.miniappPrice ?? row.retailPrice);
     const item: Record<string, unknown> = {
       skuId: row.skuId,
@@ -81,7 +82,7 @@ export async function createOrder(tenantId: string, body: {
     ? `[anon:${anonymousMemberId}]${body.remark ? ` ${body.remark}` : ""}`
     : body.remark ?? null;
 
-  const initialState = getInitialMiniappOrderState(customerType === "WHOLESALE" ? "WHOLESALE" : "RETAIL");
+  const initialState = getInitialMiniappOrderState(customerType as CustomerType);
 
   const order = await transaction(async (conn) => {
     const orderNo = makeBizNo("DD");
@@ -96,7 +97,7 @@ export async function createOrder(tenantId: string, body: {
       );
       if (!price) throw new Error(`SKU不存在：${item.skuId}`);
 
-      const wholesale = customerType === "WHOLESALE" && price.wholesale_price != null;
+      const wholesale = shouldReserveStock(customerType as CustomerType) && price.wholesale_price != null;
       const unitPrice = wholesale ? Number(price.wholesale_price) : Number(price.miniapp_price ?? price.retail_price);
       const subtotal = unitPrice * item.qty;
       goodsAmount += subtotal;
@@ -108,7 +109,7 @@ export async function createOrder(tenantId: string, body: {
         [tenantId, body.storeId, item.skuId]
       );
 
-      const reservation = customerType === "WHOLESALE"
+      const reservation = shouldReserveStock(customerType as CustomerType)
         ? calcReservation({ orderQty: item.qty, availableQty: Number(inventory?.availableQty ?? 0) })
         : { reservedQty: 0, unreservedQty: item.qty };
 
@@ -154,7 +155,7 @@ export async function createOrder(tenantId: string, body: {
         [orderNo, item.skuId, item.skuName, item.qty, item.reservedQty, item.unreservedQty, item.unitPrice, item.priceType, item.subtotal, tenantId]
       );
 
-      if (customerType === "WHOLESALE" && item.reservedQty > 0) {
+      if (shouldReserveStock(customerType as CustomerType) && item.reservedQty > 0) {
         await conn.execute(
           `UPDATE inventory_balance
            SET locked_qty = locked_qty + ?,
@@ -244,7 +245,19 @@ export async function getOrderDetail(tenantId: string, orderNo: string, anonymou
 // ========== 确认收货 ==========
 export async function confirmReceipt(orderNo: string) {
   const result = await transaction(async (conn) => {
-    return completeOrderDelivery(conn, orderNo, null, makeBizNo);
+    const deliveryResult = await completeOrderDelivery(conn, orderNo, null, makeBizNo);
+
+    // R9-2: 订单完成时消费追溯码
+    const [items]: any[] = await conn.query(
+      `SELECT sku_id FROM miniapp_order_item WHERE order_no = ?`,
+      [orderNo]
+    );
+    const skuIds = items.map((it: any) => it.sku_id);
+    if (skuIds.length > 0) {
+      await updateTraceCodesBySkuList(conn, (deliveryResult as any)?.tenantId || "", orderNo, skuIds);
+    }
+
+    return deliveryResult;
   });
   return result;
 }

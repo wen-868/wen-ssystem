@@ -1,9 +1,12 @@
 import { Router } from "express";
 import type { RouteConfig } from "../shared/auto-routes.js";
 import { requireAuthWithTenant } from "../middleware/auth.js";
+import { priceResponseFilter } from "../middleware/price-guard.js";
 import * as ctrl from "../controllers/export.controller.js";
 
 export const exportRouter = Router();
+
+exportRouter.use(priceResponseFilter());
 
 exportRouter.get("/customers", requireAuthWithTenant, ctrl.exportCustomers);
 exportRouter.get("/suppliers", requireAuthWithTenant, ctrl.exportSuppliers);

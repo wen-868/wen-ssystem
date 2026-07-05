@@ -1,5 +1,6 @@
 import { queryWithTenant, queryOneWithTenant } from "../../shared/db.js";
 import { makeBizNo } from "../../shared/id.js";
+import { verifyTraceCodeSimple } from "../../shared/trace-code.js";
 
 export async function generateTraceCodes(
   body: {
@@ -355,28 +356,23 @@ export async function verifyTraceCode(
   ip: string,
   tenantId: string
 ) {
-  const code = await queryOneWithTenant<any>(
-    `SELECT id, trace_code AS traceCode, sku_name AS skuName, batch_no AS batchNo,
-            current_status AS currentStatus, quality_check_result AS qualityCheckResult,
-            fraud_alert AS fraudAlert, expiry_date AS expiryDate,
-            scan_count AS scanCount, first_scan_at AS firstScanAt
-     FROM trace_code WHERE trace_code = ? AND tenant_id = ?`,
-    [traceCode, tenantId],
-    tenantId
-  );
+  // R9-2: 委托到共享验证逻辑
+  const verifyResult = await verifyTraceCodeSimple(traceCode, tenantId);
 
   let result: "SUCCESS" | "INVALID" | "NOT_FOUND" | "FRAUD_ALERT" | "EXPIRED" = "NOT_FOUND";
   let message = "追溯码不存在";
 
-  if (!code) {
-    result = "NOT_FOUND";
-    message = "追溯码不存在，请核实后重试";
-  } else if (code.fraudAlert === 1) {
-    result = "FRAUD_ALERT";
-    message = "该追溯码已被标记为疑似仿冒，请谨慎购买";
-  } else if (code.expiryDate && new Date(code.expiryDate) < new Date()) {
-    result = "EXPIRED";
-    message = "该商品已过期";
+  if (!verifyResult.valid) {
+    if (verifyResult.message.includes("不存在")) {
+      result = "NOT_FOUND";
+      message = "追溯码不存在，请核实后重试";
+    } else if (verifyResult.message.includes("仿冒")) {
+      result = "FRAUD_ALERT";
+      message = "该追溯码已被标记为疑似仿冒，请谨慎购买";
+    } else if (verifyResult.message.includes("过期")) {
+      result = "EXPIRED";
+      message = "该商品已过期";
+    }
   } else {
     result = "SUCCESS";
     message = "验证通过，该商品为正品";
@@ -403,11 +399,11 @@ export async function verifyTraceCode(
     result,
     message,
     traceCode,
-    skuName: code?.skuName ?? null,
-    batchNo: code?.batchNo ?? null,
-    currentStatus: code?.currentStatus ?? null,
-    qualityCheckResult: code?.qualityCheckResult ?? null,
-    scanCount: code ? Number(code.scanCount) + 1 : 0
+    skuName: verifyResult.code?.skuName ?? null,
+    batchNo: verifyResult.code?.batchNo ?? null,
+    currentStatus: verifyResult.code?.currentStatus ?? null,
+    qualityCheckResult: (verifyResult.code as any)?.qualityCheckResult ?? null,
+    scanCount: verifyResult.code ? Number((verifyResult.code as any).scanCount ?? 0) + 1 : 0
   };
 }
 
@@ -734,28 +730,23 @@ export async function consumerVerifyTraceCode(
   ip: string,
   tenantId: string
 ) {
-  const code = await queryOneWithTenant<any>(
-    `SELECT id, trace_code AS traceCode, sku_name AS skuName, batch_no AS batchNo,
-            current_status AS currentStatus, quality_check_result AS qualityCheckResult,
-            fraud_alert AS fraudAlert, expiry_date AS expiryDate,
-            scan_count AS scanCount
-     FROM trace_code WHERE trace_code = ? AND tenant_id = ?`,
-    [traceCode, tenantId],
-    tenantId
-  );
+  // R9-2: 委托到共享验证逻辑
+  const verifyResult = await verifyTraceCodeSimple(traceCode, tenantId);
 
   let result: "SUCCESS" | "INVALID" | "NOT_FOUND" | "FRAUD_ALERT" | "EXPIRED" = "NOT_FOUND";
   let message = "追溯码不存在";
 
-  if (!code) {
-    result = "NOT_FOUND";
-    message = "追溯码不存在，请核实后重试";
-  } else if (code.fraudAlert === 1) {
-    result = "FRAUD_ALERT";
-    message = "该追溯码已被标记为疑似仿冒，请谨慎购买";
-  } else if (code.expiryDate && new Date(code.expiryDate) < new Date()) {
-    result = "EXPIRED";
-    message = "该商品已过期";
+  if (!verifyResult.valid) {
+    if (verifyResult.message.includes("不存在")) {
+      result = "NOT_FOUND";
+      message = "追溯码不存在，请核实后重试";
+    } else if (verifyResult.message.includes("仿冒")) {
+      result = "FRAUD_ALERT";
+      message = "该追溯码已被标记为疑似仿冒，请谨慎购买";
+    } else if (verifyResult.message.includes("过期")) {
+      result = "EXPIRED";
+      message = "该商品已过期";
+    }
   } else {
     result = "SUCCESS";
     message = "验证通过，该商品为正品";
@@ -782,9 +773,9 @@ export async function consumerVerifyTraceCode(
     result,
     message,
     traceCode,
-    skuName: code?.skuName ?? null,
-    batchNo: code?.batchNo ?? null,
-    currentStatus: code?.currentStatus ?? null,
-    qualityCheckResult: code?.qualityCheckResult ?? null
+    skuName: verifyResult.code?.skuName ?? null,
+    batchNo: verifyResult.code?.batchNo ?? null,
+    currentStatus: verifyResult.code?.currentStatus ?? null,
+    qualityCheckResult: (verifyResult.code as any)?.qualityCheckResult ?? null
   };
 }

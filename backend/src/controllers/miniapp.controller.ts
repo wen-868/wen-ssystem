@@ -1,6 +1,7 @@
 import { z } from "zod";
 import { asyncHandler } from "../middleware/async-handler.js";
 import { ok } from "../shared/response.js";
+import { getSettlementType, type CustomerType } from "../shared/fulfillment.js";
 import * as service from "../services/miniapp.service.js";
 
 export const devLogin = (_req: any, res: any) => {
@@ -47,7 +48,7 @@ export const createOrder = asyncHandler(async (req, res) => {
   }).parse(req.body);
 
   const customerType = String(req.headers["x-customer-type"] || "RETAIL");
-  const settlementType = customerType === "WHOLESALE" ? String(req.headers["x-settlement-type"] || "ACCOUNT") : "CASH";
+  const settlementType = getSettlementType(customerType as CustomerType, String(req.headers["x-settlement-type"] || "ACCOUNT"));
 
   const result = await service.createOrder(req.tenantId!, body, customerType, anonymousMemberId, settlementType);
   res.json(ok(result));

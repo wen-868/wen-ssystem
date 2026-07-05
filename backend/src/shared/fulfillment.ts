@@ -10,6 +10,51 @@ export type OrderStatus =
 
 export type FulfillmentAction = "START_DELIVERY" | "COMPLETE" | "REJECT" | "CANCEL";
 
+// ========== 价格守卫共享函数（R9-1：消除手写 WHOLESALE 判断） ==========
+
+/** 结算方式：批发客户默认账期，零售客户现金 */
+export function getSettlementType(customerType: CustomerType, headerValue?: string): string {
+  if (customerType === "WHOLESALE") {
+    return headerValue || "ACCOUNT";
+  }
+  return "CASH";
+}
+
+/** 客户等级编码 */
+export function getCustomerLevelCode(customerType: CustomerType): string {
+  return customerType === "WHOLESALE" ? "WHOLESALE" : "NORMAL";
+}
+
+/** 客户等级中文标签 */
+export function getMemberLevelLabel(customerType: CustomerType): string {
+  return customerType === "WHOLESALE" ? "批发客户" : "普通会员";
+}
+
+/** 价格类型：批发价 / 门店价 */
+export function getPriceType(customerType: CustomerType): "WHOLESALE" | "STORE" {
+  return customerType === "WHOLESALE" ? "WHOLESALE" : "STORE";
+}
+
+/** 是否需要预留库存（批发客户需预留） */
+export function shouldReserveStock(customerType: CustomerType): boolean {
+  return customerType === "WHOLESALE";
+}
+
+/** 计算客户实际售价（批发价 > 小程序价 > 零售价） */
+export function computeSellingPrice(
+  customerType: CustomerType,
+  wholesalePrice: number | null | undefined,
+  miniappPrice: number | null | undefined,
+  retailPrice: number | null | undefined
+): number {
+  if (customerType === "WHOLESALE" && wholesalePrice != null) {
+    return Number(wholesalePrice);
+  }
+  return Number(miniappPrice ?? retailPrice ?? 0);
+}
+
+// ========== 订单履约 ==========
+
 export function calcReservation(input: { orderQty: number; availableQty: number }) {
   const orderQty = Math.max(0, Math.trunc(input.orderQty));
   const availableQty = Math.max(0, Math.trunc(input.availableQty));

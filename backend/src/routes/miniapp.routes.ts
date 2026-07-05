@@ -1,9 +1,11 @@
 import { Router } from "express";
 import type { RouteConfig } from "../shared/auto-routes.js";
 import { requireAuthWithTenant } from "../middleware/auth.js";
+import { priceResponseFilter } from "../middleware/price-guard.js";
 import * as ctrl from "../controllers/miniapp.controller.js";
 
 export const miniappRouter = Router();
+miniappRouter.use(priceResponseFilter());
 miniappRouter.post("/login", ctrl.devLogin);
 miniappRouter.post("/auth/login", ctrl.devAuthLogin);
 miniappRouter.get("/profile", requireAuthWithTenant, ctrl.getProfile);

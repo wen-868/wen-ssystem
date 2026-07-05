@@ -1,6 +1,7 @@
 import { z } from "zod";
 import { asyncHandler } from "../../middleware/async-handler.js";
 import { ok, fail } from "../../shared/response.js";
+import { getSettlementType, type CustomerType } from "../../shared/fulfillment.js";
 import * as cartService from "../../services/admin/cart.service.js";
 
 function getCustomerId(req: any): number {
@@ -112,9 +113,7 @@ export const createCheckoutOrder = asyncHandler(async (req, res) => {
     couponId: z.number().int().positive().optional(),
     fullReductionId: z.number().int().positive().optional()
   }).parse(req.body);
-  const settlementType = customerType === "WHOLESALE"
-    ? String(req.headers["x-settlement-type"] || "ACCOUNT")
-    : "CASH";
+  const settlementType = getSettlementType(customerType as CustomerType, String(req.headers["x-settlement-type"] || "ACCOUNT"));
   const order = await cartService.createCheckoutOrder({
     tenantId,
     customerId,

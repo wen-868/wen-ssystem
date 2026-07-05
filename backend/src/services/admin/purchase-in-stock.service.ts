@@ -1,5 +1,6 @@
 import { query, queryOne, queryWithTenant, queryOneWithTenant, transaction } from "../../shared/db.js";
 import { makeBizNo } from "../../shared/id.js";
+import { bindTraceCodeOnInStock } from "../../shared/trace-code.js";
 
 export async function list(params: {
   page: number; pageSize: number; tenantId: string;
@@ -255,6 +256,20 @@ export async function purchaseInStock(id: number, params: {
            updated_at = NOW()`,
         [order.storeId, item.skuId, item.totalBottleQty, item.totalBottleQty, tenantId]
       );
+
+      // R9-2: 入库自动绑定追溯码
+      if (item.batchNo) {
+        await bindTraceCodeOnInStock(conn, tenantId, {
+          skuId: item.skuId,
+          skuName: item.skuName,
+          batchNo: item.batchNo,
+          quantity: item.totalBottleQty,
+          codeMode: "ONE_PER_BATCH",
+          productionDate: item.productionDate ?? null,
+          storeId: order.storeId,
+          supplierId: order.supplierId
+        });
+      }
     }
 
     // 检查采购订单是否全部入库

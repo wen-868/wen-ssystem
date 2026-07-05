@@ -1,5 +1,6 @@
 import { query, queryOne, queryWithTenant, queryOneWithTenant, transaction } from "../../shared/db.js";
 import { syncChangedFields, detectChangedFields } from "../../shared/field-sync.js";
+import { getCustomerLevelCode, type CustomerType } from "../../shared/fulfillment.js";
 
 export async function listMembers(tenantId: string, page: number, pageSize: number, keyword: string) {
   const offset = (page - 1) * pageSize;
@@ -33,7 +34,7 @@ export async function listMembers(tenantId: string, page: number, pageSize: numb
 }
 
 export async function createCustomer(tenantId: string, body: { name: string; mobile: string; customerType: string; staffId?: number; address?: string; settlementType?: string; remark?: string }) {
-  const levelCode = body.customerType === "WHOLESALE" ? "WHOLESALE" : "NORMAL";
+  const levelCode = getCustomerLevelCode(body.customerType as CustomerType);
   const result = await queryWithTenant<any>(
     `INSERT INTO member (name, mobile, customer_type, staff_id, address, settlement_type, remark, points, level_code, status, tenant_id)
      VALUES (?, ?, ?, ?, ?, ?, ?, 0, ?, 1, ?)`,
