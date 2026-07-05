@@ -4,7 +4,7 @@ import { ok } from "../../shared/response.js";
 import * as svc from "../../services/instant-retail/review.service.js";
 
 export const listReviews = asyncHandler(async (req: Request, res: Response) => {
-  const { page, pageSize, platform, rating, status, storeId } = req.query as any;
+  const { page, pageSize, platform, rating, status, storeId } = req.query as Record<string, string | undefined>;
   const result = await svc.listReviews({
     tenantId: req.tenantId!,
     page: page ? Number(page) : 1,
@@ -33,7 +33,7 @@ export const syncReviews = asyncHandler(async (req: Request, res: Response) => {
 });
 
 export const getReviewStats = asyncHandler(async (req: Request, res: Response) => {
-  const { platform, storeId } = req.query as any;
+  const { platform, storeId } = req.query as Record<string, string | undefined>;
   const result = await svc.getReviewStats({ tenantId: req.tenantId!, platform, storeId: storeId ? Number(storeId) : undefined });
   res.json(ok(result));
 });

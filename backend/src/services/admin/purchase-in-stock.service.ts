@@ -123,7 +123,7 @@ export async function approve(stockNo: string, tenantId: string, userId: number,
         "SELECT physical_qty FROM inventory_balance WHERE store_id = ? AND sku_id = ? AND stock_type = 'OFFLINE'",
         [stock.store_id, item.sku_id]
       );
-      const afterQty = (balanceRows as any[])?.[0]?.physical_qty || 0;
+      const afterQty = Number((balanceRows as any[])?.[0]?.physical_qty) || 0;
       const beforeQty = afterQty - item.total_bottle_qty;
 
       const ledgerNo = makeBizNo("LL");

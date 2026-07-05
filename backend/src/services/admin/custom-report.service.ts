@@ -59,7 +59,7 @@ export async function createTemplate(tenantId: string, data: TemplateCreateData)
     [tenantId, data.name, data.type, JSON.stringify(data.config || {}), data.description || null],
     tenantId
   );
-  return { id: (result as any).insertId };
+  return { id: (result as unknown as Record<string, unknown>).insertId };
 }
 
 export async function updateTemplate(tenantId: string, id: number, data: TemplateUpdateData) {
@@ -209,7 +209,7 @@ export async function createSchedule(tenantId: string, data: ScheduleCreateData)
     [tenantId, data.name, data.templateId, data.cronExpression, data.exportFormat, data.recipients || null],
     tenantId
   );
-  return { id: (result as any).insertId };
+  return { id: (result as unknown as Record<string, unknown>).insertId };
 }
 
 export async function updateSchedule(tenantId: string, id: number, data: ScheduleUpdateData) {

@@ -60,7 +60,7 @@ export async function createCustomerPrice(params: {
     [customerId, skuId, customPrice, effectiveStart ?? null, effectiveEnd ?? null, tenantId],
     tenantId
   );
-  return { id: (result as any).insertId, customerId, skuId, customPrice, effectiveStart, effectiveEnd };
+  return { id: (result as unknown as Record<string, unknown>).insertId, customerId, skuId, customPrice, effectiveStart, effectiveEnd };
 }
 
 export async function updateCustomerPrice(id: number, params: {

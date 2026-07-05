@@ -137,14 +137,14 @@
     </el-dialog>
 
     <el-dialog v-model="adjustDialogVisible" title="调整授信额度" width="420px">
-      <el-form :model="adjustForm" label-width="100px">
+      <el-form ref="adjustFormRef" :model="adjustForm" :rules="adjustRules" label-width="100px">
         <el-form-item label="客户名称">
           <span>{{ adjustForm.customerName }}</span>
         </el-form-item>
         <el-form-item label="当前额度">
           <span>¥{{ Number(adjustForm.currentLimit || 0).toFixed(2) }}</span>
         </el-form-item>
-        <el-form-item label="新额度">
+        <el-form-item label="新额度" prop="newLimit">
           <el-input-number v-model="adjustForm.newLimit" :min="0" :precision="2" style="width: 100%" />
         </el-form-item>
         <el-form-item label="调整原因">
@@ -181,6 +181,7 @@ const keyword = ref("");
 const statusFilter = ref("");
 const detailVisible = ref(false);
 const adjustDialogVisible = ref(false);
+const adjustFormRef = ref();
 const currentCredit = ref<any>(null);
 const creditLogs = ref<any[]>([]);
 
@@ -198,6 +199,10 @@ const adjustForm = reactive({
   newLimit: 0,
   remark: ""
 });
+
+const adjustRules = {
+  newLimit: [{ required: true, message: '请输入新额度', trigger: 'blur' }]
+};
 
 function getErrorMessage(error: unknown, fallback: string) {
   const anyError = error as { response?: { data?: { message?: string } }; message?: string };
@@ -263,10 +268,8 @@ function openAdjustLimit(row: any) {
 }
 
 async function submitAdjustLimit() {
-  if (adjustForm.newLimit < 0) {
-    ElMessage.warning("额度不能小于 0");
-    return;
-  }
+  const valid = await adjustFormRef.value?.validate().catch(() => false);
+  if (!valid) return;
   submitLoading.value = true;
   try {
     await updateCreditLimit(adjustForm.customerId, {

@@ -41,7 +41,7 @@ export const createLimitedDiscount = asyncHandler(async (req: Request, res: Resp
 });
 
 export const listLimitedDiscounts = asyncHandler(async (req: Request, res: Response) => {
-  const { status, page, pageSize } = req.query as any;
+  const { status, page, pageSize } = req.query as Record<string, string | undefined>;
   const result = await svc.listLimitedDiscounts({ tenantId: req.tenantId!, status, page: page ? Number(page) : 1, pageSize: pageSize ? Number(pageSize) : 20 });
   res.json(ok(result));
 });

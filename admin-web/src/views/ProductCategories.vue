@@ -332,7 +332,7 @@ function allowDrag(draggingNode: any) {
 
 function allowDrop(draggingNode: any, dropNode: any, type: string) {
   if (type === "inner") {
-    return dropNode.level < 2;
+    return dropNode.level < 3;
   }
   return true;
 }

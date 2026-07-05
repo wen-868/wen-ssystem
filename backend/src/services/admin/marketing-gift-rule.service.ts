@@ -7,7 +7,7 @@ export async function createGiftRule(data: any, tenantId: string, userId: number
     `INSERT INTO gift_rule (rule_code, rule_name, rule_desc, threshold_type, threshold_amount, threshold_quantity, applicable_scope, applicable_ids, start_time, end_time, gift_stock_limit, remain_gift_stock, is_stock_synced, tenant_id, created_by) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
     [code, data.rule_name, data.rule_desc ?? null, data.threshold_type ?? "AMOUNT", data.threshold_amount ?? null, data.threshold_quantity ?? null, data.applicable_scope ?? "ALL", data.applicable_ids ? JSON.stringify(data.applicable_ids) : null, data.start_time, data.end_time, data.gift_stock_limit ?? null, data.gift_stock_limit ?? 0, data.is_stock_synced ? 1 : 0, tenantId, userId], tenantId
   );
-  return { id: (result as any).insertId, rule_code: code };
+  return { id: (result as unknown as Record<string, unknown>).insertId, rule_code: code };
 }
 
 export async function listGiftRules(params: { tenantId: string; status?: string; page?: number; pageSize?: number }) {

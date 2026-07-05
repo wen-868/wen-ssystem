@@ -19,7 +19,7 @@ export async function createSeckillProduct(data: any) {
     `INSERT INTO seckill_product (product_id, seckill_price, seckill_stock, limit_per_user, start_time, end_time, status) VALUES (?, ?, ?, ?, ?, ?, ?)`,
     [data.productId, data.seckillPrice, data.seckillStock, data.limitPerUser || 1, data.startTime, data.endTime, data.status || 'PENDING']
   );
-  return { id: (result as any).insertId };
+  return { id: (result as unknown as Record<string, unknown>).insertId };
 }
 
 export async function updateSeckillProduct(id: number, data: any) {

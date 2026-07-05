@@ -171,7 +171,7 @@ export async function publish(tenantId: string, body: any, platform: string = "W
     success: true,
     version,
     appName: config.appName,
-    publishLogId: (publishLogId as any).insertId,
+    publishLogId: (publishLogId as unknown as Record<string, unknown>).insertId,
   };
 }
 

@@ -22,7 +22,7 @@ export async function createGroup(body: {
     [body.name, body.code, body.sortNo ?? 0, body.isMultiple !== false ? 1 : 0],
     tenantId
   );
-  return { id: (result as any).insertId };
+  return { id: (result as unknown as Record<string, unknown>).insertId };
 }
 
 export async function updateGroup(id: number, body: {
@@ -94,7 +94,7 @@ export async function createTag(body: {
     [body.groupId, body.name, body.sortNo ?? 0],
     tenantId
   );
-  return { id: (result as any).insertId };
+  return { id: (result as unknown as Record<string, unknown>).insertId };
 }
 
 export async function updateTag(id: number, body: {

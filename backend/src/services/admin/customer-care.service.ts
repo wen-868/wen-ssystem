@@ -14,7 +14,7 @@ export async function createCareRule(params: { ruleName: string; triggerType: st
     "INSERT INTO customer_care_rule (rule_name, trigger_type, template_content, reward_points, reward_coupon_id, tenant_id) VALUES (?, ?, ?, ?, ?, ?)",
     [ruleName, triggerType, templateContent ?? null, rewardPoints ?? 0, rewardCouponId ?? null, tenantId], tenantId
   );
-  return { id: (result as any).insertId, ruleName, triggerType };
+  return { id: (result as unknown as Record<string, unknown>).insertId, ruleName, triggerType };
 }
 
 export async function updateCareRule(id: number, params: { ruleName?: string; triggerType?: string; templateContent?: string; rewardPoints?: number; rewardCouponId?: number; enabled?: number; tenantId: string }) {

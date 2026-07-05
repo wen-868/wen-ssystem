@@ -21,7 +21,7 @@ const updateFeedbackSchema = z.object({
 export async function submitFeedback(req: Request, res: Response) {
   const body = submitFeedbackSchema.parse(req.body);
   const { type, title, content, contact, screenshot_urls, page_url, browser_info } = body;
-  const tenant_id = (req as any).tenantId || "default";
+  const tenant_id = req.tenantId || "default";
   const user_id = (req as any).userId;
 
   const id = await insertFeedback({
@@ -40,7 +40,7 @@ export async function submitFeedback(req: Request, res: Response) {
 }
 
 export async function getFeedbacks(req: Request, res: Response) {
-  const tenant_id = (req as any).tenantId || "default";
+  const tenant_id = req.tenantId || "default";
   const { type, status, keyword, page = "1", pageSize = "20" } = req.query;
 
   const result = await listFeedbacks({
@@ -59,7 +59,7 @@ export async function updateFeedback(req: Request, res: Response) {
   const { id } = req.params;
   const body = updateFeedbackSchema.parse(req.body);
   const { status, reply } = body;
-  const tenant_id = (req as any).tenantId || "default";
+  const tenant_id = req.tenantId || "default";
 
   await updateFeedbackStatus(parseInt(id, 10), status, reply, tenant_id);
   res.json(ok({ result: "更新成功" }));

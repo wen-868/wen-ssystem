@@ -40,7 +40,7 @@ export const createPointsProduct = asyncHandler(async (req: Request, res: Respon
 });
 
 export const listPointsProducts = asyncHandler(async (req: Request, res: Response) => {
-  const { status, page, pageSize } = req.query as any;
+  const { status, page, pageSize } = req.query as Record<string, string | undefined>;
   const result = await svc.listPointsProducts({ tenantId: req.tenantId!, status, page: page ? Number(page) : 1, pageSize: pageSize ? Number(pageSize) : 20 });
   res.json(ok(result));
 });
@@ -67,7 +67,7 @@ export const togglePointsProduct = asyncHandler(async (req: Request, res: Respon
 });
 
 export const listExchangeRecords = asyncHandler(async (req: Request, res: Response) => {
-  const { userId, status, page, pageSize } = req.query as any;
+  const { userId, status, page, pageSize } = req.query as Record<string, string | undefined>;
   const result = await svc.listExchangeRecords({ tenantId: req.tenantId!, userId: userId ? Number(userId) : undefined, status, page: page ? Number(page) : 1, pageSize: pageSize ? Number(pageSize) : 20 });
   res.json(ok(result));
 });

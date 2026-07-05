@@ -60,7 +60,7 @@
 
     <!-- 标签弹窗 -->
     <el-dialog v-model="tagDialogVisible" :title="editingTag ? '编辑标签' : '新增标签'" width="480px">
-      <el-form ref="tagFormRef" :model="tagForm" label-width="90px">
+      <el-form ref="tagFormRef" :model="tagForm" :rules="tagRules" label-width="90px">
         <el-form-item label="标签名称" prop="name" required>
           <el-input v-model="tagForm.name" placeholder="请输入标签名称" maxlength="50" show-word-limit />
         </el-form-item>
@@ -90,7 +90,7 @@
 
     <!-- 分组弹窗 -->
     <el-dialog v-model="groupDialogVisible" :title="editingGroup ? '编辑分组' : '新增标签分组'" width="480px">
-      <el-form ref="groupFormRef" :model="groupForm" label-width="90px">
+      <el-form ref="groupFormRef" :model="groupForm" :rules="groupRules" label-width="90px">
         <el-form-item label="分组编码" prop="groupCode" required>
           <el-input v-model="groupForm.groupCode" placeholder="如: aroma" :disabled="!!editingGroup" />
         </el-form-item>
@@ -143,7 +143,17 @@ const tagPageSize = ref(20);
 const tagTotal = ref(0);
 
 const tagForm = reactive({ name: "", tagType: "", sortNo: 0, status: "active", remark: "" });
+const tagFormRef = ref();
+const tagRules = {
+  name: [{ required: true, message: '请输入标签名称', trigger: 'blur' }],
+  tagType: [{ required: true, message: '请选择所属分组', trigger: 'change' }]
+};
 const groupForm = reactive({ groupCode: "", groupName: "", sortNo: 0, status: "active", description: "" });
+const groupFormRef = ref();
+const groupRules = {
+  groupCode: [{ required: true, message: '请输入分组编码', trigger: 'blur' }],
+  groupName: [{ required: true, message: '请输入分组名称', trigger: 'blur' }]
+};
 
 async function loadGroups() {
   try {
@@ -209,10 +219,8 @@ function openTagDialog(row?: any) {
 }
 
 async function handleTagSubmit() {
-  if (!tagForm.name || !tagForm.tagType) {
-    ElMessage.warning("标签名称和所属分组不能为空");
-    return;
-  }
+  const valid = await tagFormRef.value?.validate().catch(() => false);
+  if (!valid) return;
   tagSubmitLoading.value = true;
   try {
     if (editingTag.value) {
@@ -275,10 +283,8 @@ function openGroupDialog(row?: any) {
 }
 
 async function handleGroupSubmit() {
-  if (!groupForm.groupCode || !groupForm.groupName) {
-    ElMessage.warning("分组编码和名称不能为空");
-    return;
-  }
+  const valid = await groupFormRef.value?.validate().catch(() => false);
+  if (!valid) return;
   groupSubmitLoading.value = true;
   try {
     if (editingGroup.value) {

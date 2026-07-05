@@ -267,7 +267,7 @@ export async function buyFlashSale(
        WHERE id = ? AND tenant_id = ? AND status = 'ACTIVE' AND start_time <= ? AND end_time >= ?
        FOR UPDATE`,
       [flashSaleId, tenantId, now, now]
-    ) as any;
+    ) as unknown as any[];
 
     const flash = (flashRows as any[])[0];
     if (!flash) {
@@ -285,7 +285,7 @@ export async function buyFlashSale(
        JOIN flash_sale fs ON fs.id = fsr.flash_sale_id AND fs.tenant_id = ?
        WHERE fsr.flash_sale_id = ? AND fsr.user_id = ?`,
       [tenantId, flashSaleId, userId]
-    ) as any;
+    ) as unknown as any[];
 
     const purchased = Number((purchaseRows as any[])[0]?.totalQty || 0);
     if (purchased + quantity > Number(flash.limit_per_user)) {

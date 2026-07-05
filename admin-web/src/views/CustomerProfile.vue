@@ -62,8 +62,8 @@
 
     <!-- 编辑画像弹窗 -->
     <el-dialog v-model="editVisible" title="编辑画像" width="480px">
-      <el-form ref="editFormRef" :model="editForm" label-width="100px">
-        <el-form-item label="年龄段">
+      <el-form ref="editFormRef" :model="editForm" :rules="editRules" label-width="100px">
+        <el-form-item label="年龄段" prop="ageRange">
           <el-select v-model="editForm.ageRange" style="width: 100%" clearable>
             <el-option label="18岁以下" value="18岁以下" />
             <el-option label="18-25岁" value="18-25岁" />
@@ -122,6 +122,9 @@ const editVisible = ref(false);
 const editLoading = ref(false);
 const editFormRef = ref();
 const editForm = reactive({ ageRange: "", gender: "", preferCategories: "", preferBrands: "", lifecycleStage: "" });
+const editRules = {
+  ageRange: [{ required: true, message: '请选择年龄段', trigger: 'change' }]
+};
 
 async function searchMembers(query: string) {
   if (!query || query.length < 1) { memberOptions.value = []; return; }
@@ -170,6 +173,8 @@ function openEditDialog() {
 
 async function handleEditSubmit() {
   if (!selectedMemberId.value) return;
+  const valid = await editFormRef.value?.validate().catch(() => false);
+  if (!valid) return;
   editLoading.value = true;
   try {
     await updateCustomerProfile(selectedMemberId.value, {

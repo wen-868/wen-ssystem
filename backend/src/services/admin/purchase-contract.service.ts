@@ -47,7 +47,7 @@ export async function createPurchaseContract(params: {
     [contractNo, supplierId, contractName, contractType ?? "PURCHASE", totalAmount ?? 0, signDate ?? null, startDate ?? null, endDate ?? null, remark ?? null, tenantId],
     tenantId
   );
-  return { contractNo, supplierId, contractName, id: (result as any).insertId };
+  return { contractNo, supplierId, contractName, id: (result as unknown as Record<string, unknown>).insertId };
 }
 
 export async function updatePurchaseContract(contractNo: string, params: {

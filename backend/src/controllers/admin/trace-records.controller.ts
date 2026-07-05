@@ -159,11 +159,11 @@ export const executeRecall = asyncHandler(async (req, res) => {
     req.user!.username ?? "system",
     tenantId
   );
-  if ((result as any).notFound) {
-    res.status(404).json({ code: "404", message: "召回记录不存在" });
+  if ((result as Record<string, unknown>).notFound) {
+    res.status(404).json({ message: "追踪记录不存在" });
     return;
   }
-  if ((result as any).alreadyEnded) {
+  if ((result as Record<string, unknown>).alreadyEnded) {
     res.status(400).json({ code: "400", message: "该召回已结束，无法执行" });
     return;
   }
@@ -178,11 +178,11 @@ export const completeRecall = asyncHandler(async (req, res) => {
     totalReturned: z.number().int().min(0).default(0)
   }).parse(req.body);
   const result = await traceRecordsService.completeRecall(recallNo, body, tenantId);
-  if ((result as any).notFound) {
-    res.status(404).json({ code: "404", message: "召回记录不存在" });
+  if ((result as Record<string, unknown>).notFound) {
+    res.status(404).json({ message: "追踪记录不存在" });
     return;
   }
-  if ((result as any).alreadyEnded) {
+  if ((result as Record<string, unknown>).alreadyEnded) {
     res.status(400).json({ code: "400", message: "该召回已结束" });
     return;
   }

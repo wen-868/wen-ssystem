@@ -10,8 +10,8 @@ export const reportFrontendError = asyncHandler(async (req, res) => {
     stack: req.body.stack || null,
     request_url: req.body.url || null,
     source: "frontend",
-    user_id: (req as any).user?.id || null,
-    tenant_id: (req as any).tenantId || null,
+    user_id: req.user?.id || null,
+    tenant_id: req.tenantId || null,
   });
   res.json(ok(null));
 });

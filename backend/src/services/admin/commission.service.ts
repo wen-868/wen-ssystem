@@ -27,7 +27,7 @@ export async function createCommissionRule(params: {
     [ruleName, ruleType, JSON.stringify(config), effectiveStart ?? null, effectiveEnd ?? null, remark ?? null, tenantId],
     tenantId
   );
-  return { id: (result as any).insertId, ruleName, ruleType, config };
+  return { id: (result as unknown as Record<string, unknown>).insertId, ruleName, ruleType, config };
 }
 
 export async function updateCommissionRule(id: number, params: {

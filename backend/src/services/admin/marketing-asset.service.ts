@@ -21,7 +21,7 @@ export async function createMarketingAsset(data: any) {
     `INSERT INTO marketing_asset (name, type, url, thumbnail_url, content, category, tags, file_size, status) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`,
     [data.name, data.type, data.url, data.thumbnailUrl, data.content, data.category, JSON.stringify(data.tags || []), data.fileSize, data.status || 'ACTIVE']
   );
-  return { id: (result as any).insertId };
+  return { id: (result as unknown as Record<string, unknown>).insertId };
 }
 
 export async function updateMarketingAsset(id: number, data: any) {

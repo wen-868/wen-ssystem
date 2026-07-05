@@ -4,7 +4,7 @@ import { ok } from "../../shared/response.js";
 import * as svc from "../../services/instant-retail/reconciliation.service.js";
 
 export const getReconciliationSummary = asyncHandler(async (req: Request, res: Response) => {
-  const { startDate, endDate, platform, storeId } = req.query as any;
+  const { startDate, endDate, platform, storeId } = req.query as Record<string, string | undefined>;
   const result = await svc.getReconciliationSummary({
     tenantId: req.tenantId!, startDate, endDate, platform,
     storeId: storeId ? Number(storeId) : undefined,
@@ -13,7 +13,7 @@ export const getReconciliationSummary = asyncHandler(async (req: Request, res: R
 });
 
 export const listReconciliationRecords = asyncHandler(async (req: Request, res: Response) => {
-  const { page, pageSize, platform, startDate, endDate, storeId } = req.query as any;
+  const { page, pageSize, platform, startDate, endDate, storeId } = req.query as Record<string, string | undefined>;
   const result = await svc.listReconciliationRecords({
     tenantId: req.tenantId!,
     page: page ? Number(page) : 1,

@@ -83,7 +83,7 @@ export class PaymentConfigService {
       [data.bankName, data.accountNo, data.accountName, data.bankBranch||'', data.isDefault?1:0, tenantId],
       tenantId
     );
-    return { id: (result as any).insertId };
+    return { id: (result as unknown as Record<string, unknown>).insertId };
   }
 
   // 编辑银行账号

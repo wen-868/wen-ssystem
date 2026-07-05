@@ -31,8 +31,8 @@ export const handle = asyncHandler(async (req, res) => {
     req.tenantId!,
     body.action,
     body.remark,
-    (req as any).user?.id ?? 0,
-    (req as any).user?.username ?? "system"
+    req.user?.id ?? 0,
+    req.user?.username ?? "system"
   );
   res.json(ok(result));
 });

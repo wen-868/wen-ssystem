@@ -93,8 +93,8 @@ export const cancelOrder = asyncHandler(async (req, res) => {
   const orderNo = req.params.orderNo;
   const body = cancelOrderSchema.parse(req.body);
   const reason = body.reason;
-  const operatorId = (req as any).user?.id ?? null;
-  const operatorName = (req as any).user?.username ?? "系统用户";
+  const operatorId = req.user?.id ?? null;
+  const operatorName = req.user?.username ?? "系统用户";
   const result = await orderService.cancelOrder(orderNo, reason, operatorId, operatorName, tenantId);
   res.json(ok(result));
 });
@@ -104,8 +104,8 @@ export const remarkOrder = asyncHandler(async (req, res) => {
   const orderNo = req.params.orderNo;
   const body = remarkOrderSchema.parse(req.body);
   const remark = body.remark;
-  const operatorId = (req as any).user?.id ?? null;
-  const operatorName = (req as any).user?.username ?? "系统用户";
+  const operatorId = req.user?.id ?? null;
+  const operatorName = req.user?.username ?? "系统用户";
   const result = await orderService.remarkOrder(orderNo, remark, operatorId, operatorName, tenantId);
   res.json(ok(result));
 });
@@ -116,8 +116,8 @@ export const updateOrderStatus = asyncHandler(async (req, res) => {
   const body = updateOrderStatusSchema.parse(req.body);
   const targetStatus = body.status;
   const remark = body.remark ?? null;
-  const operatorId = (req as any).user?.id ?? null;
-  const operatorName = (req as any).user?.username ?? "系统用户";
+  const operatorId = req.user?.id ?? null;
+  const operatorName = req.user?.username ?? "系统用户";
   const result = await orderService.updateOrderStatus(orderNo, targetStatus, operatorId, operatorName, remark, tenantId);
   res.json(ok(result));
 });
@@ -127,8 +127,8 @@ export const batchUpdateOrderStatus = asyncHandler(async (req, res) => {
   const body = batchUpdateOrderStatusSchema.parse(req.body);
   const orderNos: string[] = body.orderNos;
   const targetStatus = body.status;
-  const operatorId = (req as any).user?.id ?? null;
-  const operatorName = (req as any).user?.username ?? "系统用户";
+  const operatorId = req.user?.id ?? null;
+  const operatorName = req.user?.username ?? "系统用户";
   if (!orderNos.length) {
     res.status(400).json({ code: "400", message: "订单号列表不能为空" });
     return;

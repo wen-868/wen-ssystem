@@ -88,6 +88,9 @@
         <el-table-column label="批发价" width="100">
           <template #default="{ row }">¥{{ Number(row._firstWholesalePrice || 0).toFixed(2) }}</template>
         </el-table-column>
+        <el-table-column prop="availableQty" label="可用库存" width="100" align="center">
+          <template #default="{ row }">{{ row.availableQty ?? '-' }}</template>
+        </el-table-column>
         <el-table-column prop="status" label="状态" width="80" align="center">
           <template #default="{ row }">
             <el-tag v-if="row.status === 'ON_SALE'" type="success">上架</el-tag>
@@ -175,6 +178,18 @@
                 <el-option label="小程序" value="MINIAPP" />
                 <el-option label="门店" value="STORE" />
               </el-select>
+            </el-form-item>
+          </el-col>
+        </el-row>
+        <el-row :gutter="20">
+          <el-col :span="12">
+            <el-form-item label="轮播图">
+              <el-input v-model="form.imageUrls" type="textarea" :rows="3" placeholder="每行一个图片URL" />
+            </el-form-item>
+          </el-col>
+          <el-col :span="12">
+            <el-form-item label="营销标签">
+              <el-input v-model="form.marketingTags" placeholder="多个标签用逗号分隔，如：新品,热销,限时" />
             </el-form-item>
           </el-col>
         </el-row>
@@ -427,6 +442,8 @@ const defaultForm = {
   alcoholContent: null as number | null,
   origin: "",
   saleChannels: ["MINIAPP", "STORE"] as string[],
+  imageUrls: "",
+  marketingTags: "",
   skus: [{ skuName: "", barcode: "", boxRatio: 1, temperature: "NORMAL", traceEnabled: false, warningThreshold: 0, retailPrice: 0, wholesalePrice: null as number | null, miniappPrice: null as number | null }]
 };
 const form = reactive(JSON.parse(JSON.stringify(defaultForm)));
@@ -447,7 +464,8 @@ function groupSpus(raw: any[]): any[] {
       spu = {
         spuId: r.spuId, spuCode: r.spuCode, name: r.name, mainImage: r.mainImage,
         alcoholContent: r.alcoholContent, origin: r.origin, saleChannels: r.saleChannels,
-        detail: r.detail, imageUrls: r.imageUrls,
+        detail: r.detail, imageUrls: r.imageUrls, marketingTags: r.marketingTags,
+        availableQty: r.availableQty,
         categoryName: r.categoryName, brandName: r.brandName,
         status: r.status, createdAt: r.createdAt, updatedAt: r.updatedAt,
         _skus: [] as any[]
@@ -514,6 +532,8 @@ function openEditDialog(row: any) {
   form.alcoholContent = row.alcoholContent || null;
   form.origin = row.origin || "";
   form.saleChannels = parseChannels(row.saleChannels);
+  form.imageUrls = row.imageUrls || "";
+  form.marketingTags = row.marketingTags || "";
   form.skus = (row._skus || []).map((s: any) => ({
     skuName: s.skuName, barcode: s.barcode, boxRatio: s.boxRatio || 1,
     temperature: s.temperature || "NORMAL", traceEnabled: !!s.traceEnabled,
@@ -541,12 +561,17 @@ async function handleSubmit() {
       if (isEdit.value && editSpuId.value) {
         await api.put(`/admin/products/${editSpuId.value}`, {
           name: form.name, category: form.categoryId, brand: form.brandId,
-          alcoholContent: form.alcoholContent, origin: form.origin
+          alcoholContent: form.alcoholContent, origin: form.origin,
+          imageUrls: form.imageUrls || undefined,
+          marketingTags: form.marketingTags || undefined
         });
         ElMessage.success("更新成功");
       } else {
         await api.post("/admin/products", {
-          name: form.name, categoryId: form.categoryId, mainImage: form.mainImage || undefined,
+          name: form.name, categoryId: form.categoryId, brandId: form.brandId || undefined,
+          mainImage: form.mainImage || undefined,
+          imageUrls: form.imageUrls || undefined,
+          marketingTags: form.marketingTags || undefined,
           saleChannels: form.saleChannels,
           skus: form.skus.map((s: any) => ({
             skuName: s.skuName, barcode: s.barcode, boxRatio: s.boxRatio,

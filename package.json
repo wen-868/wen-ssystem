@@ -38,7 +38,7 @@
     "test:acceptance:production": "node scripts/acceptance-production.mjs"
   },
   "devDependencies": {
-    "esbuild": "^0.28.1",
+    "esbuild": "^0.25.0",
     "wait-on": "^9.0.10"
   },
   "dependencies": {

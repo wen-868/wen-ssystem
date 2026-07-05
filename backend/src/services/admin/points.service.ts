@@ -15,7 +15,7 @@ export async function createPointsRule(params: { ruleName: string; earnType: str
     "INSERT INTO points_rule (rule_name, earn_type, earn_rate, daily_limit, tenant_id) VALUES (?, ?, ?, ?, ?)",
     [ruleName, earnType, earnRate, dailyLimit ?? 0, tenantId], tenantId
   );
-  return { id: (result as any).insertId, ruleName, earnType, earnRate };
+  return { id: (result as unknown as Record<string, unknown>).insertId, ruleName, earnType, earnRate };
 }
 
 export async function updatePointsRule(id: number, params: { ruleName?: string; earnRate?: number; dailyLimit?: number; enabled?: number; tenantId: string }) {
@@ -78,7 +78,7 @@ export async function createLevelConfig(params: { levelName: string; minPoints: 
     "INSERT INTO level_config (level_name, min_points, max_points, discount_rate, benefits, tenant_id) VALUES (?, ?, ?, ?, ?, ?)",
     [levelName, minPoints, maxPoints, discountRate, benefits ? JSON.stringify(benefits) : null, tenantId], tenantId
   );
-  return { id: (result as any).insertId, levelName };
+  return { id: (result as unknown as Record<string, unknown>).insertId, levelName };
 }
 
 export async function updateLevelConfig(id: number, params: { levelName?: string; minPoints?: number; maxPoints?: number; discountRate?: number; benefits?: any; tenantId: string }) {

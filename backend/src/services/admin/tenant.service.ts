@@ -166,7 +166,7 @@ export async function updateTenant(tenantId: number, body: {
   };
 
   for (const [key, column] of Object.entries(fieldMap)) {
-    const value = (body as any)[key];
+    const value = (body as Record<string, unknown>)[key];
     if (value !== undefined) {
       updates.push(`${column} = ?`);
       params.push(value || null);

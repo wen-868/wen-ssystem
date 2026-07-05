@@ -46,7 +46,7 @@ export const createGiftRule = asyncHandler(async (req: Request, res: Response) =
 });
 
 export const listGiftRules = asyncHandler(async (req: Request, res: Response) => {
-  const { status, page, pageSize } = req.query as any;
+  const { status, page, pageSize } = req.query as Record<string, string | undefined>;
   const result = await svc.listGiftRules({ tenantId: req.tenantId!, status, page: page ? Number(page) : 1, pageSize: pageSize ? Number(pageSize) : 20 });
   res.json(ok(result));
 });

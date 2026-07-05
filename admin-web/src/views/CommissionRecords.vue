@@ -68,8 +68,8 @@
 
     <!-- 计算提成弹窗 -->
     <el-dialog v-model="calcVisible" title="计算提成" width="450px" :close-on-click-modal="false">
-      <el-form :model="calcForm" label-width="100px">
-        <el-form-item label="日期范围">
+      <el-form ref="calcFormRef" :model="calcForm" :rules="calcRules" label-width="100px">
+        <el-form-item label="日期范围" prop="dateRange">
           <el-date-picker
             v-model="calcForm.dateRange"
             type="daterange"
@@ -111,7 +111,11 @@ const selectedIds = ref<number[]>([]);
 
 const calcVisible = ref(false);
 const calcLoading = ref(false);
+const calcFormRef = ref();
 const calcForm = ref({ dateRange: null as [string, string] | null });
+const calcRules = {
+  dateRange: [{ required: true, message: '请选择日期范围', trigger: 'change' }]
+};
 
 const columns: any[] = [
   { type: "selection", width: 50 },
@@ -161,15 +165,13 @@ function showCalcDialog() {
 }
 
 async function handleCalc() {
-  if (!calcForm.value.dateRange || !calcForm.value.dateRange[0] || !calcForm.value.dateRange[1]) {
-    ElMessage.warning("请选择日期范围");
-    return;
-  }
+  const valid = await calcFormRef.value?.validate().catch(() => false);
+  if (!valid) return;
   calcLoading.value = true;
   try {
     const result = await calculateCommission({
-      dateStart: calcForm.value.dateRange[0],
-      dateEnd: calcForm.value.dateRange[1]
+      dateStart: calcForm.value.dateRange![0],
+      dateEnd: calcForm.value.dateRange![1]
     });
     ElMessage.success(`计算完成，新增 ${result.calculated} 条提成记录`);
     calcVisible.value = false;

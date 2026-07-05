@@ -177,7 +177,7 @@ export async function updateCouponTemplate(
   };
 
   for (const [key, column] of Object.entries(fieldMap)) {
-    const value = (body as any)[key];
+    const value = (body as Record<string, unknown>)[key];
     if (value !== undefined) {
       updates.push(`${column} = ?`);
       params.push(value);
@@ -247,7 +247,7 @@ export async function issueCoupons(
         `SELECT COUNT(*) AS count FROM user_coupon
          WHERE template_id = ? AND user_id = ? AND tenant_id = ?`,
         [templateId, uid, tenantId]
-      ) as any;
+      ) as unknown as any[];
 
       const userCouponCount = (userCouponCountRows as any[])[0];
 

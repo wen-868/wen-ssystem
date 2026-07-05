@@ -88,7 +88,7 @@ export function filterPriceFields<T extends Record<string, any>>(
   if (user.roles.includes("SUPER_ADMIN")) return { filtered: data, blockedFields: [] };
 
   const blockedFields: string[] = [];
-  const filtered = { ...data } as any;
+  const filtered = { ...data } as Record<string, unknown>;
 
   for (const key of Object.keys(filtered)) {
     if (!canAccessPriceField(user, key)) {

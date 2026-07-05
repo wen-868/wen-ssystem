@@ -312,7 +312,7 @@ export const saveShopConfig = asyncHandler(async (req, res) => {
   const tenantId = req.tenantId!;
   const storeId = req.query.storeId ? Number(req.query.storeId) : undefined;
   const body = saveShopConfigSchema.parse(req.body);
-  const result = await retailShopSvc.saveShopConfig(storeId, body as any, tenantId);
+  const result = await retailShopSvc.saveShopConfig(storeId, body as Record<string, unknown>, tenantId);
   res.json(ok(result));
 });
 
@@ -327,14 +327,14 @@ export const createCategory = asyncHandler(async (req, res) => {
   const tenantId = req.tenantId!;
   const storeId = req.query.storeId ? Number(req.query.storeId) : undefined;
   const body = createCategorySchema.parse(req.body);
-  const result = await retailShopSvc.createCategory(storeId, body as any, tenantId);
+  const result = await retailShopSvc.createCategory(storeId, body as Record<string, unknown>, tenantId);
   res.json(ok(result));
 });
 
 export const updateCategory = asyncHandler(async (req, res) => {
   const tenantId = req.tenantId!;
   const body = updateCategorySchema.parse(req.body);
-  const result = await retailShopSvc.updateCategory(Number(req.params.id), body as any, tenantId);
+  const result = await retailShopSvc.updateCategory(Number(req.params.id), body as Record<string, unknown>, tenantId);
   res.json(ok(result));
 });
 
@@ -357,14 +357,14 @@ export const addRetailProduct = asyncHandler(async (req, res) => {
   const tenantId = req.tenantId!;
   const storeId = req.query.storeId ? Number(req.query.storeId) : undefined;
   const body = addRetailProductSchema.parse(req.body);
-  const result = await retailShopSvc.addRetailProduct(storeId, body as any, tenantId);
+  const result = await retailShopSvc.addRetailProduct(storeId, body as Record<string, unknown>, tenantId);
   res.json(ok(result));
 });
 
 export const updateRetailProduct = asyncHandler(async (req, res) => {
   const tenantId = req.tenantId!;
   const body = updateRetailProductSchema.parse(req.body);
-  const result = await retailShopSvc.updateRetailProduct(Number(req.params.id), body as any, tenantId);
+  const result = await retailShopSvc.updateRetailProduct(Number(req.params.id), body as Record<string, unknown>, tenantId);
   res.json(ok(result));
 });
 
@@ -408,14 +408,14 @@ export const createBanner = asyncHandler(async (req, res) => {
   const tenantId = req.tenantId!;
   const storeId = req.query.storeId ? Number(req.query.storeId) : undefined;
   const body = createBannerSchema.parse(req.body);
-  const result = await retailShopSvc.createBanner(storeId, body as any, tenantId);
+  const result = await retailShopSvc.createBanner(storeId, body as Record<string, unknown>, tenantId);
   res.json(ok(result));
 });
 
 export const updateBanner = asyncHandler(async (req, res) => {
   const tenantId = req.tenantId!;
   const body = updateBannerSchema.parse(req.body);
-  const result = await retailShopSvc.updateBanner(Number(req.params.id), body as any, tenantId);
+  const result = await retailShopSvc.updateBanner(Number(req.params.id), body as Record<string, unknown>, tenantId);
   res.json(ok(result));
 });
 

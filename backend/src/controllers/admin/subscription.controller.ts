@@ -47,8 +47,8 @@ export const createSubscription = asyncHandler(async (req, res) => {
     req.user!.username,
     tenantId
   );
-  if ((result as any).code) {
-    res.status(Number((result as any).code)).json(result);
+  if ((result as Record<string, unknown>).code) {
+    res.status(Number((result as Record<string, unknown>).code)).json(result);
     return;
   }
   res.json(ok(result));
@@ -70,8 +70,8 @@ export const changePlan = asyncHandler(async (req, res) => {
     req.user!.username,
     tenantId
   );
-  if ((result as any).code) {
-    res.status(Number((result as any).code)).json(result);
+  if ((result as Record<string, unknown>).code) {
+    res.status(Number((result as Record<string, unknown>).code)).json(result);
     return;
   }
   res.json(ok(result));
@@ -91,8 +91,8 @@ export const cancelSubscription = asyncHandler(async (req, res) => {
     req.user!.username,
     tenantId
   );
-  if ((result as any).code) {
-    res.status(Number((result as any).code)).json(result);
+  if ((result as Record<string, unknown>).code) {
+    res.status(Number((result as Record<string, unknown>).code)).json(result);
     return;
   }
   res.json(ok(result));
@@ -113,8 +113,8 @@ export const paySubscription = asyncHandler(async (req, res) => {
     req.user!.username,
     tenantId
   );
-  if ((result as any).code) {
-    res.status(Number((result as any).code)).json(result);
+  if ((result as Record<string, unknown>).code) {
+    res.status(Number((result as Record<string, unknown>).code)).json(result);
     return;
   }
   res.json(ok(result));

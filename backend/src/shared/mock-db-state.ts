@@ -70,14 +70,16 @@ export const pendingProduct: {
   sku?: Row;
 } = {};
 
-export function result(insertId: number = Date.now()) {
-  return [{ insertId, affectedRows: 1 }, undefined] as any;
+export function result(insertId: number = Date.now()): any {
+  return [{ insertId, affectedRows: 1 }, undefined];
 }
 
 const initialState = JSON.parse(JSON.stringify(state));
 
+type StateKey = keyof typeof state;
+
 export function resetMockDb() {
   Object.keys(initialState).forEach((key) => {
-    (state as any)[key] = JSON.parse(JSON.stringify(initialState[key]));
+    (state as Record<string, unknown>)[key] = JSON.parse(JSON.stringify(initialState[key as StateKey]));
   });
 }

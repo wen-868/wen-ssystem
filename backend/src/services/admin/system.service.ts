@@ -6,7 +6,7 @@ export async function getHealth() {
     status: "UP",
     timestamp: new Date().toISOString(),
     env: env.NODE_ENV || "development",
-    uptime: (Date.now() - (globalThis as any).__startTime || 0) / 1000,
+    uptime: (Date.now() - ((globalThis as unknown as Record<string, unknown>).__startTime as number || 0)) / 1000,
   };
 }
 

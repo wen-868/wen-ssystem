@@ -19,8 +19,8 @@ export const renewSubscription = asyncHandler(async (req, res) => {
     req.user!.username,
     tenantId
   );
-  if ((result as any).code) {
-    res.status(Number((result as any).code)).json(result);
+  if ((result as Record<string, unknown>).code) {
+    res.status(Number((result as Record<string, unknown>).code)).json(result);
     return;
   }
   res.json(ok(result));

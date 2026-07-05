@@ -104,6 +104,7 @@ const businessTypeOptions = [
   { value: "PURCHASE", label: "采购审批", color: "#409eff" },
   { value: "SALE", label: "销售审批", color: "#67c23a" },
   { value: "REFUND", label: "退款审批", color: "#e6a23c" },
+  { value: "EXPENSE", label: "费用审批", color: "#909399" },
   { value: "PRICE_CHANGE", label: "价格变更", color: "#9b59b6" },
   { value: "CREDIT_LIMIT", label: "信用额度", color: "#00bcd4" }
 ];

@@ -7,7 +7,7 @@ export async function createLimitedDiscount(data: any, tenantId: string, userId:
     `INSERT INTO limited_discount (activity_code, activity_name, activity_desc, discount_type, discount_value, min_purchase, applicable_scope, applicable_ids, start_time, end_time, total_stock, available_stock, limit_per_user, per_order_limit, tenant_id, created_by) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
     [code, data.activity_name, data.activity_desc ?? null, data.discount_type ?? "PERCENT", data.discount_value, data.min_purchase ?? 0, data.applicable_scope ?? "ALL", data.applicable_ids ? JSON.stringify(data.applicable_ids) : null, data.start_time, data.end_time, data.total_stock ?? 0, data.total_stock ?? 0, data.limit_per_user ?? null, data.per_order_limit ?? null, tenantId, userId], tenantId
   );
-  return { id: (result as any).insertId, activity_code: code };
+  return { id: (result as unknown as Record<string, unknown>).insertId, activity_code: code };
 }
 
 export async function listLimitedDiscounts(params: { tenantId: string; status?: string; page?: number; pageSize?: number }) {

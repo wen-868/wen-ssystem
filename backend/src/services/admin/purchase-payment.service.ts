@@ -96,7 +96,7 @@ export async function approve(paymentNo: string, tenantId: string, userId: numbe
         "SELECT payable_amount, paid_amount FROM purchase_order WHERE order_no = ?",
         [payment.source_no]
       );
-      const orderRow = (orderRows as any[])?.[0];
+      const orderRow = (orderRows as unknown as Record<string, unknown>[])?.[0];
       if (orderRow) {
         const newPaidAmount = Number(orderRow.paid_amount) + Number(payment.amount);
         const newUnpaidAmount = Number(orderRow.payable_amount) - newPaidAmount;

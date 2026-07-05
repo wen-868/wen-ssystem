@@ -3,7 +3,7 @@ import { ZodError, type ZodIssue } from "zod";
 import logger from "./logger.js";
 import { fail } from "./response.js";
 
-export const errorHandler: any = (err: any, _req: any, res: any, _next: any) => {
+export const errorHandler: ErrorRequestHandler = (err, _req, res, _next) => {
   logger.error(err);
 
   // ZodError：参数校验失败，返回 400 及具体字段错误

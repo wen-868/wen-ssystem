@@ -65,7 +65,7 @@ export async function createTemplate(tenantId: string, body: any) {
       body.version || "1.0.0", body.status || "active", body.sortOrder || 0],
     tenantId
   );
-  return { id: (result as any).insertId };
+  return { id: (result as unknown as Record<string, unknown>).insertId };
 }
 
 export async function updateTemplate(tenantId: string, id: number, body: any) {

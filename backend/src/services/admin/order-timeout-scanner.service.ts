@@ -136,8 +136,8 @@ export function startOrderTimeoutScanner() {
     }
   }, SCAN_INTERVAL);
 
-  if (typeof (timer as any).unref === "function") {
-    (timer as any).unref();
+  if (typeof (timer as unknown as NodeJS.Timeout).unref === "function") {
+    (timer as unknown as NodeJS.Timeout).unref();
   }
 
   logger.info("[OrderTimeoutScanner] 订单超时扫描器已启动，每60秒扫描一次");

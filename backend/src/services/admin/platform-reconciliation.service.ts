@@ -64,7 +64,7 @@ export async function createReconciliation(tenantId: string, data: Reconciliatio
     [tenantId, data.reconciliationNo, data.platformNo, data.platformName, data.type, data.amount, data.status, data.recordedAt || null],
     tenantId
   );
-  return { id: (result as any).insertId };
+  return { id: (result as unknown as Record<string, unknown>).insertId };
 }
 
 export async function updateReconciliation(tenantId: string, id: number, data: ReconciliationUpdateData) {

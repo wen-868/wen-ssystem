@@ -20,7 +20,7 @@ export async function createTag(params: { tagName: string; tagType: string; tagG
     "INSERT INTO customer_tag (tag_name, tag_type, tag_group, tenant_id) VALUES (?, ?, ?, ?)",
     [tagName, tagType, tagGroup ?? null, tenantId], tenantId
   );
-  return { id: (result as any).insertId, tagName, tagType };
+  return { id: (result as unknown as Record<string, unknown>).insertId, tagName, tagType };
 }
 
 export async function updateTag(id: number, params: { tagName?: string; tagType?: string; tagGroup?: string; tenantId: string }) {

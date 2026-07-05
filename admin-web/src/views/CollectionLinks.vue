@@ -83,8 +83,8 @@
 
     <!-- 批量生成弹窗 -->
     <el-dialog v-model="batchVisible" title="批量生成分享链接" width="550px" :close-on-click-modal="false">
-      <el-form :model="batchForm" label-width="100px">
-        <el-form-item label="选择销售单">
+      <el-form ref="batchFormRef" :model="batchForm" :rules="batchRules" label-width="100px">
+        <el-form-item label="选择销售单" prop="billNos">
           <el-select
             v-model="batchForm.billNos"
             multiple
@@ -142,7 +142,11 @@ const stats = ref({ total: 0, paid: 0, pending: 0, expired: 0, revoked: 0 });
 
 const batchVisible = ref(false);
 const batchLoading = ref(false);
+const batchFormRef = ref();
 const batchForm = ref({ billNos: [] as string[], shareChannel: "WECHAT", amount: 0, expireHours: 48 });
+const batchRules = {
+  billNos: [{ required: true, message: '请选择至少一张销售单', trigger: 'change', type: 'array', min: 1 }]
+};
 const saleBillsForSelect = ref<any[]>([]);
 
 const columns = [
@@ -199,10 +203,8 @@ function showBatchDialog() {
 }
 
 async function handleBatchCreate() {
-  if (batchForm.value.billNos.length === 0) {
-    ElMessage.warning("请选择至少一张销售单");
-    return;
-  }
+  const valid = await batchFormRef.value?.validate().catch(() => false);
+  if (!valid) return;
   batchLoading.value = true;
   try {
     const result = await batchCreateCollectionLinks(batchForm.value);

@@ -114,13 +114,13 @@
 
     <!-- 新增/编辑配置弹窗 -->
     <el-dialog v-model="configDialogVisible" :title="editingConfig ? '编辑预警配置' : '新增预警配置'" width="500px">
-      <el-form ref="configFormRef" :model="configForm" label-width="100px">
-        <el-form-item label="门店" required>
+      <el-form ref="configFormRef" :model="configForm" :rules="configRules" label-width="100px">
+        <el-form-item label="门店" prop="storeId" required>
           <el-select v-model="configForm.storeId" filterable placeholder="选择门店" style="width: 100%">
             <el-option v-for="s in storeList" :key="s.id" :label="s.name" :value="s.id" />
           </el-select>
         </el-form-item>
-        <el-form-item label="商品" required>
+        <el-form-item label="商品" prop="skuId" required>
           <el-select v-model="configForm.skuId" filterable placeholder="选择商品" style="width: 100%">
             <el-option v-for="p in productList" :key="p.id" :label="p.name" :value="p.id" />
           </el-select>
@@ -172,6 +172,7 @@ const warnStoreId = ref<number | null>(null);
 const warnStats = ref<any>(null);
 
 const configDialogVisible = ref(false);
+const configFormRef = ref();
 const editingConfig = ref<any>(null);
 const configSubmitLoading = ref(false);
 const configForm = reactive({
@@ -181,6 +182,11 @@ const configForm = reactive({
   maxQty: 99999,
   enabled: true
 });
+
+const configRules = {
+  storeId: [{ required: true, message: '请选择门店', trigger: 'change' }],
+  skuId: [{ required: true, message: '请选择商品', trigger: 'change' }]
+};
 
 async function loadConfigs() {
   configLoading.value = true;
@@ -233,10 +239,8 @@ function openConfigDialog(row?: any) {
 }
 
 async function handleConfigSubmit() {
-  if (!configForm.storeId || !configForm.skuId) {
-    ElMessage.warning("请选择门店和商品");
-    return;
-  }
+  const valid = await configFormRef.value?.validate().catch(() => false);
+  if (!valid) return;
   configSubmitLoading.value = true;
   try {
     if (editingConfig.value) {
@@ -246,8 +250,8 @@ async function handleConfigSubmit() {
       ElMessage.success("更新成功");
     } else {
       await createStockWarningConfig({
-        storeId: configForm.storeId,
-        skuIds: [configForm.skuId],
+        storeId: configForm.storeId!,
+        skuIds: [configForm.skuId!],
         minQty: configForm.minQty,
         maxQty: configForm.maxQty
       });

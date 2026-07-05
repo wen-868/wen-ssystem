@@ -7,7 +7,7 @@ export async function createPointsProduct(data: any, tenantId: string) {
     `INSERT INTO points_product (product_code, product_name, product_image, product_desc, points_required, stock_total, stock_available, exchange_limit_per_user, exchange_limit_total, market_price, sort_order, tenant_id) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
     [code, data.product_name, data.product_image ?? null, data.product_desc ?? null, data.points_required, data.stock_total ?? 0, data.stock_total ?? 0, data.exchange_limit_per_user ?? null, data.exchange_limit_total ?? null, data.market_price ?? null, data.sort_order ?? 0, tenantId], tenantId
   );
-  return { id: (result as any).insertId, product_code: code };
+  return { id: (result as unknown as Record<string, unknown>).insertId, product_code: code };
 }
 
 export async function listPointsProducts(params: { tenantId: string; status?: string; page?: number; pageSize?: number }) {
@@ -96,7 +96,7 @@ export async function exchangeProduct(data: { product_id: number; user_id: numbe
     "INSERT INTO points_exchange_record (record_no, product_id, user_id, points_used, quantity, delivery_type, tenant_id) VALUES (?, ?, ?, ?, ?, ?, ?)",
     [recordNo, data.product_id, data.user_id, totalPoints, qty, data.delivery_type ?? "SELF_PICKUP", tenantId], tenantId
   );
-  return { id: (result as any).insertId, record_no: recordNo, points_used: totalPoints };
+  return { id: (result as unknown as Record<string, unknown>).insertId, record_no: recordNo, points_used: totalPoints };
 }
 
 export async function cancelExchange(id: number, tenantId: string) {

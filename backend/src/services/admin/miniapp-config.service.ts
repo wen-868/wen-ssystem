@@ -63,7 +63,7 @@ export class MiniappConfigService {
     const total = await queryOneWithTenant(
       `SELECT COUNT(*) as total FROM miniapp_publish_log WHERE tenant_id = ?`, [tenantId], tenantId
     );
-    return { list: rows, total: (total as any)?.total || 0, page, pageSize };
+    return { list: rows, total: (total as unknown as Record<string, unknown>)?.total || 0, page, pageSize };
   }
 
   // 一键发布
@@ -72,6 +72,6 @@ export class MiniappConfigService {
       `INSERT INTO miniapp_publish_log (platform, template_id, version, operator, status, result, tenant_id) VALUES (?,?,?,?,?,?,?)`,
       [data.platform, data.templateId, data.version, data.operator, 'success', '发布成功', tenantId], tenantId
     );
-    return { id: (result as any).insertId, status: 'success', message: '发布成功' };
+    return { id: (result as unknown as Record<string, unknown>).insertId, status: 'success', message: '发布成功' };
   }
 }

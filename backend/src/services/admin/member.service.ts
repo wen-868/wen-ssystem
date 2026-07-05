@@ -9,7 +9,7 @@ export async function registerMember(params: { name: string; mobile: string; pas
     "INSERT INTO member (name, mobile, password, referrer_id, member_level, tenant_id) VALUES (?, ?, ?, ?, 'VIP1', ?)",
     [name, mobile, password ?? null, referrerId ?? null, tenantId], tenantId
   );
-  const memberId = (result as any).insertId;
+  const memberId = (result as unknown as Record<string, unknown>).insertId;
   // 初始化积分账户
   await queryWithTenant("INSERT INTO customer_points (customer_id, total_points, available_points, tenant_id) VALUES (?, 0, 0, ?)", [memberId, tenantId], tenantId);
   // 初始化等级

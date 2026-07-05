@@ -61,8 +61,8 @@ const platforms = reactive({
     status: "connected",
     lastConnectTime: "2024-01-15 10:28:00",
     tokenExpireTime: "2024-07-15 10:28:00",
-    appKey: "meituan_app_key_xxxxxx",
-    appSecret: "meituan_app_secret_xxxxxx",
+    appKey: "",
+    appSecret: "",
     merchantId: "MT_MCH_001",
     storeId: "store_002",
     storeName: "美团专属店",
@@ -76,7 +76,7 @@ const platforms = reactive({
       2
     ),
     webhookUrl: "https://api.example.com/webhook/instant/meituan",
-    signSecret: "mt_sign_secret_def456uvw",
+    signSecret: "",
     syncLogs: [
       { id: 1, type: "订单", time: "2024-01-15 10:26:00", status: "成功", count: 45 },
       { id: 2, type: "商品", time: "2024-01-15 10:22:00", status: "成功", count: 203 }

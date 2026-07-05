@@ -153,8 +153,8 @@
     </el-card>
 
     <el-dialog v-model="configDialogVisible" :title="editingConfig ? '编辑配置' : '新增配置'" width="520px">
-      <el-form :model="configForm" label-width="120px">
-        <el-form-item label="订单类型">
+      <el-form ref="configFormRef" :model="configForm" :rules="configRules" label-width="120px">
+        <el-form-item label="订单类型" prop="orderType">
           <el-select v-model="configForm.orderType" style="width: 100%">
             <el-option label="普通订单" value="NORMAL" />
             <el-option label="拼团订单" value="GROUP_BUY" />
@@ -223,6 +223,7 @@ const configLoading = ref(false);
 const configSubmitLoading = ref(false);
 const configs = ref<any[]>([]);
 const configDialogVisible = ref(false);
+const configFormRef = ref();
 const editingConfig = ref<any>(null);
 
 const configForm = reactive({
@@ -233,6 +234,13 @@ const configForm = reactive({
   enabled: true,
   description: "",
 });
+
+const configRules = {
+  orderType: [{ required: true, message: '请选择订单类型', trigger: 'change' }],
+  timeoutType: [{ required: true, message: '请选择超时类型', trigger: 'change' }],
+  timeoutMinutes: [{ required: true, message: '请输入超时时间', trigger: 'blur' }],
+  action: [{ required: true, message: '请选择超时动作', trigger: 'change' }]
+};
 
 async function loadStatistics() {
   try {
@@ -302,10 +310,8 @@ async function deleteConfig(row: any) {
 }
 
 async function submitConfig() {
-  if (!configForm.timeoutMinutes || configForm.timeoutMinutes <= 0) {
-    ElMessage.warning("请输入有效的超时时间");
-    return;
-  }
+  const valid = await configFormRef.value?.validate().catch(() => false);
+  if (!valid) return;
   configSubmitLoading.value = true;
   try {
     if (editingConfig.value) {

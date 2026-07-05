@@ -348,12 +348,12 @@ export async function createCheckoutOrder(params: {
       cartItems = (await conn.query(
         `SELECT sku_id AS skuId, quantity FROM cart_item WHERE customer_id = ? AND tenant_id = ? AND sku_id IN (${placeholders})`,
         [customerId, tenantId, ...skuIds]
-      ))[0] as any[];
+      ))[0] as unknown as Record<string, unknown>[];
     } else {
       cartItems = (await conn.query(
         `SELECT sku_id AS skuId, quantity FROM cart_item WHERE customer_id = ? AND tenant_id = ?`,
         [customerId, tenantId]
-      ))[0] as any[];
+      ))[0] as unknown as Record<string, unknown>[];
     }
 
     if (cartItems.length === 0) throw new Error("购物车为空");
@@ -369,7 +369,7 @@ export async function createCheckoutOrder(params: {
          FROM product_sku s JOIN product_price pp ON pp.sku_id = s.id AND pp.tenant_id = s.tenant_id WHERE s.id = ? AND s.tenant_id = ?`,
         [cartItem.skuId, tenantId]
       );
-      const priceRow = (price as any[])[0];
+      const priceRow = (price as unknown as Record<string, unknown>[])[0];
       if (!priceRow) throw new Error(`SKU不存在：${cartItem.skuId}`);
 
       const unitPrice = await getBestPrice(conn, tenantId, customerId, cartItem.skuId, cartItem.quantity);
@@ -382,7 +382,7 @@ export async function createCheckoutOrder(params: {
          FROM inventory_balance WHERE store_id = ? AND sku_id = ? AND stock_type = 'ONLINE' AND tenant_id = ?`,
         [storeId, cartItem.skuId, tenantId]
       );
-      const inv = (inventory as any[])[0];
+      const inv = (inventory as unknown as Record<string, unknown>[])[0];
       const availableQty = Number(inv?.available_qty ?? 0);
       if (availableQty < qty && customerType === "RETAIL") {
         throw new Error(`商品 ${priceRow.sku_name} 库存不足（可售：${availableQty}）`);

@@ -86,7 +86,7 @@ export async function listFeedbacks(params: FeedbackQuery) {
 
   return {
     list: rows,
-    total: (countResult as any)?.total ?? 0,
+    total: (countResult as unknown as Record<string, unknown>)?.total ?? 0,
     page: params.page,
     pageSize: params.pageSize,
   };

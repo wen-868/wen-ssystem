@@ -32,7 +32,7 @@ export async function createStaff(body: {
     [body.username, body.realName, body.mobile ?? null, body.storeId ?? 1, body.status ?? 1, passwordHash],
     tenantId
   );
-  return { staffId: (result as any).insertId, username: body.username, realName: body.realName };
+  return { staffId: (result as unknown as Record<string, unknown>).insertId, username: body.username, realName: body.realName };
 }
 
 export async function updateStaff(id: number, body: {

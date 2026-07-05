@@ -28,7 +28,7 @@ export async function create(body: {
     [body.name, body.code, body.type ?? "BASE", body.sortNo ?? 0, tenantId],
     tenantId
   );
-  return { id: (result as any).insertId };
+  return { id: (result as unknown as Record<string, unknown>).insertId };
 }
 
 export async function update(id: number, body: {

@@ -43,7 +43,7 @@ export const createMaterial = asyncHandler(async (req: Request, res: Response) =
 });
 
 export const listMaterials = asyncHandler(async (req: Request, res: Response) => {
-  const { material_type, category_id, tags, status, page, pageSize } = req.query as any;
+  const { material_type, category_id, tags, status, page, pageSize } = req.query as Record<string, string | undefined>;
   const result = await svc.listMaterials({ tenantId: req.tenantId!, material_type, category_id: category_id ? Number(category_id) : undefined, tags, status, page: page ? Number(page) : 1, pageSize: pageSize ? Number(pageSize) : 20 });
   res.json(ok(result));
 });

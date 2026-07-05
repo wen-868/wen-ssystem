@@ -92,11 +92,11 @@ export const queryHandlers: Array<(s: string, params: unknown[]) => Row[] | null
       const skuId = Number(params[params.length - 1]);
       const product = state.products.find((p) => p.skuId === skuId);
       if (product) {
-        if (params[0] != null) (product as any).costPrice = Number(params[0]);
+        if (params[0] != null) (product as Row).costPrice = Number(params[0]);
         if (params[1] != null) product.retailPrice = Number(params[1]);
         if (params[2] !== undefined) product.wholesalePrice = params[2] == null ? null : Number(params[2]);
         if (params[3] !== undefined) product.miniappPrice = params[3] == null ? null : Number(params[3]);
-        if (params[4] !== undefined) (product as any).storePrice = params[4] == null ? null : Number(params[4]);
+        if (params[4] !== undefined) (product as Row).storePrice = params[4] == null ? null : Number(params[4]);
       }
       return [];
     }

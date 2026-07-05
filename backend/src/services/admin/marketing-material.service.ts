@@ -7,7 +7,7 @@ export async function createMaterial(data: any, tenantId: string, userId: number
     `INSERT INTO marketing_material (material_code, material_name, material_desc, material_type, file_url, file_size, file_format, image_width, image_height, category_id, tags, usage_scene, related_activity_id, related_activity_type, tenant_id, created_by) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
     [code, data.material_name, data.material_desc ?? null, data.material_type, data.file_url, data.file_size ?? null, data.file_format ?? null, data.image_width ?? null, data.image_height ?? null, data.category_id ?? null, data.tags ? JSON.stringify(data.tags) : null, data.usage_scene ?? null, data.related_activity_id ?? null, data.related_activity_type ?? null, tenantId, userId], tenantId
   );
-  return { id: (result as any).insertId, material_code: code };
+  return { id: (result as unknown as Record<string, unknown>).insertId, material_code: code };
 }
 
 export async function listMaterials(params: { tenantId: string; material_type?: string; category_id?: number; tags?: string; status?: string; page?: number; pageSize?: number }) {
@@ -79,7 +79,7 @@ export async function createMaterialCategory(data: { name: string; parent_id?: n
     "INSERT INTO material_category (name, parent_id, sort_order, tenant_id) VALUES (?, ?, ?, ?)",
     [data.name, data.parent_id ?? null, data.sort_order ?? 0, tenantId], tenantId
   );
-  return { id: (result as any).insertId };
+  return { id: (result as unknown as Record<string, unknown>).insertId };
 }
 
 export async function updateMaterialCategory(id: number, data: { name?: string; parent_id?: number; sort_order?: number }, tenantId: string) {

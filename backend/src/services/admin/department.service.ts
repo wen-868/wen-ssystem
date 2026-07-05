@@ -24,7 +24,7 @@ export async function createDepartment(data: any) {
     `INSERT INTO sys_department (parent_id, name, store_id, sort_order, status) VALUES (?, ?, ?, ?, ?)`,
     [data.parentId || null, data.name, data.storeId, data.sortOrder || 0, data.status ?? 1]
   );
-  return { id: (result as any).insertId };
+  return { id: (result as unknown as Record<string, unknown>).insertId };
 }
 
 export async function updateDepartment(id: number, data: any) {

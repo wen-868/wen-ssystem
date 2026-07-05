@@ -146,7 +146,7 @@ export async function startCheck(id: number, tenantId: string) {
     await conn.execute("DELETE FROM stock_check_item WHERE check_id = ? AND tenant_id = ?", [id, tenantId]);
 
     let totalSku = 0;
-    for (const row of skuRows as any[]) {
+    for (const row of skuRows as unknown as Record<string, unknown>[]) {
       await conn.execute(
         `INSERT INTO stock_check_item (check_id, sku_id, sku_name, batch_no, system_qty, actual_qty, diff_amount, tenant_id)
          VALUES (?, ?, ?, ?, ?, 0, 0, ?)`,

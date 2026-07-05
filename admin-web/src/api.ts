@@ -29,18 +29,47 @@ api.interceptors.request.use((config) => {
 api.interceptors.response.use(
   (response) => response,
   (error) => {
-    if (error?.response?.status === 401) {
-      localStorage.removeItem("admin_token");
-      if (typeof window !== "undefined") {
-        window.dispatchEvent(new Event("auth:logout"));
-      }
-    } else {
-      const msg = error?.response?.data?.message || error?.message || "请求失败";
-      ElMessage.error(msg);
+    // 网络错误：无响应
+    if (!error.response) {
+      ElMessage.error("网络连接失败，请检查网络");
+      return Promise.reject(error);
+    }
+
+    const { status, data } = error.response;
+    const msg = data?.message || error?.message || "请求失败";
+
+    switch (status) {
+      case 401:
+        localStorage.removeItem("admin_token");
+        if (typeof window !== "undefined") {
+          window.dispatchEvent(new Event("auth:logout"));
+        }
+        break;
+      case 403:
+        ElMessage.error("无权限访问");
+        break;
+      case 404:
+        ElMessage.error("请求的资源不存在");
+        break;
+      case 500:
+        ElMessage.error("服务器内部错误，请稍后重试");
+        break;
+      default:
+        ElMessage.error(msg);
+        break;
     }
     return Promise.reject(error);
   }
 );
+
+/** 从 Axios 错误中提取错误消息 */
+export function getErrorMessage(error: unknown, fallback: string): string {
+  if (error && typeof error === "object" && "response" in error) {
+    const axiosError = error as { response?: { data?: { message?: string } } };
+    return axiosError.response?.data?.message || fallback;
+  }
+  return fallback;
+}
 
 export async function adminLogin(username: string, password: string) {
   const { data } = await api.post("/admin/auth/login", { username, password });

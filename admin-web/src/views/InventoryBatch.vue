@@ -142,8 +142,8 @@
 
     <!-- 效期预警弹窗 -->
     <el-dialog v-model="configDialogVisible" :title="editingConfig ? '编辑预警配置' : '新增预警配置'" width="500px">
-      <el-form ref="configFormRef" :model="configForm" label-width="100px">
-        <el-form-item label="商品" prop="productId">
+      <el-form ref="configFormRef" :model="configForm" :rules="configRules" label-width="100px">
+        <el-form-item label="商品" prop="productId" required>
           <el-select v-model="configForm.productId" filterable placeholder="选择商品" style="width: 100%">
             <el-option v-for="p in productList" :key="p.id" :label="p.name" :value="p.id" />
           </el-select>
@@ -256,6 +256,11 @@ const configDialogVisible = ref(false);
 const editingConfig = ref<any>(null);
 const configFormRef = ref();
 const configSubmitLoading = ref(false);
+const configRules = {
+  productId: [{ required: true, message: '请选择商品', trigger: 'change' }],
+  alertDaysBefore: [{ required: true, message: '请输入预警天数', trigger: 'blur' }]
+};
+
 const configForm = reactive({
   productId: null as number | null,
   alertDaysBefore: 30,
@@ -322,6 +327,8 @@ function openExpiryConfigDialog(row?: any) {
 }
 
 async function handleConfigSubmit() {
+  const valid = await configFormRef.value?.validate().catch(() => false);
+  if (!valid) return;
   configSubmitLoading.value = true;
   try {
     if (editingConfig.value) {

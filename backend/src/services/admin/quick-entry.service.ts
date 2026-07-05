@@ -61,7 +61,7 @@ export async function createQuickEntry(tenantId: string, data: QuickEntryData) {
     tenantId
   );
 
-  return { id: (result as any)?.insertId };
+  return { id: (result as unknown as Record<string, unknown>)?.insertId };
 }
 
 export async function updateQuickEntry(tenantId: string, id: number, data: Partial<QuickEntryData>) {

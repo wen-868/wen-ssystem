@@ -133,7 +133,7 @@ export const listExpiryAlerts = asyncHandler(async (req, res) => {
 
 export const handleExpiryAlert = asyncHandler(async (req, res) => {
   const id = Number(req.params.id);
-  const result = await service.handleExpiryAlert(req.tenantId!, id, (req as any).user?.id);
+  const result = await service.handleExpiryAlert(req.tenantId!, id, req.user?.id);
   res.json(ok(result));
 });
 

@@ -113,7 +113,7 @@ export async function createTodo(tenantId: string, data: TodoData) {
     tenantId
   );
 
-  return { id: (result as any)?.insertId };
+  return { id: (result as unknown as Record<string, unknown>)?.insertId };
 }
 
 export async function completeTodo(tenantId: string, id: number) {

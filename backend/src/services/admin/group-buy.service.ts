@@ -46,7 +46,7 @@ export async function createGroupBuyActivity(data: any) {
     `INSERT INTO group_buy_activity (product_id, group_price, min_group_size, max_group_size, start_time, end_time, status) VALUES (?, ?, ?, ?, ?, ?, ?)`,
     [data.productId, data.groupPrice, data.minGroupSize, data.maxGroupSize || 10, data.startTime, data.endTime, data.status || 'PENDING']
   );
-  return { id: (result as any).insertId };
+  return { id: (result as unknown as Record<string, unknown>).insertId };
 }
 
 export async function updateGroupBuyActivity(id: number, data: any) {

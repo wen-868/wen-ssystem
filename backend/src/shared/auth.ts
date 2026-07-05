@@ -64,8 +64,8 @@ export function signToken(user: AuthUser) {
   return jwt.sign(user, env.JWT_SECRET, { expiresIn: "8h" });
 }
 
-export function requireRoles(allowedRoles: string[]): any {
-  return (req: any, res: any, next: any) => {
+export function requireRoles(allowedRoles: string[]): RequestHandler {
+  return (req, res, next) => {
     if (!req.user) {
       res.status(401).json({ code: "401", message: "未登录" });
       return;
@@ -78,7 +78,7 @@ export function requireRoles(allowedRoles: string[]): any {
   };
 }
 
-export const requireAuth: any = (req: any, res: any, next: any) => {
+export const requireAuth: RequestHandler = (req, res, next) => {
   const authorization = req.headers.authorization || "";
   const token = authorization.replace(/^Bearer\s+/i, "");
   if (!token) {
@@ -96,7 +96,7 @@ export const requireAuth: any = (req: any, res: any, next: any) => {
 export const requireAuthWithTenant = [requireAuth, tenantMiddleware] as RequestHandler[];
 
 // 平台总后台认证：验证 platform_admin JWT
-export const requirePlatformAuth: any = (req: any, res: any, next: any) => {
+export const requirePlatformAuth: RequestHandler = (req, res, next) => {
   const authorization = req.headers.authorization || "";
   const token = authorization.replace(/^Bearer\s+/i, "");
   if (!token) {

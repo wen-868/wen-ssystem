@@ -358,7 +358,7 @@ export async function runExpiryScan() {
           "SELECT DATEDIFF(?, CURDATE()) AS days_remaining",
           [batch.expiry_date]
         );
-        const daysRemaining = Number((rows as unknown as Record<string, unknown>[])[0]?.days_remaining) ?? 0;
+        const daysRemaining = Number((rows as any[])[0]?.days_remaining) ?? 0;
 
         let matchedConfig: Record<string, unknown> | null = null;
         for (const config of configs) {
@@ -383,7 +383,7 @@ export async function runExpiryScan() {
           [batch.id, tenantId, matchedConfig.alert_level]
         );
 
-        if ((existing as unknown as Record<string, unknown>[]).length > 0) {
+        if ((existing as any[]).length > 0) {
           await conn.execute(
             "UPDATE expiry_alert_record SET days_remaining = ? WHERE batch_id = ? AND tenant_id = ? AND alert_level = ? AND status = 'PENDING'",
             [daysRemaining, batch.id, tenantId, matchedConfig.alert_level]

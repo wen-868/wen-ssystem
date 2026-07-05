@@ -21,7 +21,7 @@ export interface TenantRequest extends Request {
 }
 
 export function tenantMiddleware(req: TenantRequest, res: Response, next: NextFunction) {
-  const tenantId = (req as any).user?.tenantId;
+  const tenantId = req.user?.tenantId;
   if (!tenantId) {
     return res.status(403).json({ code: '403', message: '缺少租户信息' });
   }

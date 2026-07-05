@@ -19,7 +19,7 @@ export async function createPointsMallItem(data: any) {
     `INSERT INTO points_mall_item (name, image, points, stock, limit_per_user, valid_start, valid_end, status, sort_order) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`,
     [data.name, data.image, data.points, data.stock, data.limitPerUser || 1, data.validStart, data.validEnd, data.status || 'ACTIVE', data.sortOrder || 0]
   );
-  return { id: (result as any).insertId };
+  return { id: (result as unknown as Record<string, unknown>).insertId };
 }
 
 export async function updatePointsMallItem(id: number, data: any) {

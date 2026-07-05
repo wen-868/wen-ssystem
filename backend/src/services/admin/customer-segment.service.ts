@@ -6,7 +6,7 @@ export async function createSegment(params: { segmentName: string; conditions: a
     "INSERT INTO customer_segment (segment_name, conditions, auto_refresh, tenant_id) VALUES (?, ?, ?, ?)",
     [segmentName, JSON.stringify(conditions), autoRefresh ? 1 : 0, tenantId], tenantId
   );
-  return { id: (result as any).insertId, segmentName };
+  return { id: (result as unknown as Record<string, unknown>).insertId, segmentName };
 }
 
 export async function listSegments(tenantId: string) {
