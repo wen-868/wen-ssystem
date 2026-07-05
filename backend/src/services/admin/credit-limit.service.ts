@@ -54,7 +54,7 @@ export async function getCreditList(
   const where = `WHERE ${conditions.join(" AND ")}`;
   const offset = (page - 1) * pageSize;
 
-  const records = await queryWithTenant<any>(
+  const records = await queryWithTenant<Record<string, unknown>>(
     `SELECT cc.id, cc.customer_id AS customerId, m.name AS customerName, m.mobile AS customerMobile,
             cc.credit_limit AS creditLimit, cc.credit_used AS creditUsed,
             cc.credit_frozen AS creditFrozen, cc.credit_available AS creditAvailable,
@@ -73,7 +73,7 @@ export async function getCreditList(
     ctx.tenantId
   );
 
-  const totalRow = await queryOneWithTenant<any>(
+  const totalRow = await queryOneWithTenant<Record<string, unknown>>(
     `SELECT COUNT(*) AS total FROM customer_credit cc
      LEFT JOIN member m ON m.id = cc.customer_id
      ${where}`,
@@ -89,8 +89,8 @@ export async function getCreditList(
   };
 }
 
-export async function getCreditDetail(customerId: number, ctx: ServiceContext): Promise<any | null> {
-  const record = await queryOneWithTenant<any>(
+export async function getCreditDetail(customerId: number, ctx: ServiceContext): Promise<Record<string, unknown> | null> {
+  const record = await queryOneWithTenant<Record<string, unknown>>(
     `SELECT cc.id, cc.customer_id AS customerId, m.name AS customerName, m.mobile AS customerMobile,
             cc.credit_limit AS creditLimit, cc.credit_used AS creditUsed,
             cc.credit_frozen AS creditFrozen, cc.credit_available AS creditAvailable,
@@ -109,25 +109,25 @@ export async function getCreditDetail(customerId: number, ctx: ServiceContext): 
   return record;
 }
 
-export async function initCredit(customerId: number, dto: CreditInitDTO, ctx: ServiceContext): Promise<any> {
-  const customer = await queryOneWithTenant<any>(
+export async function initCredit(customerId: number, dto: CreditInitDTO, ctx: ServiceContext): Promise<Record<string, unknown> | null> {
+  const customer = await queryOneWithTenant<Record<string, unknown>>(
     "SELECT id, name FROM member WHERE id = ?",
     [customerId],
     ctx.tenantId
   );
   if (!customer) {
-    const err: any = new Error("客户不存在");
+    const err: Error & { statusCode?: number } = new Error("客户不存在");
     err.statusCode = 404;
     throw err;
   }
 
-  const existing = await queryOneWithTenant<any>(
+  const existing = await queryOneWithTenant<Record<string, unknown>>(
     "SELECT id, status FROM customer_credit WHERE customer_id = ? AND tenant_id = ?",
     [customerId, ctx.tenantId],
     ctx.tenantId
   );
   if (existing) {
-    const err: any = new Error("该客户已有授信记录，请使用调整接口");
+    const err: Error & { statusCode?: number } = new Error("该客户已有授信记录，请使用调整接口");
     err.statusCode = 400;
     throw err;
   }
@@ -148,7 +148,7 @@ export async function initCredit(customerId: number, dto: CreditInitDTO, ctx: Se
     ctx.tenantId
   );
 
-  const record = await queryOneWithTenant<any>(
+  const record = await queryOneWithTenant<Record<string, unknown>>(
     `SELECT cc.id, cc.customer_id AS customerId, cc.credit_limit AS creditLimit,
             cc.credit_used AS creditUsed, cc.credit_frozen AS creditFrozen,
             cc.credit_available AS creditAvailable, cc.payment_term AS paymentTerm,
@@ -161,8 +161,8 @@ export async function initCredit(customerId: number, dto: CreditInitDTO, ctx: Se
   return record;
 }
 
-export async function checkCredit(customerId: number, amount: number, ctx: ServiceContext): Promise<any> {
-  const credit = await queryOneWithTenant<any>(
+export async function checkCredit(customerId: number, amount: number, ctx: ServiceContext): Promise<Record<string, unknown>> {
+  const credit = await queryOneWithTenant<Record<string, unknown>>(
     `SELECT cc.credit_limit, cc.credit_used, cc.credit_frozen, cc.credit_available,
             cc.status, cc.warning_threshold, cc.payment_term
      FROM customer_credit cc WHERE cc.customer_id = ? AND cc.tenant_id = ?`,
@@ -171,13 +171,13 @@ export async function checkCredit(customerId: number, amount: number, ctx: Servi
   );
 
   if (!credit) {
-    const err: any = new Error("该客户尚未开通授信");
+    const err: Error & { statusCode?: number } = new Error("该客户尚未开通授信");
     err.statusCode = 404;
     throw err;
   }
 
   const available = Number(credit.credit_available);
-  const isWarning = credit.warning_threshold > 0
+  const isWarning = Number(credit.warning_threshold) > 0
     ? (Number(credit.credit_used) / Number(credit.credit_limit)) >= Number(credit.warning_threshold)
     : false;
 
@@ -195,26 +195,26 @@ export async function checkCredit(customerId: number, amount: number, ctx: Servi
   };
 }
 
-export async function occupyCredit(customerId: number, dto: CreditOccupyDTO, ctx: ServiceContext): Promise<any> {
+export async function occupyCredit(customerId: number, dto: CreditOccupyDTO, ctx: ServiceContext): Promise<Record<string, unknown>> {
   await transaction(async (conn) => {
-    const rows = await (conn as any).execute(
+    const rows = await (conn as unknown as { execute: (sql: string, params: unknown[]) => Promise<[unknown[], unknown]> }).execute(
       `SELECT id, credit_limit, credit_used, credit_frozen, credit_available, status, version
        FROM customer_credit
        WHERE customer_id = ? AND tenant_id = ? AND status = 'ACTIVE'
        FOR UPDATE`,
       [customerId, ctx.tenantId]
     );
-    const credit = (rows[0] as any[])[0];
+    const credit = (rows[0] as unknown as Record<string, unknown>[])[0];
 
     if (!credit) {
-      const err: any = new Error("授信记录不存在或非ACTIVE状态");
+      const err: Error & { statusCode?: number } = new Error("授信记录不存在或非ACTIVE状态");
       err.statusCode = 404;
       throw err;
     }
 
     const available = Number(credit.credit_available);
     if (available < dto.amount) {
-      const err: any = new Error(`可用额度不足，当前可用: ${available}，需要: ${dto.amount}`);
+      const err: Error & { statusCode?: number } = new Error(`可用额度不足，当前可用: ${available}，需要: ${dto.amount}`);
       err.statusCode = 400;
       throw err;
     }
@@ -222,21 +222,21 @@ export async function occupyCredit(customerId: number, dto: CreditOccupyDTO, ctx
     const balanceBefore = available;
     const balanceAfter = available - dto.amount;
 
-    await (conn as any).execute(
+    await (conn as unknown as { execute: (sql: string, params: unknown[]) => Promise<[unknown[], unknown]> }).execute(
       `UPDATE customer_credit
        SET credit_used = credit_used + ?, version = version + 1, updated_at = NOW()
        WHERE customer_id = ? AND tenant_id = ? AND version = ?`,
       [dto.amount, customerId, ctx.tenantId, credit.version]
     );
 
-    await (conn as any).execute(
+    await (conn as unknown as { execute: (sql: string, params: unknown[]) => Promise<[unknown[], unknown]> }).execute(
       `INSERT INTO credit_operation_log (customer_id, operation_type, amount, balance_before, balance_after, related_order_no, operator_id, remark, tenant_id)
        VALUES (?, 'OCCUPY', ?, ?, ?, ?, ?, '下单占用额度', ?)`,
       [customerId, dto.amount, balanceBefore, balanceAfter, dto.orderNo, ctx.userId, ctx.tenantId]
     );
   });
 
-  const credit = await queryOneWithTenant<any>(
+  const credit = await queryOneWithTenant<Record<string, unknown>>(
     `SELECT cc.credit_limit AS creditLimit, cc.credit_used AS creditUsed,
             cc.credit_frozen AS creditFrozen, cc.credit_available AS creditAvailable,
             cc.status, cc.version
@@ -253,19 +253,19 @@ export async function occupyCredit(customerId: number, dto: CreditOccupyDTO, ctx
   };
 }
 
-export async function releaseCredit(customerId: number, dto: CreditReleaseDTO, ctx: ServiceContext): Promise<any> {
+export async function releaseCredit(customerId: number, dto: CreditReleaseDTO, ctx: ServiceContext): Promise<Record<string, unknown>> {
   await transaction(async (conn) => {
-    const rows = await (conn as any).execute(
+    const rows = await (conn as unknown as { execute: (sql: string, params: unknown[]) => Promise<[unknown[], unknown]> }).execute(
       `SELECT id, credit_limit, credit_used, credit_frozen, credit_available, status, version
        FROM customer_credit
        WHERE customer_id = ? AND tenant_id = ?
        FOR UPDATE`,
       [customerId, ctx.tenantId]
     );
-    const credit = (rows[0] as any[])[0];
+    const credit = (rows[0] as unknown as Record<string, unknown>[])[0];
 
     if (!credit) {
-      const err: any = new Error("授信记录不存在");
+      const err: Error & { statusCode?: number } = new Error("授信记录不存在");
       err.statusCode = 404;
       throw err;
     }
@@ -274,21 +274,21 @@ export async function releaseCredit(customerId: number, dto: CreditReleaseDTO, c
     const newUsed = Math.max(0, Number(credit.credit_used) - dto.amount);
     const balanceAfter = Number(credit.credit_limit) - newUsed - Number(credit.credit_frozen);
 
-    await (conn as any).execute(
+    await (conn as unknown as { execute: (sql: string, params: unknown[]) => Promise<[unknown[], unknown]> }).execute(
       `UPDATE customer_credit
        SET credit_used = ?, version = version + 1, updated_at = NOW()
        WHERE customer_id = ? AND tenant_id = ? AND version = ?`,
       [newUsed, customerId, ctx.tenantId, credit.version]
     );
 
-    await (conn as any).execute(
+    await (conn as unknown as { execute: (sql: string, params: unknown[]) => Promise<[unknown[], unknown]> }).execute(
       `INSERT INTO credit_operation_log (customer_id, operation_type, amount, balance_before, balance_after, related_order_no, operator_id, remark, tenant_id)
        VALUES (?, 'RELEASE', ?, ?, ?, ?, ?, ?, ?)`,
       [customerId, dto.amount, balanceBefore, balanceAfter, dto.orderNo, ctx.userId, dto.remark, ctx.tenantId]
     );
   });
 
-  const credit = await queryOneWithTenant<any>(
+  const credit = await queryOneWithTenant<Record<string, unknown>>(
     `SELECT cc.credit_limit AS creditLimit, cc.credit_used AS creditUsed,
             cc.credit_frozen AS creditFrozen, cc.credit_available AS creditAvailable,
             cc.status, cc.version
@@ -305,24 +305,24 @@ export async function releaseCredit(customerId: number, dto: CreditReleaseDTO, c
   };
 }
 
-export async function freezeCredit(customerId: number, dto: CreditFreezeDTO, ctx: ServiceContext): Promise<any> {
-  const existing = await queryOneWithTenant<any>(
+export async function freezeCredit(customerId: number, dto: CreditFreezeDTO, ctx: ServiceContext): Promise<Record<string, unknown>> {
+  const existing = await queryOneWithTenant<Record<string, unknown>>(
     "SELECT id, status, credit_available, version FROM customer_credit WHERE customer_id = ? AND tenant_id = ?",
     [customerId, ctx.tenantId],
     ctx.tenantId
   );
   if (!existing) {
-    const err: any = new Error("授信记录不存在");
+    const err: Error & { statusCode?: number } = new Error("授信记录不存在");
     err.statusCode = 404;
     throw err;
   }
   if (existing.status === "FROZEN") {
-    const err: any = new Error("授信已处于冻结状态");
+    const err: Error & { statusCode?: number } = new Error("授信已处于冻结状态");
     err.statusCode = 400;
     throw err;
   }
   if (existing.status === "CLOSED") {
-    const err: any = new Error("授信已关闭，无法冻结");
+    const err: Error & { statusCode?: number } = new Error("授信已关闭，无法冻结");
     err.statusCode = 400;
     throw err;
   }
@@ -338,7 +338,7 @@ export async function freezeCredit(customerId: number, dto: CreditFreezeDTO, ctx
     ctx.tenantId
   );
 
-  const afterCredit = await queryOneWithTenant<any>(
+  const afterCredit = await queryOneWithTenant<Record<string, unknown>>(
     "SELECT credit_available FROM customer_credit WHERE customer_id = ? AND tenant_id = ?",
     [customerId, ctx.tenantId],
     ctx.tenantId
@@ -361,19 +361,19 @@ export async function freezeCredit(customerId: number, dto: CreditFreezeDTO, ctx
   };
 }
 
-export async function unfreezeCredit(customerId: number, dto: CreditUnfreezeDTO, ctx: ServiceContext): Promise<any> {
-  const existing = await queryOneWithTenant<any>(
+export async function unfreezeCredit(customerId: number, dto: CreditUnfreezeDTO, ctx: ServiceContext): Promise<Record<string, unknown>> {
+  const existing = await queryOneWithTenant<Record<string, unknown>>(
     "SELECT id, status, credit_available, credit_frozen, version FROM customer_credit WHERE customer_id = ? AND tenant_id = ?",
     [customerId, ctx.tenantId],
     ctx.tenantId
   );
   if (!existing) {
-    const err: any = new Error("授信记录不存在");
+    const err: Error & { statusCode?: number } = new Error("授信记录不存在");
     err.statusCode = 404;
     throw err;
   }
   if (existing.status !== "FROZEN") {
-    const err: any = new Error("授信未处于冻结状态");
+    const err: Error & { statusCode?: number } = new Error("授信未处于冻结状态");
     err.statusCode = 400;
     throw err;
   }
@@ -390,7 +390,7 @@ export async function unfreezeCredit(customerId: number, dto: CreditUnfreezeDTO,
     ctx.tenantId
   );
 
-  const afterCredit = await queryOneWithTenant<any>(
+  const afterCredit = await queryOneWithTenant<Record<string, unknown>>(
     "SELECT credit_available FROM customer_credit WHERE customer_id = ? AND tenant_id = ?",
     [customerId, ctx.tenantId],
     ctx.tenantId

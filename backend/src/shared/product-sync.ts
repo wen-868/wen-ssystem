@@ -64,7 +64,7 @@ export async function syncProductFullChain(
   const stages: ProductSyncResult[] = [];
 
   // 获取商品当前信息
-  const product = await queryOneWithTenant<any>(
+  const product = await queryOneWithTenant<Record<string, unknown>>(
     `SELECT p.id, p.name AS productName, p.category_id AS categoryId, c.category_name AS categoryName,
             p.brand, p.unit, p.main_image AS mainImage, p.status
      FROM product_spu p
@@ -88,7 +88,7 @@ export async function syncProductFullChain(
     try {
       const fields: string[] = [];
       const sets: string[] = [];
-      const params: any[] = [];
+      const params: unknown[] = [];
 
       if (shouldSync("productName")) { sets.push("product_name = ?"); params.push(product.productName); fields.push("product_name"); }
       if (shouldSync("categoryId")) { sets.push("category_id = ?"); params.push(product.categoryId); fields.push("category_id"); }
@@ -99,7 +99,7 @@ export async function syncProductFullChain(
       if (sets.length > 0) {
         sets.push("updated_at = NOW()");
         params.push(spuId, tenantId);
-        const result = await queryWithTenant<any>(
+        const result = await queryWithTenant<Record<string, unknown>>(
           `UPDATE product_sku SET ${sets.join(", ")} WHERE spu_id = ? AND tenant_id = ?`,
           params,
           tenantId
@@ -108,12 +108,12 @@ export async function syncProductFullChain(
           stage: "SKU_SYNC",
           targetTable: "product_sku",
           syncedFields: fields,
-          affectedRows: (result as any)?.affectedRows ?? 0,
+          affectedRows: Number((result as unknown as Record<string, unknown>)?.affectedRows) ?? 0,
           durationMs: Date.now() - t1,
           success: true
         });
       }
-    } catch (err: any) {
+    } catch (err: unknown) {
       stages.push({
         stage: "SKU_SYNC",
         targetTable: "product_sku",
@@ -121,7 +121,7 @@ export async function syncProductFullChain(
         affectedRows: 0,
         durationMs: Date.now() - t1,
         success: false,
-        error: err.message
+        error: (err as { message?: string }).message
       });
     }
   }
@@ -132,13 +132,13 @@ export async function syncProductFullChain(
     try {
       const fields: string[] = [];
       const sets: string[] = [];
-      const params: any[] = [];
+      const params: unknown[] = [];
 
       if (shouldSync("productName")) { sets.push("product_name = ?"); params.push(product.productName); fields.push("product_name"); }
       if (shouldSync("categoryId")) { sets.push("category_id = ?"); params.push(product.categoryId); fields.push("category_id"); }
 
       params.push(spuId, tenantId);
-      const result = await queryWithTenant<any>(
+      const result = await queryWithTenant<Record<string, unknown>>(
         `UPDATE inventory_balance SET ${sets.join(", ")}, updated_at = NOW() WHERE spu_id = ? AND tenant_id = ?`,
         params,
         tenantId
@@ -147,11 +147,11 @@ export async function syncProductFullChain(
         stage: "INVENTORY_SYNC",
         targetTable: "inventory_balance",
         syncedFields: fields,
-        affectedRows: (result as any)?.affectedRows ?? 0,
+        affectedRows: Number((result as unknown as Record<string, unknown>)?.affectedRows) ?? 0,
         durationMs: Date.now() - t2,
         success: true
       });
-    } catch (err: any) {
+    } catch (err: unknown) {
       stages.push({
         stage: "INVENTORY_SYNC",
         targetTable: "inventory_balance",
@@ -159,7 +159,7 @@ export async function syncProductFullChain(
         affectedRows: 0,
         durationMs: Date.now() - t2,
         success: false,
-        error: err.message
+        error: (err as { message?: string }).message
       });
     }
   }
@@ -170,13 +170,13 @@ export async function syncProductFullChain(
     try {
       const fields: string[] = [];
       const sets: string[] = [];
-      const params: any[] = [];
+      const params: unknown[] = [];
 
       if (shouldSync("productName")) { sets.push("sbi.product_name = ?"); params.push(product.productName); fields.push("product_name"); }
       if (shouldSync("unit")) { sets.push("sbi.unit = ?"); params.push(product.unit); fields.push("unit"); }
 
       params.push(spuId, tenantId);
-      const result = await queryWithTenant<any>(
+      const result = await queryWithTenant<Record<string, unknown>>(
         `UPDATE sale_bill_item sbi
          JOIN sale_bill sb ON sb.id = sbi.bill_id AND sb.tenant_id = sbi.tenant_id
          SET ${sets.join(", ")}, sbi.updated_at = NOW()
@@ -189,11 +189,11 @@ export async function syncProductFullChain(
         stage: "SALE_ORDER_SYNC",
         targetTable: "sale_bill_item",
         syncedFields: fields,
-        affectedRows: (result as any)?.affectedRows ?? 0,
+        affectedRows: Number((result as unknown as Record<string, unknown>)?.affectedRows) ?? 0,
         durationMs: Date.now() - t3,
         success: true
       });
-    } catch (err: any) {
+    } catch (err: unknown) {
       stages.push({
         stage: "SALE_ORDER_SYNC",
         targetTable: "sale_bill_item",
@@ -201,7 +201,7 @@ export async function syncProductFullChain(
         affectedRows: 0,
         durationMs: Date.now() - t3,
         success: false,
-        error: err.message
+        error: (err as { message?: string }).message
       });
     }
   }
@@ -212,13 +212,13 @@ export async function syncProductFullChain(
     try {
       const fields: string[] = [];
       const sets: string[] = [];
-      const params: any[] = [];
+      const params: unknown[] = [];
 
       if (shouldSync("productName")) { sets.push("poi.product_name = ?"); params.push(product.productName); fields.push("product_name"); }
       if (shouldSync("unit")) { sets.push("poi.unit = ?"); params.push(product.unit); fields.push("unit"); }
 
       params.push(spuId, tenantId);
-      const result = await queryWithTenant<any>(
+      const result = await queryWithTenant<Record<string, unknown>>(
         `UPDATE purchase_order_item poi
          JOIN purchase_order po ON po.id = poi.order_id AND po.tenant_id = poi.tenant_id
          SET ${sets.join(", ")}, poi.updated_at = NOW()
@@ -231,11 +231,11 @@ export async function syncProductFullChain(
         stage: "PURCHASE_ORDER_SYNC",
         targetTable: "purchase_order_item",
         syncedFields: fields,
-        affectedRows: (result as any)?.affectedRows ?? 0,
+        affectedRows: Number((result as unknown as Record<string, unknown>)?.affectedRows) ?? 0,
         durationMs: Date.now() - t4,
         success: true
       });
-    } catch (err: any) {
+    } catch (err: unknown) {
       stages.push({
         stage: "PURCHASE_ORDER_SYNC",
         targetTable: "purchase_order_item",
@@ -243,7 +243,7 @@ export async function syncProductFullChain(
         affectedRows: 0,
         durationMs: Date.now() - t4,
         success: false,
-        error: err.message
+        error: (err as { message?: string }).message
       });
     }
   }
@@ -252,7 +252,7 @@ export async function syncProductFullChain(
   if (shouldSync("productName")) {
     const t5 = Date.now();
     try {
-      const result = await queryWithTenant<any>(
+      const result = await queryWithTenant<Record<string, unknown>>(
         `UPDATE inventory_ledger
          SET product_name = ?, updated_at = NOW()
          WHERE spu_id = ? AND tenant_id = ?`,
@@ -263,11 +263,11 @@ export async function syncProductFullChain(
         stage: "LEDGER_SYNC",
         targetTable: "inventory_ledger",
         syncedFields: ["product_name"],
-        affectedRows: (result as any)?.affectedRows ?? 0,
+        affectedRows: Number((result as unknown as Record<string, unknown>)?.affectedRows) ?? 0,
         durationMs: Date.now() - t5,
         success: true
       });
-    } catch (err: any) {
+    } catch (err: unknown) {
       stages.push({
         stage: "LEDGER_SYNC",
         targetTable: "inventory_ledger",
@@ -275,7 +275,7 @@ export async function syncProductFullChain(
         affectedRows: 0,
         durationMs: Date.now() - t5,
         success: false,
-        error: err.message
+        error: (err as { message?: string }).message
       });
     }
   }
@@ -284,7 +284,7 @@ export async function syncProductFullChain(
   if (shouldSync("productName")) {
     const t6 = Date.now();
     try {
-      const result = await queryWithTenant<any>(
+      const result = await queryWithTenant<Record<string, unknown>>(
         `UPDATE inventory_batch
          SET product_name = ?, updated_at = NOW()
          WHERE spu_id = ? AND tenant_id = ?`,
@@ -295,11 +295,11 @@ export async function syncProductFullChain(
         stage: "BATCH_SYNC",
         targetTable: "inventory_batch",
         syncedFields: ["product_name"],
-        affectedRows: (result as any)?.affectedRows ?? 0,
+        affectedRows: Number((result as unknown as Record<string, unknown>)?.affectedRows) ?? 0,
         durationMs: Date.now() - t6,
         success: true
       });
-    } catch (err: any) {
+    } catch (err: unknown) {
       stages.push({
         stage: "BATCH_SYNC",
         targetTable: "inventory_batch",
@@ -307,7 +307,7 @@ export async function syncProductFullChain(
         affectedRows: 0,
         durationMs: Date.now() - t6,
         success: false,
-        error: err.message
+        error: (err as { message?: string }).message
       });
     }
   }
@@ -316,7 +316,7 @@ export async function syncProductFullChain(
   if (shouldSync("productName")) {
     const t7 = Date.now();
     try {
-      const result = await queryWithTenant<any>(
+      const result = await queryWithTenant<Record<string, unknown>>(
         `UPDATE miniapp_order_item
          SET product_name = ?, updated_at = NOW()
          WHERE spu_id = ? AND tenant_id = ?`,
@@ -327,11 +327,11 @@ export async function syncProductFullChain(
         stage: "MINIAPP_SYNC",
         targetTable: "miniapp_order_item",
         syncedFields: ["product_name"],
-        affectedRows: (result as any)?.affectedRows ?? 0,
+        affectedRows: Number((result as unknown as Record<string, unknown>)?.affectedRows) ?? 0,
         durationMs: Date.now() - t7,
         success: true
       });
-    } catch (err: any) {
+    } catch (err: unknown) {
       stages.push({
         stage: "MINIAPP_SYNC",
         targetTable: "miniapp_order_item",
@@ -339,7 +339,7 @@ export async function syncProductFullChain(
         affectedRows: 0,
         durationMs: Date.now() - t7,
         success: false,
-        error: err.message
+        error: (err as { message?: string }).message
       });
     }
   }
@@ -348,7 +348,7 @@ export async function syncProductFullChain(
   if (shouldSync("productName")) {
     const t8 = Date.now();
     try {
-      const result = await queryWithTenant<any>(
+      const result = await queryWithTenant<Record<string, unknown>>(
         `UPDATE sale_return_item
          SET product_name = ?, updated_at = NOW()
          WHERE spu_id = ? AND tenant_id = ?`,
@@ -359,11 +359,11 @@ export async function syncProductFullChain(
         stage: "RETURN_SYNC",
         targetTable: "sale_return_item",
         syncedFields: ["product_name"],
-        affectedRows: (result as any)?.affectedRows ?? 0,
+        affectedRows: Number((result as unknown as Record<string, unknown>)?.affectedRows) ?? 0,
         durationMs: Date.now() - t8,
         success: true
       });
-    } catch (err: any) {
+    } catch (err: unknown) {
       stages.push({
         stage: "RETURN_SYNC",
         targetTable: "sale_return_item",
@@ -371,7 +371,7 @@ export async function syncProductFullChain(
         affectedRows: 0,
         durationMs: Date.now() - t8,
         success: false,
-        error: err.message
+        error: (err as { message?: string }).message
       });
     }
   }
@@ -380,7 +380,7 @@ export async function syncProductFullChain(
   if (shouldSync("productName")) {
     const t9a = Date.now();
     try {
-      const result = await queryWithTenant<any>(
+      const result = await queryWithTenant<Record<string, unknown>>(
         `UPDATE purchase_in_stock_item
          SET product_name = ?, updated_at = NOW()
          WHERE spu_id = ? AND tenant_id = ?`,
@@ -391,11 +391,11 @@ export async function syncProductFullChain(
         stage: "IN_STOCK_SYNC",
         targetTable: "purchase_in_stock_item",
         syncedFields: ["product_name"],
-        affectedRows: (result as any)?.affectedRows ?? 0,
+        affectedRows: Number((result as unknown as Record<string, unknown>)?.affectedRows) ?? 0,
         durationMs: Date.now() - t9a,
         success: true
       });
-    } catch (err: any) {
+    } catch (err: unknown) {
       stages.push({
         stage: "IN_STOCK_SYNC",
         targetTable: "purchase_in_stock_item",
@@ -403,13 +403,13 @@ export async function syncProductFullChain(
         affectedRows: 0,
         durationMs: Date.now() - t9a,
         success: false,
-        error: err.message
+        error: (err as { message?: string }).message
       });
     }
 
     const t9b = Date.now();
     try {
-      const result = await queryWithTenant<any>(
+      const result = await queryWithTenant<Record<string, unknown>>(
         `UPDATE purchase_return_item
          SET product_name = ?, updated_at = NOW()
          WHERE spu_id = ? AND tenant_id = ?`,
@@ -420,11 +420,11 @@ export async function syncProductFullChain(
         stage: "PURCHASE_RETURN_SYNC",
         targetTable: "purchase_return_item",
         syncedFields: ["product_name"],
-        affectedRows: (result as any)?.affectedRows ?? 0,
+        affectedRows: Number((result as unknown as Record<string, unknown>)?.affectedRows) ?? 0,
         durationMs: Date.now() - t9b,
         success: true
       });
-    } catch (err: any) {
+    } catch (err: unknown) {
       stages.push({
         stage: "PURCHASE_RETURN_SYNC",
         targetTable: "purchase_return_item",
@@ -432,7 +432,7 @@ export async function syncProductFullChain(
         affectedRows: 0,
         durationMs: Date.now() - t9b,
         success: false,
-        error: err.message
+        error: (err as { message?: string }).message
       });
     }
   }
@@ -465,7 +465,7 @@ export async function syncProductStatus(
   // 同步到 SKU 状态
   try {
     const t1 = Date.now();
-    const result = await queryWithTenant<any>(
+    const result = await queryWithTenant<Record<string, unknown>>(
       `UPDATE product_sku SET status = ?, updated_at = NOW() WHERE spu_id = ? AND tenant_id = ?`,
       [newStatus, spuId, tenantId],
       tenantId
@@ -474,11 +474,11 @@ export async function syncProductStatus(
       stage: "STATUS_SKU",
       targetTable: "product_sku",
       syncedFields: ["status"],
-      affectedRows: (result as any)?.affectedRows ?? 0,
+      affectedRows: Number((result as unknown as Record<string, unknown>)?.affectedRows) ?? 0,
       durationMs: Date.now() - t1,
       success: true
     });
-  } catch (err: any) {
+  } catch (err: unknown) {
     results.push({
       stage: "STATUS_SKU",
       targetTable: "product_sku",
@@ -486,7 +486,7 @@ export async function syncProductStatus(
       affectedRows: 0,
       durationMs: 0,
       success: false,
-      error: err.message
+      error: (err as { message?: string }).message
     });
   }
 
@@ -504,7 +504,7 @@ export async function syncProductPrice(
   const results: ProductSyncResult[] = [];
 
   // 获取SKU列表
-  const skus = await queryWithTenant<any>(
+  const skus = await queryWithTenant<Record<string, unknown>>(
     `SELECT id FROM product_sku WHERE spu_id = ? AND tenant_id = ?`,
     [spuId, tenantId],
     tenantId
@@ -512,10 +512,10 @@ export async function syncProductPrice(
 
   if (skus.length === 0) return results;
 
-  const skuIds = skus.map((s: any) => s.id);
+  const skuIds = skus.map((s: Record<string, unknown>) => s.id);
 
   // 获取各SKU的最新价格
-  const prices = await queryWithTenant<any>(
+  const prices = await queryWithTenant<Record<string, unknown>>(
     `SELECT sku_id, cost_price, retail_price, wholesale_price, miniapp_price, store_price
      FROM product_price
      WHERE sku_id IN (?) AND tenant_id = ?`,
@@ -531,7 +531,7 @@ export async function syncProductPrice(
       for (const price of prices) {
         const field = changedPriceTypes.includes("wholesalePrice") ? "wholesale_price" : "retail_price";
         const value = changedPriceTypes.includes("wholesalePrice") ? price.wholesale_price : price.retail_price;
-        const result = await queryWithTenant<any>(
+        const result = await queryWithTenant<Record<string, unknown>>(
           `UPDATE sale_bill_item sbi
            JOIN sale_bill sb ON sb.id = sbi.bill_id AND sb.tenant_id = sbi.tenant_id
            SET sbi.${field} = ?, sbi.updated_at = NOW()
@@ -540,7 +540,7 @@ export async function syncProductPrice(
           [value, price.sku_id, tenantId],
           tenantId
         );
-        count += (result as any)?.affectedRows ?? 0;
+        count += Number((result as unknown as Record<string, unknown>)?.affectedRows) ?? 0;
       }
       results.push({
         stage: "PRICE_SALE_ORDER",
@@ -550,7 +550,7 @@ export async function syncProductPrice(
         durationMs: Date.now() - t1,
         success: true
       });
-    } catch (err: any) {
+    } catch (err: unknown) {
       results.push({
         stage: "PRICE_SALE_ORDER",
         targetTable: "sale_bill_item",
@@ -558,7 +558,7 @@ export async function syncProductPrice(
         affectedRows: 0,
         durationMs: 0,
         success: false,
-        error: err.message
+        error: (err as { message?: string }).message
       });
     }
   }
@@ -569,7 +569,7 @@ export async function syncProductPrice(
       const t2 = Date.now();
       let count = 0;
       for (const price of prices) {
-        const result = await queryWithTenant<any>(
+        const result = await queryWithTenant<Record<string, unknown>>(
           `UPDATE purchase_order_item poi
            JOIN purchase_order po ON po.id = poi.order_id AND po.tenant_id = poi.tenant_id
            SET poi.cost_price = ?, poi.updated_at = NOW()
@@ -578,7 +578,7 @@ export async function syncProductPrice(
           [price.cost_price, price.sku_id, tenantId],
           tenantId
         );
-        count += (result as any)?.affectedRows ?? 0;
+        count += Number((result as unknown as Record<string, unknown>)?.affectedRows) ?? 0;
       }
       results.push({
         stage: "PRICE_PURCHASE_ORDER",
@@ -588,7 +588,7 @@ export async function syncProductPrice(
         durationMs: Date.now() - t2,
         success: true
       });
-    } catch (err: any) {
+    } catch (err: unknown) {
       results.push({
         stage: "PRICE_PURCHASE_ORDER",
         targetTable: "purchase_order_item",
@@ -596,7 +596,7 @@ export async function syncProductPrice(
         affectedRows: 0,
         durationMs: 0,
         success: false,
-        error: err.message
+        error: (err as { message?: string }).message
       });
     }
   }
@@ -616,7 +616,7 @@ export async function getProductSyncStatus(
   productName: string;
   targets: Array<{ table: string; recordCount: number; inSync: boolean }>;
 }> {
-  const product = await queryOneWithTenant<any>(
+  const product = await queryOneWithTenant<Record<string, unknown>>(
     "SELECT id, name FROM product_spu WHERE id = ? AND tenant_id = ?",
     [spuId, tenantId],
     tenantId
@@ -636,13 +636,13 @@ export async function getProductSyncStatus(
 
   const result = {
     spuId,
-    productName: product.name,
+    productName: String(product.name),
     targets: [] as Array<{ table: string; recordCount: number; inSync: boolean }>
   };
 
   for (const target of targets) {
     try {
-      const row = await queryOneWithTenant<any>(target.sql, [spuId, tenantId], tenantId);
+      const row = await queryOneWithTenant<Record<string, unknown>>(target.sql, [spuId, tenantId], tenantId);
       result.targets.push({
         table: target.table,
         recordCount: Number(row?.cnt ?? 0),

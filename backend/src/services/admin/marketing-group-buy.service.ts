@@ -25,7 +25,7 @@ export async function createGroupBuy(body: {
     tenantId
   );
 
-  const record = await queryOneWithTenant<any>(
+  const record = await queryOneWithTenant<Record<string, unknown>>(
     `SELECT id, name, product_id AS productId, sku_id AS skuId,
             group_price AS groupPrice, original_price AS originalPrice,
             min_group_size AS minGroupSize, max_group_size AS maxGroupSize,
@@ -58,7 +58,7 @@ export async function listGroupBuys(
 
   const where = conditions.length > 0 ? `WHERE ${conditions.join(" AND ")}` : "";
 
-  const records = await queryWithTenant<any>(
+  const records = await queryWithTenant<Record<string, unknown>>(
     `SELECT id, name, product_id AS productId, sku_id AS skuId,
             group_price AS groupPrice, original_price AS originalPrice,
             min_group_size AS minGroupSize, max_group_size AS maxGroupSize,
@@ -74,7 +74,7 @@ export async function listGroupBuys(
     tenantId
   );
 
-  const totalRow = await queryOneWithTenant<any>(
+  const totalRow = await queryOneWithTenant<Record<string, unknown>>(
     `SELECT COUNT(*) AS total FROM group_buy ${where}`,
     params,
     tenantId
@@ -89,7 +89,7 @@ export async function listGroupBuys(
 }
 
 export async function getGroupBuy(id: number, tenantId: string) {
-  const record = await queryOneWithTenant<any>(
+  const record = await queryOneWithTenant<Record<string, unknown>>(
     `SELECT id, name, product_id AS productId, sku_id AS skuId,
             group_price AS groupPrice, original_price AS originalPrice,
             min_group_size AS minGroupSize, max_group_size AS maxGroupSize,
@@ -120,7 +120,7 @@ export async function updateGroupBuy(id: number, body: {
   startTime?: string;
   endTime?: string;
 }, tenantId: string) {
-  const existing = await queryOneWithTenant<any>("SELECT id, status FROM group_buy WHERE id = ?", [id], tenantId);
+  const existing = await queryOneWithTenant<Record<string, unknown>>("SELECT id, status FROM group_buy WHERE id = ?", [id], tenantId);
   if (!existing) {
     throw Object.assign(new Error("拼团活动不存在"), { statusCode: 404 });
   }
@@ -145,7 +145,7 @@ export async function updateGroupBuy(id: number, body: {
     await queryWithTenant(`UPDATE group_buy SET ${updates.join(", ")} WHERE id = ?`, params, tenantId);
   }
 
-  const record = await queryOneWithTenant<any>(
+  const record = await queryOneWithTenant<Record<string, unknown>>(
     `SELECT id, name, product_id AS productId, sku_id AS skuId,
             group_price AS groupPrice, original_price AS originalPrice,
             min_group_size AS minGroupSize, max_group_size AS maxGroupSize,
@@ -162,7 +162,7 @@ export async function updateGroupBuy(id: number, body: {
 }
 
 export async function deleteGroupBuy(id: number, tenantId: string) {
-  const existing = await queryOneWithTenant<any>("SELECT id, status FROM group_buy WHERE id = ?", [id], tenantId);
+  const existing = await queryOneWithTenant<Record<string, unknown>>("SELECT id, status FROM group_buy WHERE id = ?", [id], tenantId);
   if (!existing) {
     throw Object.assign(new Error("拼团活动不存在"), { statusCode: 404 });
   }
@@ -175,11 +175,11 @@ export async function deleteGroupBuy(id: number, tenantId: string) {
 }
 
 export async function activateGroupBuy(id: number, tenantId: string) {
-  const existing = await queryOneWithTenant<any>("SELECT id, status FROM group_buy WHERE id = ?", [id], tenantId);
+  const existing = await queryOneWithTenant<Record<string, unknown>>("SELECT id, status FROM group_buy WHERE id = ?", [id], tenantId);
   if (!existing) {
     throw Object.assign(new Error("拼团活动不存在"), { statusCode: 404 });
   }
-  if (!["DRAFT", "PAUSED"].includes(existing.status)) {
+  if (!["DRAFT", "PAUSED"].includes(String(existing.status))) {
     throw Object.assign(new Error("仅草稿或暂停状态的活动可激活"), { statusCode: 400 });
   }
 
@@ -209,7 +209,7 @@ export async function listGroupBuyTeams(
 
   const where = conditions.length > 0 ? `WHERE ${conditions.join(" AND ")}` : "";
 
-  const records = await queryWithTenant<any>(
+  const records = await queryWithTenant<Record<string, unknown>>(
     `SELECT gbt.id, gbt.activity_id AS activityId, gbt.leader_id AS leaderId,
             gbt.leader_order_id AS leaderOrderId, gbt.current_size AS currentSize,
             gbt.target_size AS targetSize, gbt.status,
@@ -224,7 +224,7 @@ export async function listGroupBuyTeams(
     tenantId
   );
 
-  const totalRow = await queryOneWithTenant<any>(
+  const totalRow = await queryOneWithTenant<Record<string, unknown>>(
     `SELECT COUNT(*) AS total FROM group_buy_team gbt
      JOIN group_buy gb ON gb.id = gbt.activity_id
      ${where}`,
@@ -242,7 +242,7 @@ export async function listGroupBuyTeams(
 
 export async function listActiveGroupBuys(tenantId: string) {
   const now = new Date().toISOString();
-  const records = await queryWithTenant<any>(
+  const records = await queryWithTenant<Record<string, unknown>>(
     `SELECT id, name, product_id AS productId, sku_id AS skuId,
             group_price AS groupPrice, original_price AS originalPrice,
             min_group_size AS minGroupSize, max_group_size AS maxGroupSize,
@@ -275,9 +275,9 @@ export async function createGroupBuyTeam(
        WHERE id = ? AND tenant_id = ? AND status = 'ACTIVE' AND start_time <= ? AND end_time >= ?
        FOR UPDATE`,
       [activityId, tenantId, now, now]
-    ) as any;
+    ) as unknown as unknown[][];
 
-    const activity = (activityRows as any[])[0];
+    const activity = (activityRows as unknown as Record<string, unknown>[])[0];
     if (!activity) {
       throw Object.assign(new Error("拼团活动不存在或已结束"), { statusCode: 404 });
     }
@@ -292,15 +292,15 @@ export async function createGroupBuyTeam(
     const [teamResult] = await conn.execute(
       `INSERT INTO group_buy_team (activity_id, leader_id, current_size, target_size, status, expires_at, tenant_id)
        VALUES (?, ?, 1, ?, 'PENDING', ?, ?)`,
-      [activityId, userId, activity.min_group_size, expiresAt, tenantId]
-    ) as any;
+      [activityId, userId, activity.min_group_size, expiresAt, tenantId] as any[]
+    ) as unknown as unknown[][];
 
-    const teamId = (teamResult as any).insertId;
+    const teamId = (teamResult as unknown as Record<string, unknown>).insertId;
 
     await conn.execute(
       `INSERT INTO group_buy_member (team_id, user_id, is_leader, tenant_id)
        VALUES (?, ?, 1, ?)`,
-      [teamId, userId, tenantId]
+      [teamId, userId, tenantId] as any[]
     );
 
     await conn.execute(
@@ -313,17 +313,17 @@ export async function createGroupBuyTeam(
               current_size AS currentSize, target_size AS targetSize,
               status, expires_at AS expiresAt, created_at AS createdAt
        FROM group_buy_team WHERE id = ? AND tenant_id = ?`,
-      [teamId, tenantId]
-    ) as any;
+      [teamId, tenantId] as any[]
+    ) as unknown as unknown[][];
 
-    return (teamRows as any[])[0];
+    return (teamRows as unknown as Record<string, unknown>[])[0];
   });
 
   return result;
 }
 
 export async function getGroupBuyTeam(teamId: number, tenantId: string) {
-  const team = await queryOneWithTenant<any>(
+  const team = await queryOneWithTenant<Record<string, unknown>>(
     `SELECT gbt.id, gbt.activity_id AS activityId, gbt.leader_id AS leaderId,
             gbt.leader_order_id AS leaderOrderId, gbt.current_size AS currentSize,
             gbt.target_size AS targetSize, gbt.status,
@@ -340,7 +340,7 @@ export async function getGroupBuyTeam(teamId: number, tenantId: string) {
     throw Object.assign(new Error("拼团组不存在"), { statusCode: 404 });
   }
 
-  const members = await queryWithTenant<any>(
+  const members = await queryWithTenant<Record<string, unknown>>(
     `SELECT id, user_id AS userId, order_id AS orderId, is_leader AS isLeader, joined_at AS joinedAt
      FROM group_buy_member WHERE team_id = ?`,
     [teamId],
@@ -367,9 +367,9 @@ export async function joinGroupBuyTeam(
        WHERE gbt.id = ? AND gbt.tenant_id = ? AND gbt.status = 'PENDING' AND gbt.expires_at > ?
        FOR UPDATE`,
       [tenantId, teamId, tenantId, now]
-    ) as any;
+    ) as unknown as unknown[][];
 
-    const team = (teamRows as any[])[0];
+    const team = (teamRows as unknown as Record<string, unknown>[])[0];
     if (!team) {
       throw Object.assign(new Error("拼团组不存在或已结束"), { statusCode: 404 });
     }
@@ -377,9 +377,9 @@ export async function joinGroupBuyTeam(
     const [memberRows] = await conn.execute(
       `SELECT id FROM group_buy_member WHERE team_id = ? AND user_id = ? AND tenant_id = ?`,
       [teamId, userId, tenantId]
-    ) as any;
+    ) as unknown as unknown[][];
 
-    if ((memberRows as any[]).length > 0) {
+    if ((memberRows as unknown as Record<string, unknown>[]).length > 0) {
       throw Object.assign(new Error("您已参与该团"), { statusCode: 400 });
     }
 
@@ -415,11 +415,11 @@ export async function joinGroupBuyTeam(
 
     await conn.execute(
       `UPDATE group_buy SET sold_count = sold_count + ? WHERE id = ? AND tenant_id = ?`,
-      [quantity, team.activity_id, tenantId]
+      [quantity, team.activity_id, tenantId] as any[]
     );
   });
 
-  const team = await queryOneWithTenant<any>(
+  const team = await queryOneWithTenant<Record<string, unknown>>(
     `SELECT gbt.id, gbt.activity_id AS activityId, gbt.leader_id AS leaderId,
             gbt.current_size AS currentSize, gbt.target_size AS targetSize,
             gbt.status, gbt.expires_at AS expiresAt,

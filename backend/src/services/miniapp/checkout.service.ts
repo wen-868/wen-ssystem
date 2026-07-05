@@ -6,29 +6,29 @@ import { calcReservation, getInitialMiniappOrderState } from "../../shared/fulfi
 async function getBestPrice(conn: mysql.PoolConnection | null, tenantId: string, customerId: number, skuId: number, quantity: number): Promise<number> {
   const dbQuery = conn ? conn.query.bind(conn) : (sql: string, params: unknown[]) => queryWithTenant(sql, params, tenantId);
 
-  const [bindingRows] = await (dbQuery as any)(
+  const [bindingRows] = await (dbQuery as unknown as (...args: unknown[]) => unknown)(
     `SELECT cpb.price FROM customer_price_binding cpb
      WHERE cpb.customer_id = ? AND cpb.sku_id = ? AND cpb.status = 'ACTIVE'
      ORDER BY cpb.updated_at DESC LIMIT 1`,
     [customerId, skuId]
-  ) as any;
-  const binding = bindingRows[0];
+  ) as unknown as unknown[][];
+  const binding = (bindingRows as unknown as Record<string, unknown>[])[0];
   if (binding) return Number(binding.price);
 
-  const [tierRows] = await (dbQuery as any)(
+  const [tierRows] = await (dbQuery as unknown as (...args: unknown[]) => unknown)(
     `SELECT sp.price FROM sku_price sp
      WHERE sp.sku_id = ? AND sp.min_qty <= ? AND sp.status = 1
      ORDER BY sp.min_qty DESC LIMIT 1`,
     [skuId, quantity]
-  ) as any;
-  const tierPrice = tierRows[0];
+  ) as unknown as unknown[][];
+  const tierPrice = (tierRows as unknown as Record<string, unknown>[])[0];
   if (tierPrice) return Number(tierPrice.price);
 
-  const [retailRows] = await (dbQuery as any)(
+  const [retailRows] = await (dbQuery as unknown as (...args: unknown[]) => unknown)(
     `SELECT pp.retail_price FROM product_price pp WHERE pp.sku_id = ?`,
     [skuId]
-  ) as any;
-  const retail = retailRows[0];
+  ) as unknown as unknown[][];
+  const retail = (retailRows as unknown as Record<string, unknown>[])[0];
   return retail ? Number(retail.retail_price) : 0;
 }
 
@@ -43,12 +43,12 @@ async function calcMarketingDiscount(
   let discountAmount = 0;
   let discountDesc = "";
 
-  const doQueryOne = async (sql: string, params: any[]) => {
+  const doQueryOne = async (sql: string, params: unknown[]) => {
     if (conn) {
-      const [rows] = await conn.execute(sql, params);
-      return (rows as any[])[0] ?? null;
+      const [rows] = await conn.execute(sql, params as any[]);
+      return (rows as unknown as Record<string, unknown>[])[0] ?? null;
     }
-    return queryOneWithTenant<any>(sql, params, tenantId);
+    return queryOneWithTenant<Record<string, unknown>>(sql, params, tenantId);
   };
 
   if (couponId) {
@@ -76,7 +76,7 @@ async function calcMarketingDiscount(
     );
     if (fullReduction) {
       try {
-        const rules: Array<{ min_amount: number; discount_amount: number }> = JSON.parse(fullReduction.rules);
+        const rules: Array<{ min_amount: number; discount_amount: number }> = JSON.parse(String(fullReduction.rules));
         const matched = rules
           .filter(r => goodsAmount >= r.min_amount)
           .sort((a, b) => b.min_amount - a.min_amount)[0];
@@ -107,10 +107,10 @@ export async function checkoutPreview(params: {
 }) {
   const { tenantId, customerId, customerType, skuIds, storeId, couponId, fullReductionId } = params;
 
-  let cartItems: any[];
+  let cartItems: Record<string, unknown>[];
   if (skuIds && skuIds.length > 0) {
     const placeholders = skuIds.map(() => "?").join(",");
-    cartItems = await queryWithTenant<any>(
+    cartItems = await queryWithTenant<Record<string, unknown>>(
       `SELECT c.sku_id AS skuId, c.quantity,
               s.sku_name AS skuName, p.name AS spuName, p.main_image AS image,
               pp.retail_price AS retailPrice, pp.wholesale_price AS wholesalePrice, pp.miniapp_price AS miniappPrice,
@@ -125,7 +125,7 @@ export async function checkoutPreview(params: {
       tenantId
     );
   } else {
-    cartItems = await queryWithTenant<any>(
+    cartItems = await queryWithTenant<Record<string, unknown>>(
       `SELECT c.sku_id AS skuId, c.quantity,
               s.sku_name AS skuName, p.name AS spuName, p.main_image AS image,
               pp.retail_price AS retailPrice, pp.wholesale_price AS wholesalePrice, pp.miniapp_price AS miniappPrice,
@@ -146,10 +146,10 @@ export async function checkoutPreview(params: {
   }
 
   let goodsAmount = 0;
-  const previewItems: any[] = [];
+  const previewItems: Record<string, unknown>[] = [];
   for (const row of cartItems) {
-    const unitPrice = await getBestPrice(null, tenantId, customerId, row.skuId, row.quantity);
-    const subtotal = Number((unitPrice * row.quantity).toFixed(2));
+    const unitPrice = await getBestPrice(null, tenantId, customerId, Number(row.skuId), Number(row.quantity));
+    const subtotal = Number((unitPrice * Number(row.quantity)).toFixed(2));
     goodsAmount += subtotal;
     previewItems.push({
       skuId: row.skuId,
@@ -207,18 +207,18 @@ export async function createCheckoutOrder(params: {
   } = params;
 
   const order = await transaction(async (conn) => {
-    let cartItems: any[];
+    let cartItems: Record<string, unknown>[];
     if (skuIds && skuIds.length > 0) {
       const placeholders = skuIds.map(() => "?").join(",");
       cartItems = (await conn.query(
         `SELECT sku_id AS skuId, quantity FROM cart_item WHERE customer_id = ? AND tenant_id = ? AND sku_id IN (${placeholders})`,
         [customerId, tenantId, ...skuIds]
-      ))[0] as any[];
+      ))[0] as unknown as Record<string, unknown>[];
     } else {
       cartItems = (await conn.query(
         `SELECT sku_id AS skuId, quantity FROM cart_item WHERE customer_id = ? AND tenant_id = ?`,
         [customerId, tenantId]
-      ))[0] as any[];
+      ))[0] as unknown as Record<string, unknown>[];
     }
 
     if (cartItems.length === 0) throw new Error("购物车为空");
@@ -226,7 +226,7 @@ export async function createCheckoutOrder(params: {
     const orderNo = makeBizNo("DD");
     const initialState = getInitialMiniappOrderState(customerType === "WHOLESALE" ? "WHOLESALE" : "RETAIL");
     let goodsAmount = 0;
-    const orderItems: any[] = [];
+    const orderItems: Record<string, unknown>[] = [];
 
     for (const cartItem of cartItems) {
       const [price] = await conn.query(
@@ -234,11 +234,11 @@ export async function createCheckoutOrder(params: {
          FROM product_sku s JOIN product_price pp ON pp.sku_id = s.id AND pp.tenant_id = s.tenant_id WHERE s.id = ? AND s.tenant_id = ?`,
         [cartItem.skuId, tenantId]
       );
-      const priceRow = (price as any[])[0];
+      const priceRow = (price as unknown as Record<string, unknown>[])[0];
       if (!priceRow) throw new Error(`SKU不存在：${cartItem.skuId}`);
 
-      const unitPrice = await getBestPrice(conn, tenantId, customerId, cartItem.skuId, cartItem.quantity);
-      const qty = cartItem.quantity;
+      const unitPrice = await getBestPrice(conn, tenantId, customerId, Number(cartItem.skuId), Number(cartItem.quantity));
+      const qty = Number(cartItem.quantity);
       const subtotal = Number((unitPrice * qty).toFixed(2));
       goodsAmount += subtotal;
 
@@ -247,7 +247,7 @@ export async function createCheckoutOrder(params: {
          FROM inventory_balance WHERE store_id = ? AND sku_id = ? AND stock_type = 'ONLINE' AND tenant_id = ?`,
         [storeId, cartItem.skuId, tenantId]
       );
-      const inv = (inventory as any[])[0];
+      const inv = (inventory as unknown as Record<string, unknown>[])[0];
       const availableQty = Number(inv?.available_qty ?? 0);
       if (availableQty < qty && customerType === "RETAIL") {
         throw new Error(`商品 ${priceRow.sku_name} 库存不足（可售：${availableQty}）`);
@@ -295,31 +295,31 @@ export async function createCheckoutOrder(params: {
       await conn.execute(
         `INSERT INTO miniapp_order_item (order_no, sku_id, sku_name, qty, reserved_qty, unreserved_qty, unit_price, price_type, subtotal_amount, tenant_id)
          VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
-        [orderNo, item.skuId, item.skuName, item.qty, item.reservedQty, item.unreservedQty, item.unitPrice, item.priceType, item.subtotal, tenantId]
+        [orderNo, item.skuId, item.skuName, item.qty, item.reservedQty, item.unreservedQty, item.unitPrice, item.priceType, item.subtotal, tenantId] as any[]
       );
 
-      if (customerType === "WHOLESALE" && item.reservedQty > 0) {
+      if (customerType === "WHOLESALE" && Number(item.reservedQty) > 0) {
         await conn.execute(
           `UPDATE inventory_balance
            SET locked_qty = locked_qty + ?, available_qty = GREATEST(available_qty - ?, 0), updated_at = NOW()
            WHERE store_id = ? AND sku_id = ? AND stock_type = 'ONLINE' AND tenant_id = ?`,
-          [item.reservedQty, item.reservedQty, storeId, item.skuId, tenantId]
+          [item.reservedQty, item.reservedQty, storeId, item.skuId, tenantId] as any[]
         );
         await conn.execute(
           `INSERT INTO inventory_ledger (ledger_no, store_id, sku_id, stock_type, biz_type, biz_no,
                                          change_qty, before_qty, after_qty, before_locked_qty, after_locked_qty,
                                          operator_id, idempotency_key, remark, tenant_id)
            VALUES (?, ?, ?, 'ONLINE', 'ORDER_LOCK', ?, 0, 0, 0, 0, ?, NULL, ?, ?, ?)`,
-          [makeBizNo("IL"), storeId, item.skuId, orderNo, item.reservedQty, `ORDER_LOCK:${orderNo}:${item.skuId}`, "批发订货占用库存", tenantId]
+          [makeBizNo("IL"), storeId, item.skuId, orderNo, item.reservedQty, `ORDER_LOCK:${orderNo}:${item.skuId}`, "批发订货占用库存", tenantId] as any[]
         );
       }
     }
 
-    const cartSkuIds = cartItems.map((c: any) => c.skuId);
+    const cartSkuIds = cartItems.map((c: Record<string, unknown>) => c.skuId);
     const placeholders = cartSkuIds.map(() => "?").join(",");
     await conn.execute(
       `DELETE FROM cart_item WHERE customer_id = ? AND tenant_id = ? AND sku_id IN (${placeholders})`,
-      [customerId, tenantId, ...cartSkuIds]
+      [customerId, tenantId, ...cartSkuIds] as any[]
     );
 
     return {

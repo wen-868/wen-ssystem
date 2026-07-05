@@ -3,7 +3,7 @@ import { query, queryOne, transaction } from "../../shared/db.js";
 // ==================== Admin 端 ====================
 
 export async function getConfigs(tenantId: string) {
-  const records = await query<any>(
+  const records = await query<Record<string, unknown>>(
     `SELECT scc.*, s.name AS store_name, s.status AS store_status
      FROM store_control_config scc
      LEFT JOIN store s ON s.id = scc.store_id AND s.tenant_id = scc.tenant_id
@@ -33,12 +33,12 @@ export async function upsertConfig(params: {
   const { storeId, tenantId, autoOpenTime, autoCloseTime, maxDailyOrders, maxOrderAmount } = params;
 
   await transaction(async (conn) => {
-    const [existing] = await conn.execute<any[]>(
+    const [existing] = await conn.execute(
       "SELECT id FROM store_control_config WHERE store_id = ? AND tenant_id = ?",
       [storeId, tenantId]
     );
 
-    if ((existing as any[]).length > 0) {
+    if ((existing as unknown as Record<string, unknown>[]).length > 0) {
       const sets: string[] = [];
       const values: unknown[] = [];
       if (autoOpenTime !== undefined) { sets.push("auto_open_time = ?"); values.push(autoOpenTime); }
@@ -67,11 +67,11 @@ export async function openStore(params: {
   const { storeId, tenantId, userId } = params;
 
   await transaction(async (conn) => {
-    const [rows] = await conn.execute<any[]>(
+    const [rows] = await conn.execute(
       "SELECT status FROM store WHERE id = ? AND tenant_id = ? FOR UPDATE",
       [storeId, tenantId]
     );
-    const store = (rows as any[])[0];
+    const store = (rows as unknown as Record<string, unknown>[])[0];
     if (!store) throw new Error("门店不存在");
 
     const fromStatus = store.status || "CLOSED";
@@ -95,11 +95,11 @@ export async function closeStore(params: {
   const { storeId, tenantId, userId } = params;
 
   await transaction(async (conn) => {
-    const [rows] = await conn.execute<any[]>(
+    const [rows] = await conn.execute(
       "SELECT status FROM store WHERE id = ? AND tenant_id = ? FOR UPDATE",
       [storeId, tenantId]
     );
-    const store = (rows as any[])[0];
+    const store = (rows as unknown as Record<string, unknown>[])[0];
     if (!store) throw new Error("门店不存在");
 
     const fromStatus = store.status || "OPEN";
@@ -123,11 +123,11 @@ export async function suspendStore(params: {
   const { storeId, tenantId, userId, reason } = params;
 
   await transaction(async (conn) => {
-    const [rows] = await conn.execute<any[]>(
+    const [rows] = await conn.execute(
       "SELECT status FROM store WHERE id = ? AND tenant_id = ? FOR UPDATE",
       [storeId, tenantId]
     );
-    const store = (rows as any[])[0];
+    const store = (rows as unknown as Record<string, unknown>[])[0];
     if (!store) throw new Error("门店不存在");
 
     const fromStatus = store.status || "OPEN";
@@ -158,11 +158,11 @@ export async function resumeStore(params: {
   const { storeId, tenantId, userId } = params;
 
   await transaction(async (conn) => {
-    const [rows] = await conn.execute<any[]>(
+    const [rows] = await conn.execute(
       "SELECT status FROM store WHERE id = ? AND tenant_id = ? FOR UPDATE",
       [storeId, tenantId]
     );
-    const store = (rows as any[])[0];
+    const store = (rows as unknown as Record<string, unknown>[])[0];
     if (!store) throw new Error("门店不存在");
 
     const fromStatus = store.status || "SUSPENDED";
@@ -204,7 +204,7 @@ export async function getLogs(params: {
 
   const where = conditions.join(" AND ");
 
-  const records = await query<any>(
+  const records = await query<Record<string, unknown>>(
     `SELECT ssl.*, s.name AS store_name
      FROM store_status_log ssl
      LEFT JOIN store s ON s.id = ssl.store_id AND s.tenant_id = ssl.tenant_id
@@ -246,7 +246,7 @@ export async function getMyLogs(params: {
   const { storeId, tenantId, page, pageSize } = params;
   const offset = (page - 1) * pageSize;
 
-  const records = await query<any>(
+  const records = await query<Record<string, unknown>>(
     `SELECT ssl.*, s.name AS store_name
      FROM store_status_log ssl
      LEFT JOIN store s ON s.id = ssl.store_id AND s.tenant_id = ssl.tenant_id
@@ -267,14 +267,14 @@ export async function getMyLogs(params: {
 // ==================== 定时检查器辅助函数 ====================
 
 export async function getTenantIds() {
-  const tenantRows = await query<any>(
+  const tenantRows = await query<Record<string, unknown>>(
     "SELECT DISTINCT tenant_id FROM store_control_config"
   );
-  return tenantRows.map((r: any) => r.tenant_id).filter(Boolean);
+  return tenantRows.map((r: Record<string, unknown>) => r.tenant_id).filter(Boolean);
 }
 
 export async function getConfigsForCheck(tenantId: string) {
-  return query<any>(
+  return query<Record<string, unknown>>(
     `SELECT scc.*, s.status AS current_status, s.name AS store_name
      FROM store_control_config scc
      JOIN store s ON s.id = scc.store_id AND s.tenant_id = scc.tenant_id
@@ -284,20 +284,20 @@ export async function getConfigsForCheck(tenantId: string) {
   );
 }
 
-export async function getOrderCount(storeId: number, tenantId: string, conn: any) {
+export async function getOrderCount(storeId: number, tenantId: string, conn: { execute: (sql: string, params: unknown[]) => Promise<unknown[]> }) {
   const [orderRows] = await conn.execute(
     `SELECT COUNT(*) AS order_count FROM sale_bill
      WHERE store_id = ? AND tenant_id = ? AND DATE(created_at) = CURDATE() AND business_status NOT IN ('DRAFT', 'VOIDED')`,
     [storeId, tenantId]
   );
-  return (orderRows as any[])[0]?.order_count ?? 0;
+  return (orderRows as unknown as Record<string, unknown>[])[0]?.order_count ?? 0;
 }
 
-export async function getOrderAmount(storeId: number, tenantId: string, conn: any) {
+export async function getOrderAmount(storeId: number, tenantId: string, conn: { execute: (sql: string, params: unknown[]) => Promise<unknown[]> }) {
   const [amountRows] = await conn.execute(
     `SELECT COALESCE(SUM(receivable_amount), 0) AS total_amount FROM sale_bill
      WHERE store_id = ? AND tenant_id = ? AND DATE(created_at) = CURDATE() AND business_status NOT IN ('DRAFT', 'VOIDED')`,
     [storeId, tenantId]
   );
-  return Number((amountRows as any[])[0]?.total_amount ?? 0);
+  return Number((amountRows as unknown as Record<string, unknown>[])[0]?.total_amount ?? 0);
 }
