@@ -3,8 +3,12 @@ import { asyncHandler } from "../shared/async-handler.js";
 import { ok } from "../shared/response.js";
 import { query, queryOne } from "../shared/db.js";
 import bcrypt from "bcryptjs";
+import { requirePlatformAuth } from "../shared/auth.js";
 
 export const platformTenantRouter = Router();
+
+// 所有平台租户管理接口需要平台管理员认证
+platformTenantRouter.use(requirePlatformAuth);
 
 // GET /api/platform/tenants - 租户列表
 platformTenantRouter.get("/", asyncHandler(async (req: any, res: any) => {

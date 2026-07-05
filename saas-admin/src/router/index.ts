@@ -33,6 +33,12 @@ const router = createRouter({
           component: () => import('../views/tenant/TenantDetail.vue'),
           meta: { title: '租户详情' },
         },
+        {
+          path: 'monitor',
+          name: 'Monitor',
+          component: () => import('../views/monitor/MonitorView.vue'),
+          meta: { title: '系统监控' },
+        },
       ],
     },
   ],
