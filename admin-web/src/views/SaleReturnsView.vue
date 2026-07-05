@@ -76,8 +76,8 @@
     </el-card>
 
     <el-dialog v-model="dialogVisible" title="新增销售退货" width="560px">
-      <el-form :model="form" label-width="100px">
-        <el-form-item label="关联销售单">
+      <el-form ref="formRef" :model="form" :rules="rules" label-width="100px">
+        <el-form-item label="关联销售单" prop="saleBillNo">
           <el-input v-model="form.saleBillNo" placeholder="请输入销售单号" />
         </el-form-item>
         <el-form-item label="客户名称">
@@ -168,6 +168,11 @@ const form = reactive({
   reason: ""
 });
 
+const formRef = ref()
+const rules = {
+  saleBillNo: [{ required: true, message: '请填写关联销售单号', trigger: 'blur' }]
+}
+
 function getErrorMessage(error: unknown, fallback: string) {
   const anyError = error as { response?: { data?: { message?: string } }; message?: string };
   return anyError?.response?.data?.message || anyError?.message || fallback;
@@ -208,6 +213,7 @@ function viewDetail(row: any) {
 }
 
 async function handleSubmit() {
+  const valid = await formRef.value?.validate().catch(() => false); if (!valid) return;
   if (!form.saleBillNo) {
     ElMessage.warning("请填写关联销售单号");
     return;
