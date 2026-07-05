@@ -1,5 +1,6 @@
 import { query, queryOne, transaction } from "../../shared/db.js";
 import { makeBizNo } from "../../shared/id.js";
+import { constants } from "../../config/constants.js";
 
 // ==================== 小程序端 ====================
 
@@ -33,7 +34,7 @@ export async function createAftersale(params: {
   if (existingAftersale) throw Object.assign(new Error("该订单已有进行中的售后申请"), { statusCode: 400 });
 
   const aftersaleNo = makeBizNo("AS");
-  const deadline = new Date(Date.now() + 48 * 60 * 60 * 1000);
+  const deadline = new Date(Date.now() + constants.AFTERSALE_DEADLINE_MS);
 
   await query(
     `INSERT INTO aftersale (aftersale_no, order_id, order_no, customer_id, store_id, aftersale_type,

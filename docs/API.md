@@ -9,8 +9,10 @@
 ```json
 {
   "code": "0",
-  "message": "success",
-  "data": { ... }
+  "msg": "成功",
+  "data": { ... },
+  "traceId": "uuid-v4",
+  "apiCost": 1
 }
 ```
 
@@ -19,7 +21,9 @@
 ```json
 {
   "code": "400" | "401" | "403" | "404" | "500",
-  "message": "错误描述"
+  "msg": "错误描述",
+  "traceId": "uuid-v4",
+  "apiCost": 1
 }
 ```
 
