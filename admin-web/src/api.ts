@@ -1970,27 +1970,27 @@ export async function fetchPayablesSummary(params?: { dateStart?: string; dateEn
 
 // --- 费用 ---
 export async function fetchExpenses(params?: { expenseType?: string; status?: string; dateStart?: string; dateEnd?: string; page?: number; pageSize?: number }) {
-  const { data } = await api.get("/admin/finance/expenses", { params: { page: 1, pageSize: 20, ...params } });
+  const { data } = await api.get("/admin/expenses", { params: { page: 1, pageSize: 20, ...params } });
   return data.data;
 }
 export async function createExpense(payload: { expenseType: string; category: string; amount: number; payee: string; paymentMethod: string; bankAccount: string; invoiceNo: string; expenseDate: string; remark: string }) {
-  const { data } = await api.post("/admin/finance/expenses", payload);
+  const { data } = await api.post("/admin/expenses", payload);
   return data.data;
 }
 export async function getExpenseDetail(id: number) {
-  const { data } = await api.get(`/admin/finance/expenses/${id}`);
+  const { data } = await api.get(`/admin/expenses/${id}`);
   return data.data;
 }
 export async function approveExpense(id: number, approved: boolean) {
-  const { data } = await api.post(`/admin/finance/expenses/${id}/approve`, { approved });
+  const { data } = await api.post(`/admin/expenses/${id}/approve`, { approved });
   return data.data;
 }
 export async function voidExpense(id: number) {
-  const { data } = await api.post(`/admin/finance/expenses/${id}/void`);
+  const { data } = await api.post(`/admin/expenses/${id}/void`);
   return data.data;
 }
 export async function fetchExpenseSummary(params?: { dateStart?: string; dateEnd?: string }) {
-  const { data } = await api.get("/admin/finance/expense-summary", { params });
+  const { data } = await api.get("/admin/expense-summary", { params });
   return data.data;
 }
 
@@ -2052,43 +2052,43 @@ export async function fetchDailyReport(params?: { month?: string }) {
 
 // ==================== Approval System APIs ====================
 export async function fetchApprovalRules(params?: { page?: number; pageSize?: number }) {
-  const { data } = await api.get("/admin/system/approval/rules", { params: { page: 1, pageSize: 20, ...params } });
+  const { data } = await api.get("/admin/approval/rules", { params: { page: 1, pageSize: 20, ...params } });
   return data.data;
 }
 export async function createApprovalRule(payload: any) {
-  const { data } = await api.post("/admin/system/approval/rules", payload);
+  const { data } = await api.post("/admin/approval/rules", payload);
   return data.data;
 }
 export async function updateApprovalRule(id: number, payload: any) {
-  const { data } = await api.put(`/admin/system/approval/rules/${id}`, payload);
+  const { data } = await api.put(`/admin/approval/rules/${id}`, payload);
   return data.data;
 }
 export async function deleteApprovalRule(id: number) {
-  const { data } = await api.delete(`/admin/system/approval/rules/${id}`);
+  const { data } = await api.delete(`/admin/approval/rules/${id}`);
   return data.data;
 }
 export async function fetchMyApplications(params?: { page?: number; pageSize?: number; businessType?: string; status?: string }) {
-  const { data } = await api.get("/admin/system/approval/my-applications", { params: { page: 1, pageSize: 20, ...params } });
+  const { data } = await api.get("/admin/approval/my-applications", { params: { page: 1, pageSize: 20, ...params } });
   return data.data;
 }
 export async function submitApproval(payload: { ruleId: number; title: string; content: string }) {
-  const { data } = await api.post("/admin/system/approval/submit", payload);
+  const { data } = await api.post("/admin/approval/submit", payload);
   return data.data;
 }
 export async function fetchApprovalDetail(id: number) {
-  const { data } = await api.get(`/admin/system/approval/detail/${id}`);
+  const { data } = await api.get(`/admin/approval/detail/${id}`);
   return data.data;
 }
 export async function approveApproval(id: number, payload?: { opinion?: string }) {
-  const { data } = await api.post(`/admin/system/approval/${id}/approve`, payload || {});
+  const { data } = await api.post(`/admin/approval/${id}/approve`, payload || {});
   return data.data;
 }
 export async function rejectApproval(id: number, payload?: { opinion?: string }) {
-  const { data } = await api.post(`/admin/system/approval/${id}/reject`, payload || {});
+  const { data } = await api.post(`/admin/approval/${id}/reject`, payload || {});
   return data.data;
 }
 export async function cancelApproval(id: number) {
-  const { data } = await api.post(`/admin/system/approval/${id}/cancel`);
+  const { data } = await api.post(`/admin/approval/${id}/cancel`);
   return data.data;
 }
 

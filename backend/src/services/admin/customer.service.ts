@@ -32,17 +32,17 @@ export async function listMembers(tenantId: string, page: number, pageSize: numb
   return { total: totalRow?.total ?? 0, page, pageSize, records };
 }
 
-export async function createCustomer(tenantId: string, body: { name: string; mobile: string; customerType: string; staffId?: number }) {
+export async function createCustomer(tenantId: string, body: { name: string; mobile: string; customerType: string; staffId?: number; address?: string; settlementType?: string; remark?: string }) {
   const levelCode = body.customerType === "WHOLESALE" ? "WHOLESALE" : "NORMAL";
   const result = await queryWithTenant<any>(
-    `INSERT INTO member (name, mobile, customer_type, staff_id, points, level_code, status, tenant_id)
-     VALUES (?, ?, ?, ?, 0, ?, 1, ?)`,
-    [body.name, body.mobile, body.customerType, body.staffId ?? null, levelCode, tenantId],
+    `INSERT INTO member (name, mobile, customer_type, staff_id, address, settlement_type, remark, points, level_code, status, tenant_id)
+     VALUES (?, ?, ?, ?, ?, ?, ?, 0, ?, 1, ?)`,
+    [body.name, body.mobile, body.customerType, body.staffId ?? null, body.address ?? null, body.settlementType ?? 'CASH', body.remark ?? null, levelCode, tenantId],
     tenantId
   );
   const memberId = result?.[0]?.insertId;
   if (!memberId) throw new Error("创建客户失败");
-  return { memberId, name: body.name, mobile: body.mobile, customerType: body.customerType, staffId: body.staffId ?? null };
+  return { memberId, name: body.name, mobile: body.mobile, customerType: body.customerType, staffId: body.staffId ?? null, address: body.address ?? null, settlementType: body.settlementType ?? 'CASH', remark: body.remark ?? null };
 }
 
 export async function getCustomerDetail(tenantId: string, memberId: number) {

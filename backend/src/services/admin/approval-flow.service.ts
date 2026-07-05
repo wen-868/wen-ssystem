@@ -52,7 +52,7 @@ export async function listRules(
 export async function createRule(
   body: {
     ruleName: string;
-    businessType: "PURCHASE_ORDER" | "SALE_RETURN" | "PRICE_CHANGE" | "CREDIT_LIMIT";
+    businessType: "PURCHASE_ORDER" | "SALE_RETURN" | "PRICE_CHANGE" | "CREDIT_LIMIT" | "EXPENSE";
     triggerCondition?: any;
     approvalChain: Array<{
       level: number;

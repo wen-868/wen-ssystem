@@ -106,7 +106,7 @@ export async function cancelAftersale(aftersaleNo: string, customerId: number, t
      WHERE aftersale_no = ? AND customer_id = ? AND tenant_id = ? AND status = 'PENDING'`,
     [aftersaleNo, customerId, tenantId]
   );
-  if ((result as Record<string, unknown>).affectedRows === 0) {
+  if ((result as any).affectedRows === 0) {
     throw Object.assign(new Error("无法取消（非待审核状态或不属于您）"), { statusCode: 400 });
   }
   return { message: "售后已取消" };
@@ -126,7 +126,7 @@ export async function submitReturnLogistics(params: {
      WHERE aftersale_no = ? AND customer_id = ? AND tenant_id = ? AND status IN ('APPROVED', 'RETURNING')`,
     [returnLogisticsNo, returnLogisticsCompany, aftersaleNo, customerId, tenantId]
   );
-  if ((result as Record<string, unknown>).affectedRows === 0) {
+  if ((result as any).affectedRows === 0) {
     throw Object.assign(new Error("无法填写物流（状态不允许或不属于您）"), { statusCode: 400 });
   }
   return { message: "物流信息已填写" };
@@ -146,7 +146,7 @@ export async function rateAftersale(params: {
      WHERE aftersale_no = ? AND customer_id = ? AND tenant_id = ? AND status = 'COMPLETED'`,
     [satisfaction, customerComment ?? null, aftersaleNo, customerId, tenantId]
   );
-  if ((result as Record<string, unknown>).affectedRows === 0) {
+  if ((result as any).affectedRows === 0) {
     throw Object.assign(new Error("无法评价（仅已完成状态可评价）"), { statusCode: 400 });
   }
   return { message: "评价成功" };
@@ -219,7 +219,7 @@ export async function approveAftersale(id: number, tenantId: string, operatorId:
      WHERE id = ? AND tenant_id = ? AND status = 'PENDING' AND version = ?`,
     [operatorId, processRemark || null, id, tenantId, version || 1]
   );
-  if ((result as Record<string, unknown>).affectedRows === 0) {
+  if ((result as any).affectedRows === 0) {
     throw Object.assign(new Error("审核失败（状态已变更或版本不匹配）"), { statusCode: 400 });
   }
   return { message: "审核通过" };
@@ -232,7 +232,7 @@ export async function rejectAftersale(id: number, tenantId: string, operatorId: 
      WHERE id = ? AND tenant_id = ? AND status = 'PENDING' AND version = ?`,
     [operatorId, processRemark, id, tenantId, version || 1]
   );
-  if ((result as Record<string, unknown>).affectedRows === 0) {
+  if ((result as any).affectedRows === 0) {
     throw Object.assign(new Error("拒绝失败（状态已变更或版本不匹配）"), { statusCode: 400 });
   }
   return { message: "已拒绝" };
@@ -245,7 +245,7 @@ export async function confirmReceipt(id: number, tenantId: string) {
      WHERE id = ? AND tenant_id = ? AND status = 'RETURNING'`,
     [id, tenantId]
   );
-  if ((result as Record<string, unknown>).affectedRows === 0) {
+  if ((result as any).affectedRows === 0) {
     throw Object.assign(new Error("确认收货失败（状态不允许）"), { statusCode: 400 });
   }
   return { message: "已确认收货" };
@@ -271,7 +271,7 @@ export async function inspectAftersale(params: {
       JSON.stringify(inspectImages || []), id, tenantId, version || 1
     ]
   );
-  if ((result as Record<string, unknown>).affectedRows === 0) {
+  if ((result as any).affectedRows === 0) {
     throw Object.assign(new Error("验货失败（状态不允许或版本不匹配）"), { statusCode: 400 });
   }
   return { message: "验货完成", status: newStatus };
@@ -291,7 +291,7 @@ export async function completeAftersale(params: {
      WHERE id = ? AND tenant_id = ? AND status IN ('INSPECTING', 'APPROVED') AND version = ?`,
     [operatorId, processRemark || null, id, tenantId, version || 1]
   );
-  if ((result as Record<string, unknown>).affectedRows === 0) {
+  if ((result as any).affectedRows === 0) {
     throw Object.assign(new Error("完成处理失败（状态不允许或版本不匹配）"), { statusCode: 400 });
   }
   return { message: "售后处理完成" };

@@ -18,7 +18,7 @@ export const createRule = asyncHandler(async (req, res) => {
   const tenantId = req.tenantId!;
   const body = z.object({
     ruleName: z.string().min(1, "规则名称不能为空"),
-    businessType: z.enum(["PURCHASE_ORDER", "SALE_RETURN", "PRICE_CHANGE", "CREDIT_LIMIT"]),
+    businessType: z.enum(["PURCHASE_ORDER", "SALE_RETURN", "PRICE_CHANGE", "CREDIT_LIMIT", "EXPENSE"]),
     triggerCondition: z.any(),
     approvalChain: z.array(z.object({
       level: z.number().int().positive(),

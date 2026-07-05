@@ -9,7 +9,7 @@ export async function listProducts(keyword: string, page: number, pageSize: numb
   const offset = (page - 1) * pageSize;
   const records = await queryWithTenant<any>(
     `SELECT p.id AS spuId, p.spu_code AS spuCode, p.name, p.category_id AS categoryId,
-            pc.name AS categoryName, p.brand, p.unit, p.specs,
+            pc.name AS categoryName, p.brand_id AS brandId, b.name AS brandName, p.unit, p.specs,
             p.alcohol_content AS alcoholContent, p.origin, p.main_image AS mainImage,
             p.image_urls AS imageUrls, p.detail, p.sale_channels AS saleChannels,
             p.sort_no AS sortNo, p.is_new AS isNew, p.is_recommend AS isRecommend,
@@ -26,6 +26,7 @@ export async function listProducts(keyword: string, page: number, pageSize: numb
      JOIN product_spu p ON p.id = s.spu_id
      JOIN product_price pp ON pp.sku_id = s.id
      LEFT JOIN product_category pc ON pc.id = p.category_id
+     LEFT JOIN brand b ON b.id = p.brand_id
      LEFT JOIN inventory_balance ib ON ib.sku_id = s.id AND ib.stock_type = 'OFFLINE'
      WHERE p.tenant_id = ? AND (p.name LIKE ? OR s.sku_code LIKE ? OR s.barcode LIKE ?)
      ORDER BY p.id DESC, s.id DESC
@@ -47,7 +48,7 @@ export async function listProducts(keyword: string, page: number, pageSize: numb
 export async function getProductDetail(spuId: number, tenantId: string) {
   const spu = await queryOneWithTenant<any>(
     `SELECT p.id, p.spu_code AS spuCode, p.name, p.category_id AS categoryId,
-            pc.name AS categoryName, p.brand, p.unit, p.specs,
+            pc.name AS categoryName, p.brand_id AS brandId, b.name AS brandName, p.unit, p.specs,
             p.alcohol_content AS alcoholContent, p.origin,
             p.main_image AS mainImage, p.image_urls AS imageUrls, p.detail,
             p.sale_channels AS saleChannels, p.sort_no AS sortNo,
@@ -55,6 +56,7 @@ export async function getProductDetail(spuId: number, tenantId: string) {
             p.description, p.marketing_tags AS marketingTags, p.status, p.created_at AS createdAt, p.updated_at AS updatedAt
      FROM product_spu p
      LEFT JOIN product_category pc ON pc.id = p.category_id
+     LEFT JOIN brand b ON b.id = p.brand_id
      WHERE p.id = ? AND p.tenant_id = ?`,
     [spuId, tenantId], tenantId
   );
@@ -83,7 +85,7 @@ export async function getProductDetail(spuId: number, tenantId: string) {
 export async function createProduct(body: {
   name: string;
   categoryId: number;
-  brand?: string;
+  brandId?: number;
   unit?: string;
   specs?: string;
   mainImage?: string;
@@ -115,12 +117,12 @@ export async function createProduct(body: {
   const result = await transaction(async (conn) => {
     const spuCode = makeBizNo("SPU");
     const [spuResult] = await conn.query<any>(
-      `INSERT INTO product_spu (spu_code, name, category_id, brand, unit, specs,
+      `INSERT INTO product_spu (spu_code, name, category_id, brand_id, unit, specs,
        main_image, sale_channels, alcohol_content, origin, sort_no, is_new, is_recommend,
        description, status, tenant_id)
        VALUES (?, ?, ?, ?, ?, ?, ?, CAST(? AS JSON), ?, ?, ?, ?, ?, ?, 'DRAFT', ?)`,
       [spuCode, body.name, body.categoryId,
-       body.brand ?? null, body.unit ?? null, body.specs ?? null,
+       body.brandId ?? null, body.unit ?? null, body.specs ?? null,
        body.mainImage ?? null, JSON.stringify(body.saleChannels),
        body.alcoholContent ?? null, body.origin ?? null,
        body.sortNo ?? 0, body.isNew ? 1 : 0, body.isRecommend ? 1 : 0,
@@ -177,7 +179,7 @@ export async function updateProduct(spuId: number, body: {
   name?: string;
   barcode?: string;
   category?: string;
-  brand?: string;
+  brandId?: number;
   unit?: string;
   boxRatio?: number;
   specs?: string;
@@ -195,7 +197,7 @@ export async function updateProduct(spuId: number, body: {
   const params: unknown[] = [];
   if (body.name !== undefined) { sets.push("name = ?"); params.push(body.name); }
   if (body.category !== undefined) { sets.push("category_id = ?"); params.push(body.category); }
-  if (body.brand !== undefined) { sets.push("brand = ?"); params.push(body.brand); }
+  if (body.brandId !== undefined) { sets.push("brand_id = ?"); params.push(body.brandId); }
   if (body.unit !== undefined) { sets.push("unit = ?"); params.push(body.unit); }
   if (body.specs !== undefined) { sets.push("specs = ?"); params.push(body.specs); }
   if (body.status !== undefined) { sets.push("status = ?"); params.push(body.status); }
@@ -218,7 +220,7 @@ export async function updateProduct(spuId: number, body: {
   const changedFields = detectChangedFields(body, {
     name: existing.name,
     category: existing.category_id,
-    brand: existing.brand,
+    brandId: existing.brand_id,
     unit: existing.unit,
     status: existing.status
   });
@@ -352,12 +354,12 @@ export async function importProducts(
       await transaction(async (conn) => {
         const spuCode = makeBizNo("SPU");
         const [spuResult] = await conn.query<any>(
-          `INSERT INTO product_spu (spu_code, name, category_id, brand, unit, specs,
+          `INSERT INTO product_spu (spu_code, name, category_id, brand_id, unit, specs,
            main_image, sale_channels, alcohol_content, origin, sort_no, is_new, is_recommend,
            description, status, tenant_id)
            VALUES (?, ?, ?, ?, ?, ?, ?, CAST(? AS JSON), ?, ?, ?, ?, ?, ?, 'DRAFT', ?)`,
           [spuCode, row.name, Number(row.categoryId) || 1,
-           row.brand ?? null, row.unit ?? null, row.specs ?? null,
+           row.brandId ? Number(row.brandId) : null, row.unit ?? null, row.specs ?? null,
            row.mainImage ?? null, JSON.stringify(["STORE", "MINIAPP"]),
            row.alcoholContent ? Number(row.alcoholContent) : null, row.origin ?? null,
            Number(row.sortNo) || 0, row.isNew === '1' ? 1 : 0, row.isRecommend === '1' ? 1 : 0,
