@@ -4,12 +4,14 @@ export interface InventoryItem {
   id: number
   productId: number
   productName: string
+  productImage?: string
   skuId: string
   categoryName?: string
   stock: number
   safetyStock: number
   unit: string
-  status: 'normal' | 'warning' | 'shortage'
+  status: 'normal' | 'warning' | 'shortage' | 'danger'
+  statusText?: string
 }
 
 export interface InventoryListParams {
