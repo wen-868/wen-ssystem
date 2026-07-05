@@ -39,8 +39,8 @@
     </PageCard>
 
     <el-dialog v-model="dialogVisible" :title="isEdit ? '编辑规则' : '新增规则'" width="680px" :close-on-click-modal="false">
-      <el-form :model="form" label-width="100px">
-        <el-form-item label="规则名称">
+      <el-form ref="formRef" :model="form" :rules="rules" label-width="100px">
+        <el-form-item label="规则名称" prop="ruleName">
           <el-input v-model="form.ruleName" placeholder="请输入规则名称" />
         </el-form-item>
         <el-form-item label="业务类型">
@@ -133,6 +133,10 @@ const dialogVisible = ref(false);
 const isEdit = ref(false);
 const editId = ref<number | null>(null);
 const submitLoading = ref(false);
+const formRef = ref();
+const rules = {
+  ruleName: [{ required: true, message: "请输入规则名称", trigger: "blur" }]
+};
 const form = ref({
   ruleName: "",
   businessType: "",
@@ -226,7 +230,7 @@ function moveLevel(index: number, direction: number) {
 }
 
 async function handleSubmit() {
-  if (!form.value.ruleName) { ElMessage.warning("请输入规则名称"); return; }
+  const valid = await formRef.value?.validate().catch(() => false); if (!valid) return;
   if (!form.value.businessType) { ElMessage.warning("请选择业务类型"); return; }
   submitLoading.value = true;
   try {

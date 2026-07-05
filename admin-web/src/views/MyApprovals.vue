@@ -60,7 +60,7 @@
             />
           </el-select>
         </el-form-item>
-        <el-form-item label="标题">
+        <el-form-item label="标题" prop="title">
           <el-input v-model="submitForm.title" placeholder="请输入审批标题" />
         </el-form-item>
         <el-form-item label="内容">
@@ -141,10 +141,6 @@ const columns = [
 
 const dialogVisible = ref(false);
 const submitLoading = ref(false);
-const formRef = ref();
-const rules = {
-  ruleId: [{ required: true, message: "请选择审批规则", trigger: "change" }]
-};
 const ruleOptions = ref<any[]>([]);
 const submitForm = reactive({
   ruleId: null as number | null,
@@ -152,6 +148,12 @@ const submitForm = reactive({
   content: "",
   businessTypeLabel: ""
 });
+
+const formRef = ref();
+const rules = {
+  ruleId: [{ required: true, message: "请选择审批规则", trigger: "change" }],
+  title: [{ required: true, message: "请输入标题", trigger: "blur" }]
+};
 
 async function search() {
   loading.value = true;
@@ -196,14 +198,11 @@ function showSubmitDialog() {
 }
 
 async function handleSubmit() {
-  const valid = await formRef.value?.validate().catch(() => false);
-  if (!valid) return;
-  if (!submitForm.ruleId) { ElMessage.warning("请选择审批规则"); return; }
-  if (!submitForm.title) { ElMessage.warning("请输入标题"); return; }
+  const valid = await formRef.value?.validate().catch(() => false); if (!valid) return;
   submitLoading.value = true;
   try {
     await submitApproval({
-      ruleId: submitForm.ruleId,
+      ruleId: submitForm.ruleId!,
       title: submitForm.title,
       content: submitForm.content
     });

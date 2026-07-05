@@ -3,8 +3,8 @@
     <div class="config-wrapper">
       <el-tabs v-model="activeTab" @tab-change="handleTabChange">
         <el-tab-pane label="通用配置" name="general">
-          <el-form label-width="140px" class="config-form">
-            <el-form-item label="公司名称">
+          <el-form ref="formRef" :model="configs" :rules="rules" label-width="140px" class="config-form">
+            <el-form-item label="公司名称" prop="company_name">
               <div class="config-field">
                 <el-input v-model="configs.company_name" placeholder="请输入公司名称" style="width: 320px" />
                 <span class="tip-text">用于系统头部及报表展示</span>
@@ -154,6 +154,10 @@ import { api } from "../api";
 
 const activeTab = ref("general");
 const saveLoading = ref(false);
+const formRef = ref();
+const rules = {
+  company_name: [{ required: true, message: "请输入公司名称", trigger: "blur" }]
+};
 
 /* ── 默认配置值 ── */
 const defaultConfigs: Record<string, string> = {
@@ -217,6 +221,7 @@ function handleTabChange(tab: string) {
 
 /* ── 保存所有配置 ── */
 async function handleSave() {
+  const valid = await formRef.value?.validate().catch(() => false); if (!valid) return;
   saveLoading.value = true;
   try {
     const payload = Object.entries(configs).map(([key, value]) => ({
