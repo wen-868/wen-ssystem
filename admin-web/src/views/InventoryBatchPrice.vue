@@ -275,6 +275,8 @@ async function executeAdjust() {
     ElMessage.warning("请先选择商品");
     return;
   }
+  const valid = await adjustFormRef.value?.validate().catch(() => false);
+  if (!valid) return;
   adjustLoading.value = true;
   try {
     let failCount = 0;

@@ -140,8 +140,10 @@ function parseColumns(file: File) {
   reader.readAsText(file);
 }
 
-function goStep(n: number) {
+async function goStep(n: number) {
   if (n === 2) {
+    const valid = await mappingFormRef.value?.validate().catch(() => false);
+    if (!valid) return;
     buildPreview();
   }
   step.value = n;

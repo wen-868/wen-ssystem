@@ -59,25 +59,34 @@ export const errorHandler: ErrorRequestHandler = (err, req, res, _next) => {
     return;
   }
 
-  // 未知错误：返回 500，记录日志并上报凌舟
+// 未知错误：返回 500，写入错误日志 + 飞书告警
+  const userId = (req as { user?: { id: number } }).user?.id || undefined;
+  const tenantId = (req as { tenantId?: number }).tenantId || undefined;
+
   insertErrorLog({
-    error_type: "server",
-    severity: "FATAL",
+    error_type: "unhandled_error",
+    severity: "ERROR",
     message: errorMessage,
     stack: errorStack,
     request_url: requestUrl,
     request_method: requestMethod,
     status_code: 500,
+    user_id: userId ? String(userId) : undefined,
+    tenant_id: tenantId ? String(tenantId) : undefined,
+    source: "backend",
   }).catch((e) => logger.error("insertErrorLog failed", e));
 
   reportToLingZhou({
     phase: "系统错误告警",
     status: "BLOCKED",
-    summary: `[${requestMethod}] ${requestUrl} — ${errorMessage}`,
+    summary: `[ERROR] [${requestMethod}] ${requestUrl} — ${errorMessage}`,
     details: [
       { label: "请求URL", value: `${requestMethod} ${requestUrl}` },
+      { label: "用户ID", value: userId ? String(userId) : "未登录" },
+      { label: "租户ID", value: tenantId ? String(tenantId) : "N/A" },
       { label: "状态码", value: "500" },
       { label: "错误消息", value: errorMessage },
+      { label: "错误堆栈", value: (errorStack || "").split("\n").slice(0, 3).join("\n") },
     ],
     reporter: "系统自动告警",
     webhookUrl: process.env.FEISHU_ALERT_WEBHOOK_URL || process.env.FEISHU_WEBHOOK_URL,

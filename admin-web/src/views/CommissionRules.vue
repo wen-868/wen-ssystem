@@ -44,10 +44,10 @@
 
     <el-dialog v-model="dialogVisible" :title="isEdit ? '编辑规则' : '新增规则'" width="520px" :close-on-click-modal="false">
       <el-form ref="formRef" :model="form" :rules="rules" label-width="100px">
-        <el-form-item label="规则名称">
+        <el-form-item label="规则名称" prop="name">
           <el-input v-model="form.name" placeholder="如：基础提成规则" />
         </el-form-item>
-        <el-form-item label="规则类型">
+        <el-form-item label="规则类型" prop="ruleType">
           <el-select v-model="form.ruleType" style="width: 100%" @change="onRuleTypeChange">
             <el-option label="固定金额" value="FIXED" />
             <el-option label="按比例" value="RATIO" />
@@ -55,16 +55,16 @@
           </el-select>
         </el-form-item>
         <!-- 固定金额 -->
-        <el-form-item v-if="form.ruleType === 'FIXED'" label="每单金额">
+        <el-form-item v-if="form.ruleType === 'FIXED'" label="每单金额" prop="config.amount">
           <el-input-number v-model="form.config.amount" :precision="2" :min="0" style="width: 100%" />
         </el-form-item>
         <!-- 按比例 -->
-        <el-form-item v-if="form.ruleType === 'RATIO'" label="提成比例(%)">
+        <el-form-item v-if="form.ruleType === 'RATIO'" label="提成比例(%)" prop="config.rate">
           <el-input-number v-model="form.config.rate" :precision="1" :min="0" :max="100" style="width: 100%" />
         </el-form-item>
         <!-- 阶梯式 -->
         <template v-if="form.ruleType === 'TIERED'">
-          <el-form-item v-for="(tier, i) in form.config.tiers" :key="i" :label="`阶梯${i + 1}`">
+          <el-form-item v-for="(tier, i) in form.config.tiers" :key="i" :label="`阶梯${i + 1}`" :prop="`config.tiers.${i}`">
             <el-input-number v-model="tier.min" :min="0" :precision="2" placeholder="最低" style="width: 120px" />
             <span style="margin: 0 6px">~</span>
             <el-input-number v-model="tier.max" :min="0" :precision="2" placeholder="最高(空=不限)" style="width: 120px" />
@@ -75,7 +75,7 @@
           </el-form-item>
           <el-button size="small" @click="addTier">+ 添加阶梯</el-button>
         </template>
-        <el-form-item label="有效期">
+        <el-form-item label="有效期" prop="dateRange">
           <el-date-picker
             v-model="form.dateRange"
             type="daterange"
@@ -86,7 +86,7 @@
             style="width: 100%"
           />
         </el-form-item>
-        <el-form-item label="备注">
+        <el-form-item label="备注" prop="remark">
           <el-input v-model="form.remark" />
         </el-form-item>
       </el-form>

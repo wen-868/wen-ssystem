@@ -244,3 +244,17 @@ export async function submitStoreStockCheck(id: number) {
   const { data } = await api.post(`/store/stock-checks/${id}/submit`);
   return data.data;
 }
+
+// 前端错误上报
+export async function reportFrontendError(payload: {
+  error_type: string;
+  message: string;
+  stack?: string;
+  url?: string;
+}) {
+  try {
+    await api.post("/error-report", payload);
+  } catch {
+    // 上报失败静默，不触发二次错误
+  }
+}

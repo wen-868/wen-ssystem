@@ -1,71 +1,54 @@
 import { createApp } from "vue";
 import ElementPlus from "element-plus";
+import { ElMessage } from "element-plus";
 import "element-plus/dist/index.css";
 import "./styles.css";
 import "./register-sw";
 import App from "./App.vue";
 import router from "./router";
+import { reportFrontendError } from "./api";
 
 const app = createApp(App);
 app.use(ElementPlus);
 app.use(router);
 
-// 全局 Vue 错误捕获
-app.config.errorHandler = (err, _instance, info) => {
-  const message = err instanceof Error ? err.message : String(err);
-  const stack = err instanceof Error ? err.stack : undefined;
-  console.error(`[Vue Error] ${info}: ${message}`, stack);
-  // 上报到后端错误日志
-  fetch("/api/error-log/frontend", {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({
-      error_type: "vue",
-      severity: "ERROR",
-      message: `[${info}] ${message}`,
-      stack: stack || "",
-      source: "frontend",
-      timestamp: new Date().toISOString()
-    }),
-  }).catch(() => {});
+// Vue 全局错误处理器
+app.config.errorHandler = (err: unknown, _instance, info: string) => {
+  const error = err instanceof Error ? err : new Error(String(err));
+  console.error("[store-terminal] Vue 错误:", error.message, info);
+  ElMessage.error(`系统错误: ${error.message}`);
+  reportFrontendError({
+    error_type: "vue_error",
+    message: error.message,
+    stack: error.stack?.slice(0, 2000) || undefined,
+    url: window.location.href,
+  });
 };
 
-// 全局未捕获 Promise 错误
-window.addEventListener("unhandledrejection", (event) => {
-  const message = event.reason instanceof Error ? event.reason.message : String(event.reason);
-  const stack = event.reason instanceof Error ? event.reason.stack : undefined;
-  console.error(`[Unhandled Promise Rejection] ${message}`, stack);
-  fetch("/api/error-log/frontend", {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({
-      error_type: "promise",
-      severity: "ERROR",
-      message,
-      stack: stack || "",
-      source: "frontend",
-      timestamp: new Date().toISOString()
-    }),
-  }).catch(() => {});
+// 未捕获 Promise 拒绝
+window.addEventListener("unhandledrejection", (event: PromiseRejectionEvent) => {
+  const reason = event.reason;
+  const message = reason instanceof Error ? reason.message : String(reason || "未处理的 Promise 拒绝");
+  console.error("[store-terminal] 未处理的 Promise 拒绝:", reason);
+  ElMessage.error(`操作异常: ${message}`);
+  reportFrontendError({
+    error_type: "unhandledrejection",
+    message,
+    stack: reason instanceof Error ? reason.stack?.slice(0, 2000) : undefined,
+    url: window.location.href,
+  });
 });
 
-// 全局未捕获异常
-window.addEventListener("error", (event) => {
+// 全局未捕获异常（window.onerror）
+window.addEventListener("error", (event: ErrorEvent) => {
   const { message, filename, lineno, colno, error } = event;
-  const stack = error instanceof Error ? error.stack : undefined;
-  console.error(`[Global Error] ${message} at ${filename}:${lineno}:${colno}`, stack);
-  fetch("/api/error-log/frontend", {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({
-      error_type: "global",
-      severity: "FATAL",
-      message: `${message} (${filename}:${lineno}:${colno})`,
-      stack: stack || "",
-      source: "frontend",
-      timestamp: new Date().toISOString()
-    }),
-  }).catch(() => {});
+  console.error(`[store-terminal] 全局错误: ${message} at ${filename}:${lineno}:${colno}`);
+  reportFrontendError({
+    error_type: "global_error",
+    message: `${message} (${filename}:${lineno}:${colno})`,
+    stack: error instanceof Error ? error.stack?.slice(0, 2000) : undefined,
+    url: window.location.href,
+  });
 });
 
 app.mount("#app");
