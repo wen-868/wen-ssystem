@@ -1,7 +1,8 @@
 import mysql from "mysql2/promise";
 import { queryWithTenant, queryOneWithTenant, transaction } from "../../shared/db.js";
 import { makeBizNo } from "../../shared/id.js";
-import { calcReservation, getInitialMiniappOrderState } from "../../shared/fulfillment.js";
+import { calcReservation, getInitialMiniappOrderState, completeOrderDelivery } from "../../shared/fulfillment.js";
+import { constants } from "../../config/constants.js";
 
 // ========== 私有辅助函数 ==========
 
@@ -471,4 +472,12 @@ export async function createCheckoutOrder(params: {
   });
 
   return order;
+}
+
+// ========== 配送完成（统一调用共享 completeOrderDelivery） ==========
+
+export async function completeDelivery(orderNo: string, userId: number | null) {
+  return transaction(async (conn) => {
+    return completeOrderDelivery(conn, orderNo, userId ?? null, makeBizNo);
+  });
 }
