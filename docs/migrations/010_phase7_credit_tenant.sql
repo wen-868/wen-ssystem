@@ -1,3 +1,5 @@
+-- 编号: 010, 描述: 赊销租户配置, 创建人: 阿坚, 日期: 2026-07-06
+
 -- ============================================
 -- Phase 7: 信用额度表添加 tenant_id 支持
 -- 涉及表：customer_credit, credit_operation_log, collection_record

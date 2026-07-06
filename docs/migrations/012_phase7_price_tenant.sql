@@ -1,3 +1,5 @@
+-- 编号: 012, 描述: 价格租户配置, 创建人: 阿坚, 日期: 2026-07-06
+
 -- ============================================
 -- Phase 7: 价格策略表添加 tenant_id 支持
 -- 涉及表：price_level, sku_price, customer_price_binding, price_change_log

@@ -6,6 +6,7 @@ import { queryOne } from "../shared/db.js";
 import { ok, fail } from "../shared/response.js";
 import { env } from "../shared/env.js";
 import { runMigrations } from "../shared/migration.js";
+import logger from "../shared/logger.js";
 
 export const systemRouter = Router();
 
@@ -40,18 +41,21 @@ systemRouter.get("/info", requireAuthWithTenant, asyncHandler(async (req, res) =
 // ========== 数据库迁移（临时，部署后手动触发） ==========
 systemRouter.post("/migrate", asyncHandler(async (_req, res) => {
   const logs: string[] = [];
-  const origLog = console.log;
-  const origError = console.error;
-  console.log = (...args: any[]) => { logs.push(args.join(" ")); origLog(...args); };
-  console.error = (...args: any[]) => { logs.push("ERROR: " + args.join(" ")); origError(...args); };
+  const origInfo = (logger as any).info;
+  const origError = (logger as any).error;
+
+  // 临时劫持 pino logger 输出，捕获迁移日志
+  (logger as any).info = (...args: any[]) => { logs.push(args.join(" ")); origInfo(...args); };
+  (logger as any).error = (...args: any[]) => { logs.push("ERROR: " + args.join(" ")); origError(...args); };
+
   try {
     await runMigrations();
-    console.log = origLog;
-    console.error = origError;
+    (logger as any).info = origInfo;
+    (logger as any).error = origError;
     res.json(ok({ result: "迁移执行成功", logs }));
   } catch (e: any) {
-    console.log = origLog;
-    console.error = origError;
+    (logger as any).info = origInfo;
+    (logger as any).error = origError;
     res.status(500).json({ ...fail(`迁移失败: ${e.message}`, "500"), logs });
   }
 }));
