@@ -3,6 +3,7 @@ import { readdirSync } from "fs";
 import { fileURLToPath } from "url";
 import { dirname, join } from "path";
 import { requireAuth, requireAuthWithTenant } from "../middleware/auth.js";
+import logger from "./logger.js";
 
 /**
  * 路由配置项
@@ -84,7 +85,7 @@ export async function setupRoutes(app: Express): Promise<void> {
   try {
     files = readdirSync(routesDir).filter((f) => f.endsWith(".routes.ts") || f.endsWith(".routes.js"));
   } catch {
-    console.warn("[auto-routes] routes/ 目录不存在，跳过路由自动发现");
+    logger.warn("[auto-routes] routes/ 目录不存在，跳过路由自动发现");
     return;
   }
 
@@ -100,7 +101,7 @@ export async function setupRoutes(app: Express): Promise<void> {
     try {
       mod = await import(modulePath);
     } catch (err: any) {
-      console.error(`[auto-routes] 无法加载路由模块 ${file}:`, err.message);
+      logger.error(`[auto-routes] 无法加载路由模块 ${file}:`, err.message);
       continue;
     }
 
@@ -127,7 +128,7 @@ export async function setupRoutes(app: Express): Promise<void> {
     if (routerEntries.length === 1) {
       const [name, router] = routerEntries;
       const prefix = inferPrefix(file);
-      console.warn(
+      logger.warn(
         `[auto-routes] ${file}: 未找到 routeConfig，从文件名推断 prefix="${prefix}"（导出: ${name}）。` +
           ` 建议添加 routeConfig 导出以明确配置。`
       );
@@ -137,13 +138,13 @@ export async function setupRoutes(app: Express): Promise<void> {
         auth: "requireAuthWithTenant",
       });
     } else if (routerEntries.length > 1) {
-      console.warn(
+      logger.warn(
         `[auto-routes] ${file}: 检测到 ${routerEntries.length} 个 Router 导出但无 routeConfigs。` +
           ` 请添加 routeConfigs 导出以启用自动注册。导出列表: ${routerEntries.map(([k]) => k).join(", ")}`
       );
     } else {
       const keys = Object.keys(mod).slice(0, 5);
-      console.warn(`[auto-routes] ${file}: 无 Router 导出，keys=${keys.join(",")}`);
+      logger.warn(`[auto-routes] ${file}: 无 Router 导出，keys=${keys.join(",")}`);
     }
     // routerEntries.length === 0 → 无 Router 导出，跳过（可能只导出工具函数）
   }
@@ -154,5 +155,5 @@ export async function setupRoutes(app: Express): Promise<void> {
     app.use(config.prefix, ...middlewares, config.router);
   }
 
-  console.info(`[auto-routes] 已自动注册 ${configs.length} 个路由`);
+  logger.info(`[auto-routes] 已自动注册 ${configs.length} 个路由`);
 }

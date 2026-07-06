@@ -30,29 +30,21 @@ categoryRouter.post("/", requireAuthWithTenant, asyncHandler(async (req, res) =>
 
 // 编辑分类
 categoryRouter.put("/:id", requireAuthWithTenant, asyncHandler(async (req, res) => {
-  try {
-    const body = z.object({
-      name: z.string().min(1).max(64).optional(),
-      parentId: z.number().int().nullable().optional(),
-      sortNo: z.number().int().optional(),
-      icon: z.string().max(255).optional(),
-      code: z.string().max(64).optional(),
-    }).parse(req.body);
-    const result = await service.update(Number(req.params.id), body, req.tenantId!);
-    res.json(ok(result));
-  } catch (e: any) {
-    res.status(e.statusCode || 400).json({ code: String(e.statusCode || 400), message: e.message });
-  }
+  const body = z.object({
+    name: z.string().min(1).max(64).optional(),
+    parentId: z.number().int().nullable().optional(),
+    sortNo: z.number().int().optional(),
+    icon: z.string().max(255).optional(),
+    code: z.string().max(64).optional(),
+  }).parse(req.body);
+  const result = await service.update(Number(req.params.id), body, req.tenantId!);
+  res.json(ok(result));
 }));
 
 // 删除分类
 categoryRouter.delete("/:id", requireAuthWithTenant, asyncHandler(async (req, res) => {
-  try {
-    const result = await service.remove(Number(req.params.id), req.tenantId!);
-    res.json(ok(result));
-  } catch (e: any) {
-    res.status(e.statusCode || 400).json({ code: String(e.statusCode || 400), message: e.message });
-  }
+  const result = await service.remove(Number(req.params.id), req.tenantId!);
+  res.json(ok(result));
 }));
 
 // 分类排序 (PUT /:id/sort)

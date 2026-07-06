@@ -4,6 +4,7 @@ import { z } from "zod";
 import { asyncHandler } from "../middleware/async-handler.js";
 import { requireAuthWithTenant } from "../middleware/auth.js";
 import { ok, fail } from "../shared/response.js";
+import { AppError } from "../shared/app-error.js";
 import { saleReturnService } from "../services/sale-return.service.js";
 import type { ServiceContext } from "../types/index.js";
 
@@ -79,16 +80,11 @@ saleReturnRouter.post("/:returnNo/approve", requireAuthWithTenant, asyncHandler(
   const { returnNo } = req.params;
   const ctx = getServiceContext(req);
 
-  try {
-    const result = await saleReturnService.approve(returnNo, ctx);
-    if (!result) {
-      res.status(404).json(fail("退货单不存在", "404"));
-      return;
-    }
-    res.json(ok(result));
-  } catch (e: any) {
-    res.status(400).json(fail(e.message, "400"));
+  const result = await saleReturnService.approve(returnNo, ctx);
+  if (!result) {
+    throw new AppError("退货单不存在", 404);
   }
+  res.json(ok(result));
 }));
 
 saleReturnRouter.post("/:returnNo/refund", requireAuthWithTenant, asyncHandler(async (req, res) => {
@@ -99,16 +95,11 @@ saleReturnRouter.post("/:returnNo/refund", requireAuthWithTenant, asyncHandler(a
     refundMethod: z.enum(["CASH", "WECHAT", "BANK"]),
   }).parse(req.body);
 
-  try {
-    const result = await saleReturnService.refund(returnNo, body, ctx);
-    if (!result) {
-      res.status(404).json(fail("退货单不存在", "404"));
-      return;
-    }
-    res.json(ok(result));
-  } catch (e: any) {
-    res.status(400).json(fail(e.message, "400"));
+  const result = await saleReturnService.refund(returnNo, body, ctx);
+  if (!result) {
+    throw new AppError("退货单不存在", 404);
   }
+  res.json(ok(result));
 }));
 
 saleReturnRouter.get("/sale-bills/:billNo", requireAuthWithTenant, asyncHandler(async (req, res) => {

@@ -1,5 +1,6 @@
 import { query, queryOne } from "../../shared/db.js";
 import { getStats } from "../../middleware/response-tracker.js";
+import logger from "../../shared/logger.js";
 
 export interface DbStatus {
   connection: "connected" | "disconnected" | "error";
@@ -139,7 +140,7 @@ export async function notifyExpiringTenants(tenantIds: number[]): Promise<number
   if (tenantIds.length === 0) return 0;
 
   for (const tenantId of tenantIds) {
-    console.info(`[monitor] 发送到期通知给租户: ${tenantId}`);
+    logger.info(`[monitor] 发送到期通知给租户: ${tenantId}`);
   }
 
   return tenantIds.length;

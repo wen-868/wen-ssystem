@@ -2,35 +2,95 @@ import "dotenv/config";
 
 declare const process: any;
 
+/** 应用环境变量配置（统一入口，所有环境变量在此集中管理） */
 export const env = {
+  /** 服务端口号，默认 8080 */
   PORT: Number(process.env.PORT || 8080),
+
+  /** 运行环境：development / production，默认 production */
   NODE_ENV: process.env.NODE_ENV || "production",
+
+  /** JWT 签名密钥（必须设置，无默认值，缺失时启动失败） */
   JWT_SECRET: process.env.JWT_SECRET || (() => { throw new Error("环境变量 JWT_SECRET 必须设置，不能为空"); })(),
+
+  /** MySQL 数据库主机地址，默认 127.0.0.1 */
   DB_HOST: process.env.DB_HOST || "127.0.0.1",
+
+  /** MySQL 数据库端口，默认 3306 */
   DB_PORT: Number(process.env.DB_PORT || 3306),
+
+  /** MySQL 数据库用户名，默认 zhixiang_app */
   DB_USER: process.env.DB_USER || "zhixiang_app",
+
+  /** MySQL 数据库密码，默认空字符串 */
   DB_PASSWORD: process.env.DB_PASSWORD || "",
+
+  /** MySQL 数据库名称，默认 liquor_inventory */
   DB_NAME: process.env.DB_NAME || "liquor_inventory",
+
+  /** 是否使用 Mock 数据库（测试/开发环境），默认 false */
   USE_MOCK_DB: process.env.USE_MOCK_DB === "true",
+
+  /** Redis 主机地址，默认 127.0.0.1 */
   REDIS_HOST: process.env.REDIS_HOST || "127.0.0.1",
+
+  /** Redis 端口，默认 6379 */
   REDIS_PORT: Number(process.env.REDIS_PORT || 6379),
+
+  /** 主域名，默认 onepan.cn */
   DOMAIN: process.env.DOMAIN || "onepan.cn",
+
+  /** API 服务子域名，默认 api.onepan.cn */
   API_DOMAIN: process.env.API_DOMAIN || "api.onepan.cn",
+
+  /** 管理后台子域名，默认 admin.onepan.cn */
   ADMIN_DOMAIN: process.env.ADMIN_DOMAIN || "admin.onepan.cn",
+
+  /** 商户端子域名，默认 m.onepan.cn */
   MERCHANT_DOMAIN: process.env.MERCHANT_DOMAIN || "m.onepan.cn",
+
+  /** 门店端子域名，默认 store.onepan.cn */
   STORE_DOMAIN: process.env.STORE_DOMAIN || "store.onepan.cn",
+
+  /** 微信 AppID（小程序），默认空字符串 */
   WECHAT_APP_ID: process.env.WECHAT_APP_ID || "",
+
+  /** 腾讯云 AppID（用于短信/云服务），默认 1442871774 */
   TENCENT_CLOUD_APPID: process.env.TENCENT_CLOUD_APPID || "1442871774",
+
+  /** 微信 AppSecret（小程序密钥），默认空字符串 */
   WECHAT_APP_SECRET: process.env.WECHAT_APP_SECRET || "",
+
+  /** 微信支付商户号，默认空字符串 */
   WECHAT_MCH_ID: process.env.WECHAT_MCH_ID || "",
+
+  /** 微信支付证书序列号，默认空字符串 */
   WECHAT_PAY_SERIAL_NO: process.env.WECHAT_PAY_SERIAL_NO || "",
+
+  /** 微信支付商户私钥文件路径（.pem），默认空字符串 */
   WECHAT_PAY_PRIVATE_KEY_PATH: process.env.WECHAT_PAY_PRIVATE_KEY_PATH || "",
+
+  /** 微信支付平台证书文件路径（.pem），默认空字符串 */
   WECHAT_PAY_PLATFORM_CERT_PATH: process.env.WECHAT_PAY_PLATFORM_CERT_PATH || "",
+
+  /** 微信支付 API v3 密钥，默认空字符串 */
   WECHAT_PAY_API_V3_KEY: process.env.WECHAT_PAY_API_V3_KEY || "",
+
+  /** 微信支付回调通知 URL，默认空字符串 */
   WECHAT_PAY_NOTIFY_URL: process.env.WECHAT_PAY_NOTIFY_URL || "",
+
+  /** 微信 AppID（兼容别名，优先 WX_APPID 否则回退 WECHAT_APP_ID） */
   WX_APPID: process.env.WX_APPID || process.env.WECHAT_APP_ID || "",
+
+  /** 微信 AppSecret（兼容别名，优先 WX_APP_SECRET 否则回退 WECHAT_APP_SECRET） */
   WX_APP_SECRET: process.env.WX_APP_SECRET || process.env.WECHAT_APP_SECRET || "",
+
+  /** 微信支付商户号（兼容别名，优先 WX_MCH_ID 否则回退 WECHAT_MCH_ID） */
   WX_MCH_ID: process.env.WX_MCH_ID || process.env.WECHAT_MCH_ID || "",
+
+  /** 微信支付 API 密钥（兼容别名，优先 WX_API_KEY 否则回退 WECHAT_PAY_API_V3_KEY） */
   WX_API_KEY: process.env.WX_API_KEY || process.env.WECHAT_PAY_API_V3_KEY || "",
+
+  /** 即时零售 Mock 开关（开发调试用），默认空字符串表示关闭 */
   INSTANT_RETAIL_MOCK: process.env.INSTANT_RETAIL_MOCK || "",
 };

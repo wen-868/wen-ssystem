@@ -8,6 +8,7 @@ import { readFileSync, readdirSync, existsSync } from "fs";
 import { resolve, join } from "path";
 import mysql from "mysql2/promise";
 import { env } from "./env.js";
+import logger from "./logger.js";
 
 /** 跳过错误码集合 */
 const SKIP_ERRORS = new Set([
@@ -71,10 +72,10 @@ async function safeExec(conn: mysql.Connection, sql: string, label: string): Pro
         msg.includes("if not exists") ||
         msg.includes("procedure") ||
         (msg.includes("table") && msg.includes("already exists"))) {
-      console.log(`[migration] ${label}: 跳过 (${code || 'OK'})`);
+      logger.info(`[migration] ${label}: 跳过 (${code || 'OK'})`);
       return false;
     }
-    console.error(`[migration] ${label} 失败: ${(e as any).message}`);
+    logger.error(`[migration] ${label} 失败: ${(e as any).message}`);
     return false;
   }
 }
@@ -94,7 +95,7 @@ export async function runMigrations(): Promise<void> {
       connectTimeout: 10000,
     });
   } catch (e: unknown) {
-    console.error("[migration] 数据库连接失败:", (e as any).message);
+    logger.error("[migration] 数据库连接失败:", (e as any).message);
     return;
   }
 
@@ -102,7 +103,7 @@ export async function runMigrations(): Promise<void> {
     // ============================================================
     // 第1步：创建/修复 tenant 表
     // ============================================================
-    console.log("[migration] 创建/修复 tenant 表...");
+    logger.info("[migration] 创建/修复 tenant 表...");
 
     // 先创建表（如果不存在）
     await safeExec(conn, `
@@ -161,16 +162,16 @@ export async function runMigrations(): Promise<void> {
           "更新默认租户名称"
         );
       } else {
-        console.log("[migration] tenant 表缺少 name 列，跳过租户数据操作");
+        logger.info("[migration] tenant 表缺少 name 列，跳过租户数据操作");
       }
     } catch (e: unknown) {
-      console.error("[migration] 租户数据操作失败:", (e as any).message);
+      logger.error("[migration] 租户数据操作失败:", (e as any).message);
     }
 
     // ============================================================
     // 第2步：添加 tenant_id 列到所有表
     // ============================================================
-    console.log(`[migration] 为 ${TENANT_TABLES.length} 张表添加 tenant_id...`);
+    logger.info(`[migration] 为 ${TENANT_TABLES.length} 张表添加 tenant_id...`);
     for (const table of TENANT_TABLES) {
       await safeExec(conn,
         `ALTER TABLE \`${table}\` ADD COLUMN \`tenant_id\` VARCHAR(36) NOT NULL DEFAULT 'default' COMMENT '租户ID'`,
@@ -204,14 +205,14 @@ export async function runMigrations(): Promise<void> {
       );
       const users = shaUsers as Record<string, unknown>[];
       if (users.length > 0) {
-        console.log(`[migration] 修复 ${users.length} 个 SHA256 密码为 bcrypt...`);
+        logger.info(`[migration] 修复 ${users.length} 个 SHA256 密码为 bcrypt...`);
         const hash = bcrypt.hashSync("admin123", 10);
         for (const user of users) {
           await conn.query("UPDATE t_sys_user SET password_hash = ? WHERE id = ?", [hash, user.id]);
         }
       }
     } catch (e: unknown) {
-      console.error("[migration] 密码修复失败:", (e as any).message);
+      logger.error("[migration] 密码修复失败:", (e as any).message);
     }
 
     // ============================================================
@@ -225,7 +226,7 @@ export async function runMigrations(): Promise<void> {
     // ============================================================
     // 第5.5步：创建缺失的表 + 添加缺失的字段
     // ============================================================
-    console.log("[migration] 创建缺失的表和字段...");
+    logger.info("[migration] 创建缺失的表和字段...");
 
     // 5.5.1 创建 stock_warning 表（看板需要）
     await safeExec(conn, `
@@ -346,7 +347,7 @@ export async function runMigrations(): Promise<void> {
 
       for (const file of files) {
         const sql = readFileSync(join(migrationsDir, file), "utf-8");
-        console.log(`[migration] 执行外部迁移: ${file}`);
+        logger.info(`[migration] 执行外部迁移: ${file}`);
 
         // 预处理：移除 USE 语句、DELIMITER 行
         const cleaned = sql
@@ -366,7 +367,7 @@ export async function runMigrations(): Promise<void> {
         for (const stmt of statements) {
           // 跳过存储过程定义（$$ 块内的内容）
           if (stmt.includes("CREATE PROCEDURE") || stmt.includes("DROP PROCEDURE")) {
-            console.log(`[migration] ${file}: 跳过存储过程语句`);
+            logger.info(`[migration] ${file}: 跳过存储过程语句`);
             continue;
           }
           await safeExec(conn, stmt, `${file}`);
@@ -374,9 +375,9 @@ export async function runMigrations(): Promise<void> {
       }
     }
 
-    console.log("[migration] 所有迁移完成");
+    logger.info("[migration] 所有迁移完成");
   } catch (e: unknown) {
-    console.error("[migration] 迁移过程出错:", (e as any).message);
+    logger.error("[migration] 迁移过程出错:", (e as any).message);
   } finally {
     if (conn) await conn.end().catch(() => {});
   }

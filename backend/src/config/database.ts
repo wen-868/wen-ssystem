@@ -75,7 +75,7 @@ export async function initDatabase() {
   if (await tableExists("sys_user")) {
     logger.info("✅ 数据库表已存在，跳过 schema 初始化");
   } else {
-    const schemaPath = findSqlFile("phase1_schema.sql");
+    const schemaPath = findSqlFile("001_phase1_schema.sql");
     const schemaSql = readFileSync(schemaPath, "utf8");
     for (const statement of splitSqlStatements(schemaSql)) {
       await pool.query(statement);
@@ -83,7 +83,7 @@ export async function initDatabase() {
     logger.info("✅ 数据库 schema 初始化完成");
   }
 
-  const seedPath = findSqlFile("phase1_seed.sql");
+  const seedPath = findSqlFile("002_phase1_seed.sql");
   const seedSql = readFileSync(seedPath, "utf8");
   for (const statement of splitSqlStatements(seedSql)) {
     await pool.query(statement);
@@ -119,7 +119,7 @@ export async function queryWithTenant<T = any>(sql: string, params: unknown[] = 
     const lowerSql = sql.toLowerCase();
     const hasTenantId = lowerSql.includes('tenant_id');
     if (!hasTenantId) {
-      console.warn(`[mock-db] WARNING: queryWithTenant 调用缺少 tenant_id 条件: ${sql.substring(0, 100)}`);
+      logger.warn(`[mock-db] WARNING: queryWithTenant 调用缺少 tenant_id 条件: ${sql.substring(0, 100)}`);
     }
     const result = await mockQuery<T>(sql, params);
     // 对结果进行租户过滤（模拟生产环境的租户隔离）

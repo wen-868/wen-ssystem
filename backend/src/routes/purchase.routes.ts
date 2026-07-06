@@ -4,6 +4,7 @@ import { z } from "zod";
 import { asyncHandler } from "../middleware/async-handler.js";
 import { requireAuthWithTenant } from "../middleware/auth.js";
 import { ok, fail } from "../shared/response.js";
+import { AppError } from "../shared/app-error.js";
 import { purchaseService } from "../services/purchase.service.js";
 import type { ServiceContext } from "../types/index.js";
 
@@ -79,48 +80,33 @@ purchaseRouter.post("/:orderNo/submit", requireAuthWithTenant, asyncHandler(asyn
   const { orderNo } = req.params;
   const ctx = getServiceContext(req);
 
-  try {
-    const result = await purchaseService.submit(orderNo, ctx);
-    if (!result) {
-      res.status(404).json(fail("采购订单不存在", "404"));
-      return;
-    }
-    res.json(ok(result));
-  } catch (e: any) {
-    res.status(400).json(fail(e.message, "400"));
+  const result = await purchaseService.submit(orderNo, ctx);
+  if (!result) {
+    throw new AppError("采购订单不存在", 404);
   }
+  res.json(ok(result));
 }));
 
 purchaseRouter.post("/:orderNo/approve", requireAuthWithTenant, asyncHandler(async (req, res) => {
   const { orderNo } = req.params;
   const ctx = getServiceContext(req);
 
-  try {
-    const result = await purchaseService.approve(orderNo, ctx);
-    if (!result) {
-      res.status(404).json(fail("采购订单不存在", "404"));
-      return;
-    }
-    res.json(ok(result));
-  } catch (e: any) {
-    res.status(400).json(fail(e.message, "400"));
+  const result = await purchaseService.approve(orderNo, ctx);
+  if (!result) {
+    throw new AppError("采购订单不存在", 404);
   }
+  res.json(ok(result));
 }));
 
 purchaseRouter.post("/:orderNo/cancel", requireAuthWithTenant, asyncHandler(async (req, res) => {
   const { orderNo } = req.params;
   const ctx = getServiceContext(req);
 
-  try {
-    const result = await purchaseService.cancel(orderNo, ctx);
-    if (!result) {
-      res.status(404).json(fail("采购订单不存在", "404"));
-      return;
-    }
-    res.json(ok(result));
-  } catch (e: any) {
-    res.status(400).json(fail(e.message, "400"));
+  const result = await purchaseService.cancel(orderNo, ctx);
+  if (!result) {
+    throw new AppError("采购订单不存在", 404);
   }
+  res.json(ok(result));
 }));
 
 purchaseRouter.put("/:orderNo", requireAuthWithTenant, asyncHandler(async (req, res) => {
@@ -145,32 +131,22 @@ purchaseRouter.put("/:orderNo", requireAuthWithTenant, asyncHandler(async (req, 
     })).optional(),
   }).parse(req.body);
 
-  try {
-    const result = await purchaseService.updateOrder(orderNo, body, ctx);
-    if (!result) {
-      res.status(404).json(fail("采购订单不存在", "404"));
-      return;
-    }
-    res.json(ok(result));
-  } catch (e: any) {
-    res.status(400).json(fail(e.message, "400"));
+  const result = await purchaseService.updateOrder(orderNo, body, ctx);
+  if (!result) {
+    throw new AppError("采购订单不存在", 404);
   }
+  res.json(ok(result));
 }));
 
 purchaseRouter.delete("/:orderNo", requireAuthWithTenant, asyncHandler(async (req, res) => {
   const { orderNo } = req.params;
   const ctx = getServiceContext(req);
 
-  try {
-    const result = await purchaseService.delete(orderNo, ctx);
-    if (!result) {
-      res.status(404).json(fail("采购订单不存在", "404"));
-      return;
-    }
-    res.json(ok(result));
-  } catch (e: any) {
-    res.status(400).json(fail(e.message, "400"));
+  const result = await purchaseService.delete(orderNo, ctx);
+  if (!result) {
+    throw new AppError("采购订单不存在", 404);
   }
+  res.json(ok(result));
 }));
 
 purchaseRouter.post("/:orderNo/in-stock", requireAuthWithTenant, asyncHandler(async (req, res) => {
@@ -187,16 +163,11 @@ purchaseRouter.post("/:orderNo/in-stock", requireAuthWithTenant, asyncHandler(as
     })).min(1),
   }).parse(req.body);
 
-  try {
-    const result = await purchaseService.inStock(orderNo, body, ctx);
-    if (!result) {
-      res.status(404).json(fail("采购订单不存在", "404"));
-      return;
-    }
-    res.json(ok(result));
-  } catch (e: any) {
-    res.status(400).json(fail(e.message, "400"));
+  const result = await purchaseService.inStock(orderNo, body, ctx);
+  if (!result) {
+    throw new AppError("采购订单不存在", 404);
   }
+  res.json(ok(result));
 }));
 // ========== 路由自动发现配置 ==========
 export const routeConfig: RouteConfig = {

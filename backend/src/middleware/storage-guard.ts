@@ -5,6 +5,7 @@
 import type { Request, Response, NextFunction } from "express";
 import { queryOneWithTenant } from "../shared/db.js";
 import { fail } from "../shared/response.js";
+import logger from "../shared/logger.js";
 
 export function storageGuard() {
   return async (req: Request, res: Response, next: NextFunction) => {
@@ -47,7 +48,7 @@ export function storageGuard() {
       next();
     } catch (err) {
       // 非关键路径，降级放行
-      console.warn("[storage-guard] 检查失败，降级放行:", err);
+      logger.warn("[storage-guard] 检查失败，降级放行:", err);
       next();
     }
   };

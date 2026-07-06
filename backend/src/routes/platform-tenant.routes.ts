@@ -55,12 +55,8 @@ platformTenantRouter.post("/", asyncHandler(async (req: any, res: any) => {
 
 // PUT /api/platform/tenants/:id - 更新租户
 platformTenantRouter.put("/:id", asyncHandler(async (req: any, res: any) => {
-  try {
-    await updateTenant(Number(req.params.id), req.body);
-    res.json(ok({ success: true }));
-  } catch (err: any) {
-    res.status(err.statusCode || 500).json({ code: String(err.statusCode || 500), message: err.message });
-  }
+  await updateTenant(Number(req.params.id), req.body);
+  res.json(ok({ success: true }));
 }));
 
 // POST /api/platform/tenants/:id/toggle - 启用/禁用租户

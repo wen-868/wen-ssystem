@@ -61,7 +61,7 @@ const app = express();
 
 // 全局未捕获异常
 process.on("uncaughtException", (err: Error) => {
-  console.error("💥 [uncaughtException] 未捕获的异常:", err);
+  logger.error("💥 [uncaughtException] 未捕获的异常:", err);
   insertErrorLog({
     error_type: "uncaughtException",
     severity: "FATAL",
@@ -83,7 +83,7 @@ process.on("uncaughtException", (err: Error) => {
 });
 
 process.on("unhandledRejection", (reason: any, promise: Promise<any>) => {
-  console.error("💥 [unhandledRejection] 未处理的 Promise 拒绝:", reason);
+  logger.error("💥 [unhandledRejection] 未处理的 Promise 拒绝:", reason);
   const message = reason?.message || String(reason) || "未处理的 Promise 拒绝";
   const stack = reason?.stack || undefined;
   insertErrorLog({

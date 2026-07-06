@@ -1,4 +1,5 @@
 import { query, queryOne } from "../../shared/db.js";
+import logger from "../../shared/logger.js";
 
 export interface ErrorLogEntry {
   error_type: string;
@@ -33,7 +34,7 @@ export async function insertErrorLog(entry: ErrorLogEntry): Promise<void> {
       ]
     );
   } catch (dbError) {
-    console.error("[error-log] 写入 error_logs 失败:", dbError);
+    logger.error("[error-log] 写入 error_logs 失败:", dbError);
   }
 }
 
