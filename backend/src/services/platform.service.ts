@@ -3,7 +3,7 @@ import { query, queryOne } from "../shared/db.js";
 export async function getOverview() {
   const [tenantCount, userCount, storeCount, orderCount] = await Promise.all([
     queryOne<any>("SELECT COUNT(*) AS count FROM tenant WHERE status = 'ACTIVE'"),
-    queryOne<any>("SELECT COUNT(*) AS count FROM sys_user WHERE status = 1"),
+    queryOne<any>("SELECT COUNT(*) AS count FROM t_sys_user WHERE status = 1"),
     queryOne<any>("SELECT COUNT(*) AS count FROM store WHERE status = 1"),
     queryOne<any>("SELECT COUNT(*) AS count FROM sale_order WHERE deleted = 0"),
   ]);

@@ -12,20 +12,20 @@ export async function suggestPurchasePlan(tenantId: string, storeId?: number) {
             COALESCE(ps.safety_stock - ib.physical_qty, 0) AS shortage,
             COALESCE((
               SELECT COALESCE(SUM(poi.order_qty), 0)
-              FROM purchase_order_item poi
-              JOIN purchase_order po ON po.order_no = poi.order_no AND po.tenant_id = poi.tenant_id
+              FROM t_purchase_order_item poi
+              JOIN t_purchase_order po ON po.order_no = poi.order_no AND po.tenant_id = poi.tenant_id
               WHERE poi.sku_id = ib.sku_id AND po.order_status IN ('PENDING', 'APPROVED', 'IN_TRANSIT')
                 AND po.tenant_id = ?
             ), 0) AS inTransitQty,
             COALESCE((
               SELECT ROUND(SUM(sbi.total_bottle_qty) / 30, 1)
-              FROM sale_bill_item sbi
-              JOIN sale_bill sb ON sb.bill_no = sbi.bill_no AND sb.tenant_id = sbi.tenant_id
+              FROM t_sale_bill_item sbi
+              JOIN t_sale_bill sb ON sb.bill_no = sbi.bill_no AND sb.tenant_id = sbi.tenant_id
               WHERE sbi.sku_id = ib.sku_id AND sb.tenant_id = ?
                 AND sb.created_at >= DATE_SUB(NOW(), INTERVAL 30 DAY)
             ), 0) AS monthlyAvgSales
-     FROM inventory_balance ib
-     JOIN product_sku ps ON ps.id = ib.sku_id
+     FROM t_inventory_balance ib
+     JOIN t_product_sku ps ON ps.id = ib.sku_id
      WHERE ib.tenant_id = ? ${storeCondition}
        AND ps.safety_stock IS NOT NULL
        AND ib.physical_qty < ps.safety_stock
@@ -68,8 +68,8 @@ export async function createPurchasePlan(params: {
   for (const item of items) {
     const skuInfo = await queryOneWithTenant<any>(
       `SELECT ps.sku_name, ps.safety_stock, ib.physical_qty
-       FROM product_sku ps
-       LEFT JOIN inventory_balance ib ON ib.sku_id = ps.id AND ib.tenant_id = ?
+       FROM t_product_sku ps
+       LEFT JOIN t_inventory_balance ib ON ib.sku_id = ps.id AND ib.tenant_id = ?
        WHERE ps.id = ? AND ps.tenant_id = ?`,
       [tenantId, item.skuId, tenantId],
       tenantId
@@ -142,7 +142,7 @@ export async function convertPurchasePlan(planNo: string, tenantId: string) {
   );
   const orderNo = makeBizNo("CG");
   await queryWithTenant(
-    `INSERT INTO purchase_order (order_no, supplier_id, store_id, order_status, goods_amount, tenant_id)
+    `INSERT INTO t_purchase_order (order_no, supplier_id, store_id, order_status, goods_amount, tenant_id)
      VALUES (?, ?, ?, 'PENDING', 0, ?)`,
     [orderNo, plan.supplier_id, plan.store_id, tenantId],
     tenantId
@@ -150,7 +150,7 @@ export async function convertPurchasePlan(planNo: string, tenantId: string) {
   let totalAmount = 0;
   for (const item of items) {
     const price = await queryOneWithTenant<any>(
-      "SELECT purchase_price AS purchasePrice FROM product_price WHERE sku_id = ? AND tenant_id = ?",
+      "SELECT purchase_price AS purchasePrice FROM t_product_price WHERE sku_id = ? AND tenant_id = ?",
       [item.skuId, tenantId],
       tenantId
     );
@@ -158,14 +158,14 @@ export async function convertPurchasePlan(planNo: string, tenantId: string) {
     const amount = item.suggestQty * unitPrice;
     totalAmount += amount;
     await queryWithTenant(
-      `INSERT INTO purchase_order_item (order_no, sku_id, order_qty, unit_price, amount, tenant_id)
+      `INSERT INTO t_purchase_order_item (order_no, sku_id, order_qty, unit_price, amount, tenant_id)
        VALUES (?, ?, ?, ?, ?, ?)`,
       [orderNo, item.skuId, item.suggestQty, unitPrice, amount, tenantId],
       tenantId
     );
   }
   await queryWithTenant(
-    "UPDATE purchase_order SET goods_amount = ? WHERE order_no = ? AND tenant_id = ?",
+    "UPDATE t_purchase_order SET goods_amount = ? WHERE order_no = ? AND tenant_id = ?",
     [totalAmount, orderNo, tenantId],
     tenantId
   );

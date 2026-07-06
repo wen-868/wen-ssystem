@@ -4,7 +4,7 @@ export async function getMatrix() {
   const rows = await query<any>(
     `SELECT rpm.*, r.name AS role_name
      FROM report_permission_matrix rpm
-     LEFT JOIN sys_role r ON r.id = rpm.role_id
+     LEFT JOIN t_sys_role r ON r.id = rpm.role_id
      ORDER BY rpm.role_id, rpm.report_code`
   );
   return rows;

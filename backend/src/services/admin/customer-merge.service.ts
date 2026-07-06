@@ -95,14 +95,14 @@ export async function getCustomerRelations(tenantId: string, customerId: number)
   const paymentStats = await queryOne<any>(
     `SELECT COUNT(*) as payment_count,
             COALESCE(SUM(amount), 0) as total_received
-     FROM customer_payment
+     FROM t_customer_payment
      WHERE customer_id = ? AND tenant_id = ?`,
     [customerId, tenantId]
   );
 
   const creditInfo = await queryOne<any>(
     `SELECT credit_limit, credit_used, credit_available
-     FROM customer_credit
+     FROM t_customer_credit
      WHERE customer_id = ? AND tenant_id = ?`,
     [customerId, tenantId]
   );
@@ -202,7 +202,7 @@ export async function mergeCustomers(tenantId: string, body: {
     );
 
     await conn.execute(
-      `UPDATE customer_payment SET customer_id = ? WHERE customer_id IN (?) AND tenant_id = ?`,
+      `UPDATE t_customer_payment SET customer_id = ? WHERE customer_id IN (?) AND tenant_id = ?`,
       [body.primaryCustomerId, body.duplicateCustomerIds, tenantId]
     );
 
@@ -212,19 +212,19 @@ export async function mergeCustomers(tenantId: string, body: {
     );
 
     const primaryCredit = await queryOne<any>(
-      "SELECT id FROM customer_credit WHERE customer_id = ? AND tenant_id = ?",
+      "SELECT id FROM t_customer_credit WHERE customer_id = ? AND tenant_id = ?",
       [body.primaryCustomerId, tenantId]
     );
 
     if (!primaryCredit) {
       const firstCredit = await queryOne<any>(
-        "SELECT id FROM customer_credit WHERE customer_id IN (?) AND tenant_id = ? LIMIT 1",
+        "SELECT id FROM t_customer_credit WHERE customer_id IN (?) AND tenant_id = ? LIMIT 1",
         [body.duplicateCustomerIds, tenantId]
       );
 
       if (firstCredit) {
         await conn.execute(
-          "UPDATE customer_credit SET customer_id = ? WHERE id = ?",
+          "UPDATE t_customer_credit SET customer_id = ? WHERE id = ?",
           [body.primaryCustomerId, firstCredit.id]
         );
       }
@@ -236,12 +236,12 @@ export async function mergeCustomers(tenantId: string, body: {
     );
 
     await conn.execute(
-      "DELETE FROM customer_credit WHERE customer_id IN (?) AND tenant_id = ?",
+      "DELETE FROM t_customer_credit WHERE customer_id IN (?) AND tenant_id = ?",
       [body.duplicateCustomerIds, tenantId]
     );
 
     await conn.execute(
-      `INSERT INTO operation_log (module, action, target_id, target_type, user_id, user_name, detail, tenant_id)
+      `INSERT INTO t_operation_log (module, action, target_id, target_type, user_id, user_name, detail, tenant_id)
        VALUES (?, ?, ?, ?, ?, ?, ?, ?)`,
       ["customer", "MERGE", String(body.primaryCustomerId), "member",
        userId, username,

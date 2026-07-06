@@ -178,7 +178,7 @@ export async function createSubscription(
     }
 
     await conn.execute(
-      `INSERT INTO operation_log (module, action, target_id, target_type, user_id, user_name, detail, tenant_id)
+      `INSERT INTO t_operation_log (module, action, target_id, target_type, user_id, user_name, detail, tenant_id)
        VALUES (?, ?, ?, ?, ?, ?, ?, ?)`,
       ["subscription", "CREATE", subscriptionNo, "subscription", userId, username,
        `创建订阅: ${subscriptionNo}, 套餐: ${plan.plan_name}`, body.tenantId]
@@ -255,7 +255,7 @@ export async function changePlan(
     }
 
     await conn.execute(
-      `INSERT INTO operation_log (module, action, target_id, target_type, user_id, user_name, detail, tenant_id)
+      `INSERT INTO t_operation_log (module, action, target_id, target_type, user_id, user_name, detail, tenant_id)
        VALUES (?, ?, ?, ?, ?, ?, ?, ?)`,
       ["subscription", "CHANGE_PLAN", String(subscriptionId), "subscription",
        userId, username,
@@ -298,7 +298,7 @@ export async function cancelSubscription(
     );
 
     await conn.execute(
-      `INSERT INTO operation_log (module, action, target_id, target_type, user_id, user_name, detail, tenant_id)
+      `INSERT INTO t_operation_log (module, action, target_id, target_type, user_id, user_name, detail, tenant_id)
        VALUES (?, ?, ?, ?, ?, ?, ?, ?)`,
       ["subscription", "CANCEL", String(subscriptionId), "subscription",
        userId, username, `取消订阅: ${existing.subscription_no}`, existing.tenant_id]
@@ -344,7 +344,7 @@ export async function paySubscription(
     );
 
     await conn.execute(
-      `INSERT INTO operation_log (module, action, target_id, target_type, user_id, user_name, detail, tenant_id)
+      `INSERT INTO t_operation_log (module, action, target_id, target_type, user_id, user_name, detail, tenant_id)
        VALUES (?, ?, ?, ?, ?, ?, ?, ?)`,
       ["subscription", "PAY", String(subscriptionId), "subscription",
        userId, username,

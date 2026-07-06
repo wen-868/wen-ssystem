@@ -4,14 +4,14 @@ import { makeBizNo } from "../shared/id.js";
 
 async function getAllActiveTenants(): Promise<string[]> {
   const rows = await query<any>(
-    "SELECT DISTINCT tenant_id FROM sys_user WHERE status = 1"
+    "SELECT DISTINCT tenant_id FROM t_sys_user WHERE status = 1"
   );
   return rows.map((r: any) => r.tenant_id).filter(Boolean);
 }
 
 async function checkStockLowAlerts(tenantId: string): Promise<number> {
   const rule = await queryOne<any>(
-    "SELECT * FROM alert_rule WHERE tenant_id = ? AND rule_code = 'STOCK_LOW' AND enabled = 1",
+    "SELECT * FROM t_alert_rule WHERE tenant_id = ? AND rule_code = 'STOCK_LOW' AND enabled = 1",
     [tenantId]
   );
   if (!rule) return 0;
@@ -19,8 +19,8 @@ async function checkStockLowAlerts(tenantId: string): Promise<number> {
   const records = await query<any>(
     `SELECT ib.store_id AS storeId, ib.sku_id AS skuId, ps.sku_name AS skuName,
             ib.available_qty AS availableQty, ps.warning_threshold AS safetyStock
-     FROM inventory_balance ib
-     JOIN product_sku ps ON ps.id = ib.sku_id
+     FROM t_inventory_balance ib
+     JOIN t_product_sku ps ON ps.id = ib.sku_id
      WHERE ib.tenant_id = ?
        AND ps.tenant_id = ?
        AND ib.available_qty < ps.warning_threshold
@@ -33,7 +33,7 @@ async function checkStockLowAlerts(tenantId: string): Promise<number> {
   return transaction(async (conn) => {
     const skuIds = records.map((r: any) => r.skuId);
     const [existingRows] = await conn.query<any[]>(
-      `SELECT biz_id FROM alert_record
+      `SELECT biz_id FROM t_alert_record
        WHERE tenant_id = ? AND rule_type = 'STOCK_LOW' AND biz_type = 'SKU' AND status = 'PENDING' AND biz_id IN (?)`,
       [tenantId, skuIds]
     );
@@ -45,7 +45,7 @@ async function checkStockLowAlerts(tenantId: string): Promise<number> {
       const alertNo = makeBizNo("YJ");
       const level = r.availableQty <= Math.max(r.safetyStock * 0.3, 1) ? "CRITICAL" : "WARNING";
       await conn.execute(
-        `INSERT INTO alert_record (tenant_id, alert_no, rule_id, rule_type, alert_level, title, description,
+        `INSERT INTO t_alert_record (tenant_id, alert_no, rule_id, rule_type, alert_level, title, description,
           biz_type, biz_id, biz_no, current_value, threshold_value, status)
          VALUES (?, ?, ?, 'STOCK_LOW', ?, ?, ?, 'SKU', ?, ?, ?, ?, 'PENDING')`,
         [
@@ -64,7 +64,7 @@ async function checkStockLowAlerts(tenantId: string): Promise<number> {
 
 async function checkExpiryAlerts(tenantId: string): Promise<number> {
   const rules = await query<any>(
-    "SELECT * FROM alert_rule WHERE tenant_id = ? AND rule_type = 'EXPIRY' AND enabled = 1",
+    "SELECT * FROM t_alert_rule WHERE tenant_id = ? AND rule_type = 'EXPIRY' AND enabled = 1",
     [tenantId]
   );
   if (rules.length === 0) return 0;
@@ -79,9 +79,9 @@ async function checkExpiryAlerts(tenantId: string): Promise<number> {
               psi.batch_no AS batchNo, psi.expiry_date AS expiryDate,
               psi.total_bottle_qty AS qty,
               DATEDIFF(psi.expiry_date, CURDATE()) AS remainingDays
-       FROM purchase_in_stock_item psi
-       JOIN purchase_in_stock pis ON pis.stock_no = psi.stock_no
-       JOIN product_sku ps ON ps.id = psi.sku_id
+       FROM t_purchase_in_stock_item psi
+       JOIN t_purchase_in_stock pis ON pis.stock_no = psi.stock_no
+       JOIN t_product_sku ps ON ps.id = psi.sku_id
        WHERE psi.tenant_id = ?
          AND pis.tenant_id = ?
          AND ps.tenant_id = ?
@@ -96,7 +96,7 @@ async function checkExpiryAlerts(tenantId: string): Promise<number> {
     const count = await transaction(async (conn) => {
       const skuIds = records.map((r: any) => r.skuId);
       const [existingRows] = await conn.query<any[]>(
-        `SELECT biz_id, biz_no FROM alert_record
+        `SELECT biz_id, biz_no FROM t_alert_record
          WHERE tenant_id = ? AND rule_type = 'EXPIRY' AND biz_type = 'SKU' AND status = 'PENDING' AND biz_id IN (?)`,
         [tenantId, skuIds]
       );
@@ -108,7 +108,7 @@ async function checkExpiryAlerts(tenantId: string): Promise<number> {
         if (existingSet.has(`${r.skuId}:${bizNo}`)) continue;
         const alertNo = makeBizNo("YJ");
         await conn.execute(
-          `INSERT INTO alert_record (tenant_id, alert_no, rule_id, rule_type, alert_level, title, description,
+          `INSERT INTO t_alert_record (tenant_id, alert_no, rule_id, rule_type, alert_level, title, description,
             biz_type, biz_id, biz_no, current_value, threshold_value, status)
            VALUES (?, ?, ?, 'EXPIRY', ?, ?, ?, 'SKU', ?, ?, ?, ?, 'PENDING')`,
           [
@@ -130,7 +130,7 @@ async function checkExpiryAlerts(tenantId: string): Promise<number> {
 
 async function checkCreditAlerts(tenantId: string): Promise<number> {
   const rule = await queryOne<any>(
-    "SELECT * FROM alert_rule WHERE tenant_id = ? AND rule_code = 'CREDIT_LIMIT' AND enabled = 1",
+    "SELECT * FROM t_alert_rule WHERE tenant_id = ? AND rule_code = 'CREDIT_LIMIT' AND enabled = 1",
     [tenantId]
   );
   if (!rule) return 0;
@@ -140,7 +140,7 @@ async function checkCreditAlerts(tenantId: string): Promise<number> {
   const records = await query<any>(
     `SELECT sb.customer_id AS customerId, sb.customer_name AS customerName,
             COALESCE(SUM(sb.unreceived_amount), 0) AS totalDebt
-     FROM sale_bill sb
+     FROM t_sale_bill sb
      WHERE sb.tenant_id = ?
        AND sb.business_status NOT IN ('DRAFT', 'VOIDED')
        AND sb.customer_id IS NOT NULL
@@ -154,7 +154,7 @@ async function checkCreditAlerts(tenantId: string): Promise<number> {
   return transaction(async (conn) => {
     const customerIds = records.map((r: any) => r.customerId);
     const [existingRows] = await conn.query<any[]>(
-      `SELECT biz_id FROM alert_record
+      `SELECT biz_id FROM t_alert_record
        WHERE tenant_id = ? AND rule_type = 'CREDIT' AND biz_type = 'CUSTOMER' AND status = 'PENDING' AND biz_id IN (?)`,
       [tenantId, customerIds]
     );
@@ -171,7 +171,7 @@ async function checkCreditAlerts(tenantId: string): Promise<number> {
         const alertNo = makeBizNo("YJ");
         const level = debtRatio >= 100 ? "CRITICAL" : "WARNING";
         await conn.execute(
-          `INSERT INTO alert_record (tenant_id, alert_no, rule_id, rule_type, alert_level, title, description,
+          `INSERT INTO t_alert_record (tenant_id, alert_no, rule_id, rule_type, alert_level, title, description,
             biz_type, biz_id, biz_no, current_value, threshold_value, status)
            VALUES (?, ?, ?, 'CREDIT', ?, ?, ?, 'CUSTOMER', ?, ?, ?, ?, 'PENDING')`,
           [
@@ -191,7 +191,7 @@ async function checkCreditAlerts(tenantId: string): Promise<number> {
 
 async function checkOverdueAlerts(tenantId: string): Promise<number> {
   const rule = await queryOne<any>(
-    "SELECT * FROM alert_rule WHERE tenant_id = ? AND rule_code = 'PAYMENT_OVERDUE' AND enabled = 1",
+    "SELECT * FROM t_alert_rule WHERE tenant_id = ? AND rule_code = 'PAYMENT_OVERDUE' AND enabled = 1",
     [tenantId]
   );
   if (!rule) return 0;
@@ -201,7 +201,7 @@ async function checkOverdueAlerts(tenantId: string): Promise<number> {
             receivable_amount AS receivableAmount, received_amount AS receivedAmount,
             unreceived_amount AS unreceivedAmount, due_date AS dueDate,
             DATEDIFF(CURDATE(), due_date) AS overdueDays
-     FROM sale_bill
+     FROM t_sale_bill
      WHERE tenant_id = ?
        AND business_status NOT IN ('DRAFT', 'VOIDED')
        AND collection_status NOT IN ('PAID', 'CLOSED')
@@ -216,7 +216,7 @@ async function checkOverdueAlerts(tenantId: string): Promise<number> {
   return transaction(async (conn) => {
     const billNos = records.map((r: any) => r.billNo);
     const [existingRows] = await conn.query<any[]>(
-      `SELECT biz_no FROM alert_record
+      `SELECT biz_no FROM t_alert_record
        WHERE tenant_id = ? AND rule_type = 'OVERDUE' AND biz_type = 'BILL' AND status = 'PENDING' AND biz_no IN (?)`,
       [tenantId, billNos]
     );
@@ -229,7 +229,7 @@ async function checkOverdueAlerts(tenantId: string): Promise<number> {
       const overdueDays = Number(r.overdueDays);
       const level = overdueDays >= 30 ? "CRITICAL" : overdueDays >= 7 ? "WARNING" : "INFO";
       await conn.execute(
-        `INSERT INTO alert_record (tenant_id, alert_no, rule_id, rule_type, alert_level, title, description,
+        `INSERT INTO t_alert_record (tenant_id, alert_no, rule_id, rule_type, alert_level, title, description,
           biz_type, biz_id, biz_no, current_value, threshold_value, status)
          VALUES (?, ?, ?, 'OVERDUE', ?, ?, ?, 'BILL', NULL, ?, ?, ?, 'PENDING')`,
         [
@@ -248,7 +248,7 @@ async function checkOverdueAlerts(tenantId: string): Promise<number> {
 
 async function checkOverstockAlerts(tenantId: string): Promise<number> {
   const rule = await queryOne<any>(
-    "SELECT * FROM alert_rule WHERE tenant_id = ? AND rule_code = 'STOCK_OVERSTOCK' AND enabled = 1",
+    "SELECT * FROM t_alert_rule WHERE tenant_id = ? AND rule_code = 'STOCK_OVERSTOCK' AND enabled = 1",
     [tenantId]
   );
   if (!rule) return 0;
@@ -260,9 +260,9 @@ async function checkOverstockAlerts(tenantId: string): Promise<number> {
             psi.batch_no AS batchNo, psi.total_bottle_qty AS qty,
             psi.created_at AS inStockDate,
             DATEDIFF(CURDATE(), psi.created_at) AS ageDays
-     FROM purchase_in_stock_item psi
-     JOIN purchase_in_stock pis ON pis.stock_no = psi.stock_no
-     JOIN product_sku ps ON ps.id = psi.sku_id
+     FROM t_purchase_in_stock_item psi
+     JOIN t_purchase_in_stock pis ON pis.stock_no = psi.stock_no
+     JOIN t_product_sku ps ON ps.id = psi.sku_id
      WHERE psi.tenant_id = ?
        AND pis.tenant_id = ?
        AND ps.tenant_id = ?
@@ -277,7 +277,7 @@ async function checkOverstockAlerts(tenantId: string): Promise<number> {
   return transaction(async (conn) => {
     const skuIds = records.map((r: any) => r.skuId);
     const [existingRows] = await conn.query<any[]>(
-      `SELECT biz_id, biz_no FROM alert_record
+      `SELECT biz_id, biz_no FROM t_alert_record
        WHERE tenant_id = ? AND rule_type = 'STOCK_OVERSTOCK' AND biz_type = 'SKU' AND status = 'PENDING' AND biz_id IN (?)`,
       [tenantId, skuIds]
     );
@@ -289,7 +289,7 @@ async function checkOverstockAlerts(tenantId: string): Promise<number> {
       if (existingSet.has(`${r.skuId}:${bizNo}`)) continue;
       const alertNo = makeBizNo("YJ");
       await conn.execute(
-        `INSERT INTO alert_record (tenant_id, alert_no, rule_id, rule_type, alert_level, title, description,
+        `INSERT INTO t_alert_record (tenant_id, alert_no, rule_id, rule_type, alert_level, title, description,
           biz_type, biz_id, biz_no, current_value, threshold_value, status)
          VALUES (?, ?, ?, 'STOCK_OVERSTOCK', 'WARNING', ?, ?, 'SKU', ?, ?, ?, ?, 'PENDING')`,
         [
@@ -385,7 +385,7 @@ export async function listAlerts(params: {
             ar.status, ar.handler_id AS handlerId, ar.handler_name AS handlerName,
             ar.handle_time AS handleTime, ar.handle_remark AS handleRemark,
             ar.created_at AS createdAt, ar.updated_at AS updatedAt
-     FROM alert_record ar
+     FROM t_alert_record ar
      ${where}
      ORDER BY ar.created_at DESC
      LIMIT ? OFFSET ?`,
@@ -393,7 +393,7 @@ export async function listAlerts(params: {
   );
 
   const totalRow = await queryOne<any>(
-    `SELECT COUNT(*) AS total FROM alert_record ar ${where}`,
+    `SELECT COUNT(*) AS total FROM t_alert_record ar ${where}`,
     queryParams
   );
 
@@ -408,30 +408,30 @@ export async function listAlerts(params: {
 export async function getAlertCounts(tenantId: string) {
   const pendingCounts = await query<any>(
     `SELECT rule_type AS ruleType, COUNT(*) AS count
-     FROM alert_record
+     FROM t_alert_record
      WHERE tenant_id = ? AND status = 'PENDING'
      GROUP BY rule_type`,
     [tenantId]
   );
 
   const totalPending = await queryOne<any>(
-    "SELECT COUNT(*) AS count FROM alert_record WHERE tenant_id = ? AND status = 'PENDING'",
+    "SELECT COUNT(*) AS count FROM t_alert_record WHERE tenant_id = ? AND status = 'PENDING'",
     [tenantId]
   );
 
   const totalHandled = await queryOne<any>(
-    "SELECT COUNT(*) AS count FROM alert_record WHERE tenant_id = ? AND status = 'HANDLED'",
+    "SELECT COUNT(*) AS count FROM t_alert_record WHERE tenant_id = ? AND status = 'HANDLED'",
     [tenantId]
   );
 
   const totalIgnored = await queryOne<any>(
-    "SELECT COUNT(*) AS count FROM alert_record WHERE tenant_id = ? AND status = 'IGNORED'",
+    "SELECT COUNT(*) AS count FROM t_alert_record WHERE tenant_id = ? AND status = 'IGNORED'",
     [tenantId]
   );
 
   const levelCounts = await query<any>(
     `SELECT alert_level AS alertLevel, COUNT(*) AS count
-     FROM alert_record
+     FROM t_alert_record
      WHERE tenant_id = ? AND status = 'PENDING'
      GROUP BY alert_level`,
     [tenantId]
@@ -461,7 +461,7 @@ export async function handleAlert(
   userId: number, username: string
 ) {
   const existing = await queryOne<any>(
-    "SELECT id, status FROM alert_record WHERE id = ? AND tenant_id = ?",
+    "SELECT id, status FROM t_alert_record WHERE id = ? AND tenant_id = ?",
     [alertId, tenantId]
   );
   if (!existing) throw Object.assign(new Error("预警记录不存在"), { statusCode: 404 });
@@ -471,7 +471,7 @@ export async function handleAlert(
   const handlerName = username ?? "system";
 
   await query(
-    `UPDATE alert_record
+    `UPDATE t_alert_record
      SET status = ?,
          handler_id = ?,
          handler_name = ?,
@@ -498,7 +498,7 @@ export async function listAlertRules(tenantId: string) {
             threshold_value AS thresholdValue, threshold_unit AS thresholdUnit,
             extra_config AS extraConfig, description,
             created_at AS createdAt, updated_at AS updatedAt
-     FROM alert_rule
+     FROM t_alert_rule
      WHERE tenant_id = ?
      ORDER BY rule_type, id ASC`,
     [tenantId]
@@ -512,7 +512,7 @@ export async function updateAlertRule(
   body: { enabled?: boolean; thresholdValue?: number; description?: string }
 ) {
   const existing = await queryOne<any>(
-    "SELECT id FROM alert_rule WHERE id = ? AND tenant_id = ?",
+    "SELECT id FROM t_alert_rule WHERE id = ? AND tenant_id = ?",
     [ruleId, tenantId]
   );
   if (!existing) throw Object.assign(new Error("预警规则不存在"), { statusCode: 404 });
@@ -535,7 +535,7 @@ export async function updateAlertRule(
 
   if (updates.length > 0) {
     await query(
-      `UPDATE alert_rule SET ${updates.join(", ")} WHERE id = ? AND tenant_id = ?`,
+      `UPDATE t_alert_rule SET ${updates.join(", ")} WHERE id = ? AND tenant_id = ?`,
       [...params, ruleId, tenantId]
     );
   }
@@ -546,7 +546,7 @@ export async function updateAlertRule(
             threshold_value AS thresholdValue, threshold_unit AS thresholdUnit,
             extra_config AS extraConfig, description,
             created_at AS createdAt, updated_at AS updatedAt
-     FROM alert_rule WHERE id = ? AND tenant_id = ?`,
+     FROM t_alert_rule WHERE id = ? AND tenant_id = ?`,
     [ruleId, tenantId]
   );
 

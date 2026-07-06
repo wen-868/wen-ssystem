@@ -69,7 +69,7 @@ export async function getPublishConfigs(tenantId: string): Promise<Record<string
 
   const records = await query<any>(
     `SELECT config_key AS configKey, config_value AS configValue
-     FROM sys_config
+     FROM t_sys_config
      WHERE config_key IN (${configKeys.map(() => "?").join(",")})
        AND tenant_id = ?`,
     [...configKeys, tenantId]
@@ -120,7 +120,7 @@ export async function validatePlaceholders(tenantId: string): Promise<{
   const configKeys = Object.values(PLACEHOLDER_CONFIG_MAP);
   const records = await query<any>(
     `SELECT config_key AS configKey
-     FROM sys_config
+     FROM t_sys_config
      WHERE config_key NOT IN (${configKeys.map(() => "?").join(",")})
        AND config_key LIKE 'miniapp.%'
        AND tenant_id = ?`,

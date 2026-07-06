@@ -119,7 +119,7 @@ export async function createTenant(body: {
     const tenantId = (result as unknown as { insertId: number }).insertId;
 
     await conn.execute(
-      `INSERT INTO operation_log (module, action, target_id, target_type, user_id, user_name, detail, tenant_id)
+      `INSERT INTO t_operation_log (module, action, target_id, target_type, user_id, user_name, detail, tenant_id)
        VALUES (?, ?, ?, ?, ?, ?, ?, ?)`,
       ["tenant", "CREATE", tenantCode, "tenant", userId, username,
        `创建租户: ${tenantCode}, 公司: ${body.companyName}`, tenantId]
@@ -181,7 +181,7 @@ export async function updateTenant(tenantId: number, body: {
     );
 
     await query(
-      `INSERT INTO operation_log (module, action, target_id, target_type, user_id, user_name, detail, tenant_id)
+      `INSERT INTO t_operation_log (module, action, target_id, target_type, user_id, user_name, detail, tenant_id)
        VALUES (?, ?, ?, ?, ?, ?, ?, ?)`,
       ["tenant", "UPDATE", String(tenantId), "tenant", userId, username,
        `更新租户信息: ${tenantId}`, tenantId]
@@ -228,7 +228,7 @@ export async function changeTenantStatus(tenantId: number, body: {
   );
 
   await query(
-    `INSERT INTO operation_log (module, action, target_id, target_type, user_id, user_name, detail, tenant_id)
+    `INSERT INTO t_operation_log (module, action, target_id, target_type, user_id, user_name, detail, tenant_id)
      VALUES (?, ?, ?, ?, ?, ?, ?, ?)`,
     ["tenant", "STATUS_CHANGE", String(tenantId), "tenant", userId, username,
      `租户状态变更: ${existing.status} -> ${body.status}`, tenantId]
@@ -292,7 +292,7 @@ export async function setTenantModules(tenantId: number, body: {
     }
 
     await conn.execute(
-      `INSERT INTO operation_log (module, action, target_id, target_type, user_id, user_name, detail, tenant_id)
+      `INSERT INTO t_operation_log (module, action, target_id, target_type, user_id, user_name, detail, tenant_id)
        VALUES (?, ?, ?, ?, ?, ?, ?, ?)`,
       ["tenant", "MODULE_UPDATE", String(tenantId), "tenant", userId, username,
        `更新租户模块权限: ${tenantId}`, tenantId]

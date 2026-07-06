@@ -136,8 +136,8 @@ export async function startCheck(id: number, tenantId: string) {
 
     const [skuRows] = await (conn as any).execute(
       `SELECT ib.sku_id, ps.sku_name, ib.batch_no, ib.quantity
-       FROM inventory_batch ib
-       LEFT JOIN product_sku ps ON ps.id = ib.sku_id AND ps.tenant_id = ib.tenant_id
+       FROM t_inventory_batch ib
+       LEFT JOIN t_product_sku ps ON ps.id = ib.sku_id AND ps.tenant_id = ib.tenant_id
        WHERE ib.store_id = ? AND ib.quantity > 0 AND ib.tenant_id = ?
        ORDER BY ib.sku_id, ib.batch_no`,
       [check.store_id, tenantId]
@@ -240,20 +240,20 @@ export async function handleDiff(params: {
     const diffQty = Number(item.diff_qty);
 
     const [invRows] = await (conn as any).execute(
-      "SELECT * FROM inventory_balance WHERE store_id = ? AND sku_id = ? AND tenant_id = ? FOR UPDATE",
+      "SELECT * FROM t_inventory_balance WHERE store_id = ? AND sku_id = ? AND tenant_id = ? FOR UPDATE",
       [check.store_id, item.sku_id, tenantId]
     );
     const inv = (invRows as unknown as Record<string, unknown>[])[0];
 
     if (inv) {
       await (conn as any).execute(
-        "UPDATE inventory_balance SET available_qty = available_qty + ? WHERE store_id = ? AND sku_id = ? AND tenant_id = ?",
+        "UPDATE t_inventory_balance SET available_qty = available_qty + ? WHERE store_id = ? AND sku_id = ? AND tenant_id = ?",
         [diffQty, check.store_id, item.sku_id, tenantId]
       );
     } else {
       if (diffQty > 0) {
         await (conn as any).execute(
-          `INSERT INTO inventory_balance (store_id, sku_id, sku_name, available_qty, locked_qty, tenant_id)
+          `INSERT INTO t_inventory_balance (store_id, sku_id, sku_name, available_qty, locked_qty, tenant_id)
            VALUES (?, ?, ?, ?, 0, ?)`,
           [check.store_id, item.sku_id, item.sku_name, diffQty, tenantId]
         );
@@ -262,7 +262,7 @@ export async function handleDiff(params: {
 
     const changeType = diffQty > 0 ? "STOCK_CHECK_IN" : "STOCK_CHECK_OUT";
     await (conn as any).execute(
-      `INSERT INTO inventory_ledger (store_id, sku_id, sku_name, change_type, change_qty, ref_no, operator_id, created_at, tenant_id)
+      `INSERT INTO t_inventory_ledger (store_id, sku_id, sku_name, change_type, change_qty, ref_no, operator_id, created_at, tenant_id)
        VALUES (?, ?, ?, ?, ?, ?, ?, NOW(), ?)`,
       [check.store_id, item.sku_id, item.sku_name, changeType, Math.abs(diffQty), check.check_no, userId ?? null, tenantId]
     );
@@ -332,7 +332,7 @@ export async function updateItemQty(params: {
     if (!item) throw new Error("明细不存在");
 
     const [skuRows] = await (conn as any).execute(
-      "SELECT cost_price FROM product_sku WHERE id = ? AND tenant_id = ?",
+      "SELECT cost_price FROM t_product_sku WHERE id = ? AND tenant_id = ?",
       [item.sku_id, tenantId]
     );
     const unitPrice = (skuRows as unknown as Record<string, unknown>[])[0]?.cost_price ?? 0;

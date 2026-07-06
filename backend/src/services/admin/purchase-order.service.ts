@@ -48,7 +48,7 @@ export async function listPurchaseOrders(params: {
             expected_date AS expectedDate, actual_date AS actualDate,
             operator_id AS operatorId, auditor_id AS auditorId,
             remark, created_at AS createdAt, updated_at AS updatedAt
-     FROM purchase_order
+     FROM t_purchase_order
      ${where}
      ORDER BY created_at DESC
      LIMIT ? OFFSET ?`,
@@ -56,7 +56,7 @@ export async function listPurchaseOrders(params: {
     tenantId
   );
   const totalRow = await queryOneWithTenant<any>(
-    `SELECT COUNT(*) AS total FROM purchase_order ${where}`,
+    `SELECT COUNT(*) AS total FROM t_purchase_order ${where}`,
     queryParams,
     tenantId
   );
@@ -74,7 +74,7 @@ export async function getPurchaseOrderDetail(id: number, tenantId: string) {
             expected_date AS expectedDate, actual_date AS actualDate,
             operator_id AS operatorId, auditor_id AS auditorId, audited_at AS auditedAt,
             remark, created_at AS createdAt, updated_at AS updatedAt
-     FROM purchase_order WHERE id = ? AND tenant_id = ?`,
+     FROM t_purchase_order WHERE id = ? AND tenant_id = ?`,
     [id, tenantId],
     tenantId
   );
@@ -87,7 +87,7 @@ export async function getPurchaseOrderDetail(id: number, tenantId: string) {
             unit_price AS unitPrice, tax_rate AS taxRate,
             subtotal_amount AS subtotalAmount, tax_amount AS taxAmount, total_amount AS totalAmount,
             in_stocked_qty AS inStockedQty, remark
-     FROM purchase_order_item WHERE order_no = ?`,
+     FROM t_purchase_order_item WHERE order_no = ?`,
     [order.orderNo],
     tenantId
   );
@@ -141,7 +141,7 @@ export async function createPurchaseOrder(params: {
     const payableAmount = goodsAmount + taxAmount;
 
     const [orderResult] = await conn.execute<any>(
-      `INSERT INTO purchase_order (order_no, supplier_id, supplier_name, store_id, order_status,
+      `INSERT INTO t_purchase_order (order_no, supplier_id, supplier_name, store_id, order_status,
         goods_amount, tax_amount, discount_amount, payable_amount, paid_amount, unpaid_amount,
         expected_date, operator_id, remark, tenant_id)
        VALUES (?, ?, ?, ?, 'DRAFT', ?, ?, 0, ?, 0, ?, ?, ?, ?, ?)`,
@@ -155,7 +155,7 @@ export async function createPurchaseOrder(params: {
       const tax = subtotal * (item.taxRate || 0);
       const total = subtotal + tax;
       await conn.execute(
-        `INSERT INTO purchase_order_item (order_no, sku_id, sku_name, barcode, box_qty, bottle_qty,
+        `INSERT INTO t_purchase_order_item (order_no, sku_id, sku_name, barcode, box_qty, bottle_qty,
           total_bottle_qty, unit_price, tax_rate, subtotal_amount, tax_amount, total_amount, remark)
          VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
         [orderNo, item.skuId, item.skuName, item.barcode ?? null,
@@ -189,7 +189,7 @@ export async function updatePurchaseOrder(id: number, params: {
   const { tenantId, expectedDate, remark, items } = params;
 
   const existing = await queryOneWithTenant<any>(
-    `SELECT id, order_no AS orderNo, order_status AS orderStatus FROM purchase_order WHERE id = ? AND tenant_id = ?`,
+    `SELECT id, order_no AS orderNo, order_status AS orderStatus FROM t_purchase_order WHERE id = ? AND tenant_id = ?`,
     [id, tenantId],
     tenantId
   );
@@ -228,13 +228,13 @@ export async function updatePurchaseOrder(id: number, params: {
       updateParams.push(goodsAmount, taxAmount, payableAmount, payableAmount);
 
       // 删除旧明细，重新插入
-      await conn.execute("DELETE FROM purchase_order_item WHERE order_no = ?", [existing.orderNo]);
+      await conn.execute("DELETE FROM t_purchase_order_item WHERE order_no = ?", [existing.orderNo]);
       for (const item of items) {
         const subtotal = item.totalBottleQty * item.unitPrice;
         const tax = subtotal * (item.taxRate || 0);
         const total = subtotal + tax;
         await conn.execute(
-          `INSERT INTO purchase_order_item (order_no, sku_id, sku_name, barcode, box_qty, bottle_qty,
+          `INSERT INTO t_purchase_order_item (order_no, sku_id, sku_name, barcode, box_qty, bottle_qty,
             total_bottle_qty, unit_price, tax_rate, subtotal_amount, tax_amount, total_amount, remark)
            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
           [existing.orderNo, item.skuId, item.skuName, item.barcode ?? null,
@@ -247,7 +247,7 @@ export async function updatePurchaseOrder(id: number, params: {
     if (updates.length > 0) {
       updates.push("updated_at = NOW()");
       updateParams.push(id, tenantId);
-      await conn.execute({ sql: `UPDATE purchase_order SET ${updates.join(", ")} WHERE id = ? AND tenant_id = ?`, values: updateParams } as { sql: string; values: unknown[] });
+      await conn.execute({ sql: `UPDATE t_purchase_order SET ${updates.join(", ")} WHERE id = ? AND tenant_id = ?`, values: updateParams } as { sql: string; values: unknown[] });
     }
   });
 
@@ -259,7 +259,7 @@ export async function updatePurchaseOrder(id: number, params: {
             paid_amount AS paidAmount, unpaid_amount AS unpaidAmount,
             expected_date AS expectedDate, actual_date AS actualDate,
             remark, created_at AS createdAt, updated_at AS updatedAt
-     FROM purchase_order WHERE id = ? AND tenant_id = ?`,
+     FROM t_purchase_order WHERE id = ? AND tenant_id = ?`,
     [id, tenantId],
     tenantId
   );
@@ -268,7 +268,7 @@ export async function updatePurchaseOrder(id: number, params: {
 // ========== 取消采购订单 ==========
 export async function cancelPurchaseOrder(id: number, tenantId: string) {
   const existing = await queryOneWithTenant<any>(
-    `SELECT id, order_no AS orderNo, order_status AS orderStatus FROM purchase_order WHERE id = ? AND tenant_id = ?`,
+    `SELECT id, order_no AS orderNo, order_status AS orderStatus FROM t_purchase_order WHERE id = ? AND tenant_id = ?`,
     [id, tenantId],
     tenantId
   );
@@ -279,7 +279,7 @@ export async function cancelPurchaseOrder(id: number, tenantId: string) {
     throw Object.assign(new Error("当前状态不允许取消"), { statusCode: 400 });
   }
   await queryWithTenant(
-    "UPDATE purchase_order SET order_status = 'CANCELLED', updated_at = NOW() WHERE id = ? AND tenant_id = ?",
+    "UPDATE t_purchase_order SET order_status = 'CANCELLED', updated_at = NOW() WHERE id = ? AND tenant_id = ?",
     [id, tenantId],
     tenantId
   );
@@ -289,7 +289,7 @@ export async function cancelPurchaseOrder(id: number, tenantId: string) {
 // ========== 确认采购订单 ==========
 export async function confirmPurchaseOrder(id: number, tenantId: string, auditorId: number) {
   const existing = await queryOneWithTenant<any>(
-    `SELECT id, order_no AS orderNo, order_status AS orderStatus FROM purchase_order WHERE id = ? AND tenant_id = ?`,
+    `SELECT id, order_no AS orderNo, order_status AS orderStatus FROM t_purchase_order WHERE id = ? AND tenant_id = ?`,
     [id, tenantId],
     tenantId
   );
@@ -300,7 +300,7 @@ export async function confirmPurchaseOrder(id: number, tenantId: string, auditor
     throw Object.assign(new Error("当前状态不允许确认"), { statusCode: 400 });
   }
   await queryWithTenant(
-    `UPDATE purchase_order SET order_status = 'APPROVED', auditor_id = ?, audited_at = NOW(), updated_at = NOW() WHERE id = ? AND tenant_id = ?`,
+    `UPDATE t_purchase_order SET order_status = 'APPROVED', auditor_id = ?, audited_at = NOW(), updated_at = NOW() WHERE id = ? AND tenant_id = ?`,
     [auditorId, id, tenantId],
     tenantId
   );

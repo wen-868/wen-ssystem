@@ -40,7 +40,7 @@ export async function getReceivablePayable(
             COALESCE(SUM(sb.receivable_amount), 0) AS totalReceivable,
             COALESCE(SUM(sb.received_amount), 0) AS totalReceived,
             COALESCE(SUM(sb.unreceived_amount), 0) AS totalUnreceived
-     FROM sale_bill sb
+     FROM t_sale_bill sb
      WHERE ${receivableWhere}
      GROUP BY sb.customer_id, sb.customer_name, sb.customer_mobile
      ORDER BY totalUnreceived DESC`,
@@ -54,7 +54,7 @@ export async function getReceivablePayable(
             COALESCE(SUM(po.payable_amount), 0) AS totalPayable,
             COALESCE(SUM(po.paid_amount), 0) AS totalPaid,
             COALESCE(SUM(po.unpaid_amount), 0) AS totalUnpaid
-     FROM purchase_order po
+     FROM t_purchase_order po
      WHERE ${payableWhere}
      GROUP BY po.supplier_id, po.supplier_name
      ORDER BY totalUnpaid DESC`,
@@ -102,7 +102,7 @@ export async function getPaymentAnalysis(
       `SELECT DATE(payment_date) AS period,
               COUNT(*) AS paymentCount,
               COALESCE(SUM(amount), 0) AS totalAmount
-       FROM customer_payment
+       FROM t_customer_payment
        WHERE status NOT IN ('VOIDED')
          AND payment_date BETWEEN ? AND ?
        GROUP BY DATE(payment_date)
@@ -115,7 +115,7 @@ export async function getPaymentAnalysis(
       `SELECT customer_id AS customerId, customer_name AS customerName,
               COUNT(*) AS paymentCount,
               COALESCE(SUM(amount), 0) AS totalAmount
-       FROM customer_payment
+       FROM t_customer_payment
        WHERE status NOT IN ('VOIDED')
          AND payment_date BETWEEN ? AND ?
        GROUP BY customer_id, customer_name
@@ -128,8 +128,8 @@ export async function getPaymentAnalysis(
       `SELECT cp.operator_id AS staffId, u.real_name AS staffName,
               COUNT(*) AS paymentCount,
               COALESCE(SUM(cp.amount), 0) AS totalAmount
-       FROM customer_payment cp
-       LEFT JOIN sys_user u ON u.id = cp.operator_id
+       FROM t_customer_payment cp
+       LEFT JOIN t_sys_user u ON u.id = cp.operator_id
        WHERE cp.status NOT IN ('VOIDED')
          AND cp.payment_date BETWEEN ? AND ?
        GROUP BY cp.operator_id, u.real_name
@@ -156,7 +156,7 @@ export async function getProfit(
 
   const salesIncome = await queryOneWithTenant<any>(
     `SELECT COALESCE(SUM(receivable_amount), 0) AS totalAmount
-     FROM sale_bill
+     FROM t_sale_bill
      WHERE business_status NOT IN ('DRAFT', 'VOIDED')
        AND DATE(created_at) BETWEEN ? AND ?`,
     [start, end],
@@ -165,9 +165,9 @@ export async function getProfit(
 
   const salesCost = await queryOneWithTenant<any>(
     `SELECT COALESCE(SUM(sbi.total_bottle_qty * pp.cost_price), 0) AS totalCost
-     FROM sale_bill_item sbi
-     JOIN sale_bill sb ON sb.bill_no = sbi.bill_no AND sb.tenant_id = sbi.tenant_id
-     JOIN product_price pp ON pp.sku_id = sbi.sku_id AND pp.tenant_id = sbi.tenant_id
+     FROM t_sale_bill_item sbi
+     JOIN t_sale_bill sb ON sb.bill_no = sbi.bill_no AND sb.tenant_id = sbi.tenant_id
+     JOIN t_product_price pp ON pp.sku_id = sbi.sku_id AND pp.tenant_id = sbi.tenant_id
      WHERE sb.business_status NOT IN ('DRAFT', 'VOIDED')
        AND DATE(sb.created_at) BETWEEN ? AND ?`,
     [start, end],
@@ -176,7 +176,7 @@ export async function getProfit(
 
   const returnAmount = await queryOneWithTenant<any>(
     `SELECT COALESCE(SUM(refund_amount), 0) AS totalAmount
-     FROM sale_return
+     FROM t_sale_return
      WHERE return_status NOT IN ('VOIDED')
        AND DATE(created_at) BETWEEN ? AND ?`,
     [start, end],
@@ -185,7 +185,7 @@ export async function getProfit(
 
   const purchaseReturnAmount = await queryOneWithTenant<any>(
     `SELECT COALESCE(SUM(refund_amount), 0) AS totalAmount
-     FROM purchase_return
+     FROM t_purchase_return
      WHERE return_status NOT IN ('VOIDED')
        AND DATE(created_at) BETWEEN ? AND ?`,
     [start, end],
@@ -210,7 +210,7 @@ export async function getProfit(
 
   const prevSalesIncome = await queryOneWithTenant<any>(
     `SELECT COALESCE(SUM(receivable_amount), 0) AS totalAmount
-     FROM sale_bill
+     FROM t_sale_bill
      WHERE business_status NOT IN ('DRAFT', 'VOIDED')
        AND DATE(created_at) BETWEEN ? AND ?`,
     [prevDateStart, prevDateEnd],
@@ -219,9 +219,9 @@ export async function getProfit(
 
   const prevSalesCost = await queryOneWithTenant<any>(
     `SELECT COALESCE(SUM(sbi.total_bottle_qty * pp.cost_price), 0) AS totalCost
-     FROM sale_bill_item sbi
-     JOIN sale_bill sb ON sb.bill_no = sbi.bill_no AND sb.tenant_id = sbi.tenant_id
-     JOIN product_price pp ON pp.sku_id = sbi.sku_id AND pp.tenant_id = sbi.tenant_id
+     FROM t_sale_bill_item sbi
+     JOIN t_sale_bill sb ON sb.bill_no = sbi.bill_no AND sb.tenant_id = sbi.tenant_id
+     JOIN t_product_price pp ON pp.sku_id = sbi.sku_id AND pp.tenant_id = sbi.tenant_id
      WHERE sb.business_status NOT IN ('DRAFT', 'VOIDED')
        AND DATE(sb.created_at) BETWEEN ? AND ?`,
     [prevDateStart, prevDateEnd],
@@ -230,7 +230,7 @@ export async function getProfit(
 
   const prevReturnAmount = await queryOneWithTenant<any>(
     `SELECT COALESCE(SUM(refund_amount), 0) AS totalAmount
-     FROM sale_return
+     FROM t_sale_return
      WHERE return_status NOT IN ('VOIDED')
        AND DATE(created_at) BETWEEN ? AND ?`,
     [prevDateStart, prevDateEnd],
@@ -239,7 +239,7 @@ export async function getProfit(
 
   const prevPurchaseReturnAmount = await queryOneWithTenant<any>(
     `SELECT COALESCE(SUM(refund_amount), 0) AS totalAmount
-     FROM purchase_return
+     FROM t_purchase_return
      WHERE return_status NOT IN ('VOIDED')
        AND DATE(created_at) BETWEEN ? AND ?`,
     [prevDateStart, prevDateEnd],

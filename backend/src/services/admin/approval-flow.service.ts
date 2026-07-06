@@ -74,7 +74,7 @@ export async function createRule(
   );
 
   await queryWithTenant(
-    `INSERT INTO operation_log (operator_id, operator_name, module, action, biz_no, after_data, tenant_id)
+    `INSERT INTO t_operation_log (operator_id, operator_name, module, action, biz_no, after_data, tenant_id)
      VALUES (?, ?, 'APPROVAL_RULE', 'CREATE', ?, ?, ?)`,
     [userId ?? null, username, body.ruleName, JSON.stringify(body), tenantId],
     tenantId

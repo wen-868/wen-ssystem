@@ -64,7 +64,7 @@ export async function getCreditList(
             cc.status, cc.freeze_reason AS freezeReason,
             cc.frozen_at AS frozenAt, cc.unfrozen_at AS unfrozenAt,
             cc.version, cc.created_at AS createdAt, cc.updated_at AS updatedAt
-     FROM customer_credit cc
+     FROM t_customer_credit cc
      LEFT JOIN member m ON m.id = cc.customer_id
      ${where}
      ORDER BY cc.created_at DESC
@@ -74,7 +74,7 @@ export async function getCreditList(
   );
 
   const totalRow = await queryOneWithTenant<Record<string, unknown>>(
-    `SELECT COUNT(*) AS total FROM customer_credit cc
+    `SELECT COUNT(*) AS total FROM t_customer_credit cc
      LEFT JOIN member m ON m.id = cc.customer_id
      ${where}`,
     params,
@@ -100,7 +100,7 @@ export async function getCreditDetail(customerId: number, ctx: ServiceContext): 
             cc.status, cc.freeze_reason AS freezeReason,
             cc.frozen_at AS frozenAt, cc.unfrozen_at AS unfrozenAt,
             cc.version, cc.created_at AS createdAt, cc.updated_at AS updatedAt
-     FROM customer_credit cc
+     FROM t_customer_credit cc
      LEFT JOIN member m ON m.id = cc.customer_id
      WHERE cc.customer_id = ? AND cc.tenant_id = ?`,
     [customerId, ctx.tenantId],
@@ -122,7 +122,7 @@ export async function initCredit(customerId: number, dto: CreditInitDTO, ctx: Se
   }
 
   const existing = await queryOneWithTenant<Record<string, unknown>>(
-    "SELECT id, status FROM customer_credit WHERE customer_id = ? AND tenant_id = ?",
+    "SELECT id, status FROM t_customer_credit WHERE customer_id = ? AND tenant_id = ?",
     [customerId, ctx.tenantId],
     ctx.tenantId
   );
@@ -133,7 +133,7 @@ export async function initCredit(customerId: number, dto: CreditInitDTO, ctx: Se
   }
 
   await queryWithTenant(
-    `INSERT INTO customer_credit (customer_id, credit_limit, payment_term, late_fee_rate,
+    `INSERT INTO t_customer_credit (customer_id, credit_limit, payment_term, late_fee_rate,
        max_late_fee_rate, warning_threshold, overdue_freeze_days, status, tenant_id)
      VALUES (?, ?, ?, ?, ?, ?, ?, 'ACTIVE', ?)`,
     [customerId, dto.creditLimit, dto.paymentTerm, dto.lateFeeRate,
@@ -142,7 +142,7 @@ export async function initCredit(customerId: number, dto: CreditInitDTO, ctx: Se
   );
 
   await queryWithTenant(
-    `INSERT INTO credit_operation_log (customer_id, operation_type, amount, balance_before, balance_after, operator_id, remark, tenant_id)
+    `INSERT INTO t_credit_operation_log (customer_id, operation_type, amount, balance_before, balance_after, operator_id, remark, tenant_id)
      VALUES (?, 'ADJUST_LIMIT', ?, 0, ?, ?, '初始化授信额度', ?)`,
     [customerId, dto.creditLimit, dto.creditLimit, ctx.userId, ctx.tenantId],
     ctx.tenantId
@@ -153,7 +153,7 @@ export async function initCredit(customerId: number, dto: CreditInitDTO, ctx: Se
             cc.credit_used AS creditUsed, cc.credit_frozen AS creditFrozen,
             cc.credit_available AS creditAvailable, cc.payment_term AS paymentTerm,
             cc.status, cc.version, cc.created_at AS createdAt
-     FROM customer_credit cc WHERE cc.customer_id = ? AND cc.tenant_id = ?`,
+     FROM t_customer_credit cc WHERE cc.customer_id = ? AND cc.tenant_id = ?`,
     [customerId, ctx.tenantId],
     ctx.tenantId
   );
@@ -165,7 +165,7 @@ export async function checkCredit(customerId: number, amount: number, ctx: Servi
   const credit = await queryOneWithTenant<Record<string, unknown>>(
     `SELECT cc.credit_limit, cc.credit_used, cc.credit_frozen, cc.credit_available,
             cc.status, cc.warning_threshold, cc.payment_term
-     FROM customer_credit cc WHERE cc.customer_id = ? AND cc.tenant_id = ?`,
+     FROM t_customer_credit cc WHERE cc.customer_id = ? AND cc.tenant_id = ?`,
     [customerId, ctx.tenantId],
     ctx.tenantId
   );
@@ -199,7 +199,7 @@ export async function occupyCredit(customerId: number, dto: CreditOccupyDTO, ctx
   await transaction(async (conn) => {
     const rows = await (conn as unknown as { execute: (sql: string, params: unknown[]) => Promise<[unknown[], unknown]> }).execute(
       `SELECT id, credit_limit, credit_used, credit_frozen, credit_available, status, version
-       FROM customer_credit
+       FROM t_customer_credit
        WHERE customer_id = ? AND tenant_id = ? AND status = 'ACTIVE'
        FOR UPDATE`,
       [customerId, ctx.tenantId]
@@ -223,14 +223,14 @@ export async function occupyCredit(customerId: number, dto: CreditOccupyDTO, ctx
     const balanceAfter = available - dto.amount;
 
     await (conn as unknown as { execute: (sql: string, params: unknown[]) => Promise<[unknown[], unknown]> }).execute(
-      `UPDATE customer_credit
+      `UPDATE t_customer_credit
        SET credit_used = credit_used + ?, version = version + 1, updated_at = NOW()
        WHERE customer_id = ? AND tenant_id = ? AND version = ?`,
       [dto.amount, customerId, ctx.tenantId, credit.version]
     );
 
     await (conn as unknown as { execute: (sql: string, params: unknown[]) => Promise<[unknown[], unknown]> }).execute(
-      `INSERT INTO credit_operation_log (customer_id, operation_type, amount, balance_before, balance_after, related_order_no, operator_id, remark, tenant_id)
+      `INSERT INTO t_credit_operation_log (customer_id, operation_type, amount, balance_before, balance_after, related_order_no, operator_id, remark, tenant_id)
        VALUES (?, 'OCCUPY', ?, ?, ?, ?, ?, '下单占用额度', ?)`,
       [customerId, dto.amount, balanceBefore, balanceAfter, dto.orderNo, ctx.userId, ctx.tenantId]
     );
@@ -240,7 +240,7 @@ export async function occupyCredit(customerId: number, dto: CreditOccupyDTO, ctx
     `SELECT cc.credit_limit AS creditLimit, cc.credit_used AS creditUsed,
             cc.credit_frozen AS creditFrozen, cc.credit_available AS creditAvailable,
             cc.status, cc.version
-     FROM customer_credit cc WHERE cc.customer_id = ? AND cc.tenant_id = ?`,
+     FROM t_customer_credit cc WHERE cc.customer_id = ? AND cc.tenant_id = ?`,
     [customerId, ctx.tenantId],
     ctx.tenantId
   );
@@ -257,7 +257,7 @@ export async function releaseCredit(customerId: number, dto: CreditReleaseDTO, c
   await transaction(async (conn) => {
     const rows = await (conn as unknown as { execute: (sql: string, params: unknown[]) => Promise<[unknown[], unknown]> }).execute(
       `SELECT id, credit_limit, credit_used, credit_frozen, credit_available, status, version
-       FROM customer_credit
+       FROM t_customer_credit
        WHERE customer_id = ? AND tenant_id = ?
        FOR UPDATE`,
       [customerId, ctx.tenantId]
@@ -275,14 +275,14 @@ export async function releaseCredit(customerId: number, dto: CreditReleaseDTO, c
     const balanceAfter = Number(credit.credit_limit) - newUsed - Number(credit.credit_frozen);
 
     await (conn as unknown as { execute: (sql: string, params: unknown[]) => Promise<[unknown[], unknown]> }).execute(
-      `UPDATE customer_credit
+      `UPDATE t_customer_credit
        SET credit_used = ?, version = version + 1, updated_at = NOW()
        WHERE customer_id = ? AND tenant_id = ? AND version = ?`,
       [newUsed, customerId, ctx.tenantId, credit.version]
     );
 
     await (conn as unknown as { execute: (sql: string, params: unknown[]) => Promise<[unknown[], unknown]> }).execute(
-      `INSERT INTO credit_operation_log (customer_id, operation_type, amount, balance_before, balance_after, related_order_no, operator_id, remark, tenant_id)
+      `INSERT INTO t_credit_operation_log (customer_id, operation_type, amount, balance_before, balance_after, related_order_no, operator_id, remark, tenant_id)
        VALUES (?, 'RELEASE', ?, ?, ?, ?, ?, ?, ?)`,
       [customerId, dto.amount, balanceBefore, balanceAfter, dto.orderNo, ctx.userId, dto.remark, ctx.tenantId]
     );
@@ -292,7 +292,7 @@ export async function releaseCredit(customerId: number, dto: CreditReleaseDTO, c
     `SELECT cc.credit_limit AS creditLimit, cc.credit_used AS creditUsed,
             cc.credit_frozen AS creditFrozen, cc.credit_available AS creditAvailable,
             cc.status, cc.version
-     FROM customer_credit cc WHERE cc.customer_id = ? AND cc.tenant_id = ?`,
+     FROM t_customer_credit cc WHERE cc.customer_id = ? AND cc.tenant_id = ?`,
     [customerId, ctx.tenantId],
     ctx.tenantId
   );
@@ -307,7 +307,7 @@ export async function releaseCredit(customerId: number, dto: CreditReleaseDTO, c
 
 export async function freezeCredit(customerId: number, dto: CreditFreezeDTO, ctx: ServiceContext): Promise<Record<string, unknown>> {
   const existing = await queryOneWithTenant<Record<string, unknown>>(
-    "SELECT id, status, credit_available, version FROM customer_credit WHERE customer_id = ? AND tenant_id = ?",
+    "SELECT id, status, credit_available, version FROM t_customer_credit WHERE customer_id = ? AND tenant_id = ?",
     [customerId, ctx.tenantId],
     ctx.tenantId
   );
@@ -330,7 +330,7 @@ export async function freezeCredit(customerId: number, dto: CreditFreezeDTO, ctx
   const balanceBefore = Number(existing.credit_available);
 
   await queryWithTenant(
-    `UPDATE customer_credit
+    `UPDATE t_customer_credit
      SET status = 'FROZEN', credit_frozen = credit_frozen + ?, freeze_reason = ?,
          frozen_at = NOW(), version = version + 1, updated_at = NOW()
      WHERE customer_id = ? AND tenant_id = ?`,
@@ -339,14 +339,14 @@ export async function freezeCredit(customerId: number, dto: CreditFreezeDTO, ctx
   );
 
   const afterCredit = await queryOneWithTenant<Record<string, unknown>>(
-    "SELECT credit_available FROM customer_credit WHERE customer_id = ? AND tenant_id = ?",
+    "SELECT credit_available FROM t_customer_credit WHERE customer_id = ? AND tenant_id = ?",
     [customerId, ctx.tenantId],
     ctx.tenantId
   );
   const balanceAfter = Number(afterCredit?.credit_available ?? 0);
 
   await queryWithTenant(
-    `INSERT INTO credit_operation_log (customer_id, operation_type, amount, balance_before, balance_after, operator_id, remark, tenant_id)
+    `INSERT INTO t_credit_operation_log (customer_id, operation_type, amount, balance_before, balance_after, operator_id, remark, tenant_id)
      VALUES (?, 'FREEZE', ?, ?, ?, ?, ?, ?)`,
     [customerId, dto.freezeAmount, balanceBefore, balanceAfter, ctx.userId, dto.reason, ctx.tenantId],
     ctx.tenantId
@@ -363,7 +363,7 @@ export async function freezeCredit(customerId: number, dto: CreditFreezeDTO, ctx
 
 export async function unfreezeCredit(customerId: number, dto: CreditUnfreezeDTO, ctx: ServiceContext): Promise<Record<string, unknown>> {
   const existing = await queryOneWithTenant<Record<string, unknown>>(
-    "SELECT id, status, credit_available, credit_frozen, version FROM customer_credit WHERE customer_id = ? AND tenant_id = ?",
+    "SELECT id, status, credit_available, credit_frozen, version FROM t_customer_credit WHERE customer_id = ? AND tenant_id = ?",
     [customerId, ctx.tenantId],
     ctx.tenantId
   );
@@ -381,7 +381,7 @@ export async function unfreezeCredit(customerId: number, dto: CreditUnfreezeDTO,
   const balanceBefore = Number(existing.credit_available);
 
   await queryWithTenant(
-    `UPDATE customer_credit
+    `UPDATE t_customer_credit
      SET status = 'ACTIVE', credit_frozen = GREATEST(0, credit_frozen - ?),
          freeze_reason = NULL, unfrozen_at = NOW(),
          version = version + 1, updated_at = NOW()
@@ -391,14 +391,14 @@ export async function unfreezeCredit(customerId: number, dto: CreditUnfreezeDTO,
   );
 
   const afterCredit = await queryOneWithTenant<Record<string, unknown>>(
-    "SELECT credit_available FROM customer_credit WHERE customer_id = ? AND tenant_id = ?",
+    "SELECT credit_available FROM t_customer_credit WHERE customer_id = ? AND tenant_id = ?",
     [customerId, ctx.tenantId],
     ctx.tenantId
   );
   const balanceAfter = Number(afterCredit?.credit_available ?? 0);
 
   await queryWithTenant(
-    `INSERT INTO credit_operation_log (customer_id, operation_type, amount, balance_before, balance_after, operator_id, remark, tenant_id)
+    `INSERT INTO t_credit_operation_log (customer_id, operation_type, amount, balance_before, balance_after, operator_id, remark, tenant_id)
      VALUES (?, 'UNFREEZE', ?, ?, ?, ?, ?, ?)`,
     [customerId, dto.unfreezeAmount, balanceBefore, balanceAfter, ctx.userId, dto.reason, ctx.tenantId],
     ctx.tenantId

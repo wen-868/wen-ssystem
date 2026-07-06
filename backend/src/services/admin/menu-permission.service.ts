@@ -77,8 +77,8 @@ export async function getUserMenus(userId: number, tenantId: string): Promise<Me
   // 获取用户的所有角色
   const roles = await queryWithTenant<any>(
     `SELECT r.id AS roleId
-     FROM sys_user_role ur
-     JOIN sys_role r ON r.id = ur.role_id
+     FROM t_sys_user_role ur
+     JOIN t_sys_role r ON r.id = ur.role_id
      WHERE ur.user_id = ? AND r.status = 'ACTIVE'`,
     [userId],
     tenantId

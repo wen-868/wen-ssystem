@@ -8,7 +8,7 @@ export async function getCurrentShift(tenantId: string, storeId: number) {
   // 获取最早一笔销售时间作为班次开始时间
   const firstSale = await queryOne<any>(
     `SELECT MIN(created_at) AS startTime
-     FROM sale_bill
+     FROM t_sale_bill
      WHERE store_id = ? AND tenant_id = ?
        AND DATE(created_at) = ?
        AND business_status NOT IN ('DRAFT', 'VOIDED')`,
@@ -28,7 +28,7 @@ export async function getCurrentShift(tenantId: string, storeId: number) {
             COUNT(*) AS orderCount,
             COALESCE(SUM(CASE WHEN sale_type = 'CASH' THEN 1 ELSE 0 END), 0) AS cashOrderCount,
             COALESCE(SUM(CASE WHEN sale_type = 'CREDIT' THEN 1 ELSE 0 END), 0) AS creditOrderCount
-     FROM sale_bill
+     FROM t_sale_bill
      WHERE store_id = ? AND tenant_id = ?
        AND DATE(created_at) = ?
        AND business_status NOT IN ('DRAFT', 'VOIDED')`,
@@ -37,7 +37,7 @@ export async function getCurrentShift(tenantId: string, storeId: number) {
 
   const returnRow = await queryOne<any>(
     `SELECT COALESCE(COUNT(*), 0) AS returnOrderCount
-     FROM sale_return
+     FROM t_sale_return
      WHERE tenant_id = ?
        AND DATE(created_at) = ?`,
     [tenantId, today]
@@ -45,7 +45,7 @@ export async function getCurrentShift(tenantId: string, storeId: number) {
 
   const receivedRow = await queryOne<any>(
     `SELECT COALESCE(SUM(amount), 0) AS totalReceived
-     FROM payment_order
+     FROM t_payment_order
      WHERE tenant_id = ?
        AND DATE(paid_at) = ?
        AND status = 'SUCCESS'`,
@@ -54,7 +54,7 @@ export async function getCurrentShift(tenantId: string, storeId: number) {
 
   const channelRows = await query<any>(
     `SELECT channel, COALESCE(SUM(amount), 0) AS amount
-     FROM payment_order
+     FROM t_payment_order
      WHERE tenant_id = ?
        AND DATE(paid_at) = ?
        AND status = 'SUCCESS'

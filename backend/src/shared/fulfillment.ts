@@ -107,7 +107,7 @@ export async function completeOrderDelivery(
 ): Promise<{ orderNo: string; status: string; receivableNo: string | null }> {
   const [orders]: any[] = await conn.query(
     `SELECT order_no, store_id, member_id, customer_type, settlement_type, payable_amount, receiver_name, receiver_mobile
-     FROM miniapp_order
+     FROM t_miniapp_order
      WHERE order_no = ? AND order_status IN ('WAIT_DELIVERY', 'DELIVERING')
      FOR UPDATE`,
     [orderNo]
@@ -117,7 +117,7 @@ export async function completeOrderDelivery(
 
   const [items]: any[] = await conn.query(
     `SELECT sku_id AS skuId, qty AS quantity, reserved_qty AS reservedQty
-     FROM miniapp_order_item WHERE order_no = ?`,
+     FROM t_miniapp_order_item WHERE order_no = ?`,
     [orderNo]
   );
 
@@ -125,7 +125,7 @@ export async function completeOrderDelivery(
     const deductQty = Number(item.reservedQty ?? 0);
     if (deductQty <= 0) continue;
     await conn.execute(
-      `UPDATE inventory_balance
+      `UPDATE t_inventory_balance
        SET physical_qty = physical_qty - ?,
            locked_qty = GREATEST(locked_qty - ?, 0),
            updated_at = NOW()
@@ -133,7 +133,7 @@ export async function completeOrderDelivery(
       [deductQty, deductQty, order.store_id, item.skuId]
     );
     await conn.execute(
-      `INSERT INTO inventory_ledger (ledger_no, store_id, sku_id, stock_type, biz_type, biz_no,
+      `INSERT INTO t_inventory_ledger (ledger_no, store_id, sku_id, stock_type, biz_type, biz_no,
                                      change_qty, before_qty, after_qty, before_locked_qty, after_locked_qty,
                                      operator_id, idempotency_key, remark)
        VALUES (?, ?, ?, 'ONLINE', 'ORDER_COMPLETE', ?, ?, 0, 0, 0, 0, ?, ?, ?)`,
@@ -151,7 +151,7 @@ export async function completeOrderDelivery(
   }
 
   await conn.execute(
-    `UPDATE miniapp_order
+    `UPDATE t_miniapp_order
      SET order_status = 'COMPLETED', delivery_status = 'COMPLETED', completed_at = NOW(), updated_at = NOW()
      WHERE order_no = ?`,
     [orderNo]
@@ -161,7 +161,7 @@ export async function completeOrderDelivery(
   if (order.customer_type === "WHOLESALE" && order.settlement_type === "ACCOUNT") {
     receivableNo = makeBizNo("YS");
     await conn.execute(
-      `INSERT INTO receivable_account (receivable_no, source_type, source_no, store_id, customer_id, customer_name,
+      `INSERT INTO t_receivable_account (receivable_no, source_type, source_no, store_id, customer_id, customer_name,
                                        customer_mobile, receivable_amount, received_amount, unreceived_amount, status)
        VALUES (?, 'MINIAPP_ORDER', ?, ?, ?, ?, ?, ?, 0, ?, 'UNPAID')`,
       [

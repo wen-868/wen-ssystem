@@ -22,7 +22,7 @@ const reportQueries: Record<ReportType, (filters: Record<string, any>, tenantId:
                    goods_amount AS goodsAmount, receivable_amount AS receivableAmount,
                    received_amount AS receivedAmount, unreceived_amount AS unreceivedAmount,
                    collection_status AS collectionStatus, created_at AS createdAt
-            FROM sale_bill WHERE ${conditions.join(" AND ")} ORDER BY created_at DESC`,
+            FROM t_sale_bill WHERE ${conditions.join(" AND ")} ORDER BY created_at DESC`,
       params,
     };
   },
@@ -36,7 +36,7 @@ const reportQueries: Record<ReportType, (filters: Record<string, any>, tenantId:
       sql: `SELECT link_no AS linkNo, source_type AS sourceType, source_no AS sourceNo,
                    amount, paid_amount AS paidAmount, status, share_channel AS shareChannel,
                    expire_at AS expireAt, created_at AS createdAt
-            FROM collection_link WHERE ${conditions.join(" AND ")} ORDER BY created_at DESC`,
+            FROM t_collection_link WHERE ${conditions.join(" AND ")} ORDER BY created_at DESC`,
       params,
     };
   },
@@ -50,7 +50,7 @@ const reportQueries: Record<ReportType, (filters: Record<string, any>, tenantId:
                    SUM(sbi.total_bottle_qty) AS totalQty,
                    SUM(sbi.subtotal_amount) AS totalAmount,
                    COUNT(DISTINCT sbi.bill_no) AS orderCount
-            FROM sale_bill_item sbi
+            FROM t_sale_bill_item sbi
             WHERE ${conditions.join(" AND ")}
             GROUP BY sbi.sku_id, sbi.sku_name ORDER BY totalAmount DESC`,
       params,
@@ -67,7 +67,7 @@ const reportQueries: Record<ReportType, (filters: Record<string, any>, tenantId:
                    COALESCE(SUM(sb.receivable_amount), 0) AS totalAmount,
                    AVG(sb.receivable_amount) AS avgOrderValue,
                    MAX(sb.created_at) AS lastOrderDate
-            FROM sale_bill sb
+            FROM t_sale_bill sb
             LEFT JOIN member m ON m.id = sb.customer_id
             WHERE ${conditions.join(" AND ")} AND sb.customer_id IS NOT NULL
             GROUP BY sb.customer_id, m.name, m.mobile
@@ -84,9 +84,9 @@ const reportQueries: Record<ReportType, (filters: Record<string, any>, tenantId:
                    ps.sku_name AS skuName, ib.stock_type AS stockType,
                    ib.physical_qty AS physicalQty, ib.available_qty AS availableQty,
                    ib.locked_qty AS lockedQty
-            FROM inventory_balance ib
+            FROM t_inventory_balance ib
             LEFT JOIN store s ON s.id = ib.store_id
-            LEFT JOIN product_sku ps ON ps.id = ib.sku_id
+            LEFT JOIN t_product_sku ps ON ps.id = ib.sku_id
             WHERE ${conditions.join(" AND ")}
             ORDER BY ib.store_id, ib.sku_id`,
       params,
@@ -102,7 +102,7 @@ const reportQueries: Record<ReportType, (filters: Record<string, any>, tenantId:
                    goods_amount AS goodsAmount, payable_amount AS payableAmount,
                    paid_amount AS paidAmount, unpaid_amount AS unpaidAmount,
                    order_status AS orderStatus, created_at AS createdAt
-            FROM purchase_order WHERE ${conditions.join(" AND ")} ORDER BY created_at DESC`,
+            FROM t_purchase_order WHERE ${conditions.join(" AND ")} ORDER BY created_at DESC`,
       params,
     };
   },
@@ -129,8 +129,8 @@ const reportQueries: Record<ReportType, (filters: Record<string, any>, tenantId:
                    COUNT(DISTINCT sb.bill_no) AS orderCount,
                    COALESCE(SUM(sb.receivable_amount), 0) AS totalSales,
                    COALESCE(SUM(sb.received_amount), 0) AS totalReceived
-            FROM sale_bill sb
-            LEFT JOIN sys_user u ON u.id = sb.operator_id
+            FROM t_sale_bill sb
+            LEFT JOIN t_sys_user u ON u.id = sb.operator_id
             WHERE ${conditions.join(" AND ")}
             GROUP BY sb.operator_id, u.real_name
             ORDER BY totalSales DESC`,
@@ -143,7 +143,7 @@ const reportQueries: Record<ReportType, (filters: Record<string, any>, tenantId:
                    COUNT(DISTINCT bill_no) AS orderCount,
                    COALESCE(SUM(receivable_amount), 0) AS totalSales,
                    COALESCE(SUM(received_amount), 0) AS totalReceived
-            FROM sale_bill WHERE tenant_id = ? AND business_status = 'CREATED'
+            FROM t_sale_bill WHERE tenant_id = ? AND business_status = 'CREATED'
             GROUP BY DATE(created_at) ORDER BY date DESC`,
       params: [tenantId],
     };

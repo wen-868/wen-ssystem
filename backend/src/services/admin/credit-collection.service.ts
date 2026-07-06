@@ -78,7 +78,7 @@ export async function getCollectionList(
             cr.promised_amount AS promisedAmount, cr.promised_date AS promisedDate,
             cr.next_follow_up_date AS nextFollowUpDate,
             cr.operator_id AS operatorId, cr.created_at AS createdAt
-     FROM collection_record cr
+     FROM t_collection_record cr
      LEFT JOIN member m ON m.id = cr.customer_id
      ${where}
      ORDER BY cr.created_at DESC
@@ -88,7 +88,7 @@ export async function getCollectionList(
   );
 
   const totalRow = await queryOneWithTenant<any>(
-    `SELECT COUNT(*) AS total FROM collection_record cr
+    `SELECT COUNT(*) AS total FROM t_collection_record cr
      LEFT JOIN member m ON m.id = cr.customer_id
      ${where}`,
     params,
@@ -116,7 +116,7 @@ export async function createCollection(dto: CollectionCreateDTO, ctx: ServiceCon
   }
 
   await queryWithTenant(
-    `INSERT INTO collection_record (customer_id, receivable_no, overdue_days, overdue_amount,
+    `INSERT INTO t_collection_record (customer_id, receivable_no, overdue_days, overdue_amount,
        collection_level, collection_method, collection_content, contact_person,
        contact_result, promised_amount, promised_date, next_follow_up_date, operator_id, tenant_id)
      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
@@ -137,7 +137,7 @@ export async function createCollection(dto: CollectionCreateDTO, ctx: ServiceCon
             cr.promised_amount AS promisedAmount, cr.promised_date AS promisedDate,
             cr.next_follow_up_date AS nextFollowUpDate,
             cr.operator_id AS operatorId, cr.created_at AS createdAt
-     FROM collection_record cr
+     FROM t_collection_record cr
      LEFT JOIN member m ON m.id = cr.customer_id
      WHERE cr.id = LAST_INSERT_ID() AND cr.tenant_id = ?`,
     [ctx.tenantId],
@@ -149,7 +149,7 @@ export async function createCollection(dto: CollectionCreateDTO, ctx: ServiceCon
 
 export async function updateCollection(collectionId: number, dto: CollectionUpdateDTO, ctx: ServiceContext): Promise<any> {
   const existing = await queryOneWithTenant<any>(
-    "SELECT id FROM collection_record WHERE id = ? AND tenant_id = ?",
+    "SELECT id FROM t_collection_record WHERE id = ? AND tenant_id = ?",
     [collectionId, ctx.tenantId],
     ctx.tenantId
   );
@@ -170,7 +170,7 @@ export async function updateCollection(collectionId: number, dto: CollectionUpda
 
   if (updates.length > 0) {
     await queryWithTenant(
-      `UPDATE collection_record SET ${updates.join(", ")} WHERE id = ? AND tenant_id = ?`,
+      `UPDATE t_collection_record SET ${updates.join(", ")} WHERE id = ? AND tenant_id = ?`,
       [...params, collectionId, ctx.tenantId],
       ctx.tenantId
     );
@@ -182,7 +182,7 @@ export async function updateCollection(collectionId: number, dto: CollectionUpda
             cr.promised_date AS promisedDate, cr.next_follow_up_date AS nextFollowUpDate,
             cr.collection_content AS collectionContent,
             cr.created_at AS createdAt
-     FROM collection_record cr
+     FROM t_collection_record cr
      LEFT JOIN member m ON m.id = cr.customer_id
      WHERE cr.id = ? AND cr.tenant_id = ?`,
     [collectionId, ctx.tenantId],
@@ -211,7 +211,7 @@ export async function getOverdueCustomers(ctx: ServiceContext): Promise<any> {
               ), 0
             ) AS estimatedOverdueDays,
             cc.credit_used AS estimatedOverdueAmount
-     FROM customer_credit cc
+     FROM t_customer_credit cc
      LEFT JOIN member m ON m.id = cc.customer_id
      WHERE cc.credit_used > 0 AND cc.status IN ('ACTIVE', 'FROZEN') AND cc.tenant_id = ?
      ORDER BY cc.credit_used DESC`,
@@ -239,13 +239,13 @@ export async function batchRemind(dto: BatchRemindDTO, ctx: ServiceContext): Pro
       }
 
       const credit = await queryOneWithTenant<any>(
-        "SELECT credit_used, credit_limit FROM customer_credit WHERE customer_id = ? AND tenant_id = ?",
+        "SELECT credit_used, credit_limit FROM t_customer_credit WHERE customer_id = ? AND tenant_id = ?",
         [customerId, ctx.tenantId],
         ctx.tenantId
       );
 
       await queryWithTenant(
-        `INSERT INTO collection_record (customer_id, overdue_days, overdue_amount,
+        `INSERT INTO t_collection_record (customer_id, overdue_days, overdue_amount,
            collection_level, collection_method, collection_content,
            contact_person, operator_id, tenant_id)
          VALUES (?, 0, ?, ?, ?, ?, ?, ?, ?)`,
@@ -271,7 +271,7 @@ export async function batchRemind(dto: BatchRemindDTO, ctx: ServiceContext): Pro
 export async function getCollectionStatistics(ctx: ServiceContext): Promise<any> {
   const levelStats = await queryWithTenant<any>(
     `SELECT collection_level AS collectionLevel, COUNT(*) AS count
-     FROM collection_record
+     FROM t_collection_record
      WHERE tenant_id = ?
      GROUP BY collection_level
      ORDER BY FIELD(collection_level, 'REMIND', 'LIGHT', 'MEDIUM', 'HEAVY', 'SEVERE')`,
@@ -281,7 +281,7 @@ export async function getCollectionStatistics(ctx: ServiceContext): Promise<any>
 
   const resultStats = await queryWithTenant<any>(
     `SELECT contact_result AS contactResult, COUNT(*) AS count
-     FROM collection_record
+     FROM t_collection_record
      WHERE contact_result IS NOT NULL AND tenant_id = ?
      GROUP BY contact_result`,
     [ctx.tenantId],
@@ -289,26 +289,26 @@ export async function getCollectionStatistics(ctx: ServiceContext): Promise<any>
   );
 
   const totalCount = await queryOneWithTenant<any>(
-    "SELECT COUNT(*) AS count FROM collection_record WHERE tenant_id = ?",
+    "SELECT COUNT(*) AS count FROM t_collection_record WHERE tenant_id = ?",
     [ctx.tenantId],
     ctx.tenantId
   );
 
   const promisedTotal = await queryOneWithTenant<any>(
-    "SELECT COALESCE(SUM(promised_amount), 0) AS total FROM collection_record WHERE contact_result = 'PROMISED' AND tenant_id = ?",
+    "SELECT COALESCE(SUM(promised_amount), 0) AS total FROM t_collection_record WHERE contact_result = 'PROMISED' AND tenant_id = ?",
     [ctx.tenantId],
     ctx.tenantId
   );
 
   const monthCount = await queryOneWithTenant<any>(
-    `SELECT COUNT(*) AS count FROM collection_record
+    `SELECT COUNT(*) AS count FROM t_collection_record
      WHERE YEAR(created_at) = YEAR(NOW()) AND MONTH(created_at) = MONTH(NOW()) AND tenant_id = ?`,
     [ctx.tenantId],
     ctx.tenantId
   );
 
   const followUpCount = await queryOneWithTenant<any>(
-    `SELECT COUNT(*) AS count FROM collection_record
+    `SELECT COUNT(*) AS count FROM t_collection_record
      WHERE next_follow_up_date IS NOT NULL AND next_follow_up_date <= CURDATE()
        AND contact_result NOT IN ('PARTIAL_PAID') AND tenant_id = ?`,
     [ctx.tenantId],

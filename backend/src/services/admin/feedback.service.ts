@@ -70,7 +70,7 @@ export async function listFeedbacks(params: FeedbackQuery) {
     queryWithTenant(
       `SELECT f.*, u.real_name AS userName
        FROM system_feedback f
-       LEFT JOIN sys_user u ON u.id = f.user_id
+       LEFT JOIN t_sys_user u ON u.id = f.user_id
        WHERE ${where}
        ORDER BY f.created_at DESC
        LIMIT ? OFFSET ?`,

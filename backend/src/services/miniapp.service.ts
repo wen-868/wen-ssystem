@@ -40,10 +40,10 @@ export async function getProducts(storeId: number, keyword: string, customerType
     `SELECT s.id AS skuId, p.name, s.sku_name AS skuName, p.main_image AS image,
             pp.retail_price AS retailPrice, pp.wholesale_price AS wholesalePrice, pp.miniapp_price AS miniappPrice,
             COALESCE(ib.available_qty, 0) AS availableQty
-     FROM product_sku s
-     JOIN product_spu p ON p.id = s.spu_id
-     JOIN product_price pp ON pp.sku_id = s.id
-     LEFT JOIN inventory_balance ib ON ib.sku_id = s.id AND ib.store_id = ? AND ib.stock_type = 'ONLINE'
+     FROM t_product_sku s
+     JOIN t_product_spu p ON p.id = s.spu_id
+     JOIN t_product_price pp ON pp.sku_id = s.id
+     LEFT JOIN t_inventory_balance ib ON ib.sku_id = s.id AND ib.store_id = ? AND ib.stock_type = 'ONLINE'
      WHERE p.status = 'ON_SALE'
        AND (p.name LIKE ? OR s.sku_name LIKE ? OR s.sku_code LIKE ? OR s.barcode LIKE ?)
      ORDER BY p.id DESC
@@ -92,7 +92,7 @@ export async function createOrder(tenantId: string, body: {
     for (const item of body.items) {
       const price = await queryOne<any>(
         `SELECT s.sku_name, pp.retail_price, pp.wholesale_price, pp.miniapp_price
-         FROM product_sku s JOIN product_price pp ON pp.sku_id = s.id WHERE s.id = ? AND s.tenant_id = ?`,
+         FROM t_product_sku s JOIN t_product_price pp ON pp.sku_id = s.id WHERE s.id = ? AND s.tenant_id = ?`,
         [item.skuId, tenantId]
       );
       if (!price) throw new Error(`SKU不存在：${item.skuId}`);
@@ -104,7 +104,7 @@ export async function createOrder(tenantId: string, body: {
 
       const inventory = await queryOne<any>(
         `SELECT physical_qty AS physicalQty, locked_qty AS lockedQty, available_qty AS availableQty
-         FROM inventory_balance
+         FROM t_inventory_balance
          WHERE tenant_id = ? AND store_id = ? AND sku_id = ? AND stock_type = 'ONLINE'`,
         [tenantId, body.storeId, item.skuId]
       );
@@ -125,7 +125,7 @@ export async function createOrder(tenantId: string, body: {
     }
 
     await conn.execute(
-      `INSERT INTO miniapp_order (order_no, member_id, store_id, customer_type, fulfillment_type, order_status, pay_status,
+      `INSERT INTO t_miniapp_order (order_no, member_id, store_id, customer_type, fulfillment_type, order_status, pay_status,
                                   settlement_type, delivery_status, goods_amount, payable_amount,
                                   receiver_name, receiver_mobile, receiver_address, remark, expire_at, tenant_id)
        VALUES (?, 1, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, DATE_ADD(NOW(), INTERVAL 15 MINUTE), ?)`,
@@ -150,14 +150,14 @@ export async function createOrder(tenantId: string, body: {
 
     for (const item of items) {
       await conn.execute(
-        `INSERT INTO miniapp_order_item (order_no, sku_id, sku_name, qty, reserved_qty, unreserved_qty, unit_price, price_type, subtotal_amount, tenant_id)
+        `INSERT INTO t_miniapp_order_item (order_no, sku_id, sku_name, qty, reserved_qty, unreserved_qty, unit_price, price_type, subtotal_amount, tenant_id)
          VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
         [orderNo, item.skuId, item.skuName, item.qty, item.reservedQty, item.unreservedQty, item.unitPrice, item.priceType, item.subtotal, tenantId]
       );
 
       if (shouldReserveStock(customerType as CustomerType) && item.reservedQty > 0) {
         await conn.execute(
-          `UPDATE inventory_balance
+          `UPDATE t_inventory_balance
            SET locked_qty = locked_qty + ?,
                available_qty = GREATEST(available_qty - ?, 0),
                updated_at = NOW()
@@ -166,7 +166,7 @@ export async function createOrder(tenantId: string, body: {
         );
 
         await conn.execute(
-          `INSERT INTO inventory_ledger (ledger_no, store_id, sku_id, stock_type, biz_type, biz_no,
+          `INSERT INTO t_inventory_ledger (ledger_no, store_id, sku_id, stock_type, biz_type, biz_no,
                                          change_qty, before_qty, after_qty, before_locked_qty, after_locked_qty,
                                          operator_id, idempotency_key, remark, tenant_id)
            VALUES (?, ?, ?, 'ONLINE', 'ORDER_LOCK', ?, 0, 0, 0, 0, ?, NULL, ?, ?, ?)`,
@@ -201,7 +201,7 @@ export async function getOrders(tenantId: string, anonymousMemberId: string, pag
             order_status AS orderStatus, pay_status AS payStatus, payable_amount AS payableAmount,
             receiver_name AS receiverName, receiver_mobile AS receiverMobile, receiver_address AS receiverAddress,
             created_at AS createdAt
-     FROM miniapp_order
+     FROM t_miniapp_order
      WHERE tenant_id = ? AND (? = '' OR remark LIKE ?)
      ORDER BY id DESC
      LIMIT ? OFFSET ?`,
@@ -209,7 +209,7 @@ export async function getOrders(tenantId: string, anonymousMemberId: string, pag
   );
 
   const total = await queryOne<any>(
-    "SELECT COUNT(*) AS total FROM miniapp_order WHERE tenant_id = ? AND (? = '' OR remark LIKE ?)",
+    "SELECT COUNT(*) AS total FROM t_miniapp_order WHERE tenant_id = ? AND (? = '' OR remark LIKE ?)",
     [tenantId, anonymousMemberId, `[anon:${anonymousMemberId}]%`]
   );
 
@@ -224,7 +224,7 @@ export async function getOrderDetail(tenantId: string, orderNo: string, anonymou
             receiver_name AS receiverName, receiver_mobile AS receiverMobile,
             receiver_address AS receiverAddress, fulfillment_type AS fulfillmentType,
             created_at AS createdAt
-     FROM miniapp_order WHERE order_no = ? AND tenant_id = ? AND (? = '' OR remark LIKE ?)`,
+     FROM t_miniapp_order WHERE order_no = ? AND tenant_id = ? AND (? = '' OR remark LIKE ?)`,
     [orderNo, tenantId, anonymousMemberId, `[anon:${anonymousMemberId}]%`]
   );
 
@@ -235,7 +235,7 @@ export async function getOrderDetail(tenantId: string, orderNo: string, anonymou
   const items = await query<any>(
     `SELECT sku_id AS skuId, sku_name AS skuName, qty AS quantity,
             unit_price AS unitPrice, subtotal_amount AS subtotalAmount
-     FROM miniapp_order_item WHERE order_no = ? AND tenant_id = ?`,
+     FROM t_miniapp_order_item WHERE order_no = ? AND tenant_id = ?`,
     [orderNo, tenantId]
   );
 
@@ -249,7 +249,7 @@ export async function confirmReceipt(orderNo: string) {
 
     // R9-2: 订单完成时消费追溯码
     const [items]: any[] = await conn.query(
-      `SELECT sku_id FROM miniapp_order_item WHERE order_no = ?`,
+      `SELECT sku_id FROM t_miniapp_order_item WHERE order_no = ?`,
       [orderNo]
     );
     const skuIds = items.map((it: any) => it.sku_id);
@@ -269,7 +269,7 @@ export async function getStatements(tenantId: string, anonymousMemberId: string,
   const orders = await query<any>(
     `SELECT order_no AS orderNo, goods_amount AS amount, created_at AS date,
             order_status AS orderStatus, pay_status AS payStatus
-     FROM miniapp_order
+     FROM t_miniapp_order
      WHERE tenant_id = ? AND (? = '' OR remark LIKE ?)
      ORDER BY id DESC
      LIMIT ? OFFSET ?`,
@@ -278,8 +278,8 @@ export async function getStatements(tenantId: string, anonymousMemberId: string,
 
   const payments = await query<any>(
     `SELECT pay_no AS paymentNo, amount, payment_method AS method, created_at AS date, status
-     FROM payment_order
-     WHERE tenant_id = ? AND (? = '' OR source_no IN (SELECT order_no FROM miniapp_order WHERE tenant_id = ? AND remark LIKE ?))
+     FROM t_payment_order
+     WHERE tenant_id = ? AND (? = '' OR source_no IN (SELECT order_no FROM t_miniapp_order WHERE tenant_id = ? AND remark LIKE ?))
      ORDER BY id DESC
      LIMIT ? OFFSET ?`,
     [tenantId, anonymousMemberId, tenantId, `[anon:${anonymousMemberId}]%`, pageSize, offset]
@@ -287,14 +287,14 @@ export async function getStatements(tenantId: string, anonymousMemberId: string,
 
   const summary = await queryOne<any>(
     `SELECT COALESCE(SUM(goods_amount), 0) AS totalPurchase
-     FROM miniapp_order WHERE tenant_id = ? AND (? = '' OR remark LIKE ?)`,
+     FROM t_miniapp_order WHERE tenant_id = ? AND (? = '' OR remark LIKE ?)`,
     [tenantId, anonymousMemberId, `[anon:${anonymousMemberId}]%`]
   );
 
   const paidSummary = await queryOne<any>(
     `SELECT COALESCE(SUM(amount), 0) AS totalPaid
-     FROM payment_order
-     WHERE tenant_id = ? AND status = 'PAID' AND (? = '' OR source_no IN (SELECT order_no FROM miniapp_order WHERE tenant_id = ? AND remark LIKE ?))`,
+     FROM t_payment_order
+     WHERE tenant_id = ? AND status = 'PAID' AND (? = '' OR source_no IN (SELECT order_no FROM t_miniapp_order WHERE tenant_id = ? AND remark LIKE ?))`,
     [tenantId, anonymousMemberId, tenantId, `[anon:${anonymousMemberId}]%`]
   );
 
@@ -335,7 +335,7 @@ export async function getStatementDetail(tenantId: string, id: string, anonymous
     `SELECT order_no AS orderNo, goods_amount AS amount, created_at AS date,
             order_status AS orderStatus, pay_status AS payStatus,
             receiver_name AS receiverName, receiver_mobile AS receiverMobile, receiver_address AS receiverAddress
-     FROM miniapp_order
+     FROM t_miniapp_order
      WHERE order_no = ? AND tenant_id = ? AND (? = '' OR remark LIKE ?)`,
     [id, tenantId, anonymousMemberId, `[anon:${anonymousMemberId}]%`]
   );
@@ -346,7 +346,7 @@ export async function getStatementDetail(tenantId: string, id: string, anonymous
 
   const items = await query<any>(
     `SELECT sku_name AS skuName, qty, unit_price AS unitPrice, subtotal_amount AS subtotalAmount
-     FROM miniapp_order_item WHERE order_no = ? AND tenant_id = ?`,
+     FROM t_miniapp_order_item WHERE order_no = ? AND tenant_id = ?`,
     [id, tenantId]
   );
 

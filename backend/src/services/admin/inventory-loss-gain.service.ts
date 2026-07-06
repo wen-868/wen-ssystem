@@ -18,13 +18,13 @@ export async function reportLossGain(params: {
   // 更新 inventory_balance
   const changeQty = type === "LOSS" ? -qty : qty;
   await queryWithTenant(
-    `UPDATE inventory_balance SET physical_qty = GREATEST(physical_qty + ?, 0), available_qty = GREATEST(available_qty + ?, 0) WHERE store_id = ? AND sku_id = ? AND tenant_id = ?`,
+    `UPDATE t_inventory_balance SET physical_qty = GREATEST(physical_qty + ?, 0), available_qty = GREATEST(available_qty + ?, 0) WHERE store_id = ? AND sku_id = ? AND tenant_id = ?`,
     [changeQty, changeQty, storeId, skuId, tenantId],
     tenantId
   );
   // 写入 inventory_ledger
   await queryWithTenant(
-    `INSERT INTO inventory_ledger (sku_id, store_id, change_type, change_qty, unit_price, amount, biz_no, biz_type, tenant_id)
+    `INSERT INTO t_inventory_ledger (sku_id, store_id, change_type, change_qty, unit_price, amount, biz_no, biz_type, tenant_id)
      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`,
     [skuId, storeId, type === "LOSS" ? "OUT" : "IN", qty, costPrice, amount, lgNo, "LOSS_GAIN", tenantId],
     tenantId
@@ -50,7 +50,7 @@ export async function listLossGains(params: {
             lg.reason, lg.operator_id AS operatorId, lg.status, lg.created_at AS createdAt
      FROM inventory_loss_gain lg
      LEFT JOIN store st ON st.id = lg.store_id
-     LEFT JOIN product_sku ps ON ps.id = lg.sku_id
+     LEFT JOIN t_product_sku ps ON ps.id = lg.sku_id
      ${where}
      ORDER BY lg.created_at DESC
      LIMIT ? OFFSET ?`,

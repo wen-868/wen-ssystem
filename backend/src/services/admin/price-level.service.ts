@@ -6,7 +6,7 @@ export async function listPriceLevels(tenantId: string) {
             discount_rate AS discountRate, min_order_amount AS minOrderAmount,
             description, sort_order AS sortOrder, status,
             created_at AS createdAt, updated_at AS updatedAt
-     FROM price_level
+     FROM t_price_level
      WHERE tenant_id = ?
      ORDER BY sort_order ASC, id ASC`,
     [tenantId],
@@ -24,7 +24,7 @@ export async function createPriceLevel(body: {
   sortOrder: number;
 }, tenantId: string) {
   const existing = await queryOneWithTenant<any>(
-    "SELECT id FROM price_level WHERE level_code = ? AND tenant_id = ?",
+    "SELECT id FROM t_price_level WHERE level_code = ? AND tenant_id = ?",
     [body.levelCode, tenantId],
     tenantId
   );
@@ -33,7 +33,7 @@ export async function createPriceLevel(body: {
   }
 
   await queryWithTenant(
-    `INSERT INTO price_level (level_code, level_name, discount_rate, min_order_amount, description, sort_order, tenant_id)
+    `INSERT INTO t_price_level (level_code, level_name, discount_rate, min_order_amount, description, sort_order, tenant_id)
      VALUES (?, ?, ?, ?, ?, ?, ?)`,
     [body.levelCode, body.levelName, body.discountRate, body.minOrderAmount, body.description, body.sortOrder, tenantId],
     tenantId
@@ -44,7 +44,7 @@ export async function createPriceLevel(body: {
             discount_rate AS discountRate, min_order_amount AS minOrderAmount,
             description, sort_order AS sortOrder, status,
             created_at AS createdAt
-     FROM price_level WHERE level_code = ? AND tenant_id = ?`,
+     FROM t_price_level WHERE level_code = ? AND tenant_id = ?`,
     [body.levelCode, tenantId],
     tenantId
   );
@@ -61,7 +61,7 @@ export async function updatePriceLevel(levelId: number, body: {
   status?: number;
 }, tenantId: string) {
   const existing = await queryOneWithTenant<any>(
-    "SELECT id FROM price_level WHERE id = ? AND tenant_id = ?",
+    "SELECT id FROM t_price_level WHERE id = ? AND tenant_id = ?",
     [levelId, tenantId],
     tenantId
   );
@@ -81,7 +81,7 @@ export async function updatePriceLevel(levelId: number, body: {
 
   if (updates.length > 0) {
     await queryWithTenant(
-      `UPDATE price_level SET ${updates.join(", ")} WHERE id = ? AND tenant_id = ?`,
+      `UPDATE t_price_level SET ${updates.join(", ")} WHERE id = ? AND tenant_id = ?`,
       [...params, levelId, tenantId],
       tenantId
     );
@@ -92,7 +92,7 @@ export async function updatePriceLevel(levelId: number, body: {
             discount_rate AS discountRate, min_order_amount AS minOrderAmount,
             description, sort_order AS sortOrder, status,
             created_at AS createdAt, updated_at AS updatedAt
-     FROM price_level WHERE id = ? AND tenant_id = ?`,
+     FROM t_price_level WHERE id = ? AND tenant_id = ?`,
     [levelId, tenantId],
     tenantId
   );
@@ -102,7 +102,7 @@ export async function updatePriceLevel(levelId: number, body: {
 
 export async function disablePriceLevel(levelId: number, tenantId: string) {
   const existing = await queryOneWithTenant<any>(
-    "SELECT id, level_code FROM price_level WHERE id = ? AND tenant_id = ?",
+    "SELECT id, level_code FROM t_price_level WHERE id = ? AND tenant_id = ?",
     [levelId, tenantId],
     tenantId
   );
@@ -114,7 +114,7 @@ export async function disablePriceLevel(levelId: number, tenantId: string) {
   }
 
   await queryWithTenant(
-    "UPDATE price_level SET status = 0 WHERE id = ? AND tenant_id = ?",
+    "UPDATE t_price_level SET status = 0 WHERE id = ? AND tenant_id = ?",
     [levelId, tenantId],
     tenantId
   );

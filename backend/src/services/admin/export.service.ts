@@ -50,7 +50,7 @@ export async function exportProducts(tenantId: string, keyword?: string) {
     `SELECT id, sku_code AS skuCode, name, sku_name AS skuName, category, brand, unit,
             retail_price AS retailPrice, wholesale_price AS wholesalePrice,
             miniapp_price AS miniappPrice, status, created_at AS createdAt
-     FROM product_sku ${where} ORDER BY id DESC LIMIT 5000`,
+     FROM t_product_sku ${where} ORDER BY id DESC LIMIT 5000`,
     params
   );
 }
@@ -94,7 +94,7 @@ export async function exportPurchaseOrders(tenantId: string, keyword?: string, s
     `SELECT purchase_no AS purchaseNo, supplier_name AS supplierName,
             total_amount AS totalAmount, paid_amount AS paidAmount,
             status, warehouse_status AS warehouseStatus, created_at AS createdAt
-     FROM purchase_order ${where} ORDER BY created_at DESC LIMIT 5000`,
+     FROM t_purchase_order ${where} ORDER BY created_at DESC LIMIT 5000`,
     params
   );
 }

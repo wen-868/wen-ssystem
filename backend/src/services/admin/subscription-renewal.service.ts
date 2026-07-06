@@ -82,7 +82,7 @@ export async function renewSubscription(
     }
 
     await conn.execute(
-      `INSERT INTO operation_log (module, action, target_id, target_type, user_id, user_name, detail, tenant_id)
+      `INSERT INTO t_operation_log (module, action, target_id, target_type, user_id, user_name, detail, tenant_id)
        VALUES (?, ?, ?, ?, ?, ?, ?, ?)`,
       ["subscription", "RENEW", subscriptionNo, "subscription", userId, username,
        `续费订阅: ${subscriptionNo}, 套餐: ${plan.plan_name}`, existing.tenant_id]

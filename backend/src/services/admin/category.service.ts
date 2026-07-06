@@ -9,7 +9,7 @@ interface CategoryRow {
 
 export async function list(params: { pid?: number; tenantId: string }) {
   const { pid, tenantId } = params;
-  let sql = "SELECT id, parent_id, name, icon, code, sort_no, status, created_at, updated_at FROM product_category WHERE tenant_id = ?";
+  let sql = "SELECT id, parent_id, name, icon, code, sort_no, status, created_at, updated_at FROM t_product_category WHERE tenant_id = ?";
   const sqlParams: unknown[] = [tenantId];
 
   if (pid !== undefined) {
@@ -29,7 +29,7 @@ export async function create(body: {
   icon?: string; code?: string;
 }, tenantId: string) {
   const result = await queryWithTenant<{ insertId: number }>(
-    `INSERT INTO product_category (name, parent_id, sort_no, icon, code, tenant_id)
+    `INSERT INTO t_product_category (name, parent_id, sort_no, icon, code, tenant_id)
      VALUES (?, ?, ?, ?, ?, ?)`,
     [body.name, body.parentId ?? null, body.sortNo ?? 0,
      body.icon ?? null, body.code ?? null, tenantId],
@@ -43,7 +43,7 @@ export async function update(id: number, body: {
   icon?: string; code?: string;
 }, tenantId: string) {
   const existing = await queryOneWithTenant<CategoryRow>(
-    "SELECT id, name FROM product_category WHERE id = ? AND tenant_id = ?",
+    "SELECT id, name FROM t_product_category WHERE id = ? AND tenant_id = ?",
     [id, tenantId], tenantId
   );
   if (!existing) throw Object.assign(new Error("分类不存在"), { statusCode: 404 });
@@ -59,7 +59,7 @@ export async function update(id: number, body: {
 
   params.push(id, tenantId);
   await queryWithTenant(
-    `UPDATE product_category SET ${sets.join(", ")} WHERE id = ? AND tenant_id = ?`,
+    `UPDATE t_product_category SET ${sets.join(", ")} WHERE id = ? AND tenant_id = ?`,
     params, tenantId
   );
 
@@ -75,14 +75,14 @@ export async function update(id: number, body: {
 
 export async function remove(id: number, tenantId: string) {
   const existing = await queryOneWithTenant<CategoryRow>(
-    "SELECT id FROM product_category WHERE id = ? AND tenant_id = ?",
+    "SELECT id FROM t_product_category WHERE id = ? AND tenant_id = ?",
     [id, tenantId], tenantId
   );
   if (!existing) throw Object.assign(new Error("分类不存在"), { statusCode: 404 });
 
   // 检查是否有子分类
   const childRows = (await queryWithTenant<any>(
-    "SELECT COUNT(*) AS cnt FROM product_category WHERE parent_id = ? AND tenant_id = ?",
+    "SELECT COUNT(*) AS cnt FROM t_product_category WHERE parent_id = ? AND tenant_id = ?",
     [id, tenantId], tenantId
   ) as any[])[0];
   if ((childRows as any)?.[0]?.cnt > 0) {
@@ -91,14 +91,14 @@ export async function remove(id: number, tenantId: string) {
 
   // 检查是否有商品引用
   const productRows = (await queryWithTenant<any>(
-    "SELECT COUNT(*) AS cnt FROM product_spu WHERE category_id = ? AND tenant_id = ?",
+    "SELECT COUNT(*) AS cnt FROM t_product_spu WHERE category_id = ? AND tenant_id = ?",
     [id, tenantId], tenantId
   ) as any[])[0];
   if ((productRows as any)?.[0]?.cnt > 0) {
     throw Object.assign(new Error("该分类下有商品，无法删除"), { statusCode: 400 });
   }
 
-  await queryWithTenant("DELETE FROM product_category WHERE id = ? AND tenant_id = ?", [id, tenantId], tenantId);
+  await queryWithTenant("DELETE FROM t_product_category WHERE id = ? AND tenant_id = ?", [id, tenantId], tenantId);
   return { id };
 }
 
@@ -106,7 +106,7 @@ export async function sort(items: Array<{ id: number; sortNo: number }>, tenantI
   await transaction(async (conn) => {
     for (const item of items) {
       await conn.query(
-        "UPDATE product_category SET sort_no = ? WHERE id = ? AND tenant_id = ?",
+        "UPDATE t_product_category SET sort_no = ? WHERE id = ? AND tenant_id = ?",
         [item.sortNo, item.id, tenantId]
       );
     }

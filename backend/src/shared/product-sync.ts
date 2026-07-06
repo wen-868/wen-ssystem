@@ -67,8 +67,8 @@ export async function syncProductFullChain(
   const product = await queryOneWithTenant<Record<string, unknown>>(
     `SELECT p.id, p.name AS productName, p.category_id AS categoryId, c.category_name AS categoryName,
             p.brand, p.unit, p.main_image AS mainImage, p.status
-     FROM product_spu p
-     LEFT JOIN product_category c ON c.id = p.category_id
+     FROM t_product_spu p
+     LEFT JOIN t_product_category c ON c.id = p.category_id
      WHERE p.id = ? AND p.tenant_id = ?`,
     [spuId, tenantId],
     tenantId
@@ -100,7 +100,7 @@ export async function syncProductFullChain(
         sets.push("updated_at = NOW()");
         params.push(spuId, tenantId);
         const result = await queryWithTenant<Record<string, unknown>>(
-          `UPDATE product_sku SET ${sets.join(", ")} WHERE spu_id = ? AND tenant_id = ?`,
+          `UPDATE t_product_sku SET ${sets.join(", ")} WHERE spu_id = ? AND tenant_id = ?`,
           params,
           tenantId
         );
@@ -139,7 +139,7 @@ export async function syncProductFullChain(
 
       params.push(spuId, tenantId);
       const result = await queryWithTenant<Record<string, unknown>>(
-        `UPDATE inventory_balance SET ${sets.join(", ")}, updated_at = NOW() WHERE spu_id = ? AND tenant_id = ?`,
+        `UPDATE t_inventory_balance SET ${sets.join(", ")}, updated_at = NOW() WHERE spu_id = ? AND tenant_id = ?`,
         params,
         tenantId
       );
@@ -177,8 +177,8 @@ export async function syncProductFullChain(
 
       params.push(spuId, tenantId);
       const result = await queryWithTenant<Record<string, unknown>>(
-        `UPDATE sale_bill_item sbi
-         JOIN sale_bill sb ON sb.id = sbi.bill_id AND sb.tenant_id = sbi.tenant_id
+        `UPDATE t_sale_bill_item sbi
+         JOIN t_sale_bill sb ON sb.id = sbi.bill_id AND sb.tenant_id = sbi.tenant_id
          SET ${sets.join(", ")}, sbi.updated_at = NOW()
          WHERE sbi.spu_id = ? AND sbi.tenant_id = ?
            AND sb.status IN ('DRAFT', 'PENDING', 'CONFIRMED')`,
@@ -219,8 +219,8 @@ export async function syncProductFullChain(
 
       params.push(spuId, tenantId);
       const result = await queryWithTenant<Record<string, unknown>>(
-        `UPDATE purchase_order_item poi
-         JOIN purchase_order po ON po.id = poi.order_id AND po.tenant_id = poi.tenant_id
+        `UPDATE t_purchase_order_item poi
+         JOIN t_purchase_order po ON po.id = poi.order_id AND po.tenant_id = poi.tenant_id
          SET ${sets.join(", ")}, poi.updated_at = NOW()
          WHERE poi.spu_id = ? AND poi.tenant_id = ?
            AND po.status IN ('DRAFT', 'PENDING', 'APPROVED')`,
@@ -253,7 +253,7 @@ export async function syncProductFullChain(
     const t5 = Date.now();
     try {
       const result = await queryWithTenant<Record<string, unknown>>(
-        `UPDATE inventory_ledger
+        `UPDATE t_inventory_ledger
          SET product_name = ?, updated_at = NOW()
          WHERE spu_id = ? AND tenant_id = ?`,
         [product.productName, spuId, tenantId],
@@ -285,7 +285,7 @@ export async function syncProductFullChain(
     const t6 = Date.now();
     try {
       const result = await queryWithTenant<Record<string, unknown>>(
-        `UPDATE inventory_batch
+        `UPDATE t_inventory_batch
          SET product_name = ?, updated_at = NOW()
          WHERE spu_id = ? AND tenant_id = ?`,
         [product.productName, spuId, tenantId],
@@ -317,7 +317,7 @@ export async function syncProductFullChain(
     const t7 = Date.now();
     try {
       const result = await queryWithTenant<Record<string, unknown>>(
-        `UPDATE miniapp_order_item
+        `UPDATE t_miniapp_order_item
          SET product_name = ?, updated_at = NOW()
          WHERE spu_id = ? AND tenant_id = ?`,
         [product.productName, spuId, tenantId],
@@ -349,7 +349,7 @@ export async function syncProductFullChain(
     const t8 = Date.now();
     try {
       const result = await queryWithTenant<Record<string, unknown>>(
-        `UPDATE sale_return_item
+        `UPDATE t_sale_return_item
          SET product_name = ?, updated_at = NOW()
          WHERE spu_id = ? AND tenant_id = ?`,
         [product.productName, spuId, tenantId],
@@ -381,7 +381,7 @@ export async function syncProductFullChain(
     const t9a = Date.now();
     try {
       const result = await queryWithTenant<Record<string, unknown>>(
-        `UPDATE purchase_in_stock_item
+        `UPDATE t_purchase_in_stock_item
          SET product_name = ?, updated_at = NOW()
          WHERE spu_id = ? AND tenant_id = ?`,
         [product.productName, spuId, tenantId],
@@ -410,7 +410,7 @@ export async function syncProductFullChain(
     const t9b = Date.now();
     try {
       const result = await queryWithTenant<Record<string, unknown>>(
-        `UPDATE purchase_return_item
+        `UPDATE t_purchase_return_item
          SET product_name = ?, updated_at = NOW()
          WHERE spu_id = ? AND tenant_id = ?`,
         [product.productName, spuId, tenantId],
@@ -466,7 +466,7 @@ export async function syncProductStatus(
   try {
     const t1 = Date.now();
     const result = await queryWithTenant<Record<string, unknown>>(
-      `UPDATE product_sku SET status = ?, updated_at = NOW() WHERE spu_id = ? AND tenant_id = ?`,
+      `UPDATE t_product_sku SET status = ?, updated_at = NOW() WHERE spu_id = ? AND tenant_id = ?`,
       [newStatus, spuId, tenantId],
       tenantId
     );
@@ -505,7 +505,7 @@ export async function syncProductPrice(
 
   // 获取SKU列表
   const skus = await queryWithTenant<Record<string, unknown>>(
-    `SELECT id FROM product_sku WHERE spu_id = ? AND tenant_id = ?`,
+    `SELECT id FROM t_product_sku WHERE spu_id = ? AND tenant_id = ?`,
     [spuId, tenantId],
     tenantId
   );
@@ -517,7 +517,7 @@ export async function syncProductPrice(
   // 获取各SKU的最新价格
   const prices = await queryWithTenant<Record<string, unknown>>(
     `SELECT sku_id, cost_price, retail_price, wholesale_price, miniapp_price, store_price
-     FROM product_price
+     FROM t_product_price
      WHERE sku_id IN (?) AND tenant_id = ?`,
     [skuIds, tenantId],
     tenantId
@@ -532,8 +532,8 @@ export async function syncProductPrice(
         const field = changedPriceTypes.includes("wholesalePrice") ? "wholesale_price" : "retail_price";
         const value = changedPriceTypes.includes("wholesalePrice") ? price.wholesale_price : price.retail_price;
         const result = await queryWithTenant<Record<string, unknown>>(
-          `UPDATE sale_bill_item sbi
-           JOIN sale_bill sb ON sb.id = sbi.bill_id AND sb.tenant_id = sbi.tenant_id
+          `UPDATE t_sale_bill_item sbi
+           JOIN t_sale_bill sb ON sb.id = sbi.bill_id AND sb.tenant_id = sbi.tenant_id
            SET sbi.${field} = ?, sbi.updated_at = NOW()
            WHERE sbi.sku_id = ? AND sbi.tenant_id = ?
              AND sb.status IN ('DRAFT', 'PENDING')`,
@@ -570,8 +570,8 @@ export async function syncProductPrice(
       let count = 0;
       for (const price of prices) {
         const result = await queryWithTenant<Record<string, unknown>>(
-          `UPDATE purchase_order_item poi
-           JOIN purchase_order po ON po.id = poi.order_id AND po.tenant_id = poi.tenant_id
+          `UPDATE t_purchase_order_item poi
+           JOIN t_purchase_order po ON po.id = poi.order_id AND po.tenant_id = poi.tenant_id
            SET poi.cost_price = ?, poi.updated_at = NOW()
            WHERE poi.sku_id = ? AND poi.tenant_id = ?
              AND po.status IN ('DRAFT', 'PENDING')`,
@@ -617,7 +617,7 @@ export async function getProductSyncStatus(
   targets: Array<{ table: string; recordCount: number; inSync: boolean }>;
 }> {
   const product = await queryOneWithTenant<Record<string, unknown>>(
-    "SELECT id, name FROM product_spu WHERE id = ? AND tenant_id = ?",
+    "SELECT id, name FROM t_product_spu WHERE id = ? AND tenant_id = ?",
     [spuId, tenantId],
     tenantId
   );
@@ -627,11 +627,11 @@ export async function getProductSyncStatus(
   }
 
   const targets = [
-    { table: "product_sku", sql: "SELECT COUNT(*) as cnt FROM product_sku WHERE spu_id = ? AND tenant_id = ?" },
-    { table: "inventory_balance", sql: "SELECT COUNT(*) as cnt FROM inventory_balance WHERE spu_id = ? AND tenant_id = ?" },
-    { table: "inventory_ledger", sql: "SELECT COUNT(*) as cnt FROM inventory_ledger WHERE spu_id = ? AND tenant_id = ?" },
-    { table: "sale_bill_item", sql: "SELECT COUNT(*) as cnt FROM sale_bill_item WHERE spu_id = ? AND tenant_id = ?" },
-    { table: "purchase_order_item", sql: "SELECT COUNT(*) as cnt FROM purchase_order_item WHERE spu_id = ? AND tenant_id = ?" },
+    { table: "product_sku", sql: "SELECT COUNT(*) as cnt FROM t_product_sku WHERE spu_id = ? AND tenant_id = ?" },
+    { table: "inventory_balance", sql: "SELECT COUNT(*) as cnt FROM t_inventory_balance WHERE spu_id = ? AND tenant_id = ?" },
+    { table: "inventory_ledger", sql: "SELECT COUNT(*) as cnt FROM t_inventory_ledger WHERE spu_id = ? AND tenant_id = ?" },
+    { table: "sale_bill_item", sql: "SELECT COUNT(*) as cnt FROM t_sale_bill_item WHERE spu_id = ? AND tenant_id = ?" },
+    { table: "purchase_order_item", sql: "SELECT COUNT(*) as cnt FROM t_purchase_order_item WHERE spu_id = ? AND tenant_id = ?" },
   ];
 
   const result = {

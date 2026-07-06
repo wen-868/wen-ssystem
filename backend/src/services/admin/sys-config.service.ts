@@ -4,7 +4,7 @@ export async function getAllConfigs(tenantId: string) {
   const records = await query<any>(
     `SELECT id, config_key AS configKey, config_value AS configValue,
             config_group AS configGroup, description, updated_at AS updatedAt
-     FROM sys_config
+     FROM t_sys_config
      WHERE tenant_id = ?
      ORDER BY config_group, id`,
     [tenantId]
@@ -22,7 +22,7 @@ export async function getConfigByGroup(group: string, tenantId: string) {
   const records = await query<any>(
     `SELECT id, config_key AS configKey, config_value AS configValue,
             config_group AS configGroup, description, updated_at AS updatedAt
-     FROM sys_config
+     FROM t_sys_config
      WHERE config_group = ? AND tenant_id = ?
      ORDER BY id`,
     [group, tenantId]
@@ -33,17 +33,17 @@ export async function getConfigByGroup(group: string, tenantId: string) {
 export async function batchUpdateConfigs(items: Array<{ config_key: string; config_value: string }>, tenantId: string) {
   for (const item of items) {
     const existing = await queryOne<any>(
-      "SELECT id FROM sys_config WHERE config_key = ? AND tenant_id = ?",
+      "SELECT id FROM t_sys_config WHERE config_key = ? AND tenant_id = ?",
       [item.config_key, tenantId]
     );
     if (existing) {
       await query(
-        `UPDATE sys_config SET config_value = ? WHERE config_key = ? AND tenant_id = ?`,
+        `UPDATE t_sys_config SET config_value = ? WHERE config_key = ? AND tenant_id = ?`,
         [item.config_value, item.config_key, tenantId]
       );
     } else {
       await query(
-        `INSERT INTO sys_config (config_key, config_value, config_group, description, tenant_id)
+        `INSERT INTO t_sys_config (config_key, config_value, config_group, description, tenant_id)
          VALUES (?, ?, 'other', '', ?)`,
         [item.config_key, item.config_value, tenantId]
       );
@@ -59,7 +59,7 @@ export async function createConfig(body: {
   description: string;
 }, tenantId: string) {
   await query(
-    `INSERT INTO sys_config (config_key, config_value, config_group, description, tenant_id)
+    `INSERT INTO t_sys_config (config_key, config_value, config_group, description, tenant_id)
      VALUES (?, ?, ?, ?, ?)`,
     [body.config_key, body.config_value, body.config_group, body.description, tenantId]
   );

@@ -21,7 +21,7 @@ export async function createAftersale(params: {
   const { tenantId, customerId, orderNo, aftersaleType, reason, reasonDetail, images, items, refundAmount, exchangeSkuId, exchangeQty } = params;
 
   const order = await queryOne<Record<string, unknown>>(
-    `SELECT id, order_no, store_id, member_id, order_status FROM miniapp_order WHERE order_no = ? AND member_id = ? AND tenant_id = ?`,
+    `SELECT id, order_no, store_id, member_id, order_status FROM t_miniapp_order WHERE order_no = ? AND member_id = ? AND tenant_id = ?`,
     [orderNo, customerId, tenantId]
   );
   if (!order) throw Object.assign(new Error("订单不存在"), { statusCode: 404 });
@@ -92,7 +92,7 @@ export async function getAftersaleDetail(aftersaleNo: string, customerId: number
   const row = await queryOne<Record<string, unknown>>(
     `SELECT a.*, o.receiver_name AS orderReceiverName, o.receiver_mobile AS orderReceiverMobile
      FROM aftersale a
-     LEFT JOIN miniapp_order o ON o.order_no = a.order_no AND o.tenant_id = a.tenant_id
+     LEFT JOIN t_miniapp_order o ON o.order_no = a.order_no AND o.tenant_id = a.tenant_id
      WHERE a.aftersale_no = ? AND a.customer_id = ? AND a.tenant_id = ?`,
     [aftersaleNo, customerId, tenantId]
   );
@@ -205,7 +205,7 @@ export async function getAftersaleDetailById(id: number, tenantId: string) {
     `SELECT a.*,
             o.receiver_name AS orderReceiverName, o.receiver_mobile AS orderReceiverMobile, o.receiver_address AS orderReceiverAddress
      FROM aftersale a
-     LEFT JOIN miniapp_order o ON o.order_no = a.order_no AND o.tenant_id = a.tenant_id
+     LEFT JOIN t_miniapp_order o ON o.order_no = a.order_no AND o.tenant_id = a.tenant_id
      WHERE a.id = ? AND a.tenant_id = ?`,
     [id, tenantId]
   );

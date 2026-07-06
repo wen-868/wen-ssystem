@@ -22,7 +22,7 @@ export async function verifyTraceCode(
     `SELECT id, trace_code AS traceCode, sku_id AS skuId, sku_name AS skuName,
             batch_no AS batchNo, current_status AS currentStatus,
             fraud_alert AS fraudAlert, expiry_date AS expiryDate
-     FROM trace_code WHERE trace_code = ? AND tenant_id = ?`,
+     FROM t_trace_code WHERE trace_code = ? AND tenant_id = ?`,
     [traceCode, tenantId]
   );
   return validateTraceCodeResult(rows[0]);
@@ -37,7 +37,7 @@ export async function verifyTraceCodeSimple(
     `SELECT id, trace_code AS traceCode, sku_id AS skuId, sku_name AS skuName,
             batch_no AS batchNo, current_status AS currentStatus,
             fraud_alert AS fraudAlert, expiry_date AS expiryDate
-     FROM trace_code WHERE trace_code = ? AND tenant_id = ?`,
+     FROM t_trace_code WHERE trace_code = ? AND tenant_id = ?`,
     [traceCode, tenantId],
     tenantId
   );
@@ -81,14 +81,14 @@ export async function bindTraceCodeOnInStock(
   // 查询编码前缀配置
   const [configRows]: any[] = await conn.query(
     `SELECT code_prefix AS codePrefix, shelf_life_days AS shelfLifeDays
-     FROM trace_config WHERE config_level = 'SKU' AND target_id = ? AND status = 1 AND tenant_id = ?`,
+     FROM t_trace_config WHERE config_level = 'SKU' AND target_id = ? AND status = 1 AND tenant_id = ?`,
     [skuId, tenantId]
   );
   let config = configRows[0];
   if (!config) {
     const [globalRows]: any[] = await conn.query(
       `SELECT code_prefix AS codePrefix, shelf_life_days AS shelfLifeDays
-       FROM trace_config WHERE config_level = 'GLOBAL' AND status = 1 AND tenant_id = ? LIMIT 1`,
+       FROM t_trace_config WHERE config_level = 'GLOBAL' AND status = 1 AND tenant_id = ? LIMIT 1`,
       [tenantId]
     );
     config = globalRows[0];
@@ -111,7 +111,7 @@ export async function bindTraceCodeOnInStock(
     const traceCode = `${codePrefix}${datePart}${seq}`;
 
     await conn.execute(
-      `INSERT INTO trace_code (trace_code, sku_id, sku_name, batch_no, production_date, expiry_date,
+      `INSERT INTO t_trace_code (trace_code, sku_id, sku_name, batch_no, production_date, expiry_date,
          shelf_life_days, code_mode, category_id, current_status, current_location,
          store_id, warehouse_id, supplier_id, tenant_id)
        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, 'PRODUCED', '生产入库', ?, ?, ?, ?)`,
@@ -122,7 +122,7 @@ export async function bindTraceCodeOnInStock(
 
     // 记录生成事件
     await conn.execute(
-      `INSERT INTO trace_event_log (trace_code, event_type, from_status, to_status,
+      `INSERT INTO t_trace_event_log (trace_code, event_type, from_status, to_status,
          operator_type, operator_id, location, remark, tenant_id)
        VALUES (?, 'GENERATE', NULL, 'PRODUCED', 'SYSTEM', 0, '生产入库', '入库自动生成', ?)`,
       [traceCode, tenantId]
@@ -144,16 +144,16 @@ export async function updateTraceCodeOnOutStock(
 ): Promise<void> {
   for (const code of codes) {
     await conn.execute(
-      `UPDATE trace_code
+      `UPDATE t_trace_code
        SET current_status = 'SOLD', current_location = ?,
-           order_id = (SELECT id FROM miniapp_order WHERE order_no = ? LIMIT 1),
+           order_id = (SELECT id FROM t_miniapp_order WHERE order_no = ? LIMIT 1),
            version = version + 1, updated_at = NOW()
        WHERE trace_code = ? AND tenant_id = ?`,
       [bizType, bizNo, code, tenantId]
     );
 
     await conn.execute(
-      `INSERT INTO trace_event_log (trace_code, event_type, from_status, to_status,
+      `INSERT INTO t_trace_event_log (trace_code, event_type, from_status, to_status,
          operator_type, location, remark, tenant_id)
        VALUES (?, 'SOLD', NULL, 'SOLD', 'SYSTEM', ?, ?, ?)`,
       [code, bizNo, `出库关联: ${bizNo}`, tenantId]
@@ -173,7 +173,7 @@ export async function updateTraceCodesBySkuList(
   for (const skuId of skuIdList) {
     // 查询该 SKU 在订单中的数量
     const [items]: any[] = await conn.query(
-      `SELECT qty, reserved_qty FROM miniapp_order_item WHERE order_no = ? AND sku_id = ?`,
+      `SELECT qty, reserved_qty FROM t_miniapp_order_item WHERE order_no = ? AND sku_id = ?`,
       [orderNo, skuId]
     );
     const item = items[0];
@@ -182,7 +182,7 @@ export async function updateTraceCodesBySkuList(
 
     // FIFO 取最早入库的追溯码
     const [codes]: any[] = await conn.query(
-      `SELECT trace_code FROM trace_code
+      `SELECT trace_code FROM t_trace_code
        WHERE sku_id = ? AND tenant_id = ? AND current_status = 'PRODUCED'
        ORDER BY created_at ASC LIMIT ?`,
       [skuId, tenantId, neededQty]
@@ -194,16 +194,16 @@ export async function updateTraceCodesBySkuList(
     // 批量更新为 SOLD
     for (const code of codeList) {
       await conn.execute(
-        `UPDATE trace_code
+        `UPDATE t_trace_code
          SET current_status = 'SOLD', current_location = ?,
-             order_id = (SELECT id FROM miniapp_order WHERE order_no = ? LIMIT 1),
+             order_id = (SELECT id FROM t_miniapp_order WHERE order_no = ? LIMIT 1),
              version = version + 1, updated_at = NOW()
          WHERE trace_code = ? AND tenant_id = ?`,
         [orderNo, orderNo, code, tenantId]
       );
 
       await conn.execute(
-        `INSERT INTO trace_event_log (trace_code, event_type, from_status, to_status,
+        `INSERT INTO t_trace_event_log (trace_code, event_type, from_status, to_status,
            operator_type, location, remark, tenant_id)
          VALUES (?, 'SOLD', NULL, 'SOLD', 'SYSTEM', ?, ?, ?)`,
         [code, orderNo, `订单完成消费: ${orderNo}`, tenantId]

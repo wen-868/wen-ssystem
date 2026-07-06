@@ -84,7 +84,7 @@ export async function getProfile(wxUserId: number) {
     `SELECT ub.id, ub.binding_type, ub.status, ub.bound_at,
             su.username, su.real_name AS realName
      FROM user_binding ub
-     LEFT JOIN sys_user su ON su.id = ub.system_user_id
+     LEFT JOIN t_sys_user su ON su.id = ub.system_user_id
      WHERE ub.wx_user_id = ? AND ub.status = 'ACTIVE'`,
     [wxUserId]
   );
@@ -97,7 +97,7 @@ export async function bindUser(
   body: { username: string; password: string; bindingType: string }
 ) {
   const sysUser = await queryOne<{ id: number; password_hash: string; username: string; real_name: string }>(
-    "SELECT id, password_hash, username, real_name FROM sys_user WHERE username = ? AND status = 1",
+    "SELECT id, password_hash, username, real_name FROM t_sys_user WHERE username = ? AND status = 1",
     [body.username]
   );
 

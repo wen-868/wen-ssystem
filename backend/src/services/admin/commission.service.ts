@@ -108,7 +108,7 @@ export async function calculateCommissions(params: {
   const bills = await queryWithTenant<any>(
     `SELECT sb.bill_no AS billNo, sb.operator_id AS staffId, sb.receivable_amount AS receivableAmount,
             sb.received_amount AS receivedAmount
-     FROM sale_bill sb
+     FROM t_sale_bill sb
      WHERE sb.tenant_id = ? AND sb.business_status = 'CREATED'
        AND sb.created_at >= ? AND sb.created_at <= ?
        AND sb.operator_id IS NOT NULL`,
@@ -185,7 +185,7 @@ export async function listCommissionRecords(params: {
             u.real_name AS staffName
      FROM sales_commission_record cr
      LEFT JOIN sales_commission_rule sr ON sr.id = cr.rule_id
-     LEFT JOIN sys_user u ON u.id = cr.staff_id
+     LEFT JOIN t_sys_user u ON u.id = cr.staff_id
      ${where}
      ORDER BY cr.id DESC
      LIMIT ? OFFSET ?`,

@@ -8,10 +8,10 @@ export async function getCartList(tenantId: string, customerId: number, customer
             pp.retail_price AS retailPrice, pp.wholesale_price AS wholesalePrice, pp.miniapp_price AS miniappPrice,
             COALESCE(ib.available_qty, 0) AS availableQty
      FROM cart_item c
-     JOIN product_sku s ON s.id = c.sku_id AND s.tenant_id = c.tenant_id
-     JOIN product_spu p ON p.id = s.spu_id AND p.tenant_id = s.tenant_id
-     JOIN product_price pp ON pp.sku_id = s.id AND pp.tenant_id = s.tenant_id
-     LEFT JOIN inventory_balance ib ON ib.sku_id = s.id AND ib.store_id = 1 AND ib.stock_type = 'ONLINE' AND ib.tenant_id = c.tenant_id
+     JOIN t_product_sku s ON s.id = c.sku_id AND s.tenant_id = c.tenant_id
+     JOIN t_product_spu p ON p.id = s.spu_id AND p.tenant_id = s.tenant_id
+     JOIN t_product_price pp ON pp.sku_id = s.id AND pp.tenant_id = s.tenant_id
+     LEFT JOIN t_inventory_balance ib ON ib.sku_id = s.id AND ib.store_id = 1 AND ib.stock_type = 'ONLINE' AND ib.tenant_id = c.tenant_id
      WHERE c.customer_id = ?
      ORDER BY c.added_at DESC`,
     [customerId],
@@ -40,7 +40,7 @@ export async function getCartList(tenantId: string, customerId: number, customer
 
 export async function addToCart(tenantId: string, customerId: number, skuId: number, quantity: number) {
   const sku = await queryOneWithTenant<any>(
-    `SELECT s.id, s.sku_name FROM product_sku s JOIN product_spu p ON p.id = s.spu_id AND p.tenant_id = s.tenant_id WHERE s.id = ? AND p.status = 'ON_SALE'`,
+    `SELECT s.id, s.sku_name FROM t_product_sku s JOIN t_product_spu p ON p.id = s.spu_id AND p.tenant_id = s.tenant_id WHERE s.id = ? AND p.status = 'ON_SALE'`,
     [skuId],
     tenantId
   );

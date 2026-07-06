@@ -113,12 +113,12 @@ class SaleReturnService {
       params.push(`%${keyword}%`, `%${keyword}%`, `%${keyword}%`);
     }
 
-    const countSql = `SELECT COUNT(*) AS total FROM sale_return sr ${where}`;
+    const countSql = `SELECT COUNT(*) AS total FROM t_sale_return sr ${where}`;
     const countRow = await queryOneWithTenant<{ total: number }>(countSql, params, ctx.tenantId);
     const total = Number(countRow?.total ?? 0);
 
     const offset = (page - 1) * pageSize;
-    const dataSql = `SELECT sr.*, s.name AS store_name FROM sale_return sr LEFT JOIN store s ON sr.store_id = s.id AND s.tenant_id = ? ${where} ORDER BY sr.created_at DESC LIMIT ? OFFSET ?`;
+    const dataSql = `SELECT sr.*, s.name AS store_name FROM t_sale_return sr LEFT JOIN store s ON sr.store_id = s.id AND s.tenant_id = ? ${where} ORDER BY sr.created_at DESC LIMIT ? OFFSET ?`;
     const dataParams = [ctx.tenantId, ...params, pageSize, offset];
     const records = await queryWithTenant<SaleReturnListVO>(dataSql, dataParams, ctx.tenantId);
 
@@ -127,14 +127,14 @@ class SaleReturnService {
 
   async getDetail(returnNo: string, ctx: ServiceContext): Promise<SaleReturnDetailVO | null> {
     const returnOrder = await queryOneWithTenant<SaleReturn>(
-      "SELECT * FROM sale_return WHERE return_no = ? AND tenant_id = ?",
+      "SELECT * FROM t_sale_return WHERE return_no = ? AND tenant_id = ?",
       [returnNo, ctx.tenantId],
       ctx.tenantId
     );
     if (!returnOrder) return null;
 
     const items = await query<SaleReturnItem>(
-      "SELECT * FROM sale_return_item WHERE return_no = ?",
+      "SELECT * FROM t_sale_return_item WHERE return_no = ?",
       [returnNo]
     );
 
@@ -163,7 +163,7 @@ class SaleReturnService {
 
     await transaction(async (conn) => {
       await (conn as any).execute(
-        `INSERT INTO sale_return (
+        `INSERT INTO t_sale_return (
           return_no, source_bill_no, store_id, customer_id, customer_name, customer_mobile,
           return_status, goods_amount, discount_amount, refund_amount, refunded_amount,
           operator_id, remark, tenant_id
@@ -186,7 +186,7 @@ class SaleReturnService {
 
       for (const item of itemsWithAmount) {
         await (conn as any).execute(
-          `INSERT INTO sale_return_item (
+          `INSERT INTO t_sale_return_item (
             return_no, sku_id, sku_name, box_qty, bottle_qty, total_bottle_qty,
             unit_price, subtotal_amount, reason
           ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`,
@@ -205,7 +205,7 @@ class SaleReturnService {
       }
 
       await (conn as any).execute(
-        "INSERT INTO operation_log (module, action, target_id, target_type, user_id, user_name, detail, tenant_id) VALUES (?, ?, ?, ?, ?, ?, ?, ?)",
+        "INSERT INTO t_operation_log (module, action, target_id, target_type, user_id, user_name, detail, tenant_id) VALUES (?, ?, ?, ?, ?, ?, ?, ?)",
         ["sale_return", "CREATE", returnNo, "sale_return", ctx.userId, ctx.username, `创建退货单: ${returnNo}`, ctx.tenantId]
       );
     });
@@ -215,7 +215,7 @@ class SaleReturnService {
 
   async approve(returnNo: string, ctx: ServiceContext): Promise<{ returnNo: string } | null> {
     const returnOrder = await queryOneWithTenant<SaleReturn>(
-      "SELECT * FROM sale_return WHERE return_no = ? AND tenant_id = ?",
+      "SELECT * FROM t_sale_return WHERE return_no = ? AND tenant_id = ?",
       [returnNo, ctx.tenantId],
       ctx.tenantId
     );
@@ -227,19 +227,19 @@ class SaleReturnService {
 
     await transaction(async (conn) => {
       await (conn as any).execute(
-        "UPDATE sale_return SET return_status = 'COMPLETED', auditor_id = ?, audited_at = NOW() WHERE return_no = ?",
+        "UPDATE t_sale_return SET return_status = 'COMPLETED', auditor_id = ?, audited_at = NOW() WHERE return_no = ?",
         [ctx.userId, returnNo]
       );
 
       const [items] = await (conn as any).execute(
-        "SELECT sku_id, total_bottle_qty FROM sale_return_item WHERE return_no = ?",
+        "SELECT sku_id, total_bottle_qty FROM t_sale_return_item WHERE return_no = ?",
         [returnNo]
       ) as [Record<string, unknown>[], unknown];
 
       const itemRows = items as Record<string, unknown>[];
       for (const item of itemRows) {
         await (conn as any).execute(
-          `INSERT INTO inventory_balance (store_id, sku_id, physical_qty, available_qty, tenant_id)
+          `INSERT INTO t_inventory_balance (store_id, sku_id, physical_qty, available_qty, tenant_id)
            VALUES (?, ?, ?, ?, ?)
            ON DUPLICATE KEY UPDATE physical_qty = physical_qty + ?, available_qty = available_qty + ?`,
           [returnOrder.store_id, item.sku_id, item.total_bottle_qty, item.total_bottle_qty, ctx.tenantId, item.total_bottle_qty, item.total_bottle_qty]
@@ -249,7 +249,7 @@ class SaleReturnService {
       if (itemRows.length > 0) {
         const totalQty = itemRows.reduce((sum: number, i: any) => sum + i.total_bottle_qty, 0);
         await (conn as any).execute(
-          `INSERT INTO inventory_ledger (
+          `INSERT INTO t_inventory_ledger (
             store_id, sku_id, change_type, change_qty, before_qty, after_qty,
             source_no, source_type, operator_id, remark, tenant_id
           ) VALUES (?, ?, 'RETURN_IN', ?, ?, ?, ?, 'sale_return', ?, ?, ?)`,
@@ -268,7 +268,7 @@ class SaleReturnService {
       }
 
       await (conn as any).execute(
-        "INSERT INTO operation_log (module, action, target_id, target_type, user_id, user_name, detail, tenant_id) VALUES (?, ?, ?, ?, ?, ?, ?, ?)",
+        "INSERT INTO t_operation_log (module, action, target_id, target_type, user_id, user_name, detail, tenant_id) VALUES (?, ?, ?, ?, ?, ?, ?, ?)",
         ["sale_return", "APPROVE", returnNo, "sale_return", ctx.userId, ctx.username, `审核通过: ${returnNo}`, ctx.tenantId]
       );
     });
@@ -278,7 +278,7 @@ class SaleReturnService {
 
   async refund(returnNo: string, dto: RefundDTO, ctx: ServiceContext): Promise<{ returnNo: string } | null> {
     const returnOrder = await queryOneWithTenant<SaleReturn>(
-      "SELECT * FROM sale_return WHERE return_no = ? AND tenant_id = ?",
+      "SELECT * FROM t_sale_return WHERE return_no = ? AND tenant_id = ?",
       [returnNo, ctx.tenantId],
       ctx.tenantId
     );
@@ -294,12 +294,12 @@ class SaleReturnService {
 
     await transaction(async (conn) => {
       await (conn as any).execute(
-        "UPDATE sale_return SET refunded_amount = refund_amount, refund_method = ? WHERE return_no = ?",
+        "UPDATE t_sale_return SET refunded_amount = refund_amount, refund_method = ? WHERE return_no = ?",
         [dto.refundMethod, returnNo]
       );
 
       await (conn as any).execute(
-        "INSERT INTO operation_log (module, action, target_id, target_type, user_id, user_name, detail, tenant_id) VALUES (?, ?, ?, ?, ?, ?, ?, ?)",
+        "INSERT INTO t_operation_log (module, action, target_id, target_type, user_id, user_name, detail, tenant_id) VALUES (?, ?, ?, ?, ?, ?, ?, ?)",
         ["sale_return", "REFUND", returnNo, "sale_return", ctx.userId, ctx.username, `确认退款: ${returnNo}, 方式: ${dto.refundMethod}`, ctx.tenantId]
       );
     });
@@ -309,14 +309,14 @@ class SaleReturnService {
 
   async getSaleBill(billNo: string, ctx: ServiceContext): Promise<any | null> {
     const bill = await queryOneWithTenant<any>(
-      "SELECT * FROM sale_bill WHERE bill_no = ? AND tenant_id = ?",
+      "SELECT * FROM t_sale_bill WHERE bill_no = ? AND tenant_id = ?",
       [billNo, ctx.tenantId],
       ctx.tenantId
     );
     if (!bill) return null;
 
     const items = await queryWithTenant<any>(
-      "SELECT * FROM sale_bill_item WHERE bill_no = ?",
+      "SELECT * FROM t_sale_bill_item WHERE bill_no = ?",
       [billNo],
       ctx.tenantId
     );

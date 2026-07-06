@@ -12,8 +12,8 @@ shareRouter.get("/collections/:token", asyncHandler(async (req, res) => {
     `SELECT cl.link_no AS linkNo, cl.source_type AS sourceType, cl.source_no AS sourceNo, cl.amount, cl.paid_amount AS paidAmount,
             cl.status, cl.expire_at AS expireAt, cl.tax_enabled AS taxEnabled, cl.tax_rate AS taxRate, cl.tax_amount AS taxAmount,
             sb.customer_name AS customerName, st.name AS storeName
-     FROM collection_link cl
-     JOIN sale_bill sb ON sb.bill_no = cl.source_no
+     FROM t_collection_link cl
+     JOIN t_sale_bill sb ON sb.bill_no = cl.source_no
      JOIN store st ON st.id = sb.store_id
      WHERE cl.token = ?`,
     [req.params.token]
@@ -22,11 +22,11 @@ shareRouter.get("/collections/:token", asyncHandler(async (req, res) => {
     res.status(404).json(fail("收款单不存在或已失效", "404"));
     return;
   }
-  await query("UPDATE collection_link SET view_count = view_count + 1, last_view_time = NOW() WHERE link_no = ?", [link.linkNo]);
+  await query("UPDATE t_collection_link SET view_count = view_count + 1, last_view_time = NOW() WHERE link_no = ?", [link.linkNo]);
   const items = await query<any>(
     `SELECT sku_id AS skuId, sku_name AS skuName, box_qty AS boxQty, bottle_qty AS bottleQty,
             total_bottle_qty AS totalBottleQty, unit_price AS unitPrice, subtotal_amount AS subtotalAmount
-     FROM sale_bill_item WHERE bill_no = ?`,
+     FROM t_sale_bill_item WHERE bill_no = ?`,
     [link.sourceNo]
   );
   res.json(ok({ ...link, items }));
@@ -40,7 +40,7 @@ shareRouter.get("/collections/:token/page", asyncHandler(async (req, res) => {
             cl.expire_at AS expireAt, cl.tax_enabled AS taxEnabled,
             cl.tax_rate AS taxRate, cl.tax_amount AS taxAmount,
             cl.share_channel AS shareChannel, cl.created_at AS createdAt
-     FROM collection_link cl
+     FROM t_collection_link cl
      WHERE cl.token = ?`,
     [req.params.token]
   );
@@ -51,7 +51,7 @@ shareRouter.get("/collections/:token/page", asyncHandler(async (req, res) => {
   const now = new Date();
   const expired = link.expireAt && new Date(link.expireAt) < now;
   if (expired && link.status === "PENDING") {
-    await query("UPDATE collection_link SET status = 'EXPIRED' WHERE link_no = ?", [link.linkNo]);
+    await query("UPDATE t_collection_link SET status = 'EXPIRED' WHERE link_no = ?", [link.linkNo]);
     link.status = "EXPIRED";
   }
   if (link.status === "EXPIRED") {
@@ -72,7 +72,7 @@ shareRouter.get("/collections/:token/page", asyncHandler(async (req, res) => {
             sb.receivable_amount AS receivableAmount, sb.received_amount AS receivedAmount,
             sb.unreceived_amount AS unreceivedAmount, sb.store_id AS storeId,
             st.name AS storeName
-     FROM sale_bill sb
+     FROM t_sale_bill sb
      JOIN store st ON st.id = sb.store_id
      WHERE sb.bill_no = ?`,
     [link.sourceNo]
@@ -82,10 +82,10 @@ shareRouter.get("/collections/:token/page", asyncHandler(async (req, res) => {
             box_qty AS boxQty, bottle_qty AS bottleQty,
             total_bottle_qty AS totalBottleQty,
             unit_price AS unitPrice, subtotal_amount AS subtotalAmount
-     FROM sale_bill_item WHERE bill_no = ?`,
+     FROM t_sale_bill_item WHERE bill_no = ?`,
     [link.sourceNo]
   );
-  await query("UPDATE collection_link SET view_count = view_count + 1, last_view_time = NOW() WHERE link_no = ?", [link.linkNo]);
+  await query("UPDATE t_collection_link SET view_count = view_count + 1, last_view_time = NOW() WHERE link_no = ?", [link.linkNo]);
   res.json(ok({
     linkNo: link.linkNo, token: req.params.token,
     amount: link.amount, paidAmount: link.paidAmount,
@@ -100,14 +100,14 @@ shareRouter.get("/collections/:token/page", asyncHandler(async (req, res) => {
 }));
 
 shareRouter.post("/collections/:token/pay", asyncHandler(async (req, res) => {
-  const link = await queryOne<any>("SELECT link_no, amount, status FROM collection_link WHERE token = ?", [req.params.token]);
+  const link = await queryOne<any>("SELECT link_no, amount, status FROM t_collection_link WHERE token = ?", [req.params.token]);
   if (!link || !["PENDING", "PARTIAL"].includes(link.status)) {
     res.status(400).json(fail("收款单不可支付", "400"));
     return;
   }
   const payNo = makeBizNo("ZF");
   await query(
-    `INSERT INTO payment_order (pay_no, source_type, source_no, channel, amount, status)
+    `INSERT INTO t_payment_order (pay_no, source_type, source_no, channel, amount, status)
      VALUES (?, 'COLLECTION_LINK', ?, 'WECHAT', ?, 'PENDING')`,
     [payNo, link.link_no, link.amount]
   );
@@ -155,7 +155,7 @@ shareRouter.post("/collections/:token/wx-notify", asyncHandler(async (req, res) 
     payAmount = req.body.payAmount ?? req.body.total_fee;
   }
 
-  const link = await queryOne<any>("SELECT link_no, source_no, amount, paid_amount, status FROM collection_link WHERE token = ?", [req.params.token]);
+  const link = await queryOne<any>("SELECT link_no, source_no, amount, paid_amount, status FROM t_collection_link WHERE token = ?", [req.params.token]);
   if (!link) {
     res.status(404).json(fail("收款链接不存在", "404"));
     return;
@@ -170,22 +170,22 @@ shareRouter.post("/collections/:token/wx-notify", asyncHandler(async (req, res) 
   }
   const wxPayAmount = payAmount ?? link.amount;
   await query(
-    `UPDATE payment_order SET status = 'SUCCESS', transaction_id = ?, paid_at = NOW()
+    `UPDATE t_payment_order SET status = 'SUCCESS', transaction_id = ?, paid_at = NOW()
      WHERE pay_no = ? AND source_no = ?`,
     [transactionId ?? null, payNo, link.link_no]
   );
   const newPaid = Number(link.paid_amount) + Number(wxPayAmount);
   const newStatus = newPaid >= Number(link.amount) ? "PAID" : "PARTIAL";
   await query(
-    `UPDATE collection_link SET paid_amount = ?, status = ?, last_pay_time = NOW() WHERE link_no = ?`,
+    `UPDATE t_collection_link SET paid_amount = ?, status = ?, last_pay_time = NOW() WHERE link_no = ?`,
     [newPaid, newStatus, link.link_no]
   );
-  const bill = await queryOne<any>("SELECT received_amount, receivable_amount FROM sale_bill WHERE bill_no = ?", [link.source_no]);
+  const bill = await queryOne<any>("SELECT received_amount, receivable_amount FROM t_sale_bill WHERE bill_no = ?", [link.source_no]);
   if (bill) {
     const newReceived = Number(bill.received_amount) + Number(wxPayAmount);
     const billStatus = newReceived >= Number(bill.receivable_amount) ? "PAID" : "PARTIAL";
     await query(
-      `UPDATE sale_bill SET received_amount = ?, unreceived_amount = GREATEST(receivable_amount - ?, 0),
+      `UPDATE t_sale_bill SET received_amount = ?, unreceived_amount = GREATEST(receivable_amount - ?, 0),
        collection_status = ?, last_payment_time = NOW() WHERE bill_no = ?`,
       [newReceived, newReceived, billStatus, link.source_no]
     );

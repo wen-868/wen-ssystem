@@ -136,7 +136,7 @@ async function findByOrderNo(orderNo: string, tenantId: string): Promise<Purchas
             unpaid_amount AS unpaidAmount, expected_date AS expectedDate,
             operator_id AS operatorId, remark, tenant_id AS tenantId,
             created_at AS createdAt, updated_at AS updatedAt
-     FROM purchase_order
+     FROM t_purchase_order
      WHERE order_no = ? AND tenant_id = ?`,
     [orderNo, tenantId],
     tenantId
@@ -162,7 +162,7 @@ async function updateOrderStatus(
   }
 
   params.push(orderNo, tenantId);
-  await queryWithTenant(`UPDATE purchase_order SET ${sets.join(", ")} WHERE order_no = ? AND tenant_id = ?`, params, tenantId);
+  await queryWithTenant(`UPDATE t_purchase_order SET ${sets.join(", ")} WHERE order_no = ? AND tenant_id = ?`, params, tenantId);
 }
 
 async function addOperationLog(
@@ -176,7 +176,7 @@ async function addOperationLog(
   tenantId: string
 ): Promise<void> {
   await queryWithTenant(
-    `INSERT INTO operation_log (module, action, target_id, target_type, user_id, user_name, detail, tenant_id)
+    `INSERT INTO t_operation_log (module, action, target_id, target_type, user_id, user_name, detail, tenant_id)
      VALUES (?, ?, ?, ?, ?, ?, ?, ?)`,
     [module, action, targetId, targetType, userId, username, detail, tenantId],
     tenantId
@@ -225,7 +225,7 @@ class PurchaseService {
     const whereClause = conditions.join(" AND ");
 
     const countResult = await queryOneWithTenant<{ total: number }>(
-      `SELECT COUNT(*) AS total FROM purchase_order po WHERE ${whereClause}`,
+      `SELECT COUNT(*) AS total FROM t_purchase_order po WHERE ${whereClause}`,
       params,
       ctx.tenantId
     );
@@ -238,7 +238,7 @@ class PurchaseService {
               po.payable_amount AS payableAmount, po.paid_amount AS paidAmount,
               po.unpaid_amount AS unpaidAmount, po.expected_date AS expectedDate,
               po.created_at AS createdDate
-       FROM purchase_order po
+       FROM t_purchase_order po
        WHERE ${whereClause}
        ORDER BY po.created_at DESC
        LIMIT ? OFFSET ?`,
@@ -257,7 +257,7 @@ class PurchaseService {
               payable_amount AS payableAmount, paid_amount AS paidAmount,
               unpaid_amount AS unpaidAmount, expected_date AS expectedDate,
               remark, created_at AS createdDate, updated_at AS updatedDate
-       FROM purchase_order
+       FROM t_purchase_order
        WHERE order_no = ? AND tenant_id = ?`,
       [orderNo, ctx.tenantId],
       ctx.tenantId
@@ -272,7 +272,7 @@ class PurchaseService {
               subtotal_amount AS subtotalAmount, tax_amount AS taxAmount,
               total_amount AS totalAmount, COALESCE(in_stocked_qty, 0) AS inStockedQty,
               remark
-       FROM purchase_order_item
+       FROM t_purchase_order_item
        WHERE order_no = ?`,
       [orderNo]
     );
@@ -309,7 +309,7 @@ class PurchaseService {
 
     await transaction(async (conn) => {
       await (conn as any).execute(
-        `INSERT INTO purchase_order (
+        `INSERT INTO t_purchase_order (
           order_no, supplier_id, supplier_name, store_id, order_status,
           goods_amount, tax_amount, discount_amount, payable_amount,
           paid_amount, unpaid_amount, expected_date, operator_id, remark, tenant_id
@@ -333,7 +333,7 @@ class PurchaseService {
 
       for (const item of itemsWithAmount) {
         await (conn as any).execute(
-          `INSERT INTO purchase_order_item (
+          `INSERT INTO t_purchase_order_item (
             order_no, sku_id, sku_name, barcode, box_qty, bottle_qty, total_bottle_qty,
             unit_price, tax_rate, subtotal_amount, tax_amount, total_amount, remark
           ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
@@ -356,7 +356,7 @@ class PurchaseService {
       }
 
       await (conn as any).execute(
-        `INSERT INTO operation_log (module, action, target_id, target_type, user_id, user_name, detail, tenant_id)
+        `INSERT INTO t_operation_log (module, action, target_id, target_type, user_id, user_name, detail, tenant_id)
          VALUES (?, ?, ?, ?, ?, ?, ?, ?)`,
         ["purchase", "CREATE", orderNo, "purchase_order", ctx.userId, ctx.username, `创建采购订单: ${orderNo}`, ctx.tenantId]
       );
@@ -422,10 +422,10 @@ class PurchaseService {
         updates.push("goods_amount = ?", "tax_amount = ?", "payable_amount = ?", "unpaid_amount = ?");
         params.push(goodsAmount, taxAmount, totalAmount, totalAmount);
 
-        await (conn as any).execute("DELETE FROM purchase_order_item WHERE order_no = ?", [orderNo]);
+        await (conn as any).execute("DELETE FROM t_purchase_order_item WHERE order_no = ?", [orderNo]);
         for (const item of itemsWithAmount) {
           await (conn as any).execute(
-            `INSERT INTO purchase_order_item (
+            `INSERT INTO t_purchase_order_item (
               order_no, sku_id, sku_name, barcode, box_qty, bottle_qty, total_bottle_qty,
               unit_price, tax_rate, subtotal_amount, tax_amount, total_amount, remark
             ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
@@ -452,13 +452,13 @@ class PurchaseService {
         updates.push("updated_at = NOW()");
         params.push(orderNo, ctx.tenantId);
         await (conn as any).execute(
-          `UPDATE purchase_order SET ${updates.join(", ")} WHERE order_no = ? AND tenant_id = ?`,
+          `UPDATE t_purchase_order SET ${updates.join(", ")} WHERE order_no = ? AND tenant_id = ?`,
           params as any[]
         );
       }
 
       await (conn as any).execute(
-        `INSERT INTO operation_log (module, action, target_id, target_type, user_id, user_name, detail, tenant_id)
+        `INSERT INTO t_operation_log (module, action, target_id, target_type, user_id, user_name, detail, tenant_id)
          VALUES (?, ?, ?, ?, ?, ?, ?, ?)`,
         ["purchase", "UPDATE", orderNo, "purchase_order", ctx.userId, ctx.username, `修改采购订单: ${orderNo}`, ctx.tenantId]
       );
@@ -476,10 +476,10 @@ class PurchaseService {
     }
 
     await transaction(async (conn) => {
-      await (conn as any).execute("DELETE FROM purchase_order_item WHERE order_no = ?", [orderNo]);
-      await (conn as any).execute("DELETE FROM purchase_order WHERE order_no = ? AND tenant_id = ?", [orderNo, ctx.tenantId]);
+      await (conn as any).execute("DELETE FROM t_purchase_order_item WHERE order_no = ?", [orderNo]);
+      await (conn as any).execute("DELETE FROM t_purchase_order WHERE order_no = ? AND tenant_id = ?", [orderNo, ctx.tenantId]);
       await (conn as any).execute(
-        `INSERT INTO operation_log (module, action, target_id, target_type, user_id, user_name, detail, tenant_id)
+        `INSERT INTO t_operation_log (module, action, target_id, target_type, user_id, user_name, detail, tenant_id)
          VALUES (?, ?, ?, ?, ?, ?, ?, ?)`,
         ["purchase", "DELETE", orderNo, "purchase_order", ctx.userId, ctx.username, `删除采购订单: ${orderNo}`, ctx.tenantId]
       );
@@ -567,7 +567,7 @@ class PurchaseService {
 
     const orderItems = await query<any>(
       `SELECT sku_id, COALESCE(in_stocked_qty, 0) AS in_stocked_qty
-       FROM purchase_order_item
+       FROM t_purchase_order_item
        WHERE order_no = ?`,
       [orderNo]
     );
@@ -582,12 +582,12 @@ class PurchaseService {
         const newInStockedQty = Number(orderItem.in_stocked_qty || 0) + inStockBottleQty;
 
         await (conn as any).execute(
-          "UPDATE purchase_order_item SET in_stocked_qty = ? WHERE order_no = ? AND sku_id = ?",
+          "UPDATE t_purchase_order_item SET in_stocked_qty = ? WHERE order_no = ? AND sku_id = ?",
           [newInStockedQty, orderNo, item.skuId]
         );
 
         await (conn as any).execute(
-          `INSERT INTO inventory_balance (store_id, sku_id, physical_qty, available_qty, tenant_id)
+          `INSERT INTO t_inventory_balance (store_id, sku_id, physical_qty, available_qty, tenant_id)
            VALUES (?, ?, ?, ?, ?)
            ON DUPLICATE KEY UPDATE physical_qty = physical_qty + ?, available_qty = available_qty + ?`,
           [order.storeId, item.skuId, inStockBottleQty, inStockBottleQty, ctx.tenantId, inStockBottleQty, inStockBottleQty]
@@ -595,7 +595,7 @@ class PurchaseService {
       }
 
       const [rows] = (await (conn as any).execute(
-        "SELECT total_bottle_qty, in_stocked_qty FROM purchase_order_item WHERE order_no = ?",
+        "SELECT total_bottle_qty, in_stocked_qty FROM t_purchase_order_item WHERE order_no = ?",
         [orderNo]
       )) as [Record<string, unknown>[], unknown];
       const totalOrdered = rows.reduce((sum: number, i: any) => sum + Number(i.total_bottle_qty), 0);
@@ -606,13 +606,13 @@ class PurchaseService {
         warehouseStatus = "FULL";
       }
 
-      await (conn as any).execute("UPDATE purchase_order SET warehouse_status = ?, updated_at = NOW() WHERE order_no = ?", [
+      await (conn as any).execute("UPDATE t_purchase_order SET warehouse_status = ?, updated_at = NOW() WHERE order_no = ?", [
         warehouseStatus,
         orderNo,
       ]);
 
       await (conn as any).execute(
-        `INSERT INTO operation_log (module, action, target_id, target_type, user_id, user_name, detail, tenant_id)
+        `INSERT INTO t_operation_log (module, action, target_id, target_type, user_id, user_name, detail, tenant_id)
          VALUES (?, ?, ?, ?, ?, ?, ?, ?)`,
         ["purchase", "IN_STOCK", orderNo, "purchase_order", ctx.userId, ctx.username, `采购入库: ${orderNo}`, ctx.tenantId]
       );

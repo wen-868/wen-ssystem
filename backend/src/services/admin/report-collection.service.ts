@@ -9,10 +9,10 @@ export async function getCollectionFunnel(params: { tenantId: string; startDate?
   if (endDate) { conditions.push("cl.created_at <= ?"); values.push(endDate); }
   if (storeId) { conditions.push("cl.store_id = ?"); values.push(storeId); }
   const where = `WHERE ${conditions.join(" AND ")}`;
-  const shareCount = await queryOneWithTenant<any>(`SELECT COUNT(*) AS cnt FROM collection_link cl ${where}`, values, tenantId);
-  const viewCount = await queryOneWithTenant<any>(`SELECT COUNT(DISTINCT cvl.link_no) AS cnt FROM collection_view_log cvl JOIN collection_link cl ON cl.link_no = cvl.link_no ${where}`, values, tenantId);
-  const payCount = await queryOneWithTenant<any>(`SELECT COUNT(*) AS cnt FROM collection_link cl ${where} ${where ? "AND" : "WHERE"} cl.status = 'PAID'`, values, tenantId);
-  const payAmount = await queryOneWithTenant<any>(`SELECT COALESCE(SUM(cl.paid_amount), 0) AS amount FROM collection_link cl ${where} ${where ? "AND" : "WHERE"} cl.status = 'PAID'`, values, tenantId);
+  const shareCount = await queryOneWithTenant<any>(`SELECT COUNT(*) AS cnt FROM t_collection_link cl ${where}`, values, tenantId);
+  const viewCount = await queryOneWithTenant<any>(`SELECT COUNT(DISTINCT cvl.link_no) AS cnt FROM t_collection_view_log cvl JOIN t_collection_link cl ON cl.link_no = cvl.link_no ${where}`, values, tenantId);
+  const payCount = await queryOneWithTenant<any>(`SELECT COUNT(*) AS cnt FROM t_collection_link cl ${where} ${where ? "AND" : "WHERE"} cl.status = 'PAID'`, values, tenantId);
+  const payAmount = await queryOneWithTenant<any>(`SELECT COALESCE(SUM(cl.paid_amount), 0) AS amount FROM t_collection_link cl ${where} ${where ? "AND" : "WHERE"} cl.status = 'PAID'`, values, tenantId);
   const totalShare = Number(shareCount?.cnt ?? 0);
   const totalView = Number(viewCount?.cnt ?? 0);
   const totalPay = Number(payCount?.cnt ?? 0);
@@ -43,7 +43,7 @@ export async function getChannelConversion(params: { tenantId: string; startDate
             COUNT(CASE WHEN status = 'PAID' THEN 1 END) AS paidCount,
             COALESCE(SUM(CASE WHEN status = 'PAID' THEN paid_amount ELSE 0 END), 0) AS paidAmount,
             CASE WHEN COUNT(*) > 0 THEN ROUND(COUNT(CASE WHEN status = 'PAID' THEN 1 END) * 100.0 / COUNT(*), 2) ELSE 0 END AS conversionRate
-     FROM collection_link ${where}
+     FROM t_collection_link ${where}
      GROUP BY share_channel ORDER BY totalCount DESC`,
     values, tenantId
   );
@@ -58,14 +58,14 @@ export async function getCollectionTimeout(params: { tenantId: string; startDate
   if (endDate) { conditions.push("cl.created_at <= ?"); values.push(endDate); }
   if (storeId) { conditions.push("cl.store_id = ?"); values.push(storeId); }
   const where = `WHERE ${conditions.join(" AND ")}`;
-  const total = await queryOneWithTenant<any>(`SELECT COUNT(*) AS cnt FROM collection_link cl ${where}`, values, tenantId);
-  const timeout30min = await queryOneWithTenant<any>(`SELECT COUNT(*) AS cnt, COALESCE(SUM(amount), 0) AS amount FROM collection_link cl ${where} AND TIMESTAMPDIFF(MINUTE, cl.created_at, NOW()) < 30`, values, tenantId);
-  const timeout30to60 = await queryOneWithTenant<any>(`SELECT COUNT(*) AS cnt, COALESCE(SUM(amount), 0) AS amount FROM collection_link cl ${where} AND TIMESTAMPDIFF(MINUTE, cl.created_at, NOW()) BETWEEN 30 AND 60`, values, tenantId);
-  const timeout1to2 = await queryOneWithTenant<any>(`SELECT COUNT(*) AS cnt, COALESCE(SUM(amount), 0) AS amount FROM collection_link cl ${where} AND TIMESTAMPDIFF(MINUTE, cl.created_at, NOW()) BETWEEN 60 AND 120`, values, tenantId);
-  const timeout2to24 = await queryOneWithTenant<any>(`SELECT COUNT(*) AS cnt, COALESCE(SUM(amount), 0) AS amount FROM collection_link cl ${where} AND TIMESTAMPDIFF(MINUTE, cl.created_at, NOW()) BETWEEN 120 AND 1440`, values, tenantId);
-  const timeout24plus = await queryOneWithTenant<any>(`SELECT COUNT(*) AS cnt, COALESCE(SUM(amount), 0) AS amount FROM collection_link cl ${where} AND TIMESTAMPDIFF(MINUTE, cl.created_at, NOW()) > 1440`, values, tenantId);
-  const avgTimeout = await queryOneWithTenant<any>(`SELECT AVG(TIMESTAMPDIFF(MINUTE, cl.created_at, NOW())) AS avgMinutes FROM collection_link cl ${where}`, values, tenantId);
-  const totalLinks = await queryOneWithTenant<any>(`SELECT COUNT(*) AS cnt FROM collection_link cl WHERE cl.tenant_id = ? ${startDate ? "AND cl.created_at >= ?" : ""} ${endDate ? "AND cl.created_at <= ?" : ""} ${storeId ? "AND cl.store_id = ?" : ""}`, values, tenantId);
+  const total = await queryOneWithTenant<any>(`SELECT COUNT(*) AS cnt FROM t_collection_link cl ${where}`, values, tenantId);
+  const timeout30min = await queryOneWithTenant<any>(`SELECT COUNT(*) AS cnt, COALESCE(SUM(amount), 0) AS amount FROM t_collection_link cl ${where} AND TIMESTAMPDIFF(MINUTE, cl.created_at, NOW()) < 30`, values, tenantId);
+  const timeout30to60 = await queryOneWithTenant<any>(`SELECT COUNT(*) AS cnt, COALESCE(SUM(amount), 0) AS amount FROM t_collection_link cl ${where} AND TIMESTAMPDIFF(MINUTE, cl.created_at, NOW()) BETWEEN 30 AND 60`, values, tenantId);
+  const timeout1to2 = await queryOneWithTenant<any>(`SELECT COUNT(*) AS cnt, COALESCE(SUM(amount), 0) AS amount FROM t_collection_link cl ${where} AND TIMESTAMPDIFF(MINUTE, cl.created_at, NOW()) BETWEEN 60 AND 120`, values, tenantId);
+  const timeout2to24 = await queryOneWithTenant<any>(`SELECT COUNT(*) AS cnt, COALESCE(SUM(amount), 0) AS amount FROM t_collection_link cl ${where} AND TIMESTAMPDIFF(MINUTE, cl.created_at, NOW()) BETWEEN 120 AND 1440`, values, tenantId);
+  const timeout24plus = await queryOneWithTenant<any>(`SELECT COUNT(*) AS cnt, COALESCE(SUM(amount), 0) AS amount FROM t_collection_link cl ${where} AND TIMESTAMPDIFF(MINUTE, cl.created_at, NOW()) > 1440`, values, tenantId);
+  const avgTimeout = await queryOneWithTenant<any>(`SELECT AVG(TIMESTAMPDIFF(MINUTE, cl.created_at, NOW())) AS avgMinutes FROM t_collection_link cl ${where}`, values, tenantId);
+  const totalLinks = await queryOneWithTenant<any>(`SELECT COUNT(*) AS cnt FROM t_collection_link cl WHERE cl.tenant_id = ? ${startDate ? "AND cl.created_at >= ?" : ""} ${endDate ? "AND cl.created_at <= ?" : ""} ${storeId ? "AND cl.store_id = ?" : ""}`, values, tenantId);
   const totalAll = Number(totalLinks?.cnt ?? 0);
   return {
     timeoutCount: Number(total?.cnt ?? 0),
@@ -97,7 +97,7 @@ export async function getCollectionDailyTrend(params: { tenantId: string; startD
             COUNT(CASE WHEN status = 'PAID' THEN 1 END) AS paidCount,
             COALESCE(SUM(CASE WHEN status = 'PAID' THEN paid_amount ELSE 0 END), 0) AS paidAmount,
             COALESCE(SUM(amount), 0) AS totalAmount
-     FROM collection_link ${where}
+     FROM t_collection_link ${where}
      GROUP BY DATE(created_at) ORDER BY date`,
     values, tenantId
   );
@@ -108,13 +108,13 @@ export async function getCollectionSummary(params: { tenantId: string; storeId?:
   const { tenantId, storeId } = params;
   const storeCondition = storeId ? "AND store_id = ?" : "";
   const values: unknown[] = storeId ? [tenantId, storeId] : [tenantId];
-  const total = await queryOneWithTenant<any>(`SELECT COALESCE(SUM(paid_amount), 0) AS amount FROM collection_link WHERE tenant_id = ? AND status = 'PAID' ${storeCondition}`, values, tenantId);
-  const month = await queryOneWithTenant<any>(`SELECT COALESCE(SUM(paid_amount), 0) AS amount FROM collection_link WHERE tenant_id = ? AND status = 'PAID' AND created_at >= DATE_FORMAT(NOW(), '%Y-%m-01') ${storeCondition}`, values, tenantId);
-  const today = await queryOneWithTenant<any>(`SELECT COALESCE(SUM(paid_amount), 0) AS amount FROM collection_link WHERE tenant_id = ? AND status = 'PAID' AND DATE(created_at) = CURDATE() ${storeCondition}`, values, tenantId);
-  const refund = await queryOneWithTenant<any>(`SELECT COALESCE(SUM(amount), 0) AS amount FROM refund_order WHERE tenant_id = ? AND status = 'SUCCESS' ${storeCondition}`, values, tenantId);
-  const totalPaid = await queryOneWithTenant<any>(`SELECT COUNT(*) AS cnt FROM collection_link WHERE tenant_id = ? AND status = 'PAID' ${storeCondition}`, values, tenantId);
-  const avgCycle = await queryOneWithTenant<any>(`SELECT AVG(TIMESTAMPDIFF(HOUR, created_at, paid_at)) AS avgHours FROM collection_link WHERE tenant_id = ? AND status = 'PAID' AND paid_at IS NOT NULL ${storeCondition}`, values, tenantId);
-  const totalAll = await queryOneWithTenant<any>(`SELECT COALESCE(SUM(amount), 0) AS amount FROM collection_link WHERE tenant_id = ? ${storeCondition}`, values, tenantId);
+  const total = await queryOneWithTenant<any>(`SELECT COALESCE(SUM(paid_amount), 0) AS amount FROM t_collection_link WHERE tenant_id = ? AND status = 'PAID' ${storeCondition}`, values, tenantId);
+  const month = await queryOneWithTenant<any>(`SELECT COALESCE(SUM(paid_amount), 0) AS amount FROM t_collection_link WHERE tenant_id = ? AND status = 'PAID' AND created_at >= DATE_FORMAT(NOW(), '%Y-%m-01') ${storeCondition}`, values, tenantId);
+  const today = await queryOneWithTenant<any>(`SELECT COALESCE(SUM(paid_amount), 0) AS amount FROM t_collection_link WHERE tenant_id = ? AND status = 'PAID' AND DATE(created_at) = CURDATE() ${storeCondition}`, values, tenantId);
+  const refund = await queryOneWithTenant<any>(`SELECT COALESCE(SUM(amount), 0) AS amount FROM t_refund_order WHERE tenant_id = ? AND status = 'SUCCESS' ${storeCondition}`, values, tenantId);
+  const totalPaid = await queryOneWithTenant<any>(`SELECT COUNT(*) AS cnt FROM t_collection_link WHERE tenant_id = ? AND status = 'PAID' ${storeCondition}`, values, tenantId);
+  const avgCycle = await queryOneWithTenant<any>(`SELECT AVG(TIMESTAMPDIFF(HOUR, created_at, paid_at)) AS avgHours FROM t_collection_link WHERE tenant_id = ? AND status = 'PAID' AND paid_at IS NOT NULL ${storeCondition}`, values, tenantId);
+  const totalAll = await queryOneWithTenant<any>(`SELECT COALESCE(SUM(amount), 0) AS amount FROM t_collection_link WHERE tenant_id = ? ${storeCondition}`, values, tenantId);
   return {
     totalCollection: Number(total?.amount ?? 0),
     monthCollection: Number(month?.amount ?? 0),

@@ -29,7 +29,7 @@ export async function list(params: {
   const whereClause = " AND tenant_id = ?" + (conditions.length > 0 ? " AND " + conditions.join(" AND ") : "");
   const offset = (page - 1) * pageSize;
   const payments = await query<any>(
-    `SELECT * FROM customer_payment WHERE 1=1${whereClause} ORDER BY created_at DESC LIMIT ? OFFSET ?`,
+    `SELECT * FROM t_customer_payment WHERE 1=1${whereClause} ORDER BY created_at DESC LIMIT ? OFFSET ?`,
     [tenantId, ...queryParams, pageSize, offset]
   );
   return payments;
@@ -37,7 +37,7 @@ export async function list(params: {
 
 export async function getDetail(receiptNo: string, tenantId: string) {
   const payment = await queryOne<any>(
-    "SELECT * FROM customer_payment WHERE receipt_no = ? AND tenant_id = ?",
+    "SELECT * FROM t_customer_payment WHERE receipt_no = ? AND tenant_id = ?",
     [receiptNo, tenantId]
   );
   if (!payment) throw Object.assign(new Error("收款单不存在"), { statusCode: 404 });
@@ -53,7 +53,7 @@ export async function create(body: {
 
   await transaction(async (conn) => {
     await conn.query(
-      `INSERT INTO customer_payment (receipt_no, customer_id, customer_name, amount, payment_method,
+      `INSERT INTO t_customer_payment (receipt_no, customer_id, customer_name, amount, payment_method,
         source_type, source_no, voucher_no, payment_date, operator_id, status, remark, tenant_id)
        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'COMPLETED', ?, ?)`,
       [receiptNo, body.customer_id, body.customer_name, body.amount,
@@ -63,7 +63,7 @@ export async function create(body: {
 
     if (body.source_type === "SALE_BILL" && body.source_no) {
       const [billRows] = await conn.query(
-        "SELECT receivable_amount, received_amount FROM sale_bill WHERE bill_no = ?",
+        "SELECT receivable_amount, received_amount FROM t_sale_bill WHERE bill_no = ?",
         [body.source_no]
       );
       const billRow = (billRows as Record<string, unknown>[])?.[0];
@@ -72,14 +72,14 @@ export async function create(body: {
         const newUnreceivedAmount = Number(billRow.receivable_amount) - newReceivedAmount;
         let collectionStatus = newUnreceivedAmount <= 0 ? "PAID" : "PARTIAL";
         await conn.query(
-          "UPDATE sale_bill SET received_amount = ?, unreceived_amount = ?, collection_status = ? WHERE bill_no = ?",
+          "UPDATE t_sale_bill SET received_amount = ?, unreceived_amount = ?, collection_status = ? WHERE bill_no = ?",
           [newReceivedAmount, Math.max(0, newUnreceivedAmount), collectionStatus, body.source_no]
         );
       }
     }
 
     await conn.query(
-      "INSERT INTO operation_log (module, action, target_id, target_type, user_id, user_name, detail, tenant_id) VALUES (?, ?, ?, ?, ?, ?, ?, ?)",
+      "INSERT INTO t_operation_log (module, action, target_id, target_type, user_id, user_name, detail, tenant_id) VALUES (?, ?, ?, ?, ?, ?, ?, ?)",
       ["customer_payment", "CREATE", receiptNo, "customer_payment", userId, username, `创建收款单: ${receiptNo}, 金额: ${body.amount}`, tenantId]
     );
   });
@@ -89,18 +89,18 @@ export async function create(body: {
 
 export async function voidPayment(receiptNo: string, tenantId: string, userId: number, username: string) {
   const payment = await queryOne<any>(
-    "SELECT id, status, source_type, source_no, amount FROM customer_payment WHERE receipt_no = ? AND tenant_id = ?",
+    "SELECT id, status, source_type, source_no, amount FROM t_customer_payment WHERE receipt_no = ? AND tenant_id = ?",
     [receiptNo, tenantId]
   );
   if (!payment) throw Object.assign(new Error("收款单不存在"), { statusCode: 404 });
   if (payment.status !== "COMPLETED") throw Object.assign(new Error("只有已完成状态的收款单可以作废"), { statusCode: 400 });
 
   await transaction(async (conn) => {
-    await conn.query("UPDATE customer_payment SET status = 'VOIDED' WHERE receipt_no = ? AND tenant_id = ?", [receiptNo, tenantId]);
+    await conn.query("UPDATE t_customer_payment SET status = 'VOIDED' WHERE receipt_no = ? AND tenant_id = ?", [receiptNo, tenantId]);
 
     if (payment.source_type === "SALE_BILL" && payment.source_no) {
       const [billRows] = await conn.query(
-        "SELECT receivable_amount, received_amount FROM sale_bill WHERE bill_no = ?",
+        "SELECT receivable_amount, received_amount FROM t_sale_bill WHERE bill_no = ?",
         [payment.source_no]
       );
       const billRow = (billRows as Record<string, unknown>[])?.[0];
@@ -111,14 +111,14 @@ export async function voidPayment(receiptNo: string, tenantId: string, userId: n
         if (newReceivedAmount > 0 && newUnreceivedAmount > 0) collectionStatus = "PARTIAL";
         else if (newUnreceivedAmount <= 0) collectionStatus = "PAID";
         await conn.query(
-          "UPDATE sale_bill SET received_amount = ?, unreceived_amount = ?, collection_status = ? WHERE bill_no = ?",
+          "UPDATE t_sale_bill SET received_amount = ?, unreceived_amount = ?, collection_status = ? WHERE bill_no = ?",
           [Math.max(0, newReceivedAmount), newUnreceivedAmount, collectionStatus, payment.source_no]
         );
       }
     }
 
     await conn.query(
-      "INSERT INTO operation_log (module, action, target_id, target_type, user_id, user_name, detail, tenant_id) VALUES (?, ?, ?, ?, ?, ?, ?, ?)",
+      "INSERT INTO t_operation_log (module, action, target_id, target_type, user_id, user_name, detail, tenant_id) VALUES (?, ?, ?, ?, ?, ?, ?, ?)",
       ["customer_payment", "VOID", receiptNo, "customer_payment", userId, username, `作废收款单: ${receiptNo}`, tenantId]
     );
   });

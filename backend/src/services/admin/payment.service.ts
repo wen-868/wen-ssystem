@@ -11,7 +11,7 @@ export async function createPaymentOrder(
   const payNo = makeBizNo("ZF");
 
   await query(
-    `INSERT INTO payment_order (pay_no, source_type, source_no, channel, amount, status, tenant_id)
+    `INSERT INTO t_payment_order (pay_no, source_type, source_no, channel, amount, status, tenant_id)
      VALUES (?, ?, ?, 'WECHAT', ?, 'PENDING', ?)`,
     [payNo, body.sourceType, body.sourceNo, body.amount, tenantId]
   );
@@ -80,12 +80,12 @@ export async function handleWxCallback(
   if (trade_state === 'SUCCESS') {
     await transaction(async (conn) => {
       await conn.execute(
-        "UPDATE payment_order SET status = 'PAID', transaction_id = ?, paid_amount = ?, paid_at = NOW() WHERE pay_no = ?",
+        "UPDATE t_payment_order SET status = 'PAID', transaction_id = ?, paid_amount = ?, paid_at = NOW() WHERE pay_no = ?",
         [transaction_id, amount.total / 100, out_trade_no]
       );
 
       const order = await conn.execute(
-        "SELECT source_type, source_no FROM payment_order WHERE pay_no = ?",
+        "SELECT source_type, source_no FROM t_payment_order WHERE pay_no = ?",
         [out_trade_no]
       );
 
@@ -94,17 +94,17 @@ export async function handleWxCallback(
 
         if (source_type === 'SALE_BILL') {
           await conn.execute(
-            "UPDATE sale_bill SET status = 'PAID' WHERE bill_no = ?",
+            "UPDATE t_sale_bill SET status = 'PAID' WHERE bill_no = ?",
             [source_no]
           );
         } else if (source_type === 'MINIAPP_ORDER') {
           await conn.execute(
-            "UPDATE miniapp_order SET order_status = 'PAID' WHERE order_no = ?",
+            "UPDATE t_miniapp_order SET order_status = 'PAID' WHERE order_no = ?",
             [source_no]
           );
         } else if (source_type === 'COLLECTION_LINK') {
           await conn.execute(
-            "UPDATE collection_link SET paid_amount = paid_amount + ?, status = 'PAID' WHERE link_no = ?",
+            "UPDATE t_collection_link SET paid_amount = paid_amount + ?, status = 'PAID' WHERE link_no = ?",
             [amount.total / 100, source_no]
           );
         }
@@ -121,7 +121,7 @@ export async function createRefund(
   wechatPay: WechatPay
 ) {
   const payment = await queryOne<any>(
-    "SELECT amount, status, transaction_id FROM payment_order WHERE pay_no = ? AND tenant_id = ?",
+    "SELECT amount, status, transaction_id FROM t_payment_order WHERE pay_no = ? AND tenant_id = ?",
     [body.payNo, tenantId]
   );
 
@@ -147,9 +147,9 @@ export async function createRefund(
   });
 
   await query(
-    `INSERT INTO refund_order (refund_no, pay_no, source_type, source_no, amount, reason, status, tenant_id)
+    `INSERT INTO t_refund_order (refund_no, pay_no, source_type, source_no, amount, reason, status, tenant_id)
      SELECT ?, pay_no, source_type, source_no, ?, ?, 'PROCESSING', tenant_id
-     FROM payment_order WHERE pay_no = ?`,
+     FROM t_payment_order WHERE pay_no = ?`,
     [refundNo, body.amount, body.reason, body.payNo]
   );
 
@@ -158,7 +158,7 @@ export async function createRefund(
 
 export async function getPaymentOrder(payNo: string, tenantId: string) {
   const order = await queryOne<any>(
-    "SELECT * FROM payment_order WHERE pay_no = ? AND tenant_id = ?",
+    "SELECT * FROM t_payment_order WHERE pay_no = ? AND tenant_id = ?",
     [payNo, tenantId]
   );
 
@@ -166,7 +166,7 @@ export async function getPaymentOrder(payNo: string, tenantId: string) {
 }
 
 export async function listPaymentOrders(tenantId: string, page: number, pageSize: number, status?: string) {
-  let sql = "SELECT * FROM payment_order WHERE tenant_id = ?";
+  let sql = "SELECT * FROM t_payment_order WHERE tenant_id = ?";
   const params: any[] = [tenantId];
 
   if (status) {

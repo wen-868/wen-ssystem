@@ -9,12 +9,12 @@ export async function listReceivables(params: {
   const offset = (page - 1) * pageSize;
   const kw = `%${keyword}%`;
   const records = await queryWithTenant<any>(
-    `SELECT receivable_no AS receivableNo, source_type AS sourceType, source_no AS sourceNo, customer_name AS customerName, customer_mobile AS customerMobile, receivable_amount AS receivableAmount, received_amount AS receivedAmount, unreceived_amount AS unreceivedAmount, status, created_at AS createdAt FROM receivable_account WHERE tenant_id = ? AND (? IS NULL OR store_id = ?) AND (? IS NULL OR status = ?) AND (receivable_no LIKE ? OR source_no LIKE ? OR customer_name LIKE ? OR customer_mobile LIKE ?) ORDER BY id DESC LIMIT ? OFFSET ?`,
+    `SELECT receivable_no AS receivableNo, source_type AS sourceType, source_no AS sourceNo, customer_name AS customerName, customer_mobile AS customerMobile, receivable_amount AS receivableAmount, received_amount AS receivedAmount, unreceived_amount AS unreceivedAmount, status, created_at AS createdAt FROM t_receivable_account WHERE tenant_id = ? AND (? IS NULL OR store_id = ?) AND (? IS NULL OR status = ?) AND (receivable_no LIKE ? OR source_no LIKE ? OR customer_name LIKE ? OR customer_mobile LIKE ?) ORDER BY id DESC LIMIT ? OFFSET ?`,
     [tenantId, storeId, storeId, status, status, kw, kw, kw, kw, pageSize, offset],
     tenantId
   );
   const total = await queryOneWithTenant<any>(
-    `SELECT COUNT(*) AS total FROM receivable_account WHERE tenant_id = ? AND (? IS NULL OR store_id = ?) AND (? IS NULL OR status = ?) AND (receivable_no LIKE ? OR source_no LIKE ? OR customer_name LIKE ? OR customer_mobile LIKE ?)`,
+    `SELECT COUNT(*) AS total FROM t_receivable_account WHERE tenant_id = ? AND (? IS NULL OR store_id = ?) AND (? IS NULL OR status = ?) AND (receivable_no LIKE ? OR source_no LIKE ? OR customer_name LIKE ? OR customer_mobile LIKE ?)`,
     [tenantId, storeId, storeId, status, status, kw, kw, kw, kw],
     tenantId
   );
@@ -28,7 +28,7 @@ export async function paymentOnReceivable(params: {
   const { receivableNo, amount, paymentMethod, remark, tenantId } = params;
   return transaction(async (conn) => {
     const [rows] = await conn.query<any[]>(
-      `SELECT receivable_no, source_no, received_amount, receivable_amount, unreceived_amount FROM receivable_account WHERE receivable_no = ? AND tenant_id = ? FOR UPDATE`,
+      `SELECT receivable_no, source_no, received_amount, receivable_amount, unreceived_amount FROM t_receivable_account WHERE receivable_no = ? AND tenant_id = ? FOR UPDATE`,
       [receivableNo, tenantId]
     );
     const receivable = rows[0];
@@ -38,11 +38,11 @@ export async function paymentOnReceivable(params: {
     const unreceivedAmount = Math.max(Number(receivable.receivable_amount) - receivedAmount, 0);
     const status = unreceivedAmount === 0 ? "PAID" : "PARTIAL";
     await conn.execute(
-      `UPDATE receivable_account SET received_amount = ?, unreceived_amount = ?, status = ?, last_payment_time = NOW() WHERE receivable_no = ? AND tenant_id = ?`,
+      `UPDATE t_receivable_account SET received_amount = ?, unreceived_amount = ?, status = ?, last_payment_time = NOW() WHERE receivable_no = ? AND tenant_id = ?`,
       [receivedAmount, unreceivedAmount, status, receivableNo, tenantId]
     );
     await conn.execute(
-      `INSERT INTO payment_order (pay_no, source_type, source_no, channel, amount, status, paid_at, tenant_id) VALUES (?, 'RECEIVABLE', ?, ?, ?, 'SUCCESS', NOW(), ?)`,
+      `INSERT INTO t_payment_order (pay_no, source_type, source_no, channel, amount, status, paid_at, tenant_id) VALUES (?, 'RECEIVABLE', ?, ?, ?, 'SUCCESS', NOW(), ?)`,
       [makeBizNo("ZF"), receivableNo, paymentMethod, amount, tenantId]
     );
     return { receivableNo, receivedAmount, unreceivedAmount, status };
@@ -55,10 +55,10 @@ export async function getDashboard(params: {
   const { storeId, tenantId } = params;
   const whereStore = storeId ? "WHERE tenant_id = ? AND store_id = ?" : "WHERE tenant_id = ?";
   const p = storeId ? [tenantId, storeId] : [tenantId];
-  const todayOrders = await queryOneWithTenant<any>(`SELECT COUNT(*) AS cnt FROM miniapp_order ${whereStore}`, p, tenantId);
-  const pendingOrders = await queryOneWithTenant<any>(`SELECT COUNT(*) AS cnt FROM miniapp_order ${whereStore} AND order_status = 'PENDING_PAYMENT'`, p, tenantId);
-  const todaySales = await queryOneWithTenant<any>(`SELECT COALESCE(SUM(receivable_amount), 0) AS total FROM sale_bill ${whereStore}`, p, tenantId);
-  const unreceived = await queryOneWithTenant<any>(`SELECT COALESCE(SUM(unreceived_amount), 0) AS total FROM sale_bill ${whereStore}`, p, tenantId);
+  const todayOrders = await queryOneWithTenant<any>(`SELECT COUNT(*) AS cnt FROM t_miniapp_order ${whereStore}`, p, tenantId);
+  const pendingOrders = await queryOneWithTenant<any>(`SELECT COUNT(*) AS cnt FROM t_miniapp_order ${whereStore} AND order_status = 'PENDING_PAYMENT'`, p, tenantId);
+  const todaySales = await queryOneWithTenant<any>(`SELECT COALESCE(SUM(receivable_amount), 0) AS total FROM t_sale_bill ${whereStore}`, p, tenantId);
+  const unreceived = await queryOneWithTenant<any>(`SELECT COALESCE(SUM(unreceived_amount), 0) AS total FROM t_sale_bill ${whereStore}`, p, tenantId);
   return {
     todayOrderCount: todayOrders?.cnt ?? 0,
     pendingOrderCount: pendingOrders?.cnt ?? 0,
@@ -72,7 +72,7 @@ export async function getDailySales(storeId: number | null, tenantId: string) {
   const where = storeId ? "WHERE sb.tenant_id = ? AND sb.store_id = ?" : "WHERE sb.tenant_id = ?";
   const p = storeId ? [tenantId, storeId] : [tenantId];
   const records = await queryWithTenant<any>(
-    `SELECT DATE(sb.created_at) AS date, COUNT(*) AS count, COALESCE(SUM(sb.receivable_amount), 0) AS amount FROM sale_bill sb ${where} GROUP BY DATE(sb.created_at) ORDER BY date DESC LIMIT 7`,
+    `SELECT DATE(sb.created_at) AS date, COUNT(*) AS count, COALESCE(SUM(sb.receivable_amount), 0) AS amount FROM t_sale_bill sb ${where} GROUP BY DATE(sb.created_at) ORDER BY date DESC LIMIT 7`,
     p,
     tenantId
   );

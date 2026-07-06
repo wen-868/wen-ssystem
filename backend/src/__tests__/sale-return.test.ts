@@ -6,7 +6,7 @@ import { describe, it, expect, beforeAll } from "vitest";
 import request from "supertest";
 import { app } from "../server.js";
 import { signToken } from "../middleware/auth.js";
-import { resetMockDb } from "../shared/mock-db.js";
+import { resetMockDb } from "./mocks/mock-db.js";
 
 const TOKEN = signToken({
   id: 1, username: "admin", roles: ["SUPER_ADMIN"],

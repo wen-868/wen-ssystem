@@ -37,14 +37,14 @@ export async function listOrders(
             pay_status AS payStatus, payable_amount AS payableAmount,
             receiver_name AS receiverName, receiver_mobile AS receiverMobile,
             created_at AS createdAt
-     FROM miniapp_order ${where}
+     FROM t_miniapp_order ${where}
      ORDER BY created_at DESC
      LIMIT ? OFFSET ?`,
     [...params, pageSize, offset],
     tenantId
   );
   const totalRow = await queryOneWithTenant<any>(
-    `SELECT COUNT(*) AS total FROM miniapp_order ${where}`,
+    `SELECT COUNT(*) AS total FROM t_miniapp_order ${where}`,
     params,
     tenantId
   );
@@ -84,7 +84,7 @@ export async function exportOrdersCsv(
             pay_status AS payStatus, payable_amount AS payableAmount,
             receiver_name AS receiverName, receiver_mobile AS receiverMobile,
             created_at AS createdAt
-     FROM miniapp_order ${where}
+     FROM t_miniapp_order ${where}
      ORDER BY created_at DESC
      LIMIT 1000`,
     params,
@@ -115,7 +115,7 @@ export async function getOrderDetail(orderNo: string, tenantId: string) {
             pay_status AS payStatus, payable_amount AS payableAmount,
             receiver_name AS receiverName, receiver_mobile AS receiverMobile,
             receiver_address AS receiverAddress, created_at AS createdAt
-     FROM miniapp_order WHERE order_no = ? AND tenant_id = ?`,
+     FROM t_miniapp_order WHERE order_no = ? AND tenant_id = ?`,
     [orderNo, tenantId],
     tenantId
   );
@@ -123,7 +123,7 @@ export async function getOrderDetail(orderNo: string, tenantId: string) {
   const items = await queryWithTenant<any>(
     `SELECT sku_id AS skuId, sku_name AS skuName, qty AS quantity, unit_price AS unitPrice,
             subtotal_amount AS subtotalAmount
-     FROM miniapp_order_item WHERE order_no = ?`,
+     FROM t_miniapp_order_item WHERE order_no = ?`,
     [orderNo],
     tenantId
   );
@@ -133,7 +133,7 @@ export async function getOrderDetail(orderNo: string, tenantId: string) {
 export async function getOrderStatusStats(tenantId: string) {
   const records = await queryWithTenant<any>(
     `SELECT order_status AS status, COUNT(*) AS count
-     FROM miniapp_order
+     FROM t_miniapp_order
      WHERE tenant_id = ?
      GROUP BY order_status`,
     [tenantId],
@@ -180,14 +180,14 @@ export async function listSaleBills(
             received_amount AS receivedAmount, unreceived_amount AS unreceivedAmount,
             collection_status AS collectionStatus, business_status AS businessStatus,
             created_at AS createdAt
-     FROM sale_bill
+     FROM t_sale_bill
      ${where}
      ORDER BY created_at DESC
      LIMIT ? OFFSET ?`,
     [...params, pageSize, offset],
     tenantId
   );
-  const totalRow = await queryOneWithTenant<any>(`SELECT COUNT(*) AS total FROM sale_bill ${where}`, params, tenantId);
+  const totalRow = await queryOneWithTenant<any>(`SELECT COUNT(*) AS total FROM t_sale_bill ${where}`, params, tenantId);
   return { total: totalRow?.total ?? 0, page, pageSize, records };
 }
 
@@ -226,7 +226,7 @@ export async function exportSaleBillsCsv(
             received_amount AS receivedAmount, unreceived_amount AS unreceivedAmount,
             collection_status AS collectionStatus, business_status AS businessStatus,
             created_at AS createdAt
-     FROM sale_bill
+     FROM t_sale_bill
      ${where}
      ORDER BY created_at DESC
      LIMIT 5000`,
@@ -261,7 +261,7 @@ export function validateStatusTransition(from: string, to: string): boolean {
 
 export async function cancelOrder(orderNo: string, reason: string, operatorId: number | null, operatorName: string, tenantId: string) {
   const order = await queryOneWithTenant<any>(
-    "SELECT * FROM miniapp_order WHERE order_no = ? AND tenant_id = ?",
+    "SELECT * FROM t_miniapp_order WHERE order_no = ? AND tenant_id = ?",
     [orderNo, tenantId],
     tenantId
   );
@@ -271,24 +271,24 @@ export async function cancelOrder(orderNo: string, reason: string, operatorId: n
 
   await transaction(async (conn) => {
     await conn.execute(
-      "UPDATE miniapp_order SET order_status = 'CANCELLED', pay_status = CASE WHEN pay_status = 'UNPAID' THEN 'CANCELLED' ELSE pay_status END, updated_at = NOW() WHERE order_no = ? AND tenant_id = ?",
+      "UPDATE t_miniapp_order SET order_status = 'CANCELLED', pay_status = CASE WHEN pay_status = 'UNPAID' THEN 'CANCELLED' ELSE pay_status END, updated_at = NOW() WHERE order_no = ? AND tenant_id = ?",
       [orderNo, tenantId]
     );
     // 释放库存
     const items = await conn.execute<any[]>(
-      "SELECT sku_id, qty FROM miniapp_order_item WHERE order_no = ? AND tenant_id = ?",
+      "SELECT sku_id, qty FROM t_miniapp_order_item WHERE order_no = ? AND tenant_id = ?",
       [orderNo, tenantId]
     );
     for (const item of (items[0])) {
       await conn.execute(
-        "UPDATE inventory_balance SET available_qty = available_qty + ?, locked_qty = locked_qty - ? WHERE sku_id = ? AND tenant_id = ?",
+        "UPDATE t_inventory_balance SET available_qty = available_qty + ?, locked_qty = locked_qty - ? WHERE sku_id = ? AND tenant_id = ?",
         [item.qty, item.qty, item.sku_id, tenantId]
       );
     }
     // 记录操作日志
     const logNo = makeBizNo("LOG");
     await conn.execute(
-      "INSERT INTO operation_log (log_no, module, action, biz_no, operator_id, operator_name, remark, tenant_id) VALUES (?, 'ORDER', 'CANCEL', ?, ?, ?, ?, ?)",
+      "INSERT INTO t_operation_log (log_no, module, action, biz_no, operator_id, operator_name, remark, tenant_id) VALUES (?, 'ORDER', 'CANCEL', ?, ?, ?, ?, ?)",
       [logNo, orderNo, operatorId ?? 0, operatorName, reason || "管理员取消订单", tenantId]
     );
   });
@@ -297,7 +297,7 @@ export async function cancelOrder(orderNo: string, reason: string, operatorId: n
 
 export async function remarkOrder(orderNo: string, remark: string, operatorId: number | null, operatorName: string, tenantId: string) {
   const order = await queryOneWithTenant<any>(
-    "SELECT * FROM miniapp_order WHERE order_no = ? AND tenant_id = ?",
+    "SELECT * FROM t_miniapp_order WHERE order_no = ? AND tenant_id = ?",
     [orderNo, tenantId],
     tenantId
   );
@@ -305,12 +305,12 @@ export async function remarkOrder(orderNo: string, remark: string, operatorId: n
 
   await transaction(async (conn) => {
     await conn.execute(
-      "UPDATE miniapp_order SET remark = ?, updated_at = NOW() WHERE order_no = ? AND tenant_id = ?",
+      "UPDATE t_miniapp_order SET remark = ?, updated_at = NOW() WHERE order_no = ? AND tenant_id = ?",
       [remark, orderNo, tenantId]
     );
     const logNo = makeBizNo("LOG");
     await conn.execute(
-      "INSERT INTO operation_log (log_no, module, action, biz_no, operator_id, operator_name, remark, tenant_id) VALUES (?, 'ORDER', 'REMARK', ?, ?, ?, ?, ?)",
+      "INSERT INTO t_operation_log (log_no, module, action, biz_no, operator_id, operator_name, remark, tenant_id) VALUES (?, 'ORDER', 'REMARK', ?, ?, ?, ?, ?)",
       [logNo, orderNo, operatorId ?? 0, operatorName, remark, tenantId]
     );
   });
@@ -319,7 +319,7 @@ export async function remarkOrder(orderNo: string, remark: string, operatorId: n
 
 export async function updateOrderStatus(orderNo: string, targetStatus: string, operatorId: number | null, operatorName: string, remark: string | null, tenantId: string) {
   const order = await queryOneWithTenant<any>(
-    "SELECT * FROM miniapp_order WHERE order_no = ? AND tenant_id = ?",
+    "SELECT * FROM t_miniapp_order WHERE order_no = ? AND tenant_id = ?",
     [orderNo, tenantId],
     tenantId
   );
@@ -330,12 +330,12 @@ export async function updateOrderStatus(orderNo: string, targetStatus: string, o
 
   await transaction(async (conn) => {
     await conn.execute(
-      "UPDATE miniapp_order SET order_status = ?, updated_at = NOW() WHERE order_no = ? AND tenant_id = ?",
+      "UPDATE t_miniapp_order SET order_status = ?, updated_at = NOW() WHERE order_no = ? AND tenant_id = ?",
       [targetStatus, orderNo, tenantId]
     );
     const logNo = makeBizNo("LOG");
     await conn.execute(
-      "INSERT INTO operation_log (log_no, module, action, biz_no, operator_id, operator_name, remark, tenant_id) VALUES (?, 'ORDER', 'STATUS_CHANGE', ?, ?, ?, ?, ?)",
+      "INSERT INTO t_operation_log (log_no, module, action, biz_no, operator_id, operator_name, remark, tenant_id) VALUES (?, 'ORDER', 'STATUS_CHANGE', ?, ?, ?, ?, ?)",
       [logNo, orderNo, operatorId ?? 0, operatorName, remark || `状态变更: ${order.order_status} -> ${targetStatus}`, tenantId]
     );
   });
@@ -357,7 +357,7 @@ export async function batchUpdateOrderStatus(orderNos: string[], targetStatus: s
 
 export async function getOrderOperationLogs(orderNo: string, tenantId: string) {
   return queryWithTenant<any>(
-    "SELECT log_no AS logNo, module, action, biz_no AS bizNo, operator_id AS operatorId, operator_name AS operatorName, remark, created_at AS createdAt FROM operation_log WHERE biz_no = ? AND module = 'ORDER' AND tenant_id = ? ORDER BY created_at DESC",
+    "SELECT log_no AS logNo, module, action, biz_no AS bizNo, operator_id AS operatorId, operator_name AS operatorName, remark, created_at AS createdAt FROM t_operation_log WHERE biz_no = ? AND module = 'ORDER' AND tenant_id = ? ORDER BY created_at DESC",
     [orderNo, tenantId],
     tenantId
   );

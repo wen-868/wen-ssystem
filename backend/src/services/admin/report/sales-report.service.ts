@@ -26,7 +26,7 @@ export async function getSalesDaily(
             COALESCE(SUM(sb.receivable_amount), 0) AS salesAmount,
             COALESCE(SUM(sb.received_amount), 0) AS receivedAmount,
             COALESCE(SUM(sb.unreceived_amount), 0) AS unreceivedAmount
-     FROM sale_bill sb
+     FROM t_sale_bill sb
      WHERE ${where}
      GROUP BY DATE(sb.created_at)
      ORDER BY date ASC`,
@@ -45,7 +45,7 @@ export async function getSalesDaily(
     `SELECT DATE(sr.created_at) AS date,
             COUNT(DISTINCT sr.return_no) AS returnCount,
             COALESCE(SUM(sr.refund_amount), 0) AS returnAmount
-     FROM sale_return sr
+     FROM t_sale_return sr
      WHERE ${returnWhere}
      GROUP BY DATE(sr.created_at)`,
     returnParams,
@@ -93,7 +93,7 @@ export async function getSalesTrend(
             COUNT(DISTINCT sb.bill_no) AS orderCount,
             COALESCE(SUM(sb.receivable_amount), 0) AS salesAmount,
             COALESCE(SUM(sb.received_amount), 0) AS receivedAmount
-     FROM sale_bill sb
+     FROM t_sale_bill sb
      WHERE sb.business_status NOT IN ('DRAFT', 'VOIDED')
        AND sb.created_at >= DATE_SUB(CURDATE(), INTERVAL ?)
      GROUP BY period
@@ -129,8 +129,8 @@ export async function getSalesRanking(
       `SELECT sbi.sku_id AS id, sbi.sku_name AS name,
               SUM(sbi.total_bottle_qty) AS totalQty,
               COALESCE(SUM(sbi.subtotal_amount), 0) AS totalAmount
-       FROM sale_bill_item sbi
-       JOIN sale_bill sb ON sb.bill_no = sbi.bill_no AND sb.tenant_id = sbi.tenant_id
+       FROM t_sale_bill_item sbi
+       JOIN t_sale_bill sb ON sb.bill_no = sbi.bill_no AND sb.tenant_id = sbi.tenant_id
        WHERE sb.business_status NOT IN ('DRAFT', 'VOIDED')
          AND DATE(sb.created_at) BETWEEN ? AND ?
        GROUP BY sbi.sku_id, sbi.sku_name
@@ -145,7 +145,7 @@ export async function getSalesRanking(
               COUNT(DISTINCT sb.bill_no) AS orderCount,
               COALESCE(SUM(sb.receivable_amount), 0) AS totalAmount,
               COALESCE(SUM(sb.received_amount), 0) AS receivedAmount
-       FROM sale_bill sb
+       FROM t_sale_bill sb
        WHERE sb.business_status NOT IN ('DRAFT', 'VOIDED')
          AND sb.customer_id IS NOT NULL
          AND DATE(sb.created_at) BETWEEN ? AND ?
@@ -161,8 +161,8 @@ export async function getSalesRanking(
               COUNT(DISTINCT sb.bill_no) AS orderCount,
               COALESCE(SUM(sb.receivable_amount), 0) AS totalAmount,
               COALESCE(SUM(sb.received_amount), 0) AS receivedAmount
-       FROM sale_bill sb
-       LEFT JOIN sys_user u ON u.id = sb.operator_id
+       FROM t_sale_bill sb
+       LEFT JOIN t_sys_user u ON u.id = sb.operator_id
        WHERE sb.business_status NOT IN ('DRAFT', 'VOIDED')
          AND DATE(sb.created_at) BETWEEN ? AND ?
        GROUP BY sb.operator_id, u.real_name
@@ -186,7 +186,7 @@ export async function getBusinessOverview(tenantId: string) {
   const todaySales = await queryOneWithTenant<any>(
     `SELECT COALESCE(SUM(receivable_amount), 0) AS amount,
             COUNT(*) AS count
-     FROM sale_bill
+     FROM t_sale_bill
      WHERE business_status NOT IN ('DRAFT', 'VOIDED')
        AND DATE(created_at) = CURDATE()`,
     [],
@@ -196,7 +196,7 @@ export async function getBusinessOverview(tenantId: string) {
   const yesterdaySales = await queryOneWithTenant<any>(
     `SELECT COALESCE(SUM(receivable_amount), 0) AS amount,
             COUNT(*) AS count
-     FROM sale_bill
+     FROM t_sale_bill
      WHERE business_status NOT IN ('DRAFT', 'VOIDED')
        AND DATE(created_at) = DATE_SUB(CURDATE(), INTERVAL 1 DAY)`,
     [],
@@ -218,7 +218,7 @@ export async function getBusinessOverview(tenantId: string) {
   const monthSales = await queryOneWithTenant<any>(
     `SELECT COALESCE(SUM(receivable_amount), 0) AS amount,
             COUNT(*) AS count
-     FROM sale_bill
+     FROM t_sale_bill
      WHERE business_status NOT IN ('DRAFT', 'VOIDED')
        AND DATE_FORMAT(created_at, '%Y-%m') = DATE_FORMAT(CURDATE(), '%Y-%m')`,
     [],
@@ -228,7 +228,7 @@ export async function getBusinessOverview(tenantId: string) {
   const yearSales = await queryOneWithTenant<any>(
     `SELECT COALESCE(SUM(receivable_amount), 0) AS amount,
             COUNT(*) AS count
-     FROM sale_bill
+     FROM t_sale_bill
      WHERE business_status NOT IN ('DRAFT', 'VOIDED')
        AND DATE_FORMAT(created_at, '%Y') = DATE_FORMAT(CURDATE(), '%Y')`,
     [],
@@ -237,7 +237,7 @@ export async function getBusinessOverview(tenantId: string) {
 
   const totalReceivable = await queryOneWithTenant<any>(
     `SELECT COALESCE(SUM(unreceived_amount), 0) AS amount
-     FROM sale_bill
+     FROM t_sale_bill
      WHERE business_status NOT IN ('DRAFT', 'VOIDED')
        AND unreceived_amount > 0`,
     [],
@@ -246,7 +246,7 @@ export async function getBusinessOverview(tenantId: string) {
 
   const totalPayable = await queryOneWithTenant<any>(
     `SELECT COALESCE(SUM(unpaid_amount), 0) AS amount
-     FROM purchase_order
+     FROM t_purchase_order
      WHERE order_status NOT IN ('DRAFT', 'CANCELLED')
        AND unpaid_amount > 0`,
     [],
@@ -255,8 +255,8 @@ export async function getBusinessOverview(tenantId: string) {
 
   const inventoryValue = await queryOneWithTenant<any>(
     `SELECT COALESCE(SUM(ib.physical_qty * pp.cost_price), 0) AS amount
-     FROM inventory_balance ib
-     JOIN product_price pp ON pp.sku_id = ib.sku_id AND pp.tenant_id = ib.tenant_id`,
+     FROM t_inventory_balance ib
+     JOIN t_product_price pp ON pp.sku_id = ib.sku_id AND pp.tenant_id = ib.tenant_id`,
     [],
     tenantId
   );
@@ -276,7 +276,7 @@ export async function getBusinessOverview(tenantId: string) {
   const monthPurchase = await queryOneWithTenant<any>(
     `SELECT COALESCE(SUM(payable_amount), 0) AS amount,
             COUNT(*) AS count
-     FROM purchase_order
+     FROM t_purchase_order
      WHERE order_status NOT IN ('DRAFT', 'CANCELLED')
        AND DATE_FORMAT(created_at, '%Y-%m') = DATE_FORMAT(CURDATE(), '%Y-%m')`,
     [],

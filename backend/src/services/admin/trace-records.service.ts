@@ -22,13 +22,13 @@ export async function generateTraceCodes(
 ) {
   const skuConfig = await queryOneWithTenant<any>(
     `SELECT code_prefix AS codePrefix, shelf_life_days AS shelfLifeDays
-     FROM trace_config WHERE config_level = 'SKU' AND target_id = ? AND status = 1 AND tenant_id = ?`,
+     FROM t_trace_config WHERE config_level = 'SKU' AND target_id = ? AND status = 1 AND tenant_id = ?`,
     [body.skuId, tenantId],
     tenantId
   );
   const globalConfig = !skuConfig ? await queryOneWithTenant<any>(
     `SELECT code_prefix AS codePrefix, shelf_life_days AS shelfLifeDays
-     FROM trace_config WHERE config_level = 'GLOBAL' AND status = 1 AND tenant_id = ? LIMIT 1`,
+     FROM t_trace_config WHERE config_level = 'GLOBAL' AND status = 1 AND tenant_id = ? LIMIT 1`,
     [tenantId],
     tenantId
   ) : null;
@@ -52,7 +52,7 @@ export async function generateTraceCodes(
     const traceCode = `${codePrefix}${datePart}${seq}`;
 
     await queryWithTenant(
-      `INSERT INTO trace_code (trace_code, sku_id, sku_name, batch_no, production_date, expiry_date,
+      `INSERT INTO t_trace_code (trace_code, sku_id, sku_name, batch_no, production_date, expiry_date,
          shelf_life_days, code_mode, category_id, current_status, current_location,
          store_id, warehouse_id, supplier_id, tenant_id)
        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, 'PRODUCED', '生产入库', ?, ?, ?, ?)`,
@@ -63,7 +63,7 @@ export async function generateTraceCodes(
     );
 
     await queryWithTenant(
-      `INSERT INTO trace_event_log (trace_code, event_type, from_status, to_status,
+      `INSERT INTO t_trace_event_log (trace_code, event_type, from_status, to_status,
          operator_type, operator_id, operator_name, location, remark, tenant_id)
        VALUES (?, 'GENERATE', NULL, 'PRODUCED', 'ADMIN', ?, ?, '生产入库', '系统生成追溯码', ?)`,
       [traceCode, userId, username, tenantId],
@@ -124,7 +124,7 @@ export async function listTraceCodes(
             tc.first_scan_at AS firstScanAt, tc.scan_count AS scanCount,
             tc.fraud_alert AS fraudAlert, tc.produced_at AS producedAt,
             tc.version, tc.created_at AS createdAt, tc.updated_at AS updatedAt
-     FROM trace_code tc
+     FROM t_trace_code tc
      ${where}
      ORDER BY tc.created_at DESC
      LIMIT ? OFFSET ?`,
@@ -133,7 +133,7 @@ export async function listTraceCodes(
   );
 
   const totalRow = await queryOneWithTenant<any>(
-    `SELECT COUNT(*) AS total FROM trace_code tc ${where}`,
+    `SELECT COUNT(*) AS total FROM t_trace_code tc ${where}`,
     params,
     tenantId
   );
@@ -160,7 +160,7 @@ export async function getTraceCodeDetail(traceCode: string, tenantId: string) {
             tc.scan_count AS scanCount, tc.fraud_alert AS fraudAlert,
             tc.produced_at AS producedAt, tc.version,
             tc.created_at AS createdAt, tc.updated_at AS updatedAt
-     FROM trace_code tc
+     FROM t_trace_code tc
      WHERE tc.trace_code = ? AND tc.tenant_id = ?`,
     [traceCode, tenantId],
     tenantId
@@ -177,7 +177,7 @@ export async function getTraceCodeDetail(traceCode: string, tenantId: string) {
             operator_name AS operatorName, store_id AS storeId,
             order_id AS orderId, location, remark,
             extra, ip, created_at AS createdAt
-     FROM trace_event_log
+     FROM t_trace_event_log
      WHERE trace_code = ? AND tenant_id = ?
      ORDER BY created_at ASC`,
     [traceCode, tenantId],
@@ -207,7 +207,7 @@ export async function updateTraceCodeStatus(
     `SELECT id, current_status AS currentStatus, current_location AS currentLocation,
             store_id AS storeId, warehouse_id AS warehouseId, order_id AS orderId,
             quality_check_result AS qualityCheckResult
-     FROM trace_code WHERE trace_code = ? AND tenant_id = ?`,
+     FROM t_trace_code WHERE trace_code = ? AND tenant_id = ?`,
     [traceCode, tenantId],
     tenantId
   );
@@ -229,13 +229,13 @@ export async function updateTraceCodeStatus(
   updates.push("version = version + 1");
 
   await queryWithTenant(
-    `UPDATE trace_code SET ${updates.join(", ")} WHERE trace_code = ? AND tenant_id = ?`,
+    `UPDATE t_trace_code SET ${updates.join(", ")} WHERE trace_code = ? AND tenant_id = ?`,
     [...params, traceCode, tenantId],
     tenantId
   );
 
   await queryWithTenant(
-    `INSERT INTO trace_event_log (trace_code, event_type, from_status, to_status,
+    `INSERT INTO t_trace_event_log (trace_code, event_type, from_status, to_status,
        operator_type, operator_id, operator_name, store_id, order_id, location, remark, ip, tenant_id)
      VALUES (?, 'STATUS_CHANGE', ?, ?, 'ADMIN', ?, ?, ?, ?, ?, ?, ?, ?)`,
     [traceCode, existing.currentStatus, body.status,
@@ -249,7 +249,7 @@ export async function updateTraceCodeStatus(
   const code = await queryOneWithTenant<any>(
     `SELECT id, trace_code AS traceCode, current_status AS currentStatus,
             current_location AS currentLocation, version, updated_at AS updatedAt
-     FROM trace_code WHERE trace_code = ? AND tenant_id = ?`,
+     FROM t_trace_code WHERE trace_code = ? AND tenant_id = ?`,
     [traceCode, tenantId],
     tenantId
   );
@@ -260,7 +260,7 @@ export async function updateTraceCodeStatus(
 export async function getTraceCodeStatistics(tenantId: string) {
   const statusStats = await queryWithTenant<any>(
     `SELECT current_status AS currentStatus, COUNT(*) AS count
-     FROM trace_code
+     FROM t_trace_code
      WHERE tenant_id = ?
      GROUP BY current_status`,
     [tenantId],
@@ -268,32 +268,32 @@ export async function getTraceCodeStatistics(tenantId: string) {
   );
 
   const totalCount = await queryOneWithTenant<any>(
-    "SELECT COUNT(*) AS count FROM trace_code WHERE tenant_id = ?",
+    "SELECT COUNT(*) AS count FROM t_trace_code WHERE tenant_id = ?",
     [tenantId],
     tenantId
   );
 
   const todayCount = await queryOneWithTenant<any>(
-    `SELECT COUNT(*) AS count FROM trace_code
+    `SELECT COUNT(*) AS count FROM t_trace_code
      WHERE tenant_id = ? AND DATE(created_at) = CURDATE()`,
     [tenantId],
     tenantId
   );
 
   const fraudCount = await queryOneWithTenant<any>(
-    "SELECT COUNT(*) AS count FROM trace_code WHERE fraud_alert = 1 AND tenant_id = ?",
+    "SELECT COUNT(*) AS count FROM t_trace_code WHERE fraud_alert = 1 AND tenant_id = ?",
     [tenantId],
     tenantId
   );
 
   const totalScans = await queryOneWithTenant<any>(
-    "SELECT COALESCE(SUM(scan_count), 0) AS count FROM trace_code WHERE tenant_id = ?",
+    "SELECT COALESCE(SUM(scan_count), 0) AS count FROM t_trace_code WHERE tenant_id = ?",
     [tenantId],
     tenantId
   );
 
   const todayScans = await queryOneWithTenant<any>(
-    `SELECT COUNT(*) AS count FROM trace_scan_log
+    `SELECT COUNT(*) AS count FROM t_trace_scan_log
      WHERE tenant_id = ? AND DATE(created_at) = CURDATE()`,
     [tenantId],
     tenantId
@@ -325,7 +325,7 @@ export async function queryTraceChain(traceCode: string, tenantId: string) {
             quality_check_result AS qualityCheckResult,
             scan_count AS scanCount, fraud_alert AS fraudAlert,
             produced_at AS producedAt, created_at AS createdAt
-     FROM trace_code WHERE trace_code = ? AND tenant_id = ?`,
+     FROM t_trace_code WHERE trace_code = ? AND tenant_id = ?`,
     [traceCode, tenantId],
     tenantId
   );
@@ -339,7 +339,7 @@ export async function queryTraceChain(traceCode: string, tenantId: string) {
             from_status AS fromStatus, to_status AS toStatus,
             operator_type AS operatorType, operator_name AS operatorName,
             location, remark, created_at AS createdAt
-     FROM trace_event_log
+     FROM t_trace_event_log
      WHERE trace_code = ? AND tenant_id = ?
      ORDER BY created_at ASC`,
     [traceCode, tenantId],
@@ -378,7 +378,7 @@ export async function verifyTraceCode(
     message = "验证通过，该商品为正品";
 
     await queryWithTenant(
-      `UPDATE trace_code
+      `UPDATE t_trace_code
        SET scan_count = scan_count + 1,
            first_scan_at = CASE WHEN scan_count = 0 THEN NOW() ELSE first_scan_at END,
            first_scan_ip = CASE WHEN scan_count = 0 THEN ? ELSE first_scan_ip END
@@ -389,7 +389,7 @@ export async function verifyTraceCode(
   }
 
   await queryWithTenant(
-    `INSERT INTO trace_scan_log (trace_code, scan_type, user_id, ip, result, tenant_id)
+    `INSERT INTO t_trace_scan_log (trace_code, scan_type, user_id, ip, result, tenant_id)
      VALUES (?, ?, ?, ?, ?, ?)`,
     [traceCode, scanType, userId ?? null, ip, result, tenantId],
     tenantId
@@ -445,14 +445,14 @@ export async function createRecall(
   }
 
   const totalAffected = await queryOneWithTenant<any>(
-    `SELECT COUNT(*) AS count FROM trace_code WHERE ${affectedCondition}
+    `SELECT COUNT(*) AS count FROM t_trace_code WHERE ${affectedCondition}
      AND current_status NOT IN ('DESTROYED', 'EXPIRED')`,
     affectedParams,
     tenantId
   );
 
   await queryWithTenant(
-    `INSERT INTO recall_record (recall_no, recall_type, target_value, target_name,
+    `INSERT INTO t_recall_record (recall_no, recall_type, target_value, target_name,
        reason, total_affected, status, notify_content, operator_id, tenant_id)
      VALUES (?, ?, ?, ?, ?, ?, 'CREATED', ?, ?, ?)`,
     [recallNo, body.recallType, body.targetValue, body.targetName,
@@ -468,7 +468,7 @@ export async function createRecall(
             total_notified AS totalNotified, total_returned AS totalReturned,
             status, notify_content AS notifyContent,
             operator_id AS operatorId, created_at AS createdAt
-     FROM recall_record WHERE recall_no = ? AND tenant_id = ?`,
+     FROM t_recall_record WHERE recall_no = ? AND tenant_id = ?`,
     [recallNo, tenantId],
     tenantId
   );
@@ -506,7 +506,7 @@ export async function listRecalls(
             rr.status, rr.notify_content AS notifyContent,
             rr.started_at AS startedAt, rr.completed_at AS completedAt,
             rr.operator_id AS operatorId, rr.created_at AS createdAt, rr.updated_at AS updatedAt
-     FROM recall_record rr
+     FROM t_recall_record rr
      ${where}
      ORDER BY rr.created_at DESC
      LIMIT ? OFFSET ?`,
@@ -515,7 +515,7 @@ export async function listRecalls(
   );
 
   const totalRow = await queryOneWithTenant<any>(
-    `SELECT COUNT(*) AS total FROM recall_record rr ${where}`,
+    `SELECT COUNT(*) AS total FROM t_recall_record rr ${where}`,
     params,
     tenantId
   );
@@ -537,7 +537,7 @@ export async function getRecallDetail(recallNo: string, tenantId: string) {
             rr.status, rr.notify_content AS notifyContent,
             rr.started_at AS startedAt, rr.completed_at AS completedAt,
             rr.operator_id AS operatorId, rr.created_at AS createdAt, rr.updated_at AS updatedAt
-     FROM recall_record rr
+     FROM t_recall_record rr
      WHERE rr.recall_no = ? AND rr.tenant_id = ?`,
     [recallNo, tenantId],
     tenantId
@@ -555,7 +555,7 @@ export async function executeRecall(
   const existing = await queryOneWithTenant<any>(
     `SELECT id, recall_no AS recallNo, recall_type AS recallType, target_value AS targetValue,
             status, total_affected AS totalAffected
-     FROM recall_record WHERE recall_no = ? AND tenant_id = ?`,
+     FROM t_recall_record WHERE recall_no = ? AND tenant_id = ?`,
     [recallNo, tenantId],
     tenantId
   );
@@ -592,7 +592,7 @@ export async function executeRecall(
   }
 
   await queryWithTenant(
-    `UPDATE trace_code
+    `UPDATE t_trace_code
      SET current_status = 'RECALLED', version = version + 1, updated_at = NOW()
      WHERE ${affectedCondition}
        AND current_status NOT IN ('DESTROYED', 'EXPIRED', 'RECALLED')`,
@@ -601,7 +601,7 @@ export async function executeRecall(
   );
 
   const affectedCodes = await queryWithTenant<any>(
-    `SELECT trace_code AS traceCode FROM trace_code
+    `SELECT trace_code AS traceCode FROM t_trace_code
      WHERE ${affectedCondition} AND current_status = 'RECALLED'`,
     affectedParams,
     tenantId
@@ -609,7 +609,7 @@ export async function executeRecall(
 
   for (const row of affectedCodes) {
     await queryWithTenant(
-      `INSERT INTO trace_event_log (trace_code, event_type, from_status, to_status,
+      `INSERT INTO t_trace_event_log (trace_code, event_type, from_status, to_status,
          operator_type, operator_id, operator_name, remark, tenant_id)
        VALUES (?, 'RECALL', NULL, 'RECALLED', 'ADMIN', ?, ?, '执行召回', ?)`,
       [row.traceCode, userId, username, tenantId],
@@ -618,7 +618,7 @@ export async function executeRecall(
   }
 
   await queryWithTenant(
-    `UPDATE recall_record
+    `UPDATE t_recall_record
      SET status = 'IN_PROGRESS', started_at = NOW(),
          total_affected = ?, updated_at = NOW()
      WHERE recall_no = ? AND tenant_id = ?`,
@@ -632,7 +632,7 @@ export async function executeRecall(
             reason, total_affected AS totalAffected,
             total_notified AS totalNotified, total_returned AS totalReturned,
             status, started_at AS startedAt, updated_at AS updatedAt
-     FROM recall_record WHERE recall_no = ? AND tenant_id = ?`,
+     FROM t_recall_record WHERE recall_no = ? AND tenant_id = ?`,
     [recallNo, tenantId],
     tenantId
   );
@@ -649,7 +649,7 @@ export async function completeRecall(
   tenantId: string
 ) {
   const existing = await queryOneWithTenant<any>(
-    `SELECT id, status FROM recall_record WHERE recall_no = ? AND tenant_id = ?`,
+    `SELECT id, status FROM t_recall_record WHERE recall_no = ? AND tenant_id = ?`,
     [recallNo, tenantId],
     tenantId
   );
@@ -662,7 +662,7 @@ export async function completeRecall(
   }
 
   await queryWithTenant(
-    `UPDATE recall_record
+    `UPDATE t_recall_record
      SET status = 'COMPLETED', total_notified = ?, total_returned = ?,
          completed_at = NOW(), updated_at = NOW()
      WHERE recall_no = ? AND tenant_id = ?`,
@@ -676,7 +676,7 @@ export async function completeRecall(
             reason, total_affected AS totalAffected,
             total_notified AS totalNotified, total_returned AS totalReturned,
             status, completed_at AS completedAt, updated_at AS updatedAt
-     FROM recall_record WHERE recall_no = ? AND tenant_id = ?`,
+     FROM t_recall_record WHERE recall_no = ? AND tenant_id = ?`,
     [recallNo, tenantId],
     tenantId
   );
@@ -690,7 +690,7 @@ export async function consumerQueryTrace(traceCode: string, tenantId: string) {
             batch_no AS batchNo, production_date AS productionDate,
             expiry_date AS expiryDate, shelf_life_days AS shelfLifeDays,
             current_status AS currentStatus, quality_check_result AS qualityCheckResult
-     FROM trace_code WHERE trace_code = ? AND tenant_id = ?`,
+     FROM t_trace_code WHERE trace_code = ? AND tenant_id = ?`,
     [traceCode, tenantId],
     tenantId
   );
@@ -704,7 +704,7 @@ export async function consumerQueryTrace(traceCode: string, tenantId: string) {
             from_status AS fromStatus, to_status AS toStatus,
             operator_type AS operatorType, location, remark,
             created_at AS createdAt
-     FROM trace_event_log
+     FROM t_trace_event_log
      WHERE trace_code = ? AND tenant_id = ?
      ORDER BY created_at ASC`,
     [traceCode, tenantId],
@@ -752,7 +752,7 @@ export async function consumerVerifyTraceCode(
     message = "验证通过，该商品为正品";
 
     await queryWithTenant(
-      `UPDATE trace_code
+      `UPDATE t_trace_code
        SET scan_count = scan_count + 1,
            first_scan_at = CASE WHEN scan_count = 0 THEN NOW() ELSE first_scan_at END,
            first_scan_ip = CASE WHEN scan_count = 0 THEN ? ELSE first_scan_ip END
@@ -763,7 +763,7 @@ export async function consumerVerifyTraceCode(
   }
 
   await queryWithTenant(
-    `INSERT INTO trace_scan_log (trace_code, scan_type, user_id, ip, result, tenant_id)
+    `INSERT INTO t_trace_scan_log (trace_code, scan_type, user_id, ip, result, tenant_id)
      VALUES (?, 'CONSUMER', ?, ?, ?, ?)`,
     [traceCode, userId ?? null, ip, result, tenantId],
     tenantId

@@ -3,7 +3,7 @@ import { query, queryOne, queryWithTenant, queryOneWithTenant } from "../../shar
 export async function getCategories(tenantId: string) {
   const records = await queryWithTenant<any>(
     `SELECT id, name, parent_id AS parentId, sort_no AS sortNo
-     FROM product_category
+     FROM t_product_category
      WHERE tenant_id = ? AND status = 1
      ORDER BY sort_no ASC, id ASC`,
     [tenantId],
@@ -22,8 +22,8 @@ export async function getProductDetail(spuId: number, tenantId: string) {
             p.is_new AS isNew, p.is_recommend AS isRecommend,
             p.marketing_tags AS marketingTags,
             p.description, p.status, p.created_at AS createdAt, p.updated_at AS updatedAt
-     FROM product_spu p
-     LEFT JOIN product_category pc ON pc.id = p.category_id
+     FROM t_product_spu p
+     LEFT JOIN t_product_category pc ON pc.id = p.category_id
      WHERE p.id = ? AND p.tenant_id = ? AND p.status = 'ON_SALE'`,
     [spuId, tenantId], tenantId
   );
@@ -38,9 +38,9 @@ export async function getProductDetail(spuId: number, tenantId: string) {
             pp.wholesale_price AS wholesalePrice, pp.miniapp_price AS miniappPrice,
             pp.store_price AS storePrice,
             COALESCE(ib.available_qty, 0) AS availableQty
-     FROM product_sku s
-     LEFT JOIN product_price pp ON pp.sku_id = s.id
-     LEFT JOIN inventory_balance ib ON ib.sku_id = s.id AND ib.stock_type = 'OFFLINE'
+     FROM t_product_sku s
+     LEFT JOIN t_product_price pp ON pp.sku_id = s.id
+     LEFT JOIN t_inventory_balance ib ON ib.sku_id = s.id AND ib.stock_type = 'OFFLINE'
      WHERE s.spu_id = ? AND s.tenant_id = ?
      ORDER BY s.id ASC`,
     [spuId, tenantId], tenantId
@@ -62,10 +62,10 @@ export async function listProducts(params: {
             s.sku_name AS skuName, s.barcode, pp.retail_price AS retailPrice,
             pp.wholesale_price AS wholesalePrice, pp.store_price AS storePrice,
             ib.available_qty AS availableQty
-     FROM product_sku s
-     JOIN product_spu p ON p.id = s.spu_id AND p.tenant_id = s.tenant_id
-     JOIN product_price pp ON pp.sku_id = s.id AND pp.tenant_id = s.tenant_id
-     LEFT JOIN inventory_balance ib ON ib.sku_id = s.id AND ib.store_id = ? AND ib.stock_type = 'OFFLINE' AND ib.tenant_id = s.tenant_id
+     FROM t_product_sku s
+     JOIN t_product_spu p ON p.id = s.spu_id AND p.tenant_id = s.tenant_id
+     JOIN t_product_price pp ON pp.sku_id = s.id AND pp.tenant_id = s.tenant_id
+     LEFT JOIN t_inventory_balance ib ON ib.sku_id = s.id AND ib.store_id = ? AND ib.stock_type = 'OFFLINE' AND ib.tenant_id = s.tenant_id
      WHERE s.tenant_id = ?
        AND p.status = 'ON_SALE'
        AND (? = '' OR p.name LIKE ? OR s.sku_name LIKE ? OR s.sku_code LIKE ?)

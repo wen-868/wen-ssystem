@@ -184,9 +184,9 @@ export async function previewBatchPriceAdjustment(
 
   const totalRow = await queryOneWithTenant<any>(
     `SELECT COUNT(*) AS total
-     FROM product_price pp
-     JOIN product_sku sku ON sku.id = pp.sku_id AND sku.tenant_id = pp.tenant_id
-     JOIN product_spu s ON s.id = sku.spu_id AND s.tenant_id = sku.tenant_id
+     FROM t_product_price pp
+     JOIN t_product_sku sku ON sku.id = pp.sku_id AND sku.tenant_id = pp.tenant_id
+     JOIN t_product_spu s ON s.id = sku.spu_id AND s.tenant_id = sku.tenant_id
      WHERE ${where}`,
     params,
     tenantId
@@ -202,9 +202,9 @@ export async function previewBatchPriceAdjustment(
     const rows = await queryWithTenant<any>(
       `SELECT sku.id AS skuId, sku.sku_name AS skuName, sku.sku_code AS skuCode,
               pp.${adjustment.field} AS price
-       FROM product_price pp
-       JOIN product_sku sku ON sku.id = pp.sku_id AND sku.tenant_id = pp.tenant_id
-       JOIN product_spu s ON s.id = sku.spu_id AND s.tenant_id = sku.tenant_id
+       FROM t_product_price pp
+       JOIN t_product_sku sku ON sku.id = pp.sku_id AND sku.tenant_id = pp.tenant_id
+       JOIN t_product_spu s ON s.id = sku.spu_id AND s.tenant_id = sku.tenant_id
        WHERE ${where}
        ORDER BY sku.id DESC
        LIMIT ? OFFSET ?`,
@@ -302,9 +302,9 @@ export async function executeBatchPriceAdjustment(
     const [priceRows] = await conn.query<any[]>(
       `SELECT pp.id AS priceId, pp.sku_id AS skuId, pp.${adjustment.field} AS oldPrice,
               pp.price_level_id AS priceLevelId
-       FROM product_price pp
-       JOIN product_sku sku ON sku.id = pp.sku_id AND sku.tenant_id = pp.tenant_id
-       JOIN product_spu s ON s.id = sku.spu_id AND s.tenant_id = sku.tenant_id
+       FROM t_product_price pp
+       JOIN t_product_sku sku ON sku.id = pp.sku_id AND sku.tenant_id = pp.tenant_id
+       JOIN t_product_spu s ON s.id = sku.spu_id AND s.tenant_id = sku.tenant_id
        WHERE ${where}
        FOR UPDATE`,
       params
@@ -325,7 +325,7 @@ export async function executeBatchPriceAdjustment(
       }
 
       const [updateResult] = await conn.query<any>(
-        `UPDATE product_price
+        `UPDATE t_product_price
          SET ${adjustment.field} = ?, updated_at = NOW()
          WHERE id = ? AND tenant_id = ?`,
         [newPrice, row.priceId, tenantId]
@@ -344,7 +344,7 @@ export async function executeBatchPriceAdjustment(
         };
 
         await conn.query(
-          `INSERT INTO product_price_log
+          `INSERT INTO t_product_price_log
            (sku_id, operator_id, price_type, old_price, new_price, action_type, change_reason, batch_no, tenant_id)
            VALUES (?, ?, ?, ?, ?, 'BATCH_UPDATE', ?, ?, ?)`,
           [
@@ -429,7 +429,7 @@ export async function listBatchPriceLogs(
             MAX(created_at) AS createdAt,
             MAX(change_reason) AS reason,
             MAX(operator_id) AS operatorId
-     FROM product_price_log
+     FROM t_product_price_log
      WHERE ${where}
      GROUP BY batch_no, price_type
      ORDER BY createdAt DESC
@@ -440,7 +440,7 @@ export async function listBatchPriceLogs(
 
   const totalRow = await queryOneWithTenant<any>(
     `SELECT COUNT(DISTINCT batch_no) AS total
-     FROM product_price_log
+     FROM t_product_price_log
      WHERE ${where}`,
     params,
     tenantId
@@ -471,8 +471,8 @@ export async function getBatchPriceDetail(
             ppl.new_price AS newPrice,
             (ppl.new_price - ppl.old_price) AS changeAmount,
             ppl.change_reason AS reason, ppl.created_at AS createdAt
-     FROM product_price_log ppl
-     JOIN product_sku s ON s.id = ppl.sku_id AND s.tenant_id = ppl.tenant_id
+     FROM t_product_price_log ppl
+     JOIN t_product_sku s ON s.id = ppl.sku_id AND s.tenant_id = ppl.tenant_id
      WHERE ppl.batch_no = ? AND ppl.tenant_id = ?
      ORDER BY ppl.id DESC
      LIMIT ? OFFSET ?`,
@@ -481,7 +481,7 @@ export async function getBatchPriceDetail(
   );
 
   const totalRow = await queryOneWithTenant<any>(
-    "SELECT COUNT(*) AS total FROM product_price_log WHERE batch_no = ? AND tenant_id = ?",
+    "SELECT COUNT(*) AS total FROM t_product_price_log WHERE batch_no = ? AND tenant_id = ?",
     [batchNo, tenantId],
     tenantId
   );

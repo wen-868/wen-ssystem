@@ -11,18 +11,18 @@ export async function listMembers(tenantId: string, page: number, pageSize: numb
             m.staff_id AS staffId, u.real_name AS staffName,
             COALESCE(
               (SELECT SUM(receivable_amount)
-               FROM sale_bill
+               FROM t_sale_bill
                WHERE customer_id = m.id AND business_status NOT IN ('DRAFT', 'VOIDED')),
               0
             ) AS totalSpent,
             COALESCE(
               (SELECT SUM(unreceived_amount)
-               FROM sale_bill
+               FROM t_sale_bill
                WHERE customer_id = m.id AND business_status NOT IN ('DRAFT', 'VOIDED')),
               0
             ) AS arrears
      FROM member m
-     LEFT JOIN sys_user u ON u.id = m.staff_id
+     LEFT JOIN t_sys_user u ON u.id = m.staff_id
      WHERE m.tenant_id = ? AND (m.name LIKE ? OR m.mobile LIKE ?)
      ORDER BY m.id DESC
      LIMIT ? OFFSET ?`,
@@ -52,7 +52,7 @@ export async function getCustomerDetail(tenantId: string, memberId: number) {
             m.points, m.level_code AS levelCode, m.status,
             m.staff_id AS staffId, u.real_name AS staffName
      FROM member m
-     LEFT JOIN sys_user u ON u.id = m.staff_id
+     LEFT JOIN t_sys_user u ON u.id = m.staff_id
      WHERE m.id = ? AND m.tenant_id = ?`,
     [memberId, tenantId],
     tenantId
@@ -111,7 +111,7 @@ export async function assignStaffToCustomer(tenantId: string, memberId: number, 
   if (!member) {
     throw Object.assign(new Error("客户不存在"), { statusCode: 404 });
   }
-  const staff = await queryOneWithTenant<any>("SELECT id FROM sys_user WHERE id = ? AND status = 1", [staffId], tenantId);
+  const staff = await queryOneWithTenant<any>("SELECT id FROM t_sys_user WHERE id = ? AND status = 1", [staffId], tenantId);
   if (!staff) {
     throw Object.assign(new Error("员工不存在"), { statusCode: 404 });
   }
@@ -123,8 +123,8 @@ export async function getCustomerPriceHistory(tenantId: string, memberId: number
   const records = await queryWithTenant<any>(
     `SELECT sbi.sku_id AS skuId, sbi.sku_name AS skuName, sbi.unit_price AS unitPrice,
             sb.bill_no AS billNo, sb.created_at AS createdAt
-     FROM sale_bill_item sbi
-     JOIN sale_bill sb ON sb.bill_no = sbi.bill_no
+     FROM t_sale_bill_item sbi
+     JOIN t_sale_bill sb ON sb.bill_no = sbi.bill_no
      WHERE sb.customer_id = ? AND sbi.sku_id = ? AND sb.tenant_id = ?
      ORDER BY sb.created_at DESC`,
     [memberId, skuId, tenantId],
@@ -154,14 +154,14 @@ export async function listCustomerSaleBills(tenantId: string, memberId: number, 
             unreceived_amount AS unreceivedAmount,
             collection_status AS collectionStatus, business_status AS businessStatus,
             created_at AS createdAt
-     FROM sale_bill
+     FROM t_sale_bill
      WHERE customer_id = ? AND tenant_id = ?
      ORDER BY created_at DESC
      LIMIT ? OFFSET ?`,
     [memberId, tenantId, pageSize, offset],
     tenantId
   );
-  const totalRow = await queryOneWithTenant<any>("SELECT COUNT(*) AS total FROM sale_bill WHERE customer_id = ? AND tenant_id = ?", [memberId, tenantId], tenantId);
+  const totalRow = await queryOneWithTenant<any>("SELECT COUNT(*) AS total FROM t_sale_bill WHERE customer_id = ? AND tenant_id = ?", [memberId, tenantId], tenantId);
   return { total: totalRow?.total ?? 0, page, pageSize, records };
 }
 
@@ -173,7 +173,7 @@ export async function listCustomerPayments(tenantId: string, memberId: number, p
             amount, payment_method AS paymentMethod,
             voucher_no AS voucherNo, payment_date AS paymentDate,
             status, remark, created_at AS createdAt, 'SALE_PAYMENT' AS paymentTable
-     FROM sale_payment
+     FROM t_sale_payment
      WHERE customer_id = ? AND tenant_id = ?
      UNION ALL
      SELECT id, receipt_no AS receiptNo, source_type AS sourceType, source_no AS sourceNo,
@@ -181,7 +181,7 @@ export async function listCustomerPayments(tenantId: string, memberId: number, p
             amount, payment_method AS paymentMethod,
             voucher_no AS voucherNo, payment_date AS paymentDate,
             status, remark, created_at AS createdAt, 'CUSTOMER_PAYMENT' AS paymentTable
-     FROM customer_payment
+     FROM t_customer_payment
      WHERE customer_id = ? AND tenant_id = ?
      ORDER BY created_at DESC
      LIMIT ? OFFSET ?`,
@@ -190,8 +190,8 @@ export async function listCustomerPayments(tenantId: string, memberId: number, p
   );
   const totalRow = await queryOneWithTenant<any>(
     `SELECT
-        (SELECT COUNT(*) FROM sale_payment WHERE customer_id = ? AND tenant_id = ?) +
-        (SELECT COUNT(*) FROM customer_payment WHERE customer_id = ? AND tenant_id = ?) AS total`,
+        (SELECT COUNT(*) FROM t_sale_payment WHERE customer_id = ? AND tenant_id = ?) +
+        (SELECT COUNT(*) FROM t_customer_payment WHERE customer_id = ? AND tenant_id = ?) AS total`,
     [memberId, tenantId, memberId, tenantId],
     tenantId
   );
@@ -207,7 +207,7 @@ export async function listCustomerStatements(tenantId: string, memberId: number,
             total_returns AS totalReturns, total_payments AS totalPayments,
             closing_balance AS closingBalance,
             status, confirmed_at AS confirmedAt, created_at AS createdAt
-     FROM customer_statement
+     FROM t_customer_statement
      WHERE customer_id = ? AND tenant_id = ?
      ORDER BY created_at DESC
      LIMIT ? OFFSET ?`,
@@ -215,7 +215,7 @@ export async function listCustomerStatements(tenantId: string, memberId: number,
     tenantId
   );
   const totalRow = await queryOneWithTenant<any>(
-    "SELECT COUNT(*) AS total FROM customer_statement WHERE customer_id = ? AND tenant_id = ?",
+    "SELECT COUNT(*) AS total FROM t_customer_statement WHERE customer_id = ? AND tenant_id = ?",
     [memberId, tenantId],
     tenantId
   );
@@ -228,7 +228,7 @@ export async function getCustomerPurchaseStats(tenantId: string, memberId: numbe
             COALESCE(SUM(receivable_amount), 0) AS totalAmount,
             COALESCE(SUM(received_amount), 0) AS receivedAmount,
             COALESCE(SUM(unreceived_amount), 0) AS unpaidAmount
-     FROM sale_bill
+     FROM t_sale_bill
      WHERE customer_id = ? AND tenant_id = ? AND business_status NOT IN ('DRAFT', 'VOIDED')`,
     [memberId, tenantId],
     tenantId
@@ -238,8 +238,8 @@ export async function getCustomerPurchaseStats(tenantId: string, memberId: numbe
     `SELECT sbi.sku_id AS skuId, sbi.sku_name AS skuName,
             SUM(sbi.total_bottle_qty) AS totalQty,
             SUM(sbi.subtotal_amount) AS totalAmount
-     FROM sale_bill_item sbi
-     JOIN sale_bill sb ON sb.bill_no = sbi.bill_no
+     FROM t_sale_bill_item sbi
+     JOIN t_sale_bill sb ON sb.bill_no = sbi.bill_no
      WHERE sb.customer_id = ? AND sb.tenant_id = ? AND sb.business_status NOT IN ('DRAFT', 'VOIDED')
      GROUP BY sbi.sku_id, sbi.sku_name
      ORDER BY totalQty DESC
@@ -249,7 +249,7 @@ export async function getCustomerPurchaseStats(tenantId: string, memberId: numbe
   );
 
   const lastOrder = await queryOneWithTenant<any>(
-    `SELECT MAX(created_at) AS lastOrderAt FROM sale_bill WHERE customer_id = ? AND tenant_id = ? AND business_status NOT IN ('DRAFT', 'VOIDED')`,
+    `SELECT MAX(created_at) AS lastOrderAt FROM t_sale_bill WHERE customer_id = ? AND tenant_id = ? AND business_status NOT IN ('DRAFT', 'VOIDED')`,
     [memberId, tenantId],
     tenantId
   );
@@ -274,7 +274,7 @@ export async function getCustomerStats(tenantId: string) {
   );
   const activeRow = await queryOneWithTenant<any>(
     `SELECT COUNT(DISTINCT customer_id) AS cnt
-     FROM sale_bill
+     FROM t_sale_bill
      WHERE customer_id IS NOT NULL
        AND tenant_id = ?
        AND business_status NOT IN ('DRAFT', 'VOIDED')
@@ -284,7 +284,7 @@ export async function getCustomerStats(tenantId: string) {
   );
   const debtRow = await queryOneWithTenant<any>(
     `SELECT COUNT(DISTINCT customer_id) AS cnt
-     FROM sale_bill
+     FROM t_sale_bill
      WHERE customer_id IS NOT NULL
        AND tenant_id = ?
        AND unreceived_amount > 0
@@ -294,7 +294,7 @@ export async function getCustomerStats(tenantId: string) {
   );
   const receivableRow = await queryOneWithTenant<any>(
     `SELECT COALESCE(SUM(unreceived_amount), 0) AS total
-     FROM sale_bill
+     FROM t_sale_bill
      WHERE customer_id IS NOT NULL
        AND tenant_id = ?
        AND unreceived_amount > 0

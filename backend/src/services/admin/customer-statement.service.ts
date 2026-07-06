@@ -29,7 +29,7 @@ export async function list(params: {
   const whereClause = " AND tenant_id = ?" + (conditions.length > 0 ? " AND " + conditions.join(" AND ") : "");
   const offset = (page - 1) * pageSize;
   const statements = await query<any>(
-    `SELECT * FROM customer_statement WHERE 1=1${whereClause} ORDER BY created_at DESC LIMIT ? OFFSET ?`,
+    `SELECT * FROM t_customer_statement WHERE 1=1${whereClause} ORDER BY created_at DESC LIMIT ? OFFSET ?`,
     [tenantId, ...queryParams, pageSize, offset]
   );
   return statements;
@@ -37,26 +37,26 @@ export async function list(params: {
 
 export async function getDetail(statementNo: string, tenantId: string) {
   const statement = await queryOne<any>(
-    "SELECT * FROM customer_statement WHERE statement_no = ? AND tenant_id = ?",
+    "SELECT * FROM t_customer_statement WHERE statement_no = ? AND tenant_id = ?",
     [statementNo, tenantId]
   );
   if (!statement) throw Object.assign(new Error("对账单不存在"), { statusCode: 404 });
 
   const sales = await query<any>(
     `SELECT bill_no AS sale_bill_no, customer_name, receivable_amount, created_at
-     FROM sale_bill WHERE customer_id = ? AND created_at BETWEEN ? AND ? AND business_status = 'CREATED'
+     FROM t_sale_bill WHERE customer_id = ? AND created_at BETWEEN ? AND ? AND business_status = 'CREATED'
      ORDER BY created_at ASC`,
     [statement.customer_id, statement.start_date, statement.end_date]
   );
   const returns = await query<any>(
     `SELECT return_no AS sale_return_no, refund_amount, created_at
-     FROM sale_return WHERE customer_id = ? AND created_at BETWEEN ? AND ? AND return_status = 'COMPLETED'
+     FROM t_sale_return WHERE customer_id = ? AND created_at BETWEEN ? AND ? AND return_status = 'COMPLETED'
      ORDER BY created_at ASC`,
     [statement.customer_id, statement.start_date, statement.end_date]
   );
   const payments = await query<any>(
     `SELECT receipt_no, amount, payment_date
-     FROM customer_payment WHERE customer_id = ? AND payment_date BETWEEN ? AND ? AND status = 'COMPLETED'
+     FROM t_customer_payment WHERE customer_id = ? AND payment_date BETWEEN ? AND ? AND status = 'COMPLETED'
      ORDER BY payment_date ASC`,
     [statement.customer_id, statement.start_date, statement.end_date]
   );
@@ -73,28 +73,28 @@ export async function create(body: {
   await transaction(async (conn) => {
     const [openingRows] = await conn.query(
       `SELECT COALESCE(SUM(unreceived_amount), 0) AS opening_balance
-       FROM sale_bill WHERE customer_id = ? AND created_at < ? AND collection_status IN ('UNPAID', 'PARTIAL') AND business_status = 'CREATED'`,
+       FROM t_sale_bill WHERE customer_id = ? AND created_at < ? AND collection_status IN ('UNPAID', 'PARTIAL') AND business_status = 'CREATED'`,
       [body.customer_id, body.start_date]
     );
     const openingBalance = Number((openingRows as Record<string, unknown>[])?.[0]?.opening_balance || 0);
 
     const [salesRows] = await conn.query(
       `SELECT COALESCE(SUM(receivable_amount), 0) AS total_sales
-       FROM sale_bill WHERE customer_id = ? AND created_at BETWEEN ? AND ? AND business_status = 'CREATED'`,
+       FROM t_sale_bill WHERE customer_id = ? AND created_at BETWEEN ? AND ? AND business_status = 'CREATED'`,
       [body.customer_id, body.start_date, body.end_date]
     );
     const totalSales = Number((salesRows as Record<string, unknown>[])?.[0]?.total_sales || 0);
 
     const [returnsRows] = await conn.query(
       `SELECT COALESCE(SUM(refund_amount), 0) AS total_returns
-       FROM sale_return WHERE customer_id = ? AND created_at BETWEEN ? AND ? AND return_status = 'COMPLETED'`,
+       FROM t_sale_return WHERE customer_id = ? AND created_at BETWEEN ? AND ? AND return_status = 'COMPLETED'`,
       [body.customer_id, body.start_date, body.end_date]
     );
     const totalReturns = Number((returnsRows as Record<string, unknown>[])?.[0]?.total_returns || 0);
 
     const [paymentsRows] = await conn.query(
       `SELECT COALESCE(SUM(amount), 0) AS total_payments
-       FROM customer_payment WHERE customer_id = ? AND payment_date BETWEEN ? AND ? AND status = 'COMPLETED'`,
+       FROM t_customer_payment WHERE customer_id = ? AND payment_date BETWEEN ? AND ? AND status = 'COMPLETED'`,
       [body.customer_id, body.start_date, body.end_date]
     );
     const totalPayments = Number((paymentsRows as Record<string, unknown>[])?.[0]?.total_payments || 0);
@@ -102,7 +102,7 @@ export async function create(body: {
     const closingBalance = openingBalance + totalSales - totalReturns - totalPayments;
 
     await conn.query(
-      `INSERT INTO customer_statement (statement_no, customer_id, customer_name, customer_mobile, statement_type,
+      `INSERT INTO t_customer_statement (statement_no, customer_id, customer_name, customer_mobile, statement_type,
         start_date, end_date, opening_balance, total_sales, total_returns, total_payments,
         closing_balance, status, operator_id, remark, tenant_id)
        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'DRAFT', ?, ?, ?)`,
@@ -113,7 +113,7 @@ export async function create(body: {
     );
 
     await conn.query(
-      "INSERT INTO operation_log (module, action, target_id, target_type, user_id, user_name, detail, tenant_id) VALUES (?, ?, ?, ?, ?, ?, ?, ?)",
+      "INSERT INTO t_operation_log (module, action, target_id, target_type, user_id, user_name, detail, tenant_id) VALUES (?, ?, ?, ?, ?, ?, ?, ?)",
       ["customer_statement", "CREATE", statementNo, "customer_statement", userId, username, `创建对账单: ${statementNo}`, tenantId]
     );
   });
@@ -123,15 +123,15 @@ export async function create(body: {
 
 export async function confirm(statementNo: string, tenantId: string, userId: number, username: string) {
   const statement = await queryOne<any>(
-    "SELECT id, status FROM customer_statement WHERE statement_no = ? AND tenant_id = ?",
+    "SELECT id, status FROM t_customer_statement WHERE statement_no = ? AND tenant_id = ?",
     [statementNo, tenantId]
   );
   if (!statement) throw Object.assign(new Error("对账单不存在"), { statusCode: 404 });
   if (statement.status !== "DRAFT") throw Object.assign(new Error("只有草稿状态的对账单可以确认"), { statusCode: 400 });
 
-  await query("UPDATE customer_statement SET status = 'CONFIRMED', confirmed_at = NOW() WHERE statement_no = ? AND tenant_id = ?", [statementNo, tenantId]);
+  await query("UPDATE t_customer_statement SET status = 'CONFIRMED', confirmed_at = NOW() WHERE statement_no = ? AND tenant_id = ?", [statementNo, tenantId]);
   await queryWithTenant(
-    "INSERT INTO operation_log (module, action, target_id, target_type, user_id, user_name, detail, tenant_id) VALUES (?, ?, ?, ?, ?, ?, ?, ?)",
+    "INSERT INTO t_operation_log (module, action, target_id, target_type, user_id, user_name, detail, tenant_id) VALUES (?, ?, ?, ?, ?, ?, ?, ?)",
     ["customer_statement", "CONFIRM", statementNo, "customer_statement", userId, username, `确认对账单: ${statementNo}`, tenantId],
     tenantId
   );
@@ -140,15 +140,15 @@ export async function confirm(statementNo: string, tenantId: string, userId: num
 
 export async function markPaid(statementNo: string, tenantId: string, userId: number, username: string) {
   const statement = await queryOne<any>(
-    "SELECT id, status FROM customer_statement WHERE statement_no = ? AND tenant_id = ?",
+    "SELECT id, status FROM t_customer_statement WHERE statement_no = ? AND tenant_id = ?",
     [statementNo, tenantId]
   );
   if (!statement) throw Object.assign(new Error("对账单不存在"), { statusCode: 404 });
   if (statement.status !== "CONFIRMED") throw Object.assign(new Error("只有已确认状态的对账单可以标记结清"), { statusCode: 400 });
 
-  await query("UPDATE customer_statement SET status = 'PAID' WHERE statement_no = ? AND tenant_id = ?", [statementNo, tenantId]);
+  await query("UPDATE t_customer_statement SET status = 'PAID' WHERE statement_no = ? AND tenant_id = ?", [statementNo, tenantId]);
   await queryWithTenant(
-    "INSERT INTO operation_log (module, action, target_id, target_type, user_id, user_name, detail, tenant_id) VALUES (?, ?, ?, ?, ?, ?, ?, ?)",
+    "INSERT INTO t_operation_log (module, action, target_id, target_type, user_id, user_name, detail, tenant_id) VALUES (?, ?, ?, ?, ?, ?, ?, ?)",
     ["customer_statement", "PAID", statementNo, "customer_statement", userId, username, `标记结清: ${statementNo}`, tenantId],
     tenantId
   );

@@ -14,7 +14,7 @@ export interface AdjustTermDTO {
 export class CreditAdjustService {
   async adjustLimit(customerId: number, dto: AdjustLimitDTO, ctx: ServiceContext): Promise<any> {
     const result = await queryWithTenant<any>(
-      `UPDATE customer_credit
+      `UPDATE t_customer_credit
        SET credit_limit = ?, version = version + 1, updated_at = NOW()
        WHERE customer_id = ? AND tenant_id = ? AND status != 'CLOSED'`,
       [dto.creditLimit, customerId, ctx.tenantId],
@@ -28,12 +28,12 @@ export class CreditAdjustService {
     }
 
     const credit = await queryOneWithTenant<any>(
-      "SELECT credit_available FROM customer_credit WHERE customer_id = ? AND tenant_id = ?",
+      "SELECT credit_available FROM t_customer_credit WHERE customer_id = ? AND tenant_id = ?",
       [customerId, ctx.tenantId],
       ctx.tenantId
     );
     await queryWithTenant(
-      `INSERT INTO credit_operation_log (customer_id, operation_type, amount, balance_before, balance_after, operator_id, remark, tenant_id)
+      `INSERT INTO t_credit_operation_log (customer_id, operation_type, amount, balance_before, balance_after, operator_id, remark, tenant_id)
        VALUES (?, 'ADJUST_LIMIT', ?, ?, ?, ?, ?, ?)`,
       [customerId, dto.creditLimit, credit?.credit_available ?? 0, credit?.credit_available ?? 0, ctx.userId, dto.reason, ctx.tenantId],
       ctx.tenantId
@@ -44,7 +44,7 @@ export class CreditAdjustService {
               cc.credit_used AS creditUsed, cc.credit_frozen AS creditFrozen,
               cc.credit_available AS creditAvailable, cc.payment_term AS paymentTerm,
               cc.status, cc.version, cc.updated_at AS updatedAt
-       FROM customer_credit cc WHERE cc.customer_id = ? AND cc.tenant_id = ?`,
+       FROM t_customer_credit cc WHERE cc.customer_id = ? AND cc.tenant_id = ?`,
       [customerId, ctx.tenantId],
       ctx.tenantId
     );
@@ -54,7 +54,7 @@ export class CreditAdjustService {
 
   async adjustTerm(customerId: number, dto: AdjustTermDTO, ctx: ServiceContext): Promise<any> {
     const existing = await queryOneWithTenant<any>(
-      "SELECT id, payment_term, status FROM customer_credit WHERE customer_id = ? AND tenant_id = ?",
+      "SELECT id, payment_term, status FROM t_customer_credit WHERE customer_id = ? AND tenant_id = ?",
       [customerId, ctx.tenantId],
       ctx.tenantId
     );
@@ -70,14 +70,14 @@ export class CreditAdjustService {
     }
 
     await queryWithTenant(
-      `UPDATE customer_credit SET payment_term = ?, version = version + 1, updated_at = NOW()
+      `UPDATE t_customer_credit SET payment_term = ?, version = version + 1, updated_at = NOW()
        WHERE customer_id = ? AND tenant_id = ?`,
       [dto.paymentTerm, customerId, ctx.tenantId],
       ctx.tenantId
     );
 
     await queryWithTenant(
-      `INSERT INTO credit_operation_log (customer_id, operation_type, amount, balance_before, balance_after, operator_id, remark, tenant_id)
+      `INSERT INTO t_credit_operation_log (customer_id, operation_type, amount, balance_before, balance_after, operator_id, remark, tenant_id)
        VALUES (?, 'MANUAL_ADJUST', 0, 0, 0, ?, ?, ?)`,
       [customerId, ctx.userId, `账期调整: ${existing.payment_term} -> ${dto.paymentTerm}, ${dto.reason}`, ctx.tenantId],
       ctx.tenantId
@@ -87,7 +87,7 @@ export class CreditAdjustService {
       `SELECT cc.id, cc.customer_id AS customerId, cc.credit_limit AS creditLimit,
               cc.credit_available AS creditAvailable, cc.payment_term AS paymentTerm,
               cc.status, cc.version, cc.updated_at AS updatedAt
-       FROM customer_credit cc WHERE cc.customer_id = ? AND cc.tenant_id = ?`,
+       FROM t_customer_credit cc WHERE cc.customer_id = ? AND cc.tenant_id = ?`,
       [customerId, ctx.tenantId],
       ctx.tenantId
     );
@@ -110,7 +110,7 @@ export class CreditAdjustService {
               col.related_order_no AS relatedOrderNo,
               col.operator_id AS operatorId, col.remark,
               col.created_at AS createdAt
-       FROM credit_operation_log col
+       FROM t_credit_operation_log col
        WHERE col.customer_id = ? AND col.tenant_id = ?
        ORDER BY col.created_at DESC
        LIMIT ? OFFSET ?`,
@@ -119,7 +119,7 @@ export class CreditAdjustService {
     );
 
     const totalRow = await queryOneWithTenant<any>(
-      "SELECT COUNT(*) AS total FROM credit_operation_log WHERE customer_id = ? AND tenant_id = ?",
+      "SELECT COUNT(*) AS total FROM t_credit_operation_log WHERE customer_id = ? AND tenant_id = ?",
       [customerId, ctx.tenantId],
       ctx.tenantId
     );

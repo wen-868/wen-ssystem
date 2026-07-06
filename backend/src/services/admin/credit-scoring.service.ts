@@ -131,7 +131,7 @@ export async function evaluateCreditScore(
   // 2. 当前授信状态
   const credit = await queryOneWithTenant<any>(
     `SELECT credit_limit, credit_used, credit_available, payment_term, status
-     FROM customer_credit
+     FROM t_customer_credit
      WHERE customer_id = ? AND tenant_id = ?`,
     [customerId, ctx.tenantId],
     ctx.tenantId
@@ -240,7 +240,7 @@ export async function autoInitCredit(
   ctx: ServiceContext
 ): Promise<{ creditLimit: number; paymentTerm: string }> {
   const existing = await queryOneWithTenant<any>(
-    "SELECT id FROM customer_credit WHERE customer_id = ? AND tenant_id = ?",
+    "SELECT id FROM t_customer_credit WHERE customer_id = ? AND tenant_id = ?",
     [customerId, ctx.tenantId],
     ctx.tenantId
   );
@@ -252,7 +252,7 @@ export async function autoInitCredit(
   }
 
   await queryWithTenant(
-    `INSERT INTO customer_credit (customer_id, credit_limit, payment_term, late_fee_rate,
+    `INSERT INTO t_customer_credit (customer_id, credit_limit, payment_term, late_fee_rate,
        max_late_fee_rate, warning_threshold, overdue_freeze_days, status, tenant_id)
      VALUES (?, ?, 'NET_7', 0.0005, 0.3, 0.80, 15, 'ACTIVE', ?)`,
     [customerId, DEFAULT_NEW_CUSTOMER_LIMIT, ctx.tenantId],
@@ -260,7 +260,7 @@ export async function autoInitCredit(
   );
 
   await queryWithTenant(
-    `INSERT INTO credit_operation_log (customer_id, operation_type, amount, balance_before, balance_after, operator_id, remark, tenant_id)
+    `INSERT INTO t_credit_operation_log (customer_id, operation_type, amount, balance_before, balance_after, operator_id, remark, tenant_id)
      VALUES (?, 'ADJUST_LIMIT', ?, 0, ?, ?, '系统自动授信', ?)`,
     [customerId, DEFAULT_NEW_CUSTOMER_LIMIT, DEFAULT_NEW_CUSTOMER_LIMIT, ctx.userId, ctx.tenantId],
     ctx.tenantId
@@ -285,7 +285,7 @@ export async function interceptCredit(
 ): Promise<{ allowed: boolean; reason: string; credit?: any }> {
   const credit = await queryOneWithTenant<any>(
     `SELECT credit_limit, credit_used, credit_frozen, credit_available, status, warning_threshold, payment_term
-     FROM customer_credit WHERE customer_id = ? AND tenant_id = ?`,
+     FROM t_customer_credit WHERE customer_id = ? AND tenant_id = ?`,
     [customerId, ctx.tenantId],
     ctx.tenantId
   );
@@ -371,7 +371,7 @@ export async function autoGenerateCollections(ctx: ServiceContext): Promise<{
     `SELECT cc.customer_id AS customerId, m.name AS customerName, m.mobile AS customerMobile,
             cc.credit_used AS creditUsed, cc.payment_term AS paymentTerm,
             cc.credit_limit AS creditLimit
-     FROM customer_credit cc
+     FROM t_customer_credit cc
      LEFT JOIN member m ON m.id = cc.customer_id
      WHERE cc.credit_used > 0 AND cc.status = 'ACTIVE' AND cc.payment_term != 'COD'
        AND cc.tenant_id = ?`,
@@ -393,7 +393,7 @@ export async function autoGenerateCollections(ctx: ServiceContext): Promise<{
 
     // 检查是否已有当天的催收记录
     const existing = await queryOneWithTenant<any>(
-      `SELECT id FROM collection_record
+      `SELECT id FROM t_collection_record
        WHERE customer_id = ? AND DATE(created_at) = CURDATE() AND collection_level = ?
        AND tenant_id = ?`,
       [customer.customerId, strategy.level, ctx.tenantId],
@@ -403,7 +403,7 @@ export async function autoGenerateCollections(ctx: ServiceContext): Promise<{
 
     // 生成催收记录
     await queryWithTenant(
-      `INSERT INTO collection_record (customer_id, overdue_days, overdue_amount,
+      `INSERT INTO t_collection_record (customer_id, overdue_days, overdue_amount,
          collection_level, collection_method, collection_content,
          contact_person, operator_id, tenant_id)
        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`,

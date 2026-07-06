@@ -13,13 +13,13 @@ export async function getHealth() {
 export async function getSystemInfo(tenantId: string) {
   const [userCount, roleCount, configCount] = await Promise.all([
     queryOneWithTenant<{ cnt: number }>(
-      "SELECT COUNT(*) AS cnt FROM sys_user WHERE tenant_id = ?", [tenantId], tenantId
+      "SELECT COUNT(*) AS cnt FROM t_sys_user WHERE tenant_id = ?", [tenantId], tenantId
     ),
     queryOneWithTenant<{ cnt: number }>(
-      "SELECT COUNT(*) AS cnt FROM sys_role WHERE tenant_id = ?", [tenantId], tenantId
+      "SELECT COUNT(*) AS cnt FROM t_sys_role WHERE tenant_id = ?", [tenantId], tenantId
     ),
     queryOneWithTenant<{ cnt: number }>(
-      "SELECT COUNT(*) AS cnt FROM sys_config WHERE tenant_id = ?", [tenantId], tenantId
+      "SELECT COUNT(*) AS cnt FROM t_sys_config WHERE tenant_id = ?", [tenantId], tenantId
     ),
   ]);
 

@@ -133,7 +133,7 @@ export async function logUnauthorizedAccess(
 ): Promise<void> {
   try {
     await queryWithTenant(
-      `INSERT INTO operation_log (user_id, action, detail, target, category, tenant_id, created_at)
+      `INSERT INTO t_operation_log (user_id, action, detail, target, category, tenant_id, created_at)
        VALUES (?, ?, ?, ?, 'UNAUTHORIZED_ACCESS', ?, NOW())`,
       [user.id, action, detail, target, tenantId],
       tenantId

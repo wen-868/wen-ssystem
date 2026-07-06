@@ -33,7 +33,7 @@ export async function list(params: {
   const whereClause = conditions.length > 0 ? " AND " + conditions.join(" AND ") : "";
   const offset = (page - 1) * pageSize;
   const payments = await queryWithTenant<any>(
-    `SELECT * FROM purchase_payment WHERE 1=1${whereClause} ORDER BY created_at DESC LIMIT ? OFFSET ?`,
+    `SELECT * FROM t_purchase_payment WHERE 1=1${whereClause} ORDER BY created_at DESC LIMIT ? OFFSET ?`,
     [...queryParams, pageSize, offset],
     tenantId
   );
@@ -42,7 +42,7 @@ export async function list(params: {
 
 export async function getDetail(paymentNo: string, tenantId: string) {
   const payment = await queryOneWithTenant<any>(
-    "SELECT * FROM purchase_payment WHERE payment_no = ?",
+    "SELECT * FROM t_purchase_payment WHERE payment_no = ?",
     [paymentNo],
     tenantId
   );
@@ -60,7 +60,7 @@ export async function create(body: {
 
   await transaction(async (conn) => {
     await conn.query(
-      `INSERT INTO purchase_payment (payment_no, supplier_id, supplier_name, payment_type, source_type, source_no,
+      `INSERT INTO t_purchase_payment (payment_no, supplier_id, supplier_name, payment_type, source_type, source_no,
         amount, payment_method, bank_account, bank_account_name, bank_name, voucher_no,
         payment_date, operator_id, status, remark, tenant_id)
        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'PENDING', ?, ?)`,
@@ -71,7 +71,7 @@ export async function create(body: {
         userId, body.remark || null, tenantId]
     );
     await conn.query(
-      "INSERT INTO operation_log (module, action, target_id, target_type, user_id, user_name, detail, tenant_id) VALUES (?, ?, ?, ?, ?, ?, ?, ?)",
+      "INSERT INTO t_operation_log (module, action, target_id, target_type, user_id, user_name, detail, tenant_id) VALUES (?, ?, ?, ?, ?, ?, ?, ?)",
       ["purchase_payment", "CREATE", paymentNo, "purchase_payment", userId, username, `创建付款单: ${paymentNo}, 金额: ${body.amount}`, tenantId]
     );
   });
@@ -81,7 +81,7 @@ export async function create(body: {
 
 export async function approve(paymentNo: string, tenantId: string, userId: number, username: string) {
   const payment = await queryOneWithTenant<any>(
-    "SELECT id, status, source_type, source_no, amount FROM purchase_payment WHERE payment_no = ?",
+    "SELECT id, status, source_type, source_no, amount FROM t_purchase_payment WHERE payment_no = ?",
     [paymentNo],
     tenantId
   );
@@ -89,11 +89,11 @@ export async function approve(paymentNo: string, tenantId: string, userId: numbe
   if (payment.status !== "PENDING") throw Object.assign(new Error("只有待审核状态的付款单可以审核"), { statusCode: 400 });
 
   await transaction(async (conn) => {
-    await conn.query("UPDATE purchase_payment SET status = 'COMPLETED' WHERE payment_no = ?", [paymentNo]);
+    await conn.query("UPDATE t_purchase_payment SET status = 'COMPLETED' WHERE payment_no = ?", [paymentNo]);
 
     if (payment.source_type === "PURCHASE_ORDER" && payment.source_no) {
       const [orderRows] = await conn.query(
-        "SELECT payable_amount, paid_amount FROM purchase_order WHERE order_no = ?",
+        "SELECT payable_amount, paid_amount FROM t_purchase_order WHERE order_no = ?",
         [payment.source_no]
       );
       const orderRow = (orderRows as unknown as Record<string, unknown>[])?.[0];
@@ -101,14 +101,14 @@ export async function approve(paymentNo: string, tenantId: string, userId: numbe
         const newPaidAmount = Number(orderRow.paid_amount) + Number(payment.amount);
         const newUnpaidAmount = Number(orderRow.payable_amount) - newPaidAmount;
         await conn.query(
-          "UPDATE purchase_order SET paid_amount = ?, unpaid_amount = ? WHERE order_no = ?",
+          "UPDATE t_purchase_order SET paid_amount = ?, unpaid_amount = ? WHERE order_no = ?",
           [newPaidAmount, Math.max(0, newUnpaidAmount), payment.source_no]
         );
       }
     }
 
     await conn.query(
-      "INSERT INTO operation_log (module, action, target_id, target_type, user_id, user_name, detail, tenant_id) VALUES (?, ?, ?, ?, ?, ?, ?, ?)",
+      "INSERT INTO t_operation_log (module, action, target_id, target_type, user_id, user_name, detail, tenant_id) VALUES (?, ?, ?, ?, ?, ?, ?, ?)",
       ["purchase_payment", "APPROVE", paymentNo, "purchase_payment", userId, username, `审核通过: ${paymentNo}`, tenantId]
     );
   });
@@ -118,16 +118,16 @@ export async function approve(paymentNo: string, tenantId: string, userId: numbe
 
 export async function voidPayment(paymentNo: string, tenantId: string, userId: number, username: string) {
   const payment = await queryOneWithTenant<any>(
-    "SELECT id, status FROM purchase_payment WHERE payment_no = ?",
+    "SELECT id, status FROM t_purchase_payment WHERE payment_no = ?",
     [paymentNo],
     tenantId
   );
   if (!payment) throw Object.assign(new Error("付款单不存在"), { statusCode: 404 });
   if (payment.status !== "PENDING") throw Object.assign(new Error("只有待审核状态的付款单可以作废"), { statusCode: 400 });
 
-  await queryWithTenant("UPDATE purchase_payment SET status = 'VOIDED' WHERE payment_no = ?", [paymentNo], tenantId);
+  await queryWithTenant("UPDATE t_purchase_payment SET status = 'VOIDED' WHERE payment_no = ?", [paymentNo], tenantId);
   await queryWithTenant(
-    "INSERT INTO operation_log (module, action, target_id, target_type, user_id, user_name, detail, tenant_id) VALUES (?, ?, ?, ?, ?, ?, ?, ?)",
+    "INSERT INTO t_operation_log (module, action, target_id, target_type, user_id, user_name, detail, tenant_id) VALUES (?, ?, ?, ?, ?, ?, ?, ?)",
     ["purchase_payment", "VOID", paymentNo, "purchase_payment", userId, username, `作废付款单: ${paymentNo}`, tenantId],
     tenantId
   );

@@ -123,9 +123,9 @@ export async function previewQuote(
     const customer = await queryOneWithTenant<any>(
       `SELECT m.id, m.name, cpb.price_level_id, pl.level_name
        FROM member m
-       LEFT JOIN customer_price_binding cpb
+       LEFT JOIN t_customer_price_binding cpb
          ON cpb.customer_id = m.id AND cpb.status = 'APPROVED' AND cpb.tenant_id = m.tenant_id
-       LEFT JOIN price_level pl ON pl.id = cpb.price_level_id AND pl.tenant_id = m.tenant_id
+       LEFT JOIN t_price_level pl ON pl.id = cpb.price_level_id AND pl.tenant_id = m.tenant_id
        WHERE m.id = ? AND m.tenant_id = ?`,
       [filter.customerId, tenantId],
       tenantId
@@ -141,7 +141,7 @@ export async function previewQuote(
   if (filter.priceLevelId) {
     priceLevelId = filter.priceLevelId;
     const level = await queryOneWithTenant<any>(
-      "SELECT level_name FROM price_level WHERE id = ? AND tenant_id = ?",
+      "SELECT level_name FROM t_price_level WHERE id = ? AND tenant_id = ?",
       [filter.priceLevelId, tenantId],
       tenantId
     );
@@ -155,9 +155,9 @@ export async function previewQuote(
             pp.retail_price AS retailPrice,
             pp.wholesale_price AS wholesalePrice,
             pp.cost_price AS costPrice
-     FROM product_sku sk
-     JOIN product_spu s ON s.id = sk.spu_id AND s.tenant_id = sk.tenant_id
-     JOIN product_price pp ON pp.sku_id = sk.id AND pp.tenant_id = sk.tenant_id
+     FROM t_product_sku sk
+     JOIN t_product_spu s ON s.id = sk.spu_id AND s.tenant_id = sk.tenant_id
+     JOIN t_product_price pp ON pp.sku_id = sk.id AND pp.tenant_id = sk.tenant_id
      WHERE ${where}
      ORDER BY sk.id DESC
      LIMIT 200`,
@@ -175,7 +175,7 @@ export async function previewQuote(
     // 如果客户有绑定价格等级，从 sku_price 表查对应等级的阶梯价
     if (priceLevelId) {
       const levelPrice = await queryOneWithTenant<any>(
-        `SELECT price FROM sku_price
+        `SELECT price FROM t_sku_price
          WHERE sku_id = ? AND price_level_id = ? AND status = 1 AND tenant_id = ?
          ORDER BY min_qty ASC
          LIMIT 1`,
@@ -244,7 +244,7 @@ export async function createQuote(
 
     for (const item of params.items) {
       const [skuRows] = await conn.query<any[]>(
-        "SELECT sku_name FROM product_sku WHERE id = ? AND tenant_id = ?",
+        "SELECT sku_name FROM t_product_sku WHERE id = ? AND tenant_id = ?",
         [item.skuId, tenantId]
       );
       if (skuRows.length > 0) {
@@ -414,8 +414,8 @@ export async function getQuoteDetail(quoteId: number, tenantId: string): Promise
             qi.quote_price AS quotePrice, qi.min_qty AS minQty,
             sk.barcode, sk.sku_code AS skuCode, s.unit, s.main_image AS imageUrl
      FROM customer_quote_item qi
-     LEFT JOIN product_sku sk ON sk.id = qi.sku_id AND sk.tenant_id = qi.tenant_id
-     LEFT JOIN product_spu s ON s.id = sk.spu_id AND s.tenant_id = sk.tenant_id
+     LEFT JOIN t_product_sku sk ON sk.id = qi.sku_id AND sk.tenant_id = qi.tenant_id
+     LEFT JOIN t_product_spu s ON s.id = sk.spu_id AND s.tenant_id = sk.tenant_id
      WHERE qi.quote_id = ? AND qi.tenant_id = ?
      ORDER BY qi.sort_order ASC, qi.id ASC`,
     [quoteId, tenantId],
@@ -543,8 +543,8 @@ export async function viewQuoteByToken(shareToken: string): Promise<QuoteDetail 
             qi.quote_price AS quotePrice, qi.min_qty AS minQty,
             sk.barcode, s.unit, s.main_image AS imageUrl
      FROM customer_quote_item qi
-     LEFT JOIN product_sku sk ON sk.id = qi.sku_id AND sk.tenant_id = qi.tenant_id
-     LEFT JOIN product_spu s ON s.id = sk.spu_id AND s.tenant_id = sk.tenant_id
+     LEFT JOIN t_product_sku sk ON sk.id = qi.sku_id AND sk.tenant_id = qi.tenant_id
+     LEFT JOIN t_product_spu s ON s.id = sk.spu_id AND s.tenant_id = sk.tenant_id
      WHERE qi.quote_id = ? AND qi.tenant_id = ?
      ORDER BY qi.sort_order ASC, qi.id ASC`,
     [quote.id, quote.tenantId],

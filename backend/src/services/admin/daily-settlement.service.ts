@@ -20,7 +20,7 @@ export async function createDailySettlement(params: {
   // 从 payment_order 表按 channel 聚合当日真实收款数据
   const channelRows = await queryWithTenant<any>(
     `SELECT channel, COALESCE(SUM(amount), 0) AS amount
-     FROM payment_order
+     FROM t_payment_order
      WHERE DATE(paid_at) = ? AND status = 'SUCCESS' AND tenant_id = ?
      GROUP BY channel`,
     [settleDate, tenantId],
@@ -42,7 +42,7 @@ export async function createDailySettlement(params: {
   // 从 sale_bill 聚合当日销售额和退款
   const salesRow = await queryOneWithTenant<any>(
     `SELECT COALESCE(SUM(receivable_amount), 0) AS totalSales
-     FROM sale_bill
+     FROM t_sale_bill
      WHERE DATE(created_at) = ? AND business_status NOT IN ('DRAFT', 'VOIDED') AND tenant_id = ?`,
     [settleDate, tenantId],
     tenantId
@@ -51,7 +51,7 @@ export async function createDailySettlement(params: {
 
   const refundRow = await queryOneWithTenant<any>(
     `SELECT COALESCE(SUM(refund_amount), 0) AS totalRefund
-     FROM sale_return
+     FROM t_sale_return
      WHERE DATE(created_at) = ? AND return_status NOT IN ('VOIDED') AND tenant_id = ?`,
     [settleDate, tenantId],
     tenantId

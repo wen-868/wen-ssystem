@@ -28,9 +28,9 @@ export async function getInventorySummary(
               SUM(ib.locked_qty) AS totalLockedQty,
               SUM(ib.available_qty) AS totalAvailableQty,
               SUM(ib.physical_qty) * pp.cost_price AS totalAmount
-       FROM inventory_balance ib
-       LEFT JOIN product_sku ps ON ps.id = ib.sku_id AND ps.tenant_id = ib.tenant_id
-       LEFT JOIN product_price pp ON pp.sku_id = ib.sku_id AND pp.tenant_id = ib.tenant_id
+       FROM t_inventory_balance ib
+       LEFT JOIN t_product_sku ps ON ps.id = ib.sku_id AND ps.tenant_id = ib.tenant_id
+       LEFT JOIN t_product_price pp ON pp.sku_id = ib.sku_id AND pp.tenant_id = ib.tenant_id
        ${where}
        GROUP BY ib.sku_id, ps.sku_name, ps.sku_code, ps.barcode, pp.cost_price
        ORDER BY totalAmount DESC`,
@@ -44,7 +44,7 @@ export async function getInventorySummary(
               SUM(ib.physical_qty) AS totalPhysicalQty,
               SUM(ib.locked_qty) AS totalLockedQty,
               SUM(ib.available_qty) AS totalAvailableQty
-       FROM inventory_balance ib
+       FROM t_inventory_balance ib
        LEFT JOIN store s ON s.id = ib.store_id
        ${where}
        GROUP BY ib.store_id, s.name
@@ -76,8 +76,8 @@ export async function getInventoryTurnover(
     `SELECT sbi.sku_id AS skuId, sbi.sku_name AS skuName,
             SUM(sbi.total_bottle_qty) AS totalSoldQty,
             COALESCE(SUM(sbi.subtotal_amount), 0) AS totalSalesAmount
-     FROM sale_bill_item sbi
-     JOIN sale_bill sb ON sb.bill_no = sbi.bill_no AND sb.tenant_id = sbi.tenant_id
+     FROM t_sale_bill_item sbi
+     JOIN t_sale_bill sb ON sb.bill_no = sbi.bill_no AND sb.tenant_id = sbi.tenant_id
      WHERE sb.business_status NOT IN ('DRAFT', 'VOIDED')
        AND sb.created_at >= ?
      GROUP BY sbi.sku_id, sbi.sku_name`,
@@ -87,7 +87,7 @@ export async function getInventoryTurnover(
 
   const inventoryData = await queryWithTenant<any>(
     `SELECT sku_id AS skuId, SUM(physical_qty) AS totalQty
-     FROM inventory_balance
+     FROM t_inventory_balance
      GROUP BY sku_id`,
     [],
     tenantId
@@ -144,9 +144,9 @@ export async function getInventoryAge(
         psi.total_bottle_qty AS qty,
         psi.created_at AS inStockDate,
         DATEDIFF(CURDATE(), psi.created_at) AS ageDays
-      FROM purchase_in_stock_item psi
-      JOIN purchase_in_stock pis ON pis.stock_no = psi.stock_no AND pis.tenant_id = psi.tenant_id
-      JOIN product_sku ps ON ps.id = psi.sku_id AND ps.tenant_id = psi.tenant_id
+      FROM t_purchase_in_stock_item psi
+      JOIN t_purchase_in_stock pis ON pis.stock_no = psi.stock_no AND pis.tenant_id = psi.tenant_id
+      JOIN t_product_sku ps ON ps.id = psi.sku_id AND ps.tenant_id = psi.tenant_id
       ${where}
       ORDER BY ageDays DESC`,
     params,
@@ -208,7 +208,7 @@ export async function getPurchaseSummary(
             COALESCE(SUM(payable_amount), 0) AS payableAmount,
             COALESCE(SUM(paid_amount), 0) AS paidAmount,
             COALESCE(SUM(unpaid_amount), 0) AS unpaidAmount
-     FROM purchase_order
+     FROM t_purchase_order
      WHERE order_status NOT IN ('DRAFT', 'CANCELLED')
        AND DATE(created_at) BETWEEN ? AND ?`,
     [start, end],
@@ -218,7 +218,7 @@ export async function getPurchaseSummary(
   const stockStats = await queryOneWithTenant<any>(
     `SELECT COUNT(*) AS stockCount,
             COALESCE(SUM(total_amount), 0) AS stockAmount
-     FROM purchase_in_stock
+     FROM t_purchase_in_stock
      WHERE stock_status NOT IN ('VOIDED')
        AND DATE(created_at) BETWEEN ? AND ?`,
     [start, end],
@@ -228,7 +228,7 @@ export async function getPurchaseSummary(
   const returnStats = await queryOneWithTenant<any>(
     `SELECT COUNT(*) AS returnCount,
             COALESCE(SUM(total_amount), 0) AS returnAmount
-     FROM purchase_return
+     FROM t_purchase_return
      WHERE return_status NOT IN ('VOIDED')
        AND DATE(created_at) BETWEEN ? AND ?`,
     [start, end],
@@ -265,7 +265,7 @@ export async function getSupplierRanking(
             COALESCE(SUM(po.payable_amount), 0) AS totalAmount,
             COALESCE(SUM(po.paid_amount), 0) AS paidAmount,
             COALESCE(SUM(po.unpaid_amount), 0) AS unpaidAmount
-     FROM purchase_order po
+     FROM t_purchase_order po
      WHERE po.order_status NOT IN ('DRAFT', 'CANCELLED')
        AND DATE(po.created_at) BETWEEN ? AND ?
      GROUP BY po.supplier_id, po.supplier_name

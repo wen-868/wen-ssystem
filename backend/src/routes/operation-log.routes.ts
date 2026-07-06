@@ -36,7 +36,7 @@ operationLogRouter.get("/", requireAuthWithTenant, asyncHandler(async (req, res)
   const where = `WHERE ${conditions.join(" AND ")}`;
 
   const totalRow = await queryOne<{ total: number }>(
-    `SELECT COUNT(*) AS total FROM operation_log ${where}`, sqlParams
+    `SELECT COUNT(*) AS total FROM t_operation_log ${where}`, sqlParams
   );
   const total = totalRow?.total ?? 0;
 
@@ -45,7 +45,7 @@ operationLogRouter.get("/", requireAuthWithTenant, asyncHandler(async (req, res)
             module, action, biz_no AS bizNo, target_id AS targetId,
             target_type AS targetType, after_data AS afterData,
             remark, created_at AS createdAt
-     FROM operation_log ${where}
+     FROM t_operation_log ${where}
      ORDER BY created_at DESC
      LIMIT ? OFFSET ?`,
     [...sqlParams, params.pageSize, offset]
@@ -61,10 +61,10 @@ operationLogRouter.get("/statistics", requireAuthWithTenant, asyncHandler(async 
   const weekStart = new Date(Date.now() - 7 * 86400000).toISOString().slice(0, 10);
 
   const [todayCount, weekCount, moduleDist, actionDist] = await Promise.all([
-    queryOne<{ cnt: number }>(`SELECT COUNT(*) AS cnt FROM operation_log WHERE tenant_id = ? AND DATE(created_at) = ?`, [tenantId, today]),
-    queryOne<{ cnt: number }>(`SELECT COUNT(*) AS cnt FROM operation_log WHERE tenant_id = ? AND DATE(created_at) >= ?`, [tenantId, weekStart]),
-    query<{ module: string; cnt: number }>(`SELECT module, COUNT(*) AS cnt FROM operation_log WHERE tenant_id = ? AND DATE(created_at) >= ? GROUP BY module ORDER BY cnt DESC LIMIT 10`, [tenantId, weekStart]),
-    query<{ action: string; cnt: number }>(`SELECT action, COUNT(*) AS cnt FROM operation_log WHERE tenant_id = ? AND DATE(created_at) >= ? GROUP BY action ORDER BY cnt DESC LIMIT 10`, [tenantId, weekStart]),
+    queryOne<{ cnt: number }>(`SELECT COUNT(*) AS cnt FROM t_operation_log WHERE tenant_id = ? AND DATE(created_at) = ?`, [tenantId, today]),
+    queryOne<{ cnt: number }>(`SELECT COUNT(*) AS cnt FROM t_operation_log WHERE tenant_id = ? AND DATE(created_at) >= ?`, [tenantId, weekStart]),
+    query<{ module: string; cnt: number }>(`SELECT module, COUNT(*) AS cnt FROM t_operation_log WHERE tenant_id = ? AND DATE(created_at) >= ? GROUP BY module ORDER BY cnt DESC LIMIT 10`, [tenantId, weekStart]),
+    query<{ action: string; cnt: number }>(`SELECT action, COUNT(*) AS cnt FROM t_operation_log WHERE tenant_id = ? AND DATE(created_at) >= ? GROUP BY action ORDER BY cnt DESC LIMIT 10`, [tenantId, weekStart]),
   ]);
 
   res.json(ok({

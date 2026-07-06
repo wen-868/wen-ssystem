@@ -9,7 +9,7 @@ export async function generateSupplierStatement(params: {
   // 汇总采购金额
   const purchaseData = await queryOneWithTenant<any>(
     `SELECT COALESCE(SUM(po.goods_amount), 0) AS purchaseAmount, COUNT(*) AS orderCount
-     FROM purchase_order po
+     FROM t_purchase_order po
      WHERE po.supplier_id = ? AND po.tenant_id = ?
        AND po.created_at >= ? AND po.created_at <= ?
        AND po.order_status NOT IN ('VOIDED')`,
@@ -19,7 +19,7 @@ export async function generateSupplierStatement(params: {
   // 汇总已付金额
   const paymentData = await queryOneWithTenant<any>(
     `SELECT COALESCE(SUM(pp.amount), 0) AS paidAmount
-     FROM purchase_payment pp
+     FROM t_purchase_payment pp
      WHERE pp.supplier_id = ? AND pp.tenant_id = ?
        AND pp.created_at >= ? AND pp.created_at <= ?
        AND pp.status = 'SUCCESS'`,
@@ -29,7 +29,7 @@ export async function generateSupplierStatement(params: {
   // 汇总退货金额
   const returnData = await queryOneWithTenant<any>(
     `SELECT COALESCE(SUM(pr.return_amount), 0) AS returnAmount, COUNT(*) AS returnCount
-     FROM purchase_return pr
+     FROM t_purchase_return pr
      WHERE pr.supplier_id = ? AND pr.tenant_id = ?
        AND pr.created_at >= ? AND pr.created_at <= ?
        AND pr.status NOT IN ('VOIDED')`,
@@ -42,7 +42,7 @@ export async function generateSupplierStatement(params: {
   const balance = purchaseAmount - paidAmount - returnAmount;
   const statementNo = makeBizNo("DZ");
   await queryWithTenant(
-    `INSERT INTO supplier_statement (statement_no, supplier_id, start_date, end_date,
+    `INSERT INTO t_supplier_statement (statement_no, supplier_id, start_date, end_date,
      purchase_amount, paid_amount, return_amount, balance, statement_status, tenant_id)
      VALUES (?, ?, ?, ?, ?, ?, ?, ?, 'GENERATED', ?)`,
     [statementNo, supplierId, startDate, endDate, purchaseAmount, paidAmount, returnAmount, balance, tenantId],
@@ -51,7 +51,7 @@ export async function generateSupplierStatement(params: {
   // 写入明细
   const orders = await queryWithTenant<any>(
     `SELECT order_no AS orderNo, goods_amount AS goodsAmount, order_status AS orderStatus, created_at AS createdAt
-     FROM purchase_order WHERE supplier_id = ? AND tenant_id = ?
+     FROM t_purchase_order WHERE supplier_id = ? AND tenant_id = ?
        AND created_at >= ? AND created_at <= ?
        AND order_status NOT IN ('VOIDED')
      ORDER BY created_at`,
@@ -60,7 +60,7 @@ export async function generateSupplierStatement(params: {
   );
   for (const order of orders) {
     await queryWithTenant(
-      `INSERT INTO supplier_statement_item (statement_no, item_type, item_no, amount, status, tenant_id)
+      `INSERT INTO t_supplier_statement_item (statement_no, item_type, item_no, amount, status, tenant_id)
        VALUES (?, 'PURCHASE', ?, ?, ?, ?)`,
       [statementNo, order.orderNo, order.goodsAmount, order.orderStatus, tenantId],
       tenantId
@@ -68,7 +68,7 @@ export async function generateSupplierStatement(params: {
   }
   const payments = await queryWithTenant<any>(
     `SELECT payment_no AS paymentNo, amount, created_at AS createdAt
-     FROM purchase_payment WHERE supplier_id = ? AND tenant_id = ?
+     FROM t_purchase_payment WHERE supplier_id = ? AND tenant_id = ?
        AND created_at >= ? AND created_at <= ? AND status = 'SUCCESS'
      ORDER BY created_at`,
     [supplierId, tenantId, startDate, endDate],
@@ -76,7 +76,7 @@ export async function generateSupplierStatement(params: {
   );
   for (const p of payments) {
     await queryWithTenant(
-      `INSERT INTO supplier_statement_item (statement_no, item_type, item_no, amount, status, tenant_id)
+      `INSERT INTO t_supplier_statement_item (statement_no, item_type, item_no, amount, status, tenant_id)
        VALUES (?, 'PAYMENT', ?, ?, 'SUCCESS', ?)`,
       [statementNo, p.paymentNo, p.amount, tenantId],
       tenantId
@@ -84,7 +84,7 @@ export async function generateSupplierStatement(params: {
   }
   const returns = await queryWithTenant<any>(
     `SELECT return_no AS returnNo, return_amount AS returnAmount, status, created_at AS createdAt
-     FROM purchase_return WHERE supplier_id = ? AND tenant_id = ?
+     FROM t_purchase_return WHERE supplier_id = ? AND tenant_id = ?
        AND created_at >= ? AND created_at <= ? AND status NOT IN ('VOIDED')
      ORDER BY created_at`,
     [supplierId, tenantId, startDate, endDate],
@@ -92,7 +92,7 @@ export async function generateSupplierStatement(params: {
   );
   for (const r of returns) {
     await queryWithTenant(
-      `INSERT INTO supplier_statement_item (statement_no, item_type, item_no, amount, status, tenant_id)
+      `INSERT INTO t_supplier_statement_item (statement_no, item_type, item_no, amount, status, tenant_id)
        VALUES (?, 'RETURN', ?, ?, ?, ?)`,
       [statementNo, r.returnNo, r.returnAmount, r.status, tenantId],
       tenantId
@@ -126,7 +126,7 @@ export async function listSupplierStatements(params: {
             ss.purchase_amount AS purchaseAmount, ss.paid_amount AS paidAmount,
             ss.return_amount AS returnAmount, ss.balance,
             ss.statement_status AS statementStatus, ss.created_at AS createdAt
-     FROM supplier_statement ss
+     FROM t_supplier_statement ss
      LEFT JOIN supplier s ON s.id = ss.supplier_id
      ${where}
      ORDER BY ss.created_at DESC
@@ -135,7 +135,7 @@ export async function listSupplierStatements(params: {
     tenantId
   );
   const totalRow = await queryOneWithTenant<any>(
-    `SELECT COUNT(*) AS total FROM supplier_statement ss ${where}`,
+    `SELECT COUNT(*) AS total FROM t_supplier_statement ss ${where}`,
     queryParams,
     tenantId
   );
@@ -151,7 +151,7 @@ export async function getSupplierStatementDetail(statementNo: string, tenantId: 
             ss.purchase_amount AS purchaseAmount, ss.paid_amount AS paidAmount,
             ss.return_amount AS returnAmount, ss.balance,
             ss.statement_status AS statementStatus, ss.created_at AS createdAt
-     FROM supplier_statement ss
+     FROM t_supplier_statement ss
      LEFT JOIN supplier s ON s.id = ss.supplier_id
      WHERE ss.statement_no = ? AND ss.tenant_id = ?`,
     [statementNo, tenantId],
@@ -160,7 +160,7 @@ export async function getSupplierStatementDetail(statementNo: string, tenantId: 
   if (!statement) throw new Error("对账单不存在");
   const items = await queryWithTenant<any>(
     `SELECT item_type AS itemType, item_no AS itemNo, amount, status, created_at AS createdAt
-     FROM supplier_statement_item
+     FROM t_supplier_statement_item
      WHERE statement_no = ? AND tenant_id = ?
      ORDER BY created_at`,
     [statementNo, tenantId],
@@ -172,14 +172,14 @@ export async function getSupplierStatementDetail(statementNo: string, tenantId: 
 // 确认对账
 export async function confirmSupplierStatement(statementNo: string, tenantId: string) {
   const existing = await queryOneWithTenant<any>(
-    "SELECT statement_no, statement_status FROM supplier_statement WHERE statement_no = ? AND tenant_id = ?",
+    "SELECT statement_no, statement_status FROM t_supplier_statement WHERE statement_no = ? AND tenant_id = ?",
     [statementNo, tenantId],
     tenantId
   );
   if (!existing) throw new Error("对账单不存在");
   if (existing.statement_status !== "GENERATED") throw new Error("只有待确认的对账单可以确认");
   await queryWithTenant(
-    `UPDATE supplier_statement SET statement_status = 'CONFIRMED' WHERE statement_no = ? AND tenant_id = ?`,
+    `UPDATE t_supplier_statement SET statement_status = 'CONFIRMED' WHERE statement_no = ? AND tenant_id = ?`,
     [statementNo, tenantId],
     tenantId
   );
@@ -189,14 +189,14 @@ export async function confirmSupplierStatement(statementNo: string, tenantId: st
 // 标记争议
 export async function disputeSupplierStatement(statementNo: string, reason: string, tenantId: string) {
   const existing = await queryOneWithTenant<any>(
-    "SELECT statement_no, statement_status FROM supplier_statement WHERE statement_no = ? AND tenant_id = ?",
+    "SELECT statement_no, statement_status FROM t_supplier_statement WHERE statement_no = ? AND tenant_id = ?",
     [statementNo, tenantId],
     tenantId
   );
   if (!existing) throw new Error("对账单不存在");
   if (existing.statement_status !== "GENERATED") throw new Error("只有待确认的对账单可以标记争议");
   await queryWithTenant(
-    `UPDATE supplier_statement SET statement_status = 'DISPUTED', remark = ? WHERE statement_no = ? AND tenant_id = ?`,
+    `UPDATE t_supplier_statement SET statement_status = 'DISPUTED', remark = ? WHERE statement_no = ? AND tenant_id = ?`,
     [reason ?? "", statementNo, tenantId],
     tenantId
   );

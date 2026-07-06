@@ -85,7 +85,7 @@ export async function createTenant(data: {
   const hashedPassword = await bcrypt.hash(data.adminPassword, 10);
 
   await query(
-    `INSERT INTO sys_user (tenant_id, username, password_hash, real_name, mobile, status, role)
+    `INSERT INTO t_sys_user (tenant_id, username, password_hash, real_name, mobile, status, role)
      VALUES (?, ?, ?, ?, ?, 'ACTIVE', 'ADMIN')`,
     [tenantId, data.adminUsername, hashedPassword, data.contactName, data.contactMobile]
   );

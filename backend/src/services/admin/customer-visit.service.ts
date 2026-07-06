@@ -255,7 +255,7 @@ export async function createVisit(
     );
 
     await conn.execute(
-      "INSERT INTO operation_log (module, action, target_id, target_type, user_id, user_name, detail, tenant_id) VALUES (?, ?, ?, ?, ?, ?, ?, ?)",
+      "INSERT INTO t_operation_log (module, action, target_id, target_type, user_id, user_name, detail, tenant_id) VALUES (?, ?, ?, ?, ?, ?, ?, ?)",
       ["customer_visit", "CREATE", visitNo, "customer_visit", userId, username, `创建拜访记录: ${visitNo}, 客户: ${body.customer_name}`, tenantId]
     );
   });
@@ -330,7 +330,7 @@ export async function updateVisit(
     );
 
     await queryWithTenant(
-      "INSERT INTO operation_log (module, action, target_id, target_type, user_id, user_name, detail, tenant_id) VALUES (?, ?, ?, ?, ?, ?, ?, ?)",
+      "INSERT INTO t_operation_log (module, action, target_id, target_type, user_id, user_name, detail, tenant_id) VALUES (?, ?, ?, ?, ?, ?, ?, ?)",
       ["customer_visit", "UPDATE", visitNo, "customer_visit", userId, username, `更新拜访记录: ${visitNo}`],
       tenantId
     );
@@ -389,7 +389,7 @@ export async function checkin(
   );
 
   await queryWithTenant(
-    "INSERT INTO operation_log (module, action, target_id, target_type, user_id, user_name, detail, tenant_id) VALUES (?, ?, ?, ?, ?, ?, ?, ?)",
+    "INSERT INTO t_operation_log (module, action, target_id, target_type, user_id, user_name, detail, tenant_id) VALUES (?, ?, ?, ?, ?, ?, ?, ?)",
     ["customer_visit", "CHECKIN", visitNo, "customer_visit", userId, username, `签到: ${visitNo}`],
     tenantId
   );
@@ -448,7 +448,7 @@ export async function checkout(
   );
 
   await queryWithTenant(
-    "INSERT INTO operation_log (module, action, target_id, target_type, user_id, user_name, detail, tenant_id) VALUES (?, ?, ?, ?, ?, ?, ?, ?)",
+    "INSERT INTO t_operation_log (module, action, target_id, target_type, user_id, user_name, detail, tenant_id) VALUES (?, ?, ?, ?, ?, ?, ?, ?)",
     ["customer_visit", "CHECKOUT", visitNo, "customer_visit", userId, username, `签退: ${visitNo}, 时长: ${durationMinutes}分钟`],
     tenantId
   );
@@ -483,7 +483,7 @@ export async function cancelVisit(
   );
 
   await queryWithTenant(
-    "INSERT INTO operation_log (module, action, target_id, target_type, user_id, user_name, detail, tenant_id) VALUES (?, ?, ?, ?, ?, ?, ?, ?)",
+    "INSERT INTO t_operation_log (module, action, target_id, target_type, user_id, user_name, detail, tenant_id) VALUES (?, ?, ?, ?, ?, ?, ?, ?)",
     ["customer_visit", "CANCEL", visitNo, "customer_visit", userId, username, `取消拜访: ${visitNo}`],
     tenantId
   );

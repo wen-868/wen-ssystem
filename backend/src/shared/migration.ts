@@ -186,7 +186,7 @@ export async function runMigrations(): Promise<void> {
     // 第3步：更新已有数据的 tenant_id
     // ============================================================
     await safeExec(conn,
-      "UPDATE sys_user SET tenant_id = 'default' WHERE tenant_id IS NULL OR tenant_id = ''",
+      "UPDATE t_sys_user SET tenant_id = 'default' WHERE tenant_id IS NULL OR tenant_id = ''",
       "更新 sys_user tenant_id"
     );
     await safeExec(conn,
@@ -200,14 +200,14 @@ export async function runMigrations(): Promise<void> {
     try {
       const bcrypt = await import("bcryptjs");
       const [shaUsers] = await conn.query(
-        "SELECT id, password_hash FROM sys_user WHERE password_hash NOT LIKE '$2b$%' AND LENGTH(password_hash) = 64"
+        "SELECT id, password_hash FROM t_sys_user WHERE password_hash NOT LIKE '$2b$%' AND LENGTH(password_hash) = 64"
       );
       const users = shaUsers as Record<string, unknown>[];
       if (users.length > 0) {
         console.log(`[migration] 修复 ${users.length} 个 SHA256 密码为 bcrypt...`);
         const hash = bcrypt.hashSync("admin123", 10);
         for (const user of users) {
-          await conn.query("UPDATE sys_user SET password_hash = ? WHERE id = ?", [hash, user.id]);
+          await conn.query("UPDATE t_sys_user SET password_hash = ? WHERE id = ?", [hash, user.id]);
         }
       }
     } catch (e: unknown) {
@@ -218,7 +218,7 @@ export async function runMigrations(): Promise<void> {
     // 第5步：修复 sys_role 表 status 字段值为整数
     // ============================================================
     await safeExec(conn,
-      "UPDATE sys_role SET status = 1 WHERE status = 'ACTIVE'",
+      "UPDATE t_sys_role SET status = 1 WHERE status = 'ACTIVE'",
       "修复 sys_role.status"
     );
 
@@ -264,7 +264,7 @@ export async function runMigrations(): Promise<void> {
 
     // 5.5.3 为 sys_user 表添加 email 字段（用户列表需要）
     await safeExec(conn,
-      "ALTER TABLE sys_user ADD COLUMN `email` VARCHAR(128) DEFAULT NULL COMMENT '邮箱'",
+      "ALTER TABLE t_sys_user ADD COLUMN `email` VARCHAR(128) DEFAULT NULL COMMENT '邮箱'",
       "sys_user.email"
     );
 
@@ -281,7 +281,7 @@ export async function runMigrations(): Promise<void> {
     ];
     for (const col of spuColumns) {
       await safeExec(conn,
-        `ALTER TABLE product_spu ADD COLUMN \`${col.name}\` ${col.def}`,
+        `ALTER TABLE t_product_spu ADD COLUMN \`${col.name}\` ${col.def}`,
         `product_spu.${col.name}`
       );
     }

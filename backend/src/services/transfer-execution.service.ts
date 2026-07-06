@@ -42,7 +42,7 @@ export async function shipTransferOrder(id: number, tenantId: string, userId: nu
       if (shipQty <= 0) continue;
 
       const [invRows] = await (conn as any).execute(
-        "SELECT * FROM inventory_balance WHERE store_id = ? AND sku_id = ? AND tenant_id = ? FOR UPDATE",
+        "SELECT * FROM t_inventory_balance WHERE store_id = ? AND sku_id = ? AND tenant_id = ? FOR UPDATE",
         [order.from_store_id, item.sku_id, tenantId]
       );
       const inv = (invRows as unknown as Record<string, unknown>[])[0];
@@ -51,14 +51,14 @@ export async function shipTransferOrder(id: number, tenantId: string, userId: nu
       }
 
       await (conn as any).execute(
-        "UPDATE inventory_balance SET available_qty = available_qty - ?, locked_qty = locked_qty + ? WHERE store_id = ? AND sku_id = ? AND tenant_id = ?",
+        "UPDATE t_inventory_balance SET available_qty = available_qty - ?, locked_qty = locked_qty + ? WHERE store_id = ? AND sku_id = ? AND tenant_id = ?",
         [shipQty, shipQty, order.from_store_id, item.sku_id, tenantId]
       );
 
       await (conn as any).execute(
-        `INSERT INTO inventory_ledger (store_id, sku_id, sku_name, change_type, change_qty, before_qty, after_qty, ref_no, operator_id, created_at, tenant_id)
+        `INSERT INTO t_inventory_ledger (store_id, sku_id, sku_name, change_type, change_qty, before_qty, after_qty, ref_no, operator_id, created_at, tenant_id)
          SELECT ?, ?, ?, 'TRANSFER_OUT', ?, available_qty, available_qty - ?, ?, ?, NOW(), ?
-         FROM inventory_balance WHERE store_id = ? AND sku_id = ? AND tenant_id = ?`,
+         FROM t_inventory_balance WHERE store_id = ? AND sku_id = ? AND tenant_id = ?`,
         [order.from_store_id, item.sku_id, item.sku_name, shipQty, shipQty, order.transfer_no, userId ?? null, tenantId, order.from_store_id, item.sku_id, tenantId]
       );
 
@@ -114,28 +114,28 @@ export async function receiveTransferOrder(id: number, tenantId: string, userId:
       }
 
       const [invRows] = await (conn as any).execute(
-        "SELECT * FROM inventory_balance WHERE store_id = ? AND sku_id = ? AND tenant_id = ? FOR UPDATE",
+        "SELECT * FROM t_inventory_balance WHERE store_id = ? AND sku_id = ? AND tenant_id = ? FOR UPDATE",
         [order.to_store_id, detail.sku_id, tenantId]
       );
       const inv = (invRows as unknown as Record<string, unknown>[])[0];
 
       if (inv) {
         await (conn as any).execute(
-          "UPDATE inventory_balance SET available_qty = available_qty + ?, locked_qty = GREATEST(locked_qty - ?, 0) WHERE store_id = ? AND sku_id = ? AND tenant_id = ?",
+          "UPDATE t_inventory_balance SET available_qty = available_qty + ?, locked_qty = GREATEST(locked_qty - ?, 0) WHERE store_id = ? AND sku_id = ? AND tenant_id = ?",
           [item.receivedQty, item.receivedQty, order.to_store_id, detail.sku_id, tenantId]
         );
       } else {
         await (conn as any).execute(
-          `INSERT INTO inventory_balance (store_id, sku_id, sku_name, available_qty, locked_qty, tenant_id)
+          `INSERT INTO t_inventory_balance (store_id, sku_id, sku_name, available_qty, locked_qty, tenant_id)
            VALUES (?, ?, ?, ?, 0, ?)`,
           [order.to_store_id, detail.sku_id, detail.sku_name, item.receivedQty, tenantId]
         );
       }
 
       await (conn as any).execute(
-        `INSERT INTO inventory_ledger (store_id, sku_id, sku_name, change_type, change_qty, before_qty, after_qty, ref_no, operator_id, created_at, tenant_id)
+        `INSERT INTO t_inventory_ledger (store_id, sku_id, sku_name, change_type, change_qty, before_qty, after_qty, ref_no, operator_id, created_at, tenant_id)
          SELECT ?, ?, ?, 'TRANSFER_IN', ?, available_qty - ?, available_qty, ?, ?, NOW(), ?
-         FROM inventory_balance WHERE store_id = ? AND sku_id = ? AND tenant_id = ?`,
+         FROM t_inventory_balance WHERE store_id = ? AND sku_id = ? AND tenant_id = ?`,
         [order.to_store_id, detail.sku_id, detail.sku_name, item.receivedQty, item.receivedQty, order.transfer_no, userId ?? null, tenantId, order.to_store_id, detail.sku_id, tenantId]
       );
 

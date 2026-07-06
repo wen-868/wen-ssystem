@@ -5,7 +5,7 @@ import { queryWithTenant } from "../../shared/db.js";
  */
 export async function getChangesSince(tenantId: string, since: string) {
   const rows = await queryWithTenant<any>(
-    "SELECT id, product_id AS productId, old_price AS oldPrice, new_price AS newPrice, changed_at AS changedAt FROM price_change_log WHERE tenant_id = ? AND changed_at > ? ORDER BY changed_at ASC",
+    "SELECT id, product_id AS productId, old_price AS oldPrice, new_price AS newPrice, changed_at AS changedAt FROM t_price_change_log WHERE tenant_id = ? AND changed_at > ? ORDER BY changed_at ASC",
     [tenantId, since || "1970-01-01"],
     tenantId
   );

@@ -24,9 +24,9 @@ systemRouter.get("/info", requireAuthWithTenant, asyncHandler(async (req, res) =
   const tenantId = req.tenantId!;
 
   const [userCount, roleCount, configCount] = await Promise.all([
-    queryOne<{ cnt: number }>("SELECT COUNT(*) AS cnt FROM sys_user WHERE tenant_id = ?", [tenantId]),
-    queryOne<{ cnt: number }>("SELECT COUNT(*) AS cnt FROM sys_role WHERE tenant_id = ?", [tenantId]),
-    queryOne<{ cnt: number }>("SELECT COUNT(*) AS cnt FROM sys_config WHERE tenant_id = ?", [tenantId]),
+    queryOne<{ cnt: number }>("SELECT COUNT(*) AS cnt FROM t_sys_user WHERE tenant_id = ?", [tenantId]),
+    queryOne<{ cnt: number }>("SELECT COUNT(*) AS cnt FROM t_sys_role WHERE tenant_id = ?", [tenantId]),
+    queryOne<{ cnt: number }>("SELECT COUNT(*) AS cnt FROM t_sys_config WHERE tenant_id = ?", [tenantId]),
   ]);
 
   res.json(ok({

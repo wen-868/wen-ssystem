@@ -5,7 +5,7 @@ import { makeBizNo } from "../../shared/id.js";
 export async function listStaff(tenantId: string) {
   const records = await queryWithTenant<any>(
     `SELECT id AS staffId, username, real_name AS realName, store_id AS storeId, status
-     FROM sys_user
+     FROM t_sys_user
      WHERE status = 1
      ORDER BY id ASC`,
     [],
@@ -27,7 +27,7 @@ export async function createStaff(body: {
     ? await bcrypt.hash(body.password, 10)
     : await bcrypt.hash("123456", 10);
   const result = await queryWithTenant<any>(
-    `INSERT INTO sys_user (username, real_name, mobile, store_id, status, password_hash)
+    `INSERT INTO t_sys_user (username, real_name, mobile, store_id, status, password_hash)
      VALUES (?, ?, ?, ?, ?, ?)`,
     [body.username, body.realName, body.mobile ?? null, body.storeId ?? 1, body.status ?? 1, passwordHash],
     tenantId
@@ -52,19 +52,19 @@ export async function updateStaff(id: number, body: {
   if (body.status !== undefined) { sets.push("status = ?"); params.push(body.status); }
   if (sets.length === 0) return {};
   params.push(id);
-  await queryWithTenant(`UPDATE sys_user SET ${sets.join(", ")} WHERE id = ?`, params, tenantId);
+  await queryWithTenant(`UPDATE t_sys_user SET ${sets.join(", ")} WHERE id = ?`, params, tenantId);
   return { staffId: id };
 }
 
 export async function disableStaff(id: number, tenantId: string) {
-  const existing = await queryOneWithTenant<any>("SELECT id, username, status FROM sys_user WHERE id = ?", [id], tenantId);
+  const existing = await queryOneWithTenant<any>("SELECT id, username, status FROM t_sys_user WHERE id = ?", [id], tenantId);
   if (!existing) {
     throw Object.assign(new Error("员工不存在"), { statusCode: 404 });
   }
   if (existing.status !== 1) {
     throw Object.assign(new Error("员工已停用"), { statusCode: 400 });
   }
-  await queryWithTenant("UPDATE sys_user SET status = 0 WHERE id = ?", [id], tenantId);
+  await queryWithTenant("UPDATE t_sys_user SET status = 0 WHERE id = ?", [id], tenantId);
   return { staffId: id, username: existing.username };
 }
 

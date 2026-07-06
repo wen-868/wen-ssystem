@@ -42,7 +42,7 @@ export async function getRiskCustomers(
                    ) > 0 THEN 'OVERDUE'
               ELSE 'NORMAL'
             END AS riskLevel
-     FROM customer_credit cc
+     FROM t_customer_credit cc
      LEFT JOIN member m ON m.id = cc.customer_id
      WHERE cc.tenant_id = ?
        AND (
@@ -60,7 +60,7 @@ export async function getRiskCustomers(
 
   const totalRow = await queryOneWithTenant<any>(
     `SELECT COUNT(*) AS total
-     FROM customer_credit cc
+     FROM t_customer_credit cc
      WHERE cc.tenant_id = ?
        AND (
          cc.status = 'FROZEN'

@@ -26,8 +26,8 @@ export async function listCustomerPrices(params: {
             pp.retail_price AS retailPrice, pp.wholesale_price AS wholesalePrice
      FROM customer_price cp
      LEFT JOIN member m ON m.id = cp.customer_id
-     LEFT JOIN product_sku ps ON ps.id = cp.sku_id
-     LEFT JOIN product_price pp ON pp.sku_id = cp.sku_id
+     LEFT JOIN t_product_sku ps ON ps.id = cp.sku_id
+     LEFT JOIN t_product_price pp ON pp.sku_id = cp.sku_id
      ${where}
      ORDER BY cp.id DESC
      LIMIT ? OFFSET ?`,

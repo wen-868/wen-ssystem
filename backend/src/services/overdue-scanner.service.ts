@@ -3,7 +3,7 @@ import logger from "../shared/logger.js";
 
 async function getAllActiveTenants(): Promise<string[]> {
   const rows = await query<any>(
-    "SELECT DISTINCT tenant_id FROM sys_user WHERE status = 1"
+    "SELECT DISTINCT tenant_id FROM t_sys_user WHERE status = 1"
   );
   return rows.map((r: any) => r.tenant_id).filter(Boolean);
 }
@@ -20,7 +20,7 @@ export async function scanOverdueCreditBills(tenantId?: string): Promise<number>
 
   for (const tid of tenantIds) {
     const result = await query(
-      `UPDATE sale_bill
+      `UPDATE t_sale_bill
        SET collection_status = 'OVERDUE', updated_at = NOW()
        WHERE tenant_id = ?
          AND sale_type = 'CREDIT'

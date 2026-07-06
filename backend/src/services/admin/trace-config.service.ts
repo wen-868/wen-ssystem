@@ -31,7 +31,7 @@ export async function listConfigs(
             tc.auto_generate AS autoGenerate, tc.shelf_life_days AS shelfLifeDays,
             tc.remark, tc.status,
             tc.created_at AS createdAt, tc.updated_at AS updatedAt
-     FROM trace_config tc
+     FROM t_trace_config tc
      ${where}
      ORDER BY tc.created_at DESC
      LIMIT ? OFFSET ?`,
@@ -40,7 +40,7 @@ export async function listConfigs(
   );
 
   const totalRow = await queryOneWithTenant<any>(
-    `SELECT COUNT(*) AS total FROM trace_config tc ${where}`,
+    `SELECT COUNT(*) AS total FROM t_trace_config tc ${where}`,
     params,
     tenantId
   );
@@ -68,7 +68,7 @@ export async function createConfig(body: {
   const configNo = makeBizNo("TC");
 
   await queryWithTenant(
-    `INSERT INTO trace_config (config_no, config_level, target_id, target_name,
+    `INSERT INTO t_trace_config (config_no, config_level, target_id, target_name,
        trace_enabled, force_enabled, code_mode, code_prefix, auto_generate,
        shelf_life_days, remark, tenant_id)
      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
@@ -85,7 +85,7 @@ export async function createConfig(body: {
             code_mode AS codeMode, code_prefix AS codePrefix,
             auto_generate AS autoGenerate, shelf_life_days AS shelfLifeDays,
             remark, status, created_at AS createdAt
-     FROM trace_config WHERE config_no = ? AND tenant_id = ?`,
+     FROM t_trace_config WHERE config_no = ? AND tenant_id = ?`,
     [configNo, tenantId],
     tenantId
   );
@@ -109,7 +109,7 @@ export async function updateConfig(
   tenantId: string
 ) {
   const existing = await queryOneWithTenant<any>(
-    "SELECT id FROM trace_config WHERE id = ? AND tenant_id = ?",
+    "SELECT id FROM t_trace_config WHERE id = ? AND tenant_id = ?",
     [configId, tenantId],
     tenantId
   );
@@ -132,7 +132,7 @@ export async function updateConfig(
 
   if (updates.length > 0) {
     await queryWithTenant(
-      `UPDATE trace_config SET ${updates.join(", ")} WHERE id = ? AND tenant_id = ?`,
+      `UPDATE t_trace_config SET ${updates.join(", ")} WHERE id = ? AND tenant_id = ?`,
       [...params, configId, tenantId],
       tenantId
     );
@@ -145,7 +145,7 @@ export async function updateConfig(
             code_mode AS codeMode, code_prefix AS codePrefix,
             auto_generate AS autoGenerate, shelf_life_days AS shelfLifeDays,
             remark, status, updated_at AS updatedAt
-     FROM trace_config WHERE id = ? AND tenant_id = ?`,
+     FROM t_trace_config WHERE id = ? AND tenant_id = ?`,
     [configId, tenantId],
     tenantId
   );
@@ -155,7 +155,7 @@ export async function updateConfig(
 
 export async function deleteConfig(configId: number, tenantId: string) {
   const existing = await queryOneWithTenant<any>(
-    "SELECT id FROM trace_config WHERE id = ? AND tenant_id = ?",
+    "SELECT id FROM t_trace_config WHERE id = ? AND tenant_id = ?",
     [configId, tenantId],
     tenantId
   );
@@ -164,7 +164,7 @@ export async function deleteConfig(configId: number, tenantId: string) {
   }
 
   await queryWithTenant(
-    "DELETE FROM trace_config WHERE id = ? AND tenant_id = ?",
+    "DELETE FROM t_trace_config WHERE id = ? AND tenant_id = ?",
     [configId, tenantId],
     tenantId
   );
@@ -180,7 +180,7 @@ export async function checkSkuTrace(
   const skuConfig = await queryOneWithTenant<any>(
     `SELECT id, config_no AS configNo, trace_enabled AS traceEnabled, force_enabled AS forceEnabled,
             code_mode AS codeMode, code_prefix AS codePrefix, shelf_life_days AS shelfLifeDays
-     FROM trace_config WHERE config_level = 'SKU' AND target_id = ? AND status = 1 AND tenant_id = ?`,
+     FROM t_trace_config WHERE config_level = 'SKU' AND target_id = ? AND status = 1 AND tenant_id = ?`,
     [skuId, tenantId],
     tenantId
   );
@@ -196,7 +196,7 @@ export async function checkSkuTrace(
     const categoryConfig = await queryOneWithTenant<any>(
       `SELECT id, config_no AS configNo, trace_enabled AS traceEnabled, force_enabled AS forceEnabled,
               code_mode AS codeMode, code_prefix AS codePrefix, shelf_life_days AS shelfLifeDays
-       FROM trace_config WHERE config_level = 'CATEGORY' AND target_id = ? AND status = 1 AND tenant_id = ?`,
+       FROM t_trace_config WHERE config_level = 'CATEGORY' AND target_id = ? AND status = 1 AND tenant_id = ?`,
       [categoryId, tenantId],
       tenantId
     );
@@ -212,7 +212,7 @@ export async function checkSkuTrace(
   const globalConfig = await queryOneWithTenant<any>(
     `SELECT id, config_no AS configNo, trace_enabled AS traceEnabled, force_enabled AS forceEnabled,
             code_mode AS codeMode, code_prefix AS codePrefix, shelf_life_days AS shelfLifeDays
-     FROM trace_config WHERE config_level = 'GLOBAL' AND status = 1 AND tenant_id = ? LIMIT 1`,
+     FROM t_trace_config WHERE config_level = 'GLOBAL' AND status = 1 AND tenant_id = ? LIMIT 1`,
     [tenantId],
     tenantId
   );

@@ -19,7 +19,7 @@ async function getBestPrice(
 
   // 1. 协议价
   const bindingRows = (await dbQuery(
-    `SELECT cpb.price FROM customer_price_binding cpb
+    `SELECT cpb.price FROM t_customer_price_binding cpb
      WHERE cpb.customer_id = ? AND cpb.sku_id = ? AND cpb.status = 'ACTIVE'
      ORDER BY cpb.updated_at DESC LIMIT 1`,
     [customerId, skuId]
@@ -29,7 +29,7 @@ async function getBestPrice(
 
   // 2. 阶梯价
   const tierRows = (await dbQuery(
-    `SELECT sp.price FROM sku_price sp
+    `SELECT sp.price FROM t_sku_price sp
      WHERE sp.sku_id = ? AND sp.min_qty <= ? AND sp.status = 1
      ORDER BY sp.min_qty DESC LIMIT 1`,
     [skuId, quantity]
@@ -39,7 +39,7 @@ async function getBestPrice(
 
   // 3. 零售价
   const retailRows = (await dbQuery(
-    `SELECT pp.retail_price FROM product_price pp WHERE pp.sku_id = ?`,
+    `SELECT pp.retail_price FROM t_product_price pp WHERE pp.sku_id = ?`,
     [skuId]
   ) as any[])[0];
   const retail = (retailRows as any[])[0];
@@ -121,10 +121,10 @@ export async function getCartList(tenantId: string, customerId: number, customer
             pp.retail_price AS retailPrice, pp.wholesale_price AS wholesalePrice, pp.miniapp_price AS miniappPrice,
             COALESCE(ib.available_qty, 0) AS availableQty
      FROM cart_item c
-     JOIN product_sku s ON s.id = c.sku_id AND s.tenant_id = c.tenant_id
-     JOIN product_spu p ON p.id = s.spu_id AND p.tenant_id = s.tenant_id
-     JOIN product_price pp ON pp.sku_id = s.id AND pp.tenant_id = s.tenant_id
-     LEFT JOIN inventory_balance ib ON ib.sku_id = s.id AND ib.store_id = 1 AND ib.stock_type = 'ONLINE' AND ib.tenant_id = c.tenant_id
+     JOIN t_product_sku s ON s.id = c.sku_id AND s.tenant_id = c.tenant_id
+     JOIN t_product_spu p ON p.id = s.spu_id AND p.tenant_id = s.tenant_id
+     JOIN t_product_price pp ON pp.sku_id = s.id AND pp.tenant_id = s.tenant_id
+     LEFT JOIN t_inventory_balance ib ON ib.sku_id = s.id AND ib.store_id = 1 AND ib.stock_type = 'ONLINE' AND ib.tenant_id = c.tenant_id
      WHERE c.customer_id = ?
      ORDER BY c.added_at DESC`,
     [customerId],
@@ -153,7 +153,7 @@ export async function getCartList(tenantId: string, customerId: number, customer
 
 export async function addToCart(tenantId: string, customerId: number, skuId: number, quantity: number) {
   const sku = await queryOneWithTenant<any>(
-    `SELECT s.id, s.sku_name FROM product_sku s JOIN product_spu p ON p.id = s.spu_id AND p.tenant_id = s.tenant_id WHERE s.id = ? AND p.status = 'ON_SALE'`,
+    `SELECT s.id, s.sku_name FROM t_product_sku s JOIN t_product_spu p ON p.id = s.spu_id AND p.tenant_id = s.tenant_id WHERE s.id = ? AND p.status = 'ON_SALE'`,
     [skuId],
     tenantId
   );
@@ -252,10 +252,10 @@ export async function checkoutPreview(params: {
               pp.retail_price AS retailPrice, pp.wholesale_price AS wholesalePrice, pp.miniapp_price AS miniappPrice,
               COALESCE(ib.available_qty, 0) AS availableQty
        FROM cart_item c
-       JOIN product_sku s ON s.id = c.sku_id AND s.tenant_id = c.tenant_id
-       JOIN product_spu p ON p.id = s.spu_id AND p.tenant_id = s.tenant_id
-       JOIN product_price pp ON pp.sku_id = s.id AND pp.tenant_id = s.tenant_id
-       LEFT JOIN inventory_balance ib ON ib.sku_id = s.id AND ib.store_id = ? AND ib.stock_type = 'ONLINE' AND ib.tenant_id = c.tenant_id
+       JOIN t_product_sku s ON s.id = c.sku_id AND s.tenant_id = c.tenant_id
+       JOIN t_product_spu p ON p.id = s.spu_id AND p.tenant_id = s.tenant_id
+       JOIN t_product_price pp ON pp.sku_id = s.id AND pp.tenant_id = s.tenant_id
+       LEFT JOIN t_inventory_balance ib ON ib.sku_id = s.id AND ib.store_id = ? AND ib.stock_type = 'ONLINE' AND ib.tenant_id = c.tenant_id
        WHERE c.customer_id = ? AND c.sku_id IN (${placeholders})`,
       [storeId, customerId, ...skuIds],
       tenantId
@@ -267,10 +267,10 @@ export async function checkoutPreview(params: {
               pp.retail_price AS retailPrice, pp.wholesale_price AS wholesalePrice, pp.miniapp_price AS miniappPrice,
               COALESCE(ib.available_qty, 0) AS availableQty
        FROM cart_item c
-       JOIN product_sku s ON s.id = c.sku_id AND s.tenant_id = c.tenant_id
-       JOIN product_spu p ON p.id = s.spu_id AND p.tenant_id = s.tenant_id
-       JOIN product_price pp ON pp.sku_id = s.id AND pp.tenant_id = s.tenant_id
-       LEFT JOIN inventory_balance ib ON ib.sku_id = s.id AND ib.store_id = ? AND ib.stock_type = 'ONLINE' AND ib.tenant_id = c.tenant_id
+       JOIN t_product_sku s ON s.id = c.sku_id AND s.tenant_id = c.tenant_id
+       JOIN t_product_spu p ON p.id = s.spu_id AND p.tenant_id = s.tenant_id
+       JOIN t_product_price pp ON pp.sku_id = s.id AND pp.tenant_id = s.tenant_id
+       LEFT JOIN t_inventory_balance ib ON ib.sku_id = s.id AND ib.store_id = ? AND ib.stock_type = 'ONLINE' AND ib.tenant_id = c.tenant_id
        WHERE c.customer_id = ?`,
       [storeId, customerId],
       tenantId
@@ -367,7 +367,7 @@ export async function createCheckoutOrder(params: {
     for (const cartItem of cartItems) {
       const [price] = await conn.query(
         `SELECT s.sku_name, pp.retail_price, pp.wholesale_price, pp.miniapp_price
-         FROM product_sku s JOIN product_price pp ON pp.sku_id = s.id AND pp.tenant_id = s.tenant_id WHERE s.id = ? AND s.tenant_id = ?`,
+         FROM t_product_sku s JOIN t_product_price pp ON pp.sku_id = s.id AND pp.tenant_id = s.tenant_id WHERE s.id = ? AND s.tenant_id = ?`,
         [cartItem.skuId, tenantId]
       );
       const priceRow = (price as unknown as Record<string, unknown>[])[0];
@@ -380,7 +380,7 @@ export async function createCheckoutOrder(params: {
 
       const [inventory] = await conn.query(
         `SELECT physical_qty AS physicalQty, locked_qty AS lockedQty, available_qty AS availableQty
-         FROM inventory_balance WHERE store_id = ? AND sku_id = ? AND stock_type = 'ONLINE' AND tenant_id = ?`,
+         FROM t_inventory_balance WHERE store_id = ? AND sku_id = ? AND stock_type = 'ONLINE' AND tenant_id = ?`,
         [storeId, cartItem.skuId, tenantId]
       );
       const inv = (inventory as unknown as Record<string, unknown>[])[0];
@@ -413,7 +413,7 @@ export async function createCheckoutOrder(params: {
     const payableAmount = Number((goodsAmount - discountAmount + shippingFee).toFixed(2));
 
     await conn.execute(
-      `INSERT INTO miniapp_order (order_no, member_id, store_id, customer_type, fulfillment_type, order_status, pay_status,
+      `INSERT INTO t_miniapp_order (order_no, member_id, store_id, customer_type, fulfillment_type, order_status, pay_status,
                                   settlement_type, delivery_status, goods_amount, discount_amount, shipping_fee, payable_amount,
                                   receiver_name, receiver_mobile, receiver_address, remark, expire_at, tenant_id)
        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, DATE_ADD(NOW(), INTERVAL 15 MINUTE), ?)`,
@@ -429,20 +429,20 @@ export async function createCheckoutOrder(params: {
 
     for (const item of orderItems) {
       await conn.execute(
-        `INSERT INTO miniapp_order_item (order_no, sku_id, sku_name, qty, reserved_qty, unreserved_qty, unit_price, price_type, subtotal_amount, tenant_id)
+        `INSERT INTO t_miniapp_order_item (order_no, sku_id, sku_name, qty, reserved_qty, unreserved_qty, unit_price, price_type, subtotal_amount, tenant_id)
          VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
         [orderNo, item.skuId, item.skuName, item.qty, item.reservedQty, item.unreservedQty, item.unitPrice, item.priceType, item.subtotal, tenantId]
       );
 
       if (shouldReserveStock(customerType as CustomerType) && item.reservedQty > 0) {
         await conn.execute(
-          `UPDATE inventory_balance
+          `UPDATE t_inventory_balance
            SET locked_qty = locked_qty + ?, available_qty = GREATEST(available_qty - ?, 0), updated_at = NOW()
            WHERE store_id = ? AND sku_id = ? AND stock_type = 'ONLINE' AND tenant_id = ?`,
           [item.reservedQty, item.reservedQty, storeId, item.skuId, tenantId]
         );
         await conn.execute(
-          `INSERT INTO inventory_ledger (ledger_no, store_id, sku_id, stock_type, biz_type, biz_no,
+          `INSERT INTO t_inventory_ledger (ledger_no, store_id, sku_id, stock_type, biz_type, biz_no,
                                          change_qty, before_qty, after_qty, before_locked_qty, after_locked_qty,
                                          operator_id, idempotency_key, remark, tenant_id)
            VALUES (?, ?, ?, 'ONLINE', 'ORDER_LOCK', ?, 0, 0, 0, 0, ?, NULL, ?, ?, ?)`,

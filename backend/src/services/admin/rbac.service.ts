@@ -5,7 +5,7 @@ export async function listRoles(tenantId: string) {
     `SELECT id, role_name AS roleName, role_code AS roleCode, description, status,
             permissions, data_scope AS dataScope,
             created_at AS createdAt, updated_at AS updatedAt
-     FROM sys_role
+     FROM t_sys_role
      WHERE tenant_id = ?
      ORDER BY created_at ASC`,
     [tenantId]
@@ -21,7 +21,7 @@ export async function createRole(body: {
   dataScope: string;
 }, tenantId: string) {
   const existing = await queryOne<any>(
-    "SELECT id FROM sys_role WHERE role_code = ? AND tenant_id = ?",
+    "SELECT id FROM t_sys_role WHERE role_code = ? AND tenant_id = ?",
     [body.roleCode, tenantId]
   );
   if (existing) {
@@ -29,7 +29,7 @@ export async function createRole(body: {
   }
 
   await query(
-    `INSERT INTO sys_role (role_name, role_code, description, permissions, data_scope, status, tenant_id)
+    `INSERT INTO t_sys_role (role_name, role_code, description, permissions, data_scope, status, tenant_id)
      VALUES (?, ?, ?, ?, ?, 'ACTIVE', ?)`,
     [body.roleName, body.roleCode, body.description ?? null, JSON.stringify(body.permissions), body.dataScope, tenantId]
   );
@@ -38,7 +38,7 @@ export async function createRole(body: {
     `SELECT id, role_name AS roleName, role_code AS roleCode, description, status,
             permissions, data_scope AS dataScope,
             created_at AS createdAt, updated_at AS updatedAt
-     FROM sys_role WHERE role_code = ? AND tenant_id = ?`,
+     FROM t_sys_role WHERE role_code = ? AND tenant_id = ?`,
     [body.roleCode, tenantId]
   );
   return record;
@@ -49,7 +49,7 @@ export async function getRoleDetail(id: number, tenantId: string) {
     `SELECT id, role_name AS roleName, role_code AS roleCode, description, status,
             permissions, data_scope AS dataScope,
             created_at AS createdAt, updated_at AS updatedAt
-     FROM sys_role WHERE id = ? AND tenant_id = ?`,
+     FROM t_sys_role WHERE id = ? AND tenant_id = ?`,
     [id, tenantId]
   );
   if (!record) {
@@ -66,7 +66,7 @@ export async function updateRole(id: number, body: {
   status?: string;
 }, tenantId: string) {
   const existing = await queryOne<any>(
-    "SELECT id, role_code FROM sys_role WHERE id = ? AND tenant_id = ?",
+    "SELECT id, role_code FROM t_sys_role WHERE id = ? AND tenant_id = ?",
     [id, tenantId]
   );
   if (!existing) {
@@ -84,7 +84,7 @@ export async function updateRole(id: number, body: {
 
   if (updates.length > 0) {
     await query(
-      `UPDATE sys_role SET ${updates.join(", ")} WHERE id = ? AND tenant_id = ?`,
+      `UPDATE t_sys_role SET ${updates.join(", ")} WHERE id = ? AND tenant_id = ?`,
       [...params, id, tenantId]
     );
   }
@@ -93,7 +93,7 @@ export async function updateRole(id: number, body: {
     `SELECT id, role_name AS roleName, role_code AS roleCode, description, status,
             permissions, data_scope AS dataScope,
             created_at AS createdAt, updated_at AS updatedAt
-     FROM sys_role WHERE id = ? AND tenant_id = ?`,
+     FROM t_sys_role WHERE id = ? AND tenant_id = ?`,
     [id, tenantId]
   );
   return record;
@@ -101,7 +101,7 @@ export async function updateRole(id: number, body: {
 
 export async function deleteRole(id: number, tenantId: string) {
   const existing = await queryOne<any>(
-    "SELECT id, role_code FROM sys_role WHERE id = ? AND tenant_id = ?",
+    "SELECT id, role_code FROM t_sys_role WHERE id = ? AND tenant_id = ?",
     [id, tenantId]
   );
   if (!existing) {
@@ -112,8 +112,8 @@ export async function deleteRole(id: number, tenantId: string) {
   }
 
   await transaction(async (conn) => {
-    await (conn as { execute: (sql: string, params?: unknown[]) => Promise<unknown> }).execute("DELETE FROM sys_user_role WHERE role_id = ? AND tenant_id = ?", [id, tenantId]);
-    await (conn as { execute: (sql: string, params?: unknown[]) => Promise<unknown> }).execute("DELETE FROM sys_role WHERE id = ? AND tenant_id = ?", [id, tenantId]);
+    await (conn as { execute: (sql: string, params?: unknown[]) => Promise<unknown> }).execute("DELETE FROM t_sys_user_role WHERE role_id = ? AND tenant_id = ?", [id, tenantId]);
+    await (conn as { execute: (sql: string, params?: unknown[]) => Promise<unknown> }).execute("DELETE FROM t_sys_role WHERE id = ? AND tenant_id = ?", [id, tenantId]);
   });
 
   return { deleted: true };
@@ -124,8 +124,8 @@ export async function getUserRoles(userId: number, tenantId: string) {
     `SELECT r.id, r.role_name AS roleName, r.role_code AS roleCode, r.description, r.status,
             r.permissions, r.data_scope AS dataScope,
             ur.created_at AS assignedAt
-     FROM sys_user_role ur
-     JOIN sys_role r ON r.id = ur.role_id AND r.tenant_id = ur.tenant_id
+     FROM t_sys_user_role ur
+     JOIN t_sys_role r ON r.id = ur.role_id AND r.tenant_id = ur.tenant_id
      WHERE ur.user_id = ? AND ur.tenant_id = ?
      ORDER BY ur.created_at DESC`,
     [userId, tenantId]
@@ -135,7 +135,7 @@ export async function getUserRoles(userId: number, tenantId: string) {
 
 export async function setUserRoles(userId: number, roleIds: number[], tenantId: string) {
   const user = await queryOne<any>(
-    "SELECT id FROM sys_user WHERE id = ? AND tenant_id = ?",
+    "SELECT id FROM t_sys_user WHERE id = ? AND tenant_id = ?",
     [userId, tenantId]
   );
   if (!user) {
@@ -145,7 +145,7 @@ export async function setUserRoles(userId: number, roleIds: number[], tenantId: 
   if (roleIds.length > 0) {
     const placeholders = roleIds.map(() => "?").join(",");
     const roleCount = await queryOne<any>(
-      `SELECT COUNT(*) AS count FROM sys_role WHERE id IN (${placeholders}) AND tenant_id = ?`,
+      `SELECT COUNT(*) AS count FROM t_sys_role WHERE id IN (${placeholders}) AND tenant_id = ?`,
       [...roleIds, tenantId]
     );
     if (Number(roleCount?.count ?? 0) !== roleIds.length) {
@@ -154,10 +154,10 @@ export async function setUserRoles(userId: number, roleIds: number[], tenantId: 
   }
 
   await transaction(async (conn) => {
-    await (conn as { execute: (sql: string, params?: unknown[]) => Promise<unknown> }).execute("DELETE FROM sys_user_role WHERE user_id = ? AND tenant_id = ?", [userId, tenantId]);
+    await (conn as { execute: (sql: string, params?: unknown[]) => Promise<unknown> }).execute("DELETE FROM t_sys_user_role WHERE user_id = ? AND tenant_id = ?", [userId, tenantId]);
     for (const roleId of roleIds) {
       await (conn as { execute: (sql: string, params?: unknown[]) => Promise<unknown> }).execute(
-        "INSERT INTO sys_user_role (user_id, role_id, tenant_id) VALUES (?, ?, ?)",
+        "INSERT INTO t_sys_user_role (user_id, role_id, tenant_id) VALUES (?, ?, ?)",
         [userId, roleId, tenantId]
       );
     }
@@ -165,8 +165,8 @@ export async function setUserRoles(userId: number, roleIds: number[], tenantId: 
 
   const records = await query<any>(
     `SELECT r.id, r.role_name AS roleName, r.role_code AS roleCode, r.description, r.status
-     FROM sys_user_role ur
-     JOIN sys_role r ON r.id = ur.role_id AND r.tenant_id = ur.tenant_id
+     FROM t_sys_user_role ur
+     JOIN t_sys_role r ON r.id = ur.role_id AND r.tenant_id = ur.tenant_id
      WHERE ur.user_id = ? AND ur.tenant_id = ?`,
     [userId, tenantId]
   );
@@ -176,8 +176,8 @@ export async function setUserRoles(userId: number, roleIds: number[], tenantId: 
 export async function checkUserPermission(userId: number, tenantId: number, permCode: string): Promise<boolean> {
   const roles = await query<any>(
     `SELECT r.permissions
-     FROM sys_user_role ur
-     JOIN sys_role r ON r.id = ur.role_id AND r.tenant_id = ur.tenant_id
+     FROM t_sys_user_role ur
+     JOIN t_sys_role r ON r.id = ur.role_id AND r.tenant_id = ur.tenant_id
      WHERE ur.user_id = ? AND ur.tenant_id = ? AND r.status = 'ACTIVE'`,
     [userId, tenantId]
   );

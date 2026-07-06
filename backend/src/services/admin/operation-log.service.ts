@@ -26,7 +26,7 @@ export async function listLogs(tenantId: string, params: LogListParams) {
   const where = `WHERE ${conditions.join(" AND ")}`;
 
   const totalRow = await queryOneWithTenant<{ total: number }>(
-    `SELECT COUNT(*) AS total FROM operation_log ${where}`, sqlParams, tenantId
+    `SELECT COUNT(*) AS total FROM t_operation_log ${where}`, sqlParams, tenantId
   );
   const total = totalRow?.total ?? 0;
 
@@ -35,7 +35,7 @@ export async function listLogs(tenantId: string, params: LogListParams) {
             module, action, biz_no AS bizNo, target_id AS targetId,
             target_type AS targetType, after_data AS afterData,
             remark, created_at AS createdAt
-     FROM operation_log ${where}
+     FROM t_operation_log ${where}
      ORDER BY created_at DESC
      LIMIT ? OFFSET ?`,
     [...sqlParams, params.pageSize, offset],
@@ -51,19 +51,19 @@ export async function getStatistics(tenantId: string) {
 
   const [todayCount, weekCount, moduleDist, actionDist] = await Promise.all([
     queryOneWithTenant<{ cnt: number }>(
-      "SELECT COUNT(*) AS cnt FROM operation_log WHERE tenant_id = ? AND DATE(created_at) = ?",
+      "SELECT COUNT(*) AS cnt FROM t_operation_log WHERE tenant_id = ? AND DATE(created_at) = ?",
       [tenantId, today], tenantId
     ),
     queryOneWithTenant<{ cnt: number }>(
-      "SELECT COUNT(*) AS cnt FROM operation_log WHERE tenant_id = ? AND DATE(created_at) >= ?",
+      "SELECT COUNT(*) AS cnt FROM t_operation_log WHERE tenant_id = ? AND DATE(created_at) >= ?",
       [tenantId, weekStart], tenantId
     ),
     queryWithTenant<{ module: string; cnt: number }>(
-      "SELECT module, COUNT(*) AS cnt FROM operation_log WHERE tenant_id = ? AND DATE(created_at) >= ? GROUP BY module ORDER BY cnt DESC LIMIT 10",
+      "SELECT module, COUNT(*) AS cnt FROM t_operation_log WHERE tenant_id = ? AND DATE(created_at) >= ? GROUP BY module ORDER BY cnt DESC LIMIT 10",
       [tenantId, weekStart], tenantId
     ),
     queryWithTenant<{ action: string; cnt: number }>(
-      "SELECT action, COUNT(*) AS cnt FROM operation_log WHERE tenant_id = ? AND DATE(created_at) >= ? GROUP BY action ORDER BY cnt DESC LIMIT 10",
+      "SELECT action, COUNT(*) AS cnt FROM t_operation_log WHERE tenant_id = ? AND DATE(created_at) >= ? GROUP BY action ORDER BY cnt DESC LIMIT 10",
       [tenantId, weekStart], tenantId
     ),
   ]);

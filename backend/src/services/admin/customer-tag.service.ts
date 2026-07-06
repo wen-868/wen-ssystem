@@ -87,7 +87,7 @@ export async function getCustomerProfile(customerId: number, tenantId: string) {
 export async function updateCustomerProfile(customerId: number, tenantId: string) {
   const stats = await queryOneWithTenant<any>(
     `SELECT COUNT(*) AS orderCount, COALESCE(AVG(receivable_amount), 0) AS avgAmount, MAX(created_at) AS lastOrder
-     FROM sale_bill WHERE member_id = ? AND tenant_id = ? AND business_status = 'CREATED'`,
+     FROM t_sale_bill WHERE member_id = ? AND tenant_id = ? AND business_status = 'CREATED'`,
     [customerId, tenantId], tenantId
   );
   const points = await queryOneWithTenant<any>("SELECT total_points AS totalPoints FROM customer_points WHERE customer_id = ? AND tenant_id = ?", [customerId, tenantId], tenantId);

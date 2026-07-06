@@ -65,12 +65,12 @@ export async function handleWebhook(platform: PlatformType, rawBody: any, signat
 
     if (unified.status === "ACCEPTED" || unified.status === "PENDING") {
       const [existingRows] = await conn.query<any[]>(
-        `SELECT order_no FROM miniapp_order WHERE order_no = ? LIMIT 1`,
+        `SELECT order_no FROM t_miniapp_order WHERE order_no = ? LIMIT 1`,
         [unified.orderId]
       );
       if (existingRows.length === 0) {
         await conn.execute(
-          `INSERT INTO miniapp_order
+          `INSERT INTO t_miniapp_order
              (order_no, store_id, customer_type, fulfillment_type, order_status, pay_status,
               payable_amount, receiver_name, receiver_mobile, receiver_address, remark, created_at)
            VALUES (?, ?, 'RETAIL', 'DELIVERY', 'PENDING_PAYMENT', 'UNPAID',
@@ -87,7 +87,7 @@ export async function handleWebhook(platform: PlatformType, rawBody: any, signat
         );
         for (const item of unified.items) {
           await conn.execute(
-            `INSERT INTO miniapp_order_item
+            `INSERT INTO t_miniapp_order_item
                (order_no, sku_id, sku_name, qty, reserved_qty, unit_price, price_type, subtotal_amount)
              VALUES (?, ?, ?, ?, ?, ?, 'RETAIL', ?)`,
             [
@@ -630,7 +630,7 @@ export async function listRetailProducts(params: {
             ps.name AS productName, ps.sku_code AS skuCode, ps.unit,
             ps.image AS productImage
      FROM retail_product rp
-     LEFT JOIN product_sku ps ON ps.id = rp.product_id
+     LEFT JOIN t_product_sku ps ON ps.id = rp.product_id
      ${where}
      ORDER BY rp.sort_order ASC, rp.id DESC
      LIMIT ? OFFSET ?`,
@@ -660,7 +660,7 @@ export async function addRetailProduct(body: {
   sortOrder: number;
 }, tenantId: string) {
   const product = await queryOneWithTenant<any>(
-    "SELECT id, name FROM product_sku WHERE id = ? AND tenant_id = ?",
+    "SELECT id, name FROM t_product_sku WHERE id = ? AND tenant_id = ?",
     [body.productId, tenantId],
     tenantId
   );

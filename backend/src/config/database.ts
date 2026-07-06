@@ -3,7 +3,7 @@ import { existsSync, readFileSync } from "node:fs";
 import { join, resolve } from "node:path";
 import logger from "../shared/logger.js";
 import { env } from "./env.js";
-import { mockConn, mockQuery } from "../shared/mock-db.js";
+import { mockConn, mockQuery } from "../__tests__/mocks/mock-db.js";
 
 export let pool = mysql.createPool({
   host: env.DB_HOST,

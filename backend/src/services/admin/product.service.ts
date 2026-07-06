@@ -22,12 +22,12 @@ export async function listProducts(keyword: string, page: number, pageSize: numb
             pp.cost_price AS costPrice, pp.miniapp_price AS miniappPrice,
             pp.store_price AS storePrice,
             COALESCE(ib.available_qty, 0) AS availableQty
-     FROM product_sku s
-     JOIN product_spu p ON p.id = s.spu_id
-     JOIN product_price pp ON pp.sku_id = s.id
-     LEFT JOIN product_category pc ON pc.id = p.category_id
+     FROM t_product_sku s
+     JOIN t_product_spu p ON p.id = s.spu_id
+     JOIN t_product_price pp ON pp.sku_id = s.id
+     LEFT JOIN t_product_category pc ON pc.id = p.category_id
      LEFT JOIN brand b ON b.id = p.brand_id
-     LEFT JOIN inventory_balance ib ON ib.sku_id = s.id AND ib.stock_type = 'OFFLINE'
+     LEFT JOIN t_inventory_balance ib ON ib.sku_id = s.id AND ib.stock_type = 'OFFLINE'
      WHERE p.tenant_id = ? AND (p.name LIKE ? OR s.sku_code LIKE ? OR s.barcode LIKE ?)
      ORDER BY p.id DESC, s.id DESC
      LIMIT ? OFFSET ?`,
@@ -36,8 +36,8 @@ export async function listProducts(keyword: string, page: number, pageSize: numb
   );
   const totalRow = await queryOneWithTenant<any>(
     `SELECT COUNT(*) AS total
-     FROM product_sku s
-     JOIN product_spu p ON p.id = s.spu_id
+     FROM t_product_sku s
+     JOIN t_product_spu p ON p.id = s.spu_id
      WHERE p.tenant_id = ? AND (p.name LIKE ? OR s.sku_code LIKE ? OR s.barcode LIKE ?)`,
     [tenantId, like, like, like],
     tenantId
@@ -54,8 +54,8 @@ export async function getProductDetail(spuId: number, tenantId: string) {
             p.sale_channels AS saleChannels, p.sort_no AS sortNo,
             p.is_new AS isNew, p.is_recommend AS isRecommend,
             p.description, p.marketing_tags AS marketingTags, p.status, p.created_at AS createdAt, p.updated_at AS updatedAt
-     FROM product_spu p
-     LEFT JOIN product_category pc ON pc.id = p.category_id
+     FROM t_product_spu p
+     LEFT JOIN t_product_category pc ON pc.id = p.category_id
      LEFT JOIN brand b ON b.id = p.brand_id
      WHERE p.id = ? AND p.tenant_id = ?`,
     [spuId, tenantId], tenantId
@@ -71,9 +71,9 @@ export async function getProductDetail(spuId: number, tenantId: string) {
             pp.wholesale_price AS wholesalePrice, pp.miniapp_price AS miniappPrice,
             pp.store_price AS storePrice,
             COALESCE(ib.available_qty, 0) AS availableQty
-     FROM product_sku s
-     LEFT JOIN product_price pp ON pp.sku_id = s.id
-     LEFT JOIN inventory_balance ib ON ib.sku_id = s.id AND ib.stock_type = 'OFFLINE'
+     FROM t_product_sku s
+     LEFT JOIN t_product_price pp ON pp.sku_id = s.id
+     LEFT JOIN t_inventory_balance ib ON ib.sku_id = s.id AND ib.stock_type = 'OFFLINE'
      WHERE s.spu_id = ? AND s.tenant_id = ?
      ORDER BY s.id ASC`,
     [spuId, tenantId], tenantId
@@ -117,7 +117,7 @@ export async function createProduct(body: {
   const result = await transaction(async (conn) => {
     const spuCode = makeBizNo("SPU");
     const [spuResult] = await conn.query<any>(
-      `INSERT INTO product_spu (spu_code, name, category_id, brand_id, unit, specs,
+      `INSERT INTO t_product_spu (spu_code, name, category_id, brand_id, unit, specs,
        main_image, sale_channels, alcohol_content, origin, sort_no, is_new, is_recommend,
        description, status, tenant_id)
        VALUES (?, ?, ?, ?, ?, ?, ?, CAST(? AS JSON), ?, ?, ?, ?, ?, ?, 'DRAFT', ?)`,
@@ -133,7 +133,7 @@ export async function createProduct(body: {
     for (const sku of body.skus) {
       const skuCode = makeBizNo("SKU");
       const [skuResult] = await conn.query<any>(
-        `INSERT INTO product_sku (spu_id, sku_code, barcode, sku_name, volume, packaging,
+        `INSERT INTO t_product_sku (spu_id, sku_code, barcode, sku_name, volume, packaging,
          base_unit, box_unit, box_ratio, temperature, trace_enabled, warning_threshold, tenant_id)
          VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
         [spuId, skuCode, sku.barcode ?? null, sku.skuName,
@@ -144,13 +144,13 @@ export async function createProduct(body: {
       const skuId = skuResult.insertId as number;
       firstSkuId ??= skuId;
       await conn.query(
-        `INSERT INTO product_price (sku_id, cost_price, retail_price, wholesale_price, miniapp_price, store_price, tenant_id)
+        `INSERT INTO t_product_price (sku_id, cost_price, retail_price, wholesale_price, miniapp_price, store_price, tenant_id)
          VALUES (?, ?, ?, ?, ?, ?, ?)`,
         [skuId, sku.costPrice, sku.retailPrice, sku.wholesalePrice ?? null, sku.miniappPrice ?? null, sku.storePrice ?? null, tenantId]
       );
       if (rawBody.initialQty !== undefined) {
         await conn.query(
-          `INSERT INTO inventory_balance (store_id, sku_id, stock_type, physical_qty, locked_qty, available_qty, tenant_id)
+          `INSERT INTO t_inventory_balance (store_id, sku_id, stock_type, physical_qty, locked_qty, available_qty, tenant_id)
            VALUES (1, ?, ?, ?, 0, ?, ?)
            ON DUPLICATE KEY UPDATE physical_qty = VALUES(physical_qty), available_qty = VALUES(available_qty), updated_at = NOW()`,
           [skuId, rawBody.stockType ?? "OFFLINE", rawBody.initialQty, rawBody.initialQty, tenantId]
@@ -163,7 +163,7 @@ export async function createProduct(body: {
 }
 
 export async function updateProductStatus(spuId: number, status: string, tenantId: string) {
-  const result = await queryWithTenant("UPDATE product_spu SET status = ?, updated_at = NOW() WHERE id = ? AND tenant_id = ?", [status, spuId, tenantId], tenantId);
+  const result = await queryWithTenant("UPDATE t_product_spu SET status = ?, updated_at = NOW() WHERE id = ? AND tenant_id = ?", [status, spuId, tenantId], tenantId);
   if (!result || (result as unknown as { affectedRows: number }).affectedRows === 0) {
     return null;
   }
@@ -189,7 +189,7 @@ export async function updateProduct(spuId: number, body: {
   isRecommend?: boolean;
   description?: string;
 }, tenantId: string) {
-  const existing = await queryOneWithTenant<any>("SELECT * FROM product_spu WHERE id = ? AND tenant_id = ?", [spuId, tenantId], tenantId);
+  const existing = await queryOneWithTenant<any>("SELECT * FROM t_product_spu WHERE id = ? AND tenant_id = ?", [spuId, tenantId], tenantId);
   if (!existing) {
     return null;
   }
@@ -208,13 +208,13 @@ export async function updateProduct(spuId: number, body: {
   if (sets.length === 0) { return { spuId }; }
   sets.push("updated_at = NOW()");
   params.push(spuId, tenantId);
-  await queryWithTenant(`UPDATE product_spu SET ${sets.join(", ")} WHERE id = ? AND tenant_id = ?`, params, tenantId);
+  await queryWithTenant(`UPDATE t_product_spu SET ${sets.join(", ")} WHERE id = ? AND tenant_id = ?`, params, tenantId);
 
   if (body.barcode !== undefined) {
-    await queryWithTenant("UPDATE product_sku SET barcode = ? WHERE spu_id = ? AND tenant_id = ?", [body.barcode, spuId, tenantId], tenantId);
+    await queryWithTenant("UPDATE t_product_sku SET barcode = ? WHERE spu_id = ? AND tenant_id = ?", [body.barcode, spuId, tenantId], tenantId);
   }
   if (body.boxRatio !== undefined) {
-    await queryWithTenant("UPDATE product_sku SET box_ratio = ? WHERE spu_id = ? AND tenant_id = ?", [body.boxRatio, spuId, tenantId], tenantId);
+    await queryWithTenant("UPDATE t_product_sku SET box_ratio = ? WHERE spu_id = ? AND tenant_id = ?", [body.boxRatio, spuId, tenantId], tenantId);
   }
 
   const changedFields = detectChangedFields(body, {
@@ -242,14 +242,14 @@ export async function updateProduct(spuId: number, body: {
 }
 
 export async function disableProduct(spuId: number, tenantId: string) {
-  const existing = await queryOneWithTenant<any>("SELECT id, name, status FROM product_spu WHERE id = ? AND tenant_id = ?", [spuId, tenantId], tenantId);
+  const existing = await queryOneWithTenant<any>("SELECT id, name, status FROM t_product_spu WHERE id = ? AND tenant_id = ?", [spuId, tenantId], tenantId);
   if (!existing) {
     throw Object.assign(new Error("商品不存在"), { statusCode: 404 });
   }
   if (existing.status === "OFF_SALE") {
     throw Object.assign(new Error("商品已停售"), { statusCode: 400 });
   }
-  await queryWithTenant("UPDATE product_spu SET status = 'OFF_SALE', updated_at = NOW() WHERE id = ? AND tenant_id = ?", [spuId, tenantId], tenantId);
+  await queryWithTenant("UPDATE t_product_spu SET status = 'OFF_SALE', updated_at = NOW() WHERE id = ? AND tenant_id = ?", [spuId, tenantId], tenantId);
   return { spuId, name: existing.name };
 }
 
@@ -257,7 +257,7 @@ export async function getProductPriceHistory(skuId: number, tenantId: string) {
   const records = await queryWithTenant<any>(
     `SELECT id, sku_id AS skuId, price_type AS priceType, old_price AS oldPrice,
             new_price AS newPrice, action_type AS actionType, operator_id AS operatorId, created_at AS createdAt
-     FROM product_price_log
+     FROM t_product_price_log
      WHERE sku_id = ? AND tenant_id = ?
      ORDER BY id DESC
      LIMIT 50`,
@@ -275,7 +275,7 @@ export async function updateProductPrice(skuId: number, body: {
   storePrice?: number | null;
 }, tenantId: string, userId: number) {
   const result = await transaction(async (conn) => {
-    const [oldRows] = await conn.query<any[]>("SELECT * FROM product_price WHERE sku_id = ? AND tenant_id = ?", [skuId, tenantId]);
+    const [oldRows] = await conn.query<any[]>("SELECT * FROM t_product_price WHERE sku_id = ? AND tenant_id = ?", [skuId, tenantId]);
     const oldPrice = oldRows[0];
     if (!oldPrice) throw Object.assign(new Error("SKU价格不存在"), { statusCode: 404 });
     const changes = [
@@ -286,7 +286,7 @@ export async function updateProductPrice(skuId: number, body: {
       ["STORE", oldPrice.store_price, body.storePrice]
     ].filter(([, oldValue, newValue]) => newValue !== undefined && Number(oldValue ?? 0) !== Number(newValue ?? 0));
     await conn.query(
-      `UPDATE product_price
+      `UPDATE t_product_price
        SET cost_price = COALESCE(?, cost_price),
            retail_price = COALESCE(?, retail_price),
            wholesale_price = ?,
@@ -305,7 +305,7 @@ export async function updateProductPrice(skuId: number, body: {
     );
     for (const [priceType, oldValue, newValue] of changes) {
       await conn.query(
-        `INSERT INTO product_price_log (sku_id, operator_id, price_type, old_price, new_price, action_type, tenant_id)
+        `INSERT INTO t_product_price_log (sku_id, operator_id, price_type, old_price, new_price, action_type, tenant_id)
          VALUES (?, ?, ?, ?, ?, 'UPDATE', ?)`,
         [skuId, userId, priceType, oldValue ?? null, newValue ?? null, tenantId]
       );
@@ -320,7 +320,7 @@ export async function updateProductPrice(skuId: number, body: {
     if (body.wholesalePrice !== undefined) changedTypes.push("wholesalePrice");
 
     const skuInfo = await queryOneWithTenant<any>(
-      "SELECT spu_id FROM product_sku WHERE id = ? AND tenant_id = ?",
+      "SELECT spu_id FROM t_product_sku WHERE id = ? AND tenant_id = ?",
       [skuId, tenantId],
       tenantId
     );
@@ -354,7 +354,7 @@ export async function importProducts(
       await transaction(async (conn) => {
         const spuCode = makeBizNo("SPU");
         const [spuResult] = await conn.query<any>(
-          `INSERT INTO product_spu (spu_code, name, category_id, brand_id, unit, specs,
+          `INSERT INTO t_product_spu (spu_code, name, category_id, brand_id, unit, specs,
            main_image, sale_channels, alcohol_content, origin, sort_no, is_new, is_recommend,
            description, status, tenant_id)
            VALUES (?, ?, ?, ?, ?, ?, ?, CAST(? AS JSON), ?, ?, ?, ?, ?, ?, 'DRAFT', ?)`,
@@ -368,7 +368,7 @@ export async function importProducts(
         const spuId = spuResult.insertId as number;
         const skuCode = makeBizNo("SKU");
         const [skuResult] = await conn.query<any>(
-          `INSERT INTO product_sku (spu_id, sku_code, barcode, sku_name, volume, packaging,
+          `INSERT INTO t_product_sku (spu_id, sku_code, barcode, sku_name, volume, packaging,
            base_unit, box_unit, box_ratio, temperature, trace_enabled, warning_threshold, tenant_id)
            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
           [spuId, skuCode, row.barcode ?? null, row.skuName,
@@ -379,7 +379,7 @@ export async function importProducts(
         );
         const skuId = skuResult.insertId as number;
         await conn.query(
-          `INSERT INTO product_price (sku_id, cost_price, retail_price, wholesale_price, miniapp_price, store_price, tenant_id)
+          `INSERT INTO t_product_price (sku_id, cost_price, retail_price, wholesale_price, miniapp_price, store_price, tenant_id)
            VALUES (?, ?, ?, ?, ?, ?, ?)`,
           [skuId, Number(row.costPrice) || 0, Number(row.retailPrice) || 0,
            row.wholesalePrice ? Number(row.wholesalePrice) : null,
@@ -398,7 +398,7 @@ export async function importProducts(
 // 营销标签设置
 export async function setMarketingTags(spuId: number, tags: string[], tenantId: string) {
   await queryWithTenant(
-    "UPDATE product_spu SET marketing_tags = ? WHERE id = ? AND tenant_id = ?",
+    "UPDATE t_product_spu SET marketing_tags = ? WHERE id = ? AND tenant_id = ?",
     [JSON.stringify(tags), spuId, tenantId],
     tenantId
   );

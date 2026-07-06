@@ -8,7 +8,7 @@ export async function getOverview(tenantId: string) {
     `SELECT COALESCE(SUM(receivable_amount), 0) AS salesAmount,
             COUNT(*) AS orderCount,
             COALESCE(SUM(received_amount), 0) AS receivedAmount
-     FROM sale_bill
+     FROM t_sale_bill
      WHERE tenant_id = ?
        AND business_status NOT IN ('DRAFT', 'VOIDED')
        AND DATE(created_at) = ?`,
@@ -18,7 +18,7 @@ export async function getOverview(tenantId: string) {
   const yesterdaySales = await queryOne<any>(
     `SELECT COALESCE(SUM(receivable_amount), 0) AS salesAmount,
             COUNT(*) AS orderCount
-     FROM sale_bill
+     FROM t_sale_bill
      WHERE tenant_id = ?
        AND business_status NOT IN ('DRAFT', 'VOIDED')
        AND DATE(created_at) = ?`,
@@ -28,7 +28,7 @@ export async function getOverview(tenantId: string) {
   const todayPurchase = await queryOne<any>(
     `SELECT COALESCE(SUM(payable_amount), 0) AS purchaseAmount,
             COUNT(*) AS orderCount
-     FROM purchase_order
+     FROM t_purchase_order
      WHERE tenant_id = ?
        AND order_status NOT IN ('DRAFT', 'CANCELLED')
        AND DATE(created_at) = ?`,
@@ -39,7 +39,7 @@ export async function getOverview(tenantId: string) {
     `SELECT COALESCE(SUM(receivable_amount), 0) AS salesAmount,
             COUNT(*) AS orderCount,
             COALESCE(SUM(received_amount), 0) AS receivedAmount
-     FROM sale_bill
+     FROM t_sale_bill
      WHERE tenant_id = ?
        AND business_status NOT IN ('DRAFT', 'VOIDED')
        AND DATE_FORMAT(created_at, '%Y-%m') = DATE_FORMAT(CURDATE(), '%Y-%m')`,
@@ -49,7 +49,7 @@ export async function getOverview(tenantId: string) {
   const lastMonthSales = await queryOne<any>(
     `SELECT COALESCE(SUM(receivable_amount), 0) AS salesAmount,
             COUNT(*) AS orderCount
-     FROM sale_bill
+     FROM t_sale_bill
      WHERE tenant_id = ?
        AND business_status NOT IN ('DRAFT', 'VOIDED')
        AND DATE_FORMAT(created_at, '%Y-%m') = DATE_FORMAT(DATE_SUB(CURDATE(), INTERVAL 1 MONTH), '%Y-%m')`,
@@ -59,7 +59,7 @@ export async function getOverview(tenantId: string) {
   const monthPurchase = await queryOne<any>(
     `SELECT COALESCE(SUM(payable_amount), 0) AS purchaseAmount,
             COUNT(*) AS orderCount
-     FROM purchase_order
+     FROM t_purchase_order
      WHERE tenant_id = ?
        AND order_status NOT IN ('DRAFT', 'CANCELLED')
        AND DATE_FORMAT(created_at, '%Y-%m') = DATE_FORMAT(CURDATE(), '%Y-%m')`,
@@ -70,7 +70,7 @@ export async function getOverview(tenantId: string) {
     `SELECT COALESCE(SUM(receivable_amount), 0) AS salesAmount,
             COUNT(*) AS orderCount,
             COALESCE(SUM(received_amount), 0) AS receivedAmount
-     FROM sale_bill
+     FROM t_sale_bill
      WHERE tenant_id = ?
        AND business_status NOT IN ('DRAFT', 'VOIDED')
        AND DATE_FORMAT(created_at, '%Y') = DATE_FORMAT(CURDATE(), '%Y')`,
@@ -80,7 +80,7 @@ export async function getOverview(tenantId: string) {
   const yearPurchase = await queryOne<any>(
     `SELECT COALESCE(SUM(payable_amount), 0) AS purchaseAmount,
             COUNT(*) AS orderCount
-     FROM purchase_order
+     FROM t_purchase_order
      WHERE tenant_id = ?
        AND order_status NOT IN ('DRAFT', 'CANCELLED')
        AND DATE_FORMAT(created_at, '%Y') = DATE_FORMAT(CURDATE(), '%Y')`,
@@ -90,14 +90,14 @@ export async function getOverview(tenantId: string) {
   // 待处理订单
   const pendingOrders = await queryOne<any>(
     `SELECT COUNT(*) AS count
-     FROM miniapp_order
+     FROM t_miniapp_order
      WHERE tenant_id = ? AND order_status IN ('PENDING_PAYMENT', 'WAIT_DELIVERY', 'ACCEPTED')`,
     [tenantId]
   );
 
   const yesterdayPendingOrders = await queryOne<any>(
     `SELECT COUNT(*) AS count
-     FROM miniapp_order
+     FROM t_miniapp_order
      WHERE tenant_id = ? AND order_status IN ('PENDING_PAYMENT', 'WAIT_DELIVERY', 'ACCEPTED')
        AND DATE(created_at) <= ?`,
     [tenantId, yesterday]
@@ -121,15 +121,15 @@ export async function getOverview(tenantId: string) {
   const inventoryValue = await queryOne<any>(
     `SELECT COALESCE(SUM(ib.physical_qty * pp.cost_price), 0) AS amount,
             COUNT(DISTINCT ib.sku_id) AS skuCount
-     FROM inventory_balance ib
-     LEFT JOIN product_price pp ON pp.sku_id = ib.sku_id AND pp.tenant_id = ib.tenant_id
+     FROM t_inventory_balance ib
+     LEFT JOIN t_product_price pp ON pp.sku_id = ib.sku_id AND pp.tenant_id = ib.tenant_id
      WHERE ib.tenant_id = ?`,
     [tenantId]
   );
 
   const receivable = await queryOne<any>(
     `SELECT COALESCE(SUM(unreceived_amount), 0) AS amount
-     FROM sale_bill
+     FROM t_sale_bill
      WHERE tenant_id = ?
        AND business_status NOT IN ('DRAFT', 'VOIDED')
        AND unreceived_amount > 0`,
@@ -138,7 +138,7 @@ export async function getOverview(tenantId: string) {
 
   const payable = await queryOne<any>(
     `SELECT COALESCE(SUM(unpaid_amount), 0) AS amount
-     FROM purchase_order
+     FROM t_purchase_order
      WHERE tenant_id = ?
        AND order_status NOT IN ('DRAFT', 'CANCELLED')
        AND unpaid_amount > 0`,
@@ -211,7 +211,7 @@ export async function getSalesTrend(tenantId: string) {
             COALESCE(SUM(sb.receivable_amount), 0) AS salesAmount,
             COALESCE(SUM(sb.received_amount), 0) AS receivedAmount,
             COUNT(DISTINCT sb.bill_no) AS orderCount
-     FROM sale_bill sb
+     FROM t_sale_bill sb
      WHERE sb.tenant_id = ?
        AND sb.business_status NOT IN ('DRAFT', 'VOIDED')
        AND sb.created_at >= DATE_SUB(CURDATE(), INTERVAL 12 MONTH)
@@ -233,11 +233,11 @@ export async function getCategoryPie(tenantId: string, dateStart: string, dateEn
     `SELECT pc.name AS categoryName,
             COALESCE(SUM(sbi.subtotal_amount), 0) AS totalAmount,
             SUM(sbi.total_bottle_qty) AS totalQty
-     FROM sale_bill_item sbi
-     JOIN sale_bill sb ON sb.bill_no = sbi.bill_no AND sb.tenant_id = sbi.tenant_id
-     JOIN product_sku ps ON ps.id = sbi.sku_id AND ps.tenant_id = sbi.tenant_id
-     JOIN product_spu psp ON psp.id = ps.spu_id AND psp.tenant_id = ps.tenant_id
-     JOIN product_category pc ON pc.id = psp.category_id
+     FROM t_sale_bill_item sbi
+     JOIN t_sale_bill sb ON sb.bill_no = sbi.bill_no AND sb.tenant_id = sbi.tenant_id
+     JOIN t_product_sku ps ON ps.id = sbi.sku_id AND ps.tenant_id = sbi.tenant_id
+     JOIN t_product_spu psp ON psp.id = ps.spu_id AND psp.tenant_id = ps.tenant_id
+     JOIN t_product_category pc ON pc.id = psp.category_id
      WHERE sb.business_status NOT IN ('DRAFT', 'VOIDED')
        AND sb.tenant_id = ?
        AND DATE(sb.created_at) BETWEEN ? AND ?
@@ -262,8 +262,8 @@ export async function getTopProducts(tenantId: string, dateStart: string, dateEn
             SUM(sbi.total_bottle_qty) AS totalQty,
             COALESCE(SUM(sbi.subtotal_amount), 0) AS totalAmount,
             COUNT(DISTINCT sbi.bill_no) AS orderCount
-     FROM sale_bill_item sbi
-     JOIN sale_bill sb ON sb.bill_no = sbi.bill_no AND sb.tenant_id = sbi.tenant_id
+     FROM t_sale_bill_item sbi
+     JOIN t_sale_bill sb ON sb.bill_no = sbi.bill_no AND sb.tenant_id = sbi.tenant_id
      WHERE sb.business_status NOT IN ('DRAFT', 'VOIDED')
        AND sb.tenant_id = ?
        AND DATE(sb.created_at) BETWEEN ? AND ?
@@ -288,7 +288,7 @@ export async function getTopCustomers(tenantId: string, dateStart: string, dateE
             COUNT(DISTINCT sb.bill_no) AS orderCount,
             COALESCE(SUM(sb.receivable_amount), 0) AS totalAmount,
             COALESCE(SUM(sb.received_amount), 0) AS receivedAmount
-     FROM sale_bill sb
+     FROM t_sale_bill sb
      WHERE sb.business_status NOT IN ('DRAFT', 'VOIDED')
        AND sb.tenant_id = ?
        AND sb.customer_id IS NOT NULL
@@ -315,7 +315,7 @@ export async function getRecentAlerts(tenantId: string, limit: number) {
             title, description,
             biz_type AS bizType, biz_id AS bizId,
             status, created_at AS createdAt
-     FROM alert_record
+     FROM t_alert_record
      WHERE tenant_id = ? AND status = 'PENDING'
      ORDER BY
        CASE alert_level
@@ -348,7 +348,7 @@ export async function getTodos(tenantId: string) {
   // 1. 待付款订单
   const pendingPayment = await queryOne<any>(
     `SELECT COUNT(*) AS count, MIN(created_at) AS earliest
-     FROM miniapp_order
+     FROM t_miniapp_order
      WHERE tenant_id = ? AND order_status = 'PENDING_PAYMENT'`,
     [tenantId]
   );
@@ -366,7 +366,7 @@ export async function getTodos(tenantId: string) {
   // 2. 待配送订单
   const pendingDelivery = await queryOne<any>(
     `SELECT COUNT(*) AS count, MIN(created_at) AS earliest
-     FROM miniapp_order
+     FROM t_miniapp_order
      WHERE tenant_id = ? AND order_status IN ('WAIT_DELIVERY', 'ACCEPTED')`,
     [tenantId]
   );
@@ -384,7 +384,7 @@ export async function getTodos(tenantId: string) {
   // 3. 配送中订单
   const delivering = await queryOne<any>(
     `SELECT COUNT(*) AS count
-     FROM miniapp_order
+     FROM t_miniapp_order
      WHERE tenant_id = ? AND order_status = 'DELIVERING'`,
     [tenantId]
   );
@@ -425,7 +425,7 @@ export async function getTodos(tenantId: string) {
   const overdueReceivables = await query<any>(
     `SELECT sb.customer_name AS customerName, sb.unreceived_amount AS unreceivedAmount,
             sb.bill_no AS billNo, sb.created_at AS createdAt
-     FROM sale_bill sb
+     FROM t_sale_bill sb
      WHERE sb.tenant_id = ? AND sb.business_status NOT IN ('DRAFT', 'VOIDED')
        AND sb.unreceived_amount > 0
        AND sb.due_date IS NOT NULL AND sb.due_date <= DATE_ADD(CURDATE(), INTERVAL 7 DAY)
@@ -453,7 +453,7 @@ export async function getRecentOrders(tenantId: string, limit: number = 5) {
     `SELECT order_no AS orderNo, customer_name AS customerName,
             receivable_amount AS amount, order_status AS orderStatus,
             created_at AS createdAt
-     FROM sale_bill
+     FROM t_sale_bill
      WHERE tenant_id = ? AND business_status NOT IN ('DRAFT', 'VOIDED')
      ORDER BY created_at DESC
      LIMIT ?`,
@@ -489,7 +489,7 @@ export async function getSalesTrendByDay(tenantId: string, days: number = 7) {
     `SELECT DATE(sb.created_at) AS date,
             COALESCE(SUM(sb.receivable_amount), 0) AS salesAmount,
             COUNT(DISTINCT sb.bill_no) AS orderCount
-     FROM sale_bill sb
+     FROM t_sale_bill sb
      WHERE sb.tenant_id = ?
        AND sb.business_status NOT IN ('DRAFT', 'VOIDED')
        AND sb.created_at >= DATE_SUB(CURDATE(), INTERVAL ? DAY)

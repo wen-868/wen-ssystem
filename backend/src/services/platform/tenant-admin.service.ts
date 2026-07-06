@@ -122,9 +122,9 @@ export async function getPlatformTenantDetail(tenantId: string) {
   // 用户统计
   const stats = await queryOne<any>(
     `SELECT
-       (SELECT COUNT(*) FROM sys_user WHERE tenant_id = ?) AS totalUsers,
+       (SELECT COUNT(*) FROM t_sys_user WHERE tenant_id = ?) AS totalUsers,
        (SELECT COUNT(*) FROM store WHERE tenant_id = ?) AS totalStores,
-       (SELECT COUNT(*) FROM product_spu WHERE tenant_id = ?) AS totalProducts,
+       (SELECT COUNT(*) FROM t_product_spu WHERE tenant_id = ?) AS totalProducts,
        (SELECT COUNT(*) FROM member WHERE tenant_id = ?) AS totalMembers,
        (SELECT COUNT(*) FROM sale_order WHERE tenant_id = ? AND DATE(created_at) >= DATE_SUB(NOW(), INTERVAL 30 DAY)) AS recentOrders
      FROM DUAL`,

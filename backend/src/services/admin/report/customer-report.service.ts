@@ -40,7 +40,7 @@ export async function getCustomerContribution(
               THEN SUM(sb.receivable_amount) / COUNT(DISTINCT sb.bill_no)
               ELSE 0
             END AS avgOrderAmount
-     FROM sale_bill sb
+     FROM t_sale_bill sb
      WHERE ${where}
      GROUP BY sb.customer_id, sb.customer_name, sb.customer_mobile
      ORDER BY totalAmount DESC
@@ -51,7 +51,7 @@ export async function getCustomerContribution(
 
   const totalRow = await queryOneWithTenant<any>(
     `SELECT COUNT(DISTINCT sb.customer_id) AS total
-     FROM sale_bill sb
+     FROM t_sale_bill sb
      WHERE ${where}`,
     params,
     tenantId

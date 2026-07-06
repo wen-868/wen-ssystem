@@ -33,14 +33,14 @@ sysUserRouter.get("/", requireAuthWithTenant, asyncHandler(async (req, res) => {
   const where = `WHERE ${conditions.join(" AND ")}`;
 
   const totalRow = await queryOne<{ total: number }>(
-    `SELECT COUNT(*) AS total FROM sys_user ${where}`, sqlParams
+    `SELECT COUNT(*) AS total FROM t_sys_user ${where}`, sqlParams
   );
   const total = totalRow?.total ?? 0;
 
   const records = await query<any>(
     `SELECT id, username, real_name AS realName, mobile, email,
             status, last_login_at AS lastLoginAt, created_at AS createdAt
-     FROM sys_user ${where}
+     FROM t_sys_user ${where}
      ORDER BY created_at DESC
      LIMIT ? OFFSET ?`,
     [...sqlParams, params.pageSize, offset]
@@ -50,8 +50,8 @@ sysUserRouter.get("/", requireAuthWithTenant, asyncHandler(async (req, res) => {
   for (const r of records) {
     const roles = await query<any>(
       `SELECT r.id, r.role_name AS roleName, r.role_code AS roleCode
-       FROM sys_user_role ur
-       JOIN sys_role r ON r.id = ur.role_id AND r.tenant_id = ur.tenant_id
+       FROM t_sys_user_role ur
+       JOIN t_sys_role r ON r.id = ur.role_id AND r.tenant_id = ur.tenant_id
        WHERE ur.user_id = ? AND ur.tenant_id = ?`,
       [r.id, tenantId]
     );
@@ -75,7 +75,7 @@ sysUserRouter.post("/", requireAuthWithTenant, asyncHandler(async (req, res) => 
 
   // 检查用户名唯一性
   const existing = await queryOne<any>(
-    "SELECT id FROM sys_user WHERE username = ? AND tenant_id = ?",
+    "SELECT id FROM t_sys_user WHERE username = ? AND tenant_id = ?",
     [body.username, tenantId]
   );
   if (existing) {
@@ -87,7 +87,7 @@ sysUserRouter.post("/", requireAuthWithTenant, asyncHandler(async (req, res) => 
 
   await transaction(async (conn) => {
     const [result] = await conn.execute(
-      `INSERT INTO sys_user (username, password_hash, real_name, mobile, email, status, tenant_id)
+      `INSERT INTO t_sys_user (username, password_hash, real_name, mobile, email, status, tenant_id)
        VALUES (?, ?, ?, ?, ?, 'ACTIVE', ?)`,
       [body.username, hashedPassword, body.realName, body.mobile ?? null, body.email ?? null, tenantId]
     );
@@ -96,14 +96,14 @@ sysUserRouter.post("/", requireAuthWithTenant, asyncHandler(async (req, res) => 
     // 分配角色
     for (const roleId of body.roleIds) {
       await conn.execute(
-        "INSERT INTO sys_user_role (user_id, role_id, tenant_id) VALUES (?, ?, ?)",
+        "INSERT INTO t_sys_user_role (user_id, role_id, tenant_id) VALUES (?, ?, ?)",
         [userId, roleId, tenantId]
       );
     }
 
     // 操作日志
     await conn.execute(
-      `INSERT INTO operation_log (operator_id, operator_name, module, action, target_id, target_type, remark, tenant_id)
+      `INSERT INTO t_operation_log (operator_id, operator_name, module, action, target_id, target_type, remark, tenant_id)
        VALUES (?, ?, 'USER', 'CREATE', ?, 'user', ?, ?)`,
       [req.user!.id, req.user!.username, userId, `创建子账号: ${body.username}`, tenantId]
     );
@@ -111,7 +111,7 @@ sysUserRouter.post("/", requireAuthWithTenant, asyncHandler(async (req, res) => 
 
   const user = await queryOne<any>(
     `SELECT id, username, real_name AS realName, mobile, email, status, created_at AS createdAt
-     FROM sys_user WHERE username = ? AND tenant_id = ?`,
+     FROM t_sys_user WHERE username = ? AND tenant_id = ?`,
     [body.username, tenantId]
   );
 
@@ -125,15 +125,15 @@ sysUserRouter.get("/:id", requireAuthWithTenant, asyncHandler(async (req, res) =
   const user = await queryOne<any>(
     `SELECT id, username, real_name AS realName, mobile, email, status,
             last_login_at AS lastLoginAt, created_at AS createdAt, updated_at AS updatedAt
-     FROM sys_user WHERE id = ? AND tenant_id = ?`,
+     FROM t_sys_user WHERE id = ? AND tenant_id = ?`,
     [id, tenantId]
   );
   if (!user) { res.status(404).json(fail("用户不存在", "404")); return; }
 
   const roles = await query<any>(
     `SELECT r.id, r.role_name AS roleName, r.role_code AS roleCode
-     FROM sys_user_role ur
-     JOIN sys_role r ON r.id = ur.role_id AND r.tenant_id = ur.tenant_id
+     FROM t_sys_user_role ur
+     JOIN t_sys_role r ON r.id = ur.role_id AND r.tenant_id = ur.tenant_id
      WHERE ur.user_id = ? AND ur.tenant_id = ?`,
     [id, tenantId]
   );
@@ -154,7 +154,7 @@ sysUserRouter.put("/:id", requireAuthWithTenant, asyncHandler(async (req, res) =
     roleIds: z.array(z.number().int().positive()).optional(),
   }).parse(req.body);
 
-  const existing = await queryOne<any>("SELECT id FROM sys_user WHERE id = ? AND tenant_id = ?", [id, tenantId]);
+  const existing = await queryOne<any>("SELECT id FROM t_sys_user WHERE id = ? AND tenant_id = ?", [id, tenantId]);
   if (!existing) { res.status(404).json(fail("用户不存在", "404")); return; }
 
   const updates: string[] = [];
@@ -169,20 +169,20 @@ sysUserRouter.put("/:id", requireAuthWithTenant, asyncHandler(async (req, res) =
     if (updates.length > 0) {
       sqlParams.push(id, tenantId);
       await conn.execute(
-        `UPDATE sys_user SET ${updates.join(", ")}, updated_at = NOW() WHERE id = ? AND tenant_id = ?`,
+        `UPDATE t_sys_user SET ${updates.join(", ")}, updated_at = NOW() WHERE id = ? AND tenant_id = ?`,
         sqlParams
       );
     }
 
     if (body.roleIds !== undefined) {
-      await conn.execute("DELETE FROM sys_user_role WHERE user_id = ? AND tenant_id = ?", [id, tenantId]);
+      await conn.execute("DELETE FROM t_sys_user_role WHERE user_id = ? AND tenant_id = ?", [id, tenantId]);
       for (const roleId of body.roleIds) {
-        await conn.execute("INSERT INTO sys_user_role (user_id, role_id, tenant_id) VALUES (?, ?, ?)", [id, roleId, tenantId]);
+        await conn.execute("INSERT INTO t_sys_user_role (user_id, role_id, tenant_id) VALUES (?, ?, ?)", [id, roleId, tenantId]);
       }
     }
 
     await conn.execute(
-      `INSERT INTO operation_log (operator_id, operator_name, module, action, target_id, target_type, remark, tenant_id)
+      `INSERT INTO t_operation_log (operator_id, operator_name, module, action, target_id, target_type, remark, tenant_id)
        VALUES (?, ?, 'USER', 'UPDATE', ?, 'user', ?, ?)`,
       [req.user!.id, req.user!.username, id, `更新用户信息: ${id}`, tenantId]
     );
@@ -190,7 +190,7 @@ sysUserRouter.put("/:id", requireAuthWithTenant, asyncHandler(async (req, res) =
 
   const user = await queryOne<any>(
     `SELECT id, username, real_name AS realName, mobile, email, status, updated_at AS updatedAt
-     FROM sys_user WHERE id = ? AND tenant_id = ?`,
+     FROM t_sys_user WHERE id = ? AND tenant_id = ?`,
     [id, tenantId]
   );
   res.json(ok(user));
@@ -204,14 +204,14 @@ sysUserRouter.post("/:id/reset-password", requireAuthWithTenant, asyncHandler(as
     newPassword: z.string().min(6).max(64),
   }).parse(req.body);
 
-  const existing = await queryOne<any>("SELECT id, username FROM sys_user WHERE id = ? AND tenant_id = ?", [id, tenantId]);
+  const existing = await queryOne<any>("SELECT id, username FROM t_sys_user WHERE id = ? AND tenant_id = ?", [id, tenantId]);
   if (!existing) { res.status(404).json(fail("用户不存在", "404")); return; }
 
   const hashedPassword = await bcrypt.hash(body.newPassword, 10);
-  await query("UPDATE sys_user SET password_hash = ?, updated_at = NOW() WHERE id = ? AND tenant_id = ?", [hashedPassword, id, tenantId]);
+  await query("UPDATE t_sys_user SET password_hash = ?, updated_at = NOW() WHERE id = ? AND tenant_id = ?", [hashedPassword, id, tenantId]);
 
   await query(
-    `INSERT INTO operation_log (operator_id, operator_name, module, action, target_id, target_type, remark, tenant_id)
+    `INSERT INTO t_operation_log (operator_id, operator_name, module, action, target_id, target_type, remark, tenant_id)
      VALUES (?, ?, 'USER', 'RESET_PASSWORD', ?, 'user', ?, ?)`,
     [req.user!.id, req.user!.username, id, `重置用户密码: ${existing.username}`, tenantId]
   );
@@ -224,14 +224,14 @@ sysUserRouter.delete("/:id", requireAuthWithTenant, asyncHandler(async (req, res
   const tenantId = req.tenantId!;
   const id = Number(req.params.id);
 
-  const existing = await queryOne<any>("SELECT id, username FROM sys_user WHERE id = ? AND tenant_id = ?", [id, tenantId]);
+  const existing = await queryOne<any>("SELECT id, username FROM t_sys_user WHERE id = ? AND tenant_id = ?", [id, tenantId]);
   if (!existing) { res.status(404).json(fail("用户不存在", "404")); return; }
 
   await transaction(async (conn) => {
-    await conn.execute("DELETE FROM sys_user_role WHERE user_id = ? AND tenant_id = ?", [id, tenantId]);
-    await conn.execute("DELETE FROM sys_user WHERE id = ? AND tenant_id = ?", [id, tenantId]);
+    await conn.execute("DELETE FROM t_sys_user_role WHERE user_id = ? AND tenant_id = ?", [id, tenantId]);
+    await conn.execute("DELETE FROM t_sys_user WHERE id = ? AND tenant_id = ?", [id, tenantId]);
     await conn.execute(
-      `INSERT INTO operation_log (operator_id, operator_name, module, action, target_id, target_type, remark, tenant_id)
+      `INSERT INTO t_operation_log (operator_id, operator_name, module, action, target_id, target_type, remark, tenant_id)
        VALUES (?, ?, 'USER', 'DELETE', ?, 'user', ?, ?)`,
       [req.user!.id, req.user!.username, id, `删除用户: ${existing.username}`, tenantId]
     );

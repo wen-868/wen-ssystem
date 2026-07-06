@@ -16,8 +16,8 @@ export async function getStaffPerformanceRanking(
             COUNT(DISTINCT sb.bill_no) AS orderCount,
             COALESCE(SUM(sb.receivable_amount), 0) AS totalAmount,
             COALESCE(SUM(sb.received_amount), 0) AS receivedAmount
-     FROM sale_bill sb
-     LEFT JOIN sys_user u ON u.id = sb.operator_id
+     FROM t_sale_bill sb
+     LEFT JOIN t_sys_user u ON u.id = sb.operator_id
      WHERE sb.business_status NOT IN ('DRAFT', 'VOIDED')
        AND DATE(sb.created_at) BETWEEN ? AND ?
      GROUP BY sb.operator_id, u.real_name

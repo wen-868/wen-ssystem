@@ -16,7 +16,7 @@ export async function listSaleBills(params: {
             collection_status AS collectionStatus, receivable_amount AS receivableAmount, 
             received_amount AS receivedAmount, unreceived_amount AS unreceivedAmount,
             due_date AS dueDate, created_at AS createdAt
-     FROM sale_bill
+     FROM t_sale_bill
      WHERE tenant_id = ?
        AND (? IS NULL OR store_id = ?)
        AND (? IS NULL OR collection_status = ?)
@@ -27,7 +27,7 @@ export async function listSaleBills(params: {
     tenantId
   );
   const total = await queryOneWithTenant<any>(
-    `SELECT COUNT(*) AS total FROM sale_bill
+    `SELECT COUNT(*) AS total FROM t_sale_bill
      WHERE tenant_id = ?
        AND (? IS NULL OR store_id = ?)
        AND (? IS NULL OR collection_status = ?)
@@ -46,7 +46,7 @@ export async function getSaleBillDetail(billNo: string, tenantId: string) {
             rounding_amount AS roundingAmount, receivable_amount AS receivableAmount, 
             received_amount AS receivedAmount, unreceived_amount AS unreceivedAmount,
             due_date AS dueDate, remark, created_at AS createdAt
-     FROM sale_bill WHERE bill_no = ? AND tenant_id = ?`,
+     FROM t_sale_bill WHERE bill_no = ? AND tenant_id = ?`,
     [billNo, tenantId],
     tenantId
   );
@@ -54,7 +54,7 @@ export async function getSaleBillDetail(billNo: string, tenantId: string) {
   const items = await queryWithTenant<any>(
     `SELECT sku_id AS skuId, sku_name AS skuName, box_qty AS boxQty, bottle_qty AS bottleQty,
             total_bottle_qty AS totalBottleQty, unit_price AS unitPrice, subtotal_amount AS subtotalAmount
-     FROM sale_bill_item WHERE bill_no = ?`,
+     FROM t_sale_bill_item WHERE bill_no = ?`,
     [billNo],
     tenantId
   );
@@ -81,7 +81,7 @@ export async function createSaleBill(params: {
     for (const item of items) {
       const price = await queryOneWithTenant<any>(
         `SELECT s.sku_name, pp.retail_price, pp.wholesale_price, pp.store_price
-         FROM product_sku s JOIN product_price pp ON pp.sku_id = s.id AND pp.tenant_id = s.tenant_id
+         FROM t_product_sku s JOIN t_product_price pp ON pp.sku_id = s.id AND pp.tenant_id = s.tenant_id
          WHERE s.id = ? AND s.tenant_id = ?`,
         [item.skuId, tenantId],
         tenantId
@@ -95,7 +95,7 @@ export async function createSaleBill(params: {
     }
     const receivableAmount = Math.max(0, goodsAmount - discountAmount - roundingAmount);
     await conn.execute(
-      `INSERT INTO sale_bill (bill_no, store_id, customer_id, customer_name, customer_mobile, customer_type,
+      `INSERT INTO t_sale_bill (bill_no, store_id, customer_id, customer_name, customer_mobile, customer_type,
                               sale_type, business_status, collection_status, goods_amount, discount_amount, rounding_amount,
                               receivable_amount, received_amount, unreceived_amount, due_date, operator_id, remark, internal_remark, tenant_id)
        VALUES (?, ?, ?, ?, ?, ?, ?, 'CREATED', 'UNPAID', ?, ?, ?, ?, 0, ?, ?, ?, ?, ?, ?)`,
@@ -107,7 +107,7 @@ export async function createSaleBill(params: {
     );
     for (const item of itemSnapshots) {
       await conn.execute(
-        `INSERT INTO sale_bill_item (bill_no, sku_id, sku_name, box_qty, bottle_qty, total_bottle_qty, unit_price, price_type, subtotal_amount)
+        `INSERT INTO t_sale_bill_item (bill_no, sku_id, sku_name, box_qty, bottle_qty, total_bottle_qty, unit_price, price_type, subtotal_amount)
          VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`,
         [billNo, item.skuId, item.skuName, item.boxQty, item.bottleQty, item.totalBottleQty, item.unitPrice, item.priceType, item.subtotalAmount]
       );
@@ -129,20 +129,20 @@ export async function createCollectionLink(params: {
   remark?: string; userId: number; tenantId: string;
 }) {
   const { billNo, shareChannel, amount, taxEnabled, taxRate, expireHours, remark, userId, tenantId } = params;
-  const bill = await queryOneWithTenant<any>("SELECT bill_no, unreceived_amount FROM sale_bill WHERE bill_no = ? AND tenant_id = ?", [billNo, tenantId], tenantId);
+  const bill = await queryOneWithTenant<any>("SELECT bill_no, unreceived_amount FROM t_sale_bill WHERE bill_no = ? AND tenant_id = ?", [billNo, tenantId], tenantId);
   if (!bill) throw new Error("销售单不存在");
   if (amount <= 0 || amount > Number(bill.unreceived_amount)) throw new Error("收款金额必须大于0且不能超过未收金额");
   const linkNo = makeBizNo("SK");
   const token = makeToken();
   const taxAmount = taxEnabled ? Number((amount * taxRate).toFixed(2)) : 0;
   await queryWithTenant(
-    `INSERT INTO collection_link (link_no, source_type, source_no, amount, paid_amount, status, share_channel, share_user_id, expire_at, token, tax_enabled, tax_rate, tax_amount, tenant_id)
+    `INSERT INTO t_collection_link (link_no, source_type, source_no, amount, paid_amount, status, share_channel, share_user_id, expire_at, token, tax_enabled, tax_rate, tax_amount, tenant_id)
      VALUES (?, 'SALE_BILL', ?, ?, 0, 'PENDING', ?, ?, DATE_ADD(NOW(), INTERVAL ? HOUR), ?, ?, ?, ?, ?)`,
     [linkNo, billNo, amount, shareChannel, userId, expireHours, token, taxEnabled ? 1 : 0, taxRate, taxAmount, tenantId],
     tenantId
   );
   await queryWithTenant(
-    `UPDATE sale_bill SET collection_status = 'SHARED', share_collection_count = share_collection_count + 1, last_share_time = NOW(), locked_amount_flag = 1 WHERE bill_no = ? AND tenant_id = ?`,
+    `UPDATE t_sale_bill SET collection_status = 'SHARED', share_collection_count = share_collection_count + 1, last_share_time = NOW(), locked_amount_flag = 1 WHERE bill_no = ? AND tenant_id = ?`,
     [billNo, tenantId],
     tenantId
   );
@@ -156,13 +156,13 @@ export async function offlinePayment(params: {
   const { billNo, amount, paymentMethod, remark, userId, username, tenantId } = params;
   return transaction(async (conn) => {
     const [rows] = await conn.query<any[]>(
-      "SELECT bill_no, store_id, received_amount, receivable_amount, collection_status FROM sale_bill WHERE bill_no = ? AND tenant_id = ? FOR UPDATE",
+      "SELECT bill_no, store_id, received_amount, receivable_amount, collection_status FROM t_sale_bill WHERE bill_no = ? AND tenant_id = ? FOR UPDATE",
       [billNo, tenantId]
     );
     const bill = rows[0];
     if (!bill) throw new Error("销售单不存在");
     const existingDeductRows = await conn.query<any[]>(
-      "SELECT id FROM inventory_ledger WHERE biz_type = 'SALE_OUT' AND biz_no = ? AND tenant_id = ? LIMIT 1",
+      "SELECT id FROM t_inventory_ledger WHERE biz_type = 'SALE_OUT' AND biz_no = ? AND tenant_id = ? LIMIT 1",
       [billNo, tenantId]
     );
     const alreadyDeducted = existingDeductRows[0].length > 0;
@@ -171,20 +171,20 @@ export async function offlinePayment(params: {
     if (amount <= 0 || amount > Math.max(receivable - Number(bill.received_amount), 0)) throw new Error("收款金额不合法");
     const status = received >= receivable ? "PAID" : "PARTIAL";
     await conn.execute(
-      `UPDATE sale_bill SET received_amount = ?, unreceived_amount = GREATEST(receivable_amount - ?, 0), collection_status = ?, last_payment_time = NOW() WHERE bill_no = ? AND tenant_id = ?`,
+      `UPDATE t_sale_bill SET received_amount = ?, unreceived_amount = GREATEST(receivable_amount - ?, 0), collection_status = ?, last_payment_time = NOW() WHERE bill_no = ? AND tenant_id = ?`,
       [received, received, status, billNo, tenantId]
     );
     await conn.execute(
-      `INSERT INTO payment_order (pay_no, source_type, source_no, channel, amount, status, paid_at, tenant_id) VALUES (?, 'SALE_BILL', ?, ?, ?, 'SUCCESS', NOW(), ?)`,
+      `INSERT INTO t_payment_order (pay_no, source_type, source_no, channel, amount, status, paid_at, tenant_id) VALUES (?, 'SALE_BILL', ?, ?, ?, 'SUCCESS', NOW(), ?)`,
       [makeBizNo("ZF"), billNo, paymentMethod, amount, tenantId]
     );
     if (!alreadyDeducted) {
       const [items] = await conn.query<any[]>(
-        `SELECT sku_id AS skuId, total_bottle_qty AS quantity FROM sale_bill_item WHERE bill_no = ?`, [billNo]
+        `SELECT sku_id AS skuId, total_bottle_qty AS quantity FROM t_sale_bill_item WHERE bill_no = ?`, [billNo]
       );
       for (const item of items) {
         const [inventoryRows] = await conn.query<any[]>(
-          `SELECT physical_qty AS physicalQty, available_qty AS availableQty FROM inventory_balance WHERE store_id = ? AND sku_id = ? AND stock_type = 'OFFLINE' AND tenant_id = ? FOR UPDATE`,
+          `SELECT physical_qty AS physicalQty, available_qty AS availableQty FROM t_inventory_balance WHERE store_id = ? AND sku_id = ? AND stock_type = 'OFFLINE' AND tenant_id = ? FOR UPDATE`,
           [bill.store_id, item.skuId, tenantId]
         );
         const inventory = inventoryRows[0];
@@ -193,11 +193,11 @@ export async function offlinePayment(params: {
         if (beforeQty < quantity) throw new Error("库存不足，无法完成收款出库");
         const afterQty = beforeQty - quantity;
         await conn.execute(
-          `UPDATE inventory_balance SET physical_qty = physical_qty - ?, available_qty = available_qty - ?, updated_at = NOW() WHERE store_id = ? AND sku_id = ? AND stock_type = 'OFFLINE' AND tenant_id = ?`,
+          `UPDATE t_inventory_balance SET physical_qty = physical_qty - ?, available_qty = available_qty - ?, updated_at = NOW() WHERE store_id = ? AND sku_id = ? AND stock_type = 'OFFLINE' AND tenant_id = ?`,
           [quantity, quantity, bill.store_id ?? bill.storeId, item.skuId, tenantId]
         );
         await conn.execute(
-          `INSERT INTO inventory_ledger (ledger_no, store_id, sku_id, stock_type, biz_type, biz_no, change_qty, before_qty, after_qty, before_locked_qty, after_locked_qty, operator_id, idempotency_key, remark, tenant_id) VALUES (?, ?, ?, 'OFFLINE', 'SALE_OUT', ?, ?, ?, ?, 0, 0, ?, ?, ?, ?)`,
+          `INSERT INTO t_inventory_ledger (ledger_no, store_id, sku_id, stock_type, biz_type, biz_no, change_qty, before_qty, after_qty, before_locked_qty, after_locked_qty, operator_id, idempotency_key, remark, tenant_id) VALUES (?, ?, ?, 'OFFLINE', 'SALE_OUT', ?, ?, ?, ?, 0, 0, ?, ?, ?, ?)`,
           [makeBizNo("IL"), bill.store_id ?? bill.storeId, item.skuId, billNo, -quantity, beforeQty, afterQty, userId ?? null, `SALE_OUT:${billNo}:${item.skuId}`, remark ?? "线下收款销售出库", tenantId]
         );
       }
@@ -213,7 +213,7 @@ export async function paymentOnSaleBill(params: {
   const { billNo, amount, paymentMethod, remark, userId, username, tenantId } = params;
   return transaction(async (conn) => {
     const [rows] = await conn.query<any[]>(
-      `SELECT bill_no, store_id, received_amount, receivable_amount, unreceived_amount, collection_status FROM sale_bill WHERE bill_no = ? AND tenant_id = ? FOR UPDATE`,
+      `SELECT bill_no, store_id, received_amount, receivable_amount, unreceived_amount, collection_status FROM t_sale_bill WHERE bill_no = ? AND tenant_id = ? FOR UPDATE`,
       [billNo, tenantId]
     );
     const bill = rows[0];
@@ -223,15 +223,15 @@ export async function paymentOnSaleBill(params: {
     if (amount <= 0 || amount > Math.max(receivable - Number(bill.received_amount), 0)) throw new Error("收款金额不合法");
     const status = received >= receivable ? "PAID" : "PARTIAL";
     await conn.execute(
-      `UPDATE sale_bill SET received_amount = ?, unreceived_amount = GREATEST(receivable_amount - ?, 0), collection_status = ?, last_payment_time = NOW() WHERE bill_no = ? AND tenant_id = ?`,
+      `UPDATE t_sale_bill SET received_amount = ?, unreceived_amount = GREATEST(receivable_amount - ?, 0), collection_status = ?, last_payment_time = NOW() WHERE bill_no = ? AND tenant_id = ?`,
       [received, received, status, billNo, tenantId]
     );
     await conn.execute(
-      `INSERT INTO payment_order (pay_no, source_type, source_no, channel, amount, status, paid_at, tenant_id) VALUES (?, 'SALE_BILL', ?, ?, ?, 'SUCCESS', NOW(), ?)`,
+      `INSERT INTO t_payment_order (pay_no, source_type, source_no, channel, amount, status, paid_at, tenant_id) VALUES (?, 'SALE_BILL', ?, ?, ?, 'SUCCESS', NOW(), ?)`,
       [makeBizNo("ZF"), billNo, paymentMethod, amount, tenantId]
     );
     await conn.execute(
-      `INSERT INTO operation_log (operator_id, operator_name, module, action, biz_no, after_data, tenant_id) VALUES (?, ?, 'SALE_BILL', 'PAYMENT', ?, ?, ?)`,
+      `INSERT INTO t_operation_log (operator_id, operator_name, module, action, biz_no, after_data, tenant_id) VALUES (?, ?, 'SALE_BILL', 'PAYMENT', ?, ?, ?)`,
       [userId ?? null, username ?? "系统用户", billNo, JSON.stringify({ amount, received, status }), tenantId]
     );
     return { billNo, receivedAmount: received, collectionStatus: status };
@@ -249,7 +249,7 @@ export async function listOverdueBills(params: {
             collection_status AS collectionStatus, receivable_amount AS receivableAmount,
             received_amount AS receivedAmount, unreceived_amount AS unreceivedAmount,
             created_at AS createdAt, DATEDIFF(CURDATE(), due_date) AS overdueDays
-     FROM sale_bill
+     FROM t_sale_bill
      WHERE tenant_id = ? AND sale_type = 'CREDIT' AND due_date IS NOT NULL AND due_date < CURDATE()
        AND collection_status IN ('UNPAID', 'PARTIAL') AND business_status = 'CREATED'
        AND (? IS NULL OR store_id = ?)
@@ -258,7 +258,7 @@ export async function listOverdueBills(params: {
     tenantId
   );
   const total = await queryOneWithTenant<any>(
-    `SELECT COUNT(*) AS total FROM sale_bill WHERE tenant_id = ? AND sale_type = 'CREDIT' AND due_date IS NOT NULL AND due_date < CURDATE() AND collection_status IN ('UNPAID', 'PARTIAL') AND business_status = 'CREATED' AND (? IS NULL OR store_id = ?)`,
+    `SELECT COUNT(*) AS total FROM t_sale_bill WHERE tenant_id = ? AND sale_type = 'CREDIT' AND due_date IS NOT NULL AND due_date < CURDATE() AND collection_status IN ('UNPAID', 'PARTIAL') AND business_status = 'CREATED' AND (? IS NULL OR store_id = ?)`,
     [tenantId, storeId, storeId],
     tenantId
   );
@@ -266,7 +266,7 @@ export async function listOverdueBills(params: {
 }
 
 export async function checkOverdueBills(storeId: number | null, tenantId: string) {
-  let sql = `SELECT bill_no AS billNo, store_id AS storeId, customer_name AS customerName, due_date AS dueDate, receivable_amount AS receivableAmount, unreceived_amount AS unreceivedAmount, collection_status AS collectionStatus FROM sale_bill WHERE tenant_id = ? AND sale_type = 'CREDIT' AND collection_status IN ('UNPAID', 'PARTIAL') AND due_date IS NOT NULL AND due_date < CURDATE()`;
+  let sql = `SELECT bill_no AS billNo, store_id AS storeId, customer_name AS customerName, due_date AS dueDate, receivable_amount AS receivableAmount, unreceived_amount AS unreceivedAmount, collection_status AS collectionStatus FROM t_sale_bill WHERE tenant_id = ? AND sale_type = 'CREDIT' AND collection_status IN ('UNPAID', 'PARTIAL') AND due_date IS NOT NULL AND due_date < CURDATE()`;
   const params: unknown[] = [tenantId];
   if (storeId) { sql += ` AND store_id = ?`; params.push(storeId); }
   sql += ` ORDER BY due_date ASC LIMIT 100`;
@@ -274,7 +274,7 @@ export async function checkOverdueBills(storeId: number | null, tenantId: string
   if (overdueBills.length > 0) {
     const billNos = overdueBills.map((b: any) => b.billNo);
     await queryWithTenant(
-      `UPDATE sale_bill SET collection_status = 'OVERDUE' WHERE bill_no IN (${billNos.map(() => '?').join(',')}) AND tenant_id = ? AND collection_status IN ('UNPAID', 'PARTIAL')`,
+      `UPDATE t_sale_bill SET collection_status = 'OVERDUE' WHERE bill_no IN (${billNos.map(() => '?').join(',')}) AND tenant_id = ? AND collection_status IN ('UNPAID', 'PARTIAL')`,
       [...billNos, tenantId],
       tenantId
     );
@@ -291,7 +291,7 @@ export async function batchCreateCollectionLinks(params: {
   const { billNos, shareChannel, amount, taxEnabled, taxRate, expireHours, userId, tenantId } = params;
   const results: any[] = [];
   for (const billNo of billNos) {
-    const bill = await queryOneWithTenant<any>("SELECT bill_no, unreceived_amount FROM sale_bill WHERE bill_no = ? AND tenant_id = ?", [billNo, tenantId], tenantId);
+    const bill = await queryOneWithTenant<any>("SELECT bill_no, unreceived_amount FROM t_sale_bill WHERE bill_no = ? AND tenant_id = ?", [billNo, tenantId], tenantId);
     if (!bill) continue;
     const linkAmount = amount ?? Number(bill.unreceived_amount);
     if (linkAmount <= 0 || linkAmount > Number(bill.unreceived_amount)) continue;
@@ -299,13 +299,13 @@ export async function batchCreateCollectionLinks(params: {
     const token = makeToken();
     const taxAmount = taxEnabled ? Number((linkAmount * taxRate).toFixed(2)) : 0;
     await queryWithTenant(
-      `INSERT INTO collection_link (link_no, source_type, source_no, amount, paid_amount, status, share_channel, share_user_id, expire_at, token, tax_enabled, tax_rate, tax_amount, tenant_id)
+      `INSERT INTO t_collection_link (link_no, source_type, source_no, amount, paid_amount, status, share_channel, share_user_id, expire_at, token, tax_enabled, tax_rate, tax_amount, tenant_id)
        VALUES (?, 'SALE_BILL', ?, ?, 0, 'PENDING', ?, ?, DATE_ADD(NOW(), INTERVAL ? HOUR), ?, ?, ?, ?, ?)`,
       [linkNo, billNo, linkAmount, shareChannel, userId, expireHours, token, taxEnabled ? 1 : 0, taxRate, taxAmount, tenantId],
       tenantId
     );
     await queryWithTenant(
-      `UPDATE sale_bill SET collection_status = 'SHARED', share_collection_count = share_collection_count + 1, last_share_time = NOW(), locked_amount_flag = 1 WHERE bill_no = ? AND tenant_id = ?`,
+      `UPDATE t_sale_bill SET collection_status = 'SHARED', share_collection_count = share_collection_count + 1, last_share_time = NOW(), locked_amount_flag = 1 WHERE bill_no = ? AND tenant_id = ?`,
       [billNo, tenantId],
       tenantId
     );
@@ -317,7 +317,7 @@ export async function batchCreateCollectionLinks(params: {
 // 撤销分享链接
 export async function revokeCollectionLink(linkNo: string, tenantId: string) {
   const link = await queryOneWithTenant<any>(
-    "SELECT link_no, source_no, status, amount, paid_amount FROM collection_link WHERE link_no = ? AND tenant_id = ?",
+    "SELECT link_no, source_no, status, amount, paid_amount FROM t_collection_link WHERE link_no = ? AND tenant_id = ?",
     [linkNo, tenantId],
     tenantId
   );
@@ -325,7 +325,7 @@ export async function revokeCollectionLink(linkNo: string, tenantId: string) {
   if (link.status === "REVOKED") throw new Error("链接已撤销");
   if (link.status === "PAID") throw new Error("已支付的链接不可撤销");
   await queryWithTenant(
-    "UPDATE collection_link SET status = 'REVOKED' WHERE link_no = ? AND tenant_id = ?",
+    "UPDATE t_collection_link SET status = 'REVOKED' WHERE link_no = ? AND tenant_id = ?",
     [linkNo, tenantId],
     tenantId
   );
@@ -335,23 +335,23 @@ export async function revokeCollectionLink(linkNo: string, tenantId: string) {
 // 分享链接统计
 export async function getCollectionLinkStats(tenantId: string) {
   const total = await queryOneWithTenant<any>(
-    "SELECT COUNT(*) AS total FROM collection_link WHERE tenant_id = ?", [tenantId], tenantId
+    "SELECT COUNT(*) AS total FROM t_collection_link WHERE tenant_id = ?", [tenantId], tenantId
   );
   const paid = await queryOneWithTenant<any>(
-    "SELECT COUNT(*) AS cnt FROM collection_link WHERE tenant_id = ? AND status = 'PAID'", [tenantId], tenantId
+    "SELECT COUNT(*) AS cnt FROM t_collection_link WHERE tenant_id = ? AND status = 'PAID'", [tenantId], tenantId
   );
   const revoked = await queryOneWithTenant<any>(
-    "SELECT COUNT(*) AS cnt FROM collection_link WHERE tenant_id = ? AND status = 'REVOKED'", [tenantId], tenantId
+    "SELECT COUNT(*) AS cnt FROM t_collection_link WHERE tenant_id = ? AND status = 'REVOKED'", [tenantId], tenantId
   );
   const channels = await queryWithTenant<any>(
     `SELECT share_channel AS channel, COUNT(*) AS cnt
-     FROM collection_link WHERE tenant_id = ?
+     FROM t_collection_link WHERE tenant_id = ?
      GROUP BY share_channel`,
     [tenantId],
     tenantId
   );
   const totalAmount = await queryOneWithTenant<any>(
-    "SELECT COALESCE(SUM(paid_amount), 0) AS amount FROM collection_link WHERE tenant_id = ?",
+    "SELECT COALESCE(SUM(paid_amount), 0) AS amount FROM t_collection_link WHERE tenant_id = ?",
     [tenantId], tenantId
   );
   return {

@@ -10,7 +10,7 @@ export const platformRouter = Router();
 platformRouter.get("/overview", asyncHandler(async (req, res) => {
   try {
     const tenantCount = await queryOne<any>("SELECT COUNT(*) AS count FROM tenant WHERE status = 'ACTIVE'");
-    const userCount = await queryOne<any>("SELECT COUNT(*) AS count FROM sys_user WHERE status = 1");
+    const userCount = await queryOne<any>("SELECT COUNT(*) AS count FROM t_sys_user WHERE status = 1");
     const storeCount = await queryOne<any>("SELECT COUNT(*) AS count FROM store WHERE status = 1");
     const orderCount = await queryOne<any>("SELECT COUNT(*) AS count FROM sale_order WHERE deleted = 0");
 

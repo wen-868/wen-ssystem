@@ -4,7 +4,7 @@ import { queryWithTenant, queryOneWithTenant } from "../shared/db.js";
 
 // 获取所有租户
 async function getTenants(): Promise<string[]> {
-  const rows = await queryWithTenant<any>("SELECT DISTINCT tenant_id FROM sale_bill WHERE business_status = 'CREATED'", [], "");
+  const rows = await queryWithTenant<any>("SELECT DISTINCT tenant_id FROM t_sale_bill WHERE business_status = 'CREATED'", [], "");
   return rows.map((r: any) => r.tenant_id);
 }
 
@@ -25,14 +25,14 @@ async function aggregateSalesDaily(tenantId: string, storeId: number, date: stri
        COALESCE(SUM(receivable_amount), 0) AS receivableAmount,
        COALESCE(SUM(received_amount), 0) AS receivedAmount,
        COALESCE(SUM(unreceived_amount), 0) AS unreceivedAmount
-     FROM sale_bill
+     FROM t_sale_bill
      WHERE tenant_id = ? AND store_id = ? AND business_status = 'CREATED' AND DATE(created_at) = ?`,
     [tenantId, storeId, date], tenantId
   );
   if (!row) return;
   const refund = await queryOneWithTenant<any>(
     `SELECT COUNT(*) AS refundCount, COALESCE(SUM(amount), 0) AS refundAmount
-     FROM refund_order WHERE tenant_id = ? AND store_id = ? AND status = 'SUCCESS' AND DATE(created_at) = ?`,
+     FROM t_refund_order WHERE tenant_id = ? AND store_id = ? AND status = 'SUCCESS' AND DATE(created_at) = ?`,
     [tenantId, storeId, date], tenantId
   );
   const newCustomers = await queryOneWithTenant<any>(
@@ -67,7 +67,7 @@ async function aggregateCollectionStats(tenantId: string, storeId: number, date:
        COUNT(CASE WHEN share_channel = 'ALIPAY' THEN 1 END) AS alipayLinks,
        COUNT(CASE WHEN share_channel NOT IN ('WECHAT', 'ALIPAY') THEN 1 END) AS otherChannelLinks,
        AVG(CASE WHEN status = 'PAID' AND paid_at IS NOT NULL THEN TIMESTAMPDIFF(HOUR, created_at, paid_at) END) AS avgPayHours
-     FROM collection_link
+     FROM t_collection_link
      WHERE tenant_id = ? AND store_id = ? AND DATE(created_at) = ?`,
     [tenantId, storeId, date], tenantId
   );
@@ -91,9 +91,9 @@ async function aggregateProductSales(tenantId: string, storeId: number, date: st
     `SELECT sbi.sku_id AS skuId, sbi.sku_name AS skuName, pc.name AS categoryName,
             SUM(sbi.total_bottle_qty) AS saleQty, SUM(sbi.subtotal_amount) AS saleAmount,
             COUNT(DISTINCT sbi.bill_no) AS orderCount
-     FROM sale_bill_item sbi
-     LEFT JOIN product_sku ps ON ps.id = sbi.sku_id
-     LEFT JOIN product_category pc ON pc.id = ps.category_id
+     FROM t_sale_bill_item sbi
+     LEFT JOIN t_product_sku ps ON ps.id = sbi.sku_id
+     LEFT JOIN t_product_category pc ON pc.id = ps.category_id
      WHERE sbi.tenant_id = ? AND sbi.store_id = ? AND DATE(sbi.created_at) = ?
      GROUP BY sbi.sku_id, sbi.sku_name, pc.name`,
     [tenantId, storeId, date], tenantId
@@ -119,23 +119,23 @@ async function aggregateCustomerStats(tenantId: string, storeId: number, date: s
     `SELECT COUNT(*) AS cnt FROM member WHERE tenant_id = ? AND DATE(created_at) = ?`, [tenantId, date], tenantId
   );
   const activeCustomers = await queryOneWithTenant<any>(
-    `SELECT COUNT(DISTINCT customer_id) AS cnt FROM sale_bill WHERE tenant_id = ? AND store_id = ? AND business_status = 'CREATED' AND DATE(created_at) = ? AND customer_id IS NOT NULL`,
+    `SELECT COUNT(DISTINCT customer_id) AS cnt FROM t_sale_bill WHERE tenant_id = ? AND store_id = ? AND business_status = 'CREATED' AND DATE(created_at) = ? AND customer_id IS NOT NULL`,
     [tenantId, storeId, date], tenantId
   );
   const repurchaseCustomers = await queryOneWithTenant<any>(
-    `SELECT COUNT(*) AS cnt FROM (SELECT customer_id FROM sale_bill WHERE tenant_id = ? AND store_id = ? AND business_status = 'CREATED' AND DATE(created_at) = ? AND customer_id IS NOT NULL GROUP BY customer_id HAVING COUNT(bill_no) > 1) t`,
+    `SELECT COUNT(*) AS cnt FROM (SELECT customer_id FROM t_sale_bill WHERE tenant_id = ? AND store_id = ? AND business_status = 'CREATED' AND DATE(created_at) = ? AND customer_id IS NOT NULL GROUP BY customer_id HAVING COUNT(bill_no) > 1) t`,
     [tenantId, storeId, date], tenantId
   );
   const lostCustomers = await queryOneWithTenant<any>(
-    `SELECT COUNT(*) AS cnt FROM (SELECT customer_id FROM sale_bill WHERE tenant_id = ? AND store_id = ? AND business_status = 'CREATED' AND customer_id IS NOT NULL GROUP BY customer_id HAVING DATEDIFF(NOW(), MAX(created_at)) > 90) t`,
+    `SELECT COUNT(*) AS cnt FROM (SELECT customer_id FROM t_sale_bill WHERE tenant_id = ? AND store_id = ? AND business_status = 'CREATED' AND customer_id IS NOT NULL GROUP BY customer_id HAVING DATEDIFF(NOW(), MAX(created_at)) > 90) t`,
     [tenantId, storeId, date], tenantId
   );
   const avgOrder = await queryOneWithTenant<any>(
-    `SELECT AVG(receivable_amount) AS avgVal FROM sale_bill WHERE tenant_id = ? AND store_id = ? AND business_status = 'CREATED' AND DATE(created_at) = ?`,
+    `SELECT AVG(receivable_amount) AS avgVal FROM t_sale_bill WHERE tenant_id = ? AND store_id = ? AND business_status = 'CREATED' AND DATE(created_at) = ?`,
     [tenantId, storeId, date], tenantId
   );
   const totalRevenue = await queryOneWithTenant<any>(
-    `SELECT COALESCE(SUM(receivable_amount), 0) AS amt FROM sale_bill WHERE tenant_id = ? AND store_id = ? AND business_status = 'CREATED' AND DATE(created_at) = ?`,
+    `SELECT COALESCE(SUM(receivable_amount), 0) AS amt FROM t_sale_bill WHERE tenant_id = ? AND store_id = ? AND business_status = 'CREATED' AND DATE(created_at) = ?`,
     [tenantId, storeId, date], tenantId
   );
   const totalC = Number(totalCustomers?.cnt ?? 0);
@@ -162,16 +162,16 @@ async function aggregateInventoryDaily(tenantId: string, storeId: number, date: 
        COALESCE(SUM(physical_qty), 0) AS totalPhysicalQty,
        COALESCE(SUM(available_qty), 0) AS totalAvailableQty,
        COALESCE(SUM(locked_qty), 0) AS totalLockedQty
-     FROM inventory_balance
+     FROM t_inventory_balance
      WHERE tenant_id = ? AND store_id = ?`,
     [tenantId, storeId], tenantId
   );
   const lowStock = await queryOneWithTenant<any>(
-    `SELECT COUNT(*) AS cnt FROM inventory_balance WHERE tenant_id = ? AND store_id = ? AND available_qty <= safety_stock AND available_qty > 0`,
+    `SELECT COUNT(*) AS cnt FROM t_inventory_balance WHERE tenant_id = ? AND store_id = ? AND available_qty <= safety_stock AND available_qty > 0`,
     [tenantId, storeId], tenantId
   );
   const zeroStock = await queryOneWithTenant<any>(
-    `SELECT COUNT(*) AS cnt FROM inventory_balance WHERE tenant_id = ? AND store_id = ? AND available_qty <= 0`,
+    `SELECT COUNT(*) AS cnt FROM t_inventory_balance WHERE tenant_id = ? AND store_id = ? AND available_qty <= 0`,
     [tenantId, storeId], tenantId
   );
   if (!row) return;

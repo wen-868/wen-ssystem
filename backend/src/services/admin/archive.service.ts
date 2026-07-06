@@ -108,8 +108,8 @@ async function archiveByType(
     if (type === "SALE_BILL") {
       await conn.execute(
         `INSERT INTO sale_bill_item_archive
-         SELECT sbi.* FROM sale_bill_item sbi
-         INNER JOIN sale_bill sb ON sb.bill_no = sbi.bill_no
+         SELECT sbi.* FROM t_sale_bill_item sbi
+         INNER JOIN t_sale_bill sb ON sb.bill_no = sbi.bill_no
          WHERE sb.tenant_id = ? AND ${config.statusCondition}
            AND DATE(sb.${config.dateField}) < ?
            AND sbi.id NOT IN (SELECT id FROM sale_bill_item_archive)`,
@@ -120,8 +120,8 @@ async function archiveByType(
     if (type === "PURCHASE_ORDER") {
       await conn.execute(
         `INSERT INTO purchase_order_item_archive
-         SELECT poi.* FROM purchase_order_item poi
-         INNER JOIN purchase_order po ON po.order_no = poi.order_no
+         SELECT poi.* FROM t_purchase_order_item poi
+         INNER JOIN t_purchase_order po ON po.order_no = poi.order_no
          WHERE po.tenant_id = ? AND ${config.statusCondition}
            AND DATE(po.${config.dateField}) < ?
            AND poi.id NOT IN (SELECT id FROM purchase_order_item_archive)`,
@@ -132,7 +132,7 @@ async function archiveByType(
     // 删除主表已归档数据
     if (type === "SALE_BILL") {
       await conn.execute(
-        `DELETE FROM sale_bill_item
+        `DELETE FROM t_sale_bill_item
          WHERE bill_no IN (SELECT bill_no FROM sale_bill_archive WHERE tenant_id = ?)`,
         [tenantId]
       );
@@ -140,7 +140,7 @@ async function archiveByType(
 
     if (type === "PURCHASE_ORDER") {
       await conn.execute(
-        `DELETE FROM purchase_order_item
+        `DELETE FROM t_purchase_order_item
          WHERE order_no IN (SELECT order_no FROM purchase_order_archive WHERE tenant_id = ?)`,
         [tenantId]
       );

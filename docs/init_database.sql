@@ -28,8 +28,9 @@ USE liquor_inventory;
 -- 来源：Phase 3 (phase3_sys_config.sql)
 -- 说明：存储系统全局配置，包括企业信息、微信配置、支付配置等
 -- --------------------------------------------------------------------------
-CREATE TABLE IF NOT EXISTS sys_config (
+CREATE TABLE IF NOT EXISTS t_sys_config (
   id BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
+  tenant_id VARCHAR(36) NOT NULL COMMENT '租户ID',
   config_key VARCHAR(128) NOT NULL COMMENT '配置键',
   config_value TEXT COMMENT '配置值（敏感字段加密存储）',
   config_group VARCHAR(64) NOT NULL DEFAULT 'system' COMMENT '配置分组：system/wechat/payment/enterprise',
@@ -47,8 +48,9 @@ CREATE TABLE IF NOT EXISTS sys_config (
 -- 来源：Phase 1 (phase1_schema.sql)
 -- 说明：系统登录账号，支持超级管理员、门店管理员、操作员等
 -- --------------------------------------------------------------------------
-CREATE TABLE IF NOT EXISTS sys_user (
+CREATE TABLE IF NOT EXISTS t_sys_user (
   id BIGINT UNSIGNED NOT NULL AUTO_INCREMENT COMMENT '用户ID',
+  tenant_id VARCHAR(36) NOT NULL COMMENT '租户ID',
   username VARCHAR(64) NOT NULL COMMENT '登录账号',
   password_hash VARCHAR(255) NOT NULL COMMENT '密码哈希',
   real_name VARCHAR(64) NOT NULL COMMENT '真实姓名',
@@ -69,8 +71,9 @@ CREATE TABLE IF NOT EXISTS sys_user (
 -- 来源：Phase 6 (phase6_schema.sql) - 合并 Phase 1 和 Phase 6，保留 Phase 6 最新定义
 -- 说明：RBAC 角色管理，支持 JSON 格式的权限列表
 -- --------------------------------------------------------------------------
-CREATE TABLE IF NOT EXISTS sys_role (
+CREATE TABLE IF NOT EXISTS t_sys_role (
   id BIGINT UNSIGNED NOT NULL AUTO_INCREMENT COMMENT '角色ID',
+  tenant_id VARCHAR(36) NOT NULL COMMENT '租户ID',
   role_code VARCHAR(64) NOT NULL COMMENT '角色编码',
   role_name VARCHAR(64) NOT NULL COMMENT '角色名称',
   description VARCHAR(200) DEFAULT NULL COMMENT '角色描述',
@@ -89,8 +92,9 @@ CREATE TABLE IF NOT EXISTS sys_role (
 -- 来源：Phase 1 (phase1_schema.sql)
 -- 说明：菜单/按钮/API 权限定义
 -- --------------------------------------------------------------------------
-CREATE TABLE IF NOT EXISTS sys_permission (
+CREATE TABLE IF NOT EXISTS t_sys_permission (
   id BIGINT UNSIGNED NOT NULL AUTO_INCREMENT COMMENT '权限ID',
+  tenant_id VARCHAR(36) NOT NULL COMMENT '租户ID',
   parent_id BIGINT UNSIGNED DEFAULT NULL COMMENT '父权限ID',
   permission_code VARCHAR(128) NOT NULL COMMENT '权限编码',
   permission_name VARCHAR(128) NOT NULL COMMENT '权限名称',
@@ -110,8 +114,9 @@ CREATE TABLE IF NOT EXISTS sys_permission (
 -- 来源：Phase 1 (phase1_schema.sql) + Phase 5 ALTER
 -- 说明：门店基础信息，包含营业状态、配送设置等
 -- --------------------------------------------------------------------------
-CREATE TABLE IF NOT EXISTS store (
+CREATE TABLE IF NOT EXISTS t_store (
   id BIGINT UNSIGNED NOT NULL AUTO_INCREMENT COMMENT '门店ID',
+  tenant_id VARCHAR(36) NOT NULL COMMENT '租户ID',
   store_code VARCHAR(64) NOT NULL COMMENT '门店编码',
   name VARCHAR(128) NOT NULL COMMENT '门店名称',
   address VARCHAR(255) NOT NULL COMMENT '详细地址',
@@ -137,8 +142,9 @@ CREATE TABLE IF NOT EXISTS store (
 -- 来源：Phase 1 (phase1_schema.sql)
 -- 说明：支持两级分类结构
 -- --------------------------------------------------------------------------
-CREATE TABLE IF NOT EXISTS product_category (
+CREATE TABLE IF NOT EXISTS t_product_category (
   id BIGINT UNSIGNED NOT NULL AUTO_INCREMENT COMMENT '分类ID',
+  tenant_id VARCHAR(36) NOT NULL COMMENT '租户ID',
   parent_id BIGINT UNSIGNED DEFAULT NULL COMMENT '父分类ID，仅支持两级',
   name VARCHAR(64) NOT NULL COMMENT '分类名称',
   icon VARCHAR(256) DEFAULT NULL COMMENT '分类图标',
@@ -157,8 +163,9 @@ CREATE TABLE IF NOT EXISTS product_category (
 -- 来源：Phase 2 (phase2_schema.sql)
 -- 说明：供应商基础信息，包含结算方式、银行信息等
 -- --------------------------------------------------------------------------
-CREATE TABLE IF NOT EXISTS supplier (
+CREATE TABLE IF NOT EXISTS t_supplier (
   id BIGINT UNSIGNED NOT NULL AUTO_INCREMENT COMMENT '供应商ID',
+  tenant_id VARCHAR(36) NOT NULL COMMENT '租户ID',
   supplier_code VARCHAR(64) NOT NULL COMMENT '供应商编码',
   name VARCHAR(128) NOT NULL COMMENT '供应商名称',
   short_name VARCHAR(64) DEFAULT NULL COMMENT '简称',
@@ -189,8 +196,9 @@ CREATE TABLE IF NOT EXISTS supplier (
 -- 来源：Phase 4 (phase4_schema.sql)
 -- 说明：阶梯价格体系，支持折扣率、最低订单金额门槛
 -- --------------------------------------------------------------------------
-CREATE TABLE IF NOT EXISTS price_level (
-  id INT UNSIGNED NOT NULL AUTO_INCREMENT PRIMARY KEY,
+CREATE TABLE IF NOT EXISTS t_price_level (
+  id INT UNSIGNED NOT NULL AUTO_INCREMENT,
+  tenant_id VARCHAR(36) NOT NULL COMMENT '租户ID',
   level_code VARCHAR(32) NOT NULL UNIQUE COMMENT '等级编码如RETAIL/WHOLESALE_L1/WHOLESALE_L2/AGREEMENT',
   level_name VARCHAR(64) NOT NULL COMMENT '等级名称',
   discount_rate DECIMAL(5,4) DEFAULT 1.0000 COMMENT '折扣率，1.0000=无折扣',
@@ -199,7 +207,8 @@ CREATE TABLE IF NOT EXISTS price_level (
   sort_order INT DEFAULT 0,
   status TINYINT DEFAULT 1,
   created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
-  updated_at DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
+  updated_at DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  PRIMARY KEY (id)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='价格等级表';
 
 -- --------------------------------------------------------------------------
@@ -207,8 +216,9 @@ CREATE TABLE IF NOT EXISTS price_level (
 -- 来源：Phase 3 (phase3_schema.sql)
 -- 说明：库存、效期、信用、逾期、积压等预警规则
 -- --------------------------------------------------------------------------
-CREATE TABLE IF NOT EXISTS alert_rule (
+CREATE TABLE IF NOT EXISTS t_alert_rule (
   id BIGINT UNSIGNED NOT NULL AUTO_INCREMENT COMMENT '预警规则ID',
+  tenant_id VARCHAR(36) NOT NULL COMMENT '租户ID',
   rule_code VARCHAR(64) NOT NULL COMMENT '规则编码',
   rule_name VARCHAR(128) NOT NULL COMMENT '规则名称',
   rule_type VARCHAR(32) NOT NULL COMMENT '规则类型：STOCK_LOW(安全库存)/EXPIRY(保质期)/CREDIT(信用额度)/OVERDUE(回款逾期)/STOCK_OVERSTOCK(库存积压)',
@@ -229,8 +239,9 @@ CREATE TABLE IF NOT EXISTS alert_rule (
 -- 来源：Phase 5 (phase5_schema.sql)
 -- 说明：效期预警的级别配置（天数、动作、颜色）
 -- --------------------------------------------------------------------------
-CREATE TABLE IF NOT EXISTS expiry_alert_config (
-  id INT UNSIGNED NOT NULL AUTO_INCREMENT PRIMARY KEY,
+CREATE TABLE IF NOT EXISTS t_expiry_alert_config (
+  id INT UNSIGNED NOT NULL AUTO_INCREMENT,
+  tenant_id VARCHAR(36) NOT NULL COMMENT '租户ID',
   alert_level TINYINT NOT NULL COMMENT '预警级别(1/2/3)',
   level_name VARCHAR(20) NOT NULL COMMENT '级别名称(如"三级预警")',
   days_before_expiry INT NOT NULL COMMENT '提前天数',
@@ -238,7 +249,8 @@ CREATE TABLE IF NOT EXISTS expiry_alert_config (
   color VARCHAR(20) NOT NULL COMMENT '颜色值: #10B981/#F59E0B/#EF4444',
   enabled TINYINT(1) NOT NULL DEFAULT 1 COMMENT '是否启用',
   description VARCHAR(255) DEFAULT '' COMMENT '描述',
-  created_at DATETIME DEFAULT CURRENT_TIMESTAMP
+  created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+  PRIMARY KEY (id)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='效期预警配置表';
 
 -- --------------------------------------------------------------------------
@@ -246,8 +258,9 @@ CREATE TABLE IF NOT EXISTS expiry_alert_config (
 -- 来源：Phase 4 (phase4_schema.sql)
 -- 说明：商品追溯功能的配置
 -- --------------------------------------------------------------------------
-CREATE TABLE IF NOT EXISTS trace_config (
-  id INT UNSIGNED NOT NULL AUTO_INCREMENT PRIMARY KEY,
+CREATE TABLE IF NOT EXISTS t_trace_config (
+  id INT UNSIGNED NOT NULL AUTO_INCREMENT,
+  tenant_id VARCHAR(36) NOT NULL COMMENT '租户ID',
   config_no VARCHAR(32) NOT NULL UNIQUE,
   config_level ENUM('CATEGORY','SKU','GLOBAL') NOT NULL,
   target_id INT NOT NULL,
@@ -262,7 +275,8 @@ CREATE TABLE IF NOT EXISTS trace_config (
   status TINYINT DEFAULT 1,
   created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
   updated_at DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
-  UNIQUE KEY uk_level_target (config_level, target_id)
+  UNIQUE KEY uk_level_target (config_level, target_id),
+  PRIMARY KEY (id)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='追溯配置表';
 
 -- --------------------------------------------------------------------------
@@ -270,8 +284,9 @@ CREATE TABLE IF NOT EXISTS trace_config (
 -- 来源：Phase 5 (phase5_schema.sql)
 -- 说明：门店自动开关门、订单限制等管控配置
 -- --------------------------------------------------------------------------
-CREATE TABLE IF NOT EXISTS store_control_config (
-  id INT UNSIGNED NOT NULL AUTO_INCREMENT PRIMARY KEY,
+CREATE TABLE IF NOT EXISTS t_store_control_config (
+  id INT UNSIGNED NOT NULL AUTO_INCREMENT,
+  tenant_id VARCHAR(36) NOT NULL COMMENT '租户ID',
   store_id INT NOT NULL UNIQUE COMMENT '门店ID',
   auto_open_time TIME DEFAULT NULL COMMENT '自动开门时间',
   auto_close_time TIME DEFAULT NULL COMMENT '自动关门时间',
@@ -279,7 +294,8 @@ CREATE TABLE IF NOT EXISTS store_control_config (
   max_order_amount DECIMAL(10,2) DEFAULT NULL COMMENT '每日最大订单金额',
   suspended_reason TEXT DEFAULT NULL COMMENT '暂停原因',
   created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
-  updated_at DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
+  updated_at DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  PRIMARY KEY (id)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='门店管控配置表';
 
 -- ============================================================================
@@ -291,8 +307,9 @@ CREATE TABLE IF NOT EXISTS store_control_config (
 -- 来源：Phase 6 (phase6_schema.sql) - 合并 Phase 1 和 Phase 6，保留 Phase 6（含外键）
 -- 说明：用户与角色的多对多关联
 -- --------------------------------------------------------------------------
-CREATE TABLE IF NOT EXISTS sys_user_role (
+CREATE TABLE IF NOT EXISTS t_sys_user_role (
   id BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
+  tenant_id VARCHAR(36) NOT NULL COMMENT '租户ID',
   user_id BIGINT UNSIGNED NOT NULL,
   role_id BIGINT UNSIGNED NOT NULL,
   created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
@@ -307,8 +324,9 @@ CREATE TABLE IF NOT EXISTS sys_user_role (
 -- 来源：Phase 1 (phase1_schema.sql)
 -- 说明：角色与权限的多对多关联
 -- --------------------------------------------------------------------------
-CREATE TABLE IF NOT EXISTS sys_role_permission (
+CREATE TABLE IF NOT EXISTS t_sys_role_permission (
   id BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
+  tenant_id VARCHAR(36) NOT NULL COMMENT '租户ID',
   role_id BIGINT UNSIGNED NOT NULL,
   permission_id BIGINT UNSIGNED NOT NULL,
   created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
@@ -322,8 +340,9 @@ CREATE TABLE IF NOT EXISTS sys_role_permission (
 -- 来源：Phase 2 (phase2_schema.sql)
 -- 依赖：supplier
 -- --------------------------------------------------------------------------
-CREATE TABLE IF NOT EXISTS supplier_contact (
+CREATE TABLE IF NOT EXISTS t_supplier_contact (
   id BIGINT UNSIGNED NOT NULL AUTO_INCREMENT COMMENT '联系人ID',
+  tenant_id VARCHAR(36) NOT NULL COMMENT '租户ID',
   supplier_id BIGINT UNSIGNED NOT NULL COMMENT '供应商ID',
   name VARCHAR(64) NOT NULL COMMENT '联系人姓名',
   mobile VARCHAR(20) DEFAULT NULL COMMENT '手机号',
@@ -345,8 +364,9 @@ CREATE TABLE IF NOT EXISTS supplier_contact (
 -- 来源：Phase 1 (phase1_schema.sql)
 -- 依赖：sys_user (staff_id)
 -- --------------------------------------------------------------------------
-CREATE TABLE IF NOT EXISTS member (
+CREATE TABLE IF NOT EXISTS t_member (
   id BIGINT UNSIGNED NOT NULL AUTO_INCREMENT COMMENT '会员ID',
+  tenant_id VARCHAR(36) NOT NULL COMMENT '租户ID',
   openid VARCHAR(128) DEFAULT NULL COMMENT '微信openid',
   unionid VARCHAR(128) DEFAULT NULL COMMENT '微信unionid',
   mobile VARCHAR(20) NOT NULL COMMENT '手机号',
@@ -372,8 +392,9 @@ CREATE TABLE IF NOT EXISTS member (
 -- 来源：Phase 1 (phase1_schema.sql)
 -- 依赖：product_category
 -- --------------------------------------------------------------------------
-CREATE TABLE IF NOT EXISTS product_spu (
+CREATE TABLE IF NOT EXISTS t_product_spu (
   id BIGINT UNSIGNED NOT NULL AUTO_INCREMENT COMMENT '商品ID',
+  tenant_id VARCHAR(36) NOT NULL COMMENT '租户ID',
   spu_code VARCHAR(64) NOT NULL COMMENT '商品编码',
   name VARCHAR(128) NOT NULL COMMENT '商品名称',
   category_id BIGINT UNSIGNED NOT NULL COMMENT '分类ID',
@@ -402,8 +423,9 @@ CREATE TABLE IF NOT EXISTS product_spu (
 -- 来源：Phase 1 (phase1_schema.sql)
 -- 依赖：product_spu
 -- --------------------------------------------------------------------------
-CREATE TABLE IF NOT EXISTS product_sku (
+CREATE TABLE IF NOT EXISTS t_product_sku (
   id BIGINT UNSIGNED NOT NULL AUTO_INCREMENT COMMENT 'SKU ID',
+  tenant_id VARCHAR(36) NOT NULL COMMENT '租户ID',
   spu_id BIGINT UNSIGNED NOT NULL COMMENT '商品ID',
   sku_code VARCHAR(64) NOT NULL COMMENT 'SKU编码',
   barcode VARCHAR(128) DEFAULT NULL COMMENT '商品条码',
@@ -431,8 +453,9 @@ CREATE TABLE IF NOT EXISTS product_sku (
 -- 来源：Phase 1 (phase1_schema.sql)
 -- 依赖：product_sku
 -- --------------------------------------------------------------------------
-CREATE TABLE IF NOT EXISTS product_price (
+CREATE TABLE IF NOT EXISTS t_product_price (
   id BIGINT UNSIGNED NOT NULL AUTO_INCREMENT COMMENT '价格ID',
+  tenant_id VARCHAR(36) NOT NULL COMMENT '租户ID',
   sku_id BIGINT UNSIGNED NOT NULL COMMENT 'SKU ID',
   cost_price DECIMAL(12,2) NOT NULL DEFAULT 0.00 COMMENT '成本价',
   retail_price DECIMAL(12,2) NOT NULL DEFAULT 0.00 COMMENT '统一零售价',
@@ -450,8 +473,9 @@ CREATE TABLE IF NOT EXISTS product_price (
 -- 来源：Phase 4 (phase4_schema.sql)
 -- 依赖：product_sku, price_level
 -- --------------------------------------------------------------------------
-CREATE TABLE IF NOT EXISTS sku_price (
-  id INT UNSIGNED NOT NULL AUTO_INCREMENT PRIMARY KEY,
+CREATE TABLE IF NOT EXISTS t_sku_price (
+  id INT UNSIGNED NOT NULL AUTO_INCREMENT,
+  tenant_id VARCHAR(36) NOT NULL COMMENT '租户ID',
   sku_id INT NOT NULL COMMENT 'SKU ID',
   price_level_id INT NOT NULL COMMENT '价格等级ID',
   min_qty INT DEFAULT 1 COMMENT '起订量',
@@ -465,7 +489,8 @@ CREATE TABLE IF NOT EXISTS sku_price (
   updated_at DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
   UNIQUE KEY uk_sku_level_qty (sku_id, price_level_id, min_qty),
   KEY idx_sku_price_sku_id (sku_id),
-  KEY idx_sku_price_level_id (price_level_id)
+  KEY idx_sku_price_level_id (price_level_id),
+  PRIMARY KEY (id)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='阶梯价格表';
 
 -- --------------------------------------------------------------------------
@@ -473,8 +498,9 @@ CREATE TABLE IF NOT EXISTS sku_price (
 -- 来源：Phase 4 (phase4_schema.sql)
 -- 依赖：member (customer_id), price_level
 -- --------------------------------------------------------------------------
-CREATE TABLE IF NOT EXISTS customer_price_binding (
-  id INT UNSIGNED NOT NULL AUTO_INCREMENT PRIMARY KEY,
+CREATE TABLE IF NOT EXISTS t_customer_price_binding (
+  id INT UNSIGNED NOT NULL AUTO_INCREMENT,
+  tenant_id VARCHAR(36) NOT NULL COMMENT '租户ID',
   customer_id INT NOT NULL COMMENT '客户ID',
   price_level_id INT NOT NULL COMMENT '价格等级ID',
   apply_reason VARCHAR(255) DEFAULT '' COMMENT '申请原因',
@@ -485,7 +511,8 @@ CREATE TABLE IF NOT EXISTS customer_price_binding (
   created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
   updated_at DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
   UNIQUE KEY uk_customer (customer_id),
-  KEY idx_customer_price_binding_level (price_level_id)
+  KEY idx_customer_price_binding_level (price_level_id),
+  PRIMARY KEY (id)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='客户价格等级绑定表';
 
 -- --------------------------------------------------------------------------
@@ -493,8 +520,9 @@ CREATE TABLE IF NOT EXISTS customer_price_binding (
 -- 来源：Phase 4 (phase4_schema.sql)
 -- 依赖：member (customer_id)
 -- --------------------------------------------------------------------------
-CREATE TABLE IF NOT EXISTS customer_credit (
-  id INT UNSIGNED NOT NULL AUTO_INCREMENT PRIMARY KEY,
+CREATE TABLE IF NOT EXISTS t_customer_credit (
+  id INT UNSIGNED NOT NULL AUTO_INCREMENT,
+  tenant_id VARCHAR(36) NOT NULL COMMENT '租户ID',
   customer_id INT NOT NULL UNIQUE COMMENT '客户ID',
   credit_limit DECIMAL(12,2) NOT NULL DEFAULT 0 COMMENT '授信总额度',
   credit_used DECIMAL(12,2) NOT NULL DEFAULT 0 COMMENT '已用额度',
@@ -511,7 +539,8 @@ CREATE TABLE IF NOT EXISTS customer_credit (
   unfrozen_at DATETIME DEFAULT NULL,
   version INT DEFAULT 1 COMMENT '乐观锁版本号',
   created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
-  updated_at DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
+  updated_at DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  PRIMARY KEY (id)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='客户授信额度表';
 
 -- --------------------------------------------------------------------------
@@ -519,8 +548,9 @@ CREATE TABLE IF NOT EXISTS customer_credit (
 -- 来源：Phase 1 (phase1_schema.sql)
 -- 依赖：store, product_sku
 -- --------------------------------------------------------------------------
-CREATE TABLE IF NOT EXISTS inventory_balance (
+CREATE TABLE IF NOT EXISTS t_inventory_balance (
   id BIGINT UNSIGNED NOT NULL AUTO_INCREMENT COMMENT '库存余额ID',
+  tenant_id VARCHAR(36) NOT NULL COMMENT '租户ID',
   store_id BIGINT UNSIGNED NOT NULL COMMENT '门店ID',
   sku_id BIGINT UNSIGNED NOT NULL COMMENT 'SKU ID',
   stock_type VARCHAR(32) NOT NULL DEFAULT 'OFFLINE' COMMENT '库存类型：ONLINE/OFFLINE',
@@ -541,8 +571,9 @@ CREATE TABLE IF NOT EXISTS inventory_balance (
 -- 来源：Phase 5 (phase5_schema.sql)
 -- 依赖：store, product_sku, supplier
 -- --------------------------------------------------------------------------
-CREATE TABLE IF NOT EXISTS inventory_batch (
-  id INT UNSIGNED NOT NULL AUTO_INCREMENT PRIMARY KEY,
+CREATE TABLE IF NOT EXISTS t_inventory_batch (
+  id INT UNSIGNED NOT NULL AUTO_INCREMENT,
+  tenant_id VARCHAR(36) NOT NULL COMMENT '租户ID',
   store_id INT NOT NULL COMMENT '门店ID',
   sku_id INT NOT NULL COMMENT 'SKU ID',
   batch_no VARCHAR(64) NOT NULL COMMENT '批次号',
@@ -557,7 +588,8 @@ CREATE TABLE IF NOT EXISTS inventory_batch (
   updated_at DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
   KEY idx_inventory_batch_store_sku (store_id, sku_id),
   KEY idx_inventory_batch_batch_no (batch_no),
-  KEY idx_inventory_batch_expiry_date (expiry_date)
+  KEY idx_inventory_batch_expiry_date (expiry_date),
+  PRIMARY KEY (id)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='库存批次表';
 
 -- --------------------------------------------------------------------------
@@ -565,8 +597,9 @@ CREATE TABLE IF NOT EXISTS inventory_batch (
 -- 来源：Phase 4 (phase4_schema.sql)
 -- 依赖：product_sku, product_category, store, supplier
 -- --------------------------------------------------------------------------
-CREATE TABLE IF NOT EXISTS trace_code (
-  id INT UNSIGNED NOT NULL AUTO_INCREMENT PRIMARY KEY,
+CREATE TABLE IF NOT EXISTS t_trace_code (
+  id INT UNSIGNED NOT NULL AUTO_INCREMENT,
+  tenant_id VARCHAR(36) NOT NULL COMMENT '租户ID',
   trace_code VARCHAR(32) NOT NULL UNIQUE,
   sku_id INT NOT NULL COMMENT 'SKU ID',
   sku_name VARCHAR(128) DEFAULT '',
@@ -594,7 +627,8 @@ CREATE TABLE IF NOT EXISTS trace_code (
   KEY idx_trace_code_sku (sku_id),
   KEY idx_trace_code_batch (batch_no),
   KEY idx_trace_code_status (current_status),
-  KEY idx_trace_code_store (store_id)
+  KEY idx_trace_code_store (store_id),
+  PRIMARY KEY (id)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='追溯码表';
 
 -- ============================================================================
@@ -606,8 +640,9 @@ CREATE TABLE IF NOT EXISTS trace_code (
 -- 来源：Phase 1 (phase1_schema.sql)
 -- 依赖：member, store
 -- --------------------------------------------------------------------------
-CREATE TABLE IF NOT EXISTS miniapp_order (
+CREATE TABLE IF NOT EXISTS t_miniapp_order (
   id BIGINT UNSIGNED NOT NULL AUTO_INCREMENT COMMENT '订单ID',
+  tenant_id VARCHAR(36) NOT NULL COMMENT '租户ID',
   order_no VARCHAR(64) NOT NULL COMMENT '订单号',
   member_id BIGINT UNSIGNED NOT NULL COMMENT '会员ID',
   store_id BIGINT UNSIGNED NOT NULL COMMENT '门店ID',
@@ -643,8 +678,9 @@ CREATE TABLE IF NOT EXISTS miniapp_order (
 -- 来源：Phase 1 (phase1_schema.sql)
 -- 依赖：miniapp_order, product_sku
 -- --------------------------------------------------------------------------
-CREATE TABLE IF NOT EXISTS miniapp_order_item (
+CREATE TABLE IF NOT EXISTS t_miniapp_order_item (
   id BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
+  tenant_id VARCHAR(36) NOT NULL COMMENT '租户ID',
   order_no VARCHAR(64) NOT NULL COMMENT '订单号',
   sku_id BIGINT UNSIGNED NOT NULL COMMENT 'SKU ID',
   sku_name VARCHAR(128) NOT NULL COMMENT '下单时SKU名称',
@@ -666,8 +702,9 @@ CREATE TABLE IF NOT EXISTS miniapp_order_item (
 -- 来源：Phase 1 (phase1_schema.sql) + Phase 2 ALTER（赊销字段）
 -- 依赖：store, member (customer_id), sys_user (operator_id)
 -- --------------------------------------------------------------------------
-CREATE TABLE IF NOT EXISTS sale_bill (
+CREATE TABLE IF NOT EXISTS t_sale_bill (
   id BIGINT UNSIGNED NOT NULL AUTO_INCREMENT COMMENT '销售单ID',
+  tenant_id VARCHAR(36) NOT NULL COMMENT '租户ID',
   bill_no VARCHAR(64) NOT NULL COMMENT '销售单号',
   store_id BIGINT UNSIGNED NOT NULL COMMENT '门店ID',
   customer_id BIGINT UNSIGNED DEFAULT NULL COMMENT '客户ID，可为空',
@@ -707,8 +744,9 @@ CREATE TABLE IF NOT EXISTS sale_bill (
 -- 来源：Phase 1 (phase1_schema.sql)
 -- 依赖：sale_bill, product_sku
 -- --------------------------------------------------------------------------
-CREATE TABLE IF NOT EXISTS sale_bill_item (
+CREATE TABLE IF NOT EXISTS t_sale_bill_item (
   id BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
+  tenant_id VARCHAR(36) NOT NULL COMMENT '租户ID',
   bill_no VARCHAR(64) NOT NULL COMMENT '销售单号',
   sku_id BIGINT UNSIGNED NOT NULL COMMENT 'SKU ID',
   sku_name VARCHAR(128) NOT NULL COMMENT 'SKU名称快照',
@@ -730,8 +768,9 @@ CREATE TABLE IF NOT EXISTS sale_bill_item (
 -- 来源：Phase 2 (phase2_schema.sql)
 -- 依赖：store, member (customer_id), sys_user (operator_id)
 -- --------------------------------------------------------------------------
-CREATE TABLE IF NOT EXISTS sale_return (
+CREATE TABLE IF NOT EXISTS t_sale_return (
   id BIGINT UNSIGNED NOT NULL AUTO_INCREMENT COMMENT '销售退货单ID',
+  tenant_id VARCHAR(36) NOT NULL COMMENT '租户ID',
   return_no VARCHAR(64) NOT NULL COMMENT '退货单号',
   source_bill_no VARCHAR(64) DEFAULT NULL COMMENT '关联销售单号',
   store_id BIGINT UNSIGNED NOT NULL COMMENT '门店ID',
@@ -762,8 +801,9 @@ CREATE TABLE IF NOT EXISTS sale_return (
 -- 来源：Phase 2 (phase2_schema.sql)
 -- 依赖：sale_return, product_sku
 -- --------------------------------------------------------------------------
-CREATE TABLE IF NOT EXISTS sale_return_item (
+CREATE TABLE IF NOT EXISTS t_sale_return_item (
   id BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
+  tenant_id VARCHAR(36) NOT NULL COMMENT '租户ID',
   return_no VARCHAR(64) NOT NULL COMMENT '退货单号',
   sku_id BIGINT UNSIGNED NOT NULL COMMENT 'SKU ID',
   sku_name VARCHAR(128) NOT NULL COMMENT 'SKU名称快照',
@@ -784,8 +824,9 @@ CREATE TABLE IF NOT EXISTS sale_return_item (
 -- 来源：Phase 2 (phase2_schema.sql)
 -- 依赖：supplier, store, sys_user (operator_id)
 -- --------------------------------------------------------------------------
-CREATE TABLE IF NOT EXISTS purchase_order (
+CREATE TABLE IF NOT EXISTS t_purchase_order (
   id BIGINT UNSIGNED NOT NULL AUTO_INCREMENT COMMENT '采购订单ID',
+  tenant_id VARCHAR(36) NOT NULL COMMENT '租户ID',
   order_no VARCHAR(64) NOT NULL COMMENT '采购订单号',
   supplier_id BIGINT UNSIGNED NOT NULL COMMENT '供应商ID',
   supplier_name VARCHAR(128) NOT NULL COMMENT '供应商名称快照',
@@ -817,8 +858,9 @@ CREATE TABLE IF NOT EXISTS purchase_order (
 -- 来源：Phase 2 (phase2_schema.sql)
 -- 依赖：purchase_order, product_sku
 -- --------------------------------------------------------------------------
-CREATE TABLE IF NOT EXISTS purchase_order_item (
+CREATE TABLE IF NOT EXISTS t_purchase_order_item (
   id BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
+  tenant_id VARCHAR(36) NOT NULL COMMENT '租户ID',
   order_no VARCHAR(64) NOT NULL COMMENT '采购订单号',
   sku_id BIGINT UNSIGNED NOT NULL COMMENT 'SKU ID',
   sku_name VARCHAR(128) NOT NULL COMMENT 'SKU名称快照',
@@ -844,8 +886,9 @@ CREATE TABLE IF NOT EXISTS purchase_order_item (
 -- 来源：Phase 2 (phase2_schema.sql)
 -- 依赖：supplier, store, sys_user (operator_id)
 -- --------------------------------------------------------------------------
-CREATE TABLE IF NOT EXISTS purchase_in_stock (
+CREATE TABLE IF NOT EXISTS t_purchase_in_stock (
   id BIGINT UNSIGNED NOT NULL AUTO_INCREMENT COMMENT '采购入库单ID',
+  tenant_id VARCHAR(36) NOT NULL COMMENT '租户ID',
   stock_no VARCHAR(64) NOT NULL COMMENT '入库单号',
   order_no VARCHAR(64) DEFAULT NULL COMMENT '关联采购订单号',
   supplier_id BIGINT UNSIGNED NOT NULL COMMENT '供应商ID',
@@ -873,8 +916,9 @@ CREATE TABLE IF NOT EXISTS purchase_in_stock (
 -- 来源：Phase 2 (phase2_schema.sql)
 -- 依赖：purchase_in_stock, product_sku
 -- --------------------------------------------------------------------------
-CREATE TABLE IF NOT EXISTS purchase_in_stock_item (
+CREATE TABLE IF NOT EXISTS t_purchase_in_stock_item (
   id BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
+  tenant_id VARCHAR(36) NOT NULL COMMENT '租户ID',
   stock_no VARCHAR(64) NOT NULL COMMENT '入库单号',
   sku_id BIGINT UNSIGNED NOT NULL COMMENT 'SKU ID',
   sku_name VARCHAR(128) NOT NULL COMMENT 'SKU名称快照',
@@ -901,8 +945,9 @@ CREATE TABLE IF NOT EXISTS purchase_in_stock_item (
 -- 来源：Phase 2 (phase2_schema.sql)
 -- 依赖：supplier, store, sys_user (operator_id)
 -- --------------------------------------------------------------------------
-CREATE TABLE IF NOT EXISTS purchase_return (
+CREATE TABLE IF NOT EXISTS t_purchase_return (
   id BIGINT UNSIGNED NOT NULL AUTO_INCREMENT COMMENT '采购退货单ID',
+  tenant_id VARCHAR(36) NOT NULL COMMENT '租户ID',
   return_no VARCHAR(64) NOT NULL COMMENT '退货单号',
   order_no VARCHAR(64) DEFAULT NULL COMMENT '关联采购订单号',
   stock_no VARCHAR(64) DEFAULT NULL COMMENT '关联入库单号',
@@ -932,8 +977,9 @@ CREATE TABLE IF NOT EXISTS purchase_return (
 -- 来源：Phase 2 (phase2_schema.sql)
 -- 依赖：purchase_return, product_sku
 -- --------------------------------------------------------------------------
-CREATE TABLE IF NOT EXISTS purchase_return_item (
+CREATE TABLE IF NOT EXISTS t_purchase_return_item (
   id BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
+  tenant_id VARCHAR(36) NOT NULL COMMENT '租户ID',
   return_no VARCHAR(64) NOT NULL COMMENT '退货单号',
   sku_id BIGINT UNSIGNED NOT NULL COMMENT 'SKU ID',
   sku_name VARCHAR(128) NOT NULL COMMENT 'SKU名称快照',
@@ -957,8 +1003,9 @@ CREATE TABLE IF NOT EXISTS purchase_return_item (
 -- 来源：Phase 2 (phase2_schema.sql) - 合并 Phase 2 和 Phase 6，保留 Phase 2（更详细）
 -- 依赖：supplier, sys_user (operator_id)
 -- --------------------------------------------------------------------------
-CREATE TABLE IF NOT EXISTS purchase_payment (
+CREATE TABLE IF NOT EXISTS t_purchase_payment (
   id BIGINT UNSIGNED NOT NULL AUTO_INCREMENT COMMENT '采购付款单ID',
+  tenant_id VARCHAR(36) NOT NULL COMMENT '租户ID',
   payment_no VARCHAR(64) NOT NULL COMMENT '付款单号',
   supplier_id BIGINT UNSIGNED NOT NULL COMMENT '供应商ID',
   supplier_name VARCHAR(128) NOT NULL COMMENT '供应商名称快照',
@@ -989,8 +1036,9 @@ CREATE TABLE IF NOT EXISTS purchase_payment (
 -- 来源：Phase 6 (phase6_schema.sql)
 -- 依赖：supplier
 -- --------------------------------------------------------------------------
-CREATE TABLE IF NOT EXISTS supplier_statement (
-  id BIGINT UNSIGNED NOT NULL AUTO_INCREMENT PRIMARY KEY,
+CREATE TABLE IF NOT EXISTS t_supplier_statement (
+  id BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
+  tenant_id VARCHAR(36) NOT NULL COMMENT '租户ID',
   statement_no VARCHAR(30) NOT NULL UNIQUE COMMENT '对账单号',
   supplier_id BIGINT UNSIGNED NOT NULL COMMENT '供应商ID',
   period_start DATE NOT NULL COMMENT '对账开始日期',
@@ -1007,7 +1055,8 @@ CREATE TABLE IF NOT EXISTS supplier_statement (
   updated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
   KEY idx_supplier_statement_supplier_id (supplier_id),
   KEY idx_supplier_statement_status (status),
-  KEY idx_supplier_statement_period (period_start, period_end)
+  KEY idx_supplier_statement_period (period_start, period_end),
+  PRIMARY KEY (id)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='供应商对账单表';
 
 -- --------------------------------------------------------------------------
@@ -1015,8 +1064,9 @@ CREATE TABLE IF NOT EXISTS supplier_statement (
 -- 来源：Phase 6 (phase6_schema.sql)
 -- 依赖：supplier_statement, purchase_order
 -- --------------------------------------------------------------------------
-CREATE TABLE IF NOT EXISTS supplier_statement_item (
-  id BIGINT UNSIGNED NOT NULL AUTO_INCREMENT PRIMARY KEY,
+CREATE TABLE IF NOT EXISTS t_supplier_statement_item (
+  id BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
+  tenant_id VARCHAR(36) NOT NULL COMMENT '租户ID',
   statement_id BIGINT UNSIGNED NOT NULL COMMENT '对账单ID',
   purchase_order_id BIGINT UNSIGNED NOT NULL COMMENT '采购订单ID',
   purchase_amount DECIMAL(12,2) NOT NULL DEFAULT 0.00 COMMENT '采购金额',
@@ -1024,7 +1074,8 @@ CREATE TABLE IF NOT EXISTS supplier_statement_item (
   return_amount DECIMAL(12,2) NOT NULL DEFAULT 0.00 COMMENT '退货金额',
   balance DECIMAL(12,2) GENERATED ALWAYS AS (purchase_amount - payment_amount - return_amount) STORED COMMENT '余额',
   KEY idx_supplier_statement_item_statement_id (statement_id),
-  KEY idx_supplier_statement_item_purchase_order_id (purchase_order_id)
+  KEY idx_supplier_statement_item_purchase_order_id (purchase_order_id),
+  PRIMARY KEY (id)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='供应商对账明细表';
 
 -- --------------------------------------------------------------------------
@@ -1032,8 +1083,9 @@ CREATE TABLE IF NOT EXISTS supplier_statement_item (
 -- 来源：Phase 2 (phase2_schema.sql)
 -- 依赖：member (customer_id), sys_user (operator_id)
 -- --------------------------------------------------------------------------
-CREATE TABLE IF NOT EXISTS customer_statement (
+CREATE TABLE IF NOT EXISTS t_customer_statement (
   id BIGINT UNSIGNED NOT NULL AUTO_INCREMENT COMMENT '对账单ID',
+  tenant_id VARCHAR(36) NOT NULL COMMENT '租户ID',
   statement_no VARCHAR(64) NOT NULL COMMENT '对账单号',
   customer_id BIGINT UNSIGNED NOT NULL COMMENT '客户ID',
   customer_name VARCHAR(64) NOT NULL COMMENT '客户名称快照',
@@ -1063,8 +1115,9 @@ CREATE TABLE IF NOT EXISTS customer_statement (
 -- 来源：Phase 2 (phase2_schema.sql)
 -- 依赖：member (customer_id), sys_user (operator_id)
 -- --------------------------------------------------------------------------
-CREATE TABLE IF NOT EXISTS customer_payment (
+CREATE TABLE IF NOT EXISTS t_customer_payment (
   id BIGINT UNSIGNED NOT NULL AUTO_INCREMENT COMMENT '客户收款单ID',
+  tenant_id VARCHAR(36) NOT NULL COMMENT '租户ID',
   receipt_no VARCHAR(64) NOT NULL COMMENT '收款单号',
   customer_id BIGINT UNSIGNED NOT NULL COMMENT '客户ID',
   customer_name VARCHAR(64) NOT NULL COMMENT '客户名称快照',
@@ -1091,8 +1144,9 @@ CREATE TABLE IF NOT EXISTS customer_payment (
 -- 来源：Phase 2 (phase2_schema.sql)
 -- 依赖：member (customer_id), sys_user (operator_id)
 -- --------------------------------------------------------------------------
-CREATE TABLE IF NOT EXISTS sale_payment (
+CREATE TABLE IF NOT EXISTS t_sale_payment (
   id BIGINT UNSIGNED NOT NULL AUTO_INCREMENT COMMENT '销售收款单ID',
+  tenant_id VARCHAR(36) NOT NULL COMMENT '租户ID',
   receipt_no VARCHAR(64) NOT NULL COMMENT '收款单号',
   source_type VARCHAR(32) NOT NULL COMMENT '来源类型：SALE_BILL/SALE_RETURN/STATEMENT',
   source_no VARCHAR(64) NOT NULL COMMENT '来源单号',
@@ -1119,8 +1173,9 @@ CREATE TABLE IF NOT EXISTS sale_payment (
 -- 来源：Phase 1 (phase1_schema.sql)
 -- 依赖：member (customer_id), sys_user (share_user_id)
 -- --------------------------------------------------------------------------
-CREATE TABLE IF NOT EXISTS collection_link (
+CREATE TABLE IF NOT EXISTS t_collection_link (
   id BIGINT UNSIGNED NOT NULL AUTO_INCREMENT COMMENT '分享收款ID',
+  tenant_id VARCHAR(36) NOT NULL COMMENT '租户ID',
   link_no VARCHAR(64) NOT NULL COMMENT '分享收款单号',
   source_type VARCHAR(32) NOT NULL COMMENT '来源类型：SALE_BILL/MINIAPP_ORDER/STATEMENT',
   source_no VARCHAR(64) NOT NULL COMMENT '来源单号',
@@ -1154,8 +1209,9 @@ CREATE TABLE IF NOT EXISTS collection_link (
 -- 来源：Phase 1 (phase1_schema.sql)
 -- 依赖：store, member (customer_id)
 -- --------------------------------------------------------------------------
-CREATE TABLE IF NOT EXISTS receivable_account (
+CREATE TABLE IF NOT EXISTS t_receivable_account (
   id BIGINT UNSIGNED NOT NULL AUTO_INCREMENT COMMENT '应收ID',
+  tenant_id VARCHAR(36) NOT NULL COMMENT '租户ID',
   receivable_no VARCHAR(64) NOT NULL COMMENT '应收单号',
   source_type VARCHAR(32) NOT NULL COMMENT '来源类型：MINIAPP_ORDER/SALE_BILL',
   source_no VARCHAR(64) NOT NULL COMMENT '来源单号',
@@ -1182,8 +1238,9 @@ CREATE TABLE IF NOT EXISTS receivable_account (
 -- 来源：Phase 1 (phase1_schema.sql)
 -- 依赖：miniapp_order, sale_bill, collection_link
 -- --------------------------------------------------------------------------
-CREATE TABLE IF NOT EXISTS payment_order (
+CREATE TABLE IF NOT EXISTS t_payment_order (
   id BIGINT UNSIGNED NOT NULL AUTO_INCREMENT COMMENT '支付单ID',
+  tenant_id VARCHAR(36) NOT NULL COMMENT '租户ID',
   pay_no VARCHAR(64) NOT NULL COMMENT '支付单号',
   source_type VARCHAR(32) NOT NULL COMMENT '来源类型：MINIAPP_ORDER/SALE_BILL/COLLECTION_LINK',
   source_no VARCHAR(64) NOT NULL COMMENT '来源单号',
@@ -1208,8 +1265,9 @@ CREATE TABLE IF NOT EXISTS payment_order (
 -- 来源：Phase 1 (phase1_schema.sql)
 -- 依赖：payment_order
 -- --------------------------------------------------------------------------
-CREATE TABLE IF NOT EXISTS refund_order (
+CREATE TABLE IF NOT EXISTS t_refund_order (
   id BIGINT UNSIGNED NOT NULL AUTO_INCREMENT COMMENT '退款单ID',
+  tenant_id VARCHAR(36) NOT NULL COMMENT '租户ID',
   refund_no VARCHAR(64) NOT NULL COMMENT '退款单号',
   pay_no VARCHAR(64) NOT NULL COMMENT '支付单号',
   source_type VARCHAR(32) NOT NULL COMMENT '来源类型',
@@ -1233,8 +1291,9 @@ CREATE TABLE IF NOT EXISTS refund_order (
 -- 来源：Phase 1 (phase1_schema.sql)
 -- 依赖：store
 -- --------------------------------------------------------------------------
-CREATE TABLE IF NOT EXISTS hold_order (
+CREATE TABLE IF NOT EXISTS t_hold_order (
   id BIGINT UNSIGNED NOT NULL AUTO_INCREMENT COMMENT '挂单ID',
+  tenant_id VARCHAR(36) NOT NULL COMMENT '租户ID',
   hold_no VARCHAR(64) NOT NULL COMMENT '挂单号',
   store_id BIGINT UNSIGNED NOT NULL COMMENT '门店ID',
   customer_name VARCHAR(64) DEFAULT NULL COMMENT '客户姓名',
@@ -1256,8 +1315,9 @@ CREATE TABLE IF NOT EXISTS hold_order (
 -- 来源：Phase 6 (phase6_schema.sql)
 -- 说明：系统消息通知（订单、支付、预警、授信、召回等）
 -- --------------------------------------------------------------------------
-CREATE TABLE IF NOT EXISTS notification (
-  id BIGINT UNSIGNED NOT NULL AUTO_INCREMENT PRIMARY KEY,
+CREATE TABLE IF NOT EXISTS t_notification (
+  id BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
+  tenant_id VARCHAR(36) NOT NULL COMMENT '租户ID',
   recipient_id BIGINT UNSIGNED NOT NULL COMMENT '接收人ID',
   recipient_type ENUM('ADMIN','MERCHANT','CONSUMER') NOT NULL DEFAULT 'ADMIN' COMMENT '接收人类型',
   title VARCHAR(200) NOT NULL COMMENT '通知标题',
@@ -1272,7 +1332,8 @@ CREATE TABLE IF NOT EXISTS notification (
   KEY idx_notification_recipient (recipient_id, recipient_type),
   KEY idx_notification_type (type),
   KEY idx_notification_is_read (is_read),
-  KEY idx_notification_sent_at (sent_at)
+  KEY idx_notification_sent_at (sent_at),
+  PRIMARY KEY (id)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='系统通知表';
 
 -- ============================================================================
@@ -1283,8 +1344,9 @@ CREATE TABLE IF NOT EXISTS notification (
 -- 4.1 操作日志表
 -- 来源：Phase 1 (phase1_schema.sql)
 -- --------------------------------------------------------------------------
-CREATE TABLE IF NOT EXISTS operation_log (
+CREATE TABLE IF NOT EXISTS t_operation_log (
   id BIGINT UNSIGNED NOT NULL AUTO_INCREMENT COMMENT '日志ID',
+  tenant_id VARCHAR(36) NOT NULL COMMENT '租户ID',
   operator_id BIGINT UNSIGNED DEFAULT NULL COMMENT '操作人ID',
   operator_name VARCHAR(64) DEFAULT NULL COMMENT '操作人名称',
   module VARCHAR(64) NOT NULL COMMENT '模块',
@@ -1306,8 +1368,9 @@ CREATE TABLE IF NOT EXISTS operation_log (
 -- 4.2 分享收款访问日志表
 -- 来源：Phase 1 (phase1_schema.sql)
 -- --------------------------------------------------------------------------
-CREATE TABLE IF NOT EXISTS collection_view_log (
+CREATE TABLE IF NOT EXISTS t_collection_view_log (
   id BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
+  tenant_id VARCHAR(36) NOT NULL COMMENT '租户ID',
   link_no VARCHAR(64) NOT NULL COMMENT '分享收款单号',
   ip VARCHAR(64) DEFAULT NULL COMMENT '访问IP',
   user_agent VARCHAR(512) DEFAULT NULL COMMENT '用户代理',
@@ -1321,8 +1384,9 @@ CREATE TABLE IF NOT EXISTS collection_view_log (
 -- 4.3 价格修改日志表
 -- 来源：Phase 1 (phase1_schema.sql)
 -- --------------------------------------------------------------------------
-CREATE TABLE IF NOT EXISTS product_price_log (
+CREATE TABLE IF NOT EXISTS t_product_price_log (
   id BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
+  tenant_id VARCHAR(36) NOT NULL COMMENT '租户ID',
   sku_id BIGINT UNSIGNED NOT NULL COMMENT 'SKU ID',
   operator_id BIGINT UNSIGNED NOT NULL COMMENT '操作人ID',
   price_type VARCHAR(32) NOT NULL COMMENT '价格类型：COST/RETAIL/WHOLESALE/MINIAPP/STORE',
@@ -1341,8 +1405,9 @@ CREATE TABLE IF NOT EXISTS product_price_log (
 -- 4.4 库存流水表
 -- 来源：Phase 1 (phase1_schema.sql)
 -- --------------------------------------------------------------------------
-CREATE TABLE IF NOT EXISTS inventory_ledger (
+CREATE TABLE IF NOT EXISTS t_inventory_ledger (
   id BIGINT UNSIGNED NOT NULL AUTO_INCREMENT COMMENT '库存流水ID',
+  tenant_id VARCHAR(36) NOT NULL COMMENT '租户ID',
   ledger_no VARCHAR(64) NOT NULL COMMENT '库存流水号',
   store_id BIGINT UNSIGNED NOT NULL COMMENT '门店ID',
   sku_id BIGINT UNSIGNED NOT NULL COMMENT 'SKU ID',
@@ -1370,8 +1435,9 @@ CREATE TABLE IF NOT EXISTS inventory_ledger (
 -- 4.5 价格变更历史表
 -- 来源：Phase 4 (phase4_schema.sql)
 -- --------------------------------------------------------------------------
-CREATE TABLE IF NOT EXISTS price_change_log (
-  id INT UNSIGNED NOT NULL AUTO_INCREMENT PRIMARY KEY,
+CREATE TABLE IF NOT EXISTS t_price_change_log (
+  id INT UNSIGNED NOT NULL AUTO_INCREMENT,
+  tenant_id VARCHAR(36) NOT NULL COMMENT '租户ID',
   sku_id INT NOT NULL COMMENT 'SKU ID',
   price_level_id INT NOT NULL COMMENT '价格等级ID',
   old_price DECIMAL(12,2) COMMENT '原价格',
@@ -1379,15 +1445,17 @@ CREATE TABLE IF NOT EXISTS price_change_log (
   change_reason VARCHAR(255) DEFAULT '' COMMENT '变更原因',
   changed_by INT NOT NULL COMMENT '变更人',
   created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
-  KEY idx_price_change_log_sku (sku_id)
+  KEY idx_price_change_log_sku (sku_id),
+  PRIMARY KEY (id)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='价格变更历史表';
 
 -- --------------------------------------------------------------------------
 -- 4.6 授信操作日志表
 -- 来源：Phase 4 (phase4_schema.sql)
 -- --------------------------------------------------------------------------
-CREATE TABLE IF NOT EXISTS credit_operation_log (
-  id INT UNSIGNED NOT NULL AUTO_INCREMENT PRIMARY KEY,
+CREATE TABLE IF NOT EXISTS t_credit_operation_log (
+  id INT UNSIGNED NOT NULL AUTO_INCREMENT,
+  tenant_id VARCHAR(36) NOT NULL COMMENT '租户ID',
   customer_id INT NOT NULL COMMENT '客户ID',
   operation_type ENUM('ADJUST_LIMIT','OCCUPY','RELEASE','FREEZE','UNFREEZE','OVERDUE_DEDUCT','MANUAL_ADJUST') NOT NULL COMMENT '操作类型',
   amount DECIMAL(12,2) NOT NULL COMMENT '变动金额（正=增加，负=减少）',
@@ -1398,15 +1466,17 @@ CREATE TABLE IF NOT EXISTS credit_operation_log (
   remark VARCHAR(255) DEFAULT '' COMMENT '备注',
   created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
   KEY idx_credit_operation_log_customer (customer_id),
-  KEY idx_credit_operation_log_order (related_order_no)
+  KEY idx_credit_operation_log_order (related_order_no),
+  PRIMARY KEY (id)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='授信操作日志表';
 
 -- --------------------------------------------------------------------------
 -- 4.7 催收记录表
 -- 来源：Phase 4 (phase4_schema.sql)
 -- --------------------------------------------------------------------------
-CREATE TABLE IF NOT EXISTS collection_record (
-  id INT UNSIGNED NOT NULL AUTO_INCREMENT PRIMARY KEY,
+CREATE TABLE IF NOT EXISTS t_collection_record (
+  id INT UNSIGNED NOT NULL AUTO_INCREMENT,
+  tenant_id VARCHAR(36) NOT NULL COMMENT '租户ID',
   customer_id INT NOT NULL COMMENT '客户ID',
   receivable_no VARCHAR(64) DEFAULT NULL COMMENT '关联应收单号',
   overdue_days INT DEFAULT 0 COMMENT '逾期天数',
@@ -1422,15 +1492,17 @@ CREATE TABLE IF NOT EXISTS collection_record (
   operator_id INT NOT NULL COMMENT '操作人',
   created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
   KEY idx_collection_record_customer (customer_id),
-  KEY idx_collection_record_follow_up (next_follow_up_date)
+  KEY idx_collection_record_follow_up (next_follow_up_date),
+  PRIMARY KEY (id)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='催收记录表';
 
 -- --------------------------------------------------------------------------
 -- 4.8 预警记录表
 -- 来源：Phase 3 (phase3_schema.sql)
 -- --------------------------------------------------------------------------
-CREATE TABLE IF NOT EXISTS alert_record (
+CREATE TABLE IF NOT EXISTS t_alert_record (
   id BIGINT UNSIGNED NOT NULL AUTO_INCREMENT COMMENT '预警记录ID',
+  tenant_id VARCHAR(36) NOT NULL COMMENT '租户ID',
   alert_no VARCHAR(64) NOT NULL COMMENT '预警编号',
   rule_id BIGINT UNSIGNED NOT NULL COMMENT '预警规则ID',
   rule_type VARCHAR(32) NOT NULL COMMENT '预警类型：STOCK_LOW/EXPIRY/CREDIT/OVERDUE/STOCK_OVERSTOCK',
@@ -1461,8 +1533,9 @@ CREATE TABLE IF NOT EXISTS alert_record (
 -- 4.9 效期预警记录表
 -- 来源：Phase 5 (phase5_schema.sql)
 -- --------------------------------------------------------------------------
-CREATE TABLE IF NOT EXISTS expiry_alert_record (
-  id INT UNSIGNED NOT NULL AUTO_INCREMENT PRIMARY KEY,
+CREATE TABLE IF NOT EXISTS t_expiry_alert_record (
+  id INT UNSIGNED NOT NULL AUTO_INCREMENT,
+  tenant_id VARCHAR(36) NOT NULL COMMENT '租户ID',
   batch_id INT NOT NULL COMMENT '批次ID',
   store_id INT NOT NULL COMMENT '门店ID',
   sku_id INT NOT NULL COMMENT 'SKU ID',
@@ -1481,15 +1554,17 @@ CREATE TABLE IF NOT EXISTS expiry_alert_record (
   KEY idx_expiry_alert_record_store (store_id),
   KEY idx_expiry_alert_record_status (status),
   KEY idx_expiry_alert_record_alert_level (alert_level),
-  UNIQUE KEY uk_expiry_alert_record_batch_level (batch_id, alert_level)
+  UNIQUE KEY uk_expiry_alert_record_batch_level (batch_id, alert_level),
+  PRIMARY KEY (id)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='效期预警记录表';
 
 -- --------------------------------------------------------------------------
 -- 4.10 追溯事件日志表
 -- 来源：Phase 4 (phase4_schema.sql)
 -- --------------------------------------------------------------------------
-CREATE TABLE IF NOT EXISTS trace_event_log (
-  id INT UNSIGNED NOT NULL AUTO_INCREMENT PRIMARY KEY,
+CREATE TABLE IF NOT EXISTS t_trace_event_log (
+  id INT UNSIGNED NOT NULL AUTO_INCREMENT,
+  tenant_id VARCHAR(36) NOT NULL COMMENT '租户ID',
   trace_code VARCHAR(32) NOT NULL COMMENT '追溯码',
   event_type VARCHAR(32) NOT NULL COMMENT '事件类型',
   from_status VARCHAR(32) DEFAULT NULL COMMENT '变更前状态',
@@ -1505,30 +1580,34 @@ CREATE TABLE IF NOT EXISTS trace_event_log (
   ip VARCHAR(45) DEFAULT '' COMMENT 'IP',
   created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
   KEY idx_trace_event_log_trace_code (trace_code),
-  KEY idx_trace_event_log_event_type (event_type)
+  KEY idx_trace_event_log_event_type (event_type),
+  PRIMARY KEY (id)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='追溯事件日志表';
 
 -- --------------------------------------------------------------------------
 -- 4.11 扫码日志表
 -- 来源：Phase 4 (phase4_schema.sql)
 -- --------------------------------------------------------------------------
-CREATE TABLE IF NOT EXISTS trace_scan_log (
-  id INT UNSIGNED NOT NULL AUTO_INCREMENT PRIMARY KEY,
+CREATE TABLE IF NOT EXISTS t_trace_scan_log (
+  id INT UNSIGNED NOT NULL AUTO_INCREMENT,
+  tenant_id VARCHAR(36) NOT NULL COMMENT '租户ID',
   trace_code VARCHAR(32) NOT NULL COMMENT '追溯码',
   scan_type ENUM('CONSUMER','BUSINESS','PDA','ADMIN') NOT NULL COMMENT '扫码类型',
   user_id INT DEFAULT NULL COMMENT '用户ID',
   ip VARCHAR(45) DEFAULT '' COMMENT 'IP',
   result ENUM('SUCCESS','INVALID','NOT_FOUND','FRAUD_ALERT','EXPIRED') DEFAULT 'SUCCESS' COMMENT '扫码结果',
   created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
-  KEY idx_trace_scan_log_trace_code (trace_code)
+  KEY idx_trace_scan_log_trace_code (trace_code),
+  PRIMARY KEY (id)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='扫码日志表';
 
 -- --------------------------------------------------------------------------
 -- 4.12 召回记录表
 -- 来源：Phase 4 (phase4_schema.sql)
 -- --------------------------------------------------------------------------
-CREATE TABLE IF NOT EXISTS recall_record (
-  id INT UNSIGNED NOT NULL AUTO_INCREMENT PRIMARY KEY,
+CREATE TABLE IF NOT EXISTS t_recall_record (
+  id INT UNSIGNED NOT NULL AUTO_INCREMENT,
+  tenant_id VARCHAR(36) NOT NULL COMMENT '租户ID',
   recall_no VARCHAR(32) NOT NULL UNIQUE COMMENT '召回编号',
   recall_type ENUM('BATCH','CATEGORY','SKU','SUPPLIER','GLOBAL') NOT NULL COMMENT '召回类型',
   target_value VARCHAR(128) NOT NULL COMMENT '目标值',
@@ -1544,15 +1623,17 @@ CREATE TABLE IF NOT EXISTS recall_record (
   operator_id INT NOT NULL COMMENT '操作人',
   created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
   updated_at DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
-  KEY idx_recall_record_status (status)
+  KEY idx_recall_record_status (status),
+  PRIMARY KEY (id)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='召回记录表';
 
 -- --------------------------------------------------------------------------
 -- 4.13 门店状态变更记录表
 -- 来源：Phase 5 (phase5_schema.sql)
 -- --------------------------------------------------------------------------
-CREATE TABLE IF NOT EXISTS store_status_log (
-  id INT UNSIGNED NOT NULL AUTO_INCREMENT PRIMARY KEY,
+CREATE TABLE IF NOT EXISTS t_store_status_log (
+  id INT UNSIGNED NOT NULL AUTO_INCREMENT,
+  tenant_id VARCHAR(36) NOT NULL COMMENT '租户ID',
   store_id INT NOT NULL COMMENT '门店ID',
   from_status VARCHAR(20) NOT NULL COMMENT '变更前状态',
   to_status VARCHAR(20) NOT NULL COMMENT '变更后状态',
@@ -1561,7 +1642,8 @@ CREATE TABLE IF NOT EXISTS store_status_log (
   remark VARCHAR(255) DEFAULT '' COMMENT '备注',
   created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
   KEY idx_store_status_log_store (store_id),
-  KEY idx_store_status_log_change_type (change_type)
+  KEY idx_store_status_log_change_type (change_type),
+  PRIMARY KEY (id)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='门店状态变更记录表';
 
 -- ============================================================================

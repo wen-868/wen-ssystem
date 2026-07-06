@@ -9,14 +9,14 @@ export async function getRepurchaseAnalysis(params: { tenantId: string; startDat
   if (endDate) { conditions.push("sb.created_at <= ?"); values.push(endDate); }
   if (storeId) { conditions.push("sb.store_id = ?"); values.push(storeId); }
   const where = `WHERE ${conditions.join(" AND ")}`;
-  const totalCustomers = await queryOneWithTenant<any>(`SELECT COUNT(DISTINCT customer_id) AS cnt FROM sale_bill ${where}`, values, tenantId);
+  const totalCustomers = await queryOneWithTenant<any>(`SELECT COUNT(DISTINCT customer_id) AS cnt FROM t_sale_bill ${where}`, values, tenantId);
   const repurchaseCustomers = await queryOneWithTenant<any>(
-    `SELECT COUNT(*) AS cnt FROM (SELECT customer_id FROM sale_bill ${where} GROUP BY customer_id HAVING COUNT(bill_no) > 1) t`,
+    `SELECT COUNT(*) AS cnt FROM (SELECT customer_id FROM t_sale_bill ${where} GROUP BY customer_id HAVING COUNT(bill_no) > 1) t`,
     values, tenantId
   );
-  const totalOrders = await queryOneWithTenant<any>(`SELECT COUNT(*) AS cnt FROM sale_bill ${where}`, values, tenantId);
+  const totalOrders = await queryOneWithTenant<any>(`SELECT COUNT(*) AS cnt FROM t_sale_bill ${where}`, values, tenantId);
   const repurchaseOrders = await queryOneWithTenant<any>(
-    `SELECT COUNT(*) AS cnt FROM sale_bill sb WHERE sb.tenant_id = ? AND sb.business_status = 'CREATED' ${startDate ? "AND sb.created_at >= ?" : ""} ${endDate ? "AND sb.created_at <= ?" : ""} ${storeId ? "AND sb.store_id = ?" : ""} AND sb.customer_id IN (SELECT customer_id FROM sale_bill WHERE tenant_id = ? ${startDate ? "AND created_at >= ?" : ""} ${endDate ? "AND created_at <= ?" : ""} ${storeId ? "AND store_id = ?" : ""} GROUP BY customer_id HAVING COUNT(bill_no) > 1)`,
+    `SELECT COUNT(*) AS cnt FROM t_sale_bill sb WHERE sb.tenant_id = ? AND sb.business_status = 'CREATED' ${startDate ? "AND sb.created_at >= ?" : ""} ${endDate ? "AND sb.created_at <= ?" : ""} ${storeId ? "AND sb.store_id = ?" : ""} AND sb.customer_id IN (SELECT customer_id FROM t_sale_bill WHERE tenant_id = ? ${startDate ? "AND created_at >= ?" : ""} ${endDate ? "AND created_at <= ?" : ""} ${storeId ? "AND store_id = ?" : ""} GROUP BY customer_id HAVING COUNT(bill_no) > 1)`,
     values, tenantId
   );
   const totalC = Number(totalCustomers?.cnt ?? 0);
@@ -28,8 +28,8 @@ export async function getRepurchaseAnalysis(params: { tenantId: string; startDat
     `SELECT DATE_FORMAT(sb.created_at, '%Y-%m') AS month,
             COUNT(DISTINCT sb.customer_id) AS totalCustomers,
             SUM(CASE WHEN t.customer_id IS NOT NULL THEN 1 ELSE 0 END) AS repurchaseCustomers
-     FROM sale_bill sb
-     LEFT JOIN (SELECT customer_id FROM sale_bill WHERE tenant_id = ? ${startDate ? "AND created_at >= ?" : ""} ${endDate ? "AND created_at <= ?" : ""} ${storeId ? "AND store_id = ?" : ""} GROUP BY customer_id HAVING COUNT(bill_no) > 1) t ON t.customer_id = sb.customer_id
+     FROM t_sale_bill sb
+     LEFT JOIN (SELECT customer_id FROM t_sale_bill WHERE tenant_id = ? ${startDate ? "AND created_at >= ?" : ""} ${endDate ? "AND created_at <= ?" : ""} ${storeId ? "AND store_id = ?" : ""} GROUP BY customer_id HAVING COUNT(bill_no) > 1) t ON t.customer_id = sb.customer_id
      ${where}
      GROUP BY DATE_FORMAT(sb.created_at, '%Y-%m') ORDER BY month`,
     values, tenantId
@@ -54,7 +54,7 @@ export async function getAvgOrderValueDistribution(params: { tenantId: string; s
   if (endDate) { conditions.push("sb.created_at <= ?"); values.push(endDate); }
   if (storeId) { conditions.push("sb.store_id = ?"); values.push(storeId); }
   const where = `WHERE ${conditions.join(" AND ")}`;
-  const avgOrderValue = await queryOneWithTenant<any>(`SELECT AVG(receivable_amount) AS avgValue FROM sale_bill ${where}`, values, tenantId);
+  const avgOrderValue = await queryOneWithTenant<any>(`SELECT AVG(receivable_amount) AS avgValue FROM t_sale_bill ${where}`, values, tenantId);
   const intervals = [
     { label: "<100", min: 0, max: 100 },
     { label: "100-300", min: 100, max: 300 },
@@ -66,12 +66,12 @@ export async function getAvgOrderValueDistribution(params: { tenantId: string; s
   const result = await Promise.all(intervals.map(async (iv) => {
     const row = await queryOneWithTenant<any>(
       `SELECT COUNT(*) AS orderCount, COUNT(DISTINCT customer_id) AS customerCount, COALESCE(SUM(receivable_amount), 0) AS totalAmount
-       FROM sale_bill ${where} AND receivable_amount >= ? AND receivable_amount < ?`,
+       FROM t_sale_bill ${where} AND receivable_amount >= ? AND receivable_amount < ?`,
       [...values, iv.min, iv.max], tenantId
     );
     return { label: iv.label, customerCount: Number(row?.customerCount ?? 0), orderCount: Number(row?.orderCount ?? 0), totalAmount: Number(row?.totalAmount ?? 0) };
   }));
-  const total = await queryOneWithTenant<any>(`SELECT COUNT(*) AS cnt FROM sale_bill ${where}`, values, tenantId);
+  const total = await queryOneWithTenant<any>(`SELECT COUNT(*) AS cnt FROM t_sale_bill ${where}`, values, tenantId);
   const totalOrders = Number(total?.cnt ?? 0);
   return {
     avgOrderValue: Math.round(Number(avgOrderValue?.avgValue ?? 0) * 100) / 100,
@@ -90,7 +90,7 @@ export async function getRFMAnalysis(params: { tenantId: string; storeId?: numbe
             DATEDIFF(NOW(), MAX(created_at)) AS recencyDays,
             COUNT(DISTINCT bill_no) AS frequency,
             COALESCE(SUM(receivable_amount), 0) AS monetary
-     FROM sale_bill sb
+     FROM t_sale_bill sb
      LEFT JOIN member m ON m.id = sb.customer_id
      WHERE sb.tenant_id = ? AND sb.business_status = 'CREATED' ${storeCondition}
      GROUP BY customer_id, m.name`,
@@ -148,7 +148,7 @@ export async function getCustomerContributionRanking(params: { tenantId: string;
             COALESCE(SUM(sb.receivable_amount), 0) AS totalAmount,
             COALESCE(SUM(sb.receivable_amount) - SUM(sb.unreceived_amount), 0) AS paidAmount,
             AVG(sb.receivable_amount) AS avgOrderValue
-     FROM sale_bill sb
+     FROM t_sale_bill sb
      LEFT JOIN member m ON m.id = sb.customer_id
      ${where} AND sb.customer_id IS NOT NULL
      GROUP BY sb.customer_id, m.name, m.mobile
@@ -183,7 +183,7 @@ export async function getLostCustomerAnalysis(params: { tenantId: string; daysTh
   const values: unknown[] = [tenantId, daysThreshold];
   if (storeId) values.push(storeId);
   const totalCustomers = await queryOneWithTenant<any>(
-    `SELECT COUNT(DISTINCT customer_id) AS cnt FROM sale_bill WHERE tenant_id = ? AND business_status = 'CREATED' ${storeCondition}`,
+    `SELECT COUNT(DISTINCT customer_id) AS cnt FROM t_sale_bill WHERE tenant_id = ? AND business_status = 'CREATED' ${storeCondition}`,
     storeId ? [tenantId, storeId] : [tenantId], tenantId
   );
   const lostCustomers = await queryWithTenant<any>(
@@ -192,7 +192,7 @@ export async function getLostCustomerAnalysis(params: { tenantId: string; daysTh
             DATEDIFF(NOW(), MAX(sb.created_at)) AS daysSinceLastOrder,
             COUNT(DISTINCT sb.bill_no) AS totalOrders,
             COALESCE(SUM(sb.receivable_amount), 0) AS totalAmount
-     FROM sale_bill sb
+     FROM t_sale_bill sb
      LEFT JOIN member m ON m.id = sb.customer_id
      WHERE sb.tenant_id = ? AND sb.business_status = 'CREATED' ${storeCondition}
      GROUP BY sb.customer_id, m.name, m.mobile
