@@ -7,6 +7,8 @@
     "dev": "vite --host 0.0.0.0",
     "build": "vite build",
     "build:check": "vue-tsc -b && vite build",
+    "lint": "eslint src/ --fix",
+    "lint:check": "eslint src/",
     "preview": "vite preview --host 0.0.0.0",
     "electron:dev": "npm run build && electron .",
     "electron:build": "npm run build && electron-builder",
@@ -25,9 +27,13 @@
     "vue-router": "^4.4.0"
   },
   "devDependencies": {
+    "@typescript-eslint/eslint-plugin": "^7.0.0",
+    "@typescript-eslint/parser": "^7.0.0",
     "electron": "^43.0.0",
     "electron-builder": "^26.15.3",
     "esbuild": "^0.25.0",
+    "eslint": "^8.57.0",
+    "eslint-plugin-vue": "^9.0.0",
     "typescript": "^5.5.3",
     "vite": "^6.4.3",
     "vue-tsc": "^2.0.26"

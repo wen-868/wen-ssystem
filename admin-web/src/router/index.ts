@@ -161,6 +161,8 @@ const routes = [
       { path: "instant-retail/platform", name: "instant-retail-platform", component: () => import("../views/InstantRetailPlatform.vue"), meta: { roles: ["BOSS"], title: "平台管理", icon: Monitor } },
       { path: "instant-retail/order-board", name: "instant-retail-order-board", component: () => import("../views/InstantRetailOrderBoard.vue"), meta: { roles: ["BOSS"], title: "订单看板", icon: Odometer } },
       { path: "instant-retail/announcements", name: "retail-announcements", component: () => import("../views/RetailAnnouncement.vue"), meta: { roles: ["BOSS"], title: "平台公告", icon: ChatLineSquare } },
+      { path: "instant-retail/dashboard", name: "instant-retail-dashboard", component: () => import("../views/InstantRetailDashboard.vue"), meta: { roles: ["BOSS"], title: "零售看板", icon: DataAnalysis } },
+      { path: "instant-retail/sync", name: "instant-retail-sync", component: () => import("../views/InstantRetailSync.vue"), meta: { roles: ["BOSS"], title: "库存同步", icon: Connection } },
       // 9. 财务管理
       { path: "payments", name: "payments", component: () => import("../views/PaymentsView.vue"), meta: { roles: ["BOSS"], title: "收付款管理", icon: Money } },
       { path: "finance/collection", name: "finance-collection", component: () => import("../views/FinanceCollection.vue"), meta: { roles: ["BOSS"], title: "回款管理", icon: Coin } },
@@ -190,6 +192,9 @@ const routes = [
       { path: "marketing/points-mall", name: "marketing-points-mall", component: () => import("../views/MarketingPointsMall.vue"), meta: { roles: ["BOSS"], title: "积分商城", icon: Shop } },
       { path: "marketing/dashboard", name: "marketing-dashboard", component: () => import("../views/MarketingDashboard.vue"), meta: { roles: ["BOSS"], title: "营销看板", icon: DataAnalysis } },
       { path: "marketing/materials", name: "marketing-material", component: () => import("../views/MarketingMaterial.vue"), meta: { roles: ["BOSS"], title: "营销素材", icon: PictureFilled } },
+      { path: "marketing/coupon", name: "marketing-coupon", component: () => import("../views/CouponManage.vue"), meta: { roles: ["BOSS"], title: "优惠券管理", icon: CreditCard } },
+      { path: "marketing/flash-sale", name: "marketing-flash-sale", component: () => import("../views/FlashSale.vue"), meta: { roles: ["BOSS"], title: "秒杀活动", icon: Timer } },
+      { path: "marketing/full-reduction", name: "marketing-full-reduction", component: () => import("../views/FullReduction.vue"), meta: { roles: ["BOSS"], title: "满减满赠", icon: Medal } },
       { path: "aftersale", name: "aftersale", component: () => import("../views/AftersaleView.vue"), meta: { roles: ["BOSS"], title: "售后管理", icon: Service } },
       // 12. 系统管理
       { path: "employees", name: "employees", component: () => import("../views/EmployeesView.vue"), meta: { roles: ["BOSS"], title: "员工管理", icon: User } },
