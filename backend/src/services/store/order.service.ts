@@ -1,6 +1,7 @@
 import { query, queryOne, queryWithTenant, queryOneWithTenant, transaction } from "../../shared/db.js";
 import { makeBizNo } from "../../shared/id.js";
 import { completeOrderDelivery } from "../../shared/fulfillment.js";
+import { updateTraceCodesBySkuList } from "../../shared/trace-code.js";
 
 export async function listOrders(params: {
   page: number;
@@ -88,7 +89,26 @@ export async function startDelivery(orderNo: string, tenantId: string, userId: n
 
 export async function completeDelivery(orderNo: string, userId: number | null) {
   return transaction(async (conn) => {
-    return completeOrderDelivery(conn, orderNo, userId ?? null, makeBizNo);
+    const result = await completeOrderDelivery(conn, orderNo, userId ?? null, makeBizNo);
+
+    // R9-2: 配送完成时消费追溯码
+    const [orderRows]: any[] = await conn.query(
+      `SELECT tenant_id AS tenantId FROM miniapp_order WHERE order_no = ?`,
+      [orderNo]
+    );
+    const tenantId = orderRows[0]?.tenantId;
+    if (tenantId) {
+      const [items]: any[] = await conn.query(
+        `SELECT sku_id FROM miniapp_order_item WHERE order_no = ?`,
+        [orderNo]
+      );
+      const skuIds = items.map((it: any) => it.sku_id);
+      if (skuIds.length > 0) {
+        await updateTraceCodesBySkuList(conn, tenantId, orderNo, skuIds);
+      }
+    }
+
+    return result;
   });
 }
 
