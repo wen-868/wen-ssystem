@@ -230,7 +230,7 @@
 
     <!-- 快速映射弹窗 -->
     <el-dialog v-model="quickMapVisible" title="快速映射" width="500px">
-      <el-form :model="quickMapForm" label-width="120px">
+      <el-form ref="quickMapFormRef" :model="quickMapForm" :rules="quickMapFormRules" label-width="120px">
         <el-form-item label="渠道SKU">
           <el-input :model-value="quickMapForm.channelSkuId" disabled />
         </el-form-item>
@@ -263,7 +263,7 @@
 
 <script setup lang="ts">
 import { ref, computed, onMounted } from "vue";
-import { ElMessage, ElMessageBox } from "element-plus";
+import { ElMessage, ElMessageBox, type FormInstance, type FormRules } from "element-plus";
 import { Search, UploadFilled, WarningFilled } from "@element-plus/icons-vue";
 
 // ── Mock 数据 ──
@@ -454,7 +454,12 @@ function handleConfirmImport() {
 
 // ── 快速映射 ──
 const quickMapVisible = ref(false);
+const quickMapFormRef = ref<FormInstance>();
 const quickMapForm = ref({ channelSkuId: "", channelProductName: "", localSkuId: null as number | null });
+
+const quickMapFormRules: FormRules = {
+  localSkuId: [{ required: true, message: "请选择本地SKU", trigger: "change" }]
+};
 
 function openQuickMap(row: any) {
   quickMapForm.value = { channelSkuId: row.channelSkuId, channelProductName: row.channelProductName, localSkuId: null };
@@ -465,7 +470,8 @@ function handleQuickLocalSkuChange(val: number | null) {
   // 快速映射选中本地SKU时的处理
 }
 
-function handleQuickMapSave() {
+async function handleQuickMapSave() {
+  const valid = await quickMapFormRef.value?.validate().catch(() => false); if (!valid) return;
   ElMessage.success("快速映射成功");
   quickMapVisible.value = false;
 }

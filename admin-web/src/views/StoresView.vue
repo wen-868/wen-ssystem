@@ -68,7 +68,7 @@
     </el-dialog>
 
     <el-dialog v-model="storeEditDialogVisible" title="编辑门店" width="520px">
-      <el-form :model="storeEditForm" label-width="110px">
+      <el-form ref="storeEditFormRef" :model="storeEditForm" :rules="storeEditFormRules" label-width="110px">
         <el-form-item label="门店名称">
           <el-input v-model="storeEditForm.name" />
         </el-form-item>
@@ -138,6 +138,7 @@ const pageSize = ref(20);
 const storeDialogVisible = ref(false);
 const storeEditDialogVisible = ref(false);
 const storeFormRef = ref<FormInstance>();
+const storeEditFormRef = ref<FormInstance>();
 
 const mobilePattern = /^1[3-9]\d{9}$/;
 
@@ -161,6 +162,10 @@ const storeEditForm = ref({
   wxServicePhone: '',
   wxHeadImg: ''
 });
+
+const storeEditFormRules: FormRules = {
+  name: [{ required: true, message: "请填写门店名称", trigger: "blur" }]
+};
 
 const storeRules: FormRules = {
   code: [
@@ -265,6 +270,7 @@ async function openStoreEdit(row: any) {
 }
 
 async function submitStoreEdit() {
+  const valid = await storeEditFormRef.value?.validate().catch(() => false); if (!valid) return;
   storeEditLoading.value = true;
   try {
     await updateStore(storeEditForm.value.id, {

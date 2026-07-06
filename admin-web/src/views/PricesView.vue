@@ -165,7 +165,7 @@
     </el-dialog>
 
     <el-dialog v-model="skuPriceDialogVisible" title="编辑 SKU 价格" width="480px">
-      <el-form :model="skuPriceForm" label-width="100px">
+      <el-form ref="skuPriceFormRef" :model="skuPriceForm" :rules="skuPriceFormRules" label-width="100px">
         <el-form-item label="商品名称">
           <span>{{ skuPriceForm.skuName }}</span>
         </el-form-item>
@@ -186,7 +186,7 @@
     </el-dialog>
 
     <el-dialog v-model="bindingDialogVisible" title="新增客户价格绑定" width="480px">
-      <el-form :model="bindingForm" label-width="100px">
+      <el-form ref="bindingFormRef" :model="bindingForm" :rules="bindingFormRules" label-width="100px">
         <el-form-item label="客户">
           <el-select v-model="bindingForm.customerId" style="width: 100%" filterable>
             <el-option
@@ -256,7 +256,9 @@ const levelDialogVisible = ref(false);
 const isLevelEdit = ref(false);
 const levelFormRef = ref<FormInstance>();
 const skuPriceDialogVisible = ref(false);
+const skuPriceFormRef = ref<FormInstance>();
 const bindingDialogVisible = ref(false);
+const bindingFormRef = ref<FormInstance>();
 
 const defaultLevelForm = {
   id: 0,
@@ -285,6 +287,13 @@ const bindingForm = reactive({
 const levelRules: FormRules = {
   name: [{ required: true, message: "请填写等级名称", trigger: "blur" }],
   code: [{ required: true, message: "请填写等级编码", trigger: "blur" }]
+};
+
+const skuPriceFormRules: FormRules = {};
+
+const bindingFormRules: FormRules = {
+  customerId: [{ required: true, message: "请选择客户", trigger: "change" }],
+  skuId: [{ required: true, message: "请选择商品", trigger: "change" }]
 };
 
 function getErrorMessage(error: unknown, fallback: string) {
@@ -447,6 +456,7 @@ function openSkuPriceEdit(row: any) {
 }
 
 async function handleSkuPriceSubmit() {
+  const valid = await skuPriceFormRef.value?.validate().catch(() => false); if (!valid) return;
   if (!skuPriceForm.skuId) return;
   submitLoading.value = true;
   try {
@@ -466,10 +476,7 @@ async function handleSkuPriceSubmit() {
 }
 
 async function handleBindingSubmit() {
-  if (!bindingForm.customerId || !bindingForm.skuId) {
-    ElMessage.warning("请选择客户和商品");
-    return;
-  }
+  const valid = await bindingFormRef.value?.validate().catch(() => false); if (!valid) return;
   submitLoading.value = true;
   try {
     await createCustomerBinding(bindingForm);

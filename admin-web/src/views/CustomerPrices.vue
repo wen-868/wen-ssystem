@@ -87,7 +87,7 @@
 
     <!-- 批量设置弹窗 -->
     <el-dialog v-model="batchVisible" title="批量设置专属价格" width="600px" :close-on-click-modal="false">
-      <el-form :model="batchForm" label-width="100px">
+      <el-form ref="batchFormRef" :model="batchForm" :rules="batchFormRules" label-width="100px">
         <el-form-item label="选择客户">
           <el-select v-model="batchForm.customerId" filterable placeholder="请选择客户" style="width: 100%" @change="onBatchCustomerChange">
             <el-option v-for="c in customers" :key="c.id" :label="c.name" :value="c.id" />
@@ -135,7 +135,7 @@
 
 <script setup lang="ts">
 import { onMounted, ref } from "vue";
-import { ElMessage, ElMessageBox } from "element-plus";
+import { ElMessage, ElMessageBox, type FormInstance, type FormRules } from "element-plus";
 import { fetchCustomerPrices, createCustomerPrice, updateCustomerPrice, deleteCustomerPrice, batchSetCustomerPrices, fetchMembers, fetchProducts } from "../api";
 import PageCard from "../components/PageCard.vue";
 import DataTable from "../components/DataTable.vue";
@@ -162,8 +162,15 @@ const rules = {
 const form = ref({ customerId: null as number | null, customerName: "" as string, skuId: null as number | null, skuName: "" as string, standardPrice: 0, customPrice: 0, dateRange: null as [string, string] | null, remark: "" });
 
 const batchVisible = ref(false);
+const batchFormRef = ref<FormInstance>();
 const batchLoading = ref(false);
 const batchForm = ref({ customerId: null as number | null, customerName: "" as string, skuIds: [] as number[], discountRate: 90, dateRange: null as [string, string] | null });
+
+const batchFormRules: FormRules = {
+  customerId: [{ required: true, message: "请选择客户", trigger: "change" }],
+  skuIds: [{ required: true, message: "请选择至少一个商品", trigger: "change", type: "array", min: 1 }],
+  discountRate: [{ required: true, message: "请填写折扣率", trigger: "blur" }]
+};
 
 const columns = [
   { prop: "customerName", label: "客户", minWidth: 120 },
@@ -307,14 +314,13 @@ function showBatchDialog() {
 }
 
 async function handleBatchSubmit() {
-  if (!batchForm.value.customerId) { ElMessage.warning("请选择客户"); return; }
-  if (batchForm.value.skuIds.length === 0) { ElMessage.warning("请选择至少一个商品"); return; }
+  const valid = await batchFormRef.value?.validate().catch(() => false); if (!valid) return;
   batchLoading.value = true;
   try {
     const selectedProducts = products.value.filter((p: any) => batchForm.value.skuIds.includes(p.id));
     const customer = customers.value.find((c: any) => c.id === batchForm.value.customerId);
     await batchSetCustomerPrices({
-      customerId: batchForm.value.customerId,
+      customerId: batchForm.value.customerId as number,
       customerName: customer?.name || "",
       skuIds: batchForm.value.skuIds,
       skuNames: selectedProducts.map((p: any) => p.name),

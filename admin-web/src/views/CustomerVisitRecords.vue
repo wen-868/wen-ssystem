@@ -185,7 +185,7 @@
 
     <!-- 签到 Dialog -->
     <el-dialog v-model="checkinDialogVisible" title="签到" width="450px">
-      <el-form :model="checkinForm" label-width="80px">
+      <el-form ref="checkinFormRef" :model="checkinForm" :rules="checkinFormRules" label-width="80px">
         <el-form-item label="位置">
           <el-input v-model="checkinForm.location" placeholder="签到位置" />
         </el-form-item>
@@ -201,7 +201,7 @@
 
     <!-- 签退 Dialog -->
     <el-dialog v-model="checkoutDialogVisible" title="签退" width="450px">
-      <el-form :model="checkoutForm" label-width="100px">
+      <el-form ref="checkoutFormRef" :model="checkoutForm" :rules="checkoutFormRules" label-width="100px">
         <el-form-item label="备注">
           <el-input v-model="checkoutForm.remark" type="textarea" :rows="2" placeholder="签退备注" />
         </el-form-item>
@@ -300,18 +300,26 @@ const createRules: FormRules = {
 };
 
 const checkinDialogVisible = ref(false);
+const checkinFormRef = ref<FormInstance>();
 const checkinTarget = ref<any>(null);
 const checkinForm = reactive({
   location: "",
   remark: ""
 });
 
+const checkinFormRules: FormRules = {
+  location: [{ required: true, message: "请填写签到位置", trigger: "blur" }]
+};
+
 const checkoutDialogVisible = ref(false);
+const checkoutFormRef = ref<FormInstance>();
 const checkoutTarget = ref<any>(null);
 const checkoutForm = reactive({
   remark: "",
   nextPlan: ""
 });
+
+const checkoutFormRules: FormRules = {};
 
 const detailDialogVisible = ref(false);
 const detail = ref<any>(null);
@@ -420,6 +428,7 @@ function openCheckinDialog(row: any) {
 }
 
 async function handleCheckin() {
+  const valid = await checkinFormRef.value?.validate().catch(() => false); if (!valid) return;
   submitLoading.value = true;
   try {
     await checkinCustomerVisit(checkinTarget.value.visitNo, {
@@ -444,6 +453,7 @@ function openCheckoutDialog(row: any) {
 }
 
 async function handleCheckout() {
+  const valid = await checkoutFormRef.value?.validate().catch(() => false); if (!valid) return;
   submitLoading.value = true;
   try {
     await checkoutCustomerVisit(checkoutTarget.value.visitNo, {
