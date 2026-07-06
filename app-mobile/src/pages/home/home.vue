@@ -1,4 +1,5 @@
 <template>
+  <!-- 无表单交互，无需三件套（纯展示仪表盘页） -->
   <scroll-view class="home-page" scroll-y :refresher-enabled="true" :refresher-triggered="refresherTriggered" @refresherrefresh="onRefresh">
     <!-- 顶部 Header -->
     <view class="home-header">

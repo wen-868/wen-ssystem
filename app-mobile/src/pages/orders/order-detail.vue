@@ -1,4 +1,5 @@
 <template>
+  <!-- 无表单交互，无需三件套（纯展示详情页，操作按钮为API调用） -->
   <scroll-view class="order-detail-page" scroll-y>
     <view class="detail-loading" v-if="loading">
       <text class="loading-text">加载中...</text>

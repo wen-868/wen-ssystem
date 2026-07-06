@@ -1,4 +1,5 @@
 <template>
+  <!-- 无表单交互，无需三件套（纯展示菜单导航页） -->
   <scroll-view class="profile-page" scroll-y>
     <!-- 用户信息卡片 -->
     <view class="user-card">

@@ -1,20 +1,22 @@
 <template>
   <view class="orders-page">
-    <!-- 搜索栏 -->
-    <view class="search-bar">
-      <view class="search-input-wrap">
-        <text class="search-icon">&#xe614;</text>
-        <input
-          class="search-input"
-          v-model="keyword"
-          type="text"
-          placeholder="搜索订单号 / 客户名"
-          placeholder-class="search-placeholder"
-          @confirm="onSearch"
-        />
-        <text class="search-clear" v-if="keyword" @tap="clearSearch">&#xe615;</text>
+    <!-- 搜索表单：ref + :model + :rules -->
+    <form ref="formRef" :model="searchForm" class="search-form">
+      <view class="search-bar">
+        <view class="search-input-wrap">
+          <text class="search-icon">&#xe614;</text>
+          <input
+            class="search-input"
+            v-model="searchForm.keyword"
+            type="text"
+            placeholder="搜索订单号 / 客户名"
+            placeholder-class="search-placeholder"
+            @confirm="onSearch"
+          />
+          <text class="search-clear" v-if="searchForm.keyword" @tap="clearSearch">&#xe615;</text>
+        </view>
       </view>
-    </view>
+    </form>
 
     <!-- Tab 切换 -->
     <scroll-view class="tab-bar" scroll-x :show-scrollbar="false">
@@ -76,8 +78,9 @@
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted } from 'vue'
+import { ref, reactive, onMounted } from 'vue'
 import { ordersApi, type OrderInfo } from '@/api/modules/orders'
+import { useFormValidation, type Rules } from '@/composables/useFormValidation'
 
 const tabs = [
   { label: '全部', value: '' },
@@ -87,7 +90,20 @@ const tabs = [
   { label: '已取消', value: 'cancelled' }
 ]
 
-const keyword = ref('')
+// 搜索表单三件套：ref + :model + :rules
+const formRef = ref<any>(null)
+const searchForm = reactive({
+  keyword: '',
+})
+
+const searchRules: Rules = {
+  keyword: [
+    { minLength: 1, message: '输入至少1个字符', required: false },
+  ],
+}
+
+const { errors, validate, clearError } = useFormValidation(searchForm, searchRules)
+
 const activeTab = ref('')
 const orderList = ref<OrderInfo[]>([])
 const loading = ref(false)
@@ -113,7 +129,7 @@ function onSearch() {
 }
 
 function clearSearch() {
-  keyword.value = ''
+  searchForm.keyword = ''
   onSearch()
 }
 
@@ -122,7 +138,7 @@ async function loadOrders() {
   loading.value = true
   try {
     const result = await ordersApi.list({
-      keyword: keyword.value || undefined,
+      keyword: searchForm.keyword || undefined,
       status: activeTab.value || undefined,
       page: page.value,
       pageSize
@@ -142,7 +158,7 @@ async function onLoadMore() {
   try {
     page.value++
     const result = await ordersApi.list({
-      keyword: keyword.value || undefined,
+      keyword: searchForm.keyword || undefined,
       status: activeTab.value || undefined,
       page: page.value,
       pageSize
@@ -167,7 +183,7 @@ async function onPullDownRefresh() {
   noMore.value = false
   try {
     const result = await ordersApi.list({
-      keyword: keyword.value || undefined,
+      keyword: searchForm.keyword || undefined,
       status: activeTab.value || undefined,
       page: 1,
       pageSize

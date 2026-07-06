@@ -13,7 +13,7 @@
 
     <!-- 表单区域 -->
     <view class="form-section">
-      <view class="form-card">
+      <form ref="formRef" :model="loginForm" :rules="loginRules" class="form-card" @submit="handleLogin">
         <view class="form-item">
           <view class="form-label">
             <text class="label-icon">&#xe601;</text>
@@ -21,11 +21,15 @@
           </view>
           <input
             class="form-input"
-            v-model="account"
+            v-model="loginForm.account"
             type="text"
-            placeholder="请输入账号"
+            placeholder="请输入账号（手机号）"
             placeholder-class="input-placeholder"
+            @input="clearError('account')"
           />
+          <view class="field-error" v-if="errors.account">
+            <text class="error-text">{{ errors.account }}</text>
+          </view>
         </view>
 
         <view class="form-item">
@@ -35,13 +39,17 @@
           </view>
           <input
             class="form-input"
-            v-model="password"
+            v-model="loginForm.password"
             :type="showPassword ? 'text' : 'password'"
             placeholder="请输入密码"
             placeholder-class="input-placeholder"
+            @input="clearError('password')"
           />
           <view class="password-toggle" @tap="showPassword = !showPassword">
             <text class="toggle-icon">{{ showPassword ? '&#xe603;' : '&#xe604;' }}</text>
+          </view>
+          <view class="field-error" v-if="errors.password">
+            <text class="error-text">{{ errors.password }}</text>
           </view>
         </view>
 
@@ -53,12 +61,12 @@
           class="login-btn"
           :class="{ 'login-btn--loading': loading }"
           :disabled="loading"
-          @tap="handleLogin"
+          form-type="submit"
         >
           <text v-if="loading" class="btn-text">登录中...</text>
           <text v-else class="btn-text">登 录</text>
         </button>
-      </view>
+      </form>
     </view>
 
     <!-- 底部版本 -->
@@ -69,32 +77,44 @@
 </template>
 
 <script setup lang="ts">
-import { ref } from 'vue'
+import { ref, reactive } from 'vue'
 import { useUserStore } from '@/stores/user'
+import { useFormValidation, type Rules } from '@/composables/useFormValidation'
 
 const userStore = useUserStore()
 
-const account = ref('')
-const password = ref('')
 const showPassword = ref(false)
 const loading = ref(false)
 const errorMsg = ref('')
 
+// 表单三件套：ref + :model + :rules
+const formRef = ref<any>(null)
+const loginForm = reactive({
+  account: '',
+  password: '',
+})
+
+const loginRules: Rules = {
+  account: [
+    { required: true, message: '请输入账号' },
+    { minLength: 5, message: '账号长度不能少于5位' },
+  ],
+  password: [
+    { required: true, message: '请输入密码' },
+    { minLength: 6, message: '密码长度不能少于6位' },
+  ],
+}
+
+const { errors, validate, clearError } = useFormValidation(loginForm, loginRules)
+
 async function handleLogin() {
   errorMsg.value = ''
 
-  if (!account.value.trim()) {
-    errorMsg.value = '请输入账号'
-    return
-  }
-  if (!password.value.trim()) {
-    errorMsg.value = '请输入密码'
-    return
-  }
+  if (!validate()) return
 
   loading.value = true
   try {
-    await userStore.login(account.value.trim(), password.value)
+    await userStore.login(loginForm.account.trim(), loginForm.password)
     uni.showToast({ title: '登录成功', icon: 'success' })
     setTimeout(() => {
       uni.reLaunch({ url: '/pages/home/home' })
@@ -237,6 +257,11 @@ async function handleLogin() {
   background: #fff2f0;
   border-radius: 12rpx;
   border-left: 6rpx solid #ff4d4f;
+}
+
+.field-error {
+  margin-top: 8rpx;
+  padding: 6rpx 0;
 }
 
 .error-text {

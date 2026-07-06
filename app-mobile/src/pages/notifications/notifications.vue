@@ -1,4 +1,5 @@
 <template>
+  <!-- 无表单交互，无需三件套（纯展示消息列表页） -->
   <view class="notifications-page">
     <!-- 顶部栏 -->
     <view class="page-header">

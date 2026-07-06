@@ -188,6 +188,30 @@
       "style": {
         "navigationBarTitleText": "库存调拨"
       }
+    },
+    {
+      "path": "pages/collection-link/collection-link",
+      "style": {
+        "navigationBarTitleText": "收款链接"
+      }
+    },
+    {
+      "path": "pages/batch-price/batch-price",
+      "style": {
+        "navigationBarTitleText": "批量调价"
+      }
+    },
+    {
+      "path": "pages/price-push/price-push",
+      "style": {
+        "navigationBarTitleText": "报价推送"
+      }
+    },
+    {
+      "path": "pages/member/member",
+      "style": {
+        "navigationBarTitleText": "会员中心"
+      }
     }
   ],
   "globalStyle": {

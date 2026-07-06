@@ -5,7 +5,9 @@
       <text class="header-title">开单</text>
     </view>
 
-    <scroll-view class="sale-form" scroll-y>
+    <!-- 表单三件套：ref + :model + :rules -->
+    <form ref="formRef" :model="saleForm" :rules="saleRules" class="sale-form-scroll">
+      <scroll-view class="sale-form" scroll-y>
       <!-- 客户选择 -->
       <view class="form-section">
         <view class="section-title">选择客户</view>
@@ -13,6 +15,9 @@
           <text class="customer-name" v-if="selectedCustomer">{{ selectedCustomer.name }}</text>
           <text class="customer-placeholder" v-else>请选择客户</text>
           <text class="customer-arrow">&#xe616;</text>
+        </view>
+        <view class="field-error" v-if="errors.selectedCustomer">
+          <text class="error-text">{{ errors.selectedCustomer }}</text>
         </view>
       </view>
 
@@ -42,6 +47,9 @@
           <text class="add-icon">+</text>
           <text class="add-text">添加商品</text>
         </view>
+        <view class="field-error" v-if="errors.saleItems">
+          <text class="error-text">{{ errors.saleItems }}</text>
+        </view>
       </view>
 
       <!-- 金额汇总 -->
@@ -65,6 +73,7 @@
 
       <view class="safe-bottom"></view>
     </scroll-view>
+    </form>
 
     <!-- 底部提交 -->
     <view class="bottom-bar">
@@ -89,10 +98,31 @@ import { ref, computed, reactive } from 'vue'
 import { salesApi, type SaleItem } from '@/api/modules/sales'
 import { customersApi, type CustomerInfo } from '@/api/modules/customers'
 import { productsApi, type ProductInfo } from '@/api/modules/products'
+import { useFormValidation, type Rules } from '@/composables/useFormValidation'
 
-const selectedCustomer = ref<CustomerInfo | null>(null)
-const saleItems = reactive<SaleItem[]>([])
-const remark = ref('')
+// 表单三件套：ref + :model + :rules
+const formRef = ref<any>(null)
+const saleForm = reactive({
+  selectedCustomer: null as CustomerInfo | null,
+  saleItems: [] as SaleItem[],
+  remark: '',
+})
+
+const saleRules: Rules = {
+  selectedCustomer: [{ required: true, message: '请选择客户' }],
+  saleItems: [{ required: true, message: '请至少添加一个商品' }],
+}
+
+const { errors, validate, clearError } = useFormValidation(saleForm, saleRules)
+
+// 兼容原有变量名
+const selectedCustomer = computed(() => saleForm.selectedCustomer)
+const saleItems = saleForm.saleItems
+const remark = computed({
+  get: () => saleForm.remark,
+  set: (v) => saleForm.remark = v,
+})
+
 const submitting = ref(false)
 
 const totalAmount = computed(() => {
@@ -100,11 +130,12 @@ const totalAmount = computed(() => {
 })
 
 const canSubmit = computed(() => {
-  return selectedCustomer.value !== null && saleItems.length > 0 && !submitting.value
+  return saleForm.selectedCustomer !== null && saleItems.length > 0 && !submitting.value
 })
 
 function showCustomerPicker() {
   // 模拟选择客户 - 实际项目中应跳转到客户选择页或弹窗
+  clearError('selectedCustomer')
   uni.showToast({ title: '请从客户列表选择', icon: 'none' })
 }
 
@@ -139,6 +170,8 @@ function removeItem(index: number) {
 }
 
 async function handleSubmit() {
+  // 表单校验
+  if (!validate()) return
   if (!canSubmit.value) return
   submitting.value = true
   try {
@@ -421,5 +454,15 @@ async function handleSubmit() {
 
 .safe-bottom {
   height: 40rpx;
+}
+
+.field-error {
+  margin-top: 8rpx;
+  padding: 6rpx 0;
+}
+
+.error-text {
+  font-size: 24rpx;
+  color: #ff4d4f;
 }
 </style>

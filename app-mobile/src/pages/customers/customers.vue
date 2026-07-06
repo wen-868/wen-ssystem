@@ -1,20 +1,22 @@
 <template>
   <view class="customers-page">
-    <!-- 搜索栏 -->
-    <view class="search-bar">
-      <view class="search-input-wrap">
-        <text class="search-icon">&#xe614;</text>
-        <input
-          class="search-input"
-          v-model="keyword"
-          type="text"
-          placeholder="搜索客户名称 / 电话"
-          placeholder-class="search-placeholder"
-          @confirm="onSearch"
-        />
-        <text class="search-clear" v-if="keyword" @tap="clearSearch">&#xe615;</text>
+    <!-- 搜索表单：ref + :model + :rules -->
+    <form ref="formRef" :model="searchForm" class="search-form">
+      <view class="search-bar">
+        <view class="search-input-wrap">
+          <text class="search-icon">&#xe614;</text>
+          <input
+            class="search-input"
+            v-model="searchForm.keyword"
+            type="text"
+            placeholder="搜索客户名称 / 电话"
+            placeholder-class="search-placeholder"
+            @confirm="onSearch"
+          />
+          <text class="search-clear" v-if="searchForm.keyword" @tap="clearSearch">&#xe615;</text>
+        </view>
       </view>
-    </view>
+    </form>
 
     <scroll-view class="customer-list" scroll-y v-if="list.length > 0">
       <view class="customer-card" v-for="customer in list" :key="customer.id">
@@ -55,10 +57,24 @@
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted } from 'vue'
+import { ref, reactive, onMounted } from 'vue'
 import { customersApi, type CustomerInfo } from '@/api/modules/customers'
+import { useFormValidation, type Rules } from '@/composables/useFormValidation'
 
-const keyword = ref('')
+// 搜索表单三件套：ref + :model + :rules
+const formRef = ref<any>(null)
+const searchForm = reactive({
+  keyword: '',
+})
+
+const searchRules: Rules = {
+  keyword: [
+    { minLength: 1, message: '输入至少1个字符', required: false },
+  ],
+}
+
+const { errors, validate, clearError } = useFormValidation(searchForm, searchRules)
+
 const list = ref<CustomerInfo[]>([])
 const loading = ref(false)
 
@@ -67,7 +83,7 @@ function onSearch() {
 }
 
 function clearSearch() {
-  keyword.value = ''
+  searchForm.keyword = ''
   loadCustomers()
 }
 
@@ -75,7 +91,7 @@ async function loadCustomers() {
   loading.value = true
   try {
     const result = await customersApi.list({
-      keyword: keyword.value || undefined,
+      keyword: searchForm.keyword || undefined,
       page: 1,
       pageSize: 100
     })
