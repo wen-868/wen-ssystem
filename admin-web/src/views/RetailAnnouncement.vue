@@ -52,22 +52,22 @@
     </PageCard>
 
     <el-dialog v-model="dialogVisible" :title="editing ? '编辑公告' : '新增公告'" width="600px">
-      <el-form ref="formRef" :model="form" label-width="90px">
-        <el-form-item label="所属门店" prop="storeId" :rules="[{ required: true, message: '请选择门店' }]">
+      <el-form ref="formRef" :model="form" :rules="formRules" label-width="90px">
+        <el-form-item label="所属门店" prop="storeId">
           <el-select v-model="form.storeId" placeholder="请选择门店" style="width: 100%" filterable>
             <el-option v-for="s in storeList" :key="s.id" :label="s.name" :value="s.id" />
           </el-select>
         </el-form-item>
-        <el-form-item label="公告标题" prop="title" :rules="[{ required: true, message: '请输入公告标题' }]">
+        <el-form-item label="公告标题" prop="title">
           <el-input v-model="form.title" placeholder="请输入公告标题" />
         </el-form-item>
-        <el-form-item label="公告内容" prop="content" :rules="[{ required: true, message: '请输入公告内容' }]">
+        <el-form-item label="公告内容" prop="content">
           <el-input v-model="form.content" type="textarea" :rows="4" placeholder="请输入公告内容" />
         </el-form-item>
         <el-form-item label="是否置顶">
           <el-switch v-model="form.isTop" active-text="置顶" inactive-text="普通" />
         </el-form-item>
-        <el-form-item label="展示时间" prop="dateRange" :rules="[{ required: true, message: '请选择展示时间' }]">
+        <el-form-item label="展示时间" prop="dateRange">
           <el-date-picker
             v-model="form.dateRange"
             type="datetimerange"
@@ -89,7 +89,7 @@
 
 <script setup lang="ts">
 import { ref, reactive, onMounted } from "vue";
-import { ElMessage, ElMessageBox } from "element-plus";
+import { ElMessage, ElMessageBox, type FormRules } from "element-plus";
 import PageCard from "../components/PageCard.vue";
 import { formatDate } from "../utils/format";
 import {
@@ -120,6 +120,13 @@ const form = reactive({
   isTop: false,
   dateRange: [] as string[]
 });
+
+const formRules: FormRules = {
+  storeId: [{ required: true, message: '请选择门店' }],
+  title: [{ required: true, message: '请输入公告标题' }],
+  content: [{ required: true, message: '请输入公告内容' }],
+  dateRange: [{ required: true, message: '请选择展示时间' }]
+};
 
 async function loadStores() {
   try {

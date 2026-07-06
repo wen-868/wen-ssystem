@@ -283,29 +283,22 @@ import { useRoute, useRouter } from "vue-router";
 import { ElMessage } from "element-plus";
 import { HomeFilled, Goods, Document, ShoppingCart, Box, User, Files, Shop, Coin, Present, DataAnalysis, Setting, Expand, Fold, Bell, Grid, ChatDotRound } from "@element-plus/icons-vue";
 import { formatDate } from "../utils/format";
+import { useAuthStore } from "../stores/auth";
 
 const route = useRoute();
 const router = useRouter();
+const auth = useAuthStore();
 
 const isMenuCollapsed = ref(false);
 const isCashierMode = ref(false);
 const pageLoading = ref(false);
-const currentUser = ref<any>(null);
+const currentUser = computed(() => auth.user);
 
 const isCashierUser = computed(() => {
   return currentUser.value?.role === "CASHIER";
 });
 
 onMounted(() => {
-  try {
-    const raw = localStorage.getItem("admin_user");
-    if (raw) {
-      currentUser.value = JSON.parse(raw);
-    }
-  } catch {
-    // ignore
-  }
-
   if (currentUser.value?.role === "CASHIER") {
     isCashierMode.value = true;
     isMenuCollapsed.value = true;
@@ -434,8 +427,7 @@ function toggleCashierMode() {
 }
 
 function handleLogout() {
-  localStorage.removeItem("admin_token");
-  localStorage.removeItem("admin_user");
+  auth.clearAuth();
   ElMessage.success("已退出登录");
   router.push("/login");
 }

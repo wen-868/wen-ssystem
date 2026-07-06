@@ -1,5 +1,6 @@
 import axios from "axios";
 import { ElMessage } from "element-plus";
+import { useAuthStore } from "./stores/auth";
 
 function resolveApiBase() {
   // Electron 桌面环境：通过 preload 获取远程 API 地址
@@ -20,9 +21,9 @@ export const api = axios.create({
 });
 
 api.interceptors.request.use((config) => {
-  const token = localStorage.getItem("admin_token");
-  if (token) {
-    config.headers.Authorization = `Bearer ${token}`;
+  const auth = useAuthStore();
+  if (auth.token) {
+    config.headers.Authorization = `Bearer ${auth.token}`;
   }
   return config;
 });
@@ -45,7 +46,7 @@ api.interceptors.response.use(
 
     switch (status) {
       case 401:
-        localStorage.removeItem("admin_token");
+        useAuthStore().clearAuth();
         if (typeof window !== "undefined") {
           window.dispatchEvent(new Event("auth:logout"));
         }

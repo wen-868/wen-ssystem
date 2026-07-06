@@ -72,11 +72,11 @@
 
     <!-- 规则表单弹窗 -->
     <el-dialog v-model="dialogVisible" :title="editing ? '编辑规则' : '新增规则'" width="540px">
-      <el-form ref="formRef" :model="form" label-width="90px">
-        <el-form-item label="规则名称" prop="name" :rules="[{ required: true, message: '请输入规则名称' }]">
+      <el-form ref="formRef" :model="form" :rules="formRules" label-width="90px">
+        <el-form-item label="规则名称" prop="name">
           <el-input v-model="form.name" placeholder="请输入规则名称" />
         </el-form-item>
-        <el-form-item label="触发类型" prop="triggerType" :rules="[{ required: true, message: '请选择触发类型' }]">
+        <el-form-item label="触发类型" prop="triggerType">
           <el-select v-model="form.triggerType" style="width: 100%">
             <el-option v-for="t in triggerTypes" :key="t.value" :label="t.label" :value="t.value" />
           </el-select>
@@ -84,7 +84,7 @@
         <el-form-item label="内容模板">
           <el-input v-model="form.contentTemplate" type="textarea" :rows="4" placeholder="如：尊敬的{name}，祝您生日快乐！" />
         </el-form-item>
-        <el-form-item label="奖励积分" prop="rewardPoints" :rules="[{ required: true, message: '请输入奖励积分' }]">
+        <el-form-item label="奖励积分" prop="rewardPoints">
           <el-input-number v-model="form.rewardPoints" :min="0" :max="99999" style="width: 100%" />
         </el-form-item>
       </el-form>
@@ -98,7 +98,7 @@
 
 <script setup lang="ts">
 import { ref, reactive, onMounted } from "vue";
-import { ElMessage } from "element-plus";
+import { ElMessage, type FormRules } from "element-plus";
 import PageCard from "../components/PageCard.vue";
 import { formatDate } from "../utils/format";
 import { fetchCareRules, createCareRule, updateCareRule, deleteCareRule, executeCareRule, fetchCareLogs } from "../api";
@@ -124,6 +124,12 @@ const editingItem = ref<any>(null);
 const formRef = ref();
 const submitLoading = ref(false);
 const form = reactive({ name: "", triggerType: "", contentTemplate: "", rewardPoints: 0 });
+
+const formRules: FormRules = {
+  name: [{ required: true, message: '请输入规则名称' }],
+  triggerType: [{ required: true, message: '请选择触发类型' }],
+  rewardPoints: [{ required: true, message: '请输入奖励积分' }]
+};
 
 const logs = ref<any[]>([]);
 const logLoading = ref(false);

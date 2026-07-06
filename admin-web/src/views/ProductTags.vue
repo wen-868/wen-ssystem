@@ -48,11 +48,11 @@
     </PageCard>
 
     <el-dialog v-model="dialogVisible" :title="editing ? '编辑标签' : '新增标签'" width="480px">
-      <el-form ref="formRef" :model="form" label-width="90px">
-        <el-form-item label="标签名称" prop="name" :rules="[{ required: true, message: '请输入标签名称' }]">
+      <el-form ref="formRef" :model="form" :rules="formRules" label-width="90px">
+        <el-form-item label="标签名称" prop="name">
           <el-input v-model="form.name" placeholder="请输入标签名称" />
         </el-form-item>
-        <el-form-item label="标签类型" prop="tagType" :rules="[{ required: true, message: '请选择标签类型' }]">
+        <el-form-item label="标签类型" prop="tagType">
           <el-select v-model="form.tagType" placeholder="请选择标签类型" style="width: 100%">
             <el-option v-for="t in tagTypes" :key="t.value" :label="t.label" :value="t.value" />
           </el-select>
@@ -74,7 +74,7 @@
 
 <script setup lang="ts">
 import { ref, reactive, onMounted } from "vue";
-import { ElMessage } from "element-plus";
+import { ElMessage, type FormRules } from "element-plus";
 import PageCard from "../components/PageCard.vue";
 import { formatDate } from "../utils/format";
 import { api } from "../api";
@@ -95,6 +95,11 @@ const editingItem = ref<any>(null);
 
 const searchForm = reactive({ keyword: "", tagType: "", status: "" });
 const form = reactive({ name: "", tagType: "", sortNo: 0, remark: "" });
+
+const formRules: FormRules = {
+  name: [{ required: true, message: '请输入标签名称' }],
+  tagType: [{ required: true, message: '请选择标签类型' }]
+};
 
 async function searchTags() {
   loading.value = true;

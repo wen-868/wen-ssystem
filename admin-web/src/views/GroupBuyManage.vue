@@ -102,22 +102,22 @@
 
     <!-- 活动新增/编辑 dialog -->
     <el-dialog v-model="activityDialogVisible" :title="activityEditing ? '编辑活动' : '新增活动'" width="520px">
-      <el-form ref="activityFormRef" :model="activityForm" label-width="120px">
-        <el-form-item label="选择商品" prop="productId" :rules="[{ required: true, message: '请选择商品' }]">
+      <el-form ref="activityFormRef" :model="activityForm" :rules="activityFormRules" label-width="120px">
+        <el-form-item label="选择商品" prop="productId">
           <el-select v-model="activityForm.productId" placeholder="请选择商品" filterable style="width: 100%">
             <el-option v-for="p in products" :key="p.id" :label="p.name" :value="p.id" />
           </el-select>
         </el-form-item>
-        <el-form-item label="拼团价格" prop="groupPrice" :rules="[{ required: true, message: '请输入拼团价格' }]">
+        <el-form-item label="拼团价格" prop="groupPrice">
           <el-input-number v-model="activityForm.groupPrice" :min="0.01" :precision="2" style="width: 100%" />
         </el-form-item>
-        <el-form-item label="最低成团人数" prop="minGroupSize" :rules="[{ required: true, message: '请输入最低成团人数' }]">
+        <el-form-item label="最低成团人数" prop="minGroupSize">
           <el-input-number v-model="activityForm.minGroupSize" :min="2" style="width: 100%" />
         </el-form-item>
         <el-form-item label="最大参团人数">
           <el-input-number v-model="activityForm.maxGroupSize" :min="2" style="width: 100%" />
         </el-form-item>
-        <el-form-item label="活动时间" prop="timeRange" :rules="[{ required: true, message: '请选择活动时间' }]">
+        <el-form-item label="活动时间" prop="timeRange">
           <el-date-picker v-model="activityForm.timeRange" type="datetimerange" range-separator="至" start-placeholder="开始时间" end-placeholder="结束时间" style="width: 100%" />
         </el-form-item>
         <el-form-item label="状态" prop="status">
@@ -138,7 +138,7 @@
 
 <script setup lang="ts">
 import { ref, reactive, onMounted } from "vue";
-import { ElMessage } from "element-plus";
+import { ElMessage, type FormRules } from "element-plus";
 import PageCard from "../components/PageCard.vue";
 import { formatDate } from "../utils/format";
 import { api } from "../api";
@@ -162,6 +162,13 @@ const activityForm = reactive({
   timeRange: [] as any[],
   status: "PENDING"
 });
+
+const activityFormRules: FormRules = {
+  productId: [{ required: true, message: '请选择商品' }],
+  groupPrice: [{ required: true, message: '请输入拼团价格' }],
+  minGroupSize: [{ required: true, message: '请输入最低成团人数' }],
+  timeRange: [{ required: true, message: '请选择活动时间' }]
+};
 
 async function loadProducts() {
   try {

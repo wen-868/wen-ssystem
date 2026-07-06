@@ -27,8 +27,10 @@ import { reactive, ref } from "vue";
 import { useRouter } from "vue-router";
 import { ElMessage, type FormInstance, type FormRules } from "element-plus";
 import { adminLogin } from "../api";
+import { useAuthStore } from "../stores/auth";
 
 const router = useRouter();
+const auth = useAuthStore();
 const loginFormRef = ref<FormInstance>();
 const loading = ref(false);
 
@@ -57,8 +59,7 @@ async function handleLogin() {
     const res: any = await adminLogin(loginForm.username, loginForm.password);
     const token = res.token || res.data?.token || res;
     if (token) {
-      localStorage.setItem("admin_token", token);
-      localStorage.setItem("admin_user", JSON.stringify(res.data?.user || res.user || { realName: loginForm.username }));
+      auth.setAuth(token, res.data?.user || res.user || { realName: loginForm.username });
       ElMessage.success("登录成功");
       router.push("/dashboard");
     } else {

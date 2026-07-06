@@ -52,14 +52,14 @@
 
     <!-- 标签表单弹窗 -->
     <el-dialog v-model="dialogVisible" :title="editing ? '编辑标签' : '新增标签'" width="480px">
-      <el-form ref="formRef" :model="form" label-width="90px">
-        <el-form-item label="标签名称" prop="name" :rules="[{ required: true, message: '请输入标签名称' }]">
+      <el-form ref="formRef" :model="form" :rules="formRules" label-width="90px">
+        <el-form-item label="标签名称" prop="name">
           <el-input v-model="form.name" placeholder="请输入标签名称" />
         </el-form-item>
-        <el-form-item label="分组" prop="tagGroup" :rules="[{ required: true, message: '请输入分组' }]">
+        <el-form-item label="分组" prop="tagGroup">
           <el-input v-model="form.tagGroup" placeholder="如：消费偏好、会员等级" />
         </el-form-item>
-        <el-form-item label="类型" prop="tagType" :rules="[{ required: true, message: '请选择类型' }]">
+        <el-form-item label="类型" prop="tagType">
           <el-select v-model="form.tagType" style="width: 100%">
             <el-option label="手动" value="MANUAL" />
             <el-option label="自动" value="AUTO" />
@@ -110,7 +110,7 @@
 
 <script setup lang="ts">
 import { ref, reactive, onMounted } from "vue";
-import { ElMessage } from "element-plus";
+import { ElMessage, type FormRules } from "element-plus";
 import PageCard from "../components/PageCard.vue";
 import { fetchCustomerTags, createCustomerTag, updateCustomerTag, deleteCustomerTag, addCustomerTag, fetchMembers } from "../api";
 
@@ -126,6 +126,12 @@ const tagGroups = ref<string[]>([]);
 
 const searchForm = reactive({ keyword: "", tagGroup: "", tagType: "" });
 const form = reactive({ name: "", tagGroup: "", tagType: "", color: "#409EFF", sortNo: 0 });
+
+const formRules: FormRules = {
+  name: [{ required: true, message: '请输入标签名称' }],
+  tagGroup: [{ required: true, message: '请输入分组' }],
+  tagType: [{ required: true, message: '请选择类型' }]
+};
 const dialogVisible = ref(false);
 const editing = ref(false);
 const editingItem = ref<any>(null);

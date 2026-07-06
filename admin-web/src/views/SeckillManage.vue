@@ -56,22 +56,22 @@
     </PageCard>
 
     <el-dialog v-model="dialogVisible" :title="editing ? '编辑秒杀' : '新增秒杀'" width="520px">
-      <el-form ref="formRef" :model="form" label-width="100px">
-        <el-form-item label="选择商品" prop="productId" :rules="[{ required: true, message: '请选择商品' }]">
+      <el-form ref="formRef" :model="form" :rules="formRules" label-width="100px">
+        <el-form-item label="选择商品" prop="productId">
           <el-select v-model="form.productId" placeholder="请选择商品" filterable style="width: 100%">
             <el-option v-for="p in products" :key="p.id" :label="p.name" :value="p.id" />
           </el-select>
         </el-form-item>
-        <el-form-item label="秒杀价格" prop="seckillPrice" :rules="[{ required: true, message: '请输入秒杀价格' }]">
+        <el-form-item label="秒杀价格" prop="seckillPrice">
           <el-input-number v-model="form.seckillPrice" :min="0.01" :precision="2" style="width: 100%" />
         </el-form-item>
-        <el-form-item label="秒杀库存" prop="seckillStock" :rules="[{ required: true, message: '请输入秒杀库存' }]">
+        <el-form-item label="秒杀库存" prop="seckillStock">
           <el-input-number v-model="form.seckillStock" :min="1" style="width: 100%" />
         </el-form-item>
         <el-form-item label="每人限购">
           <el-input-number v-model="form.limitPerUser" :min="1" style="width: 100%" />
         </el-form-item>
-        <el-form-item label="活动时间" prop="timeRange" :rules="[{ required: true, message: '请选择活动时间' }]">
+        <el-form-item label="活动时间" prop="timeRange">
           <el-date-picker v-model="form.timeRange" type="datetimerange" range-separator="至" start-placeholder="开始时间" end-placeholder="结束时间" style="width: 100%" />
         </el-form-item>
         <el-form-item label="状态" prop="status">
@@ -92,7 +92,7 @@
 
 <script setup lang="ts">
 import { ref, reactive, onMounted } from "vue";
-import { ElMessage } from "element-plus";
+import { ElMessage, type FormRules } from "element-plus";
 import PageCard from "../components/PageCard.vue";
 import { formatDate } from "../utils/format";
 import { api } from "../api";
@@ -112,6 +112,13 @@ const form = reactive({
   timeRange: [] as any[],
   status: "PENDING"
 });
+
+const formRules: FormRules = {
+  productId: [{ required: true, message: '请选择商品' }],
+  seckillPrice: [{ required: true, message: '请输入秒杀价格' }],
+  seckillStock: [{ required: true, message: '请输入秒杀库存' }],
+  timeRange: [{ required: true, message: '请选择活动时间' }]
+};
 
 async function loadProducts() {
   try {

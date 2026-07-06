@@ -53,8 +53,8 @@
               {{ editingItem ? '编辑入口' : '选择一个入口进行编辑' }}
             </div>
             <template v-if="editingItem">
-              <el-form ref="formRef" :model="form" label-width="100px">
-                <el-form-item label="名称" prop="name" :rules="[{ required: true, message: '请输入名称' }]">
+              <el-form ref="formRef" :model="form" :rules="formRules" label-width="100px">
+                <el-form-item label="名称" prop="name">
                   <el-input v-model="form.name" placeholder="入口名称" />
                 </el-form-item>
                 <el-form-item label="图标" prop="icon">
@@ -67,7 +67,7 @@
                     </el-option>
                   </el-select>
                 </el-form-item>
-                <el-form-item label="路由" prop="route" :rules="[{ required: true, message: '请输入路由' }]">
+                <el-form-item label="路由" prop="route">
                   <el-input v-model="form.route" placeholder="如 /sales/create" />
                 </el-form-item>
                 <el-form-item label="分组" prop="group">
@@ -103,8 +103,8 @@
 
     <!-- 新增入口弹窗 -->
     <el-dialog v-model="dialogVisible" title="新增入口" width="480px">
-      <el-form ref="addFormRef" :model="addForm" label-width="100px">
-        <el-form-item label="名称" prop="name" :rules="[{ required: true, message: '请输入名称' }]">
+      <el-form ref="addFormRef" :model="addForm" :rules="addFormRules" label-width="100px">
+        <el-form-item label="名称" prop="name">
           <el-input v-model="addForm.name" placeholder="入口名称" />
         </el-form-item>
         <el-form-item label="图标" prop="icon">
@@ -117,7 +117,7 @@
             </el-option>
           </el-select>
         </el-form-item>
-        <el-form-item label="路由" prop="route" :rules="[{ required: true, message: '请输入路由' }]">
+        <el-form-item label="路由" prop="route">
           <el-input v-model="addForm.route" placeholder="如 /sales/create" />
         </el-form-item>
         <el-form-item label="分组" prop="group">
@@ -144,7 +144,7 @@
 
 <script setup lang="ts">
 import { ref, reactive, onMounted } from "vue";
-import { ElMessage, ElMessageBox } from "element-plus";
+import { ElMessage, ElMessageBox, type FormRules } from "element-plus";
 import { ArrowUp, ArrowDown, HomeFilled, ShoppingCart, Document, Box, User, Goods, Shop, Coin, DataAnalysis, Setting, List, Tickets, Bell, Present, Star, Edit } from "@element-plus/icons-vue";
 import axios from "axios";
 import PageCard from "../components/PageCard.vue";
@@ -178,6 +178,11 @@ const form = reactive({
 const formRef = ref();
 const saveLoading = ref(false);
 
+const formRules: FormRules = {
+  name: [{ required: true, message: '请输入名称' }],
+  route: [{ required: true, message: '请输入路由' }]
+};
+
 const dialogVisible = ref(false);
 const addFormRef = ref();
 const addLoading = ref(false);
@@ -189,6 +194,11 @@ const addForm = reactive({
   enabled: true,
   visibleRoles: [] as string[]
 });
+
+const addFormRules: FormRules = {
+  name: [{ required: true, message: '请输入名称' }],
+  route: [{ required: true, message: '请输入路由' }]
+};
 
 function selectEntry(item: any) {
   selectedId.value = item.id;

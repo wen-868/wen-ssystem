@@ -15,10 +15,12 @@
   "dependencies": {
     "@vitejs/plugin-vue": "^5.0.5",
     "@wangeditor/editor": "^5.1.23",
-"@wangeditor/editor-for-vue": "^5.1.12",
+    "@wangeditor/editor-for-vue": "^5.1.12",
     "axios": "^1.7.2",
     "echarts": "^6.1.0",
     "element-plus": "^2.7.6",
+    "pinia": "^3.0.4",
+    "pinia-plugin-persistedstate": "^4.7.1",
     "vue": "^3.4.31",
     "vue-router": "^4.4.0"
   },

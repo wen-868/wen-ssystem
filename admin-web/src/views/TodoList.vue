@@ -97,11 +97,11 @@
 
     <!-- 新建待办弹窗 -->
     <el-dialog v-model="dialogVisible" title="新建待办" width="480px">
-      <el-form ref="formRef" :model="form" label-width="90px">
-        <el-form-item label="标题" prop="title" :rules="[{ required: true, message: '请输入标题' }]">
+      <el-form ref="formRef" :model="form" :rules="formRules" label-width="90px">
+        <el-form-item label="标题" prop="title">
           <el-input v-model="form.title" placeholder="请输入待办标题" />
         </el-form-item>
-        <el-form-item label="类型" prop="type" :rules="[{ required: true, message: '请选择类型' }]">
+        <el-form-item label="类型" prop="type">
           <el-select v-model="form.type" style="width: 100%">
             <el-option label="库存预警" value="INVENTORY_ALERT" />
             <el-option label="订单待处理" value="ORDER_PENDING" />
@@ -111,7 +111,7 @@
             <el-option label="客户跟进" value="CUSTOMER_FOLLOWUP" />
           </el-select>
         </el-form-item>
-        <el-form-item label="优先级" prop="priority" :rules="[{ required: true, message: '请选择优先级' }]">
+        <el-form-item label="优先级" prop="priority">
           <el-select v-model="form.priority" style="width: 100%">
             <el-option label="高" value="HIGH" />
             <el-option label="中" value="MEDIUM" />
@@ -135,7 +135,7 @@
 
 <script setup lang="ts">
 import { ref, reactive, onMounted } from "vue";
-import { ElMessage, ElMessageBox } from "element-plus";
+import { ElMessage, ElMessageBox, type FormRules } from "element-plus";
 import axios from "axios";
 import PageCard from "../components/PageCard.vue";
 import { formatDate } from "../utils/format";
@@ -292,6 +292,12 @@ const form = reactive({
   dueDate: "",
   remark: ""
 });
+
+const formRules: FormRules = {
+  title: [{ required: true, message: '请输入标题' }],
+  type: [{ required: true, message: '请选择类型' }],
+  priority: [{ required: true, message: '请选择优先级' }]
+};
 
 function openCreateDialog() {
   form.title = "";

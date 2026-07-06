@@ -47,8 +47,8 @@
 
     <!-- 分群表单弹窗 -->
     <el-dialog v-model="dialogVisible" :title="editing ? '编辑分群' : '新增分群'" width="520px">
-      <el-form ref="formRef" :model="form" label-width="90px">
-        <el-form-item label="分群名称" prop="name" :rules="[{ required: true, message: '请输入分群名称' }]">
+      <el-form ref="formRef" :model="form" :rules="formRules" label-width="90px">
+        <el-form-item label="分群名称" prop="name">
           <el-input v-model="form.name" placeholder="请输入分群名称" />
         </el-form-item>
         <el-form-item label="条件设置">
@@ -109,7 +109,7 @@
 
 <script setup lang="ts">
 import { ref, reactive, onMounted } from "vue";
-import { ElMessage } from "element-plus";
+import { ElMessage, type FormRules } from "element-plus";
 import PageCard from "../components/PageCard.vue";
 import { formatDate } from "../utils/format";
 import { fetchSegments, createSegment, updateSegment, deleteSegment, refreshSegment, fetchSegmentMembers } from "../api";
@@ -127,6 +127,10 @@ const editingItem = ref<any>(null);
 const formRef = ref();
 const submitLoading = ref(false);
 const form = reactive({ name: "", minAmount: 0, maxAmount: 0, minOrders: 0, refreshType: "MANUAL" });
+
+const formRules: FormRules = {
+  name: [{ required: true, message: '请输入分群名称' }]
+};
 
 const memberVisible = ref(false);
 const memberList = ref<any[]>([]);

@@ -56,8 +56,8 @@
       width="680px"
       destroy-on-close
     >
-      <el-form ref="formRef" :model="form" label-width="80px">
-        <el-form-item label="组名称" prop="name" :rules="[{ required: true, message: '请输入单位组名称' }]">
+      <el-form ref="formRef" :model="form" :rules="formRules" label-width="80px">
+        <el-form-item label="组名称" prop="name">
           <el-input v-model="form.name" placeholder="例如：酒类通用单位组" />
         </el-form-item>
 
@@ -99,7 +99,7 @@
 
 <script setup lang="ts">
 import { ref, reactive, onMounted } from "vue";
-import { ElMessage } from "element-plus";
+import { ElMessage, type FormRules } from "element-plus";
 import { Delete } from "@element-plus/icons-vue";
 import PageCard from "../components/PageCard.vue";
 import { api } from "../api";
@@ -122,6 +122,10 @@ const form = reactive({
   name: "",
   items: [{ name: "", level: 0, conversionRate: 1, status: 1 }] as UnitItem[],
 });
+
+const formRules: FormRules = {
+  name: [{ required: true, message: '请输入单位组名称' }]
+};
 
 async function loadGroups() {
   loading.value = true;
