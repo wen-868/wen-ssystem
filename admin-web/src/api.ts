@@ -2244,6 +2244,7 @@ export async function reportFrontendError(payload: {
   try {
     await api.post("/admin/error-report", payload);
   } catch {
+    // 错误上报失败时静默忽略，避免无限循环
   } finally {
     isReportingError = false;
   }
@@ -2305,3 +2306,31 @@ export async function deleteDepartment(id: number) { const { data: res } = await
 export async function getUserSessions(params?: any) { const { data } = await api.get('/admin/sessions', { params }); return data.data; }
 export async function revokeSession(id: number) { const { data: res } = await api.delete(`/admin/sessions/${id}`); return res.data; }
 export async function getOnlineStats() { const { data } = await api.get('/admin/sessions/stats'); return data.data; }
+
+// ==================== 自定义报表 ====================
+export async function fetchReportTemplates(params?: any) { const { data } = await api.get('/admin/report-templates', { params }); return data.data; }
+export async function createReportTemplate(payload: any) { const { data } = await api.post('/admin/report-templates', payload); return data.data; }
+export async function updateReportTemplate(id: number, payload: any) { const { data } = await api.put(`/admin/report-templates/${id}`, payload); return data.data; }
+export async function deleteReportTemplate(id: number) { const { data } = await api.delete(`/admin/report-templates/${id}`); return data.data; }
+export async function executeReportTemplate(id: number, params?: any) { const { data } = await api.post(`/admin/report-templates/${id}/execute`, params); return data.data; }
+export async function fetchReportSchedules(params?: any) { const { data } = await api.get('/admin/report-schedules', { params }); return data.data; }
+export async function createReportSchedule(payload: any) { const { data } = await api.post('/admin/report-schedules', payload); return data.data; }
+export async function updateReportSchedule(id: number, payload: any) { const { data } = await api.put(`/admin/report-schedules/${id}`, payload); return data.data; }
+export async function deleteReportSchedule(id: number) { const { data } = await api.delete(`/admin/report-schedules/${id}`); return data.data; }
+export async function toggleReportSchedule(id: number, enabled: boolean) { const { data } = await api.patch(`/admin/report-schedules/${id}/toggle`, { enabled }); return data.data; }
+export async function runReportSchedule(id: number) { const { data } = await api.post(`/admin/report-schedules/${id}/run`); return data.data; }
+
+// ==================== 订单同步日志 ====================
+export async function fetchOrderSyncLogs(params?: any) { const { data } = await api.get('/admin/order-sync-logs', { params }); return data.data; }
+export async function retryOrderSync(id: number) { const { data } = await api.post(`/admin/order-sync-logs/${id}/retry`); return data.data; }
+
+// ==================== 平台对账 ====================
+export async function fetchPlatformReconciliations(params?: any) { const { data } = await api.get('/admin/platform-reconciliations', { params }); return data.data; }
+export async function createPlatformReconciliation(payload: any) { const { data } = await api.post('/admin/platform-reconciliations', payload); return data.data; }
+export async function updatePlatformReconciliation(id: number, payload: any) { const { data } = await api.put(`/admin/platform-reconciliations/${id}`, payload); return data.data; }
+export async function fetchPlatformReconciliationDetail(id: number) { const { data } = await api.get(`/admin/platform-reconciliations/${id}`); return data.data; }
+
+// ==================== 平台评价 ====================
+export async function fetchPlatformReviews(params?: any) { const { data } = await api.get('/admin/platform-reviews', { params }); return data.data; }
+export async function replyPlatformReview(id: number, reply: string) { const { data } = await api.post(`/admin/platform-reviews/${id}/reply`, { reply }); return data.data; }
+export async function fetchPlatformReviewStats(params?: any) { const { data } = await api.get('/admin/platform-reviews/stats', { params }); return data.data; }
