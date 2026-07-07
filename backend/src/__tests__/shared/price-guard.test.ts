@@ -226,4 +226,36 @@ describe("price-guard", () => {
       ).resolves.not.toThrow();
     });
   });
+
+  describe("canAccessPriceLevel", () => {
+    it("SUPER_ADMIN 可访问所有等级", async () => {
+      const { canAccessPriceLevel } = await import("../../shared/price-guard.js");
+      expect(await canAccessPriceLevel(makeUser(["SUPER_ADMIN"]), "VIP", "default")).toBe(true);
+    });
+
+    it("STORE_MANAGER 可访问所有等级", async () => {
+      const { canAccessPriceLevel } = await import("../../shared/price-guard.js");
+      expect(await canAccessPriceLevel(makeUser(["STORE_MANAGER"]), "VIP", "default")).toBe(true);
+    });
+
+    it("FINANCE_STAFF 可访问所有等级", async () => {
+      const { canAccessPriceLevel } = await import("../../shared/price-guard.js");
+      expect(await canAccessPriceLevel(makeUser(["FINANCE_STAFF"]), "VIP", "default")).toBe(true);
+    });
+
+    it("SALES_STAFF 只能访问 RETAIL 等级", async () => {
+      const { canAccessPriceLevel } = await import("../../shared/price-guard.js");
+      expect(await canAccessPriceLevel(makeUser(["SALES_STAFF"]), "RETAIL", "default")).toBe(true);
+    });
+
+    it("SALES_STAFF 不可访问非 RETAIL 等级", async () => {
+      const { canAccessPriceLevel } = await import("../../shared/price-guard.js");
+      expect(await canAccessPriceLevel(makeUser(["SALES_STAFF"]), "VIP", "default")).toBe(false);
+    });
+
+    it("无角色用户不可访问任何等级", async () => {
+      const { canAccessPriceLevel } = await import("../../shared/price-guard.js");
+      expect(await canAccessPriceLevel(makeUser([]), "RETAIL", "default")).toBe(false);
+    });
+  });
 });

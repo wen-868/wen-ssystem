@@ -1,4 +1,4 @@
-import { describe, it, expect } from "vitest";
+import { describe, it, expect, vi } from "vitest";
 import {
   getSettlementType,
   getCustomerLevelCode,
@@ -9,6 +9,7 @@ import {
   calcReservation,
   getInitialMiniappOrderState,
   nextFulfillmentState,
+  completeOrderDelivery,
 } from "../../shared/fulfillment.js";
 
 // ========== getSettlementType ==========
@@ -215,5 +216,123 @@ describe("nextFulfillmentState", () => {
     expect(() =>
       nextFulfillmentState("WAIT_DELIVERY", "UNKNOWN" as any)
     ).toThrow("未知履约动作");
+  });
+});
+
+// ========== completeOrderDelivery ==========
+describe("completeOrderDelivery", () => {
+  function mockConn(orders: any[], items: any[]) {
+    return {
+      query: vi.fn()
+        .mockResolvedValueOnce([orders])
+        .mockResolvedValueOnce([items]),
+      execute: vi.fn().mockResolvedValue({ affectedRows: 1 }),
+    };
+  }
+
+  function makeBizNo(prefix: string) {
+    return `${prefix}-${Date.now()}`;
+  }
+
+  it("订单不存在时应抛出错误", async () => {
+    const conn = mockConn([], []);
+    await expect(
+      completeOrderDelivery(conn as any, "ORD-999", 1, makeBizNo)
+    ).rejects.toThrow("订单不存在或状态不可完成");
+  });
+
+  it("零售订单应完成并扣减库存", async () => {
+    const order = {
+      order_no: "ORD-001",
+      store_id: 1,
+      member_id: 100,
+      customer_type: "RETAIL",
+      settlement_type: "CASH",
+      payable_amount: 50,
+      receiver_name: "张三",
+      receiver_mobile: "13800138000",
+    };
+    const items = [
+      { skuId: 10, quantity: 2, reservedQty: 2 },
+    ];
+    const conn = mockConn([order], items);
+
+    const result = await completeOrderDelivery(conn as any, "ORD-001", 1, makeBizNo);
+
+    expect(result.orderNo).toBe("ORD-001");
+    expect(result.status).toBe("COMPLETED");
+    expect(result.receivableNo).toBeNull();
+    // 应执行了库存扣减
+    expect(conn.execute).toHaveBeenCalled();
+  });
+
+  it("批发赊账订单应创建应收账款", async () => {
+    const order = {
+      order_no: "ORD-002",
+      store_id: 1,
+      member_id: 200,
+      customer_type: "WHOLESALE",
+      settlement_type: "ACCOUNT",
+      payable_amount: 500,
+      receiver_name: "李四",
+      receiver_mobile: "13900139000",
+    };
+    const items = [
+      { skuId: 20, quantity: 5, reservedQty: 3 },
+    ];
+    const conn = mockConn([order], items);
+
+    const result = await completeOrderDelivery(conn as any, "ORD-002", 2, makeBizNo);
+
+    expect(result.receivableNo).not.toBeNull();
+    expect(typeof result.receivableNo).toBe("string");
+  });
+
+  it("无预留库存的 SKU 应跳过扣减", async () => {
+    const order = {
+      order_no: "ORD-003",
+      store_id: 1,
+      member_id: 300,
+      customer_type: "RETAIL",
+      settlement_type: "CASH",
+      payable_amount: 30,
+      receiver_name: "王五",
+      receiver_mobile: "13700137000",
+    };
+    const items = [
+      { skuId: 30, quantity: 1, reservedQty: 0 },
+    ];
+    const conn = mockConn([order], items);
+
+    await completeOrderDelivery(conn as any, "ORD-003", 3, makeBizNo);
+
+    // reservedQty=0 时不应执行库存扣减（但会执行订单状态更新）
+    const executeCalls = (conn.execute as any).mock.calls;
+    // 至少调用了更新订单状态
+    expect(executeCalls.length).toBeGreaterThanOrEqual(1);
+  });
+
+  it("多个商品项都应扣减库存", async () => {
+    const order = {
+      order_no: "ORD-004",
+      store_id: 1,
+      member_id: 400,
+      customer_type: "RETAIL",
+      settlement_type: "CASH",
+      payable_amount: 100,
+      receiver_name: "赵六",
+      receiver_mobile: "13600136000",
+    };
+    const items = [
+      { skuId: 40, quantity: 2, reservedQty: 2 },
+      { skuId: 41, quantity: 3, reservedQty: 3 },
+    ];
+    const conn = mockConn([order], items);
+
+    await completeOrderDelivery(conn as any, "ORD-004", 4, makeBizNo);
+
+    // 每个商品应有 2 次 execute（库存扣减 + 库存流水）+ 1 次订单状态更新
+    const executeCalls = (conn.execute as any).mock.calls;
+    expect(executeCalls.length).toBeGreaterThanOrEqual(5);
   });
 });
