@@ -1,20 +1,22 @@
 <template>
   <view class="inventory-page">
-    <!-- 搜索栏 -->
-    <view class="search-bar">
-      <view class="search-input-wrap">
-        <text class="search-icon">&#xe614;</text>
-        <input
-          class="search-input"
-          v-model="keyword"
-          type="text"
-          placeholder="搜索商品名称"
-          placeholder-class="search-placeholder"
-          @confirm="onSearch"
-        />
-        <text class="search-clear" v-if="keyword" @tap="clearSearch">&#xe615;</text>
+    <!-- 搜索表单：ref + :model + :rules -->
+    <form ref="formRef" :model="searchForm" class="search-form">
+      <view class="search-bar">
+        <view class="search-input-wrap">
+          <text class="search-icon">&#xe614;</text>
+          <input
+            class="search-input"
+            v-model="searchForm.keyword"
+            type="text"
+            placeholder="搜索商品名称 / 编码"
+            placeholder-class="search-placeholder"
+            @confirm="onSearch"
+          />
+          <text class="search-clear" v-if="searchForm.keyword" @tap="clearSearch">&#xe615;</text>
+        </view>
       </view>
-    </view>
+    </form>
 
     <scroll-view class="inventory-list" scroll-y v-if="list.length > 0">
       <view class="inventory-card" v-for="item in list" :key="item.id">
