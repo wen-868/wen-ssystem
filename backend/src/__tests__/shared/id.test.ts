@@ -58,4 +58,26 @@ describe("makeToken", () => {
     const t2 = makeToken();
     expect(t1).not.toBe(t2);
   });
+
+  it("连续生成 100 个 token 应全部唯一", () => {
+    const set = new Set<string>();
+    for (let i = 0; i < 100; i++) {
+      set.add(makeToken());
+    }
+    expect(set.size).toBe(100);
+  });
+});
+
+describe("makeBizNo 补充用例", () => {
+  it("长前缀也应正常工作", () => {
+    const result = makeBizNo("TRACE");
+    expect(result.startsWith("TRACE")).toBe(true);
+    expect(result.length).toBeGreaterThan("TRACE".length + 14);
+  });
+
+  it("生成的编号后缀应为 6 位大写十六进制", () => {
+    const result = makeBizNo("SO");
+    const hexPart = result.slice(2 + 14);
+    expect(/^[0-9A-F]{6}$/.test(hexPart)).toBe(true);
+  });
 });

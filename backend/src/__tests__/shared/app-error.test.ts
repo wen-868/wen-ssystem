@@ -34,4 +34,37 @@ describe("AppError", () => {
       expect((e as AppError).statusCode).toBe(403);
     }
   });
+
+  it("应支持 500 状态码", () => {
+    const err = new AppError("服务器内部错误", 500);
+    expect(err.statusCode).toBe(500);
+  });
+
+  it("应支持 401 状态码", () => {
+    const err = new AppError("未授权", 401);
+    expect(err.statusCode).toBe(401);
+  });
+
+  it("空字符串消息也应正常创建", () => {
+    const err = new AppError("");
+    expect(err.message).toBe("");
+    expect(err.statusCode).toBe(400);
+  });
+
+  it("两个 AppError 实例应各自独立", () => {
+    const err1 = new AppError("错误1", 400);
+    const err2 = new AppError("错误2", 404);
+    expect(err1.message).not.toBe(err2.message);
+    expect(err1.statusCode).not.toBe(err2.statusCode);
+  });
+
+  it("throw 后应能通过 instanceof 区分 AppError 和普通 Error", () => {
+    try {
+      throw new AppError("业务错误");
+    } catch (e) {
+      expect(e).toBeInstanceOf(AppError);
+      expect(e).toBeInstanceOf(Error);
+      expect((e as AppError).name).toBe("AppError");
+    }
+  });
 });
