@@ -29,22 +29,22 @@ export function getDataScope(user: AuthUser): string {
 export function applyDataPermissionFilter(user: AuthUser, tableName: string): string {
   const scope = getDataScope(user);
 
-  switch (scope) {
-    case "ALL":
-      return "1=1";
-    case "STORE":
-      if (user.storeId != null) {
-        return `store_id = ${user.storeId}`;
-      }
-      return "1=0";
-    case "SELF":
-      if (tableName === "sys_user" || tableName === "employee") {
-        return `id = ${user.id}`;
-      }
-      return "1=0";
-    default:
-      return "1=0";
+  if (scope === "ALL") {
+    return "1=1";
   }
+  if (scope === "STORE") {
+    if (user.storeId != null) {
+      return `store_id = ${user.storeId}`;
+    }
+    return "1=0";
+  }
+  if (scope === "SELF") {
+    if (tableName === "sys_user" || tableName === "employee") {
+      return `id = ${user.id}`;
+    }
+    return "1=0";
+  }
+  return "1=0";
 }
 
 /**

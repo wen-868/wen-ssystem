@@ -25,6 +25,10 @@ describe("logger", () => {
     expect(() => logger.debug("调试消息")).not.toThrow();
   });
 
+  it("info 带 Error 参数应走 instanceof 分支", () => {
+    expect(() => logger.info("消息", new Error("err"))).not.toThrow();
+  });
+
   it("info 带多个非 Error 参数应走 else 分支", () => {
     expect(() => logger.info("消息", "arg1", "arg2")).not.toThrow();
   });
@@ -51,5 +55,23 @@ describe("logger", () => {
 
   it("debug 带多个非 Error 参数应走 else 分支", () => {
     expect(() => logger.debug("调试", 1, 2, 3)).not.toThrow();
+  });
+});
+
+describe("logger - production 环境", () => {
+  const originalNodeEnv = process.env.NODE_ENV;
+
+  afterEach(() => {
+    process.env.NODE_ENV = originalNodeEnv;
+    vi.resetModules();
+  });
+
+  it("NODE_ENV=production 时 transport 应为 undefined", async () => {
+    process.env.NODE_ENV = "production";
+    vi.resetModules();
+    const loggerModule = await import("../../shared/logger.js");
+    const prodLogger = loggerModule.default;
+    expect(typeof prodLogger.info).toBe("function");
+    expect(() => prodLogger.info("production test")).not.toThrow();
   });
 });

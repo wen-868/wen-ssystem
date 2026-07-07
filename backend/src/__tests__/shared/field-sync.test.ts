@@ -171,6 +171,43 @@ describe("field-sync", () => {
 
       expect(results.length).toBeGreaterThan(1);
     });
+
+    it("同表同字段映射应跳过同步（line 323）", async () => {
+      const sameTableMapping = {
+        sourceTable: "product_spu",
+        sourceField: "product_name",
+        targetTable: "product_spu",
+        targetField: "product_name",
+        joinKey: "id",
+        description: "同表同字段测试"
+      };
+
+      const originalMappings = [...SYNC_MAPPINGS];
+      SYNC_MAPPINGS.push(sameTableMapping as any);
+
+      try {
+        const results = await syncChangedFields("product_spu", 1, ["product_name"], "default");
+
+        const sameTableResults = results.filter(
+          r => r.targetTable === "product_spu" && r.targetField === "product_name"
+        );
+        expect(sameTableResults).toEqual([]);
+      } finally {
+        SYNC_MAPPINGS.length = 0;
+        SYNC_MAPPINGS.push(...originalMappings);
+      }
+    });
+
+    it("mapping.condition 存在时 SQL 中应包含 AND 条件", async () => {
+      mockQueryWithTenant.mockResolvedValue({ affectedRows: 2 });
+
+      await syncChangedFields("supplier", 1, ["supplier_name"], "default");
+
+      expect(mockQueryWithTenant).toHaveBeenCalled();
+      const sql = mockQueryWithTenant.mock.calls[0][0] as string;
+      expect(sql).toContain("AND");
+      expect(sql).toContain("status IN");
+    });
   });
 
   describe("syncSingleField", () => {

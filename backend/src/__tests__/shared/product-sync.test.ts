@@ -109,6 +109,135 @@ describe("product-sync", () => {
 
       expect(result.failCount).toBeGreaterThan(0);
     });
+
+    it("只有 categoryId 变更时同步 SKU 和库存表", async () => {
+      mockQueryOneWithTenant.mockResolvedValue({
+        id: 1,
+        productName: "test",
+        categoryId: 2,
+        categoryName: "新分类",
+        brand: "brand",
+        unit: "box",
+        mainImage: "img",
+        status: "ACTIVE",
+      });
+      mockQueryWithTenant.mockResolvedValue({ affectedRows: 3 });
+
+      const result = await syncProductFullChain(1, ["categoryId"], "default");
+
+      const stages = result.stages.map(s => s.stage);
+      expect(stages).toContain("SKU_SYNC");
+      expect(stages).toContain("INVENTORY_SYNC");
+      expect(stages).not.toContain("SALE_ORDER_SYNC");
+      expect(stages).not.toContain("LEDGER_SYNC");
+    });
+
+    it("只有 brand 变更时只同步 SKU 表", async () => {
+      mockQueryOneWithTenant.mockResolvedValue({
+        id: 1,
+        productName: "test",
+        categoryId: 1,
+        categoryName: "cat",
+        brand: "新品牌",
+        unit: "box",
+        mainImage: "img",
+        status: "ACTIVE",
+      });
+      mockQueryWithTenant.mockResolvedValue({ affectedRows: 5 });
+
+      const result = await syncProductFullChain(1, ["brand"], "default");
+
+      const stages = result.stages.map(s => s.stage);
+      expect(stages).toEqual(["SKU_SYNC"]);
+    });
+
+    it("只有 unit 变更时同步 SKU、销售订单、采购订单", async () => {
+      mockQueryOneWithTenant.mockResolvedValue({
+        id: 1,
+        productName: "test",
+        categoryId: 1,
+        categoryName: "cat",
+        brand: "brand",
+        unit: "箱",
+        mainImage: "img",
+        status: "ACTIVE",
+      });
+      mockQueryWithTenant.mockResolvedValue({ affectedRows: 2 });
+
+      const result = await syncProductFullChain(1, ["unit"], "default");
+
+      const stages = result.stages.map(s => s.stage);
+      expect(stages).toContain("SKU_SYNC");
+      expect(stages).toContain("SALE_ORDER_SYNC");
+      expect(stages).toContain("PURCHASE_ORDER_SYNC");
+      expect(stages).not.toContain("LEDGER_SYNC");
+    });
+
+    it("变更不相关字段时不同步任何阶段", async () => {
+      mockQueryOneWithTenant.mockResolvedValue({
+        id: 1,
+        productName: "test",
+        categoryId: 1,
+        categoryName: "cat",
+        brand: "brand",
+        unit: "box",
+        mainImage: "img",
+        status: "ACTIVE",
+      });
+      mockQueryWithTenant.mockResolvedValue({ affectedRows: 0 });
+
+      const result = await syncProductFullChain(1, ["mainImage"], "default");
+
+      expect(result.totalTargets).toBe(0);
+      expect(result.stages).toEqual([]);
+      expect(mockQueryWithTenant).not.toHaveBeenCalled();
+    });
+
+    it("同时变更 productName 和 status 时同步所有相关阶段", async () => {
+      mockQueryOneWithTenant.mockResolvedValue({
+        id: 1,
+        productName: "新名称",
+        categoryId: 1,
+        categoryName: "cat",
+        brand: "brand",
+        unit: "box",
+        mainImage: "img",
+        status: "INACTIVE",
+      });
+      mockQueryWithTenant.mockResolvedValue({ affectedRows: 5 });
+
+      const result = await syncProductFullChain(1, ["productName", "status"], "default");
+
+      const stages = result.stages.map(s => s.stage);
+      expect(stages).toContain("SKU_SYNC");
+      expect(stages).toContain("INVENTORY_SYNC");
+      expect(stages).toContain("SALE_ORDER_SYNC");
+      expect(stages).toContain("LEDGER_SYNC");
+      expect(stages).toContain("BATCH_SYNC");
+    });
+
+    it("同时变更 categoryId 和 unit 时同步对应阶段", async () => {
+      mockQueryOneWithTenant.mockResolvedValue({
+        id: 1,
+        productName: "test",
+        categoryId: 2,
+        categoryName: "新分类",
+        brand: "brand",
+        unit: "箱",
+        mainImage: "img",
+        status: "ACTIVE",
+      });
+      mockQueryWithTenant.mockResolvedValue({ affectedRows: 3 });
+
+      const result = await syncProductFullChain(1, ["categoryId", "unit"], "default");
+
+      const stages = result.stages.map(s => s.stage);
+      expect(stages).toContain("SKU_SYNC");
+      expect(stages).toContain("INVENTORY_SYNC");
+      expect(stages).toContain("SALE_ORDER_SYNC");
+      expect(stages).toContain("PURCHASE_ORDER_SYNC");
+      expect(stages).not.toContain("LEDGER_SYNC");
+    });
   });
 
   describe("syncProductStatus", () => {
@@ -164,6 +293,98 @@ describe("product-sync", () => {
 
       expect(results.some(r => r.stage === "PRICE_PURCHASE_ORDER")).toBe(true);
     });
+
+    it("销售订单价格同步失败时返回 success=false", async () => {
+      mockQueryWithTenant
+        .mockResolvedValueOnce([{ id: 1 }])
+        .mockResolvedValueOnce([{ sku_id: 1, retail_price: 100, wholesale_price: 80, cost_price: 50 }]);
+
+      mockQueryWithTenant.mockRejectedValue(new Error("Sale order sync failed"));
+
+      const results = await syncProductPrice(1, ["retailPrice"], "default");
+
+      const saleOrderResult = results.find(r => r.stage === "PRICE_SALE_ORDER");
+      expect(saleOrderResult).toBeDefined();
+      expect(saleOrderResult?.success).toBe(false);
+      expect(saleOrderResult?.error).toBe("Sale order sync failed");
+      expect(saleOrderResult?.affectedRows).toBe(0);
+    });
+
+    it("采购订单价格同步失败时返回 success=false", async () => {
+      mockQueryWithTenant
+        .mockResolvedValueOnce([{ id: 1 }])
+        .mockResolvedValueOnce([{ sku_id: 1, retail_price: 100, wholesale_price: 80, cost_price: 50 }]);
+
+      mockQueryWithTenant
+        .mockResolvedValueOnce({ affectedRows: 1 })
+        .mockRejectedValue(new Error("Purchase order sync failed"));
+
+      const results = await syncProductPrice(1, ["retailPrice", "costPrice"], "default");
+
+      const purchaseOrderResult = results.find(r => r.stage === "PRICE_PURCHASE_ORDER");
+      expect(purchaseOrderResult).toBeDefined();
+      expect(purchaseOrderResult?.success).toBe(false);
+      expect(purchaseOrderResult?.error).toBe("Purchase order sync failed");
+      expect(purchaseOrderResult?.affectedRows).toBe(0);
+    });
+
+    it("wholesalePrice 变更时同步批发价到销售订单", async () => {
+      mockQueryWithTenant
+        .mockResolvedValueOnce([{ id: 1 }, { id: 2 }])
+        .mockResolvedValueOnce([
+          { sku_id: 1, retail_price: 100, wholesale_price: 80, cost_price: 50 },
+          { sku_id: 2, retail_price: 120, wholesale_price: 100, cost_price: 60 }
+        ]);
+
+      mockQueryWithTenant.mockResolvedValue({ affectedRows: 1 });
+
+      const results = await syncProductPrice(1, ["wholesalePrice"], "default");
+
+      const saleOrderResult = results.find(r => r.stage === "PRICE_SALE_ORDER");
+      expect(saleOrderResult).toBeDefined();
+      expect(saleOrderResult?.success).toBe(true);
+      expect(saleOrderResult?.syncedFields).toContain("wholesalePrice");
+    });
+
+    it("无匹配价格类型时返回空数组", async () => {
+      mockQueryWithTenant
+        .mockResolvedValueOnce([{ id: 1 }])
+        .mockResolvedValueOnce([{ sku_id: 1, retail_price: 100, wholesale_price: 80, cost_price: 50 }]);
+
+      const results = await syncProductPrice(1, ["unknownPriceType"], "default");
+
+      expect(results).toEqual([]);
+    });
+
+    it("同时有 retailPrice 和 wholesalePrice 时优先使用 wholesalePrice", async () => {
+      mockQueryWithTenant
+        .mockResolvedValueOnce([{ id: 1 }])
+        .mockResolvedValueOnce([{ sku_id: 1, retail_price: 100, wholesale_price: 80, cost_price: 50 }]);
+
+      mockQueryWithTenant.mockResolvedValue({ affectedRows: 2 });
+
+      const results = await syncProductPrice(1, ["retailPrice", "wholesalePrice"], "default");
+
+      const saleOrderResult = results.find(r => r.stage === "PRICE_SALE_ORDER");
+      expect(saleOrderResult).toBeDefined();
+      expect(saleOrderResult?.success).toBe(true);
+      expect(saleOrderResult?.syncedFields).toContain("wholesalePrice");
+    });
+
+    it("SKU 存在但价格数据为空数组时仍执行同步", async () => {
+      mockQueryWithTenant
+        .mockResolvedValueOnce([{ id: 1 }])
+        .mockResolvedValueOnce([]);
+
+      const results = await syncProductPrice(1, ["retailPrice", "costPrice"], "default");
+
+      const saleOrderResult = results.find(r => r.stage === "PRICE_SALE_ORDER");
+      const purchaseOrderResult = results.find(r => r.stage === "PRICE_PURCHASE_ORDER");
+      expect(saleOrderResult).toBeDefined();
+      expect(saleOrderResult?.affectedRows).toBe(0);
+      expect(purchaseOrderResult).toBeDefined();
+      expect(purchaseOrderResult?.affectedRows).toBe(0);
+    });
   });
 
   describe("getProductSyncStatus", () => {
@@ -184,6 +405,45 @@ describe("product-sync", () => {
       expect(result.spuId).toBe(1);
       expect(result.productName).toBe("测试商品");
       expect(result.targets.length).toBeGreaterThan(0);
+    });
+
+    it("某个目标表查询失败时返回 inSync=false", async () => {
+      mockQueryOneWithTenant
+        .mockResolvedValueOnce({ id: 1, name: "测试商品" })
+        .mockResolvedValueOnce({ cnt: 10 })
+        .mockRejectedValueOnce(new Error("Query failed"))
+        .mockResolvedValue({ cnt: 3 });
+
+      const result = await getProductSyncStatus(1, "default");
+
+      expect(result.targets.length).toBe(5);
+      expect(result.targets[0].inSync).toBe(true);
+      expect(result.targets[1].inSync).toBe(false);
+      expect(result.targets[1].recordCount).toBe(0);
+      expect(result.targets[2].inSync).toBe(true);
+    });
+
+    it("所有目标表都查询失败时全部返回 inSync=false", async () => {
+      mockQueryOneWithTenant
+        .mockResolvedValueOnce({ id: 1, name: "测试商品" })
+        .mockRejectedValue(new Error("All queries failed"));
+
+      const result = await getProductSyncStatus(1, "default");
+
+      expect(result.targets.length).toBe(5);
+      expect(result.targets.every(t => t.inSync === false)).toBe(true);
+      expect(result.targets.every(t => t.recordCount === 0)).toBe(true);
+    });
+
+    it("查询结果无 cnt 字段时 recordCount 为 0", async () => {
+      mockQueryOneWithTenant
+        .mockResolvedValueOnce({ id: 1, name: "测试商品" })
+        .mockResolvedValue({ no_cnt: 5 });
+
+      const result = await getProductSyncStatus(1, "default");
+
+      expect(result.targets.length).toBe(5);
+      expect(result.targets.every(t => t.recordCount === 0)).toBe(true);
     });
   });
 });

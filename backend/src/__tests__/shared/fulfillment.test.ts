@@ -202,6 +202,18 @@ describe("nextFulfillmentState", () => {
     expect(nextFulfillmentState("DELIVERING", "REJECT")).toBe("REJECTED");
   });
 
+  it("REJECT: 非待配送或配送中状态应抛出错误", () => {
+    expect(() => nextFulfillmentState("COMPLETED", "REJECT")).toThrow(
+      "只有待配送或配送中订单可以拒收"
+    );
+    expect(() => nextFulfillmentState("PENDING_PAYMENT", "REJECT")).toThrow(
+      "只有待配送或配送中订单可以拒收"
+    );
+    expect(() => nextFulfillmentState("CANCELLED", "REJECT")).toThrow(
+      "只有待配送或配送中订单可以拒收"
+    );
+  });
+
   it("CANCEL: PENDING_PAYMENT → CANCELLED", () => {
     expect(nextFulfillmentState("PENDING_PAYMENT", "CANCEL")).toBe("CANCELLED");
   });

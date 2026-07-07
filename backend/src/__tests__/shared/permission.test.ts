@@ -1,6 +1,8 @@
-import { describe, it, expect } from "vitest";
-import { checkPermission, getDataScope, applyDataPermissionFilter, filterSensitiveFields } from "../../shared/permission.js";
+import { describe, it, expect, vi } from "vitest";
+import * as permissionModule from "../../shared/permission.js";
 import type { AuthUser } from "../../shared/auth.js";
+
+const { checkPermission, getDataScope, applyDataPermissionFilter, filterSensitiveFields } = permissionModule;
 
 function makeUser(roles: string[], opts?: { id?: number; storeId?: number | null }): AuthUser {
   return {
@@ -89,6 +91,14 @@ describe("permission", () => {
     it("SELF 范围对非用户表返回 1=0", () => {
       const user = makeUser(["SALES_STAFF"], { id: 1 });
       expect(applyDataPermissionFilter(user, "product")).toBe("1=0");
+    });
+
+    it("getDataScope 返回未知值时应返回 1=0（防御性分支）", () => {
+      const user = makeUser(["SALES_STAFF"]);
+      const spy = vi.spyOn(permissionModule, "getDataScope");
+      spy.mockReturnValue("UNKNOWN_SCOPE" as any);
+      expect(applyDataPermissionFilter(user, "any_table")).toBe("1=0");
+      spy.mockRestore();
     });
   });
 

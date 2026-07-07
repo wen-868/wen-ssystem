@@ -312,5 +312,72 @@ describe("feishu-report", () => {
       });
       expect(result.ok).toBe(false);
     });
+
+    it("res.statusCode 为 undefined 时 status 为 0", async () => {
+      mockRequest.mockImplementationOnce((_opts: any, callback: any) => {
+        const res = {
+          on: vi.fn((event: string, cb: any) => {
+            if (event === "data") setTimeout(() => cb('{"code":0}'), 0);
+            if (event === "end") setTimeout(() => cb(), 0);
+          }),
+        };
+        callback(res);
+        return { on: vi.fn(), write: vi.fn(), end: vi.fn() };
+      });
+
+      const result = await reportToLingZhou({
+        phase: "statusCode undefined 测试",
+        status: "DONE",
+        summary: "statusCode 为 undefined",
+        reporter: "阿坚",
+      });
+      expect(result.ok).toBe(false);
+      expect(result.status).toBe(0);
+    });
+
+    it("data 为空字符串时解析为 {}", async () => {
+      mockRequest.mockImplementationOnce((_opts: any, callback: any) => {
+        const res = {
+          statusCode: 200,
+          on: vi.fn((event: string, cb: any) => {
+            if (event === "end") setTimeout(() => cb(), 0);
+          }),
+        };
+        callback(res);
+        return { on: vi.fn(), write: vi.fn(), end: vi.fn() };
+      });
+
+      const result = await reportToLingZhou({
+        phase: "空 data 测试",
+        status: "DONE",
+        summary: "data 为空字符串",
+        reporter: "阿坚",
+      });
+      expect(result.ok).toBe(true);
+      expect(result.data).toEqual({});
+    });
+
+    it("非法 JSON 且 res.statusCode 为 undefined 时 catch 分支 status 为 0", async () => {
+      mockRequest.mockImplementationOnce((_opts: any, callback: any) => {
+        const res = {
+          on: vi.fn((event: string, cb: any) => {
+            if (event === "data") setTimeout(() => cb("invalid-json"), 0);
+            if (event === "end") setTimeout(() => cb(), 0);
+          }),
+        };
+        callback(res);
+        return { on: vi.fn(), write: vi.fn(), end: vi.fn() };
+      });
+
+      const result = await reportToLingZhou({
+        phase: "非法 JSON + 无 statusCode 测试",
+        status: "DONE",
+        summary: "非法 JSON 且无 statusCode",
+        reporter: "阿坚",
+      });
+      expect(result.ok).toBe(false);
+      expect(result.status).toBe(0);
+      expect(result.data).toBe(null);
+    });
   });
 });

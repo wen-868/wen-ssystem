@@ -88,6 +88,28 @@ describe("auto-routes", () => {
     expect(prefixes).toContain("/api/test-single-router");
   });
 
+  it(".routes.js 后缀文件应被扫描并注册", async () => {
+    const mockUse = vi.fn();
+    const mockApp = { use: mockUse } as unknown as Express;
+
+    await setupRoutes(mockApp, { routesDir: fixturesDir });
+
+    // test-js-single.routes.js → /api/test-js-single
+    const prefixes = mockUse.mock.calls.map((call: any[]) => call[0]);
+    expect(prefixes).toContain("/api/test-js-single");
+  });
+
+  it("routeConfigs 中 prefix 为空的项应被跳过", async () => {
+    const mockUse = vi.fn();
+    const mockApp = { use: mockUse } as unknown as Express;
+
+    await setupRoutes(mockApp, { routesDir: fixturesDir });
+
+    // 空字符串 prefix 不应被注册
+    const prefixes = mockUse.mock.calls.map((call: any[]) => call[0]);
+    expect(prefixes).not.toContain("");
+  });
+
   it("优先级4: 多个 Router 导出但无 routeConfigs 应跳过", async () => {
     const mockUse = vi.fn();
     const mockApp = { use: mockUse } as unknown as Express;

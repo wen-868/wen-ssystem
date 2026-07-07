@@ -324,51 +324,76 @@ describe("runMigrations", () => {
   });
 
   it("查询返回 SHA256 用户应触发密码修复", async () => {
-    // 通过 SQL 内容识别 SHA256 查询并返回用户数据
     mockQuery.mockImplementation((sql: unknown) => {
       if (typeof sql === "string" && sql.includes("password_hash NOT LIKE")) {
-        return Promise.resolve([{ id: 1, password_hash: "a".repeat(64) }]);
+        return Promise.resolve([[{ id: 1, password_hash: "a".repeat(64) }]]);
       }
       return Promise.resolve([{ affectedRows: 0 }]);
     });
 
     await runMigrations();
 
-    // 应该调用了 SHA256 检测查询
     const shaQuery = mockQuery.mock.calls.find(
       (call: unknown[]) => typeof call[0] === "string" && (call[0] as string).includes("password_hash NOT LIKE")
     );
     expect(shaQuery).toBeDefined();
-    // 如果 bcryptjs mock 正确，还应调用 UPDATE
-    // 无论 UPDATE 是否调用，SHA256 查询分支已被覆盖
   });
 
-  it("tenant 表有数据且 name 列存在时应更新", async () => {
-    // colCheck 返回 cnt=1（有 name 列），tRows 返回有数据
-    let callCount = 0;
-    mockQuery.mockImplementation(() => {
-      callCount++;
-      if (callCount === 1) return Promise.resolve([{ cnt: 1 }]);
-      if (callCount === 2) return Promise.resolve([{ id: "default" }]);
+  it("tenant 表无数据且 name 列存在时应插入默认租户（line 156）", async () => {
+    mockQuery.mockImplementation((sql: unknown) => {
+      if (typeof sql === "string" && sql.includes("information_schema.COLUMNS")) {
+        return Promise.resolve([[{ cnt: 1 }]]);
+      }
+      if (typeof sql === "string" && sql.includes("SELECT id FROM tenant WHERE id = 'default'")) {
+        return Promise.resolve([[]]);
+      }
       return Promise.resolve([{ affectedRows: 0 }]);
     });
 
     await runMigrations();
 
-    expect(mockCreateConnection).toHaveBeenCalled();
+    const insertCall = mockQuery.mock.calls.find(
+      (call: unknown[]) => typeof call[0] === "string" && (call[0] as string).includes("INSERT INTO tenant")
+    );
+    expect(insertCall).toBeDefined();
+  });
+
+  it("tenant 表有数据且 name 列存在时应更新默认租户名称（line 161）", async () => {
+    mockQuery.mockImplementation((sql: unknown) => {
+      if (typeof sql === "string" && sql.includes("information_schema.COLUMNS")) {
+        return Promise.resolve([[{ cnt: 1 }]]);
+      }
+      if (typeof sql === "string" && sql.includes("SELECT id FROM tenant WHERE id = 'default'")) {
+        return Promise.resolve([[{ id: "default" }]]);
+      }
+      return Promise.resolve([{ affectedRows: 0 }]);
+    });
+
+    await runMigrations();
+
+    const updateCall = mockQuery.mock.calls.find(
+      (call: unknown[]) => typeof call[0] === "string" && (call[0] as string).includes("UPDATE tenant SET name")
+    );
+    expect(updateCall).toBeDefined();
   });
 
   it("tenant 表无 name 列时应跳过租户数据操作", async () => {
-    let callCount = 0;
-    mockQuery.mockImplementation(() => {
-      callCount++;
-      if (callCount === 1) return Promise.resolve([{ cnt: 0 }]); // 无 name 列
+    mockQuery.mockImplementation((sql: unknown) => {
+      if (typeof sql === "string" && sql.includes("information_schema.COLUMNS")) {
+        return Promise.resolve([[{ cnt: 0 }]]);
+      }
+      if (typeof sql === "string" && sql.includes("SELECT id FROM tenant WHERE id = 'default'")) {
+        return Promise.resolve([[]]);
+      }
       return Promise.resolve([{ affectedRows: 0 }]);
     });
 
     await runMigrations();
 
     expect(mockCreateConnection).toHaveBeenCalled();
+    expect(mockLoggerInfo).toHaveBeenCalledWith(
+      "[migration] tenant 表缺少 name 列，跳过租户数据操作"
+    );
   });
 
   it("外部 SQL 文件无内容时应安全处理", async () => {
@@ -403,18 +428,78 @@ describe("runMigrations", () => {
     expect(selectCall).toBeDefined();
   });
 
-  it("迁移过程出错时应记录错误但不抛出（line 380）", async () => {
-    // 让某个 safeExec 之外的查询抛出非跳过错误
-    mockQuery.mockImplementationOnce(() => {
+  it("迁移过程出错时应记录错误但不抛出（line 381）", async () => {
+    // 让 readdirSync 抛出同步错误，触发最外层 catch
+    mockReaddirSync.mockImplementationOnce(() => {
       throw new Error("Unexpected critical error");
     });
 
     await expect(runMigrations()).resolves.not.toThrow();
+    expect(mockLoggerError).toHaveBeenCalledWith(
+      "[migration] 迁移过程出错:",
+      "Unexpected critical error"
+    );
   });
 
   it("conn.end 抛错时应安全处理（finally 块）", async () => {
     mockEnd.mockRejectedValueOnce(new Error("end error"));
 
     await expect(runMigrations()).resolves.not.toThrow();
+  });
+
+  it("租户数据操作失败时应捕获异常并记录错误（line 169）", async () => {
+    // 让 information_schema 查询抛出错误
+    mockQuery.mockImplementation((sql: unknown) => {
+      if (typeof sql === "string" && sql.includes("information_schema.COLUMNS")) {
+        return Promise.reject(new Error("information_schema query failed"));
+      }
+      return Promise.resolve([{ affectedRows: 0 }]);
+    });
+
+    await expect(runMigrations()).resolves.not.toThrow();
+    expect(mockLoggerError).toHaveBeenCalledWith(
+      "[migration] 租户数据操作失败:",
+      "information_schema query failed"
+    );
+  });
+
+  it("存在 SHA256 密码用户时应修复为 bcrypt 哈希（lines 209-214）", async () => {
+    const shaUser = { id: 1, password_hash: "a".repeat(64) };
+    let shaQueryCalled = false;
+    let updateCalled = false;
+
+    mockQuery.mockImplementation((sql: unknown) => {
+      if (typeof sql === "string" && sql.includes("password_hash NOT LIKE")) {
+        shaQueryCalled = true;
+        return Promise.resolve([[shaUser]]);
+      }
+      if (typeof sql === "string" && sql.includes("UPDATE t_sys_user SET password_hash")) {
+        updateCalled = true;
+        return Promise.resolve([{ affectedRows: 1 }]);
+      }
+      return Promise.resolve([{ affectedRows: 0 }]);
+    });
+
+    await runMigrations();
+
+    expect(shaQueryCalled).toBe(true);
+    expect(updateCalled).toBe(true);
+    expect(mockHashSync).toHaveBeenCalledWith("admin123", 10);
+  });
+
+  it("SHA256 密码修复过程中出错时应捕获异常（line 216）", async () => {
+    // 让 SHA256 用户查询抛出错误
+    mockQuery.mockImplementation((sql: unknown) => {
+      if (typeof sql === "string" && sql.includes("password_hash NOT LIKE")) {
+        return Promise.reject(new Error("SHA256 query failed"));
+      }
+      return Promise.resolve([{ affectedRows: 0 }]);
+    });
+
+    await expect(runMigrations()).resolves.not.toThrow();
+    expect(mockLoggerError).toHaveBeenCalledWith(
+      "[migration] 密码修复失败:",
+      "SHA256 query failed"
+    );
   });
 });

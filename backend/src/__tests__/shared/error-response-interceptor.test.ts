@@ -1,7 +1,8 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
 
-const { mockInsertErrorLog } = vi.hoisted(() => ({
+const { mockInsertErrorLog, mockReportToLingZhou } = vi.hoisted(() => ({
   mockInsertErrorLog: vi.fn().mockResolvedValue(undefined),
+  mockReportToLingZhou: vi.fn().mockResolvedValue({ ok: false }),
 }));
 
 vi.mock("../../services/admin/error-log.service.js", () => ({
@@ -9,19 +10,25 @@ vi.mock("../../services/admin/error-log.service.js", () => ({
 }));
 
 vi.mock("../../shared/feishu-report.js", () => ({
-  reportToLingZhou: vi.fn().mockResolvedValue({ ok: false }),
+  reportToLingZhou: mockReportToLingZhou,
 }));
 
 import { errorResponseInterceptor } from "../../shared/error-response-interceptor.js";
 import type { Request, Response, NextFunction } from "express";
 
-function mockReqRes(url = "/api/test", method = "GET", user?: { id: number }) {
+function mockReqRes(
+  url = "/api/test",
+  method = "GET",
+  user?: { id: number },
+  tenantId: number | string | null = "default",
+  originalUrl?: string
+) {
   const req = {
-    originalUrl: url,
+    originalUrl: originalUrl !== undefined ? originalUrl : url,
     url,
     method,
     user,
-    tenantId: "default",
+    tenantId,
   } as unknown as Request;
 
   let statusCode = 200;
@@ -197,6 +204,122 @@ describe("error-response-interceptor", () => {
     expect(mockInsertErrorLog).toHaveBeenCalledWith(
       expect.objectContaining({
         message: "请求错误",
+      })
+    );
+  });
+
+  it("500 错误且 userId=null, tenantId=null 时，飞书告警中应显示\"未登录\"和\"N/A\"", () => {
+    const { req, res, next } = mockReqRes("/api/error", "POST", undefined, null);
+    errorResponseInterceptor(req, res as any, next);
+
+    res.status(500).json({ msg: "服务器内部错误" });
+
+    expect(mockReportToLingZhou).toHaveBeenCalledWith(
+      expect.objectContaining({
+        phase: "系统错误告警",
+        status: "BLOCKED",
+        details: expect.arrayContaining([
+          { label: "用户ID", value: "未登录" },
+          { label: "租户ID", value: "N/A" },
+        ]),
+      })
+    );
+  });
+
+  it("500 错误且有 user 和 tenantId 时，飞书告警中应显示实际 userId 和 tenantId", () => {
+    const { req, res, next } = mockReqRes("/api/crash", "POST", { id: 123 }, 456);
+    errorResponseInterceptor(req, res as any, next);
+
+    res.status(500).json({ msg: "服务器内部错误" });
+
+    expect(mockReportToLingZhou).toHaveBeenCalledWith(
+      expect.objectContaining({
+        phase: "系统错误告警",
+        status: "BLOCKED",
+        summary: "[POST] /api/crash — 服务器内部错误",
+        details: expect.arrayContaining([
+          { label: "请求URL", value: "POST /api/crash" },
+          { label: "用户ID", value: 123 },
+          { label: "租户ID", value: 456 },
+          { label: "状态码", value: "500" },
+          { label: "错误消息", value: "服务器内部错误" },
+        ]),
+      })
+    );
+  });
+
+  it("req.originalUrl 不存在时应回退到 req.url", () => {
+    const { req, res, next } = mockReqRes(
+      "/api/fallback",
+      "GET",
+      { id: 1 },
+      1,
+      undefined as any
+    );
+    (req as any).originalUrl = undefined;
+    errorResponseInterceptor(req, res as any, next);
+
+    res.status(500).json({ msg: "错误" });
+
+    expect(mockInsertErrorLog).toHaveBeenCalledWith(
+      expect.objectContaining({
+        request_url: "/api/fallback",
+      })
+    );
+
+    expect(mockReportToLingZhou).toHaveBeenCalledWith(
+      expect.objectContaining({
+        summary: "[GET] /api/fallback — 错误",
+        details: expect.arrayContaining([
+          { label: "请求URL", value: "GET /api/fallback" },
+        ]),
+      })
+    );
+  });
+
+  it("req.originalUrl 和 req.url 都为 undefined 时 requestUrl 应为空字符串", () => {
+    const { req, res, next } = mockReqRes();
+    (req as any).originalUrl = undefined;
+    (req as any).url = undefined;
+    errorResponseInterceptor(req, res as any, next);
+
+    res.status(500).json({ msg: "错误" });
+
+    expect(mockInsertErrorLog).toHaveBeenCalledWith(
+      expect.objectContaining({
+        request_url: "",
+      })
+    );
+
+    expect(mockReportToLingZhou).toHaveBeenCalledWith(
+      expect.objectContaining({
+        summary: "[GET]  — 错误",
+        details: expect.arrayContaining([
+          { label: "请求URL", value: "GET " },
+        ]),
+      })
+    );
+  });
+
+  it("req.method 为 undefined 时 requestMethod 应为空字符串", () => {
+    const { req, res, next } = mockReqRes();
+    (req as any).method = undefined;
+    errorResponseInterceptor(req, res as any, next);
+
+    res.status(500).json({ msg: "错误" });
+
+    expect(mockInsertErrorLog).toHaveBeenCalledWith(
+      expect.objectContaining({
+        request_method: "",
+      })
+    );
+
+    expect(mockReportToLingZhou).toHaveBeenCalledWith(
+      expect.objectContaining({
+        summary: "[] /api/test — 错误",
+        details: expect.arrayContaining([
+          { label: "请求URL", value: " /api/test" },
+        ]),
       })
     );
   });
