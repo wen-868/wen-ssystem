@@ -51,6 +51,36 @@ agents:
     blockers: []
     daily_capacity: 8h
 
+  - id: agent-mo
+    name: 墨
+    role: 前端开发工程师（admin-web 管理后台）
+    skills:
+      - Vue3/Element Plus
+      - 管理后台开发
+      - 产品规格编写
+      - 即时零售模块
+      - 订阅管理
+    status: idle
+    current_task: null
+    progress: 0
+    blockers: []
+    daily_capacity: 8h
+
+  - id: agent-ache
+    name: 阿澈
+    role: 前端开发工程师（merchant-mobile 商户端）
+    skills:
+      - Vue3/Vant
+      - 商户端H5开发
+      - DDL/数据库迁移
+      - 营销模块
+      - 系统设置
+    status: idle
+    current_task: null
+    progress: 0
+    blockers: []
+    daily_capacity: 8h
+
 # ========== 当前阶段：功能开发 Sprint（聚焦快速开单）==========
 tasks:
 
@@ -452,6 +482,159 @@ tasks:
     deliverables:
       - 扫码收银页
       - 收款页面
+
+  # ==================== 墨（admin-web 前端）任务 ====================
+
+  - id: M101
+    title: 管理后台 - 商品管理优化
+    description: |
+      管理后台 - 商品管理模块优化：
+      1. 商品列表页性能优化（虚拟滚动、懒加载）
+      2. 商品新增/编辑表单优化（分类联动、规格配置）
+      3. 商品图片上传与预览
+      4. 商品导入导出（Excel）
+      技术：Vue3 + Element Plus + admin-web
+    assignee: agent-mo
+    priority: P1
+    status: todo
+    estimated_hours: 16
+    dependencies: []
+    deliverables:
+      - 商品列表优化
+      - 商品表单优化
+      - 导入导出功能
+
+  - id: M102
+    title: 管理后台 - 即时零售模块
+    description: |
+      管理后台 - 即时零售对接：
+      1. 即时零售订单列表（美团/饿了么/抖音）
+      2. 订单详情与状态同步
+      3. 商品映射配置（本地商品 <-> 平台商品）
+      4. 库存同步设置
+      技术：Vue3 + Element Plus + admin-web
+    assignee: agent-mo
+    priority: P1
+    status: todo
+    estimated_hours: 20
+    dependencies: []
+    deliverables:
+      - 即时零售订单页
+      - 商品映射配置
+      - 库存同步设置
+
+  - id: M103
+    title: 管理后台 - 订阅管理
+    description: |
+      管理后台 - SaaS 订阅管理：
+      1. 套餐管理（创建/编辑/上下架）
+      2. 租户订阅列表与状态
+      3. 订阅续费/升级/降级流程
+      4. 账单管理
+      技术：Vue3 + Element Plus + saas-admin
+    assignee: agent-mo
+    priority: P2
+    status: todo
+    estimated_hours: 18
+    dependencies: []
+    deliverables:
+      - 套餐管理页面
+      - 订阅管理页面
+      - 账单管理页面
+
+  - id: M104
+    title: 产品规格文档维护
+    description: |
+      维护产品规格文档：
+      1. 更新 docs/product-spec-v6-adapted.md
+      2. 补充 Phase 2 功能规格（供应商、采购、销售退货、客户往来）
+      3. 输出交互原型与 UI 规范对接林夕
+    assignee: agent-mo
+    priority: P1
+    status: todo
+    estimated_hours: 12
+    dependencies: []
+    deliverables:
+      - 产品规格文档更新
+      - 交互说明文档
+
+  # ==================== 阿澈（merchant-mobile 前端）任务 ====================
+
+  - id: C101
+    title: 商户端H5 - 营销活动模块
+    description: |
+      商户端H5 - 营销活动管理：
+      1. 满减活动列表/创建/编辑
+      2. 优惠券管理（创建/发放/核销）
+      3. 会员积分规则配置
+      4. 活动数据看板
+      技术：Vue3 + Vant + merchant-mobile
+    assignee: agent-ache
+    priority: P1
+    status: todo
+    estimated_hours: 20
+    dependencies: []
+    deliverables:
+      - 营销活动页面
+      - 优惠券管理
+      - 活动看板
+
+  - id: C102
+    title: 商户端H5 - 系统设置
+    description: |
+      商户端H5 - 系统设置模块：
+      1. 门店信息管理（营业时间、联系方式、地址）
+      2. 打印机配置（小票打印机绑定）
+      3. 通知设置（订单通知、库存预警通知）
+      4. 权限管理（店员账号、角色权限）
+      技术：Vue3 + Vant + merchant-mobile
+    assignee: agent-ache
+    priority: P1
+    status: todo
+    estimated_hours: 16
+    dependencies: []
+    deliverables:
+      - 门店信息设置
+      - 打印机配置
+      - 通知设置
+      - 权限管理
+
+  - id: C103
+    title: 数据库迁移脚本维护
+    description: |
+      维护 Phase 2 数据库迁移：
+      1. 编写 docs/migrations/ 迁移脚本
+      2. phase2_schema.sql 表结构审查与优化
+      3. 索引优化（供应商查询、采购订单查询）
+      4. 数据迁移脚本（从 phase1 升级到 phase2）
+    assignee: agent-ache
+    priority: P0
+    status: todo
+    estimated_hours: 14
+    dependencies: []
+    deliverables:
+      - 迁移脚本
+      - 索引优化方案
+      - 数据升级脚本
+
+  - id: C104
+    title: 商户端H5 - 数据看板
+    description: |
+      商户端H5 - 经营数据看板：
+      1. 今日销售概览（销售额、订单数、客单价）
+      2. 商品销售排行
+      3. 库存概览与预警提醒
+      4. 近7天/30天趋势图
+      技术：Vue3 + Vant + ECharts + merchant-mobile
+    assignee: agent-ache
+    priority: P2
+    status: todo
+    estimated_hours: 18
+    dependencies: []
+    deliverables:
+      - 销售概览页
+      - 商品排行
+      - 趋势图表
 
   # ==================== 苏然（测试）任务 ====================
 
