@@ -1,17 +1,21 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
 
-// mock db 和 error-log service
+const { mockInsertErrorLog, mockReportToLingZhou } = vi.hoisted(() => ({
+  mockInsertErrorLog: vi.fn().mockResolvedValue(undefined),
+  mockReportToLingZhou: vi.fn().mockResolvedValue({ ok: false, status: 0, data: {} }),
+}));
+
 vi.mock("../../shared/db.js", () => ({
   queryWithTenant: vi.fn(),
   queryOneWithTenant: vi.fn(),
 }));
 
 vi.mock("../../services/admin/error-log.service.js", () => ({
-  insertErrorLog: vi.fn().mockResolvedValue(undefined),
+  insertErrorLog: mockInsertErrorLog,
 }));
 
 vi.mock("../../shared/feishu-report.js", () => ({
-  reportToLingZhou: vi.fn().mockResolvedValue({ ok: false, status: 0, data: {} }),
+  reportToLingZhou: mockReportToLingZhou,
 }));
 
 import { errorHandler } from "../../shared/error-handler.js";
@@ -146,5 +150,162 @@ describe("error-handler", () => {
         msg: "自定义错误",
       })
     );
+  });
+
+  it("originalUrl 为 undefined 时回退到 req.url", () => {
+    const { req, res, next } = mockReqRes();
+    (req as any).originalUrl = undefined;
+    req.url = "/fallback-url";
+    const err = new Error("test");
+
+    errorHandler(err, req, res, next);
+
+    expect(res.status).toHaveBeenCalledWith(500);
+  });
+
+  it("method 为 undefined 时返回空字符串", () => {
+    const { req, res, next } = mockReqRes();
+    (req as any).method = undefined;
+    const err = new Error("test");
+
+    errorHandler(err, req, res, next);
+
+    expect(res.status).toHaveBeenCalledWith(500);
+  });
+
+  it("err 为 null 应返回 500", () => {
+    const { req, res, next } = mockReqRes();
+
+    errorHandler(null as any, req, res, next);
+
+    expect(res.status).toHaveBeenCalledWith(500);
+  });
+
+  it("err 为对象但无 statusCode 走未知错误分支", () => {
+    const { req, res, next } = mockReqRes();
+    const err = { foo: "bar" };
+
+    errorHandler(err as any, req, res, next);
+
+    expect(res.status).toHaveBeenCalledWith(500);
+  });
+
+  it("statusCode 对象无 message 时使用默认消息", () => {
+    const { req, res, next } = mockReqRes();
+    const err = { statusCode: 400 };
+
+    errorHandler(err as any, req, res, next);
+
+    expect(res.status).toHaveBeenCalledWith(400);
+    expect(res.json).toHaveBeenCalledWith(
+      expect.objectContaining({
+        msg: "请求错误",
+      })
+    );
+  });
+
+  it("5xx 错误 insertErrorLog 失败不阻断响应", () => {
+    const { req, res, next } = mockReqRes();
+    const err = new AppError("服务器错误", 500);
+
+    mockInsertErrorLog.mockRejectedValueOnce(new Error("db down"));
+
+    errorHandler(err, req, res, next);
+
+    expect(res.status).toHaveBeenCalledWith(500);
+    expect(res.json).toHaveBeenCalled();
+  });
+
+  it("5xx 错误 reportToLingZhou 失败不阻断响应", () => {
+    const { req, res, next } = mockReqRes();
+    const err = new AppError("服务器错误", 500);
+
+    mockReportToLingZhou.mockRejectedValueOnce(new Error("webhook fail"));
+
+    errorHandler(err, req, res, next);
+
+    expect(res.status).toHaveBeenCalledWith(500);
+    expect(res.json).toHaveBeenCalled();
+  });
+
+  it("未知错误 insertErrorLog 失败不阻断响应", () => {
+    const { req, res, next } = mockReqRes();
+    const err = new Error("未知错误");
+
+    mockInsertErrorLog.mockRejectedValueOnce(new Error("db down"));
+
+    errorHandler(err, req, res, next);
+
+    expect(res.status).toHaveBeenCalledWith(500);
+    expect(res.json).toHaveBeenCalled();
+  });
+
+  it("未知错误 reportToLingZhou 失败不阻断响应", () => {
+    const { req, res, next } = mockReqRes();
+    const err = new Error("未知错误");
+
+    mockReportToLingZhou.mockRejectedValueOnce(new Error("webhook fail"));
+
+    errorHandler(err, req, res, next);
+
+    expect(res.status).toHaveBeenCalledWith(500);
+    expect(res.json).toHaveBeenCalled();
+  });
+
+  it("user 无 id 时 userId 为 undefined", () => {
+    const { req, res, next } = mockReqRes();
+    req.user = {} as any;
+    const err = new Error("test");
+
+    errorHandler(err, req, res, next);
+
+    expect(res.status).toHaveBeenCalledWith(500);
+  });
+
+  it("ZodError 的 path 为空时使用 root", () => {
+    const { req, res, next } = mockReqRes();
+    const schema = z.object({ name: z.string() });
+    let zodErr: ZodError;
+    try {
+      // path 为空的情况：使用 refine 产生顶层错误
+      z.string()
+        .refine(() => false, { message: "顶层错误" })
+        .parse("x");
+    } catch (e) {
+      zodErr = e as ZodError;
+    }
+    errorHandler(zodErr!, req, res, next);
+
+    expect(res.status).toHaveBeenCalledWith(400);
+  });
+
+  it("errorStack 为 undefined 时 details 中堆栈为空字符串", () => {
+    const { req, res, next } = mockReqRes();
+    const err = "字符串错误";
+
+    errorHandler(err as any, req, res, next);
+
+    expect(res.status).toHaveBeenCalledWith(500);
+  });
+
+  it("tenantId 为 undefined 时使用空/N/A", () => {
+    const { req, res, next } = mockReqRes();
+    delete (req as any).tenantId;
+    const err = new Error("test");
+
+    errorHandler(err, req, res, next);
+
+    expect(res.status).toHaveBeenCalledWith(500);
+  });
+
+  it("originalUrl 和 url 都为 falsy 时返回空字符串", () => {
+    const { req, res, next } = mockReqRes();
+    req.originalUrl = "";
+    req.url = "";
+    const err = new Error("test");
+
+    errorHandler(err, req, res, next);
+
+    expect(res.status).toHaveBeenCalledWith(500);
   });
 });

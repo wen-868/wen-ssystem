@@ -19,9 +19,11 @@ import {
   canAccessStore,
   requireRoles,
   requireAuth,
+  requirePlatformAuth,
   signToken,
   type AuthUser,
 } from "../../shared/auth.js";
+import jwt from "jsonwebtoken";
 import type { Request, Response, NextFunction } from "express";
 
 function makeUser(roles: string[], opts?: { id?: number; storeId?: number | null }): AuthUser {
@@ -210,6 +212,86 @@ describe("auth middleware", () => {
 
       expect(res.status).toHaveBeenCalledWith(401);
       expect(next).not.toHaveBeenCalled();
+    });
+  });
+
+  describe("requirePlatformAuth", () => {
+    function signPlatformToken(payload: Record<string, unknown>) {
+      return jwt.sign(payload, "test-secret-key-for-vitest");
+    }
+
+    it("无 token 应返回 401", () => {
+      const req = { headers: {} } as unknown as Request;
+      const res = {
+        status: vi.fn().mockReturnThis(),
+        json: vi.fn(),
+      } as unknown as Response;
+      const next = vi.fn() as unknown as NextFunction;
+
+      requirePlatformAuth(req, res, next);
+
+      expect(res.status).toHaveBeenCalledWith(401);
+      expect(next).not.toHaveBeenCalled();
+    });
+
+    it("有效 platform_admin token 应调用 next", () => {
+      const token = signPlatformToken({ type: "platform_admin", id: 1, tenantId: 1 });
+      const req = {
+        headers: { authorization: `Bearer ${token}` },
+      } as unknown as Request;
+      const res = { status: vi.fn(), json: vi.fn() } as unknown as Response;
+      const next = vi.fn() as unknown as NextFunction;
+
+      requirePlatformAuth(req, res, next);
+
+      expect(next).toHaveBeenCalled();
+      expect(req.user).toBeDefined();
+    });
+
+    it("token 类型不是 platform_admin 应返回 403", () => {
+      const token = signPlatformToken({ type: "normal_user", id: 1 });
+      const req = {
+        headers: { authorization: `Bearer ${token}` },
+      } as unknown as Request;
+      const res = {
+        status: vi.fn().mockReturnThis(),
+        json: vi.fn(),
+      } as unknown as Response;
+      const next = vi.fn() as unknown as NextFunction;
+
+      requirePlatformAuth(req, res, next);
+
+      expect(res.status).toHaveBeenCalledWith(403);
+      expect(next).not.toHaveBeenCalled();
+    });
+
+    it("无效 token 应返回 401", () => {
+      const req = {
+        headers: { authorization: "Bearer invalid-token" },
+      } as unknown as Request;
+      const res = {
+        status: vi.fn().mockReturnThis(),
+        json: vi.fn(),
+      } as unknown as Response;
+      const next = vi.fn() as unknown as NextFunction;
+
+      requirePlatformAuth(req, res, next);
+
+      expect(res.status).toHaveBeenCalledWith(401);
+      expect(next).not.toHaveBeenCalled();
+    });
+
+    it("Bearer 前缀大小写不敏感", () => {
+      const token = signPlatformToken({ type: "platform_admin", id: 1 });
+      const req = {
+        headers: { authorization: `bearer ${token}` },
+      } as unknown as Request;
+      const res = { status: vi.fn(), json: vi.fn() } as unknown as Response;
+      const next = vi.fn() as unknown as NextFunction;
+
+      requirePlatformAuth(req, res, next);
+
+      expect(next).toHaveBeenCalled();
     });
   });
 });

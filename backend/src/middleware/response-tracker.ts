@@ -64,7 +64,7 @@ export function getStats(): TrackerStats {
   const count = Math.min(totalInserted, BUFFER_CAPACITY);
   for (let i = 0; i < count; i++) {
     const record = buffer[i];
-    if (!record || record.timestamp < cutoff) continue;
+    if (record.timestamp < cutoff) continue;
 
     totalRequests++;
     totalResponseTime += record.responseTime;

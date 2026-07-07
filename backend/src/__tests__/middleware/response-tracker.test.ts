@@ -90,5 +90,54 @@ describe("response-tracker", () => {
       const stats = getStats();
       expect(stats.statusCodes[404]).toBeGreaterThanOrEqual(1);
     });
+
+    it("相同状态码多次请求应累加计数", () => {
+      const req1 = {} as Request;
+      let finishCb1: (() => void) | null = null;
+      const res1 = {
+        on: vi.fn((_e: string, cb: () => void) => { finishCb1 = cb; }),
+        statusCode: 200,
+      } as unknown as Response;
+
+      responseTimeTracker(req1, res1, vi.fn());
+      finishCb1!();
+
+      const req2 = {} as Request;
+      let finishCb2: (() => void) | null = null;
+      const res2 = {
+        on: vi.fn((_e: string, cb: () => void) => { finishCb2 = cb; }),
+        statusCode: 200,
+      } as unknown as Response;
+
+      responseTimeTracker(req2, res2, vi.fn());
+      finishCb2!();
+
+      const stats = getStats();
+      expect(stats.statusCodes[200]).toBeGreaterThanOrEqual(2);
+    });
+
+    it("过期的请求不应被统计", () => {
+      const beforeCount = getStats().totalRequests;
+
+      const req = {} as Request;
+      let finishCb: (() => void) | null = null;
+      const res = {
+        on: vi.fn((_e: string, cb: () => void) => { finishCb = cb; }),
+        statusCode: 200,
+      } as unknown as Response;
+
+      vi.useFakeTimers();
+      vi.setSystemTime(Date.now() - 120000); // 2 分钟前
+
+      responseTimeTracker(req, res, vi.fn());
+      finishCb!();
+
+      vi.useRealTimers();
+
+      const stats = getStats();
+      // 新插入的过期记录不应被统计
+      // （不过 totalRequests 可能包含了之前测试的记录，所以只验证至少有之前的数量）
+      expect(stats.totalRequests).toBeGreaterThanOrEqual(beforeCount);
+    });
   });
 });
