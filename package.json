@@ -38,7 +38,9 @@
     "test:acceptance:production": "node scripts/acceptance-production.mjs"
   },
   "devDependencies": {
+    "@eslint/js": "^10.0.1",
     "esbuild": "^0.25.0",
+    "typescript-eslint": "^8.63.0",
     "wait-on": "^9.0.10"
   },
   "dependencies": {
