@@ -38,11 +38,9 @@ export function applyDataPermissionFilter(user: AuthUser, tableName: string): st
     }
     return "1=0";
   }
-  if (scope === "SELF") {
-    if (tableName === "sys_user" || tableName === "employee") {
-      return `id = ${user.id}`;
-    }
-    return "1=0";
+  // scope === "SELF"（getDataScope 默认返回值）
+  if (tableName === "sys_user" || tableName === "employee") {
+    return `id = ${user.id}`;
   }
   return "1=0";
 }

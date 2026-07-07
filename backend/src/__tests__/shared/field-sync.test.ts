@@ -106,8 +106,8 @@ describe("field-sync", () => {
     });
 
     it("新增字段视为变更", () => {
-      const updates = { newField: "value" };
-      const existing = { name: "test" };
+      const updates: Record<string, unknown> = { newField: "value" };
+      const existing: Record<string, unknown> = { name: "test" };
       expect(detectChangedFields(updates, existing)).toContain("newField");
     });
 

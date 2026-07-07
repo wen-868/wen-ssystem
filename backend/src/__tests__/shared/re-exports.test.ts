@@ -21,6 +21,15 @@ import {
 import { cacheGet, cacheDel, cacheDelPattern, invalidateTenantCache, CacheKeys } from "../../shared/redis-cache.js";
 import { WechatPay } from "../../shared/wechat-pay.js";
 import * as priceGuardMiddleware from "../../shared/price-guard-middleware.js";
+import {
+  getUserAccessInfo,
+  hasAnyRole,
+  canAccessStore,
+  signToken,
+  requireRoles,
+  requireAuth,
+  requireAuthWithTenant,
+} from "../../shared/auth.js";
 
 describe("shared re-exports", () => {
   it("env 应导出 env 对象", () => {
@@ -78,5 +87,15 @@ describe("shared re-exports", () => {
   it("price-guard-middleware 应 re-export 中间件", () => {
     expect(priceGuardMiddleware).toBeDefined();
     expect(Object.keys(priceGuardMiddleware).length).toBeGreaterThan(0);
+  });
+
+  it("auth 应 re-export 认证相关函数", () => {
+    expect(typeof getUserAccessInfo).toBe("function");
+    expect(typeof hasAnyRole).toBe("function");
+    expect(typeof canAccessStore).toBe("function");
+    expect(typeof signToken).toBe("function");
+    expect(typeof requireRoles).toBe("function");
+    expect(typeof requireAuth).toBe("function");
+    expect(Array.isArray(requireAuthWithTenant)).toBe(true);
   });
 });

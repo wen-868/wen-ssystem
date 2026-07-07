@@ -49,6 +49,14 @@ export const TENANT_TABLES = [
   "daily_settlement",
 ];
 
+/** 跳过错误消息模式集合 */
+export const SKIP_PATTERNS = [
+  "duplicate column", "duplicate key", "already exists", "doesn't exist",
+  "innodb", "storage engine", "can't create/write", "permission denied",
+  "incorrect integer", "unknown column", "sql syntax", "if not exists",
+  "procedure",
+];
+
 export async function safeExec(conn: mysql.Connection, sql: string, label: string): Promise<boolean> {
   try {
     await conn.query(sql);
@@ -57,22 +65,10 @@ export async function safeExec(conn: mysql.Connection, sql: string, label: strin
     const err = (e ?? {}) as { code?: string; message?: string };
     const code = err.code || "";
     const msg = (err.message || "").toLowerCase();
-    // 静默跳过所有已知可忽略的错误
-    if (SKIP_ERRORS.has(code) ||
-        msg.includes("duplicate column") ||
-        msg.includes("duplicate key") ||
-        msg.includes("already exists") ||
-        msg.includes("doesn't exist") ||
-        msg.includes("innodb") ||
-        msg.includes("storage engine") ||
-        msg.includes("can't create/write") ||
-        msg.includes("permission denied") ||
-        msg.includes("incorrect integer") ||
-        msg.includes("unknown column") ||
-        msg.includes("sql syntax") ||
-        msg.includes("if not exists") ||
-        msg.includes("procedure") ||
-        (msg.includes("table") && msg.includes("already exists"))) {
+    // 静默跳过所有已知可忽略的错误（"already exists" 等已在 SKIP_PATTERNS 中覆盖）
+    const shouldSkip = SKIP_ERRORS.has(code)
+      || SKIP_PATTERNS.some((p) => msg.includes(p));
+    if (shouldSkip) {
       logger.info(`[migration] ${label}: 跳过 (${code || 'OK'})`);
       return false;
     }
@@ -380,6 +376,6 @@ export async function runMigrations(): Promise<void> {
   } catch (e: unknown) {
     logger.error("[migration] 迁移过程出错:", (e as any).message);
   } finally {
-    if (conn) await conn.end().catch(() => {});
+    await conn.end().catch(() => {});
   }
 }

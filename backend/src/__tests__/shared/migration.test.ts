@@ -63,6 +63,7 @@ vi.mock("bcryptjs", () => ({
 }));
 
 import { runMigrations, safeExec, SKIP_ERRORS, TENANT_TABLES } from "../../shared/migration.js";
+import { env } from "../../shared/env.js";
 
 function makeMockConn(queryFn: ReturnType<typeof vi.fn> = vi.fn().mockResolvedValue([])): Connection {
   return { query: queryFn } as unknown as Connection;
@@ -231,6 +232,13 @@ describe("runMigrations", () => {
     expect(mockCreateConnection).toHaveBeenCalled();
     expect(mockQuery.mock.calls.length).toBeGreaterThan(5);
     expect(mockEnd).toHaveBeenCalled();
+  });
+
+  it("USE_MOCK_DB=true 时应直接返回（line 85）", async () => {
+    (env as any).USE_MOCK_DB = true;
+    await runMigrations();
+    expect(mockCreateConnection).not.toHaveBeenCalled();
+    (env as any).USE_MOCK_DB = false;
   });
 
   it("连接失败时应记录错误但不抛出", async () => {

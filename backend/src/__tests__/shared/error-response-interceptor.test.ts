@@ -323,4 +323,22 @@ describe("error-response-interceptor", () => {
       })
     );
   });
+
+  it("insertErrorLog reject 时 catch 回调应被触发且不抛出", async () => {
+    mockInsertErrorLog.mockRejectedValueOnce(new Error("db error"));
+    const { req, res, next } = mockReqRes();
+    errorResponseInterceptor(req, res as any, next);
+
+    expect(() => res.status(400).json({ msg: "错误" })).not.toThrow();
+    await new Promise((r) => setTimeout(r, 0));
+  });
+
+  it("reportToLingZhou reject 时 catch 回调应被触发且不抛出", async () => {
+    mockReportToLingZhou.mockRejectedValueOnce(new Error("feishu error"));
+    const { req, res, next } = mockReqRes("/api/crash", "POST", { id: 1 });
+    errorResponseInterceptor(req, res as any, next);
+
+    expect(() => res.status(500).json({ msg: "服务器错误" })).not.toThrow();
+    await new Promise((r) => setTimeout(r, 0));
+  });
 });

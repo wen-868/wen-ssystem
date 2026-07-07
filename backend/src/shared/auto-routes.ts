@@ -1,4 +1,4 @@
-import type { Express, Router } from "express";
+import type { Express, Router, RequestHandler } from "express";
 import { readdirSync } from "fs";
 import { fileURLToPath, pathToFileURL } from "url";
 import { dirname, join } from "path";
@@ -36,7 +36,7 @@ export function inferPrefix(filename: string): string {
 /**
  * 根据 auth 配置获取中间件数组
  */
-export function getAuthMiddlewares(auth?: RouteConfig["auth"]): unknown[] {
+export function getAuthMiddlewares(auth?: RouteConfig["auth"]): RequestHandler[] {
   switch (auth) {
     case "requireAuth":
       return [requireAuth];

@@ -96,23 +96,22 @@ export async function syncProductFullChain(
       if (shouldSync("unit")) { sets.push("unit = ?"); params.push(product.unit); fields.push("unit"); }
       if (shouldSync("status")) { sets.push("status = ?"); params.push(product.status); fields.push("status"); }
 
-      if (sets.length > 0) {
-        sets.push("updated_at = NOW()");
-        params.push(spuId, tenantId);
-        const result = await queryWithTenant<Record<string, unknown>>(
-          `UPDATE t_product_sku SET ${sets.join(", ")} WHERE spu_id = ? AND tenant_id = ?`,
-          params,
-          tenantId
-        );
-        stages.push({
-          stage: "SKU_SYNC",
-          targetTable: "product_sku",
-          syncedFields: fields,
-          affectedRows: Number((result as unknown as Record<string, unknown>)?.affectedRows) ?? 0,
-          durationMs: Date.now() - t1,
-          success: true
-        });
-      }
+      // 进入外层 if 后 sets.length 一定 > 0，无需重复检查
+      sets.push("updated_at = NOW()");
+      params.push(spuId, tenantId);
+      const result = await queryWithTenant<Record<string, unknown>>(
+        `UPDATE t_product_sku SET ${sets.join(", ")} WHERE spu_id = ? AND tenant_id = ?`,
+        params,
+        tenantId
+      );
+      stages.push({
+        stage: "SKU_SYNC",
+        targetTable: "product_sku",
+        syncedFields: fields,
+        affectedRows: Number((result as unknown as Record<string, unknown>)?.affectedRows) || 0,
+        durationMs: Date.now() - t1,
+        success: true
+      });
     } catch (err: unknown) {
       stages.push({
         stage: "SKU_SYNC",
@@ -147,7 +146,7 @@ export async function syncProductFullChain(
         stage: "INVENTORY_SYNC",
         targetTable: "inventory_balance",
         syncedFields: fields,
-        affectedRows: Number((result as unknown as Record<string, unknown>)?.affectedRows) ?? 0,
+        affectedRows: Number((result as unknown as Record<string, unknown>)?.affectedRows) || 0,
         durationMs: Date.now() - t2,
         success: true
       });
@@ -189,7 +188,7 @@ export async function syncProductFullChain(
         stage: "SALE_ORDER_SYNC",
         targetTable: "sale_bill_item",
         syncedFields: fields,
-        affectedRows: Number((result as unknown as Record<string, unknown>)?.affectedRows) ?? 0,
+        affectedRows: Number((result as unknown as Record<string, unknown>)?.affectedRows) || 0,
         durationMs: Date.now() - t3,
         success: true
       });
@@ -231,7 +230,7 @@ export async function syncProductFullChain(
         stage: "PURCHASE_ORDER_SYNC",
         targetTable: "purchase_order_item",
         syncedFields: fields,
-        affectedRows: Number((result as unknown as Record<string, unknown>)?.affectedRows) ?? 0,
+        affectedRows: Number((result as unknown as Record<string, unknown>)?.affectedRows) || 0,
         durationMs: Date.now() - t4,
         success: true
       });
@@ -263,7 +262,7 @@ export async function syncProductFullChain(
         stage: "LEDGER_SYNC",
         targetTable: "inventory_ledger",
         syncedFields: ["product_name"],
-        affectedRows: Number((result as unknown as Record<string, unknown>)?.affectedRows) ?? 0,
+        affectedRows: Number((result as unknown as Record<string, unknown>)?.affectedRows) || 0,
         durationMs: Date.now() - t5,
         success: true
       });
@@ -295,7 +294,7 @@ export async function syncProductFullChain(
         stage: "BATCH_SYNC",
         targetTable: "inventory_batch",
         syncedFields: ["product_name"],
-        affectedRows: Number((result as unknown as Record<string, unknown>)?.affectedRows) ?? 0,
+        affectedRows: Number((result as unknown as Record<string, unknown>)?.affectedRows) || 0,
         durationMs: Date.now() - t6,
         success: true
       });
@@ -327,7 +326,7 @@ export async function syncProductFullChain(
         stage: "MINIAPP_SYNC",
         targetTable: "miniapp_order_item",
         syncedFields: ["product_name"],
-        affectedRows: Number((result as unknown as Record<string, unknown>)?.affectedRows) ?? 0,
+        affectedRows: Number((result as unknown as Record<string, unknown>)?.affectedRows) || 0,
         durationMs: Date.now() - t7,
         success: true
       });
@@ -359,7 +358,7 @@ export async function syncProductFullChain(
         stage: "RETURN_SYNC",
         targetTable: "sale_return_item",
         syncedFields: ["product_name"],
-        affectedRows: Number((result as unknown as Record<string, unknown>)?.affectedRows) ?? 0,
+        affectedRows: Number((result as unknown as Record<string, unknown>)?.affectedRows) || 0,
         durationMs: Date.now() - t8,
         success: true
       });
@@ -391,7 +390,7 @@ export async function syncProductFullChain(
         stage: "IN_STOCK_SYNC",
         targetTable: "purchase_in_stock_item",
         syncedFields: ["product_name"],
-        affectedRows: Number((result as unknown as Record<string, unknown>)?.affectedRows) ?? 0,
+        affectedRows: Number((result as unknown as Record<string, unknown>)?.affectedRows) || 0,
         durationMs: Date.now() - t9a,
         success: true
       });
@@ -420,7 +419,7 @@ export async function syncProductFullChain(
         stage: "PURCHASE_RETURN_SYNC",
         targetTable: "purchase_return_item",
         syncedFields: ["product_name"],
-        affectedRows: Number((result as unknown as Record<string, unknown>)?.affectedRows) ?? 0,
+        affectedRows: Number((result as unknown as Record<string, unknown>)?.affectedRows) || 0,
         durationMs: Date.now() - t9b,
         success: true
       });
@@ -474,7 +473,7 @@ export async function syncProductStatus(
       stage: "STATUS_SKU",
       targetTable: "product_sku",
       syncedFields: ["status"],
-      affectedRows: Number((result as unknown as Record<string, unknown>)?.affectedRows) ?? 0,
+      affectedRows: Number((result as unknown as Record<string, unknown>)?.affectedRows) || 0,
       durationMs: Date.now() - t1,
       success: true
     });
@@ -540,7 +539,7 @@ export async function syncProductPrice(
           [value, price.sku_id, tenantId],
           tenantId
         );
-        count += Number((result as unknown as Record<string, unknown>)?.affectedRows) ?? 0;
+        count += Number((result as unknown as Record<string, unknown>)?.affectedRows) || 0;
       }
       results.push({
         stage: "PRICE_SALE_ORDER",
@@ -578,7 +577,7 @@ export async function syncProductPrice(
           [price.cost_price, price.sku_id, tenantId],
           tenantId
         );
-        count += Number((result as unknown as Record<string, unknown>)?.affectedRows) ?? 0;
+        count += Number((result as unknown as Record<string, unknown>)?.affectedRows) || 0;
       }
       results.push({
         stage: "PRICE_PURCHASE_ORDER",

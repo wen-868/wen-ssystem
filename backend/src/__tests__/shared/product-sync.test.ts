@@ -110,6 +110,48 @@ describe("product-sync", () => {
       expect(result.failCount).toBeGreaterThan(0);
     });
 
+    it("queryWithTenant 返回 null 时 affectedRows 应为 0（?. 和 || 分支）", async () => {
+      mockQueryOneWithTenant.mockResolvedValue({
+        id: 1,
+        productName: "test",
+        categoryId: 1,
+        categoryName: "cat",
+        brand: "brand",
+        unit: "box",
+        mainImage: "img",
+        status: "ACTIVE",
+      });
+      mockQueryWithTenant.mockResolvedValue(null);
+
+      const result = await syncProductFullChain(1, ["productName"], "default");
+
+      expect(result.stages.length).toBeGreaterThan(0);
+      for (const stage of result.stages) {
+        expect(stage.affectedRows).toBe(0);
+      }
+    });
+
+    it("queryWithTenant 返回无 affectedRows 字段时 affectedRows 应为 0", async () => {
+      mockQueryOneWithTenant.mockResolvedValue({
+        id: 1,
+        productName: "test",
+        categoryId: 1,
+        categoryName: "cat",
+        brand: "brand",
+        unit: "box",
+        mainImage: "img",
+        status: "ACTIVE",
+      });
+      mockQueryWithTenant.mockResolvedValue({});
+
+      const result = await syncProductFullChain(1, ["productName"], "default");
+
+      expect(result.stages.length).toBeGreaterThan(0);
+      for (const stage of result.stages) {
+        expect(stage.affectedRows).toBe(0);
+      }
+    });
+
     it("只有 categoryId 变更时同步 SKU 和库存表", async () => {
       mockQueryOneWithTenant.mockResolvedValue({
         id: 1,
@@ -259,6 +301,15 @@ describe("product-sync", () => {
       expect(results.length).toBeGreaterThan(0);
       expect(results[0].success).toBe(false);
     });
+
+    it("queryWithTenant 返回 null 时 affectedRows 应为 0", async () => {
+      mockQueryWithTenant.mockResolvedValue(null);
+
+      const results = await syncProductStatus(1, "INACTIVE", "default");
+
+      expect(results.length).toBeGreaterThan(0);
+      expect(results[0].affectedRows).toBe(0);
+    });
   });
 
   describe("syncProductPrice", () => {
@@ -385,6 +436,22 @@ describe("product-sync", () => {
       expect(purchaseOrderResult).toBeDefined();
       expect(purchaseOrderResult?.affectedRows).toBe(0);
     });
+
+    it("更新操作返回 null 时 count 应为 0（?. 和 || 分支）", async () => {
+      mockQueryWithTenant
+        .mockResolvedValueOnce([{ id: 1 }])
+        .mockResolvedValueOnce([{ sku_id: 1, retail_price: 100, wholesale_price: 80, cost_price: 50 }]);
+      mockQueryWithTenant.mockResolvedValue(null);
+
+      const results = await syncProductPrice(1, ["retailPrice", "costPrice"], "default");
+
+      const saleOrderResult = results.find(r => r.stage === "PRICE_SALE_ORDER");
+      const purchaseOrderResult = results.find(r => r.stage === "PRICE_PURCHASE_ORDER");
+      expect(saleOrderResult).toBeDefined();
+      expect(saleOrderResult?.affectedRows).toBe(0);
+      expect(purchaseOrderResult).toBeDefined();
+      expect(purchaseOrderResult?.affectedRows).toBe(0);
+    });
   });
 
   describe("getProductSyncStatus", () => {
@@ -439,6 +506,17 @@ describe("product-sync", () => {
       mockQueryOneWithTenant
         .mockResolvedValueOnce({ id: 1, name: "测试商品" })
         .mockResolvedValue({ no_cnt: 5 });
+
+      const result = await getProductSyncStatus(1, "default");
+
+      expect(result.targets.length).toBe(5);
+      expect(result.targets.every(t => t.recordCount === 0)).toBe(true);
+    });
+
+    it("查询结果为 null 时 recordCount 应为 0（?. 分支）", async () => {
+      mockQueryOneWithTenant
+        .mockResolvedValueOnce({ id: 1, name: "测试商品" })
+        .mockResolvedValue(null);
 
       const result = await getProductSyncStatus(1, "default");
 
