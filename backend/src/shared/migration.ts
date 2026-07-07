@@ -11,7 +11,7 @@ import { env } from "./env.js";
 import logger from "./logger.js";
 
 /** 跳过错误码集合 */
-const SKIP_ERRORS = new Set([
+export const SKIP_ERRORS = new Set([
   "ER_DUP_FIELDNAME", "ER_DUP_KEYNAME", "ER_DUP_ENTRY",
   "ER_NO_SUCH_TABLE", "ER_TABLE_EXISTS_ERROR",
   "ER_BAD_TABLE_ERROR", "ER_BAD_FIELD_ERROR",
@@ -22,7 +22,7 @@ const SKIP_ERRORS = new Set([
 ]);
 
 /** 需要添加 tenant_id 列的表 */
-const TENANT_TABLES = [
+export const TENANT_TABLES = [
   "sys_config", "sys_user", "sys_role", "sys_permission", "sys_user_role", "sys_role_permission",
   "store",
   "product_category", "product_spu", "product_sku", "product_price", "sku_price",
@@ -49,13 +49,14 @@ const TENANT_TABLES = [
   "daily_settlement",
 ];
 
-async function safeExec(conn: mysql.Connection, sql: string, label: string): Promise<boolean> {
+export async function safeExec(conn: mysql.Connection, sql: string, label: string): Promise<boolean> {
   try {
     await conn.query(sql);
     return true;
   } catch (e: unknown) {
-    const code = (e as any).code || "";
-    const msg = ((e as any).message || "").toLowerCase();
+    const err = (e ?? {}) as { code?: string; message?: string };
+    const code = err.code || "";
+    const msg = (err.message || "").toLowerCase();
     // 静默跳过所有已知可忽略的错误
     if (SKIP_ERRORS.has(code) ||
         msg.includes("duplicate column") ||
@@ -75,7 +76,7 @@ async function safeExec(conn: mysql.Connection, sql: string, label: string): Pro
       logger.info(`[migration] ${label}: 跳过 (${code || 'OK'})`);
       return false;
     }
-    logger.error(`[migration] ${label} 失败: ${(e as any).message}`);
+    logger.error(`[migration] ${label} 失败: ${err.message || String(e)}`);
     return false;
   }
 }

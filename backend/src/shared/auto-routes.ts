@@ -1,6 +1,6 @@
 import type { Express, Router } from "express";
 import { readdirSync } from "fs";
-import { fileURLToPath } from "url";
+import { fileURLToPath, pathToFileURL } from "url";
 import { dirname, join } from "path";
 import { requireAuth, requireAuthWithTenant } from "../middleware/auth.js";
 import logger from "./logger.js";
@@ -25,41 +25,27 @@ export interface RouteConfig {
 }
 
 /**
- * 检查对象是否为 Express Router 实例
- */
-function isRouter(value: unknown): value is Router {
-  if (!value || typeof value !== "object") return false;
-  const v = value as Record<string, unknown>;
-  // Express Router 识别：检查 use + get + post 方法，或 handle 函数（Express 内部路由分发）
-  const hasUse = typeof v.use === "function";
-  const hasGet = typeof v.get === "function";
-  const hasPost = typeof v.post === "function";
-  // 备选：Router 实例的 handle 函数也是 Router 特征
-  const hasHandle = typeof v.handle === "function";
-  return (hasUse && hasGet && hasPost) || (hasHandle && hasUse);
-}
-
-/**
  * 从文件名推断路由前缀（向后兼容）
  * 例：admin.routes.ts → /api/admin
  */
-function inferPrefix(filename: string): string {
-  const base = filename.replace(/\.routes\.ts$/, "");
+export function inferPrefix(filename: string): string {
+  const base = filename.replace(/\.routes\.ts$/, "").replace(/\.routes\.js$/, "");
   return `/api/${base}`;
 }
 
 /**
  * 根据 auth 配置获取中间件数组
  */
-function getAuthMiddlewares(auth?: RouteConfig["auth"]): any[] {
+export function getAuthMiddlewares(auth?: RouteConfig["auth"]): unknown[] {
   switch (auth) {
     case "requireAuth":
       return [requireAuth];
     case "requireAuthWithTenant":
       return requireAuthWithTenant; // auth.ts 中已导出为数组 [requireAuth, tenantMiddleware]
     case "none":
-    default:
       return [];
+    default:
+      return requireAuthWithTenant;
   }
 }
 
@@ -75,11 +61,17 @@ function getAuthMiddlewares(auth?: RouteConfig["auth"]): any[] {
  * 使用方式（在 server.ts 中）：
  *   import { setupRoutes } from "./shared/auto-routes.js";
  *   await setupRoutes(app);
+ *
+ * @param app Express 应用实例
+ * @param options 可选配置：routesDir 自定义路由目录（用于测试）
  */
-export async function setupRoutes(app: Express): Promise<void> {
+export async function setupRoutes(
+  app: Express,
+  options?: { routesDir?: string }
+): Promise<void> {
   const __filename = fileURLToPath(import.meta.url);
   const __dirname = dirname(__filename);
-  const routesDir = join(__dirname, "..", "routes");
+  const routesDir = options?.routesDir ?? join(__dirname, "..", "routes");
 
   let files: string[];
   try {
@@ -95,7 +87,8 @@ export async function setupRoutes(app: Express): Promise<void> {
   const configs: RouteConfig[] = [];
 
   for (const file of files) {
-    const modulePath = `../routes/${file}`;
+    // 使用绝对路径 + file:// URL，确保动态 import 可移植（含自定义 routesDir）
+    const modulePath = pathToFileURL(join(routesDir, file)).href;
     let mod: Record<string, unknown>;
 
     try {
@@ -123,7 +116,7 @@ export async function setupRoutes(app: Express): Promise<void> {
     }
 
     // ---------- 优先级 3：向后兼容 —— 收集所有 Router 导出 ----------
-    const routerEntries = Object.entries(mod).filter(([, v]) => v && typeof v === "object" && "use" in v && "get" in v);
+    const routerEntries = Object.entries(mod).filter(([, v]) => v && (typeof v === "function" || typeof v === "object") && "use" in v && "get" in v);
 
     if (routerEntries.length === 1) {
       const [name, router] = routerEntries;

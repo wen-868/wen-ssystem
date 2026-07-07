@@ -1,5 +1,6 @@
 import { describe, it, expect, vi } from "vitest";
 import type { Express } from "express";
+import { resolve } from "path";
 
 vi.mock("../../shared/logger.js", () => ({
   default: {
@@ -15,7 +16,9 @@ vi.mock("../../middleware/auth.js", () => ({
   requireAuthWithTenant: [vi.fn(), vi.fn()],
 }));
 
-import { setupRoutes } from "../../shared/auto-routes.js";
+import { setupRoutes, inferPrefix, getAuthMiddlewares } from "../../shared/auto-routes.js";
+
+const fixturesDir = resolve(__dirname, "../fixtures/routes");
 
 describe("auto-routes", () => {
   it("应扫描 routes/ 目录并注册路由（部分可能失败但不应抛出）", async () => {
@@ -33,11 +36,117 @@ describe("auto-routes", () => {
   });
 
   it("routes/ 目录不存在时应跳过不抛出", async () => {
-    // 通过修改 process.cwd() 模拟目录不存在的情况不可行
-    // 但 setupRoutes 内部有 try/catch 处理 readdirSync 失败
+    // 通过传入不存在的目录模拟
     const mockApp = { use: vi.fn() } as unknown as Express;
 
-    // 这个测试确认 setupRoutes 不会因为目录问题而抛出
-    await expect(setupRoutes(mockApp)).resolves.not.toThrow();
+    await expect(
+      setupRoutes(mockApp, { routesDir: "/nonexistent/path/routes" })
+    ).resolves.not.toThrow();
+  });
+
+  it("优先级1: routeConfigs 数组应注册多个路由", async () => {
+    const mockUse = vi.fn();
+    const mockApp = { use: mockUse } as unknown as Express;
+
+    await setupRoutes(mockApp, { routesDir: fixturesDir });
+
+    // 应该注册了 routeConfigs 数组中的 2 个路由
+    // 以及 routeConfig 单个、singleRouter 推断的路由
+    expect(mockUse.mock.calls.length).toBeGreaterThan(0);
+  });
+
+  it("优先级2: routeConfig 单个对象应注册", async () => {
+    const mockUse = vi.fn();
+    const mockApp = { use: mockUse } as unknown as Express;
+
+    await setupRoutes(mockApp, { routesDir: fixturesDir });
+
+    // 检查是否有 /api/test-routeconfig 被注册
+    const prefixes = mockUse.mock.calls.map((call: any[]) => call[0]);
+    expect(prefixes).toContain("/api/test-routeconfig");
+  });
+
+  it("优先级1: routeConfigs 数组中的前缀都应注册", async () => {
+    const mockUse = vi.fn();
+    const mockApp = { use: mockUse } as unknown as Express;
+
+    await setupRoutes(mockApp, { routesDir: fixturesDir });
+
+    const prefixes = mockUse.mock.calls.map((call: any[]) => call[0]);
+    expect(prefixes).toContain("/api/test-routecfgs-1");
+    expect(prefixes).toContain("/api/test-routecfgs-2");
+  });
+
+  it("优先级3: 单个 Router 导出应从文件名推断 prefix", async () => {
+    const mockUse = vi.fn();
+    const mockApp = { use: mockUse } as unknown as Express;
+
+    await setupRoutes(mockApp, { routesDir: fixturesDir });
+
+    // test-single-router.routes.ts → /api/test-single-router
+    const prefixes = mockUse.mock.calls.map((call: any[]) => call[0]);
+    expect(prefixes).toContain("/api/test-single-router");
+  });
+
+  it("优先级4: 多个 Router 导出但无 routeConfigs 应跳过", async () => {
+    const mockUse = vi.fn();
+    const mockApp = { use: mockUse } as unknown as Express;
+
+    await setupRoutes(mockApp, { routesDir: fixturesDir });
+
+    // test-multi-router 不应注册任何路由（多个 Router 但无 routeConfigs）
+    const prefixes = mockUse.mock.calls.map((call: any[]) => call[0]);
+    expect(prefixes).not.toContain("/api/test-multi-router");
+  });
+
+  it("无 Router 导出的文件应跳过", async () => {
+    const mockUse = vi.fn();
+    const mockApp = { use: mockUse } as unknown as Express;
+
+    await setupRoutes(mockApp, { routesDir: fixturesDir });
+
+    // test-no-router 不应注册任何路由
+    const prefixes = mockUse.mock.calls.map((call: any[]) => call[0]);
+    expect(prefixes).not.toContain("/api/test-no-router");
+  });
+});
+
+// ========== inferPrefix ==========
+describe("inferPrefix", () => {
+  it("应从 .routes.ts 文件名推断前缀", () => {
+    expect(inferPrefix("admin.routes.ts")).toBe("/api/admin");
+    expect(inferPrefix("brand.routes.ts")).toBe("/api/brand");
+  });
+
+  it("应从 .routes.js 文件名推断前缀", () => {
+    expect(inferPrefix("admin.routes.js")).toBe("/api/admin");
+  });
+
+  it("应处理带路径的文件名", () => {
+    expect(inferPrefix("user-session.routes.ts")).toBe("/api/user-session");
+  });
+});
+
+// ========== getAuthMiddlewares ==========
+describe("getAuthMiddlewares", () => {
+  it("requireAuth 应返回包含 requireAuth 的数组", () => {
+    const middlewares = getAuthMiddlewares("requireAuth");
+    expect(Array.isArray(middlewares)).toBe(true);
+    expect(middlewares.length).toBe(1);
+  });
+
+  it("requireAuthWithTenant 应返回中间件数组", () => {
+    const middlewares = getAuthMiddlewares("requireAuthWithTenant");
+    expect(Array.isArray(middlewares)).toBe(true);
+  });
+
+  it("none 应返回空数组", () => {
+    const middlewares = getAuthMiddlewares("none");
+    expect(middlewares).toEqual([]);
+  });
+
+  it("未指定 auth 应默认返回 requireAuthWithTenant", () => {
+    const middlewares = getAuthMiddlewares(undefined);
+    expect(Array.isArray(middlewares)).toBe(true);
   });
 });

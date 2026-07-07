@@ -25,6 +25,7 @@ import {
   getBlockedPriceFields,
   getPricePermissionMatrix,
   logUnauthorizedAccess,
+  matchesField,
 } from "../../shared/price-guard.js";
 import type { AuthUser } from "../../shared/auth.js";
 
@@ -256,6 +257,35 @@ describe("price-guard", () => {
     it("无角色用户不可访问任何等级", async () => {
       const { canAccessPriceLevel } = await import("../../shared/price-guard.js");
       expect(await canAccessPriceLevel(makeUser([]), "RETAIL", "default")).toBe(false);
+    });
+  });
+
+  describe("matchesField", () => {
+    it("通配符 '*' 应匹配所有字段", () => {
+      expect(matchesField("anything", "*")).toBe(true);
+      expect(matchesField("costPrice", "*")).toBe(true);
+    });
+
+    it("带通配符的模式应正则匹配", () => {
+      expect(matchesField("costPrice", "cost*")).toBe(true);
+      expect(matchesField("cost_price", "cost_*")).toBe(true);
+      expect(matchesField("wholesalePrice", "whole*")).toBe(true);
+    });
+
+    it("带通配符的模式不匹配应返回 false", () => {
+      expect(matchesField("name", "cost*")).toBe(false);
+      expect(matchesField("sku", "price*")).toBe(false);
+    });
+
+    it("精确匹配（大小写不敏感）", () => {
+      expect(matchesField("costPrice", "costPrice")).toBe(true);
+      expect(matchesField("COSTPRICE", "costPrice")).toBe(true);
+      expect(matchesField("costPrice", "COSTPRICE")).toBe(true);
+    });
+
+    it("精确匹配不相同的字段返回 false", () => {
+      expect(matchesField("name", "costPrice")).toBe(false);
+      expect(matchesField("cost_price", "costPrice")).toBe(false);
     });
   });
 });

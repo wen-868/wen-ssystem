@@ -146,7 +146,8 @@ export async function logUnauthorizedAccess(
 
 // ─── 工具函数 ─────────────────────────────────────────────────
 
-function matchesField(fieldName: string, pattern: string): boolean {
+/** 测试字段名是否匹配模式（支持 * 通配符） */
+export function matchesField(fieldName: string, pattern: string): boolean {
   if (pattern === "*") return true;
   if (pattern.includes("*")) {
     const regex = new RegExp("^" + pattern.replace(/\*/g, ".*") + "$", "i");

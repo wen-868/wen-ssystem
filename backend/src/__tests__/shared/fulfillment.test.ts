@@ -335,4 +335,55 @@ describe("completeOrderDelivery", () => {
     const executeCalls = (conn.execute as any).mock.calls;
     expect(executeCalls.length).toBeGreaterThanOrEqual(5);
   });
+
+  it("reservedQty 为 null 时按 0 处理跳过扣减", async () => {
+    const order = {
+      order_no: "ORD-005",
+      store_id: 1,
+      member_id: 500,
+      customer_type: "RETAIL",
+      settlement_type: "CASH",
+      payable_amount: 20,
+      receiver_name: "钱七",
+      receiver_mobile: "13500135000",
+    };
+    const items = [{ skuId: 50, quantity: 1, reservedQty: null }];
+    const conn = mockConn([order], items);
+
+    await completeOrderDelivery(conn as any, "ORD-005", 5, makeBizNo);
+
+    // reservedQty=null 时 deductQty=0，跳过扣减，只执行订单状态更新
+    const executeCalls = (conn.execute as any).mock.calls;
+    expect(executeCalls.length).toBe(1);
+  });
+
+  it("reservedQty 为 undefined 时按 0 处理跳过扣减", async () => {
+    const order = {
+      order_no: "ORD-006",
+      store_id: 1,
+      member_id: 600,
+      customer_type: "RETAIL",
+      settlement_type: "CASH",
+      payable_amount: 25,
+      receiver_name: "孙八",
+      receiver_mobile: "13400134000",
+    };
+    const items = [{ skuId: 60, quantity: 1, reservedQty: undefined }];
+    const conn = mockConn([order], items);
+
+    await completeOrderDelivery(conn as any, "ORD-006", 6, makeBizNo);
+
+    const executeCalls = (conn.execute as any).mock.calls;
+    expect(executeCalls.length).toBe(1);
+  });
+
+  it("REJECT 动作对 DELIVERING 状态应成功（覆盖 line 88 第二分支）", () => {
+    expect(nextFulfillmentState("DELIVERING", "REJECT")).toBe("REJECTED");
+  });
+
+  it("CANCEL 动作对 PENDING_PAYMENT 之外的非完成状态应成功", () => {
+    expect(nextFulfillmentState("WAIT_DELIVERY", "CANCEL")).toBe("CANCELLED");
+    expect(nextFulfillmentState("DELIVERING", "CANCEL")).toBe("CANCELLED");
+    expect(nextFulfillmentState("REJECTED", "CANCEL")).toBe("CANCELLED");
+  });
 });

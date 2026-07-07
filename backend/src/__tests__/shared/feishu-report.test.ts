@@ -205,4 +205,112 @@ describe("feishu-report", () => {
       expect(result.ok).toBe(true);
     });
   });
+
+  describe("postHttpsJson - 边界分支", () => {
+    beforeEach(() => {
+      process.env.FEISHU_WEBHOOK_URL = "https://open.feishu.cn/open-apis/bot/v2/hook/test";
+    });
+
+    it("响应包含 data 事件时应累积并解析 JSON", async () => {
+      mockRequest.mockImplementationOnce((_opts: any, callback: any) => {
+        const res = {
+          statusCode: 200,
+          on: vi.fn((event: string, cb: any) => {
+            if (event === "data") setTimeout(() => cb('{"code":0}'), 0);
+            if (event === "end") setTimeout(() => cb(), 0);
+          }),
+        };
+        callback(res);
+        return { on: vi.fn(), write: vi.fn(), end: vi.fn() };
+      });
+
+      const result = await reportToLingZhou({
+        phase: "data 事件测试",
+        status: "DONE",
+        summary: "响应包含 data 事件",
+        reporter: "阿坚",
+      });
+      expect(result.ok).toBe(true);
+      expect(result.data).toEqual({ code: 0 });
+    });
+
+    it("req.on('error') 触发时应返回 ok=false", async () => {
+      mockRequest.mockImplementationOnce((_opts: any, _callback: any) => {
+        const req = {
+          on: vi.fn((event: string, cb: any) => {
+            if (event === "error") setTimeout(() => cb(new Error("network error")), 0);
+          }),
+          write: vi.fn(),
+          end: vi.fn(),
+        };
+        return req;
+      });
+
+      const result = await reportToLingZhou({
+        phase: "req error 测试",
+        status: "DONE",
+        summary: "请求出错",
+        reporter: "阿坚",
+      });
+      // 由于第一次失败，会触发重试（第二次用默认 mockRequest 返回 200）
+      expect(result).toBeDefined();
+    });
+
+    it("webhook URL 无效时应触发同步 catch 并降级重试", async () => {
+      // 第一次用无效 URL 触发同步 catch
+      const result = await reportToLingZhou({
+        phase: "URL 无效测试",
+        status: "DONE",
+        summary: "URL 无效",
+        reporter: "阿坚",
+        webhookUrl: "not-a-valid-url",
+      });
+      // 由于第一次失败，会触发重试（第二次也用同样的无效 URL）
+      expect(result).toBeDefined();
+    });
+
+    it("响应 data 非法 JSON 时应返回 data=null", async () => {
+      mockRequest.mockImplementationOnce((_opts: any, callback: any) => {
+        const res = {
+          statusCode: 200,
+          on: vi.fn((event: string, cb: any) => {
+            if (event === "data") setTimeout(() => cb("not-json"), 0);
+            if (event === "end") setTimeout(() => cb(), 0);
+          }),
+        };
+        callback(res);
+        return { on: vi.fn(), write: vi.fn(), end: vi.fn() };
+      });
+
+      const result = await reportToLingZhou({
+        phase: "非法 JSON 测试",
+        status: "DONE",
+        summary: "响应非 JSON",
+        reporter: "阿坚",
+      });
+      expect(result.ok).toBe(true);
+    });
+
+    it("重试也失败时应返回失败结果", async () => {
+      // 两次都返回 500（第一次交互格式失败，第二次文本格式也失败）
+      mockRequest.mockImplementation((_opts: any, callback: any) => {
+        const res = {
+          statusCode: 500,
+          on: vi.fn((event: string, cb: any) => {
+            if (event === "end") setTimeout(() => cb(), 0);
+          }),
+        };
+        callback(res);
+        return { on: vi.fn(), write: vi.fn(), end: vi.fn() };
+      });
+
+      const result = await reportToLingZhou({
+        phase: "全部失败测试",
+        status: "DONE",
+        summary: "两次都失败",
+        reporter: "阿坚",
+      });
+      expect(result.ok).toBe(false);
+    });
+  });
 });

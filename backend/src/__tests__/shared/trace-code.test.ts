@@ -12,7 +12,7 @@ vi.mock("../../shared/db.js", () => ({
   execute: vi.fn(),
 }));
 
-import { verifyTraceCode, verifyTraceCodeSimple, bindTraceCodeOnInStock, updateTraceCodeOnOutStock } from "../../shared/trace-code.js";
+import { verifyTraceCode, verifyTraceCodeSimple, bindTraceCodeOnInStock, updateTraceCodeOnOutStock, updateTraceCodesBySkuList } from "../../shared/trace-code.js";
 
 // ========== verifyTraceCodeSimple ==========
 describe("verifyTraceCodeSimple", () => {
@@ -235,5 +235,127 @@ describe("updateTraceCodeOnOutStock", () => {
     await updateTraceCodeOnOutStock(mockConn, "1", [], "ORD001", "销售出库");
 
     expect(mockConn.execute).not.toHaveBeenCalled();
+  });
+});
+
+// ========== updateTraceCodesBySkuList ==========
+describe("updateTraceCodesBySkuList", () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+  });
+
+  it("应按 SKU FIFO 批量更新追溯码为 SOLD", async () => {
+    // 顺序：query(item) → query(codes) → execute × N（每个码 2 次）
+    const mockConn = {
+      query: vi.fn()
+        .mockResolvedValueOnce([[{ qty: 2, reserved_qty: 2 }]]) // items
+        .mockResolvedValueOnce([[{ trace_code: "TC001" }, { trace_code: "TC002" }]]), // codes
+      execute: vi.fn().mockResolvedValue([{}]),
+    };
+
+    const result = await updateTraceCodesBySkuList(mockConn as any, "1", "ORD001", [1]);
+
+    expect(result["1"]).toEqual(["TC001", "TC002"]);
+    // 每个码 2 次 execute（更新 + 事件日志）= 4 次
+    expect(mockConn.execute).toHaveBeenCalledTimes(4);
+  });
+
+  it("多个 SKU 都应处理", async () => {
+    const mockConn = {
+      query: vi.fn()
+        // SKU 1
+        .mockResolvedValueOnce([[{ qty: 1, reserved_qty: 1 }]])
+        .mockResolvedValueOnce([[{ trace_code: "TC001" }]])
+        // SKU 2
+        .mockResolvedValueOnce([[{ qty: 1, reserved_qty: 1 }]])
+        .mockResolvedValueOnce([[{ trace_code: "TC002" }]]),
+      execute: vi.fn().mockResolvedValue([{}]),
+    };
+
+    const result = await updateTraceCodesBySkuList(mockConn as any, "1", "ORD001", [1, 2]);
+
+    expect(result["1"]).toEqual(["TC001"]);
+    expect(result["2"]).toEqual(["TC002"]);
+    expect(mockConn.execute).toHaveBeenCalledTimes(4);
+  });
+
+  it("item.qty=0 且 reserved_qty=0 时跳过该 SKU", async () => {
+    const mockConn = {
+      query: vi.fn().mockResolvedValueOnce([[{ qty: 0, reserved_qty: 0 }]]),
+      execute: vi.fn(),
+    };
+
+    const result = await updateTraceCodesBySkuList(mockConn as any, "1", "ORD001", [1]);
+
+    expect(result["1"]).toBeUndefined();
+    expect(mockConn.execute).not.toHaveBeenCalled();
+  });
+
+  it("item 为 null 时使用 reserved_qty=0 跳过", async () => {
+    const mockConn = {
+      query: vi.fn().mockResolvedValueOnce([[]]),
+      execute: vi.fn(),
+    };
+
+    const result = await updateTraceCodesBySkuList(mockConn as any, "1", "ORD001", [1]);
+
+    expect(result["1"]).toBeUndefined();
+    expect(mockConn.execute).not.toHaveBeenCalled();
+  });
+
+  it("空 SKU 列表返回空对象", async () => {
+    const mockConn = { query: vi.fn(), execute: vi.fn() };
+
+    const result = await updateTraceCodesBySkuList(mockConn as any, "1", "ORD001", []);
+
+    expect(result).toEqual({});
+    expect(mockConn.query).not.toHaveBeenCalled();
+  });
+
+  it("无追溯码时返回空数组但不抛出", async () => {
+    const mockConn = {
+      query: vi.fn()
+        .mockResolvedValueOnce([[{ qty: 2, reserved_qty: 2 }]])
+        .mockResolvedValueOnce([[]]), // 无 codes
+      execute: vi.fn(),
+    };
+
+    const result = await updateTraceCodesBySkuList(mockConn as any, "1", "ORD001", [1]);
+
+    expect(result["1"]).toEqual([]);
+    expect(mockConn.execute).not.toHaveBeenCalled();
+  });
+});
+
+// ========== bindTraceCodeOnInStock 补充分支 ==========
+describe("bindTraceCodeOnInStock 补充分支", () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+  });
+
+  it("传入 productionDate 应计算 expiryDate", async () => {
+    const mockConn = {
+      query: vi.fn().mockResolvedValue([[{ codePrefix: "TR", shelfLifeDays: 30 }]]),
+      execute: vi.fn().mockResolvedValue([{}]),
+    };
+
+    const codes = await bindTraceCodeOnInStock(mockConn, "1", {
+      skuId: 1,
+      skuName: "测试商品",
+      batchNo: "B001",
+      quantity: 1,
+      codeMode: "ONE_PER_BATCH",
+      productionDate: "2026-01-01",
+      shelfLifeDays: 30,
+      storeId: 1,
+      warehouseId: 1,
+      supplierId: 1,
+      categoryId: 1,
+    });
+
+    expect(codes).toHaveLength(1);
+    expect(codes[0]).toContain("TR");
+    // 应执行 INSERT trace_code + INSERT trace_event_log = 2 次
+    expect(mockConn.execute).toHaveBeenCalledTimes(2);
   });
 });
