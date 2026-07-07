@@ -416,9 +416,9 @@ const handleDeleteSchedule = async (row: any) => {
 
 const toggleSchedule = async (row: any) => {
   try {
-    const newStatus = row.status === "active" ? "paused" : "active";
-    await toggleReportSchedule(row.id, newStatus);
-    ElMessage.success(newStatus === "active" ? "已启用" : "已暂停");
+    const newEnabled = row.status !== "active";
+    await toggleReportSchedule(row.id, newEnabled);
+    ElMessage.success(newEnabled ? "已启用" : "已暂停");
     fetchSchedules();
   } catch { ElMessage.error("操作失败"); }
 };

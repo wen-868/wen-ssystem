@@ -261,7 +261,7 @@ function handleProductSelect(row: any) {
 }
 
 // ==================== Mock ====================
-const mockActivities = Array.from({ length: 12 }, (_, i) => {
+const mockActivities: any[] = Array.from({ length: 12 }, (_, i) => {
   const statuses = ["PENDING", "ACTIVE", "ACTIVE", "ENDED", "SOLD_OUT"];
   const totalStock = Math.floor(Math.random() * 200) + 50;
   const status = statuses[i % 5];

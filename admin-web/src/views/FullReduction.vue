@@ -254,7 +254,7 @@ function getRuleText(rule: any) {
 }
 
 // ==================== Mock ====================
-const mockActivities = Array.from({ length: 10 }, (_, i) => {
+const mockActivities: any[] = Array.from({ length: 10 }, (_, i) => {
   const types = ["REDUCTION", "GIFT"];
   const statuses = ["PENDING", "ACTIVE", "ACTIVE", "ACTIVE", "PAUSED", "ENDED"];
   const type = types[i % 2];
