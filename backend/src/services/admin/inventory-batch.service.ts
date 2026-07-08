@@ -40,7 +40,7 @@ export async function listBatches(tenantId: string, params: {
     let expiryStatusText = "正常";
     let expiryColor = "#10B981";
     if (r.expiry_date) {
-      const remaining = Number(r.days_remaining) ?? Math.floor((new Date(String(r.expiry_date)).getTime() - Date.now()) / 86400000);
+      const remaining = r.days_remaining != null ? Number(r.days_remaining) : Math.floor((new Date(String(r.expiry_date)).getTime() - Date.now()) / 86400000);
       if (remaining < 0) { expiryStatusText = "已过期"; expiryColor = "#EF4444"; }
       else if (remaining <= 7) { expiryStatusText = "即将过期"; expiryColor = "#EF4444"; }
       else if (remaining <= 15) { expiryStatusText = "临期"; expiryColor = "#F59E0B"; }
@@ -157,7 +157,7 @@ export async function getBatchTrace(tenantId: string, id: number) {
 
   // 1. 采购
   if (batch.inbound_order_id) {
-    const [inStockRows] = await query<Record<string, unknown>>(
+    const inStockRows = await query<Record<string, unknown>>(
       `SELECT stock_no, created_at FROM t_purchase_in_stock WHERE id = ? AND tenant_id = ?`,
       [batch.inbound_order_id, tenantId]
     );
@@ -358,7 +358,7 @@ export async function runExpiryScan() {
           "SELECT DATEDIFF(?, CURDATE()) AS days_remaining",
           [batch.expiry_date]
         );
-        const daysRemaining = Number((rows as Record<string, unknown>[])[0]?.days_remaining) ?? 0;
+        const daysRemaining = Number((rows as Record<string, unknown>[])[0]?.days_remaining ?? 0);
 
         let matchedConfig: Record<string, unknown> | null = null;
         for (const config of configs) {
