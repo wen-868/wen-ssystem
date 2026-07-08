@@ -119,7 +119,7 @@ export async function setupRoutes(
     const routerEntries = Object.entries(mod).filter(([, v]) => v && (typeof v === "function" || typeof v === "object") && "use" in v && "get" in v);
 
     if (routerEntries.length === 1) {
-      const [name, router] = routerEntries;
+      const [[name, router]] = routerEntries;
       const prefix = inferPrefix(file);
       logger.warn(
         `[auto-routes] ${file}: 未找到 routeConfig，从文件名推断 prefix="${prefix}"（导出: ${name}）。` +
@@ -144,6 +144,11 @@ export async function setupRoutes(
 
   // ---------- 注册所有路由 ----------
   for (const config of configs) {
+    // 防御性检查：跳过 router 为 undefined 的配置
+    if (!config.router) {
+      logger.warn(`[auto-routes] 跳过前缀 ${config.prefix}：router 为 undefined`);
+      continue;
+    }
     const middlewares = getAuthMiddlewares(config.auth);
     app.use(config.prefix, ...middlewares, config.router);
   }

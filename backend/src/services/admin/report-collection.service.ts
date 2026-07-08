@@ -11,8 +11,9 @@ export async function getCollectionFunnel(params: { tenantId: string; startDate?
   const where = `WHERE ${conditions.join(" AND ")}`;
   const shareCount = await queryOneWithTenant<any>(`SELECT COUNT(*) AS cnt FROM t_collection_link cl ${where}`, values, tenantId);
   const viewCount = await queryOneWithTenant<any>(`SELECT COUNT(DISTINCT cvl.link_no) AS cnt FROM t_collection_view_log cvl JOIN t_collection_link cl ON cl.link_no = cvl.link_no ${where}`, values, tenantId);
-  const payCount = await queryOneWithTenant<any>(`SELECT COUNT(*) AS cnt FROM t_collection_link cl ${where} ${where ? "AND" : "WHERE"} cl.status = 'PAID'`, values, tenantId);
-  const payAmount = await queryOneWithTenant<any>(`SELECT COALESCE(SUM(cl.paid_amount), 0) AS amount FROM t_collection_link cl ${where} ${where ? "AND" : "WHERE"} cl.status = 'PAID'`, values, tenantId);
+  // where 恒非空（至少包含 cl.tenant_id = ?），直接用 AND 拼接
+  const payCount = await queryOneWithTenant<any>(`SELECT COUNT(*) AS cnt FROM t_collection_link cl ${where} AND cl.status = 'PAID'`, values, tenantId);
+  const payAmount = await queryOneWithTenant<any>(`SELECT COALESCE(SUM(cl.paid_amount), 0) AS amount FROM t_collection_link cl ${where} AND cl.status = 'PAID'`, values, tenantId);
   const totalShare = Number(shareCount?.cnt ?? 0);
   const totalView = Number(viewCount?.cnt ?? 0);
   const totalPay = Number(payCount?.cnt ?? 0);
@@ -120,7 +121,7 @@ export async function getCollectionSummary(params: { tenantId: string; storeId?:
     monthCollection: Number(month?.amount ?? 0),
     todayCollection: Number(today?.amount ?? 0),
     refundAmount: Number(refund?.amount ?? 0),
-    refundRate: Number(totalAll?.amount ?? 0) > 0 ? Math.round((Number(refund?.amount ?? 0) / Number(totalAll?.amount ?? 1)) * 10000) / 100 : 0,
+    refundRate: Number(totalAll?.amount ?? 0) > 0 ? Math.round((Number(refund?.amount ?? 0) / Number(totalAll!.amount)) * 10000) / 100 : 0,
     avgCollectionHours: Math.round(Number(avgCycle?.avgHours ?? 0)),
     totalPaidCount: Number(totalPaid?.cnt ?? 0),
   };
