@@ -2,7 +2,7 @@
 
 > 唯一任务索引文件，指向各成员任务文件。  
 > 凌舟维护，每次分派更新。  
-> 最后更新：2026-07-09（R16 阿坚完成 — services 层测试覆盖第一批）
+> 最后更新：2026-07-09（R16 P0 修复 — BUG-R16-01 order.test.ts 导入路径修复，admin 覆盖率 100%）
 
 ---
 
@@ -24,7 +24,7 @@
 
 1. `docs/项目统一标准.md` — 项目唯一标准，一切代码以此为准
 2. `docs/product-spec-v6-adapted.md` — 产品功能规格
-3. `docs/踩坑日志.md` — 24 个历史踩坑记录
+3. `docs/踩坑日志.md` — 25 个历史踩坑记录
 
 ---
 
@@ -45,6 +45,14 @@
 | 林夕 | — | — | 本轮无任务 |
 
 **合计：4 项，6 天**
+
+#### P0 修复 — BUG-R16-01：order.test.ts 导入路径错误 [已完成]
+- 优先级：P0
+- 负责人：阿坚
+- 状态：已完成
+- 文件：`backend/src/__tests__/services/admin/order.test.ts`
+- 问题：order.test.ts 第 44 行导入路径为 `../../../services/store/order.service.js`（门店端 170 行 7 函数），应为 `../../../services/admin/order.service.js`（管理端 364 行 12 函数），导致 admin/order.service.ts 覆盖率 0%
+- 修复：导入路径改为 admin 版本，按 12 个函数签名完全重写测试，34 个用例，覆盖率 100%（Statements/Branches/Functions/Lines 全 100%），tsc --noEmit --strict 0 错误
 
 ---
 
