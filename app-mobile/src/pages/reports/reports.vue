@@ -4,7 +4,6 @@
       <text class="header-title">数据报表</text>
     </view>
 
-    <!-- 时间筛选表单：ref + :model + :rules -->
     <form ref="formRef" :model="filterForm" class="filter-form">
       <view class="filter-row">
         <view class="filter-item" @tap="chooseStartDate">
@@ -24,7 +23,6 @@
       </picker>
     </form>
 
-    <!-- 快捷时间筛选 -->
     <view class="quick-date-bar">
       <view
         v-for="item in quickDates"
@@ -37,7 +35,6 @@
       </view>
     </view>
 
-    <!-- 核心数据概览 -->
     <view class="stats-section">
       <view class="section-title">核心数据</view>
       <view class="stats-grid">
@@ -63,7 +60,6 @@
       </view>
     </view>
 
-    <!-- 报表分类入口 -->
     <view class="report-entries">
       <view class="section-title">报表分类</view>
       <view class="entries-grid">
@@ -90,11 +86,10 @@
       </view>
     </view>
 
-    <!-- 销售排行 -->
     <view class="rank-section">
       <view class="section-title">
         <text>商品销售排行</text>
-        <text class="title-more" @tap="goReport('sales-rank')">查看全部</text>
+        <text class="title-more" @tap="goReport('sales')">查看全部</text>
       </view>
       <view class="rank-list">
         <view class="rank-item" v-for="(item, idx) in rankList" :key="item.id">
@@ -172,16 +167,20 @@ function chooseQuickDate(val: string) {
   loadReportData()
 }
 function goReport(type: string) {
-  if (type === 'sales') {
-    uni.navigateTo({ url: '/pages/reports/sales-reports' })
-  } else {
-    uni.showToast({ title: '敬请期待，即将上线', icon: 'none' })
+  const urlMap: Record<string, string> = {
+    sales: '/pages/reports/sales-reports',
+    inventory: '/pages/reports/inventory-reports',
+    purchase: '/pages/reports/purchase-reports',
+    customer: '/pages/reports/customer-reports',
+  }
+  const url = urlMap[type]
+  if (url) {
+    uni.navigateTo({ url })
   }
 }
 
 async function loadReportData() {
   try {
-    // TODO: 对接报表接口
     rankList.value = []
   } catch (err) {
     console.error('加载报表数据失败:', err)
