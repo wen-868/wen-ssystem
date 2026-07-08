@@ -100,9 +100,10 @@ export async function getRFMAnalysis(params: { tenantId: string; storeId?: numbe
   const sortedR = [...rfm].sort((a, b) => a.recencyDays - b.recencyDays);
   const sortedF = [...rfm].sort((a, b) => b.frequency - a.frequency);
   const sortedM = [...rfm].sort((a, b) => b.monetary - a.monetary);
-  const rMid = sortedR[Math.floor(sortedR.length / 2)]?.recencyDays ?? 0;
-  const fMid = sortedF[Math.floor(sortedF.length / 2)]?.frequency ?? 0;
-  const mMid = sortedM[Math.floor(sortedM.length / 2)]?.monetary ?? 0;
+  // rfm.length > 0 已由前面 if 保证，sortedR[idx] 必然存在，无需 ?. 和 ?? 0
+  const rMid = sortedR[Math.floor(sortedR.length / 2)].recencyDays;
+  const fMid = sortedF[Math.floor(sortedF.length / 2)].frequency;
+  const mMid = sortedM[Math.floor(sortedM.length / 2)].monetary;
   const groups = rfm.map((c) => {
     const rScore = c.recencyDays <= rMid ? 2 : 1;
     const fScore = c.frequency >= fMid ? 2 : 1;

@@ -120,7 +120,8 @@ export async function getSalesRanking(
   const dim = z.enum(["product", "customer", "staff"]).parse(dimension);
   const start = parseDateParam(dateStart, getDefaultDateStart(30));
   const end = parseDateParam(dateEnd, getDefaultDateEnd());
-  const lim = Math.min(Number(limit || 20), 100);
+  // limit 有默认值 20，无需 || 20
+  const lim = Math.min(limit, 100);
 
   let records: any[];
 
