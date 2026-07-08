@@ -129,7 +129,7 @@ async function handleCreate() {
 
 function shareLink(link: any) {
   // TODO: 分享收款链接
-  uni.showToast({ title: '分享功能开发中', icon: 'none' })
+  uni.showToast({ title: '敬请期待，即将上线', icon: 'none' })
 }
 
 function revokeLink(link: any) {

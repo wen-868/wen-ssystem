@@ -107,7 +107,7 @@ function onSearch() { loadCoupons() }
 function clearSearch() { searchForm.keyword = ''; loadCoupons() }
 function switchTab(val: string) { activeTab.value = val; loadCoupons() }
 function goCreate() {
-  uni.showToast({ title: '新建功能开发中', icon: 'none' })
+  uni.showToast({ title: '敬请期待，即将上线', icon: 'none' })
 }
 function viewDetail(item: any) {
   uni.showToast({ title: '查看详情', icon: 'none' })

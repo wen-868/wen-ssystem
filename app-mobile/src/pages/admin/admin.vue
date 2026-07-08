@@ -117,10 +117,10 @@ function onSearch() { loadEmployees() }
 function clearSearch() { searchForm.keyword = ''; loadEmployees() }
 
 function goTo(page: string) {
-  uni.showToast({ title: '功能开发中', icon: 'none' })
+  uni.showToast({ title: '敬请期待，即将上线', icon: 'none' })
 }
 function goAddEmployee() {
-  uni.showToast({ title: '添加员工功能开发中', icon: 'none' })
+  uni.showToast({ title: '敬请期待，即将上线', icon: 'none' })
 }
 
 async function loadEmployees() {

@@ -175,7 +175,7 @@ function goReport(type: string) {
   if (type === 'sales') {
     uni.navigateTo({ url: '/pages/reports/sales-reports' })
   } else {
-    uni.showToast({ title: '报表功能开发中', icon: 'none' })
+    uni.showToast({ title: '敬请期待，即将上线', icon: 'none' })
   }
 }
 

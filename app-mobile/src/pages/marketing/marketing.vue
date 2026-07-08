@@ -132,7 +132,7 @@ function goCreate(type: string) {
   if (type === 'coupon') {
     uni.navigateTo({ url: '/pages/marketing/coupons' })
   } else {
-    uni.showToast({ title: '功能开发中', icon: 'none' })
+    uni.showToast({ title: '敬请期待，即将上线', icon: 'none' })
   }
 }
 

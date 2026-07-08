@@ -165,7 +165,7 @@ function onExport() {
     content: '确认导出当前筛选条件的销售报表？',
     success: (res) => {
       if (res.confirm) {
-        uni.showToast({ title: '导出功能开发中', icon: 'none' })
+        uni.showToast({ title: '敬请期待，即将上线', icon: 'none' })
       }
     }
   })
