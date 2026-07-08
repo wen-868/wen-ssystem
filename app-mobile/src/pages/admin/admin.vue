@@ -4,7 +4,6 @@
       <text class="header-title">管理后台</text>
     </view>
 
-    <!-- 搜索表单：ref + :model + :rules -->
     <form ref="formRef" :model="searchForm" class="search-form">
       <view class="search-bar">
         <view class="search-input-wrap">
@@ -22,7 +21,6 @@
       </view>
     </form>
 
-    <!-- 快捷功能入口 -->
     <view class="quick-actions">
       <view class="action-item" @tap="goTo('employees')">
         <view class="action-icon action-icon--user">&#xe616;</view>
@@ -42,7 +40,6 @@
       </view>
     </view>
 
-    <!-- 员工列表 -->
     <view class="employee-section">
       <view class="section-title">
         <text>员工列表</text>
@@ -64,7 +61,6 @@
       </view>
     </view>
 
-    <!-- 系统设置入口 -->
     <view class="setting-list">
       <view class="setting-item" @tap="goTo('basic')">
         <view class="setting-left">
@@ -117,15 +113,18 @@ function onSearch() { loadEmployees() }
 function clearSearch() { searchForm.keyword = ''; loadEmployees() }
 
 function goTo(page: string) {
-  uni.showToast({ title: '敬请期待，即将上线', icon: 'none' })
+  if (page === 'employees') {
+    uni.navigateTo({ url: '/pages/admin/employees' })
+  } else {
+    uni.showToast({ title: '敬请期待，即将上线', icon: 'none' })
+  }
 }
 function goAddEmployee() {
-  uni.showToast({ title: '敬请期待，即将上线', icon: 'none' })
+  uni.navigateTo({ url: '/pages/admin/employees' })
 }
 
 async function loadEmployees() {
   try {
-    // TODO: 对接员工列表接口
     employeeList.value = []
   } catch (err) {
     console.error('加载员工列表失败:', err)
