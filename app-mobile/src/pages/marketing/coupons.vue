@@ -4,7 +4,6 @@
       <text class="header-title">优惠券</text>
     </view>
 
-    <!-- 搜索表单：ref + :model + :rules -->
     <form ref="formRef" :model="searchForm" class="search-form">
       <view class="search-bar">
         <view class="search-input-wrap">
@@ -22,7 +21,6 @@
       </view>
     </form>
 
-    <!-- 状态筛选 -->
     <view class="tab-bar">
       <view
         v-for="tab in tabs"
@@ -35,14 +33,12 @@
       </view>
     </view>
 
-    <!-- 新建按钮 -->
     <view class="create-section">
       <button class="create-btn" @tap="goCreate">
         <text>+ 新建优惠券</text>
       </button>
     </view>
 
-    <!-- 优惠券列表 -->
     <scroll-view class="coupon-list" scroll-y v-if="list.length > 0">
       <view class="coupon-card" v-for="item in list" :key="item.id">
         <view class="coupon-left" :class="'coupon-' + item.type">
@@ -107,7 +103,7 @@ function onSearch() { loadCoupons() }
 function clearSearch() { searchForm.keyword = ''; loadCoupons() }
 function switchTab(val: string) { activeTab.value = val; loadCoupons() }
 function goCreate() {
-  uni.showToast({ title: '敬请期待，即将上线', icon: 'none' })
+  uni.navigateTo({ url: '/pages/marketing/create-coupon' })
 }
 function viewDetail(item: any) {
   uni.showToast({ title: '查看详情', icon: 'none' })
