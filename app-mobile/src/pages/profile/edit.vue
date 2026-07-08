@@ -167,7 +167,7 @@ async function onSubmit() {
 }
 
 function goChangePassword() {
-  uni.showToast({ title: '敬请期待，即将上线', icon: 'none' })
+  uni.navigateTo({ url: '/pages/profile/change-password' })
 }
 
 async function loadProfile() {
