@@ -88,6 +88,24 @@
       }
     },
     {
+      "path": "pages/reports/inventory-reports",
+      "style": {
+        "navigationBarTitleText": "库存报表"
+      }
+    },
+    {
+      "path": "pages/reports/purchase-reports",
+      "style": {
+        "navigationBarTitleText": "采购报表"
+      }
+    },
+    {
+      "path": "pages/reports/customer-reports",
+      "style": {
+        "navigationBarTitleText": "客户报表"
+      }
+    },
+    {
       "path": "pages/marketing/marketing",
       "style": {
         "navigationBarTitleText": "营销中心"
@@ -100,6 +118,12 @@
       }
     },
     {
+      "path": "pages/marketing/create-coupon",
+      "style": {
+        "navigationBarTitleText": "新建优惠券"
+      }
+    },
+    {
       "path": "pages/profile/profile",
       "style": {
         "navigationBarTitleText": "我的"
@@ -109,6 +133,12 @@
       "path": "pages/profile/edit",
       "style": {
         "navigationBarTitleText": "编辑资料"
+      }
+    },
+    {
+      "path": "pages/profile/change-password",
+      "style": {
+        "navigationBarTitleText": "修改密码"
       }
     },
     {
@@ -175,6 +205,12 @@
       "path": "pages/admin/admin",
       "style": {
         "navigationBarTitleText": "管理后台"
+      }
+    },
+    {
+      "path": "pages/admin/employees",
+      "style": {
+        "navigationBarTitleText": "员工管理"
       }
     },
     {
