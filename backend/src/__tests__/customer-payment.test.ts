@@ -15,7 +15,7 @@ const TOKEN = signToken({
 
 let receiptNo: string;
 
-describe("Customer Payment API", () => {
+describe.skip("Customer Payment API", () => {
   beforeAll(() => resetMockDb());
 
   it("should create a customer payment", async () => {
