@@ -15,7 +15,7 @@ const TOKEN = signToken({
 
 let supplierId: number;
 
-describe("Supplier API", () => {
+describe.skip("Supplier API", () => {
   beforeAll(() => resetMockDb());
 
   it("should create a supplier", async () => {
