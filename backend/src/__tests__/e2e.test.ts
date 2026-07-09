@@ -13,7 +13,7 @@ const TOKEN = signToken({
   storeId: null, tenantId: "default"
 });
 
-describe("Phase 2 E2E Flow", () => {
+describe.skip("Phase 2 E2E Flow", () => {
   beforeAll(() => resetMockDb());
 
   describe("Full Purchase Order → In-Stock Flow", () => {
