@@ -15,7 +15,7 @@ const TOKEN = signToken({
 
 let returnNo: string;
 
-describe.skip("Sale Return API", () => {
+describe("Sale Return API", () => {
   beforeAll(() => resetMockDb());
 
   it("should create a sale return", async () => {
@@ -40,7 +40,7 @@ describe.skip("Sale Return API", () => {
     expect(res.body.code).toBe("0");
   });
 
-  it("should get sale return detail", async () => {
+  it.skip("should get sale return detail", async () => {
     const res = await request(app)
       .get(`/api/admin/sale-returns/${returnNo}`)
       .set("Authorization", `Bearer ${TOKEN}`);
@@ -49,7 +49,7 @@ describe.skip("Sale Return API", () => {
     expect(res.body.data.return_no).toBe(returnNo);
   });
 
-  it("should approve sale return", async () => {
+  it.skip("should approve sale return", async () => {
     const res = await request(app)
       .post(`/api/admin/sale-returns/${returnNo}/approve`)
       .set("Authorization", `Bearer ${TOKEN}`);
@@ -57,7 +57,7 @@ describe.skip("Sale Return API", () => {
     expect(res.body.code).toBe("0");
   });
 
-  it("should refund a completed sale return", async () => {
+  it.skip("should refund a completed sale return", async () => {
     const res = await request(app)
       .post(`/api/admin/sale-returns/${returnNo}/refund`)
       .set("Authorization", `Bearer ${TOKEN}`)

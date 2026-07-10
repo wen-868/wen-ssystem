@@ -16,7 +16,7 @@ const TOKEN = signToken({
 
 let orderNo: string;
 
-describe.skip("Purchase Order API", () => {
+describe("Purchase Order API", () => {
   beforeAll(() => resetMockDb());
 
   it("should create a purchase order", async () => {
@@ -33,7 +33,7 @@ describe.skip("Purchase Order API", () => {
     orderNo = res.body.data.purchaseNo;
   });
 
-  it("should get purchase order list", async () => {
+  it.skip("should get purchase order list", async () => {
     const res = await request(app)
       .get("/api/admin/purchase-orders")
       .set("Authorization", `Bearer ${TOKEN}`);
@@ -42,7 +42,7 @@ describe.skip("Purchase Order API", () => {
     expect(res.body.data.records.length).toBeGreaterThanOrEqual(1);
   });
 
-  it("should get purchase order detail", async () => {
+  it.skip("should get purchase order detail", async () => {
     const res = await request(app)
       .get(`/api/admin/purchase-orders/${orderNo}`)
       .set("Authorization", `Bearer ${TOKEN}`);
@@ -52,7 +52,7 @@ describe.skip("Purchase Order API", () => {
     expect(res.body.data.status).toBe("DRAFT");
   });
 
-  it("should submit purchase order", async () => {
+  it.skip("should submit purchase order", async () => {
     const res = await request(app)
       .post(`/api/admin/purchase-orders/${orderNo}/submit`)
       .set("Authorization", `Bearer ${TOKEN}`);
@@ -60,7 +60,7 @@ describe.skip("Purchase Order API", () => {
     expect(res.body.code).toBe("0");
   });
 
-  it("should approve purchase order", async () => {
+  it.skip("should approve purchase order", async () => {
     const res = await request(app)
       .post(`/api/admin/purchase-orders/${orderNo}/approve`)
       .set("Authorization", `Bearer ${TOKEN}`);
@@ -68,14 +68,14 @@ describe.skip("Purchase Order API", () => {
     expect(res.body.code).toBe("0");
   });
 
-  it("should reject submit of non-draft order", async () => {
+  it.skip("should reject submit of non-draft order", async () => {
     const res = await request(app)
       .post(`/api/admin/purchase-orders/${orderNo}/submit`)
       .set("Authorization", `Bearer ${TOKEN}`);
     expect(res.status).toBe(400);
   });
 
-  it("should create a second order and cancel it", async () => {
+  it.skip("should create a second order and cancel it", async () => {
     const createRes = await request(app)
       .post("/api/admin/purchase-orders")
       .set("Authorization", `Bearer ${TOKEN}`)
@@ -99,7 +99,7 @@ describe.skip("Purchase Order API", () => {
     expect(res.status).toBe(404);
   });
 
-  it("should update a draft purchase order", async () => {
+  it.skip("should update a draft purchase order", async () => {
     const createRes = await request(app)
       .post("/api/admin/purchase-orders")
       .set("Authorization", `Bearer ${TOKEN}`)
@@ -117,7 +117,7 @@ describe.skip("Purchase Order API", () => {
     expect(updateRes.body.code).toBe("0");
   });
 
-  it("should delete a draft purchase order", async () => {
+  it.skip("should delete a draft purchase order", async () => {
     const createRes = await request(app)
       .post("/api/admin/purchase-orders")
       .set("Authorization", `Bearer ${TOKEN}`)

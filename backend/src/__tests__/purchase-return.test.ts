@@ -15,7 +15,7 @@ const TOKEN = signToken({
 
 let returnNo: string;
 
-describe.skip("Purchase Return API", () => {
+describe("Purchase Return API", () => {
   beforeAll(() => resetMockDb());
 
   it("should create a purchase return", async () => {
@@ -40,7 +40,7 @@ describe.skip("Purchase Return API", () => {
     expect(res.body.code).toBe("0");
   });
 
-  it("should get return detail", async () => {
+  it.skip("should get return detail", async () => {
     const res = await request(app)
       .get(`/api/admin/purchase-returns/${returnNo}`)
       .set("Authorization", `Bearer ${TOKEN}`);
@@ -49,7 +49,7 @@ describe.skip("Purchase Return API", () => {
     expect(res.body.data.return_no).toBe(returnNo);
   });
 
-  it("should approve return", async () => {
+  it.skip("should approve return", async () => {
     const res = await request(app)
       .post(`/api/admin/purchase-returns/${returnNo}/approve`)
       .set("Authorization", `Bearer ${TOKEN}`);
@@ -57,14 +57,14 @@ describe.skip("Purchase Return API", () => {
     expect(res.body.code).toBe("0");
   });
 
-  it("should reject approve of already approved return", async () => {
+  it.skip("should reject approve of already approved return", async () => {
     const res = await request(app)
       .post(`/api/admin/purchase-returns/${returnNo}/approve`)
       .set("Authorization", `Bearer ${TOKEN}`);
     expect(res.status).toBe(400);
   });
 
-  it("should void a pending return", async () => {
+  it.skip("should void a pending return", async () => {
     const createRes = await request(app)
       .post("/api/admin/purchase-returns")
       .set("Authorization", `Bearer ${TOKEN}`)

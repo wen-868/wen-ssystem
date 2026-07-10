@@ -15,7 +15,7 @@ const TOKEN = signToken({
 
 let stockNo: string;
 
-describe.skip("Purchase In-Stock API", () => {
+describe("Purchase In-Stock API", () => {
   beforeAll(() => resetMockDb());
 
   it("should create a purchase in-stock record", async () => {
@@ -40,7 +40,7 @@ describe.skip("Purchase In-Stock API", () => {
     expect(res.body.code).toBe("0");
   });
 
-  it("should get in-stock detail", async () => {
+  it.skip("should get in-stock detail", async () => {
     const res = await request(app)
       .get(`/api/admin/purchase-in-stocks/${stockNo}`)
       .set("Authorization", `Bearer ${TOKEN}`);
@@ -49,7 +49,7 @@ describe.skip("Purchase In-Stock API", () => {
     expect(res.body.data.stock_no).toBe(stockNo);
   });
 
-  it("should approve in-stock", async () => {
+  it.skip("should approve in-stock", async () => {
     const res = await request(app)
       .post(`/api/admin/purchase-in-stocks/${stockNo}/approve`)
       .set("Authorization", `Bearer ${TOKEN}`);
@@ -57,14 +57,14 @@ describe.skip("Purchase In-Stock API", () => {
     expect(res.body.code).toBe("0");
   });
 
-  it("should reject approve of already approved in-stock", async () => {
+  it.skip("should reject approve of already approved in-stock", async () => {
     const res = await request(app)
       .post(`/api/admin/purchase-in-stocks/${stockNo}/approve`)
       .set("Authorization", `Bearer ${TOKEN}`);
     expect(res.status).toBe(400);
   });
 
-  it("should void a pending in-stock", async () => {
+  it.skip("should void a pending in-stock", async () => {
     const createRes = await request(app)
       .post("/api/admin/purchase-in-stocks")
       .set("Authorization", `Bearer ${TOKEN}`)
