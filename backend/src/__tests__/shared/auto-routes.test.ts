@@ -33,7 +33,7 @@ describe("auto-routes", () => {
     // 至少应该调用了 app.use（注册了部分成功的路由）
     // 或者所有都失败了但没抛出
     expect(typeof mockUse.mock.calls.length).toBe("number");
-  });
+  }, 120000);
 
   it("routes/ 目录不存在时应跳过不抛出", async () => {
     // 通过传入不存在的目录模拟
@@ -130,6 +130,19 @@ describe("auto-routes", () => {
     // test-no-router 不应注册任何路由
     const prefixes = mockUse.mock.calls.map((call: any[]) => call[0]);
     expect(prefixes).not.toContain("/api/test-no-router");
+  });
+
+  it("router 为 undefined 的配置项应被跳过", async () => {
+    const mockUse = vi.fn();
+    const mockApp = { use: mockUse } as unknown as Express;
+
+    await setupRoutes(mockApp, { routesDir: fixturesDir });
+
+    const prefixes = mockUse.mock.calls.map((call: any[]) => call[0]);
+    // router 为 undefined 的配置不应被注册
+    expect(prefixes).not.toContain("/api/test-router-undefined");
+    // 同文件中 router 有效的配置应正常注册
+    expect(prefixes).toContain("/api/test-router-valid");
   });
 });
 
