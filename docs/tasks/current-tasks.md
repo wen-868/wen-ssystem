@@ -72,6 +72,33 @@
 - **状态**：✅ 已完成
 - **优先级**：P1
 - **负责人**：墨
+- **预计**：1 天
+- **完成时间**：2026-07-11
+- **截止时间**：2026-07-13
+- **问题**：admin-web 构建存在 chunk 过大警告（部分超过 500KB）
+- **修复**：配置 `build.rollupOptions.output.manualChunks` 进行代码分割
+
+**优化措施：**
+1. echarts 按需导入：创建 `src/utils/echarts.ts` 封装模块，只导入项目使用的 6 种图表（bar/line/pie/scatter/funnel/heatmap）和组件，echarts chunk 从 1128KB 降至 468KB
+2. echarts/zrender 拆分：zrender 单独拆分为 180KB chunk，echarts core+charts+components 合并为 468KB（避免循环依赖）
+3. element-plus 按需导入：使用 `unplugin-vue-components` + `unplugin-auto-import` + `ElementPlusResolver`，移除 main.ts 全量注册，element-plus 从 957KB 大 chunk 消除，分散到各页面
+4. wangeditor 替换为 tiptap：wangeditor ESM 是 809KB 自包含打包无法拆分，替换为 tiptap（@tiptap/vue-3 + @tiptap/starter-kit），体积约 85KB，分散到页面 chunk
+
+**验收结果：**
+- ✅ 所有 chunk ≤500KB（最大 chunk：echarts 468.66 KB）
+- ✅ 构建无警告（无 "Some chunks are larger than" 警告，无 Circular chunk 警告）
+- ✅ `vue-tsc --noEmit` 0 错误
+- ✅ ESLint 0 错误
+
+**修改文件清单：**
+1. `admin-web/vite.config.ts` — 添加 AutoImport/Components 插件，配置 manualChunks
+2. `admin-web/src/utils/echarts.ts` — 新建，echarts 按需导入封装
+3. `admin-web/src/main.ts` — 移除 element-plus 全量注册
+4. `admin-web/src/views/Products.vue` — wangeditor 替换为 tiptap
+5. `admin-web/src/views/InstantRetailReport.vue` — EChartsOption → EChartsCoreOption
+6. `admin-web/src/wangeditor.d.ts` — 已删除
+7. 20 个 echarts 使用文件 — 导入改为 `@/utils/echarts`
+8. `admin-web/package.json` — 添加 tiptap 依赖，添加 unplugin 插件
 
 ---
 
