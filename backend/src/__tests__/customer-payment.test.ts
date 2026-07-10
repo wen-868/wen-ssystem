@@ -15,7 +15,7 @@ const TOKEN = signToken({
 
 let receiptNo: string;
 
-describe.skip("Customer Payment API", () => {
+describe("Customer Payment API", () => {
   beforeAll(() => resetMockDb());
 
   it("should create a customer payment", async () => {
@@ -40,7 +40,7 @@ describe.skip("Customer Payment API", () => {
     expect(res.body.code).toBe("0");
   });
 
-  it("should get payment detail", async () => {
+  it.skip("should get payment detail", async () => {
     const res = await request(app)
       .get(`/api/store/customer-payments/${receiptNo}`)
       .set("Authorization", `Bearer ${TOKEN}`);
@@ -49,7 +49,7 @@ describe.skip("Customer Payment API", () => {
     expect(res.body.data.receipt_no).toBe(receiptNo);
   });
 
-  it("should void a payment", async () => {
+  it.skip("should void a payment", async () => {
     const res = await request(app)
       .post(`/api/store/customer-payments/${receiptNo}/void`)
       .set("Authorization", `Bearer ${TOKEN}`);
@@ -57,7 +57,7 @@ describe.skip("Customer Payment API", () => {
     expect(res.body.code).toBe("0");
   });
 
-  it("should reject void of already voided payment", async () => {
+  it.skip("should reject void of already voided payment", async () => {
     const res = await request(app)
       .post(`/api/store/customer-payments/${receiptNo}/void`)
       .set("Authorization", `Bearer ${TOKEN}`);
@@ -79,7 +79,7 @@ describe.skip("Customer Payment API", () => {
     expect(res.body.code).toBe("0");
   });
 
-  it("should create payment with source billing", async () => {
+  it.skip("should create payment with source billing", async () => {
     const res = await request(app)
       .post("/api/store/customer-payments")
       .set("Authorization", `Bearer ${TOKEN}`)

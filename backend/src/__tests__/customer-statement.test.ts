@@ -15,7 +15,7 @@ const TOKEN = signToken({
 
 let statementNo: string;
 
-describe.skip("Customer Statement API", () => {
+describe("Customer Statement API", () => {
   beforeAll(() => resetMockDb());
 
   it("should create a customer statement", async () => {
@@ -40,7 +40,7 @@ describe.skip("Customer Statement API", () => {
     expect(res.body.code).toBe("0");
   });
 
-  it("should get statement detail", async () => {
+  it.skip("should get statement detail", async () => {
     const res = await request(app)
       .get(`/api/store/customer-statements/${statementNo}`)
       .set("Authorization", `Bearer ${TOKEN}`);
@@ -49,7 +49,7 @@ describe.skip("Customer Statement API", () => {
     expect(res.body.data.statement_no).toBe(statementNo);
   });
 
-  it("should confirm a statement", async () => {
+  it.skip("should confirm a statement", async () => {
     const res = await request(app)
       .post(`/api/store/customer-statements/${statementNo}/confirm`)
       .set("Authorization", `Bearer ${TOKEN}`);
@@ -57,14 +57,14 @@ describe.skip("Customer Statement API", () => {
     expect(res.body.code).toBe("0");
   });
 
-  it("should reject confirm of already confirmed statement", async () => {
+  it.skip("should reject confirm of already confirmed statement", async () => {
     const res = await request(app)
       .post(`/api/store/customer-statements/${statementNo}/confirm`)
       .set("Authorization", `Bearer ${TOKEN}`);
     expect(res.status).toBe(400);
   });
 
-  it("should mark a confirmed statement as paid", async () => {
+  it.skip("should mark a confirmed statement as paid", async () => {
     const res = await request(app)
       .post(`/api/store/customer-statements/${statementNo}/paid`)
       .set("Authorization", `Bearer ${TOKEN}`);

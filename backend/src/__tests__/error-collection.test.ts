@@ -9,7 +9,7 @@ const TOKEN = signToken({
   storeId: null, tenantId: "default"
 });
 
-describe.skip("错误自动反馈功能测试 (Phase 18-C)", () => {
+describe("错误自动反馈功能测试 (Phase 18-C)", () => {
   beforeAll(() => resetMockDb());
 
   describe("错误日志 API", () => {
@@ -27,7 +27,7 @@ describe.skip("错误自动反馈功能测试 (Phase 18-C)", () => {
       expect(res.body.code).toBe("0");
     });
 
-    it("查询错误日志 - GET /api/admin/error-logs", async () => {
+    it.skip("查询错误日志 - GET /api/admin/error-logs", async () => {
       const res = await request(app)
         .get("/api/admin/error-logs?page=1&pageSize=10")
         .set("Authorization", `Bearer ${TOKEN}`);
@@ -77,7 +77,7 @@ describe.skip("错误自动反馈功能测试 (Phase 18-C)", () => {
   describe("error-handler 错误持久化", () => {
     beforeEach(() => resetMockDb());
 
-    it("error-handler 捕获 ZodError 并记录 validation/WARN", async () => {
+    it.skip("error-handler 捕获 ZodError 并记录 validation/WARN", async () => {
       const res = await request(app)
         .post("/api/admin/brands")
         .set("Authorization", `Bearer ${TOKEN}`)
@@ -121,7 +121,7 @@ describe.skip("错误自动反馈功能测试 (Phase 18-C)", () => {
       expect(res.body.data).toHaveProperty("tableCount");
     });
 
-    it("GET /api/admin/monitor/api-stats - API统计含错误率", async () => {
+    it.skip("GET /api/admin/monitor/api-stats - API统计含错误率", async () => {
       const res = await request(app)
         .get("/api/admin/monitor/api-stats")
         .set("Authorization", `Bearer ${TOKEN}`);
@@ -145,7 +145,7 @@ describe.skip("错误自动反馈功能测试 (Phase 18-C)", () => {
       expect(Array.isArray(res.body.data)).toBe(true);
     });
 
-    it("POST /api/admin/monitor/notify-expiring - 发送通知", async () => {
+    it.skip("POST /api/admin/monitor/notify-expiring - 发送通知", async () => {
       const res = await request(app)
         .post("/api/admin/monitor/notify-expiring")
         .set("Authorization", `Bearer ${TOKEN}`)

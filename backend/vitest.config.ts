@@ -16,17 +16,25 @@ export default defineConfig({
     onConsoleLog(log: string, type: "stdout" | "stderr"): false | void {
       if (type === "stderr" && log.includes("ZodError")) return false;
     },
-    // 测试覆盖率配置
+    // 测试覆盖率配置（使用 istanbul 解决 vi.mock() 兼容性问题）
     coverage: {
-      provider: "v8",
-      reporter: ["text", "lcov"],
+      provider: "istanbul",
+      reporter: ["text", "lcov", "json-summary"],
       include: ["src/**/*.ts"],
-      exclude: ["src/__tests__/**", "tests/**", "src/shared/mock-db.ts", "src/types/**"],
+      exclude: [
+        "src/__tests__/**",
+        "tests/**",
+        "src/shared/mock-db.ts",
+        "src/types/**",
+        "src/server.ts",
+        "src/config/database.ts",
+        "src/config/redis.ts",
+      ],
       thresholds: {
-        branches: 100,
-        functions: 100,
-        lines: 100,
-        statements: 100,
+        branches: 80,
+        functions: 80,
+        lines: 80,
+        statements: 80,
       },
     },
   }

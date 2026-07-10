@@ -15,10 +15,10 @@ const TOKEN = signToken({
 
 let supplierId: number;
 
-describe.skip("Supplier API", () => {
+describe("Supplier API", () => {
   beforeAll(() => resetMockDb());
 
-  it("should create a supplier", async () => {
+  it.skip("should create a supplier", async () => {
     const res = await request(app)
       .post("/api/admin/suppliers")
       .set("Authorization", `Bearer ${TOKEN}`)
@@ -30,7 +30,7 @@ describe.skip("Supplier API", () => {
     supplierId = res.body.data.id;
   });
 
-  it("should get supplier list", async () => {
+  it.skip("should get supplier list", async () => {
     const res = await request(app)
       .get("/api/admin/suppliers")
       .set("Authorization", `Bearer ${TOKEN}`);
@@ -40,7 +40,7 @@ describe.skip("Supplier API", () => {
     expect(res.body.data.total).toBeGreaterThanOrEqual(1);
   });
 
-  it("should get supplier detail", async () => {
+  it.skip("should get supplier detail", async () => {
     const res = await request(app)
       .get(`/api/admin/suppliers/${supplierId}`)
       .set("Authorization", `Bearer ${TOKEN}`);
@@ -49,7 +49,7 @@ describe.skip("Supplier API", () => {
     expect(res.body.data.name).toBe("测试供应商");
   });
 
-  it("should update supplier", async () => {
+  it.skip("should update supplier", async () => {
     const res = await request(app)
       .put(`/api/admin/suppliers/${supplierId}`)
       .set("Authorization", `Bearer ${TOKEN}`)
@@ -58,7 +58,7 @@ describe.skip("Supplier API", () => {
     expect(res.body.code).toBe("0");
   });
 
-  it("should add supplier contact", async () => {
+  it.skip("should add supplier contact", async () => {
     const res = await request(app)
       .post(`/api/admin/suppliers/${supplierId}/contacts`)
       .set("Authorization", `Bearer ${TOKEN}`)
@@ -68,7 +68,7 @@ describe.skip("Supplier API", () => {
     expect(res.body.data.id).toBeGreaterThan(0);
   });
 
-  it("should get supplier stats", async () => {
+  it.skip("should get supplier stats", async () => {
     const res = await request(app)
       .get(`/api/admin/suppliers/${supplierId}/stats`)
       .set("Authorization", `Bearer ${TOKEN}`);
@@ -78,7 +78,7 @@ describe.skip("Supplier API", () => {
     expect(res.body.data).toHaveProperty("totalAmount");
   });
 
-  it("should get supplier purchase orders", async () => {
+  it.skip("should get supplier purchase orders", async () => {
     const res = await request(app)
       .get(`/api/admin/suppliers/${supplierId}/purchase-orders`)
       .set("Authorization", `Bearer ${TOKEN}`);
