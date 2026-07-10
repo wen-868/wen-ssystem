@@ -2,7 +2,7 @@
 
 > 仓库：https://github.com/wen-868/wen-ssystem  
 > 唯一分支：main  
-> 最后更新：2026-07-10
+> 最后更新：2026-07-11
 
 ---
 
@@ -75,12 +75,153 @@
 
 ---
 
+---
+
+## R20 任务列表
+
+### R20-A1 — 全量验收测试
+
+- **状态**：✅ 已完成
+- **优先级**：P0
+- **预计**：2 天
+- **完成时间**：2026-07-11
+
+**测试范围：**
+- instant-retail 模块：6 个测试文件，105 个测试用例
+- miniapp 模块：2 个测试文件，30 个测试用例
+- platform 模块：3 个测试文件，38 个测试用例
+- admin 模块：13 个测试文件，199 个测试用例
+
+**测试结果：**
+- 测试文件总数：155 个
+- 测试用例总数：2485 个
+- 通过：2485 个
+- 失败：0 个
+- 通过率：100%
+
+**覆盖率：**
+- 语句覆盖率：50.94%（目标 ≥80%）
+- 分支覆盖率：45.19%（目标 ≥80%）
+- 函数覆盖率：36.92%（目标 ≥80%）
+- 行覆盖率：50.94%（目标 ≥80%）
+
+**测试报告：**
+- `docs/reports/test-report-2026-07-11.md`
+
+---
+
+---
+
+## R21 任务列表
+
+### R21-A1 — 核心 services 测试覆盖（第一轮）
+
+- **状态**：🔄 进行中
+- **优先级**：P0
+- **负责人**：阿坚
+- **预计**：3 天
+- **开始时间**：2026-07-11
+- **目标**：为高优先级未覆盖 service 文件编写测试，提升整体覆盖率至 70%
+
+**文件清单：**
+1. `backend/src/services/admin/product.service.ts` — 产品核心服务
+2. `backend/src/services/admin/order.service.ts` — 订单核心服务
+3. `backend/src/services/admin/customer.service.ts` — 客户核心服务
+4. `backend/src/services/admin/inventory-cost.service.ts` — 库存成本服务
+5. `backend/src/services/admin/purchase-order.service.ts` — 采购订单服务
+6. `backend/src/services/admin/stock-check.service.ts` — 盘点服务
+
+**验收标准：**
+- 每个文件测试覆盖率 ≥90%
+- 整体语句覆盖率 ≥70%
+
+---
+
+### R21-A2 — controllers 和 routes 测试覆盖
+
+- **状态**：待开始
+- **优先级**：P1
+- **负责人**：阿坚
+- **预计**：2 天
+- **目标**：为 controllers 和 routes 目录编写测试，覆盖 HTTP 请求处理
+
+**文件清单：**
+1. `backend/src/controllers/` 目录下核心 controller 文件
+2. `backend/src/routes/` 目录下核心 route 文件
+
+**验收标准：**
+- controllers 覆盖率 ≥60%
+- routes 覆盖率 ≥60%
+
+---
+
+### R21-A3 — jobs 模块测试覆盖
+
+- **状态**：待开始
+- **优先级**：P1
+- **负责人**：阿坚
+- **预计**：1 天
+- **目标**：为定时任务模块编写测试
+
+**文件清单：**
+1. `backend/src/jobs/` 目录下所有 job 文件
+
+**验收标准：**
+- jobs 覆盖率 ≥80%
+
+---
+
+### R21-A4 — saas-admin ESLint 警告修复
+
+- **状态**：🔄 进行中
+- **优先级**：P2
+- **负责人**：阿澈
+- **预计**：0.5 天
+- **开始时间**：2026-07-11
+- **问题**：`src/main.ts` 第 37、47、57 行存在 `Unexpected console statement` 警告
+- **修复**：添加 `/* eslint-disable-next-line no-console */` 注释，保留开发调试日志
+
+---
+
+### R21-A5 — 前端构建测试修复
+
+- **状态**：🔄 进行中
+- **优先级**：P1
+- **负责人**：墨
+- **预计**：1 天
+- **开始时间**：2026-07-11
+- **问题**：admin-web 和 merchant-mobile 构建测试未通过
+- **修复**：排查并修复构建错误，确保 `npm run build` 成功
+
+---
+
+### R21-A6 — 覆盖率优化（第二轮）
+
+- **状态**：待开始
+- **优先级**：P0
+- **负责人**：阿坚
+- **预计**：3 天
+- **目标**：继续补充测试，将整体覆盖率提升至 80%
+
+**文件清单：**
+1. `backend/src/services/admin/` 剩余未覆盖文件
+2. `backend/src/services/store/` 未覆盖文件
+3. `backend/src/services/instant-retail/` 未覆盖文件
+
+**验收标准：**
+- 语句覆盖率 ≥80%
+- 分支覆盖率 ≥80%
+- 函数覆盖率 ≥80%
+- 行覆盖率 ≥80%
+
+---
+
 ## 强制闭环流程
 
 1. **读取任务** — ✅ 已完成
 2. **执行** — ✅ 已完成
-3. **验证** — ✅ `npx vitest run src/__tests__/services/admin/marketing --coverage` + `npx tsc --noEmit --strict`
+3. **验证** — ✅ `npm run test:vitest` + `npm run test:vitest -- --coverage`
 4. **总结** — ✅ 已更新
 5. **提交** — ✅ 已执行
-6. **更新踩坑日志** — ✅ 已更新
+6. **更新踩坑日志** — 待执行
 7. **推送** — ✅ 已执行
