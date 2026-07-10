@@ -1,6 +1,4 @@
 import { createRouter, createWebHashHistory } from "vue-router";
-import MainLayout from "../layouts/MainLayout.vue";
-import LoginView from "../views/LoginView.vue";
 
 function parseJwtExp(token: string): number | null {
   try {
@@ -30,42 +28,6 @@ function getUserRole(): string | null {
   }
 }
 
-const routes = [
-  {
-    path: "/login",
-    name: "Login",
-    component: LoginView,
-    meta: { requiresAuth: false }
-  },
-  {
-    path: "/",
-    component: MainLayout,
-    redirect: "/dashboard",
-    meta: { requiresAuth: true, roles: ["ADMIN"] },
-    children: [
-      // 工作台
-      { path: "dashboard", name: "Dashboard", component: () => import("../views/Dashboard.vue"), meta: { roles: ["ADMIN"] } },
-      // 租户管理
-      { path: "tenants", name: "Tenants", component: () => import("../views/Tenants.vue"), meta: { roles: ["ADMIN"] } },
-      { path: "tenants/:id", name: "TenantDetail", component: () => import("../views/TenantDetail.vue"), meta: { roles: ["ADMIN"] } },
-      // 套餐管理
-      { path: "packages", name: "Packages", component: () => import("../views/Packages.vue"), meta: { roles: ["ADMIN"] } },
-      { path: "packages/create", name: "PackageCreate", component: () => import("../views/PackageForm.vue"), meta: { roles: ["ADMIN"] } },
-      { path: "packages/:id/edit", name: "PackageEdit", component: () => import("../views/PackageForm.vue"), meta: { roles: ["ADMIN"] } },
-      // 订阅管理
-      { path: "subscriptions", name: "Subscriptions", component: () => import("../views/Subscriptions.vue"), meta: { roles: ["ADMIN"] } },
-      { path: "subscriptions/:id", name: "SubscriptionDetail", component: () => import("../views/SubscriptionDetail.vue"), meta: { roles: ["ADMIN"] } },
-      // 平台配置
-      { path: "settings", name: "Settings", component: () => import("../views/Settings.vue"), meta: { roles: ["ADMIN"] } },
-      // 操作日志
-      { path: "audit-logs", name: "AuditLogs", component: () => import("../views/AuditLogs.vue"), meta: { roles: ["ADMIN"] } },
-      // 监控告警
-      { path: "monitor", name: "Monitor", component: () => import("../views/MonitorView.vue"), meta: { roles: ["ADMIN"] } }
-    ]
-  },
-  { path: "/:pathMatch(.*)*", redirect: "/dashboard" }
-];
-
 const router = createRouter({
   history: createWebHashHistory(),
   routes: [
@@ -78,8 +40,14 @@ const router = createRouter({
     {
       path: '/',
       component: () => import('../layouts/PlatformLayout.vue'),
-      redirect: '/tenants',
+      redirect: '/dashboard',
       children: [
+        {
+          path: 'dashboard',
+          name: 'Dashboard',
+          component: () => import('../views/Dashboard.vue'),
+          meta: { title: '平台看板' },
+        },
         {
           path: 'tenants',
           name: 'TenantList',
@@ -104,6 +72,42 @@ const router = createRouter({
           component: () => import('../views/monitor/MonitorView.vue'),
           meta: { title: '系统监控' },
         },
+        {
+          path: 'packages',
+          name: 'Packages',
+          component: () => import('../views/Packages.vue'),
+          meta: { title: '套餐管理' },
+        },
+        {
+          path: 'packages/create',
+          name: 'PackageCreate',
+          component: () => import('../views/PackageForm.vue'),
+          meta: { title: '新建套餐' },
+        },
+        {
+          path: 'packages/:id/edit',
+          name: 'PackageEdit',
+          component: () => import('../views/PackageForm.vue'),
+          meta: { title: '编辑套餐' },
+        },
+        {
+          path: 'subscriptions',
+          name: 'Subscriptions',
+          component: () => import('../views/Subscriptions.vue'),
+          meta: { title: '订阅管理' },
+        },
+        {
+          path: 'subscriptions/:id',
+          name: 'SubscriptionDetail',
+          component: () => import('../views/SubscriptionDetail.vue'),
+          meta: { title: '订阅详情' },
+        },
+        {
+          path: 'settings',
+          name: 'Settings',
+          component: () => import('../views/Settings.vue'),
+          meta: { title: '平台配置' },
+        },
       ],
     },
   ],
@@ -127,7 +131,6 @@ router.beforeEach((to, _from, next) => {
   } else if (to.path === "/login" && token) {
     next("/dashboard");
   } else {
-    // 角色权限检查
     const allowedRoles = to.meta.roles as string[] | undefined;
     if (allowedRoles && allowedRoles.length > 0) {
       const userRole = getUserRole();

@@ -3,13 +3,29 @@
     <el-aside width="220px">
       <div class="logo">至象 · 平台总后台</div>
       <el-menu :default-active="activeMenu" router>
+        <el-menu-item index="/dashboard">
+          <el-icon><DataAnalysis /></el-icon>
+          <span>平台看板</span>
+        </el-menu-item>
         <el-menu-item index="/tenants">
           <el-icon><OfficeBuilding /></el-icon>
           <span>租户管理</span>
         </el-menu-item>
+        <el-menu-item index="/packages">
+          <el-icon><Box /></el-icon>
+          <span>套餐管理</span>
+        </el-menu-item>
+        <el-menu-item index="/subscriptions">
+          <el-icon><CreditCard /></el-icon>
+          <span>订阅管理</span>
+        </el-menu-item>
         <el-menu-item index="/monitor">
           <el-icon><Monitor /></el-icon>
           <span>系统监控</span>
+        </el-menu-item>
+        <el-menu-item index="/settings">
+          <el-icon><Setting /></el-icon>
+          <span>平台配置</span>
         </el-menu-item>
       </el-menu>
     </el-aside>
@@ -30,7 +46,7 @@
 <script setup lang="ts">
 import { computed } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
-import { OfficeBuilding, Monitor } from '@element-plus/icons-vue'
+import { OfficeBuilding, Monitor, DataAnalysis, Box, CreditCard, Setting } from '@element-plus/icons-vue'
 import { useAuthStore } from '../stores/auth'
 
 const route = useRoute()

@@ -10,7 +10,7 @@ export interface TenantItem {
   createdAt: string
 }
 
-export function listTenantsApi(params: { page: number; pageSize: number; keyword?: string }) {
+export function listTenantsApi(params: { page: number; pageSize: number; keyword?: string; status?: string }) {
   return request.get('/platform/tenants', { params })
 }
 
@@ -28,4 +28,8 @@ export function updateTenantApi(id: number, data: any) {
 
 export function toggleTenantApi(id: number, status: string) {
   return request.post(`/platform/tenants/${id}/toggle`, { status })
+}
+
+export function auditTenantApi(id: number, data: { result: string; remark?: string }) {
+  return request.post(`/platform/tenants/${id}/audit`, data)
 }
