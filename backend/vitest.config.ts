@@ -21,12 +21,12 @@ export default defineConfig({
       provider: "v8",
       reporter: ["text", "lcov"],
       include: ["src/**/*.ts"],
-      exclude: ["src/__tests__/**", "tests/**", "src/shared/mock-db.ts"],
+      exclude: ["src/__tests__/**", "tests/**", "src/shared/mock-db.ts", "src/types/**"],
       thresholds: {
-        branches: 80,
-        functions: 80,
-        lines: 80,
-        statements: 80,
+        branches: 100,
+        functions: 100,
+        lines: 100,
+        statements: 100,
       },
     },
   }
