@@ -1,90 +1,104 @@
-/* 主题色 */
 $uni-color-primary: #1677FF;
 $uni-color-success: #10B981;
 $uni-color-warning: #F59E0B;
 $uni-color-error: #EF4444;
 $uni-color-info: #909399;
 
-/* 文字色 */
 $uni-text-color: #333333;
 $uni-text-color-grey: #999999;
 $uni-text-color-placeholder: #C0C4CC;
+$uni-text-color-light: #CCCCCC;
 
-/* 背景色 */
 $uni-bg-color: #FFFFFF;
 $uni-bg-color-grey: #F5F5F5;
+$uni-bg-color-page: #F0F5FF;
 $uni-bg-color-hover: #F0F0F0;
 
-/* 边框 */
 $uni-border-color: #E5E5E5;
-$uni-border-radius: 8px;
+$uni-border-color-light: #F0F0F0;
+$uni-border-radius-sm: 8rpx;
+$uni-border-radius-base: 16rpx;
+$uni-border-radius-lg: 24rpx;
+$uni-border-radius-circle: 50%;
 
-/* 间距 */
-$uni-spacing-sm: 8px;
-$uni-spacing-base: 16px;
-$uni-spacing-lg: 24px;
+$uni-spacing-xs: 8rpx;
+$uni-spacing-sm: 16rpx;
+$uni-spacing-base: 24rpx;
+$uni-spacing-lg: 32rpx;
+$uni-spacing-xl: 48rpx;
 
-/* 字体 */
-$uni-font-size-sm: 12px;
-$uni-font-size-base: 14px;
-$uni-font-size-lg: 16px;
-$uni-font-size-xl: 18px;
+$uni-font-size-xs: 22rpx;
+$uni-font-size-sm: 24rpx;
+$uni-font-size-base: 28rpx;
+$uni-font-size-lg: 32rpx;
+$uni-font-size-xl: 36rpx;
+$uni-font-size-xxl: 44rpx;
 
-/* 页面容器 */
+$uni-line-height-base: 1.5;
+$uni-line-height-lg: 1.8;
+
+$uni-shadow-sm: 0 2rpx 8rpx rgba(0, 0, 0, 0.04);
+$uni-shadow-base: 0 4rpx 16rpx rgba(0, 0, 0, 0.06);
+$uni-shadow-lg: 0 8rpx 24rpx rgba(0, 0, 0, 0.08);
+
 .page-container {
   min-height: 100vh;
-  background-color: $uni-bg-color-grey;
+  background-color: $uni-bg-color-page;
   padding-bottom: constant(safe-area-inset-bottom);
   padding-bottom: env(safe-area-inset-bottom);
 }
 
-/* 卡片 */
 .card {
   background: $uni-bg-color;
-  border-radius: 12px;
-  padding: 16px;
-  margin: 12px 16px;
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+  border-radius: $uni-border-radius-base;
+  padding: $uni-spacing-lg;
+  margin: $uni-spacing-sm $uni-spacing-lg;
+  box-shadow: $uni-shadow-sm;
 }
 
-/* 指标网格 */
 .metric-grid {
   display: grid;
   grid-template-columns: repeat(2, 1fr);
-  gap: 12px;
-  padding: 0 16px;
+  gap: $uni-spacing-sm;
+  padding: 0 $uni-spacing-lg;
 }
 
 .metric {
   background: $uni-bg-color;
-  border-radius: 12px;
-  padding: 16px;
+  border-radius: $uni-border-radius-base;
+  padding: $uni-spacing-lg;
   text-align: center;
+  box-shadow: $uni-shadow-sm;
 }
 
 .metric-value {
-  font-size: 24px;
+  font-size: 44rpx;
   font-weight: 700;
   color: $uni-color-primary;
+  line-height: 1.2;
 }
 
 .metric-label {
-  font-size: 12px;
+  font-size: $uni-font-size-sm;
   color: $uni-text-color-grey;
-  margin-top: 4px;
+  margin-top: $uni-spacing-xs;
 }
 
-/* 按钮 */
 .btn-primary {
-  background: $uni-color-primary;
+  background: linear-gradient(135deg, $uni-color-primary, #4096ff);
   color: #fff;
   border: none;
-  border-radius: 8px;
-  padding: 12px 24px;
-  font-size: 16px;
+  border-radius: $uni-border-radius-lg;
+  padding: $uni-spacing-base $uni-spacing-xl;
+  font-size: $uni-font-size-lg;
+  font-weight: 600;
 }
 
-/* 安全区域 */
+.safe-top {
+  padding-top: constant(safe-area-inset-top);
+  padding-top: env(safe-area-inset-top);
+}
+
 .safe-bottom {
   padding-bottom: constant(safe-area-inset-bottom);
   padding-bottom: env(safe-area-inset-bottom);

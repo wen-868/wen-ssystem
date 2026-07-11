@@ -1,24 +1,20 @@
 <template>
   <view class="orders-page">
-    <!-- 搜索表单：ref + :model + :rules -->
-    <form ref="formRef" :model="searchForm" class="search-form">
-      <view class="search-bar">
-        <view class="search-input-wrap">
-          <text class="search-icon">&#xe614;</text>
-          <input
-            class="search-input"
-            v-model="searchForm.keyword"
-            type="text"
-            placeholder="搜索订单号 / 客户名"
-            placeholder-class="search-placeholder"
-            @confirm="onSearch"
-          />
-          <text class="search-clear" v-if="searchForm.keyword" @tap="clearSearch">&#xe615;</text>
-        </view>
+    <view class="search-bar">
+      <view class="search-input-wrap">
+        <text class="search-icon">&#xe614;</text>
+        <input
+          class="search-input"
+          v-model="searchForm.keyword"
+          type="text"
+          placeholder="搜索订单号 / 客户名"
+          placeholder-class="search-placeholder"
+          @confirm="onSearch"
+        />
+        <text class="search-clear" v-if="searchForm.keyword" @tap="clearSearch">&#xe615;</text>
       </view>
-    </form>
+    </view>
 
-    <!-- Tab 切换 -->
     <scroll-view class="tab-bar" scroll-x :show-scrollbar="false">
       <view
         class="tab-item"
@@ -32,7 +28,6 @@
       </view>
     </scroll-view>
 
-    <!-- 订单列表 -->
     <scroll-view
       class="order-list"
       scroll-y
@@ -41,7 +36,20 @@
       @refresherrefresh="onPullDownRefresh"
       @scrolltolower="onLoadMore"
     >
-      <view class="order-card" v-for="order in orderList" :key="order.orderNo" @tap="goDetail(order.orderNo)">
+      <view class="loading-overlay" v-if="loading">
+        <view class="loading-spinner"></view>
+        <text class="loading-text">加载中...</text>
+      </view>
+
+      <view
+        class="order-card"
+        v-for="order in orderList"
+        :key="order.orderNo"
+        @tap="goDetail(order.orderNo)"
+        @touchstart="activeCard = order.orderNo"
+        @touchend="activeCard = null"
+        :class="{ 'card-active': activeCard === order.orderNo }"
+      >
         <view class="order-card-header">
           <text class="order-no">订单号：{{ order.orderNo }}</text>
           <view class="order-status" :class="'status-' + order.status">
@@ -60,14 +68,13 @@
         </view>
       </view>
 
-      <!-- 空状态 -->
       <view class="empty-state" v-if="!loading && orderList.length === 0">
         <text class="empty-icon">&#xe617;</text>
         <text class="empty-text">暂无订单数据</text>
       </view>
 
-      <!-- 加载更多 -->
       <view class="load-more" v-if="orderList.length > 0">
+        <view class="loading-more-spinner" v-if="loadingMore"></view>
         <text class="load-more-text" v-if="loadingMore">加载中...</text>
         <text class="load-more-text" v-else-if="noMore">-- 没有更多了 --</text>
       </view>
@@ -80,7 +87,6 @@
 <script setup lang="ts">
 import { ref, reactive, onMounted } from 'vue'
 import { ordersApi, type OrderInfo } from '@/api/modules/orders'
-import { useFormValidation, type Rules } from '@/composables/useFormValidation'
 
 const tabs = [
   { label: '全部', value: '' },
@@ -90,30 +96,22 @@ const tabs = [
   { label: '已取消', value: 'cancelled' }
 ]
 
-// 搜索表单三件套：ref + :model + :rules
-const formRef = ref<any>(null)
 const searchForm = reactive({
   keyword: '',
 })
-
-const searchRules: Rules = {
-  keyword: [
-    { minLength: 1, message: '输入至少1个字符', required: false },
-  ],
-}
-
-const { errors, validate, clearError } = useFormValidation(searchForm, searchRules)
 
 const activeTab = ref('')
 const orderList = ref<OrderInfo[]>([])
 const loading = ref(false)
 const loadingMore = ref(false)
 const refresherTriggered = ref(false)
+const activeCard = ref<string | null>(null)
 const page = ref(1)
 const pageSize = 20
 const noMore = ref(false)
 
 function switchTab(tab: string) {
+  if (activeTab.value === tab) return
   activeTab.value = tab
   page.value = 1
   orderList.value = []
@@ -147,8 +145,10 @@ async function loadOrders() {
     noMore.value = result.list.length < pageSize
   } catch (err) {
     console.error('加载订单失败:', err)
+    uni.showToast({ title: '加载失败', icon: 'none' })
   } finally {
     loading.value = false
+    refresherTriggered.value = false
   }
 }
 
@@ -214,7 +214,6 @@ onMounted(() => {
   flex-direction: column;
 }
 
-/* 搜索栏 */
 .search-bar {
   padding: 16rpx 24rpx;
   background: #fff;
@@ -253,7 +252,6 @@ onMounted(() => {
   padding: 4rpx;
 }
 
-/* Tab Bar */
 .tab-bar {
   background: #fff;
   white-space: nowrap;
@@ -267,11 +265,13 @@ onMounted(() => {
   align-items: center;
   padding: 20rpx 24rpx;
   position: relative;
+  transition: all 0.2s ease;
 }
 
 .tab-text {
   font-size: 28rpx;
   color: #666;
+  transition: color 0.2s ease;
 }
 
 .tab-item--active .tab-text {
@@ -286,12 +286,39 @@ onMounted(() => {
   border-radius: 3rpx;
   position: absolute;
   bottom: 4rpx;
+  transition: width 0.3s ease;
 }
 
-/* 订单列表 */
 .order-list {
   flex: 1;
   padding: 16rpx 24rpx;
+}
+
+.loading-overlay {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 80rpx 0;
+}
+
+.loading-spinner {
+  width: 48rpx;
+  height: 48rpx;
+  border: 4rpx solid #e0e0e0;
+  border-top-color: #1677FF;
+  border-radius: 50%;
+  animation: spin 0.8s linear infinite;
+}
+
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+
+.loading-text {
+  font-size: 26rpx;
+  color: #999;
+  margin-top: 20rpx;
 }
 
 .order-card {
@@ -300,6 +327,13 @@ onMounted(() => {
   padding: 24rpx;
   margin-bottom: 16rpx;
   box-shadow: 0 2rpx 12rpx rgba(0, 0, 0, 0.04);
+  transition: all 0.2s ease;
+}
+
+.order-card:active,
+.card-active {
+  transform: scale(0.98);
+  background: #f9fafc;
 }
 
 .order-card-header {
@@ -340,7 +374,7 @@ onMounted(() => {
 }
 
 .order-customer {
-  font-size: 30rpx;
+  font-size: 32rpx;
   font-weight: 600;
   color: #333;
 }
@@ -364,10 +398,9 @@ onMounted(() => {
 
 .order-arrow {
   font-size: 28rpx;
-  color: #bbb;
+  color: #ddd;
 }
 
-/* 空状态 */
 .empty-state {
   display: flex;
   flex-direction: column;
@@ -386,10 +419,21 @@ onMounted(() => {
   color: #bbb;
 }
 
-/* 加载更多 */
 .load-more {
-  text-align: center;
+  display: flex;
+  align-items: center;
+  justify-content: center;
   padding: 24rpx 0;
+  gap: 12rpx;
+}
+
+.loading-more-spinner {
+  width: 32rpx;
+  height: 32rpx;
+  border: 3rpx solid #e0e0e0;
+  border-top-color: #1677FF;
+  border-radius: 50%;
+  animation: spin 0.8s linear infinite;
 }
 
 .load-more-text {

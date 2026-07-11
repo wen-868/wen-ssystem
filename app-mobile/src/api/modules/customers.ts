@@ -8,10 +8,14 @@ export interface CustomerInfo {
   typeLabel: string
   debtAmount: number
   totalOrders: number
-  totalAmount: number
+  totalAmount: number | string
   lastOrderTime?: string
   address?: string
   remark?: string
+  contact?: string
+  level?: string
+  area?: string
+  unpaidAmount?: string
 }
 
 export interface CustomerListParams {
