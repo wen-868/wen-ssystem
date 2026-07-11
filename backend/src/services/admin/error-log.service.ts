@@ -9,8 +9,8 @@ export interface ErrorLogEntry {
   request_url?: string;
   request_method?: string;
   status_code?: number;
-  user_id?: string;
-  tenant_id?: string;
+  user_id?: string | number;
+  tenant_id?: string | number;
   source?: "backend" | "frontend";
 }
 

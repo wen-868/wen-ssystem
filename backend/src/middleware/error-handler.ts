@@ -20,6 +20,23 @@ export const errorHandler: ErrorRequestHandler = (err, req, res, _next) => {
       message: e.message,
       code: e.code
     }));
+
+    const userId = (req as { user?: { id: number } }).user?.id || undefined;
+    const tenantId = (req as { tenantId?: number | string }).tenantId || undefined;
+
+    insertErrorLog({
+      error_type: "validation",
+      severity: "WARN",
+      message: errorMessage,
+      stack: errorStack,
+      request_url: requestUrl,
+      request_method: requestMethod,
+      status_code: 400,
+      user_id: userId,
+      tenant_id: tenantId,
+      source: "backend",
+    }).catch((e) => logger.error("insertErrorLog failed", e));
+
     res.status(400).json({ ...fail("参数校验失败", "400"), errors: fieldErrors });
     return;
   }

@@ -285,11 +285,11 @@ class SaleReturnService {
     if (!returnOrder) return null;
 
     if (returnOrder.return_status !== "COMPLETED") {
-      throw new Error("只有已完成的退货单可以退款");
+      throw Object.assign(new Error("只有已完成的退货单可以退款"), { statusCode: 400 });
     }
 
     if (Number(returnOrder.refunded_amount) >= Number(returnOrder.refund_amount)) {
-      throw new Error("退货单已全额退款");
+      throw Object.assign(new Error("退货单已全额退款"), { statusCode: 400 });
     }
 
     await transaction(async (conn) => {

@@ -1,7 +1,8 @@
 /**
  * 订单/销售单 mock handlers: saleBills, saleBillItems, miniappOrders, miniappOrderItems, holdOrders, platformOrders
+ * 修复坑：业务表使用 t_ 前缀（如 t_sale_bill），需同时匹配带前缀和不带前缀的形式
  */
-import { state, result, Row } from "./mock-db-state.js";
+import { state, result, Row, fromTable, insertIntoTable, updateTable } from "./mock-db-state.js";
 
 export const queryHandlers: Array<(s: string, params: unknown[]) => Row[] | null> = [
   // sale_bill 汇总 (sum received_amount, unreceived_amount)
@@ -94,7 +95,7 @@ export const queryHandlers: Array<(s: string, params: unknown[]) => Row[] | null
 
   // sale_bill date group by
   (s, params) => {
-    if ((s.includes("date(created_at)") || s.includes("date(sb.created_at)")) && s.includes("from sale_bill") && s.includes("group by")) {
+    if ((s.includes("date(created_at)") || s.includes("date(sb.created_at)")) && fromTable(s, "sale_bill") && s.includes("group by")) {
       const map = new Map<string, { date: string; count: number; amount: number }>();
       for (const bill of state.saleBills) {
         const d = (bill.createdAt as string).slice(0, 10);
@@ -136,13 +137,13 @@ export const queryHandlers: Array<(s: string, params: unknown[]) => Row[] | null
 
   // sale_bill count
   (s, params) => {
-    if (s.includes("from sale_bill where") && s.includes("count(*)")) return [{ total: state.saleBills.length }];
+    if (fromTable(s, "sale_bill") && s.includes("count(*)")) return [{ total: state.saleBills.length }];
     return null;
   },
 
   // sale_bill_item by bill_no
   (s, params) => {
-    if (s.includes("from sale_bill_item where bill_no")) {
+    if (fromTable(s, "sale_bill_item") && s.includes("where bill_no")) {
       return state.saleBillItems.filter((i) => i.billNo === params[0] || i.bill_no === params[0]);
     }
     return null;
@@ -150,7 +151,7 @@ export const queryHandlers: Array<(s: string, params: unknown[]) => Row[] | null
 
   // sale_bill by bill_no
   (s, params) => {
-    if (s.includes("from sale_bill where bill_no = ?")) {
+    if (fromTable(s, "sale_bill") && s.includes("where bill_no = ?")) {
       const bill = state.saleBills.find((b) => b.billNo === params[0] || b.bill_no === params[0]);
       return bill ? [bill] : [];
     }
@@ -159,7 +160,7 @@ export const queryHandlers: Array<(s: string, params: unknown[]) => Row[] | null
 
   // sale_bill general
   (s, params) => {
-    if (s.includes("from sale_bill ") && !s.includes("join") && !s.includes("group by")) return state.saleBills;
+    if (fromTable(s, "sale_bill") && !s.includes("join") && !s.includes("group by") && !s.includes("count(*)")) return state.saleBills;
     return null;
   },
 
@@ -188,7 +189,7 @@ export const queryHandlers: Array<(s: string, params: unknown[]) => Row[] | null
 export const executeHandlers: Array<(s: string, params: unknown[]) => Row[] | null> = [
   // sale_bill INSERT
   (s, params) => {
-    if (s.includes("insert into sale_bill ")) {
+    if (insertIntoTable(s, "sale_bill")) {
       state.saleBills.push({
         billNo: params[0],
         bill_no: params[0],
@@ -216,7 +217,7 @@ export const executeHandlers: Array<(s: string, params: unknown[]) => Row[] | nu
 
   // sale_bill_item INSERT
   (s, params) => {
-    if (s.includes("insert into sale_bill_item")) {
+    if (insertIntoTable(s, "sale_bill_item")) {
       state.saleBillItems.push({
         billNo: params[0],
         bill_no: params[0],
@@ -326,7 +327,7 @@ export const executeHandlers: Array<(s: string, params: unknown[]) => Row[] | nu
 
   // sale_bill UPDATE
   (s, params) => {
-    if (s.includes("update sale_bill")) {
+    if (updateTable(s, "sale_bill")) {
       if (s.includes("collection_status = 'shared'")) {
         const bill = state.saleBills.find((b) => b.billNo === params[0] || b.bill_no === params[0]);
         if (!bill) return [];

@@ -374,7 +374,7 @@ class PurchaseService {
     if (!existing) return null;
 
     if (!["DRAFT", "PENDING"].includes(existing.status)) {
-      throw new Error("当前状态不允许修改");
+      throw Object.assign(new Error("当前状态不允许修改"), { statusCode: 400 });
     }
 
     await transaction(async (conn) => {
@@ -472,7 +472,7 @@ class PurchaseService {
     if (!existing) return null;
 
     if (!["DRAFT"].includes(existing.status)) {
-      throw new Error("只有草稿状态的订单可以删除");
+      throw Object.assign(new Error("只有草稿状态的订单可以删除"), { statusCode: 400 });
     }
 
     await transaction(async (conn) => {
@@ -493,7 +493,7 @@ class PurchaseService {
     if (!order) return null;
 
     if (order.status !== "DRAFT") {
-      throw new Error("只有草稿状态的订单可以提交审核");
+      throw Object.assign(new Error("只有草稿状态的订单可以提交审核"), { statusCode: 400 });
     }
 
     await updateOrderStatus(orderNo, "PENDING", ctx.tenantId);
@@ -516,7 +516,7 @@ class PurchaseService {
     if (!order) return null;
 
     if (order.status !== "PENDING") {
-      throw new Error("只有待审核状态的订单可以审核");
+      throw Object.assign(new Error("只有待审核状态的订单可以审核"), { statusCode: 400 });
     }
 
     await updateOrderStatus(orderNo, "APPROVED", ctx.tenantId, { auditorId: ctx.userId });
@@ -539,7 +539,7 @@ class PurchaseService {
     if (!order) return null;
 
     if (!["DRAFT", "PENDING"].includes(order.status)) {
-      throw new Error("只有草稿或待审核状态的订单可以取消");
+      throw Object.assign(new Error("只有草稿或待审核状态的订单可以取消"), { statusCode: 400 });
     }
 
     await updateOrderStatus(orderNo, "CANCELLED", ctx.tenantId);
@@ -562,7 +562,7 @@ class PurchaseService {
     if (!order) return null;
 
     if (order.status !== "APPROVED") {
-      throw new Error("只有已审核的订单可以入库");
+      throw Object.assign(new Error("只有已审核的订单可以入库"), { statusCode: 400 });
     }
 
     const orderItems = await query<any>(

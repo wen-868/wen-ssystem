@@ -3,7 +3,7 @@ import { existsSync, readFileSync } from "node:fs";
 import { join, resolve } from "node:path";
 import logger from "../shared/logger.js";
 import { env } from "./env.js";
-import { mockConn, mockQuery } from "../__tests__/mocks/mock-db.js";
+import { mockConn, mockQuery, mockExecute } from "../__tests__/mocks/mock-db.js";
 
 export let pool = mysql.createPool({
   host: env.DB_HOST,
@@ -91,8 +91,31 @@ export async function initDatabase() {
   logger.info("✅ 数据库种子数据初始化完成");
 }
 
+/**
+ * 判断 SQL 是否为写操作（INSERT/UPDATE/DELETE）
+ */
+function isWriteSql(sql: string): boolean {
+  const trimmed = sql.trim().toLowerCase();
+  return trimmed.startsWith("insert") || trimmed.startsWith("update") || trimmed.startsWith("delete");
+}
+
 export async function query<T = any>(sql: string, params: unknown[] = []) {
   if (env.USE_MOCK_DB) {
+    // 修复坑：query() 在 mock 模式下只调用 mockQuery（仅处理 SELECT），不处理 INSERT/UPDATE/DELETE
+    // 部分 service 使用 `const [result] = await query<any>("INSERT ...")` 解构并访问 result.insertId
+    // 对于写操作，路由到 mockExecute，返回 [ResultSetHeader, ...] 数组以支持解构
+    if (isWriteSql(sql)) {
+      const execResult: any = await mockExecute(sql, params);
+      // mockExecute 返回 [ResultSetHeader, undefined] 或 handler 返回的结果
+      // 需要返回数组形式，使 `const [result] = await query(...)` 解构后 result 是 ResultSetHeader
+      if (Array.isArray(execResult) && execResult.length === 2 && execResult[1] === undefined) {
+        // 返回 [ResultSetHeader] 数组，解构后 result = ResultSetHeader
+        // 同时在 ResultSetHeader 上已挂载 insertId/affectedRows 属性（由 result() 函数处理）
+        return [execResult[0]] as T[];
+      }
+      // handler 返回其他格式，直接包装为数组
+      return Array.isArray(execResult) ? execResult as T[] : [execResult] as T[];
+    }
     return mockQuery<T>(sql, params);
   }
   const [rows] = await pool.query(sql, params);
@@ -120,6 +143,15 @@ export async function queryWithTenant<T = any>(sql: string, params: unknown[] = 
     const hasTenantId = lowerSql.includes('tenant_id');
     if (!hasTenantId) {
       logger.warn(`[mock-db] WARNING: queryWithTenant 调用缺少 tenant_id 条件: ${sql.substring(0, 100)}`);
+    }
+    // 修复坑：queryWithTenant 在 mock 模式下只调用 mockQuery，不处理 INSERT/UPDATE/DELETE
+    // 部分 service 使用 `const [result] = await queryWithTenant<any>("UPDATE ...")` 解构并访问 result.affectedRows
+    if (isWriteSql(sql)) {
+      const execResult: any = await mockExecute(sql, params);
+      if (Array.isArray(execResult) && execResult.length === 2 && execResult[1] === undefined) {
+        return [execResult[0]] as T[];
+      }
+      return Array.isArray(execResult) ? execResult as T[] : [execResult] as T[];
     }
     const result = await mockQuery<T>(sql, params);
     // 对结果进行租户过滤（模拟生产环境的租户隔离）

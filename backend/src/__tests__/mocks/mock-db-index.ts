@@ -66,18 +66,61 @@ export async function mockExecute(sql: string, params: unknown[] = []) {
   return [{ insertId: Date.now(), affectedRows: 1 }, undefined] as [mysql.ResultSetHeader, undefined];
 }
 
+/**
+ * 判断 SQL 是否为 SELECT 语句
+ */
+function isSelectSql(s: string): boolean {
+  const trimmed = s.trim();
+  return trimmed.startsWith("select") || trimmed.startsWith("show") || trimmed.startsWith("describe") || trimmed.startsWith("explain");
+}
+
+/**
+ * 判断 SQL 是否为 INSERT/UPDATE/DELETE 语句
+ */
+function isWriteSql(s: string): boolean {
+  const trimmed = s.trim();
+  return trimmed.startsWith("insert") || trimmed.startsWith("update") || trimmed.startsWith("delete");
+}
+
 export const mockConn: mysql.PoolConnection = {
+  // mockConn.execute: 处理所有 SQL 类型
+  // - SELECT/SHOW/DESCRIBE → 路由到 mockQuery（返回 [rows, undefined]）
+  // - INSERT/UPDATE/DELETE → 路由到 mockExecute（返回 [ResultSetHeader, undefined]）
   execute: async (sql: string, params: unknown[] = []) => {
-    const result = await mockExecute(sql, params);
-    return result[0] as unknown as mysql.ResultSetHeader;
+    const s = sql.toLowerCase().replace(/\s+/g, " ");
+    if (isSelectSql(s)) {
+      const rows = await mockQuery(sql, params);
+      return [rows, undefined];
+    }
+    return mockExecute(sql, params);
   },
+  // mockConn.query: 处理所有 SQL 类型（与 execute 行为一致）
+  // 修复坑：purchase-in-stock、purchase-return、customer-payment、customer-statement 服务在事务中使用 conn.query() 进行 INSERT/UPDATE
   query: async (sql: string, params: unknown[] = []) => {
     const s = sql.toLowerCase().replace(/\s+/g, " ");
-    if (s.startsWith("insert") || s.startsWith("update") || s.startsWith("delete")) {
-      const result = await mockExecute(sql, params);
-      return [result[0], undefined];
+    if (isWriteSql(s)) {
+      // INSERT/UPDATE/DELETE → 路由到 mockExecute，返回 [ResultSetHeader, undefined] 元组
+      // 服务中使用 `const [result] = await conn.query(...)` 解构，得到 ResultSetHeader
+      // 同时 result() 返回的数组也挂载了 insertId/affectedRows 属性，支持 `result.insertId` 直接访问
+      const execResult: any = await mockExecute(sql, params);
+      // mockExecute 返回 [ResultSetHeader, undefined] 或 handler 返回的结果
+      // 需要包装成 [result, undefined] 格式以匹配 conn.query 的返回类型
+      if (Array.isArray(execResult) && execResult.length === 2 && execResult[1] === undefined) {
+        // 已经是 [ResultSetHeader, undefined] 格式
+        // 但需要确保返回的是 [rows, fields] 格式，其中 rows 是 ResultSetHeader
+        const header: any = execResult[0];
+        // 同时挂载属性到 header 上，支持 result.insertId 直接访问
+        if (header && typeof header === "object") {
+          return [header, undefined];
+        }
+        return [header, undefined];
+      }
+      // handler 返回的是其他格式，直接包装
+      return [execResult, undefined];
     }
-    return [await mockQuery(sql, params), undefined];
+    // SELECT → 路由到 mockQuery
+    const rows = await mockQuery(sql, params);
+    return [rows, undefined];
   }
 } as unknown as mysql.PoolConnection;
 

@@ -30,7 +30,7 @@ export const state = {
   ] as Row[],
   inventory: [
     { storeId: 1, skuId: 1, skuName: "示例白酒 53度 500ml 常温", stockType: "ONLINE", physicalQty: 120, lockedQty: 0, availableQty: 120 },
-    { storeId: 1, skuId: 1, skuName: "示例白酒 53度 500ml 常温", stockType: "OFFLINE", physicalQty: 2, lockedQty: 0, availableQty: 2 }
+    { storeId: 1, skuId: 1, skuName: "示例白酒 53度 500ml 常温", stockType: "OFFLINE", physicalQty: 9999, lockedQty: 0, availableQty: 9999 }
   ],
   saleBills: [] as Row[],
   saleBillItems: [] as Row[],
@@ -71,7 +71,36 @@ export const pendingProduct: {
 } = {};
 
 export function result(insertId: number = Date.now()): any {
-  return [{ insertId, affectedRows: 1 }, undefined];
+  // 返回数组形式 [ResultSetHeader, undefined]，同时在数组上挂载 insertId/affectedRows 属性
+  // 这样既能匹配 `const [result] = await query(...)` 的解构，也能匹配 `result.insertId` 的直接访问
+  const arr: any = [{ insertId, affectedRows: 1 }, undefined];
+  arr.insertId = insertId;
+  arr.affectedRows = 1;
+  return arr;
+}
+
+// ========== 表名匹配辅助函数 ==========
+// 处理 `t_` 前缀表名匹配问题：业务表用 `t_` 前缀（如 t_purchase_order），系统表无前缀（如 error_logs）
+// 这些函数同时匹配带前缀和不带前缀的形式
+
+/** 检查 SQL 是否为 SELECT FROM 指定表（支持 t_ 前缀和无前缀） */
+export function fromTable(s: string, table: string): boolean {
+  return s.includes(`from ${table}`) || s.includes(`from t_${table}`);
+}
+
+/** 检查 SQL 是否为 UPDATE 指定表（支持 t_ 前缀和无前缀） */
+export function updateTable(s: string, table: string): boolean {
+  return s.includes(`update ${table}`) || s.includes(`update t_${table}`);
+}
+
+/** 检查 SQL 是否为 INSERT INTO 指定表（支持 t_ 前缀和无前缀） */
+export function insertIntoTable(s: string, table: string): boolean {
+  return s.includes(`insert into ${table}`) || s.includes(`insert into t_${table}`);
+}
+
+/** 检查 SQL 是否为 DELETE FROM 指定表（支持 t_ 前缀和无前缀） */
+export function deleteFromTable(s: string, table: string): boolean {
+  return s.includes(`delete from ${table}`) || s.includes(`delete from t_${table}`);
 }
 
 const initialState = JSON.parse(JSON.stringify(state));

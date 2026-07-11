@@ -1,7 +1,7 @@
 import { Router } from "express";
 
 const validRouter = Router();
-validRouter.get("/", (req, res) => res.json({ ok: "valid" }));
+validRouter.get("/", (req, res) => res.json({ ok: 1 }));
 
 export const routeConfigs = [
   { prefix: "/api/test-router-undefined", router: undefined, auth: "none" as const },
