@@ -1,6 +1,110 @@
 import { queryWithTenant, queryOneWithTenant, transaction } from "../../shared/db.js";
 import { makeBizNo } from "../../shared/id.js";
 
+interface PromotionRecord {
+  id: number;
+  activityCode: string;
+  activityName: string;
+  activityType: string;
+  activityDesc: string;
+  startTime: string;
+  endTime: string;
+  applicableScope: string;
+  applicableIds: string;
+  rules: string;
+  maxParticipants: number;
+  participantCount: number;
+  status: string;
+  priority: number;
+  stackable: number;
+  createdAt: string;
+  updatedAt: string;
+}
+
+interface CreatePromotionBody {
+  activityName: string;
+  activityType: string;
+  activityDesc?: string;
+  startTime: string;
+  endTime: string;
+  applicableScope: string;
+  applicableIds?: unknown;
+  rules: unknown;
+  maxParticipants: number;
+  priority: number;
+  stackable: number;
+}
+
+interface UpdatePromotionBody {
+  activityName?: string;
+  activityDesc?: string;
+  startTime?: string;
+  endTime?: string;
+  applicableScope?: string;
+  applicableIds?: unknown;
+  rules?: unknown;
+  maxParticipants?: number;
+  priority?: number;
+  stackable?: number;
+  status?: string;
+}
+
+interface CalculateDiscountBody {
+  userId: number;
+  orderAmount: number;
+  productIds: number[];
+  couponNo?: string;
+}
+
+interface UserCoupon {
+  id: number;
+  couponType: string;
+  couponValue: number;
+  minPurchase: number;
+  maxDiscount: number | null;
+  applicableScope: string;
+  applicableIds: string;
+  validStart: string;
+  validEnd: string;
+}
+
+interface PromotionActivity {
+  id: number;
+  activityType: string;
+  rules: string;
+  applicableScope: string;
+  applicableIds: string;
+  priority: number;
+  stackable: number;
+}
+
+function safeJsonParse<T = unknown>(str: string | null | undefined, defaultValue: T): T {
+  if (!str) return defaultValue;
+  try {
+    return JSON.parse(str) as T;
+  } catch {
+    return defaultValue;
+  }
+}
+
+async function logOperation(
+  conn: any,
+  module: string,
+  action: string,
+  targetId: string,
+  targetType: string,
+  userId: number,
+  username: string,
+  detail: string,
+  tenantId: string
+) {
+  await conn.execute(
+    `INSERT INTO marketing_operation_log (module, action, target_id, target_type, user_id, user_name, detail, tenant_id)
+     VALUES (?, ?, ?, ?, ?, ?, ?, ?)`,
+    [module, action, targetId, targetType, userId, username, detail, tenantId]
+  );
+}
+
 export async function listPromotions(
   page: number,
   pageSize: number,
@@ -9,7 +113,7 @@ export async function listPromotions(
   status?: string
 ) {
   const conditions: string[] = [];
-  const params: any[] = [];
+  const params: unknown[] = [];
 
   if (type) {
     conditions.push("activity_type = ?");
@@ -22,7 +126,7 @@ export async function listPromotions(
 
   const where = conditions.length > 0 ? `WHERE ${conditions.join(" AND ")}` : "";
 
-  const records = await queryWithTenant<any>(
+  const records = await queryWithTenant<PromotionRecord>(
     `SELECT id, activity_code AS activityCode, activity_name AS activityName,
             activity_type AS activityType, activity_desc AS activityDesc,
             start_time AS startTime, end_time AS endTime,
@@ -38,7 +142,7 @@ export async function listPromotions(
     tenantId
   );
 
-  const totalRow = await queryOneWithTenant<any>(
+  const totalRow = await queryOneWithTenant<{ total: number }>(
     `SELECT COUNT(*) AS total FROM promotion_activity ${where}`,
     params,
     tenantId
@@ -52,19 +156,12 @@ export async function listPromotions(
   };
 }
 
-export async function createPromotion(body: {
-  activityName: string;
-  activityType: string;
-  activityDesc?: string;
-  startTime: string;
-  endTime: string;
-  applicableScope: string;
-  applicableIds?: any;
-  rules: any;
-  maxParticipants: number;
-  priority: number;
-  stackable: number;
-}, tenantId: string, userId: number, username: string) {
+export async function createPromotion(
+  body: CreatePromotionBody,
+  tenantId: string,
+  userId: number,
+  username: string
+) {
   const activityCode = makeBizNo("PROMO");
 
   await transaction(async (conn) => {
@@ -84,37 +181,30 @@ export async function createPromotion(body: {
       ]
     );
 
-    await conn.execute(
-      `INSERT INTO marketing_operation_log (module, action, target_id, target_type, user_id, user_name, detail, tenant_id)
-       VALUES (?, ?, ?, ?, ?, ?, ?, ?)`,
-      ["promotion", "CREATE", activityCode, "promotion_activity", userId, username,
-       `创建促销活动: ${activityCode}, 名称: ${body.activityName}`, tenantId]
+    await logOperation(
+      conn,
+      "promotion",
+      "CREATE",
+      activityCode,
+      "promotion_activity",
+      userId,
+      username,
+      `创建促销活动: ${activityCode}, 名称: ${body.activityName}`,
+      tenantId
     );
   });
 
-  return { activity_code: activityCode };
+  return { activityCode };
 }
 
 export async function updatePromotion(
   activityId: number,
-  body: {
-    activityName?: string;
-    activityDesc?: string;
-    startTime?: string;
-    endTime?: string;
-    applicableScope?: string;
-    applicableIds?: any;
-    rules?: any;
-    maxParticipants?: number;
-    priority?: number;
-    stackable?: number;
-    status?: string;
-  },
+  body: UpdatePromotionBody,
   tenantId: string,
   userId: number,
   username: string
 ) {
-  const existing = await queryOneWithTenant<any>(
+  const existing = await queryOneWithTenant<{ id: number; status: string }>(
     "SELECT id, status FROM promotion_activity WHERE id = ?",
     [activityId],
     tenantId
@@ -125,7 +215,7 @@ export async function updatePromotion(
   }
 
   const updates: string[] = [];
-  const params: any[] = [];
+  const params: unknown[] = [];
 
   const fieldMap: Record<string, string> = {
     activityName: "activity_name",
@@ -174,45 +264,42 @@ export async function updatePromotion(
     );
   }
 
-  return { activity_id: activityId };
+  return { activityId };
 }
 
 export async function calculateDiscount(
-  body: {
-    userId: number;
-    orderAmount: number;
-    productIds: number[];
-    couponNo?: string;
-  },
+  body: CalculateDiscountBody,
   tenantId: string
 ) {
-  let userCoupon: any = null;
+  let userCoupon: UserCoupon | null = null;
   if (body.couponNo) {
-    userCoupon = await queryOneWithTenant<any>(
-      `SELECT id, coupon_type, coupon_value, min_purchase, max_discount,
-              applicable_scope, applicable_ids, valid_start, valid_end
+    const couponRecord = await queryOneWithTenant<any>(
+      `SELECT id, coupon_type AS couponType, coupon_value AS couponValue, min_purchase AS minPurchase, max_discount AS maxDiscount,
+              applicable_scope AS applicableScope, applicable_ids AS applicableIds, valid_start AS validStart, valid_end AS validEnd
        FROM user_coupon
        WHERE coupon_no = ? AND user_id = ? AND status = 'UNUSED'`,
       [body.couponNo, body.userId],
       tenantId
     );
 
-    if (!userCoupon) {
+    if (!couponRecord) {
       throw Object.assign(new Error("优惠券不存在或已使用"), { statusCode: 400 });
     }
 
+    userCoupon = couponRecord as UserCoupon;
+
     const now = new Date();
-    if (now < new Date(userCoupon.valid_start) || now > new Date(userCoupon.valid_end)) {
+    if (now < new Date(userCoupon.validStart) || now > new Date(userCoupon.validEnd)) {
       throw Object.assign(new Error("优惠券已过期"), { statusCode: 400 });
     }
 
-    if (body.orderAmount < userCoupon.min_purchase) {
-      throw Object.assign(new Error(`订单金额需满${userCoupon.min_purchase}元`), { statusCode: 400 });
+    if (body.orderAmount < userCoupon.minPurchase) {
+      throw Object.assign(new Error(`订单金额需满${userCoupon.minPurchase}元`), { statusCode: 400 });
     }
   }
 
-  const promotions = await queryWithTenant<any>(
-    `SELECT id, activity_type, rules, applicable_scope, applicable_ids, priority, stackable
+  const promotions = await queryWithTenant<PromotionActivity>(
+    `SELECT id, activity_type AS activityType, rules, applicable_scope AS applicableScope, applicable_ids AS applicableIds, priority, stackable
      FROM promotion_activity
      WHERE status = 'ACTIVE'
        AND start_time <= NOW() AND end_time >= NOW()
@@ -222,18 +309,18 @@ export async function calculateDiscount(
   );
 
   let promotionDiscount = 0;
-  let appliedPromotions: any[] = [];
+  let appliedPromotions: { activityId: number; type: string; discount: number }[] = [];
 
   for (const promo of promotions) {
-    if (promo.applicable_scope !== "ALL") {
-      const applicableIds = JSON.parse(promo.applicable_ids || "[]");
+    if (promo.applicableScope !== "ALL") {
+      const applicableIds = safeJsonParse<number[]>(promo.applicableIds, []);
       const hasMatch = body.productIds.some(id => applicableIds.includes(id));
       if (!hasMatch) continue;
     }
 
-    const rules = JSON.parse(promo.rules);
+    const rules = safeJsonParse<{ threshold_amount: number; reduction_amount: number; is_continuous?: boolean }[]>(promo.rules, []);
 
-    if (promo.activity_type === "FULL_REDUCTION") {
+    if (promo.activityType === "FULL_REDUCTION") {
       for (const rule of rules) {
         if (body.orderAmount >= rule.threshold_amount) {
           let discount = rule.reduction_amount;
@@ -256,12 +343,12 @@ export async function calculateDiscount(
 
   let couponDiscount = 0;
   if (userCoupon) {
-    if (userCoupon.coupon_type === "AMOUNT") {
-      couponDiscount = userCoupon.coupon_value;
-    } else if (userCoupon.coupon_type === "DISCOUNT") {
-      couponDiscount = body.orderAmount * (1 - userCoupon.coupon_value);
-      if (userCoupon.max_discount && couponDiscount > userCoupon.max_discount) {
-        couponDiscount = userCoupon.max_discount;
+    if (userCoupon.couponType === "AMOUNT") {
+      couponDiscount = userCoupon.couponValue;
+    } else if (userCoupon.couponType === "DISCOUNT") {
+      couponDiscount = body.orderAmount * (1 - userCoupon.couponValue);
+      if (userCoupon.maxDiscount && couponDiscount > userCoupon.maxDiscount) {
+        couponDiscount = userCoupon.maxDiscount;
       }
     }
   }
@@ -270,12 +357,12 @@ export async function calculateDiscount(
   const finalAmount = Math.max(0, body.orderAmount - totalDiscount);
 
   return {
-    original_amount: body.orderAmount,
-    promotion_discount: promotionDiscount,
-    coupon_discount: couponDiscount,
-    total_discount: totalDiscount,
-    final_amount: finalAmount,
-    applied_promotions: appliedPromotions,
-    used_coupon: userCoupon ? { coupon_no: body.couponNo, discount: couponDiscount } : null
+    originalAmount: body.orderAmount,
+    promotionDiscount,
+    couponDiscount,
+    totalDiscount,
+    finalAmount,
+    appliedPromotions,
+    usedCoupon: userCoupon ? { couponNo: body.couponNo, discount: couponDiscount } : null
   };
 }

@@ -28,6 +28,30 @@ export const queryHandlers: Array<(s: string, params: unknown[]) => Row[] | null
     return null;
   },
 
+  // error_logs INSERT
+  (s, params) => {
+    if (s.includes("insert into error_logs")) {
+      const id = state.errorLogs.length + 1;
+      state.errorLogs.push({
+        id,
+        error_type: params[0],
+        severity: params[1],
+        message: params[2],
+        stack: params[3] || null,
+        request_url: params[4] || null,
+        request_method: params[5] || null,
+        status_code: params[6] || null,
+        user_id: params[7] || null,
+        tenant_id: params[8] || null,
+        source: params[9] || "backend",
+        created_at: new Date().toISOString(),
+        createdAt: new Date().toISOString(),
+      });
+      return [{ insertId: id, affectedRows: 1 }];
+    }
+    return null;
+  },
+
   // error_logs
   (s, params) => {
     if (s.includes("from error_logs") && s.includes("count(*) as count")) {
@@ -166,30 +190,6 @@ export const queryHandlers: Array<(s: string, params: unknown[]) => Row[] | null
 // ==================== mockExecute handlers ====================
 
 export const executeHandlers: Array<(s: string, params: unknown[]) => Row[] | null> = [
-  // error_logs INSERT
-  (s, params) => {
-    if (s.includes("insert into error_logs")) {
-      const id = state.errorLogs.length + 1;
-      state.errorLogs.push({
-        id,
-        error_type: params[0],
-        severity: params[1],
-        message: params[2],
-        stack: params[3] || null,
-        request_url: params[4] || null,
-        request_method: params[5] || null,
-        status_code: params[6] || null,
-        user_id: params[7] || null,
-        tenant_id: params[8] || null,
-        source: params[9] || "backend",
-        created_at: new Date().toISOString(),
-        createdAt: new Date().toISOString(),
-      });
-      return result(id);
-    }
-    return null;
-  },
-
   // error_logs DELETE
   (s, params) => {
     if (s.includes("delete from error_logs") && s.includes("created_at <")) {

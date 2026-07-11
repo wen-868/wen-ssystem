@@ -6,6 +6,79 @@ import { state, result, Row } from "./mock-db-state.js";
 export const queryHandlers: Array<(s: string, params: unknown[]) => Row[] | null> = [
   // collection_link INSERT
   (s, params) => {
+    if (s.includes("insert into t_customer_payment")) {
+      state.customerPayments.push({
+        receipt_no: params[0],
+        customer_id: params[1],
+        customer_name: params[2],
+        amount: params[3],
+        payment_method: params[4],
+        source_type: params[5],
+        source_no: params[6],
+        voucher_no: params[7],
+        payment_date: params[8],
+        operator_id: params[9],
+        status: "COMPLETED",
+        remark: params[10],
+        tenant_id: params[11],
+        created_at: new Date().toISOString(),
+        updated_at: new Date().toISOString()
+      });
+      return [{ insertId: state.customerPayments.length, affectedRows: 1 }];
+    }
+    return null;
+  },
+  (s, params) => {
+    if (s.includes("update t_customer_payment set status = 'voided'")) {
+      const payment = state.customerPayments.find((p: Row) => p.receipt_no === params[0] && p.tenant_id === params[1]);
+      if (payment) payment.status = "VOIDED";
+      return [{ affectedRows: 1 }];
+    }
+    return null;
+  },
+  (s, params) => {
+    if (s.includes("insert into t_customer_statement")) {
+      state.customerStatements.push({
+        statement_no: params[0],
+        customer_id: params[1],
+        customer_name: params[2],
+        customer_mobile: params[3],
+        statement_type: params[4],
+        start_date: params[5],
+        end_date: params[6],
+        opening_balance: params[7],
+        total_sales: params[8],
+        total_returns: params[9],
+        total_payments: params[10],
+        closing_balance: params[11],
+        status: "DRAFT",
+        operator_id: params[12],
+        remark: params[13],
+        tenant_id: params[14],
+        created_at: new Date().toISOString(),
+        confirmed_at: null
+      });
+      return [{ insertId: state.customerStatements.length, affectedRows: 1 }];
+    }
+    return null;
+  },
+  (s, params) => {
+    if (s.includes("update t_customer_statement set status = 'confirmed'")) {
+      const st = state.customerStatements.find((x: Row) => x.statement_no === params[0] && x.tenant_id === params[1]);
+      if (st) st.status = "CONFIRMED";
+      return [{ affectedRows: 1 }];
+    }
+    return null;
+  },
+  (s, params) => {
+    if (s.includes("update t_customer_statement set status = 'paid'")) {
+      const st = state.customerStatements.find((x: Row) => x.statement_no === params[0] && x.tenant_id === params[1]);
+      if (st) st.status = "PAID";
+      return [{ affectedRows: 1 }];
+    }
+    return null;
+  },
+  (s, params) => {
     if (s.includes("insert into collection_link")) {
       state.collectionLinks.push({
         linkNo: params[0],
@@ -105,7 +178,6 @@ export const queryHandlers: Array<(s: string, params: unknown[]) => Row[] | null
 ];
 
 export const executeHandlers: Array<(s: string, params: unknown[]) => Row[] | null> = [
-  // payment_order INSERT (sale_bill)
   (s, params) => {
     if (s.includes("insert into payment_order") && s.includes("'sale_bill'")) {
       state.paymentOrders.push({

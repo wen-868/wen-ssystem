@@ -1,10 +1,6 @@
-/**
- * 客户 mock handlers: members, customer_statements, customer_payments, sale_payments, customer-related queries
- */
 import { state, Row } from "./mock-db-state.js";
 
 export const queryHandlers: Array<(s: string, params: unknown[]) => Row[] | null> = [
-  // member 查询
   (s, params) => {
     if (s.includes("count(*) as total from member")) return [{ total: state.members.length }];
     if (s.includes("from member") && s.includes("where id = ?")) {
@@ -51,8 +47,6 @@ export const queryHandlers: Array<(s: string, params: unknown[]) => Row[] | null
     }
     return null;
   },
-
-  // customer_statement
   (s, params) => {
     if (s.includes("from customer_statement") && s.includes("count(*)")) {
       return [{ total: state.customerStatements.length }];
@@ -66,8 +60,6 @@ export const queryHandlers: Array<(s: string, params: unknown[]) => Row[] | null
     }
     return null;
   },
-
-  // customer_payment
   (s, params) => {
     if (s.includes("from customer_payment") && s.includes("count(*)")) {
       return [{ total: state.customerPayments.length }];
@@ -77,8 +69,6 @@ export const queryHandlers: Array<(s: string, params: unknown[]) => Row[] | null
     }
     return null;
   },
-
-  // 客户销售单查询
   (s, params) => {
     if (s.includes("from sale_bill") && s.includes("where customer_id = ?") && s.includes("count(*)")) {
       const cnt = state.saleBills.filter((b: Row) => b.customerId === Number(params[0]) || b.customer_id === Number(params[0])).length;
@@ -89,8 +79,6 @@ export const queryHandlers: Array<(s: string, params: unknown[]) => Row[] | null
     }
     return null;
   },
-
-  // 客户付款记录（sale_payment + customer_payment UNION）
   (s, params) => {
     if (s.includes("from sale_payment") && s.includes("from customer_payment")) {
       const memberId = Number(params[0]);
@@ -100,8 +88,6 @@ export const queryHandlers: Array<(s: string, params: unknown[]) => Row[] | null
     }
     return null;
   },
-
-  // 客户统计相关
   (s, params) => {
     if (s.includes("count(*) as total from member where status")) {
       return [{ total: state.members.length }];
@@ -123,8 +109,6 @@ export const queryHandlers: Array<(s: string, params: unknown[]) => Row[] | null
     }
     return null;
   },
-
-  // 客户购买统计
   (s, params) => {
     if (s.includes("count(*) as billcount") && s.includes("from sale_bill") && s.includes("where customer_id")) {
       const bills = state.saleBills.filter((b: Row) => (b.customerId || b.customer_id) === Number(params[0]) && b.businessStatus !== "DRAFT" && b.businessStatus !== "VOIDED");
@@ -138,8 +122,6 @@ export const queryHandlers: Array<(s: string, params: unknown[]) => Row[] | null
     }
     return null;
   },
-
-  // 对账单生成时的汇总查询
   (s, params) => {
     if (s.includes("coalesce(sum(unreceived_amount), 0) as balance") && s.includes("date(created_at) < ?")) {
       return [{ balance: 0 }];
@@ -158,7 +140,6 @@ export const queryHandlers: Array<(s: string, params: unknown[]) => Row[] | null
 ];
 
 export const executeHandlers: Array<(s: string, params: unknown[]) => Row[] | null> = [
-  // member INSERT
   (s, params) => {
     if (s.includes("insert into member")) {
       const id = state.members.length + 1;
@@ -177,8 +158,6 @@ export const executeHandlers: Array<(s: string, params: unknown[]) => Row[] | nu
     }
     return null;
   },
-
-  // member UPDATE staff_id
   (s, params) => {
     if (s.includes("update member set staff_id")) {
       const member = state.members.find((m) => Number(m.id) === Number(params[1]));
@@ -187,8 +166,6 @@ export const executeHandlers: Array<(s: string, params: unknown[]) => Row[] | nu
     }
     return null;
   },
-
-  // customer_statement INSERT
   (s, params) => {
     if (s.includes("insert into customer_statement (")) {
       const id = state.customerStatements.length + 1;
@@ -215,8 +192,6 @@ export const executeHandlers: Array<(s: string, params: unknown[]) => Row[] | nu
     }
     return null;
   },
-
-  // customer_payment INSERT
   (s, params) => {
     if (s.includes("insert into customer_payment (")) {
       const id = state.customerPayments.length + 1;

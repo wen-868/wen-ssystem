@@ -67,8 +67,18 @@ export async function mockExecute(sql: string, params: unknown[] = []) {
 }
 
 export const mockConn: mysql.PoolConnection = {
-  execute: mockExecute,
-  query: async (sql: string, params: unknown[] = []) => [await mockQuery(sql, params), undefined]
+  execute: async (sql: string, params: unknown[] = []) => {
+    const result = await mockExecute(sql, params);
+    return result[0] as unknown as mysql.ResultSetHeader;
+  },
+  query: async (sql: string, params: unknown[] = []) => {
+    const s = sql.toLowerCase().replace(/\s+/g, " ");
+    if (s.startsWith("insert") || s.startsWith("update") || s.startsWith("delete")) {
+      const result = await mockExecute(sql, params);
+      return [result[0], undefined];
+    }
+    return [await mockQuery(sql, params), undefined];
+  }
 } as unknown as mysql.PoolConnection;
 
 export { resetMockDb };
