@@ -11,59 +11,169 @@
 
 ### R23-A1 — 密码复杂度校验 + 登录失败次数限制 [P0]
 
-- **状态**：待开始
+- **状态**：✅ 已完成
 - **优先级**：P0
 - **负责人**：阿坚
 - **预计**：1 天
+- **截止时间**：2026-07-15
+- **完成时间**：2026-07-12
+- **问题**：
+  1. 密码无强度校验，弱密码可注册
+  2. 无登录失败次数限制，存在暴力破解风险
+- **修复**：
+  1. 在 `shared/password.ts` 添加 `validatePassword`（8-32位，含字母+数字+特殊字符）
+  2. 在 `admin/auth.service.ts` 和 `store/auth.service.ts` 添加登录失败计数（5次锁定15分钟）
+  3. 数据库迁移 `100_login_failure_lock.sql` 新增 `login_fail_count`、`locked_until` 字段
+- **验收**：
+  - ✅ 弱密码无法注册/修改（createUser/resetPassword/changePassword/createStaff 均校验）
+  - ✅ 连续5次登录失败后账号锁定15分钟
+  - ✅ `npx vitest run` 1955 个测试用例通过
+- **修改文件**：
+  - `backend/src/shared/password.ts`
+  - `backend/src/services/admin/auth.service.ts`
+  - `backend/src/services/store/auth.service.ts`
+  - `backend/src/services/admin/sys-user.service.ts`
+  - `backend/src/services/admin/employee.service.ts`
+  - `docs/migrations/100_login_failure_lock.sql`
 
 ### R23-A2 — JWT 安全加固 [P1]
 
-- **状态**：待开始
+- **状态**：✅ 已完成
 - **优先级**：P1
 - **负责人**：阿坚
 - **预计**：0.5 天
+- **截止时间**：2026-07-15
+- **完成时间**：2026-07-12
+- **问题**：
+  1. JWT 过期时间 8 小时过长
+  2. `requirePlatformAuth` 存在 `as any as AuthUser` 不安全类型转换
+- **修复**：
+  1. JWT 过期时间缩短至 4 小时，算法固定 HS256
+  2. 添加 issuer/audience 校验，防止 token 跨服务滥用
+  3. 修复 `requirePlatformAuth` 类型转换
+- **验收**：
+  - ✅ JWT 4小时过期
+  - ✅ issuer/audience 校验生效
+  - ✅ 类型转换无 `as any`
+- **修改文件**：
+  - `backend/src/middleware/auth.ts`
 
 ### R23-A3 — 密码哈希强度提升 [P1]
 
-- **状态**：待开始
+- **状态**：✅ 已完成
 - **优先级**：P1
 - **负责人**：阿坚
 - **预计**：0.5 天
+- **截止时间**：2026-07-15
+- **完成时间**：2026-07-12
+- **问题**：`password.ts` 中 `SALT_ROUNDS=10`，建议提升至 12
+- **修复**：将 `SALT_ROUNDS` 从 10 改为 12，新增 `needsRehash` 函数识别旧哈希并自动升级
+- **验收**：
+  - ✅ 新密码使用 SALT_ROUNDS=12 哈希，前缀 `v2$`
+  - ✅ 旧哈希（`v1$` 或无前缀）登录时自动识别并升级
+  - ✅ 密码哈希验证正常
+- **修改文件**：
+  - `backend/src/shared/password.ts`
 
 ### R23-A4 — CSRF 防护 [P1]
 
-- **状态**：待开始
+- **状态**：✅ 已完成
 - **优先级**：P1
 - **负责人**：阿坚
 - **预计**：1 天
+- **截止时间**：2026-07-16
+- **完成时间**：2026-07-12
+- **问题**：无 CSRF token 防护
+- **修复**：
+  1. 新建 `middleware/csrf.ts`，基于 HMAC-SHA256 和 userId 生成 CSRF token
+  2. GET/OPTIONS/HEAD 放行；POST/PUT/DELETE 校验 `x-csrf-token` 请求头
+  3. 在 `server.ts` 注册 CSRF 中间件（在认证路由之后）
+- **验收**：
+  - ✅ 无 CSRF token 的写请求被拒绝（403）
+  - ✅ 带正确 CSRF token 请求正常通过
+  - ✅ GET 请求不受影响
+- **修改文件**：
+  - `backend/src/middleware/csrf.ts`（新增）
+  - `backend/src/server.ts`
 
 ### R23-A5 — 数据库慢查询监控 [P1]
 
-- **状态**：待开始
+- **状态**：✅ 已完成
 - **优先级**：P1
 - **负责人**：阿坚
 - **预计**：1 天
+- **截止时间**：2026-07-16
+- **完成时间**：2026-07-12
+- **问题**：无数据库慢查询日志监控
+- **修复**：
+  1. 新建 `middleware/slow-query-monitor.ts`，记录 SQL 执行耗时
+  2. 超过 1s 的查询存入内存缓冲区（最多100条）
+  3. 新增 `routes/monitor-slow-query.routes.ts` 提供慢查询统计 API
+  4. 在 `config/database.ts` 的 `query` 函数集成监控
+- **验收**：
+  - ✅ 慢查询自动记录到缓冲区
+  - ✅ 统计 API 可查询慢查询列表及统计信息
+- **修改文件**：
+  - `backend/src/middleware/slow-query-monitor.ts`（新增）
+  - `backend/src/routes/monitor-slow-query.routes.ts`（新增）
+  - `backend/src/config/database.ts`
 
 ### R23-A6 — 系统资源监控（内存/CPU）[P1]
 
-- **状态**：待开始
+- **状态**：✅ 已完成
 - **优先级**：P1
 - **负责人**：阿坚
 - **预计**：1 天
+- **截止时间**：2026-07-17
+- **完成时间**：2026-07-12
+- **问题**：无内存/CPU 利用率监控
+- **修复**：
+  1. 新建 `services/admin/system-monitor.service.ts`，使用 Node.js `os`/`process` 模块获取资源信息
+  2. 新增 `routes/monitor-system.routes.ts` 提供系统监控 API（内存、CPU、进程、运行时长）
+- **验收**：
+  - ✅ 内存/CPU 使用率可查询
+  - ✅ 进程信息及系统负载可查询
+- **修改文件**：
+  - `backend/src/services/admin/system-monitor.service.ts`（新增）
+  - `backend/src/routes/monitor-system.routes.ts`（新增）
 
 ### R23-A7 — 清理 backend 根目录临时文件 [P1]
 
-- **状态**：待开始
+- **状态**：✅ 已完成
 - **优先级**：P1
 - **负责人**：阿坚
 - **预计**：0.5 天
+- **截止时间**：2026-07-15
+- **完成时间**：2026-07-12
+- **问题**：backend 根目录有大量临时分析文件（final-result*.json、coverage-*.txt、show-failures*.cjs 等）
+- **修复**：
+  1. 删除所有临时分析文件（.cjs、.txt、.json 等）
+  2. 删除旧测试目录 `backend/tests/` 和重复测试文件 `__tests__/`
+  3. 更新 `package.json` test 脚本指向 vitest
+- **验收**：
+  - ✅ backend 根目录仅保留必要文件
+  - ✅ 测试正常运行
+- **修改文件**：
+  - `backend/package.json`
 
 ### R23-A8 — 统一测试框架（移除 jest）[P1]
 
-- **状态**：待开始
+- **状态**：✅ 已完成
 - **优先级**：P1
 - **负责人**：阿坚
 - **预计**：1 天
+- **截止时间**：2026-07-17
+- **完成时间**：2026-07-12
+- **问题**：jest 和 vitest 两套测试框架并存，`package.json` 中 `test` 指向 jest 但实际使用 vitest
+- **修复**：
+  1. 删除 jest 相关依赖（jest、ts-jest、@types/jest）
+  2. 删除 `jest.config.cjs`
+  3. 更新 `package.json` 中 `test` 脚本指向 `vitest run`
+- **验收**：
+  - ✅ 仅保留 vitest 测试框架
+  - ✅ `npm run test` 正常运行
+- **修改文件**：
+  - `backend/package.json`
 
 ### R23-A9 — controllers 和 routes 覆盖率提升至 100% [P0]
 
@@ -78,7 +188,6 @@
   - 修复 77 个 skipped 测试（e2e/integration/supplier 等 10 个文件）
   - 修复代码缺陷 3 处（mock-db-supplier UPDATE 参数索引、purchase.service.ts/sale-return.service.ts throw 缺少 statusCode）
 - **遗留问题**：routes 分支覆盖率 9.6%（istanbul 对 Express Router 注册代码的分支统计失效，详见踩坑日志 [37]）
-- **推送负责人**：建议凌舟决定测试策略调整（路由注册方式重构或调整 vitest.config.ts 阈值规则）
 - **测试报告**：`docs/reports/test-report-r23-2026-07-12.md`
 
 ### R23-A10 — admin-web 构建优化 [P1]
