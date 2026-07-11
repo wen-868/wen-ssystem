@@ -43,17 +43,17 @@ export interface CustomerPayment {
 
 const customersApi = {
   async list(params?: CustomerListParams): Promise<CustomerListResult> {
-    const res: any = await get('/admin/customers', params)
+    const res: any = await get('/admin/members', params)
     return (res?.result ?? res) as CustomerListResult
   },
 
   async detail(id: number): Promise<CustomerInfo> {
-    const res: any = await get(`/admin/customers/${id}`)
+    const res: any = await get(`/admin/members/${id}`)
     return (res?.result ?? res) as CustomerInfo
   },
 
   async create(data: Partial<CustomerInfo>): Promise<CustomerInfo> {
-    return post('/admin/customers', data)
+    return post('/admin/members', data)
   },
 
   async stats(id: number): Promise<{
@@ -62,22 +62,22 @@ const customersApi = {
     debtAmount: number
     lastOrderTime?: string
   }> {
-    const res: any = await get(`/admin/customers/${id}/stats`)
+    const res: any = await get(`/admin/members/${id}/purchase-stats`)
     return res?.result ?? res
   },
 
   async sales(id: number): Promise<CustomerSales[]> {
-    const res: any = await get(`/admin/customers/${id}/sales`)
+    const res: any = await get(`/admin/members/${id}/sale-bills`)
     return (res?.list ?? res ?? []) as CustomerSales[]
   },
 
   async payments(id: number): Promise<CustomerPayment[]> {
-    const res: any = await get(`/admin/customers/${id}/payments`)
+    const res: any = await get(`/admin/members/${id}/payments`)
     return (res?.list ?? res ?? []) as CustomerPayment[]
   },
 
   async ledger(id: number, params?: { page?: number; pageSize?: number }): Promise<any> {
-    return get(`/admin/customers/${id}/ledger`, params)
+    return get(`/admin/members/${id}/statements`, params)
   }
 }
 
