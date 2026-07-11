@@ -165,40 +165,41 @@
 - **状态**：✅ 已完成
 - **负责人**：墨
 
-### R22-A6 — 烟草专属本地类目 + 禁止上传网络销售平台 [P0]
+### R22-A6 — 烟草类目禁止所有线上销售 [P0]
 
 - **状态**：待开始
 - **优先级**：P0
 - **负责人**：阿坚（后端）+ 墨（admin-web）+ 阿澈（app-mobile）
 - **预计**：1.5 天
-- **需求**：烟草类目商品**禁止上传到网络销售平台**（即时零售：饿了么/美团/京东等）。租户内部同步（小程序缓存、价格同步、全链路同步）不受影响。
+- **需求**：烟草类目商品**禁止所有线上销售渠道**（即时零售、小程序、任何网络销售平台）。**法规红线，不可突破。** 租户内部管理（进销存、价格管理、全链路数据同步）不受影响。
 - **具体任务：**
 
 **阿坚（后端，1 天）：**
 1. DDL：`t_product_category` 表新增字段 `allow_online_sale` TINYINT DEFAULT 1（1=允许 0=禁止），写迁移文件
 2. 种子数据：新增烟草分类（烟草→卷烟/雪茄/烟丝/其他烟草），`allow_online_sale=0`
 3. category.service.ts：CRUD 支持 allow_online_sale 字段
-4. 即时零售同步服务改造（**仅此一个服务**）：
-   - `backend/src/services/instant-retail/product-sync.service.ts` — 上架到饿了么/美团/京东前检查分类的 allow_online_sale，为 0 跳过并记录日志
-5. 新增 API：`GET /api/admin/products/categories?allow_online_sale=0` 支持按策略筛选分类
-6. **注意**：以下服务不需要改造（租户内同步不受影响）：
-   - `sync/product-sync.service.ts`（小程序缓存同步）— 不改
+4. 线上销售同步服务改造（以下服务全部需检查）：
+   - `backend/src/services/instant-retail/product-sync.service.ts` — 即时零售平台（饿了么/美团/京东）上架同步
+   - `backend/src/services/sync/product-sync.service.ts` — 小程序缓存同步（商品展示到线上小程序）
+5. 同步逻辑：如果商品的 category_id 对应的分类 allow_online_sale=0，跳过该商品并记录日志
+6. 新增 API：`GET /api/admin/products/categories?allow_online_sale=0` 支持按策略筛选分类
+7. **注意**：以下服务不需要改造（纯租户内部管理，非线上销售）：
    - `sync/price-sync.service.ts`（价格同步）— 不改
-   - `shared/product-sync.ts`（全链路同步）— 不改
+   - `shared/product-sync.ts`（全链路进销存同步）— 不改
    - `shared/field-sync.ts`（字段同步）— 不改
 
 **墨（admin-web，0.5 天）：**
-1. `ProductCategories.vue`：分类表单新增"允许网络销售"开关（默认开启），烟草分类关闭
-2. 分类列表显示标签（禁止网络销售的分类标注"仅线下"徽标）
+1. `ProductCategories.vue`：分类表单新增"允许线上销售"开关（默认开启），烟草分类关闭
+2. 分类列表显示标签（禁止线上销售的分类标注"仅线下"徽标）
 
 **阿澈（app-mobile，0.5 天）：**
-1. `app-mobile/src/pages/products/` 商品管理页面：禁止网络销售的分类下的商品显示"仅线下"标识
+1. `app-mobile/src/pages/products/` 商品管理页面：禁止线上销售的分类下的商品显示"仅线下"标识
 
 - **验收**：
   - DDL 迁移文件已写（编号 100+）
   - 种子数据中烟草分类 allow_online_sale=0
-  - 即时零售同步服务中 grep `allow_online_sale` 有匹配
-  - admin-web 分类表单含"允许网络销售"开关
+  - 即时零售 + 小程序同步服务中 grep `allow_online_sale` 有匹配
+  - admin-web 分类表单含"允许线上销售"开关
   - `npx tsc --noEmit --strict` 0 错误
 
 ---
