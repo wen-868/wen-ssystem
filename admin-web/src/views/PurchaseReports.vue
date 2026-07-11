@@ -53,7 +53,7 @@
 
 <script setup lang="ts">
 import { onMounted, ref, nextTick } from "vue";
-import * as echarts from "echarts";
+import echarts from '@/utils/echarts'
 import { fetchReportPurchaseSummary, fetchReportSupplierRanking, fetchReportPurchaseTrend } from "../api";
 
 const trendChart = ref<HTMLDivElement>();

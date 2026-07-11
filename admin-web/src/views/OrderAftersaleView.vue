@@ -259,7 +259,7 @@
 import { ref, computed, onMounted, onBeforeUnmount, nextTick } from "vue";
 import { ElMessage, ElMessageBox } from "element-plus";
 import { Document, Clock, Plus } from "@element-plus/icons-vue";
-import * as echarts from "echarts";
+import echarts from '@/utils/echarts'
 
 // ── Mock 数据 ──
 const mockStats = { totalCount: 86, pendingCount: 12, todayNewCount: 5, aftersaleRate: 3.2 };

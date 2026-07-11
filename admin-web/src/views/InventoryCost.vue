@@ -108,7 +108,7 @@
 <script setup lang="ts">
 import { ref, reactive, onMounted, nextTick } from "vue";
 import { ElMessage } from "element-plus";
-import * as echarts from "echarts";
+import echarts from '@/utils/echarts'
 import PageCard from "../components/PageCard.vue";
 import { formatDate } from "../utils/format";
 import { fetchInventoryCostDetail, fetchInventoryCostTrend, fetchStores, fetchProducts } from "../api";

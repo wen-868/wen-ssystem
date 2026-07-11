@@ -201,7 +201,7 @@
 
 <script setup lang="ts">
 import { ref, reactive, onMounted, onBeforeUnmount, nextTick } from "vue";
-import * as echarts from "echarts";
+import echarts from '@/utils/echarts'
 import { TrendCharts, VideoPlay, VideoPause, User, Present, CircleCheck } from "@element-plus/icons-vue";
 
 // ==================== Mock 数据 ====================

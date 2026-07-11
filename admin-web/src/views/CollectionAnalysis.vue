@@ -169,7 +169,7 @@
 <script setup lang="ts">
 import { onBeforeUnmount, onMounted, ref } from 'vue'
 import { Search } from '@element-plus/icons-vue'
-import * as echarts from 'echarts'
+import echarts from '@/utils/echarts'
 
 // ─── 筛选状态 ───
 const dateRange = ref<string[]>(['2026-06-01', '2026-06-30'])

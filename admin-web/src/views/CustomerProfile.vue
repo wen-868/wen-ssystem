@@ -106,7 +106,7 @@
 <script setup lang="ts">
 import { ref, reactive, onMounted, nextTick, watch } from "vue";
 import { ElMessage } from "element-plus";
-import * as echarts from "echarts";
+import echarts from '@/utils/echarts'
 import PageCard from "../components/PageCard.vue";
 import { formatDate } from "../utils/format";
 import { fetchCustomerProfile, updateCustomerProfile, fetchMembers } from "../api";

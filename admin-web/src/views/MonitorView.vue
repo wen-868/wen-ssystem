@@ -125,7 +125,7 @@
 <script setup lang="ts">
 import { onMounted, onUnmounted, ref, nextTick } from "vue";
 import { ElMessage } from "element-plus";
-import * as echarts from "echarts";
+import echarts from '@/utils/echarts'
 import { Refresh, Monitor, DataLine, Warning, Timer, Bell } from "@element-plus/icons-vue";
 import { fetchDbStatus, fetchApiStats, fetchExpiringTenants, notifyExpiringTenants } from "../api";
 

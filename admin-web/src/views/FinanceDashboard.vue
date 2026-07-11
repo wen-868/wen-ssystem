@@ -106,7 +106,7 @@
 
 <script setup lang="ts">
 import { ref, reactive, onMounted, nextTick } from "vue";
-import * as echarts from "echarts";
+import echarts from '@/utils/echarts'
 import PageCard from "../components/PageCard.vue";
 import { formatDate, formatYuan } from "../utils/format";
 import {

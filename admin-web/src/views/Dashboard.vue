@@ -288,7 +288,7 @@
 <script setup lang="ts">
 import { computed, nextTick, onMounted, onUnmounted, ref, watch } from 'vue';
 import { ElMessage } from 'element-plus';
-import * as echarts from 'echarts';
+import echarts from '@/utils/echarts'
 import {
   fetchDashboardOverview,
   fetchDashboardSalesTrend,

@@ -142,7 +142,7 @@
 <script setup lang="ts">
 import { computed, onBeforeUnmount, onMounted, ref } from 'vue'
 import { Refresh, Search } from '@element-plus/icons-vue'
-import * as echarts from 'echarts'
+import echarts from '@/utils/echarts'
 import { formatYuan } from '../utils/format'
 
 // ─── 筛选状态 ───

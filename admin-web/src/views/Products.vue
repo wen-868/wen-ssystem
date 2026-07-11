@@ -376,8 +376,20 @@
             <el-input v-model="detailSpu.mainImage" placeholder="主图URL，修改后自动保存" @change="saveDetailField('mainImage', detailSpu.mainImage)" />
             <el-divider content-position="left">商品详情 (富文本)</el-divider>
             <div style="border: 1px solid #dcdfe6; border-radius: 4px">
-              <Toolbar style="border-bottom: 1px solid #dcdfe6" :editor="richEditor" :defaultConfig="toolbarConfig" mode="default" />
-              <Editor v-model="detailSpu.detail" :defaultConfig="editorConfig" mode="default" style="height: 300px; overflow-y: hidden" @onCreated="onRichEditorCreated" @onChange="onRichEditorChange" />
+              <div style="border-bottom: 1px solid #dcdfe6; padding: 6px; display: flex; gap: 4px; flex-wrap: wrap;">
+                <el-button size="small" :type="richEditor?.isActive('bold') ? 'primary' : 'default'" @click="richEditor?.chain().focus().toggleBold().run()" style="font-weight: bold;">B</el-button>
+                <el-button size="small" :type="richEditor?.isActive('italic') ? 'primary' : 'default'" @click="richEditor?.chain().focus().toggleItalic().run()" style="font-style: italic;">I</el-button>
+                <el-button size="small" :type="richEditor?.isActive('strike') ? 'primary' : 'default'" @click="richEditor?.chain().focus().toggleStrike().run()" style="text-decoration: line-through;">S</el-button>
+                <el-button size="small" :type="richEditor?.isActive('heading', { level: 1 }) ? 'primary' : 'default'" @click="richEditor?.chain().focus().toggleHeading({ level: 1 }).run()">H1</el-button>
+                <el-button size="small" :type="richEditor?.isActive('heading', { level: 2 }) ? 'primary' : 'default'" @click="richEditor?.chain().focus().toggleHeading({ level: 2 }).run()">H2</el-button>
+                <el-button size="small" :type="richEditor?.isActive('bulletList') ? 'primary' : 'default'" @click="richEditor?.chain().focus().toggleBulletList().run()">无序列表</el-button>
+                <el-button size="small" :type="richEditor?.isActive('orderedList') ? 'primary' : 'default'" @click="richEditor?.chain().focus().toggleOrderedList().run()">有序列表</el-button>
+                <el-button size="small" :type="richEditor?.isActive('codeBlock') ? 'primary' : 'default'" @click="richEditor?.chain().focus().toggleCodeBlock().run()">代码块</el-button>
+                <el-button size="small" :type="richEditor?.isActive('blockquote') ? 'primary' : 'default'" @click="richEditor?.chain().focus().toggleBlockquote().run()">引用</el-button>
+                <el-button size="small" @click="richEditor?.chain().focus().undo().run()">撤销</el-button>
+                <el-button size="small" @click="richEditor?.chain().focus().redo().run()">重做</el-button>
+              </div>
+              <EditorContent :editor="richEditor" style="height: 300px; overflow-y: auto; padding: 10px;" />
             </div>
           </el-tab-pane>
           <el-tab-pane label="SKU列表" name="skus">
@@ -453,11 +465,11 @@
 </template>
 
 <script setup lang="ts">
-import { computed, onMounted, reactive, ref, shallowRef, watch } from "vue";
+import { computed, onBeforeUnmount, onMounted, reactive, ref, watch } from "vue";
 import { ElMessage, type FormInstance, type FormRules } from "element-plus";
 import { Plus } from "@element-plus/icons-vue";
-import { Editor, Toolbar } from "@wangeditor/editor-for-vue";
-import "@wangeditor/editor/dist/css/style.css";
+import { useEditor, EditorContent } from "@tiptap/vue-3";
+import StarterKit from "@tiptap/starter-kit";
 import { api } from "../api";
 import { formatDate } from "../utils/format";
 
@@ -497,21 +509,36 @@ const TAG_LABELS: Record<string, string> = {
 };
 function tagTypeLabel(t: string) { return TAG_LABELS[t] || t; }
 
-// ---------- Rich Text Editor ----------
-const richEditor = shallowRef();
-const toolbarConfig = { excludeKeys: ["group-video"] };
-const editorConfig = { placeholder: "请输入商品详情..." };
-let richEditorSaveTimer: any = null;
+// ---------- Rich Text Editor (tiptap) ----------
+let richEditorSaveTimer: ReturnType<typeof setTimeout> | null = null;
 
-function onRichEditorCreated(editor: any) { richEditor.value = editor; }
-function onRichEditorChange() {
-  if (richEditorSaveTimer) clearTimeout(richEditorSaveTimer);
-  richEditorSaveTimer = setTimeout(() => {
-    if (detailSpu.value && detailSpu.value.spuId) {
-      saveDetailField("detail", detailSpu.value.detail);
+const richEditor = useEditor({
+  content: "",
+  extensions: [StarterKit],
+  onUpdate: () => {
+    if (richEditorSaveTimer) clearTimeout(richEditorSaveTimer);
+    richEditorSaveTimer = setTimeout(() => {
+      if (detailSpu.value && detailSpu.value.spuId) {
+        saveDetailField("detail", richEditor.value?.getHTML() || "");
+      }
+    }, 1500);
+  },
+});
+
+// 当详情数据变化时，同步编辑器内容
+watch(detailSpu, (val) => {
+  if (val && richEditor.value) {
+    const currentHTML = richEditor.value.getHTML();
+    if (currentHTML !== val.detail) {
+      richEditor.value.commands.setContent(val.detail || "", { emitUpdate: false });
     }
-  }, 1500);
-}
+  }
+});
+
+onBeforeUnmount(() => {
+  if (richEditorSaveTimer) clearTimeout(richEditorSaveTimer);
+  richEditor.value?.destroy();
+});
 
 // ---------- Default Form ----------
 const defaultForm = {
@@ -822,4 +849,18 @@ onMounted(() => { search(); loadRefData(); });
 .tag-cb-group { display: flex; flex-direction: column; gap: 8px; }
 .sku-row { background: #fafafa; border-radius: 8px; padding: 12px; margin-bottom: 12px; }
 .sku-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; font-weight: 500; }
+
+/* tiptap 富文本编辑器样式 */
+:deep(.ProseMirror) {
+  min-height: 260px;
+  outline: none;
+}
+:deep(.ProseMirror p) { margin: 0.5em 0; }
+:deep(.ProseMirror h1) { font-size: 1.5em; margin: 0.5em 0; }
+:deep(.ProseMirror h2) { font-size: 1.3em; margin: 0.5em 0; }
+:deep(.ProseMirror ul) { padding-left: 20px; list-style: disc; }
+:deep(.ProseMirror ol) { padding-left: 20px; list-style: decimal; }
+:deep(.ProseMirror blockquote) { border-left: 3px solid #dcdfe6; padding-left: 12px; color: #909399; margin: 0.5em 0; }
+:deep(.ProseMirror pre) { background: #f5f7fa; border-radius: 4px; padding: 8px 12px; font-family: monospace; overflow-x: auto; }
+:deep(.ProseMirror code) { background: #f5f7fa; border-radius: 3px; padding: 1px 4px; font-family: monospace; }
 </style>

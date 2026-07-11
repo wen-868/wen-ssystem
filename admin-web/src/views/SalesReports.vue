@@ -70,7 +70,7 @@
 
 <script setup lang="ts">
 import { onMounted, ref, nextTick } from "vue";
-import * as echarts from "echarts";
+import echarts from '@/utils/echarts'
 import { fetchReportSalesTrend, fetchReportSalesRanking, fetchReportBusinessOverview, fetchReportCustomerContribution, fetchReportStaffPerformance } from "../api";
 
 const trendChart = ref<HTMLDivElement>();

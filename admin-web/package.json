@@ -15,6 +15,9 @@
     "electron:build:win": "npm run build && electron-builder --win"
   },
   "dependencies": {
+    "@tiptap/pm": "^3.27.3",
+    "@tiptap/starter-kit": "^3.27.3",
+    "@tiptap/vue-3": "^3.27.3",
     "@vitejs/plugin-vue": "^5.0.5",
     "@wangeditor/editor": "^5.1.23",
     "@wangeditor/editor-for-vue": "^5.1.12",
@@ -35,6 +38,8 @@
     "eslint": "^8.57.0",
     "eslint-plugin-vue": "^9.0.0",
     "typescript": "^5.5.3",
+    "unplugin-auto-import": "^21.0.0",
+    "unplugin-vue-components": "^32.1.0",
     "vite": "^6.4.3",
     "vue-tsc": "^2.0.26"
   },

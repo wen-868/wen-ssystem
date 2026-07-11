@@ -217,7 +217,7 @@
 
 <script setup lang="ts">
 import { computed, nextTick, onBeforeUnmount, onMounted, reactive, ref, watch } from "vue";
-import * as echarts from "echarts";
+import echarts from '@/utils/echarts'
 import { ElMessage } from "element-plus";
 import { Money, Document, Wallet, TrendCharts, CaretTop, CaretBottom } from "@element-plus/icons-vue";
 
@@ -372,7 +372,7 @@ function initTrendChart() {
 
 function updateTrendChart() {
   if (!trendChart) return;
-  const option: echarts.EChartsOption = {
+  const option: echarts.EChartsCoreOption = {
     tooltip: {
       trigger: "axis",
       axisPointer: { type: "cross" }
@@ -455,7 +455,7 @@ function updateTrendChart() {
 function initPieChart() {
   if (!pieChartRef.value) return;
   pieChart = echarts.init(pieChartRef.value);
-  const option: echarts.EChartsOption = {
+  const option: echarts.EChartsCoreOption = {
     tooltip: {
       trigger: "item",
       formatter: "{b}: ¥{c} ({d}%)"
@@ -506,7 +506,7 @@ function initPieChart() {
 function initBarChart() {
   if (!barChartRef.value) return;
   barChart = echarts.init(barChartRef.value);
-  const option: echarts.EChartsOption = {
+  const option: echarts.EChartsCoreOption = {
     tooltip: {
       trigger: "axis",
       axisPointer: { type: "shadow" }

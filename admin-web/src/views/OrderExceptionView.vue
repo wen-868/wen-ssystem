@@ -245,7 +245,7 @@
 import { ref, computed, onMounted, onBeforeUnmount, nextTick } from "vue";
 import { ElMessage, ElMessageBox } from "element-plus";
 import { WarningFilled, Plus, CircleCheckFilled, Warning, CircleClose, CircleCloseFilled } from "@element-plus/icons-vue";
-import * as echarts from "echarts";
+import echarts from '@/utils/echarts'
 
 // ── Mock 数据 ──
 const mockStats = { pendingCount: 15, todayNewCount: 8, weekResolvedCount: 42, avgHandleHours: 3.5 };
