@@ -58,10 +58,13 @@
           </template>
         </el-table-column>
         <el-table-column prop="remark" label="备注" min-width="120" show-overflow-tooltip />
-        <el-table-column label="操作" width="240" fixed="right">
+        <el-table-column label="操作" width="360" fixed="right">
           <template #default="{ row }">
-            <el-button size="small" link type="primary" @click="handleAssignMember(row)">分配给管理员</el-button>
+            <el-button size="small" link type="primary" @click="handleViewDetail(row)">详情</el-button>
+            <el-button size="small" link type="primary" @click="handleAssignMember(row)">分配管理员</el-button>
             <el-button size="small" link @click="handleShowPriceHistory(row)">价格参考</el-button>
+            <el-button size="small" link v-if="row.status === 'ACTIVE'" type="danger" @click="handleToggleDisable(row, true)">禁用</el-button>
+            <el-button size="small" link v-else type="success" @click="handleToggleDisable(row, false)">启用</el-button>
           </template>
         </el-table-column>
         <template #empty>
@@ -128,9 +131,11 @@
 
 <script setup lang="ts">
 import { onMounted, reactive, ref } from "vue";
-import { ElMessage, type FormInstance, type FormRules } from "element-plus";
-import { assignMember, createMember, fetchMemberPriceHistory, fetchMembers, fetchStaff } from "../api";
+import { ElMessage, ElMessageBox, type FormInstance, type FormRules } from "element-plus";
+import { useRouter } from "vue-router";
+import { assignMember, createMember, disableMember, fetchMemberPriceHistory, fetchMembers, fetchStaff } from "../api";
 
+const router = useRouter();
 const loading = ref(false);
 const submitLoading = ref(false);
 const members = ref<any[]>([]);
@@ -248,6 +253,28 @@ async function handleShowPriceHistory(row: any) {
     priceHistoryTip.value = `${row.name} / SKU ${ref.skuId}：上次 ¥${ref.lastPrice}，最高 ¥${ref.highestPrice}，最低 ¥${ref.lowestPrice}`;
   } catch (e: any) {
     ElMessage.error(getErrorMessage(e, "获取价格历史失败"));
+  }
+}
+
+function handleViewDetail(row: any) {
+  router.push(`/customers/detail/${row.memberId}`);
+}
+
+async function handleToggleDisable(row: any, disabled: boolean) {
+  const action = disabled ? "禁用" : "启用";
+  try {
+    await ElMessageBox.confirm(`确定要${action}客户「${row.name}」吗？`, "提示", {
+      confirmButtonText: "确定",
+      cancelButtonText: "取消",
+      type: "warning"
+    });
+    await disableMember(row.memberId, disabled);
+    ElMessage.success(`客户已${action}`);
+    loadMembers();
+  } catch (e: any) {
+    if (e !== "cancel") {
+      ElMessage.error(getErrorMessage(e, `${action}客户失败`));
+    }
   }
 }
 

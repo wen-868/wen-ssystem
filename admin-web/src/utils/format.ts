@@ -4,6 +4,10 @@ export function formatYuan(value: unknown): string {
   return "¥" + n.toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g, ",");
 }
 
+export function formatMoney(value: unknown): string {
+  return formatYuan(value);
+}
+
 export function formatDate(value: unknown): string {
   if (!value) return "-";
   if (typeof value === "string" && value.length <= 10) return value;

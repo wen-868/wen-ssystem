@@ -140,6 +140,7 @@ const routes = [
       { path: "customer-segments", name: "customer-segments", component: () => import("../views/CustomerSegments.vue"), meta: { roles: ["BOSS"], title: "客户分群", icon: Share } },
       // 6. 客户管理
       { path: "customers", name: "customers", component: () => import("../views/CustomersView.vue"), meta: { roles: ["BOSS", "MGR"], title: "客户管理", icon: UserFilled } },
+      { path: "customers/detail/:memberId", name: "customer-detail", component: () => import("../views/CustomerDetail.vue"), meta: { roles: ["BOSS", "MGR"], title: "客户详情", icon: UserFilled } },
       { path: "credit", name: "credit", component: () => import("../views/CreditView.vue"), meta: { roles: ["BOSS", "MGR"], title: "信用管理", icon: Lock } },
       // 7. 商品中心
       { path: "products", name: "products", component: () => import("../views/Products.vue"), meta: { roles: ["BOSS", "MGR"], title: "商品管理", icon: Goods } },

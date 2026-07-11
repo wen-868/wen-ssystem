@@ -127,6 +127,41 @@ export async function fetchMemberPriceHistory(memberId: number, skuId: number) {
   return data.data || [];
 }
 
+export async function fetchMemberDetail(id: number) {
+  const { data } = await api.get(`/admin/members/${id}`);
+  return data.data;
+}
+
+export async function updateMember(id: number, payload: { name?: string; mobile?: string; customerType?: "RETAIL" | "WHOLESALE"; address?: string; settlementType?: string; staffId?: number | null; remark?: string }) {
+  const { data } = await api.put(`/admin/members/${id}`, payload);
+  return data.data;
+}
+
+export async function disableMember(id: number, disabled: boolean) {
+  const { data } = await api.put(`/admin/members/${id}/disable`, { disabled });
+  return data.data;
+}
+
+export async function fetchMemberPurchaseStats(id: number) {
+  const { data } = await api.get(`/admin/members/${id}/purchase-stats`);
+  return data.data;
+}
+
+export async function fetchMemberSaleBills(id: number, params?: { page?: number; pageSize?: number }) {
+  const { data } = await api.get(`/admin/members/${id}/sale-bills`, { params: { page: 1, pageSize: 20, ...params } });
+  return data.data;
+}
+
+export async function fetchMemberPayments(id: number, params?: { page?: number; pageSize?: number }) {
+  const { data } = await api.get(`/admin/members/${id}/payments`, { params: { page: 1, pageSize: 20, ...params } });
+  return data.data;
+}
+
+export async function fetchMemberStatements(id: number, params?: { page?: number; pageSize?: number }) {
+  const { data } = await api.get(`/admin/members/${id}/statements`, { params: { page: 1, pageSize: 20, ...params } });
+  return data.data;
+}
+
 export async function createStore(payload: { code: string; name: string; address?: string; phone?: string }) {
   const { data } = await api.post("/admin/system/stores", payload);
   return data.data;
