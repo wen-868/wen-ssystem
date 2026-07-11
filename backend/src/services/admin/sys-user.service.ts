@@ -1,5 +1,7 @@
 import { queryWithTenant, queryOneWithTenant, transaction } from "../../shared/db.js";
 import bcrypt from "bcryptjs";
+import { validatePassword } from "../../shared/password.js";
+import { AppError } from "../../shared/app-error.js";
 
 export interface UserListParams {
   page: number;
@@ -74,7 +76,12 @@ export async function createUser(tenantId: string, input: CreateUserInput, opera
     "SELECT id FROM t_sys_user WHERE username = ? AND tenant_id = ?",
     [input.username, tenantId], tenantId
   );
-  if (existing) throw new Error("用户名已存在");
+  if (existing) throw new AppError("用户名已存在", 400);
+
+  const validation = validatePassword(input.password);
+  if (!validation.valid) {
+    throw new AppError(`密码不符合要求：${validation.errors.join("；")}`, 400);
+  }
 
   const hashedPassword = await bcrypt.hash(input.password, 10);
 
@@ -177,7 +184,12 @@ export async function resetPassword(tenantId: string, id: number, newPassword: s
   const existing = await queryOneWithTenant<any>(
     "SELECT id, username FROM t_sys_user WHERE id = ? AND tenant_id = ?", [id, tenantId], tenantId
   );
-  if (!existing) throw new Error("用户不存在");
+  if (!existing) throw new AppError("用户不存在", 400);
+
+  const validation = validatePassword(newPassword);
+  if (!validation.valid) {
+    throw new AppError(`密码不符合要求：${validation.errors.join("；")}`, 400);
+  }
 
   const hashedPassword = await bcrypt.hash(newPassword, 10);
   await queryWithTenant(

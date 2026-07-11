@@ -11,10 +11,53 @@
 
 ### R23-A1 — 密码复杂度校验 + 登录失败次数限制 [P0]
 
-- **状态**：待开始
+- **状态**：✅ 已完成
 - **优先级**：P0
 - **负责人**：阿坚
 - **预计**：1 天
+- **完成时间**：2026-07-12
+
+**完成内容：**
+
+1. **密码复杂度校验** — 在 `password.ts` 中添加 `validatePassword()` 和 `isStrongPassword()` 函数
+   - 密码长度 8-32 位
+   - 必须包含字母
+   - 必须包含数字
+   - 必须包含特殊字符
+
+2. **登录失败次数限制** — 在 `admin/auth.service.ts` 和 `store/auth.service.ts` 中实现
+   - 最大失败次数：5 次
+   - 锁定时长：15 分钟
+   - 成功登录后重置失败次数
+   - 锁定期间禁止登录
+
+3. **密码校验集成** — 在以下场景添加密码复杂度校验：
+   - `admin/auth.service.ts` — changePassword
+   - `admin/sys-user.service.ts` — createUser、resetPassword
+   - `admin/employee.service.ts` — createStaff（传入密码时）
+
+4. **数据库迁移** — 创建 `docs/migrations/100_login_failure_lock.sql`
+   - 添加 `login_fail_count` 字段（登录失败次数）
+   - 添加 `locked_until` 字段（账号锁定时间）
+
+5. **测试更新** — 更新 `auth.service.test.ts` 和 `employee.service.test.ts`
+   - 添加登录失败次数测试
+   - 添加账号锁定测试
+   - 添加密码复杂度校验测试
+
+**修改文件：**
+- `backend/src/shared/password.ts` — 添加密码校验函数
+- `backend/src/services/admin/auth.service.ts` — 登录失败限制 + 密码校验
+- `backend/src/services/store/auth.service.ts` — 登录失败限制
+- `backend/src/services/admin/sys-user.service.ts` — 用户创建/重置密码校验
+- `backend/src/services/admin/employee.service.ts` — 创建员工密码校验
+- `backend/src/__tests__/services/admin/auth.service.test.ts` — 更新测试用例
+- `backend/src/__tests__/services/admin/employee.service.test.ts` — 更新测试用例
+- `docs/migrations/100_login_failure_lock.sql` — 数据库迁移脚本
+
+**验证结果：**
+- 全量测试 1955 个用例全部通过
+- 使用 `AppError` 返回正确 HTTP 状态码（400）
 
 ### R23-A2 — JWT 安全加固 [P1]
 

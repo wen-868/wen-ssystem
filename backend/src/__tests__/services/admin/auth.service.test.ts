@@ -13,6 +13,7 @@ const mocks = vi.hoisted(() => ({
   getUserAccessInfo: vi.fn(),
   verifyPassword: vi.fn(),
   hashPassword: vi.fn(),
+  validatePassword: vi.fn(),
 }));
 
 vi.mock("../../../shared/db.js", () => ({
@@ -32,6 +33,7 @@ vi.mock("../../../middleware/auth.js", () => ({
 vi.mock("../../../shared/password.js", () => ({
   verifyPassword: mocks.verifyPassword,
   hashPassword: mocks.hashPassword,
+  validatePassword: mocks.validatePassword,
 }));
 
 import { login, getMe, getSettings, updateSettings, changePassword } from "../../../services/admin/auth.service.js";
@@ -46,21 +48,39 @@ describe("auth.service", () => {
     });
 
     it("账号停用时抛错", async () => {
-      mocks.queryOne.mockResolvedValue({ id: 1, status: 0, password_hash: "h" });
-      mocks.verifyPassword.mockResolvedValue(true);
-      await expect(login("u", "p")).rejects.toThrow("账号或密码错误");
+      mocks.queryOne.mockResolvedValue({ id: 1, status: 0, password_hash: "h", login_fail_count: 0, locked_until: null });
+      await expect(login("u", "p")).rejects.toThrow("账号已禁用");
     });
 
-    it("密码错误时抛错", async () => {
-      mocks.queryOne.mockResolvedValue({ id: 1, status: 1, password_hash: "h" });
+    it("密码错误时更新失败次数并抛错", async () => {
+      mocks.queryOne.mockResolvedValue({ id: 1, status: 1, password_hash: "h", login_fail_count: 0, locked_until: null });
       mocks.verifyPassword.mockResolvedValue(false);
-      await expect(login("u", "p")).rejects.toThrow("账号或密码错误");
+      mocks.query.mockResolvedValue(undefined);
+      await expect(login("u", "p")).rejects.toThrow("还剩4次尝试机会");
+      expect(mocks.query).toHaveBeenCalledWith(
+        expect.stringContaining("UPDATE t_sys_user SET login_fail_count"),
+        [1, null, 1]
+      );
+    });
+
+    it("登录失败5次后账号被锁定", async () => {
+      mocks.queryOne.mockResolvedValue({ id: 1, status: 1, password_hash: "h", login_fail_count: 4, locked_until: null });
+      mocks.verifyPassword.mockResolvedValue(false);
+      mocks.query.mockResolvedValue(undefined);
+      await expect(login("u", "p")).rejects.toThrow("账号已锁定15分钟");
+    });
+
+    it("账号锁定期间无法登录", async () => {
+      const lockedUntil = new Date(Date.now() + 600000);
+      mocks.queryOne.mockResolvedValue({ id: 1, status: 1, password_hash: "h", login_fail_count: 5, locked_until: lockedUntil });
+      await expect(login("u", "p")).rejects.toThrow("账号已锁定");
     });
 
     it("登录成功返回 token 和 user", async () => {
       mocks.queryOne.mockResolvedValue({
         id: 1, username: "u", password_hash: "h", real_name: "r",
         store_id: 2, status: 1, tenant_id: "t1",
+        login_fail_count: 0, locked_until: null,
       });
       mocks.verifyPassword.mockResolvedValue(true);
       mocks.query.mockResolvedValue([{ role_code: "ADMIN" }]);
@@ -78,6 +98,7 @@ describe("auth.service", () => {
       mocks.queryOne.mockResolvedValue({
         id: 1, username: "u", password_hash: "h", real_name: "r",
         store_id: null, status: 1, tenant_id: null,
+        login_fail_count: 0, locked_until: null,
       });
       mocks.verifyPassword.mockResolvedValue(true);
       mocks.query.mockResolvedValue([]);
@@ -150,6 +171,7 @@ describe("auth.service", () => {
     it("成功修改密码", async () => {
       mocks.queryOne.mockResolvedValue({ id: 1, passwordHash: "h" });
       mocks.verifyPassword.mockResolvedValue(true);
+      mocks.validatePassword.mockReturnValue({ valid: true, errors: [] });
       mocks.hashPassword.mockResolvedValue("new_hash");
       mocks.queryWithTenant.mockResolvedValue(undefined);
       const res = await changePassword(1, "old", "new");
@@ -157,6 +179,13 @@ describe("auth.service", () => {
       const [sql, params] = mocks.queryWithTenant.mock.calls[0];
       expect(sql).toContain("UPDATE t_sys_user SET password_hash");
       expect(params).toEqual(["new_hash", 1]);
+    });
+
+    it("新密码不符合要求时抛错", async () => {
+      mocks.queryOne.mockResolvedValue({ id: 1, passwordHash: "h" });
+      mocks.verifyPassword.mockResolvedValue(true);
+      mocks.validatePassword.mockReturnValue({ valid: false, errors: ["密码长度至少8位", "密码必须包含字母"] });
+      await expect(changePassword(1, "old", "123456")).rejects.toThrow("密码不符合要求");
     });
   });
 });

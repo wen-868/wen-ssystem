@@ -1,0 +1,3 @@
+ALTER TABLE t_sys_user
+ADD COLUMN login_fail_count INT UNSIGNED NOT NULL DEFAULT 0 COMMENT '登录失败次数',
+ADD COLUMN locked_until DATETIME DEFAULT NULL COMMENT '账号锁定时间';

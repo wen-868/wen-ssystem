@@ -1,6 +1,8 @@
 import bcrypt from "bcryptjs";
 import { query, queryOne, queryWithTenant, queryOneWithTenant } from "../../shared/db.js";
 import { makeBizNo } from "../../shared/id.js";
+import { validatePassword } from "../../shared/password.js";
+import { AppError } from "../../shared/app-error.js";
 
 export async function listStaff(tenantId: string) {
   const records = await queryWithTenant<any>(
@@ -23,6 +25,13 @@ export async function createStaff(body: {
   status?: number;
   password?: string;
 }, tenantId: string) {
+  if (body.password) {
+    const validation = validatePassword(body.password);
+    if (!validation.valid) {
+      throw new AppError(`密码不符合要求：${validation.errors.join("；")}`, 400);
+    }
+  }
+
   const passwordHash = body.password
     ? await bcrypt.hash(body.password, 10)
     : await bcrypt.hash("123456", 10);

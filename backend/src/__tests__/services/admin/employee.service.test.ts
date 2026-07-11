@@ -9,6 +9,7 @@ const mocks = vi.hoisted(() => ({
   queryOneWithTenant: vi.fn(),
   makeBizNo: vi.fn(),
   bcryptHash: vi.fn(),
+  validatePassword: vi.fn(),
 }));
 
 vi.mock("../../../shared/db.js", () => ({
@@ -25,6 +26,10 @@ vi.mock("../../../shared/id.js", () => ({
 
 vi.mock("bcryptjs", () => ({
   default: { hash: mocks.bcryptHash },
+}));
+
+vi.mock("../../../shared/password.js", () => ({
+  validatePassword: mocks.validatePassword,
 }));
 
 import {
@@ -53,6 +58,7 @@ describe("employee.service", () => {
 
   describe("createStaff", () => {
     it("传入密码时使用传入密码 hash", async () => {
+      mocks.validatePassword.mockReturnValue({ valid: true, errors: [] });
       mocks.bcryptHash.mockResolvedValue("hash_pwd");
       mocks.queryWithTenant.mockResolvedValue({ insertId: 8 });
       const res = await createStaff({ username: "u", realName: "r", password: "secret" }, "t1");

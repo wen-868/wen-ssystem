@@ -2,15 +2,56 @@ import { z } from "zod";
 import { query, queryOne, queryWithTenant, queryOneWithTenant } from "../../shared/db.js";
 import { signToken, getUserAccessInfo } from "../../middleware/auth.js";
 import { verifyPassword } from "../../shared/password.js";
+import { AppError } from "../../shared/app-error.js";
+
+const MAX_LOGIN_ATTEMPTS = 5;
+const LOCK_DURATION_MINUTES = 15;
 
 export async function login(username: string, password: string) {
   const account = await queryOne<any>(
-    "SELECT id, username, password_hash, real_name, store_id, status, tenant_id FROM t_sys_user WHERE username = ? LIMIT 1",
+    "SELECT id, username, password_hash, real_name, store_id, status, tenant_id, login_fail_count, locked_until FROM t_sys_user WHERE username = ? LIMIT 1",
     [username]
   );
-  if (!account || account.status !== 1 || !(await verifyPassword(password, account.password_hash))) {
-    throw new Error("账号或密码错误");
+
+  if (!account) {
+    throw new AppError("账号或密码错误", 400);
   }
+
+  if (account.status !== 1) {
+    throw new AppError("账号已禁用", 400);
+  }
+
+  if (account.locked_until && new Date(account.locked_until) > new Date()) {
+    const remainingMinutes = Math.ceil((new Date(account.locked_until).getTime() - Date.now()) / 60000);
+    throw new AppError(`账号已锁定，请${remainingMinutes}分钟后重试`, 400);
+  }
+
+  if (!(await verifyPassword(password, account.password_hash))) {
+    const newFailCount = (account.login_fail_count || 0) + 1;
+    let lockedUntil = null;
+
+    if (newFailCount >= MAX_LOGIN_ATTEMPTS) {
+      lockedUntil = new Date(Date.now() + LOCK_DURATION_MINUTES * 60000);
+    }
+
+    await query(
+      "UPDATE t_sys_user SET login_fail_count = ?, locked_until = ?, updated_at = NOW() WHERE id = ?",
+      [newFailCount, lockedUntil, account.id]
+    );
+
+    if (lockedUntil) {
+      throw new AppError(`登录失败次数过多，账号已锁定${LOCK_DURATION_MINUTES}分钟`, 400);
+    }
+
+    const remainingAttempts = MAX_LOGIN_ATTEMPTS - newFailCount;
+    throw new AppError(`账号或密码错误，还剩${remainingAttempts}次尝试机会`, 400);
+  }
+
+  await query(
+    "UPDATE t_sys_user SET login_fail_count = 0, locked_until = NULL, last_login_at = NOW(), updated_at = NOW() WHERE id = ?",
+    [account.id]
+  );
+
   const roles = await query<any>(
     `SELECT r.role_code
      FROM t_sys_user_role ur
