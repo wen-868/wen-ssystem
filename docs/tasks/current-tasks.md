@@ -213,6 +213,14 @@
   - 0 个 it.skip / describe.skip
   - `npx tsc --noEmit --strict` 0 错误
   - `npx eslint src/` 0 error 0 warning
+- **阿坚负责进度（2026-07-13）**：
+  - ✅ **B3 采购/库存模块 routes 集成测试**：purchase、inventory-batch、supplier — 共 129 个用例，全部 100%
+  - ✅ **B4 财务/客户模块 routes 集成测试**：sale-return — 28 个用例，全部 100%
+  - ✅ **C3 采购/库存模块 controller 单元测试**：purchase-in-stock、purchase-payment、purchase-return — 33 个用例，全部 100%
+  - ✅ **C4 财务/客户模块 controller 单元测试**：customer-payment、customer-statement、price-management — 60 个用例，全部 100%
+  - ✅ **基础设施**：create-test-app fixture + purchase-plan 试点
+  - 📊 **阿坚负责模块汇总**：新增/修改 12 个测试文件，250+ 测试用例，负责范围内 routes 100%
+  - ⚠️ 营销模块（marketing-miniapp/material等）约 15 个用例失败，属苏然负责范围，非本次引入
 
 ### R23-A10 — admin-web 构建优化 [P1]
 
