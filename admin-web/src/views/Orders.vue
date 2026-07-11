@@ -32,7 +32,8 @@
         </div>
       </template>
 
-      <el-table :data="orders" v-loading="loading" stripe>
+      <TableSkeleton v-if="loading" />
+      <el-table v-else :data="orders" stripe>
         <el-table-column prop="orderNo" label="订单号" width="200" />
         <el-table-column prop="customerType" label="客户类型" width="100">
           <template #default="{ row }">
@@ -150,6 +151,7 @@
 <script setup lang="ts">
 import { onMounted, ref } from "vue";
 import { ElMessage } from "element-plus";
+import TableSkeleton from "../components/TableSkeleton.vue";
 import { fetchOrderDetail, fetchOrders } from "../api";
 
 const loading = ref(false);

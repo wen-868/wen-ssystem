@@ -21,7 +21,8 @@
         </div>
       </template>
 
-      <el-table :data="members" v-loading="loading" stripe empty-text="暂无客户">
+      <TableSkeleton v-if="loading" />
+      <el-table v-else :data="members" stripe empty-text="暂无客户">
         <el-table-column prop="memberId" label="客户ID" width="100" />
         <el-table-column prop="name" label="客户名称" min-width="140" />
         <el-table-column prop="mobile" label="手机号" width="140" />
@@ -133,6 +134,7 @@
 import { onMounted, reactive, ref } from "vue";
 import { ElMessage, ElMessageBox, type FormInstance, type FormRules } from "element-plus";
 import { useRouter } from "vue-router";
+import TableSkeleton from "../components/TableSkeleton.vue";
 import { assignMember, createMember, disableMember, fetchMemberPriceHistory, fetchMembers, fetchStaff } from "../api";
 
 const router = useRouter();

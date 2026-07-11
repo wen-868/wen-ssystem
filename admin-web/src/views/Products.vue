@@ -17,8 +17,9 @@
         </div>
       </template>
 
-      <el-table
-        :data="spuList" v-loading="loading" stripe row-key="spuId"
+      <TableSkeleton v-if="loading" />
+      <el-table v-else
+        :data="spuList" stripe row-key="spuId"
         @expand-change="onExpandChange" :expand-row-keys="expandKeys"
       >
         <el-table-column type="expand">
@@ -472,6 +473,7 @@ import { useEditor, EditorContent } from "@tiptap/vue-3";
 import StarterKit from "@tiptap/starter-kit";
 import { api } from "../api";
 import { formatDate } from "../utils/format";
+import TableSkeleton from "../components/TableSkeleton.vue";
 
 // ---------- State ----------
 const loading = ref(false);

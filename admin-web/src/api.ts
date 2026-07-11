@@ -31,38 +31,11 @@ api.interceptors.request.use((config) => {
 api.interceptors.response.use(
   (response) => response,
   (error) => {
-    if (error.code === "ECONNABORTED" || error.message?.includes("timeout")) {
-      ElMessage.error("请求超时，请重试");
-      return Promise.reject(error);
-    }
-
-    if (!error.response) {
-      ElMessage.error("网络连接失败，请检查网络");
-      return Promise.reject(error);
-    }
-
-    const { status, data } = error.response;
-    const msg = data?.msg || error?.message || "请求失败";
-
-    switch (status) {
-      case 401:
-        useAuthStore().clearAuth();
-        if (typeof window !== "undefined") {
-          window.dispatchEvent(new Event("auth:logout"));
-        }
-        break;
-      case 403:
-        ElMessage.error("无权限访问");
-        break;
-      case 404:
-        ElMessage.error("请求的资源不存在");
-        break;
-      case 500:
-        ElMessage.error("服务器内部错误，请稍后重试");
-        break;
-      default:
-        ElMessage.error(msg);
-        break;
+    if (error.response?.status === 401) {
+      useAuthStore().clearAuth();
+      if (typeof window !== "undefined") {
+        window.dispatchEvent(new Event("auth:logout"));
+      }
     }
     return Promise.reject(error);
   }

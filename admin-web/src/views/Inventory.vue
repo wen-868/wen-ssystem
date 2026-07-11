@@ -30,7 +30,8 @@
             <el-button type="primary" @click="loadBalances">查询</el-button>
           </div>
 
-          <el-table :data="balances" v-loading="loading" stripe>
+          <TableSkeleton v-if="loading" />
+          <el-table v-else :data="balances" stripe>
             <el-table-column prop="storeName" label="门店" width="140" />
             <el-table-column prop="skuCode" label="SKU编码" width="160" />
             <el-table-column prop="productName" label="商品名称" min-width="180" />
@@ -88,7 +89,8 @@
             <el-button type="primary" @click="loadLogs">查询</el-button>
           </div>
 
-          <el-table :data="logs" v-loading="loading" stripe>
+          <TableSkeleton v-if="loading" />
+          <el-table v-else :data="logs" stripe>
             <el-table-column prop="logNo" label="流水单号" width="200" />
             <el-table-column prop="storeName" label="门店" width="120" />
             <el-table-column prop="skuCode" label="SKU编码" width="160" />
@@ -141,6 +143,7 @@
 import { onMounted, ref } from "vue";
 import { ElMessage } from "element-plus";
 import { Refresh } from "@element-plus/icons-vue";
+import TableSkeleton from "../components/TableSkeleton.vue";
 import { fetchInventoryBalances, fetchInventoryLogs, fetchStores } from "../api";
 
 const loading = ref(false);
