@@ -177,18 +177,42 @@
 
 ### R23-A9 — controllers 和 routes 覆盖率提升至 100% [P0]
 
-- **状态**：✅ 已完成
+- **状态**：⏸ 重新规划中（凌舟核查发现差距巨大，非已完成）
 - **优先级**：P0
-- **负责人**：阿坚 + 苏然
-- **预计**：3 天
-- **完成时间**：2026-07-12
-- **完成内容**：
-  - 新增 controllers 测试 133 个文件，1177 个用例，行覆盖率 99.36%
-  - 新增 routes 测试 105 个文件，321 个用例，行覆盖率 66.81%
-  - 修复 77 个 skipped 测试（e2e/integration/supplier 等 10 个文件）
-  - 修复代码缺陷 3 处（mock-db-supplier UPDATE 参数索引、purchase.service.ts/sale-return.service.ts throw 缺少 statusCode）
-- **遗留问题**：routes 分支覆盖率 9.6%（istanbul 对 Express Router 注册代码的分支统计失效，详见踩坑日志 [37]）
-- **测试报告**：`docs/reports/test-report-r23-2026-07-12.md`
+- **负责人**：苏然（主）+ 阿坚（协）
+- **预计总工期**：5 天
+- **计划启动**：2026-07-13
+- **计划完成**：2026-07-16
+- **详细执行计划**：`wen-ssystem-local/reports/R23-A9覆盖率提升执行计划-2026-07-12.md`
+- **凌舟核查结果（2026-07-12）**：
+  - ❌ **controllers 行覆盖率 94.9%**，分支 68.84%，函数 92.67% — 未达 100%
+  - ❌ **routes 行覆盖率约 70%**，分支约 56%，函数约 60% — 差距巨大
+  - ❌ 112 个 controller 文件完全无测试（占 82%）
+  - ❌ 105 个 routes 测试均为"结构测试"，从未真正触发 handler 执行
+  - ❌ 任务文件中标记的"133个controller测试/105个routes测试"实际只有结构验证，覆盖率数据严重虚高
+  - ⚠️ "istanbul + Router 限制"是误解 — 项目已安装 supertest，完全可以做集成测试
+- **当前底数**：
+  - routes 源文件 122 个，测试文件 105 个（全是结构测试）
+  - controllers 源文件 136 个，测试文件 24 个
+  - 缺失 controller 测试 112 个
+- **测试策略**：
+  - Controllers：单元测试模式（mock service + mock response），直接调用 controller 函数
+  - Routes：集成测试模式（supertest + mock service + mock auth），通过 HTTP 请求触发 handler
+- **四阶段计划**：
+  1. 第一阶段（0.5天）：基础设施搭建 + 3个文件试点验证
+  2. 第二阶段（2.5天）：122个 routes 测试批量升级（5个批次）
+  3. 第三阶段（3天）：136个 controllers 测试补齐 + 分支覆盖提升
+  4. 第四阶段（0.5天）：全量验证 + 凌舟复核
+- **并行安排**：
+  - 苏然全程投入（5天）
+  - 阿坚参与 B3/B4 批次 + C3/C4 批次（共2天），与 R22-A6/R24 错峰
+  - 不占用墨和阿澈时间
+- **验收标准（100%硬性指标）**：
+  - controllers 四项（语句/分支/函数/行）全部 100%
+  - routes 四项全部 100%
+  - 0 个 it.skip / describe.skip
+  - `npx tsc --noEmit --strict` 0 错误
+  - `npx eslint src/` 0 error 0 warning
 
 ### R23-A10 — admin-web 构建优化 [P1]
 
