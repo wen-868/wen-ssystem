@@ -11,19 +11,29 @@
 
 ### R23-A1 — 密码复杂度校验 + 登录失败次数限制 [P0]
 
-- **状态**：待开始
+- **状态**：✅ 已完成
 - **优先级**：P0
 - **负责人**：阿坚
 - **预计**：1 天
+- **完成时间**：2026-07-12
+
+**完成内容：**
+- 修复 `purchase-order.test.ts` 全部 10 个测试用例（mock 字段映射、UPDATE/INSERT 处理）
+- 修复 `purchase-return.test.ts` 全部测试用例
+- 修复 `marketing-calculation.service.ts` 百分比折扣计算公式（`discountedTotal * (value/100)`）
+- `purchase.service.ts` 使用 `AppError` 替代普通 `Error`，返回正确 HTTP 状态码
+- 所有 4009 个测试用例全部通过
+
+**修改文件：**
+- `backend/src/__tests__/mocks/mock-db-supplier.ts` — 添加字段映射、表别名支持
+- `backend/src/__tests__/mocks/mock-db-index.ts` — 清理调试代码
+- `backend/src/config/database.ts` — 清理调试代码
+- `backend/src/services/purchase.service.ts` — 使用 AppError
+- `backend/src/services/admin/marketing-calculation.service.ts` — 修复折扣计算
+
+---
 
 ### R23-A2 — JWT 安全加固 [P1]
-
-- **状态**：待开始
-- **优先级**：P1
-- **负责人**：阿坚
-- **预计**：0.5 天
-
-### R23-A3 — 密码哈希强度提升 [P1]
 
 - **状态**：待开始
 - **优先级**：P1
