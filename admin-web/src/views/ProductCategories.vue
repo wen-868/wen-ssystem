@@ -36,6 +36,7 @@
               <span class="tree-node">
                 <span v-if="data.icon" class="tree-node-icon">{{ data.icon }}</span>
                 <span class="tree-node-label">{{ data.name }}</span>
+                <el-tag v-if="data.allowOnlineSale === 0" type="warning" size="small" style="margin-left: 6px">仅线下</el-tag>
                 <el-tag v-if="data.status === 0" type="info" size="small" style="margin-left: 6px">禁用</el-tag>
               </span>
             </template>
@@ -69,6 +70,10 @@
               <el-form-item label="状态">
                 <el-tag v-if="detailForm.status === 1" type="success">启用</el-tag>
                 <el-tag v-else type="info">禁用</el-tag>
+              </el-form-item>
+              <el-form-item label="线上销售">
+                <el-tag v-if="detailForm.allowOnlineSale === 1" type="success">允许</el-tag>
+                <el-tag v-else type="warning">仅线下</el-tag>
               </el-form-item>
               <el-form-item label="创建时间">
                 <span>{{ formatDate(detailForm.createdAt) }}</span>
@@ -115,6 +120,10 @@
             <el-radio :value="1">启用</el-radio>
             <el-radio :value="0">禁用</el-radio>
           </el-radio-group>
+        </el-form-item>
+        <el-form-item label="允许线上销售">
+          <el-switch v-model="form.allowOnlineSale" :active-value="1" :inactive-value="0" />
+          <span style="margin-left: 8px; color: #909399; font-size: 12px">关闭后该分类商品仅限线下销售</span>
         </el-form-item>
       </el-form>
       <template #footer>
@@ -164,7 +173,8 @@ const defaultForm = {
   icon: "",
   sortOrder: 0,
   parentId: null as number | null,
-  status: 1
+  status: 1,
+  allowOnlineSale: 1
 };
 
 const form = reactive({ ...defaultForm });
@@ -181,6 +191,7 @@ const detailForm = reactive({
   sortOrder: 0,
   parentName: "",
   status: 1,
+  allowOnlineSale: 1,
   createdAt: ""
 });
 
@@ -250,6 +261,7 @@ function handleNodeClick(data: any) {
   detailForm.sortOrder = data.sortOrder || 0;
   detailForm.parentName = getParentName(data.id);
   detailForm.status = data.status ?? 1;
+  detailForm.allowOnlineSale = data.allowOnlineSale ?? 1;
   detailForm.createdAt = data.createdAt || "";
 }
 
@@ -273,7 +285,8 @@ function handleEdit() {
     icon: node.icon || "",
     sortOrder: node.sortOrder || 0,
     parentId: node.parentId || null,
-    status: node.status ?? 1
+    status: node.status ?? 1,
+    allowOnlineSale: node.allowOnlineSale ?? 1
   });
   dialogVisible.value = true;
 }
