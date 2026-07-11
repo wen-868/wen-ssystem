@@ -13,6 +13,7 @@ export interface ProductInfo {
   specs?: string
   safetyStock?: number
   status: 'ON' | 'OFF'
+  allowOnlineSale?: number
 }
 
 export interface ProductListParams {
@@ -34,6 +35,7 @@ export interface CategoryInfo {
   name: string
   parentId?: number
   children?: CategoryInfo[]
+  allowOnlineSale?: number
 }
 
 const productsApi = {

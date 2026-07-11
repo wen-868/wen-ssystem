@@ -1,6 +1,5 @@
 <template>
   <view class="products-page">
-    <!-- 搜索栏 -->
     <view class="search-bar">
       <view class="search-input-wrap">
         <text class="search-icon">&#xe614;</text>
@@ -16,7 +15,6 @@
       </view>
     </view>
 
-    <!-- 分类筛选 -->
     <scroll-view class="category-bar" scroll-x :show-scrollbar="false">
       <view
         class="category-item"
@@ -33,10 +31,10 @@
         @tap="switchCategory(cat.id)"
       >
         <text class="category-text">{{ cat.name }}</text>
+        <text class="category-offline-dot" v-if="cat.allowOnlineSale === 0"></text>
       </view>
     </scroll-view>
 
-    <!-- 商品网格 -->
     <scroll-view
       class="product-scroll"
       scroll-y
@@ -62,6 +60,9 @@
             <view v-else class="product-image-placeholder">
               <text class="placeholder-icon">&#xe630;</text>
             </view>
+            <view class="offline-tag" v-if="product.allowOnlineSale === 0">
+              <text class="offline-tag-text">仅线下</text>
+            </view>
           </view>
           <view class="product-info">
             <text class="product-name">{{ product.name }}</text>
@@ -75,13 +76,11 @@
         </view>
       </view>
 
-      <!-- 空状态 -->
       <view class="empty-state" v-if="!loading && productList.length === 0">
         <text class="empty-icon">&#xe631;</text>
         <text class="empty-text">暂无商品数据</text>
       </view>
 
-      <!-- 加载更多 -->
       <view class="load-more" v-if="productList.length > 0">
         <text class="load-more-text" v-if="loadingMore">加载中...</text>
         <text class="load-more-text" v-else-if="noMore">-- 没有更多了 --</text>
@@ -217,7 +216,6 @@ onMounted(() => {
   flex-direction: column;
 }
 
-/* 搜索栏 */
 .search-bar {
   padding: 16rpx 24rpx;
   background: #fff;
@@ -256,7 +254,6 @@ onMounted(() => {
   padding: 4rpx;
 }
 
-/* 分类筛选 */
 .category-bar {
   background: #fff;
   white-space: nowrap;
@@ -266,6 +263,7 @@ onMounted(() => {
 
 .category-item {
   display: inline-flex;
+  align-items: center;
   padding: 12rpx 28rpx;
   margin: 0 8rpx;
   border-radius: 32rpx;
@@ -286,7 +284,6 @@ onMounted(() => {
   color: #666;
 }
 
-/* 商品网格 */
 .product-scroll {
   flex: 1;
   padding: 16rpx 24rpx;
@@ -310,6 +307,31 @@ onMounted(() => {
   height: 280rpx;
   background: #f5f7fa;
   position: relative;
+}
+
+.offline-tag {
+  position: absolute;
+  top: 12rpx;
+  left: 12rpx;
+  padding: 4rpx 12rpx;
+  background: rgba(255, 77, 79, 0.9);
+  border-radius: 6rpx;
+}
+
+.offline-tag-text {
+  font-size: 20rpx;
+  color: #fff;
+  font-weight: 500;
+}
+
+.category-offline-dot {
+  display: inline-block;
+  width: 12rpx;
+  height: 12rpx;
+  background: #ff4d4f;
+  border-radius: 50%;
+  margin-left: 8rpx;
+  vertical-align: middle;
 }
 
 .product-image {
@@ -368,7 +390,6 @@ onMounted(() => {
   color: #ff4d4f;
 }
 
-/* 空状态 */
 .empty-state {
   display: flex;
   flex-direction: column;
@@ -387,7 +408,6 @@ onMounted(() => {
   color: #bbb;
 }
 
-/* 加载更多 */
 .load-more {
   text-align: center;
   padding: 24rpx 0;

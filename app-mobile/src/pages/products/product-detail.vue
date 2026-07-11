@@ -1,14 +1,15 @@
 <template>
   <view class="product-detail-page">
-    <!-- 商品图片 -->
     <view class="product-gallery">
       <image class="product-image" :src="product.image" mode="aspectFill" />
       <view class="product-status-tag" v-if="product.status">
         <text class="status-text">{{ product.statusLabel }}</text>
       </view>
+      <view class="offline-badge" v-if="product.allowOnlineSale === 0">
+        <text class="offline-badge-text">仅线下销售</text>
+      </view>
     </view>
 
-    <!-- 基本信息 -->
     <view class="info-section">
       <view class="section-title">基本信息</view>
       <view class="info-card">
@@ -36,10 +37,15 @@
           <text class="info-label">单位</text>
           <text class="info-value">{{ product.unit }}</text>
         </view>
+        <view class="info-row">
+          <text class="info-label">线上销售</text>
+          <text class="info-value" :class="{ 'info-value--danger': product.allowOnlineSale === 0 }">
+            {{ product.allowOnlineSale === 0 ? '禁止（仅线下）' : '允许' }}
+          </text>
+        </view>
       </view>
     </view>
 
-    <!-- 价格信息 -->
     <view class="info-section">
       <view class="section-title">价格信息</view>
       <view class="info-card">
@@ -58,7 +64,6 @@
       </view>
     </view>
 
-    <!-- 库存信息 -->
     <view class="info-section">
       <view class="section-title">库存信息</view>
       <view class="info-card">
@@ -77,7 +82,6 @@
       </view>
     </view>
 
-    <!-- 操作表单：ref + :model + :rules -->
     <view class="info-section">
       <view class="section-title">库存调整</view>
       <form ref="formRef" :model="adjustForm" class="adjust-form">
@@ -169,6 +173,7 @@ const product = ref<any>({
   warehouseName: '',
   status: 'on_sale',
   statusLabel: '在售',
+  allowOnlineSale: 1,
 })
 
 function onAdjustTypeChange(e: any) {
@@ -227,6 +232,15 @@ onLoad((options: any) => {
   border-radius: 20rpx;
 }
 .status-text { font-size: 22rpx; color: #fff; }
+.offline-badge {
+  position: absolute;
+  bottom: 24rpx; left: 24rpx;
+  padding: 8rpx 20rpx;
+  background: rgba(255, 77, 79, 0.9);
+  border-radius: 8rpx;
+}
+.offline-badge-text { font-size: 22rpx; color: #fff; font-weight: 500; }
+.info-value--danger { color: #ff4d4f; font-weight: 600; }
 .info-section { padding: 24rpx; }
 .section-title {
   font-size: 28rpx;
