@@ -91,6 +91,7 @@ const list = ref<CustomerInfo[]>([])
 const loading = ref(false)
 const activeCard = ref<number | null>(null)
 const refresherTriggered = ref(false)
+const navigating = ref(false)
 
 function onSearch() {
   loadCustomers()
@@ -125,7 +126,12 @@ async function onPullDownRefresh() {
 }
 
 function goDetail(id: number) {
-  uni.navigateTo({ url: `/pages/customers/customer-detail?id=${id}` })
+  if (navigating.value) return
+  navigating.value = true
+  uni.navigateTo({
+    url: `/pages/customers/customer-detail?id=${id}`,
+    complete: () => { navigating.value = false }
+  })
 }
 
 function goAdd() {

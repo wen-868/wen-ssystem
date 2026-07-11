@@ -106,6 +106,7 @@ const loading = ref(false)
 const loadingMore = ref(false)
 const refresherTriggered = ref(false)
 const activeCard = ref<string | null>(null)
+const navigating = ref(false)
 const page = ref(1)
 const pageSize = 20
 const noMore = ref(false)
@@ -198,7 +199,12 @@ async function onPullDownRefresh() {
 }
 
 function goDetail(orderNo: string) {
-  uni.navigateTo({ url: `/pages/orders/order-detail?orderNo=${orderNo}` })
+  if (navigating.value) return
+  navigating.value = true
+  uni.navigateTo({
+    url: `/pages/orders/order-detail?orderNo=${orderNo}`,
+    complete: () => { navigating.value = false }
+  })
 }
 
 onMounted(() => {
