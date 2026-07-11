@@ -165,6 +165,43 @@
 - **状态**：✅ 已完成
 - **负责人**：墨
 
+### R22-A6 — 烟草专属本地类目 + 同步控制 [P0]
+
+- **状态**：待开始
+- **优先级**：P0
+- **负责人**：阿坚（后端）+ 墨（admin-web）+ 阿澈（app-mobile）
+- **预计**：2 天
+- **需求**：烟草类目商品禁止上传到任何网络平台（即时零售/小程序/平台同步全部屏蔽）
+- **具体任务：**
+
+**阿坚（后端，1.5 天）：**
+1. DDL：`t_product_category` 表新增字段 `sync_policy` TINYINT DEFAULT 1（1=允许同步 0=仅本地），写迁移文件
+2. 种子数据：新增烟草分类（烟草→卷烟/雪茄/烟丝/其他烟草），`sync_policy=0`
+3. category.service.ts：CRUD 支持 sync_policy 字段
+4. 同步服务改造：以下 5 个 service 在同步前检查商品所属分类的 sync_policy
+   - `backend/src/services/sync/product-sync.service.ts` — 小程序缓存同步
+   - `backend/src/services/instant-retail/product-sync.service.ts` — 即时零售平台同步
+   - `backend/src/services/sync/price-sync.service.ts` — 价格同步
+   - `backend/src/shared/product-sync.ts` — 全链路同步
+   - `backend/src/shared/field-sync.ts` — 字段同步
+5. 同步逻辑：如果商品的 category_id 对应的分类 sync_policy=0，跳过该商品并记录日志
+6. 新增 API：`GET /api/admin/products/categories?sync_policy=0` 支持按策略筛选分类
+
+**墨（admin-web，0.5 天）：**
+1. `ProductCategories.vue`：分类表单新增"同步策略"字段（允许同步/仅本地），下拉选择
+2. 分类列表显示同步策略标签（本地类目标注"仅本地"徽标）
+3. 新增分类时默认"允许同步"，烟草相关分类默认"仅本地"
+
+**阿澈（app-mobile，0.5 天）：**
+1. `app-mobile/src/pages/products/` 商品管理页面：仅本地类目的商品显示"禁止同步"标识
+
+- **验收**：
+  - DDL 迁移文件已写（编号 100+）
+  - 种子数据中烟草分类 sync_policy=0
+  - 同步服务中 grep `sync_policy` 有匹配
+  - admin-web 分类表单含同步策略下拉
+  - `npx tsc --noEmit --strict` 0 错误
+
 ---
 
 ## R21 任务列表（已完成）
