@@ -1,12 +1,100 @@
-# 当前任务 — R18
+# 当前任务 — R22
 
 > 仓库：https://github.com/wen-868/wen-ssystem  
 > 唯一分支：main  
-> 最后更新：2026-07-11
+> 最后更新：2026-07-11  
+> **硬性标准：覆盖率阈值 100%，测试不允许跳过，只有修复一条路。**
 
 ---
 
-## R18 任务列表
+## R22 任务列表
+
+> 凌舟 2026-07-11 核查发现：vitest.config.ts 阈值被擅自降为 80%（违反 100% 标准），77 个测试被跳过（违反"不跳过只修复"规则），auto-routes.test.ts 1 个用例失败。客户管理"客户资料"类目后端完整但 admin-web 缺客户详情页/编辑/禁用 UI。
+
+### R22-A1 — 修复 auto-routes.test.ts 失败用例 [P0]
+
+- **状态**：待开始
+- **优先级**：P0
+- **负责人**：阿坚
+- **预计**：0.5 天
+- **问题**：`auto-routes.test.ts:145` — "router 为 undefined 的配置项应被跳过" 断言 `/api/test-router-valid` 未注册
+- **验收**：`npx vitest run src/__tests__/shared/auto-routes.test.ts` → 0 失败
+
+### R22-A2 — 77 个 it.skip 测试全部修复 [P0]
+
+- **状态**：待开始
+- **优先级**：P0
+- **负责人**：阿坚 + 苏然
+- **预计**：3 天
+- **硬性规则**：测试不允许跳过。只有修复一条路。不能把 it.skip 改为 describe.skip，不能标记"暂时跳过"。修复 mock-db 或修改测试逻辑让测试通过。
+- **分布：**
+  - `e2e.test.ts` — 1 个 describe.skip（Phase 2 E2E Flow，约 50 个 it.skip）
+  - `phase1-phase2-integration.test.ts` — 约 50 个 it.skip
+  - `supplier.test.ts` — 7 个 it.skip
+  - `purchase-order.test.ts` — 10 个 it.skip
+  - `purchase-in-stock.test.ts` — 4 个 it.skip
+  - `purchase-return.test.ts` — 4 个 it.skip
+  - `sale-return.test.ts` — 4 个 it.skip
+  - `customer-payment.test.ts` — 4 个 it.skip
+  - `customer-statement.test.ts` — 4 个 it.skip
+  - `error-collection.test.ts` — 4 个 it.skip
+- **验收**：`grep -rn "it\.skip\|describe\.skip" src/__tests__/` → 0 匹配
+
+### R22-A3 — admin-web 客户详情页 + 编辑/禁用 UI [P0]
+
+- **状态**：待开始
+- **优先级**：P0
+- **负责人**：墨
+- **预计**：2 天
+- **问题**：客户资料后端 API 全部就绪，admin-web 缺以下 UI：
+  1. **客户详情页** — 显示完整客户信息（基本信息+地址+结算方式+积分+等级）
+  2. **详情页内子数据 Tab** — 采购统计、销售单列表、付款记录、对账单
+  3. **客户编辑功能** — 列表页加编辑按钮+编辑弹窗（调用 PUT /admin/members/:id）
+  4. **客户禁用/启用** — 列表页加禁用/启用按钮（调用 PUT /admin/members/:id/disable）
+  5. **会员卡信息展示** — 调用 GET /admin/members/:id/member-card
+  6. **会员等级调整 UI** — 调用 PUT /admin/members/:id/member-level
+- **验收**：admin-web 客户详情页可访问，编辑/禁用功能可用，子数据 Tab 正确展示
+
+### R22-A4 — app-mobile 客户 API 路径修复 [P0]
+
+- **状态**：待开始
+- **优先级**：P0
+- **负责人**：阿澈
+- **预计**：0.5 天
+- **问题**：`app-mobile/src/api/modules/customers.ts` 调用 `/admin/customers/:id`，后端实际路由是 `/admin/members/:id`，存在 404 风险
+- **验收**：grep 确认 app-mobile 所有客户 API 路径与后端一致
+
+### R22-A5 — R22 全量回归测试 [P0]
+
+- **状态**：待开始
+- **优先级**：P0
+- **负责人**：苏然
+- **前置条件**：R22-A1~A4 全部完成
+- **验收**：
+  - 0 个 it.skip / describe.skip
+  - 0 个测试失败
+  - `npx tsc --noEmit --strict` 0 错误
+  - `npx eslint src/` 0 error
+  - `npm run build` 成功
+  - 覆盖率 thresholds 100%（vitest.config.ts 已改回）
+
+---
+
+## R21 任务列表（已完成）
+
+（保留历史记录，详见原文件）
+
+---
+
+## 强制闭环流程
+
+1. **读取任务** — ✅ 已完成
+2. **执行** — ✅ 已完成
+3. **验证** — ✅ 已完成
+4. **总结** — ✅ 已完成
+5. **提交** — ✅ 已完成
+6. **更新踩坑日志** — ✅ 已完成
+7. **推送** — ✅ 已完成
 
 ### R18-A1 — 营销模块 services 测试覆盖
 
