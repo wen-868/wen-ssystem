@@ -1,4 +1,5 @@
 import { queryWithTenant, queryOneWithTenant } from "../../shared/db.js";
+import logger from "../../shared/logger.js";
 
 export async function listProductMappings(params: {
   platform: string; storeId?: number; tenantId: string;
@@ -49,10 +50,17 @@ export async function updateMappingStatus(platform: string, localSkuId: number, 
   );
 }
 
-export async function batchSyncProducts(platform: string, storeId: number, skuIds: number[], tenantId: string): Promise<{ synced: number; failed: number; total: number }> {
-  let synced = 0, failed = 0;
+export async function batchSyncProducts(platform: string, storeId: number, skuIds: number[], tenantId: string): Promise<{ synced: number; failed: number; skipped: number; total: number }> {
+  let synced = 0, failed = 0, skipped = 0;
   for (const skuId of skuIds) {
     try {
+      const allowOnline = await checkSkuAllowOnlineSale(skuId, tenantId);
+      if (!allowOnline) {
+        logger.info(`[即时零售同步] 跳过禁止线上销售的商品 skuId=${skuId} platform=${platform}`);
+        await updateMappingStatus(platform, skuId, "SKIPPED", undefined, undefined, "商品分类禁止线上销售", tenantId);
+        skipped++;
+        continue;
+      }
       await updateMappingStatus(platform, skuId, "PENDING", undefined, undefined, undefined, tenantId);
       await updateMappingStatus(platform, skuId, "SYNCED", `mock_sku_${skuId}`, `mock_spu_${skuId}`, "mock sync success", tenantId);
       synced++;
@@ -61,5 +69,19 @@ export async function batchSyncProducts(platform: string, storeId: number, skuId
       failed++;
     }
   }
-  return { synced, failed, total: skuIds.length };
+  return { synced, failed, skipped, total: skuIds.length };
+}
+
+async function checkSkuAllowOnlineSale(skuId: number, tenantId: string): Promise<boolean> {
+  const row = await queryOneWithTenant<any>(
+    `SELECT c.allow_online_sale
+     FROM t_product_sku s
+     INNER JOIN t_product_spu p ON s.spu_id = p.id
+     INNER JOIN t_product_category c ON p.category_id = c.id
+     WHERE s.id = ? AND s.tenant_id = ?`,
+    [skuId, tenantId],
+    tenantId
+  );
+  if (!row) return false;
+  return row.allow_online_sale === 1;
 }

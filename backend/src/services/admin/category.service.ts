@@ -5,11 +5,12 @@ import { syncChangedFields } from "../../shared/field-sync.js";
 interface CategoryRow {
   id: number; name: string; parent_id: number | null; sort_no: number;
   icon?: string; code?: string; status: number; tenant_id: string;
+  allow_online_sale: number;
 }
 
-export async function list(params: { pid?: number; tenantId: string }) {
-  const { pid, tenantId } = params;
-  let sql = "SELECT id, parent_id, name, icon, code, sort_no, status, created_at, updated_at FROM t_product_category WHERE tenant_id = ?";
+export async function list(params: { pid?: number; tenantId: string; allowOnlineSale?: number }) {
+  const { pid, tenantId, allowOnlineSale } = params;
+  let sql = "SELECT id, parent_id, name, icon, code, sort_no, status, allow_online_sale, created_at, updated_at FROM t_product_category WHERE tenant_id = ?";
   const sqlParams: unknown[] = [tenantId];
 
   if (pid !== undefined) {
@@ -17,6 +18,10 @@ export async function list(params: { pid?: number; tenantId: string }) {
     sqlParams.push(pid);
   } else {
     sql += " AND parent_id IS NULL";
+  }
+  if (allowOnlineSale !== undefined) {
+    sql += " AND allow_online_sale = ?";
+    sqlParams.push(allowOnlineSale);
   }
   sql += " ORDER BY sort_no ASC, id ASC";
 
@@ -26,13 +31,13 @@ export async function list(params: { pid?: number; tenantId: string }) {
 
 export async function create(body: {
   name: string; parentId?: number | null; sortNo?: number;
-  icon?: string; code?: string;
+  icon?: string; code?: string; allowOnlineSale?: number;
 }, tenantId: string) {
   const result = await queryWithTenant<{ insertId: number }>(
-    `INSERT INTO t_product_category (name, parent_id, sort_no, icon, code, tenant_id)
-     VALUES (?, ?, ?, ?, ?, ?)`,
+    `INSERT INTO t_product_category (name, parent_id, sort_no, icon, code, allow_online_sale, tenant_id)
+     VALUES (?, ?, ?, ?, ?, ?, ?)`,
     [body.name, body.parentId ?? null, body.sortNo ?? 0,
-     body.icon ?? null, body.code ?? null, tenantId],
+     body.icon ?? null, body.code ?? null, body.allowOnlineSale ?? 1, tenantId],
     tenantId
   );
   return { id: (result as unknown as Record<string, unknown>).insertId };
@@ -40,7 +45,7 @@ export async function create(body: {
 
 export async function update(id: number, body: {
   name?: string; parentId?: number | null; sortNo?: number;
-  icon?: string; code?: string;
+  icon?: string; code?: string; allowOnlineSale?: number;
 }, tenantId: string) {
   const existing = await queryOneWithTenant<CategoryRow>(
     "SELECT id, name FROM t_product_category WHERE id = ? AND tenant_id = ?",
@@ -55,6 +60,7 @@ export async function update(id: number, body: {
   if (body.sortNo !== undefined) { sets.push("sort_no = ?"); params.push(body.sortNo); }
   if (body.icon !== undefined) { sets.push("icon = ?"); params.push(body.icon); }
   if (body.code !== undefined) { sets.push("code = ?"); params.push(body.code); }
+  if (body.allowOnlineSale !== undefined) { sets.push("allow_online_sale = ?"); params.push(body.allowOnlineSale); }
   if (sets.length === 0) return { id };
 
   params.push(id, tenantId);

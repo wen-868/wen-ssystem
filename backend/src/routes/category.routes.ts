@@ -11,7 +11,8 @@ export const categoryRouter = Router();
 // 分类列表
 categoryRouter.get("/", requireAuthWithTenant, asyncHandler(async (req, res) => {
   const pid = req.query.pid !== undefined ? Number(req.query.pid) : undefined;
-  const rows = await service.list({ pid, tenantId: req.tenantId! });
+  const allowOnlineSale = req.query.allow_online_sale !== undefined ? Number(req.query.allow_online_sale) : undefined;
+  const rows = await service.list({ pid, allowOnlineSale, tenantId: req.tenantId! });
   res.json(ok(rows));
 }));
 
@@ -23,6 +24,7 @@ categoryRouter.post("/", requireAuthWithTenant, asyncHandler(async (req, res) =>
     sortNo: z.number().int().default(0),
     icon: z.string().max(255).optional(),
     code: z.string().max(64).optional(),
+    allowOnlineSale: z.number().int().min(0).max(1).optional(),
   }).parse(req.body);
   const result = await service.create(body, req.tenantId!);
   res.json(ok(result));
@@ -36,6 +38,7 @@ categoryRouter.put("/:id", requireAuthWithTenant, asyncHandler(async (req, res) 
     sortNo: z.number().int().optional(),
     icon: z.string().max(255).optional(),
     code: z.string().max(64).optional(),
+    allowOnlineSale: z.number().int().min(0).max(1).optional(),
   }).parse(req.body);
   const result = await service.update(Number(req.params.id), body, req.tenantId!);
   res.json(ok(result));
