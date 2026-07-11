@@ -4,6 +4,7 @@ import { join, resolve } from "node:path";
 import logger from "../shared/logger.js";
 import { env } from "./env.js";
 import { mockConn, mockQuery, mockExecute } from "../__tests__/mocks/mock-db.js";
+import { recordQueryExecution } from "../middleware/slow-query-monitor.js";
 
 export let pool = mysql.createPool({
   host: env.DB_HOST,
@@ -118,7 +119,10 @@ export async function query<T = any>(sql: string, params: unknown[] = []) {
     }
     return mockQuery<T>(sql, params);
   }
+  const start = Date.now();
   const [rows] = await pool.query(sql, params);
+  // 在非 mock 模式下记录 SQL 执行耗时，超阈值的查询由监控模块处理
+  recordQueryExecution(sql, params, Date.now() - start);
   return rows as T[];
 }
 

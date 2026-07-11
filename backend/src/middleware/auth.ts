@@ -62,7 +62,12 @@ declare global {
 }
 
 export function signToken(user: AuthUser) {
-  return jwt.sign(user, env.JWT_SECRET, { expiresIn: "8h" });
+  return jwt.sign(user, env.JWT_SECRET, {
+    algorithm: "HS256",
+    expiresIn: "4h",
+    issuer: "zhixiang-system",
+    audience: "zhixiang-client",
+  });
 }
 
 export function requireRoles(allowedRoles: string[]): RequestHandler {
@@ -87,7 +92,11 @@ export const requireAuth: RequestHandler = (req, res, next) => {
     return;
   }
   try {
-    req.user = jwt.verify(token, env.JWT_SECRET) as AuthUser;
+    req.user = jwt.verify(token, env.JWT_SECRET, {
+      algorithms: ["HS256"],
+      issuer: "zhixiang-system",
+      audience: "zhixiang-client",
+    }) as AuthUser;
     next();
   } catch {
     res.status(401).json(fail("登录已失效", "401"));
@@ -105,7 +114,9 @@ export const requirePlatformAuth: RequestHandler = (req, res, next) => {
     return;
   }
   try {
-    const decoded = jwt.verify(token, env.JWT_SECRET) as { type?: string; id?: number; tenantId?: number };
+    const decoded = jwt.verify(token, env.JWT_SECRET, {
+      algorithms: ["HS256"],
+    }) as { type?: string; id?: number; tenantId?: number };
     if (decoded.type !== "platform_admin") {
       res.status(403).json(fail("无权限", "403"));
       return;

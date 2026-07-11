@@ -10,6 +10,7 @@ import { errorHandler } from "./middleware/error-handler.js";
 import { errorResponseInterceptor } from "./shared/error-response-interceptor.js";
 import { responseTimeTracker } from "./middleware/response-tracker.js";
 import { requireAuthWithTenant } from "./middleware/auth.js";
+import { csrfMiddleware } from "./middleware/csrf.js";
 import { runMigrations } from "./shared/migration.js";
 import { setupRoutes } from "./shared/auto-routes.js";
 import * as authController from "./controllers/admin/auth.controller.js";
@@ -141,6 +142,10 @@ app.get("/api/admin/auth/me", requireAuthWithTenant, authController.getMe);
 app.get("/api/admin/auth/settings", requireAuthWithTenant, authController.getSettings);
 app.put("/api/admin/auth/settings", requireAuthWithTenant, authController.updateSettings);
 app.post("/api/admin/auth/change-password", requireAuthWithTenant, authController.changePassword);
+
+// CSRF 防护：对需要认证的路由生效（在 requireAuthWithTenant 路由之后、setupRoutes 之前注册）
+// GET/OPTIONS/HEAD 直接放行；POST/PUT/DELETE 校验 x-csrf-token 请求头
+app.use(requireAuthWithTenant, csrfMiddleware);
 
 // 自动发现并注册 routes/ 目录下所有路由
 await setupRoutes(app);
