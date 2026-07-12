@@ -1,4 +1,4 @@
-# 当前任务 — R25
+ # 当前任务 — R25
 
 > 仓库：https://github.com/wen-868/wen-ssystem  
 > 唯一分支：main  
@@ -112,26 +112,28 @@
 
 ### R25-A4 — 分支覆盖率优化（74% → 90%）[P1]
 
-- **状态**：✅ 已完成（阿坚部分）
+- **状态**：✅ 已完成
 - **优先级**：P1
 - **负责人**：苏然（主）+ 阿坚（协）
 - **预计**：1.5 天
 - **截止时间**：2026-07-16
 - **完成时间**：2026-07-13
 - **起始状态**：分支覆盖率 74.56%
-- **最终结果**：分支覆盖率 90.71%
+- **最终结果**：分支覆盖率 90.98%
 - **目标**：分支覆盖率提升至 90%
 - **阿坚完成内容**：
   1. 死代码清理：删除7个未被路由引用的 admin/ 版本 controller 及对应测试文件
   2. 分支集中化重构：重构12个 controller 文件，提取辅助函数（getPagination/getQueryString/getOperator/extractWebhookParams/getQueryParam/getQueryStringOrNull/getQueryNumberOrNull/getStoreIdFromUser/getStringOrDefault/checkRequired/getErrorStatus/optionalStr/optionalNum 等），将重复的 `||`/`??`/三元表达式集中到单一函数中
   3. 重构文件清单：aftersale, approval-records, export, instant-retail(admin), marketing-coupon, order, product, platform-integration, inventory-batch, platform-auth, share, store/sale-bill
-- **苏然完成内容**：测试用例补全（39个测试文件新增测试用例）
+- **苏然完成内容**：36个测试文件新增99个测试用例，覆盖默认值分支（`||`/`??`）、条件三元表达式、错误处理路径、用户身份默认值等未覆盖分支
 - **覆盖率提升详情**：
-  - 分支：74.56% → 90.71%（+16.15个百分点）
-  - 语句：97.74% → 98.31%
-  - 函数：98.41% → 98.68%
-  - 行：98.23% → 98.79%
+  - 分支：74.56% → 90.98%（+16.42个百分点）
+  - 语句：97.74% → 98.39%
+  - 函数：98.41% → 98.77%
+  - 行：98.23% → 98.87%
 - **验证**：369测试文件，3951测试用例全部通过，0失败0跳过
+- **测试报告**：docs/reports/test-report-r25-a4-2026-07-13.md
+- **发现问题**：order.controller.ts 中 batchUpdateOrderStatus 的 `!orderNos.length` 分支可能不可达（zod schema `.min(1)` 验证导致空数组被拦截），已记录待阿坚确认
 - **提交**：b0cf4a5 refactor: 分支覆盖率优化 - 重构12个controller提取辅助函数集中分支逻辑
 
 ### R25-A5 — 路由文件结构统一与代码规范检查 [P1]
