@@ -1,15 +1,17 @@
 <template>
   <view class="register-page">
+    <!-- 顶部品牌区域 -->
     <view class="brand-section">
       <view class="brand-icon">
         <view class="brand-icon-inner">
           <text class="brand-icon-text">智</text>
         </view>
       </view>
-      <text class="brand-title">会员注册</text>
-      <text class="brand-subtitle">开启智慧消费之旅</text>
+      <text class="brand-title">智享全链</text>
+      <text class="brand-subtitle">智慧库存 · 高效管理</text>
     </view>
 
+    <!-- 表单区域 -->
     <view class="form-section">
       <form ref="formRef" :model="registerForm" :rules="registerRules" class="form-card" @submit="handleRegister">
         <view class="form-item">
@@ -21,7 +23,7 @@
             class="form-input"
             v-model="registerForm.mobile"
             type="number"
-            placeholder="请输入手机号"
+            placeholder="请输入手机号码"
             placeholder-class="input-placeholder"
             maxlength="11"
             @input="clearError('mobile')"
@@ -36,7 +38,7 @@
             <text class="label-icon">&#xe605;</text>
             <text class="label-text">验证码</text>
           </view>
-          <view class="code-input-wrap">
+          <view class="code-input-wrapper">
             <input
               class="form-input code-input"
               v-model="registerForm.smsCode"
@@ -48,11 +50,11 @@
             />
             <button
               class="send-code-btn"
-              :class="{ 'send-code-btn--disabled': countDown > 0 || !canSendCode }"
-              :disabled="countDown > 0 || !canSendCode"
+              :class="{ 'send-code-btn--disabled': countdown > 0 || !isMobileValid }"
+              :disabled="countdown > 0 || !isMobileValid"
               @tap="sendSmsCode"
             >
-              <text class="send-code-text">{{ countDown > 0 ? `${countDown}秒` : '获取验证码' }}</text>
+              <text class="send-code-text">{{ countdown > 0 ? `${countdown}s` : '发送验证码' }}</text>
             </button>
           </view>
           <view class="field-error" v-if="errors.smsCode">
@@ -69,10 +71,9 @@
             class="form-input"
             v-model="registerForm.password"
             :type="showPassword ? 'text' : 'password'"
-            placeholder="请输入密码（8-32位，含字母+数字+特殊字符）"
+            placeholder="请输入密码（8-32位）"
             placeholder-class="input-placeholder"
-            maxlength="32"
-            @input="handlePasswordInput"
+            @input="clearError('password')"
           />
           <view class="password-toggle" @tap="showPassword = !showPassword">
             <text class="toggle-icon">{{ showPassword ? '&#xe603;' : '&#xe604;' }}</text>
@@ -80,11 +81,14 @@
           <view class="field-error" v-if="errors.password">
             <text class="error-text">{{ errors.password }}</text>
           </view>
-          <view class="password-strength" v-if="registerForm.password">
+          
+          <!-- 密码强度提示 -->
+          <view v-if="registerForm.password" class="password-strength">
             <view class="strength-bar">
-              <view class="strength-item" :class="strengthClass(0)"></view>
-              <view class="strength-item" :class="strengthClass(1)"></view>
-              <view class="strength-item" :class="strengthClass(2)"></view>
+              <view :class="['strength-segment', getStrengthClass(1)]"></view>
+              <view :class="['strength-segment', getStrengthClass(2)]"></view>
+              <view :class="['strength-segment', getStrengthClass(3)]"></view>
+              <view :class="['strength-segment', getStrengthClass(4)]"></view>
             </view>
             <text class="strength-text">{{ passwordStrengthText }}</text>
           </view>
@@ -101,7 +105,6 @@
             :type="showConfirmPassword ? 'text' : 'password'"
             placeholder="请再次输入密码"
             placeholder-class="input-placeholder"
-            maxlength="32"
             @input="clearError('confirmPassword')"
           />
           <view class="password-toggle" @tap="showConfirmPassword = !showConfirmPassword">
@@ -115,7 +118,8 @@
         <view class="form-item">
           <view class="form-label">
             <text class="label-icon">&#xe606;</text>
-            <text class="label-text">姓名（选填）</text>
+            <text class="label-text">姓名</text>
+            <text class="label-optional">（选填）</text>
           </view>
           <input
             class="form-input"
@@ -123,14 +127,13 @@
             type="text"
             placeholder="请输入姓名"
             placeholder-class="input-placeholder"
-            maxlength="32"
           />
         </view>
 
         <view class="agreement-item">
-          <view class="checkbox-wrap" @tap="registerForm.agreed = !registerForm.agreed">
-            <view class="checkbox" :class="{ 'checkbox--checked': registerForm.agreed }">
-              <text v-if="registerForm.agreed" class="check-icon">&#xe607;</text>
+          <view class="checkbox-wrapper" @tap="registerForm.agreement = !registerForm.agreement">
+            <view :class="['checkbox', { 'checkbox--checked': registerForm.agreement }]">
+              <text v-if="registerForm.agreement" class="checkbox-icon">&#xe607;</text>
             </view>
           </view>
           <text class="agreement-text">我已阅读并同意</text>
@@ -153,13 +156,14 @@
           <text v-else class="btn-text">注 册</text>
         </button>
       </form>
-
-      <view class="login-link">
-        <text class="link-text">已有账号？</text>
-        <text class="link-btn" @tap="goLogin">立即登录</text>
-      </view>
     </view>
 
+    <view class="login-link">
+      <text class="link-text">已有账号？</text>
+      <text class="link-btn" @tap="goLogin">立即登录</text>
+    </view>
+
+    <!-- 底部版本 -->
     <view class="footer-section">
       <text class="footer-text">v1.0.0</text>
     </view>
@@ -167,19 +171,20 @@
 </template>
 
 <script setup lang="ts">
-import { ref, reactive, computed, watch } from 'vue'
+import { ref, reactive, computed } from 'vue'
 import { useUserStore } from '@/stores/user'
 import { useFormValidation, type Rules } from '@/composables/useFormValidation'
-import { memberApi, type MemberRegisterParams } from '@/api/modules/member'
+import { authApi } from '@/api/modules/auth'
 
 const userStore = useUserStore()
 
 const showPassword = ref(false)
 const showConfirmPassword = ref(false)
 const loading = ref(false)
+const countdown = ref(0)
 const errorMsg = ref('')
-const countDown = ref(0)
 
+// 表单三件套：ref + :model + :rules
 const formRef = ref<any>(null)
 const registerForm = reactive({
   mobile: '',
@@ -187,89 +192,93 @@ const registerForm = reactive({
   password: '',
   confirmPassword: '',
   name: '',
-  agreed: false
+  agreement: false
 })
-
-const canSendCode = computed(() => {
-  const mobile = registerForm.mobile.trim()
-  return mobile.length === 11 && /^1[3-9]\d{9}$/.test(mobile)
-})
-
-const passwordStrength = computed(() => {
-  const password = registerForm.password
-  if (!password) return 0
-  
-  let score = 0
-  if (password.length >= 8) score++
-  if (/[a-zA-Z]/.test(password)) score++
-  if (/[0-9]/.test(password)) score++
-  if (/[^a-zA-Z0-9]/.test(password)) score++
-  
-  return score
-})
-
-const passwordStrengthText = computed(() => {
-  const strength = passwordStrength.value
-  if (strength === 0) return ''
-  if (strength === 1) return '弱'
-  if (strength === 2) return '中'
-  if (strength === 3) return '强'
-  return '非常强'
-})
-
-function strengthClass(index: number): string {
-  const strength = passwordStrength.value
-  if (index < strength) {
-    if (strength === 1) return 'strength-item--weak'
-    if (strength === 2) return 'strength-item--medium'
-    return 'strength-item--strong'
-  }
-  return 'strength-item--empty'
-}
 
 const registerRules: Rules = {
   mobile: [
     { required: true, message: '请输入手机号' },
-    { pattern: /^1[3-9]\d{9}$/, message: '请输入正确的手机号' }
+    { pattern: /^1[3-9]\d{9}$/, message: '请输入有效的手机号码' }
   ],
   smsCode: [
     { required: true, message: '请输入验证码' },
-    { minLength: 6, maxLength: 6, message: '验证码必须是6位数字' }
+    { minLength: 6, message: '验证码必须是6位数字' },
+    { maxLength: 6, message: '验证码必须是6位数字' }
   ],
   password: [
     { required: true, message: '请输入密码' },
-    { minLength: 8, message: '密码长度不能少于8位' },
-    { maxLength: 32, message: '密码长度不能超过32位' },
-    { pattern: /^(?=.*[a-zA-Z])(?=.*\d)(?=.*[^a-zA-Z0-9])/, message: '密码需包含字母、数字和特殊字符' }
+    { minLength: 8, message: '密码至少8个字符' },
+    { maxLength: 32, message: '密码最多32个字符' },
+    { pattern: /^(?=.*[A-Za-z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,32}$/, message: '密码需包含字母、数字和特殊字符' }
   ],
   confirmPassword: [
-    { required: true, message: '请确认密码' },
-    { validator: (val: string, model: any) => val === model.password, message: '两次输入的密码不一致' }
+    { required: true, message: '请再次输入密码' },
+    {
+      message: '两次输入的密码不一致',
+      validator: (value: string) => {
+        return value === registerForm.password
+      }
+    }
   ],
-  agreed: [
-    { validator: (val: boolean) => val, message: '请阅读并同意用户协议' }
+  agreement: [
+    { required: true, message: '请先阅读并同意协议' }
   ]
 }
 
 const { errors, validate, clearError } = useFormValidation(registerForm, registerRules)
 
-function handlePasswordInput() {
-  clearError('password')
-  clearError('confirmPassword')
+// 手机号是否有效（用于控制验证码发送按钮）
+const isMobileValid = computed(() => {
+  return /^1[3-9]\d{9}$/.test(registerForm.mobile)
+})
+
+// 密码强度计算
+const passwordStrength = computed(() => {
+  const pwd = registerForm.password
+  if (!pwd) return 0
+  let score = 0
+  if (pwd.length >= 8) score++
+  if (pwd.length >= 12) score++
+  if (/[A-Za-z]/.test(pwd)) score++
+  if (/\d/.test(pwd)) score++
+  if (/[@$!%*?&]/.test(pwd)) score++
+  return Math.min(score, 4)
+})
+
+const passwordStrengthText = computed(() => {
+  const strength = passwordStrength.value
+  if (strength === 0) return ''
+  if (strength === 1) return '弱 - 请增加密码长度'
+  if (strength === 2) return '中 - 建议添加特殊字符'
+  if (strength === 3) return '强 - 密码安全性良好'
+  return '非常强 - 密码安全性优秀'
+})
+
+function getStrengthClass(level: number) {
+  const strength = passwordStrength.value
+  if (strength >= level) {
+    if (strength <= 1) return 'weak'
+    if (strength <= 2) return 'medium'
+    if (strength <= 3) return 'strong'
+    return 'very-strong'
+  }
+  return 'empty'
 }
 
 async function sendSmsCode() {
-  if (!canSendCode.value || countDown.value > 0) return
-  
+  if (!isMobileValid.value) {
+    uni.showToast({ title: '请输入有效的手机号码', icon: 'none' })
+    return
+  }
+
   loading.value = true
   try {
-    await memberApi.sendSmsCode({ mobile: registerForm.mobile })
+    await authApi.sendSmsCode({ mobile: registerForm.mobile })
     uni.showToast({ title: '验证码已发送', icon: 'success' })
-    
-    countDown.value = 60
+    countdown.value = 60
     const timer = setInterval(() => {
-      countDown.value--
-      if (countDown.value <= 0) {
+      countdown.value--
+      if (countdown.value <= 0) {
         clearInterval(timer)
       }
     }, 1000)
@@ -282,23 +291,24 @@ async function sendSmsCode() {
 
 async function handleRegister() {
   errorMsg.value = ''
-  
+
   if (!validate()) return
-  
+
   loading.value = true
   try {
-    const params: MemberRegisterParams = {
-      mobile: registerForm.mobile.trim(),
-      password: registerForm.password,
+    const result = await authApi.register({
+      mobile: registerForm.mobile,
       smsCode: registerForm.smsCode,
-      name: registerForm.name.trim() || undefined
-    }
+      password: registerForm.password,
+      name: registerForm.name
+    })
     
-    await memberApi.register(params)
+    // 自动登录
+    await userStore.login(result.user.account, registerForm.password)
     
     uni.showToast({ title: '注册成功', icon: 'success' })
     setTimeout(() => {
-      uni.reLaunch({ url: '/pages/login/login' })
+      uni.reLaunch({ url: '/pages/home/home' })
     }, 1500)
   } catch (err: any) {
     errorMsg.value = err?.message || '注册失败，请重试'
@@ -354,7 +364,7 @@ function goLogin() {
 }
 
 .brand-icon-text {
-  font-size: 36rpx;
+  font-size: 38rpx;
   font-weight: 700;
   color: #1677FF;
 }
@@ -374,59 +384,65 @@ function goLogin() {
 
 .form-section {
   width: 100%;
-  padding: 0 40rpx;
+  padding: 0 48rpx;
   box-sizing: border-box;
 }
 
 .form-card {
   background: #fff;
   border-radius: 24rpx;
-  padding: 40rpx 36rpx;
+  padding: 36rpx;
   box-shadow: 0 8rpx 40rpx rgba(22, 119, 255, 0.12);
 }
 
 .form-item {
-  margin-bottom: 32rpx;
+  margin-bottom: 28rpx;
   position: relative;
 }
 
 .form-label {
   display: flex;
   align-items: center;
-  margin-bottom: 12rpx;
+  margin-bottom: 10rpx;
 }
 
 .label-icon {
-  font-size: 32rpx;
+  font-size: 28rpx;
   color: #1677FF;
   margin-right: 8rpx;
 }
 
 .label-text {
-  font-size: 28rpx;
+  font-size: 26rpx;
   color: #333;
   font-weight: 500;
 }
 
+.label-optional {
+  font-size: 22rpx;
+  color: #999;
+  margin-left: 6rpx;
+}
+
 .form-input {
   width: 100%;
-  height: 88rpx;
+  height: 80rpx;
   background: #f5f7fa;
-  border-radius: 16rpx;
-  padding: 0 28rpx;
-  font-size: 30rpx;
+  border-radius: 14rpx;
+  padding: 0 24rpx;
+  font-size: 28rpx;
   color: #333;
   box-sizing: border-box;
 }
 
 .input-placeholder {
   color: #bbb;
-  font-size: 28rpx;
+  font-size: 26rpx;
 }
 
-.code-input-wrap {
+.code-input-wrapper {
   display: flex;
-  gap: 20rpx;
+  gap: 16rpx;
 }
 
 .code-input {
@@ -434,14 +450,15 @@ function goLogin() {
 }
 
 .send-code-btn {
-  width: 200rpx;
-  height: 88rpx;
+  width: 180rpx;
+  height: 80rpx;
   background: #1677FF;
-  border-radius: 16rpx;
+  border-radius: 14rpx;
   display: flex;
   align-items: center;
   justify-content: center;
   border: none;
+  padding: 0;
 }
 
 .send-code-btn::after {
@@ -453,76 +470,102 @@ function goLogin() {
 }
 
 .send-code-text {
-  font-size: 26rpx;
+  font-size: 24rpx;
   color: #fff;
+  font-weight: 500;
 }
 
 .password-toggle {
   position: absolute;
-  right: 20rpx;
-  bottom: 18rpx;
-  padding: 8rpx;
+  right: 16rpx;
+  bottom: 14rpx;
+  padding: 6rpx;
 }
 
 .toggle-icon {
-  font-size: 36rpx;
+  font-size: 32rpx;
   color: #999;
 }
 
+.register-error {
+  margin-bottom: 12rpx;
+  padding: 10rpx 16rpx;
+  background: #fff2f0;
+  border-radius: 10rpx;
+  border-left: 6rpx solid #ff4d4f;
+}
+
+.field-error {
+  margin-top: 6rpx;
+  padding: 4rpx 0;
+}
+
+.error-text {
+  font-size: 24rpx;
+  color: #ff4d4f;
+}
+
+/* 密码强度样式 */
 .password-strength {
-  margin-top: 16rpx;
+  margin-top: 10rpx;
 }
 
 .strength-bar {
   display: flex;
-  gap: 12rpx;
-  margin-bottom: 8rpx;
+  gap: 6rpx;
+  margin-bottom: 4rpx;
 }
 
-.strength-item {
+.strength-segment {
   flex: 1;
-  height: 8rpx;
-  border-radius: 4rpx;
+  height: 6rpx;
+  border-radius: 3rpx;
+  transition: all 0.3s;
 }
 
-.strength-item--empty {
-  background: #e8e8e8;
+.strength-segment.empty {
+  background: #E5E7EB;
 }
 
-.strength-item--weak {
-  background: #ff4d4f;
+.strength-segment.weak {
+  background: #EF4444;
 }
 
-.strength-item--medium {
-  background: #faad14;
+.strength-segment.medium {
+  background: #F59E0B;
 }
 
-.strength-item--strong {
-  background: #52c41a;
+.strength-segment.strong {
+  background: #3B82F6;
+}
+
+.strength-segment.very-strong {
+  background: #10B981;
 }
 
 .strength-text {
-  font-size: 24rpx;
+  font-size: 22rpx;
   color: #999;
 }
 
+/* 协议勾选 */
 .agreement-item {
   display: flex;
   align-items: center;
   flex-wrap: wrap;
-  margin-bottom: 24rpx;
-  padding: 0 8rpx;
+  margin-bottom: 20rpx;
+  padding: 0 4rpx;
 }
 
-.checkbox-wrap {
-  margin-right: 12rpx;
+.checkbox-wrapper {
+  padding: 6rpx;
 }
 
 .checkbox {
-  width: 36rpx;
-  height: 36rpx;
+  width: 32rpx;
+  height: 32rpx;
   border: 2rpx solid #ddd;
-  border-radius: 8rpx;
+  border-radius: 6rpx;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -533,8 +576,8 @@ function goLogin() {
   border-color: #1677FF;
 }
 
-.check-icon {
-  font-size: 24rpx;
+.checkbox-icon {
+  font-size: 20rpx;
   color: #fff;
 }
 
@@ -546,37 +589,18 @@ function goLogin() {
 .agreement-link {
   font-size: 24rpx;
   color: #1677FF;
-  margin: 0 4rpx;
-}
-
-.register-error {
-  margin-bottom: 16rpx;
-  padding: 12rpx 20rpx;
-  background: #fff2f0;
-  border-radius: 12rpx;
-  border-left: 6rpx solid #ff4d4f;
-}
-
-.field-error {
-  margin-top: 8rpx;
-  padding: 6rpx 0;
-}
-
-.error-text {
-  font-size: 26rpx;
-  color: #ff4d4f;
 }
 
 .register-btn {
   width: 100%;
-  height: 92rpx;
+  height: 88rpx;
   background: linear-gradient(135deg, #1677FF, #4096ff);
-  border-radius: 46rpx;
+  border-radius: 44rpx;
   display: flex;
   align-items: center;
   justify-content: center;
   border: none;
-  margin-top: 20rpx;
+  margin-top: 16rpx;
   box-shadow: 0 8rpx 24rpx rgba(22, 119, 255, 0.35);
   transition: all 0.3s;
 }
@@ -590,7 +614,7 @@ function goLogin() {
 }
 
 .btn-text {
-  font-size: 34rpx;
+  font-size: 32rpx;
   font-weight: 600;
   color: #fff;
   letter-spacing: 8rpx;
@@ -600,16 +624,16 @@ function goLogin() {
   display: flex;
   justify-content: center;
   align-items: center;
-  margin-top: 32rpx;
+  margin-top: 28rpx;
 }
 
 .link-text {
-  font-size: 28rpx;
+  font-size: 26rpx;
   color: rgba(255, 255, 255, 0.9);
 }
 
 .link-btn {
-  font-size: 28rpx;
+  font-size: 26rpx;
   color: #fff;
   font-weight: 600;
   margin-left: 8rpx;
@@ -620,11 +644,11 @@ function goLogin() {
   flex: 1;
   display: flex;
   align-items: flex-end;
-  padding-bottom: 40rpx;
+  padding-bottom: 36rpx;
 }
 
 .footer-text {
-  font-size: 24rpx;
+  font-size: 22rpx;
   color: rgba(255, 255, 255, 0.7);
 }
 </style>
