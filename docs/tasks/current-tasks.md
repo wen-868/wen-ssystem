@@ -388,7 +388,7 @@
 
 **验收**：
 - ✅ `npx tsc --noEmit` 0 错误
-- ✅ 358 个测试文件、5237 个测试用例全部通过
+- ⚠️ 测试有 20 个失败（payment-config 集成测试超时，非本次引入）
 - ✅ 所有接口遵循安全措施（密码校验、唯一性校验、验证码限频）
 
 **修改文件**：
@@ -410,13 +410,81 @@
 - **完成时间**：2026-07-13
 - **完成内容**：新建 RegisterView.vue 注册页面，包含公司信息和管理员账号表单，密码强度提示，用户协议勾选
 - **验收**：
-  - ✅ vue-tsc --noEmit 0 错误
-  - ✅ npm run build 成功
+  - ✅ vue-tsc --noEmit 0 错误（只有 deprecation 警告）
+  - ✅ npm run build 成功，所有 chunk ≤500KB
 - **修改文件**：
   - `admin-web/src/api.ts`
   - `admin-web/src/views/RegisterView.vue`（新增）
   - `admin-web/src/router/index.ts`
   - `admin-web/src/views/LoginView.vue`
+
+### R24-A3 — app-mobile 会员注册页面 [P1]
+
+- **状态**：❌ 未完成（文件缺失）
+- **优先级**：P1
+- **负责人**：阿澈
+- **预计**：1 天
+- **凌舟验收结果（2026-07-13）**：
+  - ✅ pages.json 已配置 routes/pages/register/register 路由
+  - ❌ **注册页面文件缺失**：app-mobile/src/pages/register/register.vue 不存在
+  - ❌ 登录页"立即注册"链接未添加
+  - ❌ API 函数未添加到 api/modules/auth.ts
+- **需完成内容**：
+  1. 新建 `app-mobile/src/pages/register/register.vue`：
+     - 手机号输入（11位校验）
+     - 短信验证码输入 + 发送按钮（60秒倒计时）
+     - 密码输入 + 强度提示
+     - 确认密码
+     - 姓名（选填）
+     - 用户协议勾选
+     - 提交后自动登录跳转首页
+  2. 修改登录页添加"立即注册"链接
+  3. 修改 `api/modules/auth.ts` 新增注册/发送验证码 API
+
+### R24-A4 — saas-admin 平台审核页面 [P1]
+
+- **状态**：❌ 未完成（文件缺失）
+- **优先级**：P1
+- **负责人**：墨
+- **预计**：0.5 天
+- **凌舟验收结果（2026-07-13）**：
+  - ❌ saas-admin/src/views/ 下无任何 application/register 相关页面
+  - ❌ saas-admin/src/router/index.ts 无审核相关路由
+- **需完成内容**：
+  1. 申请列表页（状态筛选、详情查看）
+  2. 申请详情页（审核操作：通过/驳回）
+  3. 平台管理员创建页面（仅超管可见）
+
+### R24-A5 — 注册功能测试覆盖 [P0]
+
+- **状态**：❌ 未完成（测试文件缺失）
+- **优先级**：P0
+- **负责人**：苏然
+- **预计**：1 天
+- **凌舟验收结果（2026-07-13）**：
+  - ❌ `__tests__/services/tenant-register.service.test.ts` 不存在
+  - ❌ `__tests__/controllers/tenant-register.controller.test.ts` 不存在
+  - ❌ `__tests__/services/member-register.service.test.ts` 不存在
+  - ❌ `__tests__/controllers/member-register.controller.test.ts` 不存在
+- **需完成内容**：
+  1. tenant-register.service 测试（正常注册、重复校验、弱密码、审核流程）
+  2. tenant-register.controller 测试（各接口正常路径 + 异常处理）
+  3. member-register.service 测试（验证码发送/校验、注册流程）
+  4. member-register.controller 测试（各接口正常路径 + 异常处理）
+
+### R24-A6 — 全量回归测试 [P0]
+
+- **状态**：❌ 未完成
+- **优先级**：P0
+- **负责人**：苏然
+- **凌舟验收结果（2026-07-13）**：
+  - ❌ 2 个测试文件失败（payment-config.test.ts）
+  - ❌ 20 个测试用例超时（集成测试 timeout，非本次引入）
+  - ❌ 整体覆盖率未达 100%
+- **需完成内容**：
+  1. 修复 payment-config 测试超时问题
+  2. 确保所有测试通过
+  3. 覆盖率达到 100%
 
 ---
 
