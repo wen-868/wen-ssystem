@@ -1,11 +1,12 @@
 import { Router } from "express";
 import jwt from "jsonwebtoken";
 import bcrypt from "bcryptjs";
-import { queryOne } from "../shared/db.js";
+import { queryOne, query } from "../shared/db.js";
 import { env } from "../shared/env.js";
 import { asyncHandler } from "../middleware/async-handler.js";
 import { ok, fail } from "../shared/response.js";
 import { requirePlatformAuth } from "../middleware/auth.js";
+import { hashPassword, validatePassword } from "../shared/password.js";
 
 export const platformAuthRouter = Router();
 
@@ -47,4 +48,36 @@ platformAuthRouter.get("/me", requirePlatformAuth, asyncHandler(async (req: any,
     return;
   }
   res.json(ok({ id: admin.id, username: admin.username, realName: admin.real_name }));
+}));
+
+// POST /api/platform/auth/admin/create - 创建平台管理员（仅平台管理员可调用）
+platformAuthRouter.post("/admin/create", requirePlatformAuth, asyncHandler(async (req: any, res: any) => {
+  const { username, password, realName, email, phone, role } = req.body;
+
+  if (!username || !password || !realName) {
+    res.status(400).json(fail("用户名、密码、真实姓名不能为空", "400"));
+    return;
+  }
+
+  const validation = validatePassword(password);
+  if (!validation.valid) {
+    res.status(400).json(fail(`密码不符合要求：${validation.errors.join("；")}`, "400"));
+    return;
+  }
+
+  const existing = await queryOne<any>("SELECT id FROM platform_admin WHERE username = ?", [username]);
+  if (existing) {
+    res.status(400).json(fail("用户名已存在", "400"));
+    return;
+  }
+
+  const passwordHash = await hashPassword(password);
+
+  const result = await query<any>(
+    "INSERT INTO platform_admin (username, password_hash, real_name, email, phone, role) VALUES (?, ?, ?, ?, ?, ?)",
+    [username, passwordHash, realName, email || "", phone || "", role || "PLATFORM_ADMIN"]
+  );
+
+  const adminId = (result as unknown as { insertId: number }).insertId;
+  res.json(ok({ id: adminId, username, realName, message: "创建成功" }));
 }));

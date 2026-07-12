@@ -350,6 +350,59 @@
 
 ---
 
+## R24 任务列表
+
+### R24-A1 — 用户注册功能实现（后端）[P0]
+
+- **状态**：✅ 已完成
+- **优先级**：P0
+- **负责人**：阿坚
+- **预计**：2 天
+- **完成时间**：2026-07-12
+- **需求**：实现租户自助注册、会员自助注册、平台管理员创建三个核心场景
+- **完成内容**：
+
+**1. 数据库迁移：**
+- ✅ `102_tenant_register.sql`：租户表新增 review_status/review_remark/reviewed_at/reviewed_by 字段；创建 t_tenant_register_application 租户注册申请表
+- ✅ `103_member_register.sql`：会员表新增 password_hash/register_source 字段；创建 t_member_sms_code 短信验证码表
+
+**2. 租户自助注册（公开接口）：**
+- ✅ `POST /api/tenant/register` — 租户注册申请（公司信息 + 联系人 + 管理员账号）
+- ✅ 密码强度校验（8-32位，含字母+数字+特殊字符）
+- ✅ 唯一性校验（公司名、手机号、用户名）
+- ✅ 申请状态 PENDING，需平台管理员审核
+
+**3. 平台审核功能（平台管理员）：**
+- ✅ `GET /api/tenant/applications` — 申请列表（支持状态筛选）
+- ✅ `GET /api/tenant/applications/:id` — 申请详情
+- ✅ `POST /api/tenant/applications/:id/approve` — 通过申请（自动创建租户 + 管理员 + 关联表）
+- ✅ `POST /api/tenant/applications/:id/reject` — 驳回申请（需填写驳回原因）
+
+**4. 会员自助注册（公开接口）：**
+- ✅ `POST /api/store/members/sms-code` — 发送注册验证码（60秒限频，5分钟过期）
+- ✅ `POST /api/store/members/register` — 会员注册（手机号 + 密码 + 验证码）
+- ✅ 验证码校验、密码强度校验、初始化积分/等级/画像
+
+**5. 平台管理员创建：**
+- ✅ `POST /api/platform/auth/admin/create` — 平台管理员创建新管理员（需平台管理员权限）
+
+**验收**：
+- ✅ `npx tsc --noEmit` 0 错误
+- ✅ 358 个测试文件、5237 个测试用例全部通过
+- ✅ 所有接口遵循安全措施（密码校验、唯一性校验、验证码限频）
+
+**修改文件**：
+- `docs/migrations/102_tenant_register.sql`（新增）
+- `docs/migrations/103_member_register.sql`（新增）
+- `backend/src/services/tenant-register.service.ts`（新增）
+- `backend/src/controllers/tenant-register.controller.ts`（新增）
+- `backend/src/routes/tenant-register.routes.ts`（新增）
+- `backend/src/routes/member-register.routes.ts`（新增）
+- `backend/src/services/admin/member.service.ts`（修改）
+- `backend/src/routes/platform-auth.routes.ts`（修改）
+
+---
+
 ## R21 任务列表（已完成）
 
 ### R21-A8 — admin-web chunk 优化
