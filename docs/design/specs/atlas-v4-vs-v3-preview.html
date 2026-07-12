@@ -9,10 +9,11 @@
 body { font-family: -apple-system, "PingFang SC", "Microsoft YaHei", sans-serif; background: #F0F0F0; color: #000; }
 
 .header {
-  background: #111; color: #fff; padding: 32px 24px; text-align: center;
+  background: #F8F8F8; color: #000; padding: 32px 24px; text-align: center;
+  border-bottom: 1px solid #E2E2E2;
 }
 .header h1 { font-size: 24px; font-weight: 700; margin-bottom: 6px; }
-.header p { font-size: 13px; color: #999; }
+.header p { font-size: 13px; color: #666; }
 
 .compare {
   display: grid; grid-template-columns: 1fr 1fr; gap: 1px;
@@ -108,10 +109,10 @@ body { font-family: -apple-system, "PingFang SC", "Microsoft YaHei", sans-serif;
 .v3 .sidebar .nav-item { color: #6B7280; }
 .v3 .sidebar .nav-item.active { color: #1677FF; background: #E6F4FF; }
 
-.v4 .sidebar { background: #111; }
-.v4 .sidebar .logo { color: #fff; border-color: rgba(255,255,255,0.10); }
-.v4 .sidebar .nav-item { color: #999; }
-.v4 .sidebar .nav-item.active { color: #5B6ABF; background: rgba(91,106,191,0.15); }
+.v4 .sidebar { background: #F8F8F8; border: 1px solid #E2E2E2; }
+.v4 .sidebar .logo { color: #000; border-color: rgba(0,0,0,0.08); }
+.v4 .sidebar .nav-item { color: #666; }
+.v4 .sidebar .nav-item.active { color: #5B6ABF; background: rgba(91,106,191,0.12); }
 
 /* === 表格 === */
 table.demo { width: 100%; border-collapse: collapse; font-size: 13px; }
@@ -155,7 +156,7 @@ table.demo td { padding: 10px 12px; border-bottom: 1px solid #E2E2E2; }
 
 <header class="header">
   <h1>Atlas v4 vs v3 — 主题对比预览</h1>
-  <p>左：v3 蓝色主题（#1677FF） · 右：v4 Atlas 黑白灰 + 蓝色导航（#5B6ABF）</p>
+  <p>左：v3 蓝色主题（#1677FF） · 右：v4 Atlas · 字体黑色 · 灰+白背景 · 按钮图表彩色</p>
 </header>
 
 <div class="compare">
@@ -264,7 +265,7 @@ table.demo td { padding: 10px 12px; border-bottom: 1px solid #E2E2E2; }
   <!-- ============ V4 ============ -->
   <div class="col v4">
     <div class="col-head">
-      <span class="title">v4 · Atlas 黑白灰</span>
+      <span class="title">v4 · Atlas 灰阶 + 功能彩色</span>
       <span class="tag">#5B6ABF</span>
     </div>
 
@@ -350,14 +351,17 @@ table.demo td { padding: 10px 12px; border-bottom: 1px solid #E2E2E2; }
     <div class="diff-list">
       <h4>v4 改进</h4>
       <ul>
-        <li>白底黑字，信息层次清晰</li>
+        <li>只有字体用纯黑，清晰锐利</li>
+        <li>背景灰+白搭配，层次分明</li>
+        <li>按钮保留彩色，操作引导强</li>
+        <li>图表可全彩，数据对比清晰</li>
         <li>删除按钮灰边+红字，克制</li>
         <li>KPI 图标灰底，数值突出</li>
         <li>涨跌箭头统一灰色，不干扰</li>
         <li>必填用灰色"必填"文字，温和</li>
         <li>表格白底统一，无隔行变色</li>
         <li>模态白底黑字，专业感强</li>
-        <li>侧边栏深底+蓝色激活，对比强</li>
+        <li>侧边栏浅灰底+蓝色激活，对比强</li>
       </ul>
     </div>
   </div>

@@ -5,9 +5,10 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Atlas v4 — UI/UX 交互设计规范</title>
 <style>
-/* ============ Atlas v4 Design Tokens ============ */
+/* ============ Atlas v4 Design Tokens (Revised) ============ */
+/* 设计原则：只有字体用黑色，其他一律不用黑色。背景以灰+白为主，按钮图表可彩色 */
 :root[data-theme="light"] {
-  /* 灰阶体系 */
+  /* 灰阶体系（最深为深灰 #2A2A2A，不用纯黑） */
   --gray-0: #FFFFFF;
   --gray-50: #F8F8F8;
   --gray-100: #F0F0F0;
@@ -17,30 +18,30 @@
   --gray-500: #666666;
   --gray-600: #444444;
   --gray-700: #333333;
-  --gray-800: #222222;
-  --gray-900: #111111;
+  --gray-800: #2A2A2A;
+  --gray-900: #222222;
 
-  /* 文字色 */
+  /* 文字色（唯一可以用纯黑的地方） */
   --text-primary: #000000;
   --text-secondary: #444444;
   --text-muted: #999999;
 
-  /* 导航色 */
-  --nav-default: #999999;
+  /* 导航色（彩色区域之一） */
+  --nav-default: #666666;
   --nav-active: #5B6ABF;
-  --nav-active-bg: rgba(91,106,191,0.15);
-  --nav-hover: rgba(255,255,255,0.04);
-  --sidebar-bg: #111111;
+  --nav-active-bg: rgba(91,106,191,0.12);
+  --nav-hover: rgba(0,0,0,0.04);
+  --sidebar-bg: #FAFAFA;
 
-  /* 按钮色 */
+  /* 按钮色（彩色区域之二） */
   --btn-primary: #5B6ABF;
   --btn-primary-hover: #4A5AA8;
   --btn-default-bg: #FFFFFF;
   --btn-default-border: #CCCCCC;
   --btn-danger: #C0392B;
-  --btn-danger-bg: rgba(192,57,43,0.08);
+  --btn-danger-bg: rgba(192,57,43,0.06);
 
-  /* 状态色 */
+  /* 状态色（彩色区域之三，仅用于标签/徽章） */
   --status-success-bg: rgba(14,168,121,0.10);
   --status-success-text: #0EA879;
   --status-warning-bg: rgba(212,139,58,0.10);
@@ -50,26 +51,35 @@
   --status-info-bg: rgba(91,106,191,0.10);
   --status-info-text: #5B6ABF;
 
+  /* 图表色（彩色区域之四） */
+  --chart-1: #5B6ABF;
+  --chart-2: #0EA879;
+  --chart-3: #D48B3A;
+  --chart-4: #C0392B;
+  --chart-5: #8B5CF6;
+  --chart-6: #06B6D4;
+
   /* 基础 */
-  --bg-page: #FFFFFF;
+  --bg-page: #F5F5F5;
   --bg-card: #FFFFFF;
   --border: #E2E2E2;
   --radius: 6px;
   --radius-lg: 8px;
-  --shadow-sm: 0 1px 3px rgba(0,0,0,0.08);
-  --shadow-md: 0 2px 8px rgba(0,0,0,0.12);
-  --focus-ring: 0 0 0 3px rgba(91,106,191,0.25);
+  --shadow-sm: 0 1px 2px rgba(0,0,0,0.04);
+  --shadow-md: 0 2px 8px rgba(0,0,0,0.06);
+  --focus-ring: 0 0 0 3px rgba(91,106,191,0.20);
   --font-family: "Inter", -apple-system, "PingFang SC", "Microsoft YaHei", sans-serif;
   --font-mono: "JetBrains Mono", "SF Mono", monospace;
 }
 
 :root[data-theme="dark"] {
-  --gray-0: #1A1A1A;
-  --gray-50: #1F1F1F;
-  --gray-100: #262626;
-  --gray-200: #333333;
-  --gray-300: #444444;
-  --gray-400: #666666;
+  /* 灰阶体系（最浅为浅灰，不用纯白；最深为深灰，不用纯黑） */
+  --gray-0: #2A2A2A;
+  --gray-50: #262626;
+  --gray-100: #222222;
+  --gray-200: #1F1F1F;
+  --gray-300: #333333;
+  --gray-400: #555555;
   --gray-500: #888888;
   --gray-600: #AAAAAA;
   --gray-700: #CCCCCC;
@@ -80,31 +90,41 @@
   --text-secondary: #AAAAAA;
   --text-muted: #666666;
 
-  --nav-default: #999999;
-  --nav-active: #5B6ABF;
-  --nav-active-bg: rgba(91,106,191,0.30);
+  --nav-default: #888888;
+  --nav-active: #7C8BD9;
+  --nav-active-bg: rgba(124,139,217,0.20);
   --nav-hover: rgba(255,255,255,0.04);
-  --sidebar-bg: #1A1A1A;
+  --sidebar-bg: #222222;
 
   --btn-primary: #5B6ABF;
-  --btn-primary-hover: #4A5AA8;
-  --btn-default-bg: #1A1A1A;
-  --btn-default-border: #666666;
-  --btn-danger: #A93226;
-  --btn-danger-bg: rgba(169,50,38,0.10);
+  --btn-primary-hover: #6B7BCF;
+  --btn-default-bg: #2A2A2A;
+  --btn-default-border: #444444;
+  --btn-danger: #E74C3C;
+  --btn-danger-bg: rgba(231,76,60,0.10);
 
-  --status-success-bg: rgba(14,168,121,0.10);
-  --status-success-text: #0EA879;
-  --status-warning-bg: rgba(212,139,58,0.10);
-  --status-warning-text: #D48B3A;
-  --status-danger-bg: rgba(192,57,43,0.10);
-  --status-danger-text: #C0392B;
-  --status-info-bg: rgba(91,106,191,0.10);
-  --status-info-text: #5B6ABF;
+  --status-success-bg: rgba(14,168,121,0.15);
+  --status-success-text: #34D399;
+  --status-warning-bg: rgba(212,139,58,0.15);
+  --status-warning-text: #FBBF24;
+  --status-danger-bg: rgba(192,57,43,0.15);
+  --status-danger-text: #F87171;
+  --status-info-bg: rgba(91,106,191,0.15);
+  --status-info-text: #818CF8;
 
-  --bg-page: #1A1A1A;
-  --bg-card: #1F1F1F;
+  --chart-1: #7C8BD9;
+  --chart-2: #34D399;
+  --chart-3: #FBBF24;
+  --chart-4: #F87171;
+  --chart-5: #A78BFA;
+  --chart-6: #22D3EE;
+
+  --bg-page: #1F1F1F;
+  --bg-card: #262626;
   --border: #333333;
+  --shadow-sm: 0 1px 2px rgba(0,0,0,0.20);
+  --shadow-md: 0 2px 8px rgba(0,0,0,0.30);
+  --focus-ring: 0 0 0 3px rgba(124,139,217,0.25);
 }
 
 * { margin: 0; padding: 0; box-sizing: border-box; }
@@ -118,18 +138,18 @@ body {
 
 /* ============ 页面骨架 ============ */
 .page-header {
-  background: var(--gray-900);
-  color: var(--gray-0);
+  background: var(--gray-50);
+  color: var(--text-primary);
   padding: 56px 32px;
-  border-bottom: 1px solid var(--gray-700);
+  border-bottom: 1px solid var(--border);
   position: relative;
   overflow: hidden;
 }
 .page-header::before {
   content: ""; position: absolute; inset: 0;
   background:
-    radial-gradient(800px 200px at 20% 0%, rgba(91,106,191,0.18), transparent 60%),
-    radial-gradient(600px 160px at 90% 100%, rgba(91,106,191,0.10), transparent 60%);
+    radial-gradient(600px 160px at 10% 0%, rgba(91,106,191,0.10), transparent 60%),
+    radial-gradient(500px 140px at 90% 100%, rgba(91,106,191,0.06), transparent 60%);
   pointer-events: none;
 }
 .page-header .inner { max-width: 1200px; margin: 0 auto; position: relative; }
@@ -137,15 +157,15 @@ body {
 .page-header .pill {
   display: inline-flex; align-items: center; gap: 6px;
   padding: 4px 10px; border-radius: 999px;
-  background: rgba(91,106,191,0.20); color: #BFC4F2;
+  background: rgba(91,106,191,0.10); color: var(--nav-active);
   font-size: 12px; font-weight: 600; letter-spacing: 0.5px;
-  border: 1px solid rgba(91,106,191,0.40);
+  border: 1px solid rgba(91,106,191,0.25);
 }
-.page-header .pill.neutral { background: rgba(255,255,255,0.06); color: #CCCCCC; border-color: rgba(255,255,255,0.10); }
+.page-header .pill.neutral { background: var(--gray-100); color: var(--text-secondary); border-color: var(--border); }
 .page-header h1 { font-size: 32px; font-weight: 700; letter-spacing: -0.5px; margin-bottom: 8px; }
-.page-header .sub { font-size: 15px; color: #AAAAAA; }
-.page-header .meta { margin-top: 18px; display: flex; gap: 20px; flex-wrap: wrap; font-size: 12px; color: #888888; }
-.page-header .meta span strong { color: #DDDDDD; font-weight: 600; }
+.page-header .sub { font-size: 15px; color: var(--text-secondary); }
+.page-header .meta { margin-top: 18px; display: flex; gap: 20px; flex-wrap: wrap; font-size: 12px; color: var(--text-muted); }
+.page-header .meta span strong { color: var(--text-primary); font-weight: 600; }
 
 .theme-switch {
   position: fixed; top: 16px; right: 16px; z-index: 100;
@@ -292,35 +312,38 @@ body {
 
 /* ============ 侧边栏导航 ============ */
 .sidebar-demo {
-  width: 200px; background: var(--sidebar-bg); color: var(--gray-400);
+  width: 200px; background: var(--sidebar-bg); color: var(--nav-default);
+  border: 1px solid var(--border);
   border-radius: var(--radius-lg); overflow: hidden; min-height: 360px;
   display: flex; flex-direction: column;
 }
 .sidebar-demo .logo {
-  padding: 18px 20px; color: #fff; font-weight: 700; font-size: 16px;
-  border-bottom: 1px rgba(255,255,255,0.10) solid;
+  padding: 18px 20px; color: var(--text-primary); font-weight: 700; font-size: 16px;
+  border-bottom: 1px solid var(--border);
 }
 .sidebar-demo .nav-group-title {
-  padding: 14px 20px 6px; font-size: 10px; color: var(--gray-500);
+  padding: 14px 20px 6px; font-size: 10px; color: var(--text-muted);
   text-transform: uppercase; letter-spacing: 1px; font-weight: 600;
 }
 .sidebar-demo .nav-item {
   display: flex; align-items: center; gap: 12px; padding: 10px 20px;
   color: var(--nav-default); font-size: 14px; cursor: pointer;
-  transition: all 150ms ease; position: relative;
+  transition: all 150ms ease; position: relative; margin: 0 8px; border-radius: 4px;
 }
 .sidebar-demo .nav-item .icon { width: 18px; height: 18px; display: inline-flex; align-items: center; justify-content: center; }
-.sidebar-demo .nav-item:hover { background: var(--nav-hover); color: var(--gray-300); }
+.sidebar-demo .nav-item:hover { background: var(--gray-100); color: var(--text-secondary); }
 .sidebar-demo .nav-item.active {
   color: var(--nav-active); background: var(--nav-active-bg);
+  font-weight: 500;
 }
 .sidebar-demo .nav-item.active::before {
-  content: ""; position: absolute; left: 0; top: 0; bottom: 0; width: 3px;
+  content: ""; position: absolute; left: -8px; top: 50%; transform: translateY(-50%);
+  width: 3px; height: 18px; border-radius: 0 3px 3px 0;
   background: var(--nav-active);
 }
 .sidebar-demo .collapse-btn {
   margin-top: auto; padding: 12px 20px; color: var(--nav-default);
-  border-top: 1px rgba(255,255,255,0.10) solid; font-size: 13px;
+  border-top: 1px solid var(--border); font-size: 13px;
   display: flex; align-items: center; gap: 10px; cursor: pointer;
 }
 
@@ -395,9 +418,10 @@ body {
 
 /* ============ ASCII 布局 ============ */
 .ascii-block {
-  background: var(--gray-900); color: var(--gray-300);
+  background: var(--gray-50); color: var(--text-secondary);
   border-radius: var(--radius); padding: 20px; font-family: var(--font-mono);
   font-size: 12px; line-height: 1.5; white-space: pre; overflow-x: auto;
+  border: 1px solid var(--border);
 }
 .ascii-block .hl { color: var(--nav-active); }
 .ascii-block .dim { color: var(--gray-500); }
@@ -451,11 +475,11 @@ body {
   <div class="inner">
     <div class="badge-row">
       <span class="pill">Atlas v4.0</span>
-      <span class="pill neutral">白底黑字 · 灰阶主导</span>
+      <span class="pill neutral">字体黑色 · 灰阶背景</span>
       <span class="pill neutral">导航蓝 #5B6ABF</span>
     </div>
     <h1>Atlas v4 — UI/UX 交互设计规范</h1>
-    <div class="sub">白底黑字中间灰 · 导航字体蓝色 · 仅按钮色与状态色保留颜色</div>
+    <div class="sub">只有字体用黑色 · 背景灰+白搭配 · 按钮与图表保留彩色</div>
     <div class="meta">
       <span>版本：<strong>v4.0</strong></span>
       <span>日期：<strong>2026-07-12</strong></span>
@@ -486,15 +510,15 @@ body {
 <!-- ============ 一、设计理念 ============ -->
 <div class="section" id="c1">
   <h2><span class="num">01</span> 设计理念</h2>
-  <p class="lead">Atlas v4 是对系统视觉语言的全面重构。核心理念：<strong>让信息回归本质，让颜色回归职能</strong>。</p>
+  <p class="lead">Atlas v4 是对系统视觉语言的全面重构。核心理念：<strong>让文字承载信息，让颜色服务功能</strong>。</p>
 
   <h3>1.1 核心原则</h3>
   <table class="tbl">
     <thead><tr><th width="160">原则</th><th>说明</th></tr></thead>
     <tbody>
-      <tr><td><strong>信息优先</strong></td><td>界面黑白灰为主，颜色仅在操作引导（按钮）和状态传达（标签）时出现</td></tr>
-      <tr><td><strong>极简克制</strong></td><td>KPI 图标背景、变化箭头、表单标签、卡片底色一律不使用彩色</td></tr>
-      <tr><td><strong>导航突显</strong></td><td>侧边栏和顶部导航使用蓝色字体，与内容区形成唯一彩色识别带</td></tr>
+      <tr><td><strong>字体为黑</strong></td><td>只有文字使用纯黑色（#000000），其他所有元素一律不用纯黑</td></tr>
+      <tr><td><strong>灰阶背景</strong></td><td>所有背景色以灰色和白色搭配为主，营造层次与呼吸感</td></tr>
+      <tr><td><strong>功能用彩</strong></td><td>按钮、图表、状态标签、导航激活项保留彩色，承担操作引导与信息传达职能</td></tr>
       <tr><td><strong>一致性</strong></td><td>亮色/暗色双模，通过 CSS 变量统一切换，组件行为跨端一致</td></tr>
     </tbody>
   </table>
@@ -510,16 +534,16 @@ body {
   </table>
 
   <div class="note">
-    <strong>设计哲学说明：</strong>颜色不是装饰，是语义。当一切都被染色时，没有任何颜色能传达信息。Atlas v4 通过剥夺大部分区域的彩色，让少数保留颜色的元素（激活导航、主按钮、状态标签）获得更强的引导力。
+    <strong>设计哲学说明：</strong>纯黑只用在文字上，确保信息阅读的最高清晰度。背景用灰和白的层次营造空间感。颜色是功能工具——按钮引导操作、图表展示数据、标签传达状态、激活项标示位置。颜色不做装饰，只服务功能。
   </div>
 </div>
 
 <!-- ============ 二、色彩系统 ============ -->
 <div class="section" id="c2">
   <h2><span class="num">02</span> 色彩系统</h2>
-  <p class="lead">Atlas v4 的色彩体系以中性灰阶为基础，仅在三个语义点引入颜色：导航激活、操作引导、状态传达。</p>
+  <p class="lead">Atlas v4 色彩体系：文字纯黑 + 背景灰阶 + 功能彩色（按钮/图表/状态/导航）。</p>
 
-  <h3>2.1 黑白灰体系（唯一基础色）</h3>
+  <h3>2.1 灰阶体系（基础色，不含纯黑）</h3>
   <table class="tbl">
     <thead><tr><th width="120">Token</th><th width="120">亮色模式</th><th width="120">暗色模式</th><th>用途</th></tr></thead>
     <tbody>
@@ -532,8 +556,8 @@ body {
       <tr><td class="mono">gray-500</td><td class="mono">#666666</td><td class="mono">#888888</td><td>次要文字</td></tr>
       <tr><td class="mono">gray-600</td><td class="mono">#444444</td><td class="mono">#AAAAAA</td><td>正文次级</td></tr>
       <tr><td class="mono">gray-700</td><td class="mono">#333333</td><td class="mono">#CCCCCC</td><td>标题次级（暗色模式正文）</td></tr>
-      <tr><td class="mono">gray-800</td><td class="mono">#222222</td><td class="mono">#DDDDDD</td><td>标题主色（暗色模式）</td></tr>
-      <tr><td class="mono">gray-900</td><td class="mono">#111111</td><td class="mono">#EEEEEE</td><td>侧边栏底色、最深区域</td></tr>
+      <tr><td class="mono">gray-800</td><td class="mono">#2A2A2A</td><td class="mono">#DDDDDD</td><td>标题主色（暗色模式）</td></tr>
+      <tr><td class="mono">gray-900</td><td class="mono">#222222</td><td class="mono">#EEEEEE</td><td>最深区域（暗色模式侧边栏）</td></tr>
     </tbody>
   </table>
 
@@ -547,22 +571,21 @@ body {
     </tbody>
   </table>
 
-  <h3>2.3 导航色（动态激活）</h3>
+  <h3>2.3 导航色（彩色区域一：位置识别）</h3>
   <table class="tbl">
     <thead><tr><th width="160">Token</th><th width="160">色值</th><th>用途</th></tr></thead>
     <tbody>
-      <tr><td class="primary-token">nav-default</td><td class="mono">#999999</td><td>侧边栏导航项默认文字（灰色，非激活）</td></tr>
+      <tr><td class="primary-token">nav-default</td><td class="mono">#666666</td><td>侧边栏导航项默认文字（灰色，非激活）</td></tr>
       <tr><td class="primary-token">nav-active</td><td class="mono">#5B6ABF</td><td>当前激活导航项文字（蓝色），点击后切换</td></tr>
-      <tr><td class="primary-token">nav-active-bg</td><td class="mono">rgba(91,106,191,0.15)</td><td>当前激活导航项背景（亮色）</td></tr>
-      <tr><td class="primary-token">nav-active-bg-dark</td><td class="mono">rgba(91,106,191,0.30)</td><td>当前激活导航项背景（暗色）</td></tr>
-      <tr><td class="primary-token">nav-hover</td><td class="mono">rgba(255,255,255,0.04)</td><td>导航项悬停态背景</td></tr>
+      <tr><td class="primary-token">nav-active-bg</td><td class="mono">rgba(91,106,191,0.12)</td><td>当前激活导航项背景</td></tr>
+      <tr><td class="primary-token">nav-hover</td><td class="mono">rgba(0,0,0,0.04)</td><td>导航项悬停态背景</td></tr>
     </tbody>
   </table>
   <div class="note">
-    <strong>规则：</strong>所有导航项默认灰色 <code>#999999</code>，仅当前所在页面对应的导航项变为蓝色 <code>#5B6ABF</code>。点击跳转后激活态随之切换。
+    <strong>规则：</strong>所有导航项默认灰色 <code>#666666</code>，仅当前所在页面对应的导航项变为蓝色 <code>#5B6ABF</code>。侧边栏底色为浅灰（亮色）/深灰（暗色），不使用纯黑。
   </div>
 
-  <h3>2.4 按钮色（操作引导）</h3>
+  <h3>2.4 按钮色（彩色区域二：操作引导）</h3>
   <table class="tbl">
     <thead><tr><th width="160">Token</th><th width="140">色值</th><th width="140">悬停</th><th>用途</th></tr></thead>
     <tbody>
@@ -572,11 +595,11 @@ body {
       <tr><td class="primary-token">btn-danger</td><td class="mono">#C0392B</td><td class="mono">#A93226</td><td>危险操作按钮（删除、清空）</td></tr>
     </tbody>
   </table>
-  <div class="note" style="background:var(--status-danger-bg);border-left-color:var(--btn-danger);">
-    <strong>禁令：</strong>删除按钮<strong>不使用</strong>红色底色填充，仅使用灰色描边 + 红色文字。危险操作的确认弹窗中，主按钮使用 <code>btn-danger</code> 样式。
+  <div class="note">
+    <strong>说明：</strong>主按钮使用蓝色填充，是页面中最强的视觉引导。删除按钮不使用红色底色填充，仅使用灰色描边 + 红色文字，避免过度视觉刺激。危险操作确认弹窗中，主按钮使用 btn-danger 红色填充。
   </div>
 
-  <h3>2.5 状态色（仅用于标签/徽章）</h3>
+  <h3>2.5 状态色（彩色区域三：标签/徽章）</h3>
   <div class="btn-row mt-12" style="gap:10px;">
     <span class="tag tag-success">已完成</span>
     <span class="tag tag-success">已支付</span>
@@ -596,9 +619,35 @@ body {
       <tr><td>草稿/待提交</td><td class="mono">rgba(91,106,191,0.10)</td><td class="mono">#5B6ABF</td><td>未提交表单、暂存</td></tr>
     </tbody>
   </table>
-  <div class="note" style="background:var(--status-danger-bg);border-left-color:var(--btn-danger);">
-    <strong>禁令：</strong>KPI 卡片图标背景禁用彩色（统一用 gray-100 / gray-200）。数据涨跌箭头禁用绿/红色（统一用 gray-500）。表单"必填"标记禁用红色星号（用 gray-600 文字标注"必填"）。
+
+  <h3>2.6 图表色（彩色区域四：数据可视化）</h3>
+  <div class="swatch-grid" style="grid-template-columns:repeat(6,1fr);">
+    <div class="swatch">
+      <div class="preview" style="background:#5B6ABF;"><span>Chart 1</span></div>
+      <div class="info"><div class="name">主蓝</div><div class="val">#5B6ABF</div></div>
+    </div>
+    <div class="swatch">
+      <div class="preview" style="background:#0EA879;"><span>Chart 2</span></div>
+      <div class="info"><div class="name">绿</div><div class="val">#0EA879</div></div>
+    </div>
+    <div class="swatch">
+      <div class="preview" style="background:#D48B3A;"><span>Chart 3</span></div>
+      <div class="info"><div class="name">橙</div><div class="val">#D48B3A</div></div>
+    </div>
+    <div class="swatch">
+      <div class="preview" style="background:#C0392B;"><span>Chart 4</span></div>
+      <div class="info"><div class="name">红</div><div class="val">#C0392B</div></div>
+    </div>
+    <div class="swatch">
+      <div class="preview" style="background:#8B5CF6;"><span>Chart 5</span></div>
+      <div class="info"><div class="name">紫</div><div class="val">#8B5CF6</div></div>
+    </div>
+    <div class="swatch">
+      <div class="preview" style="background:#06B6D4;"><span>Chart 6</span></div>
+      <div class="info"><div class="name">青</div><div class="val">#06B6D4</div></div>
+    </div>
   </div>
+  <p class="muted mt-12" style="font-size:13px;">图表可使用全彩色谱，6 色默认调色板覆盖大多数数据对比场景。颜色顺序按视觉权重递减排列，使用时按顺序取用。</p>
 </div>
 
 <!-- ============ 三、字体与排版 ============ -->
@@ -673,14 +722,14 @@ body {
 │ 侧边栏   ├──────────────────────────────────────────────┤
 │ 200px    │                                              │
 │          │  KPI 卡片行（等宽4列）                        │
-│ 深色底   │  ┌──────┐ ┌──────┐ ┌──────┐ ┌──────┐         │
+│ 浅灰底   │  ┌──────┐ ┌──────┐ ┌──────┐ ┌──────┐         │
 │          │  │ 营收 │ │ 订单 │ │ 客户 │ │ 毛利 │         │
-│ 白色/    │  └──────┘ └──────┘ └──────┘ └──────┘         │
-│ 蓝色字   │                                              │
+│ 黑字/    │  └──────┘ └──────┘ └──────┘ └──────┘         │
+│ 蓝激活   │                                              │
 │          │  数据表格（全宽）+ 分页器                     │
 │ 导航项   │  ┌──────────────────────────────────────┐    │
-│ 蓝色字体 │  │ 列1 │ 列2 │ 列3 │ ... │ 操作 │         │    │
-│          │  └──────────────────────────────────────┘    │
+│ 默认灰   │  │ 列1 │ 列2 │ 列3 │ ... │ 操作 │         │    │
+│ 激活蓝   │  └──────────────────────────────────────┘    │
 └──────────┴──────────────────────────────────────────────┘</div>
 
   <h3>4.2 手机端（≤767px）</h3>
@@ -867,17 +916,18 @@ body {
   <table class="tbl">
     <thead><tr><th width="160">属性</th><th>值</th></tr></thead>
     <tbody>
-      <tr><td>背景</td><td class="mono">#111111（亮色）/ #1A1A1A（暗色）</td></tr>
+      <tr><td>背景</td><td class="mono">#F8F8F8（亮色）/ #222222（暗色）</td></tr>
+      <tr><td>边框</td><td class="mono">1px solid #E2E2E2（亮色）/ 1px solid #333333（暗色）</td></tr>
       <tr><td>宽度</td><td class="mono">200px（折叠态 56px，仅图标）</td></tr>
-      <tr><td>Logo 区</td><td>底部 1px rgba(255,255,255,0.10) 分割</td></tr>
-      <tr><td>导航项默认文字</td><td class="mono">#999999（灰色）</td></tr>
-      <tr><td>导航项默认图标</td><td class="mono">#999999（灰色）</td></tr>
+      <tr><td>Logo 区</td><td>底部 1px <code>rgba(0,0,0,0.06)</code> 分割</td></tr>
+      <tr><td>导航项默认文字</td><td class="mono">#666666（灰色）</td></tr>
+      <tr><td>导航项默认图标</td><td class="mono">#666666（灰色）</td></tr>
       <tr><td>导航项激活文字</td><td class="primary-token">#5B6ABF（蓝色，仅当前页面）</td></tr>
       <tr><td>导航项激活图标</td><td class="primary-token">#5B6ABF（蓝色，仅当前页面）</td></tr>
-      <tr><td>激活态背景</td><td class="mono">rgba(91,106,191,0.15)</td></tr>
-      <tr><td>悬停态</td><td class="mono">rgba(255,255,255,0.04)</td></tr>
-      <tr><td>分组标题</td><td class="mono">10px 全大写 #666666</td></tr>
-      <tr><td>折叠按钮</td><td>底部，#999999 图标</td></tr>
+      <tr><td>激活态背景</td><td class="mono">rgba(91,106,191,0.12)</td></tr>
+      <tr><td>悬停态</td><td class="mono">rgba(0,0,0,0.04)</td></tr>
+      <tr><td>分组标题</td><td class="mono">10px 全大写 #999999</td></tr>
+      <tr><td>折叠按钮</td><td>底部，#666666 图标</td></tr>
     </tbody>
   </table>
 
@@ -1081,11 +1131,15 @@ body {
   <div class="ban-list mt-12">
     <div class="ban-item">
       <span class="x">✕</span>
-      <div class="body"><strong>KPI 卡片图标使用彩色背景</strong> — 应用 <code>#F0F0F0</code></div>
+      <div class="body"><strong>背景/边框/图标使用纯黑色</strong> — 只有文字可以用纯黑（#000000），其他元素一律用灰色</div>
     </div>
     <div class="ban-item">
       <span class="x">✕</span>
-      <div class="body"><strong>数据涨跌使用绿色/红色箭头</strong> — 应用 <code>#999999</code></div>
+      <div class="body"><strong>KPI 卡片图标使用彩色背景</strong> — 应用 <code>#F0F0F0</code> 灰色底</div>
+    </div>
+    <div class="ban-item">
+      <span class="x">✕</span>
+      <div class="body"><strong>数据涨跌使用绿色/红色箭头</strong> — 应用 <code>#999999</code> 灰色</div>
     </div>
     <div class="ban-item">
       <span class="x">✕</span>
@@ -1097,7 +1151,7 @@ body {
     </div>
     <div class="ban-item">
       <span class="x">✕</span>
-      <div class="body"><strong>删除按钮填充红色</strong> — 应用灰边框+红字</div>
+      <div class="body"><strong>删除按钮填充红色</strong> — 应用灰边框+红字（仅危险确认弹窗主按钮可用红填）</div>
     </div>
     <div class="ban-item">
       <span class="x">✕</span>
@@ -1116,7 +1170,7 @@ body {
 
 <div style="text-align:center;padding:40px 0;color:var(--text-muted);font-size:13px;">
   Atlas v4.0 · UI/UX 交互设计规范 · 林夕 · 2026-07-12<br>
-  <span style="font-size:11px;">白底黑字中间灰 · 导航字体蓝色 · 仅按钮色与状态色保留颜色</span>
+  <span style="font-size:11px;">只有字体用黑色 · 背景灰+白搭配 · 按钮与图表保留彩色</span>
 </div>
 
 </div>

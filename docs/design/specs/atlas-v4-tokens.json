@@ -1,49 +1,56 @@
 {
   "$schema": "https://design-tokens.github.io/community-group/format/",
-  "$description": "Atlas v4 Design Tokens — 白底黑字中间灰，导航字体蓝色，仅按钮色与状态色保留颜色",
-  "$version": "4.0.0",
+  "$description": "Atlas v4 Design Tokens — 只有字体用黑色，其他一律不用黑色。背景以灰+白为主，按钮图表可彩色",
+  "$version": "4.1.0",
   "$date": "2026-07-12",
   "$author": "林夕",
   "$scope": ["admin-web", "merchant-mobile", "store-terminal"],
 
   "color": {
     "gray": {
-      "0":   { "$type": "color", "$value": "#FFFFFF", "dark": "#1A1A1A", "usage": "页面/卡片背景" },
-      "50":  { "$type": "color", "$value": "#F8F8F8", "dark": "#1F1F1F", "usage": "次级背景、悬停态" },
-      "100": { "$type": "color", "$value": "#F0F0F0", "dark": "#262626", "usage": "表头底色、禁用态" },
+      "0":   { "$type": "color", "$value": "#FFFFFF", "dark": "#2A2A2A", "usage": "页面/卡片背景" },
+      "50":  { "$type": "color", "$value": "#F8F8F8", "dark": "#262626", "usage": "次级背景、悬停态" },
+      "100": { "$type": "color", "$value": "#F0F0F0", "dark": "#222222", "usage": "表头底色、禁用态" },
       "200": { "$type": "color", "$value": "#E2E2E2", "dark": "#333333", "usage": "分割线、浅边框" },
       "300": { "$type": "color", "$value": "#CCCCCC", "dark": "#444444", "usage": "输入框边框、常规分隔" },
       "400": { "$type": "color", "$value": "#999999", "dark": "#666666", "usage": "占位文字、辅助信息" },
-      "500": { "$type": "color", "$value": "#666666", "dark": "#888888", "usage": "次要文字" },
+      "500": { "$type": "color", "$value": "#666666", "dark": "#888888", "usage": "次要文字、默认导航" },
       "600": { "$type": "color", "$value": "#444444", "dark": "#AAAAAA", "usage": "正文次级" },
       "700": { "$type": "color", "$value": "#333333", "dark": "#CCCCCC", "usage": "标题次级" },
-      "800": { "$type": "color", "$value": "#222222", "dark": "#DDDDDD", "usage": "标题主色" },
-      "900": { "$type": "color", "$value": "#111111", "dark": "#EEEEEE", "usage": "侧边栏底色、最深区域" }
+      "800": { "$type": "color", "$value": "#2A2A2A", "dark": "#DDDDDD", "usage": "标题主色（暗色模式）" },
+      "900": { "$type": "color", "$value": "#222222", "dark": "#EEEEEE", "usage": "最深区域（暗色模式侧边栏）" }
     },
     "text": {
-      "primary":   { "$type": "color", "$value": "#000000", "dark": "#EEEEEE", "usage": "正文、标题" },
+      "primary":   { "$type": "color", "$value": "#000000", "dark": "#EEEEEE", "usage": "正文、标题（唯一可用纯黑的地方）" },
       "secondary": { "$type": "color", "$value": "#444444", "dark": "#AAAAAA", "usage": "辅助说明" },
       "muted":     { "$type": "color", "$value": "#999999", "dark": "#666666", "usage": "占位符、禁用态" }
     },
     "nav": {
-      "default":         { "$type": "color", "$value": "#999999", "usage": "侧边栏导航项默认文字（灰色，非激活）" },
-      "active":          { "$type": "color", "$value": "#5B6ABF", "usage": "当前激活导航项文字（蓝色）" },
-      "active-bg":       { "$type": "color", "$value": "rgba(91,106,191,0.15)", "usage": "当前激活导航项背景（亮色）" },
-      "active-bg-dark":  { "$type": "color", "$value": "rgba(91,106,191,0.30)", "usage": "当前激活导航项背景（暗色）" },
-      "hover":           { "$type": "color", "$value": "rgba(255,255,255,0.04)", "usage": "导航项悬停态背景" }
+      "default":         { "$type": "color", "$value": "#666666", "dark": "#888888", "usage": "侧边栏导航项默认（灰色，非激活）" },
+      "active":          { "$type": "color", "$value": "#5B6ABF", "dark": "#7C8BD9", "usage": "当前激活导航项（蓝色）" },
+      "active-bg":       { "$type": "color", "$value": "rgba(91,106,191,0.12)", "dark": "rgba(124,139,217,0.20)", "usage": "激活导航项背景" },
+      "hover":           { "$type": "color", "$value": "rgba(0,0,0,0.04)", "dark": "rgba(255,255,255,0.04)", "usage": "导航项悬停态" }
     },
     "btn": {
-      "primary":         { "$type": "color", "$value": "#5B6ABF", "hover": "#4A5AA8", "usage": "主操作按钮" },
-      "default-bg":      { "$type": "color", "$value": "#FFFFFF", "dark": "#1A1A1A", "usage": "默认按钮背景" },
-      "default-border":  { "$type": "color", "$value": "#CCCCCC", "dark": "#666666", "usage": "默认按钮边框" },
-      "danger":          { "$type": "color", "$value": "#C0392B", "hover": "#A93226", "usage": "危险操作按钮（仅文字色，不填充）" },
-      "danger-bg":       { "$type": "color", "$value": "rgba(192,57,43,0.08)", "usage": "危险按钮背景" }
+      "primary":         { "$type": "color", "$value": "#5B6ABF", "dark": "#5B6ABF", "hover": "#4A5AA8", "hover-dark": "#6B7BCF", "usage": "主操作按钮（可彩色）" },
+      "default-bg":      { "$type": "color", "$value": "#FFFFFF", "dark": "#2A2A2A", "usage": "默认按钮背景" },
+      "default-border":  { "$type": "color", "$value": "#CCCCCC", "dark": "#444444", "usage": "默认按钮边框" },
+      "danger":          { "$type": "color", "$value": "#C0392B", "dark": "#E74C3C", "hover": "#A93226", "usage": "危险操作按钮文字色（灰边框+红字，不填充）" },
+      "danger-bg":       { "$type": "color", "$value": "rgba(192,57,43,0.06)", "dark": "rgba(231,76,60,0.10)", "usage": "危险按钮背景（仅确认弹窗主按钮用填充）" }
     },
     "status": {
-      "success-bg":   { "$type": "color", "$value": "rgba(14,168,121,0.10)", "text": "#0EA879", "usage": "已完成/已支付" },
-      "warning-bg":   { "$type": "color", "$value": "rgba(212,139,58,0.10)", "text": "#D48B3A", "usage": "处理中/待发货" },
-      "danger-bg":    { "$type": "color", "$value": "rgba(192,57,43,0.10)", "text": "#C0392B", "usage": "已取消/已驳回" },
-      "info-bg":      { "$type": "color", "$value": "rgba(91,106,191,0.10)", "text": "#5B6ABF", "usage": "草稿/待提交" }
+      "success-bg":   { "$type": "color", "$value": "rgba(14,168,121,0.10)", "text": "#0EA879", "dark-text": "#34D399", "usage": "已完成/已支付" },
+      "warning-bg":   { "$type": "color", "$value": "rgba(212,139,58,0.10)", "text": "#D48B3A", "dark-text": "#FBBF24", "usage": "处理中/待发货" },
+      "danger-bg":    { "$type": "color", "$value": "rgba(192,57,43,0.10)", "text": "#C0392B", "dark-text": "#F87171", "usage": "已取消/已驳回" },
+      "info-bg":      { "$type": "color", "$value": "rgba(91,106,191,0.10)", "text": "#5B6ABF", "dark-text": "#818CF8", "usage": "草稿/待提交" }
+    },
+    "chart": {
+      "1": { "$type": "color", "$value": "#5B6ABF", "dark": "#7C8BD9", "usage": "图表色1（主蓝）" },
+      "2": { "$type": "color", "$value": "#0EA879", "dark": "#34D399", "usage": "图表色2（绿）" },
+      "3": { "$type": "color", "$value": "#D48B3A", "dark": "#FBBF24", "usage": "图表色3（橙）" },
+      "4": { "$type": "color", "$value": "#C0392B", "dark": "#F87171", "usage": "图表色4（红）" },
+      "5": { "$type": "color", "$value": "#8B5CF6", "dark": "#A78BFA", "usage": "图表色5（紫）" },
+      "6": { "$type": "color", "$value": "#06B6D4", "dark": "#22D3EE", "usage": "图表色6（青）" }
     }
   },
 
@@ -82,8 +89,8 @@
   },
 
   "shadow": {
-    "sm": { "$type": "shadow", "$value": "0 1px 3px rgba(0,0,0,0.08)", "usage": "卡片默认" },
-    "md": { "$type": "shadow", "$value": "0 2px 8px rgba(0,0,0,0.12)", "usage": "卡片悬停、模态" }
+    "sm": { "$type": "shadow", "$value": "0 1px 2px rgba(0,0,0,0.04)", "dark-value": "0 1px 2px rgba(0,0,0,0.20)", "usage": "卡片默认" },
+    "md": { "$type": "shadow", "$value": "0 2px 8px rgba(0,0,0,0.06)", "dark-value": "0 2px 8px rgba(0,0,0,0.30)", "usage": "卡片悬停、模态" }
   },
 
   "motion": {
@@ -112,7 +119,7 @@
   },
 
   "a11y": {
-    "focus-ring":         { "$type": "shadow", "$value": "0 0 0 3px rgba(91,106,191,0.25)", "usage": "焦点外发光" },
+    "focus-ring":         { "$type": "shadow", "$value": "0 0 0 3px rgba(91,106,191,0.20)", "usage": "焦点外发光" },
     "contrast-text-aaa":  { "$value": "≥21:1",  "note": "正文 #000000 对白底" },
     "contrast-tag-aa":    { "$value": "≥4.5:1", "note": "状态标签文字对背景" }
   },
@@ -120,11 +127,12 @@
   "bans": {
     "$description": "设计禁令 — 严格禁止",
     "list": [
-      "KPI 卡片图标使用彩色背景（应用 #F0F0F0）",
-      "数据涨跌使用绿色/红色箭头（应用 #999999）",
+      "背景/边框/图标使用纯黑色（只有文字可以用 #000000）",
+      "KPI 卡片图标使用彩色背景（应用 #F0F0F0 灰色底）",
+      "数据涨跌使用绿色/红色箭头（应用 #999999 灰色）",
       "表单必填标记使用红色星号（用灰色文字'必填'）",
       "表格行隔行变色（保持白底统一）",
-      "删除按钮填充红色（应用灰边框+红字）",
+      "删除按钮填充红色（应用灰边框+红字，仅危险确认弹窗主按钮可用红填）",
       "侧边栏所有导航项统一蓝色（默认灰色，仅激活项变蓝 #5B6ABF）",
       "卡片使用彩色顶部色条（应用灰底或无边线）",
       "弹窗标题栏使用蓝色背景（应用白底+黑字）"
