@@ -1,4 +1,4 @@
-﻿import { vi, describe, it, beforeEach, expect } from "vitest";
+import { vi, describe, it, beforeEach, expect } from "vitest";
 
 vi.mock("@services/admin/customer-merge.service", () => ({
   detectDuplicates: vi.fn(),
@@ -97,5 +97,21 @@ describe("customer-merge.controller", () => {
     await getDuplicateGroups(req as any, res as any);
     expect(customerMergeService.getDuplicateGroups).toHaveBeenCalledWith("t1", 1, 20);
     expect(ok).toHaveBeenCalled();
+  });
+
+  it("detectDuplicates - 不传type时使用默认值mobile", async () => {
+    (customerMergeService.detectDuplicates as any).mockResolvedValue([]);
+    const req = mockReq({ query: {} });
+    const res = mockRes();
+    await detectDuplicates(req as any, res as any);
+    expect(customerMergeService.detectDuplicates).toHaveBeenCalledWith("t1", "mobile");
+  });
+
+  it("getDuplicateGroups - 不传page和pageSize时使用默认值", async () => {
+    (customerMergeService.getDuplicateGroups as any).mockResolvedValue({ total: 0, records: [] });
+    const req = mockReq({ query: {} });
+    const res = mockRes();
+    await getDuplicateGroups(req as any, res as any);
+    expect(customerMergeService.getDuplicateGroups).toHaveBeenCalledWith("t1", 1, 20);
   });
 });

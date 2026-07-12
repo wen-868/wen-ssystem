@@ -2,6 +2,36 @@ import { asyncHandler } from "../../middleware/async-handler";
 import { ok } from "../../shared/response";
 import * as service from "../../services/admin/aftersale.service";
 
+// ==================== 辅助函数（集中分支逻辑，减少重复分支统计） ====================
+
+/** 从请求中提取客户 ID（优先 user.id，其次 header，默认 1） */
+function getCustomerId(req: any): number {
+  return Number(req.user!.id || req.headers["x-customer-id"] || 1);
+}
+
+/** 解析可能为 JSON 字符串的字段 */
+function parseJsonField(value: unknown): unknown {
+  return typeof value === "string" ? JSON.parse(value) : value;
+}
+
+/** 从查询参数中提取字符串（无值返回空串） */
+function getQueryString(req: any, key: string): string {
+  return String(req.query[key] || "");
+}
+
+/** 从查询参数中提取 storeId（有值转 number，无值返回 undefined） */
+function getStoreIdFromQuery(req: any): number | undefined {
+  return req.query.storeId ? Number(req.query.storeId) : undefined;
+}
+
+/** 从查询参数中提取分页参数（默认 page=1, pageSize=20） */
+function getPagination(req: any) {
+  return {
+    page: Number(req.query.page || 1),
+    pageSize: Number(req.query.pageSize || 20),
+  };
+}
+
 // ==================== 标签常量 ====================
 export const AFTERSALE_TYPE_LABELS: Record<string, string> = {
   REFUND_ONLY: "仅退款",
@@ -27,7 +57,7 @@ export const AFTERSALE_STATUS_LABELS: Record<string, string> = {
 
 export const miniappCreateAftersale = asyncHandler(async (req, res) => {
   const tenantId = req.tenantId!;
-  const customerId = Number(req.user!.id || req.headers["x-customer-id"] || 1);
+  const customerId = getCustomerId(req);
   const result = await service.createAftersale({
     tenantId,
     customerId,
@@ -38,13 +68,12 @@ export const miniappCreateAftersale = asyncHandler(async (req, res) => {
 
 export const miniappListMyAftersales = asyncHandler(async (req, res) => {
   const tenantId = req.tenantId!;
-  const customerId = Number(req.user!.id || req.headers["x-customer-id"] || 1);
+  const customerId = getCustomerId(req);
   const result = await service.listMyAftersales({
     tenantId,
     customerId,
-    status: String(req.query.status || ""),
-    page: Number(req.query.page || 1),
-    pageSize: Number(req.query.pageSize || 20),
+    status: getQueryString(req, "status"),
+    ...getPagination(req),
   });
   const list = result.records.map((row: any) => ({
     ...row,
@@ -57,13 +86,13 @@ export const miniappListMyAftersales = asyncHandler(async (req, res) => {
 
 export const miniappGetAftersaleDetail = asyncHandler(async (req, res) => {
   const tenantId = req.tenantId!;
-  const customerId = Number(req.user!.id || req.headers["x-customer-id"] || 1);
+  const customerId = getCustomerId(req);
   const row = await service.getAftersaleDetail(req.params.aftersaleNo, customerId, tenantId);
   res.json(ok({
     ...row,
-    items: typeof row.items === "string" ? JSON.parse(row.items) : row.items,
-    images: typeof row.images === "string" ? JSON.parse(row.images) : row.images,
-    inspectImages: typeof row.inspect_images === "string" ? JSON.parse(row.inspect_images) : row.inspect_images,
+    items: parseJsonField(row.items),
+    images: parseJsonField(row.images),
+    inspectImages: parseJsonField(row.inspect_images),
     aftersaleTypeLabel: AFTERSALE_TYPE_LABELS[(row as any).aftersale_type] || (row as any).aftersale_type,
     statusLabel: AFTERSALE_STATUS_LABELS[(row as any).status] || (row as any).status,
     refundAmount: Number(row.refund_amount)
@@ -72,14 +101,14 @@ export const miniappGetAftersaleDetail = asyncHandler(async (req, res) => {
 
 export const miniappCancelAftersale = asyncHandler(async (req, res) => {
   const tenantId = req.tenantId!;
-  const customerId = Number(req.user!.id || req.headers["x-customer-id"] || 1);
+  const customerId = getCustomerId(req);
   const result = await service.cancelAftersale(req.params.aftersaleNo, customerId, tenantId);
   res.json(ok(result));
 });
 
 export const miniappSubmitReturnLogistics = asyncHandler(async (req, res) => {
   const tenantId = req.tenantId!;
-  const customerId = Number(req.user!.id || req.headers["x-customer-id"] || 1);
+  const customerId = getCustomerId(req);
   const result = await service.submitReturnLogistics({
     aftersaleNo: req.params.aftersaleNo,
     customerId,
@@ -91,7 +120,7 @@ export const miniappSubmitReturnLogistics = asyncHandler(async (req, res) => {
 
 export const miniappRateAftersale = asyncHandler(async (req, res) => {
   const tenantId = req.tenantId!;
-  const customerId = Number(req.user!.id || req.headers["x-customer-id"] || 1);
+  const customerId = getCustomerId(req);
   const result = await service.rateAftersale({
     aftersaleNo: req.params.aftersaleNo,
     customerId,
@@ -107,13 +136,12 @@ export const adminListAftersales = asyncHandler(async (req, res) => {
   const tenantId = req.tenantId!;
   const result = await service.listAftersales({
     tenantId,
-    status: String(req.query.status || ""),
-    storeId: req.query.storeId ? Number(req.query.storeId) : undefined,
-    startDate: String(req.query.startDate || ""),
-    endDate: String(req.query.endDate || ""),
-    keyword: String(req.query.keyword || ""),
-    page: Number(req.query.page || 1),
-    pageSize: Number(req.query.pageSize || 20),
+    status: getQueryString(req, "status"),
+    storeId: getStoreIdFromQuery(req),
+    startDate: getQueryString(req, "startDate"),
+    endDate: getQueryString(req, "endDate"),
+    keyword: getQueryString(req, "keyword"),
+    ...getPagination(req),
   });
   const list = result.records.map((row: any) => ({
     ...row,
@@ -129,9 +157,9 @@ export const adminGetAftersaleDetail = asyncHandler(async (req, res) => {
   const row = await service.getAftersaleDetailById(Number(req.params.id), tenantId);
   res.json(ok({
     ...row,
-    items: typeof row.items === "string" ? JSON.parse(row.items) : row.items,
-    images: typeof row.images === "string" ? JSON.parse(row.images) : row.images,
-    inspectImages: typeof row.inspect_images === "string" ? JSON.parse(row.inspect_images) : row.inspect_images,
+    items: parseJsonField(row.items),
+    images: parseJsonField(row.images),
+    inspectImages: parseJsonField(row.inspect_images),
     aftersaleTypeLabel: AFTERSALE_TYPE_LABELS[(row as any).aftersale_type] || (row as any).aftersale_type,
     statusLabel: AFTERSALE_STATUS_LABELS[(row as any).status] || (row as any).status,
     refundAmount: Number(row.refund_amount)
@@ -188,7 +216,7 @@ export const adminCompleteAftersale = asyncHandler(async (req, res) => {
 
 export const adminGetStatistics = asyncHandler(async (req, res) => {
   const tenantId = req.tenantId!;
-  const storeId = req.query.storeId ? Number(req.query.storeId) : undefined;
+  const storeId = getStoreIdFromQuery(req);
   const result = await service.getAftersaleStatistics(tenantId, storeId);
   res.json(ok({
     typeStats: result.typeStats.map((r: any) => ({ type: r.type, typeLabel: AFTERSALE_TYPE_LABELS[r.type] || r.type, count: r.count })),

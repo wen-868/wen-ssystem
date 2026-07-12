@@ -1,4 +1,4 @@
-﻿import { vi, describe, it, beforeEach, expect } from "vitest";
+import { vi, describe, it, beforeEach, expect } from "vitest";
 
 vi.mock("@services/admin/aftersale.service", () => ({
   createAftersale: vi.fn(),
@@ -200,6 +200,109 @@ describe("aftersale.controller", () => {
       const res = mockRes();
       await adminGetStatistics(req as any, res as any);
       expect(aftersaleService.getAftersaleStatistics).toHaveBeenCalled();
+      expect(ok).toHaveBeenCalled();
+    });
+  });
+
+  // ==================== 分支覆盖率补充测试 ====================
+  describe("分支覆盖率补充", () => {
+    it("miniappCreateAftersale - user无id但header有x-customer-id时使用header值", async () => {
+      (aftersaleService.createAftersale as any).mockResolvedValue({ id: 1 });
+      const req = mockReq({ user: {}, headers: { "x-customer-id": "99" }, body: { orderNo: "ORD001" } });
+      const res = mockRes();
+      await miniappCreateAftersale(req as any, res as any);
+      expect(aftersaleService.createAftersale).toHaveBeenCalledWith(expect.objectContaining({ customerId: 99 }));
+    });
+
+    it("miniappCreateAftersale - user无id且header无x-customer-id时使用默认值1", async () => {
+      (aftersaleService.createAftersale as any).mockResolvedValue({ id: 1 });
+      const req = mockReq({ user: {}, headers: {}, body: { orderNo: "ORD001" } });
+      const res = mockRes();
+      await miniappCreateAftersale(req as any, res as any);
+      expect(aftersaleService.createAftersale).toHaveBeenCalledWith(expect.objectContaining({ customerId: 1 }));
+    });
+
+    it("miniappListMyAftersales - 不传page/pageSize时使用默认值", async () => {
+      (aftersaleService.listMyAftersales as any).mockResolvedValue({ total: 0, records: [] });
+      const req = mockReq({ query: {} });
+      const res = mockRes();
+      await miniappListMyAftersales(req as any, res as any);
+      expect(aftersaleService.listMyAftersales).toHaveBeenCalledWith(expect.objectContaining({ page: 1, pageSize: 20, status: "" }));
+    });
+
+    it("miniappListMyAftersales - 传status参数且未知类型/状态时使用原值", async () => {
+      (aftersaleService.listMyAftersales as any).mockResolvedValue({
+        total: 1, records: [{ aftersaleType: "UNKNOWN_TYPE", status: "UNKNOWN_STATUS", refund_amount: "0" }]
+      });
+      const req = mockReq({ query: { status: "PENDING" } });
+      const res = mockRes();
+      await miniappListMyAftersales(req as any, res as any);
+      expect(ok).toHaveBeenCalled();
+    });
+
+    it("miniappGetAftersaleDetail - items为非string类型(数组)时直接使用", async () => {
+      (aftersaleService.getAftersaleDetail as any).mockResolvedValue({
+        items: [{ skuId: 1 }], images: [{ url: "img" }], inspect_images: [{ url: "inspect" }],
+        aftersale_type: "REFUND_ONLY", status: "PENDING", refund_amount: "100"
+      });
+      const req = mockReq({ params: { aftersaleNo: "AF001" } });
+      const res = mockRes();
+      await miniappGetAftersaleDetail(req as any, res as any);
+      expect(ok).toHaveBeenCalled();
+    });
+
+    it("miniappGetAftersaleDetail - 未知aftersale_type和status时使用原值", async () => {
+      (aftersaleService.getAftersaleDetail as any).mockResolvedValue({
+        items: "[]", images: "[]", inspect_images: "[]",
+        aftersale_type: "UNKNOWN", status: "UNKNOWN", refund_amount: "0"
+      });
+      const req = mockReq({ params: { aftersaleNo: "AF001" } });
+      const res = mockRes();
+      await miniappGetAftersaleDetail(req as any, res as any);
+      expect(ok).toHaveBeenCalled();
+    });
+
+    it("adminListAftersales - 不传page/pageSize且传storeId/status/keyword时正确解析", async () => {
+      (aftersaleService.listAftersales as any).mockResolvedValue({ total: 0, records: [] });
+      const req = mockReq({ query: { storeId: "5", status: "PENDING", keyword: "test", startDate: "2026-01-01", endDate: "2026-12-31" } });
+      const res = mockRes();
+      await adminListAftersales(req as any, res as any);
+      expect(aftersaleService.listAftersales).toHaveBeenCalledWith(expect.objectContaining({
+        page: 1, pageSize: 20, storeId: 5, status: "PENDING", keyword: "test"
+      }));
+    });
+
+    it("adminListAftersales - 未知aftersaleType和status时使用原值", async () => {
+      (aftersaleService.listAftersales as any).mockResolvedValue({
+        total: 1, records: [{ aftersaleType: "UNKNOWN", status: "UNKNOWN", refund_amount: "0" }]
+      });
+      const req = mockReq({ query: {} });
+      const res = mockRes();
+      await adminListAftersales(req as any, res as any);
+      expect(ok).toHaveBeenCalled();
+    });
+
+    it("adminGetAftersaleDetail - items为非string类型时直接使用", async () => {
+      (aftersaleService.getAftersaleDetailById as any).mockResolvedValue({
+        items: [{ skuId: 1 }], images: [{ url: "img" }], inspect_images: [],
+        aftersale_type: "EXCHANGE", status: "COMPLETED", refund_amount: "50"
+      });
+      const req = mockReq({ params: { id: 1 } });
+      const res = mockRes();
+      await adminGetAftersaleDetail(req as any, res as any);
+      expect(ok).toHaveBeenCalled();
+    });
+
+    it("adminGetStatistics - 传storeId且未知type/status时使用原值", async () => {
+      (aftersaleService.getAftersaleStatistics as any).mockResolvedValue({
+        typeStats: [{ type: "UNKNOWN", count: 1 }],
+        statusStats: [{ status: "UNKNOWN", count: 1 }],
+        avgProcessingHours: 0, avgSatisfaction: 0, overdueRate: 0
+      });
+      const req = mockReq({ query: { storeId: "3" } });
+      const res = mockRes();
+      await adminGetStatistics(req as any, res as any);
+      expect(aftersaleService.getAftersaleStatistics).toHaveBeenCalledWith("t1", 3);
       expect(ok).toHaveBeenCalled();
     });
   });

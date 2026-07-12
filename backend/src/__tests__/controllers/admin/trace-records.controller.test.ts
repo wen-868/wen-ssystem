@@ -1,4 +1,4 @@
-﻿import { vi, describe, it, beforeEach, expect } from "vitest";
+import { vi, describe, it, beforeEach, expect } from "vitest";
 
 vi.mock("../../../services/admin/trace-records.service", () => ({
   generateTraceCodes: vi.fn(),
@@ -274,5 +274,67 @@ describe("trace-records.controller", () => {
     await consumerVerifyTraceCode(req as any, res as any);
     expect(traceRecordsService.consumerVerifyTraceCode).toHaveBeenCalled();
     expect(ok).toHaveBeenCalled();
+  });
+
+  it("listTraceCodes - 不传page/pageSize时使用默认值", async () => {
+    (traceRecordsService.listTraceCodes as any).mockResolvedValue({ total: 0, records: [] });
+    const req = mockReq({ query: {} });
+    const res = mockRes();
+    await listTraceCodes(req as any, res as any);
+    expect(traceRecordsService.listTraceCodes).toHaveBeenCalledWith(1, 20, undefined, undefined, undefined, undefined, "t1");
+  });
+
+  it("listTraceCodes - 传skuId和storeId时正确解析", async () => {
+    (traceRecordsService.listTraceCodes as any).mockResolvedValue({ total: 0, records: [] });
+    const req = mockReq({ query: { skuId: "5", storeId: "3" } });
+    const res = mockRes();
+    await listTraceCodes(req as any, res as any);
+    expect(traceRecordsService.listTraceCodes).toHaveBeenCalledWith(1, 20, 5, undefined, undefined, 3, "t1");
+  });
+
+  it("listRecalls - 不传page/pageSize时使用默认值", async () => {
+    (traceRecordsService.listRecalls as any).mockResolvedValue({ total: 0, records: [] });
+    const req = mockReq({ query: {} });
+    const res = mockRes();
+    await listRecalls(req as any, res as any);
+    expect(traceRecordsService.listRecalls).toHaveBeenCalledWith(1, 20, undefined, undefined, "t1");
+  });
+
+  it("generateTraceCodes - user无id/username时使用默认值", async () => {
+    (traceRecordsService.generateTraceCodes as any).mockResolvedValue({ count: 10 });
+    const req = mockReq({ body: { skuId: 1, quantity: 10 }, user: {} });
+    const res = mockRes();
+    await generateTraceCodes(req as any, res as any);
+    expect(traceRecordsService.generateTraceCodes).toHaveBeenCalledWith(
+      expect.any(Object), 0, "system", "t1"
+    );
+  });
+
+  it("updateTraceCodeStatus - user无id/username时使用默认值", async () => {
+    (traceRecordsService.updateTraceCodeStatus as any).mockResolvedValue({ traceCode: "TC123" });
+    const req = mockReq({ params: { traceCode: "TC123" }, body: { status: "SOLD" }, user: {} });
+    const res = mockRes();
+    await updateTraceCodeStatus(req as any, res as any);
+    expect(traceRecordsService.updateTraceCodeStatus).toHaveBeenCalledWith(
+      "TC123", expect.any(Object), 0, "system", "127.0.0.1", "t1"
+    );
+  });
+
+  it("executeRecall - user无id/username时使用默认值", async () => {
+    (traceRecordsService.executeRecall as any).mockResolvedValue({ recallNo: "RC123" });
+    const req = mockReq({ params: { recallNo: "RC123" }, user: {} });
+    const res = mockRes();
+    await executeRecall(req as any, res as any);
+    expect(traceRecordsService.executeRecall).toHaveBeenCalledWith("RC123", 0, "system", "t1");
+  });
+
+  it("verifyTraceCode - 不传scanType时使用默认值CONSUMER", async () => {
+    (traceRecordsService.verifyTraceCode as any).mockResolvedValue({ valid: true });
+    const req = mockReq({ body: { traceCode: "TC123" } });
+    const res = mockRes();
+    await verifyTraceCode(req as any, res as any);
+    expect(traceRecordsService.verifyTraceCode).toHaveBeenCalledWith(
+      "TC123", "CONSUMER", undefined, "127.0.0.1", "t1"
+    );
   });
 });

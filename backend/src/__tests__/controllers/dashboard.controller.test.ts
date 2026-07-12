@@ -1,4 +1,4 @@
-﻿import { vi, describe, it, beforeEach, expect } from "vitest";
+import { vi, describe, it, beforeEach, expect } from "vitest";
 
 vi.mock("@services/admin/dashboard.service", () => ({
   getOverview: vi.fn(),
@@ -136,5 +136,53 @@ describe("dashboard.controller", () => {
     await getSalesTrendByDay(req as any, res as any);
     expect(dashboardService.getSalesTrendByDay).toHaveBeenCalledWith("t1", 7);
     expect(ok).toHaveBeenCalled();
+  });
+
+  it("getCategoryPie - 不传dateStart/dateEnd时使用默认值", async () => {
+    (dashboardService.getCategoryPie as any).mockResolvedValue([]);
+    const req = mockReq({ query: {} });
+    const res = mockRes();
+    await getCategoryPie(req as any, res as any);
+    expect(dashboardService.getCategoryPie).toHaveBeenCalled();
+  });
+
+  it("getTopProducts - 不传dateStart/dateEnd时使用默认值", async () => {
+    (dashboardService.getTopProducts as any).mockResolvedValue([]);
+    const req = mockReq({ query: {} });
+    const res = mockRes();
+    await getTopProducts(req as any, res as any);
+    expect(dashboardService.getTopProducts).toHaveBeenCalled();
+  });
+
+  it("getTopCustomers - 不传dateStart/dateEnd时使用默认值", async () => {
+    (dashboardService.getTopCustomers as any).mockResolvedValue([]);
+    const req = mockReq({ query: {} });
+    const res = mockRes();
+    await getTopCustomers(req as any, res as any);
+    expect(dashboardService.getTopCustomers).toHaveBeenCalled();
+  });
+
+  it("getRecentAlerts - 不传limit时使用默认值10", async () => {
+    (dashboardService.getRecentAlerts as any).mockResolvedValue([]);
+    const req = mockReq({ query: {} });
+    const res = mockRes();
+    await getRecentAlerts(req as any, res as any);
+    expect(dashboardService.getRecentAlerts).toHaveBeenCalledWith("t1", 10);
+  });
+
+  it("getRecentOrders - 不传limit时使用默认值5", async () => {
+    (dashboardService.getRecentOrders as any).mockResolvedValue([]);
+    const req = mockReq({ query: {} });
+    const res = mockRes();
+    await getRecentOrders(req as any, res as any);
+    expect(dashboardService.getRecentOrders).toHaveBeenCalledWith("t1", 5);
+  });
+
+  it("getSalesTrendByDay - 不传days时使用默认值7", async () => {
+    (dashboardService.getSalesTrendByDay as any).mockResolvedValue([]);
+    const req = mockReq({ query: {} });
+    const res = mockRes();
+    await getSalesTrendByDay(req as any, res as any);
+    expect(dashboardService.getSalesTrendByDay).toHaveBeenCalledWith("t1", 7);
   });
 });

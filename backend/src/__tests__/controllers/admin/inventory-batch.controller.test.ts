@@ -1,4 +1,4 @@
-﻿import { vi, describe, it, beforeEach, expect } from "vitest";
+import { vi, describe, it, beforeEach, expect } from "vitest";
 
 vi.mock("../../../services/admin/inventory-batch.service", () => ({
   listBatches: vi.fn(),
@@ -197,6 +197,48 @@ describe("inventory-batch.controller", () => {
     const res = mockRes();
     await getExpiryAlertStatistics(req as any, res as any);
     expect(batchService.getExpiryAlertStatistics).toHaveBeenCalledWith("t1");
+    expect(ok).toHaveBeenCalled();
+  });
+
+  // ==================== 分支覆盖率补充测试 ====================
+  it("listBatches - 不传参数时zod使用默认值", async () => {
+    (batchService.listBatches as any).mockResolvedValue({ total: 0, records: [] });
+    const req = mockReq({ query: {} });
+    const res = mockRes();
+    await listBatches(req as any, res as any);
+    expect(batchService.listBatches).toHaveBeenCalledWith("t1", expect.objectContaining({ page: 1, pageSize: 20 }));
+  });
+
+  it("listBatches - 传storeId/skuId时正确解析", async () => {
+    (batchService.listBatches as any).mockResolvedValue({ total: 0, records: [] });
+    const req = mockReq({ query: { storeId: "5", skuId: "3", expiryStatus: "warning" } });
+    const res = mockRes();
+    await listBatches(req as any, res as any);
+    expect(batchService.listBatches).toHaveBeenCalledWith("t1", expect.objectContaining({ storeId: 5, skuId: 3, expiryStatus: "warning" }));
+  });
+
+  it("listExpiryAlerts - 不传参数时zod使用默认值", async () => {
+    (batchService.listExpiryAlerts as any).mockResolvedValue({ total: 0, records: [] });
+    const req = mockReq({ query: {} });
+    const res = mockRes();
+    await listExpiryAlerts(req as any, res as any);
+    expect(batchService.listExpiryAlerts).toHaveBeenCalledWith("t1", expect.objectContaining({ page: 1, pageSize: 20 }));
+  });
+
+  it("listExpiryAlerts - 传alertLevel/storeId/status时正确解析", async () => {
+    (batchService.listExpiryAlerts as any).mockResolvedValue({ total: 0, records: [] });
+    const req = mockReq({ query: { alertLevel: "1", storeId: "2", status: "PENDING" } });
+    const res = mockRes();
+    await listExpiryAlerts(req as any, res as any);
+    expect(batchService.listExpiryAlerts).toHaveBeenCalledWith("t1", expect.objectContaining({ alertLevel: 1, storeId: 2, status: "PENDING" }));
+  });
+
+  it("handleExpiryAlert - user无id时正确处理", async () => {
+    (batchService.handleExpiryAlert as any).mockResolvedValue(undefined);
+    const req = mockReq({ params: { id: "1" }, user: {} });
+    const res = mockRes();
+    await handleExpiryAlert(req as any, res as any);
+    expect(batchService.handleExpiryAlert).toHaveBeenCalledWith("t1", 1, undefined);
     expect(ok).toHaveBeenCalled();
   });
 });

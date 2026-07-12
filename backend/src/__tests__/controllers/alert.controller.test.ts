@@ -1,4 +1,4 @@
-﻿import { vi, describe, it, beforeEach, expect } from "vitest";
+import { vi, describe, it, beforeEach, expect } from "vitest";
 
 vi.mock("@services/alert.service", () => ({
   listAlerts: vi.fn(),
@@ -115,6 +115,24 @@ describe("alert.controller", () => {
     await check(req as any, res as any);
     expect(alertService.runAllAlertChecks).toHaveBeenCalled();
     expect(ok).toHaveBeenCalled();
+  });
+
+  it("list - 不传page和pageSize时使用默认值", async () => {
+    (alertService.listAlerts as any).mockResolvedValue({ total: 0, records: [] });
+    const req = mockReq({ query: {} });
+    const res = mockRes();
+    await list(req as any, res as any);
+    expect(alertService.listAlerts).toHaveBeenCalledWith(expect.objectContaining({
+      page: 1, pageSize: 20,
+    }));
+  });
+
+  it("handle - user不存在时使用默认值0和system", async () => {
+    (alertService.handleAlert as any).mockResolvedValue({ success: true });
+    const req = mockReq({ params: { id: 1 }, body: { action: "HANDLE" }, user: undefined });
+    const res = mockRes();
+    await handle(req as any, res as any);
+    expect(alertService.handleAlert).toHaveBeenCalledWith(1, "t1", "HANDLE", undefined, 0, "system");
   });
 
   describe("aliases", () => {

@@ -1,4 +1,4 @@
-﻿import { vi, describe, it, beforeEach, expect } from "vitest";
+import { vi, describe, it, beforeEach, expect } from "vitest";
 
 vi.mock("@services/admin/purchase-return.service", () => ({
   list: vi.fn(),
@@ -50,6 +50,26 @@ describe("purchase-return.controller", () => {
     await list(req as any, res as any);
     expect(purchaseReturnService.list).toHaveBeenCalled();
     expect(ok).toHaveBeenCalled();
+  });
+
+  it("list - 不传page和pageSize时使用默认值", async () => {
+    (purchaseReturnService.list as any).mockResolvedValue({ total: 0, records: [] });
+    const req = mockReq({ query: {} });
+    const res = mockRes();
+    await list(req as any, res as any);
+    expect(purchaseReturnService.list).toHaveBeenCalledWith(expect.objectContaining({
+      page: 1, pageSize: 20, supplierId: undefined,
+    }));
+  });
+
+  it("list - 传supplier_id时正确解析", async () => {
+    (purchaseReturnService.list as any).mockResolvedValue({ total: 0, records: [] });
+    const req = mockReq({ query: { supplier_id: "5" } });
+    const res = mockRes();
+    await list(req as any, res as any);
+    expect(purchaseReturnService.list).toHaveBeenCalledWith(expect.objectContaining({
+      supplierId: 5,
+    }));
   });
 
   it("getDetail - 应返回退货单详情", async () => {

@@ -1,4 +1,4 @@
-﻿import { vi, describe, it, beforeEach, expect } from "vitest";
+import { vi, describe, it, beforeEach, expect } from "vitest";
 
 vi.mock("../../../services/admin/marketing-full-reduction.service", () => ({
   createFullReduction: vi.fn(),
@@ -95,6 +95,14 @@ describe("marketing-full-reduction.controller", () => {
     await listFullReductions(req as any, res as any);
     expect(fullReductionService.listFullReductions).toHaveBeenCalled();
     expect(ok).toHaveBeenCalled();
+  });
+
+  it("listFullReductions - 不传page和pageSize时使用默认值", async () => {
+    (fullReductionService.listFullReductions as any).mockResolvedValue({ total: 0, records: [] });
+    const req = mockReq({ query: {} });
+    const res = mockRes();
+    await listFullReductions(req as any, res as any);
+    expect(fullReductionService.listFullReductions).toHaveBeenCalledWith(1, 20, "t1", undefined);
   });
 
   it("getFullReduction - 应返回单个满减活动", async () => {

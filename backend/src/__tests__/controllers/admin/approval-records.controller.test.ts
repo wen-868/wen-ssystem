@@ -1,4 +1,4 @@
-﻿import { vi, describe, it, beforeEach, expect } from "vitest";
+import { vi, describe, it, beforeEach, expect } from "vitest";
 
 vi.mock("../../../services/admin/approval-records.service", () => ({
   listInstances: vi.fn(),
@@ -218,5 +218,54 @@ describe("approval-records.controller", () => {
     await markNotificationRead(req as any, res as any);
     expect(approvalRecordsService.markNotificationRead).toHaveBeenCalledWith(1, 1, "t1");
     expect(ok).toHaveBeenCalled();
+  });
+
+  // ==================== 分支覆盖率补充测试 ====================
+  it("listInstances - 不传page/pageSize时使用默认值", async () => {
+    (approvalRecordsService.listInstances as any).mockResolvedValue({ total: 0, records: [] });
+    const req = mockReq({ query: {} });
+    const res = mockRes();
+    await listInstances(req as any, res as any);
+    expect(approvalRecordsService.listInstances).toHaveBeenCalledWith(1, 20, null, null, null, "t1");
+  });
+
+  it("submitApproval - user无id/username时使用默认值", async () => {
+    (approvalRecordsService.submitApproval as any).mockResolvedValue({ instanceNo: "AP001" });
+    const req = mockReq({ body: { businessType: "PURCHASE_ORDER", businessNo: "PO001", businessTitle: "审批" }, user: {} });
+    const res = mockRes();
+    await submitApproval(req as any, res as any);
+    expect(approvalRecordsService.submitApproval).toHaveBeenCalledWith(expect.any(Object), 0, "系统用户", "t1");
+  });
+
+  it("listTasks - 不传page/pageSize时使用默认值", async () => {
+    (approvalRecordsService.listTasks as any).mockResolvedValue({ total: 0, records: [] });
+    const req = mockReq({ query: {} });
+    const res = mockRes();
+    await listTasks(req as any, res as any);
+    expect(approvalRecordsService.listTasks).toHaveBeenCalledWith(1, 20, 1, "PENDING", "t1");
+  });
+
+  it("approveTask - user无username时使用默认值", async () => {
+    (approvalRecordsService.approveTask as any).mockResolvedValue({ taskId: 1, status: "APPROVED" });
+    const req = mockReq({ params: { id: "1" }, body: {}, user: { id: 5 } });
+    const res = mockRes();
+    await approveTask(req as any, res as any);
+    expect(approvalRecordsService.approveTask).toHaveBeenCalledWith(1, undefined, 5, "系统用户", "t1");
+  });
+
+  it("rejectTask - user无username时使用默认值", async () => {
+    (approvalRecordsService.rejectTask as any).mockResolvedValue({ taskId: 1, status: "REJECTED" });
+    const req = mockReq({ params: { id: "1" }, body: { comment: "驳回" }, user: { id: 5 } });
+    const res = mockRes();
+    await rejectTask(req as any, res as any);
+    expect(approvalRecordsService.rejectTask).toHaveBeenCalledWith(1, "驳回", 5, "系统用户", "t1");
+  });
+
+  it("listNotifications - 不传page/pageSize时使用默认值", async () => {
+    (approvalRecordsService.listNotifications as any).mockResolvedValue({ total: 0, records: [] });
+    const req = mockReq({ query: {} });
+    const res = mockRes();
+    await listNotifications(req as any, res as any);
+    expect(approvalRecordsService.listNotifications).toHaveBeenCalledWith(1, 20, 1, null, "t1");
   });
 });

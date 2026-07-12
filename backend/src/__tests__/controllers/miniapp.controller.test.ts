@@ -1,4 +1,4 @@
-﻿import { vi, describe, it, beforeEach, expect } from "vitest";
+import { vi, describe, it, beforeEach, expect } from "vitest";
 
 vi.mock("@services/miniapp.service", () => ({
   devLogin: vi.fn(),
@@ -164,5 +164,83 @@ describe("miniapp.controller", () => {
     await getStatementDetail(req as any, res as any);
     expect(miniappService.getStatementDetail).toHaveBeenCalledWith("t1", 1, "test");
     expect(ok).toHaveBeenCalled();
+  });
+
+  it("getProfile - 不传x-customer-type时使用默认值RETAIL", () => {
+    (miniappService.getProfile as any).mockReturnValue({ customerType: "RETAIL" });
+    const req = mockReq({ headers: {} });
+    const res = mockRes();
+    getProfile(req as any, res as any);
+    expect(miniappService.getProfile).toHaveBeenCalledWith("RETAIL");
+  });
+
+  it("getProducts - 不传参数时使用默认值", async () => {
+    (miniappService.getProducts as any).mockResolvedValue([]);
+    const req = mockReq({ query: {}, headers: {} });
+    const res = mockRes();
+    await getProducts(req as any, res as any);
+    expect(miniappService.getProducts).toHaveBeenCalledWith(1, "", "RETAIL");
+  });
+
+  it("createOrder - 不传可选header时使用默认值", async () => {
+    (miniappService.createOrder as any).mockResolvedValue({ orderNo: "ORD001" });
+    const req = mockReq({
+      body: {
+        storeId: 1,
+        fulfillmentType: "DELIVERY",
+        items: [{ skuId: 1, qty: 1 }],
+      },
+      headers: {},
+    });
+    const res = mockRes();
+    await createOrder(req as any, res as any);
+    expect(miniappService.createOrder).toHaveBeenCalledWith("t1", expect.any(Object), "RETAIL", "", "ACCOUNT");
+  });
+
+  it("createOrder - 使用quantity代替qty时正确解析", async () => {
+    (miniappService.createOrder as any).mockResolvedValue({ orderNo: "ORD001" });
+    const req = mockReq({
+      body: {
+        storeId: 1,
+        fulfillmentType: "PICKUP",
+        items: [{ skuId: 1, quantity: 5 }],
+      },
+      headers: { "x-customer-type": "WHOLESALE" },
+    });
+    const res = mockRes();
+    await createOrder(req as any, res as any);
+    expect(miniappService.createOrder).toHaveBeenCalled();
+  });
+
+  it("getOrders - 不传参数时使用默认值", async () => {
+    (miniappService.getOrders as any).mockResolvedValue({ total: 0, records: [] });
+    const req = mockReq({ query: {}, headers: {} });
+    const res = mockRes();
+    await getOrders(req as any, res as any);
+    expect(miniappService.getOrders).toHaveBeenCalledWith("t1", "", 1, 20);
+  });
+
+  it("getOrderDetail - 不传x-anonymous-member-id时使用空字符串", async () => {
+    (miniappService.getOrderDetail as any).mockResolvedValue({ orderNo: "ORD001" });
+    const req = mockReq({ params: { orderNo: "ORD001" }, headers: {} });
+    const res = mockRes();
+    await getOrderDetail(req as any, res as any);
+    expect(miniappService.getOrderDetail).toHaveBeenCalledWith("t1", "ORD001", "");
+  });
+
+  it("getStatements - 不传参数时使用默认值", async () => {
+    (miniappService.getStatements as any).mockResolvedValue({ total: 0, records: [] });
+    const req = mockReq({ query: {}, headers: {} });
+    const res = mockRes();
+    await getStatements(req as any, res as any);
+    expect(miniappService.getStatements).toHaveBeenCalledWith("t1", "", 1, 20);
+  });
+
+  it("getStatementDetail - 不传x-anonymous-member-id时使用空字符串", async () => {
+    (miniappService.getStatementDetail as any).mockResolvedValue({ id: 1 });
+    const req = mockReq({ params: { id: 1 }, headers: {} });
+    const res = mockRes();
+    await getStatementDetail(req as any, res as any);
+    expect(miniappService.getStatementDetail).toHaveBeenCalledWith("t1", 1, "");
   });
 });

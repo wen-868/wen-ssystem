@@ -1,7 +1,17 @@
-﻿import { z } from "zod";
+import { z } from "zod";
 import { asyncHandler } from "../../middleware/async-handler";
 import { ok, fail } from "../../shared/response";
 import * as platformIntegrationService from "../../services/instant-retail/platform-integration.service";
+
+// ── 辅助函数（集中分支逻辑，减少重复分支统计） ──
+
+/** 从请求中提取 webhook 参数（body/signature/timestamp） */
+function extractWebhookParams(req: any) {
+  const rawBody = req.body ?? {};
+  const signature = String(req.headers["x-signature"] ?? req.headers["signature"] ?? req.query.sign ?? "");
+  const timestamp = String(req.headers["x-timestamp"] ?? req.query.timestamp ?? "");
+  return { rawBody, signature, timestamp };
+}
 
 const upsertConfigSchema = z.object({
   platform: z.enum(["JD", "MEITUAN", "ELEME"]),
@@ -19,25 +29,19 @@ const syncBodySchema = z.object({
 });
 
 export const handleJdWebhook = asyncHandler(async (req, res) => {
-  const rawBody = req.body ?? {};
-  const signature = String(req.headers["x-signature"] ?? req.headers["signature"] ?? req.query.sign ?? "");
-  const timestamp = String(req.headers["x-timestamp"] ?? req.query.timestamp ?? "");
+  const { rawBody, signature, timestamp } = extractWebhookParams(req);
   const result = await platformIntegrationService.handleWebhook("JD", rawBody, signature, timestamp);
   res.status(result.status).json(result.response);
 });
 
 export const handleMeituanWebhook = asyncHandler(async (req, res) => {
-  const rawBody = req.body ?? {};
-  const signature = String(req.headers["x-signature"] ?? req.headers["signature"] ?? req.query.sign ?? "");
-  const timestamp = String(req.headers["x-timestamp"] ?? req.query.timestamp ?? "");
+  const { rawBody, signature, timestamp } = extractWebhookParams(req);
   const result = await platformIntegrationService.handleWebhook("MEITUAN", rawBody, signature, timestamp);
   res.status(result.status).json(result.response);
 });
 
 export const handleElemeWebhook = asyncHandler(async (req, res) => {
-  const rawBody = req.body ?? {};
-  const signature = String(req.headers["x-signature"] ?? req.headers["signature"] ?? req.query.sign ?? "");
-  const timestamp = String(req.headers["x-timestamp"] ?? req.query.timestamp ?? "");
+  const { rawBody, signature, timestamp } = extractWebhookParams(req);
   const result = await platformIntegrationService.handleWebhook("ELEME", rawBody, signature, timestamp);
   res.status(result.status).json(result.response);
 });

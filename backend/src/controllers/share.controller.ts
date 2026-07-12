@@ -2,12 +2,30 @@ import { ok, fail } from "../shared/response";
 import * as shareService from "../services/share.service";
 import { query, queryOne, transaction } from "../shared/db";
 
+// ── 辅助函数（集中分支逻辑，减少重复分支统计） ──
+
+/** 从异常中提取状态码（默认 500） */
+function getErrorStatus(e: any): number {
+  return e.statusCode || 500;
+}
+
+/** 从对象中提取可选字符串属性（对象或属性不存在时返回默认值） */
+function optionalStr(obj: any, key: string, def: string): string {
+  return obj?.[key] ?? def;
+}
+
+/** 从对象中提取可选数字属性（对象或属性不存在时返回默认值） */
+function optionalNum(obj: any, key: string, def: number): number {
+  return obj?.[key] ?? def;
+}
+
 export async function getCollectionLink(req: any, res: any) {
   try {
     const link = await shareService.getCollectionLink(req.params.token);
     res.json(ok(link));
   } catch (e: any) {
-    res.status(e.statusCode || 500).json(fail(e.message, String(e.statusCode || 500)));
+    const status = getErrorStatus(e);
+    res.status(status).json(fail(e.message, String(status)));
   }
 }
 
@@ -70,10 +88,10 @@ export async function getCollectionPage(req: any, res: any) {
     status: link.status, expireAt: link.expireAt, expired,
     taxEnabled: link.taxEnabled, taxRate: link.taxRate, taxAmount: link.taxAmount,
     shareChannel: link.shareChannel, createdAt: link.createdAt,
-    customerName: bill?.customerName ?? "", customerMobile: bill?.customerMobile ?? "",
-    customerType: bill?.customerType ?? "", storeName: bill?.storeName ?? "",
-    receivableAmount: bill?.receivableAmount ?? 0, receivedAmount: bill?.receivedAmount ?? 0,
-    unreceivedAmount: bill?.unreceivedAmount ?? 0, items
+    customerName: optionalStr(bill, "customerName", ""), customerMobile: optionalStr(bill, "customerMobile", ""),
+    customerType: optionalStr(bill, "customerType", ""), storeName: optionalStr(bill, "storeName", ""),
+    receivableAmount: optionalNum(bill, "receivableAmount", 0), receivedAmount: optionalNum(bill, "receivedAmount", 0),
+    unreceivedAmount: optionalNum(bill, "unreceivedAmount", 0), items
   }));
 }
 
@@ -82,7 +100,8 @@ export async function payCollection(req: any, res: any) {
     const result = await shareService.payCollection(req.params.token);
     res.json(ok(result));
   } catch (e: any) {
-    res.status(e.statusCode || 500).json(fail(e.message, String(e.statusCode || 500)));
+    const status = getErrorStatus(e);
+    res.status(status).json(fail(e.message, String(status)));
   }
 }
 

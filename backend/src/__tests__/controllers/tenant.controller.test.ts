@@ -1,4 +1,4 @@
-﻿import { vi, describe, it, beforeEach, expect } from "vitest";
+import { vi, describe, it, beforeEach, expect } from "vitest";
 
 vi.mock("@services/admin/tenant.service", () => ({
   listTenants: vi.fn(),
@@ -52,6 +52,16 @@ describe("tenant.controller", () => {
     await listTenants(req as any, res as any);
     expect(tenantService.listTenants).toHaveBeenCalled();
     expect(ok).toHaveBeenCalled();
+  });
+
+  it("listTenants - 不传page和pageSize时使用默认值", async () => {
+    (tenantService.listTenants as any).mockResolvedValue({ total: 0, records: [] });
+    const req = mockReq({ query: {} });
+    const res = mockRes();
+    await listTenants(req as any, res as any);
+    expect(tenantService.listTenants).toHaveBeenCalledWith(expect.objectContaining({
+      page: 1, pageSize: 20,
+    }));
   });
 
   it("getTenantDetail - 应返回租户详情", async () => {

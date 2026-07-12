@@ -1,4 +1,4 @@
-﻿import { vi, describe, it, beforeEach, expect } from "vitest";
+import { vi, describe, it, beforeEach, expect } from "vitest";
 
 vi.mock("../../../services/admin/store-value-card.service", () => ({
   listStoreValueCards: vi.fn(),
@@ -250,5 +250,26 @@ describe("store-value-card.controller", () => {
     const req = mockReq({ params: { cardNo: "SVC001" } });
     const res = mockRes();
     await expect(freezeCard(req as any, res as any)).rejects.toThrow(error);
+  });
+
+  // ==================== 分支覆盖率补充测试 ====================
+  it("listStoreValueCards - 不传page/pageSize/customerId时使用默认值", async () => {
+    (svcService.listStoreValueCards as any).mockResolvedValue({ total: 0, records: [] });
+    const req = mockReq({ query: {} });
+    const res = mockRes();
+    await listStoreValueCards(req as any, res as any);
+    expect(svcService.listStoreValueCards).toHaveBeenCalledWith(expect.objectContaining({
+      page: 1, pageSize: 20, customerId: undefined, tenantId: "t1"
+    }));
+  });
+
+  it("listStoreValueTransactions - 不传page/pageSize时使用默认值", async () => {
+    (svcService.listStoreValueTransactions as any).mockResolvedValue({ total: 0, records: [] });
+    const req = mockReq({ params: { cardNo: "SVC001" }, query: {} });
+    const res = mockRes();
+    await listStoreValueTransactions(req as any, res as any);
+    expect(svcService.listStoreValueTransactions).toHaveBeenCalledWith(expect.objectContaining({
+      cardNo: "SVC001", page: 1, pageSize: 20, tenantId: "t1"
+    }));
   });
 });

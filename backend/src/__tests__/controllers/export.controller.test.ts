@@ -1,4 +1,4 @@
-﻿import { vi, describe, it, beforeEach, expect } from "vitest";
+import { vi, describe, it, beforeEach, expect } from "vitest";
 
 vi.mock("@services/admin/export.service", () => ({
   exportCustomers: vi.fn(),
@@ -127,5 +127,69 @@ describe("export.controller", () => {
     expect(exportService.exportAuditLogs).toHaveBeenCalled();
     expect(res.setHeader).toHaveBeenCalled();
     expect(res.send).toHaveBeenCalled();
+  });
+
+  it("exportCustomers - 传keyword时正确解析", async () => {
+    (exportService.exportCustomers as any).mockResolvedValue([]);
+    const req = mockReq({ query: { keyword: "test" } });
+    const res = mockRes();
+    await exportCustomers(req as any, res as any);
+    expect(exportService.exportCustomers).toHaveBeenCalledWith("t1", "test");
+  });
+
+  it("exportSuppliers - 不传参数时使用undefined", async () => {
+    (exportService.exportSuppliers as any).mockResolvedValue([]);
+    const req = mockReq({ query: {} });
+    const res = mockRes();
+    await exportSuppliers(req as any, res as any);
+    expect(exportService.exportSuppliers).toHaveBeenCalledWith("t1", undefined, undefined);
+  });
+
+  it("exportProducts - 不传keyword时使用undefined", async () => {
+    (exportService.exportProducts as any).mockResolvedValue([]);
+    const req = mockReq({ query: {} });
+    const res = mockRes();
+    await exportProducts(req as any, res as any);
+    expect(exportService.exportProducts).toHaveBeenCalledWith("t1", undefined);
+  });
+
+  it("exportInventory - 不传参数时使用undefined", async () => {
+    (exportService.exportInventory as any).mockResolvedValue([]);
+    const req = mockReq({ query: {} });
+    const res = mockRes();
+    await exportInventory(req as any, res as any);
+    expect(exportService.exportInventory).toHaveBeenCalledWith("t1", undefined, undefined);
+  });
+
+  it("exportPurchaseOrders - 不传参数时使用undefined", async () => {
+    (exportService.exportPurchaseOrders as any).mockResolvedValue([]);
+    const req = mockReq({ query: {} });
+    const res = mockRes();
+    await exportPurchaseOrders(req as any, res as any);
+    expect(exportService.exportPurchaseOrders).toHaveBeenCalledWith("t1", undefined, undefined);
+  });
+
+  it("exportPayments - 不传status时使用undefined", async () => {
+    (exportService.exportPayments as any).mockResolvedValue([]);
+    const req = mockReq({ query: {} });
+    const res = mockRes();
+    await exportPayments(req as any, res as any);
+    expect(exportService.exportPayments).toHaveBeenCalledWith("t1", undefined);
+  });
+
+  it("exportSalesOrders - 不传参数时全部使用undefined", async () => {
+    (exportService.exportSalesOrders as any).mockResolvedValue([]);
+    const req = mockReq({ query: {} });
+    const res = mockRes();
+    await exportSalesOrders(req as any, res as any);
+    expect(exportService.exportSalesOrders).toHaveBeenCalledWith("t1", undefined, undefined, undefined, undefined);
+  });
+
+  it("exportAuditLogs - 不传参数时全部使用undefined", async () => {
+    (exportService.exportAuditLogs as any).mockResolvedValue([]);
+    const req = mockReq({ query: {} });
+    const res = mockRes();
+    await exportAuditLogs(req as any, res as any);
+    expect(exportService.exportAuditLogs).toHaveBeenCalledWith("t1", undefined, undefined, undefined, undefined);
   });
 });

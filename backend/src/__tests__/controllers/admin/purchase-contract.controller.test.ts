@@ -1,4 +1,4 @@
-﻿import { vi, describe, it, beforeEach, expect } from "vitest";
+import { vi, describe, it, beforeEach, expect } from "vitest";
 
 vi.mock("../../../services/admin/purchase-contract.service", () => ({
   listPurchaseContracts: vi.fn(),
@@ -176,5 +176,16 @@ describe("purchase-contract.controller", () => {
     const res = mockRes();
     await expect(uploadContractFile(req as any, res as any)).rejects.toThrow();
     expect(purchaseContractService.uploadContractFile).not.toHaveBeenCalled();
+  });
+
+  // ==================== 分支覆盖率补充测试 ====================
+  it("listPurchaseContracts - 不传page/pageSize时使用默认值", async () => {
+    (purchaseContractService.listPurchaseContracts as any).mockResolvedValue({ total: 0, records: [] });
+    const req = mockReq({ query: {} });
+    const res = mockRes();
+    await listPurchaseContracts(req as any, res as any);
+    expect(purchaseContractService.listPurchaseContracts).toHaveBeenCalledWith(expect.objectContaining({
+      page: 1, pageSize: 20, supplierId: undefined, tenantId: "t1"
+    }));
   });
 });

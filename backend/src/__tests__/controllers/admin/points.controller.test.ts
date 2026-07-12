@@ -1,4 +1,4 @@
-﻿import { vi, describe, it, beforeEach, expect } from "vitest";
+import { vi, describe, it, beforeEach, expect } from "vitest";
 
 vi.mock("../../../services/admin/points.service", () => ({
   listPointsRules: vi.fn(),
@@ -124,5 +124,25 @@ describe("points.controller", () => {
     await updateLevelConfig(req as any, res as any);
     expect(pointsService.updateLevelConfig).toHaveBeenCalled();
     expect(ok).toHaveBeenCalled();
+  });
+
+  it("getCustomerPointsRecords - 不传page和pageSize时使用默认值1和20", async () => {
+    (pointsService.getCustomerPointsRecords as any).mockResolvedValue({ total: 0, records: [] });
+    const req = mockReq({ params: { id: "1" }, query: {} });
+    const res = mockRes();
+    await getCustomerPointsRecords(req as any, res as any);
+    expect(pointsService.getCustomerPointsRecords).toHaveBeenCalledWith(expect.objectContaining({
+      page: 1, pageSize: 20,
+    }));
+  });
+
+  it("getCustomerPointsRecords - 不传type时type为undefined", async () => {
+    (pointsService.getCustomerPointsRecords as any).mockResolvedValue({ total: 0, records: [] });
+    const req = mockReq({ params: { id: "1" }, query: { page: "1", pageSize: "10" } });
+    const res = mockRes();
+    await getCustomerPointsRecords(req as any, res as any);
+    expect(pointsService.getCustomerPointsRecords).toHaveBeenCalledWith(expect.objectContaining({
+      type: undefined,
+    }));
   });
 });

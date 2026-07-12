@@ -1,4 +1,4 @@
-﻿import { describe, it, expect, vi, beforeEach } from "vitest";
+import { describe, it, expect, vi, beforeEach } from "vitest";
 
 const mocks = vi.hoisted(() => ({
   ok: vi.fn((data?: any) => ({ code: "0", data })),
@@ -172,6 +172,14 @@ describe("admin marketing-new.controller", () => {
       expect(mocks.listUserCoupons).toHaveBeenCalledWith(1, 10, "t1", 1, "UNUSED");
       expect(res.json).toHaveBeenCalled();
     });
+
+    it("listUserCoupons - 不传userId和分页参数时使用默认值", async () => {
+      mocks.listUserCoupons.mockResolvedValue({ records: [], total: 0 });
+      const req = mockReq({ query: {} });
+      const res = mockRes();
+      await listUserCoupons(req, res);
+      expect(mocks.listUserCoupons).toHaveBeenCalledWith(1, 20, "t1", undefined, undefined);
+    });
   });
 
   describe("促销活动", () => {
@@ -182,6 +190,14 @@ describe("admin marketing-new.controller", () => {
       await listPromotions(req, res);
       expect(mocks.listPromotions).toHaveBeenCalledWith(1, 10, "t1", "FULL_REDUCTION", "ACTIVE");
       expect(res.json).toHaveBeenCalled();
+    });
+
+    it("listPromotions - 不传分页参数时使用默认值", async () => {
+      mocks.listPromotions.mockResolvedValue({ records: [], total: 0 });
+      const req = mockReq({ query: {} });
+      const res = mockRes();
+      await listPromotions(req, res);
+      expect(mocks.listPromotions).toHaveBeenCalledWith(1, 20, "t1", undefined, undefined);
     });
 
     it("createPromotion - 应创建促销活动", async () => {

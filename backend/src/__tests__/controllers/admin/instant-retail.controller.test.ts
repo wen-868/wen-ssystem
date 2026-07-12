@@ -1,4 +1,4 @@
-﻿import { vi, describe, it, beforeEach, expect } from "vitest";
+import { vi, describe, it, beforeEach, expect } from "vitest";
 
 vi.mock("../../../services/admin/instant-retail.service", () => ({
   handleWebhook: vi.fn(),
@@ -517,6 +517,146 @@ describe("instant-retail.controller", () => {
       await deleteBanner(req as any, res as any);
       expect(retailShopSvc.deleteBanner).toHaveBeenCalledWith(1, "t1");
       expect(ok).toHaveBeenCalled();
+    });
+  });
+
+  // ==================== 分支覆盖率补充测试 ====================
+  describe("分支覆盖率补充", () => {
+    it("handleJdWebhook - 不传body时使用空对象, 使用signature header", async () => {
+      (instantRetailService.handleWebhook as any).mockResolvedValue({ status: 200, response: {} });
+      const req = mockReq({ headers: { "signature": "sig2" }, query: { timestamp: "999" } });
+      delete (req as any).body;
+      const res = mockRes();
+      await handleJdWebhook(req as any, res as any);
+      expect(instantRetailService.handleWebhook).toHaveBeenCalledWith("JD", {}, "sig2", "999");
+    });
+
+    it("handleMeituanWebhook - 使用query.sign和query.timestamp兜底", async () => {
+      (instantRetailService.handleWebhook as any).mockResolvedValue({ status: 200, response: {} });
+      const req = mockReq({ query: { sign: "qsign", timestamp: "111" } });
+      const res = mockRes();
+      await handleMeituanWebhook(req as any, res as any);
+      expect(instantRetailService.handleWebhook).toHaveBeenCalledWith("MEITUAN", expect.any(Object), "qsign", "111");
+    });
+
+    it("handleElemeWebhook - 全不传签名和timestamp时使用空串", async () => {
+      (instantRetailService.handleWebhook as any).mockResolvedValue({ status: 200, response: {} });
+      const req = mockReq({});
+      const res = mockRes();
+      await handleElemeWebhook(req as any, res as any);
+      expect(instantRetailService.handleWebhook).toHaveBeenCalledWith("ELEME", expect.any(Object), "", "");
+    });
+
+    it("listOrders - user无storeId且传platform时正确处理", async () => {
+      (instantRetailService.listOrders as any).mockResolvedValue({ total: 0, records: [] });
+      const req = mockReq({ user: { id: 1, username: "admin" }, query: { platform: "MEITUAN" } });
+      const res = mockRes();
+      await listOrders(req as any, res as any);
+      expect(instantRetailService.listOrders).toHaveBeenCalledWith(1, 20, null, "MEITUAN", "t1");
+    });
+
+    it("listOrders - 不传page/pageSize时使用默认值", async () => {
+      (instantRetailService.listOrders as any).mockResolvedValue({ total: 0, records: [] });
+      const req = mockReq({ query: {} });
+      const res = mockRes();
+      await listOrders(req as any, res as any);
+      expect(instantRetailService.listOrders).toHaveBeenCalledWith(1, 20, "1", null, "t1");
+    });
+
+    it("startDelivery - 配置不存在应返回404", async () => {
+      (instantRetailService.startDelivery as any).mockResolvedValue({ found: true, configFound: false });
+      const req = mockReq({ params: { platformOrderId: "123" }, body: {} });
+      const res = mockRes();
+      await startDelivery(req as any, res as any);
+      expect(res.status).toHaveBeenCalledWith(404);
+    });
+
+    it("completeDelivery - 配置不存在应返回404", async () => {
+      (instantRetailService.completeDelivery as any).mockResolvedValue({ found: true, configFound: false });
+      const req = mockReq({ params: { platformOrderId: "123" } });
+      const res = mockRes();
+      await completeDelivery(req as any, res as any);
+      expect(res.status).toHaveBeenCalledWith(404);
+    });
+
+    it("cancelOrder - 配置不存在应返回404", async () => {
+      (instantRetailService.cancelOrder as any).mockResolvedValue({ found: true, configFound: false });
+      const req = mockReq({ params: { platformOrderId: "123" }, body: { reason: "用户取消" } });
+      const res = mockRes();
+      await cancelOrder(req as any, res as any);
+      expect(res.status).toHaveBeenCalledWith(404);
+    });
+
+    it("getShopConfig - 不传storeId时使用undefined", async () => {
+      (retailShopSvc.getShopConfig as any).mockResolvedValue({});
+      const req = mockReq({ query: {} });
+      const res = mockRes();
+      await getShopConfig(req as any, res as any);
+      expect(retailShopSvc.getShopConfig).toHaveBeenCalledWith(undefined, "t1");
+    });
+
+    it("listCategories - 不传storeId时使用undefined", async () => {
+      (retailShopSvc.listCategories as any).mockResolvedValue([]);
+      const req = mockReq({ query: {} });
+      const res = mockRes();
+      await listCategories(req as any, res as any);
+      expect(retailShopSvc.listCategories).toHaveBeenCalledWith(undefined, "t1");
+    });
+
+    it("listRetailProducts - 不传page/pageSize和storeId时使用默认值", async () => {
+      (retailShopSvc.listRetailProducts as any).mockResolvedValue({ total: 0, records: [] });
+      const req = mockReq({ query: {} });
+      const res = mockRes();
+      await listRetailProducts(req as any, res as any);
+      expect(retailShopSvc.listRetailProducts).toHaveBeenCalledWith({ storeId: undefined, tenantId: "t1", page: 1, pageSize: 20 });
+    });
+
+    it("listRetailOrders - 不传page/pageSize和storeId时使用默认值", async () => {
+      (retailShopSvc.listRetailOrders as any).mockResolvedValue({ total: 0, records: [] });
+      const req = mockReq({ query: {} });
+      const res = mockRes();
+      await listRetailOrders(req as any, res as any);
+      expect(retailShopSvc.listRetailOrders).toHaveBeenCalledWith({ storeId: undefined, tenantId: "t1", page: 1, pageSize: 20 });
+    });
+
+    it("addRetailProduct - 不传storeId时使用undefined", async () => {
+      (retailShopSvc.addRetailProduct as any).mockResolvedValue({ id: 1 });
+      const req = mockReq({ query: {}, body: { skuId: 1, retailPrice: 100, stock: 10 } });
+      const res = mockRes();
+      await addRetailProduct(req as any, res as any);
+      expect(retailShopSvc.addRetailProduct).toHaveBeenCalledWith(undefined, expect.any(Object), "t1");
+    });
+
+    it("createBanner - 不传storeId时使用undefined", async () => {
+      (retailShopSvc.createBanner as any).mockResolvedValue({ id: 1 });
+      const req = mockReq({ query: {}, body: { title: "banner1", imageUrl: "https://example.com/img.jpg" } });
+      const res = mockRes();
+      await createBanner(req as any, res as any);
+      expect(retailShopSvc.createBanner).toHaveBeenCalledWith(undefined, expect.any(Object), "t1");
+    });
+
+    it("listBanners - 不传storeId时使用undefined", async () => {
+      (retailShopSvc.listBanners as any).mockResolvedValue([]);
+      const req = mockReq({ query: {} });
+      const res = mockRes();
+      await listBanners(req as any, res as any);
+      expect(retailShopSvc.listBanners).toHaveBeenCalledWith(undefined, "t1");
+    });
+
+    it("saveShopConfig - 不传storeId时使用undefined", async () => {
+      (retailShopSvc.saveShopConfig as any).mockResolvedValue({});
+      const req = mockReq({ query: {}, body: { shopName: "测试店" } });
+      const res = mockRes();
+      await saveShopConfig(req as any, res as any);
+      expect(retailShopSvc.saveShopConfig).toHaveBeenCalledWith(undefined, expect.any(Object), "t1");
+    });
+
+    it("createCategory - 不传storeId时使用undefined", async () => {
+      (retailShopSvc.createCategory as any).mockResolvedValue({ id: 1 });
+      const req = mockReq({ query: {}, body: { name: "分类1" } });
+      const res = mockRes();
+      await createCategory(req as any, res as any);
+      expect(retailShopSvc.createCategory).toHaveBeenCalledWith(undefined, expect.any(Object), "t1");
     });
   });
 });

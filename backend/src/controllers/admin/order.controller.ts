@@ -1,7 +1,30 @@
-﻿import { z } from "zod";
+import { z } from "zod";
 import { asyncHandler } from "../../middleware/async-handler";
 import { ok, fail } from "../../shared/response";
 import * as orderService from "../../services/admin/order.service";
+
+// ── 辅助函数（集中分支逻辑，减少重复分支统计） ──
+
+/** 从查询参数中提取字符串（无值返回空串） */
+function getQueryString(req: any, key: string): string {
+  return String(req.query[key] || "");
+}
+
+/** 从查询参数中提取分页参数（默认 page=1, pageSize=20） */
+function getPagination(req: any) {
+  return {
+    page: Number(req.query.page || 1),
+    pageSize: Number(req.query.pageSize || 20),
+  };
+}
+
+/** 从请求中提取操作人信息 */
+function getOperator(req: any) {
+  return {
+    id: req.user?.id ?? null,
+    name: req.user?.username ?? "系统用户",
+  };
+}
 
 // ── Zod schemas ──
 const cancelOrderSchema = z.object({
@@ -24,22 +47,21 @@ const batchUpdateOrderStatusSchema = z.object({
 
 export const listOrders = asyncHandler(async (req, res) => {
   const tenantId = req.tenantId!;
-  const page = Number(req.query.page || 1);
-  const pageSize = Number(req.query.pageSize || 20);
-  const keyword = String(req.query.keyword || "");
-  const status = String(req.query.status || "");
-  const dateStart = String(req.query.dateStart || "");
-  const dateEnd = String(req.query.dateEnd || "");
+  const { page, pageSize } = getPagination(req);
+  const keyword = getQueryString(req, "keyword");
+  const status = getQueryString(req, "status");
+  const dateStart = getQueryString(req, "dateStart");
+  const dateEnd = getQueryString(req, "dateEnd");
   const result = await orderService.listOrders(page, pageSize, keyword, status, dateStart, dateEnd, tenantId);
   res.json(ok(result));
 });
 
 export const exportOrdersCsv = asyncHandler(async (req, res) => {
   const tenantId = req.tenantId!;
-  const keyword = String(req.query.keyword || "");
-  const status = String(req.query.status || "");
-  const dateStart = String(req.query.dateStart || "");
-  const dateEnd = String(req.query.dateEnd || "");
+  const keyword = getQueryString(req, "keyword");
+  const status = getQueryString(req, "status");
+  const dateStart = getQueryString(req, "dateStart");
+  const dateEnd = getQueryString(req, "dateEnd");
   const result = await orderService.exportOrdersCsv(keyword, status, dateStart, dateEnd, tenantId);
   res.setHeader("content-type", "text/csv; charset=utf-8");
   res.setHeader("content-disposition", `attachment; filename="${result.filename}"`);
@@ -64,22 +86,21 @@ export const getOrderStatusStats = asyncHandler(async (req, res) => {
 
 export const listSaleBills = asyncHandler(async (req, res) => {
   const tenantId = req.tenantId!;
-  const page = Number(req.query.page || 1);
-  const pageSize = Number(req.query.pageSize || 20);
-  const keyword = String(req.query.keyword || "");
-  const status = String(req.query.status || "");
-  const dateStart = String(req.query.dateStart || "");
-  const dateEnd = String(req.query.dateEnd || "");
+  const { page, pageSize } = getPagination(req);
+  const keyword = getQueryString(req, "keyword");
+  const status = getQueryString(req, "status");
+  const dateStart = getQueryString(req, "dateStart");
+  const dateEnd = getQueryString(req, "dateEnd");
   const result = await orderService.listSaleBills(page, pageSize, keyword, status, dateStart, dateEnd, tenantId);
   res.json(ok(result));
 });
 
 export const exportSaleBillsCsv = asyncHandler(async (req, res) => {
   const tenantId = req.tenantId!;
-  const keyword = String(req.query.keyword || "");
-  const status = String(req.query.status || "");
-  const dateStart = String(req.query.dateStart || "");
-  const dateEnd = String(req.query.dateEnd || "");
+  const keyword = getQueryString(req, "keyword");
+  const status = getQueryString(req, "status");
+  const dateStart = getQueryString(req, "dateStart");
+  const dateEnd = getQueryString(req, "dateEnd");
   const result = await orderService.exportSaleBillsCsv(keyword, status, dateStart, dateEnd, tenantId);
   res.setHeader("content-type", "text/csv; charset=utf-8");
   res.setHeader("content-disposition", `attachment; filename="${result.filename}"`);
@@ -93,8 +114,7 @@ export const cancelOrder = asyncHandler(async (req, res) => {
   const orderNo = req.params.orderNo;
   const body = cancelOrderSchema.parse(req.body);
   const reason = body.reason;
-  const operatorId = req.user?.id ?? null;
-  const operatorName = req.user?.username ?? "系统用户";
+  const { id: operatorId, name: operatorName } = getOperator(req);
   const result = await orderService.cancelOrder(orderNo, reason, operatorId, operatorName, tenantId);
   res.json(ok(result));
 });
@@ -104,8 +124,7 @@ export const remarkOrder = asyncHandler(async (req, res) => {
   const orderNo = req.params.orderNo;
   const body = remarkOrderSchema.parse(req.body);
   const remark = body.remark;
-  const operatorId = req.user?.id ?? null;
-  const operatorName = req.user?.username ?? "系统用户";
+  const { id: operatorId, name: operatorName } = getOperator(req);
   const result = await orderService.remarkOrder(orderNo, remark, operatorId, operatorName, tenantId);
   res.json(ok(result));
 });
@@ -116,8 +135,7 @@ export const updateOrderStatus = asyncHandler(async (req, res) => {
   const body = updateOrderStatusSchema.parse(req.body);
   const targetStatus = body.status;
   const remark = body.remark ?? null;
-  const operatorId = req.user?.id ?? null;
-  const operatorName = req.user?.username ?? "系统用户";
+  const { id: operatorId, name: operatorName } = getOperator(req);
   const result = await orderService.updateOrderStatus(orderNo, targetStatus, operatorId, operatorName, remark, tenantId);
   res.json(ok(result));
 });
@@ -127,8 +145,7 @@ export const batchUpdateOrderStatus = asyncHandler(async (req, res) => {
   const body = batchUpdateOrderStatusSchema.parse(req.body);
   const orderNos: string[] = body.orderNos;
   const targetStatus = body.status;
-  const operatorId = req.user?.id ?? null;
-  const operatorName = req.user?.username ?? "系统用户";
+  const { id: operatorId, name: operatorName } = getOperator(req);
   if (!orderNos.length) {
     res.status(400).json(fail("订单号列表不能为空", "400"));
     return;

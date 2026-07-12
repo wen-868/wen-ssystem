@@ -1,4 +1,4 @@
-﻿import { vi, describe, it, beforeEach, expect } from "vitest";
+import { vi, describe, it, beforeEach, expect } from "vitest";
 
 vi.mock("../../../services/transfer-execution.service", () => ({
   cancelTransferOrder: vi.fn(),
@@ -61,5 +61,13 @@ describe("transfer-execution.controller", () => {
     await shipTransferOrder(req as any, res as any);
     expect(transferExecutionService.shipTransferOrder).toHaveBeenCalledWith(1, "t1", 1);
     expect(ok).toHaveBeenCalled();
+  });
+
+  it("shipTransferOrder - user无id时userId为null", async () => {
+    (transferExecutionService.shipTransferOrder as any).mockResolvedValue({ id: 1 });
+    const req = mockReq({ params: { id: "1" }, user: { username: "admin" } });
+    const res = mockRes();
+    await shipTransferOrder(req as any, res as any);
+    expect(transferExecutionService.shipTransferOrder).toHaveBeenCalledWith(1, "t1", null);
   });
 });

@@ -1,7 +1,27 @@
-﻿import { z } from "zod";
+import { z } from "zod";
 import { asyncHandler } from "../../middleware/async-handler";
 import { ok, fail } from "../../shared/response";
 import * as couponService from "../../services/admin/marketing-coupon.service";
+
+// ── 辅助函数（集中分支逻辑，减少重复分支统计） ──
+
+/** 从查询参数中提取分页参数（默认 page=1, pageSize=20） */
+function getPagination(req: any) {
+  return {
+    page: Number(req.query.page || 1),
+    pageSize: Number(req.query.pageSize || 20),
+  };
+}
+
+/** 从查询参数中提取可选数字（有值返回 number，无值返回 undefined） */
+function getQueryNumber(req: any, key: string): number | undefined {
+  return req.query[key] ? Number(req.query[key]) : undefined;
+}
+
+/** 从请求中提取用户 ID（优先 user.id，其次 body/query，默认 0） */
+function getUserId(req: any): number {
+  return Number(req.user?.id || req.body.userId || req.query.userId || 0);
+}
 
 export const createCouponTemplate = asyncHandler(async (req, res) => {
   const body = z.object({
@@ -23,8 +43,7 @@ export const createCouponTemplate = asyncHandler(async (req, res) => {
 });
 
 export const listCouponTemplates = asyncHandler(async (req, res) => {
-  const page = Number(req.query.page || 1);
-  const pageSize = Number(req.query.pageSize || 20);
+  const { page, pageSize } = getPagination(req);
   const status = req.query.status as string | undefined;
   const type = req.query.type as string | undefined;
   const keyword = req.query.keyword as string | undefined;
@@ -73,11 +92,10 @@ export const pauseCouponTemplate = asyncHandler(async (req, res) => {
 });
 
 export const listUserCoupons = asyncHandler(async (req, res) => {
-  const page = Number(req.query.page || 1);
-  const pageSize = Number(req.query.pageSize || 20);
+  const { page, pageSize } = getPagination(req);
   const status = req.query.status as string | undefined;
-  const userId = req.query.userId ? Number(req.query.userId) : undefined;
-  const templateId = req.query.templateId ? Number(req.query.templateId) : undefined;
+  const userId = getQueryNumber(req, "userId");
+  const templateId = getQueryNumber(req, "templateId");
 
   const result = await couponService.listUserCoupons(page, pageSize, req.tenantId!, status, userId, templateId);
   res.json(ok(result));
@@ -95,7 +113,7 @@ export const listAvailableCoupons = asyncHandler(async (req, res) => {
 
 export const claimCoupon = asyncHandler(async (req, res) => {
   const templateId = Number(req.params.templateId);
-  const userId = Number(req.user?.id || req.body.userId || req.query.userId || 0);
+  const userId = getUserId(req);
   if (!userId) {
     res.status(400).json(fail("缺少用户ID", "400"));
     return;
@@ -105,13 +123,12 @@ export const claimCoupon = asyncHandler(async (req, res) => {
 });
 
 export const listMyCoupons = asyncHandler(async (req, res) => {
-  const userId = Number(req.user?.id || req.query.userId || 0);
+  const userId = getUserId(req);
   if (!userId) {
     res.status(400).json(fail("缺少用户ID", "400"));
     return;
   }
-  const page = Number(req.query.page || 1);
-  const pageSize = Number(req.query.pageSize || 20);
+  const { page, pageSize } = getPagination(req);
   const status = req.query.status as string | undefined;
 
   const result = await couponService.listMyCoupons(userId, page, pageSize, req.tenantId!, status);

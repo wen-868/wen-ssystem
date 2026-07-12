@@ -91,4 +91,31 @@ describe("sys-user.controller", () => {
     await deleteSysUser(req as any, res as any);
     expect(ok).toHaveBeenCalled();
   });
+
+  it("listSysUsers - 传keyword和status时正确过滤", async () => {
+    (queryOne as any).mockResolvedValue({ total: 1 });
+    (query as any).mockResolvedValue([{ id: 1, username: "test" }]);
+    const req = mockReq({ query: { keyword: "test", status: "ACTIVE" } });
+    const res = mockRes();
+    await listSysUsers(req as any, res as any);
+    expect(ok).toHaveBeenCalled();
+  });
+
+  it("listSysUsers - queryOne返回null时total使用默认值0", async () => {
+    (queryOne as any).mockResolvedValue(null);
+    (query as any).mockResolvedValue([]);
+    const req = mockReq({ query: {} });
+    const res = mockRes();
+    await listSysUsers(req as any, res as any);
+    expect(ok).toHaveBeenCalledWith(expect.objectContaining({ total: 0 }));
+  });
+
+  it("createSysUser - 用户名已存在应返回400", async () => {
+    (queryOne as any).mockResolvedValue({ id: 1 });
+    const req = mockReq({ body: { username: "test", realName: "Test", password: "123456" } });
+    const res = mockRes();
+    await createSysUser(req as any, res as any);
+    expect(res.status).toHaveBeenCalledWith(400);
+    expect(fail).toHaveBeenCalledWith("用户名已存在", "400");
+  });
 });

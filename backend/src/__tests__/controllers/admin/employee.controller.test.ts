@@ -1,4 +1,4 @@
-﻿import { vi, describe, it, beforeEach, expect } from "vitest";
+import { vi, describe, it, beforeEach, expect } from "vitest";
 
 vi.mock("../../../services/admin/employee.service", () => ({
   listStaff: vi.fn(),
@@ -135,5 +135,14 @@ describe("employee.controller", () => {
     await getStoreWechatInfo(req as any, res as any);
     expect(employeeService.getStoreWechatInfo).toHaveBeenCalledWith(1, "t1");
     expect(ok).toHaveBeenCalled();
+  });
+
+  // ==================== 分支覆盖率补充测试 ====================
+  it("listStores - 不传page/pageSize/keyword时使用默认值", async () => {
+    (employeeService.listStores as any).mockResolvedValue({ total: 0, records: [] });
+    const req = mockReq({ query: {} });
+    const res = mockRes();
+    await listStores(req as any, res as any);
+    expect(employeeService.listStores).toHaveBeenCalledWith(1, 20, "t1", "");
   });
 });

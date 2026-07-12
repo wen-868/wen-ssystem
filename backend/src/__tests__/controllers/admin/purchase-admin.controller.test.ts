@@ -1,4 +1,4 @@
-﻿import { vi, describe, it, beforeEach, expect } from "vitest";
+import { vi, describe, it, beforeEach, expect } from "vitest";
 
 vi.mock("../../../services/admin/purchase-order.service", () => ({
   listPurchaseOrders: vi.fn(),
@@ -216,6 +216,116 @@ describe("purchase-admin.controller", () => {
     const service = await import("../../../services/admin/purchase-return.service.js");
     (service.listPurchaseReturns as any).mockResolvedValue({ total: 0, records: [] });
     const req = mockReq({ query: { page: 1, pageSize: 20 } });
+    const res = mockRes();
+    await listPurchaseReturns(req as any, res as any);
+    expect(ok).toHaveBeenCalled();
+  });
+
+  it("listPurchaseOrders - 不传page/pageSize时使用默认值", async () => {
+    (purchaseOrderService.listPurchaseOrders as any).mockResolvedValue({ total: 0, records: [] });
+    const req = mockReq({ query: {} });
+    const res = mockRes();
+    await listPurchaseOrders(req as any, res as any);
+    expect(purchaseOrderService.listPurchaseOrders).toHaveBeenCalledWith(expect.objectContaining({
+      page: 1, pageSize: 20, supplierId: undefined, operatorId: undefined,
+    }));
+  });
+
+  it("listPurchaseOrders - 传supplierId和operatorId时正确解析", async () => {
+    (purchaseOrderService.listPurchaseOrders as any).mockResolvedValue({ total: 0, records: [] });
+    const req = mockReq({ query: { supplierId: "5", operatorId: "3" } });
+    const res = mockRes();
+    await listPurchaseOrders(req as any, res as any);
+    expect(purchaseOrderService.listPurchaseOrders).toHaveBeenCalledWith(expect.objectContaining({
+      supplierId: 5, operatorId: 3,
+    }));
+  });
+
+  it("createPurchaseOrder - user无id时使用默认值0", async () => {
+    (purchaseOrderService.createPurchaseOrder as any).mockResolvedValue({ id: 1 });
+    const req = mockReq({
+      user: { username: "admin" },
+      body: {
+        supplierId: 1,
+        storeId: 1,
+        items: [{ skuId: 1, quantity: 10, unitPrice: 100 }],
+      },
+    });
+    const res = mockRes();
+    await createPurchaseOrder(req as any, res as any);
+    expect(purchaseOrderService.createPurchaseOrder).toHaveBeenCalledWith(expect.objectContaining({
+      operatorId: 0,
+    }));
+  });
+
+  it("confirmPurchaseOrder - user无id时使用默认值0", async () => {
+    (purchaseOrderService.confirmPurchaseOrder as any).mockResolvedValue({ success: true });
+    const req = mockReq({ params: { id: 1 }, user: { username: "admin" } });
+    const res = mockRes();
+    await confirmPurchaseOrder(req as any, res as any);
+    expect(purchaseOrderService.confirmPurchaseOrder).toHaveBeenCalledWith(1, "t1", 0);
+  });
+
+  it("purchaseInStock - user无id时使用默认值0", async () => {
+    const service = await import("../../../services/admin/purchase-in-stock.service.js");
+    (service.purchaseInStock as any).mockResolvedValue({ id: 1 });
+    const req = mockReq({
+      params: { id: 1 },
+      user: { username: "admin" },
+      body: { items: [{ skuId: 1, quantity: 10 }] },
+    });
+    const res = mockRes();
+    await purchaseInStock(req as any, res as any);
+    expect(ok).toHaveBeenCalled();
+  });
+
+  it("purchaseReturn - user无id时使用默认值0", async () => {
+    const service = await import("../../../services/admin/purchase-return.service.js");
+    (service.purchaseReturn as any).mockResolvedValue({ id: 1 });
+    const req = mockReq({
+      user: { username: "admin" },
+      body: {
+        supplierId: 1,
+        storeId: 1,
+        items: [{ skuId: 1, quantity: 5, unitPrice: 100 }],
+      },
+    });
+    const res = mockRes();
+    await purchaseReturn(req as any, res as any);
+    expect(ok).toHaveBeenCalled();
+  });
+
+  it("listPurchaseInStocks - 不传page/pageSize时使用默认值", async () => {
+    const service = await import("../../../services/admin/purchase-in-stock.service.js");
+    (service.listPurchaseInStocks as any).mockResolvedValue({ total: 0, records: [] });
+    const req = mockReq({ query: {} });
+    const res = mockRes();
+    await listPurchaseInStocks(req as any, res as any);
+    expect(ok).toHaveBeenCalled();
+  });
+
+  it("listPurchaseInStocks - 传supplierId时正确解析", async () => {
+    const service = await import("../../../services/admin/purchase-in-stock.service.js");
+    (service.listPurchaseInStocks as any).mockResolvedValue({ total: 0, records: [] });
+    const req = mockReq({ query: { supplierId: "5" } });
+    const res = mockRes();
+    await listPurchaseInStocks(req as any, res as any);
+    expect(ok).toHaveBeenCalled();
+  });
+
+  it("listPurchaseReturns - 不传page/pageSize时使用默认值", async () => {
+    const service = await import("../../../services/admin/purchase-return.service.js");
+    (service.listPurchaseReturns as any).mockResolvedValue({ total: 0, records: [] });
+    const req = mockReq({ query: {} });
+    const res = mockRes();
+    await listPurchaseReturns(req as any, res as any);
+    expect(ok).toHaveBeenCalled();
+  });
+
+  it("listPurchaseReturns - 传supplierId时正确解析", async () => {
+    const service = await import("../../../services/admin/purchase-return.service.js");
+    (service.listPurchaseReturns as any).mockResolvedValue({ total: 0, records: [] });
+    const req = mockReq({ query: { supplierId: "5" } });
     const res = mockRes();
     await listPurchaseReturns(req as any, res as any);
     expect(ok).toHaveBeenCalled();

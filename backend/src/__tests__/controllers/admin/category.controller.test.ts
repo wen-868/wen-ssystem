@@ -68,4 +68,46 @@ describe("category.controller", () => {
     await sortCategory(req as any, res as any);
     expect(ok).toHaveBeenCalled();
   });
+
+  it("listCategories - 传pid时正确解析", async () => {
+    const req = mockReq({ query: { pid: "5" } });
+    const res = mockRes();
+    await listCategories(req as any, res as any);
+    expect(ok).toHaveBeenCalled();
+  });
+
+  it("listCategories - 传parentId时正确解析", async () => {
+    const req = mockReq({ query: { parentId: "3" } });
+    const res = mockRes();
+    await listCategories(req as any, res as any);
+    expect(ok).toHaveBeenCalled();
+  });
+
+  it("listCategories - 传allowOnlineSale时正确解析", async () => {
+    const req = mockReq({ query: { allowOnlineSale: "1" } });
+    const res = mockRes();
+    await listCategories(req as any, res as any);
+    expect(ok).toHaveBeenCalled();
+  });
+
+  it("listCategories - 传allow_online_sale时正确解析", async () => {
+    const req = mockReq({ query: { allow_online_sale: "0" } });
+    const res = mockRes();
+    await listCategories(req as any, res as any);
+    expect(ok).toHaveBeenCalled();
+  });
+
+  it("listCategories - 传status时正确解析", async () => {
+    const req = mockReq({ query: { status: "1" } });
+    const res = mockRes();
+    await listCategories(req as any, res as any);
+    expect(ok).toHaveBeenCalled();
+  });
+
+  it("listCategories - 不传任何查询参数时全部使用undefined", async () => {
+    const req = mockReq();
+    const res = mockRes();
+    await listCategories(req as any, res as any);
+    expect(ok).toHaveBeenCalled();
+  });
 });

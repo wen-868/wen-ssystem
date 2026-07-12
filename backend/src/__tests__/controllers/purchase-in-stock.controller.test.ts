@@ -1,4 +1,4 @@
-﻿import { vi, describe, it, beforeEach, expect } from "vitest";
+import { vi, describe, it, beforeEach, expect } from "vitest";
 
 vi.mock("@services/admin/purchase-in-stock.service", () => ({
   list: vi.fn(),
@@ -86,5 +86,25 @@ describe("purchase-in-stock.controller", () => {
     await voidStock(req as any, res as any);
     expect(purchaseInStockService.voidStock).toHaveBeenCalledWith("STK001", "t1", 1, "admin");
     expect(ok).toHaveBeenCalled();
+  });
+
+  it("list - 不传page/pageSize时使用默认值", async () => {
+    (purchaseInStockService.list as any).mockResolvedValue({ total: 0, records: [] });
+    const req = mockReq({ query: {} });
+    const res = mockRes();
+    await list(req as any, res as any);
+    expect(purchaseInStockService.list).toHaveBeenCalledWith(expect.objectContaining({
+      page: 1, pageSize: 20, supplierId: undefined,
+    }));
+  });
+
+  it("list - 传supplier_id时正确解析", async () => {
+    (purchaseInStockService.list as any).mockResolvedValue({ total: 0, records: [] });
+    const req = mockReq({ query: { supplier_id: "5" } });
+    const res = mockRes();
+    await list(req as any, res as any);
+    expect(purchaseInStockService.list).toHaveBeenCalledWith(expect.objectContaining({
+      supplierId: 5,
+    }));
   });
 });

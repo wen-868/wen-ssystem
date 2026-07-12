@@ -1,4 +1,4 @@
-﻿import { vi, describe, it, beforeEach, expect } from "vitest";
+import { vi, describe, it, beforeEach, expect } from "vitest";
 
 vi.mock("../../../services/admin/customer.service", () => ({
   listMembers: vi.fn(),
@@ -160,5 +160,37 @@ describe("customer.controller", () => {
     await getCustomerStats(req as any, res as any);
     expect(customerService.getCustomerStats).toHaveBeenCalledWith("t1");
     expect(ok).toHaveBeenCalled();
+  });
+
+  it("listMembers - 不传page/pageSize/keyword时使用默认值", async () => {
+    (customerService.listMembers as any).mockResolvedValue({ total: 0, records: [] });
+    const req = mockReq({ query: {} });
+    const res = mockRes();
+    await listMembers(req as any, res as any);
+    expect(customerService.listMembers).toHaveBeenCalledWith("t1", 1, 20, "");
+  });
+
+  it("listCustomerSaleBills - 不传page/pageSize时使用默认值", async () => {
+    (customerService.listCustomerSaleBills as any).mockResolvedValue({ total: 0, records: [] });
+    const req = mockReq({ params: { memberId: "1" }, query: {} });
+    const res = mockRes();
+    await listCustomerSaleBills(req as any, res as any);
+    expect(customerService.listCustomerSaleBills).toHaveBeenCalledWith("t1", 1, 1, 20);
+  });
+
+  it("listCustomerPayments - 不传page/pageSize时使用默认值", async () => {
+    (customerService.listCustomerPayments as any).mockResolvedValue({ total: 0, records: [] });
+    const req = mockReq({ params: { memberId: "1" }, query: {} });
+    const res = mockRes();
+    await listCustomerPayments(req as any, res as any);
+    expect(customerService.listCustomerPayments).toHaveBeenCalledWith("t1", 1, 1, 20);
+  });
+
+  it("listCustomerStatements - 不传page/pageSize时使用默认值", async () => {
+    (customerService.listCustomerStatements as any).mockResolvedValue({ total: 0, records: [] });
+    const req = mockReq({ params: { memberId: "1" }, query: {} });
+    const res = mockRes();
+    await listCustomerStatements(req as any, res as any);
+    expect(customerService.listCustomerStatements).toHaveBeenCalledWith("t1", 1, 1, 20);
   });
 });

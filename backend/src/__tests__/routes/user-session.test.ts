@@ -1,4 +1,4 @@
-﻿import { vi, describe, it, beforeEach, expect } from "vitest";
+import { vi, describe, it, beforeEach, expect } from "vitest";
 import request from "supertest";
 import { createTestApp } from "../fixtures/create-test-app";
 
@@ -78,6 +78,13 @@ describe("routes/user-session 集成测试", () => {
 
     it("用户无会话时返回成功", async () => {
       (userSessionService.getUserSessions as any).mockResolvedValue({ records: [] });
+      const res = await request(app).delete("/api/user-session/user/10");
+      expect(res.status).toBe(200);
+      expect(userSessionService.revokeSession).not.toHaveBeenCalled();
+    });
+
+    it("records为undefined时使用空数组兜底", async () => {
+      (userSessionService.getUserSessions as any).mockResolvedValue({});
       const res = await request(app).delete("/api/user-session/user/10");
       expect(res.status).toBe(200);
       expect(userSessionService.revokeSession).not.toHaveBeenCalled();

@@ -1,4 +1,4 @@
-﻿import { vi, describe, it, beforeEach, expect } from "vitest";
+import { vi, describe, it, beforeEach, expect } from "vitest";
 
 vi.mock("@shared/db", () => ({
   query: vi.fn().mockResolvedValue([]),
@@ -10,6 +10,7 @@ vi.mock("@shared/response", () => ({
   fail: vi.fn((msg, code) => ({ success: false, message: msg, code })),
 }));
 
+import { query, queryOne } from "@shared/db";
 import { ok } from "@shared/response";
 import { getPlatformOverview, listPlatformTenants } from "@controllers/admin/platform.controller";
 
@@ -39,5 +40,26 @@ describe("platform.controller", () => {
     const res = mockRes();
     await listPlatformTenants(req as any, res as any);
     expect(ok).toHaveBeenCalled();
+  });
+
+  it("getPlatformOverview - queryOne返回null时使用默认值0", async () => {
+    (queryOne as any).mockResolvedValue(null);
+    const req = mockReq();
+    const res = mockRes();
+    await getPlatformOverview(req as any, res as any);
+    expect(ok).toHaveBeenCalledWith({
+      tenantCount: 0,
+      userCount: 0,
+      storeCount: 0,
+      orderCount: 0,
+    });
+  });
+
+  it("listPlatformTenants - query返回null时使用空数组兜底", async () => {
+    (query as any).mockResolvedValue(null);
+    const req = mockReq();
+    const res = mockRes();
+    await listPlatformTenants(req as any, res as any);
+    expect(ok).toHaveBeenCalledWith([]);
   });
 });

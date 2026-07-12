@@ -1,4 +1,4 @@
-﻿import { vi, describe, it, beforeEach, expect } from "vitest";
+import { vi, describe, it, beforeEach, expect } from "vitest";
 
 vi.mock("../../../services/admin/marketing-flash-sale.service", () => ({
   createFlashSale: vi.fn(),
@@ -92,6 +92,14 @@ describe("marketing-flash-sale.controller", () => {
     await listFlashSales(req as any, res as any);
     expect(flashSaleService.listFlashSales).toHaveBeenCalled();
     expect(ok).toHaveBeenCalled();
+  });
+
+  it("listFlashSales - 不传page和pageSize时使用默认值", async () => {
+    (flashSaleService.listFlashSales as any).mockResolvedValue({ total: 0, records: [] });
+    const req = mockReq({ query: {} });
+    const res = mockRes();
+    await listFlashSales(req as any, res as any);
+    expect(flashSaleService.listFlashSales).toHaveBeenCalledWith(1, 20, "t1", undefined);
   });
 
   it("getFlashSale - 应返回单个限时抢购", async () => {

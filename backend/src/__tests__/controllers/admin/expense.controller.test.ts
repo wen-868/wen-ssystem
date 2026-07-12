@@ -1,4 +1,4 @@
-﻿import { vi, describe, it, beforeEach, expect } from "vitest";
+import { vi, describe, it, beforeEach, expect } from "vitest";
 
 vi.mock("../../../services/admin/expense.service", () => ({
   createExpense: vi.fn(),
@@ -166,5 +166,28 @@ describe("expense.controller", () => {
     const req = mockReq({ params: { expenseNo: "E001" } });
     const res = mockRes();
     await expect(approveExpense(req as any, res as any)).rejects.toThrow(error);
+  });
+
+  it("listExpenses - 不传page和pageSize时使用默认值1和20", async () => {
+    (expenseService.listExpenses as any).mockResolvedValue({ total: 0, records: [] });
+    const req = mockReq({ query: {} });
+    const res = mockRes();
+    await listExpenses(req as any, res as any);
+    expect(expenseService.listExpenses).toHaveBeenCalledWith(expect.objectContaining({
+      page: 1, pageSize: 20, tenantId: "t1",
+    }));
+  });
+
+  it("updateExpense - 不传remark时应为undefined", async () => {
+    (expenseService.updateExpense as any).mockResolvedValue({ success: true });
+    const req = mockReq({
+      params: { expenseNo: "E001" },
+      body: { expenseType: "OFFICE", category: "办公", amount: 200, payee: "B", paymentMethod: "CASH", expenseDate: "2026-02-01" },
+    });
+    const res = mockRes();
+    await updateExpense(req as any, res as any);
+    expect(expenseService.updateExpense).toHaveBeenCalledWith("E001", expect.objectContaining({
+      remark: undefined, tenantId: "t1",
+    }));
   });
 });

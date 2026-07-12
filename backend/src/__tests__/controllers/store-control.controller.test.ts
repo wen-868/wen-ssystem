@@ -1,4 +1,4 @@
-﻿import { vi, describe, it, beforeEach, expect } from "vitest";
+import { vi, describe, it, beforeEach, expect } from "vitest";
 
 vi.mock("@services/admin/store-control.service", () => ({
   getConfigs: vi.fn(),
@@ -152,6 +152,22 @@ describe("store-control.controller", () => {
       await storeStoreControl.myLogs(req as any, res as any);
       expect(storeControlService.getMyLogs).toHaveBeenCalled();
       expect(ok).toHaveBeenCalled();
+    });
+
+    it("status - user无storeId时使用默认值1", async () => {
+      (storeControlService.getStoreStatus as any).mockResolvedValue({ status: "OPEN" });
+      const req = mockReq({ user: { id: 1, username: "admin" } });
+      const res = mockRes();
+      await storeStoreControl.status(req as any, res as any);
+      expect(storeControlService.getStoreStatus).toHaveBeenCalledWith(1, "t1");
+    });
+
+    it("myLogs - user无storeId时使用默认值1", async () => {
+      (storeControlService.getMyLogs as any).mockResolvedValue({ total: 0, records: [] });
+      const req = mockReq({ user: { id: 1, username: "admin" } });
+      const res = mockRes();
+      await storeStoreControl.myLogs(req as any, res as any);
+      expect(storeControlService.getMyLogs).toHaveBeenCalledWith(expect.objectContaining({ storeId: 1 }));
     });
   });
 

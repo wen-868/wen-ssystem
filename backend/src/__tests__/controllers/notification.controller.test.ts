@@ -1,4 +1,4 @@
-﻿import { vi, describe, it, beforeEach, expect } from "vitest";
+import { vi, describe, it, beforeEach, expect } from "vitest";
 
 vi.mock("@services/admin/notification.service", () => ({
   listNotifications: vi.fn(),
@@ -179,5 +179,68 @@ describe("notification.controller", () => {
     it("getMiniappUnreadCount should equal myUnreadCount", () => expect(getMiniappUnreadCount).toBe(myUnreadCount));
     it("markMiniappAsRead should equal myMarkRead", () => expect(markMiniappAsRead).toBe(myMarkRead));
     it("markMiniappAllAsRead should equal myMarkAllRead", () => expect(markMiniappAllAsRead).toBe(myMarkAllRead));
+  });
+
+  // ==================== 分支覆盖率补充测试 ====================
+  describe("分支覆盖率补充", () => {
+    it("list - 不传page/pageSize时使用默认值", async () => {
+      (notificationService.listNotifications as any).mockResolvedValue({ total: 0, records: [] });
+      const req = mockReq({ query: {} });
+      const res = mockRes();
+      await list(req as any, res as any);
+      expect(notificationService.listNotifications).toHaveBeenCalled();
+    });
+
+    it("list - 传isRead有值时正确解析", async () => {
+      (notificationService.listNotifications as any).mockResolvedValue({ total: 0, records: [] });
+      const req = mockReq({ query: { isRead: "1" } });
+      const res = mockRes();
+      await list(req as any, res as any);
+      expect(notificationService.listNotifications).toHaveBeenCalledWith("t1", expect.objectContaining({ isRead: 1 }), 1, 20);
+    });
+
+    it("list - isRead为空串时使用undefined", async () => {
+      (notificationService.listNotifications as any).mockResolvedValue({ total: 0, records: [] });
+      const req = mockReq({ query: { isRead: "" } });
+      const res = mockRes();
+      await list(req as any, res as any);
+      expect(notificationService.listNotifications).toHaveBeenCalledWith("t1", expect.objectContaining({ isRead: undefined }), 1, 20);
+    });
+
+    it("send - 传relatedId和relatedType时正确解析", async () => {
+      (notificationService.sendNotification as any).mockResolvedValue(1);
+      const req = mockReq({
+        body: { recipientId: 1, title: "测试", content: "内容", relatedId: 10, relatedType: "ORDER" },
+      });
+      const res = mockRes();
+      await send(req as any, res as any);
+      expect(notificationService.sendNotification).toHaveBeenCalledWith(expect.objectContaining({
+        relatedId: 10, relatedType: "ORDER"
+      }));
+    });
+
+    it("myUnreadCount - 未登录应返回401", async () => {
+      const req = mockReq({ user: {} });
+      const res = mockRes();
+      await myUnreadCount(req as any, res as any);
+      expect(res.status).toHaveBeenCalledWith(401);
+      expect(fail).toHaveBeenCalled();
+    });
+
+    it("myMarkAllRead - 未登录应返回401", async () => {
+      const req = mockReq({ user: {} });
+      const res = mockRes();
+      await myMarkAllRead(req as any, res as any);
+      expect(res.status).toHaveBeenCalledWith(401);
+      expect(fail).toHaveBeenCalled();
+    });
+
+    it("myList - 不传page/pageSize时使用默认值", async () => {
+      (notificationService.listMyNotifications as any).mockResolvedValue({ total: 0, records: [] });
+      const req = mockReq({ query: {} });
+      const res = mockRes();
+      await myList(req as any, res as any);
+      expect(notificationService.listMyNotifications).toHaveBeenCalledWith("t1", 1, 1, 20);
+    });
   });
 });

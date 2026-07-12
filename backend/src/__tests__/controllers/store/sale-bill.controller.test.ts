@@ -1,4 +1,4 @@
-﻿import { vi, describe, it, beforeEach, expect } from "vitest";
+import { vi, describe, it, beforeEach, expect } from "vitest";
 import { z, ZodError } from "zod";
 
 vi.mock("../../../services/store/sale-bill.service", () => ({
@@ -239,5 +239,74 @@ describe("store/sale-bill.controller", () => {
     const res = mockRes();
     await expect(paymentOnSaleBill(req as any, res as any)).rejects.toThrow(ZodError);
     expect(saleBillService.paymentOnSaleBill).not.toHaveBeenCalled();
+  });
+
+  // ==================== 分支覆盖率补充测试 ====================
+  it("listSaleBills - 不传参数且user无storeId时使用默认值", async () => {
+    (saleBillService.listSaleBills as any).mockResolvedValue({ total: 0, records: [] });
+    const req = mockReq({ query: {}, user: { id: 1, username: "storeuser" } });
+    const res = mockRes();
+    await listSaleBills(req as any, res as any);
+    expect(saleBillService.listSaleBills).toHaveBeenCalledWith({
+      page: 1, pageSize: 20, storeId: null, keyword: "", collectionStatus: null, tenantId: "t1"
+    });
+  });
+
+  it("createSaleBill - user无id且不传storeId时使用默认值1", async () => {
+    (saleBillService.createSaleBill as any).mockResolvedValue({ billNo: "BILL001" });
+    const req = mockReq({ body: { items: [{ skuId: 1, quantity: 1, unitPrice: 100 }] }, user: {} });
+    const res = mockRes();
+    await createSaleBill(req as any, res as any);
+    expect(saleBillService.createSaleBill).toHaveBeenCalledWith(expect.objectContaining({
+      storeId: 1, userId: 0, tenantId: "t1"
+    }));
+  });
+
+  it("createCollectionLink - user无id时使用默认值0", async () => {
+    (saleBillService.createCollectionLink as any).mockResolvedValue({ linkId: "LINK001" });
+    const req = mockReq({ params: { billNo: "BILL001" }, body: { amount: 100 }, user: {} });
+    const res = mockRes();
+    await createCollectionLink(req as any, res as any);
+    expect(saleBillService.createCollectionLink).toHaveBeenCalledWith(expect.objectContaining({
+      userId: 0, tenantId: "t1"
+    }));
+  });
+
+  it("offlinePayment - user无id/username时使用默认值", async () => {
+    (saleBillService.offlinePayment as any).mockResolvedValue({ success: true });
+    const req = mockReq({ params: { billNo: "BILL001" }, body: { amount: 100, paymentMethod: "CASH" }, user: {} });
+    const res = mockRes();
+    await offlinePayment(req as any, res as any);
+    expect(saleBillService.offlinePayment).toHaveBeenCalledWith(expect.objectContaining({
+      userId: 0, username: "系统用户", tenantId: "t1"
+    }));
+  });
+
+  it("paymentOnSaleBill - user无id/username时使用默认值", async () => {
+    (saleBillService.paymentOnSaleBill as any).mockResolvedValue({ success: true });
+    const req = mockReq({ params: { billNo: "BILL001" }, body: { amount: 100, paymentMethod: "ALIPAY" }, user: {} });
+    const res = mockRes();
+    await paymentOnSaleBill(req as any, res as any);
+    expect(saleBillService.paymentOnSaleBill).toHaveBeenCalledWith(expect.objectContaining({
+      userId: 0, username: "系统用户", tenantId: "t1"
+    }));
+  });
+
+  it("listOverdueBills - 不传参数且user无storeId时使用默认值", async () => {
+    (saleBillService.listOverdueBills as any).mockResolvedValue({ total: 0, records: [] });
+    const req = mockReq({ query: {}, user: { id: 1, username: "storeuser" } });
+    const res = mockRes();
+    await listOverdueBills(req as any, res as any);
+    expect(saleBillService.listOverdueBills).toHaveBeenCalledWith({
+      page: 1, pageSize: 20, storeId: null, tenantId: "t1"
+    });
+  });
+
+  it("checkOverdueBills - user无storeId时使用null", async () => {
+    (saleBillService.checkOverdueBills as any).mockResolvedValue({ count: 0 });
+    const req = mockReq({ user: { id: 1, username: "storeuser" } });
+    const res = mockRes();
+    await checkOverdueBills(req as any, res as any);
+    expect(saleBillService.checkOverdueBills).toHaveBeenCalledWith(null, "t1");
   });
 });

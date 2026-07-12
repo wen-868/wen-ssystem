@@ -1,4 +1,4 @@
-﻿import { vi, describe, it, beforeEach, expect } from "vitest";
+import { vi, describe, it, beforeEach, expect } from "vitest";
 
 vi.mock("../../../services/admin/order.service", () => ({
   listOrders: vi.fn(),
@@ -149,5 +149,94 @@ describe("order.controller", () => {
     const res = mockRes();
     await getOrderOperationLogs(req as any, res as any);
     expect(ok).toHaveBeenCalled();
+  });
+
+  it("listOrders - 不传page/pageSize时使用默认值", async () => {
+    (orderService.listOrders as any).mockResolvedValue({ total: 0, records: [] });
+    const req = mockReq({ query: {} });
+    const res = mockRes();
+    await listOrders(req as any, res as any);
+    expect(orderService.listOrders).toHaveBeenCalledWith(1, 20, "", "", "", "", "t1");
+  });
+
+  it("listOrders - 传全部参数时正确解析", async () => {
+    (orderService.listOrders as any).mockResolvedValue({ total: 0, records: [] });
+    const req = mockReq({ query: { page: 2, pageSize: 50, keyword: "test", status: "PENDING", dateStart: "2024-01-01", dateEnd: "2024-12-31" } });
+    const res = mockRes();
+    await listOrders(req as any, res as any);
+    expect(orderService.listOrders).toHaveBeenCalledWith(2, 50, "test", "PENDING", "2024-01-01", "2024-12-31", "t1");
+  });
+
+  it("exportOrdersCsv - 传全部参数时正确解析", async () => {
+    (orderService.exportOrdersCsv as any).mockResolvedValue({ filename: "orders.csv", csv: "data" });
+    const req = mockReq({ query: { keyword: "test", status: "PENDING", dateStart: "2024-01-01", dateEnd: "2024-12-31" } });
+    const res = mockRes();
+    await exportOrdersCsv(req as any, res as any);
+    expect(orderService.exportOrdersCsv).toHaveBeenCalledWith("test", "PENDING", "2024-01-01", "2024-12-31", "t1");
+  });
+
+  it("listSaleBills - 不传page/pageSize时使用默认值", async () => {
+    (orderService.listSaleBills as any).mockResolvedValue({ total: 0, records: [] });
+    const req = mockReq({ query: {} });
+    const res = mockRes();
+    await listSaleBills(req as any, res as any);
+    expect(orderService.listSaleBills).toHaveBeenCalledWith(1, 20, "", "", "", "", "t1");
+  });
+
+  it("listSaleBills - 传全部参数时正确解析", async () => {
+    (orderService.listSaleBills as any).mockResolvedValue({ total: 0, records: [] });
+    const req = mockReq({ query: { page: 2, pageSize: 50, keyword: "test", status: "PAID", dateStart: "2024-01-01", dateEnd: "2024-12-31" } });
+    const res = mockRes();
+    await listSaleBills(req as any, res as any);
+    expect(orderService.listSaleBills).toHaveBeenCalledWith(2, 50, "test", "PAID", "2024-01-01", "2024-12-31", "t1");
+  });
+
+  it("exportSaleBillsCsv - 应导出销售单CSV", async () => {
+    (orderService.exportSaleBillsCsv as any).mockResolvedValue({ filename: "sale-bills.csv", csv: "data" });
+    const req = mockReq();
+    const res = mockRes();
+    await exportSaleBillsCsv(req as any, res as any);
+    expect(res.setHeader).toHaveBeenCalledWith("content-type", "text/csv; charset=utf-8");
+    expect(res.send).toHaveBeenCalledWith("data");
+  });
+
+  it("exportSaleBillsCsv - 传全部参数时正确解析", async () => {
+    (orderService.exportSaleBillsCsv as any).mockResolvedValue({ filename: "sale-bills.csv", csv: "data" });
+    const req = mockReq({ query: { keyword: "test", status: "PAID", dateStart: "2024-01-01", dateEnd: "2024-12-31" } });
+    const res = mockRes();
+    await exportSaleBillsCsv(req as any, res as any);
+    expect(orderService.exportSaleBillsCsv).toHaveBeenCalledWith("test", "PAID", "2024-01-01", "2024-12-31", "t1");
+  });
+
+  it("cancelOrder - user无id/username时使用默认值", async () => {
+    (orderService.cancelOrder as any).mockResolvedValue({ success: true });
+    const req = mockReq({ params: { orderNo: "ORD001" }, body: { reason: "测试取消" }, user: {} });
+    const res = mockRes();
+    await cancelOrder(req as any, res as any);
+    expect(orderService.cancelOrder).toHaveBeenCalledWith("ORD001", "测试取消", null, "系统用户", "t1");
+  });
+
+  it("remarkOrder - user无id/username时使用默认值", async () => {
+    (orderService.remarkOrder as any).mockResolvedValue({ success: true });
+    const req = mockReq({ params: { orderNo: "ORD001" }, body: { remark: "测试备注" }, user: {} });
+    const res = mockRes();
+    await remarkOrder(req as any, res as any);
+    expect(orderService.remarkOrder).toHaveBeenCalledWith("ORD001", "测试备注", null, "系统用户", "t1");
+  });
+
+  it("updateOrderStatus - 传remark且user无id时使用默认值", async () => {
+    (orderService.updateOrderStatus as any).mockResolvedValue({ success: true });
+    const req = mockReq({ params: { orderNo: "ORD001" }, body: { status: "SHIPPED", remark: "测试备注" }, user: {} });
+    const res = mockRes();
+    await updateOrderStatus(req as any, res as any);
+    expect(orderService.updateOrderStatus).toHaveBeenCalledWith("ORD001", "SHIPPED", null, "系统用户", "测试备注", "t1");
+  });
+
+  it("batchUpdateOrderStatus - user无id/username时使用默认值", async () => {
+    (orderService.batchUpdateOrderStatus as any).mockResolvedValue({ success: 5 });
+    const req = mockReq({ body: { orderNos: ["ORD001", "ORD002"], status: "SHIPPED" }, user: {} });
+    const res = mockRes();
+    await batchUpdateOrderStatus(req as any, res as any);
+    expect(orderService.batchUpdateOrderStatus).toHaveBeenCalledWith(["ORD001", "ORD002"], "SHIPPED", null, "系统用户", "t1");
   });
 });

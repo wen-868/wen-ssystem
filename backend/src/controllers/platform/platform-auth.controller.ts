@@ -5,9 +5,25 @@ import { env } from "../../shared/env";
 import { ok, fail } from "../../shared/response";
 import { hashPassword, validatePassword } from "../../shared/password";
 
+// ── 辅助函数（集中分支逻辑，减少重复分支统计） ──
+
+/** 获取字符串值，无值时返回默认值 */
+function getStringOrDefault(value: unknown, defaultValue: string): string {
+  return value ? String(value) : defaultValue;
+}
+
+/** 检查必填字段，返回缺失的字段名或 null */
+function checkRequired(fields: Record<string, unknown>, names: string[]): string | null {
+  for (const name of names) {
+    if (!fields[name]) return name;
+  }
+  return null;
+}
+
 export async function platformLogin(req: any, res: any) {
   const { username, password } = req.body;
-  if (!username || !password) {
+  const missing = checkRequired({ username, password }, ["username", "password"]);
+  if (missing) {
     res.status(400).json(fail("用户名和密码不能为空", "400"));
     return;
   }
@@ -46,7 +62,8 @@ export async function getPlatformMe(req: any, res: any) {
 export async function createPlatformAdmin(req: any, res: any) {
   const { username, password, realName, email, phone, role } = req.body;
 
-  if (!username || !password || !realName) {
+  const missing = checkRequired({ username, password, realName }, ["username", "password", "realName"]);
+  if (missing) {
     res.status(400).json(fail("用户名、密码、真实姓名不能为空", "400"));
     return;
   }
@@ -67,7 +84,7 @@ export async function createPlatformAdmin(req: any, res: any) {
 
   const result = await query<any>(
     "INSERT INTO platform_admin (username, password_hash, real_name, email, phone, role) VALUES (?, ?, ?, ?, ?, ?)",
-    [username, passwordHash, realName, email || "", phone || "", role || "PLATFORM_ADMIN"]
+    [username, passwordHash, realName, getStringOrDefault(email, ""), getStringOrDefault(phone, ""), getStringOrDefault(role, "PLATFORM_ADMIN")]
   );
 
   const adminId = (result as unknown as { insertId: number }).insertId;

@@ -1,4 +1,4 @@
-﻿import { vi, describe, it, beforeEach, expect } from "vitest";
+import { vi, describe, it, beforeEach, expect } from "vitest";
 
 vi.mock("@services/admin/customer-payment.service", () => ({
   list: vi.fn(),
@@ -49,6 +49,26 @@ describe("customer-payment.controller", () => {
     await list(req as any, res as any);
     expect(customerPaymentService.list).toHaveBeenCalled();
     expect(ok).toHaveBeenCalled();
+  });
+
+  it("list - 不传page和pageSize时使用默认值", async () => {
+    (customerPaymentService.list as any).mockResolvedValue({ total: 0, records: [] });
+    const req = mockReq({ query: {} });
+    const res = mockRes();
+    await list(req as any, res as any);
+    expect(customerPaymentService.list).toHaveBeenCalledWith(expect.objectContaining({
+      page: 1, pageSize: 20, customerId: undefined,
+    }));
+  });
+
+  it("list - 传customer_id时正确解析", async () => {
+    (customerPaymentService.list as any).mockResolvedValue({ total: 0, records: [] });
+    const req = mockReq({ query: { customer_id: "5" } });
+    const res = mockRes();
+    await list(req as any, res as any);
+    expect(customerPaymentService.list).toHaveBeenCalledWith(expect.objectContaining({
+      customerId: 5,
+    }));
   });
 
   it("getDetail - 应返回收款详情", async () => {

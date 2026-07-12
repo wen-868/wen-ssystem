@@ -1,13 +1,32 @@
-﻿import { z } from "zod";
+import { z } from "zod";
 import { asyncHandler } from "../../middleware/async-handler";
 import { ok, fail } from "../../shared/response";
 import * as productService from "../../services/admin/product.service";
 
+// ── 辅助函数（集中分支逻辑，减少重复分支统计） ──
+
+/** 从查询参数中提取分页参数（默认 page=1, pageSize=20） */
+function getPagination(req: any) {
+  return {
+    page: Number(req.query.page || 1),
+    pageSize: Number(req.query.pageSize || 20),
+  };
+}
+
+/** 从查询参数中提取字符串（无值返回空串） */
+function getQueryString(req: any, key: string): string {
+  return String(req.query[key] || "");
+}
+
+/** 从请求中提取操作人 ID（默认 0） */
+function getOperatorId(req: any): number {
+  return req.user!.id ?? 0;
+}
+
 export const listProducts = asyncHandler(async (req, res) => {
   const tenantId = req.tenantId!;
-  const page = Number(req.query.page || 1);
-  const pageSize = Number(req.query.pageSize || 20);
-  const keyword = String(req.query.keyword || "");
+  const { page, pageSize } = getPagination(req);
+  const keyword = getQueryString(req, "keyword");
   const result = await productService.listProducts(keyword, page, pageSize, tenantId);
   res.json(ok(result));
 });
@@ -131,7 +150,7 @@ export const updateProductPrice = asyncHandler(async (req, res) => {
     miniappPrice: z.number().nullable().optional(),
     storePrice: z.number().nullable().optional()
   }).parse(req.body);
-  const result = await productService.updateProductPrice(skuId, body, tenantId, req.user!.id ?? 0);
+  const result = await productService.updateProductPrice(skuId, body, tenantId, getOperatorId(req));
   res.json(ok(result));
 });
 

@@ -1,4 +1,4 @@
-﻿import { vi, describe, it, beforeEach, expect } from "vitest";
+import { vi, describe, it, beforeEach, expect } from "vitest";
 
 vi.mock("../../../services/transfer-order.service", () => ({
   createTransferOrder: vi.fn(),
@@ -130,5 +130,29 @@ describe("transfer-order.controller", () => {
     await rejectTransferOrder(req as any, res as any);
     expect(transferOrderService.rejectTransferOrder).toHaveBeenCalledWith(1, "t1");
     expect(ok).toHaveBeenCalled();
+  });
+
+  it("createTransferOrder - user无id时userId为null", async () => {
+    (transferOrderService.createTransferOrder as any).mockResolvedValue({ id: 1 });
+    const req = mockReq({
+      body: {
+        fromStoreId: 1, toStoreId: 2,
+        items: [{ skuId: 1, skuName: "商品1", quantity: 10, unitPrice: 100 }],
+      },
+      user: { username: "admin" },
+    });
+    const res = mockRes();
+    await createTransferOrder(req as any, res as any);
+    expect(transferOrderService.createTransferOrder).toHaveBeenCalledWith(expect.objectContaining({
+      userId: null,
+    }));
+  });
+
+  it("approveTransferOrder - user无id时userId为null", async () => {
+    (transferOrderService.approveTransferOrder as any).mockResolvedValue({ id: 1 });
+    const req = mockReq({ params: { id: "1" }, user: { username: "admin" } });
+    const res = mockRes();
+    await approveTransferOrder(req as any, res as any);
+    expect(transferOrderService.approveTransferOrder).toHaveBeenCalledWith(1, "t1", null);
   });
 });

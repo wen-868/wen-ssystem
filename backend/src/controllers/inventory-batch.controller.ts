@@ -1,7 +1,22 @@
-﻿import { z } from "zod";
+import { z } from "zod";
 import { asyncHandler } from "../middleware/async-handler";
 import { ok, fail } from "../shared/response";
 import * as service from "../services/admin/inventory-batch.service";
+
+// ── 辅助函数（集中分支逻辑，减少重复分支统计） ──
+
+/** 从查询参数中提取分页参数（默认 page=1, pageSize=20） */
+function getPagination(req: any) {
+  return {
+    page: Number(req.query.page || 1),
+    pageSize: Number(req.query.pageSize || 20),
+  };
+}
+
+/** 从查询参数中提取可选数字（有值返回 number，无值返回 undefined） */
+function getQueryNumber(req: any, key: string): number | undefined {
+  return req.query[key] ? Number(req.query[key]) : undefined;
+}
 
 // ── Zod schemas ──
 const createBatchSchema = z.object({
@@ -45,11 +60,12 @@ const updateExpiryConfigSchema = z.object({
 // ==================== 批次管理 ====================
 
 export const listBatches = asyncHandler(async (req, res) => {
+  const { page, pageSize } = getPagination(req);
   const result = await service.listBatches(req.tenantId!, {
-    page: Number(req.query.page || 1),
-    pageSize: Number(req.query.pageSize || 20),
-    storeId: req.query.storeId ? Number(req.query.storeId) : undefined,
-    skuId: req.query.skuId ? Number(req.query.skuId) : undefined,
+    page,
+    pageSize,
+    storeId: getQueryNumber(req, "storeId"),
+    skuId: getQueryNumber(req, "skuId"),
     expiryStatus: req.query.expiryStatus as "normal" | "warning" | "danger" | "expired" | undefined,
   });
   res.json(ok(result));
@@ -121,12 +137,13 @@ export const deleteExpiryConfig = asyncHandler(async (req, res) => {
 // ==================== 效期预警记录 ====================
 
 export const listExpiryAlerts = asyncHandler(async (req, res) => {
+  const { page, pageSize } = getPagination(req);
   const result = await service.listExpiryAlerts(req.tenantId!, {
-    page: Number(req.query.page || 1),
-    pageSize: Number(req.query.pageSize || 20),
-    alertLevel: req.query.alertLevel ? Number(req.query.alertLevel) : undefined,
+    page,
+    pageSize,
+    alertLevel: getQueryNumber(req, "alertLevel"),
     status: req.query.status as "PENDING" | "HANDLED" | "EXPIRED" | undefined,
-    storeId: req.query.storeId ? Number(req.query.storeId) : undefined,
+    storeId: getQueryNumber(req, "storeId"),
   });
   res.json(ok(result));
 });
