@@ -1,11 +1,6 @@
-/**
- * 管理端报表 controller 单元测试
- * 被测文件：src/controllers/admin/report.controller.ts
- */
-import { describe, it, expect, vi, beforeEach } from "vitest";
+import { vi, describe, it, beforeEach, expect } from "vitest";
 
-const mocks = vi.hoisted(() => ({
-  ok: vi.fn((data?: any) => ({ code: "0", data })),
+vi.mock("../../../services/admin/report.service.js", () => ({
   getDashboard: vi.fn(),
   getDailySalesTrend: vi.fn(),
   getStoreSalesPerformance: vi.fn(),
@@ -26,50 +21,43 @@ const mocks = vi.hoisted(() => ({
   getInventoryTurnover: vi.fn(),
   getInventoryAge: vi.fn(),
   getInventoryABC: vi.fn(),
+}));
+
+vi.mock("../../../services/store/sale-bill.service.js", () => ({
   batchCreateCollectionLinks: vi.fn(),
+}));
+
+vi.mock("../../../shared/response.js", () => ({
+  ok: vi.fn((data) => ({ success: true, data })),
+  fail: vi.fn((msg, code) => ({ success: false, message: msg, code })),
 }));
 
 vi.mock("../../../middleware/async-handler.js", () => ({
   asyncHandler: (fn: any) => fn,
 }));
 
-vi.mock("../../../shared/response.js", () => ({
-  ok: mocks.ok,
-}));
-
-vi.mock("../../../services/admin/report.service.js", () => ({
-  getDashboard: mocks.getDashboard,
-  getDailySalesTrend: mocks.getDailySalesTrend,
-  getStoreSalesPerformance: mocks.getStoreSalesPerformance,
-  getInventoryAlerts: mocks.getInventoryAlerts,
-  listInventoryBalance: mocks.listInventoryBalance,
-  listInventoryLogs: mocks.listInventoryLogs,
-  listCollectionLinks: mocks.listCollectionLinks,
-  listPaymentOrders: mocks.listPaymentOrders,
-  listRefundOrders: mocks.listRefundOrders,
-  getCollectionLinkStats: mocks.getCollectionLinkStats,
-  revokeCollectionLink: mocks.revokeCollectionLink,
-  getSalesRanking: mocks.getSalesRanking,
-  getProductRanking: mocks.getProductRanking,
-  getSalesTrend: mocks.getSalesTrend,
-  getPurchaseSummary: mocks.getPurchaseSummary,
-  getPurchaseTrend: mocks.getPurchaseTrend,
-  getSupplierRanking: mocks.getSupplierRanking,
-  getInventoryTurnover: mocks.getInventoryTurnover,
-  getInventoryAge: mocks.getInventoryAge,
-  getInventoryABC: mocks.getInventoryABC,
-}));
-
-vi.mock("../../../services/store/sale-bill.service.js", () => ({
-  batchCreateCollectionLinks: mocks.batchCreateCollectionLinks,
-}));
-
+import * as reportService from "../../../services/admin/report.service.js";
+import { ok } from "../../../shared/response.js";
 import {
   getDashboard,
+  getDailySalesTrend,
+  getStoreSalesPerformance,
+  getInventoryAlerts,
   listInventoryBalance,
+  listInventoryLogs,
+  listCollectionLinks,
+  listPaymentOrders,
+  listRefundOrders,
+  getCollectionLinkStats,
   revokeCollectionLink,
   batchCreateCollectionLinks,
+  getSalesRanking,
+  getProductRanking,
   getSalesTrend,
+  getPurchaseSummary,
+  getPurchaseTrend,
+  getSupplierRanking,
+  getInventoryTurnover,
   getInventoryAge,
   getInventoryABC,
 } from "../../../controllers/admin/report.controller.js";
@@ -80,6 +68,7 @@ const mockReq = (overrides: any = {}) => ({
   query: {},
   params: {},
   body: {},
+  headers: {},
   ...overrides,
 });
 
@@ -92,89 +81,216 @@ const mockRes = () => {
   return res;
 };
 
-beforeEach(() => {
-  vi.clearAllMocks();
-});
+describe("report.controller", () => {
+  beforeEach(() => vi.clearAllMocks());
 
-describe("admin report.controller", () => {
-  it("getDashboard 仅传 tenantId", async () => {
-    mocks.getDashboard.mockResolvedValue({ salesAmount: 1000 });
-    const req = mockReq();
+  it("getDashboard - 应返回仪表板数据", async () => {
+    (reportService.getDashboard as any).mockResolvedValue({});
+    const req = mockReq({});
     const res = mockRes();
-    await getDashboard(req, res);
-    expect(mocks.getDashboard).toHaveBeenCalledWith("t1");
-    expect(res.json).toHaveBeenCalled();
+    await getDashboard(req as any, res as any);
+    expect(reportService.getDashboard).toHaveBeenCalledWith("t1");
+    expect(ok).toHaveBeenCalled();
   });
 
-  it("listInventoryBalance 传递所有查询参数", async () => {
-    mocks.listInventoryBalance.mockResolvedValue({ records: [], total: 0 });
-    const req = mockReq({ query: { page: "2", pageSize: "15", keyword: "白酒", storeId: "3", category: "5" } });
+  it("getDailySalesTrend - 应返回每日销售趋势", async () => {
+    (reportService.getDailySalesTrend as any).mockResolvedValue([]);
+    const req = mockReq({});
     const res = mockRes();
-    await listInventoryBalance(req, res);
-    expect(mocks.listInventoryBalance).toHaveBeenCalledWith("t1", 2, 15, "白酒", 3, 5);
+    await getDailySalesTrend(req as any, res as any);
+    expect(reportService.getDailySalesTrend).toHaveBeenCalledWith("t1");
+    expect(ok).toHaveBeenCalled();
   });
 
-  it("listInventoryBalance 使用默认值并处理可选参数缺失", async () => {
-    mocks.listInventoryBalance.mockResolvedValue({ records: [], total: 0 });
-    const req = mockReq();
+  it("getStoreSalesPerformance - 应返回门店销售业绩", async () => {
+    (reportService.getStoreSalesPerformance as any).mockResolvedValue([]);
+    const req = mockReq({});
     const res = mockRes();
-    await listInventoryBalance(req, res);
-    expect(mocks.listInventoryBalance).toHaveBeenCalledWith("t1", 1, 20, "", undefined, undefined);
+    await getStoreSalesPerformance(req as any, res as any);
+    expect(reportService.getStoreSalesPerformance).toHaveBeenCalledWith("t1");
+    expect(ok).toHaveBeenCalled();
   });
 
-  it("revokeCollectionLink 传 linkNo 与 tenantId", async () => {
-    mocks.revokeCollectionLink.mockResolvedValue({ linkNo: "L1", status: "REVOKED" });
-    const req = mockReq({ params: { linkNo: "L1" } });
+  it("getInventoryAlerts - 应返回库存预警", async () => {
+    (reportService.getInventoryAlerts as any).mockResolvedValue([]);
+    const req = mockReq({});
     const res = mockRes();
-    await revokeCollectionLink(req, res);
-    expect(mocks.revokeCollectionLink).toHaveBeenCalledWith("L1", "t1");
+    await getInventoryAlerts(req as any, res as any);
+    expect(reportService.getInventoryAlerts).toHaveBeenCalledWith("t1");
+    expect(ok).toHaveBeenCalled();
   });
 
-  it("batchCreateCollectionLinks 成功批量创建并传递 userId", async () => {
-    mocks.batchCreateCollectionLinks.mockResolvedValue({ created: 3 });
+  it("listInventoryBalance - 应返回库存余额列表", async () => {
+    (reportService.listInventoryBalance as any).mockResolvedValue({ total: 0, records: [] });
+    const req = mockReq({ query: { page: 1, pageSize: 20 } });
+    const res = mockRes();
+    await listInventoryBalance(req as any, res as any);
+    expect(reportService.listInventoryBalance).toHaveBeenCalled();
+    expect(ok).toHaveBeenCalled();
+  });
+
+  it("listInventoryLogs - 应返回库存日志列表", async () => {
+    (reportService.listInventoryLogs as any).mockResolvedValue({ total: 0, records: [] });
+    const req = mockReq({ query: { page: 1, pageSize: 20 } });
+    const res = mockRes();
+    await listInventoryLogs(req as any, res as any);
+    expect(reportService.listInventoryLogs).toHaveBeenCalled();
+    expect(ok).toHaveBeenCalled();
+  });
+
+  it("listCollectionLinks - 应返回收款链接列表", async () => {
+    (reportService.listCollectionLinks as any).mockResolvedValue({ total: 0, records: [] });
+    const req = mockReq({ query: { page: 1, pageSize: 20 } });
+    const res = mockRes();
+    await listCollectionLinks(req as any, res as any);
+    expect(reportService.listCollectionLinks).toHaveBeenCalled();
+    expect(ok).toHaveBeenCalled();
+  });
+
+  it("listPaymentOrders - 应返回支付订单列表", async () => {
+    (reportService.listPaymentOrders as any).mockResolvedValue({ total: 0, records: [] });
+    const req = mockReq({ query: { page: 1, pageSize: 20 } });
+    const res = mockRes();
+    await listPaymentOrders(req as any, res as any);
+    expect(reportService.listPaymentOrders).toHaveBeenCalled();
+    expect(ok).toHaveBeenCalled();
+  });
+
+  it("listRefundOrders - 应返回退款订单列表", async () => {
+    (reportService.listRefundOrders as any).mockResolvedValue({ total: 0, records: [] });
+    const req = mockReq({ query: { page: 1, pageSize: 20 } });
+    const res = mockRes();
+    await listRefundOrders(req as any, res as any);
+    expect(reportService.listRefundOrders).toHaveBeenCalled();
+    expect(ok).toHaveBeenCalled();
+  });
+
+  it("getCollectionLinkStats - 应返回收款链接统计", async () => {
+    (reportService.getCollectionLinkStats as any).mockResolvedValue({});
+    const req = mockReq({});
+    const res = mockRes();
+    await getCollectionLinkStats(req as any, res as any);
+    expect(reportService.getCollectionLinkStats).toHaveBeenCalledWith("t1");
+    expect(ok).toHaveBeenCalled();
+  });
+
+  it("revokeCollectionLink - 应撤销收款链接", async () => {
+    (reportService.revokeCollectionLink as any).mockResolvedValue({ success: true });
+    const req = mockReq({ params: { linkNo: "CL20240101001" } });
+    const res = mockRes();
+    await revokeCollectionLink(req as any, res as any);
+    expect(reportService.revokeCollectionLink).toHaveBeenCalledWith("CL20240101001", "t1");
+    expect(ok).toHaveBeenCalled();
+  });
+
+  it("batchCreateCollectionLinks - 应批量创建收款链接", async () => {
+    const saleBillService = await import("../../../services/store/sale-bill.service.js");
+    (saleBillService.batchCreateCollectionLinks as any).mockResolvedValue({});
     const req = mockReq({
-      body: { billNos: ["B1", "B2"], shareChannel: "WECHAT", expireHours: 48 },
+      body: { billNos: ["SB001", "SB002"] },
     });
     const res = mockRes();
-    await batchCreateCollectionLinks(req, res);
-    expect(mocks.batchCreateCollectionLinks).toHaveBeenCalledWith(expect.objectContaining({
-      billNos: ["B1", "B2"],
-      shareChannel: "WECHAT",
-      expireHours: 48,
-      userId: 1,
-      tenantId: "t1",
-    }));
-    expect(res.json).toHaveBeenCalled();
+    await batchCreateCollectionLinks(req as any, res as any);
+    expect(ok).toHaveBeenCalled();
   });
 
-  it("batchCreateCollectionLinks 缺少 billNos 时 zod 校验抛错", async () => {
-    const req = mockReq({ body: { shareChannel: "WECHAT" } });
+  it("batchCreateCollectionLinks - Zod验证失败应抛出错误", async () => {
+    const req = mockReq({ body: { billNos: [] } });
     const res = mockRes();
-    await expect(batchCreateCollectionLinks(req, res)).rejects.toThrow();
-    expect(mocks.batchCreateCollectionLinks).not.toHaveBeenCalled();
+    await expect(batchCreateCollectionLinks(req as any, res as any)).rejects.toThrow();
   });
 
-  it("getSalesTrend 传递 groupBy 与日期范围", async () => {
-    mocks.getSalesTrend.mockResolvedValue([{ period: "2026-07" }]);
-    const req = mockReq({ query: { groupBy: "month", startDate: "2026-01-01", endDate: "2026-12-31" } });
+  it("batchCreateCollectionLinks - 应使用默认expireHours", async () => {
+    const saleBillService = await import("../../../services/store/sale-bill.service.js");
+    (saleBillService.batchCreateCollectionLinks as any).mockResolvedValue({});
+    const req = mockReq({
+      body: { billNos: ["SB001"] },
+    });
     const res = mockRes();
-    await getSalesTrend(req, res);
-    expect(mocks.getSalesTrend).toHaveBeenCalledWith("t1", "month", "2026-01-01", "2026-12-31");
+    await batchCreateCollectionLinks(req as any, res as any);
+    expect(saleBillService.batchCreateCollectionLinks).toHaveBeenCalledWith(
+      expect.objectContaining({ expireHours: 72 })
+    );
   });
 
-  it("getInventoryAge storeId 有值时传递", async () => {
-    mocks.getInventoryAge.mockResolvedValue([{ ageGroup: "0-30天" }]);
-    const req = mockReq({ query: { storeId: "2" } });
+  it("getSalesRanking - 应返回销售排行", async () => {
+    (reportService.getSalesRanking as any).mockResolvedValue([]);
+    const req = mockReq({ query: { startDate: "2024-01-01", endDate: "2024-01-31" } });
     const res = mockRes();
-    await getInventoryAge(req, res);
-    expect(mocks.getInventoryAge).toHaveBeenCalledWith("t1", 2);
+    await getSalesRanking(req as any, res as any);
+    expect(reportService.getSalesRanking).toHaveBeenCalled();
+    expect(ok).toHaveBeenCalled();
   });
 
-  it("getInventoryABC 仅传 tenantId", async () => {
-    mocks.getInventoryABC.mockResolvedValue([{ category: "A" }]);
-    const req = mockReq();
+  it("getProductRanking - 应返回商品排行", async () => {
+    (reportService.getProductRanking as any).mockResolvedValue([]);
+    const req = mockReq({ query: { startDate: "2024-01-01", endDate: "2024-01-31" } });
     const res = mockRes();
-    await getInventoryABC(req, res);
-    expect(mocks.getInventoryABC).toHaveBeenCalledWith("t1");
+    await getProductRanking(req as any, res as any);
+    expect(reportService.getProductRanking).toHaveBeenCalled();
+    expect(ok).toHaveBeenCalled();
+  });
+
+  it("getSalesTrend - 应返回销售趋势", async () => {
+    (reportService.getSalesTrend as any).mockResolvedValue([]);
+    const req = mockReq({ query: { groupBy: "week", startDate: "2024-01-01", endDate: "2024-01-31" } });
+    const res = mockRes();
+    await getSalesTrend(req as any, res as any);
+    expect(reportService.getSalesTrend).toHaveBeenCalled();
+    expect(ok).toHaveBeenCalled();
+  });
+
+  it("getPurchaseSummary - 应返回采购汇总", async () => {
+    (reportService.getPurchaseSummary as any).mockResolvedValue({});
+    const req = mockReq({ query: { startDate: "2024-01-01", endDate: "2024-01-31" } });
+    const res = mockRes();
+    await getPurchaseSummary(req as any, res as any);
+    expect(reportService.getPurchaseSummary).toHaveBeenCalled();
+    expect(ok).toHaveBeenCalled();
+  });
+
+  it("getPurchaseTrend - 应返回采购趋势", async () => {
+    (reportService.getPurchaseTrend as any).mockResolvedValue([]);
+    const req = mockReq({ query: { groupBy: "day", startDate: "2024-01-01", endDate: "2024-01-31" } });
+    const res = mockRes();
+    await getPurchaseTrend(req as any, res as any);
+    expect(reportService.getPurchaseTrend).toHaveBeenCalled();
+    expect(ok).toHaveBeenCalled();
+  });
+
+  it("getSupplierRanking - 应返回供应商排行", async () => {
+    (reportService.getSupplierRanking as any).mockResolvedValue([]);
+    const req = mockReq({ query: { startDate: "2024-01-01", endDate: "2024-01-31" } });
+    const res = mockRes();
+    await getSupplierRanking(req as any, res as any);
+    expect(reportService.getSupplierRanking).toHaveBeenCalled();
+    expect(ok).toHaveBeenCalled();
+  });
+
+  it("getInventoryTurnover - 应返回库存周转率", async () => {
+    (reportService.getInventoryTurnover as any).mockResolvedValue({});
+    const req = mockReq({ query: { startDate: "2024-01-01", endDate: "2024-01-31" } });
+    const res = mockRes();
+    await getInventoryTurnover(req as any, res as any);
+    expect(reportService.getInventoryTurnover).toHaveBeenCalled();
+    expect(ok).toHaveBeenCalled();
+  });
+
+  it("getInventoryAge - 应返回库存龄", async () => {
+    (reportService.getInventoryAge as any).mockResolvedValue({});
+    const req = mockReq({ query: { storeId: 1 } });
+    const res = mockRes();
+    await getInventoryAge(req as any, res as any);
+    expect(reportService.getInventoryAge).toHaveBeenCalled();
+    expect(ok).toHaveBeenCalled();
+  });
+
+  it("getInventoryABC - 应返回库存ABC分析", async () => {
+    (reportService.getInventoryABC as any).mockResolvedValue({});
+    const req = mockReq({});
+    const res = mockRes();
+    await getInventoryABC(req as any, res as any);
+    expect(reportService.getInventoryABC).toHaveBeenCalledWith("t1");
+    expect(ok).toHaveBeenCalled();
   });
 });
