@@ -1,0 +1,1136 @@
+<!DOCTYPE html>
+<html lang="zh-CN" data-theme="light">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Atlas v4 — UI/UX 交互设计规范</title>
+<style>
+/* ============ Atlas v4 Design Tokens ============ */
+:root[data-theme="light"] {
+  /* 灰阶体系 */
+  --gray-0: #FFFFFF;
+  --gray-50: #F8F8F8;
+  --gray-100: #F0F0F0;
+  --gray-200: #E2E2E2;
+  --gray-300: #CCCCCC;
+  --gray-400: #999999;
+  --gray-500: #666666;
+  --gray-600: #444444;
+  --gray-700: #333333;
+  --gray-800: #222222;
+  --gray-900: #111111;
+
+  /* 文字色 */
+  --text-primary: #000000;
+  --text-secondary: #444444;
+  --text-muted: #999999;
+
+  /* 导航色 */
+  --nav-default: #999999;
+  --nav-active: #5B6ABF;
+  --nav-active-bg: rgba(91,106,191,0.15);
+  --nav-hover: rgba(255,255,255,0.04);
+  --sidebar-bg: #111111;
+
+  /* 按钮色 */
+  --btn-primary: #5B6ABF;
+  --btn-primary-hover: #4A5AA8;
+  --btn-default-bg: #FFFFFF;
+  --btn-default-border: #CCCCCC;
+  --btn-danger: #C0392B;
+  --btn-danger-bg: rgba(192,57,43,0.08);
+
+  /* 状态色 */
+  --status-success-bg: rgba(14,168,121,0.10);
+  --status-success-text: #0EA879;
+  --status-warning-bg: rgba(212,139,58,0.10);
+  --status-warning-text: #D48B3A;
+  --status-danger-bg: rgba(192,57,43,0.10);
+  --status-danger-text: #C0392B;
+  --status-info-bg: rgba(91,106,191,0.10);
+  --status-info-text: #5B6ABF;
+
+  /* 基础 */
+  --bg-page: #FFFFFF;
+  --bg-card: #FFFFFF;
+  --border: #E2E2E2;
+  --radius: 6px;
+  --radius-lg: 8px;
+  --shadow-sm: 0 1px 3px rgba(0,0,0,0.08);
+  --shadow-md: 0 2px 8px rgba(0,0,0,0.12);
+  --focus-ring: 0 0 0 3px rgba(91,106,191,0.25);
+  --font-family: "Inter", -apple-system, "PingFang SC", "Microsoft YaHei", sans-serif;
+  --font-mono: "JetBrains Mono", "SF Mono", monospace;
+}
+
+:root[data-theme="dark"] {
+  --gray-0: #1A1A1A;
+  --gray-50: #1F1F1F;
+  --gray-100: #262626;
+  --gray-200: #333333;
+  --gray-300: #444444;
+  --gray-400: #666666;
+  --gray-500: #888888;
+  --gray-600: #AAAAAA;
+  --gray-700: #CCCCCC;
+  --gray-800: #DDDDDD;
+  --gray-900: #EEEEEE;
+
+  --text-primary: #EEEEEE;
+  --text-secondary: #AAAAAA;
+  --text-muted: #666666;
+
+  --nav-default: #999999;
+  --nav-active: #5B6ABF;
+  --nav-active-bg: rgba(91,106,191,0.30);
+  --nav-hover: rgba(255,255,255,0.04);
+  --sidebar-bg: #1A1A1A;
+
+  --btn-primary: #5B6ABF;
+  --btn-primary-hover: #4A5AA8;
+  --btn-default-bg: #1A1A1A;
+  --btn-default-border: #666666;
+  --btn-danger: #A93226;
+  --btn-danger-bg: rgba(169,50,38,0.10);
+
+  --status-success-bg: rgba(14,168,121,0.10);
+  --status-success-text: #0EA879;
+  --status-warning-bg: rgba(212,139,58,0.10);
+  --status-warning-text: #D48B3A;
+  --status-danger-bg: rgba(192,57,43,0.10);
+  --status-danger-text: #C0392B;
+  --status-info-bg: rgba(91,106,191,0.10);
+  --status-info-text: #5B6ABF;
+
+  --bg-page: #1A1A1A;
+  --bg-card: #1F1F1F;
+  --border: #333333;
+}
+
+* { margin: 0; padding: 0; box-sizing: border-box; }
+body {
+  font-family: var(--font-family);
+  background: var(--bg-page);
+  color: var(--text-primary);
+  line-height: 1.6;
+  transition: background 200ms ease, color 200ms ease;
+}
+
+/* ============ 页面骨架 ============ */
+.page-header {
+  background: var(--gray-900);
+  color: var(--gray-0);
+  padding: 56px 32px;
+  border-bottom: 1px solid var(--gray-700);
+  position: relative;
+  overflow: hidden;
+}
+.page-header::before {
+  content: ""; position: absolute; inset: 0;
+  background:
+    radial-gradient(800px 200px at 20% 0%, rgba(91,106,191,0.18), transparent 60%),
+    radial-gradient(600px 160px at 90% 100%, rgba(91,106,191,0.10), transparent 60%);
+  pointer-events: none;
+}
+.page-header .inner { max-width: 1200px; margin: 0 auto; position: relative; }
+.page-header .badge-row { display: flex; gap: 10px; align-items: center; margin-bottom: 12px; flex-wrap: wrap; }
+.page-header .pill {
+  display: inline-flex; align-items: center; gap: 6px;
+  padding: 4px 10px; border-radius: 999px;
+  background: rgba(91,106,191,0.20); color: #BFC4F2;
+  font-size: 12px; font-weight: 600; letter-spacing: 0.5px;
+  border: 1px solid rgba(91,106,191,0.40);
+}
+.page-header .pill.neutral { background: rgba(255,255,255,0.06); color: #CCCCCC; border-color: rgba(255,255,255,0.10); }
+.page-header h1 { font-size: 32px; font-weight: 700; letter-spacing: -0.5px; margin-bottom: 8px; }
+.page-header .sub { font-size: 15px; color: #AAAAAA; }
+.page-header .meta { margin-top: 18px; display: flex; gap: 20px; flex-wrap: wrap; font-size: 12px; color: #888888; }
+.page-header .meta span strong { color: #DDDDDD; font-weight: 600; }
+
+.theme-switch {
+  position: fixed; top: 16px; right: 16px; z-index: 100;
+  display: inline-flex; align-items: center; gap: 8px;
+  padding: 8px 14px; border-radius: 999px;
+  background: var(--bg-card); color: var(--text-primary);
+  border: 1px solid var(--border); cursor: pointer;
+  font-size: 13px; font-weight: 500;
+  box-shadow: var(--shadow-sm);
+  transition: all 150ms ease;
+}
+.theme-switch:hover { border-color: var(--nav-active); color: var(--nav-active); }
+
+.container { max-width: 1200px; margin: 0 auto; padding: 32px 24px 80px; }
+
+/* ============ TOC ============ */
+.toc {
+  background: var(--bg-card); border: 1px solid var(--border);
+  border-radius: var(--radius-lg); padding: 24px 28px; margin-bottom: 28px;
+}
+.toc h3 { font-size: 13px; font-weight: 600; color: var(--text-secondary); margin-bottom: 14px; letter-spacing: 1px; text-transform: uppercase; }
+.toc ol { list-style: none; display: grid; grid-template-columns: repeat(auto-fill, minmax(240px, 1fr)); gap: 6px; counter-reset: toc; }
+.toc li { counter-increment: toc; font-size: 13px; }
+.toc li::before { content: counter(toc, decimal-leading-zero); color: var(--nav-active); font-family: var(--font-mono); margin-right: 10px; font-size: 11px; }
+.toc a { color: var(--text-secondary); text-decoration: none; }
+.toc a:hover { color: var(--nav-active); }
+
+/* ============ Section ============ */
+.section {
+  background: var(--bg-card); border: 1px solid var(--border);
+  border-radius: var(--radius-lg); padding: 32px; margin-bottom: 24px;
+}
+.section h2 {
+  font-size: 20px; font-weight: 700; margin-bottom: 6px;
+  display: flex; align-items: center; gap: 12px; letter-spacing: -0.2px;
+}
+.section h2 .num {
+  display: inline-flex; align-items: center; justify-content: center;
+  min-width: 32px; height: 28px; padding: 0 10px;
+  background: var(--gray-900); color: var(--gray-0);
+  border-radius: 4px; font-family: var(--font-mono); font-size: 12px; font-weight: 700;
+}
+.section h3 { font-size: 15px; font-weight: 600; margin: 24px 0 12px; color: var(--text-primary); }
+.section p.lead { color: var(--text-secondary); font-size: 14px; margin-bottom: 16px; }
+.section p { font-size: 14px; color: var(--text-secondary); margin-bottom: 12px; }
+
+/* ============ 通用表格 ============ */
+.tbl { width: 100%; border-collapse: collapse; font-size: 13px; margin: 12px 0; background: var(--bg-card); }
+.tbl th {
+  background: var(--gray-50); color: var(--text-secondary);
+  text-align: left; padding: 10px 14px; font-weight: 600;
+  border-bottom: 1px solid var(--border); font-size: 12px;
+}
+.tbl td { padding: 10px 14px; border-bottom: 1px solid var(--border); vertical-align: middle; }
+.tbl tr:last-child td { border-bottom: none; }
+.tbl tr:hover td { background: var(--gray-50); }
+.tbl .mono { font-family: var(--font-mono); font-size: 12px; color: var(--text-primary); }
+.tbl .primary-token { color: var(--nav-active); font-family: var(--font-mono); }
+
+/* ============ 色块 ============ */
+.swatch-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 14px; margin-top: 16px; }
+.swatch { border: 1px solid var(--border); border-radius: var(--radius); overflow: hidden; }
+.swatch .preview { height: 72px; display: flex; align-items: flex-end; padding: 10px; }
+.swatch .preview span { font-size: 11px; font-weight: 600; color: #fff; text-shadow: 0 1px 2px rgba(0,0,0,0.4); }
+.swatch .info { padding: 8px 12px; background: var(--bg-card); }
+.swatch .name { font-size: 12px; font-weight: 600; color: var(--text-primary); }
+.swatch .val { font-size: 11px; color: var(--text-muted); font-family: var(--font-mono); margin-top: 2px; }
+
+/* ============ 状态标签 ============ */
+.tag { display: inline-flex; align-items: center; padding: 4px 8px; border-radius: 4px; font-size: 12px; font-weight: 500; }
+.tag-success { background: var(--status-success-bg); color: var(--status-success-text); }
+.tag-warning { background: var(--status-warning-bg); color: var(--status-warning-text); }
+.tag-danger { background: var(--status-danger-bg); color: var(--status-danger-text); }
+.tag-info { background: var(--status-info-bg); color: var(--status-info-text); }
+
+/* ============ 按钮演示 ============ */
+.btn {
+  display: inline-flex; align-items: center; justify-content: center; gap: 6px;
+  padding: 8px 20px; border-radius: var(--radius); font-size: 14px; font-weight: 500;
+  cursor: pointer; border: 1px solid transparent; transition: all 150ms ease;
+  font-family: inherit;
+}
+.btn-primary { background: var(--btn-primary); color: #fff; border: none; }
+.btn-primary:hover { background: var(--btn-primary-hover); }
+.btn-primary:active { transform: scale(0.97); }
+.btn-primary:focus-visible { outline: none; box-shadow: var(--focus-ring); }
+
+.btn-default { background: var(--btn-default-bg); color: var(--text-primary); border-color: var(--btn-default-border); }
+.btn-default:hover { border-color: var(--nav-active); color: var(--nav-active); }
+
+.btn-danger { background: var(--btn-danger-bg); color: var(--btn-danger); border-color: var(--btn-default-border); }
+.btn-danger:hover { border-color: var(--btn-danger); }
+
+.btn-text { background: transparent; color: var(--nav-active); border: none; padding: 4px 8px; }
+.btn-text:hover { text-decoration: underline; }
+
+.btn-sm { padding: 4px 12px; font-size: 12px; border-radius: 4px; }
+
+.btn-row { display: flex; gap: 12px; flex-wrap: wrap; align-items: center; }
+
+/* ============ 输入框 ============ */
+.field { margin-bottom: 16px; }
+.field label { display: block; font-size: 13px; color: var(--text-secondary); margin-bottom: 6px; }
+.field label .req { color: var(--text-muted); font-size: 12px; margin-left: 6px; }
+.input {
+  width: 100%; padding: 8px 12px; font-size: 14px; color: var(--text-primary);
+  background: var(--gray-0); border: 1px solid var(--gray-300); border-radius: var(--radius);
+  font-family: inherit; transition: all 200ms ease;
+}
+.input::placeholder { color: var(--text-muted); font-size: 13px; }
+.input:focus { outline: none; border-color: var(--nav-active); box-shadow: var(--focus-ring); }
+.input:disabled { background: var(--gray-100); color: var(--text-muted); cursor: not-allowed; }
+.input.error { border-color: var(--btn-danger); }
+.field .err-msg { font-size: 12px; color: var(--btn-danger); margin-top: 6px; }
+
+/* ============ KPI 卡片 ============ */
+.kpi-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px; margin-top: 16px; }
+.kpi {
+  background: var(--bg-card); border: 1px solid var(--border); border-radius: var(--radius-lg);
+  padding: 20px; box-shadow: var(--shadow-sm); transition: box-shadow 200ms ease;
+}
+.kpi:hover { box-shadow: var(--shadow-md); }
+.kpi .top { display: flex; align-items: center; justify-content: space-between; margin-bottom: 12px; }
+.kpi .icon-box {
+  width: 40px; height: 40px; border-radius: var(--radius);
+  background: var(--gray-100); color: var(--text-secondary);
+  display: flex; align-items: center; justify-content: center; font-size: 18px;
+}
+.kpi .label { font-size: 12px; color: var(--text-muted); }
+.kpi .value { font-size: 28px; font-weight: 700; color: var(--text-primary); }
+.kpi .delta { font-size: 12px; color: var(--text-muted); display: flex; align-items: center; gap: 4px; }
+
+/* ============ 表格组件 ============ */
+.demo-table { width: 100%; border-collapse: collapse; font-size: 14px; }
+.demo-table thead th {
+  background: var(--gray-50); color: var(--text-secondary);
+  padding: 12px 16px; font-size: 12px; font-weight: 600;
+  border-bottom: 1px solid var(--border); text-align: left;
+}
+.demo-table tbody td { padding: 12px 16px; border-bottom: 1px solid var(--border); color: var(--text-primary); }
+.demo-table tbody tr { height: 44px; transition: background 100ms ease; }
+.demo-table tbody tr:hover { background: var(--gray-50); }
+.demo-table .mono-num { font-family: var(--font-mono); }
+
+/* ============ 侧边栏导航 ============ */
+.sidebar-demo {
+  width: 200px; background: var(--sidebar-bg); color: var(--gray-400);
+  border-radius: var(--radius-lg); overflow: hidden; min-height: 360px;
+  display: flex; flex-direction: column;
+}
+.sidebar-demo .logo {
+  padding: 18px 20px; color: #fff; font-weight: 700; font-size: 16px;
+  border-bottom: 1px rgba(255,255,255,0.10) solid;
+}
+.sidebar-demo .nav-group-title {
+  padding: 14px 20px 6px; font-size: 10px; color: var(--gray-500);
+  text-transform: uppercase; letter-spacing: 1px; font-weight: 600;
+}
+.sidebar-demo .nav-item {
+  display: flex; align-items: center; gap: 12px; padding: 10px 20px;
+  color: var(--nav-default); font-size: 14px; cursor: pointer;
+  transition: all 150ms ease; position: relative;
+}
+.sidebar-demo .nav-item .icon { width: 18px; height: 18px; display: inline-flex; align-items: center; justify-content: center; }
+.sidebar-demo .nav-item:hover { background: var(--nav-hover); color: var(--gray-300); }
+.sidebar-demo .nav-item.active {
+  color: var(--nav-active); background: var(--nav-active-bg);
+}
+.sidebar-demo .nav-item.active::before {
+  content: ""; position: absolute; left: 0; top: 0; bottom: 0; width: 3px;
+  background: var(--nav-active);
+}
+.sidebar-demo .collapse-btn {
+  margin-top: auto; padding: 12px 20px; color: var(--nav-default);
+  border-top: 1px rgba(255,255,255,0.10) solid; font-size: 13px;
+  display: flex; align-items: center; gap: 10px; cursor: pointer;
+}
+
+/* ============ 顶部栏 ============ */
+.topbar-demo {
+  height: 48px; background: var(--gray-0); border-bottom: 1px solid var(--border);
+  display: flex; align-items: center; padding: 0 20px; gap: 16px; border-radius: var(--radius);
+}
+.topbar-demo .crumb { font-size: 13px; color: var(--nav-default); }
+.topbar-demo .crumb .cur { color: var(--nav-active); }
+.topbar-demo .search {
+  flex: 1; max-width: 280px; height: 30px; background: var(--gray-100);
+  border: none; border-radius: var(--radius); padding: 0 12px; font-size: 13px;
+  color: var(--text-primary);
+}
+.topbar-demo .icon-btn {
+  width: 32px; height: 32px; display: flex; align-items: center; justify-content: center;
+  color: var(--nav-default); border-radius: var(--radius); cursor: pointer; position: relative;
+}
+.topbar-demo .icon-btn:hover { background: var(--gray-100); }
+.topbar-demo .icon-btn .dot {
+  position: absolute; top: 6px; right: 6px; width: 6px; height: 6px;
+  background: var(--btn-danger); border-radius: 50%;
+}
+.topbar-demo .avatar {
+  width: 32px; height: 32px; border-radius: 50%; background: var(--gray-100);
+  color: var(--text-secondary); display: flex; align-items: center; justify-content: center;
+  font-size: 12px; font-weight: 600;
+}
+
+/* ============ 模态 ============ */
+.modal-mask {
+  position: relative; background: rgba(0,0,0,0.45); border-radius: var(--radius-lg);
+  padding: 60px 20px; display: flex; align-items: center; justify-content: center;
+}
+.modal-panel {
+  width: 100%; max-width: 440px; background: var(--gray-0); border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-md); overflow: hidden;
+}
+.modal-panel .modal-head {
+  padding: 16px 20px; border-bottom: 1px solid var(--border);
+  display: flex; align-items: center; justify-content: space-between;
+}
+.modal-panel .modal-head .title { font-size: 16px; font-weight: 700; color: var(--text-primary); }
+.modal-panel .modal-head .close { color: var(--text-muted); cursor: pointer; font-size: 18px; }
+.modal-panel .modal-head .close:hover { color: var(--text-primary); }
+.modal-panel .modal-body { padding: 20px; font-size: 14px; color: var(--text-secondary); }
+.modal-panel .modal-foot {
+  padding: 12px 20px; border-top: 1px solid var(--border);
+  display: flex; justify-content: flex-end; gap: 10px;
+}
+
+/* ============ 禁令 ============ */
+.ban-list { display: grid; gap: 12px; }
+.ban-item {
+  display: flex; gap: 14px; padding: 14px 16px;
+  border-left: 3px solid var(--btn-danger);
+  background: var(--status-danger-bg); border-radius: 0 var(--radius) var(--radius) 0;
+}
+.ban-item .x { color: var(--btn-danger); font-size: 18px; font-weight: 700; flex-shrink: 0; }
+.ban-item .body { font-size: 13px; color: var(--text-secondary); }
+.ban-item .body strong { color: var(--text-primary); }
+
+/* ============ 动效演示 ============ */
+.anim-row { display: flex; gap: 20px; flex-wrap: wrap; align-items: center; }
+.anim-card {
+  width: 120px; height: 80px; background: var(--gray-100); border: 1px solid var(--border);
+  border-radius: var(--radius); display: flex; align-items: center; justify-content: center;
+  color: var(--text-muted); font-size: 12px; cursor: pointer; transition: all 200ms ease;
+}
+.anim-card:hover { box-shadow: var(--shadow-md); border-color: var(--nav-active); }
+
+/* ============ ASCII 布局 ============ */
+.ascii-block {
+  background: var(--gray-900); color: var(--gray-300);
+  border-radius: var(--radius); padding: 20px; font-family: var(--font-mono);
+  font-size: 12px; line-height: 1.5; white-space: pre; overflow-x: auto;
+}
+.ascii-block .hl { color: var(--nav-active); }
+.ascii-block .dim { color: var(--gray-500); }
+
+/* ============ 间距演示 ============ */
+.spacing-demo { display: flex; align-items: flex-end; gap: 8px; margin-top: 12px; }
+.spacing-bar {
+  background: var(--nav-active); border-radius: 4px 4px 0 0;
+  display: flex; align-items: flex-end; justify-content: center;
+  padding-bottom: 4px; color: #fff; font-size: 10px; min-width: 20px;
+}
+
+/* ============ 字号演示 ============ */
+.type-row {
+  display: flex; align-items: baseline; gap: 16px; padding: 8px 0;
+  border-bottom: 1px solid var(--border);
+}
+.type-row .lbl { font-size: 11px; color: var(--text-muted); font-family: var(--font-mono); min-width: 60px; }
+.type-row .sample { color: var(--text-primary); }
+
+/* ============ 响应式 ============ */
+@media (max-width: 768px) {
+  .kpi-grid { grid-template-columns: repeat(2, 1fr); }
+  .toc ol { grid-template-columns: 1fr; }
+  .section { padding: 20px; }
+  .page-header { padding: 32px 20px; }
+  .page-header h1 { font-size: 24px; }
+}
+
+/* ============ 工具类 ============ */
+.row { display: flex; gap: 16px; flex-wrap: wrap; align-items: flex-start; }
+.col { flex: 1; min-width: 0; }
+.note {
+  padding: 12px 16px; background: var(--status-info-bg);
+  border-left: 3px solid var(--nav-active); border-radius: 0 var(--radius) var(--radius) 0;
+  font-size: 13px; color: var(--text-secondary); margin: 12px 0;
+}
+.note strong { color: var(--text-primary); }
+.muted { color: var(--text-muted); }
+.mt-0 { margin-top: 0; } .mt-12 { margin-top: 12px; } .mt-24 { margin-top: 24px; }
+</style>
+</head>
+<body>
+
+<div class="theme-switch" onclick="toggleTheme()">
+  <span id="themeIcon">☀</span>
+  <span id="themeLabel">亮色模式</span>
+</div>
+
+<header class="page-header">
+  <div class="inner">
+    <div class="badge-row">
+      <span class="pill">Atlas v4.0</span>
+      <span class="pill neutral">白底黑字 · 灰阶主导</span>
+      <span class="pill neutral">导航蓝 #5B6ABF</span>
+    </div>
+    <h1>Atlas v4 — UI/UX 交互设计规范</h1>
+    <div class="sub">白底黑字中间灰 · 导航字体蓝色 · 仅按钮色与状态色保留颜色</div>
+    <div class="meta">
+      <span>版本：<strong>v4.0</strong></span>
+      <span>日期：<strong>2026-07-12</strong></span>
+      <span>设计：<strong>林夕</strong></span>
+      <span>适用范围：<strong>admin-web / merchant-mobile / store-terminal</strong></span>
+    </div>
+  </div>
+</header>
+
+<div class="container">
+
+<!-- TOC -->
+<div class="toc">
+  <h3>目录</h3>
+  <ol>
+    <li><a href="#c1">设计理念</a></li>
+    <li><a href="#c2">色彩系统</a></li>
+    <li><a href="#c3">字体与排版</a></li>
+    <li><a href="#c4">布局系统</a></li>
+    <li><a href="#c5">核心组件规范</a></li>
+    <li><a href="#c6">交互规范</a></li>
+    <li><a href="#c7">响应式断点</a></li>
+    <li><a href="#c8">设计交付物清单</a></li>
+    <li><a href="#c9">设计禁令附录</a></li>
+  </ol>
+</div>
+
+<!-- ============ 一、设计理念 ============ -->
+<div class="section" id="c1">
+  <h2><span class="num">01</span> 设计理念</h2>
+  <p class="lead">Atlas v4 是对系统视觉语言的全面重构。核心理念：<strong>让信息回归本质，让颜色回归职能</strong>。</p>
+
+  <h3>1.1 核心原则</h3>
+  <table class="tbl">
+    <thead><tr><th width="160">原则</th><th>说明</th></tr></thead>
+    <tbody>
+      <tr><td><strong>信息优先</strong></td><td>界面黑白灰为主，颜色仅在操作引导（按钮）和状态传达（标签）时出现</td></tr>
+      <tr><td><strong>极简克制</strong></td><td>KPI 图标背景、变化箭头、表单标签、卡片底色一律不使用彩色</td></tr>
+      <tr><td><strong>导航突显</strong></td><td>侧边栏和顶部导航使用蓝色字体，与内容区形成唯一彩色识别带</td></tr>
+      <tr><td><strong>一致性</strong></td><td>亮色/暗色双模，通过 CSS 变量统一切换，组件行为跨端一致</td></tr>
+    </tbody>
+  </table>
+
+  <h3>1.2 终端适配</h3>
+  <table class="tbl">
+    <thead><tr><th width="160">终端</th><th width="160">屏幕宽度</th><th>布局策略</th><th>导航方式</th></tr></thead>
+    <tbody>
+      <tr><td>桌面管理后台</td><td>≥1024px</td><td>侧边栏 200px + 内容区自适应</td><td>左侧垂直导航</td></tr>
+      <tr><td>平板</td><td>768-1023px</td><td>侧边栏折叠为汉堡菜单</td><td>顶部横栏 + 抽屉</td></tr>
+      <tr><td>手机（商家端/门店）</td><td>320-767px</td><td>单列纵向堆叠</td><td>底部标签栏</td></tr>
+    </tbody>
+  </table>
+
+  <div class="note">
+    <strong>设计哲学说明：</strong>颜色不是装饰，是语义。当一切都被染色时，没有任何颜色能传达信息。Atlas v4 通过剥夺大部分区域的彩色，让少数保留颜色的元素（激活导航、主按钮、状态标签）获得更强的引导力。
+  </div>
+</div>
+
+<!-- ============ 二、色彩系统 ============ -->
+<div class="section" id="c2">
+  <h2><span class="num">02</span> 色彩系统</h2>
+  <p class="lead">Atlas v4 的色彩体系以中性灰阶为基础，仅在三个语义点引入颜色：导航激活、操作引导、状态传达。</p>
+
+  <h3>2.1 黑白灰体系（唯一基础色）</h3>
+  <table class="tbl">
+    <thead><tr><th width="120">Token</th><th width="120">亮色模式</th><th width="120">暗色模式</th><th>用途</th></tr></thead>
+    <tbody>
+      <tr><td class="mono">gray-0</td><td class="mono">#FFFFFF</td><td class="mono">#1A1A1A</td><td>页面/卡片背景</td></tr>
+      <tr><td class="mono">gray-50</td><td class="mono">#F8F8F8</td><td class="mono">#1F1F1F</td><td>次级背景、悬停态</td></tr>
+      <tr><td class="mono">gray-100</td><td class="mono">#F0F0F0</td><td class="mono">#262626</td><td>表头底色、禁用态</td></tr>
+      <tr><td class="mono">gray-200</td><td class="mono">#E2E2E2</td><td class="mono">#333333</td><td>分割线、浅边框</td></tr>
+      <tr><td class="mono">gray-300</td><td class="mono">#CCCCCC</td><td class="mono">#444444</td><td>输入框边框、常规分隔</td></tr>
+      <tr><td class="mono">gray-400</td><td class="mono">#999999</td><td class="mono">#666666</td><td>占位文字、辅助信息</td></tr>
+      <tr><td class="mono">gray-500</td><td class="mono">#666666</td><td class="mono">#888888</td><td>次要文字</td></tr>
+      <tr><td class="mono">gray-600</td><td class="mono">#444444</td><td class="mono">#AAAAAA</td><td>正文次级</td></tr>
+      <tr><td class="mono">gray-700</td><td class="mono">#333333</td><td class="mono">#CCCCCC</td><td>标题次级（暗色模式正文）</td></tr>
+      <tr><td class="mono">gray-800</td><td class="mono">#222222</td><td class="mono">#DDDDDD</td><td>标题主色（暗色模式）</td></tr>
+      <tr><td class="mono">gray-900</td><td class="mono">#111111</td><td class="mono">#EEEEEE</td><td>侧边栏底色、最深区域</td></tr>
+    </tbody>
+  </table>
+
+  <h3>2.2 文字色</h3>
+  <table class="tbl">
+    <thead><tr><th width="140">Token</th><th width="120">亮色</th><th width="120">暗色</th><th>用途</th></tr></thead>
+    <tbody>
+      <tr><td class="mono">text-primary</td><td class="mono">#000000</td><td class="mono">#EEEEEE</td><td>正文、标题</td></tr>
+      <tr><td class="mono">text-secondary</td><td class="mono">#444444</td><td class="mono">#AAAAAA</td><td>辅助说明</td></tr>
+      <tr><td class="mono">text-muted</td><td class="mono">#999999</td><td class="mono">#666666</td><td>占位符、禁用态</td></tr>
+    </tbody>
+  </table>
+
+  <h3>2.3 导航色（动态激活）</h3>
+  <table class="tbl">
+    <thead><tr><th width="160">Token</th><th width="160">色值</th><th>用途</th></tr></thead>
+    <tbody>
+      <tr><td class="primary-token">nav-default</td><td class="mono">#999999</td><td>侧边栏导航项默认文字（灰色，非激活）</td></tr>
+      <tr><td class="primary-token">nav-active</td><td class="mono">#5B6ABF</td><td>当前激活导航项文字（蓝色），点击后切换</td></tr>
+      <tr><td class="primary-token">nav-active-bg</td><td class="mono">rgba(91,106,191,0.15)</td><td>当前激活导航项背景（亮色）</td></tr>
+      <tr><td class="primary-token">nav-active-bg-dark</td><td class="mono">rgba(91,106,191,0.30)</td><td>当前激活导航项背景（暗色）</td></tr>
+      <tr><td class="primary-token">nav-hover</td><td class="mono">rgba(255,255,255,0.04)</td><td>导航项悬停态背景</td></tr>
+    </tbody>
+  </table>
+  <div class="note">
+    <strong>规则：</strong>所有导航项默认灰色 <code>#999999</code>，仅当前所在页面对应的导航项变为蓝色 <code>#5B6ABF</code>。点击跳转后激活态随之切换。
+  </div>
+
+  <h3>2.4 按钮色（操作引导）</h3>
+  <table class="tbl">
+    <thead><tr><th width="160">Token</th><th width="140">色值</th><th width="140">悬停</th><th>用途</th></tr></thead>
+    <tbody>
+      <tr><td class="primary-token">btn-primary</td><td class="mono">#5B6ABF</td><td class="mono">#4A5AA8</td><td>主操作按钮（保存、提交、确认）</td></tr>
+      <tr><td class="mono">btn-default-bg</td><td class="mono">#FFFFFF</td><td class="mono">#F8F8F8</td><td>默认按钮背景</td></tr>
+      <tr><td class="mono">btn-default-border</td><td class="mono">#CCCCCC</td><td class="mono">#999999</td><td>默认按钮边框</td></tr>
+      <tr><td class="primary-token">btn-danger</td><td class="mono">#C0392B</td><td class="mono">#A93226</td><td>危险操作按钮（删除、清空）</td></tr>
+    </tbody>
+  </table>
+  <div class="note" style="background:var(--status-danger-bg);border-left-color:var(--btn-danger);">
+    <strong>禁令：</strong>删除按钮<strong>不使用</strong>红色底色填充，仅使用灰色描边 + 红色文字。危险操作的确认弹窗中，主按钮使用 <code>btn-danger</code> 样式。
+  </div>
+
+  <h3>2.5 状态色（仅用于标签/徽章）</h3>
+  <div class="btn-row mt-12" style="gap:10px;">
+    <span class="tag tag-success">已完成</span>
+    <span class="tag tag-success">已支付</span>
+    <span class="tag tag-warning">处理中</span>
+    <span class="tag tag-warning">待发货</span>
+    <span class="tag tag-danger">已取消</span>
+    <span class="tag tag-danger">已驳回</span>
+    <span class="tag tag-info">草稿</span>
+    <span class="tag tag-info">待提交</span>
+  </div>
+  <table class="tbl mt-12">
+    <thead><tr><th width="140">状态</th><th width="180">背景</th><th width="120">文字</th><th>适用场景</th></tr></thead>
+    <tbody>
+      <tr><td>已完成/已支付</td><td class="mono">rgba(14,168,121,0.10)</td><td class="mono">#0EA879</td><td>订单完成、收款成功</td></tr>
+      <tr><td>处理中</td><td class="mono">rgba(212,139,58,0.10)</td><td class="mono">#D48B3A</td><td>待发货、审核中</td></tr>
+      <tr><td>已取消/已驳回</td><td class="mono">rgba(192,57,43,0.10)</td><td class="mono">#C0392B</td><td>订单取消、审批驳回</td></tr>
+      <tr><td>草稿/待提交</td><td class="mono">rgba(91,106,191,0.10)</td><td class="mono">#5B6ABF</td><td>未提交表单、暂存</td></tr>
+    </tbody>
+  </table>
+  <div class="note" style="background:var(--status-danger-bg);border-left-color:var(--btn-danger);">
+    <strong>禁令：</strong>KPI 卡片图标背景禁用彩色（统一用 gray-100 / gray-200）。数据涨跌箭头禁用绿/红色（统一用 gray-500）。表单"必填"标记禁用红色星号（用 gray-600 文字标注"必填"）。
+  </div>
+</div>
+
+<!-- ============ 三、字体与排版 ============ -->
+<div class="section" id="c3">
+  <h2><span class="num">03</span> 字体与排版</h2>
+
+  <h3>3.1 字体族</h3>
+  <table class="tbl">
+    <thead><tr><th width="160">层级</th><th>字体</th><th>回退</th></tr></thead>
+    <tbody>
+      <tr><td>正文</td><td class="mono">Inter</td><td class="muted">apple-system, "PingFang SC", "Microsoft YaHei", sans-serif</td></tr>
+      <tr><td>中文字体</td><td class="mono">Noto Sans CJK SC</td><td class="muted">"PingFang SC", "Microsoft YaHei"</td></tr>
+      <tr><td>等宽（表格数字）</td><td class="mono">JetBrains Mono</td><td class="muted">"SF Mono", monospace</td></tr>
+    </tbody>
+  </table>
+
+  <h3>3.2 字号与行高</h3>
+  <table class="tbl">
+    <thead><tr><th width="100">级别</th><th width="100">字号</th><th width="80">行高</th><th width="80">字重</th><th>用途</th></tr></thead>
+    <tbody>
+      <tr><td class="mono">4XL</td><td>28px</td><td>1.3</td><td>700</td><td>页面主标题</td></tr>
+      <tr><td class="mono">2XL</td><td>20px</td><td>1.35</td><td>700</td><td>区块标题、卡片名</td></tr>
+      <tr><td class="mono">LG</td><td>16px</td><td>1.5</td><td>600</td><td>子标题、模态标题</td></tr>
+      <tr><td class="mono">Base</td><td>14px</td><td>1.6</td><td>400</td><td>正文、表格内容</td></tr>
+      <tr><td class="mono">SM</td><td>13px</td><td>1.5</td><td>400</td><td>辅助说明、标签</td></tr>
+      <tr><td class="mono">XS</td><td>12px</td><td>1.5</td><td>400</td><td>占位文字、时间戳</td></tr>
+      <tr><td class="mono">2XS</td><td>10px</td><td>1.4</td><td>500</td><td>全大写标签、徽章</td></tr>
+    </tbody>
+  </table>
+
+  <div class="type-row"><span class="lbl">4XL</span><span class="sample" style="font-size:28px;line-height:1.3;font-weight:700;">页面主标题</span></div>
+  <div class="type-row"><span class="lbl">2XL</span><span class="sample" style="font-size:20px;line-height:1.35;font-weight:700;">区块标题</span></div>
+  <div class="type-row"><span class="lbl">LG</span><span class="sample" style="font-size:16px;line-height:1.5;font-weight:600;">子标题</span></div>
+  <div class="type-row"><span class="lbl">Base</span><span class="sample" style="font-size:14px;line-height:1.6;">正文内容，用于表格、表单、说明文本</span></div>
+  <div class="type-row"><span class="lbl">SM</span><span class="sample" style="font-size:13px;line-height:1.5;">辅助说明、标签</span></div>
+  <div class="type-row"><span class="lbl">XS</span><span class="sample" style="font-size:12px;line-height:1.5;color:var(--text-muted);">占位文字 · 时间戳</span></div>
+  <div class="type-row"><span class="lbl">2XS</span><span class="sample" style="font-size:10px;line-height:1.4;font-weight:500;text-transform:uppercase;letter-spacing:1px;">UPPERCASE LABEL</span></div>
+
+  <h3>3.3 间距体系（4px 基准）</h3>
+  <table class="tbl">
+    <thead><tr><th width="120">Token</th><th width="80">值</th><th>用途</th></tr></thead>
+    <tbody>
+      <tr><td class="mono">space-1</td><td class="mono">4px</td><td>图标与文字间距、标签内边距</td></tr>
+      <tr><td class="mono">space-2</td><td class="mono">8px</td><td>紧凑列表项间距</td></tr>
+      <tr><td class="mono">space-3</td><td class="mono">12px</td><td>表单项间距、卡片内边距</td></tr>
+      <tr><td class="mono">space-4</td><td class="mono">16px</td><td>标准区块间距</td></tr>
+      <tr><td class="mono">space-5</td><td class="mono">20px</td><td>卡片间距</td></tr>
+      <tr><td class="mono">space-6</td><td class="mono">24px</td><td>页面内容区内边距</td></tr>
+      <tr><td class="mono">space-8</td><td class="mono">32px</td><td>页面标题与内容间距</td></tr>
+      <tr><td class="mono">space-10</td><td class="mono">40px</td><td>大区块间距</td></tr>
+    </tbody>
+  </table>
+  <div class="spacing-demo">
+    <div class="spacing-bar" style="height:8px;">4</div>
+    <div class="spacing-bar" style="height:16px;">8</div>
+    <div class="spacing-bar" style="height:24px;">12</div>
+    <div class="spacing-bar" style="height:32px;">16</div>
+    <div class="spacing-bar" style="height:40px;">20</div>
+    <div class="spacing-bar" style="height:48px;">24</div>
+    <div class="spacing-bar" style="height:64px;">32</div>
+    <div class="spacing-bar" style="height:80px;">40</div>
+  </div>
+</div>
+
+<!-- ============ 四、布局系统 ============ -->
+<div class="section" id="c4">
+  <h2><span class="num">04</span> 布局系统</h2>
+
+  <h3>4.1 桌面端（≥1024px）</h3>
+<div class="ascii-block">┌──────────┬──────────────────────────────────────────────┐
+│          │ 顶部栏：面包屑 + 全局搜索 + 通知 + 用户头像    │
+│ 侧边栏   ├──────────────────────────────────────────────┤
+│ 200px    │                                              │
+│          │  KPI 卡片行（等宽4列）                        │
+│ 深色底   │  ┌──────┐ ┌──────┐ ┌──────┐ ┌──────┐         │
+│          │  │ 营收 │ │ 订单 │ │ 客户 │ │ 毛利 │         │
+│ 白色/    │  └──────┘ └──────┘ └──────┘ └──────┘         │
+│ 蓝色字   │                                              │
+│          │  数据表格（全宽）+ 分页器                     │
+│ 导航项   │  ┌──────────────────────────────────────┐    │
+│ 蓝色字体 │  │ 列1 │ 列2 │ 列3 │ ... │ 操作 │         │    │
+│          │  └──────────────────────────────────────┘    │
+└──────────┴──────────────────────────────────────────────┘</div>
+
+  <h3>4.2 手机端（≤767px）</h3>
+<div class="ascii-block">┌─────────────────────┐
+│ 顶部栏：汉堡 + 标题  │
+├─────────────────────┤
+│                     │
+│  KPI 卡片（纵向堆叠）│
+│  ┌───────────────┐  │
+│  │ 营收          │  │
+│  └───────────────┘  │
+│  ┌───────────────┐  │
+│  │ 订单          │  │
+│  └───────────────┘  │
+│  ...                │
+│                     │
+│  表格 → 清单视图    │
+│  ┌───────────────┐  │
+│  │ 订单 #1001    │  │
+│  │ ¥328 · 已完成 │  │
+│  └───────────────┘  │
+│  ...                │
+│                     │
+├─────────────────────┤
+│ 底部标签导航         │
+│ 首页 │ 订单 │ ...   │
+└─────────────────────┘</div>
+
+  <h3>4.3 布局组件预览</h3>
+  <div class="row mt-12">
+    <div class="sidebar-demo">
+      <div class="logo">智享全链</div>
+      <div class="nav-group-title">主菜单</div>
+      <div class="nav-item active"><span class="icon">◆</span><span>仪表盘</span></div>
+      <div class="nav-item"><span class="icon">▣</span><span>订单管理</span></div>
+      <div class="nav-item"><span class="icon">▤</span><span>商品管理</span></div>
+      <div class="nav-item"><span class="icon">▦</span><span>库存管理</span></div>
+      <div class="nav-group-title">系统</div>
+      <div class="nav-item"><span class="icon">⚙</span><span>系统设置</span></div>
+      <div class="nav-item"><span class="icon">◔</span><span>审计日志</span></div>
+      <div class="collapse-btn"><span>◀</span><span>折叠</span></div>
+    </div>
+    <div class="col">
+      <div class="topbar-demo">
+        <span class="crumb">订单管理 <span style="margin:0 6px;color:var(--text-muted);">/</span> <span class="cur">销售订单</span></span>
+        <input class="search" placeholder="搜索订单号、客户名..." />
+        <div class="icon-btn">⚲<span class="dot"></span></div>
+        <div class="avatar">林</div>
+      </div>
+      <div class="kpi-grid mt-12" style="grid-template-columns:repeat(2,1fr);">
+        <div class="kpi">
+          <div class="top"><div class="icon-box">¥</div><span class="tag tag-success">+12.3%</span></div>
+          <div class="label">本月营收</div>
+          <div class="value">¥128,560</div>
+        </div>
+        <div class="kpi">
+          <div class="top"><div class="icon-box">#</div><span class="tag tag-info">草稿</span></div>
+          <div class="label">待处理订单</div>
+          <div class="value">24</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ============ 五、核心组件规范 ============ -->
+<div class="section" id="c5">
+  <h2><span class="num">05</span> 核心组件规范</h2>
+
+  <h3>5.1 按钮</h3>
+  <table class="tbl">
+    <thead><tr><th width="100">类型</th><th width="120">背景</th><th width="100">边框</th><th width="100">文字</th><th width="80">圆角</th><th>内边距</th></tr></thead>
+    <tbody>
+      <tr><td>主按钮</td><td class="mono">#5B6ABF</td><td>无</td><td class="mono">#FFFFFF 14px</td><td class="mono">6px</td><td class="mono">8px 20px</td></tr>
+      <tr><td>默认按钮</td><td class="mono">#FFFFFF</td><td class="mono">#CCCCCC</td><td class="mono">#000000 14px</td><td class="mono">6px</td><td class="mono">8px 20px</td></tr>
+      <tr><td>危险按钮</td><td class="mono">rgba(192,57,43,0.08)</td><td class="mono">#CCCCCC</td><td class="mono">#C0392B 14px</td><td class="mono">6px</td><td class="mono">8px 20px</td></tr>
+      <tr><td>文字按钮</td><td>透明</td><td>无</td><td class="mono">#5B6ABF 14px</td><td>—</td><td class="mono">4px 8px</td></tr>
+      <tr><td>小按钮</td><td>同上</td><td>同上</td><td>12px</td><td class="mono">4px</td><td class="mono">4px 12px</td></tr>
+    </tbody>
+  </table>
+  <div class="btn-row mt-12">
+    <button class="btn btn-primary">保存</button>
+    <button class="btn btn-default">取消</button>
+    <button class="btn btn-danger">删除</button>
+    <button class="btn btn-text">查看详情</button>
+    <button class="btn btn-primary btn-sm">小按钮</button>
+  </div>
+  <p class="muted mt-12" style="font-size:13px;">交互状态：hover 加深背景 10% / active 缩放 0.97 / focus 外发光 <code>0 0 0 3px rgba(91,106,191,0.25)</code> / disabled 灰度化 opacity 0.45</p>
+
+  <h3>5.2 输入框</h3>
+  <table class="tbl">
+    <thead><tr><th width="140">属性</th><th>值</th></tr></thead>
+    <tbody>
+      <tr><td>背景</td><td class="mono">#FFFFFF</td></tr>
+      <tr><td>边框</td><td class="mono">#CCCCCC 1px</td></tr>
+      <tr><td>圆角</td><td class="mono">6px</td></tr>
+      <tr><td>内边距</td><td class="mono">8px 12px</td></tr>
+      <tr><td>文字</td><td class="mono">14px #000000</td></tr>
+      <tr><td>占位符</td><td class="mono">13px #999999</td></tr>
+      <tr><td>聚焦</td><td>边框 <code>#5B6ABF</code>，外发光 <code>0 0 0 3px rgba(91,106,191,0.15)</code></td></tr>
+      <tr><td>禁用</td><td>背景 <code>#F0F0F0</code>，文字 <code>#999999</code></td></tr>
+      <tr><td>错误</td><td>边框 <code>#C0392B</code>，无外发光，下方红色 12px 提示文字</td></tr>
+    </tbody>
+  </table>
+  <div class="row mt-12">
+    <div class="col" style="max-width:320px;">
+      <div class="field">
+        <label>客户名称<span class="req">必填</span></label>
+        <input class="input" placeholder="请输入客户名称" value="北京酒水贸易公司" />
+      </div>
+      <div class="field">
+        <label>手机号</label>
+        <input class="input" placeholder="请输入手机号" />
+      </div>
+      <div class="field">
+        <label>错误示例</label>
+        <input class="input error" value="abc" />
+        <div class="err-msg">手机号格式不正确</div>
+      </div>
+      <div class="field">
+        <label>禁用示例</label>
+        <input class="input" value="不可编辑" disabled />
+      </div>
+    </div>
+  </div>
+
+  <h3>5.3 表格</h3>
+  <table class="tbl">
+    <thead><tr><th width="140">属性</th><th>值</th></tr></thead>
+    <tbody>
+      <tr><td>表头背景</td><td class="mono">#F8F8F8</td></tr>
+      <tr><td>表头文字</td><td class="mono">12px #444444 加粗</td></tr>
+      <tr><td>行分隔</td><td class="mono">#E2E2E2 1px bottom</td></tr>
+      <tr><td>行悬停背景</td><td class="mono">#F8F8F8</td></tr>
+      <tr><td>行高</td><td class="mono">44px</td></tr>
+      <tr><td>单元格内边距</td><td class="mono">12px 16px</td></tr>
+      <tr><td>选中行背景</td><td class="mono">rgba(91,106,191,0.06)</td></tr>
+      <tr><td>分页器</td><td>居右，灰色按钮，当前页蓝底白字</td></tr>
+    </tbody>
+  </table>
+  <table class="demo-table mt-12">
+    <thead>
+      <tr>
+        <th>订单号</th><th>客户</th><th>金额</th><th>状态</th><th>时间</th><th>操作</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td class="mono-num">#1001</td>
+        <td>北京酒水贸易</td>
+        <td class="mono-num">¥328.00</td>
+        <td><span class="tag tag-success">已完成</span></td>
+        <td class="muted" style="font-size:12px;">2026-07-12 14:30</td>
+        <td><button class="btn btn-text btn-sm">详情</button></td>
+      </tr>
+      <tr>
+        <td class="mono-num">#1002</td>
+        <td>上海烟酒商行</td>
+        <td class="mono-num">¥1,560.00</td>
+        <td><span class="tag tag-warning">处理中</span></td>
+        <td class="muted" style="font-size:12px;">2026-07-12 13:15</td>
+        <td><button class="btn btn-text btn-sm">详情</button></td>
+      </tr>
+      <tr>
+        <td class="mono-num">#1003</td>
+        <td>深圳餐饮集团</td>
+        <td class="mono-num">¥8,920.00</td>
+        <td><span class="tag tag-danger">已取消</span></td>
+        <td class="muted" style="font-size:12px;">2026-07-12 11:42</td>
+        <td><button class="btn btn-text btn-sm">详情</button></td>
+      </tr>
+      <tr>
+        <td class="mono-num">#1004</td>
+        <td>广州便利店</td>
+        <td class="mono-num">¥456.00</td>
+        <td><span class="tag tag-info">草稿</span></td>
+        <td class="muted" style="font-size:12px;">2026-07-12 10:08</td>
+        <td><button class="btn btn-text btn-sm">详情</button></td>
+      </tr>
+    </tbody>
+  </table>
+
+  <h3>5.4 侧边栏导航</h3>
+  <table class="tbl">
+    <thead><tr><th width="160">属性</th><th>值</th></tr></thead>
+    <tbody>
+      <tr><td>背景</td><td class="mono">#111111（亮色）/ #1A1A1A（暗色）</td></tr>
+      <tr><td>宽度</td><td class="mono">200px（折叠态 56px，仅图标）</td></tr>
+      <tr><td>Logo 区</td><td>底部 1px rgba(255,255,255,0.10) 分割</td></tr>
+      <tr><td>导航项默认文字</td><td class="mono">#999999（灰色）</td></tr>
+      <tr><td>导航项默认图标</td><td class="mono">#999999（灰色）</td></tr>
+      <tr><td>导航项激活文字</td><td class="primary-token">#5B6ABF（蓝色，仅当前页面）</td></tr>
+      <tr><td>导航项激活图标</td><td class="primary-token">#5B6ABF（蓝色，仅当前页面）</td></tr>
+      <tr><td>激活态背景</td><td class="mono">rgba(91,106,191,0.15)</td></tr>
+      <tr><td>悬停态</td><td class="mono">rgba(255,255,255,0.04)</td></tr>
+      <tr><td>分组标题</td><td class="mono">10px 全大写 #666666</td></tr>
+      <tr><td>折叠按钮</td><td>底部，#999999 图标</td></tr>
+    </tbody>
+  </table>
+
+  <h3>5.5 状态标签</h3>
+  <table class="tbl">
+    <thead><tr><th width="120">状态</th><th>样式</th></tr></thead>
+    <tbody>
+      <tr><td>已完成</td><td>浅绿底 <code>rgba(14,168,121,0.10)</code> + 绿字 <code>#0EA879</code></td></tr>
+      <tr><td>处理中</td><td>浅橙底 <code>rgba(212,139,58,0.10)</code> + 橙字 <code>#D48B3A</code></td></tr>
+      <tr><td>已取消</td><td>浅红底 <code>rgba(192,57,43,0.10)</code> + 红字 <code>#C0392B</code></td></tr>
+      <tr><td>草稿</td><td>浅蓝底 <code>rgba(91,106,191,0.10)</code> + 蓝字 <code>#5B6ABF</code></td></tr>
+    </tbody>
+  </table>
+  <p class="muted mt-12" style="font-size:13px;">标签统一使用 12px 字号、4px 圆角、4px 8px 内边距，无边框。</p>
+
+  <h3>5.6 KPI 卡片</h3>
+  <table class="tbl">
+    <thead><tr><th width="140">属性</th><th>值</th></tr></thead>
+    <tbody>
+      <tr><td>背景</td><td class="mono">#FFFFFF</td></tr>
+      <tr><td>边框</td><td class="mono">#E2E2E2 1px</td></tr>
+      <tr><td>圆角</td><td class="mono">8px</td></tr>
+      <tr><td>阴影</td><td class="mono">0 1px 3px rgba(0,0,0,0.08)</td></tr>
+      <tr><td>图标背景</td><td class="mono">#F0F0F0（非彩色）</td></tr>
+      <tr><td>图标颜色</td><td class="mono">#444444</td></tr>
+      <tr><td>数值</td><td class="mono">28px #000000 粗体</td></tr>
+      <tr><td>标签</td><td class="mono">12px #999999</td></tr>
+      <tr><td>变化箭头</td><td class="mono">#999999（非红非绿）</td></tr>
+      <tr><td>悬停阴影</td><td>增强至 <code>0 2px 8px rgba(0,0,0,0.12)</code></td></tr>
+    </tbody>
+  </table>
+  <div class="kpi-grid mt-12">
+    <div class="kpi">
+      <div class="top"><div class="icon-box">¥</div><span class="tag tag-success">+12.3%</span></div>
+      <div class="label">本月营收</div>
+      <div class="value">¥128,560</div>
+      <div class="delta">↑ 较上月</div>
+    </div>
+    <div class="kpi">
+      <div class="top"><div class="icon-box">#</div><span class="tag tag-warning">+8</span></div>
+      <div class="label">待处理订单</div>
+      <div class="value">24</div>
+      <div class="delta">↑ 较昨日</div>
+    </div>
+    <div class="kpi">
+      <div class="top"><div class="icon-box">人</div><span class="tag tag-success">+5.2%</span></div>
+      <div class="label">活跃客户</div>
+      <div class="value">1,028</div>
+      <div class="delta">↑ 较上月</div>
+    </div>
+    <div class="kpi">
+      <div class="top"><div class="icon-box">%</div><span class="tag tag-danger">-1.2%</span></div>
+      <div class="label">毛利率</div>
+      <div class="value">32.5%</div>
+      <div class="delta">↓ 较上月</div>
+    </div>
+  </div>
+
+  <h3>5.7 模态/弹窗</h3>
+  <table class="tbl">
+    <thead><tr><th width="140">属性</th><th>值</th></tr></thead>
+    <tbody>
+      <tr><td>遮罩</td><td class="mono">rgba(0,0,0,0.45)</td></tr>
+      <tr><td>面板背景</td><td class="mono">#FFFFFF</td></tr>
+      <tr><td>圆角</td><td class="mono">8px</td></tr>
+      <tr><td>标题</td><td class="mono">16px 加粗 #000000</td></tr>
+      <tr><td>关闭按钮</td><td>右上角，#999999 图标，悬停 #444444</td></tr>
+      <tr><td>底部按钮区</td><td>右对齐，主按钮在右</td></tr>
+      <tr><td>内容区</td><td class="mono">14px #444444，行高 1.6</td></tr>
+    </tbody>
+  </table>
+  <div class="modal-mask mt-12">
+    <div class="modal-panel">
+      <div class="modal-head">
+        <span class="title">确认删除</span>
+        <span class="close">×</span>
+      </div>
+      <div class="modal-body">
+        确定删除订单 <strong style="color:var(--text-primary);">#1001</strong> 吗？此操作不可撤销，相关数据将被永久移除。
+      </div>
+      <div class="modal-foot">
+        <button class="btn btn-default">取消</button>
+        <button class="btn btn-danger">确认删除</button>
+      </div>
+    </div>
+  </div>
+
+  <h3>5.8 顶部栏</h3>
+  <table class="tbl">
+    <thead><tr><th width="140">属性</th><th>值</th></tr></thead>
+    <tbody>
+      <tr><td>背景</td><td class="mono">#FFFFFF</td></tr>
+      <tr><td>高度</td><td class="mono">48px</td></tr>
+      <tr><td>底部边框</td><td class="mono">#E2E2E2 1px</td></tr>
+      <tr><td>面包屑</td><td class="mono">13px #5B6ABF（当前页）/ #999999（上级）</td></tr>
+      <tr><td>搜索框</td><td class="mono">280px 宽，圆角 6px，背景 #F0F0F0</td></tr>
+      <tr><td>通知图标</td><td class="mono">#999999，有未读时右侧小圆点 #C0392B</td></tr>
+      <tr><td>用户头像</td><td class="mono">32px 圆形，#F0F0F0 底</td></tr>
+    </tbody>
+  </table>
+</div>
+
+<!-- ============ 六、交互规范 ============ -->
+<div class="section" id="c6">
+  <h2><span class="num">06</span> 交互规范</h2>
+
+  <h3>6.1 动效</h3>
+  <table class="tbl">
+    <thead><tr><th width="180">场景</th><th width="240">动效</th><th>时长</th></tr></thead>
+    <tbody>
+      <tr><td>按钮悬停</td><td>背景色过渡</td><td class="mono">150ms ease</td></tr>
+      <tr><td>按钮点击</td><td>scale(0.97) + 回弹</td><td class="mono">200ms</td></tr>
+      <tr><td>输入框聚焦</td><td>边框色 + 外发光过渡</td><td class="mono">200ms ease</td></tr>
+      <tr><td>模态打开</td><td>遮罩淡入 + 面板放大(0.95→1)</td><td class="mono">200ms ease-out</td></tr>
+      <tr><td>模态关闭</td><td>遮罩淡出 + 面板缩小(1→0.95)</td><td class="mono">150ms ease-in</td></tr>
+      <tr><td>侧边栏折叠</td><td>宽度过渡</td><td class="mono">250ms ease</td></tr>
+      <tr><td>表格行悬停</td><td>背景色过渡</td><td class="mono">100ms</td></tr>
+      <tr><td>页面切换</td><td>内容区淡入</td><td class="mono">200ms</td></tr>
+      <tr><td>Toast 提示</td><td>顶部滑入 + 3s 后滑出</td><td class="mono">300ms</td></tr>
+    </tbody>
+  </table>
+  <div class="anim-row mt-12">
+    <div class="anim-card">悬停我</div>
+    <div class="anim-card">悬停我</div>
+    <div class="anim-card">悬停我</div>
+  </div>
+
+  <h3>6.2 反馈机制</h3>
+  <table class="tbl">
+    <thead><tr><th width="140">操作反馈</th><th>表现</th></tr></thead>
+    <tbody>
+      <tr><td>保存成功</td><td>顶部绿色 Toast "保存成功"，自动消失 3s</td></tr>
+      <tr><td>保存失败</td><td>顶部红色 Toast 显示错误原因，手动关闭</td></tr>
+      <tr><td>删除操作</td><td>弹出确认模态："确定删除 XXX？此操作不可撤销。" 确认按钮用危险样式</td></tr>
+      <tr><td>表单校验</td><td>失焦即校验，错误信息显示在输入框下方</td></tr>
+      <tr><td>加载中</td><td>骨架屏（表格/卡片区域灰色脉冲动画）替代全局 loading 转圈</td></tr>
+      <tr><td>空状态</td><td>居中灰色插图 + "暂无数据" + 可选"新建"按钮</td></tr>
+      <tr><td>网络错误</td><td>页面顶部横幅 "网络连接异常，点击重试"，蓝色链接</td></tr>
+    </tbody>
+  </table>
+
+  <h3>6.3 键盘导航</h3>
+  <table class="tbl">
+    <thead><tr><th width="180">场景</th><th>快捷键</th></tr></thead>
+    <tbody>
+      <tr><td>全局搜索</td><td><code>Ctrl+K</code> / <code>Cmd+K</code></td></tr>
+      <tr><td>保存表单</td><td><code>Ctrl+S</code> / <code>Cmd+S</code></td></tr>
+      <tr><td>关闭模态</td><td><code>Esc</code></td></tr>
+      <tr><td>表格翻页</td><td><code>←</code> <code>→</code> 方向键</td></tr>
+      <tr><td>确认操作</td><td><code>Enter</code>（焦点在确认按钮时）</td></tr>
+    </tbody>
+  </table>
+
+  <h3>6.4 无障碍</h3>
+  <table class="tbl">
+    <thead><tr><th width="180">要求</th><th>实现</th></tr></thead>
+    <tbody>
+      <tr><td>色彩对比度</td><td>正文 <code>#000000</code> 对白色底 ≥ 21:1（AAA级）</td></tr>
+      <tr><td>状态标签对比度</td><td>绿色字 <code>#0EA879</code> 对浅绿底 ≥ 4.5:1（AA级）</td></tr>
+      <tr><td>焦点可见</td><td>所有可交互元素有 3px 蓝色外发光焦点环</td></tr>
+      <tr><td>屏幕阅读器</td><td>图标按钮必须有 <code>aria-label</code>；表格有 <code>caption</code></td></tr>
+      <tr><td>触摸目标</td><td>移动端按钮最小 44×44px</td></tr>
+    </tbody>
+  </table>
+</div>
+
+<!-- ============ 七、响应式断点 ============ -->
+<div class="section" id="c7">
+  <h2><span class="num">07</span> 响应式断点</h2>
+  <table class="tbl">
+    <thead><tr><th width="100">断点</th><th width="160">宽度</th><th>布局</th></tr></thead>
+    <tbody>
+      <tr><td class="mono">XS</td><td>&lt; 576px</td><td>单列，底部标签导航</td></tr>
+      <tr><td class="mono">SM</td><td>576-767px</td><td>单列，底部标签导航</td></tr>
+      <tr><td class="mono">MD</td><td>768-1023px</td><td>双列 KPI，折叠侧边栏（汉堡+抽屉）</td></tr>
+      <tr><td class="mono">LG</td><td>1024-1279px</td><td>标准桌面布局</td></tr>
+      <tr><td class="mono">XL</td><td>≥ 1280px</td><td>标准桌面 + 内容区最大宽度 1200px 居中</td></tr>
+    </tbody>
+  </table>
+</div>
+
+<!-- ============ 八、设计交付物清单 ============ -->
+<div class="section" id="c8">
+  <h2><span class="num">08</span> 设计交付物清单</h2>
+  <table class="tbl">
+    <thead><tr><th width="200">交付物</th><th width="120">格式</th><th>状态</th></tr></thead>
+    <tbody>
+      <tr><td>色彩 Token JSON</td><td class="mono">.json</td><td><span class="tag tag-warning">待开发</span></td></tr>
+      <tr><td>抽取组件库（Vue 3）</td><td class="mono">.vue</td><td><span class="tag tag-info">基于现有 admin-web</span></td></tr>
+      <tr><td>亮色/暗色预览</td><td class="mono">.html</td><td><span class="tag tag-success">本文档支持切换</span></td></tr>
+      <tr><td>交互原型</td><td>—</td><td>本文档 ASCII 线框图</td></tr>
+      <tr><td>响应式适配说明</td><td>—</td><td>第七章</td></tr>
+    </tbody>
+  </table>
+</div>
+
+<!-- ============ 九、设计禁令附录 ============ -->
+<div class="section" id="c9">
+  <h2><span class="num">09</span> 设计禁令附录（Design Bans）</h2>
+  <p class="lead">以下做法在本系统中严格禁止：</p>
+  <div class="ban-list mt-12">
+    <div class="ban-item">
+      <span class="x">✕</span>
+      <div class="body"><strong>KPI 卡片图标使用彩色背景</strong> — 应用 <code>#F0F0F0</code></div>
+    </div>
+    <div class="ban-item">
+      <span class="x">✕</span>
+      <div class="body"><strong>数据涨跌使用绿色/红色箭头</strong> — 应用 <code>#999999</code></div>
+    </div>
+    <div class="ban-item">
+      <span class="x">✕</span>
+      <div class="body"><strong>表单必填标记使用红色星号</strong> — 应用灰色文字"必填"</div>
+    </div>
+    <div class="ban-item">
+      <span class="x">✕</span>
+      <div class="body"><strong>表格行隔行变色</strong> — 保持白底统一</div>
+    </div>
+    <div class="ban-item">
+      <span class="x">✕</span>
+      <div class="body"><strong>删除按钮填充红色</strong> — 应用灰边框+红字</div>
+    </div>
+    <div class="ban-item">
+      <span class="x">✕</span>
+      <div class="body"><strong>侧边栏所有导航项统一蓝色</strong> — 默认灰色，仅激活项变蓝 <code>#5B6ABF</code></div>
+    </div>
+    <div class="ban-item">
+      <span class="x">✕</span>
+      <div class="body"><strong>卡片使用彩色顶部色条</strong> — 应用灰底或无边线</div>
+    </div>
+    <div class="ban-item">
+      <span class="x">✕</span>
+      <div class="body"><strong>弹窗标题栏使用蓝色背景</strong> — 应用白底+黑字</div>
+    </div>
+  </div>
+</div>
+
+<div style="text-align:center;padding:40px 0;color:var(--text-muted);font-size:13px;">
+  Atlas v4.0 · UI/UX 交互设计规范 · 林夕 · 2026-07-12<br>
+  <span style="font-size:11px;">白底黑字中间灰 · 导航字体蓝色 · 仅按钮色与状态色保留颜色</span>
+</div>
+
+</div>
+
+<script>
+function toggleTheme() {
+  const root = document.documentElement;
+  const cur = root.getAttribute('data-theme');
+  const next = cur === 'light' ? 'dark' : 'light';
+  root.setAttribute('data-theme', next);
+  document.getElementById('themeIcon').textContent = next === 'light' ? '☀' : '☾';
+  document.getElementById('themeLabel').textContent = next === 'light' ? '亮色模式' : '暗色模式';
+}
+</script>
+
+</body>
+</html>

@@ -1,0 +1,133 @@
+{
+  "$schema": "https://design-tokens.github.io/community-group/format/",
+  "$description": "Atlas v4 Design Tokens — 白底黑字中间灰，导航字体蓝色，仅按钮色与状态色保留颜色",
+  "$version": "4.0.0",
+  "$date": "2026-07-12",
+  "$author": "林夕",
+  "$scope": ["admin-web", "merchant-mobile", "store-terminal"],
+
+  "color": {
+    "gray": {
+      "0":   { "$type": "color", "$value": "#FFFFFF", "dark": "#1A1A1A", "usage": "页面/卡片背景" },
+      "50":  { "$type": "color", "$value": "#F8F8F8", "dark": "#1F1F1F", "usage": "次级背景、悬停态" },
+      "100": { "$type": "color", "$value": "#F0F0F0", "dark": "#262626", "usage": "表头底色、禁用态" },
+      "200": { "$type": "color", "$value": "#E2E2E2", "dark": "#333333", "usage": "分割线、浅边框" },
+      "300": { "$type": "color", "$value": "#CCCCCC", "dark": "#444444", "usage": "输入框边框、常规分隔" },
+      "400": { "$type": "color", "$value": "#999999", "dark": "#666666", "usage": "占位文字、辅助信息" },
+      "500": { "$type": "color", "$value": "#666666", "dark": "#888888", "usage": "次要文字" },
+      "600": { "$type": "color", "$value": "#444444", "dark": "#AAAAAA", "usage": "正文次级" },
+      "700": { "$type": "color", "$value": "#333333", "dark": "#CCCCCC", "usage": "标题次级" },
+      "800": { "$type": "color", "$value": "#222222", "dark": "#DDDDDD", "usage": "标题主色" },
+      "900": { "$type": "color", "$value": "#111111", "dark": "#EEEEEE", "usage": "侧边栏底色、最深区域" }
+    },
+    "text": {
+      "primary":   { "$type": "color", "$value": "#000000", "dark": "#EEEEEE", "usage": "正文、标题" },
+      "secondary": { "$type": "color", "$value": "#444444", "dark": "#AAAAAA", "usage": "辅助说明" },
+      "muted":     { "$type": "color", "$value": "#999999", "dark": "#666666", "usage": "占位符、禁用态" }
+    },
+    "nav": {
+      "default":         { "$type": "color", "$value": "#999999", "usage": "侧边栏导航项默认文字（灰色，非激活）" },
+      "active":          { "$type": "color", "$value": "#5B6ABF", "usage": "当前激活导航项文字（蓝色）" },
+      "active-bg":       { "$type": "color", "$value": "rgba(91,106,191,0.15)", "usage": "当前激活导航项背景（亮色）" },
+      "active-bg-dark":  { "$type": "color", "$value": "rgba(91,106,191,0.30)", "usage": "当前激活导航项背景（暗色）" },
+      "hover":           { "$type": "color", "$value": "rgba(255,255,255,0.04)", "usage": "导航项悬停态背景" }
+    },
+    "btn": {
+      "primary":         { "$type": "color", "$value": "#5B6ABF", "hover": "#4A5AA8", "usage": "主操作按钮" },
+      "default-bg":      { "$type": "color", "$value": "#FFFFFF", "dark": "#1A1A1A", "usage": "默认按钮背景" },
+      "default-border":  { "$type": "color", "$value": "#CCCCCC", "dark": "#666666", "usage": "默认按钮边框" },
+      "danger":          { "$type": "color", "$value": "#C0392B", "hover": "#A93226", "usage": "危险操作按钮（仅文字色，不填充）" },
+      "danger-bg":       { "$type": "color", "$value": "rgba(192,57,43,0.08)", "usage": "危险按钮背景" }
+    },
+    "status": {
+      "success-bg":   { "$type": "color", "$value": "rgba(14,168,121,0.10)", "text": "#0EA879", "usage": "已完成/已支付" },
+      "warning-bg":   { "$type": "color", "$value": "rgba(212,139,58,0.10)", "text": "#D48B3A", "usage": "处理中/待发货" },
+      "danger-bg":    { "$type": "color", "$value": "rgba(192,57,43,0.10)", "text": "#C0392B", "usage": "已取消/已驳回" },
+      "info-bg":      { "$type": "color", "$value": "rgba(91,106,191,0.10)", "text": "#5B6ABF", "usage": "草稿/待提交" }
+    }
+  },
+
+  "font": {
+    "family": {
+      "sans":  { "$type": "fontFamily", "$value": "\"Inter\", -apple-system, \"PingFang SC\", \"Microsoft YaHei\", sans-serif" },
+      "cjk":   { "$type": "fontFamily", "$value": "\"Noto Sans CJK SC\", \"PingFang SC\", \"Microsoft YaHei\"" },
+      "mono":  { "$type": "fontFamily", "$value": "\"JetBrains Mono\", \"SF Mono\", monospace" }
+    },
+    "size": {
+      "4xl":  { "$type": "dimension", "$value": "28px", "lineHeight": "1.3",  "weight": 700, "usage": "页面主标题" },
+      "2xl":  { "$type": "dimension", "$value": "20px", "lineHeight": "1.35", "weight": 700, "usage": "区块标题、卡片名" },
+      "lg":   { "$type": "dimension", "$value": "16px", "lineHeight": "1.5",  "weight": 600, "usage": "子标题、模态标题" },
+      "base": { "$type": "dimension", "$value": "14px", "lineHeight": "1.6",  "weight": 400, "usage": "正文、表格内容" },
+      "sm":   { "$type": "dimension", "$value": "13px", "lineHeight": "1.5",  "weight": 400, "usage": "辅助说明、标签" },
+      "xs":   { "$type": "dimension", "$value": "12px", "lineHeight": "1.5",  "weight": 400, "usage": "占位文字、时间戳" },
+      "2xs":  { "$type": "dimension", "$value": "10px", "lineHeight": "1.4",  "weight": 500, "usage": "全大写标签、徽章" }
+    }
+  },
+
+  "space": {
+    "1":  { "$type": "dimension", "$value": "4px",  "usage": "图标与文字间距、标签内边距" },
+    "2":  { "$type": "dimension", "$value": "8px",  "usage": "紧凑列表项间距" },
+    "3":  { "$type": "dimension", "$value": "12px", "usage": "表单项间距、卡片内边距" },
+    "4":  { "$type": "dimension", "$value": "16px", "usage": "标准区块间距" },
+    "5":  { "$type": "dimension", "$value": "20px", "usage": "卡片间距" },
+    "6":  { "$type": "dimension", "$value": "24px", "usage": "页面内容区内边距" },
+    "8":  { "$type": "dimension", "$value": "32px", "usage": "页面标题与内容间距" },
+    "10": { "$type": "dimension", "$value": "40px", "usage": "大区块间距" }
+  },
+
+  "radius": {
+    "sm": { "$type": "dimension", "$value": "4px",  "usage": "小按钮、标签" },
+    "md": { "$type": "dimension", "$value": "6px",  "usage": "按钮、输入框" },
+    "lg": { "$type": "dimension", "$value": "8px",  "usage": "卡片、模态" }
+  },
+
+  "shadow": {
+    "sm": { "$type": "shadow", "$value": "0 1px 3px rgba(0,0,0,0.08)", "usage": "卡片默认" },
+    "md": { "$type": "shadow", "$value": "0 2px 8px rgba(0,0,0,0.12)", "usage": "卡片悬停、模态" }
+  },
+
+  "motion": {
+    "fast":    { "$type": "duration", "$value": "100ms", "usage": "表格行悬停" },
+    "normal":  { "$type": "duration", "$value": "150ms", "usage": "按钮悬停" },
+    "slow":    { "$type": "duration", "$value": "200ms", "usage": "输入框聚焦、模态打开" },
+    "slower":  { "$type": "duration", "$value": "250ms", "usage": "侧边栏折叠" },
+    "toast":   { "$type": "duration", "$value": "300ms", "usage": "Toast 滑入滑出" }
+  },
+
+  "breakpoint": {
+    "xs": { "$type": "dimension", "$value": "<576px",     "layout": "单列，底部标签导航" },
+    "sm": { "$type": "dimension", "$value": "576-767px",  "layout": "单列，底部标签导航" },
+    "md": { "$type": "dimension", "$value": "768-1023px", "layout": "双列 KPI，折叠侧边栏" },
+    "lg": { "$type": "dimension", "$value": "1024-1279px","layout": "标准桌面布局" },
+    "xl": { "$type": "dimension", "$value": "≥1280px",    "layout": "标准桌面 + 内容区最大宽度 1200px 居中" }
+  },
+
+  "layout": {
+    "sidebar-width":         { "$type": "dimension", "$value": "200px" },
+    "sidebar-collapsed":     { "$type": "dimension", "$value": "56px" },
+    "topbar-height":         { "$type": "dimension", "$value": "48px" },
+    "table-row-height":      { "$type": "dimension", "$value": "44px" },
+    "touch-target-min":      { "$type": "dimension", "$value": "44px" },
+    "content-max-width":     { "$type": "dimension", "$value": "1200px" }
+  },
+
+  "a11y": {
+    "focus-ring":         { "$type": "shadow", "$value": "0 0 0 3px rgba(91,106,191,0.25)", "usage": "焦点外发光" },
+    "contrast-text-aaa":  { "$value": "≥21:1",  "note": "正文 #000000 对白底" },
+    "contrast-tag-aa":    { "$value": "≥4.5:1", "note": "状态标签文字对背景" }
+  },
+
+  "bans": {
+    "$description": "设计禁令 — 严格禁止",
+    "list": [
+      "KPI 卡片图标使用彩色背景（应用 #F0F0F0）",
+      "数据涨跌使用绿色/红色箭头（应用 #999999）",
+      "表单必填标记使用红色星号（用灰色文字'必填'）",
+      "表格行隔行变色（保持白底统一）",
+      "删除按钮填充红色（应用灰边框+红字）",
+      "侧边栏所有导航项统一蓝色（默认灰色，仅激活项变蓝 #5B6ABF）",
+      "卡片使用彩色顶部色条（应用灰底或无边线）",
+      "弹窗标题栏使用蓝色背景（应用白底+黑字）"
+    ]
+  }
+}
