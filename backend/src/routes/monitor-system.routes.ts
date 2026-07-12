@@ -1,39 +1,16 @@
-﻿/**
+/**
  * 系统资源监控路由
  * 前缀：/api/monitor
  */
 import { Router } from "express";
 import type { RouteConfig } from "../shared/auto-routes";
 import { asyncHandler } from "../middleware/async-handler";
-import { ok } from "../shared/response";
-import {
-  getMemoryUsage,
-  getCpuUsage,
-  getProcessInfo,
-  getSystemHealth,
-} from "../services/admin/system-monitor.service";
+import * as controller from "../controllers/admin/monitor-system.controller";
 
 export const monitorSystemRouter = Router();
 
-// ========== 获取系统资源信息 ==========
-monitorSystemRouter.get(
-  "/system",
-  asyncHandler(async (_req, res) => {
-    const memory = getMemoryUsage();
-    const cpu = getCpuUsage();
-    const processInfo = getProcessInfo();
-    res.json(ok({ memory, cpu, process: processInfo }));
-  })
-);
-
-// ========== 综合健康检查 ==========
-monitorSystemRouter.get(
-  "/health",
-  asyncHandler(async (_req, res) => {
-    const health = await getSystemHealth();
-    res.json(ok(health));
-  })
-);
+monitorSystemRouter.get("/system", asyncHandler(controller.getSystemResources));
+monitorSystemRouter.get("/health", asyncHandler(controller.checkSystemHealth));
 
 // ========== 路由自动发现配置 ==========
 export const routeConfig: RouteConfig = {

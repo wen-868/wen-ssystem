@@ -21,7 +21,7 @@ vi.mock("@middleware/async-handler", () => ({
 
 import * as tenantService from "@services/admin/tenant.service";
 import { ok } from "@shared/response";
-import { listTenants, getTenantDetail, createTenant, updateTenant, changeTenantStatus, getTenantModules, setTenantModules } from "@controllers/tenant.controller";
+import { listTenants, getTenantDetail, createTenant, updateTenant, changeTenantStatus, getTenantModules, setTenantModules } from "@controllers/admin/tenant.controller";
 
 const mockReq = (overrides: any = {}) => ({
   tenantId: "t1",

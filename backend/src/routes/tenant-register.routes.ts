@@ -1,30 +1,30 @@
-ï»¿import { Router } from "express";
+import { Router } from "express";
 import type { RouteConfig } from "../shared/auto-routes";
 import { asyncHandler } from "../middleware/async-handler";
 import { requirePlatformAuth } from "../middleware/auth";
 import {
   handleApplyTenantRegister, handleListApplications,
   handleGetApplication, handleApproveApplication, handleRejectApplication
-} from "../controllers/tenant-register.controller";
+} from "../controllers/admin/tenant-register.controller";
 
 export const tenantRegisterRouter = Router();
 
-// POST /api/tenant/register - ç§Ÿæˆ·è‡ªåŠ©æ³¨å†Œï¼ˆå…¬å¼€æ¥å£ï¼‰
+// POST /api/tenant/register - ×â»§×ÔÖú×¢²á£¨¹«¿ª½Ó¿Ú£©
 tenantRegisterRouter.post("/register", asyncHandler(handleApplyTenantRegister));
 
-// ========== éœ€è¦å¹³å°ç®¡ç†å‘˜è®¤è¯çš„å®¡æ ¸æ¥å£ ==========
+// ========== ĞèÒªÆ½Ì¨¹ÜÀíÔ±ÈÏÖ¤µÄÉóºË½Ó¿Ú ==========
 tenantRegisterRouter.use("/applications", requirePlatformAuth);
 
-// GET /api/tenant/applications - ç”³è¯·åˆ—è¡¨
+// GET /api/tenant/applications - ÉêÇëÁĞ±í
 tenantRegisterRouter.get("/applications", asyncHandler(handleListApplications));
 
-// GET /api/tenant/applications/:id - ç”³è¯·è¯¦æƒ…
+// GET /api/tenant/applications/:id - ÉêÇëÏêÇé
 tenantRegisterRouter.get("/applications/:id", asyncHandler(handleGetApplication));
 
-// POST /api/tenant/applications/:id/approve - é€šè¿‡ç”³è¯·
+// POST /api/tenant/applications/:id/approve - Í¨¹ıÉêÇë
 tenantRegisterRouter.post("/applications/:id/approve", asyncHandler(handleApproveApplication));
 
-// POST /api/tenant/applications/:id/reject - é©³å›ç”³è¯·
+// POST /api/tenant/applications/:id/reject - ²µ»ØÉêÇë
 tenantRegisterRouter.post("/applications/:id/reject", asyncHandler(handleRejectApplication));
 
 export const routeConfig: RouteConfig = {

@@ -19,7 +19,7 @@ vi.mock("@middleware/async-handler", () => ({
 
 import * as paymentService from "@services/admin/payment.service";
 import { ok, fail } from "@shared/response";
-import { createPaymentController } from "@controllers/payment.controller";
+import { createPaymentController } from "@controllers/admin/payment.controller";
 
 const mockWechatPay = {};
 const { createPaymentOrder, handleWxCallback, createRefund, getPaymentOrder, listPaymentOrders } = createPaymentController(mockWechatPay as any);

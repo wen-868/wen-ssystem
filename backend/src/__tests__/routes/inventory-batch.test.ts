@@ -1,4 +1,4 @@
-﻿import { vi, describe, it, beforeEach, expect, afterAll } from "vitest";
+import { vi, describe, it, beforeEach, expect, afterAll } from "vitest";
 import request from "supertest";
 import { createTestApp } from "../fixtures/create-test-app";
 
@@ -46,7 +46,8 @@ vi.mock("../../shared/logger", () => ({
 }));
 
 import * as service from "../../services/admin/inventory-batch.service";
-import { inventoryBatchRouter, startExpiryScanner } from "../../routes/inventory-batch.routes";
+import { inventoryBatchRouter } from "../../routes/inventory-batch.routes";
+import { startExpiryScanner } from "../../shared/expiry-scanner";
 import logger from "../../shared/logger";
 
 const app = createTestApp({

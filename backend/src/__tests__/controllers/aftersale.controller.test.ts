@@ -43,7 +43,7 @@ import {
   adminInspectAftersale,
   adminCompleteAftersale,
   adminGetStatistics,
-} from "@controllers/aftersale.controller";
+} from "@controllers/admin/aftersale.controller";
 
 const mockReq = (overrides: any = {}) => ({
   tenantId: "t1",

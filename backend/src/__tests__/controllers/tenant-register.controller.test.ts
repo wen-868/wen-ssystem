@@ -24,7 +24,7 @@ import {
   handleGetApplication,
   handleApproveApplication,
   handleRejectApplication,
-} from "../../controllers/tenant-register.controller";
+} from "../../controllers/admin/tenant-register.controller";
 
 const mockReq = (overrides: any = {}) => ({
   tenantId: "t1",

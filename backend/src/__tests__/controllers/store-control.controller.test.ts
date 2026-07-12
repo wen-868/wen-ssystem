@@ -37,7 +37,7 @@ import {
   listStatusLogs,
   getStoreStatus,
   listMyLogs,
-} from "@controllers/store-control.controller";
+} from "@controllers/admin/store-control.controller";
 
 const mockReq = (overrides: any = {}) => ({
   tenantId: "t1",

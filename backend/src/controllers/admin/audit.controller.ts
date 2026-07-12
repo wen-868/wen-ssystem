@@ -1,6 +1,6 @@
-﻿import { asyncHandler } from "../middleware/async-handler";
-import { ok } from "../shared/response";
-import * as service from "../services/admin/audit.service";
+﻿import { asyncHandler } from "../../middleware/async-handler";
+import { ok } from "../../shared/response";
+import * as service from "../../services/admin/audit.service";
 import { z } from "zod";
 
 export const listAuditLogs = asyncHandler(async (req, res) => {

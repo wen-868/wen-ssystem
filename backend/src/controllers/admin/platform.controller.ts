@@ -1,5 +1,5 @@
-import { query, queryOne } from "../shared/db";
-import { ok } from "../shared/response";
+﻿import { query, queryOne } from "../../shared/db";
+import { ok } from "../../shared/response";
 
 export async function getPlatformOverview(req: any, res: any) {
   const tenantCount = await queryOne<any>("SELECT COUNT(*) AS count FROM tenant WHERE status = 'ACTIVE'");

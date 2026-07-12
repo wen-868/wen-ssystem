@@ -1,11 +1,7 @@
-﻿import { Router } from "express";
-import { asyncHandler } from "../middleware/async-handler";
+import { Router } from "express";
 import { requirePlatformAuth } from "../middleware/auth";
-import { ok, fail } from "../shared/response";
-import {
-  listTenants, getTenantById, checkTenantNameExists,
-  createTenant, updateTenant, toggleTenantStatus
-} from "../services/platform-tenant.service";
+import { asyncHandler } from "../middleware/async-handler";
+import * as controller from "../controllers/platform/tenant.controller";
 
 export const platformTenantRouter = Router();
 
@@ -13,59 +9,16 @@ export const platformTenantRouter = Router();
 platformTenantRouter.use(requirePlatformAuth);
 
 // GET /api/platform/tenants - 租户列表
-platformTenantRouter.get("/", asyncHandler(async (req: any, res: any) => {
-  const page = Number(req.query.page || 1);
-  const pageSize = Number(req.query.pageSize || 20);
-  const keyword = req.query.keyword as string | undefined;
-  const result = await listTenants(page, pageSize, keyword);
-  res.json(ok(result));
-}));
+platformTenantRouter.get("/", asyncHandler(controller.listPlatformTenants));
 
 // GET /api/platform/tenants/:id - 租户详情
-platformTenantRouter.get("/:id", asyncHandler(async (req: any, res: any) => {
-  const tenant = await getTenantById(Number(req.params.id));
-  if (!tenant) {
-    res.status(404).json(fail("租户不存在", "404"));
-    return;
-  }
-  res.json(ok(tenant));
-}));
+platformTenantRouter.get("/:id", asyncHandler(controller.getPlatformTenantById));
 
 // POST /api/platform/tenants - 创建租户
-platformTenantRouter.post("/", asyncHandler(async (req: any, res: any) => {
-  const { tenantName, contactName, contactMobile, contactEmail, adminUsername, adminPassword, expireAt } = req.body;
-
-  if (!tenantName || !contactName || !contactMobile || !adminUsername || !adminPassword) {
-    res.status(400).json(fail("缺少必填字段", "400"));
-    return;
-  }
-
-  const exists = await checkTenantNameExists(tenantName);
-  if (exists) {
-    res.status(400).json(fail("租户名称已存在", "400"));
-    return;
-  }
-
-  const tenantId = await createTenant({
-    tenantName, contactName, contactMobile, contactEmail, adminUsername, adminPassword, expireAt
-  });
-
-  res.json(ok({ id: tenantId }));
-}));
+platformTenantRouter.post("/", asyncHandler(controller.createPlatformTenant));
 
 // PUT /api/platform/tenants/:id - 更新租户
-platformTenantRouter.put("/:id", asyncHandler(async (req: any, res: any) => {
-  await updateTenant(Number(req.params.id), req.body);
-  res.json(ok({ success: true }));
-}));
+platformTenantRouter.put("/:id", asyncHandler(controller.updatePlatformTenant));
 
 // POST /api/platform/tenants/:id/toggle - 启用/禁用租户
-platformTenantRouter.post("/:id/toggle", asyncHandler(async (req: any, res: any) => {
-  const { status } = req.body;
-  if (!["ACTIVE", "DISABLED"].includes(status)) {
-    res.status(400).json(fail("无效的状态值", "400"));
-    return;
-  }
-  await toggleTenantStatus(Number(req.params.id), status);
-  res.json(ok({ success: true }));
-}));
+platformTenantRouter.post("/:id/toggle", asyncHandler(controller.togglePlatformTenantStatus));

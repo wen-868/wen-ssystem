@@ -2,7 +2,7 @@ import { Router } from "express";
 import type { RouteConfig } from "../shared/auto-routes";
 import { requireAuthWithTenant } from "../middleware/auth";
 import { asyncHandler } from "../middleware/async-handler";
-import { listOperationLogs, getOperationLogStatistics } from "../controllers/operation-log.controller";
+import { listOperationLogs, getOperationLogStatistics } from "../controllers/admin/operation-log.controller";
 
 export const operationLogRouter = Router();
 

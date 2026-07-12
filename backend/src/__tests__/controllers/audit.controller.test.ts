@@ -16,7 +16,7 @@ vi.mock("@middleware/async-handler", () => ({
 
 import * as auditService from "@services/admin/audit.service";
 import { ok } from "@shared/response";
-import { listAuditLogs, getAuditStatistics } from "@controllers/audit.controller";
+import { listAuditLogs, getAuditStatistics } from "@controllers/admin/audit.controller";
 
 const mockReq = (overrides: any = {}) => ({
   tenantId: "t1",

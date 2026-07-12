@@ -1,7 +1,7 @@
-import { describe, it, expect, vi, beforeEach } from "vitest";
+﻿import { describe, it, expect, vi, beforeEach } from "vitest";
 import { wechatRouter, routeConfig } from "../../routes/wechat.routes";
 
-vi.mock("../../controllers/wechat.controller", () => ({
+vi.mock("../../controllers/admin/wechat.controller", () => ({
   createWechatController: vi.fn().mockReturnValue({
     login: vi.fn(),
     decryptPhone: vi.fn(),

@@ -1,6 +1,6 @@
 import { Router } from "express";
 import { requireAuthWithTenant } from "../middleware/auth";
-import * as ctrl from "../controllers/notification.controller";
+import * as ctrl from "../controllers/admin/notification.controller";
 import type { RouteConfig } from "../shared/auto-routes";
 
 export { sendNotification, type SendNotificationParams } from "../shared/notification-sender";

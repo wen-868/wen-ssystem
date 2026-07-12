@@ -1,7 +1,7 @@
 ﻿import { z } from "zod";
-import { asyncHandler } from "../middleware/async-handler";
-import { ok, fail } from "../shared/response";
-import * as service from "../services/admin/notification.service";
+import { asyncHandler } from "../../middleware/async-handler";
+import { ok, fail } from "../../shared/response";
+import * as service from "../../services/admin/notification.service";
 
 // ========== 管理后台通知 Controller ==========
 

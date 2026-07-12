@@ -42,7 +42,7 @@ import {
   getMyList,
   updateItem,
   submit,
-} from "@controllers/stock-check.controller";
+} from "@controllers/admin/stock-check.controller";
 
 const mockReq = (overrides: any = {}) => ({
   tenantId: "t1",

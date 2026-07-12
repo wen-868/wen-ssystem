@@ -1,7 +1,7 @@
 import { Router } from "express";
 import type { RouteConfig } from "../shared/auto-routes";
 import { asyncHandler } from "../middleware/async-handler";
-import { sendSmsCode, registerMember } from "../controllers/member-register.controller";
+import { sendSmsCode, registerMember } from "../controllers/admin/member-register.controller";
 
 export const memberRegisterRouter = Router();
 

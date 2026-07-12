@@ -1,6 +1,6 @@
 import { Router } from "express";
 import { requireAuthWithTenant } from "../middleware/auth";
-import * as ctrl from "../controllers/store-control.controller";
+import * as ctrl from "../controllers/admin/store-control.controller";
 import type { RouteConfig } from "../shared/auto-routes";
 import { startStoreControlScheduler } from "../shared/store-control-scheduler";
 

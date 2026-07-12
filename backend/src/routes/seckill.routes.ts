@@ -1,20 +1,11 @@
-﻿import { Router } from "express";
+import { Router } from "express";
 import { requireAuthWithTenant } from "../middleware/auth";
-import { ok } from "../shared/response";
-import * as seckillService from "../services/admin/seckill.service";
 import { asyncHandler } from "../middleware/async-handler";
+import * as controller from "../controllers/admin/seckill.controller";
 
 export const seckillRouter = Router();
 
-seckillRouter.get("/", requireAuthWithTenant, asyncHandler(async (req, res) => {
-  const data = await seckillService.getSeckillProducts((req as { tenantId?: number }).tenantId as any, req.query); res.json(ok(data));
-}));
-seckillRouter.post("/", requireAuthWithTenant, asyncHandler(async (req, res) => {
-  const data = await seckillService.createSeckillProduct(req.body); res.json(ok(data));
-}));
-seckillRouter.put("/:id", requireAuthWithTenant, asyncHandler(async (req, res) => {
-  const data = await seckillService.updateSeckillProduct(Number(req.params.id), req.body); res.json(ok(data));
-}));
-seckillRouter.delete("/:id", requireAuthWithTenant, asyncHandler(async (req, res) => {
-  const data = await seckillService.deleteSeckillProduct(Number(req.params.id)); res.json(ok(data));
-}));
+seckillRouter.get("/", requireAuthWithTenant, asyncHandler(controller.getSeckillProducts));
+seckillRouter.post("/", requireAuthWithTenant, asyncHandler(controller.createSeckillProduct));
+seckillRouter.put("/:id", requireAuthWithTenant, asyncHandler(controller.updateSeckillProduct));
+seckillRouter.delete("/:id", requireAuthWithTenant, asyncHandler(controller.deleteSeckillProduct));

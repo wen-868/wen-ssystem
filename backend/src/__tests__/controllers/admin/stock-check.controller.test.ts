@@ -30,7 +30,7 @@ import { ok, fail } from "../../../shared/response";
 import {
   create, getStatistics, list, getDetail, update, start, complete,
   cancel, handleDiff, getMyList, updateItem, submit
-} from "../../../controllers/stock-check.controller";
+} from "../../../controllers/admin/stock-check.controller";
 
 const mockReq = (overrides: any = {}) => ({
   tenantId: "t1",

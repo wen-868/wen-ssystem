@@ -18,7 +18,7 @@ vi.mock("@middleware/async-handler", () => ({
 
 import * as customerMergeService from "@services/admin/customer-merge.service";
 import { ok } from "@shared/response";
-import { detectDuplicates, getCustomerRelations, mergeCustomers, getDuplicateGroups } from "@controllers/customer-merge.controller";
+import { detectDuplicates, getCustomerRelations, mergeCustomers, getDuplicateGroups } from "@controllers/admin/customer-merge.controller";
 
 const mockReq = (overrides: any = {}) => ({
   tenantId: "t1",

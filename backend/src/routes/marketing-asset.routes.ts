@@ -1,20 +1,11 @@
-﻿import { Router } from "express";
+import { Router } from "express";
 import { requireAuthWithTenant } from "../middleware/auth";
-import { ok } from "../shared/response";
-import * as marketingAssetService from "../services/admin/marketing-asset.service";
 import { asyncHandler } from "../middleware/async-handler";
+import * as controller from "../controllers/admin/marketing-asset.controller";
 
 export const marketingAssetRouter = Router();
 
-marketingAssetRouter.get("/", requireAuthWithTenant, asyncHandler(async (req, res) => {
-  const data = await marketingAssetService.getMarketingAssets((req as { tenantId?: number }).tenantId as any, req.query); res.json(ok(data));
-}));
-marketingAssetRouter.post("/", requireAuthWithTenant, asyncHandler(async (req, res) => {
-  const data = await marketingAssetService.createMarketingAsset(req.body); res.json(ok(data));
-}));
-marketingAssetRouter.put("/:id", requireAuthWithTenant, asyncHandler(async (req, res) => {
-  const data = await marketingAssetService.updateMarketingAsset(Number(req.params.id), req.body); res.json(ok(data));
-}));
-marketingAssetRouter.delete("/:id", requireAuthWithTenant, asyncHandler(async (req, res) => {
-  const data = await marketingAssetService.deleteMarketingAsset(Number(req.params.id)); res.json(ok(data));
-}));
+marketingAssetRouter.get("/", requireAuthWithTenant, asyncHandler(controller.getMarketingAssets));
+marketingAssetRouter.post("/", requireAuthWithTenant, asyncHandler(controller.createMarketingAsset));
+marketingAssetRouter.put("/:id", requireAuthWithTenant, asyncHandler(controller.updateMarketingAsset));
+marketingAssetRouter.delete("/:id", requireAuthWithTenant, asyncHandler(controller.deleteMarketingAsset));

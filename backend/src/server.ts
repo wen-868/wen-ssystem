@@ -1,4 +1,4 @@
-﻿import cors from "cors";
+import cors from "cors";
 import express from "express";
 import helmet from "helmet";
 import rateLimit from "express-rate-limit";
@@ -15,9 +15,8 @@ import { runMigrations } from "./shared/migration";
 import { setupRoutes } from "./shared/auto-routes";
 import * as authController from "./controllers/admin/auth.controller";
 import { startAlertScheduler } from "./services/alert.service";
-import { startExpiryScanner } from "./routes/inventory-batch.routes";
-import { startStoreControlScheduler } from "./routes/store-control.routes";
-import { startOrderTimeoutScanner } from "./routes/order-timeout.routes";
+import { startStoreControlScheduler } from "./shared/store-control-scheduler";
+import { startOrderTimeoutScanner } from "./shared/order-timeout-scanner";
 import { startOverdueScanner } from "./services/overdue-scanner.service";
 import { startSubscriptionExpiryScanner } from "./services/subscription-expiry.service";
 import "./jobs/report-aggregation.job.js";
@@ -162,8 +161,6 @@ async function start() {
     logger.info(`zhixiang-backend listening on http://localhost:${env.PORT}`);
     // 启动预警定时检查
     startAlertScheduler();
-    // 启动效期扫描器
-    startExpiryScanner();
     // 启动门店管控定时检查器
     startStoreControlScheduler();
     // 启动订单超时扫描器

@@ -18,7 +18,7 @@ vi.mock("@middleware/async-handler", () => ({
 
 import * as sysConfigService from "@services/admin/sys-config.service";
 import { ok } from "@shared/response";
-import { getAllConfigs, getConfigByGroup, batchUpdateConfigs, createConfig } from "@controllers/sys-config.controller";
+import { getAllConfigs, getConfigByGroup, batchUpdateConfigs, createConfig } from "@controllers/admin/sys-config.controller";
 
 const mockReq = (overrides: any = {}) => ({
   tenantId: "t1",

@@ -39,7 +39,7 @@ import {
   confirmReceipt,
   getStatements,
   getStatementDetail,
-} from "@controllers/miniapp.controller";
+} from "@controllers/admin/miniapp.controller";
 
 const mockReq = (overrides: any = {}) => ({
   tenantId: "t1",

@@ -1,7 +1,7 @@
 import { Router } from "express";
 import { requireAuthWithTenant } from "../middleware/auth";
 import { asyncHandler } from "../middleware/async-handler";
-import * as ctrl from "../controllers/aftersale.controller";
+import * as ctrl from "../controllers/admin/aftersale.controller";
 import {
   createAftersaleSchema,
   returnLogisticsSchema,

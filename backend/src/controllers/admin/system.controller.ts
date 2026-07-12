@@ -1,8 +1,8 @@
-import { queryOne } from "../shared/db";
-import { ok, fail } from "../shared/response";
-import { env } from "../shared/env";
-import { runMigrations } from "../shared/migration";
-import logger from "../shared/logger";
+﻿import { queryOne } from "../../shared/db";
+import { ok, fail } from "../../shared/response";
+import { env } from "../../shared/env";
+import { runMigrations } from "../../shared/migration";
+import logger from "../../shared/logger";
 
 export async function healthCheck(_req: any, res: any) {
   res.json(ok({

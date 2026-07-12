@@ -33,7 +33,7 @@ import {
   getTodos,
   getRecentOrders,
   getSalesTrendByDay,
-} from "@controllers/dashboard.controller";
+} from "@controllers/admin/dashboard.controller";
 
 const mockReq = (overrides: any = {}) => ({
   tenantId: "t1",

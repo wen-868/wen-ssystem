@@ -1,7 +1,7 @@
 import { Router } from "express";
 import type { RouteConfig } from "../shared/auto-routes";
 import { asyncHandler } from "../middleware/async-handler";
-import { getPlatformOverview, listPlatformTenants } from "../controllers/platform.controller";
+import { getPlatformOverview, listPlatformTenants } from "../controllers/admin/platform.controller";
 
 export const platformRouter = Router();
 

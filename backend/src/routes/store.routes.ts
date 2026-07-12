@@ -1,5 +1,4 @@
 import { Router } from "express";
-import { asyncHandler } from "../middleware/async-handler";
 import { requireAuthWithTenant } from "../middleware/auth";
 import { priceResponseFilter } from "../middleware/price-guard";
 import * as authController from "../controllers/store/auth.controller";

@@ -21,7 +21,7 @@ vi.mock("@middleware/async-handler", () => ({
 
 import * as rbacService from "@services/admin/rbac.service";
 import { ok } from "@shared/response";
-import { listRoles, createRole, getRoleDetail, updateRole, deleteRole, getUserRoles, setUserRoles } from "@controllers/rbac.controller";
+import { listRoles, createRole, getRoleDetail, updateRole, deleteRole, getUserRoles, setUserRoles } from "@controllers/admin/rbac.controller";
 
 const mockReq = (overrides: any = {}) => ({
   tenantId: "t1",

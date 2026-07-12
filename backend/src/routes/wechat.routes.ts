@@ -1,6 +1,6 @@
 import { Router } from "express";
 import type { RouteConfig } from "../shared/auto-routes";
-import { createWechatController } from "../controllers/wechat.controller";
+import { createWechatController } from "../controllers/admin/wechat.controller";
 import { requireWxAuth, code2Session, aesDecrypt, signWxToken } from "../middleware/wechat-auth";
 
 export const wechatRouter = Router();

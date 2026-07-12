@@ -1,6 +1,6 @@
-﻿import { asyncHandler } from "../middleware/async-handler";
-import { ok } from "../shared/response";
-import * as service from "../services/admin/sys-config.service";
+﻿import { asyncHandler } from "../../middleware/async-handler";
+import { ok } from "../../shared/response";
+import * as service from "../../services/admin/sys-config.service";
 import { z } from "zod";
 
 export const getAllConfigs = asyncHandler(async (req, res) => {

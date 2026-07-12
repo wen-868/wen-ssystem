@@ -25,7 +25,7 @@ import {
   exportPayments,
   exportSalesOrders,
   exportAuditLogs,
-} from "@controllers/export.controller";
+} from "@controllers/admin/export.controller";
 
 const mockReq = (overrides: any = {}) => ({
   tenantId: "t1",

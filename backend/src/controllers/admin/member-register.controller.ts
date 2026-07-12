@@ -1,5 +1,5 @@
-import { ok } from "../shared/response";
-import { selfRegisterMember, sendRegisterSmsCode } from "../services/admin/member.service";
+﻿import { ok } from "../../shared/response";
+import { selfRegisterMember, sendRegisterSmsCode } from "../../services/admin/member.service";
 
 export async function sendSmsCode(req: any, res: any) {
   const { mobile, tenantId } = req.body;

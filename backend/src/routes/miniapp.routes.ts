@@ -1,8 +1,8 @@
-锘縤mport { Router } from "express";
+import { Router } from "express";
 import type { RouteConfig } from "../shared/auto-routes";
 import { requireAuthWithTenant } from "../middleware/auth";
 import { priceResponseFilter } from "../middleware/price-guard";
-import * as ctrl from "../controllers/miniapp.controller";
+import * as ctrl from "../controllers/admin/miniapp.controller";
 
 export const miniappRouter = Router();
 miniappRouter.use(priceResponseFilter());
@@ -16,7 +16,7 @@ miniappRouter.get("/orders/:orderNo", requireAuthWithTenant, ctrl.getOrderDetail
 miniappRouter.post("/orders/:orderNo/confirm-receipt", requireAuthWithTenant, ctrl.confirmReceipt);
 miniappRouter.get("/statements", requireAuthWithTenant, ctrl.getStatements);
 miniappRouter.get("/statements/:id", requireAuthWithTenant, ctrl.getStatementDetail);
-// ========== 璺敱鑷姩鍙戠幇閰嶇疆 ==========
+// ========== 路由自动发现配置 ==========
 export const routeConfig: RouteConfig = {
   prefix: "/api/miniapp",
   router: miniappRouter,

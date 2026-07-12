@@ -1,7 +1,7 @@
-﻿import { z } from "zod";
-import { asyncHandler } from "../middleware/async-handler";
-import { ok, fail } from "../shared/response";
-import * as service from "../services/admin/store-control.service";
+import { z } from "zod";
+import { asyncHandler } from "../../middleware/async-handler";
+import { ok } from "../../shared/response";
+import * as service from "../../services/admin/store-control.service";
 
 // ==================== Admin 控制器 ====================
 

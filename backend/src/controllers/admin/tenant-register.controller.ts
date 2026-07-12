@@ -1,5 +1,5 @@
-﻿import { applyTenantRegister, approveTenantApplication, rejectTenantApplication, listTenantApplications, getTenantApplication } from "../services/tenant-register.service";
-import { ok } from "../shared/response";
+﻿import { applyTenantRegister, approveTenantApplication, rejectTenantApplication, listTenantApplications, getTenantApplication } from "../../services/tenant-register.service";
+import { ok } from "../../shared/response";
 
 export async function handleApplyTenantRegister(req: any, res: any) {
   const result = await applyTenantRegister(req.body);

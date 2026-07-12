@@ -33,7 +33,7 @@ import {
   listAlertRules,
   updateAlertRule,
   runCheck,
-} from "@controllers/alert.controller";
+} from "@controllers/admin/alert.controller";
 
 const mockReq = (overrides: any = {}) => ({
   tenantId: "t1",

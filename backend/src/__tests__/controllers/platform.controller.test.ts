@@ -1,4 +1,4 @@
-import { vi, describe, it, beforeEach, expect } from "vitest";
+﻿import { vi, describe, it, beforeEach, expect } from "vitest";
 
 vi.mock("@shared/db", () => ({
   query: vi.fn().mockResolvedValue([]),
@@ -11,7 +11,7 @@ vi.mock("@shared/response", () => ({
 }));
 
 import { ok } from "@shared/response";
-import { getPlatformOverview, listPlatformTenants } from "@controllers/platform.controller";
+import { getPlatformOverview, listPlatformTenants } from "@controllers/admin/platform.controller";
 
 const mockReq = (overrides: any = {}) => ({
   ...overrides,

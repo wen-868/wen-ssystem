@@ -1,6 +1,6 @@
-﻿import { asyncHandler } from "../middleware/async-handler";
-import { ok } from "../shared/response";
-import * as service from "../services/admin/dashboard.service";
+﻿import { asyncHandler } from "../../middleware/async-handler";
+import { ok } from "../../shared/response";
+import * as service from "../../services/admin/dashboard.service";
 
 export const getOverview = asyncHandler(async (req, res) => {
   const result = await service.getOverview(req.tenantId!);

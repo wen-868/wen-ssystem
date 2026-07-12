@@ -1,5 +1,4 @@
-﻿import { asyncHandler } from "../../middleware/async-handler";
-import { ok } from "../../shared/response";
+import { asyncHandler } from "../../middleware/async-handler";
 import { isProviderReady } from "../../services/admin/payment-config.service";
 
 /**

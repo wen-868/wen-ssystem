@@ -1,9 +1,9 @@
-锘縤mport { Router } from "express";
+import { Router } from "express";
 import { requireAuthWithTenant } from "../middleware/auth";
-import * as ctrl from "../controllers/stock-check.controller";
+import * as ctrl from "../controllers/admin/stock-check.controller";
 import type { RouteConfig } from "../shared/auto-routes";
 
-// ==================== Admin 鐩樼偣璺敱 ====================
+// ==================== Admin 盘点路由 ====================
 export const adminStockCheckRouter = Router();
 
 adminStockCheckRouter.use(requireAuthWithTenant);
@@ -18,7 +18,7 @@ adminStockCheckRouter.post("/:id/complete", ctrl.complete);
 adminStockCheckRouter.post("/:id/cancel", ctrl.cancel);
 adminStockCheckRouter.post("/:id/handle-diff", ctrl.handleDiff);
 
-// ==================== Store 鐩樼偣璺敱 ====================
+// ==================== Store 盘点路由 ====================
 export const storeStockCheckRouter = Router();
 
 storeStockCheckRouter.get("/my", ctrl.getMyList);
@@ -26,7 +26,7 @@ storeStockCheckRouter.get("/:id", ctrl.getDetail);
 storeStockCheckRouter.put("/:id/items/:itemId", ctrl.updateItem);
 storeStockCheckRouter.post("/:id/submit", ctrl.submit);
 
-// ========== 璺敱鑷姩鍙戠幇閰嶇疆 ==========
+// ========== 路由自动发现配置 ==========
 export const routeConfigs: RouteConfig[] = [
   { prefix: "/api/admin/stock-checks", router: adminStockCheckRouter, auth: "requireAuthWithTenant" },
   { prefix: "/api/store/stock-checks", router: storeStockCheckRouter, auth: "requireAuthWithTenant" },

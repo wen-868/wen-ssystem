@@ -1,7 +1,7 @@
-锘縤mport { Router } from "express";
+import { Router } from "express";
 import type { RouteConfig } from "../shared/auto-routes";
 import { requireAuthWithTenant } from "../middleware/auth";
-import * as ctrl from "../controllers/alert.controller";
+import * as ctrl from "../controllers/admin/alert.controller";
 
 export const alertRouter = Router();
 
@@ -11,7 +11,7 @@ alertRouter.put("/:id/handle", requireAuthWithTenant, ctrl.handleAlert);
 alertRouter.get("/rules", requireAuthWithTenant, ctrl.listAlertRules);
 alertRouter.put("/rules/:id", requireAuthWithTenant, ctrl.updateAlertRule);
 alertRouter.post("/check", requireAuthWithTenant, ctrl.runCheck);
-// ========== 璺敱鑷姩鍙戠幇閰嶇疆 ==========
+// ========== 路由自动发现配置 ==========
 export const routeConfig: RouteConfig = {
   prefix: "/api/admin/alerts",
   router: alertRouter,

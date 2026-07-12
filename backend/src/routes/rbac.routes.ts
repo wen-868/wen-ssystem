@@ -1,7 +1,7 @@
 import { Router } from "express";
 import type { RouteConfig } from "../shared/auto-routes";
 import { requireAuthWithTenant } from "../middleware/auth";
-import * as ctrl from "../controllers/rbac.controller";
+import * as ctrl from "../controllers/admin/rbac.controller";
 export { requirePermission, checkUserPermission } from "../middleware/rbac-auth";
 
 export const rbacRouter = Router();

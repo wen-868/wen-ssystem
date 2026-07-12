@@ -2,7 +2,7 @@ import { Router } from "express";
 import type { RouteConfig } from "../shared/auto-routes";
 import { asyncHandler } from "../middleware/async-handler";
 import { requireAuthWithTenant } from "../middleware/auth";
-import { healthCheck, getSystemInfo, runSystemMigration } from "../controllers/system.controller";
+import { healthCheck, getSystemInfo, runSystemMigration } from "../controllers/admin/system.controller";
 
 export const systemRouter = Router();
 

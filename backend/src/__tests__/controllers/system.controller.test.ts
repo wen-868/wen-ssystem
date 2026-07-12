@@ -1,4 +1,4 @@
-import { vi, describe, it, beforeEach, expect } from "vitest";
+﻿import { vi, describe, it, beforeEach, expect } from "vitest";
 
 vi.mock("@shared/db", () => ({
   queryOne: vi.fn().mockResolvedValue({ cnt: 0 }),
@@ -22,7 +22,7 @@ vi.mock("@shared/logger", () => ({
 }));
 
 import { ok } from "@shared/response";
-import { healthCheck, getSystemInfo, runSystemMigration } from "@controllers/system.controller";
+import { healthCheck, getSystemInfo, runSystemMigration } from "@controllers/admin/system.controller";
 
 const mockReq = (overrides: any = {}) => ({
   tenantId: "t1",

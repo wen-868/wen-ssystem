@@ -1,4 +1,4 @@
-import { vi, describe, it, beforeEach, expect } from "vitest";
+﻿import { vi, describe, it, beforeEach, expect } from "vitest";
 
 vi.mock("@services/admin/member.service", () => ({
   sendRegisterSmsCode: vi.fn().mockResolvedValue({}),
@@ -11,7 +11,7 @@ vi.mock("@shared/response", () => ({
 }));
 
 import { ok } from "@shared/response";
-import { sendSmsCode, registerMember } from "@controllers/member-register.controller";
+import { sendSmsCode, registerMember } from "@controllers/admin/member-register.controller";
 
 const mockReq = (overrides: any = {}) => ({
   body: {},

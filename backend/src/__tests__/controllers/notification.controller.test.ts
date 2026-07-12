@@ -41,7 +41,7 @@ import {
   getMiniappUnreadCount,
   markMiniappAsRead,
   markMiniappAllAsRead,
-} from "@controllers/notification.controller";
+} from "@controllers/admin/notification.controller";
 
 const mockReq = (overrides: any = {}) => ({
   tenantId: "t1",

@@ -1,4 +1,4 @@
-import { vi, describe, it, beforeEach, expect } from "vitest";
+﻿import { vi, describe, it, beforeEach, expect } from "vitest";
 
 vi.mock("@services/wechat.service", () => ({
   login: vi.fn(),
@@ -32,7 +32,7 @@ vi.mock("@shared/env", () => ({
 
 import * as wechatService from "@services/wechat.service";
 import { ok, fail } from "@shared/response";
-import { createWechatController } from "@controllers/wechat.controller";
+import { createWechatController } from "@controllers/admin/wechat.controller";
 
 const mockCode2Session = vi.fn().mockResolvedValue({ openid: "test-openid", session_key: "test-session-key" });
 const mockAesDecrypt = vi.fn().mockReturnValue(JSON.stringify({ phoneNumber: "13800138000" }));

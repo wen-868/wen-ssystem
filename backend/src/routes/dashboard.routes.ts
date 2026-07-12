@@ -1,7 +1,7 @@
-锘縤mport { Router } from "express";
+import { Router } from "express";
 import type { RouteConfig } from "../shared/auto-routes";
 import { requireAuthWithTenant } from "../middleware/auth";
-import * as ctrl from "../controllers/dashboard.controller";
+import * as ctrl from "../controllers/admin/dashboard.controller";
 
 export const dashboardRouter = Router();
 
@@ -14,7 +14,7 @@ dashboardRouter.get("/recent-alerts", requireAuthWithTenant, ctrl.getRecentAlert
 dashboardRouter.get("/todos", requireAuthWithTenant, ctrl.getTodos);
 dashboardRouter.get("/recent-orders", requireAuthWithTenant, ctrl.getRecentOrders);
 dashboardRouter.get("/sales-trend-daily", requireAuthWithTenant, ctrl.getSalesTrendByDay);
-// ========== 璺敱鑷姩鍙戠幇閰嶇疆 ==========
+// ========== 路由自动发现配置 ==========
 export const routeConfig: RouteConfig = {
   prefix: "/api/admin/dashboard",
   router: dashboardRouter,

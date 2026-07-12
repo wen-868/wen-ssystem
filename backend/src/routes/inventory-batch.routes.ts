@@ -1,9 +1,10 @@
-﻿import { Router } from "express";
+import { Router } from "express";
 import type { RouteConfig } from "../shared/auto-routes";
-import logger from "../shared/logger";
 import { requireAuthWithTenant } from "../middleware/auth";
 import * as controller from "../controllers/admin/inventory-batch.controller";
-import * as service from "../services/admin/inventory-batch.service";
+import { startExpiryScanner } from "../shared/expiry-scanner";
+
+startExpiryScanner();
 
 export const inventoryBatchRouter = Router();
 
@@ -36,31 +37,6 @@ inventoryBatchRouter.get("/expiry-alerts", controller.listExpiryAlerts);
 inventoryBatchRouter.get("/expiry-alerts/statistics", controller.getExpiryAlertStatistics);
 inventoryBatchRouter.put("/expiry-alerts/:id/handle", controller.handleExpiryAlert);
 
-// ==================== 效期扫描器 ====================
-
-let expiryScannerRunning = false;
-
-export function startExpiryScanner() {
-  logger.info("[效期扫描器] 已启动，每60秒检查一次（凌晨2点执行全量扫描）");
-
-  const timer = setInterval(async () => {
-    if (expiryScannerRunning) return;
-    const now = new Date();
-    const hour = now.getHours();
-    if (hour !== 2) return;
-
-    expiryScannerRunning = true;
-    try {
-      await service.runExpiryScan();
-      logger.info("[效期扫描器] 扫描完成");
-    } catch (error) {
-      logger.error("[效期扫描器] 扫描失败:", error);
-    } finally {
-      expiryScannerRunning = false;
-    }
-  }, 60 * 1000);
-  (timer as { unref: () => void }).unref();
-}
 // ========== 路由自动发现配置 ==========
 export const routeConfig: RouteConfig = {
   prefix: "/api/admin/inventory-batch",

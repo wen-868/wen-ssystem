@@ -1,0 +1,24 @@
+import { z } from "zod";
+import { ok } from "../../shared/response";
+import * as syncLogService from "../../services/admin/miniapp-order-sync.service";
+
+/** 订单同步日志列表（分页+筛选） */
+export async function listSyncLogs(req: any, res: any) {
+  const tenantId = req.tenantId!;
+  const params = z.object({
+    page: z.coerce.number().min(1).default(1),
+    pageSize: z.coerce.number().min(1).max(100).default(20),
+    orderNo: z.string().optional(),
+    status: z.coerce.number().optional(),
+  }).parse(req.query);
+  const result = await syncLogService.listSyncLogs(tenantId, params);
+  res.json(ok(result));
+}
+
+/** 重试同步 */
+export async function retrySync(req: any, res: any) {
+  const tenantId = req.tenantId!;
+  const { orderNo } = z.object({ orderNo: z.string().min(1) }).parse(req.params);
+  const result = await syncLogService.retrySync(tenantId, orderNo);
+  res.json(ok(result));
+}
