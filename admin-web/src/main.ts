@@ -4,6 +4,7 @@ import piniaPluginPersistedstate from "pinia-plugin-persistedstate";
 // element-plus 按需导入：由 unplugin-vue-components 和 unplugin-auto-import 自动处理
 // ElMessage/ElMessageBox 等函数式组件和样式由 AutoImport + ElementPlusResolver 自动导入
 // ElTable/ElForm 等 UI 组件由 Components + ElementPlusResolver 自动注册
+import "./styles/tokens.css";
 import "./styles.css";
 import App from "./App.vue";
 import router from "./router";

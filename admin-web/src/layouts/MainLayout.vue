@@ -2,13 +2,17 @@
   <div class="layout">
     <aside class="side" :class="{ 'is-collapsed': isMenuCollapsed && !isCashierMode, 'is-hidden': isCashierMode }">
       <div class="sidebar-header">
-        <h1 v-show="!isMenuCollapsed">智享全链管理系统</h1>
-        <h1 v-show="isMenuCollapsed">智享</h1>
+        <div class="sidebar-logo">
+          <div class="logo-icon">智</div>
+          <h1 v-show="!isMenuCollapsed">智享酒仓</h1>
+          <h1 v-show="isMenuCollapsed">智享</h1>
+        </div>
         <el-button
           class="collapse-btn"
           :icon="isMenuCollapsed ? 'Expand' : 'Fold'"
           @click="isMenuCollapsed = !isMenuCollapsed"
           size="small"
+          text
         />
       </div>
       <el-menu
@@ -228,9 +232,15 @@
     <main class="main" v-loading="pageLoading">
       <header class="main-header" v-if="!isCashierMode">
         <div class="header-left">
-          <span class="header-title">{{ pageTitle }}</span>
+          <div class="breadcrumb">
+            <span>{{ pageTitle }}</span>
+          </div>
         </div>
         <div class="header-right">
+          <div class="header-search">
+            <el-icon><Search /></el-icon>
+            <span>搜索商品、订单...</span>
+          </div>
           <el-button
             type="primary"
             size="small"
@@ -239,10 +249,15 @@
           >
             切换收银台
           </el-button>
-          <el-dropdown trigger="click" style="margin-left: 12px">
+          <el-badge :value="3" :max="99" class="header-badge">
+            <el-button circle size="small">
+              <el-icon><Bell /></el-icon>
+            </el-button>
+          </el-badge>
+          <el-dropdown trigger="click">
             <span class="user-info">
-              <el-icon><User /></el-icon>
-              <span>{{ currentUser?.realName || '管理员' }}</span>
+              <el-avatar :size="28" style="background: var(--color-primary)">{{ avatarText }}</el-avatar>
+              <span class="user-name">{{ currentUser?.realName || '管理员' }}</span>
             </span>
             <template #dropdown>
               <el-dropdown-menu>
@@ -281,7 +296,7 @@
 import { computed, onMounted, ref } from "vue";
 import { useRoute, useRouter } from "vue-router";
 import { ElMessage } from "element-plus";
-import { HomeFilled, Goods, Document, ShoppingCart, Box, User, Files, Shop, Coin, Present, DataAnalysis, Setting, Expand, Fold, Bell, Grid, ChatDotRound } from "@element-plus/icons-vue";
+import { HomeFilled, Goods, Document, ShoppingCart, Box, User, Files, Shop, Coin, Present, DataAnalysis, Setting, Expand, Fold, Bell, Grid, ChatDotRound, Search } from "@element-plus/icons-vue";
 import { formatDate } from "../utils/format";
 import { useAuthStore } from "../stores/auth";
 
@@ -293,6 +308,11 @@ const isMenuCollapsed = ref(false);
 const isCashierMode = ref(false);
 const pageLoading = ref(false);
 const currentUser = computed(() => auth.user);
+
+const avatarText = computed(() => {
+  const name = currentUser.value?.realName || '管理员';
+  return name.charAt(0);
+});
 
 const isCashierUser = computed(() => {
   return currentUser.value?.role === "CASHIER";
@@ -443,7 +463,7 @@ function handleLogout() {
 .side {
   width: 220px;
   background: var(--bg-sidebar);
-  border-right: 1px solid var(--border-color);
+  border-right: 1px solid var(--border-normal);
   transition: width 0.2s;
   flex-shrink: 0;
   display: flex;
@@ -464,12 +484,34 @@ function handleLogout() {
   align-items: center;
   justify-content: space-between;
   padding: 0 16px;
-  border-bottom: 1px solid var(--border-color);
+  border-bottom: 1px solid var(--border-normal);
+}
+
+.sidebar-logo {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex: 1;
+  min-width: 0;
+}
+
+.logo-icon {
+  width: 32px;
+  height: 32px;
+  background: var(--color-primary);
+  border-radius: 6px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #fff;
+  font-weight: 700;
+  font-size: 14px;
+  flex-shrink: 0;
 }
 
 .sidebar-header h1 {
   font-size: 16px;
-  font-weight: 600;
+  font-weight: 700;
   color: var(--text-primary);
   margin: 0;
   white-space: nowrap;
@@ -482,6 +524,7 @@ function handleLogout() {
 .sidebar-menu {
   flex: 1;
   border-right: none !important;
+  background: transparent !important;
 }
 
 .main {
@@ -493,16 +536,21 @@ function handleLogout() {
 
 .main-header {
   height: 60px;
-  background: #fff;
-  border-bottom: 1px solid var(--border-color);
+  background: var(--bg-card);
+  border-bottom: 1px solid var(--border-normal);
   display: flex;
   align-items: center;
   justify-content: space-between;
   padding: 0 24px;
 }
 
-.header-title {
-  font-size: 18px;
+.header-left {
+  display: flex;
+  align-items: center;
+}
+
+.breadcrumb {
+  font-size: 16px;
   font-weight: 600;
   color: var(--text-primary);
 }
@@ -510,15 +558,44 @@ function handleLogout() {
 .header-right {
   display: flex;
   align-items: center;
+  gap: 12px;
+}
+
+.header-search {
+  width: 240px;
+  height: 34px;
+  background: var(--gray-50);
+  border: 1px solid var(--border-normal);
+  border-radius: 6px;
+  display: flex;
+  align-items: center;
+  padding: 0 12px;
+  gap: 8px;
+  font-size: 13px;
+  color: var(--text-muted);
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.header-search:hover {
+  border-color: var(--color-primary);
+}
+
+.header-badge {
+  margin-left: 4px;
 }
 
 .user-info {
   display: flex;
   align-items: center;
-  gap: 6px;
+  gap: 8px;
   cursor: pointer;
   color: var(--text-primary);
   font-size: 14px;
+}
+
+.user-name {
+  font-size: 13px;
 }
 
 .cashier-container {
@@ -531,7 +608,7 @@ function handleLogout() {
 .cashier-header {
   height: 56px;
   background: #fff;
-  border-bottom: 1px solid var(--border-color);
+  border-bottom: 1px solid var(--border-normal);
   display: flex;
   align-items: center;
   padding: 0 16px;
