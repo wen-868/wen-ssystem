@@ -80,6 +80,12 @@ const routes = [
     meta: { requiresAuth: false, title: "登录", icon: UserFilled }
   },
   {
+    path: "/register",
+    name: "register",
+    component: () => import("../views/RegisterView.vue"),
+    meta: { requiresAuth: false, title: "注册", icon: UserFilled }
+  },
+  {
     path: "/",
     component: MainLayout,
     redirect: "/dashboard",

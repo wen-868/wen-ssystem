@@ -2342,3 +2342,26 @@ export async function fetchPlatformReconciliationDetail(id: number) { const { da
 export async function fetchPlatformReviews(params?: any) { const { data } = await api.get('/admin/platform-reviews', { params }); return data.data; }
 export async function replyPlatformReview(id: number, reply: string) { const { data } = await api.post(`/admin/platform-reviews/${id}/reply`, { reply }); return data.data; }
 export async function fetchPlatformReviewStats(params?: any) { const { data } = await api.get('/admin/platform-reviews/stats', { params }); return data.data; }
+
+// ==================== 租户注册 API ====================
+export async function tenantRegister(payload: {
+  company_name: string;
+  company_short_name?: string;
+  contact_person: string;
+  contact_mobile: string;
+  contact_email?: string;
+  province?: string;
+  city?: string;
+  district?: string;
+  address?: string;
+  business_license?: string;
+  legal_person?: string;
+  industry?: string;
+  company_scale?: string;
+  admin_username: string;
+  admin_password: string;
+  admin_real_name: string;
+}) {
+  const { data } = await api.post("/api/tenant/register", payload);
+  return data.data;
+}

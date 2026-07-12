@@ -17,6 +17,11 @@
         <el-form-item prop="rememberMe">
           <el-button type="primary" :loading="loading" @click="handleLogin" style="width:100%">登录进入后台</el-button>
         </el-form-item>
+        <el-form-item>
+          <div class="register-link">
+            还没有账号？<router-link to="/register">立即注册</router-link>
+          </div>
+        </el-form-item>
       </el-form>
     </el-card>
   </div>
@@ -98,5 +103,21 @@ async function handleLogin() {
   margin: 0;
   font-size: 13px;
   color: var(--text-secondary);
+}
+
+.register-link {
+  text-align: center;
+  font-size: 14px;
+  color: var(--text-secondary);
+  margin-top: 8px;
+}
+
+.register-link a {
+  color: var(--el-color-primary);
+  text-decoration: none;
+}
+
+.register-link a:hover {
+  text-decoration: underline;
 }
 </style>
