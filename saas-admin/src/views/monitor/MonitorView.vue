@@ -75,7 +75,8 @@ const data = ref<MonitorData>({
 
 onMounted(async () => {
   try {
-    data.value = await fetchMonitorData()
+    const res = await fetchMonitorData()
+    data.value = res.data
   } catch {
     ElMessage.error('获取监控数据失败')
   }

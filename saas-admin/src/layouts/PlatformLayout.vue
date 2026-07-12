@@ -7,6 +7,10 @@
           <el-icon><DataAnalysis /></el-icon>
           <span>平台看板</span>
         </el-menu-item>
+        <el-menu-item index="/applications">
+          <el-icon><Check /></el-icon>
+          <span>注册审核</span>
+        </el-menu-item>
         <el-menu-item index="/tenants">
           <el-icon><OfficeBuilding /></el-icon>
           <span>租户管理</span>
@@ -46,7 +50,7 @@
 <script setup lang="ts">
 import { computed } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
-import { OfficeBuilding, Monitor, DataAnalysis, Box, CreditCard, Setting } from '@element-plus/icons-vue'
+import { OfficeBuilding, Monitor, DataAnalysis, Box, CreditCard, Setting, Check } from '@element-plus/icons-vue'
 import { useAuthStore } from '../stores/auth'
 
 const route = useRoute()

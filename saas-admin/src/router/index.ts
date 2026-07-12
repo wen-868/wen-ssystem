@@ -49,6 +49,18 @@ const router = createRouter({
           meta: { title: '平台看板' },
         },
         {
+          path: 'applications',
+          name: 'ApplicationList',
+          component: () => import('../views/tenant/ApplicationList.vue'),
+          meta: { title: '注册审核' },
+        },
+        {
+          path: 'applications/:id',
+          name: 'ApplicationDetail',
+          component: () => import('../views/tenant/ApplicationDetail.vue'),
+          meta: { title: '申请详情' },
+        },
+        {
           path: 'tenants',
           name: 'TenantList',
           component: () => import('../views/tenant/TenantList.vue'),
