@@ -1,7 +1,7 @@
-import { Request, Response } from "express";
-import { asyncHandler } from "../../middleware/async-handler.js";
-import { ok } from "../../shared/response.js";
-import * as svc from "../../services/instant-retail/reconciliation.service.js";
+﻿import { Request, Response } from "express";
+import { asyncHandler } from "../../middleware/async-handler";
+import { ok } from "../../shared/response";
+import * as svc from "../../services/instant-retail/reconciliation.service";
 
 export const getReconciliationSummary = asyncHandler(async (req: Request, res: Response) => {
   const { startDate, endDate, platform, storeId } = req.query as Record<string, string | undefined>;

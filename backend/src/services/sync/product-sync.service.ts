@@ -1,5 +1,5 @@
-import { queryWithTenant } from "../../shared/db.js";
-import logger from "../../shared/logger.js";
+﻿import { queryWithTenant } from "../../shared/db";
+import logger from "../../shared/logger";
 
 /**
  * 商品同步服务：将商品信息同步到小程序端缓存

@@ -1,4 +1,4 @@
-import { query, queryOne, transaction } from "../../shared/db.js";
+﻿import { query, queryOne, transaction } from "../../shared/db";
 
 export async function listRoles(tenantId: string) {
   const records = await query<any>(

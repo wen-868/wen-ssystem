@@ -1,5 +1,5 @@
-import { queryWithTenant, queryOneWithTenant } from "../../shared/db.js";
-import { makeBizNo } from "../../shared/id.js";
+﻿import { queryWithTenant, queryOneWithTenant } from "../../shared/db";
+import { makeBizNo } from "../../shared/id";
 
 export async function createLimitedDiscount(data: any, tenantId: string, userId: number) {
   const code = makeBizNo("XS");

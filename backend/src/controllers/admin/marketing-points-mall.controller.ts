@@ -1,8 +1,8 @@
-import { z } from "zod";
+﻿import { z } from "zod";
 import { Request, Response } from "express";
-import { asyncHandler } from "../../middleware/async-handler.js";
-import { ok } from "../../shared/response.js";
-import * as svc from "../../services/admin/marketing-points-mall.service.js";
+import { asyncHandler } from "../../middleware/async-handler";
+import { ok } from "../../shared/response";
+import * as svc from "../../services/admin/marketing-points-mall.service";
 
 const createPointsProductSchema = z.object({
   name: z.string().min(1).max(200),

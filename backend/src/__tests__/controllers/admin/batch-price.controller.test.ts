@@ -1,4 +1,4 @@
-/**
+﻿/**
  * 管理端批量调价 controller 单元测试
  * 被测文件：src/controllers/admin/batch-price.controller.ts
  */
@@ -13,16 +13,16 @@ const mocks = vi.hoisted(() => ({
   getBatchPriceDetail: vi.fn(),
 }));
 
-vi.mock("../../../middleware/async-handler.js", () => ({
+vi.mock("../../../middleware/async-handler", () => ({
   asyncHandler: (fn: any) => fn,
 }));
 
-vi.mock("../../../shared/response.js", () => ({
+vi.mock("../../../shared/response", () => ({
   ok: mocks.ok,
   fail: mocks.fail,
 }));
 
-vi.mock("../../../services/admin/batch-price.service.js", () => ({
+vi.mock("../../../services/admin/batch-price.service", () => ({
   previewBatchPriceAdjustment: mocks.previewBatchPriceAdjustment,
   executeBatchPriceAdjustment: mocks.executeBatchPriceAdjustment,
   listBatchPriceLogs: mocks.listBatchPriceLogs,
@@ -34,7 +34,7 @@ import {
   executeBatchAdjustment,
   listBatchLogs,
   getBatchDetail,
-} from "../../../controllers/admin/batch-price.controller.js";
+} from "../../../controllers/admin/batch-price.controller";
 
 const mockReq = (overrides: any = {}) => ({
   tenantId: "t1",

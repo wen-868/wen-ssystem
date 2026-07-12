@@ -1,6 +1,6 @@
-import { vi, describe, it, beforeEach, expect } from "vitest";
+﻿import { vi, describe, it, beforeEach, expect } from "vitest";
 
-vi.mock("../../../services/admin/marketing-group-buy.service.js", () => ({
+vi.mock("../../../services/admin/marketing-group-buy.service", () => ({
   createGroupBuy: vi.fn(),
   listGroupBuys: vi.fn(),
   getGroupBuy: vi.fn(),
@@ -14,17 +14,17 @@ vi.mock("../../../services/admin/marketing-group-buy.service.js", () => ({
   joinGroupBuyTeam: vi.fn(),
 }));
 
-vi.mock("../../../shared/response.js", () => ({
+vi.mock("../../../shared/response", () => ({
   ok: vi.fn((data) => ({ success: true, data })),
   fail: vi.fn((msg, code) => ({ success: false, message: msg, code })),
 }));
 
-vi.mock("../../../middleware/async-handler.js", () => ({
+vi.mock("../../../middleware/async-handler", () => ({
   asyncHandler: (fn: any) => fn,
 }));
 
-import * as groupBuyService from "../../../services/admin/marketing-group-buy.service.js";
-import { ok } from "../../../shared/response.js";
+import * as groupBuyService from "../../../services/admin/marketing-group-buy.service";
+import { ok } from "../../../shared/response";
 import {
   createGroupBuy,
   listGroupBuys,
@@ -37,7 +37,7 @@ import {
   createGroupBuyTeam,
   getGroupBuyTeam,
   joinGroupBuyTeam,
-} from "../../../controllers/admin/marketing-group-buy.controller.js";
+} from "../../../controllers/admin/marketing-group-buy.controller";
 
 const mockReq = (overrides: any = {}) => ({
   tenantId: "t1",

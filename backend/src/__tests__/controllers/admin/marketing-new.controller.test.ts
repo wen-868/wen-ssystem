@@ -1,4 +1,4 @@
-import { describe, it, expect, vi, beforeEach } from "vitest";
+﻿import { describe, it, expect, vi, beforeEach } from "vitest";
 
 const mocks = vi.hoisted(() => ({
   ok: vi.fn((data?: any) => ({ code: "0", data })),
@@ -15,16 +15,16 @@ const mocks = vi.hoisted(() => ({
   calculateDiscount: vi.fn(),
 }));
 
-vi.mock("../../../middleware/async-handler.js", () => ({
+vi.mock("../../../middleware/async-handler", () => ({
   asyncHandler: (fn: any) => fn,
 }));
 
-vi.mock("../../../shared/response.js", () => ({
+vi.mock("../../../shared/response", () => ({
   ok: mocks.ok,
   fail: mocks.fail,
 }));
 
-vi.mock("../../../services/admin/marketing-new-coupon.service.js", () => ({
+vi.mock("../../../services/admin/marketing-new-coupon.service", () => ({
   listCouponTemplates: mocks.listCouponTemplates,
   getCouponTemplate: mocks.getCouponTemplate,
   createCouponTemplate: mocks.createCouponTemplate,
@@ -33,7 +33,7 @@ vi.mock("../../../services/admin/marketing-new-coupon.service.js", () => ({
   listUserCoupons: mocks.listUserCoupons,
 }));
 
-vi.mock("../../../services/admin/marketing-new-promotion.service.js", () => ({
+vi.mock("../../../services/admin/marketing-new-promotion.service", () => ({
   listPromotions: mocks.listPromotions,
   createPromotion: mocks.createPromotion,
   updatePromotion: mocks.updatePromotion,
@@ -51,7 +51,7 @@ import {
   createPromotion,
   updatePromotion,
   calculateDiscount,
-} from "../../../controllers/admin/marketing-new.controller.js";
+} from "../../../controllers/admin/marketing-new.controller";
 
 const mockReq = (overrides: any = {}) => ({
   tenantId: "t1",

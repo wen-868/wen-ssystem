@@ -1,4 +1,4 @@
-import { queryWithTenant, queryOneWithTenant } from "../../shared/db.js";
+﻿import { queryWithTenant, queryOneWithTenant } from "../../shared/db";
 
 export async function getReconciliationSummary(params: {
   tenantId: string; storeId?: number; platform?: string;

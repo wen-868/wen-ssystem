@@ -1,4 +1,4 @@
-/**
+﻿/**
  * 信用评分引擎
  * Credit Scoring Engine
  *
@@ -8,9 +8,9 @@
  * 3. 催收策略（按逾期天数分级，自动生成催收任务）
  */
 
-import { queryWithTenant, queryOneWithTenant } from "../../shared/db.js";
-import logger from "../../shared/logger.js";
-import type { ServiceContext } from "../../types/index.js";
+import { queryWithTenant, queryOneWithTenant } from "../../shared/db";
+import logger from "../../shared/logger";
+import type { ServiceContext } from "../../types/index";
 
 /** 评分维度权重 */
 const WEIGHTS = {

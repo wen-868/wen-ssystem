@@ -1,24 +1,24 @@
-import { vi, describe, it, beforeEach, expect } from "vitest";
+﻿import { vi, describe, it, beforeEach, expect } from "vitest";
 
-vi.mock("../../../services/instant-retail/order-receiving.service.js", () => ({
+vi.mock("../../../services/instant-retail/order-receiving.service", () => ({
   listOrders: vi.fn(),
   getOrderDetail: vi.fn(),
   confirmOrder: vi.fn(),
   cancelOrder: vi.fn(),
 }));
 
-vi.mock("../../../shared/response.js", () => ({
+vi.mock("../../../shared/response", () => ({
   ok: vi.fn((data) => ({ success: true, data })),
   fail: vi.fn((msg, code) => ({ success: false, message: msg, code })),
 }));
 
-vi.mock("../../../middleware/async-handler.js", () => ({
+vi.mock("../../../middleware/async-handler", () => ({
   asyncHandler: (fn: any) => fn,
 }));
 
-import * as orderReceivingService from "../../../services/instant-retail/order-receiving.service.js";
-import { ok, fail } from "../../../shared/response.js";
-import { listOrders, getOrderDetail, confirmOrder, cancelOrder } from "../../../controllers/instant-retail/order-receiving.controller.js";
+import * as orderReceivingService from "../../../services/instant-retail/order-receiving.service";
+import { ok, fail } from "../../../shared/response";
+import { listOrders, getOrderDetail, confirmOrder, cancelOrder } from "../../../controllers/instant-retail/order-receiving.controller";
 
 const mockReq = (overrides: any = {}) => ({
   tenantId: "t1",

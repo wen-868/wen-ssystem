@@ -1,6 +1,6 @@
-import { vi, describe, it, beforeEach, expect } from "vitest";
+﻿import { vi, describe, it, beforeEach, expect } from "vitest";
 
-vi.mock("../../../services/admin/purchase-in-stock.service.js", () => ({
+vi.mock("../../../services/admin/purchase-in-stock.service", () => ({
   list: vi.fn(),
   getDetail: vi.fn(),
   create: vi.fn(),
@@ -8,24 +8,24 @@ vi.mock("../../../services/admin/purchase-in-stock.service.js", () => ({
   voidStock: vi.fn(),
 }));
 
-vi.mock("../../../shared/response.js", () => ({
+vi.mock("../../../shared/response", () => ({
   ok: vi.fn((data) => ({ success: true, data })),
   fail: vi.fn((msg, code) => ({ success: false, message: msg, code })),
 }));
 
-vi.mock("../../../middleware/async-handler.js", () => ({
+vi.mock("../../../middleware/async-handler", () => ({
   asyncHandler: (fn: any) => fn,
 }));
 
-import * as purchaseInStockService from "../../../services/admin/purchase-in-stock.service.js";
-import { ok } from "../../../shared/response.js";
+import * as purchaseInStockService from "../../../services/admin/purchase-in-stock.service";
+import { ok } from "../../../shared/response";
 import {
   list,
   getDetail,
   create,
   approve,
   voidStock,
-} from "../../../controllers/admin/purchase-in-stock.controller.js";
+} from "../../../controllers/admin/purchase-in-stock.controller";
 
 const mockReq = (overrides: any = {}) => ({
   tenantId: "t1",

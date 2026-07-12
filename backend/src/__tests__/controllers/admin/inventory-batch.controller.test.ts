@@ -1,6 +1,6 @@
-import { vi, describe, it, beforeEach, expect } from "vitest";
+﻿import { vi, describe, it, beforeEach, expect } from "vitest";
 
-vi.mock("../../../services/admin/inventory-batch.service.js", () => ({
+vi.mock("../../../services/admin/inventory-batch.service", () => ({
   listBatches: vi.fn(),
   getBatchDetail: vi.fn(),
   createBatch: vi.fn(),
@@ -18,23 +18,23 @@ vi.mock("../../../services/admin/inventory-batch.service.js", () => ({
   getExpiryAlertStatistics: vi.fn(),
 }));
 
-vi.mock("../../../shared/response.js", () => ({
+vi.mock("../../../shared/response", () => ({
   ok: vi.fn((data) => ({ success: true, data })),
   fail: vi.fn((msg, code) => ({ success: false, message: msg, code })),
 }));
 
-vi.mock("../../../middleware/async-handler.js", () => ({
+vi.mock("../../../middleware/async-handler", () => ({
   asyncHandler: (fn: any) => fn,
 }));
 
-import * as batchService from "../../../services/admin/inventory-batch.service.js";
-import { ok, fail } from "../../../shared/response.js";
+import * as batchService from "../../../services/admin/inventory-batch.service";
+import { ok, fail } from "../../../shared/response";
 import {
   listBatches, getBatchDetail, createBatch, updateBatch, splitBatch,
   getFifoSuggestion, getBatchTrace, getProductBatches, listExpiryConfigs,
   createExpiryConfig, updateExpiryConfig, deleteExpiryConfig, listExpiryAlerts,
   handleExpiryAlert, getExpiryAlertStatistics
-} from "../../../controllers/admin/inventory-batch.controller.js";
+} from "../../../controllers/admin/inventory-batch.controller";
 
 const mockReq = (overrides: any = {}) => ({
   tenantId: "t1",

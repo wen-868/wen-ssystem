@@ -1,6 +1,6 @@
-import { asyncHandler } from "../../middleware/async-handler.js";
-import { ok } from "../../shared/response.js";
-import { isProviderReady } from "../../services/admin/payment-config.service.js";
+﻿import { asyncHandler } from "../../middleware/async-handler";
+import { ok } from "../../shared/response";
+import { isProviderReady } from "../../services/admin/payment-config.service";
 
 /**
  * 支付前置检查中间件：确保支付渠道已配置

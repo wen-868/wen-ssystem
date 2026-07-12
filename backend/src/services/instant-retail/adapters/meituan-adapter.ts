@@ -1,4 +1,4 @@
-/**
+﻿/**
  * 美团即时零售平台适配器
  * Meituan Instant Retail Platform Adapter
  *
@@ -6,9 +6,9 @@
  * 支持 OAuth 2.0 认证、订单同步、商品同步、库存更新、配送状态管理等。
  */
 
-import { AbstractPlatformAdapter } from "../base-adapter.js";
-import { platformCall, useMock } from "../http-client.js";
-import logger from "../../../shared/logger.js";
+import { AbstractPlatformAdapter } from "../base-adapter";
+import { platformCall, useMock } from "../http-client";
+import logger from "../../../shared/logger";
 import type {
   PlatformCredentials,
   PlatformType,
@@ -21,7 +21,7 @@ import type {
   UpdateInventoryResult,
   WebhookVerificationResult,
   SyncOrdersResult,
-} from "../types.js";
+} from "../types";
 
 /** 美团开放平台 API 基础地址 */
 const API_BASE = "https://waimaiopen.meituan.com/api/v1";

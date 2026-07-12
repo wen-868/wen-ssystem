@@ -1,6 +1,6 @@
-import { vi, describe, it, beforeEach, expect } from "vitest";
+﻿import { vi, describe, it, beforeEach, expect } from "vitest";
 
-vi.mock("../../../services/admin/expense.service.js", () => ({
+vi.mock("../../../services/admin/expense.service", () => ({
   createExpense: vi.fn(),
   listExpenses: vi.fn(),
   getExpenseDetail: vi.fn(),
@@ -10,17 +10,17 @@ vi.mock("../../../services/admin/expense.service.js", () => ({
   getExpenseSummary: vi.fn(),
 }));
 
-vi.mock("../../../shared/response.js", () => ({
+vi.mock("../../../shared/response", () => ({
   ok: vi.fn((data) => ({ success: true, data })),
   fail: vi.fn((msg, code) => ({ success: false, message: msg, code })),
 }));
 
-vi.mock("../../../middleware/async-handler.js", () => ({
+vi.mock("../../../middleware/async-handler", () => ({
   asyncHandler: (fn: any) => fn,
 }));
 
-import * as expenseService from "../../../services/admin/expense.service.js";
-import { ok } from "../../../shared/response.js";
+import * as expenseService from "../../../services/admin/expense.service";
+import { ok } from "../../../shared/response";
 import {
   createExpense,
   listExpenses,
@@ -29,7 +29,7 @@ import {
   approveExpense,
   voidExpense,
   getExpenseSummary,
-} from "../../../controllers/admin/expense.controller.js";
+} from "../../../controllers/admin/expense.controller";
 
 const mockReq = (overrides: any = {}) => ({
   tenantId: "t1",

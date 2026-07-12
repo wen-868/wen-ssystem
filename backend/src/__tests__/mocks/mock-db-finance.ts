@@ -1,7 +1,7 @@
-/**
+﻿/**
  * 财务/收款/付款 mock handlers: collectionLinks, paymentOrders, refundOrders, receivables, viewLogs, salePayments
  */
-import { state, result, Row } from "./mock-db-state.js";
+import { state, result, Row } from "./mock-db-state";
 
 export const queryHandlers: Array<(s: string, params: unknown[]) => Row[] | null> = [
   // collection_link INSERT

@@ -1,6 +1,6 @@
-import { query, queryOne, transaction } from "../../shared/db.js";
-import { makeBizNo } from "../../shared/id.js";
-import { constants } from "../../config/constants.js";
+﻿import { query, queryOne, transaction } from "../../shared/db";
+import { makeBizNo } from "../../shared/id";
+import { constants } from "../../config/constants";
 
 // ==================== 小程序端 ====================
 

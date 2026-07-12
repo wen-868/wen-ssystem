@@ -1,8 +1,8 @@
-import { Router } from "express";
-import { requireAuthWithTenant } from "../middleware/auth.js";
-import { ok } from "../shared/response.js";
-import * as groupBuyService from "../services/admin/group-buy.service.js";
-import { asyncHandler } from "../middleware/async-handler.js";
+﻿import { Router } from "express";
+import { requireAuthWithTenant } from "../middleware/auth";
+import { ok } from "../shared/response";
+import * as groupBuyService from "../services/admin/group-buy.service";
+import { asyncHandler } from "../middleware/async-handler";
 
 export const groupBuyRouter = Router();
 

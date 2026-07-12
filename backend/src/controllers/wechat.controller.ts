@@ -1,9 +1,9 @@
-import { z } from "zod";
+﻿import { z } from "zod";
 import jwt from "jsonwebtoken";
-import { asyncHandler } from "../middleware/async-handler.js";
-import { env } from "../shared/env.js";
-import { ok, fail } from "../shared/response.js";
-import * as service from "../services/wechat.service.js";
+import { asyncHandler } from "../middleware/async-handler";
+import { env } from "../shared/env";
+import { ok, fail } from "../shared/response";
+import * as service from "../services/wechat.service";
 
 // 这些函数需要从路由文件中传入（因为它们在路由文件中定义）
 type Code2SessionFn = (code: string) => Promise<{ openid: string; session_key: string; unionid?: string }>;

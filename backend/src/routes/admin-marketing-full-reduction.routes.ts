@@ -1,7 +1,7 @@
-import { Router } from "express";
-import { requireAuthWithTenant } from "../middleware/auth.js";
-import * as fullReductionController from "../controllers/admin/marketing-full-reduction.controller.js";
-import type { RouteConfig } from "../shared/auto-routes.js";
+﻿import { Router } from "express";
+import { requireAuthWithTenant } from "../middleware/auth";
+import * as fullReductionController from "../controllers/admin/marketing-full-reduction.controller";
+import type { RouteConfig } from "../shared/auto-routes";
 
 export const adminMarketingFullReductionRouter = Router();
 

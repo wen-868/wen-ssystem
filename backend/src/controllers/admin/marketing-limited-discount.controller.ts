@@ -1,8 +1,8 @@
-import { z } from "zod";
+﻿import { z } from "zod";
 import { Request, Response } from "express";
-import { asyncHandler } from "../../middleware/async-handler.js";
-import { ok } from "../../shared/response.js";
-import * as svc from "../../services/admin/marketing-limited-discount.service.js";
+import { asyncHandler } from "../../middleware/async-handler";
+import { ok } from "../../shared/response";
+import * as svc from "../../services/admin/marketing-limited-discount.service";
 
 const createLimitedDiscountSchema = z.object({
   name: z.string().min(1).max(200),

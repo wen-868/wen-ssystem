@@ -1,7 +1,7 @@
-import { z } from "zod";
-import { asyncHandler } from "../../middleware/async-handler.js";
-import { ok, fail } from "../../shared/response.js";
-import * as svc from "../../services/store/other.service.js";
+﻿import { z } from "zod";
+import { asyncHandler } from "../../middleware/async-handler";
+import { ok, fail } from "../../shared/response";
+import * as svc from "../../services/store/other.service";
 
 export const createHoldOrder = asyncHandler(async (req, res) => {
   const body = z.object({

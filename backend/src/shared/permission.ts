@@ -1,4 +1,4 @@
-import type { AuthUser } from "./auth.js";
+﻿import type { AuthUser } from "./auth";
 
 /**
  * 检查权限列表中是否包含指定权限

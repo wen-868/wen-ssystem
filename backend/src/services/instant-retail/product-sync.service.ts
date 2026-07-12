@@ -1,5 +1,5 @@
-import { queryWithTenant, queryOneWithTenant } from "../../shared/db.js";
-import logger from "../../shared/logger.js";
+﻿import { queryWithTenant, queryOneWithTenant } from "../../shared/db";
+import logger from "../../shared/logger";
 
 export async function listProductMappings(params: {
   platform: string; storeId?: number; tenantId: string;

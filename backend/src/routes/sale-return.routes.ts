@@ -1,12 +1,12 @@
-import { Router } from "express";
-import type { RouteConfig } from "../shared/auto-routes.js";
+﻿import { Router } from "express";
+import type { RouteConfig } from "../shared/auto-routes";
 import { z } from "zod";
-import { asyncHandler } from "../middleware/async-handler.js";
-import { requireAuthWithTenant } from "../middleware/auth.js";
-import { ok, fail } from "../shared/response.js";
-import { AppError } from "../shared/app-error.js";
-import { saleReturnService } from "../services/sale-return.service.js";
-import type { ServiceContext } from "../types/index.js";
+import { asyncHandler } from "../middleware/async-handler";
+import { requireAuthWithTenant } from "../middleware/auth";
+import { ok, fail } from "../shared/response";
+import { AppError } from "../shared/app-error";
+import { saleReturnService } from "../services/sale-return.service";
+import type { ServiceContext } from "../types/index";
 
 export const saleReturnRouter = Router();
 

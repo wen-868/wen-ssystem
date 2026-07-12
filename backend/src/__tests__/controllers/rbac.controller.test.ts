@@ -1,6 +1,6 @@
-import { vi, describe, it, beforeEach, expect } from "vitest";
+﻿import { vi, describe, it, beforeEach, expect } from "vitest";
 
-vi.mock("../../../services/admin/rbac.service.js", () => ({
+vi.mock("@services/admin/rbac.service", () => ({
   listRoles: vi.fn(),
   createRole: vi.fn(),
   getRoleDetail: vi.fn(),
@@ -10,18 +10,18 @@ vi.mock("../../../services/admin/rbac.service.js", () => ({
   setUserRoles: vi.fn(),
 }));
 
-vi.mock("../../../shared/response.js", () => ({
+vi.mock("@shared/response", () => ({
   ok: vi.fn((data) => ({ success: true, data })),
   fail: vi.fn((msg, code) => ({ success: false, message: msg, code })),
 }));
 
-vi.mock("../../../middleware/async-handler.js", () => ({
+vi.mock("@middleware/async-handler", () => ({
   asyncHandler: (fn: any) => fn,
 }));
 
-import * as rbacService from "../../../services/admin/rbac.service.js";
-import { ok } from "../../../shared/response.js";
-import { listRoles, createRole, getRoleDetail, updateRole, deleteRole, getUserRoles, setUserRoles } from "../../../controllers/rbac.controller.js";
+import * as rbacService from "@services/admin/rbac.service";
+import { ok } from "@shared/response";
+import { listRoles, createRole, getRoleDetail, updateRole, deleteRole, getUserRoles, setUserRoles } from "@controllers/rbac.controller";
 
 const mockReq = (overrides: any = {}) => ({
   tenantId: "t1",

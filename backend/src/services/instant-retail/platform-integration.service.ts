@@ -1,9 +1,9 @@
-import { z } from "zod";
-import logger from "../../shared/logger.js";
-import { query, queryOne, queryWithTenant, queryOneWithTenant, transaction } from "../../shared/db.js";
-import { getAdapter, parsePlatformType, parseUnifiedOrder } from "./adapters/index.js";
-import type { PlatformType } from "./types.js";
-import { maskConfig, getPlatformConfig, getPlatformConfigWithTenant } from "./common.service.js";
+﻿import { z } from "zod";
+import logger from "../../shared/logger";
+import { query, queryOne, queryWithTenant, queryOneWithTenant, transaction } from "../../shared/db";
+import { getAdapter, parsePlatformType, parseUnifiedOrder } from "./adapters/index";
+import type { PlatformType } from "./types";
+import { maskConfig, getPlatformConfig, getPlatformConfigWithTenant } from "./common.service";
 
 export function buildWebhookResponse(platform: PlatformType, success: boolean, message?: string) {
   if (platform === "JD") {

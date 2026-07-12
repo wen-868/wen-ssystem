@@ -1,12 +1,12 @@
-/**
+﻿/**
  * Redis 缓存服务
  * 为 dashboard、商品列表、价格阶梯等高频查询提供缓存
  * 默认 TTL: 5 分钟
  */
 
 import { Redis } from "ioredis";
-import logger from "../shared/logger.js";
-import { env } from "./env.js";
+import logger from "../shared/logger";
+import { env } from "./env";
 
 let redis: Redis | null = null;
 

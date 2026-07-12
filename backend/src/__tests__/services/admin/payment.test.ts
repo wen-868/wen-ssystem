@@ -1,4 +1,4 @@
-/**
+﻿/**
  * 管理端微信支付 service 单元测试
  * 被测文件：src/services/admin/payment.service.ts
  * 覆盖全部 5 个导出函数，目标覆盖率 100%
@@ -15,7 +15,7 @@ const mocks = vi.hoisted(() => ({
   },
 }));
 
-vi.mock("../../../shared/db.js", () => ({
+vi.mock("../../../shared/db", () => ({
   query: mocks.query,
   queryOne: mocks.queryOne,
   queryWithTenant: vi.fn(),
@@ -23,11 +23,11 @@ vi.mock("../../../shared/db.js", () => ({
   transaction: mocks.transaction,
 }));
 
-vi.mock("../../../shared/id.js", () => ({
+vi.mock("../../../shared/id", () => ({
   makeBizNo: mocks.makeBizNo,
 }));
 
-vi.mock("../../../shared/env.js", () => ({
+vi.mock("../../../shared/env", () => ({
   env: mocks.env,
 }));
 
@@ -37,7 +37,7 @@ import {
   createRefund,
   getPaymentOrder,
   listPaymentOrders,
-} from "../../../services/admin/payment.service.js";
+} from "../../../services/admin/payment.service";
 
 const mockConn = { execute: vi.fn() };
 

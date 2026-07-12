@@ -1,4 +1,4 @@
-/**
+﻿/**
  * 管理端提成管理 controller 单元测试
  * 被测文件：src/controllers/admin/commission.controller.ts
  */
@@ -16,16 +16,16 @@ const mocks = vi.hoisted(() => ({
   listCommissionRecords: vi.fn(),
 }));
 
-vi.mock("../../../middleware/async-handler.js", () => ({
+vi.mock("../../../middleware/async-handler", () => ({
   asyncHandler: (fn: any) => fn,
 }));
 
-vi.mock("../../../shared/response.js", () => ({
+vi.mock("../../../shared/response", () => ({
   ok: mocks.ok,
   fail: mocks.fail,
 }));
 
-vi.mock("../../../services/admin/commission.service.js", () => ({
+vi.mock("../../../services/admin/commission.service", () => ({
   listCommissionRules: mocks.listCommissionRules,
   createCommissionRule: mocks.createCommissionRule,
   updateCommissionRule: mocks.updateCommissionRule,
@@ -43,7 +43,7 @@ import {
   calculateCommissions,
   settleCommissions,
   listCommissionRecords,
-} from "../../../controllers/admin/commission.controller.js";
+} from "../../../controllers/admin/commission.controller";
 
 const mockReq = (overrides: any = {}) => ({
   tenantId: "t1",

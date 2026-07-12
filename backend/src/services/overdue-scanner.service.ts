@@ -1,5 +1,5 @@
-import { query } from "../shared/db.js";
-import logger from "../shared/logger.js";
+﻿import { query } from "../shared/db";
+import logger from "../shared/logger";
 
 async function getAllActiveTenants(): Promise<string[]> {
   const rows = await query<any>(

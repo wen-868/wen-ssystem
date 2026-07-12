@@ -1,18 +1,18 @@
-import { vi, describe, it, beforeEach, expect } from "vitest";
+﻿import { vi, describe, it, beforeEach, expect } from "vitest";
 
-vi.mock("../../../services/admin/report-permission.service.js", () => ({
+vi.mock("../../../services/admin/report-permission.service", () => ({
   getMatrix: vi.fn(),
   saveMatrix: vi.fn(),
 }));
 
-vi.mock("../../../shared/response.js", () => ({
+vi.mock("../../../shared/response", () => ({
   ok: vi.fn((data) => ({ success: true, data })),
   fail: vi.fn((msg, code) => ({ success: false, message: msg, code })),
 }));
 
-import * as service from "../../../services/admin/report-permission.service.js";
-import { ok } from "../../../shared/response.js";
-import { getMatrix, saveMatrix } from "../../../controllers/admin/report-permission.controller.js";
+import * as service from "../../../services/admin/report-permission.service";
+import { ok } from "../../../shared/response";
+import { getMatrix, saveMatrix } from "../../../controllers/admin/report-permission.controller";
 
 const mockReq = (overrides: any = {}) => ({
   tenantId: "t1",

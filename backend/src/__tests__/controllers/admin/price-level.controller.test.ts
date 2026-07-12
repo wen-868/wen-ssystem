@@ -1,29 +1,29 @@
-import { vi, describe, it, beforeEach, expect } from "vitest";
+﻿import { vi, describe, it, beforeEach, expect } from "vitest";
 
-vi.mock("../../../services/admin/price-level.service.js", () => ({
+vi.mock("../../../services/admin/price-level.service", () => ({
   listPriceLevels: vi.fn(),
   createPriceLevel: vi.fn(),
   updatePriceLevel: vi.fn(),
   disablePriceLevel: vi.fn(),
 }));
 
-vi.mock("../../../shared/response.js", () => ({
+vi.mock("../../../shared/response", () => ({
   ok: vi.fn((data) => ({ success: true, data })),
   fail: vi.fn((msg, code) => ({ success: false, message: msg, code })),
 }));
 
-vi.mock("../../../middleware/async-handler.js", () => ({
+vi.mock("../../../middleware/async-handler", () => ({
   asyncHandler: (fn: any) => fn,
 }));
 
-import * as priceLevelService from "../../../services/admin/price-level.service.js";
-import { ok, fail } from "../../../shared/response.js";
+import * as priceLevelService from "../../../services/admin/price-level.service";
+import { ok, fail } from "../../../shared/response";
 import {
   listPriceLevels,
   createPriceLevel,
   updatePriceLevel,
   disablePriceLevel,
-} from "../../../controllers/admin/price-level.controller.js";
+} from "../../../controllers/admin/price-level.controller";
 
 const mockReq = (overrides: any = {}) => ({
   tenantId: "t1",

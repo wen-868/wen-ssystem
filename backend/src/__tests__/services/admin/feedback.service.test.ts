@@ -1,4 +1,4 @@
-/**
+﻿/**
  * 管理端用户反馈 service 单元测试
  * 被测文件：src/services/admin/feedback.service.ts
  */
@@ -11,7 +11,7 @@ const mocks = vi.hoisted(() => ({
   queryOneWithTenant: vi.fn(),
 }));
 
-vi.mock("../../../shared/db.js", () => ({
+vi.mock("../../../shared/db", () => ({
   query: mocks.query,
   queryOne: mocks.queryOne,
   queryWithTenant: mocks.queryWithTenant,
@@ -23,7 +23,7 @@ import {
   insertFeedback,
   listFeedbacks,
   updateFeedbackStatus,
-} from "../../../services/admin/feedback.service.js";
+} from "../../../services/admin/feedback.service";
 
 describe("feedback.service", () => {
   beforeEach(() => vi.resetAllMocks());

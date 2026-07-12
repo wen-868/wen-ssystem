@@ -1,7 +1,7 @@
-import { z } from "zod";
-import { asyncHandler } from "../../middleware/async-handler.js";
-import { ok } from "../../shared/response.js";
-import * as priceManagementService from "../../services/admin/price-management.service.js";
+﻿import { z } from "zod";
+import { asyncHandler } from "../../middleware/async-handler";
+import { ok } from "../../shared/response";
+import * as priceManagementService from "../../services/admin/price-management.service";
 
 export const listSkuPrices = asyncHandler(async (req, res) => {
   const tenantId = req.tenantId!;

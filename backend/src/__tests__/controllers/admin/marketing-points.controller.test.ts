@@ -1,6 +1,6 @@
-import { vi, describe, it, beforeEach, expect } from "vitest";
+﻿import { vi, describe, it, beforeEach, expect } from "vitest";
 
-vi.mock("../../../services/admin/marketing-points.service.js", () => ({
+vi.mock("../../../services/admin/marketing-points.service", () => ({
   getPointsRule: vi.fn(),
   updatePointsRule: vi.fn(),
   listPointsRecords: vi.fn(),
@@ -8,24 +8,24 @@ vi.mock("../../../services/admin/marketing-points.service.js", () => ({
   listMyPointsRecords: vi.fn(),
 }));
 
-vi.mock("../../../shared/response.js", () => ({
+vi.mock("../../../shared/response", () => ({
   ok: vi.fn((data) => ({ success: true, data })),
   fail: vi.fn((msg, code) => ({ success: false, message: msg, code })),
 }));
 
-vi.mock("../../../middleware/async-handler.js", () => ({
+vi.mock("../../../middleware/async-handler", () => ({
   asyncHandler: (fn: any) => fn,
 }));
 
-import * as pointsService from "../../../services/admin/marketing-points.service.js";
-import { ok, fail } from "../../../shared/response.js";
+import * as pointsService from "../../../services/admin/marketing-points.service";
+import { ok, fail } from "../../../shared/response";
 import {
   getPointsRule,
   updatePointsRule,
   listPointsRecords,
   getUserPoints,
   listMyPointsRecords,
-} from "../../../controllers/admin/marketing-points.controller.js";
+} from "../../../controllers/admin/marketing-points.controller";
 
 const mockReq = (overrides: any = {}) => ({
   tenantId: "t1",

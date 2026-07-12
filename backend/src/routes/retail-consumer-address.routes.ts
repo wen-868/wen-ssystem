@@ -1,6 +1,6 @@
-import { Router } from "express";
-import { requireAuth } from "../middleware/auth.js";
-import * as ctrl from "../controllers/admin/retail-consumer-address.controller.js";
+﻿import { Router } from "express";
+import { requireAuth } from "../middleware/auth";
+import * as ctrl from "../controllers/admin/retail-consumer-address.controller";
 
 export const consumerAddressRouter = Router();
 

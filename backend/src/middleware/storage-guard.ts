@@ -1,11 +1,11 @@
-/**
+﻿/**
  * 存储容量检测中间件（R9-4）
  * 在文件上传接口前检查剩余存储容量，超限返回 code "1002"。
  */
 import type { Request, Response, NextFunction } from "express";
-import { queryOneWithTenant } from "../shared/db.js";
-import { fail } from "../shared/response.js";
-import logger from "../shared/logger.js";
+import { queryOneWithTenant } from "../shared/db";
+import { fail } from "../shared/response";
+import logger from "../shared/logger";
 
 export function storageGuard() {
   return async (req: Request, res: Response, next: NextFunction) => {

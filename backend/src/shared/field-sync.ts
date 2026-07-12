@@ -1,4 +1,4 @@
-/**
+﻿/**
  * 分字段定向同步中间件
  *
  * 核心能力：当源表字段变更时，自动将变更字段同步到所有关联的目标表，
@@ -10,8 +10,8 @@
  * 3. 可选：在 Controller 层使用 fieldSyncMiddleware 自动拦截
  */
 
-import logger from "./logger.js";
-import { queryWithTenant } from "./db.js";
+import logger from "./logger";
+import { queryWithTenant } from "./db";
 
 // ─── 类型定义 ─────────────────────────────────────────────────
 

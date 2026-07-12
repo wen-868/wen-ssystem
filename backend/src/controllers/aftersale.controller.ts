@@ -1,6 +1,6 @@
-import { asyncHandler } from "../middleware/async-handler.js";
-import { ok, fail } from "../shared/response.js";
-import * as service from "../services/admin/aftersale.service.js";
+﻿import { asyncHandler } from "../middleware/async-handler";
+import { ok, fail } from "../shared/response";
+import * as service from "../services/admin/aftersale.service";
 
 // ==================== 标签常量 ====================
 export const AFTERSALE_TYPE_LABELS: Record<string, string> = {

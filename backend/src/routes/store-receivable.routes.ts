@@ -1,8 +1,8 @@
-import { Router } from "express";
-import type { RouteConfig } from "../shared/auto-routes.js";
-import { requireAuthWithTenant } from "../middleware/auth.js";
-import * as otherController from "../controllers/store/other.controller.js";
-import * as receivableController from "../controllers/store/receivable.controller.js";
+﻿import { Router } from "express";
+import type { RouteConfig } from "../shared/auto-routes";
+import { requireAuthWithTenant } from "../middleware/auth";
+import * as otherController from "../controllers/store/other.controller";
+import * as receivableController from "../controllers/store/receivable.controller";
 
 export const storeReceivableRouter = Router();
 

@@ -1,4 +1,4 @@
-/**
+﻿/**
  * 管理端品牌 service 单元测试
  * 被测文件：src/services/admin/brand.service.ts
  */
@@ -9,7 +9,7 @@ const mocks = vi.hoisted(() => ({
   queryOneWithTenant: vi.fn(),
 }));
 
-vi.mock("../../../shared/db.js", () => ({
+vi.mock("../../../shared/db", () => ({
   query: vi.fn(),
   queryOne: vi.fn(),
   queryWithTenant: mocks.queryWithTenant,
@@ -17,7 +17,7 @@ vi.mock("../../../shared/db.js", () => ({
   transaction: vi.fn(),
 }));
 
-import { list, create, update, remove } from "../../../services/admin/brand.service.js";
+import { list, create, update, remove } from "../../../services/admin/brand.service";
 
 describe("brand.service", () => {
   beforeEach(() => vi.resetAllMocks());

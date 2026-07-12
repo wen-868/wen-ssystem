@@ -1,7 +1,7 @@
-import { z } from "zod";
-import { asyncHandler } from "../middleware/async-handler.js";
-import { ok } from "../shared/response.js";
-import * as service from "../services/admin/customer-merge.service.js";
+﻿import { z } from "zod";
+import { asyncHandler } from "../middleware/async-handler";
+import { ok } from "../shared/response";
+import * as service from "../services/admin/customer-merge.service";
 
 export const detectDuplicates = asyncHandler(async (req, res) => {
   const type = String(req.query.type || "mobile");

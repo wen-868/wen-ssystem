@@ -1,9 +1,9 @@
-/**
+﻿/**
  * 系统资源监控服务
  * 使用 Node.js 内置模块（os, process）获取内存、CPU、进程信息
  */
 import os from "node:os";
-import { queryOne } from "../../shared/db.js";
+import { queryOne } from "../../shared/db";
 
 /** 内存使用情况 */
 export interface MemoryUsageInfo {

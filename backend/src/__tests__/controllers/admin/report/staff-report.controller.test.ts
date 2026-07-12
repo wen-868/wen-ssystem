@@ -1,21 +1,21 @@
-import { vi, describe, it, beforeEach, expect } from "vitest";
+﻿import { vi, describe, it, beforeEach, expect } from "vitest";
 
-vi.mock("../../../../services/admin/report/staff-report.service.js", () => ({
+vi.mock("../../../../services/admin/report/staff-report.service", () => ({
   getStaffPerformanceRanking: vi.fn(),
 }));
 
-vi.mock("../../../../shared/response.js", () => ({
+vi.mock("../../../../shared/response", () => ({
   ok: vi.fn((data) => ({ success: true, data })),
   fail: vi.fn((msg, code) => ({ success: false, message: msg, code })),
 }));
 
-vi.mock("../../../../middleware/async-handler.js", () => ({
+vi.mock("../../../../middleware/async-handler", () => ({
   asyncHandler: (fn: any) => fn,
 }));
 
-import * as staffReportService from "../../../../services/admin/report/staff-report.service.js";
-import { ok } from "../../../../shared/response.js";
-import { getStaffPerformanceRanking } from "../../../../controllers/admin/report/staff-report.controller.js";
+import * as staffReportService from "../../../../services/admin/report/staff-report.service";
+import { ok } from "../../../../shared/response";
+import { getStaffPerformanceRanking } from "../../../../controllers/admin/report/staff-report.controller";
 
 const mockReq = (overrides: any = {}) => ({
   tenantId: "t1",

@@ -1,24 +1,24 @@
-import { vi, describe, it, beforeEach, expect } from "vitest";
+﻿import { vi, describe, it, beforeEach, expect } from "vitest";
 
-vi.mock("../../../services/admin/customer-payment.service.js", () => ({
+vi.mock("@services/admin/customer-payment.service", () => ({
   list: vi.fn(),
   getDetail: vi.fn(),
   create: vi.fn(),
   voidPayment: vi.fn(),
 }));
 
-vi.mock("../../../shared/response.js", () => ({
+vi.mock("@shared/response", () => ({
   ok: vi.fn((data) => ({ success: true, data })),
   fail: vi.fn((msg, code) => ({ success: false, message: msg, code })),
 }));
 
-vi.mock("../../../middleware/async-handler.js", () => ({
+vi.mock("@middleware/async-handler", () => ({
   asyncHandler: (fn: any) => fn,
 }));
 
-import * as customerPaymentService from "../../../services/admin/customer-payment.service.js";
-import { ok } from "../../../shared/response.js";
-import { list, getDetail, create, voidPayment } from "../../../controllers/customer-payment.controller.js";
+import * as customerPaymentService from "@services/admin/customer-payment.service";
+import { ok } from "@shared/response";
+import { list, getDetail, create, voidPayment } from "@controllers/customer-payment.controller";
 
 const mockReq = (overrides: any = {}) => ({
   tenantId: "t1",

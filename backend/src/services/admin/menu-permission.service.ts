@@ -1,4 +1,4 @@
-import { queryWithTenant, queryOneWithTenant, transaction } from "../../shared/db.js";
+﻿import { queryWithTenant, queryOneWithTenant, transaction } from "../../shared/db";
 
 // ========== 菜单相关 ==========
 

@@ -1,7 +1,7 @@
-import { z } from "zod";
-import { asyncHandler } from "../../middleware/async-handler.js";
-import { ok } from "../../shared/response.js";
-import * as calculationService from "../../services/admin/marketing-calculation.service.js";
+﻿import { z } from "zod";
+import { asyncHandler } from "../../middleware/async-handler";
+import { ok } from "../../shared/response";
+import * as calculationService from "../../services/admin/marketing-calculation.service";
 
 export const calculatePromotion = asyncHandler(async (req, res) => {
   const body = z.object({

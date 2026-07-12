@@ -1,4 +1,4 @@
-/**
+﻿/**
  * 管理端客户拜访 service 单元测试
  * 被测文件：src/services/admin/customer-visit.service.ts
  * 覆盖全部 9 个导出函数，目标覆盖率 100%
@@ -12,7 +12,7 @@ const mocks = vi.hoisted(() => ({
   makeBizNo: vi.fn(),
 }));
 
-vi.mock("../../../shared/db.js", () => ({
+vi.mock("../../../shared/db", () => ({
   query: vi.fn(),
   queryOne: vi.fn(),
   queryWithTenant: mocks.queryWithTenant,
@@ -20,7 +20,7 @@ vi.mock("../../../shared/db.js", () => ({
   transaction: mocks.transaction,
 }));
 
-vi.mock("../../../shared/id.js", () => ({
+vi.mock("../../../shared/id", () => ({
   makeBizNo: mocks.makeBizNo,
 }));
 
@@ -34,7 +34,7 @@ import {
   cancelVisit,
   listPendingFollowUps,
   getVisitStatistics,
-} from "../../../services/admin/customer-visit.service.js";
+} from "../../../services/admin/customer-visit.service";
 
 const mockConn = { execute: vi.fn() };
 

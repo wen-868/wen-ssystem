@@ -1,4 +1,4 @@
-import { queryWithTenant, queryOneWithTenant } from "../../shared/db.js";
+﻿import { queryWithTenant, queryOneWithTenant } from "../../shared/db";
 
 // 复购率分析
 export async function getRepurchaseAnalysis(params: { tenantId: string; startDate?: string; endDate?: string; storeId?: number }) {

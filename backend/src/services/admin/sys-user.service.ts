@@ -1,7 +1,7 @@
-import { queryWithTenant, queryOneWithTenant, transaction } from "../../shared/db.js";
+﻿import { queryWithTenant, queryOneWithTenant, transaction } from "../../shared/db";
 import bcrypt from "bcryptjs";
-import { validatePassword } from "../../shared/password.js";
-import { AppError } from "../../shared/app-error.js";
+import { validatePassword } from "../../shared/password";
+import { AppError } from "../../shared/app-error";
 
 export interface UserListParams {
   page: number;

@@ -1,4 +1,4 @@
-import { queryWithTenant, queryOneWithTenant } from "../../shared/db.js";
+﻿import { queryWithTenant, queryOneWithTenant } from "../../shared/db";
 
 export async function getShopConfig(storeId: number | undefined, tenantId: string) {
   if (!storeId) return null;

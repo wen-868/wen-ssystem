@@ -1,5 +1,5 @@
-import { queryWithTenant, queryOneWithTenant } from "../../shared/db.js";
-import { makeBizNo } from "../../shared/id.js";
+﻿import { queryWithTenant, queryOneWithTenant } from "../../shared/db";
+import { makeBizNo } from "../../shared/id";
 
 export async function createReceipt(params: { customerId: number; customerName?: string; receiptType: string; amount: number; paymentMethod?: string; bankAccountId?: number; receivedDate?: string; remark?: string; operatorId: number; tenantId: string }) {
   const { customerId, customerName, receiptType, amount, paymentMethod, bankAccountId, receivedDate, remark, operatorId, tenantId } = params;

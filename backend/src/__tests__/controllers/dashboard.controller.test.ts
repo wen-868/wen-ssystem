@@ -1,6 +1,6 @@
-import { vi, describe, it, beforeEach, expect } from "vitest";
+﻿import { vi, describe, it, beforeEach, expect } from "vitest";
 
-vi.mock("../../../services/admin/dashboard.service.js", () => ({
+vi.mock("@services/admin/dashboard.service", () => ({
   getOverview: vi.fn(),
   getSalesTrend: vi.fn(),
   getCategoryPie: vi.fn(),
@@ -12,17 +12,17 @@ vi.mock("../../../services/admin/dashboard.service.js", () => ({
   getSalesTrendByDay: vi.fn(),
 }));
 
-vi.mock("../../../shared/response.js", () => ({
+vi.mock("@shared/response", () => ({
   ok: vi.fn((data) => ({ success: true, data })),
   fail: vi.fn((msg, code) => ({ success: false, message: msg, code })),
 }));
 
-vi.mock("../../../middleware/async-handler.js", () => ({
+vi.mock("@middleware/async-handler", () => ({
   asyncHandler: (fn: any) => fn,
 }));
 
-import * as dashboardService from "../../../services/admin/dashboard.service.js";
-import { ok } from "../../../shared/response.js";
+import * as dashboardService from "@services/admin/dashboard.service";
+import { ok } from "@shared/response";
 import {
   getOverview,
   getSalesTrend,
@@ -33,7 +33,7 @@ import {
   getTodos,
   getRecentOrders,
   getSalesTrendByDay,
-} from "../../../controllers/dashboard.controller.js";
+} from "@controllers/dashboard.controller";
 
 const mockReq = (overrides: any = {}) => ({
   tenantId: "t1",

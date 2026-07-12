@@ -1,8 +1,8 @@
-import bcrypt from "bcryptjs";
-import { query, queryOne, queryWithTenant, queryOneWithTenant } from "../../shared/db.js";
-import { makeBizNo } from "../../shared/id.js";
-import { validatePassword } from "../../shared/password.js";
-import { AppError } from "../../shared/app-error.js";
+﻿import bcrypt from "bcryptjs";
+import { query, queryOne, queryWithTenant, queryOneWithTenant } from "../../shared/db";
+import { makeBizNo } from "../../shared/id";
+import { validatePassword } from "../../shared/password";
+import { AppError } from "../../shared/app-error";
 
 export async function listStaff(tenantId: string) {
   const records = await queryWithTenant<any>(

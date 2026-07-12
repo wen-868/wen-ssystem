@@ -1,8 +1,8 @@
-import { z } from "zod";
-import { queryWithTenant, queryOneWithTenant } from "../../shared/db.js";
-import { parsePlatformType } from "./adapters/index.js";
-import { getAdapter } from "./adapters/index.js";
-import { getPlatformConfigWithTenant } from "./common.service.js";
+﻿import { z } from "zod";
+import { queryWithTenant, queryOneWithTenant } from "../../shared/db";
+import { parsePlatformType } from "./adapters/index";
+import { getAdapter } from "./adapters/index";
+import { getPlatformConfigWithTenant } from "./common.service";
 
 export async function listOrders(
   page: number,

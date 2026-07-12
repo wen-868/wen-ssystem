@@ -1,4 +1,4 @@
-import { query, queryOne, queryWithTenant, queryOneWithTenant } from "../../shared/db.js";
+﻿import { query, queryOne, queryWithTenant, queryOneWithTenant } from "../../shared/db";
 
 export async function getDashboard(tenantId: string) {
   const sales = await queryOneWithTenant<any>("SELECT COALESCE(SUM(received_amount),0) AS amount, COUNT(*) AS count FROM t_sale_bill WHERE DATE(created_at)=CURRENT_DATE AND tenant_id = ?", [tenantId], tenantId);

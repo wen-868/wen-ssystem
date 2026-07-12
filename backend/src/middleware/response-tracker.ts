@@ -1,4 +1,4 @@
-import { Request, Response, NextFunction } from "express";
+﻿import { Request, Response, NextFunction } from "express";
 
 /** 环形缓冲区容量 */
 const BUFFER_CAPACITY = 10000;

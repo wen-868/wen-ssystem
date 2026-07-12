@@ -1,4 +1,4 @@
-/**
+﻿/**
  * 管理端部门 service 单元测试
  * 被测文件：src/services/admin/department.service.ts
  */
@@ -9,7 +9,7 @@ const mocks = vi.hoisted(() => ({
   queryOne: vi.fn(),
 }));
 
-vi.mock("../../../shared/db.js", () => ({
+vi.mock("../../../shared/db", () => ({
   query: mocks.query,
   queryOne: mocks.queryOne,
   queryWithTenant: vi.fn(),
@@ -23,7 +23,7 @@ import {
   createDepartment,
   updateDepartment,
   deleteDepartment,
-} from "../../../services/admin/department.service.js";
+} from "../../../services/admin/department.service";
 
 describe("department.service", () => {
   beforeEach(() => vi.resetAllMocks());

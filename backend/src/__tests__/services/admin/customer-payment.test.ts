@@ -1,4 +1,4 @@
-/**
+﻿/**
  * 管理端客户收款 service 单元测试
  * 被测文件：src/services/admin/customer-payment.service.ts
  * 覆盖全部 4 个导出函数，目标覆盖率 100%
@@ -14,7 +14,7 @@ const mocks = vi.hoisted(() => ({
   makeBizNo: vi.fn(),
 }));
 
-vi.mock("../../../shared/db.js", () => ({
+vi.mock("../../../shared/db", () => ({
   query: mocks.query,
   queryOne: mocks.queryOne,
   queryWithTenant: mocks.queryWithTenant,
@@ -22,7 +22,7 @@ vi.mock("../../../shared/db.js", () => ({
   transaction: mocks.transaction,
 }));
 
-vi.mock("../../../shared/id.js", () => ({
+vi.mock("../../../shared/id", () => ({
   makeBizNo: mocks.makeBizNo,
 }));
 
@@ -31,7 +31,7 @@ import {
   getDetail,
   create,
   voidPayment,
-} from "../../../services/admin/customer-payment.service.js";
+} from "../../../services/admin/customer-payment.service";
 
 const mockConn = { query: vi.fn() };
 

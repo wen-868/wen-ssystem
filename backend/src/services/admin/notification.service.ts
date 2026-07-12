@@ -1,4 +1,4 @@
-import { query, queryOne, pool } from "../../shared/db.js";
+﻿import { query, queryOne, pool } from "../../shared/db";
 
 export interface SendNotificationParams {
   recipientId: number;

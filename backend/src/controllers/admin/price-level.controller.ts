@@ -1,7 +1,7 @@
-import { z } from "zod";
-import { asyncHandler } from "../../middleware/async-handler.js";
-import { ok } from "../../shared/response.js";
-import * as priceLevelService from "../../services/admin/price-level.service.js";
+﻿import { z } from "zod";
+import { asyncHandler } from "../../middleware/async-handler";
+import { ok } from "../../shared/response";
+import * as priceLevelService from "../../services/admin/price-level.service";
 
 export const listPriceLevels = asyncHandler(async (req, res) => {
   const tenantId = req.tenantId!;

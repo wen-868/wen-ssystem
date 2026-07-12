@@ -1,10 +1,10 @@
-/**
+﻿/**
  * 单据归档控制器（R9-5）
  */
 import { z } from "zod";
-import { asyncHandler } from "../../middleware/async-handler.js";
-import { ok, fail } from "../../shared/response.js";
-import * as archiveService from "../../services/admin/archive.service.js";
+import { asyncHandler } from "../../middleware/async-handler";
+import { ok, fail } from "../../shared/response";
+import * as archiveService from "../../services/admin/archive.service";
 
 const archiveSchema = z.object({
   archiveDays: z.coerce.number().int().min(1).max(3650).default(365),

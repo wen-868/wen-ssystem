@@ -1,7 +1,7 @@
-import { query, queryOne, transaction } from "../shared/db.js";
-import { hashPassword, validatePassword } from "../shared/password.js";
-import { AppError } from "../shared/app-error.js";
-import logger from "../shared/logger.js";
+﻿import { query, queryOne, transaction } from "../shared/db";
+import { hashPassword, validatePassword } from "../shared/password";
+import { AppError } from "../shared/app-error";
+import logger from "../shared/logger";
 
 export interface TenantRegisterInput {
   companyName: string;

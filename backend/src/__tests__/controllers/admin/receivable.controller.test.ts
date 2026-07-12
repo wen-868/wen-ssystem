@@ -1,6 +1,6 @@
-import { vi, describe, it, beforeEach, expect } from "vitest";
+﻿import { vi, describe, it, beforeEach, expect } from "vitest";
 
-vi.mock("../../../services/admin/receivable.service.js", () => ({
+vi.mock("../../../services/admin/receivable.service", () => ({
   listReceivables: vi.fn(),
   listPayables: vi.fn(),
   getReceivablesAging: vi.fn(),
@@ -9,21 +9,21 @@ vi.mock("../../../services/admin/receivable.service.js", () => ({
   getPayableDetail: vi.fn(),
 }));
 
-vi.mock("../../../shared/response.js", () => ({
+vi.mock("../../../shared/response", () => ({
   ok: vi.fn((data) => ({ success: true, data })),
   fail: vi.fn((msg, code) => ({ success: false, message: msg, code })),
 }));
 
-vi.mock("../../../middleware/async-handler.js", () => ({
+vi.mock("../../../middleware/async-handler", () => ({
   asyncHandler: (fn: any) => fn,
 }));
 
-import * as receivableService from "../../../services/admin/receivable.service.js";
-import { ok } from "../../../shared/response.js";
+import * as receivableService from "../../../services/admin/receivable.service";
+import { ok } from "../../../shared/response";
 import {
   listReceivables, listPayables, getReceivablesAging, getPayablesAging,
   getReceivableDetail, getPayableDetail
-} from "../../../controllers/admin/receivable.controller.js";
+} from "../../../controllers/admin/receivable.controller";
 
 const mockReq = (overrides: any = {}) => ({
   tenantId: "t1",

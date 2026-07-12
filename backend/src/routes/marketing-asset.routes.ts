@@ -1,8 +1,8 @@
-import { Router } from "express";
-import { requireAuthWithTenant } from "../middleware/auth.js";
-import { ok } from "../shared/response.js";
-import * as marketingAssetService from "../services/admin/marketing-asset.service.js";
-import { asyncHandler } from "../middleware/async-handler.js";
+﻿import { Router } from "express";
+import { requireAuthWithTenant } from "../middleware/auth";
+import { ok } from "../shared/response";
+import * as marketingAssetService from "../services/admin/marketing-asset.service";
+import { asyncHandler } from "../middleware/async-handler";
 
 export const marketingAssetRouter = Router();
 

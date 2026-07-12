@@ -1,6 +1,6 @@
-import { asyncHandler } from "../../middleware/async-handler.js";
-import { ok } from "../../shared/response.js";
-import * as receivableService from "../../services/admin/receivable.service.js";
+﻿import { asyncHandler } from "../../middleware/async-handler";
+import { ok } from "../../shared/response";
+import * as receivableService from "../../services/admin/receivable.service";
 
 export const listReceivables = asyncHandler(async (req, res) => {
   res.json(ok(await receivableService.listReceivables({ customerId: req.query.customerId ? Number(req.query.customerId) : undefined, status: req.query.status as string | undefined, page: Number(req.query.page || 1), pageSize: Number(req.query.pageSize || 20), tenantId: req.tenantId! })));

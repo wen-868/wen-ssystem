@@ -1,4 +1,4 @@
-/**
+﻿/**
  * 管理端客户 service 单元测试
  * 被测文件：src/services/admin/customer.service.ts
  * 覆盖全部 12 个导出函数，目标覆盖率 100%
@@ -13,7 +13,7 @@ const mocks = vi.hoisted(() => ({
   getCustomerLevelCode: vi.fn(),
 }));
 
-vi.mock("../../../shared/db.js", () => ({
+vi.mock("../../../shared/db", () => ({
   query: vi.fn(),
   queryOne: vi.fn(),
   queryWithTenant: mocks.queryWithTenant,
@@ -21,12 +21,12 @@ vi.mock("../../../shared/db.js", () => ({
   transaction: vi.fn(),
 }));
 
-vi.mock("../../../shared/field-sync.js", () => ({
+vi.mock("../../../shared/field-sync", () => ({
   syncChangedFields: mocks.syncChangedFields,
   detectChangedFields: mocks.detectChangedFields,
 }));
 
-vi.mock("../../../shared/fulfillment.js", () => ({
+vi.mock("../../../shared/fulfillment", () => ({
   getCustomerLevelCode: mocks.getCustomerLevelCode,
 }));
 
@@ -43,7 +43,7 @@ import {
   listCustomerStatements,
   getCustomerPurchaseStats,
   getCustomerStats,
-} from "../../../services/admin/customer.service.js";
+} from "../../../services/admin/customer.service";
 
 beforeEach(() => {
   vi.clearAllMocks();

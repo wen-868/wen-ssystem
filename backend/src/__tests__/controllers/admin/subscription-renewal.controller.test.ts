@@ -1,27 +1,27 @@
-import { vi, describe, it, beforeEach, expect } from "vitest";
+﻿import { vi, describe, it, beforeEach, expect } from "vitest";
 
-vi.mock("../../../services/admin/subscription-renewal.service.js", () => ({
+vi.mock("../../../services/admin/subscription-renewal.service", () => ({
   renewSubscription: vi.fn(),
   listExpiring: vi.fn(),
   listExpired: vi.fn(),
 }));
 
-vi.mock("../../../shared/response.js", () => ({
+vi.mock("../../../shared/response", () => ({
   ok: vi.fn((data) => ({ success: true, data })),
   fail: vi.fn((msg, code) => ({ success: false, message: msg, code })),
 }));
 
-vi.mock("../../../middleware/async-handler.js", () => ({
+vi.mock("../../../middleware/async-handler", () => ({
   asyncHandler: (fn: any) => fn,
 }));
 
-import * as subscriptionRenewalService from "../../../services/admin/subscription-renewal.service.js";
-import { ok } from "../../../shared/response.js";
+import * as subscriptionRenewalService from "../../../services/admin/subscription-renewal.service";
+import { ok } from "../../../shared/response";
 import {
   renewSubscription,
   listExpiring,
   listExpired,
-} from "../../../controllers/admin/subscription-renewal.controller.js";
+} from "../../../controllers/admin/subscription-renewal.controller";
 
 const mockReq = (overrides: any = {}) => ({
   tenantId: "t1",

@@ -1,7 +1,7 @@
-import { Router } from "express";
-import type { RouteConfig } from "../shared/auto-routes.js";
-import { requireAuthWithTenant } from "../middleware/auth.js";
-import * as limitedDiscountController from "../controllers/admin/marketing-limited-discount.controller.js";
+﻿import { Router } from "express";
+import type { RouteConfig } from "../shared/auto-routes";
+import { requireAuthWithTenant } from "../middleware/auth";
+import * as limitedDiscountController from "../controllers/admin/marketing-limited-discount.controller";
 
 export const marketingLimitedDiscountRouter = Router();
 

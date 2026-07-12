@@ -1,4 +1,4 @@
-/**
+﻿/**
  * 系统资源监控服务单元测试
  * 被测文件：src/services/admin/system-monitor.service.ts
  */
@@ -19,7 +19,7 @@ vi.mock("node:os", () => ({
   },
 }));
 
-vi.mock("../../../shared/db.js", () => ({
+vi.mock("../../../shared/db", () => ({
   queryOne: dbMock.queryOne,
   query: vi.fn(),
   queryWithTenant: vi.fn(),
@@ -32,7 +32,7 @@ import {
   getCpuUsage,
   getProcessInfo,
   getSystemHealth,
-} from "../../../services/admin/system-monitor.service.js";
+} from "../../../services/admin/system-monitor.service";
 
 describe("system-monitor.service", () => {
   let memorySpy: ReturnType<typeof vi.spyOn>;

@@ -1,7 +1,7 @@
-import { z } from "zod";
-import { asyncHandler } from "../../middleware/async-handler.js";
-import { ok } from "../../shared/response.js";
-import * as groupBuyService from "../../services/admin/marketing-group-buy.service.js";
+﻿import { z } from "zod";
+import { asyncHandler } from "../../middleware/async-handler";
+import { ok } from "../../shared/response";
+import * as groupBuyService from "../../services/admin/marketing-group-buy.service";
 
 export const createGroupBuy = asyncHandler(async (req, res) => {
   const body = z.object({

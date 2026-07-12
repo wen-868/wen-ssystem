@@ -1,6 +1,6 @@
-import { asyncHandler } from "../../middleware/async-handler.js";
-import { ok } from "../../shared/response.js";
-import * as productService from "../../services/store/product.service.js";
+﻿import { asyncHandler } from "../../middleware/async-handler";
+import { ok } from "../../shared/response";
+import * as productService from "../../services/store/product.service";
 
 export const listProducts = asyncHandler(async (req, res) => {
   const result = await productService.listProducts({

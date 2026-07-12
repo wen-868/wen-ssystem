@@ -1,10 +1,10 @@
-/**
+﻿/**
  * 平台总后台 - 配置与审计服务
  *
  * 功能：全局配置、操作日志
  */
 
-import { query, queryOne } from "../../shared/db.js";
+import { query, queryOne } from "../../shared/db";
 
 // ─── 系统配置 ────────────────────────────────────────────────
 

@@ -1,4 +1,4 @@
-import { describe, it, expect, vi, beforeEach } from "vitest";
+﻿import { describe, it, expect, vi, beforeEach } from "vitest";
 
 const {
   mockCanAccessPriceField,
@@ -14,7 +14,7 @@ const {
   mockFilterPriceFieldsBatch: vi.fn(),
 }));
 
-vi.mock("../../shared/price-guard.js", () => ({
+vi.mock("../../shared/price-guard", () => ({
   canAccessPriceField: mockCanAccessPriceField,
   canAccessPriceLevel: mockCanAccessPriceLevel,
   logUnauthorizedAccess: mockLogUnauthorizedAccess,
@@ -29,8 +29,8 @@ import {
   requirePriceChangeLogAccess,
   priceResponseFilter,
   filterPriceResponse,
-} from "../../middleware/price-guard.js";
-import type { AuthUser } from "../../middleware/auth.js";
+} from "../../middleware/price-guard";
+import type { AuthUser } from "../../middleware/auth";
 import type { Request, Response, NextFunction } from "express";
 
 function makeUser(roles: string[]): AuthUser {

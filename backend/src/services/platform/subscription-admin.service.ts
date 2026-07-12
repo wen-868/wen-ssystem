@@ -1,11 +1,11 @@
-/**
+﻿/**
  * 平台总后台 - 订阅管理服务
  *
  * 功能：租户订阅套餐管理、订单管理
  */
 
-import { query, queryOne } from "../../shared/db.js";
-import { makeBizNo } from "../../shared/id.js";
+import { query, queryOne } from "../../shared/db";
+import { makeBizNo } from "../../shared/id";
 
 // ─── 订阅管理 ────────────────────────────────────────────────
 

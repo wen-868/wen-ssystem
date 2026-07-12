@@ -1,5 +1,5 @@
-import { query, queryOne, pool } from "../../shared/db.js";
-import logger from "../../shared/logger.js";
+﻿import { query, queryOne, pool } from "../../shared/db";
+import logger from "../../shared/logger";
 import type { Request } from "express";
 
 export async function listAuditLogs(params: {

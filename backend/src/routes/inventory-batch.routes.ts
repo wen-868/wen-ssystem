@@ -1,9 +1,9 @@
-import { Router } from "express";
-import type { RouteConfig } from "../shared/auto-routes.js";
-import logger from "../shared/logger.js";
-import { requireAuthWithTenant } from "../middleware/auth.js";
-import * as controller from "../controllers/admin/inventory-batch.controller.js";
-import * as service from "../services/admin/inventory-batch.service.js";
+﻿import { Router } from "express";
+import type { RouteConfig } from "../shared/auto-routes";
+import logger from "../shared/logger";
+import { requireAuthWithTenant } from "../middleware/auth";
+import * as controller from "../controllers/admin/inventory-batch.controller";
+import * as service from "../services/admin/inventory-batch.service";
 
 export const inventoryBatchRouter = Router();
 

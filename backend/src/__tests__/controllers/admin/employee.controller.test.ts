@@ -1,6 +1,6 @@
-import { vi, describe, it, beforeEach, expect } from "vitest";
+﻿import { vi, describe, it, beforeEach, expect } from "vitest";
 
-vi.mock("../../../services/admin/employee.service.js", () => ({
+vi.mock("../../../services/admin/employee.service", () => ({
   listStaff: vi.fn(),
   createStaff: vi.fn(),
   updateStaff: vi.fn(),
@@ -12,17 +12,17 @@ vi.mock("../../../services/admin/employee.service.js", () => ({
   getStoreWechatInfo: vi.fn(),
 }));
 
-vi.mock("../../../shared/response.js", () => ({
+vi.mock("../../../shared/response", () => ({
   ok: vi.fn((data) => ({ success: true, data })),
   fail: vi.fn((msg, code) => ({ success: false, message: msg, code })),
 }));
 
-vi.mock("../../../middleware/async-handler.js", () => ({
+vi.mock("../../../middleware/async-handler", () => ({
   asyncHandler: (fn: any) => fn,
 }));
 
-import * as employeeService from "../../../services/admin/employee.service.js";
-import { ok } from "../../../shared/response.js";
+import * as employeeService from "../../../services/admin/employee.service";
+import { ok } from "../../../shared/response";
 import {
   listStaff,
   createStaff,
@@ -33,7 +33,7 @@ import {
   getStore,
   updateStore,
   getStoreWechatInfo,
-} from "../../../controllers/admin/employee.controller.js";
+} from "../../../controllers/admin/employee.controller";
 
 const mockReq = (overrides: any = {}) => ({
   tenantId: "t1",

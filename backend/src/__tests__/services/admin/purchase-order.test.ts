@@ -1,4 +1,4 @@
-/**
+﻿﻿﻿﻿﻿﻿/**
  * 采购订单 service 单元测试
  * 被测文件：src/services/admin/purchase-order.service.ts
  */
@@ -11,7 +11,7 @@ const mocks = vi.hoisted(() => ({
   makeBizNo: vi.fn(),
 }));
 
-vi.mock("../../../shared/db.js", () => ({
+vi.mock("../../../shared/db", () => ({
   query: vi.fn(),
   queryOne: vi.fn(),
   queryWithTenant: mocks.queryWithTenant,
@@ -19,7 +19,7 @@ vi.mock("../../../shared/db.js", () => ({
   transaction: mocks.transaction,
 }));
 
-vi.mock("../../../shared/id.js", () => ({
+vi.mock("../../../shared/id", () => ({
   makeBizNo: mocks.makeBizNo,
 }));
 
@@ -30,7 +30,7 @@ import {
   updatePurchaseOrder,
   cancelPurchaseOrder,
   confirmPurchaseOrder,
-} from "../../../services/admin/purchase-order.service.js";
+} from "../../../services/admin/purchase-order.service";
 
 const mockConn = { execute: vi.fn() };
 

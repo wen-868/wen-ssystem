@@ -1,7 +1,7 @@
-import { z } from "zod";
-import { asyncHandler } from "../../middleware/async-handler.js";
-import { ok } from "../../shared/response.js";
-import * as quickEntryService from "../../services/admin/quick-entry.service.js";
+﻿import { z } from "zod";
+import { asyncHandler } from "../../middleware/async-handler";
+import { ok } from "../../shared/response";
+import * as quickEntryService from "../../services/admin/quick-entry.service";
 
 const createQuickEntrySchema = z.object({
   name: z.string().min(1).max(50),

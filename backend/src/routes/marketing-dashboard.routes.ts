@@ -1,7 +1,7 @@
-import { Router } from "express";
-import type { RouteConfig } from "../shared/auto-routes.js";
-import { requireAuthWithTenant } from "../middleware/auth.js";
-import * as dashboardController from "../controllers/admin/marketing-dashboard.controller.js";
+﻿import { Router } from "express";
+import type { RouteConfig } from "../shared/auto-routes";
+import { requireAuthWithTenant } from "../middleware/auth";
+import * as dashboardController from "../controllers/admin/marketing-dashboard.controller";
 
 export const marketingDashboardRouter = Router();
 

@@ -1,7 +1,7 @@
-import { Router } from "express";
-import type { RouteConfig } from "../shared/auto-routes.js";
-import { requireAuthWithTenant } from "../middleware/auth.js";
-import * as inventoryLossGainController from "../controllers/admin/inventory-loss-gain.controller.js";
+﻿import { Router } from "express";
+import type { RouteConfig } from "../shared/auto-routes";
+import { requireAuthWithTenant } from "../middleware/auth";
+import * as inventoryLossGainController from "../controllers/admin/inventory-loss-gain.controller";
 
 export const inventoryLossGainRouter = Router();
 

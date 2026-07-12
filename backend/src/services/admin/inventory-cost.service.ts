@@ -1,4 +1,4 @@
-import { queryWithTenant, queryOneWithTenant } from "../../shared/db.js";
+﻿import { queryWithTenant, queryOneWithTenant } from "../../shared/db";
 
 // 移动加权平均成本核算（入库时调用）
 export async function updateMovingAverageCost(params: {

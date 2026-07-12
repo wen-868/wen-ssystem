@@ -1,20 +1,20 @@
-/**
+﻿/**
  * 即时零售平台适配器统一入口
  * Instant Retail Platform Adapters Entry Point
  *
  * 导出所有平台适配器，并在模块加载时自动注册到全局注册表。
  * 使用方式：
- *   import { createAdapter } from '../registry';
+ *   import { createAdapter } from "../registry";
  *   const adapter = createAdapter('JD');
  */
 
-import { register, createAdapter } from '../registry.js';
-import type { PlatformType, UnifiedOrder, PlatformOrderStatus, UnifiedOrderItem, UnifiedAddress } from '../types.js';
+import { register, createAdapter } from "../registry";
+import type { PlatformType, UnifiedOrder, PlatformOrderStatus, UnifiedOrderItem, UnifiedAddress } from "../types";
 
 // 导入各平台适配器
-import { JdAdapter } from './jd-adapter.js';
-import { MeituanAdapter } from './meituan-adapter.js';
-import { ElemeAdapter } from './eleme-adapter.js';
+import { JdAdapter } from "./jd-adapter";
+import { MeituanAdapter } from "./meituan-adapter";
+import { ElemeAdapter } from "./eleme-adapter";
 
 // 注册到全局适配器注册表
 register('JD', JdAdapter);
@@ -22,9 +22,9 @@ register('MEITUAN', MeituanAdapter);
 register('ELEME', ElemeAdapter);
 
 // 导出所有适配器类
-export { JdAdapter } from './jd-adapter.js';
-export { MeituanAdapter } from './meituan-adapter.js';
-export { ElemeAdapter } from './eleme-adapter.js';
+export { JdAdapter } from "./jd-adapter";
+export { MeituanAdapter } from "./meituan-adapter";
+export { ElemeAdapter } from "./eleme-adapter";
 export { createAdapter };
 
 /**

@@ -1,25 +1,25 @@
-import { vi, describe, it, beforeEach, expect } from "vitest";
+﻿import { vi, describe, it, beforeEach, expect } from "vitest";
 import { ZodError } from "zod";
 
-vi.mock("../../../services/store/inventory.service.js", () => ({
+vi.mock("../../../services/store/inventory.service", () => ({
   listInventory: vi.fn(),
   adjustInventory: vi.fn(),
   listInventoryLogs: vi.fn(),
   listInventoryAlerts: vi.fn(),
 }));
 
-vi.mock("../../../shared/response.js", () => ({
+vi.mock("../../../shared/response", () => ({
   ok: vi.fn((data) => ({ success: true, data })),
   fail: vi.fn((msg, code) => ({ success: false, message: msg, code })),
 }));
 
-vi.mock("../../../middleware/async-handler.js", () => ({
+vi.mock("../../../middleware/async-handler", () => ({
   asyncHandler: (fn: any) => fn,
 }));
 
-import * as inventoryService from "../../../services/store/inventory.service.js";
-import { ok } from "../../../shared/response.js";
-import { listInventory, adjustInventory, listInventoryLogs, listInventoryAlerts } from "../../../controllers/store/inventory.controller.js";
+import * as inventoryService from "../../../services/store/inventory.service";
+import { ok } from "../../../shared/response";
+import { listInventory, adjustInventory, listInventoryLogs, listInventoryAlerts } from "../../../controllers/store/inventory.controller";
 
 const mockReq = (overrides: any = {}) => ({
   tenantId: "t1",

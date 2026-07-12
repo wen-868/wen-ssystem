@@ -1,5 +1,5 @@
-import { queryWithTenant, queryOneWithTenant } from "../../shared/db.js";
-import { makeBizNo } from "../../shared/id.js";
+﻿import { queryWithTenant, queryOneWithTenant } from "../../shared/db";
+import { makeBizNo } from "../../shared/id";
 
 export async function createExpense(params: { expenseType: string; category?: string; amount: number; payee?: string; paymentMethod?: string; bankAccountId?: number; invoiceNo?: string; expenseDate?: string; remark?: string; operatorId: number; tenantId: string }) {
   const { expenseType, category, amount, payee, paymentMethod, bankAccountId, invoiceNo, expenseDate, remark, operatorId, tenantId } = params;

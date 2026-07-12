@@ -1,6 +1,6 @@
-import { vi, describe, it, beforeEach, expect } from "vitest";
+﻿import { vi, describe, it, beforeEach, expect } from "vitest";
 
-vi.mock("../../../services/admin/supplier-statement.service.js", () => ({
+vi.mock("../../../services/admin/supplier-statement.service", () => ({
   generateSupplierStatement: vi.fn(),
   listSupplierStatements: vi.fn(),
   getSupplierStatementDetail: vi.fn(),
@@ -8,24 +8,24 @@ vi.mock("../../../services/admin/supplier-statement.service.js", () => ({
   disputeSupplierStatement: vi.fn(),
 }));
 
-vi.mock("../../../shared/response.js", () => ({
+vi.mock("../../../shared/response", () => ({
   ok: vi.fn((data) => ({ success: true, data })),
   fail: vi.fn((msg, code) => ({ success: false, message: msg, code })),
 }));
 
-vi.mock("../../../middleware/async-handler.js", () => ({
+vi.mock("../../../middleware/async-handler", () => ({
   asyncHandler: (fn: any) => fn,
 }));
 
-import * as supplierStatementService from "../../../services/admin/supplier-statement.service.js";
-import { ok } from "../../../shared/response.js";
+import * as supplierStatementService from "../../../services/admin/supplier-statement.service";
+import { ok } from "../../../shared/response";
 import {
   generateSupplierStatement,
   listSupplierStatements,
   getSupplierStatementDetail,
   confirmSupplierStatement,
   disputeSupplierStatement,
-} from "../../../controllers/admin/supplier-statement.controller.js";
+} from "../../../controllers/admin/supplier-statement.controller";
 
 const mockReq = (overrides: any = {}) => ({
   tenantId: "t1",

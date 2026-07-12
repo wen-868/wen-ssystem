@@ -1,7 +1,7 @@
-import { z } from "zod";
-import { asyncHandler } from "../../middleware/async-handler.js";
-import { ok, fail } from "../../shared/response.js";
-import * as pointsService from "../../services/admin/marketing-points.service.js";
+﻿import { z } from "zod";
+import { asyncHandler } from "../../middleware/async-handler";
+import { ok, fail } from "../../shared/response";
+import * as pointsService from "../../services/admin/marketing-points.service";
 
 export const getPointsRule = asyncHandler(async (req, res) => {
   const result = await pointsService.getPointsRule(req.tenantId!);

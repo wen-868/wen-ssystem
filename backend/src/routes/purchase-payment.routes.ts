@@ -1,7 +1,7 @@
-import { Router } from "express";
-import type { RouteConfig } from "../shared/auto-routes.js";
-import { requireAuthWithTenant } from "../middleware/auth.js";
-import * as ctrl from "../controllers/purchase-payment.controller.js";
+﻿import { Router } from "express";
+import type { RouteConfig } from "../shared/auto-routes";
+import { requireAuthWithTenant } from "../middleware/auth";
+import * as ctrl from "../controllers/purchase-payment.controller";
 
 export const purchasePaymentRouter = Router();
 purchasePaymentRouter.get("/", requireAuthWithTenant, ctrl.list);

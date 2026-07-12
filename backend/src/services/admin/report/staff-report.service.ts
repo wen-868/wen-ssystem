@@ -1,5 +1,5 @@
-import { queryWithTenant } from "../../../shared/db.js";
-import { parseDateParam, getDefaultDateStart, getDefaultDateEnd } from "../../../shared/date-utils.js";
+﻿import { queryWithTenant } from "../../../shared/db";
+import { parseDateParam, getDefaultDateStart, getDefaultDateEnd } from "../../../shared/date-utils";
 
 export async function getStaffPerformanceRanking(
   tenantId: string,

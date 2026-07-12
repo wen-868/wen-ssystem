@@ -1,5 +1,5 @@
-import { queryWithTenant, queryOneWithTenant } from "../../shared/db.js";
-import { makeBizNo } from "../../shared/id.js";
+﻿import { queryWithTenant, queryOneWithTenant } from "../../shared/db";
+import { makeBizNo } from "../../shared/id";
 
 // ===== 提成规则 CRUD =====
 

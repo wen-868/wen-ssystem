@@ -1,4 +1,4 @@
-/**
+﻿/**
  * 供应商/采购 mock handlers: suppliers, supplierContacts, purchaseOrders, purchaseOrderItems,
  *   purchaseInStocks, purchaseInStockItems, purchaseReturns, purchaseReturnItems, purchasePayments,
  *   saleReturns, saleReturnItems, customerStatements, customerPayments
@@ -7,7 +7,7 @@
  *   2. INSERT 语句中的字面量（如 'DRAFT', 'PENDING', 0）不占用 params 位置，参数映射需跳过
  *   3. 所有 INSERT 必须保存 tenant_id，以支持租户隔离测试
  */
-import { state, result, Row, fromTable, updateTable, insertIntoTable, deleteFromTable } from "./mock-db-state.js";
+import { state, result, Row, fromTable, updateTable, insertIntoTable, deleteFromTable } from "./mock-db-state";
 
 export const queryHandlers: Array<(s: string, params: unknown[]) => Row[] | null> = [
   // ========== supplier 表 ==========

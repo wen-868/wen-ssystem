@@ -1,9 +1,9 @@
-import { Router } from "express";
+﻿import { Router } from "express";
 import type { Request, Response } from "express";
-import { requireAuthWithTenant } from "../middleware/auth.js";
-import { ok, fail } from "../shared/response.js";
-import * as userSessionService from "../services/admin/user-session.service.js";
-import { asyncHandler } from "../middleware/async-handler.js";
+import { requireAuthWithTenant } from "../middleware/auth";
+import { ok, fail } from "../shared/response";
+import * as userSessionService from "../services/admin/user-session.service";
+import { asyncHandler } from "../middleware/async-handler";
 
 export const userSessionRouter = Router();
 

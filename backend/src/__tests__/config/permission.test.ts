@@ -1,5 +1,5 @@
-import { describe, it, expect } from "vitest";
-import { permissionConfig } from "../../config/permission.js";
+﻿import { describe, it, expect } from "vitest";
+import { permissionConfig } from "../../config/permission";
 
 describe("config/permission", () => {
   it("应启用追溯码", () => {

@@ -1,13 +1,13 @@
-/**
+﻿/**
  * 即时零售 Controller 层
  * 只做参数提取和响应封装，业务逻辑委托给 Service
  */
 
 import { z } from "zod";
-import { asyncHandler } from "../../middleware/async-handler.js";
-import { ok, fail } from "../../shared/response.js";
-import * as instantRetailService from "../../services/admin/instant-retail.service.js";
-import * as retailShopSvc from "../../services/instant-retail/retail-shop.service.js";
+import { asyncHandler } from "../../middleware/async-handler";
+import { ok, fail } from "../../shared/response";
+import * as instantRetailService from "../../services/admin/instant-retail.service";
+import * as retailShopSvc from "../../services/instant-retail/retail-shop.service";
 
 // ── Zod schemas ──
 const upsertConfigSchema = z.object({

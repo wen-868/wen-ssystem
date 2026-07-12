@@ -1,4 +1,4 @@
-/**
+﻿/**
  * 管理端报表权限 service 单元测试
  * 被测文件：src/services/admin/report-permission.service.ts
  * 覆盖全部 2 个导出函数，目标覆盖率 100%
@@ -10,7 +10,7 @@ const mocks = vi.hoisted(() => ({
   transaction: vi.fn(),
 }));
 
-vi.mock("../../../shared/db.js", () => ({
+vi.mock("../../../shared/db", () => ({
   query: mocks.query,
   queryOne: vi.fn(),
   queryWithTenant: vi.fn(),
@@ -18,7 +18,7 @@ vi.mock("../../../shared/db.js", () => ({
   transaction: mocks.transaction,
 }));
 
-import { getMatrix, saveMatrix } from "../../../services/admin/report-permission.service.js";
+import { getMatrix, saveMatrix } from "../../../services/admin/report-permission.service";
 
 // transaction 回调接收的 conn 对象，saveMatrix 内部调用 conn.query
 const mockConn = { query: vi.fn() };

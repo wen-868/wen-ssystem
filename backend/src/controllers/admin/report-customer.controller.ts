@@ -1,7 +1,7 @@
-import { Request, Response } from "express";
-import { asyncHandler } from "../../middleware/async-handler.js";
-import { ok } from "../../shared/response.js";
-import * as svc from "../../services/admin/report-customer.service.js";
+﻿import { Request, Response } from "express";
+import { asyncHandler } from "../../middleware/async-handler";
+import { ok } from "../../shared/response";
+import * as svc from "../../services/admin/report-customer.service";
 
 export const getRepurchaseAnalysis = asyncHandler(async (req: Request, res: Response) => {
   const { startDate, endDate, storeId } = req.query as Record<string, string | undefined>;

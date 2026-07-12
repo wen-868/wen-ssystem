@@ -1,8 +1,8 @@
-/**
+﻿/**
  * 订单/销售单 mock handlers: saleBills, saleBillItems, miniappOrders, miniappOrderItems, holdOrders, platformOrders
  * 修复坑：业务表使用 t_ 前缀（如 t_sale_bill），需同时匹配带前缀和不带前缀的形式
  */
-import { state, result, Row, fromTable, insertIntoTable, updateTable } from "./mock-db-state.js";
+import { state, result, Row, fromTable, insertIntoTable, updateTable } from "./mock-db-state";
 
 export const queryHandlers: Array<(s: string, params: unknown[]) => Row[] | null> = [
   // sale_bill 汇总 (sum received_amount, unreceived_amount)

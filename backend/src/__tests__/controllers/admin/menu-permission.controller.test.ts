@@ -1,4 +1,4 @@
-/**
+﻿/**
  * 管理端菜单权限 controller 单元测试
  * 被测文件：src/controllers/admin/menu-permission.controller.ts
  */
@@ -17,16 +17,16 @@ const mocks = vi.hoisted(() => ({
   setRoleFieldPermissions: vi.fn(),
 }));
 
-vi.mock("../../../middleware/async-handler.js", () => ({
+vi.mock("../../../middleware/async-handler", () => ({
   asyncHandler: (fn: any) => fn,
 }));
 
-vi.mock("../../../shared/response.js", () => ({
+vi.mock("../../../shared/response", () => ({
   ok: mocks.ok,
   fail: mocks.fail,
 }));
 
-vi.mock("../../../services/admin/menu-permission.service.js", () => ({
+vi.mock("../../../services/admin/menu-permission.service", () => ({
   getMenuTree: mocks.getMenuTree,
   getUserMenus: mocks.getUserMenus,
   getRolePermissions: mocks.getRolePermissions,
@@ -46,7 +46,7 @@ import {
   setRoleDataPermissions,
   getFieldPermissions,
   setRoleFieldPermissions,
-} from "../../../controllers/admin/menu-permission.controller.js";
+} from "../../../controllers/admin/menu-permission.controller";
 
 const mockReq = (overrides: any = {}) => ({
   tenantId: "t1",

@@ -1,4 +1,4 @@
-/**
+﻿/**
  * 管理端快捷入口 controller 单元测试
  * 被测文件：src/controllers/admin/quick-entry.controller.ts
  */
@@ -14,16 +14,16 @@ const mocks = vi.hoisted(() => ({
   sortQuickEntries: vi.fn(),
 }));
 
-vi.mock("../../../middleware/async-handler.js", () => ({
+vi.mock("../../../middleware/async-handler", () => ({
   asyncHandler: (fn: any) => fn,
 }));
 
-vi.mock("../../../shared/response.js", () => ({
+vi.mock("../../../shared/response", () => ({
   ok: mocks.ok,
   fail: mocks.fail,
 }));
 
-vi.mock("../../../services/admin/quick-entry.service.js", () => ({
+vi.mock("../../../services/admin/quick-entry.service", () => ({
   listQuickEntries: mocks.listQuickEntries,
   createQuickEntry: mocks.createQuickEntry,
   updateQuickEntry: mocks.updateQuickEntry,
@@ -37,7 +37,7 @@ import {
   updateQuickEntry,
   deleteQuickEntry,
   sortQuickEntries,
-} from "../../../controllers/admin/quick-entry.controller.js";
+} from "../../../controllers/admin/quick-entry.controller";
 
 const mockReq = (overrides: any = {}) => ({
   tenantId: "t1",

@@ -1,8 +1,8 @@
-import { z } from "zod";
+﻿import { z } from "zod";
 import { Request, Response } from "express";
-import { asyncHandler } from "../../middleware/async-handler.js";
-import { ok } from "../../shared/response.js";
-import { PaymentConfigService } from "../../services/admin/payment-config.service.js";
+import { asyncHandler } from "../../middleware/async-handler";
+import { ok } from "../../shared/response";
+import { PaymentConfigService } from "../../services/admin/payment-config.service";
 
 const saveChannelConfigSchema = z.object({
   appId: z.string().min(1),

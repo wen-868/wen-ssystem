@@ -1,9 +1,9 @@
-import { Router } from "express";
-import type { RouteConfig } from "../shared/auto-routes.js";
-import { requireAuthWithTenant } from "../middleware/auth.js";
-import * as todoCtrl from "../controllers/admin/todo.controller.js";
-import * as quickEntryCtrl from "../controllers/admin/quick-entry.controller.js";
-import * as notificationCtrl from "../controllers/admin/notification-center.controller.js";
+﻿import { Router } from "express";
+import type { RouteConfig } from "../shared/auto-routes";
+import { requireAuthWithTenant } from "../middleware/auth";
+import * as todoCtrl from "../controllers/admin/todo.controller";
+import * as quickEntryCtrl from "../controllers/admin/quick-entry.controller";
+import * as notificationCtrl from "../controllers/admin/notification-center.controller";
 
 export const workbenchRouter = Router();
 

@@ -1,9 +1,9 @@
-import { Router } from "express";
-import { requireAuthWithTenant } from "../middleware/auth.js";
-import * as transferOrderController from "../controllers/admin/transfer-order.controller.js";
-import * as adminTransferExecutionController from "../controllers/admin/transfer-execution.controller.js";
-import * as storeTransferExecutionController from "../controllers/store/transfer-execution.controller.js";
-import type { RouteConfig } from "../shared/auto-routes.js";
+﻿import { Router } from "express";
+import { requireAuthWithTenant } from "../middleware/auth";
+import * as transferOrderController from "../controllers/admin/transfer-order.controller";
+import * as adminTransferExecutionController from "../controllers/admin/transfer-execution.controller";
+import * as storeTransferExecutionController from "../controllers/store/transfer-execution.controller";
+import type { RouteConfig } from "../shared/auto-routes";
 
 // ==================== Admin 调拨路由 ====================
 export const adminTransferRouter = Router();

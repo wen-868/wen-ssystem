@@ -1,10 +1,10 @@
-import mysql from "mysql2/promise";
+﻿import mysql from "mysql2/promise";
 import { existsSync, readFileSync } from "node:fs";
 import { join, resolve } from "node:path";
-import logger from "../shared/logger.js";
-import { env } from "./env.js";
-import { mockConn, mockQuery, mockExecute } from "../__tests__/mocks/mock-db.js";
-import { recordQueryExecution } from "../middleware/slow-query-monitor.js";
+import logger from "../shared/logger";
+import { env } from "./env";
+import { mockConn, mockQuery, mockExecute } from "../__tests__/mocks/mock-db";
+import { recordQueryExecution } from "../middleware/slow-query-monitor";
 
 export let pool = mysql.createPool({
   host: env.DB_HOST,

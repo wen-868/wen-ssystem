@@ -1,4 +1,4 @@
-import { describe, it, expect, vi, beforeEach } from "vitest";
+﻿﻿﻿﻿﻿﻿import { describe, it, expect, vi, beforeEach } from "vitest";
 
 const mocks = vi.hoisted(() => ({
   queryWithTenant: vi.fn(),
@@ -6,7 +6,7 @@ const mocks = vi.hoisted(() => ({
   transaction: vi.fn(),
 }));
 
-vi.mock("../../../shared/db.js", () => ({
+vi.mock("../../../shared/db", () => ({
   query: vi.fn(),
   queryOne: vi.fn(),
   queryWithTenant: mocks.queryWithTenant,
@@ -14,7 +14,7 @@ vi.mock("../../../shared/db.js", () => ({
   transaction: mocks.transaction,
 }));
 
-vi.mock("../../../shared/id.js", () => ({
+vi.mock("../../../shared/id", () => ({
   makeBizNo: vi.fn(() => "PROMO001"),
 }));
 
@@ -23,7 +23,7 @@ import {
   createPromotion,
   updatePromotion,
   calculateDiscount,
-} from "../../../services/admin/marketing-new-promotion.service.js";
+} from "../../../services/admin/marketing-new-promotion.service";
 
 const tenantId = "t1";
 

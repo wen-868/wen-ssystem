@@ -1,6 +1,6 @@
-import { queryWithTenant, queryOneWithTenant, transaction } from "../../shared/db.js";
-import logger from "../../shared/logger.js";
-import { syncChangedFields } from "../../shared/field-sync.js";
+﻿import { queryWithTenant, queryOneWithTenant, transaction } from "../../shared/db";
+import logger from "../../shared/logger";
+import { syncChangedFields } from "../../shared/field-sync";
 
 interface CategoryRow {
   id: number; name: string; parent_id: number | null; sort_no: number;

@@ -1,6 +1,6 @@
-import { vi, describe, it, beforeEach, expect } from "vitest";
+﻿import { vi, describe, it, beforeEach, expect } from "vitest";
 
-vi.mock("../../../services/admin/payment.service.js", () => ({
+vi.mock("@services/admin/payment.service", () => ({
   createPaymentOrder: vi.fn(),
   handleWxCallback: vi.fn(),
   createRefund: vi.fn(),
@@ -8,18 +8,18 @@ vi.mock("../../../services/admin/payment.service.js", () => ({
   listPaymentOrders: vi.fn(),
 }));
 
-vi.mock("../../../shared/response.js", () => ({
+vi.mock("@shared/response", () => ({
   ok: vi.fn((data) => ({ success: true, data })),
   fail: vi.fn((msg, code) => ({ success: false, message: msg, code })),
 }));
 
-vi.mock("../../../middleware/async-handler.js", () => ({
+vi.mock("@middleware/async-handler", () => ({
   asyncHandler: (fn: any) => fn,
 }));
 
-import * as paymentService from "../../../services/admin/payment.service.js";
-import { ok, fail } from "../../../shared/response.js";
-import { createPaymentController } from "../../../controllers/payment.controller.js";
+import * as paymentService from "@services/admin/payment.service";
+import { ok, fail } from "@shared/response";
+import { createPaymentController } from "@controllers/payment.controller";
 
 const mockWechatPay = {};
 const { createPaymentOrder, handleWxCallback, createRefund, getPaymentOrder, listPaymentOrders } = createPaymentController(mockWechatPay as any);

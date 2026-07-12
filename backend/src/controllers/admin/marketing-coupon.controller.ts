@@ -1,7 +1,7 @@
-import { z } from "zod";
-import { asyncHandler } from "../../middleware/async-handler.js";
-import { ok, fail } from "../../shared/response.js";
-import * as couponService from "../../services/admin/marketing-coupon.service.js";
+﻿import { z } from "zod";
+import { asyncHandler } from "../../middleware/async-handler";
+import { ok, fail } from "../../shared/response";
+import * as couponService from "../../services/admin/marketing-coupon.service";
 
 export const createCouponTemplate = asyncHandler(async (req, res) => {
   const body = z.object({

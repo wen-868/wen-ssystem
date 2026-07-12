@@ -1,7 +1,7 @@
-import { describe, it, expect, vi, beforeEach } from "vitest";
+﻿import { describe, it, expect, vi, beforeEach } from "vitest";
 
 // Mock env 模块
-vi.mock("../../config/env.js", () => ({
+vi.mock("../../config/env", () => ({
   env: {
     WECHAT_APP_ID: "test_app_id",
     WECHAT_MCH_ID: "test_mch_id",
@@ -27,7 +27,7 @@ vi.mock("fs", async () => {
   };
 });
 
-import { WechatPay } from "../../config/wechat-pay.js";
+import { WechatPay } from "../../config/wechat-pay";
 import fs from "fs";
 
 describe("config/wechat-pay", () => {

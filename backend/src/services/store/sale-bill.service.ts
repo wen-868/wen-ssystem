@@ -1,7 +1,7 @@
-import { query, queryOne, queryWithTenant, queryOneWithTenant, transaction } from "../../shared/db.js";
-import { makeBizNo, makeToken } from "../../shared/id.js";
-import { computeSellingPrice, getPriceType, type CustomerType } from "../../shared/fulfillment.js";
-import { updateTraceCodesBySkuList } from "../../shared/trace-code.js";
+﻿import { query, queryOne, queryWithTenant, queryOneWithTenant, transaction } from "../../shared/db";
+import { makeBizNo, makeToken } from "../../shared/id";
+import { computeSellingPrice, getPriceType, type CustomerType } from "../../shared/fulfillment";
+import { updateTraceCodesBySkuList } from "../../shared/trace-code";
 
 export async function listSaleBills(params: {
   page: number; pageSize: number; storeId: number | null;

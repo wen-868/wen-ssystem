@@ -1,7 +1,7 @@
-import { Router } from "express";
-import type { RouteConfig } from "../shared/auto-routes.js";
-import { requireAuthWithTenant } from "../middleware/auth.js";
-import * as inventoryCostController from "../controllers/admin/inventory-cost.controller.js";
+﻿import { Router } from "express";
+import type { RouteConfig } from "../shared/auto-routes";
+import { requireAuthWithTenant } from "../middleware/auth";
+import * as inventoryCostController from "../controllers/admin/inventory-cost.controller";
 
 export const inventoryCostRouter = Router();
 

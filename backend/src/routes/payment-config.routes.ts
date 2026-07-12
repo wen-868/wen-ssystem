@@ -1,6 +1,6 @@
-import { Router } from "express";
-import { requireAuthWithTenant } from "../middleware/auth.js";
-import * as ctrl from "../controllers/admin/payment-config.controller.js";
+﻿import { Router } from "express";
+import { requireAuthWithTenant } from "../middleware/auth";
+import * as ctrl from "../controllers/admin/payment-config.controller";
 
 export const paymentConfigRouter = Router();
 

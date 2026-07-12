@@ -1,6 +1,6 @@
-import { asyncHandler } from "../../middleware/async-handler.js";
-import { ok, fail } from "../../shared/response.js";
-import * as authService from "../../services/store/auth.service.js";
+﻿import { asyncHandler } from "../../middleware/async-handler";
+import { ok, fail } from "../../shared/response";
+import * as authService from "../../services/store/auth.service";
 
 export const login = asyncHandler(async (req, res) => {
   const result = await authService.login(req.body.username, req.body.password);

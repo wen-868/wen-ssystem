@@ -1,22 +1,22 @@
-import { vi, describe, it, beforeEach, expect } from "vitest";
+﻿import { vi, describe, it, beforeEach, expect } from "vitest";
 
-vi.mock("../../../services/instant-retail/fulfillment.service.js", () => ({
+vi.mock("../../../services/instant-retail/fulfillment.service", () => ({
   startDelivery: vi.fn(),
   completeDelivery: vi.fn(),
 }));
 
-vi.mock("../../../shared/response.js", () => ({
+vi.mock("../../../shared/response", () => ({
   ok: vi.fn((data) => ({ success: true, data })),
   fail: vi.fn((msg, code) => ({ success: false, message: msg, code })),
 }));
 
-vi.mock("../../../middleware/async-handler.js", () => ({
+vi.mock("../../../middleware/async-handler", () => ({
   asyncHandler: (fn: any) => fn,
 }));
 
-import * as fulfillmentService from "../../../services/instant-retail/fulfillment.service.js";
-import { ok, fail } from "../../../shared/response.js";
-import { startDelivery, completeDelivery } from "../../../controllers/instant-retail/fulfillment.controller.js";
+import * as fulfillmentService from "../../../services/instant-retail/fulfillment.service";
+import { ok, fail } from "../../../shared/response";
+import { startDelivery, completeDelivery } from "../../../controllers/instant-retail/fulfillment.controller";
 
 const mockReq = (overrides: any = {}) => ({
   tenantId: "t1",

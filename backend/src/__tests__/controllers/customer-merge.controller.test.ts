@@ -1,24 +1,24 @@
-import { vi, describe, it, beforeEach, expect } from "vitest";
+﻿import { vi, describe, it, beforeEach, expect } from "vitest";
 
-vi.mock("../../../services/admin/customer-merge.service.js", () => ({
+vi.mock("@services/admin/customer-merge.service", () => ({
   detectDuplicates: vi.fn(),
   getCustomerRelations: vi.fn(),
   mergeCustomers: vi.fn(),
   getDuplicateGroups: vi.fn(),
 }));
 
-vi.mock("../../../shared/response.js", () => ({
+vi.mock("@shared/response", () => ({
   ok: vi.fn((data) => ({ success: true, data })),
   fail: vi.fn((msg, code) => ({ success: false, message: msg, code })),
 }));
 
-vi.mock("../../../middleware/async-handler.js", () => ({
+vi.mock("@middleware/async-handler", () => ({
   asyncHandler: (fn: any) => fn,
 }));
 
-import * as customerMergeService from "../../../services/admin/customer-merge.service.js";
-import { ok } from "../../../shared/response.js";
-import { detectDuplicates, getCustomerRelations, mergeCustomers, getDuplicateGroups } from "../../../controllers/customer-merge.controller.js";
+import * as customerMergeService from "@services/admin/customer-merge.service";
+import { ok } from "@shared/response";
+import { detectDuplicates, getCustomerRelations, mergeCustomers, getDuplicateGroups } from "@controllers/customer-merge.controller";
 
 const mockReq = (overrides: any = {}) => ({
   tenantId: "t1",

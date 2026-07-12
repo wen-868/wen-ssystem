@@ -1,6 +1,6 @@
-import { vi, describe, it, beforeEach, expect } from "vitest";
+﻿import { vi, describe, it, beforeEach, expect } from "vitest";
 
-vi.mock("../../../services/admin/customer.service.js", () => ({
+vi.mock("../../../services/admin/customer.service", () => ({
   listMembers: vi.fn(),
   createCustomer: vi.fn(),
   getCustomerDetail: vi.fn(),
@@ -15,23 +15,23 @@ vi.mock("../../../services/admin/customer.service.js", () => ({
   getCustomerStats: vi.fn(),
 }));
 
-vi.mock("../../../shared/response.js", () => ({
+vi.mock("../../../shared/response", () => ({
   ok: vi.fn((data) => ({ success: true, data })),
   fail: vi.fn((msg, code) => ({ success: false, message: msg, code })),
 }));
 
-vi.mock("../../../middleware/async-handler.js", () => ({
+vi.mock("../../../middleware/async-handler", () => ({
   asyncHandler: (fn: any) => fn,
 }));
 
-import * as customerService from "../../../services/admin/customer.service.js";
-import { ok } from "../../../shared/response.js";
+import * as customerService from "../../../services/admin/customer.service";
+import { ok } from "../../../shared/response";
 import {
   listMembers, createCustomer, getCustomerDetail, updateCustomer,
   disableCustomer, assignStaffToCustomer, getCustomerPriceHistory,
   listCustomerSaleBills, listCustomerPayments, listCustomerStatements,
   getCustomerPurchaseStats, getCustomerStats
-} from "../../../controllers/admin/customer.controller.js";
+} from "../../../controllers/admin/customer.controller";
 
 const mockReq = (overrides: any = {}) => ({
   tenantId: "t1",

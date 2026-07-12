@@ -1,5 +1,5 @@
-import { query, transaction } from "../../shared/db.js";
-import logger from "../../shared/logger.js";
+﻿import { query, transaction } from "../../shared/db";
+import logger from "../../shared/logger";
 
 let scannerRunning = false;
 

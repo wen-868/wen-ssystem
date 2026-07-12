@@ -1,6 +1,6 @@
-import { vi, describe, it, beforeEach, expect } from "vitest";
+﻿import { vi, describe, it, beforeEach, expect } from "vitest";
 
-vi.mock("../../../services/saas/subscription.service.js", () => ({
+vi.mock("../../../services/saas/subscription.service", () => ({
   listSubscriptions: vi.fn(),
   getSubscriptionDetail: vi.fn(),
   createSubscription: vi.fn(),
@@ -10,18 +10,18 @@ vi.mock("../../../services/saas/subscription.service.js", () => ({
   getSubscriptionStatistics: vi.fn(),
 }));
 
-vi.mock("../../../shared/response.js", () => ({
+vi.mock("../../../shared/response", () => ({
   ok: vi.fn((data) => ({ success: true, data })),
   fail: vi.fn((msg, code) => ({ success: false, message: msg, code })),
 }));
 
-vi.mock("../../../middleware/async-handler.js", () => ({
+vi.mock("../../../middleware/async-handler", () => ({
   asyncHandler: (fn: any) => fn,
 }));
 
-import * as subscriptionService from "../../../services/saas/subscription.service.js";
-import { ok, fail } from "../../../shared/response.js";
-import { listSubscriptions, getSubscriptionDetail, createSubscription, renewSubscription, upgradeSubscription, cancelSubscription, getSubscriptionStatistics } from "../../../controllers/saas/subscription.controller.js";
+import * as subscriptionService from "../../../services/saas/subscription.service";
+import { ok, fail } from "../../../shared/response";
+import { listSubscriptions, getSubscriptionDetail, createSubscription, renewSubscription, upgradeSubscription, cancelSubscription, getSubscriptionStatistics } from "../../../controllers/saas/subscription.controller";
 
 const mockReq = (overrides: any = {}) => ({
   tenantId: "t1",

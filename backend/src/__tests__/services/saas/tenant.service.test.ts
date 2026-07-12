@@ -1,8 +1,8 @@
-import { describe, it, expect, vi, beforeEach } from "vitest";
+﻿import { describe, it, expect, vi, beforeEach } from "vitest";
 const mocks = vi.hoisted(() => ({ query: vi.fn(), queryOne: vi.fn(), transaction: vi.fn(), makeBizNo: vi.fn() }));
-vi.mock("../../../shared/db.js", () => ({ query: mocks.query, queryOne: mocks.queryOne, transaction: mocks.transaction }));
-vi.mock("../../../shared/id.js", () => ({ makeBizNo: mocks.makeBizNo }));
-import { listTenants, getTenantDetail, createTenant, updateTenant, auditTenant, toggleTenantStatus, getTenantStatistics } from "../../../services/saas/tenant.service.js";
+vi.mock("../../../shared/db", () => ({ query: mocks.query, queryOne: mocks.queryOne, transaction: mocks.transaction }));
+vi.mock("../../../shared/id", () => ({ makeBizNo: mocks.makeBizNo }));
+import { listTenants, getTenantDetail, createTenant, updateTenant, auditTenant, toggleTenantStatus, getTenantStatistics } from "../../../services/saas/tenant.service";
 
 describe("saas tenant.service", () => {
   beforeEach(() => vi.clearAllMocks());

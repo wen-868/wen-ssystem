@@ -1,8 +1,8 @@
-import { query, queryOne, queryWithTenant, queryOneWithTenant, transaction } from "../../shared/db.js";
-import logger from "../../shared/logger.js";
-import { makeBizNo } from "../../shared/id.js";
-import { detectChangedFields, syncChangedFields } from "../../shared/field-sync.js";
-import { syncProductFullChain, syncProductStatus, syncProductPrice } from "../../shared/product-sync.js";
+﻿import { query, queryOne, queryWithTenant, queryOneWithTenant, transaction } from "../../shared/db";
+import logger from "../../shared/logger";
+import { makeBizNo } from "../../shared/id";
+import { detectChangedFields, syncChangedFields } from "../../shared/field-sync";
+import { syncProductFullChain, syncProductStatus, syncProductPrice } from "../../shared/product-sync";
 
 export async function listProducts(keyword: string, page: number, pageSize: number, tenantId: string) {
   const like = `%${keyword}%`;

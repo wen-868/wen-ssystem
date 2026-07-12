@@ -1,4 +1,4 @@
-import { query, queryOne } from "../shared/db.js";
+﻿import { query, queryOne } from "../shared/db";
 import bcrypt from "bcryptjs";
 
 export interface TenantRecord {

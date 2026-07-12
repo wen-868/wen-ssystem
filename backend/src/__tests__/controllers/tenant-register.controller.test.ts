@@ -1,6 +1,6 @@
-import { vi, describe, it, beforeEach, expect } from "vitest";
+﻿import { vi, describe, it, beforeEach, expect } from "vitest";
 
-vi.mock("../../services/tenant-register.service.js", () => ({
+vi.mock("../../services/tenant-register.service", () => ({
   applyTenantRegister: vi.fn(),
   approveTenantApplication: vi.fn(),
   rejectTenantApplication: vi.fn(),
@@ -8,23 +8,23 @@ vi.mock("../../services/tenant-register.service.js", () => ({
   getTenantApplication: vi.fn(),
 }));
 
-vi.mock("../../shared/response.js", () => ({
+vi.mock("../../shared/response", () => ({
   ok: vi.fn((data) => ({ success: true, data })),
 }));
 
-vi.mock("../../middleware/async-handler.js", () => ({
+vi.mock("../../middleware/async-handler", () => ({
   asyncHandler: (fn: any) => fn,
 }));
 
-import * as tenantRegisterService from "../../services/tenant-register.service.js";
-import { ok } from "../../shared/response.js";
+import * as tenantRegisterService from "../../services/tenant-register.service";
+import { ok } from "../../shared/response";
 import {
   handleApplyTenantRegister,
   handleListApplications,
   handleGetApplication,
   handleApproveApplication,
   handleRejectApplication,
-} from "../../controllers/tenant-register.controller.js";
+} from "../../controllers/tenant-register.controller";
 
 const mockReq = (overrides: any = {}) => ({
   tenantId: "t1",

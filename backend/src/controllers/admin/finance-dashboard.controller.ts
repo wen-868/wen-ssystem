@@ -1,6 +1,6 @@
-import { asyncHandler } from "../../middleware/async-handler.js";
-import { ok } from "../../shared/response.js";
-import * as financeDashboardService from "../../services/admin/finance-dashboard.service.js";
+﻿import { asyncHandler } from "../../middleware/async-handler";
+import { ok } from "../../shared/response";
+import * as financeDashboardService from "../../services/admin/finance-dashboard.service";
 
 export const getFinanceDashboard = asyncHandler(async (req, res) => { res.json(ok(await financeDashboardService.getFinanceDashboard(req.tenantId!))); });
 export const getDailyReport = asyncHandler(async (req, res) => { res.json(ok(await financeDashboardService.getDailyReport(req.tenantId!, req.query.startDate as string | undefined, req.query.endDate as string | undefined))); });

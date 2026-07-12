@@ -1,6 +1,6 @@
-import { vi, describe, it, beforeEach, expect } from "vitest";
+﻿import { vi, describe, it, beforeEach, expect } from "vitest";
 
-vi.mock("../../../services/transfer-execution.service.js", () => ({
+vi.mock("../../../services/transfer-execution.service", () => ({
   cancelTransferOrder: vi.fn(),
   shipTransferOrder: vi.fn(),
   receiveTransferOrder: vi.fn(),
@@ -8,21 +8,21 @@ vi.mock("../../../services/transfer-execution.service.js", () => ({
   getMyShipments: vi.fn(),
 }));
 
-vi.mock("../../../shared/response.js", () => ({
+vi.mock("../../../shared/response", () => ({
   ok: vi.fn((data) => ({ success: true, data })),
   fail: vi.fn((msg, code) => ({ success: false, message: msg, code })),
 }));
 
-vi.mock("../../../middleware/async-handler.js", () => ({
+vi.mock("../../../middleware/async-handler", () => ({
   asyncHandler: (fn: any) => fn,
 }));
 
-import * as transferExecutionService from "../../../services/transfer-execution.service.js";
-import { ok } from "../../../shared/response.js";
+import * as transferExecutionService from "../../../services/transfer-execution.service";
+import { ok } from "../../../shared/response";
 import {
   cancelTransferOrder,
   shipTransferOrder,
-} from "../../../controllers/admin/transfer-execution.controller.js";
+} from "../../../controllers/admin/transfer-execution.controller";
 
 const mockReq = (overrides: any = {}) => ({
   tenantId: "t1",

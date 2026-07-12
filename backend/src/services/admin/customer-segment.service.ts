@@ -1,4 +1,4 @@
-import { queryWithTenant, queryOneWithTenant } from "../../shared/db.js";
+﻿import { queryWithTenant, queryOneWithTenant } from "../../shared/db";
 
 export async function createSegment(params: { segmentName: string; conditions: any; autoRefresh?: boolean; tenantId: string }) {
   const { segmentName, conditions, autoRefresh, tenantId } = params;

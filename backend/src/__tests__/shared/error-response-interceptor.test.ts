@@ -1,19 +1,19 @@
-import { describe, it, expect, vi, beforeEach } from "vitest";
+﻿import { describe, it, expect, vi, beforeEach } from "vitest";
 
 const { mockInsertErrorLog, mockReportToLingZhou } = vi.hoisted(() => ({
   mockInsertErrorLog: vi.fn().mockResolvedValue(undefined),
   mockReportToLingZhou: vi.fn().mockResolvedValue({ ok: false }),
 }));
 
-vi.mock("../../services/admin/error-log.service.js", () => ({
+vi.mock("../../services/admin/error-log.service", () => ({
   insertErrorLog: mockInsertErrorLog,
 }));
 
-vi.mock("../../shared/feishu-report.js", () => ({
+vi.mock("../../shared/feishu-report", () => ({
   reportToLingZhou: mockReportToLingZhou,
 }));
 
-import { errorResponseInterceptor } from "../../shared/error-response-interceptor.js";
+import { errorResponseInterceptor } from "../../shared/error-response-interceptor";
 import type { Request, Response, NextFunction } from "express";
 
 function mockReqRes(

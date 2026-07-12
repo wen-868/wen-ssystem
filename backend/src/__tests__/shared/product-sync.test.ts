@@ -1,4 +1,4 @@
-import { describe, it, expect, vi, beforeEach } from "vitest";
+﻿import { describe, it, expect, vi, beforeEach } from "vitest";
 
 const { mockQueryWithTenant, mockQueryOneWithTenant, mockTransaction } = vi.hoisted(() => ({
   mockQueryWithTenant: vi.fn(),
@@ -6,7 +6,7 @@ const { mockQueryWithTenant, mockQueryOneWithTenant, mockTransaction } = vi.hois
   mockTransaction: vi.fn(),
 }));
 
-vi.mock("../../shared/db.js", () => ({
+vi.mock("../../shared/db", () => ({
   queryWithTenant: mockQueryWithTenant,
   queryOneWithTenant: mockQueryOneWithTenant,
   transaction: mockTransaction,
@@ -17,7 +17,7 @@ import {
   syncProductStatus,
   syncProductPrice,
   getProductSyncStatus,
-} from "../../shared/product-sync.js";
+} from "../../shared/product-sync";
 
 describe("product-sync", () => {
   beforeEach(() => {

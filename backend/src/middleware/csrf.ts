@@ -1,7 +1,7 @@
-import type { RequestHandler } from "express";
+﻿import type { RequestHandler } from "express";
 import { createHmac } from "crypto";
-import { env } from "../shared/env.js";
-import { fail } from "../shared/response.js";
+import { env } from "../shared/env";
+import { fail } from "../shared/response";
 
 // 放行的 HTTP 方法（不需要 CSRF 校验）
 const SAFE_METHODS = ["GET", "OPTIONS", "HEAD"];

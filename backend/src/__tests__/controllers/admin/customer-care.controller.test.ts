@@ -1,4 +1,4 @@
-import { describe, it, expect, vi, beforeEach } from "vitest";
+﻿import { describe, it, expect, vi, beforeEach } from "vitest";
 
 const mocks = vi.hoisted(() => ({
   ok: vi.fn((data?: any) => ({ code: "0", data })),
@@ -11,16 +11,16 @@ const mocks = vi.hoisted(() => ({
   executeCareRule: vi.fn(),
 }));
 
-vi.mock("../../../middleware/async-handler.js", () => ({
+vi.mock("../../../middleware/async-handler", () => ({
   asyncHandler: (fn: any) => fn,
 }));
 
-vi.mock("../../../shared/response.js", () => ({
+vi.mock("../../../shared/response", () => ({
   ok: mocks.ok,
   fail: mocks.fail,
 }));
 
-vi.mock("../../../services/admin/customer-care.service.js", () => ({
+vi.mock("../../../services/admin/customer-care.service", () => ({
   listCareRules: mocks.listCareRules,
   createCareRule: mocks.createCareRule,
   updateCareRule: mocks.updateCareRule,
@@ -36,7 +36,7 @@ import {
   deleteCareRule,
   listCareLogs,
   executeCareRule,
-} from "../../../controllers/admin/customer-care.controller.js";
+} from "../../../controllers/admin/customer-care.controller";
 
 const mockReq = (overrides: any = {}) => ({
   tenantId: "t1",

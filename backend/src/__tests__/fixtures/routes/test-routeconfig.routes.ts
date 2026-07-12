@@ -1,4 +1,4 @@
-import { Router } from "express";
+﻿import { Router } from "express";
 
 // 优先级 2：导出单个 routeConfig
 export const testRouteConfig = Router();

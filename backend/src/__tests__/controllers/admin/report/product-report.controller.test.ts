@@ -1,6 +1,6 @@
-import { vi, describe, it, beforeEach, expect } from "vitest";
+﻿import { vi, describe, it, beforeEach, expect } from "vitest";
 
-vi.mock("../../../../services/admin/report/product-report.service.js", () => ({
+vi.mock("../../../../services/admin/report/product-report.service", () => ({
   getInventorySummary: vi.fn(),
   getInventoryTurnover: vi.fn(),
   getInventoryAge: vi.fn(),
@@ -8,24 +8,24 @@ vi.mock("../../../../services/admin/report/product-report.service.js", () => ({
   getSupplierRanking: vi.fn(),
 }));
 
-vi.mock("../../../../shared/response.js", () => ({
+vi.mock("../../../../shared/response", () => ({
   ok: vi.fn((data) => ({ success: true, data })),
   fail: vi.fn((msg, code) => ({ success: false, message: msg, code })),
 }));
 
-vi.mock("../../../../middleware/async-handler.js", () => ({
+vi.mock("../../../../middleware/async-handler", () => ({
   asyncHandler: (fn: any) => fn,
 }));
 
-import * as productReportService from "../../../../services/admin/report/product-report.service.js";
-import { ok } from "../../../../shared/response.js";
+import * as productReportService from "../../../../services/admin/report/product-report.service";
+import { ok } from "../../../../shared/response";
 import {
   getInventorySummary,
   getInventoryTurnover,
   getInventoryAge,
   getPurchaseSummary,
   getSupplierRanking,
-} from "../../../../controllers/admin/report/product-report.controller.js";
+} from "../../../../controllers/admin/report/product-report.controller";
 
 const mockReq = (overrides: any = {}) => ({
   tenantId: "t1",

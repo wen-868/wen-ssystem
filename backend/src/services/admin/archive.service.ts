@@ -1,8 +1,8 @@
-/**
+﻿/**
  * 历史单据归档服务（R9-5）
  * 将超期历史单据迁移到归档表，释放主表查询压力。
  */
-import { queryWithTenant, transaction } from "../../shared/db.js";
+import { queryWithTenant, transaction } from "../../shared/db";
 
 export interface ArchiveParams {
   tenantId: string;

@@ -1,4 +1,4 @@
-/**
+﻿/**
  * 管理端订阅套餐 controller 单元测试
  * 被测文件：src/controllers/admin/subscription-plan.controller.ts
  */
@@ -13,16 +13,16 @@ const mocks = vi.hoisted(() => ({
   updatePlan: vi.fn(),
 }));
 
-vi.mock("../../../middleware/async-handler.js", () => ({
+vi.mock("../../../middleware/async-handler", () => ({
   asyncHandler: (fn: any) => fn,
 }));
 
-vi.mock("../../../shared/response.js", () => ({
+vi.mock("../../../shared/response", () => ({
   ok: mocks.ok,
   fail: mocks.fail,
 }));
 
-vi.mock("../../../services/admin/subscription-plan.service.js", () => ({
+vi.mock("../../../services/admin/subscription-plan.service", () => ({
   listPlans: mocks.listPlans,
   getPlan: mocks.getPlan,
   createPlan: mocks.createPlan,
@@ -34,7 +34,7 @@ import {
   getPlan,
   createPlan,
   updatePlan,
-} from "../../../controllers/admin/subscription-plan.controller.js";
+} from "../../../controllers/admin/subscription-plan.controller";
 
 const mockReq = (overrides: any = {}) => ({
   tenantId: "t1",

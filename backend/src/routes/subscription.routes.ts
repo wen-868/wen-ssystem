@@ -1,9 +1,9 @@
-import { Router } from "express";
-import type { RouteConfig } from "../shared/auto-routes.js";
-import { requireAuthWithTenant } from "../middleware/auth.js";
-import * as subscriptionPlanController from "../controllers/admin/subscription-plan.controller.js";
-import * as subscriptionController from "../controllers/admin/subscription.controller.js";
-import * as subscriptionRenewalController from "../controllers/admin/subscription-renewal.controller.js";
+﻿import { Router } from "express";
+import type { RouteConfig } from "../shared/auto-routes";
+import { requireAuthWithTenant } from "../middleware/auth";
+import * as subscriptionPlanController from "../controllers/admin/subscription-plan.controller";
+import * as subscriptionController from "../controllers/admin/subscription.controller";
+import * as subscriptionRenewalController from "../controllers/admin/subscription-renewal.controller";
 
 export const subscriptionRouter = Router();
 

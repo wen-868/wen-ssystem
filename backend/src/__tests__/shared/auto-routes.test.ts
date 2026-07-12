@@ -1,8 +1,8 @@
-import { describe, it, expect, vi } from "vitest";
+﻿﻿﻿﻿﻿﻿import { describe, it, expect, vi } from "vitest";
 import type { Express } from "express";
 import { resolve } from "path";
 
-vi.mock("../../shared/logger.js", () => ({
+vi.mock("../../shared/logger", () => ({
   default: {
     info: vi.fn(),
     warn: vi.fn(),
@@ -11,12 +11,12 @@ vi.mock("../../shared/logger.js", () => ({
   },
 }));
 
-vi.mock("../../middleware/auth.js", () => ({
+vi.mock("../../middleware/auth", () => ({
   requireAuth: vi.fn(),
   requireAuthWithTenant: [vi.fn(), vi.fn()],
 }));
 
-import { setupRoutes, inferPrefix, getAuthMiddlewares } from "../../shared/auto-routes.js";
+import { setupRoutes, inferPrefix, getAuthMiddlewares } from "../../shared/auto-routes";
 
 const fixturesDir = resolve(__dirname, "../fixtures/routes");
 

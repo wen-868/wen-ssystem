@@ -1,5 +1,5 @@
-import { describe, it, expect } from "vitest";
-import { departmentRouter } from "../../routes/department.routes.js";
+﻿import { describe, it, expect } from "vitest";
+import { departmentRouter } from "../../routes/department.routes";
 
 describe("routes/department", () => {
   it("应导出 departmentRouter", () => {

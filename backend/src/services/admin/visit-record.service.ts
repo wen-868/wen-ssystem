@@ -1,5 +1,5 @@
-import { z } from "zod";
-import { queryWithTenant, queryOneWithTenant } from "../../shared/db.js";
+﻿import { z } from "zod";
+import { queryWithTenant, queryOneWithTenant } from "../../shared/db";
 
 export const checkinSchema = z.object({
   latitude: z.number().min(-90).max(90).optional(),

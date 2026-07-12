@@ -1,5 +1,5 @@
-import { query, queryOne } from "../shared/db.js";
-import logger from "../shared/logger.js";
+﻿import { query, queryOne } from "../shared/db";
+import logger from "../shared/logger";
 
 let schedulerInterval: any | null = null;
 

@@ -1,7 +1,7 @@
-import { z } from "zod";
-import { asyncHandler } from "../../middleware/async-handler.js";
-import { ok, fail } from "../../shared/response.js";
-import * as authService from "../../services/admin/auth.service.js";
+﻿import { z } from "zod";
+import { asyncHandler } from "../../middleware/async-handler";
+import { ok, fail } from "../../shared/response";
+import * as authService from "../../services/admin/auth.service";
 
 // 密码强度校验：至少8位，必须含大小写字母+数字
 function validatePasswordStrength(password: string): { valid: boolean; message?: string } {

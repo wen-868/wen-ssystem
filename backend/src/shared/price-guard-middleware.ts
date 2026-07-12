@@ -1,1 +1,1 @@
-export * from "../middleware/price-guard.js";
+﻿export * from "../middleware/price-guard";

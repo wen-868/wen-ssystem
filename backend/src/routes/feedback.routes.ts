@@ -1,8 +1,8 @@
-import { Router } from "express";
-import type { RouteConfig } from "../shared/auto-routes.js";
-import { submitFeedback, getFeedbacks, updateFeedback } from "../controllers/admin/feedback.controller.js";
-import { requireAuthWithTenant } from "../middleware/auth.js";
-import { asyncHandler } from "../middleware/async-handler.js";
+﻿import { Router } from "express";
+import type { RouteConfig } from "../shared/auto-routes";
+import { submitFeedback, getFeedbacks, updateFeedback } from "../controllers/admin/feedback.controller";
+import { requireAuthWithTenant } from "../middleware/auth";
+import { asyncHandler } from "../middleware/async-handler";
 
 export const feedbackRouter = Router();
 

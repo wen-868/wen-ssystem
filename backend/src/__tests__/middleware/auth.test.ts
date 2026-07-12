@@ -1,14 +1,14 @@
-import { describe, it, expect, vi, beforeEach } from "vitest";
+﻿import { describe, it, expect, vi, beforeEach } from "vitest";
 
 // mock env 和 db 依赖
-vi.mock("../../shared/env.js", () => ({
+vi.mock("../../shared/env", () => ({
   env: {
     JWT_SECRET: "test-secret-key-for-vitest",
     USE_MOCK_DB: "true",
   },
 }));
 
-vi.mock("../../shared/db.js", () => ({
+vi.mock("../../shared/db", () => ({
   queryWithTenant: vi.fn(),
   queryOneWithTenant: vi.fn(),
 }));
@@ -22,7 +22,7 @@ import {
   requirePlatformAuth,
   signToken,
   type AuthUser,
-} from "../../shared/auth.js";
+} from "../../shared/auth";
 import jwt from "jsonwebtoken";
 import type { Request, Response, NextFunction } from "express";
 

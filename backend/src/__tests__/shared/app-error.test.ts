@@ -1,5 +1,5 @@
-import { describe, it, expect } from "vitest";
-import { AppError } from "../../shared/app-error.js";
+﻿import { describe, it, expect } from "vitest";
+import { AppError } from "../../shared/app-error";
 
 describe("AppError", () => {
   it("应创建带有默认状态码 400 的错误", () => {

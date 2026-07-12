@@ -1,4 +1,4 @@
-/**
+﻿/**
  * 管理端待办事项 controller 单元测试
  * 被测文件：src/controllers/admin/todo.controller.ts
  */
@@ -15,16 +15,16 @@ const mocks = vi.hoisted(() => ({
   deleteTodo: vi.fn(),
 }));
 
-vi.mock("../../../middleware/async-handler.js", () => ({
+vi.mock("../../../middleware/async-handler", () => ({
   asyncHandler: (fn: any) => fn,
 }));
 
-vi.mock("../../../shared/response.js", () => ({
+vi.mock("../../../shared/response", () => ({
   ok: mocks.ok,
   fail: mocks.fail,
 }));
 
-vi.mock("../../../services/admin/todo.service.js", () => ({
+vi.mock("../../../services/admin/todo.service", () => ({
   listTodos: mocks.listTodos,
   getTodoStats: mocks.getTodoStats,
   createTodo: mocks.createTodo,
@@ -40,7 +40,7 @@ import {
   completeTodo,
   dismissTodo,
   deleteTodo,
-} from "../../../controllers/admin/todo.controller.js";
+} from "../../../controllers/admin/todo.controller";
 
 const mockReq = (overrides: any = {}) => ({
   tenantId: "t1",

@@ -1,7 +1,7 @@
-import { z } from "zod";
-import { asyncHandler } from "../middleware/async-handler.js";
-import { ok } from "../shared/response.js";
-import * as service from "../services/admin/tenant.service.js";
+﻿import { z } from "zod";
+import { asyncHandler } from "../middleware/async-handler";
+import { ok } from "../shared/response";
+import * as service from "../services/admin/tenant.service";
 
 export const listTenants = asyncHandler(async (req, res) => {
   const result = await service.listTenants({

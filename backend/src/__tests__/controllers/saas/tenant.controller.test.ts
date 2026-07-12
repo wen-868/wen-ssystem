@@ -1,6 +1,6 @@
-import { vi, describe, it, beforeEach, expect } from "vitest";
+﻿import { vi, describe, it, beforeEach, expect } from "vitest";
 
-vi.mock("../../../services/saas/tenant.service.js", () => ({
+vi.mock("../../../services/saas/tenant.service", () => ({
   listTenants: vi.fn(),
   getTenantDetail: vi.fn(),
   createTenant: vi.fn(),
@@ -10,18 +10,18 @@ vi.mock("../../../services/saas/tenant.service.js", () => ({
   getTenantStatistics: vi.fn(),
 }));
 
-vi.mock("../../../shared/response.js", () => ({
+vi.mock("../../../shared/response", () => ({
   ok: vi.fn((data) => ({ success: true, data })),
   fail: vi.fn((msg, code) => ({ success: false, message: msg, code })),
 }));
 
-vi.mock("../../../middleware/async-handler.js", () => ({
+vi.mock("../../../middleware/async-handler", () => ({
   asyncHandler: (fn: any) => fn,
 }));
 
-import * as tenantService from "../../../services/saas/tenant.service.js";
-import { ok, fail } from "../../../shared/response.js";
-import { listTenants, getTenantDetail, createTenant, updateTenant, auditTenant, toggleTenantStatus, getTenantStatistics } from "../../../controllers/saas/tenant.controller.js";
+import * as tenantService from "../../../services/saas/tenant.service";
+import { ok, fail } from "../../../shared/response";
+import { listTenants, getTenantDetail, createTenant, updateTenant, auditTenant, toggleTenantStatus, getTenantStatistics } from "../../../controllers/saas/tenant.controller";
 
 const mockReq = (overrides: any = {}) => ({
   tenantId: "t1",

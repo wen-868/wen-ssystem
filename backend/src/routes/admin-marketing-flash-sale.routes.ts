@@ -1,7 +1,7 @@
-import { Router } from "express";
-import { requireAuthWithTenant } from "../middleware/auth.js";
-import * as flashSaleController from "../controllers/admin/marketing-flash-sale.controller.js";
-import type { RouteConfig } from "../shared/auto-routes.js";
+﻿import { Router } from "express";
+import { requireAuthWithTenant } from "../middleware/auth";
+import * as flashSaleController from "../controllers/admin/marketing-flash-sale.controller";
+import type { RouteConfig } from "../shared/auto-routes";
 
 export const adminMarketingFlashSaleRouter = Router();
 

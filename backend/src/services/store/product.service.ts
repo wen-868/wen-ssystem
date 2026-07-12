@@ -1,4 +1,4 @@
-import { query, queryOne, queryWithTenant, queryOneWithTenant } from "../../shared/db.js";
+﻿import { query, queryOne, queryWithTenant, queryOneWithTenant } from "../../shared/db";
 
 export async function getCategories(tenantId: string) {
   const records = await queryWithTenant<any>(

@@ -1,7 +1,7 @@
-import { Router } from "express";
-import { requireAuthWithTenant } from "../middleware/auth.js";
-import * as ctrl from "../controllers/stock-check.controller.js";
-import type { RouteConfig } from "../shared/auto-routes.js";
+﻿import { Router } from "express";
+import { requireAuthWithTenant } from "../middleware/auth";
+import * as ctrl from "../controllers/stock-check.controller";
+import type { RouteConfig } from "../shared/auto-routes";
 
 // ==================== Admin 盘点路由 ====================
 export const adminStockCheckRouter = Router();

@@ -1,4 +1,4 @@
-/**
+﻿/**
  * 管理端销售报表 service 单元测试
  * 被测文件：src/services/admin/report/sales-report.service.ts
  * 覆盖全部 4 个导出函数，目标覆盖率 100%
@@ -14,7 +14,7 @@ const mocks = vi.hoisted(() => ({
   getDefaultDateEnd: vi.fn(),
 }));
 
-vi.mock("../../../../shared/db.js", () => ({
+vi.mock("../../../../shared/db", () => ({
   query: vi.fn(),
   queryOne: vi.fn(),
   queryWithTenant: mocks.queryWithTenant,
@@ -22,7 +22,7 @@ vi.mock("../../../../shared/db.js", () => ({
   transaction: vi.fn(),
 }));
 
-vi.mock("../../../../shared/date-utils.js", () => ({
+vi.mock("../../../../shared/date-utils", () => ({
   parseDateParam: mocks.parseDateParam,
   getDefaultDateStart: mocks.getDefaultDateStart,
   getDefaultDateEnd: mocks.getDefaultDateEnd,
@@ -33,7 +33,7 @@ import {
   getSalesTrend,
   getSalesRanking,
   getBusinessOverview,
-} from "../../../../services/admin/report/sales-report.service.js";
+} from "../../../../services/admin/report/sales-report.service";
 
 const tenantId = "t1";
 

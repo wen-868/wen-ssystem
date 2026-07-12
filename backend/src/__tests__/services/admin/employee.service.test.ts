@@ -1,4 +1,4 @@
-/**
+﻿/**
  * 管理端员工/门店 service 单元测试
  * 被测文件：src/services/admin/employee.service.ts
  */
@@ -12,7 +12,7 @@ const mocks = vi.hoisted(() => ({
   validatePassword: vi.fn(),
 }));
 
-vi.mock("../../../shared/db.js", () => ({
+vi.mock("../../../shared/db", () => ({
   query: vi.fn(),
   queryOne: vi.fn(),
   queryWithTenant: mocks.queryWithTenant,
@@ -20,7 +20,7 @@ vi.mock("../../../shared/db.js", () => ({
   transaction: vi.fn(),
 }));
 
-vi.mock("../../../shared/id.js", () => ({
+vi.mock("../../../shared/id", () => ({
   makeBizNo: mocks.makeBizNo,
 }));
 
@@ -28,7 +28,7 @@ vi.mock("bcryptjs", () => ({
   default: { hash: mocks.bcryptHash },
 }));
 
-vi.mock("../../../shared/password.js", () => ({
+vi.mock("../../../shared/password", () => ({
   validatePassword: mocks.validatePassword,
 }));
 
@@ -42,7 +42,7 @@ import {
   getStore,
   updateStore,
   getStoreWechatInfo,
-} from "../../../services/admin/employee.service.js";
+} from "../../../services/admin/employee.service";
 
 describe("employee.service", () => {
   beforeEach(() => vi.resetAllMocks());

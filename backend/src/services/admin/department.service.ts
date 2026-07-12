@@ -1,4 +1,4 @@
-import { query, queryOne } from "../../shared/db.js";
+﻿import { query, queryOne } from "../../shared/db";
 
 export async function getDepartments(tenantId: string, params?: { storeId?: number }) {
   let where = "WHERE 1=1";

@@ -1,4 +1,4 @@
-import { Router } from "express";
+﻿import { Router } from "express";
 
 // 优先级 1：导出 routeConfigs 数组
 const router1 = Router();

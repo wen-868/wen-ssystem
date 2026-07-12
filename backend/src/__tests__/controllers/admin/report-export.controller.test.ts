@@ -1,21 +1,21 @@
-import { vi, describe, it, beforeEach, expect } from "vitest";
+﻿import { vi, describe, it, beforeEach, expect } from "vitest";
 
-vi.mock("../../../services/admin/report-export.service.js", () => ({
+vi.mock("../../../services/admin/report-export.service", () => ({
   exportReport: vi.fn(),
 }));
 
-vi.mock("../../../shared/response.js", () => ({
+vi.mock("../../../shared/response", () => ({
   ok: vi.fn((data) => ({ success: true, data })),
   fail: vi.fn((msg, code) => ({ success: false, message: msg, code })),
 }));
 
-vi.mock("../../../middleware/async-handler.js", () => ({
+vi.mock("../../../middleware/async-handler", () => ({
   asyncHandler: (fn: any) => fn,
 }));
 
-import * as svc from "../../../services/admin/report-export.service.js";
-import { ok } from "../../../shared/response.js";
-import { exportReport } from "../../../controllers/admin/report-export.controller.js";
+import * as svc from "../../../services/admin/report-export.service";
+import { ok } from "../../../shared/response";
+import { exportReport } from "../../../controllers/admin/report-export.controller";
 
 const mockReq = (overrides: any = {}) => ({
   tenantId: "t1",

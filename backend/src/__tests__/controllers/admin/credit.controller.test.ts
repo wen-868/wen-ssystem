@@ -1,4 +1,4 @@
-import { describe, it, expect, vi, beforeEach } from "vitest";
+﻿import { describe, it, expect, vi, beforeEach } from "vitest";
 
 const mocks = vi.hoisted(() => ({
   ok: vi.fn((data?: any) => ({ code: "0", data })),
@@ -26,16 +26,16 @@ const mocks = vi.hoisted(() => ({
   getCreditTiers: vi.fn(),
 }));
 
-vi.mock("../../../middleware/async-handler.js", () => ({
+vi.mock("../../../middleware/async-handler", () => ({
   asyncHandler: (fn: any) => fn,
 }));
 
-vi.mock("../../../shared/response.js", () => ({
+vi.mock("../../../shared/response", () => ({
   ok: mocks.ok,
   fail: mocks.fail,
 }));
 
-vi.mock("../../../services/admin/credit-limit.service.js", () => ({
+vi.mock("../../../services/admin/credit-limit.service", () => ({
   getCreditList: mocks.getCreditList,
   getCreditDetail: mocks.getCreditDetail,
   initCredit: mocks.initCredit,
@@ -46,7 +46,7 @@ vi.mock("../../../services/admin/credit-limit.service.js", () => ({
   unfreezeCredit: mocks.unfreezeCredit,
 }));
 
-vi.mock("../../../services/admin/credit-collection.service.js", () => ({
+vi.mock("../../../services/admin/credit-collection.service", () => ({
   getCollectionList: mocks.getCollectionList,
   createCollection: mocks.createCollection,
   updateCollection: mocks.updateCollection,
@@ -55,11 +55,11 @@ vi.mock("../../../services/admin/credit-collection.service.js", () => ({
   getCollectionStatistics: mocks.getCollectionStatistics,
 }));
 
-vi.mock("../../../services/admin/credit-risk.service.js", () => ({
+vi.mock("../../../services/admin/credit-risk.service", () => ({
   getRiskCustomers: mocks.getRiskCustomers,
 }));
 
-vi.mock("../../../services/admin/credit-scoring.service.js", () => ({
+vi.mock("../../../services/admin/credit-scoring.service", () => ({
   evaluateCreditScore: mocks.evaluateCreditScore,
   interceptCredit: mocks.interceptCredit,
   autoInitCredit: mocks.autoInitCredit,
@@ -90,7 +90,7 @@ import {
   autoGenerateCollections,
   getCollectionStrategyConfig,
   getCreditTiers,
-} from "../../../controllers/admin/credit.controller.js";
+} from "../../../controllers/admin/credit.controller";
 
 const mockReq = (overrides: any = {}) => ({
   tenantId: "t1",

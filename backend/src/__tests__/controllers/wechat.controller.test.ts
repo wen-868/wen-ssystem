@@ -1,6 +1,6 @@
 import { vi, describe, it, beforeEach, expect } from "vitest";
 
-vi.mock("../../../services/wechat.service.js", () => ({
+vi.mock("@services/wechat.service", () => ({
   login: vi.fn(),
   getSessionKey: vi.fn(),
   decryptPhone: vi.fn(),
@@ -10,26 +10,29 @@ vi.mock("../../../services/wechat.service.js", () => ({
   unbindUser: vi.fn(),
 }));
 
-vi.mock("../../../shared/response.js", () => ({
+vi.mock("@shared/response", () => ({
   ok: vi.fn((data) => ({ success: true, data })),
   fail: vi.fn((msg, code) => ({ success: false, message: msg, code })),
 }));
 
-vi.mock("../../../middleware/async-handler.js", () => ({
+vi.mock("@middleware/async-handler", () => ({
   asyncHandler: (fn: any) => fn,
 }));
 
 vi.mock("jsonwebtoken", () => ({
+  default: {
+    verify: vi.fn().mockReturnValue({ wxUserId: 1, openid: "test-openid" }),
+  },
   verify: vi.fn().mockReturnValue({ wxUserId: 1, openid: "test-openid" }),
 }));
 
-vi.mock("../../../shared/env.js", () => ({
+vi.mock("@shared/env", () => ({
   env: { JWT_SECRET: "test-secret" },
 }));
 
-import * as wechatService from "../../../services/wechat.service.js";
-import { ok, fail } from "../../../shared/response.js";
-import { createWechatController } from "../../../controllers/wechat.controller.js";
+import * as wechatService from "@services/wechat.service";
+import { ok, fail } from "@shared/response";
+import { createWechatController } from "@controllers/wechat.controller";
 
 const mockCode2Session = vi.fn().mockResolvedValue({ openid: "test-openid", session_key: "test-session-key" });
 const mockAesDecrypt = vi.fn().mockReturnValue(JSON.stringify({ phoneNumber: "13800138000" }));

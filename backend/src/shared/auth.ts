@@ -1,1 +1,1 @@
-export * from "../middleware/auth.js";
+﻿export * from "../middleware/auth";

@@ -1,4 +1,4 @@
-import { query, queryOne } from "../../shared/db.js";
+﻿import { query, queryOne } from "../../shared/db";
 
 export async function listPlans(status?: string) {
   const conditions: string[] = [];

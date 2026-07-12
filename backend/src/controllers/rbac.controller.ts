@@ -1,6 +1,6 @@
-import { asyncHandler } from "../middleware/async-handler.js";
-import { ok } from "../shared/response.js";
-import * as service from "../services/admin/rbac.service.js";
+﻿import { asyncHandler } from "../middleware/async-handler";
+import { ok } from "../shared/response";
+import * as service from "../services/admin/rbac.service";
 import { z } from "zod";
 
 export const listRoles = asyncHandler(async (req, res) => {

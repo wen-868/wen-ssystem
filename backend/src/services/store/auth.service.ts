@@ -1,8 +1,8 @@
-import { z } from "zod";
-import { query, queryOne, queryWithTenant, queryOneWithTenant } from "../../shared/db.js";
-import { signToken, getUserAccessInfo } from "../../middleware/auth.js";
-import { verifyPassword } from "../../shared/password.js";
-import { AppError } from "../../shared/app-error.js";
+﻿import { z } from "zod";
+import { query, queryOne, queryWithTenant, queryOneWithTenant } from "../../shared/db";
+import { signToken, getUserAccessInfo } from "../../middleware/auth";
+import { verifyPassword } from "../../shared/password";
+import { AppError } from "../../shared/app-error";
 
 const MAX_LOGIN_ATTEMPTS = 5;
 const LOCK_DURATION_MINUTES = 15;

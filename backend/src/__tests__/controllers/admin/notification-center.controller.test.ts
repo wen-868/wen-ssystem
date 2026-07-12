@@ -1,4 +1,4 @@
-/**
+﻿/**
  * 管理端通知中心 controller 单元测试
  * 被测文件：src/controllers/admin/notification-center.controller.ts
  */
@@ -15,16 +15,16 @@ const mocks = vi.hoisted(() => ({
   deleteNotification: vi.fn(),
 }));
 
-vi.mock("../../../middleware/async-handler.js", () => ({
+vi.mock("../../../middleware/async-handler", () => ({
   asyncHandler: (fn: any) => fn,
 }));
 
-vi.mock("../../../shared/response.js", () => ({
+vi.mock("../../../shared/response", () => ({
   ok: mocks.ok,
   fail: mocks.fail,
 }));
 
-vi.mock("../../../services/admin/notification-center.service.js", () => ({
+vi.mock("../../../services/admin/notification-center.service", () => ({
   listNotifications: mocks.listNotifications,
   getUnreadCount: mocks.getUnreadCount,
   getTypeStats: mocks.getTypeStats,
@@ -40,7 +40,7 @@ import {
   markAsRead,
   markAllRead,
   deleteNotification,
-} from "../../../controllers/admin/notification-center.controller.js";
+} from "../../../controllers/admin/notification-center.controller";
 
 const mockReq = (overrides: any = {}) => ({
   tenantId: "t1",

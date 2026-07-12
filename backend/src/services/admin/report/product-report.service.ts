@@ -1,6 +1,6 @@
-import { z } from "zod";
-import { queryWithTenant, queryOneWithTenant } from "../../../shared/db.js";
-import { parseDateParam, getDefaultDateStart, getDefaultDateEnd } from "../../../shared/date-utils.js";
+﻿import { z } from "zod";
+import { queryWithTenant, queryOneWithTenant } from "../../../shared/db";
+import { parseDateParam, getDefaultDateStart, getDefaultDateEnd } from "../../../shared/date-utils";
 
 export async function getInventorySummary(
   tenantId: string,

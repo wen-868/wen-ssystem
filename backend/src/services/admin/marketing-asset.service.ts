@@ -1,4 +1,4 @@
-import { query, queryOne } from "../../shared/db.js";
+﻿import { query, queryOne } from "../../shared/db";
 
 export async function getMarketingAssets(tenantId: string, params?: { type?: string; category?: string; status?: string; page?: number; pageSize?: number }) {
   const page = params?.page || 1;

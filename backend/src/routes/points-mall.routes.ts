@@ -1,8 +1,8 @@
-import { Router } from "express";
-import { requireAuthWithTenant } from "../middleware/auth.js";
-import { ok } from "../shared/response.js";
-import * as pointsMallService from "../services/admin/points-mall.service.js";
-import { asyncHandler } from "../middleware/async-handler.js";
+﻿import { Router } from "express";
+import { requireAuthWithTenant } from "../middleware/auth";
+import { ok } from "../shared/response";
+import * as pointsMallService from "../services/admin/points-mall.service";
+import { asyncHandler } from "../middleware/async-handler";
 
 export const pointsMallRouter = Router();
 

@@ -1,8 +1,8 @@
-import { z } from "zod";
-import { asyncHandler } from "../../middleware/async-handler.js";
-import { ok } from "../../shared/response.js";
-import { creditAdjustService } from "../../services/admin/credit-adjust.service.js";
-import type { ServiceContext } from "../../types/index.js";
+﻿import { z } from "zod";
+import { asyncHandler } from "../../middleware/async-handler";
+import { ok } from "../../shared/response";
+import { creditAdjustService } from "../../services/admin/credit-adjust.service";
+import type { ServiceContext } from "../../types/index";
 
 function getServiceContext(req: any): ServiceContext {
   return {

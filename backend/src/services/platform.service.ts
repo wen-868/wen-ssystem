@@ -1,4 +1,4 @@
-import { query, queryOne } from "../shared/db.js";
+﻿import { query, queryOne } from "../shared/db";
 
 export async function getOverview() {
   const [tenantCount, userCount, storeCount, orderCount] = await Promise.all([

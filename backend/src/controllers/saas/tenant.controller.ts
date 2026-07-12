@@ -1,7 +1,7 @@
-import { z } from "zod";
-import { asyncHandler } from "../../middleware/async-handler.js";
-import { ok, fail } from "../../shared/response.js";
-import * as tenantService from "../../services/saas/tenant.service.js";
+﻿import { z } from "zod";
+import { asyncHandler } from "../../middleware/async-handler";
+import { ok, fail } from "../../shared/response";
+import * as tenantService from "../../services/saas/tenant.service";
 
 export const listTenants = asyncHandler(async (req, res) => {
   const { keyword, status, page = 1, pageSize = 20 } = req.query;

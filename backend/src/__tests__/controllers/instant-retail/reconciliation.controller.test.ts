@@ -1,22 +1,22 @@
-import { vi, describe, it, beforeEach, expect } from "vitest";
+﻿import { vi, describe, it, beforeEach, expect } from "vitest";
 
-vi.mock("../../../services/instant-retail/reconciliation.service.js", () => ({
+vi.mock("../../../services/instant-retail/reconciliation.service", () => ({
   getReconciliationSummary: vi.fn(),
   listReconciliationRecords: vi.fn(),
 }));
 
-vi.mock("../../../shared/response.js", () => ({
+vi.mock("../../../shared/response", () => ({
   ok: vi.fn((data) => ({ success: true, data })),
   fail: vi.fn((msg, code) => ({ success: false, message: msg, code })),
 }));
 
-vi.mock("../../../middleware/async-handler.js", () => ({
+vi.mock("../../../middleware/async-handler", () => ({
   asyncHandler: (fn: any) => fn,
 }));
 
-import * as svc from "../../../services/instant-retail/reconciliation.service.js";
-import { ok } from "../../../shared/response.js";
-import { getReconciliationSummary, listReconciliationRecords } from "../../../controllers/instant-retail/reconciliation.controller.js";
+import * as svc from "../../../services/instant-retail/reconciliation.service";
+import { ok } from "../../../shared/response";
+import { getReconciliationSummary, listReconciliationRecords } from "../../../controllers/instant-retail/reconciliation.controller";
 
 const mockReq = (overrides: any = {}) => ({
   tenantId: "t1",

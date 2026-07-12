@@ -1,11 +1,11 @@
-import { vi, describe, it, beforeEach, expect } from "vitest";
+﻿import { vi, describe, it, beforeEach, expect } from "vitest";
 
-vi.mock("../../../services/miniapp/checkout.service.js", () => ({
+vi.mock("../../../services/miniapp/checkout.service", () => ({
   checkoutPreview: vi.fn(),
   createCheckoutOrder: vi.fn(),
 }));
 
-vi.mock("../../../shared/fulfillment.js", () => ({
+vi.mock("../../../shared/fulfillment", () => ({
   getSettlementType: vi.fn((customerType: string, headerValue?: string) => {
     if (customerType === "WHOLESALE") {
       return headerValue || "ACCOUNT";
@@ -14,18 +14,18 @@ vi.mock("../../../shared/fulfillment.js", () => ({
   }),
 }));
 
-vi.mock("../../../shared/response.js", () => ({
+vi.mock("../../../shared/response", () => ({
   ok: vi.fn((data) => ({ success: true, data })),
   fail: vi.fn((msg, code) => ({ success: false, message: msg, code })),
 }));
 
-vi.mock("../../../middleware/async-handler.js", () => ({
+vi.mock("../../../middleware/async-handler", () => ({
   asyncHandler: (fn: any) => fn,
 }));
 
-import * as checkoutService from "../../../services/miniapp/checkout.service.js";
-import { ok, fail } from "../../../shared/response.js";
-import { checkoutPreview, createCheckoutOrder } from "../../../controllers/miniapp/checkout.controller.js";
+import * as checkoutService from "../../../services/miniapp/checkout.service";
+import { ok, fail } from "../../../shared/response";
+import { checkoutPreview, createCheckoutOrder } from "../../../controllers/miniapp/checkout.controller";
 
 const mockReq = (overrides: any = {}) => ({
   tenantId: "t1",

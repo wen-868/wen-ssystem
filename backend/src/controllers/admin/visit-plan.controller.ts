@@ -1,6 +1,6 @@
-import { asyncHandler } from "../../middleware/async-handler.js";
-import { ok } from "../../shared/response.js";
-import * as visitPlanService from "../../services/admin/visit-plan.service.js";
+﻿import { asyncHandler } from "../../middleware/async-handler";
+import { ok } from "../../shared/response";
+import * as visitPlanService from "../../services/admin/visit-plan.service";
 
 export const createVisitPlan = asyncHandler(async (req, res) => {
   const body = visitPlanService.createVisitPlanSchema.parse(req.body);

@@ -1,8 +1,8 @@
-import { z } from "zod";
-import { asyncHandler } from "../../middleware/async-handler.js";
-import { ok, fail } from "../../shared/response.js";
-import { getSettlementType, type CustomerType } from "../../shared/fulfillment.js";
-import * as checkoutService from "../../services/miniapp/checkout.service.js";
+﻿import { z } from "zod";
+import { asyncHandler } from "../../middleware/async-handler";
+import { ok, fail } from "../../shared/response";
+import { getSettlementType, type CustomerType } from "../../shared/fulfillment";
+import * as checkoutService from "../../services/miniapp/checkout.service";
 
 function getCustomerId(req: any): number {
   return Number(req.user!.id) || 1;

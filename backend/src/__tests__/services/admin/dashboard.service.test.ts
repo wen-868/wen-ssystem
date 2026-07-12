@@ -1,4 +1,4 @@
-/**
+﻿/**
  * 管理端仪表盘 service 单元测试
  * 被测文件：src/services/admin/dashboard.service.ts
  */
@@ -9,7 +9,7 @@ const mocks = vi.hoisted(() => ({
   queryOne: vi.fn(),
 }));
 
-vi.mock("../../../shared/db.js", () => ({
+vi.mock("../../../shared/db", () => ({
   query: mocks.query,
   queryOne: mocks.queryOne,
   queryWithTenant: vi.fn(),
@@ -27,7 +27,7 @@ import {
   getTodos,
   getRecentOrders,
   getSalesTrendByDay,
-} from "../../../services/admin/dashboard.service.js";
+} from "../../../services/admin/dashboard.service";
 
 describe("dashboard.service", () => {
   beforeEach(() => vi.resetAllMocks());

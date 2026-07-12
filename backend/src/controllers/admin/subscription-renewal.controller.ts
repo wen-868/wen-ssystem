@@ -1,7 +1,7 @@
-import { z } from "zod";
-import { asyncHandler } from "../../middleware/async-handler.js";
-import { ok } from "../../shared/response.js";
-import * as subscriptionRenewalService from "../../services/admin/subscription-renewal.service.js";
+﻿import { z } from "zod";
+import { asyncHandler } from "../../middleware/async-handler";
+import { ok } from "../../shared/response";
+import * as subscriptionRenewalService from "../../services/admin/subscription-renewal.service";
 
 export const renewSubscription = asyncHandler(async (req, res) => {
   const tenantId = req.tenantId!;

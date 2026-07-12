@@ -1,7 +1,7 @@
-import { z } from "zod";
-import { asyncHandler } from "../../middleware/async-handler.js";
-import { ok } from "../../shared/response.js";
-import * as inventoryService from "../../services/store/inventory.service.js";
+﻿import { z } from "zod";
+import { asyncHandler } from "../../middleware/async-handler";
+import { ok } from "../../shared/response";
+import * as inventoryService from "../../services/store/inventory.service";
 
 export const listInventory = asyncHandler(async (req, res) => {
   const result = await inventoryService.listInventory({

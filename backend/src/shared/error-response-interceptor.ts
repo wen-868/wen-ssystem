@@ -1,6 +1,6 @@
-import type { Request, Response, NextFunction } from "express";
-import { insertErrorLog } from "../services/admin/error-log.service.js";
-import { reportToLingZhou } from "./feishu-report.js";
+﻿import type { Request, Response, NextFunction } from "express";
+import { insertErrorLog } from "../services/admin/error-log.service";
+import { reportToLingZhou } from "./feishu-report";
 
 export function errorResponseInterceptor(
   req: Request,

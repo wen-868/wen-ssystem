@@ -1,6 +1,6 @@
-import { query, queryOne, transaction, queryWithTenant, queryOneWithTenant } from "../shared/db.js";
-import type { ServiceContext, PageResult } from "../types/index.js";
-import { makeBizNo } from "../shared/id.js";
+﻿import { query, queryOne, transaction, queryWithTenant, queryOneWithTenant } from "../shared/db";
+import type { ServiceContext, PageResult } from "../types/index";
+import { makeBizNo } from "../shared/id";
 
 // ---------------------------------------------------------------------------
 // Type Definitions (previously in purchase.model.ts)

@@ -1,11 +1,11 @@
-import { z } from "zod";
-import { asyncHandler } from "../../middleware/async-handler.js";
-import { ok, fail } from "../../shared/response.js";
-import * as tenantAdminService from "../../services/platform/tenant-admin.service.js";
-import * as adminAccountService from "../../services/platform/admin-account.service.js";
-import * as overviewService from "../../services/platform/platform-overview.service.js";
-import * as subscriptionAdminService from "../../services/platform/subscription-admin.service.js";
-import * as configService from "../../services/platform/platform-config.service.js";
+﻿import { z } from "zod";
+import { asyncHandler } from "../../middleware/async-handler";
+import { ok, fail } from "../../shared/response";
+import * as tenantAdminService from "../../services/platform/tenant-admin.service";
+import * as adminAccountService from "../../services/platform/admin-account.service";
+import * as overviewService from "../../services/platform/platform-overview.service";
+import * as subscriptionAdminService from "../../services/platform/subscription-admin.service";
+import * as configService from "../../services/platform/platform-config.service";
 
 // ─── 租户管理 ────────────────────────────────────────────────
 

@@ -1,6 +1,6 @@
-import { Router } from "express";
-import { requireAuth } from "../middleware/auth.js";
-import * as retailAnnouncementController from "../controllers/admin/retail-announcement.controller.js";
+﻿import { Router } from "express";
+import { requireAuth } from "../middleware/auth";
+import * as retailAnnouncementController from "../controllers/admin/retail-announcement.controller";
 
 export const retailAnnouncementRouter = Router();
 

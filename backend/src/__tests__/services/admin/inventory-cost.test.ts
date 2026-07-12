@@ -1,4 +1,4 @@
-/**
+﻿﻿﻿﻿﻿﻿/**
  * 库存成本核算 service 单元测试
  * 被测文件：src/services/admin/inventory-cost.service.ts
  */
@@ -9,7 +9,7 @@ const mocks = vi.hoisted(() => ({
   queryOneWithTenant: vi.fn(),
 }));
 
-vi.mock("../../../shared/db.js", () => ({
+vi.mock("../../../shared/db", () => ({
   query: vi.fn(),
   queryOne: vi.fn(),
   queryWithTenant: mocks.queryWithTenant,
@@ -17,7 +17,7 @@ vi.mock("../../../shared/db.js", () => ({
   transaction: vi.fn(),
 }));
 
-vi.mock("../../../shared/id.js", () => ({
+vi.mock("../../../shared/id", () => ({
   makeBizNo: vi.fn(),
 }));
 
@@ -25,7 +25,7 @@ import {
   updateMovingAverageCost,
   getInventoryCostDetail,
   getInventoryCostTrend,
-} from "../../../services/admin/inventory-cost.service.js";
+} from "../../../services/admin/inventory-cost.service";
 
 beforeEach(() => {
   vi.clearAllMocks();

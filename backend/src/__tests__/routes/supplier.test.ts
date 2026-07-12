@@ -1,8 +1,8 @@
-import { vi, describe, it, beforeEach, expect } from "vitest";
+﻿import { vi, describe, it, beforeEach, expect } from "vitest";
 import request from "supertest";
-import { createTestApp } from "../fixtures/create-test-app.js";
+import { createTestApp } from "../fixtures/create-test-app";
 
-vi.mock("../../services/supplier.service.js", () => ({
+vi.mock("../../services/supplier.service", () => ({
   supplierService: {
     getPageList: vi.fn(),
     getDetail: vi.fn(),
@@ -17,23 +17,23 @@ vi.mock("../../services/supplier.service.js", () => ({
   },
 }));
 
-vi.mock("../../shared/response.js", () => ({
+vi.mock("../../shared/response", () => ({
   ok: vi.fn((data) => ({ code: "0", msg: "成功", data, traceId: "test-trace", apiCost: 0 })),
   fail: vi.fn((msg, code = "400") => ({ code, msg, traceId: "test-trace", apiCost: 0 })),
 }));
 
-vi.mock("../../middleware/auth.js", () => ({
+vi.mock("../../middleware/auth", () => ({
   requireAuthWithTenant: [],
   requireAuth: (_req: any, _res: any, next: any) => next(),
   requireRoles: () => (_req: any, _res: any, next: any) => next(),
 }));
 
-vi.mock("../../middleware/tenant.js", () => ({
+vi.mock("../../middleware/tenant", () => ({
   tenantMiddleware: (_req: any, _res: any, next: any) => next(),
 }));
 
-import { supplierService } from "../../services/supplier.service.js";
-import { supplierRouter } from "../../routes/supplier.routes.js";
+import { supplierService } from "../../services/supplier.service";
+import { supplierRouter } from "../../routes/supplier.routes";
 
 const app = createTestApp({
   prefix: "/api/admin/suppliers",

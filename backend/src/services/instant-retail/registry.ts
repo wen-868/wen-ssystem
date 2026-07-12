@@ -1,4 +1,4 @@
-/**
+﻿/**
  * 即时零售平台适配器注册表
  * Instant Retail Platform Adapter Registry
  *
@@ -6,8 +6,8 @@
  * 支持运行时动态获取对应平台的适配器实例。
  */
 
-import type { AbstractPlatformAdapter } from './base-adapter.js';
-import type { PlatformType } from './types.js';
+import type { AbstractPlatformAdapter } from "./base-adapter";
+import type { PlatformType } from "./types";
 
 /** 适配器类构造函数类型 */
 type AdapterConstructor = new (...args: any[]) => AbstractPlatformAdapter;

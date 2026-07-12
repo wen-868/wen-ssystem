@@ -1,4 +1,4 @@
-/**
+﻿/**
  * 管理端日结 controller 单元测试
  * 被测文件：src/controllers/admin/daily-settlement.controller.ts
  */
@@ -12,16 +12,16 @@ const mocks = vi.hoisted(() => ({
   getDailySettlementDetail: vi.fn(),
 }));
 
-vi.mock("../../../middleware/async-handler.js", () => ({
+vi.mock("../../../middleware/async-handler", () => ({
   asyncHandler: (fn: any) => fn,
 }));
 
-vi.mock("../../../shared/response.js", () => ({
+vi.mock("../../../shared/response", () => ({
   ok: mocks.ok,
   fail: mocks.fail,
 }));
 
-vi.mock("../../../services/admin/daily-settlement.service.js", () => ({
+vi.mock("../../../services/admin/daily-settlement.service", () => ({
   createDailySettlement: mocks.createDailySettlement,
   listDailySettlements: mocks.listDailySettlements,
   getDailySettlementDetail: mocks.getDailySettlementDetail,
@@ -31,7 +31,7 @@ import {
   createDailySettlement,
   listDailySettlements,
   getDailySettlementDetail,
-} from "../../../controllers/admin/daily-settlement.controller.js";
+} from "../../../controllers/admin/daily-settlement.controller";
 
 const mockReq = (overrides: any = {}) => ({
   tenantId: "t1",

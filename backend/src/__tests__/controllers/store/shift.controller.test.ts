@@ -1,23 +1,23 @@
-import { vi, describe, it, beforeEach, expect } from "vitest";
+﻿import { vi, describe, it, beforeEach, expect } from "vitest";
 
-vi.mock("../../../services/store/shift.service.js", () => ({
+vi.mock("../../../services/store/shift.service", () => ({
   getCurrentShift: vi.fn(),
   settleShift: vi.fn(),
   getShiftHistory: vi.fn(),
 }));
 
-vi.mock("../../../shared/response.js", () => ({
+vi.mock("../../../shared/response", () => ({
   ok: vi.fn((data) => ({ success: true, data })),
   fail: vi.fn((msg, code) => ({ success: false, message: msg, code })),
 }));
 
-vi.mock("../../../middleware/async-handler.js", () => ({
+vi.mock("../../../middleware/async-handler", () => ({
   asyncHandler: (fn: any) => fn,
 }));
 
-import * as shiftService from "../../../services/store/shift.service.js";
-import { ok } from "../../../shared/response.js";
-import { getCurrentShift, settleShift, getShiftHistory } from "../../../controllers/store/shift.controller.js";
+import * as shiftService from "../../../services/store/shift.service";
+import { ok } from "../../../shared/response";
+import { getCurrentShift, settleShift, getShiftHistory } from "../../../controllers/store/shift.controller";
 
 const mockReq = (overrides: any = {}) => ({
   tenantId: "t1",

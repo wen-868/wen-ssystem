@@ -1,6 +1,6 @@
-import { vi, describe, it, beforeEach, expect } from "vitest";
+﻿import { vi, describe, it, beforeEach, expect } from "vitest";
 
-vi.mock("../../../services/instant-retail/review.service.js", () => ({
+vi.mock("../../../services/instant-retail/review.service", () => ({
   listReviews: vi.fn(),
   getReviewDetail: vi.fn(),
   replyReview: vi.fn(),
@@ -8,18 +8,18 @@ vi.mock("../../../services/instant-retail/review.service.js", () => ({
   getReviewStats: vi.fn(),
 }));
 
-vi.mock("../../../shared/response.js", () => ({
+vi.mock("../../../shared/response", () => ({
   ok: vi.fn((data) => ({ success: true, data })),
   fail: vi.fn((msg, code) => ({ success: false, message: msg, code })),
 }));
 
-vi.mock("../../../middleware/async-handler.js", () => ({
+vi.mock("../../../middleware/async-handler", () => ({
   asyncHandler: (fn: any) => fn,
 }));
 
-import * as svc from "../../../services/instant-retail/review.service.js";
-import { ok, fail } from "../../../shared/response.js";
-import { listReviews, getReviewDetail, replyReview, syncReviews, getReviewStats } from "../../../controllers/instant-retail/review.controller.js";
+import * as svc from "../../../services/instant-retail/review.service";
+import { ok, fail } from "../../../shared/response";
+import { listReviews, getReviewDetail, replyReview, syncReviews, getReviewStats } from "../../../controllers/instant-retail/review.controller";
 
 const mockReq = (overrides: any = {}) => ({
   tenantId: "t1",

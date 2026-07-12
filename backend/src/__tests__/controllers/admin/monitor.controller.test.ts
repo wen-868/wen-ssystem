@@ -1,4 +1,4 @@
-/**
+﻿/**
  * 管理端系统监控 controller 单元测试
  * 被测文件：src/controllers/admin/monitor.controller.ts
  */
@@ -13,16 +13,16 @@ const mocks = vi.hoisted(() => ({
   notifyExpiringTenants: vi.fn(),
 }));
 
-vi.mock("../../../middleware/async-handler.js", () => ({
+vi.mock("../../../middleware/async-handler", () => ({
   asyncHandler: (fn: any) => fn,
 }));
 
-vi.mock("../../../shared/response.js", () => ({
+vi.mock("../../../shared/response", () => ({
   ok: mocks.ok,
   fail: mocks.fail,
 }));
 
-vi.mock("../../../services/admin/monitor.service.js", () => ({
+vi.mock("../../../services/admin/monitor.service", () => ({
   getDbStatus: mocks.getDbStatus,
   getApiStats: mocks.getApiStats,
   getExpiringTenants: mocks.getExpiringTenants,
@@ -34,7 +34,7 @@ import {
   getApiStatsCtrl,
   getExpiringTenantsCtrl,
   notifyExpiringTenantsCtrl,
-} from "../../../controllers/admin/monitor.controller.js";
+} from "../../../controllers/admin/monitor.controller";
 
 const mockReq = (overrides: any = {}) => ({
   tenantId: "t1",

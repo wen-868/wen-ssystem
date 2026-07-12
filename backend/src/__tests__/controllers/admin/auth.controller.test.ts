@@ -1,6 +1,6 @@
-import { vi, describe, it, beforeEach, expect } from "vitest";
+﻿import { vi, describe, it, beforeEach, expect } from "vitest";
 
-vi.mock("../../../services/admin/auth.service.js", () => ({
+vi.mock("../../../services/admin/auth.service", () => ({
   login: vi.fn(),
   changePassword: vi.fn(),
   getMe: vi.fn(),
@@ -8,24 +8,24 @@ vi.mock("../../../services/admin/auth.service.js", () => ({
   updateSettings: vi.fn(),
 }));
 
-vi.mock("../../../shared/response.js", () => ({
+vi.mock("../../../shared/response", () => ({
   ok: vi.fn((data) => ({ success: true, data })),
   fail: vi.fn((msg, code) => ({ success: false, message: msg, code })),
 }));
 
-vi.mock("../../../middleware/async-handler.js", () => ({
+vi.mock("../../../middleware/async-handler", () => ({
   asyncHandler: (fn: any) => fn,
 }));
 
-import * as authService from "../../../services/admin/auth.service.js";
-import { ok, fail } from "../../../shared/response.js";
+import * as authService from "../../../services/admin/auth.service";
+import { ok, fail } from "../../../shared/response";
 import {
   login,
   changePassword,
   getMe,
   getSettings,
   updateSettings,
-} from "../../../controllers/admin/auth.controller.js";
+} from "../../../controllers/admin/auth.controller";
 
 const mockReq = (overrides: any = {}) => ({
   tenantId: "t1",

@@ -1,7 +1,7 @@
-import { Router } from "express";
-import type { RouteConfig } from "../shared/auto-routes.js";
-import { requireAuthWithTenant } from "../middleware/auth.js";
-import * as ctrl from "../controllers/tenant.controller.js";
+﻿import { Router } from "express";
+import type { RouteConfig } from "../shared/auto-routes";
+import { requireAuthWithTenant } from "../middleware/auth";
+import * as ctrl from "../controllers/tenant.controller";
 
 export const tenantRouter = Router();
 tenantRouter.get("/", requireAuthWithTenant, ctrl.listTenants);

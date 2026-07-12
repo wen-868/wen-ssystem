@@ -1,4 +1,4 @@
-import { describe, it, expect, vi, beforeEach } from "vitest";
+﻿import { describe, it, expect, vi, beforeEach } from "vitest";
 
 const mocks = vi.hoisted(() => ({
   query: vi.fn(),
@@ -8,7 +8,7 @@ const mocks = vi.hoisted(() => ({
   validatePassword: vi.fn(),
 }));
 
-vi.mock("../../shared/db.js", () => ({
+vi.mock("../../shared/db", () => ({
   query: mocks.query,
   queryOne: mocks.queryOne,
   queryWithTenant: vi.fn(),
@@ -16,12 +16,12 @@ vi.mock("../../shared/db.js", () => ({
   transaction: mocks.transaction,
 }));
 
-vi.mock("../../shared/password.js", () => ({
+vi.mock("../../shared/password", () => ({
   hashPassword: mocks.hashPassword,
   validatePassword: mocks.validatePassword,
 }));
 
-vi.mock("../../shared/logger.js", () => ({
+vi.mock("../../shared/logger", () => ({
   default: { info: vi.fn(), error: vi.fn(), warn: vi.fn(), debug: vi.fn() },
 }));
 
@@ -31,7 +31,7 @@ import {
   rejectTenantApplication,
   listTenantApplications,
   getTenantApplication,
-} from "../../services/tenant-register.service.js";
+} from "../../services/tenant-register.service";
 
 describe("tenant-register.service", () => {
   beforeEach(() => {

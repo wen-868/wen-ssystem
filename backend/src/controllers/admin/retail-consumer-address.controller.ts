@@ -1,7 +1,7 @@
-import { z } from "zod";
-import { asyncHandler } from "../../middleware/async-handler.js";
-import { ok } from "../../shared/response.js";
-import * as addressService from "../../services/miniapp/retail-consumer-address.service.js";
+﻿import { z } from "zod";
+import { asyncHandler } from "../../middleware/async-handler";
+import { ok } from "../../shared/response";
+import * as addressService from "../../services/miniapp/retail-consumer-address.service";
 
 const createAddressSchema = z.object({
   name: z.string().min(1).max(50),

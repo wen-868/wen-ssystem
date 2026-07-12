@@ -1,7 +1,7 @@
-import { z } from "zod";
-import { asyncHandler } from "../../middleware/async-handler.js";
-import { ok, fail } from "../../shared/response.js";
-import * as productService from "../../services/admin/product.service.js";
+﻿import { z } from "zod";
+import { asyncHandler } from "../../middleware/async-handler";
+import { ok, fail } from "../../shared/response";
+import * as productService from "../../services/admin/product.service";
 
 export const listProducts = asyncHandler(async (req, res) => {
   const tenantId = req.tenantId!;

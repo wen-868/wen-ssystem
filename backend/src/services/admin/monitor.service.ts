@@ -1,6 +1,6 @@
-import { query, queryOne } from "../../shared/db.js";
-import { getStats } from "../../middleware/response-tracker.js";
-import logger from "../../shared/logger.js";
+﻿import { query, queryOne } from "../../shared/db";
+import { getStats } from "../../middleware/response-tracker";
+import logger from "../../shared/logger";
 
 export interface DbStatus {
   connection: "connected" | "disconnected" | "error";

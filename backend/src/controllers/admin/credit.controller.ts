@@ -1,11 +1,11 @@
-import { z } from "zod";
-import { asyncHandler } from "../../middleware/async-handler.js";
-import { ok, fail } from "../../shared/response.js";
-import * as creditLimitService from "../../services/admin/credit-limit.service.js";
-import * as creditCollectionService from "../../services/admin/credit-collection.service.js";
-import * as creditRiskService from "../../services/admin/credit-risk.service.js";
-import * as creditScoringService from "../../services/admin/credit-scoring.service.js";
-import type { ServiceContext } from "../../types/index.js";
+﻿import { z } from "zod";
+import { asyncHandler } from "../../middleware/async-handler";
+import { ok, fail } from "../../shared/response";
+import * as creditLimitService from "../../services/admin/credit-limit.service";
+import * as creditCollectionService from "../../services/admin/credit-collection.service";
+import * as creditRiskService from "../../services/admin/credit-risk.service";
+import * as creditScoringService from "../../services/admin/credit-scoring.service";
+import type { ServiceContext } from "../../types/index";
 
 function getServiceContext(req: any): ServiceContext {
   return {

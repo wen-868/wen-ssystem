@@ -1,6 +1,6 @@
-import { asyncHandler } from "../../middleware/async-handler.js";
-import { ok } from "../../shared/response.js";
-import * as svcService from "../../services/admin/store-value-card.service.js";
+﻿import { asyncHandler } from "../../middleware/async-handler";
+import { ok } from "../../shared/response";
+import * as svcService from "../../services/admin/store-value-card.service";
 
 export const listStoreValueCards = asyncHandler(async (req, res) => {
   res.json(ok(await svcService.listStoreValueCards({

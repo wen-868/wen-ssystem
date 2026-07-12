@@ -1,6 +1,6 @@
-import cron from "node-cron";
-import logger from "../shared/logger.js";
-import { queryWithTenant, queryOneWithTenant } from "../shared/db.js";
+﻿import cron from "node-cron";
+import logger from "../shared/logger";
+import { queryWithTenant, queryOneWithTenant } from "../shared/db";
 
 // 获取所有租户
 async function getTenants(): Promise<string[]> {

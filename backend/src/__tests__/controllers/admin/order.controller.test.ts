@@ -1,6 +1,6 @@
-import { vi, describe, it, beforeEach, expect } from "vitest";
+﻿import { vi, describe, it, beforeEach, expect } from "vitest";
 
-vi.mock("../../../services/admin/order.service.js", () => ({
+vi.mock("../../../services/admin/order.service", () => ({
   listOrders: vi.fn(),
   exportOrdersCsv: vi.fn(),
   getOrderDetail: vi.fn(),
@@ -14,22 +14,22 @@ vi.mock("../../../services/admin/order.service.js", () => ({
   getOrderOperationLogs: vi.fn(),
 }));
 
-vi.mock("../../../shared/response.js", () => ({
+vi.mock("../../../shared/response", () => ({
   ok: vi.fn((data) => ({ success: true, data })),
   fail: vi.fn((msg, code) => ({ success: false, message: msg, code })),
 }));
 
-vi.mock("../../../middleware/async-handler.js", () => ({
+vi.mock("../../../middleware/async-handler", () => ({
   asyncHandler: (fn: any) => fn,
 }));
 
-import * as orderService from "../../../services/admin/order.service.js";
-import { ok, fail } from "../../../shared/response.js";
+import * as orderService from "../../../services/admin/order.service";
+import { ok, fail } from "../../../shared/response";
 import {
   listOrders, exportOrdersCsv, getOrderDetail, getOrderStatusStats,
   listSaleBills, exportSaleBillsCsv, cancelOrder, remarkOrder,
   updateOrderStatus, batchUpdateOrderStatus, getOrderOperationLogs
-} from "../../../controllers/admin/order.controller.js";
+} from "../../../controllers/admin/order.controller";
 
 const mockReq = (overrides: any = {}) => ({
   tenantId: "t1",

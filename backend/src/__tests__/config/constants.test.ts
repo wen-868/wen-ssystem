@@ -1,5 +1,5 @@
-import { describe, it, expect } from "vitest";
-import { constants } from "../../config/constants.js";
+﻿import { describe, it, expect } from "vitest";
+import { constants } from "../../config/constants";
 
 describe("config/constants", () => {
   it("应导出正确的默认箱规", () => {

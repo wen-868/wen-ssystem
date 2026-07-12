@@ -1,5 +1,5 @@
-import { describe, it, expect } from "vitest";
-import { tenantConfig } from "../../config/tenant.js";
+﻿import { describe, it, expect } from "vitest";
+import { tenantConfig } from "../../config/tenant";
 
 describe("config/tenant", () => {
   it("应有默认存储配额", () => {

@@ -1,7 +1,7 @@
-import { Request, Response } from "express";
-import { asyncHandler } from "../../middleware/async-handler.js";
-import { ok, fail } from "../../shared/response.js";
-import * as svc from "../../services/instant-retail/review.service.js";
+﻿import { Request, Response } from "express";
+import { asyncHandler } from "../../middleware/async-handler";
+import { ok, fail } from "../../shared/response";
+import * as svc from "../../services/instant-retail/review.service";
 
 export const listReviews = asyncHandler(async (req: Request, res: Response) => {
   const { page, pageSize, platform, rating, status, storeId } = req.query as Record<string, string | undefined>;

@@ -1,4 +1,4 @@
-/**
+﻿﻿﻿﻿﻿﻿/**
  * 库存盘点 service 单元测试
  * 被测文件：src/services/admin/stock-check.service.ts
  */
@@ -11,7 +11,7 @@ const mocks = vi.hoisted(() => ({
   makeBizNo: vi.fn(),
 }));
 
-vi.mock("../../../shared/db.js", () => ({
+vi.mock("../../../shared/db", () => ({
   query: mocks.query,
   queryOne: mocks.queryOne,
   queryWithTenant: vi.fn(),
@@ -19,7 +19,7 @@ vi.mock("../../../shared/db.js", () => ({
   transaction: mocks.transaction,
 }));
 
-vi.mock("../../../shared/id.js", () => ({
+vi.mock("../../../shared/id", () => ({
   makeBizNo: mocks.makeBizNo,
 }));
 
@@ -37,7 +37,7 @@ import {
   getMyCheckDetail,
   updateItemQty,
   submitCheck,
-} from "../../../services/admin/stock-check.service.js";
+} from "../../../services/admin/stock-check.service";
 
 const mockConn = { execute: vi.fn() };
 

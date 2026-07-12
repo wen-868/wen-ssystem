@@ -1,7 +1,7 @@
-import { z } from "zod";
-import { asyncHandler } from "../../middleware/async-handler.js";
-import { ok, fail } from "../../shared/response.js";
-import * as retailAnnouncementService from "../../services/instant-retail/retail-announcement.service.js";
+﻿import { z } from "zod";
+import { asyncHandler } from "../../middleware/async-handler";
+import { ok, fail } from "../../shared/response";
+import * as retailAnnouncementService from "../../services/instant-retail/retail-announcement.service";
 
 const createAnnouncementSchema = z.object({
   store_id: z.number().int().positive(),

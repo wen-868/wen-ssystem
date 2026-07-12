@@ -1,5 +1,5 @@
-import { queryWithTenant, queryOneWithTenant, transaction } from "../../shared/db.js";
-import type { ServiceContext, PageResult } from "../../types/index.js";
+﻿import { queryWithTenant, queryOneWithTenant, transaction } from "../../shared/db";
+import type { ServiceContext, PageResult } from "../../types/index";
 
 export interface CreditInitDTO {
   creditLimit: number;

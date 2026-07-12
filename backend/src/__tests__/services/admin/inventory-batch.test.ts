@@ -1,4 +1,4 @@
-/**
+﻿﻿﻿﻿﻿﻿/**
  * 库存批次管理 service 单元测试
  * 被测文件：src/services/admin/inventory-batch.service.ts
  */
@@ -10,7 +10,7 @@ const mocks = vi.hoisted(() => ({
   transaction: vi.fn(),
 }));
 
-vi.mock("../../../shared/db.js", () => ({
+vi.mock("../../../shared/db", () => ({
   query: mocks.query,
   queryOne: mocks.queryOne,
   queryWithTenant: vi.fn(),
@@ -35,7 +35,7 @@ import {
   handleExpiryAlert,
   getExpiryAlertStatistics,
   runExpiryScan,
-} from "../../../services/admin/inventory-batch.service.js";
+} from "../../../services/admin/inventory-batch.service";
 
 const mockConn = { execute: vi.fn() };
 

@@ -1,4 +1,4 @@
-import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
+﻿import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
 
 // 在 vi.hoisted 中创建可共享的 mock request 函数
 const { mockRequest } = vi.hoisted(() => {
@@ -19,7 +19,7 @@ vi.mock("https", () => ({
   default: { request: mockRequest },
 }));
 
-vi.mock("../../shared/logger.js", () => ({
+vi.mock("../../shared/logger", () => ({
   default: {
     info: vi.fn(),
     error: vi.fn(),
@@ -28,7 +28,7 @@ vi.mock("../../shared/logger.js", () => ({
   },
 }));
 
-import { reportToLingZhou, buildTextReport } from "../../shared/feishu-report.js";
+import { reportToLingZhou, buildTextReport } from "../../shared/feishu-report";
 
 describe("feishu-report", () => {
   beforeEach(() => {

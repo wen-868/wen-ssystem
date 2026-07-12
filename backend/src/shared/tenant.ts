@@ -1,1 +1,1 @@
-export * from "../middleware/tenant.js";
+﻿export * from "../middleware/tenant";

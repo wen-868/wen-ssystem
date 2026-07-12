@@ -1,15 +1,15 @@
-/**
+﻿/**
  * 即时零售统一 Service 层
  * 整合 webhook 处理、平台配置管理、订单接单、履约操作
  * 底层委托给 services/instant-retail/ 下的子服务模块
  */
 
 import { z } from "zod";
-import logger from "../../shared/logger.js";
-import { query, queryWithTenant, queryOneWithTenant, transaction } from "../../shared/db.js";
-import { getAdapter, parsePlatformType, parseUnifiedOrder } from "../instant-retail/adapters/index.js";
-import type { PlatformType } from "../instant-retail/types.js";
-import { maskConfig, getPlatformConfig, getPlatformConfigWithTenant } from "../instant-retail/common.service.js";
+import logger from "../../shared/logger";
+import { query, queryWithTenant, queryOneWithTenant, transaction } from "../../shared/db";
+import { getAdapter, parsePlatformType, parseUnifiedOrder } from "../instant-retail/adapters/index";
+import type { PlatformType } from "../instant-retail/types";
+import { maskConfig, getPlatformConfig, getPlatformConfigWithTenant } from "../instant-retail/common.service";
 
 // ────────────────────────────────────────────────────────────────────────────
 // Webhook 处理

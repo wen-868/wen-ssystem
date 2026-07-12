@@ -1,4 +1,4 @@
-import { describe, it, expect, vi, beforeEach } from "vitest";
+﻿import { describe, it, expect, vi, beforeEach } from "vitest";
 
 const mocks = vi.hoisted(() => ({
   ok: vi.fn((data?: any) => ({ code: "0", data })),
@@ -12,16 +12,16 @@ const mocks = vi.hoisted(() => ({
   getCustomerProfile: vi.fn(),
 }));
 
-vi.mock("../../../middleware/async-handler.js", () => ({
+vi.mock("../../../middleware/async-handler", () => ({
   asyncHandler: (fn: any) => fn,
 }));
 
-vi.mock("../../../shared/response.js", () => ({
+vi.mock("../../../shared/response", () => ({
   ok: mocks.ok,
   fail: mocks.fail,
 }));
 
-vi.mock("../../../services/admin/customer-tag.service.js", () => ({
+vi.mock("../../../services/admin/customer-tag.service", () => ({
   listTags: mocks.listTags,
   createTag: mocks.createTag,
   updateTag: mocks.updateTag,
@@ -39,7 +39,7 @@ import {
   addCustomerTag,
   removeCustomerTag,
   getCustomerProfile,
-} from "../../../controllers/admin/customer-tag.controller.js";
+} from "../../../controllers/admin/customer-tag.controller";
 
 const mockReq = (overrides: any = {}) => ({
   tenantId: "t1",

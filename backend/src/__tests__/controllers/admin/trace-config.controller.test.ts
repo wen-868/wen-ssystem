@@ -1,6 +1,6 @@
-import { vi, describe, it, beforeEach, expect } from "vitest";
+﻿import { vi, describe, it, beforeEach, expect } from "vitest";
 
-vi.mock("../../../services/admin/trace-config.service.js", () => ({
+vi.mock("../../../services/admin/trace-config.service", () => ({
   listConfigs: vi.fn(),
   createConfig: vi.fn(),
   updateConfig: vi.fn(),
@@ -8,24 +8,24 @@ vi.mock("../../../services/admin/trace-config.service.js", () => ({
   checkSkuTrace: vi.fn(),
 }));
 
-vi.mock("../../../shared/response.js", () => ({
+vi.mock("../../../shared/response", () => ({
   ok: vi.fn((data) => ({ success: true, data })),
   fail: vi.fn((msg, code) => ({ success: false, message: msg, code })),
 }));
 
-vi.mock("../../../middleware/async-handler.js", () => ({
+vi.mock("../../../middleware/async-handler", () => ({
   asyncHandler: (fn: any) => fn,
 }));
 
-import * as traceConfigService from "../../../services/admin/trace-config.service.js";
-import { ok, fail } from "../../../shared/response.js";
+import * as traceConfigService from "../../../services/admin/trace-config.service";
+import { ok, fail } from "../../../shared/response";
 import {
   listConfigs,
   createConfig,
   updateConfig,
   deleteConfig,
   checkSkuTrace,
-} from "../../../controllers/admin/trace-config.controller.js";
+} from "../../../controllers/admin/trace-config.controller";
 
 const mockReq = (overrides: any = {}) => ({
   tenantId: "t1",

@@ -1,8 +1,8 @@
-import { z } from "zod";
-import { asyncHandler } from "../../middleware/async-handler.js";
-import { ok, fail } from "../../shared/response.js";
-import { getTenantId } from "../../middleware/tenant.js";
-import * as traceRecordsService from "../../services/admin/trace-records.service.js";
+﻿import { z } from "zod";
+import { asyncHandler } from "../../middleware/async-handler";
+import { ok, fail } from "../../shared/response";
+import { getTenantId } from "../../middleware/tenant";
+import * as traceRecordsService from "../../services/admin/trace-records.service";
 
 export const generateTraceCodes = asyncHandler(async (req, res) => {
   const tenantId = req.tenantId!;

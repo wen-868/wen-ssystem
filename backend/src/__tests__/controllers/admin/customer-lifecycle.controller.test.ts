@@ -1,4 +1,4 @@
-import { describe, it, expect, vi, beforeEach } from "vitest";
+﻿import { describe, it, expect, vi, beforeEach } from "vitest";
 
 const mocks = vi.hoisted(() => ({
   ok: vi.fn((data?: any) => ({ code: "0", data })),
@@ -8,16 +8,16 @@ const mocks = vi.hoisted(() => ({
   getLifecycleDetail: vi.fn(),
 }));
 
-vi.mock("../../../middleware/async-handler.js", () => ({
+vi.mock("../../../middleware/async-handler", () => ({
   asyncHandler: (fn: any) => fn,
 }));
 
-vi.mock("../../../shared/response.js", () => ({
+vi.mock("../../../shared/response", () => ({
   ok: mocks.ok,
   fail: mocks.fail,
 }));
 
-vi.mock("../../../services/admin/customer-lifecycle.service.js", () => ({
+vi.mock("../../../services/admin/customer-lifecycle.service", () => ({
   getLifecycleStages: mocks.getLifecycleStages,
   getLifecycleTrend: mocks.getLifecycleTrend,
   getLifecycleDetail: mocks.getLifecycleDetail,
@@ -27,7 +27,7 @@ import {
   getLifecycleStages,
   getLifecycleTrend,
   getLifecycleDetail,
-} from "../../../controllers/admin/customer-lifecycle.controller.js";
+} from "../../../controllers/admin/customer-lifecycle.controller";
 
 const mockReq = (overrides: any = {}) => ({
   tenantId: "t1",

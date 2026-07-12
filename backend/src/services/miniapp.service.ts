@@ -1,8 +1,8 @@
-import crypto from "node:crypto";
-import { query, queryOne, transaction } from "../shared/db.js";
-import { makeBizNo } from "../shared/id.js";
-import { calcReservation, getInitialMiniappOrderState, completeOrderDelivery, getMemberLevelLabel, shouldReserveStock, computeSellingPrice, type CustomerType } from "../shared/fulfillment.js";
-import { updateTraceCodesBySkuList } from "../shared/trace-code.js";
+﻿import crypto from "node:crypto";
+import { query, queryOne, transaction } from "../shared/db";
+import { makeBizNo } from "../shared/id";
+import { calcReservation, getInitialMiniappOrderState, completeOrderDelivery, getMemberLevelLabel, shouldReserveStock, computeSellingPrice, type CustomerType } from "../shared/fulfillment";
+import { updateTraceCodesBySkuList } from "../shared/trace-code";
 
 // ========== Dev Token Store ==========
 export const devTokenStore = new Map<string, { memberId: number; customerType: string; createdAt: number }>();

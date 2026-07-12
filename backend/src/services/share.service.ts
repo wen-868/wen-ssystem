@@ -1,5 +1,5 @@
-import { query, queryOne } from "../shared/db.js";
-import { makeBizNo } from "../shared/id.js";
+﻿import { query, queryOne } from "../shared/db";
+import { makeBizNo } from "../shared/id";
 
 export async function getCollectionLink(token: string) {
   const link = await queryOne<any>(

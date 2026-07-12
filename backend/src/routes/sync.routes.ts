@@ -1,8 +1,8 @@
-import { Router } from "express";
-import { asyncHandler } from "../middleware/async-handler.js";
-import { ok } from "../shared/response.js";
-import * as priceSyncSvc from "../services/sync/price-sync.service.js";
-import * as productSyncSvc from "../services/sync/product-sync.service.js";
+﻿import { Router } from "express";
+import { asyncHandler } from "../middleware/async-handler";
+import { ok } from "../shared/response";
+import * as priceSyncSvc from "../services/sync/price-sync.service";
+import * as productSyncSvc from "../services/sync/product-sync.service";
 
 const router = Router();
 

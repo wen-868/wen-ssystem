@@ -1,7 +1,7 @@
-import { z } from "zod";
-import { asyncHandler } from "../../middleware/async-handler.js";
-import { ok } from "../../shared/response.js";
-import * as segmentService from "../../services/admin/customer-segment.service.js";
+﻿import { z } from "zod";
+import { asyncHandler } from "../../middleware/async-handler";
+import { ok } from "../../shared/response";
+import * as segmentService from "../../services/admin/customer-segment.service";
 
 const createSegmentSchema = z.object({
   segmentName: z.string().min(1).max(100),

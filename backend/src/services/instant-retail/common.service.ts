@@ -1,5 +1,5 @@
-import { queryOne, queryOneWithTenant } from "../../shared/db.js";
-import type { PlatformType, PlatformCredentials } from "./types.js";
+﻿import { queryOne, queryOneWithTenant } from "../../shared/db";
+import type { PlatformType, PlatformCredentials } from "./types";
 
 export function maskConfig(config: any) {
   if (!config) return null;

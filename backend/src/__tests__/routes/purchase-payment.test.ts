@@ -1,5 +1,5 @@
-import { describe, it, expect } from "vitest";
-import { routeConfig } from "../../routes/purchase-payment.routes.js";
+﻿import { describe, it, expect } from "vitest";
+import { routeConfig } from "../../routes/purchase-payment.routes";
 
 describe("routes/purchase-payment", () => {
   it("应导出正确的 routeConfig", () => {

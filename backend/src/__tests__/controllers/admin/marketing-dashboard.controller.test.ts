@@ -1,4 +1,4 @@
-/**
+﻿/**
  * 管理端营销看板 controller 单元测试
  * 被测文件：src/controllers/admin/marketing-dashboard.controller.ts
  */
@@ -15,15 +15,15 @@ const mocks = vi.hoisted(() => ({
   getActivityComparison: vi.fn(),
 }));
 
-vi.mock("../../../middleware/async-handler.js", () => ({
+vi.mock("../../../middleware/async-handler", () => ({
   asyncHandler: (fn: any) => fn,
 }));
 
-vi.mock("../../../shared/response.js", () => ({
+vi.mock("../../../shared/response", () => ({
   ok: mocks.ok,
 }));
 
-vi.mock("../../../services/admin/marketing-dashboard.service.js", () => ({
+vi.mock("../../../services/admin/marketing-dashboard.service", () => ({
   getMarketingOverview: mocks.getMarketingOverview,
   getActivityStats: mocks.getActivityStats,
   getSingleActivityStats: mocks.getSingleActivityStats,
@@ -41,7 +41,7 @@ import {
   getMarketingTrend,
   getActivityRanking,
   getActivityComparison,
-} from "../../../controllers/admin/marketing-dashboard.controller.js";
+} from "../../../controllers/admin/marketing-dashboard.controller";
 
 const mockReq = (overrides: any = {}) => ({
   tenantId: "t1",

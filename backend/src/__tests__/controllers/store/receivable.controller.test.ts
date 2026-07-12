@@ -1,25 +1,25 @@
-import { vi, describe, it, beforeEach, expect } from "vitest";
+﻿import { vi, describe, it, beforeEach, expect } from "vitest";
 import { ZodError } from "zod";
 
-vi.mock("../../../services/store/receivable.service.js", () => ({
+vi.mock("../../../services/store/receivable.service", () => ({
   listReceivables: vi.fn(),
   paymentOnReceivable: vi.fn(),
   getDashboard: vi.fn(),
   getDailySales: vi.fn(),
 }));
 
-vi.mock("../../../shared/response.js", () => ({
+vi.mock("../../../shared/response", () => ({
   ok: vi.fn((data) => ({ success: true, data })),
   fail: vi.fn((msg, code) => ({ success: false, message: msg, code })),
 }));
 
-vi.mock("../../../middleware/async-handler.js", () => ({
+vi.mock("../../../middleware/async-handler", () => ({
   asyncHandler: (fn: any) => fn,
 }));
 
-import * as svc from "../../../services/store/receivable.service.js";
-import { ok } from "../../../shared/response.js";
-import { listReceivables, paymentOnReceivable, getDashboard, getDailySales } from "../../../controllers/store/receivable.controller.js";
+import * as svc from "../../../services/store/receivable.service";
+import { ok } from "../../../shared/response";
+import { listReceivables, paymentOnReceivable, getDashboard, getDailySales } from "../../../controllers/store/receivable.controller";
 
 const mockReq = (overrides: any = {}) => ({
   tenantId: "t1",

@@ -1,6 +1,6 @@
-import { vi, describe, it, beforeEach, expect } from "vitest";
+﻿import { vi, describe, it, beforeEach, expect } from "vitest";
 
-vi.mock("../../../services/admin/order-timeout.service.js", () => ({
+vi.mock("@services/admin/order-timeout.service", () => ({
   getConfigs: vi.fn(),
   createConfig: vi.fn(),
   updateConfig: vi.fn(),
@@ -9,17 +9,17 @@ vi.mock("../../../services/admin/order-timeout.service.js", () => ({
   getStatistics: vi.fn(),
 }));
 
-vi.mock("../../../shared/response.js", () => ({
+vi.mock("@shared/response", () => ({
   ok: vi.fn((data) => ({ success: true, data })),
   fail: vi.fn((msg, code) => ({ success: false, message: msg, code })),
 }));
 
-vi.mock("../../../middleware/async-handler.js", () => ({
+vi.mock("@middleware/async-handler", () => ({
   asyncHandler: (fn: any) => fn,
 }));
 
-import * as orderTimeoutService from "../../../services/admin/order-timeout.service.js";
-import { ok } from "../../../shared/response.js";
+import * as orderTimeoutService from "@services/admin/order-timeout.service";
+import { ok } from "@shared/response";
 import {
   listConfigs,
   createConfig,
@@ -27,7 +27,7 @@ import {
   deleteConfig,
   listLogs,
   getStatistics,
-} from "../../../controllers/order-timeout.controller.js";
+} from "@controllers/order-timeout.controller";
 
 const mockReq = (overrides: any = {}) => ({
   tenantId: "t1",

@@ -1,9 +1,9 @@
-import { Router } from "express";
+﻿import { Router } from "express";
 import { z } from "zod";
-import { requireAuthWithTenant } from "../middleware/auth.js";
-import { asyncHandler } from "../middleware/async-handler.js";
-import { ok } from "../shared/response.js";
-import * as reportService from "../services/admin/custom-report.service.js";
+import { requireAuthWithTenant } from "../middleware/auth";
+import { asyncHandler } from "../middleware/async-handler";
+import { ok } from "../shared/response";
+import * as reportService from "../services/admin/custom-report.service";
 
 export const customReportRouter = Router();
 

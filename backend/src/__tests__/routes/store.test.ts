@@ -1,30 +1,30 @@
-import { vi, describe, it, beforeEach, expect } from "vitest";
+﻿import { vi, describe, it, beforeEach, expect } from "vitest";
 import request from "supertest";
-import { createTestApp } from "../fixtures/create-test-app.js";
+import { createTestApp } from "../fixtures/create-test-app";
 import { z } from "zod";
 
 // 打破循环依赖：store.routes.ts → sale-bill.controller.ts → store-sale-bill.routes.ts → sale-bill.controller.ts
-vi.mock("../../routes/store-sale-bill.routes.js", () => ({
+vi.mock("../../routes/store-sale-bill.routes", () => ({
   storeSaleBillRouter: { use: vi.fn(), get: vi.fn(), post: vi.fn() },
   storeSaleBillItemSchema: z.object({}).passthrough(),
   normalizeStoreSaleBillItem: vi.fn((input: unknown) => input),
   routeConfig: { prefix: "/api/store", router: {}, auth: "none" },
 }));
 
-vi.mock("../../services/store/auth.service.js", () => ({
+vi.mock("../../services/store/auth.service", () => ({
   login: vi.fn(),
   getCurrentUser: vi.fn(),
   getStoreInfo: vi.fn(),
 }));
 
-vi.mock("../../services/store/product.service.js", () => ({
+vi.mock("../../services/store/product.service", () => ({
   listProducts: vi.fn(),
   listMembers: vi.fn(),
   getCategories: vi.fn(),
   getProductDetail: vi.fn(),
 }));
 
-vi.mock("../../services/store/order.service.js", () => ({
+vi.mock("../../services/store/order.service", () => ({
   listOrders: vi.fn(),
   getOrderDetail: vi.fn(),
   acceptOrder: vi.fn(),
@@ -34,7 +34,7 @@ vi.mock("../../services/store/order.service.js", () => ({
   cancelOrder: vi.fn(),
 }));
 
-vi.mock("../../services/store/sale-bill.service.js", () => ({
+vi.mock("../../services/store/sale-bill.service", () => ({
   listSaleBills: vi.fn(),
   getSaleBillDetail: vi.fn(),
   createSaleBill: vi.fn(),
@@ -45,14 +45,14 @@ vi.mock("../../services/store/sale-bill.service.js", () => ({
   checkOverdueBills: vi.fn(),
 }));
 
-vi.mock("../../services/store/inventory.service.js", () => ({
+vi.mock("../../services/store/inventory.service", () => ({
   listInventory: vi.fn(),
   adjustInventory: vi.fn(),
   listInventoryLogs: vi.fn(),
   listInventoryAlerts: vi.fn(),
 }));
 
-vi.mock("../../services/store/other.service.js", () => ({
+vi.mock("../../services/store/other.service", () => ({
   createHoldOrder: vi.fn(),
   listHoldOrders: vi.fn(),
   restoreHoldOrder: vi.fn(),
@@ -62,20 +62,20 @@ vi.mock("../../services/store/other.service.js", () => ({
   listRefundOrders: vi.fn(),
 }));
 
-vi.mock("../../services/store/receivable.service.js", () => ({
+vi.mock("../../services/store/receivable.service", () => ({
   listReceivables: vi.fn(),
   paymentOnReceivable: vi.fn(),
   getDashboard: vi.fn(),
   getDailySales: vi.fn(),
 }));
 
-vi.mock("../../services/store/shift.service.js", () => ({
+vi.mock("../../services/store/shift.service", () => ({
   getCurrentShift: vi.fn(),
   settleShift: vi.fn(),
   getShiftHistory: vi.fn(),
 }));
 
-vi.mock("../../services/admin/tag.service.js", () => ({
+vi.mock("../../services/admin/tag.service", () => ({
   listGroups: vi.fn(),
   listTags: vi.fn(),
   createTag: vi.fn(),
@@ -88,7 +88,7 @@ vi.mock("../../services/admin/tag.service.js", () => ({
   setProductTags: vi.fn(),
 }));
 
-vi.mock("../../services/admin/inventory-batch.service.js", () => ({
+vi.mock("../../services/admin/inventory-batch.service", () => ({
   listBatches: vi.fn(),
   getBatchDetail: vi.fn(),
   createBatch: vi.fn(),
@@ -104,13 +104,13 @@ vi.mock("../../services/admin/inventory-batch.service.js", () => ({
   getExpiryAlertStatistics: vi.fn(),
 }));
 
-vi.mock("../../shared/db.js", () => ({
+vi.mock("../../shared/db", () => ({
   query: vi.fn().mockResolvedValue([]),
   queryOne: vi.fn().mockResolvedValue(null),
   transaction: vi.fn().mockResolvedValue(undefined),
 }));
 
-vi.mock("../../shared/price-guard.js", () => ({
+vi.mock("../../shared/price-guard", () => ({
   canAccessPriceField: vi.fn().mockReturnValue(true),
   canAccessPriceLevel: vi.fn().mockResolvedValue(true),
   logUnauthorizedAccess: vi.fn().mockResolvedValue(undefined),
@@ -118,12 +118,12 @@ vi.mock("../../shared/price-guard.js", () => ({
   filterPriceFieldsBatch: vi.fn((user, data) => ({ filtered: data, blocked: [] })),
 }));
 
-vi.mock("../../shared/response.js", () => ({
+vi.mock("../../shared/response", () => ({
   ok: vi.fn((data) => ({ code: "0", msg: "成功", data, traceId: "test-trace", apiCost: 0 })),
   fail: vi.fn((msg, code = "400") => ({ code, msg, traceId: "test-trace", apiCost: 0 })),
 }));
 
-vi.mock("../../middleware/auth.js", () => ({
+vi.mock("../../middleware/auth", () => ({
   requireAuthWithTenant: (_req: any, _res: any, next: any) => next(),
   requireAuth: (_req: any, _res: any, next: any) => next(),
   requireRoles: () => (_req: any, _res: any, next: any) => next(),
@@ -132,22 +132,22 @@ vi.mock("../../middleware/auth.js", () => ({
   signToken: vi.fn().mockReturnValue("fake-token"),
 }));
 
-vi.mock("../../middleware/tenant.js", () => ({
+vi.mock("../../middleware/tenant", () => ({
   tenantMiddleware: (_req: any, _res: any, next: any) => next(),
   getTenantId: (req: any) => req.tenantId || "default",
 }));
 
-import * as authService from "../../services/store/auth.service.js";
-import * as productService from "../../services/store/product.service.js";
-import * as orderService from "../../services/store/order.service.js";
-import * as saleBillService from "../../services/store/sale-bill.service.js";
-import * as inventoryService from "../../services/store/inventory.service.js";
-import * as otherService from "../../services/store/other.service.js";
-import * as receivableService from "../../services/store/receivable.service.js";
-import * as shiftService from "../../services/store/shift.service.js";
-import * as tagService from "../../services/admin/tag.service.js";
-import * as batchService from "../../services/admin/inventory-batch.service.js";
-import { storeRouter } from "../../routes/store.routes.js";
+import * as authService from "../../services/store/auth.service";
+import * as productService from "../../services/store/product.service";
+import * as orderService from "../../services/store/order.service";
+import * as saleBillService from "../../services/store/sale-bill.service";
+import * as inventoryService from "../../services/store/inventory.service";
+import * as otherService from "../../services/store/other.service";
+import * as receivableService from "../../services/store/receivable.service";
+import * as shiftService from "../../services/store/shift.service";
+import * as tagService from "../../services/admin/tag.service";
+import * as batchService from "../../services/admin/inventory-batch.service";
+import { storeRouter } from "../../routes/store.routes";
 
 const app = createTestApp({ prefix: "/api/store", router: storeRouter });
 

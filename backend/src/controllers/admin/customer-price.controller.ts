@@ -1,7 +1,7 @@
-import { z } from "zod";
-import { asyncHandler } from "../../middleware/async-handler.js";
-import { ok } from "../../shared/response.js";
-import * as customerPriceService from "../../services/admin/customer-price.service.js";
+﻿import { z } from "zod";
+import { asyncHandler } from "../../middleware/async-handler";
+import { ok } from "../../shared/response";
+import * as customerPriceService from "../../services/admin/customer-price.service";
 
 const createCustomerPriceSchema = z.object({
   customerId: z.number().int().positive(),

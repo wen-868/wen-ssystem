@@ -1,6 +1,6 @@
-import { vi, describe, it, beforeEach, expect } from "vitest";
+﻿import { vi, describe, it, beforeEach, expect } from "vitest";
 
-vi.mock("../../../services/admin/visit-record.service.js", () => ({
+vi.mock("../../../services/admin/visit-record.service", () => ({
   checkinSchema: { parse: (v: any) => v },
   checkoutSchema: { parse: (v: any) => v },
   listVisitRecords: vi.fn(),
@@ -11,17 +11,17 @@ vi.mock("../../../services/admin/visit-record.service.js", () => ({
   getVisitStatistics: vi.fn(),
 }));
 
-vi.mock("../../../shared/response.js", () => ({
+vi.mock("../../../shared/response", () => ({
   ok: vi.fn((data) => ({ success: true, data })),
   fail: vi.fn((msg, code) => ({ success: false, message: msg, code })),
 }));
 
-vi.mock("../../../middleware/async-handler.js", () => ({
+vi.mock("../../../middleware/async-handler", () => ({
   asyncHandler: (fn: any) => fn,
 }));
 
-import * as visitRecordService from "../../../services/admin/visit-record.service.js";
-import { ok } from "../../../shared/response.js";
+import * as visitRecordService from "../../../services/admin/visit-record.service";
+import { ok } from "../../../shared/response";
 import {
   listVisitRecords,
   getVisitRecordDetail,
@@ -29,7 +29,7 @@ import {
   checkout,
   listPendingFollowUps,
   getVisitStatistics,
-} from "../../../controllers/admin/visit-record.controller.js";
+} from "../../../controllers/admin/visit-record.controller";
 
 const mockReq = (overrides: any = {}) => ({
   tenantId: "t1",

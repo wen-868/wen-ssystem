@@ -1,4 +1,4 @@
-import { hashPasswordSync } from "../../shared/password.js";
+﻿import { hashPasswordSync } from "../../shared/password";
 
 export type Row = Record<string, any>;
 

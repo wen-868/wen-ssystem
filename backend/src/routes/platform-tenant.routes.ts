@@ -1,11 +1,11 @@
-import { Router } from "express";
-import { asyncHandler } from "../middleware/async-handler.js";
-import { requirePlatformAuth } from "../middleware/auth.js";
-import { ok, fail } from "../shared/response.js";
+﻿import { Router } from "express";
+import { asyncHandler } from "../middleware/async-handler";
+import { requirePlatformAuth } from "../middleware/auth";
+import { ok, fail } from "../shared/response";
 import {
   listTenants, getTenantById, checkTenantNameExists,
   createTenant, updateTenant, toggleTenantStatus
-} from "../services/platform-tenant.service.js";
+} from "../services/platform-tenant.service";
 
 export const platformTenantRouter = Router();
 

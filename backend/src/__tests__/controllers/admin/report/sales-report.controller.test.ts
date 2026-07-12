@@ -1,29 +1,29 @@
-import { vi, describe, it, beforeEach, expect } from "vitest";
+﻿import { vi, describe, it, beforeEach, expect } from "vitest";
 
-vi.mock("../../../../services/admin/report/sales-report.service.js", () => ({
+vi.mock("../../../../services/admin/report/sales-report.service", () => ({
   getSalesDaily: vi.fn(),
   getSalesTrend: vi.fn(),
   getSalesRanking: vi.fn(),
   getBusinessOverview: vi.fn(),
 }));
 
-vi.mock("../../../../shared/response.js", () => ({
+vi.mock("../../../../shared/response", () => ({
   ok: vi.fn((data) => ({ success: true, data })),
   fail: vi.fn((msg, code) => ({ success: false, message: msg, code })),
 }));
 
-vi.mock("../../../../middleware/async-handler.js", () => ({
+vi.mock("../../../../middleware/async-handler", () => ({
   asyncHandler: (fn: any) => fn,
 }));
 
-import * as salesReportService from "../../../../services/admin/report/sales-report.service.js";
-import { ok } from "../../../../shared/response.js";
+import * as salesReportService from "../../../../services/admin/report/sales-report.service";
+import { ok } from "../../../../shared/response";
 import {
   getSalesDaily,
   getSalesTrend,
   getSalesRanking,
   getBusinessOverview,
-} from "../../../../controllers/admin/report/sales-report.controller.js";
+} from "../../../../controllers/admin/report/sales-report.controller";
 
 const mockReq = (overrides: any = {}) => ({
   tenantId: "t1",

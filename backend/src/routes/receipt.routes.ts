@@ -1,7 +1,7 @@
-import { Router } from "express";
-import type { RouteConfig } from "../shared/auto-routes.js";
-import { requireAuthWithTenant } from "../middleware/auth.js";
-import * as receiptController from "../controllers/admin/receipt.controller.js";
+﻿import { Router } from "express";
+import type { RouteConfig } from "../shared/auto-routes";
+import { requireAuthWithTenant } from "../middleware/auth";
+import * as receiptController from "../controllers/admin/receipt.controller";
 
 export const receiptRouter = Router();
 receiptRouter.post("/", requireAuthWithTenant, receiptController.createReceipt);

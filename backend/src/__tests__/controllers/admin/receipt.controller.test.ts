@@ -1,6 +1,6 @@
-import { vi, describe, it, beforeEach, expect } from "vitest";
+﻿import { vi, describe, it, beforeEach, expect } from "vitest";
 
-vi.mock("../../../services/admin/receipt.service.js", () => ({
+vi.mock("../../../services/admin/receipt.service", () => ({
   createReceipt: vi.fn(),
   listReceipts: vi.fn(),
   getReceiptDetail: vi.fn(),
@@ -8,20 +8,20 @@ vi.mock("../../../services/admin/receipt.service.js", () => ({
   voidReceipt: vi.fn(),
 }));
 
-vi.mock("../../../shared/response.js", () => ({
+vi.mock("../../../shared/response", () => ({
   ok: vi.fn((data) => ({ success: true, data })),
   fail: vi.fn((msg, code) => ({ success: false, message: msg, code })),
 }));
 
-vi.mock("../../../middleware/async-handler.js", () => ({
+vi.mock("../../../middleware/async-handler", () => ({
   asyncHandler: (fn: any) => fn,
 }));
 
-import * as receiptService from "../../../services/admin/receipt.service.js";
-import { ok } from "../../../shared/response.js";
+import * as receiptService from "../../../services/admin/receipt.service";
+import { ok } from "../../../shared/response";
 import {
   createReceipt, listReceipts, getReceiptDetail, writeoffReceipt, voidReceipt
-} from "../../../controllers/admin/receipt.controller.js";
+} from "../../../controllers/admin/receipt.controller";
 
 const mockReq = (overrides: any = {}) => ({
   tenantId: "t1",

@@ -1,6 +1,6 @@
-import { asyncHandler } from "../../middleware/async-handler.js";
-import { ok } from "../../shared/response.js";
-import * as shiftService from "../../services/store/shift.service.js";
+﻿import { asyncHandler } from "../../middleware/async-handler";
+import { ok } from "../../shared/response";
+import * as shiftService from "../../services/store/shift.service";
 
 export const getCurrentShift = asyncHandler(async (req, res) => {
   const result = await shiftService.getCurrentShift(req.tenantId!, req.user?.storeId ?? 1);

@@ -1,5 +1,5 @@
-import { query, queryOne, transaction } from "../../shared/db.js";
-import logger from "../../shared/logger.js";
+﻿import { query, queryOne, transaction } from "../../shared/db";
+import logger from "../../shared/logger";
 
 export async function getConfigs(tenantId: string) {
   return query<any>(

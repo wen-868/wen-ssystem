@@ -1,4 +1,4 @@
-import { queryWithTenant, queryOneWithTenant, executeWithTenant } from "../../shared/db.js";
+﻿import { queryWithTenant, queryOneWithTenant, executeWithTenant } from "../../shared/db";
 
 export async function listNotifications(
   tenantId: string,

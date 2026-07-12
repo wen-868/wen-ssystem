@@ -1,6 +1,6 @@
-import { vi, describe, it, beforeEach, expect } from "vitest";
+﻿import { vi, describe, it, beforeEach, expect } from "vitest";
 
-vi.mock("../../../services/admin/marketing-coupon.service.js", () => ({
+vi.mock("../../../services/admin/marketing-coupon.service", () => ({
   createCouponTemplate: vi.fn(),
   listCouponTemplates: vi.fn(),
   getCouponTemplate: vi.fn(),
@@ -15,17 +15,17 @@ vi.mock("../../../services/admin/marketing-coupon.service.js", () => ({
   listMyCoupons: vi.fn(),
 }));
 
-vi.mock("../../../shared/response.js", () => ({
+vi.mock("../../../shared/response", () => ({
   ok: vi.fn((data) => ({ success: true, data })),
   fail: vi.fn((msg, code) => ({ success: false, message: msg, code })),
 }));
 
-vi.mock("../../../middleware/async-handler.js", () => ({
+vi.mock("../../../middleware/async-handler", () => ({
   asyncHandler: (fn: any) => fn,
 }));
 
-import * as couponService from "../../../services/admin/marketing-coupon.service.js";
-import { ok, fail } from "../../../shared/response.js";
+import * as couponService from "../../../services/admin/marketing-coupon.service";
+import { ok, fail } from "../../../shared/response";
 import {
   createCouponTemplate,
   listCouponTemplates,
@@ -39,7 +39,7 @@ import {
   listAvailableCoupons,
   claimCoupon,
   listMyCoupons,
-} from "../../../controllers/admin/marketing-coupon.controller.js";
+} from "../../../controllers/admin/marketing-coupon.controller";
 
 const mockReq = (overrides: any = {}) => ({
   tenantId: "t1",

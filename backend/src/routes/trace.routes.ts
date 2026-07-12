@@ -1,8 +1,8 @@
-import { Router } from "express";
-import { requireAuthWithTenant } from "../middleware/auth.js";
-import * as traceConfigController from "../controllers/admin/trace-config.controller.js";
-import * as traceRecordsController from "../controllers/admin/trace-records.controller.js";
-import type { RouteConfig } from "../shared/auto-routes.js";
+﻿import { Router } from "express";
+import { requireAuthWithTenant } from "../middleware/auth";
+import * as traceConfigController from "../controllers/admin/trace-config.controller";
+import * as traceRecordsController from "../controllers/admin/trace-records.controller";
+import type { RouteConfig } from "../shared/auto-routes";
 
 // ========== Admin 追溯路由 ==========
 export const adminTraceRouter = Router();

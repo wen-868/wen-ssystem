@@ -1,4 +1,4 @@
-import { queryWithTenant } from "../../shared/db.js";
+﻿import { queryWithTenant } from "../../shared/db";
 
 /**
  * 获取指定时间之后的价格变更列表

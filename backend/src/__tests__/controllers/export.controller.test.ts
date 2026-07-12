@@ -1,6 +1,6 @@
-import { vi, describe, it, beforeEach, expect } from "vitest";
+﻿import { vi, describe, it, beforeEach, expect } from "vitest";
 
-vi.mock("../../../services/admin/export.service.js", () => ({
+vi.mock("@services/admin/export.service", () => ({
   exportCustomers: vi.fn(),
   exportSuppliers: vi.fn(),
   exportProducts: vi.fn(),
@@ -11,11 +11,11 @@ vi.mock("../../../services/admin/export.service.js", () => ({
   exportAuditLogs: vi.fn(),
 }));
 
-vi.mock("../../../middleware/async-handler.js", () => ({
+vi.mock("@middleware/async-handler", () => ({
   asyncHandler: (fn: any) => fn,
 }));
 
-import * as exportService from "../../../services/admin/export.service.js";
+import * as exportService from "@services/admin/export.service";
 import {
   exportCustomers,
   exportSuppliers,
@@ -25,7 +25,7 @@ import {
   exportPayments,
   exportSalesOrders,
   exportAuditLogs,
-} from "../../../controllers/export.controller.js";
+} from "@controllers/export.controller";
 
 const mockReq = (overrides: any = {}) => ({
   tenantId: "t1",

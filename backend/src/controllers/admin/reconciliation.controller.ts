@@ -1,6 +1,6 @@
-import { asyncHandler } from "../../middleware/async-handler.js";
-import { ok } from "../../shared/response.js";
-import * as reconciliationService from "../../services/admin/reconciliation.service.js";
+﻿import { asyncHandler } from "../../middleware/async-handler";
+import { ok } from "../../shared/response";
+import * as reconciliationService from "../../services/admin/reconciliation.service";
 
 export const getCustomerReconciliation = asyncHandler(async (req, res) => {
   res.json(ok(await reconciliationService.getCustomerReconciliation(req.tenantId!, req.query.startDate as string | undefined, req.query.endDate as string | undefined)));

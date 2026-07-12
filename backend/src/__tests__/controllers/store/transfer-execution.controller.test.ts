@@ -1,24 +1,24 @@
-import { vi, describe, it, beforeEach, expect } from "vitest";
+﻿import { vi, describe, it, beforeEach, expect } from "vitest";
 import { ZodError } from "zod";
 
-vi.mock("../../../services/transfer-execution.service.js", () => ({
+vi.mock("../../../services/transfer-execution.service", () => ({
   receiveTransferOrder: vi.fn(),
   getInTransitOrders: vi.fn(),
   getMyShipments: vi.fn(),
 }));
 
-vi.mock("../../../shared/response.js", () => ({
+vi.mock("../../../shared/response", () => ({
   ok: vi.fn((data) => ({ success: true, data })),
   fail: vi.fn((msg, code) => ({ success: false, message: msg, code })),
 }));
 
-vi.mock("../../../middleware/async-handler.js", () => ({
+vi.mock("../../../middleware/async-handler", () => ({
   asyncHandler: (fn: any) => fn,
 }));
 
-import * as transferExecutionService from "../../../services/transfer-execution.service.js";
-import { ok, fail } from "../../../shared/response.js";
-import { receiveTransferOrder, getInTransitOrders, getMyShipments } from "../../../controllers/store/transfer-execution.controller.js";
+import * as transferExecutionService from "../../../services/transfer-execution.service";
+import { ok, fail } from "../../../shared/response";
+import { receiveTransferOrder, getInTransitOrders, getMyShipments } from "../../../controllers/store/transfer-execution.controller";
 
 const mockReq = (overrides: any = {}) => ({
   tenantId: "t1",

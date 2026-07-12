@@ -1,4 +1,4 @@
-/**
+﻿/**
  * 管理端会员 controller 单元测试
  * 被测文件：src/controllers/admin/member.controller.ts
  */
@@ -12,15 +12,15 @@ const mocks = vi.hoisted(() => ({
   getMemberBenefits: vi.fn(),
 }));
 
-vi.mock("../../../middleware/async-handler.js", () => ({
+vi.mock("../../../middleware/async-handler", () => ({
   asyncHandler: (fn: any) => fn,
 }));
 
-vi.mock("../../../shared/response.js", () => ({
+vi.mock("../../../shared/response", () => ({
   ok: mocks.ok,
 }));
 
-vi.mock("../../../services/admin/member.service.js", () => ({
+vi.mock("../../../services/admin/member.service", () => ({
   registerMember: mocks.registerMember,
   getMemberCard: mocks.getMemberCard,
   updateMemberLevel: mocks.updateMemberLevel,
@@ -32,7 +32,7 @@ import {
   getMemberCard,
   updateMemberLevel,
   getMemberBenefits,
-} from "../../../controllers/admin/member.controller.js";
+} from "../../../controllers/admin/member.controller";
 
 const mockReq = (overrides: any = {}) => ({
   tenantId: "t1",

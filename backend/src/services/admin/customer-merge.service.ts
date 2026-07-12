@@ -1,4 +1,4 @@
-import { query, queryOne, transaction } from "../../shared/db.js";
+﻿import { query, queryOne, transaction } from "../../shared/db";
 
 // ========== 检测重复客户 ==========
 export async function detectDuplicates(tenantId: string, type: string) {

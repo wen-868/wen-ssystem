@@ -1,4 +1,4 @@
-import { query, queryOne, transaction } from "../../shared/db.js";
+﻿import { query, queryOne, transaction } from "../../shared/db";
 
 // ==================== Admin 端 ====================
 

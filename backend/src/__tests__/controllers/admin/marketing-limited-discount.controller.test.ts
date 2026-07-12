@@ -1,4 +1,4 @@
-import { describe, it, expect, vi, beforeEach } from "vitest";
+﻿import { describe, it, expect, vi, beforeEach } from "vitest";
 
 const mocks = vi.hoisted(() => ({
   ok: vi.fn((data?: any) => ({ code: "0", data })),
@@ -15,16 +15,16 @@ const mocks = vi.hoisted(() => ({
   removeDiscountProduct: vi.fn(),
 }));
 
-vi.mock("../../../middleware/async-handler.js", () => ({
+vi.mock("../../../middleware/async-handler", () => ({
   asyncHandler: (fn: any) => fn,
 }));
 
-vi.mock("../../../shared/response.js", () => ({
+vi.mock("../../../shared/response", () => ({
   ok: mocks.ok,
   fail: mocks.fail,
 }));
 
-vi.mock("../../../services/admin/marketing-limited-discount.service.js", () => ({
+vi.mock("../../../services/admin/marketing-limited-discount.service", () => ({
   createLimitedDiscount: mocks.createLimitedDiscount,
   listLimitedDiscounts: mocks.listLimitedDiscounts,
   getLimitedDiscountDetail: mocks.getLimitedDiscountDetail,
@@ -48,7 +48,7 @@ import {
   getDiscountProducts,
   addDiscountProduct,
   removeDiscountProduct,
-} from "../../../controllers/admin/marketing-limited-discount.controller.js";
+} from "../../../controllers/admin/marketing-limited-discount.controller";
 
 const mockReq = (overrides: any = {}) => ({
   tenantId: "t1",

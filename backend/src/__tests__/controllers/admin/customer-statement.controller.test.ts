@@ -1,6 +1,6 @@
-import { vi, describe, it, beforeEach, expect } from "vitest";
+﻿import { vi, describe, it, beforeEach, expect } from "vitest";
 
-vi.mock("../../../services/admin/customer-statement.service.js", () => ({
+vi.mock("../../../services/admin/customer-statement.service", () => ({
   list: vi.fn(),
   getDetail: vi.fn(),
   create: vi.fn(),
@@ -8,24 +8,24 @@ vi.mock("../../../services/admin/customer-statement.service.js", () => ({
   markPaid: vi.fn(),
 }));
 
-vi.mock("../../../shared/response.js", () => ({
+vi.mock("../../../shared/response", () => ({
   ok: vi.fn((data) => ({ success: true, data })),
   fail: vi.fn((msg, code) => ({ success: false, message: msg, code })),
 }));
 
-vi.mock("../../../middleware/async-handler.js", () => ({
+vi.mock("../../../middleware/async-handler", () => ({
   asyncHandler: (fn: any) => fn,
 }));
 
-import * as customerStatementService from "../../../services/admin/customer-statement.service.js";
-import { ok } from "../../../shared/response.js";
+import * as customerStatementService from "../../../services/admin/customer-statement.service";
+import { ok } from "../../../shared/response";
 import {
   list,
   getDetail,
   create,
   confirm,
   markPaid,
-} from "../../../controllers/admin/customer-statement.controller.js";
+} from "../../../controllers/admin/customer-statement.controller";
 
 const mockReq = (overrides: any = {}) => ({
   tenantId: "t1",

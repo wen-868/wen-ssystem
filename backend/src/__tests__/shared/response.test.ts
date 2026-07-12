@@ -1,5 +1,5 @@
-import { describe, it, expect } from "vitest";
-import { ok, fail } from "../../shared/response.js";
+﻿import { describe, it, expect } from "vitest";
+import { ok, fail } from "../../shared/response";
 
 describe("ok", () => {
   it("应返回 code 为 0 的成功响应", () => {

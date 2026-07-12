@@ -1,4 +1,4 @@
-import { describe, it, expect, vi, beforeEach } from "vitest";
+﻿import { describe, it, expect, vi, beforeEach } from "vitest";
 
 const mocks = vi.hoisted(() => ({
   ok: vi.fn((data?: any) => ({ code: "0", data })),
@@ -10,16 +10,16 @@ const mocks = vi.hoisted(() => ({
   getActiveAnnouncements: vi.fn(),
 }));
 
-vi.mock("../../../middleware/async-handler.js", () => ({
+vi.mock("../../../middleware/async-handler", () => ({
   asyncHandler: (fn: any) => fn,
 }));
 
-vi.mock("../../../shared/response.js", () => ({
+vi.mock("../../../shared/response", () => ({
   ok: mocks.ok,
   fail: mocks.fail,
 }));
 
-vi.mock("../../../services/instant-retail/retail-announcement.service.js", () => ({
+vi.mock("../../../services/instant-retail/retail-announcement.service", () => ({
   listAnnouncements: mocks.listAnnouncements,
   createAnnouncement: mocks.createAnnouncement,
   updateAnnouncement: mocks.updateAnnouncement,
@@ -33,7 +33,7 @@ import {
   updateAnnouncement,
   deleteAnnouncement,
   getActiveAnnouncements,
-} from "../../../controllers/admin/retail-announcement.controller.js";
+} from "../../../controllers/admin/retail-announcement.controller";
 
 const mockReq = (overrides: any = {}) => ({
   tenantId: "t1",

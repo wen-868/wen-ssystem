@@ -1,7 +1,7 @@
-import { z } from "zod";
-import { asyncHandler } from "../../middleware/async-handler.js";
-import { ok, fail } from "../../shared/response.js";
-import * as quotePushService from "../../services/admin/quote-push.service.js";
+﻿import { z } from "zod";
+import { asyncHandler } from "../../middleware/async-handler";
+import { ok, fail } from "../../shared/response";
+import * as quotePushService from "../../services/admin/quote-push.service";
 
 export const previewQuote = asyncHandler(async (req, res) => {
   const tenantId = req.tenantId!;

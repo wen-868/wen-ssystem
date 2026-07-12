@@ -1,4 +1,4 @@
-/**
+﻿/**
  * 管理端应收应付 service 单元测试
  * 被测文件：src/services/admin/receivable.service.ts
  * 覆盖全部 6 个导出函数，目标覆盖率 100%
@@ -10,7 +10,7 @@ const mocks = vi.hoisted(() => ({
   queryOneWithTenant: vi.fn(),
 }));
 
-vi.mock("../../../shared/db.js", () => ({
+vi.mock("../../../shared/db", () => ({
   query: vi.fn(),
   queryOne: vi.fn(),
   queryWithTenant: mocks.queryWithTenant,
@@ -25,7 +25,7 @@ import {
   getPayablesAging,
   getReceivableDetail,
   getPayableDetail,
-} from "../../../services/admin/receivable.service.js";
+} from "../../../services/admin/receivable.service";
 
 beforeEach(() => {
   mocks.queryWithTenant.mockReset();

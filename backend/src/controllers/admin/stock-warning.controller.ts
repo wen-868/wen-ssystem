@@ -1,6 +1,6 @@
-import { asyncHandler } from "../../middleware/async-handler.js";
-import { ok } from "../../shared/response.js";
-import * as stockWarningService from "../../services/admin/stock-warning.service.js";
+﻿import { asyncHandler } from "../../middleware/async-handler";
+import { ok } from "../../shared/response";
+import * as stockWarningService from "../../services/admin/stock-warning.service";
 
 export const getStockWarnings = asyncHandler(async (req, res) => {
   const result = await stockWarningService.getStockWarnings(

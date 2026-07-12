@@ -1,4 +1,4 @@
-import { describe, it, expect, vi, beforeEach } from "vitest";
+﻿import { describe, it, expect, vi, beforeEach } from "vitest";
 
 const mocks = vi.hoisted(() => ({
   ok: vi.fn((data?: any) => ({ code: "0", data })),
@@ -16,16 +16,16 @@ const mocks = vi.hoisted(() => ({
   confirmExchange: vi.fn(),
 }));
 
-vi.mock("../../../middleware/async-handler.js", () => ({
+vi.mock("../../../middleware/async-handler", () => ({
   asyncHandler: (fn: any) => fn,
 }));
 
-vi.mock("../../../shared/response.js", () => ({
+vi.mock("../../../shared/response", () => ({
   ok: mocks.ok,
   fail: mocks.fail,
 }));
 
-vi.mock("../../../services/admin/marketing-points-mall.service.js", () => ({
+vi.mock("../../../services/admin/marketing-points-mall.service", () => ({
   createPointsProduct: mocks.createPointsProduct,
   listPointsProducts: mocks.listPointsProducts,
   getPointsProductDetail: mocks.getPointsProductDetail,
@@ -51,7 +51,7 @@ import {
   exchangeProduct,
   cancelExchange,
   confirmExchange,
-} from "../../../controllers/admin/marketing-points-mall.controller.js";
+} from "../../../controllers/admin/marketing-points-mall.controller";
 
 const mockReq = (overrides: any = {}) => ({
   tenantId: "t1",

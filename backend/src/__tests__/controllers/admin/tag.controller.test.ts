@@ -1,4 +1,4 @@
-/**
+﻿/**
  * 管理端标签管理 controller 单元测试
  * 被测文件：src/controllers/admin/tag.controller.ts
  */
@@ -19,16 +19,16 @@ const mocks = vi.hoisted(() => ({
   setProductTags: vi.fn(),
 }));
 
-vi.mock("../../../middleware/async-handler.js", () => ({
+vi.mock("../../../middleware/async-handler", () => ({
   asyncHandler: (fn: any) => fn,
 }));
 
-vi.mock("../../../shared/response.js", () => ({
+vi.mock("../../../shared/response", () => ({
   ok: mocks.ok,
   fail: mocks.fail,
 }));
 
-vi.mock("../../../services/admin/tag.service.js", () => ({
+vi.mock("../../../services/admin/tag.service", () => ({
   listGroups: mocks.listGroups,
   createGroup: mocks.createGroup,
   updateGroup: mocks.updateGroup,
@@ -52,7 +52,7 @@ import {
   deleteTag,
   getProductTags,
   setProductTags,
-} from "../../../controllers/admin/tag.controller.js";
+} from "../../../controllers/admin/tag.controller";
 
 const mockReq = (overrides: any = {}) => ({
   tenantId: "t1",

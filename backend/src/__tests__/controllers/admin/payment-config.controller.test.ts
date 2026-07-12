@@ -1,6 +1,6 @@
-import { vi, describe, it, beforeEach, expect } from "vitest";
+﻿import { vi, describe, it, beforeEach, expect } from "vitest";
 
-vi.mock("../../../services/admin/payment-config.service.js", () => ({
+vi.mock("../../../services/admin/payment-config.service", () => ({
   PaymentConfigService: {
     getChannelConfig: vi.fn(),
     saveChannelConfig: vi.fn(),
@@ -15,13 +15,13 @@ vi.mock("../../../services/admin/payment-config.service.js", () => ({
   },
 }));
 
-vi.mock("../../../shared/response.js", () => ({
+vi.mock("../../../shared/response", () => ({
   ok: vi.fn((data) => ({ success: true, data })),
   fail: vi.fn((msg, code) => ({ success: false, message: msg, code })),
 }));
 
-import { PaymentConfigService } from "../../../services/admin/payment-config.service.js";
-import { ok } from "../../../shared/response.js";
+import { PaymentConfigService } from "../../../services/admin/payment-config.service";
+import { ok } from "../../../shared/response";
 import {
   getChannelConfig,
   saveChannelConfig,
@@ -32,7 +32,7 @@ import {
   updateBankAccount,
   deleteBankAccount,
   setDefaultBankAccount,
-} from "../../../controllers/admin/payment-config.controller.js";
+} from "../../../controllers/admin/payment-config.controller";
 
 const mockReq = (overrides: any = {}) => ({
   tenantId: "t1",

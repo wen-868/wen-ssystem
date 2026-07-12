@@ -1,4 +1,4 @@
-/**
+﻿/**
  * 启动时自动数据库迁移
  *
  * 不依赖外部 SQL 文件，全部程序化执行
@@ -7,8 +7,8 @@
 import { readFileSync, readdirSync, existsSync } from "fs";
 import { resolve, join } from "path";
 import mysql from "mysql2/promise";
-import { env } from "./env.js";
-import logger from "./logger.js";
+import { env } from "./env";
+import logger from "./logger";
 
 /** 跳过错误码集合 */
 export const SKIP_ERRORS = new Set([

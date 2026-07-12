@@ -1,6 +1,6 @@
-import { asyncHandler } from "../../../middleware/async-handler.js";
-import { ok } from "../../../shared/response.js";
-import * as financeReportService from "../../../services/admin/report/finance-report.service.js";
+﻿import { asyncHandler } from "../../../middleware/async-handler";
+import { ok } from "../../../shared/response";
+import * as financeReportService from "../../../services/admin/report/finance-report.service";
 
 export const getReceivablePayable = asyncHandler(async (req, res) => {
   const result = await financeReportService.getReceivablePayable(

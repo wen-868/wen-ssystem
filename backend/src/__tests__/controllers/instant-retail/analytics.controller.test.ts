@@ -1,24 +1,24 @@
-import { vi, describe, it, beforeEach, expect } from "vitest";
+﻿import { vi, describe, it, beforeEach, expect } from "vitest";
 
-vi.mock("../../../services/instant-retail/retail-analytics.service.js", () => ({
+vi.mock("../../../services/instant-retail/retail-analytics.service", () => ({
   getAnalyticsSummary: vi.fn(),
   getSalesTrend: vi.fn(),
   getPlatformComparison: vi.fn(),
   getTopProducts: vi.fn(),
 }));
 
-vi.mock("../../../shared/response.js", () => ({
+vi.mock("../../../shared/response", () => ({
   ok: vi.fn((data) => ({ success: true, data })),
   fail: vi.fn((msg, code) => ({ success: false, message: msg, code })),
 }));
 
-vi.mock("../../../middleware/async-handler.js", () => ({
+vi.mock("../../../middleware/async-handler", () => ({
   asyncHandler: (fn: any) => fn,
 }));
 
-import * as svc from "../../../services/instant-retail/retail-analytics.service.js";
-import { ok } from "../../../shared/response.js";
-import { getAnalyticsSummary, getSalesTrend, getPlatformComparison, getTopProducts } from "../../../controllers/instant-retail/analytics.controller.js";
+import * as svc from "../../../services/instant-retail/retail-analytics.service";
+import { ok } from "../../../shared/response";
+import { getAnalyticsSummary, getSalesTrend, getPlatformComparison, getTopProducts } from "../../../controllers/instant-retail/analytics.controller";
 
 const mockReq = (overrides: any = {}) => ({
   tenantId: "t1",

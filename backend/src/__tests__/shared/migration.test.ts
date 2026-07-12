@@ -1,4 +1,4 @@
-import { describe, it, expect, vi, beforeEach } from "vitest";
+﻿import { describe, it, expect, vi, beforeEach } from "vitest";
 import type { Connection } from "mysql2/promise";
 
 const { mockQuery, mockEnd, mockCreateConnection } = vi.hoisted(() => {
@@ -17,7 +17,7 @@ vi.mock("mysql2/promise", () => ({
   },
 }));
 
-vi.mock("../../shared/env.js", () => ({
+vi.mock("../../shared/env", () => ({
   env: {
     USE_MOCK_DB: false,
     DB_HOST: "localhost",
@@ -35,7 +35,7 @@ const { mockLoggerInfo, mockLoggerError, mockLoggerWarn, mockLoggerDebug } = vi.
   mockLoggerDebug: vi.fn(),
 }));
 
-vi.mock("../../shared/logger.js", () => ({
+vi.mock("../../shared/logger", () => ({
   default: {
     info: mockLoggerInfo,
     error: mockLoggerError,
@@ -62,8 +62,8 @@ vi.mock("bcryptjs", () => ({
   hashSync: mockHashSync,
 }));
 
-import { runMigrations, safeExec, SKIP_ERRORS, TENANT_TABLES } from "../../shared/migration.js";
-import { env } from "../../shared/env.js";
+import { runMigrations, safeExec, SKIP_ERRORS, TENANT_TABLES } from "../../shared/migration";
+import { env } from "../../shared/env";
 
 function makeMockConn(queryFn: ReturnType<typeof vi.fn> = vi.fn().mockResolvedValue([])): Connection {
   return { query: queryFn } as unknown as Connection;

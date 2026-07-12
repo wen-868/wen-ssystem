@@ -1,10 +1,10 @@
-import { describe, it, expect, vi, beforeEach } from "vitest";
+﻿import { describe, it, expect, vi, beforeEach } from "vitest";
 
 const { mockQueryWithTenant } = vi.hoisted(() => ({
   mockQueryWithTenant: vi.fn(),
 }));
 
-vi.mock("../../shared/db.js", () => ({
+vi.mock("../../shared/db", () => ({
   queryWithTenant: mockQueryWithTenant,
   queryOneWithTenant: vi.fn(),
 }));
@@ -17,7 +17,7 @@ import {
   syncChangedFields,
   syncSingleField,
   SYNC_MAPPINGS,
-} from "../../shared/field-sync.js";
+} from "../../shared/field-sync";
 
 describe("field-sync", () => {
   describe("SYNC_MAPPINGS", () => {

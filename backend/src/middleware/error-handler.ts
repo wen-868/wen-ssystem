@@ -1,9 +1,9 @@
-import type { ErrorRequestHandler } from "express";
+﻿import type { ErrorRequestHandler } from "express";
 import { ZodError, type ZodIssue } from "zod";
-import logger from "../shared/logger.js";
-import { fail } from "../shared/response.js";
-import { insertErrorLog } from "../services/admin/error-log.service.js";
-import { reportToLingZhou } from "../shared/feishu-report.js";
+import logger from "../shared/logger";
+import { fail } from "../shared/response";
+import { insertErrorLog } from "../services/admin/error-log.service";
+import { reportToLingZhou } from "../shared/feishu-report";
 
 export const errorHandler: ErrorRequestHandler = (err, req, res, _next) => {
   logger.error(err);

@@ -1,9 +1,9 @@
-import { Router } from "express";
-import type { RouteConfig } from "../shared/auto-routes.js";
-import * as retailAdminController from "../controllers/admin/instant-retail.controller.js";
-import * as reviewController from "../controllers/instant-retail/review.controller.js";
-import * as reconciliationController from "../controllers/instant-retail/reconciliation.controller.js";
-import * as analyticsController from "../controllers/instant-retail/analytics.controller.js";
+﻿import { Router } from "express";
+import type { RouteConfig } from "../shared/auto-routes";
+import * as retailAdminController from "../controllers/admin/instant-retail.controller";
+import * as reviewController from "../controllers/instant-retail/review.controller";
+import * as reconciliationController from "../controllers/instant-retail/reconciliation.controller";
+import * as analyticsController from "../controllers/instant-retail/analytics.controller";
 
 export const instantRetailAdminOpsRouter = Router();
 

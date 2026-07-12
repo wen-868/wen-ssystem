@@ -1,7 +1,7 @@
-import { Router } from "express";
-import { requireAuthWithTenant } from "../middleware/auth.js";
-import * as couponController from "../controllers/admin/marketing-coupon.controller.js";
-import type { RouteConfig } from "../shared/auto-routes.js";
+﻿import { Router } from "express";
+import { requireAuthWithTenant } from "../middleware/auth";
+import * as couponController from "../controllers/admin/marketing-coupon.controller";
+import type { RouteConfig } from "../shared/auto-routes";
 
 export const adminMarketingCouponRouter = Router();
 

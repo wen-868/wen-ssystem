@@ -1,4 +1,4 @@
-import { describe, it, expect, vi, beforeEach } from "vitest";
+﻿import { describe, it, expect, vi, beforeEach } from "vitest";
 
 const mocks = vi.hoisted(() => ({
   ok: vi.fn((data?: any) => ({ code: "0", data })),
@@ -9,16 +9,16 @@ const mocks = vi.hoisted(() => ({
   deleteCustomerPrice: vi.fn(),
 }));
 
-vi.mock("../../../middleware/async-handler.js", () => ({
+vi.mock("../../../middleware/async-handler", () => ({
   asyncHandler: (fn: any) => fn,
 }));
 
-vi.mock("../../../shared/response.js", () => ({
+vi.mock("../../../shared/response", () => ({
   ok: mocks.ok,
   fail: mocks.fail,
 }));
 
-vi.mock("../../../services/admin/customer-price.service.js", () => ({
+vi.mock("../../../services/admin/customer-price.service", () => ({
   listCustomerPrices: mocks.listCustomerPrices,
   createCustomerPrice: mocks.createCustomerPrice,
   updateCustomerPrice: mocks.updateCustomerPrice,
@@ -30,7 +30,7 @@ import {
   createCustomerPrice,
   updateCustomerPrice,
   deleteCustomerPrice,
-} from "../../../controllers/admin/customer-price.controller.js";
+} from "../../../controllers/admin/customer-price.controller";
 
 const mockReq = (overrides: any = {}) => ({
   tenantId: "t1",

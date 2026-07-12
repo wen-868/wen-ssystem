@@ -1,7 +1,7 @@
-import { Router } from "express";
-import type { RouteConfig } from "../shared/auto-routes.js";
-import { requireAuthWithTenant } from "../middleware/auth.js";
-import * as expenseController from "../controllers/admin/expense.controller.js";
+﻿import { Router } from "express";
+import type { RouteConfig } from "../shared/auto-routes";
+import { requireAuthWithTenant } from "../middleware/auth";
+import * as expenseController from "../controllers/admin/expense.controller";
 
 export const expenseRouter = Router();
 expenseRouter.post("/", requireAuthWithTenant, expenseController.createExpense);

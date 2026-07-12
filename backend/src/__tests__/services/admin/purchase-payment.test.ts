@@ -1,4 +1,4 @@
-/**
+﻿﻿﻿﻿﻿﻿/**
  * 采购付款 service 单元测试
  * 被测文件：src/services/admin/purchase-payment.service.ts
  */
@@ -13,7 +13,7 @@ const mocks = vi.hoisted(() => ({
   makeBizNo: vi.fn(),
 }));
 
-vi.mock("../../../shared/db.js", () => ({
+vi.mock("../../../shared/db", () => ({
   query: mocks.query,
   queryOne: mocks.queryOne,
   queryWithTenant: mocks.queryWithTenant,
@@ -21,7 +21,7 @@ vi.mock("../../../shared/db.js", () => ({
   transaction: mocks.transaction,
 }));
 
-vi.mock("../../../shared/id.js", () => ({
+vi.mock("../../../shared/id", () => ({
   makeBizNo: mocks.makeBizNo,
 }));
 
@@ -31,7 +31,7 @@ import {
   create,
   approve,
   voidPayment,
-} from "../../../services/admin/purchase-payment.service.js";
+} from "../../../services/admin/purchase-payment.service";
 
 const mockConn = { query: vi.fn() };
 

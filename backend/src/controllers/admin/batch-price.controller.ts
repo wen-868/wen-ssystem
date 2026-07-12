@@ -1,7 +1,7 @@
-import { z } from "zod";
-import { asyncHandler } from "../../middleware/async-handler.js";
-import { ok } from "../../shared/response.js";
-import * as batchPriceService from "../../services/admin/batch-price.service.js";
+﻿import { z } from "zod";
+import { asyncHandler } from "../../middleware/async-handler";
+import { ok } from "../../shared/response";
+import * as batchPriceService from "../../services/admin/batch-price.service";
 
 const filterSchema = z.object({
   categoryId: z.number().int().optional(),

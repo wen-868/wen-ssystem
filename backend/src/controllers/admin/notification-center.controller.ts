@@ -1,6 +1,6 @@
-import { asyncHandler } from "../../middleware/async-handler.js";
-import { ok } from "../../shared/response.js";
-import * as notificationCenterService from "../../services/admin/notification-center.service.js";
+﻿import { asyncHandler } from "../../middleware/async-handler";
+import { ok } from "../../shared/response";
+import * as notificationCenterService from "../../services/admin/notification-center.service";
 
 export const listNotifications = asyncHandler(async (req, res) => {
   const tenantId = req.tenantId!;

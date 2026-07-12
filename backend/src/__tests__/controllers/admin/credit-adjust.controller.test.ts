@@ -1,4 +1,4 @@
-import { describe, it, expect, vi, beforeEach } from "vitest";
+﻿import { describe, it, expect, vi, beforeEach } from "vitest";
 
 const mocks = vi.hoisted(() => ({
   ok: vi.fn((data?: any) => ({ code: "0", data })),
@@ -8,16 +8,16 @@ const mocks = vi.hoisted(() => ({
   getOperationLogs: vi.fn(),
 }));
 
-vi.mock("../../../middleware/async-handler.js", () => ({
+vi.mock("../../../middleware/async-handler", () => ({
   asyncHandler: (fn: any) => fn,
 }));
 
-vi.mock("../../../shared/response.js", () => ({
+vi.mock("../../../shared/response", () => ({
   ok: mocks.ok,
   fail: mocks.fail,
 }));
 
-vi.mock("../../../services/admin/credit-adjust.service.js", () => ({
+vi.mock("../../../services/admin/credit-adjust.service", () => ({
   creditAdjustService: {
     adjustLimit: mocks.adjustLimit,
     adjustTerm: mocks.adjustTerm,
@@ -29,7 +29,7 @@ import {
   adjustLimit,
   adjustTerm,
   getOperationLogs,
-} from "../../../controllers/admin/credit-adjust.controller.js";
+} from "../../../controllers/admin/credit-adjust.controller";
 
 const mockReq = (overrides: any = {}) => ({
   tenantId: "t1",

@@ -1,7 +1,7 @@
-import { z } from "zod";
-import { asyncHandler } from "../../middleware/async-handler.js";
-import { ok } from "../../shared/response.js";
-import * as fullReductionService from "../../services/admin/marketing-full-reduction.service.js";
+﻿import { z } from "zod";
+import { asyncHandler } from "../../middleware/async-handler";
+import { ok } from "../../shared/response";
+import * as fullReductionService from "../../services/admin/marketing-full-reduction.service";
 
 export const createFullReduction = asyncHandler(async (req, res) => {
   const body = z.object({

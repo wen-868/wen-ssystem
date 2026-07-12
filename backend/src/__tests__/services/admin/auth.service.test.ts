@@ -1,4 +1,4 @@
-/**
+﻿/**
  * 管理端认证 service 单元测试
  * 被测文件：src/services/admin/auth.service.ts
  */
@@ -16,7 +16,7 @@ const mocks = vi.hoisted(() => ({
   validatePassword: vi.fn(),
 }));
 
-vi.mock("../../../shared/db.js", () => ({
+vi.mock("../../../shared/db", () => ({
   query: mocks.query,
   queryOne: mocks.queryOne,
   queryWithTenant: mocks.queryWithTenant,
@@ -24,19 +24,19 @@ vi.mock("../../../shared/db.js", () => ({
   transaction: vi.fn(),
 }));
 
-vi.mock("../../../middleware/auth.js", () => ({
+vi.mock("../../../middleware/auth", () => ({
   signToken: mocks.signToken,
   getUserAccessInfo: mocks.getUserAccessInfo,
   AuthUser: {},
 }));
 
-vi.mock("../../../shared/password.js", () => ({
+vi.mock("../../../shared/password", () => ({
   verifyPassword: mocks.verifyPassword,
   hashPassword: mocks.hashPassword,
   validatePassword: mocks.validatePassword,
 }));
 
-import { login, getMe, getSettings, updateSettings, changePassword } from "../../../services/admin/auth.service.js";
+import { login, getMe, getSettings, updateSettings, changePassword } from "../../../services/admin/auth.service";
 
 describe("auth.service", () => {
   beforeEach(() => vi.resetAllMocks());

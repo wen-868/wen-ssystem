@@ -1,4 +1,4 @@
-import { randomBytes } from "node:crypto";
+﻿import { randomBytes } from "node:crypto";
 
 export function makeBizNo(prefix: string) {
   const now = new Date();

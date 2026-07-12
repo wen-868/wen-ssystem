@@ -1,27 +1,27 @@
-import { vi, describe, it, beforeEach, expect } from "vitest";
+﻿import { vi, describe, it, beforeEach, expect } from "vitest";
 
-vi.mock("../../../../services/admin/report/finance-report.service.js", () => ({
+vi.mock("../../../../services/admin/report/finance-report.service", () => ({
   getReceivablePayable: vi.fn(),
   getPaymentAnalysis: vi.fn(),
   getProfit: vi.fn(),
 }));
 
-vi.mock("../../../../shared/response.js", () => ({
+vi.mock("../../../../shared/response", () => ({
   ok: vi.fn((data) => ({ success: true, data })),
   fail: vi.fn((msg, code) => ({ success: false, message: msg, code })),
 }));
 
-vi.mock("../../../../middleware/async-handler.js", () => ({
+vi.mock("../../../../middleware/async-handler", () => ({
   asyncHandler: (fn: any) => fn,
 }));
 
-import * as financeReportService from "../../../../services/admin/report/finance-report.service.js";
-import { ok } from "../../../../shared/response.js";
+import * as financeReportService from "../../../../services/admin/report/finance-report.service";
+import { ok } from "../../../../shared/response";
 import {
   getReceivablePayable,
   getPaymentAnalysis,
   getProfit,
-} from "../../../../controllers/admin/report/finance-report.controller.js";
+} from "../../../../controllers/admin/report/finance-report.controller";
 
 const mockReq = (overrides: any = {}) => ({
   tenantId: "t1",

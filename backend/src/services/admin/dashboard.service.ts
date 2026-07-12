@@ -1,4 +1,4 @@
-import { query, queryOne } from "../../shared/db.js";
+﻿import { query, queryOne } from "../../shared/db";
 
 export async function getOverview(tenantId: string) {
   const today = new Date().toISOString().slice(0, 10);

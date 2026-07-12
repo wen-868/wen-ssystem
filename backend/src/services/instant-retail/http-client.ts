@@ -1,4 +1,4 @@
-/**
+﻿/**
  * 即时零售平台 HTTP 客户端
  * 统一管理对外部平台 API 的 HTTP 请求，支持 Mock 模式切换。
  *
@@ -6,8 +6,8 @@
  * 空值或未设置时默认走真实请求。
  */
 
-import { env } from "../../shared/env.js";
-import logger from "../../shared/logger.js";
+import { env } from "../../shared/env";
+import logger from "../../shared/logger";
 
 /** 仅当显式设置 INSTANT_RETAIL_MOCK=true 时才启用 Mock */
 export function isMock(): boolean {

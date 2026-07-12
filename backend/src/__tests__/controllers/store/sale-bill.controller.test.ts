@@ -1,7 +1,7 @@
-import { vi, describe, it, beforeEach, expect } from "vitest";
+﻿import { vi, describe, it, beforeEach, expect } from "vitest";
 import { z, ZodError } from "zod";
 
-vi.mock("../../../services/store/sale-bill.service.js", () => ({
+vi.mock("../../../services/store/sale-bill.service", () => ({
   listSaleBills: vi.fn(),
   getSaleBillDetail: vi.fn(),
   createSaleBill: vi.fn(),
@@ -12,7 +12,7 @@ vi.mock("../../../services/store/sale-bill.service.js", () => ({
   checkOverdueBills: vi.fn(),
 }));
 
-vi.mock("../../../routes/store-sale-bill.routes.js", () => {
+vi.mock("../../../routes/store-sale-bill.routes", () => {
   const storeSaleBillItemSchema = z.object({
     skuId: z.number(),
     quantity: z.number().optional(),
@@ -21,18 +21,18 @@ vi.mock("../../../routes/store-sale-bill.routes.js", () => {
   return { storeSaleBillItemSchema };
 });
 
-vi.mock("../../../shared/response.js", () => ({
+vi.mock("../../../shared/response", () => ({
   ok: vi.fn((data) => ({ success: true, data })),
   fail: vi.fn((msg, code) => ({ success: false, message: msg, code })),
 }));
 
-vi.mock("../../../middleware/async-handler.js", () => ({
+vi.mock("../../../middleware/async-handler", () => ({
   asyncHandler: (fn: any) => fn,
 }));
 
-import * as saleBillService from "../../../services/store/sale-bill.service.js";
-import { ok, fail } from "../../../shared/response.js";
-import { listSaleBills, getSaleBillDetail, createSaleBill, createCollectionLink, offlinePayment, paymentOnSaleBill, listOverdueBills, checkOverdueBills } from "../../../controllers/store/sale-bill.controller.js";
+import * as saleBillService from "../../../services/store/sale-bill.service";
+import { ok, fail } from "../../../shared/response";
+import { listSaleBills, getSaleBillDetail, createSaleBill, createCollectionLink, offlinePayment, paymentOnSaleBill, listOverdueBills, checkOverdueBills } from "../../../controllers/store/sale-bill.controller";
 
 const mockReq = (overrides: any = {}) => ({
   tenantId: "t1",

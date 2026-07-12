@@ -1,6 +1,6 @@
-import { vi, describe, it, beforeEach, expect } from "vitest";
+﻿import { vi, describe, it, beforeEach, expect } from "vitest";
 
-vi.mock("../../../services/admin/aftersale.service.js", () => ({
+vi.mock("@services/admin/aftersale.service", () => ({
   createAftersale: vi.fn(),
   listMyAftersales: vi.fn(),
   getAftersaleDetail: vi.fn(),
@@ -17,17 +17,17 @@ vi.mock("../../../services/admin/aftersale.service.js", () => ({
   getAftersaleStatistics: vi.fn(),
 }));
 
-vi.mock("../../../shared/response.js", () => ({
+vi.mock("@shared/response", () => ({
   ok: vi.fn((data) => ({ success: true, data })),
   fail: vi.fn((msg, code) => ({ success: false, message: msg, code })),
 }));
 
-vi.mock("../../../middleware/async-handler.js", () => ({
+vi.mock("@middleware/async-handler", () => ({
   asyncHandler: (fn: any) => fn,
 }));
 
-import * as aftersaleService from "../../../services/admin/aftersale.service.js";
-import { ok } from "../../../shared/response.js";
+import * as aftersaleService from "@services/admin/aftersale.service";
+import { ok } from "@shared/response";
 import {
   miniappCreateAftersale,
   miniappListMyAftersales,
@@ -43,7 +43,7 @@ import {
   adminInspectAftersale,
   adminCompleteAftersale,
   adminGetStatistics,
-} from "../../../controllers/aftersale.controller.js";
+} from "@controllers/aftersale.controller";
 
 const mockReq = (overrides: any = {}) => ({
   tenantId: "t1",

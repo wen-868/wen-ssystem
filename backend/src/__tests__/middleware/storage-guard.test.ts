@@ -1,4 +1,4 @@
-import { describe, it, expect, vi, beforeEach } from "vitest";
+﻿import { describe, it, expect, vi, beforeEach } from "vitest";
 
 const { mockQueryOneWithTenant, mockFail, mockLogger } = vi.hoisted(() => ({
   mockQueryOneWithTenant: vi.fn(),
@@ -11,21 +11,21 @@ const { mockQueryOneWithTenant, mockFail, mockLogger } = vi.hoisted(() => ({
   },
 }));
 
-vi.mock("../../shared/db.js", () => ({
+vi.mock("../../shared/db", () => ({
   queryWithTenant: vi.fn(),
   queryOneWithTenant: mockQueryOneWithTenant,
 }));
 
-vi.mock("../../shared/response.js", () => ({
+vi.mock("../../shared/response", () => ({
   fail: mockFail,
   ok: vi.fn(),
 }));
 
-vi.mock("../../shared/logger.js", () => ({
+vi.mock("../../shared/logger", () => ({
   default: mockLogger,
 }));
 
-import { storageGuard } from "../../middleware/storage-guard.js";
+import { storageGuard } from "../../middleware/storage-guard";
 import type { Request, Response, NextFunction } from "express";
 
 function mockReqRes(opts?: { tenantId?: string; headerTenantId?: string }) {

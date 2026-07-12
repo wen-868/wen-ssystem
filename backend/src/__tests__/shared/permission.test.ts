@@ -1,6 +1,6 @@
-import { describe, it, expect, vi } from "vitest";
-import * as permissionModule from "../../shared/permission.js";
-import type { AuthUser } from "../../shared/auth.js";
+﻿import { describe, it, expect, vi } from "vitest";
+import * as permissionModule from "../../shared/permission";
+import type { AuthUser } from "../../shared/auth";
 
 const { checkPermission, getDataScope, applyDataPermissionFilter, filterSensitiveFields } = permissionModule;
 

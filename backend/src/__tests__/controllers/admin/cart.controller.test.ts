@@ -1,4 +1,4 @@
-/**
+﻿/**
  * 管理端购物车 controller 单元测试
  * 被测文件：src/controllers/admin/cart.controller.ts
  */
@@ -18,20 +18,20 @@ const mocks = vi.hoisted(() => ({
   createCheckoutOrder: vi.fn(),
 }));
 
-vi.mock("../../../middleware/async-handler.js", () => ({
+vi.mock("../../../middleware/async-handler", () => ({
   asyncHandler: (fn: any) => fn,
 }));
 
-vi.mock("../../../shared/response.js", () => ({
+vi.mock("../../../shared/response", () => ({
   ok: mocks.ok,
   fail: mocks.fail,
 }));
 
-vi.mock("../../../shared/fulfillment.js", () => ({
+vi.mock("../../../shared/fulfillment", () => ({
   getSettlementType: mocks.getSettlementType,
 }));
 
-vi.mock("../../../services/admin/cart.service.js", () => ({
+vi.mock("../../../services/admin/cart.service", () => ({
   getCartList: mocks.getCartList,
   addToCart: mocks.addToCart,
   updateCartItemQuantity: mocks.updateCartItemQuantity,
@@ -50,7 +50,7 @@ import {
   getCartCount,
   checkoutPreview,
   createCheckoutOrder,
-} from "../../../controllers/admin/cart.controller.js";
+} from "../../../controllers/admin/cart.controller";
 
 const mockReq = (overrides: any = {}) => ({
   tenantId: "t1",

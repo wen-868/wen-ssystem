@@ -1,7 +1,7 @@
-import { asyncHandler } from "../../middleware/async-handler.js";
-import { ok, fail } from "../../shared/response.js";
+﻿import { asyncHandler } from "../../middleware/async-handler";
+import { ok, fail } from "../../shared/response";
 import { z } from "zod";
-import * as transferExecutionService from "../../services/transfer-execution.service.js";
+import * as transferExecutionService from "../../services/transfer-execution.service";
 
 export const cancelTransferOrder = asyncHandler(async (req, res) => {
   const id = z.coerce.number().parse(req.params.id);

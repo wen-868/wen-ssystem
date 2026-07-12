@@ -1,5 +1,5 @@
-import { query, queryOne, queryWithTenant, queryOneWithTenant, transaction } from "../../shared/db.js";
-import { makeBizNo } from "../../shared/id.js";
+﻿import { query, queryOne, queryWithTenant, queryOneWithTenant, transaction } from "../../shared/db";
+import { makeBizNo } from "../../shared/id";
 
 export async function listSubscriptions(
   tenantId: string,

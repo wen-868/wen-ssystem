@@ -1,6 +1,6 @@
-import crypto from 'crypto';
-import fs from 'fs';
-import { env } from './env.js';
+﻿import crypto from "crypto";
+import fs from "fs";
+import { env } from "./env";
 
 declare const Buffer: any;
 

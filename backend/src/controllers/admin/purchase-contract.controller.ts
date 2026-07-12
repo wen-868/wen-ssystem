@@ -1,7 +1,7 @@
-import { z } from "zod";
-import { asyncHandler } from "../../middleware/async-handler.js";
-import { ok } from "../../shared/response.js";
-import * as purchaseContractService from "../../services/admin/purchase-contract.service.js";
+﻿import { z } from "zod";
+import { asyncHandler } from "../../middleware/async-handler";
+import { ok } from "../../shared/response";
+import * as purchaseContractService from "../../services/admin/purchase-contract.service";
 
 const createPurchaseContractSchema = z.object({
   supplierId: z.number().int().positive(),

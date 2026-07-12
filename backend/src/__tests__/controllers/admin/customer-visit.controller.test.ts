@@ -1,4 +1,4 @@
-import { describe, it, expect, vi, beforeEach } from "vitest";
+﻿import { describe, it, expect, vi, beforeEach } from "vitest";
 
 const mocks = vi.hoisted(() => {
   const { z } = require("zod");
@@ -36,16 +36,16 @@ const mocks = vi.hoisted(() => {
   };
 });
 
-vi.mock("../../../middleware/async-handler.js", () => ({
+vi.mock("../../../middleware/async-handler", () => ({
   asyncHandler: (fn: any) => fn,
 }));
 
-vi.mock("../../../shared/response.js", () => ({
+vi.mock("../../../shared/response", () => ({
   ok: mocks.ok,
   fail: mocks.fail,
 }));
 
-vi.mock("../../../services/admin/customer-visit.service.js", () => ({
+vi.mock("../../../services/admin/customer-visit.service", () => ({
   listVisits: mocks.listVisits,
   getVisitDetail: mocks.getVisitDetail,
   createVisit: mocks.createVisit,
@@ -71,7 +71,7 @@ import {
   cancelVisit,
   listPendingFollowUps,
   getVisitStatistics,
-} from "../../../controllers/admin/customer-visit.controller.js";
+} from "../../../controllers/admin/customer-visit.controller";
 
 const mockReq = (overrides: any = {}) => ({
   tenantId: "t1",

@@ -1,4 +1,4 @@
-/**
+﻿/**
  * 管理端库存报损报溢 controller 单元测试
  * 被测文件：src/controllers/admin/inventory-loss-gain.controller.ts
  */
@@ -11,16 +11,16 @@ const mocks = vi.hoisted(() => ({
   listLossGains: vi.fn(),
 }));
 
-vi.mock("../../../middleware/async-handler.js", () => ({
+vi.mock("../../../middleware/async-handler", () => ({
   asyncHandler: (fn: any) => fn,
 }));
 
-vi.mock("../../../shared/response.js", () => ({
+vi.mock("../../../shared/response", () => ({
   ok: mocks.ok,
   fail: mocks.fail,
 }));
 
-vi.mock("../../../services/admin/inventory-loss-gain.service.js", () => ({
+vi.mock("../../../services/admin/inventory-loss-gain.service", () => ({
   reportLossGain: mocks.reportLossGain,
   listLossGains: mocks.listLossGains,
 }));
@@ -28,7 +28,7 @@ vi.mock("../../../services/admin/inventory-loss-gain.service.js", () => ({
 import {
   reportLossGain,
   listLossGains,
-} from "../../../controllers/admin/inventory-loss-gain.controller.js";
+} from "../../../controllers/admin/inventory-loss-gain.controller";
 
 const mockReq = (overrides: any = {}) => ({
   tenantId: "t1",

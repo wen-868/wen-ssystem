@@ -1,4 +1,4 @@
-/**
+﻿﻿﻿﻿﻿﻿/**
  * 库存查询 service 单元测试
  * 被测文件：src/services/store/inventory.service.ts
  */
@@ -11,7 +11,7 @@ const mocks = vi.hoisted(() => ({
   makeBizNo: vi.fn(),
 }));
 
-vi.mock("../../../shared/db.js", () => ({
+vi.mock("../../../shared/db", () => ({
   query: vi.fn(),
   queryOne: vi.fn(),
   queryWithTenant: mocks.queryWithTenant,
@@ -19,7 +19,7 @@ vi.mock("../../../shared/db.js", () => ({
   transaction: mocks.transaction,
 }));
 
-vi.mock("../../../shared/id.js", () => ({
+vi.mock("../../../shared/id", () => ({
   makeBizNo: mocks.makeBizNo,
 }));
 
@@ -28,7 +28,7 @@ import {
   adjustInventory,
   listInventoryLogs,
   listInventoryAlerts,
-} from "../../../services/store/inventory.service.js";
+} from "../../../services/store/inventory.service";
 
 const mockConn = { query: vi.fn(), execute: vi.fn() };
 

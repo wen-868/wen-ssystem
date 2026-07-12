@@ -1,6 +1,6 @@
-import { queryWithTenant, queryOneWithTenant } from "../../shared/db.js";
-import { makeBizNo } from "../../shared/id.js";
-import { verifyTraceCodeSimple } from "../../shared/trace-code.js";
+﻿import { queryWithTenant, queryOneWithTenant } from "../../shared/db";
+import { makeBizNo } from "../../shared/id";
+import { verifyTraceCodeSimple } from "../../shared/trace-code";
 
 export async function generateTraceCodes(
   body: {

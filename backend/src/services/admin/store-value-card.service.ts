@@ -1,5 +1,5 @@
-import { queryWithTenant, queryOneWithTenant } from "../../shared/db.js";
-import { makeBizNo } from "../../shared/id.js";
+﻿import { queryWithTenant, queryOneWithTenant } from "../../shared/db";
+import { makeBizNo } from "../../shared/id";
 
 export async function createStoreValueCard(params: { customerId: number; customerName?: string; initialAmount?: number; tenantId: string }) {
   const { customerId, customerName, initialAmount, tenantId } = params;

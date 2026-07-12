@@ -1,7 +1,7 @@
-import { z } from "zod";
-import { asyncHandler } from "../../middleware/async-handler.js";
-import { ok, fail } from "../../shared/response.js";
-import * as subscriptionPlanService from "../../services/admin/subscription-plan.service.js";
+﻿import { z } from "zod";
+import { asyncHandler } from "../../middleware/async-handler";
+import { ok, fail } from "../../shared/response";
+import * as subscriptionPlanService from "../../services/admin/subscription-plan.service";
 
 export const listPlans = asyncHandler(async (req, res) => {
   const status = req.query.status as string | undefined;

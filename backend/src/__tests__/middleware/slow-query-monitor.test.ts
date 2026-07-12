@@ -1,4 +1,4 @@
-/**
+﻿/**
  * 慢查询监控中间件单元测试
  * 被测文件：src/middleware/slow-query-monitor.ts
  */
@@ -9,7 +9,7 @@ const loggerMock = vi.hoisted(() => ({
   warn: vi.fn(),
 }));
 
-vi.mock("../../shared/logger.js", () => ({
+vi.mock("../../shared/logger", () => ({
   default: { warn: loggerMock.warn },
 }));
 
@@ -18,7 +18,7 @@ import {
   getSlowQueries,
   clearSlowQueries,
   slowQueryMiddleware,
-} from "../../middleware/slow-query-monitor.js";
+} from "../../middleware/slow-query-monitor";
 
 describe("slow-query-monitor", () => {
   beforeEach(() => {

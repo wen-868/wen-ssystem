@@ -1,6 +1,6 @@
-import { asyncHandler } from "../../middleware/async-handler.js";
-import { ok } from "../../shared/response.js";
-import * as pointsService from "../../services/admin/points.service.js";
+﻿import { asyncHandler } from "../../middleware/async-handler";
+import { ok } from "../../shared/response";
+import * as pointsService from "../../services/admin/points.service";
 
 export const listPointsRules = asyncHandler(async (req, res) => { res.json(ok(await pointsService.listPointsRules(req.tenantId!))); });
 export const createPointsRule = asyncHandler(async (req, res) => {

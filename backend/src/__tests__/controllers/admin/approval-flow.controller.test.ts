@@ -1,27 +1,27 @@
-import { vi, describe, it, beforeEach, expect } from "vitest";
+﻿import { vi, describe, it, beforeEach, expect } from "vitest";
 
-vi.mock("../../../services/admin/approval-flow.service.js", () => ({
+vi.mock("../../../services/admin/approval-flow.service", () => ({
   listRules: vi.fn(),
   createRule: vi.fn(),
   updateRule: vi.fn(),
 }));
 
-vi.mock("../../../shared/response.js", () => ({
+vi.mock("../../../shared/response", () => ({
   ok: vi.fn((data) => ({ success: true, data })),
   fail: vi.fn((msg, code) => ({ success: false, message: msg, code })),
 }));
 
-vi.mock("../../../middleware/async-handler.js", () => ({
+vi.mock("../../../middleware/async-handler", () => ({
   asyncHandler: (fn: any) => fn,
 }));
 
-import * as approvalFlowService from "../../../services/admin/approval-flow.service.js";
-import { ok, fail } from "../../../shared/response.js";
+import * as approvalFlowService from "../../../services/admin/approval-flow.service";
+import { ok, fail } from "../../../shared/response";
 import {
   listRules,
   createRule,
   updateRule,
-} from "../../../controllers/admin/approval-flow.controller.js";
+} from "../../../controllers/admin/approval-flow.controller";
 
 const mockReq = (overrides: any = {}) => ({
   tenantId: "t1",

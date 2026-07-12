@@ -1,4 +1,4 @@
-/**
+﻿/**
  * 管理端客户关怀 service 单元测试
  * 被测文件：src/services/admin/customer-care.service.ts
  * 覆盖全部 6 个导出函数，目标覆盖率 100%
@@ -10,7 +10,7 @@ const mocks = vi.hoisted(() => ({
   queryOneWithTenant: vi.fn(),
 }));
 
-vi.mock("../../../shared/db.js", () => ({
+vi.mock("../../../shared/db", () => ({
   query: vi.fn(),
   queryOne: vi.fn(),
   queryWithTenant: mocks.queryWithTenant,
@@ -25,7 +25,7 @@ import {
   deleteCareRule,
   listCareLogs,
   executeCareRule,
-} from "../../../services/admin/customer-care.service.js";
+} from "../../../services/admin/customer-care.service";
 
 // mockReset 清除 mockResolvedValueOnce 队列，防止跨测试泄漏（踩坑 #26）
 beforeEach(() => {

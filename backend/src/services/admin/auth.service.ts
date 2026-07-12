@@ -1,7 +1,7 @@
-import { query, queryOne, queryWithTenant, queryOneWithTenant } from "../../shared/db.js";
-import { signToken, getUserAccessInfo, AuthUser } from "../../middleware/auth.js";
-import { verifyPassword, validatePassword } from "../../shared/password.js";
-import { AppError } from "../../shared/app-error.js";
+﻿import { query, queryOne, queryWithTenant, queryOneWithTenant } from "../../shared/db";
+import { signToken, getUserAccessInfo, AuthUser } from "../../middleware/auth";
+import { verifyPassword, validatePassword } from "../../shared/password";
+import { AppError } from "../../shared/app-error";
 
 const MAX_LOGIN_ATTEMPTS = 5;
 const LOCK_DURATION_MINUTES = 15;

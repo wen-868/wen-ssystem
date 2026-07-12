@@ -1,6 +1,6 @@
-import { vi, describe, it, beforeEach, expect } from "vitest";
+﻿import { vi, describe, it, beforeEach, expect } from "vitest";
 
-vi.mock("../../../services/admin/purchase-order.service.js", () => ({
+vi.mock("../../../services/admin/purchase-order.service", () => ({
   listPurchaseOrders: vi.fn(),
   getPurchaseOrderDetail: vi.fn(),
   createPurchaseOrder: vi.fn(),
@@ -9,31 +9,31 @@ vi.mock("../../../services/admin/purchase-order.service.js", () => ({
   confirmPurchaseOrder: vi.fn(),
 }));
 
-vi.mock("../../../services/admin/purchase-in-stock.service.js", () => ({
+vi.mock("../../../services/admin/purchase-in-stock.service", () => ({
   purchaseInStock: vi.fn(),
   listPurchaseInStocks: vi.fn(),
   getPurchaseInStockDetail: vi.fn(),
 }));
 
-vi.mock("../../../services/admin/purchase-return.service.js", () => ({
+vi.mock("../../../services/admin/purchase-return.service", () => ({
   purchaseReturn: vi.fn(),
   listPurchaseReturns: vi.fn(),
 }));
 
-vi.mock("../../../services/admin/purchase-payment.service.js", () => ({
+vi.mock("../../../services/admin/purchase-payment.service", () => ({
 }));
 
-vi.mock("../../../shared/response.js", () => ({
+vi.mock("../../../shared/response", () => ({
   ok: vi.fn((data) => ({ success: true, data })),
   fail: vi.fn((msg, code) => ({ success: false, message: msg, code })),
 }));
 
-vi.mock("../../../middleware/async-handler.js", () => ({
+vi.mock("../../../middleware/async-handler", () => ({
   asyncHandler: (fn: any) => fn,
 }));
 
-import * as purchaseOrderService from "../../../services/admin/purchase-order.service.js";
-import { ok } from "../../../shared/response.js";
+import * as purchaseOrderService from "../../../services/admin/purchase-order.service";
+import { ok } from "../../../shared/response";
 import {
   listPurchaseOrders,
   getPurchaseOrderDetail,
@@ -46,7 +46,7 @@ import {
   getPurchaseInStockDetail,
   purchaseReturn,
   listPurchaseReturns,
-} from "../../../controllers/admin/purchase-admin.controller.js";
+} from "../../../controllers/admin/purchase-admin.controller";
 
 const mockReq = (overrides: any = {}) => ({
   tenantId: "t1",

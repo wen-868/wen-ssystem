@@ -1,6 +1,6 @@
-import { asyncHandler } from "../../middleware/async-handler.js";
-import { ok } from "../../shared/response.js";
-import * as service from "../../services/admin/error-log.service.js";
+﻿import { asyncHandler } from "../../middleware/async-handler";
+import { ok } from "../../shared/response";
+import * as service from "../../services/admin/error-log.service";
 
 export const reportFrontendError = asyncHandler(async (req, res) => {
   await service.insertErrorLog({

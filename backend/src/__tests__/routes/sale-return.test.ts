@@ -1,6 +1,6 @@
-import { vi, describe, it, beforeEach, expect } from "vitest";
+﻿import { vi, describe, it, beforeEach, expect } from "vitest";
 import request from "supertest";
-import { createTestApp } from "../fixtures/create-test-app.js";
+import { createTestApp } from "../fixtures/create-test-app";
 
 const mocks = vi.hoisted(() => ({
   saleReturnService: {
@@ -15,24 +15,24 @@ const mocks = vi.hoisted(() => ({
   fail: vi.fn((msg: string, code: string = "400") => ({ code, message: msg })),
 }));
 
-vi.mock("../../services/sale-return.service.js", () => ({
+vi.mock("../../services/sale-return.service", () => ({
   saleReturnService: mocks.saleReturnService,
 }));
 
-vi.mock("../../shared/response.js", () => ({
+vi.mock("../../shared/response", () => ({
   ok: mocks.ok,
   fail: mocks.fail,
 }));
 
-vi.mock("../../middleware/auth.js", () => ({
+vi.mock("../../middleware/auth", () => ({
   requireAuthWithTenant: (_req: any, _res: any, next: any) => next(),
 }));
 
-vi.mock("../../middleware/tenant.js", () => ({
+vi.mock("../../middleware/tenant", () => ({
   tenantMiddleware: (_req: any, _res: any, next: any) => next(),
 }));
 
-import { saleReturnRouter, routeConfigs } from "../../routes/sale-return.routes.js";
+import { saleReturnRouter, routeConfigs } from "../../routes/sale-return.routes";
 
 const app = createTestApp({
   prefix: "/api/admin/sale-returns",

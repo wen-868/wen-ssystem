@@ -1,10 +1,10 @@
-/**
+﻿/**
  * 平台总后台 - 数据统计服务
  *
  * 功能：平台总览统计
  */
 
-import { query, queryOne } from "../../shared/db.js";
+import { query, queryOne } from "../../shared/db";
 
 // ─── 数据统计 ────────────────────────────────────────────────
 

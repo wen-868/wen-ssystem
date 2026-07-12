@@ -1,5 +1,5 @@
-import { query, queryOne, transaction } from "../../shared/db.js";
-import { makeBizNo } from "../../shared/id.js";
+﻿import { query, queryOne, transaction } from "../../shared/db";
+import { makeBizNo } from "../../shared/id";
 
 export interface Tenant {
   id: number;

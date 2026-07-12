@@ -1,8 +1,8 @@
-import { vi, describe, it, beforeEach, expect } from "vitest";
+﻿import { vi, describe, it, beforeEach, expect } from "vitest";
 import request from "supertest";
-import { createTestApp } from "../fixtures/create-test-app.js";
+import { createTestApp } from "../fixtures/create-test-app";
 
-vi.mock("../../services/sync/price-sync.service.js", () => ({
+vi.mock("../../services/sync/price-sync.service", () => ({
   getChangesSince: vi.fn(),
   getPricesByIds: vi.fn(),
   syncPrices: vi.fn(),
@@ -10,30 +10,30 @@ vi.mock("../../services/sync/price-sync.service.js", () => ({
   getLastSyncTime: vi.fn(),
 }));
 
-vi.mock("../../services/sync/product-sync.service.js", () => ({
+vi.mock("../../services/sync/product-sync.service", () => ({
   syncProducts: vi.fn(),
 }));
 
-vi.mock("../../shared/response.js", () => ({
+vi.mock("../../shared/response", () => ({
   ok: vi.fn((data) => ({ code: "0", msg: "成功", data, traceId: "test-trace", apiCost: 0 })),
   fail: vi.fn((msg, code = "400") => ({ code, msg, traceId: "test-trace", apiCost: 0 })),
 }));
 
-vi.mock("../../middleware/auth.js", () => ({
+vi.mock("../../middleware/auth", () => ({
   requireAuthWithTenant: [],
   requireAuth: (_req: any, _res: any, next: any) => next(),
   requireRoles: () => (_req: any, _res: any, next: any) => next(),
   requirePlatformAuth: (_req: any, _res: any, next: any) => next(),
 }));
 
-vi.mock("../../middleware/tenant.js", () => ({
+vi.mock("../../middleware/tenant", () => ({
   tenantMiddleware: (_req: any, _res: any, next: any) => next(),
   getTenantId: (req: any) => req.tenantId || "default",
 }));
 
-import * as priceSyncSvc from "../../services/sync/price-sync.service.js";
-import * as productSyncSvc from "../../services/sync/product-sync.service.js";
-import syncRouter from "../../routes/sync.routes.js";
+import * as priceSyncSvc from "../../services/sync/price-sync.service";
+import * as productSyncSvc from "../../services/sync/product-sync.service";
+import syncRouter from "../../routes/sync.routes";
 
 const app = createTestApp({ prefix: "/api/sync", router: syncRouter as any });
 

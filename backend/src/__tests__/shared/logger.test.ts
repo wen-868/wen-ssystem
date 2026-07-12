@@ -1,5 +1,5 @@
-import { describe, it, expect, vi, afterEach } from "vitest";
-import logger from "../../shared/logger.js";
+﻿import { describe, it, expect, vi, afterEach } from "vitest";
+import logger from "../../shared/logger";
 
 describe("logger", () => {
   it("应导出 info/warn/error/debug 四个方法", () => {

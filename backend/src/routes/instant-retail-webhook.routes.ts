@@ -1,6 +1,6 @@
-import { Router } from "express";
-import type { RouteConfig } from "../shared/auto-routes.js";
-import * as platformIntegrationController from "../controllers/instant-retail/platform-integration.controller.js";
+﻿import { Router } from "express";
+import type { RouteConfig } from "../shared/auto-routes";
+import * as platformIntegrationController from "../controllers/instant-retail/platform-integration.controller";
 
 export const instantRetailWebhookRouter = Router();
 

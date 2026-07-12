@@ -1,7 +1,7 @@
-import { z } from "zod";
+﻿import { z } from "zod";
 import { Request, Response } from "express";
-import { insertFeedback, listFeedbacks, updateFeedbackStatus } from "../../services/admin/feedback.service.js";
-import { ok } from "../../shared/response.js";
+import { insertFeedback, listFeedbacks, updateFeedbackStatus } from "../../services/admin/feedback.service";
+import { ok } from "../../shared/response";
 
 const submitFeedbackSchema = z.object({
   type: z.enum(["BUG", "FEATURE", "IMPROVEMENT", "OTHER"]),

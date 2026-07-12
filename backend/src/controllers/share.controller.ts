@@ -1,13 +1,155 @@
-import { asyncHandler } from "../middleware/async-handler.js";
-import { ok } from "../shared/response.js";
-import * as service from "../services/share.service.js";
+import { ok, fail } from "../shared/response";
+import * as shareService from "../services/share.service";
+import { query, queryOne, transaction } from "../shared/db";
 
-export const getCollectionLink = asyncHandler(async (req, res) => {
-  const result = await service.getCollectionLink(req.params.token);
-  res.json(ok(result));
-});
+export async function getCollectionLink(req: any, res: any) {
+  try {
+    const link = await shareService.getCollectionLink(req.params.token);
+    res.json(ok(link));
+  } catch (e: any) {
+    res.status(e.statusCode || 500).json(fail(e.message, String(e.statusCode || 500)));
+  }
+}
 
-export const payCollection = asyncHandler(async (req, res) => {
-  const result = await service.payCollection(req.params.token);
-  res.json(ok(result));
-});
+export async function getCollectionPage(req: any, res: any) {
+  const link = await queryOne<any>(
+    `SELECT cl.link_no AS linkNo, cl.source_type AS sourceType, cl.source_no AS sourceNo,
+            cl.amount, cl.paid_amount AS paidAmount, cl.status,
+            cl.expire_at AS expireAt, cl.tax_enabled AS taxEnabled,
+            cl.tax_rate AS taxRate, cl.tax_amount AS taxAmount,
+            cl.share_channel AS shareChannel, cl.created_at AS createdAt
+     FROM t_collection_link cl
+     WHERE cl.token = ?`,
+    [req.params.token]
+  );
+  if (!link) {
+    res.status(404).json(fail("收款单不存在或已失效", "404"));
+    return;
+  }
+  const now = new Date();
+  const expired = link.expireAt && new Date(link.expireAt) < now;
+  if (expired && link.status === "PENDING") {
+    await query("UPDATE t_collection_link SET status = 'EXPIRED' WHERE link_no = ?", [link.linkNo]);
+    link.status = "EXPIRED";
+  }
+  if (link.status === "EXPIRED") {
+    res.status(410).json(fail("收款链接已过期", "410"));
+    return;
+  }
+  if (link.status === "PAID") {
+    res.status(400).json(fail("该收款单已支付", "400"));
+    return;
+  }
+  if (link.status === "REVOKED") {
+    res.status(400).json(fail("收款链接已撤销", "400"));
+    return;
+  }
+  const bill = await queryOne<any>(
+    `SELECT sb.bill_no AS billNo, sb.customer_name AS customerName,
+            sb.customer_mobile AS customerMobile, sb.customer_type AS customerType,
+            sb.receivable_amount AS receivableAmount, sb.received_amount AS receivedAmount,
+            sb.unreceived_amount AS unreceivedAmount, sb.store_id AS storeId,
+            st.name AS storeName
+     FROM t_sale_bill sb
+     JOIN store st ON st.id = sb.store_id
+     WHERE sb.bill_no = ?`,
+    [link.sourceNo]
+  );
+  const items = await query<any>(
+    `SELECT sku_id AS skuId, sku_name AS skuName,
+            box_qty AS boxQty, bottle_qty AS bottleQty,
+            total_bottle_qty AS totalBottleQty,
+            unit_price AS unitPrice, subtotal_amount AS subtotalAmount
+     FROM t_sale_bill_item WHERE bill_no = ?`,
+    [link.sourceNo]
+  );
+  await query("UPDATE t_collection_link SET view_count = view_count + 1, last_view_time = NOW() WHERE link_no = ?", [link.linkNo]);
+  res.json(ok({
+    linkNo: link.linkNo, token: req.params.token,
+    amount: link.amount, paidAmount: link.paidAmount,
+    status: link.status, expireAt: link.expireAt, expired,
+    taxEnabled: link.taxEnabled, taxRate: link.taxRate, taxAmount: link.taxAmount,
+    shareChannel: link.shareChannel, createdAt: link.createdAt,
+    customerName: bill?.customerName ?? "", customerMobile: bill?.customerMobile ?? "",
+    customerType: bill?.customerType ?? "", storeName: bill?.storeName ?? "",
+    receivableAmount: bill?.receivableAmount ?? 0, receivedAmount: bill?.receivedAmount ?? 0,
+    unreceivedAmount: bill?.unreceivedAmount ?? 0, items
+  }));
+}
+
+export async function payCollection(req: any, res: any) {
+  try {
+    const result = await shareService.payCollection(req.params.token);
+    res.json(ok(result));
+  } catch (e: any) {
+    res.status(e.statusCode || 500).json(fail(e.message, String(e.statusCode || 500)));
+  }
+}
+
+export async function wxNotifyCollection(req: any, res: any) {
+  const { WechatPay } = await import("../shared/wechat-pay.js");
+  const wechatPay = new WechatPay();
+  const headers = req.headers as Record<string, string>;
+  const bodyStr = JSON.stringify(req.body);
+
+  if (!wechatPay.verifyNotifySignature(headers, bodyStr)) {
+    res.status(401).json(fail("签名验证失败", "401"));
+    return;
+  }
+
+  const { resource } = req.body;
+  let payNo: string | undefined, transactionId: string | undefined, payAmount: number | undefined;
+  if (resource && resource.ciphertext) {
+    try {
+      const decrypted = wechatPay.decryptNotifyData(resource.associated_data, resource.nonce, resource.ciphertext);
+      const data = JSON.parse(decrypted);
+      payNo = data.out_trade_no;
+      transactionId = data.transaction_id;
+      payAmount = data.amount?.payer_total ? Number(data.amount.payer_total) / 100 : undefined;
+    } catch {
+      res.status(400).json(fail("通知数据解密失败", "400"));
+      return;
+    }
+  } else {
+    payNo = req.body.payNo ?? req.body.out_trade_no;
+    transactionId = req.body.transactionId ?? req.body.transaction_id;
+    payAmount = req.body.payAmount ?? req.body.total_fee;
+  }
+
+  const link = await queryOne<any>("SELECT link_no, source_no, amount, paid_amount, status FROM t_collection_link WHERE token = ?", [req.params.token]);
+  if (!link) {
+    res.status(404).json(fail("收款链接不存在", "404"));
+    return;
+  }
+  if (link.status === "PAID") {
+    res.json(ok({ message: "已支付，无需重复处理" }));
+    return;
+  }
+  if (link.status === "REVOKED" || link.status === "EXPIRED") {
+    res.status(400).json(fail("收款链接已失效", "400"));
+    return;
+  }
+  const wxPayAmount = payAmount ?? link.amount;
+  await query(
+    `UPDATE t_payment_order SET status = 'SUCCESS', transaction_id = ?, paid_at = NOW()
+     WHERE pay_no = ? AND source_no = ?`,
+    [transactionId ?? null, payNo, link.link_no]
+  );
+  const newPaid = Number(link.paid_amount) + Number(wxPayAmount);
+  const newStatus = newPaid >= Number(link.amount) ? "PAID" : "PARTIAL";
+  await query(
+    `UPDATE t_collection_link SET paid_amount = ?, status = ?, last_pay_time = NOW() WHERE link_no = ?`,
+    [newPaid, newStatus, link.link_no]
+  );
+  const bill = await queryOne<any>("SELECT received_amount, receivable_amount FROM t_sale_bill WHERE bill_no = ?", [link.source_no]);
+  if (bill) {
+    const newReceived = Number(bill.received_amount) + Number(wxPayAmount);
+    const billStatus = newReceived >= Number(bill.receivable_amount) ? "PAID" : "PARTIAL";
+    await query(
+      `UPDATE t_sale_bill SET received_amount = ?, unreceived_amount = GREATEST(receivable_amount - ?, 0),
+       collection_status = ?, last_payment_time = NOW() WHERE bill_no = ?`,
+      [newReceived, newReceived, billStatus, link.source_no]
+    );
+  }
+  res.json(ok({ payNo, linkNo: link.link_no, status: newStatus, paidAmount: newPaid }));
+}

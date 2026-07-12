@@ -1,6 +1,6 @@
-import { vi, describe, it, beforeEach, expect } from "vitest";
+﻿import { vi, describe, it, beforeEach, expect } from "vitest";
 
-vi.mock("../../../services/alert.service.js", () => ({
+vi.mock("@services/alert.service", () => ({
   listAlerts: vi.fn(),
   getAlertCounts: vi.fn(),
   handleAlert: vi.fn(),
@@ -9,17 +9,17 @@ vi.mock("../../../services/alert.service.js", () => ({
   runAllAlertChecks: vi.fn(),
 }));
 
-vi.mock("../../../shared/response.js", () => ({
+vi.mock("@shared/response", () => ({
   ok: vi.fn((data) => ({ success: true, data })),
   fail: vi.fn((msg, code) => ({ success: false, message: msg, code })),
 }));
 
-vi.mock("../../../middleware/async-handler.js", () => ({
+vi.mock("@middleware/async-handler", () => ({
   asyncHandler: (fn: any) => fn,
 }));
 
-import * as alertService from "../../../services/alert.service.js";
-import { ok } from "../../../shared/response.js";
+import * as alertService from "@services/alert.service";
+import { ok } from "@shared/response";
 import {
   list,
   count,
@@ -33,7 +33,7 @@ import {
   listAlertRules,
   updateAlertRule,
   runCheck,
-} from "../../../controllers/alert.controller.js";
+} from "@controllers/alert.controller";
 
 const mockReq = (overrides: any = {}) => ({
   tenantId: "t1",

@@ -1,5 +1,5 @@
-import { describe, it, expect } from "vitest";
-import { makeBizNo, makeToken } from "../../shared/id.js";
+﻿import { describe, it, expect } from "vitest";
+import { makeBizNo, makeToken } from "../../shared/id";
 
 describe("makeBizNo", () => {
   it("应返回以指定前缀开头的字符串", () => {

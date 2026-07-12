@@ -1,8 +1,8 @@
-import { Router } from "express";
-import type { RouteConfig } from "../shared/auto-routes.js";
-import { requireAuthWithTenant } from "../middleware/auth.js";
-import * as dailySettlementController from "../controllers/admin/daily-settlement.controller.js";
-import * as financeDashboardController from "../controllers/admin/finance-dashboard.controller.js";
+﻿import { Router } from "express";
+import type { RouteConfig } from "../shared/auto-routes";
+import { requireAuthWithTenant } from "../middleware/auth";
+import * as dailySettlementController from "../controllers/admin/daily-settlement.controller";
+import * as financeDashboardController from "../controllers/admin/finance-dashboard.controller";
 
 export const adminFinanceRouter = Router();
 

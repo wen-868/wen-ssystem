@@ -1,7 +1,7 @@
-/**
+﻿/**
  * 商品 mock handlers: products, product_sku, product_spu, product_price, product_price_log
  */
-import { state, pendingProduct, result, Row } from "./mock-db-state.js";
+import { state, pendingProduct, result, Row } from "./mock-db-state";
 
 export const queryHandlers: Array<(s: string, params: unknown[]) => Row[] | null> = [
   // product_sku count

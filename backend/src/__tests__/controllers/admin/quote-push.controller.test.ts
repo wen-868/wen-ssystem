@@ -1,6 +1,6 @@
-import { vi, describe, it, beforeEach, expect } from "vitest";
+﻿import { vi, describe, it, beforeEach, expect } from "vitest";
 
-vi.mock("../../../services/admin/quote-push.service.js", () => ({
+vi.mock("../../../services/admin/quote-push.service", () => ({
   previewQuote: vi.fn(),
   createQuote: vi.fn(),
   listQuotes: vi.fn(),
@@ -10,17 +10,17 @@ vi.mock("../../../services/admin/quote-push.service.js", () => ({
   viewQuoteByToken: vi.fn(),
 }));
 
-vi.mock("../../../shared/response.js", () => ({
+vi.mock("../../../shared/response", () => ({
   ok: vi.fn((data) => ({ success: true, data })),
   fail: vi.fn((msg, code) => ({ success: false, message: msg, code })),
 }));
 
-vi.mock("../../../middleware/async-handler.js", () => ({
+vi.mock("../../../middleware/async-handler", () => ({
   asyncHandler: (fn: any) => fn,
 }));
 
-import * as quotePushService from "../../../services/admin/quote-push.service.js";
-import { ok, fail } from "../../../shared/response.js";
+import * as quotePushService from "../../../services/admin/quote-push.service";
+import { ok, fail } from "../../../shared/response";
 import {
   previewQuote,
   createQuote,
@@ -29,7 +29,7 @@ import {
   pushQuote,
   cancelQuote,
   viewQuoteByToken,
-} from "../../../controllers/admin/quote-push.controller.js";
+} from "../../../controllers/admin/quote-push.controller";
 
 const mockReq = (overrides: any = {}) => ({
   tenantId: "t1",

@@ -1,6 +1,6 @@
-import { vi, describe, it, beforeEach, expect } from "vitest";
+﻿import { vi, describe, it, beforeEach, expect } from "vitest";
 
-vi.mock("../../../services/admin/points.service.js", () => ({
+vi.mock("../../../services/admin/points.service", () => ({
   listPointsRules: vi.fn(),
   createPointsRule: vi.fn(),
   updatePointsRule: vi.fn(),
@@ -11,17 +11,17 @@ vi.mock("../../../services/admin/points.service.js", () => ({
   updateLevelConfig: vi.fn(),
 }));
 
-vi.mock("../../../shared/response.js", () => ({
+vi.mock("../../../shared/response", () => ({
   ok: vi.fn((data) => ({ success: true, data })),
   fail: vi.fn((msg, code) => ({ success: false, message: msg, code })),
 }));
 
-vi.mock("../../../middleware/async-handler.js", () => ({
+vi.mock("../../../middleware/async-handler", () => ({
   asyncHandler: (fn: any) => fn,
 }));
 
-import * as pointsService from "../../../services/admin/points.service.js";
-import { ok } from "../../../shared/response.js";
+import * as pointsService from "../../../services/admin/points.service";
+import { ok } from "../../../shared/response";
 import {
   listPointsRules,
   createPointsRule,
@@ -31,7 +31,7 @@ import {
   listLevelConfigs,
   createLevelConfig,
   updateLevelConfig,
-} from "../../../controllers/admin/points.controller.js";
+} from "../../../controllers/admin/points.controller";
 
 const mockReq = (overrides: any = {}) => ({
   tenantId: "t1",

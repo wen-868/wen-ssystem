@@ -1,6 +1,6 @@
-import { vi, describe, it, beforeEach, expect } from "vitest";
+﻿import { vi, describe, it, beforeEach, expect } from "vitest";
 
-vi.mock("../../../services/admin/instant-retail.service.js", () => ({
+vi.mock("../../../services/admin/instant-retail.service", () => ({
   handleWebhook: vi.fn(),
   getPlatforms: vi.fn(),
   getConfigs: vi.fn(),
@@ -18,7 +18,7 @@ vi.mock("../../../services/admin/instant-retail.service.js", () => ({
   cancelOrder: vi.fn(),
 }));
 
-vi.mock("../../../services/instant-retail/retail-shop.service.js", () => ({
+vi.mock("../../../services/instant-retail/retail-shop.service", () => ({
   getShopConfig: vi.fn(),
   saveShopConfig: vi.fn(),
   listCategories: vi.fn(),
@@ -38,18 +38,18 @@ vi.mock("../../../services/instant-retail/retail-shop.service.js", () => ({
   deleteBanner: vi.fn(),
 }));
 
-vi.mock("../../../shared/response.js", () => ({
+vi.mock("../../../shared/response", () => ({
   ok: vi.fn((data) => ({ success: true, data })),
   fail: vi.fn((msg, code) => ({ success: false, message: msg, code })),
 }));
 
-vi.mock("../../../middleware/async-handler.js", () => ({
+vi.mock("../../../middleware/async-handler", () => ({
   asyncHandler: (fn: any) => fn,
 }));
 
-import * as instantRetailService from "../../../services/admin/instant-retail.service.js";
-import * as retailShopSvc from "../../../services/instant-retail/retail-shop.service.js";
-import { ok, fail } from "../../../shared/response.js";
+import * as instantRetailService from "../../../services/admin/instant-retail.service";
+import * as retailShopSvc from "../../../services/instant-retail/retail-shop.service";
+import { ok, fail } from "../../../shared/response";
 import {
   handleJdWebhook,
   handleMeituanWebhook,
@@ -85,7 +85,7 @@ import {
   createBanner,
   updateBanner,
   deleteBanner,
-} from "../../../controllers/admin/instant-retail.controller.js";
+} from "../../../controllers/admin/instant-retail.controller";
 
 const mockReq = (overrides: any = {}) => ({
   tenantId: "t1",

@@ -1,11 +1,11 @@
-/**
+﻿/**
  * 平台总后台 - 租户管理服务
  *
  * 功能：创建、编辑、禁用/启用租户，查看租户详情
  */
 
-import { query, queryOne, transaction } from "../../shared/db.js";
-import { makeBizNo } from "../../shared/id.js";
+import { query, queryOne, transaction } from "../../shared/db";
+import { makeBizNo } from "../../shared/id";
 
 // ─── 类型定义 ─────────────────────────────────────────────────
 

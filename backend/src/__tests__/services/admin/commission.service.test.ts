@@ -1,4 +1,4 @@
-/**
+﻿/**
  * 管理端提成 service 单元测试
  * 被测文件：src/services/admin/commission.service.ts
  */
@@ -10,7 +10,7 @@ const mocks = vi.hoisted(() => ({
   makeBizNo: vi.fn(),
 }));
 
-vi.mock("../../../shared/db.js", () => ({
+vi.mock("../../../shared/db", () => ({
   query: vi.fn(),
   queryOne: vi.fn(),
   queryWithTenant: mocks.queryWithTenant,
@@ -18,7 +18,7 @@ vi.mock("../../../shared/db.js", () => ({
   transaction: vi.fn(),
 }));
 
-vi.mock("../../../shared/id.js", () => ({
+vi.mock("../../../shared/id", () => ({
   makeBizNo: mocks.makeBizNo,
 }));
 
@@ -30,7 +30,7 @@ import {
   calculateCommissions,
   settleCommissions,
   listCommissionRecords,
-} from "../../../services/admin/commission.service.js";
+} from "../../../services/admin/commission.service";
 
 describe("commission.service", () => {
   beforeEach(() => vi.resetAllMocks());

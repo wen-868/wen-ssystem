@@ -1,5 +1,5 @@
-import { describe, it, expect } from "vitest";
-import { routeConfig } from "../../routes/customer-tag.routes.js";
+﻿import { describe, it, expect } from "vitest";
+import { routeConfig } from "../../routes/customer-tag.routes";
 
 describe("routes/customer-tag", () => {
   it("应导出正确的 routeConfig", () => {

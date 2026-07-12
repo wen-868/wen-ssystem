@@ -1,4 +1,4 @@
-/**
+﻿/**
  * 管理端客户合并 service 单元测试
  * 被测文件：src/services/admin/customer-merge.service.ts
  * 覆盖全部 4 个导出函数，目标覆盖率 100%
@@ -11,7 +11,7 @@ const mocks = vi.hoisted(() => ({
   transaction: vi.fn(),
 }));
 
-vi.mock("../../../shared/db.js", () => ({
+vi.mock("../../../shared/db", () => ({
   query: mocks.query,
   queryOne: mocks.queryOne,
   queryWithTenant: vi.fn(),
@@ -24,7 +24,7 @@ import {
   getCustomerRelations,
   mergeCustomers,
   getDuplicateGroups,
-} from "../../../services/admin/customer-merge.service.js";
+} from "../../../services/admin/customer-merge.service";
 
 const mockConn = { execute: vi.fn() };
 

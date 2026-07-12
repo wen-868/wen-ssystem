@@ -1,7 +1,7 @@
-import { Router } from "express";
-import type { RouteConfig } from "../shared/auto-routes.js";
-import * as platformIntegrationController from "../controllers/instant-retail/platform-integration.controller.js";
-import * as retailAdminController from "../controllers/admin/instant-retail.controller.js";
+﻿import { Router } from "express";
+import type { RouteConfig } from "../shared/auto-routes";
+import * as platformIntegrationController from "../controllers/instant-retail/platform-integration.controller";
+import * as retailAdminController from "../controllers/admin/instant-retail.controller";
 
 export const instantRetailAdminPlatformRouter = Router();
 

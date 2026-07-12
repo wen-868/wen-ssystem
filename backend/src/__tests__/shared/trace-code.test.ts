@@ -1,4 +1,4 @@
-import { describe, it, expect, vi, beforeEach } from "vitest";
+﻿import { describe, it, expect, vi, beforeEach } from "vitest";
 
 const { mockQueryOneWithTenant, mockConnQuery, mockConnExecute } = vi.hoisted(() => ({
   mockQueryOneWithTenant: vi.fn(),
@@ -6,13 +6,13 @@ const { mockQueryOneWithTenant, mockConnQuery, mockConnExecute } = vi.hoisted(()
   mockConnExecute: vi.fn(),
 }));
 
-vi.mock("../../shared/db.js", () => ({
+vi.mock("../../shared/db", () => ({
   queryOneWithTenant: mockQueryOneWithTenant,
   query: vi.fn(),
   execute: vi.fn(),
 }));
 
-import { verifyTraceCode, verifyTraceCodeSimple, bindTraceCodeOnInStock, updateTraceCodeOnOutStock, updateTraceCodesBySkuList } from "../../shared/trace-code.js";
+import { verifyTraceCode, verifyTraceCodeSimple, bindTraceCodeOnInStock, updateTraceCodeOnOutStock, updateTraceCodesBySkuList } from "../../shared/trace-code";
 
 // ========== verifyTraceCodeSimple ==========
 describe("verifyTraceCodeSimple", () => {

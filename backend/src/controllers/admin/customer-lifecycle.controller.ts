@@ -1,6 +1,6 @@
-import { asyncHandler } from "../../middleware/async-handler.js";
-import { ok } from "../../shared/response.js";
-import * as lifecycleService from "../../services/admin/customer-lifecycle.service.js";
+﻿import { asyncHandler } from "../../middleware/async-handler";
+import { ok } from "../../shared/response";
+import * as lifecycleService from "../../services/admin/customer-lifecycle.service";
 
 export const getLifecycleStages = asyncHandler(async (req, res) => { res.json(ok(await lifecycleService.getLifecycleStages(req.tenantId!))); });
 export const getLifecycleTrend = asyncHandler(async (req, res) => {

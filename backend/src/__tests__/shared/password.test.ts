@@ -1,11 +1,11 @@
-import { describe, it, expect } from "vitest";
+﻿import { describe, it, expect } from "vitest";
 import {
   hashPassword,
   hashPasswordSync,
   verifyPassword,
   verifyPasswordSync,
   needsRehash,
-} from "../../shared/password.js";
+} from "../../shared/password";
 
 describe("password", () => {
   describe("hashPassword", () => {

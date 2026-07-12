@@ -1,7 +1,7 @@
-import { Router } from "express";
-import type { RouteConfig } from "../shared/auto-routes.js";
-import { requireAuthWithTenant } from "../middleware/auth.js";
-import * as paymentNewController from "../controllers/admin/payment-new.controller.js";
+﻿import { Router } from "express";
+import type { RouteConfig } from "../shared/auto-routes";
+import { requireAuthWithTenant } from "../middleware/auth";
+import * as paymentNewController from "../controllers/admin/payment-new.controller";
 
 export const paymentNewRouter = Router();
 paymentNewRouter.post("/", requireAuthWithTenant, paymentNewController.createPayment);

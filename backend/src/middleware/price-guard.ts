@@ -1,10 +1,10 @@
-/**
+﻿/**
  * 越权拦截中间件
  * 用于 Express 路由的越权访问拦截
  */
 import { Request, Response, NextFunction } from "express";
-import type { AuthUser } from "./auth.js";
-import { canAccessPriceField, canAccessPriceLevel, logUnauthorizedAccess, filterPriceFields, filterPriceFieldsBatch } from "../shared/price-guard.js";
+import type { AuthUser } from "./auth";
+import { canAccessPriceField, canAccessPriceLevel, logUnauthorizedAccess, filterPriceFields, filterPriceFieldsBatch } from "../shared/price-guard";
 
 /** 扩展 Express Request 类型 */
 interface AuthRequest extends Request {

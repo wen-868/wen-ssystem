@@ -1,7 +1,7 @@
-import { Router } from "express";
-import { requireAuthWithTenant } from "../middleware/auth.js";
-import * as calculationController from "../controllers/admin/marketing-calculation.controller.js";
-import type { RouteConfig } from "../shared/auto-routes.js";
+﻿import { Router } from "express";
+import { requireAuthWithTenant } from "../middleware/auth";
+import * as calculationController from "../controllers/admin/marketing-calculation.controller";
+import type { RouteConfig } from "../shared/auto-routes";
 
 export const adminMarketingCalculationRouter = Router();
 

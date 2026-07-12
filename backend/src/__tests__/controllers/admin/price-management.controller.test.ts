@@ -1,4 +1,4 @@
-/**
+﻿/**
  * 管理端价格管理 controller 单元测试
  * 被测文件：src/controllers/admin/price-management.controller.ts
  */
@@ -19,15 +19,15 @@ const mocks = vi.hoisted(() => ({
   listChangeLogs: vi.fn(),
 }));
 
-vi.mock("../../../middleware/async-handler.js", () => ({
+vi.mock("../../../middleware/async-handler", () => ({
   asyncHandler: (fn: any) => fn,
 }));
 
-vi.mock("../../../shared/response.js", () => ({
+vi.mock("../../../shared/response", () => ({
   ok: mocks.ok,
 }));
 
-vi.mock("../../../services/admin/price-management.service.js", () => ({
+vi.mock("../../../services/admin/price-management.service", () => ({
   listSkuPrices: mocks.listSkuPrices,
   setSkuPrices: mocks.setSkuPrices,
   updateSkuPrice: mocks.updateSkuPrice,
@@ -53,7 +53,7 @@ import {
   rejectCustomerBinding,
   cancelCustomerBinding,
   listChangeLogs,
-} from "../../../controllers/admin/price-management.controller.js";
+} from "../../../controllers/admin/price-management.controller";
 
 const mockReq = (overrides: any = {}) => ({
   tenantId: "t1",

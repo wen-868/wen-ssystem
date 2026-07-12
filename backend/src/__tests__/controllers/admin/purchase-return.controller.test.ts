@@ -1,6 +1,6 @@
-import { vi, describe, it, beforeEach, expect } from "vitest";
+﻿import { vi, describe, it, beforeEach, expect } from "vitest";
 
-vi.mock("../../../services/admin/purchase-return.service.js", () => ({
+vi.mock("../../../services/admin/purchase-return.service", () => ({
   list: vi.fn(),
   getDetail: vi.fn(),
   create: vi.fn(),
@@ -8,24 +8,24 @@ vi.mock("../../../services/admin/purchase-return.service.js", () => ({
   voidReturn: vi.fn(),
 }));
 
-vi.mock("../../../shared/response.js", () => ({
+vi.mock("../../../shared/response", () => ({
   ok: vi.fn((data) => ({ success: true, data })),
   fail: vi.fn((msg, code) => ({ success: false, message: msg, code })),
 }));
 
-vi.mock("../../../middleware/async-handler.js", () => ({
+vi.mock("../../../middleware/async-handler", () => ({
   asyncHandler: (fn: any) => fn,
 }));
 
-import * as purchaseReturnService from "../../../services/admin/purchase-return.service.js";
-import { ok } from "../../../shared/response.js";
+import * as purchaseReturnService from "../../../services/admin/purchase-return.service";
+import { ok } from "../../../shared/response";
 import {
   list,
   getDetail,
   create,
   approve,
   voidReturn,
-} from "../../../controllers/admin/purchase-return.controller.js";
+} from "../../../controllers/admin/purchase-return.controller";
 
 const mockReq = (overrides: any = {}) => ({
   tenantId: "t1",

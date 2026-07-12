@@ -1,6 +1,6 @@
-import fs from "node:fs";
+﻿import fs from "node:fs";
 import path from "node:path";
-import { queryWithTenant, queryOneWithTenant, query, queryOne } from "../../shared/db.js";
+import { queryWithTenant, queryOneWithTenant, query, queryOne } from "../../shared/db";
 
 // ========== 占位符 → sys_config key 映射 ==========
 

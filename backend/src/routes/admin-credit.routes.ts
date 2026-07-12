@@ -1,5 +1,5 @@
-import { Router } from "express";
-import type { RouteConfig } from "../shared/auto-routes.js";
+﻿import { Router } from "express";
+import type { RouteConfig } from "../shared/auto-routes";
 
 /**
  * 授信管理路由

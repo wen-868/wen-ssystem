@@ -1,4 +1,4 @@
-/**
+﻿/**
  * 管理端付款 controller 单元测试
  * 被测文件：src/controllers/admin/payment-new.controller.ts
  */
@@ -13,15 +13,15 @@ const mocks = vi.hoisted(() => ({
   voidPayment: vi.fn(),
 }));
 
-vi.mock("../../../middleware/async-handler.js", () => ({
+vi.mock("../../../middleware/async-handler", () => ({
   asyncHandler: (fn: any) => fn,
 }));
 
-vi.mock("../../../shared/response.js", () => ({
+vi.mock("../../../shared/response", () => ({
   ok: mocks.ok,
 }));
 
-vi.mock("../../../services/admin/payment-new.service.js", () => ({
+vi.mock("../../../services/admin/payment-new.service", () => ({
   createPayment: mocks.createPayment,
   listPayments: mocks.listPayments,
   getPaymentDetail: mocks.getPaymentDetail,
@@ -35,7 +35,7 @@ import {
   getPaymentDetail,
   writeoffPayment,
   voidPayment,
-} from "../../../controllers/admin/payment-new.controller.js";
+} from "../../../controllers/admin/payment-new.controller";
 
 const mockReq = (overrides: any = {}) => ({
   tenantId: "t1",

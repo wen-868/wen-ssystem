@@ -1,7 +1,7 @@
-import { z } from "zod";
-import { asyncHandler } from "../../middleware/async-handler.js";
-import { ok, fail } from "../../shared/response.js";
-import * as platformIntegrationService from "../../services/instant-retail/platform-integration.service.js";
+﻿import { z } from "zod";
+import { asyncHandler } from "../../middleware/async-handler";
+import { ok, fail } from "../../shared/response";
+import * as platformIntegrationService from "../../services/instant-retail/platform-integration.service";
 
 const upsertConfigSchema = z.object({
   platform: z.enum(["JD", "MEITUAN", "ELEME"]),

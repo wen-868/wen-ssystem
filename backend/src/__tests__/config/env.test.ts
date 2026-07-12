@@ -1,5 +1,5 @@
-import { describe, it, expect } from "vitest";
-import { env } from "../../config/env.js";
+﻿import { describe, it, expect } from "vitest";
+import { env } from "../../config/env";
 
 describe("config/env", () => {
   it("应读取端口号", () => {

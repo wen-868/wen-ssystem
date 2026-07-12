@@ -1,4 +1,4 @@
-import { state, Row } from "./mock-db-state.js";
+﻿import { state, Row } from "./mock-db-state";
 
 export const queryHandlers: Array<(s: string, params: unknown[]) => Row[] | null> = [
   (s, params) => {

@@ -1,6 +1,6 @@
-import { vi, describe, it, beforeEach, expect } from "vitest";
+﻿import { vi, describe, it, beforeEach, expect } from "vitest";
 
-vi.mock("../../../services/admin/notification.service.js", () => ({
+vi.mock("@services/admin/notification.service", () => ({
   listNotifications: vi.fn(),
   getUnreadCount: vi.fn(),
   markAsRead: vi.fn(),
@@ -12,17 +12,17 @@ vi.mock("../../../services/admin/notification.service.js", () => ({
   markMyAllRead: vi.fn(),
 }));
 
-vi.mock("../../../shared/response.js", () => ({
+vi.mock("@shared/response", () => ({
   ok: vi.fn((data) => ({ success: true, data })),
   fail: vi.fn((msg, code) => ({ success: false, message: msg, code })),
 }));
 
-vi.mock("../../../middleware/async-handler.js", () => ({
+vi.mock("@middleware/async-handler", () => ({
   asyncHandler: (fn: any) => fn,
 }));
 
-import * as notificationService from "../../../services/admin/notification.service.js";
-import { ok, fail } from "../../../shared/response.js";
+import * as notificationService from "@services/admin/notification.service";
+import { ok, fail } from "@shared/response";
 import {
   list,
   unreadCount,
@@ -41,7 +41,7 @@ import {
   getMiniappUnreadCount,
   markMiniappAsRead,
   markMiniappAllAsRead,
-} from "../../../controllers/notification.controller.js";
+} from "@controllers/notification.controller";
 
 const mockReq = (overrides: any = {}) => ({
   tenantId: "t1",

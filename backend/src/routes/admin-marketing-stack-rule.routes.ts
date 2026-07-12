@@ -1,7 +1,7 @@
-import { Router } from "express";
-import { requireAuthWithTenant } from "../middleware/auth.js";
-import * as stackRuleController from "../controllers/admin/marketing-stack-rule.controller.js";
-import type { RouteConfig } from "../shared/auto-routes.js";
+﻿import { Router } from "express";
+import { requireAuthWithTenant } from "../middleware/auth";
+import * as stackRuleController from "../controllers/admin/marketing-stack-rule.controller";
+import type { RouteConfig } from "../shared/auto-routes";
 
 export const adminMarketingStackRuleRouter = Router();
 

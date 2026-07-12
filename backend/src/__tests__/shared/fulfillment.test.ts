@@ -1,4 +1,4 @@
-import { describe, it, expect, vi } from "vitest";
+﻿import { describe, it, expect, vi } from "vitest";
 import {
   getSettlementType,
   getCustomerLevelCode,
@@ -10,7 +10,7 @@ import {
   getInitialMiniappOrderState,
   nextFulfillmentState,
   completeOrderDelivery,
-} from "../../shared/fulfillment.js";
+} from "../../shared/fulfillment";
 
 // ========== getSettlementType ==========
 describe("getSettlementType", () => {

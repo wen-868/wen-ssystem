@@ -1,5 +1,5 @@
-import { query, queryOne, queryWithTenant, queryOneWithTenant } from "../../shared/db.js";
-import { makeBizNo } from "../../shared/id.js";
+﻿import { query, queryOne, queryWithTenant, queryOneWithTenant } from "../../shared/db";
+import { makeBizNo } from "../../shared/id";
 
 export async function createHoldOrder(params: {
   customerName: string; customerMobile: string; amount: number;

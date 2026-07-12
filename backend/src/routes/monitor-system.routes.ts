@@ -1,17 +1,17 @@
-/**
+﻿/**
  * 系统资源监控路由
  * 前缀：/api/monitor
  */
 import { Router } from "express";
-import type { RouteConfig } from "../shared/auto-routes.js";
-import { asyncHandler } from "../middleware/async-handler.js";
-import { ok } from "../shared/response.js";
+import type { RouteConfig } from "../shared/auto-routes";
+import { asyncHandler } from "../middleware/async-handler";
+import { ok } from "../shared/response";
 import {
   getMemoryUsage,
   getCpuUsage,
   getProcessInfo,
   getSystemHealth,
-} from "../services/admin/system-monitor.service.js";
+} from "../services/admin/system-monitor.service";
 
 export const monitorSystemRouter = Router();
 

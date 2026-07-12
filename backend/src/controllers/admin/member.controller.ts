@@ -1,6 +1,6 @@
-import { asyncHandler } from "../../middleware/async-handler.js";
-import { ok } from "../../shared/response.js";
-import * as memberService from "../../services/admin/member.service.js";
+﻿import { asyncHandler } from "../../middleware/async-handler";
+import { ok } from "../../shared/response";
+import * as memberService from "../../services/admin/member.service";
 
 export const registerMember = asyncHandler(async (req, res) => {
   const { name, mobile, password, referrerId } = req.body;

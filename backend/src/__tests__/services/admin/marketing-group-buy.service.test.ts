@@ -1,4 +1,4 @@
-import { describe, it, expect, vi, beforeEach } from "vitest";
+﻿import { describe, it, expect, vi, beforeEach } from "vitest";
 
 const mocks = vi.hoisted(() => ({
   queryWithTenant: vi.fn(),
@@ -6,7 +6,7 @@ const mocks = vi.hoisted(() => ({
   transaction: vi.fn(),
 }));
 
-vi.mock("../../../shared/db.js", () => ({
+vi.mock("../../../shared/db", () => ({
   query: vi.fn(),
   queryOne: vi.fn(),
   queryWithTenant: mocks.queryWithTenant,
@@ -26,7 +26,7 @@ import {
   createGroupBuyTeam,
   getGroupBuyTeam,
   joinGroupBuyTeam,
-} from "../../../services/admin/marketing-group-buy.service.js";
+} from "../../../services/admin/marketing-group-buy.service";
 
 const tenantId = "t1";
 const mockConn = { execute: vi.fn() };

@@ -1,5 +1,5 @@
-import { describe, it, expect } from "vitest";
-import { routeConfig } from "../../routes/order-timeout.routes.js";
+﻿import { describe, it, expect } from "vitest";
+import { routeConfig } from "../../routes/order-timeout.routes";
 
 describe("routes/order-timeout", () => {
   it("应导出正确的 routeConfig", () => {

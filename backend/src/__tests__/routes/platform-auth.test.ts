@@ -1,23 +1,23 @@
-import { vi, describe, it, beforeEach, expect } from "vitest";
+﻿import { vi, describe, it, beforeEach, expect } from "vitest";
 import request from "supertest";
-import { createTestApp } from "../fixtures/create-test-app.js";
+import { createTestApp } from "../fixtures/create-test-app";
 
-vi.mock("../../shared/db.js", () => ({
+vi.mock("../../shared/db", () => ({
   query: vi.fn(),
   queryOne: vi.fn(),
   transaction: vi.fn(),
 }));
 
-vi.mock("../../shared/env.js", () => ({
+vi.mock("../../shared/env", () => ({
   env: { JWT_SECRET: "test-secret" },
 }));
 
-vi.mock("../../shared/response.js", () => ({
+vi.mock("../../shared/response", () => ({
   ok: vi.fn((data) => ({ code: "0", msg: "成功", data, traceId: "test-trace", apiCost: 0 })),
   fail: vi.fn((msg, code = "400") => ({ code, msg, traceId: "test-trace", apiCost: 0 })),
 }));
 
-vi.mock("../../middleware/auth.js", () => ({
+vi.mock("../../middleware/auth", () => ({
   requireAuthWithTenant: (_req: any, _res: any, next: any) => next(),
   requireAuth: (_req: any, _res: any, next: any) => next(),
   requireRoles: () => (_req: any, _res: any, next: any) => next(),
@@ -33,8 +33,8 @@ vi.mock("bcryptjs", () => ({
   hash: vi.fn(),
 }));
 
-import { queryOne } from "../../shared/db.js";
-import { platformAuthRouter } from "../../routes/platform-auth.routes.js";
+import { queryOne } from "../../shared/db";
+import { platformAuthRouter } from "../../routes/platform-auth.routes";
 
 const app = createTestApp({ prefix: "/api/platform-auth", router: platformAuthRouter });
 

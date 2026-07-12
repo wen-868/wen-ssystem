@@ -1,4 +1,4 @@
-import { queryWithTenant, queryOneWithTenant } from "../../shared/db.js";
+﻿import { queryWithTenant, queryOneWithTenant } from "../../shared/db";
 
 export async function listCustomerPrices(params: {
   customerId?: number; skuId?: number; page: number; pageSize: number; tenantId: string;

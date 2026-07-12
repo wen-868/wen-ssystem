@@ -1,4 +1,4 @@
-import { queryWithTenant, queryOneWithTenant, executeWithTenant } from "../../shared/db.js";
+﻿import { queryWithTenant, queryOneWithTenant, executeWithTenant } from "../../shared/db";
 
 export class MiniappConfigService {
   // 所有平台配置列表

@@ -1,4 +1,4 @@
-/**
+﻿/**
  * 管理端支付配置 service 单元测试
  * 被测文件：src/services/admin/payment-config.service.ts
  * 覆盖 PaymentConfigService 全部 10 个静态方法 + 1 个独立函数，目标覆盖率 100%
@@ -11,7 +11,7 @@ const mocks = vi.hoisted(() => ({
   executeWithTenant: vi.fn(),
 }));
 
-vi.mock("../../../shared/db.js", () => ({
+vi.mock("../../../shared/db", () => ({
   query: vi.fn(),
   queryOne: vi.fn(),
   queryWithTenant: mocks.queryWithTenant,
@@ -20,7 +20,7 @@ vi.mock("../../../shared/db.js", () => ({
   transaction: vi.fn(),
 }));
 
-import { PaymentConfigService, isProviderReady } from "../../../services/admin/payment-config.service.js";
+import { PaymentConfigService, isProviderReady } from "../../../services/admin/payment-config.service";
 
 beforeEach(() => {
   mocks.queryWithTenant.mockReset();

@@ -1,10 +1,10 @@
-/**
+﻿/**
  * 平台总后台 - 平台管理员服务
  *
  * 功能：平台管理员账号管理
  */
 
-import { query, queryOne } from "../../shared/db.js";
+import { query, queryOne } from "../../shared/db";
 import bcrypt from "bcryptjs";
 
 // ─── 类型定义 ─────────────────────────────────────────────────

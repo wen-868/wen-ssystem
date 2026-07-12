@@ -1,6 +1,6 @@
-import { vi, describe, it, beforeEach, expect } from "vitest";
+﻿import { vi, describe, it, beforeEach, expect } from "vitest";
 
-vi.mock("../../../services/admin/product.service.js", () => ({
+vi.mock("../../../services/admin/product.service", () => ({
   listProducts: vi.fn(),
   getProductDetail: vi.fn(),
   createProduct: vi.fn(),
@@ -13,22 +13,22 @@ vi.mock("../../../services/admin/product.service.js", () => ({
   setMarketingTags: vi.fn(),
 }));
 
-vi.mock("../../../shared/response.js", () => ({
+vi.mock("../../../shared/response", () => ({
   ok: vi.fn((data) => ({ success: true, data })),
   fail: vi.fn((msg, code) => ({ success: false, message: msg, code })),
 }));
 
-vi.mock("../../../middleware/async-handler.js", () => ({
+vi.mock("../../../middleware/async-handler", () => ({
   asyncHandler: (fn: any) => fn,
 }));
 
-import * as productService from "../../../services/admin/product.service.js";
-import { ok, fail } from "../../../shared/response.js";
+import * as productService from "../../../services/admin/product.service";
+import { ok, fail } from "../../../shared/response";
 import {
   listProducts, getProductDetail, createProduct, updateProductStatus,
   updateProduct, disableProduct, getProductPriceHistory, updateProductPrice,
   importProducts, setMarketingTags
-} from "../../../controllers/admin/product.controller.js";
+} from "../../../controllers/admin/product.controller";
 
 const mockReq = (overrides: any = {}) => ({
   tenantId: "t1",

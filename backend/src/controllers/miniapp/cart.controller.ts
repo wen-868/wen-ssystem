@@ -1,7 +1,7 @@
-import { z } from "zod";
-import { asyncHandler } from "../../middleware/async-handler.js";
-import { ok, fail } from "../../shared/response.js";
-import * as cartService from "../../services/miniapp/cart.service.js";
+﻿import { z } from "zod";
+import { asyncHandler } from "../../middleware/async-handler";
+import { ok, fail } from "../../shared/response";
+import * as cartService from "../../services/miniapp/cart.service";
 
 function getCustomerId(req: any): number {
   return Number(req.user!.id) || 1;

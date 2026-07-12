@@ -1,4 +1,4 @@
-/**
+﻿/**
  * 即时零售平台适配器抽象基类
  * Abstract Base Adapter for Instant Retail Platforms
  *
@@ -6,8 +6,8 @@
  * 并实现平台特定的认证、订单同步、库存管理等功能。
  */
 
-import crypto from 'crypto';
-import logger from '../../shared/logger.js';
+import crypto from "crypto";
+import logger from "../../shared/logger";
 import type {
   AdapterInterface,
   PlatformCredentials,
@@ -19,7 +19,7 @@ import type {
   UpdateInventoryResult,
   WebhookVerificationResult,
   SyncOrdersResult,
-} from './types.js';
+} from "./types";
 
 /** 抽象平台适配器 */
 export abstract class AbstractPlatformAdapter implements AdapterInterface {

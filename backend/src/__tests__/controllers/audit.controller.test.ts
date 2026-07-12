@@ -1,22 +1,22 @@
-import { vi, describe, it, beforeEach, expect } from "vitest";
+﻿import { vi, describe, it, beforeEach, expect } from "vitest";
 
-vi.mock("../../../services/admin/audit.service.js", () => ({
+vi.mock("@services/admin/audit.service", () => ({
   listAuditLogs: vi.fn(),
   getAuditStatistics: vi.fn(),
 }));
 
-vi.mock("../../../shared/response.js", () => ({
+vi.mock("@shared/response", () => ({
   ok: vi.fn((data) => ({ success: true, data })),
   fail: vi.fn((msg, code) => ({ success: false, message: msg, code })),
 }));
 
-vi.mock("../../../middleware/async-handler.js", () => ({
+vi.mock("@middleware/async-handler", () => ({
   asyncHandler: (fn: any) => fn,
 }));
 
-import * as auditService from "../../../services/admin/audit.service.js";
-import { ok } from "../../../shared/response.js";
-import { listAuditLogs, getAuditStatistics } from "../../../controllers/audit.controller.js";
+import * as auditService from "@services/admin/audit.service";
+import { ok } from "@shared/response";
+import { listAuditLogs, getAuditStatistics } from "@controllers/audit.controller";
 
 const mockReq = (overrides: any = {}) => ({
   tenantId: "t1",

@@ -1,17 +1,17 @@
-/**
+﻿/**
  * mock-db 聚合导出模块
  * 将所有领域模块的 mock handlers 组合成与原 mock-db.ts 完全兼容的接口
  */
 import mysql from "mysql2/promise";
-import { resetMockDb } from "./mock-db-state.js";
-import { queryHandlers as systemQuery, executeHandlers as systemExecute } from "./mock-db-system.js";
-import { queryHandlers as storeQuery, executeHandlers as storeExecute } from "./mock-db-store.js";
-import { queryHandlers as customerQuery, executeHandlers as customerExecute } from "./mock-db-customer.js";
-import { queryHandlers as productQuery, executeHandlers as productExecute } from "./mock-db-product.js";
-import { queryHandlers as inventoryQuery, executeHandlers as inventoryExecute } from "./mock-db-inventory.js";
-import { queryHandlers as orderQuery, executeHandlers as orderExecute } from "./mock-db-order.js";
-import { queryHandlers as financeQuery, executeHandlers as financeExecute } from "./mock-db-finance.js";
-import { queryHandlers as supplierQuery, executeHandlers as supplierExecute } from "./mock-db-supplier.js";
+import { resetMockDb } from "./mock-db-state";
+import { queryHandlers as systemQuery, executeHandlers as systemExecute } from "./mock-db-system";
+import { queryHandlers as storeQuery, executeHandlers as storeExecute } from "./mock-db-store";
+import { queryHandlers as customerQuery, executeHandlers as customerExecute } from "./mock-db-customer";
+import { queryHandlers as productQuery, executeHandlers as productExecute } from "./mock-db-product";
+import { queryHandlers as inventoryQuery, executeHandlers as inventoryExecute } from "./mock-db-inventory";
+import { queryHandlers as orderQuery, executeHandlers as orderExecute } from "./mock-db-order";
+import { queryHandlers as financeQuery, executeHandlers as financeExecute } from "./mock-db-finance";
+import { queryHandlers as supplierQuery, executeHandlers as supplierExecute } from "./mock-db-supplier";
 
 // 按原 mock-db.ts 中的顺序组合所有 handler
 const allQueryHandlers = [

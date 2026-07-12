@@ -1,4 +1,4 @@
-/**
+﻿/**
  * 批量价格调整服务
  *
  * 支持：
@@ -9,7 +9,7 @@
  * 5. 自动记录价格变更日志
  */
 
-import { queryWithTenant, queryOneWithTenant, transaction } from "../../shared/db.js";
+import { queryWithTenant, queryOneWithTenant, transaction } from "../../shared/db";
 
 // ─── 类型定义 ─────────────────────────────────────────────────
 

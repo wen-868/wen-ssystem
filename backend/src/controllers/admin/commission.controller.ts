@@ -1,7 +1,7 @@
-import { z } from "zod";
-import { asyncHandler } from "../../middleware/async-handler.js";
-import { ok } from "../../shared/response.js";
-import * as commissionService from "../../services/admin/commission.service.js";
+﻿import { z } from "zod";
+import { asyncHandler } from "../../middleware/async-handler";
+import { ok } from "../../shared/response";
+import * as commissionService from "../../services/admin/commission.service";
 
 const createCommissionRuleSchema = z.object({
   ruleName: z.string().min(1).max(100),

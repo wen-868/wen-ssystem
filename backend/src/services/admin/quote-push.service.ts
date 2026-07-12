@@ -1,4 +1,4 @@
-/**
+﻿/**
  * 一键报价推送服务
  *
  * 功能：
@@ -10,8 +10,8 @@
  * 6. 客户查看记录追踪
  */
 
-import { query, queryWithTenant, queryOneWithTenant, transaction } from "../../shared/db.js";
-import { makeBizNo } from "../../shared/id.js";
+import { query, queryWithTenant, queryOneWithTenant, transaction } from "../../shared/db";
+import { makeBizNo } from "../../shared/id";
 
 // ─── 类型定义 ─────────────────────────────────────────────────
 

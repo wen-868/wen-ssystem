@@ -1,6 +1,6 @@
-import { asyncHandler } from "../../../middleware/async-handler.js";
-import { ok } from "../../../shared/response.js";
-import * as salesReportService from "../../../services/admin/report/sales-report.service.js";
+﻿import { asyncHandler } from "../../../middleware/async-handler";
+import { ok } from "../../../shared/response";
+import * as salesReportService from "../../../services/admin/report/sales-report.service";
 
 export const getSalesDaily = asyncHandler(async (req, res) => {
   const result = await salesReportService.getSalesDaily(

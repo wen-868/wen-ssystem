@@ -1,14 +1,14 @@
-import { Router } from "express";
-import type { RouteConfig } from "../shared/auto-routes.js";
-import { requireAuthWithTenant } from "../middleware/auth.js";
-import * as salesReportController from "../controllers/admin/report/sales-report.controller.js";
-import * as customerReportController from "../controllers/admin/report/customer-report.controller.js";
-import * as productReportController from "../controllers/admin/report/product-report.controller.js";
-import * as financeReportController from "../controllers/admin/report/finance-report.controller.js";
-import * as staffReportController from "../controllers/admin/report/staff-report.controller.js";
-import * as reportCollectionController from "../controllers/admin/report-collection.controller.js";
-import * as reportCustomerController from "../controllers/admin/report-customer.controller.js";
-import * as reportExportController from "../controllers/admin/report-export.controller.js";
+﻿import { Router } from "express";
+import type { RouteConfig } from "../shared/auto-routes";
+import { requireAuthWithTenant } from "../middleware/auth";
+import * as salesReportController from "../controllers/admin/report/sales-report.controller";
+import * as customerReportController from "../controllers/admin/report/customer-report.controller";
+import * as productReportController from "../controllers/admin/report/product-report.controller";
+import * as financeReportController from "../controllers/admin/report/finance-report.controller";
+import * as staffReportController from "../controllers/admin/report/staff-report.controller";
+import * as reportCollectionController from "../controllers/admin/report-collection.controller";
+import * as reportCustomerController from "../controllers/admin/report-customer.controller";
+import * as reportExportController from "../controllers/admin/report-export.controller";
 
 export const reportRouter = Router();
 

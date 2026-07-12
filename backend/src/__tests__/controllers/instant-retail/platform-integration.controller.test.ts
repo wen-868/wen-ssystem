@@ -1,6 +1,6 @@
-import { vi, describe, it, beforeEach, expect } from "vitest";
+﻿import { vi, describe, it, beforeEach, expect } from "vitest";
 
-vi.mock("../../../services/instant-retail/platform-integration.service.js", () => ({
+vi.mock("../../../services/instant-retail/platform-integration.service", () => ({
   handleWebhook: vi.fn(),
   getPlatforms: vi.fn(),
   getConfigs: vi.fn(),
@@ -12,22 +12,22 @@ vi.mock("../../../services/instant-retail/platform-integration.service.js", () =
   deleteConfig: vi.fn(),
 }));
 
-vi.mock("../../../shared/response.js", () => ({
+vi.mock("../../../shared/response", () => ({
   ok: vi.fn((data) => ({ success: true, data })),
   fail: vi.fn((msg, code) => ({ success: false, message: msg, code })),
 }));
 
-vi.mock("../../../middleware/async-handler.js", () => ({
+vi.mock("../../../middleware/async-handler", () => ({
   asyncHandler: (fn: any) => fn,
 }));
 
-import * as platformIntegrationService from "../../../services/instant-retail/platform-integration.service.js";
-import { ok, fail } from "../../../shared/response.js";
+import * as platformIntegrationService from "../../../services/instant-retail/platform-integration.service";
+import { ok, fail } from "../../../shared/response";
 import {
   handleJdWebhook, handleMeituanWebhook, handleElemeWebhook,
   getPlatforms, getConfigs, getConfigByPlatform, upsertConfig,
   testConnection, syncOrders, syncProducts, deleteConfig
-} from "../../../controllers/instant-retail/platform-integration.controller.js";
+} from "../../../controllers/instant-retail/platform-integration.controller";
 
 const mockReq = (overrides: any = {}) => ({
   tenantId: "t1",

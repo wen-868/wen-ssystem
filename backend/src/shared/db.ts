@@ -1,1 +1,1 @@
-export * from "../config/database.js";
+﻿export * from "../config/database";

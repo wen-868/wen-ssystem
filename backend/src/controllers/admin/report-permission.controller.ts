@@ -1,6 +1,6 @@
-import { z } from "zod";
-import { ok } from "../../shared/response.js";
-import * as service from "../../services/admin/report-permission.service.js";
+﻿import { z } from "zod";
+import { ok } from "../../shared/response";
+import * as service from "../../services/admin/report-permission.service";
 
 const saveMatrixSchema = z.object({
   permissions: z.array(z.object({

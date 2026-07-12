@@ -1,14 +1,14 @@
-import { describe, it, expect, vi } from "vitest";
+﻿import { describe, it, expect, vi } from "vitest";
 
 const { mockQueryWithTenant } = vi.hoisted(() => ({
   mockQueryWithTenant: vi.fn(),
 }));
 
-vi.mock("../../shared/db.js", () => ({
+vi.mock("../../shared/db", () => ({
   queryWithTenant: mockQueryWithTenant,
 }));
 
-vi.mock("../../shared/logger.js", () => ({
+vi.mock("../../shared/logger", () => ({
   default: {
     info: vi.fn(),
     error: vi.fn(),
@@ -26,8 +26,8 @@ import {
   getPricePermissionMatrix,
   logUnauthorizedAccess,
   matchesField,
-} from "../../shared/price-guard.js";
-import type { AuthUser } from "../../shared/auth.js";
+} from "../../shared/price-guard";
+import type { AuthUser } from "../../shared/auth";
 
 function makeUser(roles: string[]): AuthUser {
   return {

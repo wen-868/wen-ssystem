@@ -1,6 +1,6 @@
-import { vi, describe, it, beforeEach, expect } from "vitest";
+﻿import { vi, describe, it, beforeEach, expect } from "vitest";
 
-vi.mock("../../../services/store/order.service.js", () => ({
+vi.mock("../../../services/store/order.service", () => ({
   listOrders: vi.fn(),
   getOrderDetail: vi.fn(),
   acceptOrder: vi.fn(),
@@ -10,18 +10,18 @@ vi.mock("../../../services/store/order.service.js", () => ({
   cancelOrder: vi.fn(),
 }));
 
-vi.mock("../../../shared/response.js", () => ({
+vi.mock("../../../shared/response", () => ({
   ok: vi.fn((data) => ({ success: true, data })),
   fail: vi.fn((msg, code) => ({ success: false, message: msg, code })),
 }));
 
-vi.mock("../../../middleware/async-handler.js", () => ({
+vi.mock("../../../middleware/async-handler", () => ({
   asyncHandler: (fn: any) => fn,
 }));
 
-import * as orderService from "../../../services/store/order.service.js";
-import { ok, fail } from "../../../shared/response.js";
-import { listOrders, getOrderDetail, acceptOrder, startDelivery, completeDelivery, rejectOrder, cancelOrder } from "../../../controllers/store/order.controller.js";
+import * as orderService from "../../../services/store/order.service";
+import { ok, fail } from "../../../shared/response";
+import { listOrders, getOrderDetail, acceptOrder, startDelivery, completeDelivery, rejectOrder, cancelOrder } from "../../../controllers/store/order.controller";
 
 const mockReq = (overrides: any = {}) => ({
   tenantId: "t1",

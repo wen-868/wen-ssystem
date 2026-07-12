@@ -1,7 +1,7 @@
-import { z } from "zod";
-import { asyncHandler } from "../../middleware/async-handler.js";
-import { ok } from "../../shared/response.js";
-import * as flashSaleService from "../../services/admin/marketing-flash-sale.service.js";
+﻿import { z } from "zod";
+import { asyncHandler } from "../../middleware/async-handler";
+import { ok } from "../../shared/response";
+import * as flashSaleService from "../../services/admin/marketing-flash-sale.service";
 
 export const createFlashSale = asyncHandler(async (req, res) => {
   const body = z.object({

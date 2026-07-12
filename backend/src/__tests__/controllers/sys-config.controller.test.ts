@@ -1,24 +1,24 @@
-import { vi, describe, it, beforeEach, expect } from "vitest";
+﻿import { vi, describe, it, beforeEach, expect } from "vitest";
 
-vi.mock("../../../services/admin/sys-config.service.js", () => ({
+vi.mock("@services/admin/sys-config.service", () => ({
   getAllConfigs: vi.fn(),
   getConfigByGroup: vi.fn(),
   batchUpdateConfigs: vi.fn(),
   createConfig: vi.fn(),
 }));
 
-vi.mock("../../../shared/response.js", () => ({
+vi.mock("@shared/response", () => ({
   ok: vi.fn((data) => ({ success: true, data })),
   fail: vi.fn((msg, code) => ({ success: false, message: msg, code })),
 }));
 
-vi.mock("../../../middleware/async-handler.js", () => ({
+vi.mock("@middleware/async-handler", () => ({
   asyncHandler: (fn: any) => fn,
 }));
 
-import * as sysConfigService from "../../../services/admin/sys-config.service.js";
-import { ok } from "../../../shared/response.js";
-import { getAllConfigs, getConfigByGroup, batchUpdateConfigs, createConfig } from "../../../controllers/sys-config.controller.js";
+import * as sysConfigService from "@services/admin/sys-config.service";
+import { ok } from "@shared/response";
+import { getAllConfigs, getConfigByGroup, batchUpdateConfigs, createConfig } from "@controllers/sys-config.controller";
 
 const mockReq = (overrides: any = {}) => ({
   tenantId: "t1",

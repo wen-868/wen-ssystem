@@ -1,8 +1,8 @@
-import mysql from "mysql2/promise";
-import { queryWithTenant, queryOneWithTenant, transaction } from "../../shared/db.js";
-import { makeBizNo } from "../../shared/id.js";
-import { calcReservation, getInitialMiniappOrderState, completeOrderDelivery, shouldReserveStock, type CustomerType } from "../../shared/fulfillment.js";
-import { constants } from "../../config/constants.js";
+﻿import mysql from "mysql2/promise";
+import { queryWithTenant, queryOneWithTenant, transaction } from "../../shared/db";
+import { makeBizNo } from "../../shared/id";
+import { calcReservation, getInitialMiniappOrderState, completeOrderDelivery, shouldReserveStock, type CustomerType } from "../../shared/fulfillment";
+import { constants } from "../../config/constants";
 
 // ========== 私有辅助函数 ==========
 

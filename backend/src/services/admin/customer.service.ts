@@ -1,6 +1,6 @@
-import { query, queryOne, queryWithTenant, queryOneWithTenant, transaction } from "../../shared/db.js";
-import { syncChangedFields, detectChangedFields } from "../../shared/field-sync.js";
-import { getCustomerLevelCode, type CustomerType } from "../../shared/fulfillment.js";
+﻿import { query, queryOne, queryWithTenant, queryOneWithTenant, transaction } from "../../shared/db";
+import { syncChangedFields, detectChangedFields } from "../../shared/field-sync";
+import { getCustomerLevelCode, type CustomerType } from "../../shared/fulfillment";
 
 export async function listMembers(tenantId: string, page: number, pageSize: number, keyword: string) {
   const offset = (page - 1) * pageSize;

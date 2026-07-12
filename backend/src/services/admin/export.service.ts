@@ -1,4 +1,4 @@
-import { query } from "../../shared/db.js";
+﻿import { query } from "../../shared/db";
 
 export async function exportCustomers(tenantId: string, keyword?: string) {
   const conditions: string[] = ["tenant_id = ?"];

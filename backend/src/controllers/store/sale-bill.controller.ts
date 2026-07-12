@@ -1,8 +1,8 @@
-import { z } from "zod";
-import { asyncHandler } from "../../middleware/async-handler.js";
-import { ok, fail } from "../../shared/response.js";
-import * as saleBillService from "../../services/store/sale-bill.service.js";
-import { storeSaleBillItemSchema } from "../../routes/store-sale-bill.routes.js";
+﻿import { z } from "zod";
+import { asyncHandler } from "../../middleware/async-handler";
+import { ok, fail } from "../../shared/response";
+import * as saleBillService from "../../services/store/sale-bill.service";
+import { storeSaleBillItemSchema } from "../../routes/store-sale-bill.routes";
 
 export const listSaleBills = asyncHandler(async (req, res) => {
   const result = await saleBillService.listSaleBills({

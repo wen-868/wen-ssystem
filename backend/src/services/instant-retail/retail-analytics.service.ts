@@ -1,4 +1,4 @@
-import { queryWithTenant, queryOneWithTenant } from "../../shared/db.js";
+﻿import { queryWithTenant, queryOneWithTenant } from "../../shared/db";
 
 export async function getAnalyticsSummary(params: {
   tenantId: string; storeId?: number; startDate?: string; endDate?: string;

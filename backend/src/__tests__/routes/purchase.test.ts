@@ -1,8 +1,8 @@
-import { vi, describe, it, beforeEach, expect } from "vitest";
+﻿import { vi, describe, it, beforeEach, expect } from "vitest";
 import request from "supertest";
-import { createTestApp } from "../fixtures/create-test-app.js";
+import { createTestApp } from "../fixtures/create-test-app";
 
-vi.mock("../../services/purchase.service.js", () => ({
+vi.mock("../../services/purchase.service", () => ({
   purchaseService: {
     getPageList: vi.fn(),
     getDetail: vi.fn(),
@@ -16,23 +16,23 @@ vi.mock("../../services/purchase.service.js", () => ({
   },
 }));
 
-vi.mock("../../shared/response.js", () => ({
+vi.mock("../../shared/response", () => ({
   ok: vi.fn((data) => ({ code: "0", msg: "成功", data, traceId: "test-trace", apiCost: 0 })),
   fail: vi.fn((msg, code = "400") => ({ code, msg, traceId: "test-trace", apiCost: 0 })),
 }));
 
-vi.mock("../../middleware/auth.js", () => ({
+vi.mock("../../middleware/auth", () => ({
   requireAuthWithTenant: [],
   requireAuth: (_req: any, _res: any, next: any) => next(),
   requireRoles: () => (_req: any, _res: any, next: any) => next(),
 }));
 
-vi.mock("../../middleware/tenant.js", () => ({
+vi.mock("../../middleware/tenant", () => ({
   tenantMiddleware: (_req: any, _res: any, next: any) => next(),
 }));
 
-import { purchaseService } from "../../services/purchase.service.js";
-import { purchaseRouter } from "../../routes/purchase.routes.js";
+import { purchaseService } from "../../services/purchase.service";
+import { purchaseRouter } from "../../routes/purchase.routes";
 
 const app = createTestApp({
   prefix: "/api/admin/purchase-orders",

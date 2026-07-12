@@ -1,8 +1,8 @@
-import { z } from "zod";
-import { asyncHandler } from "../../middleware/async-handler.js";
-import { ok } from "../../shared/response.js";
-import * as couponService from "../../services/admin/marketing-new-coupon.service.js";
-import * as promotionService from "../../services/admin/marketing-new-promotion.service.js";
+﻿import { z } from "zod";
+import { asyncHandler } from "../../middleware/async-handler";
+import { ok } from "../../shared/response";
+import * as couponService from "../../services/admin/marketing-new-coupon.service";
+import * as promotionService from "../../services/admin/marketing-new-promotion.service";
 
 export const listCouponTemplates = asyncHandler(async (req, res) => {
   const { status, type, page = 1, pageSize = 20 } = req.query;

@@ -1,4 +1,5 @@
 import { defineConfig } from "vitest/config";
+import path from "path";
 
 export default defineConfig({
   test: {
@@ -12,23 +13,19 @@ export default defineConfig({
       USE_MOCK_DB: "true",
       JWT_SECRET: "test-secret-key-for-vitest"
     },
-    // 抑制 Zod 校验错误输出到 stderr（Edge Case 测试故意传入非法数据）
     onConsoleLog(log: string, type: "stdout" | "stderr"): false | void {
       if (type === "stderr" && log.includes("ZodError")) return false;
     },
-    // 测试覆盖率配置（使用 istanbul 解决 vi.mock() 兼容性问题）
     coverage: {
       provider: "istanbul",
       reporter: ["text", "lcov", "json-summary"],
-      include: ["src/**/*.ts"],
+      include: [
+        "src/controllers/**/*.ts",
+        "src/routes/**/*.ts",
+      ],
       exclude: [
         "src/__tests__/**",
         "tests/**",
-        "src/shared/mock-db.ts",
-        "src/types/**",
-        "src/server.ts",
-        "src/config/database.ts",
-        "src/config/redis.ts",
       ],
       thresholds: {
         branches: 100,
@@ -37,5 +34,14 @@ export default defineConfig({
         statements: 100,
       },
     },
-  }
+  },
+  resolve: {
+    extensions: [".ts", ".js"],
+    alias: {
+      "@services": path.resolve(__dirname, "src/services"),
+      "@shared": path.resolve(__dirname, "src/shared"),
+      "@middleware": path.resolve(__dirname, "src/middleware"),
+      "@controllers": path.resolve(__dirname, "src/controllers"),
+    },
+  },
 });

@@ -1,6 +1,6 @@
-import { asyncHandler } from "../../middleware/async-handler.js";
-import { ok } from "../../shared/response.js";
-import * as inventoryLossGainService from "../../services/admin/inventory-loss-gain.service.js";
+﻿import { asyncHandler } from "../../middleware/async-handler";
+import { ok } from "../../shared/response";
+import * as inventoryLossGainService from "../../services/admin/inventory-loss-gain.service";
 
 export const reportLossGain = asyncHandler(async (req, res) => {
   const { storeId, type, skuId, qty, costPrice, reason } = req.body;

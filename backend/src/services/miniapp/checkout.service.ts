@@ -1,8 +1,8 @@
-import mysql from "mysql2/promise";
-import { queryWithTenant, queryOneWithTenant, transaction } from "../../shared/db.js";
-import { makeBizNo } from "../../shared/id.js";
-import { calcReservation, getInitialMiniappOrderState, completeOrderDelivery, shouldReserveStock, type CustomerType } from "../../shared/fulfillment.js";
-import { constants } from "../../config/constants.js";
+﻿import mysql from "mysql2/promise";
+import { queryWithTenant, queryOneWithTenant, transaction } from "../../shared/db";
+import { makeBizNo } from "../../shared/id";
+import { calcReservation, getInitialMiniappOrderState, completeOrderDelivery, shouldReserveStock, type CustomerType } from "../../shared/fulfillment";
+import { constants } from "../../config/constants";
 
 async function getBestPrice(conn: mysql.PoolConnection | null, tenantId: string, customerId: number, skuId: number, quantity: number): Promise<number> {
   const dbQuery = conn ? conn.query.bind(conn) : (sql: string, params: unknown[]) => queryWithTenant(sql, params, tenantId);

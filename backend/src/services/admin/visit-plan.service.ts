@@ -1,6 +1,6 @@
-import { z } from "zod";
-import { queryOneWithTenant, queryWithTenant, transaction } from "../../shared/db.js";
-import { makeBizNo } from "../../shared/id.js";
+﻿import { z } from "zod";
+import { queryOneWithTenant, queryWithTenant, transaction } from "../../shared/db";
+import { makeBizNo } from "../../shared/id";
 
 export const createVisitPlanSchema = z.object({
   customer_id: z.number().int().positive(),

@@ -1,6 +1,6 @@
-import { vi, describe, it, beforeEach, expect } from "vitest";
+﻿import { vi, describe, it, beforeEach, expect } from "vitest";
 
-vi.mock("../../../services/admin/marketing-flash-sale.service.js", () => ({
+vi.mock("../../../services/admin/marketing-flash-sale.service", () => ({
   createFlashSale: vi.fn(),
   listFlashSales: vi.fn(),
   getFlashSale: vi.fn(),
@@ -13,17 +13,17 @@ vi.mock("../../../services/admin/marketing-flash-sale.service.js", () => ({
   buyFlashSale: vi.fn(),
 }));
 
-vi.mock("../../../shared/response.js", () => ({
+vi.mock("../../../shared/response", () => ({
   ok: vi.fn((data) => ({ success: true, data })),
   fail: vi.fn((msg, code) => ({ success: false, message: msg, code })),
 }));
 
-vi.mock("../../../middleware/async-handler.js", () => ({
+vi.mock("../../../middleware/async-handler", () => ({
   asyncHandler: (fn: any) => fn,
 }));
 
-import * as flashSaleService from "../../../services/admin/marketing-flash-sale.service.js";
-import { ok } from "../../../shared/response.js";
+import * as flashSaleService from "../../../services/admin/marketing-flash-sale.service";
+import { ok } from "../../../shared/response";
 import {
   createFlashSale,
   listFlashSales,
@@ -35,7 +35,7 @@ import {
   getFlashSaleStatistics,
   listActiveFlashSales,
   buyFlashSale,
-} from "../../../controllers/admin/marketing-flash-sale.controller.js";
+} from "../../../controllers/admin/marketing-flash-sale.controller";
 
 const mockReq = (overrides: any = {}) => ({
   tenantId: "t1",

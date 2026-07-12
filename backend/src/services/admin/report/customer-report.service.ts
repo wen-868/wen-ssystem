@@ -1,5 +1,5 @@
-import { queryWithTenant, queryOneWithTenant } from "../../../shared/db.js";
-import { parseDateParam } from "../../../shared/date-utils.js";
+﻿import { queryWithTenant, queryOneWithTenant } from "../../../shared/db";
+import { parseDateParam } from "../../../shared/date-utils";
 
 export async function getCustomerContribution(
   tenantId: string,

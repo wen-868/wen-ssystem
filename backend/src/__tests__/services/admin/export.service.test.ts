@@ -1,4 +1,4 @@
-/**
+﻿/**
  * 管理端数据导出 service 单元测试
  * 被测文件：src/services/admin/export.service.ts
  */
@@ -8,7 +8,7 @@ const mocks = vi.hoisted(() => ({
   query: vi.fn(),
 }));
 
-vi.mock("../../../shared/db.js", () => ({
+vi.mock("../../../shared/db", () => ({
   query: mocks.query,
   queryOne: vi.fn(),
   queryWithTenant: vi.fn(),
@@ -25,7 +25,7 @@ import {
   exportPayments,
   exportSalesOrders,
   exportAuditLogs,
-} from "../../../services/admin/export.service.js";
+} from "../../../services/admin/export.service";
 
 describe("export.service", () => {
   beforeEach(() => vi.resetAllMocks());

@@ -1,6 +1,6 @@
-import { vi, describe, it, beforeEach, expect } from "vitest";
+﻿import { vi, describe, it, beforeEach, expect } from "vitest";
 
-vi.mock("../../../services/admin/trace-records.service.js", () => ({
+vi.mock("../../../services/admin/trace-records.service", () => ({
   generateTraceCodes: vi.fn(),
   listTraceCodes: vi.fn(),
   getTraceCodeDetail: vi.fn(),
@@ -17,21 +17,21 @@ vi.mock("../../../services/admin/trace-records.service.js", () => ({
   consumerVerifyTraceCode: vi.fn(),
 }));
 
-vi.mock("../../../middleware/tenant.js", () => ({
+vi.mock("../../../middleware/tenant", () => ({
   getTenantId: (req: any) => req.tenantId,
 }));
 
-vi.mock("../../../shared/response.js", () => ({
+vi.mock("../../../shared/response", () => ({
   ok: vi.fn((data) => ({ success: true, data })),
   fail: vi.fn((msg, code) => ({ success: false, message: msg, code })),
 }));
 
-vi.mock("../../../middleware/async-handler.js", () => ({
+vi.mock("../../../middleware/async-handler", () => ({
   asyncHandler: (fn: any) => fn,
 }));
 
-import * as traceRecordsService from "../../../services/admin/trace-records.service.js";
-import { ok, fail } from "../../../shared/response.js";
+import * as traceRecordsService from "../../../services/admin/trace-records.service";
+import { ok, fail } from "../../../shared/response";
 import {
   generateTraceCodes,
   listTraceCodes,
@@ -47,7 +47,7 @@ import {
   completeRecall,
   consumerQueryTrace,
   consumerVerifyTraceCode,
-} from "../../../controllers/admin/trace-records.controller.js";
+} from "../../../controllers/admin/trace-records.controller";
 
 const mockReq = (overrides: any = {}) => ({
   tenantId: "t1",

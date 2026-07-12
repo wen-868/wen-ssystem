@@ -1,6 +1,6 @@
-import { asyncHandler } from "../../middleware/async-handler.js";
-import { ok, fail } from "../../shared/response.js";
-import * as fulfillmentService from "../../services/instant-retail/fulfillment.service.js";
+﻿import { asyncHandler } from "../../middleware/async-handler";
+import { ok, fail } from "../../shared/response";
+import * as fulfillmentService from "../../services/instant-retail/fulfillment.service";
 
 export const startDelivery = asyncHandler(async (req, res) => {
   const tenantId = req.tenantId!;

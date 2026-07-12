@@ -1,5 +1,5 @@
-import { query, queryOne } from "../../shared/db.js";
-import { makeBizNo } from "../../shared/id.js";
+﻿import { query, queryOne } from "../../shared/db";
+import { makeBizNo } from "../../shared/id";
 
 export async function getCurrentShift(tenantId: string, storeId: number) {
   const today = new Date().toISOString().split("T")[0];

@@ -1,6 +1,6 @@
-import { vi, describe, it, beforeEach, expect } from "vitest";
+﻿import { vi, describe, it, beforeEach, expect } from "vitest";
 
-vi.mock("../../../services/admin/miniapp-config.service.js", () => ({
+vi.mock("../../../services/admin/miniapp-config.service", () => ({
   MiniappConfigService: {
     listConfigs: vi.fn(),
     getConfig: vi.fn(),
@@ -12,13 +12,13 @@ vi.mock("../../../services/admin/miniapp-config.service.js", () => ({
   },
 }));
 
-vi.mock("../../../shared/response.js", () => ({
+vi.mock("../../../shared/response", () => ({
   ok: vi.fn((data) => ({ success: true, data })),
   fail: vi.fn((msg, code) => ({ success: false, message: msg, code })),
 }));
 
-import { MiniappConfigService } from "../../../services/admin/miniapp-config.service.js";
-import { ok } from "../../../shared/response.js";
+import { MiniappConfigService } from "../../../services/admin/miniapp-config.service";
+import { ok } from "../../../shared/response";
 import {
   listConfigs,
   getConfig,
@@ -27,7 +27,7 @@ import {
   getTemplate,
   publish,
   listPublishLogs,
-} from "../../../controllers/admin/miniapp-config.controller.js";
+} from "../../../controllers/admin/miniapp-config.controller";
 
 const mockReq = (overrides: any = {}) => ({
   tenantId: "t1",

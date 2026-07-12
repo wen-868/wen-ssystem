@@ -1,8 +1,8 @@
-import { vi, describe, it, beforeEach, expect } from "vitest";
+﻿import { vi, describe, it, beforeEach, expect } from "vitest";
 import request from "supertest";
-import { createTestApp } from "../fixtures/create-test-app.js";
+import { createTestApp } from "../fixtures/create-test-app";
 
-vi.mock("../../services/admin/miniapp-config.service.js", () => ({
+vi.mock("../../services/admin/miniapp-config.service", () => ({
   MiniappConfigService: {
     listConfigs: vi.fn(),
     getConfig: vi.fn(),
@@ -14,24 +14,24 @@ vi.mock("../../services/admin/miniapp-config.service.js", () => ({
   },
 }));
 
-vi.mock("../../shared/response.js", () => ({
+vi.mock("../../shared/response", () => ({
   ok: vi.fn((data) => ({ code: "0", msg: "成功", data, traceId: "test-trace", apiCost: 0 })),
   fail: vi.fn((msg, code = "400") => ({ code, msg, traceId: "test-trace", apiCost: 0 })),
 }));
 
-vi.mock("../../middleware/auth.js", () => ({
+vi.mock("../../middleware/auth", () => ({
   requireAuthWithTenant: (_req: any, _res: any, next: any) => next(),
   requireAuth: (_req: any, _res: any, next: any) => next(),
   requireRoles: () => (_req: any, _res: any, next: any) => next(),
   requirePlatformAuth: (_req: any, _res: any, next: any) => next(),
 }));
 
-vi.mock("../../middleware/tenant.js", () => ({
+vi.mock("../../middleware/tenant", () => ({
   tenantMiddleware: (_req: any, _res: any, next: any) => next(),
 }));
 
-import { MiniappConfigService } from "../../services/admin/miniapp-config.service.js";
-import { miniappConfigRouter } from "../../routes/miniapp-config.routes.js";
+import { MiniappConfigService } from "../../services/admin/miniapp-config.service";
+import { miniappConfigRouter } from "../../routes/miniapp-config.routes";
 
 const app = createTestApp({ prefix: "/api/miniapp-config", router: miniappConfigRouter });
 

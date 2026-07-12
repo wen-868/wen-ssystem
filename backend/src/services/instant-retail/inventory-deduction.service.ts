@@ -1,4 +1,4 @@
-import { queryWithTenant, queryOneWithTenant } from "../../shared/db.js";
+﻿import { queryWithTenant, queryOneWithTenant } from "../../shared/db";
 
 // 扣减库存 - 数据库行级锁版本
 export async function deductStock(productId: number, quantity: number, tenantId: string): Promise<boolean> {

@@ -1,4 +1,4 @@
-/**
+﻿/**
  * 管理端错误日志 service 单元测试
  * 被测文件：src/services/admin/error-log.service.ts
  */
@@ -10,7 +10,7 @@ const mocks = vi.hoisted(() => ({
   loggerError: vi.fn(),
 }));
 
-vi.mock("../../../shared/db.js", () => ({
+vi.mock("../../../shared/db", () => ({
   query: mocks.query,
   queryOne: mocks.queryOne,
   queryWithTenant: vi.fn(),
@@ -18,11 +18,11 @@ vi.mock("../../../shared/db.js", () => ({
   transaction: vi.fn(),
 }));
 
-vi.mock("../../../shared/logger.js", () => ({
+vi.mock("../../../shared/logger", () => ({
   default: { error: mocks.loggerError },
 }));
 
-import { insertErrorLog, listErrorLogs, cleanupOldLogs } from "../../../services/admin/error-log.service.js";
+import { insertErrorLog, listErrorLogs, cleanupOldLogs } from "../../../services/admin/error-log.service";
 
 describe("error-log.service", () => {
   beforeEach(() => vi.resetAllMocks());

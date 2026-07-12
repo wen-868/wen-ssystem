@@ -1,6 +1,6 @@
-import { asyncHandler } from "../../middleware/async-handler.js";
-import { ok } from "../../shared/response.js";
-import * as inventoryCostService from "../../services/admin/inventory-cost.service.js";
+﻿import { asyncHandler } from "../../middleware/async-handler";
+import { ok } from "../../shared/response";
+import * as inventoryCostService from "../../services/admin/inventory-cost.service";
 
 export const getInventoryCostDetail = asyncHandler(async (req, res) => {
   const result = await inventoryCostService.getInventoryCostDetail(

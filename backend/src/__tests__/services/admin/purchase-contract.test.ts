@@ -1,4 +1,4 @@
-/**
+﻿﻿﻿﻿﻿﻿/**
  * 采购合同 service 单元测试
  * 被测文件：src/services/admin/purchase-contract.service.ts
  */
@@ -10,7 +10,7 @@ const mocks = vi.hoisted(() => ({
   makeBizNo: vi.fn(),
 }));
 
-vi.mock("../../../shared/db.js", () => ({
+vi.mock("../../../shared/db", () => ({
   query: vi.fn(),
   queryOne: vi.fn(),
   queryWithTenant: mocks.queryWithTenant,
@@ -18,7 +18,7 @@ vi.mock("../../../shared/db.js", () => ({
   transaction: vi.fn(),
 }));
 
-vi.mock("../../../shared/id.js", () => ({
+vi.mock("../../../shared/id", () => ({
   makeBizNo: mocks.makeBizNo,
 }));
 
@@ -28,7 +28,7 @@ import {
   updatePurchaseContract,
   deletePurchaseContract,
   uploadContractFile,
-} from "../../../services/admin/purchase-contract.service.js";
+} from "../../../services/admin/purchase-contract.service";
 
 beforeEach(() => {
   vi.clearAllMocks();

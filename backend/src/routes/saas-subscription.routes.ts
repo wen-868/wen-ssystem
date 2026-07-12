@@ -1,7 +1,7 @@
-import { Router } from "express";
-import type { RouteConfig } from "../shared/auto-routes.js";
-import { requirePlatformAuth } from "../middleware/auth.js";
-import * as subscriptionController from "../controllers/saas/subscription.controller.js";
+﻿import { Router } from "express";
+import type { RouteConfig } from "../shared/auto-routes";
+import { requirePlatformAuth } from "../middleware/auth";
+import * as subscriptionController from "../controllers/saas/subscription.controller";
 
 export const saasSubscriptionRouter = Router();
 

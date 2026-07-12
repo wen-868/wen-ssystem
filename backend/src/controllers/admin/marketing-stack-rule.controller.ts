@@ -1,7 +1,7 @@
-import { z } from "zod";
-import { asyncHandler } from "../../middleware/async-handler.js";
-import { ok } from "../../shared/response.js";
-import * as stackRuleService from "../../services/admin/marketing-stack-rule.service.js";
+﻿import { z } from "zod";
+import { asyncHandler } from "../../middleware/async-handler";
+import { ok } from "../../shared/response";
+import * as stackRuleService from "../../services/admin/marketing-stack-rule.service";
 
 export const createStackRule = asyncHandler(async (req, res) => {
   const body = z.object({

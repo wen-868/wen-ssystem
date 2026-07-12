@@ -1,5 +1,5 @@
-import { describe, it, expect, vi } from "vitest";
-import { asyncHandler } from "../../shared/async-handler.js";
+﻿import { describe, it, expect, vi } from "vitest";
+import { asyncHandler } from "../../shared/async-handler";
 
 describe("async-handler", () => {
   it("成功的 Promise 应正常调用 handler", async () => {

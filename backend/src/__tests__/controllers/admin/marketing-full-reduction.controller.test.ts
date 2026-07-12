@@ -1,6 +1,6 @@
-import { vi, describe, it, beforeEach, expect } from "vitest";
+﻿import { vi, describe, it, beforeEach, expect } from "vitest";
 
-vi.mock("../../../services/admin/marketing-full-reduction.service.js", () => ({
+vi.mock("../../../services/admin/marketing-full-reduction.service", () => ({
   createFullReduction: vi.fn(),
   listFullReductions: vi.fn(),
   getFullReduction: vi.fn(),
@@ -10,17 +10,17 @@ vi.mock("../../../services/admin/marketing-full-reduction.service.js", () => ({
   pauseFullReduction: vi.fn(),
 }));
 
-vi.mock("../../../shared/response.js", () => ({
+vi.mock("../../../shared/response", () => ({
   ok: vi.fn((data) => ({ success: true, data })),
   fail: vi.fn((msg, code) => ({ success: false, message: msg, code })),
 }));
 
-vi.mock("../../../middleware/async-handler.js", () => ({
+vi.mock("../../../middleware/async-handler", () => ({
   asyncHandler: (fn: any) => fn,
 }));
 
-import * as fullReductionService from "../../../services/admin/marketing-full-reduction.service.js";
-import { ok } from "../../../shared/response.js";
+import * as fullReductionService from "../../../services/admin/marketing-full-reduction.service";
+import { ok } from "../../../shared/response";
 import {
   createFullReduction,
   listFullReductions,
@@ -29,7 +29,7 @@ import {
   deleteFullReduction,
   activateFullReduction,
   pauseFullReduction,
-} from "../../../controllers/admin/marketing-full-reduction.controller.js";
+} from "../../../controllers/admin/marketing-full-reduction.controller";
 
 const mockReq = (overrides: any = {}) => ({
   tenantId: "t1",

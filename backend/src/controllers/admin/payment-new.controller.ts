@@ -1,6 +1,6 @@
-import { asyncHandler } from "../../middleware/async-handler.js";
-import { ok } from "../../shared/response.js";
-import * as paymentNewService from "../../services/admin/payment-new.service.js";
+﻿import { asyncHandler } from "../../middleware/async-handler";
+import { ok } from "../../shared/response";
+import * as paymentNewService from "../../services/admin/payment-new.service";
 
 export const createPayment = asyncHandler(async (req, res) => {
   const { supplierId, supplierName, paymentType, amount, paymentMethod, bankAccountId, paidDate, remark } = req.body;

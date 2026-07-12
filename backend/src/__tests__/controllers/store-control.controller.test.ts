@@ -1,6 +1,6 @@
-import { vi, describe, it, beforeEach, expect } from "vitest";
+﻿import { vi, describe, it, beforeEach, expect } from "vitest";
 
-vi.mock("../../../services/admin/store-control.service.js", () => ({
+vi.mock("@services/admin/store-control.service", () => ({
   getConfigs: vi.fn(),
   getConfig: vi.fn(),
   upsertConfig: vi.fn(),
@@ -13,17 +13,17 @@ vi.mock("../../../services/admin/store-control.service.js", () => ({
   getMyLogs: vi.fn(),
 }));
 
-vi.mock("../../../shared/response.js", () => ({
+vi.mock("@shared/response", () => ({
   ok: vi.fn((data) => ({ success: true, data })),
   fail: vi.fn((msg, code) => ({ success: false, message: msg, code })),
 }));
 
-vi.mock("../../../middleware/async-handler.js", () => ({
+vi.mock("@middleware/async-handler", () => ({
   asyncHandler: (fn: any) => fn,
 }));
 
-import * as storeControlService from "../../../services/admin/store-control.service.js";
-import { ok } from "../../../shared/response.js";
+import * as storeControlService from "@services/admin/store-control.service";
+import { ok } from "@shared/response";
 import {
   adminStoreControl,
   storeStoreControl,
@@ -37,7 +37,7 @@ import {
   listStatusLogs,
   getStoreStatus,
   listMyLogs,
-} from "../../../controllers/store-control.controller.js";
+} from "@controllers/store-control.controller";
 
 const mockReq = (overrides: any = {}) => ({
   tenantId: "t1",

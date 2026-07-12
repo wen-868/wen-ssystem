@@ -1,7 +1,7 @@
-import { Router } from "express";
-import { requireAuthWithTenant } from "../middleware/auth.js";
-import * as groupBuyController from "../controllers/admin/marketing-group-buy.controller.js";
-import type { RouteConfig } from "../shared/auto-routes.js";
+﻿import { Router } from "express";
+import { requireAuthWithTenant } from "../middleware/auth";
+import * as groupBuyController from "../controllers/admin/marketing-group-buy.controller";
+import type { RouteConfig } from "../shared/auto-routes";
 
 export const adminMarketingGroupBuyRouter = Router();
 

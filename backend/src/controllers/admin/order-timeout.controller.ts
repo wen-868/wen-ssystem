@@ -1,6 +1,6 @@
-import { asyncHandler } from "../../middleware/async-handler.js";
-import { ok, fail } from "../../shared/response.js";
-import * as service from "../../services/admin/order-timeout.service.js";
+﻿import { asyncHandler } from "../../middleware/async-handler";
+import { ok, fail } from "../../shared/response";
+import * as service from "../../services/admin/order-timeout.service";
 import { z } from "zod";
 
 export const getConfigs = asyncHandler(async (req, res) => {

@@ -1,4 +1,4 @@
-/**
+﻿/**
  * 管理端日结 service 单元测试
  * 被测文件：src/services/admin/daily-settlement.service.ts
  * 覆盖全部 3 个导出函数，目标覆盖率 100%
@@ -10,7 +10,7 @@ const mocks = vi.hoisted(() => ({
   queryOneWithTenant: vi.fn(),
 }));
 
-vi.mock("../../../shared/db.js", () => ({
+vi.mock("../../../shared/db", () => ({
   query: vi.fn(),
   queryOne: vi.fn(),
   queryWithTenant: mocks.queryWithTenant,
@@ -22,7 +22,7 @@ import {
   createDailySettlement,
   listDailySettlements,
   getDailySettlementDetail,
-} from "../../../services/admin/daily-settlement.service.js";
+} from "../../../services/admin/daily-settlement.service";
 
 beforeEach(() => {
   mocks.queryWithTenant.mockReset();

@@ -1,48 +1,48 @@
-import { vi, describe, it, beforeEach, expect } from "vitest";
+﻿import { vi, describe, it, beforeEach, expect } from "vitest";
 
-vi.mock("../../../services/platform/tenant-admin.service.js", () => ({
+vi.mock("../../../services/platform/tenant-admin.service", () => ({
   listPlatformTenants: vi.fn(),
   getPlatformTenantDetail: vi.fn(),
   createPlatformTenant: vi.fn(),
   updatePlatformTenant: vi.fn(),
 }));
 
-vi.mock("../../../services/platform/admin-account.service.js", () => ({
+vi.mock("../../../services/platform/admin-account.service", () => ({
   listPlatformAdmins: vi.fn(),
   createPlatformAdmin: vi.fn(),
   updatePlatformAdminStatus: vi.fn(),
 }));
 
-vi.mock("../../../services/platform/platform-overview.service.js", () => ({
+vi.mock("../../../services/platform/platform-overview.service", () => ({
   getPlatformOverview: vi.fn(),
 }));
 
-vi.mock("../../../services/platform/subscription-admin.service.js", () => ({
+vi.mock("../../../services/platform/subscription-admin.service", () => ({
   listPlatformSubscriptions: vi.fn(),
   createPlatformSubscription: vi.fn(),
 }));
 
-vi.mock("../../../services/platform/platform-config.service.js", () => ({
+vi.mock("../../../services/platform/platform-config.service", () => ({
   listPlatformConfigs: vi.fn(),
   updatePlatformConfig: vi.fn(),
   listPlatformAuditLogs: vi.fn(),
 }));
 
-vi.mock("../../../shared/response.js", () => ({
+vi.mock("../../../shared/response", () => ({
   ok: vi.fn((data) => ({ success: true, data })),
   fail: vi.fn((msg, code) => ({ success: false, message: msg, code })),
 }));
 
-vi.mock("../../../middleware/async-handler.js", () => ({
+vi.mock("../../../middleware/async-handler", () => ({
   asyncHandler: (fn: any) => fn,
 }));
 
-import * as tenantAdminService from "../../../services/platform/tenant-admin.service.js";
-import * as adminAccountService from "../../../services/platform/admin-account.service.js";
-import * as overviewService from "../../../services/platform/platform-overview.service.js";
-import * as subscriptionAdminService from "../../../services/platform/subscription-admin.service.js";
-import * as configService from "../../../services/platform/platform-config.service.js";
-import { ok, fail } from "../../../shared/response.js";
+import * as tenantAdminService from "../../../services/platform/tenant-admin.service";
+import * as adminAccountService from "../../../services/platform/admin-account.service";
+import * as overviewService from "../../../services/platform/platform-overview.service";
+import * as subscriptionAdminService from "../../../services/platform/subscription-admin.service";
+import * as configService from "../../../services/platform/platform-config.service";
+import { ok, fail } from "../../../shared/response";
 import {
   listTenants, getTenantDetail, createTenant, updateTenant,
   listAdmins, createAdmin, updateAdminStatus,
@@ -50,7 +50,7 @@ import {
   listSubscriptions, createSubscription,
   listConfigs, updateConfig,
   listAuditLogs,
-} from "../../../controllers/platform/platform.controller.js";
+} from "../../../controllers/platform/platform.controller";
 
 const mockReq = (overrides: any = {}) => ({
   tenantId: "t1",

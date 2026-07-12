@@ -1,8 +1,8 @@
-import { Router } from "express";
-import type { RouteConfig } from "../shared/auto-routes.js";
-import { requireAuthWithTenant } from "../middleware/auth.js";
-import { storageGuard } from "../middleware/storage-guard.js";
-import * as purchaseContractController from "../controllers/admin/purchase-contract.controller.js";
+﻿import { Router } from "express";
+import type { RouteConfig } from "../shared/auto-routes";
+import { requireAuthWithTenant } from "../middleware/auth";
+import { storageGuard } from "../middleware/storage-guard";
+import * as purchaseContractController from "../controllers/admin/purchase-contract.controller";
 
 export const purchaseContractRouter = Router();
 

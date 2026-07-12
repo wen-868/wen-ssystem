@@ -1,11 +1,11 @@
-import { Router } from "express";
-import type { RouteConfig } from "../shared/auto-routes.js";
-import { asyncHandler } from "../middleware/async-handler.js";
-import { requirePlatformAuth } from "../middleware/auth.js";
+﻿import { Router } from "express";
+import type { RouteConfig } from "../shared/auto-routes";
+import { asyncHandler } from "../middleware/async-handler";
+import { requirePlatformAuth } from "../middleware/auth";
 import {
   handleApplyTenantRegister, handleListApplications,
   handleGetApplication, handleApproveApplication, handleRejectApplication
-} from "../controllers/tenant-register.controller.js";
+} from "../controllers/tenant-register.controller";
 
 export const tenantRegisterRouter = Router();
 

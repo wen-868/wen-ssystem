@@ -1,7 +1,7 @@
-import { z } from "zod";
-import { asyncHandler } from "../../middleware/async-handler.js";
-import { ok } from "../../shared/response.js";
-import * as tagService from "../../services/admin/customer-tag.service.js";
+﻿import { z } from "zod";
+import { asyncHandler } from "../../middleware/async-handler";
+import { ok } from "../../shared/response";
+import * as tagService from "../../services/admin/customer-tag.service";
 
 const createTagSchema = z.object({
   tagName: z.string().min(1).max(100),

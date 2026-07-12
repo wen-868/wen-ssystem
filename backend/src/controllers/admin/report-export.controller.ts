@@ -1,7 +1,7 @@
-import { Request, Response } from "express";
-import { asyncHandler } from "../../middleware/async-handler.js";
-import { ok } from "../../shared/response.js";
-import * as svc from "../../services/admin/report-export.service.js";
+﻿import { Request, Response } from "express";
+import { asyncHandler } from "../../middleware/async-handler";
+import { ok } from "../../shared/response";
+import * as svc from "../../services/admin/report-export.service";
 
 export const exportReport = asyncHandler(async (req: Request, res: Response) => {
   const { report_type, format, filters, columns } = req.body;

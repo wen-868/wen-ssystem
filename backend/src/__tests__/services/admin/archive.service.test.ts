@@ -1,4 +1,4 @@
-/**
+﻿/**
  * 管理端历史单据归档 service 单元测试
  * 被测文件：src/services/admin/archive.service.ts
  */
@@ -9,7 +9,7 @@ const mocks = vi.hoisted(() => ({
   transaction: vi.fn(),
 }));
 
-vi.mock("../../../shared/db.js", () => ({
+vi.mock("../../../shared/db", () => ({
   query: vi.fn(),
   queryOne: vi.fn(),
   queryWithTenant: mocks.queryWithTenant,
@@ -17,7 +17,7 @@ vi.mock("../../../shared/db.js", () => ({
   transaction: mocks.transaction,
 }));
 
-import { archiveBillings } from "../../../services/admin/archive.service.js";
+import { archiveBillings } from "../../../services/admin/archive.service";
 
 describe("archive.service", () => {
   beforeEach(() => vi.resetAllMocks());

@@ -1,12 +1,12 @@
-import https from "node:https";
+﻿import https from "node:https";
 import { URL } from "node:url";
-import logger from "./logger.js";
+import logger from "./logger";
 
 /**
  * 飞书工作汇报 — 通过群机器人 webhook 发送消息
  *
  * 用法:
- *   import { reportToLingZhou } from "./feishu-report.js";
+ *   import { reportToLingZhou } from "./feishu-report";
  *   await reportToLingZhou({
  *     phase: "S102 接口自动化测试",
  *     status: "DONE",

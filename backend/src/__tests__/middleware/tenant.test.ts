@@ -1,5 +1,5 @@
-import { describe, it, expect, vi } from "vitest";
-import { tenantMiddleware, getTenantId, setTenantId } from "../../shared/tenant.js";
+﻿import { describe, it, expect, vi } from "vitest";
+import { tenantMiddleware, getTenantId, setTenantId } from "../../shared/tenant";
 import type { Request, Response, NextFunction } from "express";
 
 describe("tenant middleware", () => {

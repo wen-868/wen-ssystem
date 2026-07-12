@@ -1,4 +1,4 @@
-/**
+﻿﻿﻿﻿﻿﻿/**
  * 采购退货 service 单元测试
  * 被测文件：src/services/admin/purchase-return.service.ts
  */
@@ -13,7 +13,7 @@ const mocks = vi.hoisted(() => ({
   makeBizNo: vi.fn(),
 }));
 
-vi.mock("../../../shared/db.js", () => ({
+vi.mock("../../../shared/db", () => ({
   query: mocks.query,
   queryOne: mocks.queryOne,
   queryWithTenant: mocks.queryWithTenant,
@@ -21,7 +21,7 @@ vi.mock("../../../shared/db.js", () => ({
   transaction: mocks.transaction,
 }));
 
-vi.mock("../../../shared/id.js", () => ({
+vi.mock("../../../shared/id", () => ({
   makeBizNo: mocks.makeBizNo,
 }));
 
@@ -33,7 +33,7 @@ import {
   voidReturn,
   purchaseReturn,
   listPurchaseReturns,
-} from "../../../services/admin/purchase-return.service.js";
+} from "../../../services/admin/purchase-return.service";
 
 const mockConn = { query: vi.fn(), execute: vi.fn() };
 

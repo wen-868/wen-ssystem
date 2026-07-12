@@ -1,9 +1,9 @@
-/**
+﻿/**
  * 慢查询监控中间件
  * 记录每条 SQL 执行时间，超过阈值的查询记录到 logger.warn
  */
 import type { Request, Response, NextFunction } from "express";
-import logger from "../shared/logger.js";
+import logger from "../shared/logger";
 
 /** 慢查询阈值（毫秒） */
 const SLOW_QUERY_THRESHOLD = 1000;

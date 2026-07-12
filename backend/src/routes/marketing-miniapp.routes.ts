@@ -1,11 +1,11 @@
-import { Router } from "express";
-import * as couponController from "../controllers/admin/marketing-coupon.controller.js";
-import * as fullReductionController from "../controllers/admin/marketing-full-reduction.controller.js";
-import * as pointsController from "../controllers/admin/marketing-points.controller.js";
-import * as flashSaleController from "../controllers/admin/marketing-flash-sale.controller.js";
-import * as groupBuyController from "../controllers/admin/marketing-group-buy.controller.js";
-import * as calculationController from "../controllers/admin/marketing-calculation.controller.js";
-import type { RouteConfig } from "../shared/auto-routes.js";
+﻿import { Router } from "express";
+import * as couponController from "../controllers/admin/marketing-coupon.controller";
+import * as fullReductionController from "../controllers/admin/marketing-full-reduction.controller";
+import * as pointsController from "../controllers/admin/marketing-points.controller";
+import * as flashSaleController from "../controllers/admin/marketing-flash-sale.controller";
+import * as groupBuyController from "../controllers/admin/marketing-group-buy.controller";
+import * as calculationController from "../controllers/admin/marketing-calculation.controller";
+import type { RouteConfig } from "../shared/auto-routes";
 
 export const miniappMarketingRouter = Router();
 

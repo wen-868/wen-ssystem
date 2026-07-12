@@ -1,8 +1,8 @@
-import { vi, describe, it, beforeEach, expect } from "vitest";
+﻿import { vi, describe, it, beforeEach, expect } from "vitest";
 import request from "supertest";
-import { createTestApp } from "../fixtures/create-test-app.js";
+import { createTestApp } from "../fixtures/create-test-app";
 
-vi.mock("../../services/miniapp/retail-consumer-address.service.js", () => ({
+vi.mock("../../services/miniapp/retail-consumer-address.service", () => ({
   listAddresses: vi.fn(),
   createAddress: vi.fn(),
   updateAddress: vi.fn(),
@@ -10,20 +10,20 @@ vi.mock("../../services/miniapp/retail-consumer-address.service.js", () => ({
   setDefault: vi.fn(),
 }));
 
-vi.mock("../../shared/response.js", () => ({
+vi.mock("../../shared/response", () => ({
   ok: vi.fn((data) => ({ code: "0", msg: "成功", data, traceId: "test-trace", apiCost: 0 })),
   fail: vi.fn((msg, code = "400") => ({ code, msg, traceId: "test-trace", apiCost: 0 })),
 }));
 
-vi.mock("../../middleware/auth.js", () => ({
+vi.mock("../../middleware/auth", () => ({
   requireAuthWithTenant: (_req: any, _res: any, next: any) => next(),
   requireAuth: (_req: any, _res: any, next: any) => next(),
   requireRoles: () => (_req: any, _res: any, next: any) => next(),
   requirePlatformAuth: (_req: any, _res: any, next: any) => next(),
 }));
 
-import * as addressService from "../../services/miniapp/retail-consumer-address.service.js";
-import { consumerAddressRouter } from "../../routes/retail-consumer-address.routes.js";
+import * as addressService from "../../services/miniapp/retail-consumer-address.service";
+import { consumerAddressRouter } from "../../routes/retail-consumer-address.routes";
 
 const app = createTestApp({ prefix: "/api/retail-consumer-address", router: consumerAddressRouter });
 

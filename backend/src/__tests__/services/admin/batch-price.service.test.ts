@@ -1,4 +1,4 @@
-/**
+﻿/**
  * 管理端批量价格调整 service 单元测试
  * 被测文件：src/services/admin/batch-price.service.ts
  */
@@ -10,7 +10,7 @@ const mocks = vi.hoisted(() => ({
   transaction: vi.fn(),
 }));
 
-vi.mock("../../../shared/db.js", () => ({
+vi.mock("../../../shared/db", () => ({
   query: vi.fn(),
   queryOne: vi.fn(),
   queryWithTenant: mocks.queryWithTenant,
@@ -23,7 +23,7 @@ import {
   executeBatchPriceAdjustment,
   listBatchPriceLogs,
   getBatchPriceDetail,
-} from "../../../services/admin/batch-price.service.js";
+} from "../../../services/admin/batch-price.service";
 
 describe("batch-price.service", () => {
   beforeEach(() => vi.resetAllMocks());

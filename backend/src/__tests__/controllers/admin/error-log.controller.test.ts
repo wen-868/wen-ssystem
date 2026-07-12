@@ -1,26 +1,26 @@
-import { vi, describe, it, beforeEach, expect } from "vitest";
+﻿import { vi, describe, it, beforeEach, expect } from "vitest";
 
-vi.mock("../../../services/admin/error-log.service.js", () => ({
+vi.mock("../../../services/admin/error-log.service", () => ({
   insertErrorLog: vi.fn(),
   listErrorLogs: vi.fn(),
   cleanupOldLogs: vi.fn(),
 }));
 
-vi.mock("../../../shared/response.js", () => ({
+vi.mock("../../../shared/response", () => ({
   ok: vi.fn((data) => ({ success: true, data })),
   fail: vi.fn((msg, code) => ({ success: false, message: msg, code })),
 }));
 
-vi.mock("../../../middleware/async-handler.js", () => ({
+vi.mock("../../../middleware/async-handler", () => ({
   asyncHandler: (fn: any) => fn,
 }));
 
-import * as errorLogService from "../../../services/admin/error-log.service.js";
-import { ok } from "../../../shared/response.js";
+import * as errorLogService from "../../../services/admin/error-log.service";
+import { ok } from "../../../shared/response";
 import {
   reportFrontendError,
   listErrorLogs,
-} from "../../../controllers/admin/error-log.controller.js";
+} from "../../../controllers/admin/error-log.controller";
 
 const mockReq = (overrides: any = {}) => ({
   tenantId: "t1",

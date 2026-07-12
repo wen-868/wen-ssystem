@@ -1,8 +1,8 @@
-import { z } from "zod";
-import { asyncHandler } from "../middleware/async-handler.js";
-import { ok } from "../shared/response.js";
-import { getSettlementType, type CustomerType } from "../shared/fulfillment.js";
-import * as service from "../services/miniapp.service.js";
+﻿import { z } from "zod";
+import { asyncHandler } from "../middleware/async-handler";
+import { ok } from "../shared/response";
+import { getSettlementType, type CustomerType } from "../shared/fulfillment";
+import * as service from "../services/miniapp.service";
 
 export const devLogin = (_req: any, res: any) => {
   const result = service.devLogin();

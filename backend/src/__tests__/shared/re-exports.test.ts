@@ -1,12 +1,12 @@
-import { describe, it, expect } from "vitest";
+﻿import { describe, it, expect } from "vitest";
 
 // 测试 re-export 文件，确保每个 re-export 路径都能正确导入
-import { env } from "../../shared/env.js";
-import { asyncHandler } from "../../shared/async-handler.js";
-import { errorHandler } from "../../shared/error-handler.js";
-import { tenantMiddleware, getTenantId } from "../../shared/tenant.js";
-import { responseTimeTracker } from "../../shared/response-time-tracker.js";
-import { errorResponseInterceptor } from "../../shared/error-response-interceptor.js";
+import { env } from "../../shared/env";
+import { asyncHandler } from "../../shared/async-handler";
+import { errorHandler } from "../../shared/error-handler";
+import { tenantMiddleware, getTenantId } from "../../shared/tenant";
+import { responseTimeTracker } from "../../shared/response-time-tracker";
+import { errorResponseInterceptor } from "../../shared/error-response-interceptor";
 // 补充 re-export 文件覆盖
 import {
   pool,
@@ -17,10 +17,10 @@ import {
   queryOneWithTenant,
   executeWithTenant,
   transaction,
-} from "../../shared/db.js";
-import { cacheGet, cacheDel, cacheDelPattern, invalidateTenantCache, CacheKeys } from "../../shared/redis-cache.js";
-import { WechatPay } from "../../shared/wechat-pay.js";
-import * as priceGuardMiddleware from "../../shared/price-guard-middleware.js";
+} from "../../shared/db";
+import { cacheGet, cacheDel, cacheDelPattern, invalidateTenantCache, CacheKeys } from "../../shared/redis-cache";
+import { WechatPay } from "../../shared/wechat-pay";
+import * as priceGuardMiddleware from "../../shared/price-guard-middleware";
 import {
   getUserAccessInfo,
   hasAnyRole,
@@ -29,7 +29,7 @@ import {
   requireRoles,
   requireAuth,
   requireAuthWithTenant,
-} from "../../shared/auth.js";
+} from "../../shared/auth";
 
 describe("shared re-exports", () => {
   it("env 应导出 env 对象", () => {

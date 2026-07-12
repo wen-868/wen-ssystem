@@ -1,7 +1,7 @@
-import { z } from "zod";
-import { asyncHandler } from "../../middleware/async-handler.js";
-import { ok } from "../../shared/response.js";
-import * as careService from "../../services/admin/customer-care.service.js";
+﻿import { z } from "zod";
+import { asyncHandler } from "../../middleware/async-handler";
+import { ok } from "../../shared/response";
+import * as careService from "../../services/admin/customer-care.service";
 
 const createCareRuleSchema = z.object({
   ruleName: z.string().min(1).max(100),

@@ -1,4 +1,4 @@
-/**
+﻿/**
  * 越权拦截引擎 - 价格跨层级查询拦截
  *
  * 拦截规则：
@@ -10,9 +10,9 @@
  * 6. 客户价格绑定操作 → 仅 SUPER_ADMIN / STORE_MANAGER
  */
 
-import type { AuthUser } from "./auth.js";
-import logger from "./logger.js";
-import { queryWithTenant } from "./db.js";
+import type { AuthUser } from "./auth";
+import logger from "./logger";
+import { queryWithTenant } from "./db";
 
 // ─── 角色价格可见性矩阵 ───────────────────────────────────────
 

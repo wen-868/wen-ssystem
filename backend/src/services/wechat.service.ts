@@ -1,5 +1,5 @@
-import { query, queryOne } from "../shared/db.js";
-import { verifyPassword } from "../shared/password.js";
+﻿import { query, queryOne } from "../shared/db";
+import { verifyPassword } from "../shared/password";
 
 export async function login(wxData: { openid: string; session_key: string; unionid?: string }, signWxToken: (wxUserId: number, openid: string) => string) {
   const existing = await queryOne<{ id: number }>(

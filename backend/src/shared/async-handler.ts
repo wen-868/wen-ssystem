@@ -1,1 +1,1 @@
-export * from "../middleware/async-handler.js";
+﻿export * from "../middleware/async-handler";

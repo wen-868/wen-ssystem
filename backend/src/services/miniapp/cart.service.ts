@@ -1,5 +1,5 @@
-import { queryWithTenant, queryOneWithTenant } from "../../shared/db.js";
-import { shouldReserveStock, type CustomerType } from "../../shared/fulfillment.js";
+﻿import { queryWithTenant, queryOneWithTenant } from "../../shared/db";
+import { shouldReserveStock, type CustomerType } from "../../shared/fulfillment";
 
 export async function getCartList(tenantId: string, customerId: number, customerType: string) {
   const rows = await queryWithTenant<any>(

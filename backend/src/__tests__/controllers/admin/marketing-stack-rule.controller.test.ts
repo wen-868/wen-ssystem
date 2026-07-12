@@ -1,29 +1,29 @@
-import { vi, describe, it, beforeEach, expect } from "vitest";
+﻿import { vi, describe, it, beforeEach, expect } from "vitest";
 
-vi.mock("../../../services/admin/marketing-stack-rule.service.js", () => ({
+vi.mock("../../../services/admin/marketing-stack-rule.service", () => ({
   createStackRule: vi.fn(),
   listStackRules: vi.fn(),
   updateStackRule: vi.fn(),
   deleteStackRule: vi.fn(),
 }));
 
-vi.mock("../../../shared/response.js", () => ({
+vi.mock("../../../shared/response", () => ({
   ok: vi.fn((data) => ({ success: true, data })),
   fail: vi.fn((msg, code) => ({ success: false, message: msg, code })),
 }));
 
-vi.mock("../../../middleware/async-handler.js", () => ({
+vi.mock("../../../middleware/async-handler", () => ({
   asyncHandler: (fn: any) => fn,
 }));
 
-import * as stackRuleService from "../../../services/admin/marketing-stack-rule.service.js";
-import { ok } from "../../../shared/response.js";
+import * as stackRuleService from "../../../services/admin/marketing-stack-rule.service";
+import { ok } from "../../../shared/response";
 import {
   createStackRule,
   listStackRules,
   updateStackRule,
   deleteStackRule,
-} from "../../../controllers/admin/marketing-stack-rule.controller.js";
+} from "../../../controllers/admin/marketing-stack-rule.controller";
 
 const mockReq = (overrides: any = {}) => ({
   tenantId: "t1",

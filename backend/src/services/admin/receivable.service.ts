@@ -1,4 +1,4 @@
-import { queryWithTenant, queryOneWithTenant } from "../../shared/db.js";
+﻿import { queryWithTenant, queryOneWithTenant } from "../../shared/db";
 
 export async function listReceivables(params: { customerId?: number; status?: string; page: number; pageSize: number; tenantId: string }) {
   const { customerId, status, page, pageSize, tenantId } = params;

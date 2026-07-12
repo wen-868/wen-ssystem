@@ -1,8 +1,8 @@
-import { Router } from "express";
-import type { RouteConfig } from "../shared/auto-routes.js";
-import { requireAuthWithTenant } from "../middleware/auth.js";
-import { priceResponseFilter } from "../middleware/price-guard.js";
-import * as orderController from "../controllers/admin/order.controller.js";
+﻿import { Router } from "express";
+import type { RouteConfig } from "../shared/auto-routes";
+import { requireAuthWithTenant } from "../middleware/auth";
+import { priceResponseFilter } from "../middleware/price-guard";
+import * as orderController from "../controllers/admin/order.controller";
 
 export const adminOrderRouter = Router();
 

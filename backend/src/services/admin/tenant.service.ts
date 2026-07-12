@@ -1,5 +1,5 @@
-import { query, queryOne, transaction } from "../../shared/db.js";
-import { makeBizNo } from "../../shared/id.js";
+﻿import { query, queryOne, transaction } from "../../shared/db";
+import { makeBizNo } from "../../shared/id";
 
 // ========== 租户列表 ==========
 export async function listTenants(params: {

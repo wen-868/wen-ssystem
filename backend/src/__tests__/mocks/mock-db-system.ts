@@ -1,7 +1,7 @@
-/**
+﻿/**
  * 系统表 mock handlers: users, roles, userRoles, error_logs, operation_logs, platform_config, platform_credentials, platform_orders
  */
-import { state, result, Row } from "./mock-db-state.js";
+import { state, result, Row } from "./mock-db-state";
 
 // ==================== mockQuery handlers ====================
 

@@ -1,5 +1,5 @@
-import { describe, it, expect } from "vitest";
-import { apiBillingConfig } from "../../config/api-billing.js";
+﻿import { describe, it, expect } from "vitest";
+import { apiBillingConfig } from "../../config/api-billing";
 
 describe("config/api-billing", () => {
   it("应有默认API调用消耗", () => {

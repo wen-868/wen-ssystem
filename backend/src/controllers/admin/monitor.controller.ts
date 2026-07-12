@@ -1,6 +1,6 @@
-import { asyncHandler } from "../../middleware/async-handler.js";
-import { ok } from "../../shared/response.js";
-import { getDbStatus, getApiStats, getExpiringTenants, notifyExpiringTenants } from "../../services/admin/monitor.service.js";
+﻿import { asyncHandler } from "../../middleware/async-handler";
+import { ok } from "../../shared/response";
+import { getDbStatus, getApiStats, getExpiringTenants, notifyExpiringTenants } from "../../services/admin/monitor.service";
 
 export const getDbStatusCtrl = asyncHandler(async (_req: any, res: any) => {
   const status = await getDbStatus();

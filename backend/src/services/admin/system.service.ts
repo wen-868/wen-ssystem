@@ -1,5 +1,5 @@
-import { queryOneWithTenant } from "../../shared/db.js";
-import { env } from "../../shared/env.js";
+﻿import { queryOneWithTenant } from "../../shared/db";
+import { env } from "../../shared/env";
 
 export async function getHealth() {
   return {

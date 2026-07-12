@@ -1,4 +1,4 @@
-import { queryWithTenant, queryOneWithTenant, transaction } from "../../shared/db.js";
+﻿import { queryWithTenant, queryOneWithTenant, transaction } from "../../shared/db";
 
 export async function createGroupBuy(body: {
   name: string;

@@ -1,4 +1,4 @@
-import { queryWithTenant, queryOneWithTenant, executeWithTenant } from "../../shared/db.js";
+﻿import { queryWithTenant, queryOneWithTenant, executeWithTenant } from "../../shared/db";
 
 export async function isProviderReady(tenantId: string, provider: string): Promise<boolean> {
   return PaymentConfigService.isProviderReady(tenantId, provider);

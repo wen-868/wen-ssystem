@@ -1,8 +1,8 @@
-import { z } from "zod";
-import { asyncHandler } from "../middleware/async-handler.js";
-import { ok, fail } from "../shared/response.js";
-import type { WechatPay } from "../shared/wechat-pay.js";
-import * as service from "../services/admin/payment.service.js";
+﻿import { z } from "zod";
+import { asyncHandler } from "../middleware/async-handler";
+import { ok, fail } from "../shared/response";
+import type { WechatPay } from "../shared/wechat-pay";
+import * as service from "../services/admin/payment.service";
 
 export function createPaymentController(wechatPay: WechatPay) {
   const createPaymentOrder = asyncHandler(async (req, res) => {

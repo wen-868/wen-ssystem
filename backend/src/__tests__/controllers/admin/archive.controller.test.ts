@@ -1,21 +1,21 @@
-import { vi, describe, it, beforeEach, expect } from "vitest";
+﻿import { vi, describe, it, beforeEach, expect } from "vitest";
 
-vi.mock("../../../services/admin/archive.service.js", () => ({
+vi.mock("../../../services/admin/archive.service", () => ({
   archiveBillings: vi.fn(),
 }));
 
-vi.mock("../../../shared/response.js", () => ({
+vi.mock("../../../shared/response", () => ({
   ok: vi.fn((data) => ({ success: true, data })),
   fail: vi.fn((msg, code) => ({ success: false, message: msg, code })),
 }));
 
-vi.mock("../../../middleware/async-handler.js", () => ({
+vi.mock("../../../middleware/async-handler", () => ({
   asyncHandler: (fn: any) => fn,
 }));
 
-import * as archiveService from "../../../services/admin/archive.service.js";
-import { ok, fail } from "../../../shared/response.js";
-import { executeArchive } from "../../../controllers/admin/archive.controller.js";
+import * as archiveService from "../../../services/admin/archive.service";
+import { ok, fail } from "../../../shared/response";
+import { executeArchive } from "../../../controllers/admin/archive.controller";
 
 const mockReq = (overrides: any = {}) => ({
   tenantId: "t1",

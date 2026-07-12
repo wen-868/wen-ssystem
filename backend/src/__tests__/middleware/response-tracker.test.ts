@@ -1,5 +1,5 @@
-import { describe, it, expect, vi, beforeEach } from "vitest";
-import { responseTimeTracker, getStats } from "../../shared/response-time-tracker.js";
+﻿import { describe, it, expect, vi, beforeEach } from "vitest";
+import { responseTimeTracker, getStats } from "../../shared/response-time-tracker";
 import type { Request, Response, NextFunction } from "express";
 
 describe("response-tracker", () => {

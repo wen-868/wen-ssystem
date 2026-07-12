@@ -1,7 +1,7 @@
-import { query, queryOne, transaction } from "../../shared/db.js";
-import { makeBizNo } from "../../shared/id.js";
-import { env } from "../../shared/env.js";
-import type { WechatPay } from "../../shared/wechat-pay.js";
+﻿import { query, queryOne, transaction } from "../../shared/db";
+import { makeBizNo } from "../../shared/id";
+import { env } from "../../shared/env";
+import type { WechatPay } from "../../shared/wechat-pay";
 
 export async function createPaymentOrder(
   body: { sourceType: string; sourceNo: string; amount: number; openid?: string; description?: string },

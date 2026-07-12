@@ -1,13 +1,13 @@
-/**
+﻿/**
  * 租户中间件
  * 从 JWT 中提取 tenantId，挂载到 req 上
  * 所有需要租户隔离的路由都必须经过此中间件
  */
 
-import type { Request, Response, NextFunction } from 'express';
-import type { AuthUser } from './auth.js';
+import type { Request, Response, NextFunction } from "express";
+import type { AuthUser } from "./auth";
 
-import { fail } from '../shared/response.js';
+import { fail } from "../shared/response";
 declare global {
   namespace Express {
     interface Request {

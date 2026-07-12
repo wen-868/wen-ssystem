@@ -1,4 +1,4 @@
-import { queryWithTenant, queryOneWithTenant } from "../../shared/db.js";
+﻿import { queryWithTenant, queryOneWithTenant } from "../../shared/db";
 
 export async function getMarketingOverview(params: { tenantId: string; startDate?: string; endDate?: string }) {
   const { tenantId, startDate, endDate } = params;

@@ -1,6 +1,6 @@
-import { vi, describe, it, beforeEach, expect } from "vitest";
+﻿import { vi, describe, it, beforeEach, expect } from "vitest";
 
-vi.mock("../../../services/admin/reconciliation.service.js", () => ({
+vi.mock("../../../services/admin/reconciliation.service", () => ({
   getCustomerReconciliation: vi.fn(),
   getCustomerReconciliationDetail: vi.fn(),
   confirmCustomerReconciliation: vi.fn(),
@@ -9,17 +9,17 @@ vi.mock("../../../services/admin/reconciliation.service.js", () => ({
   confirmSupplierReconciliation: vi.fn(),
 }));
 
-vi.mock("../../../shared/response.js", () => ({
+vi.mock("../../../shared/response", () => ({
   ok: vi.fn((data) => ({ success: true, data })),
   fail: vi.fn((msg, code) => ({ success: false, message: msg, code })),
 }));
 
-vi.mock("../../../middleware/async-handler.js", () => ({
+vi.mock("../../../middleware/async-handler", () => ({
   asyncHandler: (fn: any) => fn,
 }));
 
-import * as reconciliationService from "../../../services/admin/reconciliation.service.js";
-import { ok } from "../../../shared/response.js";
+import * as reconciliationService from "../../../services/admin/reconciliation.service";
+import { ok } from "../../../shared/response";
 import {
   getCustomerReconciliation,
   getCustomerReconciliationDetail,
@@ -27,7 +27,7 @@ import {
   getSupplierReconciliation,
   getSupplierReconciliationDetail,
   confirmSupplierReconciliation,
-} from "../../../controllers/admin/reconciliation.controller.js";
+} from "../../../controllers/admin/reconciliation.controller";
 
 const mockReq = (overrides: any = {}) => ({
   tenantId: "t1",

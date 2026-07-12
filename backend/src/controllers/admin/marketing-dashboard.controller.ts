@@ -1,7 +1,7 @@
-import { Request, Response } from "express";
-import { asyncHandler } from "../../middleware/async-handler.js";
-import { ok } from "../../shared/response.js";
-import * as svc from "../../services/admin/marketing-dashboard.service.js";
+﻿import { Request, Response } from "express";
+import { asyncHandler } from "../../middleware/async-handler";
+import { ok } from "../../shared/response";
+import * as svc from "../../services/admin/marketing-dashboard.service";
 
 export const getMarketingOverview = asyncHandler(async (req: Request, res: Response) => {
   const { startDate, endDate } = req.query as Record<string, string | undefined>;

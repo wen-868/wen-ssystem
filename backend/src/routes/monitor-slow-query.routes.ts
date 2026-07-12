@@ -1,12 +1,12 @@
-/**
+﻿/**
  * 慢查询监控路由
  * 前缀：/api/monitor
  */
 import { Router } from "express";
-import type { RouteConfig } from "../shared/auto-routes.js";
-import { asyncHandler } from "../middleware/async-handler.js";
-import { ok } from "../shared/response.js";
-import { getSlowQueries } from "../middleware/slow-query-monitor.js";
+import type { RouteConfig } from "../shared/auto-routes";
+import { asyncHandler } from "../middleware/async-handler";
+import { ok } from "../shared/response";
+import { getSlowQueries } from "../middleware/slow-query-monitor";
 
 export const monitorSlowQueryRouter = Router();
 

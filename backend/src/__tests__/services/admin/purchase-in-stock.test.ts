@@ -1,4 +1,4 @@
-/**
+﻿﻿﻿﻿﻿﻿/**
  * 采购入库 service 单元测试
  * 被测文件：src/services/admin/purchase-in-stock.service.ts
  */
@@ -14,7 +14,7 @@ const mocks = vi.hoisted(() => ({
   bindTraceCodeOnInStock: vi.fn(),
 }));
 
-vi.mock("../../../shared/db.js", () => ({
+vi.mock("../../../shared/db", () => ({
   query: mocks.query,
   queryOne: mocks.queryOne,
   queryWithTenant: mocks.queryWithTenant,
@@ -22,11 +22,11 @@ vi.mock("../../../shared/db.js", () => ({
   transaction: mocks.transaction,
 }));
 
-vi.mock("../../../shared/id.js", () => ({
+vi.mock("../../../shared/id", () => ({
   makeBizNo: mocks.makeBizNo,
 }));
 
-vi.mock("../../../shared/trace-code.js", () => ({
+vi.mock("../../../shared/trace-code", () => ({
   bindTraceCodeOnInStock: mocks.bindTraceCodeOnInStock,
 }));
 
@@ -39,7 +39,7 @@ import {
   purchaseInStock,
   listPurchaseInStocks,
   getPurchaseInStockDetail,
-} from "../../../services/admin/purchase-in-stock.service.js";
+} from "../../../services/admin/purchase-in-stock.service";
 
 const mockConn = { query: vi.fn(), execute: vi.fn() };
 

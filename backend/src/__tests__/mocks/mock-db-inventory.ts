@@ -1,8 +1,8 @@
-/**
+﻿/**
  * 库存 mock handlers: inventory, inventory_balance, inventory_log, inventory_ledger
  * 修复坑：业务表使用 t_ 前缀（如 t_inventory_balance），需同时匹配带前缀和不带前缀的形式
  */
-import { state, result, Row, updateTable, fromTable, insertIntoTable } from "./mock-db-state.js";
+import { state, result, Row, updateTable, fromTable, insertIntoTable } from "./mock-db-state";
 
 export const queryHandlers: Array<(s: string, params: unknown[]) => Row[] | null> = [
   // inventory_balance UPDATE

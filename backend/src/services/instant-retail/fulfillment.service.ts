@@ -1,7 +1,7 @@
-import { queryWithTenant, queryOneWithTenant } from "../../shared/db.js";
-import { parsePlatformType } from "./adapters/index.js";
-import { getAdapter } from "./adapters/index.js";
-import { getPlatformConfigWithTenant } from "./common.service.js";
+﻿import { queryWithTenant, queryOneWithTenant } from "../../shared/db";
+import { parsePlatformType } from "./adapters/index";
+import { getAdapter } from "./adapters/index";
+import { getPlatformConfigWithTenant } from "./common.service";
 
 export async function startDelivery(platformOrderId: string, body: any, tenantId: string) {
   const row = await queryOneWithTenant<any>(

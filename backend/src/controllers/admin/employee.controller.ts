@@ -1,7 +1,7 @@
-import { z } from "zod";
-import { asyncHandler } from "../../middleware/async-handler.js";
-import { ok } from "../../shared/response.js";
-import * as employeeService from "../../services/admin/employee.service.js";
+﻿import { z } from "zod";
+import { asyncHandler } from "../../middleware/async-handler";
+import { ok } from "../../shared/response";
+import * as employeeService from "../../services/admin/employee.service";
 
 export const listStaff = asyncHandler(async (req, res) => {
   const result = await employeeService.listStaff(req.user!.tenantId);

@@ -1,7 +1,7 @@
-import { Router } from "express";
-import type { RouteConfig } from "../shared/auto-routes.js";
-import { requireAuthWithTenant } from "../middleware/auth.js";
-import * as careController from "../controllers/admin/customer-care.controller.js";
+﻿import { Router } from "express";
+import type { RouteConfig } from "../shared/auto-routes";
+import { requireAuthWithTenant } from "../middleware/auth";
+import * as careController from "../controllers/admin/customer-care.controller";
 
 export const customerCareRouter = Router();
 customerCareRouter.get("/rules", requireAuthWithTenant, careController.listCareRules);

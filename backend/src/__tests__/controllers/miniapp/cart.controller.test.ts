@@ -1,6 +1,6 @@
-import { vi, describe, it, beforeEach, expect } from "vitest";
+﻿import { vi, describe, it, beforeEach, expect } from "vitest";
 
-vi.mock("../../../services/miniapp/cart.service.js", () => ({
+vi.mock("../../../services/miniapp/cart.service", () => ({
   getCartList: vi.fn(),
   addToCart: vi.fn(),
   updateCartItemQuantity: vi.fn(),
@@ -9,18 +9,18 @@ vi.mock("../../../services/miniapp/cart.service.js", () => ({
   getCartCount: vi.fn(),
 }));
 
-vi.mock("../../../shared/response.js", () => ({
+vi.mock("../../../shared/response", () => ({
   ok: vi.fn((data) => ({ success: true, data })),
   fail: vi.fn((msg, code) => ({ success: false, message: msg, code })),
 }));
 
-vi.mock("../../../middleware/async-handler.js", () => ({
+vi.mock("../../../middleware/async-handler", () => ({
   asyncHandler: (fn: any) => fn,
 }));
 
-import * as cartService from "../../../services/miniapp/cart.service.js";
-import { ok, fail } from "../../../shared/response.js";
-import { getCartList, addToCart, updateCartItemQuantity, deleteCartItem, clearCart, getCartCount } from "../../../controllers/miniapp/cart.controller.js";
+import * as cartService from "../../../services/miniapp/cart.service";
+import { ok, fail } from "../../../shared/response";
+import { getCartList, addToCart, updateCartItemQuantity, deleteCartItem, clearCart, getCartCount } from "../../../controllers/miniapp/cart.controller";
 
 const mockReq = (overrides: any = {}) => ({
   tenantId: "t1",

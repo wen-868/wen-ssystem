@@ -1,6 +1,6 @@
-import { asyncHandler } from "../../middleware/async-handler.js";
-import { ok, fail } from "../../shared/response.js";
-import * as service from "../../services/admin/inventory-batch.service.js";
+﻿import { asyncHandler } from "../../middleware/async-handler";
+import { ok, fail } from "../../shared/response";
+import * as service from "../../services/admin/inventory-batch.service";
 import { z } from "zod";
 
 // ==================== 批次管理 ====================

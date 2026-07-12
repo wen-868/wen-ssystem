@@ -1,5 +1,5 @@
-import { describe, it, expect } from "vitest";
-import { routeConfig } from "../../routes/rbac.routes.js";
+﻿import { describe, it, expect } from "vitest";
+import { routeConfig } from "../../routes/rbac.routes";
 
 describe("routes/rbac", () => {
   it("应导出正确的 routeConfig", () => {

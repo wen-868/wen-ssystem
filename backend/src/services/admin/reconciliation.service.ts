@@ -1,4 +1,4 @@
-import { queryWithTenant, queryOneWithTenant } from "../../shared/db.js";
+﻿import { queryWithTenant, queryOneWithTenant } from "../../shared/db";
 
 // 客户对账列表
 export async function getCustomerReconciliation(tenantId: string, startDate?: string, endDate?: string) {

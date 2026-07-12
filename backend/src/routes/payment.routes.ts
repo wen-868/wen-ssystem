@@ -1,8 +1,8 @@
-import { Router } from "express";
-import type { RouteConfig } from "../shared/auto-routes.js";
-import { WechatPay } from "../shared/wechat-pay.js";
-import { requireAuthWithTenant } from "../middleware/auth.js";
-import { createPaymentController } from "../controllers/payment.controller.js";
+﻿import { Router } from "express";
+import type { RouteConfig } from "../shared/auto-routes";
+import { WechatPay } from "../shared/wechat-pay";
+import { requireAuthWithTenant } from "../middleware/auth";
+import { createPaymentController } from "../controllers/payment.controller";
 
 export const paymentRouter = Router();
 const wechatPay = new WechatPay();

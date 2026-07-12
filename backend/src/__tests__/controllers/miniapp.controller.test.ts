@@ -1,6 +1,6 @@
-import { vi, describe, it, beforeEach, expect } from "vitest";
+﻿import { vi, describe, it, beforeEach, expect } from "vitest";
 
-vi.mock("../../../services/miniapp.service.js", () => ({
+vi.mock("@services/miniapp.service", () => ({
   devLogin: vi.fn(),
   devAuthLogin: vi.fn(),
   getProfile: vi.fn(),
@@ -13,21 +13,21 @@ vi.mock("../../../services/miniapp.service.js", () => ({
   getStatementDetail: vi.fn(),
 }));
 
-vi.mock("../../../shared/response.js", () => ({
+vi.mock("@shared/response", () => ({
   ok: vi.fn((data) => ({ success: true, data })),
   fail: vi.fn((msg, code) => ({ success: false, message: msg, code })),
 }));
 
-vi.mock("../../../middleware/async-handler.js", () => ({
+vi.mock("@middleware/async-handler", () => ({
   asyncHandler: (fn: any) => fn,
 }));
 
-vi.mock("../../../shared/fulfillment.js", () => ({
+vi.mock("@shared/fulfillment", () => ({
   getSettlementType: vi.fn((customerType: string, type: string) => type),
 }));
 
-import * as miniappService from "../../../services/miniapp.service.js";
-import { ok } from "../../../shared/response.js";
+import * as miniappService from "@services/miniapp.service";
+import { ok } from "@shared/response";
 import {
   devLogin,
   devAuthLogin,
@@ -39,7 +39,7 @@ import {
   confirmReceipt,
   getStatements,
   getStatementDetail,
-} from "../../../controllers/miniapp.controller.js";
+} from "@controllers/miniapp.controller";
 
 const mockReq = (overrides: any = {}) => ({
   tenantId: "t1",

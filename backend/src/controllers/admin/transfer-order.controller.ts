@@ -1,7 +1,7 @@
-import { asyncHandler } from "../../middleware/async-handler.js";
-import { ok, fail } from "../../shared/response.js";
+﻿import { asyncHandler } from "../../middleware/async-handler";
+import { ok, fail } from "../../shared/response";
 import { z } from "zod";
-import * as transferOrderService from "../../services/transfer-order.service.js";
+import * as transferOrderService from "../../services/transfer-order.service";
 
 export const createTransferOrder = asyncHandler(async (req, res) => {
   const body = z.object({

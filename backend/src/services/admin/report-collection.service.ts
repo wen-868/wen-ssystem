@@ -1,4 +1,4 @@
-import { queryWithTenant, queryOneWithTenant } from "../../shared/db.js";
+﻿import { queryWithTenant, queryOneWithTenant } from "../../shared/db";
 
 // 收款漏斗分析
 export async function getCollectionFunnel(params: { tenantId: string; startDate?: string; endDate?: string; storeId?: number }) {

@@ -1,8 +1,8 @@
-import { Router } from "express";
-import type { RouteConfig } from "../shared/auto-routes.js";
-import { requireAuthWithTenant } from "../middleware/auth.js";
-import { priceResponseFilter } from "../middleware/price-guard.js";
-import * as ctrl from "../controllers/miniapp.controller.js";
+﻿import { Router } from "express";
+import type { RouteConfig } from "../shared/auto-routes";
+import { requireAuthWithTenant } from "../middleware/auth";
+import { priceResponseFilter } from "../middleware/price-guard";
+import * as ctrl from "../controllers/miniapp.controller";
 
 export const miniappRouter = Router();
 miniappRouter.use(priceResponseFilter());

@@ -1,11 +1,11 @@
-import { describe, it, expect, vi, beforeEach } from "vitest";
+﻿import { describe, it, expect, vi, beforeEach } from "vitest";
 
 const mocks = vi.hoisted(() => ({
   queryWithTenant: vi.fn(),
   queryOneWithTenant: vi.fn(),
 }));
 
-vi.mock("../../../shared/db.js", () => ({
+vi.mock("../../../shared/db", () => ({
   query: vi.fn(),
   queryOne: vi.fn(),
   queryWithTenant: mocks.queryWithTenant,
@@ -20,7 +20,7 @@ import {
   getMarketingTrend,
   getActivityRanking,
   getActivityComparison,
-} from "../../../services/admin/marketing-dashboard.service.js";
+} from "../../../services/admin/marketing-dashboard.service";
 
 const tenantId = "t1";
 

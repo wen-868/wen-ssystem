@@ -1,6 +1,6 @@
-import { vi, describe, it, beforeEach, expect } from "vitest";
+﻿import { vi, describe, it, beforeEach, expect } from "vitest";
 
-vi.mock("../../../services/admin/finance-dashboard.service.js", () => ({
+vi.mock("../../../services/admin/finance-dashboard.service", () => ({
   getFinanceDashboard: vi.fn(),
   getDailyReport: vi.fn(),
   getMonthlyReport: vi.fn(),
@@ -10,17 +10,17 @@ vi.mock("../../../services/admin/finance-dashboard.service.js", () => ({
   getTopSuppliersAP: vi.fn(),
 }));
 
-vi.mock("../../../shared/response.js", () => ({
+vi.mock("../../../shared/response", () => ({
   ok: vi.fn((data) => ({ success: true, data })),
   fail: vi.fn((msg, code) => ({ success: false, message: msg, code })),
 }));
 
-vi.mock("../../../middleware/async-handler.js", () => ({
+vi.mock("../../../middleware/async-handler", () => ({
   asyncHandler: (fn: any) => fn,
 }));
 
-import * as financeDashboardService from "../../../services/admin/finance-dashboard.service.js";
-import { ok } from "../../../shared/response.js";
+import * as financeDashboardService from "../../../services/admin/finance-dashboard.service";
+import { ok } from "../../../shared/response";
 import {
   getFinanceDashboard,
   getDailyReport,
@@ -29,7 +29,7 @@ import {
   getProfitTrend,
   getTopCustomersAR,
   getTopSuppliersAP,
-} from "../../../controllers/admin/finance-dashboard.controller.js";
+} from "../../../controllers/admin/finance-dashboard.controller";
 
 const mockReq = (overrides: any = {}) => ({
   tenantId: "t1",

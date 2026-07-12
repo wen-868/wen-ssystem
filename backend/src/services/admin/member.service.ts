@@ -1,7 +1,7 @@
-import { queryWithTenant, queryOneWithTenant } from "../../shared/db.js";
-import { hashPassword, validatePassword } from "../../shared/password.js";
-import { AppError } from "../../shared/app-error.js";
-import logger from "../../shared/logger.js";
+﻿import { queryWithTenant, queryOneWithTenant } from "../../shared/db";
+import { hashPassword, validatePassword } from "../../shared/password";
+import { AppError } from "../../shared/app-error";
+import logger from "../../shared/logger";
 
 export async function selfRegisterMember(params: {
   mobile: string;

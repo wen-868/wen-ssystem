@@ -1,20 +1,20 @@
-import { vi, describe, it, beforeEach, expect } from "vitest";
+﻿import { vi, describe, it, beforeEach, expect } from "vitest";
 
 vi.mock("node-cron", () => ({
   default: { schedule: vi.fn() }
 }));
 
-vi.mock("../../shared/db.js", () => ({
+vi.mock("../../shared/db", () => ({
   queryWithTenant: vi.fn(),
   queryOneWithTenant: vi.fn(),
 }));
 
-vi.mock("../../shared/logger.js", () => ({
+vi.mock("../../shared/logger", () => ({
   default: { info: vi.fn(), error: vi.fn(), warn: vi.fn() }
 }));
 
-import { queryWithTenant, queryOneWithTenant } from "../../shared/db.js";
-import { runDailyAggregation } from "../../jobs/report-aggregation.job.js";
+import { queryWithTenant, queryOneWithTenant } from "../../shared/db";
+import { runDailyAggregation } from "../../jobs/report-aggregation.job";
 
 describe("report-aggregation.job", () => {
   beforeEach(() => {

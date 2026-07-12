@@ -1,4 +1,4 @@
-/**
+﻿﻿﻿﻿﻿﻿/**
  * 销售单 service 单元测试
  * 被测文件：src/services/store/sale-bill.service.ts
  */
@@ -15,7 +15,7 @@ const mocks = vi.hoisted(() => ({
   updateTraceCodesBySkuList: vi.fn(),
 }));
 
-vi.mock("../../../shared/db.js", () => ({
+vi.mock("../../../shared/db", () => ({
   query: vi.fn(),
   queryOne: vi.fn(),
   queryWithTenant: mocks.queryWithTenant,
@@ -23,17 +23,17 @@ vi.mock("../../../shared/db.js", () => ({
   transaction: mocks.transaction,
 }));
 
-vi.mock("../../../shared/id.js", () => ({
+vi.mock("../../../shared/id", () => ({
   makeBizNo: mocks.makeBizNo,
   makeToken: mocks.makeToken,
 }));
 
-vi.mock("../../../shared/fulfillment.js", () => ({
+vi.mock("../../../shared/fulfillment", () => ({
   computeSellingPrice: mocks.computeSellingPrice,
   getPriceType: mocks.getPriceType,
 }));
 
-vi.mock("../../../shared/trace-code.js", () => ({
+vi.mock("../../../shared/trace-code", () => ({
   updateTraceCodesBySkuList: mocks.updateTraceCodesBySkuList,
 }));
 
@@ -49,7 +49,7 @@ import {
   batchCreateCollectionLinks,
   revokeCollectionLink,
   getCollectionLinkStats,
-} from "../../../services/store/sale-bill.service.js";
+} from "../../../services/store/sale-bill.service";
 
 const mockConn = { query: vi.fn(), execute: vi.fn() };
 

@@ -1,4 +1,4 @@
-/**
+﻿﻿﻿﻿﻿﻿/**
  * 销售退货 service 单元测试
  * 被测文件：src/services/sale-return.service.ts
  */
@@ -13,7 +13,7 @@ const mocks = vi.hoisted(() => ({
   makeBizNo: vi.fn(),
 }));
 
-vi.mock("../../../shared/db.js", () => ({
+vi.mock("../../../shared/db", () => ({
   query: mocks.query,
   queryOne: mocks.queryOne,
   queryWithTenant: mocks.queryWithTenant,
@@ -21,11 +21,11 @@ vi.mock("../../../shared/db.js", () => ({
   transaction: mocks.transaction,
 }));
 
-vi.mock("../../../shared/id.js", () => ({
+vi.mock("../../../shared/id", () => ({
   makeBizNo: mocks.makeBizNo,
 }));
 
-import { saleReturnService } from "../../../services/sale-return.service.js";
+import { saleReturnService } from "../../../services/sale-return.service";
 
 const mockConn = { execute: vi.fn() };
 

@@ -1,6 +1,6 @@
-import { vi, describe, it, beforeEach, expect } from "vitest";
+﻿import { vi, describe, it, beforeEach, expect } from "vitest";
 
-vi.mock("../../../services/admin/visit-plan.service.js", () => ({
+vi.mock("../../../services/admin/visit-plan.service", () => ({
   createVisitPlanSchema: { parse: (v: any) => v },
   updateVisitPlanSchema: { parse: (v: any) => v },
   createVisitPlan: vi.fn(),
@@ -8,22 +8,22 @@ vi.mock("../../../services/admin/visit-plan.service.js", () => ({
   cancelVisitPlan: vi.fn(),
 }));
 
-vi.mock("../../../shared/response.js", () => ({
+vi.mock("../../../shared/response", () => ({
   ok: vi.fn((data) => ({ success: true, data })),
   fail: vi.fn((msg, code) => ({ success: false, message: msg, code })),
 }));
 
-vi.mock("../../../middleware/async-handler.js", () => ({
+vi.mock("../../../middleware/async-handler", () => ({
   asyncHandler: (fn: any) => fn,
 }));
 
-import * as visitPlanService from "../../../services/admin/visit-plan.service.js";
-import { ok } from "../../../shared/response.js";
+import * as visitPlanService from "../../../services/admin/visit-plan.service";
+import { ok } from "../../../shared/response";
 import {
   createVisitPlan,
   updateVisitPlan,
   cancelVisitPlan,
-} from "../../../controllers/admin/visit-plan.controller.js";
+} from "../../../controllers/admin/visit-plan.controller";
 
 const mockReq = (overrides: any = {}) => ({
   tenantId: "t1",

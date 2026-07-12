@@ -1,6 +1,6 @@
-import { query, queryOne, transaction } from "../shared/db.js";
-import logger from "../shared/logger.js";
-import { makeBizNo } from "../shared/id.js";
+﻿import { query, queryOne, transaction } from "../shared/db";
+import logger from "../shared/logger";
+import { makeBizNo } from "../shared/id";
 
 async function getAllActiveTenants(): Promise<string[]> {
   const rows = await query<any>(

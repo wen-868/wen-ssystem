@@ -1,5 +1,5 @@
-import { describe, it, expect } from "vitest";
-import { parseDateParam, getDefaultDateStart, getDefaultDateEnd } from "../../shared/date-utils.js";
+﻿import { describe, it, expect } from "vitest";
+import { parseDateParam, getDefaultDateStart, getDefaultDateEnd } from "../../shared/date-utils";
 import { ZodError } from "zod";
 
 describe("date-utils", () => {

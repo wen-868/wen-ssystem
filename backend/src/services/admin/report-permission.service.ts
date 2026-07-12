@@ -1,4 +1,4 @@
-import { query, transaction } from "../../shared/db.js";
+﻿import { query, transaction } from "../../shared/db";
 
 export async function getMatrix() {
   const rows = await query<any>(

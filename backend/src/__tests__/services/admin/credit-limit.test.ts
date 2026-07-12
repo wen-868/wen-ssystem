@@ -1,4 +1,4 @@
-/**
+﻿/**
  * 管理端授信额度 service 单元测试
  * 被测文件：src/services/admin/credit-limit.service.ts
  * 覆盖全部 8 个导出函数，目标覆盖率 100%
@@ -11,7 +11,7 @@ const mocks = vi.hoisted(() => ({
   transaction: vi.fn(),
 }));
 
-vi.mock("../../../shared/db.js", () => ({
+vi.mock("../../../shared/db", () => ({
   query: vi.fn(),
   queryOne: vi.fn(),
   queryWithTenant: mocks.queryWithTenant,
@@ -28,7 +28,7 @@ import {
   releaseCredit,
   freezeCredit,
   unfreezeCredit,
-} from "../../../services/admin/credit-limit.service.js";
+} from "../../../services/admin/credit-limit.service";
 
 const ctx = { tenantId: "t1", userId: 1, username: "admin" };
 const mockConn = { execute: vi.fn() };

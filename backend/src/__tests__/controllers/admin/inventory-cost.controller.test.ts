@@ -1,4 +1,4 @@
-/**
+﻿/**
  * 管理端库存成本 controller 单元测试
  * 被测文件：src/controllers/admin/inventory-cost.controller.ts
  */
@@ -11,16 +11,16 @@ const mocks = vi.hoisted(() => ({
   getInventoryCostTrend: vi.fn(),
 }));
 
-vi.mock("../../../middleware/async-handler.js", () => ({
+vi.mock("../../../middleware/async-handler", () => ({
   asyncHandler: (fn: any) => fn,
 }));
 
-vi.mock("../../../shared/response.js", () => ({
+vi.mock("../../../shared/response", () => ({
   ok: mocks.ok,
   fail: mocks.fail,
 }));
 
-vi.mock("../../../services/admin/inventory-cost.service.js", () => ({
+vi.mock("../../../services/admin/inventory-cost.service", () => ({
   getInventoryCostDetail: mocks.getInventoryCostDetail,
   getInventoryCostTrend: mocks.getInventoryCostTrend,
 }));
@@ -28,7 +28,7 @@ vi.mock("../../../services/admin/inventory-cost.service.js", () => ({
 import {
   getInventoryCostDetail,
   getInventoryCostTrend,
-} from "../../../controllers/admin/inventory-cost.controller.js";
+} from "../../../controllers/admin/inventory-cost.controller";
 
 const mockReq = (overrides: any = {}) => ({
   tenantId: "t1",

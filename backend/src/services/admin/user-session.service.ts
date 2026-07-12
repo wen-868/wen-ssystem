@@ -1,4 +1,4 @@
-import { query, queryOne } from "../../shared/db.js";
+﻿import { query, queryOne } from "../../shared/db";
 
 export async function getUserSessions(tenantId: string, params?: { userId?: number; page?: number; pageSize?: number }) {
   const page = params?.page || 1;

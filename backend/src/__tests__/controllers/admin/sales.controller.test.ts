@@ -1,20 +1,20 @@
-import { vi, describe, it, beforeEach, expect } from "vitest";
+﻿import { vi, describe, it, beforeEach, expect } from "vitest";
 
-vi.mock("../../../services/admin/payment-config.service.js", () => ({
+vi.mock("../../../services/admin/payment-config.service", () => ({
   isProviderReady: vi.fn(),
 }));
 
-vi.mock("../../../shared/response.js", () => ({
+vi.mock("../../../shared/response", () => ({
   ok: vi.fn((data) => ({ success: true, data })),
   fail: vi.fn((msg, code) => ({ success: false, message: msg, code })),
 }));
 
-vi.mock("../../../middleware/async-handler.js", () => ({
+vi.mock("../../../middleware/async-handler", () => ({
   asyncHandler: (fn: any) => fn,
 }));
 
-import { isProviderReady } from "../../../services/admin/payment-config.service.js";
-import { requirePaymentReady } from "../../../controllers/admin/sales.controller.js";
+import { isProviderReady } from "../../../services/admin/payment-config.service";
+import { requirePaymentReady } from "../../../controllers/admin/sales.controller";
 
 const mockReq = (overrides: any = {}) => ({
   tenantId: "t1",

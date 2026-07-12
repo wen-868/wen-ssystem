@@ -1,4 +1,4 @@
-import { queryWithTenant } from "../../shared/db.js";
+﻿import { queryWithTenant } from "../../shared/db";
 
 type ReportType = "sales" | "collection" | "product" | "customer" | "inventory" | "purchase" | "finance" | "staff" | "dashboard";
 type ExportFormat = "excel" | "csv";
