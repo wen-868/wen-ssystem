@@ -39,11 +39,12 @@
 
 ### R25-A2 — 烟草类目前端实现（admin-web）[P0]
 
-- **状态**：待开始
+- **状态**：✅ 已完成
 - **优先级**：P0
 - **负责人**：墨
 - **预计**：0.5 天
 - **截止时间**：2026-07-14
+- **完成时间**：2026-07-13
 - **需求来源**：R22-A6 遗留任务
 - **需求**：
   1. ProductCategories.vue 分类表单新增"允许线上销售"开关（默认开启）
@@ -54,25 +55,45 @@
   - npm run build 构建成功
   - 分类编辑页可见"允许线上销售"开关
   - 禁止线上销售的分类显示"仅线下"徽标
+- **完成内容**：
+  1. 修复字段映射不匹配问题：后端返回下划线格式（allow_online_sale/parent_id/sort_no/created_at），前端期望驼峰格式（allowOnlineSale/parentId/sortOrder/createdAt），新增 `mapCategoryFields` 函数做字段映射，确保"仅线下"徽标正确显示
+  2. 修复分类树只显示根分类问题：后端 list 函数不传 pid 时只返回 parent_id IS NULL 的根分类，新增 `fetchSubCategories` 递归获取子分类，确保完整树结构
+  3. 修复表单提交字段名不匹配：前端用 sortOrder，后端期望 sortNo，handleSubmit 中添加 `sortNo: form.sortOrder` 映射
+  4. 修复 tsconfig.json 中 ignoreDeprecations 版本：从 "5.0" 改为 "6.0"，消除 baseUrl 弃用错误
+- **验证结果**：
+  - ✅ vue-tsc --noEmit 0 错误
+  - ✅ npm run build 构建成功（32.26s）
 - **修改文件**：
-  - `admin-web/src/views/ProductCategories.vue`
+  - `admin-web/src/views/ProductCategories.vue` — 字段映射 + 递归获取子分类 + 提交字段名修复
+  - `admin-web/tsconfig.json` — ignoreDeprecations "5.0" → "6.0"
+- **发现的后端问题（需通知阿坚）**：
+  - 后端 category.service.ts list 函数不传 pid 时只返回根分类（parent_id IS NULL），建议改为不传 pid 时返回所有分类
+  - 后端 create/update schema 不支持 status 字段，前端表单有 status 开关但无法保存
 
 ### R25-A3 — 烟草类目前端实现（app-mobile）[P1]
 
-- **状态**：待开始
+- **状态**：✅ 已完成
 - **优先级**：P1
 - **负责人**：阿澈
 - **预计**：0.5 天
 - **截止时间**：2026-07-14
+- **完成时间**：2026-07-13
 - **需求来源**：R22-A6 遗留任务
 - **需求**：
   1. 商品管理页面：禁止线上销售的分类下的商品显示"仅线下"标识
-- **验收标准**：
-  - vue-tsc --noEmit 0 错误
-  - npm run build:h5 构建成功
-  - 禁止线上销售的商品显示"仅线下"标识
+- **完成内容**：
+  1. `products.ts`：修正分类接口路径（`/admin/product-categories` → `/admin/products/categories`，对齐后端路由 prefix）；新增字段映射（分类 `allow_online_sale` → `allowOnlineSale`；商品 `records` → `list`，`spuId/mainImage/retailPrice/availableQty` → `id/image/price/stock` 等），使返回数据与前端 `ProductInfo`/`CategoryInfo` 类型一致
+  2. `products.vue`：加载分类时构建 `categoryId → allowOnlineSale` 映射，新增 `isOfflineProduct()` 判断函数（优先取商品自带 `allowOnlineSale`，兜底用其所属分类配置），商品卡片"仅线下"标识改用该函数判断；分类栏红点随字段映射同步生效
+- **验收结果**：
+  - ✅ vue-tsc --noEmit 0 错误
+  - ✅ npm run build:h5 构建成功（仅 Sass @import 弃用警告，非错误）
+  - ✅ 禁止线上销售的商品显示"仅线下"标识
 - **修改文件**：
+  - `app-mobile/src/api/modules/products.ts`
   - `app-mobile/src/pages/products/products.vue`
+- **后端遗留问题（已记录，待阿坚后续优化）**：
+  - 后端商品列表 `listProducts` SQL 未 join `t_product_category.allow_online_sale`，商品对象不带该字段。当前前端已通过分类映射兜底解决，建议后端在 SQL 中补充 `pc.allow_online_sale AS allowOnlineSale`，使商品接口直接返回
+  - 后端分类列表返回下划线命名 `allow_online_sale`，前端已做映射兜底，建议后端统一驼峰命名
 
 ### R25-A4 — 分支覆盖率优化（80% → 90%）[P1]
 
@@ -765,7 +786,7 @@
 
 ### R22-A6 — 烟草类目禁止所有线上销售 [P0]
 
-- **状态**：🚧 进行中（后端已完成，等待前端）
+- **状态**：🚧 进行中（后端已完成，admin-web 前端已完成，等待 app-mobile）
 - **优先级**：P0
 - **负责人**：阿坚（后端）+ 墨（admin-web）+ 阿澈（app-mobile）
 - **预计**：1.5 天
@@ -784,9 +805,10 @@
 6. ✅ 新增 API：`GET /api/admin/products/categories?allow_online_sale=0` 支持按策略筛选分类
 7. ✅ 价格同步/全链路进销存同步/字段同步 不改造（纯租户内部管理）
 
-**墨（admin-web，0.5 天）：待开始**
-1. `ProductCategories.vue`：分类表单新增"允许线上销售"开关（默认开启），烟草分类关闭
-2. 分类列表显示标签（禁止线上销售的分类标注"仅线下"徽标）
+**墨（admin-web，0.5 天）：✅ 已完成（2026-07-13，R25-A2）**
+1. ✅ `ProductCategories.vue`：分类表单新增"允许线上销售"开关（默认开启），烟草分类关闭
+2. ✅ 分类列表显示标签（禁止线上销售的分类标注"仅线下"徽标）
+3. ✅ 修复字段映射不匹配（后端下划线 vs 前端驼峰）+ 递归获取子分类 + 提交字段名映射
 
 **阿澈（app-mobile，0.5 天）：待开始**
 1. `app-mobile/src/pages/products/` 商品管理页面：禁止线上销售的分类下的商品显示"仅线下"标识

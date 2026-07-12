@@ -60,7 +60,7 @@
             <view v-else class="product-image-placeholder">
               <text class="placeholder-icon">&#xe630;</text>
             </view>
-            <view class="offline-tag" v-if="product.allowOnlineSale === 0">
+            <view class="offline-tag" v-if="isOfflineProduct(product)">
               <text class="offline-tag-text">仅线下</text>
             </view>
           </view>
@@ -147,10 +147,28 @@ async function loadProducts() {
 
 async function loadCategories() {
   try {
-    categories.value = await productsApi.categories()
+    const list = await productsApi.categories()
+    categories.value = list
+    // 构建分类ID -> 是否允许线上销售（1=允许 0=禁止）的映射，
+    // 用于给商品打"仅线下"标识（后端商品列表当前未返回 allowOnlineSale 字段时兜底）
+    offlineCategoryMap.value = new Map(
+      list.map((c) => [c.id, c.allowOnlineSale ?? 1])
+    )
   } catch (err) {
     console.error('加载分类失败:', err)
   }
+}
+
+// 分类ID -> allowOnlineSale 的映射
+const offlineCategoryMap = ref<Map<number, number>>(new Map())
+
+// 判断商品是否禁止线上销售：优先取商品自带字段，兜底用其所属分类的配置
+function isOfflineProduct(product: ProductInfo): boolean {
+  if (product.allowOnlineSale === 0) return true
+  if (product.categoryId != null) {
+    return offlineCategoryMap.value.get(product.categoryId) === 0
+  }
+  return false
 }
 
 async function onLoadMore() {
