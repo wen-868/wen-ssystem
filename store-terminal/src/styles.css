@@ -12,37 +12,42 @@ body {
   grid-template-columns: 220px 1fr;
 }
 .side {
-  background: var(--bg-card);
+  background: var(--bg-sidebar);
   color: var(--text-primary);
   padding: 24px 18px;
   border-right: 1px solid var(--border-normal);
-  box-shadow: 8px 0 32px rgba(31, 35, 40, .05);
 }
 .side h1 {
   font-size: 18px;
   margin: 0 0 24px;
+  color: var(--text-primary);
 }
 .nav-item {
   padding: 10px 12px;
-  border-radius: 10px;
-  color: var(--text-secondary);
+  border-radius: 8px;
+  color: var(--gray-500);
   margin-bottom: 6px;
+  transition: all 0.15s ease;
+}
+.nav-item:hover {
+  background: var(--gray-100);
+  color: var(--text-secondary);
 }
 .nav-item.active {
   background: var(--color-primary-soft);
   color: var(--color-primary);
-  border: 1px solid var(--border-focus);
+  font-weight: 500;
 }
 .main {
   padding: 28px;
 }
 .store-hero {
   background:
-    linear-gradient(90deg, var(--color-primary) 0 6px, transparent 6px),
-    linear-gradient(180deg, var(--bg-card), var(--bg-soft));
+    linear-gradient(90deg, var(--color-primary) 0 4px, transparent 4px),
+    var(--gray-50);
   color: var(--text-primary);
   border: 1px solid var(--border-normal);
-  border-radius: 24px;
+  border-radius: var(--radius-lg);
   padding: 28px;
   margin-bottom: 20px;
   box-shadow: var(--shadow-card);
@@ -62,9 +67,14 @@ body {
 .card {
   background: var(--bg-card);
   border: 1px solid var(--border-normal);
-  border-radius: 20px;
+  border-radius: var(--radius-lg);
   padding: 20px;
   box-shadow: var(--shadow-card);
+  transition: box-shadow 0.15s;
+}
+.card:hover {
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.06);
+  border-color: var(--color-primary);
 }
 .cashier-panel {
   border: 1px solid var(--border-focus) !important;
@@ -83,10 +93,10 @@ body {
 .card::before {
   content: "";
   display: block;
-  width: 42px;
+  width: 36px;
   height: 3px;
   border-radius: 999px;
-  background: var(--color-primary);
+  background: var(--gray-200);
   margin-bottom: 12px;
 }
 .muted {

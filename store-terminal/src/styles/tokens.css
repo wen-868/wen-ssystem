@@ -1,30 +1,69 @@
-:root {
-  --color-primary: #1677FF;
-  --color-primary-hover: #409EFF;
-  --color-primary-active: #0958D9;
-  --color-primary-soft: #E6F4FF;
+/* ═══════════════════════════════════════════════════════════════
+   Design Tokens v4.0 — Atlas 灰阶体系
+   原则：只有字体用黑色，其他一律不用黑色。背景以灰+白为主，按钮图表可彩色
+   覆盖：store-terminal 收银台
+   ═══════════════════════════════════════════════════════════════ */
 
-  --text-primary: #1F2328;
-  --text-secondary: #4B5563;
-  --text-muted: #9CA3AF;
+:root {
+  /* Primary / Brand Color — Atlas Blue */
+  --color-primary: #5B6ABF;
+  --color-primary-hover: #6B7BCF;
+  --color-primary-active: #4A5AA8;
+  --color-primary-soft: rgba(91, 106, 191, 0.12);
+  --color-primary-bg: rgba(91, 106, 191, 0.06);
+
+  /* Neutral Gray Scale — 灰阶体系（最深为深灰，不用纯黑） */
+  --gray-0: #FFFFFF;
+  --gray-50: #F8F8F8;
+  --gray-100: #F0F0F0;
+  --gray-200: #E2E2E2;
+  --gray-300: #CCCCCC;
+  --gray-400: #999999;
+  --gray-500: #666666;
+  --gray-600: #444444;
+  --gray-700: #333333;
+  --gray-800: #2A2A2A;
+  --gray-900: #222222;
+
+  /* Semantic — Status Colors */
+  --color-success: #0EA879;
+  --color-success-soft: rgba(14, 168, 121, 0.10);
+  --color-warning: #D48B3A;
+  --color-warning-soft: rgba(212, 139, 58, 0.10);
+  --color-danger: #C0392B;
+  --color-danger-soft: rgba(192, 57, 43, 0.10);
+
+  /* Chart Colors — 图表色（可全彩） */
+  --chart-1: #5B6ABF;
+  --chart-2: #0EA879;
+  --chart-3: #D48B3A;
+  --chart-4: #C0392B;
+  --chart-5: #8B5CF6;
+  --chart-6: #06B6D4;
+
+  /* Text — 唯一可以用纯黑的地方 */
+  --text-primary: #000000;
+  --text-secondary: #444444;
+  --text-muted: #999999;
   --text-inverse: #FFFFFF;
 
+  /* Background — 灰+白搭配 */
   --bg-page: #FFFFFF;
   --bg-card: #FFFFFF;
-  --bg-soft: #F5F7FA;
+  --bg-soft: #F0F0F0;
+  --bg-sidebar: #FAFAFA;
 
-  --border-normal: #E5E7EB;
-  --border-focus: #1677FF;
+  /* Border — 全部灰色，不用黑色 */
+  --border-normal: #E2E2E2;
+  --border-focus: #5B6ABF;
 
-  --color-success: #10B981;
-  --color-warning: #F59E0B;
-  --color-danger: #EF4444;
+  /* Radius */
+  --radius-sm: 6px;
+  --radius-md: 8px;
+  --radius-lg: 12px;
+  --radius-xl: 16px;
 
-  --radius-sm: 8px;
-  --radius-md: 12px;
-  --radius-lg: 18px;
-  --radius-xl: 24px;
-
-  --shadow-card: 0 16px 40px rgba(31, 35, 40, .08);
-  --shadow-focus: 0 0 0 3px rgba(22, 119, 255, .14);
+  /* Shadows */
+  --shadow-card: 0 1px 3px rgba(0, 0, 0, 0.04);
+  --shadow-focus: 0 0 0 3px rgba(91, 106, 191, 0.18);
 }
