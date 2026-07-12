@@ -2,6 +2,7 @@ import { createApp } from 'vue'
 import Vant from 'vant'
 import 'vant/lib/index.css'
 import './styles.css'
+import './styles/tokens.css'
 import App from './App.vue'
 import { reportFrontendError } from './api'
 

@@ -1,13 +1,15 @@
 <template>
   <div class="layout">
+    <!-- 侧边栏：深色磨砂 + 胶囊导航 -->
     <aside class="side" :class="{ 'is-collapsed': isMenuCollapsed && !isCashierMode, 'is-hidden': isCashierMode }">
       <div class="sidebar-header">
         <div class="sidebar-logo">
           <div class="logo-icon">智</div>
           <h1 v-show="!isMenuCollapsed">智享酒仓</h1>
-          <h1 v-show="isMenuCollapsed">智享</h1>
+          <h1 v-show="isMenuCollapsed" class="logo-text-collapsed">智</h1>
         </div>
         <el-button
+          v-if="!isMenuCollapsed"
           class="collapse-btn"
           :icon="isMenuCollapsed ? 'Expand' : 'Fold'"
           @click="isMenuCollapsed = !isMenuCollapsed"
@@ -15,238 +17,190 @@
           text
         />
       </div>
-      <el-menu
-        :default-active="activeMenu"
-        :collapse="isMenuCollapsed"
-        :collapse-transition="false"
-        class="sidebar-menu"
-        router
-      >
-        <!-- 1. 工作台 -->
-        <el-menu-item index="/dashboard">
-          <el-icon><HomeFilled /></el-icon>
-          <template #title>工作台</template>
-        </el-menu-item>
-        <el-menu-item index="/todo-list">
-          <el-icon><Bell /></el-icon>
-          <template #title>待办提醒</template>
-        </el-menu-item>
-        <el-menu-item index="/quick-entries">
-          <el-icon><Grid /></el-icon>
-          <template #title>快捷入口</template>
-        </el-menu-item>
-        <el-menu-item index="/messages">
-          <el-icon><ChatDotRound /></el-icon>
-          <template #title>消息中心</template>
-        </el-menu-item>
 
-        <!-- 2. 销售管理 -->
-        <el-sub-menu index="sales">
-          <template #title>
-            <el-icon><ShoppingCart /></el-icon>
-            <span>销售管理</span>
-          </template>
-          <el-menu-item index="/sales/create">销售开单</el-menu-item>
-          <el-menu-item index="/sale-bills">销售单据</el-menu-item>
-          <el-menu-item index="/sale-returns">销售退货</el-menu-item>
-          <el-menu-item index="/collection">收款管理</el-menu-item>
-          <el-menu-item index="/sales/collection-links">分享链接</el-menu-item>
-          <el-menu-item index="/sales/customer-prices">价格策略</el-menu-item>
-          <el-menu-item index="/sales/commission/rules">提成规则</el-menu-item>
-          <el-menu-item index="/sales/commission/records">提成记录</el-menu-item>
-          <el-menu-item index="/sales/reports">销售报表</el-menu-item>
-        </el-sub-menu>
+      <!-- 自定义胶囊导航 -->
+      <nav class="sidebar-nav">
+        <!-- 一级：工作台 -->
+        <div class="nav-group">
+          <div
+            class="nav-item"
+            :class="{ active: isActive('/dashboard') }"
+            @click="navTo('/dashboard')"
+          >
+            <el-icon class="nav-icon"><HomeFilled /></el-icon>
+            <span v-show="!isMenuCollapsed" class="nav-label">工作台</span>
+          </div>
+          <div
+            class="nav-item"
+            :class="{ active: isActive('/todo-list') }"
+            @click="navTo('/todo-list')"
+          >
+            <el-icon class="nav-icon"><Bell /></el-icon>
+            <span v-show="!isMenuCollapsed" class="nav-label">待办提醒</span>
+          </div>
+          <div
+            class="nav-item"
+            :class="{ active: isActive('/quick-entries') }"
+            @click="navTo('/quick-entries')"
+          >
+            <el-icon class="nav-icon"><Grid /></el-icon>
+            <span v-show="!isMenuCollapsed" class="nav-label">快捷入口</span>
+          </div>
+          <div
+            class="nav-item"
+            :class="{ active: isActive('/messages') }"
+            @click="navTo('/messages')"
+          >
+            <el-icon class="nav-icon"><ChatDotRound /></el-icon>
+            <span v-show="!isMenuCollapsed" class="nav-label">消息中心</span>
+          </div>
+        </div>
 
-        <!-- 3. 订单管理 -->
-        <el-sub-menu index="orders">
-          <template #title>
-            <el-icon><Document /></el-icon>
-            <span>订单管理</span>
-          </template>
-          <el-menu-item index="/orders">订单列表</el-menu-item>
-          <el-menu-item index="/order-board">泳道看板</el-menu-item>
-          <el-menu-item index="/order-timeout">超时处理</el-menu-item>
-          <el-menu-item index="/order-center">全渠道订单聚合</el-menu-item>
-          <el-menu-item index="/order-routing">订单分发与路由</el-menu-item>
-          <el-menu-item index="/order-sync">订单状态同步</el-menu-item>
-          <el-menu-item index="/order-exception">订单异常处理</el-menu-item>
-          <el-menu-item index="/order-product-map">全渠道商品映射</el-menu-item>
-          <el-menu-item index="/order-aftersale">订单售后聚合</el-menu-item>
-        </el-sub-menu>
+        <!-- 一级：销售管理（展开子菜单） -->
+        <div class="nav-group">
+          <div class="nav-item has-sub" :class="{ open: openGroups.sales }" @click="toggleGroup('sales')">
+            <el-icon class="nav-icon"><ShoppingCart /></el-icon>
+            <span v-show="!isMenuCollapsed" class="nav-label">销售管理</span>
+            <el-icon v-show="!isMenuCollapsed" class="nav-arrow"><ArrowDown /></el-icon>
+          </div>
+          <div v-show="openGroups.sales && !isMenuCollapsed" class="nav-sub">
+            <div class="nav-sub-item" :class="{ active: isActive('/sales/create') }" @click="navTo('/sales/create')">销售开单</div>
+            <div class="nav-sub-item" :class="{ active: isActive('/sale-bills') }" @click="navTo('/sale-bills')">销售单据</div>
+            <div class="nav-sub-item" :class="{ active: isActive('/sale-returns') }" @click="navTo('/sale-returns')">销售退货</div>
+            <div class="nav-sub-item" :class="{ active: isActive('/collection') }" @click="navTo('/collection')">收款管理</div>
+            <div class="nav-sub-item" :class="{ active: isActive('/sales/reports') }" @click="navTo('/sales/reports')">销售报表</div>
+          </div>
+        </div>
 
-        <!-- 4. 采购管理 -->
-        <el-sub-menu index="purchase">
-          <template #title>
-            <el-icon><Box /></el-icon>
-            <span>采购管理</span>
-          </template>
-          <el-menu-item index="/purchase-orders">采购订单</el-menu-item>
-          <el-menu-item index="/purchase-in-stocks">采购入库</el-menu-item>
-          <el-menu-item index="/purchase-returns">采购退货</el-menu-item>
-          <el-menu-item index="/purchase/supplier-statements">供应商对账</el-menu-item>
-          <el-menu-item index="/purchase/plans">采购计划</el-menu-item>
-          <el-menu-item index="/purchase-payments">采购付款</el-menu-item>
-          <el-menu-item index="/suppliers">供应商</el-menu-item>
-        </el-sub-menu>
+        <!-- 一级：订单管理 -->
+        <div class="nav-group">
+          <div class="nav-item has-sub" :class="{ open: openGroups.orders }" @click="toggleGroup('orders')">
+            <el-icon class="nav-icon"><Document /></el-icon>
+            <span v-show="!isMenuCollapsed" class="nav-label">订单管理</span>
+            <el-icon v-show="!isMenuCollapsed" class="nav-arrow"><ArrowDown /></el-icon>
+          </div>
+          <div v-show="openGroups.orders && !isMenuCollapsed" class="nav-sub">
+            <div class="nav-sub-item" :class="{ active: isActive('/orders') }" @click="navTo('/orders')">订单列表</div>
+            <div class="nav-sub-item" :class="{ active: isActive('/order-board') }" @click="navTo('/order-board')">泳道看板</div>
+            <div class="nav-sub-item" :class="{ active: isActive('/order-center') }" @click="navTo('/order-center')">全渠道订单</div>
+          </div>
+        </div>
 
-        <!-- 5. 库存管理 -->
-        <el-sub-menu index="inventory">
-          <template #title>
-            <el-icon><Files /></el-icon>
-            <span>库存管理</span>
-          </template>
-          <el-menu-item index="/inventory">库存查询</el-menu-item>
-          <el-menu-item index="/inventory-check">库存盘点</el-menu-item>
-          <el-menu-item index="/inventory-transfer">库存调拨</el-menu-item>
-          <el-menu-item index="/inventory-batch">批次追溯</el-menu-item>
-          <el-menu-item index="/inventory-alerts">库存预警</el-menu-item>
-          <el-menu-item index="/inventory-cost">成本核算</el-menu-item>
-          <el-menu-item index="/inventory-alert-config">预警配置</el-menu-item>
-          <el-menu-item index="/inventory-reports">库存报表</el-menu-item>
-        </el-sub-menu>
+        <!-- 一级：库存管理 -->
+        <div class="nav-group">
+          <div class="nav-item has-sub" :class="{ open: openGroups.inventory }" @click="toggleGroup('inventory')">
+            <el-icon class="nav-icon"><Files /></el-icon>
+            <span v-show="!isMenuCollapsed" class="nav-label">库存管理</span>
+            <el-icon v-show="!isMenuCollapsed" class="nav-arrow"><ArrowDown /></el-icon>
+          </div>
+          <div v-show="openGroups.inventory && !isMenuCollapsed" class="nav-sub">
+            <div class="nav-sub-item" :class="{ active: isActive('/inventory') }" @click="navTo('/inventory')">库存查询</div>
+            <div class="nav-sub-item" :class="{ active: isActive('/inventory-check') }" @click="navTo('/inventory-check')">库存盘点</div>
+            <div class="nav-sub-item" :class="{ active: isActive('/inventory-alerts') }" @click="navTo('/inventory-alerts')">库存预警</div>
+          </div>
+        </div>
 
-        <!-- 6. 客户管理 -->
-        <el-sub-menu index="customers">
-          <template #title>
-            <el-icon><User /></el-icon>
-            <span>客户管理</span>
-          </template>
-          <el-menu-item index="/customers">客户列表</el-menu-item>
-          <el-menu-item index="/credit">授信管理</el-menu-item>
-          <el-menu-item index="/points-rules">积分规则</el-menu-item>
-          <el-menu-item index="/level-config">等级配置</el-menu-item>
-          <el-menu-item index="/store-value-cards">储值卡</el-menu-item>
-          <el-menu-item index="/member-system">会员体系</el-menu-item>
-          <el-menu-item index="/customer-tags">客户标签</el-menu-item>
-          <el-menu-item index="/customer-profile">客户画像</el-menu-item>
-          <el-menu-item index="/customer-care">关怀规则</el-menu-item>
-          <el-menu-item index="/customer-lifecycle">生命周期</el-menu-item>
-          <el-menu-item index="/customer-segments">客户分群</el-menu-item>
-        </el-sub-menu>
+        <!-- 一级：商品中心 -->
+        <div class="nav-group">
+          <div class="nav-item has-sub" :class="{ open: openGroups.products }" @click="toggleGroup('products')">
+            <el-icon class="nav-icon"><Goods /></el-icon>
+            <span v-show="!isMenuCollapsed" class="nav-label">商品中心</span>
+            <el-icon v-show="!isMenuCollapsed" class="nav-arrow"><ArrowDown /></el-icon>
+          </div>
+          <div v-show="openGroups.products && !isMenuCollapsed" class="nav-sub">
+            <div class="nav-sub-item" :class="{ active: isActive('/products') }" @click="navTo('/products')">商品列表</div>
+            <div class="nav-sub-item" :class="{ active: isActive('/products/categories') }" @click="navTo('/products/categories')">商品分类</div>
+            <div class="nav-sub-item" :class="{ active: isActive('/prices') }" @click="navTo('/prices')">价格管理</div>
+          </div>
+        </div>
 
-        <!-- 7. 商品中心 -->
-        <el-sub-menu index="products">
-          <template #title>
-            <el-icon><Goods /></el-icon>
-            <span>商品中心</span>
-          </template>
-          <el-menu-item index="/products">商品列表</el-menu-item>
-          <el-menu-item index="/products/categories">商品分类</el-menu-item>
-          <el-menu-item index="/products/brands">品牌管理</el-menu-item>
-          <el-menu-item index="/products/units">单位管理</el-menu-item>
-          <el-menu-item index="/products/import">商品导入</el-menu-item>
-          <el-menu-item index="/products/tags">商品标签</el-menu-item>
-          <el-menu-item index="/products/tag-groups">标签分组</el-menu-item>
-          <el-menu-item index="/products/tag-relation">标签关联</el-menu-item>
-          <el-menu-item index="/prices">价格管理</el-menu-item>
-        </el-sub-menu>
+        <!-- 一级：客户管理 -->
+        <div class="nav-group">
+          <div class="nav-item has-sub" :class="{ open: openGroups.customers }" @click="toggleGroup('customers')">
+            <el-icon class="nav-icon"><User /></el-icon>
+            <span v-show="!isMenuCollapsed" class="nav-label">客户管理</span>
+            <el-icon v-show="!isMenuCollapsed" class="nav-arrow"><ArrowDown /></el-icon>
+          </div>
+          <div v-show="openGroups.customers && !isMenuCollapsed" class="nav-sub">
+            <div class="nav-sub-item" :class="{ active: isActive('/customers') }" @click="navTo('/customers')">客户列表</div>
+            <div class="nav-sub-item" :class="{ active: isActive('/member-system') }" @click="navTo('/member-system')">会员体系</div>
+            <div class="nav-sub-item" :class="{ active: isActive('/store-value-cards') }" @click="navTo('/store-value-cards')">储值卡</div>
+          </div>
+        </div>
 
-        <!-- 8. 即时零售 -->
-        <el-sub-menu index="instant-retail">
-          <template #title>
-            <el-icon><Shop /></el-icon>
-            <span>即时零售</span>
-          </template>
-          <el-menu-item index="/instant-retail/config">小程序配置</el-menu-item>
-          <el-menu-item index="/instant-retail/shelf">商品货架</el-menu-item>
-          <el-menu-item index="/instant-retail/orders">小程序订单</el-menu-item>
-          <el-menu-item index="/instant-retail/payment">在线支付</el-menu-item>
-          <el-menu-item index="/instant-retail/delivery">配送管理</el-menu-item>
-          <el-menu-item index="/instant-retail/report">零售报表</el-menu-item>
-          <el-menu-item index="/instant-retail/platform">平台对接</el-menu-item>
-          <el-menu-item index="/instant-retail/order-board">60秒接单</el-menu-item>
-        </el-sub-menu>
+        <!-- 一级：即时零售 -->
+        <div class="nav-group">
+          <div class="nav-item has-sub" :class="{ open: openGroups.instant }" @click="toggleGroup('instant')">
+            <el-icon class="nav-icon"><Shop /></el-icon>
+            <span v-show="!isMenuCollapsed" class="nav-label">即时零售</span>
+            <el-icon v-show="!isMenuCollapsed" class="nav-arrow"><ArrowDown /></el-icon>
+          </div>
+          <div v-show="openGroups.instant && !isMenuCollapsed" class="nav-sub">
+            <div class="nav-sub-item" :class="{ active: isActive('/instant-retail/orders') }" @click="navTo('/instant-retail/orders')">小程序订单</div>
+            <div class="nav-sub-item" :class="{ active: isActive('/instant-retail/shelf') }" @click="navTo('/instant-retail/shelf')">商品货架</div>
+            <div class="nav-sub-item" :class="{ active: isActive('/instant-retail/report') }" @click="navTo('/instant-retail/report')">零售报表</div>
+          </div>
+        </div>
 
-        <!-- 9. 财务往来 -->
-        <el-sub-menu index="finance">
-          <template #title>
-            <el-icon><Coin /></el-icon>
-            <span>财务往来</span>
-          </template>
-          <el-menu-item index="/payments">资金流水</el-menu-item>
-          <el-menu-item index="/finance/collection">收款链接</el-menu-item>
-          <el-menu-item index="/customer-statements">客户对账</el-menu-item>
-          <el-menu-item index="/finance/profit">经营利润</el-menu-item>
-          <el-menu-item index="/finance/receipts">收款管理</el-menu-item>
-          <el-menu-item index="/finance/payments">付款管理</el-menu-item>
-          <el-menu-item index="/finance/receivables-payables">应收应付</el-menu-item>
-          <el-menu-item index="/finance/expenses">费用管理</el-menu-item>
-          <el-menu-item index="/finance/reconciliation">对账中心</el-menu-item>
-          <el-menu-item index="/finance/dashboard">财务驾驶舱</el-menu-item>
-        </el-sub-menu>
+        <!-- 一级：数据报表 -->
+        <div class="nav-group">
+          <div class="nav-item has-sub" :class="{ open: openGroups.reports }" @click="toggleGroup('reports')">
+            <el-icon class="nav-icon"><DataAnalysis /></el-icon>
+            <span v-show="!isMenuCollapsed" class="nav-label">数据报表</span>
+            <el-icon v-show="!isMenuCollapsed" class="nav-arrow"><ArrowDown /></el-icon>
+          </div>
+          <div v-show="openGroups.reports && !isMenuCollapsed" class="nav-sub">
+            <div class="nav-sub-item" :class="{ active: isActive('/reports') }" @click="navTo('/reports')">销售统计</div>
+            <div class="nav-sub-item" :class="{ active: isActive('/reports/products') }" @click="navTo('/reports/products')">商品排行</div>
+            <div class="nav-sub-item" :class="{ active: isActive('/reports/employees') }" @click="navTo('/reports/employees')">员工业绩</div>
+          </div>
+        </div>
 
-        <!-- 10. 数据报表 -->
-        <el-sub-menu index="reports">
-          <template #title>
-            <el-icon><DataAnalysis /></el-icon>
-            <span>数据报表</span>
-          </template>
-          <el-menu-item index="/reports">销售统计</el-menu-item>
-          <el-menu-item index="/reports/products">商品排行</el-menu-item>
-          <el-menu-item index="/reports/employees">员工业绩</el-menu-item>
-          <el-menu-item index="/reports/stores">门店对比</el-menu-item>
-          <el-menu-item index="/reports/purchase">采购报表</el-menu-item>
-          <el-menu-item index="/reports/sales-analysis">销售分析</el-menu-item>
-          <el-menu-item index="/reports/collection-analysis">收款分析</el-menu-item>
-          <el-menu-item index="/reports/customers">客户分析</el-menu-item>
-          <el-menu-item index="/reports/inventory">库存分析</el-menu-item>
-        </el-sub-menu>
-
-        <!-- 11. 营销中心 -->
-        <el-sub-menu index="marketing">
-          <template #title>
-            <el-icon><Present /></el-icon>
-            <span>营销中心</span>
-          </template>
-          <el-menu-item index="/marketing">营销中心</el-menu-item>
-          <el-menu-item index="/marketing/tags">营销标签</el-menu-item>
-          <el-menu-item index="/marketing/limited-discount">限时折扣</el-menu-item>
-          <el-menu-item index="/marketing/gift-rule">满赠管理</el-menu-item>
-          <el-menu-item index="/marketing/points-mall">积分商城</el-menu-item>
-          <el-menu-item index="/marketing/dashboard">营销看板</el-menu-item>
-          <el-menu-item index="/marketing/materials">素材库</el-menu-item>
-        </el-sub-menu>
-        <el-menu-item index="/aftersale">售后管理</el-menu-item>
-
-        <!-- 12. 系统设置（含门店管理） -->
-        <el-sub-menu index="system">
-          <template #title>
-            <el-icon><Setting /></el-icon>
-            <span>系统设置</span>
-          </template>
-          <el-menu-item index="/employees">员工管理</el-menu-item>
-          <el-menu-item index="/stores">门店管理</el-menu-item>
-          <el-menu-item index="/system/roles">角色权限</el-menu-item>
-          <el-menu-item index="/audit-log">操作日志</el-menu-item>
-          <el-menu-item index="/error-log">错误日志</el-menu-item>
-          <el-menu-item index="/system/config">参数配置</el-menu-item>
-          <el-menu-item index="/system/approval/rules">审批规则</el-menu-item>
-          <el-menu-item index="/system/approval/my">我的申请</el-menu-item>
-          <el-menu-item index="/system/payment">支付配置</el-menu-item>
-          <el-menu-item index="/system/miniapp">小程序配置</el-menu-item>
-          <el-menu-item index="/monitor">监控告警</el-menu-item>
-          <el-menu-item index="/system/feedback">建议反馈</el-menu-item>
-        </el-sub-menu>
-      </el-menu>
+        <!-- 一级：系统设置 -->
+        <div class="nav-group">
+          <div class="nav-item has-sub" :class="{ open: openGroups.system }" @click="toggleGroup('system')">
+            <el-icon class="nav-icon"><Setting /></el-icon>
+            <span v-show="!isMenuCollapsed" class="nav-label">系统设置</span>
+            <el-icon v-show="!isMenuCollapsed" class="nav-arrow"><ArrowDown /></el-icon>
+          </div>
+          <div v-show="openGroups.system && !isMenuCollapsed" class="nav-sub">
+            <div class="nav-sub-item" :class="{ active: isActive('/employees') }" @click="navTo('/employees')">员工管理</div>
+            <div class="nav-sub-item" :class="{ active: isActive('/stores') }" @click="navTo('/stores')">门店管理</div>
+            <div class="nav-sub-item" :class="{ active: isActive('/system/roles') }" @click="navTo('/system/roles')">角色权限</div>
+            <div class="nav-sub-item" :class="{ active: isActive('/audit-log') }" @click="navTo('/audit-log')">操作日志</div>
+            <div class="nav-sub-item" :class="{ active: isActive('/error-log') }" @click="navTo('/error-log')">错误日志</div>
+          </div>
+        </div>
+      </nav>
     </aside>
+
+    <!-- 主内容区 -->
     <main class="main" v-loading="pageLoading">
+      <!-- 顶栏：磨砂半透明 -->
       <header class="main-header" v-if="!isCashierMode">
         <div class="header-left">
-          <div class="breadcrumb">
-            <span>{{ pageTitle }}</span>
-          </div>
+          <el-button
+            v-if="isMenuCollapsed"
+            class="menu-toggle-btn"
+            :icon="isMenuCollapsed ? 'Expand' : 'Fold'"
+            @click="isMenuCollapsed = !isMenuCollapsed"
+            size="small"
+            text
+          />
+          <span class="breadcrumb">{{ pageTitle }}</span>
         </div>
         <div class="header-right">
           <div class="header-search">
             <el-icon><Search /></el-icon>
             <span>搜索商品、订单...</span>
+            <kbd>⌘K</kbd>
           </div>
           <el-button
             type="primary"
             size="small"
-            icon="ShoppingCart"
             @click="toggleCashierMode"
           >
+            <el-icon><ShoppingCart /></el-icon>
             切换收银台
           </el-button>
           <el-badge :value="3" :max="99" class="header-badge">
@@ -258,6 +212,7 @@
             <span class="user-info">
               <el-avatar :size="28" style="background: var(--color-primary)">{{ avatarText }}</el-avatar>
               <span class="user-name">{{ currentUser?.realName || '管理员' }}</span>
+              <el-icon><CaretBottom /></el-icon>
             </span>
             <template #dropdown>
               <el-dropdown-menu>
@@ -268,15 +223,16 @@
         </div>
       </header>
 
+      <!-- 收银台模式 -->
       <div v-if="isCashierMode" class="cashier-container">
         <div class="cashier-header">
           <el-button
             v-if="!isCashierUser"
             type="default"
             size="small"
-            icon="ArrowLeft"
             @click="toggleCashierMode"
           >
+            <el-icon><ArrowLeft /></el-icon>
             返回管理后台
           </el-button>
           <h2 class="cashier-title">快速收银台</h2>
@@ -287,16 +243,23 @@
         </div>
       </div>
 
-      <router-view v-else />
+      <!-- 常规内容 -->
+      <div v-else class="page-content">
+        <router-view />
+      </div>
     </main>
   </div>
 </template>
 
 <script setup lang="ts">
-import { computed, onMounted, ref } from "vue";
+import { computed, onMounted, reactive, ref } from "vue";
 import { useRoute, useRouter } from "vue-router";
 import { ElMessage } from "element-plus";
-import { HomeFilled, Goods, Document, ShoppingCart, Box, User, Files, Shop, Coin, Present, DataAnalysis, Setting, Expand, Fold, Bell, Grid, ChatDotRound, Search } from "@element-plus/icons-vue";
+import {
+  HomeFilled, Goods, Document, ShoppingCart, User, Files, Shop,
+  DataAnalysis, Setting, Bell, Grid, ChatDotRound, Search,
+  ArrowDown, CaretBottom, ArrowLeft
+} from "@element-plus/icons-vue";
 import { formatDate } from "../utils/format";
 import { useAuthStore } from "../stores/auth";
 
@@ -308,6 +271,17 @@ const isMenuCollapsed = ref(false);
 const isCashierMode = ref(false);
 const pageLoading = ref(false);
 const currentUser = computed(() => auth.user);
+
+const openGroups = reactive({
+  sales: false,
+  orders: false,
+  inventory: false,
+  products: false,
+  customers: false,
+  instant: false,
+  reports: false,
+  system: false,
+});
 
 const avatarText = computed(() => {
   const name = currentUser.value?.realName || '管理员';
@@ -323,9 +297,28 @@ onMounted(() => {
     isCashierMode.value = true;
     isMenuCollapsed.value = true;
   }
+  const path = route.path;
+  if (path.startsWith('/sales') || path.startsWith('/sale-') || path.startsWith('/collection')) openGroups.sales = true;
+  if (path.startsWith('/order')) openGroups.orders = true;
+  if (path.startsWith('/inventory')) openGroups.inventory = true;
+  if (path.startsWith('/products') || path.startsWith('/prices')) openGroups.products = true;
+  if (path.startsWith('/customers') || path.startsWith('/member') || path.startsWith('/store-value') || path.startsWith('/credit') || path.startsWith('/points') || path.startsWith('/level') || path.startsWith('/customer-')) openGroups.customers = true;
+  if (path.startsWith('/instant-retail')) openGroups.instant = true;
+  if (path.startsWith('/reports')) openGroups.reports = true;
+  if (path.startsWith('/system') || path.startsWith('/employees') || path.startsWith('/stores') || path.startsWith('/audit') || path.startsWith('/error-log') || path.startsWith('/monitor')) openGroups.system = true;
 });
 
-const activeMenu = computed(() => route.path);
+function isActive(path: string): boolean {
+  return route.path === path;
+}
+
+function navTo(path: string) {
+  router.push(path);
+}
+
+function toggleGroup(group: keyof typeof openGroups) {
+  openGroups[group] = !openGroups[group];
+}
 
 const pageTitle = computed(() => {
   const titles: Record<string, string> = {
@@ -337,104 +330,29 @@ const pageTitle = computed(() => {
     "/sale-bills": "销售单据",
     "/sale-returns": "销售退货",
     "/collection": "收款管理",
-    "/sales/collection-links": "分享链接",
-    "/sales/customer-prices": "价格策略",
-    "/sales/commission/rules": "提成规则",
-    "/sales/commission/records": "提成记录",
-    "/sales/reports": "销售报表",
     "/orders": "订单列表",
     "/order-board": "泳道看板",
-    "/order-timeout": "超时处理",
     "/order-center": "全渠道订单聚合",
-    "/order-routing": "订单分发与路由",
-    "/order-sync": "订单状态同步",
-    "/order-exception": "订单异常处理",
-    "/order-product-map": "全渠道商品映射",
-    "/order-aftersale": "订单售后聚合",
-    "/purchase-orders": "采购订单",
-    "/purchase-in-stocks": "采购入库",
-    "/purchase-returns": "采购退货",
-    "/purchase/supplier-statements": "供应商对账",
-    "/purchase/plans": "采购计划",
-    "/purchase-payments": "采购付款",
-    "/suppliers": "供应商",
     "/inventory": "库存查询",
     "/inventory-check": "库存盘点",
-    "/inventory-transfer": "库存调拨",
-    "/inventory-batch": "批次追溯",
     "/inventory-alerts": "库存预警",
-    "/inventory-cost": "成本核算",
-    "/inventory-alert-config": "预警配置",
-    "/inventory-reports": "库存报表",
-    "/customers": "客户列表",
-    "/credit": "授信管理",
-    "/points-rules": "积分规则",
-    "/level-config": "等级配置",
-    "/store-value-cards": "储值卡",
-    "/member-system": "会员体系",
-    "/customer-tags": "客户标签",
-    "/customer-profile": "客户画像",
-    "/customer-care": "关怀规则",
-    "/customer-lifecycle": "生命周期",
-    "/customer-segments": "客户分群",
     "/products": "商品列表",
     "/products/categories": "商品分类",
-    "/products/brands": "品牌管理",
-    "/products/units": "单位管理",
-    "/products/import": "商品导入",
-    "/products/tags": "商品标签",
-    "/products/tag-groups": "标签分组",
-    "/products/tag-relation": "标签关联",
     "/prices": "价格管理",
-    "/payments": "资金流水",
-    "/finance/collection": "收款链接",
-    "/customer-statements": "客户对账",
-    "/finance/profit": "经营利润",
-    "/finance/receipts": "收款管理",
-    "/finance/payments": "付款管理",
-    "/finance/receivables-payables": "应收应付",
-    "/finance/expenses": "费用管理",
-    "/finance/reconciliation": "对账中心",
-    "/finance/dashboard": "财务驾驶舱",
+    "/customers": "客户列表",
+    "/member-system": "会员体系",
+    "/store-value-cards": "储值卡",
+    "/instant-retail/orders": "小程序订单",
+    "/instant-retail/shelf": "商品货架",
+    "/instant-retail/report": "零售报表",
     "/reports": "销售统计",
     "/reports/products": "商品排行",
     "/reports/employees": "员工业绩",
-    "/reports/stores": "门店对比",
-    "/reports/purchase": "采购报表",
-    "/reports/sales-analysis": "销售分析",
-    "/reports/collection-analysis": "收款分析",
-    "/reports/customers": "客户分析",
-    "/reports/inventory": "库存分析",
-    "/marketing": "营销中心",
-    "/marketing/tags": "营销标签",
-    "/marketing/limited-discount": "限时折扣",
-    "/marketing/gift-rule": "满赠管理",
-    "/marketing/points-mall": "积分商城",
-    "/marketing/dashboard": "营销看板",
-    "/marketing/materials": "素材库",
-    "/aftersale": "售后管理",
     "/employees": "员工管理",
     "/stores": "门店管理",
     "/system/roles": "角色权限",
     "/audit-log": "操作日志",
     "/error-log": "错误日志",
-    "/system": "系统配置",
-    "/system/config": "参数配置",
-    "/system/approval/rules": "审批规则",
-    "/system/approval/detail": "审批详情",
-    "/system/approval/my": "我的申请",
-    "/system/payment": "支付配置",
-      "/system/miniapp": "小程序配置",
-      "/monitor": "监控告警",
-    "/system/feedback": "建议反馈",
-      "/instant-retail/config": "小程序配置",
-    "/instant-retail/shelf": "商品货架",
-    "/instant-retail/orders": "小程序订单",
-    "/instant-retail/payment": "在线支付",
-    "/instant-retail/delivery": "配送管理",
-    "/instant-retail/report": "零售报表",
-    "/instant-retail/platform": "平台对接",
-    "/instant-retail/order-board": "接单工作台"
   };
   return titles[route.path] || "智享全链管理系统";
 });
@@ -460,18 +378,22 @@ function handleLogout() {
   background: var(--bg-page);
 }
 
+/* ========== 侧边栏：深色磨砂 ========== */
 .side {
-  width: 220px;
-  background: var(--bg-sidebar);
-  border-right: 1px solid var(--border-normal);
-  transition: width 0.2s;
+  width: var(--sidebar-width);
+  background: var(--frost-sidebar);
+  backdrop-filter: var(--frost-sidebar-blur);
+  -webkit-backdrop-filter: var(--frost-sidebar-blur);
   flex-shrink: 0;
   display: flex;
   flex-direction: column;
+  position: relative;
+  z-index: 100;
+  transition: width 250ms ease-out;
 }
 
 .side.is-collapsed {
-  width: 64px;
+  width: var(--sidebar-width-collapsed);
 }
 
 .side.is-hidden {
@@ -479,12 +401,12 @@ function handleLogout() {
 }
 
 .sidebar-header {
-  height: 60px;
+  height: var(--topbar-height);
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 0 16px;
-  border-bottom: 1px solid var(--border-normal);
+  padding: 0 12px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
 }
 
 .sidebar-logo {
@@ -496,37 +418,139 @@ function handleLogout() {
 }
 
 .logo-icon {
-  width: 32px;
-  height: 32px;
+  width: 30px;
+  height: 30px;
   background: var(--color-primary);
-  border-radius: 6px;
+  border-radius: 8px;
   display: flex;
   align-items: center;
   justify-content: center;
   color: #fff;
   font-weight: 700;
-  font-size: 14px;
+  font-size: 13px;
   flex-shrink: 0;
 }
 
 .sidebar-header h1 {
-  font-size: 16px;
+  font-size: 15px;
   font-weight: 700;
-  color: var(--text-primary);
+  color: var(--sidebar-text-primary);
   margin: 0;
   white-space: nowrap;
+  letter-spacing: 0.5px;
+}
+
+.logo-text-collapsed {
+  font-size: 15px;
+  font-weight: 700;
+  color: var(--sidebar-text-primary);
+  margin: 0 auto;
 }
 
 .collapse-btn {
-  padding: 4px !important;
+  color: var(--sidebar-text-muted) !important;
 }
 
-.sidebar-menu {
+/* ========== 胶囊导航 ========== */
+.sidebar-nav {
   flex: 1;
-  border-right: none !important;
-  background: transparent !important;
+  padding: 8px;
+  overflow-y: auto;
+  overflow-x: hidden;
 }
 
+.sidebar-nav::-webkit-scrollbar {
+  width: 4px;
+}
+.sidebar-nav::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: 2px;
+}
+
+.nav-group {
+  margin-bottom: 4px;
+}
+
+.nav-item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  height: 36px;
+  padding: 0 12px;
+  border-radius: var(--nav-item-radius);
+  cursor: pointer;
+  color: var(--sidebar-text-secondary);
+  font-size: 13px;
+  transition: all 250ms ease-out;
+  margin-bottom: 2px;
+  position: relative;
+}
+
+.nav-item:hover {
+  color: var(--sidebar-text-primary);
+  background: rgba(255, 255, 255, 0.06);
+}
+
+.nav-item.active {
+  background: rgba(91, 106, 191, 0.20);
+  color: #FFFFFF;
+  font-weight: 500;
+}
+
+.nav-icon {
+  font-size: 16px;
+  width: 20px;
+  flex-shrink: 0;
+  text-align: center;
+}
+
+.nav-label {
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.nav-arrow {
+  font-size: 12px;
+  color: var(--sidebar-text-muted);
+  transition: transform 200ms ease;
+}
+
+.nav-item.open .nav-arrow {
+  transform: rotate(180deg);
+}
+
+/* 子菜单 */
+.nav-sub {
+  padding: 2px 0 2px 32px;
+}
+
+.nav-sub-item {
+  height: 30px;
+  line-height: 30px;
+  padding: 0 12px;
+  font-size: 12px;
+  color: var(--sidebar-text-secondary);
+  cursor: pointer;
+  border-radius: var(--nav-item-radius);
+  margin-bottom: 2px;
+  transition: all 200ms ease;
+}
+
+.nav-sub-item:hover {
+  color: var(--sidebar-text-primary);
+  background: rgba(255, 255, 255, 0.06);
+}
+
+.nav-sub-item.active {
+  color: #FFFFFF;
+  background: rgba(91, 106, 191, 0.20);
+  font-weight: 500;
+}
+
+/* ========== 主内容区 ========== */
 .main {
   flex: 1;
   display: flex;
@@ -534,23 +558,34 @@ function handleLogout() {
   min-width: 0;
 }
 
+/* ========== 顶栏：磨砂半透明 ========== */
 .main-header {
-  height: 60px;
-  background: var(--bg-card);
-  border-bottom: 1px solid var(--border-normal);
+  height: var(--topbar-height);
+  background: var(--frost-topbar);
+  backdrop-filter: var(--frost-topbar-blur);
+  -webkit-backdrop-filter: var(--frost-topbar-blur);
+  border-bottom: 1px solid var(--border-light);
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 0 24px;
+  padding: 0 20px;
+  position: sticky;
+  top: 0;
+  z-index: 50;
 }
 
 .header-left {
   display: flex;
   align-items: center;
+  gap: 8px;
+}
+
+.menu-toggle-btn {
+  margin-right: 4px;
 }
 
 .breadcrumb {
-  font-size: 16px;
+  font-size: 15px;
   font-weight: 600;
   color: var(--text-primary);
 }
@@ -562,23 +597,37 @@ function handleLogout() {
 }
 
 .header-search {
-  width: 240px;
-  height: 34px;
-  background: var(--gray-50);
-  border: 1px solid var(--border-normal);
-  border-radius: 6px;
+  width: 260px;
+  height: 32px;
+  background: var(--gray-100);
+  border: 1px solid transparent;
+  border-radius: 8px;
   display: flex;
   align-items: center;
   padding: 0 12px;
   gap: 8px;
-  font-size: 13px;
+  font-size: 12px;
   color: var(--text-muted);
   cursor: pointer;
-  transition: all 0.15s ease;
+  transition: all 150ms ease;
 }
 
 .header-search:hover {
-  border-color: var(--color-primary);
+  background: var(--gray-200);
+}
+
+.header-search .el-icon {
+  font-size: 14px;
+}
+
+.header-search kbd {
+  margin-left: auto;
+  font-size: 11px;
+  padding: 1px 6px;
+  background: #fff;
+  border: 1px solid var(--border-normal);
+  border-radius: 4px;
+  font-family: var(--font-mono);
 }
 
 .header-badge {
@@ -591,13 +640,29 @@ function handleLogout() {
   gap: 8px;
   cursor: pointer;
   color: var(--text-primary);
-  font-size: 14px;
+  font-size: 13px;
+  padding: 4px 8px 4px 4px;
+  border-radius: 20px;
+  transition: background 150ms ease;
+}
+
+.user-info:hover {
+  background: var(--gray-100);
 }
 
 .user-name {
   font-size: 13px;
+  font-weight: 500;
 }
 
+/* 页面内容区 */
+.page-content {
+  flex: 1;
+  padding: 20px 24px;
+  overflow-y: auto;
+}
+
+/* 收银台模式 */
 .cashier-container {
   flex: 1;
   display: flex;
@@ -606,7 +671,7 @@ function handleLogout() {
 }
 
 .cashier-header {
-  height: 56px;
+  height: 48px;
   background: #fff;
   border-bottom: 1px solid var(--border-normal);
   display: flex;
@@ -617,7 +682,7 @@ function handleLogout() {
 
 .cashier-title {
   margin: 0;
-  font-size: 16px;
+  font-size: 15px;
   font-weight: 600;
   color: var(--text-primary);
   flex: 1;

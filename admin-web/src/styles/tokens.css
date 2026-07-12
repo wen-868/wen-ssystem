@@ -1,7 +1,7 @@
 /* ═══════════════════════════════════════════════════════════════
    Design Tokens v4.0 — Atlas 灰阶体系
-   原则：只有字体用黑色，其他一律不用黑色。背景以灰+白为主，按钮图表可彩色
-   覆盖：admin-web / merchant-mobile / store-terminal
+   核心原则：白底黑字中间灰，颜色仅出现在按钮和状态标签
+   适用：admin-web 管理后台
    ═══════════════════════════════════════════════════════════════ */
 
 :root {
@@ -15,7 +15,7 @@
   --color-primary-bg: rgba(91, 106, 191, 0.06);
 
   /* ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-     Neutral Gray Scale — 灰阶体系（最深为深灰，不用纯黑）
+     Neutral Gray Scale — 11级灰阶（#FFFFFF 到 #111111）
      ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */
   --gray-0: #FFFFFF;
   --gray-50: #F8F8F8;
@@ -26,24 +26,20 @@
   --gray-500: #666666;
   --gray-600: #444444;
   --gray-700: #333333;
-  --gray-800: #2A2A2A;
-  --gray-900: #222222;
+  --gray-800: #222222;
+  --gray-900: #111111;
 
   /* ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-     Semantic — Status Colors
+     Semantic — Status Colors（仅标签/状态使用）
      ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */
   --color-success: #0EA879;
-  --color-success-soft: rgba(14, 168, 121, 0.10);
-  --color-success-bg: rgba(14, 168, 121, 0.06);
+  --color-success-soft: rgba(14, 168, 121, 0.12);
   --color-warning: #D48B3A;
-  --color-warning-soft: rgba(212, 139, 58, 0.10);
-  --color-warning-bg: rgba(212, 139, 58, 0.06);
+  --color-warning-soft: rgba(212, 139, 58, 0.12);
   --color-danger: #C0392B;
-  --color-danger-soft: rgba(192, 57, 43, 0.10);
-  --color-danger-bg: rgba(192, 57, 43, 0.06);
+  --color-danger-soft: rgba(192, 57, 43, 0.12);
   --color-info: #5B6ABF;
-  --color-info-soft: rgba(91, 106, 191, 0.10);
-  --color-info-bg: rgba(91, 106, 191, 0.06);
+  --color-info-soft: rgba(91, 106, 191, 0.12);
 
   /* ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
      Chart Colors — 图表色（可全彩）
@@ -56,6 +52,18 @@
   --chart-6: #06B6D4;
 
   /* ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+     Frosted Glass — 磨砂半透明
+     ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */
+  --frost-sidebar: rgba(17, 17, 17, 0.85);
+  --frost-sidebar-blur: blur(16px);
+  --frost-topbar: rgba(255, 255, 255, 0.80);
+  --frost-topbar-blur: blur(16px);
+  --frost-modal: rgba(0, 0, 0, 0.35);
+  --frost-modal-blur: blur(8px);
+  --frost-bottom: rgba(255, 255, 255, 0.85);
+  --frost-bottom-blur: blur(16px);
+
+  /* ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
      Text — 唯一可以用纯黑的地方
      ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */
   --text-primary: #000000;
@@ -65,10 +73,16 @@
   --text-inverse: #FFFFFF;
   --text-link: #5B6ABF;
 
+  /* 侧边栏深色文字 */
+  --sidebar-text-primary: rgba(255, 255, 255, 0.92);
+  --sidebar-text-secondary: rgba(255, 255, 255, 0.60);
+  --sidebar-text-muted: rgba(255, 255, 255, 0.38);
+  --sidebar-text-active: #FFFFFF;
+
   /* ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
      Background — 灰+白搭配
      ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */
-  --bg-page: #F8F8F8;
+  --bg-page: #F5F5F5;
   --bg-card: #FFFFFF;
   --bg-soft: #F0F0F0;
   --bg-elevated: #FFFFFF;
@@ -93,13 +107,14 @@
   --radius-lg: 10px;
   --radius-xl: 12px;
   --radius-2xl: 16px;
+  --radius-pill: 20px;
   --radius-full: 9999px;
 
   /* ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
      Typography
      ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */
-  --font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang SC", "Microsoft YaHei", "Helvetica Neue", sans-serif;
-  --font-mono: "SF Mono", "Fira Code", "Consolas", monospace;
+  --font-family: "Inter", -apple-system, BlinkMacSystemFont, "PingFang SC", "Microsoft YaHei", sans-serif;
+  --font-mono: "JetBrains Mono", "SF Mono", "Fira Code", "Consolas", monospace;
 
   /* Font Size Scale */
   --text-xs: 11px;
@@ -120,11 +135,11 @@
 
   /* Line Height */
   --leading-tight: 1.25;
-  --leading-normal: 1.5;
+  --leading-normal: 1.6;
   --leading-relaxed: 1.75;
 
   /* ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-     Spacing
+     Spacing — 4px 基准，8 级递增
      ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */
   --space-1: 4px;
   --space-2: 8px;
@@ -134,9 +149,8 @@
   --space-6: 24px;
   --space-8: 32px;
   --space-10: 40px;
-  --space-12: 48px;
 
-  --space-page-padding: 24px 28px;
+  --space-page-padding: 24px;
   --space-card-padding: 16px;
   --space-card-gap: 16px;
   --space-section-gap: 24px;
@@ -146,7 +160,7 @@
      ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */
   --shadow-xs: 0 1px 2px rgba(0, 0, 0, 0.04);
   --shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.05), 0 1px 2px rgba(0, 0, 0, 0.03);
-  --shadow-md: 0 4px 6px rgba(0, 0, 0, 0.04), 0 2px 4px rgba(0, 0, 0, 0.03);
+  --shadow-md: 0 2px 8px rgba(0, 0, 0, 0.06);
   --shadow-lg: 0 10px 15px rgba(0, 0, 0, 0.05), 0 4px 6px rgba(0, 0, 0, 0.03);
   --shadow-xl: 0 20px 40px rgba(0, 0, 0, 0.07);
   --shadow-card: 0 1px 3px rgba(0, 0, 0, 0.04);
@@ -156,22 +170,33 @@
   /* ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
      Motion / Transition
      ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */
-  --transition-fast: 0.1s ease;
-  --transition-normal: 0.15s ease;
-  --transition-slow: 0.2s ease;
-  --transition-spring: 0.25s cubic-bezier(0.34, 1.56, 0.64, 1);
+  --transition-fast: 150ms ease;
+  --transition-normal: 200ms ease;
+  --transition-slow: 250ms ease-out;
+  --transition-spring: 250ms cubic-bezier(0.34, 1.56, 0.64, 1);
+  --transition-modal: 200ms ease;
 
   /* ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-     Z-Index
+     Nav — 胶囊导航
      ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */
-  --z-dropdown: 1000;
-  --z-sticky: 1020;
-  --z-fixed: 1030;
-  --z-modal-backdrop: 1040;
-  --z-modal: 1050;
-  --z-popover: 1060;
-  --z-tooltip: 1070;
-  --z-toast: 1080;
+  --nav-item-radius: 20px;
+  --nav-item-gap: 2px;
+  --nav-item-padding: 8px 12px;
+
+  /* ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+     Layout Dimensions
+     ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */
+  --sidebar-width: 200px;
+  --sidebar-width-collapsed: 64px;
+  --topbar-height: 48px;
+  --bottombar-height: 56px;
+  --fab-size: 56px;
+
+  /* Terminal 固定尺寸 */
+  --terminal-width: 1024px;
+  --terminal-height: 768px;
+  --terminal-nav-width: 80px;
+  --terminal-cart-width: 280px;
 
   /* ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
      Component Tokens
@@ -196,9 +221,13 @@
   --btn-height-lg: 44px;
   --btn-radius: 6px;
   --btn-padding: 0 16px;
+  --btn-active-scale: 0.97;
 
   --tag-radius: 4px;
   --tag-padding: 2px 10px;
+
+  --card-radius: 8px;
+  --card-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
 
   --tooltip-bg: #2A2A2A;
   --tooltip-text: #FFFFFF;
@@ -208,63 +237,125 @@
   --skeleton-shine: #E2E2E2;
 
   /* ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-     Responsive Breakpoints (reference)
+     Responsive Breakpoints
      ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */
-  --bp-sm: 640px;
+  --bp-xs: 576px;
   --bp-md: 768px;
   --bp-lg: 1024px;
   --bp-xl: 1280px;
-  --bp-2xl: 1536px;
 }
 
 /* ═══════════════════════════════════════════════════════════════
-   Dark Mode — 暗色模式
+   Button Styles — 危险按钮：灰边框 + 红字，不填红色底
    ═══════════════════════════════════════════════════════════════ */
-@media (prefers-color-scheme: dark) {
-  :root.theme-dark,
-  [data-theme="dark"] {
-    --color-primary: #7C8BD9;
-    --color-primary-hover: #8B9AE8;
-    --color-primary-active: #6B7BCF;
-    --color-primary-soft: rgba(124, 139, 217, 0.20);
-    --color-primary-bg: rgba(124, 139, 217, 0.10);
+.el-button--danger {
+  background: #fff !important;
+  border: 1px solid var(--border-normal) !important;
+  color: var(--color-danger) !important;
+}
+.el-button--danger:hover {
+  background: var(--color-danger-soft) !important;
+  border-color: var(--color-danger) !important;
+  color: var(--color-danger) !important;
+}
+.el-button--danger.is-plain {
+  background: transparent !important;
+  border-color: var(--color-danger) !important;
+  color: var(--color-danger) !important;
+}
 
-    --text-primary: #EEEEEE;
-    --text-secondary: #AAAAAA;
-    --text-muted: #666666;
-    --text-placeholder: #444444;
-    --text-inverse: #000000;
+/* ═══════════════════════════════════════════════════════════════
+   Tag Styles — 浅底彩字
+   ═══════════════════════════════════════════════════════════════ */
+.el-tag--success {
+  background: var(--color-success-soft) !important;
+  border: none !important;
+  color: var(--color-success) !important;
+}
+.el-tag--warning {
+  background: var(--color-warning-soft) !important;
+  border: none !important;
+  color: var(--color-warning) !important;
+}
+.el-tag--danger {
+  background: var(--color-danger-soft) !important;
+  border: none !important;
+  color: var(--color-danger) !important;
+}
+.el-tag--info {
+  background: var(--color-info-soft) !important;
+  border: none !important;
+  color: var(--color-info) !important;
+}
+.el-tag--primary {
+  background: var(--color-primary-soft) !important;
+  border: none !important;
+  color: var(--color-primary) !important;
+}
 
-    --bg-page: #222222;
-    --bg-card: #2A2A2A;
-    --bg-soft: #262626;
-    --bg-elevated: #333333;
-    --bg-sidebar: #222222;
+/* ═══════════════════════════════════════════════════════════════
+   Card — 8px 圆角 + 阴影
+   ═══════════════════════════════════════════════════════════════ */
+.el-card {
+  border-radius: var(--card-radius) !important;
+  border: none !important;
+  box-shadow: var(--card-shadow) !important;
+}
+.el-card__header {
+  border-bottom: 1px solid var(--border-light) !important;
+}
 
-    --border-normal: #333333;
-    --border-light: #2A2A2A;
-    --border-focus: #7C8BD9;
+/* ═══════════════════════════════════════════════════════════════
+   Modal / Dialog — 磨砂遮罩
+   ═══════════════════════════════════════════════════════════════ */
+.el-overlay {
+  background: var(--frost-modal) !important;
+  backdrop-filter: var(--frost-modal-blur) !important;
+  -webkit-backdrop-filter: var(--frost-modal-blur) !important;
+}
+.el-dialog {
+  border-radius: var(--radius-lg) !important;
+  box-shadow: var(--shadow-xl) !important;
+  animation: modalIn 200ms ease !important;
+}
 
-    --shadow-xs: 0 1px 2px rgba(0, 0, 0, 0.3);
-    --shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.4);
-    --shadow-md: 0 4px 6px rgba(0, 0, 0, 0.4);
-    --shadow-lg: 0 10px 15px rgba(0, 0, 0, 0.5);
-    --shadow-xl: 0 20px 40px rgba(0, 0, 0, 0.6);
-    --shadow-card: 0 1px 3px rgba(0, 0, 0, 0.20);
-
-    --table-header-bg: #2A2A2A;
-    --table-row-hover: #262626;
-    --table-stripe: #2A2A2A;
-    --table-border: #333333;
-
-    --input-bg: #2A2A2A;
-    --input-border: #444444;
-
-    --skeleton-bg: #333333;
-    --skeleton-shine: #444444;
-
-    --tooltip-bg: #444444;
+@keyframes modalIn {
+  from {
+    opacity: 0;
+    transform: scale(0.96);
   }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   Button — 点击缩放动效
+   ═══════════════════════════════════════════════════════════════ */
+.el-button {
+  transition: all 150ms ease !important;
+}
+.el-button:active {
+  transform: scale(0.97) !important;
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   Scrollbar — 灰色，不用黑色
+   ═══════════════════════════════════════════════════════════════ */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+::-webkit-scrollbar-thumb {
+  background: var(--gray-300);
+  border-radius: 3px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: var(--gray-400);
 }
 
 /* ═══════════════════════════════════════════════════════════════
@@ -298,20 +389,11 @@
   border-width: 0;
 }
 
-/* ═══════════════════════════════════════════════════════════════
-   Scrollbar — 灰色，不用黑色
-   ═══════════════════════════════════════════════════════════════ */
-::-webkit-scrollbar {
-  width: 6px;
-  height: 6px;
-}
-::-webkit-scrollbar-track {
-  background: transparent;
-}
-::-webkit-scrollbar-thumb {
-  background: var(--gray-300);
-  border-radius: 3px;
-}
-::-webkit-scrollbar-thumb:hover {
-  background: var(--gray-400);
+/* 数字等宽字体 */
+.mono,
+.numeric,
+.price,
+.amount {
+  font-family: var(--font-mono);
+  font-variant-numeric: tabular-nums;
 }

@@ -1,18 +1,22 @@
 /* ═══════════════════════════════════════════════════════════════
    Design Tokens v4.0 — Atlas 灰阶体系
-   原则：只有字体用黑色，其他一律不用黑色。背景以灰+白为主，按钮图表可彩色
-   覆盖：merchant-mobile 商户移动端
+   核心原则：白底黑字中间灰，颜色仅出现在按钮和状态标签
+   适用：merchant-mobile 商户移动端
    ═══════════════════════════════════════════════════════════════ */
 
 :root {
-  /* 主色 — Atlas Blue */
+  /* ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+     Primary / Brand Color — Atlas Blue
+     ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */
   --color-primary: #5B6ABF;
   --color-primary-hover: #6B7BCF;
   --color-primary-active: #4A5AA8;
   --color-primary-soft: rgba(91, 106, 191, 0.12);
   --color-primary-bg: rgba(91, 106, 191, 0.06);
 
-  /* 灰阶体系（最深为深灰，不用纯黑） */
+  /* ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+     Neutral Gray Scale — 11级灰阶（#FFFFFF 到 #111111）
+     ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */
   --gray-0: #FFFFFF;
   --gray-50: #F8F8F8;
   --gray-100: #F0F0F0;
@@ -22,33 +26,24 @@
   --gray-500: #666666;
   --gray-600: #444444;
   --gray-700: #333333;
-  --gray-800: #2A2A2A;
-  --gray-900: #222222;
+  --gray-800: #222222;
+  --gray-900: #111111;
 
-  /* 文本 — 唯一可以用纯黑的地方 */
-  --text-primary: #000000;
-  --text-secondary: #444444;
-  --text-muted: #999999;
-  --text-inverse: #FFFFFF;
-
-  /* 背景 — 灰+白搭配 */
-  --bg-page: #F5F7FA;
-  --bg-card: #FFFFFF;
-  --bg-soft: #F0F0F0;
-
-  /* 边框 — 全部灰色，不用黑色 */
-  --border-normal: #E2E2E2;
-  --border-focus: #5B6ABF;
-
-  /* 语义色（保留彩色） */
+  /* ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+     Semantic — Status Colors（仅标签/状态使用）
+     ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */
   --color-success: #0EA879;
-  --color-success-soft: rgba(14, 168, 121, 0.10);
+  --color-success-soft: rgba(14, 168, 121, 0.12);
   --color-warning: #D48B3A;
-  --color-warning-soft: rgba(212, 139, 58, 0.10);
+  --color-warning-soft: rgba(212, 139, 58, 0.12);
   --color-danger: #C0392B;
-  --color-danger-soft: rgba(192, 57, 43, 0.10);
+  --color-danger-soft: rgba(192, 57, 43, 0.12);
+  --color-info: #5B6ABF;
+  --color-info-soft: rgba(91, 106, 191, 0.12);
 
-  /* 图表色（可全彩） */
+  /* ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+     Chart Colors — 图表色（可全彩）
+     ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */
   --chart-1: #5B6ABF;
   --chart-2: #0EA879;
   --chart-3: #D48B3A;
@@ -56,28 +51,296 @@
   --chart-5: #8B5CF6;
   --chart-6: #06B6D4;
 
-  /* 圆角 */
-  --radius-sm: 8px;
-  --radius-md: 12px;
-  --radius-lg: 18px;
-  --radius-xl: 24px;
+  /* ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+     Frosted Glass — 磨砂半透明
+     ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */
+  --frost-topbar: rgba(255, 255, 255, 0.80);
+  --frost-topbar-blur: blur(16px);
+  --frost-bottom: rgba(255, 255, 255, 0.85);
+  --frost-bottom-blur: blur(16px);
+  --frost-modal: rgba(0, 0, 0, 0.35);
+  --frost-modal-blur: blur(8px);
 
-  /* 阴影 */
-  --shadow-card: 0 2px 8px rgba(0, 0, 0, 0.04);
-  --shadow-focus: 0 0 0 3px rgba(91, 106, 191, 0.18);
+  /* ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+     Text — 唯一可以用纯黑的地方
+     ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */
+  --text-primary: #000000;
+  --text-secondary: #444444;
+  --text-muted: #999999;
+  --text-placeholder: #CCCCCC;
+  --text-inverse: #FFFFFF;
+  --text-link: #5B6ABF;
 
-  /* 字体 */
-  --font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang SC", "Microsoft YaHei", sans-serif;
-  --text-page-title: 18px;
-  --text-section-title: 14px;
-  --text-body: 14px;
-  --text-caption: 13px;
-  --text-hint: 12px;
-  --text-amount-lg: 28px;
-  --text-amount: 18px;
+  /* ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+     Background — 灰+白搭配
+     ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */
+  --bg-page: #F5F5F5;
+  --bg-card: #FFFFFF;
+  --bg-soft: #F0F0F0;
+  --bg-elevated: #FFFFFF;
 
-  /* 间距 */
+  /* ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+     Border — 全部灰色，不用黑色
+     ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */
+  --border-normal: #E2E2E2;
+  --border-light: #F0F0F0;
+  --border-focus: #5B6ABF;
+  --border-error: #C0392B;
+
+  /* ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+     Radius
+     ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */
+  --radius-xs: 4px;
+  --radius-sm: 6px;
+  --radius-md: 8px;
+  --radius-lg: 10px;
+  --radius-xl: 12px;
+  --radius-2xl: 16px;
+  --radius-pill: 20px;
+  --radius-full: 9999px;
+
+  /* ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+     Typography
+     ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */
+  --font-family: "Inter", -apple-system, BlinkMacSystemFont, "PingFang SC", "Microsoft YaHei", sans-serif;
+  --font-mono: "JetBrains Mono", "SF Mono", "Fira Code", "Consolas", monospace;
+
+  --text-xs: 11px;
+  --text-sm: 12px;
+  --text-base: 13px;
+  --text-md: 14px;
+  --text-lg: 16px;
+  --text-xl: 18px;
+  --text-2xl: 20px;
+  --text-3xl: 24px;
+  --text-4xl: 28px;
+
+  --font-normal: 400;
+  --font-medium: 500;
+  --font-semibold: 600;
+  --font-bold: 700;
+
+  --leading-tight: 1.25;
+  --leading-normal: 1.6;
+  --leading-relaxed: 1.75;
+
+  /* ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+     Spacing — 4px 基准，8 级递增
+     ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */
+  --space-1: 4px;
+  --space-2: 8px;
+  --space-3: 12px;
+  --space-4: 16px;
+  --space-5: 20px;
+  --space-6: 24px;
+  --space-8: 32px;
+  --space-10: 40px;
+
+  --space-page-padding: 16px;
   --space-card-padding: 16px;
   --space-card-gap: 12px;
-  --space-page-padding: 16px;
+  --space-section-gap: 20px;
+
+  /* ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+     Shadows
+     ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */
+  --shadow-xs: 0 1px 2px rgba(0, 0, 0, 0.04);
+  --shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.05), 0 1px 2px rgba(0, 0, 0, 0.03);
+  --shadow-md: 0 2px 8px rgba(0, 0, 0, 0.06);
+  --shadow-lg: 0 10px 15px rgba(0, 0, 0, 0.05), 0 4px 6px rgba(0, 0, 0, 0.03);
+  --shadow-xl: 0 20px 40px rgba(0, 0, 0, 0.07);
+  --shadow-card: 0 1px 3px rgba(0, 0, 0, 0.04);
+  --shadow-focus: 0 0 0 3px rgba(91, 106, 191, 0.18);
+
+  /* ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+     Motion / Transition
+     ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */
+  --transition-fast: 150ms ease;
+  --transition-normal: 200ms ease;
+  --transition-slow: 250ms ease-out;
+
+  /* ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+     Capsule Nav — 快捷胶囊栏
+     ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */
+  --capsule-radius: 20px;
+  --capsule-padding: 8px 16px;
+  --capsule-gap: 8px;
+
+  /* ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+     Layout Dimensions
+     ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */
+  --topbar-height: 48px;
+  --bottombar-height: 56px;
+  --fab-size: 56px;
+
+  /* ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+     Card
+     ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */
+  --card-radius: 10px;
+  --card-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
+
+  /* ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+     Button
+     ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */
+  --btn-height: 44px;
+  --btn-radius: 8px;
+  --btn-active-scale: 0.97;
+
+  /* ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+     Tag
+     ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */
+  --tag-radius: 4px;
+  --tag-padding: 2px 10px;
+
+  /* ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+     Responsive Breakpoints
+     ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */
+  --bp-xs: 576px;
+  --bp-md: 768px;
+  --bp-lg: 1024px;
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   Vant Tabbar — 磨砂底部标签栏
+   ═══════════════════════════════════════════════════════════════ */
+.van-tabbar {
+  background: var(--frost-bottom) !important;
+  backdrop-filter: var(--frost-bottom-blur) !important;
+  -webkit-backdrop-filter: var(--frost-bottom-blur) !important;
+  border-top: 1px solid var(--border-light) !important;
+}
+
+.van-tabbar-item {
+  color: var(--text-muted) !important;
+}
+
+.van-tabbar-item--active {
+  color: var(--color-primary) !important;
+  font-weight: 500 !important;
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   Vant Navbar — 磨砂顶栏
+   ═══════════════════════════════════════════════════════════════ */
+.van-nav-bar {
+  background: var(--frost-topbar) !important;
+  backdrop-filter: var(--frost-topbar-blur) !important;
+  -webkit-backdrop-filter: var(--frost-topbar-blur) !important;
+  border-bottom: 1px solid var(--border-light) !important;
+}
+
+.van-nav-bar__title {
+  color: var(--text-primary) !important;
+  font-weight: 600 !important;
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   Vant Button — 主按钮 & 危险按钮
+   ═══════════════════════════════════════════════════════════════ */
+.van-button--primary {
+  background: var(--color-primary) !important;
+  border: none !important;
+  border-radius: var(--btn-radius) !important;
+  font-weight: 500 !important;
+  transition: all 150ms ease !important;
+}
+
+.van-button--primary:active {
+  transform: scale(0.97) !important;
+  background: var(--color-primary-active) !important;
+}
+
+.van-button--danger {
+  background: #fff !important;
+  border: 1px solid var(--border-normal) !important;
+  color: var(--color-danger) !important;
+  border-radius: var(--btn-radius) !important;
+}
+
+.van-button--danger:active {
+  background: var(--color-danger-soft) !important;
+  border-color: var(--color-danger) !important;
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   Vant Tag — 浅底彩字
+   ═══════════════════════════════════════════════════════════════ */
+.van-tag--success {
+  background: var(--color-success-soft) !important;
+  border: none !important;
+  color: var(--color-success) !important;
+}
+
+.van-tag--warning {
+  background: var(--color-warning-soft) !important;
+  border: none !important;
+  color: var(--color-warning) !important;
+}
+
+.van-tag--danger {
+  background: var(--color-danger-soft) !important;
+  border: none !important;
+  color: var(--color-danger) !important;
+}
+
+.van-tag--primary {
+  background: var(--color-primary-soft) !important;
+  border: none !important;
+  color: var(--color-primary) !important;
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   Vant Card — 圆角 + 阴影
+   ═══════════════════════════════════════════════════════════════ */
+.van-card {
+  border-radius: var(--card-radius) !important;
+  box-shadow: var(--card-shadow) !important;
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   Vant Cell — 卡片包裹
+   ═══════════════════════════════════════════════════════════════ */
+.van-cell-group {
+  border-radius: var(--card-radius) !important;
+  overflow: hidden !important;
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   Scrollbar — 灰色，不用黑色
+   ═══════════════════════════════════════════════════════════════ */
+::-webkit-scrollbar {
+  width: 4px;
+  height: 4px;
+}
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+::-webkit-scrollbar-thumb {
+  background: var(--gray-300);
+  border-radius: 2px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: var(--gray-400);
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   Accessibility
+   ═══════════════════════════════════════════════════════════════ */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}
+
+/* 数字等宽字体 */
+.mono,
+.numeric,
+.price,
+.amount {
+  font-family: var(--font-mono);
+  font-variant-numeric: tabular-nums;
 }

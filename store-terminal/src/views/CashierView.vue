@@ -1,42 +1,15 @@
 <template>
   <div class="cashier">
-    <!-- 左侧：分类导航 -->
-    <aside class="cashier-sidebar">
-      <div class="sidebar-header">
+    <!-- 顶栏 -->
+    <header class="cashier-topbar">
+      <div class="topbar-left">
+        <div class="store-logo">酒</div>
         <div class="store-info">
-          <div class="store-logo">酒</div>
-          <div class="store-detail">
-            <div class="store-name">智享酒仓</div>
-            <div class="store-sub">收银台 v1.0</div>
-          </div>
+          <div class="store-name">智享酒仓</div>
+          <div class="store-sub">收银台 v1.0</div>
         </div>
       </div>
-      <div class="category-list">
-        <div
-          v-for="(cat, idx) in categories"
-          :key="cat.id"
-          class="category-item"
-          :class="{ active: activeCategory === cat.id }"
-          @click="activeCategory = cat.id"
-        >
-          <div class="cat-icon">{{ cat.icon }}</div>
-          <span>{{ cat.name }}</span>
-        </div>
-      </div>
-      <div class="sidebar-footer">
-        <div class="cashier-info">
-          <el-avatar :size="32" style="background: var(--color-primary)">收</el-avatar>
-          <div class="cashier-detail">
-            <div class="cashier-name">{{ cashierName }}</div>
-            <div class="cashier-role">收银员</div>
-          </div>
-        </div>
-      </div>
-    </aside>
-
-    <!-- 中间：商品区 -->
-    <main class="cashier-main">
-      <div class="main-topbar">
+      <div class="topbar-center">
         <div class="search-bar">
           <el-icon><Search /></el-icon>
           <input
@@ -45,148 +18,202 @@
             placeholder="搜索商品名称 / 条码 / 拼音首字母"
             @keyup.enter="handleSearchProducts"
           />
-          <el-button type="primary" size="default" @click="handleSearchProducts" :loading="loading">
-            搜索
-          </el-button>
-        </div>
-        <div class="topbar-actions">
-          <el-button @click="holdDialogVisible = true; loadHoldOrders()">
-            <el-icon><Timer /></el-icon>
-            挂单 ({{ holdOrders.length }})
-          </el-button>
-          <el-button type="warning" @click="handleCreateHoldOrder">
-            <el-icon><Promotion /></el-icon>
-            挂起当前单
-          </el-button>
         </div>
       </div>
-
-      <div class="products-area">
-        <div v-if="productOptions.length === 0" class="empty-state">
-          <div class="empty-icon">📦</div>
-          <div class="empty-text">输入关键词搜索商品</div>
-          <div class="empty-hint">支持商品名称、条码、拼音首字母</div>
+      <div class="topbar-right">
+        <div class="cashier-status" :class="statusType">
+          <span class="status-dot"></span>
+          <span class="status-text">{{ statusText }}</span>
         </div>
-        <div v-else class="product-grid">
+        <div class="cashier-date">{{ formatDate(new Date()) }}</div>
+        <div class="cashier-user">
+          <el-avatar :size="28" style="background: var(--color-primary)">收</el-avatar>
+          <span>{{ cashierName }}</span>
+        </div>
+      </div>
+    </header>
+
+    <div class="cashier-body">
+      <!-- 左侧：分类导航（80px 胶囊导航） -->
+      <aside class="cashier-sidebar">
+        <div class="category-list">
           <div
-            v-for="product in productOptions"
-            :key="product.skuId || product.id"
-            class="product-card"
-            @click="addCartItem(product)"
+            v-for="(cat, idx) in categories"
+            :key="cat.id"
+            class="category-item"
+            :class="{ active: activeCategory === cat.id }"
+            @click="activeCategory = cat.id"
           >
-            <div class="product-img">
-              <span>{{ (product.productName || product.skuName || '?').charAt(0) }}</span>
-            </div>
-            <div class="product-info">
-              <div class="product-name">{{ product.productName || product.skuName }}</div>
-              <div class="product-spec">库存：{{ product.availableQty || 0 }}</div>
-              <div class="product-price">¥{{ (product.storePrice || product.retailPrice || 0).toFixed(2) }}</div>
-            </div>
+            <div class="cat-icon">{{ cat.icon }}</div>
+            <span class="cat-name">{{ cat.shortName || cat.name }}</span>
           </div>
         </div>
-      </div>
-    </main>
-
-    <!-- 右侧：购物车 + 结算 -->
-    <aside class="cashier-right">
-      <div class="cart-header">
-        <div class="cart-title">
-          <el-icon><ShoppingCart /></el-icon>
-          <span>购物车</span>
-          <el-tag size="small" type="primary">{{ cartItems.length }}件</el-tag>
+        <div class="sidebar-actions">
+          <el-button class="action-btn" @click="holdDialogVisible = true; loadHoldOrders()">
+            <el-icon><Timer /></el-icon>
+            <span>挂单</span>
+            <el-tag size="small">{{ holdOrders.length }}</el-tag>
+          </el-button>
         </div>
-        <el-button link type="danger" @click="cartItems = []" v-if="cartItems.length > 0">清空</el-button>
-      </div>
+      </aside>
 
-      <!-- 会员信息 -->
-      <div class="member-section">
-        <div class="section-label">会员信息</div>
-        <div v-if="saleForm.customerName" class="member-selected">
-          <el-avatar :size="32" style="background: var(--color-warning)">会</el-avatar>
-          <div class="member-info">
-            <div class="member-name">{{ saleForm.customerName }}</div>
-            <div class="member-phone">{{ saleForm.customerMobile }}</div>
+      <!-- 中间：商品区（3列卡片） -->
+      <main class="cashier-main">
+        <div class="products-area">
+          <div v-if="productOptions.length === 0" class="empty-state">
+            <div class="empty-icon">📦</div>
+            <div class="empty-text">输入关键词搜索商品</div>
+            <div class="empty-hint">支持商品名称、条码、拼音首字母</div>
           </div>
-          <el-button link type="primary" @click="clearMember">更换</el-button>
-        </div>
-        <div v-else class="member-search">
-          <el-input
-            v-model="memberKeyword"
-            placeholder="输入手机号/姓名搜索会员"
-            size="small"
-            clearable
-            @keyup.enter="handleSearchMembers"
-          >
-            <template #prefix><el-icon><User /></el-icon></template>
-          </el-input>
-          <div v-if="memberOptions.length > 0" class="member-dropdown">
+          <div v-else class="product-grid">
             <div
-              v-for="m in memberOptions"
-              :key="m.memberId || m.id"
-              class="member-option"
-              @click="selectMember(m)"
+              v-for="product in productOptions"
+              :key="product.skuId || product.id"
+              class="product-card"
+              @click="addCartItem(product)"
             >
-              <div class="m-name">{{ m.name }}</div>
-              <div class="m-phone">{{ m.mobile }}</div>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      <!-- 购物车列表 -->
-      <div class="cart-list">
-        <div v-if="cartItems.length === 0" class="cart-empty">
-          <div class="cart-empty-icon">🛒</div>
-          <div>购物车为空</div>
-          <div class="cart-empty-hint">点击左侧商品添加</div>
-        </div>
-        <div v-else class="cart-items">
-          <div v-for="(item, index) in cartItems" :key="index" class="cart-item">
-            <div class="cart-item-info">
-              <div class="cart-item-name">{{ item.skuName || item.productName }}</div>
-              <div class="cart-item-price">¥{{ item.unitPrice.toFixed(2) }} × {{ item.quantity }}</div>
-            </div>
-            <div class="cart-item-right">
-              <div class="cart-item-subtotal">¥{{ (item.unitPrice * item.quantity).toFixed(2) }}</div>
-              <div class="cart-item-qty">
-                <el-button size="small" circle @click="decreaseQty(index)">-</el-button>
-                <span class="qty-num">{{ item.quantity }}</span>
-                <el-button size="small" circle type="primary" @click="increaseQty(index)">+</el-button>
+              <div class="product-img">
+                <span>{{ (product.productName || product.skuName || '?').charAt(0) }}</span>
+              </div>
+              <div class="product-info">
+                <div class="product-name">{{ product.productName || product.skuName }}</div>
+                <div class="product-spec">库存：{{ product.availableQty || 0 }}</div>
+                <div class="product-price">¥{{ (product.storePrice || product.retailPrice || 0).toFixed(2) }}</div>
               </div>
             </div>
-            <el-button class="cart-item-del" link type="danger" @click="removeCartItem(index)">
-              <el-icon><Delete /></el-icon>
-            </el-button>
           </div>
         </div>
-      </div>
+      </main>
 
-      <!-- 金额汇总 -->
-      <div class="cart-summary">
-        <div class="summary-row">
-          <span>商品数量</span>
-          <span>{{ cartItems.length }} 件</span>
+      <!-- 右侧：购物车 + 结算（280px 磨砂） -->
+      <aside class="cashier-right">
+        <div class="cart-header">
+          <div class="cart-title">
+            <el-icon><ShoppingCart /></el-icon>
+            <span>购物车</span>
+            <el-tag size="small" type="primary">{{ cartItems.length }}件</el-tag>
+          </div>
+          <el-button link type="danger" @click="cartItems = []" v-if="cartItems.length > 0">清空</el-button>
         </div>
-        <div class="summary-row total">
-          <span>应收金额</span>
-          <span class="total-amount">¥{{ cartAmount.toFixed(2) }}</span>
+
+        <!-- 会员信息 -->
+        <div class="member-section">
+          <div class="section-label">会员信息</div>
+          <div v-if="saleForm.customerName" class="member-selected">
+            <el-avatar :size="28" style="background: var(--color-warning)">会</el-avatar>
+            <div class="member-info">
+              <div class="member-name">{{ saleForm.customerName }}</div>
+              <div class="member-phone">{{ saleForm.customerMobile }}</div>
+            </div>
+            <el-button link type="primary" @click="clearMember">更换</el-button>
+          </div>
+          <div v-else class="member-search">
+            <el-input
+              v-model="memberKeyword"
+              placeholder="输入手机号/姓名搜索会员"
+              size="small"
+              clearable
+              @keyup.enter="handleSearchMembers"
+            >
+              <template #prefix><el-icon><User /></el-icon></template>
+            </el-input>
+            <div v-if="memberOptions.length > 0" class="member-dropdown">
+              <div
+                v-for="m in memberOptions"
+                :key="m.memberId || m.id"
+                class="member-option"
+                @click="selectMember(m)"
+              >
+                <div class="m-name">{{ m.name }}</div>
+                <div class="m-phone">{{ m.mobile }}</div>
+              </div>
+            </div>
+          </div>
         </div>
-      </div>
 
-      <!-- 结算按钮 -->
-      <div class="checkout-section">
-        <el-radio-group v-model="paymentMethod" size="large" class="pay-methods">
-          <el-radio-button value="CASH">现金</el-radio-button>
-          <el-radio-button value="WECHAT">微信</el-radio-button>
-          <el-radio-button value="ALIPAY">支付宝</el-radio-button>
-        </el-radio-group>
+        <!-- 购物车列表 -->
+        <div class="cart-list">
+          <div v-if="cartItems.length === 0" class="cart-empty">
+            <div class="cart-empty-icon">🛒</div>
+            <div>购物车为空</div>
+            <div class="cart-empty-hint">点击左侧商品添加</div>
+          </div>
+          <div v-else class="cart-items">
+            <div v-for="(item, index) in cartItems" :key="index" class="cart-item">
+              <div class="cart-item-info">
+                <div class="cart-item-name">{{ item.skuName || item.productName }}</div>
+                <div class="cart-item-price">¥{{ item.unitPrice.toFixed(2) }} × {{ item.quantity }}</div>
+              </div>
+              <div class="cart-item-right">
+                <div class="cart-item-subtotal">¥{{ (item.unitPrice * item.quantity).toFixed(2) }}</div>
+                <div class="cart-item-qty">
+                  <el-button size="small" circle @click="decreaseQty(index)">-</el-button>
+                  <span class="qty-num">{{ item.quantity }}</span>
+                  <el-button size="small" circle type="primary" @click="increaseQty(index)">+</el-button>
+                </div>
+              </div>
+              <el-button class="cart-item-del" link type="danger" @click="removeCartItem(index)">
+                <el-icon><Delete /></el-icon>
+              </el-button>
+            </div>
+          </div>
+        </div>
 
-        <div class="checkout-buttons">
-          <el-button size="large" class="btn-secondary" @click="handleCreateSaleBill" :loading="loading">
-            生成订单
-          </el-button>
-          <el-button size="large" type="primary" class="btn-primary" @click="handleQuickPay" :loading="loading">
+        <!-- 金额汇总 -->
+        <div class="cart-summary">
+          <div class="summary-row">
+            <span>商品数量</span>
+            <span>{{ totalQty }} 件</span>
+          </div>
+          <div class="summary-row total">
+            <span>应收金额</span>
+            <span class="total-amount">¥{{ cartAmount.toFixed(2) }}</span>
+          </div>
+        </div>
+
+        <!-- 支付方式 -->
+        <div class="pay-methods">
+          <div
+            class="pay-method"
+            :class="{ active: paymentMethod === 'CASH' }"
+            @click="paymentMethod = 'CASH'"
+          >
+            💵 现金
+          </div>
+          <div
+            class="pay-method"
+            :class="{ active: paymentMethod === 'WECHAT' }"
+            @click="paymentMethod = 'WECHAT'"
+          >
+            💚 微信
+          </div>
+          <div
+            class="pay-method"
+            :class="{ active: paymentMethod === 'ALIPAY' }"
+            @click="paymentMethod = 'ALIPAY'"
+          >
+            💙 支付宝
+          </div>
+        </div>
+
+        <!-- 结算按钮 -->
+        <div class="checkout-section">
+          <el-button
+            size="large"
+            type="primary"
+            class="checkout-btn"
+            @click="handleQuickPay"
+            :loading="loading"
+          >
             快捷收款 ¥{{ cartAmount.toFixed(2) }}
+          </el-button>
+          <el-button
+            size="default"
+            class="secondary-btn"
+            @click="handleCreateSaleBill"
+            :loading="loading"
+          >
+            生成订单
           </el-button>
         </div>
 
@@ -200,8 +227,8 @@
             </template>
           </el-alert>
         </div>
-      </div>
-    </aside>
+      </aside>
+    </div>
 
     <!-- 挂单弹窗 -->
     <el-dialog v-model="holdDialogVisible" title="挂单列表" width="500px">
@@ -226,7 +253,7 @@
 import { computed, reactive, ref, onMounted } from "vue";
 import { ElMessage } from "element-plus";
 import {
-  Search, ShoppingCart, User, Delete, Timer, Promotion
+  Search, ShoppingCart, User, Delete, Timer
 } from "@element-plus/icons-vue";
 import {
   searchStoreProducts,
@@ -239,15 +266,14 @@ import {
   restoreHoldOrder,
   deleteHoldOrder
 } from "../api";
-import { formatYuan } from "../utils/format";
 
 const categories = [
-  { id: 'all', name: '全部商品', icon: '📦' },
-  { id: 'baijiu', name: '白酒', icon: '🍶' },
-  { id: 'hongjiu', name: '红酒', icon: '🍷' },
-  { id: 'pijiu', name: '啤酒', icon: '🍺' },
-  { id: 'yanjiu', name: '洋酒', icon: '🥃' },
-  { id: 'yinliao', name: '饮料', icon: '🥤' },
+  { id: 'all', name: '全部商品', shortName: '全部', icon: '📦' },
+  { id: 'baijiu', name: '白酒', shortName: '白酒', icon: '🍶' },
+  { id: 'hongjiu', name: '红酒', shortName: '红酒', icon: '🍷' },
+  { id: 'pijiu', name: '啤酒', shortName: '啤酒', icon: '🍺' },
+  { id: 'yanjiu', name: '洋酒', shortName: '洋酒', icon: '🥃' },
+  { id: 'yinliao', name: '饮料', shortName: '饮料', icon: '🥤' },
 ];
 
 const activeCategory = ref('all');
@@ -258,6 +284,7 @@ const memberKeyword = ref("");
 const memberOptions = ref<any[]>([]);
 const cartItems = ref<any[]>([]);
 const paymentMethod = ref("CASH");
+const statusType = ref<'online' | 'offline' | 'settling'>('online');
 const saleForm = reactive({
   customerId: 0,
   customerName: "",
@@ -271,6 +298,11 @@ const shareUrl = ref("");
 const holdDialogVisible = ref(false);
 const holdOrders = ref<any[]>([]);
 
+const statusText = computed(() => {
+  const map = { online: '在线', offline: '离线', settling: '日结中' };
+  return map[statusType.value];
+});
+
 const cashierName = computed(() => {
   try {
     const raw = localStorage.getItem("store_user");
@@ -279,9 +311,20 @@ const cashierName = computed(() => {
   return "收银员";
 });
 
+const totalQty = computed(() => cartItems.value.reduce((sum, item) => sum + Number(item.quantity || 0), 0));
+
 const cartAmount = computed(() => cartItems.value.reduce((sum, item) => {
   return sum + Number(item.quantity || 0) * Number(item.unitPrice || 0);
 }, 0));
+
+function formatDate(d: Date) {
+  const y = d.getFullYear();
+  const m = String(d.getMonth() + 1).padStart(2, '0');
+  const day = String(d.getDate()).padStart(2, '0');
+  const h = String(d.getHours()).padStart(2, '0');
+  const min = String(d.getMinutes()).padStart(2, '0');
+  return `${y}-${m}-${day} ${h}:${min}`;
+}
 
 onMounted(() => {
   loadHoldOrders();
@@ -535,36 +578,41 @@ function copyLink() {
 
 <style scoped>
 .cashier {
-  display: flex;
-  height: 100vh;
+  width: 1024px;
+  height: 768px;
+  margin: 0 auto;
   background: var(--bg-page);
+  display: flex;
+  flex-direction: column;
   overflow: hidden;
 }
 
-/* 左侧分类栏 */
-.cashier-sidebar {
-  width: 180px;
-  background: var(--bg-sidebar);
-  border-right: 1px solid var(--border-normal);
-  flex-shrink: 0;
+/* ========== 顶栏 ========== */
+.cashier-topbar {
+  height: var(--topbar-height);
+  background: var(--frost-topbar);
+  backdrop-filter: var(--frost-topbar-blur);
+  -webkit-backdrop-filter: var(--frost-topbar-blur);
+  border-bottom: 1px solid var(--border-light);
   display: flex;
-  flex-direction: column;
+  align-items: center;
+  padding: 0 16px;
+  gap: 16px;
+  flex-shrink: 0;
+  position: relative;
+  z-index: 10;
 }
 
-.sidebar-header {
-  padding: 16px 14px;
-  border-bottom: 1px solid var(--border-normal);
-}
-
-.store-info {
+.topbar-left {
   display: flex;
   align-items: center;
   gap: 10px;
+  flex-shrink: 0;
 }
 
 .store-logo {
-  width: 38px;
-  height: 38px;
+  width: 32px;
+  height: 32px;
   background: var(--color-primary);
   border-radius: 8px;
   display: flex;
@@ -572,18 +620,19 @@ function copyLink() {
   justify-content: center;
   color: #fff;
   font-weight: 700;
-  font-size: 18px;
+  font-size: 16px;
 }
 
-.store-detail {
-  flex: 1;
-  min-width: 0;
+.store-info {
+  display: flex;
+  flex-direction: column;
 }
 
 .store-name {
   font-size: 14px;
   font-weight: 700;
   color: var(--text-primary);
+  line-height: 1.2;
 }
 
 .store-sub {
@@ -592,105 +641,23 @@ function copyLink() {
   margin-top: 2px;
 }
 
-.category-list {
-  flex: 1;
-  padding: 8px;
-  overflow-y: auto;
-}
-
-.category-item {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  padding: 12px 10px;
-  border-radius: 6px;
-  cursor: pointer;
-  transition: all 0.15s ease;
-  font-size: 13px;
-  color: var(--text-secondary);
-  margin-bottom: 2px;
-}
-
-.category-item:hover {
-  background: var(--gray-100);
-  color: var(--text-primary);
-}
-
-.category-item.active {
-  background: var(--color-primary-soft);
-  color: var(--color-primary);
-  font-weight: 600;
-}
-
-.cat-icon {
-  font-size: 18px;
-  width: 24px;
-  text-align: center;
-}
-
-.sidebar-footer {
-  padding: 12px;
-  border-top: 1px solid var(--border-normal);
-}
-
-.cashier-info {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  padding: 10px;
-  border-radius: 8px;
-  background: var(--bg-card);
-  border: 1px solid var(--border-normal);
-}
-
-.cashier-detail {
-  flex: 1;
-  min-width: 0;
-}
-
-.cashier-name {
-  font-size: 13px;
-  font-weight: 600;
-  color: var(--text-primary);
-}
-
-.cashier-role {
-  font-size: 11px;
-  color: var(--text-muted);
-  margin-top: 2px;
-}
-
-/* 中间商品区 */
-.cashier-main {
+.topbar-center {
   flex: 1;
   display: flex;
-  flex-direction: column;
-  min-width: 0;
-}
-
-.main-topbar {
-  height: 64px;
-  background: var(--bg-card);
-  border-bottom: 1px solid var(--border-normal);
-  display: flex;
-  align-items: center;
-  padding: 0 20px;
-  gap: 16px;
-  flex-shrink: 0;
+  justify-content: center;
 }
 
 .search-bar {
-  flex: 1;
-  max-width: 520px;
-  height: 40px;
-  background: var(--gray-50);
-  border: 1px solid var(--border-normal);
+  width: 360px;
+  height: 32px;
+  background: var(--gray-100);
+  border: 1px solid transparent;
   border-radius: 8px;
   display: flex;
   align-items: center;
-  padding: 0 6px 0 14px;
+  padding: 0 12px;
   gap: 8px;
-  transition: border-color 0.15s ease;
+  transition: all 150ms ease;
 }
 
 .search-bar:focus-within {
@@ -700,6 +667,7 @@ function copyLink() {
 
 .search-bar .el-icon {
   color: var(--text-muted);
+  font-size: 14px;
 }
 
 .search-input {
@@ -707,7 +675,7 @@ function copyLink() {
   border: none;
   outline: none;
   background: transparent;
-  font-size: 14px;
+  font-size: 13px;
   color: var(--text-primary);
 }
 
@@ -715,14 +683,181 @@ function copyLink() {
   color: var(--text-muted);
 }
 
-.topbar-actions {
+.topbar-right {
   display: flex;
-  gap: 10px;
+  align-items: center;
+  gap: 12px;
+  flex-shrink: 0;
+}
+
+.cashier-status {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 10px;
+  border-radius: 20px;
+  background: var(--gray-100);
+  font-size: 12px;
+}
+
+.cashier-status .status-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+}
+
+.cashier-status.online .status-dot {
+  background: #0EA879;
+  box-shadow: 0 0 6px rgba(14, 168, 121, 0.6);
+}
+
+.cashier-status.online .status-text {
+  color: #0EA879;
+  font-weight: 500;
+}
+
+.cashier-status.offline .status-dot {
+  background: #C0392B;
+  box-shadow: 0 0 6px rgba(192, 57, 43, 0.6);
+}
+
+.cashier-status.offline .status-text {
+  color: #C0392B;
+  font-weight: 500;
+}
+
+.cashier-status.settling .status-dot {
+  background: #D48B3A;
+  box-shadow: 0 0 6px rgba(212, 139, 58, 0.6);
+}
+
+.cashier-status.settling .status-text {
+  color: #D48B3A;
+  font-weight: 500;
+}
+
+.cashier-date {
+  font-size: 12px;
+  color: var(--text-muted);
+  font-family: var(--font-mono);
+}
+
+.cashier-user {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 12px;
+  color: var(--text-secondary);
+}
+
+/* ========== 主体 ========== */
+.cashier-body {
+  flex: 1;
+  display: flex;
+  min-height: 0;
+}
+
+/* ========== 左侧：80px 胶囊导航 ========== */
+.cashier-sidebar {
+  width: var(--terminal-nav-width);
+  background: var(--frost-sidebar);
+  backdrop-filter: var(--frost-sidebar-blur);
+  -webkit-backdrop-filter: var(--frost-sidebar-blur);
+  flex-shrink: 0;
+  display: flex;
+  flex-direction: column;
+  padding: 8px 0;
+}
+
+.category-list {
+  flex: 1;
+  padding: 0 6px;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.category-item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  padding: 10px 4px;
+  border-radius: var(--nav-item-radius);
+  cursor: pointer;
+  transition: all 250ms ease-out;
+  color: var(--sidebar-text-secondary);
+}
+
+.category-item:hover {
+  background: rgba(255, 255, 255, 0.06);
+  color: var(--sidebar-text-primary);
+}
+
+.category-item.active {
+  background: rgba(91, 106, 191, 0.25);
+  color: #FFFFFF;
+  font-weight: 500;
+}
+
+.cat-icon {
+  font-size: 20px;
+}
+
+.cat-name {
+  font-size: 11px;
+  text-align: center;
+  line-height: 1.2;
+}
+
+.sidebar-actions {
+  padding: 8px 6px;
+  border-top: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.action-btn {
+  width: 100% !important;
+  display: flex !important;
+  flex-direction: column !important;
+  align-items: center !important;
+  gap: 4px !important;
+  padding: 10px 4px !important;
+  height: auto !important;
+  background: rgba(255, 255, 255, 0.06) !important;
+  border: none !important;
+  color: var(--sidebar-text-secondary) !important;
+  border-radius: var(--nav-item-radius) !important;
+  font-size: 11px !important;
+}
+
+.action-btn:hover {
+  background: rgba(255, 255, 255, 0.12) !important;
+  color: var(--sidebar-text-primary) !important;
+}
+
+.action-btn .el-icon {
+  font-size: 18px;
+}
+
+.action-btn .el-tag {
+  font-size: 10px;
+  padding: 0 4px;
+  height: 16px;
+  line-height: 16px;
+}
+
+/* ========== 中间：商品区 ========== */
+.cashier-main {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  padding: 12px;
 }
 
 .products-area {
   flex: 1;
-  padding: 20px;
   overflow-y: auto;
 }
 
@@ -736,60 +871,66 @@ function copyLink() {
 }
 
 .empty-icon {
-  font-size: 64px;
-  margin-bottom: 16px;
+  font-size: 48px;
+  margin-bottom: 12px;
   opacity: 0.5;
 }
 
 .empty-text {
-  font-size: 16px;
+  font-size: 14px;
   font-weight: 500;
   color: var(--text-secondary);
 }
 
 .empty-hint {
-  font-size: 13px;
-  margin-top: 6px;
+  font-size: 12px;
+  margin-top: 4px;
 }
 
+/* 3列商品网格 */
 .product-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
-  gap: 14px;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 12px;
 }
 
 .product-card {
   background: var(--bg-card);
-  border: 1px solid var(--border-normal);
-  border-radius: 10px;
+  border-radius: var(--card-radius);
+  box-shadow: var(--card-shadow);
   overflow: hidden;
   cursor: pointer;
-  transition: all 0.15s ease;
+  transition: all 150ms ease;
+  display: flex;
+  flex-direction: column;
 }
 
 .product-card:hover {
   transform: translateY(-2px);
-  box-shadow: 0 4px 12px rgba(0,0,0,0.08);
-  border-color: var(--color-primary);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+}
+
+.product-card:active {
+  transform: scale(0.97);
 }
 
 .product-img {
-  height: 100px;
+  height: 90px;
   background: linear-gradient(135deg, var(--gray-100), var(--gray-200));
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 36px;
+  font-size: 32px;
   font-weight: 700;
   color: var(--text-muted);
 }
 
 .product-info {
-  padding: 10px 12px;
+  padding: 8px 10px;
 }
 
 .product-name {
-  font-size: 13px;
+  font-size: 12px;
   font-weight: 600;
   color: var(--text-primary);
   overflow: hidden;
@@ -800,30 +941,33 @@ function copyLink() {
 .product-spec {
   font-size: 11px;
   color: var(--text-muted);
-  margin-top: 4px;
+  margin-top: 3px;
 }
 
 .product-price {
-  font-size: 16px;
+  font-size: 14px;
   font-weight: 700;
-  color: var(--color-danger);
-  margin-top: 6px;
+  color: var(--color-primary);
+  margin-top: 4px;
+  font-family: var(--font-mono);
 }
 
-/* 右侧结算栏 */
+/* ========== 右侧：280px 磨砂购物车 ========== */
 .cashier-right {
-  width: 380px;
-  background: var(--bg-card);
-  border-left: 1px solid var(--border-normal);
+  width: var(--terminal-cart-width);
+  background: var(--frost-cart);
+  backdrop-filter: var(--frost-cart-blur);
+  -webkit-backdrop-filter: var(--frost-cart-blur);
+  border-left: 1px solid var(--border-light);
   flex-shrink: 0;
   display: flex;
   flex-direction: column;
 }
 
 .cart-header {
-  height: 64px;
-  padding: 0 20px;
-  border-bottom: 1px solid var(--border-normal);
+  height: 44px;
+  padding: 0 14px;
+  border-bottom: 1px solid var(--border-light);
   display: flex;
   align-items: center;
   justify-content: space-between;
@@ -833,45 +977,46 @@ function copyLink() {
 .cart-title {
   display: flex;
   align-items: center;
-  gap: 8px;
-  font-size: 16px;
-  font-weight: 600;
-  color: var(--text-primary);
-}
-
-.member-section {
-  padding: 14px 20px;
-  border-bottom: 1px solid var(--border-normal);
-  flex-shrink: 0;
-}
-
-.section-label {
-  font-size: 12px;
-  font-weight: 600;
-  color: var(--text-muted);
-  margin-bottom: 10px;
-}
-
-.member-selected {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-}
-
-.member-info {
-  flex: 1;
-}
-
-.member-name {
+  gap: 6px;
   font-size: 14px;
   font-weight: 600;
   color: var(--text-primary);
 }
 
-.member-phone {
-  font-size: 12px;
+.member-section {
+  padding: 10px 14px;
+  border-bottom: 1px solid var(--border-light);
+  flex-shrink: 0;
+}
+
+.section-label {
+  font-size: 11px;
+  font-weight: 600;
   color: var(--text-muted);
-  margin-top: 2px;
+  margin-bottom: 8px;
+}
+
+.member-selected {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.member-info {
+  flex: 1;
+  min-width: 0;
+}
+
+.member-name {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--text-primary);
+}
+
+.member-phone {
+  font-size: 11px;
+  color: var(--text-muted);
+  margin-top: 1px;
 }
 
 .member-search {
@@ -887,16 +1032,16 @@ function copyLink() {
   background: #fff;
   border: 1px solid var(--border-normal);
   border-radius: 6px;
-  box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
   z-index: 100;
-  max-height: 200px;
+  max-height: 160px;
   overflow-y: auto;
 }
 
 .member-option {
-  padding: 10px 12px;
+  padding: 8px 10px;
   cursor: pointer;
-  border-bottom: 1px solid var(--border-normal);
+  border-bottom: 1px solid var(--border-light);
 }
 
 .member-option:last-child {
@@ -908,13 +1053,13 @@ function copyLink() {
 }
 
 .m-name {
-  font-size: 13px;
+  font-size: 12px;
   font-weight: 500;
   color: var(--text-primary);
 }
 
 .m-phone {
-  font-size: 12px;
+  font-size: 11px;
   color: var(--text-muted);
   margin-top: 2px;
 }
@@ -930,32 +1075,32 @@ function copyLink() {
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  height: 200px;
+  height: 160px;
   color: var(--text-muted);
-  font-size: 14px;
+  font-size: 12px;
 }
 
 .cart-empty-icon {
-  font-size: 48px;
-  margin-bottom: 12px;
+  font-size: 40px;
+  margin-bottom: 8px;
   opacity: 0.4;
 }
 
 .cart-empty-hint {
-  font-size: 12px;
-  margin-top: 4px;
+  font-size: 11px;
+  margin-top: 2px;
 }
 
 .cart-items {
-  padding: 8px 16px;
+  padding: 6px 10px;
 }
 
 .cart-item {
   display: flex;
   align-items: flex-start;
-  gap: 10px;
-  padding: 12px 0;
-  border-bottom: 1px solid var(--border-normal);
+  gap: 8px;
+  padding: 8px 0;
+  border-bottom: 1px solid var(--border-light);
   position: relative;
 }
 
@@ -969,7 +1114,7 @@ function copyLink() {
 }
 
 .cart-item-name {
-  font-size: 13px;
+  font-size: 12px;
   font-weight: 500;
   color: var(--text-primary);
   overflow: hidden;
@@ -978,9 +1123,10 @@ function copyLink() {
 }
 
 .cart-item-price {
-  font-size: 12px;
+  font-size: 11px;
   color: var(--text-muted);
-  margin-top: 4px;
+  margin-top: 3px;
+  font-family: var(--font-mono);
 }
 
 .cart-item-right {
@@ -989,35 +1135,36 @@ function copyLink() {
 }
 
 .cart-item-subtotal {
-  font-size: 14px;
+  font-size: 12px;
   font-weight: 600;
-  color: var(--color-danger);
+  color: var(--color-primary);
+  font-family: var(--font-mono);
 }
 
 .cart-item-qty {
   display: flex;
   align-items: center;
   justify-content: flex-end;
-  gap: 6px;
-  margin-top: 6px;
+  gap: 4px;
+  margin-top: 4px;
 }
 
 .qty-num {
-  min-width: 24px;
+  min-width: 20px;
   text-align: center;
-  font-size: 13px;
+  font-size: 12px;
   font-weight: 500;
 }
 
 .cart-item-del {
   position: absolute;
-  top: 10px;
+  top: 6px;
   right: 0;
 }
 
 .cart-summary {
-  padding: 16px 20px;
-  border-top: 1px solid var(--border-normal);
+  padding: 10px 14px;
+  border-top: 1px solid var(--border-light);
   flex-shrink: 0;
 }
 
@@ -1025,65 +1172,86 @@ function copyLink() {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  font-size: 13px;
+  font-size: 12px;
   color: var(--text-secondary);
-  margin-bottom: 8px;
+  margin-bottom: 6px;
 }
 
 .summary-row.total {
-  font-size: 14px;
+  font-size: 13px;
   font-weight: 600;
   color: var(--text-primary);
   margin-bottom: 0;
-  margin-top: 8px;
-  padding-top: 10px;
+  margin-top: 6px;
+  padding-top: 8px;
   border-top: 1px dashed var(--border-normal);
 }
 
 .total-amount {
-  font-size: 22px;
+  font-size: 18px;
   font-weight: 700;
-  color: var(--color-danger);
-}
-
-.checkout-section {
-  padding: 16px 20px 20px;
-  border-top: 1px solid var(--border-normal);
-  flex-shrink: 0;
+  color: var(--color-primary);
+  font-family: var(--font-mono);
 }
 
 .pay-methods {
-  width: 100%;
   display: flex;
-  margin-bottom: 14px;
+  gap: 6px;
+  padding: 0 14px 10px;
+  flex-shrink: 0;
 }
 
-.pay-methods :deep(.el-radio-button) {
+.pay-method {
   flex: 1;
-}
-
-.pay-methods :deep(.el-radio-button__inner) {
-  width: 100%;
-  text-align: center;
-}
-
-.checkout-buttons {
+  height: 32px;
   display: flex;
-  gap: 10px;
-  margin-bottom: 12px;
+  align-items: center;
+  justify-content: center;
+  border-radius: 6px;
+  background: var(--gray-100);
+  font-size: 12px;
+  color: var(--text-secondary);
+  cursor: pointer;
+  transition: all 150ms ease;
+  border: 1px solid transparent;
 }
 
-.btn-secondary {
-  flex: 1;
+.pay-method:hover {
+  background: var(--gray-200);
 }
 
-.btn-primary {
-  flex: 2;
-  font-weight: 600;
-  font-size: 15px;
+.pay-method.active {
+  background: var(--color-primary-soft);
+  border-color: var(--color-primary);
+  color: var(--color-primary);
+  font-weight: 500;
+}
+
+.checkout-section {
+  padding: 10px 14px 14px;
+  border-top: 1px solid var(--border-light);
+  flex-shrink: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.checkout-btn {
+  width: 100% !important;
+  height: 52px !important;
+  font-size: 15px !important;
+  font-weight: 600 !important;
+  border-radius: 8px !important;
+}
+
+.secondary-btn {
+  width: 100% !important;
+  height: 36px !important;
+  font-size: 13px !important;
+  border-radius: 6px !important;
 }
 
 .order-info {
-  margin-top: 10px;
+  padding: 0 14px 12px;
 }
 </style>
