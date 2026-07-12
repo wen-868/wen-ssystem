@@ -1,25 +1,22 @@
 import { vi, describe, it, beforeEach, expect } from "vitest";
 
-vi.mock("../../services/share.service.js", () => ({
+vi.mock("../../../services/share.service.js", () => ({
   getCollectionLink: vi.fn(),
   payCollection: vi.fn(),
 }));
 
-vi.mock("../../shared/response.js", () => ({
+vi.mock("../../../shared/response.js", () => ({
   ok: vi.fn((data) => ({ success: true, data })),
   fail: vi.fn((msg, code) => ({ success: false, message: msg, code })),
 }));
 
-vi.mock("../../middleware/async-handler.js", () => ({
+vi.mock("../../../middleware/async-handler.js", () => ({
   asyncHandler: (fn: any) => fn,
 }));
 
-import * as shareService from "../../services/share.service.js";
-import { ok, fail } from "../../shared/response.js";
-import {
-  getCollectionLink,
-  payCollection,
-} from "../../controllers/share.controller.js";
+import * as shareService from "../../../services/share.service.js";
+import { ok } from "../../../shared/response.js";
+import { getCollectionLink, payCollection } from "../../../controllers/share.controller.js";
 
 const mockReq = (overrides: any = {}) => ({
   tenantId: "t1",
@@ -27,6 +24,7 @@ const mockReq = (overrides: any = {}) => ({
   query: {},
   params: {},
   body: {},
+  headers: {},
   ...overrides,
 });
 
@@ -42,21 +40,21 @@ const mockRes = () => {
 describe("share.controller", () => {
   beforeEach(() => vi.clearAllMocks());
 
-  it("getCollectionLink - 应返回收款链接信息", async () => {
-    (shareService.getCollectionLink as any).mockResolvedValue({ token: "abc123", amount: 100 });
-    const req = mockReq({ params: { token: "abc123" } });
+  it("getCollectionLink - 应获取收款链接", async () => {
+    (shareService.getCollectionLink as any).mockResolvedValue({ token: "test-token" });
+    const req = mockReq({ params: { token: "test-token" } });
     const res = mockRes();
     await getCollectionLink(req as any, res as any);
-    expect(shareService.getCollectionLink).toHaveBeenCalledWith("abc123");
+    expect(shareService.getCollectionLink).toHaveBeenCalledWith("test-token");
     expect(ok).toHaveBeenCalled();
   });
 
-  it("payCollection - 应支付收款链接", async () => {
+  it("payCollection - 应支付收款", async () => {
     (shareService.payCollection as any).mockResolvedValue({ success: true });
-    const req = mockReq({ params: { token: "abc123" } });
+    const req = mockReq({ params: { token: "test-token" } });
     const res = mockRes();
     await payCollection(req as any, res as any);
-    expect(shareService.payCollection).toHaveBeenCalledWith("abc123");
+    expect(shareService.payCollection).toHaveBeenCalledWith("test-token");
     expect(ok).toHaveBeenCalled();
   });
 });

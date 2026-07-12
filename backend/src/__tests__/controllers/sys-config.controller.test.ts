@@ -1,29 +1,24 @@
 import { vi, describe, it, beforeEach, expect } from "vitest";
 
-vi.mock("../../services/admin/sys-config.service.js", () => ({
+vi.mock("../../../services/admin/sys-config.service.js", () => ({
   getAllConfigs: vi.fn(),
   getConfigByGroup: vi.fn(),
   batchUpdateConfigs: vi.fn(),
   createConfig: vi.fn(),
 }));
 
-vi.mock("../../shared/response.js", () => ({
+vi.mock("../../../shared/response.js", () => ({
   ok: vi.fn((data) => ({ success: true, data })),
   fail: vi.fn((msg, code) => ({ success: false, message: msg, code })),
 }));
 
-vi.mock("../../middleware/async-handler.js", () => ({
+vi.mock("../../../middleware/async-handler.js", () => ({
   asyncHandler: (fn: any) => fn,
 }));
 
-import * as sysConfigService from "../../services/admin/sys-config.service.js";
-import { ok, fail } from "../../shared/response.js";
-import {
-  getAllConfigs,
-  getConfigByGroup,
-  batchUpdateConfigs,
-  createConfig,
-} from "../../controllers/sys-config.controller.js";
+import * as sysConfigService from "../../../services/admin/sys-config.service.js";
+import { ok } from "../../../shared/response.js";
+import { getAllConfigs, getConfigByGroup, batchUpdateConfigs, createConfig } from "../../../controllers/sys-config.controller.js";
 
 const mockReq = (overrides: any = {}) => ({
   tenantId: "t1",
@@ -31,6 +26,7 @@ const mockReq = (overrides: any = {}) => ({
   query: {},
   params: {},
   body: {},
+  headers: {},
   ...overrides,
 });
 
@@ -46,7 +42,7 @@ const mockRes = () => {
 describe("sys-config.controller", () => {
   beforeEach(() => vi.clearAllMocks());
 
-  it("getAllConfigs - 应返回所有系统配置", async () => {
+  it("getAllConfigs - 应获取所有配置", async () => {
     (sysConfigService.getAllConfigs as any).mockResolvedValue([]);
     const req = mockReq();
     const res = mockRes();
@@ -55,42 +51,48 @@ describe("sys-config.controller", () => {
     expect(ok).toHaveBeenCalled();
   });
 
-  it("getConfigByGroup - 应返回分组配置", async () => {
+  it("getConfigByGroup - 应获取分组配置", async () => {
     (sysConfigService.getConfigByGroup as any).mockResolvedValue([]);
-    const req = mockReq({ params: { group: "system" } });
+    const req = mockReq({ params: { group: "payment" } });
     const res = mockRes();
     await getConfigByGroup(req as any, res as any);
-    expect(sysConfigService.getConfigByGroup).toHaveBeenCalledWith("system", "t1");
+    expect(sysConfigService.getConfigByGroup).toHaveBeenCalledWith("payment", "t1");
     expect(ok).toHaveBeenCalled();
+  });
+
+  it("getConfigByGroup - zod验证失败", async () => {
+    const req = mockReq({ params: { group: "" } });
+    const res = mockRes();
+    await expect(getConfigByGroup(req as any, res as any)).rejects.toThrow();
   });
 
   it("batchUpdateConfigs - 应批量更新配置", async () => {
     (sysConfigService.batchUpdateConfigs as any).mockResolvedValue({ success: true });
-    const req = mockReq({
-      body: [
-        { config_key: "site_name", config_value: "测试系统" },
-        { config_key: "site_logo", config_value: "logo.png" },
-      ],
-    });
+    const req = mockReq({ body: [{ config_key: "key1", config_value: "value1" }] });
     const res = mockRes();
     await batchUpdateConfigs(req as any, res as any);
     expect(sysConfigService.batchUpdateConfigs).toHaveBeenCalled();
     expect(ok).toHaveBeenCalled();
   });
 
+  it("batchUpdateConfigs - zod验证失败", async () => {
+    const req = mockReq({ body: [] });
+    const res = mockRes();
+    await expect(batchUpdateConfigs(req as any, res as any)).rejects.toThrow();
+  });
+
   it("createConfig - 应创建配置", async () => {
     (sysConfigService.createConfig as any).mockResolvedValue({ id: 1 });
-    const req = mockReq({
-      body: {
-        config_key: "new_config",
-        config_value: "value",
-        config_group: "system",
-        description: "新配置",
-      },
-    });
+    const req = mockReq({ body: { config_key: "key1", config_group: "group1" } });
     const res = mockRes();
     await createConfig(req as any, res as any);
     expect(sysConfigService.createConfig).toHaveBeenCalled();
     expect(ok).toHaveBeenCalled();
+  });
+
+  it("createConfig - zod验证失败", async () => {
+    const req = mockReq({ body: { config_key: "", config_group: "" } });
+    const res = mockRes();
+    await expect(createConfig(req as any, res as any)).rejects.toThrow();
   });
 });

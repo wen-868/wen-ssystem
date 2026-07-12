@@ -1,29 +1,24 @@
 import { vi, describe, it, beforeEach, expect } from "vitest";
 
-vi.mock("../../services/admin/customer-merge.service.js", () => ({
+vi.mock("../../../services/admin/customer-merge.service.js", () => ({
   detectDuplicates: vi.fn(),
   getCustomerRelations: vi.fn(),
   mergeCustomers: vi.fn(),
   getDuplicateGroups: vi.fn(),
 }));
 
-vi.mock("../../shared/response.js", () => ({
+vi.mock("../../../shared/response.js", () => ({
   ok: vi.fn((data) => ({ success: true, data })),
   fail: vi.fn((msg, code) => ({ success: false, message: msg, code })),
 }));
 
-vi.mock("../../middleware/async-handler.js", () => ({
+vi.mock("../../../middleware/async-handler.js", () => ({
   asyncHandler: (fn: any) => fn,
 }));
 
-import * as customerMergeService from "../../services/admin/customer-merge.service.js";
-import { ok, fail } from "../../shared/response.js";
-import {
-  detectDuplicates,
-  getCustomerRelations,
-  mergeCustomers,
-  getDuplicateGroups,
-} from "../../controllers/customer-merge.controller.js";
+import * as customerMergeService from "../../../services/admin/customer-merge.service.js";
+import { ok } from "../../../shared/response.js";
+import { detectDuplicates, getCustomerRelations, mergeCustomers, getDuplicateGroups } from "../../../controllers/customer-merge.controller.js";
 
 const mockReq = (overrides: any = {}) => ({
   tenantId: "t1",
@@ -31,6 +26,7 @@ const mockReq = (overrides: any = {}) => ({
   query: {},
   params: {},
   body: {},
+  headers: {},
   ...overrides,
 });
 
@@ -55,9 +51,9 @@ describe("customer-merge.controller", () => {
     expect(ok).toHaveBeenCalled();
   });
 
-  it("getCustomerRelations - 应返回客户关系", async () => {
+  it("getCustomerRelations - 应返回客户关联关系", async () => {
     (customerMergeService.getCustomerRelations as any).mockResolvedValue([]);
-    const req = mockReq({ params: { customerId: "1" } });
+    const req = mockReq({ params: { customerId: 1 } });
     const res = mockRes();
     await getCustomerRelations(req as any, res as any);
     expect(customerMergeService.getCustomerRelations).toHaveBeenCalledWith("t1", 1);
@@ -72,14 +68,26 @@ describe("customer-merge.controller", () => {
         duplicateCustomerIds: [2, 3],
         mergeName: true,
         mergeMobile: true,
-        mergeAddress: true,
-        mergeRemark: false,
       },
     });
     const res = mockRes();
     await mergeCustomers(req as any, res as any);
-    expect(customerMergeService.mergeCustomers).toHaveBeenCalled();
+    expect(customerMergeService.mergeCustomers).toHaveBeenCalledWith("t1", expect.objectContaining({
+      primaryCustomerId: 1,
+      duplicateCustomerIds: [2, 3],
+    }), 1, "admin");
     expect(ok).toHaveBeenCalled();
+  });
+
+  it("mergeCustomers - zod验证失败", async () => {
+    const req = mockReq({
+      body: {
+        primaryCustomerId: "invalid",
+        duplicateCustomerIds: [],
+      },
+    });
+    const res = mockRes();
+    await expect(mergeCustomers(req as any, res as any)).rejects.toThrow();
   });
 
   it("getDuplicateGroups - 应返回重复客户组", async () => {

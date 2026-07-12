@@ -372,6 +372,14 @@
 - ⚠️ 测试有 20 个失败（payment-config 集成测试超时，非本次引入）
 - ✅ 所有接口遵循安全措施（密码校验、唯一性校验、验证码限频）
 
+**测试覆盖（苏然）**：
+- ✅ `tenant-register.service.test.ts` — 14 个用例，100%
+- ✅ `tenant-register.controller.test.ts` — 8 个用例，100%
+- ✅ `member-register.service.test.ts` — 10 个用例，100%
+- ✅ `member-register.test.ts` — 6 个用例，100%
+- ✅ `tenant-register.test.ts` — 8 个用例，100%
+- ✅ 测试报告：`docs/reports/test-report-r24-2026-07-12.md`
+
 **修改文件**：
 - `docs/migrations/102_tenant_register.sql`（新增）
 - `docs/migrations/103_member_register.sql`（新增）

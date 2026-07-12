@@ -1,25 +1,22 @@
 import { vi, describe, it, beforeEach, expect } from "vitest";
 
-vi.mock("../../services/admin/audit.service.js", () => ({
+vi.mock("../../../services/admin/audit.service.js", () => ({
   listAuditLogs: vi.fn(),
   getAuditStatistics: vi.fn(),
 }));
 
-vi.mock("../../shared/response.js", () => ({
+vi.mock("../../../shared/response.js", () => ({
   ok: vi.fn((data) => ({ success: true, data })),
   fail: vi.fn((msg, code) => ({ success: false, message: msg, code })),
 }));
 
-vi.mock("../../middleware/async-handler.js", () => ({
+vi.mock("../../../middleware/async-handler.js", () => ({
   asyncHandler: (fn: any) => fn,
 }));
 
-import * as auditService from "../../services/admin/audit.service.js";
-import { ok, fail } from "../../shared/response.js";
-import {
-  listAuditLogs,
-  getAuditStatistics,
-} from "../../controllers/audit.controller.js";
+import * as auditService from "../../../services/admin/audit.service.js";
+import { ok } from "../../../shared/response.js";
+import { listAuditLogs, getAuditStatistics } from "../../../controllers/audit.controller.js";
 
 const mockReq = (overrides: any = {}) => ({
   tenantId: "t1",
@@ -27,6 +24,7 @@ const mockReq = (overrides: any = {}) => ({
   query: {},
   params: {},
   body: {},
+  headers: {},
   ...overrides,
 });
 
@@ -51,8 +49,42 @@ describe("audit.controller", () => {
     expect(ok).toHaveBeenCalled();
   });
 
+  it("listAuditLogs - 应支持筛选参数", async () => {
+    (auditService.listAuditLogs as any).mockResolvedValue({ total: 0, records: [] });
+    const req = mockReq({
+      query: {
+        page: 2,
+        pageSize: 10,
+        userId: 1,
+        action: "CREATE",
+        resourceType: "ORDER",
+        dateStart: "2024-01-01",
+        dateEnd: "2024-01-31",
+      },
+    });
+    const res = mockRes();
+    await listAuditLogs(req as any, res as any);
+    expect(auditService.listAuditLogs).toHaveBeenCalledWith(expect.objectContaining({
+      page: 2,
+      pageSize: 10,
+      userId: 1,
+      action: "CREATE",
+      resourceType: "ORDER",
+      dateStart: "2024-01-01",
+      dateEnd: "2024-01-31",
+      tenantId: "t1",
+    }));
+    expect(ok).toHaveBeenCalled();
+  });
+
+  it("listAuditLogs - zod验证失败", async () => {
+    const req = mockReq({ query: { page: "invalid", pageSize: 200 } });
+    const res = mockRes();
+    await expect(listAuditLogs(req as any, res as any)).rejects.toThrow();
+  });
+
   it("getAuditStatistics - 应返回审计统计", async () => {
-    (auditService.getAuditStatistics as any).mockResolvedValue({ total: 100 });
+    (auditService.getAuditStatistics as any).mockResolvedValue({ totalActions: 0, topUsers: [] });
     const req = mockReq();
     const res = mockRes();
     await getAuditStatistics(req as any, res as any);

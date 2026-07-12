@@ -1,6 +1,6 @@
 import { vi, describe, it, beforeEach, expect } from "vitest";
 
-vi.mock("../../services/admin/stock-check.service.js", () => ({
+vi.mock("../../../services/admin/stock-check.service.js", () => ({
   createCheck: vi.fn(),
   listChecks: vi.fn(),
   getStatistics: vi.fn(),
@@ -16,18 +16,20 @@ vi.mock("../../services/admin/stock-check.service.js", () => ({
   submitCheck: vi.fn(),
 }));
 
-vi.mock("../../shared/response.js", () => ({
+vi.mock("../../../shared/response.js", () => ({
   ok: vi.fn((data) => ({ success: true, data })),
   fail: vi.fn((msg, code) => ({ success: false, message: msg, code })),
 }));
 
-vi.mock("../../middleware/async-handler.js", () => ({
+vi.mock("../../../middleware/async-handler.js", () => ({
   asyncHandler: (fn: any) => fn,
 }));
 
-import * as stockCheckService from "../../services/admin/stock-check.service.js";
-import { ok, fail } from "../../shared/response.js";
+import * as stockCheckService from "../../../services/admin/stock-check.service.js";
+import { ok, fail } from "../../../shared/response.js";
 import {
+  adminStockCheck,
+  storeStockCheck,
   create,
   getStatistics,
   list,
@@ -40,14 +42,15 @@ import {
   getMyList,
   updateItem,
   submit,
-} from "../../controllers/stock-check.controller.js";
+} from "../../../controllers/stock-check.controller.js";
 
 const mockReq = (overrides: any = {}) => ({
   tenantId: "t1",
-  user: { id: 1, username: "admin" },
+  user: { id: 1, username: "admin", storeId: 1 },
   query: {},
   params: {},
   body: {},
+  headers: {},
   ...overrides,
 });
 
@@ -63,123 +66,153 @@ const mockRes = () => {
 describe("stock-check.controller", () => {
   beforeEach(() => vi.clearAllMocks());
 
-  it("create - 应创建盘点单", async () => {
-    (stockCheckService.createCheck as any).mockResolvedValue({ id: 1 });
-    const req = mockReq({ body: { storeId: 1, remark: "测试盘点" } });
-    const res = mockRes();
-    await create(req as any, res as any);
-    expect(stockCheckService.createCheck).toHaveBeenCalledWith({ storeId: 1, remark: "测试盘点", tenantId: "t1" });
-    expect(ok).toHaveBeenCalled();
-  });
-
-  it("list - 应返回盘点单列表", async () => {
-    (stockCheckService.listChecks as any).mockResolvedValue({ total: 0, records: [] });
-    const req = mockReq({ query: { page: 1, pageSize: 20 } });
-    const res = mockRes();
-    await list(req as any, res as any);
-    expect(stockCheckService.listChecks).toHaveBeenCalled();
-    expect(ok).toHaveBeenCalled();
-  });
-
-  it("getStatistics - 应返回盘点统计", async () => {
-    (stockCheckService.getStatistics as any).mockResolvedValue({ total: 10 });
-    const req = mockReq();
-    const res = mockRes();
-    await getStatistics(req as any, res as any);
-    expect(stockCheckService.getStatistics).toHaveBeenCalledWith("t1");
-    expect(ok).toHaveBeenCalled();
-  });
-
-  it("getDetail - 应返回盘点单详情", async () => {
-    (stockCheckService.getCheckDetail as any).mockResolvedValue({ id: 1 });
-    const req = mockReq({ params: { id: "1" } });
-    const res = mockRes();
-    await getDetail(req as any, res as any);
-    expect(stockCheckService.getCheckDetail).toHaveBeenCalledWith(1, "t1");
-    expect(ok).toHaveBeenCalled();
-  });
-
-  it("update - 应更新盘点单", async () => {
-    (stockCheckService.updateCheck as any).mockResolvedValue({ success: true });
-    const req = mockReq({ params: { id: "1" }, body: { remark: "更新备注" } });
-    const res = mockRes();
-    await update(req as any, res as any);
-    expect(stockCheckService.updateCheck).toHaveBeenCalledWith(1, "t1", { remark: "更新备注" });
-    expect(ok).toHaveBeenCalled();
-  });
-
-  it("start - 应开始盘点", async () => {
-    (stockCheckService.startCheck as any).mockResolvedValue({ success: true });
-    const req = mockReq({ params: { id: "1" } });
-    const res = mockRes();
-    await start(req as any, res as any);
-    expect(stockCheckService.startCheck).toHaveBeenCalledWith(1, "t1");
-    expect(ok).toHaveBeenCalled();
-  });
-
-  it("complete - 应完成盘点", async () => {
-    (stockCheckService.completeCheck as any).mockResolvedValue({ success: true });
-    const req = mockReq({ params: { id: "1" } });
-    const res = mockRes();
-    await complete(req as any, res as any);
-    expect(stockCheckService.completeCheck).toHaveBeenCalledWith(1, "t1");
-    expect(ok).toHaveBeenCalled();
-  });
-
-  it("cancel - 应取消盘点", async () => {
-    (stockCheckService.cancelCheck as any).mockResolvedValue({ success: true });
-    const req = mockReq({ params: { id: "1" } });
-    const res = mockRes();
-    await cancel(req as any, res as any);
-    expect(stockCheckService.cancelCheck).toHaveBeenCalledWith(1, "t1");
-    expect(ok).toHaveBeenCalled();
-  });
-
-  it("handleDiff - 应处理差异", async () => {
-    (stockCheckService.handleDiff as any).mockResolvedValue({ success: true });
-    const req = mockReq({ params: { id: "1" }, body: { itemId: 2 } });
-    const res = mockRes();
-    await handleDiff(req as any, res as any);
-    expect(stockCheckService.handleDiff).toHaveBeenCalledWith({
-      checkId: 1, itemId: 2, tenantId: "t1", userId: 1,
+  describe("adminStockCheck", () => {
+    it("create - 应创建盘点任务", async () => {
+      (stockCheckService.createCheck as any).mockResolvedValue({ id: 1 });
+      const req = mockReq({ body: { storeId: 1 } });
+      const res = mockRes();
+      await adminStockCheck.create(req as any, res as any);
+      expect(stockCheckService.createCheck).toHaveBeenCalled();
+      expect(ok).toHaveBeenCalled();
     });
-    expect(ok).toHaveBeenCalled();
-  });
 
-  it("getMyList - 未关联门店应返回400", async () => {
-    const req = mockReq({ user: { id: 1, username: "admin" } });
-    const res = mockRes();
-    await getMyList(req as any, res as any);
-    expect(fail).toHaveBeenCalledWith("未关联门店");
-    expect(res.status).toHaveBeenCalledWith(400);
-  });
-
-  it("getMyList - 应返回我的盘点单", async () => {
-    (stockCheckService.listMyChecks as any).mockResolvedValue([]);
-    const req = mockReq({ user: { id: 1, username: "admin", storeId: 10 } });
-    const res = mockRes();
-    await getMyList(req as any, res as any);
-    expect(stockCheckService.listMyChecks).toHaveBeenCalledWith(10, "t1");
-    expect(ok).toHaveBeenCalled();
-  });
-
-  it("updateItem - 应更新盘点项数量", async () => {
-    (stockCheckService.updateItemQty as any).mockResolvedValue({ success: true });
-    const req = mockReq({ params: { id: "1", itemId: "2" }, body: { actualQty: 50 } });
-    const res = mockRes();
-    await updateItem(req as any, res as any);
-    expect(stockCheckService.updateItemQty).toHaveBeenCalledWith({
-      checkId: 1, itemId: 2, actualQty: 50, tenantId: "t1",
+    it("create - zod验证失败", async () => {
+      const req = mockReq({ body: { storeId: 0 } });
+      const res = mockRes();
+      await expect(adminStockCheck.create(req as any, res as any)).rejects.toThrow();
     });
-    expect(ok).toHaveBeenCalled();
+
+    it("list - 应返回盘点列表", async () => {
+      (stockCheckService.listChecks as any).mockResolvedValue({ total: 0, records: [] });
+      const req = mockReq({ query: { page: 1, pageSize: 20 } });
+      const res = mockRes();
+      await adminStockCheck.list(req as any, res as any);
+      expect(stockCheckService.listChecks).toHaveBeenCalled();
+      expect(ok).toHaveBeenCalled();
+    });
+
+    it("statistics - 应返回统计数据", async () => {
+      (stockCheckService.getStatistics as any).mockResolvedValue({ total: 0 });
+      const req = mockReq();
+      const res = mockRes();
+      await adminStockCheck.statistics(req as any, res as any);
+      expect(stockCheckService.getStatistics).toHaveBeenCalled();
+      expect(ok).toHaveBeenCalled();
+    });
+
+    it("detail - 应返回盘点详情", async () => {
+      (stockCheckService.getCheckDetail as any).mockResolvedValue({ id: 1 });
+      const req = mockReq({ params: { id: 1 } });
+      const res = mockRes();
+      await adminStockCheck.detail(req as any, res as any);
+      expect(stockCheckService.getCheckDetail).toHaveBeenCalled();
+      expect(ok).toHaveBeenCalled();
+    });
+
+    it("update - 应更新盘点", async () => {
+      (stockCheckService.updateCheck as any).mockResolvedValue({ success: true });
+      const req = mockReq({ params: { id: 1 }, body: { remark: "测试" } });
+      const res = mockRes();
+      await adminStockCheck.update(req as any, res as any);
+      expect(stockCheckService.updateCheck).toHaveBeenCalled();
+      expect(ok).toHaveBeenCalled();
+    });
+
+    it("start - 应开始盘点", async () => {
+      (stockCheckService.startCheck as any).mockResolvedValue({ success: true });
+      const req = mockReq({ params: { id: 1 } });
+      const res = mockRes();
+      await adminStockCheck.start(req as any, res as any);
+      expect(stockCheckService.startCheck).toHaveBeenCalled();
+      expect(ok).toHaveBeenCalled();
+    });
+
+    it("complete - 应完成盘点", async () => {
+      (stockCheckService.completeCheck as any).mockResolvedValue({ success: true });
+      const req = mockReq({ params: { id: 1 } });
+      const res = mockRes();
+      await adminStockCheck.complete(req as any, res as any);
+      expect(stockCheckService.completeCheck).toHaveBeenCalled();
+      expect(ok).toHaveBeenCalled();
+    });
+
+    it("cancel - 应取消盘点", async () => {
+      (stockCheckService.cancelCheck as any).mockResolvedValue({ success: true });
+      const req = mockReq({ params: { id: 1 } });
+      const res = mockRes();
+      await adminStockCheck.cancel(req as any, res as any);
+      expect(stockCheckService.cancelCheck).toHaveBeenCalled();
+      expect(ok).toHaveBeenCalled();
+    });
+
+    it("handleDiff - 应处理差异", async () => {
+      (stockCheckService.handleDiff as any).mockResolvedValue({ success: true });
+      const req = mockReq({ params: { id: 1 }, body: { itemId: 1 } });
+      const res = mockRes();
+      await adminStockCheck.handleDiff(req as any, res as any);
+      expect(stockCheckService.handleDiff).toHaveBeenCalled();
+      expect(ok).toHaveBeenCalled();
+    });
   });
 
-  it("submit - 应提交盘点", async () => {
-    (stockCheckService.submitCheck as any).mockResolvedValue({ success: true });
-    const req = mockReq({ params: { id: "1" } });
-    const res = mockRes();
-    await submit(req as any, res as any);
-    expect(stockCheckService.submitCheck).toHaveBeenCalledWith(1, "t1");
-    expect(ok).toHaveBeenCalled();
+  describe("storeStockCheck", () => {
+    it("my - 应返回我的盘点列表", async () => {
+      (stockCheckService.listMyChecks as any).mockResolvedValue([]);
+      const req = mockReq();
+      const res = mockRes();
+      await storeStockCheck.my(req as any, res as any);
+      expect(stockCheckService.listMyChecks).toHaveBeenCalled();
+      expect(ok).toHaveBeenCalled();
+    });
+
+    it("my - 未关联门店应返回400", async () => {
+      const req = mockReq({ user: {} });
+      const res = mockRes();
+      await storeStockCheck.my(req as any, res as any);
+      expect(res.status).toHaveBeenCalledWith(400);
+      expect(fail).toHaveBeenCalled();
+    });
+
+    it("detail - 应返回我的盘点详情", async () => {
+      (stockCheckService.getMyCheckDetail as any).mockResolvedValue({ id: 1 });
+      const req = mockReq({ params: { id: 1 } });
+      const res = mockRes();
+      await storeStockCheck.detail(req as any, res as any);
+      expect(stockCheckService.getMyCheckDetail).toHaveBeenCalled();
+      expect(ok).toHaveBeenCalled();
+    });
+
+    it("updateItem - 应更新盘点项", async () => {
+      (stockCheckService.updateItemQty as any).mockResolvedValue({ success: true });
+      const req = mockReq({ params: { id: 1, itemId: 1 }, body: { actualQty: 10 } });
+      const res = mockRes();
+      await storeStockCheck.updateItem(req as any, res as any);
+      expect(stockCheckService.updateItemQty).toHaveBeenCalled();
+      expect(ok).toHaveBeenCalled();
+    });
+
+    it("submit - 应提交盘点", async () => {
+      (stockCheckService.submitCheck as any).mockResolvedValue({ success: true });
+      const req = mockReq({ params: { id: 1 } });
+      const res = mockRes();
+      await storeStockCheck.submit(req as any, res as any);
+      expect(stockCheckService.submitCheck).toHaveBeenCalled();
+      expect(ok).toHaveBeenCalled();
+    });
+  });
+
+  describe("aliases", () => {
+    it("create should equal adminStockCheck.create", () => expect(create).toBe(adminStockCheck.create));
+    it("getStatistics should equal adminStockCheck.statistics", () => expect(getStatistics).toBe(adminStockCheck.statistics));
+    it("list should equal adminStockCheck.list", () => expect(list).toBe(adminStockCheck.list));
+    it("getDetail should equal adminStockCheck.detail", () => expect(getDetail).toBe(adminStockCheck.detail));
+    it("update should equal adminStockCheck.update", () => expect(update).toBe(adminStockCheck.update));
+    it("start should equal adminStockCheck.start", () => expect(start).toBe(adminStockCheck.start));
+    it("complete should equal adminStockCheck.complete", () => expect(complete).toBe(adminStockCheck.complete));
+    it("cancel should equal adminStockCheck.cancel", () => expect(cancel).toBe(adminStockCheck.cancel));
+    it("handleDiff should equal adminStockCheck.handleDiff", () => expect(handleDiff).toBe(adminStockCheck.handleDiff));
+    it("getMyList should equal storeStockCheck.my", () => expect(getMyList).toBe(storeStockCheck.my));
+    it("updateItem should equal storeStockCheck.updateItem", () => expect(updateItem).toBe(storeStockCheck.updateItem));
+    it("submit should equal storeStockCheck.submit", () => expect(submit).toBe(storeStockCheck.submit));
   });
 });

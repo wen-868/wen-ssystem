@@ -1,6 +1,6 @@
 import { vi, describe, it, beforeEach, expect } from "vitest";
 
-vi.mock("../../services/admin/purchase-return.service.js", () => ({
+vi.mock("../../../services/admin/purchase-return.service.js", () => ({
   list: vi.fn(),
   getDetail: vi.fn(),
   create: vi.fn(),
@@ -8,24 +8,18 @@ vi.mock("../../services/admin/purchase-return.service.js", () => ({
   voidReturn: vi.fn(),
 }));
 
-vi.mock("../../shared/response.js", () => ({
+vi.mock("../../../shared/response.js", () => ({
   ok: vi.fn((data) => ({ success: true, data })),
   fail: vi.fn((msg, code) => ({ success: false, message: msg, code })),
 }));
 
-vi.mock("../../middleware/async-handler.js", () => ({
+vi.mock("../../../middleware/async-handler.js", () => ({
   asyncHandler: (fn: any) => fn,
 }));
 
-import * as purchaseReturnService from "../../services/admin/purchase-return.service.js";
-import { ok, fail } from "../../shared/response.js";
-import {
-  list,
-  getDetail,
-  create,
-  approve,
-  voidReturn,
-} from "../../controllers/purchase-return.controller.js";
+import * as purchaseReturnService from "../../../services/admin/purchase-return.service.js";
+import { ok } from "../../../shared/response.js";
+import { list, getDetail, create, approve, voidReturn } from "../../../controllers/purchase-return.controller.js";
 
 const mockReq = (overrides: any = {}) => ({
   tenantId: "t1",
@@ -33,6 +27,7 @@ const mockReq = (overrides: any = {}) => ({
   query: {},
   params: {},
   body: {},
+  headers: {},
   ...overrides,
 });
 
@@ -58,38 +53,38 @@ describe("purchase-return.controller", () => {
   });
 
   it("getDetail - 应返回退货单详情", async () => {
-    (purchaseReturnService.getDetail as any).mockResolvedValue({ returnNo: "R001" });
-    const req = mockReq({ params: { returnNo: "R001" } });
+    (purchaseReturnService.getDetail as any).mockResolvedValue({ id: 1 });
+    const req = mockReq({ params: { returnNo: "RTN001" } });
     const res = mockRes();
     await getDetail(req as any, res as any);
-    expect(purchaseReturnService.getDetail).toHaveBeenCalledWith("R001", "t1");
+    expect(purchaseReturnService.getDetail).toHaveBeenCalledWith("RTN001", "t1");
     expect(ok).toHaveBeenCalled();
   });
 
   it("create - 应创建退货单", async () => {
-    (purchaseReturnService.create as any).mockResolvedValue({ returnNo: "R001" });
-    const req = mockReq({ body: { supplierId: 1, items: [] } });
+    (purchaseReturnService.create as any).mockResolvedValue({ id: 1 });
+    const req = mockReq({ body: { purchaseNo: "PO001" } });
     const res = mockRes();
     await create(req as any, res as any);
-    expect(purchaseReturnService.create).toHaveBeenCalled();
+    expect(purchaseReturnService.create).toHaveBeenCalledWith(req.body, "t1", 1, "admin");
     expect(ok).toHaveBeenCalled();
   });
 
   it("approve - 应审核退货单", async () => {
     (purchaseReturnService.approve as any).mockResolvedValue({ success: true });
-    const req = mockReq({ params: { returnNo: "R001" } });
+    const req = mockReq({ params: { returnNo: "RTN001" } });
     const res = mockRes();
     await approve(req as any, res as any);
-    expect(purchaseReturnService.approve).toHaveBeenCalledWith("R001", "t1", 1, "admin");
+    expect(purchaseReturnService.approve).toHaveBeenCalledWith("RTN001", "t1", 1, "admin");
     expect(ok).toHaveBeenCalled();
   });
 
   it("voidReturn - 应作废退货单", async () => {
     (purchaseReturnService.voidReturn as any).mockResolvedValue({ success: true });
-    const req = mockReq({ params: { returnNo: "R001" } });
+    const req = mockReq({ params: { returnNo: "RTN001" } });
     const res = mockRes();
     await voidReturn(req as any, res as any);
-    expect(purchaseReturnService.voidReturn).toHaveBeenCalledWith("R001", "t1", 1, "admin");
+    expect(purchaseReturnService.voidReturn).toHaveBeenCalledWith("RTN001", "t1", 1, "admin");
     expect(ok).toHaveBeenCalled();
   });
 });
