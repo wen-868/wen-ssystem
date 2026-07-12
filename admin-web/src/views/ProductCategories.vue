@@ -197,20 +197,47 @@ const detailForm = reactive({
 
 const dialogTitle = computed(() => (isEdit.value ? "编辑分类" : "新增分类"));
 
+/** 字段映射：后端返回下划线格式，前端使用驼峰格式 */
+function mapCategoryFields(item: any): any {
+  return {
+    ...item,
+    parentId: item.parent_id ?? item.parentId ?? null,
+    sortOrder: item.sort_no ?? item.sortOrder ?? 0,
+    allowOnlineSale: item.allow_online_sale ?? item.allowOnlineSale ?? 1,
+    createdAt: item.created_at ?? item.createdAt ?? "",
+    updatedAt: item.updated_at ?? item.updatedAt ?? "",
+  };
+}
+
+/** 递归获取子分类（后端不传 pid 时只返回根分类） */
+async function fetchSubCategories(parentId: number, allList: any[]): Promise<void> {
+  try {
+    const { data } = await api.get(`/admin/products/categories?pid=${parentId}`);
+    const children = data.data || [];
+    if (children.length > 0) {
+      allList.push(...children);
+      for (const child of children) {
+        await fetchSubCategories(child.id, allList);
+      }
+    }
+  } catch {
+    // 忽略子分类获取失败
+  }
+}
+
 async function loadCategories() {
   try {
     const { data } = await api.get("/admin/products/categories");
-    const list = data.data || [];
-    treeData.value = buildTree(list);
-  } catch {
-    try {
-      const { data } = await api.get("/admin/products", { params: { categoryOnly: true } });
-      const list = data.data?.records || data.data || [];
-      treeData.value = buildTree(list);
-    } catch (e: any) {
-      ElMessage.error(e.response?.data?.msg || "加载分类失败");
-      treeData.value = [];
+    const rootList = data.data || [];
+    const allList = [...rootList];
+    // 递归获取子分类
+    for (const root of rootList) {
+      await fetchSubCategories(root.id, allList);
     }
+    treeData.value = buildTree(allList.map(mapCategoryFields));
+  } catch (e: any) {
+    ElMessage.error(e.response?.data?.msg || "加载分类失败");
+    treeData.value = [];
   }
 }
 
@@ -320,7 +347,7 @@ async function handleSubmit() {
     if (!valid) return;
     submitLoading.value = true;
     try {
-      const payload = { ...form };
+      const payload = { ...form, sortNo: form.sortOrder };
       if (isEdit.value && currentNode.value) {
         await api.put(`/admin/products/categories/${currentNode.value.id}`, payload);
         ElMessage.success("更新成功");
