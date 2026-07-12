@@ -1,5 +1,6 @@
 import { z } from "zod";
 import { Request, Response } from "express";
+import { asyncHandler } from "../../middleware/async-handler.js";
 import { ok } from "../../shared/response.js";
 import { PaymentConfigService } from "../../services/admin/payment-config.service.js";
 
@@ -29,50 +30,50 @@ const updateBankAccountSchema = z.object({
   remark: z.string().max(200).optional(),
 });
 
-export async function getChannelConfig(req: Request, res: Response) {
+export const getChannelConfig = asyncHandler(async (req: Request, res: Response) => {
   const data = await PaymentConfigService.getChannelConfig(req.tenantId!, req.params.provider);
   res.json(ok(data));
-}
+});
 
-export async function saveChannelConfig(req: Request, res: Response) {
+export const saveChannelConfig = asyncHandler(async (req: Request, res: Response) => {
   const body = saveChannelConfigSchema.parse(req.body);
   const data = await PaymentConfigService.saveChannelConfig(req.tenantId!, req.params.provider, body);
   res.json(ok(data));
-}
+});
 
-export async function testConnection(req: Request, res: Response) {
+export const testConnection = asyncHandler(async (req: Request, res: Response) => {
   const data = await PaymentConfigService.testConnection(req.tenantId!, req.params.provider);
   res.json(ok(data));
-}
+});
 
-export async function getStatus(req: Request, res: Response) {
+export const getStatus = asyncHandler(async (req: Request, res: Response) => {
   const data = await PaymentConfigService.getStatus(req.tenantId!);
   res.json(ok(data));
-}
+});
 
-export async function listBankAccounts(req: Request, res: Response) {
+export const listBankAccounts = asyncHandler(async (req: Request, res: Response) => {
   const data = await PaymentConfigService.listBankAccounts(req.tenantId!);
   res.json(ok(data));
-}
+});
 
-export async function createBankAccount(req: Request, res: Response) {
+export const createBankAccount = asyncHandler(async (req: Request, res: Response) => {
   const body = createBankAccountSchema.parse(req.body);
   const data = await PaymentConfigService.createBankAccount(req.tenantId!, body);
   res.json(ok(data));
-}
+});
 
-export async function updateBankAccount(req: Request, res: Response) {
+export const updateBankAccount = asyncHandler(async (req: Request, res: Response) => {
   const body = updateBankAccountSchema.parse(req.body);
   const data = await PaymentConfigService.updateBankAccount(req.tenantId!, Number(req.params.id), body);
   res.json(ok(data));
-}
+});
 
-export async function deleteBankAccount(req: Request, res: Response) {
+export const deleteBankAccount = asyncHandler(async (req: Request, res: Response) => {
   const data = await PaymentConfigService.deleteBankAccount(req.tenantId!, Number(req.params.id));
   res.json(ok(data));
-}
+});
 
-export async function setDefaultBankAccount(req: Request, res: Response) {
+export const setDefaultBankAccount = asyncHandler(async (req: Request, res: Response) => {
   const data = await PaymentConfigService.setDefaultBankAccount(req.tenantId!, Number(req.params.id));
   res.json(ok(data));
-}
+});

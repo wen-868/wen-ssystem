@@ -1,0 +1,104 @@
+import { vi, describe, it, beforeEach, expect } from "vitest";
+import request from "supertest";
+import { createTestApp } from "../fixtures/create-test-app.js";
+
+vi.mock("../../shared/db.js", () => ({
+  query: vi.fn(),
+  queryOne: vi.fn(),
+  transaction: vi.fn(),
+}));
+
+vi.mock("../../shared/env.js", () => ({
+  env: { JWT_SECRET: "test-secret" },
+}));
+
+vi.mock("../../shared/response.js", () => ({
+  ok: vi.fn((data) => ({ code: "0", msg: "成功", data, traceId: "test-trace", apiCost: 0 })),
+  fail: vi.fn((msg, code = "400") => ({ code, msg, traceId: "test-trace", apiCost: 0 })),
+}));
+
+vi.mock("../../middleware/auth.js", () => ({
+  requireAuthWithTenant: (_req: any, _res: any, next: any) => next(),
+  requireAuth: (_req: any, _res: any, next: any) => next(),
+  requireRoles: () => (_req: any, _res: any, next: any) => next(),
+  requirePlatformAuth: (_req: any, _res: any, next: any) => next(),
+}));
+
+vi.mock("bcryptjs", () => ({
+  default: {
+    compare: vi.fn(),
+    hash: vi.fn(),
+  },
+  compare: vi.fn(),
+  hash: vi.fn(),
+}));
+
+import { queryOne } from "../../shared/db.js";
+import { platformAuthRouter } from "../../routes/platform-auth.routes.js";
+
+const app = createTestApp({ prefix: "/api/platform-auth", router: platformAuthRouter });
+
+describe("routes/platform-auth 集成测试", () => {
+  beforeEach(() => vi.clearAllMocks());
+
+  describe("POST /login", () => {
+    it("用户名或密码缺失时返回400", async () => {
+      const res = await request(app)
+        .post("/api/platform-auth/login")
+        .send({ username: "", password: "" });
+      expect(res.status).toBe(400);
+      expect(res.body.code).toBe("400");
+    });
+
+    it("管理员不存在时返回401", async () => {
+      (queryOne as any).mockResolvedValue(null);
+      const res = await request(app)
+        .post("/api/platform-auth/login")
+        .send({ username: "admin", password: "pass" });
+      expect(res.status).toBe(401);
+      expect(res.body.code).toBe("401");
+    });
+
+    it("密码错误时返回401", async () => {
+      (queryOne as any).mockResolvedValue({ id: 1, username: "admin", password: "hash", real_name: "管理员" });
+      const bcrypt = await import("bcryptjs");
+      (bcrypt.compare as any).mockResolvedValue(false);
+      const res = await request(app)
+        .post("/api/platform-auth/login")
+        .send({ username: "admin", password: "wrong" });
+      expect(res.status).toBe(401);
+      expect(res.body.code).toBe("401");
+    });
+
+    it("queryOne 抛错时返回500", async () => {
+      (queryOne as any).mockRejectedValue(new Error("db error"));
+      const res = await request(app)
+        .post("/api/platform-auth/login")
+        .send({ username: "admin", password: "pass" });
+      expect(res.status).toBe(500);
+    });
+  });
+
+  describe("GET /me", () => {
+    it("应返回当前管理员信息", async () => {
+      (queryOne as any).mockResolvedValue({ id: 1, username: "admin", real_name: "管理员" });
+      const res = await request(app).get("/api/platform-auth/me");
+      expect(res.status).toBe(200);
+      expect(res.body.code).toBe("0");
+      expect(res.body.data.username).toBe("admin");
+    });
+
+    it("管理员不存在时返回404", async () => {
+      (queryOne as any).mockResolvedValue(null);
+      const res = await request(app).get("/api/platform-auth/me");
+      expect(res.status).toBe(404);
+      expect(res.body.code).toBe("404");
+    });
+
+    it("queryOne 抛错时返回500", async () => {
+      (queryOne as any).mockRejectedValue(new Error("db error"));
+      const res = await request(app).get("/api/platform-auth/me");
+      expect(res.status).toBe(500);
+    });
+  });
+});

@@ -1,5 +1,6 @@
 import { z } from "zod";
 import { Request, Response } from "express";
+import { asyncHandler } from "../../middleware/async-handler.js";
 import { ok } from "../../shared/response.js";
 import { MiniappConfigService } from "../../services/admin/miniapp-config.service.js";
 
@@ -20,33 +21,33 @@ const publishSchema = z.object({
   description: z.string().max(500).optional(),
 });
 
-export async function listConfigs(req: Request, res: Response) {
+export const listConfigs = asyncHandler(async (req: Request, res: Response) => {
   const data = await MiniappConfigService.listConfigs(req.tenantId!);
   res.json(ok(data));
-}
+});
 
-export async function getConfig(req: Request, res: Response) {
+export const getConfig = asyncHandler(async (req: Request, res: Response) => {
   const data = await MiniappConfigService.getConfig(req.tenantId!, req.params.platform);
   res.json(ok(data));
-}
+});
 
-export async function saveConfig(req: Request, res: Response) {
+export const saveConfig = asyncHandler(async (req: Request, res: Response) => {
   const body = saveConfigSchema.parse(req.body);
   const data = await MiniappConfigService.saveConfig(req.tenantId!, req.params.platform, body);
   res.json(ok(data));
-}
+});
 
-export async function listTemplates(req: Request, res: Response) {
+export const listTemplates = asyncHandler(async (req: Request, res: Response) => {
   const data = await MiniappConfigService.listTemplates(req.tenantId!);
   res.json(ok(data));
-}
+});
 
-export async function getTemplate(req: Request, res: Response) {
+export const getTemplate = asyncHandler(async (req: Request, res: Response) => {
   const data = await MiniappConfigService.getTemplate(req.tenantId!, Number(req.params.id));
   res.json(ok(data));
-}
+});
 
-export async function publish(req: Request, res: Response) {
+export const publish = asyncHandler(async (req: Request, res: Response) => {
   const body = publishSchema.parse(req.body);
   const data = await MiniappConfigService.publish(req.tenantId!, {
     platform: body.platform,
@@ -55,11 +56,11 @@ export async function publish(req: Request, res: Response) {
     operator: (req as any).user?.name || 'admin'
   });
   res.json(ok(data));
-}
+});
 
-export async function listPublishLogs(req: Request, res: Response) {
+export const listPublishLogs = asyncHandler(async (req: Request, res: Response) => {
   const page = parseInt(req.query.page as string) || 1;
   const pageSize = parseInt(req.query.pageSize as string) || 20;
   const data = await MiniappConfigService.listPublishLogs(req.tenantId!, page, pageSize);
   res.json(ok(data));
-}
+});
