@@ -1,0 +1,1113 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Atlas v4 — 超级后台（saas-admin）布局设计</title>
+<style>
+/* ═══════════════════════════════════════════════════════════════
+   Design Tokens v4.0 — Atlas 灰阶体系
+   原则：只有字体用黑色，其他一律不用黑色。背景以灰+白为主，按钮图表可彩色
+   ═══════════════════════════════════════════════════════════════ */
+:root {
+  --gray-0: #FFFFFF;
+  --gray-50: #F8F8F8;
+  --gray-100: #F0F0F0;
+  --gray-200: #E2E2E2;
+  --gray-300: #CCCCCC;
+  --gray-400: #999999;
+  --gray-500: #666666;
+  --gray-600: #444444;
+  --gray-700: #333333;
+  --gray-800: #2A2A2A;
+  --gray-900: #222222;
+
+  --text-primary: #000000;
+  --text-secondary: #444444;
+  --text-muted: #999999;
+
+  --color-primary: #5B6ABF;
+  --color-primary-hover: #6B7BCF;
+  --color-primary-active: #4A5AA8;
+  --color-primary-soft: rgba(91, 106, 191, 0.12);
+  --color-primary-bg: rgba(91, 106, 191, 0.06);
+
+  --color-success: #0EA879;
+  --color-success-soft: rgba(14, 168, 121, 0.10);
+  --color-warning: #D48B3A;
+  --color-warning-soft: rgba(212, 139, 58, 0.10);
+  --color-danger: #C0392B;
+  --color-danger-soft: rgba(192, 57, 43, 0.10);
+
+  --chart-1: #5B6ABF;
+  --chart-2: #0EA879;
+  --chart-3: #D48B3A;
+  --chart-4: #C0392B;
+  --chart-5: #8B5CF6;
+  --chart-6: #06B6D4;
+
+  --bg-page: #F5F5F5;
+  --bg-card: #FFFFFF;
+  --bg-sidebar: #FAFAFA;
+  --border: #E2E2E2;
+
+  --radius: 6px;
+  --radius-lg: 8px;
+  --radius-xl: 12px;
+
+  --shadow-sm: 0 1px 2px rgba(0,0,0,0.04);
+  --shadow-md: 0 2px 8px rgba(0,0,0,0.06);
+
+  --font-family: "Inter", -apple-system, "PingFang SC", "Microsoft YaHei", sans-serif;
+}
+
+* { margin: 0; padding: 0; box-sizing: border-box; }
+body {
+  font-family: var(--font-family);
+  background: var(--bg-page);
+  color: var(--text-primary);
+  line-height: 1.5;
+  -webkit-font-smoothing: antialiased;
+}
+
+.design-page {
+  max-width: 1400px;
+  margin: 0 auto;
+  padding: 40px 24px 80px;
+}
+
+.design-header {
+  text-align: center;
+  margin-bottom: 48px;
+}
+.design-header .label {
+  display: inline-block;
+  padding: 4px 12px;
+  background: var(--color-danger-soft);
+  color: var(--color-danger);
+  border-radius: 999px;
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: 1px;
+  margin-bottom: 16px;
+}
+.design-header h1 {
+  font-size: 32px;
+  font-weight: 700;
+  margin-bottom: 8px;
+  color: var(--text-primary);
+}
+.design-header p {
+  font-size: 15px;
+  color: var(--text-secondary);
+  max-width: 600px;
+  margin: 0 auto;
+}
+
+.section-title {
+  font-size: 20px;
+  font-weight: 600;
+  margin: 48px 0 20px;
+  padding-bottom: 12px;
+  border-bottom: 2px solid var(--border);
+  color: var(--text-primary);
+}
+.section-title::before {
+  content: "";
+  display: inline-block;
+  width: 4px;
+  height: 18px;
+  background: var(--color-danger);
+  border-radius: 2px;
+  margin-right: 10px;
+  vertical-align: -2px;
+}
+
+.layout-demo {
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-xl);
+  overflow: hidden;
+  margin-bottom: 40px;
+}
+
+.layout-label {
+  padding: 12px 20px;
+  background: var(--gray-50);
+  border-bottom: 1px solid var(--border);
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--text-secondary);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+.layout-label .badge {
+  padding: 2px 8px;
+  background: var(--color-success-soft);
+  color: var(--color-success);
+  border-radius: 4px;
+  font-size: 11px;
+  font-weight: 500;
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   超级后台布局：顶部导航 + 左侧二级菜单
+   与商户后台的区别：更宽的侧边栏（240px）、更强调数据总览
+   ═══════════════════════════════════════════════════════════════ */
+.layout-saas {
+  display: flex;
+  height: 680px;
+}
+
+/* 侧边栏 - 超级后台风格 */
+.sidebar {
+  width: 240px;
+  background: var(--bg-sidebar);
+  border-right: 1px solid var(--border);
+  display: flex;
+  flex-direction: column;
+  flex-shrink: 0;
+}
+
+.sidebar-logo {
+  height: 64px;
+  display: flex;
+  align-items: center;
+  padding: 0 20px;
+  border-bottom: 1px solid var(--border);
+  gap: 10px;
+}
+.sidebar-logo .logo-icon {
+  width: 36px;
+  height: 36px;
+  background: var(--color-danger);
+  border-radius: var(--radius);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #fff;
+  font-weight: 700;
+  font-size: 16px;
+}
+.sidebar-logo .logo-text {
+  font-size: 16px;
+  font-weight: 700;
+  color: var(--text-primary);
+}
+.sidebar-logo .logo-sub {
+  font-size: 10px;
+  color: var(--text-muted);
+  margin-left: auto;
+  padding: 2px 6px;
+  background: var(--gray-200);
+  border-radius: 4px;
+}
+
+.sidebar-menu {
+  flex: 1;
+  padding: 12px 10px;
+  overflow-y: auto;
+}
+.menu-group { margin-bottom: 4px; }
+.menu-group-title {
+  font-size: 11px;
+  color: var(--text-muted);
+  padding: 12px 12px 6px;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  font-weight: 600;
+}
+.menu-item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 9px 12px;
+  border-radius: var(--radius);
+  font-size: 13px;
+  color: var(--gray-500);
+  cursor: pointer;
+  margin-bottom: 2px;
+  transition: all 0.15s ease;
+}
+.menu-item:hover {
+  background: rgba(0,0,0,0.03);
+  color: var(--text-primary);
+}
+.menu-item.active {
+  background: var(--color-primary-soft);
+  color: var(--color-primary);
+  font-weight: 500;
+}
+.menu-item .icon {
+  width: 18px;
+  height: 18px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 16px;
+}
+.menu-item .arrow {
+  margin-left: auto;
+  font-size: 12px;
+  color: var(--text-muted);
+}
+.menu-item .count {
+  margin-left: auto;
+  font-size: 11px;
+  padding: 1px 6px;
+  background: var(--color-danger-soft);
+  color: var(--color-danger);
+  border-radius: 10px;
+  font-weight: 600;
+}
+
+.sidebar-footer {
+  padding: 12px;
+  border-top: 1px solid var(--border);
+}
+.sidebar-super {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px;
+  border-radius: var(--radius);
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+}
+.super-avatar {
+  width: 36px;
+  height: 36px;
+  background: var(--color-danger);
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 700;
+  font-size: 14px;
+  color: #fff;
+}
+.super-info .name {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--text-primary);
+}
+.super-info .role {
+  font-size: 11px;
+  color: var(--color-danger);
+  font-weight: 500;
+}
+
+/* 主内容区 */
+.main-content {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+/* 顶部栏 */
+.topbar {
+  height: 64px;
+  background: var(--bg-card);
+  border-bottom: 1px solid var(--border);
+  display: flex;
+  align-items: center;
+  padding: 0 24px;
+  gap: 16px;
+  flex-shrink: 0;
+}
+.topbar .breadcrumb {
+  font-size: 14px;
+  color: var(--text-secondary);
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+.topbar .breadcrumb .current {
+  color: var(--text-primary);
+  font-weight: 600;
+  font-size: 16px;
+}
+.topbar-right {
+  margin-left: auto;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+.search-mini {
+  width: 280px;
+  height: 36px;
+  background: var(--gray-50);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  display: flex;
+  align-items: center;
+  padding: 0 12px;
+  gap: 8px;
+  font-size: 13px;
+  color: var(--text-muted);
+}
+.icon-btn {
+  width: 36px;
+  height: 36px;
+  background: var(--gray-50);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  position: relative;
+}
+.icon-btn .dot {
+  position: absolute;
+  top: 6px;
+  right: 6px;
+  width: 8px;
+  height: 8px;
+  background: var(--color-danger);
+  border-radius: 50%;
+  border: 2px solid var(--bg-card);
+}
+
+/* 内容区 */
+.content-area {
+  flex: 1;
+  overflow-y: auto;
+  padding: 24px;
+}
+
+/* 全局统计卡片 - 超级后台特色 */
+.global-stats {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 16px;
+  margin-bottom: 24px;
+}
+.stat-card {
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  padding: 20px;
+  position: relative;
+  overflow: hidden;
+}
+.stat-card .stat-icon {
+  position: absolute;
+  right: 16px;
+  top: 16px;
+  width: 44px;
+  height: 44px;
+  border-radius: var(--radius-lg);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 22px;
+}
+.stat-card:nth-child(1) .stat-icon { background: var(--color-primary-soft); }
+.stat-card:nth-child(2) .stat-icon { background: var(--color-success-soft); }
+.stat-card:nth-child(3) .stat-icon { background: var(--color-warning-soft); }
+.stat-card:nth-child(4) .stat-icon { background: var(--color-danger-soft); }
+
+.stat-label {
+  font-size: 13px;
+  color: var(--text-secondary);
+  margin-bottom: 8px;
+}
+.stat-value {
+  font-size: 28px;
+  font-weight: 700;
+  color: var(--text-primary);
+  margin-bottom: 4px;
+  letter-spacing: -0.5px;
+}
+.stat-unit {
+  font-size: 13px;
+  font-weight: 400;
+  color: var(--text-muted);
+  margin-left: 4px;
+}
+.stat-sub {
+  font-size: 12px;
+  color: var(--text-muted);
+  margin-top: 6px;
+  padding-top: 8px;
+  border-top: 1px dashed var(--border);
+}
+.stat-sub strong {
+  color: var(--text-primary);
+  font-weight: 600;
+}
+
+/* 双列 */
+.two-col {
+  display: grid;
+  grid-template-columns: 1.5fr 1fr;
+  gap: 16px;
+  margin-bottom: 24px;
+}
+.three-col {
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr;
+  gap: 16px;
+  margin-bottom: 24px;
+}
+
+.panel {
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  overflow: hidden;
+}
+.panel-header {
+  padding: 16px 20px;
+  border-bottom: 1px solid var(--border);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+.panel-title {
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--text-primary);
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.panel-more {
+  font-size: 12px;
+  color: var(--text-muted);
+  cursor: pointer;
+}
+.panel-body {
+  padding: 20px;
+}
+
+/* 柱状图占位 */
+.bar-chart {
+  height: 240px;
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-around;
+  gap: 8px;
+  padding: 0 16px 24px;
+  position: relative;
+  border-bottom: 1px solid var(--border);
+}
+.bar-chart::before {
+  content: "";
+  position: absolute;
+  left: 0; right: 0; top: 50%;
+  border-top: 1px dashed var(--border);
+}
+.bar {
+  flex: 1;
+  max-width: 36px;
+  background: var(--color-primary);
+  border-radius: 4px 4px 0 0;
+  position: relative;
+  min-height: 10px;
+  opacity: 0.75;
+}
+.bar:nth-child(2n) { background: var(--chart-2); }
+.bar:nth-child(3n) { background: var(--chart-3); }
+.bar:nth-child(5n) { background: var(--chart-5); }
+.bar-chart-xaxis {
+  display: flex;
+  justify-content: space-around;
+  padding: 8px 16px 0;
+  font-size: 11px;
+  color: var(--text-muted);
+}
+.bar-chart-xaxis span { flex: 1; text-align: center; }
+
+/* 租户列表 */
+.tenant-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+}
+.tenant-item {
+  display: flex;
+  align-items: center;
+  padding: 12px 0;
+  border-bottom: 1px solid var(--border);
+  gap: 12px;
+}
+.tenant-item:last-child { border-bottom: none; padding-bottom: 0; }
+.tenant-item:first-child { padding-top: 0; }
+
+.tenant-logo {
+  width: 40px;
+  height: 40px;
+  background: var(--gray-100);
+  border-radius: var(--radius);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 700;
+  font-size: 14px;
+  color: var(--text-secondary);
+  flex-shrink: 0;
+}
+.tenant-info {
+  flex: 1;
+  min-width: 0;
+}
+.tenant-name {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--text-primary);
+  margin-bottom: 3px;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+.tenant-meta {
+  font-size: 11px;
+  color: var(--text-muted);
+  display: flex;
+  gap: 10px;
+}
+.tag {
+  display: inline-block;
+  padding: 2px 6px;
+  border-radius: 4px;
+  font-size: 10px;
+  font-weight: 500;
+}
+.tag.success { background: var(--color-success-soft); color: var(--color-success); }
+.tag.warning { background: var(--color-warning-soft); color: var(--color-warning); }
+.tag.danger { background: var(--color-danger-soft); color: var(--color-danger); }
+.tag.info { background: var(--color-primary-soft); color: var(--color-primary); }
+.tag.default { background: var(--gray-100); color: var(--text-secondary); }
+.tag.vip { background: linear-gradient(135deg, #D4AF37, #F4E5B0); color: #8B6914; }
+
+.tenant-amount {
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--text-primary);
+  flex-shrink: 0;
+  text-align: right;
+}
+.tenant-amount small {
+  display: block;
+  font-size: 10px;
+  color: var(--text-muted);
+  font-weight: 400;
+}
+
+/* 饼图占位 */
+.pie-chart-wrap {
+  display: flex;
+  align-items: center;
+  gap: 20px;
+}
+.pie-chart {
+  width: 120px;
+  height: 120px;
+  border-radius: 50%;
+  background: conic-gradient(
+    var(--chart-1) 0deg 140deg,
+    var(--chart-2) 140deg 240deg,
+    var(--chart-3) 240deg 300deg,
+    var(--chart-5) 300deg 360deg
+  );
+  position: relative;
+  flex-shrink: 0;
+}
+.pie-chart::before {
+  content: "";
+  position: absolute;
+  inset: 24px;
+  background: var(--bg-card);
+  border-radius: 50%;
+}
+.pie-legend {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+.legend-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 12px;
+}
+.legend-dot {
+  width: 10px;
+  height: 10px;
+  border-radius: 2px;
+  flex-shrink: 0;
+}
+.legend-label { color: var(--text-secondary); flex: 1; }
+.legend-value { color: var(--text-primary); font-weight: 600; }
+
+/* 系统监控列表 */
+.monitor-list {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+.monitor-item {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+.monitor-icon {
+  width: 36px;
+  height: 36px;
+  border-radius: var(--radius);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 18px;
+  flex-shrink: 0;
+}
+.monitor-icon.ok { background: var(--color-success-soft); }
+.monitor-icon.warn { background: var(--color-warning-soft); }
+
+.monitor-info { flex: 1; }
+.monitor-name {
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--text-primary);
+  margin-bottom: 4px;
+}
+.monitor-bar {
+  height: 6px;
+  background: var(--gray-100);
+  border-radius: 3px;
+  overflow: hidden;
+}
+.monitor-bar-fill {
+  height: 100%;
+  border-radius: 3px;
+  background: var(--color-success);
+}
+.monitor-bar-fill.warn { background: var(--color-warning); }
+
+.monitor-value {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--text-primary);
+  flex-shrink: 0;
+  width: 50px;
+  text-align: right;
+}
+
+.design-notes {
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-xl);
+  padding: 28px 32px;
+  margin-top: 40px;
+}
+.design-notes h3 {
+  font-size: 16px;
+  font-weight: 600;
+  margin-bottom: 16px;
+  color: var(--text-primary);
+}
+.note-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 16px;
+}
+.note-item {
+  padding: 16px;
+  background: var(--gray-50);
+  border-radius: var(--radius-lg);
+  border: 1px solid var(--border);
+}
+.note-item strong {
+  display: block;
+  font-size: 13px;
+  color: var(--text-primary);
+  margin-bottom: 6px;
+}
+.note-item p {
+  font-size: 12px;
+  color: var(--text-secondary);
+  line-height: 1.6;
+}
+</style>
+</head>
+<body>
+
+<div class="design-page">
+
+  <div class="design-header">
+    <span class="label">SAAS-ADMIN · 布局设计 v4.0</span>
+    <h1>超级后台（平台总控）布局设计</h1>
+    <p>SaaS 平台管理后台 — 面向平台运营方，全局数据总览、租户管理、系统监控<br>更宽的侧边栏、更强调数据密度和运营效率</p>
+  </div>
+
+  <h2 class="section-title">布局方案：平台总控布局</h2>
+  <div class="layout-demo">
+    <div class="layout-label">
+      <span>📐 超级后台 — 顶部导航 + 左侧菜单 + 卡片仪表盘</span>
+      <span class="badge">SaaS 总控</span>
+    </div>
+
+    <div class="layout-saas">
+      <!-- 侧边栏 -->
+      <aside class="sidebar">
+        <div class="sidebar-logo">
+          <div class="logo-icon">智</div>
+          <div class="logo-text">智享云平台</div>
+          <span class="logo-sub">SaaS</span>
+        </div>
+
+        <nav class="sidebar-menu">
+          <div class="menu-group">
+            <div class="menu-group-title">运营总览</div>
+            <div class="menu-item active">
+              <span class="icon">📊</span>
+              <span>数据大盘</span>
+            </div>
+            <div class="menu-item">
+              <span class="icon">📈</span>
+              <span>运营分析</span>
+            </div>
+            <div class="menu-item">
+              <span class="icon">💰</span>
+              <span>财务中心</span>
+            </div>
+          </div>
+
+          <div class="menu-group">
+            <div class="menu-group-title">租户管理</div>
+            <div class="menu-item">
+              <span class="icon">🏢</span>
+              <span>租户列表</span>
+              <span class="count">3</span>
+            </div>
+            <div class="menu-item">
+              <span class="icon">📦</span>
+              <span>套餐管理</span>
+            </div>
+            <div class="menu-item">
+              <span class="icon">💳</span>
+              <span>订阅管理</span>
+            </div>
+          </div>
+
+          <div class="menu-group">
+            <div class="menu-group-title">平台能力</div>
+            <div class="menu-item">
+              <span class="icon">🛒</span>
+              <span>即时零售</span>
+              <span class="arrow">▸</span>
+            </div>
+            <div class="menu-item">
+              <span class="icon">📋</span>
+              <span>订单中心</span>
+              <span class="arrow">▸</span>
+            </div>
+            <div class="menu-item">
+              <span class="icon">🔄</span>
+              <span>同步中心</span>
+              <span class="arrow">▸</span>
+            </div>
+          </div>
+
+          <div class="menu-group">
+            <div class="menu-group-title">系统</div>
+            <div class="menu-item">
+              <span class="icon">⚙️</span>
+              <span>系统配置</span>
+            </div>
+            <div class="menu-item">
+              <span class="icon">👥</span>
+              <span>管理员</span>
+            </div>
+            <div class="menu-item">
+              <span class="icon">📝</span>
+              <span>操作日志</span>
+            </div>
+          </div>
+        </nav>
+
+        <div class="sidebar-footer">
+          <div class="sidebar-super">
+            <div class="super-avatar">超</div>
+            <div class="super-info">
+              <div class="name">超级管理员</div>
+              <div class="role">SUPER ADMIN</div>
+            </div>
+          </div>
+        </div>
+      </aside>
+
+      <!-- 主内容区 -->
+      <main class="main-content">
+        <header class="topbar">
+          <div class="breadcrumb">
+            <span>运营总览</span>
+            <span>/</span>
+            <span class="current">数据大盘</span>
+          </div>
+          <div class="topbar-right">
+            <div class="search-mini">
+              <span>🔍</span>
+              <span>搜索租户、订单、商品...</span>
+            </div>
+            <div class="icon-btn">
+              🔔
+              <span class="dot"></span>
+            </div>
+            <div class="icon-btn">⚙️</div>
+          </div>
+        </header>
+
+        <div class="content-area">
+          <!-- 全局 KPI -->
+          <div class="global-stats">
+            <div class="stat-card">
+              <div class="stat-icon">🏢</div>
+              <div class="stat-label">总租户数量</div>
+              <div class="stat-value">286<span class="stat-unit">家</span></div>
+              <div class="stat-sub">本月新增 <strong>12</strong> 家 · 活跃 <strong>248</strong> 家</div>
+            </div>
+            <div class="stat-card">
+              <div class="stat-icon">💰</div>
+              <div class="stat-label">平台总营收</div>
+              <div class="stat-value">¥12.8<span class="stat-unit">万</span></div>
+              <div class="stat-sub">本月 <strong>¥3.2万</strong> · 环比 <strong class="stat-up">+18%</strong></div>
+            </div>
+            <div class="stat-card">
+              <div class="stat-icon">📦</div>
+              <div class="stat-label">总订单量</div>
+              <div class="stat-value">24,867<span class="stat-unit">单</span></div>
+              <div class="stat-sub">今日 <strong>328</strong> 单 · 同比 <strong class="stat-up">+12%</strong></div>
+            </div>
+            <div class="stat-card">
+              <div class="stat-icon">⚠️</div>
+              <div class="stat-label">待处理工单</div>
+              <div class="stat-value">7<span class="stat-unit">条</span></div>
+              <div class="stat-sub">紧急 <strong style="color: var(--color-danger)">2</strong> 条 · 一般 5 条</div>
+            </div>
+          </div>
+
+          <!-- 趋势 + 饼图 -->
+          <div class="two-col">
+            <div class="panel">
+              <div class="panel-header">
+                <div class="panel-title">📈 平台营收趋势</div>
+                <div class="panel-more">近 7 天 →</div>
+              </div>
+              <div class="panel-body">
+                <div class="bar-chart">
+                  <div class="bar" style="height: 45%"></div>
+                  <div class="bar" style="height: 62%"></div>
+                  <div class="bar" style="height: 38%"></div>
+                  <div class="bar" style="height: 72%"></div>
+                  <div class="bar" style="height: 55%"></div>
+                  <div class="bar" style="height: 85%"></div>
+                  <div class="bar" style="height: 78%"></div>
+                </div>
+                <div class="bar-chart-xaxis">
+                  <span>周一</span><span>周二</span><span>周三</span><span>周四</span><span>周五</span><span>周六</span><span>周日</span>
+                </div>
+              </div>
+            </div>
+
+            <div class="panel">
+              <div class="panel-header">
+                <div class="panel-title">🏆 租户等级分布</div>
+              </div>
+              <div class="panel-body">
+                <div class="pie-chart-wrap">
+                  <div class="pie-chart"></div>
+                  <div class="pie-legend">
+                    <div class="legend-item">
+                      <div class="legend-dot" style="background: var(--chart-1)"></div>
+                      <span class="legend-label">企业版</span>
+                      <span class="legend-value">98家</span>
+                    </div>
+                    <div class="legend-item">
+                      <div class="legend-dot" style="background: var(--chart-2)"></div>
+                      <span class="legend-label">专业版</span>
+                      <span class="legend-value">126家</span>
+                    </div>
+                    <div class="legend-item">
+                      <div class="legend-dot" style="background: var(--chart-3)"></div>
+                      <span class="legend-label">基础版</span>
+                      <span class="legend-value">48家</span>
+                    </div>
+                    <div class="legend-item">
+                      <div class="legend-dot" style="background: var(--chart-5)"></div>
+                      <span class="legend-label">试用版</span>
+                      <span class="legend-value">14家</span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- 三列：热门租户 + 系统监控 + 最近活动 -->
+          <div class="three-col">
+            <div class="panel">
+              <div class="panel-header">
+                <div class="panel-title">🔥 TOP 租户营收</div>
+                <div class="panel-more">更多 →</div>
+              </div>
+              <div class="panel-body">
+                <div class="tenant-list">
+                  <div class="tenant-item">
+                    <div class="tenant-logo" style="background: #FFE4E1;">酒</div>
+                    <div class="tenant-info">
+                      <div class="tenant-name">酒速达连锁 <span class="tag vip">企业版</span></div>
+                      <div class="tenant-meta"><span>28门店</span><span>月付</span></div>
+                    </div>
+                    <div class="tenant-amount">¥28,600<small>本月</small></div>
+                  </div>
+                  <div class="tenant-item">
+                    <div class="tenant-logo" style="background: #E8F5E9;">智</div>
+                    <div class="tenant-info">
+                      <div class="tenant-name">智享酒仓 <span class="tag vip">企业版</span></div>
+                      <div class="tenant-meta"><span>12门店</span><span>年付</span></div>
+                    </div>
+                    <div class="tenant-amount">¥18,200<small>本月</small></div>
+                  </div>
+                  <div class="tenant-item">
+                    <div class="tenant-logo" style="background: #FFF3E0;">名</div>
+                    <div class="tenant-info">
+                      <div class="tenant-name">名酒汇 <span class="tag success">专业版</span></div>
+                      <div class="tenant-meta"><span>5门店</span><span>月付</span></div>
+                    </div>
+                    <div class="tenant-amount">¥6,800<small>本月</small></div>
+                  </div>
+                  <div class="tenant-item">
+                    <div class="tenant-logo" style="background: #E3F2FD;">品</div>
+                    <div class="tenant-info">
+                      <div class="tenant-name">品悦酒庄 <span class="tag success">专业版</span></div>
+                      <div class="tenant-meta"><span>3门店</span><span>季付</span></div>
+                    </div>
+                    <div class="tenant-amount">¥4,500<small>本月</small></div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <div class="panel">
+              <div class="panel-header">
+                <div class="panel-title">🖥️ 系统监控</div>
+                <div class="panel-more">详情 →</div>
+              </div>
+              <div class="panel-body">
+                <div class="monitor-list">
+                  <div class="monitor-item">
+                    <div class="monitor-icon ok">💻</div>
+                    <div class="monitor-info">
+                      <div class="monitor-name">CPU 使用率</div>
+                      <div class="monitor-bar"><div class="monitor-bar-fill" style="width: 42%"></div></div>
+                    </div>
+                    <div class="monitor-value">42%</div>
+                  </div>
+                  <div class="monitor-item">
+                    <div class="monitor-icon ok">💾</div>
+                    <div class="monitor-info">
+                      <div class="monitor-name">内存使用率</div>
+                      <div class="monitor-bar"><div class="monitor-bar-fill" style="width: 68%"></div></div>
+                    </div>
+                    <div class="monitor-value">68%</div>
+                  </div>
+                  <div class="monitor-item">
+                    <div class="monitor-icon ok">🗄️</div>
+                    <div class="monitor-info">
+                      <div class="monitor-name">磁盘使用率</div>
+                      <div class="monitor-bar"><div class="monitor-bar-fill" style="width: 35%"></div></div>
+                    </div>
+                    <div class="monitor-value">35%</div>
+                  </div>
+                  <div class="monitor-item">
+                    <div class="monitor-icon warn">📶</div>
+                    <div class="monitor-info">
+                      <div class="monitor-name">API 响应延迟</div>
+                      <div class="monitor-bar"><div class="monitor-bar-fill warn" style="width: 60%"></div></div>
+                    </div>
+                    <div class="monitor-value">120ms</div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <div class="panel">
+              <div class="panel-header">
+                <div class="panel-title">📝 最近操作日志</div>
+                <div class="panel-more">全部 →</div>
+              </div>
+              <div class="panel-body">
+                <div class="tenant-list">
+                  <div class="tenant-item">
+                    <div class="tenant-logo" style="width:32px;height:32px;font-size:12px;background: var(--color-primary-soft);">✓</div>
+                    <div class="tenant-info">
+                      <div class="tenant-name" style="font-size:12px;font-weight:500;">新增租户「酒韵轩」</div>
+                      <div class="tenant-meta"><span>管理员 · 张工</span></div>
+                    </div>
+                    <div class="tenant-amount" style="font-size:11px;font-weight:400;color:var(--text-muted)">2分钟前</div>
+                  </div>
+                  <div class="tenant-item">
+                    <div class="tenant-logo" style="width:32px;height:32px;font-size:12px;background: var(--color-warning-soft);">⚙</div>
+                    <div class="tenant-info">
+                      <div class="tenant-name" style="font-size:12px;font-weight:500;">调整「名酒汇」套餐</div>
+                      <div class="tenant-meta"><span>管理员 · 李工</span></div>
+                    </div>
+                    <div class="tenant-amount" style="font-size:11px;font-weight:400;color:var(--text-muted)">15分钟前</div>
+                  </div>
+                  <div class="tenant-item">
+                    <div class="tenant-logo" style="width:32px;height:32px;font-size:12px;background: var(--color-success-soft);">💰</div>
+                    <div class="tenant-info">
+                      <div class="tenant-name" style="font-size:12px;font-weight:500;">「智享酒仓」续费成功</div>
+                      <div class="tenant-meta"><span>系统自动</span></div>
+                    </div>
+                    <div class="tenant-amount" style="font-size:11px;font-weight:400;color:var(--text-muted)">1小时前</div>
+                  </div>
+                  <div class="tenant-item">
+                    <div class="tenant-logo" style="width:32px;height:32px;font-size:12px;background: var(--color-danger-soft);">⚠</div>
+                    <div class="tenant-info">
+                      <div class="tenant-name" style="font-size:12px;font-weight:500;">3个租户即将到期</div>
+                      <div class="tenant-meta"><span>系统提醒</span></div>
+                    </div>
+                    <div class="tenant-amount" style="font-size:11px;font-weight:400;color:var(--text-muted)">2小时前</div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </main>
+    </div>
+  </div>
+
+  <div class="design-notes">
+    <h3>📐 设计要点说明</h3>
+    <div class="note-grid">
+      <div class="note-item">
+        <strong>与商户后台的差异</strong>
+        <p>侧边栏更宽（240px vs 220px），顶部栏更高（64px vs 60px），KPI 卡片更突出，数据密度更高，整体更偏向"运营监控"风格。</p>
+      </div>
+      <div class="note-item">
+        <strong>视觉区分策略</strong>
+        <p>Logo 使用红色（危险色）标识"超级管理员"身份，侧边栏标签增加 SaaS 标识，与商户后台形成明确视觉区分，避免操作混淆。</p>
+      </div>
+      <div class="note-item">
+        <strong>数据密度</strong>
+        <p>超级后台需要同时展示更多数据维度，采用三列布局（热门租户+系统监控+操作日志），卡片内信息更紧凑，减少留白。</p>
+      </div>
+      <div class="note-item">
+        <strong>操作入口</strong>
+        <p>顶部搜索框更宽（280px），支持跨租户全局搜索。通知和设置常驻顶部，管理员可快速处理工单和系统配置。</p>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+</body>
+</html>

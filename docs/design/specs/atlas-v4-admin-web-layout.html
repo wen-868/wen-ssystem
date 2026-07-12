@@ -1,0 +1,1047 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Atlas v4 — 管理后台（admin-web）布局设计</title>
+<style>
+/* ═══════════════════════════════════════════════════════════════
+   Design Tokens v4.0 — Atlas 灰阶体系
+   原则：只有字体用黑色，其他一律不用黑色。背景以灰+白为主，按钮图表可彩色
+   ═══════════════════════════════════════════════════════════════ */
+:root {
+  --gray-0: #FFFFFF;
+  --gray-50: #F8F8F8;
+  --gray-100: #F0F0F0;
+  --gray-200: #E2E2E2;
+  --gray-300: #CCCCCC;
+  --gray-400: #999999;
+  --gray-500: #666666;
+  --gray-600: #444444;
+  --gray-700: #333333;
+  --gray-800: #2A2A2A;
+  --gray-900: #222222;
+
+  --text-primary: #000000;
+  --text-secondary: #444444;
+  --text-muted: #999999;
+
+  --color-primary: #5B6ABF;
+  --color-primary-hover: #6B7BCF;
+  --color-primary-active: #4A5AA8;
+  --color-primary-soft: rgba(91, 106, 191, 0.12);
+  --color-primary-bg: rgba(91, 106, 191, 0.06);
+
+  --color-success: #0EA879;
+  --color-success-soft: rgba(14, 168, 121, 0.10);
+  --color-warning: #D48B3A;
+  --color-warning-soft: rgba(212, 139, 58, 0.10);
+  --color-danger: #C0392B;
+  --color-danger-soft: rgba(192, 57, 43, 0.10);
+
+  --chart-1: #5B6ABF;
+  --chart-2: #0EA879;
+  --chart-3: #D48B3A;
+  --chart-4: #C0392B;
+  --chart-5: #8B5CF6;
+  --chart-6: #06B6D4;
+
+  --bg-page: #F5F5F5;
+  --bg-card: #FFFFFF;
+  --bg-sidebar: #FAFAFA;
+  --border: #E2E2E2;
+
+  --radius: 6px;
+  --radius-lg: 8px;
+  --radius-xl: 12px;
+
+  --shadow-sm: 0 1px 2px rgba(0,0,0,0.04);
+  --shadow-md: 0 2px 8px rgba(0,0,0,0.06);
+
+  --font-family: "Inter", -apple-system, "PingFang SC", "Microsoft YaHei", sans-serif;
+}
+
+* { margin: 0; padding: 0; box-sizing: border-box; }
+body {
+  font-family: var(--font-family);
+  background: var(--bg-page);
+  color: var(--text-primary);
+  line-height: 1.5;
+  -webkit-font-smoothing: antialiased;
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   页面容器 — 用于展示设计稿
+   ═══════════════════════════════════════════════════════════════ */
+.design-page {
+  max-width: 1400px;
+  margin: 0 auto;
+  padding: 40px 24px 80px;
+}
+
+.design-header {
+  text-align: center;
+  margin-bottom: 48px;
+}
+.design-header .label {
+  display: inline-block;
+  padding: 4px 12px;
+  background: var(--color-primary-soft);
+  color: var(--color-primary);
+  border-radius: 999px;
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: 1px;
+  margin-bottom: 16px;
+}
+.design-header h1 {
+  font-size: 32px;
+  font-weight: 700;
+  margin-bottom: 8px;
+  color: var(--text-primary);
+}
+.design-header p {
+  font-size: 15px;
+  color: var(--text-secondary);
+  max-width: 600px;
+  margin: 0 auto;
+}
+
+.section-title {
+  font-size: 20px;
+  font-weight: 600;
+  margin: 48px 0 20px;
+  padding-bottom: 12px;
+  border-bottom: 2px solid var(--border);
+  color: var(--text-primary);
+}
+.section-title::before {
+  content: "";
+  display: inline-block;
+  width: 4px;
+  height: 18px;
+  background: var(--color-primary);
+  border-radius: 2px;
+  margin-right: 10px;
+  vertical-align: -2px;
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   布局 A：经典侧边栏布局（推荐）
+   ═══════════════════════════════════════════════════════════════ */
+.layout-demo {
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-xl);
+  overflow: hidden;
+  margin-bottom: 40px;
+}
+
+.layout-label {
+  padding: 12px 20px;
+  background: var(--gray-50);
+  border-bottom: 1px solid var(--border);
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--text-secondary);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+.layout-label .badge {
+  padding: 2px 8px;
+  background: var(--color-success-soft);
+  color: var(--color-success);
+  border-radius: 4px;
+  font-size: 11px;
+  font-weight: 500;
+}
+
+/* —— 经典布局框架 —— */
+.layout-classic {
+  display: flex;
+  height: 620px;
+}
+
+/* 侧边栏 */
+.sidebar {
+  width: 220px;
+  background: var(--bg-sidebar);
+  border-right: 1px solid var(--border);
+  display: flex;
+  flex-direction: column;
+  flex-shrink: 0;
+}
+
+.sidebar-logo {
+  height: 60px;
+  display: flex;
+  align-items: center;
+  padding: 0 20px;
+  border-bottom: 1px solid var(--border);
+  gap: 10px;
+}
+.sidebar-logo .logo-icon {
+  width: 32px;
+  height: 32px;
+  background: var(--color-primary);
+  border-radius: var(--radius);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #fff;
+  font-weight: 700;
+  font-size: 16px;
+}
+.sidebar-logo .logo-text {
+  font-size: 16px;
+  font-weight: 700;
+  color: var(--text-primary);
+}
+
+.sidebar-menu {
+  flex: 1;
+  padding: 16px 12px;
+  overflow-y: auto;
+}
+.menu-group {
+  margin-bottom: 16px;
+}
+.menu-group-title {
+  font-size: 11px;
+  color: var(--text-muted);
+  padding: 0 12px 8px;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  font-weight: 600;
+}
+.menu-item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 9px 12px;
+  border-radius: var(--radius);
+  font-size: 14px;
+  color: var(--gray-500);
+  cursor: pointer;
+  margin-bottom: 2px;
+  transition: all 0.15s ease;
+}
+.menu-item:hover {
+  background: rgba(0,0,0,0.03);
+  color: var(--text-primary);
+}
+.menu-item.active {
+  background: var(--color-primary-soft);
+  color: var(--color-primary);
+  font-weight: 500;
+}
+.menu-item .icon {
+  width: 18px;
+  height: 18px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 16px;
+}
+.menu-item .arrow {
+  margin-left: auto;
+  font-size: 12px;
+  color: var(--text-muted);
+}
+
+.sidebar-footer {
+  padding: 12px;
+  border-top: 1px solid var(--border);
+}
+.sidebar-store {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 8px;
+  border-radius: var(--radius);
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+}
+.store-avatar {
+  width: 32px;
+  height: 32px;
+  background: var(--gray-200);
+  border-radius: var(--radius);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 600;
+  font-size: 13px;
+  color: var(--text-secondary);
+}
+.store-info .name {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--text-primary);
+}
+.store-info .role {
+  font-size: 11px;
+  color: var(--text-muted);
+}
+
+/* 主内容区 */
+.main-content {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+/* 顶部栏 */
+.topbar {
+  height: 60px;
+  background: var(--bg-card);
+  border-bottom: 1px solid var(--border);
+  display: flex;
+  align-items: center;
+  padding: 0 24px;
+  gap: 16px;
+  flex-shrink: 0;
+}
+.topbar .breadcrumb {
+  font-size: 14px;
+  color: var(--text-secondary);
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+.topbar .breadcrumb .current {
+  color: var(--text-primary);
+  font-weight: 500;
+}
+.topbar-right {
+  margin-left: auto;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+.search-mini {
+  width: 240px;
+  height: 34px;
+  background: var(--gray-50);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  display: flex;
+  align-items: center;
+  padding: 0 12px;
+  gap: 8px;
+  font-size: 13px;
+  color: var(--text-muted);
+}
+.icon-btn {
+  width: 34px;
+  height: 34px;
+  background: var(--gray-50);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  position: relative;
+}
+.icon-btn .dot {
+  position: absolute;
+  top: 6px;
+  right: 6px;
+  width: 8px;
+  height: 8px;
+  background: var(--color-danger);
+  border-radius: 50%;
+  border: 2px solid var(--bg-card);
+}
+.user-chip {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 4px 12px 4px 4px;
+  background: var(--gray-50);
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  cursor: pointer;
+}
+.user-chip .avatar {
+  width: 26px;
+  height: 26px;
+  background: var(--color-primary);
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #fff;
+  font-size: 12px;
+  font-weight: 600;
+}
+.user-chip .name {
+  font-size: 13px;
+  color: var(--text-primary);
+}
+
+/* 内容区 */
+.content-area {
+  flex: 1;
+  overflow-y: auto;
+  padding: 24px;
+}
+
+/* KPI 卡片组 */
+.kpi-row {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 16px;
+  margin-bottom: 24px;
+}
+.kpi-card {
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  padding: 20px;
+  position: relative;
+  overflow: hidden;
+}
+.kpi-card::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 3px;
+  background: var(--chart-1);
+  opacity: 0.6;
+}
+.kpi-card:nth-child(2)::before { background: var(--chart-2); }
+.kpi-card:nth-child(3)::before { background: var(--chart-3); }
+.kpi-card:nth-child(4)::before { background: var(--chart-5); }
+.kpi-label {
+  font-size: 13px;
+  color: var(--text-secondary);
+  margin-bottom: 8px;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+.kpi-value {
+  font-size: 26px;
+  font-weight: 700;
+  color: var(--text-primary);
+  margin-bottom: 6px;
+  letter-spacing: -0.5px;
+}
+.kpi-trend {
+  font-size: 12px;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+.kpi-trend.up { color: var(--color-success); }
+.kpi-trend.down { color: var(--color-danger); }
+.kpi-icon {
+  position: absolute;
+  right: 16px;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 40px;
+  height: 40px;
+  background: var(--gray-100);
+  border-radius: var(--radius);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 20px;
+}
+
+/* 双列布局 */
+.two-col {
+  display: grid;
+  grid-template-columns: 2fr 1fr;
+  gap: 16px;
+  margin-bottom: 24px;
+}
+.panel {
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  overflow: hidden;
+}
+.panel-header {
+  padding: 16px 20px;
+  border-bottom: 1px solid var(--border);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+.panel-title {
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--text-primary);
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.panel-tabs {
+  display: flex;
+  gap: 4px;
+}
+.panel-tab {
+  padding: 4px 10px;
+  font-size: 12px;
+  color: var(--text-secondary);
+  border-radius: 4px;
+  cursor: pointer;
+}
+.panel-tab.active {
+  background: var(--color-primary-soft);
+  color: var(--color-primary);
+  font-weight: 500;
+}
+.panel-more {
+  font-size: 12px;
+  color: var(--text-muted);
+  cursor: pointer;
+}
+.panel-body {
+  padding: 20px;
+}
+
+/* 图表占位 */
+.chart-placeholder {
+  height: 220px;
+  background: linear-gradient(180deg, var(--color-primary-soft) 0%, transparent 100%);
+  border-radius: var(--radius);
+  position: relative;
+  overflow: hidden;
+  display: flex;
+  align-items: flex-end;
+  padding: 16px;
+}
+.chart-line {
+  position: absolute;
+  left: 16px;
+  right: 16px;
+  bottom: 30px;
+  height: 2px;
+  background: var(--color-primary);
+  border-radius: 2px;
+}
+.chart-line::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background:
+    radial-gradient(circle at 10% 50%, var(--color-primary) 0 4px, transparent 5px),
+    radial-gradient(circle at 30% -20%, var(--color-primary) 0 4px, transparent 5px),
+    radial-gradient(circle at 50% 80%, var(--color-primary) 0 4px, transparent 5px),
+    radial-gradient(circle at 70% -10%, var(--color-primary) 0 4px, transparent 5px),
+    radial-gradient(circle at 90% 30%, var(--color-primary) 0 4px, transparent 5px);
+}
+.chart-xaxis {
+  position: absolute;
+  bottom: 8px;
+  left: 16px;
+  right: 16px;
+  display: flex;
+  justify-content: space-between;
+  font-size: 11px;
+  color: var(--text-muted);
+}
+
+/* 订单列表 */
+.order-list {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+.order-item {
+  display: flex;
+  align-items: center;
+  padding: 12px;
+  background: var(--gray-50);
+  border-radius: var(--radius);
+  gap: 12px;
+}
+.order-avatar {
+  width: 36px;
+  height: 36px;
+  background: var(--gray-200);
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 600;
+  font-size: 13px;
+  color: var(--text-secondary);
+  flex-shrink: 0;
+}
+.order-info {
+  flex: 1;
+  min-width: 0;
+}
+.order-name {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--text-primary);
+  margin-bottom: 2px;
+}
+.order-desc {
+  font-size: 11px;
+  color: var(--text-muted);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.order-amount {
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--text-primary);
+  flex-shrink: 0;
+}
+.order-status {
+  font-size: 11px;
+  padding: 3px 8px;
+  border-radius: 4px;
+  font-weight: 500;
+  flex-shrink: 0;
+}
+.order-status.success {
+  background: var(--color-success-soft);
+  color: var(--color-success);
+}
+.order-status.warning {
+  background: var(--color-warning-soft);
+  color: var(--color-warning);
+}
+.order-status.info {
+  background: var(--color-primary-soft);
+  color: var(--color-primary);
+}
+
+/* 表格面板 */
+.table-panel {
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  overflow: hidden;
+}
+.data-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 13px;
+}
+.data-table th {
+  text-align: left;
+  padding: 12px 16px;
+  background: var(--gray-50);
+  border-bottom: 1px solid var(--border);
+  font-weight: 600;
+  color: var(--text-secondary);
+  font-size: 12px;
+}
+.data-table td {
+  padding: 14px 16px;
+  border-bottom: 1px solid var(--border);
+  color: var(--text-primary);
+}
+.data-table tr:last-child td { border-bottom: none; }
+.data-table tr:hover td { background: var(--gray-50); }
+
+.tag {
+  display: inline-block;
+  padding: 2px 8px;
+  border-radius: 4px;
+  font-size: 11px;
+  font-weight: 500;
+}
+.tag.success { background: var(--color-success-soft); color: var(--color-success); }
+.tag.warning { background: var(--color-warning-soft); color: var(--color-warning); }
+.tag.danger { background: var(--color-danger-soft); color: var(--color-danger); }
+.tag.info { background: var(--color-primary-soft); color: var(--color-primary); }
+.tag.default { background: var(--gray-100); color: var(--text-secondary); }
+
+.btn {
+  padding: 5px 12px;
+  border-radius: var(--radius);
+  font-size: 12px;
+  font-weight: 500;
+  cursor: pointer;
+  border: 1px solid var(--border);
+  background: var(--bg-card);
+  color: var(--text-primary);
+  transition: all 0.15s ease;
+}
+.btn:hover { border-color: var(--gray-400); }
+.btn.primary {
+  background: var(--color-primary);
+  border-color: var(--color-primary);
+  color: #fff;
+}
+.btn.primary:hover { background: var(--color-primary-hover); border-color: var(--color-primary-hover); }
+.btn.danger {
+  background: var(--color-danger-soft);
+  border-color: transparent;
+  color: var(--color-danger);
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   设计说明区
+   ═══════════════════════════════════════════════════════════════ */
+.design-notes {
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-xl);
+  padding: 28px 32px;
+  margin-top: 40px;
+}
+.design-notes h3 {
+  font-size: 16px;
+  font-weight: 600;
+  margin-bottom: 16px;
+  color: var(--text-primary);
+}
+.note-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 16px;
+}
+.note-item {
+  padding: 16px;
+  background: var(--gray-50);
+  border-radius: var(--radius-lg);
+  border: 1px solid var(--border);
+}
+.note-item strong {
+  display: block;
+  font-size: 13px;
+  color: var(--text-primary);
+  margin-bottom: 6px;
+}
+.note-item p {
+  font-size: 12px;
+  color: var(--text-secondary);
+  line-height: 1.6;
+}
+</style>
+</head>
+<body>
+
+<div class="design-page">
+
+  <div class="design-header">
+    <span class="label">ADMIN-WEB · 布局设计 v4.0</span>
+    <h1>管理后台布局设计</h1>
+    <p>商户端 PC 后台 — 经典侧边栏 + 顶部导航 + 卡片内容区<br>遵循 Atlas v4 设计原则：字体纯黑、灰阶背景、功能彩色</p>
+  </div>
+
+  <!-- 布局 A：经典侧边栏布局 -->
+  <h2 class="section-title">布局方案：经典侧边栏布局（推荐）</h2>
+  <div class="layout-demo">
+    <div class="layout-label">
+      <span>📐 布局 A — 经典侧边栏 + 顶部面包屑</span>
+      <span class="badge">推荐方案</span>
+    </div>
+
+    <div class="layout-classic">
+      <!-- 侧边栏 -->
+      <aside class="sidebar">
+        <div class="sidebar-logo">
+          <div class="logo-icon">智</div>
+          <div class="logo-text">智享酒仓</div>
+        </div>
+
+        <nav class="sidebar-menu">
+          <div class="menu-group">
+            <div class="menu-group-title">工作台</div>
+            <div class="menu-item active">
+              <span class="icon">📊</span>
+              <span>经营总览</span>
+            </div>
+            <div class="menu-item">
+              <span class="icon">📈</span>
+              <span>数据分析</span>
+            </div>
+          </div>
+
+          <div class="menu-group">
+            <div class="menu-group-title">业务</div>
+            <div class="menu-item">
+              <span class="icon">📦</span>
+              <span>商品管理</span>
+              <span class="arrow">▸</span>
+            </div>
+            <div class="menu-item">
+              <span class="icon">📝</span>
+              <span>订单管理</span>
+              <span class="arrow">▸</span>
+            </div>
+            <div class="menu-item">
+              <span class="icon">👥</span>
+              <span>会员管理</span>
+              <span class="arrow">▸</span>
+            </div>
+            <div class="menu-item">
+              <span class="icon">🛒</span>
+              <span>即时零售</span>
+              <span class="arrow">▸</span>
+            </div>
+          </div>
+
+          <div class="menu-group">
+            <div class="menu-group-title">库存</div>
+            <div class="menu-item">
+              <span class="icon">📥</span>
+              <span>采购入库</span>
+            </div>
+            <div class="menu-item">
+              <span class="icon">🔄</span>
+              <span>库存盘点</span>
+            </div>
+            <div class="menu-item">
+              <span class="icon">🚚</span>
+              <span>调拨管理</span>
+            </div>
+          </div>
+
+          <div class="menu-group">
+            <div class="menu-group-title">设置</div>
+            <div class="menu-item">
+              <span class="icon">⚙️</span>
+              <span>系统设置</span>
+            </div>
+          </div>
+        </nav>
+
+        <div class="sidebar-footer">
+          <div class="sidebar-store">
+            <div class="store-avatar">朝</div>
+            <div class="store-info">
+              <div class="name">朝阳门店</div>
+              <div class="role">店长 · 李明</div>
+            </div>
+          </div>
+        </div>
+      </aside>
+
+      <!-- 主内容区 -->
+      <main class="main-content">
+        <!-- 顶部栏 -->
+        <header class="topbar">
+          <div class="breadcrumb">
+            <span>工作台</span>
+            <span>/</span>
+            <span class="current">经营总览</span>
+          </div>
+          <div class="topbar-right">
+            <div class="search-mini">
+              <span>🔍</span>
+              <span>搜索商品、订单...</span>
+            </div>
+            <div class="icon-btn">
+              🔔
+              <span class="dot"></span>
+            </div>
+            <div class="user-chip">
+              <div class="avatar">李</div>
+              <span class="name">李明</span>
+            </div>
+          </div>
+        </header>
+
+        <!-- 内容区 -->
+        <div class="content-area">
+          <!-- KPI 卡片 -->
+          <div class="kpi-row">
+            <div class="kpi-card">
+              <div class="kpi-label">今日营业额</div>
+              <div class="kpi-value">¥8,624</div>
+              <div class="kpi-trend up">↑ 18.6% 较昨日</div>
+              <div class="kpi-icon">💰</div>
+            </div>
+            <div class="kpi-card">
+              <div class="kpi-label">今日订单</div>
+              <div class="kpi-value">42</div>
+              <div class="kpi-trend up">↑ 5 单 较昨日</div>
+              <div class="kpi-icon">📋</div>
+            </div>
+            <div class="kpi-card">
+              <div class="kpi-label">库存预警</div>
+              <div class="kpi-value">12</div>
+              <div class="kpi-trend down">↓ 3 SKU 较昨日</div>
+              <div class="kpi-icon">⚠️</div>
+            </div>
+            <div class="kpi-card">
+              <div class="kpi-label">会员数</div>
+              <div class="kpi-value">2,847</div>
+              <div class="kpi-trend up">↑ 今日+12</div>
+              <div class="kpi-icon">👤</div>
+            </div>
+          </div>
+
+          <!-- 图表 + 订单 -->
+          <div class="two-col">
+            <div class="panel">
+              <div class="panel-header">
+                <div class="panel-title">📈 销售趋势</div>
+                <div class="panel-tabs">
+                  <div class="panel-tab active">今日</div>
+                  <div class="panel-tab">本周</div>
+                  <div class="panel-tab">本月</div>
+                </div>
+              </div>
+              <div class="panel-body">
+                <div class="chart-placeholder">
+                  <div class="chart-line"></div>
+                  <div class="chart-xaxis">
+                    <span>09:00</span>
+                    <span>12:00</span>
+                    <span>15:00</span>
+                    <span>18:00</span>
+                    <span>21:00</span>
+                    <span>24:00</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <div class="panel">
+              <div class="panel-header">
+                <div class="panel-title">📋 最新订单</div>
+                <div class="panel-more">查看全部 →</div>
+              </div>
+              <div class="panel-body">
+                <div class="order-list">
+                  <div class="order-item">
+                    <div class="order-avatar">王</div>
+                    <div class="order-info">
+                      <div class="order-name">王先生</div>
+                      <div class="order-desc">#20260712-0042 · 2分钟前</div>
+                    </div>
+                    <div class="order-amount">¥2,688</div>
+                    <div class="order-status success">已付款</div>
+                  </div>
+                  <div class="order-item">
+                    <div class="order-avatar">李</div>
+                    <div class="order-info">
+                      <div class="order-name">李女士</div>
+                      <div class="order-desc">#20260712-0041 · 8分钟前</div>
+                    </div>
+                    <div class="order-amount">¥867</div>
+                    <div class="order-status warning">待取货</div>
+                  </div>
+                  <div class="order-item">
+                    <div class="order-avatar">张</div>
+                    <div class="order-info">
+                      <div class="order-name">张先生</div>
+                      <div class="order-desc">#20260712-0040 · 15分钟前</div>
+                    </div>
+                    <div class="order-amount">¥1,299</div>
+                    <div class="order-status info">配送中</div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- 热销商品表格 -->
+          <div class="table-panel">
+            <div class="panel-header">
+              <div class="panel-title">🏆 热销商品 TOP 5</div>
+              <div class="panel-more">查看全部 →</div>
+            </div>
+            <table class="data-table">
+              <thead>
+                <tr>
+                  <th>排名</th>
+                  <th>商品名称</th>
+                  <th>分类</th>
+                  <th>售价</th>
+                  <th>销量</th>
+                  <th>销售额</th>
+                  <th>状态</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td><span class="tag warning">1</span></td>
+                  <td>飞天茅台 53° 500ml</td>
+                  <td>白酒</td>
+                  <td>¥2,688</td>
+                  <td>128</td>
+                  <td>¥344,064</td>
+                  <td><span class="tag success">在售</span></td>
+                </tr>
+                <tr>
+                  <td><span class="tag default">2</span></td>
+                  <td>五粮液 第八代 52°</td>
+                  <td>白酒</td>
+                  <td>¥1,099</td>
+                  <td>96</td>
+                  <td>¥105,504</td>
+                  <td><span class="tag success">在售</span></td>
+                </tr>
+                <tr>
+                  <td><span class="tag default">3</span></td>
+                  <td>拉菲传奇 2019</td>
+                  <td>红酒</td>
+                  <td>¥388</td>
+                  <td>84</td>
+                  <td>¥32,592</td>
+                  <td><span class="tag success">在售</span></td>
+                </tr>
+                <tr>
+                  <td><span class="tag default">4</span></td>
+                  <td>轩尼诗 VSOP 700ml</td>
+                  <td>洋酒</td>
+                  <td>¥520</td>
+                  <td>67</td>
+                  <td>¥34,840</td>
+                  <td><span class="tag warning">库存低</span></td>
+                </tr>
+                <tr>
+                  <td><span class="tag default">5</span></td>
+                  <td>青岛啤酒 经典 500ml</td>
+                  <td>啤酒</td>
+                  <td>¥8</td>
+                  <td>2,340</td>
+                  <td>¥18,720</td>
+                  <td><span class="tag success">在售</span></td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </main>
+    </div>
+  </div>
+
+  <!-- 设计说明 -->
+  <div class="design-notes">
+    <h3>📐 设计要点说明</h3>
+    <div class="note-grid">
+      <div class="note-item">
+        <strong>布局结构</strong>
+        <p>左侧 220px 侧边栏 + 右侧自适应主内容区。顶部 60px 面包屑栏，下方滚动内容区。经典后台布局，信息层级清晰。</p>
+      </div>
+      <div class="note-item">
+        <strong>色彩应用</strong>
+        <p>侧边栏浅灰底 (#FAFAFA)，导航项灰字，激活项蓝底蓝字。卡片白底灰边，数据文字纯黑，状态标签保留彩色（成功绿/警告橙/危险红）。</p>
+      </div>
+      <div class="note-item">
+        <strong>KPI 卡片</strong>
+        <p>顶部装饰条用彩色细条（蓝/绿/橙/紫）点缀，图标区用浅灰底，数值文字纯黑加粗，趋势用小字号彩色标识。</p>
+      </div>
+      <div class="note-item">
+        <strong>表格设计</strong>
+        <p>表头浅灰底，行分割线用浅灰，hover 态浅灰背景。禁用斑马纹（避免过多色块），状态用彩色 tag 区分。</p>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+</body>
+</html>
