@@ -401,6 +401,23 @@
 - `backend/src/services/admin/member.service.ts`（修改）
 - `backend/src/routes/platform-auth.routes.ts`（修改）
 
+### R24-A2 — 租户自助注册前端页面（admin-web）[P0]
+
+- **状态**：✅ 已完成
+- **优先级**：P0
+- **负责人**：墨
+- **预计**：1.5 天
+- **完成时间**：2026-07-13
+- **完成内容**：新建 RegisterView.vue 注册页面，包含公司信息和管理员账号表单，密码强度提示，用户协议勾选
+- **验收**：
+  - ✅ vue-tsc --noEmit 0 错误
+  - ✅ npm run build 成功
+- **修改文件**：
+  - `admin-web/src/api.ts`
+  - `admin-web/src/views/RegisterView.vue`（新增）
+  - `admin-web/src/router/index.ts`
+  - `admin-web/src/views/LoginView.vue`
+
 ---
 
 ## R21 任务列表（已完成）

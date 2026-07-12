@@ -37,7 +37,7 @@ const mockRes = () => {
 describe("sales.controller", () => {
   beforeEach(() => vi.clearAllMocks());
 
-  it("requirePaymentReady - 支付已配置应调用 next", async () => {
+  it("requirePaymentReady - 支付已配置应调用next", async () => {
     (isProviderReady as any).mockResolvedValue(true);
     const req = mockReq({ body: { provider: "wechat" } });
     const res = mockRes();
@@ -54,6 +54,11 @@ describe("sales.controller", () => {
     const next = vi.fn();
     await requirePaymentReady(req as any, res as any, next);
     expect(res.status).toHaveBeenCalledWith(400);
+    expect(res.json).toHaveBeenCalledWith({
+      code: "PAYMENT_NOT_CONFIGURED",
+      message: "请先配置微信支付",
+      provider: "wechat",
+    });
     expect(next).not.toHaveBeenCalled();
   });
 
@@ -73,5 +78,24 @@ describe("sales.controller", () => {
     const next = vi.fn();
     await requirePaymentReady(req as any, res as any, next);
     expect(isProviderReady).toHaveBeenCalledWith("t1", "alipay");
+  });
+
+  it("requirePaymentReady - service抛出异常应被捕获", async () => {
+    const error = new Error("支付配置查询失败");
+    (isProviderReady as any).mockRejectedValue(error);
+    const req = mockReq({ body: { provider: "wechat" } });
+    const res = mockRes();
+    const next = vi.fn();
+    await expect(requirePaymentReady(req as any, res as any, next)).rejects.toThrow(error);
+    expect(next).not.toHaveBeenCalled();
+  });
+
+  it("requirePaymentReady - 从body获取provider优先级高于query", async () => {
+    (isProviderReady as any).mockResolvedValue(true);
+    const req = mockReq({ body: { provider: "wechat" }, query: { provider: "alipay" } });
+    const res = mockRes();
+    const next = vi.fn();
+    await requirePaymentReady(req as any, res as any, next);
+    expect(isProviderReady).toHaveBeenCalledWith("t1", "wechat");
   });
 });

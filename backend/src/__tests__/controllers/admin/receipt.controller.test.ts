@@ -64,6 +64,14 @@ describe("receipt.controller", () => {
     expect(ok).toHaveBeenCalled();
   });
 
+  it("createReceipt - service抛出异常应被捕获", async () => {
+    const error = new Error("创建收款单失败");
+    (receiptService.createReceipt as any).mockRejectedValue(error);
+    const req = mockReq({ body: { customerName: "客户A", amount: 1000 } });
+    const res = mockRes();
+    await expect(createReceipt(req as any, res as any)).rejects.toThrow(error);
+  });
+
   it("listReceipts - 应返回收款单列表", async () => {
     (receiptService.listReceipts as any).mockResolvedValue({ total: 0, records: [] });
     const req = mockReq({ query: { page: 1, pageSize: 20 } });
@@ -71,6 +79,17 @@ describe("receipt.controller", () => {
     await listReceipts(req as any, res as any);
     expect(receiptService.listReceipts).toHaveBeenCalledWith({
       customerId: undefined, status: undefined, page: 1, pageSize: 20, tenantId: "t1"
+    });
+    expect(ok).toHaveBeenCalled();
+  });
+
+  it("listReceipts - 应支持按客户筛选", async () => {
+    (receiptService.listReceipts as any).mockResolvedValue({ total: 1, records: [] });
+    const req = mockReq({ query: { customerId: "5", status: "CONFIRMED" } });
+    const res = mockRes();
+    await listReceipts(req as any, res as any);
+    expect(receiptService.listReceipts).toHaveBeenCalledWith({
+      customerId: 5, status: "CONFIRMED", page: 1, pageSize: 20, tenantId: "t1"
     });
     expect(ok).toHaveBeenCalled();
   });
@@ -84,6 +103,14 @@ describe("receipt.controller", () => {
     expect(ok).toHaveBeenCalled();
   });
 
+  it("getReceiptDetail - 收款单不存在应抛出异常", async () => {
+    const error = new Error("收款单不存在");
+    (receiptService.getReceiptDetail as any).mockRejectedValue(error);
+    const req = mockReq({ params: { receiptNo: "R999" } });
+    const res = mockRes();
+    await expect(getReceiptDetail(req as any, res as any)).rejects.toThrow(error);
+  });
+
   it("writeoffReceipt - 应核销收款单", async () => {
     (receiptService.writeoffReceipt as any).mockResolvedValue({ success: true });
     const req = mockReq({ params: { receiptNo: "R001" }, body: { receivableId: 2, writeoffAmount: 500 } });
@@ -93,6 +120,14 @@ describe("receipt.controller", () => {
     expect(ok).toHaveBeenCalled();
   });
 
+  it("writeoffReceipt - 核销失败应抛出异常", async () => {
+    const error = new Error("核销失败");
+    (receiptService.writeoffReceipt as any).mockRejectedValue(error);
+    const req = mockReq({ params: { receiptNo: "R001" }, body: { receivableId: 2, writeoffAmount: 500 } });
+    const res = mockRes();
+    await expect(writeoffReceipt(req as any, res as any)).rejects.toThrow(error);
+  });
+
   it("voidReceipt - 应作废收款单", async () => {
     (receiptService.voidReceipt as any).mockResolvedValue({ success: true });
     const req = mockReq({ params: { receiptNo: "R001" } });
@@ -100,5 +135,13 @@ describe("receipt.controller", () => {
     await voidReceipt(req as any, res as any);
     expect(receiptService.voidReceipt).toHaveBeenCalledWith("R001", "t1");
     expect(ok).toHaveBeenCalled();
+  });
+
+  it("voidReceipt - 作废失败应抛出异常", async () => {
+    const error = new Error("作废失败");
+    (receiptService.voidReceipt as any).mockRejectedValue(error);
+    const req = mockReq({ params: { receiptNo: "R001" } });
+    const res = mockRes();
+    await expect(voidReceipt(req as any, res as any)).rejects.toThrow(error);
   });
 });

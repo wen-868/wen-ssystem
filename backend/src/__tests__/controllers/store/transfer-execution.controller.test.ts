@@ -1,4 +1,5 @@
 import { vi, describe, it, beforeEach, expect } from "vitest";
+import { ZodError } from "zod";
 
 vi.mock("../../../services/transfer-execution.service.js", () => ({
   receiveTransferOrder: vi.fn(),
@@ -89,5 +90,75 @@ describe("store/transfer-execution.controller", () => {
     await getMyShipments(req as any, res as any);
     expect(transferExecutionService.getMyShipments).toHaveBeenCalledWith(1, "t1");
     expect(ok).toHaveBeenCalled();
+  });
+
+  it("receiveTransferOrder - id 非数字应抛出 ZodError", async () => {
+    const req = mockReq({
+      params: { id: "abc" },
+      body: { items: [{ itemId: 1, receivedQty: 10 }] },
+    });
+    const res = mockRes();
+    await expect(receiveTransferOrder(req as any, res as any)).rejects.toThrow(ZodError);
+    expect(transferExecutionService.receiveTransferOrder).not.toHaveBeenCalled();
+  });
+
+  it("receiveTransferOrder - items 为空数组应抛出 ZodError", async () => {
+    const req = mockReq({
+      params: { id: "1" },
+      body: { items: [] },
+    });
+    const res = mockRes();
+    await expect(receiveTransferOrder(req as any, res as any)).rejects.toThrow(ZodError);
+    expect(transferExecutionService.receiveTransferOrder).not.toHaveBeenCalled();
+  });
+
+  it("receiveTransferOrder - items 缺失应抛出 ZodError", async () => {
+    const req = mockReq({
+      params: { id: "1" },
+      body: {},
+    });
+    const res = mockRes();
+    await expect(receiveTransferOrder(req as any, res as any)).rejects.toThrow(ZodError);
+    expect(transferExecutionService.receiveTransferOrder).not.toHaveBeenCalled();
+  });
+
+  it("receiveTransferOrder - itemId 非正数应抛出 ZodError", async () => {
+    const req = mockReq({
+      params: { id: "1" },
+      body: { items: [{ itemId: -1, receivedQty: 10 }] },
+    });
+    const res = mockRes();
+    await expect(receiveTransferOrder(req as any, res as any)).rejects.toThrow(ZodError);
+    expect(transferExecutionService.receiveTransferOrder).not.toHaveBeenCalled();
+  });
+
+  it("receiveTransferOrder - receivedQty 为负数应抛出 ZodError", async () => {
+    const req = mockReq({
+      params: { id: "1" },
+      body: { items: [{ itemId: 1, receivedQty: -1 }] },
+    });
+    const res = mockRes();
+    await expect(receiveTransferOrder(req as any, res as any)).rejects.toThrow(ZodError);
+    expect(transferExecutionService.receiveTransferOrder).not.toHaveBeenCalled();
+  });
+
+  it("receiveTransferOrder - itemId 缺失应抛出 ZodError", async () => {
+    const req = mockReq({
+      params: { id: "1" },
+      body: { items: [{ receivedQty: 10 }] },
+    });
+    const res = mockRes();
+    await expect(receiveTransferOrder(req as any, res as any)).rejects.toThrow(ZodError);
+    expect(transferExecutionService.receiveTransferOrder).not.toHaveBeenCalled();
+  });
+
+  it("receiveTransferOrder - receivedQty 缺失应抛出 ZodError", async () => {
+    const req = mockReq({
+      params: { id: "1" },
+      body: { items: [{ itemId: 1 }] },
+    });
+    const res = mockRes();
+    await expect(receiveTransferOrder(req as any, res as any)).rejects.toThrow(ZodError);
+    expect(transferExecutionService.receiveTransferOrder).not.toHaveBeenCalled();
   });
 });

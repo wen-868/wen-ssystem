@@ -1,12 +1,6 @@
-/**
- * 管理端财务看板 controller 单元测试
- * 被测文件：src/controllers/admin/finance-dashboard.controller.ts
- */
-import { describe, it, expect, vi, beforeEach } from "vitest";
+import { vi, describe, it, beforeEach, expect } from "vitest";
 
-const mocks = vi.hoisted(() => ({
-  ok: vi.fn((data?: any) => ({ success: true, data })),
-  fail: vi.fn((msg: string, code?: any) => ({ success: false, message: msg, code })),
+vi.mock("../../../services/admin/finance-dashboard.service.js", () => ({
   getFinanceDashboard: vi.fn(),
   getDailyReport: vi.fn(),
   getMonthlyReport: vi.fn(),
@@ -16,25 +10,17 @@ const mocks = vi.hoisted(() => ({
   getTopSuppliersAP: vi.fn(),
 }));
 
+vi.mock("../../../shared/response.js", () => ({
+  ok: vi.fn((data) => ({ success: true, data })),
+  fail: vi.fn((msg, code) => ({ success: false, message: msg, code })),
+}));
+
 vi.mock("../../../middleware/async-handler.js", () => ({
   asyncHandler: (fn: any) => fn,
 }));
 
-vi.mock("../../../shared/response.js", () => ({
-  ok: mocks.ok,
-  fail: mocks.fail,
-}));
-
-vi.mock("../../../services/admin/finance-dashboard.service.js", () => ({
-  getFinanceDashboard: mocks.getFinanceDashboard,
-  getDailyReport: mocks.getDailyReport,
-  getMonthlyReport: mocks.getMonthlyReport,
-  getCashFlow: mocks.getCashFlow,
-  getProfitTrend: mocks.getProfitTrend,
-  getTopCustomersAR: mocks.getTopCustomersAR,
-  getTopSuppliersAP: mocks.getTopSuppliersAP,
-}));
-
+import * as financeDashboardService from "../../../services/admin/finance-dashboard.service.js";
+import { ok } from "../../../shared/response.js";
 import {
   getFinanceDashboard,
   getDailyReport,
@@ -63,90 +49,104 @@ const mockRes = () => {
   return res;
 };
 
-beforeEach(() => {
-  vi.clearAllMocks();
-});
+describe("finance-dashboard.controller", () => {
+  beforeEach(() => vi.clearAllMocks());
 
-describe("admin finance-dashboard.controller", () => {
-  it("getFinanceDashboard 调用 service 并返回结果", async () => {
-    mocks.getFinanceDashboard.mockResolvedValue({ revenue: 10000 });
+  it("getFinanceDashboard - 应返回财务看板数据", async () => {
+    (financeDashboardService.getFinanceDashboard as any).mockResolvedValue({ revenue: 10000 });
     const req = mockReq();
     const res = mockRes();
-    await getFinanceDashboard(req, res);
-    expect(mocks.getFinanceDashboard).toHaveBeenCalledWith("t1");
-    expect(mocks.ok).toHaveBeenCalledWith({ revenue: 10000 });
+    await getFinanceDashboard(req as any, res as any);
+    expect(financeDashboardService.getFinanceDashboard).toHaveBeenCalledWith("t1");
+    expect(ok).toHaveBeenCalledWith({ revenue: 10000 });
   });
 
-  it("getDailyReport 传入日期参数", async () => {
-    mocks.getDailyReport.mockResolvedValue([]);
+  it("getFinanceDashboard - service抛出异常应被捕获", async () => {
+    const error = new Error("数据库连接失败");
+    (financeDashboardService.getFinanceDashboard as any).mockRejectedValue(error);
+    const req = mockReq();
+    const res = mockRes();
+    await expect(getFinanceDashboard(req as any, res as any)).rejects.toThrow(error);
+  });
+
+  it("getDailyReport - 应传入日期参数", async () => {
+    (financeDashboardService.getDailyReport as any).mockResolvedValue([]);
     const req = mockReq({ query: { startDate: "2026-01-01", endDate: "2026-01-31" } });
     const res = mockRes();
-    await getDailyReport(req, res);
-    expect(mocks.getDailyReport).toHaveBeenCalledWith("t1", "2026-01-01", "2026-01-31");
+    await getDailyReport(req as any, res as any);
+    expect(financeDashboardService.getDailyReport).toHaveBeenCalledWith("t1", "2026-01-01", "2026-01-31");
   });
 
-  it("getDailyReport 不传日期时为 undefined", async () => {
-    mocks.getDailyReport.mockResolvedValue([]);
+  it("getDailyReport - 不传日期时为undefined", async () => {
+    (financeDashboardService.getDailyReport as any).mockResolvedValue([]);
     const req = mockReq();
     const res = mockRes();
-    await getDailyReport(req, res);
-    expect(mocks.getDailyReport).toHaveBeenCalledWith("t1", undefined, undefined);
+    await getDailyReport(req as any, res as any);
+    expect(financeDashboardService.getDailyReport).toHaveBeenCalledWith("t1", undefined, undefined);
   });
 
-  it("getMonthlyReport 传入 year 转换为数字", async () => {
-    mocks.getMonthlyReport.mockResolvedValue([]);
+  it("getMonthlyReport - 传入year转换为数字", async () => {
+    (financeDashboardService.getMonthlyReport as any).mockResolvedValue([]);
     const req = mockReq({ query: { year: "2026" } });
     const res = mockRes();
-    await getMonthlyReport(req, res);
-    expect(mocks.getMonthlyReport).toHaveBeenCalledWith("t1", 2026);
+    await getMonthlyReport(req as any, res as any);
+    expect(financeDashboardService.getMonthlyReport).toHaveBeenCalledWith("t1", 2026);
   });
 
-  it("getMonthlyReport 不传 year 时为 undefined", async () => {
-    mocks.getMonthlyReport.mockResolvedValue([]);
+  it("getMonthlyReport - 不传year时为undefined", async () => {
+    (financeDashboardService.getMonthlyReport as any).mockResolvedValue([]);
     const req = mockReq();
     const res = mockRes();
-    await getMonthlyReport(req, res);
-    expect(mocks.getMonthlyReport).toHaveBeenCalledWith("t1", undefined);
+    await getMonthlyReport(req as any, res as any);
+    expect(financeDashboardService.getMonthlyReport).toHaveBeenCalledWith("t1", undefined);
   });
 
-  it("getCashFlow 默认 months 为 12", async () => {
-    mocks.getCashFlow.mockResolvedValue([]);
+  it("getCashFlow - 默认months为12", async () => {
+    (financeDashboardService.getCashFlow as any).mockResolvedValue([]);
     const req = mockReq();
     const res = mockRes();
-    await getCashFlow(req, res);
-    expect(mocks.getCashFlow).toHaveBeenCalledWith("t1", 12);
+    await getCashFlow(req as any, res as any);
+    expect(financeDashboardService.getCashFlow).toHaveBeenCalledWith("t1", 12);
   });
 
-  it("getCashFlow 自定义 months", async () => {
-    mocks.getCashFlow.mockResolvedValue([]);
+  it("getCashFlow - 自定义months", async () => {
+    (financeDashboardService.getCashFlow as any).mockResolvedValue([]);
     const req = mockReq({ query: { months: "6" } });
     const res = mockRes();
-    await getCashFlow(req, res);
-    expect(mocks.getCashFlow).toHaveBeenCalledWith("t1", 6);
+    await getCashFlow(req as any, res as any);
+    expect(financeDashboardService.getCashFlow).toHaveBeenCalledWith("t1", 6);
   });
 
-  it("getProfitTrend 默认 months 为 12", async () => {
-    mocks.getProfitTrend.mockResolvedValue([]);
+  it("getProfitTrend - 默认months为12", async () => {
+    (financeDashboardService.getProfitTrend as any).mockResolvedValue([]);
     const req = mockReq();
     const res = mockRes();
-    await getProfitTrend(req, res);
-    expect(mocks.getProfitTrend).toHaveBeenCalledWith("t1", 12);
+    await getProfitTrend(req as any, res as any);
+    expect(financeDashboardService.getProfitTrend).toHaveBeenCalledWith("t1", 12);
   });
 
-  it("getTopCustomersAR 默认 limit 为 10", async () => {
-    mocks.getTopCustomersAR.mockResolvedValue([]);
+  it("getTopCustomersAR - 默认limit为10", async () => {
+    (financeDashboardService.getTopCustomersAR as any).mockResolvedValue([]);
     const req = mockReq();
     const res = mockRes();
-    await getTopCustomersAR(req, res);
-    expect(mocks.getTopCustomersAR).toHaveBeenCalledWith("t1", 10);
+    await getTopCustomersAR(req as any, res as any);
+    expect(financeDashboardService.getTopCustomersAR).toHaveBeenCalledWith("t1", 10);
     expect(res.json).toHaveBeenCalledWith({ success: true, data: [] });
   });
 
-  it("getTopSuppliersAP 自定义 limit", async () => {
-    mocks.getTopSuppliersAP.mockResolvedValue([]);
+  it("getTopSuppliersAP - 自定义limit", async () => {
+    (financeDashboardService.getTopSuppliersAP as any).mockResolvedValue([]);
     const req = mockReq({ query: { limit: "5" } });
     const res = mockRes();
-    await getTopSuppliersAP(req, res);
-    expect(mocks.getTopSuppliersAP).toHaveBeenCalledWith("t1", 5);
+    await getTopSuppliersAP(req as any, res as any);
+    expect(financeDashboardService.getTopSuppliersAP).toHaveBeenCalledWith("t1", 5);
+  });
+
+  it("getTopCustomersAR - service抛出异常应被捕获", async () => {
+    const error = new Error("查询失败");
+    (financeDashboardService.getTopCustomersAR as any).mockRejectedValue(error);
+    const req = mockReq();
+    const res = mockRes();
+    await expect(getTopCustomersAR(req as any, res as any)).rejects.toThrow(error);
   });
 });

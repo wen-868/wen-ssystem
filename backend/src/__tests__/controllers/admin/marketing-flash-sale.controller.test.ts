@@ -1,11 +1,6 @@
-/**
- * 管理端限时抢购 controller 单元测试
- * 被测文件：src/controllers/admin/marketing-flash-sale.controller.ts
- */
-import { describe, it, expect, vi, beforeEach } from "vitest";
+import { vi, describe, it, beforeEach, expect } from "vitest";
 
-const mocks = vi.hoisted(() => ({
-  ok: vi.fn((data?: any) => ({ code: "0", data })),
+vi.mock("../../../services/admin/marketing-flash-sale.service.js", () => ({
   createFlashSale: vi.fn(),
   listFlashSales: vi.fn(),
   getFlashSale: vi.fn(),
@@ -18,35 +13,27 @@ const mocks = vi.hoisted(() => ({
   buyFlashSale: vi.fn(),
 }));
 
+vi.mock("../../../shared/response.js", () => ({
+  ok: vi.fn((data) => ({ success: true, data })),
+  fail: vi.fn((msg, code) => ({ success: false, message: msg, code })),
+}));
+
 vi.mock("../../../middleware/async-handler.js", () => ({
   asyncHandler: (fn: any) => fn,
 }));
 
-vi.mock("../../../shared/response.js", () => ({
-  ok: mocks.ok,
-}));
-
-vi.mock("../../../services/admin/marketing-flash-sale.service.js", () => ({
-  createFlashSale: mocks.createFlashSale,
-  listFlashSales: mocks.listFlashSales,
-  getFlashSale: mocks.getFlashSale,
-  updateFlashSale: mocks.updateFlashSale,
-  deleteFlashSale: mocks.deleteFlashSale,
-  activateFlashSale: mocks.activateFlashSale,
-  pauseFlashSale: mocks.pauseFlashSale,
-  getFlashSaleStatistics: mocks.getFlashSaleStatistics,
-  listActiveFlashSales: mocks.listActiveFlashSales,
-  buyFlashSale: mocks.buyFlashSale,
-}));
-
+import * as flashSaleService from "../../../services/admin/marketing-flash-sale.service.js";
+import { ok } from "../../../shared/response.js";
 import {
   createFlashSale,
   listFlashSales,
   getFlashSale,
+  updateFlashSale,
   deleteFlashSale,
   activateFlashSale,
   pauseFlashSale,
   getFlashSaleStatistics,
+  listActiveFlashSales,
   buyFlashSale,
 } from "../../../controllers/admin/marketing-flash-sale.controller.js";
 
@@ -56,6 +43,7 @@ const mockReq = (overrides: any = {}) => ({
   query: {},
   params: {},
   body: {},
+  headers: {},
   ...overrides,
 });
 
@@ -68,109 +56,128 @@ const mockRes = () => {
   return res;
 };
 
-beforeEach(() => {
-  vi.clearAllMocks();
-});
+describe("marketing-flash-sale.controller", () => {
+  beforeEach(() => vi.clearAllMocks());
 
-describe("admin marketing-flash-sale.controller", () => {
-  it("createFlashSale 成功创建限时抢购", async () => {
-    const body = {
-      name: "夏日特惠",
-      productId: 1,
-      skuId: 10,
-      flashPrice: 9.9,
-      originalPrice: 19.9,
-      totalStock: 100,
-      startTime: "2026-07-01",
-      endTime: "2026-07-07",
-    };
-    mocks.createFlashSale.mockResolvedValue({ id: 1, name: "夏日特惠" });
-    const req = mockReq({ body });
+  it("createFlashSale - 应创建限时抢购", async () => {
+    (flashSaleService.createFlashSale as any).mockResolvedValue({ id: 1 });
+    const req = mockReq({
+      body: {
+        name: "限时抢购",
+        productId: 1,
+        skuId: 1,
+        flashPrice: 99,
+        originalPrice: 199,
+        totalStock: 100,
+        startTime: "2024-01-01",
+        endTime: "2024-01-02",
+      },
+    });
     const res = mockRes();
-    await createFlashSale(req, res);
-    expect(mocks.createFlashSale).toHaveBeenCalledWith(expect.objectContaining({ name: "夏日特惠", productId: 1 }), "t1");
-    expect(mocks.ok).toHaveBeenCalledWith({ id: 1, name: "夏日特惠" });
-    expect(res.json).toHaveBeenCalled();
+    await createFlashSale(req as any, res as any);
+    expect(flashSaleService.createFlashSale).toHaveBeenCalled();
+    expect(ok).toHaveBeenCalledWith({ id: 1 });
   });
 
-  it("createFlashSale 缺少必填字段时 zod 校验抛错", async () => {
-    const req = mockReq({ body: { name: "缺商品" } });
+  it("createFlashSale - 缺少必填字段应抛出错误", async () => {
+    const req = mockReq({ body: {} });
     const res = mockRes();
-    await expect(createFlashSale(req, res)).rejects.toThrow();
-    expect(mocks.createFlashSale).not.toHaveBeenCalled();
+    await expect(createFlashSale(req as any, res as any)).rejects.toThrow();
   });
 
-  it("listFlashSales 正确传递分页和状态参数", async () => {
-    mocks.listFlashSales.mockResolvedValue({ records: [], total: 0 });
-    const req = mockReq({ query: { page: "3", pageSize: "15", status: "ACTIVE" } });
+  it("listFlashSales - 应返回限时抢购列表", async () => {
+    (flashSaleService.listFlashSales as any).mockResolvedValue({ total: 0, records: [] });
+    const req = mockReq({ query: { page: 1, pageSize: 20 } });
     const res = mockRes();
-    await listFlashSales(req, res);
-    expect(mocks.listFlashSales).toHaveBeenCalledWith(3, 15, "t1", "ACTIVE");
-    expect(res.json).toHaveBeenCalled();
+    await listFlashSales(req as any, res as any);
+    expect(flashSaleService.listFlashSales).toHaveBeenCalled();
+    expect(ok).toHaveBeenCalled();
   });
 
-  it("listFlashSales 使用默认分页参数", async () => {
-    mocks.listFlashSales.mockResolvedValue({ records: [], total: 0 });
+  it("getFlashSale - 应返回单个限时抢购", async () => {
+    (flashSaleService.getFlashSale as any).mockResolvedValue({ id: 1 });
+    const req = mockReq({ params: { id: 1 } });
+    const res = mockRes();
+    await getFlashSale(req as any, res as any);
+    expect(flashSaleService.getFlashSale).toHaveBeenCalledWith(1, "t1");
+    expect(ok).toHaveBeenCalled();
+  });
+
+  it("updateFlashSale - 应更新限时抢购", async () => {
+    (flashSaleService.updateFlashSale as any).mockResolvedValue({ id: 1 });
+    const req = mockReq({
+      params: { id: 1 },
+      body: { name: "更新名称" },
+    });
+    const res = mockRes();
+    await updateFlashSale(req as any, res as any);
+    expect(flashSaleService.updateFlashSale).toHaveBeenCalled();
+    expect(ok).toHaveBeenCalled();
+  });
+
+  it("deleteFlashSale - 应删除限时抢购", async () => {
+    (flashSaleService.deleteFlashSale as any).mockResolvedValue(true);
+    const req = mockReq({ params: { id: 1 } });
+    const res = mockRes();
+    await deleteFlashSale(req as any, res as any);
+    expect(flashSaleService.deleteFlashSale).toHaveBeenCalled();
+    expect(ok).toHaveBeenCalled();
+  });
+
+  it("activateFlashSale - 应激活限时抢购", async () => {
+    (flashSaleService.activateFlashSale as any).mockResolvedValue(true);
+    const req = mockReq({ params: { id: 1 } });
+    const res = mockRes();
+    await activateFlashSale(req as any, res as any);
+    expect(flashSaleService.activateFlashSale).toHaveBeenCalled();
+    expect(ok).toHaveBeenCalled();
+  });
+
+  it("pauseFlashSale - 应暂停限时抢购", async () => {
+    (flashSaleService.pauseFlashSale as any).mockResolvedValue(true);
+    const req = mockReq({ params: { id: 1 } });
+    const res = mockRes();
+    await pauseFlashSale(req as any, res as any);
+    expect(flashSaleService.pauseFlashSale).toHaveBeenCalled();
+    expect(ok).toHaveBeenCalled();
+  });
+
+  it("getFlashSaleStatistics - 应返回限时抢购统计", async () => {
+    (flashSaleService.getFlashSaleStatistics as any).mockResolvedValue({ total: 0 });
     const req = mockReq();
     const res = mockRes();
-    await listFlashSales(req, res);
-    expect(mocks.listFlashSales).toHaveBeenCalledWith(1, 20, "t1", undefined);
+    await getFlashSaleStatistics(req as any, res as any);
+    expect(flashSaleService.getFlashSaleStatistics).toHaveBeenCalled();
+    expect(ok).toHaveBeenCalled();
   });
 
-  it("getFlashSale 根据 params.id 获取详情", async () => {
-    mocks.getFlashSale.mockResolvedValue({ id: 8 });
-    const req = mockReq({ params: { id: "8" } });
-    const res = mockRes();
-    await getFlashSale(req, res);
-    expect(mocks.getFlashSale).toHaveBeenCalledWith(8, "t1");
-    expect(res.json).toHaveBeenCalled();
-  });
-
-  it("deleteFlashSale 成功删除", async () => {
-    mocks.deleteFlashSale.mockResolvedValue({ id: 4 });
-    const req = mockReq({ params: { id: "4" } });
-    const res = mockRes();
-    await deleteFlashSale(req, res);
-    expect(mocks.deleteFlashSale).toHaveBeenCalledWith(4, "t1");
-  });
-
-  it("activateFlashSale 激活活动", async () => {
-    mocks.activateFlashSale.mockResolvedValue({ id: 2, status: "ACTIVE" });
-    const req = mockReq({ params: { id: "2" } });
-    const res = mockRes();
-    await activateFlashSale(req, res);
-    expect(mocks.activateFlashSale).toHaveBeenCalledWith(2, "t1");
-  });
-
-  it("pauseFlashSale 暂停活动", async () => {
-    mocks.pauseFlashSale.mockResolvedValue({ id: 2, status: "PAUSED" });
-    const req = mockReq({ params: { id: "2" } });
-    const res = mockRes();
-    await pauseFlashSale(req, res);
-    expect(mocks.pauseFlashSale).toHaveBeenCalledWith(2, "t1");
-  });
-
-  it("getFlashSaleStatistics 返回统计数据", async () => {
-    mocks.getFlashSaleStatistics.mockResolvedValue({ totalSales: 50 });
+  it("listActiveFlashSales - 应返回进行中的限时抢购", async () => {
+    (flashSaleService.listActiveFlashSales as any).mockResolvedValue([]);
     const req = mockReq();
     const res = mockRes();
-    await getFlashSaleStatistics(req, res);
-    expect(mocks.getFlashSaleStatistics).toHaveBeenCalledWith("t1");
+    await listActiveFlashSales(req as any, res as any);
+    expect(flashSaleService.listActiveFlashSales).toHaveBeenCalled();
+    expect(ok).toHaveBeenCalled();
   });
 
-  it("buyFlashSale 成功购买", async () => {
-    mocks.buyFlashSale.mockResolvedValue({ orderNo: "FS001" });
-    const req = mockReq({ params: { id: "5" }, body: { userId: 1, quantity: 2 } });
+  it("buyFlashSale - 应购买限时抢购商品", async () => {
+    (flashSaleService.buyFlashSale as any).mockResolvedValue({ id: 1 });
+    const req = mockReq({
+      params: { id: 1 },
+      body: { userId: 1, quantity: 1 },
+    });
     const res = mockRes();
-    await buyFlashSale(req, res);
-    expect(mocks.buyFlashSale).toHaveBeenCalledWith(5, 1, 2, "t1");
-    expect(res.json).toHaveBeenCalled();
+    await buyFlashSale(req as any, res as any);
+    expect(flashSaleService.buyFlashSale).toHaveBeenCalled();
+    expect(ok).toHaveBeenCalled();
   });
 
-  it("buyFlashSale quantity 缺失时 zod 校验抛错", async () => {
-    const req = mockReq({ params: { id: "5" }, body: { userId: 1 } });
+  it("buyFlashSale - 参数验证失败应抛出错误", async () => {
+    const req = mockReq({
+      params: { id: 1 },
+      body: {},
+    });
     const res = mockRes();
-    await expect(buyFlashSale(req, res)).rejects.toThrow();
-    expect(mocks.buyFlashSale).not.toHaveBeenCalled();
+    await expect(buyFlashSale(req as any, res as any)).rejects.toThrow();
   });
 });

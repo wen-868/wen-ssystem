@@ -69,6 +69,11 @@
       </form>
     </view>
 
+    <view class="register-link">
+      <text class="link-text">还没有账号？</text>
+      <text class="link-btn" @tap="goRegister">立即注册</text>
+    </view>
+
     <!-- 底部版本 -->
     <view class="footer-section">
       <text class="footer-text">v1.0.0</text>
@@ -124,6 +129,10 @@ async function handleLogin() {
   } finally {
     loading.value = false
   }
+}
+
+function goRegister() {
+  uni.navigateTo({ url: '/pages/register/register' })
 }
 </script>
 
@@ -296,6 +305,26 @@ async function handleLogin() {
   font-weight: 600;
   color: #fff;
   letter-spacing: 8rpx;
+}
+
+.register-link {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  margin-top: 32rpx;
+}
+
+.link-text {
+  font-size: 28rpx;
+  color: rgba(255, 255, 255, 0.9);
+}
+
+.link-btn {
+  font-size: 28rpx;
+  color: #fff;
+  font-weight: 600;
+  margin-left: 8rpx;
+  text-decoration: underline;
 }
 
 .footer-section {

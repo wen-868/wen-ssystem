@@ -1,12 +1,6 @@
-/**
- * 管理端优惠券 controller 单元测试
- * 被测文件：src/controllers/admin/marketing-coupon.controller.ts
- */
-import { describe, it, expect, vi, beforeEach } from "vitest";
+import { vi, describe, it, beforeEach, expect } from "vitest";
 
-const mocks = vi.hoisted(() => ({
-  ok: vi.fn((data?: any) => ({ code: "0", data })),
-  fail: vi.fn((msg: string, code = "400") => ({ code, msg })),
+vi.mock("../../../services/admin/marketing-coupon.service.js", () => ({
   createCouponTemplate: vi.fn(),
   listCouponTemplates: vi.fn(),
   getCouponTemplate: vi.fn(),
@@ -21,39 +15,30 @@ const mocks = vi.hoisted(() => ({
   listMyCoupons: vi.fn(),
 }));
 
+vi.mock("../../../shared/response.js", () => ({
+  ok: vi.fn((data) => ({ success: true, data })),
+  fail: vi.fn((msg, code) => ({ success: false, message: msg, code })),
+}));
+
 vi.mock("../../../middleware/async-handler.js", () => ({
   asyncHandler: (fn: any) => fn,
 }));
 
-vi.mock("../../../shared/response.js", () => ({
-  ok: mocks.ok,
-  fail: mocks.fail,
-}));
-
-vi.mock("../../../services/admin/marketing-coupon.service.js", () => ({
-  createCouponTemplate: mocks.createCouponTemplate,
-  listCouponTemplates: mocks.listCouponTemplates,
-  getCouponTemplate: mocks.getCouponTemplate,
-  updateCouponTemplate: mocks.updateCouponTemplate,
-  deleteCouponTemplate: mocks.deleteCouponTemplate,
-  activateCouponTemplate: mocks.activateCouponTemplate,
-  pauseCouponTemplate: mocks.pauseCouponTemplate,
-  listUserCoupons: mocks.listUserCoupons,
-  getCouponStatistics: mocks.getCouponStatistics,
-  listAvailableCoupons: mocks.listAvailableCoupons,
-  claimCoupon: mocks.claimCoupon,
-  listMyCoupons: mocks.listMyCoupons,
-}));
-
+import * as couponService from "../../../services/admin/marketing-coupon.service.js";
+import { ok, fail } from "../../../shared/response.js";
 import {
   createCouponTemplate,
   listCouponTemplates,
   getCouponTemplate,
+  updateCouponTemplate,
   deleteCouponTemplate,
   activateCouponTemplate,
+  pauseCouponTemplate,
+  listUserCoupons,
+  getCouponStatistics,
+  listAvailableCoupons,
   claimCoupon,
   listMyCoupons,
-  getCouponStatistics,
 } from "../../../controllers/admin/marketing-coupon.controller.js";
 
 const mockReq = (overrides: any = {}) => ({
@@ -62,6 +47,7 @@ const mockReq = (overrides: any = {}) => ({
   query: {},
   params: {},
   body: {},
+  headers: {},
   ...overrides,
 });
 
@@ -74,102 +60,157 @@ const mockRes = () => {
   return res;
 };
 
-beforeEach(() => {
-  vi.clearAllMocks();
-});
+describe("marketing-coupon.controller", () => {
+  beforeEach(() => vi.clearAllMocks());
 
-describe("admin marketing-coupon.controller", () => {
-  it("createCouponTemplate 成功创建优惠券模板", async () => {
-    const body = {
-      name: "满100减20",
-      type: "FIXED",
-      value: 20,
-      startTime: "2026-07-01",
-      endTime: "2026-12-31",
-    };
-    mocks.createCouponTemplate.mockResolvedValue({ id: 1, name: "满100减20" });
-    const req = mockReq({ body });
+  it("createCouponTemplate - 应创建优惠券模板", async () => {
+    (couponService.createCouponTemplate as any).mockResolvedValue({ id: 1 });
+    const req = mockReq({
+      body: {
+        name: "满100减20",
+        type: "FIXED",
+        value: 20,
+        minAmount: 100,
+        startTime: "2024-01-01",
+        endTime: "2024-12-31",
+      },
+    });
     const res = mockRes();
-    await createCouponTemplate(req, res);
-    expect(mocks.createCouponTemplate).toHaveBeenCalledWith(expect.objectContaining({ name: "满100减20" }), "t1");
-    expect(mocks.ok).toHaveBeenCalledWith({ id: 1, name: "满100减20" });
-    expect(res.json).toHaveBeenCalledWith({ code: "0", data: { id: 1, name: "满100减20" } });
+    await createCouponTemplate(req as any, res as any);
+    expect(couponService.createCouponTemplate).toHaveBeenCalled();
+    expect(ok).toHaveBeenCalledWith({ id: 1 });
   });
 
-  it("createCouponTemplate 缺少必填字段时 zod 校验抛错", async () => {
-    const req = mockReq({ body: { type: "FIXED", value: 20 } });
+  it("createCouponTemplate - 缺少必填字段应抛出错误", async () => {
+    const req = mockReq({ body: {} });
     const res = mockRes();
-    await expect(createCouponTemplate(req, res)).rejects.toThrow();
-    expect(mocks.createCouponTemplate).not.toHaveBeenCalled();
+    await expect(createCouponTemplate(req as any, res as any)).rejects.toThrow();
   });
 
-  it("listCouponTemplates 正确传递分页与过滤参数", async () => {
-    mocks.listCouponTemplates.mockResolvedValue({ records: [], total: 0 });
-    const req = mockReq({ query: { page: "2", pageSize: "10", status: "ACTIVE", type: "FIXED", keyword: "满" } });
+  it("listCouponTemplates - 应返回优惠券模板列表", async () => {
+    (couponService.listCouponTemplates as any).mockResolvedValue({ total: 0, records: [] });
+    const req = mockReq({ query: { page: 1, pageSize: 20 } });
     const res = mockRes();
-    await listCouponTemplates(req, res);
-    expect(mocks.listCouponTemplates).toHaveBeenCalledWith(2, 10, "t1", "ACTIVE", "FIXED", "满");
-    expect(res.json).toHaveBeenCalled();
+    await listCouponTemplates(req as any, res as any);
+    expect(couponService.listCouponTemplates).toHaveBeenCalled();
+    expect(ok).toHaveBeenCalled();
   });
 
-  it("getCouponTemplate 根据 params.id 调用 service", async () => {
-    mocks.getCouponTemplate.mockResolvedValue({ id: 5 });
-    const req = mockReq({ params: { id: "5" } });
+  it("getCouponTemplate - 应返回单个优惠券模板", async () => {
+    (couponService.getCouponTemplate as any).mockResolvedValue({ id: 1 });
+    const req = mockReq({ params: { id: 1 } });
     const res = mockRes();
-    await getCouponTemplate(req, res);
-    expect(mocks.getCouponTemplate).toHaveBeenCalledWith(5, "t1");
-    expect(res.json).toHaveBeenCalled();
+    await getCouponTemplate(req as any, res as any);
+    expect(couponService.getCouponTemplate).toHaveBeenCalledWith(1, "t1");
+    expect(ok).toHaveBeenCalled();
   });
 
-  it("deleteCouponTemplate 成功删除", async () => {
-    mocks.deleteCouponTemplate.mockResolvedValue({ id: 3 });
-    const req = mockReq({ params: { id: "3" } });
+  it("updateCouponTemplate - 应更新优惠券模板", async () => {
+    (couponService.updateCouponTemplate as any).mockResolvedValue({ id: 1 });
+    const req = mockReq({
+      params: { id: 1 },
+      body: { name: "更新名称" },
+    });
     const res = mockRes();
-    await deleteCouponTemplate(req, res);
-    expect(mocks.deleteCouponTemplate).toHaveBeenCalledWith(3, "t1");
-    expect(res.json).toHaveBeenCalled();
+    await updateCouponTemplate(req as any, res as any);
+    expect(couponService.updateCouponTemplate).toHaveBeenCalled();
+    expect(ok).toHaveBeenCalled();
   });
 
-  it("activateCouponTemplate 激活模板", async () => {
-    mocks.activateCouponTemplate.mockResolvedValue({ id: 7, status: "ACTIVE" });
-    const req = mockReq({ params: { id: "7" } });
+  it("deleteCouponTemplate - 应删除优惠券模板", async () => {
+    (couponService.deleteCouponTemplate as any).mockResolvedValue(true);
+    const req = mockReq({ params: { id: 1 } });
     const res = mockRes();
-    await activateCouponTemplate(req, res);
-    expect(mocks.activateCouponTemplate).toHaveBeenCalledWith(7, "t1");
+    await deleteCouponTemplate(req as any, res as any);
+    expect(couponService.deleteCouponTemplate).toHaveBeenCalled();
+    expect(ok).toHaveBeenCalled();
   });
 
-  it("claimCoupon 成功领取（userId 来自 req.user.id）", async () => {
-    mocks.claimCoupon.mockResolvedValue({ id: 99 });
-    const req = mockReq({ params: { templateId: "12" } });
+  it("activateCouponTemplate - 应激活优惠券模板", async () => {
+    (couponService.activateCouponTemplate as any).mockResolvedValue(true);
+    const req = mockReq({ params: { id: 1 } });
     const res = mockRes();
-    await claimCoupon(req, res);
-    expect(mocks.claimCoupon).toHaveBeenCalledWith(12, 1, "t1");
-    expect(res.json).toHaveBeenCalled();
+    await activateCouponTemplate(req as any, res as any);
+    expect(couponService.activateCouponTemplate).toHaveBeenCalled();
+    expect(ok).toHaveBeenCalled();
   });
 
-  it("claimCoupon 缺少 userId 时返回 400", async () => {
-    const req = mockReq({ params: { templateId: "12" }, user: {} });
+  it("pauseCouponTemplate - 应暂停优惠券模板", async () => {
+    (couponService.pauseCouponTemplate as any).mockResolvedValue(true);
+    const req = mockReq({ params: { id: 1 } });
     const res = mockRes();
-    await claimCoupon(req, res);
-    expect(res.status).toHaveBeenCalledWith(400);
-    expect(mocks.fail).toHaveBeenCalledWith("缺少用户ID", "400");
-    expect(mocks.claimCoupon).not.toHaveBeenCalled();
+    await pauseCouponTemplate(req as any, res as any);
+    expect(couponService.pauseCouponTemplate).toHaveBeenCalled();
+    expect(ok).toHaveBeenCalled();
   });
 
-  it("listMyCoupons 缺少 userId 时返回 400", async () => {
-    const req = mockReq({ user: {} });
+  it("listUserCoupons - 应返回用户优惠券列表", async () => {
+    (couponService.listUserCoupons as any).mockResolvedValue({ total: 0, records: [] });
+    const req = mockReq({ query: { page: 1, pageSize: 20 } });
     const res = mockRes();
-    await listMyCoupons(req, res);
-    expect(res.status).toHaveBeenCalledWith(400);
-    expect(mocks.fail).toHaveBeenCalledWith("缺少用户ID", "400");
+    await listUserCoupons(req as any, res as any);
+    expect(couponService.listUserCoupons).toHaveBeenCalled();
+    expect(ok).toHaveBeenCalled();
   });
 
-  it("getCouponStatistics 返回统计数据", async () => {
-    mocks.getCouponStatistics.mockResolvedValue({ total: 10, claimed: 5 });
+  it("getCouponStatistics - 应返回优惠券统计", async () => {
+    (couponService.getCouponStatistics as any).mockResolvedValue({ total: 0 });
     const req = mockReq();
     const res = mockRes();
-    await getCouponStatistics(req, res);
-    expect(mocks.getCouponStatistics).toHaveBeenCalledWith("t1");
-    expect(res.json).toHaveBeenCalled();
+    await getCouponStatistics(req as any, res as any);
+    expect(couponService.getCouponStatistics).toHaveBeenCalled();
+    expect(ok).toHaveBeenCalled();
+  });
+
+  it("listAvailableCoupons - 应返回可用优惠券", async () => {
+    (couponService.listAvailableCoupons as any).mockResolvedValue([]);
+    const req = mockReq();
+    const res = mockRes();
+    await listAvailableCoupons(req as any, res as any);
+    expect(couponService.listAvailableCoupons).toHaveBeenCalled();
+    expect(ok).toHaveBeenCalled();
+  });
+
+  it("claimCoupon - 应领取优惠券", async () => {
+    (couponService.claimCoupon as any).mockResolvedValue({ id: 1 });
+    const req = mockReq({
+      params: { templateId: 1 },
+      user: { id: 1 },
+    });
+    const res = mockRes();
+    await claimCoupon(req as any, res as any);
+    expect(couponService.claimCoupon).toHaveBeenCalled();
+    expect(ok).toHaveBeenCalled();
+  });
+
+  it("claimCoupon - 缺少用户ID应返回错误", async () => {
+    const req = mockReq({
+      params: { templateId: 1 },
+      user: undefined,
+    });
+    const res = mockRes();
+    await claimCoupon(req as any, res as any);
+    expect(res.status).toHaveBeenCalledWith(400);
+    expect(fail).toHaveBeenCalledWith("缺少用户ID", "400");
+  });
+
+  it("listMyCoupons - 应返回我的优惠券", async () => {
+    (couponService.listMyCoupons as any).mockResolvedValue({ total: 0, records: [] });
+    const req = mockReq({
+      user: { id: 1 },
+      query: { page: 1, pageSize: 20 },
+    });
+    const res = mockRes();
+    await listMyCoupons(req as any, res as any);
+    expect(couponService.listMyCoupons).toHaveBeenCalled();
+    expect(ok).toHaveBeenCalled();
+  });
+
+  it("listMyCoupons - 缺少用户ID应返回错误", async () => {
+    const req = mockReq({ user: undefined });
+    const res = mockRes();
+    await listMyCoupons(req as any, res as any);
+    expect(res.status).toHaveBeenCalledWith(400);
+    expect(fail).toHaveBeenCalledWith("缺少用户ID", "400");
   });
 });

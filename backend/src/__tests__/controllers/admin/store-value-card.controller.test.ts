@@ -108,6 +108,14 @@ describe("store-value-card.controller", () => {
     expect(ok).toHaveBeenCalled();
   });
 
+  it("createStoreValueCard - service抛出异常应被捕获", async () => {
+    const error = new Error("创建储值卡失败");
+    (svcService.createStoreValueCard as any).mockRejectedValue(error);
+    const req = mockReq({ body: { customerName: "张三", initialAmount: 1000 } });
+    const res = mockRes();
+    await expect(createStoreValueCard(req as any, res as any)).rejects.toThrow(error);
+  });
+
   it("getStoreValueCard - 应返回储值卡详情", async () => {
     (svcService.getStoreValueCard as any).mockResolvedValue({ cardNo: "SVC001", balance: 1000 });
     const req = mockReq({ params: { cardNo: "SVC001" } });
@@ -115,6 +123,14 @@ describe("store-value-card.controller", () => {
     await getStoreValueCard(req as any, res as any);
     expect(svcService.getStoreValueCard).toHaveBeenCalledWith("SVC001", "t1");
     expect(ok).toHaveBeenCalled();
+  });
+
+  it("getStoreValueCard - 储值卡不存在应抛出异常", async () => {
+    const error = new Error("储值卡不存在");
+    (svcService.getStoreValueCard as any).mockRejectedValue(error);
+    const req = mockReq({ params: { cardNo: "SVC999" } });
+    const res = mockRes();
+    await expect(getStoreValueCard(req as any, res as any)).rejects.toThrow(error);
   });
 
   it("rechargeCard - 应充值储值卡", async () => {
@@ -137,6 +153,14 @@ describe("store-value-card.controller", () => {
     expect(ok).toHaveBeenCalled();
   });
 
+  it("rechargeCard - 充值失败应抛出异常", async () => {
+    const error = new Error("充值失败");
+    (svcService.rechargeCard as any).mockRejectedValue(error);
+    const req = mockReq({ params: { cardNo: "SVC001" }, body: { amount: 1000, payMethod: "WECHAT" } });
+    const res = mockRes();
+    await expect(rechargeCard(req as any, res as any)).rejects.toThrow(error);
+  });
+
   it("consumeCard - 应消费储值卡", async () => {
     (svcService.consumeCard as any).mockResolvedValue({ cardNo: "SVC001", balance: 900 });
     const req = mockReq({
@@ -156,6 +180,14 @@ describe("store-value-card.controller", () => {
       })
     );
     expect(ok).toHaveBeenCalled();
+  });
+
+  it("consumeCard - 余额不足应抛出异常", async () => {
+    const error = new Error("余额不足");
+    (svcService.consumeCard as any).mockRejectedValue(error);
+    const req = mockReq({ params: { cardNo: "SVC001" }, body: { amount: 10000, sourceNo: "SB001" } });
+    const res = mockRes();
+    await expect(consumeCard(req as any, res as any)).rejects.toThrow(error);
   });
 
   it("refundCard - 应退回收储值卡", async () => {
@@ -210,5 +242,13 @@ describe("store-value-card.controller", () => {
       })
     );
     expect(ok).toHaveBeenCalled();
+  });
+
+  it("freezeCard - 冻结失败应抛出异常", async () => {
+    const error = new Error("冻结失败");
+    (svcService.freezeCard as any).mockRejectedValue(error);
+    const req = mockReq({ params: { cardNo: "SVC001" } });
+    const res = mockRes();
+    await expect(freezeCard(req as any, res as any)).rejects.toThrow(error);
   });
 });

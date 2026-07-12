@@ -1,4 +1,5 @@
 import { vi, describe, it, beforeEach, expect } from "vitest";
+import { ZodError } from "zod";
 
 vi.mock("../../../services/store/inventory.service.js", () => ({
   listInventory: vi.fn(),
@@ -122,5 +123,33 @@ describe("store/inventory.controller", () => {
     await listInventoryAlerts(req as any, res as any);
     expect(inventoryService.listInventoryAlerts).toHaveBeenCalledWith(5, "t1");
     expect(ok).toHaveBeenCalled();
+  });
+
+  it("adjustInventory - skuId 缺失应抛出 ZodError", async () => {
+    const req = mockReq({ body: { change: 10 } });
+    const res = mockRes();
+    await expect(adjustInventory(req as any, res as any)).rejects.toThrow(ZodError);
+    expect(inventoryService.adjustInventory).not.toHaveBeenCalled();
+  });
+
+  it("adjustInventory - change 缺失应抛出 ZodError", async () => {
+    const req = mockReq({ body: { skuId: 1 } });
+    const res = mockRes();
+    await expect(adjustInventory(req as any, res as any)).rejects.toThrow(ZodError);
+    expect(inventoryService.adjustInventory).not.toHaveBeenCalled();
+  });
+
+  it("adjustInventory - skuId 非数字应抛出 ZodError", async () => {
+    const req = mockReq({ body: { skuId: "abc", change: 10 } });
+    const res = mockRes();
+    await expect(adjustInventory(req as any, res as any)).rejects.toThrow(ZodError);
+    expect(inventoryService.adjustInventory).not.toHaveBeenCalled();
+  });
+
+  it("adjustInventory - stockType 无效值应抛出 ZodError", async () => {
+    const req = mockReq({ body: { skuId: 1, change: 10, stockType: "INVALID" } });
+    const res = mockRes();
+    await expect(adjustInventory(req as any, res as any)).rejects.toThrow(ZodError);
+    expect(inventoryService.adjustInventory).not.toHaveBeenCalled();
   });
 });

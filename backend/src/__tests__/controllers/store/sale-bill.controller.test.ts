@@ -1,5 +1,5 @@
 import { vi, describe, it, beforeEach, expect } from "vitest";
-import { z } from "zod";
+import { z, ZodError } from "zod";
 
 vi.mock("../../../services/store/sale-bill.service.js", () => ({
   listSaleBills: vi.fn(),
@@ -169,5 +169,75 @@ describe("store/sale-bill.controller", () => {
     await checkOverdueBills(req as any, res as any);
     expect(saleBillService.checkOverdueBills).toHaveBeenCalledWith(1, "t1");
     expect(ok).toHaveBeenCalled();
+  });
+
+  it("createSaleBill - items 为空数组应抛出 ZodError", async () => {
+    const req = mockReq({ body: { items: [] } });
+    const res = mockRes();
+    await expect(createSaleBill(req as any, res as any)).rejects.toThrow(ZodError);
+    expect(saleBillService.createSaleBill).not.toHaveBeenCalled();
+  });
+
+  it("createSaleBill - items 缺失应抛出 ZodError", async () => {
+    const req = mockReq({ body: {} });
+    const res = mockRes();
+    await expect(createSaleBill(req as any, res as any)).rejects.toThrow(ZodError);
+    expect(saleBillService.createSaleBill).not.toHaveBeenCalled();
+  });
+
+  it("createSaleBill - saleType 无效值应抛出 ZodError", async () => {
+    const req = mockReq({ body: { items: [{ skuId: 1 }], saleType: "INVALID" } });
+    const res = mockRes();
+    await expect(createSaleBill(req as any, res as any)).rejects.toThrow(ZodError);
+    expect(saleBillService.createSaleBill).not.toHaveBeenCalled();
+  });
+
+  it("createCollectionLink - amount 缺失应抛出 ZodError", async () => {
+    const req = mockReq({ params: { billNo: "BILL001" }, body: {} });
+    const res = mockRes();
+    await expect(createCollectionLink(req as any, res as any)).rejects.toThrow(ZodError);
+    expect(saleBillService.createCollectionLink).not.toHaveBeenCalled();
+  });
+
+  it("createCollectionLink - shareChannel 无效值应抛出 ZodError", async () => {
+    const req = mockReq({ params: { billNo: "BILL001" }, body: { amount: 100, shareChannel: "INVALID" } });
+    const res = mockRes();
+    await expect(createCollectionLink(req as any, res as any)).rejects.toThrow(ZodError);
+    expect(saleBillService.createCollectionLink).not.toHaveBeenCalled();
+  });
+
+  it("createCollectionLink - taxRate 超出范围应抛出 ZodError", async () => {
+    const req = mockReq({ params: { billNo: "BILL001" }, body: { amount: 100, taxRate: 2 } });
+    const res = mockRes();
+    await expect(createCollectionLink(req as any, res as any)).rejects.toThrow(ZodError);
+    expect(saleBillService.createCollectionLink).not.toHaveBeenCalled();
+  });
+
+  it("offlinePayment - amount 缺失应抛出 ZodError", async () => {
+    const req = mockReq({ params: { billNo: "BILL001" }, body: { paymentMethod: "CASH" } });
+    const res = mockRes();
+    await expect(offlinePayment(req as any, res as any)).rejects.toThrow(ZodError);
+    expect(saleBillService.offlinePayment).not.toHaveBeenCalled();
+  });
+
+  it("offlinePayment - paymentMethod 缺失应抛出 ZodError", async () => {
+    const req = mockReq({ params: { billNo: "BILL001" }, body: { amount: 100 } });
+    const res = mockRes();
+    await expect(offlinePayment(req as any, res as any)).rejects.toThrow(ZodError);
+    expect(saleBillService.offlinePayment).not.toHaveBeenCalled();
+  });
+
+  it("paymentOnSaleBill - amount 非正数应抛出 ZodError", async () => {
+    const req = mockReq({ params: { billNo: "BILL001" }, body: { amount: 0, paymentMethod: "CASH" } });
+    const res = mockRes();
+    await expect(paymentOnSaleBill(req as any, res as any)).rejects.toThrow(ZodError);
+    expect(saleBillService.paymentOnSaleBill).not.toHaveBeenCalled();
+  });
+
+  it("paymentOnSaleBill - paymentMethod 无效值应抛出 ZodError", async () => {
+    const req = mockReq({ params: { billNo: "BILL001" }, body: { amount: 100, paymentMethod: "INVALID" } });
+    const res = mockRes();
+    await expect(paymentOnSaleBill(req as any, res as any)).rejects.toThrow(ZodError);
+    expect(saleBillService.paymentOnSaleBill).not.toHaveBeenCalled();
   });
 });

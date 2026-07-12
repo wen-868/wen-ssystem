@@ -68,6 +68,14 @@ describe("receivable.controller", () => {
     expect(ok).toHaveBeenCalled();
   });
 
+  it("listReceivables - service抛出异常应被捕获", async () => {
+    const error = new Error("查询应收失败");
+    (receivableService.listReceivables as any).mockRejectedValue(error);
+    const req = mockReq();
+    const res = mockRes();
+    await expect(listReceivables(req as any, res as any)).rejects.toThrow(error);
+  });
+
   it("listPayables - 应返回应付列表", async () => {
     (receivableService.listPayables as any).mockResolvedValue({ total: 0, records: [] });
     const req = mockReq({ query: { page: 1, pageSize: 20 } });
@@ -75,6 +83,17 @@ describe("receivable.controller", () => {
     await listPayables(req as any, res as any);
     expect(receivableService.listPayables).toHaveBeenCalledWith({
       supplierId: undefined, status: undefined, page: 1, pageSize: 20, tenantId: "t1"
+    });
+    expect(ok).toHaveBeenCalled();
+  });
+
+  it("listPayables - 应支持按供应商筛选", async () => {
+    (receivableService.listPayables as any).mockResolvedValue({ total: 1, records: [] });
+    const req = mockReq({ query: { supplierId: "3", status: "PENDING" } });
+    const res = mockRes();
+    await listPayables(req as any, res as any);
+    expect(receivableService.listPayables).toHaveBeenCalledWith({
+      supplierId: 3, status: "PENDING", page: 1, pageSize: 20, tenantId: "t1"
     });
     expect(ok).toHaveBeenCalled();
   });
@@ -106,6 +125,14 @@ describe("receivable.controller", () => {
     expect(ok).toHaveBeenCalled();
   });
 
+  it("getReceivableDetail - 应收不存在应抛出异常", async () => {
+    const error = new Error("应收不存在");
+    (receivableService.getReceivableDetail as any).mockRejectedValue(error);
+    const req = mockReq({ params: { id: "999" } });
+    const res = mockRes();
+    await expect(getReceivableDetail(req as any, res as any)).rejects.toThrow(error);
+  });
+
   it("getPayableDetail - 应返回应付详情", async () => {
     (receivableService.getPayableDetail as any).mockResolvedValue({ id: 1 });
     const req = mockReq({ params: { id: "1" } });
@@ -113,5 +140,13 @@ describe("receivable.controller", () => {
     await getPayableDetail(req as any, res as any);
     expect(receivableService.getPayableDetail).toHaveBeenCalledWith(1, "t1");
     expect(ok).toHaveBeenCalled();
+  });
+
+  it("getPayableDetail - 应付不存在应抛出异常", async () => {
+    const error = new Error("应付不存在");
+    (receivableService.getPayableDetail as any).mockRejectedValue(error);
+    const req = mockReq({ params: { id: "999" } });
+    const res = mockRes();
+    await expect(getPayableDetail(req as any, res as any)).rejects.toThrow(error);
   });
 });
