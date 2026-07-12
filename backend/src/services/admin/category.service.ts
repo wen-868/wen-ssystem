@@ -1,27 +1,32 @@
-﻿import { queryWithTenant, queryOneWithTenant, transaction } from "../../shared/db";
+import { queryWithTenant, queryOneWithTenant, transaction } from "../../shared/db";
 import logger from "../../shared/logger";
 import { syncChangedFields } from "../../shared/field-sync";
 
 interface CategoryRow {
-  id: number; name: string; parent_id: number | null; sort_no: number;
-  icon?: string; code?: string; status: number; tenant_id: string;
-  allow_online_sale: number;
+  id: number; name: string; parentId: number | null; sortNo: number;
+  icon?: string; code?: string; status: number;
+  allowOnlineSale: number; createdAt: Date; updatedAt: Date;
 }
 
-export async function list(params: { pid?: number; tenantId: string; allowOnlineSale?: number }) {
-  const { pid, tenantId, allowOnlineSale } = params;
-  let sql = "SELECT id, parent_id, name, icon, code, sort_no, status, allow_online_sale, created_at, updated_at FROM t_product_category WHERE tenant_id = ?";
+export async function list(params: { pid?: number; tenantId: string; allowOnlineSale?: number; status?: number }) {
+  const { pid, tenantId, allowOnlineSale, status } = params;
+  let sql = `SELECT id, parent_id AS parentId, name, icon, code, sort_no AS sortNo,
+                    status, allow_online_sale AS allowOnlineSale,
+                    created_at AS createdAt, updated_at AS updatedAt
+             FROM t_product_category WHERE tenant_id = ?`;
   const sqlParams: unknown[] = [tenantId];
 
   if (pid !== undefined) {
     sql += " AND parent_id = ?";
     sqlParams.push(pid);
-  } else {
-    sql += " AND parent_id IS NULL";
   }
   if (allowOnlineSale !== undefined) {
     sql += " AND allow_online_sale = ?";
     sqlParams.push(allowOnlineSale);
+  }
+  if (status !== undefined) {
+    sql += " AND status = ?";
+    sqlParams.push(status);
   }
   sql += " ORDER BY sort_no ASC, id ASC";
 
@@ -31,13 +36,14 @@ export async function list(params: { pid?: number; tenantId: string; allowOnline
 
 export async function create(body: {
   name: string; parentId?: number | null; sortNo?: number;
-  icon?: string; code?: string; allowOnlineSale?: number;
+  icon?: string; code?: string; allowOnlineSale?: number; status?: number;
 }, tenantId: string) {
   const result = await queryWithTenant<{ insertId: number }>(
-    `INSERT INTO t_product_category (name, parent_id, sort_no, icon, code, allow_online_sale, tenant_id)
-     VALUES (?, ?, ?, ?, ?, ?, ?)`,
+    `INSERT INTO t_product_category (name, parent_id, sort_no, icon, code, allow_online_sale, status, tenant_id)
+     VALUES (?, ?, ?, ?, ?, ?, ?, ?)`,
     [body.name, body.parentId ?? null, body.sortNo ?? 0,
-     body.icon ?? null, body.code ?? null, body.allowOnlineSale ?? 1, tenantId],
+     body.icon ?? null, body.code ?? null, body.allowOnlineSale ?? 1,
+     body.status ?? 1, tenantId],
     tenantId
   );
   return { id: (result as unknown as Record<string, unknown>).insertId };
@@ -45,7 +51,7 @@ export async function create(body: {
 
 export async function update(id: number, body: {
   name?: string; parentId?: number | null; sortNo?: number;
-  icon?: string; code?: string; allowOnlineSale?: number;
+  icon?: string; code?: string; allowOnlineSale?: number; status?: number;
 }, tenantId: string) {
   const existing = await queryOneWithTenant<CategoryRow>(
     "SELECT id, name FROM t_product_category WHERE id = ? AND tenant_id = ?",
@@ -61,6 +67,7 @@ export async function update(id: number, body: {
   if (body.icon !== undefined) { sets.push("icon = ?"); params.push(body.icon); }
   if (body.code !== undefined) { sets.push("code = ?"); params.push(body.code); }
   if (body.allowOnlineSale !== undefined) { sets.push("allow_online_sale = ?"); params.push(body.allowOnlineSale); }
+  if (body.status !== undefined) { sets.push("status = ?"); params.push(body.status); }
   if (sets.length === 0) return { id };
 
   params.push(id, tenantId);

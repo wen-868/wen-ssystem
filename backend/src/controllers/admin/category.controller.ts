@@ -3,9 +3,14 @@ import { ok } from "../../shared/response";
 import * as service from "../../services/admin/category.service";
 
 export async function listCategories(req: any, res: any) {
-  const pid = req.query.pid !== undefined ? Number(req.query.pid) : undefined;
-  const allowOnlineSale = req.query.allow_online_sale !== undefined ? Number(req.query.allow_online_sale) : undefined;
-  const rows = await service.list({ pid, allowOnlineSale, tenantId: req.tenantId! });
+  const pid = req.query.pid !== undefined || req.query.parentId !== undefined
+    ? Number(req.query.pid ?? req.query.parentId)
+    : undefined;
+  const allowOnlineSale = req.query.allowOnlineSale !== undefined || req.query.allow_online_sale !== undefined
+    ? Number(req.query.allowOnlineSale ?? req.query.allow_online_sale)
+    : undefined;
+  const status = req.query.status !== undefined ? Number(req.query.status) : undefined;
+  const rows = await service.list({ pid, allowOnlineSale, status, tenantId: req.tenantId! });
   res.json(ok(rows));
 }
 
@@ -17,6 +22,7 @@ export async function createCategory(req: any, res: any) {
     icon: z.string().max(255).optional(),
     code: z.string().max(64).optional(),
     allowOnlineSale: z.number().int().min(0).max(1).optional(),
+    status: z.number().int().min(0).max(1).optional(),
   }).parse(req.body);
   const result = await service.create(body, req.tenantId!);
   res.json(ok(result));
@@ -30,6 +36,7 @@ export async function updateCategory(req: any, res: any) {
     icon: z.string().max(255).optional(),
     code: z.string().max(64).optional(),
     allowOnlineSale: z.number().int().min(0).max(1).optional(),
+    status: z.number().int().min(0).max(1).optional(),
   }).parse(req.body);
   const result = await service.update(Number(req.params.id), body, req.tenantId!);
   res.json(ok(result));

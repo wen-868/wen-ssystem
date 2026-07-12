@@ -1,4 +1,4 @@
-﻿import { query, queryOne, queryWithTenant, queryOneWithTenant, transaction } from "../../shared/db";
+import { query, queryOne, queryWithTenant, queryOneWithTenant, transaction } from "../../shared/db";
 import logger from "../../shared/logger";
 import { makeBizNo } from "../../shared/id";
 import { detectChangedFields, syncChangedFields } from "../../shared/field-sync";
@@ -9,7 +9,8 @@ export async function listProducts(keyword: string, page: number, pageSize: numb
   const offset = (page - 1) * pageSize;
   const records = await queryWithTenant<any>(
     `SELECT p.id AS spuId, p.spu_code AS spuCode, p.name, p.category_id AS categoryId,
-            pc.name AS categoryName, p.brand_id AS brandId, b.name AS brandName, p.unit, p.specs,
+            pc.name AS categoryName, pc.allow_online_sale AS allowOnlineSale,
+            p.brand_id AS brandId, b.name AS brandName, p.unit, p.specs,
             p.alcohol_content AS alcoholContent, p.origin, p.main_image AS mainImage,
             p.image_urls AS imageUrls, p.detail, p.sale_channels AS saleChannels,
             p.sort_no AS sortNo, p.is_new AS isNew, p.is_recommend AS isRecommend,
@@ -48,7 +49,8 @@ export async function listProducts(keyword: string, page: number, pageSize: numb
 export async function getProductDetail(spuId: number, tenantId: string) {
   const spu = await queryOneWithTenant<any>(
     `SELECT p.id, p.spu_code AS spuCode, p.name, p.category_id AS categoryId,
-            pc.name AS categoryName, p.brand_id AS brandId, b.name AS brandName, p.unit, p.specs,
+            pc.name AS categoryName, pc.allow_online_sale AS allowOnlineSale,
+            p.brand_id AS brandId, b.name AS brandName, p.unit, p.specs,
             p.alcohol_content AS alcoholContent, p.origin,
             p.main_image AS mainImage, p.image_urls AS imageUrls, p.detail,
             p.sale_channels AS saleChannels, p.sort_no AS sortNo,

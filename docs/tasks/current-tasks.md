@@ -106,9 +106,9 @@
 - **修改文件**：
   - `app-mobile/src/api/modules/products.ts`
   - `app-mobile/src/pages/products/products.vue`
-- **后端遗留问题（已记录，待阿坚后续优化）**：
-  - 后端商品列表 `listProducts` SQL 未 join `t_product_category.allow_online_sale`，商品对象不带该字段。当前前端已通过分类映射兜底解决，建议后端在 SQL 中补充 `pc.allow_online_sale AS allowOnlineSale`，使商品接口直接返回
-  - 后端分类列表返回下划线命名 `allow_online_sale`，前端已做映射兜底，建议后端统一驼峰命名
+- **后端遗留问题（已修复，R25-A5 凌舟协助）**：
+  - ✅ 后端商品列表 `listProducts` SQL 已补充 `pc.allow_online_sale AS allowOnlineSale`，商品接口直接返回该字段
+  - ✅ 后端分类列表已统一驼峰命名（parentId、sortNo、allowOnlineSale 等），前端映射可逐步简化
 
 ### R25-A4 — 分支覆盖率优化（80% → 90%）[P1]
 
@@ -164,6 +164,11 @@
 - **遗留说明**：
   - 根目录仍有 8 个 controller 与 admin/ 同名（order-timeout、purchase-return、purchase-payment、purchase-in-stock、customer-statement、customer-payment、inventory-batch、instant-retail），这些是不同用途的 controller（服务不同路由），admin/ 版本未被路由使用（死代码），建议后续清理
   - 根目录 share.controller.ts 为共享工具，保持在根目录
+- **后端遗留问题修复（凌舟协助）**：
+  1. ✅ product.service.ts：商品列表 SQL 添加 `pc.allow_online_sale AS allowOnlineSale`，商品接口直接返回该字段（原阿澈前端兜底，现后端直出）
+  2. ✅ category.service.ts：去掉 `parent_id IS NULL` 限制，不传 pid 返回所有分类；SELECT 字段加驼峰别名（parentId、sortNo、allowOnlineSale、createdAt、updatedAt）；list 增加 status 过滤参数
+  3. ✅ category.service.ts：create/update 增加 status 字段支持
+  4. ✅ category.controller.ts：zod schema 增加 status 字段；list 兼容 pid/parentId、allowOnlineSale/allow_online_sale 两种参数命名；增加 status 查询参数
 
 ### R25-A6 — R25 全量回归测试 [P0]
 
