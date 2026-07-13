@@ -114,16 +114,32 @@
 
 ### R27-A4 — R27 全量回归测试 [P0]
 
-- **状态**：待开始
+- **状态**：✅ 已完成
 - **优先级**：P0
 - **负责人**：苏然
 - **预计**：1 天
+- **完成时间**：2026-07-13
 - **测试范围**：
   - 后端：tsc + vitest + eslint + 覆盖率
   - 前端：admin-web vue-tsc + build
   - app-mobile：vue-tsc + build:h5
-  - store-terminal：eslint
-- **验收标准**：所有测试通过，覆盖率 ≥ 90%
+  - store-terminal：eslint + build
+  - 功能验证：store-terminal 新增页面 + admin-web 数据权限
+- **测试结果**：
+  - ✅ 后端 tsc：0 错误
+  - ✅ 后端 vitest：372 文件 3980 用例全部通过
+  - ✅ 后端分支覆盖率：90.17%（≥ 90% 达标）
+  - ✅ 后端 eslint：0 错误
+  - ✅ admin-web vue-tsc：0 错误
+  - ✅ admin-web build：成功（35.44s）
+  - ✅ app-mobile vue-tsc：0 错误
+  - ✅ app-mobile build:h5：成功
+  - ✅ store-terminal eslint：0 错误
+  - ✅ store-terminal build：成功（17.19s）
+- **功能验证**：
+  - ✅ store-terminal 4个新页面路由已注册（/shift、/shift/:id、/member、/sale-return）
+  - ✅ admin-web 数据权限 Tab 已实现（全部数据/按部门/按门店/按客户）
+- **测试报告**：`docs/reports/test-report-r27-2026-07-13.md`
 
 ---
 
