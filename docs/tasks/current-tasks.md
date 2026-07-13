@@ -53,14 +53,26 @@
 
 ### R28-A2 — admin-web 营销活动完善 + 平台评价管理 [P1]
 
-- **状态**：待开始
+- **状态**：✅ 已完成
 - **优先级**：P1
 - **负责人**：墨
 - **预计**：2 天
+- **完成时间**：2026-07-13
 - **需求来源**：R25 缺失页面清单与补全计划第二阶段
 - **需求**：
   1. 营销活动完善（活动列表增强、活动统计、活动效果分析）
   2. 平台评价管理（评价列表、评价审核、评价回复、评价统计）
+- **完成内容**：
+  1. **营销活动看板**：`MarketingDashboard.vue` 对接真实API（getMarketingOverview、getMarketingTrend、getActivityRanking、getActivityStats、getCouponStats、getActivityComparison），移除mock数据，支持按日期范围筛选和活动类型筛选
+  2. **平台评价管理**：`PlatformReview.vue` 新增评价审核通过/拒绝、批量拒绝、评价回复、评价趋势图表、评分分布饼图、评分筛选、时间范围筛选、统计卡片（评价总数、好评率、待审核、已回复）
+  3. **路由注册**：在SaaS平台后台菜单注册平台评价路由
+- **验证结果**：
+  - ✅ vue-tsc --noEmit：0 错误
+  - ✅ npm run build：构建成功
+- **修改文件**：
+  - `admin-web/src/views/MarketingDashboard.vue`
+  - `admin-web/src/views/PlatformReview.vue`
+  - `admin-web/src/router/index.ts`
 - **验收标准**：vue-tsc --noEmit 0 错误，npm run build 构建成功
 
 ### R28-A3 — app-mobile P1级页面补全 [P1]
@@ -109,15 +121,32 @@
 
 ### R28-A4 — app-mobile 财务看板+费用管理+操作日志 [P1]
 
-- **状态**：待开始
+- **状态**：✅ 已完成
 - **优先级**：P1
 - **负责人**：阿澈
 - **预计**：2 天
+- **完成时间**：2026-07-13
 - **需求来源**：R25 缺失页面清单与补全计划第二阶段
 - **需求**：
   1. 财务看板（收入统计、支出统计、利润分析）
   2. 费用管理（费用列表、费用录入、费用审核）
   3. 操作日志（日志列表、日志搜索、操作详情）
+- **完成内容**：
+  1. 财务看板：`finance.ts` API模块，`finance-dashboard.vue`（收入/支出/利润指标卡片、收入支出趋势图表、支出分类进度条）
+  2. 费用管理：`expenses.ts` API模块，`expenses.vue`（费用列表+搜索+状态筛选+审核通过/驳回），`expense-create.vue`（费用录入表单）
+  3. 操作日志：`operation-logs.ts` API模块，`operation-logs.vue`（日志列表+搜索+时间筛选+操作类型筛选）
+- **验证结果**：
+  - ✅ vue-tsc --noEmit：0 错误
+  - ✅ npm run build:h5：构建成功
+- **修改文件**：
+  - `app-mobile/src/api/modules/finance.ts`（新增）
+  - `app-mobile/src/api/modules/expenses.ts`（新增）
+  - `app-mobile/src/api/modules/operation-logs.ts`（新增）
+  - `app-mobile/src/pages/finance/finance-dashboard.vue`（新增）
+  - `app-mobile/src/pages/finance/expenses.vue`（新增）
+  - `app-mobile/src/pages/finance/expense-create.vue`（新增）
+  - `app-mobile/src/pages/system/operation-logs.vue`（新增）
+  - `app-mobile/src/pages.json`（新增路由）
 - **验收标准**：vue-tsc --noEmit 0 错误，npm run build:h5 构建成功
 
 ### R28-A5 — store-terminal P1级页面补全 [P1]
