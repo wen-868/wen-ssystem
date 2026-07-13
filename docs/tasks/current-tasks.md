@@ -46,12 +46,29 @@
 
 ### R29-A2 — admin-web 数据看板完善 [P1]
 
-- **状态**：待开始
+- **状态**：✅ 已完成
 - **优先级**：P1
 - **负责人**：墨
 - **预计**：1.5 天
+- **完成时间**：2026-07-14
 - **需求来源**：第二阶段完善提升
 - **需求**：完善数据看板（销售统计、库存分析、客户分析、供应商分析）
+- **完成内容**：
+  1. **销售统计模块**：销售趋势图（近7/30天切换）、品类销售占比饼图、销售排行（支持按商品/客户/员工切换）、客户分类统计柱状图
+  2. **库存分析模块**：库存总量/可用库存/锁定库存/库存价值统计卡片、库存周转率分析图、库存价值分析饼图、库存预警商品列表（带预警级别标签）
+  3. **客户分析模块**：客户总数/今日新增/活跃客户/客户留存率统计卡片、客户增长趋势图、客户活跃度分析饼图
+  4. **供应商分析模块**：供应商总数/本月新增/本月采购金额/采购订单统计卡片、供应商采购金额排行、供应商交货准时率分析、供应商合作趋势图
+  5. **后端 API 新增**：`dashboard.service.ts` 新增库存分析（getInventoryStats/getInventoryTurnover/getInventoryWarningList/getInventoryValueAnalysis）、客户分析（getCustomerStats/getCustomerGrowthTrend/getCustomerActivity/getCustomerCategoryStats）、供应商分析（getSupplierStats/getSupplierPurchaseRanking/getSupplierOnTimeRate/getSupplierTrend）、员工销售排行（getTopEmployees）
+  6. **前端 API 新增**：`api.ts` 新增对应前端 API 函数
+- **修改文件**：
+  - `admin-web/src/views/Dashboard.vue`（重构）
+  - `admin-web/src/api.ts`（新增 API 函数）
+  - `backend/src/services/admin/dashboard.service.ts`（新增统计方法）
+  - `backend/src/controllers/admin/dashboard.controller.ts`（新增控制器）
+  - `backend/src/routes/dashboard.routes.ts`（新增路由）
+- **验证结果**：
+  - ✅ vue-tsc --noEmit：0 错误
+  - ✅ npm run build：构建成功
 - **验收标准**：vue-tsc --noEmit 0 错误，npm run build 构建成功
 
 ### R29-A3 — app-mobile 订单管理完善 [P1]

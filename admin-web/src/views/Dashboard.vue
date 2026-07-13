@@ -1163,4 +1163,817 @@ function renderSalesTrendChart() {
           name: '金额 (¥)',
           axisLabel: { formatter: (v: number) => (v >= 10000 ? `${(v / 10000).toFixed(1)}万` : v.toString()) },
         },
-        { type: 'value', name: '订单数', axisLabel: { formatter: (v:
+        { type: 'value', name: '订单数', axisLabel: { formatter: (v: number) => v.toString() } },
+      ],
+      series: [
+        {
+          name: '销售额',
+          type: 'line',
+          data: amounts,
+          smooth: true,
+          symbol: 'circle',
+          symbolSize: 6,
+          lineStyle: { width: 2, color: '#409eff' },
+          itemStyle: { color: '#409eff' },
+          areaStyle: {
+            color: new echarts.graphic.LinearGradient(0, 0, 0, 1, [
+              { offset: 0, color: 'rgba(64,158,255,0.3)' },
+              { offset: 1, color: 'rgba(64,158,255,0.05)' },
+            ]),
+          },
+        },
+        {
+          name: '订单数',
+          type: 'line',
+          yAxisIndex: 1,
+          data: orders,
+          smooth: true,
+          symbol: 'diamond',
+          symbolSize: 6,
+          lineStyle: { width: 2, color: '#67c23a' },
+          itemStyle: { color: '#67c23a' },
+        },
+      ],
+    },
+    { notMerge: true }
+  );
+}
+
+function renderCategoryPieChart() {
+  if (!categoryPieChartRef.value) return;
+  if (!categoryPieChart) {
+    categoryPieChart = initChart(categoryPieChartRef.value);
+  }
+  if (!categoryPieChart || categoryPieData.value.length === 0) return;
+
+  categoryPieChart.setOption(
+    {
+      tooltip: { trigger: 'item', formatter: '{b}: {c} ({d}%)' },
+      legend: { type: 'scroll', orient: 'vertical', right: 10, top: 'center', itemWidth: 12, itemHeight: 12 },
+      series: [
+        {
+          type: 'pie',
+          radius: ['50%', '75%'],
+          center: ['40%', '50%'],
+          avoidLabelOverlap: false,
+          itemStyle: { borderRadius: 4, borderColor: '#fff', borderWidth: 2 },
+          label: { show: false },
+          emphasis: { label: { show: true, fontSize: 14, fontWeight: 'bold' } },
+          data: categoryPieData.value,
+        },
+      ],
+    },
+    { notMerge: true }
+  );
+}
+
+function renderTopChart() {
+  if (!topChartRef.value) return;
+  if (!topChart) {
+    topChart = initChart(topChartRef.value);
+  }
+  if (!topChart || topData.value.length === 0) return;
+
+  let names: string[];
+  let amounts: number[];
+  let qtys: number[] | undefined;
+  let seriesData: any[];
+
+  if (rankingType.value === 'product') {
+    const data = topData.value as TopProductItem[];
+    names = data.map((d) => d.name).reverse();
+    amounts = data.map((d) => d.salesAmount).reverse();
+    qtys = data.map((d) => d.salesQty).reverse();
+    seriesData = [
+      {
+        name: '销售额',
+        type: 'bar',
+        data: amounts,
+        itemStyle: {
+          color: new echarts.graphic.LinearGradient(0, 0, 1, 0, [{ offset: 0, color: '#409eff' }, { offset: 1, color: '#79bbff' }]),
+          borderRadius: [0, 4, 4, 0],
+        },
+      },
+      {
+        name: '销量',
+        type: 'bar',
+        xAxisIndex: 1,
+        data: qtys,
+        itemStyle: {
+          color: new echarts.graphic.LinearGradient(0, 0, 1, 0, [{ offset: 0, color: '#67c23a' }, { offset: 1, color: '#95d475' }]),
+          borderRadius: [0, 4, 4, 0],
+        },
+      },
+    ];
+  } else if (rankingType.value === 'customer') {
+    const data = topData.value as TopCustomerItem[];
+    names = data.map((d) => d.name).reverse();
+    amounts = data.map((d) => d.amount).reverse();
+    seriesData = [
+      {
+        name: '消费金额',
+        type: 'bar',
+        data: amounts,
+        itemStyle: {
+          color: new echarts.graphic.LinearGradient(0, 0, 1, 0, [{ offset: 0, color: '#e6a23c' }, { offset: 1, color: '#f3d19e' }]),
+          borderRadius: [0, 4, 4, 0],
+        },
+      },
+    ];
+  } else {
+    const data = topData.value as TopEmployeeItem[];
+    names = data.map((d) => d.employeeName).reverse();
+    amounts = data.map((d) => d.totalAmount).reverse();
+    qtys = data.map((d) => d.orderCount).reverse();
+    seriesData = [
+      {
+        name: '销售额',
+        type: 'bar',
+        data: amounts,
+        itemStyle: {
+          color: new echarts.graphic.LinearGradient(0, 0, 1, 0, [{ offset: 0, color: '#909399' }, { offset: 1, color: '#c0c4cc' }]),
+          borderRadius: [0, 4, 4, 0],
+        },
+      },
+      {
+        name: '订单数',
+        type: 'bar',
+        xAxisIndex: 1,
+        data: qtys,
+        itemStyle: {
+          color: new echarts.graphic.LinearGradient(0, 0, 1, 0, [{ offset: 0, color: '#b37feb' }, { offset: 1, color: '#d3adf7' }]),
+          borderRadius: [0, 4, 4, 0],
+        },
+      },
+    ];
+  }
+
+  const xAxis = rankingType.value === 'customer' ? [
+    {
+      type: 'value',
+      name: '金额 (¥)',
+      axisLabel: { formatter: (v: number) => (v >= 10000 ? `${(v / 10000).toFixed(1)}万` : v.toString()) },
+    },
+  ] : [
+    {
+      type: 'value',
+      name: '金额 (¥)',
+      axisLabel: { formatter: (v: number) => (v >= 10000 ? `${(v / 10000).toFixed(1)}万` : v.toString()) },
+    },
+    { type: 'value', name: rankingType.value === 'product' ? '销量' : '订单数' },
+  ];
+
+  const legendData = rankingType.value === 'customer' ? ['消费金额'] : ['销售额', rankingType.value === 'product' ? '销量' : '订单数'];
+
+  topChart.setOption(
+    {
+      tooltip: { trigger: 'axis', axisPointer: { type: 'shadow' } },
+      legend: { data: legendData, bottom: 0 },
+      grid: { left: '3%', right: '4%', bottom: '12%', top: '4%', containLabel: true },
+      xAxis,
+      yAxis: { type: 'category', data: names, axisLabel: { width: 100, overflow: 'truncate' } },
+      series: seriesData,
+    },
+    { notMerge: true }
+  );
+}
+
+function renderCustomerCategoryChart() {
+  if (!customerCategoryChartRef.value) return;
+  if (!customerCategoryChart) {
+    customerCategoryChart = initChart(customerCategoryChartRef.value);
+  }
+  if (!customerCategoryChart || customerCategoryData.value.length === 0) return;
+
+  const labels = customerCategoryData.value.map((d) => d.customerTypeLabel);
+  const amounts = customerCategoryData.value.map((d) => d.totalAmount);
+  const counts = customerCategoryData.value.map((d) => d.orderCount);
+
+  customerCategoryChart.setOption(
+    {
+      tooltip: { trigger: 'axis', axisPointer: { type: 'shadow' } },
+      legend: { data: ['消费金额', '订单数'], bottom: 0 },
+      grid: { left: '3%', right: '4%', bottom: '12%', top: '4%', containLabel: true },
+      xAxis: [
+        {
+          type: 'value',
+          name: '金额 (¥)',
+          axisLabel: { formatter: (v: number) => (v >= 10000 ? `${(v / 10000).toFixed(1)}万` : v.toString()) },
+        },
+        { type: 'value', name: '订单数' },
+      ],
+      yAxis: { type: 'category', data: labels },
+      series: [
+        {
+          name: '消费金额',
+          type: 'bar',
+          data: amounts,
+          itemStyle: {
+            color: new echarts.graphic.LinearGradient(0, 0, 1, 0, [{ offset: 0, color: '#f56c6c' }, { offset: 1, color: '#f89898' }]),
+            borderRadius: [0, 4, 4, 0],
+          },
+        },
+        {
+          name: '订单数',
+          type: 'bar',
+          xAxisIndex: 1,
+          data: counts,
+          itemStyle: {
+            color: new echarts.graphic.LinearGradient(0, 0, 1, 0, [{ offset: 0, color: '#8bc34a' }, { offset: 1, color: '#aed581' }]),
+            borderRadius: [0, 4, 4, 0],
+          },
+        },
+      ],
+    },
+    { notMerge: true }
+  );
+}
+
+function renderInventoryTurnoverChart() {
+  if (!inventoryTurnoverChartRef.value) return;
+  if (!inventoryTurnoverChart) {
+    inventoryTurnoverChart = initChart(inventoryTurnoverChartRef.value);
+  }
+  if (!inventoryTurnoverChart || inventoryTurnoverData.value.length === 0) return;
+
+  const months = inventoryTurnoverData.value.map((d) => d.month);
+  const soldAmounts = inventoryTurnoverData.value.map((d) => d.soldAmount);
+  const turnoverRates = inventoryTurnoverData.value.map((d) => d.turnoverRate);
+
+  inventoryTurnoverChart.setOption(
+    {
+      tooltip: { trigger: 'axis', axisPointer: { type: 'cross' } },
+      legend: { data: ['销售额', '周转率(%)'], bottom: 0 },
+      grid: { left: '3%', right: '4%', bottom: '12%', top: '8%', containLabel: true },
+      xAxis: { type: 'category', data: months, boundaryGap: false },
+      yAxis: [
+        {
+          type: 'value',
+          name: '金额 (¥)',
+          axisLabel: { formatter: (v: number) => (v >= 10000 ? `${(v / 10000).toFixed(1)}万` : v.toString()) },
+        },
+        { type: 'value', name: '周转率(%)', axisLabel: { formatter: (v: number) => `${v}%` } },
+      ],
+      series: [
+        {
+          name: '销售额',
+          type: 'bar',
+          data: soldAmounts,
+          itemStyle: {
+            color: new echarts.graphic.LinearGradient(0, 0, 0, 1, [{ offset: 0, color: '#10b981' }, { offset: 1, color: '#34d399' }]),
+            borderRadius: [4, 4, 0, 0],
+          },
+        },
+        {
+          name: '周转率(%)',
+          type: 'line',
+          yAxisIndex: 1,
+          data: turnoverRates,
+          smooth: true,
+          symbol: 'circle',
+          symbolSize: 6,
+          lineStyle: { width: 2, color: '#f59e0b' },
+          itemStyle: { color: '#f59e0b' },
+        },
+      ],
+    },
+    { notMerge: true }
+  );
+}
+
+function renderInventoryValueChart() {
+  if (!inventoryValueChartRef.value) return;
+  if (!inventoryValueChart) {
+    inventoryValueChart = initChart(inventoryValueChartRef.value);
+  }
+  if (!inventoryValueChart || inventoryValueData.value.length === 0) return;
+
+  const categories = inventoryValueData.value.map((d) => d.categoryName);
+  const values = inventoryValueData.value.map((d) => d.totalValue);
+
+  inventoryValueChart.setOption(
+    {
+      tooltip: {
+        trigger: 'item',
+        formatter: (params: any) => `${params.name}<br/>库存价值: ¥${formatNum(params.value)}`,
+      },
+      legend: { type: 'scroll', orient: 'vertical', right: 10, top: 'center', itemWidth: 12, itemHeight: 12 },
+      series: [
+        {
+          type: 'pie',
+          radius: ['50%', '75%'],
+          center: ['40%', '50%'],
+          avoidLabelOverlap: false,
+          itemStyle: { borderRadius: 4, borderColor: '#fff', borderWidth: 2 },
+          label: { show: false },
+          emphasis: { label: { show: true, fontSize: 14, fontWeight: 'bold' } },
+          data: categories.map((name, index) => ({ name, value: values[index] })),
+        },
+      ],
+    },
+    { notMerge: true }
+  );
+}
+
+function renderCustomerGrowthChart() {
+  if (!customerGrowthChartRef.value) return;
+  if (!customerGrowthChart) {
+    customerGrowthChart = initChart(customerGrowthChartRef.value);
+  }
+  if (!customerGrowthChart || customerGrowthData.value.length === 0) return;
+
+  const months = customerGrowthData.value.map((d) => d.month);
+  const newCustomers = customerGrowthData.value.map((d) => d.newCustomers);
+  const activeCustomers = customerGrowthData.value.map((d) => d.activeCustomers);
+
+  customerGrowthChart.setOption(
+    {
+      tooltip: { trigger: 'axis', axisPointer: { type: 'cross' } },
+      legend: { data: ['新增客户', '活跃客户'], bottom: 0 },
+      grid: { left: '3%', right: '4%', bottom: '12%', top: '8%', containLabel: true },
+      xAxis: { type: 'category', data: months, boundaryGap: false },
+      yAxis: { type: 'value', name: '人数' },
+      series: [
+        {
+          name: '新增客户',
+          type: 'line',
+          data: newCustomers,
+          smooth: true,
+          symbol: 'circle',
+          symbolSize: 6,
+          lineStyle: { width: 2, color: '#409eff' },
+          itemStyle: { color: '#409eff' },
+          areaStyle: {
+            color: new echarts.graphic.LinearGradient(0, 0, 0, 1, [
+              { offset: 0, color: 'rgba(64,158,255,0.3)' },
+              { offset: 1, color: 'rgba(64,158,255,0.05)' },
+            ]),
+          },
+        },
+        {
+          name: '活跃客户',
+          type: 'line',
+          data: activeCustomers,
+          smooth: true,
+          symbol: 'circle',
+          symbolSize: 6,
+          lineStyle: { width: 2, color: '#67c23a' },
+          itemStyle: { color: '#67c23a' },
+          areaStyle: {
+            color: new echarts.graphic.LinearGradient(0, 0, 0, 1, [
+              { offset: 0, color: 'rgba(103,194,58,0.3)' },
+              { offset: 1, color: 'rgba(103,194,58,0.05)' },
+            ]),
+          },
+        },
+      ],
+    },
+    { notMerge: true }
+  );
+}
+
+function renderCustomerActivityChart() {
+  if (!customerActivityChartRef.value) return;
+  if (!customerActivityChart) {
+    customerActivityChart = initChart(customerActivityChartRef.value);
+  }
+  if (!customerActivityChart || customerActivity.value.active30DaysCount === 0) return;
+
+  const activityData = [
+    { name: '近30天活跃', value: customerActivity.value.active30DaysCount },
+    { name: '30-60天活跃', value: customerActivity.value.active60DaysCount },
+  ];
+
+  customerActivityChart.setOption(
+    {
+      tooltip: { trigger: 'item', formatter: '{b}: {c}人' },
+      legend: { bottom: 0 },
+      series: [
+        {
+          type: 'pie',
+          radius: ['40%', '70%'],
+          center: ['50%', '50%'],
+          avoidLabelOverlap: false,
+          itemStyle: { borderRadius: 4, borderColor: '#fff', borderWidth: 2 },
+          label: { show: true, formatter: '{b}\n{c}人 ({d}%)' },
+          data: activityData,
+        },
+      ],
+    },
+    { notMerge: true }
+  );
+}
+
+function renderSupplierPurchaseChart() {
+  if (!supplierPurchaseChartRef.value) return;
+  if (!supplierPurchaseChart) {
+    supplierPurchaseChart = initChart(supplierPurchaseChartRef.value);
+  }
+  if (!supplierPurchaseChart || supplierPurchaseRanking.value.length === 0) return;
+
+  const names = supplierPurchaseRanking.value.map((d) => d.supplierName).reverse();
+  const amounts = supplierPurchaseRanking.value.map((d) => d.totalAmount).reverse();
+
+  supplierPurchaseChart.setOption(
+    {
+      tooltip: { trigger: 'axis', axisPointer: { type: 'shadow' } },
+      grid: { left: '3%', right: '4%', bottom: '4%', top: '4%', containLabel: true },
+      xAxis: {
+        type: 'value',
+        name: '金额 (¥)',
+        axisLabel: { formatter: (v: number) => (v >= 10000 ? `${(v / 10000).toFixed(1)}万` : v.toString()) },
+      },
+      yAxis: { type: 'category', data: names, axisLabel: { width: 100, overflow: 'truncate' } },
+      series: [
+        {
+          name: '采购金额',
+          type: 'bar',
+          data: amounts,
+          itemStyle: {
+            color: new echarts.graphic.LinearGradient(0, 0, 1, 0, [{ offset: 0, color: '#f56c6c' }, { offset: 1, color: '#f89898' }]),
+            borderRadius: [0, 4, 4, 0],
+          },
+        },
+      ],
+    },
+    { notMerge: true }
+  );
+}
+
+function renderSupplierOnTimeRateChart() {
+  if (!supplierOnTimeRateChartRef.value) return;
+  if (!supplierOnTimeRateChart) {
+    supplierOnTimeRateChart = initChart(supplierOnTimeRateChartRef.value);
+  }
+  if (!supplierOnTimeRateChart || supplierOnTimeRateData.value.length === 0) return;
+
+  const names = supplierOnTimeRateData.value.map((d) => d.supplierName).reverse();
+  const rates = supplierOnTimeRateData.value.map((d) => d.onTimeRate).reverse();
+
+  supplierOnTimeRateChart.setOption(
+    {
+      tooltip: { trigger: 'axis', axisPointer: { type: 'shadow' } },
+      grid: { left: '3%', right: '4%', bottom: '4%', top: '4%', containLabel: true },
+      xAxis: {
+        type: 'value',
+        name: '准时率(%)',
+        max: 100,
+        axisLabel: { formatter: (v: number) => `${v}%` },
+      },
+      yAxis: { type: 'category', data: names, axisLabel: { width: 100, overflow: 'truncate' } },
+      series: [
+        {
+          name: '准时率',
+          type: 'bar',
+          data: rates,
+          itemStyle: {
+            color: (params: any) => {
+              const rate = params.value;
+              if (rate >= 95) return '#67c23a';
+              if (rate >= 80) return '#e6a23c';
+              return '#f56c6c';
+            },
+            borderRadius: [0, 4, 4, 0],
+          },
+        },
+      ],
+    },
+    { notMerge: true }
+  );
+}
+
+function renderSupplierTrendChart() {
+  if (!supplierTrendChartRef.value) return;
+  if (!supplierTrendChart) {
+    supplierTrendChart = initChart(supplierTrendChartRef.value);
+  }
+  if (!supplierTrendChart || supplierTrendData.value.length === 0) return;
+
+  const months = supplierTrendData.value.map((d) => d.month);
+  const amounts = supplierTrendData.value.map((d) => d.totalAmount);
+  const orderCounts = supplierTrendData.value.map((d) => d.orderCount);
+  const activeSupplierCounts = supplierTrendData.value.map((d) => d.activeSupplierCount);
+
+  supplierTrendChart.setOption(
+    {
+      tooltip: { trigger: 'axis', axisPointer: { type: 'cross' } },
+      legend: { data: ['采购金额', '订单数', '活跃供应商'], bottom: 0 },
+      grid: { left: '3%', right: '4%', bottom: '12%', top: '8%', containLabel: true },
+      xAxis: { type: 'category', data: months, boundaryGap: false },
+      yAxis: [
+        {
+          type: 'value',
+          name: '金额 (¥)',
+          axisLabel: { formatter: (v: number) => (v >= 10000 ? `${(v / 10000).toFixed(1)}万` : v.toString()) },
+        },
+        { type: 'value', name: '数量' },
+      ],
+      series: [
+        {
+          name: '采购金额',
+          type: 'bar',
+          data: amounts,
+          itemStyle: {
+            color: new echarts.graphic.LinearGradient(0, 0, 0, 1, [{ offset: 0, color: '#409eff' }, { offset: 1, color: '#79bbff' }]),
+            borderRadius: [4, 4, 0, 0],
+          },
+        },
+        {
+          name: '订单数',
+          type: 'line',
+          yAxisIndex: 1,
+          data: orderCounts,
+          smooth: true,
+          symbol: 'circle',
+          symbolSize: 6,
+          lineStyle: { width: 2, color: '#67c23a' },
+          itemStyle: { color: '#67c23a' },
+        },
+        {
+          name: '活跃供应商',
+          type: 'line',
+          yAxisIndex: 1,
+          data: activeSupplierCounts,
+          smooth: true,
+          symbol: 'circle',
+          symbolSize: 6,
+          lineStyle: { width: 2, color: '#f59e0b' },
+          itemStyle: { color: '#f59e0b' },
+        },
+      ],
+    },
+    { notMerge: true }
+  );
+}
+
+// ==================== Spark 迷你折线图 ====================
+function renderSparkCharts() {
+  Object.keys(sparkCharts).forEach((key) => {
+    sparkCharts[key]?.dispose();
+    delete sparkCharts[key];
+  });
+  nextTick(() => {
+    metricCards.value.forEach((card: MetricCard) => {
+      const el = sparkRefs[card.key];
+      if (!el || !card.sparkData || card.sparkData.length === 0) return;
+      const instance = echarts.init(el);
+      sparkCharts[card.key] = instance;
+      instance.setOption({
+        grid: { left: 0, right: 0, top: 2, bottom: 0 },
+        xAxis: { show: false, data: card.sparkData.map((_: number, i: number) => i) },
+        yAxis: { show: false, min: (v: { min: number }) => v.min * 0.9, max: (v: { max: number }) => v.max * 1.1 },
+        series: [
+          {
+            type: 'line',
+            data: card.sparkData,
+            smooth: true,
+            showSymbol: false,
+            lineStyle: { width: 1.5, color: card.momUp ? '#f56c6c' : '#67c23a' },
+            areaStyle: {
+              color: new echarts.graphic.LinearGradient(0, 0, 0, 1, [
+                { offset: 0, color: card.momUp ? 'rgba(245,108,108,0.2)' : 'rgba(103,194,58,0.2)' },
+                { offset: 1, color: 'rgba(255,255,255,0)' },
+              ]),
+            },
+          },
+        ],
+      });
+    });
+  });
+}
+
+// 监听 metricCards 变化后重绘 spark
+watch(metricCards, () => {
+  renderSparkCharts();
+}, { deep: true });
+
+// ==================== 窗口大小响应 ====================
+function handleResize() {
+  salesTrendChart?.resize();
+  categoryPieChart?.resize();
+  topChart?.resize();
+  customerCategoryChart?.resize();
+  inventoryTurnoverChart?.resize();
+  inventoryValueChart?.resize();
+  customerGrowthChart?.resize();
+  customerActivityChart?.resize();
+  supplierPurchaseChart?.resize();
+  supplierOnTimeRateChart?.resize();
+  supplierTrendChart?.resize();
+  Object.values(sparkCharts).forEach((c) => c?.resize());
+}
+
+// ==================== 生命周期 ====================
+onMounted(async () => {
+  await loadStores();
+  await loadAllData();
+  window.addEventListener('resize', handleResize);
+});
+
+onUnmounted(() => {
+  window.removeEventListener('resize', handleResize);
+  salesTrendChart?.dispose();
+  categoryPieChart?.dispose();
+  topChart?.dispose();
+  customerCategoryChart?.dispose();
+  inventoryTurnoverChart?.dispose();
+  inventoryValueChart?.dispose();
+  customerGrowthChart?.dispose();
+  customerActivityChart?.dispose();
+  supplierPurchaseChart?.dispose();
+  supplierOnTimeRateChart?.dispose();
+  supplierTrendChart?.dispose();
+  Object.values(sparkCharts).forEach((c) => c?.dispose());
+});
+</script>
+
+<style scoped>
+.dashboard {
+  padding: 4px;
+}
+
+/* 顶部栏 */
+.header-bar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 12px;
+}
+.header-left {
+  display: flex;
+  align-items: baseline;
+  gap: 16px;
+}
+.welcome-text {
+  margin: 0;
+  font-size: 20px;
+  font-weight: 600;
+  color: #303133;
+}
+.date-text {
+  font-size: 14px;
+  color: #909399;
+}
+.header-right {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+/* 指标卡片 */
+.metric-card {
+  cursor: pointer;
+  transition: transform 0.2s;
+}
+.metric-card:hover {
+  transform: translateY(-2px);
+}
+.metric-card :deep(.el-card__body) {
+  padding: 16px 20px 12px;
+}
+.metric-card-inner {
+  display: flex;
+  flex-direction: column;
+}
+.metric-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+.metric-label {
+  font-size: 13px;
+  color: #909399;
+}
+.metric-value {
+  font-size: 26px;
+  font-weight: 700;
+  color: #303133;
+  margin: 6px 0 4px;
+  line-height: 1.2;
+}
+.metric-footer {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+.metric-compare {
+  display: flex;
+  gap: 12px;
+  font-size: 12px;
+}
+.compare-item {
+  display: flex;
+  align-items: center;
+  gap: 2px;
+}
+.compare-item.up {
+  color: #f56c6c;
+}
+.compare-item.down {
+  color: #67c23a;
+}
+.compare-item.yoy {
+  color: #909399;
+}
+.compare-arrow {
+  font-size: 12px;
+}
+.spark-chart {
+  width: 100%;
+  height: 40px;
+  margin-top: 6px;
+}
+.spark-placeholder {
+  height: 40px;
+  margin-top: 6px;
+}
+
+/* 模块区域 */
+.module-section {
+  margin-top: 24px;
+}
+.module-header {
+  margin-bottom: 12px;
+}
+.module-title {
+  margin: 0;
+  font-size: 18px;
+  font-weight: 600;
+  color: #303133;
+}
+
+/* 统计卡片 */
+.stat-card :deep(.el-card__body) {
+  padding: 16px;
+}
+.stat-item {
+  display: flex;
+  flex-direction: column;
+}
+.stat-label {
+  font-size: 13px;
+  color: #909399;
+  margin-bottom: 4px;
+}
+.stat-value {
+  font-size: 24px;
+  font-weight: 700;
+  color: #303133;
+}
+
+/* 图表卡片 */
+.chart-card {
+  min-height: 360px;
+}
+.chart-card :deep(.el-card__body) {
+  padding: 12px 16px;
+}
+.chart-card-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: 15px;
+  font-weight: 600;
+  color: #303133;
+}
+.chart-container {
+  width: 100%;
+  height: 300px;
+}
+.chart-empty {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 300px;
+}
+
+/* 预警区 */
+.alert-title {
+  display: flex;
+  align-items: center;
+  font-size: 15px;
+  font-weight: 600;
+  color: #303133;
+}
+
+/* 响应式 */
+@media (max-width: 768px) {
+  .header-bar {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+  .metric-value {
+    font-size: 22px;
+  }
+  .stat-value {
+    font-size: 20px;
+  }
+  .chart-container {
+    height: 260px;
+  }
+  .chart-empty {
+    height: 260px;
+  }
+}
+</style>
