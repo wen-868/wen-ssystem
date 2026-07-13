@@ -166,7 +166,7 @@ function getErrorMessage(error: unknown, fallback: string) {
 
 async function loadDepartments() {
   try {
-    const data = await fetchDepartments({ page: 1, pageSize: 100 });
+    const data = await getDepartments({ page: 1, pageSize: 100 });
     departmentOptions.value = data.records || [];
   } catch (e) {
     // ignore
