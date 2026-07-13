@@ -153,6 +153,7 @@
             <div class="nav-sub-item" :class="{ active: isActive('/reports') }" @click="navTo('/reports')">销售统计</div>
             <div class="nav-sub-item" :class="{ active: isActive('/reports/products') }" @click="navTo('/reports/products')">商品排行</div>
             <div class="nav-sub-item" :class="{ active: isActive('/reports/employees') }" @click="navTo('/reports/employees')">员工业绩</div>
+            <div class="nav-sub-item" :class="{ active: isActive('/reports/online-payment') }" @click="navTo('/reports/online-payment')">在线收款分析</div>
           </div>
         </div>
 
@@ -169,6 +170,36 @@
             <div class="nav-sub-item" :class="{ active: isActive('/system/roles') }" @click="navTo('/system/roles')">角色权限</div>
             <div class="nav-sub-item" :class="{ active: isActive('/audit-log') }" @click="navTo('/audit-log')">操作日志</div>
             <div class="nav-sub-item" :class="{ active: isActive('/error-log') }" @click="navTo('/error-log')">错误日志</div>
+          </div>
+        </div>
+
+        <!-- 一级：营销推广 -->
+        <div class="nav-group">
+          <div class="nav-item has-sub" :class="{ open: openGroups.marketing }" @click="toggleGroup('marketing')">
+            <el-icon class="nav-icon"><Discount /></el-icon>
+            <span v-show="!isMenuCollapsed" class="nav-label">营销推广</span>
+            <el-icon v-show="!isMenuCollapsed" class="nav-arrow"><ArrowDown /></el-icon>
+          </div>
+          <div v-show="openGroups.marketing && !isMenuCollapsed" class="nav-sub">
+            <div class="nav-sub-item" :class="{ active: isActive('/marketing') }" @click="navTo('/marketing')">营销活动</div>
+            <div class="nav-sub-item" :class="{ active: isActive('/marketing/tags') }" @click="navTo('/marketing/tags')">营销标签</div>
+          </div>
+        </div>
+
+        <!-- 一级：SaaS 平台 -->
+        <div class="nav-group">
+          <div class="nav-item has-sub" :class="{ open: openGroups.saas }" @click="toggleGroup('saas')">
+            <el-icon class="nav-icon"><OfficeBuilding /></el-icon>
+            <span v-show="!isMenuCollapsed" class="nav-label">SaaS 平台</span>
+            <el-icon v-show="!isMenuCollapsed" class="nav-arrow"><ArrowDown /></el-icon>
+          </div>
+          <div v-show="openGroups.saas && !isMenuCollapsed" class="nav-sub">
+            <div class="nav-sub-item" :class="{ active: isActive('/saas/dashboard') }" @click="navTo('/saas/dashboard')">平台看板</div>
+            <div class="nav-sub-item" :class="{ active: isActive('/saas/plans') }" @click="navTo('/saas/plans')">套餐管理</div>
+            <div class="nav-sub-item" :class="{ active: isActive('/saas/tenants') }" @click="navTo('/saas/tenants')">租户管理</div>
+            <div class="nav-sub-item" :class="{ active: isActive('/saas/subscriptions') }" @click="navTo('/saas/subscriptions')">订阅管理</div>
+            <div class="nav-sub-item" :class="{ active: isActive('/saas/tenant-review') }" @click="navTo('/saas/tenant-review')">入驻审核</div>
+            <div class="nav-sub-item" :class="{ active: isActive('/saas/config') }" @click="navTo('/saas/config')">平台配置</div>
           </div>
         </div>
       </nav>
@@ -258,7 +289,7 @@ import { ElMessage } from "element-plus";
 import {
   HomeFilled, Goods, Document, ShoppingCart, User, Files, Shop,
   DataAnalysis, Setting, Bell, Grid, ChatDotRound, Search,
-  ArrowDown, CaretBottom, ArrowLeft
+  ArrowDown, CaretBottom, ArrowLeft, OfficeBuilding, Coin, Checked, Money, Discount
 } from "@element-plus/icons-vue";
 import { formatDate } from "../utils/format";
 import { useAuthStore } from "../stores/auth";
@@ -281,6 +312,8 @@ const openGroups = reactive({
   instant: false,
   reports: false,
   system: false,
+  saas: false,
+  marketing: false,
 });
 
 const avatarText = computed(() => {
@@ -306,6 +339,8 @@ onMounted(() => {
   if (path.startsWith('/instant-retail')) openGroups.instant = true;
   if (path.startsWith('/reports')) openGroups.reports = true;
   if (path.startsWith('/system') || path.startsWith('/employees') || path.startsWith('/stores') || path.startsWith('/audit') || path.startsWith('/error-log') || path.startsWith('/monitor')) openGroups.system = true;
+  if (path.startsWith('/saas')) openGroups.saas = true;
+  if (path.startsWith('/marketing') || path.startsWith('/aftersale')) openGroups.marketing = true;
 });
 
 function isActive(path: string): boolean {
@@ -353,6 +388,15 @@ const pageTitle = computed(() => {
     "/system/roles": "角色权限",
     "/audit-log": "操作日志",
     "/error-log": "错误日志",
+    "/marketing": "营销活动",
+    "/marketing/tags": "营销标签管理",
+    "/saas/dashboard": "平台经营看板",
+    "/saas/plans": "SaaS 套餐管理",
+    "/saas/tenants": "租户管理",
+    "/saas/subscriptions": "订阅管理",
+    "/saas/tenant-review": "入驻审核",
+    "/saas/config": "平台配置",
+    "/reports/online-payment": "在线收款分析",
   };
   return titles[route.path] || "智享全链管理系统";
 });

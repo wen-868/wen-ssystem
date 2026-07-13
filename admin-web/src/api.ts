@@ -445,8 +445,12 @@ export async function fetchReportReceivablePayable() {
   return data.data;
 }
 
-export async function fetchReportPaymentAnalysis() {
-  const { data } = await api.get("/admin/reports/payment-analysis");
+export async function fetchReportPaymentAnalysis(params?: {
+  dateStart?: string;
+  dateEnd?: string;
+  groupBy?: "date" | "customer" | "staff";
+}) {
+  const { data } = await api.get("/admin/reports/payment-analysis", { params });
   return data.data;
 }
 
@@ -2363,5 +2367,87 @@ export async function tenantRegister(payload: {
   admin_real_name: string;
 }) {
   const { data } = await api.post("/api/tenant/register", payload);
+  return data.data;
+}
+
+// ==================== 入驻审核 API ====================
+export async function fetchTenantApplications(params?: {
+  status?: string;
+  keyword?: string;
+  page?: number;
+  pageSize?: number;
+}) {
+  const { data } = await api.get("/api/tenant/applications", { params });
+  return data.data;
+}
+
+export async function getTenantApplicationDetail(id: number) {
+  const { data } = await api.get(`/api/tenant/applications/${id}`);
+  return data.data;
+}
+
+export async function approveTenantApplication(id: number, payload?: { remark?: string }) {
+  const { data } = await api.post(`/api/tenant/applications/${id}/approve`, payload);
+  return data.data;
+}
+
+export async function rejectTenantApplication(id: number, payload: { remark: string }) {
+  const { data } = await api.post(`/api/tenant/applications/${id}/reject`, payload);
+  return data.data;
+}
+
+// ==================== 平台经营看板 API ====================
+export async function fetchPlatformOverviewData() {
+  const { data } = await api.get("/api/platform/overview");
+  return data.data;
+}
+
+export async function fetchPlatformTenantListData(params?: {
+  page?: number;
+  pageSize?: number;
+  status?: string;
+  keyword?: string;
+}) {
+  const { data } = await api.get("/api/platform/tenants", { params });
+  return data.data;
+}
+
+// ==================== 平台配置 API ====================
+export async function fetchPlatformConfig() {
+  const { data } = await api.get("/admin/platform/config");
+  return data.data;
+}
+
+export async function updatePlatformConfig(payload: Record<string, unknown>) {
+  const { data } = await api.put("/admin/platform/config", payload);
+  return data.data;
+}
+
+export async function fetchPlatformAnnouncements(params?: {
+  page?: number;
+  pageSize?: number;
+  status?: string;
+}) {
+  const { data } = await api.get("/admin/platform/announcements", { params });
+  return data.data;
+}
+
+export async function createPlatformAnnouncement(payload: {
+  title: string;
+  content: string;
+  type?: string;
+  status?: string;
+}) {
+  const { data } = await api.post("/admin/platform/announcements", payload);
+  return data.data;
+}
+
+export async function updatePlatformAnnouncement(id: number, payload: Record<string, unknown>) {
+  const { data } = await api.put(`/admin/platform/announcements/${id}`, payload);
+  return data.data;
+}
+
+export async function deletePlatformAnnouncement(id: number) {
+  const { data } = await api.delete(`/admin/platform/announcements/${id}`);
   return data.data;
 }

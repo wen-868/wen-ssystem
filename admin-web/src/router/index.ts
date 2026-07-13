@@ -219,7 +219,16 @@ const routes = [
       { path: "system/miniapp", name: "miniapp-config", component: () => import("../views/MiniappConfigView.vue"), meta: { roles: ["BOSS"], title: "小程序配置", icon: Connection } },
       { path: "monitor", name: "monitor", component: () => import("../views/MonitorView.vue"), meta: { roles: ["BOSS"], title: "系统监控", icon: Monitor } },
       { path: "system/feedback", name: "feedback", component: () => import("../views/FeedbackView.vue"), meta: { roles: ["BOSS"], title: "反馈管理", icon: ChatDotRound } },
-      { path: "consumer-addresses", name: "consumer-addresses", component: () => import("../views/ConsumerAddress.vue"), meta: { roles: ["BOSS"], title: "收货地址", icon: Location } }
+      { path: "consumer-addresses", name: "consumer-addresses", component: () => import("../views/ConsumerAddress.vue"), meta: { roles: ["BOSS"], title: "收货地址", icon: Location } },
+      // 13. SaaS 平台后台
+      { path: "saas/dashboard", name: "saas-dashboard", component: () => import("../views/PlatformDashboard.vue"), meta: { roles: ["BOSS"], title: "平台看板", icon: DataAnalysis } },
+      { path: "saas/plans", name: "saas-plan-manage", component: () => import("../views/SaasPlanManage.vue"), meta: { roles: ["BOSS"], title: "套餐管理", icon: Tickets } },
+      { path: "saas/tenants", name: "saas-tenants", component: () => import("../views/Tenants.vue"), meta: { roles: ["BOSS"], title: "租户管理", icon: OfficeBuilding } },
+      { path: "saas/subscriptions", name: "saas-subscriptions", component: () => import("../views/Subscriptions.vue"), meta: { roles: ["BOSS"], title: "订阅管理", icon: Coin } },
+      { path: "saas/tenant-review", name: "saas-tenant-review", component: () => import("../views/TenantReview.vue"), meta: { roles: ["BOSS"], title: "入驻审核", icon: Document } },
+      { path: "saas/config", name: "saas-config", component: () => import("../views/PlatformConfig.vue"), meta: { roles: ["BOSS"], title: "平台配置", icon: Setting } },
+      // 14. 在线收款分析
+      { path: "reports/online-payment", name: "online-payment-analysis", component: () => import("../views/OnlinePaymentAnalysis.vue"), meta: { roles: ["BOSS", "MGR"], title: "在线收款分析", icon: Money } }
     ]
   },
   { path: "/:pathMatch(.*)*", name: "not-found", component: NotFound, meta: { requiresAuth: false, title: "页面不存在", icon: WarningFilled } }

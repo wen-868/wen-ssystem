@@ -1,4 +1,4 @@
- # 当前任务 — R25
+ # 当前任务 — R26
 
 > 仓库：https://github.com/wen-868/wen-ssystem  
 > 唯一分支：main  
@@ -19,6 +19,76 @@
 2. 苏然执行测试（单元测试 + 构建验证 + 回归测试），生成测试报告
 3. 凌舟核查测试报告和代码质量，确认通过后直接更新任务状态
 4. 所有任务验收通过后，凌舟直接分派下一轮任务，无需等待用户确认
+
+---
+
+## R26 任务列表
+
+### R26-A1 — admin-web SaaS平台后台补全 [P0]
+
+- **状态**：✅ 已完成
+- **优先级**：P0
+- **负责人**：墨
+- **预计**：3 天
+- **完成时间**：2026-07-13
+- **需求来源**：R25 缺失页面清单与补全计划第一阶段
+- **需求**：
+  1. SaaS 套餐管理（套餐列表、新建/编辑表单、功能开关配置、定价管理）
+  2. 平台经营看板（总租户数、活跃租户数、收入统计、套餐分布、租户增长趋势图）
+  3. 平台配置（全局参数设置、公告管理、维护模式开关）
+  4. 入驻审核（商户入驻申请列表、审核通过/驳回、审核记录查询）
+- **验收标准**：
+  - vue-tsc --noEmit 0 错误
+  - npm run build 构建成功
+  - 所有页面可正常访问
+  - 页面功能完整
+- **完成内容**：
+  1. `SaasPlanManage.vue`：SaaS 套餐管理页面，包含套餐列表、新建/编辑表单（名称/描述/状态/排序/试用天数/最大用户数/最大门店数）、功能模块配置对话框（10个功能模块开关）、定价管理对话框（月/季/年定价）
+  2. `PlatformDashboard.vue`：平台经营看板，4个核心指标卡片（租户数/用户数/月收入/订单数）、套餐分布表格（带进度条）、租户增长趋势图（ECharts折线图，暂用模拟数据）、租户列表表格
+  3. `PlatformConfig.vue`：平台配置页面，3个Tab（全局参数/公告管理/维护模式），公告CRUD+发布/撤回，维护模式开关+维护信息设置
+  4. `TenantReview.vue`：入驻审核页面，申请列表（支持状态筛选PENDING/APPROVED/REJECTED）、申请详情对话框（el-descriptions）、驳回原因对话框（必填驳回原因），兼容下划线和驼峰字段名
+- **验证结果**：
+  - ✅ vue-tsc --noEmit 0 错误
+  - ✅ npm run build 构建成功（32.21s）
+- **修改文件**：
+  - `admin-web/src/views/SaasPlanManage.vue` — 新建，SaaS套餐管理
+  - `admin-web/src/views/PlatformDashboard.vue` — 新建，平台经营看板
+  - `admin-web/src/views/PlatformConfig.vue` — 新建，平台配置
+  - `admin-web/src/views/TenantReview.vue` — 新建，入驻审核
+  - `admin-web/src/api.ts` — 新增入驻审核/平台看板/平台配置API
+  - `admin-web/src/router/index.ts` — 注册7条新路由
+  - `admin-web/src/layouts/MainLayout.vue` — 侧边栏新增SaaS平台+营销推广菜单组
+- **发现的后端API缺失（需通知阿坚 R26-A7）**：
+  - 平台配置API（/admin/platform/config, /admin/platform/announcements）后端尚未实现，前端做了容错处理
+  - 平台看板API（/api/platform/overview）只返回基本计数，缺少收入统计、套餐分布、租户增长趋势数据，前端用模拟数据兜底
+  - 入驻审核API已有（tenant-register.routes.ts），前端已对接
+
+### R26-A2 — admin-web 在线收款专项分析 + 商品营销标签 [P0]
+
+- **状态**：✅ 已完成
+- **优先级**：P0
+- **负责人**：墨
+- **预计**：1 天
+- **完成时间**：2026-07-13
+- **需求来源**：R25 缺失页面清单与补全计划第一阶段
+- **需求**：
+  1. 在线收款专项分析（收款金额统计、收款笔数、收款成功率、收款趋势分析）
+  2. 商品营销标签管理（标签列表、新建/编辑、商品标签关联）
+- **验收标准**：
+  - vue-tsc --noEmit 0 错误
+  - npm run build 构建成功
+  - 所有页面可正常访问
+  - 页面功能完整
+- **完成内容**：
+  1. `OnlinePaymentAnalysis.vue`：在线收款专项分析页面，日期范围筛选+分组方式（按日期/客户/员工）、4个指标卡片（收款总金额/总笔数/日均收款/单笔均值）、ECharts双Y轴图表（金额折线+笔数柱状）、收款明细列表（带占比进度条），增强 `fetchReportPaymentAnalysis` 支持参数
+  2. `MarketingTags.vue`：增强商品营销标签管理，原有标签管理功能保留（el-tabs包裹），新增"商品关联"Tab：左侧商品列表（搜索/分页/已关联标签数）+ 右侧标签关联管理（按类型分组、el-check-tag勾选）
+- **验证结果**：
+  - ✅ vue-tsc --noEmit 0 错误
+  - ✅ npm run build 构建成功（32.21s）
+- **修改文件**：
+  - `admin-web/src/views/OnlinePaymentAnalysis.vue` — 新建，在线收款分析
+  - `admin-web/src/views/MarketingTags.vue` — 修改，新增商品标签关联Tab
+  - `admin-web/src/api.ts` — 增强 fetchReportPaymentAnalysis 支持参数
 
 ---
 
