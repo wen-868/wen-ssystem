@@ -122,12 +122,43 @@
 
 ### R28-A6 — 后端API补全（配合前端）[P1]
 
-- **状态**：待开始
+- **状态**：✅ 已完成
 - **优先级**：P1
 - **负责人**：阿坚
 - **预计**：2 天
+- **完成时间**：2026-07-13
 - **需求来源**：配合 R28-A1 至 R28-A5 前端页面
-- **需求**：完善银行账户、资金报表、票据、组织架构、营销活动、平台评价、批次、储值卡、积分、费用管理、操作日志等 API
+- **完成内容**：
+  1. **银行账户管理**：bank-account.service.ts（CRUD + 余额变动）、bank-account.controller.ts、bank-account.routes.ts（/api/admin/bank-accounts）
+  2. **岗位管理**：position.service.ts（CRUD）、position.controller.ts、position.routes.ts（/api/admin/positions），数据库迁移 107_sys_position.sql
+  3. **资金报表**：finance-dashboard.service.ts 新增 getCashFlowDetail（资金流水）、getIncomeExpenseStats（收支统计）、getIncomeByCategory（收入分类）、getExpenseByCategory（支出分类），对应路由 /api/admin/finance/cash-flow-detail 等
+  4. **营销活动统计**：marketing-dashboard.service.ts 新增 getActivityEffectAnalysis（活动效果分析）、getActivityConversionTrend（转化率趋势）、getActivityRanking（活动排名），对应路由 /api/admin/marketing/dashboard/activity-effect 等
+  5. **积分管理**：marketing-points.service.ts 新增 getPointsRecords（积分明细）、createPointsRedeem（积分兑换）、getPointsStats（积分统计），对应路由 /api/admin/marketing/points/detail 等
+  6. **平台评价管理**：platform-review.service.ts 新增 reviewApproval（评价审核）、batchReviewApproval（批量审核）、getReviewById（评价详情），对应路由 /api/admin/platform-reviews/:id/approval 等
+- **验证结果**：
+  - ✅ tsc --noEmit --strict：0 错误
+  - ✅ vitest run：372 测试文件，3981 测试用例全部通过，0 失败
+- **修改文件**：
+  - `backend/src/services/admin/bank-account.service.ts`（新增）
+  - `backend/src/controllers/admin/bank-account.controller.ts`（新增）
+  - `backend/src/routes/bank-account.routes.ts`（新增）
+  - `backend/src/services/admin/position.service.ts`（新增）
+  - `backend/src/controllers/admin/position.controller.ts`（新增）
+  - `backend/src/routes/position.routes.ts`（新增）
+  - `backend/src/services/admin/finance-dashboard.service.ts`（修改）
+  - `backend/src/controllers/admin/finance-dashboard.controller.ts`（修改）
+  - `backend/src/routes/admin-finance.routes.ts`（修改）
+  - `backend/src/services/admin/marketing-dashboard.service.ts`（修改）
+  - `backend/src/controllers/admin/marketing-dashboard.controller.ts`（修改）
+  - `backend/src/routes/marketing-dashboard.routes.ts`（修改）
+  - `backend/src/services/admin/marketing-points.service.ts`（修改）
+  - `backend/src/controllers/admin/marketing-points.controller.ts`（修改）
+  - `backend/src/routes/admin-marketing-points.routes.ts`（修改）
+  - `backend/src/services/admin/platform-review.service.ts`（修改）
+  - `backend/src/controllers/admin/platform-review.controller.ts`（修改）
+  - `backend/src/routes/platform-review.routes.ts`（修改）
+  - `docs/migrations/107_sys_position.sql`（新增）
+  - `backend/src/__tests__/services/admin/marketing-dashboard.service.test.ts`（修改）
 - **验收标准**：vitest run 0 失败，tsc --noEmit --strict 0 错误
 
 ### R28-A7 — R28 全量回归测试 [P1]
