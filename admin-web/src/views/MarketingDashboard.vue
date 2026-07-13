@@ -203,67 +203,40 @@
 import { ref, reactive, onMounted, onBeforeUnmount, nextTick } from "vue";
 import echarts from '@/utils/echarts'
 import { TrendCharts, VideoPlay, VideoPause, User, Present, CircleCheck } from "@element-plus/icons-vue";
-
-// ==================== Mock 数据 ====================
-const mockOverview = {
-  totalActivities: 86,
-  activeCount: 12,
-  endedCount: 58,
-  totalParticipants: 45680,
-  totalCoupons: 32500,
-  verifiedRate: 68.5,
-};
-
-const mockActivityTrend = Array.from({ length: 30 }, (_, i) => ({
-  date: `2026-06-${String(i + 1).padStart(2, "0")}`,
-  participants: Math.floor(Math.random() * 500 + 100),
-}));
-
-const mockConversionTrend = Array.from({ length: 30 }, (_, i) => ({
-  date: `2026-06-${String(i + 1).padStart(2, "0")}`,
-  participants: Math.floor(Math.random() * 500 + 100),
-  conversionRate: (Math.random() * 20 + 5).toFixed(1),
-}));
-
-const mockROI = Array.from({ length: 10 }, (_, i) => ({
-  activityName: `活动${i + 1}`,
-  roi: (Math.random() * 5 + 1).toFixed(1),
-}));
-
-const mockTypeDistribution = [
-  { type: "优惠券", count: 35, ratio: 40.7 },
-  { type: "满减", count: 20, ratio: 23.3 },
-  { type: "限时折扣", count: 15, ratio: 17.4 },
-  { type: "满赠", count: 10, ratio: 11.6 },
-  { type: "积分", count: 6, ratio: 7.0 },
-];
-
-const mockCouponUsage = Array.from({ length: 30 }, (_, i) => ({
-  date: `2026-06-${String(i + 1).padStart(2, "0")}`,
-  issued: Math.floor(Math.random() * 200 + 100),
-  used: Math.floor(Math.random() * 100 + 50),
-  rate: (Math.random() * 30 + 50).toFixed(1),
-}));
-
-const mockActivities = Array.from({ length: 10 }, (_, i) => ({
-  id: i + 1,
-  name: `活动${i + 1}`,
-  participants: Math.floor(Math.random() * 2000 + 500),
-  conversionRate: (Math.random() * 20 + 5).toFixed(1),
-  orders: Math.floor(Math.random() * 500 + 100),
-  gmv: Math.floor(Math.random() * 50000 + 10000),
-  discountAmount: Math.floor(Math.random() * 10000 + 2000),
-  roi: (Math.random() * 5 + 1).toFixed(1),
-}));
+import {
+  getMarketingOverview,
+  getMarketingTrend,
+  getActivityRanking,
+  getActivityStats,
+  getCouponStats,
+  getActivityComparison
+} from "@/api";
 
 // ==================== 概览数据 ====================
-const overview = reactive({ ...mockOverview });
+const overview = reactive({
+  totalActivities: 0,
+  activeCount: 0,
+  endedCount: 0,
+  totalParticipants: 0,
+  totalCoupons: 0,
+  verifiedRate: 0,
+});
 const hasData = ref(true);
 
 // ==================== 筛选器 ====================
 const quickDate = ref("month");
 const customDateRange = ref<any[]>([]);
 const selectedTypes = ref<string[]>([]);
+
+function getDateRange(): { startDate?: string; endDate?: string } {
+  if (quickDate.value === "custom" && customDateRange.value.length === 2) {
+    return {
+      startDate: customDateRange.value[0],
+      endDate: customDateRange.value[1],
+    };
+  }
+  return {};
+}
 
 function handleQuickDate() {
   if (quickDate.value !== "custom") {
@@ -272,8 +245,25 @@ function handleQuickDate() {
   }
 }
 
-function onFilterChange() {
+async function onFilterChange() {
+  await loadOverview();
   renderAllCharts();
+}
+
+async function loadOverview() {
+  const dateRange = getDateRange();
+  try {
+    const data = await getMarketingOverview(dateRange);
+    overview.totalActivities = data.totalActivities || 0;
+    overview.activeCount = data.activeCount || 0;
+    overview.endedCount = data.endedCount || 0;
+    overview.totalParticipants = data.totalParticipants || 0;
+    overview.totalCoupons = data.totalCoupons || 0;
+    overview.verifiedRate = data.verifiedRate || 0;
+    hasData.value = overview.totalActivities > 0;
+  } catch {
+    // API 调用失败时保持默认值
+  }
 }
 
 // ==================== 图表 ====================
@@ -291,18 +281,38 @@ let couponUsageInstance: echarts.ECharts | null = null;
 
 const trendGranularity = ref("day");
 
-function renderActivityTrend() {
+async function renderActivityTrend() {
   if (!activityTrendRef.value) return;
   if (activityTrendInstance) activityTrendInstance.dispose();
 
-  const data = [...mockActivityTrend];
+  let data: any[] = [];
+  try {
+    const dateRange = getDateRange();
+    const trendData = await getMarketingTrend({ period: trendGranularity.value, ...dateRange });
+    data = trendData?.participants || [];
+  } catch {
+    // API 调用失败时使用空数据
+  }
+
+  if (data.length === 0) {
+    // 使用空状态
+    activityTrendInstance = echarts.init(activityTrendRef.value);
+    activityTrendInstance.setOption({
+      grid: { left: 60, right: 20, top: 20, bottom: 30 },
+      xAxis: { type: "category", data: [] },
+      yAxis: { type: "value", name: "参与人数" },
+      series: [],
+    });
+    return;
+  }
+
   activityTrendInstance = echarts.init(activityTrendRef.value);
   activityTrendInstance.setOption({
     tooltip: { trigger: "axis" },
     grid: { left: 60, right: 20, top: 20, bottom: 30 },
     xAxis: {
       type: "category",
-      data: data.map((d) => d.date.slice(5)),
+      data: data.map((d) => d.date?.slice(5) || d.date || ""),
       axisLabel: { rotate: 45, fontSize: 11 },
     },
     yAxis: { type: "value", name: "参与人数" },
@@ -310,7 +320,7 @@ function renderActivityTrend() {
       {
         name: "参与人数",
         type: "line",
-        data: data.map((d) => d.participants),
+        data: data.map((d) => d.participants || 0),
         smooth: true,
         symbol: "none",
         itemStyle: { color: "#409eff" },
@@ -325,11 +335,30 @@ function renderActivityTrend() {
   });
 }
 
-function renderConversionTrend() {
+async function renderConversionTrend() {
   if (!conversionTrendRef.value) return;
   if (conversionTrendInstance) conversionTrendInstance.dispose();
 
-  const data = [...mockConversionTrend];
+  let data: any[] = [];
+  try {
+    const dateRange = getDateRange();
+    const trendData = await getMarketingTrend({ period: trendGranularity.value, ...dateRange });
+    data = trendData?.conversionRate || trendData?.participants || [];
+  } catch {
+    // API 调用失败时使用空数据
+  }
+
+  if (data.length === 0) {
+    conversionTrendInstance = echarts.init(conversionTrendRef.value);
+    conversionTrendInstance.setOption({
+      grid: { left: 60, right: 60, top: 20, bottom: 40 },
+      xAxis: { type: "category", data: [] },
+      yAxis: [{ type: "value" }, { type: "value" }],
+      series: [],
+    });
+    return;
+  }
+
   conversionTrendInstance = echarts.init(conversionTrendRef.value);
   conversionTrendInstance.setOption({
     tooltip: { trigger: "axis" },
@@ -337,7 +366,7 @@ function renderConversionTrend() {
     grid: { left: 60, right: 60, top: 20, bottom: 40 },
     xAxis: {
       type: "category",
-      data: data.map((d) => d.date.slice(5)),
+      data: data.map((d) => d.date?.slice(5) || d.date || ""),
       axisLabel: { rotate: 45, fontSize: 11 },
     },
     yAxis: [
@@ -352,7 +381,7 @@ function renderConversionTrend() {
       {
         name: "参与人数",
         type: "bar",
-        data: data.map((d) => d.participants),
+        data: data.map((d) => d.participants || 0),
         itemStyle: { color: "#409eff" },
         barWidth: "60%",
       },
@@ -360,7 +389,7 @@ function renderConversionTrend() {
         name: "转化率",
         type: "line",
         yAxisIndex: 1,
-        data: data.map((d) => Number(d.conversionRate)),
+        data: data.map((d) => Number(d.conversionRate || 0)),
         smooth: true,
         itemStyle: { color: "#67c23a" },
         symbol: "circle",
@@ -370,11 +399,21 @@ function renderConversionTrend() {
   });
 }
 
-function renderROIChart() {
+async function renderROIChart() {
   if (!roiChartRef.value) return;
   if (roiInstance) roiInstance.dispose();
 
-  const data = [...mockROI].sort((a, b) => Number(a.roi) - Number(b.roi));
+  let data: any[] = [];
+  try {
+    const dateRange = getDateRange();
+    const rankingData = await getActivityRanking({ rankBy: "roi", ...dateRange });
+    data = rankingData || [];
+  } catch {
+    // API 调用失败时使用空数据
+  }
+
+  const sortedData = [...data].sort((a, b) => Number(a.roi || 0) - Number(b.roi || 0));
+
   roiInstance = echarts.init(roiChartRef.value);
   roiInstance.setOption({
     tooltip: {
@@ -386,13 +425,13 @@ function renderROIChart() {
     xAxis: { type: "value", name: "ROI" },
     yAxis: {
       type: "category",
-      data: data.map((d) => d.activityName),
+      data: sortedData.map((d) => d.activityName || d.name || ""),
       axisLabel: { width: 90, overflow: "truncate" },
     },
     series: [
       {
         type: "bar",
-        data: data.map((d) => Number(d.roi)),
+        data: sortedData.map((d) => Number(d.roi || 0)),
         itemStyle: {
           color: new echarts.graphic.LinearGradient(0, 0, 1, 0, [
             { offset: 0, color: "#409eff" },
@@ -410,11 +449,19 @@ function renderROIChart() {
   });
 }
 
-function renderTypePie() {
+async function renderTypePie() {
   if (!typePieRef.value) return;
   if (typePieInstance) typePieInstance.dispose();
 
-  const data = [...mockTypeDistribution];
+  let data: any[] = [];
+  try {
+    const dateRange = getDateRange();
+    const statsData = await getActivityStats({ ...dateRange });
+    data = statsData?.typeDistribution || [];
+  } catch {
+    // API 调用失败时使用空数据
+  }
+
   typePieInstance = echarts.init(typePieRef.value);
   typePieInstance.setOption({
     tooltip: {
@@ -448,8 +495,8 @@ function renderTypePie() {
           },
         },
         data: data.map((d) => ({
-          name: d.type,
-          value: d.count,
+          name: d.type || d.name || "",
+          value: d.count || d.value || 0,
         })),
         color: ["#409eff", "#67c23a", "#e6a23c", "#f56c6c", "#909399"],
       },
@@ -457,11 +504,29 @@ function renderTypePie() {
   });
 }
 
-function renderCouponUsage() {
+async function renderCouponUsage() {
   if (!couponUsageRef.value) return;
   if (couponUsageInstance) couponUsageInstance.dispose();
 
-  const data = [...mockCouponUsage];
+  let data: any[] = [];
+  try {
+    const statsData = await getCouponStats();
+    data = statsData?.usageTrend || [];
+  } catch {
+    // API 调用失败时使用空数据
+  }
+
+  if (data.length === 0) {
+    couponUsageInstance = echarts.init(couponUsageRef.value);
+    couponUsageInstance.setOption({
+      grid: { left: 60, right: 60, top: 20, bottom: 40 },
+      xAxis: { type: "category", data: [] },
+      yAxis: [{ type: "value" }, { type: "value" }],
+      series: [],
+    });
+    return;
+  }
+
   couponUsageInstance = echarts.init(couponUsageRef.value);
   couponUsageInstance.setOption({
     tooltip: { trigger: "axis" },
@@ -469,7 +534,7 @@ function renderCouponUsage() {
     grid: { left: 60, right: 60, top: 20, bottom: 40 },
     xAxis: {
       type: "category",
-      data: data.map((d) => d.date.slice(5)),
+      data: data.map((d) => d.date?.slice(5) || d.date || ""),
       axisLabel: { rotate: 45, fontSize: 11 },
     },
     yAxis: [
@@ -484,7 +549,7 @@ function renderCouponUsage() {
       {
         name: "发放量",
         type: "line",
-        data: data.map((d) => d.issued),
+        data: data.map((d) => d.issued || d.count || 0),
         smooth: true,
         symbol: "none",
         itemStyle: { color: "#409eff" },
@@ -498,7 +563,7 @@ function renderCouponUsage() {
       {
         name: "使用量",
         type: "line",
-        data: data.map((d) => d.used),
+        data: data.map((d) => d.used || d.redeemed || 0),
         smooth: true,
         symbol: "none",
         itemStyle: { color: "#67c23a" },
@@ -513,7 +578,7 @@ function renderCouponUsage() {
         name: "核销率",
         type: "line",
         yAxisIndex: 1,
-        data: data.map((d) => Number(d.rate)),
+        data: data.map((d) => Number(d.rate || d.redeemRate || 0)),
         smooth: true,
         itemStyle: { color: "#e6a23c" },
         symbol: "circle",
@@ -534,7 +599,7 @@ function renderAllCharts() {
 }
 
 // ==================== 活动对比 ====================
-const allActivities = ref([...mockActivities]);
+const allActivities = ref<any[]>([]);
 const compareIds = ref<number[]>([]);
 const compareData = ref<any[]>([]);
 const compareColumns = ref<any[]>([]);
@@ -548,25 +613,49 @@ const dimensions = [
   { key: "roi", label: "ROI" },
 ];
 
-function renderCompareTable() {
+async function renderCompareTable() {
   if (compareIds.value.length < 2) {
     compareData.value = [];
     compareColumns.value = [];
     return;
   }
 
-  const selected = allActivities.value.filter((a) =>
-    compareIds.value.includes(a.id)
-  );
-  compareColumns.value = selected.map((a) => ({ name: a.name, id: a.id }));
-
-  compareData.value = dimensions.map((dim) => {
-    const row: any = { dimension: dim.label };
-    selected.forEach((act) => {
-      row[act.name] = (act as any)[dim.key];
+  try {
+    const dateRange = getDateRange();
+    const comparisonData = await getActivityComparison({ activityIds: compareIds.value, ...dateRange });
+    if (comparisonData) {
+      compareColumns.value = comparisonData.map((act: any) => ({ name: act.name, id: act.id }));
+      compareData.value = dimensions.map((dim) => {
+        const row: any = { dimension: dim.label };
+        comparisonData.forEach((act: any) => {
+          row[act.name] = (act as any)[dim.key] || "-";
+        });
+        return row;
+      });
+    } else {
+      // 如果API没有返回数据，使用本地活动列表数据
+      const selected = allActivities.value.filter((a) => compareIds.value.includes(a.id));
+      compareColumns.value = selected.map((a) => ({ name: a.name, id: a.id }));
+      compareData.value = dimensions.map((dim) => {
+        const row: any = { dimension: dim.label };
+        selected.forEach((act) => {
+          row[act.name] = (act as any)[dim.key] || "-";
+        });
+        return row;
+      });
+    }
+  } catch {
+    // API 调用失败时使用本地数据
+    const selected = allActivities.value.filter((a) => compareIds.value.includes(a.id));
+    compareColumns.value = selected.map((a) => ({ name: a.name, id: a.id }));
+    compareData.value = dimensions.map((dim) => {
+      const row: any = { dimension: dim.label };
+      selected.forEach((act) => {
+        row[act.name] = (act as any)[dim.key] || "-";
+      });
+      return row;
     });
-    return row;
-  });
+  }
 }
 
 function isBestValue(row: any, colName: string): boolean {
@@ -575,10 +664,10 @@ function isBestValue(row: any, colName: string): boolean {
 
   const values = compareColumns.value.map((c) => {
     const v = row[c.name];
-    return typeof v === "string" ? parseFloat(v) : v;
+    return typeof v === "string" ? parseFloat(v) || 0 : v || 0;
   });
 
-  const currentVal = typeof row[colName] === "string" ? parseFloat(row[colName]) : row[colName];
+  const currentVal = typeof row[colName] === "string" ? parseFloat(row[colName]) || 0 : row[colName] || 0;
 
   if (dim.key === "gmv" || dim.key === "discountAmount") {
     return currentVal === Math.max(...values);
@@ -595,7 +684,8 @@ function handleResize() {
   couponUsageInstance?.resize();
 }
 
-onMounted(() => {
+onMounted(async () => {
+  await loadOverview();
   renderAllCharts();
   window.addEventListener("resize", handleResize);
 });

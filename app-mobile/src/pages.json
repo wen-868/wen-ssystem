@@ -321,6 +321,30 @@
       "style": {
         "navigationBarTitleText": "参与记录"
       }
+    },
+    {
+      "path": "pages/finance/finance-dashboard",
+      "style": {
+        "navigationBarTitleText": "财务看板"
+      }
+    },
+    {
+      "path": "pages/finance/expenses",
+      "style": {
+        "navigationBarTitleText": "费用管理"
+      }
+    },
+    {
+      "path": "pages/finance/expense-create",
+      "style": {
+        "navigationBarTitleText": "费用录入"
+      }
+    },
+    {
+      "path": "pages/system/operation-logs",
+      "style": {
+        "navigationBarTitleText": "操作日志"
+      }
     }
   ],
   "globalStyle": {

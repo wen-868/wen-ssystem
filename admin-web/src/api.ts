@@ -2441,6 +2441,20 @@ export async function fetchPlatformReconciliationDetail(id: number) { const { da
 export async function fetchPlatformReviews(params?: any) { const { data } = await api.get('/admin/platform-reviews', { params }); return data.data; }
 export async function replyPlatformReview(id: number, reply: string) { const { data } = await api.post(`/admin/platform-reviews/${id}/reply`, { reply }); return data.data; }
 export async function fetchPlatformReviewStats(params?: any) { const { data } = await api.get('/admin/platform-reviews/stats', { params }); return data.data; }
+export async function reviewApproval(id: number, status: number, reviewResult?: string) { const { data } = await api.put(`/admin/platform-reviews/${id}/approval`, { status, reviewResult }); return data.data; }
+export async function batchReviewApproval(ids: number[], status: number) { const { data } = await api.post('/admin/platform-reviews/batch-approval', { ids, status }); return data.data; }
+export async function getReviewById(id: number) { const { data } = await api.get(`/admin/platform-reviews/${id}`); return data.data; }
+
+// ==================== 营销活动统计 ====================
+export async function getMarketingOverview(params?: { startDate?: string; endDate?: string }) { const { data } = await api.get('/admin/marketing/dashboard/overview', { params }); return data.data; }
+export async function getActivityStats(params?: { startDate?: string; endDate?: string; activityType?: string }) { const { data } = await api.get('/admin/marketing/dashboard/activity-stats', { params }); return data.data; }
+export async function getSingleActivityStats(activityId: number, activityType?: string) { const { data } = await api.get(`/admin/marketing/dashboard/activity-stats/${activityId}`, { params: { activityType } }); return data.data; }
+export async function getCouponStats() { const { data } = await api.get('/admin/marketing/dashboard/coupon-stats'); return data.data; }
+export async function getMarketingTrend(params?: { period?: string; startDate?: string; endDate?: string }) { const { data } = await api.get('/admin/marketing/dashboard/trend', { params }); return data.data; }
+export async function getActivityRanking(params?: { rankBy?: string; startDate?: string; endDate?: string }) { const { data } = await api.get('/admin/marketing/dashboard/activity-ranking', { params }); return data.data; }
+export async function getActivityComparison(params?: { activityIds?: number[]; startDate?: string; endDate?: string }) { const { data } = await api.get('/admin/marketing/dashboard/activity-comparison', { params }); return data.data; }
+export async function getActivityEffectAnalysis(activityId: number, params?: { activityType?: string; startDate?: string; endDate?: string }) { const { data } = await api.get(`/admin/marketing/dashboard/activity-effect/${activityId}`, { params }); return data.data; }
+export async function getActivityConversionTrend(activityId: number, params?: { period?: string }) { const { data } = await api.get(`/admin/marketing/dashboard/activity-conversion-trend/${activityId}`, { params }); return data.data; }
 
 // ==================== 租户注册 API ====================
 export async function tenantRegister(payload: {

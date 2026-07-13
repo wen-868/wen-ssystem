@@ -1,0 +1,490 @@
+<template>
+  <scroll-view class="finance-page" scroll-y :refresher-enabled="true" :refresher-triggered="refresherTriggered" @refresherrefresh="onRefresh">
+    <!-- 顶部 Header -->
+    <view class="finance-header">
+      <view class="header-content">
+        <text class="header-title">财务看板</text>
+        <text class="header-date">{{ currentDate }}</text>
+      </view>
+    </view>
+
+    <!-- 指标卡片 -->
+    <view class="stats-grid">
+      <view class="stat-card stat-card--income">
+        <text class="stat-label">今日收入</text>
+        <text class="stat-value">¥{{ formatAmount(incomeStats.todayIncome) }}</text>
+        <view class="stat-trend">
+          <text class="trend-icon">&#xe606;</text>
+          <text class="trend-text">本月 ¥{{ formatAmount(incomeStats.monthIncome) }}</text>
+        </view>
+      </view>
+
+      <view class="stat-card stat-card--expense">
+        <text class="stat-label">今日支出</text>
+        <text class="stat-value">¥{{ formatAmount(expenseStats.todayExpense) }}</text>
+        <view class="stat-trend">
+          <text class="trend-icon">&#xe607;</text>
+          <text class="trend-text">本月 ¥{{ formatAmount(expenseStats.monthExpense) }}</text>
+        </view>
+      </view>
+
+      <view class="stat-card stat-card--profit">
+        <text class="stat-label">毛利</text>
+        <text class="stat-value">¥{{ formatAmount(profitStats.grossProfit) }}</text>
+        <view class="stat-trend">
+          <text class="trend-icon">&#xe608;</text>
+          <text class="trend-text">毛利率 {{ profitStats.grossMargin }}%</text>
+        </view>
+      </view>
+
+      <view class="stat-card stat-card--net">
+        <text class="stat-label">净利润</text>
+        <text class="stat-value">¥{{ formatAmount(profitStats.netProfit) }}</text>
+        <view class="stat-trend">
+          <text class="trend-icon">&#xe609;</text>
+          <text class="trend-text">净利率 {{ profitStats.netMargin }}%</text>
+        </view>
+      </view>
+    </view>
+
+    <!-- Tab切换 -->
+    <view class="tab-bar">
+      <view class="tab-item" :class="{ active: activeTab === 'income' }" @tap="activeTab = 'income'">
+        <text class="tab-text">收入趋势</text>
+      </view>
+      <view class="tab-item" :class="{ active: activeTab === 'expense' }" @tap="activeTab = 'expense'">
+        <text class="tab-text">支出趋势</text>
+      </view>
+    </view>
+
+    <!-- 趋势图表 -->
+    <view class="chart-card">
+      <view class="chart-header">
+        <text class="chart-title">{{ activeTab === 'income' ? '收入趋势' : '支出趋势' }}</text>
+      </view>
+      <view class="chart-content">
+        <view class="chart-bars">
+          <view class="bar-item" v-for="(item, index) in currentTrend" :key="index">
+            <view class="bar-wrapper">
+              <view class="bar" :style="{ height: getBarHeight(item.amount) + '%' }" :class="activeTab === 'income' ? 'bar--income' : 'bar--expense'"></view>
+            </view>
+            <text class="bar-label">{{ formatDate(item.date) }}</text>
+          </view>
+        </view>
+      </view>
+    </view>
+
+    <!-- 支出分类 -->
+    <view class="section-card" v-if="categoryExpenses.length > 0">
+      <view class="section-header">
+        <text class="section-title">支出分类</text>
+      </view>
+      <view class="category-list">
+        <view class="category-item" v-for="item in categoryExpenses" :key="item.name">
+          <view class="category-info">
+            <text class="category-name">{{ item.name }}</text>
+            <text class="category-amount">¥{{ formatAmount(item.amount) }}</text>
+          </view>
+          <view class="category-progress">
+            <view class="progress-bar" :style="{ width: item.percent + '%' }"></view>
+          </view>
+          <text class="category-percent">{{ item.percent }}%</text>
+        </view>
+      </view>
+    </view>
+
+    <!-- 安全区域底部间距 -->
+    <view class="safe-bottom"></view>
+  </scroll-view>
+</template>
+
+<script setup lang="ts">
+import { ref, computed, onMounted } from 'vue'
+import { financeApi, type IncomeStats, type ExpenseStats, type ProfitStats, type IncomeTrendItem, type ExpenseTrendItem, type CategoryExpense } from '@/api/modules/finance'
+
+const incomeStats = ref<IncomeStats>({
+  todayIncome: 0,
+  monthIncome: 0,
+  todayOrders: 0,
+  monthOrders: 0
+})
+
+const expenseStats = ref<ExpenseStats>({
+  todayExpense: 0,
+  monthExpense: 0,
+  todayCount: 0,
+  monthCount: 0
+})
+
+const profitStats = ref<ProfitStats>({
+  grossProfit: 0,
+  netProfit: 0,
+  grossMargin: 0,
+  netMargin: 0
+})
+
+const incomeTrend = ref<IncomeTrendItem[]>([])
+const expenseTrend = ref<ExpenseTrendItem[]>([])
+const categoryExpenses = ref<CategoryExpense[]>([])
+
+const activeTab = ref<'income' | 'expense'>('income')
+const refresherTriggered = ref(false)
+
+const currentDate = computed(() => {
+  const now = new Date()
+  return `${now.getFullYear()}年${now.getMonth() + 1}月${now.getDate()}日`
+})
+
+const currentTrend = computed(() => {
+  return activeTab.value === 'income' ? incomeTrend.value : expenseTrend.value
+})
+
+function formatAmount(amount: number): string {
+  if (amount >= 10000) {
+    return (amount / 10000).toFixed(1) + '万'
+  }
+  return amount.toFixed(2)
+}
+
+function formatDate(date: string): string {
+  const d = new Date(date)
+  return `${d.getMonth() + 1}/${d.getDate()}`
+}
+
+function getBarHeight(amount: number): number {
+  const maxAmount = Math.max(...currentTrend.value.map(item => item.amount), 1)
+  return Math.max((amount / maxAmount) * 100, 5)
+}
+
+async function loadData() {
+  try {
+    const [income, expense, profit, incomeTrendData, expenseTrendData, categoryData] = await Promise.all([
+      financeApi.getIncomeStats(),
+      financeApi.getExpenseStats(),
+      financeApi.getProfitStats(),
+      financeApi.getIncomeTrend(7),
+      financeApi.getExpenseTrend(7),
+      financeApi.getCategoryExpense()
+    ])
+    incomeStats.value = income
+    expenseStats.value = expense
+    profitStats.value = profit
+    incomeTrend.value = incomeTrendData.length > 0 ? incomeTrendData : getMockIncomeTrend()
+    expenseTrend.value = expenseTrendData.length > 0 ? expenseTrendData : getMockExpenseTrend()
+    categoryExpenses.value = categoryData.length > 0 ? categoryData : getMockCategoryExpense()
+  } catch (err) {
+    console.error('加载财务数据失败:', err)
+    incomeTrend.value = getMockIncomeTrend()
+    expenseTrend.value = getMockExpenseTrend()
+    categoryExpenses.value = getMockCategoryExpense()
+  }
+}
+
+function getMockIncomeTrend(): IncomeTrendItem[] {
+  const days = 7
+  const trend: IncomeTrendItem[] = []
+  const today = new Date()
+  for (let i = days - 1; i >= 0; i--) {
+    const date = new Date(today)
+    date.setDate(date.getDate() - i)
+    trend.push({
+      date: date.toISOString().split('T')[0],
+      amount: Math.floor(Math.random() * 5000) + 1000
+    })
+  }
+  return trend
+}
+
+function getMockExpenseTrend(): ExpenseTrendItem[] {
+  const days = 7
+  const trend: ExpenseTrendItem[] = []
+  const today = new Date()
+  for (let i = days - 1; i >= 0; i--) {
+    const date = new Date(today)
+    date.setDate(date.getDate() - i)
+    trend.push({
+      date: date.toISOString().split('T')[0],
+      amount: Math.floor(Math.random() * 2000) + 200
+    })
+  }
+  return trend
+}
+
+function getMockCategoryExpense(): CategoryExpense[] {
+  return [
+    { name: '员工工资', amount: 50000, percent: 40 },
+    { name: '房租水电', amount: 25000, percent: 20 },
+    { name: '采购成本', amount: 30000, percent: 24 },
+    { name: '营销费用', amount: 10000, percent: 8 },
+    { name: '其他', amount: 10000, percent: 8 }
+  ]
+}
+
+async function onRefresh() {
+  refresherTriggered.value = true
+  try {
+    await loadData()
+  } finally {
+    refresherTriggered.value = false
+  }
+}
+
+onMounted(() => {
+  loadData()
+})
+</script>
+
+<style scoped>
+.finance-page {
+  min-height: 100vh;
+  background: #f0f5ff;
+  padding-bottom: env(safe-area-inset-bottom);
+}
+
+/* --- Header --- */
+.finance-header {
+  background: linear-gradient(135deg, #1890ff, #096dd9);
+  padding: 60rpx 32rpx 40rpx;
+  padding-top: calc(60rpx + env(safe-area-inset-top));
+  border-radius: 0 0 40rpx 40rpx;
+}
+
+.header-content {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.header-title {
+  font-size: 40rpx;
+  font-weight: 700;
+  color: #fff;
+}
+
+.header-date {
+  font-size: 26rpx;
+  color: rgba(255, 255, 255, 0.85);
+}
+
+/* --- 指标卡片 --- */
+.stats-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 20rpx;
+  padding: 24rpx;
+  margin-top: -20rpx;
+}
+
+.stat-card {
+  background: #fff;
+  border-radius: 20rpx;
+  padding: 24rpx;
+  box-shadow: 0 4rpx 20rpx rgba(0, 0, 0, 0.04);
+}
+
+.stat-label {
+  font-size: 24rpx;
+  color: #999;
+  margin-bottom: 12rpx;
+  display: block;
+}
+
+.stat-value {
+  font-size: 36rpx;
+  font-weight: 700;
+  margin-bottom: 8rpx;
+  display: block;
+}
+
+.stat-card--income .stat-value { color: #52c41a; }
+.stat-card--expense .stat-value { color: #ff4d4f; }
+.stat-card--profit .stat-value { color: #1890ff; }
+.stat-card--net .stat-value { color: #722ed1; }
+
+.stat-trend {
+  display: flex;
+  align-items: center;
+}
+
+.trend-icon {
+  font-size: 20rpx;
+  color: #999;
+  margin-right: 4rpx;
+}
+
+.trend-text {
+  font-size: 22rpx;
+  color: #999;
+}
+
+/* --- Tab切换 --- */
+.tab-bar {
+  display: flex;
+  margin: 0 24rpx;
+  background: #fff;
+  border-radius: 16rpx;
+  padding: 8rpx;
+  box-shadow: 0 4rpx 20rpx rgba(0, 0, 0, 0.04);
+}
+
+.tab-item {
+  flex: 1;
+  text-align: center;
+  padding: 16rpx 0;
+  border-radius: 12rpx;
+  transition: all 0.3s;
+}
+
+.tab-item.active {
+  background: #1890ff;
+}
+
+.tab-text {
+  font-size: 28rpx;
+}
+
+.tab-item .tab-text { color: #666; }
+.tab-item.active .tab-text { color: #fff; }
+
+/* --- 趋势图表 --- */
+.chart-card {
+  margin: 20rpx 24rpx;
+  background: #fff;
+  border-radius: 20rpx;
+  padding: 24rpx;
+  box-shadow: 0 4rpx 20rpx rgba(0, 0, 0, 0.04);
+}
+
+.chart-header {
+  margin-bottom: 20rpx;
+}
+
+.chart-title {
+  font-size: 30rpx;
+  font-weight: 600;
+  color: #333;
+}
+
+.chart-content {
+  height: 300rpx;
+}
+
+.chart-bars {
+  display: flex;
+  justify-content: space-around;
+  align-items: flex-end;
+  height: 100%;
+  padding-bottom: 40rpx;
+}
+
+.bar-item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  flex: 1;
+}
+
+.bar-wrapper {
+  width: 40rpx;
+  height: 220rpx;
+  background: #f5f5f5;
+  border-radius: 8rpx;
+  display: flex;
+  align-items: flex-end;
+  overflow: hidden;
+}
+
+.bar {
+  width: 100%;
+  border-radius: 8rpx;
+  transition: height 0.3s;
+}
+
+.bar--income { background: linear-gradient(180deg, #52c41a, #95de64); }
+.bar--expense { background: linear-gradient(180deg, #ff4d4f, #ff7875); }
+
+.bar-label {
+  font-size: 22rpx;
+  color: #999;
+  margin-top: 12rpx;
+}
+
+/* --- 支出分类 --- */
+.section-card {
+  margin: 20rpx 24rpx;
+  background: #fff;
+  border-radius: 20rpx;
+  padding: 24rpx;
+  box-shadow: 0 4rpx 20rpx rgba(0, 0, 0, 0.04);
+}
+
+.section-header {
+  margin-bottom: 20rpx;
+}
+
+.section-title {
+  font-size: 30rpx;
+  font-weight: 600;
+  color: #333;
+}
+
+.category-list {
+  display: flex;
+  flex-direction: column;
+}
+
+.category-item {
+  display: flex;
+  align-items: center;
+  padding: 16rpx 0;
+  border-bottom: 1rpx solid #f5f5f5;
+}
+
+.category-item:last-child {
+  border-bottom: none;
+}
+
+.category-info {
+  width: 200rpx;
+  display: flex;
+  flex-direction: column;
+}
+
+.category-name {
+  font-size: 28rpx;
+  color: #333;
+}
+
+.category-amount {
+  font-size: 24rpx;
+  color: #ff4d4f;
+  margin-top: 4rpx;
+}
+
+.category-progress {
+  flex: 1;
+  height: 12rpx;
+  background: #f5f5f5;
+  border-radius: 6rpx;
+  margin: 0 16rpx;
+  overflow: hidden;
+}
+
+.progress-bar {
+  height: 100%;
+  background: linear-gradient(90deg, #1890ff, #40a9ff);
+  border-radius: 6rpx;
+  transition: width 0.3s;
+}
+
+.category-percent {
+  font-size: 24rpx;
+  color: #999;
+  width: 80rpx;
+  text-align: right;
+}
+
+.safe-bottom {
+  height: 40rpx;
+}
+</style>
