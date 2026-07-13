@@ -115,16 +115,36 @@
 
 ### R31-A3 — 小程序后端API补全（会员+批发）[P0]
 
-- **状态**：待开始
+- **状态**：✅ 已完成
 - **优先级**：P0
 - **负责人**：阿坚
 - **预计**：1.5 天
+- **完成时间**：2026-07-14
 - **需求来源**：配合 R31-A1 和 R31-A2 小程序前端
 - **需求**：
   1. 会员相关 API（会员信息、等级、积分、权益）
   2. 收货地址 API（CRUD、设为默认）
   3. 优惠券 API（我的优惠券、领取、使用）
   4. 批发相关 API（批发商品列表、批发详情、批发订单）
+- **完成内容**：
+  1. **数据库迁移**：`108_miniapp_member_wholesale.sql` — 新增 `t_member_level`（会员等级配置）、`t_points_record`（积分记录）、`t_growth_record`（成长值记录）、`t_wholesale_cart`（批发购物车）、`t_wholesale_order`（批发订单）、`t_wholesale_order_item`（批发订单项）6张表
+  2. **会员服务**：`services/miniapp/member.service.ts` — getMemberProfile（会员信息+等级+升级进度）、getMemberLevels（等级列表）、getPointsRecords（积分明细）、getGrowthRecords（成长值明细）、getMyCoupons（我的优惠券）、receiveCoupon（领取优惠券）、updateUserProfile（更新资料）、changePassword（修改密码）
+  3. **批发服务**：`services/miniapp/wholesale.service.ts` — getWholesaleProducts（批发商品列表/按SPU分组）、getWholesaleProductDetail（商品详情+阶梯价）、getWholesaleCategories（批发分类）、getWholesaleCart（购物车列表）、addWholesaleCartItem（加入购物车）、updateWholesaleCartItem（更新数量）、deleteWholesaleCartItem（删除商品）、createWholesaleOrder（创建批发订单/事务）、getWholesaleOrders（订单列表）、getWholesaleOrderDetail（订单详情）
+  4. **控制器**：`controllers/miniapp/miniapp.controller.ts` — 新增 18 个 handler
+  5. **路由**：`routes/miniapp.routes.ts` — 新增会员模块 6 条、批发模块 10 条、用户设置模块 2 条路由
+  6. **单元测试**：member.service.test.ts（28个用例）、wholesale.service.test.ts（30个用例），覆盖全部主流程和异常分支
+- **修改文件**：
+  - `docs/migrations/108_miniapp_member_wholesale.sql`（新增）
+  - `backend/src/services/miniapp/member.service.ts`（新增）
+  - `backend/src/services/miniapp/wholesale.service.ts`（新增）
+  - `backend/src/controllers/miniapp/miniapp.controller.ts`（修改）
+  - `backend/src/routes/miniapp.routes.ts`（修改）
+  - `backend/src/__tests__/services/miniapp/member.service.test.ts`（新增）
+  - `backend/src/__tests__/services/miniapp/wholesale.service.test.ts`（新增）
+- **验证结果**：
+  - ✅ tsc --noEmit --strict：0 错误
+  - ✅ vitest run：386 测试文件，4260 测试用例全部通过，0 失败
+  - ✅ 新增测试：58 个用例，覆盖会员+批发全部服务函数
 - **验收标准**：vitest run 0 失败，tsc --noEmit --strict 0 错误
 
 ### R31-A4 — R31 全量回归测试 [P0]

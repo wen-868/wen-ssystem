@@ -5,6 +5,8 @@ import { getSettlementType, type CustomerType } from "../../shared/fulfillment";
 import * as miniappService from "../../services/miniapp.service";
 import * as cartService from "../../services/miniapp/cart.service";
 import * as addressService from "../../services/miniapp/retail-consumer-address.service";
+import * as memberService from "../../services/miniapp/member.service";
+import * as wholesaleService from "../../services/miniapp/wholesale.service";
 import * as productService from "../../services/admin/product.service";
 import * as categoryService from "../../services/admin/category.service";
 
@@ -368,5 +370,201 @@ export const useCoupon = asyncHandler(async (req, res) => {
     discountAmount: 10
   };
   
+  res.json(ok(result));
+});
+
+// ========== 会员模块 ==========
+
+export const getMemberProfile = asyncHandler(async (req, res) => {
+  const tenantId = req.tenantId!;
+  const memberId = getCustomerId(req);
+  const result = await memberService.getMemberProfile(memberId, tenantId);
+  res.json(ok(result));
+});
+
+export const getMemberLevels = asyncHandler(async (req, res) => {
+  const tenantId = req.tenantId!;
+  const result = await memberService.getMemberLevels(tenantId);
+  res.json(ok(result));
+});
+
+export const getMemberPoints = asyncHandler(async (req, res) => {
+  const tenantId = req.tenantId!;
+  const memberId = getCustomerId(req);
+  const page = Number(req.query.page || 1);
+  const pageSize = Number(req.query.pageSize || 20);
+  const type = req.query.type ? String(req.query.type) : undefined;
+  const result = await memberService.getPointsRecords(memberId, tenantId, page, pageSize, type);
+  res.json(ok(result));
+});
+
+export const getMemberGrowth = asyncHandler(async (req, res) => {
+  const tenantId = req.tenantId!;
+  const memberId = getCustomerId(req);
+  const page = Number(req.query.page || 1);
+  const pageSize = Number(req.query.pageSize || 20);
+  const type = req.query.type ? String(req.query.type) : undefined;
+  const result = await memberService.getGrowthRecords(memberId, tenantId, page, pageSize, type);
+  res.json(ok(result));
+});
+
+export const getMemberCoupons = asyncHandler(async (req, res) => {
+  const tenantId = req.tenantId!;
+  const memberId = getCustomerId(req);
+  const page = Number(req.query.page || 1);
+  const pageSize = Number(req.query.pageSize || 20);
+  const status = req.query.status ? String(req.query.status) : undefined;
+  const result = await memberService.getMyCoupons(memberId, tenantId, page, pageSize, status);
+  res.json(ok(result));
+});
+
+export const receiveCoupon = asyncHandler(async (req, res) => {
+  const tenantId = req.tenantId!;
+  const memberId = getCustomerId(req);
+  const templateId = Number(req.params.id);
+  const result = await memberService.receiveCoupon(memberId, templateId, tenantId);
+  res.json(ok(result));
+});
+
+// ========== 用户设置模块 ==========
+
+export const updateUserProfile = asyncHandler(async (req, res) => {
+  const tenantId = req.tenantId!;
+  const memberId = getCustomerId(req);
+  const body = z.object({
+    nickname: z.string().max(64).optional(),
+    avatar: z.string().max(512).optional(),
+    gender: z.number().int().min(0).max(2).optional(),
+    birthday: z.string().optional()
+  }).parse(req.body);
+  
+  const result = await memberService.updateUserProfile(memberId, tenantId, body);
+  res.json(ok(result));
+});
+
+export const changePassword = asyncHandler(async (req, res) => {
+  const tenantId = req.tenantId!;
+  const memberId = getCustomerId(req);
+  const body = z.object({
+    oldPassword: z.string().min(1),
+    newPassword: z.string().min(1)
+  }).parse(req.body);
+  
+  const result = await memberService.changePassword(memberId, tenantId, body.oldPassword, body.newPassword);
+  res.json(ok(result));
+});
+
+// ========== 批发模块 ==========
+
+export const getWholesaleProducts = asyncHandler(async (req, res) => {
+  const tenantId = req.tenantId!;
+  const keyword = req.query.keyword ? String(req.query.keyword) : undefined;
+  const categoryId = req.query.categoryId !== undefined ? Number(req.query.categoryId) : undefined;
+  const page = Number(req.query.page || 1);
+  const pageSize = Number(req.query.pageSize || 20);
+  const sortBy = req.query.sortBy ? String(req.query.sortBy) : undefined;
+  const sortOrder = req.query.sortOrder ? String(req.query.sortOrder) : undefined;
+  
+  const result = await wholesaleService.getWholesaleProducts(tenantId, {
+    keyword,
+    categoryId,
+    page,
+    pageSize,
+    sortBy,
+    sortOrder
+  });
+  res.json(ok(result));
+});
+
+export const getWholesaleProductDetail = asyncHandler(async (req, res) => {
+  const tenantId = req.tenantId!;
+  const spuId = Number(req.params.id);
+  const result = await wholesaleService.getWholesaleProductDetail(spuId, tenantId);
+  res.json(ok(result));
+});
+
+export const getWholesaleCategories = asyncHandler(async (req, res) => {
+  const tenantId = req.tenantId!;
+  const result = await wholesaleService.getWholesaleCategories(tenantId);
+  res.json(ok(result));
+});
+
+export const getWholesaleCart = asyncHandler(async (req, res) => {
+  const tenantId = req.tenantId!;
+  const memberId = getCustomerId(req);
+  const result = await wholesaleService.getWholesaleCart(memberId, tenantId);
+  res.json(ok(result));
+});
+
+export const addWholesaleCartItem = asyncHandler(async (req, res) => {
+  const tenantId = req.tenantId!;
+  const memberId = getCustomerId(req);
+  const body = z.object({
+    skuId: z.number().int().positive(),
+    quantity: z.number().int().positive().default(1)
+  }).parse(req.body);
+  
+  const result = await wholesaleService.addWholesaleCartItem(memberId, tenantId, body.skuId, body.quantity);
+  res.json(ok(result));
+});
+
+export const updateWholesaleCartItem = asyncHandler(async (req, res) => {
+  const tenantId = req.tenantId!;
+  const memberId = getCustomerId(req);
+  const id = Number(req.params.id);
+  const body = z.object({
+    quantity: z.number().int().min(0)
+  }).parse(req.body);
+  
+  const result = await wholesaleService.updateWholesaleCartItem(memberId, tenantId, id, body.quantity);
+  res.json(ok(result));
+});
+
+export const deleteWholesaleCartItem = asyncHandler(async (req, res) => {
+  const tenantId = req.tenantId!;
+  const memberId = getCustomerId(req);
+  const id = Number(req.params.id);
+  const result = await wholesaleService.deleteWholesaleCartItem(memberId, tenantId, id);
+  res.json(ok(result));
+});
+
+export const createWholesaleOrder = asyncHandler(async (req, res) => {
+  const tenantId = req.tenantId!;
+  const memberId = getCustomerId(req);
+  const body = z.object({
+    items: z.array(z.object({
+      skuId: z.number().int().positive(),
+      quantity: z.number().int().positive()
+    })).min(1),
+    addressId: z.number().int().positive().optional(),
+    receiverName: z.string().optional(),
+    receiverMobile: z.string().optional(),
+    receiverProvince: z.string().optional(),
+    receiverCity: z.string().optional(),
+    receiverDistrict: z.string().optional(),
+    receiverAddress: z.string().optional(),
+    remark: z.string().max(500).optional(),
+    couponId: z.number().int().positive().optional()
+  }).parse(req.body);
+  
+  const result = await wholesaleService.createWholesaleOrder(memberId, tenantId, body);
+  res.json(ok(result));
+});
+
+export const getWholesaleOrders = asyncHandler(async (req, res) => {
+  const tenantId = req.tenantId!;
+  const memberId = getCustomerId(req);
+  const page = Number(req.query.page || 1);
+  const pageSize = Number(req.query.pageSize || 20);
+  const status = req.query.status ? String(req.query.status) : undefined;
+  const result = await wholesaleService.getWholesaleOrders(memberId, tenantId, page, pageSize, status);
+  res.json(ok(result));
+});
+
+export const getWholesaleOrderDetail = asyncHandler(async (req, res) => {
+  const tenantId = req.tenantId!;
+  const memberId = getCustomerId(req);
+  const orderNo = req.params.id;
+  const result = await wholesaleService.getWholesaleOrderDetail(memberId, tenantId, orderNo);
   res.json(ok(result));
 });

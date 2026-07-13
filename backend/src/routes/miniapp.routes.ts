@@ -42,6 +42,30 @@ miniappRouter.get("/promotions", requireAuthWithTenant, ctrl.getPromotions);
 miniappRouter.get("/coupons", requireAuthWithTenant, ctrl.getCoupons);
 miniappRouter.post("/coupons/:id/use", requireAuthWithTenant, ctrl.useCoupon);
 
+// ========== 会员模块 ==========
+miniappRouter.get("/member/profile", requireAuthWithTenant, ctrl.getMemberProfile);
+miniappRouter.get("/member/levels", requireAuthWithTenant, ctrl.getMemberLevels);
+miniappRouter.get("/member/points", requireAuthWithTenant, ctrl.getMemberPoints);
+miniappRouter.get("/member/growth", requireAuthWithTenant, ctrl.getMemberGrowth);
+miniappRouter.get("/member/coupons", requireAuthWithTenant, ctrl.getMemberCoupons);
+miniappRouter.post("/member/coupons/:id/receive", requireAuthWithTenant, ctrl.receiveCoupon);
+
+// ========== 用户设置模块 ==========
+miniappRouter.put("/user/profile-update", requireAuthWithTenant, ctrl.updateUserProfile);
+miniappRouter.post("/user/change-password", requireAuthWithTenant, ctrl.changePassword);
+
+// ========== 批发模块 ==========
+miniappRouter.get("/wholesale/products", requireAuthWithTenant, ctrl.getWholesaleProducts);
+miniappRouter.get("/wholesale/products/:id", requireAuthWithTenant, ctrl.getWholesaleProductDetail);
+miniappRouter.get("/wholesale/categories", requireAuthWithTenant, ctrl.getWholesaleCategories);
+miniappRouter.get("/wholesale/cart", requireAuthWithTenant, ctrl.getWholesaleCart);
+miniappRouter.post("/wholesale/cart", requireAuthWithTenant, ctrl.addWholesaleCartItem);
+miniappRouter.put("/wholesale/cart/:id", requireAuthWithTenant, ctrl.updateWholesaleCartItem);
+miniappRouter.delete("/wholesale/cart/:id", requireAuthWithTenant, ctrl.deleteWholesaleCartItem);
+miniappRouter.post("/wholesale/orders", requireAuthWithTenant, ctrl.createWholesaleOrder);
+miniappRouter.get("/wholesale/orders", requireAuthWithTenant, ctrl.getWholesaleOrders);
+miniappRouter.get("/wholesale/orders/:id", requireAuthWithTenant, ctrl.getWholesaleOrderDetail);
+
 // ========== 路由自动发现配置 ==========
 export const routeConfig: RouteConfig = {
   prefix: "/api/miniapp",
