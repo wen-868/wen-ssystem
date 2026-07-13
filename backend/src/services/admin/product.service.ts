@@ -3,47 +3,90 @@ import logger from "../../shared/logger";
 import { makeBizNo } from "../../shared/id";
 import { detectChangedFields, syncChangedFields } from "../../shared/field-sync";
 import { syncProductFullChain, syncProductStatus, syncProductPrice } from "../../shared/product-sync";
+import { cacheGet, cacheDel, CacheKeys } from "../../shared/redis-cache";
 
 export async function listProducts(keyword: string, page: number, pageSize: number, tenantId: string) {
-  const like = `%${keyword}%`;
-  const offset = (page - 1) * pageSize;
-  const records = await queryWithTenant<any>(
-    `SELECT p.id AS spuId, p.spu_code AS spuCode, p.name, p.category_id AS categoryId,
-            pc.name AS categoryName, pc.allow_online_sale AS allowOnlineSale,
-            p.brand_id AS brandId, b.name AS brandName, p.unit, p.specs,
-            p.alcohol_content AS alcoholContent, p.origin, p.main_image AS mainImage,
-            p.image_urls AS imageUrls, p.detail, p.sale_channels AS saleChannels,
-            p.sort_no AS sortNo, p.is_new AS isNew, p.is_recommend AS isRecommend,
-            p.description, p.marketing_tags AS marketingTags, p.status,
-            s.id AS skuId, s.sku_code AS skuCode, s.sku_name AS skuName, s.barcode,
-            s.volume, s.packaging, s.base_unit AS baseUnit, s.box_unit AS boxUnit,
-            s.box_ratio AS boxRatio, s.temperature, s.trace_enabled AS traceEnabled,
-            s.warning_threshold AS warningThreshold,
-            pp.retail_price AS retailPrice, pp.wholesale_price AS wholesalePrice,
-            pp.cost_price AS costPrice, pp.miniapp_price AS miniappPrice,
-            pp.store_price AS storePrice,
-            COALESCE(ib.available_qty, 0) AS availableQty
-     FROM t_product_sku s
-     JOIN t_product_spu p ON p.id = s.spu_id
-     JOIN t_product_price pp ON pp.sku_id = s.id
-     LEFT JOIN t_product_category pc ON pc.id = p.category_id
-     LEFT JOIN brand b ON b.id = p.brand_id
-     LEFT JOIN t_inventory_balance ib ON ib.sku_id = s.id AND ib.stock_type = 'OFFLINE'
-     WHERE p.tenant_id = ? AND (p.name LIKE ? OR s.sku_code LIKE ? OR s.barcode LIKE ?)
-     ORDER BY p.id DESC, s.id DESC
-     LIMIT ? OFFSET ?`,
-    [tenantId, like, like, like, pageSize, offset],
-    tenantId
-  );
-  const totalRow = await queryOneWithTenant<any>(
-    `SELECT COUNT(*) AS total
-     FROM t_product_sku s
-     JOIN t_product_spu p ON p.id = s.spu_id
-     WHERE p.tenant_id = ? AND (p.name LIKE ? OR s.sku_code LIKE ? OR s.barcode LIKE ?)`,
-    [tenantId, like, like, like],
-    tenantId
-  );
-  return { total: totalRow?.total ?? 0, page, pageSize, records };
+  // 有搜索关键词时不使用缓存
+  if (keyword) {
+    const like = `%${keyword}%`;
+    const offset = (page - 1) * pageSize;
+    const records = await queryWithTenant<any>(
+      `SELECT p.id AS spuId, p.spu_code AS spuCode, p.name, p.category_id AS categoryId,
+              pc.name AS categoryName, pc.allow_online_sale AS allowOnlineSale,
+              p.brand_id AS brandId, b.name AS brandName, p.unit, p.specs,
+              p.alcohol_content AS alcoholContent, p.origin, p.main_image AS mainImage,
+              p.image_urls AS imageUrls, p.detail, p.sale_channels AS saleChannels,
+              p.sort_no AS sortNo, p.is_new AS isNew, p.is_recommend AS isRecommend,
+              p.description, p.marketing_tags AS marketingTags, p.status,
+              s.id AS skuId, s.sku_code AS skuCode, s.sku_name AS skuName, s.barcode,
+              s.volume, s.packaging, s.base_unit AS baseUnit, s.box_unit AS boxUnit,
+              s.box_ratio AS boxRatio, s.temperature, s.trace_enabled AS traceEnabled,
+              s.warning_threshold AS warningThreshold,
+              pp.retail_price AS retailPrice, pp.wholesale_price AS wholesalePrice,
+              pp.cost_price AS costPrice, pp.miniapp_price AS miniappPrice,
+              pp.store_price AS storePrice,
+              COALESCE(ib.available_qty, 0) AS availableQty
+       FROM t_product_sku s
+       JOIN t_product_spu p ON p.id = s.spu_id
+       JOIN t_product_price pp ON pp.sku_id = s.id
+       LEFT JOIN t_product_category pc ON pc.id = p.category_id
+       LEFT JOIN brand b ON b.id = p.brand_id
+       LEFT JOIN t_inventory_balance ib ON ib.sku_id = s.id AND ib.stock_type = 'OFFLINE'
+       WHERE p.tenant_id = ? AND (p.name LIKE ? OR s.sku_code LIKE ? OR s.barcode LIKE ?)
+       ORDER BY p.id DESC, s.id DESC
+       LIMIT ? OFFSET ?`,
+      [tenantId, like, like, like, pageSize, offset],
+      tenantId
+    );
+    const totalRow = await queryOneWithTenant<any>(
+      `SELECT COUNT(*) AS total
+       FROM t_product_sku s
+       JOIN t_product_spu p ON p.id = s.spu_id
+       WHERE p.tenant_id = ? AND (p.name LIKE ? OR s.sku_code LIKE ? OR s.barcode LIKE ?)`,
+      [tenantId, like, like, like],
+      tenantId
+    );
+    return { total: totalRow?.total ?? 0, page, pageSize, records };
+  }
+
+  // 无搜索关键词时使用缓存
+  return cacheGet(CacheKeys.products(Number(tenantId), page, pageSize), async () => {
+    const offset = (page - 1) * pageSize;
+    const records = await queryWithTenant<any>(
+      `SELECT p.id AS spuId, p.spu_code AS spuCode, p.name, p.category_id AS categoryId,
+              pc.name AS categoryName, pc.allow_online_sale AS allowOnlineSale,
+              p.brand_id AS brandId, b.name AS brandName, p.unit, p.specs,
+              p.alcohol_content AS alcoholContent, p.origin, p.main_image AS mainImage,
+              p.image_urls AS imageUrls, p.detail, p.sale_channels AS saleChannels,
+              p.sort_no AS sortNo, p.is_new AS isNew, p.is_recommend AS isRecommend,
+              p.description, p.marketing_tags AS marketingTags, p.status,
+              s.id AS skuId, s.sku_code AS skuCode, s.sku_name AS skuName, s.barcode,
+              s.volume, s.packaging, s.base_unit AS baseUnit, s.box_unit AS boxUnit,
+              s.box_ratio AS boxRatio, s.temperature, s.trace_enabled AS traceEnabled,
+              s.warning_threshold AS warningThreshold,
+              pp.retail_price AS retailPrice, pp.wholesale_price AS wholesalePrice,
+              pp.cost_price AS costPrice, pp.miniapp_price AS miniappPrice,
+              pp.store_price AS storePrice,
+              COALESCE(ib.available_qty, 0) AS availableQty
+       FROM t_product_sku s
+       JOIN t_product_spu p ON p.id = s.spu_id
+       JOIN t_product_price pp ON pp.sku_id = s.id
+       LEFT JOIN t_product_category pc ON pc.id = p.category_id
+       LEFT JOIN brand b ON b.id = p.brand_id
+       LEFT JOIN t_inventory_balance ib ON ib.sku_id = s.id AND ib.stock_type = 'OFFLINE'
+       WHERE p.tenant_id = ?
+       ORDER BY p.id DESC, s.id DESC
+       LIMIT ? OFFSET ?`,
+      [tenantId, pageSize, offset],
+      tenantId
+    );
+    const totalRow = await queryOneWithTenant<any>(
+      `SELECT COUNT(*) AS total FROM t_product_sku s JOIN t_product_spu p ON p.id = s.spu_id WHERE p.tenant_id = ?`,
+      [tenantId],
+      tenantId
+    );
+    return { total: totalRow?.total ?? 0, page, pageSize, records };
+  }, 300);
 }
 
 export async function getProductDetail(spuId: number, tenantId: string) {

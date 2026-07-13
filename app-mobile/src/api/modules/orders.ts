@@ -28,6 +28,7 @@ export interface OrderInfo {
   items: OrderItem[]
   logs?: OrderLog[]
   createdAt: string
+  logisticsInfo?: LogisticsInfo
 }
 
 export interface OrderLog {
@@ -38,11 +39,26 @@ export interface OrderLog {
   createdAt: string
 }
 
+export interface LogisticsInfo {
+  logisticsNo?: string
+  logisticsCompany?: string
+  logisticsStatus?: string
+  logisticsStatusLabel?: string
+  trackingSteps?: TrackingStep[]
+}
+
+export interface TrackingStep {
+  status: string
+  description: string
+  time: string
+}
+
 export interface OrderListParams {
   page?: number
   pageSize?: number
   status?: string
   keyword?: string
+  customerName?: string
   startDate?: string
   endDate?: string
 }
@@ -63,6 +79,10 @@ const ordersApi = {
     return get(`/admin/orders/${orderNo}`)
   },
 
+  confirm(orderNo: string): Promise<void> {
+    return post(`/admin/orders/${orderNo}/confirm`)
+  },
+
   startDelivery(orderNo: string): Promise<void> {
     return post(`/admin/orders/${orderNo}/start-delivery`)
   },
@@ -77,6 +97,10 @@ const ordersApi = {
 
   cancel(orderNo: string, reason?: string): Promise<void> {
     return post(`/admin/orders/${orderNo}/cancel`, { reason })
+  },
+
+  export(params?: OrderListParams): Promise<Blob> {
+    return get('/admin/orders/export', params, { responseType: 'blob' })
   }
 }
 

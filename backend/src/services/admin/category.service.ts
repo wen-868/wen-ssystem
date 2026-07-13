@@ -1,6 +1,7 @@
 import { queryWithTenant, queryOneWithTenant, transaction } from "../../shared/db";
 import logger from "../../shared/logger";
 import { syncChangedFields } from "../../shared/field-sync";
+import { cacheGet, cacheDelPattern, CacheKeys } from "../../shared/redis-cache";
 
 interface CategoryRow {
   id: number; name: string; parentId: number | null; sortNo: number;
@@ -10,28 +11,61 @@ interface CategoryRow {
 
 export async function list(params: { pid?: number; tenantId: string; allowOnlineSale?: number; status?: number }) {
   const { pid, tenantId, allowOnlineSale, status } = params;
-  let sql = `SELECT id, parent_id AS parentId, name, icon, code, sort_no AS sortNo,
-                    status, allow_online_sale AS allowOnlineSale,
-                    created_at AS createdAt, updated_at AS updatedAt
-             FROM t_product_category WHERE tenant_id = ?`;
-  const sqlParams: unknown[] = [tenantId];
 
-  if (pid !== undefined) {
-    sql += " AND parent_id = ?";
-    sqlParams.push(pid);
-  }
-  if (allowOnlineSale !== undefined) {
-    sql += " AND allow_online_sale = ?";
-    sqlParams.push(allowOnlineSale);
-  }
-  if (status !== undefined) {
-    sql += " AND status = ?";
-    sqlParams.push(status);
-  }
-  sql += " ORDER BY sort_no ASC, id ASC";
+  // 当有筛选条件时不使用缓存
+  if (allowOnlineSale !== undefined || status !== undefined) {
+    let sql = `SELECT id, parent_id AS parentId, name, icon, code, sort_no AS sortNo,
+                      status, allow_online_sale AS allowOnlineSale,
+                      created_at AS createdAt, updated_at AS updatedAt
+               FROM t_product_category WHERE tenant_id = ?`;
+    const sqlParams: unknown[] = [tenantId];
 
-  const rows = await queryWithTenant<CategoryRow>(sql, sqlParams, tenantId);
-  return rows;
+    if (pid !== undefined) {
+      sql += " AND parent_id = ?";
+      sqlParams.push(pid);
+    }
+    if (allowOnlineSale !== undefined) {
+      sql += " AND allow_online_sale = ?";
+      sqlParams.push(allowOnlineSale);
+    }
+    if (status !== undefined) {
+      sql += " AND status = ?";
+      sqlParams.push(status);
+    }
+    sql += " ORDER BY sort_no ASC, id ASC";
+
+    const rows = await queryWithTenant<CategoryRow>(sql, sqlParams, tenantId);
+    return rows;
+  }
+
+  // 使用缓存（按 pid 分别缓存）
+  const cacheKey = pid !== undefined 
+    ? `tenant:${tenantId}:categories:pid:${pid}` 
+    : `tenant:${tenantId}:categories:all`;
+  
+  return cacheGet(cacheKey, async () => {
+    let sql = `SELECT id, parent_id AS parentId, name, icon, code, sort_no AS sortNo,
+                      status, allow_online_sale AS allowOnlineSale,
+                      created_at AS createdAt, updated_at AS updatedAt
+               FROM t_product_category WHERE tenant_id = ?`;
+    const sqlParams: unknown[] = [tenantId];
+
+    if (pid !== undefined) {
+      sql += " AND parent_id = ?";
+      sqlParams.push(pid);
+    }
+    sql += " ORDER BY sort_no ASC, id ASC";
+
+    const rows = await queryWithTenant<CategoryRow>(sql, sqlParams, tenantId);
+    return rows;
+  }, 600);
+}
+
+/**
+ * 清除分类缓存
+ */
+export async function clearCategoryCache(tenantId: string): Promise<void> {
+  await cacheDelPattern(`tenant:${tenantId}:categories:*`);
 }
 
 export async function create(body: {
@@ -46,6 +80,8 @@ export async function create(body: {
      body.status ?? 1, tenantId],
     tenantId
   );
+  // 创建后清除分类缓存
+  await clearCategoryCache(tenantId);
   return { id: (result as unknown as Record<string, unknown>).insertId };
 }
 
@@ -83,6 +119,9 @@ export async function update(id: number, body: {
     });
   }
 
+  // 更新后清除分类缓存
+  await clearCategoryCache(tenantId);
+
   return { id };
 }
 
@@ -112,6 +151,8 @@ export async function remove(id: number, tenantId: string) {
   }
 
   await queryWithTenant("DELETE FROM t_product_category WHERE id = ? AND tenant_id = ?", [id, tenantId], tenantId);
+  // 删除后清除分类缓存
+  await clearCategoryCache(tenantId);
   return { id };
 }
 

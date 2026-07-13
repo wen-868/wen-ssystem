@@ -1,5 +1,4 @@
 <template>
-  <!-- 无表单交互，无需三件套（纯展示详情页，操作按钮为API调用） -->
   <scroll-view class="order-detail-page" scroll-y>
     <view class="detail-loading" v-if="loading">
       <text class="loading-text">加载中...</text>
@@ -25,6 +24,14 @@
         <view class="info-row">
           <text class="info-label">订单金额</text>
           <text class="info-value info-value--amount">¥{{ order.totalAmount.toFixed(2) }}</text>
+        </view>
+        <view class="info-row">
+          <text class="info-label">已付金额</text>
+          <text class="info-value">¥{{ order.paidAmount.toFixed(2) }}</text>
+        </view>
+        <view class="info-row">
+          <text class="info-label">应收金额</text>
+          <text class="info-value">¥{{ order.receivableAmount.toFixed(2) }}</text>
         </view>
         <view class="info-row">
           <text class="info-label">下单时间</text>
@@ -58,11 +65,11 @@
         <view class="info-title">商品明细</view>
         <view class="item-row" v-for="item in order.items" :key="item.id">
           <view class="item-info">
-            <text class="item-name">{{ item.productName }}</text>
-            <text class="item-spec">x{{ item.quantity }}</text>
+            <text class="item-name">{{ item.productName || item.skuName }}</text>
+            <text class="item-spec">x{{ item.quantity || item.totalBottleQty }}</text>
           </view>
           <text class="item-price">¥{{ item.unitPrice.toFixed(2) }}</text>
-          <text class="item-total">¥{{ (item.totalPrice ?? 0).toFixed(2) }}</text>
+          <text class="item-total">¥{{ (item.totalPrice || item.subtotalAmount || 0).toFixed(2) }}</text>
         </view>
         <view class="item-summary">
           <text class="summary-label">合计</text>
@@ -70,18 +77,54 @@
         </view>
       </view>
 
-      <!-- 操作日志 -->
-      <view class="info-card" v-if="order.logs && order.logs.length > 0">
-        <view class="info-title">操作日志</view>
-        <view class="log-item" v-for="log in order.logs" :key="log.id">
-          <view class="log-dot"></view>
-          <view class="log-content">
-            <view class="log-header">
-              <text class="log-action">{{ log.action }}</text>
-              <text class="log-time">{{ log.createdAt }}</text>
+      <!-- 物流信息 -->
+      <view class="info-card" v-if="order.logisticsInfo">
+        <view class="info-title">物流信息</view>
+        <view class="logistics-header" v-if="order.logisticsInfo.logisticsNo">
+          <view class="logistics-company">
+            <text class="logistics-icon">&#xe625;</text>
+            <text class="logistics-company-name">{{ order.logisticsInfo.logisticsCompany || '未知物流' }}</text>
+          </view>
+          <view class="logistics-status" :class="'logistics-status-' + (order.logisticsInfo.logisticsStatus || 'unknown')">
+            {{ order.logisticsInfo.logisticsStatusLabel || '运输中' }}
+          </view>
+        </view>
+        <view class="logistics-no" v-if="order.logisticsInfo.logisticsNo">
+          <text class="info-label">运单号：</text>
+          <text class="info-value logistics-no-text">{{ order.logisticsInfo.logisticsNo }}</text>
+        </view>
+        <!-- 物流追踪步骤 -->
+        <view class="tracking-steps" v-if="order.logisticsInfo.trackingSteps && order.logisticsInfo.trackingSteps.length > 0">
+          <view class="tracking-item" v-for="(step, index) in order.logisticsInfo.trackingSteps" :key="index">
+            <view class="tracking-dot" :class="{ 'tracking-dot--active': index === 0 }"></view>
+            <view class="tracking-line" v-if="index < order.logisticsInfo.trackingSteps.length - 1"></view>
+            <view class="tracking-content">
+              <text class="tracking-status" :class="{ 'tracking-status--active': index === 0 }">{{ step.status }}</text>
+              <text class="tracking-desc">{{ step.description }}</text>
+              <text class="tracking-time">{{ step.time }}</text>
             </view>
-            <text class="log-operator">操作人：{{ log.operator }}</text>
-            <text class="log-remark" v-if="log.remark">{{ log.remark }}</text>
+          </view>
+        </view>
+        <view class="no-logistics" v-else>
+          <text class="no-logistics-text">暂无物流信息</text>
+        </view>
+      </view>
+
+      <!-- 订单跟踪 -->
+      <view class="info-card" v-if="order.logs && order.logs.length > 0">
+        <view class="info-title">订单跟踪</view>
+        <view class="timeline">
+          <view class="timeline-item" v-for="(log, index) in order.logs" :key="log.id">
+            <view class="timeline-dot"></view>
+            <view class="timeline-line" v-if="index < order.logs.length - 1"></view>
+            <view class="timeline-content">
+              <view class="timeline-header">
+                <text class="timeline-action">{{ log.action }}</text>
+                <text class="timeline-time">{{ log.createdAt }}</text>
+              </view>
+              <text class="timeline-operator">操作人：{{ log.operator }}</text>
+              <text class="timeline-remark" v-if="log.remark">{{ log.remark }}</text>
+            </view>
           </view>
         </view>
       </view>
@@ -101,6 +144,14 @@
       v-if="order.status === 'pending'"
       class="action-btn action-btn--primary"
       :disabled="actionLoading"
+      @tap="handleConfirm"
+    >
+      {{ actionLoading ? '处理中...' : '确认订单' }}
+    </button>
+    <button
+      v-if="order.status === 'processing'"
+      class="action-btn action-btn--primary"
+      :disabled="actionLoading"
       @tap="handleDeliver"
     >
       {{ actionLoading ? '处理中...' : '开始配送' }}
@@ -114,7 +165,7 @@
       {{ actionLoading ? '处理中...' : '完成配送' }}
     </button>
     <button
-      v-if="order.status === 'pending' || order.status === 'delivering'"
+      v-if="order.status === 'pending' || order.status === 'processing'"
       class="action-btn action-btn--danger"
       :disabled="actionLoading"
       @tap="handleCancel"
@@ -135,6 +186,7 @@ const actionLoading = ref(false)
 const statusIcon = computed(() => {
   const map: Record<string, string> = {
     pending: '\ue620',
+    processing: '\ue626',
     delivering: '\ue621',
     completed: '\ue622',
     cancelled: '\ue623'
@@ -144,7 +196,8 @@ const statusIcon = computed(() => {
 
 const statusDesc = computed(() => {
   const map: Record<string, string> = {
-    pending: '订单待处理，请及时配送',
+    pending: '订单待确认，请及时处理',
+    processing: '订单已确认，待安排配送',
     delivering: '订单正在配送中',
     completed: '订单已完成',
     cancelled: '订单已取消'
@@ -153,13 +206,12 @@ const statusDesc = computed(() => {
 })
 
 const showActions = computed(() => {
-  return order.value && (order.value.status === 'pending' || order.value.status === 'delivering')
+  return order.value && (order.value.status === 'pending' || order.value.status === 'processing' || order.value.status === 'delivering')
 })
 
 async function loadDetail() {
   loading.value = true
   try {
-    // 从页面参数获取订单号
     const pages = getCurrentPages()
     const currentPage = pages[pages.length - 1] as any
     const orderNo = currentPage?.options?.orderNo
@@ -174,6 +226,20 @@ async function loadDetail() {
     uni.showToast({ title: '加载失败', icon: 'none' })
   } finally {
     loading.value = false
+  }
+}
+
+async function handleConfirm() {
+  if (!order.value) return
+  actionLoading.value = true
+  try {
+    await ordersApi.confirm(order.value!.orderNo)
+    uni.showToast({ title: '订单已确认', icon: 'success' })
+    await loadDetail()
+  } catch (err) {
+    uni.showToast({ title: '操作失败', icon: 'none' })
+  } finally {
+    actionLoading.value = false
   }
 }
 
@@ -259,6 +325,7 @@ onMounted(() => {
 }
 
 .status-bg-pending { background: linear-gradient(135deg, #fa8c16, #ffa940); }
+.status-bg-processing { background: linear-gradient(135deg, #fa8c16, #ffa940); }
 .status-bg-delivering { background: linear-gradient(135deg, #1677FF, #69b1ff); }
 .status-bg-completed { background: linear-gradient(135deg, #52c41a, #95de64); }
 .status-bg-cancelled { background: linear-gradient(135deg, #ff4d4f, #ff7875); }
@@ -397,56 +464,203 @@ onMounted(() => {
   color: #1677FF;
 }
 
-/* 操作日志 */
-.log-item {
+/* 物流信息 */
+.logistics-header {
   display: flex;
-  padding: 16rpx 0;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 20rpx;
+  padding-bottom: 16rpx;
+  border-bottom: 1rpx solid #f5f5f5;
 }
 
-.log-item:last-child {
+.logistics-company {
+  display: flex;
+  align-items: center;
+  gap: 12rpx;
+}
+
+.logistics-icon {
+  font-size: 32rpx;
+  color: #1677FF;
+}
+
+.logistics-company-name {
+  font-size: 28rpx;
+  font-weight: 600;
+  color: #333;
+}
+
+.logistics-status {
+  padding: 6rpx 20rpx;
+  border-radius: 8rpx;
+  font-size: 24rpx;
+}
+
+.logistics-status-transporting {
+  background: #e6f7ff;
+  color: #1677FF;
+}
+
+.logistics-status-delivered {
+  background: #f6ffed;
+  color: #52c41a;
+}
+
+.logistics-status-unknown {
+  background: #f5f7fa;
+  color: #666;
+}
+
+.logistics-no {
+  display: flex;
+  padding: 12rpx 0;
+}
+
+.logistics-no-text {
+  font-size: 28rpx;
+  color: #333;
+  font-family: monospace;
+}
+
+/* 物流追踪 */
+.tracking-steps {
+  padding-top: 16rpx;
+}
+
+.tracking-item {
+  display: flex;
+  padding-bottom: 24rpx;
+  position: relative;
+}
+
+.tracking-dot {
+  width: 16rpx;
+  height: 16rpx;
+  border-radius: 50%;
+  background: #ddd;
+  margin-top: 8rpx;
+  flex-shrink: 0;
+}
+
+.tracking-dot--active {
+  background: #1677FF;
+}
+
+.tracking-line {
+  position: absolute;
+  left: 7rpx;
+  top: 24rpx;
+  width: 2rpx;
+  bottom: 0;
+  background: #f0f0f0;
+}
+
+.tracking-content {
+  flex: 1;
+  margin-left: 16rpx;
+}
+
+.tracking-status {
+  font-size: 28rpx;
+  color: #999;
+  display: block;
+}
+
+.tracking-status--active {
+  color: #333;
+  font-weight: 600;
+}
+
+.tracking-desc {
+  font-size: 26rpx;
+  color: #666;
+  display: block;
+  margin-top: 4rpx;
+}
+
+.tracking-time {
+  font-size: 24rpx;
+  color: #bbb;
+  display: block;
+  margin-top: 4rpx;
+}
+
+.no-logistics {
+  padding: 40rpx 0;
+  text-align: center;
+}
+
+.no-logistics-text {
+  font-size: 28rpx;
+  color: #bbb;
+}
+
+/* 订单跟踪时间线 */
+.timeline {
+  padding-top: 8rpx;
+}
+
+.timeline-item {
+  display: flex;
+  padding-bottom: 24rpx;
+  position: relative;
+}
+
+.timeline-item:last-child {
   padding-bottom: 0;
 }
 
-.log-dot {
+.timeline-dot {
   width: 12rpx;
   height: 12rpx;
   border-radius: 50%;
   background: #1677FF;
-  margin-top: 8rpx;
-  margin-right: 16rpx;
+  margin-top: 10rpx;
   flex-shrink: 0;
 }
 
-.log-content {
-  flex: 1;
+.timeline-line {
+  position: absolute;
+  left: 5rpx;
+  top: 22rpx;
+  width: 2rpx;
+  bottom: 0;
+  background: #e8f0fe;
 }
 
-.log-header {
+.timeline-content {
+  flex: 1;
+  margin-left: 16rpx;
+}
+
+.timeline-header {
   display: flex;
   justify-content: space-between;
   align-items: center;
   margin-bottom: 4rpx;
 }
 
-.log-action {
+.timeline-action {
   font-size: 28rpx;
   color: #333;
 }
 
-.log-time {
+.timeline-time {
   font-size: 24rpx;
   color: #999;
 }
 
-.log-operator {
+.timeline-operator {
   font-size: 24rpx;
   color: #999;
 }
 
-.log-remark {
+.timeline-remark {
   font-size: 24rpx;
   color: #666;
   margin-top: 4rpx;
+  display: block;
 }
 
 /* 错误状态 */

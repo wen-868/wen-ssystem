@@ -20,6 +20,7 @@ interface RequestOptions {
   data?: any
   header?: Record<string, string>
   timeout?: number
+  responseType?: 'text' | 'json' | 'arraybuffer' | 'blob'
 }
 
 interface RequestResponse<T = any> {
@@ -39,7 +40,7 @@ function getTenantId(): string {
 }
 
 export async function request<T = any>(options: RequestOptions): Promise<T> {
-  const { url, method = 'GET', data, header = {}, timeout = 30000 } = options
+  const { url, method = 'GET', data, header = {}, timeout = 30000, responseType } = options
 
   const token = getToken()
   const tenantId = getTenantId()
@@ -63,6 +64,7 @@ export async function request<T = any>(options: RequestOptions): Promise<T> {
       data,
       header: headers,
       timeout,
+      responseType,
       success: (res: any) => {
         const { statusCode, data: resData } = res
 
@@ -130,8 +132,8 @@ export async function request<T = any>(options: RequestOptions): Promise<T> {
   })
 }
 
-export function get<T = any>(url: string, params?: Record<string, any>): Promise<T> {
-  return request<T>({ url, method: 'GET', data: params })
+export function get<T = any>(url: string, params?: Record<string, any>, options?: { responseType?: 'text' | 'json' | 'arraybuffer' | 'blob' }): Promise<T> {
+  return request<T>({ url, method: 'GET', data: params, ...options })
 }
 
 export function post<T = any>(url: string, data?: any): Promise<T> {

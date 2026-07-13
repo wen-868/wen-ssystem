@@ -1,4 +1,4 @@
-﻿import mysql from "mysql2/promise";
+import mysql from "mysql2/promise";
 import { existsSync, readFileSync } from "node:fs";
 import { join, resolve } from "node:path";
 import logger from "../shared/logger";
@@ -12,8 +12,17 @@ export let pool = mysql.createPool({
   user: env.DB_USER,
   password: env.DB_PASSWORD,
   database: env.DB_NAME,
+  // 连接池优化配置
   waitForConnections: true,
-  connectionLimit: 10
+  connectionLimit: Number(env.DB_CONNECTION_LIMIT) || 20,
+  maxIdle: Number(env.DB_MAX_IDLE) || 10,
+  idleTimeout: Number(env.DB_IDLE_TIMEOUT) || 60000,
+  queueLimit: Number(env.DB_QUEUE_LIMIT) || 0,
+  acquireTimeout: Number(env.DB_ACQUIRE_TIMEOUT) || 10000,
+  enableKeepAlive: true,
+  keepAliveInitialDelay: 0,
+  charset: "utf8mb4",
+  timezone: "Z"
 });
 
 function splitSqlStatements(sql: string) {

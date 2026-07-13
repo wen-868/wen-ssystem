@@ -28,6 +28,28 @@
       </view>
     </scroll-view>
 
+    <!-- 筛选区域 -->
+    <view class="filter-bar">
+      <view class="filter-item" @tap="showCustomerPicker = true">
+        <text class="filter-label">客户</text>
+        <text class="filter-value" v-if="selectedCustomer">{{ selectedCustomer }}</text>
+        <text class="filter-value filter-value--placeholder" v-else>全部客户</text>
+        <text class="filter-arrow">&#xe616;</text>
+      </view>
+      <view class="filter-divider"></view>
+      <view class="filter-item" @tap="showDatePicker = true">
+        <text class="filter-label">时间</text>
+        <text class="filter-value" v-if="dateRangeText">{{ dateRangeText }}</text>
+        <text class="filter-value filter-value--placeholder" v-else>选择时间</text>
+        <text class="filter-arrow">&#xe616;</text>
+      </view>
+      <view class="filter-divider"></view>
+      <view class="filter-item filter-item--action" @tap="handleExport">
+        <text class="filter-icon">&#xe624;</text>
+        <text class="filter-label">导出</text>
+      </view>
+    </view>
+
     <scroll-view
       class="order-list"
       scroll-y
@@ -63,7 +85,7 @@
         </view>
 
         <view class="order-card-footer">
-          <text class="order-time">{{ order.createdAt }}</text>
+          <text class="order-time">{{ formatTime(order.createdAt) }}</text>
           <text class="order-arrow">&#xe616;</text>
         </view>
       </view>
@@ -81,16 +103,87 @@
 
       <view class="safe-bottom"></view>
     </scroll-view>
+
+    <!-- 客户选择弹窗 -->
+    <view class="picker-mask" v-if="showCustomerPicker" @tap="showCustomerPicker = false">
+      <view class="picker-popup" @tap.stop>
+        <view class="picker-header">
+          <text class="picker-title">选择客户</text>
+          <text class="picker-close" @tap="showCustomerPicker = false">×</text>
+        </view>
+        <scroll-view class="picker-content" scroll-y>
+          <view
+            class="picker-item"
+            :class="{ 'picker-item--active': !selectedCustomer }"
+            @tap="selectCustomer('')"
+          >
+            <text class="picker-item-text">全部客户</text>
+            <view class="picker-check" v-if="!selectedCustomer">✓</view>
+          </view>
+          <view
+            class="picker-item"
+            v-for="customer in customerList"
+            :key="customer.name"
+            :class="{ 'picker-item--active': selectedCustomer === customer.name }"
+            @tap="selectCustomer(customer.name)"
+          >
+            <text class="picker-item-text">{{ customer.name }}</text>
+            <view class="picker-check" v-if="selectedCustomer === customer.name">✓</view>
+          </view>
+        </scroll-view>
+      </view>
+    </view>
+
+    <!-- 日期选择弹窗 -->
+    <view class="picker-mask" v-if="showDatePicker" @tap="showDatePicker = false">
+      <view class="picker-popup" @tap.stop>
+        <view class="picker-header">
+          <text class="picker-title">选择时间范围</text>
+          <text class="picker-close" @tap="showDatePicker = false">×</text>
+        </view>
+        <view class="date-picker-content">
+          <view class="date-picker-item">
+            <text class="date-picker-label">开始日期</text>
+            <picker mode="date" :value="searchForm.startDate" @change="onStartDateChange">
+              <view class="date-picker-value">
+                <text>{{ searchForm.startDate || '请选择' }}</text>
+                <text class="date-picker-arrow">▾</text>
+              </view>
+            </picker>
+          </view>
+          <view class="date-picker-item">
+            <text class="date-picker-label">结束日期</text>
+            <picker mode="date" :value="searchForm.endDate" @change="onEndDateChange">
+              <view class="date-picker-value">
+                <text>{{ searchForm.endDate || '请选择' }}</text>
+                <text class="date-picker-arrow">▾</text>
+              </view>
+            </picker>
+          </view>
+          <view class="date-quick-options">
+            <view class="quick-btn" :class="{ 'quick-btn--active': quickDate === 'today' }" @tap="selectQuickDate('today')">今天</view>
+            <view class="quick-btn" :class="{ 'quick-btn--active': quickDate === 'week' }" @tap="selectQuickDate('week')">近7天</view>
+            <view class="quick-btn" :class="{ 'quick-btn--active': quickDate === 'month' }" @tap="selectQuickDate('month')">近30天</view>
+            <view class="quick-btn" :class="{ 'quick-btn--active': quickDate === 'quarter' }" @tap="selectQuickDate('quarter')">近90天</view>
+          </view>
+          <view class="date-picker-actions">
+            <button class="picker-cancel-btn" @tap="showDatePicker = false">取消</button>
+            <button class="picker-confirm-btn" @tap="confirmDateFilter">确定</button>
+          </view>
+        </view>
+      </view>
+    </view>
   </view>
 </template>
 
 <script setup lang="ts">
-import { ref, reactive, onMounted } from 'vue'
+import { ref, reactive, onMounted, computed } from 'vue'
 import { ordersApi, type OrderInfo } from '@/api/modules/orders'
 
 const tabs = [
   { label: '全部', value: '' },
-  { label: '待处理', value: 'pending' },
+  { label: '待确认', value: 'pending' },
+  { label: '待处理', value: 'processing' },
   { label: '配送中', value: 'delivering' },
   { label: '已完成', value: 'completed' },
   { label: '已取消', value: 'cancelled' }
@@ -98,6 +191,9 @@ const tabs = [
 
 const searchForm = reactive({
   keyword: '',
+  customerName: '',
+  startDate: '',
+  endDate: ''
 })
 
 const activeTab = ref('')
@@ -110,6 +206,17 @@ const navigating = ref(false)
 const page = ref(1)
 const pageSize = 20
 const noMore = ref(false)
+const showCustomerPicker = ref(false)
+const showDatePicker = ref(false)
+const quickDate = ref('')
+const customerList = ref<{ name: string }[]>([])
+const selectedCustomer = ref('')
+
+const dateRangeText = computed(() => {
+  if (!searchForm.startDate && !searchForm.endDate) return ''
+  if (searchForm.startDate === searchForm.endDate) return searchForm.startDate
+  return `${searchForm.startDate} ~ ${searchForm.endDate}`
+})
 
 function switchTab(tab: string) {
   if (activeTab.value === tab) return
@@ -132,6 +239,85 @@ function clearSearch() {
   onSearch()
 }
 
+function selectCustomer(name: string) {
+  selectedCustomer.value = name
+  searchForm.customerName = name
+  showCustomerPicker.value = false
+  onSearch()
+}
+
+function onStartDateChange(e: any) {
+  searchForm.startDate = e.detail.value
+}
+
+function onEndDateChange(e: any) {
+  searchForm.endDate = e.detail.value
+}
+
+function selectQuickDate(type: string) {
+  quickDate.value = type
+  const today = new Date()
+  let startDate: Date
+  
+  switch (type) {
+    case 'today':
+      startDate = today
+      break
+    case 'week':
+      startDate = new Date(today.getTime() - 7 * 24 * 60 * 60 * 1000)
+      break
+    case 'month':
+      startDate = new Date(today.getTime() - 30 * 24 * 60 * 60 * 1000)
+      break
+    case 'quarter':
+      startDate = new Date(today.getTime() - 90 * 24 * 60 * 60 * 1000)
+      break
+    default:
+      startDate = today
+  }
+  
+  searchForm.startDate = formatDate(startDate)
+  searchForm.endDate = formatDate(today)
+}
+
+function formatDate(date: Date): string {
+  const year = date.getFullYear()
+  const month = String(date.getMonth() + 1).padStart(2, '0')
+  const day = String(date.getDate()).padStart(2, '0')
+  return `${year}-${month}-${day}`
+}
+
+function formatTime(dateStr: string): string {
+  if (!dateStr) return ''
+  const date = new Date(dateStr)
+  const month = String(date.getMonth() + 1).padStart(2, '0')
+  const day = String(date.getDate()).padStart(2, '0')
+  const hours = String(date.getHours()).padStart(2, '0')
+  const minutes = String(date.getMinutes()).padStart(2, '0')
+  return `${month}-${day} ${hours}:${minutes}`
+}
+
+function confirmDateFilter() {
+  showDatePicker.value = false
+  onSearch()
+}
+
+async function loadCustomers() {
+  try {
+    // 模拟客户列表数据
+    customerList.value = [
+      { name: '张老板' },
+      { name: '李经理' },
+      { name: '王总' },
+      { name: '陈老板' },
+      { name: '刘老板' },
+      { name: '赵经理' }
+    ]
+  } catch (err) {
+    console.error('加载客户列表失败:', err)
+  }
+}
+
 async function loadOrders() {
   if (loading.value) return
   loading.value = true
@@ -139,6 +325,9 @@ async function loadOrders() {
     const result = await ordersApi.list({
       keyword: searchForm.keyword || undefined,
       status: activeTab.value || undefined,
+      customerName: searchForm.customerName || undefined,
+      startDate: searchForm.startDate || undefined,
+      endDate: searchForm.endDate || undefined,
       page: page.value,
       pageSize
     })
@@ -161,6 +350,9 @@ async function onLoadMore() {
     const result = await ordersApi.list({
       keyword: searchForm.keyword || undefined,
       status: activeTab.value || undefined,
+      customerName: searchForm.customerName || undefined,
+      startDate: searchForm.startDate || undefined,
+      endDate: searchForm.endDate || undefined,
       page: page.value,
       pageSize
     })
@@ -186,6 +378,9 @@ async function onPullDownRefresh() {
     const result = await ordersApi.list({
       keyword: searchForm.keyword || undefined,
       status: activeTab.value || undefined,
+      customerName: searchForm.customerName || undefined,
+      startDate: searchForm.startDate || undefined,
+      endDate: searchForm.endDate || undefined,
       page: 1,
       pageSize
     })
@@ -195,6 +390,41 @@ async function onPullDownRefresh() {
     console.error('刷新失败:', err)
   } finally {
     refresherTriggered.value = false
+  }
+}
+
+async function handleExport() {
+  uni.showLoading({ title: '导出中...' })
+  try {
+    const blob = await ordersApi.export({
+      keyword: searchForm.keyword || undefined,
+      status: activeTab.value || undefined,
+      customerName: searchForm.customerName || undefined,
+      startDate: searchForm.startDate || undefined,
+      endDate: searchForm.endDate || undefined
+    })
+    
+    // H5 端下载处理
+    // #ifdef H5
+    const url = window.URL.createObjectURL(blob)
+    const link = document.createElement('a')
+    link.href = url
+    link.download = `订单列表_${formatDate(new Date())}.xlsx`
+    document.body.appendChild(link)
+    link.click()
+    document.body.removeChild(link)
+    window.URL.revokeObjectURL(url)
+    // #endif
+    
+    // 小程序端处理
+    // #ifndef H5
+    uni.showToast({ title: '导出成功', icon: 'success' })
+    // #endif
+  } catch (err) {
+    console.error('导出失败:', err)
+    uni.showToast({ title: '导出失败', icon: 'none' })
+  } finally {
+    uni.hideLoading()
   }
 }
 
@@ -208,6 +438,7 @@ function goDetail(orderNo: string) {
 }
 
 onMounted(() => {
+  loadCustomers()
   loadOrders()
 })
 </script>
@@ -269,13 +500,13 @@ onMounted(() => {
   display: inline-flex;
   flex-direction: column;
   align-items: center;
-  padding: 20rpx 24rpx;
+  padding: 20rpx 20rpx;
   position: relative;
   transition: all 0.2s ease;
 }
 
 .tab-text {
-  font-size: 28rpx;
+  font-size: 26rpx;
   color: #666;
   transition: color 0.2s ease;
 }
@@ -293,6 +524,60 @@ onMounted(() => {
   position: absolute;
   bottom: 4rpx;
   transition: width 0.3s ease;
+}
+
+.filter-bar {
+  display: flex;
+  align-items: center;
+  background: #fff;
+  padding: 16rpx 24rpx;
+  border-bottom: 1rpx solid #f5f5f5;
+}
+
+.filter-item {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8rpx;
+}
+
+.filter-item--action {
+  flex: 0.5;
+  color: #1677FF;
+}
+
+.filter-label {
+  font-size: 26rpx;
+  color: #666;
+}
+
+.filter-item--action .filter-label {
+  color: #1677FF;
+}
+
+.filter-value {
+  font-size: 26rpx;
+  color: #333;
+}
+
+.filter-value--placeholder {
+  color: #bbb;
+}
+
+.filter-arrow {
+  font-size: 20rpx;
+  color: #999;
+}
+
+.filter-icon {
+  font-size: 28rpx;
+}
+
+.filter-divider {
+  width: 1rpx;
+  height: 40rpx;
+  background: #f0f0f0;
 }
 
 .order-list {
@@ -362,6 +647,9 @@ onMounted(() => {
 
 .status-pending { background: #fff7e6; }
 .status-pending .status-text { color: #fa8c16; }
+
+.status-processing { background: #fff7e6; }
+.status-processing .status-text { color: #fa8c16; }
 
 .status-delivering { background: #e6f7ff; }
 .status-delivering .status-text { color: #1677FF; }
@@ -449,5 +737,149 @@ onMounted(() => {
 
 .safe-bottom {
   height: env(safe-area-inset-bottom);
+}
+
+/* 弹窗样式 */
+.picker-mask {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.5);
+  z-index: 1000;
+  display: flex;
+  align-items: flex-end;
+}
+
+.picker-popup {
+  width: 100%;
+  background: #fff;
+  border-radius: 24rpx 24rpx 0 0;
+  max-height: 70vh;
+}
+
+.picker-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 24rpx 32rpx;
+  border-bottom: 1rpx solid #f5f5f5;
+}
+
+.picker-title {
+  font-size: 32rpx;
+  font-weight: 600;
+  color: #333;
+}
+
+.picker-close {
+  font-size: 48rpx;
+  color: #999;
+  line-height: 1;
+}
+
+.picker-content {
+  max-height: 50vh;
+}
+
+.picker-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 28rpx 32rpx;
+  border-bottom: 1rpx solid #f9f9f9;
+}
+
+.picker-item-text {
+  font-size: 28rpx;
+  color: #333;
+}
+
+.picker-item--active .picker-item-text {
+  color: #1677FF;
+  font-weight: 600;
+}
+
+.picker-check {
+  font-size: 32rpx;
+  color: #1677FF;
+}
+
+/* 日期选择弹窗 */
+.date-picker-content {
+  padding: 24rpx 32rpx;
+}
+
+.date-picker-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 24rpx 0;
+  border-bottom: 1rpx solid #f5f5f5;
+}
+
+.date-picker-label {
+  font-size: 28rpx;
+  color: #666;
+}
+
+.date-picker-value {
+  display: flex;
+  align-items: center;
+  gap: 8rpx;
+  font-size: 28rpx;
+  color: #333;
+}
+
+.date-picker-arrow {
+  font-size: 20rpx;
+  color: #999;
+}
+
+.date-quick-options {
+  display: flex;
+  gap: 16rpx;
+  padding: 24rpx 0;
+}
+
+.quick-btn {
+  flex: 1;
+  padding: 16rpx 0;
+  text-align: center;
+  font-size: 26rpx;
+  color: #666;
+  background: #f5f7fa;
+  border-radius: 8rpx;
+}
+
+.quick-btn--active {
+  background: #1677FF;
+  color: #fff;
+}
+
+.date-picker-actions {
+  display: flex;
+  gap: 24rpx;
+  padding-top: 16rpx;
+}
+
+.picker-cancel-btn,
+.picker-confirm-btn {
+  flex: 1;
+  height: 80rpx;
+  border-radius: 40rpx;
+  font-size: 30rpx;
+  font-weight: 600;
+}
+
+.picker-cancel-btn {
+  background: #f5f7fa;
+  color: #666;
+}
+
+.picker-confirm-btn {
+  background: #1677FF;
+  color: #fff;
 }
 </style>

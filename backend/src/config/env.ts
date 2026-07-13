@@ -31,6 +31,21 @@ export const env = {
   /** 是否使用 Mock 数据库（测试/开发环境），默认 false */
   USE_MOCK_DB: process.env.USE_MOCK_DB === "true",
 
+  /** 数据库连接池最大连接数，默认 20 */
+  DB_CONNECTION_LIMIT: process.env.DB_CONNECTION_LIMIT || "20",
+
+  /** 数据库连接池最大空闲连接数，默认 10 */
+  DB_MAX_IDLE: process.env.DB_MAX_IDLE || "10",
+
+  /** 数据库连接空闲超时时间（毫秒），默认 60000 */
+  DB_IDLE_TIMEOUT: process.env.DB_IDLE_TIMEOUT || "60000",
+
+  /** 数据库连接池队列限制，默认 0（无限制） */
+  DB_QUEUE_LIMIT: process.env.DB_QUEUE_LIMIT || "0",
+
+  /** 数据库连接获取超时时间（毫秒），默认 10000 */
+  DB_ACQUIRE_TIMEOUT: process.env.DB_ACQUIRE_TIMEOUT || "10000",
+
   /** Redis 主机地址，默认 127.0.0.1 */
   REDIS_HOST: process.env.REDIS_HOST || "127.0.0.1",
 

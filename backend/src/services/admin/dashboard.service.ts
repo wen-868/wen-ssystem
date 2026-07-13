@@ -1,208 +1,151 @@
-﻿import { query, queryOne } from "../../shared/db";
+import { query, queryOne } from "../../shared/db";
+import { cacheGet, CacheKeys } from "../../shared/redis-cache";
 
 export async function getOverview(tenantId: string) {
-  const today = new Date().toISOString().slice(0, 10);
-  const yesterday = new Date(Date.now() - 86400000).toISOString().slice(0, 10);
+  return cacheGet(CacheKeys.dashboard(Number(tenantId)), async () => {
+    const today = new Date().toISOString().slice(0, 10);
+    const yesterday = new Date(Date.now() - 86400000).toISOString().slice(0, 10);
 
-  const todaySales = await queryOne<any>(
-    `SELECT COALESCE(SUM(receivable_amount), 0) AS salesAmount,
-            COUNT(*) AS orderCount,
-            COALESCE(SUM(received_amount), 0) AS receivedAmount
-     FROM t_sale_bill
-     WHERE tenant_id = ?
-       AND business_status NOT IN ('DRAFT', 'VOIDED')
-       AND DATE(created_at) = ?`,
-    [tenantId, today]
-  );
+    // 合并查询：销售统计（今日/昨日/本月/上月/本年）
+    // 将原来的 5 个 queryOne 合并为 1 个
+    const salesStats = await queryOne<any>(
+      `SELECT
+         -- 今日销售
+         COALESCE(SUM(CASE WHEN DATE(sb.created_at) = ? THEN sb.receivable_amount END), 0) AS todaySalesAmount,
+         COALESCE(COUNT(CASE WHEN DATE(sb.created_at) = ? THEN 1 END), 0) AS todayOrderCount,
+         COALESCE(SUM(CASE WHEN DATE(sb.created_at) = ? THEN sb.received_amount END), 0) AS todayReceivedAmount,
+         -- 昨日销售
+         COALESCE(SUM(CASE WHEN DATE(sb.created_at) = ? THEN sb.receivable_amount END), 0) AS yesterdaySalesAmount,
+         COALESCE(COUNT(CASE WHEN DATE(sb.created_at) = ? THEN 1 END), 0) AS yesterdayOrderCount,
+         -- 本月销售
+         COALESCE(SUM(CASE WHEN DATE_FORMAT(sb.created_at, '%Y-%m') = DATE_FORMAT(CURDATE(), '%Y-%m') THEN sb.receivable_amount END), 0) AS monthSalesAmount,
+         COALESCE(COUNT(CASE WHEN DATE_FORMAT(sb.created_at, '%Y-%m') = DATE_FORMAT(CURDATE(), '%Y-%m') THEN 1 END), 0) AS monthOrderCount,
+         COALESCE(SUM(CASE WHEN DATE_FORMAT(sb.created_at, '%Y-%m') = DATE_FORMAT(CURDATE(), '%Y-%m') THEN sb.received_amount END), 0) AS monthReceivedAmount,
+         -- 上月销售
+         COALESCE(SUM(CASE WHEN DATE_FORMAT(sb.created_at, '%Y-%m') = DATE_FORMAT(DATE_SUB(CURDATE(), INTERVAL 1 MONTH), '%Y-%m') THEN sb.receivable_amount END), 0) AS lastMonthSalesAmount,
+         COALESCE(COUNT(CASE WHEN DATE_FORMAT(sb.created_at, '%Y-%m') = DATE_FORMAT(DATE_SUB(CURDATE(), INTERVAL 1 MONTH), '%Y-%m') THEN 1 END), 0) AS lastMonthOrderCount,
+         -- 本年销售
+         COALESCE(SUM(CASE WHEN DATE_FORMAT(sb.created_at, '%Y') = DATE_FORMAT(CURDATE(), '%Y') THEN sb.receivable_amount END), 0) AS yearSalesAmount,
+         COALESCE(COUNT(CASE WHEN DATE_FORMAT(sb.created_at, '%Y') = DATE_FORMAT(CURDATE(), '%Y') THEN 1 END), 0) AS yearOrderCount,
+         COALESCE(SUM(CASE WHEN DATE_FORMAT(sb.created_at, '%Y') = DATE_FORMAT(CURDATE(), '%Y') THEN sb.received_amount END), 0) AS yearReceivedAmount,
+         -- 应收账款
+         COALESCE(SUM(CASE WHEN sb.unreceived_amount > 0 THEN sb.unreceived_amount END), 0) AS receivableAmount
+       FROM t_sale_bill sb
+       WHERE sb.tenant_id = ? AND sb.business_status NOT IN ('DRAFT', 'VOIDED')`,
+      [today, today, today, yesterday, yesterday, tenantId]
+    );
 
-  const yesterdaySales = await queryOne<any>(
-    `SELECT COALESCE(SUM(receivable_amount), 0) AS salesAmount,
-            COUNT(*) AS orderCount
-     FROM t_sale_bill
-     WHERE tenant_id = ?
-       AND business_status NOT IN ('DRAFT', 'VOIDED')
-       AND DATE(created_at) = ?`,
-    [tenantId, yesterday]
-  );
+    // 合并查询：采购统计（今日/本月/本年）
+    // 将原来的 3 个 queryOne 合并为 1 个
+    const purchaseStats = await queryOne<any>(
+      `SELECT
+         -- 今日采购
+         COALESCE(SUM(CASE WHEN DATE(po.created_at) = ? THEN po.payable_amount END), 0) AS todayPurchaseAmount,
+         COALESCE(COUNT(CASE WHEN DATE(po.created_at) = ? THEN 1 END), 0) AS todayPurchaseOrderCount,
+         -- 本月采购
+         COALESCE(SUM(CASE WHEN DATE_FORMAT(po.created_at, '%Y-%m') = DATE_FORMAT(CURDATE(), '%Y-%m') THEN po.payable_amount END), 0) AS monthPurchaseAmount,
+         COALESCE(COUNT(CASE WHEN DATE_FORMAT(po.created_at, '%Y-%m') = DATE_FORMAT(CURDATE(), '%Y-%m') THEN 1 END), 0) AS monthPurchaseOrderCount,
+         -- 本年采购
+         COALESCE(SUM(CASE WHEN DATE_FORMAT(po.created_at, '%Y') = DATE_FORMAT(CURDATE(), '%Y') THEN po.payable_amount END), 0) AS yearPurchaseAmount,
+         COALESCE(COUNT(CASE WHEN DATE_FORMAT(po.created_at, '%Y') = DATE_FORMAT(CURDATE(), '%Y') THEN 1 END), 0) AS yearPurchaseOrderCount,
+         -- 应付账款
+         COALESCE(SUM(CASE WHEN po.unpaid_amount > 0 THEN po.unpaid_amount END), 0) AS payableAmount
+       FROM t_purchase_order po
+       WHERE po.tenant_id = ? AND po.order_status NOT IN ('DRAFT', 'CANCELLED')`,
+      [today, today, tenantId]
+    );
 
-  const todayPurchase = await queryOne<any>(
-    `SELECT COALESCE(SUM(payable_amount), 0) AS purchaseAmount,
-            COUNT(*) AS orderCount
-     FROM t_purchase_order
-     WHERE tenant_id = ?
-       AND order_status NOT IN ('DRAFT', 'CANCELLED')
-       AND DATE(created_at) = ?`,
-    [tenantId, today]
-  );
+    // 合并查询：待处理订单 + 库存预警
+    // 将原来的 4 个 queryOne 合并为 2 个
+    const pendingOrders = await queryOne<any>(
+      `SELECT
+         -- 当前待处理订单
+         COALESCE(COUNT(CASE WHEN mo.order_status IN ('PENDING_PAYMENT', 'WAIT_DELIVERY', 'ACCEPTED') THEN 1 END), 0) AS currentPendingCount,
+         -- 昨日之前的待处理订单（用于计算变化）
+         COALESCE(COUNT(CASE WHEN mo.order_status IN ('PENDING_PAYMENT', 'WAIT_DELIVERY', 'ACCEPTED') AND DATE(mo.created_at) <= ? THEN 1 END), 0) AS yesterdayPendingCount
+       FROM t_miniapp_order mo
+       WHERE mo.tenant_id = ?`,
+      [yesterday, tenantId]
+    );
 
-  const monthSales = await queryOne<any>(
-    `SELECT COALESCE(SUM(receivable_amount), 0) AS salesAmount,
-            COUNT(*) AS orderCount,
-            COALESCE(SUM(received_amount), 0) AS receivedAmount
-     FROM t_sale_bill
-     WHERE tenant_id = ?
-       AND business_status NOT IN ('DRAFT', 'VOIDED')
-       AND DATE_FORMAT(created_at, '%Y-%m') = DATE_FORMAT(CURDATE(), '%Y-%m')`,
-    [tenantId]
-  );
+    const stockAlerts = await queryOne<any>(
+      `SELECT
+         COALESCE(COUNT(CASE WHEN sw.status = 'ACTIVE' THEN 1 END), 0) AS totalAlerts,
+         COALESCE(COUNT(CASE WHEN sw.status = 'ACTIVE' AND sw.warning_level = 'URGENT' THEN 1 END), 0) AS urgentAlerts
+       FROM stock_warning sw
+       WHERE sw.tenant_id = ?`,
+      [tenantId]
+    );
 
-  const lastMonthSales = await queryOne<any>(
-    `SELECT COALESCE(SUM(receivable_amount), 0) AS salesAmount,
-            COUNT(*) AS orderCount
-     FROM t_sale_bill
-     WHERE tenant_id = ?
-       AND business_status NOT IN ('DRAFT', 'VOIDED')
-       AND DATE_FORMAT(created_at, '%Y-%m') = DATE_FORMAT(DATE_SUB(CURDATE(), INTERVAL 1 MONTH), '%Y-%m')`,
-    [tenantId]
-  );
+    // 库存价值
+    const inventoryValue = await queryOne<any>(
+      `SELECT COALESCE(SUM(ib.physical_qty * pp.cost_price), 0) AS amount,
+              COUNT(DISTINCT ib.sku_id) AS skuCount
+       FROM t_inventory_balance ib
+       LEFT JOIN t_product_price pp ON pp.sku_id = ib.sku_id AND pp.tenant_id = ib.tenant_id
+       WHERE ib.tenant_id = ?`,
+      [tenantId]
+    );
 
-  const monthPurchase = await queryOne<any>(
-    `SELECT COALESCE(SUM(payable_amount), 0) AS purchaseAmount,
-            COUNT(*) AS orderCount
-     FROM t_purchase_order
-     WHERE tenant_id = ?
-       AND order_status NOT IN ('DRAFT', 'CANCELLED')
-       AND DATE_FORMAT(created_at, '%Y-%m') = DATE_FORMAT(CURDATE(), '%Y-%m')`,
-    [tenantId]
-  );
+    const todaySalesAmt = Number(salesStats?.todaySalesAmount ?? 0);
+    const yesterdaySalesAmt = Number(salesStats?.yesterdaySalesAmount ?? 0);
+    const todayOrderCnt = Number(salesStats?.todayOrderCount ?? 0);
+    const yesterdayOrderCnt = Number(salesStats?.yesterdayOrderCount ?? 0);
+    const monthSalesAmt = Number(salesStats?.monthSalesAmount ?? 0);
+    const lastMonthSalesAmt = Number(salesStats?.lastMonthSalesAmount ?? 0);
+    const monthOrderCnt = Number(salesStats?.monthOrderCount ?? 0);
+    const lastMonthOrderCnt = Number(salesStats?.lastMonthOrderCount ?? 0);
+    const pendingCnt = Number(pendingOrders?.currentPendingCount ?? 0);
+    const yesterdayPendingCnt = Number(pendingOrders?.yesterdayPendingCount ?? 0);
 
-  const yearSales = await queryOne<any>(
-    `SELECT COALESCE(SUM(receivable_amount), 0) AS salesAmount,
-            COUNT(*) AS orderCount,
-            COALESCE(SUM(received_amount), 0) AS receivedAmount
-     FROM t_sale_bill
-     WHERE tenant_id = ?
-       AND business_status NOT IN ('DRAFT', 'VOIDED')
-       AND DATE_FORMAT(created_at, '%Y') = DATE_FORMAT(CURDATE(), '%Y')`,
-    [tenantId]
-  );
-
-  const yearPurchase = await queryOne<any>(
-    `SELECT COALESCE(SUM(payable_amount), 0) AS purchaseAmount,
-            COUNT(*) AS orderCount
-     FROM t_purchase_order
-     WHERE tenant_id = ?
-       AND order_status NOT IN ('DRAFT', 'CANCELLED')
-       AND DATE_FORMAT(created_at, '%Y') = DATE_FORMAT(CURDATE(), '%Y')`,
-    [tenantId]
-  );
-
-  // 待处理订单
-  const pendingOrders = await queryOne<any>(
-    `SELECT COUNT(*) AS count
-     FROM t_miniapp_order
-     WHERE tenant_id = ? AND order_status IN ('PENDING_PAYMENT', 'WAIT_DELIVERY', 'ACCEPTED')`,
-    [tenantId]
-  );
-
-  const yesterdayPendingOrders = await queryOne<any>(
-    `SELECT COUNT(*) AS count
-     FROM t_miniapp_order
-     WHERE tenant_id = ? AND order_status IN ('PENDING_PAYMENT', 'WAIT_DELIVERY', 'ACCEPTED')
-       AND DATE(created_at) <= ?`,
-    [tenantId, yesterday]
-  );
-
-  // 库存预警
-  const stockAlerts = await queryOne<any>(
-    `SELECT COUNT(*) AS count
-     FROM stock_warning
-     WHERE tenant_id = ? AND status = 'ACTIVE'`,
-    [tenantId]
-  );
-
-  const urgentStockAlerts = await queryOne<any>(
-    `SELECT COUNT(*) AS count
-     FROM stock_warning
-     WHERE tenant_id = ? AND status = 'ACTIVE' AND warning_level = 'URGENT'`,
-    [tenantId]
-  );
-
-  const inventoryValue = await queryOne<any>(
-    `SELECT COALESCE(SUM(ib.physical_qty * pp.cost_price), 0) AS amount,
-            COUNT(DISTINCT ib.sku_id) AS skuCount
-     FROM t_inventory_balance ib
-     LEFT JOIN t_product_price pp ON pp.sku_id = ib.sku_id AND pp.tenant_id = ib.tenant_id
-     WHERE ib.tenant_id = ?`,
-    [tenantId]
-  );
-
-  const receivable = await queryOne<any>(
-    `SELECT COALESCE(SUM(unreceived_amount), 0) AS amount
-     FROM t_sale_bill
-     WHERE tenant_id = ?
-       AND business_status NOT IN ('DRAFT', 'VOIDED')
-       AND unreceived_amount > 0`,
-    [tenantId]
-  );
-
-  const payable = await queryOne<any>(
-    `SELECT COALESCE(SUM(unpaid_amount), 0) AS amount
-     FROM t_purchase_order
-     WHERE tenant_id = ?
-       AND order_status NOT IN ('DRAFT', 'CANCELLED')
-       AND unpaid_amount > 0`,
-    [tenantId]
-  );
-
-  const todaySalesAmt = Number(todaySales?.salesAmount ?? 0);
-  const yesterdaySalesAmt = Number(yesterdaySales?.salesAmount ?? 0);
-  const todayOrderCnt = Number(todaySales?.orderCount ?? 0);
-  const yesterdayOrderCnt = Number(yesterdaySales?.orderCount ?? 0);
-  const monthSalesAmt = Number(monthSales?.salesAmount ?? 0);
-  const lastMonthSalesAmt = Number(lastMonthSales?.salesAmount ?? 0);
-  const monthOrderCnt = Number(monthSales?.orderCount ?? 0);
-  const lastMonthOrderCnt = Number(lastMonthSales?.orderCount ?? 0);
-  const pendingCnt = Number(pendingOrders?.count ?? 0);
-  const yesterdayPendingCnt = Number(yesterdayPendingOrders?.count ?? 0);
-
-  return {
-    today: {
-      salesAmount: todaySalesAmt,
-      orderCount: todayOrderCnt,
-      receivedAmount: Number(todaySales?.receivedAmount ?? 0),
-      purchaseAmount: Number(todayPurchase?.purchaseAmount ?? 0),
-      purchaseOrderCount: Number(todayPurchase?.orderCount ?? 0),
-      compareYesterday: {
-        salesAmountChange: yesterdaySalesAmt > 0 ? Math.round((todaySalesAmt - yesterdaySalesAmt) / yesterdaySalesAmt * 10000) / 100 : 0,
-        orderCountChange: yesterdayOrderCnt > 0 ? todayOrderCnt - yesterdayOrderCnt : 0,
+    return {
+      today: {
+        salesAmount: todaySalesAmt,
+        orderCount: todayOrderCnt,
+        receivedAmount: Number(salesStats?.todayReceivedAmount ?? 0),
+        purchaseAmount: Number(purchaseStats?.todayPurchaseAmount ?? 0),
+        purchaseOrderCount: Number(purchaseStats?.todayPurchaseOrderCount ?? 0),
+        compareYesterday: {
+          salesAmountChange: yesterdaySalesAmt > 0 ? Math.round((todaySalesAmt - yesterdaySalesAmt) / yesterdaySalesAmt * 10000) / 100 : 0,
+          orderCountChange: yesterdayOrderCnt > 0 ? todayOrderCnt - yesterdayOrderCnt : 0,
+        },
       },
-    },
-    month: {
-      salesAmount: monthSalesAmt,
-      orderCount: monthOrderCnt,
-      receivedAmount: Number(monthSales?.receivedAmount ?? 0),
-      purchaseAmount: Number(monthPurchase?.purchaseAmount ?? 0),
-      purchaseOrderCount: Number(monthPurchase?.orderCount ?? 0),
-      compareLastMonth: {
-        salesAmountChange: lastMonthSalesAmt > 0 ? Math.round((monthSalesAmt - lastMonthSalesAmt) / lastMonthSalesAmt * 10000) / 100 : 0,
-        orderCountChange: lastMonthOrderCnt > 0 ? monthOrderCnt - lastMonthOrderCnt : 0,
+      month: {
+        salesAmount: monthSalesAmt,
+        orderCount: monthOrderCnt,
+        receivedAmount: Number(salesStats?.monthReceivedAmount ?? 0),
+        purchaseAmount: Number(purchaseStats?.monthPurchaseAmount ?? 0),
+        purchaseOrderCount: Number(purchaseStats?.monthPurchaseOrderCount ?? 0),
+        compareLastMonth: {
+          salesAmountChange: lastMonthSalesAmt > 0 ? Math.round((monthSalesAmt - lastMonthSalesAmt) / lastMonthSalesAmt * 10000) / 100 : 0,
+          orderCountChange: lastMonthOrderCnt > 0 ? monthOrderCnt - lastMonthOrderCnt : 0,
+        },
       },
-    },
-    year: {
-      salesAmount: Number(yearSales?.salesAmount ?? 0),
-      orderCount: Number(yearSales?.orderCount ?? 0),
-      receivedAmount: Number(yearSales?.receivedAmount ?? 0),
-      purchaseAmount: Number(yearPurchase?.purchaseAmount ?? 0),
-      purchaseOrderCount: Number(yearPurchase?.orderCount ?? 0),
-    },
-    pending: {
-      orderCount: pendingCnt,
-      changeFromYesterday: pendingCnt - yesterdayPendingCnt,
-    },
-    stockAlerts: {
-      total: Number(stockAlerts?.count ?? 0),
-      urgent: Number(urgentStockAlerts?.count ?? 0),
-    },
-    inventory: {
-      totalValue: Number(inventoryValue?.amount ?? 0),
-      skuCount: Number(inventoryValue?.skuCount ?? 0),
-    },
-    finance: {
-      receivable: Number(receivable?.amount ?? 0),
-      payable: Number(payable?.amount ?? 0),
-    },
-  };
+      year: {
+        salesAmount: Number(salesStats?.yearSalesAmount ?? 0),
+        orderCount: Number(salesStats?.yearOrderCount ?? 0),
+        receivedAmount: Number(salesStats?.yearReceivedAmount ?? 0),
+        purchaseAmount: Number(purchaseStats?.yearPurchaseAmount ?? 0),
+        purchaseOrderCount: Number(purchaseStats?.yearPurchaseOrderCount ?? 0),
+      },
+      pending: {
+        orderCount: pendingCnt,
+        changeFromYesterday: pendingCnt - yesterdayPendingCnt,
+      },
+      stockAlerts: {
+        total: Number(stockAlerts?.totalAlerts ?? 0),
+        urgent: Number(stockAlerts?.urgentAlerts ?? 0),
+      },
+      inventory: {
+        totalValue: Number(inventoryValue?.amount ?? 0),
+        skuCount: Number(inventoryValue?.skuCount ?? 0),
+      },
+      finance: {
+        receivable: Number(salesStats?.receivableAmount ?? 0),
+        payable: Number(purchaseStats?.payableAmount ?? 0),
+      },
+    };
+  }, 300);
 }
 
 export async function getSalesTrend(tenantId: string) {

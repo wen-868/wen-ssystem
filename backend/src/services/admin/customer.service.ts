@@ -1,35 +1,28 @@
-﻿import { query, queryOne, queryWithTenant, queryOneWithTenant, transaction } from "../../shared/db";
+import { query, queryOne, queryWithTenant, queryOneWithTenant, transaction } from "../../shared/db";
 import { syncChangedFields, detectChangedFields } from "../../shared/field-sync";
 import { getCustomerLevelCode, type CustomerType } from "../../shared/fulfillment";
 
 export async function listMembers(tenantId: string, page: number, pageSize: number, keyword: string) {
   const offset = (page - 1) * pageSize;
   const kw = `%${keyword}%`;
+  // 使用 LEFT JOIN + GROUP BY 替代相关子查询，减少数据库查询次数
   const records = await queryWithTenant<any>(
     `SELECT m.id AS memberId, m.name, m.mobile, m.customer_type AS customerType,
             m.points, m.level_code AS levelCode, m.status,
             m.staff_id AS staffId, u.real_name AS staffName,
-            COALESCE(
-              (SELECT SUM(receivable_amount)
-               FROM t_sale_bill
-               WHERE customer_id = m.id AND business_status NOT IN ('DRAFT', 'VOIDED')),
-              0
-            ) AS totalSpent,
-            COALESCE(
-              (SELECT SUM(unreceived_amount)
-               FROM t_sale_bill
-               WHERE customer_id = m.id AND business_status NOT IN ('DRAFT', 'VOIDED')),
-              0
-            ) AS arrears
+            COALESCE(SUM(sb.receivable_amount), 0) AS totalSpent,
+            COALESCE(SUM(sb.unreceived_amount), 0) AS arrears
      FROM member m
      LEFT JOIN t_sys_user u ON u.id = m.staff_id
+     LEFT JOIN t_sale_bill sb ON sb.customer_id = m.id AND sb.business_status NOT IN ('DRAFT', 'VOIDED')
      WHERE m.tenant_id = ? AND (m.name LIKE ? OR m.mobile LIKE ?)
+     GROUP BY m.id, m.name, m.mobile, m.customer_type, m.points, m.level_code, m.status, m.staff_id, u.real_name
      ORDER BY m.id DESC
      LIMIT ? OFFSET ?`,
     [tenantId, kw, kw, pageSize, offset],
     tenantId
   );
-  const totalRow = await queryOneWithTenant<any>("SELECT COUNT(*) AS total FROM member WHERE tenant_id = ?", [tenantId], tenantId);
+  const totalRow = await queryOneWithTenant<any>("SELECT COUNT(*) AS total FROM member WHERE tenant_id = ? AND (name LIKE ? OR mobile LIKE ?)", [tenantId, kw, kw], tenantId);
   return { total: totalRow?.total ?? 0, page, pageSize, records };
 }
 
