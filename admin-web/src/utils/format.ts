@@ -8,9 +8,9 @@ export function formatMoney(value: unknown): string {
   return formatYuan(value);
 }
 
-export function formatDate(value: unknown): string {
+export function formatDate(value: unknown, format?: string): string {
   if (!value) return "-";
-  if (typeof value === "string" && value.length <= 10) return value;
+  if (typeof value === "string" && value.length <= 10 && !format) return value;
   const d = new Date(value as string | number);
   if (isNaN(d.getTime())) return String(value);
   const y = d.getFullYear();
@@ -19,5 +19,8 @@ export function formatDate(value: unknown): string {
   const h = String(d.getHours()).padStart(2, "0");
   const min = String(d.getMinutes()).padStart(2, "0");
   const s = String(d.getSeconds()).padStart(2, "0");
+  if (format === "YYYY-MM-DD") {
+    return `${y}-${m}-${day}`;
+  }
   return `${y}-${m}-${day} ${h}:${min}:${s}`;
 }

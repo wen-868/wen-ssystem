@@ -1239,6 +1239,90 @@ export async function fetchPurchasePaymentStatistics() {
   return data.data;
 }
 
+// ==================== Bank Account APIs ====================
+export async function fetchBankAccountsForFinance(params?: { page?: number; pageSize?: number; keyword?: string }) {
+  const { data } = await api.get("/admin/bank-accounts", { params: { page: 1, pageSize: 20, ...params } });
+  return data.data;
+}
+export async function createBankAccountForFinance(payload: { bankName: string; accountNo: string; accountName: string; branch?: string; balance?: number; remark?: string }) {
+  const { data } = await api.post("/admin/bank-accounts", payload);
+  return data.data;
+}
+export async function updateBankAccountForFinance(id: number, payload: { bankName?: string; accountNo?: string; accountName?: string; branch?: string; balance?: number; remark?: string }) {
+  const { data } = await api.put(`/admin/bank-accounts/${id}`, payload);
+  return data.data;
+}
+export async function toggleBankAccountStatus(id: number) {
+  const { data } = await api.patch(`/admin/bank-accounts/${id}/status`);
+  return data.data;
+}
+export async function fetchBankAccountTransactions(accountId: number, params?: { page?: number; pageSize?: number }) {
+  const { data } = await api.get(`/admin/bank-accounts/${accountId}/transactions`, { params: { page: 1, pageSize: 20, ...params } });
+  return data.data;
+}
+export async function createBankAccountTransaction(accountId: number, payload: { transactionType: "INCOME" | "EXPENSE"; amount: number; remark?: string }) {
+  const { data } = await api.post(`/admin/bank-accounts/${accountId}/transactions`, payload);
+  return data.data;
+}
+
+// ==================== Fund Report APIs ====================
+export async function fetchFundTransactions(params?: { page?: number; pageSize?: number; transactionType?: string; accountId?: number; dateStart?: string; dateEnd?: string }) {
+  const { data } = await api.get("/admin/fund-transactions", { params: { page: 1, pageSize: 20, ...params } });
+  return data.data;
+}
+export async function fetchFundStatistics(params?: { groupBy?: string; dateStart?: string; dateEnd?: string }) {
+  const { data } = await api.get("/admin/fund-statistics", { params });
+  return data.data;
+}
+export async function fetchFundTrend(params?: { dateStart?: string; dateEnd?: string }) {
+  const { data } = await api.get("/admin/fund-trend", { params });
+  return data.data;
+}
+
+// ==================== Bill Management APIs ====================
+export async function fetchBills(params?: { page?: number; pageSize?: number; keyword?: string; billType?: string; status?: string; dateStart?: string; dateEnd?: string }) {
+  const { data } = await api.get("/admin/bills", { params: { page: 1, pageSize: 20, ...params } });
+  return data.data;
+}
+export async function createBill(payload: { billNo: string; billType: "INVOICE" | "RECEIPT" | "CHECK" | "DRAFT"; amount: number; issueDate: string; dueDate: string; remark?: string }) {
+  const { data } = await api.post("/admin/bills", payload);
+  return data.data;
+}
+export async function updateBill(id: number, payload: { billNo?: string; billType?: "INVOICE" | "RECEIPT" | "CHECK" | "DRAFT"; amount?: number; issueDate?: string; dueDate?: string; remark?: string }) {
+  const { data } = await api.put(`/admin/bills/${id}`, payload);
+  return data.data;
+}
+export async function verifyBill(id: number) {
+  const { data } = await api.post(`/admin/bills/${id}/verify`);
+  return data.data;
+}
+export async function voidBill(id: number) {
+  const { data } = await api.post(`/admin/bills/${id}/void`);
+  return data.data;
+}
+
+// ==================== Position Management APIs ====================
+export async function fetchPositions(params?: { page?: number; pageSize?: number; keyword?: string; departmentId?: number }) {
+  const { data } = await api.get("/admin/positions", { params: { page: 1, pageSize: 20, ...params } });
+  return data.data;
+}
+export async function createPosition(payload: { name: string; departmentId: number; level: "JUNIOR" | "MIDDLE" | "SENIOR" | "MANAGER"; salary?: string; description?: string; status?: string }) {
+  const { data } = await api.post("/admin/positions", payload);
+  return data.data;
+}
+export async function updatePosition(id: number, payload: { name?: string; departmentId?: number; level?: "JUNIOR" | "MIDDLE" | "SENIOR" | "MANAGER"; salary?: string; description?: string; status?: string }) {
+  const { data } = await api.put(`/admin/positions/${id}`, payload);
+  return data.data;
+}
+export async function togglePositionStatus(id: number) {
+  const { data } = await api.patch(`/admin/positions/${id}/status`);
+  return data.data;
+}
+export async function deletePosition(id: number) {
+  const { data } = await api.delete(`/admin/positions/${id}`);
+  return data.data;
+}
+
 // ==================== Supplier Statement APIs ====================
 export async function fetchSupplierStatements(params?: { supplierId?: number; status?: string; page?: number; pageSize?: number }) {
   const { data } = await api.get("/admin/supplier-statements", { params: { page: 1, pageSize: 20, ...params } });

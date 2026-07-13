@@ -1,4 +1,4 @@
- # 当前任务 — R27
+ # 当前任务 — R28
 
 > 仓库：https://github.com/wen-868/wen-ssystem  
 > 唯一分支：main  
@@ -19,6 +19,124 @@
 2. 苏然执行测试（单元测试 + 构建验证 + 回归测试），生成测试报告
 3. 凌舟核查测试报告和代码质量，确认通过后直接更新任务状态
 4. 所有任务验收通过后，凌舟直接分派下一轮任务，无需等待用户确认
+
+---
+
+## R28 任务列表
+
+### R28-A1 — admin-web P1级页面补全 [P1]
+
+- **状态**：待开始
+- **优先级**：P1
+- **负责人**：墨
+- **预计**：3 天
+- **需求来源**：R25 缺失页面清单与补全计划第二阶段
+- **需求**：
+  1. 银行账户管理（账户列表、账户新增/编辑、账户余额查询）
+  2. 资金报表（资金流水、收支统计、资金趋势）
+  3. 票据管理（票据列表、票据录入、票据核销）
+  4. 组织架构管理（部门管理、岗位管理、员工管理）
+- **验收标准**：vue-tsc --noEmit 0 错误，npm run build 构建成功
+
+### R28-A2 — admin-web 营销活动完善 + 平台评价管理 [P1]
+
+- **状态**：待开始
+- **优先级**：P1
+- **负责人**：墨
+- **预计**：2 天
+- **需求来源**：R25 缺失页面清单与补全计划第二阶段
+- **需求**：
+  1. 营销活动完善（活动列表增强、活动统计、活动效果分析）
+  2. 平台评价管理（评价列表、评价审核、评价回复、评价统计）
+- **验收标准**：vue-tsc --noEmit 0 错误，npm run build 构建成功
+
+### R28-A3 — app-mobile P1级页面补全 [P1]
+
+- **状态**：✅ 已完成
+- **优先级**：P1
+- **负责人**：阿澈
+- **预计**：3 天
+- **完成时间**：2026-07-13
+- **需求来源**：R25 缺失页面清单与补全计划第二阶段
+- **需求**：
+  1. 批次管理（批次列表、批次查询、批次详情）
+  2. 储值卡管理（储值卡列表、充值记录、消费记录）
+  3. 积分管理（积分明细、积分兑换）
+  4. 会员等级管理（等级列表、等级规则配置）
+  5. 营销活动（活动列表、参与记录）
+- **完成内容**：
+  1. 批次管理：`batches.ts` API模块（list/detail/trace），`batch-list.vue`（搜索+状态筛选+批次卡片），`batch-detail.vue`（批次详情+商品信息+库存记录）
+  2. 储值卡管理：`stored-cards.ts` API模块（list/recharge/rechargeRecords/consumeRecords/lock），`stored-cards.vue`（搜索+状态筛选+充值+查看记录+锁定），`recharge-records.vue`（充值记录列表），`consume-records.vue`（消费记录列表）
+  3. 积分管理：`points.ts` API模块（records/exchange/exchangeList），`points-detail.vue`（积分明细列表），`points-exchange.vue`（积分兑换列表+兑换操作）
+  4. 会员等级管理：`member-levels.ts` API模块（list/create/update/delete/toggleStatus），`member-levels.vue`（搜索+状态筛选+编辑+删除+启用禁用），`level-config.vue`（等级配置表单+保存）
+  5. 营销活动：`marketing-activities.ts` API模块（list/detail/create/update/delete/start/pause/end/participationRecords），`activities.vue`（搜索+状态筛选+活动卡片+开始/暂停/删除），`participation-records.vue`（参与记录列表）
+  6. 路由配置：`pages.json` 新增 12 条路由（批次管理2条、储值卡3条、积分2条、会员等级2条、营销活动2条）
+- **验证结果**：
+  - ✅ vue-tsc --noEmit：0 错误
+  - ✅ npm run build:h5：构建成功（仅 Sass @import 弃用警告）
+- **修改文件**：
+  - `app-mobile/src/api/modules/batches.ts`（新增）
+  - `app-mobile/src/api/modules/stored-cards.ts`（新增）
+  - `app-mobile/src/api/modules/points.ts`（新增）
+  - `app-mobile/src/api/modules/member-levels.ts`（新增）
+  - `app-mobile/src/api/modules/marketing-activities.ts`（新增）
+  - `app-mobile/src/pages/batches/batch-list.vue`（新增）
+  - `app-mobile/src/pages/batches/batch-detail.vue`（新增）
+  - `app-mobile/src/pages/stored-cards/stored-cards.vue`（新增）
+  - `app-mobile/src/pages/stored-cards/recharge-records.vue`（新增）
+  - `app-mobile/src/pages/stored-cards/consume-records.vue`（新增）
+  - `app-mobile/src/pages/points/points-detail.vue`（新增）
+  - `app-mobile/src/pages/points/points-exchange.vue`（新增）
+  - `app-mobile/src/pages/member-levels/member-levels.vue`（新增）
+  - `app-mobile/src/pages/member-levels/level-config.vue`（新增）
+  - `app-mobile/src/pages/marketing/activities.vue`（新增）
+  - `app-mobile/src/pages/marketing/participation-records.vue`（新增）
+  - `app-mobile/src/pages.json`（新增路由）
+- **验收标准**：vue-tsc --noEmit 0 错误，npm run build:h5 构建成功
+
+### R28-A4 — app-mobile 财务看板+费用管理+操作日志 [P1]
+
+- **状态**：待开始
+- **优先级**：P1
+- **负责人**：阿澈
+- **预计**：2 天
+- **需求来源**：R25 缺失页面清单与补全计划第二阶段
+- **需求**：
+  1. 财务看板（收入统计、支出统计、利润分析）
+  2. 费用管理（费用列表、费用录入、费用审核）
+  3. 操作日志（日志列表、日志搜索、操作详情）
+- **验收标准**：vue-tsc --noEmit 0 错误，npm run build:h5 构建成功
+
+### R28-A5 — store-terminal P1级页面补全 [P1]
+
+- **状态**：待开始
+- **优先级**：P1
+- **负责人**：阿澈
+- **预计**：1 天
+- **需求来源**：R25 缺失页面清单与补全计划第二阶段
+- **需求**：
+  1. 优惠券核销（扫码核销、手工核销）
+  2. 挂单管理（挂单列表、取单操作）
+  3. 操作记录（操作日志查询）
+- **验收标准**：eslint src/ 0 错误，npm run build 构建成功
+
+### R28-A6 — 后端API补全（配合前端）[P1]
+
+- **状态**：待开始
+- **优先级**：P1
+- **负责人**：阿坚
+- **预计**：2 天
+- **需求来源**：配合 R28-A1 至 R28-A5 前端页面
+- **需求**：完善银行账户、资金报表、票据、组织架构、营销活动、平台评价、批次、储值卡、积分、费用管理、操作日志等 API
+- **验收标准**：vitest run 0 失败，tsc --noEmit --strict 0 错误
+
+### R28-A7 — R28 全量回归测试 [P1]
+
+- **状态**：待开始
+- **优先级**：P1
+- **负责人**：苏然
+- **预计**：1 天
+- **验收标准**：所有测试通过，覆盖率 ≥ 90%
 
 ---
 

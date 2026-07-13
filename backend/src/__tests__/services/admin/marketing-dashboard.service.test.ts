@@ -1,4 +1,4 @@
-﻿import { describe, it, expect, vi, beforeEach } from "vitest";
+import { describe, it, expect, vi, beforeEach } from "vitest";
 
 const mocks = vi.hoisted(() => ({
   queryWithTenant: vi.fn(),
@@ -146,7 +146,18 @@ describe("admin marketing-dashboard.service - getMarketingTrend", () => {
 });
 
 describe("admin marketing-dashboard.service - getActivityRanking", () => {
+  it("返回排序数据", async () => {
+    mocks.queryWithTenant.mockResolvedValueOnce([
+      { activityId: 1, activityName: "活动1", activityType: "COUPON", totalIssued: 100, usedCount: 30, uniqueUsers: 25 }
+    ]);
+    const res = await getActivityRanking({ tenantId });
+    expect(res).toHaveLength(1);
+    expect(res[0].activityId).toBe(1);
+    expect(res[0].usedRate).toBe(30);
+  });
+
   it("返回空数组", async () => {
+    mocks.queryWithTenant.mockResolvedValueOnce([]);
     const res = await getActivityRanking({ tenantId });
     expect(res).toEqual([]);
   });

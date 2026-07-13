@@ -1,4 +1,4 @@
-﻿import { queryWithTenant, queryOneWithTenant } from "../../shared/db";
+import { queryWithTenant, queryOneWithTenant } from "../../shared/db";
 
 export interface ReviewListParams {
   page: number;
@@ -56,4 +56,55 @@ export async function getStats(tenantId: string) {
     tenantId
   );
   return { stats };
+}
+
+// ========== 评价审核 ==========
+export async function reviewApproval(tenantId: string, id: number, status: number, reviewResult?: string) {
+  const updates: string[] = [];
+  const params: unknown[] = [];
+
+  updates.push("status = ?");
+  params.push(status);
+
+  if (reviewResult) {
+    updates.push("review_result = ?");
+    params.push(reviewResult);
+  }
+
+  updates.push("review_at = NOW()");
+  updates.push("updated_at = NOW()");
+
+  params.push(id);
+  params.push(tenantId);
+
+  await queryWithTenant(
+    `UPDATE platform_review SET ${updates.join(", ")} WHERE id = ? AND tenant_id = ?`,
+    params,
+    tenantId
+  );
+
+  return { id, status };
+}
+
+export async function batchReviewApproval(tenantId: string, ids: number[], status: number) {
+  const placeholders = ids.map(() => "?").join(",");
+  await queryWithTenant(
+    `UPDATE platform_review SET status = ?, review_at = NOW(), updated_at = NOW() 
+     WHERE id IN (${placeholders}) AND tenant_id = ?`,
+    [status, ...ids, tenantId],
+    tenantId
+  );
+
+  return { success: true, count: ids.length };
+}
+
+export async function getReviewById(tenantId: string, id: number) {
+  return queryOneWithTenant<any>(
+    `SELECT id, platform_no AS platformNo, platform_name AS platformName,
+            review_type AS reviewType, status, review_result AS reviewResult,
+            review_at AS reviewAt, created_at AS createdAt, updated_at AS updatedAt
+     FROM platform_review WHERE id = ? AND tenant_id = ?`,
+    [id, tenantId],
+    tenantId
+  );
 }

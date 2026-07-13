@@ -157,6 +157,20 @@
           </div>
         </div>
 
+        <!-- 一级：财务管理 -->
+        <div class="nav-group">
+          <div class="nav-item has-sub" :class="{ open: openGroups.finance }" @click="toggleGroup('finance')">
+            <el-icon class="nav-icon"><Money /></el-icon>
+            <span v-show="!isMenuCollapsed" class="nav-label">财务管理</span>
+            <el-icon v-show="!isMenuCollapsed" class="nav-arrow"><ArrowDown /></el-icon>
+          </div>
+          <div v-show="openGroups.finance && !isMenuCollapsed" class="nav-sub">
+            <div class="nav-sub-item" :class="{ active: isActive('/bank-accounts') }" @click="navTo('/bank-accounts')">银行账户</div>
+            <div class="nav-sub-item" :class="{ active: isActive('/fund-report') }" @click="navTo('/fund-report')">资金报表</div>
+            <div class="nav-sub-item" :class="{ active: isActive('/bill-management') }" @click="navTo('/bill-management')">票据管理</div>
+          </div>
+        </div>
+
         <!-- 一级：系统设置 -->
         <div class="nav-group">
           <div class="nav-item has-sub" :class="{ open: openGroups.system }" @click="toggleGroup('system')">
@@ -165,6 +179,8 @@
             <el-icon v-show="!isMenuCollapsed" class="nav-arrow"><ArrowDown /></el-icon>
           </div>
           <div v-show="openGroups.system && !isMenuCollapsed" class="nav-sub">
+            <div class="nav-sub-item" :class="{ active: isActive('/department-manage') }" @click="navTo('/department-manage')">部门管理</div>
+            <div class="nav-sub-item" :class="{ active: isActive('/position-manage') }" @click="navTo('/position-manage')">岗位管理</div>
             <div class="nav-sub-item" :class="{ active: isActive('/employees') }" @click="navTo('/employees')">员工管理</div>
             <div class="nav-sub-item" :class="{ active: isActive('/stores') }" @click="navTo('/stores')">门店管理</div>
             <div class="nav-sub-item" :class="{ active: isActive('/system/roles') }" @click="navTo('/system/roles')">角色权限</div>
@@ -311,6 +327,7 @@ const openGroups = reactive({
   customers: false,
   instant: false,
   reports: false,
+  finance: false,
   system: false,
   saas: false,
   marketing: false,
@@ -338,7 +355,8 @@ onMounted(() => {
   if (path.startsWith('/customers') || path.startsWith('/member') || path.startsWith('/store-value') || path.startsWith('/credit') || path.startsWith('/points') || path.startsWith('/level') || path.startsWith('/customer-')) openGroups.customers = true;
   if (path.startsWith('/instant-retail')) openGroups.instant = true;
   if (path.startsWith('/reports')) openGroups.reports = true;
-  if (path.startsWith('/system') || path.startsWith('/employees') || path.startsWith('/stores') || path.startsWith('/audit') || path.startsWith('/error-log') || path.startsWith('/monitor')) openGroups.system = true;
+  if (path.startsWith('/bank-accounts') || path.startsWith('/fund-report') || path.startsWith('/bill-management')) openGroups.finance = true;
+  if (path.startsWith('/system') || path.startsWith('/employees') || path.startsWith('/department-manage') || path.startsWith('/position-manage') || path.startsWith('/stores') || path.startsWith('/audit') || path.startsWith('/error-log') || path.startsWith('/monitor')) openGroups.system = true;
   if (path.startsWith('/saas')) openGroups.saas = true;
   if (path.startsWith('/marketing') || path.startsWith('/aftersale')) openGroups.marketing = true;
 });
@@ -383,9 +401,14 @@ const pageTitle = computed(() => {
     "/reports": "销售统计",
     "/reports/products": "商品排行",
     "/reports/employees": "员工业绩",
+    "/department-manage": "部门管理",
+    "/position-manage": "岗位管理",
     "/employees": "员工管理",
     "/stores": "门店管理",
     "/system/roles": "角色权限",
+    "/bank-accounts": "银行账户管理",
+    "/fund-report": "资金报表",
+    "/bill-management": "票据管理",
     "/audit-log": "操作日志",
     "/error-log": "错误日志",
     "/marketing": "营销活动",

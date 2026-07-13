@@ -1,4 +1,4 @@
-﻿import { Router } from "express";
+import { Router } from "express";
 import type { RouteConfig } from "../shared/auto-routes";
 import { requireAuthWithTenant } from "../middleware/auth";
 import * as dailySettlementController from "../controllers/admin/daily-settlement.controller";
@@ -19,6 +19,12 @@ adminFinanceRouter.get("/finance/cash-flow", requireAuthWithTenant, financeDashb
 adminFinanceRouter.get("/finance/profit-trend", requireAuthWithTenant, financeDashboardController.getProfitTrend);
 adminFinanceRouter.get("/finance/top-customers-ar", requireAuthWithTenant, financeDashboardController.getTopCustomersAR);
 adminFinanceRouter.get("/finance/top-suppliers-ap", requireAuthWithTenant, financeDashboardController.getTopSuppliersAP);
+
+// ============ 资金报表 ============
+adminFinanceRouter.get("/finance/cash-flow-detail", requireAuthWithTenant, financeDashboardController.getCashFlowDetail);
+adminFinanceRouter.get("/finance/income-expense-stats", requireAuthWithTenant, financeDashboardController.getIncomeExpenseStats);
+adminFinanceRouter.get("/finance/income-by-category", requireAuthWithTenant, financeDashboardController.getIncomeByCategory);
+adminFinanceRouter.get("/finance/expense-by-category", requireAuthWithTenant, financeDashboardController.getExpenseByCategory);
 
 // ========== 路由自动发现配置 ==========
 export const routeConfig: RouteConfig = {

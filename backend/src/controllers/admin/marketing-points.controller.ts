@@ -1,4 +1,4 @@
-﻿import { z } from "zod";
+import { z } from "zod";
 import { asyncHandler } from "../../middleware/async-handler";
 import { ok, fail } from "../../shared/response";
 import * as pointsService from "../../services/admin/marketing-points.service";
@@ -49,5 +49,35 @@ export const listMyPointsRecords = asyncHandler(async (req, res) => {
   const type = req.query.type as string | undefined;
 
   const result = await pointsService.listMyPointsRecords(userId, page, pageSize, req.tenantId!, type);
+  res.json(ok(result));
+});
+
+export const getPointsRecords = asyncHandler(async (req, res) => {
+  const result = await pointsService.getPointsRecords({
+    tenantId: req.tenantId!,
+    userId: req.query.userId ? Number(req.query.userId) : undefined,
+    type: req.query.type as string | undefined,
+    startDate: req.query.startDate as string | undefined,
+    endDate: req.query.endDate as string | undefined,
+    page: Number(req.query.page || 1),
+    pageSize: Number(req.query.pageSize || 20)
+  });
+  res.json(ok(result));
+});
+
+export const createPointsRedeem = asyncHandler(async (req, res) => {
+  const body = z.object({
+    userId: z.number().int().positive(),
+    points: z.number().int().positive(),
+    orderId: z.number().int().optional(),
+    remark: z.string().optional()
+  }).parse(req.body);
+
+  const result = await pointsService.createPointsRedeem({ ...body, tenantId: req.tenantId! });
+  res.json(ok(result));
+});
+
+export const getPointsStats = asyncHandler(async (req, res) => {
+  const result = await pointsService.getPointsStats(req.tenantId!);
   res.json(ok(result));
 });

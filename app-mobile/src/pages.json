@@ -255,6 +255,72 @@
       "style": {
         "navigationBarTitleText": "会员中心"
       }
+    },
+    {
+      "path": "pages/batches/batch-list",
+      "style": {
+        "navigationBarTitleText": "批次管理"
+      }
+    },
+    {
+      "path": "pages/batches/batch-detail",
+      "style": {
+        "navigationBarTitleText": "批次详情"
+      }
+    },
+    {
+      "path": "pages/stored-cards/stored-cards",
+      "style": {
+        "navigationBarTitleText": "储值卡管理"
+      }
+    },
+    {
+      "path": "pages/stored-cards/recharge-records",
+      "style": {
+        "navigationBarTitleText": "充值记录"
+      }
+    },
+    {
+      "path": "pages/stored-cards/consume-records",
+      "style": {
+        "navigationBarTitleText": "消费记录"
+      }
+    },
+    {
+      "path": "pages/points/points-detail",
+      "style": {
+        "navigationBarTitleText": "积分明细"
+      }
+    },
+    {
+      "path": "pages/points/points-exchange",
+      "style": {
+        "navigationBarTitleText": "积分兑换"
+      }
+    },
+    {
+      "path": "pages/member-levels/member-levels",
+      "style": {
+        "navigationBarTitleText": "会员等级"
+      }
+    },
+    {
+      "path": "pages/member-levels/level-config",
+      "style": {
+        "navigationBarTitleText": "等级配置"
+      }
+    },
+    {
+      "path": "pages/marketing/activities",
+      "style": {
+        "navigationBarTitleText": "营销活动"
+      }
+    },
+    {
+      "path": "pages/marketing/participation-records",
+      "style": {
+        "navigationBarTitleText": "参与记录"
+      }
     }
   ],
   "globalStyle": {

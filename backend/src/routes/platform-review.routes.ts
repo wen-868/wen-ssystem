@@ -13,3 +13,12 @@ platformReviewRouter.get("/stats", requireAuthWithTenant, asyncHandler(controlle
 
 // ========== 回复审核 ==========
 platformReviewRouter.post("/:id/reply", requireAuthWithTenant, asyncHandler(controller.replyReview));
+
+// ========== 评价审核 ==========
+platformReviewRouter.put("/:id/approval", requireAuthWithTenant, asyncHandler(controller.reviewApproval));
+
+// ========== 批量审核 ==========
+platformReviewRouter.post("/batch-approval", requireAuthWithTenant, asyncHandler(controller.batchReviewApproval));
+
+// ========== 获取评价详情 ==========
+platformReviewRouter.get("/:id", requireAuthWithTenant, asyncHandler(controller.getReviewById));

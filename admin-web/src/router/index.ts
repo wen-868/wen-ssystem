@@ -57,6 +57,7 @@ import {
   ShoppingCart,
   Star,
   Switch,
+  Ticket,
   Tickets,
   Timer,
   TrendCharts,
@@ -181,6 +182,9 @@ const routes = [
       { path: "finance/expenses", name: "finance-expenses", component: () => import("../views/ExpensesView.vue"), meta: { roles: ["BOSS"], title: "费用管理", icon: Money } },
       { path: "finance/reconciliation", name: "finance-reconciliation", component: () => import("../views/ReconciliationView.vue"), meta: { roles: ["BOSS"], title: "财务对账", icon: Finished } },
       { path: "finance/dashboard", name: "finance-dashboard", component: () => import("../views/FinanceDashboard.vue"), meta: { roles: ["BOSS"], title: "财务看板", icon: DataAnalysis } },
+      { path: "bank-accounts", name: "bank-accounts", component: () => import("../views/BankAccounts.vue"), meta: { roles: ["BOSS"], title: "银行账户", icon: CreditCard } },
+      { path: "fund-report", name: "fund-report", component: () => import("../views/FinanceReport.vue"), meta: { roles: ["BOSS"], title: "资金报表", icon: TrendCharts } },
+      { path: "bill-management", name: "bill-management", component: () => import("../views/BillManagement.vue"), meta: { roles: ["BOSS"], title: "票据管理", icon: Ticket } },
       // 10. 数据报表
       { path: "reports", name: "reports", component: () => import("../views/Reports.vue"), meta: { roles: ["BOSS", "MGR"], title: "报表中心", icon: Files } },
       { path: "reports/purchase", name: "purchase-reports", component: () => import("../views/PurchaseReports.vue"), meta: { roles: ["BOSS", "MGR"], title: "采购报表", icon: ShoppingCart } },
@@ -205,6 +209,8 @@ const routes = [
       { path: "aftersale", name: "aftersale", component: () => import("../views/AftersaleView.vue"), meta: { roles: ["BOSS"], title: "售后管理", icon: Service } },
       // 12. 系统管理
       { path: "employees", name: "employees", component: () => import("../views/EmployeesView.vue"), meta: { roles: ["BOSS"], title: "员工管理", icon: User } },
+      { path: "department-manage", name: "department-manage", component: () => import("../views/DepartmentManage.vue"), meta: { roles: ["BOSS"], title: "部门管理", icon: OfficeBuilding } },
+      { path: "position-manage", name: "position-manage", component: () => import("../views/PositionManage.vue"), meta: { roles: ["BOSS"], title: "岗位管理", icon: Medal } },
       { path: "stores", name: "stores", component: () => import("../views/StoresView.vue"), meta: { roles: ["BOSS"], title: "门店管理", icon: Shop } },
       { path: "system/roles", name: "system-roles", component: () => import("../views/SystemRoles.vue"), meta: { roles: ["BOSS"], title: "角色管理", icon: Key } },
       { path: "audit-log", name: "audit-log", component: () => import("../views/AuditLogView.vue"), meta: { roles: ["BOSS"], title: "操作日志", icon: Document } },

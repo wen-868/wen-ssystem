@@ -1,4 +1,4 @@
-﻿import { queryWithTenant, queryOneWithTenant } from "../../shared/db";
+import { queryWithTenant, queryOneWithTenant } from "../../shared/db";
 
 export async function getMarketingOverview(params: { tenantId: string; startDate?: string; endDate?: string }) {
   const { tenantId, startDate, endDate } = params;
@@ -85,11 +85,113 @@ export async function getMarketingTrend(params: { tenantId: string; period?: str
   return { couponTrend, discountTrend };
 }
 
-export async function getActivityRanking(params: { tenantId: string; rankBy?: string; startDate?: string; endDate?: string }) {
-  const { tenantId, rankBy = "roi", startDate, endDate } = params;
+export async function getActivityComparison(params: { tenantId: string; activityIds?: number[]; startDate?: string; endDate?: string }) {
   return [];
 }
 
-export async function getActivityComparison(params: { tenantId: string; activityIds?: number[]; startDate?: string; endDate?: string }) {
-  return [];
+// ========== 活动效果分析 ==========
+export async function getActivityEffectAnalysis(params: { tenantId: string; activityId: number; activityType: string; startDate?: string; endDate?: string }) {
+  const { tenantId, activityId, activityType, startDate, endDate } = params;
+  
+  // 基础统计
+  const baseStats = await queryOneWithTenant<any>(
+    `SELECT COUNT(*) AS totalUsers, 
+            COUNT(DISTINCT customer_id) AS uniqueUsers,
+            SUM(CASE WHEN status = 'USED' THEN 1 ELSE 0 END) AS usedCount
+     FROM user_coupon 
+     WHERE tenant_id = ? AND template_id = ?`,
+    [tenantId, activityId], tenantId
+  );
+
+  // 订单关联统计
+  const orderStats = await queryOneWithTenant<any>(
+    `SELECT COUNT(DISTINCT order_id) AS orderCount,
+            COALESCE(SUM(order_amount), 0) AS totalOrderAmount,
+            COALESCE(SUM(discount_amount), 0) AS totalDiscountAmount
+     FROM t_order_coupon 
+     WHERE tenant_id = ? AND coupon_id IN (SELECT id FROM user_coupon WHERE template_id = ? AND tenant_id = ?)`,
+    [tenantId, activityId, tenantId], tenantId
+  );
+
+  // 转化率计算
+  const totalUsers = Number(baseStats?.totalUsers ?? 0);
+  const usedCount = Number(baseStats?.usedCount ?? 0);
+  const orderCount = Number(orderStats?.orderCount ?? 0);
+
+  return {
+    activityId,
+    activityType,
+    totalUsers,
+    uniqueUsers: Number(baseStats?.uniqueUsers ?? 0),
+    usedCount,
+    usedRate: totalUsers > 0 ? Math.round((usedCount / totalUsers) * 10000) / 100 : 0,
+    orderCount,
+    conversionRate: usedCount > 0 ? Math.round((orderCount / usedCount) * 10000) / 100 : 0,
+    totalOrderAmount: orderStats?.totalOrderAmount ?? 0,
+    totalDiscountAmount: orderStats?.totalDiscountAmount ?? 0,
+    avgOrderAmount: orderCount > 0 ? Math.round((Number(orderStats?.totalOrderAmount ?? 0) / orderCount) * 100) / 100 : 0,
+    roi: orderCount > 0 ? Math.round((Number(orderStats?.totalOrderAmount ?? 0) / Number(orderStats?.totalDiscountAmount ?? 1)) * 100) / 100 : 0,
+  };
+}
+
+export async function getActivityConversionTrend(params: { tenantId: string; activityId: number; period?: string }) {
+  const { tenantId, activityId, period = "day" } = params;
+  
+  let dateFormat: string;
+  if (period === "month") dateFormat = "DATE_FORMAT(created_at, '%Y-%m')";
+  else if (period === "week") dateFormat = "DATE_FORMAT(created_at, '%Y-%u')";
+  else dateFormat = "DATE(created_at)";
+
+  const trend = await queryWithTenant<any>(
+    `SELECT ${dateFormat} AS period,
+            COUNT(*) AS issuedCount,
+            SUM(CASE WHEN status = 'USED' THEN 1 ELSE 0 END) AS usedCount,
+            COUNT(DISTINCT customer_id) AS uniqueUsers
+     FROM user_coupon
+     WHERE tenant_id = ? AND template_id = ?
+     GROUP BY period ORDER BY period`,
+    [tenantId, activityId], tenantId
+  );
+
+  return trend.map((item: any) => ({
+    period: item.period,
+    issuedCount: Number(item.issuedCount),
+    usedCount: Number(item.usedCount),
+    uniqueUsers: Number(item.uniqueUsers),
+    usedRate: Number(item.issuedCount) > 0 ? Math.round((Number(item.usedCount) / Number(item.issuedCount)) * 10000) / 100 : 0,
+  }));
+}
+
+export async function getActivityRanking(params: { tenantId: string; rankBy?: string; startDate?: string; endDate?: string }) {
+  const { tenantId, rankBy = "usedRate", startDate, endDate } = params;
+
+  const conditions = ["uc.tenant_id = ?"];
+  const values: unknown[] = [tenantId];
+  if (startDate) { conditions.push("uc.created_at >= ?"); values.push(startDate); }
+  if (endDate) { conditions.push("uc.created_at <= ?"); values.push(endDate); }
+  const where = conditions.join(" AND ");
+
+  const ranking = await queryWithTenant<any>(
+    `SELECT ct.id AS activityId, ct.name AS activityName, ct.type AS activityType,
+            COUNT(uc.id) AS totalIssued,
+            SUM(CASE WHEN uc.status = 'USED' THEN 1 ELSE 0 END) AS usedCount,
+            COUNT(DISTINCT uc.customer_id) AS uniqueUsers
+     FROM coupon_template ct
+     LEFT JOIN user_coupon uc ON uc.template_id = ct.id AND uc.tenant_id = ct.tenant_id
+     WHERE ct.tenant_id = ? AND ct.status = 'ACTIVE'
+     GROUP BY ct.id, ct.name, ct.type
+     ORDER BY ${rankBy === "usedRate" ? "usedCount / NULLIF(COUNT(uc.id), 0) DESC" : "usedCount DESC"}
+     LIMIT 20`,
+    [tenantId], tenantId
+  );
+
+  return ranking.map((item: any) => ({
+    activityId: item.activityId,
+    activityName: item.activityName,
+    activityType: item.activityType,
+    totalIssued: Number(item.totalIssued),
+    usedCount: Number(item.usedCount),
+    uniqueUsers: Number(item.uniqueUsers),
+    usedRate: Number(item.totalIssued) > 0 ? Math.round((Number(item.usedCount) / Number(item.totalIssued)) * 10000) / 100 : 0,
+  }));
 }

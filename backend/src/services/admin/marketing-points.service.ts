@@ -1,4 +1,4 @@
-﻿import { queryWithTenant, queryOneWithTenant } from "../../shared/db";
+import { queryWithTenant, queryOneWithTenant } from "../../shared/db";
 
 export async function getPointsRule(tenantId: string) {
   const record = await queryOneWithTenant<any>(
@@ -166,5 +166,127 @@ export async function listMyPointsRecords(
     page,
     pageSize,
     records
+  };
+}
+
+// ========== 积分明细（带日期范围） ==========
+export async function getPointsRecords(params: {
+  tenantId: string;
+  userId?: number;
+  type?: string;
+  startDate?: string;
+  endDate?: string;
+  page: number;
+  pageSize: number;
+}) {
+  const { tenantId, userId, type, startDate, endDate, page, pageSize } = params;
+  const offset = (page - 1) * pageSize;
+  const conditions: string[] = ["tenant_id = ?"];
+  const paramsList: unknown[] = [tenantId];
+
+  if (userId) { conditions.push("user_id = ?"); paramsList.push(userId); }
+  if (type) { conditions.push("type = ?"); paramsList.push(type); }
+  if (startDate) { conditions.push("created_at >= ?"); paramsList.push(startDate); }
+  if (endDate) { conditions.push("created_at <= ?"); paramsList.push(endDate); }
+
+  const where = conditions.join(" AND ");
+
+  const records = await queryWithTenant<any>(
+    `SELECT pr.id, pr.user_id AS userId, pr.type, pr.amount, pr.balance,
+            pr.source_type AS sourceType, pr.source_id AS sourceId,
+            pr.remark, pr.created_at AS createdAt,
+            uc.name AS userName, uc.phone AS phone
+     FROM points_record pr
+     LEFT JOIN user_customer uc ON uc.id = pr.user_id AND uc.tenant_id = pr.tenant_id
+     WHERE ${where}
+     ORDER BY pr.created_at DESC
+     LIMIT ? OFFSET ?`,
+    [...paramsList, pageSize, offset],
+    tenantId
+  );
+
+  const totalRow = await queryOneWithTenant<any>(`SELECT COUNT(*) AS total FROM points_record WHERE ${where}`, paramsList, tenantId);
+
+  return {
+    total: Number(totalRow?.total ?? 0),
+    page,
+    pageSize,
+    records
+  };
+}
+
+// ========== 积分兑换 ==========
+export async function createPointsRedeem(params: {
+  tenantId: string;
+  userId: number;
+  points: number;
+  orderId?: number;
+  remark?: string;
+}) {
+  const { tenantId, userId, points, orderId, remark } = params;
+
+  // 获取用户当前积分
+  const userPoints = await getUserPoints(userId, tenantId);
+  if (!userPoints || userPoints.points < points) {
+    throw new Error("积分不足");
+  }
+
+  // 获取积分规则
+  const rule = await getPointsRule(tenantId);
+  const redeemAmount = Math.floor(points / (rule?.redeemRatio ?? 100));
+
+  // 扣减积分
+  const newBalance = Number(userPoints.points) - points;
+  await queryWithTenant(
+    `UPDATE user_points 
+     SET points = ?, total_spent = total_spent + ? 
+     WHERE user_id = ?`,
+    [newBalance, points, userId],
+    tenantId
+  );
+
+  // 记录积分变动
+  await queryWithTenant(
+    `INSERT INTO points_record (user_id, type, amount, balance, source_type, source_id, remark, tenant_id)
+     VALUES (?, 'SPEND', ?, ?, 'REDEEM', ?, ?, ?)`,
+    [userId, -points, newBalance, orderId ?? null, remark ?? "积分兑换", tenantId],
+    tenantId
+  );
+
+  return {
+    userId,
+    points,
+    redeemAmount,
+    balance: newBalance
+  };
+}
+
+// ========== 积分统计 ==========
+export async function getPointsStats(tenantId: string) {
+  const totalPoints = await queryOneWithTenant<any>(
+    `SELECT COALESCE(SUM(points), 0) AS total FROM user_points WHERE tenant_id = ?`,
+    [tenantId], tenantId
+  );
+
+  const todayEarned = await queryOneWithTenant<any>(
+    `SELECT COALESCE(SUM(amount), 0) AS total FROM points_record WHERE tenant_id = ? AND type = 'EARN' AND DATE(created_at) = CURDATE()`,
+    [tenantId], tenantId
+  );
+
+  const todaySpent = await queryOneWithTenant<any>(
+    `SELECT COALESCE(SUM(ABS(amount)), 0) AS total FROM points_record WHERE tenant_id = ? AND type = 'SPEND' AND DATE(created_at) = CURDATE()`,
+    [tenantId], tenantId
+  );
+
+  const userCount = await queryOneWithTenant<any>(
+    `SELECT COUNT(*) AS total FROM user_points WHERE tenant_id = ? AND points > 0`,
+    [tenantId], tenantId
+  );
+
+  return {
+    totalPoints: totalPoints?.total ?? 0,
+    todayEarned: todayEarned?.total ?? 0,
+    todaySpent: todaySpent?.total ?? 0,
+    userCount: userCount?.total ?? 0
   };
 }

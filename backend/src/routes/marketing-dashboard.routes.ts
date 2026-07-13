@@ -1,4 +1,4 @@
-﻿import { Router } from "express";
+import { Router } from "express";
 import type { RouteConfig } from "../shared/auto-routes";
 import { requireAuthWithTenant } from "../middleware/auth";
 import * as dashboardController from "../controllers/admin/marketing-dashboard.controller";
@@ -13,6 +13,8 @@ marketingDashboardRouter.get("/coupon-stats", requireAuthWithTenant, dashboardCo
 marketingDashboardRouter.get("/trend", requireAuthWithTenant, dashboardController.getMarketingTrend);
 marketingDashboardRouter.get("/activity-ranking", requireAuthWithTenant, dashboardController.getActivityRanking);
 marketingDashboardRouter.get("/activity-comparison", requireAuthWithTenant, dashboardController.getActivityComparison);
+marketingDashboardRouter.get("/activity-effect/:activityId", requireAuthWithTenant, dashboardController.getActivityEffectAnalysis);
+marketingDashboardRouter.get("/activity-conversion-trend/:activityId", requireAuthWithTenant, dashboardController.getActivityConversionTrend);
 // ========== 路由自动发现配置 ==========
 export const routeConfig: RouteConfig = {
   prefix: "/api/admin/marketing/dashboard",

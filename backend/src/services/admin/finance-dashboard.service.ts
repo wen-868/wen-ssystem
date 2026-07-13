@@ -1,4 +1,4 @@
-﻿import { queryWithTenant, queryOneWithTenant } from "../../shared/db";
+import { queryWithTenant, queryOneWithTenant } from "../../shared/db";
 
 export async function getFinanceDashboard(tenantId: string) {
   const now = new Date();
@@ -118,5 +118,93 @@ export async function getTopSuppliersAP(tenantId: string, limit: number = 10) {
      FROM payable WHERE tenant_id = ? AND status IN ('PENDING', 'PARTIAL')
      GROUP BY supplier_id, supplier_name ORDER BY totalAP DESC LIMIT ?`,
     [tenantId, limit], tenantId
+  );
+}
+
+// ========== 资金流水 ==========
+export async function getCashFlowDetail(params: { tenantId: string; startDate?: string; endDate?: string; type?: string; page: number; pageSize: number }) {
+  const { tenantId, startDate, endDate, type, page, pageSize } = params;
+  const offset = (page - 1) * pageSize;
+  const conditions = ["tenant_id = ?"];
+  const values: unknown[] = [tenantId];
+
+  if (startDate) { conditions.push("transaction_date >= ?"); values.push(startDate); }
+  if (endDate) { conditions.push("transaction_date <= ?"); values.push(endDate); }
+  if (type) { conditions.push("transaction_type = ?"); values.push(type); }
+
+  const where = `WHERE ${conditions.join(" AND ")}`;
+
+  const records = await queryWithTenant<any>(
+    `SELECT id, transaction_type AS transactionType, transaction_date AS transactionDate, 
+            amount, balance_before AS balanceBefore, balance_after AS balanceAfter,
+            related_type AS relatedType, related_no AS relatedNo, remark, created_at AS createdAt
+     FROM t_cash_flow ${where}
+     ORDER BY transaction_date DESC, created_at DESC
+     LIMIT ? OFFSET ?`,
+    [...values, pageSize, offset], tenantId
+  );
+
+  const total = await queryOneWithTenant<any>(`SELECT COUNT(*) AS total FROM t_cash_flow ${where}`, values, tenantId);
+
+  return { total: total?.total ?? 0, page, pageSize, records };
+}
+
+export async function getIncomeExpenseStats(tenantId: string, startDate?: string, endDate?: string) {
+  const conditions = ["tenant_id = ?"];
+  const values: unknown[] = [tenantId];
+  if (startDate) { conditions.push("received_date >= ?"); values.push(startDate); }
+  if (endDate) { conditions.push("received_date <= ?"); values.push(endDate); }
+  const where = conditions.join(" AND ");
+
+  const income = await queryOneWithTenant<any>(
+    `SELECT COALESCE(SUM(amount), 0) AS total, COUNT(*) AS count FROM receipt WHERE ${where} AND status = 'CONFIRMED'`,
+    values, tenantId
+  );
+
+  const expenseCond = ["tenant_id = ?"];
+  const expenseValues: unknown[] = [tenantId];
+  if (startDate) { expenseCond.push("expense_date >= ?"); expenseValues.push(startDate); }
+  if (endDate) { expenseCond.push("expense_date <= ?"); expenseValues.push(endDate); }
+  const expenseWhere = expenseCond.join(" AND ");
+
+  const expense = await queryOneWithTenant<any>(
+    `SELECT COALESCE(SUM(amount), 0) AS total, COUNT(*) AS count FROM expense WHERE ${expenseWhere} AND status = 'APPROVED'`,
+    expenseValues, tenantId
+  );
+
+  return {
+    income: { amount: income?.total ?? 0, count: income?.count ?? 0 },
+    expense: { amount: expense?.total ?? 0, count: expense?.count ?? 0 },
+    balance: (income?.total ?? 0) - (expense?.total ?? 0)
+  };
+}
+
+export async function getIncomeByCategory(tenantId: string, startDate?: string, endDate?: string) {
+  const conditions = ["tenant_id = ?", "status = 'CONFIRMED'"];
+  const values: unknown[] = [tenantId];
+  if (startDate) { conditions.push("received_date >= ?"); values.push(startDate); }
+  if (endDate) { conditions.push("received_date <= ?"); values.push(endDate); }
+  const where = conditions.join(" AND ");
+
+  return queryWithTenant<any>(
+    `SELECT receipt_type AS category, COALESCE(SUM(amount), 0) AS totalAmount, COUNT(*) AS count
+     FROM receipt WHERE ${where}
+     GROUP BY receipt_type ORDER BY totalAmount DESC`,
+    values, tenantId
+  );
+}
+
+export async function getExpenseByCategory(tenantId: string, startDate?: string, endDate?: string) {
+  const conditions = ["tenant_id = ?", "status = 'APPROVED'"];
+  const values: unknown[] = [tenantId];
+  if (startDate) { conditions.push("expense_date >= ?"); values.push(startDate); }
+  if (endDate) { conditions.push("expense_date <= ?"); values.push(endDate); }
+  const where = conditions.join(" AND ");
+
+  return queryWithTenant<any>(
+    `SELECT expense_type AS category, COALESCE(SUM(amount), 0) AS totalAmount, COUNT(*) AS count
+     FROM expense WHERE ${where}
+     GROUP BY expense_type ORDER BY totalAmount DESC`,
+    values, tenantId
   );
 }

@@ -1,4 +1,4 @@
-﻿import { Request, Response } from "express";
+import { Request, Response } from "express";
 import { asyncHandler } from "../../middleware/async-handler";
 import { ok } from "../../shared/response";
 import * as svc from "../../services/admin/marketing-dashboard.service";
@@ -42,5 +42,27 @@ export const getActivityComparison = asyncHandler(async (req: Request, res: Resp
   const { activityIds, startDate, endDate } = req.query as Record<string, string | undefined>;
   const ids = activityIds ? (Array.isArray(activityIds) ? activityIds.map(Number) : [Number(activityIds)]) : [];
   const result = await svc.getActivityComparison({ tenantId: req.tenantId!, activityIds: ids, startDate, endDate });
+  res.json(ok(result));
+});
+
+export const getActivityEffectAnalysis = asyncHandler(async (req: Request, res: Response) => {
+  const { activityType, startDate, endDate } = req.query as Record<string, string | undefined>;
+  const result = await svc.getActivityEffectAnalysis({
+    tenantId: req.tenantId!,
+    activityId: Number(req.params.activityId),
+    activityType: activityType ?? "coupon",
+    startDate,
+    endDate
+  });
+  res.json(ok(result));
+});
+
+export const getActivityConversionTrend = asyncHandler(async (req: Request, res: Response) => {
+  const { period } = req.query as Record<string, string | undefined>;
+  const result = await svc.getActivityConversionTrend({
+    tenantId: req.tenantId!,
+    activityId: Number(req.params.activityId),
+    period
+  });
   res.json(ok(result));
 });
