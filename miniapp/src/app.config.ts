@@ -8,7 +8,15 @@ export default {
     'pages/order/detail/index',
     'pages/order/confirm/index',
     'pages/order/pay/index',
-    'pages/order/track/index'
+    'pages/order/track/index',
+    'pages/member/index',
+    'pages/address/list/index',
+    'pages/address/edit/index',
+    'pages/coupon/list/index',
+    'pages/setting/index',
+    'pages/setting/profile-edit',
+    'pages/setting/password',
+    'pages/about/index'
   ],
   window: {
     backgroundTextStyle: 'dark',
