@@ -1329,6 +1329,17 @@ export async function setUserRoles(userId: number, roleIds: number[]) {
   return data.data;
 }
 
+// ==================== Data Permission APIs ====================
+export async function fetchRoleDataPermissions(roleId: number) {
+  const { data } = await api.get(`/admin/roles/${roleId}/data-permissions`);
+  return data.data;
+}
+
+export async function setRoleDataPermissions(roleId: number, dataPermissions: any[]) {
+  const { data } = await api.put(`/admin/roles/${roleId}/data-permissions`, { dataPermissions });
+  return data.data;
+}
+
 // ==================== Notification APIs ====================
 export async function fetchNotifications(params?: { type?: string; isRead?: string; page?: number; pageSize?: number }) {
   const { data } = await api.get("/admin/notifications", { params: { page: 1, pageSize: 20, ...params } });

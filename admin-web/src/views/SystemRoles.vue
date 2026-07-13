@@ -40,38 +40,140 @@
     </PageCard>
 
     <!-- 创建/编辑角色弹窗 -->
-    <el-dialog v-model="dialogVisible" :title="editingRole ? '编辑角色' : '新增角色'" width="640px">
-      <el-form ref="formRef" :model="form" :rules="rules" label-width="100px">
-        <el-form-item label="角色名称" prop="roleName">
-          <el-input v-model="form.roleName" placeholder="请输入角色名称" />
-        </el-form-item>
-        <el-form-item label="描述" prop="description">
-          <el-input v-model="form.description" type="textarea" :rows="2" placeholder="请输入角色描述" />
-        </el-form-item>
-        <el-form-item label="菜单权限">
-          <div class="permission-tree">
-            <div v-for="module in menuModules" :key="module.key" class="permission-module">
-              <el-checkbox
-                :model-value="isModuleAllChecked(module.key)"
-                :indeterminate="isModuleIndeterminate(module.key)"
-                @change="(val: boolean) => handleModuleCheckAll(module.key, val)"
-              >
-                <b>{{ module.label }}</b>
-              </el-checkbox>
-              <div class="permission-items">
-                <el-checkbox
-                  v-for="item in module.items"
-                  :key="item.key"
-                  :model-value="form.permissions.includes(item.key)"
-                  @change="(val: boolean) => handlePermissionChange(item.key, val)"
-                >
-                  {{ item.label }}
-                </el-checkbox>
+    <el-dialog v-model="dialogVisible" :title="editingRole ? '编辑角色' : '新增角色'" width="720px">
+      <el-tabs v-model="activeTab">
+        <!-- 功能权限 Tab -->
+        <el-tab-pane label="功能权限" name="menu">
+          <el-form ref="formRef" :model="form" :rules="rules" label-width="100px">
+            <el-form-item label="角色名称" prop="roleName">
+              <el-input v-model="form.roleName" placeholder="请输入角色名称" />
+            </el-form-item>
+            <el-form-item label="描述" prop="description">
+              <el-input v-model="form.description" type="textarea" :rows="2" placeholder="请输入角色描述" />
+            </el-form-item>
+            <el-form-item label="菜单权限">
+              <div class="permission-tree">
+                <div v-for="module in menuModules" :key="module.key" class="permission-module">
+                  <el-checkbox
+                    :model-value="isModuleAllChecked(module.key)"
+                    :indeterminate="isModuleIndeterminate(module.key)"
+                    @change="(val: boolean) => handleModuleCheckAll(module.key, val)"
+                  >
+                    <b>{{ module.label }}</b>
+                  </el-checkbox>
+                  <div class="permission-items">
+                    <el-checkbox
+                      v-for="item in module.items"
+                      :key="item.key"
+                      :model-value="form.permissions.includes(item.key)"
+                      @change="(val: boolean) => handlePermissionChange(item.key, val)"
+                    >
+                      {{ item.label }}
+                    </el-checkbox>
+                  </div>
+                </div>
               </div>
-            </div>
-          </div>
-        </el-form-item>
-      </el-form>
+            </el-form-item>
+          </el-form>
+        </el-tab-pane>
+
+        <!-- 数据权限 Tab -->
+        <el-tab-pane label="数据权限" name="data">
+          <el-form :model="dataPermForm" label-width="100px">
+            <el-form-item label="数据权限范围">
+              <el-radio-group v-model="dataPermForm.dataScope">
+                <el-radio label="ALL">全部数据</el-radio>
+                <el-radio label="DEPARTMENT">按部门</el-radio>
+                <el-radio label="STORE">按门店</el-radio>
+                <el-radio label="CUSTOMER">按客户</el-radio>
+              </el-radio-group>
+            </el-form-item>
+
+            <!-- 部门选择 -->
+            <el-form-item label="可选部门" v-if="dataPermForm.dataScope === 'DEPARTMENT'">
+              <div class="data-perm-select">
+                <el-tree-select
+                  v-model="dataPermForm.selectedDepartments"
+                  :data="departmentTree"
+                  :props="{ label: 'name', value: 'id', children: 'children' }"
+                  multiple
+                  check-strictly
+                  placeholder="请选择部门"
+                  style="width: 100%"
+                />
+              </div>
+              <div class="selected-tags" v-if="dataPermForm.selectedDepartments.length > 0">
+                <el-tag
+                  v-for="deptId in dataPermForm.selectedDepartments"
+                  :key="deptId"
+                  closable
+                  @close="removeDepartment(deptId)"
+                >
+                  {{ getDepartmentName(deptId) }}
+                </el-tag>
+              </div>
+            </el-form-item>
+
+            <!-- 门店选择 -->
+            <el-form-item label="可选门店" v-if="dataPermForm.dataScope === 'STORE'">
+              <el-select
+                v-model="dataPermForm.selectedStores"
+                multiple
+                filterable
+                placeholder="请选择门店"
+                style="width: 100%"
+              >
+                <el-option
+                  v-for="store in storeList"
+                  :key="store.id"
+                  :label="store.name"
+                  :value="store.id"
+                />
+              </el-select>
+            </el-form-item>
+
+            <!-- 客户选择 -->
+            <el-form-item label="可选客户" v-if="dataPermForm.dataScope === 'CUSTOMER'">
+              <el-select
+                v-model="dataPermForm.selectedCustomers"
+                multiple
+                filterable
+                placeholder="请选择客户"
+                style="width: 100%"
+                remote
+                :remote-method="fetchCustomersRemote"
+                :loading="customerLoading"
+              >
+                <el-option
+                  v-for="customer in customerList"
+                  :key="customer.id"
+                  :label="`${customer.name} (${customer.mobile || ''})`"
+                  :value="customer.id"
+                />
+              </el-select>
+            </el-form-item>
+
+            <!-- 数据权限说明 -->
+            <el-form-item>
+              <el-alert
+                title="数据权限说明"
+                type="info"
+                :closable="false"
+                show-icon
+                style="font-size: 13px"
+              >
+                <ul style="margin: 0; padding-left: 20px">
+                  <li><strong>全部数据</strong>：该角色用户可以查看所有数据，无限制</li>
+                  <li><strong>按部门</strong>：该角色用户只能查看所选部门及其下属部门的数据</li>
+                  <li><strong>按门店</strong>：该角色用户只能查看所选门店的数据</li>
+                  <li><strong>按客户</strong>：该角色用户只能查看所选客户的数据</li>
+                </ul>
+              </el-alert>
+            </el-form-item>
+          </el-form>
+        </el-tab-pane>
+      </el-tabs>
+
       <template #footer>
         <el-button @click="dialogVisible = false">取消</el-button>
         <el-button type="primary" :loading="submitLoading" @click="handleSubmit">保存</el-button>
@@ -102,7 +204,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, reactive, onMounted } from "vue";
+import { ref, reactive, onMounted, nextTick } from "vue";
 import { ElMessage } from "element-plus";
 import PageCard from "../components/PageCard.vue";
 import { formatDate } from "../utils/format";
@@ -112,7 +214,12 @@ import {
   updateRole,
   deleteRole,
   fetchStaff,
-  setUserRoles
+  setUserRoles,
+  fetchStores,
+  getDepartmentTree,
+  fetchMembers,
+  fetchRoleDataPermissions,
+  setRoleDataPermissions
 } from "../api";
 
 const menuModules = [
@@ -222,6 +329,7 @@ const dialogVisible = ref(false);
 const editingRole = ref<any>(null);
 const submitLoading = ref(false);
 const formRef = ref();
+const activeTab = ref("menu");
 
 const form = reactive({
   roleName: "",
@@ -233,11 +341,27 @@ const rules = {
   roleName: [{ required: true, message: "请输入角色名称", trigger: "blur" }]
 };
 
+// 数据权限表单
+const dataPermForm = reactive({
+  dataScope: "ALL" as "ALL" | "DEPARTMENT" | "STORE" | "CUSTOMER",
+  selectedDepartments: [] as number[],
+  selectedStores: [] as number[],
+  selectedCustomers: [] as number[]
+});
+
+// 数据权限相关数据
+const departmentTree = ref<any[]>([]);
+const storeList = ref<any[]>([]);
+const customerList = ref<any[]>([]);
+const customerLoading = ref(false);
+
 const assignDialogVisible = ref(false);
 const assignRole = ref<any>(null);
 const assignLoading = ref(false);
 const staffList = ref<any[]>([]);
 const selectedUserIds = ref<number[]>([]);
+
+// ==================== 功能权限方法 ====================
 
 function getModuleItems(moduleKey: string): string[] {
   const module = menuModules.find((m) => m.key === moduleKey);
@@ -274,6 +398,136 @@ function handlePermissionChange(key: string, val: boolean) {
   }
 }
 
+// ==================== 数据权限方法 ====================
+
+async function loadDepartmentTree() {
+  try {
+    departmentTree.value = await getDepartmentTree();
+  } catch {
+    ElMessage.error("加载部门树失败");
+  }
+}
+
+async function loadStoreList() {
+  try {
+    storeList.value = await fetchStores();
+  } catch {
+    ElMessage.error("加载门店列表失败");
+  }
+}
+
+async function fetchCustomersRemote(query: string) {
+  if (!query) {
+    customerList.value = [];
+    return;
+  }
+  customerLoading.value = true;
+  try {
+    const data = await fetchMembers({ keyword: query, pageSize: 20 });
+    customerList.value = Array.isArray(data) ? data : (data?.records || []);
+  } catch {
+    ElMessage.error("加载客户列表失败");
+  } finally {
+    customerLoading.value = false;
+  }
+}
+
+function getDepartmentName(deptId: number): string {
+  const findName = (nodes: any[], id: number): string => {
+    for (const node of nodes) {
+      if (node.id === id) return node.name;
+      if (node.children) {
+        const found = findName(node.children, id);
+        if (found) return found;
+      }
+    }
+    return "";
+  };
+  return findName(departmentTree.value, deptId);
+}
+
+function removeDepartment(deptId: number) {
+  const index = dataPermForm.selectedDepartments.indexOf(deptId);
+  if (index > -1) {
+    dataPermForm.selectedDepartments.splice(index, 1);
+  }
+}
+
+function buildDataPermissions(): any[] {
+  const permissions: any[] = [];
+  
+  switch (dataPermForm.dataScope) {
+    case "DEPARTMENT":
+      if (dataPermForm.selectedDepartments.length > 0) {
+        permissions.push({
+          tableName: "sys_department",
+          fieldName: "id",
+          filterType: "IN",
+          filterValue: dataPermForm.selectedDepartments.join(",")
+        });
+      }
+      break;
+    case "STORE":
+      if (dataPermForm.selectedStores.length > 0) {
+        permissions.push({
+          tableName: "t_store",
+          fieldName: "id",
+          filterType: "IN",
+          filterValue: dataPermForm.selectedStores.join(",")
+        });
+      }
+      break;
+    case "CUSTOMER":
+      if (dataPermForm.selectedCustomers.length > 0) {
+        permissions.push({
+          tableName: "t_member",
+          fieldName: "id",
+          filterType: "IN",
+          filterValue: dataPermForm.selectedCustomers.join(",")
+        });
+      }
+      break;
+    case "ALL":
+    default:
+      // 全部数据权限，不需要添加过滤条件
+      break;
+  }
+  
+  return permissions;
+}
+
+async function loadRoleDataPermissions(roleId: number) {
+  try {
+    const dataPermissions = await fetchRoleDataPermissions(roleId);
+    if (Array.isArray(dataPermissions) && dataPermissions.length > 0) {
+      const dp = dataPermissions[0];
+      switch (dp.tableName) {
+        case "sys_department":
+          dataPermForm.dataScope = "DEPARTMENT";
+          dataPermForm.selectedDepartments = dp.filterValue.split(",").map(Number);
+          break;
+        case "t_store":
+          dataPermForm.dataScope = "STORE";
+          dataPermForm.selectedStores = dp.filterValue.split(",").map(Number);
+          break;
+        case "t_member":
+          dataPermForm.dataScope = "CUSTOMER";
+          dataPermForm.selectedCustomers = dp.filterValue.split(",").map(Number);
+          break;
+        default:
+          dataPermForm.dataScope = "ALL";
+          break;
+      }
+    } else {
+      dataPermForm.dataScope = "ALL";
+    }
+  } catch {
+    dataPermForm.dataScope = "ALL";
+  }
+}
+
+// ==================== 通用方法 ====================
+
 async function loadData() {
   loading.value = true;
   try {
@@ -285,20 +539,43 @@ async function loadData() {
   }
 }
 
+function resetDataPermForm() {
+  dataPermForm.dataScope = "ALL";
+  dataPermForm.selectedDepartments = [];
+  dataPermForm.selectedStores = [];
+  dataPermForm.selectedCustomers = [];
+}
+
 function openCreate() {
   editingRole.value = null;
   form.roleName = "";
   form.description = "";
   form.permissions = [];
+  resetDataPermForm();
+  activeTab.value = "menu";
   dialogVisible.value = true;
+  nextTick(() => {
+    loadDepartmentTree();
+    loadStoreList();
+  });
 }
 
-function openEdit(row: any) {
+async function openEdit(row: any) {
   editingRole.value = row;
   form.roleName = row.roleName || "";
   form.description = row.description || "";
   form.permissions = Array.isArray(row.permissions) ? [...row.permissions] : [];
+  resetDataPermForm();
+  activeTab.value = "menu";
   dialogVisible.value = true;
+  
+  await nextTick();
+  loadDepartmentTree();
+  loadStoreList();
+  
+  if (row.id) {
+    await loadRoleDataPermissions(row.id);
+  }
 }
 
 async function handleSubmit() {
@@ -308,18 +585,28 @@ async function handleSubmit() {
   submitLoading.value = true;
   try {
     if (editingRole.value) {
+      // 更新角色
       await updateRole(editingRole.value.id, {
         roleName: form.roleName,
         description: form.description,
         permissions: form.permissions
       });
+      // 更新数据权限
+      const dataPermissions = buildDataPermissions();
+      await setRoleDataPermissions(editingRole.value.id, dataPermissions);
       ElMessage.success("角色更新成功");
     } else {
-      await createRole({
+      // 创建角色
+      const newRole = await createRole({
         roleName: form.roleName,
         description: form.description,
         permissions: form.permissions
       });
+      // 设置数据权限
+      if (newRole.id) {
+        const dataPermissions = buildDataPermissions();
+        await setRoleDataPermissions(newRole.id, dataPermissions);
+      }
       ElMessage.success("角色创建成功");
     }
     dialogVisible.value = false;
@@ -404,6 +691,16 @@ onMounted(() => {
   gap: 8px;
   margin-top: 6px;
   margin-left: 0;
+}
+
+.data-perm-select {
+  margin-bottom: 8px;
+}
+
+.selected-tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
 }
 
 .assign-dialog-content {
