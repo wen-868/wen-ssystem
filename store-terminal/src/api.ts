@@ -189,6 +189,21 @@ export async function fetchStoreInventoryAlerts() {
   return data.data || [];
 }
 
+export async function fetchStoreCategories() {
+  const { data } = await api.get("/store/product-categories");
+  return data.data;
+}
+
+export async function updateStoreProductAlertThreshold(skuId: number, threshold: number) {
+  const { data } = await api.put(`/store/inventory/alerts/${skuId}/threshold`, { threshold });
+  return data.data;
+}
+
+export async function fetchStoreStockCheckResults(params?: { page?: number; pageSize?: number }) {
+  const { data } = await api.get("/store/stock-checks/results", { params: { page: 1, pageSize: 20, ...params } });
+  return data.data;
+}
+
 // 日结提交：后端暂无 /store/daily-settle，复用 /admin/daily-settle
 // TODO: 后端提供 /store/daily-settle 后请切换
 export async function submitDailySettle(payload: { settleDate: string }) {

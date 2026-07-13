@@ -447,3 +447,385 @@ export async function getSalesTrendByDay(tenantId: string, days: number = 7) {
     orderCount: Number(r.orderCount),
   }));
 }
+
+// ========== 库存分析 ==========
+
+export async function getInventoryStats(tenantId: string) {
+  const stats = await queryOne<any>(
+    `SELECT
+       COALESCE(SUM(ib.physical_qty), 0) AS totalQty,
+       COALESCE(SUM(ib.available_qty), 0) AS availableQty,
+       COALESCE(SUM(ib.locked_qty), 0) AS lockedQty,
+       COUNT(DISTINCT ib.sku_id) AS skuCount,
+       COUNT(DISTINCT ib.store_id) AS storeCount
+     FROM t_inventory_balance ib
+     WHERE ib.tenant_id = ?`,
+    [tenantId]
+  );
+
+  const valueStats = await queryOne<any>(
+    `SELECT COALESCE(SUM(ib.physical_qty * pp.cost_price), 0) AS totalValue
+     FROM t_inventory_balance ib
+     LEFT JOIN t_product_price pp ON pp.sku_id = ib.sku_id AND pp.tenant_id = ib.tenant_id
+     WHERE ib.tenant_id = ?`,
+    [tenantId]
+  );
+
+  return {
+    totalQty: Number(stats?.totalQty ?? 0),
+    availableQty: Number(stats?.availableQty ?? 0),
+    lockedQty: Number(stats?.lockedQty ?? 0),
+    skuCount: Number(stats?.skuCount ?? 0),
+    storeCount: Number(stats?.storeCount ?? 0),
+    totalValue: Number(valueStats?.totalValue ?? 0),
+  };
+}
+
+export async function getInventoryTurnover(tenantId: string) {
+  const records = await query<any>(
+    `SELECT DATE_FORMAT(sb.created_at, '%Y-%m') AS month,
+            COALESCE(SUM(sbi.total_bottle_qty), 0) AS soldQty,
+            COALESCE(SUM(sbi.subtotal_amount), 0) AS soldAmount
+     FROM t_sale_bill_item sbi
+     JOIN t_sale_bill sb ON sb.bill_no = sbi.bill_no AND sb.tenant_id = sbi.tenant_id
+     WHERE sb.business_status NOT IN ('DRAFT', 'VOIDED')
+       AND sb.tenant_id = ?
+       AND sb.created_at >= DATE_SUB(CURDATE(), INTERVAL 6 MONTH)
+     GROUP BY DATE_FORMAT(sb.created_at, '%Y-%m')
+     ORDER BY month ASC`,
+    [tenantId]
+  );
+
+  const avgInventory = await queryOne<any>(
+    `SELECT COALESCE(AVG(total_qty), 0) AS avgQty
+     FROM (
+       SELECT COALESCE(SUM(ib.physical_qty), 0) AS total_qty
+       FROM t_inventory_balance ib
+       WHERE ib.tenant_id = ?
+       GROUP BY ib.store_id, ib.sku_id
+     ) AS sub`,
+    [tenantId]
+  );
+
+  const avgQty = Number(avgInventory?.avgQty ?? 0);
+
+  return records.map((r: any) => {
+    const soldQty = Number(r.soldQty);
+    const turnoverRate = avgQty > 0 ? Math.round((soldQty / avgQty) * 10000) / 100 : 0;
+    return {
+      month: r.month,
+      soldQty,
+      soldAmount: Number(r.soldAmount),
+      turnoverRate,
+    };
+  });
+}
+
+export async function getInventoryWarningList(tenantId: string) {
+  const records = await query<any>(
+    `SELECT sw.sku_name AS skuName,
+            sw.current_stock AS currentStock,
+            sw.warning_threshold AS warningThreshold,
+            sw.warning_level AS warningLevel,
+            sw.store_name AS storeName
+     FROM stock_warning sw
+     WHERE sw.tenant_id = ? AND sw.status = 'ACTIVE'
+     ORDER BY CASE sw.warning_level WHEN 'URGENT' THEN 1 WHEN 'WARNING' THEN 2 ELSE 3 END
+     LIMIT 10`,
+    [tenantId]
+  );
+
+  return records.map((r: any) => ({
+    skuName: r.skuName,
+    currentStock: Number(r.currentStock),
+    warningThreshold: Number(r.warningThreshold),
+    warningLevel: r.warningLevel,
+    storeName: r.storeName,
+  }));
+}
+
+export async function getInventoryValueAnalysis(tenantId: string) {
+  const records = await query<any>(
+    `SELECT pc.name AS categoryName,
+            COUNT(DISTINCT ib.sku_id) AS skuCount,
+            COALESCE(SUM(ib.physical_qty), 0) AS totalQty,
+            COALESCE(SUM(ib.physical_qty * pp.cost_price), 0) AS totalValue
+     FROM t_inventory_balance ib
+     LEFT JOIN t_product_price pp ON pp.sku_id = ib.sku_id AND pp.tenant_id = ib.tenant_id
+     LEFT JOIN t_product_sku ps ON ps.id = ib.sku_id AND ps.tenant_id = ib.tenant_id
+     LEFT JOIN t_product_spu psp ON psp.id = ps.spu_id AND psp.tenant_id = ps.tenant_id
+     LEFT JOIN t_product_category pc ON pc.id = psp.category_id
+     WHERE ib.tenant_id = ? AND ib.physical_qty > 0
+     GROUP BY pc.name
+     ORDER BY totalValue DESC
+     LIMIT 10`,
+    [tenantId]
+  );
+
+  const totalValue = records.reduce((sum: number, r: any) => sum + Number(r.totalValue), 0);
+
+  return records.map((r: any) => ({
+    categoryName: r.categoryName || '未分类',
+    skuCount: Number(r.skuCount),
+    totalQty: Number(r.totalQty),
+    totalValue: Number(r.totalValue),
+    percentage: totalValue > 0 ? Math.round((Number(r.totalValue) / totalValue) * 10000) / 100 : 0,
+  }));
+}
+
+// ========== 客户分析 ==========
+
+export async function getCustomerStats(tenantId: string) {
+  const today = new Date().toISOString().slice(0, 10);
+  const thirtyDaysAgo = new Date(Date.now() - 30 * 86400000).toISOString().slice(0, 10);
+
+  const stats = await queryOne<any>(
+    `SELECT
+       COUNT(*) AS totalCount,
+       COALESCE(SUM(CASE WHEN DATE(created_at) = ? THEN 1 END), 0) AS todayNewCount,
+       COALESCE(SUM(CASE WHEN DATE(created_at) BETWEEN ? AND ? THEN 1 END), 0) AS monthlyNewCount,
+       COALESCE(SUM(CASE WHEN customer_type = 'WHOLESALE' THEN 1 END), 0) AS wholesaleCount,
+       COALESCE(SUM(CASE WHEN customer_type = 'RETAIL' THEN 1 END), 0) AS retailCount,
+       COALESCE(SUM(CASE WHEN status = 1 THEN 1 END), 0) AS activeCount
+     FROM t_member
+     WHERE tenant_id = ?`,
+    [today, thirtyDaysAgo, today, tenantId]
+  );
+
+  return {
+    totalCount: Number(stats?.totalCount ?? 0),
+    todayNewCount: Number(stats?.todayNewCount ?? 0),
+    monthlyNewCount: Number(stats?.monthlyNewCount ?? 0),
+    wholesaleCount: Number(stats?.wholesaleCount ?? 0),
+    retailCount: Number(stats?.retailCount ?? 0),
+    activeCount: Number(stats?.activeCount ?? 0),
+  };
+}
+
+export async function getCustomerGrowthTrend(tenantId: string) {
+  const records = await query<any>(
+    `SELECT DATE_FORMAT(m.created_at, '%Y-%m') AS month,
+            COUNT(*) AS newCustomers,
+            SUM(CASE WHEN m.status = 1 THEN 1 ELSE 0 END) AS activeCustomers
+     FROM t_member m
+     WHERE m.tenant_id = ? AND m.created_at >= DATE_SUB(CURDATE(), INTERVAL 12 MONTH)
+     GROUP BY DATE_FORMAT(m.created_at, '%Y-%m')
+     ORDER BY month ASC`,
+    [tenantId]
+  );
+
+  return records.map((r: any) => ({
+    month: r.month,
+    newCustomers: Number(r.newCustomers),
+    activeCustomers: Number(r.activeCustomers),
+  }));
+}
+
+export async function getCustomerActivity(tenantId: string) {
+  const thirtyDaysAgo = new Date(Date.now() - 30 * 86400000).toISOString().slice(0, 10);
+  const sixtyDaysAgo = new Date(Date.now() - 60 * 86400000).toISOString().slice(0, 10);
+
+  const active30Days = await queryOne<any>(
+    `SELECT COUNT(DISTINCT sb.customer_id) AS count
+     FROM t_sale_bill sb
+     WHERE sb.tenant_id = ? AND sb.customer_id IS NOT NULL
+       AND sb.business_status NOT IN ('DRAFT', 'VOIDED')
+       AND DATE(sb.created_at) >= ?`,
+    [tenantId, thirtyDaysAgo]
+  );
+
+  const active60Days = await queryOne<any>(
+    `SELECT COUNT(DISTINCT sb.customer_id) AS count
+     FROM t_sale_bill sb
+     WHERE sb.tenant_id = ? AND sb.customer_id IS NOT NULL
+       AND sb.business_status NOT IN ('DRAFT', 'VOIDED')
+       AND DATE(sb.created_at) >= ? AND DATE(sb.created_at) < ?`,
+    [tenantId, sixtyDaysAgo, thirtyDaysAgo]
+  );
+
+  const avgOrderAmount = await queryOne<any>(
+    `SELECT COALESCE(AVG(sb.receivable_amount), 0) AS avgAmount
+     FROM t_sale_bill sb
+     WHERE sb.tenant_id = ? AND sb.customer_id IS NOT NULL
+       AND sb.business_status NOT IN ('DRAFT', 'VOIDED')
+       AND DATE(sb.created_at) >= ?`,
+    [tenantId, thirtyDaysAgo]
+  );
+
+  return {
+    active30DaysCount: Number(active30Days?.count ?? 0),
+    active60DaysCount: Number(active60Days?.count ?? 0),
+    avgOrderAmount: Number(avgOrderAmount?.avgAmount ?? 0),
+    retentionRate: Number(active60Days?.count ?? 0) > 0
+      ? Math.round((Number(active30Days?.count ?? 0) / Number(active60Days?.count ?? 0)) * 10000) / 100
+      : 0,
+  };
+}
+
+export async function getCustomerCategoryStats(tenantId: string) {
+  const records = await query<any>(
+    `SELECT m.customer_type AS customerType,
+            COUNT(*) AS customerCount,
+            COALESCE(SUM(sb.receivable_amount), 0) AS totalAmount,
+            COUNT(DISTINCT sb.bill_no) AS orderCount
+     FROM t_member m
+     LEFT JOIN t_sale_bill sb ON sb.customer_id = m.id AND sb.tenant_id = m.tenant_id
+                              AND sb.business_status NOT IN ('DRAFT', 'VOIDED')
+     WHERE m.tenant_id = ?
+     GROUP BY m.customer_type`,
+    [tenantId]
+  );
+
+  return records.map((r: any) => ({
+    customerType: r.customerType,
+    customerTypeLabel: r.customerType === 'WHOLESALE' ? '批发客户' : r.customerType === 'RETAIL' ? '零售客户' : '其他',
+    customerCount: Number(r.customerCount),
+    totalAmount: Number(r.totalAmount),
+    orderCount: Number(r.orderCount),
+  }));
+}
+
+// ========== 供应商分析 ==========
+
+export async function getSupplierStats(tenantId: string) {
+  const today = new Date().toISOString().slice(0, 10);
+  const thirtyDaysAgo = new Date(Date.now() - 30 * 86400000).toISOString().slice(0, 10);
+
+  const stats = await queryOne<any>(
+    `SELECT
+       COUNT(*) AS totalCount,
+       COALESCE(SUM(CASE WHEN DATE(created_at) BETWEEN ? AND ? THEN 1 END), 0) AS monthlyNewCount,
+       COALESCE(SUM(CASE WHEN status = 1 THEN 1 END), 0) AS activeCount
+     FROM t_supplier
+     WHERE tenant_id = ?`,
+    [thirtyDaysAgo, today, tenantId]
+  );
+
+  const purchaseStats = await queryOne<any>(
+    `SELECT
+       COUNT(DISTINCT po.supplier_id) AS activeSupplierCount,
+       COALESCE(SUM(po.payable_amount), 0) AS totalPurchaseAmount,
+       COUNT(DISTINCT po.order_no) AS purchaseOrderCount
+     FROM t_purchase_order po
+     WHERE po.tenant_id = ? AND po.order_status NOT IN ('DRAFT', 'CANCELLED')
+       AND DATE(po.created_at) >= ?`,
+    [tenantId, thirtyDaysAgo]
+  );
+
+  return {
+    totalCount: Number(stats?.totalCount ?? 0),
+    monthlyNewCount: Number(stats?.monthlyNewCount ?? 0),
+    activeCount: Number(stats?.activeCount ?? 0),
+    activeSupplierCount: Number(purchaseStats?.activeSupplierCount ?? 0),
+    totalPurchaseAmount: Number(purchaseStats?.totalPurchaseAmount ?? 0),
+    purchaseOrderCount: Number(purchaseStats?.purchaseOrderCount ?? 0),
+  };
+}
+
+export async function getSupplierPurchaseRanking(tenantId: string, dateStart: string, dateEnd: string) {
+  const records = await query<any>(
+    `SELECT s.id AS supplierId, s.name AS supplierName,
+            COUNT(DISTINCT po.order_no) AS orderCount,
+            COALESCE(SUM(po.payable_amount), 0) AS totalAmount,
+            COALESCE(SUM(po.paid_amount), 0) AS paidAmount
+     FROM t_supplier s
+     LEFT JOIN t_purchase_order po ON po.supplier_id = s.id AND po.tenant_id = s.tenant_id
+                                   AND po.order_status NOT IN ('DRAFT', 'CANCELLED')
+                                   AND DATE(po.created_at) BETWEEN ? AND ?
+     WHERE s.tenant_id = ?
+     GROUP BY s.id, s.name
+     ORDER BY totalAmount DESC
+     LIMIT 10`,
+    [dateStart, dateEnd, tenantId]
+  );
+
+  return records.map((r: any) => ({
+    supplierId: r.supplierId,
+    supplierName: r.supplierName,
+    orderCount: Number(r.orderCount),
+    totalAmount: Number(r.totalAmount),
+    paidAmount: Number(r.paidAmount),
+  }));
+}
+
+export async function getSupplierOnTimeRate(tenantId: string) {
+  const records = await query<any>(
+    `SELECT s.name AS supplierName,
+            COUNT(*) AS totalOrders,
+            SUM(CASE WHEN po.actual_date <= po.expected_date THEN 1 ELSE 0 END) AS onTimeOrders,
+            SUM(CASE WHEN po.actual_date > po.expected_date THEN 1 ELSE 0 END) AS delayedOrders
+     FROM t_supplier s
+     LEFT JOIN t_purchase_order po ON po.supplier_id = s.id AND po.tenant_id = s.tenant_id
+                                   AND po.order_status = 'COMPLETED'
+                                   AND po.expected_date IS NOT NULL AND po.actual_date IS NOT NULL
+     WHERE s.tenant_id = ?
+     GROUP BY s.name
+     HAVING totalOrders > 0
+     ORDER BY totalOrders DESC
+     LIMIT 10`,
+    [tenantId]
+  );
+
+  return records.map((r: any) => {
+    const totalOrders = Number(r.totalOrders);
+    const onTimeOrders = Number(r.onTimeOrders);
+    return {
+      supplierName: r.supplierName,
+      totalOrders,
+      onTimeOrders,
+      delayedOrders: Number(r.delayedOrders),
+      onTimeRate: totalOrders > 0 ? Math.round((onTimeOrders / totalOrders) * 10000) / 100 : 0,
+    };
+  });
+}
+
+export async function getSupplierTrend(tenantId: string) {
+  const records = await query<any>(
+    `SELECT DATE_FORMAT(po.created_at, '%Y-%m') AS month,
+            COUNT(DISTINCT po.supplier_id) AS activeSupplierCount,
+            COALESCE(SUM(po.payable_amount), 0) AS totalAmount,
+            COUNT(DISTINCT po.order_no) AS orderCount
+     FROM t_purchase_order po
+     WHERE po.tenant_id = ? AND po.order_status NOT IN ('DRAFT', 'CANCELLED')
+       AND po.created_at >= DATE_SUB(CURDATE(), INTERVAL 12 MONTH)
+     GROUP BY DATE_FORMAT(po.created_at, '%Y-%m')
+     ORDER BY month ASC`,
+    [tenantId]
+  );
+
+  return records.map((r: any) => ({
+    month: r.month,
+    activeSupplierCount: Number(r.activeSupplierCount),
+    totalAmount: Number(r.totalAmount),
+    orderCount: Number(r.orderCount),
+  }));
+}
+
+// ========== 销售排行 - 员工 ==========
+
+export async function getTopEmployees(tenantId: string, dateStart: string, dateEnd: string) {
+  const records = await query<any>(
+    `SELECT sb.operator_id AS employeeId, u.real_name AS employeeName,
+            COUNT(DISTINCT sb.bill_no) AS orderCount,
+            COALESCE(SUM(sb.receivable_amount), 0) AS totalAmount,
+            COALESCE(SUM(sb.received_amount), 0) AS receivedAmount
+     FROM t_sale_bill sb
+     LEFT JOIN t_user u ON u.id = sb.operator_id
+     WHERE sb.business_status NOT IN ('DRAFT', 'VOIDED')
+       AND sb.tenant_id = ?
+       AND sb.operator_id IS NOT NULL
+       AND DATE(sb.created_at) BETWEEN ? AND ?
+     GROUP BY sb.operator_id, u.real_name
+     ORDER BY totalAmount DESC
+     LIMIT 10`,
+    [tenantId, dateStart, dateEnd]
+  );
+
+  return records.map((r: any) => ({
+    employeeId: r.employeeId,
+    employeeName: r.employeeName || '未知员工',
+    orderCount: Number(r.orderCount),
+    totalAmount: Number(r.totalAmount),
+    receivedAmount: Number(r.receivedAmount),
+  }));
+}

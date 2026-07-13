@@ -113,6 +113,12 @@
       }
     },
     {
+      "path": "pages/reports/finance-reports",
+      "style": {
+        "navigationBarTitleText": "财务报表"
+      }
+    },
+    {
       "path": "pages/marketing/marketing",
       "style": {
         "navigationBarTitleText": "营销中心"

@@ -56,22 +56,49 @@
 
 ### R29-A3 — app-mobile 订单管理完善 [P1]
 
-- **状态**：待开始
+- **状态**：✅ 已完成
 - **优先级**：P1
 - **负责人**：阿澈
 - **预计**：1.5 天
+- **完成时间**：2026-07-13
 - **需求来源**：第二阶段完善提升
 - **需求**：完善订单管理（订单列表增强、订单详情、订单跟踪、订单导出）
+- **完成内容**：
+  1. **API 模块增强**：新增物流信息接口定义、确认订单接口、订单导出接口，新增客户/时间范围筛选参数
+  2. **订单列表增强**：客户筛选弹窗、时间范围筛选弹窗（支持快捷选择）、订单导出功能、新增状态标签
+  3. **订单详情增强**：物流信息展示卡片（物流公司、运单号、追踪步骤）、订单金额明细、确认订单操作、时间线样式订单跟踪
+- **验证结果**：
+  - ✅ vue-tsc --noEmit：0 错误
+  - ✅ npm run build:h5：构建成功
+- **修改文件**：
+  - `app-mobile/src/api/modules/orders.ts`
+  - `app-mobile/src/api/request.ts`
+  - `app-mobile/src/pages/orders/orders.vue`
+  - `app-mobile/src/pages/orders/order-detail.vue`
 - **验收标准**：vue-tsc --noEmit 0 错误，npm run build:h5 构建成功
 
 ### R29-A4 — app-mobile 报表中心 [P1]
 
-- **状态**：待开始
+- **状态**：✅ 已完成
 - **优先级**：P1
 - **负责人**：阿澈
 - **预计**：1 天
+- **完成时间**：2026-07-13
 - **需求来源**：第二阶段完善提升
 - **需求**：新增报表中心（销售报表、库存报表、财务报表）
+- **完成内容**：
+  1. **报表 API 模块**：新增 `reports.ts`，包含销售报表（getSalesSummary/getSalesTrend/getCategorySales/getSalesRank）、库存报表（getInventorySummary/getInventoryTrend/getInventoryRank/getInventoryDetail）、财务报表（getFinanceSummary/getIncomeExpenseTrend/getIncomeCategory/getExpenseCategory/getCashFlow）接口及完整类型定义
+  2. **财务报表页面**：新增 `finance-reports.vue`，包含收支统计卡片、收支趋势图表占位、收入来源进度条、支出分类进度条、资金流水列表
+  3. **报表首页增强**：`reports.vue` 新增财务报表入口卡片，更新路由映射和图标样式
+  4. **路由配置**：`pages.json` 新增财务报表页面路由
+- **验证结果**：
+  - ✅ vue-tsc --noEmit：0 错误
+  - ✅ npm run build:h5：构建成功（仅 Sass @import 弃用警告）
+- **修改文件**：
+  - `app-mobile/src/api/modules/reports.ts`（新增）
+  - `app-mobile/src/pages/reports/finance-reports.vue`（新增）
+  - `app-mobile/src/pages/reports/reports.vue`（修改）
+  - `app-mobile/src/pages.json`（修改）
 - **验收标准**：vue-tsc --noEmit 0 错误，npm run build:h5 构建成功
 
 ### R29-A5 — store-terminal 库存管理完善 [P1]

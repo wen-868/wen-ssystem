@@ -17,7 +17,7 @@
         </el-col>
       </el-row>
       <el-row :gutter="16" style="margin-top: 8px">
-        <el-col v-for="i in 4" :key="i" :xs="24" :sm="12" style="margin-bottom: 16px">
+        <el-col v-for="i in 6" :key="i" :xs="24" :sm="12" style="margin-bottom: 16px">
           <el-skeleton animated>
             <template #template>
               <el-card style="min-height: 300px">
@@ -106,189 +106,423 @@
         </el-col>
       </el-row>
 
-      <!-- 图表区 2x2 网格 -->
-      <el-row :gutter="16" style="margin-top: 8px">
-        <!-- 左上：销售趋势 -->
-        <el-col :xs="24" :sm="12" style="margin-bottom: 16px">
-          <el-card class="chart-card">
-            <template #header>
-              <div class="chart-card-header">
-                <span>销售趋势</span>
-                <el-radio-group
-                  v-model="trendRange"
-                  size="small"
-                  @change="onTrendRangeChange"
-                >
-                  <el-radio-button value="7">近7天</el-radio-button>
-                  <el-radio-button value="30">近30天</el-radio-button>
-                </el-radio-group>
+      <!-- ========== 销售统计模块 ========== -->
+      <div class="module-section">
+        <div class="module-header">
+          <h3 class="module-title">销售统计</h3>
+        </div>
+        <el-row :gutter="16" style="margin-top: 8px">
+          <!-- 销售趋势 -->
+          <el-col :xs="24" :sm="12" style="margin-bottom: 16px">
+            <el-card class="chart-card">
+              <template #header>
+                <div class="chart-card-header">
+                  <span>销售趋势</span>
+                  <el-radio-group v-model="trendRange" size="small" @change="onTrendRangeChange">
+                    <el-radio-button value="7">近7天</el-radio-button>
+                    <el-radio-button value="30">近30天</el-radio-button>
+                  </el-radio-group>
+                </div>
+              </template>
+              <div v-if="salesTrendData.length === 0" class="chart-empty">
+                <el-empty description="暂无销售数据" :image-size="80" />
               </div>
-            </template>
-            <div v-if="salesTrendData.length === 0" class="chart-empty">
-              <el-empty description="暂无销售数据" :image-size="80" />
-            </div>
-            <div
-              v-else
-              ref="salesTrendChartRef"
-              class="chart-container"
-            />
-          </el-card>
-        </el-col>
+              <div v-else ref="salesTrendChartRef" class="chart-container" />
+            </el-card>
+          </el-col>
 
-        <!-- 右上：品类占比 -->
-        <el-col :xs="24" :sm="12" style="margin-bottom: 16px">
-          <el-card class="chart-card">
-            <template #header>
-              <div class="chart-card-header">
-                <span>品类销售占比</span>
+          <!-- 品类占比 -->
+          <el-col :xs="24" :sm="12" style="margin-bottom: 16px">
+            <el-card class="chart-card">
+              <template #header>
+                <div class="chart-card-header">
+                  <span>品类销售占比</span>
+                </div>
+              </template>
+              <div v-if="categoryPieData.length === 0" class="chart-empty">
+                <el-empty description="暂无品类数据" :image-size="80" />
               </div>
-            </template>
-            <div v-if="categoryPieData.length === 0" class="chart-empty">
-              <el-empty description="暂无品类数据" :image-size="80" />
-            </div>
-            <div
-              v-else
-              ref="categoryPieChartRef"
-              class="chart-container"
-            />
-          </el-card>
-        </el-col>
+              <div v-else ref="categoryPieChartRef" class="chart-container" />
+            </el-card>
+          </el-col>
 
-        <!-- 左下：Top10 商品排行 -->
-        <el-col :xs="24" :sm="12" style="margin-bottom: 16px">
-          <el-card class="chart-card">
-            <template #header>
-              <div class="chart-card-header">
-                <span>Top10 商品排行</span>
+          <!-- 销售排行 -->
+          <el-col :xs="24" :sm="12" style="margin-bottom: 16px">
+            <el-card class="chart-card">
+              <template #header>
+                <div class="chart-card-header">
+                  <span>销售排行</span>
+                  <el-radio-group v-model="rankingType" size="small" @change="onRankingTypeChange">
+                    <el-radio-button value="product">商品</el-radio-button>
+                    <el-radio-button value="customer">客户</el-radio-button>
+                    <el-radio-button value="employee">员工</el-radio-button>
+                  </el-radio-group>
+                </div>
+              </template>
+              <div v-if="topData.length === 0" class="chart-empty">
+                <el-empty description="暂无排行数据" :image-size="80" />
               </div>
-            </template>
-            <div v-if="topProductsData.length === 0" class="chart-empty">
-              <el-empty description="暂无商品数据" :image-size="80" />
-            </div>
-            <div
-              v-else
-              ref="topProductsChartRef"
-              class="chart-container"
-            />
-          </el-card>
-        </el-col>
+              <div v-else ref="topChartRef" class="chart-container" />
+            </el-card>
+          </el-col>
 
-        <!-- 右下：Top10 客户排行 -->
-        <el-col :xs="24" :sm="12" style="margin-bottom: 16px">
-          <el-card class="chart-card">
-            <template #header>
-              <div class="chart-card-header">
-                <span>Top10 客户排行</span>
+          <!-- 客户分类统计 -->
+          <el-col :xs="24" :sm="12" style="margin-bottom: 16px">
+            <el-card class="chart-card">
+              <template #header>
+                <div class="chart-card-header">
+                  <span>客户分类统计</span>
+                </div>
+              </template>
+              <div v-if="customerCategoryData.length === 0" class="chart-empty">
+                <el-empty description="暂无客户数据" :image-size="80" />
               </div>
-            </template>
-            <div v-if="topCustomersData.length === 0" class="chart-empty">
-              <el-empty description="暂无客户数据" :image-size="80" />
-            </div>
-            <div
-              v-else
-              ref="topCustomersChartRef"
-              class="chart-container"
-            />
-          </el-card>
-        </el-col>
-      </el-row>
+              <div v-else ref="customerCategoryChartRef" class="chart-container" />
+            </el-card>
+          </el-col>
+        </el-row>
+      </div>
+
+      <!-- ========== 库存分析模块 ========== -->
+      <div class="module-section">
+        <div class="module-header">
+          <h3 class="module-title">库存分析</h3>
+        </div>
+        <el-row :gutter="16" style="margin-top: 8px">
+          <!-- 库存统计卡片 -->
+          <el-col :xs="24" :sm="6" style="margin-bottom: 16px">
+            <el-card class="stat-card">
+              <div class="stat-item">
+                <div class="stat-label">库存总量</div>
+                <div class="stat-value">{{ formatNum(inventoryStats.totalQty) }}瓶</div>
+              </div>
+            </el-card>
+          </el-col>
+          <el-col :xs="24" :sm="6" style="margin-bottom: 16px">
+            <el-card class="stat-card">
+              <div class="stat-item">
+                <div class="stat-label">可用库存</div>
+                <div class="stat-value">{{ formatNum(inventoryStats.availableQty) }}瓶</div>
+              </div>
+            </el-card>
+          </el-col>
+          <el-col :xs="24" :sm="6" style="margin-bottom: 16px">
+            <el-card class="stat-card">
+              <div class="stat-item">
+                <div class="stat-label">锁定库存</div>
+                <div class="stat-value">{{ formatNum(inventoryStats.lockedQty) }}瓶</div>
+              </div>
+            </el-card>
+          </el-col>
+          <el-col :xs="24" :sm="6" style="margin-bottom: 16px">
+            <el-card class="stat-card">
+              <div class="stat-item">
+                <div class="stat-label">库存价值</div>
+                <div class="stat-value">¥{{ formatNum(inventoryStats.totalValue) }}</div>
+              </div>
+            </el-card>
+          </el-col>
+
+          <!-- 库存周转率 -->
+          <el-col :xs="24" :sm="12" style="margin-bottom: 16px">
+            <el-card class="chart-card">
+              <template #header>
+                <div class="chart-card-header">
+                  <span>库存周转率</span>
+                </div>
+              </template>
+              <div v-if="inventoryTurnoverData.length === 0" class="chart-empty">
+                <el-empty description="暂无数据" :image-size="80" />
+              </div>
+              <div v-else ref="inventoryTurnoverChartRef" class="chart-container" />
+            </el-card>
+          </el-col>
+
+          <!-- 库存价值分析 -->
+          <el-col :xs="24" :sm="12" style="margin-bottom: 16px">
+            <el-card class="chart-card">
+              <template #header>
+                <div class="chart-card-header">
+                  <span>库存价值分析</span>
+                </div>
+              </template>
+              <div v-if="inventoryValueData.length === 0" class="chart-empty">
+                <el-empty description="暂无数据" :image-size="80" />
+              </div>
+              <div v-else ref="inventoryValueChartRef" class="chart-container" />
+            </el-card>
+          </el-col>
+
+          <!-- 库存预警列表 -->
+          <el-col :xs="24" style="margin-bottom: 16px">
+            <el-card>
+              <template #header>
+                <div class="chart-card-header">
+                  <span>库存预警</span>
+                  <el-badge
+                    :value="inventoryWarningData.length"
+                    :hidden="inventoryWarningData.length === 0"
+                    type="warning"
+                    style="margin-left: 8px"
+                  />
+                </div>
+              </template>
+              <el-table :data="inventoryWarningData" size="small" empty-text="暂无库存预警">
+                <el-table-column prop="skuName" label="商品名称" min-width="160" />
+                <el-table-column prop="storeName" label="门店" width="120" />
+                <el-table-column prop="currentStock" label="当前库存" width="100" />
+                <el-table-column prop="warningThreshold" label="预警阈值" width="100" />
+                <el-table-column prop="warningLevel" label="预警级别" width="100">
+                  <template #default="{ row }">
+                    <el-tag :type="row.warningLevel === 'URGENT' ? 'danger' : 'warning'">
+                      {{ row.warningLevel === 'URGENT' ? '紧急' : row.warningLevel === 'WARNING' ? '警告' : '提示' }}
+                    </el-tag>
+                  </template>
+                </el-table-column>
+              </el-table>
+            </el-card>
+          </el-col>
+        </el-row>
+      </div>
+
+      <!-- ========== 客户分析模块 ========== -->
+      <div class="module-section">
+        <div class="module-header">
+          <h3 class="module-title">客户分析</h3>
+        </div>
+        <el-row :gutter="16" style="margin-top: 8px">
+          <!-- 客户统计卡片 -->
+          <el-col :xs="24" :sm="6" style="margin-bottom: 16px">
+            <el-card class="stat-card">
+              <div class="stat-item">
+                <div class="stat-label">客户总数</div>
+                <div class="stat-value">{{ customerStats.totalCount }}人</div>
+              </div>
+            </el-card>
+          </el-col>
+          <el-col :xs="24" :sm="6" style="margin-bottom: 16px">
+            <el-card class="stat-card">
+              <div class="stat-item">
+                <div class="stat-label">今日新增</div>
+                <div class="stat-value">{{ customerStats.todayNewCount }}人</div>
+              </div>
+            </el-card>
+          </el-col>
+          <el-col :xs="24" :sm="6" style="margin-bottom: 16px">
+            <el-card class="stat-card">
+              <div class="stat-item">
+                <div class="stat-label">活跃客户</div>
+                <div class="stat-value">{{ customerStats.activeCount }}人</div>
+              </div>
+            </el-card>
+          </el-col>
+          <el-col :xs="24" :sm="6" style="margin-bottom: 16px">
+            <el-card class="stat-card">
+              <div class="stat-item">
+                <div class="stat-label">客户留存率</div>
+                <div class="stat-value">{{ customerActivity.retentionRate }}%</div>
+              </div>
+            </el-card>
+          </el-col>
+
+          <!-- 客户增长趋势 -->
+          <el-col :xs="24" :sm="12" style="margin-bottom: 16px">
+            <el-card class="chart-card">
+              <template #header>
+                <div class="chart-card-header">
+                  <span>客户增长趋势</span>
+                </div>
+              </template>
+              <div v-if="customerGrowthData.length === 0" class="chart-empty">
+                <el-empty description="暂无数据" :image-size="80" />
+              </div>
+              <div v-else ref="customerGrowthChartRef" class="chart-container" />
+            </el-card>
+          </el-col>
+
+          <!-- 客户活跃度 -->
+          <el-col :xs="24" :sm="12" style="margin-bottom: 16px">
+            <el-card class="chart-card">
+              <template #header>
+                <div class="chart-card-header">
+                  <span>客户活跃度分析</span>
+                </div>
+              </template>
+              <div v-if="customerActivity.active30DaysCount === 0" class="chart-empty">
+                <el-empty description="暂无数据" :image-size="80" />
+              </div>
+              <div v-else ref="customerActivityChartRef" class="chart-container" />
+            </el-card>
+          </el-col>
+        </el-row>
+      </div>
+
+      <!-- ========== 供应商分析模块 ========== -->
+      <div class="module-section">
+        <div class="module-header">
+          <h3 class="module-title">供应商分析</h3>
+        </div>
+        <el-row :gutter="16" style="margin-top: 8px">
+          <!-- 供应商统计卡片 -->
+          <el-col :xs="24" :sm="6" style="margin-bottom: 16px">
+            <el-card class="stat-card">
+              <div class="stat-item">
+                <div class="stat-label">供应商总数</div>
+                <div class="stat-value">{{ supplierStats.totalCount }}家</div>
+              </div>
+            </el-card>
+          </el-col>
+          <el-col :xs="24" :sm="6" style="margin-bottom: 16px">
+            <el-card class="stat-card">
+              <div class="stat-item">
+                <div class="stat-label">本月新增</div>
+                <div class="stat-value">{{ supplierStats.monthlyNewCount }}家</div>
+              </div>
+            </el-card>
+          </el-col>
+          <el-col :xs="24" :sm="6" style="margin-bottom: 16px">
+            <el-card class="stat-card">
+              <div class="stat-item">
+                <div class="stat-label">本月采购金额</div>
+                <div class="stat-value">¥{{ formatNum(supplierStats.totalPurchaseAmount) }}</div>
+              </div>
+            </el-card>
+          </el-col>
+          <el-col :xs="24" :sm="6" style="margin-bottom: 16px">
+            <el-card class="stat-card">
+              <div class="stat-item">
+                <div class="stat-label">本月采购订单</div>
+                <div class="stat-value">{{ supplierStats.purchaseOrderCount }}单</div>
+              </div>
+            </el-card>
+          </el-col>
+
+          <!-- 供应商采购排行 -->
+          <el-col :xs="24" :sm="12" style="margin-bottom: 16px">
+            <el-card class="chart-card">
+              <template #header>
+                <div class="chart-card-header">
+                  <span>供应商采购排行</span>
+                </div>
+              </template>
+              <div v-if="supplierPurchaseRanking.length === 0" class="chart-empty">
+                <el-empty description="暂无数据" :image-size="80" />
+              </div>
+              <div v-else ref="supplierPurchaseChartRef" class="chart-container" />
+            </el-card>
+          </el-col>
+
+          <!-- 供应商准时率 -->
+          <el-col :xs="24" :sm="12" style="margin-bottom: 16px">
+            <el-card class="chart-card">
+              <template #header>
+                <div class="chart-card-header">
+                  <span>供应商交货准时率</span>
+                </div>
+              </template>
+              <div v-if="supplierOnTimeRateData.length === 0" class="chart-empty">
+                <el-empty description="暂无数据" :image-size="80" />
+              </div>
+              <div v-else ref="supplierOnTimeRateChartRef" class="chart-container" />
+            </el-card>
+          </el-col>
+
+          <!-- 供应商合作趋势 -->
+          <el-col :xs="24" style="margin-bottom: 16px">
+            <el-card class="chart-card">
+              <template #header>
+                <div class="chart-card-header">
+                  <span>供应商合作趋势</span>
+                </div>
+              </template>
+              <div v-if="supplierTrendData.length === 0" class="chart-empty">
+                <el-empty description="暂无数据" :image-size="80" />
+              </div>
+              <div v-else ref="supplierTrendChartRef" class="chart-container" />
+            </el-card>
+          </el-col>
+        </el-row>
+      </div>
 
       <!-- 预警区 -->
-      <el-collapse v-model="activeAlerts" style="margin-top: 16px">
-        <!-- 库存预警 -->
-        <el-collapse-item name="inventory">
-          <template #title>
-            <div class="alert-title">
-              <span>库存预警</span>
-              <el-badge
-                :value="alertData.inventoryAlerts.length"
-                :hidden="alertData.inventoryAlerts.length === 0"
-                type="warning"
-                style="margin-left: 8px"
-              />
-            </div>
-          </template>
-          <el-table :data="alertData.inventoryAlerts" size="small" empty-text="暂无库存预警">
-            <el-table-column prop="skuName" label="商品名称" min-width="160" />
-            <el-table-column prop="storeName" label="门店" width="120" />
-            <el-table-column prop="currentQty" label="当前库存" width="100" />
-            <el-table-column prop="warningThreshold" label="预警阈值" width="100" />
-          </el-table>
-        </el-collapse-item>
+      <div class="module-section">
+        <div class="module-header">
+          <h3 class="module-title">预警中心</h3>
+        </div>
+        <el-collapse v-model="activeAlerts" style="margin-top: 8px">
+          <!-- 临期预警 -->
+          <el-collapse-item name="expiry">
+            <template #title>
+              <div class="alert-title">
+                <span>临期预警</span>
+                <el-badge
+                  :value="alertData.expiryAlerts.length"
+                  :hidden="alertData.expiryAlerts.length === 0"
+                  type="danger"
+                  style="margin-left: 8px"
+                />
+              </div>
+            </template>
+            <el-table :data="alertData.expiryAlerts" size="small" empty-text="暂无临期预警">
+              <el-table-column prop="skuName" label="商品名称" min-width="160" />
+              <el-table-column prop="batchNo" label="批次号" width="140" />
+              <el-table-column prop="expiryDate" label="过期日期" width="120" />
+            </el-table>
+          </el-collapse-item>
 
-        <!-- 临期预警 -->
-        <el-collapse-item name="expiry">
-          <template #title>
-            <div class="alert-title">
-              <span>临期预警</span>
-              <el-badge
-                :value="alertData.expiryAlerts.length"
-                :hidden="alertData.expiryAlerts.length === 0"
-                type="danger"
-                style="margin-left: 8px"
-              />
-            </div>
-          </template>
-          <el-table :data="alertData.expiryAlerts" size="small" empty-text="暂无临期预警">
-            <el-table-column prop="skuName" label="商品名称" min-width="160" />
-            <el-table-column prop="batchNo" label="批次号" width="140" />
-            <el-table-column prop="expiryDate" label="过期日期" width="120" />
-          </el-table>
-        </el-collapse-item>
+          <!-- 应收逾期 -->
+          <el-collapse-item name="overdue">
+            <template #title>
+              <div class="alert-title">
+                <span>应收逾期</span>
+                <el-badge
+                  :value="alertData.overdueReceivables.length"
+                  :hidden="alertData.overdueReceivables.length === 0"
+                  type="danger"
+                  style="margin-left: 8px"
+                />
+              </div>
+            </template>
+            <el-table :data="alertData.overdueReceivables" size="small" empty-text="暂无应收逾期">
+              <el-table-column prop="customerName" label="客户名称" min-width="140" />
+              <el-table-column label="应收金额" width="120">
+                <template #default="{ row }">¥{{ formatNum(row.amount) }}</template>
+              </el-table-column>
+              <el-table-column prop="overdueDays" label="逾期天数" width="100" />
+            </el-table>
+          </el-collapse-item>
 
-        <!-- 应收逾期 -->
-        <el-collapse-item name="overdue">
-          <template #title>
-            <div class="alert-title">
-              <span>应收逾期</span>
-              <el-badge
-                :value="alertData.overdueReceivables.length"
-                :hidden="alertData.overdueReceivables.length === 0"
-                type="danger"
-                style="margin-left: 8px"
-              />
-            </div>
-          </template>
-          <el-table :data="alertData.overdueReceivables" size="small" empty-text="暂无应收逾期">
-            <el-table-column prop="customerName" label="客户名称" min-width="140" />
-            <el-table-column label="应收金额" width="120">
-              <template #default="{ row }">¥{{ formatNum(row.amount) }}</template>
-            </el-table-column>
-            <el-table-column prop="overdueDays" label="逾期天数" width="100" />
-          </el-table>
-        </el-collapse-item>
-
-        <!-- 待处理订单 -->
-        <el-collapse-item name="pendingOrders">
-          <template #title>
-            <div class="alert-title">
-              <span>待处理订单</span>
-              <el-badge
-                :value="alertData.pendingOrders.length"
-                :hidden="alertData.pendingOrders.length === 0"
-                type="primary"
-                style="margin-left: 8px"
-              />
-            </div>
-          </template>
-          <el-table :data="alertData.pendingOrders" size="small" empty-text="暂无待处理订单">
-            <el-table-column prop="orderNo" label="订单号" width="160" />
-            <el-table-column prop="customerName" label="客户" width="120" />
-            <el-table-column label="金额" width="120">
-              <template #default="{ row }">¥{{ formatNum(row.amount) }}</template>
-            </el-table-column>
-            <el-table-column prop="status" label="状态" width="100" />
-          </el-table>
-        </el-collapse-item>
-      </el-collapse>
+          <!-- 待处理订单 -->
+          <el-collapse-item name="pendingOrders">
+            <template #title>
+              <div class="alert-title">
+                <span>待处理订单</span>
+                <el-badge
+                  :value="alertData.pendingOrders.length"
+                  :hidden="alertData.pendingOrders.length === 0"
+                  type="primary"
+                  style="margin-left: 8px"
+                />
+              </div>
+            </template>
+            <el-table :data="alertData.pendingOrders" size="small" empty-text="暂无待处理订单">
+              <el-table-column prop="orderNo" label="订单号" width="160" />
+              <el-table-column prop="customerName" label="客户" width="120" />
+              <el-table-column label="金额" width="120">
+                <template #default="{ row }">¥{{ formatNum(row.amount) }}</template>
+              </el-table-column>
+              <el-table-column prop="status" label="状态" width="100" />
+            </el-table>
+          </el-collapse-item>
+        </el-collapse>
+      </div>
     </template>
   </div>
 </template>
 
 <script setup lang="ts">
 import { computed, nextTick, onMounted, onUnmounted, ref, watch } from 'vue';
-import { ElMessage } from 'element-plus';
-import echarts from '@/utils/echarts'
+import echarts from '@/utils/echarts';
 import {
   fetchDashboardOverview,
   fetchDashboardSalesTrend,
@@ -296,6 +530,19 @@ import {
   fetchDashboardTopProducts,
   fetchDashboardTopCustomers,
   fetchDashboardRecentAlerts,
+  fetchDashboardTopEmployees,
+  fetchDashboardInventoryStats,
+  fetchDashboardInventoryTurnover,
+  fetchDashboardInventoryWarning,
+  fetchDashboardInventoryValueAnalysis,
+  fetchDashboardCustomerStats,
+  fetchDashboardCustomerGrowthTrend,
+  fetchDashboardCustomerActivity,
+  fetchDashboardCustomerCategoryStats,
+  fetchDashboardSupplierStats,
+  fetchDashboardSupplierPurchaseRanking,
+  fetchDashboardSupplierOnTimeRate,
+  fetchDashboardSupplierTrend,
   fetchStores,
 } from '../api';
 
@@ -337,11 +584,110 @@ interface TopCustomerItem {
   amount: number;
 }
 
+interface TopEmployeeItem {
+  employeeName: string;
+  totalAmount: number;
+  orderCount: number;
+}
+
 interface AlertData {
   inventoryAlerts: any[];
   expiryAlerts: any[];
   overdueReceivables: any[];
   pendingOrders: any[];
+}
+
+interface InventoryStats {
+  totalQty: number;
+  availableQty: number;
+  lockedQty: number;
+  skuCount: number;
+  storeCount: number;
+  totalValue: number;
+}
+
+interface InventoryTurnoverItem {
+  month: string;
+  soldQty: number;
+  soldAmount: number;
+  turnoverRate: number;
+}
+
+interface InventoryWarningItem {
+  skuName: string;
+  currentStock: number;
+  warningThreshold: number;
+  warningLevel: string;
+  storeName: string;
+}
+
+interface InventoryValueItem {
+  categoryName: string;
+  skuCount: number;
+  totalQty: number;
+  totalValue: number;
+  percentage: number;
+}
+
+interface CustomerStats {
+  totalCount: number;
+  todayNewCount: number;
+  monthlyNewCount: number;
+  wholesaleCount: number;
+  retailCount: number;
+  activeCount: number;
+}
+
+interface CustomerGrowthItem {
+  month: string;
+  newCustomers: number;
+  activeCustomers: number;
+}
+
+interface CustomerActivity {
+  active30DaysCount: number;
+  active60DaysCount: number;
+  avgOrderAmount: number;
+  retentionRate: number;
+}
+
+interface CustomerCategoryItem {
+  customerType: string;
+  customerTypeLabel: string;
+  customerCount: number;
+  totalAmount: number;
+  orderCount: number;
+}
+
+interface SupplierStats {
+  totalCount: number;
+  monthlyNewCount: number;
+  activeCount: number;
+  activeSupplierCount: number;
+  totalPurchaseAmount: number;
+  purchaseOrderCount: number;
+}
+
+interface SupplierPurchaseItem {
+  supplierName: string;
+  orderCount: number;
+  totalAmount: number;
+  paidAmount: number;
+}
+
+interface SupplierOnTimeRateItem {
+  supplierName: string;
+  totalOrders: number;
+  onTimeOrders: number;
+  delayedOrders: number;
+  onTimeRate: number;
+}
+
+interface SupplierTrendItem {
+  month: string;
+  activeSupplierCount: number;
+  totalAmount: number;
+  orderCount: number;
 }
 
 // ==================== 状态 ====================
@@ -360,6 +706,7 @@ const salesTrendData = ref<SalesTrendItem[]>([]);
 const categoryPieData = ref<CategoryPieItem[]>([]);
 const topProductsData = ref<TopProductItem[]>([]);
 const topCustomersData = ref<TopCustomerItem[]>([]);
+const topEmployeesData = ref<TopEmployeeItem[]>([]);
 const alertData = ref<AlertData>({
   inventoryAlerts: [],
   expiryAlerts: [],
@@ -367,15 +714,81 @@ const alertData = ref<AlertData>({
   pendingOrders: [],
 });
 
+// 库存分析数据
+const inventoryStats = ref<InventoryStats>({
+  totalQty: 0,
+  availableQty: 0,
+  lockedQty: 0,
+  skuCount: 0,
+  storeCount: 0,
+  totalValue: 0,
+});
+const inventoryTurnoverData = ref<InventoryTurnoverItem[]>([]);
+const inventoryWarningData = ref<InventoryWarningItem[]>([]);
+const inventoryValueData = ref<InventoryValueItem[]>([]);
+
+// 客户分析数据
+const customerStats = ref<CustomerStats>({
+  totalCount: 0,
+  todayNewCount: 0,
+  monthlyNewCount: 0,
+  wholesaleCount: 0,
+  retailCount: 0,
+  activeCount: 0,
+});
+const customerGrowthData = ref<CustomerGrowthItem[]>([]);
+const customerActivity = ref<CustomerActivity>({
+  active30DaysCount: 0,
+  active60DaysCount: 0,
+  avgOrderAmount: 0,
+  retentionRate: 0,
+});
+const customerCategoryData = ref<CustomerCategoryItem[]>([]);
+
+// 供应商分析数据
+const supplierStats = ref<SupplierStats>({
+  totalCount: 0,
+  monthlyNewCount: 0,
+  activeCount: 0,
+  activeSupplierCount: 0,
+  totalPurchaseAmount: 0,
+  purchaseOrderCount: 0,
+});
+const supplierPurchaseRanking = ref<SupplierPurchaseItem[]>([]);
+const supplierOnTimeRateData = ref<SupplierOnTimeRateItem[]>([]);
+const supplierTrendData = ref<SupplierTrendItem[]>([]);
+
 // 图表控制
 const trendRange = ref('7');
+const rankingType = ref('product');
 const activeAlerts = ref<string[]>([]);
+
+// 当前排行数据（根据 rankingType 动态切换）
+const topData = computed(() => {
+  switch (rankingType.value) {
+    case 'product':
+      return topProductsData.value;
+    case 'customer':
+      return topCustomersData.value;
+    case 'employee':
+      return topEmployeesData.value;
+    default:
+      return [];
+  }
+});
 
 // ==================== 图表 DOM refs ====================
 const salesTrendChartRef = ref<HTMLElement | null>(null);
 const categoryPieChartRef = ref<HTMLElement | null>(null);
-const topProductsChartRef = ref<HTMLElement | null>(null);
-const topCustomersChartRef = ref<HTMLElement | null>(null);
+const topChartRef = ref<HTMLElement | null>(null);
+const customerCategoryChartRef = ref<HTMLElement | null>(null);
+const inventoryTurnoverChartRef = ref<HTMLElement | null>(null);
+const inventoryValueChartRef = ref<HTMLElement | null>(null);
+const customerGrowthChartRef = ref<HTMLElement | null>(null);
+const customerActivityChartRef = ref<HTMLElement | null>(null);
+const supplierPurchaseChartRef = ref<HTMLElement | null>(null);
+const supplierOnTimeRateChartRef = ref<HTMLElement | null>(null);
+const supplierTrendChartRef = ref<HTMLElement | null>(null);
 
 // Spark 图表 DOM refs（动态绑定）
 const sparkRefs: Record<string, HTMLElement | null> = {};
@@ -386,8 +799,15 @@ function setSparkRef(key: string, el: HTMLElement | null) {
 // ==================== ECharts 实例管理 ====================
 let salesTrendChart: echarts.ECharts | null = null;
 let categoryPieChart: echarts.ECharts | null = null;
-let topProductsChart: echarts.ECharts | null = null;
-let topCustomersChart: echarts.ECharts | null = null;
+let topChart: echarts.ECharts | null = null;
+let customerCategoryChart: echarts.ECharts | null = null;
+let inventoryTurnoverChart: echarts.ECharts | null = null;
+let inventoryValueChart: echarts.ECharts | null = null;
+let customerGrowthChart: echarts.ECharts | null = null;
+let customerActivityChart: echarts.ECharts | null = null;
+let supplierPurchaseChart: echarts.ECharts | null = null;
+let supplierOnTimeRateChart: echarts.ECharts | null = null;
+let supplierTrendChart: echarts.ECharts | null = null;
 const sparkCharts: Record<string, echarts.ECharts> = {};
 
 // ==================== 计算属性 ====================
@@ -514,6 +934,17 @@ function onTrendRangeChange() {
   loadSalesTrend();
 }
 
+// ==================== 排行类型切换 ====================
+function onRankingTypeChange() {
+  if (rankingType.value === 'product') {
+    loadTopProducts();
+  } else if (rankingType.value === 'customer') {
+    loadTopCustomers();
+  } else if (rankingType.value === 'employee') {
+    loadTopEmployees();
+  }
+}
+
 // ==================== 数据加载 ====================
 async function loadAllData() {
   loading.value = true;
@@ -525,7 +956,11 @@ async function loadAllData() {
       loadCategoryPie(),
       loadTopProducts(),
       loadTopCustomers(),
+      loadTopEmployees(),
       loadAlerts(),
+      loadInventoryData(),
+      loadCustomerData(),
+      loadSupplierData(),
     ]);
     loading.value = false;
   } catch (e) {
@@ -546,7 +981,6 @@ async function loadStores() {
 
 async function loadOverview() {
   try {
-    const storeIds = selectedStoreIds.value.length > 0 ? selectedStoreIds.value : undefined;
     const data = await fetchDashboardOverview();
     overview.value = data || {};
   } catch (e) {
@@ -556,7 +990,6 @@ async function loadOverview() {
 
 async function loadSalesTrend() {
   try {
-    const storeIds = selectedStoreIds.value.length > 0 ? selectedStoreIds.value : undefined;
     const data = await fetchDashboardSalesTrend();
     salesTrendData.value = Array.isArray(data) ? data : [];
     await nextTick();
@@ -581,8 +1014,10 @@ async function loadTopProducts() {
   try {
     const data = await fetchDashboardTopProducts();
     topProductsData.value = Array.isArray(data) ? data : [];
-    await nextTick();
-    renderTopProductsChart();
+    if (rankingType.value === 'product') {
+      await nextTick();
+      renderTopChart();
+    }
   } catch (e) {
     console.error('加载商品排行失败', e);
   }
@@ -592,10 +1027,25 @@ async function loadTopCustomers() {
   try {
     const data = await fetchDashboardTopCustomers();
     topCustomersData.value = Array.isArray(data) ? data : [];
-    await nextTick();
-    renderTopCustomersChart();
+    if (rankingType.value === 'customer') {
+      await nextTick();
+      renderTopChart();
+    }
   } catch (e) {
     console.error('加载客户排行失败', e);
+  }
+}
+
+async function loadTopEmployees() {
+  try {
+    const data = await fetchDashboardTopEmployees();
+    topEmployeesData.value = Array.isArray(data) ? data : [];
+    if (rankingType.value === 'employee') {
+      await nextTick();
+      renderTopChart();
+    }
+  } catch (e) {
+    console.error('加载员工排行失败', e);
   }
 }
 
@@ -610,6 +1060,71 @@ async function loadAlerts() {
     };
   } catch (e) {
     console.error('加载预警数据失败', e);
+  }
+}
+
+// 库存分析数据加载
+async function loadInventoryData() {
+  try {
+    const [stats, turnover, warning, value] = await Promise.all([
+      fetchDashboardInventoryStats(),
+      fetchDashboardInventoryTurnover(),
+      fetchDashboardInventoryWarning(),
+      fetchDashboardInventoryValueAnalysis(),
+    ]);
+    inventoryStats.value = stats || { totalQty: 0, availableQty: 0, lockedQty: 0, skuCount: 0, storeCount: 0, totalValue: 0 };
+    inventoryTurnoverData.value = Array.isArray(turnover) ? turnover : [];
+    inventoryWarningData.value = Array.isArray(warning) ? warning : [];
+    inventoryValueData.value = Array.isArray(value) ? value : [];
+    await nextTick();
+    renderInventoryTurnoverChart();
+    renderInventoryValueChart();
+  } catch (e) {
+    console.error('加载库存分析数据失败', e);
+  }
+}
+
+// 客户分析数据加载
+async function loadCustomerData() {
+  try {
+    const [stats, growth, activity, category] = await Promise.all([
+      fetchDashboardCustomerStats(),
+      fetchDashboardCustomerGrowthTrend(),
+      fetchDashboardCustomerActivity(),
+      fetchDashboardCustomerCategoryStats(),
+    ]);
+    customerStats.value = stats || { totalCount: 0, todayNewCount: 0, monthlyNewCount: 0, wholesaleCount: 0, retailCount: 0, activeCount: 0 };
+    customerGrowthData.value = Array.isArray(growth) ? growth : [];
+    customerActivity.value = activity || { active30DaysCount: 0, active60DaysCount: 0, avgOrderAmount: 0, retentionRate: 0 };
+    customerCategoryData.value = Array.isArray(category) ? category : [];
+    await nextTick();
+    renderCustomerGrowthChart();
+    renderCustomerActivityChart();
+    renderCustomerCategoryChart();
+  } catch (e) {
+    console.error('加载客户分析数据失败', e);
+  }
+}
+
+// 供应商分析数据加载
+async function loadSupplierData() {
+  try {
+    const [stats, purchaseRanking, onTimeRate, trend] = await Promise.all([
+      fetchDashboardSupplierStats(),
+      fetchDashboardSupplierPurchaseRanking(),
+      fetchDashboardSupplierOnTimeRate(),
+      fetchDashboardSupplierTrend(),
+    ]);
+    supplierStats.value = stats || { totalCount: 0, monthlyNewCount: 0, activeCount: 0, activeSupplierCount: 0, totalPurchaseAmount: 0, purchaseOrderCount: 0 };
+    supplierPurchaseRanking.value = Array.isArray(purchaseRanking) ? purchaseRanking : [];
+    supplierOnTimeRateData.value = Array.isArray(onTimeRate) ? onTimeRate : [];
+    supplierTrendData.value = Array.isArray(trend) ? trend : [];
+    await nextTick();
+    renderSupplierPurchaseChart();
+    renderSupplierOnTimeRateChart();
+    renderSupplierTrendChart();
+  } catch (e) {
+    console.error('加载供应商分析数据失败', e);
   }
 }
 
@@ -633,490 +1148,19 @@ function renderSalesTrendChart() {
 
   salesTrendChart.setOption(
     {
-      tooltip: {
-        trigger: 'axis',
-        axisPointer: { type: 'cross' },
-      },
-      legend: {
-        data: ['销售额', '订单数'],
-        bottom: 0,
-      },
-      grid: {
-        left: '3%',
-        right: '4%',
-        bottom: '12%',
-        top: '8%',
-        containLabel: true,
-      },
+      tooltip: { trigger: 'axis', axisPointer: { type: 'cross' } },
+      legend: { data: ['销售额', '订单数'], bottom: 0 },
+      grid: { left: '3%', right: '4%', bottom: '12%', top: '8%', containLabel: true },
       xAxis: {
         type: 'category',
         data: dates,
         boundaryGap: false,
-        axisLabel: {
-          rotate: dates.length > 14 ? 45 : 0,
-        },
+        axisLabel: { rotate: dates.length > 14 ? 45 : 0 },
       },
       yAxis: [
         {
           type: 'value',
           name: '金额 (¥)',
-          axisLabel: {
-            formatter: (v: number) => (v >= 10000 ? `${(v / 10000).toFixed(1)}万` : v.toString()),
-          },
+          axisLabel: { formatter: (v: number) => (v >= 10000 ? `${(v / 10000).toFixed(1)}万` : v.toString()) },
         },
-        {
-          type: 'value',
-          name: '订单数',
-          axisLabel: {
-            formatter: (v: number) => v.toString(),
-          },
-        },
-      ],
-      series: [
-        {
-          name: '销售额',
-          type: 'line',
-          data: amounts,
-          smooth: true,
-          symbol: 'circle',
-          symbolSize: 6,
-          lineStyle: { width: 2, color: '#409eff' },
-          itemStyle: { color: '#409eff' },
-          areaStyle: {
-            color: new echarts.graphic.LinearGradient(0, 0, 0, 1, [
-              { offset: 0, color: 'rgba(64,158,255,0.3)' },
-              { offset: 1, color: 'rgba(64,158,255,0.05)' },
-            ]),
-          },
-        },
-        {
-          name: '订单数',
-          type: 'line',
-          yAxisIndex: 1,
-          data: orders,
-          smooth: true,
-          symbol: 'diamond',
-          symbolSize: 6,
-          lineStyle: { width: 2, color: '#67c23a' },
-          itemStyle: { color: '#67c23a' },
-        },
-      ],
-    },
-    { notMerge: true }
-  );
-}
-
-function renderCategoryPieChart() {
-  if (!categoryPieChartRef.value) return;
-  if (!categoryPieChart) {
-    categoryPieChart = initChart(categoryPieChartRef.value);
-  }
-  if (!categoryPieChart || categoryPieData.value.length === 0) return;
-
-  categoryPieChart.setOption(
-    {
-      tooltip: {
-        trigger: 'item',
-        formatter: '{b}: {c} ({d}%)',
-      },
-      legend: {
-        type: 'scroll',
-        orient: 'vertical',
-        right: 10,
-        top: 'center',
-        itemWidth: 12,
-        itemHeight: 12,
-      },
-      series: [
-        {
-          type: 'pie',
-          radius: ['50%', '75%'],
-          center: ['40%', '50%'],
-          avoidLabelOverlap: false,
-          itemStyle: {
-            borderRadius: 4,
-            borderColor: '#fff',
-            borderWidth: 2,
-          },
-          label: {
-            show: false,
-          },
-          emphasis: {
-            label: {
-              show: true,
-              fontSize: 14,
-              fontWeight: 'bold',
-            },
-          },
-          data: categoryPieData.value,
-        },
-      ],
-    },
-    { notMerge: true }
-  );
-}
-
-function renderTopProductsChart() {
-  if (!topProductsChartRef.value) return;
-  if (!topProductsChart) {
-    topProductsChart = initChart(topProductsChartRef.value);
-  }
-  if (!topProductsChart || topProductsData.value.length === 0) return;
-
-  const names = topProductsData.value.map((d: TopProductItem) => d.name).reverse();
-  const amounts = topProductsData.value.map((d: TopProductItem) => d.salesAmount).reverse();
-  const qtys = topProductsData.value.map((d: TopProductItem) => d.salesQty).reverse();
-
-  topProductsChart.setOption(
-    {
-      tooltip: {
-        trigger: 'axis',
-        axisPointer: { type: 'shadow' },
-      },
-      legend: {
-        data: ['销售额', '销量'],
-        bottom: 0,
-      },
-      grid: {
-        left: '3%',
-        right: '4%',
-        bottom: '12%',
-        top: '4%',
-        containLabel: true,
-      },
-      xAxis: [
-        {
-          type: 'value',
-          name: '金额 (¥)',
-          axisLabel: {
-            formatter: (v: number) => (v >= 10000 ? `${(v / 10000).toFixed(1)}万` : v.toString()),
-          },
-        },
-        {
-          type: 'value',
-          name: '销量',
-        },
-      ],
-      yAxis: {
-        type: 'category',
-        data: names,
-        axisLabel: {
-          width: 100,
-          overflow: 'truncate',
-        },
-      },
-      series: [
-        {
-          name: '销售额',
-          type: 'bar',
-          data: amounts,
-          itemStyle: {
-            color: new echarts.graphic.LinearGradient(0, 0, 1, 0, [
-              { offset: 0, color: '#409eff' },
-              { offset: 1, color: '#79bbff' },
-            ]),
-            borderRadius: [0, 4, 4, 0],
-          },
-        },
-        {
-          name: '销量',
-          type: 'bar',
-          xAxisIndex: 1,
-          data: qtys,
-          itemStyle: {
-            color: new echarts.graphic.LinearGradient(0, 0, 1, 0, [
-              { offset: 0, color: '#67c23a' },
-              { offset: 1, color: '#95d475' },
-            ]),
-            borderRadius: [0, 4, 4, 0],
-          },
-        },
-      ],
-    },
-    { notMerge: true }
-  );
-}
-
-function renderTopCustomersChart() {
-  if (!topCustomersChartRef.value) return;
-  if (!topCustomersChart) {
-    topCustomersChart = initChart(topCustomersChartRef.value);
-  }
-  if (!topCustomersChart || topCustomersData.value.length === 0) return;
-
-  const names = topCustomersData.value.map((d: TopCustomerItem) => d.name).reverse();
-  const amounts = topCustomersData.value.map((d: TopCustomerItem) => d.amount).reverse();
-
-  topCustomersChart.setOption(
-    {
-      tooltip: {
-        trigger: 'axis',
-        axisPointer: { type: 'shadow' },
-      },
-      grid: {
-        left: '3%',
-        right: '4%',
-        bottom: '4%',
-        top: '4%',
-        containLabel: true,
-      },
-      xAxis: {
-        type: 'value',
-        name: '金额 (¥)',
-        axisLabel: {
-          formatter: (v: number) => (v >= 10000 ? `${(v / 10000).toFixed(1)}万` : v.toString()),
-        },
-      },
-      yAxis: {
-        type: 'category',
-        data: names,
-        axisLabel: {
-          width: 100,
-          overflow: 'truncate',
-        },
-      },
-      series: [
-        {
-          name: '消费金额',
-          type: 'bar',
-          data: amounts,
-          itemStyle: {
-            color: new echarts.graphic.LinearGradient(0, 0, 1, 0, [
-              { offset: 0, color: '#e6a23c' },
-              { offset: 1, color: '#f3d19e' },
-            ]),
-            borderRadius: [0, 4, 4, 0],
-          },
-        },
-      ],
-    },
-    { notMerge: true }
-  );
-}
-
-// ==================== Spark 迷你折线图 ====================
-function renderSparkCharts() {
-  Object.keys(sparkCharts).forEach((key) => {
-    sparkCharts[key]?.dispose();
-    delete sparkCharts[key];
-  });
-  nextTick(() => {
-    metricCards.value.forEach((card: MetricCard) => {
-      const el = sparkRefs[card.key];
-      if (!el || !card.sparkData || card.sparkData.length === 0) return;
-      const instance = echarts.init(el);
-      sparkCharts[card.key] = instance;
-      instance.setOption({
-        grid: {
-          left: 0,
-          right: 0,
-          top: 2,
-          bottom: 0,
-        },
-        xAxis: { show: false, data: card.sparkData.map((_: number, i: number) => i) },
-        yAxis: { show: false, min: (v: { min: number }) => v.min * 0.9, max: (v: { max: number }) => v.max * 1.1 },
-        series: [
-          {
-            type: 'line',
-            data: card.sparkData,
-            smooth: true,
-            showSymbol: false,
-            lineStyle: { width: 1.5, color: card.momUp ? '#f56c6c' : '#67c23a' },
-            areaStyle: {
-              color: new echarts.graphic.LinearGradient(0, 0, 0, 1, [
-                { offset: 0, color: card.momUp ? 'rgba(245,108,108,0.2)' : 'rgba(103,194,58,0.2)' },
-                { offset: 1, color: 'rgba(255,255,255,0)' },
-              ]),
-            },
-          },
-        ],
-      });
-    });
-  });
-}
-
-// 监听 metricCards 变化后重绘 spark
-watch(metricCards, () => {
-  renderSparkCharts();
-}, { deep: true });
-
-// ==================== 窗口大小响应 ====================
-function handleResize() {
-  salesTrendChart?.resize();
-  categoryPieChart?.resize();
-  topProductsChart?.resize();
-  topCustomersChart?.resize();
-  Object.values(sparkCharts).forEach((c) => c?.resize());
-}
-
-// ==================== 生命周期 ====================
-onMounted(async () => {
-  await loadStores();
-  await loadAllData();
-  window.addEventListener('resize', handleResize);
-});
-
-onUnmounted(() => {
-  window.removeEventListener('resize', handleResize);
-  salesTrendChart?.dispose();
-  categoryPieChart?.dispose();
-  topProductsChart?.dispose();
-  topCustomersChart?.dispose();
-  Object.values(sparkCharts).forEach((c) => c?.dispose());
-});
-</script>
-
-<style scoped>
-.dashboard {
-  padding: 4px;
-}
-
-/* 顶部栏 */
-.header-bar {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  flex-wrap: wrap;
-  gap: 12px;
-}
-.header-left {
-  display: flex;
-  align-items: baseline;
-  gap: 16px;
-}
-.welcome-text {
-  margin: 0;
-  font-size: 20px;
-  font-weight: 600;
-  color: #303133;
-}
-.date-text {
-  font-size: 14px;
-  color: #909399;
-}
-.header-right {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-}
-
-/* 指标卡片 */
-.metric-card {
-  cursor: pointer;
-  transition: transform 0.2s;
-}
-.metric-card:hover {
-  transform: translateY(-2px);
-}
-.metric-card :deep(.el-card__body) {
-  padding: 16px 20px 12px;
-}
-.metric-card-inner {
-  display: flex;
-  flex-direction: column;
-}
-.metric-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-}
-.metric-label {
-  font-size: 13px;
-  color: #909399;
-}
-.metric-value {
-  font-size: 26px;
-  font-weight: 700;
-  color: #303133;
-  margin: 6px 0 4px;
-  line-height: 1.2;
-}
-.metric-footer {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-}
-.metric-compare {
-  display: flex;
-  gap: 12px;
-  font-size: 12px;
-}
-.compare-item {
-  display: flex;
-  align-items: center;
-  gap: 2px;
-}
-.compare-item.up {
-  color: #f56c6c;
-}
-.compare-item.down {
-  color: #67c23a;
-}
-.compare-item.yoy {
-  color: #909399;
-}
-.compare-arrow {
-  font-size: 12px;
-}
-.spark-chart {
-  width: 100%;
-  height: 40px;
-  margin-top: 6px;
-}
-.spark-placeholder {
-  height: 40px;
-  margin-top: 6px;
-}
-
-/* 图表卡片 */
-.chart-card {
-  min-height: 360px;
-}
-.chart-card :deep(.el-card__body) {
-  padding: 12px 16px;
-}
-.chart-card-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  font-size: 15px;
-  font-weight: 600;
-  color: #303133;
-}
-.chart-container {
-  width: 100%;
-  height: 300px;
-}
-.chart-empty {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  height: 300px;
-}
-
-/* 预警区 */
-.alert-title {
-  display: flex;
-  align-items: center;
-  font-size: 15px;
-  font-weight: 600;
-  color: #303133;
-}
-
-/* 响应式 */
-@media (max-width: 768px) {
-  .header-bar {
-    flex-direction: column;
-    align-items: flex-start;
-  }
-  .metric-value {
-    font-size: 22px;
-  }
-  .chart-container {
-    height: 260px;
-  }
-  .chart-empty {
-    height: 260px;
-  }
-}
-</style>
+        { type: 'value', name: '订单数', axisLabel: { formatter: (v:

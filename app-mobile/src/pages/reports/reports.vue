@@ -83,6 +83,11 @@
           <text class="entry-title">客户报表</text>
           <text class="entry-desc">客户消费、等级分布</text>
         </view>
+        <view class="entry-card" @tap="goReport('finance')">
+          <view class="entry-icon entry-icon--finance">&#xe618;</view>
+          <text class="entry-title">财务报表</text>
+          <text class="entry-desc">收支统计、利润分析</text>
+        </view>
       </view>
     </view>
 
@@ -172,6 +177,7 @@ function goReport(type: string) {
     inventory: '/pages/reports/inventory-reports',
     purchase: '/pages/reports/purchase-reports',
     customer: '/pages/reports/customer-reports',
+    finance: '/pages/reports/finance-reports',
   }
   const url = urlMap[type]
   if (url) {
@@ -294,6 +300,7 @@ onMounted(() => { loadReportData() })
 .entry-icon--inventory { background: linear-gradient(135deg, #1677FF, #4096ff); }
 .entry-icon--purchase { background: linear-gradient(135deg, #52c41a, #73d13d); }
 .entry-icon--customer { background: linear-gradient(135deg, #722ed1, #9254de); }
+.entry-icon--finance { background: linear-gradient(135deg, #fa8c16, #ffa940); }
 .entry-title { font-size: 28rpx; color: #333; font-weight: 600; }
 .entry-desc { font-size: 22rpx; color: #999; }
 .rank-section { padding: 0 24rpx 24rpx; }

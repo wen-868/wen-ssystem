@@ -43,6 +43,12 @@ const routes: RouteRecordRaw[] = [
         meta: { title: "库存查询", nav: "库存查询" }
       },
       {
+        path: "stock-alert",
+        name: "StockAlert",
+        component: () => import("../views/StockAlertView.vue"),
+        meta: { title: "库存预警", nav: "库存预警" }
+      },
+      {
         path: "transfer",
         name: "Transfer",
         component: () => import("../views/TransferView.vue"),

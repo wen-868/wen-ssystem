@@ -1,4 +1,4 @@
-﻿import { asyncHandler } from "../../middleware/async-handler";
+import { asyncHandler } from "../../middleware/async-handler";
 import { ok } from "../../shared/response";
 import * as service from "../../services/admin/dashboard.service";
 
@@ -61,5 +61,86 @@ export const getRecentOrders = asyncHandler(async (req, res) => {
 export const getSalesTrendByDay = asyncHandler(async (req, res) => {
   const days = Math.min(Number(req.query.days || 7), 90);
   const result = await service.getSalesTrendByDay(req.tenantId!, days);
+  res.json(ok(result));
+});
+
+// ========== 库存分析 ==========
+
+export const getInventoryStats = asyncHandler(async (req, res) => {
+  const result = await service.getInventoryStats(req.tenantId!);
+  res.json(ok(result));
+});
+
+export const getInventoryTurnover = asyncHandler(async (req, res) => {
+  const result = await service.getInventoryTurnover(req.tenantId!);
+  res.json(ok(result));
+});
+
+export const getInventoryWarningList = asyncHandler(async (req, res) => {
+  const result = await service.getInventoryWarningList(req.tenantId!);
+  res.json(ok(result));
+});
+
+export const getInventoryValueAnalysis = asyncHandler(async (req, res) => {
+  const result = await service.getInventoryValueAnalysis(req.tenantId!);
+  res.json(ok(result));
+});
+
+// ========== 客户分析 ==========
+
+export const getCustomerStats = asyncHandler(async (req, res) => {
+  const result = await service.getCustomerStats(req.tenantId!);
+  res.json(ok(result));
+});
+
+export const getCustomerGrowthTrend = asyncHandler(async (req, res) => {
+  const result = await service.getCustomerGrowthTrend(req.tenantId!);
+  res.json(ok(result));
+});
+
+export const getCustomerActivity = asyncHandler(async (req, res) => {
+  const result = await service.getCustomerActivity(req.tenantId!);
+  res.json(ok(result));
+});
+
+export const getCustomerCategoryStats = asyncHandler(async (req, res) => {
+  const result = await service.getCustomerCategoryStats(req.tenantId!);
+  res.json(ok(result));
+});
+
+// ========== 供应商分析 ==========
+
+export const getSupplierStats = asyncHandler(async (req, res) => {
+  const result = await service.getSupplierStats(req.tenantId!);
+  res.json(ok(result));
+});
+
+export const getSupplierPurchaseRanking = asyncHandler(async (req, res) => {
+  const d = new Date();
+  d.setDate(d.getDate() - 30);
+  const dateStart = String(req.query.dateStart || d.toISOString().slice(0, 10));
+  const dateEnd = String(req.query.dateEnd || new Date().toISOString().slice(0, 10));
+  const result = await service.getSupplierPurchaseRanking(req.tenantId!, dateStart, dateEnd);
+  res.json(ok(result));
+});
+
+export const getSupplierOnTimeRate = asyncHandler(async (req, res) => {
+  const result = await service.getSupplierOnTimeRate(req.tenantId!);
+  res.json(ok(result));
+});
+
+export const getSupplierTrend = asyncHandler(async (req, res) => {
+  const result = await service.getSupplierTrend(req.tenantId!);
+  res.json(ok(result));
+});
+
+// ========== 销售排行 - 员工 ==========
+
+export const getTopEmployees = asyncHandler(async (req, res) => {
+  const d = new Date();
+  d.setDate(d.getDate() - 30);
+  const dateStart = String(req.query.dateStart || d.toISOString().slice(0, 10));
+  const dateEnd = String(req.query.dateEnd || new Date().toISOString().slice(0, 10));
+  const result = await service.getTopEmployees(req.tenantId!, dateStart, dateEnd);
   res.json(ok(result));
 });

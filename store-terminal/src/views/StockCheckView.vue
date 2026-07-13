@@ -2,7 +2,7 @@
   <el-card style="margin-top: 20px">
     <template #header>
       <div style="display: flex; justify-content: space-between; align-items: center">
-        <span>盘点单列表</span>
+        <span>盘点结果</span>
         <el-button size="small" @click="loadStoreStockChecks">刷新</el-button>
       </div>
     </template>
@@ -15,10 +15,11 @@
       <el-table-column prop="diffSku" label="差异数" width="80" />
       <el-table-column label="差异金额" width="100"><template #default="{row}">{{formatYuan(row.diffAmount)}}</template></el-table-column>
       <el-table-column prop="createdAt" label="创建时间" width="170" />
-      <el-table-column label="操作" width="160">
+      <el-table-column label="操作" width="200">
         <template #default="{row}">
           <el-button v-if="row.status==='CHECKING'" size="small" type="primary" @click="openScInputDialog(row)">录入实盘</el-button>
           <el-button v-if="row.status==='CHECKING'" size="small" type="success" @click="handleSubmitStockCheck(row)">提交</el-button>
+          <el-button v-if="row.status==='COMPLETED'" size="small" link type="primary" @click="openDiffDetailDialog(row)">差异详情</el-button>
         </template>
       </el-table-column>
     </el-table>
@@ -37,10 +38,44 @@
     </el-table>
     <template #footer><el-button @click="scInputDialogVisible=false">取消</el-button><el-button type="primary" :loading="loading" @click="handleSaveScItems">保存</el-button></template>
   </el-dialog>
+
+  <el-dialog v-model="diffDetailDialogVisible" title="盘点差异详情" width="800px">
+    <el-descriptions :column="3" border size="small" style="margin-bottom: 16px">
+      <el-descriptions-item label="盘点单号">{{ diffDetail.checkNo }}</el-descriptions-item>
+      <el-descriptions-item label="状态">{{ diffDetail.status === 'COMPLETED' ? '已完成' : diffDetail.status === 'CHECKING' ? '盘点中' : '草稿' }}</el-descriptions-item>
+      <el-descriptions-item label="创建时间">{{ diffDetail.createdAt }}</el-descriptions-item>
+      <el-descriptions-item label="总SKU数">{{ diffDetail.totalSku }}</el-descriptions-item>
+      <el-descriptions-item label="差异SKU数">{{ diffDetail.diffSku }}</el-descriptions-item>
+      <el-descriptions-item label="差异金额">{{ formatYuan(diffDetail.diffAmount) }}</el-descriptions-item>
+    </el-descriptions>
+    <el-table :data="diffDetailItems" size="small" empty-text="暂无差异明细" max-height="400">
+      <el-table-column prop="skuId" label="SKU ID" width="100" />
+      <el-table-column prop="skuName" label="商品名称" />
+      <el-table-column prop="batchNo" label="批次号" width="120" />
+      <el-table-column prop="systemQty" label="系统数量" width="100" />
+      <el-table-column prop="actualQty" label="实盘数量" width="100" />
+      <el-table-column label="差异数量" width="100">
+        <template #default="{row}">
+          <span :style="{ color: row.diffQty > 0 ? '#67C23A' : row.diffQty < 0 ? '#F56C6C' : '#909399' }">
+            {{ row.diffQty > 0 ? '+' : '' }}{{ row.diffQty }}
+          </span>
+        </template>
+      </el-table-column>
+      <el-table-column label="差异金额" width="120">
+        <template #default="{row}">
+          <span :style="{ color: row.diffAmount > 0 ? '#67C23A' : row.diffAmount < 0 ? '#F56C6C' : '#909399' }">
+            {{ row.diffAmount > 0 ? '+' : '' }}{{ formatYuan(row.diffAmount) }}
+          </span>
+        </template>
+      </el-table-column>
+      <el-table-column prop="diffReason" label="差异原因" />
+    </el-table>
+    <template #footer><el-button @click="diffDetailDialogVisible=false">关闭</el-button></template>
+  </el-dialog>
 </template>
 
 <script setup lang="ts">
-import { onMounted, ref } from "vue";
+import { onMounted, reactive, ref } from "vue";
 import { ElMessage } from "element-plus";
 import {
   fetchStoreStockChecks,
@@ -55,6 +90,16 @@ const storeStockCheckList = ref<any[]>([]);
 const scInputDialogVisible = ref(false);
 const scInputItems = ref<any[]>([]);
 const scInputCheckId = ref(0);
+const diffDetailDialogVisible = ref(false);
+const diffDetail = reactive({
+  checkNo: "",
+  status: "",
+  createdAt: "",
+  totalSku: 0,
+  diffSku: 0,
+  diffAmount: 0
+});
+const diffDetailItems = ref<any[]>([]);
 
 async function loadStoreStockChecks() {
   try { storeStockCheckList.value = (await fetchStoreStockChecks()) || []; } catch { storeStockCheckList.value = []; }
@@ -91,6 +136,22 @@ async function handleSubmitStockCheck(row: any) {
     loadStoreStockChecks();
   } catch (e: any) {
     ElMessage.error(e?.response?.data?.message || "提交失败");
+  }
+}
+
+async function openDiffDetailDialog(row: any) {
+  try {
+    const detail = await fetchStoreStockCheckDetail(row.id);
+    diffDetail.checkNo = detail.checkNo || "";
+    diffDetail.status = detail.status || "";
+    diffDetail.createdAt = detail.createdAt || "";
+    diffDetail.totalSku = detail.totalSku || 0;
+    diffDetail.diffSku = detail.diffSku || 0;
+    diffDetail.diffAmount = detail.diffAmount || 0;
+    diffDetailItems.value = (detail.items || []).filter((item: any) => item.diffQty !== 0);
+    diffDetailDialogVisible.value = true;
+  } catch (e: any) {
+    ElMessage.error(e?.response?.data?.message || "获取详情失败");
   }
 }
 

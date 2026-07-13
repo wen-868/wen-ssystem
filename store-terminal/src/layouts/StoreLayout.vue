@@ -53,7 +53,7 @@ import { fetchStoreControlStatus } from "../api";
 const route = useRoute();
 const router = useRouter();
 
-const nav = ["工作台", "快速收银", "销售单", "会员识别", "优惠券核销", "挂单管理", "销售退货", "接单履约", "库存查询", "调拨", "盘点", "交接班", "分享收款", "日结", "门店管控", "操作记录"];
+const nav = ["工作台", "快速收银", "销售单", "会员识别", "优惠券核销", "挂单管理", "销售退货", "接单履约", "库存查询", "库存预警", "调拨", "盘点", "交接班", "分享收款", "日结", "门店管控", "操作记录"];
 
 const navToPathMap: Record<string, string> = {
   "工作台": "/dashboard",
@@ -65,6 +65,7 @@ const navToPathMap: Record<string, string> = {
   "销售退货": "/sale-return",
   "接单履约": "/order-fulfill",
   "库存查询": "/inventory",
+  "库存预警": "/stock-alert",
   "调拨": "/transfer",
   "盘点": "/stock-check",
   "交接班": "/shift",
@@ -84,6 +85,7 @@ const storeNavDescriptions: Record<string, string> = {
   销售退货: "创建退货单、查看退货列表、审核退货。",
   接单履约: "处理小程序订单接单和完成。",
   库存查询: "查看库存、调整库存和库存流水。",
+  库存预警: "查看库存低于预警阈值的商品，设置预警阈值。",
   调拨: "查看在途调拨单和已发货调拨单，进行收货确认。",
   盘点: "查看盘点单列表，录入实盘数量并提交。",
   交接班: "查看交接班记录、新建交接班、完成交接班。",

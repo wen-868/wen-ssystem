@@ -389,6 +389,75 @@ export async function fetchDashboardRecentAlerts() {
   return data.data;
 }
 
+// ========== Dashboard - 库存分析 ==========
+export async function fetchDashboardInventoryStats() {
+  const { data } = await api.get("/admin/dashboard/inventory-stats");
+  return data.data;
+}
+
+export async function fetchDashboardInventoryTurnover() {
+  const { data } = await api.get("/admin/dashboard/inventory-turnover");
+  return data.data;
+}
+
+export async function fetchDashboardInventoryWarning() {
+  const { data } = await api.get("/admin/dashboard/inventory-warning");
+  return data.data;
+}
+
+export async function fetchDashboardInventoryValueAnalysis() {
+  const { data } = await api.get("/admin/dashboard/inventory-value-analysis");
+  return data.data;
+}
+
+// ========== Dashboard - 客户分析 ==========
+export async function fetchDashboardCustomerStats() {
+  const { data } = await api.get("/admin/dashboard/customer-stats");
+  return data.data;
+}
+
+export async function fetchDashboardCustomerGrowthTrend() {
+  const { data } = await api.get("/admin/dashboard/customer-growth-trend");
+  return data.data;
+}
+
+export async function fetchDashboardCustomerActivity() {
+  const { data } = await api.get("/admin/dashboard/customer-activity");
+  return data.data;
+}
+
+export async function fetchDashboardCustomerCategoryStats() {
+  const { data } = await api.get("/admin/dashboard/customer-category-stats");
+  return data.data;
+}
+
+// ========== Dashboard - 供应商分析 ==========
+export async function fetchDashboardSupplierStats() {
+  const { data } = await api.get("/admin/dashboard/supplier-stats");
+  return data.data;
+}
+
+export async function fetchDashboardSupplierPurchaseRanking(params?: { dateStart?: string; dateEnd?: string }) {
+  const { data } = await api.get("/admin/dashboard/supplier-purchase-ranking", { params });
+  return data.data;
+}
+
+export async function fetchDashboardSupplierOnTimeRate() {
+  const { data } = await api.get("/admin/dashboard/supplier-on-time-rate");
+  return data.data;
+}
+
+export async function fetchDashboardSupplierTrend() {
+  const { data } = await api.get("/admin/dashboard/supplier-trend");
+  return data.data;
+}
+
+// ========== Dashboard - 销售排行 - 员工 ==========
+export async function fetchDashboardTopEmployees(params?: { dateStart?: string; dateEnd?: string }) {
+  const { data } = await api.get("/admin/dashboard/top-employees", { params });
+  return data.data;
+}
+
 // ==================== Report APIs ====================
 export async function fetchReportSalesDaily(params?: { dateType?: string; dateStart?: string; dateEnd?: string }) {
   const { data } = await api.get("/admin/reports/sales-daily", { params });

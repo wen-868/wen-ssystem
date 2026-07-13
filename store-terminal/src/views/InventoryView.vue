@@ -1,21 +1,29 @@
 <template>
   <el-card style="margin-top: 20px">
     <template #header>
-      <div style="display: flex; justify-content: space-between; align-items: center">
+      <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 10px">
         <span>库存查询</span>
-        <div style="display: flex; gap: 8px; align-items: center">
+        <div style="display: flex; gap: 8px; align-items: center; flex-wrap: wrap">
+          <el-select v-model="selectedCategoryId" placeholder="分类筛选" clearable size="small" style="width: 160px">
+            <el-option label="全部分类" :value="0" />
+            <el-option v-for="cat in categories" :key="cat.id" :label="cat.name" :value="cat.id" />
+          </el-select>
           <el-input v-model="inventoryKeyword" placeholder="按商品名/SKU编码/条码搜索" clearable size="small" style="width: 220px" @keyup.enter="handleSearchInventory" />
           <el-button size="small" @click="handleSearchInventory">搜索</el-button>
-          <el-button size="small" @click="inventoryKeyword = ''; loadInventory()">刷新库存</el-button>
+          <el-button size="small" @click="inventoryKeyword = ''; selectedCategoryId = 0; loadInventory()">刷新库存</el-button>
         </div>
       </div>
     </template>
     <el-table :data="inventory">
       <el-table-column prop="skuId" label="SKU ID" width="100" />
-      <el-table-column prop="skuName" label="商品规格" />
-      <el-table-column prop="stockType" label="库存类型" width="120" />
-      <el-table-column prop="physicalQty" label="物理库存" width="120" />
-      <el-table-column prop="availableQty" label="可售库存" width="120" />
+      <el-table-column prop="skuName" label="商品名称" />
+      <el-table-column prop="categoryName" label="分类" width="120" />
+      <el-table-column prop="spec" label="规格" width="120" />
+      <el-table-column label="单价" width="100"><template #default="{ row }">{{ formatYuan(row.unitPrice) }}</template></el-table-column>
+      <el-table-column prop="stockType" label="库存类型" width="100" />
+      <el-table-column prop="physicalQty" label="物理库存" width="100" />
+      <el-table-column prop="availableQty" label="可售库存" width="100" />
+      <el-table-column label="金额" width="120"><template #default="{ row }">{{ formatYuan((row.availableQty || 0) * (row.unitPrice || 0)) }}</template></el-table-column>
       <el-table-column label="操作" width="100">
         <template #default="{ row }">
           <el-button size="small" link type="primary" @click="openInvAdjust(row)">调整</el-button>
@@ -70,13 +78,17 @@ import { ElMessage, ElMessageBox } from "element-plus";
 import {
   fetchInventory,
   fetchInventoryLogs,
-  adjustInventory
+  adjustInventory,
+  fetchStoreCategories
 } from "../api";
+import { formatYuan } from "../utils/format";
 
 const loading = ref(false);
 const inventory = ref<any[]>([]);
 const inventoryKeyword = ref("");
 const inventoryLogs = ref<any[]>([]);
+const categories = ref<any[]>([]);
+const selectedCategoryId = ref(0);
 const invDialogVisible = ref(false);
 const invForm = reactive({
   skuId: 0,
@@ -96,9 +108,22 @@ const invRules = {
   }]
 };
 
+async function loadCategories() {
+  try {
+    const data = await fetchStoreCategories();
+    categories.value = data.records || data || [];
+  } catch {
+    categories.value = [];
+  }
+}
+
 async function loadInventory(keyword?: string) {
   try {
-    inventory.value = await fetchInventory(keyword);
+    const params: Record<string, unknown> = keyword ? { keyword } : {};
+    if (selectedCategoryId.value > 0) {
+      params.categoryId = selectedCategoryId.value;
+    }
+    inventory.value = await fetchInventory(params);
   } catch {
     ElMessage.warning("库存接口暂不可用，请确认后端和数据库已启动");
   }
@@ -149,6 +174,7 @@ async function handleInvAdjust() {
 }
 
 onMounted(() => {
+  loadCategories();
   loadInventory();
   loadInventoryLogs();
 });
