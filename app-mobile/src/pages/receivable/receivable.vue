@@ -45,7 +45,7 @@
             </view>
           </view>
           <view class="overdue-row" v-if="getOverdueAmount(item) != null">
-            <text class="overdue-text">逾期：{{ formatMoney(getOverdueAmount(item)) }}</text>
+            <text class="overdue-text">逾期：{{ formatMoney(getOverdueAmount(item) ?? 0) }}</text>
           </view>
           <view class="date-row" v-if="getLastDate(item)">
             <text class="date-text">最后付款：{{ getLastDate(item) }}</text>
