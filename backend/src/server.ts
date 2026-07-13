@@ -9,6 +9,7 @@ import { ok } from "./shared/response";
 import { errorHandler } from "./middleware/error-handler";
 import { errorResponseInterceptor } from "./shared/error-response-interceptor";
 import { responseTimeTracker } from "./middleware/response-tracker";
+import { responseTimeMiddleware } from "./middleware/response-time";
 import { requireAuthWithTenant } from "./middleware/auth";
 import { csrfMiddleware } from "./middleware/csrf";
 import { runMigrations } from "./shared/migration";
@@ -122,6 +123,7 @@ const allowedOrigins = corsOriginsEnv
 app.use(cors({ origin: allowedOrigins, credentials: true }));
 app.use(express.json({ limit: "2mb" }));
 app.use(responseTimeTracker);
+app.use(responseTimeMiddleware);
 app.use(errorResponseInterceptor);
 
 // 公开健康检查（无需认证，供外部监控使用）

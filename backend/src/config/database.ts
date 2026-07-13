@@ -18,7 +18,6 @@ export let pool = mysql.createPool({
   maxIdle: Number(env.DB_MAX_IDLE) || 10,
   idleTimeout: Number(env.DB_IDLE_TIMEOUT) || 60000,
   queueLimit: Number(env.DB_QUEUE_LIMIT) || 0,
-  acquireTimeout: Number(env.DB_ACQUIRE_TIMEOUT) || 10000,
   enableKeepAlive: true,
   keepAliveInitialDelay: 0,
   charset: "utf8mb4",

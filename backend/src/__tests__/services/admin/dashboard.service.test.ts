@@ -1,4 +1,4 @@
-﻿/**
+/**
  * 管理端仪表盘 service 单元测试
  * 被测文件：src/services/admin/dashboard.service.ts
  */
@@ -34,22 +34,29 @@ describe("dashboard.service", () => {
 
   describe("getOverview", () => {
     it("返回完整概览数据（含环比计算）", async () => {
-      // getOverview 顺序调用约 13 次 queryOne
-      mocks.queryOne.mockResolvedValueOnce({ salesAmount: 1000, orderCount: 10, receivedAmount: 800 }); // today
-      mocks.queryOne.mockResolvedValueOnce({ salesAmount: 500, orderCount: 5 }); // yesterday
-      mocks.queryOne.mockResolvedValueOnce({ purchaseAmount: 300, orderCount: 3 }); // todayPurchase
-      mocks.queryOne.mockResolvedValueOnce({ salesAmount: 20000, orderCount: 200, receivedAmount: 15000 }); // monthSales
-      mocks.queryOne.mockResolvedValueOnce({ salesAmount: 10000, orderCount: 100 }); // lastMonthSales
-      mocks.queryOne.mockResolvedValueOnce({ purchaseAmount: 5000, orderCount: 50 }); // monthPurchase
-      mocks.queryOne.mockResolvedValueOnce({ salesAmount: 100000, orderCount: 1000, receivedAmount: 80000 }); // yearSales
-      mocks.queryOne.mockResolvedValueOnce({ purchaseAmount: 50000, orderCount: 500 }); // yearPurchase
-      mocks.queryOne.mockResolvedValueOnce({ count: 5 }); // pendingOrders
-      mocks.queryOne.mockResolvedValueOnce({ count: 2 }); // yesterdayPending
-      mocks.queryOne.mockResolvedValueOnce({ count: 3 }); // stockAlerts
-      mocks.queryOne.mockResolvedValueOnce({ count: 1 }); // urgentStockAlerts
-      mocks.queryOne.mockResolvedValueOnce({ amount: 5000, skuCount: 50 }); // inventoryValue
-      mocks.queryOne.mockResolvedValueOnce({ amount: 2000 }); // receivable
-      mocks.queryOne.mockResolvedValueOnce({ amount: 1000 }); // payable
+      // getOverview 优化后合并为 5 个 queryOne 调用
+      // 1. 销售统计（合并今日/昨日/本月/上月/本年 + 应收账款）
+      mocks.queryOne.mockResolvedValueOnce({
+        todaySalesAmount: 1000, todayOrderCount: 10, todayReceivedAmount: 800,
+        yesterdaySalesAmount: 500, yesterdayOrderCount: 5,
+        monthSalesAmount: 20000, monthOrderCount: 200, monthReceivedAmount: 15000,
+        lastMonthSalesAmount: 10000, lastMonthOrderCount: 100,
+        yearSalesAmount: 100000, yearOrderCount: 1000, yearReceivedAmount: 80000,
+        receivableAmount: 2000,
+      });
+      // 2. 采购统计（合并今日/本月/本年 + 应付账款）
+      mocks.queryOne.mockResolvedValueOnce({
+        todayPurchaseAmount: 300, todayPurchaseOrderCount: 3,
+        monthPurchaseAmount: 5000, monthPurchaseOrderCount: 50,
+        yearPurchaseAmount: 50000, yearPurchaseOrderCount: 500,
+        payableAmount: 1000,
+      });
+      // 3. 待处理订单（合并当前/昨日）
+      mocks.queryOne.mockResolvedValueOnce({ currentPendingCount: 5, yesterdayPendingCount: 2 });
+      // 4. 库存预警（合并总数/紧急）
+      mocks.queryOne.mockResolvedValueOnce({ totalAlerts: 3, urgentAlerts: 1 });
+      // 5. 库存价值
+      mocks.queryOne.mockResolvedValueOnce({ amount: 5000, skuCount: 50 });
 
       const res = await getOverview("t1");
       expect(res.today.salesAmount).toBe(1000);
@@ -79,21 +86,23 @@ describe("dashboard.service", () => {
     });
 
     it("昨日销售额为 0 时环比变化为 0", async () => {
-      mocks.queryOne.mockResolvedValueOnce({ salesAmount: 100, orderCount: 1, receivedAmount: 50 });
-      mocks.queryOne.mockResolvedValueOnce({ salesAmount: 0, orderCount: 0 });
-      mocks.queryOne.mockResolvedValueOnce({});
-      mocks.queryOne.mockResolvedValueOnce({});
-      mocks.queryOne.mockResolvedValueOnce({ salesAmount: 0, orderCount: 0 });
-      mocks.queryOne.mockResolvedValueOnce({});
-      mocks.queryOne.mockResolvedValueOnce({});
-      mocks.queryOne.mockResolvedValueOnce({});
-      mocks.queryOne.mockResolvedValueOnce({ count: 0 });
-      mocks.queryOne.mockResolvedValueOnce({ count: 0 });
-      mocks.queryOne.mockResolvedValueOnce({ count: 0 });
-      mocks.queryOne.mockResolvedValueOnce({ count: 0 });
-      mocks.queryOne.mockResolvedValueOnce({});
-      mocks.queryOne.mockResolvedValueOnce({});
-      mocks.queryOne.mockResolvedValueOnce({});
+      mocks.queryOne.mockResolvedValueOnce({
+        todaySalesAmount: 100, todayOrderCount: 1, todayReceivedAmount: 50,
+        yesterdaySalesAmount: 0, yesterdayOrderCount: 0,
+        monthSalesAmount: 0, monthOrderCount: 0, monthReceivedAmount: 0,
+        lastMonthSalesAmount: 0, lastMonthOrderCount: 0,
+        yearSalesAmount: 0, yearOrderCount: 0, yearReceivedAmount: 0,
+        receivableAmount: 0,
+      });
+      mocks.queryOne.mockResolvedValueOnce({
+        todayPurchaseAmount: 0, todayPurchaseOrderCount: 0,
+        monthPurchaseAmount: 0, monthPurchaseOrderCount: 0,
+        yearPurchaseAmount: 0, yearPurchaseOrderCount: 0,
+        payableAmount: 0,
+      });
+      mocks.queryOne.mockResolvedValueOnce({ currentPendingCount: 0, yesterdayPendingCount: 0 });
+      mocks.queryOne.mockResolvedValueOnce({ totalAlerts: 0, urgentAlerts: 0 });
+      mocks.queryOne.mockResolvedValueOnce({ amount: 0, skuCount: 0 });
       const res = await getOverview("t1");
       expect(res.today.compareYesterday.salesAmountChange).toBe(0);
       expect(res.today.compareYesterday.orderCountChange).toBe(0);

@@ -86,13 +86,33 @@
 
 ### R29-A6 — 后端性能优化 [P1]
 
-- **状态**：待开始
+- **状态**：✅ 已完成
 - **优先级**：P1
 - **负责人**：阿坚
 - **预计**：1.5 天
+- **完成时间**：2026-07-14
 - **需求来源**：第二阶段完善提升
-- **需求**：后端性能优化（SQL查询优化、缓存策略、接口响应时间优化）
-- **验收标准**：vitest run 0 失败，接口响应时间 < 500ms
+- **完成内容**：
+  1. **数据库连接池优化**：`database.ts` 新增连接池参数（connectionLimit=20、maxIdle=10、idleTimeout=60000、queueLimit=0、enableKeepAlive=true），`env.ts` 新增对应环境变量
+  2. **SQL查询优化**：`dashboard.service.ts` 将 13 次独立 queryOne 合并为 5 个合并查询；`customer.service.ts` 将子查询转换为 LEFT JOIN + GROUP BY
+  3. **Redis缓存策略**：`product.service.ts`、`category.service.ts` 新增缓存逻辑，使用 cacheGet/cacheSet，支持缓存失效（clearCategoryCache）
+  4. **接口响应时间中间件**：新增 `response-time.ts` 中间件，记录所有接口响应耗时，按耗时分级日志（<200ms INFO、200-500ms WARN、>500ms ERROR）
+  5. **统一分页工具**：新增 `pagination.ts` 工具函数（normalizePagination、calculateOffset、paginate、paginatedQuery、paginatedSearchQuery）
+- **验证结果**：
+  - ✅ tsc --noEmit --strict：0 错误
+  - ✅ vitest run：380 测试文件，4113 测试用例全部通过，0 失败
+- **修改文件**：
+  - `backend/src/config/database.ts`（修改）
+  - `backend/src/config/env.ts`（修改）
+  - `backend/src/services/admin/dashboard.service.ts`（修改）
+  - `backend/src/services/admin/customer.service.ts`（修改）
+  - `backend/src/services/admin/product.service.ts`（修改）
+  - `backend/src/services/admin/category.service.ts`（修改）
+  - `backend/src/middleware/response-time.ts`（新增）
+  - `backend/src/server.ts`（修改）
+  - `backend/src/shared/pagination.ts`（新增）
+  - `backend/src/__tests__/services/admin/dashboard.service.test.ts`（修改）
+- **验收标准**：vitest run 0 失败，tsc --noEmit --strict 0 错误
 
 ### R29-A7 — R29 全量回归测试 [P1]
 
