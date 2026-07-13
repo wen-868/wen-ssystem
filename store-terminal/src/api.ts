@@ -73,8 +73,9 @@ export async function createCollectionLink(billNo: string, amount: number, optio
   return data.data;
 }
 
-export async function fetchInventory(keyword?: string) {
-  const { data } = await api.get("/store/inventory", { params: keyword ? { keyword } : {} });
+export async function fetchInventory(params?: string | Record<string, unknown>) {
+  const queryParams = typeof params === "string" ? { keyword: params } : (params || {});
+  const { data } = await api.get("/store/inventory", { params: queryParams });
   return data.data;
 }
 
