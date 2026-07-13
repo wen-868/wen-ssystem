@@ -72,11 +72,11 @@ const userStore = useUserStore()
 const defaultAvatar = 'https://neeko-copilot.bytedance.net/api/text2image?prompt=avatar%20icon%20user'
 
 const orderMenu = ref([
-  { id: 1, icon: '📦', text: '我的订单', url: '/pages/order/list' },
-  { id: 2, icon: '🔄', text: '待付款', url: '/pages/order/list?status=pending_pay' },
-  { id: 3, icon: '🚚', text: '待发货', url: '/pages/order/list?status=pending_ship' },
-  { id: 4, icon: '📮', text: '待收货', url: '/pages/order/list?status=pending_receive' },
-  { id: 5, icon: '⭐', text: '待评价', url: '/pages/order/list?status=pending_review' }
+  { id: 1, icon: '📦', text: '我的订单', url: '/pages/order/list/index' },
+  { id: 2, icon: '🔄', text: '待付款', url: '/pages/order/list/index?status=PENDING_PAY' },
+  { id: 3, icon: '🚚', text: '待发货', url: '/pages/order/list/index?status=PENDING_SHIP' },
+  { id: 4, icon: '📮', text: '待收货', url: '/pages/order/list/index?status=PENDING_RECEIVE' },
+  { id: 5, icon: '⭐', text: '待评价', url: '/pages/order/list/index?status=COMPLETED' }
 ])
 
 const serviceMenu = ref([
@@ -98,7 +98,13 @@ const goLogin = () => {
 }
 
 const goPage = (url: string) => {
-  Taro.showToast({ title: `跳转: ${url}`, icon: 'none' })
+  if (!url) return
+  Taro.navigateTo({
+    url,
+    fail: () => {
+      Taro.showToast({ title: '页面开发中', icon: 'none' })
+    }
+  })
 }
 
 const handleLogout = () => {

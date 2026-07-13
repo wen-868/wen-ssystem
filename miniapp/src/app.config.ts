@@ -1,10 +1,14 @@
-﻿export default {
+export default {
   pages: [
     'pages/index/index',
     'pages/category/index',
     'pages/cart/index',
     'pages/profile/index',
-    'pages/product/index'
+    'pages/order/list/index',
+    'pages/order/detail/index',
+    'pages/order/confirm/index',
+    'pages/order/pay/index',
+    'pages/order/track/index'
   ],
   window: {
     backgroundTextStyle: 'dark',
@@ -12,6 +16,38 @@
     navigationBarTitleText: '智享全链',
     navigationBarTextStyle: 'black',
     backgroundColor: '#f5f5f5'
+  },
+  tabBar: {
+    color: '#999999',
+    selectedColor: '#4080ff',
+    backgroundColor: '#ffffff',
+    borderStyle: 'black',
+    list: [
+      {
+        pagePath: 'pages/index/index',
+        text: '首页',
+        iconPath: 'src/assets/tab/home.png',
+        selectedIconPath: 'src/assets/tab/home-active.png'
+      },
+      {
+        pagePath: 'pages/category/index',
+        text: '分类',
+        iconPath: 'src/assets/tab/category.png',
+        selectedIconPath: 'src/assets/tab/category-active.png'
+      },
+      {
+        pagePath: 'pages/cart/index',
+        text: '购物车',
+        iconPath: 'src/assets/tab/cart.png',
+        selectedIconPath: 'src/assets/tab/cart-active.png'
+      },
+      {
+        pagePath: 'pages/profile/index',
+        text: '我的',
+        iconPath: 'src/assets/tab/profile.png',
+        selectedIconPath: 'src/assets/tab/profile-active.png'
+      }
+    ]
   },
   style: 'v2',
   sitemapLocation: 'sitemap.json'

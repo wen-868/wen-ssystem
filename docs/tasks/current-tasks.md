@@ -49,13 +49,22 @@
 
 ### R30-A2 — C端小程序首页 [P0]
 
-- **状态**：待开始
+- **状态**：✅ 已完成
 - **优先级**：P0
 - **负责人**：阿澈
 - **预计**：1.5 天
+- **完成时间**：2026-07-13
 - **需求来源**：第三阶段 C端小程序上线
 - **需求**：C端小程序首页（商品分类、热销商品、活动Banner、搜索功能）
-- **验收标准**：页面可正常访问，功能完整
+- **完成内容**：
+  1. 顶部搜索栏：搜索框、搜索历史、热门搜索标签
+  2. Banner轮播：营销活动Banner轮播图，点击跳转
+  3. 商品分类入口：分类图标网格，横向滚动
+  4. 热销商品区域：商品列表，滑动加载
+  5. 活动专区：活动卡片，点击跳转详情
+  6. 新品上市：商品网格布局
+- **修改文件**：`miniapp/src/pages/index/index.vue`
+- **验证结果**：npm run build:weapp 构建成功
 
 ### R30-A3 — C端小程序商品详情页 [P0]
 
@@ -98,12 +107,39 @@
 
 ### R30-A5 — C端小程序订单模块 [P0]
 
-- **状态**：待开始
+- **状态**：✅ 已完成
 - **优先级**：P0
-- **负责人**：阿澈
+- **负责人**：林夕
 - **预计**：1.5 天
+- **完成时间**：2026-07-14
 - **需求来源**：第三阶段 C端小程序上线
 - **需求**：订单列表、订单详情、订单支付、订单跟踪
+- **完成内容**：
+  1. **订单API模块**：创建 `src/api/order.ts`，包含订单列表、订单详情、创建订单、取消订单、确认收货、获取支付参数、获取物流信息等接口及完整类型定义
+  2. **订单列表页**：`pages/order/list/index.vue`，支持状态标签切换（全部/待付款/待发货/待收货/已完成/已取消）、下拉刷新、上拉加载更多、订单卡片展示、状态操作按钮
+  3. **订单详情页**：`pages/order/detail/index.vue`，展示订单状态、收货地址、商品列表、订单金额明细、订单信息，支持取消订单、去支付、确认收货、查看物流等操作
+  4. **订单确认页**：`pages/order/confirm/index.vue`，地址选择、商品列表、优惠券选择弹窗、订单备注、金额计算、提交订单
+  5. **订单支付页**：`pages/order/pay/index.vue`，支付金额展示、支付方式选择（微信支付）、支付结果弹窗
+  6. **物流跟踪页**：`pages/order/track/index.vue`，物流状态头部、物流公司信息、运单号复制、物流轨迹时间线
+  7. **路由配置**：在 `app.config.ts` 中注册5个订单页面路由
+  8. **页面跳转更新**：更新个人中心页订单入口跳转路径、购物车页结算跳转路径
+- **修改文件**：
+  - `miniapp/src/api/order.ts`（新增）
+  - `miniapp/src/pages/order/list/index.vue`（新增）
+  - `miniapp/src/pages/order/list/index.config.ts`（新增）
+  - `miniapp/src/pages/order/detail/index.vue`（新增）
+  - `miniapp/src/pages/order/detail/index.config.ts`（新增）
+  - `miniapp/src/pages/order/confirm/index.vue`（新增）
+  - `miniapp/src/pages/order/confirm/index.config.ts`（新增）
+  - `miniapp/src/pages/order/pay/index.vue`（新增）
+  - `miniapp/src/pages/order/pay/index.config.ts`（新增）
+  - `miniapp/src/pages/order/track/index.vue`（新增）
+  - `miniapp/src/pages/order/track/index.config.ts`（新增）
+  - `miniapp/src/app.config.ts`（修改，新增路由）
+  - `miniapp/src/pages/profile/index.vue`（修改，更新跳转）
+  - `miniapp/src/pages/cart/index.vue`（修改，更新跳转）
+- **验证结果**：
+  - ✅ npm run build:weapp：构建成功
 - **验收标准**：页面可正常访问，功能完整
 
 ### R30-A6 — 小程序后端API补全 [P0]

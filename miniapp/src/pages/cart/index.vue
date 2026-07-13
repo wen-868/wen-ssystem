@@ -1,4 +1,4 @@
-﻿<template>
+<template>
   <view class="page-container">
     <view class="cart-header">
       <view class="select-all" @tap="toggleSelectAll">
@@ -335,7 +335,7 @@ const handleCheckout = () => {
   const itemIds = selectedItems.map(item => item.id)
 
   Taro.navigateTo({
-    url: `/pages/checkout/index?itemIds=${itemIds.join(',')}&couponId=${selectedCoupon.value?.id || ''}`
+    url: `/pages/order/confirm/index?itemIds=${itemIds.join(',')}`
   })
 }
 
