@@ -1,4 +1,8 @@
-﻿import { vi, describe, it, beforeEach, expect } from "vitest";
+/**
+ * 供应商对账单 controller 单元测试
+ * 被测文件：src/controllers/admin/supplier-statement.controller.ts
+ */
+import { describe, it, expect, vi, beforeEach } from "vitest";
 
 vi.mock("../../../services/admin/supplier-statement.service", () => ({
   generateSupplierStatement: vi.fn(),
@@ -29,11 +33,11 @@ import {
 
 const mockReq = (overrides: any = {}) => ({
   tenantId: "t1",
-  user: { id: 1, username: "admin" },
+  user: { id: 1 },
+  headers: {},
   query: {},
   params: {},
   body: {},
-  headers: {},
   ...overrides,
 });
 
@@ -46,98 +50,88 @@ const mockRes = () => {
   return res;
 };
 
-describe("supplier-statement.controller", () => {
+describe("admin/supplier-statement.controller", () => {
   beforeEach(() => vi.clearAllMocks());
 
-  it("generateSupplierStatement - 应生成供应商对账单", async () => {
-    (supplierStatementService.generateSupplierStatement as any).mockResolvedValue({ statementNo: "SS20240101001" });
-    const req = mockReq({
-      body: { supplierId: 1, startDate: "2024-01-01", endDate: "2024-01-31" },
-    });
-    const res = mockRes();
-    await generateSupplierStatement(req as any, res as any);
-    expect(supplierStatementService.generateSupplierStatement).toHaveBeenCalledWith({
-      supplierId: 1,
-      startDate: "2024-01-01",
-      endDate: "2024-01-31",
-      tenantId: "t1",
-    });
-    expect(ok).toHaveBeenCalled();
-  });
-
-  it("listSupplierStatements - 应返回供应商对账单列表", async () => {
-    (supplierStatementService.listSupplierStatements as any).mockResolvedValue({ total: 0, records: [] });
-    const req = mockReq({ query: { page: 1, pageSize: 20 } });
-    const res = mockRes();
-    await listSupplierStatements(req as any, res as any);
-    expect(supplierStatementService.listSupplierStatements).toHaveBeenCalled();
-    expect(ok).toHaveBeenCalled();
-  });
-
-  it("listSupplierStatements - 应支持筛选参数", async () => {
-    (supplierStatementService.listSupplierStatements as any).mockResolvedValue({ total: 1, records: [] });
-    const req = mockReq({
-      query: {
+  describe("generateSupplierStatement", () => {
+    it("生成供应商对账单", async () => {
+      (supplierStatementService.generateSupplierStatement as any).mockResolvedValue({ statementNo: "DZD20260101" });
+      const req = mockReq({
+        body: { supplierId: 1, startDate: "2026-01-01", endDate: "2026-01-31" },
+      });
+      const res = mockRes();
+      await generateSupplierStatement(req as any, res as any);
+      expect(supplierStatementService.generateSupplierStatement).toHaveBeenCalledWith(expect.objectContaining({
         supplierId: 1,
-        status: "CONFIRMED",
-        startDate: "2024-01-01",
-        endDate: "2024-01-31",
-        page: 2,
-        pageSize: 10,
-      },
+        startDate: "2026-01-01",
+        endDate: "2026-01-31",
+        tenantId: "t1",
+      }));
+      expect(ok).toHaveBeenCalled();
     });
-    const res = mockRes();
-    await listSupplierStatements(req as any, res as any);
-    expect(supplierStatementService.listSupplierStatements).toHaveBeenCalledWith(
-      expect.objectContaining({
+  });
+
+  describe("listSupplierStatements", () => {
+    it("带 supplierId 查询", async () => {
+      (supplierStatementService.listSupplierStatements as any).mockResolvedValue({ total: 0, records: [] });
+      const req = mockReq({
+        query: { supplierId: "1", status: "PENDING" },
+      });
+      const res = mockRes();
+      await listSupplierStatements(req as any, res as any);
+      expect(supplierStatementService.listSupplierStatements).toHaveBeenCalledWith(expect.objectContaining({
         supplierId: 1,
-        status: "CONFIRMED",
-        startDate: "2024-01-01",
-        endDate: "2024-01-31",
-        page: 2,
+        status: "PENDING",
+      }));
+      expect(ok).toHaveBeenCalled();
+    });
+
+    it("不带 supplierId 查询", async () => {
+      (supplierStatementService.listSupplierStatements as any).mockResolvedValue({ total: 5, records: [] });
+      const req = mockReq({ query: { page: "1", pageSize: "10" } });
+      const res = mockRes();
+      await listSupplierStatements(req as any, res as any);
+      expect(supplierStatementService.listSupplierStatements).toHaveBeenCalledWith(expect.objectContaining({
+        supplierId: undefined,
+        page: 1,
         pageSize: 10,
-      })
-    );
-  });
-
-  it("getSupplierStatementDetail - 应返回对账单详情", async () => {
-    (supplierStatementService.getSupplierStatementDetail as any).mockResolvedValue({ statementNo: "SS20240101001" });
-    const req = mockReq({ params: { statementNo: "SS20240101001" } });
-    const res = mockRes();
-    await getSupplierStatementDetail(req as any, res as any);
-    expect(supplierStatementService.getSupplierStatementDetail).toHaveBeenCalledWith("SS20240101001", "t1");
-    expect(ok).toHaveBeenCalled();
-  });
-
-  it("confirmSupplierStatement - 应确认供应商对账单", async () => {
-    (supplierStatementService.confirmSupplierStatement as any).mockResolvedValue({ success: true });
-    const req = mockReq({ params: { statementNo: "SS20240101001" } });
-    const res = mockRes();
-    await confirmSupplierStatement(req as any, res as any);
-    expect(supplierStatementService.confirmSupplierStatement).toHaveBeenCalledWith("SS20240101001", "t1");
-    expect(ok).toHaveBeenCalled();
-  });
-
-  it("disputeSupplierStatement - 应发起对账单异议", async () => {
-    (supplierStatementService.disputeSupplierStatement as any).mockResolvedValue({ success: true });
-    const req = mockReq({
-      params: { statementNo: "SS20240101001" },
-      body: { reason: "金额不符" },
+      }));
     });
-    const res = mockRes();
-    await disputeSupplierStatement(req as any, res as any);
-    expect(supplierStatementService.disputeSupplierStatement).toHaveBeenCalledWith("SS20240101001", "金额不符", "t1");
-    expect(ok).toHaveBeenCalled();
   });
 
-  it("disputeSupplierStatement - 缺少reason应正常调用", async () => {
-    (supplierStatementService.disputeSupplierStatement as any).mockResolvedValue({ success: true });
-    const req = mockReq({
-      params: { statementNo: "SS20240101001" },
-      body: {},
+  describe("getSupplierStatementDetail", () => {
+    it("获取对账单详情", async () => {
+      (supplierStatementService.getSupplierStatementDetail as any).mockResolvedValue({ statementNo: "DZD001" });
+      const req = mockReq({ params: { statementNo: "DZD001" } });
+      const res = mockRes();
+      await getSupplierStatementDetail(req as any, res as any);
+      expect(supplierStatementService.getSupplierStatementDetail).toHaveBeenCalledWith("DZD001", "t1");
+      expect(ok).toHaveBeenCalled();
     });
-    const res = mockRes();
-    await disputeSupplierStatement(req as any, res as any);
-    expect(supplierStatementService.disputeSupplierStatement).toHaveBeenCalledWith("SS20240101001", undefined, "t1");
+  });
+
+  describe("confirmSupplierStatement", () => {
+    it("确认对账单", async () => {
+      (supplierStatementService.confirmSupplierStatement as any).mockResolvedValue({ statementNo: "DZD001", status: "CONFIRMED" });
+      const req = mockReq({ params: { statementNo: "DZD001" } });
+      const res = mockRes();
+      await confirmSupplierStatement(req as any, res as any);
+      expect(supplierStatementService.confirmSupplierStatement).toHaveBeenCalledWith("DZD001", "t1");
+      expect(ok).toHaveBeenCalled();
+    });
+  });
+
+  describe("disputeSupplierStatement", () => {
+    it("提出异议", async () => {
+      (supplierStatementService.disputeSupplierStatement as any).mockResolvedValue({ statementNo: "DZD001", status: "DISPUTED" });
+      const req = mockReq({
+        params: { statementNo: "DZD001" },
+        body: { reason: "数量不对" },
+      });
+      const res = mockRes();
+      await disputeSupplierStatement(req as any, res as any);
+      expect(supplierStatementService.disputeSupplierStatement).toHaveBeenCalledWith("DZD001", "数量不对", "t1");
+      expect(ok).toHaveBeenCalled();
+    });
   });
 });

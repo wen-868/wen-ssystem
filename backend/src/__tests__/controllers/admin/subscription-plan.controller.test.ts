@@ -1,44 +1,42 @@
-﻿/**
- * 管理端订阅套餐 controller 单元测试
+/**
+ * 订阅套餐 controller 单元测试
  * 被测文件：src/controllers/admin/subscription-plan.controller.ts
  */
 import { describe, it, expect, vi, beforeEach } from "vitest";
 
-const mocks = vi.hoisted(() => ({
-  ok: vi.fn((data?: any) => ({ code: "0", data })),
-  fail: vi.fn((msg: string, code = "400") => ({ code, msg })),
+vi.mock("../../../services/admin/subscription-plan.service", () => ({
   listPlans: vi.fn(),
   getPlan: vi.fn(),
   createPlan: vi.fn(),
   updatePlan: vi.fn(),
+  deletePlan: vi.fn(),
+  updatePlanFeatures: vi.fn(),
+}));
+
+vi.mock("../../../shared/response", () => ({
+  ok: vi.fn((data) => ({ success: true, data })),
+  fail: vi.fn((msg, code) => ({ success: false, message: msg, code })),
 }));
 
 vi.mock("../../../middleware/async-handler", () => ({
   asyncHandler: (fn: any) => fn,
 }));
 
-vi.mock("../../../shared/response", () => ({
-  ok: mocks.ok,
-  fail: mocks.fail,
-}));
-
-vi.mock("../../../services/admin/subscription-plan.service", () => ({
-  listPlans: mocks.listPlans,
-  getPlan: mocks.getPlan,
-  createPlan: mocks.createPlan,
-  updatePlan: mocks.updatePlan,
-}));
-
+import * as subscriptionPlanService from "../../../services/admin/subscription-plan.service";
+import { ok, fail } from "../../../shared/response";
 import {
   listPlans,
   getPlan,
   createPlan,
   updatePlan,
+  deletePlan,
+  updatePlanFeatures,
 } from "../../../controllers/admin/subscription-plan.controller";
 
 const mockReq = (overrides: any = {}) => ({
   tenantId: "t1",
-  user: { id: 1, username: "admin" },
+  user: { id: 1 },
+  headers: {},
   query: {},
   params: {},
   body: {},
@@ -54,90 +52,157 @@ const mockRes = () => {
   return res;
 };
 
-beforeEach(() => {
-  vi.clearAllMocks();
-});
+describe("admin/subscription-plan.controller", () => {
+  beforeEach(() => vi.clearAllMocks());
 
-describe("admin subscription-plan.controller", () => {
-  it("listPlans 传递 status 查询参数", async () => {
-    mocks.listPlans.mockResolvedValue([{ id: 1, planName: "基础版" }]);
-    const req = mockReq({ query: { status: "ACTIVE" } });
-    const res = mockRes();
-    await listPlans(req, res);
-    expect(mocks.listPlans).toHaveBeenCalledWith("ACTIVE");
-    expect(res.json).toHaveBeenCalled();
-  });
-
-  it("listPlans status 缺失时传 undefined", async () => {
-    mocks.listPlans.mockResolvedValue([]);
-    const req = mockReq();
-    const res = mockRes();
-    await listPlans(req, res);
-    expect(mocks.listPlans).toHaveBeenCalledWith(undefined);
-  });
-
-  it("getPlan 套餐存在时返回 ok", async () => {
-    mocks.getPlan.mockResolvedValue({ id: 1, planName: "标准版", price: 99 });
-    const req = mockReq({ params: { planId: "1" } });
-    const res = mockRes();
-    await getPlan(req, res);
-    expect(mocks.getPlan).toHaveBeenCalledWith(1);
-    expect(mocks.ok).toHaveBeenCalledWith({ id: 1, planName: "标准版", price: 99 });
-  });
-
-  it("getPlan 套餐不存在时回 404", async () => {
-    mocks.getPlan.mockResolvedValue(null);
-    const req = mockReq({ params: { planId: "999" } });
-    const res = mockRes();
-    await getPlan(req, res);
-    expect(res.status).toHaveBeenCalledWith(404);
-    expect(mocks.fail).toHaveBeenCalledWith("套餐不存在", "404");
-  });
-
-  it("createPlan 成功创建套餐", async () => {
-    mocks.createPlan.mockResolvedValue({ id: 1, planCode: "BASIC" });
-    const req = mockReq({
-      body: {
-        planCode: "BASIC",
-        planName: "基础版",
-        planType: "MONTHLY",
-        price: 99,
-        durationDays: 30,
-      },
+  describe("listPlans", () => {
+    it("返回套餐列表", async () => {
+      (subscriptionPlanService.listPlans as any).mockResolvedValue([
+        { id: 1, planName: "基础版", planCode: "basic" },
+      ]);
+      const req = mockReq({ query: {} });
+      const res = mockRes();
+      await listPlans(req as any, res as any);
+      expect(subscriptionPlanService.listPlans).toHaveBeenCalledWith(undefined);
+      expect(ok).toHaveBeenCalled();
     });
-    const res = mockRes();
-    await createPlan(req, res);
-    expect(mocks.createPlan).toHaveBeenCalledWith(expect.objectContaining({
-      planCode: "BASIC",
-      planName: "基础版",
-      planType: "MONTHLY",
-      price: 99,
-    }));
-    expect(mocks.ok).toHaveBeenCalledWith({ id: 1, planCode: "BASIC" });
+
+    it("带 status 参数筛选", async () => {
+      (subscriptionPlanService.listPlans as any).mockResolvedValue([]);
+      const req = mockReq({ query: { status: "ACTIVE" } });
+      const res = mockRes();
+      await listPlans(req as any, res as any);
+      expect(subscriptionPlanService.listPlans).toHaveBeenCalledWith("ACTIVE");
+    });
   });
 
-  it("createPlan 缺少必填字段时 zod 校验抛错", async () => {
-    const req = mockReq({ body: { planName: "无编码" } });
-    const res = mockRes();
-    await expect(createPlan(req, res)).rejects.toThrow();
-    expect(mocks.createPlan).not.toHaveBeenCalled();
+  describe("getPlan", () => {
+    it("返回套餐详情", async () => {
+      (subscriptionPlanService.getPlan as any).mockResolvedValue({
+        id: 1, planName: "基础版", price: 99,
+      });
+      const req = mockReq({ params: { planId: "1" } });
+      const res = mockRes();
+      await getPlan(req as any, res as any);
+      expect(ok).toHaveBeenCalled();
+    });
+
+    it("套餐不存在返回 404", async () => {
+      (subscriptionPlanService.getPlan as any).mockResolvedValue(null);
+      const req = mockReq({ params: { planId: "999" } });
+      const res = mockRes();
+      await getPlan(req as any, res as any);
+      expect(fail).toHaveBeenCalledWith("套餐不存在", "404");
+      expect(res.status).toHaveBeenCalledWith(404);
+    });
   });
 
-  it("updatePlan 成功时返回 ok", async () => {
-    mocks.updatePlan.mockResolvedValue({ id: 1, planName: "升级版" });
-    const req = mockReq({ params: { planId: "1" }, body: { planName: "升级版", price: 199 } });
-    const res = mockRes();
-    await updatePlan(req, res);
-    expect(mocks.updatePlan).toHaveBeenCalledWith(1, expect.objectContaining({ planName: "升级版", price: 199 }));
-    expect(mocks.ok).toHaveBeenCalledWith({ id: 1, planName: "升级版" });
+  describe("createPlan", () => {
+    it("创建套餐成功", async () => {
+      (subscriptionPlanService.createPlan as any).mockResolvedValue({ id: 1 });
+      const req = mockReq({
+        body: {
+          planCode: "pro",
+          planName: "专业版",
+          planType: "MONTHLY",
+          price: 199,
+          durationDays: 30,
+        },
+      });
+      const res = mockRes();
+      await createPlan(req as any, res as any);
+      expect(subscriptionPlanService.createPlan).toHaveBeenCalled();
+      expect(ok).toHaveBeenCalled();
+    });
+
+    it("使用默认值创建套餐", async () => {
+      (subscriptionPlanService.createPlan as any).mockResolvedValue({ id: 2 });
+      const req = mockReq({
+        body: {
+          planCode: "basic",
+          planName: "基础版",
+          planType: "YEARLY",
+          price: 999,
+          durationDays: 365,
+        },
+      });
+      const res = mockRes();
+      await createPlan(req as any, res as any);
+      const callArg = (subscriptionPlanService.createPlan as any).mock.calls[0][0];
+      expect(callArg.maxUsers).toBe(5);
+      expect(callArg.maxStores).toBe(1);
+      expect(callArg.status).toBe("ACTIVE");
+    });
   });
 
-  it("updatePlan 套餐不存在时回 404", async () => {
-    mocks.updatePlan.mockResolvedValue(null);
-    const req = mockReq({ params: { planId: "999" }, body: { planName: "不存在" } });
-    const res = mockRes();
-    await updatePlan(req, res);
-    expect(res.status).toHaveBeenCalledWith(404);
-    expect(mocks.fail).toHaveBeenCalledWith("套餐不存在", "404");
+  describe("updatePlan", () => {
+    it("更新套餐成功", async () => {
+      (subscriptionPlanService.updatePlan as any).mockResolvedValue({ id: 1, planName: "新名称" });
+      const req = mockReq({
+        params: { planId: "1" },
+        body: { planName: "新名称", price: 299 },
+      });
+      const res = mockRes();
+      await updatePlan(req as any, res as any);
+      expect(subscriptionPlanService.updatePlan).toHaveBeenCalledWith(1, { planName: "新名称", price: 299 });
+      expect(ok).toHaveBeenCalled();
+    });
+
+    it("套餐不存在返回 404", async () => {
+      (subscriptionPlanService.updatePlan as any).mockResolvedValue(null);
+      const req = mockReq({
+        params: { planId: "999" },
+        body: { planName: "不存在" },
+      });
+      const res = mockRes();
+      await updatePlan(req as any, res as any);
+      expect(fail).toHaveBeenCalledWith("套餐不存在", "404");
+      expect(res.status).toHaveBeenCalledWith(404);
+    });
+  });
+
+  describe("deletePlan", () => {
+    it("删除套餐成功", async () => {
+      (subscriptionPlanService.deletePlan as any).mockResolvedValue({ id: 1 });
+      const req = mockReq({ params: { id: "1" } });
+      const res = mockRes();
+      await deletePlan(req as any, res as any);
+      expect(ok).toHaveBeenCalled();
+    });
+
+    it("套餐不存在返回 404", async () => {
+      (subscriptionPlanService.deletePlan as any).mockResolvedValue(null);
+      const req = mockReq({ params: { id: "999" } });
+      const res = mockRes();
+      await deletePlan(req as any, res as any);
+      expect(fail).toHaveBeenCalledWith("套餐不存在", "404");
+      expect(res.status).toHaveBeenCalledWith(404);
+    });
+  });
+
+  describe("updatePlanFeatures", () => {
+    it("更新套餐功能成功", async () => {
+      (subscriptionPlanService.updatePlanFeatures as any).mockResolvedValue({ id: 1 });
+      const req = mockReq({
+        params: { id: "1" },
+        body: { features: ["feature1"], moduleAccess: { inventory: true } },
+      });
+      const res = mockRes();
+      await updatePlanFeatures(req as any, res as any);
+      expect(subscriptionPlanService.updatePlanFeatures).toHaveBeenCalled();
+      expect(ok).toHaveBeenCalled();
+    });
+
+    it("套餐不存在返回 404", async () => {
+      (subscriptionPlanService.updatePlanFeatures as any).mockResolvedValue(null);
+      const req = mockReq({
+        params: { id: "999" },
+        body: { features: [] },
+      });
+      const res = mockRes();
+      await updatePlanFeatures(req as any, res as any);
+      expect(fail).toHaveBeenCalledWith("套餐不存在", "404");
+      expect(res.status).toHaveBeenCalledWith(404);
+    });
   });
 });

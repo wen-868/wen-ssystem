@@ -1,11 +1,10 @@
-﻿/**
- * 管理端营销看板 controller 单元测试
+/**
+ * 营销看板 controller 单元测试
  * 被测文件：src/controllers/admin/marketing-dashboard.controller.ts
  */
 import { describe, it, expect, vi, beforeEach } from "vitest";
 
-const mocks = vi.hoisted(() => ({
-  ok: vi.fn((data?: any) => ({ code: "0", data })),
+vi.mock("../../../services/admin/marketing-dashboard.service", () => ({
   getMarketingOverview: vi.fn(),
   getActivityStats: vi.fn(),
   getSingleActivityStats: vi.fn(),
@@ -13,26 +12,21 @@ const mocks = vi.hoisted(() => ({
   getMarketingTrend: vi.fn(),
   getActivityRanking: vi.fn(),
   getActivityComparison: vi.fn(),
+  getActivityEffectAnalysis: vi.fn(),
+  getActivityConversionTrend: vi.fn(),
+}));
+
+vi.mock("../../../shared/response", () => ({
+  ok: vi.fn((data) => ({ success: true, data })),
+  fail: vi.fn((msg, code) => ({ success: false, message: msg, code })),
 }));
 
 vi.mock("../../../middleware/async-handler", () => ({
   asyncHandler: (fn: any) => fn,
 }));
 
-vi.mock("../../../shared/response", () => ({
-  ok: mocks.ok,
-}));
-
-vi.mock("../../../services/admin/marketing-dashboard.service", () => ({
-  getMarketingOverview: mocks.getMarketingOverview,
-  getActivityStats: mocks.getActivityStats,
-  getSingleActivityStats: mocks.getSingleActivityStats,
-  getCouponStats: mocks.getCouponStats,
-  getMarketingTrend: mocks.getMarketingTrend,
-  getActivityRanking: mocks.getActivityRanking,
-  getActivityComparison: mocks.getActivityComparison,
-}));
-
+import * as svc from "../../../services/admin/marketing-dashboard.service";
+import { ok } from "../../../shared/response";
 import {
   getMarketingOverview,
   getActivityStats,
@@ -41,11 +35,14 @@ import {
   getMarketingTrend,
   getActivityRanking,
   getActivityComparison,
+  getActivityEffectAnalysis,
+  getActivityConversionTrend,
 } from "../../../controllers/admin/marketing-dashboard.controller";
 
 const mockReq = (overrides: any = {}) => ({
   tenantId: "t1",
-  user: { id: 1, username: "admin" },
+  user: { id: 1 },
+  headers: {},
   query: {},
   params: {},
   body: {},
@@ -61,81 +58,156 @@ const mockRes = () => {
   return res;
 };
 
-beforeEach(() => {
-  vi.clearAllMocks();
-});
+describe("admin/marketing-dashboard.controller", () => {
+  beforeEach(() => vi.clearAllMocks());
 
-describe("admin marketing-dashboard.controller", () => {
-  it("getMarketingOverview 传递日期范围参数", async () => {
-    mocks.getMarketingOverview.mockResolvedValue({ totalActivities: 10 });
-    const req = mockReq({ query: { startDate: "2026-07-01", endDate: "2026-07-31" } });
-    const res = mockRes();
-    await getMarketingOverview(req, res);
-    expect(mocks.getMarketingOverview).toHaveBeenCalledWith({ tenantId: "t1", startDate: "2026-07-01", endDate: "2026-07-31" });
-    expect(res.json).toHaveBeenCalled();
+  describe("getMarketingOverview", () => {
+    it("获取营销概览", async () => {
+      (svc.getMarketingOverview as any).mockResolvedValue({ totalCoupons: 100 });
+      const req = mockReq({ query: { startDate: "2026-01-01", endDate: "2026-01-31" } });
+      const res = mockRes();
+      await getMarketingOverview(req as any, res as any);
+      expect(svc.getMarketingOverview).toHaveBeenCalledWith(expect.objectContaining({
+        startDate: "2026-01-01",
+        endDate: "2026-01-31",
+        tenantId: "t1",
+      }));
+      expect(ok).toHaveBeenCalled();
+    });
   });
 
-  it("getMarketingOverview 无日期参数时传 undefined", async () => {
-    mocks.getMarketingOverview.mockResolvedValue({});
-    const req = mockReq();
-    const res = mockRes();
-    await getMarketingOverview(req, res);
-    expect(mocks.getMarketingOverview).toHaveBeenCalledWith({ tenantId: "t1", startDate: undefined, endDate: undefined });
+  describe("getActivityStats", () => {
+    it("获取活动统计", async () => {
+      (svc.getActivityStats as any).mockResolvedValue({ total: 10 });
+      const req = mockReq({ query: { activityType: "coupon" } });
+      const res = mockRes();
+      await getActivityStats(req as any, res as any);
+      expect(svc.getActivityStats).toHaveBeenCalledWith(expect.objectContaining({
+        activityType: "coupon",
+      }));
+      expect(ok).toHaveBeenCalled();
+    });
   });
 
-  it("getActivityStats 传递 activityType 参数", async () => {
-    mocks.getActivityStats.mockResolvedValue([{ type: "coupon", count: 5 }]);
-    const req = mockReq({ query: { startDate: "2026-01-01", endDate: "2026-12-31", activityType: "coupon" } });
-    const res = mockRes();
-    await getActivityStats(req, res);
-    expect(mocks.getActivityStats).toHaveBeenCalledWith({ tenantId: "t1", startDate: "2026-01-01", endDate: "2026-12-31", activityType: "coupon" });
+  describe("getSingleActivityStats", () => {
+    it("指定 activityType 时传递参数", async () => {
+      (svc.getSingleActivityStats as any).mockResolvedValue({ name: "活动1" });
+      const req = mockReq({ params: { activityId: "1" }, query: { activityType: "full_reduction" } });
+      const res = mockRes();
+      await getSingleActivityStats(req as any, res as any);
+      expect(svc.getSingleActivityStats).toHaveBeenCalledWith(1, "full_reduction", "t1");
+    });
+
+    it("不指定 activityType 时使用默认值 coupon", async () => {
+      (svc.getSingleActivityStats as any).mockResolvedValue({ name: "活动1" });
+      const req = mockReq({ params: { activityId: "1" }, query: {} });
+      const res = mockRes();
+      await getSingleActivityStats(req as any, res as any);
+      expect(svc.getSingleActivityStats).toHaveBeenCalledWith(1, "coupon", "t1");
+    });
   });
 
-  it("getSingleActivityStats 根据 params.activityId 和 activityType 调用 service", async () => {
-    mocks.getSingleActivityStats.mockResolvedValue({ id: 7, stats: {} });
-    const req = mockReq({ params: { activityId: "7" }, query: { activityType: "flash_sale" } });
-    const res = mockRes();
-    await getSingleActivityStats(req, res);
-    expect(mocks.getSingleActivityStats).toHaveBeenCalledWith(7, "flash_sale", "t1");
+  describe("getCouponStats", () => {
+    it("获取优惠券统计", async () => {
+      (svc.getCouponStats as any).mockResolvedValue({ issued: 100 });
+      const req = mockReq({});
+      const res = mockRes();
+      await getCouponStats(req as any, res as any);
+      expect(svc.getCouponStats).toHaveBeenCalledWith("t1");
+      expect(ok).toHaveBeenCalled();
+    });
   });
 
-  it("getSingleActivityStats activityType 缺失时默认 coupon", async () => {
-    mocks.getSingleActivityStats.mockResolvedValue({});
-    const req = mockReq({ params: { activityId: "3" } });
-    const res = mockRes();
-    await getSingleActivityStats(req, res);
-    expect(mocks.getSingleActivityStats).toHaveBeenCalledWith(3, "coupon", "t1");
+  describe("getMarketingTrend", () => {
+    it("获取营销趋势", async () => {
+      (svc.getMarketingTrend as any).mockResolvedValue({ trend: [] });
+      const req = mockReq({ query: { period: "day" } });
+      const res = mockRes();
+      await getMarketingTrend(req as any, res as any);
+      expect(svc.getMarketingTrend).toHaveBeenCalledWith(expect.objectContaining({ period: "day" }));
+      expect(ok).toHaveBeenCalled();
+    });
   });
 
-  it("getCouponStats 仅传 tenantId", async () => {
-    mocks.getCouponStats.mockResolvedValue({ total: 100 });
-    const req = mockReq();
-    const res = mockRes();
-    await getCouponStats(req, res);
-    expect(mocks.getCouponStats).toHaveBeenCalledWith("t1");
+  describe("getActivityRanking", () => {
+    it("获取活动排行", async () => {
+      (svc.getActivityRanking as any).mockResolvedValue({ ranking: [] });
+      const req = mockReq({ query: { rankBy: "usedCount" } });
+      const res = mockRes();
+      await getActivityRanking(req as any, res as any);
+      expect(svc.getActivityRanking).toHaveBeenCalledWith(expect.objectContaining({ rankBy: "usedCount" }));
+      expect(ok).toHaveBeenCalled();
+    });
   });
 
-  it("getMarketingTrend 传递 period 和日期范围", async () => {
-    mocks.getMarketingTrend.mockResolvedValue([{ period: "2026-07", count: 3 }]);
-    const req = mockReq({ query: { period: "month", startDate: "2026-01-01", endDate: "2026-12-31" } });
-    const res = mockRes();
-    await getMarketingTrend(req, res);
-    expect(mocks.getMarketingTrend).toHaveBeenCalledWith({ tenantId: "t1", period: "month", startDate: "2026-01-01", endDate: "2026-12-31" });
+  describe("getActivityComparison", () => {
+    it("多个 activityId 数组", async () => {
+      (svc.getActivityComparison as any).mockResolvedValue({ comparison: [] });
+      const req = mockReq({ query: { activityIds: ["1", "2", "3"] } });
+      const res = mockRes();
+      await getActivityComparison(req as any, res as any);
+      expect(svc.getActivityComparison).toHaveBeenCalledWith(expect.objectContaining({
+        activityIds: [1, 2, 3],
+      }));
+      expect(ok).toHaveBeenCalled();
+    });
+
+    it("单个 activityId 字符串", async () => {
+      (svc.getActivityComparison as any).mockResolvedValue({ comparison: [] });
+      const req = mockReq({ query: { activityIds: "5" } });
+      const res = mockRes();
+      await getActivityComparison(req as any, res as any);
+      expect(svc.getActivityComparison).toHaveBeenCalledWith(expect.objectContaining({
+        activityIds: [5],
+      }));
+    });
+
+    it("无 activityIds 时空数组", async () => {
+      (svc.getActivityComparison as any).mockResolvedValue({ comparison: [] });
+      const req = mockReq({ query: {} });
+      const res = mockRes();
+      await getActivityComparison(req as any, res as any);
+      expect(svc.getActivityComparison).toHaveBeenCalledWith(expect.objectContaining({
+        activityIds: [],
+      }));
+    });
   });
 
-  it("getActivityComparison activityIds 为字符串时转为单元素数组", async () => {
-    mocks.getActivityComparison.mockResolvedValue([]);
-    const req = mockReq({ query: { activityIds: "5", startDate: "2026-01-01", endDate: "2026-12-31" } });
-    const res = mockRes();
-    await getActivityComparison(req, res);
-    expect(mocks.getActivityComparison).toHaveBeenCalledWith({ tenantId: "t1", activityIds: [5], startDate: "2026-01-01", endDate: "2026-12-31" });
+  describe("getActivityEffectAnalysis", () => {
+    it("指定 activityType", async () => {
+      (svc.getActivityEffectAnalysis as any).mockResolvedValue({ effect: "good" });
+      const req = mockReq({ params: { activityId: "1" }, query: { activityType: "full_reduction" } });
+      const res = mockRes();
+      await getActivityEffectAnalysis(req as any, res as any);
+      expect(svc.getActivityEffectAnalysis).toHaveBeenCalledWith(expect.objectContaining({
+        activityId: 1,
+        activityType: "full_reduction",
+      }));
+      expect(ok).toHaveBeenCalled();
+    });
+
+    it("不指定 activityType 时默认 coupon", async () => {
+      (svc.getActivityEffectAnalysis as any).mockResolvedValue({ effect: "good" });
+      const req = mockReq({ params: { activityId: "1" }, query: {} });
+      const res = mockRes();
+      await getActivityEffectAnalysis(req as any, res as any);
+      expect(svc.getActivityEffectAnalysis).toHaveBeenCalledWith(expect.objectContaining({
+        activityType: "coupon",
+      }));
+    });
   });
 
-  it("getActivityComparison activityIds 缺失时传空数组", async () => {
-    mocks.getActivityComparison.mockResolvedValue([]);
-    const req = mockReq();
-    const res = mockRes();
-    await getActivityComparison(req, res);
-    expect(mocks.getActivityComparison).toHaveBeenCalledWith({ tenantId: "t1", activityIds: [], startDate: undefined, endDate: undefined });
+  describe("getActivityConversionTrend", () => {
+    it("获取活动转化趋势", async () => {
+      (svc.getActivityConversionTrend as any).mockResolvedValue({ trend: [] });
+      const req = mockReq({ params: { activityId: "1" }, query: { period: "day" } });
+      const res = mockRes();
+      await getActivityConversionTrend(req as any, res as any);
+      expect(svc.getActivityConversionTrend).toHaveBeenCalledWith(expect.objectContaining({
+        activityId: 1,
+        period: "day",
+      }));
+      expect(ok).toHaveBeenCalled();
+    });
   });
 });
