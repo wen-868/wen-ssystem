@@ -1,0 +1,90 @@
+@import './variables.scss';
+
+page {
+  background-color: $bg-secondary;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+  font-size: $font-size-base;
+  color: $text-primary;
+  line-height: $line-height-base;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+.container {
+  padding: $spacing-md;
+  box-sizing: border-box;
+}
+
+.flex {
+  display: flex;
+}
+
+.flex-col {
+  flex-direction: column;
+}
+
+.items-center {
+  align-items: center;
+}
+
+.justify-center {
+  justify-content: center;
+}
+
+.justify-between {
+  justify-content: space-between;
+}
+
+.flex-1 {
+  flex: 1;
+}
+
+.text-primary {
+  color: $primary-color;
+}
+
+.text-secondary {
+  color: $text-secondary;
+}
+
+.text-tertiary {
+  color: $text-tertiary;
+}
+
+.bg-white {
+  background-color: $bg-primary;
+}
+
+.bg-gray {
+  background-color: $bg-secondary;
+}
+
+.radius-md {
+  border-radius: $radius-md;
+}
+
+.radius-lg {
+  border-radius: $radius-lg;
+}
+
+.shadow-md {
+  box-shadow: $shadow-md;
+}
+
+.ellipsis {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.ellipsis-2 {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+}
+
+.safe-bottom {
+  padding-bottom: env(safe-area-inset-bottom);
+}

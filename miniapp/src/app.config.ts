@@ -1,0 +1,18 @@
+﻿export default {
+  pages: [
+    'pages/index/index',
+    'pages/category/index',
+    'pages/cart/index',
+    'pages/profile/index',
+    'pages/product/index'
+  ],
+  window: {
+    backgroundTextStyle: 'dark',
+    navigationBarBackgroundColor: '#ffffff',
+    navigationBarTitleText: '智享全链',
+    navigationBarTextStyle: 'black',
+    backgroundColor: '#f5f5f5'
+  },
+  style: 'v2',
+  sitemapLocation: 'sitemap.json'
+}

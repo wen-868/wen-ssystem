@@ -1,0 +1,45 @@
+{
+  "name": "miniapp",
+  "version": "0.1.0",
+  "private": true,
+  "scripts": {
+    "dev:weapp": "taro build --type weapp --watch",
+    "build:weapp": "taro build --type weapp",
+    "dev:h5": "taro build --type h5 --watch",
+    "build:h5": "taro build --type h5",
+    "lint": "eslint src/",
+    "lint:fix": "eslint src/ --fix",
+    "type-check": "tsc --noEmit"
+  },
+  "dependencies": {
+    "@tarojs/components": "3.6.20",
+    "@tarojs/router": "3.6.20",
+    "@tarojs/runtime": "3.6.20",
+    "@tarojs/taro": "3.6.20",
+    "axios": "^1.7.2",
+    "pinia": "^2.1.7",
+    "vant": "^4.8.12",
+    "vue": "^3.3.13"
+  },
+  "devDependencies": {
+    "@tarojs/cli": "3.6.20",
+    "@tarojs/helper": "3.6.20",
+    "@tarojs/plugin-framework-vue3": "3.6.20",
+    "@tarojs/plugin-html": "3.6.20",
+    "@tarojs/plugin-platform-weapp": "3.6.20",
+    "@tarojs/webpack5-runner": "3.6.20",
+    "@types/node": "^20.14.0",
+    "@typescript-eslint/eslint-plugin": "^7.0.0",
+    "@typescript-eslint/parser": "^7.0.0",
+    "@vue/compiler-sfc": "^3.5.39",
+    "babel-plugin-transform-taroapi": "3.6.20",
+    "babel-preset-taro": "^3.6.20",
+    "eslint": "^8.57.0",
+    "eslint-plugin-vue": "^9.0.0",
+    "sass": "^1.77.0",
+    "typescript": "^5.5.3",
+    "vue-loader": "^17.4.2",
+    "vue-tsc": "^2.0.26",
+    "webpack": "^5.92.0"
+  }
+}
