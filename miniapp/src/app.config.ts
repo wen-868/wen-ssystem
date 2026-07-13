@@ -16,7 +16,12 @@ export default {
     'pages/setting/index',
     'pages/setting/profile-edit',
     'pages/setting/password',
-    'pages/about/index'
+    'pages/about/index',
+    'pages/wholesale/index',
+    'pages/wholesale/product/index',
+    'pages/wholesale/cart/index',
+    'pages/wholesale/order-list/index',
+    'pages/wholesale/order-detail/index'
   ],
   window: {
     backgroundTextStyle: 'dark',
