@@ -363,3 +363,42 @@ export async function reportFrontendError(payload: {
     // 上报失败静默，不触发二次错误
   }
 }
+
+// ==================== Coupon (优惠券) APIs ====================
+export async function verifyCoupon(code: string) {
+  const { data } = await api.post("/store/coupons/verify", { code });
+  return data.data;
+}
+
+export async function manualVerifyCoupon(payload: { couponCode: string; saleBillNo?: string }) {
+  const { data } = await api.post("/store/coupons/manual-verify", payload);
+  return data.data;
+}
+
+export async function fetchStoreCoupons(params?: { page?: number; pageSize?: number; status?: string }) {
+  const { data } = await api.get("/store/coupons", { params: { page: 1, pageSize: 20, ...params } });
+  return data.data;
+}
+
+export async function fetchCouponDetail(couponId: number) {
+  const { data } = await api.get(`/store/coupons/${couponId}`);
+  return data.data;
+}
+
+// ==================== Operation Log (操作记录) APIs ====================
+export async function fetchOperationLogs(params?: {
+  page?: number;
+  pageSize?: number;
+  startTime?: string;
+  endTime?: string;
+  operatorName?: string;
+  actionType?: string;
+}) {
+  const { data } = await api.get("/store/operation-logs", { params: { page: 1, pageSize: 30, ...params } });
+  return data.data;
+}
+
+export async function fetchOperationLogDetail(logId: number) {
+  const { data } = await api.get(`/store/operation-logs/${logId}`);
+  return data.data;
+}

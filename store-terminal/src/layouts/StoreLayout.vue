@@ -53,13 +53,15 @@ import { fetchStoreControlStatus } from "../api";
 const route = useRoute();
 const router = useRouter();
 
-const nav = ["工作台", "快速收银", "销售单", "会员识别", "销售退货", "接单履约", "库存查询", "调拨", "盘点", "交接班", "分享收款", "日结", "门店管控"];
+const nav = ["工作台", "快速收银", "销售单", "会员识别", "优惠券核销", "挂单管理", "销售退货", "接单履约", "库存查询", "调拨", "盘点", "交接班", "分享收款", "日结", "门店管控", "操作记录"];
 
 const navToPathMap: Record<string, string> = {
   "工作台": "/dashboard",
   "快速收银": "/cashier",
   "销售单": "/sale-bills",
   "会员识别": "/member",
+  "优惠券核销": "/coupon-verify",
+  "挂单管理": "/hold-order",
   "销售退货": "/sale-return",
   "接单履约": "/order-fulfill",
   "库存查询": "/inventory",
@@ -68,7 +70,8 @@ const navToPathMap: Record<string, string> = {
   "交接班": "/shift",
   "分享收款": "/collection",
   "日结": "/daily-settle",
-  "门店管控": "/store-control"
+  "门店管控": "/store-control",
+  "操作记录": "/operation-log"
 };
 
 const storeNavDescriptions: Record<string, string> = {
@@ -76,6 +79,8 @@ const storeNavDescriptions: Record<string, string> = {
   快速收银: "搜索商品和客户，创建销售单并线下收款。",
   销售单: "查看销售单、详情和分享收款。",
   会员识别: "扫码或搜索识别会员，查看会员信息和积分。",
+  优惠券核销: "扫码或手工核销优惠券，查看核销历史记录。",
+  挂单管理: "查看挂单列表、取单继续结算、删除挂单。",
   销售退货: "创建退货单、查看退货列表、审核退货。",
   接单履约: "处理小程序订单接单和完成。",
   库存查询: "查看库存、调整库存和库存流水。",
@@ -84,7 +89,8 @@ const storeNavDescriptions: Record<string, string> = {
   交接班: "查看交接班记录、新建交接班、完成交接班。",
   分享收款: "查看分享收款、支付和退款记录。",
   日结: "选择日期范围进行日结对账，打印日结单。",
-  门店管控: "查看门店当前状态、管控配置和状态变更日志。"
+  门店管控: "查看门店当前状态、管控配置和状态变更日志。",
+  操作记录: "查询门店操作日志，查看操作详情和请求参数。"
 };
 
 const activeNav = computed(() => {

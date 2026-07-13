@@ -122,16 +122,33 @@
 
 ### R28-A5 — store-terminal P1级页面补全 [P1]
 
-- **状态**：待开始
+- **状态**：✅ 已完成
 - **优先级**：P1
 - **负责人**：阿澈
 - **预计**：1 天
+- **完成时间**：2026-07-13
 - **需求来源**：R25 缺失页面清单与补全计划第二阶段
 - **需求**：
   1. 优惠券核销（扫码核销、手工核销）
   2. 挂单管理（挂单列表、取单操作）
   3. 操作记录（操作日志查询）
-- **验收标准**：eslint src/ 0 错误，npm run build 构建成功
+- **完成内容**：
+  1. **优惠券核销**：`CouponVerifyView.vue` 页面，扫码核销区域（扫码枪扫描+确认核销）、手工核销表单（优惠券码+关联销售单）、核销结果展示、核销历史记录列表
+  2. **挂单管理**：`HoldOrderView.vue` 页面，挂单卡片列表（单号、客户名、商品数、金额、时间）、取单操作、删除挂单、挂单详情弹窗（商品明细）
+  3. **操作记录**：`OperationLogView.vue` 页面，日期范围筛选、操作员筛选、操作类型筛选、操作记录列表（操作类型、内容、关联单号、操作员、IP、时间）、分页、操作详情弹窗（请求参数+响应结果）
+  4. **API 新增**：api.ts 中新增 6 个 API 函数（verifyCoupon、manualVerifyCoupon、fetchStoreCoupons、fetchCouponDetail、fetchOperationLogs、fetchOperationLogDetail）
+  5. **路由注册**：router/index.ts 注册 /coupon-verify、/hold-order、/operation-log 三条路由
+  6. **导航配置**：StoreLayout.vue 侧边栏新增优惠券核销、挂单管理、操作记录三个导航项
+- **验证结果**：
+  - ✅ eslint src/：0 错误（4 个 console 警告，为原有代码）
+  - ✅ npm run build：构建成功（16.64s）
+- **修改文件**：
+  - `store-terminal/src/api.ts` — 新增 API 函数
+  - `store-terminal/src/views/CouponVerifyView.vue` — 新建，优惠券核销
+  - `store-terminal/src/views/HoldOrderView.vue` — 新建，挂单管理
+  - `store-terminal/src/views/OperationLogView.vue` — 新建，操作记录
+  - `store-terminal/src/router/index.ts` — 新增路由
+  - `store-terminal/src/layouts/StoreLayout.vue` — 新增导航
 
 ### R28-A6 — 后端API补全（配合前端）[P1]
 

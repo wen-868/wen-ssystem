@@ -95,6 +95,24 @@ const routes: RouteRecordRaw[] = [
         name: "SaleReturn",
         component: () => import("../views/SaleReturnView.vue"),
         meta: { title: "销售退货", nav: "销售退货" }
+      },
+      {
+        path: "coupon-verify",
+        name: "CouponVerify",
+        component: () => import("../views/CouponVerifyView.vue"),
+        meta: { title: "优惠券核销", nav: "优惠券核销" }
+      },
+      {
+        path: "hold-order",
+        name: "HoldOrder",
+        component: () => import("../views/HoldOrderView.vue"),
+        meta: { title: "挂单管理", nav: "挂单管理" }
+      },
+      {
+        path: "operation-log",
+        name: "OperationLog",
+        component: () => import("../views/OperationLogView.vue"),
+        meta: { title: "操作记录", nav: "操作记录" }
       }
     ]
   }
