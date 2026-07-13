@@ -20,6 +20,8 @@ import {
   getMarketingTrend,
   getActivityRanking,
   getActivityComparison,
+  getActivityEffectAnalysis,
+  getActivityConversionTrend,
 } from "../../../services/admin/marketing-dashboard.service";
 
 const tenantId = "t1";
@@ -167,5 +169,103 @@ describe("admin marketing-dashboard.service - getActivityComparison", () => {
   it("返回空数组", async () => {
     const res = await getActivityComparison({ tenantId });
     expect(res).toEqual([]);
+  });
+});
+
+describe("admin marketing-dashboard.service - getActivityEffectAnalysis", () => {
+  it("正常返回效果分析数据", async () => {
+    mocks.queryOneWithTenant
+      .mockResolvedValueOnce({ totalUsers: 100, uniqueUsers: 80, usedCount: 30 })
+      .mockResolvedValueOnce({ orderCount: 20, totalOrderAmount: 2000, totalDiscountAmount: 200 });
+    const res = await getActivityEffectAnalysis({ tenantId, activityId: 1, activityType: "COUPON" });
+    expect(res.activityId).toBe(1);
+    expect(res.totalUsers).toBe(100);
+    expect(res.usedRate).toBe(30);
+    expect(res.conversionRate).toBe(66.67);
+  });
+
+  it("totalUsers 为 0 时 usedRate 为 0", async () => {
+    mocks.queryOneWithTenant
+      .mockResolvedValueOnce({ totalUsers: 0, uniqueUsers: 0, usedCount: 0 })
+      .mockResolvedValueOnce({ orderCount: 0, totalOrderAmount: 0, totalDiscountAmount: 0 });
+    const res = await getActivityEffectAnalysis({ tenantId, activityId: 1, activityType: "COUPON" });
+    expect(res.usedRate).toBe(0);
+    expect(res.conversionRate).toBe(0);
+  });
+
+  it("usedCount 为 0 时 conversionRate 为 0", async () => {
+    mocks.queryOneWithTenant
+      .mockResolvedValueOnce({ totalUsers: 100, uniqueUsers: 50, usedCount: 0 })
+      .mockResolvedValueOnce({ orderCount: 0, totalOrderAmount: 0, totalDiscountAmount: 0 });
+    const res = await getActivityEffectAnalysis({ tenantId, activityId: 1, activityType: "COUPON" });
+    expect(res.conversionRate).toBe(0);
+  });
+
+  it("orderCount 为 0 时 avgOrderAmount 为 0", async () => {
+    mocks.queryOneWithTenant
+      .mockResolvedValueOnce({ totalUsers: 100, uniqueUsers: 50, usedCount: 10 })
+      .mockResolvedValueOnce({ orderCount: 0, totalOrderAmount: 0, totalDiscountAmount: 50 });
+    const res = await getActivityEffectAnalysis({ tenantId, activityId: 1, activityType: "COUPON" });
+    expect(res.avgOrderAmount).toBe(0);
+    expect(res.roi).toBe(0);
+  });
+
+  it("stats 为 null", async () => {
+    mocks.queryOneWithTenant
+      .mockResolvedValueOnce(null)
+      .mockResolvedValueOnce(null);
+    const res = await getActivityEffectAnalysis({ tenantId, activityId: 1, activityType: "COUPON" });
+    expect(res.totalUsers).toBe(0);
+    expect(res.orderCount).toBe(0);
+  });
+
+  it("带日期筛选", async () => {
+    mocks.queryOneWithTenant
+      .mockResolvedValueOnce({ totalUsers: 50, uniqueUsers: 40, usedCount: 15 })
+      .mockResolvedValueOnce({ orderCount: 10, totalOrderAmount: 1000, totalDiscountAmount: 100 });
+    const res = await getActivityEffectAnalysis({ tenantId, activityId: 1, activityType: "COUPON", startDate: "2026-01-01", endDate: "2026-12-31" });
+    expect(res.totalUsers).toBe(50);
+  });
+});
+
+describe("admin marketing-dashboard.service - getActivityConversionTrend", () => {
+  it("period = month", async () => {
+    mocks.queryWithTenant.mockResolvedValueOnce([
+      { period: "2026-01", issuedCount: 100, usedCount: 30, uniqueUsers: 25 }
+    ]);
+    const res = await getActivityConversionTrend({ tenantId, activityId: 1, period: "month" });
+    expect(res).toHaveLength(1);
+    expect(res[0].usedRate).toBe(30);
+  });
+
+  it("period = week", async () => {
+    mocks.queryWithTenant.mockResolvedValueOnce([
+      { period: "2026-01", issuedCount: 50, usedCount: 20, uniqueUsers: 15 }
+    ]);
+    const res = await getActivityConversionTrend({ tenantId, activityId: 1, period: "week" });
+    expect(res).toHaveLength(1);
+  });
+
+  it("period = day（默认）", async () => {
+    mocks.queryWithTenant.mockResolvedValueOnce([
+      { period: "2026-01-01", issuedCount: 20, usedCount: 5, uniqueUsers: 5 }
+    ]);
+    const res = await getActivityConversionTrend({ tenantId, activityId: 1 });
+    expect(res).toHaveLength(1);
+    expect(res[0].usedRate).toBe(25);
+  });
+
+  it("返回空数组", async () => {
+    mocks.queryWithTenant.mockResolvedValueOnce([]);
+    const res = await getActivityConversionTrend({ tenantId, activityId: 1 });
+    expect(res).toEqual([]);
+  });
+
+  it("issuedCount 为 0 时 usedRate 为 0", async () => {
+    mocks.queryWithTenant.mockResolvedValueOnce([
+      { period: "2026-01-01", issuedCount: 0, usedCount: 0, uniqueUsers: 0 }
+    ]);
+    const res = await getActivityConversionTrend({ tenantId, activityId: 1 });
+    expect(res[0].usedRate).toBe(0);
   });
 });

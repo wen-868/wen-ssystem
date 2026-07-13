@@ -242,6 +242,34 @@
 - **问题**：分支覆盖率未达标，需阿坚补充测试用例
 - **测试报告**：`docs/reports/test-report-r28-2026-07-13.md`
 
+### R28-A8 — 分支覆盖率修复（88.78%→90%）[P0]
+
+- **状态**：✅ 已完成
+- **优先级**：P0
+- **负责人**：阿坚
+- **预计**：0.5 天
+- **完成时间**：2026-07-13
+- **需求来源**：R28-A7 测试发现分支覆盖率未达标
+- **需求**：补充 R28 新增 API 的测试用例，将分支覆盖率提升至 ≥ 90%
+- **完成内容**：
+  1. **新增测试文件**：
+     - `platform-manage.controller.test.ts` — 6 个测试用例（listConfigs/updateConfig/listAnnouncements/createAnnouncement）
+     - `dashboard.controller.test.ts` — 3 个测试用例（getDashboard/getTenantStats/getRevenueStats）
+     - `platform-auth.controller.test.ts` — 14 个测试用例（platformLogin/getPlatformMe/createPlatformAdmin 各分支）
+  2. **修复测试响应格式**：将测试中 `ok()` 函数的响应断言从 `{ code: 200, message }` 更新为实际格式 `{ code: "0", msg: "成功" }`
+- **验证结果**：
+  - ✅ vitest run：0 失败
+  - ✅ 分支覆盖率：90.39%（≥ 90% 达标）
+  - ✅ tsc --noEmit --strict：0 错误
+- **修改文件**：
+  - `backend/src/__tests__/controllers/platform/platform-manage.controller.test.ts`（新增）
+  - `backend/src/__tests__/controllers/platform/dashboard.controller.test.ts`（新增）
+  - `backend/src/__tests__/controllers/platform/platform-auth.controller.test.ts`（新增）
+- **验收标准**：
+  - vitest run 0 失败
+  - 分支覆盖率 ≥ 90%
+  - tsc --noEmit --strict 0 错误
+
 ---
 
 ## R27 任务列表
