@@ -187,6 +187,44 @@
   - BUG-R30-01 [P0]：R30-A6 新增的小程序 22 个 API（controller + service）完全没有单元测试，导致分支覆盖率从 90%+ 降至 86.51%。现有 miniapp.controller.test.ts 测试的是 admin 旧版控制器，不是 C 端小程序控制器
 - **测试报告**：`docs/reports/test-report-r30-2026-07-14.md`
 
+### R30-A8 — 分支覆盖率修复（86.51%→91.1%）[P0]
+
+- **状态**：✅ 已完成
+- **优先级**：P0
+- **负责人**：阿坚
+- **预计**：1 天
+- **完成时间**：2026-07-14
+- **需求来源**：R30-A7 测试发现分支覆盖率未达标
+- **需求**：补充小程序相关 API 的测试用例，将分支覆盖率提升至 ≥ 90%
+- **需补充测试的文件**：
+  - `controllers/miniapp/miniapp.controller.ts`（23 个 handler）
+  - `services/miniapp.service.ts`
+  - `services/miniapp/cart.service.ts`
+  - `services/miniapp/checkout.service.ts`
+  - `services/miniapp/retail-consumer-address.service.ts`
+- **完成内容**：
+  1. **miniapp.controller.ts**：新增 46 个测试用例，覆盖全部 23 个 handler，分支覆盖率达 91.93%
+  2. **cart.service.ts**：新增 16 个测试用例，覆盖购物车增删改查及价格计算
+  3. **retail-consumer-address.service.ts**：新增 7 个测试用例，覆盖地址 CRUD 及默认地址设置
+  4. 额外补充 6 个低覆盖 controller 测试（product-marketing-tag、subscription-plan、supplier-statement、marketing-dashboard、finance-dashboard），进一步提升覆盖率余量
+- **验证结果**：
+  - ✅ vitest run：384 个测试文件，4202 个用例，全部通过
+  - ✅ 分支覆盖率：91.1%（目标 ≥ 90%，超出 1.1 个百分点）
+  - ✅ tsc --noEmit --strict：0 错误
+- **修改文件**：
+  - `backend/src/__tests__/controllers/miniapp/miniapp.controller.test.ts`（新增）
+  - `backend/src/__tests__/services/miniapp/cart.service.test.ts`（新增）
+  - `backend/src/__tests__/services/miniapp/retail-consumer-address.service.test.ts`（新增）
+  - `backend/src/__tests__/controllers/admin/product-marketing-tag.controller.test.ts`（新增）
+  - `backend/src/__tests__/controllers/admin/subscription-plan.controller.test.ts`
+  - `backend/src/__tests__/controllers/admin/supplier-statement.controller.test.ts`
+  - `backend/src/__tests__/controllers/admin/marketing-dashboard.controller.test.ts`
+  - `backend/src/__tests__/controllers/admin/finance-dashboard.controller.test.ts`
+- **验收标准**：
+  - vitest run 0 失败 ✅
+  - 分支覆盖率 ≥ 90% ✅（91.1%）
+  - tsc --noEmit --strict 0 错误 ✅
+
 ---
 
 ## R29 任务列表
