@@ -3,7 +3,7 @@ import { requireAuthWithTenant } from "../middleware/auth";
 import * as ctrl from "../controllers/admin/stock-check.controller";
 import type { RouteConfig } from "../shared/auto-routes";
 
-// ==================== Admin ÅÌµãÂ·ÓÉ ====================
+// ==================== Admin ï¿½Ìµï¿½Â·ï¿½ï¿½ ====================
 export const adminStockCheckRouter = Router();
 
 adminStockCheckRouter.use(requireAuthWithTenant);
@@ -17,8 +17,9 @@ adminStockCheckRouter.post("/:id/start", ctrl.start);
 adminStockCheckRouter.post("/:id/complete", ctrl.complete);
 adminStockCheckRouter.post("/:id/cancel", ctrl.cancel);
 adminStockCheckRouter.post("/:id/handle-diff", ctrl.handleDiff);
+adminStockCheckRouter.post("/:id/items", ctrl.recordItems);
 
-// ==================== Store ÅÌµãÂ·ÓÉ ====================
+// ==================== Store ï¿½Ìµï¿½Â·ï¿½ï¿½ ====================
 export const storeStockCheckRouter = Router();
 
 storeStockCheckRouter.get("/my", ctrl.getMyList);
@@ -26,7 +27,7 @@ storeStockCheckRouter.get("/:id", ctrl.getDetail);
 storeStockCheckRouter.put("/:id/items/:itemId", ctrl.updateItem);
 storeStockCheckRouter.post("/:id/submit", ctrl.submit);
 
-// ========== Â·ÓÉ×Ô¶¯·¢ÏÖÅäÖÃ ==========
+// ========== Â·ï¿½ï¿½ï¿½Ô¶ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ==========
 export const routeConfigs: RouteConfig[] = [
   { prefix: "/api/admin/stock-checks", router: adminStockCheckRouter, auth: "requireAuthWithTenant" },
   { prefix: "/api/store/stock-checks", router: storeStockCheckRouter, auth: "requireAuthWithTenant" },

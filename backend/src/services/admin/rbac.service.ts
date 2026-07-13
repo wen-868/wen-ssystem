@@ -1,4 +1,4 @@
-﻿import { query, queryOne, transaction } from "../../shared/db";
+import { query, queryOne, transaction } from "../../shared/db";
 
 export async function listRoles(tenantId: string) {
   const records = await query<any>(
@@ -117,6 +117,31 @@ export async function deleteRole(id: number, tenantId: string) {
   });
 
   return { deleted: true };
+}
+
+// 专用接口：只更新角色权限
+export async function updateRolePermissions(id: number, permissions: string[], tenantId: string) {
+  const existing = await queryOne<any>(
+    "SELECT id FROM t_sys_role WHERE id = ? AND tenant_id = ?",
+    [id, tenantId]
+  );
+  if (!existing) {
+    throw Object.assign(new Error("角色不存在"), { statusCode: 404 });
+  }
+
+  await query(
+    "UPDATE t_sys_role SET permissions = ? WHERE id = ? AND tenant_id = ?",
+    [JSON.stringify(permissions), id, tenantId]
+  );
+
+  const record = await queryOne<any>(
+    `SELECT id, role_name AS roleName, role_code AS roleCode, description, status,
+            permissions, data_scope AS dataScope,
+            created_at AS createdAt, updated_at AS updatedAt
+     FROM t_sys_role WHERE id = ? AND tenant_id = ?`,
+    [id, tenantId]
+  );
+  return record;
 }
 
 export async function getUserRoles(userId: number, tenantId: string) {

@@ -1,5 +1,6 @@
-﻿import { asyncHandler } from "../../middleware/async-handler";
+import { asyncHandler } from "../../middleware/async-handler";
 import { ok } from "../../shared/response";
+import { z } from "zod";
 import * as stockWarningService from "../../services/admin/stock-warning.service";
 
 export const getStockWarnings = asyncHandler(async (req, res) => {
@@ -23,5 +24,18 @@ export const getStockWarningConfigs = asyncHandler(async (req, res) => {
     req.tenantId!,
     req.query.storeId ? Number(req.query.storeId) : undefined
   );
+  res.json(ok(result));
+});
+
+export const updateWarningThreshold = asyncHandler(async (req, res) => {
+  const skuId = z.coerce.number().parse(req.params.id);
+  const body = z.object({
+    storeId: z.number().int().positive(),
+    minQty: z.number().int().min(0),
+    maxQty: z.number().int().min(0)
+  }).parse(req.body);
+  const result = await stockWarningService.updateWarningThreshold({
+    skuId, ...body, tenantId: req.tenantId!
+  });
   res.json(ok(result));
 });

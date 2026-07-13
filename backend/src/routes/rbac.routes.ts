@@ -11,6 +11,7 @@ rbacRouter.post("/", requireAuthWithTenant, ctrl.createRole);
 rbacRouter.get("/:id", requireAuthWithTenant, ctrl.getRoleDetail);
 rbacRouter.put("/:id", requireAuthWithTenant, ctrl.updateRole);
 rbacRouter.delete("/:id", requireAuthWithTenant, ctrl.deleteRole);
+rbacRouter.put("/:id/permissions", requireAuthWithTenant, ctrl.updateRolePermissions);
 
 rbacRouter.get("/users/:userId/roles", requireAuthWithTenant, ctrl.getUserRoles);
 rbacRouter.put("/users/:userId/roles", requireAuthWithTenant, ctrl.setUserRoles);

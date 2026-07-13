@@ -1,4 +1,4 @@
-﻿import { Router } from "express";
+import { Router } from "express";
 import type { RouteConfig } from "../shared/auto-routes";
 import { requireAuthWithTenant } from "../middleware/auth";
 import { priceResponseFilter } from "../middleware/price-guard";
@@ -19,6 +19,7 @@ adminProductRouter.get("/products/:skuId/price-history", requireAuthWithTenant, 
 adminProductRouter.put("/products/:skuId/price", requireAuthWithTenant, productController.updateProductPrice);
 adminProductRouter.post("/products/import", requireAuthWithTenant, productController.importProducts);
 adminProductRouter.put("/products/:spuId/marketing-tags", requireAuthWithTenant, productController.setMarketingTags);
+adminProductRouter.put("/products/:id/warning-threshold", requireAuthWithTenant, stockWarningController.updateWarningThreshold);
 
 // ========== 路由自动发现配置 ==========
 export const routeConfig: RouteConfig = {

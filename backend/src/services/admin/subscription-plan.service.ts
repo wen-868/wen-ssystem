@@ -1,4 +1,4 @@
-﻿import { query, queryOne } from "../../shared/db";
+import { query, queryOne } from "../../shared/db";
 
 export async function listPlans(status?: string) {
   const conditions: string[] = [];
@@ -161,5 +161,68 @@ export async function updatePlan(planId: number, body: {
     [planId]
   );
 
+  return record;
+}
+
+export async function deletePlan(planId: number) {
+  const existing = await queryOne<any>(
+    "SELECT id FROM subscription_plan WHERE id = ?",
+    [planId]
+  );
+  if (!existing) {
+    return null;
+  }
+
+  // 检查是否有关联订阅，避免误删在用套餐
+  const refRow = await queryOne<{ total: number }>(
+    "SELECT COUNT(*) AS total FROM subscription WHERE plan_id = ?",
+    [planId]
+  );
+  if (Number(refRow?.total ?? 0) > 0) {
+    throw Object.assign(new Error("该套餐存在关联订阅，无法删除"), { statusCode: 400 });
+  }
+
+  await query("DELETE FROM subscription_plan WHERE id = ?", [planId]);
+  return { planId, deleted: true };
+}
+
+export async function updatePlanFeatures(planId: number, body: {
+  features?: unknown;
+  moduleAccess?: unknown;
+}) {
+  const existing = await queryOne<any>(
+    "SELECT id FROM subscription_plan WHERE id = ?",
+    [planId]
+  );
+  if (!existing) {
+    return null;
+  }
+
+  const updates: string[] = [];
+  const params: unknown[] = [];
+
+  if (body.features !== undefined) {
+    updates.push("features = ?");
+    params.push(JSON.stringify(body.features));
+  }
+  if (body.moduleAccess !== undefined) {
+    updates.push("module_access = ?");
+    params.push(JSON.stringify(body.moduleAccess));
+  }
+
+  if (updates.length > 0) {
+    params.push(planId);
+    await query(
+      `UPDATE subscription_plan SET ${updates.join(", ")}, updated_at = NOW() WHERE id = ?`,
+      params
+    );
+  }
+
+  const record = await queryOne<any>(
+    `SELECT id, plan_code AS planCode, plan_name AS planName,
+            features, module_access AS moduleAccess, updated_at AS updatedAt
+     FROM subscription_plan WHERE id = ?`,
+    [planId]
+  );
   return record;
 }

@@ -1,4 +1,4 @@
-﻿import { asyncHandler } from "../../middleware/async-handler";
+import { asyncHandler } from "../../middleware/async-handler";
 import { ok } from "../../shared/response";
 import * as service from "../../services/admin/rbac.service";
 import { z } from "zod";
@@ -42,6 +42,14 @@ export const updateRole = asyncHandler(async (req, res) => {
 export const deleteRole = asyncHandler(async (req, res) => {
   const result = await service.deleteRole(Number(req.params.id), req.tenantId!);
   res.json(ok(result));
+});
+
+export const updateRolePermissions = asyncHandler(async (req, res) => {
+  const body = z.object({
+    permissions: z.array(z.string())
+  }).parse(req.body);
+  const record = await service.updateRolePermissions(Number(req.params.id), body.permissions, req.tenantId!);
+  res.json(ok(record));
 });
 
 export const getUserRoles = asyncHandler(async (req, res) => {

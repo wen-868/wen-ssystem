@@ -1,4 +1,4 @@
-﻿import { queryWithTenant, queryOneWithTenant } from "../../shared/db";
+import { queryWithTenant, queryOneWithTenant } from "../../shared/db";
 
 // 获取预警列表
 export async function getStockWarnings(tenantId: string, storeId?: number) {
@@ -81,4 +81,34 @@ export async function getStockWarningConfigs(tenantId: string, storeId?: number)
     params,
     tenantId
   );
+}
+
+// 更新单商品预警阈值
+export async function updateWarningThreshold(params: {
+  skuId: number; storeId: number; minQty: number; maxQty: number; tenantId: string;
+}) {
+  const { skuId, storeId, minQty, maxQty, tenantId } = params;
+
+  const existing = await queryOneWithTenant<any>(
+    "SELECT id FROM stock_warning_config WHERE store_id = ? AND sku_id = ? AND tenant_id = ?",
+    [storeId, skuId, tenantId],
+    tenantId
+  );
+
+  if (existing) {
+    await queryWithTenant(
+      `UPDATE stock_warning_config SET min_qty = ?, max_qty = ?, enabled = 1 WHERE store_id = ? AND sku_id = ? AND tenant_id = ?`,
+      [minQty, maxQty, storeId, skuId, tenantId],
+      tenantId
+    );
+  } else {
+    await queryWithTenant(
+      `INSERT INTO stock_warning_config (store_id, sku_id, min_qty, max_qty, enabled, tenant_id)
+       VALUES (?, ?, ?, ?, 1, ?)`,
+      [storeId, skuId, minQty, maxQty, tenantId],
+      tenantId
+    );
+  }
+
+  return { skuId, storeId, minQty, maxQty };
 }

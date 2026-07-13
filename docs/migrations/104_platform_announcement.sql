@@ -1,0 +1,18 @@
+-- 编号: 104, 描述: 平台公告表, 创建人: 阿坚, 日期: 2026-07-13
+-- 平台总后台向所有租户/商户发布的全局公告，区别于即时零售公告（retail_announcement）
+
+CREATE TABLE IF NOT EXISTS platform_announcement (
+  id BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+  title VARCHAR(200) NOT NULL COMMENT '公告标题',
+  content TEXT NOT NULL COMMENT '公告内容',
+  type VARCHAR(32) NOT NULL DEFAULT 'NOTICE' COMMENT '公告类型：NOTICE/UPDATE/MAINTENANCE/URGENT',
+  status VARCHAR(16) NOT NULL DEFAULT 'DRAFT' COMMENT '状态：DRAFT/PUBLISHED/OFFLINE',
+  top_flag TINYINT NOT NULL DEFAULT 0 COMMENT '是否置顶：1是 0否',
+  publish_at DATETIME DEFAULT NULL COMMENT '发布时间',
+  offline_at DATETIME DEFAULT NULL COMMENT '下线时间',
+  created_by BIGINT DEFAULT NULL COMMENT '创建人（平台管理员ID）',
+  created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  updated_at NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  INDEX idx_status (status),
+  INDEX idx_publish_at (publish_at)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='平台公告表';

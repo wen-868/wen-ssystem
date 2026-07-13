@@ -1,4 +1,4 @@
-﻿import { query, queryOne, transaction } from "../../shared/db";
+import { query, queryOne, transaction } from "../../shared/db";
 import { makeBizNo } from "../../shared/id";
 
 // ==================== Admin 端 ====================
@@ -346,6 +346,47 @@ export async function updateItemQty(params: {
   });
 
   return { checkId, itemId };
+}
+
+// 批量录入盘点结果
+export async function recordItems(params: {
+  checkId: number; items: { itemId: number; actualQty: number }[]; tenantId: string;
+}) {
+  const { checkId, items, tenantId } = params;
+
+  await transaction(async (conn) => {
+    const [rows] = await (conn as any).execute(
+      "SELECT * FROM stock_check WHERE id = ? AND tenant_id = ? FOR UPDATE",
+      [checkId, tenantId]
+    );
+    const check = (rows as unknown as Record<string, unknown>[])[0];
+    if (!check) throw new Error("盘点单不存在");
+    if (check.status !== "CHECKING") throw new Error("仅盘点中状态可录入");
+
+    for (const item of items) {
+      const [itemRows] = await (conn as any).execute(
+        "SELECT * FROM stock_check_item WHERE id = ? AND check_id = ? AND tenant_id = ? FOR UPDATE",
+        [item.itemId, checkId, tenantId]
+      );
+      const checkItem = (itemRows as unknown as Record<string, unknown>[])[0];
+      if (!checkItem) throw new Error(`明细${item.itemId}不存在`);
+
+      const [skuRows] = await (conn as any).execute(
+        "SELECT cost_price FROM t_product_sku WHERE id = ? AND tenant_id = ?",
+        [checkItem.sku_id, tenantId]
+      );
+      const unitPrice = (skuRows as unknown as Record<string, unknown>[])[0]?.cost_price ?? 0;
+      const diffQty = item.actualQty - Number(checkItem.system_qty);
+      const diffAmount = Math.abs(diffQty) * Number(unitPrice);
+
+      await (conn as any).execute(
+        "UPDATE stock_check_item SET actual_qty = ?, diff_qty = ?, diff_amount = ? WHERE id = ? AND tenant_id = ?",
+        [item.actualQty, diffQty, diffAmount, item.itemId, tenantId]
+      );
+    }
+  });
+
+  return { checkId, recordedCount: items.length };
 }
 
 export async function submitCheck(id: number, tenantId: string) {

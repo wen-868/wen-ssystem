@@ -1,4 +1,4 @@
-﻿import { z } from "zod";
+import { z } from "zod";
 import { asyncHandler } from "../../middleware/async-handler";
 import { ok, fail } from "../../shared/response";
 import * as service from "../../services/admin/stock-check.service";
@@ -118,6 +118,7 @@ export const start = adminStockCheck.start;
 export const complete = adminStockCheck.complete;
 export const cancel = adminStockCheck.cancel;
 export const handleDiff = adminStockCheck.handleDiff;
+export const recordItems = adminStockCheck.recordItems;
 export const getMyList = storeStockCheck.my;
 export const updateItem = storeStockCheck.updateItem;
 export const submit = storeStockCheck.submit;

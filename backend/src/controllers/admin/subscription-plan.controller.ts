@@ -1,4 +1,4 @@
-﻿import { z } from "zod";
+import { z } from "zod";
 import { asyncHandler } from "../../middleware/async-handler";
 import { ok, fail } from "../../shared/response";
 import * as subscriptionPlanService from "../../services/admin/subscription-plan.service";
@@ -64,6 +64,31 @@ export const updatePlan = asyncHandler(async (req, res) => {
   }).parse(req.body);
 
   const result = await subscriptionPlanService.updatePlan(planId, body);
+  if (!result) {
+    res.status(404).json(fail("套餐不存在", "404"));
+    return;
+  }
+  res.json(ok(result));
+});
+
+export const deletePlan = asyncHandler(async (req, res) => {
+  const planId = Number(req.params.id);
+  const result = await subscriptionPlanService.deletePlan(planId);
+  if (!result) {
+    res.status(404).json(fail("套餐不存在", "404"));
+    return;
+  }
+  res.json(ok(result));
+});
+
+export const updatePlanFeatures = asyncHandler(async (req, res) => {
+  const planId = Number(req.params.id);
+  const body = z.object({
+    features: z.any().optional(),
+    moduleAccess: z.any().optional(),
+  }).parse(req.body);
+
+  const result = await subscriptionPlanService.updatePlanFeatures(planId, body);
   if (!result) {
     res.status(404).json(fail("套餐不存在", "404"));
     return;
