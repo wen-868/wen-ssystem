@@ -77,16 +77,40 @@
 
 ### R31-A2 — 小程序B端批发专区 [P0]
 
-- **状态**：待开始
+- **状态**：✅ 已完成
 - **优先级**：P0
 - **负责人**：林夕
 - **预计**：2 天
+- **完成时间**：2026-07-14
 - **需求来源**：第三阶段 C端小程序
 - **需求**：
   1. 批发专区首页（批发商品列表、批发分类）
   2. 批发商品详情（批发价、起订量、阶梯价）
   3. 批发购物车（批量选择、价格计算）
   4. 批发订单（订单列表、订单详情、批量下单）
+- **完成内容**：
+  1. **批发API模块**：创建 `src/api/wholesale.ts`，包含批发分类、批发商品列表/详情、阶梯价计算、批发购物车、批发订单等接口及完整类型定义
+  2. **批发专区首页**：`pages/wholesale/index.vue`，顶部搜索栏、横向分类标签、批发商品网格（阶梯价标签、起订量提示）、订单状态快捷入口
+  3. **批发商品详情页**：`pages/wholesale/product/index.vue`，商品轮播图、批发价/起订量、阶梯价表格、规格选择、数量调整、加入购物车/立即下单
+  4. **批发购物车页**：`pages/wholesale/cart/index.vue`，店铺分组、商品复选框、数量调整、阶梯价实时计算、全选/单选、批量结算
+  5. **批发订单列表页**：`pages/wholesale/order-list/index.vue`，状态Tab切换（全部/待付款/待发货/待收货/已完成/已取消）、订单卡片、下拉刷新、上拉加载
+  6. **批发订单详情页**：`pages/wholesale/order-detail/index.vue`，订单状态、物流信息、收货地址、商品列表、金额明细、订单信息、操作按钮（取消/支付/确认收货/申请售后/再次购买）
+  7. **路由配置**：在 `app.config.ts` 中注册5个批发页面路由
+- **修改文件**：
+  - `miniapp/src/api/wholesale.ts`（新增）
+  - `miniapp/src/pages/wholesale/index.vue`（新增）
+  - `miniapp/src/pages/wholesale/index.config.ts`（新增）
+  - `miniapp/src/pages/wholesale/product/index.vue`（新增）
+  - `miniapp/src/pages/wholesale/product/index.config.ts`（新增）
+  - `miniapp/src/pages/wholesale/cart/index.vue`（新增）
+  - `miniapp/src/pages/wholesale/cart/index.config.ts`（新增）
+  - `miniapp/src/pages/wholesale/order-list/index.vue`（新增）
+  - `miniapp/src/pages/wholesale/order-list/index.config.ts`（新增）
+  - `miniapp/src/pages/wholesale/order-detail/index.vue`（新增）
+  - `miniapp/src/pages/wholesale/order-detail/index.config.ts`（新增）
+  - `miniapp/src/app.config.ts`（修改，新增5条路由）
+- **验证结果**：
+  - ✅ npm run build:weapp：构建成功，dist/pages/wholesale 目录生成完整
 - **验收标准**：npm run build:weapp 构建成功
 
 ### R31-A3 — 小程序后端API补全（会员+批发）[P0]
