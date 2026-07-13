@@ -232,6 +232,7 @@ const routes = [
       { path: "saas/tenants", name: "saas-tenants", component: () => import("../views/Tenants.vue"), meta: { roles: ["BOSS"], title: "租户管理", icon: OfficeBuilding } },
       { path: "saas/subscriptions", name: "saas-subscriptions", component: () => import("../views/Subscriptions.vue"), meta: { roles: ["BOSS"], title: "订阅管理", icon: Coin } },
       { path: "saas/tenant-review", name: "saas-tenant-review", component: () => import("../views/TenantReview.vue"), meta: { roles: ["BOSS"], title: "入驻审核", icon: Document } },
+      { path: "saas/reviews", name: "platform-reviews", component: () => import("../views/PlatformReview.vue"), meta: { roles: ["BOSS"], title: "平台评价", icon: Star } },
       { path: "saas/config", name: "saas-config", component: () => import("../views/PlatformConfig.vue"), meta: { roles: ["BOSS"], title: "平台配置", icon: Setting } },
       // 14. 在线收款分析
       { path: "reports/online-payment", name: "online-payment-analysis", component: () => import("../views/OnlinePaymentAnalysis.vue"), meta: { roles: ["BOSS", "MGR"], title: "在线收款分析", icon: Money } }
