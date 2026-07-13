@@ -245,6 +245,111 @@ export async function submitStoreStockCheck(id: number) {
   return data.data;
 }
 
+// ==================== Shift (交接班) APIs ====================
+export async function fetchShiftRecords(params?: { page?: number; pageSize?: number; date?: string; shiftType?: string }) {
+  const { data } = await api.get("/store/shifts", { params: { page: 1, pageSize: 20, ...params } });
+  return data.data;
+}
+
+export async function createShiftRecord(payload: {
+  shiftType: string;
+  startTime: string;
+  endTime?: string;
+  operatorId?: number;
+  operatorName?: string;
+  remark?: string;
+}) {
+  const { data } = await api.post("/store/shifts", payload);
+  return data.data;
+}
+
+export async function fetchShiftDetail(shiftId: number) {
+  const { data } = await api.get(`/store/shifts/${shiftId}`);
+  return data.data;
+}
+
+export async function completeShift(shiftId: number, payload: {
+  endTime: string;
+  actualCash?: number;
+  actualWechat?: number;
+  actualAlipay?: number;
+  remark?: string;
+}) {
+  const { data } = await api.post(`/store/shifts/${shiftId}/complete`, payload);
+  return data.data;
+}
+
+export async function getShiftSalesStats(shiftId: number) {
+  const { data } = await api.get(`/store/shifts/${shiftId}/sales-stats`);
+  return data.data;
+}
+
+export async function getShiftStockCheck(shiftId: number) {
+  const { data } = await api.get(`/store/shifts/${shiftId}/stock-check`);
+  return data.data;
+}
+
+export async function submitShiftStockCheck(shiftId: number, items: Array<{ skuId: number; bookQty: number; actualQty: number; diffReason?: string }>) {
+  const { data } = await api.post(`/store/shifts/${shiftId}/stock-check`, { items });
+  return data.data;
+}
+
+// ==================== Member (会员) APIs ====================
+export async function searchMember(keyword: string) {
+  const { data } = await api.get("/store/members/search", { params: { keyword } });
+  return data.data;
+}
+
+export async function getMemberDetail(memberId: number) {
+  const { data } = await api.get(`/store/members/${memberId}`);
+  return data.data;
+}
+
+export async function getMemberPoints(memberId: number) {
+  const { data } = await api.get(`/store/members/${memberId}/points`);
+  return data.data;
+}
+
+export async function getMemberPointsHistory(memberId: number, params?: { page?: number; pageSize?: number }) {
+  const { data } = await api.get(`/store/members/${memberId}/points/history`, { params: { page: 1, pageSize: 20, ...params } });
+  return data.data;
+}
+
+export async function getMemberOrders(memberId: number, params?: { page?: number; pageSize?: number }) {
+  const { data } = await api.get(`/store/members/${memberId}/orders`, { params: { page: 1, pageSize: 20, ...params } });
+  return data.data;
+}
+
+// ==================== Sale Return (销售退货) APIs ====================
+export async function fetchSaleReturns(params?: { page?: number; pageSize?: number; returnStatus?: string; date?: string }) {
+  const { data } = await api.get("/store/sale-returns", { params: { page: 1, pageSize: 20, ...params } });
+  return data.data;
+}
+
+export async function createSaleReturn(payload: {
+  sourceBillNo: string;
+  items: Array<{ skuId: number; skuName: string; quantity: number; unitPrice: number; reason?: string }>;
+  remark?: string;
+}) {
+  const { data } = await api.post("/store/sale-returns", payload);
+  return data.data;
+}
+
+export async function fetchSaleReturnDetail(returnNo: string) {
+  const { data } = await api.get(`/store/sale-returns/${returnNo}`);
+  return data.data;
+}
+
+export async function approveSaleReturn(returnNo: string) {
+  const { data } = await api.post(`/store/sale-returns/${returnNo}/approve`);
+  return data.data;
+}
+
+export async function rejectSaleReturn(returnNo: string, reason: string) {
+  const { data } = await api.post(`/store/sale-returns/${returnNo}/reject`, { reason });
+  return data.data;
+}
+
 // 前端错误上报
 export async function reportFrontendError(payload: {
   error_type: string;

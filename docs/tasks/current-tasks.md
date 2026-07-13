@@ -26,10 +26,11 @@
 
 ### R27-A1 — store-terminal 核心页面补全 [P0]
 
-- **状态**：待开始
+- **状态**：✅ 已完成
 - **优先级**：P0
 - **负责人**：阿澈
 - **预计**：1.5 天
+- **完成时间**：2026-07-13
 - **需求来源**：R25 缺失页面清单与补全计划第一阶段
 - **需求**：
   1. 交接班管理（交接班列表、新建交接班、交接班详情、库存盘点核对）
@@ -39,7 +40,25 @@
   - eslint src/ 0 错误
   - npm run build 构建成功
   - 所有页面可正常访问
-- **修改文件**：store-terminal/src/pages/ 下新增页面
+- **完成内容**：
+  1. `api.ts`：新增 17 个 API 方法（交接班管理 6 个 + 会员识别 5 个 + 销售退货 6 个）
+  2. `ShiftView.vue`：交接班列表页面，日期筛选、班次类型筛选、新建交接班、完成交接班弹窗
+  3. `ShiftDetailView.vue`：交接班详情页面，销售统计、库存盘点核对、差异记录、提交盘点结果
+  4. `MemberView.vue`：会员识别页面，搜索/扫码识别会员、会员信息展示、积分查询、积分变动记录
+  5. `SaleReturnView.vue`：销售退货页面，退货列表、新建退货（选择原销售单+退货商品+原因）、退货审核/驳回
+  6. `router/index.ts`：注册 4 条新路由（/shift、/shift/:id、/member、/sale-return）
+  7. `StoreLayout.vue`：侧边栏新增会员识别、销售退货、交接班三个导航项
+- **验证结果**：
+  - ✅ eslint src/：0 错误（4 个 console 警告，为原有代码）
+  - ✅ npm run build：构建成功（20.02s）
+- **修改文件**：
+  - `store-terminal/src/api.ts` — 新增 API 方法
+  - `store-terminal/src/views/ShiftView.vue` — 新建，交接班列表
+  - `store-terminal/src/views/ShiftDetailView.vue` — 新建，交接班详情
+  - `store-terminal/src/views/MemberView.vue` — 新建，会员识别
+  - `store-terminal/src/views/SaleReturnView.vue` — 新建，销售退货
+  - `store-terminal/src/router/index.ts` — 新增路由
+  - `store-terminal/src/layouts/StoreLayout.vue` — 新增导航
 
 ### R27-A2 — admin-web 数据权限控制完善 [P0]
 

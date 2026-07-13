@@ -71,6 +71,30 @@ const routes: RouteRecordRaw[] = [
         name: "StoreControl",
         component: () => import("../views/StoreControlView.vue"),
         meta: { title: "门店管控", nav: "门店管控" }
+      },
+      {
+        path: "shift",
+        name: "Shift",
+        component: () => import("../views/ShiftView.vue"),
+        meta: { title: "交接班", nav: "交接班" }
+      },
+      {
+        path: "shift/:id",
+        name: "ShiftDetail",
+        component: () => import("../views/ShiftDetailView.vue"),
+        meta: { title: "交接班详情", nav: "交接班" }
+      },
+      {
+        path: "member",
+        name: "Member",
+        component: () => import("../views/MemberView.vue"),
+        meta: { title: "会员识别", nav: "会员识别" }
+      },
+      {
+        path: "sale-return",
+        name: "SaleReturn",
+        component: () => import("../views/SaleReturnView.vue"),
+        meta: { title: "销售退货", nav: "销售退货" }
       }
     ]
   }
