@@ -215,3 +215,32 @@ export async function checkUserPermission(userId: number, tenantId: number, perm
   }
   return false;
 }
+
+export async function getRoleWithDataPermissions(id: number, tenantId: string) {
+  const role = await queryOne<any>(
+    `SELECT id, role_name AS roleName, role_code AS roleCode, description, status,
+            permissions, data_scope AS dataScope,
+            created_at AS createdAt, updated_at AS updatedAt
+     FROM t_sys_role WHERE id = ? AND tenant_id = ?`,
+    [id, tenantId]
+  );
+  if (!role) {
+    throw Object.assign(new Error("角色不存在"), { statusCode: 404 });
+  }
+
+  const dataPermissions = await query<any>(
+    `SELECT rdp.id, rdp.data_permission_id AS dataPermissionId,
+            rdp.scope_values AS scopeValues,
+            dp.permission_name AS permissionName, dp.permission_code AS permissionCode,
+            dp.permission_type AS permissionType, dp.description
+     FROM t_role_data_permission rdp
+     JOIN t_data_permission dp ON dp.id = rdp.data_permission_id
+     WHERE rdp.role_id = ? AND rdp.tenant_id = ?`,
+    [id, tenantId]
+  );
+
+  return {
+    ...role,
+    dataPermissions,
+  };
+}

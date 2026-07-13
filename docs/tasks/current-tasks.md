@@ -64,15 +64,34 @@
 
 ### R27-A3 — 后端数据权限API补全 [P0]
 
-- **状态**：待开始
+- **状态**：✅ 已完成
 - **优先级**：P0
 - **负责人**：阿坚
 - **预计**：2 天
+- **完成时间**：2026-07-13
 - **需求来源**：配合 R27-A2 前端数据权限控制
 - **需求**：完善 rbac 数据权限 API，支持数据权限查询、分配、验证
-- **验收标准**：
-  - vitest run 0 失败
-  - tsc --noEmit --strict 0 错误
+- **完成内容**：
+  1. 数据库迁移：`106_data_permission.sql` — 新增 `t_data_permission` 和 `t_role_data_permission` 表，预置4种数据权限（ALL/DEPARTMENT/STORE/CUSTOMER）
+  2. Service层：`data-permission.service.ts` — 数据权限CRUD + 角色分配 + 用户权限查询 + 权限验证
+  3. Controller层：`data-permission.controller.ts` — 9个API接口，zod参数校验
+  4. Routes层：`data-permission.routes.ts` — 路由注册 `/api/admin/data-permissions`
+  5. 中间件：`data-permission-auth.ts` — `requireDataPermission` 数据权限验证 + `getDataPermissionFilter` 数据过滤
+  6. 测试用例：3个测试文件（controller/middleware/routes），共31个测试用例
+  7. rbac.service.ts 新增 `getRoleWithDataPermissions` 方法
+- **验证结果**：
+  - ✅ tsc --noEmit --strict：0 错误
+  - ✅ vitest run：372 测试文件，3980 测试用例全部通过，0 失败
+- **修改文件**：
+  - `docs/migrations/106_data_permission.sql`（新增）
+  - `backend/src/services/admin/data-permission.service.ts`（新增）
+  - `backend/src/controllers/admin/data-permission.controller.ts`（新增）
+  - `backend/src/routes/data-permission.routes.ts`（新增）
+  - `backend/src/middleware/data-permission-auth.ts`（新增）
+  - `backend/src/__tests__/controllers/data-permission.controller.test.ts`（新增）
+  - `backend/src/__tests__/middleware/data-permission-auth.test.ts`（新增）
+  - `backend/src/__tests__/routes/data-permission.test.ts`（新增）
+  - `backend/src/services/admin/rbac.service.ts`（修改）
 
 ### R27-A4 — R27 全量回归测试 [P0]
 
