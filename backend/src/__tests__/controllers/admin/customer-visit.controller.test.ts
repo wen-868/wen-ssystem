@@ -1,6 +1,7 @@
-﻿import { describe, it, expect, vi, beforeEach } from "vitest";
+import { describe, it, expect, vi, beforeEach } from "vitest";
 
 const mocks = vi.hoisted(() => {
+  // eslint-disable-next-line @typescript-eslint/no-var-requires
   const { z } = require("zod");
   const createVisitSchema = z.object({
     customerId: z.number().int().positive(),

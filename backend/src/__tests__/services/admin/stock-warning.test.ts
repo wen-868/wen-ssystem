@@ -1,4 +1,4 @@
-﻿﻿﻿﻿﻿﻿/**
+/**
  * 库存预警 service 单元测试
  * 被测文件：src/services/admin/stock-warning.service.ts
  */

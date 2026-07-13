@@ -1,4 +1,4 @@
-﻿﻿﻿﻿﻿﻿/**
+/**
  * 库存盘点 service 单元测试
  * 被测文件：src/services/admin/stock-check.service.ts
  */

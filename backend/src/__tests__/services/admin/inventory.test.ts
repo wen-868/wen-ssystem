@@ -1,4 +1,4 @@
-﻿﻿﻿﻿﻿﻿/**
+/**
  * 库存查询 service 单元测试
  * 被测文件：src/services/store/inventory.service.ts
  */

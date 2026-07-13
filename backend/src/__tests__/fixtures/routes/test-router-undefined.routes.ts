@@ -1,4 +1,4 @@
-﻿﻿﻿﻿import { Router } from "express";
+import { Router } from "express";
 
 const validRouter = Router();
 validRouter.get("/", (req, res) => res.json({ ok: 1 }));

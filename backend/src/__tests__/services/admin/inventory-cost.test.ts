@@ -1,4 +1,4 @@
-﻿﻿﻿﻿﻿﻿/**
+/**
  * 库存成本核算 service 单元测试
  * 被测文件：src/services/admin/inventory-cost.service.ts
  */

@@ -1,4 +1,4 @@
-﻿import { queryWithTenant, queryOneWithTenant } from "../../shared/db";
+import { queryWithTenant, queryOneWithTenant } from "../../shared/db";
 
 // 阶段统计
 export async function getLifecycleStages(tenantId: string) {
@@ -26,7 +26,7 @@ export async function getLifecycleTrend(tenantId: string, months: number = 6) {
     );
     const entry: any = { month: monthStr, PROSPECT: 0, NEW: 0, ACTIVE: 0, DORMANT: 0, LOST: 0 };
     for (const row of data) {
-      if (entry.hasOwnProperty(row.stage)) entry[row.stage] = row.cnt;
+      if (Object.prototype.hasOwnProperty.call(entry, row.stage)) entry[row.stage] = row.cnt;
     }
     results.push(entry);
   }
