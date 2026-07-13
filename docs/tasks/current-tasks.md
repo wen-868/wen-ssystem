@@ -222,11 +222,25 @@
 
 ### R28-A7 — R28 全量回归测试 [P1]
 
-- **状态**：待开始
+- **状态**：✅ 已完成（分支覆盖率未达标）
 - **优先级**：P1
 - **负责人**：苏然
 - **预计**：1 天
+- **完成时间**：2026-07-13
 - **验收标准**：所有测试通过，覆盖率 ≥ 90%
+- **测试结果**：
+  - ✅ tsc --noEmit --strict：0 错误
+  - ✅ vitest run：372 文件 3981 用例全部通过
+  - ⚠️ 分支覆盖率：88.78%（目标 ≥ 90%，未达标）
+  - ✅ eslint：0 错误
+  - ✅ admin-web vue-tsc：0 错误
+  - ✅ admin-web build：成功
+  - ✅ app-mobile vue-tsc：0 错误
+  - ✅ app-mobile build:h5：成功
+  - ✅ store-terminal eslint：0 错误
+  - ✅ store-terminal build：成功
+- **问题**：分支覆盖率未达标，需阿坚补充测试用例
+- **测试报告**：`docs/reports/test-report-r28-2026-07-13.md`
 
 ---
 
