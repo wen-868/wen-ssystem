@@ -1,4 +1,4 @@
-﻿ # 当前任务 — R30
+﻿ # 当前任务 — R31
 
 > 仓库：https://github.com/wen-868/wen-ssystem  
 > 唯一分支：main  
@@ -19,6 +19,97 @@
 2. 苏然执行测试（单元测试 + 构建验证 + 回归测试），生成测试报告
 3. 凌舟核查测试报告和代码质量，确认通过后直接更新任务状态
 4. 所有任务验收通过后，凌舟直接分派下一轮任务，无需等待用户确认
+
+---
+
+## R31 任务列表
+
+### R31-A1 — 小程序会员中心+个人中心 [P0]
+
+- **状态**：✅ 已完成
+- **优先级**：P0
+- **负责人**：林夕
+- **预计**：2 天
+- **完成时间**：2026-07-14
+- **需求来源**：第三阶段 C端小程序
+- **需求**：
+  1. 个人中心页（用户信息、头像、昵称、等级、积分）
+  2. 会员中心（会员等级、权益、升级进度）
+  3. 收货地址管理（地址列表、新增/编辑/删除、设为默认）
+  4. 我的订单入口（全部/待付款/待发货/待收货/待评价）
+  5. 我的优惠券（可用/已使用/已过期）
+  6. 设置页（个人资料、修改密码、退出登录）
+- **完成内容**：
+  1. **用户API模块**：创建 `src/api/user.ts`，包含用户信息、收货地址、会员等级、成长值等接口及类型定义
+  2. **个人中心页**：重构 `pages/profile/index.vue`，新增会员等级卡片、成长值进度、订单快捷入口（5宫格）、会员升级引导Banner、功能入口分组
+  3. **会员中心页**：新增 `pages/member/index.vue`，包含等级信息、升级进度条、会员权益网格、成长值明细列表（支持全部/获得/消耗Tab切换）
+  4. **收货地址列表**：新增 `pages/address/list/index.vue`，地址卡片展示、设为默认、编辑、删除、新增按钮
+  5. **收货地址编辑**：新增 `pages/address/edit/index.vue`，收货人、手机号、省市区选择、详细地址、设为默认开关
+  6. **我的优惠券**：新增 `pages/coupon/list/index.vue`，可用/已使用/过期Tab切换、优惠券卡片（金额/折扣/使用条件/有效期）、去使用按钮
+  7. **设置页**：新增 `pages/setting/index.vue`，个人资料、收货地址、修改密码、关于我们、清除缓存、退出登录
+  8. **个人资料编辑**：新增 `pages/setting/profile-edit.vue`，头像上传、昵称、性别选择、生日选择
+  9. **修改密码页**：新增 `pages/setting/password.vue`，原密码、新密码、确认密码、强度校验
+  10. **关于我们页**：新增 `pages/about/index.vue`，应用介绍、联系方式、用户协议、隐私政策
+  11. **路由配置**：在 `app.config.ts` 中注册8个新页面路由
+- **修改文件**：
+  - `miniapp/src/api/user.ts`（新增）
+  - `miniapp/src/pages/profile/index.vue`（重构）
+  - `miniapp/src/pages/member/index.vue`（新增）
+  - `miniapp/src/pages/member/index.config.ts`（新增）
+  - `miniapp/src/pages/address/list/index.vue`（新增）
+  - `miniapp/src/pages/address/list/index.config.ts`（新增）
+  - `miniapp/src/pages/address/edit/index.vue`（新增）
+  - `miniapp/src/pages/address/edit/index.config.ts`（新增）
+  - `miniapp/src/pages/coupon/list/index.vue`（新增）
+  - `miniapp/src/pages/coupon/list/index.config.ts`（新增）
+  - `miniapp/src/pages/setting/index.vue`（新增）
+  - `miniapp/src/pages/setting/index.config.ts`（新增）
+  - `miniapp/src/pages/setting/profile-edit.vue`（新增）
+  - `miniapp/src/pages/setting/profile-edit.config.ts`（新增）
+  - `miniapp/src/pages/setting/password.vue`（新增）
+  - `miniapp/src/pages/setting/password.config.ts`（新增）
+  - `miniapp/src/pages/about/index.vue`（新增）
+  - `miniapp/src/pages/about/index.config.ts`（新增）
+  - `miniapp/src/app.config.ts`（修改，新增路由）
+- **验证结果**：
+  - ✅ npm run build:weapp：构建成功，生成 dist 目录
+- **验收标准**：npm run build:weapp 构建成功
+
+### R31-A2 — 小程序B端批发专区 [P0]
+
+- **状态**：待开始
+- **优先级**：P0
+- **负责人**：林夕
+- **预计**：2 天
+- **需求来源**：第三阶段 C端小程序
+- **需求**：
+  1. 批发专区首页（批发商品列表、批发分类）
+  2. 批发商品详情（批发价、起订量、阶梯价）
+  3. 批发购物车（批量选择、价格计算）
+  4. 批发订单（订单列表、订单详情、批量下单）
+- **验收标准**：npm run build:weapp 构建成功
+
+### R31-A3 — 小程序后端API补全（会员+批发）[P0]
+
+- **状态**：待开始
+- **优先级**：P0
+- **负责人**：阿坚
+- **预计**：1.5 天
+- **需求来源**：配合 R31-A1 和 R31-A2 小程序前端
+- **需求**：
+  1. 会员相关 API（会员信息、等级、积分、权益）
+  2. 收货地址 API（CRUD、设为默认）
+  3. 优惠券 API（我的优惠券、领取、使用）
+  4. 批发相关 API（批发商品列表、批发详情、批发订单）
+- **验收标准**：vitest run 0 失败，tsc --noEmit --strict 0 错误
+
+### R31-A4 — R31 全量回归测试 [P0]
+
+- **状态**：待开始
+- **优先级**：P0
+- **负责人**：苏然
+- **预计**：1 天
+- **验收标准**：所有测试通过，覆盖率 ≥ 90%
 
 ---
 
