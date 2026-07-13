@@ -3,6 +3,7 @@ import type { RouteConfig } from "../shared/auto-routes";
 import { requireAuthWithTenant } from "../middleware/auth";
 import { priceResponseFilter } from "../middleware/price-guard";
 import * as productController from "../controllers/admin/product.controller";
+import * as stockWarningController from "../controllers/admin/stock-warning.controller";
 
 export const adminProductRouter = Router();
 

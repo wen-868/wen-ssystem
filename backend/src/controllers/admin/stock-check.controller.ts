@@ -70,6 +70,17 @@ export const adminStockCheck = {
     });
     res.json(ok(result));
   }),
+
+  recordItems: asyncHandler(async (req, res) => {
+    const id = z.coerce.number().parse(req.params.id);
+    const body = z.object({
+      items: z.array(z.object({ itemId: z.number().int().positive(), actualQty: z.number().int().min(0) }))
+    }).parse(req.body);
+    const result = await service.recordItems({
+      checkId: id, items: body.items, tenantId: req.tenantId!
+    });
+    res.json(ok(result));
+  }),
 };
 
 // ==================== Store 控制器 ====================

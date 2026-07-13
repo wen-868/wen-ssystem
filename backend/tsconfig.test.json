@@ -2,11 +2,19 @@
   "compilerOptions": {
     "target": "ES2022",
     "module": "ESNext",
-    "moduleResolution": "bundler",
+    "moduleResolution": "node",
     "strict": true,
     "esModuleInterop": true,
     "skipLibCheck": true,
-    "types": ["node", "vitest/globals"]
+    "forceConsistentCasingInFileNames": true,
+    "types": ["node", "vitest/globals"],
+    "baseUrl": ".",
+    "paths": {
+      "@services/*": ["src/services/*"],
+      "@shared/*": ["src/shared/*"],
+      "@middleware/*": ["src/middleware/*"],
+      "@controllers/*": ["src/controllers/*"]
+    }
   },
   "include": ["src/**/*.ts", "tests/**/*.ts"]
 }

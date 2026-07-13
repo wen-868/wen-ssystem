@@ -6,9 +6,18 @@
     "strict": true,
     "esModuleInterop": true,
     "skipLibCheck": true,
+    "forceConsistentCasingInFileNames": true,
     "outDir": "dist",
     "rootDir": "src",
-    "types": ["node"]
+    "types": ["node"],
+    "baseUrl": ".",
+    "paths": {
+      "@services/*": ["src/services/*"],
+      "@shared/*": ["src/shared/*"],
+      "@middleware/*": ["src/middleware/*"],
+      "@controllers/*": ["src/controllers/*"]
+    }
   },
-  "include": ["src/**/*.ts"]
+  "include": ["src/**/*.ts"],
+  "exclude": ["src/__tests__/**/*.ts"]
 }
