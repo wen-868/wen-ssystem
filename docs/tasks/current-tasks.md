@@ -1,4 +1,4 @@
- # 当前任务 — R29
+ # 当前任务 — R30
 
 > 仓库：https://github.com/wen-868/wen-ssystem  
 > 唯一分支：main  
@@ -19,6 +19,90 @@
 2. 苏然执行测试（单元测试 + 构建验证 + 回归测试），生成测试报告
 3. 凌舟核查测试报告和代码质量，确认通过后直接更新任务状态
 4. 所有任务验收通过后，凌舟直接分派下一轮任务，无需等待用户确认
+
+---
+
+## R30 任务列表
+
+### R30-A1 — C端小程序项目初始化 [P0]
+
+- **状态**：待开始
+- **优先级**：P0
+- **负责人**：阿澈
+- **预计**：1 天
+- **需求来源**：第三阶段 C端小程序上线
+- **需求**：初始化微信小程序项目（Taro框架），配置基础环境、路由、API封装
+- **验收标准**：小程序项目可正常构建，可在开发者工具中预览
+
+### R30-A2 — C端小程序首页 [P0]
+
+- **状态**：待开始
+- **优先级**：P0
+- **负责人**：阿澈
+- **预计**：1.5 天
+- **需求来源**：第三阶段 C端小程序上线
+- **需求**：C端小程序首页（商品分类、热销商品、活动Banner、搜索功能）
+- **验收标准**：页面可正常访问，功能完整
+
+### R30-A3 — C端小程序商品详情页 [P0]
+
+- **状态**：待开始
+- **优先级**：P0
+- **负责人**：阿澈
+- **预计**：1 天
+- **需求来源**：第三阶段 C端小程序上线
+- **需求**：商品详情页（商品信息、规格选择、加入购物车、立即购买）
+- **验收标准**：页面可正常访问，功能完整
+
+### R30-A4 — C端小程序购物车 [P0]
+
+- **状态**：待开始
+- **优先级**：P0
+- **负责人**：阿澈
+- **预计**：1 天
+- **需求来源**：第三阶段 C端小程序上线
+- **需求**：购物车页面（商品列表、数量调整、价格计算、结算）
+- **验收标准**：页面可正常访问，功能完整
+
+### R30-A5 — C端小程序订单模块 [P0]
+
+- **状态**：待开始
+- **优先级**：P0
+- **负责人**：阿澈
+- **预计**：1.5 天
+- **需求来源**：第三阶段 C端小程序上线
+- **需求**：订单列表、订单详情、订单支付、订单跟踪
+- **验收标准**：页面可正常访问，功能完整
+
+### R30-A6 — 小程序后端API补全 [P0]
+
+- **状态**：✅ 已完成
+- **优先级**：P0
+- **负责人**：阿坚
+- **预计**：2 天
+- **完成时间**：2026-07-13
+- **需求来源**：配合 R30-A1 至 R30-A5 小程序前端
+- **完成内容**：
+  1. **商品模块**：GET /api/miniapp/products（商品列表，支持分类筛选、搜索、分页）、GET /api/miniapp/products/:id（商品详情，含规格、图片、库存）、GET /api/miniapp/categories（商品分类列表）
+  2. **购物车模块**：GET /api/miniapp/cart（获取购物车列表）、POST /api/miniapp/cart（添加商品到购物车）、PUT /api/miniapp/cart/:id（更新购物车商品数量）、DELETE /api/miniapp/cart/:id（删除购物车商品）、DELETE /api/miniapp/cart（清空购物车）
+  3. **订单模块**：POST /api/miniapp/orders（创建订单）、GET /api/miniapp/orders（获取订单列表）、GET /api/miniapp/orders/:id（获取订单详情）、POST /api/miniapp/orders/:id/pay（支付订单）
+  4. **用户模块**：GET /api/miniapp/user/profile（获取用户信息）、PUT /api/miniapp/user/profile（更新用户信息）、GET /api/miniapp/user/addresses（获取收货地址列表）、POST /api/miniapp/user/addresses（添加收货地址）、PUT /api/miniapp/user/addresses/:id（更新收货地址）、DELETE /api/miniapp/user/addresses/:id（删除收货地址）、POST /api/miniapp/user/addresses/:id/default（设为默认地址）
+  5. **营销模块**：GET /api/miniapp/promotions（获取营销活动列表）、GET /api/miniapp/coupons（获取可用优惠券列表）、POST /api/miniapp/coupons/:id/use（使用优惠券）
+- **修改文件**：
+  - `backend/src/controllers/miniapp/miniapp.controller.ts`（新增）
+  - `backend/src/routes/miniapp.routes.ts`（修改）
+- **验证结果**：
+  - ✅ tsc --noEmit --strict：0 错误
+  - ✅ vitest run：380 测试文件，4113 测试用例全部通过，0 失败
+- **验收标准**：vitest run 0 失败，tsc --noEmit --strict 0 错误
+
+### R30-A7 — R30 全量回归测试 [P0]
+
+- **状态**：待开始
+- **优先级**：P0
+- **负责人**：苏然
+- **预计**：1 天
+- **验收标准**：所有测试通过，覆盖率 ≥ 90%
 
 ---
 
@@ -120,12 +204,29 @@
 
 ### R29-A5 — store-terminal 库存管理完善 [P1]
 
-- **状态**：待开始
+- **状态**：✅ 已完成
 - **优先级**：P1
 - **负责人**：阿澈
 - **预计**：0.5 天
+- **完成时间**：2026-07-13
 - **需求来源**：第二阶段完善提升
 - **需求**：完善库存管理（库存查询、库存预警、库存盘点结果查看）
+- **完成内容**：
+  1. **库存查询增强**：InventoryView.vue 添加分类筛选下拉框、商品名称/分类/规格/单价/金额列显示，库存金额自动计算
+  2. **库存预警页面**：新增 StockAlertView.vue，显示库存低于预警阈值的商品列表，支持设置单个商品的预警阈值
+  3. **盘点差异详情**：StockCheckView.vue 新增"差异详情"按钮，已完成盘点单可查看差异明细（系统数量、实盘数量、差异数量、差异金额、差异原因）
+  4. **API 新增**：fetchStoreCategories、updateStoreProductAlertThreshold、fetchStoreStockCheckResults
+  5. **路由注册**：新增 /stock-alert 路由及导航项
+- **验证结果**：
+  - ✅ eslint src/：0 错误（4 个原有 console 警告）
+  - ✅ npm run build：构建成功（23.47s）
+- **修改文件**：
+  - `store-terminal/src/views/InventoryView.vue`（修改）
+  - `store-terminal/src/views/StockAlertView.vue`（新增）
+  - `store-terminal/src/views/StockCheckView.vue`（修改）
+  - `store-terminal/src/api.ts`（修改）
+  - `store-terminal/src/router/index.ts`（修改）
+  - `store-terminal/src/layouts/StoreLayout.vue`（修改）
 - **验收标准**：eslint src/ 0 错误，npm run build 构建成功
 
 ### R29-A6 — 后端性能优化 [P1]
