@@ -90,6 +90,63 @@
   - `admin-web/src/views/MarketingTags.vue` — 修改，新增商品标签关联Tab
   - `admin-web/src/api.ts` — 增强 fetchReportPaymentAnalysis 支持参数
 
+### R26-A3 — app-mobile 核心缺失页面补全 [P0]
+
+- **状态**：✅ 已完成
+- **优先级**：P0
+- **负责人**：阿澈
+- **预计**：2 天
+- **完成时间**：2026-07-13
+- **需求来源**：R25 缺失页面清单与补全计划第一阶段
+- **完成内容**：
+  1. 商品分类管理：categories.vue（分类列表）、category-edit.vue（分类编辑）
+  2. 价格管理：price-manage.vue（价格管理）、batch-adjust.vue（批量调整）
+  3. 库存盘点：stock-checks.vue（盘点单列表）、create-check.vue（新建盘点单）、check-detail.vue（盘点详情）
+  4. 库存预警：stock-warning.vue（预警列表+阈值设置）
+  5. 应收应付：receivable.vue（应收汇总+账龄分析）
+  6. 财务对账：reconciliation.vue（客户/供应商对账单）
+  7. 门店管理：stores.vue（门店列表）、store-edit.vue（门店编辑）
+  8. 角色权限：roles.vue（角色列表）、role-edit.vue（角色编辑+权限配置）
+  9. 即时零售：config.vue（平台配置）、products.vue（商品上架）、orders.vue（订单看板）
+- **新增API模块**：categories.ts、price.ts、stock-check.ts、stock-warning.ts、receivable.ts、reconciliation.ts、roles.ts、stores.ts、instant-retail.ts
+- **验证结果**：vue-tsc --noEmit 0 错误，npm run build:h5 构建成功
+- **修改文件**：app-mobile/src/pages/ 下新增 15 个页面，app-mobile/src/api/modules/ 下新增 9 个 API 模块
+
+### R26-A7 — 后端API补全（配合前端缺失页面）[P0]
+
+- **状态**：✅ 已完成
+- **优先级**：P0
+- **负责人**：阿坚
+- **预计**：3 天
+- **完成时间**：2026-07-13
+- **需求来源**：R25 缺失页面清单与补全计划第一阶段
+- **完成内容**：
+  1. Platform层API：dashboard.controller.ts、platform-manage.controller.ts（公告管理）
+  2. Platform路由：platform-applications.routes.ts、platform-config.routes.ts、platform-dashboard.routes.ts、platform-plans.routes.ts
+  3. Product-marketing-tag API：controller、service、routes
+  4. 完善API：rbac.controller.ts、stock-check.controller.ts、stock-warning.controller.ts、subscription-plan.controller.ts
+  5. 数据库迁移：104_platform_announcement.sql、105_product_marketing_tag.sql
+- **修复**：admin-product.routes.ts 缺少 stockWarningController 导入；stock-check.controller.ts 缺少 recordItems 函数
+- **验证结果**：369 测试文件，3951 测试用例全部通过，0 失败 0 跳过
+
+### R26-A8 — R26 全量回归测试 [P0]
+
+- **状态**：✅ 已完成
+- **优先级**：P0
+- **负责人**：苏然
+- **预计**：1 天
+- **完成时间**：2026-07-13
+- **测试结果**：
+  - 后端 vitest：369 文件 3951 用例全部通过，0 失败 0 跳过
+  - 后端分支覆盖率：90.15%（≥ 90% 达标）
+  - 后端 tsc --noEmit --strict：非测试文件 0 错误
+  - 后端 eslint：0 错误
+  - admin-web：vue-tsc 0 错误 + build 成功（29.43s）
+  - app-mobile：vue-tsc 0 错误（修复 1 个类型错误）+ build:h5 成功
+  - store-terminal：eslint 0 错误
+- **发现问题**：app-mobile receivable.vue 第 48 行 `getOverdueAmount(item)` 返回 `number | undefined`，直接传递给 `formatMoney(val: number)` 导致 TS 报错，已修复
+- **测试报告**：`docs/reports/test-report-r26-2026-07-13.md`
+
 ---
 
 ## R25 任务列表
