@@ -54,16 +54,32 @@
 
 ### R32-A2 — P2级功能：商品审核 [P2]
 
-- **状态**：待开始
+- **状态**：已完成
 - **优先级**：P2
 - **负责人**：墨
 - **预计**：1 天
+- **完成时间**：2026-07-14
 - **需求来源**：第三阶段 P2级功能
 - **需求**：
   1. 商品审核列表（待审核/已通过/已驳回）
   2. 商品审核详情
   3. 审核通过/驳回（填写驳回原因）
   4. 批量审核
+- **完成内容**：
+  1. **商品审核列表**：Tab 切换（待审核/已通过/已驳回/全部）、关键词搜索（商品名称/审核单号）、审核类型筛选、提交人筛选、提交时间范围筛选、分页展示
+  2. **统计卡片**：全部审核、待审核、已通过、已驳回 4 个统计卡片
+  3. **商品审核详情弹窗**：商品信息展示、变更内容展示、提交信息、审核记录时间线
+  4. **审核操作**：审核通过（可选填审核意见）、审核驳回（必填驳回原因，表单校验）
+  5. **批量审核**：批量通过、批量驳回（仅待审核状态显示复选框和批量操作按钮）
+  6. **API 接口**：fetchProductReviews、fetchProductReviewDetail、approveProductReview、rejectProductReview、batchApproveProductReviews、batchRejectProductReviews 共 6 个接口
+  7. **Mock 数据**：35 条模拟数据支持前端独立开发和演示，API 接口已预留对接后端
+- **修改文件**：
+  - `admin-web/src/views/ProductReview.vue`（新增）
+  - `admin-web/src/router/index.ts`（新增路由 + CircleCheck 图标导入）
+  - `admin-web/src/api.ts`（新增 6 个商品审核 API 函数）
+- **验证结果**：
+  - ✅ vue-tsc --noEmit：0 错误
+  - ✅ npm run build：构建成功（29.25s）
 - **验收标准**：vue-tsc --noEmit 0 错误，npm run build 构建成功
 
 ### R32-A3 — P2级功能：社群营销 [P2]
@@ -149,11 +165,27 @@
 
 ### R32-A5 — R32 全量回归测试 [P2]
 
-- **状态**：待开始
+- **状态**：已完成（覆盖率刚达标）
 - **优先级**：P2
 - **负责人**：苏然
 - **预计**：1 天
+- **完成时间**：2026-07-14
 - **验收标准**：所有测试通过，覆盖率 ≥ 90%
+- **测试结果**：
+  - ✅ 后端 tsc --noEmit --strict：0 错误
+  - ✅ 后端 vitest run：392 文件 4407 用例 0 失败 0 跳过
+  - ⚠️ 后端分支覆盖率：90.05%（目标 ≥ 90%，刚达标，余量 0.05%）
+  - ✅ 后端 eslint：0 错误（201 警告）
+  - ✅ admin-web：vue-tsc 0 错误 + build 成功（36.01s）
+  - ✅ app-mobile：vue-tsc 0 错误 + build:h5 成功
+  - ✅ store-terminal：eslint 0 错误 + build 成功（16.93s）
+  - ✅ miniapp：build:weapp 成功
+  - ✅ 新增 API：23 个（报表7 + 审核5 + 社群11，计划 25 个，差 2 个）
+- **发现问题**：
+  - BUG-R32-01 [P1]：商品审核 createProductReview 接口未注册路由（service 有实现但 controller 和路由缺）
+  - BUG-R32-02 [P2]：社群营销单元测试数量不足（计划 51 个实际 35 个，差 16 个）
+  - BUG-R32-03 [P2]：分支覆盖率余量不足（90.05%，仅超 0.05%）
+- **测试报告**：`docs/reports/test-report-r32-2026-07-14.md`
 
 ---
 
