@@ -2,7 +2,7 @@ const { app, BrowserWindow, ipcMain, shell, dialog } = require("electron");
 const path = require("path");
 
 // 后端 API 地址（桌面版直连远程服务器）
-const API_BASE = "http://159.75.153.59/api";
+const API_BASE = "https://api.onepan.cn";
 
 let mainWindow;
 
