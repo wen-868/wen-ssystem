@@ -38,15 +38,8 @@
     "test:acceptance:production": "node scripts/acceptance-production.mjs"
   },
   "devDependencies": {
-    "@eslint/js": "^10.0.1",
     "esbuild": "^0.25.0",
-    "typescript-eslint": "^8.63.0",
-    "wait-on": "^9.0.10"
-  },
-  "dependencies": {
-    "@wangeditor/editor": "^5.1.23",
-    "@wangeditor/editor-for-vue": "^5.1.12",
     "js-yaml": "^4.2.0",
-    "typescript": "^6.0.3"
+    "wait-on": "^9.0.10"
   }
 }
