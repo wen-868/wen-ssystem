@@ -42,17 +42,33 @@
 
 ### R35-A2 — P2级功能：总部-分店报表权限 [P2]
 
-- **状态**：待开始
+- **状态**：✅ 已完成
 - **优先级**：P2
 - **负责人**：阿澈
 - **预计**：1.5 天
+- **实际耗时**：1 天
 - **需求来源**：第三阶段 P2级功能
 - **需求**：
   1. 报表权限矩阵（角色×报表的查看/导出权限）
   2. 门店数据权限（查看本店/全部门店/指定门店）
   3. 权限分配界面
   4. 权限审计日志
+  5. 我的权限
 - **验收标准**：vue-tsc --noEmit 0 错误，npm run build:h5 构建成功
+- **验证结果**：
+  - vue-tsc --noEmit：0 错误
+  - npm run build:h5：构建成功
+- **新增文件**：
+  - `app-mobile/src/api/modules/report-permission.ts` — 报表权限API模块（含mock数据）
+  - `app-mobile/src/pages/report-permission/index.vue` — 权限管理入口
+  - `app-mobile/src/pages/report-permission/report-matrix.vue` — 报表权限矩阵
+  - `app-mobile/src/pages/report-permission/store-data-permission.vue` — 门店数据权限
+  - `app-mobile/src/pages/report-permission/permission-assign.vue` — 权限分配界面
+  - `app-mobile/src/pages/report-permission/audit-logs.vue` — 权限审计日志列表
+  - `app-mobile/src/pages/report-permission/audit-detail.vue` — 权限审计日志详情
+  - `app-mobile/src/pages/report-permission/my-permission.vue` — 我的权限
+- **修改文件**：
+  - `app-mobile/src/pages.json` — 新增 8 个路由
 
 ### R35-A3 — 后端API补全（调拨+报表权限）[P2]
 
