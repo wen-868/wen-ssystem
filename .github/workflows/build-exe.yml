@@ -17,7 +17,7 @@ jobs:
           node-version: 20
       - name: Install deps
         working-directory: admin-web
-        run: npm install
+        run: npm install --legacy-peer-deps
       - name: Build Vite
         working-directory: admin-web
         run: npx vite build

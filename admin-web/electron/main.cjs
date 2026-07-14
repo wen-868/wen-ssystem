@@ -15,12 +15,12 @@ function createWindow() {
     center: true,
     show: false,
     title: "智享全链管理系统",
-    icon: path.join(__dirname, "../public/favicon.ico"),
+    icon: path.join(__dirname, "../public/icon.png"),
     webPreferences: {
       nodeIntegration: false,
       contextIsolation: true,
-      preload: path.join(__dirname, "preload.js"),
-      webSecurity: false, // 允许 file:// 加载本地资源
+      preload: path.join(__dirname, "preload.cjs"),
+      webSecurity: false,
     },
   });
 
