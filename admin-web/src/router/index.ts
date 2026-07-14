@@ -160,6 +160,7 @@ const routes = [
       { path: "products/tag-groups", name: "tag-groups", component: () => import("../views/TagGroups.vue"), meta: { roles: ["BOSS", "MGR"], title: "标签分组", icon: FolderOpened } },
       { path: "products/tag-relation", name: "product-tag-relation", component: () => import("../views/ProductTagRelation.vue"), meta: { roles: ["BOSS", "MGR"], title: "标签关联", icon: Link } },
       { path: "products/reviews", name: "product-reviews", component: () => import("../views/ProductReview.vue"), meta: { roles: ["BOSS", "MGR"], title: "商品审核", icon: CircleCheck } },
+      { path: "products/combo", name: "product-combo", component: () => import("../views/ProductCombo.vue"), meta: { roles: ["BOSS", "MGR"], title: "套装与组合品", icon: Present } },
       { path: "prices", name: "prices", component: () => import("../views/PricesView.vue"), meta: { roles: ["BOSS", "MGR"], title: "价格管理", icon: PriceTag } },
       // 8. 即时零售
       { path: "instant-retail/config", name: "instant-retail-config", component: () => import("../views/InstantRetailConfig.vue"), meta: { roles: ["BOSS"], title: "平台配置", icon: Monitor } },
