@@ -170,6 +170,31 @@
   - BUG-R31-01 [P0]：分支覆盖率 89.14% 未达标。R31 新增 `controllers/miniapp/miniapp.controller.ts` 的 18 个 handler 测试覆盖不足，该文件分支覆盖率仅 58.16%（98个分支覆盖57个）。虽然新增了 46 个 controller 测试用例，但异常分支和边界条件覆盖不全。
 - **测试报告**：`docs/reports/test-report-r31-2026-07-14.md`
 
+### R31-A5 — 分支覆盖率修复（89.14%→91.3%）[P0]
+
+- **状态**：✅ 已完成
+- **优先级**：P0
+- **负责人**：阿坚
+- **预计**：0.5 天
+- **完成时间**：2026-07-14
+- **需求来源**：R31-A4 测试发现分支覆盖率未达标
+- **需求**：补充 `controllers/miniapp/miniapp.controller.ts` 的异常分支测试，将分支覆盖率提升至 ≥ 90%
+- **完成内容**：
+  1. **会员模块测试**：新增 getMemberProfile、getMemberLevels、getMemberPoints、getMemberGrowth、getMemberCoupons、receiveCoupon 共 6 个 handler 的 10 个测试用例
+  2. **批发模块测试**：新增 getWholesaleProducts、getWholesaleProductDetail、getWholesaleCategories、getWholesaleCart、addWholesaleCartItem、updateWholesaleCartItem、deleteWholesaleCartItem、createWholesaleOrder、getWholesaleOrders、getWholesaleOrderDetail 共 10 个 handler 的 24 个测试用例
+  3. **用户设置模块测试**：新增 updateUserProfile、changePassword 共 2 个 handler 的 8 个测试用例
+  4. **zod 参数校验失败测试**：覆盖 addToCart、updateCartItem、createOrder、payOrder、updateProfile、createAddress、updateAddress、addWholesaleCartItem、updateWholesaleCartItem、createWholesaleOrder、updateUserProfile、changePassword 共 12 个 handler 的 33 个异常分支测试
+- **验证结果**：
+  - ✅ vitest run：386 测试文件，4329 测试用例，0 失败 0 跳过
+  - ✅ 分支覆盖率：91.3%（目标 ≥ 90%，超出 1.3 个百分点）
+  - ✅ tsc --noEmit --strict：0 错误
+- **修改文件**：
+  - `backend/src/__tests__/controllers/miniapp/miniapp.controller.test.ts`（新增 69 个测试用例，从 46 个增至 115 个）
+- **验收标准**：
+  - vitest run 0 失败 ✅
+  - 分支覆盖率 ≥ 90% ✅（91.3%）
+  - tsc --noEmit --strict 0 错误 ✅
+
 ---
 
 ## R30 任务列表

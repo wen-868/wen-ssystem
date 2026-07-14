@@ -23,6 +23,30 @@ vi.mock("../../../services/miniapp/retail-consumer-address.service", () => ({
   setDefault: vi.fn(),
 }));
 
+vi.mock("../../../services/miniapp/member.service", () => ({
+  getMemberProfile: vi.fn(),
+  getMemberLevels: vi.fn(),
+  getPointsRecords: vi.fn(),
+  getGrowthRecords: vi.fn(),
+  getMyCoupons: vi.fn(),
+  receiveCoupon: vi.fn(),
+  updateUserProfile: vi.fn(),
+  changePassword: vi.fn(),
+}));
+
+vi.mock("../../../services/miniapp/wholesale.service", () => ({
+  getWholesaleProducts: vi.fn(),
+  getWholesaleProductDetail: vi.fn(),
+  getWholesaleCategories: vi.fn(),
+  getWholesaleCart: vi.fn(),
+  addWholesaleCartItem: vi.fn(),
+  updateWholesaleCartItem: vi.fn(),
+  deleteWholesaleCartItem: vi.fn(),
+  createWholesaleOrder: vi.fn(),
+  getWholesaleOrders: vi.fn(),
+  getWholesaleOrderDetail: vi.fn(),
+}));
+
 vi.mock("../../../services/admin/product.service", () => ({
   listProducts: vi.fn(),
   getProductDetail: vi.fn(),
@@ -51,6 +75,8 @@ vi.mock("../../../shared/fulfillment", () => ({
 import * as miniappService from "../../../services/miniapp.service";
 import * as cartService from "../../../services/miniapp/cart.service";
 import * as addressService from "../../../services/miniapp/retail-consumer-address.service";
+import * as memberService from "../../../services/miniapp/member.service";
+import * as wholesaleService from "../../../services/miniapp/wholesale.service";
 import * as productService from "../../../services/admin/product.service";
 import * as categoryService from "../../../services/admin/category.service";
 import { ok, fail } from "../../../shared/response";
@@ -77,6 +103,27 @@ import {
   getPromotions,
   getCoupons,
   useCoupon,
+  // 会员模块
+  getMemberProfile,
+  getMemberLevels,
+  getMemberPoints,
+  getMemberGrowth,
+  getMemberCoupons,
+  receiveCoupon,
+  // 用户设置模块
+  updateUserProfile,
+  changePassword,
+  // 批发模块
+  getWholesaleProducts,
+  getWholesaleProductDetail,
+  getWholesaleCategories,
+  getWholesaleCart,
+  addWholesaleCartItem,
+  updateWholesaleCartItem,
+  deleteWholesaleCartItem,
+  createWholesaleOrder,
+  getWholesaleOrders,
+  getWholesaleOrderDetail,
 } from "../../../controllers/miniapp/miniapp.controller";
 
 const mockReq = (overrides: any = {}) => ({
@@ -686,6 +733,592 @@ describe("miniapp/miniapp.controller", () => {
       const okArg = (ok as any).mock.calls[0][0];
       expect(okArg.couponId).toBe(1);
       expect(okArg.discountAmount).toBe(10);
+    });
+  });
+
+  // ========== 会员模块 ==========
+
+  describe("getMemberProfile", () => {
+    it("应返回会员信息", async () => {
+      (memberService.getMemberProfile as any).mockResolvedValue({
+        memberId: 1,
+        nickname: "测试会员",
+        levelId: 2,
+        levelName: "黄金会员",
+        points: 1000,
+        growth: 500,
+      });
+      const req = mockReq();
+      const res = mockRes();
+      await getMemberProfile(req as any, res as any);
+      expect(memberService.getMemberProfile).toHaveBeenCalledWith(1, "t1");
+      expect(ok).toHaveBeenCalled();
+    });
+  });
+
+  describe("getMemberLevels", () => {
+    it("应返回会员等级列表", async () => {
+      (memberService.getMemberLevels as any).mockResolvedValue([
+        { id: 1, name: "普通会员", minGrowth: 0 },
+        { id: 2, name: "黄金会员", minGrowth: 1000 },
+      ]);
+      const req = mockReq();
+      const res = mockRes();
+      await getMemberLevels(req as any, res as any);
+      expect(memberService.getMemberLevels).toHaveBeenCalledWith("t1");
+      expect(ok).toHaveBeenCalled();
+    });
+  });
+
+  describe("getMemberPoints", () => {
+    it("应返回积分明细", async () => {
+      (memberService.getPointsRecords as any).mockResolvedValue({ total: 10, records: [] });
+      const req = mockReq({ query: { page: "1", pageSize: "10", type: "EARN" } });
+      const res = mockRes();
+      await getMemberPoints(req as any, res as any);
+      expect(memberService.getPointsRecords).toHaveBeenCalledWith(1, "t1", 1, 10, "EARN");
+      expect(ok).toHaveBeenCalled();
+    });
+
+    it("不传 type 时 type 为 undefined", async () => {
+      (memberService.getPointsRecords as any).mockResolvedValue({ total: 0, records: [] });
+      const req = mockReq({ query: {} });
+      const res = mockRes();
+      await getMemberPoints(req as any, res as any);
+      expect(memberService.getPointsRecords).toHaveBeenCalledWith(1, "t1", 1, 20, undefined);
+    });
+
+    it("默认分页参数", async () => {
+      (memberService.getPointsRecords as any).mockResolvedValue({ total: 0, records: [] });
+      const req = mockReq({ query: {} });
+      const res = mockRes();
+      await getMemberPoints(req as any, res as any);
+      expect(memberService.getPointsRecords).toHaveBeenCalledWith(1, "t1", 1, 20, undefined);
+    });
+  });
+
+  describe("getMemberGrowth", () => {
+    it("应返回成长值明细", async () => {
+      (memberService.getGrowthRecords as any).mockResolvedValue({ total: 5, records: [] });
+      const req = mockReq({ query: { page: "1", pageSize: "20", type: "EARN" } });
+      const res = mockRes();
+      await getMemberGrowth(req as any, res as any);
+      expect(memberService.getGrowthRecords).toHaveBeenCalledWith(1, "t1", 1, 20, "EARN");
+      expect(ok).toHaveBeenCalled();
+    });
+
+    it("不传 type 时 type 为 undefined", async () => {
+      (memberService.getGrowthRecords as any).mockResolvedValue({ total: 0, records: [] });
+      const req = mockReq({ query: {} });
+      const res = mockRes();
+      await getMemberGrowth(req as any, res as any);
+      expect(memberService.getGrowthRecords).toHaveBeenCalledWith(1, "t1", 1, 20, undefined);
+    });
+  });
+
+  describe("getMemberCoupons", () => {
+    it("应返回我的优惠券", async () => {
+      (memberService.getMyCoupons as any).mockResolvedValue({ total: 3, records: [] });
+      const req = mockReq({ query: { page: "1", pageSize: "10", status: "AVAILABLE" } });
+      const res = mockRes();
+      await getMemberCoupons(req as any, res as any);
+      expect(memberService.getMyCoupons).toHaveBeenCalledWith(1, "t1", 1, 10, "AVAILABLE");
+      expect(ok).toHaveBeenCalled();
+    });
+
+    it("不传 status 时 status 为 undefined", async () => {
+      (memberService.getMyCoupons as any).mockResolvedValue({ total: 0, records: [] });
+      const req = mockReq({ query: {} });
+      const res = mockRes();
+      await getMemberCoupons(req as any, res as any);
+      expect(memberService.getMyCoupons).toHaveBeenCalledWith(1, "t1", 1, 20, undefined);
+    });
+  });
+
+  describe("receiveCoupon", () => {
+    it("应领取优惠券", async () => {
+      (memberService.receiveCoupon as any).mockResolvedValue({ message: "领取成功", couponId: 1 });
+      const req = mockReq({ params: { id: "1" } });
+      const res = mockRes();
+      await receiveCoupon(req as any, res as any);
+      expect(memberService.receiveCoupon).toHaveBeenCalledWith(1, 1, "t1");
+      expect(ok).toHaveBeenCalled();
+    });
+  });
+
+  // ========== 用户设置模块 ==========
+
+  describe("updateUserProfile", () => {
+    it("应更新用户资料", async () => {
+      (memberService.updateUserProfile as any).mockResolvedValue({ message: "更新成功" });
+      const req = mockReq({ body: { nickname: "新昵称", avatar: "avatar.jpg", gender: 1, birthday: "1990-01-01" } });
+      const res = mockRes();
+      await updateUserProfile(req as any, res as any);
+      expect(memberService.updateUserProfile).toHaveBeenCalledWith(1, "t1", expect.any(Object));
+      expect(ok).toHaveBeenCalled();
+    });
+
+    it("只传 nickname 也应更新成功", async () => {
+      (memberService.updateUserProfile as any).mockResolvedValue({ message: "更新成功" });
+      const req = mockReq({ body: { nickname: "新昵称" } });
+      const res = mockRes();
+      await updateUserProfile(req as any, res as any);
+      expect(ok).toHaveBeenCalled();
+    });
+
+    it("参数校验失败 - gender 超出范围", async () => {
+      const req = mockReq({ body: { gender: 3 } });
+      const res = mockRes();
+      await expect(updateUserProfile(req as any, res as any)).rejects.toThrow();
+    });
+
+    it("参数校验失败 - nickname 过长", async () => {
+      const req = mockReq({ body: { nickname: "a".repeat(65) } });
+      const res = mockRes();
+      await expect(updateUserProfile(req as any, res as any)).rejects.toThrow();
+    });
+  });
+
+  describe("changePassword", () => {
+    it("应修改密码", async () => {
+      (memberService.changePassword as any).mockResolvedValue({ message: "修改成功" });
+      const req = mockReq({ body: { oldPassword: "123456", newPassword: "654321" } });
+      const res = mockRes();
+      await changePassword(req as any, res as any);
+      expect(memberService.changePassword).toHaveBeenCalledWith(1, "t1", "123456", "654321");
+      expect(ok).toHaveBeenCalled();
+    });
+
+    it("参数校验失败 - 缺少 oldPassword", async () => {
+      const req = mockReq({ body: { newPassword: "654321" } });
+      const res = mockRes();
+      await expect(changePassword(req as any, res as any)).rejects.toThrow();
+    });
+
+    it("参数校验失败 - 缺少 newPassword", async () => {
+      const req = mockReq({ body: { oldPassword: "123456" } });
+      const res = mockRes();
+      await expect(changePassword(req as any, res as any)).rejects.toThrow();
+    });
+
+    it("参数校验失败 - oldPassword 为空字符串", async () => {
+      const req = mockReq({ body: { oldPassword: "", newPassword: "654321" } });
+      const res = mockRes();
+      await expect(changePassword(req as any, res as any)).rejects.toThrow();
+    });
+  });
+
+  // ========== 批发模块 ==========
+
+  describe("getWholesaleProducts", () => {
+    it("应返回批发商品列表", async () => {
+      (wholesaleService.getWholesaleProducts as any).mockResolvedValue({ total: 10, records: [] });
+      const req = mockReq({ query: { keyword: "酒", categoryId: "1", page: "1", pageSize: "20", sortBy: "price", sortOrder: "asc" } });
+      const res = mockRes();
+      await getWholesaleProducts(req as any, res as any);
+      expect(wholesaleService.getWholesaleProducts).toHaveBeenCalledWith("t1", expect.objectContaining({
+        keyword: "酒", categoryId: 1, page: 1, pageSize: 20, sortBy: "price", sortOrder: "asc"
+      }));
+      expect(ok).toHaveBeenCalled();
+    });
+
+    it("不传可选参数时为 undefined", async () => {
+      (wholesaleService.getWholesaleProducts as any).mockResolvedValue({ total: 0, records: [] });
+      const req = mockReq({ query: {} });
+      const res = mockRes();
+      await getWholesaleProducts(req as any, res as any);
+      expect(wholesaleService.getWholesaleProducts).toHaveBeenCalledWith("t1", expect.objectContaining({
+        keyword: undefined, categoryId: undefined, sortBy: undefined, sortOrder: undefined
+      }));
+    });
+
+    it("默认分页参数", async () => {
+      (wholesaleService.getWholesaleProducts as any).mockResolvedValue({ total: 0, records: [] });
+      const req = mockReq({ query: {} });
+      const res = mockRes();
+      await getWholesaleProducts(req as any, res as any);
+      expect(wholesaleService.getWholesaleProducts).toHaveBeenCalledWith("t1", expect.objectContaining({
+        page: 1, pageSize: 20
+      }));
+    });
+  });
+
+  describe("getWholesaleProductDetail", () => {
+    it("应返回批发商品详情", async () => {
+      (wholesaleService.getWholesaleProductDetail as any).mockResolvedValue({ spuId: 1, name: "商品1" });
+      const req = mockReq({ params: { id: "1" } });
+      const res = mockRes();
+      await getWholesaleProductDetail(req as any, res as any);
+      expect(wholesaleService.getWholesaleProductDetail).toHaveBeenCalledWith(1, "t1");
+      expect(ok).toHaveBeenCalled();
+    });
+  });
+
+  describe("getWholesaleCategories", () => {
+    it("应返回批发分类列表", async () => {
+      (wholesaleService.getWholesaleCategories as any).mockResolvedValue([{ id: 1, name: "分类1" }]);
+      const req = mockReq();
+      const res = mockRes();
+      await getWholesaleCategories(req as any, res as any);
+      expect(wholesaleService.getWholesaleCategories).toHaveBeenCalledWith("t1");
+      expect(ok).toHaveBeenCalled();
+    });
+  });
+
+  describe("getWholesaleCart", () => {
+    it("应返回批发购物车", async () => {
+      (wholesaleService.getWholesaleCart as any).mockResolvedValue({ items: [], totalAmount: 0 });
+      const req = mockReq();
+      const res = mockRes();
+      await getWholesaleCart(req as any, res as any);
+      expect(wholesaleService.getWholesaleCart).toHaveBeenCalledWith(1, "t1");
+      expect(ok).toHaveBeenCalled();
+    });
+  });
+
+  describe("addWholesaleCartItem", () => {
+    it("应添加批发购物车商品", async () => {
+      (wholesaleService.addWholesaleCartItem as any).mockResolvedValue({ message: "已添加" });
+      const req = mockReq({ body: { skuId: 1, quantity: 10 } });
+      const res = mockRes();
+      await addWholesaleCartItem(req as any, res as any);
+      expect(wholesaleService.addWholesaleCartItem).toHaveBeenCalledWith(1, "t1", 1, 10);
+      expect(ok).toHaveBeenCalled();
+    });
+
+    it("quantity 默认值为 1", async () => {
+      (wholesaleService.addWholesaleCartItem as any).mockResolvedValue({ message: "已添加" });
+      const req = mockReq({ body: { skuId: 1 } });
+      const res = mockRes();
+      await addWholesaleCartItem(req as any, res as any);
+      expect(wholesaleService.addWholesaleCartItem).toHaveBeenCalledWith(1, "t1", 1, 1);
+    });
+
+    it("参数校验失败 - 缺少 skuId", async () => {
+      const req = mockReq({ body: { quantity: 10 } });
+      const res = mockRes();
+      await expect(addWholesaleCartItem(req as any, res as any)).rejects.toThrow();
+    });
+
+    it("参数校验失败 - skuId 为负数", async () => {
+      const req = mockReq({ body: { skuId: -1, quantity: 1 } });
+      const res = mockRes();
+      await expect(addWholesaleCartItem(req as any, res as any)).rejects.toThrow();
+    });
+
+    it("参数校验失败 - quantity 为 0", async () => {
+      const req = mockReq({ body: { skuId: 1, quantity: 0 } });
+      const res = mockRes();
+      await expect(addWholesaleCartItem(req as any, res as any)).rejects.toThrow();
+    });
+  });
+
+  describe("updateWholesaleCartItem", () => {
+    it("应更新批发购物车商品数量", async () => {
+      (wholesaleService.updateWholesaleCartItem as any).mockResolvedValue({ message: "已更新" });
+      const req = mockReq({ params: { id: "1" }, body: { quantity: 20 } });
+      const res = mockRes();
+      await updateWholesaleCartItem(req as any, res as any);
+      expect(wholesaleService.updateWholesaleCartItem).toHaveBeenCalledWith(1, "t1", 1, 20);
+      expect(ok).toHaveBeenCalled();
+    });
+
+    it("quantity 为 0 时也应成功", async () => {
+      (wholesaleService.updateWholesaleCartItem as any).mockResolvedValue({ message: "已更新" });
+      const req = mockReq({ params: { id: "1" }, body: { quantity: 0 } });
+      const res = mockRes();
+      await updateWholesaleCartItem(req as any, res as any);
+      expect(wholesaleService.updateWholesaleCartItem).toHaveBeenCalledWith(1, "t1", 1, 0);
+      expect(ok).toHaveBeenCalled();
+    });
+
+    it("参数校验失败 - 缺少 quantity", async () => {
+      const req = mockReq({ params: { id: "1" }, body: {} });
+      const res = mockRes();
+      await expect(updateWholesaleCartItem(req as any, res as any)).rejects.toThrow();
+    });
+
+    it("参数校验失败 - quantity 为负数", async () => {
+      const req = mockReq({ params: { id: "1" }, body: { quantity: -1 } });
+      const res = mockRes();
+      await expect(updateWholesaleCartItem(req as any, res as any)).rejects.toThrow();
+    });
+  });
+
+  describe("deleteWholesaleCartItem", () => {
+    it("应删除批发购物车商品", async () => {
+      (wholesaleService.deleteWholesaleCartItem as any).mockResolvedValue({ message: "已删除" });
+      const req = mockReq({ params: { id: "1" } });
+      const res = mockRes();
+      await deleteWholesaleCartItem(req as any, res as any);
+      expect(wholesaleService.deleteWholesaleCartItem).toHaveBeenCalledWith(1, "t1", 1);
+      expect(ok).toHaveBeenCalled();
+    });
+  });
+
+  describe("createWholesaleOrder", () => {
+    it("应创建批发订单", async () => {
+      (wholesaleService.createWholesaleOrder as any).mockResolvedValue({ orderNo: "PF001" });
+      const req = mockReq({
+        body: {
+          items: [{ skuId: 1, quantity: 10 }],
+          addressId: 1,
+          receiverName: "张三",
+          receiverMobile: "13800138000",
+          receiverProvince: "广东省",
+          receiverCity: "深圳市",
+          receiverDistrict: "南山区",
+          receiverAddress: "科技园路1号",
+          remark: "测试备注",
+          couponId: 1,
+        },
+      });
+      const res = mockRes();
+      await createWholesaleOrder(req as any, res as any);
+      expect(wholesaleService.createWholesaleOrder).toHaveBeenCalledWith(1, "t1", expect.any(Object));
+      expect(ok).toHaveBeenCalled();
+    });
+
+    it("只传必填项也应创建成功", async () => {
+      (wholesaleService.createWholesaleOrder as any).mockResolvedValue({ orderNo: "PF002" });
+      const req = mockReq({
+        body: {
+          items: [{ skuId: 1, quantity: 5 }],
+        },
+      });
+      const res = mockRes();
+      await createWholesaleOrder(req as any, res as any);
+      expect(ok).toHaveBeenCalled();
+    });
+
+    it("参数校验失败 - items 为空数组", async () => {
+      const req = mockReq({ body: { items: [] } });
+      const res = mockRes();
+      await expect(createWholesaleOrder(req as any, res as any)).rejects.toThrow();
+    });
+
+    it("参数校验失败 - 缺少 items", async () => {
+      const req = mockReq({ body: {} });
+      const res = mockRes();
+      await expect(createWholesaleOrder(req as any, res as any)).rejects.toThrow();
+    });
+
+    it("参数校验失败 - item 缺少 skuId", async () => {
+      const req = mockReq({ body: { items: [{ quantity: 1 }] } });
+      const res = mockRes();
+      await expect(createWholesaleOrder(req as any, res as any)).rejects.toThrow();
+    });
+
+    it("参数校验失败 - item quantity 为 0", async () => {
+      const req = mockReq({ body: { items: [{ skuId: 1, quantity: 0 }] } });
+      const res = mockRes();
+      await expect(createWholesaleOrder(req as any, res as any)).rejects.toThrow();
+    });
+
+    it("参数校验失败 - remark 过长", async () => {
+      const req = mockReq({ body: { items: [{ skuId: 1, quantity: 1 }], remark: "a".repeat(501) } });
+      const res = mockRes();
+      await expect(createWholesaleOrder(req as any, res as any)).rejects.toThrow();
+    });
+  });
+
+  describe("getWholesaleOrders", () => {
+    it("应返回批发订单列表", async () => {
+      (wholesaleService.getWholesaleOrders as any).mockResolvedValue({ total: 5, records: [] });
+      const req = mockReq({ query: { page: "1", pageSize: "10", status: "PENDING" } });
+      const res = mockRes();
+      await getWholesaleOrders(req as any, res as any);
+      expect(wholesaleService.getWholesaleOrders).toHaveBeenCalledWith(1, "t1", 1, 10, "PENDING");
+      expect(ok).toHaveBeenCalled();
+    });
+
+    it("不传 status 时 status 为 undefined", async () => {
+      (wholesaleService.getWholesaleOrders as any).mockResolvedValue({ total: 0, records: [] });
+      const req = mockReq({ query: {} });
+      const res = mockRes();
+      await getWholesaleOrders(req as any, res as any);
+      expect(wholesaleService.getWholesaleOrders).toHaveBeenCalledWith(1, "t1", 1, 20, undefined);
+    });
+
+    it("默认分页参数", async () => {
+      (wholesaleService.getWholesaleOrders as any).mockResolvedValue({ total: 0, records: [] });
+      const req = mockReq({ query: {} });
+      const res = mockRes();
+      await getWholesaleOrders(req as any, res as any);
+      expect(wholesaleService.getWholesaleOrders).toHaveBeenCalledWith(1, "t1", 1, 20, undefined);
+    });
+  });
+
+  describe("getWholesaleOrderDetail", () => {
+    it("应返回批发订单详情", async () => {
+      (wholesaleService.getWholesaleOrderDetail as any).mockResolvedValue({ orderNo: "PF001", items: [] });
+      const req = mockReq({ params: { id: "PF001" } });
+      const res = mockRes();
+      await getWholesaleOrderDetail(req as any, res as any);
+      expect(wholesaleService.getWholesaleOrderDetail).toHaveBeenCalledWith(1, "t1", "PF001");
+      expect(ok).toHaveBeenCalled();
+    });
+  });
+
+  // ========== zod 参数校验失败 - 其他模块 ==========
+
+  describe("addToCart - 参数校验失败", () => {
+    it("缺少 skuId 应抛出错误", async () => {
+      const req = mockReq({ body: { quantity: 1 } });
+      const res = mockRes();
+      await expect(addToCart(req as any, res as any)).rejects.toThrow();
+    });
+
+    it("skuId 为 0 应抛出错误", async () => {
+      const req = mockReq({ body: { skuId: 0, quantity: 1 } });
+      const res = mockRes();
+      await expect(addToCart(req as any, res as any)).rejects.toThrow();
+    });
+
+    it("skuId 为负数应抛出错误", async () => {
+      const req = mockReq({ body: { skuId: -1, quantity: 1 } });
+      const res = mockRes();
+      await expect(addToCart(req as any, res as any)).rejects.toThrow();
+    });
+
+    it("quantity 为 0 应抛出错误", async () => {
+      const req = mockReq({ body: { skuId: 1, quantity: 0 } });
+      const res = mockRes();
+      await expect(addToCart(req as any, res as any)).rejects.toThrow();
+    });
+  });
+
+  describe("updateCartItem - 参数校验失败", () => {
+    it("缺少 quantity 应抛出错误", async () => {
+      const req = mockReq({ params: { id: "1" }, body: {} });
+      const res = mockRes();
+      await expect(updateCartItem(req as any, res as any)).rejects.toThrow();
+    });
+
+    it("quantity 为负数应抛出错误", async () => {
+      const req = mockReq({ params: { id: "1" }, body: { quantity: -1 } });
+      const res = mockRes();
+      await expect(updateCartItem(req as any, res as any)).rejects.toThrow();
+    });
+  });
+
+  describe("createOrder - 参数校验失败", () => {
+    it("缺少 storeId 应抛出错误", async () => {
+      const req = mockReq({ body: { fulfillmentType: "DELIVERY", items: [{ skuId: 1, quantity: 1 }] } });
+      const res = mockRes();
+      await expect(createOrder(req as any, res as any)).rejects.toThrow();
+    });
+
+    it("缺少 fulfillmentType 应抛出错误", async () => {
+      const req = mockReq({ body: { storeId: 1, items: [{ skuId: 1, quantity: 1 }] } });
+      const res = mockRes();
+      await expect(createOrder(req as any, res as any)).rejects.toThrow();
+    });
+
+    it("fulfillmentType 非法值应抛出错误", async () => {
+      const req = mockReq({ body: { storeId: 1, fulfillmentType: "INVALID", items: [{ skuId: 1, quantity: 1 }] } });
+      const res = mockRes();
+      await expect(createOrder(req as any, res as any)).rejects.toThrow();
+    });
+
+    it("缺少 items 应抛出错误", async () => {
+      const req = mockReq({ body: { storeId: 1, fulfillmentType: "DELIVERY" } });
+      const res = mockRes();
+      await expect(createOrder(req as any, res as any)).rejects.toThrow();
+    });
+
+    it("items 为空数组应抛出错误", async () => {
+      const req = mockReq({ body: { storeId: 1, fulfillmentType: "DELIVERY", items: [] } });
+      const res = mockRes();
+      await expect(createOrder(req as any, res as any)).rejects.toThrow();
+    });
+
+    it("item 缺少 skuId 和 qty 应抛出错误", async () => {
+      const req = mockReq({ body: { storeId: 1, fulfillmentType: "DELIVERY", items: [{}] } });
+      const res = mockRes();
+      await expect(createOrder(req as any, res as any)).rejects.toThrow();
+    });
+
+    it("item qty 为 0 应抛出错误", async () => {
+      const req = mockReq({ body: { storeId: 1, fulfillmentType: "DELIVERY", items: [{ skuId: 1, qty: 0 }] } });
+      const res = mockRes();
+      await expect(createOrder(req as any, res as any)).rejects.toThrow();
+    });
+  });
+
+  describe("payOrder - 参数校验失败", () => {
+    it("缺少 paymentMethod 应抛出错误", async () => {
+      (miniappService.getOrderDetail as any).mockResolvedValue({ orderNo: "DD001", payStatus: "UNPAID" });
+      const req = mockReq({ params: { id: "DD001" }, body: {} });
+      const res = mockRes();
+      await expect(payOrder(req as any, res as any)).rejects.toThrow();
+    });
+
+    it("paymentMethod 非法值应抛出错误", async () => {
+      (miniappService.getOrderDetail as any).mockResolvedValue({ orderNo: "DD001", payStatus: "UNPAID" });
+      const req = mockReq({ params: { id: "DD001" }, body: { paymentMethod: "INVALID" } });
+      const res = mockRes();
+      await expect(payOrder(req as any, res as any)).rejects.toThrow();
+    });
+  });
+
+  describe("updateProfile - 参数校验失败", () => {
+    it("nickname 过长应抛出错误", async () => {
+      const req = mockReq({ body: { nickname: "a".repeat(65) } });
+      const res = mockRes();
+      await expect(updateProfile(req as any, res as any)).rejects.toThrow();
+    });
+  });
+
+  describe("createAddress - 参数校验失败", () => {
+    it("缺少 name 应抛出错误", async () => {
+      const req = mockReq({ body: { mobile: "13800138000", province: "广东省", city: "深圳市", district: "南山区", detail: "科技园路1号" } });
+      const res = mockRes();
+      await expect(createAddress(req as any, res as any)).rejects.toThrow();
+    });
+
+    it("name 为空字符串应抛出错误", async () => {
+      const req = mockReq({ body: { name: "", mobile: "13800138000", province: "广东省", city: "深圳市", district: "南山区", detail: "科技园路1号" } });
+      const res = mockRes();
+      await expect(createAddress(req as any, res as any)).rejects.toThrow();
+    });
+
+    it("mobile 长度不对应抛出错误", async () => {
+      const req = mockReq({ body: { name: "张三", mobile: "12345", province: "广东省", city: "深圳市", district: "南山区", detail: "科技园路1号" } });
+      const res = mockRes();
+      await expect(createAddress(req as any, res as any)).rejects.toThrow();
+    });
+
+    it("缺少 province 应抛出错误", async () => {
+      const req = mockReq({ body: { name: "张三", mobile: "13800138000", city: "深圳市", district: "南山区", detail: "科技园路1号" } });
+      const res = mockRes();
+      await expect(createAddress(req as any, res as any)).rejects.toThrow();
+    });
+
+    it("缺少 detail 应抛出错误", async () => {
+      const req = mockReq({ body: { name: "张三", mobile: "13800138000", province: "广东省", city: "深圳市", district: "南山区" } });
+      const res = mockRes();
+      await expect(createAddress(req as any, res as any)).rejects.toThrow();
+    });
+
+    it("is_default 超出范围应抛出错误", async () => {
+      const req = mockReq({ body: { name: "张三", mobile: "13800138000", province: "广东省", city: "深圳市", district: "南山区", detail: "科技园路1号", is_default: 2 } });
+      const res = mockRes();
+      await expect(createAddress(req as any, res as any)).rejects.toThrow();
+    });
+  });
+
+  describe("updateAddress - 参数校验失败", () => {
+    it("缺少 name 应抛出错误", async () => {
+      const req = mockReq({ params: { id: "1" }, body: { mobile: "13800138000", province: "广东省", city: "深圳市", district: "南山区", detail: "科技园路1号" } });
+      const res = mockRes();
+      await expect(updateAddress(req as any, res as any)).rejects.toThrow();
+    });
+
+    it("mobile 长度不对应抛出错误", async () => {
+      const req = mockReq({ params: { id: "1" }, body: { name: "张三", mobile: "123", province: "广东省", city: "深圳市", district: "南山区", detail: "科技园路1号" } });
+      const res = mockRes();
+      await expect(updateAddress(req as any, res as any)).rejects.toThrow();
     });
   });
 });
