@@ -1,45 +1,107 @@
-$uni-color-primary: #1677FF;
-$uni-color-success: #10B981;
-$uni-color-warning: #F59E0B;
-$uni-color-error: #EF4444;
-$uni-color-info: #909399;
+/* ═══════════════════════════════════════════════════════════════
+   Design Tokens v4.0 — Atlas 灰阶体系（移动端适配）
+   核心原则：白底黑字中间灰，颜色仅出现在按钮和状态标签
+   适用：app-mobile 商户端
+   ═══════════════════════════════════════════════════════════════ */
 
-$uni-text-color: #333333;
+/* Primary / Brand Color — Atlas Blue */
+$uni-color-primary: #5B6ABF;
+$uni-color-primary-hover: #6B7BCF;
+$uni-color-primary-active: #4A5AA8;
+$uni-color-primary-soft: rgba(91, 106, 191, 0.12);
+
+/* Semantic — Status Colors */
+$uni-color-success: #0EA879;
+$uni-color-success-soft: rgba(14, 168, 121, 0.12);
+$uni-color-warning: #D48B3A;
+$uni-color-warning-soft: rgba(212, 139, 58, 0.12);
+$uni-color-error: #C0392B;
+$uni-color-error-soft: rgba(192, 57, 43, 0.12);
+$uni-color-info: #5B6ABF;
+$uni-color-info-soft: rgba(91, 106, 191, 0.12);
+
+/* Neutral Gray Scale — 11级灰阶 */
+$uni-gray-0: #FFFFFF;
+$uni-gray-50: #F8F8F8;
+$uni-gray-100: #F0F0F0;
+$uni-gray-200: #E2E2E2;
+$uni-gray-300: #CCCCCC;
+$uni-gray-400: #999999;
+$uni-gray-500: #666666;
+$uni-gray-600: #444444;
+$uni-gray-700: #333333;
+$uni-gray-800: #222222;
+$uni-gray-900: #111111;
+
+/* Text — 唯一可以用纯黑的地方 */
+$uni-text-color: #000000;
+$uni-text-color-secondary: #444444;
 $uni-text-color-grey: #999999;
-$uni-text-color-placeholder: #C0C4CC;
+$uni-text-color-placeholder: #CCCCCC;
 $uni-text-color-light: #CCCCCC;
+$uni-text-color-inverse: #FFFFFF;
+$uni-text-color-link: #5B6ABF;
 
+/* Background — 灰+白搭配 */
 $uni-bg-color: #FFFFFF;
 $uni-bg-color-grey: #F5F5F5;
-$uni-bg-color-page: #F0F5FF;
+$uni-bg-color-page: #F5F5F5;
+$uni-bg-color-soft: #F0F0F0;
 $uni-bg-color-hover: #F0F0F0;
 
-$uni-border-color: #E5E5E5;
+/* Border — 全部灰色，不用黑色 */
+$uni-border-color: #E2E2E2;
 $uni-border-color-light: #F0F0F0;
-$uni-border-radius-sm: 8rpx;
+$uni-border-color-focus: #5B6ABF;
+$uni-border-color-error: #C0392B;
+
+/* Radius */
+$uni-border-radius-xs: 8rpx;
+$uni-border-radius-sm: 12rpx;
 $uni-border-radius-base: 16rpx;
-$uni-border-radius-lg: 24rpx;
+$uni-border-radius-lg: 20rpx;
+$uni-border-radius-xl: 24rpx;
+$uni-border-radius-pill: 40rpx;
 $uni-border-radius-circle: 50%;
 
+/* Spacing */
 $uni-spacing-xs: 8rpx;
 $uni-spacing-sm: 16rpx;
 $uni-spacing-base: 24rpx;
 $uni-spacing-lg: 32rpx;
 $uni-spacing-xl: 48rpx;
 
+/* Font Size Scale */
 $uni-font-size-xs: 22rpx;
 $uni-font-size-sm: 24rpx;
 $uni-font-size-base: 28rpx;
+$uni-font-size-md: 28rpx;
 $uni-font-size-lg: 32rpx;
 $uni-font-size-xl: 36rpx;
 $uni-font-size-xxl: 44rpx;
 
+/* Font Weight */
+$uni-font-normal: 400;
+$uni-font-medium: 500;
+$uni-font-semibold: 600;
+$uni-font-bold: 700;
+
+/* Line Height */
 $uni-line-height-base: 1.5;
 $uni-line-height-lg: 1.8;
 
-$uni-shadow-sm: 0 2rpx 8rpx rgba(0, 0, 0, 0.04);
+/* Shadows */
+$uni-shadow-xs: 0 2rpx 4rpx rgba(0, 0, 0, 0.04);
+$uni-shadow-sm: 0 2rpx 8rpx rgba(0, 0, 0, 0.05);
 $uni-shadow-base: 0 4rpx 16rpx rgba(0, 0, 0, 0.06);
 $uni-shadow-lg: 0 8rpx 24rpx rgba(0, 0, 0, 0.08);
+$uni-shadow-card: 0 2rpx 6rpx rgba(0, 0, 0, 0.04);
+$uni-shadow-focus: 0 0 0 6rpx rgba(91, 106, 191, 0.18);
+
+/* Motion */
+$uni-transition-fast: 150ms ease;
+$uni-transition-normal: 200ms ease;
+$uni-transition-slow: 250ms ease-out;
 
 .page-container {
   min-height: 100vh;
@@ -48,14 +110,16 @@ $uni-shadow-lg: 0 8rpx 24rpx rgba(0, 0, 0, 0.08);
   padding-bottom: env(safe-area-inset-bottom);
 }
 
+/* Card — 白色背景，圆角，轻阴影 */
 .card {
   background: $uni-bg-color;
   border-radius: $uni-border-radius-base;
   padding: $uni-spacing-lg;
   margin: $uni-spacing-sm $uni-spacing-lg;
-  box-shadow: $uni-shadow-sm;
+  box-shadow: $uni-shadow-card;
 }
 
+/* Metric Grid — KPI卡片网格 */
 .metric-grid {
   display: grid;
   grid-template-columns: repeat(2, 1fr);
@@ -68,13 +132,13 @@ $uni-shadow-lg: 0 8rpx 24rpx rgba(0, 0, 0, 0.08);
   border-radius: $uni-border-radius-base;
   padding: $uni-spacing-lg;
   text-align: center;
-  box-shadow: $uni-shadow-sm;
+  box-shadow: $uni-shadow-card;
 }
 
 .metric-value {
   font-size: 44rpx;
   font-weight: 700;
-  color: $uni-color-primary;
+  color: $uni-text-color;
   line-height: 1.2;
 }
 
@@ -84,15 +148,65 @@ $uni-shadow-lg: 0 8rpx 24rpx rgba(0, 0, 0, 0.08);
   margin-top: $uni-spacing-xs;
 }
 
+/* Button Styles — Atlas v4 扁平风格 */
 .btn-primary {
-  background: linear-gradient(135deg, $uni-color-primary, #4096ff);
+  background: $uni-color-primary;
   color: #fff;
   border: none;
-  border-radius: $uni-border-radius-lg;
+  border-radius: $uni-border-radius-sm;
   padding: $uni-spacing-base $uni-spacing-xl;
   font-size: $uni-font-size-lg;
-  font-weight: 600;
+  font-weight: 500;
+  transition: all $uni-transition-fast;
 }
+.btn-primary:active {
+  background: $uni-color-primary-active;
+  transform: scale(0.97);
+}
+
+.btn-default {
+  background: $uni-bg-color;
+  color: $uni-text-color;
+  border: 2rpx solid $uni-gray-300;
+  border-radius: $uni-border-radius-sm;
+  padding: $uni-spacing-base $uni-spacing-xl;
+  font-size: $uni-font-size-lg;
+  font-weight: $uni-font-normal;
+  transition: all $uni-transition-fast;
+}
+.btn-default:active {
+  background: $uni-bg-color-hover;
+}
+
+/* 危险按钮：灰边框 + 红字，不填充红色 */
+.btn-danger {
+  background: $uni-bg-color;
+  color: $uni-color-error;
+  border: 2rpx solid $uni-border-color;
+  border-radius: $uni-border-radius-sm;
+  padding: $uni-spacing-base $uni-spacing-xl;
+  font-size: $uni-font-size-lg;
+  font-weight: $uni-font-normal;
+  transition: all $uni-transition-fast;
+}
+.btn-danger:active {
+  background: $uni-color-error-soft;
+  border-color: $uni-color-error;
+}
+
+/* Status Tags — 浅底彩字 */
+.status-tag {
+  display: inline-block;
+  padding: 4rpx 20rpx;
+  border-radius: $uni-border-radius-xs;
+  font-size: $uni-font-size-xs;
+  font-weight: 500;
+}
+.status-tag.success { background: $uni-color-success-soft; color: $uni-color-success; }
+.status-tag.warning { background: $uni-color-warning-soft; color: $uni-color-warning; }
+.status-tag.danger  { background: $uni-color-error-soft; color: $uni-color-error; }
+.status-tag.info    { background: $uni-color-info-soft; color: $uni-color-info; }
+.status-tag.default { background: $uni-bg-color-soft; color: $uni-text-color-secondary; }
 
 .safe-top {
   padding-top: constant(safe-area-inset-top);

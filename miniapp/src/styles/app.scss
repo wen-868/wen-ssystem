@@ -1,7 +1,7 @@
 @import './variables.scss';
 
 page {
-  background-color: $bg-secondary;
+  background-color: $bg-page;
   font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
   font-size: $font-size-base;
   color: $text-primary;
@@ -51,12 +51,24 @@ page {
   color: $text-tertiary;
 }
 
+.text-link {
+  color: $text-link;
+}
+
 .bg-white {
   background-color: $bg-primary;
 }
 
 .bg-gray {
   background-color: $bg-secondary;
+}
+
+.bg-soft {
+  background-color: $bg-tertiary;
+}
+
+.radius-sm {
+  border-radius: $radius-sm;
 }
 
 .radius-md {
@@ -67,8 +79,104 @@ page {
   border-radius: $radius-lg;
 }
 
+.shadow-sm {
+  box-shadow: $shadow-sm;
+}
+
 .shadow-md {
   box-shadow: $shadow-md;
+}
+
+.shadow-card {
+  box-shadow: $shadow-card;
+}
+
+/* Card — 白色背景，圆角，轻阴影 */
+.card {
+  background: $bg-primary;
+  border-radius: $radius-md;
+  padding: $spacing-lg;
+  box-shadow: $shadow-card;
+}
+
+/* Button Styles — Atlas v4 扁平风格 */
+.btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: $spacing-sm $spacing-lg;
+  font-size: $font-size-base;
+  border-radius: $radius-sm;
+  transition: all $transition-fast;
+  border: none;
+  line-height: 1.5;
+}
+
+.btn-primary {
+  background: $primary-color;
+  color: #fff;
+}
+.btn-primary:active {
+  background: $primary-dark;
+  transform: scale(0.97);
+}
+
+.btn-default {
+  background: $bg-primary;
+  color: $text-primary;
+  border: 2rpx solid $gray-300;
+}
+.btn-default:active {
+  background: $bg-tertiary;
+}
+
+/* 危险按钮：灰边框 + 红字，不填充红色 */
+.btn-danger {
+  background: $bg-primary;
+  color: $error-color;
+  border: 2rpx solid $border-color;
+}
+.btn-danger:active {
+  background: $error-soft;
+  border-color: $error-color;
+}
+
+.btn-ghost {
+  background: $primary-soft;
+  color: $primary-color;
+  border: none;
+}
+.btn-ghost:active {
+  background: $primary-color;
+  color: #fff;
+}
+
+.btn-block {
+  width: 100%;
+  display: flex;
+}
+
+/* Status Tags — 浅底彩字 */
+.status-tag {
+  display: inline-block;
+  padding: 4rpx 20rpx;
+  border-radius: $radius-xs;
+  font-size: $font-size-xs;
+  font-weight: 500;
+}
+.status-tag.success { background: $success-soft; color: $success-color; }
+.status-tag.warning { background: $warning-soft; color: $warning-color; }
+.status-tag.danger  { background: $error-soft; color: $error-color; }
+.status-tag.info    { background: $info-soft; color: $info-color; }
+.status-tag.default { background: $bg-tertiary; color: $text-secondary; }
+
+/* 数字等宽字体 */
+.mono,
+.numeric,
+.price,
+.amount {
+  font-family: 'JetBrains Mono', 'SF Mono', monospace;
+  font-variant-numeric: tabular-nums;
 }
 
 .ellipsis {
@@ -87,4 +195,8 @@ page {
 
 .safe-bottom {
   padding-bottom: env(safe-area-inset-bottom);
+}
+
+.safe-top {
+  padding-top: env(safe-area-inset-top);
 }
