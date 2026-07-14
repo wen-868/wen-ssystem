@@ -94,11 +94,27 @@
 
 ### R35-A4 — R35 全量回归测试 [P2]
 
-- **状态**：待开始
+- **状态**：⚠️ 有条件通过（admin-web 存在 1 个 P1 类型错误）
 - **优先级**：P2
 - **负责人**：苏然
 - **预计**：1 天
+- **实际耗时**：1 天
 - **验收标准**：所有测试通过，覆盖率 ≥ 90%
+- **测试报告**：`D:\Users\Documents\TREA\wen-ssystem-local\reports\test-report-r35-2026-07-15.md`
+- **测试结果**：
+  - 后端 TSC 严格检查：✅ 0 错误
+  - 后端 Vitest 全量测试：✅ 412 个文件，4725 个用例全部通过，0 失败 0 跳过
+  - 后端覆盖率：行 96.84% / 语句 96.46% / 函数 95.91% / **分支 90.46%**（达标 ≥90%）
+  - 后端 ESLint：✅ 0 error，203 warning
+  - admin-web vue-tsc：❌ 1 错误（fetchProducts 缺少 storeId 参数类型定义）
+  - admin-web 构建：✅ 构建成功
+  - app-mobile vue-tsc：✅ 0 错误
+  - app-mobile build:h5：✅ 构建成功
+  - merchant-mobile 构建：✅ 构建成功
+- **发现问题**：
+  - P1-1：admin-web `fetchProducts` 缺少 `storeId` 参数类型定义（影响 InventoryTransferCreate.vue 和 InventoryShareConfig.vue）
+- **综合通过率**：9/10 = 90%
+- **建议**：修复 P1-1 类型错误后重新验证 admin-web vue-tsc
 
 ---
 
