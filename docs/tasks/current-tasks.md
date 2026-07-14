@@ -72,16 +72,25 @@
 
 ### R35-A3 — 后端API补全（调拨+报表权限）[P2]
 
-- **状态**：待开始
+- **状态**：✅ 已完成
 - **优先级**：P2
 - **负责人**：阿坚
 - **预计**：1.5 天
+- **实际耗时**：1 天
 - **需求来源**：配合 R35-A1 和 R35-A2 前端
 - **需求**：
   1. 多店调拨 API（调拨单CRUD、审核、出入库、库存共享）
   2. 报表权限 API（权限矩阵、数据权限、权限分配、审计日志）
   3. 单元测试覆盖
 - **验收标准**：vitest run 0 失败，tsc --noEmit --strict 0 错误
+- **完成证据**：
+  - 新增 3 个 service 文件：transfer-order.service.ts、inventory-share.service.ts、report-permission-v2.service.ts
+  - 新增 3 个 controller 文件：transfer-order-v2.controller.ts、inventory-share.controller.ts、report-permission-v2.controller.ts
+  - 新增 3 个 routes 文件：transfer-order.routes.ts、inventory-share.routes.ts、report-permissions.routes.ts
+  - 新增 9 个测试文件（3 service + 3 controller + 3 routes），共 119 个测试用例全部通过
+  - 全量测试 409 个文件，4716 个用例全部通过，0 失败
+  - tsc --noEmit --strict：0 错误
+  - 数据库迁移脚本：docs/migrations/114_p2_transfer_share_report_permission.sql（3张新表 + 调拨单字段完善）
 
 ### R35-A4 — R35 全量回归测试 [P2]
 
