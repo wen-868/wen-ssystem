@@ -39,10 +39,12 @@ function splitSqlStatements(sql: string) {
 
 function findSqlFile(fileName: string) {
   const candidates = [
-    resolve(process.cwd(), "../docs", fileName),
+    resolve(process.cwd(), "docs/migrations", fileName),
     resolve(process.cwd(), "docs", fileName),
+    resolve(process.cwd(), "../docs/migrations", fileName),
+    resolve(process.cwd(), "../docs", fileName),
+    resolve(process.cwd(), "../../docs/migrations", fileName),
     resolve(process.cwd(), "../../docs", fileName),
-    join(process.cwd(), fileName)
   ];
   const found = candidates.find((candidate) => existsSync(candidate));
   if (!found) {
@@ -82,7 +84,7 @@ export async function initDatabase() {
   await ensureDatabaseExists();
 
   if (await tableExists("sys_user")) {
-    logger.info("✅ 数据库表已存在，跳过 schema 初始化");
+    logger.info("✅ 数据库表已存在，跳过 schema 和种子数据初始化");
   } else {
     const schemaPath = findSqlFile("001_phase1_schema.sql");
     const schemaSql = readFileSync(schemaPath, "utf8");
@@ -90,14 +92,14 @@ export async function initDatabase() {
       await pool.query(statement);
     }
     logger.info("✅ 数据库 schema 初始化完成");
-  }
 
-  const seedPath = findSqlFile("002_phase1_seed.sql");
-  const seedSql = readFileSync(seedPath, "utf8");
-  for (const statement of splitSqlStatements(seedSql)) {
-    await pool.query(statement);
+    const seedPath = findSqlFile("002_phase1_seed.sql");
+    const seedSql = readFileSync(seedPath, "utf8");
+    for (const statement of splitSqlStatements(seedSql)) {
+      await pool.query(statement);
+    }
+    logger.info("✅ 数据库种子数据初始化完成");
   }
-  logger.info("✅ 数据库种子数据初始化完成");
 }
 
 /**
