@@ -1,4 +1,4 @@
-﻿{
+{
     "easycom":  {
                     "autoscan":  true,
                     "custom":  {
@@ -395,9 +395,45 @@
                                 }
                   },
                   {
-                      "path":  "pages/system/operation-logs",
+                      "path": "pages/system/operation-logs",
                       "style":  {
                                     "navigationBarTitleText":  "操作日志"
+                                }
+                  },
+                  {
+                      "path": "pages/loss-gain/loss-list",
+                      "style":  {
+                                    "navigationBarTitleText":  "报损管理"
+                                }
+                  },
+                  {
+                      "path": "pages/loss-gain/gain-list",
+                      "style":  {
+                                    "navigationBarTitleText":  "报溢管理"
+                                }
+                  },
+                  {
+                      "path": "pages/loss-gain/create-loss",
+                      "style":  {
+                                    "navigationBarTitleText":  "创建报损单"
+                                }
+                  },
+                  {
+                      "path": "pages/loss-gain/create-gain",
+                      "style":  {
+                                    "navigationBarTitleText":  "创建报溢单"
+                                }
+                  },
+                  {
+                      "path": "pages/loss-gain/loss-gain-detail",
+                      "style":  {
+                                    "navigationBarTitleText":  "单据详情"
+                                }
+                  },
+                  {
+                      "path": "pages/loss-gain/loss-gain-report",
+                      "style":  {
+                                    "navigationBarTitleText":  "损益统计"
                                 }
                   }
               ],

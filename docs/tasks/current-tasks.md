@@ -29,7 +29,7 @@
 
 ### R34-A2 — P2级功能：损益处理（报损报溢）[P2]
 
-- **状态**：待开始
+- **状态**：✅ 已完成
 - **优先级**：P2
 - **负责人**：阿澈
 - **预计**：1.5 天
@@ -40,6 +40,19 @@
   3. 报损/报溢单创建和审核
   4. 损益统计报表
 - **验收标准**：vue-tsc --noEmit 0 错误，npm run build:h5 构建成功
+- **验证结果**：
+  - vue-tsc --noEmit：0 错误
+  - npm run build:h5：构建成功
+  - 新增文件：
+    - `app-mobile/src/api/modules/inventory-loss-gain.ts` — 损益处理 API 模块
+    - `app-mobile/src/pages/loss-gain/loss-list.vue` — 报损单列表
+    - `app-mobile/src/pages/loss-gain/gain-list.vue` — 报溢单列表
+    - `app-mobile/src/pages/loss-gain/create-loss.vue` — 创建报损单
+    - `app-mobile/src/pages/loss-gain/create-gain.vue` — 创建报溢单
+    - `app-mobile/src/pages/loss-gain/loss-gain-detail.vue` — 单据详情
+    - `app-mobile/src/pages/loss-gain/loss-gain-report.vue` — 损益统计报表
+  - 修改文件：
+    - `app-mobile/src/pages.json` — 新增 6 个路由
 
 ### R34-A3 — 后端API补全（套装+损益）[P2]
 
