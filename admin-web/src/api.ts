@@ -2639,3 +2639,41 @@ export async function deletePlatformAnnouncement(id: number) {
   const { data } = await api.delete(`/admin/platform/announcements/${id}`);
   return data.data;
 }
+
+// ==================== 商品审核 ====================
+export async function fetchProductReviews(params?: {
+  keyword?: string;
+  status?: string;
+  reviewType?: string;
+  submitterId?: number;
+  page?: number;
+  pageSize?: number;
+}) {
+  const { data } = await api.get("/admin/product-reviews", { params: { page: 1, pageSize: 20, ...params } });
+  return data.data;
+}
+
+export async function fetchProductReviewDetail(id: number) {
+  const { data } = await api.get(`/admin/product-reviews/${id}`);
+  return data.data;
+}
+
+export async function approveProductReview(id: number, reviewComment?: string) {
+  const { data } = await api.post(`/admin/product-reviews/${id}/approve`, { reviewComment });
+  return data.data;
+}
+
+export async function rejectProductReview(id: number, reviewComment: string) {
+  const { data } = await api.post(`/admin/product-reviews/${id}/reject`, { reviewComment });
+  return data.data;
+}
+
+export async function batchApproveProductReviews(ids: number[], reviewComment?: string) {
+  const { data } = await api.post("/admin/product-reviews/batch-approve", { ids, reviewComment });
+  return data.data;
+}
+
+export async function batchRejectProductReviews(ids: number[], reviewComment: string) {
+  const { data } = await api.post("/admin/product-reviews/batch-reject", { ids, reviewComment });
+  return data.data;
+}
