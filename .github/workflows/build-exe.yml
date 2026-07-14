@@ -23,7 +23,10 @@ jobs:
         run: npx vite build
       - name: Build Electron EXE
         working-directory: admin-web
-        run: npx electron-builder --win --publish=never
+        run: |
+          # electron-builder 与 type:module 不兼容，临时移除
+          node -e "const p=require('./package.json');delete p.type;require('fs').writeFileSync('package.json',JSON.stringify(p,null,2)+'\n')"
+          npx electron-builder --win --publish=never
       - name: Upload artifacts
         uses: actions/upload-artifact@v4
         with:
