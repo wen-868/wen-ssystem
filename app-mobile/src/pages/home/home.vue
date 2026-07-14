@@ -1,4 +1,4 @@
-<template>
+﻿<template>
   <!-- 无表单交互，无需三件套（纯展示仪表盘页） -->
   <scroll-view class="home-page" scroll-y :refresher-enabled="true" :refresher-triggered="refresherTriggered" @refresherrefresh="onRefresh">
     <!-- 顶部 Header -->
@@ -118,6 +118,7 @@
 import { ref, computed, onMounted } from 'vue'
 import { useUserStore } from '@/stores/user'
 import { dashboardApi, type DashboardStats, type TodoItem } from '@/api/modules/dashboard'
+import { notificationsApi } from '@/api/modules/notifications'
 
 const userStore = useUserStore()
 
