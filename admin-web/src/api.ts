@@ -2495,6 +2495,16 @@ export async function updateReportSchedule(id: number, payload: any) { const { d
 export async function deleteReportSchedule(id: number) { const { data } = await api.delete(`/admin/report-schedules/${id}`); return data.data; }
 export async function toggleReportSchedule(id: number, enabled: boolean) { const { data } = await api.patch(`/admin/report-schedules/${id}/toggle`, { enabled }); return data.data; }
 export async function runReportSchedule(id: number) { const { data } = await api.post(`/admin/report-schedules/${id}/run`); return data.data; }
+export async function exportReportExcel(id: number, params?: any) {
+  const { data } = await api.get(`/admin/report-templates/${id}/export-excel`, { params, responseType: 'blob' });
+  return data;
+}
+export async function exportReportPdf(id: number, params?: any) {
+  const { data } = await api.get(`/admin/report-templates/${id}/export-pdf`, { params, responseType: 'blob' });
+  return data;
+}
+export async function fetchReportDataSources() { const { data } = await api.get('/admin/report-templates/data-sources'); return data.data; }
+export async function fetchReportFields(dataSource: string) { const { data } = await api.get(`/admin/report-templates/fields/${dataSource}`); return data.data; }
 
 // ==================== 订单同步日志 ====================
 export async function fetchOrderSyncLogs(params?: any) { const { data } = await api.get('/admin/order-sync-logs', { params }); return data.data; }

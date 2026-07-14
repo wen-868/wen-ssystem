@@ -195,6 +195,7 @@ const routes = [
       { path: "reports/collection-analysis", name: "collection-analysis", component: () => import("../views/CollectionAnalysis.vue"), meta: { roles: ["BOSS", "MGR"], title: "回款分析", icon: DataLine } },
       { path: "reports/customers", name: "customer-analysis", component: () => import("../views/CustomerAnalysis.vue"), meta: { roles: ["BOSS"], title: "客户分析", icon: User } },
       { path: "reports/inventory", name: "inventory-reports", component: () => import("../views/InventoryReports.vue"), meta: { roles: ["BOSS"], title: "库存报表", icon: PieChart } },
+      { path: "reports/custom-report", name: "custom-report", component: () => import("../views/CustomReport.vue"), meta: { roles: ["BOSS"], title: "自定义报表", icon: Document } },
       // 11. 营销推广
       { path: "marketing", name: "marketing", component: () => import("../views/MarketingView.vue"), meta: { roles: ["BOSS"], title: "营销活动", icon: Present } },
       { path: "marketing/tags", name: "marketing-tags", component: () => import("../views/MarketingTags.vue"), meta: { roles: ["BOSS", "MGR"], title: "营销标签", icon: Discount } },
