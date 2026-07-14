@@ -2,6 +2,23 @@ import { z } from "zod";
 import { ok } from "../../shared/response";
 import * as productReviewService from "../../services/admin/product-review.service";
 
+/** 提交商品审核 */
+export async function createProductReview(req: any, res: any) {
+  const tenantId = req.tenantId!;
+  const submitterId = req.user?.id;
+  const submitterName = req.user?.name || req.user?.username;
+  const data = z.object({
+    productId: z.number().int().positive(),
+    productName: z.string().min(1).max(200),
+    reviewType: z.string().min(1).max(50),
+    changeContent: z.any().optional(),
+  }).parse(req.body);
+  const result = await productReviewService.createProductReview(
+    tenantId, data, submitterId, submitterName
+  );
+  res.json(ok(result));
+}
+
 /** 审核列表 */
 export async function listProductReviews(req: any, res: any) {
   const tenantId = req.tenantId!;

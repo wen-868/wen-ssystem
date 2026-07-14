@@ -7,6 +7,7 @@ import type { RouteConfig } from "../shared/auto-routes";
 export const productReviewRouter = Router();
 
 // 商品审核
+productReviewRouter.post("/", requireAuthWithTenant, asyncHandler(controller.createProductReview));
 productReviewRouter.get("/", requireAuthWithTenant, asyncHandler(controller.listProductReviews));
 productReviewRouter.get("/:id", requireAuthWithTenant, asyncHandler(controller.getProductReview));
 productReviewRouter.post("/:id/approve", requireAuthWithTenant, asyncHandler(controller.approveProductReview));
