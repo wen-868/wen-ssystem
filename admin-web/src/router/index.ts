@@ -164,6 +164,9 @@ const routes = [
       { path: "products/tag-groups", name: "tag-groups", component: () => import("../views/TagGroups.vue"), meta: { roles: ["BOSS", "MGR"], title: "标签分组", icon: FolderOpened } },
       { path: "products/tag-relation", name: "product-tag-relation", component: () => import("../views/ProductTagRelation.vue"), meta: { roles: ["BOSS", "MGR"], title: "标签关联", icon: Link } },
       { path: "products/reviews", name: "product-reviews", component: () => import("../views/ProductReview.vue"), meta: { roles: ["BOSS", "MGR"], title: "商品审核", icon: CircleCheck } },
+      { path: "products/review-workflow", name: "product-review-workflow", component: () => import("../views/ProductReviewWorkflow.vue"), meta: { roles: ["BOSS"], title: "审核流程配置", icon: Connection } },
+      { path: "products/review-tasks", name: "product-review-tasks", component: () => import("../views/ProductReviewTasks.vue"), meta: { roles: ["BOSS", "MGR", "FIN", "STOCK"], title: "审核任务", icon: List } },
+      { path: "products/review-delegation", name: "review-delegation", component: () => import("../views/ReviewDelegation.vue"), meta: { roles: ["BOSS", "MGR"], title: "审核委托", icon: Share } },
       { path: "products/combo", name: "product-combo", component: () => import("../views/ProductCombo.vue"), meta: { roles: ["BOSS", "MGR"], title: "套装与组合品", icon: Present } },
       { path: "prices", name: "prices", component: () => import("../views/PricesView.vue"), meta: { roles: ["BOSS", "MGR"], title: "价格管理", icon: PriceTag } },
       // 8. 即时零售
