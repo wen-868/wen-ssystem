@@ -78,3 +78,4 @@ ipcMain.handle("show-message", async (_event, options) => {
   });
   return result;
 });
+// Build timestamp: 2026-07-14T19:30:28Z
