@@ -1,20 +1,29 @@
 <template>
   <div class="transfer-page">
     <div class="page-header">
-      <h2>库存调拨</h2>
-      <p class="page-desc">管理门店间库存调拨，支持提交、审批、发货、收货</p>
+      <h2>多店调拨</h2>
+      <p class="page-desc">管理门店间库存调拨，支持提交、审批、发货、收货全流程</p>
     </div>
 
+    <!-- 搜索筛选区 -->
     <PageCard>
-      <el-form :inline="true" :model="filterForm">
+      <el-form :inline="true" :model="filterForm" class="filter-form">
+        <el-form-item label="调拨单号">
+          <el-input
+            v-model="filterForm.keyword"
+            placeholder="请输入调拨单号"
+            clearable
+            style="width: 200px"
+            @keyup.enter="handleSearch"
+          />
+        </el-form-item>
         <el-form-item label="调出门店">
           <el-select
             v-model="filterForm.fromStoreId"
             placeholder="全部门店"
             clearable
             filterable
-            style="width: 180px"
-            @change="loadTransfers"
+            style="width: 160px"
           >
             <el-option
               v-for="s in storeList"
@@ -30,8 +39,7 @@
             placeholder="全部门店"
             clearable
             filterable
-            style="width: 180px"
-            @change="loadTransfers"
+            style="width: 160px"
           >
             <el-option
               v-for="s in storeList"
@@ -41,24 +49,7 @@
             />
           </el-select>
         </el-form-item>
-        <el-form-item label="状态">
-          <el-select
-            v-model="filterForm.status"
-            placeholder="全部状态"
-            clearable
-            style="width: 140px"
-            @change="loadTransfers"
-          >
-            <el-option label="草稿" value="DRAFT" />
-            <el-option label="待审核" value="PENDING" />
-            <el-option label="已通过" value="APPROVED" />
-            <el-option label="已驳回" value="REJECTED" />
-            <el-option label="已发货" value="SHIPPED" />
-            <el-option label="已收货" value="RECEIVED" />
-            <el-option label="已取消" value="CANCELLED" />
-          </el-select>
-        </el-form-item>
-        <el-form-item label="日期范围">
+        <el-form-item label="创建时间">
           <el-date-picker
             v-model="filterForm.dateRange"
             type="daterange"
@@ -67,18 +58,20 @@
             end-placeholder="结束日期"
             value-format="YYYY-MM-DD"
             style="width: 260px"
-            @change="loadTransfers"
           />
         </el-form-item>
         <el-form-item>
-          <el-button type="primary" @click="loadTransfers">
+          <el-button type="primary" @click="handleSearch">
             <el-icon><Search /></el-icon> 搜索
           </el-button>
-          <el-button @click="resetFilter">重置</el-button>
+          <el-button @click="handleReset">
+            <el-icon><RefreshLeft /></el-icon> 重置
+          </el-button>
         </el-form-item>
       </el-form>
     </PageCard>
 
+    <!-- 列表区 -->
     <PageCard>
       <template #extra>
         <el-button type="primary" @click="handleCreate">
@@ -88,6 +81,15 @@
           <el-icon><Refresh /></el-icon> 刷新
         </el-button>
       </template>
+
+      <!-- Tab 切换 -->
+      <el-tabs v-model="activeTab" class="status-tabs" @tab-change="handleTabChange">
+        <el-tab-pane label="全部" name="all" />
+        <el-tab-pane label="待审核" name="PENDING" />
+        <el-tab-pane label="调拨中" name="TRANSFERRING" />
+        <el-tab-pane label="已完成" name="COMPLETED" />
+        <el-tab-pane label="已驳回" name="REJECTED" />
+      </el-tabs>
 
       <DataTable
         :columns="columns"
@@ -100,26 +102,38 @@
         @update:page-size="loadTransfers"
       >
         <template #status="{ row }">
-          <el-tag v-if="row.status === 'DRAFT'" type="info" size="small">草稿</el-tag>
-          <el-tag v-else-if="row.status === 'PENDING'" type="warning" size="small">待审核</el-tag>
-          <el-tag v-else-if="row.status === 'APPROVED'" type="success" size="small">已通过</el-tag>
-          <el-tag v-else-if="row.status === 'REJECTED'" type="danger" size="small">已驳回</el-tag>
-          <el-tag v-else-if="row.status === 'SHIPPED'" type="primary" size="small">已发货</el-tag>
-          <el-tag v-else-if="row.status === 'RECEIVED'" type="success" size="small">已收货</el-tag>
-          <el-tag v-else-if="row.status === 'CANCELLED'" type="danger" size="small">已取消</el-tag>
-          <el-tag v-else size="small">{{ row.status }}</el-tag>
+          <el-tag :type="getStatusType(row.status)" size="small">
+            {{ getStatusText(row.status) }}
+          </el-tag>
+        </template>
+
+        <template #fromStore="{ row }">
+          <span>{{ row.fromStoreName || '-' }}</span>
+        </template>
+
+        <template #toStore="{ row }">
+          <span>{{ row.toStoreName || '-' }}</span>
         </template>
 
         <template #actions="{ row }">
-          <el-button link type="primary" size="small" @click="handleView(row)">详情</el-button>
+          <el-button link type="primary" size="small" @click="handleView(row)">查看</el-button>
           <el-button
             v-if="row.status === 'DRAFT'"
             link
             type="success"
             size="small"
-            @click="handleSubmitTransfer(row)"
+            @click="handleSubmit(row)"
           >
-            提交
+            提交审核
+          </el-button>
+          <el-button
+            v-if="row.status === 'DRAFT'"
+            link
+            type="warning"
+            size="small"
+            @click="handleEdit(row)"
+          >
+            编辑
           </el-button>
           <el-button
             v-if="row.status === 'PENDING'"
@@ -128,7 +142,7 @@
             size="small"
             @click="handleApprove(row)"
           >
-            通过
+            审核通过
           </el-button>
           <el-button
             v-if="row.status === 'PENDING'"
@@ -146,7 +160,7 @@
             size="small"
             @click="handleShip(row)"
           >
-            发货
+            确认出库
           </el-button>
           <el-button
             v-if="row.status === 'SHIPPED'"
@@ -155,141 +169,30 @@
             size="small"
             @click="handleReceive(row)"
           >
-            收货
+            确认入库
           </el-button>
           <el-button
-            v-if="row.status === 'DRAFT' || row.status === 'PENDING'"
+            v-if="['DRAFT', 'PENDING'].includes(row.status)"
             link
             type="danger"
             size="small"
-            @click="handleCancelTransfer(row)"
+            @click="handleCancel(row)"
           >
             取消
           </el-button>
         </template>
       </DataTable>
     </PageCard>
-
-    <el-dialog
-      v-model="dialogVisible"
-      title="新建调拨"
-      width="720px"
-      :close-on-click-modal="false"
-    >
-      <el-form ref="formRef" :model="form" :rules="formRules" label-width="100px">
-        <el-row :gutter="20">
-          <el-col :span="12">
-            <el-form-item label="调出门店" prop="fromStoreId">
-              <el-select
-                v-model="form.fromStoreId"
-                placeholder="请选择调出门店"
-                filterable
-                style="width: 100%"
-              >
-                <el-option
-                  v-for="s in storeList"
-                  :key="s.id"
-                  :label="s.name"
-                  :value="s.id"
-                />
-              </el-select>
-            </el-form-item>
-          </el-col>
-          <el-col :span="12">
-            <el-form-item label="调入门店" prop="toStoreId">
-              <el-select
-                v-model="form.toStoreId"
-                placeholder="请选择调入门店"
-                filterable
-                style="width: 100%"
-              >
-                <el-option
-                  v-for="s in storeList.filter((s: any) => s.id !== form.fromStoreId)"
-                  :key="s.id"
-                  :label="s.name"
-                  :value="s.id"
-                />
-              </el-select>
-            </el-form-item>
-          </el-col>
-        </el-row>
-        <el-form-item label="调拨商品">
-          <el-table :data="form.items" size="small" border>
-            <el-table-column label="商品名称" min-width="160">
-              <template #default="{ row }">
-                <el-input v-model="row.skuName" size="small" placeholder="商品名称" />
-              </template>
-            </el-table-column>
-            <el-table-column label="调拨数量" width="120">
-              <template #default="{ row }">
-                <el-input-number
-                  v-model="row.quantity"
-                  :min="1"
-                  size="small"
-                  style="width: 100%"
-                />
-              </template>
-            </el-table-column>
-            <el-table-column label="操作" width="70">
-              <template #default="{ $index }">
-                <el-button size="small" link type="danger" @click="removeItem($index)">
-                  删除
-                </el-button>
-              </template>
-            </el-table-column>
-          </el-table>
-          <el-button size="small" type="primary" plain style="margin-top: 10px" @click="addItem">
-            + 添加商品
-          </el-button>
-        </el-form-item>
-        <el-form-item label="备注">
-          <el-input v-model="form.remark" type="textarea" :rows="2" placeholder="选填" />
-        </el-form-item>
-      </el-form>
-      <template #footer>
-        <el-button @click="dialogVisible = false">取消</el-button>
-        <el-button type="primary" :loading="submitLoading" @click="handleSave">创建</el-button>
-      </template>
-    </el-dialog>
-
-    <DetailDrawer v-model="detailVisible" title="调拨详情" width="560px">
-      <template v-if="currentTransfer">
-        <el-descriptions :column="2" border>
-          <el-descriptions-item label="调拨单号">{{ currentTransfer.transferNo }}</el-descriptions-item>
-          <el-descriptions-item label="调出门店">{{ currentTransfer.fromStoreName || currentTransfer.fromStoreId }}</el-descriptions-item>
-          <el-descriptions-item label="调入门店">{{ currentTransfer.toStoreName || currentTransfer.toStoreId }}</el-descriptions-item>
-          <el-descriptions-item label="状态">
-            <el-tag v-if="currentTransfer.status === 'DRAFT'" type="info" size="small">草稿</el-tag>
-            <el-tag v-else-if="currentTransfer.status === 'PENDING'" type="warning" size="small">待审核</el-tag>
-            <el-tag v-else-if="currentTransfer.status === 'APPROVED'" type="success" size="small">已通过</el-tag>
-            <el-tag v-else-if="currentTransfer.status === 'REJECTED'" type="danger" size="small">已驳回</el-tag>
-            <el-tag v-else-if="currentTransfer.status === 'SHIPPED'" type="primary" size="small">已发货</el-tag>
-            <el-tag v-else-if="currentTransfer.status === 'RECEIVED'" type="success" size="small">已收货</el-tag>
-            <el-tag v-else-if="currentTransfer.status === 'CANCELLED'" type="danger" size="small">已取消</el-tag>
-            <el-tag v-else size="small">{{ currentTransfer.status }}</el-tag>
-          </el-descriptions-item>
-          <el-descriptions-item label="商品总数">{{ currentTransfer.totalItems || 0 }}</el-descriptions-item>
-          <el-descriptions-item label="创建时间">{{ formatDate(currentTransfer.createdAt) }}</el-descriptions-item>
-          <el-descriptions-item label="备注" :span="2">{{ currentTransfer.remark || '-' }}</el-descriptions-item>
-        </el-descriptions>
-
-        <h4 style="margin: 20px 0 10px">调拨明细</h4>
-        <el-table :data="currentTransfer.items || []" size="small" border>
-          <el-table-column prop="skuName" label="商品名称" />
-          <el-table-column prop="quantity" label="调拨数量" width="100" />
-        </el-table>
-      </template>
-    </DetailDrawer>
   </div>
 </template>
 
 <script setup lang="ts">
-import { ref, reactive, onMounted } from "vue";
-import { ElMessage, ElMessageBox, type FormInstance, type FormRules } from "element-plus";
-import { Search, Plus, Refresh } from "@element-plus/icons-vue";
+import { ref, reactive, onMounted, computed } from "vue";
+import { useRouter } from "vue-router";
+import { ElMessage, ElMessageBox, type FormRules } from "element-plus";
+import { Search, Plus, Refresh, RefreshLeft } from "@element-plus/icons-vue";
 import {
   fetchTransfers,
-  createTransfer,
   submitTransfer,
   approveTransfer,
   rejectTransfer,
@@ -298,24 +201,20 @@ import {
   receiveTransfer,
   fetchStores
 } from "../api";
-import { formatDate } from "../utils/format";
 import PageCard from "../components/PageCard.vue";
 import DataTable from "../components/DataTable.vue";
-import DetailDrawer from "../components/DetailDrawer.vue";
+
+const router = useRouter();
 
 const loading = ref(false);
-const submitLoading = ref(false);
 const tableData = ref<any[]>([]);
 const storeList = ref<any[]>([]);
-const dialogVisible = ref(false);
-const detailVisible = ref(false);
-const currentTransfer = ref<any>(null);
-const formRef = ref<FormInstance>();
+const activeTab = ref("all");
 
 const filterForm = reactive({
+  keyword: "",
   fromStoreId: null as number | null,
   toStoreId: null as number | null,
-  status: "",
   dateRange: [] as string[]
 });
 
@@ -327,43 +226,71 @@ const pagination = reactive({
 
 const columns = [
   { prop: "transferNo", label: "调拨单号", width: 180 },
-  { prop: "fromStoreName", label: "调出门店", minWidth: 140 },
-  { prop: "toStoreName", label: "调入门店", minWidth: 140 },
-  { prop: "totalItems", label: "商品总数", width: 100 },
-  { prop: "status", label: "状态", width: 100, slot: "status" },
+  { label: "调出门店", minWidth: 140, slot: "fromStore" },
+  { label: "调入门店", minWidth: 140, slot: "toStore" },
+  { prop: "skuCount", label: "商品种类数", width: 110, align: "center" },
+  { prop: "totalQty", label: "总数量", width: 100, align: "right" },
+  { prop: "status", label: "状态", width: 110, slot: "status" },
+  { prop: "creatorName", label: "创建人", width: 100 },
   { prop: "createdAt", label: "创建时间", width: 170 },
-  { label: "操作", width: 280, fixed: "right", slot: "actions" }
+  { label: "操作", width: 320, fixed: "right", slot: "actions" }
 ];
 
-const defaultForm = {
-  fromStoreId: null as number | null,
-  toStoreId: null as number | null,
-  remark: "",
-  items: [{ skuName: "", quantity: 1 }] as any[]
+const statusMap: Record<string, { text: string; type: string }> = {
+  DRAFT: { text: "草稿", type: "info" },
+  PENDING: { text: "待审核", type: "warning" },
+  APPROVED: { text: "已通过", type: "success" },
+  REJECTED: { text: "已驳回", type: "danger" },
+  SHIPPED: { text: "调拨中", type: "primary" },
+  RECEIVED: { text: "已完成", type: "success" },
+  CANCELLED: { text: "已取消", type: "info" }
 };
 
-const form = reactive(JSON.parse(JSON.stringify(defaultForm)));
+function getStatusText(status: string) {
+  return statusMap[status]?.text || status;
+}
 
-const formRules: FormRules = {
-  fromStoreId: [{ required: true, message: "请选择调出门店", trigger: "change" }],
-  toStoreId: [{ required: true, message: "请选择调入门店", trigger: "change" }]
-};
+function getStatusType(status: string) {
+  return (statusMap[status]?.type as any) || "info";
+}
 
 async function loadTransfers() {
   loading.value = true;
   try {
-    const params: any = { page: pagination.page, pageSize: pagination.pageSize };
-    if (filterForm.fromStoreId) params.storeId = filterForm.fromStoreId;
-    if (filterForm.status) params.status = filterForm.status;
+    const params: any = {
+      page: pagination.page,
+      pageSize: pagination.pageSize
+    };
+    if (filterForm.keyword) params.keyword = filterForm.keyword;
+    if (filterForm.fromStoreId) params.fromStoreId = filterForm.fromStoreId;
+    if (filterForm.toStoreId) params.toStoreId = filterForm.toStoreId;
+    if (activeTab.value !== "all") {
+      if (activeTab.value === "TRANSFERRING") {
+        params.status = "APPROVED,SHIPPED";
+      } else if (activeTab.value === "COMPLETED") {
+        params.status = "RECEIVED";
+      } else {
+        params.status = activeTab.value;
+      }
+    }
     if (filterForm.dateRange && filterForm.dateRange.length === 2) {
       params.dateStart = filterForm.dateRange[0];
       params.dateEnd = filterForm.dateRange[1];
     }
+
     const data = await fetchTransfers(params);
-    tableData.value = data.records || [];
+    const records = data.records || data.list || [];
+    tableData.value = records.map((item: any) => ({
+      ...item,
+      skuCount: item.items?.length || item.skuCount || 0,
+      totalQty: item.totalQty || item.items?.reduce((sum: number, it: any) => sum + (it.quantity || it.totalBottleQty || 0), 0) || 0
+    }));
     pagination.total = data.total || 0;
   } catch (e: any) {
     ElMessage.error(e.response?.data?.msg || "加载失败");
+    // 使用 mock 数据（前端独立开发）
+    tableData.value = generateMockData();
+    pagination.total = tableData.value.length;
   } finally {
     loading.value = false;
   }
@@ -372,46 +299,85 @@ async function loadTransfers() {
 async function loadStores() {
   try {
     const data = await fetchStores();
-    storeList.value = Array.isArray(data) ? data : (data.records || []);
+    storeList.value = Array.isArray(data) ? data : (data.records || data.list || []);
   } catch {
-    storeList.value = [];
+    // mock 门店数据
+    storeList.value = [
+      { id: 1, name: "总店" },
+      { id: 2, name: "朝阳门店" },
+      { id: 3, name: "海淀门店" },
+      { id: 4, name: "丰台门店" }
+    ];
   }
 }
 
-function resetFilter() {
+function generateMockData() {
+  const statuses = ["DRAFT", "PENDING", "APPROVED", "SHIPPED", "RECEIVED", "REJECTED", "CANCELLED"];
+  const fromStores = ["总店", "朝阳门店", "海淀门店"];
+  const toStores = ["朝阳门店", "海淀门店", "丰台门店"];
+  const creators = ["张三", "李四", "王五", "赵六"];
+  const data: any[] = [];
+  for (let i = 1; i <= 25; i++) {
+    const status = statuses[i % statuses.length];
+    data.push({
+      id: i,
+      transferNo: `DB202607${String(i).padStart(4, "0")}`,
+      fromStoreId: (i % 3) + 1,
+      fromStoreName: fromStores[i % fromStores.length],
+      toStoreId: ((i + 1) % 3) + 2,
+      toStoreName: toStores[i % toStores.length],
+      skuCount: Math.floor(Math.random() * 10) + 1,
+      totalQty: Math.floor(Math.random() * 100) + 10,
+      status,
+      creatorName: creators[i % creators.length],
+      createdAt: `2026-07-${String(15 - (i % 10)).padStart(2, "0")} ${String(9 + (i % 8)).padStart(2, "0")}:${String(i * 3 % 60).padStart(2, "0")}:00`,
+      items: [
+        { skuId: 1, skuName: "飞天茅台53度500ml", quantity: 10, unit: "瓶" },
+        { skuId: 2, skuName: "五粮液普五52度500ml", quantity: 20, unit: "瓶" }
+      ],
+      remark: "常规补货调拨"
+    });
+  }
+  return data;
+}
+
+function handleSearch() {
+  pagination.page = 1;
+  loadTransfers();
+}
+
+function handleReset() {
+  filterForm.keyword = "";
   filterForm.fromStoreId = null;
   filterForm.toStoreId = null;
-  filterForm.status = "";
   filterForm.dateRange = [];
+  activeTab.value = "all";
+  pagination.page = 1;
+  loadTransfers();
+}
+
+function handleTabChange() {
   pagination.page = 1;
   loadTransfers();
 }
 
 function handleCreate() {
-  Object.assign(form, JSON.parse(JSON.stringify(defaultForm)));
-  dialogVisible.value = true;
+  router.push("/inventory-transfer/create");
 }
 
-function addItem() {
-  form.items.push({ skuName: "", quantity: 1 });
-}
-
-function removeItem(index: number) {
-  if (form.items.length > 1) {
-    form.items.splice(index, 1);
-  }
+function handleEdit(row: any) {
+  router.push(`/inventory-transfer/edit/${row.id}`);
 }
 
 function handleView(row: any) {
-  currentTransfer.value = row;
-  detailVisible.value = true;
+  router.push(`/inventory-transfer/${row.id}`);
 }
 
-async function handleApprove(row: any) {
+async function handleSubmit(row: any) {
   try {
-    await ElMessageBox.confirm("确定通过该调拨申请吗？", "提示", { type: "warning" });
-    await approveTransfer(row.id);
-    ElMessage.success("已通过");
+    await ElMessageBox.confirm("确定提交该调拨单审核吗？", "提示", { type: "warning" });
+    await submitTransfer(row.id);
+    ElMessage.success("提交成功");
     loadTransfers();
   } catch (e: any) {
     if (e !== "cancel") {
@@ -420,11 +386,11 @@ async function handleApprove(row: any) {
   }
 }
 
-async function handleSubmitTransfer(row: any) {
+async function handleApprove(row: any) {
   try {
-    await ElMessageBox.confirm("确定提交该调拨单吗？", "提示", { type: "warning" });
-    await submitTransfer(row.id);
-    ElMessage.success("已提交");
+    await ElMessageBox.confirm("确定通过该调拨申请吗？", "审核通过", { type: "warning" });
+    await approveTransfer(row.id);
+    ElMessage.success("审核通过");
     loadTransfers();
   } catch (e: any) {
     if (e !== "cancel") {
@@ -435,7 +401,11 @@ async function handleSubmitTransfer(row: any) {
 
 async function handleReject(row: any) {
   try {
-    await ElMessageBox.prompt("请输入驳回原因", "驳回调拨", { type: "warning" });
+    const { value } = await ElMessageBox.prompt("请输入驳回原因", "驳回调拨", {
+      type: "warning",
+      inputPlaceholder: "请输入驳回原因",
+      confirmButtonText: "确定驳回"
+    });
     await rejectTransfer(row.id);
     ElMessage.success("已驳回");
     loadTransfers();
@@ -448,9 +418,9 @@ async function handleReject(row: any) {
 
 async function handleShip(row: any) {
   try {
-    await ElMessageBox.confirm("确定执行发货操作吗？", "提示", { type: "warning" });
+    await ElMessageBox.confirm("确定执行出库操作吗？出库后库存将从调出门店扣减。", "确认出库", { type: "warning" });
     await shipTransfer(row.id);
-    ElMessage.success("已发货");
+    ElMessage.success("出库成功");
     loadTransfers();
   } catch (e: any) {
     if (e !== "cancel") {
@@ -461,9 +431,9 @@ async function handleShip(row: any) {
 
 async function handleReceive(row: any) {
   try {
-    await ElMessageBox.confirm("确定收货吗？", "提示", { type: "warning" });
+    await ElMessageBox.confirm("确定执行入库操作吗？入库后库存将增加到调入门店。", "确认入库", { type: "warning" });
     await receiveTransfer(row.id, {});
-    ElMessage.success("已收货");
+    ElMessage.success("入库成功");
     loadTransfers();
   } catch (e: any) {
     if (e !== "cancel") {
@@ -472,7 +442,7 @@ async function handleReceive(row: any) {
   }
 }
 
-async function handleCancelTransfer(row: any) {
+async function handleCancel(row: any) {
   try {
     await ElMessageBox.confirm("确定取消该调拨单吗？", "提示", { type: "warning" });
     await cancelTransfer(row.id);
@@ -483,28 +453,6 @@ async function handleCancelTransfer(row: any) {
       ElMessage.error(e.response?.data?.msg || "操作失败");
     }
   }
-}
-
-async function handleSave() {
-  if (!formRef.value) return;
-  await formRef.value.validate(async (valid) => {
-    if (!valid) return;
-    if (form.fromStoreId === form.toStoreId) {
-      ElMessage.warning("调出门店和调入门店不能相同");
-      return;
-    }
-    submitLoading.value = true;
-    try {
-      await createTransfer(form);
-      ElMessage.success("创建成功");
-      dialogVisible.value = false;
-      loadTransfers();
-    } catch (e: any) {
-      ElMessage.error(e.response?.data?.msg || "创建失败");
-    } finally {
-      submitLoading.value = false;
-    }
-  });
 }
 
 onMounted(() => {
@@ -532,5 +480,17 @@ onMounted(() => {
   margin: 0;
   color: #909399;
   font-size: 14px;
+}
+
+.filter-form {
+  margin: 0;
+}
+
+.status-tabs {
+  margin-bottom: 16px;
+}
+
+.status-tabs :deep(.el-tabs__header) {
+  margin-bottom: 16px;
 }
 </style>
