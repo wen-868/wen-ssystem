@@ -82,15 +82,48 @@
 
 ### R32-A4 — 后端API补全（配合P2级功能）[P2]
 
-- **状态**：待开始
+- **状态**：已完成
 - **优先级**：P2
 - **负责人**：阿坚
 - **预计**：2 天
+- **完成时间**：2026-07-14
 - **需求来源**：配合 R32-A1 至 R32-A3 前端
 - **需求**：
   1. 自定义报表API（报表CRUD、报表生成、报表导出）
   2. 商品审核API（审核列表、审核通过/驳回）
   3. 社群营销API（拼团、砍价、秒杀）
+- **完成内容**：
+  1. **数据库迁移**：
+     - `109_p2_custom_report.sql` — 新增 `custom_report`（自定义报表）、`custom_report_log`（报表生成日志）2张表
+     - `110_p2_product_review.sql` — 新增 `product_review`（商品审核记录）表
+     - `111_p2_bargain.sql` — 新增 `bargain_activity`（砍价活动）、`bargain_record`（砍价记录）、`bargain_helper_log`（砍价助力日志）3张表
+  2. **自定义报表模块**：`custom-report-v2.service.ts` — createReport/getReport/listReports/updateReport/deleteReport/generateReport/exportReport/getReportLogs，共8个接口；`custom-report-v2.controller.ts` + `custom-report-v2.routes.ts`（/api/admin/reports）
+  3. **商品审核模块**：`product-review.service.ts` — listProductReviews/getProductReview/createProductReview/approveProductReview/rejectProductReview/batchApproveProductReviews，共6个接口；`product-review.controller.ts` + `product-review.routes.ts`（/api/admin/product-reviews）
+  4. **社群营销模块**：`community-marketing.service.ts` — 拼团（listGroupBuyActivities/getGroupBuyDetail/joinGroupBuy/createGroupBuyTeam）、砍价（listBargainActivities/getBargainDetail/initiateBargain/helpBargain）、秒杀（listSeckillActivities/getSeckillDetail/seckillOrder），共11个接口；`community-marketing.controller.ts` + `community-marketing.routes.ts`（/api/marketing/group-buy、/api/marketing/bargain、/api/marketing/seckill）
+  5. **单元测试**：custom-report-v2（20个用例）、product-review（23个用例）、community-marketing（拼团18个+砍价18个+秒杀15个=51个用例），合计94个用例
+- **修改文件**：
+  - `docs/migrations/109_p2_custom_report.sql`（新增）
+  - `docs/migrations/110_p2_product_review.sql`（新增）
+  - `docs/migrations/111_p2_bargain.sql`（新增）
+  - `backend/src/services/admin/custom-report-v2.service.ts`（新增）
+  - `backend/src/controllers/admin/custom-report-v2.controller.ts`（新增）
+  - `backend/src/routes/custom-report-v2.routes.ts`（新增）
+  - `backend/src/services/admin/product-review.service.ts`（新增）
+  - `backend/src/controllers/admin/product-review.controller.ts`（新增）
+  - `backend/src/routes/product-review.routes.ts`（新增）
+  - `backend/src/services/marketing/community-marketing.service.ts`（新增）
+  - `backend/src/controllers/marketing/community-marketing.controller.ts`（新增）
+  - `backend/src/routes/community-marketing.routes.ts`（新增）
+  - `backend/src/__tests__/services/admin/custom-report-v2.service.test.ts`（新增）
+  - `backend/src/__tests__/services/admin/custom-report-v2-extra.service.test.ts`（新增）
+  - `backend/src/__tests__/services/admin/product-review.service.test.ts`（新增）
+  - `backend/src/__tests__/services/marketing/community-marketing-group-buy.test.ts`（新增）
+  - `backend/src/__tests__/services/marketing/community-marketing-bargain.test.ts`（新增）
+  - `backend/src/__tests__/services/marketing/community-marketing-seckill.test.ts`（新增）
+- **验证结果**：
+  - ✅ tsc --noEmit --strict：0 错误
+  - ✅ vitest run：392 测试文件，4407 测试用例全部通过，0 失败
+  - ✅ 新增 API：自定义报表8个 + 商品审核6个 + 社群营销11个 = 25个
 - **验收标准**：vitest run 0 失败，tsc --noEmit --strict 0 错误
 
 ### R32-A5 — R32 全量回归测试 [P2]
