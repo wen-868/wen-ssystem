@@ -329,6 +329,48 @@
       }
     },
     {
+      "path": "pages/marketing/community-activities",
+      "style": {
+        "navigationBarTitleText": "社群营销"
+      }
+    },
+    {
+      "path": "pages/marketing/group-buy-list",
+      "style": {
+        "navigationBarTitleText": "拼团活动"
+      }
+    },
+    {
+      "path": "pages/marketing/group-buy-detail",
+      "style": {
+        "navigationBarTitleText": "拼团详情"
+      }
+    },
+    {
+      "path": "pages/marketing/bargain-list",
+      "style": {
+        "navigationBarTitleText": "砍价活动"
+      }
+    },
+    {
+      "path": "pages/marketing/bargain-detail",
+      "style": {
+        "navigationBarTitleText": "砍价详情"
+      }
+    },
+    {
+      "path": "pages/marketing/seckill-list",
+      "style": {
+        "navigationBarTitleText": "秒杀活动"
+      }
+    },
+    {
+      "path": "pages/marketing/seckill-detail",
+      "style": {
+        "navigationBarTitleText": "秒杀详情"
+      }
+    },
+    {
       "path": "pages/finance/finance-dashboard",
       "style": {
         "navigationBarTitleText": "财务看板"

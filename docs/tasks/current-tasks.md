@@ -68,16 +68,37 @@
 
 ### R32-A3 — P2级功能：社群营销 [P2]
 
-- **状态**：待开始
+- **状态**：已完成
 - **优先级**：P2
 - **负责人**：阿澈
 - **预计**：2 天
+- **完成时间**：2026-07-14
 - **需求来源**：第三阶段 P2级功能
 - **需求**：
-  1. 社群活动列表
-  2. 拼团活动
-  3. 砍价活动
-  4. 秒杀活动
+  1. 社群活动列表（活动名称、类型、状态、时间，分类Tab，搜索筛选）
+  2. 拼团活动（列表、详情、发起拼团、参团）
+  3. 砍价活动（列表、详情、发起砍价、帮好友砍价）
+  4. 秒杀活动（列表、倒计时、详情、立即秒杀）
+- **完成内容**：
+  1. **社群营销API模块**：`community-marketing.ts`，包含拼团（列表/详情/发起/参团）、砍价（列表/详情/发起/帮砍）、秒杀（列表/详情/下单）共11个接口及完整类型定义
+  2. **社群活动列表页**：`community-activities.vue`，支持拼团/砍价/秒杀分类Tab切换、状态筛选、关键词搜索、活动卡片展示
+  3. **拼团活动**：`group-buy-list.vue`（列表+搜索+状态筛选）、`group-buy-detail.vue`（详情+活动规则+拼团列表+发起/参团）
+  4. **砍价活动**：`bargain-list.vue`（列表+搜索+状态筛选）、`bargain-detail.vue`（详情+砍价进度+活动规则+帮砍记录+发起/帮砍/购买）
+  5. **秒杀活动**：`seckill-list.vue`（列表+倒计时+搜索+状态筛选）、`seckill-detail.vue`（详情+库存进度+倒计时+数量选择+立即秒杀）
+  6. **路由注册**：`pages.json` 新增 7 条路由（社群活动列表+拼团列表/详情+砍价列表/详情+秒杀列表/详情）
+- **修改文件**：
+  - `app-mobile/src/api/modules/community-marketing.ts`（新增）
+  - `app-mobile/src/pages/marketing/community-activities.vue`（新增）
+  - `app-mobile/src/pages/marketing/group-buy-list.vue`（新增）
+  - `app-mobile/src/pages/marketing/group-buy-detail.vue`（新增）
+  - `app-mobile/src/pages/marketing/bargain-list.vue`（新增）
+  - `app-mobile/src/pages/marketing/bargain-detail.vue`（新增）
+  - `app-mobile/src/pages/marketing/seckill-list.vue`（新增）
+  - `app-mobile/src/pages/marketing/seckill-detail.vue`（新增）
+  - `app-mobile/src/pages.json`（新增7条路由）
+- **验证结果**：
+  - ✅ vue-tsc --noEmit：0 错误
+  - ✅ npm run build:h5：构建成功（DONE Build complete）
 - **验收标准**：vue-tsc --noEmit 0 错误，npm run build:h5 构建成功
 
 ### R32-A4 — 后端API补全（配合P2级功能）[P2]
