@@ -435,6 +435,48 @@
                       "style":  {
                                     "navigationBarTitleText":  "损益统计"
                                 }
+                  },
+                  {
+                      "path": "pages/report-permission/index",
+                      "style":  {
+                                    "navigationBarTitleText":  "权限管理"
+                                }
+                  },
+                  {
+                      "path": "pages/report-permission/report-matrix",
+                      "style":  {
+                                    "navigationBarTitleText":  "报表权限矩阵"
+                                }
+                  },
+                  {
+                      "path": "pages/report-permission/store-data-permission",
+                      "style":  {
+                                    "navigationBarTitleText":  "门店数据权限"
+                                }
+                  },
+                  {
+                      "path": "pages/report-permission/permission-assign",
+                      "style":  {
+                                    "navigationBarTitleText":  "权限分配"
+                                }
+                  },
+                  {
+                      "path": "pages/report-permission/audit-logs",
+                      "style":  {
+                                    "navigationBarTitleText":  "权限审计日志"
+                                }
+                  },
+                  {
+                      "path": "pages/report-permission/audit-detail",
+                      "style":  {
+                                    "navigationBarTitleText":  "日志详情"
+                                }
+                  },
+                  {
+                      "path": "pages/report-permission/my-permission",
+                      "style":  {
+                                    "navigationBarTitleText":  "我的权限"
+                                }
                   }
               ],
     "globalStyle":  {
