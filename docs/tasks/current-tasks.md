@@ -56,7 +56,7 @@
 
 ### R34-A3 — 后端API补全（套装+损益）[P2]
 
-- **状态**：待开始
+- **状态**：已完成
 - **优先级**：P2
 - **负责人**：阿坚
 - **预计**：1.5 天
@@ -66,6 +66,14 @@
   2. 损益处理 API（报损单CRUD、报溢单CRUD、审核、库存调整）
   3. 单元测试覆盖
 - **验收标准**：vitest run 0 失败，tsc --noEmit --strict 0 错误
+- **完成证据**：
+  - 新增 5 个 service 文件：product-bundle.service.ts、combo-product.service.ts、inventory-loss-order.service.ts、inventory-profit-order.service.ts、profit-loss-stats.service.ts
+  - 新增 6 个 controller 文件：product-bundle.controller.ts、combo-product.controller.ts、inventory-loss-order.controller.ts、inventory-profit-order.controller.ts、profit-loss-stats.controller.ts
+  - 新增 2 个 routes 文件：product-bundle.routes.ts、inventory-profit-loss.routes.ts
+  - 新增 5 个测试文件，85 个测试用例全部通过
+  - 全量测试 4543 个全部通过，0 失败
+  - 新增文件 tsc 0 错误
+  - 数据库迁移脚本：docs/migrations/113_p2_bundle_combo_profit_loss.sql（8张表）
 
 ### R34-A4 — R34 全量回归测试 [P2]
 
