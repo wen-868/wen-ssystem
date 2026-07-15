@@ -15,6 +15,10 @@
           <el-icon><OfficeBuilding /></el-icon>
           <span>租户管理</span>
         </el-menu-item>
+        <el-menu-item index="/tenant-usage">
+          <el-icon><DataLine /></el-icon>
+          <span>租户使用统计</span>
+        </el-menu-item>
         <el-menu-item index="/packages">
           <el-icon><Box /></el-icon>
           <span>套餐管理</span>
@@ -23,9 +27,29 @@
           <el-icon><CreditCard /></el-icon>
           <span>订阅管理</span>
         </el-menu-item>
+        <el-menu-item index="/reconciliation">
+          <el-icon><Money /></el-icon>
+          <span>财务结算</span>
+        </el-menu-item>
+        <el-menu-item index="/announcements">
+          <el-icon><ChatDotSquare /></el-icon>
+          <span>平台公告</span>
+        </el-menu-item>
+        <el-menu-item index="/reviews">
+          <el-icon><Star /></el-icon>
+          <span>平台评价</span>
+        </el-menu-item>
         <el-menu-item index="/monitor">
           <el-icon><Monitor /></el-icon>
           <span>系统监控</span>
+        </el-menu-item>
+        <el-menu-item index="/audit-logs">
+          <el-icon><Document /></el-icon>
+          <span>操作日志</span>
+        </el-menu-item>
+        <el-menu-item index="/error-logs">
+          <el-icon><Warning /></el-icon>
+          <span>错误日志</span>
         </el-menu-item>
         <el-menu-item index="/settings">
           <el-icon><Setting /></el-icon>
@@ -50,7 +74,7 @@
 <script setup lang="ts">
 import { computed } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
-import { OfficeBuilding, Monitor, DataAnalysis, Box, CreditCard, Setting, Check } from '@element-plus/icons-vue'
+import { OfficeBuilding, Monitor, DataAnalysis, Box, CreditCard, Setting, Check, DataLine, Money, ChatDotSquare, Star, Document, Warning } from '@element-plus/icons-vue'
 import { useAuthStore } from '../stores/auth'
 
 const route = useRoute()
@@ -67,8 +91,10 @@ function handleLogout() {
 
 <style scoped>
 .platform-layout { height: 100vh; }
-.el-aside { background: #304156; color: #fff; }
-.logo { padding: 20px; font-size: 16px; font-weight: 700; text-align: center; border-bottom: 1px solid #3a4a5e; }
+.el-aside { background: #304156; color: #fff; overflow-y: auto; }
+.el-aside::-webkit-scrollbar { width: 4px; }
+.el-aside::-webkit-scrollbar-thumb { background: #4a5a6e; border-radius: 2px; }
+.logo { padding: 20px; font-size: 16px; font-weight: 700; text-align: center; border-bottom: 1px solid #3a4a5e; position: sticky; top: 0; background: #304156; z-index: 1; }
 .el-header { background: #fff; border-bottom: 1px solid #e6e6e6; display: flex; align-items: center; justify-content: flex-end; }
 .header-right { display: flex; align-items: center; gap: 12px; }
 .username { color: #606266; }

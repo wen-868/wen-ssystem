@@ -213,3 +213,97 @@ export function fetchExpiringTenants(days?: number) {
 export function notifyExpiringTenants(tenantIds: number[]) {
   return api.post<any, { data: ApiResult<any> }>("/admin/monitor/notify-expiring", { tenantIds });
 }
+
+// ==================== 平台公告 ====================
+export function getAnnouncements(params?: {
+  page?: number;
+  pageSize?: number;
+  status?: string;
+  keyword?: string;
+}) {
+  return api.get<any, { data: ApiResult<PaginatedResult<any>> }>("/admin/platform/announcements", { params: { page: 1, pageSize: 20, ...params } });
+}
+
+export function getAnnouncementDetail(id: number) {
+  return api.get<any, { data: ApiResult<any> }>(`/admin/platform/announcements/${id}`);
+}
+
+export function createAnnouncement(data: {
+  title: string;
+  content: string;
+  type?: string;
+  status?: string;
+  startTime?: string;
+  endTime?: string;
+}) {
+  return api.post<any, { data: ApiResult<any> }>("/admin/platform/announcements", data);
+}
+
+export function updateAnnouncement(id: number, data: any) {
+  return api.put<any, { data: ApiResult<any> }>(`/admin/platform/announcements/${id}`, data);
+}
+
+export function deleteAnnouncement(id: number) {
+  return api.delete<any, { data: ApiResult<any> }>(`/admin/platform/announcements/${id}`);
+}
+
+// ==================== 平台评价 ====================
+export function getPlatformReviews(params?: {
+  page?: number;
+  pageSize?: number;
+  status?: string;
+  rating?: number;
+  keyword?: string;
+}) {
+  return api.get<any, { data: ApiResult<PaginatedResult<any>> }>("/admin/platform-reviews", { params: { page: 1, pageSize: 20, ...params } });
+}
+
+export function getPlatformReviewStats(params?: any) {
+  return api.get<any, { data: ApiResult<any> }>("/admin/platform-reviews/stats", { params });
+}
+
+export function replyPlatformReview(id: number, reply: string) {
+  return api.post<any, { data: ApiResult<any> }>(`/admin/platform-reviews/${id}/reply`, { reply });
+}
+
+// ==================== 财务结算 ====================
+export function getPlatformReconciliations(params?: {
+  page?: number;
+  pageSize?: number;
+  status?: string;
+  dateStart?: string;
+  dateEnd?: string;
+  keyword?: string;
+}) {
+  return api.get<any, { data: ApiResult<PaginatedResult<any>> }>("/admin/platform-reconciliations", { params: { page: 1, pageSize: 20, ...params } });
+}
+
+export function getPlatformReconciliationDetail(id: number) {
+  return api.get<any, { data: ApiResult<any> }>(`/admin/platform-reconciliations/${id}`);
+}
+
+// ==================== 租户使用统计 ====================
+export function getTenantUsageStats(params?: {
+  tenantId?: number;
+  dateStart?: string;
+  dateEnd?: string;
+  metric?: string;
+}) {
+  return api.get<any, { data: ApiResult<any> }>("/admin/tenants/usage-stats", { params });
+}
+
+export function getTenantStatistics() {
+  return api.get<any, { data: ApiResult<any> }>("/admin/tenants/statistics/overview");
+}
+
+// ==================== 错误日志 ====================
+export function getErrorLogs(params?: {
+  page?: number;
+  pageSize?: number;
+  errorType?: string;
+  severity?: string;
+  source?: string;
+  keyword?: string;
+}) {
+  return api.get<any, { data: ApiResult<PaginatedResult<any>> }>("/admin/error-logs", { params: { page: 1, pageSize: 20, ...params } });
+}

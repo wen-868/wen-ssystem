@@ -1,0 +1,5 @@
+export default {
+  navigationBarTitleText: '领券中心',
+  enablePullDownRefresh: true,
+  backgroundTextStyle: 'dark'
+}
