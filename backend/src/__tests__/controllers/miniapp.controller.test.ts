@@ -95,7 +95,7 @@ describe("miniapp.controller", () => {
     const req = mockReq({ query: { storeId: 1, keyword: "test" } });
     const res = mockRes();
     await getProducts(req as any, res as any);
-    expect(miniappService.getProducts).toHaveBeenCalledWith(1, "test", "RETAIL");
+    expect(miniappService.getProducts).toHaveBeenCalledWith("t1", 1, "test", "RETAIL");
     expect(ok).toHaveBeenCalled();
   });
 
@@ -179,7 +179,7 @@ describe("miniapp.controller", () => {
     const req = mockReq({ query: {}, headers: {} });
     const res = mockRes();
     await getProducts(req as any, res as any);
-    expect(miniappService.getProducts).toHaveBeenCalledWith(1, "", "RETAIL");
+    expect(miniappService.getProducts).toHaveBeenCalledWith("t1", 1, "", "RETAIL");
   });
 
   it("createOrder - 不传可选header时使用默认值", async () => {

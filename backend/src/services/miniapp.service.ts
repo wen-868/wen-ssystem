@@ -34,21 +34,21 @@ export function getProfile(customerType: string) {
 }
 
 // ========== 搜索商品列表 ==========
-export async function getProducts(storeId: number, keyword: string, customerType: string) {
+export async function getProducts(tenantId: string, storeId: number, keyword: string, customerType: string) {
   const kw = `%${keyword}%`;
   const rows = await query<any>(
     `SELECT s.id AS skuId, p.name, s.sku_name AS skuName, p.main_image AS image,
             pp.retail_price AS retailPrice, pp.wholesale_price AS wholesalePrice, pp.miniapp_price AS miniappPrice,
             COALESCE(ib.available_qty, 0) AS availableQty
      FROM t_product_sku s
-     JOIN t_product_spu p ON p.id = s.spu_id
-     JOIN t_product_price pp ON pp.sku_id = s.id
-     LEFT JOIN t_inventory_balance ib ON ib.sku_id = s.id AND ib.store_id = ? AND ib.stock_type = 'ONLINE'
-     WHERE p.status = 'ON_SALE'
+     JOIN t_product_spu p ON p.id = s.spu_id AND p.tenant_id = s.tenant_id
+     JOIN t_product_price pp ON pp.sku_id = s.id AND pp.tenant_id = s.tenant_id
+     LEFT JOIN t_inventory_balance ib ON ib.sku_id = s.id AND ib.store_id = ? AND ib.stock_type = 'ONLINE' AND ib.tenant_id = s.tenant_id
+     WHERE s.tenant_id = ? AND p.status = 'ON_SALE'
        AND (p.name LIKE ? OR s.sku_name LIKE ? OR s.sku_code LIKE ? OR s.barcode LIKE ?)
      ORDER BY p.id DESC
      LIMIT 100`,
-    [storeId, kw, kw, kw, kw]
+    [storeId, tenantId, kw, kw, kw, kw]
   );
 
   const data = rows.map((row: any) => {
