@@ -278,7 +278,6 @@ export async function getRecentAlerts(tenantId: string, limit: number) {
 // ========== Phase 14: 工作台增强 ==========
 
 export async function getTodos(tenantId: string) {
-  const today = new Date().toISOString().slice(0, 10);
   const items: Array<{
     type: string;
     priority: string;

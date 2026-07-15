@@ -1,4 +1,4 @@
-﻿import { describe, it, expect, vi } from "vitest";
+import { describe, it, expect, vi } from "vitest";
 
 const { mockQueryWithTenant } = vi.hoisted(() => ({
   mockQueryWithTenant: vi.fn(),
@@ -200,7 +200,7 @@ describe("price-guard", () => {
 
     it("每个字段都包含 description 和 roles", () => {
       const matrix = getPricePermissionMatrix();
-      for (const [field, info] of Object.entries(matrix)) {
+      for (const [_field, info] of Object.entries(matrix)) {
         expect(info.description).toBeTruthy();
         expect(Array.isArray(info.roles)).toBe(true);
         expect(info.roles.length).toBeGreaterThan(0);

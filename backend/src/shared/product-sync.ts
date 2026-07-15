@@ -1,4 +1,4 @@
-﻿/**
+/**
  * 商品详情全链路同步中间件
  *
  * 核心能力：当商品 SPU 数据发生变更时，自动将商品详情同步到全链路下游表，
@@ -16,7 +16,7 @@
  * - 同步结果记录到 product_sync_log 表
  */
 
-import { queryWithTenant, queryOneWithTenant, transaction } from "./db";
+import { queryWithTenant, queryOneWithTenant } from "./db";
 
 // ─── 类型定义 ─────────────────────────────────────────────────
 

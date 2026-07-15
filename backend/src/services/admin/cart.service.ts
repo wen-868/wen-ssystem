@@ -1,8 +1,7 @@
-﻿import mysql from "mysql2/promise";
+import mysql from "mysql2/promise";
 import { queryWithTenant, queryOneWithTenant, transaction } from "../../shared/db";
 import { makeBizNo } from "../../shared/id";
 import { calcReservation, getInitialMiniappOrderState, completeOrderDelivery, shouldReserveStock, type CustomerType } from "../../shared/fulfillment";
-import { constants } from "../../config/constants";
 
 // ========== 私有辅助函数 ==========
 

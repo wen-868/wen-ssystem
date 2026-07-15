@@ -1,5 +1,5 @@
 import type { RequestHandler } from "express";
-import { requireAuthWithTenant, type AuthUser } from "./auth";
+import type { AuthUser } from "./auth";
 import { getUserDataPermissions } from "../services/admin/data-permission.service";
 import { fail } from "../shared/response";
 

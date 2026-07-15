@@ -1,6 +1,5 @@
-﻿import { queryWithTenant, queryOneWithTenant, transaction } from "../../shared/db";
+import { queryWithTenant, queryOneWithTenant, transaction } from "../../shared/db";
 import { makeBizNo } from "../../shared/id";
-import type { PoolConnection } from "mysql2/promise";
 
 export async function listInstances(
   page: number,

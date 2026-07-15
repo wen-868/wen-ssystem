@@ -1,9 +1,7 @@
-﻿import { describe, it, expect, vi, beforeEach } from "vitest";
+import { describe, it, expect, vi, beforeEach } from "vitest";
 
-const { mockQueryOneWithTenant, mockConnQuery, mockConnExecute } = vi.hoisted(() => ({
+const { mockQueryOneWithTenant } = vi.hoisted(() => ({
   mockQueryOneWithTenant: vi.fn(),
-  mockConnQuery: vi.fn(),
-  mockConnExecute: vi.fn(),
 }));
 
 vi.mock("../../shared/db", () => ({

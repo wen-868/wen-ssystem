@@ -1,8 +1,7 @@
-﻿/**
+/**
  * 追溯码公共工具（R9-2）
  * 集中管理追溯码验证、入库绑定、出库更新逻辑，供采购入库、销售出库、订单履约复用。
  */
-import { makeBizNo } from "./id";
 import { queryOneWithTenant } from "./db";
 
 /** 追溯码验证结果 */

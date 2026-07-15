@@ -23,40 +23,7 @@ import { startSubscriptionExpiryScanner } from "./services/subscription-expiry.s
 import "./jobs/report-aggregation.job.js";
 import { insertErrorLog } from "./services/admin/error-log.service";
 import { reportToLingZhou } from "./shared/feishu-report";
-import { tagRouter } from "./routes/tag.routes";
-import { platformRouter } from "./routes/platform.routes";
-import { platformTenantRouter } from "./routes/platform-tenant.routes";
-import { platformAuthRouter } from "./routes/platform-auth.routes";
-import { platformMonitorRouter } from "./routes/platform-monitor.routes";
-import { customerPriceRouter } from "./routes/customer-price.routes";
-import { commissionRouter } from "./routes/commission.routes";
-import { supplierStatementRouter } from "./routes/supplier-statement.routes";
-import { purchasePlanRouter } from "./routes/purchase-plan.routes";
-import { purchaseContractRouter } from "./routes/purchase-contract.routes";
-import { inventoryCostRouter } from "./routes/inventory-cost.routes";
-import { stockWarningRouter } from "./routes/stock-warning.routes";
-import { inventoryLossGainRouter } from "./routes/inventory-loss-gain.routes";
-import { pointsRouter } from "./routes/points.routes";
-import { storeValueCardRouter } from "./routes/store-value-card.routes";
-import { customerTagRouter } from "./routes/customer-tag.routes";
-import { customerCareRouter } from "./routes/customer-care.routes";
-import { customerSegmentRouter } from "./routes/customer-segment.routes";
-import { receiptRouter } from "./routes/receipt.routes";
-import { paymentNewRouter } from "./routes/payment-new.routes";
-import { receivableRouter } from "./routes/receivable.routes";
-import { expenseRouter } from "./routes/expense.routes";
-import { reconciliationRouter } from "./routes/reconciliation.routes";
-import { operationLogRouter } from "./routes/operation-log.routes";
-import { sysUserRouter } from "./routes/sys-user.routes";
-import { systemRouter } from "./routes/system.routes";
-import { workbenchRouter } from "./routes/workbench.routes";
-import { paymentConfigRouter } from "./routes/payment-config.routes";
-import { miniappConfigRouter } from "./routes/miniapp-config.routes";
-import syncRouter from "./routes/sync.routes";
-import { orderSyncLogRouter } from "./routes/miniapp-order-sync.routes";
-import { platformReconciliationRouter } from "./routes/platform-reconciliation.routes";
-import { platformReviewRouter } from "./routes/platform-review.routes";
-import { customReportRouter } from "./routes/custom-report.routes";
+// 路由已通过 auto-routes 自动注册，此处不再手动导入
 
 const app = express();
 
@@ -83,7 +50,7 @@ process.on("uncaughtException", (err: Error) => {
   }).catch(() => {});
 });
 
-process.on("unhandledRejection", (reason: any, promise: Promise<any>) => {
+process.on("unhandledRejection", (reason: any, _promise: Promise<any>) => {
   logger.error("💥 [unhandledRejection] 未处理的 Promise 拒绝:", reason);
   const message = reason?.message || String(reason) || "未处理的 Promise 拒绝";
   const stack = reason?.stack || undefined;

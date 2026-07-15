@@ -1,6 +1,6 @@
 import { z } from "zod";
 import { asyncHandler } from "../../middleware/async-handler";
-import { ok, fail } from "../../shared/response";
+import { ok } from "../../shared/response";
 import * as configService from "../../services/platform/platform-config.service";
 import * as announcementService from "../../services/platform/platform-announcement.service";
 

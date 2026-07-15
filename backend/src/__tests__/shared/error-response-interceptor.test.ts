@@ -1,4 +1,4 @@
-﻿import { describe, it, expect, vi, beforeEach } from "vitest";
+import { describe, it, expect, vi, beforeEach } from "vitest";
 
 const { mockInsertErrorLog, mockReportToLingZhou } = vi.hoisted(() => ({
   mockInsertErrorLog: vi.fn().mockResolvedValue(undefined),
@@ -14,7 +14,7 @@ vi.mock("../../shared/feishu-report", () => ({
 }));
 
 import { errorResponseInterceptor } from "../../shared/error-response-interceptor";
-import type { Request, Response, NextFunction } from "express";
+import type { Request, NextFunction } from "express";
 
 function mockReqRes(
   url = "/api/test",

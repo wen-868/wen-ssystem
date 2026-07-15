@@ -1,4 +1,4 @@
-﻿import { describe, it, expect, vi, beforeEach } from "vitest";
+import { describe, it, expect, vi, beforeEach } from "vitest";
 
 const { mockQueryWithTenant } = vi.hoisted(() => ({
   mockQueryWithTenant: vi.fn(),
@@ -75,7 +75,7 @@ describe("field-sync", () => {
 
     it("每个 key 对应一个数组", () => {
       const graph = getSyncGraph();
-      for (const [key, mappings] of Object.entries(graph)) {
+      for (const [_key, mappings] of Object.entries(graph)) {
         expect(Array.isArray(mappings)).toBe(true);
         expect(mappings.length).toBeGreaterThan(0);
       }

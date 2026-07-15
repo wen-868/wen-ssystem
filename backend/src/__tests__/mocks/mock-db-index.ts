@@ -1,4 +1,4 @@
-﻿/**
+/**
  * mock-db 聚合导出模块
  * 将所有领域模块的 mock handlers 组合成与原 mock-db.ts 完全兼容的接口
  */

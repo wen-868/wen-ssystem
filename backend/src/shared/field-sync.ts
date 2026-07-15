@@ -1,4 +1,4 @@
-﻿/**
+/**
  * 分字段定向同步中间件
  *
  * 核心能力：当源表字段变更时，自动将变更字段同步到所有关联的目标表，
@@ -334,13 +334,13 @@ export async function syncChangedFields(
           WHERE t.${mapping.joinKey} = ?
             AND t.tenant_id = ?
         `;
-        params = [sourceId, sourceId, tenantId];
+        const queryParams = [sourceId, sourceId, tenantId];
 
         if (mapping.condition) {
           targetSql += ` AND ${mapping.condition}`;
         }
 
-        const result = await queryWithTenant<any>(targetSql, params, tenantId);
+        const result = await queryWithTenant<any>(targetSql, queryParams, tenantId);
 
         results.push({
           targetTable: mapping.targetTable,

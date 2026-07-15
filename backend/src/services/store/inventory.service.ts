@@ -1,4 +1,4 @@
-﻿import { query, queryOne, queryWithTenant, queryOneWithTenant, transaction } from "../../shared/db";
+import { queryWithTenant, queryOneWithTenant, transaction } from "../../shared/db";
 import { makeBizNo } from "../../shared/id";
 
 export async function listInventory(params: {

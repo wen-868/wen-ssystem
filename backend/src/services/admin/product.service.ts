@@ -1,9 +1,9 @@
-import { query, queryOne, queryWithTenant, queryOneWithTenant, transaction } from "../../shared/db";
+﻿import { queryWithTenant, queryOneWithTenant, transaction } from "../../shared/db";
 import logger from "../../shared/logger";
 import { makeBizNo } from "../../shared/id";
 import { detectChangedFields, syncChangedFields } from "../../shared/field-sync";
 import { syncProductFullChain, syncProductStatus, syncProductPrice } from "../../shared/product-sync";
-import { cacheGet, cacheDel, CacheKeys } from "../../shared/redis-cache";
+import { cacheGet, CacheKeys } from "../../shared/redis-cache";
 
 export async function listProducts(keyword: string, page: number, pageSize: number, tenantId: string) {
   // 有搜索关键词时不使用缓存

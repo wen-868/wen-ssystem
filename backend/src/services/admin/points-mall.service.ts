@@ -1,4 +1,4 @@
-﻿import { query, queryOne } from "../../shared/db";
+import { query, queryOne } from "../../shared/db";
 
 export async function getPointsMallItems(tenantId: string, params?: { status?: string; page?: number; pageSize?: number }) {
   const page = params?.page || 1;
@@ -57,7 +57,7 @@ export async function getPointsMallOrders(tenantId: string, params?: { status?: 
   return { records: rows, total: total?.cnt || 0, page, pageSize };
 }
 
-export async function deliverPointsMallOrder(id: number, data: { trackingNo?: string; logisticsCompany?: string }) {
+export async function deliverPointsMallOrder(id: number, _data: { trackingNo?: string; logisticsCompany?: string }) {
   await query(
     `UPDATE points_mall_order SET status='DELIVERED', delivered_at=NOW() WHERE id=? AND status='PENDING'`,
     [id]

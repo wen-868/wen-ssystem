@@ -1,4 +1,4 @@
-﻿import { vi, describe, it, beforeEach, expect } from "vitest";
+import { vi, describe, it, beforeEach, expect } from "vitest";
 
 vi.mock("../../../services/admin/product-review.service", () => ({
   listProductReviews: vi.fn(),
@@ -19,7 +19,7 @@ vi.mock("../../../middleware/async-handler", () => ({
 }));
 
 import * as productReviewService from "../../../services/admin/product-review.service";
-import { ok, fail } from "../../../shared/response";
+import { ok } from "../../../shared/response";
 import {
   listProductReviews,
   getProductReview,

@@ -1,4 +1,4 @@
-﻿/**
+/**
  * 批量价格调整服务
  *
  * 支持：
@@ -83,50 +83,6 @@ function calculateNewPrice(
     : 0;
 
   return { newPrice, changeAmount, changePercent };
-}
-
-// ─── 构建筛选SQL ──────────────────────────────────────────────
-
-function buildFilterSql(filter: BatchPriceFilter): { where: string; params: unknown[] } {
-  const conditions: string[] = ["pp.tenant_id = ?"];
-  const params: unknown[] = [];
-  params.push(""); // tenant_id 占位，调用方会传入
-
-  if (filter.categoryId) {
-    conditions.push("s.category_id = ?");
-    params.push(filter.categoryId);
-  }
-  if (filter.brand) {
-    conditions.push("s.brand = ?");
-    params.push(filter.brand);
-  }
-  if (filter.supplierId) {
-    conditions.push("s.supplier_id = ?");
-    params.push(filter.supplierId);
-  }
-  if (filter.priceLevelId) {
-    conditions.push("pp.price_level_id = ?");
-    params.push(filter.priceLevelId);
-  }
-  if (filter.keyword) {
-    conditions.push("(s.name LIKE ? OR sku.sku_name LIKE ? OR sku.barcode LIKE ?)");
-    const like = `%${filter.keyword}%`;
-    params.push(like, like, like);
-  }
-  if (filter.minPrice !== undefined) {
-    conditions.push(`pp.${filter.keyword ? "retail_price" : "retail_price"} >= ?`);
-    params.push(filter.minPrice);
-  }
-  if (filter.maxPrice !== undefined) {
-    conditions.push(`pp.${filter.keyword ? "retail_price" : "retail_price"} <= ?`);
-    params.push(filter.maxPrice);
-  }
-  if (filter.skuIds && filter.skuIds.length > 0) {
-    conditions.push("sku.id IN (?)");
-    params.push(filter.skuIds);
-  }
-
-  return { where: conditions.join(" AND "), params };
 }
 
 // ─── 批量价格预览 ─────────────────────────────────────────────

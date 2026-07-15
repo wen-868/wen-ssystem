@@ -1,7 +1,7 @@
-﻿import type { RequestHandler } from "express";
+import type { RequestHandler } from "express";
 import jwt from "jsonwebtoken";
 import { env } from "../shared/env";
-import { tenantMiddleware, type TenantRequest } from "./tenant";
+import { tenantMiddleware } from "./tenant";
 
 import { fail } from "../shared/response";
 export type AuthUser = {

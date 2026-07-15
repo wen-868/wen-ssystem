@@ -9,7 +9,6 @@ vi.mock("@shared/response", () => ({
 }));
 
 import * as service from "@services/admin/data-permission.service";
-import { fail } from "@shared/response";
 import { requireDataPermission, getDataPermissionFilter, getUserDataPermissionContext } from "@middleware/data-permission-auth";
 
 const mockReq = (overrides: any = {}) => ({

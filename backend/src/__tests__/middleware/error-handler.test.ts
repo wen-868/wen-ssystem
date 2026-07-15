@@ -1,4 +1,4 @@
-﻿import { describe, it, expect, vi, beforeEach } from "vitest";
+import { describe, it, expect, vi, beforeEach } from "vitest";
 
 const { mockInsertErrorLog, mockReportToLingZhou } = vi.hoisted(() => ({
   mockInsertErrorLog: vi.fn().mockResolvedValue(undefined),
@@ -264,7 +264,6 @@ describe("error-handler", () => {
 
   it("ZodError 的 path 为空时使用 root", () => {
     const { req, res, next } = mockReqRes();
-    const schema = z.object({ name: z.string() });
     let zodErr: ZodError;
     try {
       // path 为空的情况：使用 refine 产生顶层错误

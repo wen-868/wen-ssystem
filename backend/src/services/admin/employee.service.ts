@@ -1,5 +1,5 @@
-﻿import bcrypt from "bcryptjs";
-import { query, queryOne, queryWithTenant, queryOneWithTenant } from "../../shared/db";
+import bcrypt from "bcryptjs";
+import { queryWithTenant, queryOneWithTenant } from "../../shared/db";
 import { makeBizNo } from "../../shared/id";
 import { validatePassword } from "../../shared/password";
 import { AppError } from "../../shared/app-error";

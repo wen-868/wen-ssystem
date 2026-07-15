@@ -1,8 +1,8 @@
-﻿/**
+/**
  * 用户建议反馈服务
  * 表: system_feedback
  */
-import { query, queryOne, queryWithTenant, queryOneWithTenant } from "../../shared/db";
+import { queryWithTenant, queryOneWithTenant, query } from "../../shared/db";
 
 export interface FeedbackEntry {
   type: "BUG" | "FEATURE" | "IMPROVEMENT" | "OTHER";

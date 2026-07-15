@@ -11,7 +11,7 @@ describe("platform-manage.controller", () => {
     query: {},
     body: {},
     user: { id: 1 },
-  } as any;
+  };
 
   const mockRes = {
     json: vi.fn(),

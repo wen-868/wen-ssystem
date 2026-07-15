@@ -1,4 +1,4 @@
-﻿import { state, Row } from "./mock-db-state";
+import { state, Row } from "./mock-db-state";
 
 export const queryHandlers: Array<(s: string, params: unknown[]) => Row[] | null> = [
   (s, params) => {
@@ -60,7 +60,7 @@ export const queryHandlers: Array<(s: string, params: unknown[]) => Row[] | null
     }
     return null;
   },
-  (s, params) => {
+  (s, _params) => {
     if (s.includes("from customer_payment") && s.includes("count(*)")) {
       return [{ total: state.customerPayments.length }];
     }
@@ -88,7 +88,7 @@ export const queryHandlers: Array<(s: string, params: unknown[]) => Row[] | null
     }
     return null;
   },
-  (s, params) => {
+  (s, _params) => {
     if (s.includes("count(*) as total from member where status")) {
       return [{ total: state.members.length }];
     }
@@ -122,7 +122,7 @@ export const queryHandlers: Array<(s: string, params: unknown[]) => Row[] | null
     }
     return null;
   },
-  (s, params) => {
+  (s, _params) => {
     if (s.includes("coalesce(sum(unreceived_amount), 0) as balance") && s.includes("date(created_at) < ?")) {
       return [{ balance: 0 }];
     }

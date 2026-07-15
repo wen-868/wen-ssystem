@@ -117,11 +117,7 @@ export async function paginatedSearchQuery<T>(
 ): Promise<PaginatedResult<T>> {
   const normalized = normalizePagination({ page, pageSize });
   
-  // 如果有关键词，确保 LIKE 模式正确
-  if (keyword) {
-    const kw = `%${keyword.trim()}%`;
-    // 注意：这里只是提供标准化，实际 LIKE 处理需要在 queryFn 和 countFn 中完成
-  }
+  // 注意：keyword 参数保留用于向后兼容，实际 LIKE 处理需要在 queryFn 和 countFn 中完成
 
   const [records, total] = await Promise.all([queryFn(), countFn()]);
 

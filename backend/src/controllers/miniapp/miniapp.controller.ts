@@ -14,12 +14,9 @@ import * as categoryService from "../../services/admin/category.service";
 
 export const getProducts = asyncHandler(async (req, res) => {
   const tenantId = req.tenantId!;
-  const storeId = Number(req.query.storeId || 1);
   const keyword = String(req.query.keyword || "");
-  const categoryId = req.query.categoryId !== undefined ? Number(req.query.categoryId) : undefined;
   const page = Number(req.query.page || 1);
   const pageSize = Number(req.query.pageSize || 20);
-  const customerType = String(req.headers["x-customer-type"] || "RETAIL");
 
   // 优先使用通用产品服务查询
   const result = await productService.listProducts(keyword, page, pageSize, tenantId);
@@ -54,7 +51,6 @@ export const getProducts = asyncHandler(async (req, res) => {
 export const getProductDetail = asyncHandler(async (req, res) => {
   const tenantId = req.tenantId!;
   const spuId = Number(req.params.id);
-  const customerType = String(req.headers["x-customer-type"] || "RETAIL");
 
   const result = await productService.getProductDetail(spuId, tenantId);
 
@@ -344,9 +340,7 @@ export const getPromotions = asyncHandler(async (req, res) => {
   res.json(ok(result));
 });
 
-export const getCoupons = asyncHandler(async (req, res) => {
-  const customerId = getCustomerId(req);
-  
+export const getCoupons = asyncHandler(async (_req, res) => {
   // 模拟可用优惠券列表
   const result = {
     total: 3,

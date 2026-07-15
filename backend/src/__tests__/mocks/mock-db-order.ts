@@ -1,4 +1,4 @@
-﻿/**
+/**
  * 订单/销售单 mock handlers: saleBills, saleBillItems, miniappOrders, miniappOrderItems, holdOrders, platformOrders
  * 修复坑：业务表使用 t_ 前缀（如 t_sale_bill），需同时匹配带前缀和不带前缀的形式
  */
@@ -6,7 +6,7 @@ import { state, result, Row, fromTable, insertIntoTable, updateTable } from "./m
 
 export const queryHandlers: Array<(s: string, params: unknown[]) => Row[] | null> = [
   // sale_bill 汇总 (sum received_amount, unreceived_amount)
-  (s, params) => {
+  (s, _params) => {
     if (s.includes("sum(received_amount)")) {
       const amount = state.saleBills.reduce((sum, b) => sum + Number(b.receivedAmount || b.received_amount || 0), 0);
       return [{ amount, count: state.saleBills.length }];
@@ -40,7 +40,7 @@ export const queryHandlers: Array<(s: string, params: unknown[]) => Row[] | null
   },
 
   // miniapp_order 状态统计
-  (s, params) => {
+  (s, _params) => {
     if (s.includes("order_status as status") && s.includes("from miniapp_order")) {
       const map = new Map<string, number>();
       for (const order of state.miniappOrders) {
@@ -94,7 +94,7 @@ export const queryHandlers: Array<(s: string, params: unknown[]) => Row[] | null
   },
 
   // sale_bill date group by
-  (s, params) => {
+  (s, _params) => {
     if ((s.includes("date(created_at)") || s.includes("date(sb.created_at)")) && fromTable(s, "sale_bill") && s.includes("group by")) {
       const map = new Map<string, { date: string; count: number; amount: number }>();
       for (const bill of state.saleBills) {
@@ -136,7 +136,7 @@ export const queryHandlers: Array<(s: string, params: unknown[]) => Row[] | null
   },
 
   // sale_bill count
-  (s, params) => {
+  (s, _params) => {
     if (fromTable(s, "sale_bill") && s.includes("count(*)")) return [{ total: state.saleBills.length }];
     return null;
   },
@@ -159,7 +159,7 @@ export const queryHandlers: Array<(s: string, params: unknown[]) => Row[] | null
   },
 
   // sale_bill general
-  (s, params) => {
+  (s, _params) => {
     if (fromTable(s, "sale_bill") && !s.includes("join") && !s.includes("group by") && !s.includes("count(*)")) return state.saleBills;
     return null;
   },
@@ -180,7 +180,7 @@ export const queryHandlers: Array<(s: string, params: unknown[]) => Row[] | null
   },
 
   // select 1 as ok
-  (s, params) => {
+  (s, _params) => {
     if (s.includes("select 1 as ok")) return [{ ok: 1 }];
     return null;
   },

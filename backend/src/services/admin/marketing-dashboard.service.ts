@@ -6,8 +6,6 @@ export async function getMarketingOverview(params: { tenantId: string; startDate
   const dateValues: unknown[] = [tenantId];
   if (startDate) { dateConditions.push("created_at >= ?"); dateValues.push(startDate); }
   if (endDate) { dateConditions.push("created_at <= ?"); dateValues.push(endDate); }
-  const dateWhere = dateConditions.length > 0 ? `AND ${dateConditions.join(" AND ")}` : "";
-
   const couponStats = await queryOneWithTenant<any>(`SELECT COUNT(*) AS total, COUNT(CASE WHEN status = 'ACTIVE' THEN 1 END) AS active FROM coupon_template WHERE tenant_id = ?`, [tenantId], tenantId);
   const discountStats = await queryOneWithTenant<any>(`SELECT COUNT(*) AS total, COUNT(CASE WHEN status = 'ACTIVE' THEN 1 END) AS active FROM limited_discount WHERE tenant_id = ?`, [tenantId], tenantId);
   const giftRuleStats = await queryOneWithTenant<any>(`SELECT COUNT(*) AS total, COUNT(CASE WHEN status = 'ACTIVE' THEN 1 END) AS active FROM gift_rule WHERE tenant_id = ?`, [tenantId], tenantId);
@@ -23,8 +21,7 @@ export async function getMarketingOverview(params: { tenantId: string; startDate
   };
 }
 
-export async function getActivityStats(params: { tenantId: string; startDate?: string; endDate?: string; activityType?: string }) {
-  const { tenantId, startDate, endDate, activityType } = params;
+export async function getActivityStats(_params: { tenantId: string; startDate?: string; endDate?: string; activityType?: string }) {
   return {
     totalParticipants: 0,
     newParticipants: 0,
@@ -42,7 +39,7 @@ export async function getActivityStats(params: { tenantId: string; startDate?: s
   };
 }
 
-export async function getSingleActivityStats(activityId: number, activityType: string, tenantId: string) {
+export async function getSingleActivityStats(activityId: number, activityType: string, _tenantId: string) {
   return {
     activityId, activityType,
     participants: 0, orderCount: 0, orderAmount: 0,
@@ -85,7 +82,7 @@ export async function getMarketingTrend(params: { tenantId: string; period?: str
   return { couponTrend, discountTrend };
 }
 
-export async function getActivityComparison(params: { tenantId: string; activityIds?: number[]; startDate?: string; endDate?: string }) {
+export async function getActivityComparison(_params: { tenantId: string; activityIds?: number[]; startDate?: string; endDate?: string }) {
   return [];
 }
 

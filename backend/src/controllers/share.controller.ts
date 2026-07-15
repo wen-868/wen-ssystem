@@ -1,6 +1,6 @@
 import { ok, fail } from "../shared/response";
 import * as shareService from "../services/share.service";
-import { query, queryOne, transaction } from "../shared/db";
+import { query, queryOne } from "../shared/db";
 
 // ── 辅助函数（集中分支逻辑，减少重复分支统计） ──
 

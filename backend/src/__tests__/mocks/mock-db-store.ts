@@ -1,11 +1,11 @@
-﻿/**
+/**
  * 门店/员工 mock handlers: stores, users (store-related queries)
  */
 import { state, Row } from "./mock-db-state";
 
 export const queryHandlers: Array<(s: string, params: unknown[]) => Row[] | null> = [
   // store 查询
-  (s, params) => {
+  (s, _params) => {
     if (s.includes("from store") && s.includes("count(*)")) return [{ total: state.stores.length }];
     if (s.includes("from store") && !s.includes("group by") && !s.includes("join")) {
       return state.stores.map((st) => ({
@@ -29,7 +29,7 @@ export const queryHandlers: Array<(s: string, params: unknown[]) => Row[] | null
   },
 
   // 按门店分组的销售统计
-  (s, params) => {
+  (s, _params) => {
     if (s.includes("left join sale_bill") && s.includes("group by")) {
       return state.stores.map((st: Row) => {
         const bills = state.saleBills.filter((b: Row) => (b.storeId || b.store_id) === st.id);

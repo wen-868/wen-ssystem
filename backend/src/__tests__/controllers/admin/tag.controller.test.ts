@@ -1,4 +1,4 @@
-﻿/**
+/**
  * 管理端标签管理 controller 单元测试
  * 被测文件：src/controllers/admin/tag.controller.ts
  */
@@ -48,7 +48,6 @@ import {
   deleteGroup,
   listTags,
   createTag,
-  updateTag,
   deleteTag,
   getProductTags,
   setProductTags,

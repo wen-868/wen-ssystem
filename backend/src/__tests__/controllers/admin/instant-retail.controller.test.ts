@@ -49,7 +49,7 @@ vi.mock("../../../middleware/async-handler", () => ({
 
 import * as instantRetailService from "../../../services/admin/instant-retail.service";
 import * as retailShopSvc from "../../../services/instant-retail/retail-shop.service";
-import { ok, fail } from "../../../shared/response";
+import { ok } from "../../../shared/response";
 import {
   handleJdWebhook,
   handleMeituanWebhook,

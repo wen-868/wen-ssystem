@@ -1,4 +1,4 @@
-﻿/**
+/**
  * 财务/收款/付款 mock handlers: collectionLinks, paymentOrders, refundOrders, receivables, viewLogs, salePayments
  */
 import { state, result, Row } from "./mock-db-state";
@@ -129,7 +129,7 @@ export const queryHandlers: Array<(s: string, params: unknown[]) => Row[] | null
   },
 
   // payment_order
-  (s, params) => {
+  (s, _params) => {
     if (s.includes("count(*) from payment_order")) {
       return [{ total: state.paymentOrders.length }];
     }
@@ -140,7 +140,7 @@ export const queryHandlers: Array<(s: string, params: unknown[]) => Row[] | null
   },
 
   // refund_order
-  (s, params) => {
+  (s, _params) => {
     if (s.includes("count(*) from refund_order")) {
       return [{ total: state.refundOrders.length }];
     }
@@ -151,7 +151,7 @@ export const queryHandlers: Array<(s: string, params: unknown[]) => Row[] | null
   },
 
   // collection_link
-  (s, params) => {
+  (s, _params) => {
     if (s.includes("count(*) from collection_link")) {
       return [{ total: state.collectionLinks.length }];
     }

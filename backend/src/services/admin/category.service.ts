@@ -1,7 +1,7 @@
 import { queryWithTenant, queryOneWithTenant, transaction } from "../../shared/db";
 import logger from "../../shared/logger";
 import { syncChangedFields } from "../../shared/field-sync";
-import { cacheGet, cacheDelPattern, CacheKeys } from "../../shared/redis-cache";
+import { cacheGet, cacheDelPattern } from "../../shared/redis-cache";
 
 interface CategoryRow {
   id: number; name: string; parentId: number | null; sortNo: number;

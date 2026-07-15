@@ -1,4 +1,4 @@
-﻿/**
+/**
  * 越权拦截引擎 - 价格跨层级查询拦截
  *
  * 拦截规则：
@@ -64,7 +64,7 @@ export function canAccessPriceField(user: AuthUser, fieldName: string): boolean 
 export async function canAccessPriceLevel(
   user: AuthUser,
   priceLevelCode: string,
-  tenantId: string
+  _tenantId: string
 ): Promise<boolean> {
   if (user.roles.includes("SUPER_ADMIN")) return true;
   if (user.roles.includes("STORE_MANAGER") || user.roles.includes("FINANCE_STAFF")) return true;

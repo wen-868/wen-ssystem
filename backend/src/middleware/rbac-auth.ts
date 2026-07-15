@@ -1,5 +1,5 @@
 import type { RequestHandler } from "express";
-import { requireAuthWithTenant, type AuthUser } from "./auth";
+import type { AuthUser } from "./auth";
 import { checkUserPermission as checkUserPermissionService } from "../services/admin/rbac.service";
 import { fail } from "../shared/response";
 

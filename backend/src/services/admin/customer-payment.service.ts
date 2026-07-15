@@ -1,4 +1,4 @@
-﻿import { query, queryOne, queryWithTenant, queryOneWithTenant, transaction } from "../../shared/db";
+import { query, queryOne, transaction } from "../../shared/db";
 import { makeBizNo } from "../../shared/id";
 
 export async function list(params: {
@@ -70,7 +70,7 @@ export async function create(body: {
       if (billRow) {
         const newReceivedAmount = Number(billRow.received_amount) + Number(body.amount);
         const newUnreceivedAmount = Number(billRow.receivable_amount) - newReceivedAmount;
-        let collectionStatus = newUnreceivedAmount <= 0 ? "PAID" : "PARTIAL";
+        const collectionStatus = newUnreceivedAmount <= 0 ? "PAID" : "PARTIAL";
         await conn.query(
           "UPDATE t_sale_bill SET received_amount = ?, unreceived_amount = ?, collection_status = ? WHERE bill_no = ?",
           [newReceivedAmount, Math.max(0, newUnreceivedAmount), collectionStatus, body.source_no]

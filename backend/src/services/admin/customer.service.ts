@@ -1,4 +1,4 @@
-import { query, queryOne, queryWithTenant, queryOneWithTenant, transaction } from "../../shared/db";
+import { queryWithTenant, queryOneWithTenant } from "../../shared/db";
 import { syncChangedFields, detectChangedFields } from "../../shared/field-sync";
 import { getCustomerLevelCode, type CustomerType } from "../../shared/fulfillment";
 

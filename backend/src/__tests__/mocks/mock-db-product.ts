@@ -1,11 +1,11 @@
-﻿/**
+/**
  * 商品 mock handlers: products, product_sku, product_spu, product_price, product_price_log
  */
 import { state, pendingProduct, result, Row } from "./mock-db-state";
 
 export const queryHandlers: Array<(s: string, params: unknown[]) => Row[] | null> = [
   // product_sku count
-  (s, params) => {
+  (s, _params) => {
     if (s.includes("from product_sku") && s.includes("count(*)")) return [{ total: state.products.length }];
     return null;
   },
@@ -50,7 +50,7 @@ export const queryHandlers: Array<(s: string, params: unknown[]) => Row[] | null
   },
 
   // product_sku join product_spu join product_price (product listing)
-  (s, params) => {
+  (s, _params) => {
     if (s.includes("from product_sku") && s.includes("join product_spu") && s.includes("join product_price")) {
       return state.products.map((product) => {
         const offline = state.inventory.find((inv) => inv.skuId === product.skuId && inv.stockType === "OFFLINE");

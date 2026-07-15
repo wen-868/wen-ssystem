@@ -1,4 +1,4 @@
-﻿import { describe, it, expect, vi, beforeEach } from "vitest";
+import { describe, it, expect, vi } from "vitest";
 import { wechatRouter, routeConfig } from "../../routes/wechat.routes";
 
 vi.mock("../../controllers/admin/wechat.controller", () => ({
@@ -21,7 +21,7 @@ vi.mock("../../shared/env", () => ({
 }));
 
 vi.mock("jsonwebtoken", () => ({
-  verify: vi.fn().mockImplementation((token: string, secret: string) => {
+  verify: vi.fn().mockImplementation((token: string, _secret: string) => {
     if (token === "valid-token") {
       return { wxUserId: 1, openid: "test-openid" };
     }

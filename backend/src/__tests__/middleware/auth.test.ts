@@ -1,4 +1,4 @@
-﻿import { describe, it, expect, vi, beforeEach } from "vitest";
+import { describe, it, expect, vi } from "vitest";
 
 // mock env 和 db 依赖
 vi.mock("../../shared/env", () => ({
