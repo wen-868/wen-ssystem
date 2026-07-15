@@ -1,4 +1,5 @@
-﻿import { Router } from "express";
+import { Router } from "express";
+import type { RouteConfig } from "../shared/auto-routes";
 import { requireAuth } from "../middleware/auth";
 import * as ctrl from "../controllers/admin/retail-consumer-address.controller";
 
@@ -9,3 +10,9 @@ consumerAddressRouter.post("/miniapp/addresses", requireAuth, ctrl.createAddress
 consumerAddressRouter.put("/miniapp/addresses/:id", requireAuth, ctrl.updateAddress);
 consumerAddressRouter.delete("/miniapp/addresses/:id", requireAuth, ctrl.deleteAddress);
 consumerAddressRouter.put("/miniapp/addresses/:id/default", requireAuth, ctrl.setDefault);
+
+export const routeConfig: RouteConfig = {
+  prefix: "/api/retail-consumer-address",
+  router: consumerAddressRouter,
+  auth: "requireAuth",
+};

@@ -1,4 +1,5 @@
 import { Router } from "express";
+import type { RouteConfig } from "../shared/auto-routes";
 import { asyncHandler } from "../middleware/async-handler";
 import * as controller from "../controllers/admin/sync.controller";
 
@@ -17,3 +18,9 @@ router.get("/product/status", asyncHandler(controller.getProductSyncStatus));
 router.get("/product/last", asyncHandler(controller.getProductLastSync));
 
 export default router;
+
+export const routeConfig: RouteConfig = {
+  prefix: "/api/sync",
+  router,
+  auth: "requireAuthWithTenant",
+};

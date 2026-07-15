@@ -1,4 +1,5 @@
 import { Router } from "express";
+import type { RouteConfig } from "../shared/auto-routes";
 import { requireAuthWithTenant } from "../middleware/auth";
 import { asyncHandler } from "../middleware/async-handler";
 import * as controller from "../controllers/admin/custom-report.controller";
@@ -19,3 +20,9 @@ customReportRouter.put("/schedules/:id", requireAuthWithTenant, asyncHandler(con
 customReportRouter.delete("/schedules/:id", requireAuthWithTenant, asyncHandler(controller.deleteSchedule));
 customReportRouter.put("/schedules/:id/toggle", requireAuthWithTenant, asyncHandler(controller.toggleSchedule));
 customReportRouter.post("/schedules/:id/run", requireAuthWithTenant, asyncHandler(controller.runSchedule));
+
+export const routeConfig: RouteConfig = {
+  prefix: "/api/custom-report",
+  router: customReportRouter,
+  auth: "requireAuthWithTenant",
+};

@@ -1,4 +1,5 @@
-﻿import { Router } from "express";
+import { Router } from "express";
+import type { RouteConfig } from "../shared/auto-routes";
 import { requireAuth } from "../middleware/auth";
 import * as retailAnnouncementController from "../controllers/admin/retail-announcement.controller";
 
@@ -12,3 +13,9 @@ retailAnnouncementRouter.delete("/admin/retail-announcements/:id", requireAuth, 
 
 // Public miniapp route (no auth required)
 retailAnnouncementRouter.get("/miniapp/retail-announcements", retailAnnouncementController.getActiveAnnouncements);
+
+export const routeConfig: RouteConfig = {
+  prefix: "/api/retail-announcement",
+  router: retailAnnouncementRouter,
+  auth: "requireAuth",
+};

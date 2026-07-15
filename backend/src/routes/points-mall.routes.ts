@@ -1,4 +1,5 @@
 import { Router } from "express";
+import type { RouteConfig } from "../shared/auto-routes";
 import { requireAuthWithTenant } from "../middleware/auth";
 import { asyncHandler } from "../middleware/async-handler";
 import * as controller from "../controllers/admin/points-mall.controller";
@@ -15,3 +16,9 @@ pointsMallRouter.put("/items/:id/status", requireAuthWithTenant, asyncHandler(co
 pointsMallRouter.get("/orders", requireAuthWithTenant, asyncHandler(controller.getPointsMallOrders));
 pointsMallRouter.put("/orders/:id/deliver", requireAuthWithTenant, asyncHandler(controller.deliverPointsMallOrder));
 pointsMallRouter.put("/orders/:id/cancel", requireAuthWithTenant, asyncHandler(controller.cancelPointsMallOrder));
+
+export const routeConfig: RouteConfig = {
+  prefix: "/api/points-mall",
+  router: pointsMallRouter,
+  auth: "requireAuthWithTenant",
+};

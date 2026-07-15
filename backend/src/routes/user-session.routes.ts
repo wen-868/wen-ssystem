@@ -1,4 +1,5 @@
 import { Router } from "express";
+import type { RouteConfig } from "../shared/auto-routes";
 import { requireAuthWithTenant } from "../middleware/auth";
 import { asyncHandler } from "../middleware/async-handler";
 import * as controller from "../controllers/admin/user-session.controller";
@@ -9,3 +10,9 @@ userSessionRouter.get("/", requireAuthWithTenant, asyncHandler(controller.getUse
 userSessionRouter.delete("/:id", requireAuthWithTenant, asyncHandler(controller.revokeSession));
 userSessionRouter.delete("/user/:userId", requireAuthWithTenant, asyncHandler(controller.revokeUserSessions));
 userSessionRouter.get("/stats", requireAuthWithTenant, asyncHandler(controller.getOnlineStats));
+
+export const routeConfig: RouteConfig = {
+  prefix: "/api/user-session",
+  router: userSessionRouter,
+  auth: "requireAuthWithTenant",
+};

@@ -1,4 +1,5 @@
-﻿import { Router } from "express";
+import { Router } from "express";
+import type { RouteConfig } from "../shared/auto-routes";
 import { requireAuthWithTenant } from "../middleware/auth";
 import * as ctrl from "../controllers/admin/miniapp-config.controller";
 
@@ -11,3 +12,9 @@ miniappConfigRouter.get("/templates", requireAuthWithTenant, ctrl.listTemplates)
 miniappConfigRouter.get("/templates/:id", requireAuthWithTenant, ctrl.getTemplate);
 miniappConfigRouter.post("/publish", requireAuthWithTenant, ctrl.publish);
 miniappConfigRouter.get("/publish-logs", requireAuthWithTenant, ctrl.listPublishLogs);
+
+export const routeConfig: RouteConfig = {
+  prefix: "/api/miniapp-config",
+  router: miniappConfigRouter,
+  auth: "requireAuthWithTenant",
+};

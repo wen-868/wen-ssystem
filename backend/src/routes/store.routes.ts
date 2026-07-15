@@ -1,4 +1,5 @@
 import { Router } from "express";
+import type { RouteConfig } from "../shared/auto-routes";
 import { requireAuthWithTenant } from "../middleware/auth";
 import { priceResponseFilter } from "../middleware/price-guard";
 import * as authController from "../controllers/store/auth.controller";
@@ -73,3 +74,9 @@ storeRouter.get("/tags", tagController.listTags);
 storeRouter.get("/tag-groups", tagController.listGroups);
 storeRouter.get("/batches/:id", batchController.getBatchDetail);
 storeRouter.get("/batches/:id/trace", batchController.getTraceChain);
+
+export const routeConfig: RouteConfig = {
+  prefix: "/api/store",
+  router: storeRouter,
+  auth: "none",
+};

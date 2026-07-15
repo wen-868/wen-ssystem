@@ -132,11 +132,24 @@
 - **优先级**：P2
 - **负责人**：阿坚
 - **预计**：0.5天
-- **状态**：待开始
-- **文件**：`backend/src/routes/` 下未导出 routeConfig 的路由文件
-- **问题**：部分路由使用文件名推断 prefix 的向后兼容模式
-- **修复**：补充 routeConfig 导出，明确 prefix 和 auth 配置
+- **实际**：0.25天
+- **状态**：✅ 已完成
+- **文件**：`backend/src/routes/` 下 19 个缺少 routeConfig 导出的路由文件
+- **问题**：部分路由使用文件名推断 prefix 的向后兼容模式，启动时产生 warn 日志
+- **修复**：
+  1. 扫描全部 137 个 .routes.ts 文件，找出 19 个缺少 routeConfig/routeConfigs 导出的文件
+  2. 为每个文件添加 `import type { RouteConfig } from "../shared/auto-routes"` 和 `export const routeConfig: RouteConfig` 导出
+  3. auth 配置根据文件内部认证模式确定：
+     - 15 个使用 `requireAuthWithTenant` 的文件 → auth: "requireAuthWithTenant"（与向后兼容默认一致）
+     - 3 个使用 `requirePlatformAuth` 的文件（platform-auth/platform-monitor/platform-tenant）→ auth: "none"（auto-routes 不支持平台认证，内部已处理）
+     - 2 个使用 `requireAuth` 的文件（retail-announcement/retail-consumer-address）→ auth: "requireAuth"
+     - 2 个已有 Router 级别认证的文件（store/platform-tenant）→ auth: "none"（避免重复认证）
+     - 1 个无认证的文件（sync）→ auth: "requireAuthWithTenant"（默认）
 - **验收标准**：auto-routes 启动时无 warn 日志
+- **验证结果**：
+  - `npx tsc --noEmit`：✅ 0 错误
+  - grep 扫描缺少 routeConfig 的文件：✅ 0 个（全部 137 个文件都有 routeConfig 导出）
+  - 相关测试：✅ 5 文件 94 用例全部通过（auto-routes + store/sync/platform-auth/seckill routes）
 
 ### R40-08 — 全量回归测试 [P2]
 

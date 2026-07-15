@@ -1,4 +1,5 @@
 import { Router } from "express";
+import type { RouteConfig } from "../shared/auto-routes";
 import { requirePlatformAuth } from "../middleware/auth";
 import { asyncHandler } from "../middleware/async-handler";
 import * as controller from "../controllers/platform/tenant.controller";
@@ -22,3 +23,9 @@ platformTenantRouter.put("/:id", asyncHandler(controller.updatePlatformTenant));
 
 // POST /api/platform/tenants/:id/toggle - 启用/禁用租户
 platformTenantRouter.post("/:id/toggle", asyncHandler(controller.togglePlatformTenantStatus));
+
+export const routeConfig: RouteConfig = {
+  prefix: "/api/platform-tenant",
+  router: platformTenantRouter,
+  auth: "none",
+};

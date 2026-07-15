@@ -1,4 +1,5 @@
-﻿import { Router } from "express";
+import { Router } from "express";
+import type { RouteConfig } from "../shared/auto-routes";
 import { requireAuthWithTenant } from "../middleware/auth";
 import * as ctrl from "../controllers/admin/payment-config.controller";
 
@@ -13,3 +14,9 @@ paymentConfigRouter.post("/bank-accounts", requireAuthWithTenant, ctrl.createBan
 paymentConfigRouter.put("/bank-accounts/:id", requireAuthWithTenant, ctrl.updateBankAccount);
 paymentConfigRouter.delete("/bank-accounts/:id", requireAuthWithTenant, ctrl.deleteBankAccount);
 paymentConfigRouter.post("/bank-accounts/:id/default", requireAuthWithTenant, ctrl.setDefaultBankAccount);
+
+export const routeConfig: RouteConfig = {
+  prefix: "/api/payment-config",
+  router: paymentConfigRouter,
+  auth: "requireAuthWithTenant",
+};

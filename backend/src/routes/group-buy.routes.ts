@@ -1,4 +1,5 @@
 import { Router } from "express";
+import type { RouteConfig } from "../shared/auto-routes";
 import { requireAuthWithTenant } from "../middleware/auth";
 import { asyncHandler } from "../middleware/async-handler";
 import * as controller from "../controllers/admin/group-buy.controller";
@@ -14,3 +15,9 @@ groupBuyRouter.delete("/activities/:id", requireAuthWithTenant, asyncHandler(con
 groupBuyRouter.get("/records", requireAuthWithTenant, asyncHandler(controller.getGroupBuyRecords));
 groupBuyRouter.get("/records/:groupNo", requireAuthWithTenant, asyncHandler(controller.getGroupBuyRecordDetail));
 groupBuyRouter.put("/records/:groupNo/cancel", requireAuthWithTenant, asyncHandler(controller.cancelGroupBuyRecord));
+
+export const routeConfig: RouteConfig = {
+  prefix: "/api/group-buy",
+  router: groupBuyRouter,
+  auth: "requireAuthWithTenant",
+};
