@@ -24,7 +24,7 @@ export const getProducts = asyncHandler(async (req, res) => {
   const storeId = Number(req.query.storeId || 1);
   const keyword = String(req.query.keyword || "");
   const customerType = String(req.headers["x-customer-type"] || "RETAIL");
-  const result = await service.getProducts(storeId, keyword, customerType);
+  const result = await service.getProducts(req.tenantId!, storeId, keyword, customerType);
   res.json(ok(result));
 });
 

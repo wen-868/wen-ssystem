@@ -1,4 +1,4 @@
-﻿import { query, queryOne } from "../shared/db";
+import { query } from "../shared/db";
 import logger from "../shared/logger";
 
 let schedulerInterval: any | null = null;
@@ -34,10 +34,10 @@ export async function checkSubscriptionExpiry() {
       // 发送到期提醒（这里只是记录日志，实际应该对接短信/邮件服务）
       logger.info(`[SubscriptionExpiry] 发送到期提醒给 ${sub.company_name} (${sub.contact_mobile})`);
 
-      // 标记已发送通知
+      // 标记已发送通知（平台级定时任务：sub.tenant_id 来自前一个跨租户 SELECT，作为双保险加入 WHERE 条件）
       await query(
-        "UPDATE subscription SET expire_notify_sent = 1, expire_notify_at = NOW() WHERE id = ?",
-        [sub.id]
+        "UPDATE subscription SET expire_notify_sent = 1, expire_notify_at = NOW() WHERE id = ? AND tenant_id = ?",
+        [sub.id, sub.tenant_id]
       );
 
       // 如果是自动续费，创建续费订单
@@ -70,10 +70,10 @@ export async function checkSubscriptionExpiry() {
         [sub.tenant_id]
       );
 
-      // 更新订阅状态
+      // 更新订阅状态（平台级定时任务：sub.tenant_id 作为双保险加入 WHERE 条件）
       await query(
-        "UPDATE subscription SET status = 'EXPIRED' WHERE id = ?",
-        [sub.id]
+        "UPDATE subscription SET status = 'EXPIRED' WHERE id = ? AND tenant_id = ?",
+        [sub.id, sub.tenant_id]
       );
 
       logger.info(`[SubscriptionExpiry] 租户 ${sub.company_name} 已自动停用`);
