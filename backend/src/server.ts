@@ -17,7 +17,7 @@ import { setupRoutes } from "./shared/auto-routes";
 import * as authController from "./controllers/admin/auth.controller";
 import { startAlertScheduler } from "./services/alert.service";
 import { startStoreControlScheduler } from "./shared/store-control-scheduler";
-import { startOrderTimeoutScanner } from "./shared/order-timeout-scanner";
+import { startOrderTimeoutScanner } from "./services/admin/order-timeout.service";
 import { startOverdueScanner } from "./services/overdue-scanner.service";
 import { startSubscriptionExpiryScanner } from "./services/subscription-expiry.service";
 import "./jobs/report-aggregation.job.js";
@@ -112,9 +112,10 @@ app.get("/api/admin/auth/settings", requireAuthWithTenant, authController.getSet
 app.put("/api/admin/auth/settings", requireAuthWithTenant, authController.updateSettings);
 app.post("/api/admin/auth/change-password", requireAuthWithTenant, authController.changePassword);
 
-// CSRF 防护：对需要认证的路由生效（在 requireAuthWithTenant 路由之后、setupRoutes 之前注册）
-// GET/OPTIONS/HEAD 直接放行；POST/PUT/DELETE 校验 x-csrf-token 请求头
-app.use(requireAuthWithTenant, csrfMiddleware);
+// CSRF 防护：全局注册，对已认证用户检查 x-csrf-token
+// auth: "none" 路由因 req.user 不存在会自动放行
+// 需要认证的路由通过 auto-routes 在认证后再次执行 CSRF 检查
+app.use(csrfMiddleware);
 
 // 自动发现并注册 routes/ 目录下所有路由
 await setupRoutes(app);

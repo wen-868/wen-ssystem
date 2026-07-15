@@ -1,4 +1,137 @@
 import { queryWithTenant, queryOneWithTenant } from "../../shared/db";
+import { AppError } from "../../shared/app-error";
+
+const ALLOWED_DATA_SOURCES = [
+  "sale_bill",
+  "sale_bill_item",
+  "sale_return",
+  "sale_return_item",
+  "purchase_order",
+  "purchase_order_item",
+  "purchase_in_stock",
+  "purchase_return",
+  "inventory_balance",
+  "inventory_batch",
+  "member",
+  "customer_payment",
+  "customer_statement",
+  "miniapp_order",
+  "miniapp_order_item",
+  "receivable",
+  "supplier",
+  "product_spu",
+  "product_sku",
+  "t_store",
+  "order_timeout_log",
+  "alert_record",
+  "operation_log",
+  "orders",
+  "t_sale_bill",
+  "t_sale_bill_item",
+  "t_miniapp_order",
+  "t_miniapp_order_item",
+  "t_inventory_balance",
+  "t_product_spu",
+  "t_product_sku",
+  "t_supplier",
+  "t_member",
+  "aftersale",
+  "customer_profile",
+  "coupon_template",
+  "user_coupon",
+  "full_reduction",
+  "cart_item",
+  "approval_rule",
+  "approval_instance",
+  "approval_task",
+  "approval_log",
+  "customer_care_rule",
+  "customer_care_log",
+  "bank_account",
+  "custom_report_template",
+  "custom_report_schedule",
+  "audit_log",
+];
+
+const ALLOWED_OPERATORS = [
+  "=",
+  "!=",
+  ">",
+  "<",
+  ">=",
+  "<=",
+  "LIKE",
+  "NOT LIKE",
+  "IN",
+  "NOT IN",
+  "IS NULL",
+  "IS NOT NULL",
+];
+
+const ALLOWED_AGGREGATIONS = [
+  "COUNT",
+  "SUM",
+  "AVG",
+  "MAX",
+  "MIN",
+];
+
+function validateDataSource(dataSource: string): string {
+  const ds = dataSource.toLowerCase();
+  if (!ALLOWED_DATA_SOURCES.includes(ds)) {
+    throw new AppError(`不支持的数据源: ${dataSource}`, 400);
+  }
+  return ds;
+}
+
+function validateFieldName(field: string): string {
+  if (!/^[a-zA-Z_][a-zA-Z0-9_]*(\.[a-zA-Z_][a-zA-Z0-9_]*)*$/.test(field)) {
+    throw new AppError(`非法的字段名: ${field}`, 400);
+  }
+  return field;
+}
+
+function validateOperator(op: string): string {
+  const upperOp = op.toUpperCase().trim();
+  if (!ALLOWED_OPERATORS.includes(upperOp)) {
+    throw new AppError(`不支持的操作符: ${op}`, 400);
+  }
+  return upperOp;
+}
+
+function validateDimension(dim: string): string {
+  return validateFieldName(dim);
+}
+
+function validateMetric(metric: string): string {
+  const trimmed = metric.trim();
+
+  const aliasMatch = trimmed.match(/^(.+?)\s+(?:AS|as)\s+([a-zA-Z_][a-zA-Z0-9_]*)$/);
+  let expression = trimmed;
+  let alias = "";
+
+  if (aliasMatch) {
+    expression = aliasMatch[1].trim();
+    alias = aliasMatch[2];
+  }
+
+  const aggMatch = expression.match(/^(COUNT|SUM|AVG|MAX|MIN)\s*\(\s*([a-zA-Z_][a-zA-Z0-9_]*|\*)\s*\)$/i);
+  if (aggMatch) {
+    const aggFunc = aggMatch[1].toUpperCase();
+    const inner = aggMatch[2];
+    if (!ALLOWED_AGGREGATIONS.includes(aggFunc)) {
+      throw new AppError(`不支持的聚合函数: ${aggFunc}`, 400);
+    }
+    if (inner !== "*") {
+      validateFieldName(inner);
+    }
+    const result = `${aggFunc}(${inner})`;
+    return alias ? `${result} AS ${alias}` : result;
+  }
+
+  const field = validateFieldName(expression);
+  return alias ? `${field} AS ${alias}` : field;
+}
 
 export interface ReportListParams {
   page: number;
@@ -189,20 +322,21 @@ export async function generateReport(tenantId: string, id: number, params: Repor
     filters?: Array<{ field: string; op: string; value: unknown }>;
   };
 
-  const dataSource = String(report.dataSource || "sale_bill");
+  const dataSource = validateDataSource(String(report.dataSource || "sale_bill"));
 
   const selectParts: string[] = [];
   const groupParts: string[] = [];
 
   if (dimensions && dimensions.length > 0) {
     dimensions.forEach((d) => {
-      selectParts.push(d);
-      groupParts.push(d);
+      const validated = validateDimension(d);
+      selectParts.push(validated);
+      groupParts.push(validated);
     });
   }
   if (metrics && metrics.length > 0) {
     metrics.forEach((m) => {
-      selectParts.push(m);
+      selectParts.push(validateMetric(m));
     });
   }
 
@@ -217,15 +351,22 @@ export async function generateReport(tenantId: string, id: number, params: Repor
 
   if (configFilters && Array.isArray(configFilters)) {
     configFilters.forEach((f) => {
-      whereConditions.push(`${f.field} ${f.op} ?`);
-      whereParams.push(f.value);
+      const field = validateFieldName(f.field);
+      const op = validateOperator(f.op);
+      if (op === "IS NULL" || op === "IS NOT NULL") {
+        whereConditions.push(`${field} ${op}`);
+      } else {
+        whereConditions.push(`${field} ${op} ?`);
+        whereParams.push(f.value);
+      }
     });
   }
 
   if (params.filters && typeof params.filters === "object") {
     Object.entries(params.filters).forEach(([field, value]) => {
       if (value !== undefined && value !== null && value !== "") {
-        whereConditions.push(`${field} = ?`);
+        const validatedField = validateFieldName(field);
+        whereConditions.push(`${validatedField} = ?`);
         whereParams.push(value);
       }
     });

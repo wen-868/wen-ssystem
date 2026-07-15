@@ -2554,7 +2554,7 @@ export async function tenantRegister(payload: {
   admin_password: string;
   admin_real_name: string;
 }) {
-  const { data } = await api.post("/api/tenant/register", payload);
+  const { data } = await api.post("/tenant/register", payload);
   return data.data;
 }
 
@@ -2565,28 +2565,28 @@ export async function fetchTenantApplications(params?: {
   page?: number;
   pageSize?: number;
 }) {
-  const { data } = await api.get("/api/tenant/applications", { params });
+  const { data } = await api.get("/tenant/applications", { params });
   return data.data;
 }
 
 export async function getTenantApplicationDetail(id: number) {
-  const { data } = await api.get(`/api/tenant/applications/${id}`);
+  const { data } = await api.get(`/tenant/applications/${id}`);
   return data.data;
 }
 
 export async function approveTenantApplication(id: number, payload?: { remark?: string }) {
-  const { data } = await api.post(`/api/tenant/applications/${id}/approve`, payload);
+  const { data } = await api.post(`/tenant/applications/${id}/approve`, payload);
   return data.data;
 }
 
 export async function rejectTenantApplication(id: number, payload: { remark: string }) {
-  const { data } = await api.post(`/api/tenant/applications/${id}/reject`, payload);
+  const { data } = await api.post(`/tenant/applications/${id}/reject`, payload);
   return data.data;
 }
 
 // ==================== 平台经营看板 API ====================
 export async function fetchPlatformOverviewData() {
-  const { data } = await api.get("/api/platform/overview");
+  const { data } = await api.get("/platform/overview");
   return data.data;
 }
 
@@ -2596,7 +2596,7 @@ export async function fetchPlatformTenantListData(params?: {
   status?: string;
   keyword?: string;
 }) {
-  const { data } = await api.get("/api/platform/tenants", { params });
+  const { data } = await api.get("/platform/tenants", { params });
   return data.data;
 }
 

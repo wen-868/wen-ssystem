@@ -164,10 +164,10 @@ describe("inferPrefix", () => {
 
 // ========== getAuthMiddlewares ==========
 describe("getAuthMiddlewares", () => {
-  it("requireAuth 应返回包含 requireAuth 的数组", () => {
+  it("requireAuth 应返回包含 requireAuth 和 csrfMiddleware 的数组", () => {
     const middlewares = getAuthMiddlewares("requireAuth");
     expect(Array.isArray(middlewares)).toBe(true);
-    expect(middlewares.length).toBe(1);
+    expect(middlewares.length).toBe(2);
   });
 
   it("requireAuthWithTenant 应返回中间件数组", () => {

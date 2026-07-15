@@ -1,10 +1,11 @@
-﻿import { query, queryOne, transaction } from "../../shared/db";
+import { query, queryOne, transaction, queryWithTenant, queryOneWithTenant } from "../../shared/db";
 import logger from "../../shared/logger";
 
 export async function getConfigs(tenantId: string) {
-  return query<any>(
-    "SELECT id, order_type AS orderType, timeout_type AS timeoutType, timeout_minutes AS timeoutMinutes, action, enabled, description, created_at AS createdAt, updated_at AS updatedAt FROM order_timeout_config WHERE tenant_id = ? ORDER BY id ASC",
-    [tenantId]
+  return queryWithTenant<any>(
+    "SELECT id, order_type AS orderType, timeout_type AS timeoutType, timeout_minutes AS timeoutMinutes, action, enabled, description, created_at AS createdAt, updated_at AS updatedAt FROM order_timeout_config ORDER BY id ASC",
+    [],
+    tenantId
   );
 }
 
@@ -16,9 +17,10 @@ export async function createConfig(tenantId: string, body: {
   enabled: boolean;
   description?: string;
 }) {
-  const result = await query<{ insertId: number }>(
-    "INSERT INTO order_timeout_config (order_type, timeout_type, timeout_minutes, action, enabled, description, tenant_id) VALUES (?, ?, ?, ?, ?, ?, ?)",
-    [body.orderType, body.timeoutType, body.timeoutMinutes, body.action, body.enabled ? 1 : 0, body.description || null, tenantId]
+  const result = await queryWithTenant<{ insertId: number }>(
+    "INSERT INTO order_timeout_config (order_type, timeout_type, timeout_minutes, action, enabled, description) VALUES (?, ?, ?, ?, ?, ?)",
+    [body.orderType, body.timeoutType, body.timeoutMinutes, body.action, body.enabled ? 1 : 0, body.description || null],
+    tenantId
   );
   return { id: (result as unknown as unknown as { insertId: number }).insertId };
 }
@@ -43,13 +45,13 @@ export async function updateConfig(tenantId: string, id: number, body: {
 
   if (fields.length === 0) return false;
 
-  values.push(id, tenantId);
-  await query(`UPDATE order_timeout_config SET ${fields.join(", ")} WHERE id = ? AND tenant_id = ?`, values);
+  values.push(id);
+  await queryWithTenant(`UPDATE order_timeout_config SET ${fields.join(", ")} WHERE id = ?`, values, tenantId);
   return true;
 }
 
 export async function deleteConfig(tenantId: string, id: number) {
-  await query("DELETE FROM order_timeout_config WHERE id = ? AND tenant_id = ?", [id, tenantId]);
+  await queryWithTenant("DELETE FROM order_timeout_config WHERE id = ?", [id], tenantId);
 }
 
 export async function getLogs(tenantId: string, params: {
@@ -62,8 +64,8 @@ export async function getLogs(tenantId: string, params: {
   const { page, pageSize, result, dateStart, dateEnd } = params;
   const offset = (page - 1) * pageSize;
 
-  const whereClauses: string[] = ["otl.tenant_id = ?"];
-  const sqlParams: unknown[] = [tenantId];
+  const whereClauses: string[] = [];
+  const sqlParams: unknown[] = [];
 
   if (result) {
     whereClauses.push("otl.result = ?");
@@ -78,14 +80,15 @@ export async function getLogs(tenantId: string, params: {
     sqlParams.push(dateEnd + " 23:59:59");
   }
 
-  const whereSql = "WHERE " + whereClauses.join(" AND ");
+  const whereSql = whereClauses.length > 0 ? "WHERE " + whereClauses.join(" AND ") : "";
 
-  const totalRow = await queryOne<{ total: number }>(
+  const totalRow = await queryOneWithTenant<{ total: number }>(
     `SELECT COUNT(*) AS total FROM order_timeout_log otl ${whereSql}`,
-    sqlParams
+    sqlParams,
+    tenantId
   );
 
-  const records = await query<any>(
+  const records = await queryWithTenant<any>(
     `SELECT otl.id, otl.order_id AS orderId, otl.order_type AS orderType, otl.timeout_type AS timeoutType,
             otl.action_taken AS actionTaken, otl.triggered_at AS triggeredAt, otl.handled_at AS handledAt,
             otl.result, otl.remark, otl.created_at AS createdAt
@@ -93,7 +96,8 @@ export async function getLogs(tenantId: string, params: {
      ${whereSql}
      ORDER BY otl.id DESC
      LIMIT ? OFFSET ?`,
-    [...sqlParams, pageSize, offset]
+    [...sqlParams, pageSize, offset],
+    tenantId
   );
 
   return {
@@ -105,25 +109,30 @@ export async function getLogs(tenantId: string, params: {
 }
 
 export async function getStatistics(tenantId: string) {
-  const todayStats = await queryOne<{ count: number }>(
-    "SELECT COUNT(*) AS count FROM order_timeout_log WHERE tenant_id = ? AND DATE(triggered_at) = CURDATE()",
-    [tenantId]
+  const todayStats = await queryOneWithTenant<{ count: number }>(
+    "SELECT COUNT(*) AS count FROM order_timeout_log WHERE DATE(triggered_at) = CURDATE()",
+    [],
+    tenantId
   );
-  const weekStats = await queryOne<{ count: number }>(
-    "SELECT COUNT(*) AS count FROM order_timeout_log WHERE tenant_id = ? AND YEARWEEK(triggered_at, 1) = YEARWEEK(CURDATE(), 1)",
-    [tenantId]
+  const weekStats = await queryOneWithTenant<{ count: number }>(
+    "SELECT COUNT(*) AS count FROM order_timeout_log WHERE YEARWEEK(triggered_at, 1) = YEARWEEK(CURDATE(), 1)",
+    [],
+    tenantId
   );
-  const monthStats = await queryOne<{ count: number }>(
-    "SELECT COUNT(*) AS count FROM order_timeout_log WHERE tenant_id = ? AND DATE_FORMAT(triggered_at, '%Y-%m') = DATE_FORMAT(CURDATE(), '%Y-%m')",
-    [tenantId]
+  const monthStats = await queryOneWithTenant<{ count: number }>(
+    "SELECT COUNT(*) AS count FROM order_timeout_log WHERE DATE_FORMAT(triggered_at, '%Y-%m') = DATE_FORMAT(CURDATE(), '%Y-%m')",
+    [],
+    tenantId
   );
-  const successStats = await queryOne<{ count: number }>(
-    "SELECT COUNT(*) AS count FROM order_timeout_log WHERE tenant_id = ? AND result = 'SUCCESS' AND DATE(triggered_at) = CURDATE()",
-    [tenantId]
+  const successStats = await queryOneWithTenant<{ count: number }>(
+    "SELECT COUNT(*) AS count FROM order_timeout_log WHERE result = 'SUCCESS' AND DATE(triggered_at) = CURDATE()",
+    [],
+    tenantId
   );
-  const failedStats = await queryOne<{ count: number }>(
-    "SELECT COUNT(*) AS count FROM order_timeout_log WHERE tenant_id = ? AND result = 'FAILED' AND DATE(triggered_at) = CURDATE()",
-    [tenantId]
+  const failedStats = await queryOneWithTenant<{ count: number }>(
+    "SELECT COUNT(*) AS count FROM order_timeout_log WHERE result = 'FAILED' AND DATE(triggered_at) = CURDATE()",
+    [],
+    tenantId
   );
 
   return {
@@ -252,4 +261,31 @@ export async function processTimeoutConfig(config: {
       }
     }
   }
+}
+
+let scannerRunning = false;
+
+export function startOrderTimeoutScanner() {
+  if (scannerRunning) return;
+  scannerRunning = true;
+
+  const SCAN_INTERVAL = 60_000;
+
+  const timer = setInterval(async () => {
+    try {
+      const configs = await getEnabledConfigs();
+
+      for (const config of configs) {
+        await processTimeoutConfig(config);
+      }
+    } catch (err) {
+      logger.error("[OrderTimeoutScanner] 扫描出错:", err);
+    }
+  }, SCAN_INTERVAL);
+
+  if (typeof (timer as unknown as NodeJS.Timeout).unref === "function") {
+    (timer as unknown as NodeJS.Timeout).unref();
+  }
+
+  logger.info("[OrderTimeoutScanner] 订单超时扫描器已启动，每60秒扫描一次");
 }

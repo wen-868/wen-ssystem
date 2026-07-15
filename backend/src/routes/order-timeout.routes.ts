@@ -2,7 +2,7 @@ import { Router } from "express";
 import type { RouteConfig } from "../shared/auto-routes";
 import { requireAuthWithTenant } from "../middleware/auth";
 import * as ctrl from "../controllers/order-timeout.controller";
-import { startOrderTimeoutScanner } from "../shared/order-timeout-scanner";
+import { startOrderTimeoutScanner } from "../services/admin/order-timeout.service";
 
 startOrderTimeoutScanner();
 

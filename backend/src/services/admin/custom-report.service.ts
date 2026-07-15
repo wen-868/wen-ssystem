@@ -1,4 +1,83 @@
-﻿import { queryWithTenant, queryOneWithTenant } from "../../shared/db";
+import { queryWithTenant, queryOneWithTenant } from "../../shared/db";
+import { AppError } from "../../shared/app-error";
+
+const ALLOWED_TYPES: Record<string, string> = {
+  sales: "sale_bill",
+  inventory: "inventory_balance",
+  orders: "miniapp_order",
+};
+
+const ALLOWED_OPERATORS = [
+  "=",
+  "!=",
+  ">",
+  "<",
+  ">=",
+  "<=",
+  "LIKE",
+  "NOT LIKE",
+  "IN",
+  "NOT IN",
+  "IS NULL",
+  "IS NOT NULL",
+];
+
+const ALLOWED_AGGREGATIONS = [
+  "COUNT",
+  "SUM",
+  "AVG",
+  "MAX",
+  "MIN",
+];
+
+function validateFieldName(field: string): string {
+  if (!/^[a-zA-Z_][a-zA-Z0-9_]*(\.[a-zA-Z_][a-zA-Z0-9_]*)*$/.test(field)) {
+    throw new AppError(`非法的字段名: ${field}`, 400);
+  }
+  return field;
+}
+
+function validateOperator(op: string): string {
+  const upperOp = op.toUpperCase().trim();
+  if (!ALLOWED_OPERATORS.includes(upperOp)) {
+    throw new AppError(`不支持的操作符: ${op}`, 400);
+  }
+  return upperOp;
+}
+
+function validateDimension(dim: string): string {
+  return validateFieldName(dim);
+}
+
+function validateMetric(metric: string): string {
+  const trimmed = metric.trim();
+
+  const aliasMatch = trimmed.match(/^(.+?)\s+(?:AS|as)\s+([a-zA-Z_][a-zA-Z0-9_]*)$/);
+  let expression = trimmed;
+  let alias = "";
+
+  if (aliasMatch) {
+    expression = aliasMatch[1].trim();
+    alias = aliasMatch[2];
+  }
+
+  const aggMatch = expression.match(/^(COUNT|SUM|AVG|MAX|MIN)\s*\(\s*([a-zA-Z_][a-zA-Z0-9_]*|\*)\s*\)$/i);
+  if (aggMatch) {
+    const aggFunc = aggMatch[1].toUpperCase();
+    const inner = aggMatch[2];
+    if (!ALLOWED_AGGREGATIONS.includes(aggFunc)) {
+      throw new AppError(`不支持的聚合函数: ${aggFunc}`, 400);
+    }
+    if (inner !== "*") {
+      validateFieldName(inner);
+    }
+    const result = `${aggFunc}(${inner})`;
+    return alias ? `${result} AS ${alias}` : result;
+  }
+
+  const field = validateFieldName(expression);
+  return alias ? `${field} AS ${alias}` : field;
+}
 
 export interface TemplateListParams {
   page: number;
@@ -103,27 +182,41 @@ export async function executeTemplate(tenantId: string, id: number, params: Reco
   const config = typeof template.config === "string" ? JSON.parse(template.config) : template.config;
   const { dimensions, metrics, filters } = config;
 
+  const tableName = ALLOWED_TYPES[template.type] || "sale_bill";
+
   let sql = "SELECT ";
   const selectParts: string[] = [];
   const groupParts: string[] = [];
 
   if (dimensions && dimensions.length > 0) {
-    dimensions.forEach((d: string) => { selectParts.push(d); groupParts.push(d); });
+    dimensions.forEach((d: string) => {
+      const validated = validateDimension(d);
+      selectParts.push(validated);
+      groupParts.push(validated);
+    });
   }
   if (metrics && metrics.length > 0) {
-    metrics.forEach((m: string) => { selectParts.push(m); });
+    metrics.forEach((m: string) => {
+      selectParts.push(validateMetric(m));
+    });
   }
 
-  sql += selectParts.join(", ");
-  sql += ` FROM ${template.type === "sales" ? "sale_bill" : template.type === "inventory" ? "inventory_balance" : "orders"}`;
+  sql += selectParts.length > 0 ? selectParts.join(", ") : "*";
+  sql += ` FROM ${tableName}`;
 
   const whereConditions: string[] = ["tenant_id = ?"];
   const whereParams: unknown[] = [tenantId];
 
   if (filters && Array.isArray(filters)) {
     filters.forEach((f: { field: string; op: string; value: unknown }) => {
-      whereConditions.push(`${f.field} ${f.op} ?`);
-      whereParams.push(f.value);
+      const field = validateFieldName(f.field);
+      const op = validateOperator(f.op);
+      if (op === "IS NULL" || op === "IS NOT NULL") {
+        whereConditions.push(`${field} ${op}`);
+      } else {
+        whereConditions.push(`${field} ${op} ?`);
+        whereParams.push(f.value);
+      }
     });
   }
 

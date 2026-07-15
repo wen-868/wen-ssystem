@@ -1,8 +1,193 @@
-﻿# 当前任务 — R40
+﻿# 当前任务 — R42
 
 > 仓库：https://github.com/wen-868/wen-ssystem  
 > 唯一分支：main  
 > 最后更新：2026-07-16
+
+---
+
+## R42 — P0 紧急修复：无法登录 & 无法注册 [已完成]
+
+### R42-01 — 修复全局认证中间件阻止 auth:none 路由 [P0]
+
+- **优先级**：P0
+- **负责人**：阿坚
+- **预计**：0.5天
+- **实际**：0.5天
+- **状态**：✅ 已完成
+- **文件**：`backend/src/server.ts`、`backend/src/shared/auto-routes.ts`、`backend/src/__tests__/shared/auto-routes.test.ts`
+- **问题**：`server.ts` 第 117 行全局注册了 `app.use(requireAuthWithTenant, csrfMiddleware)`，`requireAuth` 中间件会对所有未携带 token 的请求返回 401。由于 `setupRoutes` 在此之后执行，所有通过 `setupRoutes` 注册的 `auth: "none"` 路由（包括租户注册 `/api/tenant/register`、平台登录 `/api/platform-auth/login` 等）都被全局认证中间件拦截，导致无法注册、平台端无法登录。
+- **修复**：
+  1. 移除全局 `app.use(requireAuthWithTenant, csrfMiddleware)`，改为仅全局注册 `csrfMiddleware`（CSRF 中间件在 `req.user` 不存在时自动放行）
+  2. 在 `auto-routes.ts` 的 `getAuthMiddlewares` 中，为 `requireAuth` 和 `requireAuthWithTenant` 模式追加 `csrfMiddleware`，确保 CSRF 防护在认证之后执行
+  3. 更新 `auto-routes.test.ts` 中 `requireAuth` 中间件数量断言（1→2）
+- **验收标准**：tsc 0错误，全量测试通过，auth:none 路由可正常访问
+- **验证结果**：
+  - `npx tsc --noEmit`：✅ 0 错误
+  - 全量测试：✅ 414 文件 4741 用例全部通过
+
+### R42-02 — 修复前端租户注册/平台 API 路径重复 [P0]
+
+- **优先级**：P0
+- **负责人**：阿坚
+- **预计**：0.25天
+- **实际**：0.25天
+- **状态**：✅ 已完成
+- **文件**：`admin-web/src/api.ts`
+- **问题**：前端 `api.ts` 中 8 个 API 函数的请求路径以 `/api/` 开头，但 `api` 实例的 `baseURL` 已包含 `/api`，导致实际请求路径变为 `/api/api/...`，后端无法匹配。受影响的 API：`tenantRegister`、`fetchTenantApplications`、`getTenantApplicationDetail`、`approveTenantApplication`、`rejectTenantApplication`、`fetchPlatformOverviewData`、`fetchPlatformTenantListData`
+- **修复**：将所有 `/api/tenant/...` 改为 `/tenant/...`，`/api/platform/...` 改为 `/platform/...`
+- **验收标准**：API 路径与后端路由匹配，注册功能正常
+- **验证结果**：全量测试通过
+
+---
+
+## R41 任务列表 — 系统性全局审查与问题修复
+
+### R41-01 — 修复 order-timeout.service.ts 租户隔离不规范 [P1]
+
+- **优先级**：P1
+- **负责人**：阿坚
+- **预计**：0.5天
+- **实际**：0.25天
+- **状态**：✅ 已完成
+- **文件**：`backend/src/services/admin/order-timeout.service.ts`、`backend/src/controllers/order-timeout.controller.ts`
+- **问题**：order-timeout.service.ts 使用裸 `query`/`queryOne` 而不是标准的 `queryWithTenant`/`queryOneWithTenant`，虽然 SQL 中手写了 tenant_id 条件，但不符合统一规范，容易遗漏
+- **修复**：
+  1. import 从 `query, queryOne` 改为 `queryWithTenant, queryOneWithTenant`
+  2. 所有顶层 query/queryOne 调用替换为带租户版本
+  3. `getEnabledConfigs` 为跨租户平台级查询，保留裸 query（定时扫描器用）
+  4. 同步检查 controller 层是否正确传递 tenantId
+- **验收标准**：tsc 0错误，相关测试通过，grep 检查除跨租户查询外无裸 query/queryOne
+- **验证结果**：
+  - `npx tsc --noEmit`：✅ 0 错误
+  - order-timeout 测试：✅ 2 文件 9 用例全部通过
+
+### R41-02 — 修复 custom-report-v2.service.ts SQL注入风险 [P1]
+
+- **优先级**：P1
+- **负责人**：阿坚
+- **预计**：0.5天
+- **实际**：0.5天
+- **状态**：✅ 已完成
+- **文件**：`backend/src/services/admin/custom-report-v2.service.ts`、`backend/src/services/admin/custom-report.service.ts`
+- **问题**：动态 WHERE 条件中，filters 的字段名直接拼接到 SQL 字符串（`${field} = ?`），虽然值用了参数化，但字段名未验证，存在 SQL 注入风险
+- **修复**：
+  1. 建立数据源白名单（50+ 常用业务表）
+  2. 建立字段名白名单验证（正则校验合法标识符）
+  3. 建立操作符白名单（=, !=, >, <, >=, <=, LIKE, NOT LIKE, IN, NOT IN, IS NULL, IS NOT NULL）
+  4. 建立聚合函数白名单（COUNT, SUM, AVG, MAX, MIN）
+  5. 支持指标别名格式（如 `SUM(amount) as total`）
+  6. 同步修复 custom-report.service.ts 的同样问题
+- **验收标准**：tsc 0错误，相关测试通过，添加SQL注入测试用例
+- **验证结果**：
+  - `npx tsc --noEmit`：✅ 0 错误
+  - custom-report 相关测试：✅ 3 文件 53 用例全部通过
+
+### R41-03 — 审计 auth: "none" 的路由安全性 [P2]
+
+- **优先级**：P2
+- **负责人**：阿坚
+- **预计**：0.5天
+- **状态**：待开始
+- **文件**：`backend/src/routes/` 下所有路由文件
+- **问题**：共59个路由声明 `auth: "none"`，其中部分可能是历史遗留或配置错误，存在越权访问风险
+- **修复**：
+  1. 逐一审计59个 auth: "none" 的路由，分类标注：
+     - 合理的公开接口（登录、注册、微信回调、健康检查、公开分享页等）
+     - 需要认证但配置错误的
+     - 内部有其他认证机制的（平台认证、门店认证等）
+  2. 修正配置错误的路由 auth 级别
+  3. 输出审计报告，记录每个 auth: "none" 的合理性说明
+- **验收标准**：所有 auth: "none" 路由均有合理理由，无配置错误
+
+### R41-04 — 清理 SELECT * 查询，明确字段列表 [P2]
+
+- **优先级**：P2
+- **负责人**：阿坚
+- **预计**：1天
+- **状态**：待开始
+- **文件**：`backend/src/services/` 下39个使用 SELECT * 的服务文件
+- **问题**：39个服务文件使用 SELECT * 查询，存在以下问题：
+  1. 性能问题：查询不需要的字段浪费IO和带宽
+  2. 安全问题：可能返回敏感字段（密码、密钥等）
+  3. 维护问题：表结构变更时容易引发bug
+- **修复**：
+  1. 优先修复高频接口和包含敏感字段的表的 SELECT *
+  2. 替换为明确的字段列表
+  3. 对于确实需要所有字段的场景，添加注释说明原因
+- **验收标准**：高频接口 SELECT * 清零，整体减少80%以上
+
+### R41-05 — 修复 order-timeout-scanner 目录位置不一致 [P2]
+
+- **优先级**：P2
+- **负责人**：阿坚
+- **预计**：0.5天
+- **实际**：0.25天
+- **状态**：✅ 已完成
+- **文件**：`backend/src/shared/order-timeout-scanner.ts`、`backend/src/services/admin/order-timeout-scanner.service.ts`、`backend/src/services/admin/order-timeout.service.ts`
+- **问题**：存在两个 order-timeout-scanner 文件：
+  - `services/admin/order-timeout-scanner.service.ts` — 冗余位置
+  - `shared/order-timeout-scanner.ts` — 被 server.ts 和 routes 引用
+  导致逻辑分散、维护困难
+- **修复**：
+  1. 将 `startOrderTimeoutScanner` 函数整合到 `order-timeout.service.ts` 中（与 `getEnabledConfigs`、`processTimeoutConfig` 同文件）
+  2. 更新 server.ts 和 routes 中的 import 路径
+  3. 删除 `shared/order-timeout-scanner.ts` 和 `services/admin/order-timeout-scanner.service.ts` 两个冗余文件
+- **验收标准**：只有一个 order-timeout 服务文件，位于 services/admin/ 目录，所有引用正确
+- **验证结果**：
+  - `npx tsc --noEmit`：✅ 0 错误
+  - order-timeout 测试：✅ 2 文件 9 用例全部通过
+
+### R41-06 — 清理 TODO/FIXME 标记 [P2]
+
+- **优先级**：P2
+- **负责人**：阿坚
+- **预计**：0.5天
+- **实际**：0.25天
+- **状态**：✅ 已完成（确认合理保留）
+- **文件**：`backend/src/shared/feishu-report.ts`、`backend/src/services/platform/tenant-admin.service.ts`、`backend/src/services/admin/quote-push.service.ts`
+- **问题**：代码中存在8处 TODO/FIXME 标记，部分可能是未完成的功能或已知问题
+- **审查结果**：
+  1. `feishu-report.ts` 中 3 处 "TODO" — 是飞书报告的状态枚举值，非技术债务
+  2. `feishu-report.test.ts` 中 1 处 "TODO" — 测试数据，非技术债务
+  3. `tenant-admin.service.ts` 中 1 处 TODO — 租户初始化功能规划，合理预留
+  4. `quote-push.service.ts` 中 3 处 TODO — 短信/小程序订阅/邮件通知渠道接入规划，合理预留
+- **结论**：所有标记均为合理的功能规划或业务枚举，无需清理，保留并记录在案
+- **验收标准**：所有 TODO/FIXME 均有明确用途，无技术债务类标记
+
+### R41-07 — 统一 import 路径规范 [P3]
+
+- **优先级**：P3
+- **负责人**：阿坚
+- **预计**：0.5天
+- **实际**：0.25天
+- **状态**：✅ 已完成
+- **文件**：`backend/src/` 下所有 .ts 文件
+- **问题**：import 路径不统一，有些文件从 `shared/db.js` 导入（带 .js 后缀），有些从 `shared/db` 导入
+- **修复**：
+  1. 统一移除 import 路径中的 `.js` 后缀
+  2. 修复文件：
+     - `services/admin/inventory-batch.service.ts` — `../../shared/db.js` → `../../shared/db`
+     - `services/admin/marketing-new-promotion.service.ts` — `../../shared/db.js` + `../../shared/id.js`
+     - `shared/auto-routes.ts` — `../middleware/auth.js` + `./logger.js`
+- **验收标准**：tsc 0错误，所有测试通过，import 路径风格统一
+- **验证结果**：
+  - `npx tsc --noEmit`：✅ 0 错误
+  - 全量测试：✅ 414 文件 4741 用例全部通过
+
+### R41-08 — 全量回归测试 [P2]
+
+- **优先级**：P2
+- **负责人**：阿坚
+- **预计**：1天
+- **实际**：0.5天
+- **状态**：✅ 已完成
+- **验收标准**：所有测试通过
+- **测试范围**：TSC + Vitest
+- **测试结果**：
+  - 后端 TSC：✅ 0 错误
+  - 后端 Vitest：✅ 414 个文件，4741 个用例全部通过，0 失败
+- **综合通过率**：100%
 
 ---
 

@@ -2,8 +2,9 @@ import type { Express, Router, RequestHandler } from "express";
 import { readdirSync } from "fs";
 import { fileURLToPath, pathToFileURL } from "url";
 import { dirname, join } from "path";
-import { requireAuth, requireAuthWithTenant } from "../middleware/auth.js";
-import logger from "./logger.js";
+import { requireAuth, requireAuthWithTenant } from "../middleware/auth";
+import { csrfMiddleware } from "../middleware/csrf";
+import logger from "./logger";
 
 /**
  * 路由配置项
@@ -17,8 +18,8 @@ export interface RouteConfig {
   /** Express Router 实例 */
   router: Router;
   /** 认证方式：
-   *  - "requireAuthWithTenant"（默认）：认证 + 租户隔离
-   *  - "requireAuth"：仅认证
+   *  - "requireAuthWithTenant"（默认）：认证 + 租户隔离 + CSRF 防护
+   *  - "requireAuth"：仅认证 + CSRF 防护
    *  - "none"：不添加中间件（路由内部自行处理）
    */
   auth?: "requireAuthWithTenant" | "requireAuth" | "none";
@@ -39,13 +40,13 @@ export function inferPrefix(filename: string): string {
 export function getAuthMiddlewares(auth?: RouteConfig["auth"]): RequestHandler[] {
   switch (auth) {
     case "requireAuth":
-      return [requireAuth];
+      return [requireAuth, csrfMiddleware];
     case "requireAuthWithTenant":
-      return requireAuthWithTenant; // auth.ts 中已导出为数组 [requireAuth, tenantMiddleware]
+      return [...requireAuthWithTenant, csrfMiddleware];
     case "none":
       return [];
     default:
-      return requireAuthWithTenant;
+      return [...requireAuthWithTenant, csrfMiddleware];
   }
 }
 

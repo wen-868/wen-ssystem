@@ -1,5 +1,5 @@
-﻿import { queryWithTenant, queryOneWithTenant, transaction } from "../../shared/db.js";
-import { makeBizNo } from "../../shared/id.js";
+import { queryWithTenant, queryOneWithTenant, transaction } from "../../shared/db";
+import { makeBizNo } from "../../shared/id";
 
 interface PromotionRecord {
   id: number;
