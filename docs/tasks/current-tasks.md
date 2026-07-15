@@ -56,24 +56,32 @@
 ### R40-03 — 修复 customer-merge.service.ts 租户隔离漏洞 [P1]
 
 - **优先级**：P1
-- **负责人**：阿坚
+- **负责人**：阿坚（复查确认）/ 墨（实际修复）
 - **预计**：0.5天
-- **状态**：待开始
+- **实际**：0天（已在 1489c32 中修复）
+- **状态**：✅ 已完成
 - **文件**：`backend/src/services/admin/customer-merge.service.ts`
 - **问题**：18处 query/queryOne 调用缺少 tenant_id 过滤
-- **修复**：替换为带租户版本
+- **修复**：墨在 commit 1489c32 中已修复。import 改为 `queryWithTenant, queryOneWithTenant`，全部 18 处替换为带租户版本并传入 tenantId。transaction 内 conn.execute SQL 均有 tenant_id 条件
 - **验收标准**：0处裸 query/queryOne，相关测试通过
+- **验证结果**：
+  - grep 裸 query/queryOne：✅ 0 处匹配
+  - customer-merge 测试：✅ 3 文件（service + controller + routes）全部通过
 
 ### R40-04 — 修复 customer-statement.service.ts 租户隔离漏洞 [P1]
 
 - **优先级**：P1
-- **负责人**：阿坚
+- **负责人**：阿坚（复查确认）/ 墨（实际修复）
 - **预计**：0.5天
-- **状态**：待开始
+- **实际**：0天（已在 1489c32 中修复）
+- **状态**：✅ 已完成
 - **文件**：`backend/src/services/admin/customer-statement.service.ts`
 - **问题**：9处 query/queryOne 调用缺少 tenant_id 过滤
-- **修复**：替换为带租户版本
+- **修复**：墨在 commit 1489c32 中已修复。import 改为 `queryWithTenant, queryOneWithTenant`，全部顶层 query/queryOne 替换为带租户版本。transaction 内 5 处 conn.query SQL 均有 tenant_id 条件，INSERT 语句含 tenant_id 字段
 - **验收标准**：0处裸 query/queryOne，相关测试通过
+- **验证结果**：
+  - grep 裸 query/queryOne（顶层）：✅ 0 处匹配（conn.query 为事务内部，按规则保持）
+  - customer-statement 测试：✅ 3 文件（service + controller + routes）全部通过
 
 ### R40-05 — 修复 alert.service.ts any 类型滥用 [P1]
 
