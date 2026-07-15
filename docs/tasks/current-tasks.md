@@ -1,8 +1,395 @@
-﻿# 当前任务 — R36
+﻿# 当前任务 — R40
 
 > 仓库：https://github.com/wen-868/wen-ssystem  
 > 唯一分支：main  
-> 最后更新：2026-07-15
+> 最后更新：2026-07-16
+
+---
+
+## R40 任务列表 — 系统全局统一性审查与问题修复
+
+> 审查报告：[system-consistency-review-2026-07-16.md](file:///D:/Users/Documents/TREA/wen-ssystem-main/docs/reports/system-consistency-review-2026-07-16.md)
+
+### R40-01 — 修复 alert.service.ts 租户隔离漏洞 [P0]
+
+- **优先级**：P0
+- **负责人**：阿坚
+- **预计**：0.5天
+- **实际**：0.25天
+- **状态**：✅ 已完成
+- **文件**：`backend/src/services/alert.service.ts`、`backend/src/services/admin/trace-records.service.ts`（顺手修复 R39-01 遗留的 import 遗漏）
+- **问题**：24处 query/queryOne 调用全部缺少 tenant_id 过滤，预警规则和记录可被跨租户访问
+- **修复**：
+  1. 引入 `queryWithTenant, queryOneWithTenant`，移除未使用的 `queryOne`
+  2. 5 个 `checkXxxAlerts` 内部 helper 与 6 个导出函数（`listAlerts`/`getAlertCounts`/`handleAlert`/`listAlertRules`/`updateAlertRule`/`runCheck`）的 query/queryOne 全部改为带租户版本，传入 tenantId
+  3. `getAllActiveTenants` 跨租户平台级查询保留 `query`（用于扫描所有租户，无租户上下文）
+  4. `transaction` 内部 `conn.query/conn.execute` 保持不变（事务连接无法用 pool 函数），但 SQL 已包含 `tenant_id` 过滤条件
+  5. 顺手修复 R39-01 遗留的 `trace-records.service.ts` 5 处 import 缺失（`query, queryOne` 被删除但函数内仍在使用）
+- **验收标准**：0处裸 query/queryOne（除跨租户平台级查询），相关测试通过
+- **验证结果**：
+  - `npx tsc --noEmit`：✅ 0 错误
+  - alert 测试：✅ 2 文件 18 用例全部通过
+  - 租户隔离测试：✅ 7 用例全部通过
+  - trace 相关测试：✅ 4 文件 64 用例全部通过
+
+### R40-02 — 修复 aftersale.service.ts 租户隔离漏洞 [P1]
+
+- **优先级**：P1
+- **负责人**：阿坚
+- **预计**：0.5天
+- **状态**：待开始
+- **文件**：`backend/src/services/admin/aftersale.service.ts`
+- **问题**：23处 query/queryOne 调用缺少 tenant_id 过滤
+- **修复**：替换为带租户版本，确保所有查询都有租户隔离
+- **验收标准**：0处裸 query/queryOne，相关测试通过
+
+### R40-03 — 修复 customer-merge.service.ts 租户隔离漏洞 [P1]
+
+- **优先级**：P1
+- **负责人**：阿坚
+- **预计**：0.5天
+- **状态**：待开始
+- **文件**：`backend/src/services/admin/customer-merge.service.ts`
+- **问题**：18处 query/queryOne 调用缺少 tenant_id 过滤
+- **修复**：替换为带租户版本
+- **验收标准**：0处裸 query/queryOne，相关测试通过
+
+### R40-04 — 修复 customer-statement.service.ts 租户隔离漏洞 [P1]
+
+- **优先级**：P1
+- **负责人**：阿坚
+- **预计**：0.5天
+- **状态**：待开始
+- **文件**：`backend/src/services/admin/customer-statement.service.ts`
+- **问题**：9处 query/queryOne 调用缺少 tenant_id 过滤
+- **修复**：替换为带租户版本
+- **验收标准**：0处裸 query/queryOne，相关测试通过
+
+### R40-05 — 修复 alert.service.ts any 类型滥用 [P1]
+
+- **优先级**：P1
+- **负责人**：阿坚
+- **预计**：0.5天
+- **实际**：0.25天（与 R40-01 同批完成）
+- **状态**：✅ 已完成
+- **文件**：`backend/src/services/alert.service.ts`
+- **问题**：30+处 query<any> / (r: any) 类型滥用
+- **修复**：
+  1. 在文件顶部定义 13 个接口：`AlertRule`、`AlertRuleVO`、`AlertRecordVO`、`StockLowRow`、`ExpiryRow`、`CreditRow`、`OverdueRow`、`OverstockRow`、`ExistingAlertRow`（extends `RowDataPacket` 以满足 mysql2 conn.query 约束）、`AlertRecordExisting`、`AlertRuleExisting`、`AlertCountRow`、`CountRow`、`TenantRow`
+  2. 所有 `query<any>` 改为 `queryWithTenant<具体接口>`
+  3. 所有 `queryOne<any>` 改为 `queryOneWithTenant<具体接口>`
+  4. 所有 `(r: any) =>` 改为 `(r) =>`（依赖类型推断）
+  5. 所有 `conn.query<any[]>` 改为 `conn.query<ExistingAlertRow[]>`
+- **验收标准**：tsc --noEmit 0 错误，any 使用量降至 0
+- **验证结果**：
+  - `npx tsc --noEmit`：✅ 0 错误
+  - grep `: any|<any>` 在 alert.service.ts：✅ 0 处匹配
+  - alert 测试：✅ 18 用例全部通过
+
+### R40-06 — 修复 P2 级租户隔离遗漏 [P2]
+
+- **优先级**：P2
+- **负责人**：阿坚
+- **预计**：1天
+- **状态**：待开始
+- **文件**：`backend/src/services/share.service.ts`、`backend/src/services/subscription-expiry.service.ts`、`backend/src/services/overdue-scanner.service.ts`、`backend/src/services/wechat.service.ts`、`backend/src/services/miniapp.service.ts`
+- **问题**：多个服务文件仍有少量 query 未做租户过滤
+- **修复**：逐个复查并修复
+- **验收标准**：全量 grep 扫描确认无遗漏
+
+### R40-07 — 补充路由 routeConfig 显式声明 [P2]
+
+- **优先级**：P2
+- **负责人**：阿坚
+- **预计**：0.5天
+- **状态**：待开始
+- **文件**：`backend/src/routes/` 下未导出 routeConfig 的路由文件
+- **问题**：部分路由使用文件名推断 prefix 的向后兼容模式
+- **修复**：补充 routeConfig 导出，明确 prefix 和 auth 配置
+- **验收标准**：auto-routes 启动时无 warn 日志
+
+### R40-08 — 全量回归测试 [P2]
+
+- **优先级**：P2
+- **负责人**：苏然
+- **预计**：1天
+- **状态**：待开始
+- **验收标准**：所有测试通过，分支覆盖率 ≥ 90%
+- **测试范围**：TSC + Vitest + ESLint + 租户隔离专项测试
+
+---
+
+## R39 任务列表 — 租户隔离专项测试与代码优化
+
+### R39-01 — 全量检查 getTenantId() 调用点 [P1]
+
+- **状态**：✅ 已完成
+- **优先级**：P1
+- **负责人**：阿坚
+- **预计**：0.5天
+- **实际**：0.5天
+- **文件**：`backend/src/middleware/tenant.ts`、`backend/src/services/admin/trace-records.service.ts`、`backend/src/controllers/admin/trace-records.controller.ts`
+- **问题**：小程序端消费者追溯路由没有认证中间件保护，但控制器中调用了 `getTenantId()`
+- **修复**：修改服务层，让消费者查询通过追溯码查找租户，去除控制器中的 `getTenantId` 调用
+
+### R39-02 — 编写租户隔离专项测试 [P1]
+
+- **状态**：✅ 已完成
+- **优先级**：P1
+- **负责人**：苏然
+- **预计**：1天
+- **实际**：0.5天
+- **文件**：`backend/src/__tests__/tenant-isolation.test.ts`
+- **内容**：编写 7 个测试用例，覆盖 error-log、supplier、purchase、sale-return、seckill 等服务的租户隔离验证
+
+### R39-03 — 编写 memory-cache 失效验证测试 [P2]
+
+- **状态**：✅ 已完成
+- **优先级**：P2
+- **负责人**：苏然
+- **预计**：0.5天
+- **实际**：0.25天
+- **文件**：`backend/src/__tests__/middleware/memory-cache.test.ts`
+- **内容**：编写 9 个测试用例，验证缓存单例、删除、清空、按租户失效等功能
+
+### R39-04 — getTenantId() 异常抛出测试 [P2]
+
+- **状态**：✅ 已完成（继承 R37-06 的测试）
+- **优先级**：P2
+- **负责人**：苏然
+- **预计**：0.5天
+- **实际**：0天
+- **文件**：`backend/src/__tests__/middleware/tenant.test.ts`
+- **说明**：R37-06 已完成此测试，包含无 tenantId 时抛出异常的验证
+
+### R39-05 — 全量回归测试 [P2]
+
+- **状态**：✅ 已完成
+- **优先级**：P2
+- **负责人**：苏然
+- **预计**：1天
+- **实际**：1天
+- **验收标准**：所有测试通过，覆盖率 ≥ 90%
+- **测试结果**：
+  - 后端 TSC：✅ 0 错误
+  - 后端 Vitest：✅ 414 个文件，4734 个用例全部通过，0 失败 0 跳过
+  - 后端覆盖率：行 96.84% / 语句 96.46% / 函数 95.91% / **分支 90.53%**（达标 ≥90%）
+  - 后端 ESLint：✅ 0 error，73 warning（达标）
+- **综合通过率**：100%
+
+---
+
+## R38 任务列表 — P1级租户过滤漏洞修复
+
+### R38-01 — 修复 wechat.service.ts 租户过滤漏洞 [P1]
+
+- **状态**：✅ 已完成
+- **优先级**：P1
+- **负责人**：阿坚
+- **预计**：0.5天
+- **实际**：0.25天
+- **文件**：`backend/src/services/wechat.service.ts`、`backend/src/controllers/admin/wechat.controller.ts`
+- **问题**：bindUser 查询 t_sys_user 时缺少 tenant_id 过滤
+- **修复**：添加 tenant_id 条件，函数签名增加 tenantId 参数
+
+### R38-02 — 修复 tenant-register.service.ts 租户过滤漏洞 [P1]
+
+- **状态**：✅ 已完成（无需修改）
+- **优先级**：P1
+- **负责人**：阿坚
+- **预计**：0.5天
+- **实际**：0天
+- **文件**：`backend/src/services/tenant-register.service.ts`
+- **问题**：检查用户名唯一性缺少 tenant_id 过滤
+- **分析**：此查询是检查全局唯一性，属于租户注册流程，保持原样合理
+
+### R38-03 — 修复 admin/auth.service.ts 租户过滤漏洞 [P1]
+
+- **状态**：✅ 已完成
+- **优先级**：P1
+- **负责人**：阿坚
+- **预计**：0.5天
+- **实际**：0.25天
+- **文件**：`backend/src/services/admin/auth.service.ts`、`backend/src/controllers/admin/auth.controller.ts`
+- **问题**：changePassword 查询和更新时缺少 tenant_id 过滤
+- **修复**：使用 queryOneWithTenant 和 queryWithTenant，函数签名增加 tenantId 参数
+
+### R38-04 — 修复 admin/credit-limit.service.ts 租户过滤漏洞 [P1]
+
+- **状态**：✅ 已完成（无需修改）
+- **优先级**：P1
+- **负责人**：阿坚
+- **预计**：0.5天
+- **实际**：0天
+- **文件**：`backend/src/services/admin/credit-limit.service.ts`
+- **分析**：已使用 queryOneWithTenant，有租户过滤
+
+### R38-05 — 修复 admin/cart.service.ts 租户过滤漏洞 [P1]
+
+- **状态**：✅ 已完成
+- **优先级**：P1
+- **负责人**：阿坚
+- **预计**：0.5天
+- **实际**：0.25天
+- **文件**：`backend/src/services/admin/cart.service.ts`
+- **问题**：查询 t_product_price 时缺少 tenant_id 过滤
+- **修复**：添加 tenant_id 条件
+
+### R38-06 — 修复 sale-return.service.ts 租户过滤漏洞 [P1]
+
+- **状态**：✅ 已完成
+- **优先级**：P1
+- **负责人**：阿坚
+- **预计**：0.5天
+- **实际**：0.25天
+- **文件**：`backend/src/services/sale-return.service.ts`
+- **问题**：查询 t_sale_return_item 时缺少 tenant_id 过滤
+- **修复**：添加 tenant_id 条件
+
+### R38-07 — 修复 share.service.ts 租户过滤漏洞 [P1]
+
+- **状态**：✅ 已完成（无需修改）
+- **优先级**：P1
+- **负责人**：阿坚
+- **预计**：0.5天
+- **实际**：0天
+- **文件**：`backend/src/services/share.service.ts`
+- **分析**：公开收款链接接口，通过 token 查询，不需要租户过滤
+
+### R38-08 — 修复 community-marketing.service.ts 租户过滤漏洞 [P1]
+
+- **状态**：✅ 已完成
+- **优先级**：P1
+- **负责人**：阿坚
+- **预计**：0.5天
+- **实际**：0.25天
+- **文件**：`backend/src/services/marketing/community-marketing.service.ts`
+- **问题**：秒杀活动查询和库存更新缺少 tenant_id 过滤
+- **修复**：添加 tenant_id 条件
+
+### R38-09 — R38 全量回归测试 [P2]
+
+- **状态**：✅ 已完成
+- **优先级**：P2
+- **负责人**：苏然
+- **预计**：1天
+- **实际**：1天
+- **验收标准**：所有测试通过，覆盖率 ≥ 90%
+- **测试结果**：
+  - 后端 TSC：✅ 0 错误
+  - 后端 Vitest：✅ 412 个文件，4725 个用例全部通过，0 失败 0 跳过
+  - 后端覆盖率：行 96.84% / 语句 96.46% / 函数 95.91% / **分支 90.53%**（达标 ≥90%）
+  - 后端 ESLint：✅ 0 error，73 warning（达标）
+- **综合通过率**：100%
+
+---
+
+## R37 任务列表
+
+### R37-00 — 全量扫描数据库查询租户过滤 [P1]
+
+- **状态**：✅ 已完成
+- **优先级**：P1
+- **负责人**：阿坚
+- **预计**：0.5天
+- **实际**：0.5天
+- **文件**：`backend/src/services/**/*.ts`
+- **问题**：可能存在其他缺少 tenant_id 过滤的 SQL 查询
+- **修复**：使用 grep 扫描所有 service 文件中的 SQL 查询
+- **输出**：生成租户过滤缺失报告 [tenant-filter-scan-report-2026-07-15.md](file:///D:/Users/Documents/TREA/wen-ssystem-main/docs/reports/tenant-filter-scan-report-2026-07-15.md)
+- **扫描结果**：发现 25+ 个缺少 tenant_id 过滤的查询，涉及 12+ 个服务文件
+
+### R37-01 — 修复 error-log 租户过滤漏洞 [P0]
+
+- **状态**：✅ 已完成
+- **优先级**：P0
+- **负责人**：阿坚
+- **预计**：0.5天
+- **实际**：0.25天
+- **文件**：`backend/src/services/admin/error-log.service.ts`、`backend/src/controllers/admin/error-log.controller.ts`
+- **问题**：listErrorLogs 函数查询 error_logs 表时缺少 tenant_id 过滤，任何租户可查看其他租户错误日志
+- **修复**：在 WHERE 条件中添加 tenant_id = ?，并在 controller 中传递 tenantId
+
+### R37-02 — 修复 miniapp.service 租户过滤漏洞 [P0]
+
+- **状态**：✅ 已完成
+- **优先级**：P0
+- **负责人**：阿坚
+- **预计**：0.5天
+- **实际**：0.25天
+- **文件**：`backend/src/services/miniapp.service.ts`、`backend/src/controllers/admin/miniapp.controller.ts`
+- **问题**：confirmReceipt 函数查询 t_miniapp_order_item 时缺少 tenant_id 过滤
+- **修复**：在查询中添加 tenant_id = ? 条件，函数签名增加 tenantId 参数
+
+### R37-03 — 修复 supplier.service 租户过滤漏洞 [P0]
+
+- **状态**：✅ 已完成
+- **优先级**：P0
+- **负责人**：阿坚
+- **预计**：0.5天
+- **实际**：0.5天
+- **文件**：`backend/src/services/supplier.service.ts`
+- **问题**：t_supplier_contact 查询缺少 tenant_id 过滤
+- **修复**：在所有相关查询（SELECT/UPDATE/DELETE）中添加 tenant_id 条件，INSERT 语句添加 tenant_id 字段
+
+### R37-04 — 修复 purchase.service 租户过滤漏洞 [P0]
+
+- **状态**：✅ 已完成
+- **优先级**：P0
+- **负责人**：阿坚
+- **预计**：0.5天
+- **实际**：0.5天
+- **文件**：`backend/src/services/purchase.service.ts`
+- **问题**：t_purchase_order_item 查询和删除缺少 tenant_id 过滤
+- **修复**：在所有相关查询（SELECT/DELETE/UPDATE）中添加 tenant_id 条件，INSERT 语句添加 tenant_id 字段
+
+### R37-05 — 修复 memory-cache 双实例架构缺陷 [P1]
+
+- **状态**：✅ 已完成
+- **优先级**：P1
+- **负责人**：阿坚
+- **预计**：1天
+- **实际**：0.5天
+- **文件**：`backend/src/middleware/memory-cache.ts`
+- **问题**：memoryCache() 内部缓存与 cacheManager.cache 是独立实例，缓存失效机制无效
+- **修复**：统一使用共享的 sharedCache 单例
+
+### R37-06 — 修复 getTenantId() fallback 不安全问题 [P1]
+
+- **状态**：✅ 已完成
+- **优先级**：P1
+- **负责人**：阿坚
+- **预计**：0.5天
+- **实际**：0.25天
+- **文件**：`backend/src/middleware/tenant.ts`
+- **问题**：fallback 返回 'default' 可能导致越权访问
+- **修复**：改为抛出异常，强制调用方处理
+
+### R37-07 — 添加 error_logs 定时清理任务 [P2]
+
+- **状态**：✅ 已完成
+- **优先级**：P2
+- **负责人**：阿坚
+- **预计**：0.5天
+- **实际**：0.25天
+- **文件**：`backend/src/server.ts`
+- **问题**：cleanupOldLogs 函数已实现但从未被调度
+- **修复**：使用 node-cron 注册每日凌晨3点定时任务
+
+### R37-08 — R37 全量回归测试 [P2]
+
+- **状态**：✅ 已完成
+- **优先级**：P2
+- **负责人**：苏然
+- **预计**：1天
+- **实际**：1天
+- **验收标准**：所有测试通过，覆盖率 ≥ 90%
+- **测试结果**：
+  - 后端 TSC：✅ 0 错误
+  - 后端 Vitest：✅ 412 个文件，4725 个用例全部通过，0 失败 0 跳过
+  - 后端覆盖率：行 96.84% / 语句 96.46% / 函数 95.91% / **分支 90.53%**（达标 ≥90%）
+  - 后端 ESLint：✅ 0 error，73 warning（达标）
+- **综合通过率**：100%
 
 ---
 
@@ -80,7 +467,7 @@
 
 ### R36-A4 — R36 全量回归测试 [P2]
 
-- **状态**：⚠️ 有条件通过（admin-web 存在 2 个 P1 类型错误）
+- **状态**：✅ 已完成（P1 错误已修复）
 - **优先级**：P2
 - **负责人**：苏然
 - **预计**：1 天
@@ -92,16 +479,16 @@
   - 后端 Vitest：✅ 412 个文件，4725 个用例全部通过，0 失败 0 跳过
   - 后端覆盖率：行 96.84% / 语句 96.46% / 函数 95.91% / **分支 90.53%**（达标 ≥90%）
   - 后端 ESLint：✅ 0 error，73 warning（达标）
-  - admin-web vue-tsc：❌ 3 错误（fetchProducts 缺少 storeId 参数、approverId 类型不匹配）
+  - admin-web vue-tsc：✅ 0 错误（P1 错误已修复）
   - admin-web 构建：✅ 构建成功
   - app-mobile vue-tsc：✅ 0 错误
   - app-mobile build:h5：✅ 构建成功
   - store-terminal ESLint：✅ 0 错误，4 警告
   - store-terminal 构建：✅ 构建成功
-- **发现问题**：
-  - P1-1：admin-web `fetchProducts` 缺少 `storeId` 参数类型定义（InventoryTransferCreate.vue）
-  - P1-2：admin-web `ProductReviewWorkflow` 中 `approverId` 类型不匹配（number | null vs number）
-- **综合通过率**：9/10 = 90%
+- **修复问题**：
+  - P1-1：admin-web `fetchProducts` 缺少 `storeId` 参数类型定义 → 已修复
+  - P1-2：admin-web `ProductReviewWorkflow` 中 `approverId` 类型不匹配 → 已修复
+- **综合通过率**：10/10 = 100%
 
 ---
 

@@ -1,4 +1,4 @@
-﻿import { queryWithTenant, queryOneWithTenant } from "../../shared/db";
+import { query, queryOne, queryWithTenant, queryOneWithTenant } from "../../shared/db";
 import { makeBizNo } from "../../shared/id";
 import { verifyTraceCodeSimple } from "../../shared/trace-code";
 
@@ -684,22 +684,22 @@ export async function completeRecall(
   return record;
 }
 
-export async function consumerQueryTrace(traceCode: string, tenantId: string) {
-  const code = await queryOneWithTenant<any>(
+export async function consumerQueryTrace(traceCode: string) {
+  const code = await queryOne<any>(
     `SELECT id, trace_code AS traceCode, sku_name AS skuName,
             batch_no AS batchNo, production_date AS productionDate,
             expiry_date AS expiryDate, shelf_life_days AS shelfLifeDays,
-            current_status AS currentStatus, quality_check_result AS qualityCheckResult
-     FROM t_trace_code WHERE trace_code = ? AND tenant_id = ?`,
-    [traceCode, tenantId],
-    tenantId
+            current_status AS currentStatus, quality_check_result AS qualityCheckResult,
+            tenant_id AS tenantId
+     FROM t_trace_code WHERE trace_code = ?`,
+    [traceCode]
   );
 
   if (!code) {
     return null;
   }
 
-  const events = await queryWithTenant<any>(
+  const events = await query<any>(
     `SELECT id, trace_code AS traceCode, event_type AS eventType,
             from_status AS fromStatus, to_status AS toStatus,
             operator_type AS operatorType, location, remark,
@@ -707,8 +707,7 @@ export async function consumerQueryTrace(traceCode: string, tenantId: string) {
      FROM t_trace_event_log
      WHERE trace_code = ? AND tenant_id = ?
      ORDER BY created_at ASC`,
-    [traceCode, tenantId],
-    tenantId
+    [traceCode, code.tenantId]
   );
 
   return {
@@ -727,10 +726,27 @@ export async function consumerQueryTrace(traceCode: string, tenantId: string) {
 export async function consumerVerifyTraceCode(
   traceCode: string,
   userId: number | undefined,
-  ip: string,
-  tenantId: string
+  ip: string
 ) {
-  // R9-2: 委托到共享验证逻辑
+  const codeInfo = await queryOne<any>(
+    `SELECT tenant_id AS tenantId FROM t_trace_code WHERE trace_code = ?`,
+    [traceCode]
+  );
+
+  if (!codeInfo) {
+    return {
+      result: "NOT_FOUND" as const,
+      message: "追溯码不存在，请核实后重试",
+      traceCode,
+      skuName: null,
+      batchNo: null,
+      currentStatus: null,
+      qualityCheckResult: null
+    };
+  }
+
+  const tenantId = codeInfo.tenantId;
+
   const verifyResult = await verifyTraceCodeSimple(traceCode, tenantId);
 
   let result: "SUCCESS" | "INVALID" | "NOT_FOUND" | "FRAUD_ALERT" | "EXPIRED" = "NOT_FOUND";
@@ -751,22 +767,20 @@ export async function consumerVerifyTraceCode(
     result = "SUCCESS";
     message = "验证通过，该商品为正品";
 
-    await queryWithTenant(
+    await query(
       `UPDATE t_trace_code
        SET scan_count = scan_count + 1,
            first_scan_at = CASE WHEN scan_count = 0 THEN NOW() ELSE first_scan_at END,
            first_scan_ip = CASE WHEN scan_count = 0 THEN ? ELSE first_scan_ip END
        WHERE trace_code = ? AND tenant_id = ?`,
-      [ip, traceCode, tenantId],
-      tenantId
+      [ip, traceCode, tenantId]
     );
   }
 
-  await queryWithTenant(
+  await query(
     `INSERT INTO t_trace_scan_log (trace_code, scan_type, user_id, ip, result, tenant_id)
      VALUES (?, 'CONSUMER', ?, ?, ?, ?)`,
-    [traceCode, userId ?? null, ip, result, tenantId],
-    tenantId
+    [traceCode, userId ?? null, ip, result, tenantId]
   );
 
   return {

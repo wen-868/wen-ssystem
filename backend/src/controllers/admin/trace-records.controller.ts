@@ -1,7 +1,6 @@
-﻿import { z } from "zod";
+import { z } from "zod";
 import { asyncHandler } from "../../middleware/async-handler";
 import { ok, fail } from "../../shared/response";
-import { getTenantId } from "../../middleware/tenant";
 import * as traceRecordsService from "../../services/admin/trace-records.service";
 
 export const generateTraceCodes = asyncHandler(async (req, res) => {
@@ -190,9 +189,8 @@ export const completeRecall = asyncHandler(async (req, res) => {
 });
 
 export const consumerQueryTrace = asyncHandler(async (req, res) => {
-  const tenantId = getTenantId(req);
   const traceCode = req.params.traceCode;
-  const result = await traceRecordsService.consumerQueryTrace(traceCode, tenantId);
+  const result = await traceRecordsService.consumerQueryTrace(traceCode);
   if (!result) {
     res.status(404).json(fail("追溯码不存在", "404"));
     return;
@@ -201,7 +199,6 @@ export const consumerQueryTrace = asyncHandler(async (req, res) => {
 });
 
 export const consumerVerifyTraceCode = asyncHandler(async (req, res) => {
-  const tenantId = getTenantId(req);
   const body = z.object({
     traceCode: z.string().min(1),
     userId: z.number().int().optional()
@@ -209,8 +206,7 @@ export const consumerVerifyTraceCode = asyncHandler(async (req, res) => {
   const result = await traceRecordsService.consumerVerifyTraceCode(
     body.traceCode,
     body.userId,
-    req.ip || "",
-    tenantId
+    req.ip || ""
   );
   res.json(ok(result));
 });
