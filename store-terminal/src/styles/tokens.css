@@ -253,6 +253,16 @@
   border: 1px solid var(--border-normal) !important;
   color: var(--color-danger) !important;
 }
+.el-button--danger:hover {
+  background: var(--color-danger-soft) !important;
+  border-color: var(--color-danger) !important;
+  color: var(--color-danger) !important;
+}
+.el-button--danger.is-plain {
+  background: transparent !important;
+  border-color: var(--color-danger) !important;
+  color: var(--color-danger) !important;
+}
 
 /* 标签：浅底彩字 */
 .el-tag--success { background: var(--color-success-soft) !important; border: none !important; color: var(--color-success) !important; }

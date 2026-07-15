@@ -31,10 +31,11 @@
 
 ### R36-A2 — 多端UI一致性优化 [P2]
 
-- **状态**：待开始
+- **状态**：已完成
 - **优先级**：P2
 - **负责人**：林夕
 - **预计**：1 天
+- **实际**：1 天
 - **需求来源**：设计规范一致性
 - **需求**：
   1. 检查四端按钮样式一致性
@@ -42,6 +43,15 @@
   3. 检查颜色主题一致性
   4. 输出一致性检查报告
 - **验收标准**：检查报告输出，样式统一
+- **完成情况**：
+  - 发现并修复 8 个样式不一致问题
+  - 输出一致性检查报告：`docs/reports/ui-consistency-report-2026-07-15.md`
+  - 修复文件：
+    - `app-mobile/src/pages/login/login.vue` — 硬编码颜色替换为设计令牌
+    - `app-mobile/src/uni.scss` — 补充文字按钮、主按钮 hover 和阴影
+    - `miniapp/src/styles/app.scss` — 补充文字按钮、主按钮阴影
+    - `store-terminal/src/styles/tokens.css` — 补充危险按钮 hover 和 plain 状态
+  - 构建验证：admin-web、app-mobile、store-terminal 构建成功；miniapp 构建失败（历史遗留，非本次修改导致）
 
 ### R36-A3 — 性能优化与代码质量 [P2]
 

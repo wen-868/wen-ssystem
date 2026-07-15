@@ -139,7 +139,7 @@ function goRegister() {
 <style scoped>
 .login-page {
   min-height: 100vh;
-  background: linear-gradient(180deg, #1677FF 0%, #69b1ff 60%, #f0f5ff 100%);
+  background: linear-gradient(180deg, #5B6ABF 0%, #8B9ADF 60%, #f0f5ff 100%);
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -164,7 +164,7 @@ function goRegister() {
   align-items: center;
   justify-content: center;
   margin-bottom: 30rpx;
-  box-shadow: 0 8rpx 32rpx rgba(22, 119, 255, 0.3);
+  box-shadow: 0 8rpx 32rpx rgba(91, 106, 191, 0.3);
 }
 
 .brand-icon-inner {
@@ -180,7 +180,7 @@ function goRegister() {
 .brand-icon-text {
   font-size: 44rpx;
   font-weight: 700;
-  color: #1677FF;
+  color: $uni-color-primary;
 }
 
 .brand-title {
@@ -203,10 +203,10 @@ function goRegister() {
 }
 
 .form-card {
-  background: #fff;
-  border-radius: 24rpx;
+  background: $uni-bg-color;
+  border-radius: $uni-border-radius-xl;
   padding: 40rpx 36rpx;
-  box-shadow: 0 8rpx 40rpx rgba(22, 119, 255, 0.12);
+  box-shadow: $uni-shadow-base;
 }
 
 .form-item {
@@ -222,7 +222,7 @@ function goRegister() {
 
 .label-icon {
   font-size: 32rpx;
-  color: #1677FF;
+  color: $uni-color-primary;
   margin-right: 8rpx;
 }
 
@@ -263,9 +263,9 @@ function goRegister() {
 .login-error {
   margin-bottom: 16rpx;
   padding: 12rpx 20rpx;
-  background: #fff2f0;
+  background: $uni-color-error-soft;
   border-radius: 12rpx;
-  border-left: 6rpx solid #ff4d4f;
+  border-left: 6rpx solid $uni-color-error;
 }
 
 .field-error {
@@ -275,20 +275,20 @@ function goRegister() {
 
 .error-text {
   font-size: 26rpx;
-  color: #ff4d4f;
+  color: $uni-color-error;
 }
 
 .login-btn {
   width: 100%;
   height: 92rpx;
-  background: linear-gradient(135deg, #1677FF, #4096ff);
+  background: linear-gradient(135deg, $uni-color-primary, $uni-color-primary-hover);
   border-radius: 46rpx;
   display: flex;
   align-items: center;
   justify-content: center;
   border: none;
   margin-top: 20rpx;
-  box-shadow: 0 8rpx 24rpx rgba(22, 119, 255, 0.35);
+  box-shadow: 0 8rpx 24rpx rgba(91, 106, 191, 0.35);
   transition: all 0.3s;
 }
 

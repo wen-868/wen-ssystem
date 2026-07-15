@@ -115,6 +115,7 @@ page {
 .btn-primary {
   background: $primary-color;
   color: #fff;
+  box-shadow: 0 2rpx 8rpx rgba(91, 106, 191, 0.25);
 }
 .btn-primary:active {
   background: $primary-dark;
@@ -128,6 +129,16 @@ page {
 }
 .btn-default:active {
   background: $bg-tertiary;
+}
+
+/* 文字按钮 */
+.btn-text {
+  background: transparent;
+  color: $primary-color;
+  border: none;
+}
+.btn-text:active {
+  background: $primary-soft;
 }
 
 /* 危险按钮：灰边框 + 红字，不填充红色 */

@@ -158,10 +158,14 @@ $uni-transition-slow: 250ms ease-out;
   font-size: $uni-font-size-lg;
   font-weight: 500;
   transition: all $uni-transition-fast;
+  box-shadow: 0 2rpx 8rpx rgba(91, 106, 191, 0.25);
 }
 .btn-primary:active {
   background: $uni-color-primary-active;
   transform: scale(0.97);
+}
+.btn-primary:hover {
+  background: $uni-color-primary-hover;
 }
 
 .btn-default {
@@ -176,6 +180,21 @@ $uni-transition-slow: 250ms ease-out;
 }
 .btn-default:active {
   background: $uni-bg-color-hover;
+}
+
+/* 文字按钮 */
+.btn-text {
+  background: transparent;
+  color: $uni-color-primary;
+  border: none;
+  border-radius: $uni-border-radius-sm;
+  padding: $uni-spacing-base $uni-spacing-xl;
+  font-size: $uni-font-size-lg;
+  font-weight: $uni-font-normal;
+  transition: all $uni-transition-fast;
+}
+.btn-text:active {
+  background: $uni-color-primary-soft;
 }
 
 /* 危险按钮：灰边框 + 红字，不填充红色 */
