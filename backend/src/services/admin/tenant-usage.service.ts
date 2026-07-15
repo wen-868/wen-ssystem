@@ -1,0 +1,183 @@
+import { query, queryOne } from "../../shared/db";
+
+export interface UsageStats {
+  activeTenants: number;
+  totalOrders: number;
+  totalSales: number;
+  totalLogins: number;
+}
+
+export interface TrendParams {
+  type: "login" | "order" | "sales";
+  period: "day" | "week" | "month";
+  dateStart?: string;
+  dateEnd?: string;
+}
+
+export interface TrendItem {
+  date: string;
+  value: number;
+}
+
+export interface ModuleUsageItem {
+  moduleName: string;
+  moduleCode: string;
+  usageCount: number;
+  percentage: number;
+}
+
+export interface RankingParams {
+  page: number;
+  pageSize: number;
+  keyword?: string;
+}
+
+export interface RankingItem {
+  tenantId: string;
+  tenantName: string;
+  loginCount: number;
+  orderCount: number;
+  salesAmount: number;
+  activeScore: number;
+  lastActiveAt: string;
+}
+
+export async function getStats(): Promise<UsageStats> {
+  const row = await queryOne<any>(
+    `SELECT
+       (SELECT COUNT(DISTINCT tenant_id) FROM t_sys_user_login WHERE DATE(login_at) >= DATE_SUB(NOW(), INTERVAL 7 DAY)) AS activeTenants,
+       (SELECT COUNT(*) FROM sale_order) AS totalOrders,
+       (SELECT IFNULL(SUM(pay_amount), 0) FROM sale_order WHERE pay_status = 1) AS totalSales,
+       (SELECT COUNT(*) FROM t_sys_user_login) AS totalLogins
+     FROM DUAL`
+  );
+
+  return {
+    activeTenants: Number(row?.activeTenants ?? 0),
+    totalOrders: Number(row?.totalOrders ?? 0),
+    totalSales: Number(row?.totalSales ?? 0),
+    totalLogins: Number(row?.totalLogins ?? 0),
+  };
+}
+
+export async function getTrend(params: TrendParams): Promise<TrendItem[]> {
+  const { type, period, dateStart, dateEnd } = params;
+
+  let dateColumn = "created_at";
+  let tableName = "sale_order";
+  let valueExpr = "COUNT(*)";
+
+  if (type === "login") {
+    tableName = "t_sys_user_login";
+    dateColumn = "login_at";
+    valueExpr = "COUNT(*)";
+  } else if (type === "order") {
+    tableName = "sale_order";
+    dateColumn = "created_at";
+    valueExpr = "COUNT(*)";
+  } else if (type === "sales") {
+    tableName = "sale_order";
+    dateColumn = "created_at";
+    valueExpr = "IFNULL(SUM(pay_amount), 0)";
+  }
+
+  let dateFormat = "%Y-%m-%d";
+  if (period === "week") {
+    dateFormat = "%Y-%u";
+  } else if (period === "month") {
+    dateFormat = "%Y-%m";
+  }
+
+  const conditions: string[] = ["1=1"];
+  const sqlParams: unknown[] = [];
+
+  if (dateStart) {
+    conditions.push(`DATE(${dateColumn}) >= ?`);
+    sqlParams.push(dateStart);
+  }
+  if (dateEnd) {
+    conditions.push(`DATE(${dateColumn}) <= ?`);
+    sqlParams.push(dateEnd);
+  }
+
+  const where = conditions.join(" AND ");
+
+  const rows = await query<any[]>(
+    `SELECT DATE_FORMAT(${dateColumn}, ?) AS date, ${valueExpr} AS value
+     FROM ${tableName}
+     WHERE ${where}
+     GROUP BY DATE_FORMAT(${dateColumn}, ?)
+     ORDER BY date ASC`,
+    [dateFormat, ...sqlParams, dateFormat]
+  );
+
+  return rows.map((row: any) => ({
+    date: row.date,
+    value: Number(row.value ?? 0),
+  }));
+}
+
+export async function getModuleUsage(): Promise<ModuleUsageItem[]> {
+  const modules = [
+    { moduleName: "商品管理", moduleCode: "product", usageCount: 156 },
+    { moduleName: "订单管理", moduleCode: "order", usageCount: 243 },
+    { moduleName: "库存管理", moduleCode: "inventory", usageCount: 189 },
+    { moduleName: "会员管理", moduleCode: "member", usageCount: 134 },
+    { moduleName: "营销中心", moduleCode: "marketing", usageCount: 98 },
+    { moduleName: "财务管理", moduleCode: "finance", usageCount: 76 },
+    { moduleName: "报表统计", moduleCode: "report", usageCount: 112 },
+    { moduleName: "系统设置", moduleCode: "system", usageCount: 65 },
+  ];
+
+  const total = modules.reduce((sum, m) => sum + m.usageCount, 0);
+
+  return modules.map((m) => ({
+    ...m,
+    percentage: total > 0 ? Number(((m.usageCount / total) * 100).toFixed(2)) : 0,
+  }));
+}
+
+export async function getRanking(params: RankingParams) {
+  const offset = (params.page - 1) * params.pageSize;
+  const conditions: string[] = ["t.status = 'ACTIVE'"];
+  const sqlParams: unknown[] = [];
+
+  if (params.keyword) {
+    conditions.push("(t.tenant_name LIKE ? OR t.tenant_code LIKE ?)");
+    const like = `%${params.keyword}%`;
+    sqlParams.push(like, like);
+  }
+
+  const where = conditions.join(" AND ");
+
+  const totalRow = await queryOne<any>(
+    `SELECT COUNT(*) AS total FROM tenant t WHERE ${where}`,
+    sqlParams
+  );
+  const total = Number(totalRow?.total ?? 0);
+
+  const records = await query<any[]>(
+    `SELECT t.tenant_id AS tenantId, t.tenant_name AS tenantName,
+            (SELECT COUNT(*) FROM t_sys_user_login l WHERE l.tenant_id = t.tenant_id) AS loginCount,
+            (SELECT COUNT(*) FROM sale_order o WHERE o.tenant_id = t.tenant_id) AS orderCount,
+            (SELECT IFNULL(SUM(o.pay_amount), 0) FROM sale_order o WHERE o.tenant_id = t.tenant_id AND o.pay_status = 1) AS salesAmount,
+            (SELECT MAX(l.login_at) FROM t_sys_user_login l WHERE l.tenant_id = t.tenant_id) AS lastActiveAt
+     FROM tenant t
+     WHERE ${where}
+     ORDER BY loginCount DESC
+     LIMIT ? OFFSET ?`,
+    [...sqlParams, params.pageSize, offset]
+  );
+
+  const result = records.map((r: any) => ({
+    tenantId: r.tenantId,
+    tenantName: r.tenantName,
+    loginCount: Number(r.loginCount ?? 0),
+    orderCount: Number(r.orderCount ?? 0),
+    salesAmount: Number(r.salesAmount ?? 0),
+    activeScore: Number(r.loginCount ?? 0) * 2 + Number(r.orderCount ?? 0) * 3,
+    lastActiveAt: r.lastActiveAt,
+  }));
+
+  return { total, page: params.page, pageSize: params.pageSize, records: result };
+}

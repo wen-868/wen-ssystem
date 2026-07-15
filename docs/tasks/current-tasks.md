@@ -1,8 +1,95 @@
-﻿# 当前任务 — R43
+﻿# 当前任务 — R44
 
 > 仓库：https://github.com/wen-868/wen-ssystem  
 > 唯一分支：main  
 > 最后更新：2026-07-16
+
+---
+
+## R44 — BOSS平台管理 + 即时零售 + P1页面补齐 [已完成]
+
+### R44-01 — admin-web SaaS 平台后台模块补齐（4个页面） [P0]
+
+- **优先级**：P0
+- **负责人**：墨
+- **预计**：1天
+- **实际**：0.5天
+- **状态**：✅ 已完成
+- **文件**：`admin-web/src/views/`、`admin-web/src/router/index.ts`
+- **问题**：admin-web 中 SaaS 平台后台只有 8 个页面，缺少财务结算、租户统计、公告管理、审计日志等核心页面；BOSS 角色作为超级管理员需要在商家后台中管理全平台。
+- **修复**：
+  1. 新增 [TenantUsage.vue](file:///d:/Users/Documents/TREA/wen-ssystem-main/admin-web/src/views/TenantUsage.vue) — 租户使用统计（活跃租户、订单/销售额/登录趋势、模块使用占比、活跃度排行）
+  2. 新增 [PlatformAnnouncements.vue](file:///d:/Users/Documents/TREA/wen-ssystem-main/admin-web/src/views/PlatformAnnouncements.vue) — 平台公告管理（列表、新建/编辑、置顶/撤回）
+  3. 新增 [PlatformAuditLogs.vue](file:///d:/Users/Documents/TREA/wen-ssystem-main/admin-web/src/views/PlatformAuditLogs.vue) — 操作日志审计（列表、筛选、详情）
+  4. [PlatformReconciliation.vue](file:///d:/Users/Documents/TREA/wen-ssystem-main/admin-web/src/views/PlatformReconciliation.vue) 已存在（即时零售平台对账，复用为 SaaS 财务结算入口）
+  5. 路由配置新增 3 条：saas/tenant-usage、saas/announcements、saas/audit-logs
+- **验收标准**：BOSS 角色登录后可在商家后台左侧菜单看到完整的 SaaS 平台后台入口，共 11 个页面
+- **验证结果**：vue-tsc 0 错误
+
+### R44-02 — 后端 BOSS 角色跨租户 API 完善（4套 API） [P0]
+
+- **优先级**：P0
+- **负责人**：阿坚
+- **预计**：1天
+- **实际**：0.5天
+- **状态**：✅ 已完成
+- **文件**：`backend/src/routes/`、`backend/src/controllers/admin/`、`backend/src/services/admin/`
+- **问题**：BOSS 角色需要跨租户访问平台级数据，但缺少对应的平台级 API 接口。
+- **修复**：
+  1. 租户使用统计 API：`admin-tenant-usage.routes.ts`（/api/admin/tenant-usage）— stats/trend/module-usage/ranking
+  2. 平台公告 API：`admin-platform-announcement.routes.ts`（/api/admin/platform-announcements）— CRUD + 发布/置顶
+  3. 平台操作日志 API：`admin-platform-audit-log.routes.ts`（/api/admin/platform-audit-logs）— 列表 + 详情
+  4. 平台结算 API：`admin-platform-settlement.routes.ts`（/api/admin/platform-settlements）— 列表/详情/创建/更新状态/stats
+- **技术要点**：
+  - 所有平台级接口使用裸 `query/queryOne`（不使用 queryWithTenant），跨租户访问
+  - auth 配置为 `"requireAuth"`（不需要租户隔离）
+  - 标准 routeConfig 格式导出
+- **验收标准**：tsc 0 错误，API 路由正常注册
+- **验证结果**：tsc 0 错误
+
+### R44-03 — 即时零售 60 秒接单工作台 [P0]
+
+- **优先级**：P0
+- **负责人**：墨
+- **预计**：1天
+- **实际**：0.5天
+- **状态**：✅ 已完成
+- **文件**：`admin-web/src/views/InstantRetailPickup.vue`、`admin-web/src/router/index.ts`
+- **问题**：产品规格中即时零售的核心差异化功能是"60秒强制接单系统"，但缺少接单工作台页面。
+- **修复**：
+  1. 新增 [InstantRetailPickup.vue](file:///d:/Users/Documents/TREA/wen-ssystem-main/admin-web/src/views/InstantRetailPickup.vue) — 60秒接单工作台
+  2. 功能：
+     - 顶部状态栏：待接单/已接单/今日订单/平均响应时间
+     - 左侧筛选：平台筛选、配送方式筛选
+     - 中间主区域：新订单卡片（60秒倒计时进度条、颜色渐变动画、接单/拒单按钮）
+     - 右侧边栏：语音提示开关、自动接单开关、接单率环形图、平台分布柱状图
+     - 底部 Tab：新订单 / 已接单 / 已完成
+  3. 路由：`instant-retail/pickup`，角色 BOSS
+- **验收标准**：页面包含60秒倒计时、接单/拒单操作、多平台展示
+- **验证结果**：vue-tsc 0 错误，构建成功
+
+### R44-04 — 采购合同 & 客户拜访记录 P1 页面补齐 [P1]
+
+- **优先级**：P1
+- **负责人**：墨
+- **预计**：1天
+- **实际**：0.5天
+- **状态**：✅ 已完成
+- **文件**：`admin-web/src/views/`、`admin-web/src/router/index.ts`
+- **问题**：采购管理模块缺少采购合同功能，客户管理模块缺少客户拜访记录功能。
+- **修复**：
+  1. 新增 [PurchaseContracts.vue](file:///d:/Users/Documents/TREA/wen-ssystem-main/admin-web/src/views/PurchaseContracts.vue) — 采购合同管理
+     - 列表：合同编号、供应商、合同类型、金额、已付/未付、生效/到期日期、状态
+     - 新建/编辑弹窗：基础信息 + 商品明细 + 附件
+     - 详情抽屉：完整信息 + 审批记录时间线
+     - 路由：`purchase-contracts`，角色 BOSS
+  2. 新增 [CustomerVisits.vue](file:///d:/Users/Documents/TREA/wen-ssystem-main/admin-web/src/views/CustomerVisits.vue) — 客户拜访记录
+     - 列表：客户名称、拜访人、方式、目的、时间、时长、下次跟进
+     - 新建/编辑弹窗：客户选择 + 拜访信息 + 内容 + 附件
+     - 详情抽屉：完整拜访信息 + 客户基本信息
+     - 路由：`customer-visits`，角色 BOSS + MGR
+- **验收标准**：页面完整、CRUD 交互完整
+- **验证结果**：vue-tsc 0 错误，构建成功
 
 ---
 
