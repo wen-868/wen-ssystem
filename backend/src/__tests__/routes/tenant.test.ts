@@ -1,4 +1,4 @@
-﻿import { describe, it, expect } from "vitest";
+import { describe, it, expect } from "vitest";
 import { routeConfig } from "../../routes/tenant.routes";
 
 describe("routes/tenant", () => {
@@ -8,8 +8,8 @@ describe("routes/tenant", () => {
     expect(routeConfig.router).toBeDefined();
   });
 
-  it("应配置认证中间件", () => {
-    expect(routeConfig.auth).toBe("requireAuthWithTenant");
+  it("应配置认证中间件（平台级，不需要租户隔离）", () => {
+    expect(routeConfig.auth).toBe("requireAuth");
   });
 
   it("router 应该是一个 Router 实例", () => {

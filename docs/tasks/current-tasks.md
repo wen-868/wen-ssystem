@@ -1,8 +1,95 @@
-﻿# 当前任务 — R44
+﻿# 当前任务 — R45
 
 > 仓库：https://github.com/wen-868/wen-ssystem  
 > 唯一分支：main  
 > 最后更新：2026-07-16
+
+---
+
+## R45 — SaaS定位修正 + 7大功能核验 [已完成]
+
+### R45-01 — P0修复：SaaS总平台路由错误使用租户隔离 [P0]
+
+- **优先级**：P0
+- **负责人**：阿坚
+- **预计**：0.5天
+- **实际**：0.25天
+- **状态**：✅ 已完成
+- **文件**：`backend/src/routes/tenant.routes.ts`、`backend/src/routes/subscription.routes.ts`、对应测试文件
+- **问题**：SaaS 总平台是管理租户的，租户管理和订阅管理 API 应该是跨租户的（平台级）。但 `tenant.routes.ts` 和 `subscription.routes.ts` 错误使用了 `requireAuthWithTenant`（带租户隔离），导致 BOSS 角色只能看到自己租户的数据，而不是所有租户的数据。
+- **修复**：
+  1. `tenant.routes.ts`：`requireAuthWithTenant` → `requireAuth`，`auth: "requireAuth"`
+  2. `subscription.routes.ts`：`requireAuthWithTenant` → `requireAuth`，`auth: "requireAuth"`
+  3. 更新对应测试文件断言
+- **验收标准**：tsc 0错误，测试通过，BOSS可跨租户管理
+- **验证结果**：tsc 0 错误，19 文件 173 用例全部通过
+
+### R45-02 — 7大功能模块核验报告 [P1]
+
+#### 1. 库存调拨 ✅ 功能完整
+- **前端**：3个页面（列表/创建/详情）✅
+- **后端**：2个路由文件 + 2个服务文件 ✅
+- **功能流程**：创建→提交→审核→确认出库→确认入库→完成/取消 ✅
+- **统计**：getTransferStats（调拨统计）✅
+- **结论**：功能完整，状态流转清晰
+
+#### 2. 盘点管理 ✅ 功能完整
+- **前端**：InventoryCheck.vue ✅
+- **后端**：stock-check.routes.ts + stock-check.service.ts ✅
+- **功能流程**：创建→开始盘点→录入数量→提交→完成→差异处理→取消 ✅
+- **功能**：14个服务函数（createCheck/listChecks/startCheck/completeCheck/cancelCheck/handleDiff/recordItems/submitCheck等）✅
+- **结论**：功能完整，支持全盘/抽盘
+
+#### 3. 供应商对账 ✅ 功能完整
+- **前端**：SupplierStatements.vue ✅
+- **后端**：supplier-statement.routes.ts + supplier-statement.service.ts ✅
+- **功能流程**：生成对账单→列表查询→详情→确认→异议处理 ✅
+- **功能**：5个服务函数（generate/list/detail/confirm/dispute）✅
+- **结论**：功能完整
+
+#### 4. 审批工作流 ✅ 功能完整
+- **前端**：ProductReviewWorkflow.vue + ReviewDelegation.vue + ProductReviewTasks.vue ✅
+- **后端**：approval.routes.ts + approval-flow.service.ts + approval-records.service.ts ✅
+- **功能流程**：规则配置→提交审批→审批任务列表→审批通过/拒绝→通知 ✅
+- **功能**：11个服务函数（listRules/createRule/updateRule/listInstances/submitApproval/approveTask/rejectTask/listNotifications等）✅
+- **结论**：功能完整，支持多级审批和委托
+
+#### 5. 日结管理 ✅ 功能完整
+- **前端**：集成在财务管理模块中 ✅
+- **后端**：admin-finance.routes.ts 中的 /daily-settlements 路由 + daily-settlement.service.ts ✅
+- **功能流程**：创建日结→列表查询→详情查询 ✅
+- **功能**：createDailySettlement/listDailySettlements/getDailySettlementDetail ✅
+- **门店端**：store-shift.routes.ts（班结）✅
+- **结论**：功能完整，支持管理端日结和门店端班结
+
+#### 6. 库存批次/追溯管理 ✅ 功能完整
+- **前端**：InventoryBatch.vue ✅
+- **后端**：inventory-batch.routes.ts + inventory-batch.service.ts ✅
+- **功能流程**：批次列表→详情→创建→更新→拆分→FIFO出库建议→追溯 ✅
+- **特色功能**：有效期管理（expiry config/alerts/scan）✅
+- **功能**：16个服务函数（listBatches/createBatch/splitBatch/getFifoSuggestion/getBatchTrace/listExpiryAlerts等）✅
+- **结论**：功能完整，追溯链路清晰
+
+#### 7. 库存共享配置 ✅ 功能完整
+- **前端**：InventoryShareConfig.vue ✅
+- **后端**：inventory-share.routes.ts + inventory-share.service.ts ✅
+- **功能流程**：获取配置→更新配置→共享商品列表→添加/批量添加/更新/移除 ✅
+- **功能**：8个服务函数（getShareSetting/updateShareSetting/listShareProducts/addShareProduct/batchAddShareProducts等）✅
+- **结论**：功能完整
+
+### 核验总结
+
+| 功能模块 | 前端 | 后端 | 流程完整性 | 状态 |
+|---------|------|------|-----------|------|
+| 库存调拨 | ✅ 3页面 | ✅ 2路由+2服务 | ✅ 完整 | 无需修改 |
+| 盘点管理 | ✅ 1页面 | ✅ 1路由+1服务 | ✅ 完整 | 无需修改 |
+| 供应商对账 | ✅ 1页面 | ✅ 1路由+1服务 | ✅ 完整 | 无需修改 |
+| 审批工作流 | ✅ 3页面 | ✅ 1路由+2服务 | ✅ 完整 | 无需修改 |
+| 日结管理 | ✅ 集成 | ✅ 1路由+1服务 | ✅ 完整 | 无需修改 |
+| 库存批次/追溯 | ✅ 1页面 | ✅ 1路由+1服务 | ✅ 完整 | 无需修改 |
+| 库存共享配置 | ✅ 1页面 | ✅ 1路由+1服务 | ✅ 完整 | 无需修改 |
+
+**7大功能模块全部核验通过，前后端完整，功能流程闭环。**
 
 ---
 
