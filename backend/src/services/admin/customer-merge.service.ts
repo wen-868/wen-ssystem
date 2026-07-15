@@ -1,11 +1,11 @@
-﻿import { query, queryOne, transaction } from "../../shared/db";
+import { queryWithTenant, queryOneWithTenant, transaction } from "../../shared/db";
 
 // ========== 检测重复客户 ==========
 export async function detectDuplicates(tenantId: string, type: string) {
   const duplicates: any[] = [];
 
   if (type === "mobile" || type === "all") {
-    const mobileDuplicates = await query<any>(
+    const mobileDuplicates = await queryWithTenant<any>(
       `SELECT mobile, COUNT(*) as count,
               GROUP_CONCAT(id ORDER BY id) as customer_ids,
               GROUP_CONCAT(name ORDER BY id) as customer_names
@@ -14,16 +14,18 @@ export async function detectDuplicates(tenantId: string, type: string) {
        GROUP BY mobile
        HAVING COUNT(*) > 1
        ORDER BY count DESC`,
-      [tenantId]
+      [tenantId],
+      tenantId
     );
 
     for (const row of mobileDuplicates) {
-      const customers = await query<any>(
+      const customers = await queryWithTenant<any>(
         `SELECT id, name, mobile, address, remark, created_at
          FROM member
          WHERE tenant_id = ? AND mobile = ?
          ORDER BY created_at ASC`,
-        [tenantId, row.mobile]
+        [tenantId, row.mobile],
+        tenantId
       );
 
       duplicates.push({
@@ -36,7 +38,7 @@ export async function detectDuplicates(tenantId: string, type: string) {
   }
 
   if (type === "name" || type === "all") {
-    const nameDuplicates = await query<any>(
+    const nameDuplicates = await queryWithTenant<any>(
       `SELECT name, COUNT(*) as count,
               GROUP_CONCAT(id ORDER BY id) as customer_ids
        FROM member
@@ -44,16 +46,18 @@ export async function detectDuplicates(tenantId: string, type: string) {
        GROUP BY name
        HAVING COUNT(*) > 1
        ORDER BY count DESC`,
-      [tenantId]
+      [tenantId],
+      tenantId
     );
 
     for (const row of nameDuplicates) {
-      const customers = await query<any>(
+      const customers = await queryWithTenant<any>(
         `SELECT id, name, mobile, address, remark, created_at
          FROM member
          WHERE tenant_id = ? AND name = ?
          ORDER BY created_at ASC`,
-        [tenantId, row.name]
+        [tenantId, row.name],
+        tenantId
       );
 
       duplicates.push({
@@ -73,45 +77,50 @@ export async function detectDuplicates(tenantId: string, type: string) {
 
 // ========== 获取客户关联数据 ==========
 export async function getCustomerRelations(tenantId: string, customerId: number) {
-  const customer = await queryOne<any>(
+  const customer = await queryOneWithTenant<any>(
     "SELECT id, name, mobile FROM member WHERE id = ? AND tenant_id = ?",
-    [customerId, tenantId]
+    [customerId, tenantId],
+    tenantId
   );
 
   if (!customer) {
     throw Object.assign(new Error("客户不存在"), { statusCode: 404 });
   }
 
-  const salesStats = await queryOne<any>(
+  const salesStats = await queryOneWithTenant<any>(
     `SELECT COUNT(*) as order_count,
             COALESCE(SUM(total_amount), 0) as total_amount,
             COALESCE(SUM(paid_amount), 0) as paid_amount,
             COALESCE(SUM(total_amount - paid_amount), 0) as unpaid_amount
      FROM sales_order
      WHERE customer_id = ? AND tenant_id = ?`,
-    [customerId, tenantId]
+    [customerId, tenantId],
+    tenantId
   );
 
-  const paymentStats = await queryOne<any>(
+  const paymentStats = await queryOneWithTenant<any>(
     `SELECT COUNT(*) as payment_count,
             COALESCE(SUM(amount), 0) as total_received
      FROM t_customer_payment
      WHERE customer_id = ? AND tenant_id = ?`,
-    [customerId, tenantId]
+    [customerId, tenantId],
+    tenantId
   );
 
-  const creditInfo = await queryOne<any>(
+  const creditInfo = await queryOneWithTenant<any>(
     `SELECT credit_limit, credit_used, credit_available
      FROM t_customer_credit
      WHERE customer_id = ? AND tenant_id = ?`,
-    [customerId, tenantId]
+    [customerId, tenantId],
+    tenantId
   );
 
-  const visitStats = await queryOne<any>(
+  const visitStats = await queryOneWithTenant<any>(
     `SELECT COUNT(*) as visit_count
      FROM customer_visit
      WHERE customer_id = ? AND tenant_id = ?`,
-    [customerId, tenantId]
+    [customerId, tenantId],
+    tenantId
   );
 
   return {
@@ -130,20 +139,22 @@ export async function mergeCustomers(tenantId: string, body: {
   primaryCustomerId: number; duplicateCustomerIds: number[];
   mergeName: boolean; mergeMobile: boolean; mergeAddress: boolean; mergeRemark: boolean;
 }, userId: number, username: string) {
-  const primaryCustomer = await queryOne<any>(
+  const primaryCustomer = await queryOneWithTenant<any>(
     "SELECT id, name, mobile, address, remark FROM member WHERE id = ? AND tenant_id = ?",
-    [body.primaryCustomerId, tenantId]
+    [body.primaryCustomerId, tenantId],
+    tenantId
   );
 
   if (!primaryCustomer) {
     throw Object.assign(new Error("主客户不存在"), { statusCode: 404 });
   }
 
-  const duplicateCustomers = await query<any>(
+  const duplicateCustomers = await queryWithTenant<any>(
     `SELECT id, name, mobile, address, remark
      FROM member
      WHERE id IN (?) AND tenant_id = ?`,
-    [body.duplicateCustomerIds, tenantId]
+    [body.duplicateCustomerIds, tenantId],
+    tenantId
   );
 
   if (duplicateCustomers.length !== body.duplicateCustomerIds.length) {
@@ -190,8 +201,9 @@ export async function mergeCustomers(tenantId: string, body: {
 
     if (updates.length > 0) {
       params.push(body.primaryCustomerId);
+      params.push(tenantId);
       await conn.execute(
-        `UPDATE member SET ${updates.join(", ")} WHERE id = ?`,
+        `UPDATE member SET ${updates.join(", ")} WHERE id = ? AND tenant_id = ?`,
         params
       );
     }
@@ -211,21 +223,23 @@ export async function mergeCustomers(tenantId: string, body: {
       [body.primaryCustomerId, body.duplicateCustomerIds, tenantId]
     );
 
-    const primaryCredit = await queryOne<any>(
+    const primaryCredit = await queryOneWithTenant<any>(
       "SELECT id FROM t_customer_credit WHERE customer_id = ? AND tenant_id = ?",
-      [body.primaryCustomerId, tenantId]
+      [body.primaryCustomerId, tenantId],
+      tenantId
     );
 
     if (!primaryCredit) {
-      const firstCredit = await queryOne<any>(
+      const firstCredit = await queryOneWithTenant<any>(
         "SELECT id FROM t_customer_credit WHERE customer_id IN (?) AND tenant_id = ? LIMIT 1",
-        [body.duplicateCustomerIds, tenantId]
+        [body.duplicateCustomerIds, tenantId],
+        tenantId
       );
 
       if (firstCredit) {
         await conn.execute(
-          "UPDATE t_customer_credit SET customer_id = ? WHERE id = ?",
-          [body.primaryCustomerId, firstCredit.id]
+          "UPDATE t_customer_credit SET customer_id = ? WHERE id = ? AND tenant_id = ?",
+          [body.primaryCustomerId, firstCredit.id, tenantId]
         );
       }
     }
@@ -250,11 +264,12 @@ export async function mergeCustomers(tenantId: string, body: {
     );
   });
 
-  const mergedCustomer = await queryOne<any>(
+  const mergedCustomer = await queryOneWithTenant<any>(
     `SELECT id, name, mobile, address, remark, created_at
      FROM member
      WHERE id = ? AND tenant_id = ?`,
-    [body.primaryCustomerId, tenantId]
+    [body.primaryCustomerId, tenantId],
+    tenantId
   );
 
   return {
@@ -265,7 +280,7 @@ export async function mergeCustomers(tenantId: string, body: {
 
 // ========== 批量检测重复组 ==========
 export async function getDuplicateGroups(tenantId: string, page: number, pageSize: number) {
-  const mobileGroups = await query<any>(
+  const mobileGroups = await queryWithTenant<any>(
     `SELECT mobile, COUNT(*) as count,
             GROUP_CONCAT(id ORDER BY created_at ASC) as customer_ids,
             GROUP_CONCAT(name ORDER BY created_at ASC) as customer_names
@@ -275,10 +290,11 @@ export async function getDuplicateGroups(tenantId: string, page: number, pageSiz
      HAVING COUNT(*) > 1
      ORDER BY count DESC
      LIMIT ? OFFSET ?`,
-    [tenantId, pageSize, (page - 1) * pageSize]
+    [tenantId, pageSize, (page - 1) * pageSize],
+    tenantId
   );
 
-  const nameGroups = await query<any>(
+  const nameGroups = await queryWithTenant<any>(
     `SELECT name, COUNT(*) as count,
             GROUP_CONCAT(id ORDER BY created_at ASC) as customer_ids
      FROM member
@@ -287,25 +303,28 @@ export async function getDuplicateGroups(tenantId: string, page: number, pageSiz
      HAVING COUNT(*) > 1
      ORDER BY count DESC
      LIMIT ? OFFSET ?`,
-    [tenantId, pageSize, (page - 1) * pageSize]
+    [tenantId, pageSize, (page - 1) * pageSize],
+    tenantId
   );
 
-  const mobileTotal = await queryOne<any>(
+  const mobileTotal = await queryOneWithTenant<any>(
     `SELECT COUNT(DISTINCT mobile) as total
      FROM member
      WHERE tenant_id = ? AND mobile IS NOT NULL AND mobile != ''
      GROUP BY mobile
      HAVING COUNT(*) > 1`,
-    [tenantId]
+    [tenantId],
+    tenantId
   );
 
-  const nameTotal = await queryOne<any>(
+  const nameTotal = await queryOneWithTenant<any>(
     `SELECT COUNT(DISTINCT name) as total
      FROM member
      WHERE tenant_id = ? AND name IS NOT NULL AND name != ''
      GROUP BY name
      HAVING COUNT(*) > 1`,
-    [tenantId]
+    [tenantId],
+    tenantId
   );
 
   return {

@@ -1,4 +1,4 @@
-import { query, queryOne, queryWithTenant, transaction } from "../../shared/db";
+import { queryWithTenant, queryOneWithTenant, transaction } from "../../shared/db";
 import { makeBizNo } from "../../shared/id";
 
 export async function list(params: {
@@ -28,37 +28,42 @@ export async function list(params: {
 
   const whereClause = " AND tenant_id = ?" + (conditions.length > 0 ? " AND " + conditions.join(" AND ") : "");
   const offset = (page - 1) * pageSize;
-  const statements = await query<any>(
+  const statements = await queryWithTenant<any>(
     `SELECT * FROM t_customer_statement WHERE 1=1${whereClause} ORDER BY created_at DESC LIMIT ? OFFSET ?`,
-    [tenantId, ...queryParams, pageSize, offset]
+    [tenantId, ...queryParams, pageSize, offset],
+    tenantId
   );
   return statements;
 }
 
 export async function getDetail(statementNo: string, tenantId: string) {
-  const statement = await queryOne<any>(
+  const statement = await queryOneWithTenant<any>(
     "SELECT * FROM t_customer_statement WHERE statement_no = ? AND tenant_id = ?",
-    [statementNo, tenantId]
+    [statementNo, tenantId],
+    tenantId
   );
   if (!statement) throw Object.assign(new Error("对账单不存在"), { statusCode: 404 });
 
-  const sales = await query<any>(
+  const sales = await queryWithTenant<any>(
     `SELECT bill_no AS sale_bill_no, customer_name, receivable_amount, created_at
-     FROM t_sale_bill WHERE customer_id = ? AND created_at BETWEEN ? AND ? AND business_status = 'CREATED'
+     FROM t_sale_bill WHERE customer_id = ? AND created_at BETWEEN ? AND ? AND business_status = 'CREATED' AND tenant_id = ?
      ORDER BY created_at ASC`,
-    [statement.customer_id, statement.start_date, statement.end_date]
+    [statement.customer_id, statement.start_date, statement.end_date, tenantId],
+    tenantId
   );
-  const returns = await query<any>(
+  const returns = await queryWithTenant<any>(
     `SELECT return_no AS sale_return_no, refund_amount, created_at
-     FROM t_sale_return WHERE customer_id = ? AND created_at BETWEEN ? AND ? AND return_status = 'COMPLETED'
+     FROM t_sale_return WHERE customer_id = ? AND created_at BETWEEN ? AND ? AND return_status = 'COMPLETED' AND tenant_id = ?
      ORDER BY created_at ASC`,
-    [statement.customer_id, statement.start_date, statement.end_date]
+    [statement.customer_id, statement.start_date, statement.end_date, tenantId],
+    tenantId
   );
-  const payments = await query<any>(
+  const payments = await queryWithTenant<any>(
     `SELECT receipt_no, amount, payment_date
-     FROM t_customer_payment WHERE customer_id = ? AND payment_date BETWEEN ? AND ? AND status = 'COMPLETED'
+     FROM t_customer_payment WHERE customer_id = ? AND payment_date BETWEEN ? AND ? AND status = 'COMPLETED' AND tenant_id = ?
      ORDER BY payment_date ASC`,
-    [statement.customer_id, statement.start_date, statement.end_date]
+    [statement.customer_id, statement.start_date, statement.end_date, tenantId],
+    tenantId
   );
 
   return { ...statement, sales, returns, payments };
@@ -73,29 +78,29 @@ export async function create(body: {
   await transaction(async (conn) => {
     const [openingRows] = await conn.query(
       `SELECT COALESCE(SUM(unreceived_amount), 0) AS opening_balance
-       FROM t_sale_bill WHERE customer_id = ? AND created_at < ? AND collection_status IN ('UNPAID', 'PARTIAL') AND business_status = 'CREATED'`,
-      [body.customer_id, body.start_date]
+       FROM t_sale_bill WHERE customer_id = ? AND created_at < ? AND collection_status IN ('UNPAID', 'PARTIAL') AND business_status = 'CREATED' AND tenant_id = ?`,
+      [body.customer_id, body.start_date, tenantId]
     );
     const openingBalance = Number((openingRows as Record<string, unknown>[])?.[0]?.opening_balance || 0);
 
     const [salesRows] = await conn.query(
       `SELECT COALESCE(SUM(receivable_amount), 0) AS total_sales
-       FROM t_sale_bill WHERE customer_id = ? AND created_at BETWEEN ? AND ? AND business_status = 'CREATED'`,
-      [body.customer_id, body.start_date, body.end_date]
+       FROM t_sale_bill WHERE customer_id = ? AND created_at BETWEEN ? AND ? AND business_status = 'CREATED' AND tenant_id = ?`,
+      [body.customer_id, body.start_date, body.end_date, tenantId]
     );
     const totalSales = Number((salesRows as Record<string, unknown>[])?.[0]?.total_sales || 0);
 
     const [returnsRows] = await conn.query(
       `SELECT COALESCE(SUM(refund_amount), 0) AS total_returns
-       FROM t_sale_return WHERE customer_id = ? AND created_at BETWEEN ? AND ? AND return_status = 'COMPLETED'`,
-      [body.customer_id, body.start_date, body.end_date]
+       FROM t_sale_return WHERE customer_id = ? AND created_at BETWEEN ? AND ? AND return_status = 'COMPLETED' AND tenant_id = ?`,
+      [body.customer_id, body.start_date, body.end_date, tenantId]
     );
     const totalReturns = Number((returnsRows as Record<string, unknown>[])?.[0]?.total_returns || 0);
 
     const [paymentsRows] = await conn.query(
       `SELECT COALESCE(SUM(amount), 0) AS total_payments
-       FROM t_customer_payment WHERE customer_id = ? AND payment_date BETWEEN ? AND ? AND status = 'COMPLETED'`,
-      [body.customer_id, body.start_date, body.end_date]
+       FROM t_customer_payment WHERE customer_id = ? AND payment_date BETWEEN ? AND ? AND status = 'COMPLETED' AND tenant_id = ?`,
+      [body.customer_id, body.start_date, body.end_date, tenantId]
     );
     const totalPayments = Number((paymentsRows as Record<string, unknown>[])?.[0]?.total_payments || 0);
 
@@ -122,14 +127,19 @@ export async function create(body: {
 }
 
 export async function confirm(statementNo: string, tenantId: string, userId: number, username: string) {
-  const statement = await queryOne<any>(
+  const statement = await queryOneWithTenant<any>(
     "SELECT id, status FROM t_customer_statement WHERE statement_no = ? AND tenant_id = ?",
-    [statementNo, tenantId]
+    [statementNo, tenantId],
+    tenantId
   );
   if (!statement) throw Object.assign(new Error("对账单不存在"), { statusCode: 404 });
   if (statement.status !== "DRAFT") throw Object.assign(new Error("只有草稿状态的对账单可以确认"), { statusCode: 400 });
 
-  await query("UPDATE t_customer_statement SET status = 'CONFIRMED', confirmed_at = NOW() WHERE statement_no = ? AND tenant_id = ?", [statementNo, tenantId]);
+  await queryWithTenant(
+    "UPDATE t_customer_statement SET status = 'CONFIRMED', confirmed_at = NOW() WHERE statement_no = ? AND tenant_id = ?",
+    [statementNo, tenantId],
+    tenantId
+  );
   await queryWithTenant(
     "INSERT INTO t_operation_log (module, action, target_id, target_type, user_id, user_name, detail, tenant_id) VALUES (?, ?, ?, ?, ?, ?, ?, ?)",
     ["customer_statement", "CONFIRM", statementNo, "customer_statement", userId, username, `确认对账单: ${statementNo}`, tenantId],
@@ -139,14 +149,19 @@ export async function confirm(statementNo: string, tenantId: string, userId: num
 }
 
 export async function markPaid(statementNo: string, tenantId: string, userId: number, username: string) {
-  const statement = await queryOne<any>(
+  const statement = await queryOneWithTenant<any>(
     "SELECT id, status FROM t_customer_statement WHERE statement_no = ? AND tenant_id = ?",
-    [statementNo, tenantId]
+    [statementNo, tenantId],
+    tenantId
   );
   if (!statement) throw Object.assign(new Error("对账单不存在"), { statusCode: 404 });
   if (statement.status !== "CONFIRMED") throw Object.assign(new Error("只有已确认状态的对账单可以标记结清"), { statusCode: 400 });
 
-  await query("UPDATE t_customer_statement SET status = 'PAID' WHERE statement_no = ? AND tenant_id = ?", [statementNo, tenantId]);
+  await queryWithTenant(
+    "UPDATE t_customer_statement SET status = 'PAID' WHERE statement_no = ? AND tenant_id = ?",
+    [statementNo, tenantId],
+    tenantId
+  );
   await queryWithTenant(
     "INSERT INTO t_operation_log (module, action, target_id, target_type, user_id, user_name, detail, tenant_id) VALUES (?, ?, ?, ?, ?, ?, ?, ?)",
     ["customer_statement", "PAID", statementNo, "customer_statement", userId, username, `标记结清: ${statementNo}`, tenantId],
