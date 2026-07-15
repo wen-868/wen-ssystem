@@ -91,11 +91,23 @@
 - **优先级**：P2
 - **负责人**：阿坚
 - **预计**：1天
-- **状态**：待开始
-- **文件**：`backend/src/services/share.service.ts`、`backend/src/services/subscription-expiry.service.ts`、`backend/src/services/overdue-scanner.service.ts`、`backend/src/services/wechat.service.ts`、`backend/src/services/miniapp.service.ts`
+- **实际**：0.25天
+- **状态**：✅ 已完成
+- **文件**：`backend/src/services/share.service.ts`、`backend/src/services/subscription-expiry.service.ts`、`backend/src/services/overdue-scanner.service.ts`、`backend/src/services/wechat.service.ts`、`backend/src/services/miniapp.service.ts`、`backend/src/controllers/admin/miniapp.controller.ts`、`backend/src/__tests__/controllers/miniapp.controller.test.ts`
 - **问题**：多个服务文件仍有少量 query 未做租户过滤
-- **修复**：逐个复查并修复
+- **修复**：
+  1. **share.service.ts**（6 处 query/queryOne）：公开收款链接接口，controller 中无 tenantId。改为从 `t_collection_link` 查询结果中获取 `tenant_id`，并在后续 UPDATE/INSERT/SELECT SQL 中显式注入 tenant_id 条件/字段。修复 `t_collection_view_log` 和 `t_payment_order` 的 INSERT 缺少 tenant_id 字段（NOT NULL 约束问题）；JOIN `t_sale_bill` 时增加 `sb.tenant_id = cl.tenant_id` 条件防止跨租户串单；返回数据中剥离 tenantId 字段避免内部信息泄露。
+  2. **subscription-expiry.service.ts**（5 处 query）：平台级跨租户定时任务，保留 `query`。第 38、74 行 UPDATE subscription 原本只有 `WHERE id = ?`，补充 `AND tenant_id = ?` 条件作为双保险（sub.tenant_id 来自前一个跨租户 SELECT）。
+  3. **overdue-scanner.service.ts**（2 处 query）：复查确认已正确处理。`getAllActiveTenants` 为平台级跨租户查询（保留 query，SQL 含 tenant_id 字段）；`scanOverdueCreditBills` 内 UPDATE 已有 `tenant_id = ?` 条件。无需修改。
+  4. **wechat.service.ts**（13 处 query/queryOne）：复查确认 wx_user 和 user_binding 表均无 tenant_id 字段（schema 中未定义，是跨租户的微信用户/绑定关系表），所有按 id/openid/wx_user_id 定位的 query 无需租户过滤。bindUser 中查询 t_sys_user 已在 R38 修复（含 tenant_id 条件）。无需修改。
+  5. **miniapp.service.ts**（13 处 query/queryOne）：`getProducts` 函数查询 t_product_sku + JOIN t_product_spu/t_product_price/t_inventory_balance 时缺少 tenant_id 条件，修复方案：函数签名增加 `tenantId: string` 参数（放在第一个，与 createOrder/getOrders 等同模块函数风格一致），SQL 中 WHERE 添加 `s.tenant_id = ?`，JOIN 条件增加 `p.tenant_id = s.tenant_id`、`pp.tenant_id = s.tenant_id`、`ib.tenant_id = s.tenant_id`。其他 12 处 query/queryOne 复查确认 SQL 中已显式包含 tenant_id 条件。同步更新 admin/miniapp.controller.ts 中 getProducts 调用传入 `req.tenantId!`，更新 miniapp.controller.test.ts 中 2 处 toHaveBeenCalledWith 期望。
 - **验收标准**：全量 grep 扫描确认无遗漏
+- **验证结果**：
+  - `npx tsc --noEmit`：✅ 0 错误
+  - 相关测试：✅ 8 文件 172 用例全部通过（share/miniapp/wechat 相关 controller + routes 测试）
+  - 租户隔离专项测试：✅ 7 用例全部通过
+  - subscription 测试：✅ 16 用例全部通过
+- **遗留说明**：`share.controller.ts` 中 `getCollectionPage` 和 `wxNotifyCollection` 函数也直接执行 SQL（不通过 service），存在同样的租户隔离问题，但本次任务范围仅限 share.service.ts，已在踩坑日志中记录，建议后续任务修复。
 
 ### R40-07 — 补充路由 routeConfig 显式声明 [P2]
 
