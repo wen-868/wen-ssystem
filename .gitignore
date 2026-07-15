@@ -8,3 +8,4 @@ coverage
 *.log
 .superpowers/
 store-terminal/.env.production
+tsconfig.tsbuildinfo
