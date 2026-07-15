@@ -1,4 +1,4 @@
-﻿import { z } from "zod";
+import { z } from "zod";
 import jwt from "jsonwebtoken";
 import { asyncHandler } from "../../middleware/async-handler";
 import { env } from "../../shared/env";
@@ -86,7 +86,7 @@ export function createWechatController(
       bindingType: z.enum(["ADMIN", "MERCHANT", "CONSUMER"]),
     }).parse(req.body);
 
-    const result = await service.bindUser((wxUser as any).id, body);
+    const result = await service.bindUser((wxUser as any).id, body, req.tenantId as string);
 
     if (!result.success) {
       res.status(400).json(fail(result.message!, result.code));

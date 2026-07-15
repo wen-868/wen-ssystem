@@ -518,9 +518,9 @@ export async function buySeckill(
       `SELECT id, product_id, seckill_price, seckill_stock, available_stock, limit_per_user,
               status, start_time, end_time
        FROM seckill_product
-       WHERE id = ? AND status = 'ACTIVE' AND start_time <= ? AND end_time >= ?
+       WHERE id = ? AND tenant_id = ? AND status = 'ACTIVE' AND start_time <= ? AND end_time >= ?
        FOR UPDATE`,
-      [activityId, now, now]
+      [activityId, tenantId, now, now]
     );
 
     const activity = (activityRows as Record<string, unknown>[])[0];
@@ -539,8 +539,8 @@ export async function buySeckill(
     }
 
     await (conn as any).execute(
-      `UPDATE seckill_product SET available_stock = available_stock - ? WHERE id = ?`,
-      [quantity, activityId]
+      `UPDATE seckill_product SET available_stock = available_stock - ? WHERE id = ? AND tenant_id = ?`,
+      [quantity, activityId, tenantId]
     );
 
     const orderNo = `SK${Date.now()}${Math.floor(Math.random() * 1000).toString().padStart(3, "0")}`;

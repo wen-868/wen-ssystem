@@ -1,4 +1,4 @@
-﻿import { query, queryOne } from "../shared/db";
+import { query, queryOne } from "../shared/db";
 import { verifyPassword } from "../shared/password";
 
 export async function login(wxData: { openid: string; session_key: string; unionid?: string }, signWxToken: (wxUserId: number, openid: string) => string) {
@@ -94,11 +94,12 @@ export async function getProfile(wxUserId: number) {
 
 export async function bindUser(
   wxUserId: number,
-  body: { username: string; password: string; bindingType: string }
+  body: { username: string; password: string; bindingType: string },
+  tenantId: string
 ) {
   const sysUser = await queryOne<{ id: number; password_hash: string; username: string; real_name: string }>(
-    "SELECT id, password_hash, username, real_name FROM t_sys_user WHERE username = ? AND status = 1",
-    [body.username]
+    "SELECT id, password_hash, username, real_name FROM t_sys_user WHERE username = ? AND tenant_id = ? AND status = 1",
+    [body.username, tenantId]
   );
 
   if (!sysUser) {

@@ -1,4 +1,4 @@
-﻿import { query, queryOne, transaction, queryWithTenant, queryOneWithTenant } from "../shared/db";
+import { query, queryOne, transaction, queryWithTenant, queryOneWithTenant } from "../shared/db";
 import { makeBizNo } from "../shared/id";
 import type { ServiceContext, PageResult } from "../types/index";
 
@@ -134,8 +134,8 @@ class SaleReturnService {
     if (!returnOrder) return null;
 
     const items = await query<SaleReturnItem>(
-      "SELECT * FROM t_sale_return_item WHERE return_no = ?",
-      [returnNo]
+      "SELECT * FROM t_sale_return_item WHERE return_no = ? AND tenant_id = ?",
+      [returnNo, ctx.tenantId]
     );
 
     return { ...returnOrder, items };
@@ -232,8 +232,8 @@ class SaleReturnService {
       );
 
       const [items] = await (conn as any).execute(
-        "SELECT sku_id, total_bottle_qty FROM t_sale_return_item WHERE return_no = ?",
-        [returnNo]
+        "SELECT sku_id, total_bottle_qty FROM t_sale_return_item WHERE return_no = ? AND tenant_id = ?",
+        [returnNo, ctx.tenantId]
       ) as [Record<string, unknown>[], unknown];
 
       const itemRows = items as Record<string, unknown>[];

@@ -1,4 +1,4 @@
-﻿/**
+/**
  * 管理端认证 service 单元测试
  * 被测文件：src/services/admin/auth.service.ts
  */
@@ -158,23 +158,23 @@ describe("auth.service", () => {
 
   describe("changePassword", () => {
     it("用户不存在时抛错", async () => {
-      mocks.queryOne.mockResolvedValue(null);
-      await expect(changePassword(1, "old", "new")).rejects.toThrow("用户不存在");
+      mocks.queryOneWithTenant.mockResolvedValue(null);
+      await expect(changePassword(1, "old", "new", "t1")).rejects.toThrow("用户不存在");
     });
 
     it("旧密码错误时抛错", async () => {
-      mocks.queryOne.mockResolvedValue({ id: 1, passwordHash: "h" });
+      mocks.queryOneWithTenant.mockResolvedValue({ id: 1, passwordHash: "h" });
       mocks.verifyPassword.mockResolvedValue(false);
-      await expect(changePassword(1, "old", "new")).rejects.toThrow("旧密码错误");
+      await expect(changePassword(1, "old", "new", "t1")).rejects.toThrow("旧密码错误");
     });
 
     it("成功修改密码", async () => {
-      mocks.queryOne.mockResolvedValue({ id: 1, passwordHash: "h" });
+      mocks.queryOneWithTenant.mockResolvedValue({ id: 1, passwordHash: "h" });
       mocks.verifyPassword.mockResolvedValue(true);
       mocks.validatePassword.mockReturnValue({ valid: true, errors: [] });
       mocks.hashPassword.mockResolvedValue("new_hash");
       mocks.queryWithTenant.mockResolvedValue(undefined);
-      const res = await changePassword(1, "old", "new");
+      const res = await changePassword(1, "old", "new", "t1");
       expect(res.message).toBe("密码修改成功");
       const [sql, params] = mocks.queryWithTenant.mock.calls[0];
       expect(sql).toContain("UPDATE t_sys_user SET password_hash");
@@ -182,10 +182,10 @@ describe("auth.service", () => {
     });
 
     it("新密码不符合要求时抛错", async () => {
-      mocks.queryOne.mockResolvedValue({ id: 1, passwordHash: "h" });
+      mocks.queryOneWithTenant.mockResolvedValue({ id: 1, passwordHash: "h" });
       mocks.verifyPassword.mockResolvedValue(true);
       mocks.validatePassword.mockReturnValue({ valid: false, errors: ["密码长度至少8位", "密码必须包含字母"] });
-      await expect(changePassword(1, "old", "123456")).rejects.toThrow("密码不符合要求");
+      await expect(changePassword(1, "old", "123456", "t1")).rejects.toThrow("密码不符合要求");
     });
   });
 });

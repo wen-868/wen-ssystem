@@ -38,8 +38,8 @@ async function getBestPrice(
 
   // 3. 零售价
   const retailRows = (await dbQuery(
-    `SELECT pp.retail_price FROM t_product_price pp WHERE pp.sku_id = ?`,
-    [skuId]
+    `SELECT pp.retail_price FROM t_product_price pp WHERE pp.sku_id = ? AND pp.tenant_id = ?`,
+    [skuId, tenantId]
   ) as any[])[0];
   const retail = (retailRows as any[])[0];
   return retail ? Number(retail.retail_price) : 0;

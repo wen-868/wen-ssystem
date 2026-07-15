@@ -1,4 +1,4 @@
-﻿import { z } from "zod";
+import { z } from "zod";
 import { asyncHandler } from "../../middleware/async-handler";
 import { ok, fail } from "../../shared/response";
 import * as authService from "../../services/admin/auth.service";
@@ -28,7 +28,7 @@ export const changePassword = asyncHandler(async (req, res) => {
     res.status(400).json(fail(strengthCheck.message || "", "400"));
     return;
   }
-  const result = await authService.changePassword(req.user!.id, body.oldPassword, body.newPassword);
+  const result = await authService.changePassword(req.user!.id, body.oldPassword, body.newPassword, req.tenantId as string);
   res.json(ok(result));
 });
 

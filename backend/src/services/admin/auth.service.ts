@@ -1,4 +1,4 @@
-﻿import { query, queryOne, queryWithTenant, queryOneWithTenant } from "../../shared/db";
+import { query, queryOne, queryWithTenant, queryOneWithTenant } from "../../shared/db";
 import { signToken, getUserAccessInfo, AuthUser } from "../../middleware/auth";
 import { verifyPassword, validatePassword } from "../../shared/password";
 import { AppError } from "../../shared/app-error";
@@ -115,8 +115,12 @@ export async function updateSettings(userId: number, defaultHomepage: string | n
   return { success: true };
 }
 
-export async function changePassword(userId: number, oldPassword: string, newPassword: string) {
-  const user = await queryOne<any>("SELECT id, password_hash AS passwordHash FROM t_sys_user WHERE id = ?", [userId]);
+export async function changePassword(userId: number, oldPassword: string, newPassword: string, tenantId: string) {
+  const user = await queryOneWithTenant<any>(
+    "SELECT id, password_hash AS passwordHash FROM t_sys_user WHERE id = ?",
+    [userId],
+    tenantId
+  );
   if (!user) throw new AppError("用户不存在", 400);
   if (!(await verifyPassword(oldPassword, user.passwordHash))) throw new AppError("旧密码错误", 400);
 
@@ -127,6 +131,6 @@ export async function changePassword(userId: number, oldPassword: string, newPas
 
   const { hashPassword } = await import("../../shared/password.js");
   const hashed = await hashPassword(newPassword);
-  await queryWithTenant("UPDATE t_sys_user SET password_hash = ?, updated_at = NOW() WHERE id = ?", [hashed, userId], "default");
+  await queryWithTenant("UPDATE t_sys_user SET password_hash = ?, updated_at = NOW() WHERE id = ?", [hashed, userId], tenantId);
   return { message: "密码修改成功" };
 }

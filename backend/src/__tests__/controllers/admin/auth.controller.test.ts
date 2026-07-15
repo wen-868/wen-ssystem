@@ -1,4 +1,4 @@
-﻿import { vi, describe, it, beforeEach, expect } from "vitest";
+import { vi, describe, it, beforeEach, expect } from "vitest";
 
 vi.mock("../../../services/admin/auth.service", () => ({
   login: vi.fn(),
@@ -62,7 +62,7 @@ describe("auth.controller", () => {
     const req = mockReq({ body: { oldPassword: "oldPass", newPassword: "NewPass@123" } });
     const res = mockRes();
     await changePassword(req as any, res as any);
-    expect(authService.changePassword).toHaveBeenCalledWith(1, "oldPass", "NewPass@123");
+    expect(authService.changePassword).toHaveBeenCalledWith(1, "oldPass", "NewPass@123", "t1");
     expect(ok).toHaveBeenCalled();
   });
 
