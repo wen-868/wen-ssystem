@@ -37,11 +37,21 @@
 - **优先级**：P1
 - **负责人**：阿坚
 - **预计**：0.5天
-- **状态**：待开始
+- **实际**：0.25天
+- **状态**：✅ 已完成
 - **文件**：`backend/src/services/admin/aftersale.service.ts`
 - **问题**：23处 query/queryOne 调用缺少 tenant_id 过滤
-- **修复**：替换为带租户版本，确保所有查询都有租户隔离
+- **修复**：
+  1. import 从 `query, queryOne` 改为 `queryWithTenant, queryOneWithTenant`
+  2. 全部 23 处 query/queryOne 替换为带租户版本，并传入 tenantId 参数
+  3. 涉及函数：createAftersale、listMyAftersales、getAftersaleDetail、cancelAftersale、submitReturnLogistics、rateAftersale、listAftersales、getAftersaleDetailById、approveAftersale、rejectAftersale、confirmReceipt、inspectAftersale、completeAftersale、getAftersaleStatistics
+  4. SQL 中 WHERE 条件均已有 tenant_id 过滤，JOIN 条件补充 `o.tenant_id = a.tenant_id` 防跨租户串单
+  5. controller 已正确传入 `req.tenantId!`，无需修改
 - **验收标准**：0处裸 query/queryOne，相关测试通过
+- **验证结果**：
+  - `npx tsc --noEmit`：✅ 0 错误
+  - grep 裸 query/queryOne：✅ 0 处匹配
+  - aftersale 测试：✅ 2 文件 28 用例全部通过（controller + routes）
 
 ### R40-03 — 修复 customer-merge.service.ts 租户隔离漏洞 [P1]
 
