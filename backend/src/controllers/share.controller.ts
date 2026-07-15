@@ -30,8 +30,11 @@ export async function getCollectionLink(req: any, res: any) {
 }
 
 export async function getCollectionPage(req: any, res: any) {
+  // 公开收款链接接口：通过 token 定位 t_collection_link 记录，从中获取 tenant_id
+  // 在后续所有 SQL 中显式注入 tenant_id 条件，防止跨租户访问
+  // （t_collection_link / t_sale_bill / t_sale_bill_item / store 均含 tenant_id 字段）
   const link = await queryOne<any>(
-    `SELECT cl.link_no AS linkNo, cl.source_type AS sourceType, cl.source_no AS sourceNo,
+    `SELECT cl.link_no AS linkNo, cl.tenant_id AS tenantId, cl.source_type AS sourceType, cl.source_no AS sourceNo,
             cl.amount, cl.paid_amount AS paidAmount, cl.status,
             cl.expire_at AS expireAt, cl.tax_enabled AS taxEnabled,
             cl.tax_rate AS taxRate, cl.tax_amount AS taxAmount,
@@ -47,7 +50,7 @@ export async function getCollectionPage(req: any, res: any) {
   const now = new Date();
   const expired = link.expireAt && new Date(link.expireAt) < now;
   if (expired && link.status === "PENDING") {
-    await query("UPDATE t_collection_link SET status = 'EXPIRED' WHERE link_no = ?", [link.linkNo]);
+    await query("UPDATE t_collection_link SET status = 'EXPIRED' WHERE link_no = ? AND tenant_id = ?", [link.linkNo, link.tenantId]);
     link.status = "EXPIRED";
   }
   if (link.status === "EXPIRED") {
@@ -69,25 +72,26 @@ export async function getCollectionPage(req: any, res: any) {
             sb.unreceived_amount AS unreceivedAmount, sb.store_id AS storeId,
             st.name AS storeName
      FROM t_sale_bill sb
-     JOIN store st ON st.id = sb.store_id
-     WHERE sb.bill_no = ?`,
-    [link.sourceNo]
+     JOIN store st ON st.id = sb.store_id AND st.tenant_id = sb.tenant_id
+     WHERE sb.bill_no = ? AND sb.tenant_id = ?`,
+    [link.sourceNo, link.tenantId]
   );
   const items = await query<any>(
     `SELECT sku_id AS skuId, sku_name AS skuName,
             box_qty AS boxQty, bottle_qty AS bottleQty,
             total_bottle_qty AS totalBottleQty,
             unit_price AS unitPrice, subtotal_amount AS subtotalAmount
-     FROM t_sale_bill_item WHERE bill_no = ?`,
-    [link.sourceNo]
+     FROM t_sale_bill_item WHERE bill_no = ? AND tenant_id = ?`,
+    [link.sourceNo, link.tenantId]
   );
-  await query("UPDATE t_collection_link SET view_count = view_count + 1, last_view_time = NOW() WHERE link_no = ?", [link.linkNo]);
+  await query("UPDATE t_collection_link SET view_count = view_count + 1, last_view_time = NOW() WHERE link_no = ? AND tenant_id = ?", [link.linkNo, link.tenantId]);
+  // tenantId 为内部字段，不暴露给外部
+  const { tenantId: _tenantId, ...linkData } = link;
+  void _tenantId;
   res.json(ok({
-    linkNo: link.linkNo, token: req.params.token,
-    amount: link.amount, paidAmount: link.paidAmount,
-    status: link.status, expireAt: link.expireAt, expired,
-    taxEnabled: link.taxEnabled, taxRate: link.taxRate, taxAmount: link.taxAmount,
-    shareChannel: link.shareChannel, createdAt: link.createdAt,
+    ...linkData,
+    token: req.params.token,
+    expired,
     customerName: optionalStr(bill, "customerName", ""), customerMobile: optionalStr(bill, "customerMobile", ""),
     customerType: optionalStr(bill, "customerType", ""), storeName: optionalStr(bill, "storeName", ""),
     receivableAmount: optionalNum(bill, "receivableAmount", 0), receivedAmount: optionalNum(bill, "receivedAmount", 0),
@@ -135,7 +139,10 @@ export async function wxNotifyCollection(req: any, res: any) {
     payAmount = req.body.payAmount ?? req.body.total_fee;
   }
 
-  const link = await queryOne<any>("SELECT link_no, source_no, amount, paid_amount, status FROM t_collection_link WHERE token = ?", [req.params.token]);
+  // 公开收款链接接口：通过 token 定位 t_collection_link 记录，从中获取 tenant_id
+  // 在后续所有 SQL 中显式注入 tenant_id 条件，防止跨租户访问
+  // （t_collection_link / t_payment_order / t_sale_bill 均含 tenant_id 字段）
+  const link = await queryOne<any>("SELECT link_no, tenant_id, source_no, amount, paid_amount, status FROM t_collection_link WHERE token = ?", [req.params.token]);
   if (!link) {
     res.status(404).json(fail("收款链接不存在", "404"));
     return;
@@ -151,23 +158,23 @@ export async function wxNotifyCollection(req: any, res: any) {
   const wxPayAmount = payAmount ?? link.amount;
   await query(
     `UPDATE t_payment_order SET status = 'SUCCESS', transaction_id = ?, paid_at = NOW()
-     WHERE pay_no = ? AND source_no = ?`,
-    [transactionId ?? null, payNo, link.link_no]
+     WHERE pay_no = ? AND source_no = ? AND tenant_id = ?`,
+    [transactionId ?? null, payNo, link.link_no, link.tenant_id]
   );
   const newPaid = Number(link.paid_amount) + Number(wxPayAmount);
   const newStatus = newPaid >= Number(link.amount) ? "PAID" : "PARTIAL";
   await query(
-    `UPDATE t_collection_link SET paid_amount = ?, status = ?, last_pay_time = NOW() WHERE link_no = ?`,
-    [newPaid, newStatus, link.link_no]
+    `UPDATE t_collection_link SET paid_amount = ?, status = ?, last_pay_time = NOW() WHERE link_no = ? AND tenant_id = ?`,
+    [newPaid, newStatus, link.link_no, link.tenant_id]
   );
-  const bill = await queryOne<any>("SELECT received_amount, receivable_amount FROM t_sale_bill WHERE bill_no = ?", [link.source_no]);
+  const bill = await queryOne<any>("SELECT received_amount, receivable_amount FROM t_sale_bill WHERE bill_no = ? AND tenant_id = ?", [link.source_no, link.tenant_id]);
   if (bill) {
     const newReceived = Number(bill.received_amount) + Number(wxPayAmount);
     const billStatus = newReceived >= Number(bill.receivable_amount) ? "PAID" : "PARTIAL";
     await query(
       `UPDATE t_sale_bill SET received_amount = ?, unreceived_amount = GREATEST(receivable_amount - ?, 0),
-       collection_status = ?, last_payment_time = NOW() WHERE bill_no = ?`,
-      [newReceived, newReceived, billStatus, link.source_no]
+       collection_status = ?, last_payment_time = NOW() WHERE bill_no = ? AND tenant_id = ?`,
+      [newReceived, newReceived, billStatus, link.source_no, link.tenant_id]
     );
   }
   res.json(ok({ payNo, linkNo: link.link_no, status: newStatus, paidAmount: newPaid }));

@@ -254,7 +254,7 @@ describe("trace-records.controller", () => {
     const req = mockReq({ params: { traceCode: "TC123" } });
     const res = mockRes();
     await consumerQueryTrace(req as any, res as any);
-    expect(traceRecordsService.consumerQueryTrace).toHaveBeenCalledWith("TC123", "t1");
+    expect(traceRecordsService.consumerQueryTrace).toHaveBeenCalledWith("TC123");
     expect(ok).toHaveBeenCalled();
   });
 

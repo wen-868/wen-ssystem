@@ -69,7 +69,7 @@ describe("share.controller", () => {
   });
 
   it("getCollectionPage - 应获取收款页面", async () => {
-    (queryOne as any).mockResolvedValue({ linkNo: "LN001", sourceNo: "SB001", amount: 100, paidAmount: 0, status: "PENDING", expireAt: null });
+    (queryOne as any).mockResolvedValue({ linkNo: "LN001", tenantId: "t1", sourceNo: "SB001", amount: 100, paidAmount: 0, status: "PENDING", expireAt: null });
     (query as any).mockResolvedValue([]);
     const req = mockReq({ params: { token: "test-token" } });
     const res = mockRes();
@@ -86,7 +86,7 @@ describe("share.controller", () => {
   });
 
   it("getCollectionPage - 收款单已过期应返回410", async () => {
-    (queryOne as any).mockResolvedValue({ linkNo: "LN001", sourceNo: "SB001", amount: 100, paidAmount: 0, status: "EXPIRED", expireAt: "2020-01-01" });
+    (queryOne as any).mockResolvedValue({ linkNo: "LN001", tenantId: "t1", sourceNo: "SB001", amount: 100, paidAmount: 0, status: "EXPIRED", expireAt: "2020-01-01" });
     const req = mockReq({ params: { token: "test-token" } });
     const res = mockRes();
     await getCollectionPage(req as any, res as any);
@@ -94,7 +94,7 @@ describe("share.controller", () => {
   });
 
   it("getCollectionPage - 收款单已支付应返回400", async () => {
-    (queryOne as any).mockResolvedValue({ linkNo: "LN001", sourceNo: "SB001", amount: 100, paidAmount: 100, status: "PAID", expireAt: null });
+    (queryOne as any).mockResolvedValue({ linkNo: "LN001", tenantId: "t1", sourceNo: "SB001", amount: 100, paidAmount: 100, status: "PAID", expireAt: null });
     const req = mockReq({ params: { token: "test-token" } });
     const res = mockRes();
     await getCollectionPage(req as any, res as any);
@@ -102,7 +102,7 @@ describe("share.controller", () => {
   });
 
   it("getCollectionPage - 收款单已撤销应返回400", async () => {
-    (queryOne as any).mockResolvedValue({ linkNo: "LN001", sourceNo: "SB001", amount: 100, paidAmount: 0, status: "REVOKED", expireAt: null });
+    (queryOne as any).mockResolvedValue({ linkNo: "LN001", tenantId: "t1", sourceNo: "SB001", amount: 100, paidAmount: 0, status: "REVOKED", expireAt: null });
     const req = mockReq({ params: { token: "test-token" } });
     const res = mockRes();
     await getCollectionPage(req as any, res as any);
@@ -110,11 +110,16 @@ describe("share.controller", () => {
   });
 
   it("getCollectionPage - 收款单即将过期应更新状态", async () => {
-    (queryOne as any).mockResolvedValue({ linkNo: "LN001", sourceNo: "SB001", amount: 100, paidAmount: 0, status: "PENDING", expireAt: "2020-01-01" });
+    (queryOne as any).mockResolvedValue({ linkNo: "LN001", tenantId: "t1", sourceNo: "SB001", amount: 100, paidAmount: 0, status: "PENDING", expireAt: "2020-01-01" });
     const req = mockReq({ params: { token: "test-token" } });
     const res = mockRes();
     await getCollectionPage(req as any, res as any);
     expect(res.status).toHaveBeenCalledWith(410);
+    // 验证过期状态更新 SQL 包含 tenant_id 条件
+    expect(query).toHaveBeenCalledWith(
+      "UPDATE t_collection_link SET status = 'EXPIRED' WHERE link_no = ? AND tenant_id = ?",
+      ["LN001", "t1"]
+    );
   });
 
   it("payCollection - 应支付收款", async () => {
@@ -135,7 +140,7 @@ describe("share.controller", () => {
   });
 
   it("wxNotifyCollection - 无resource应使用body字段", async () => {
-    (queryOne as any).mockResolvedValue({ link_no: "LN001", source_no: "SB001", amount: 100, paid_amount: 0, status: "PENDING" });
+    (queryOne as any).mockResolvedValue({ link_no: "LN001", tenant_id: "t1", source_no: "SB001", amount: 100, paid_amount: 0, status: "PENDING" });
     const req = mockReq({
       params: { token: "test-token" },
       body: { payNo: "test-pay", transactionId: "wx123", payAmount: 100 },
@@ -159,7 +164,7 @@ describe("share.controller", () => {
   });
 
   it("wxNotifyCollection - 已支付应返回成功", async () => {
-    (queryOne as any).mockResolvedValue({ link_no: "LN001", source_no: "SB001", amount: 100, paid_amount: 100, status: "PAID" });
+    (queryOne as any).mockResolvedValue({ link_no: "LN001", tenant_id: "t1", source_no: "SB001", amount: 100, paid_amount: 100, status: "PAID" });
     const req = mockReq({
       params: { token: "test-token" },
       body: { payNo: "test-pay", transactionId: "wx123", payAmount: 100 },
@@ -171,7 +176,7 @@ describe("share.controller", () => {
   });
 
   it("wxNotifyCollection - 链接已失效应返回400", async () => {
-    (queryOne as any).mockResolvedValue({ link_no: "LN001", source_no: "SB001", amount: 100, paid_amount: 0, status: "REVOKED" });
+    (queryOne as any).mockResolvedValue({ link_no: "LN001", tenant_id: "t1", source_no: "SB001", amount: 100, paid_amount: 0, status: "REVOKED" });
     const req = mockReq({
       params: { token: "test-token" },
       body: { payNo: "test-pay", transactionId: "wx123", payAmount: 100 },
@@ -183,7 +188,7 @@ describe("share.controller", () => {
   });
 
   it("wxNotifyCollection - 有resource应解密数据", async () => {
-    (queryOne as any).mockResolvedValue({ link_no: "LN001", source_no: "SB001", amount: 100, paid_amount: 0, status: "PENDING" });
+    (queryOne as any).mockResolvedValue({ link_no: "LN001", tenant_id: "t1", source_no: "SB001", amount: 100, paid_amount: 0, status: "PENDING" });
     const req = mockReq({
       params: { token: "test-token" },
       body: { resource: { associated_data: "", nonce: "", ciphertext: "" } },

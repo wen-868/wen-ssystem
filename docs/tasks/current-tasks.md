@@ -156,9 +156,33 @@
 - **优先级**：P2
 - **负责人**：苏然
 - **预计**：1天
-- **状态**：待开始
+- **实际**：0.25天
+- **状态**：✅ 已完成
 - **验收标准**：所有测试通过，分支覆盖率 ≥ 90%
 - **测试范围**：TSC + Vitest + ESLint + 租户隔离专项测试
+- **测试结果**：
+  - 后端 TSC：✅ 0 错误
+  - 后端 Vitest：✅ 414 个文件，4741 个用例全部通过，0 失败
+  - 后端覆盖率：行 96.85% / 语句 96.47% / 函数 95.91% / **分支 90.53%**（达标 ≥90%）
+- **综合通过率**：100%
+
+### R40-09 — 修复 share.controller.ts 租户隔离漏洞 [P1]
+
+- **优先级**：P1
+- **负责人**：阿坚
+- **预计**：0.5天
+- **实际**：0.25天
+- **状态**：✅ 已完成
+- **文件**：`backend/src/controllers/share.controller.ts`、`backend/src/__tests__/controllers/share.controller.test.ts`
+- **问题**：`getCollectionPage` 和 `wxNotifyCollection` 两个函数直接执行 SQL（不通过 service），缺少 tenant_id 过滤（R40-06 遗留）
+- **修复**：
+  1. `getCollectionPage`：SELECT 增加 `tenant_id AS tenantId` 字段，后续 4 处 UPDATE/SELECT 加 `AND tenant_id = ?` 条件，JOIN 加 `st.tenant_id = sb.tenant_id`，响应数据剥离 tenantId
+  2. `wxNotifyCollection`：SELECT 增加 `tenant_id` 字段，后续 4 处 UPDATE/SELECT 加 `AND tenant_id = ?` 条件
+  3. 测试 mock 同步更新：getCollectionPage mock 加 `tenantId: "t1"`，wxNotifyCollection mock 加 `tenant_id: "t1"`
+- **验收标准**：所有 SQL 包含 tenant_id 条件，测试通过
+- **验证结果**：
+  - `npx tsc --noEmit`：✅ 0 错误
+  - share.controller 测试：✅ 15 用例全部通过
 
 ---
 
