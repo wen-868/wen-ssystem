@@ -262,7 +262,7 @@ const form = reactive({
   categoryIds: [] as number[],
   description: "",
   levels: [
-    { name: "一级审核", role: "", approverId: null as number | null, timeLimitHours: 24 }
+    { name: "一级审核", role: "", approverId: undefined as number | undefined, approverName: "", timeLimitHours: 24 }
   ],
   status: "ACTIVE"
 });
@@ -305,7 +305,7 @@ function showCreateDialog() {
   form.name = "";
   form.categoryIds = [];
   form.description = "";
-  form.levels = [{ name: "一级审核", role: "", approverId: null, timeLimitHours: 24 }];
+  form.levels = [{ name: "一级审核", role: "", approverId: undefined, approverName: "", timeLimitHours: 24 }];
   form.status = "ACTIVE";
   dialogVisible.value = true;
 }
@@ -337,7 +337,8 @@ function addLevel() {
   form.levels.push({
     name: `第${idx}级审核`,
     role: "",
-    approverId: null,
+    approverId: undefined,
+    approverName: "",
     timeLimitHours: 24
   });
 }
@@ -377,7 +378,7 @@ function handleSubmit() {
             levels: form.levels.map(l => ({
               ...l,
               approverName: userOptions.find(u => u.id === l.approverId)?.name || ""
-            })),
+            })) as any,
             status: form.status,
             updatedAt: new Date().toLocaleString("zh-CN", { hour12: false }).replace(/\//g, "-")
           };
@@ -394,7 +395,7 @@ function handleSubmit() {
           levels: form.levels.map(l => ({
             ...l,
             approverName: userOptions.find(u => u.id === l.approverId)?.name || ""
-          })),
+          })) as any,
           status: form.status,
           createdAt: new Date().toLocaleString("zh-CN", { hour12: false }).replace(/\//g, "-"),
           updatedAt: new Date().toLocaleString("zh-CN", { hour12: false }).replace(/\//g, "-")

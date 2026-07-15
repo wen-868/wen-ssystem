@@ -60,7 +60,7 @@ export async function fetchDashboard() {
   return data.data;
 }
 
-export async function fetchProducts(params?: { keyword?: string; page?: number; pageSize?: number }) {
+export async function fetchProducts(params?: { keyword?: string; page?: number; pageSize?: number; storeId?: number; categoryId?: number }) {
   const { data } = await api.get("/admin/products", { params: { page: 1, pageSize: 20, ...params } });
   return data.data;
 }
