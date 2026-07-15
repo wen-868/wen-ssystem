@@ -1,4 +1,4 @@
-﻿import crypto from "node:crypto";
+import crypto from "node:crypto";
 import { query, queryOne, transaction } from "../shared/db";
 import { makeBizNo } from "../shared/id";
 import { calcReservation, getInitialMiniappOrderState, completeOrderDelivery, getMemberLevelLabel, shouldReserveStock, computeSellingPrice, type CustomerType } from "../shared/fulfillment";
@@ -243,18 +243,18 @@ export async function getOrderDetail(tenantId: string, orderNo: string, anonymou
 }
 
 // ========== 确认收货 ==========
-export async function confirmReceipt(orderNo: string) {
+export async function confirmReceipt(orderNo: string, tenantId: string) {
   const result = await transaction(async (conn) => {
     const deliveryResult = await completeOrderDelivery(conn, orderNo, null, makeBizNo);
 
     // R9-2: 订单完成时消费追溯码
     const [items]: any[] = await conn.query(
-      `SELECT sku_id FROM t_miniapp_order_item WHERE order_no = ?`,
-      [orderNo]
+      `SELECT sku_id FROM t_miniapp_order_item WHERE order_no = ? AND tenant_id = ?`,
+      [orderNo, tenantId]
     );
     const skuIds = items.map((it: any) => it.sku_id);
     if (skuIds.length > 0) {
-      await updateTraceCodesBySkuList(conn, (deliveryResult as any)?.tenantId || "", orderNo, skuIds);
+      await updateTraceCodesBySkuList(conn, (deliveryResult as any)?.tenantId || tenantId, orderNo, skuIds);
     }
 
     return deliveryResult;

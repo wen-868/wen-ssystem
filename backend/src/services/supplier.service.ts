@@ -1,4 +1,4 @@
-﻿import { query, queryOne, transaction, queryWithTenant, queryOneWithTenant } from "../shared/db";
+import { query, queryOne, transaction, queryWithTenant, queryOneWithTenant } from "../shared/db";
 import { makeBizNo } from "../shared/id";
 import type { ServiceContext, PageResult, PageParams } from "../types/index";
 
@@ -292,8 +292,8 @@ class SupplierService {
     if (!supplier) return null;
 
     const contacts = await query<any>(
-      "SELECT * FROM t_supplier_contact WHERE supplier_id = ? ORDER BY is_primary DESC, id ASC",
-      [id]
+      "SELECT * FROM t_supplier_contact WHERE supplier_id = ? AND tenant_id = ? ORDER BY is_primary DESC, id ASC",
+      [id, ctx.tenantId]
     );
 
     const result = mapSupplierDetailRow(supplier);
@@ -394,14 +394,14 @@ class SupplierService {
 
     if (dto.isPrimary) {
       await query(
-        "UPDATE t_supplier_contact SET is_primary = 0 WHERE supplier_id = ?",
-        [supplierId]
+        "UPDATE t_supplier_contact SET is_primary = 0 WHERE supplier_id = ? AND tenant_id = ?",
+        [supplierId, ctx.tenantId]
       );
     }
 
     const [result] = await query<any>(
-      `INSERT INTO t_supplier_contact (supplier_id, name, mobile, phone, email, wechat, is_primary, position, remark)
-       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+      `INSERT INTO t_supplier_contact (supplier_id, name, mobile, phone, email, wechat, is_primary, position, remark, tenant_id)
+       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
       [
         supplierId,
         dto.name,
@@ -412,6 +412,7 @@ class SupplierService {
         dto.isPrimary ? 1 : 0,
         dto.position || null,
         dto.remark || null,
+        ctx.tenantId,
       ]
     );
 
@@ -431,14 +432,14 @@ class SupplierService {
     if (!supplier) return null;
 
     const contact = await queryOne<SupplierContact>(
-      "SELECT * FROM t_supplier_contact WHERE id = ? AND supplier_id = ?",
-      [contactId, supplierId]
+      "SELECT * FROM t_supplier_contact WHERE id = ? AND supplier_id = ? AND tenant_id = ?",
+      [contactId, supplierId, ctx.tenantId]
     );
     if (!contact) return false;
 
     await query(
-      "DELETE FROM t_supplier_contact WHERE id = ?",
-      [contactId]
+      "DELETE FROM t_supplier_contact WHERE id = ? AND tenant_id = ?",
+      [contactId, ctx.tenantId]
     );
 
     await queryWithTenant(

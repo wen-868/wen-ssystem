@@ -141,10 +141,10 @@ describe("miniapp.controller", () => {
 
   it("confirmReceipt - 应确认收货", async () => {
     (miniappService.confirmReceipt as any).mockResolvedValue({ success: true });
-    const req = mockReq({ params: { orderNo: "ORD001" } });
+    const req = mockReq({ params: { orderNo: "ORD001" }, tenantId: "t1" });
     const res = mockRes();
     await confirmReceipt(req as any, res as any);
-    expect(miniappService.confirmReceipt).toHaveBeenCalledWith("ORD001");
+    expect(miniappService.confirmReceipt).toHaveBeenCalledWith("ORD001", "t1");
     expect(ok).toHaveBeenCalled();
   });
 

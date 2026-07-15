@@ -21,8 +21,9 @@ import { startOrderTimeoutScanner } from "./shared/order-timeout-scanner";
 import { startOverdueScanner } from "./services/overdue-scanner.service";
 import { startSubscriptionExpiryScanner } from "./services/subscription-expiry.service";
 import "./jobs/report-aggregation.job.js";
-import { insertErrorLog } from "./services/admin/error-log.service";
+import { insertErrorLog, cleanupOldLogs } from "./services/admin/error-log.service";
 import { reportToLingZhou } from "./shared/feishu-report";
+import cron from "node-cron";
 // 路由已通过 auto-routes 自动注册，此处不再手动导入
 
 const app = express();
@@ -138,6 +139,16 @@ async function start() {
     startOverdueScanner();
     // 启动订阅到期检测
     startSubscriptionExpiryScanner();
+    // 启动 error_logs 定时清理任务（每天凌晨3点执行）
+    cron.schedule("0 3 * * *", async () => {
+      logger.info("[cron] 开始清理过期错误日志");
+      try {
+        const deletedCount = await cleanupOldLogs(30);
+        logger.info(`[cron] 清理完成，删除了 ${deletedCount} 条过期日志`);
+      } catch (error) {
+        logger.error("[cron] 清理过期错误日志失败:", error);
+      }
+    });
   });
 }
 

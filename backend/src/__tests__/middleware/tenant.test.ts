@@ -1,4 +1,4 @@
-﻿import { describe, it, expect, vi } from "vitest";
+import { describe, it, expect, vi } from "vitest";
 import { tenantMiddleware, getTenantId, setTenantId } from "../../shared/tenant";
 import type { Request, Response, NextFunction } from "express";
 
@@ -53,9 +53,9 @@ describe("tenant middleware", () => {
       expect(getTenantId(req)).toBe("tenant-456");
     });
 
-    it("无 tenantId 时返回 default", () => {
+    it("无 tenantId 时应抛出异常", () => {
       const req = {} as Request;
-      expect(getTenantId(req)).toBe("default");
+      expect(() => getTenantId(req)).toThrow('获取租户ID失败');
     });
   });
 

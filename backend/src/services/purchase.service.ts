@@ -1,4 +1,4 @@
-﻿import { query, queryOne, transaction, queryWithTenant, queryOneWithTenant } from "../shared/db";
+import { query, queryOne, transaction, queryWithTenant, queryOneWithTenant } from "../shared/db";
 import type { ServiceContext, PageResult } from "../types/index";
 import { makeBizNo } from "../shared/id";
 
@@ -273,8 +273,8 @@ class PurchaseService {
               total_amount AS totalAmount, COALESCE(in_stocked_qty, 0) AS inStockedQty,
               remark
        FROM t_purchase_order_item
-       WHERE order_no = ?`,
-      [orderNo]
+       WHERE order_no = ? AND tenant_id = ?`,
+      [orderNo, ctx.tenantId]
     );
 
     return { ...order, items };
@@ -422,13 +422,13 @@ class PurchaseService {
         updates.push("goods_amount = ?", "tax_amount = ?", "payable_amount = ?", "unpaid_amount = ?");
         params.push(goodsAmount, taxAmount, totalAmount, totalAmount);
 
-        await (conn as any).execute("DELETE FROM t_purchase_order_item WHERE order_no = ?", [orderNo]);
+        await (conn as any).execute("DELETE FROM t_purchase_order_item WHERE order_no = ? AND tenant_id = ?", [orderNo, ctx.tenantId]);
         for (const item of itemsWithAmount) {
           await (conn as any).execute(
             `INSERT INTO t_purchase_order_item (
               order_no, sku_id, sku_name, barcode, box_qty, bottle_qty, total_bottle_qty,
-              unit_price, tax_rate, subtotal_amount, tax_amount, total_amount, remark
-            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+              unit_price, tax_rate, subtotal_amount, tax_amount, total_amount, remark, tenant_id
+            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
             [
               orderNo,
               item.skuId,
@@ -443,6 +443,7 @@ class PurchaseService {
               item.taxAmount,
               item.totalAmount,
               item.remark || null,
+              ctx.tenantId,
             ]
           );
         }
@@ -476,7 +477,7 @@ class PurchaseService {
     }
 
     await transaction(async (conn) => {
-      await (conn as any).execute("DELETE FROM t_purchase_order_item WHERE order_no = ?", [orderNo]);
+      await (conn as any).execute("DELETE FROM t_purchase_order_item WHERE order_no = ? AND tenant_id = ?", [orderNo, ctx.tenantId]);
       await (conn as any).execute("DELETE FROM t_purchase_order WHERE order_no = ? AND tenant_id = ?", [orderNo, ctx.tenantId]);
       await (conn as any).execute(
         `INSERT INTO t_operation_log (module, action, target_id, target_type, user_id, user_name, detail, tenant_id)
@@ -595,8 +596,8 @@ class PurchaseService {
       }
 
       const [rows] = (await (conn as any).execute(
-        "SELECT total_bottle_qty, in_stocked_qty FROM t_purchase_order_item WHERE order_no = ?",
-        [orderNo]
+        "SELECT total_bottle_qty, in_stocked_qty FROM t_purchase_order_item WHERE order_no = ? AND tenant_id = ?",
+        [orderNo, ctx.tenantId]
       )) as [Record<string, unknown>[], unknown];
       const totalOrdered = rows.reduce((sum: number, i: any) => sum + Number(i.total_bottle_qty), 0);
       const totalInStocked = rows.reduce((sum: number, i: any) => sum + Number(i.in_stocked_qty || 0), 0);
@@ -606,9 +607,10 @@ class PurchaseService {
         warehouseStatus = "FULL";
       }
 
-      await (conn as any).execute("UPDATE t_purchase_order SET warehouse_status = ?, updated_at = NOW() WHERE order_no = ?", [
+      await (conn as any).execute("UPDATE t_purchase_order SET warehouse_status = ?, updated_at = NOW() WHERE order_no = ? AND tenant_id = ?", [
         warehouseStatus,
         orderNo,
+        ctx.tenantId,
       ]);
 
       await (conn as any).execute(

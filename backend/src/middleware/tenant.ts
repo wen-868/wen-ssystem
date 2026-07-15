@@ -1,4 +1,4 @@
-﻿/**
+/**
  * 租户中间件
  * 从 JWT 中提取 tenantId，挂载到 req 上
  * 所有需要租户隔离的路由都必须经过此中间件
@@ -36,7 +36,11 @@ export function tenantMiddleware(req: TenantRequest, res: Response, next: NextFu
  * @returns 租户ID
  */
 export function getTenantId(req: Request): string {
-  return (req as TenantRequest).tenantId || 'default';
+  const tenantId = (req as TenantRequest).tenantId;
+  if (!tenantId) {
+    throw new Error('获取租户ID失败：请求对象中缺少tenantId，请确保已通过tenantMiddleware中间件');
+  }
+  return tenantId;
 }
 
 /**

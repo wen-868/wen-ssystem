@@ -1,4 +1,4 @@
-﻿import { asyncHandler } from "../../middleware/async-handler";
+import { asyncHandler } from "../../middleware/async-handler";
 import { ok } from "../../shared/response";
 import * as service from "../../services/admin/error-log.service";
 
@@ -24,6 +24,7 @@ export const listErrorLogs = asyncHandler(async (req, res) => {
     keyword: req.query.keyword as string,
     page: Number(req.query.page) || 1,
     pageSize: Number(req.query.pageSize) || 20,
+    tenantId: req.tenantId as string,
   });
   res.json(ok(result));
 });

@@ -1,4 +1,4 @@
-﻿import { z } from "zod";
+import { z } from "zod";
 import { asyncHandler } from "../../middleware/async-handler";
 import { ok } from "../../shared/response";
 import { getSettlementType, type CustomerType } from "../../shared/fulfillment";
@@ -69,7 +69,7 @@ export const getOrderDetail = asyncHandler(async (req, res) => {
 });
 
 export const confirmReceipt = asyncHandler(async (req, res) => {
-  const result = await service.confirmReceipt(req.params.orderNo);
+  const result = await service.confirmReceipt(req.params.orderNo, req.tenantId as string);
   res.json(ok(result));
 });
 

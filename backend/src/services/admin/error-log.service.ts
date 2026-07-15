@@ -1,4 +1,4 @@
-﻿import { query, queryOne } from "../../shared/db";
+import { query, queryOne } from "../../shared/db";
 import logger from "../../shared/logger";
 
 export interface ErrorLogEntry {
@@ -45,10 +45,15 @@ export async function listErrorLogs(params: {
   keyword?: string;
   page: number;
   pageSize: number;
+  tenantId?: string;
 }): Promise<{ items: any[]; total: number }> {
   const conditions: string[] = [];
   const values: any[] = [];
 
+  if (params.tenantId) {
+    conditions.push("tenant_id = ?");
+    values.push(params.tenantId);
+  }
   if (params.error_type) {
     conditions.push("error_type = ?");
     values.push(params.error_type);
