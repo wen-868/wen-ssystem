@@ -2,7 +2,7 @@ import type { Express, Router, RequestHandler } from "express";
 import { readdirSync } from "fs";
 import { fileURLToPath, pathToFileURL } from "url";
 import { dirname, join } from "path";
-import { requireAuth, requireAuthWithTenant } from "../middleware/auth";
+import { requireAuth, requireAuthWithTenant, requirePlatformAuth } from "../middleware/auth";
 import { csrfMiddleware } from "../middleware/csrf";
 import logger from "./logger";
 
@@ -20,9 +20,10 @@ export interface RouteConfig {
   /** 认证方式：
    *  - "requireAuthWithTenant"（默认）：认证 + 租户隔离 + CSRF 防护
    *  - "requireAuth"：仅认证 + CSRF 防护
+   *  - "requirePlatformAuth"：平台总后台认证 + CSRF 防护
    *  - "none"：不添加中间件（路由内部自行处理）
    */
-  auth?: "requireAuthWithTenant" | "requireAuth" | "none";
+  auth?: "requireAuthWithTenant" | "requireAuth" | "requirePlatformAuth" | "none";
 }
 
 /**
@@ -43,6 +44,8 @@ export function getAuthMiddlewares(auth?: RouteConfig["auth"]): RequestHandler[]
       return [requireAuth, csrfMiddleware];
     case "requireAuthWithTenant":
       return [...requireAuthWithTenant, csrfMiddleware];
+    case "requirePlatformAuth":
+      return [requirePlatformAuth, csrfMiddleware];
     case "none":
       return [];
     default:

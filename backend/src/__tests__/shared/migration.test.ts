@@ -62,7 +62,7 @@ vi.mock("bcryptjs", () => ({
   hashSync: mockHashSync,
 }));
 
-import { runMigrations, safeExec, SKIP_ERRORS, TENANT_TABLES } from "../../shared/migration";
+import { runMigrations, safeExec, SKIP_ERRORS, TENANT_TABLES, addTablePrefix } from "../../shared/migration";
 import { env } from "../../shared/env";
 
 function makeMockConn(queryFn: ReturnType<typeof vi.fn> = vi.fn().mockResolvedValue([])): Connection {
@@ -78,8 +78,73 @@ describe("migration - 常量", () => {
 
   it("TENANT_TABLES 应包含多张表", () => {
     expect(TENANT_TABLES.length).toBeGreaterThan(20);
-    expect(TENANT_TABLES).toContain("sys_user");
-    expect(TENANT_TABLES).toContain("store");
+    expect(TENANT_TABLES).toContain("t_sys_user");
+    expect(TENANT_TABLES).toContain("t_store");
+  });
+});
+
+// ========== addTablePrefix ==========
+describe("addTablePrefix", () => {
+  it("CREATE TABLE 应加 t_ 前缀", () => {
+    const sql = "CREATE TABLE sys_user (id INT);";
+    const result = addTablePrefix(sql);
+    expect(result).toContain("CREATE TABLE t_sys_user");
+  });
+
+  it("CREATE TABLE IF NOT EXISTS 应加 t_ 前缀", () => {
+    const sql = "CREATE TABLE IF NOT EXISTS sys_user (id INT);";
+    const result = addTablePrefix(sql);
+    expect(result).toContain("CREATE TABLE IF NOT EXISTS t_sys_user");
+  });
+
+  it("已经是 t_ 前缀的表不应重复添加", () => {
+    const sql = "CREATE TABLE t_sys_user (id INT);";
+    const result = addTablePrefix(sql);
+    expect(result).toContain("CREATE TABLE t_sys_user");
+    expect(result).not.toContain("t_t_sys_user");
+  });
+
+  it("ALTER TABLE 应加 t_ 前缀", () => {
+    const sql = "ALTER TABLE sys_user ADD COLUMN name VARCHAR(50);";
+    const result = addTablePrefix(sql);
+    expect(result).toContain("ALTER TABLE t_sys_user");
+  });
+
+  it("INSERT INTO 应加 t_ 前缀", () => {
+    const sql = "INSERT INTO sys_user (name) VALUES ('test');";
+    const result = addTablePrefix(sql);
+    expect(result).toContain("INSERT INTO t_sys_user");
+  });
+
+  it("UPDATE 应加 t_ 前缀", () => {
+    const sql = "UPDATE sys_user SET name = 'test';";
+    const result = addTablePrefix(sql);
+    expect(result).toContain("UPDATE t_sys_user");
+  });
+
+  it("DELETE FROM 应加 t_ 前缀", () => {
+    const sql = "DELETE FROM sys_user WHERE id = 1;";
+    const result = addTablePrefix(sql);
+    expect(result).toContain("DELETE FROM t_sys_user");
+  });
+
+  it("FROM 子句应加 t_ 前缀", () => {
+    const sql = "SELECT * FROM sys_user;";
+    const result = addTablePrefix(sql);
+    expect(result).toContain("FROM t_sys_user");
+  });
+
+  it("JOIN 应加 t_ 前缀", () => {
+    const sql = "SELECT * FROM sys_user JOIN sys_role ON ...;";
+    const result = addTablePrefix(sql);
+    expect(result).toContain("JOIN t_sys_role");
+  });
+
+  it("information_schema 和 mysql 系统表不应加前缀", () => {
+    const sql = "SELECT * FROM information_schema.COLUMNS;";
+    const result = addTablePrefix(sql);
+    expect(result).toContain("FROM information_schema.COLUMNS");
+    expect(result).not.toContain("t_information_schema");
   });
 });
 
@@ -247,11 +312,11 @@ describe("runMigrations", () => {
     await expect(runMigrations()).resolves.not.toThrow();
   });
 
-  it("应创建 tenant 表", async () => {
+  it("应创建 t_tenant 表", async () => {
     await runMigrations();
 
     const createTableCall = mockQuery.mock.calls.find(
-      (call: unknown[]) => typeof call[0] === "string" && (call[0] as string).includes("CREATE TABLE IF NOT EXISTS tenant")
+      (call: unknown[]) => typeof call[0] === "string" && (call[0] as string).includes("CREATE TABLE IF NOT EXISTS t_tenant")
     );
     expect(createTableCall).toBeDefined();
   });
@@ -285,29 +350,29 @@ describe("runMigrations", () => {
     expect(procCall).toBeUndefined();
   });
 
-  it("应创建 stock_warning 表", async () => {
+  it("应创建 t_stock_warning 表", async () => {
     await runMigrations();
 
     const stockCall = mockQuery.mock.calls.find(
-      (call: unknown[]) => typeof call[0] === "string" && (call[0] as string).includes("CREATE TABLE IF NOT EXISTS stock_warning")
+      (call: unknown[]) => typeof call[0] === "string" && (call[0] as string).includes("CREATE TABLE IF NOT EXISTS t_stock_warning")
     );
     expect(stockCall).toBeDefined();
   });
 
-  it("应创建 error_logs 表", async () => {
+  it("应创建 t_error_logs 表", async () => {
     await runMigrations();
 
     const errorCall = mockQuery.mock.calls.find(
-      (call: unknown[]) => typeof call[0] === "string" && (call[0] as string).includes("CREATE TABLE IF NOT EXISTS error_logs")
+      (call: unknown[]) => typeof call[0] === "string" && (call[0] as string).includes("CREATE TABLE IF NOT EXISTS t_error_logs")
     );
     expect(errorCall).toBeDefined();
   });
 
-  it("应创建 system_feedback 表", async () => {
+  it("应创建 t_system_feedback 表", async () => {
     await runMigrations();
 
     const feedbackCall = mockQuery.mock.calls.find(
-      (call: unknown[]) => typeof call[0] === "string" && (call[0] as string).includes("CREATE TABLE IF NOT EXISTS system_feedback")
+      (call: unknown[]) => typeof call[0] === "string" && (call[0] as string).includes("CREATE TABLE IF NOT EXISTS t_system_feedback")
     );
     expect(feedbackCall).toBeDefined();
   });
@@ -347,12 +412,12 @@ describe("runMigrations", () => {
     expect(shaQuery).toBeDefined();
   });
 
-  it("tenant 表无数据且 name 列存在时应插入默认租户（line 156）", async () => {
+  it("t_tenant 表无数据且 name 列存在时应插入默认租户（line 156）", async () => {
     mockQuery.mockImplementation((sql: unknown) => {
       if (typeof sql === "string" && sql.includes("information_schema.COLUMNS")) {
         return Promise.resolve([[{ cnt: 1 }]]);
       }
-      if (typeof sql === "string" && sql.includes("SELECT id FROM tenant WHERE id = 'default'")) {
+      if (typeof sql === "string" && sql.includes("SELECT id FROM t_tenant WHERE id = 'default'")) {
         return Promise.resolve([[]]);
       }
       return Promise.resolve([{ affectedRows: 0 }]);
@@ -361,17 +426,17 @@ describe("runMigrations", () => {
     await runMigrations();
 
     const insertCall = mockQuery.mock.calls.find(
-      (call: unknown[]) => typeof call[0] === "string" && (call[0] as string).includes("INSERT INTO tenant")
+      (call: unknown[]) => typeof call[0] === "string" && (call[0] as string).includes("INSERT INTO t_tenant")
     );
     expect(insertCall).toBeDefined();
   });
 
-  it("tenant 表有数据且 name 列存在时应更新默认租户名称（line 161）", async () => {
+  it("t_tenant 表有数据且 name 列存在时应更新默认租户名称（line 161）", async () => {
     mockQuery.mockImplementation((sql: unknown) => {
       if (typeof sql === "string" && sql.includes("information_schema.COLUMNS")) {
         return Promise.resolve([[{ cnt: 1 }]]);
       }
-      if (typeof sql === "string" && sql.includes("SELECT id FROM tenant WHERE id = 'default'")) {
+      if (typeof sql === "string" && sql.includes("SELECT id FROM t_tenant WHERE id = 'default'")) {
         return Promise.resolve([[{ id: "default" }]]);
       }
       return Promise.resolve([{ affectedRows: 0 }]);
@@ -380,17 +445,17 @@ describe("runMigrations", () => {
     await runMigrations();
 
     const updateCall = mockQuery.mock.calls.find(
-      (call: unknown[]) => typeof call[0] === "string" && (call[0] as string).includes("UPDATE tenant SET name")
+      (call: unknown[]) => typeof call[0] === "string" && (call[0] as string).includes("UPDATE t_tenant SET name")
     );
     expect(updateCall).toBeDefined();
   });
 
-  it("tenant 表无 name 列时应跳过租户数据操作", async () => {
+  it("t_tenant 表无 name 列时应跳过租户数据操作", async () => {
     mockQuery.mockImplementation((sql: unknown) => {
       if (typeof sql === "string" && sql.includes("information_schema.COLUMNS")) {
         return Promise.resolve([[{ cnt: 0 }]]);
       }
-      if (typeof sql === "string" && sql.includes("SELECT id FROM tenant WHERE id = 'default'")) {
+      if (typeof sql === "string" && sql.includes("SELECT id FROM t_tenant WHERE id = 'default'")) {
         return Promise.resolve([[]]);
       }
       return Promise.resolve([{ affectedRows: 0 }]);
@@ -400,7 +465,7 @@ describe("runMigrations", () => {
 
     expect(mockCreateConnection).toHaveBeenCalled();
     expect(mockLoggerInfo).toHaveBeenCalledWith(
-      "[migration] tenant 表缺少 name 列，跳过租户数据操作"
+      "[migration] t_tenant 表缺少 name 列，跳过租户数据操作"
     );
   });
 

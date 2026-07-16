@@ -11,5 +11,5 @@ platformRouter.get("/tenants", asyncHandler(listPlatformTenants));
 export const routeConfig: RouteConfig = {
   prefix: "/api/platform",
   router: platformRouter,
-  auth: "requireAuthWithTenant",
+  auth: "requirePlatformAuth",
 };

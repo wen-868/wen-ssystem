@@ -1616,7 +1616,8 @@
 - **优先级**：P0
 - **负责人**：阿坚
 - **预计**：0.5天
-- **状态**：⬜ 待开始
+- **实际**：0.5天
+- **状态**：✅ 已完成
 - **前置**：无
 - **详细说明**：
   1. 删除 migration.ts 第 1.5 步"读取 001_phase1_schema.sql 自动加前缀"逻辑
@@ -1624,7 +1625,11 @@
   3. 第 8 步执行 migration SQL 文件时，自动给所有表名加 `t_` 前缀
   4. TENANT_TABLES 数组改为 `t_` 前缀版本
   5. 第 5.5 步无前缀表改为 `t_` 前缀
+  6. 新增 `addTablePrefix()` 工具函数，统一处理 SQL 语句中的表名前缀
 - **验收标准**：全新数据库启动后所有表都以 `t_` 前缀创建，无 ALTER TABLE 报错
+- **验证结果**：
+  - tsc --noEmit：✅ 0 错误
+  - migration + auto-routes 测试：✅ 2 文件 75 用例全部通过
 - **记忆更新**：完成后更新 `阿坚-记忆.md`
 
 ### R47-02 — 统一代码中所有无前缀表名 [P0]
@@ -1704,7 +1709,8 @@
 - **优先级**：P0
 - **负责人**：阿坚
 - **预计**：2小时
-- **状态**：⬜ 待开始
+- **实际**：0.25天
+- **状态**：✅ 已完成
 - **前置**：无
 - **详细说明**：
   - 在 `backend/src/shared/auto-routes.ts` 的 `getAuthMiddlewares()` 中新增 `"requirePlatformAuth"` 选项
@@ -1712,6 +1718,9 @@
   - 导入 `requirePlatformAuth` from `../middleware/auth`
   - **注意**：当前 auto-routes 只识别 `requireAuthWithTenant`、`requireAuth`、`none` 三个值，缺少平台认证
 - **验收标准**：`tsc --noEmit` 0 错误，不影响现有路由
+- **验证结果**：
+  - tsc --noEmit：✅ 0 错误
+  - auto-routes 测试：✅ 30 用例全部通过
 - **记忆更新**：完成后更新 `阿坚-记忆.md`
 
 ### R48-02 — 修复 3 个平台路由的 auth 配置 [P0]
@@ -1719,14 +1728,18 @@
 - **优先级**：P0
 - **负责人**：阿坚
 - **预计**：1小时
-- **状态**：⬜ 待开始
+- **实际**：0.25天
+- **状态**：✅ 已完成
 - **前置**：R48-01 完成后执行
 - **详细说明**：
-  - `platform.routes.ts`（L11-15）：`auth: "requireAuthWithTenant"` → `auth: "requirePlatformAuth"`
-  - `platform-review.routes.ts`（L27-31）：同上，同时删除文件内部手动挂载的 `requireAuthWithTenant`
-  - `platform-reconciliation.routes.ts`（L21-25）：同上，同时删除手动挂载的 `requireAuthWithTenant`
+  - `platform.routes.ts`：`auth: "requireAuthWithTenant"` → `auth: "requirePlatformAuth"`
+  - `platform-review.routes.ts`：同上，同时删除文件内部手动挂载的 `requireAuthWithTenant`
+  - `platform-reconciliation.routes.ts`：同上，同时删除手动挂载的 `requireAuthWithTenant`
   - **踩坑警告**：平台路由绝对不能用 `requireAuthWithTenant`（平台管理员没有 tenantId）
 - **验收标准**：平台管理员能访问，商家管理员返回 403
+- **验证结果**：
+  - tsc --noEmit：✅ 0 错误
+  - 路由正常注册，auth 类型正确
 - **记忆更新**：完成后更新 `阿坚-记忆.md`
 
 ### R48-03 — 修复 3 个 admin-platform 路由的前缀和认证 [P0]

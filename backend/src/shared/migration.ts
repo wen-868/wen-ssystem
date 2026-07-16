@@ -38,32 +38,32 @@ export const SKIP_ERRORS = new Set([
   "ER_TRUNCATED_WRONG_VALUE_FOR_FIELD",
 ]);
 
-/** 需要添加 tenant_id 列的表 */
+/** 需要添加 tenant_id 列的表（全部 t_ 前缀） */
 export const TENANT_TABLES = [
-  "sys_config", "sys_user", "sys_role", "sys_permission", "sys_user_role", "sys_role_permission",
-  "store",
-  "product_category", "product_spu", "product_sku", "product_price", "sku_price",
-  "supplier", "supplier_contact",
-  "member", "customer_price_binding", "customer_credit",
-  "inventory_balance", "inventory_batch", "inventory_ledger",
-  "price_level", "price_change_log",
-  "alert_rule", "alert_record", "expiry_alert_config", "expiry_alert_record",
-  "trace_config", "trace_code", "trace_event_log", "trace_scan_log", "recall_record",
-  "store_control_config", "store_status_log",
-  "sale_bill", "sale_bill_item", "sale_return", "sale_return_item", "sale_payment",
-  "purchase_order", "purchase_order_item", "purchase_in_stock", "purchase_in_stock_item",
-  "purchase_return", "purchase_return_item", "purchase_payment",
-  "supplier_statement", "supplier_statement_item", "customer_statement",
-  "customer_payment", "receivable_account",
-  "payment_order", "refund_order", "hold_order",
-  "miniapp_order", "miniapp_order_item",
-  "collection_link", "collection_view_log", "collection_record",
-  "credit_operation_log",
-  "notification",
-  "operation_log", "product_price_log",
-  "approval_rule", "approval_instance", "approval_task", "approval_log",
-  "approval_approver", "approval_notification",
-  "daily_settlement",
+  "t_sys_config", "t_sys_user", "t_sys_role", "t_sys_permission", "t_sys_user_role", "t_sys_role_permission",
+  "t_store",
+  "t_product_category", "t_product_spu", "t_product_sku", "t_product_price", "t_sku_price",
+  "t_supplier", "t_supplier_contact",
+  "t_member", "t_customer_price_binding", "t_customer_credit",
+  "t_inventory_balance", "t_inventory_batch", "t_inventory_ledger",
+  "t_price_level", "t_price_change_log",
+  "t_alert_rule", "t_alert_record", "t_expiry_alert_config", "t_expiry_alert_record",
+  "t_trace_config", "t_trace_code", "t_trace_event_log", "t_trace_scan_log", "t_recall_record",
+  "t_store_control_config", "t_store_status_log",
+  "t_sale_bill", "t_sale_bill_item", "t_sale_return", "t_sale_return_item", "t_sale_payment",
+  "t_purchase_order", "t_purchase_order_item", "t_purchase_in_stock", "t_purchase_in_stock_item",
+  "t_purchase_return", "t_purchase_return_item", "t_purchase_payment",
+  "t_supplier_statement", "t_supplier_statement_item", "t_customer_statement",
+  "t_customer_payment", "t_receivable_account",
+  "t_payment_order", "t_refund_order", "t_hold_order",
+  "t_miniapp_order", "t_miniapp_order_item",
+  "t_collection_link", "t_collection_view_log", "t_collection_record",
+  "t_credit_operation_log",
+  "t_notification",
+  "t_operation_log", "t_product_price_log",
+  "t_approval_rule", "t_approval_instance", "t_approval_task", "t_approval_log",
+  "t_approval_approver", "t_approval_notification",
+  "t_daily_settlement",
 ];
 
 /** 跳过错误消息模式集合 */
@@ -73,6 +73,32 @@ export const SKIP_PATTERNS = [
   "incorrect integer", "unknown column", "sql syntax", "if not exists",
   "procedure",
 ];
+
+/** 给 SQL 语句中的表名加 t_ 前缀 */
+export function addTablePrefix(sql: string): string {
+  let result = sql;
+  const patterns = [
+    /(CREATE\s+TABLE\s+(?:IF\s+NOT\s+EXISTS\s+)?)([a-z_][a-z0-9_]*)/gi,
+    /(ALTER\s+TABLE\s+)([a-z_][a-z0-9_]*)/gi,
+    /(INSERT\s+INTO\s+)([a-z_][a-z0-9_]*)/gi,
+    /(UPDATE\s+)([a-z_][a-z0-9_]*)/gi,
+    /(DELETE\s+FROM\s+)([a-z_][a-z0-9_]*)/gi,
+    /(FROM\s+)([a-z_][a-z0-9_]*)/gi,
+    /(JOIN\s+)([a-z_][a-z0-9_]*)/gi,
+    /(INTO\s+)([a-z_][a-z0-9_]*)/gi,
+    /(RENAME\s+TABLE\s+)([a-z_][a-z0-9_]*)/gi,
+    /(DROP\s+TABLE\s+(?:IF\s+EXISTS\s+)?)([a-z_][a-z0-9_]*)/gi,
+  ];
+  for (const pattern of patterns) {
+    result = result.replace(pattern, (match, prefix, tableName) => {
+      if (tableName.startsWith("t_") || tableName.startsWith("information_schema") || tableName.startsWith("mysql")) {
+        return match;
+      }
+      return prefix + "t_" + tableName;
+    });
+  }
+  return result;
+}
 
 export async function safeExec(conn: mysql.Connection, sql: string, label: string): Promise<boolean> {
   try {
@@ -172,13 +198,13 @@ export async function runMigrations(): Promise<void> {
     `, "创建 t_sys_user_role 表");
 
     // ============================================================
-    // 第1步：创建/修复 tenant 表
+    // 第1步：创建/修复 t_tenant 表
     // ============================================================
-    logger.info("[migration] 创建/修复 tenant 表...");
+    logger.info("[migration] 创建/修复 t_tenant 表...");
 
     // 先创建表（如果不存在）
     await safeExec(conn, `
-      CREATE TABLE IF NOT EXISTS tenant (
+      CREATE TABLE IF NOT EXISTS t_tenant (
         id VARCHAR(36) PRIMARY KEY COMMENT '租户ID',
         name VARCHAR(100) NOT NULL COMMENT '租户名称',
         contact_name VARCHAR(50) COMMENT '联系人',
@@ -191,9 +217,9 @@ export async function runMigrations(): Promise<void> {
         INDEX idx_tenant_status (status),
         INDEX idx_tenant_expire (expire_at)
       ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='租户表'
-    `, "创建 tenant 表");
+    `, "创建 t_tenant 表");
 
-    // 修复 tenant 表可能缺少的列（旧表可能只有部分列）
+    // 修复 t_tenant 表可能缺少的列（旧表可能只有部分列）
     const tenantColumns = [
       { name: "name", def: "VARCHAR(100) NOT NULL COMMENT '租户名称'" },
       { name: "contact_name", def: "VARCHAR(50) COMMENT '联系人'" },
@@ -206,8 +232,8 @@ export async function runMigrations(): Promise<void> {
     ];
     for (const col of tenantColumns) {
       await safeExec(conn,
-        `ALTER TABLE tenant ADD COLUMN \`${col.name}\` ${col.def}`,
-        `tenant.${col.name}`
+        `ALTER TABLE t_tenant ADD COLUMN \`${col.name}\` ${col.def}`,
+        `t_tenant.${col.name}`
       );
     }
 
@@ -216,64 +242,59 @@ export async function runMigrations(): Promise<void> {
       // 先检查 name 列是否存在
       const [colCheck] = await conn.query(
         `SELECT COUNT(*) AS cnt FROM information_schema.COLUMNS
-         WHERE TABLE_SCHEMA = ? AND TABLE_NAME = 'tenant' AND COLUMN_NAME = 'name'`,
+         WHERE TABLE_SCHEMA = ? AND TABLE_NAME = 't_tenant' AND COLUMN_NAME = 'name'`,
         [env.DB_NAME]
       ) as unknown as Record<string, unknown>[];
       const hasName = ((colCheck[0] as any)?.cnt ?? 0) > 0;
 
-      const [tRows] = await conn.query("SELECT id FROM tenant WHERE id = 'default'") as unknown as Record<string, unknown>[];
+      const [tRows] = await conn.query("SELECT id FROM t_tenant WHERE id = 'default'") as unknown as Record<string, unknown>[];
       if ((tRows as unknown as any[]).length === 0 && hasName) {
         await safeExec(conn, `
-          INSERT INTO tenant (id, name, contact_name, contact_phone, plan, status)
+          INSERT INTO t_tenant (id, name, contact_name, contact_phone, plan, status)
           VALUES ('default', '默认租户', '系统管理员', '13800138000', 'basic', 1)
         `, "插入默认租户");
       } else if ((tRows as unknown as any[]).length > 0 && hasName) {
         await safeExec(conn,
-          `UPDATE tenant SET name = '默认租户' WHERE id = 'default' AND (name IS NULL OR name = '')`,
+          `UPDATE t_tenant SET name = '默认租户' WHERE id = 'default' AND (name IS NULL OR name = '')`,
           "更新默认租户名称"
         );
       } else {
-        logger.info("[migration] tenant 表缺少 name 列，跳过租户数据操作");
+        logger.info("[migration] t_tenant 表缺少 name 列，跳过租户数据操作");
       }
     } catch (e: unknown) {
       logger.error("[migration] 租户数据操作失败:", (e as any).message);
     }
 
     // ============================================================
-    // 第1.5步：执行 schema SQL 创建业务表（带 t_ 前缀）
+    // 第1.5步：从 init_database.sql 创建所有业务表（62张，全部 t_ 前缀）
     // ============================================================
-    logger.info("[migration] 检查/创建业务表...");
+    logger.info("[migration] 检查/创建业务表（init_database.sql）...");
     try {
-      const schemaPath = findSqlFile("001_phase1_schema.sql");
-      if (existsSync(schemaPath)) {
-        let schemaSql = readFileSync(schemaPath, "utf8");
-        // 去掉 DROP TABLE 和 INSERT 语句（不删除已有数据）
-        schemaSql = schemaSql.replace(/DROP\s+TABLE\s+IF\s+EXISTS\s+\w+;/gi, "");
-        schemaSql = schemaSql.replace(/INSERT\s+INTO\s+\w+\s*\([^)]*\)[^;]*;/gi, "");
-        // 把所有 CREATE TABLE 后的表名加 t_ 前缀
-        schemaSql = schemaSql.replace(
-          /CREATE\s+TABLE\s+([A-Za-z_])/gi,
-          (match, p1) => {
-            // 如果表名已经以 t_ 开头，不加
-            if (match.includes("t_")) return match;
-            return match.replace(/CREATE\s+TABLE\s+/, "CREATE TABLE IF NOT EXISTS t_");
-          }
-        );
-        // 给所有 UNIQUE KEY 和 KEY 等的表引用也加 t_ 前缀
-        // 不需要，因为 KEY 只引用当前表内的列
+      const initDbPath = findSqlFile("init_database.sql");
+      if (existsSync(initDbPath)) {
+        let initSql = readFileSync(initDbPath, "utf8");
+        // 去掉 CREATE DATABASE / USE 语句（已在外部选择数据库）
+        initSql = initSql.replace(/CREATE\s+DATABASE[^;]+;/gi, "");
+        initSql = initSql.replace(/USE\s+\w+;/gi, "");
+        initSql = initSql.replace(/SET\s+FOREIGN_KEY_CHECKS[^;]+;/gi, "");
+        initSql = initSql.replace(/SET\s+NAMES[^;]+;/gi, "");
 
-        for (const statement of schemaSql.split(";").map(s => s.trim()).filter(Boolean)) {
-          if (statement.toUpperCase().startsWith("CREATE")) {
-            try {
-              await conn.query(statement);
-            } catch (e: any) {
-              if (!SKIP_ERRORS.has(e.code)) {
-                // 静默跳过已存在的表
-              }
+        // 拆分语句，只执行 CREATE TABLE 语句
+        const statements = initSql
+          .split(";")
+          .map(s => s.trim())
+          .filter(s => s.length > 0 && s.toUpperCase().startsWith("CREATE TABLE"));
+
+        for (const stmt of statements) {
+          try {
+            await conn.query(stmt);
+          } catch (e: any) {
+            if (!SKIP_ERRORS.has(e.code)) {
+              logger.info(`[migration] 跳过表创建: ${e.code}`);
             }
           }
         }
-        logger.info("[migration] 业务表检查/创建完成");
+        logger.info(`[migration] 业务表检查/创建完成（共 ${statements.length} 张表）`);
       }
     } catch (e: unknown) {
       logger.error("[migration] 业务表创建失败:", (e as any).message);
@@ -302,8 +323,8 @@ export async function runMigrations(): Promise<void> {
       "更新 sys_user tenant_id"
     );
     await safeExec(conn,
-      "UPDATE store SET tenant_id = 'default' WHERE tenant_id IS NULL OR tenant_id = ''",
-      "更新 store tenant_id"
+      "UPDATE t_store SET tenant_id = 'default' WHERE tenant_id IS NULL OR tenant_id = ''",
+      "更新 t_store tenant_id"
     );
 
     // ============================================================
@@ -339,9 +360,9 @@ export async function runMigrations(): Promise<void> {
     // ============================================================
     logger.info("[migration] 创建缺失的表和字段...");
 
-    // 5.5.1 创建 stock_warning 表（看板需要）
+    // 5.5.1 创建 t_stock_warning 表（看板需要）
     await safeExec(conn, `
-      CREATE TABLE IF NOT EXISTS stock_warning (
+      CREATE TABLE IF NOT EXISTS t_stock_warning (
         id BIGINT UNSIGNED NOT NULL AUTO_INCREMENT COMMENT '预警ID',
         sku_id BIGINT UNSIGNED NOT NULL COMMENT 'SKU ID',
         sku_name VARCHAR(128) DEFAULT NULL COMMENT 'SKU名称',
@@ -357,7 +378,7 @@ export async function runMigrations(): Promise<void> {
         KEY idx_stock_warning_status (status),
         KEY idx_stock_warning_tenant (tenant_id)
       ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='库存预警表'
-    `, "创建 stock_warning 表");
+    `, "创建 t_stock_warning 表");
 
     // 5.5.1b 创建 t_store_control_config 表（门店管控需要）
     await safeExec(conn, `
@@ -378,7 +399,7 @@ export async function runMigrations(): Promise<void> {
       ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='门店管控配置表'
     `, "创建 t_store_control_config 表");
 
-    // 5.5.2 为 store 表添加缺失字段（门店列表需要）
+    // 5.5.2 为 t_store 表添加缺失字段（门店列表需要）
     const storeColumns = [
       { name: "miniapp_appid", def: "VARCHAR(128) DEFAULT NULL COMMENT '小程序appid'" },
       { name: "wx_merchant_name", def: "VARCHAR(128) DEFAULT NULL COMMENT '微信商户名称'" },
@@ -388,8 +409,8 @@ export async function runMigrations(): Promise<void> {
     ];
     for (const col of storeColumns) {
       await safeExec(conn,
-        `ALTER TABLE store ADD COLUMN \`${col.name}\` ${col.def}`,
-        `store.${col.name}`
+        `ALTER TABLE t_store ADD COLUMN \`${col.name}\` ${col.def}`,
+        `t_store.${col.name}`
       );
     }
 
@@ -417,9 +438,9 @@ export async function runMigrations(): Promise<void> {
       );
     }
 
-    // 5.5.5 创建 system_feedback 表（建议反馈功能）
+    // 5.5.5 创建 t_system_feedback 表（建议反馈功能）
     await safeExec(conn, `
-      CREATE TABLE IF NOT EXISTS system_feedback (
+      CREATE TABLE IF NOT EXISTS t_system_feedback (
         id BIGINT UNSIGNED NOT NULL AUTO_INCREMENT COMMENT '反馈ID',
         type VARCHAR(16) NOT NULL COMMENT '类型: BUG/FEATURE/IMPROVEMENT/OTHER',
         title VARCHAR(200) NOT NULL COMMENT '标题',
@@ -440,11 +461,11 @@ export async function runMigrations(): Promise<void> {
         KEY idx_feedback_tenant (tenant_id),
         KEY idx_feedback_user (user_id)
       ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='用户建议反馈表'
-    `, "创建 system_feedback 表");
+    `, "创建 t_system_feedback 表");
 
-    // 5.5.6 创建 error_logs 表（错误收集系统）
+    // 5.5.6 创建 t_error_logs 表（错误收集系统）
     await safeExec(conn, `
-      CREATE TABLE IF NOT EXISTS error_logs (
+      CREATE TABLE IF NOT EXISTS t_error_logs (
         id BIGINT UNSIGNED NOT NULL AUTO_INCREMENT COMMENT '错误日志ID',
         error_type VARCHAR(64) NOT NULL COMMENT '错误类型',
         severity VARCHAR(16) NOT NULL DEFAULT 'ERROR' COMMENT '严重级别: WARN/ERROR/FATAL',
@@ -464,7 +485,7 @@ export async function runMigrations(): Promise<void> {
         KEY idx_error_logs_tenant (tenant_id),
         KEY idx_error_logs_created (created_at)
       ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='错误日志表'
-    `, "创建 error_logs 表");
+    `, "创建 t_error_logs 表");
 
     // ============================================================
     // 第7步：确保默认管理员账号存在
@@ -581,7 +602,9 @@ export async function runMigrations(): Promise<void> {
             logger.info(`[migration] ${file}: 跳过存储过程语句`);
             continue;
           }
-          await safeExec(conn, stmt, `${file}`);
+          // 自动给所有表名加 t_ 前缀
+          const prefixedStmt = addTablePrefix(stmt);
+          await safeExec(conn, prefixedStmt, `${file}`);
         }
       }
     }

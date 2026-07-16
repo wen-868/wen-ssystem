@@ -14,6 +14,7 @@ vi.mock("../../shared/logger", () => ({
 vi.mock("../../middleware/auth", () => ({
   requireAuth: vi.fn(),
   requireAuthWithTenant: [vi.fn(), vi.fn()],
+  requirePlatformAuth: vi.fn(),
 }));
 
 import { setupRoutes, inferPrefix, getAuthMiddlewares } from "../../shared/auto-routes";
@@ -173,6 +174,12 @@ describe("getAuthMiddlewares", () => {
   it("requireAuthWithTenant 应返回中间件数组", () => {
     const middlewares = getAuthMiddlewares("requireAuthWithTenant");
     expect(Array.isArray(middlewares)).toBe(true);
+  });
+
+  it("requirePlatformAuth 应返回包含 requirePlatformAuth 和 csrfMiddleware 的数组", () => {
+    const middlewares = getAuthMiddlewares("requirePlatformAuth");
+    expect(Array.isArray(middlewares)).toBe(true);
+    expect(middlewares.length).toBe(2);
   });
 
   it("none 应返回空数组", () => {
