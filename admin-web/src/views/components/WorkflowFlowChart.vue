@@ -23,7 +23,7 @@
           class="flow-node approval-node"
           :class="{
             'is-current': currentLevel === index,
-            'is-approved': approvedLevels.includes(index),
+            'is-approved': approvedLevels?.includes(index),
             'is-rejected': rejectedLevel === index
           }"
           @mouseenter="hoverIndex = index"
@@ -52,7 +52,7 @@
               <span class="tooltip-label">审核时限：</span>
               <span class="tooltip-value">{{ level.timeLimitHours || 24 }}小时</span>
             </div>
-            <div v-if="approvedLevels.includes(index)" class="tooltip-row">
+            <div v-if="approvedLevels?.includes(index)" class="tooltip-row">
               <span class="tooltip-label">审核状态：</span>
               <span class="tooltip-value" style="color: #67c23a">已通过</span>
             </div>
