@@ -9,7 +9,7 @@ adminPlatformAuditLogRouter.get("/", asyncHandler(controller.listAuditLogs));
 adminPlatformAuditLogRouter.get("/:id", asyncHandler(controller.getAuditLogById));
 
 export const routeConfig: RouteConfig = {
-  prefix: "/api/admin/platform-audit-logs",
+  prefix: "/api/platform/audit-logs",
   router: adminPlatformAuditLogRouter,
-  auth: "requireAuth",
+  auth: "requirePlatformAuth",
 };

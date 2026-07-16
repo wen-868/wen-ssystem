@@ -13,7 +13,7 @@ adminPlatformAnnouncementRouter.delete("/:id", asyncHandler(controller.deleteAnn
 adminPlatformAnnouncementRouter.post("/:id/publish", asyncHandler(controller.togglePublish));
 
 export const routeConfig: RouteConfig = {
-  prefix: "/api/admin/platform-announcements",
+  prefix: "/api/platform/announcements",
   router: adminPlatformAnnouncementRouter,
-  auth: "requireAuth",
+  auth: "requirePlatformAuth",
 };

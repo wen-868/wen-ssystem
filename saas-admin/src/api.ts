@@ -192,7 +192,7 @@ export function updatePlatformConfig(data: any) {
 
 // ==================== 操作日志 ====================
 export function getAuditLogs(params?: { keyword?: string; action?: string; userId?: number; page?: number; pageSize?: number }) {
-  return api.get<any, { data: ApiResult<any> }>("/admin/audit-logs", { params: { page: 1, pageSize: 20, ...params } });
+  return api.get<any, { data: ApiResult<any> }>("/platform/audit-logs", { params: { page: 1, pageSize: 20, ...params } });
 }
 
 // ==================== 监控告警 ====================
@@ -219,11 +219,11 @@ export function getAnnouncements(params?: {
   status?: string;
   keyword?: string;
 }) {
-  return api.get<any, { data: ApiResult<PaginatedResult<any>> }>("/admin/platform/announcements", { params: { page: 1, pageSize: 20, ...params } });
+  return api.get<any, { data: ApiResult<PaginatedResult<any>> }>("/platform/announcements", { params: { page: 1, pageSize: 20, ...params } });
 }
 
 export function getAnnouncementDetail(id: number) {
-  return api.get<any, { data: ApiResult<any> }>(`/admin/platform/announcements/${id}`);
+  return api.get<any, { data: ApiResult<any> }>(`/platform/announcements/${id}`);
 }
 
 export function createAnnouncement(data: {
@@ -234,15 +234,15 @@ export function createAnnouncement(data: {
   startTime?: string;
   endTime?: string;
 }) {
-  return api.post<any, { data: ApiResult<any> }>("/admin/platform/announcements", data);
+  return api.post<any, { data: ApiResult<any> }>("/platform/announcements", data);
 }
 
 export function updateAnnouncement(id: number, data: any) {
-  return api.put<any, { data: ApiResult<any> }>(`/admin/platform/announcements/${id}`, data);
+  return api.put<any, { data: ApiResult<any> }>(`/platform/announcements/${id}`, data);
 }
 
 export function deleteAnnouncement(id: number) {
-  return api.delete<any, { data: ApiResult<any> }>(`/admin/platform/announcements/${id}`);
+  return api.delete<any, { data: ApiResult<any> }>(`/platform/announcements/${id}`);
 }
 
 // ==================== 平台评价 ====================

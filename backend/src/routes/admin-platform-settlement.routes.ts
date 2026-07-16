@@ -12,7 +12,7 @@ adminPlatformSettlementRouter.post("/", asyncHandler(controller.createSettlement
 adminPlatformSettlementRouter.put("/:id", asyncHandler(controller.updateSettlementStatus));
 
 export const routeConfig: RouteConfig = {
-  prefix: "/api/admin/platform-settlements",
+  prefix: "/api/platform/settlements",
   router: adminPlatformSettlementRouter,
-  auth: "requireAuth",
+  auth: "requirePlatformAuth",
 };
