@@ -47,7 +47,7 @@ export async function listCareLogs(params: { customerId?: number; page: number; 
   const records = await queryWithTenant<any>(
     `SELECT cl.id, cl.customer_id AS customerId, m.name AS customerName, cl.rule_id AS ruleId, cr.rule_name AS ruleName, cl.trigger_type AS triggerType, cl.sent_content AS sentContent, cl.sent_at AS sentAt, cl.status
      FROM customer_care_log cl
-     LEFT JOIN member m ON m.id = cl.customer_id
+     LEFT JOIN t_member m ON m.id = cl.customer_id
      LEFT JOIN customer_care_rule cr ON cr.id = cl.rule_id
      ${where} ORDER BY cl.created_at DESC LIMIT ? OFFSET ?`,
     [...values, pageSize, offset], tenantId
@@ -66,7 +66,7 @@ export async function executeCareRule(ruleId: number, tenantId: string) {
   let targetCustomers: any[] = [];
   if (rule.triggerType === "BIRTHDAY") {
     targetCustomers = await queryWithTenant<any>(
-      "SELECT id FROM member WHERE tenant_id = ? AND DATE_FORMAT(birthday, '%m-%d') = DATE_FORMAT(NOW(), '%m-%d')",
+      "SELECT id FROM t_member WHERE tenant_id = ? AND DATE_FORMAT(birthday, '%m-%d') = DATE_FORMAT(NOW(), '%m-%d')",
       [tenantId], tenantId
     );
   } else if (rule.triggerType === "INACTIVE") {
@@ -80,7 +80,7 @@ export async function executeCareRule(ruleId: number, tenantId: string) {
       [tenantId], tenantId
     );
   } else {
-    targetCustomers = await queryWithTenant<any>("SELECT id FROM member WHERE tenant_id = ?", [tenantId], tenantId);
+    targetCustomers = await queryWithTenant<any>("SELECT id FROM t_member WHERE tenant_id = ?", [tenantId], tenantId);
   }
   const logs: any[] = [];
   for (const c of targetCustomers) {

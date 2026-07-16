@@ -8,7 +8,7 @@ export async function checkStock(storeId: number, items: OrderItem[], tenantId: 
   const shortages: Array<{ productId: number; stock: number }> = [];
   for (const item of items) {
     const product = await queryOneWithTenant<any>(
-      "SELECT id, stock FROM retail_product WHERE id = ? AND store_id = ? AND tenant_id = ?",
+      "SELECT id, stock FROM t_retail_product WHERE id = ? AND store_id = ? AND tenant_id = ?",
       [item.product_id, storeId, tenantId], tenantId
     );
     if (!product || product.stock < item.quantity) {
@@ -21,7 +21,7 @@ export async function checkStock(storeId: number, items: OrderItem[], tenantId: 
 // 处理缺货 - 自动拒单
 export async function handleShortage(orderNo: string, platform: string, platformOrderId: string, reason: string, tenantId: string) {
   await queryWithTenant(
-    "UPDATE retail_order SET order_status = 'CANCELLED', cancel_reason = ? WHERE order_no = ? AND tenant_id = ?",
+    "UPDATE t_retail_order SET order_status = 'CANCELLED', cancel_reason = ? WHERE order_no = ? AND tenant_id = ?",
     [reason, orderNo, tenantId], tenantId
   );
   return { orderNo, cancelled: true, reason };
@@ -41,7 +41,7 @@ export async function confirmOrderWithStockCheck(orderNo: string, storeId: numbe
     return { success: false, reason: "库存扣减失败" };
   }
   await queryWithTenant(
-    "UPDATE retail_order SET order_status = 'ACCEPTED' WHERE order_no = ? AND tenant_id = ?",
+    "UPDATE t_retail_order SET order_status = 'ACCEPTED' WHERE order_no = ? AND tenant_id = ?",
     [orderNo, tenantId], tenantId
   );
   return { success: true };
@@ -51,7 +51,7 @@ export async function confirmOrderWithStockCheck(orderNo: string, storeId: numbe
 export async function cancelOrderWithRestore(orderNo: string, reason: string, items: OrderItem[], tenantId: string) {
   await batchRestoreStock(items.map(i => ({ productId: i.product_id, quantity: i.quantity })), tenantId);
   await queryWithTenant(
-    "UPDATE retail_order SET order_status = 'CANCELLED', cancel_reason = ? WHERE order_no = ? AND tenant_id = ?",
+    "UPDATE t_retail_order SET order_status = 'CANCELLED', cancel_reason = ? WHERE order_no = ? AND tenant_id = ?",
     [reason, orderNo, tenantId], tenantId
   );
   return { orderNo, cancelled: true };

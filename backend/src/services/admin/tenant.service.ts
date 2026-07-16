@@ -32,7 +32,7 @@ export async function listTenants(params: {
             t.source, t.status, t.suspend_reason AS suspendReason,
             t.suspended_at AS suspendedAt, t.expire_at AS expireAt,
             t.remark, t.created_at AS createdAt, t.updated_at AS updatedAt
-     FROM tenant t
+     FROM t_tenant t
      ${where}
      ORDER BY t.created_at DESC
      LIMIT ? OFFSET ?`,
@@ -40,7 +40,7 @@ export async function listTenants(params: {
   );
 
   const totalRow = await queryOne<any>(
-    `SELECT COUNT(*) AS total FROM tenant t ${where}`,
+    `SELECT COUNT(*) AS total FROM t_tenant t ${where}`,
     queryParams
   );
 
@@ -65,7 +65,7 @@ export async function getTenantDetail(tenantId: number) {
             t.source, t.status, t.suspend_reason AS suspendReason,
             t.suspended_at AS suspendedAt, t.expire_at AS expireAt,
             t.remark, t.created_at AS createdAt, t.updated_at AS updatedAt
-     FROM tenant t
+     FROM t_tenant t
      WHERE t.id = ?`,
     [tenantId]
   );
@@ -99,7 +99,7 @@ export async function createTenant(body: {
 
   await transaction(async (conn) => {
     const [result] = await conn.execute(
-      `INSERT INTO tenant (
+      `INSERT INTO t_tenant (
         tenant_code, company_name, company_short_name,
         contact_person, contact_mobile, contact_email,
         province, city, district, address,
@@ -138,7 +138,7 @@ export async function updateTenant(tenantId: number, body: {
   companyScale?: string; remark?: string;
 }, userId: number, username: string) {
   const existing = await queryOne<any>(
-    "SELECT id FROM tenant WHERE id = ?",
+    "SELECT id FROM t_tenant WHERE id = ?",
     [tenantId]
   );
   if (!existing) {
@@ -176,7 +176,7 @@ export async function updateTenant(tenantId: number, body: {
   if (updates.length > 0) {
     params.push(tenantId);
     await query(
-      `UPDATE tenant SET ${updates.join(", ")}, updated_at = NOW() WHERE id = ?`,
+      `UPDATE t_tenant SET ${updates.join(", ")}, updated_at = NOW() WHERE id = ?`,
       params
     );
 
@@ -192,7 +192,7 @@ export async function updateTenant(tenantId: number, body: {
     `SELECT id, tenant_code AS tenantCode, company_name AS companyName,
             contact_person AS contactPerson, contact_mobile AS contactMobile,
             status, updated_at AS updatedAt
-     FROM tenant WHERE id = ?`,
+     FROM t_tenant WHERE id = ?`,
     [tenantId]
   );
 
@@ -204,7 +204,7 @@ export async function changeTenantStatus(tenantId: number, body: {
   status: string; reason?: string;
 }, userId: number, username: string) {
   const existing = await queryOne<any>(
-    "SELECT id, status FROM tenant WHERE id = ?",
+    "SELECT id, status FROM t_tenant WHERE id = ?",
     [tenantId]
   );
   if (!existing) {
@@ -223,7 +223,7 @@ export async function changeTenantStatus(tenantId: number, body: {
 
   params.push(tenantId);
   await query(
-    `UPDATE tenant SET ${updates.join(", ")} WHERE id = ?`,
+    `UPDATE t_tenant SET ${updates.join(", ")} WHERE id = ?`,
     params
   );
 
@@ -237,7 +237,7 @@ export async function changeTenantStatus(tenantId: number, body: {
   const record = await queryOne<any>(
     `SELECT id, tenant_code AS tenantCode, company_name AS companyName,
             status, suspend_reason AS suspendReason, suspended_at AS suspendedAt
-     FROM tenant WHERE id = ?`,
+     FROM t_tenant WHERE id = ?`,
     [tenantId]
   );
 
@@ -267,7 +267,7 @@ export async function setTenantModules(tenantId: number, body: {
   }>;
 }, userId: number, username: string) {
   const existing = await queryOne<any>(
-    "SELECT id FROM tenant WHERE id = ?",
+    "SELECT id FROM t_tenant WHERE id = ?",
     [tenantId]
   );
   if (!existing) {

@@ -46,8 +46,8 @@ export async function getStats(): Promise<UsageStats> {
   const row = await queryOne<any>(
     `SELECT
        (SELECT COUNT(DISTINCT tenant_id) FROM t_sys_user_login WHERE DATE(login_at) >= DATE_SUB(NOW(), INTERVAL 7 DAY)) AS activeTenants,
-       (SELECT COUNT(*) FROM sale_order) AS totalOrders,
-       (SELECT IFNULL(SUM(pay_amount), 0) FROM sale_order WHERE pay_status = 1) AS totalSales,
+       (SELECT COUNT(*) FROM t_sale_order) AS totalOrders,
+       (SELECT IFNULL(SUM(pay_amount), 0) FROM t_sale_order WHERE pay_status = 1) AS totalSales,
        (SELECT COUNT(*) FROM t_sys_user_login) AS totalLogins
      FROM DUAL`
   );
@@ -151,7 +151,7 @@ export async function getRanking(params: RankingParams) {
   const where = conditions.join(" AND ");
 
   const totalRow = await queryOne<any>(
-    `SELECT COUNT(*) AS total FROM tenant t WHERE ${where}`,
+    `SELECT COUNT(*) AS total FROM t_tenant t WHERE ${where}`,
     sqlParams
   );
   const total = Number(totalRow?.total ?? 0);
@@ -159,10 +159,10 @@ export async function getRanking(params: RankingParams) {
   const records = await query<any[]>(
     `SELECT t.tenant_id AS tenantId, t.tenant_name AS tenantName,
             (SELECT COUNT(*) FROM t_sys_user_login l WHERE l.tenant_id = t.tenant_id) AS loginCount,
-            (SELECT COUNT(*) FROM sale_order o WHERE o.tenant_id = t.tenant_id) AS orderCount,
-            (SELECT IFNULL(SUM(o.pay_amount), 0) FROM sale_order o WHERE o.tenant_id = t.tenant_id AND o.pay_status = 1) AS salesAmount,
+            (SELECT COUNT(*) FROM t_sale_order o WHERE o.tenant_id = t.tenant_id) AS orderCount,
+            (SELECT IFNULL(SUM(o.pay_amount), 0) FROM t_sale_order o WHERE o.tenant_id = t.tenant_id AND o.pay_status = 1) AS salesAmount,
             (SELECT MAX(l.login_at) FROM t_sys_user_login l WHERE l.tenant_id = t.tenant_id) AS lastActiveAt
-     FROM tenant t
+     FROM t_tenant t
      WHERE ${where}
      ORDER BY loginCount DESC
      LIMIT ? OFFSET ?`,

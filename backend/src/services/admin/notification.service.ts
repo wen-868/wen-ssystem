@@ -15,7 +15,7 @@ export async function sendNotification(
   params: SendNotificationParams
 ): Promise<number> {
   const [result] = await pool.query(
-    `INSERT INTO notification (recipient_id, recipient_type, title, content, type, related_id, related_type, tenant_id)
+    `INSERT INTO t_notification (recipient_id, recipient_type, title, content, type, related_id, related_type, tenant_id)
      VALUES (?, ?, ?, ?, ?, ?, ?, ?)`,
     [
       params.recipientId,
@@ -58,7 +58,7 @@ export async function listNotifications(
             n.related_id AS relatedId, n.related_type AS relatedType,
             n.is_read AS isRead, n.sent_at AS sentAt, n.read_at AS readAt,
             n.created_at AS createdAt
-     FROM notification n
+     FROM t_notification n
      ${where}
      ORDER BY n.sent_at DESC
      LIMIT ? OFFSET ?`,
@@ -66,7 +66,7 @@ export async function listNotifications(
   );
 
   const totalRow = await queryOne<any>(
-    `SELECT COUNT(*) AS total FROM notification n ${where}`,
+    `SELECT COUNT(*) AS total FROM t_notification n ${where}`,
     params
   );
 
@@ -80,7 +80,7 @@ export async function listNotifications(
 
 export async function getUnreadCount(tenantId: string, userId: number) {
   const count = await queryOne<any>(
-    `SELECT COUNT(*) AS count FROM notification WHERE recipient_id = ? AND recipient_type = 'ADMIN' AND is_read = 0 AND tenant_id = ?`,
+    `SELECT COUNT(*) AS count FROM t_notification WHERE recipient_id = ? AND recipient_type = 'ADMIN' AND is_read = 0 AND tenant_id = ?`,
     [userId, tenantId]
   );
   return { count: Number(count?.count ?? 0) };
@@ -114,7 +114,7 @@ export async function listMyNotifications(
     `SELECT id, title, content, type,
             related_id AS relatedId, related_type AS relatedType,
             is_read AS isRead, sent_at AS sentAt, read_at AS readAt
-     FROM notification
+     FROM t_notification
      WHERE recipient_id = ? AND recipient_type = 'CONSUMER' AND tenant_id = ?
      ORDER BY sent_at DESC
      LIMIT ? OFFSET ?`,
@@ -122,7 +122,7 @@ export async function listMyNotifications(
   );
 
   const totalRow = await queryOne<any>(
-    `SELECT COUNT(*) AS total FROM notification WHERE recipient_id = ? AND recipient_type = 'CONSUMER' AND tenant_id = ?`,
+    `SELECT COUNT(*) AS total FROM t_notification WHERE recipient_id = ? AND recipient_type = 'CONSUMER' AND tenant_id = ?`,
     [userId, tenantId]
   );
 
@@ -136,7 +136,7 @@ export async function listMyNotifications(
 
 export async function getMyUnreadCount(tenantId: string, userId: number) {
   const count = await queryOne<any>(
-    `SELECT COUNT(*) AS count FROM notification WHERE recipient_id = ? AND recipient_type = 'CONSUMER' AND is_read = 0 AND tenant_id = ?`,
+    `SELECT COUNT(*) AS count FROM t_notification WHERE recipient_id = ? AND recipient_type = 'CONSUMER' AND is_read = 0 AND tenant_id = ?`,
     [userId, tenantId]
   );
   return { count: Number(count?.count ?? 0) };

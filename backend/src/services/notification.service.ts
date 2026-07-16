@@ -17,7 +17,7 @@ export async function sendNotification(
   params: SendNotificationParams
 ): Promise<number> {
   const [result] = await dbPool.query(
-    `INSERT INTO notification (recipient_id, recipient_type, title, content, type, related_id, related_type, tenant_id)
+    `INSERT INTO t_notification (recipient_id, recipient_type, title, content, type, related_id, related_type, tenant_id)
      VALUES (?, ?, ?, ?, ?, ?, ?, ?)`,
     [
       params.recipientId,

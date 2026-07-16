@@ -47,7 +47,7 @@ export async function getStoreSalesPerformance(tenantId: string) {
     `SELECT s.id AS storeId, s.name AS storeName,
             COALESCE(SUM(sb.receivable_amount), 0) AS totalSales,
             COUNT(DISTINCT sb.bill_no) AS billCount
-     FROM store s
+     FROM t_store s
      LEFT JOIN t_sale_bill sb ON sb.store_id = s.id AND sb.tenant_id = ?
      WHERE s.tenant_id = ?
      GROUP BY s.id, s.name`,
@@ -63,7 +63,7 @@ export async function getInventoryAlerts(tenantId: string) {
             ib.sku_id AS skuId, ps.sku_name AS skuName,
             ib.stock_type AS stockType, ib.available_qty AS availableQty
      FROM t_inventory_balance ib
-     LEFT JOIN store s ON s.id = ib.store_id
+     LEFT JOIN t_store s ON s.id = ib.store_id
      LEFT JOIN t_product_sku ps ON ps.id = ib.sku_id
      WHERE ib.tenant_id = ? AND ib.available_qty <= 5
      ORDER BY ib.available_qty ASC, ib.store_id`,
@@ -106,7 +106,7 @@ export async function listInventoryBalance(
             ib.physical_qty AS physicalQty, ib.available_qty AS availableQty,
             ib.locked_qty AS lockedQty
      FROM t_inventory_balance ib
-     LEFT JOIN store s ON s.id = ib.store_id
+     LEFT JOIN t_store s ON s.id = ib.store_id
      LEFT JOIN t_product_sku ps ON ps.id = ib.sku_id
      LEFT JOIN t_product_spu psp ON psp.id = ps.spu_id
      ${where}
@@ -309,7 +309,7 @@ export async function getPurchaseSummary(tenantId: string, startDate?: string, e
             COALESCE(SUM(po.goods_amount), 0) AS totalAmount,
             COUNT(DISTINCT po.order_no) AS orderCount
      FROM t_purchase_order po
-     LEFT JOIN supplier s ON s.id = po.supplier_id
+     LEFT JOIN t_supplier s ON s.id = po.supplier_id
      ${where}
      GROUP BY po.supplier_id, s.name
      ORDER BY totalAmount DESC`,
@@ -354,7 +354,7 @@ export async function getSupplierRanking(tenantId: string, startDate?: string, e
             COALESCE(SUM(po.goods_amount), 0) AS totalAmount,
             COUNT(DISTINCT po.order_no) AS orderCount
      FROM t_purchase_order po
-     LEFT JOIN supplier s ON s.id = po.supplier_id
+     LEFT JOIN t_supplier s ON s.id = po.supplier_id
      ${where}
      GROUP BY po.supplier_id, s.name
      ORDER BY totalAmount DESC`,
@@ -406,7 +406,7 @@ export async function getInventoryAge(tenantId: string, storeId?: number) {
                  ELSE '90天以上' END AS ageGroup
      FROM t_inventory_balance ib
      JOIN t_product_sku ps ON ps.id = ib.sku_id
-     LEFT JOIN store st ON st.id = ib.store_id
+     LEFT JOIN t_store st ON st.id = ib.store_id
      LEFT JOIN t_inventory_batch ibat ON ibat.sku_id = ib.sku_id AND ibat.tenant_id = ib.tenant_id
      WHERE ib.tenant_id = ? ${storeCondition} AND ib.physical_qty > 0
      ORDER BY ageDays DESC`,

@@ -78,7 +78,7 @@ export async function listSegmentMembers(params: { segmentId: number; page: numb
   const records = await queryWithTenant<any>(
     `SELECT csm.customer_id AS customerId, m.name AS customerName, m.mobile, cp.member_level AS memberLevel, cp.total_points AS totalPoints, cp.lifecycle_stage AS lifecycleStage
      FROM customer_segment_member csm
-     LEFT JOIN member m ON m.id = csm.customer_id
+     LEFT JOIN t_member m ON m.id = csm.customer_id
      LEFT JOIN customer_profile cp ON cp.customer_id = csm.customer_id AND cp.tenant_id = csm.tenant_id
      WHERE csm.segment_id = ? AND csm.tenant_id = ?
      ORDER BY cp.total_order_count DESC LIMIT ? OFFSET ?`,

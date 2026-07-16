@@ -28,7 +28,7 @@ export async function listOrders(
   const records = await queryWithTenant<any>(
     `SELECT platform_order_id AS platformOrderId, platform, store_id AS storeId,
             status, order_data_json AS orderDataJson, created_at AS createdAt, updated_at AS updatedAt
-     FROM platform_order
+     FROM t_platform_order
      ${where}
      ORDER BY created_at DESC
      LIMIT ? OFFSET ?`,
@@ -36,7 +36,7 @@ export async function listOrders(
     tenantId
   );
   const totalRow = await queryOneWithTenant<any>(
-    `SELECT COUNT(*) AS total FROM platform_order ${where}`,
+    `SELECT COUNT(*) AS total FROM t_platform_order ${where}`,
     params,
     tenantId
   );
@@ -47,7 +47,7 @@ export async function getOrderDetail(platformOrderId: string, tenantId: string) 
   const order = await queryOneWithTenant<any>(
     `SELECT platform_order_id AS platformOrderId, platform, store_id AS storeId,
             status, order_data_json AS orderDataJson, created_at AS createdAt, updated_at AS updatedAt
-     FROM platform_order WHERE platform_order_id = ? LIMIT 1`,
+     FROM t_platform_order WHERE platform_order_id = ? LIMIT 1`,
     [platformOrderId],
     tenantId
   );
@@ -56,7 +56,7 @@ export async function getOrderDetail(platformOrderId: string, tenantId: string) 
 
 export async function confirmOrder(platformOrderId: string, tenantId: string) {
   const row = await queryOneWithTenant<any>(
-    `SELECT platform, store_id AS storeId, status FROM platform_order WHERE platform_order_id = ? LIMIT 1`,
+    `SELECT platform, store_id AS storeId, status FROM t_platform_order WHERE platform_order_id = ? LIMIT 1`,
     [platformOrderId],
     tenantId
   );
@@ -84,7 +84,7 @@ export async function cancelOrder(platformOrderId: string, reason: string | unde
   z.object({ reason: z.string().optional() }).parse({ reason });
 
   const row = await queryOneWithTenant<any>(
-    `SELECT platform, store_id AS storeId, status FROM platform_order WHERE platform_order_id = ? LIMIT 1`,
+    `SELECT platform, store_id AS storeId, status FROM t_platform_order WHERE platform_order_id = ? LIMIT 1`,
     [platformOrderId],
     tenantId
   );

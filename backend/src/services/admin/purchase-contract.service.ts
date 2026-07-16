@@ -19,7 +19,7 @@ export async function listPurchaseContracts(params: {
             pc.start_date AS startDate, pc.end_date AS endDate,
             pc.status, pc.file_url AS fileUrl, pc.remark, pc.created_at AS createdAt
      FROM purchase_contract pc
-     LEFT JOIN supplier s ON s.id = pc.supplier_id
+     LEFT JOIN t_supplier s ON s.id = pc.supplier_id
      ${where}
      ORDER BY pc.created_at DESC
      LIMIT ? OFFSET ?`,

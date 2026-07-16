@@ -122,7 +122,7 @@ export async function previewQuote(
   if (filter.customerId) {
     const customer = await queryOneWithTenant<any>(
       `SELECT m.id, m.name, cpb.price_level_id, pl.level_name
-       FROM member m
+       FROM t_member m
        LEFT JOIN t_customer_price_binding cpb
          ON cpb.customer_id = m.id AND cpb.status = 'APPROVED' AND cpb.tenant_id = m.tenant_id
        LEFT JOIN t_price_level pl ON pl.id = cpb.price_level_id AND pl.tenant_id = m.tenant_id
@@ -233,7 +233,7 @@ export async function createQuote(
 
     // 获取客户信息
     const [customerRows] = await conn.query<any[]>(
-      "SELECT name, phone FROM member WHERE id = ? AND tenant_id = ?",
+      "SELECT name, phone FROM t_member WHERE id = ? AND tenant_id = ?",
       [params.customerId, tenantId]
     );
     const customer = customerRows[0];

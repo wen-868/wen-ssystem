@@ -37,7 +37,7 @@ export async function handleWebhook(platform: PlatformType, rawBody: any, signat
 
   await transaction(async (conn) => {
     await conn.execute(
-      `INSERT INTO platform_order
+      `INSERT INTO t_platform_order
          (platform_order_id, platform, store_id, status, order_data_json, created_at, updated_at)
        VALUES (?, ?, ?, ?, ?, NOW(), NOW())
        ON DUPLICATE KEY UPDATE
@@ -101,7 +101,7 @@ export async function handleWebhook(platform: PlatformType, rawBody: any, signat
 export async function getPlatforms(tenantId: string) {
   const rows = await queryWithTenant<any>(
     `SELECT platform, store_id AS storeId, enabled, merchant_id AS merchantId, updated_at AS updatedAt
-     FROM platform_config
+     FROM t_platform_config
      ORDER BY platform`,
     [],
     tenantId
@@ -125,7 +125,7 @@ export async function getConfigs(tenantId: string) {
     `SELECT id, platform, store_id AS storeId, app_key AS appKey, app_secret AS appSecret,
             merchant_id AS merchantId, enabled, config_json AS configJson,
             created_at AS createdAt, updated_at AS updatedAt
-     FROM platform_config
+     FROM t_platform_config
      ORDER BY platform`,
     [],
     tenantId
@@ -140,7 +140,7 @@ export async function getConfigByPlatform(platform: string, tenantId: string) {
     `SELECT id, platform, store_id AS storeId, app_key AS appKey, app_secret AS appSecret,
             merchant_id AS merchantId, enabled, config_json AS configJson,
             created_at AS createdAt, updated_at AS updatedAt
-     FROM platform_config WHERE platform = ? LIMIT 1`,
+     FROM t_platform_config WHERE platform = ? LIMIT 1`,
     [parsedPlatform],
     tenantId
   );
@@ -160,7 +160,7 @@ export async function upsertConfig(body: any, tenantId: string) {
 
   const platform = parsePlatformType(parsedBody.platform);
   const existing = await queryOneWithTenant<any>(
-    `SELECT id, store_id as store_id, app_key as app_key, app_secret as app_secret, merchant_id as merchant_id, config_json as config_json FROM platform_config WHERE platform = ? LIMIT 1`,
+    `SELECT id, store_id as store_id, app_key as app_key, app_secret as app_secret, merchant_id as merchant_id, config_json as config_json FROM t_platform_config WHERE platform = ? LIMIT 1`,
     [platform],
     tenantId
   );
@@ -182,7 +182,7 @@ export async function upsertConfig(body: any, tenantId: string) {
     );
   } else {
     await query(
-      `INSERT INTO platform_config
+      `INSERT INTO t_platform_config
          (platform, store_id, app_key, app_secret, merchant_id, config_json, enabled, created_at, updated_at, tenant_id)
        VALUES (?, ?, ?, ?, ?, ?, 1, NOW(), NOW(), ?)`,
       [
@@ -201,7 +201,7 @@ export async function upsertConfig(body: any, tenantId: string) {
     `SELECT id, platform, store_id AS storeId, app_key AS appKey, app_secret AS appSecret,
             merchant_id AS merchantId, enabled, config_json AS configJson,
             created_at AS createdAt, updated_at AS updatedAt
-     FROM platform_config WHERE platform = ? LIMIT 1`,
+     FROM t_platform_config WHERE platform = ? LIMIT 1`,
     [platform],
     tenantId
   );
@@ -234,7 +234,7 @@ export async function syncOrders(platform: string, body: any, tenantId: string) 
   await transaction(async (conn) => {
     for (const order of result.orders) {
       await conn.execute(
-        `INSERT INTO platform_order
+        `INSERT INTO t_platform_order
            (platform_order_id, platform, store_id, status, order_data_json, created_at, updated_at, tenant_id)
          VALUES (?, ?, ?, ?, ?, ?, NOW(), ?)
          ON DUPLICATE KEY UPDATE
@@ -269,7 +269,7 @@ export async function syncProducts(platform: string, body: any, tenantId: string
 export async function deleteConfig(platform: string, tenantId: string) {
   const parsedPlatform = parsePlatformType(platform);
   await queryWithTenant(
-    `DELETE FROM platform_config WHERE platform = ?`,
+    `DELETE FROM t_platform_config WHERE platform = ?`,
     [parsedPlatform],
     tenantId
   );

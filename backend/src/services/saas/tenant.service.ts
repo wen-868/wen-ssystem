@@ -107,7 +107,7 @@ export async function listTenants(params: {
             t.source, t.status, t.suspend_reason AS suspendReason,
             t.suspended_at AS suspendedAt, t.expire_at AS expireAt,
             t.remark, t.created_at AS createdAt, t.updated_at AS updatedAt
-     FROM tenant t
+     FROM t_tenant t
      ${where}
      ORDER BY t.created_at DESC
      LIMIT ? OFFSET ?`,
@@ -115,7 +115,7 @@ export async function listTenants(params: {
   );
 
   const totalRow = await queryOne<{ total: number }>(
-    `SELECT COUNT(*) AS total FROM tenant t ${where}`,
+    `SELECT COUNT(*) AS total FROM t_tenant t ${where}`,
     queryParams
   );
 
@@ -139,7 +139,7 @@ export async function getTenantDetail(id: number): Promise<TenantDetail | null> 
             t.source, t.status, t.suspend_reason AS suspendReason,
             t.suspended_at AS suspendedAt, t.expire_at AS expireAt,
             t.remark, t.created_at AS createdAt, t.updated_at AS updatedAt
-     FROM tenant t
+     FROM t_tenant t
      WHERE t.id = ?`,
     [id]
   );
@@ -151,10 +151,10 @@ export async function getTenantDetail(id: number): Promise<TenantDetail | null> 
   const stats = await queryOne<TenantStats>(
     `SELECT
        COALESCE((SELECT COUNT(*) FROM t_sys_user WHERE tenant_id = ?), 0) AS totalUsers,
-       COALESCE((SELECT COUNT(*) FROM store WHERE tenant_id = ?), 0) AS totalStores,
+       COALESCE((SELECT COUNT(*) FROM t_store WHERE tenant_id = ?), 0) AS totalStores,
        COALESCE((SELECT COUNT(*) FROM t_product_spu WHERE tenant_id = ?), 0) AS totalProducts,
-       COALESCE((SELECT COUNT(*) FROM member WHERE tenant_id = ?), 0) AS totalMembers,
-       COALESCE((SELECT COUNT(*) FROM sale_order WHERE tenant_id = ? AND DATE(created_at) >= DATE_SUB(NOW(), INTERVAL 30 DAY)), 0) AS recentOrders
+       COALESCE((SELECT COUNT(*) FROM t_member WHERE tenant_id = ?), 0) AS totalMembers,
+       COALESCE((SELECT COUNT(*) FROM t_sale_order WHERE tenant_id = ? AND DATE(created_at) >= DATE_SUB(NOW(), INTERVAL 30 DAY)), 0) AS recentOrders
      FROM DUAL`,
     [id, id, id, id, id]
   );
@@ -166,7 +166,7 @@ export async function createTenant(body: TenantCreateRequest): Promise<Tenant> {
   const tenantCode = makeBizNo("T");
 
   const result = await query(
-    `INSERT INTO tenant (
+    `INSERT INTO t_tenant (
       tenant_code, company_name, company_short_name,
       contact_person, contact_mobile, contact_email,
       province, city, district, address,
@@ -191,7 +191,7 @@ export async function createTenant(body: TenantCreateRequest): Promise<Tenant> {
 
 export async function updateTenant(id: number, body: TenantUpdateRequest): Promise<Tenant | null> {
   const existing = await queryOne(
-    "SELECT id FROM tenant WHERE id = ?",
+    "SELECT id FROM t_tenant WHERE id = ?",
     [id]
   );
   if (!existing) {
@@ -229,7 +229,7 @@ export async function updateTenant(id: number, body: TenantUpdateRequest): Promi
   if (updates.length > 0) {
     params.push(id);
     await query(
-      `UPDATE tenant SET ${updates.join(", ")}, updated_at = NOW() WHERE id = ?`,
+      `UPDATE t_tenant SET ${updates.join(", ")}, updated_at = NOW() WHERE id = ?`,
       params
     );
   }
@@ -242,7 +242,7 @@ export async function auditTenant(id: number, body: {
   remark?: string;
 }): Promise<Tenant | null> {
   const existing = await queryOne<{ id: number; status: string }>(
-    "SELECT id, status FROM tenant WHERE id = ?",
+    "SELECT id, status FROM t_tenant WHERE id = ?",
     [id]
   );
   if (!existing) {
@@ -265,7 +265,7 @@ export async function auditTenant(id: number, body: {
 
   params.push(id);
   await query(
-    `UPDATE tenant SET ${updates.join(", ")}, updated_at = NOW() WHERE id = ?`,
+    `UPDATE t_tenant SET ${updates.join(", ")}, updated_at = NOW() WHERE id = ?`,
     params
   );
 
@@ -274,7 +274,7 @@ export async function auditTenant(id: number, body: {
 
 export async function toggleTenantStatus(id: number, status: string): Promise<Tenant | null> {
   const existing = await queryOne<{ id: number; status: string }>(
-    "SELECT id, status FROM tenant WHERE id = ?",
+    "SELECT id, status FROM t_tenant WHERE id = ?",
     [id]
   );
   if (!existing) {
@@ -282,7 +282,7 @@ export async function toggleTenantStatus(id: number, status: string): Promise<Te
   }
 
   await query(
-    "UPDATE tenant SET status = ?, updated_at = NOW() WHERE id = ?",
+    "UPDATE t_tenant SET status = ?, updated_at = NOW() WHERE id = ?",
     [status, id]
   );
 
@@ -298,11 +298,11 @@ export async function getTenantStatistics(): Promise<{
 }> {
   const stats = await queryOne<any>(
     `SELECT
-       COALESCE((SELECT COUNT(*) FROM tenant), 0) AS totalTenants,
-       COALESCE((SELECT COUNT(*) FROM tenant WHERE status = 'ACTIVE'), 0) AS activeTenants,
-       COALESCE((SELECT COUNT(*) FROM tenant WHERE status = 'SUSPENDED'), 0) AS suspendedTenants,
-       COALESCE((SELECT COUNT(*) FROM tenant WHERE status = 'EXPIRED'), 0) AS expiredTenants,
-       COALESCE((SELECT COUNT(*) FROM tenant WHERE DATE(created_at) = CURDATE()), 0) AS todayNewTenants
+       COALESCE((SELECT COUNT(*) FROM t_tenant), 0) AS totalTenants,
+       COALESCE((SELECT COUNT(*) FROM t_tenant WHERE status = 'ACTIVE'), 0) AS activeTenants,
+       COALESCE((SELECT COUNT(*) FROM t_tenant WHERE status = 'SUSPENDED'), 0) AS suspendedTenants,
+       COALESCE((SELECT COUNT(*) FROM t_tenant WHERE status = 'EXPIRED'), 0) AS expiredTenants,
+       COALESCE((SELECT COUNT(*) FROM t_tenant WHERE DATE(created_at) = CURDATE()), 0) AS todayNewTenants
      FROM DUAL`
   );
 

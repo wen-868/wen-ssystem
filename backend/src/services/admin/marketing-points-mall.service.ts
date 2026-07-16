@@ -87,10 +87,10 @@ export async function exchangeProduct(data: { product_id: number; user_id: numbe
   const qty = data.quantity ?? 1;
   if (product.stock_available < qty) throw new Error("库存不足");
   const totalPoints = product.points_required * qty;
-  const userPoints = await queryOneWithTenant<any>("SELECT points FROM member WHERE id = ? AND tenant_id = ?", [data.user_id, tenantId], tenantId);
+  const userPoints = await queryOneWithTenant<any>("SELECT points FROM t_member WHERE id = ? AND tenant_id = ?", [data.user_id, tenantId], tenantId);
   if (!userPoints || userPoints.points < totalPoints) throw new Error("积分不足");
   const recordNo = makeBizNo("DH");
-  await queryWithTenant("UPDATE member SET points = points - ? WHERE id = ? AND tenant_id = ?", [totalPoints, data.user_id, tenantId], tenantId);
+  await queryWithTenant("UPDATE t_member SET points = points - ? WHERE id = ? AND tenant_id = ?", [totalPoints, data.user_id, tenantId], tenantId);
   await queryWithTenant("UPDATE points_product SET stock_available = stock_available - ? WHERE id = ? AND tenant_id = ?", [qty, data.product_id, tenantId], tenantId);
   const result = await queryWithTenant(
     "INSERT INTO points_exchange_record (record_no, product_id, user_id, points_used, quantity, delivery_type, tenant_id) VALUES (?, ?, ?, ?, ?, ?, ?)",
@@ -104,7 +104,7 @@ export async function cancelExchange(id: number, tenantId: string) {
   if (!record) throw new Error("记录不存在");
   if (record.status !== "PENDING") throw new Error("只能取消待处理的兑换");
   await queryWithTenant("UPDATE points_exchange_record SET status = 'CANCELLED' WHERE id = ? AND tenant_id = ?", [id, tenantId], tenantId);
-  await queryWithTenant("UPDATE member SET points = points + ? WHERE id = ? AND tenant_id = ?", [record.points_used, record.user_id, tenantId], tenantId);
+  await queryWithTenant("UPDATE t_member SET points = points + ? WHERE id = ? AND tenant_id = ?", [record.points_used, record.user_id, tenantId], tenantId);
   await queryWithTenant("UPDATE points_product SET stock_available = stock_available + ? WHERE id = ? AND tenant_id = ?", [record.quantity, record.product_id, tenantId], tenantId);
 }
 

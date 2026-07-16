@@ -68,7 +68,7 @@ const reportQueries: Record<ReportType, (filters: Record<string, any>, tenantId:
                    AVG(sb.receivable_amount) AS avgOrderValue,
                    MAX(sb.created_at) AS lastOrderDate
             FROM t_sale_bill sb
-            LEFT JOIN member m ON m.id = sb.customer_id
+            LEFT JOIN t_member m ON m.id = sb.customer_id
             WHERE ${conditions.join(" AND ")} AND sb.customer_id IS NOT NULL
             GROUP BY sb.customer_id, m.name, m.mobile
             ORDER BY totalAmount DESC`,
@@ -85,7 +85,7 @@ const reportQueries: Record<ReportType, (filters: Record<string, any>, tenantId:
                    ib.physical_qty AS physicalQty, ib.available_qty AS availableQty,
                    ib.locked_qty AS lockedQty
             FROM t_inventory_balance ib
-            LEFT JOIN store s ON s.id = ib.store_id
+            LEFT JOIN t_store s ON s.id = ib.store_id
             LEFT JOIN t_product_sku ps ON ps.id = ib.sku_id
             WHERE ${conditions.join(" AND ")}
             ORDER BY ib.store_id, ib.sku_id`,

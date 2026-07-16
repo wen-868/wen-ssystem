@@ -41,8 +41,8 @@ export async function listSubscriptions(
             s.status, s.cancel_reason AS cancelReason, s.cancelled_at AS cancelledAt,
             s.expire_notify_sent AS expireNotifySent,
             s.remark, s.created_at AS createdAt, s.updated_at AS updatedAt
-     FROM subscription s
-     LEFT JOIN tenant t ON t.id = s.tenant_id
+     FROM t_subscription s
+     LEFT JOIN t_tenant t ON t.id = s.tenant_id
      ${where}
      ORDER BY s.created_at DESC
      LIMIT ? OFFSET ?`,
@@ -51,7 +51,7 @@ export async function listSubscriptions(
   );
 
   const totalRow = await queryOneWithTenant<any>(
-    `SELECT COUNT(*) AS total FROM subscription s ${where}`,
+    `SELECT COUNT(*) AS total FROM t_subscription s ${where}`,
     params,
     tenantId
   );
@@ -77,8 +77,8 @@ export async function getSubscription(subscriptionId: number, tenantId: string) 
             s.status, s.cancel_reason AS cancelReason, s.cancelled_at AS cancelledAt,
             s.expire_notify_sent AS expireNotifySent,
             s.remark, s.created_at AS createdAt, s.updated_at AS updatedAt
-     FROM subscription s
-     LEFT JOIN tenant t ON t.id = s.tenant_id
+     FROM t_subscription s
+     LEFT JOIN t_tenant t ON t.id = s.tenant_id
      WHERE s.id = ?`,
     [subscriptionId],
     tenantId
@@ -117,7 +117,7 @@ export async function createSubscription(
   tenantId: string
 ) {
   const tenant = await queryOne<any>(
-    "SELECT id, company_name, expire_at FROM tenant WHERE id = ?",
+    "SELECT id, company_name, expire_at FROM t_tenant WHERE id = ?",
     [body.tenantId]
   );
   if (!tenant) {
@@ -139,7 +139,7 @@ export async function createSubscription(
 
   await transaction(async (conn) => {
     await conn.execute(
-      `INSERT INTO subscription (
+      `INSERT INTO t_subscription (
         subscription_no, tenant_id, plan_id, plan_name, plan_type,
         start_date, end_date, duration_days, price,
         payment_status, payment_method, auto_renew, renew_price,
@@ -161,7 +161,7 @@ export async function createSubscription(
     );
 
     await conn.execute(
-      "UPDATE tenant SET expire_at = ? WHERE id = ?",
+      "UPDATE t_tenant SET expire_at = ? WHERE id = ?",
       [endDate.toISOString().slice(0, 19).replace("T", " "), body.tenantId]
     );
 
@@ -201,7 +201,7 @@ export async function changePlan(
 ) {
   const existing = await queryOneWithTenant<any>(
     `SELECT s.id, s.subscription_no, s.tenant_id, s.plan_id, s.plan_name, s.end_date, s.status
-     FROM subscription s WHERE s.id = ?`,
+     FROM t_subscription s WHERE s.id = ?`,
     [subscriptionId],
     tenantId
   );
@@ -229,7 +229,7 @@ export async function changePlan(
 
   await transaction(async (conn) => {
     await conn.execute(
-      `UPDATE subscription SET plan_id = ?, plan_name = ?, price = ?, updated_at = NOW() WHERE id = ?`,
+      `UPDATE t_subscription SET plan_id = ?, plan_name = ?, price = ?, updated_at = NOW() WHERE id = ?`,
       [body.newPlanId, newPlan.plan_name, newPlan.price, subscriptionId]
     );
 
@@ -274,7 +274,7 @@ export async function cancelSubscription(
   tenantId: string
 ) {
   const existing = await queryOneWithTenant<any>(
-    "SELECT id, subscription_no, tenant_id, status FROM subscription WHERE id = ?",
+    "SELECT id, subscription_no, tenant_id, status FROM t_subscription WHERE id = ?",
     [subscriptionId],
     tenantId
   );
@@ -287,7 +287,7 @@ export async function cancelSubscription(
 
   await transaction(async (conn) => {
     await conn.execute(
-      `UPDATE subscription SET status = 'CANCELLED', cancel_reason = ?, cancelled_at = NOW(), updated_at = NOW() WHERE id = ?`,
+      `UPDATE t_subscription SET status = 'CANCELLED', cancel_reason = ?, cancelled_at = NOW(), updated_at = NOW() WHERE id = ?`,
       [body.reason || null, subscriptionId]
     );
 
@@ -319,7 +319,7 @@ export async function paySubscription(
   tenantId: string
 ) {
   const existing = await queryOneWithTenant<any>(
-    "SELECT id, subscription_no, tenant_id, payment_status FROM subscription WHERE id = ?",
+    "SELECT id, subscription_no, tenant_id, payment_status FROM t_subscription WHERE id = ?",
     [subscriptionId],
     tenantId
   );
@@ -332,7 +332,7 @@ export async function paySubscription(
 
   await transaction(async (conn) => {
     await conn.execute(
-      `UPDATE subscription SET payment_status = 'PAID', payment_method = ?,
+      `UPDATE t_subscription SET payment_status = 'PAID', payment_method = ?,
        transaction_no = ?, paid_at = NOW(), updated_at = NOW() WHERE id = ?`,
       [body.paymentMethod, body.transactionNo || null, subscriptionId]
     );

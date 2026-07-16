@@ -15,7 +15,7 @@ export async function renewSubscription(
   const existing = await queryOneWithTenant<any>(
     `SELECT s.id, s.subscription_no, s.tenant_id, s.plan_id, s.plan_name, s.end_date, s.price,
             p.duration_days, p.price AS plan_price
-     FROM subscription s
+     FROM t_subscription s
      LEFT JOIN subscription_plan p ON p.id = ?
      WHERE s.id = ?`,
     [body.planId || 0, subscriptionId],
@@ -43,7 +43,7 @@ export async function renewSubscription(
 
   await transaction(async (conn) => {
     await conn.execute(
-      `INSERT INTO subscription (
+      `INSERT INTO t_subscription (
         subscription_no, tenant_id, plan_id, plan_name, plan_type,
         start_date, end_date, duration_days, price,
         payment_status, payment_method, status, remark
@@ -65,7 +65,7 @@ export async function renewSubscription(
     );
 
     await conn.execute(
-      "UPDATE tenant SET expire_at = ? WHERE id = ?",
+      "UPDATE t_tenant SET expire_at = ? WHERE id = ?",
       [renewEndDate.toISOString().slice(0, 19).replace("T", " "), existing.tenant_id]
     );
 
@@ -101,8 +101,8 @@ export async function listExpiring(days: number, tenantId: string) {
             s.auto_renew AS autoRenew,
             s.expire_notify_sent AS expireNotifySent,
             DATEDIFF(s.end_date, CURDATE()) AS daysRemaining
-     FROM subscription s
-     LEFT JOIN tenant t ON t.id = s.tenant_id
+     FROM t_subscription s
+     LEFT JOIN t_tenant t ON t.id = s.tenant_id
      WHERE s.status = 'ACTIVE'
        AND s.end_date BETWEEN CURDATE() AND DATE_ADD(CURDATE(), INTERVAL ? DAY)
      ORDER BY s.end_date ASC`,
@@ -120,8 +120,8 @@ export async function listExpired(tenantId: string) {
             t.contact_mobile AS contactMobile,
             s.plan_name AS planName, s.end_date AS endDate,
             DATEDIFF(CURDATE(), s.end_date) AS overdueDays
-     FROM subscription s
-     LEFT JOIN tenant t ON t.id = s.tenant_id
+     FROM t_subscription s
+     LEFT JOIN t_tenant t ON t.id = s.tenant_id
      WHERE s.status = 'ACTIVE'
        AND s.end_date < CURDATE()
      ORDER BY s.end_date ASC`,

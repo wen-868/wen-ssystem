@@ -45,7 +45,7 @@ export async function getInventorySummary(
               SUM(ib.locked_qty) AS totalLockedQty,
               SUM(ib.available_qty) AS totalAvailableQty
        FROM t_inventory_balance ib
-       LEFT JOIN store s ON s.id = ib.store_id
+       LEFT JOIN t_store s ON s.id = ib.store_id
        ${where}
        GROUP BY ib.store_id, s.name
        ORDER BY totalPhysicalQty DESC`,

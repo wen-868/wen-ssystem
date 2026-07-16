@@ -11,7 +11,7 @@ export async function getCollectionLink(token: string) {
             sb.customer_name AS customerName, st.name AS storeName
      FROM t_collection_link cl
      JOIN t_sale_bill sb ON sb.bill_no = cl.source_no AND sb.tenant_id = cl.tenant_id
-     JOIN store st ON st.id = sb.store_id
+     JOIN t_store st ON st.id = sb.store_id
      WHERE cl.token = ?`,
     [token]
   );

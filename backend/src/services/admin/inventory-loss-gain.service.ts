@@ -49,7 +49,7 @@ export async function listLossGains(params: {
             lg.qty, lg.cost_price AS costPrice, lg.amount,
             lg.reason, lg.operator_id AS operatorId, lg.status, lg.created_at AS createdAt
      FROM inventory_loss_gain lg
-     LEFT JOIN store st ON st.id = lg.store_id
+     LEFT JOIN t_store st ON st.id = lg.store_id
      LEFT JOIN t_product_sku ps ON ps.id = lg.sku_id
      ${where}
      ORDER BY lg.created_at DESC

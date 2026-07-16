@@ -7,7 +7,7 @@ export async function listReviews(params: {
   const { tenantId, storeId, platform, rating, status, page = 1, pageSize = 20 } = params;
   const conditions = ["tenant_id = ?"];
   const values: unknown[] = [tenantId];
-  if (storeId) { conditions.push("EXISTS (SELECT 1 FROM retail_order ro WHERE ro.id = retail_review.order_id AND ro.store_id = ?)"); values.push(storeId); }
+  if (storeId) { conditions.push("EXISTS (SELECT 1 FROM t_retail_order ro WHERE ro.id = retail_review.order_id AND ro.store_id = ?)"); values.push(storeId); }
   if (platform) { conditions.push("platform = ?"); values.push(platform); }
   if (rating) { conditions.push("rating = ?"); values.push(rating); }
   if (status) { conditions.push("status = ?"); values.push(status); }

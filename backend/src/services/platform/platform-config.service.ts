@@ -27,7 +27,7 @@ export async function listPlatformConfigs(
   const rows = await query<any[]>(
     `SELECT config_key AS configKey, config_value AS configValue,
             category, description, updated_at AS updatedAt
-     FROM platform_config
+     FROM t_platform_config
      WHERE ${where}
      ORDER BY category, sort_order ASC`,
     params
@@ -45,7 +45,7 @@ export async function updatePlatformConfig(
   operator: string
 ) {
   const existing = await queryOne<any>(
-    "SELECT config_key FROM platform_config WHERE config_key = ?",
+    "SELECT config_key FROM t_platform_config WHERE config_key = ?",
     [configKey]
   );
 
@@ -114,8 +114,8 @@ export async function listPlatformAuditLogs(
     `SELECT l.id, l.admin_id AS adminId, a.real_name AS adminName,
             l.module, l.action, l.detail, l.ip_address AS ipAddress,
             l.created_at AS createdAt
-     FROM platform_audit_log l
-     LEFT JOIN platform_admin a ON a.id = l.admin_id
+     FROM t_platform_audit_log l
+     LEFT JOIN t_platform_admin a ON a.id = l.admin_id
      WHERE ${where}
      ORDER BY l.created_at DESC
      LIMIT ? OFFSET ?`,
@@ -124,7 +124,7 @@ export async function listPlatformAuditLogs(
 
   const totalRow = await queryOne<any>(
     `SELECT COUNT(*) AS total
-     FROM platform_audit_log l WHERE ${where}`,
+     FROM t_platform_audit_log l WHERE ${where}`,
     params
   );
 

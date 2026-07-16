@@ -32,7 +32,7 @@ async function runStoreControlCheck() {
     const configs = await query<any>(
       `SELECT scc.*, s.status AS current_status, s.name AS store_name
        FROM t_store_control_config scc
-       JOIN store s ON s.id = scc.store_id AND s.tenant_id = scc.tenant_id
+       JOIN t_store s ON s.id = scc.store_id AND s.tenant_id = scc.tenant_id
        WHERE scc.tenant_id = ?
          AND s.status IN ('OPEN', 'CLOSED')`,
       [tenantId]
@@ -49,7 +49,7 @@ async function runStoreControlCheck() {
 
         if (config.auto_open_time && currentStatus === "CLOSED" && currentTime >= config.auto_open_time && currentTime < (config.auto_close_time || "23:59")) {
           await conn.execute(
-            "UPDATE store SET status = 'OPEN' WHERE id = ? AND tenant_id = ? AND status = 'CLOSED'",
+            "UPDATE t_store SET status = 'OPEN' WHERE id = ? AND tenant_id = ? AND status = 'CLOSED'",
             [config.store_id, tenantId]
           );
           await conn.execute(
@@ -62,7 +62,7 @@ async function runStoreControlCheck() {
 
         if (config.auto_close_time && currentStatus === "OPEN" && currentTime >= config.auto_close_time) {
           await conn.execute(
-            "UPDATE store SET status = 'CLOSED' WHERE id = ? AND tenant_id = ? AND status = 'OPEN'",
+            "UPDATE t_store SET status = 'CLOSED' WHERE id = ? AND tenant_id = ? AND status = 'OPEN'",
             [config.store_id, tenantId]
           );
           await conn.execute(
@@ -82,7 +82,7 @@ async function runStoreControlCheck() {
           const orderCount = (orderRows as Record<string, unknown>[])[0]?.order_count ?? 0;
           if (orderCount >= config.max_daily_orders) {
             await conn.execute(
-              "UPDATE store SET status = 'CLOSED' WHERE id = ? AND tenant_id = ? AND status = 'OPEN'",
+              "UPDATE t_store SET status = 'CLOSED' WHERE id = ? AND tenant_id = ? AND status = 'OPEN'",
               [config.store_id, tenantId]
             );
             await conn.execute(
@@ -103,7 +103,7 @@ async function runStoreControlCheck() {
           const totalAmount = Number((amountRows as Record<string, unknown>[])[0]?.total_amount ?? 0);
           if (totalAmount >= config.max_order_amount) {
             await conn.execute(
-              "UPDATE store SET status = 'CLOSED' WHERE id = ? AND tenant_id = ? AND status = 'OPEN'",
+              "UPDATE t_store SET status = 'CLOSED' WHERE id = ? AND tenant_id = ? AND status = 'OPEN'",
               [config.store_id, tenantId]
             );
             await conn.execute(

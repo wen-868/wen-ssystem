@@ -11,7 +11,7 @@ export async function exportCustomers(tenantId: string, keyword?: string) {
   const where = conditions.length > 0 ? `WHERE ${conditions.join(" AND ")}` : "";
   return query<any>(
     `SELECT id, name, mobile, customer_type AS customerType, points, level_code AS levelCode, status, created_at AS createdAt
-     FROM member ${where} ORDER BY id DESC LIMIT 5000`,
+     FROM t_member ${where} ORDER BY id DESC LIMIT 5000`,
     params
   );
 }
@@ -32,7 +32,7 @@ export async function exportSuppliers(tenantId: string, keyword?: string, supply
   return query<any>(
     `SELECT id, supplier_code AS supplierCode, name, contact_person AS contactPerson,
             phone, supply_type AS supplyType, status, address, created_at AS createdAt
-     FROM supplier ${where} ORDER BY id DESC LIMIT 5000`,
+     FROM t_supplier ${where} ORDER BY id DESC LIMIT 5000`,
     params
   );
 }

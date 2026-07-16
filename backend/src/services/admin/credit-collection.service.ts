@@ -79,7 +79,7 @@ export async function getCollectionList(
             cr.next_follow_up_date AS nextFollowUpDate,
             cr.operator_id AS operatorId, cr.created_at AS createdAt
      FROM t_collection_record cr
-     LEFT JOIN member m ON m.id = cr.customer_id
+     LEFT JOIN t_member m ON m.id = cr.customer_id
      ${where}
      ORDER BY cr.created_at DESC
      LIMIT ? OFFSET ?`,
@@ -89,7 +89,7 @@ export async function getCollectionList(
 
   const totalRow = await queryOneWithTenant<any>(
     `SELECT COUNT(*) AS total FROM t_collection_record cr
-     LEFT JOIN member m ON m.id = cr.customer_id
+     LEFT JOIN t_member m ON m.id = cr.customer_id
      ${where}`,
     params,
     ctx.tenantId
@@ -105,7 +105,7 @@ export async function getCollectionList(
 
 export async function createCollection(dto: CollectionCreateDTO, ctx: ServiceContext): Promise<any> {
   const customer = await queryOneWithTenant<any>(
-    "SELECT id, name FROM member WHERE id = ?",
+    "SELECT id, name FROM t_member WHERE id = ?",
     [dto.customerId],
     ctx.tenantId
   );
@@ -138,7 +138,7 @@ export async function createCollection(dto: CollectionCreateDTO, ctx: ServiceCon
             cr.next_follow_up_date AS nextFollowUpDate,
             cr.operator_id AS operatorId, cr.created_at AS createdAt
      FROM t_collection_record cr
-     LEFT JOIN member m ON m.id = cr.customer_id
+     LEFT JOIN t_member m ON m.id = cr.customer_id
      WHERE cr.id = LAST_INSERT_ID() AND cr.tenant_id = ?`,
     [ctx.tenantId],
     ctx.tenantId
@@ -183,7 +183,7 @@ export async function updateCollection(collectionId: number, dto: CollectionUpda
             cr.collection_content AS collectionContent,
             cr.created_at AS createdAt
      FROM t_collection_record cr
-     LEFT JOIN member m ON m.id = cr.customer_id
+     LEFT JOIN t_member m ON m.id = cr.customer_id
      WHERE cr.id = ? AND cr.tenant_id = ?`,
     [collectionId, ctx.tenantId],
     ctx.tenantId
@@ -212,7 +212,7 @@ export async function getOverdueCustomers(ctx: ServiceContext): Promise<any> {
             ) AS estimatedOverdueDays,
             cc.credit_used AS estimatedOverdueAmount
      FROM t_customer_credit cc
-     LEFT JOIN member m ON m.id = cc.customer_id
+     LEFT JOIN t_member m ON m.id = cc.customer_id
      WHERE cc.credit_used > 0 AND cc.status IN ('ACTIVE', 'FROZEN') AND cc.tenant_id = ?
      ORDER BY cc.credit_used DESC`,
     [ctx.tenantId],
@@ -229,7 +229,7 @@ export async function batchRemind(dto: BatchRemindDTO, ctx: ServiceContext): Pro
   for (const customerId of dto.customerIds) {
     try {
       const customer = await queryOneWithTenant<any>(
-        "SELECT id, name, mobile FROM member WHERE id = ?",
+        "SELECT id, name, mobile FROM t_member WHERE id = ?",
         [customerId],
         ctx.tenantId
       );

@@ -70,8 +70,8 @@ export async function listPlatformTenants(
             s.plan_code AS planCode, s.plan_name AS planName,
             s.start_date AS startDate, s.end_date AS endDate,
             s.status AS subscriptionStatus
-     FROM tenant t
-     LEFT JOIN subscription s ON s.tenant_id = t.tenant_id AND s.status = 'ACTIVE'
+     FROM t_tenant t
+     LEFT JOIN t_subscription s ON s.tenant_id = t.tenant_id AND s.status = 'ACTIVE'
      WHERE ${where}
      ORDER BY t.created_at DESC
      LIMIT ? OFFSET ?`,
@@ -79,7 +79,7 @@ export async function listPlatformTenants(
   );
 
   const totalRow = await queryOne<any>(
-    `SELECT COUNT(*) AS total FROM tenant t WHERE ${where}`,
+    `SELECT COUNT(*) AS total FROM t_tenant t WHERE ${where}`,
     params
   );
 
@@ -102,7 +102,7 @@ export async function getPlatformTenantDetail(tenantId: string) {
             t.user_count AS userCount, t.store_count AS storeCount,
             t.created_at AS createdAt, t.expire_at AS expireAt,
             t.remark
-     FROM tenant t WHERE t.tenant_id = ?`,
+     FROM t_tenant t WHERE t.tenant_id = ?`,
     [tenantId]
   );
 
@@ -113,7 +113,7 @@ export async function getPlatformTenantDetail(tenantId: string) {
     `SELECT id, order_no AS orderNo, plan_code AS planCode, plan_name AS planName,
             start_date AS startDate, end_date AS endDate, status,
             amount, created_at AS createdAt
-     FROM subscription WHERE tenant_id = ?
+     FROM t_subscription WHERE tenant_id = ?
      ORDER BY created_at DESC
      LIMIT 10`,
     [tenantId]
@@ -123,10 +123,10 @@ export async function getPlatformTenantDetail(tenantId: string) {
   const stats = await queryOne<any>(
     `SELECT
        (SELECT COUNT(*) FROM t_sys_user WHERE tenant_id = ?) AS totalUsers,
-       (SELECT COUNT(*) FROM store WHERE tenant_id = ?) AS totalStores,
+       (SELECT COUNT(*) FROM t_store WHERE tenant_id = ?) AS totalStores,
        (SELECT COUNT(*) FROM t_product_spu WHERE tenant_id = ?) AS totalProducts,
-       (SELECT COUNT(*) FROM member WHERE tenant_id = ?) AS totalMembers,
-       (SELECT COUNT(*) FROM sale_order WHERE tenant_id = ? AND DATE(created_at) >= DATE_SUB(NOW(), INTERVAL 30 DAY)) AS recentOrders
+       (SELECT COUNT(*) FROM t_member WHERE tenant_id = ?) AS totalMembers,
+       (SELECT COUNT(*) FROM t_sale_order WHERE tenant_id = ? AND DATE(created_at) >= DATE_SUB(NOW(), INTERVAL 30 DAY)) AS recentOrders
      FROM DUAL`,
     [tenantId, tenantId, tenantId, tenantId, tenantId]
   );
@@ -148,7 +148,7 @@ export async function createPlatformTenant(params: PlatformTenantCreate) {
 
     // 检查租户编码是否已存在
     const [existing] = await conn.query<any[]>(
-      "SELECT id FROM tenant WHERE tenant_code = ?",
+      "SELECT id FROM t_tenant WHERE tenant_code = ?",
       [tenantCode]
     );
     if (existing.length > 0) {
@@ -162,7 +162,7 @@ export async function createPlatformTenant(params: PlatformTenantCreate) {
 
     // 创建租户
     await conn.query(
-      `INSERT INTO tenant
+      `INSERT INTO t_tenant
        (tenant_id, tenant_name, tenant_code, contact_name, contact_phone, contact_email,
         status, expire_at, created_by)
        VALUES (?, ?, ?, ?, ?, ?, 'ACTIVE', ?, 'platform')`,
@@ -185,7 +185,7 @@ export async function createPlatformTenant(params: PlatformTenantCreate) {
       endDate.setDate(endDate.getDate() + durationDays);
 
       await conn.query(
-        `INSERT INTO subscription
+        `INSERT INTO t_subscription
          (tenant_id, order_no, plan_code, plan_name, start_date, end_date, status, amount)
          VALUES (?, ?, ?, ?, ?, ?, 'ACTIVE', 0)`,
         [tenantId, orderNo, params.planCode, params.planCode, startDate, endDate]
@@ -208,7 +208,7 @@ export async function updatePlatformTenant(
   params: PlatformTenantUpdate
 ) {
   const existing = await queryOne<any>(
-    "SELECT id FROM tenant WHERE tenant_id = ?",
+    "SELECT id FROM t_tenant WHERE tenant_id = ?",
     [tenantId]
   );
   if (!existing) {
@@ -246,7 +246,7 @@ export async function updatePlatformTenant(
   values.push(tenantId);
 
   await query(
-    `UPDATE tenant SET ${fields.join(", ")} WHERE tenant_id = ?`,
+    `UPDATE t_tenant SET ${fields.join(", ")} WHERE tenant_id = ?`,
     values
   );
 

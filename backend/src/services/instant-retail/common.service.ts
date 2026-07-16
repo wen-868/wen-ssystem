@@ -26,7 +26,7 @@ export async function getPlatformConfig(
     conditions.push("tenant_id = ?");
     params.push(tenantId);
   }
-  const sql = `SELECT * FROM platform_config WHERE ${conditions.join(" AND ")} LIMIT 1`;
+  const sql = `SELECT * FROM t_platform_config WHERE ${conditions.join(" AND ")} LIMIT 1`;
   const row = await queryOne<any>(sql, params);
   if (!row) return null;
   return {
@@ -55,7 +55,7 @@ export async function getPlatformConfigWithTenant(
     params.push(String(storeId));
   }
   const where = conditions.join(" AND ");
-  const sql = `SELECT * FROM platform_config WHERE ${where} LIMIT 1`;
+  const sql = `SELECT * FROM t_platform_config WHERE ${where} LIMIT 1`;
   const row = await queryOneWithTenant<any>(sql, params, tenantId);
   if (!row) return null;
   return {

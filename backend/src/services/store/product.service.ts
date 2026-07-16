@@ -95,7 +95,7 @@ export async function listMembers(params: {
   const { keyword = "", tenantId } = params;
   const records = await queryWithTenant<any>(
     `SELECT id AS memberId, name, mobile, customer_type AS customerType, status
-     FROM member
+     FROM t_member
      WHERE tenant_id = ?
        AND status = 1
        AND (? = '' OR name LIKE ? OR mobile LIKE ?)

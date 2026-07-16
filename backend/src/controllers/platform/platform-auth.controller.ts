@@ -29,7 +29,7 @@ export async function platformLogin(req: any, res: any) {
   }
 
   const admin = await queryOne<any>(
-    "SELECT id, username, password, real_name FROM platform_admin WHERE username = ? AND status = 1",
+    "SELECT id, username, password, real_name FROM t_platform_admin WHERE username = ? AND status = 1",
     [username]
   );
 
@@ -49,7 +49,7 @@ export async function platformLogin(req: any, res: any) {
 
 export async function getPlatformMe(req: any, res: any) {
   const admin = await queryOne<any>(
-    "SELECT id, username, real_name FROM platform_admin WHERE id = ?",
+    "SELECT id, username, real_name FROM t_platform_admin WHERE id = ?",
     [req.user.id]
   );
   if (!admin) {
@@ -74,7 +74,7 @@ export async function createPlatformAdmin(req: any, res: any) {
     return;
   }
 
-  const existing = await queryOne<any>("SELECT id FROM platform_admin WHERE username = ?", [username]);
+  const existing = await queryOne<any>("SELECT id FROM t_platform_admin WHERE username = ?", [username]);
   if (existing) {
     res.status(400).json(fail("用户名已存在", "400"));
     return;
@@ -83,7 +83,7 @@ export async function createPlatformAdmin(req: any, res: any) {
   const passwordHash = await hashPassword(password);
 
   const result = await query<any>(
-    "INSERT INTO platform_admin (username, password_hash, real_name, email, phone, role) VALUES (?, ?, ?, ?, ?, ?)",
+    "INSERT INTO t_platform_admin (username, password_hash, real_name, email, phone, role) VALUES (?, ?, ?, ?, ?, ?)",
     [username, passwordHash, realName, getStringOrDefault(email, ""), getStringOrDefault(phone, ""), getStringOrDefault(role, "PLATFORM_ADMIN")]
   );
 

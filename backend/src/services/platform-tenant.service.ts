@@ -33,12 +33,12 @@ export async function listTenants(page: number, pageSize: number, keyword?: stri
   const where = conditions.length > 0 ? `WHERE ${conditions.join(" AND ")}` : "";
 
   const [totalResult, records] = await Promise.all([
-    queryOne<any>(`SELECT COUNT(*) AS total FROM tenant ${where}`, params),
+    queryOne<any>(`SELECT COUNT(*) AS total FROM t_tenant ${where}`, params),
     query<any>(
       `SELECT id, tenant_name AS tenantName, contact_name AS contactName,
               contact_mobile AS contactMobile, contact_email AS contactEmail,
               status, expire_at AS expireAt, created_at AS createdAt
-       FROM tenant ${where}
+       FROM t_tenant ${where}
        ORDER BY id DESC
        LIMIT ? OFFSET ?`,
       [...params, pageSize, offset]
@@ -54,14 +54,14 @@ export async function getTenantById(id: number): Promise<TenantRecord | null> {
     `SELECT id, tenant_name AS tenantName, contact_name AS contactName,
             contact_mobile AS contactMobile, contact_email AS contactEmail,
             status, expire_at AS expireAt, created_at AS createdAt
-     FROM tenant WHERE id = ?`,
+     FROM t_tenant WHERE id = ?`,
     [id]
   );
 }
 
 // ============ 检查租户名重复 ============
 export async function checkTenantNameExists(name: string): Promise<boolean> {
-  const existing = await queryOne<any>("SELECT id FROM tenant WHERE tenant_name = ?", [name]);
+  const existing = await queryOne<any>("SELECT id FROM t_tenant WHERE tenant_name = ?", [name]);
   return !!existing;
 }
 
@@ -76,7 +76,7 @@ export async function createTenant(data: {
   expireAt?: string | null;
 }): Promise<number> {
   const result = await query<any>(
-    `INSERT INTO tenant (tenant_name, contact_name, contact_mobile, contact_email, status, expire_at)
+    `INSERT INTO t_tenant (tenant_name, contact_name, contact_mobile, contact_email, status, expire_at)
      VALUES (?, ?, ?, ?, 'ACTIVE', ?)`,
     [data.tenantName, data.contactName, data.contactMobile, data.contactEmail || "", data.expireAt || null]
   );
@@ -101,7 +101,7 @@ export async function updateTenant(id: number, data: {
   contactEmail?: string;
   expireAt?: string | null;
 }): Promise<void> {
-  const existing = await queryOne<any>("SELECT id FROM tenant WHERE id = ?", [id]);
+  const existing = await queryOne<any>("SELECT id FROM t_tenant WHERE id = ?", [id]);
   if (!existing) {
     throw Object.assign(new Error("租户不存在"), { statusCode: 404 });
   }
@@ -117,11 +117,11 @@ export async function updateTenant(id: number, data: {
 
   if (sets.length > 0) {
     params.push(id);
-    await query(`UPDATE tenant SET ${sets.join(", ")} WHERE id = ?`, params);
+    await query(`UPDATE t_tenant SET ${sets.join(", ")} WHERE id = ?`, params);
   }
 }
 
 // ============ 启用/禁用租户 ============
 export async function toggleTenantStatus(id: number, status: string): Promise<void> {
-  await query("UPDATE tenant SET status = ? WHERE id = ?", [status, id]);
+  await query("UPDATE t_tenant SET status = ? WHERE id = ?", [status, id]);
 }

@@ -127,7 +127,7 @@ export async function listSupplierStatements(params: {
             ss.return_amount AS returnAmount, ss.balance,
             ss.statement_status AS statementStatus, ss.created_at AS createdAt
      FROM t_supplier_statement ss
-     LEFT JOIN supplier s ON s.id = ss.supplier_id
+     LEFT JOIN t_supplier s ON s.id = ss.supplier_id
      ${where}
      ORDER BY ss.created_at DESC
      LIMIT ? OFFSET ?`,
@@ -152,7 +152,7 @@ export async function getSupplierStatementDetail(statementNo: string, tenantId: 
             ss.return_amount AS returnAmount, ss.balance,
             ss.statement_status AS statementStatus, ss.created_at AS createdAt
      FROM t_supplier_statement ss
-     LEFT JOIN supplier s ON s.id = ss.supplier_id
+     LEFT JOIN t_supplier s ON s.id = ss.supplier_id
      WHERE ss.statement_no = ? AND ss.tenant_id = ?`,
     [statementNo, tenantId],
     tenantId

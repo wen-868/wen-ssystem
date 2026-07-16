@@ -104,7 +104,7 @@ export async function evaluateCreditScore(
   ctx: ServiceContext
 ): Promise<CreditScoreResult> {
   const customer = await queryOneWithTenant<any>(
-    "SELECT id, name, mobile FROM member WHERE id = ?",
+    "SELECT id, name, mobile FROM t_member WHERE id = ?",
     [customerId],
     ctx.tenantId
   );
@@ -372,7 +372,7 @@ export async function autoGenerateCollections(ctx: ServiceContext): Promise<{
             cc.credit_used AS creditUsed, cc.payment_term AS paymentTerm,
             cc.credit_limit AS creditLimit
      FROM t_customer_credit cc
-     LEFT JOIN member m ON m.id = cc.customer_id
+     LEFT JOIN t_member m ON m.id = cc.customer_id
      WHERE cc.credit_used > 0 AND cc.status = 'ACTIVE' AND cc.payment_term != 'COD'
        AND cc.tenant_id = ?`,
     [ctx.tenantId],

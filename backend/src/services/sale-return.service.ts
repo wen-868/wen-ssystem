@@ -118,7 +118,7 @@ class SaleReturnService {
     const total = Number(countRow?.total ?? 0);
 
     const offset = (page - 1) * pageSize;
-    const dataSql = `SELECT sr.*, s.name AS store_name FROM t_sale_return sr LEFT JOIN store s ON sr.store_id = s.id AND s.tenant_id = ? ${where} ORDER BY sr.created_at DESC LIMIT ? OFFSET ?`;
+    const dataSql = `SELECT sr.*, s.name AS store_name FROM t_sale_return sr LEFT JOIN t_store s ON sr.store_id = s.id AND s.tenant_id = ? ${where} ORDER BY sr.created_at DESC LIMIT ? OFFSET ?`;
     const dataParams = [ctx.tenantId, ...params, pageSize, offset];
     const records = await queryWithTenant<SaleReturnListVO>(dataSql, dataParams, ctx.tenantId);
 

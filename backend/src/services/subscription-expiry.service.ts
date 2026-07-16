@@ -19,8 +19,8 @@ export async function checkSubscriptionExpiry() {
               s.expire_notify_sent, s.auto_renew,
               t.company_name, t.contact_mobile, t.contact_person,
               DATEDIFF(s.end_date, CURDATE()) AS days_remaining
-       FROM subscription s
-       LEFT JOIN tenant t ON t.id = s.tenant_id
+       FROM t_subscription s
+       LEFT JOIN t_tenant t ON t.id = s.tenant_id
        WHERE s.status = 'ACTIVE'
          AND s.payment_status = 'PAID'
          AND s.end_date BETWEEN CURDATE() AND DATE_ADD(CURDATE(), INTERVAL 7 DAY)
@@ -36,7 +36,7 @@ export async function checkSubscriptionExpiry() {
 
       // 标记已发送通知（平台级定时任务：sub.tenant_id 来自前一个跨租户 SELECT，作为双保险加入 WHERE 条件）
       await query(
-        "UPDATE subscription SET expire_notify_sent = 1, expire_notify_at = NOW() WHERE id = ? AND tenant_id = ?",
+        "UPDATE t_subscription SET expire_notify_sent = 1, expire_notify_at = NOW() WHERE id = ? AND tenant_id = ?",
         [sub.id, sub.tenant_id]
       );
 
@@ -52,8 +52,8 @@ export async function checkSubscriptionExpiry() {
       `SELECT s.id, s.subscription_no, s.tenant_id, s.end_date,
               t.company_name, t.status AS tenant_status,
               DATEDIFF(CURDATE(), s.end_date) AS overdue_days
-       FROM subscription s
-       LEFT JOIN tenant t ON t.id = s.tenant_id
+       FROM t_subscription s
+       LEFT JOIN t_tenant t ON t.id = s.tenant_id
        WHERE s.status = 'ACTIVE'
          AND s.end_date < CURDATE()
          AND t.status = 'ACTIVE'
@@ -65,14 +65,14 @@ export async function checkSubscriptionExpiry() {
 
       // 自动停用租户
       await query(
-        `UPDATE tenant SET status = 'EXPIRED', suspend_reason = '订阅已到期', suspended_at = NOW()
+        `UPDATE t_tenant SET status = 'EXPIRED', suspend_reason = '订阅已到期', suspended_at = NOW()
          WHERE id = ? AND status = 'ACTIVE'`,
         [sub.tenant_id]
       );
 
       // 更新订阅状态（平台级定时任务：sub.tenant_id 作为双保险加入 WHERE 条件）
       await query(
-        "UPDATE subscription SET status = 'EXPIRED' WHERE id = ? AND tenant_id = ?",
+        "UPDATE t_subscription SET status = 'EXPIRED' WHERE id = ? AND tenant_id = ?",
         [sub.id, sub.tenant_id]
       );
 

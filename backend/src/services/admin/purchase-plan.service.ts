@@ -110,8 +110,8 @@ export async function listPurchasePlans(params: {
             st.name AS storeName, pp.plan_status AS planStatus,
             pp.goods_amount AS goodsAmount, pp.created_at AS createdAt
      FROM purchase_plan pp
-     LEFT JOIN supplier s ON s.id = pp.supplier_id
-     LEFT JOIN store st ON st.id = pp.store_id
+     LEFT JOIN t_supplier s ON s.id = pp.supplier_id
+     LEFT JOIN t_store st ON st.id = pp.store_id
      ${where}
      ORDER BY pp.created_at DESC
      LIMIT ? OFFSET ?`,

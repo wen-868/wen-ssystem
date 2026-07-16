@@ -18,7 +18,7 @@ export async function getReconciliationSummary(params: {
        COALESCE(SUM(ro.pay_amount), 0) AS totalSales,
        COALESCE(SUM(CASE WHEN ro.order_status IN ('COMPLETED') THEN ro.pay_amount ELSE 0 END), 0) AS completedAmount,
        COALESCE(SUM(ro.delivery_fee), 0) AS totalDeliveryFee
-     FROM retail_order ro ${where}`,
+     FROM t_retail_order ro ${where}`,
     values, tenantId
   );
   return {
@@ -45,9 +45,9 @@ export async function listReconciliationRecords(params: {
   if (startDate) { conditions.push("created_at >= ?"); values.push(startDate); }
   if (endDate) { conditions.push("created_at <= ?"); values.push(endDate); }
   const where = `WHERE ${conditions.join(" AND ")}`;
-  const total = await queryOneWithTenant<any>(`SELECT COUNT(*) AS cnt FROM platform_order ${where}`, values, tenantId);
+  const total = await queryOneWithTenant<any>(`SELECT COUNT(*) AS cnt FROM t_platform_order ${where}`, values, tenantId);
   const rows = await queryWithTenant<any>(
-    `SELECT * FROM platform_order ${where} ORDER BY created_at DESC LIMIT ? OFFSET ?`,
+    `SELECT * FROM t_platform_order ${where} ORDER BY created_at DESC LIMIT ? OFFSET ?`,
     [...values, pageSize, (page - 1) * pageSize], tenantId
   );
   return { list: rows, total: Number(total?.cnt ?? 0), page, pageSize };

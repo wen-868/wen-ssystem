@@ -43,7 +43,7 @@ export async function getLifecycleDetail(params: { stage?: string; page: number;
   const records = await queryWithTenant<any>(
     `SELECT cp.customer_id AS customerId, m.name AS customerName, m.mobile, cp.lifecycle_stage AS stage, cp.last_order_at AS lastOrderAt, cp.total_order_count AS totalOrderCount, cp.avg_order_amount AS avgOrderAmount, cp.member_level AS memberLevel, DATEDIFF(NOW(), COALESCE(cp.last_order_at, m.created_at)) AS daysSinceLastOrder
      FROM customer_profile cp
-     LEFT JOIN member m ON m.id = cp.customer_id
+     LEFT JOIN t_member m ON m.id = cp.customer_id
      ${where} ORDER BY cp.last_order_at DESC LIMIT ? OFFSET ?`,
     [...values, pageSize, offset], tenantId
   );

@@ -72,7 +72,7 @@ export async function getCustomerProfile(customerId: number, tenantId: string) {
     profile = { customerId, ageGroup: null, gender: null, preferCategory: null, preferBrand: null, avgOrderAmount: 0, totalOrderCount: 0, lastOrderAt: null, totalPoints: 0, memberLevel: "VIP1", lifecycleStage: "PROSPECT" };
   }
   const tags = await getCustomerTags(customerId, tenantId);
-  const member = await queryOneWithTenant<any>("SELECT name, mobile FROM member WHERE id = ? AND tenant_id = ?", [customerId, tenantId], tenantId);
+  const member = await queryOneWithTenant<any>("SELECT name, mobile FROM t_member WHERE id = ? AND tenant_id = ?", [customerId, tenantId], tenantId);
   const points = await queryOneWithTenant<any>("SELECT total_points AS totalPoints, available_points AS availablePoints FROM customer_points WHERE customer_id = ? AND tenant_id = ?", [customerId, tenantId], tenantId);
   return {
     ...profile,

@@ -25,7 +25,7 @@ export async function listCustomerPrices(params: {
             m.name AS customerName, ps.sku_name AS skuName,
             pp.retail_price AS retailPrice, pp.wholesale_price AS wholesalePrice
      FROM customer_price cp
-     LEFT JOIN member m ON m.id = cp.customer_id
+     LEFT JOIN t_member m ON m.id = cp.customer_id
      LEFT JOIN t_product_sku ps ON ps.id = cp.sku_id
      LEFT JOIN t_product_price pp ON pp.sku_id = cp.sku_id
      ${where}

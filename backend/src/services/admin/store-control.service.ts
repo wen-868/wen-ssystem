@@ -6,7 +6,7 @@ export async function getConfigs(tenantId: string) {
   const records = await query<Record<string, unknown>>(
     `SELECT scc.*, s.name AS store_name, s.status AS store_status
      FROM t_store_control_config scc
-     LEFT JOIN store s ON s.id = scc.store_id AND s.tenant_id = scc.tenant_id
+     LEFT JOIN t_store s ON s.id = scc.store_id AND s.tenant_id = scc.tenant_id
      WHERE scc.tenant_id = ?
      ORDER BY scc.id ASC`,
     [tenantId]
@@ -18,7 +18,7 @@ export async function getConfig(storeId: number, tenantId: string) {
   const config = await queryOne<any>(
     `SELECT scc.*, s.name AS store_name, s.status AS store_status
      FROM t_store_control_config scc
-     LEFT JOIN store s ON s.id = scc.store_id AND s.tenant_id = scc.tenant_id
+     LEFT JOIN t_store s ON s.id = scc.store_id AND s.tenant_id = scc.tenant_id
      WHERE scc.store_id = ? AND scc.tenant_id = ?`,
     [storeId, tenantId]
   );
@@ -68,7 +68,7 @@ export async function openStore(params: {
 
   await transaction(async (conn) => {
     const [rows] = await (conn as any).execute(
-      "SELECT status FROM store WHERE id = ? AND tenant_id = ? FOR UPDATE",
+      "SELECT status FROM t_store WHERE id = ? AND tenant_id = ? FOR UPDATE",
       [storeId, tenantId]
     );
     const store = (rows as unknown as Record<string, unknown>[])[0];
@@ -76,7 +76,7 @@ export async function openStore(params: {
 
     const fromStatus = store.status || "CLOSED";
     await (conn as any).execute(
-      "UPDATE store SET status = 'OPEN' WHERE id = ? AND tenant_id = ?",
+      "UPDATE t_store SET status = 'OPEN' WHERE id = ? AND tenant_id = ?",
       [storeId, tenantId]
     );
     await (conn as any).execute(
@@ -96,7 +96,7 @@ export async function closeStore(params: {
 
   await transaction(async (conn) => {
     const [rows] = await (conn as any).execute(
-      "SELECT status FROM store WHERE id = ? AND tenant_id = ? FOR UPDATE",
+      "SELECT status FROM t_store WHERE id = ? AND tenant_id = ? FOR UPDATE",
       [storeId, tenantId]
     );
     const store = (rows as unknown as Record<string, unknown>[])[0];
@@ -104,7 +104,7 @@ export async function closeStore(params: {
 
     const fromStatus = store.status || "OPEN";
     await (conn as any).execute(
-      "UPDATE store SET status = 'CLOSED' WHERE id = ? AND tenant_id = ?",
+      "UPDATE t_store SET status = 'CLOSED' WHERE id = ? AND tenant_id = ?",
       [storeId, tenantId]
     );
     await (conn as any).execute(
@@ -124,7 +124,7 @@ export async function suspendStore(params: {
 
   await transaction(async (conn) => {
     const [rows] = await (conn as any).execute(
-      "SELECT status FROM store WHERE id = ? AND tenant_id = ? FOR UPDATE",
+      "SELECT status FROM t_store WHERE id = ? AND tenant_id = ? FOR UPDATE",
       [storeId, tenantId]
     );
     const store = (rows as unknown as Record<string, unknown>[])[0];
@@ -133,7 +133,7 @@ export async function suspendStore(params: {
     const fromStatus = store.status || "OPEN";
     const remark = reason || "手动暂停营业";
     await (conn as any).execute(
-      "UPDATE store SET status = 'SUSPENDED' WHERE id = ? AND tenant_id = ?",
+      "UPDATE t_store SET status = 'SUSPENDED' WHERE id = ? AND tenant_id = ?",
       [storeId, tenantId]
     );
     await (conn as any).execute(
@@ -159,7 +159,7 @@ export async function resumeStore(params: {
 
   await transaction(async (conn) => {
     const [rows] = await (conn as any).execute(
-      "SELECT status FROM store WHERE id = ? AND tenant_id = ? FOR UPDATE",
+      "SELECT status FROM t_store WHERE id = ? AND tenant_id = ? FOR UPDATE",
       [storeId, tenantId]
     );
     const store = (rows as unknown as Record<string, unknown>[])[0];
@@ -167,7 +167,7 @@ export async function resumeStore(params: {
 
     const fromStatus = store.status || "SUSPENDED";
     await (conn as any).execute(
-      "UPDATE store SET status = 'OPEN' WHERE id = ? AND tenant_id = ?",
+      "UPDATE t_store SET status = 'OPEN' WHERE id = ? AND tenant_id = ?",
       [storeId, tenantId]
     );
     await (conn as any).execute(
@@ -207,7 +207,7 @@ export async function getLogs(params: {
   const records = await query<Record<string, unknown>>(
     `SELECT ssl.*, s.name AS store_name
      FROM t_store_status_log ssl
-     LEFT JOIN store s ON s.id = ssl.store_id AND s.tenant_id = ssl.tenant_id
+     LEFT JOIN t_store s ON s.id = ssl.store_id AND s.tenant_id = ssl.tenant_id
      WHERE ${where}
      ORDER BY ssl.created_at DESC
      LIMIT ? OFFSET ?`,
@@ -223,7 +223,7 @@ export async function getLogs(params: {
 
 export async function getStoreStatus(storeId: number, tenantId: string) {
   const store = await queryOne<any>(
-    "SELECT id, name, status FROM store WHERE id = ? AND tenant_id = ?",
+    "SELECT id, name, status FROM t_store WHERE id = ? AND tenant_id = ?",
     [storeId, tenantId]
   );
 
@@ -249,7 +249,7 @@ export async function getMyLogs(params: {
   const records = await query<Record<string, unknown>>(
     `SELECT ssl.*, s.name AS store_name
      FROM t_store_status_log ssl
-     LEFT JOIN store s ON s.id = ssl.store_id AND s.tenant_id = ssl.tenant_id
+     LEFT JOIN t_store s ON s.id = ssl.store_id AND s.tenant_id = ssl.tenant_id
      WHERE ssl.store_id = ? AND ssl.tenant_id = ?
      ORDER BY ssl.created_at DESC
      LIMIT ? OFFSET ?`,
@@ -277,7 +277,7 @@ export async function getConfigsForCheck(tenantId: string) {
   return query<Record<string, unknown>>(
     `SELECT scc.*, s.status AS current_status, s.name AS store_name
      FROM t_store_control_config scc
-     JOIN store s ON s.id = scc.store_id AND s.tenant_id = scc.tenant_id
+     JOIN t_store s ON s.id = scc.store_id AND s.tenant_id = scc.tenant_id
      WHERE scc.tenant_id = ?
        AND s.status IN ('OPEN', 'CLOSED')`,
     [tenantId]

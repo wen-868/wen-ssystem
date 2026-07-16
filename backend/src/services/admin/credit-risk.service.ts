@@ -43,7 +43,7 @@ export async function getRiskCustomers(
               ELSE 'NORMAL'
             END AS riskLevel
      FROM t_customer_credit cc
-     LEFT JOIN member m ON m.id = cc.customer_id
+     LEFT JOIN t_member m ON m.id = cc.customer_id
      WHERE cc.tenant_id = ?
        AND (
          cc.status = 'FROZEN'

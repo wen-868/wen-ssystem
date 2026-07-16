@@ -91,7 +91,7 @@ export async function getRFMAnalysis(params: { tenantId: string; storeId?: numbe
             COUNT(DISTINCT bill_no) AS frequency,
             COALESCE(SUM(receivable_amount), 0) AS monetary
      FROM t_sale_bill sb
-     LEFT JOIN member m ON m.id = sb.customer_id
+     LEFT JOIN t_member m ON m.id = sb.customer_id
      WHERE sb.tenant_id = ? AND sb.business_status = 'CREATED' ${storeCondition}
      GROUP BY customer_id, m.name`,
     values, tenantId
@@ -150,7 +150,7 @@ export async function getCustomerContributionRanking(params: { tenantId: string;
             COALESCE(SUM(sb.receivable_amount) - SUM(sb.unreceived_amount), 0) AS paidAmount,
             AVG(sb.receivable_amount) AS avgOrderValue
      FROM t_sale_bill sb
-     LEFT JOIN member m ON m.id = sb.customer_id
+     LEFT JOIN t_member m ON m.id = sb.customer_id
      ${where} AND sb.customer_id IS NOT NULL
      GROUP BY sb.customer_id, m.name, m.mobile
      ORDER BY totalAmount DESC
@@ -170,7 +170,7 @@ export async function getNewCustomerTrend(params: { tenantId: string; groupBy?: 
   else dateFormat = "DATE(created_at)";
   return queryWithTenant<any>(
     `SELECT ${dateFormat} AS period, COUNT(*) AS newCustomerCount
-     FROM member
+     FROM t_member
      WHERE tenant_id = ? ${storeCondition}
      GROUP BY period ORDER BY period`,
     values, tenantId
@@ -194,7 +194,7 @@ export async function getLostCustomerAnalysis(params: { tenantId: string; daysTh
             COUNT(DISTINCT sb.bill_no) AS totalOrders,
             COALESCE(SUM(sb.receivable_amount), 0) AS totalAmount
      FROM t_sale_bill sb
-     LEFT JOIN member m ON m.id = sb.customer_id
+     LEFT JOIN t_member m ON m.id = sb.customer_id
      WHERE sb.tenant_id = ? AND sb.business_status = 'CREATED' ${storeCondition}
      GROUP BY sb.customer_id, m.name, m.mobile
      HAVING DATEDIFF(NOW(), MAX(sb.created_at)) > ?

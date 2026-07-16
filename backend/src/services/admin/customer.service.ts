@@ -12,7 +12,7 @@ export async function listMembers(tenantId: string, page: number, pageSize: numb
             m.staff_id AS staffId, u.real_name AS staffName,
             COALESCE(SUM(sb.receivable_amount), 0) AS totalSpent,
             COALESCE(SUM(sb.unreceived_amount), 0) AS arrears
-     FROM member m
+     FROM t_member m
      LEFT JOIN t_sys_user u ON u.id = m.staff_id
      LEFT JOIN t_sale_bill sb ON sb.customer_id = m.id AND sb.business_status NOT IN ('DRAFT', 'VOIDED')
      WHERE m.tenant_id = ? AND (m.name LIKE ? OR m.mobile LIKE ?)
@@ -22,14 +22,14 @@ export async function listMembers(tenantId: string, page: number, pageSize: numb
     [tenantId, kw, kw, pageSize, offset],
     tenantId
   );
-  const totalRow = await queryOneWithTenant<any>("SELECT COUNT(*) AS total FROM member WHERE tenant_id = ? AND (name LIKE ? OR mobile LIKE ?)", [tenantId, kw, kw], tenantId);
+  const totalRow = await queryOneWithTenant<any>("SELECT COUNT(*) AS total FROM t_member WHERE tenant_id = ? AND (name LIKE ? OR mobile LIKE ?)", [tenantId, kw, kw], tenantId);
   return { total: totalRow?.total ?? 0, page, pageSize, records };
 }
 
 export async function createCustomer(tenantId: string, body: { name: string; mobile: string; customerType: string; staffId?: number; address?: string; settlementType?: string; remark?: string }) {
   const levelCode = getCustomerLevelCode(body.customerType as CustomerType);
   const result = await queryWithTenant<any>(
-    `INSERT INTO member (name, mobile, customer_type, staff_id, address, settlement_type, remark, points, level_code, status, tenant_id)
+    `INSERT INTO t_member (name, mobile, customer_type, staff_id, address, settlement_type, remark, points, level_code, status, tenant_id)
      VALUES (?, ?, ?, ?, ?, ?, ?, 0, ?, 1, ?)`,
     [body.name, body.mobile, body.customerType, body.staffId ?? null, body.address ?? null, body.settlementType ?? 'CASH', body.remark ?? null, levelCode, tenantId],
     tenantId
@@ -44,7 +44,7 @@ export async function getCustomerDetail(tenantId: string, memberId: number) {
     `SELECT m.id AS memberId, m.name, m.mobile, m.customer_type AS customerType,
             m.points, m.level_code AS levelCode, m.status,
             m.staff_id AS staffId, u.real_name AS staffName
-     FROM member m
+     FROM t_member m
      LEFT JOIN t_sys_user u ON u.id = m.staff_id
      WHERE m.id = ? AND m.tenant_id = ?`,
     [memberId, tenantId],
@@ -57,7 +57,7 @@ export async function getCustomerDetail(tenantId: string, memberId: number) {
 }
 
 export async function updateCustomer(tenantId: string, memberId: number, body: { name?: string; mobile?: string; address?: string; customerType?: string; levelCode?: string; settlementType?: string; remark?: string }) {
-  const existing = await queryOneWithTenant<any>("SELECT id, name, mobile FROM member WHERE id = ? AND tenant_id = ?", [memberId, tenantId], tenantId);
+  const existing = await queryOneWithTenant<any>("SELECT id, name, mobile FROM t_member WHERE id = ? AND tenant_id = ?", [memberId, tenantId], tenantId);
   if (!existing) {
     throw Object.assign(new Error("客户不存在"), { statusCode: 404 });
   }
@@ -73,7 +73,7 @@ export async function updateCustomer(tenantId: string, memberId: number, body: {
   if (sets.length === 0) { return { memberId }; }
   sets.push("updated_at = NOW()");
   params.push(memberId, tenantId);
-  await queryWithTenant(`UPDATE member SET ${sets.join(", ")} WHERE id = ? AND tenant_id = ?`, params, tenantId);
+  await queryWithTenant(`UPDATE t_member SET ${sets.join(", ")} WHERE id = ? AND tenant_id = ?`, params, tenantId);
 
   // 分字段定向同步：客户名称/电话变更同步到销售单
   const changedFields = detectChangedFields(
@@ -88,19 +88,19 @@ export async function updateCustomer(tenantId: string, memberId: number, body: {
 }
 
 export async function disableCustomer(tenantId: string, memberId: number) {
-  const existing = await queryOneWithTenant<any>("SELECT id, name, status FROM member WHERE id = ? AND tenant_id = ?", [memberId, tenantId], tenantId);
+  const existing = await queryOneWithTenant<any>("SELECT id, name, status FROM t_member WHERE id = ? AND tenant_id = ?", [memberId, tenantId], tenantId);
   if (!existing) {
     throw Object.assign(new Error("客户不存在"), { statusCode: 404 });
   }
   if (existing.status === "INACTIVE") {
     throw Object.assign(new Error("客户已停用"), { statusCode: 400 });
   }
-  await queryWithTenant("UPDATE member SET status = 'INACTIVE', updated_at = NOW() WHERE id = ? AND tenant_id = ?", [memberId, tenantId], tenantId);
+  await queryWithTenant("UPDATE t_member SET status = 'INACTIVE', updated_at = NOW() WHERE id = ? AND tenant_id = ?", [memberId, tenantId], tenantId);
   return { memberId, name: existing.name };
 }
 
 export async function assignStaffToCustomer(tenantId: string, memberId: number, staffId: number) {
-  const member = await queryOneWithTenant<any>("SELECT id FROM member WHERE id = ? AND tenant_id = ?", [memberId, tenantId], tenantId);
+  const member = await queryOneWithTenant<any>("SELECT id FROM t_member WHERE id = ? AND tenant_id = ?", [memberId, tenantId], tenantId);
   if (!member) {
     throw Object.assign(new Error("客户不存在"), { statusCode: 404 });
   }
@@ -108,7 +108,7 @@ export async function assignStaffToCustomer(tenantId: string, memberId: number, 
   if (!staff) {
     throw Object.assign(new Error("员工不存在"), { statusCode: 404 });
   }
-  await queryWithTenant("UPDATE member SET staff_id = ?, updated_at = NOW() WHERE id = ? AND tenant_id = ?", [staffId, memberId, tenantId], tenantId);
+  await queryWithTenant("UPDATE t_member SET staff_id = ?, updated_at = NOW() WHERE id = ? AND tenant_id = ?", [staffId, memberId, tenantId], tenantId);
   return { memberId, staffId };
 }
 
@@ -259,9 +259,9 @@ export async function getCustomerPurchaseStats(tenantId: string, memberId: numbe
 }
 
 export async function getCustomerStats(tenantId: string) {
-  const totalRow = await queryOneWithTenant<any>("SELECT COUNT(*) AS total FROM member WHERE status = 1 AND tenant_id = ?", [tenantId], tenantId);
+  const totalRow = await queryOneWithTenant<any>("SELECT COUNT(*) AS total FROM t_member WHERE status = 1 AND tenant_id = ?", [tenantId], tenantId);
   const newMonthRow = await queryOneWithTenant<any>(
-    "SELECT COUNT(*) AS cnt FROM member WHERE status = 1 AND tenant_id = ? AND DATE_FORMAT(created_at, '%Y-%m') = DATE_FORMAT(NOW(), '%Y-%m')",
+    "SELECT COUNT(*) AS cnt FROM t_member WHERE status = 1 AND tenant_id = ? AND DATE_FORMAT(created_at, '%Y-%m') = DATE_FORMAT(NOW(), '%Y-%m')",
     [tenantId],
     tenantId
   );

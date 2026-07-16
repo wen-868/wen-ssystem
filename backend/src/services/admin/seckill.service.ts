@@ -8,8 +8,8 @@ export async function getSeckillProducts(tenantId: string, params?: { status?: s
   const vals: any[] = [];
   if (params?.status) { where += " AND sp.status = ?"; vals.push(params.status); }
   const [rows, total] = await Promise.all([
-    query<any>(`SELECT sp.*, p.name AS productName FROM seckill_product sp LEFT JOIN product p ON sp.product_id = p.id ${where} ORDER BY sp.start_time ASC LIMIT ${offset}, ${pageSize}`, vals),
-    queryOne<any>(`SELECT COUNT(*) AS cnt FROM seckill_product ${where}`, vals)
+    query<any>(`SELECT sp.*, p.name AS productName FROM t_seckill_product sp LEFT JOIN t_product p ON sp.product_id = p.id ${where} ORDER BY sp.start_time ASC LIMIT ${offset}, ${pageSize}`, vals),
+    queryOne<any>(`SELECT COUNT(*) AS cnt FROM t_seckill_product ${where}`, vals)
   ]);
   return { records: rows, total: total?.cnt || 0, page, pageSize };
 }
@@ -31,6 +31,6 @@ export async function updateSeckillProduct(id: number, data: any) {
 }
 
 export async function deleteSeckillProduct(id: number) {
-  await query(`DELETE FROM seckill_product WHERE id=?`, [id]);
+  await query(`DELETE FROM t_seckill_product WHERE id=?`, [id]);
   return { success: true };
 }

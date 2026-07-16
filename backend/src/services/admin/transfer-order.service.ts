@@ -62,7 +62,7 @@ export async function createTransferOrder(params: CreateTransferOrderParams) {
     totalAmount = Math.round(totalAmount * 100) / 100;
 
     const [insertResult] = await conn.execute<any>(
-      `INSERT INTO transfer_order (
+      `INSERT INTO t_transfer_order (
         transfer_no, from_store_id, from_store_name, to_store_id, to_store_name,
         status, expected_date, total_amount, total_items, remark,
         created_by, created_by_name, tenant_id
@@ -78,7 +78,7 @@ export async function createTransferOrder(params: CreateTransferOrderParams) {
     for (const item of items) {
       const subtotal = Math.round(item.quantity * item.unitPrice * 100) / 100;
       await conn.execute(
-        `INSERT INTO transfer_order_item (
+        `INSERT INTO t_transfer_order_item (
           transfer_order_id, transfer_no, sku_id, sku_name, quantity, unit_price, subtotal, tenant_id
         ) VALUES (?, ?, ?, ?, ?, ?, ?, ?)`,
         [orderId, transferNo, item.skuId, item.skuName, item.quantity, item.unitPrice, subtotal, tenantId]
@@ -138,7 +138,7 @@ export async function listTransferOrders(params: ListTransferOrdersParams) {
             to.shipped_by AS shippedBy, to.shipped_by_name AS shippedByName, to.shipped_at AS shippedAt,
             to.received_by AS receivedBy, to.received_by_name AS receivedByName, to.received_at AS receivedAt,
             to.created_at AS createdAt, to.updated_at AS updatedAt
-     FROM transfer_order to
+     FROM t_transfer_order to
      ${where}
      ORDER BY to.created_at DESC
      LIMIT ? OFFSET ?`,
@@ -147,7 +147,7 @@ export async function listTransferOrders(params: ListTransferOrdersParams) {
   );
 
   const totalRow = await queryOneWithTenant<any>(
-    `SELECT COUNT(*) AS total FROM transfer_order to ${where}`,
+    `SELECT COUNT(*) AS total FROM t_transfer_order to ${where}`,
     queryParams,
     tenantId
   );
@@ -166,7 +166,7 @@ export async function getTransferOrderDetail(id: number, tenantId: string) {
             shipped_by AS shippedBy, shipped_by_name AS shippedByName, shipped_at AS shippedAt,
             received_by AS receivedBy, received_by_name AS receivedByName, received_at AS receivedAt,
             created_at AS createdAt, updated_at AS updatedAt
-     FROM transfer_order WHERE id = ? AND tenant_id = ?`,
+     FROM t_transfer_order WHERE id = ? AND tenant_id = ?`,
     [id, tenantId],
     tenantId
   );
@@ -192,7 +192,7 @@ export async function updateTransferOrder(id: number, tenantId: string, params: 
   const { expectedDate, remark, items } = params;
 
   const existing = await queryOneWithTenant<any>(
-    "SELECT id, status FROM transfer_order WHERE id = ? AND tenant_id = ?",
+    "SELECT id, status FROM t_transfer_order WHERE id = ? AND tenant_id = ?",
     [id, tenantId],
     tenantId
   );
@@ -219,7 +219,7 @@ export async function updateTransferOrder(id: number, tenantId: string, params: 
     if (sets.length > 0) {
       values.push(id, tenantId);
       await conn.execute(
-        `UPDATE transfer_order SET ${sets.join(", ")} WHERE id = ? AND tenant_id = ?`,
+        `UPDATE t_transfer_order SET ${sets.join(", ")} WHERE id = ? AND tenant_id = ?`,
         values as any[]
       );
     }
@@ -235,7 +235,7 @@ export async function updateTransferOrder(id: number, tenantId: string, params: 
         const subtotal = Math.round(item.quantity * item.unitPrice * 100) / 100;
         totalAmount += subtotal;
         await conn.execute(
-          `INSERT INTO transfer_order_item (
+          `INSERT INTO t_transfer_order_item (
             transfer_order_id, sku_id, sku_name, quantity, unit_price, subtotal, tenant_id
           ) VALUES (?, ?, ?, ?, ?, ?, ?)`,
           [id, item.skuId, item.skuName, item.quantity, item.unitPrice, subtotal, tenantId]
@@ -244,7 +244,7 @@ export async function updateTransferOrder(id: number, tenantId: string, params: 
       totalAmount = Math.round(totalAmount * 100) / 100;
 
       await conn.execute(
-        "UPDATE transfer_order SET total_amount = ?, total_items = ? WHERE id = ? AND tenant_id = ?",
+        "UPDATE t_transfer_order SET total_amount = ?, total_items = ? WHERE id = ? AND tenant_id = ?",
         [totalAmount, items.length, id, tenantId]
       );
     }
@@ -256,7 +256,7 @@ export async function updateTransferOrder(id: number, tenantId: string, params: 
 // ========== 删除调拨单 ==========
 export async function deleteTransferOrder(id: number, tenantId: string) {
   const existing = await queryOneWithTenant<any>(
-    "SELECT id, status FROM transfer_order WHERE id = ? AND tenant_id = ?",
+    "SELECT id, status FROM t_transfer_order WHERE id = ? AND tenant_id = ?",
     [id, tenantId],
     tenantId
   );
@@ -273,7 +273,7 @@ export async function deleteTransferOrder(id: number, tenantId: string) {
       [id, tenantId]
     );
     await conn.execute(
-      "DELETE FROM transfer_order WHERE id = ? AND tenant_id = ?",
+      "DELETE FROM t_transfer_order WHERE id = ? AND tenant_id = ?",
       [id, tenantId]
     );
   });
@@ -284,7 +284,7 @@ export async function deleteTransferOrder(id: number, tenantId: string) {
 // ========== 提交审核 ==========
 export async function submitTransferOrder(id: number, tenantId: string) {
   const existing = await queryOneWithTenant<any>(
-    "SELECT id, status FROM transfer_order WHERE id = ? AND tenant_id = ?",
+    "SELECT id, status FROM t_transfer_order WHERE id = ? AND tenant_id = ?",
     [id, tenantId],
     tenantId
   );
@@ -296,7 +296,7 @@ export async function submitTransferOrder(id: number, tenantId: string) {
   }
 
   await queryWithTenant(
-    "UPDATE transfer_order SET status = 'PENDING' WHERE id = ? AND tenant_id = ?",
+    "UPDATE t_transfer_order SET status = 'PENDING' WHERE id = ? AND tenant_id = ?",
     [id, tenantId],
     tenantId
   );
@@ -313,7 +313,7 @@ export async function approveTransferOrder(
   const { approverId, approverName } = params;
 
   const existing = await queryOneWithTenant<any>(
-    "SELECT id, status FROM transfer_order WHERE id = ? AND tenant_id = ?",
+    "SELECT id, status FROM t_transfer_order WHERE id = ? AND tenant_id = ?",
     [id, tenantId],
     tenantId
   );
@@ -325,7 +325,7 @@ export async function approveTransferOrder(
   }
 
   await queryWithTenant(
-    `UPDATE transfer_order SET status = 'APPROVED', approved_by = ?, approved_by_name = ?, approved_at = NOW()
+    `UPDATE t_transfer_order SET status = 'APPROVED', approved_by = ?, approved_by_name = ?, approved_at = NOW()
      WHERE id = ? AND tenant_id = ?`,
     [approverId, approverName ?? null, id, tenantId],
     tenantId
@@ -343,7 +343,7 @@ export async function rejectTransferOrder(
   const { approverId, approverName, rejectReason } = params;
 
   const existing = await queryOneWithTenant<any>(
-    "SELECT id, status FROM transfer_order WHERE id = ? AND tenant_id = ?",
+    "SELECT id, status FROM t_transfer_order WHERE id = ? AND tenant_id = ?",
     [id, tenantId],
     tenantId
   );
@@ -355,7 +355,7 @@ export async function rejectTransferOrder(
   }
 
   await queryWithTenant(
-    `UPDATE transfer_order SET status = 'REJECTED', approved_by = ?, approved_by_name = ?,
+    `UPDATE t_transfer_order SET status = 'REJECTED', approved_by = ?, approved_by_name = ?,
      reject_reason = ?, approved_at = NOW()
      WHERE id = ? AND tenant_id = ?`,
     [approverId, approverName ?? null, rejectReason ?? null, id, tenantId],
@@ -374,7 +374,7 @@ export async function confirmTransferOut(
   const { operatorId, operatorName } = params;
 
   const existing = await queryOneWithTenant<any>(
-    "SELECT id, status, from_store_id AS fromStoreId, transfer_no AS transferNo FROM transfer_order WHERE id = ? AND tenant_id = ?",
+    "SELECT id, status, from_store_id AS fromStoreId, transfer_no AS transferNo FROM t_transfer_order WHERE id = ? AND tenant_id = ?",
     [id, tenantId],
     tenantId
   );
@@ -388,7 +388,7 @@ export async function confirmTransferOut(
   await transaction(async (conn) => {
     // 更新状态
     await conn.execute(
-      `UPDATE transfer_order SET status = 'TRANSIT', shipped_by = ?, shipped_by_name = ?, shipped_at = NOW()
+      `UPDATE t_transfer_order SET status = 'TRANSIT', shipped_by = ?, shipped_by_name = ?, shipped_at = NOW()
        WHERE id = ? AND tenant_id = ?`,
       [operatorId, operatorName ?? null, id, tenantId]
     );
@@ -431,7 +431,7 @@ export async function confirmTransferIn(
   const { operatorId, operatorName } = params;
 
   const existing = await queryOneWithTenant<any>(
-    "SELECT id, status, to_store_id AS toStoreId, transfer_no AS transferNo FROM transfer_order WHERE id = ? AND tenant_id = ?",
+    "SELECT id, status, to_store_id AS toStoreId, transfer_no AS transferNo FROM t_transfer_order WHERE id = ? AND tenant_id = ?",
     [id, tenantId],
     tenantId
   );
@@ -445,7 +445,7 @@ export async function confirmTransferIn(
   await transaction(async (conn) => {
     // 更新状态
     await conn.execute(
-      `UPDATE transfer_order SET status = 'RECEIVED', received_by = ?, received_by_name = ?, received_at = NOW()
+      `UPDATE t_transfer_order SET status = 'RECEIVED', received_by = ?, received_by_name = ?, received_at = NOW()
        WHERE id = ? AND tenant_id = ?`,
       [operatorId, operatorName ?? null, id, tenantId]
     );
@@ -489,14 +489,14 @@ export async function getTransferStats(tenantId: string) {
   const monthStartStr = monthStart.toISOString().slice(0, 10);
 
   const monthTotalRow = await queryOneWithTenant<any>(
-    "SELECT COUNT(*) AS total FROM transfer_order WHERE created_at >= ? AND tenant_id = ?",
+    "SELECT COUNT(*) AS total FROM t_transfer_order WHERE created_at >= ? AND tenant_id = ?",
     [monthStartStr, tenantId],
     tenantId
   );
 
   // 各状态统计
   const statusStats = await queryWithTenant<any>(
-    "SELECT status, COUNT(*) AS count FROM transfer_order WHERE tenant_id = ? GROUP BY status",
+    "SELECT status, COUNT(*) AS count FROM t_transfer_order WHERE tenant_id = ? GROUP BY status",
     [tenantId],
     tenantId
   );
@@ -508,7 +508,7 @@ export async function getTransferStats(tenantId: string) {
 
   // 本月调拨金额
   const monthAmountRow = await queryOneWithTenant<any>(
-    "SELECT COALESCE(SUM(total_amount), 0) AS amount FROM transfer_order WHERE created_at >= ? AND status IN ('TRANSIT', 'RECEIVED') AND tenant_id = ?",
+    "SELECT COALESCE(SUM(total_amount), 0) AS amount FROM t_transfer_order WHERE created_at >= ? AND status IN ('TRANSIT', 'RECEIVED') AND tenant_id = ?",
     [monthStartStr, tenantId],
     tenantId
   );

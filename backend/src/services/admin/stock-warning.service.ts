@@ -18,7 +18,7 @@ export async function getStockWarnings(tenantId: string, storeId?: number) {
             ps.safety_stock AS safetyStock
      FROM t_inventory_balance ib
      JOIN t_product_sku ps ON ps.id = ib.sku_id AND ps.tenant_id = ib.tenant_id
-     LEFT JOIN store st ON st.id = ib.store_id
+     LEFT JOIN t_store st ON st.id = ib.store_id
      LEFT JOIN stock_warning_config swc ON swc.sku_id = ib.sku_id AND swc.store_id = ib.store_id AND swc.tenant_id = ib.tenant_id AND swc.enabled = 1
      WHERE ib.tenant_id = ? ${storeCondition}
        AND (
@@ -73,7 +73,7 @@ export async function getStockWarningConfigs(tenantId: string, storeId?: number)
             swc.min_qty AS minQty, swc.max_qty AS maxQty,
             swc.enabled, ib.physical_qty AS currentStock
      FROM stock_warning_config swc
-     LEFT JOIN store st ON st.id = swc.store_id
+     LEFT JOIN t_store st ON st.id = swc.store_id
      LEFT JOIN t_product_sku ps ON ps.id = swc.sku_id
      LEFT JOIN t_inventory_balance ib ON ib.sku_id = swc.sku_id AND ib.store_id = swc.store_id AND ib.tenant_id = swc.tenant_id
      ${where}

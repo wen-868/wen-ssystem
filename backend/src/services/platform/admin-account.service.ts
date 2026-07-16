@@ -55,7 +55,7 @@ export async function listPlatformAdmins(
   const rows = await query<any[]>(
     `SELECT id, username, real_name AS realName, phone, email,
             role, status, last_login_at AS lastLoginAt, created_at AS createdAt
-     FROM platform_admin
+     FROM t_platform_admin
      WHERE ${where}
      ORDER BY created_at DESC
      LIMIT ? OFFSET ?`,
@@ -63,7 +63,7 @@ export async function listPlatformAdmins(
   );
 
   const totalRow = await queryOne<any>(
-    `SELECT COUNT(*) AS total FROM platform_admin WHERE ${where}`,
+    `SELECT COUNT(*) AS total FROM t_platform_admin WHERE ${where}`,
     params
   );
 
@@ -80,7 +80,7 @@ export async function listPlatformAdmins(
  */
 export async function createPlatformAdmin(params: PlatformAdminCreate) {
   const existing = await queryOne<any>(
-    "SELECT id FROM platform_admin WHERE username = ?",
+    "SELECT id FROM t_platform_admin WHERE username = ?",
     [params.username]
   );
   if (existing) {
@@ -90,7 +90,7 @@ export async function createPlatformAdmin(params: PlatformAdminCreate) {
   const passwordHash = await bcrypt.hash(params.password, 10);
 
   const result = await query<any>(
-    `INSERT INTO platform_admin
+    `INSERT INTO t_platform_admin
      (username, password_hash, real_name, phone, email, role, status, created_by)
      VALUES (?, ?, ?, ?, ?, ?, 'ACTIVE', 'system')`,
     [
@@ -119,7 +119,7 @@ export async function updatePlatformAdminStatus(
   status: "ACTIVE" | "DISABLED"
 ) {
   const existing = await queryOne<any>(
-    "SELECT id FROM platform_admin WHERE id = ?",
+    "SELECT id FROM t_platform_admin WHERE id = ?",
     [adminId]
   );
   if (!existing) {

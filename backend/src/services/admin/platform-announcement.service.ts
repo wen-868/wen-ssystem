@@ -51,7 +51,7 @@ export async function listAnnouncements(params: AnnouncementListParams) {
   const where = conditions.join(" AND ");
 
   const totalRow = await queryOne<{ total: number }>(
-    `SELECT COUNT(*) AS total FROM platform_announcement WHERE ${where}`,
+    `SELECT COUNT(*) AS total FROM t_platform_announcement WHERE ${where}`,
     sqlParams
   );
   const total = Number(totalRow?.total ?? 0);
@@ -60,7 +60,7 @@ export async function listAnnouncements(params: AnnouncementListParams) {
     `SELECT id, title, type, content, is_top AS isTop, status,
             publish_at AS publishAt, created_by AS createdBy,
             created_at AS createdAt, updated_at AS updatedAt
-     FROM platform_announcement
+     FROM t_platform_announcement
      WHERE ${where}
      ORDER BY is_top DESC, created_at DESC
      LIMIT ? OFFSET ?`,
@@ -75,14 +75,14 @@ export async function getAnnouncementById(id: number) {
     `SELECT id, title, type, content, is_top AS isTop, status,
             publish_at AS publishAt, created_by AS createdBy,
             created_at AS createdAt, updated_at AS updatedAt
-     FROM platform_announcement WHERE id = ?`,
+     FROM t_platform_announcement WHERE id = ?`,
     [id]
   );
 }
 
 export async function createAnnouncement(data: AnnouncementCreate) {
   const result = await query(
-    `INSERT INTO platform_announcement (title, type, content, is_top, status, created_by)
+    `INSERT INTO t_platform_announcement (title, type, content, is_top, status, created_by)
      VALUES (?, ?, ?, ?, ?, 'system')`,
     [data.title, data.type, data.content, data.isTop, data.status]
   );
@@ -111,13 +111,13 @@ export async function updateAnnouncement(id: number, data: Partial<AnnouncementC
 }
 
 export async function deleteAnnouncement(id: number) {
-  await query("DELETE FROM platform_announcement WHERE id = ?", [id]);
+  await query("DELETE FROM t_platform_announcement WHERE id = ?", [id]);
   return { success: true };
 }
 
 export async function togglePublish(id: number) {
   const announcement = await queryOne<{ status: number }>(
-    "SELECT status FROM platform_announcement WHERE id = ?",
+    "SELECT status FROM t_platform_announcement WHERE id = ?",
     [id]
   );
   if (!announcement) {

@@ -72,7 +72,7 @@ export async function getCollectionPage(req: any, res: any) {
             sb.unreceived_amount AS unreceivedAmount, sb.store_id AS storeId,
             st.name AS storeName
      FROM t_sale_bill sb
-     JOIN store st ON st.id = sb.store_id AND st.tenant_id = sb.tenant_id
+     JOIN t_store st ON st.id = sb.store_id AND st.tenant_id = sb.tenant_id
      WHERE sb.bill_no = ? AND sb.tenant_id = ?`,
     [link.sourceNo, link.tenantId]
   );

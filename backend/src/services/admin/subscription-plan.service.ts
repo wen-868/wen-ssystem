@@ -175,7 +175,7 @@ export async function deletePlan(planId: number) {
 
   // 检查是否有关联订阅，避免误删在用套餐
   const refRow = await queryOne<{ total: number }>(
-    "SELECT COUNT(*) AS total FROM subscription WHERE plan_id = ?",
+    "SELECT COUNT(*) AS total FROM t_subscription WHERE plan_id = ?",
     [planId]
   );
   if (Number(refRow?.total ?? 0) > 0) {

@@ -2,10 +2,10 @@
 
 export async function getOverview() {
   const [tenantCount, userCount, storeCount, orderCount] = await Promise.all([
-    queryOne<any>("SELECT COUNT(*) AS count FROM tenant WHERE status = 'ACTIVE'"),
+    queryOne<any>("SELECT COUNT(*) AS count FROM t_tenant WHERE status = 'ACTIVE'"),
     queryOne<any>("SELECT COUNT(*) AS count FROM t_sys_user WHERE status = 1"),
-    queryOne<any>("SELECT COUNT(*) AS count FROM store WHERE status = 1"),
-    queryOne<any>("SELECT COUNT(*) AS count FROM sale_order WHERE deleted = 0"),
+    queryOne<any>("SELECT COUNT(*) AS count FROM t_store WHERE status = 1"),
+    queryOne<any>("SELECT COUNT(*) AS count FROM t_sale_order WHERE deleted = 0"),
   ]);
 
   return {
@@ -18,7 +18,7 @@ export async function getOverview() {
 
 export async function getTenants() {
   const tenants = await query<any>(
-    "SELECT id, tenant_name, status, created_at FROM tenant ORDER BY id DESC LIMIT 100"
+    "SELECT id, tenant_name, status, created_at FROM t_tenant ORDER BY id DESC LIMIT 100"
   );
   return tenants ?? [];
 }

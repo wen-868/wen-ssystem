@@ -109,7 +109,7 @@ export async function approveTenantApplication(applicationId: number, reviewerId
 
   await transaction(async (conn) => {
     const tenantResult = await conn.query(
-      `INSERT INTO tenant (name, contact_name, contact_phone, contact_email, status, review_status)
+      `INSERT INTO t_tenant (name, contact_name, contact_phone, contact_email, status, review_status)
        VALUES (?, ?, ?, ?, 'ACTIVE', 'APPROVED')`,
       [application.company_name, application.contact_person, application.contact_mobile, application.contact_email || ""]
     );
@@ -122,7 +122,7 @@ export async function approveTenantApplication(applicationId: number, reviewerId
     );
 
     await conn.query(
-      `INSERT INTO tenant_admin (tenant_id, user_id, role, is_primary)
+      `INSERT INTO t_tenant_admin (tenant_id, user_id, role, is_primary)
        SELECT ?, id, 'ADMIN', 1 FROM t_sys_user WHERE tenant_id = ? AND username = ?`,
       [tenantId, tenantId, application.admin_username]
     );

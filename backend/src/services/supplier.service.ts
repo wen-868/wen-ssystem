@@ -259,13 +259,13 @@ class SupplierService {
 
     const [countRows, dataRows] = await Promise.all([
       queryWithTenant<{ total: number }>(
-        `SELECT COUNT(*) AS total FROM supplier s WHERE ${whereClause}`,
+        `SELECT COUNT(*) AS total FROM t_supplier s WHERE ${whereClause}`,
         params,
         ctx.tenantId
       ),
       queryWithTenant<any>(
         `SELECT s.*, sc.name AS contact_person, sc.mobile AS contact_mobile
-         FROM supplier s
+         FROM t_supplier s
          LEFT JOIN t_supplier_contact sc ON s.id = sc.supplier_id AND sc.is_primary = 1
          WHERE ${whereClause}
          ORDER BY s.id DESC
@@ -285,7 +285,7 @@ class SupplierService {
 
   async getDetail(id: number, ctx: ServiceContext): Promise<SupplierDetailVO | null> {
     const supplier = await queryOneWithTenant<any>(
-      "SELECT * FROM supplier WHERE id = ? AND tenant_id = ?",
+      "SELECT * FROM t_supplier WHERE id = ? AND tenant_id = ?",
       [id, ctx.tenantId],
       ctx.tenantId
     );
@@ -303,7 +303,7 @@ class SupplierService {
 
   async findById(id: number, tenantId: string): Promise<Supplier | null> {
     return queryOneWithTenant<Supplier>(
-      "SELECT * FROM supplier WHERE id = ? AND tenant_id = ?",
+      "SELECT * FROM t_supplier WHERE id = ? AND tenant_id = ?",
       [id, tenantId],
       tenantId
     );
@@ -317,7 +317,7 @@ class SupplierService {
 
     await transaction(async (conn) => {
       const result = await conn.execute(
-        `INSERT INTO supplier (
+        `INSERT INTO t_supplier (
           supplier_code, name, short_name, category, province, city, district, address,
           credit_level, settlement_type, settlement_day, tax_rate, bank_name, bank_account,
           bank_account_name, remark, tenant_id
@@ -368,7 +368,7 @@ class SupplierService {
     params.push(id, ctx.tenantId);
 
     const [result] = await queryWithTenant<any>(
-      `UPDATE supplier SET ${updates.join(", ")} WHERE id = ? AND tenant_id = ?`,
+      `UPDATE t_supplier SET ${updates.join(", ")} WHERE id = ? AND tenant_id = ?`,
       params,
       ctx.tenantId
     );

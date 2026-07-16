@@ -58,7 +58,7 @@ export async function listAuditLogs(params: AuditLogListParams) {
   const where = conditions.join(" AND ");
 
   const totalRow = await queryOne<{ total: number }>(
-    `SELECT COUNT(*) AS total FROM platform_audit_log WHERE ${where}`,
+    `SELECT COUNT(*) AS total FROM t_platform_audit_log WHERE ${where}`,
     sqlParams
   );
   const total = Number(totalRow?.total ?? 0);
@@ -67,7 +67,7 @@ export async function listAuditLogs(params: AuditLogListParams) {
     `SELECT id, admin_id AS adminId, admin_name AS adminName,
             type, module, action, description, ip,
             user_agent AS userAgent, created_at AS createdAt
-     FROM platform_audit_log
+     FROM t_platform_audit_log
      WHERE ${where}
      ORDER BY created_at DESC
      LIMIT ? OFFSET ?`,
@@ -82,7 +82,7 @@ export async function getAuditLogById(id: number) {
     `SELECT id, admin_id AS adminId, admin_name AS adminName,
             type, module, action, description, ip,
             user_agent AS userAgent, created_at AS createdAt
-     FROM platform_audit_log WHERE id = ?`,
+     FROM t_platform_audit_log WHERE id = ?`,
     [id]
   );
 }

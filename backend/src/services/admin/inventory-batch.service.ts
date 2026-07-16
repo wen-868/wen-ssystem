@@ -27,7 +27,7 @@ export async function listBatches(tenantId: string, params: {
     `SELECT ib.*, ps.sku_name, s.name AS store_name
      FROM t_inventory_batch ib
      LEFT JOIN t_product_sku ps ON ps.id = ib.sku_id AND ps.tenant_id = ib.tenant_id
-     LEFT JOIN store s ON s.id = ib.store_id AND s.tenant_id = ib.tenant_id
+     LEFT JOIN t_store s ON s.id = ib.store_id AND s.tenant_id = ib.tenant_id
      WHERE ${where}
      ORDER BY ib.created_at DESC
      LIMIT ? OFFSET ?`,
@@ -57,7 +57,7 @@ export async function getBatchDetail(tenantId: string, id: number) {
     `SELECT ib.*, ps.sku_name, s.name AS store_name
      FROM t_inventory_batch ib
      LEFT JOIN t_product_sku ps ON ps.id = ib.sku_id AND ps.tenant_id = ib.tenant_id
-     LEFT JOIN store s ON s.id = ib.store_id AND s.tenant_id = ib.tenant_id
+     LEFT JOIN t_store s ON s.id = ib.store_id AND s.tenant_id = ib.tenant_id
      WHERE ib.id = ? AND ib.tenant_id = ?`,
     [id, tenantId]
   );
@@ -275,7 +275,7 @@ export async function listExpiryAlerts(tenantId: string, params: {
   const records = await query<Record<string, unknown>>(
     `SELECT ear.*, s.name AS store_name
      FROM t_expiry_alert_record ear
-     LEFT JOIN store s ON s.id = ear.store_id AND s.tenant_id = ear.tenant_id
+     LEFT JOIN t_store s ON s.id = ear.store_id AND s.tenant_id = ear.tenant_id
      WHERE ${where}
      ORDER BY ear.created_at DESC
      LIMIT ? OFFSET ?`,

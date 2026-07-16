@@ -74,7 +74,7 @@ export async function createSaleBill(params: {
   return transaction(async (conn) => {
     const billNo = makeBizNo("XS");
     const member = customerId
-      ? await queryOneWithTenant<any>("SELECT id, name, mobile, customer_type FROM member WHERE id = ? AND tenant_id = ?", [customerId, tenantId], tenantId)
+      ? await queryOneWithTenant<any>("SELECT id, name, mobile, customer_type FROM t_member WHERE id = ? AND tenant_id = ?", [customerId, tenantId], tenantId)
       : null;
     let goodsAmount = 0;
     const itemSnapshots = [];

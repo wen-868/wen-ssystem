@@ -102,7 +102,7 @@ export async function getStoreInfo(storeId: number, tenantId: string) {
     `SELECT name, address, phone, contact,
             miniapp_appid AS miniappAppid, wx_merchant_name AS wxMerchantName,
             wx_service_phone AS wxServicePhone, wx_head_img AS wxHeadImg, wx_qrcode_url AS wxQrcodeUrl
-     FROM store WHERE id = ? AND tenant_id = ?`,
+     FROM t_store WHERE id = ? AND tenant_id = ?`,
     [storeId, tenantId],
     tenantId
   );

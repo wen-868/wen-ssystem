@@ -189,7 +189,7 @@ export async function purchaseReturn(params: {
   const { orderNo, stockNo, supplierId, storeId, tenantId, operatorId, remark, items } = params;
 
   const supplier = await queryOneWithTenant<any>(
-    "SELECT id, name FROM supplier WHERE id = ? AND tenant_id = ?",
+    "SELECT id, name FROM t_supplier WHERE id = ? AND tenant_id = ?",
     [supplierId, tenantId],
     tenantId
   );

@@ -47,7 +47,7 @@ export async function handleWebhook(platform: PlatformType, rawBody: any, signat
 
   await transaction(async (conn) => {
     await conn.execute(
-      `INSERT INTO platform_order
+      `INSERT INTO t_platform_order
          (platform_order_id, platform, store_id, status, order_data_json, created_at, updated_at)
        VALUES (?, ?, ?, ?, ?, NOW(), NOW())
        ON DUPLICATE KEY UPDATE
@@ -115,7 +115,7 @@ export async function handleWebhook(platform: PlatformType, rawBody: any, signat
 export async function getPlatforms(tenantId: string) {
   const rows = await queryWithTenant<any>(
     `SELECT platform, store_id AS storeId, enabled, merchant_id AS merchantId, updated_at AS updatedAt
-     FROM platform_config
+     FROM t_platform_config
      ORDER BY platform`,
     [],
     tenantId
@@ -139,7 +139,7 @@ export async function getConfigs(tenantId: string) {
     `SELECT id, platform, store_id AS storeId, app_key AS appKey, app_secret AS appSecret,
             merchant_id AS merchantId, enabled, config_json AS configJson,
             created_at AS createdAt, updated_at AS updatedAt
-     FROM platform_config
+     FROM t_platform_config
      ORDER BY platform`,
     [],
     tenantId
@@ -154,7 +154,7 @@ export async function getConfigByPlatform(platform: string, tenantId: string) {
     `SELECT id, platform, store_id AS storeId, app_key AS appKey, app_secret AS appSecret,
             merchant_id AS merchantId, enabled, config_json AS configJson,
             created_at AS createdAt, updated_at AS updatedAt
-     FROM platform_config WHERE platform = ? LIMIT 1`,
+     FROM t_platform_config WHERE platform = ? LIMIT 1`,
     [parsedPlatform],
     tenantId
   );
@@ -174,7 +174,7 @@ export async function upsertConfig(body: any, tenantId: string) {
 
   const platform = parsePlatformType(parsedBody.platform);
   const existing = await queryOneWithTenant<any>(
-    `SELECT id, store_id as store_id, app_key as app_key, app_secret as app_secret, merchant_id as merchant_id, config_json as config_json FROM platform_config WHERE platform = ? LIMIT 1`,
+    `SELECT id, store_id as store_id, app_key as app_key, app_secret as app_secret, merchant_id as merchant_id, config_json as config_json FROM t_platform_config WHERE platform = ? LIMIT 1`,
     [platform],
     tenantId
   );
@@ -196,7 +196,7 @@ export async function upsertConfig(body: any, tenantId: string) {
     );
   } else {
     await query(
-      `INSERT INTO platform_config
+      `INSERT INTO t_platform_config
          (platform, store_id, app_key, app_secret, merchant_id, config_json, enabled, created_at, updated_at, tenant_id)
        VALUES (?, ?, ?, ?, ?, ?, 1, NOW(), NOW(), ?)`,
       [
@@ -215,7 +215,7 @@ export async function upsertConfig(body: any, tenantId: string) {
     `SELECT id, platform, store_id AS storeId, app_key AS appKey, app_secret AS appSecret,
             merchant_id AS merchantId, enabled, config_json AS configJson,
             created_at AS createdAt, updated_at AS updatedAt
-     FROM platform_config WHERE platform = ? LIMIT 1`,
+     FROM t_platform_config WHERE platform = ? LIMIT 1`,
     [platform],
     tenantId
   );
@@ -248,7 +248,7 @@ export async function syncOrders(platform: string, body: any, tenantId: string) 
   await transaction(async (conn) => {
     for (const order of result.orders) {
       await conn.execute(
-        `INSERT INTO platform_order
+        `INSERT INTO t_platform_order
            (platform_order_id, platform, store_id, status, order_data_json, created_at, updated_at, tenant_id)
          VALUES (?, ?, ?, ?, ?, ?, NOW(), ?)
          ON DUPLICATE KEY UPDATE
@@ -283,7 +283,7 @@ export async function syncProducts(platform: string, body: any, tenantId: string
 export async function deleteConfig(platform: string, tenantId: string) {
   const parsedPlatform = parsePlatformType(platform);
   await queryWithTenant(
-    `DELETE FROM platform_config WHERE platform = ?`,
+    `DELETE FROM t_platform_config WHERE platform = ?`,
     [parsedPlatform],
     tenantId
   );
@@ -318,7 +318,7 @@ export async function listOrders(
   const records = await queryWithTenant<any>(
     `SELECT platform_order_id AS platformOrderId, platform, store_id AS storeId,
             status, order_data_json AS orderDataJson, created_at AS createdAt, updated_at AS updatedAt
-     FROM platform_order
+     FROM t_platform_order
      ${where}
      ORDER BY created_at DESC
      LIMIT ? OFFSET ?`,
@@ -326,7 +326,7 @@ export async function listOrders(
     tenantId
   );
   const totalRow = await queryOneWithTenant<any>(
-    `SELECT COUNT(*) AS total FROM platform_order ${where}`,
+    `SELECT COUNT(*) AS total FROM t_platform_order ${where}`,
     params,
     tenantId
   );
@@ -337,7 +337,7 @@ export async function getOrderDetail(platformOrderId: string, tenantId: string) 
   const order = await queryOneWithTenant<any>(
     `SELECT platform_order_id AS platformOrderId, platform, store_id AS storeId,
             status, order_data_json AS orderDataJson, created_at AS createdAt, updated_at AS updatedAt
-     FROM platform_order WHERE platform_order_id = ? LIMIT 1`,
+     FROM t_platform_order WHERE platform_order_id = ? LIMIT 1`,
     [platformOrderId],
     tenantId
   );
@@ -350,7 +350,7 @@ export async function getOrderDetail(platformOrderId: string, tenantId: string) 
 
 export async function confirmOrder(platformOrderId: string, tenantId: string) {
   const row = await queryOneWithTenant<any>(
-    `SELECT platform, store_id AS storeId, status FROM platform_order WHERE platform_order_id = ? LIMIT 1`,
+    `SELECT platform, store_id AS storeId, status FROM t_platform_order WHERE platform_order_id = ? LIMIT 1`,
     [platformOrderId],
     tenantId
   );
@@ -376,7 +376,7 @@ export async function confirmOrder(platformOrderId: string, tenantId: string) {
 
 export async function startDelivery(platformOrderId: string, body: any, tenantId: string) {
   const row = await queryOneWithTenant<any>(
-    `SELECT platform, store_id AS storeId, status FROM platform_order WHERE platform_order_id = ? LIMIT 1`,
+    `SELECT platform, store_id AS storeId, status FROM t_platform_order WHERE platform_order_id = ? LIMIT 1`,
     [platformOrderId],
     tenantId
   );
@@ -402,7 +402,7 @@ export async function startDelivery(platformOrderId: string, body: any, tenantId
 
 export async function completeDelivery(platformOrderId: string, tenantId: string) {
   const row = await queryOneWithTenant<any>(
-    `SELECT platform, store_id AS storeId, status FROM platform_order WHERE platform_order_id = ? LIMIT 1`,
+    `SELECT platform, store_id AS storeId, status FROM t_platform_order WHERE platform_order_id = ? LIMIT 1`,
     [platformOrderId],
     tenantId
   );
@@ -430,7 +430,7 @@ export async function cancelOrder(platformOrderId: string, reason: string | unde
   z.object({ reason: z.string().optional() }).parse({ reason });
 
   const row = await queryOneWithTenant<any>(
-    `SELECT platform, store_id AS storeId, status FROM platform_order WHERE platform_order_id = ? LIMIT 1`,
+    `SELECT platform, store_id AS storeId, status FROM t_platform_order WHERE platform_order_id = ? LIMIT 1`,
     [platformOrderId],
     tenantId
   );
@@ -472,7 +472,7 @@ export async function getShopConfig(tenantId: string) {
             free_delivery_amount AS freeDeliveryAmount, delivery_radius AS deliveryRadius,
             estimated_delivery_time AS estimatedDeliveryTime, announcement,
             status, created_at AS createdAt, updated_at AS updatedAt
-     FROM retail_shop_config
+     FROM t_retail_shop_config
      WHERE tenant_id = ?`,
     [tenantId],
     tenantId
@@ -497,14 +497,14 @@ export async function saveShopConfig(body: {
   announcement?: string;
 }, tenantId: string) {
   const existing = await queryOneWithTenant<any>(
-    "SELECT id FROM retail_shop_config WHERE tenant_id = ?",
+    "SELECT id FROM t_retail_shop_config WHERE tenant_id = ?",
     [tenantId],
     tenantId
   );
 
   if (existing) {
     await queryWithTenant(
-      `UPDATE retail_shop_config SET
+      `UPDATE t_retail_shop_config SET
         shop_name = ?, shop_logo = ?, shop_description = ?, contact_phone = ?,
         business_hours = ?, delivery_enabled = ?, pickup_enabled = ?,
         min_order_amount = ?, delivery_fee = ?, free_delivery_amount = ?,
@@ -522,7 +522,7 @@ export async function saveShopConfig(body: {
     );
   } else {
     await queryWithTenant(
-      `INSERT INTO retail_shop_config (
+      `INSERT INTO t_retail_shop_config (
         shop_name, shop_logo, shop_description, contact_phone, business_hours,
         delivery_enabled, pickup_enabled, min_order_amount, delivery_fee,
         free_delivery_amount, delivery_radius, estimated_delivery_time,
@@ -553,7 +553,7 @@ export async function listCategories(tenantId: string) {
     `SELECT id, category_name AS categoryName, category_icon AS categoryIcon,
             parent_id AS parentId, sort_order AS sortOrder, status,
             created_at AS createdAt
-     FROM retail_category
+     FROM t_retail_category
      WHERE tenant_id = ?
      ORDER BY sort_order ASC, id ASC`,
     [tenantId],
@@ -570,7 +570,7 @@ export async function createCategory(body: {
   sortOrder: number;
 }, tenantId: string) {
   await queryWithTenant(
-    `INSERT INTO retail_category (category_name, category_icon, parent_id, sort_order, tenant_id)
+    `INSERT INTO t_retail_category (category_name, category_icon, parent_id, sort_order, tenant_id)
      VALUES (?, ?, ?, ?, ?)`,
     [body.categoryName, body.categoryIcon || null, body.parentId, body.sortOrder, tenantId],
     tenantId
@@ -629,7 +629,7 @@ export async function listRetailProducts(params: {
             rp.sort_order AS sortOrder, rp.status,
             ps.name AS productName, ps.sku_code AS skuCode, ps.unit,
             ps.image AS productImage
-     FROM retail_product rp
+     FROM t_retail_product rp
      LEFT JOIN t_product_sku ps ON ps.id = rp.product_id
      ${where}
      ORDER BY rp.sort_order ASC, rp.id DESC
@@ -639,7 +639,7 @@ export async function listRetailProducts(params: {
   );
 
   const totalRow = await queryOneWithTenant<any>(
-    `SELECT COUNT(*) AS total FROM retail_product rp ${where}`,
+    `SELECT COUNT(*) AS total FROM t_retail_product rp ${where}`,
     queryParams,
     tenantId
   );
@@ -668,7 +668,7 @@ export async function addRetailProduct(body: {
   if (!product) throw Object.assign(new Error("商品不存在"), { statusCode: 404 });
 
   await queryWithTenant(
-    `INSERT INTO retail_product (
+    `INSERT INTO t_retail_product (
       product_id, category_id, retail_price, original_price, stock,
       is_recommended, is_hot, is_new, sort_order, tenant_id
     ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
@@ -732,7 +732,7 @@ export async function listRetailOrders(params: {
             order_status AS orderStatus, cancel_reason AS cancelReason,
             cancelled_at AS cancelledAt, completed_at AS completedAt,
             created_at AS createdAt
-     FROM retail_order
+     FROM t_retail_order
      ${where}
      ORDER BY created_at DESC
      LIMIT ? OFFSET ?`,
@@ -741,7 +741,7 @@ export async function listRetailOrders(params: {
   );
 
   const totalRow = await queryOneWithTenant<any>(
-    `SELECT COUNT(*) AS total FROM retail_order ${where}`,
+    `SELECT COUNT(*) AS total FROM t_retail_order ${where}`,
     queryParams,
     tenantId
   );
@@ -764,7 +764,7 @@ export async function getRetailOrderDetail(orderNo: string, tenantId: string) {
             order_status AS orderStatus, cancel_reason AS cancelReason,
             cancelled_at AS cancelledAt, completed_at AS completedAt,
             created_at AS createdAt
-     FROM retail_order
+     FROM t_retail_order
      WHERE order_no = ? AND tenant_id = ?`,
     [orderNo, tenantId],
     tenantId
@@ -775,7 +775,7 @@ export async function getRetailOrderDetail(orderNo: string, tenantId: string) {
   const items = await queryWithTenant<any>(
     `SELECT product_id AS productId, product_name AS productName,
             product_image AS productImage, price, quantity, subtotal
-     FROM retail_order_item
+     FROM t_retail_order_item
      WHERE order_id = ?`,
     [order.id],
     tenantId
@@ -794,7 +794,7 @@ export async function updateRetailOrderStatus(params: {
   const { orderNo, tenantId, orderStatus, cancelReason } = params;
 
   const order = await queryOneWithTenant<any>(
-    "SELECT id, order_status FROM retail_order WHERE order_no = ? AND tenant_id = ?",
+    "SELECT id, order_status FROM t_retail_order WHERE order_no = ? AND tenant_id = ?",
     [orderNo, tenantId],
     tenantId
   );
@@ -814,7 +814,7 @@ export async function updateRetailOrderStatus(params: {
 
   updateParams.push(orderNo, tenantId);
   await queryWithTenant(
-    `UPDATE retail_order SET ${updates.join(", ")} WHERE order_no = ? AND tenant_id = ?`,
+    `UPDATE t_retail_order SET ${updates.join(", ")} WHERE order_no = ? AND tenant_id = ?`,
     updateParams,
     tenantId
   );
@@ -833,7 +833,7 @@ export async function listBanners(tenantId: string) {
             link_type AS linkType, link_value AS linkValue,
             sort_order AS sortOrder, status, start_time AS startTime,
             end_time AS endTime, created_at AS createdAt
-     FROM retail_banner
+     FROM t_retail_banner
      WHERE tenant_id = ?
      ORDER BY sort_order ASC, id ASC`,
     [tenantId],
@@ -853,7 +853,7 @@ export async function createBanner(body: {
   endTime?: string;
 }, tenantId: string) {
   await queryWithTenant(
-    `INSERT INTO retail_banner (
+    `INSERT INTO t_retail_banner (
       banner_title, banner_image, link_type, link_value,
       sort_order, start_time, end_time, tenant_id
     ) VALUES (?, ?, ?, ?, ?, ?, ?, ?)`,

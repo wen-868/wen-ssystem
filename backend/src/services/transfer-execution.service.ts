@@ -3,7 +3,7 @@
 export async function cancelTransferOrder(id: number, tenantId: string) {
   await transaction(async (conn) => {
     const [rows] = await (conn as any).execute(
-      "SELECT * FROM transfer_order WHERE id = ? AND tenant_id = ? FOR UPDATE",
+      "SELECT * FROM t_transfer_order WHERE id = ? AND tenant_id = ? FOR UPDATE",
       [id, tenantId]
     );
     const order = (rows as unknown as Record<string, unknown>[])[0];
@@ -13,7 +13,7 @@ export async function cancelTransferOrder(id: number, tenantId: string) {
     }
 
     await (conn as any).execute(
-      "UPDATE transfer_order SET status = 'CANCELLED' WHERE id = ? AND tenant_id = ?",
+      "UPDATE t_transfer_order SET status = 'CANCELLED' WHERE id = ? AND tenant_id = ?",
       [id, tenantId]
     );
   });
@@ -24,7 +24,7 @@ export async function cancelTransferOrder(id: number, tenantId: string) {
 export async function shipTransferOrder(id: number, tenantId: string, userId: number | null) {
   await transaction(async (conn) => {
     const [rows] = await (conn as any).execute(
-      "SELECT * FROM transfer_order WHERE id = ? AND tenant_id = ? FOR UPDATE",
+      "SELECT * FROM t_transfer_order WHERE id = ? AND tenant_id = ? FOR UPDATE",
       [id, tenantId]
     );
     const order = (rows as unknown as Record<string, unknown>[])[0];
@@ -63,19 +63,19 @@ export async function shipTransferOrder(id: number, tenantId: string, userId: nu
       );
 
       await (conn as any).execute(
-        "UPDATE transfer_order_item SET transferred_qty = transferred_qty + ? WHERE id = ? AND tenant_id = ?",
+        "UPDATE t_transfer_order_item SET transferred_qty = transferred_qty + ? WHERE id = ? AND tenant_id = ?",
         [shipQty, item.id, tenantId]
       );
 
       await (conn as any).execute(
-        `INSERT INTO transfer_stock_log (transfer_order_id, item_id, store_id, sku_id, direction, quantity, operator_id, tenant_id)
+        `INSERT INTO t_transfer_stock_log (transfer_order_id, item_id, store_id, sku_id, direction, quantity, operator_id, tenant_id)
          VALUES (?, ?, ?, ?, 'OUT', ?, ?, ?)`,
         [id, item.id, order.from_store_id, item.sku_id, shipQty, userId ?? null, tenantId]
       );
     }
 
     await (conn as any).execute(
-      "UPDATE transfer_order SET status = 'TRANSIT' WHERE id = ? AND tenant_id = ?",
+      "UPDATE t_transfer_order SET status = 'TRANSIT' WHERE id = ? AND tenant_id = ?",
       [id, tenantId]
     );
   });
@@ -91,7 +91,7 @@ export interface ReceiveItem {
 export async function receiveTransferOrder(id: number, tenantId: string, userId: number | null, items: ReceiveItem[]) {
   await transaction(async (conn) => {
     const [rows] = await (conn as any).execute(
-      "SELECT * FROM transfer_order WHERE id = ? AND tenant_id = ? FOR UPDATE",
+      "SELECT * FROM t_transfer_order WHERE id = ? AND tenant_id = ? FOR UPDATE",
       [id, tenantId]
     );
     const order = (rows as unknown as Record<string, unknown>[])[0];
@@ -140,12 +140,12 @@ export async function receiveTransferOrder(id: number, tenantId: string, userId:
       );
 
       await (conn as any).execute(
-        "UPDATE transfer_order_item SET received_qty = received_qty + ? WHERE id = ? AND tenant_id = ?",
+        "UPDATE t_transfer_order_item SET received_qty = received_qty + ? WHERE id = ? AND tenant_id = ?",
         [item.receivedQty, item.itemId, tenantId]
       );
 
       await (conn as any).execute(
-        `INSERT INTO transfer_stock_log (transfer_order_id, item_id, store_id, sku_id, direction, quantity, operator_id, tenant_id)
+        `INSERT INTO t_transfer_stock_log (transfer_order_id, item_id, store_id, sku_id, direction, quantity, operator_id, tenant_id)
          VALUES (?, ?, ?, ?, 'IN', ?, ?, ?)`,
         [id, item.itemId, order.to_store_id, detail.sku_id, item.receivedQty, userId ?? null, tenantId]
       );
@@ -164,7 +164,7 @@ export async function receiveTransferOrder(id: number, tenantId: string, userId:
 
     if (allReceived) {
       await (conn as any).execute(
-        "UPDATE transfer_order SET status = 'RECEIVED', actual_date = CURDATE(), received_by = ?, received_at = NOW() WHERE id = ? AND tenant_id = ?",
+        "UPDATE t_transfer_order SET status = 'RECEIVED', actual_date = CURDATE(), received_by = ?, received_at = NOW() WHERE id = ? AND tenant_id = ?",
         [userId ?? null, id, tenantId]
       );
     }
@@ -176,9 +176,9 @@ export async function receiveTransferOrder(id: number, tenantId: string, userId:
 export async function getInTransitOrders(storeId: number, tenantId: string) {
   const records = await queryWithTenant<any>(
     `SELECT to.*, fs.name AS from_store_name, ts.name AS to_store_name
-     FROM transfer_order to
-     LEFT JOIN store fs ON fs.id = to.from_store_id AND fs.tenant_id = to.tenant_id
-     LEFT JOIN store ts ON ts.id = to.to_store_id AND ts.tenant_id = to.tenant_id
+     FROM t_transfer_order to
+     LEFT JOIN t_store fs ON fs.id = to.from_store_id AND fs.tenant_id = to.tenant_id
+     LEFT JOIN t_store ts ON ts.id = to.to_store_id AND ts.tenant_id = to.tenant_id
      WHERE to.to_store_id = ? AND to.status IN ('APPROVED', 'TRANSIT')
      ORDER BY to.created_at DESC`,
     [storeId],
@@ -191,9 +191,9 @@ export async function getInTransitOrders(storeId: number, tenantId: string) {
 export async function getMyShipments(storeId: number, tenantId: string) {
   const records = await queryWithTenant<any>(
     `SELECT to.*, fs.name AS from_store_name, ts.name AS to_store_name
-     FROM transfer_order to
-     LEFT JOIN store fs ON fs.id = to.from_store_id AND fs.tenant_id = to.tenant_id
-     LEFT JOIN store ts ON ts.id = to.to_store_id AND ts.tenant_id = to.tenant_id
+     FROM t_transfer_order to
+     LEFT JOIN t_store fs ON fs.id = to.from_store_id AND fs.tenant_id = to.tenant_id
+     LEFT JOIN t_store ts ON ts.id = to.to_store_id AND ts.tenant_id = to.tenant_id
      WHERE to.from_store_id = ? AND to.status IN ('TRANSIT', 'RECEIVED')
      ORDER BY to.created_at DESC`,
     [storeId],

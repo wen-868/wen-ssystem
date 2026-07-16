@@ -3,7 +3,7 @@ import { verifyPassword } from "../shared/password";
 
 export async function login(wxData: { openid: string; session_key: string; unionid?: string }, signWxToken: (wxUserId: number, openid: string) => string) {
   const existing = await queryOne<{ id: number }>(
-    "SELECT id FROM wx_user WHERE openid = ?",
+    "SELECT id FROM t_wx_user WHERE openid = ?",
     [wxData.openid]
   );
 
@@ -16,14 +16,14 @@ export async function login(wxData: { openid: string; session_key: string; union
     wxUserId = existing.id;
   } else {
     const result = await query<{ insertId: number }>(
-      "INSERT INTO wx_user (openid, unionid, session_key, last_login_at) VALUES (?, ?, ?, NOW())",
+      "INSERT INTO t_wx_user (openid, unionid, session_key, last_login_at) VALUES (?, ?, ?, NOW())",
       [wxData.openid, wxData.unionid || null, wxData.session_key]
     ) as unknown as unknown as { insertId: number };
     wxUserId = result.insertId as unknown as number;
   }
 
   const userInfo = await queryOne<any>(
-    "SELECT id, nickname, avatar_url AS avatarUrl, phone, gender, city, province, country FROM wx_user WHERE id = ?",
+    "SELECT id, nickname, avatar_url AS avatarUrl, phone, gender, city, province, country FROM t_wx_user WHERE id = ?",
     [wxUserId]
   );
 
@@ -44,7 +44,7 @@ export async function getSessionKey(
   wxUserId: number
 ): Promise<{ session_key: string } | null> {
   return await queryOne<{ session_key: string }>(
-    "SELECT session_key FROM wx_user WHERE id = ?",
+    "SELECT session_key FROM t_wx_user WHERE id = ?",
     [wxUserId]
   );
 }
@@ -72,7 +72,7 @@ export async function getProfile(wxUserId: number) {
   const userInfo = await queryOne<any>(
     `SELECT id, openid, nickname, avatar_url AS avatarUrl, phone, gender, city, province, country,
             last_login_at AS lastLoginAt, created_at AS createdAt
-     FROM wx_user WHERE id = ?`,
+     FROM t_wx_user WHERE id = ?`,
     [wxUserId]
   );
 
@@ -83,7 +83,7 @@ export async function getProfile(wxUserId: number) {
   const bindings = await query<any>(
     `SELECT ub.id, ub.binding_type, ub.status, ub.bound_at,
             su.username, su.real_name AS realName
-     FROM user_binding ub
+     FROM t_user_binding ub
      LEFT JOIN t_sys_user su ON su.id = ub.system_user_id
      WHERE ub.wx_user_id = ? AND ub.status = 'ACTIVE'`,
     [wxUserId]
@@ -111,7 +111,7 @@ export async function bindUser(
   }
 
   const existingBinding = await queryOne<{ id: number }>(
-    "SELECT id FROM user_binding WHERE wx_user_id = ? AND system_user_id = ? AND status = 'ACTIVE'",
+    "SELECT id FROM t_user_binding WHERE wx_user_id = ? AND system_user_id = ? AND status = 'ACTIVE'",
     [wxUserId, sysUser.id]
   );
 
@@ -120,7 +120,7 @@ export async function bindUser(
   }
 
   await query(
-    "INSERT INTO user_binding (wx_user_id, system_user_id, binding_type, status) VALUES (?, ?, ?, 'ACTIVE')",
+    "INSERT INTO t_user_binding (wx_user_id, system_user_id, binding_type, status) VALUES (?, ?, ?, 'ACTIVE')",
     [wxUserId, sysUser.id, body.bindingType]
   );
 

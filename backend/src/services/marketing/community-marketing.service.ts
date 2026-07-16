@@ -28,7 +28,7 @@ export async function listGroupBuyActivities(
             sold_count AS soldCount, status,
             start_time AS startTime, end_time AS endTime,
             created_at AS createdAt
-     FROM group_buy
+     FROM t_group_buy
      ${where}
      ORDER BY created_at DESC
      LIMIT ? OFFSET ?`,
@@ -37,7 +37,7 @@ export async function listGroupBuyActivities(
   );
 
   const totalRow = await queryOneWithTenant<{ total: number }>(
-    `SELECT COUNT(*) AS total FROM group_buy ${where}`,
+    `SELECT COUNT(*) AS total FROM t_group_buy ${where}`,
     params,
     tenantId
   );
@@ -60,7 +60,7 @@ export async function getGroupBuyActivity(tenantId: string, id: number) {
             sold_count AS soldCount, status,
             start_time AS startTime, end_time AS endTime,
             created_at AS createdAt, updated_at AS updatedAt
-     FROM group_buy
+     FROM t_group_buy
      WHERE id = ?`,
     [id],
     tenantId
@@ -84,7 +84,7 @@ export async function startGroupBuy(
     const [activityRows] = await (conn as any).execute(
       `SELECT id, name, group_price, min_group_size, max_group_size, time_limit_hours,
               total_stock, sold_count, status, start_time, end_time
-       FROM group_buy
+       FROM t_group_buy
        WHERE id = ? AND tenant_id = ? AND status = 'ACTIVE' AND start_time <= ? AND end_time >= ?
        FOR UPDATE`,
       [activityId, tenantId, now, now]
@@ -103,7 +103,7 @@ export async function startGroupBuy(
     const expiresAt = new Date(Date.now() + Number(activity.time_limit_hours) * 3600 * 1000).toISOString();
 
     const [teamResult] = await (conn as any).execute(
-      `INSERT INTO group_buy_team (activity_id, leader_id, current_size, target_size, status, expires_at, tenant_id)
+      `INSERT INTO t_group_buy_team (activity_id, leader_id, current_size, target_size, status, expires_at, tenant_id)
        VALUES (?, ?, 1, ?, 'PENDING', ?, ?)`,
       [activityId, userId, activity.min_group_size, expiresAt, tenantId]
     );
@@ -111,13 +111,13 @@ export async function startGroupBuy(
     const teamId = (teamResult as Record<string, unknown>).insertId as number;
 
     await (conn as any).execute(
-      `INSERT INTO group_buy_member (team_id, user_id, is_leader, tenant_id, quantity)
+      `INSERT INTO t_group_buy_member (team_id, user_id, is_leader, tenant_id, quantity)
        VALUES (?, ?, 1, ?, ?)`,
       [teamId, userId, tenantId, quantity]
     );
 
     await (conn as any).execute(
-      `UPDATE group_buy SET sold_count = sold_count + ? WHERE id = ? AND tenant_id = ?`,
+      `UPDATE t_group_buy SET sold_count = sold_count + ? WHERE id = ? AND tenant_id = ?`,
       [quantity, activityId, tenantId]
     );
 
@@ -125,7 +125,7 @@ export async function startGroupBuy(
       `SELECT id, activity_id AS activityId, leader_id AS leaderId,
               current_size AS currentSize, target_size AS targetSize,
               status, expires_at AS expiresAt, created_at AS createdAt
-       FROM group_buy_team WHERE id = ? AND tenant_id = ?`,
+       FROM t_group_buy_team WHERE id = ? AND tenant_id = ?`,
       [teamId, tenantId]
     );
 
@@ -148,8 +148,8 @@ export async function joinGroupBuy(
     const [teamRows] = await (conn as any).execute(
       `SELECT gbt.id, gbt.activity_id, gbt.current_size, gbt.target_size, gbt.status, gbt.expires_at,
               gb.max_group_size, gb.total_stock, gb.sold_count, gb.status AS activityStatus
-       FROM group_buy_team gbt
-       JOIN group_buy gb ON gb.id = gbt.activity_id AND gb.tenant_id = ?
+       FROM t_group_buy_team gbt
+       JOIN t_group_buy gb ON gb.id = gbt.activity_id AND gb.tenant_id = ?
        WHERE gbt.id = ? AND gbt.tenant_id = ? AND gbt.status = 'PENDING' AND gbt.expires_at > ?
        FOR UPDATE`,
       [tenantId, teamId, tenantId, now]
@@ -161,7 +161,7 @@ export async function joinGroupBuy(
     }
 
     const [memberRows] = await (conn as any).execute(
-      `SELECT id FROM group_buy_member WHERE team_id = ? AND user_id = ? AND tenant_id = ?`,
+      `SELECT id FROM t_group_buy_member WHERE team_id = ? AND user_id = ? AND tenant_id = ?`,
       [teamId, userId, tenantId]
     );
 
@@ -179,7 +179,7 @@ export async function joinGroupBuy(
     }
 
     await (conn as any).execute(
-      `INSERT INTO group_buy_member (team_id, user_id, is_leader, tenant_id, quantity)
+      `INSERT INTO t_group_buy_member (team_id, user_id, is_leader, tenant_id, quantity)
        VALUES (?, ?, 0, ?, ?)`,
       [teamId, userId, tenantId, quantity]
     );
@@ -188,7 +188,7 @@ export async function joinGroupBuy(
     const isCompleted = newSize >= Number(team.target_size);
 
     await (conn as any).execute(
-      `UPDATE group_buy_team
+      `UPDATE t_group_buy_team
        SET current_size = ?, status = ?, completed_at = ?
        WHERE id = ? AND tenant_id = ?`,
       [
@@ -201,7 +201,7 @@ export async function joinGroupBuy(
     );
 
     await (conn as any).execute(
-      `UPDATE group_buy SET sold_count = sold_count + ? WHERE id = ? AND tenant_id = ?`,
+      `UPDATE t_group_buy SET sold_count = sold_count + ? WHERE id = ? AND tenant_id = ?`,
       [quantity, team.activity_id, tenantId]
     );
   });
@@ -211,8 +211,8 @@ export async function joinGroupBuy(
             gbt.current_size AS currentSize, gbt.target_size AS targetSize,
             gbt.status, gbt.expires_at AS expiresAt,
             gb.name AS activityName, gb.group_price AS groupPrice
-     FROM group_buy_team gbt
-     JOIN group_buy gb ON gb.id = gbt.activity_id
+     FROM t_group_buy_team gbt
+     JOIN t_group_buy gb ON gb.id = gbt.activity_id
      WHERE gbt.id = ?`,
     [teamId],
     tenantId
@@ -253,7 +253,7 @@ export async function listBargainActivities(
             help_min_amount AS helpMinAmount, help_max_amount AS helpMaxAmount,
             start_time AS startTime, end_time AS endTime, status,
             created_at AS createdAt
-     FROM bargain_activity
+     FROM t_bargain_activity
      ${where}
      ORDER BY created_at DESC
      LIMIT ? OFFSET ?`,
@@ -262,7 +262,7 @@ export async function listBargainActivities(
   );
 
   const totalRow = await queryOneWithTenant<{ total: number }>(
-    `SELECT COUNT(*) AS total FROM bargain_activity ${where}`,
+    `SELECT COUNT(*) AS total FROM t_bargain_activity ${where}`,
     params,
     tenantId
   );
@@ -286,7 +286,7 @@ export async function getBargainActivity(tenantId: string, id: number) {
             help_min_amount AS helpMinAmount, help_max_amount AS helpMaxAmount,
             start_time AS startTime, end_time AS endTime, status,
             created_at AS createdAt, updated_at AS updatedAt
-     FROM bargain_activity
+     FROM t_bargain_activity
      WHERE id = ?`,
     [id],
     tenantId
@@ -310,7 +310,7 @@ export async function startBargain(
       `SELECT id, activity_name, original_price, min_price, total_stock, sold_count,
               bargain_times, time_limit_hours, help_min_amount, help_max_amount,
               status, start_time, end_time
-       FROM bargain_activity
+       FROM t_bargain_activity
        WHERE id = ? AND tenant_id = ? AND status = 'ACTIVE' AND start_time <= ? AND end_time >= ?
        FOR UPDATE`,
       [activityId, tenantId, now, now]
@@ -329,7 +329,7 @@ export async function startBargain(
     const expiresAt = new Date(Date.now() + Number(activity.time_limit_hours) * 3600 * 1000).toISOString();
 
     const [recordResult] = await (conn as any).execute(
-      `INSERT INTO bargain_record (activity_id, initiator_id, current_price, bargain_count, status, expires_at, tenant_id)
+      `INSERT INTO t_bargain_record (activity_id, initiator_id, current_price, bargain_count, status, expires_at, tenant_id)
        VALUES (?, ?, ?, 0, 'ONGOING', ?, ?)`,
       [activityId, userId, activity.original_price, expiresAt, tenantId]
     );
@@ -340,7 +340,7 @@ export async function startBargain(
       `SELECT id, activity_id AS activityId, initiator_id AS initiatorId,
               current_price AS currentPrice, bargain_count AS bargainCount,
               status, expires_at AS expiresAt, created_at AS createdAt
-       FROM bargain_record WHERE id = ? AND tenant_id = ?`,
+       FROM t_bargain_record WHERE id = ? AND tenant_id = ?`,
       [recordId, tenantId]
     );
 
@@ -363,8 +363,8 @@ export async function helpBargain(
     const [recordRows] = await (conn as any).execute(
       `SELECT br.id, br.activity_id, br.initiator_id, br.current_price, br.bargain_count, br.status, br.expires_at,
               ba.min_price, ba.bargain_times, ba.help_min_amount, ba.help_max_amount, ba.status AS activityStatus
-       FROM bargain_record br
-       JOIN bargain_activity ba ON ba.id = br.activity_id AND ba.tenant_id = ?
+       FROM t_bargain_record br
+       JOIN t_bargain_activity ba ON ba.id = br.activity_id AND ba.tenant_id = ?
        WHERE br.id = ? AND br.tenant_id = ? AND br.status = 'ONGOING' AND br.expires_at > ?
        FOR UPDATE`,
       [tenantId, recordId, tenantId, now]
@@ -403,13 +403,13 @@ export async function helpBargain(
     const isSuccess = newPrice <= minPrice || newCount >= Number(record.bargain_times);
 
     await (conn as any).execute(
-      `INSERT INTO bargain_help (record_id, helper_id, helper_name, bargain_amount, tenant_id)
+      `INSERT INTO t_bargain_help (record_id, helper_id, helper_name, bargain_amount, tenant_id)
        VALUES (?, ?, ?, ?, ?)`,
       [recordId, helperId, helperName || null, actualAmount, tenantId]
     );
 
     await (conn as any).execute(
-      `UPDATE bargain_record
+      `UPDATE t_bargain_record
        SET current_price = ?, bargain_count = ?, status = ?, success_at = ?, updated_at = NOW()
        WHERE id = ? AND tenant_id = ?`,
       [
@@ -461,8 +461,8 @@ export async function listSeckillActivities(
             sp.available_stock AS availableStock, sp.limit_per_user AS limitPerUser,
             sp.start_time AS startTime, sp.end_time AS endTime, sp.status,
             p.name AS productName
-     FROM seckill_product sp
-     LEFT JOIN product_spu p ON p.id = sp.product_id
+     FROM t_seckill_product sp
+     LEFT JOIN t_product_spu p ON p.id = sp.product_id
      ${where}
      ORDER BY sp.start_time ASC
      LIMIT ? OFFSET ?`,
@@ -471,7 +471,7 @@ export async function listSeckillActivities(
   );
 
   const totalRow = await queryOneWithTenant<{ total: number }>(
-    `SELECT COUNT(*) AS total FROM seckill_product sp ${where}`,
+    `SELECT COUNT(*) AS total FROM t_seckill_product sp ${where}`,
     params,
     tenantId
   );
@@ -492,8 +492,8 @@ export async function getSeckillActivity(tenantId: string, id: number) {
             sp.available_stock AS availableStock, sp.limit_per_user AS limitPerUser,
             sp.start_time AS startTime, sp.end_time AS endTime, sp.status,
             p.name AS productName
-     FROM seckill_product sp
-     LEFT JOIN product_spu p ON p.id = sp.product_id
+     FROM t_seckill_product sp
+     LEFT JOIN t_product_spu p ON p.id = sp.product_id
      WHERE sp.id = ?`,
     [id],
     tenantId
@@ -517,7 +517,7 @@ export async function buySeckill(
     const [activityRows] = await (conn as any).execute(
       `SELECT id, product_id, seckill_price, seckill_stock, available_stock, limit_per_user,
               status, start_time, end_time
-       FROM seckill_product
+       FROM t_seckill_product
        WHERE id = ? AND tenant_id = ? AND status = 'ACTIVE' AND start_time <= ? AND end_time >= ?
        FOR UPDATE`,
       [activityId, tenantId, now, now]

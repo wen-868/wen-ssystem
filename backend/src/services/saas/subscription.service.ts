@@ -89,8 +89,8 @@ export async function listSubscriptions(params: {
             s.expire_notify_sent AS expireNotifySent, s.expire_notify_at AS expireNotifyAt,
             s.remark, s.created_at AS createdAt, s.updated_at AS updatedAt,
             t.company_name AS tenantName, t.tenant_code AS tenantCode
-     FROM subscription s
-     LEFT JOIN tenant t ON t.id = s.tenant_id
+     FROM t_subscription s
+     LEFT JOIN t_tenant t ON t.id = s.tenant_id
      ${where}
      ORDER BY s.created_at DESC
      LIMIT ? OFFSET ?`,
@@ -98,8 +98,8 @@ export async function listSubscriptions(params: {
   );
 
   const totalRow = await queryOne<{ total: number }>(
-    `SELECT COUNT(*) AS total FROM subscription s
-     LEFT JOIN tenant t ON t.id = s.tenant_id
+    `SELECT COUNT(*) AS total FROM t_subscription s
+     LEFT JOIN t_tenant t ON t.id = s.tenant_id
      ${where}`,
     queryParams
   );
@@ -126,8 +126,8 @@ export async function getSubscriptionDetail(id: number): Promise<SubscriptionDet
             s.expire_notify_sent AS expireNotifySent, s.expire_notify_at AS expireNotifyAt,
             s.remark, s.created_at AS createdAt, s.updated_at AS updatedAt,
             t.company_name AS tenantName, t.tenant_code AS tenantCode
-     FROM subscription s
-     LEFT JOIN tenant t ON t.id = s.tenant_id
+     FROM t_subscription s
+     LEFT JOIN t_tenant t ON t.id = s.tenant_id
      WHERE s.id = ?`,
     [id]
   );
@@ -151,7 +151,7 @@ export async function createSubscription(body: {
   endDate.setDate(endDate.getDate() + body.durationDays);
 
   const result = await query(
-    `INSERT INTO subscription (
+    `INSERT INTO t_subscription (
       subscription_no, tenant_id, plan_id, plan_name, plan_type,
       start_date, end_date, duration_days, price, payment_status,
       auto_renew, status, remark
@@ -165,7 +165,7 @@ export async function createSubscription(body: {
   const insertId = (result as unknown as { insertId: number }).insertId;
 
   await query(
-    "UPDATE tenant SET expire_at = ? WHERE id = ?",
+    "UPDATE t_tenant SET expire_at = ? WHERE id = ?",
     [endDate, body.tenantId]
   );
 
@@ -177,7 +177,7 @@ export async function renewSubscription(id: number, body: RenewRequest): Promise
   const existing = await queryOne<Subscription>(
     `SELECT id, tenant_id AS tenantId, end_date AS endDate, plan_id AS planId,
             plan_name AS planName, plan_type AS planType, price
-     FROM subscription WHERE id = ?`,
+     FROM t_subscription WHERE id = ?`,
     [id]
   );
 
@@ -190,7 +190,7 @@ export async function renewSubscription(id: number, body: RenewRequest): Promise
   const renewPrice = body.price || existing.price;
 
   await query(
-    `UPDATE subscription
+    `UPDATE t_subscription
      SET end_date = ?, duration_days = duration_days + ?, renew_price = ?,
          status = 'ACTIVE', updated_at = NOW()
      WHERE id = ?`,
@@ -198,7 +198,7 @@ export async function renewSubscription(id: number, body: RenewRequest): Promise
   );
 
   await query(
-    "UPDATE tenant SET expire_at = ? WHERE id = ?",
+    "UPDATE t_tenant SET expire_at = ? WHERE id = ?",
     [newEndDate, existing.tenantId]
   );
 
@@ -209,7 +209,7 @@ export async function upgradeSubscription(id: number, body: UpgradeRequest): Pro
   const existing = await queryOne<Subscription>(
     `SELECT id, tenant_id AS tenantId, end_date AS endDate, plan_id AS planId,
             plan_name AS planName, plan_type AS planType, price
-     FROM subscription WHERE id = ?`,
+     FROM t_subscription WHERE id = ?`,
     [id]
   );
 
@@ -233,7 +233,7 @@ export async function upgradeSubscription(id: number, body: UpgradeRequest): Pro
   }
 
   await query(
-    `UPDATE subscription
+    `UPDATE t_subscription
      SET plan_id = ?, plan_name = ?, plan_type = ?, price = ?,
          duration_days = ?, status = 'ACTIVE', updated_at = NOW()
      WHERE id = ?`,
@@ -247,7 +247,7 @@ export async function cancelSubscription(id: number, body: {
   cancelReason?: string;
 }): Promise<SubscriptionDetail | null> {
   const existing = await queryOne<Subscription>(
-    "SELECT id, tenant_id AS tenantId, status FROM subscription WHERE id = ?",
+    "SELECT id, tenant_id AS tenantId, status FROM t_subscription WHERE id = ?",
     [id]
   );
 
@@ -256,7 +256,7 @@ export async function cancelSubscription(id: number, body: {
   }
 
   await query(
-    `UPDATE subscription
+    `UPDATE t_subscription
      SET status = 'CANCELLED', cancel_reason = ?, cancelled_at = NOW(),
          updated_at = NOW()
      WHERE id = ?`,
@@ -276,12 +276,12 @@ export async function getSubscriptionStatistics(): Promise<{
 }> {
   const stats = await queryOne<any>(
     `SELECT
-       COALESCE((SELECT COUNT(*) FROM subscription), 0) AS totalSubscriptions,
-       COALESCE((SELECT COUNT(*) FROM subscription WHERE status = 'ACTIVE'), 0) AS activeSubscriptions,
-       COALESCE((SELECT COUNT(*) FROM subscription WHERE status = 'EXPIRED'), 0) AS expiredSubscriptions,
-       COALESCE((SELECT COUNT(*) FROM subscription WHERE status = 'CANCELLED'), 0) AS cancelledSubscriptions,
-       COALESCE((SELECT SUM(price) FROM subscription WHERE payment_status = 'PAID'), 0) AS totalRevenue,
-       COALESCE((SELECT SUM(price) FROM subscription WHERE payment_status = 'PAID' AND DATE(created_at) >= DATE_SUB(NOW(), INTERVAL 30 DAY)), 0) AS monthlyRevenue
+       COALESCE((SELECT COUNT(*) FROM t_subscription), 0) AS totalSubscriptions,
+       COALESCE((SELECT COUNT(*) FROM t_subscription WHERE status = 'ACTIVE'), 0) AS activeSubscriptions,
+       COALESCE((SELECT COUNT(*) FROM t_subscription WHERE status = 'EXPIRED'), 0) AS expiredSubscriptions,
+       COALESCE((SELECT COUNT(*) FROM t_subscription WHERE status = 'CANCELLED'), 0) AS cancelledSubscriptions,
+       COALESCE((SELECT SUM(price) FROM t_subscription WHERE payment_status = 'PAID'), 0) AS totalRevenue,
+       COALESCE((SELECT SUM(price) FROM t_subscription WHERE payment_status = 'PAID' AND DATE(created_at) >= DATE_SUB(NOW(), INTERVAL 30 DAY)), 0) AS monthlyRevenue
      FROM DUAL`
   );
 

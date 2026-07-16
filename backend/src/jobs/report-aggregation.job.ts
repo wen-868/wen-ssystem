@@ -10,7 +10,7 @@ async function getTenants(): Promise<string[]> {
 
 // 获取租户下所有门店
 async function getStores(tenantId: string): Promise<number[]> {
-  const rows = await queryWithTenant<any>("SELECT id FROM store WHERE tenant_id = ?", [tenantId], tenantId);
+  const rows = await queryWithTenant<any>("SELECT id FROM t_store WHERE tenant_id = ?", [tenantId], tenantId);
   return rows.map((r: any) => r.id);
 }
 
@@ -36,11 +36,11 @@ async function aggregateSalesDaily(tenantId: string, storeId: number, date: stri
     [tenantId, storeId, date], tenantId
   );
   const newCustomers = await queryOneWithTenant<any>(
-    `SELECT COUNT(*) AS cnt FROM member WHERE tenant_id = ? AND DATE(created_at) = ?`,
+    `SELECT COUNT(*) AS cnt FROM t_member WHERE tenant_id = ? AND DATE(created_at) = ?`,
     [tenantId, date], tenantId
   );
   await queryOneWithTenant<any>(
-    `INSERT INTO report_sales_daily (tenant_id, store_id, report_date, order_count, customer_count, new_customer_count,
+    `INSERT INTO t_report_sales_daily (tenant_id, store_id, report_date, order_count, customer_count, new_customer_count,
        goods_amount, discount_amount, receivable_amount, received_amount, unreceived_amount, refund_count, refund_amount)
      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
      ON DUPLICATE KEY UPDATE
@@ -73,7 +73,7 @@ async function aggregateCollectionStats(tenantId: string, storeId: number, date:
   );
   if (!row) return;
   await queryOneWithTenant<any>(
-    `INSERT INTO report_collection_stats (tenant_id, store_id, report_date, total_links, paid_links, total_amount, paid_amount, wechat_links, alipay_links, other_channel_links, avg_pay_cycle_hours)
+    `INSERT INTO t_report_collection_stats (tenant_id, store_id, report_date, total_links, paid_links, total_amount, paid_amount, wechat_links, alipay_links, other_channel_links, avg_pay_cycle_hours)
      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
      ON DUPLICATE KEY UPDATE
        total_links = VALUES(total_links), paid_links = VALUES(paid_links),
@@ -100,7 +100,7 @@ async function aggregateProductSales(tenantId: string, storeId: number, date: st
   );
   for (const r of rows) {
     await queryOneWithTenant<any>(
-      `INSERT INTO report_product_sales (tenant_id, store_id, report_date, sku_id, sku_name, category_name, sale_bottle_qty, sale_amount, order_count)
+      `INSERT INTO t_report_product_sales (tenant_id, store_id, report_date, sku_id, sku_name, category_name, sale_bottle_qty, sale_amount, order_count)
        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
        ON DUPLICATE KEY UPDATE
          sku_name = VALUES(sku_name), category_name = VALUES(category_name),
@@ -113,10 +113,10 @@ async function aggregateProductSales(tenantId: string, storeId: number, date: st
 // 4. 客户统计汇总
 async function aggregateCustomerStats(tenantId: string, storeId: number, date: string) {
   const totalCustomers = await queryOneWithTenant<any>(
-    `SELECT COUNT(*) AS cnt FROM member WHERE tenant_id = ? AND DATE(created_at) <= ?`, [tenantId, date], tenantId
+    `SELECT COUNT(*) AS cnt FROM t_member WHERE tenant_id = ? AND DATE(created_at) <= ?`, [tenantId, date], tenantId
   );
   const newCustomers = await queryOneWithTenant<any>(
-    `SELECT COUNT(*) AS cnt FROM member WHERE tenant_id = ? AND DATE(created_at) = ?`, [tenantId, date], tenantId
+    `SELECT COUNT(*) AS cnt FROM t_member WHERE tenant_id = ? AND DATE(created_at) = ?`, [tenantId, date], tenantId
   );
   const activeCustomers = await queryOneWithTenant<any>(
     `SELECT COUNT(DISTINCT customer_id) AS cnt FROM t_sale_bill WHERE tenant_id = ? AND store_id = ? AND business_status = 'CREATED' AND DATE(created_at) = ? AND customer_id IS NOT NULL`,
@@ -141,7 +141,7 @@ async function aggregateCustomerStats(tenantId: string, storeId: number, date: s
   const totalC = Number(totalCustomers?.cnt ?? 0);
   const repurchaseC = Number(repurchaseCustomers?.cnt ?? 0);
   await queryOneWithTenant<any>(
-    `INSERT INTO report_customer_stats (tenant_id, store_id, report_date, total_customers, new_customers, active_customers, repurchase_customers, lost_customers, avg_order_value, total_revenue, repurchase_rate)
+    `INSERT INTO t_report_customer_stats (tenant_id, store_id, report_date, total_customers, new_customers, active_customers, repurchase_customers, lost_customers, avg_order_value, total_revenue, repurchase_rate)
      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
      ON DUPLICATE KEY UPDATE
        total_customers = VALUES(total_customers), new_customers = VALUES(new_customers),
@@ -176,7 +176,7 @@ async function aggregateInventoryDaily(tenantId: string, storeId: number, date: 
   );
   if (!row) return;
   await queryOneWithTenant<any>(
-    `INSERT INTO report_inventory_daily (tenant_id, store_id, report_date, total_sku_count, total_physical_qty, total_available_qty, total_locked_qty, total_value, low_stock_sku_count, zero_stock_sku_count)
+    `INSERT INTO t_report_inventory_daily (tenant_id, store_id, report_date, total_sku_count, total_physical_qty, total_available_qty, total_locked_qty, total_value, low_stock_sku_count, zero_stock_sku_count)
      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
      ON DUPLICATE KEY UPDATE
        total_sku_count = VALUES(total_sku_count), total_physical_qty = VALUES(total_physical_qty),

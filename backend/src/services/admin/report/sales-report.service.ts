@@ -263,13 +263,13 @@ export async function getBusinessOverview(tenantId: string) {
   );
 
   const customerCount = await queryOneWithTenant<any>(
-    "SELECT COUNT(*) AS count FROM member WHERE status = 1",
+    "SELECT COUNT(*) AS count FROM t_member WHERE status = 1",
     [],
     tenantId
   );
 
   const supplierCount = await queryOneWithTenant<any>(
-    "SELECT COUNT(*) AS count FROM supplier WHERE status = 1",
+    "SELECT COUNT(*) AS count FROM t_supplier WHERE status = 1",
     [],
     tenantId
   );

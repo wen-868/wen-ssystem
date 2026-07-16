@@ -65,7 +65,7 @@ export async function getCreditList(
             cc.frozen_at AS frozenAt, cc.unfrozen_at AS unfrozenAt,
             cc.version, cc.created_at AS createdAt, cc.updated_at AS updatedAt
      FROM t_customer_credit cc
-     LEFT JOIN member m ON m.id = cc.customer_id
+     LEFT JOIN t_member m ON m.id = cc.customer_id
      ${where}
      ORDER BY cc.created_at DESC
      LIMIT ? OFFSET ?`,
@@ -75,7 +75,7 @@ export async function getCreditList(
 
   const totalRow = await queryOneWithTenant<Record<string, unknown>>(
     `SELECT COUNT(*) AS total FROM t_customer_credit cc
-     LEFT JOIN member m ON m.id = cc.customer_id
+     LEFT JOIN t_member m ON m.id = cc.customer_id
      ${where}`,
     params,
     ctx.tenantId
@@ -101,7 +101,7 @@ export async function getCreditDetail(customerId: number, ctx: ServiceContext): 
             cc.frozen_at AS frozenAt, cc.unfrozen_at AS unfrozenAt,
             cc.version, cc.created_at AS createdAt, cc.updated_at AS updatedAt
      FROM t_customer_credit cc
-     LEFT JOIN member m ON m.id = cc.customer_id
+     LEFT JOIN t_member m ON m.id = cc.customer_id
      WHERE cc.customer_id = ? AND cc.tenant_id = ?`,
     [customerId, ctx.tenantId],
     ctx.tenantId
@@ -111,7 +111,7 @@ export async function getCreditDetail(customerId: number, ctx: ServiceContext): 
 
 export async function initCredit(customerId: number, dto: CreditInitDTO, ctx: ServiceContext): Promise<Record<string, unknown> | null> {
   const customer = await queryOneWithTenant<Record<string, unknown>>(
-    "SELECT id, name FROM member WHERE id = ?",
+    "SELECT id, name FROM t_member WHERE id = ?",
     [customerId],
     ctx.tenantId
   );

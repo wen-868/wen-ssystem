@@ -118,7 +118,7 @@ export async function createPurchaseOrder(params: {
 
   // 获取供应商信息
   const supplier = await queryOneWithTenant<any>(
-    "SELECT id, name, tax_rate FROM supplier WHERE id = ? AND tenant_id = ?",
+    "SELECT id, name, tax_rate FROM t_supplier WHERE id = ? AND tenant_id = ?",
     [supplierId, tenantId],
     tenantId
   );

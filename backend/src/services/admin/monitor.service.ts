@@ -124,7 +124,7 @@ export async function getExpiringTenants(days: number = 7): Promise<ExpiringTena
        t.contact_person AS contactPerson, t.contact_mobile AS contactMobile,
        t.expire_at AS expireAt,
        DATEDIFF(t.expire_at, NOW()) AS daysLeft
-     FROM tenant t
+     FROM t_tenant t
      WHERE t.status = 'ACTIVE' 
        AND t.expire_at IS NOT NULL 
        AND t.expire_at > NOW() 

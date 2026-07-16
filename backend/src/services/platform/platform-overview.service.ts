@@ -14,19 +14,19 @@ import { query, queryOne } from "../../shared/db";
 export async function getPlatformOverview() {
   const stats = await queryOne<any>(
     `SELECT
-       (SELECT COUNT(*) FROM tenant) AS totalTenants,
-       (SELECT COUNT(*) FROM tenant WHERE status = 'ACTIVE') AS activeTenants,
-       (SELECT COUNT(*) FROM tenant WHERE DATE(created_at) >= DATE_SUB(NOW(), INTERVAL 7 DAY)) AS newTenantsWeek,
-       (SELECT COUNT(*) FROM subscription WHERE status = 'ACTIVE') AS activeSubscriptions,
-       (SELECT IFNULL(SUM(amount), 0) FROM subscription WHERE status = 'ACTIVE' AND DATE(created_at) >= DATE_SUB(NOW(), INTERVAL 30 DAY)) AS monthlyRevenue,
-       (SELECT COUNT(*) FROM platform_admin) AS totalAdmins
+       (SELECT COUNT(*) FROM t_tenant) AS totalTenants,
+       (SELECT COUNT(*) FROM t_tenant WHERE status = 'ACTIVE') AS activeTenants,
+       (SELECT COUNT(*) FROM t_tenant WHERE DATE(created_at) >= DATE_SUB(NOW(), INTERVAL 7 DAY)) AS newTenantsWeek,
+       (SELECT COUNT(*) FROM t_subscription WHERE status = 'ACTIVE') AS activeSubscriptions,
+       (SELECT IFNULL(SUM(amount), 0) FROM t_subscription WHERE status = 'ACTIVE' AND DATE(created_at) >= DATE_SUB(NOW(), INTERVAL 30 DAY)) AS monthlyRevenue,
+       (SELECT COUNT(*) FROM t_platform_admin) AS totalAdmins
      FROM DUAL`
   );
 
   // 近7天新增租户趋势
   const trend = await query<any[]>(
     `SELECT DATE(created_at) AS date, COUNT(*) AS count
-     FROM tenant
+     FROM t_tenant
      WHERE created_at >= DATE_SUB(NOW(), INTERVAL 7 DAY)
      GROUP BY DATE(created_at)
      ORDER BY date ASC`
@@ -35,7 +35,7 @@ export async function getPlatformOverview() {
   // 套餐分布
   const planDistribution = await query<any[]>(
     `SELECT s.plan_code AS planCode, s.plan_name AS planName, COUNT(*) AS count
-     FROM subscription s
+     FROM t_subscription s
      WHERE s.status = 'ACTIVE'
      GROUP BY s.plan_code, s.plan_name
      ORDER BY count DESC`
@@ -59,19 +59,19 @@ export async function getPlatformOverview() {
 export async function getTenantStatistics() {
   const stats = await queryOne<any>(
     `SELECT
-       (SELECT COUNT(*) FROM tenant) AS totalTenants,
-       (SELECT COUNT(*) FROM tenant WHERE status = 'ACTIVE') AS activeTenants,
-       (SELECT COUNT(*) FROM tenant WHERE status = 'DISABLED') AS disabledTenants,
-       (SELECT COUNT(*) FROM tenant WHERE status = 'EXPIRED') AS expiredTenants,
-       (SELECT COUNT(*) FROM tenant WHERE DATE(created_at) >= DATE_SUB(NOW(), INTERVAL 30 DAY)) AS newTenantsMonth,
-       (SELECT COUNT(*) FROM tenant WHERE DATE(created_at) >= DATE_SUB(NOW(), INTERVAL 7 DAY)) AS newTenantsWeek
+       (SELECT COUNT(*) FROM t_tenant) AS totalTenants,
+       (SELECT COUNT(*) FROM t_tenant WHERE status = 'ACTIVE') AS activeTenants,
+       (SELECT COUNT(*) FROM t_tenant WHERE status = 'DISABLED') AS disabledTenants,
+       (SELECT COUNT(*) FROM t_tenant WHERE status = 'EXPIRED') AS expiredTenants,
+       (SELECT COUNT(*) FROM t_tenant WHERE DATE(created_at) >= DATE_SUB(NOW(), INTERVAL 30 DAY)) AS newTenantsMonth,
+       (SELECT COUNT(*) FROM t_tenant WHERE DATE(created_at) >= DATE_SUB(NOW(), INTERVAL 7 DAY)) AS newTenantsWeek
      FROM DUAL`
   );
 
   // 近30天新增租户趋势
   const trend = await query<any[]>(
     `SELECT DATE(created_at) AS date, COUNT(*) AS count
-     FROM tenant
+     FROM t_tenant
      WHERE created_at >= DATE_SUB(NOW(), INTERVAL 30 DAY)
      GROUP BY DATE(created_at)
      ORDER BY date ASC`
@@ -94,19 +94,19 @@ export async function getTenantStatistics() {
 export async function getRevenueStatistics() {
   const stats = await queryOne<any>(
     `SELECT
-       (SELECT IFNULL(SUM(amount), 0) FROM subscription WHERE status = 'ACTIVE') AS totalRevenue,
-       (SELECT IFNULL(SUM(amount), 0) FROM subscription WHERE DATE(created_at) >= DATE_SUB(NOW(), INTERVAL 30 DAY)) AS monthlyRevenue,
-       (SELECT IFNULL(SUM(amount), 0) FROM subscription WHERE DATE(created_at) >= DATE_SUB(NOW(), INTERVAL 7 DAY)) AS weeklyRevenue,
-       (SELECT IFNULL(SUM(amount), 0) FROM subscription WHERE YEAR(created_at) = YEAR(NOW()) AND MONTH(created_at) = MONTH(NOW())) AS currentMonthRevenue,
-       (SELECT COUNT(*) FROM subscription WHERE payment_status = 'PAID') AS paidCount,
-       (SELECT COUNT(*) FROM subscription) AS totalOrders
+       (SELECT IFNULL(SUM(amount), 0) FROM t_subscription WHERE status = 'ACTIVE') AS totalRevenue,
+       (SELECT IFNULL(SUM(amount), 0) FROM t_subscription WHERE DATE(created_at) >= DATE_SUB(NOW(), INTERVAL 30 DAY)) AS monthlyRevenue,
+       (SELECT IFNULL(SUM(amount), 0) FROM t_subscription WHERE DATE(created_at) >= DATE_SUB(NOW(), INTERVAL 7 DAY)) AS weeklyRevenue,
+       (SELECT IFNULL(SUM(amount), 0) FROM t_subscription WHERE YEAR(created_at) = YEAR(NOW()) AND MONTH(created_at) = MONTH(NOW())) AS currentMonthRevenue,
+       (SELECT COUNT(*) FROM t_subscription WHERE payment_status = 'PAID') AS paidCount,
+       (SELECT COUNT(*) FROM t_subscription) AS totalOrders
      FROM DUAL`
   );
 
   // 近6个月收入趋势
   const trend = await query<any[]>(
     `SELECT DATE_FORMAT(created_at, '%Y-%m') AS month, IFNULL(SUM(amount), 0) AS revenue, COUNT(*) AS count
-     FROM subscription
+     FROM t_subscription
      WHERE created_at >= DATE_SUB(NOW(), INTERVAL 6 MONTH)
      GROUP BY DATE_FORMAT(created_at, '%Y-%m')
      ORDER BY month ASC`
@@ -116,7 +116,7 @@ export async function getRevenueStatistics() {
   const planRevenue = await query<any[]>(
     `SELECT s.plan_code AS planCode, s.plan_name AS planName,
             IFNULL(SUM(s.amount), 0) AS revenue, COUNT(*) AS count
-     FROM subscription s
+     FROM t_subscription s
      WHERE s.status = 'ACTIVE'
      GROUP BY s.plan_code, s.plan_name
      ORDER BY revenue DESC`

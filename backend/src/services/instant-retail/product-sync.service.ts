@@ -11,9 +11,9 @@ export async function listProductMappings(params: {
   if (storeId) { conditions.push("store_id = ?"); values.push(storeId); }
   if (syncStatus) { conditions.push("sync_status = ?"); values.push(syncStatus); }
   const where = `WHERE ${conditions.join(" AND ")}`;
-  const total = await queryOneWithTenant<any>(`SELECT COUNT(*) AS cnt FROM platform_product_map ${where}`, values, tenantId);
+  const total = await queryOneWithTenant<any>(`SELECT COUNT(*) AS cnt FROM t_platform_product_map ${where}`, values, tenantId);
   const rows = await queryWithTenant<any>(
-    `SELECT * FROM platform_product_map ${where} ORDER BY id DESC LIMIT ? OFFSET ?`,
+    `SELECT * FROM t_platform_product_map ${where} ORDER BY id DESC LIMIT ? OFFSET ?`,
     [...values, pageSize, (page - 1) * pageSize], tenantId
   );
   return { list: rows, total: Number(total?.cnt ?? 0), page, pageSize };
@@ -21,7 +21,7 @@ export async function listProductMappings(params: {
 
 export async function addProductMapping(platform: string, storeId: number, localSkuId: number, tenantId: string) {
   await queryWithTenant(
-    `INSERT INTO platform_product_map (platform, store_id, local_sku_id, sync_status, tenant_id) VALUES (?, ?, ?, 'UNSYNCED', ?)
+    `INSERT INTO t_platform_product_map (platform, store_id, local_sku_id, sync_status, tenant_id) VALUES (?, ?, ?, 'UNSYNCED', ?)
      ON DUPLICATE KEY UPDATE sync_status = 'UNSYNCED'`,
     [platform, storeId, localSkuId, tenantId], tenantId
   );
@@ -29,7 +29,7 @@ export async function addProductMapping(platform: string, storeId: number, local
 
 export async function removeProductMapping(platform: string, storeId: number, localSkuId: number, tenantId: string) {
   await queryWithTenant(
-    "DELETE FROM platform_product_map WHERE platform = ? AND store_id = ? AND local_sku_id = ? AND tenant_id = ?",
+    "DELETE FROM t_platform_product_map WHERE platform = ? AND store_id = ? AND local_sku_id = ? AND tenant_id = ?",
     [platform, storeId, localSkuId, tenantId], tenantId
   );
 }

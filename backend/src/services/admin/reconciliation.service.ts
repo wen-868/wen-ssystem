@@ -12,7 +12,7 @@ export async function getCustomerReconciliation(tenantId: string, startDate?: st
             COALESCE(SUM(r.received_amount), 0) AS totalReceived,
             COALESCE(SUM(r.balance), 0) AS balance
      FROM receivable r
-     LEFT JOIN member m ON m.id = r.customer_id
+     LEFT JOIN t_member m ON m.id = r.customer_id
      WHERE r.tenant_id = ? AND ${conditions}
      GROUP BY r.customer_id, m.name
      ORDER BY balance DESC`,
@@ -26,7 +26,7 @@ export async function getCustomerReconciliationDetail(customerId: number, tenant
   const values: unknown[] = [tenantId, customerId];
   if (startDate) { conditions += " AND r.created_at >= ?"; values.push(startDate); }
   if (endDate) { conditions += " AND r.created_at <= ?"; values.push(endDate); }
-  const customer = await queryOneWithTenant<any>("SELECT id, name FROM member WHERE id = ? AND tenant_id = ?", [customerId, tenantId], tenantId);
+  const customer = await queryOneWithTenant<any>("SELECT id, name FROM t_member WHERE id = ? AND tenant_id = ?", [customerId, tenantId], tenantId);
   const summary = await queryOneWithTenant<any>(
     `SELECT COALESCE(SUM(receivable_amount), 0) AS totalReceivable, COALESCE(SUM(received_amount), 0) AS totalReceived, COALESCE(SUM(balance), 0) AS balance
      FROM receivable WHERE ${conditions}`,
@@ -58,7 +58,7 @@ export async function getSupplierReconciliation(tenantId: string, startDate?: st
             COALESCE(SUM(p.paid_amount), 0) AS totalPaid,
             COALESCE(SUM(p.balance), 0) AS balance
      FROM payable p
-     LEFT JOIN supplier s ON s.id = p.supplier_id
+     LEFT JOIN t_supplier s ON s.id = p.supplier_id
      WHERE p.tenant_id = ? AND ${conditions}
      GROUP BY p.supplier_id, s.name
      ORDER BY balance DESC`,
@@ -71,7 +71,7 @@ export async function getSupplierReconciliationDetail(supplierId: number, tenant
   const values: unknown[] = [tenantId, supplierId];
   if (startDate) { conditions += " AND created_at >= ?"; values.push(startDate); }
   if (endDate) { conditions += " AND created_at <= ?"; values.push(endDate); }
-  const supplier = await queryOneWithTenant<any>("SELECT id, name FROM supplier WHERE id = ? AND tenant_id = ?", [supplierId, tenantId], tenantId);
+  const supplier = await queryOneWithTenant<any>("SELECT id, name FROM t_supplier WHERE id = ? AND tenant_id = ?", [supplierId, tenantId], tenantId);
   const summary = await queryOneWithTenant<any>(
     `SELECT COALESCE(SUM(payable_amount), 0) AS totalPayable, COALESCE(SUM(paid_amount), 0) AS totalPaid, COALESCE(SUM(balance), 0) AS balance
      FROM payable WHERE ${conditions}`,

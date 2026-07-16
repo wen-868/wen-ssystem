@@ -48,7 +48,7 @@ export async function listAnnouncements(params: {
     `SELECT id, title, content, type, status, top_flag AS topFlag,
             publish_at AS publishAt, offline_at AS offlineAt,
             created_by AS createdBy, created_at AS createdAt, updated_at AS updatedAt
-     FROM platform_announcement
+     FROM t_platform_announcement
      WHERE ${where}
      ORDER BY top_flag DESC, publish_at DESC, id DESC
      LIMIT ? OFFSET ?`,
@@ -56,7 +56,7 @@ export async function listAnnouncements(params: {
   );
 
   const totalRow = await queryOne<{ total: number }>(
-    `SELECT COUNT(*) AS total FROM platform_announcement WHERE ${where}`,
+    `SELECT COUNT(*) AS total FROM t_platform_announcement WHERE ${where}`,
     queryParams
   );
 
@@ -79,7 +79,7 @@ export async function createAnnouncement(body: {
   createdBy?: number;
 }) {
   const result = await query(
-    `INSERT INTO platform_announcement (title, content, type, status, top_flag, publish_at, created_by)
+    `INSERT INTO t_platform_announcement (title, content, type, status, top_flag, publish_at, created_by)
      VALUES (?, ?, ?, 'PUBLISHED', ?, NOW(), ?)`,
     [
       body.title,
@@ -96,7 +96,7 @@ export async function createAnnouncement(body: {
     `SELECT id, title, content, type, status, top_flag AS topFlag,
             publish_at AS publishAt, created_by AS createdBy,
             created_at AS createdAt, updated_at AS updatedAt
-     FROM platform_announcement WHERE id = ?`,
+     FROM t_platform_announcement WHERE id = ?`,
     [insertId]
   );
 

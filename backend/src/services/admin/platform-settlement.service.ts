@@ -68,7 +68,7 @@ export async function listSettlements(params: SettlementListParams) {
   const totalRow = await queryOne<{ total: number }>(
     `SELECT COUNT(*) AS total
      FROM platform_settlement s
-     LEFT JOIN tenant t ON t.tenant_id = s.tenant_id
+     LEFT JOIN t_tenant t ON t.tenant_id = s.tenant_id
      WHERE ${where}`,
     sqlParams
   );
@@ -83,7 +83,7 @@ export async function listSettlements(params: SettlementListParams) {
             s.settled_at AS settledAt, s.created_by AS createdBy,
             s.created_at AS createdAt, s.updated_at AS updatedAt
      FROM platform_settlement s
-     LEFT JOIN tenant t ON t.tenant_id = s.tenant_id
+     LEFT JOIN t_tenant t ON t.tenant_id = s.tenant_id
      WHERE ${where}
      ORDER BY s.created_at DESC
      LIMIT ? OFFSET ?`,
@@ -103,7 +103,7 @@ export async function getSettlementById(id: number) {
             s.settled_at AS settledAt, s.created_by AS createdBy,
             s.created_at AS createdAt, s.updated_at AS updatedAt
      FROM platform_settlement s
-     LEFT JOIN tenant t ON t.tenant_id = s.tenant_id
+     LEFT JOIN t_tenant t ON t.tenant_id = s.tenant_id
      WHERE s.id = ?`,
     [id]
   );

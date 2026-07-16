@@ -52,8 +52,8 @@ export async function listPlatformSubscriptions(
             s.plan_code AS planCode, s.plan_name AS planName,
             s.start_date AS startDate, s.end_date AS endDate,
             s.status, s.amount, s.created_at AS createdAt
-     FROM subscription s
-     LEFT JOIN tenant t ON t.tenant_id = s.tenant_id
+     FROM t_subscription s
+     LEFT JOIN t_tenant t ON t.tenant_id = s.tenant_id
      WHERE ${where}
      ORDER BY s.created_at DESC
      LIMIT ? OFFSET ?`,
@@ -62,8 +62,8 @@ export async function listPlatformSubscriptions(
 
   const totalRow = await queryOne<any>(
     `SELECT COUNT(*) AS total
-     FROM subscription s
-     LEFT JOIN tenant t ON t.tenant_id = s.tenant_id
+     FROM t_subscription s
+     LEFT JOIN t_tenant t ON t.tenant_id = s.tenant_id
      WHERE ${where}`,
     params
   );
@@ -93,7 +93,7 @@ export async function createPlatformSubscription(
   endDate.setDate(endDate.getDate() + durationDays);
 
   const result = await query<any>(
-    `INSERT INTO subscription
+    `INSERT INTO t_subscription
      (tenant_id, order_no, plan_code, plan_name, start_date, end_date, status, amount, created_by)
      VALUES (?, ?, ?, ?, ?, ?, 'ACTIVE', ?, ?)`,
     [tenantId, orderNo, planCode, planName, startDate, endDate, amount, operator]
@@ -101,7 +101,7 @@ export async function createPlatformSubscription(
 
   // 同时更新租户过期时间
   await query(
-    "UPDATE tenant SET expire_at = ? WHERE tenant_id = ?",
+    "UPDATE t_tenant SET expire_at = ? WHERE tenant_id = ?",
     [endDate, tenantId]
   );
 

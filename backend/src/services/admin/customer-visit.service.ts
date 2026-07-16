@@ -219,7 +219,7 @@ export async function createVisit(
   const visitNo = makeBizNo("BF");
 
   const customer = await queryOneWithTenant<any>(
-    "SELECT id, name FROM member WHERE id = ?",
+    "SELECT id, name FROM t_member WHERE id = ?",
     [body.customer_id],
     tenantId
   );

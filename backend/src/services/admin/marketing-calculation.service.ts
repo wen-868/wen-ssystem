@@ -59,8 +59,8 @@ export async function calculatePromotion(
     const team = await queryOneWithTenant<any>(
       `SELECT gbt.id, gbt.activity_id, gbt.status, gbt.target_size, gbt.current_size,
               gb.group_price, gb.sku_id, gb.status AS activityStatus
-       FROM group_buy_team gbt
-       JOIN group_buy gb ON gb.id = gbt.activity_id
+       FROM t_group_buy_team gbt
+       JOIN t_group_buy gb ON gb.id = gbt.activity_id
        WHERE gbt.id = ? AND gbt.status = 'PENDING' AND gb.status = 'ACTIVE'`,
       [body.groupBuyTeamId],
       tenantId

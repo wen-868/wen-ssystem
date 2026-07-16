@@ -17,7 +17,7 @@ export async function getAnalyticsSummary(params: {
        COALESCE(SUM(delivery_fee), 0) AS deliveryFeeTotal,
        COALESCE(AVG(pay_amount), 0) AS avgOrderAmount,
        COUNT(DISTINCT user_id) AS userCount
-     FROM retail_order ${where} AND order_status IN ('PAID', 'COMPLETED', 'DELIVERING')`,
+     FROM t_retail_order ${where} AND order_status IN ('PAID', 'COMPLETED', 'DELIVERING')`,
     values, tenantId
   );
   return {
@@ -50,7 +50,7 @@ export async function getSalesTrend(params: {
             COUNT(*) AS orderCount,
             COALESCE(SUM(pay_amount), 0) AS salesAmount,
             COALESCE(SUM(delivery_fee), 0) AS deliveryFee
-     FROM retail_order ${where} AND order_status IN ('PAID', 'COMPLETED', 'DELIVERING')
+     FROM t_retail_order ${where} AND order_status IN ('PAID', 'COMPLETED', 'DELIVERING')
      GROUP BY period ORDER BY period`,
     values, tenantId
   );
@@ -71,7 +71,7 @@ export async function getPlatformComparison(params: {
             COUNT(*) AS orderCount,
             COALESCE(SUM(pay_amount), 0) AS salesAmount,
             COALESCE(AVG(pay_amount), 0) AS avgOrderAmount
-     FROM retail_order ${where} AND platform IS NOT NULL
+     FROM t_retail_order ${where} AND platform IS NOT NULL
      GROUP BY platform ORDER BY salesAmount DESC`,
     values, tenantId
   );
@@ -92,8 +92,8 @@ export async function getTopProducts(params: {
             SUM(roi.quantity) AS totalQty,
             SUM(roi.subtotal) AS totalAmount,
             COUNT(DISTINCT roi.order_id) AS orderCount
-     FROM retail_order_item roi
-     LEFT JOIN retail_order ro ON ro.id = roi.order_id
+     FROM t_retail_order_item roi
+     LEFT JOIN t_retail_order ro ON ro.id = roi.order_id
      ${where}
      GROUP BY roi.product_id, roi.product_name
      ORDER BY totalQty DESC LIMIT ?`,

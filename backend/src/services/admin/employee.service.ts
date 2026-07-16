@@ -85,7 +85,7 @@ export async function listStores(page: number, pageSize: number, tenantId: strin
             business_status AS businessStatus, status,
             miniapp_appid AS miniappAppid, wx_merchant_name AS wxMerchantName,
             wx_service_phone AS wxServicePhone, wx_head_img AS wxHeadImg, wx_qrcode_url AS wxQrcodeUrl
-     FROM store
+     FROM t_store
      WHERE tenant_id = ? AND (name LIKE ? OR store_code LIKE ?)
      ORDER BY id DESC
      LIMIT ? OFFSET ?`,
@@ -93,7 +93,7 @@ export async function listStores(page: number, pageSize: number, tenantId: strin
     tenantId
   );
   const totalRow = await queryOneWithTenant<any>(
-    "SELECT COUNT(*) AS total FROM store WHERE tenant_id = ? AND (name LIKE ? OR store_code LIKE ?)",
+    "SELECT COUNT(*) AS total FROM t_store WHERE tenant_id = ? AND (name LIKE ? OR store_code LIKE ?)",
     [tenantId, kw, kw],
     tenantId
   );
@@ -111,13 +111,13 @@ export async function createStore(body: {
 }, tenantId: string) {
   const storeCode = makeBizNo("MD");
   await queryWithTenant(
-    `INSERT INTO store (store_code, name, address, lng, lat, contact, phone, delivery_radius, tenant_id)
+    `INSERT INTO t_store (store_code, name, address, lng, lat, contact, phone, delivery_radius, tenant_id)
      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`,
     [storeCode, body.name, body.address, body.lng ?? null, body.lat ?? null, body.contact ?? null, body.phone ?? null, body.deliveryRadius ?? 3, tenantId],
     tenantId
   );
   const created = await queryOneWithTenant<any>(
-    "SELECT id, store_code AS storeCode, name FROM store WHERE store_code = ? AND tenant_id = ?",
+    "SELECT id, store_code AS storeCode, name FROM t_store WHERE store_code = ? AND tenant_id = ?",
     [storeCode, tenantId],
     tenantId
   );
@@ -130,7 +130,7 @@ export async function getStore(id: number, tenantId: string) {
             business_status AS businessStatus, status,
             miniapp_appid AS miniappAppid, wx_merchant_name AS wxMerchantName,
             wx_service_phone AS wxServicePhone, wx_head_img AS wxHeadImg, wx_qrcode_url AS wxQrcodeUrl
-     FROM store WHERE id = ? AND tenant_id = ?`,
+     FROM t_store WHERE id = ? AND tenant_id = ?`,
     [id, tenantId],
     tenantId
   );
@@ -148,7 +148,7 @@ export async function updateStore(id: number, body: {
   longitude?: number;
   latitude?: number;
 }, tenantId: string) {
-  const existing = await queryOneWithTenant<any>("SELECT id FROM store WHERE id = ? AND tenant_id = ?", [id, tenantId], tenantId);
+  const existing = await queryOneWithTenant<any>("SELECT id FROM t_store WHERE id = ? AND tenant_id = ?", [id, tenantId], tenantId);
   if (!existing) {
     throw Object.assign(new Error("门店不存在"), { statusCode: 404 });
   }
@@ -165,7 +165,7 @@ export async function updateStore(id: number, body: {
 
   if (updates.length > 0) {
     updates.push("updated_at = NOW()");
-    await queryWithTenant(`UPDATE store SET ${updates.join(", ")} WHERE id = ? AND tenant_id = ?`, [...params, id, tenantId], tenantId);
+    await queryWithTenant(`UPDATE t_store SET ${updates.join(", ")} WHERE id = ? AND tenant_id = ?`, [...params, id, tenantId], tenantId);
   }
 
   const store = await queryOneWithTenant<any>(
@@ -173,7 +173,7 @@ export async function updateStore(id: number, body: {
             business_status AS businessStatus, status,
             miniapp_appid AS miniappAppid, wx_merchant_name AS wxMerchantName,
             wx_service_phone AS wxServicePhone, wx_head_img AS wxHeadImg, wx_qrcode_url AS wxQrcodeUrl
-     FROM store WHERE id = ? AND tenant_id = ?`,
+     FROM t_store WHERE id = ? AND tenant_id = ?`,
     [id, tenantId],
     tenantId
   );
@@ -185,7 +185,7 @@ export async function getStoreWechatInfo(id: number, tenantId: string) {
     `SELECT id, name, phone, miniapp_appid AS miniappAppid,
             wx_merchant_name AS wxMerchantName, wx_service_phone AS wxServicePhone,
             wx_head_img AS wxHeadImg, wx_qrcode_url AS wxQrcodeUrl
-     FROM store WHERE id = ? AND tenant_id = ?`,
+     FROM t_store WHERE id = ? AND tenant_id = ?`,
     [id, tenantId],
     tenantId
   );
@@ -210,7 +210,7 @@ export async function getStoreWechatInfo(id: number, tenantId: string) {
 
   // 更新到数据库
   await queryWithTenant(
-    `UPDATE store SET wx_merchant_name = ?, wx_service_phone = ?, wx_head_img = ?, wx_qrcode_url = ?, updated_at = NOW()
+    `UPDATE t_store SET wx_merchant_name = ?, wx_service_phone = ?, wx_head_img = ?, wx_qrcode_url = ?, updated_at = NOW()
      WHERE id = ? AND tenant_id = ?`,
     [mockWxInfo.merchantName, mockWxInfo.servicePhone, mockWxInfo.headImg, mockWxInfo.qrcodeUrl, id, tenantId],
     tenantId

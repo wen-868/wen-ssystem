@@ -131,7 +131,7 @@ export async function registerMember(params: { name: string; mobile: string; pas
 // 会员卡信息
 export async function getMemberCard(memberId: number, tenantId: string) {
   const member = await queryOneWithTenant<any>(
-    "SELECT id, name, mobile, member_level AS memberLevel, created_at AS createdAt FROM member WHERE id = ? AND tenant_id = ?",
+    "SELECT id, name, mobile, member_level AS memberLevel, created_at AS createdAt FROM t_member WHERE id = ? AND tenant_id = ?",
     [memberId, tenantId], tenantId
   );
   if (!member) throw new Error("会员不存在");
@@ -157,9 +157,9 @@ export async function getMemberCard(memberId: number, tenantId: string) {
 
 // 手动调整等级
 export async function updateMemberLevel(memberId: number, levelName: string, tenantId: string) {
-  const member = await queryOneWithTenant<any>("SELECT id FROM member WHERE id = ? AND tenant_id = ?", [memberId, tenantId], tenantId);
+  const member = await queryOneWithTenant<any>("SELECT id FROM t_member WHERE id = ? AND tenant_id = ?", [memberId, tenantId], tenantId);
   if (!member) throw new Error("会员不存在");
-  await queryWithTenant("UPDATE member SET member_level = ? WHERE id = ? AND tenant_id = ?", [levelName, memberId, tenantId], tenantId);
+  await queryWithTenant("UPDATE t_member SET member_level = ? WHERE id = ? AND tenant_id = ?", [levelName, memberId, tenantId], tenantId);
   await queryWithTenant("UPDATE customer_level SET level_name = ?, upgraded_at = NOW() WHERE customer_id = ? AND tenant_id = ?", [levelName, memberId, tenantId], tenantId);
   await queryWithTenant("UPDATE customer_profile SET member_level = ? WHERE customer_id = ? AND tenant_id = ?", [levelName, memberId, tenantId], tenantId);
   return { memberId, levelName };

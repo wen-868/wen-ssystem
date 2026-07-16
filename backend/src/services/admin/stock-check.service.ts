@@ -44,7 +44,7 @@ export async function listChecks(params: {
   const records = await query<Record<string, unknown>>(
     `SELECT sc.*, s.name AS store_name
      FROM stock_check sc
-     LEFT JOIN store s ON s.id = sc.store_id AND s.tenant_id = sc.tenant_id
+     LEFT JOIN t_store s ON s.id = sc.store_id AND s.tenant_id = sc.tenant_id
      WHERE ${where}
      ORDER BY sc.created_at DESC
      LIMIT ? OFFSET ?`,
@@ -91,7 +91,7 @@ export async function getCheckDetail(id: number, tenantId: string) {
   const check = await queryOne<Record<string, unknown>>(
     `SELECT sc.*, s.name AS store_name
      FROM stock_check sc
-     LEFT JOIN store s ON s.id = sc.store_id AND s.tenant_id = sc.tenant_id
+     LEFT JOIN t_store s ON s.id = sc.store_id AND s.tenant_id = sc.tenant_id
      WHERE sc.id = ? AND sc.tenant_id = ?`,
     [id, tenantId]
   );
@@ -282,7 +282,7 @@ export async function listMyChecks(storeId: number, tenantId: string) {
   const records = await query<Record<string, unknown>>(
     `SELECT sc.*, s.name AS store_name
      FROM stock_check sc
-     LEFT JOIN store s ON s.id = sc.store_id AND s.tenant_id = sc.tenant_id
+     LEFT JOIN t_store s ON s.id = sc.store_id AND s.tenant_id = sc.tenant_id
      WHERE sc.store_id = ? AND sc.tenant_id = ?
      ORDER BY sc.created_at DESC`,
     [storeId, tenantId]
@@ -295,7 +295,7 @@ export async function getMyCheckDetail(id: number, tenantId: string) {
   const check = await queryOne<Record<string, unknown>>(
     `SELECT sc.*, s.name AS store_name
      FROM stock_check sc
-     LEFT JOIN store s ON s.id = sc.store_id AND s.tenant_id = sc.tenant_id
+     LEFT JOIN t_store s ON s.id = sc.store_id AND s.tenant_id = sc.tenant_id
      WHERE sc.id = ? AND sc.tenant_id = ?`,
     [id, tenantId]
   );

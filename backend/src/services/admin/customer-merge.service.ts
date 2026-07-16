@@ -9,7 +9,7 @@ export async function detectDuplicates(tenantId: string, type: string) {
       `SELECT mobile, COUNT(*) as count,
               GROUP_CONCAT(id ORDER BY id) as customer_ids,
               GROUP_CONCAT(name ORDER BY id) as customer_names
-       FROM member
+       FROM t_member
        WHERE tenant_id = ? AND mobile IS NOT NULL AND mobile != ''
        GROUP BY mobile
        HAVING COUNT(*) > 1
@@ -21,7 +21,7 @@ export async function detectDuplicates(tenantId: string, type: string) {
     for (const row of mobileDuplicates) {
       const customers = await queryWithTenant<any>(
         `SELECT id, name, mobile, address, remark, created_at
-         FROM member
+         FROM t_member
          WHERE tenant_id = ? AND mobile = ?
          ORDER BY created_at ASC`,
         [tenantId, row.mobile],
@@ -41,7 +41,7 @@ export async function detectDuplicates(tenantId: string, type: string) {
     const nameDuplicates = await queryWithTenant<any>(
       `SELECT name, COUNT(*) as count,
               GROUP_CONCAT(id ORDER BY id) as customer_ids
-       FROM member
+       FROM t_member
        WHERE tenant_id = ? AND name IS NOT NULL AND name != ''
        GROUP BY name
        HAVING COUNT(*) > 1
@@ -53,7 +53,7 @@ export async function detectDuplicates(tenantId: string, type: string) {
     for (const row of nameDuplicates) {
       const customers = await queryWithTenant<any>(
         `SELECT id, name, mobile, address, remark, created_at
-         FROM member
+         FROM t_member
          WHERE tenant_id = ? AND name = ?
          ORDER BY created_at ASC`,
         [tenantId, row.name],
@@ -78,7 +78,7 @@ export async function detectDuplicates(tenantId: string, type: string) {
 // ========== 获取客户关联数据 ==========
 export async function getCustomerRelations(tenantId: string, customerId: number) {
   const customer = await queryOneWithTenant<any>(
-    "SELECT id, name, mobile FROM member WHERE id = ? AND tenant_id = ?",
+    "SELECT id, name, mobile FROM t_member WHERE id = ? AND tenant_id = ?",
     [customerId, tenantId],
     tenantId
   );
@@ -140,7 +140,7 @@ export async function mergeCustomers(tenantId: string, body: {
   mergeName: boolean; mergeMobile: boolean; mergeAddress: boolean; mergeRemark: boolean;
 }, userId: number, username: string) {
   const primaryCustomer = await queryOneWithTenant<any>(
-    "SELECT id, name, mobile, address, remark FROM member WHERE id = ? AND tenant_id = ?",
+    "SELECT id, name, mobile, address, remark FROM t_member WHERE id = ? AND tenant_id = ?",
     [body.primaryCustomerId, tenantId],
     tenantId
   );
@@ -151,7 +151,7 @@ export async function mergeCustomers(tenantId: string, body: {
 
   const duplicateCustomers = await queryWithTenant<any>(
     `SELECT id, name, mobile, address, remark
-     FROM member
+     FROM t_member
      WHERE id IN (?) AND tenant_id = ?`,
     [body.duplicateCustomerIds, tenantId],
     tenantId
@@ -203,7 +203,7 @@ export async function mergeCustomers(tenantId: string, body: {
       params.push(body.primaryCustomerId);
       params.push(tenantId);
       await conn.execute(
-        `UPDATE member SET ${updates.join(", ")} WHERE id = ? AND tenant_id = ?`,
+        `UPDATE t_member SET ${updates.join(", ")} WHERE id = ? AND tenant_id = ?`,
         params
       );
     }
@@ -245,7 +245,7 @@ export async function mergeCustomers(tenantId: string, body: {
     }
 
     await conn.execute(
-      "DELETE FROM member WHERE id IN (?) AND tenant_id = ?",
+      "DELETE FROM t_member WHERE id IN (?) AND tenant_id = ?",
       [body.duplicateCustomerIds, tenantId]
     );
 
@@ -266,7 +266,7 @@ export async function mergeCustomers(tenantId: string, body: {
 
   const mergedCustomer = await queryOneWithTenant<any>(
     `SELECT id, name, mobile, address, remark, created_at
-     FROM member
+     FROM t_member
      WHERE id = ? AND tenant_id = ?`,
     [body.primaryCustomerId, tenantId],
     tenantId
@@ -284,7 +284,7 @@ export async function getDuplicateGroups(tenantId: string, page: number, pageSiz
     `SELECT mobile, COUNT(*) as count,
             GROUP_CONCAT(id ORDER BY created_at ASC) as customer_ids,
             GROUP_CONCAT(name ORDER BY created_at ASC) as customer_names
-     FROM member
+     FROM t_member
      WHERE tenant_id = ? AND mobile IS NOT NULL AND mobile != ''
      GROUP BY mobile
      HAVING COUNT(*) > 1
@@ -297,7 +297,7 @@ export async function getDuplicateGroups(tenantId: string, page: number, pageSiz
   const nameGroups = await queryWithTenant<any>(
     `SELECT name, COUNT(*) as count,
             GROUP_CONCAT(id ORDER BY created_at ASC) as customer_ids
-     FROM member
+     FROM t_member
      WHERE tenant_id = ? AND name IS NOT NULL AND name != ''
      GROUP BY name
      HAVING COUNT(*) > 1
@@ -309,7 +309,7 @@ export async function getDuplicateGroups(tenantId: string, page: number, pageSiz
 
   const mobileTotal = await queryOneWithTenant<any>(
     `SELECT COUNT(DISTINCT mobile) as total
-     FROM member
+     FROM t_member
      WHERE tenant_id = ? AND mobile IS NOT NULL AND mobile != ''
      GROUP BY mobile
      HAVING COUNT(*) > 1`,
@@ -319,7 +319,7 @@ export async function getDuplicateGroups(tenantId: string, page: number, pageSiz
 
   const nameTotal = await queryOneWithTenant<any>(
     `SELECT COUNT(DISTINCT name) as total
-     FROM member
+     FROM t_member
      WHERE tenant_id = ? AND name IS NOT NULL AND name != ''
      GROUP BY name
      HAVING COUNT(*) > 1`,

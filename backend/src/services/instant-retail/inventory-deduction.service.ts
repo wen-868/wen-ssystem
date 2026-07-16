@@ -3,13 +3,13 @@
 // 扣减库存 - 数据库行级锁版本
 export async function deductStock(productId: number, quantity: number, tenantId: string): Promise<boolean> {
   const product = await queryOneWithTenant<any>(
-    "SELECT id, stock FROM retail_product WHERE id = ? AND tenant_id = ? FOR UPDATE",
+    "SELECT id, stock FROM t_retail_product WHERE id = ? AND tenant_id = ? FOR UPDATE",
     [productId, tenantId], tenantId
   );
   if (!product) return false;
   if (product.stock < quantity) return false;
   await queryWithTenant(
-    "UPDATE retail_product SET stock = stock - ?, sales_count = sales_count + ? WHERE id = ? AND tenant_id = ?",
+    "UPDATE t_retail_product SET stock = stock - ?, sales_count = sales_count + ? WHERE id = ? AND tenant_id = ?",
     [quantity, quantity, productId, tenantId], tenantId
   );
   return true;
@@ -18,7 +18,7 @@ export async function deductStock(productId: number, quantity: number, tenantId:
 // 回退库存
 export async function restoreStock(productId: number, quantity: number, tenantId: string) {
   await queryWithTenant(
-    "UPDATE retail_product SET stock = stock + ?, sales_count = sales_count - ? WHERE id = ? AND tenant_id = ?",
+    "UPDATE t_retail_product SET stock = stock + ?, sales_count = sales_count - ? WHERE id = ? AND tenant_id = ?",
     [quantity, quantity, productId, tenantId], tenantId
   );
 }
@@ -43,5 +43,5 @@ export async function batchRestoreStock(items: Array<{ productId: number; quanti
 
 // 获取库存状态
 export async function getStockStatus(productId: number, tenantId: string) {
-  return queryOneWithTenant<any>("SELECT id, stock, status FROM retail_product WHERE id = ? AND tenant_id = ?", [productId, tenantId], tenantId);
+  return queryOneWithTenant<any>("SELECT id, stock, status FROM t_retail_product WHERE id = ? AND tenant_id = ?", [productId, tenantId], tenantId);
 }
