@@ -477,6 +477,42 @@
                       "style":  {
                                     "navigationBarTitleText":  "我的权限"
                                 }
+                  },
+                  {
+                      "path": "pages/cashier/checkout",
+                      "style":  {
+                                    "navigationBarTitleText":  "快速收银"
+                                }
+                  },
+                  {
+                      "path": "pages/shift/shift",
+                      "style":  {
+                                    "navigationBarTitleText":  "交接班"
+                                }
+                  },
+                  {
+                      "path": "pages/daily-settle/daily-settle",
+                      "style":  {
+                                    "navigationBarTitleText":  "日结对账"
+                                }
+                  },
+                  {
+                      "path": "pages/hold-order/hold-order",
+                      "style":  {
+                                    "navigationBarTitleText":  "挂单管理"
+                                }
+                  },
+                  {
+                      "path": "pages/order-fulfill/order-fulfill",
+                      "style":  {
+                                    "navigationBarTitleText":  "接单履约"
+                                }
+                  },
+                  {
+                      "path": "pages/member-identify/member-identify",
+                      "style":  {
+                                    "navigationBarTitleText":  "会员识别"
+                                }
                   }
               ],
     "globalStyle":  {
