@@ -1,8 +1,53 @@
-﻿# 当前任务 — R45
+# 当前任务 — R46
 
 > 仓库：https://github.com/wen-868/wen-ssystem  
 > 唯一分支：main  
 > 最后更新：2026-07-16
+
+---
+
+## R46 — 移动端统一：app-mobile 门店收银功能补齐 + PC端统一 [已完成]
+
+### R46-01 — app-mobile 门店收银6个功能页面补齐 [P0]
+
+- **优先级**：P0
+- **负责人**：阿澈
+- **预计**：1天
+- **实际**：0.5天
+- **状态**：✅ 已完成
+- **文件**：`app-mobile/src/pages/cashier/`、`app-mobile/src/pages/shift/`、`app-mobile/src/pages/daily-settle/`、`app-mobile/src/pages/hold-order/`、`app-mobile/src/pages/order-fulfill/`、`app-mobile/src/pages/member-identify/`、`app-mobile/src/api/modules/cashier.ts`、`app-mobile/src/api/index.ts`、`app-mobile/src/pages.json`
+- **问题**：产品规格要求"移动端统一"——商家功能与门店收银在同一 H5 应用中，通过角色权限切换。但 app-mobile 商户移动端缺少门店收银相关功能页面。
+- **修复**：
+  1. 新增 [checkout.vue](file:///d:/Users/Documents/TREA/wen-ssystem/app-mobile/src/pages/cashier/checkout.vue) — 快速收银（扫码/搜索商品、购物车、会员识别、多支付方式、挂单、结账）
+  2. 新增 [shift.vue](file:///d:/Users/Documents/TREA/wen-ssystem/app-mobile/src/pages/shift/shift.vue) — 交接班（当前班次状态、本班汇总、收款方式明细、接班/交班、历史记录）
+  3. 新增 [daily-settle.vue](file:///d:/Users/Documents/TREA/wen-ssystem/app-mobile/src/pages/daily-settle/daily-settle.vue) — 日结对账（日期切换、销售汇总、收款方式汇总、优惠退款、日结操作）
+  4. 新增 [hold-order.vue](file:///d:/Users/Documents/TREA/wen-ssystem/app-mobile/src/pages/hold-order/hold-order.vue) — 挂单管理（挂单列表、详情查看、恢复收银、删除挂单）
+  5. 新增 [order-fulfill.vue](file:///d:/Users/Documents/TREA/wen-ssystem/app-mobile/src/pages/order-fulfill/order-fulfill.vue) — 接单履约（待接单/备货/配送/完成状态流转、接单拒单、商品明细）
+  6. 新增 [member-identify.vue](file:///d:/Users/Documents/TREA/wen-ssystem/app-mobile/src/pages/member-identify/member-identify.vue) — 会员识别（手机号查询、会员码扫描、会员信息展示、选此会员收银）
+  7. 新增 [cashier.ts](file:///d:/Users/Documents/TREA/wen-ssystem/app-mobile/src/api/modules/cashier.ts) — 收银 API 模块（cashierApi/shiftApi/dailySettleApi/holdOrderApi/memberIdentifyApi）
+  8. 更新 [api/index.ts](file:///d:/Users/Documents/TREA/wen-ssystem/app-mobile/src/api/index.ts) — 导出收银 API
+  9. 更新 [pages.json](file:///d:/Users/Documents/TREA/wen-ssystem/app-mobile/src/pages.json) — 注册6个页面路由
+- **验收标准**：vue-tsc --noEmit 0 错误，6个页面功能完整
+- **验证结果**：vue-tsc --noEmit ✅ 0 错误
+- **提交**：bfd7da4
+
+### R46-02 — admin-web 门店收银台合并（PC端统一） [P0]
+
+- **优先级**：P0
+- **负责人**：阿澈
+- **预计**：1天
+- **实际**：0.5天
+- **状态**：✅ 已完成
+- **文件**：`admin-web/src/views/pos/`（14个页面）、`admin-web/src/api.ts`、`admin-web/src/router/index.ts`
+- **问题**：产品规格要求"PC端统一"——管理后台与收银台同一应用，角色权限切换。将 store-terminal 门店终端核心收银页面合并到 admin-web。
+- **修复**：
+  1. 新建 `admin-web/src/views/pos/` 目录，14 个页面：StoreDashboardView（门店工作台）、CashierView（快速收银）、SaleBillsView（销售单）、OrderFulfillView（订单履约）、CollectionView（分享收款）、DailySettleView（日结对账）、StoreControlView（门店管控）、ShiftView/ShiftDetailView（交接班）、HoldOrderView（挂单管理）、MemberView（会员识别）、SaleReturnView（销售退货）、CouponVerifyView（优惠券核销）、OperationLogView（操作日志）
+  2. api.ts 新增门店收银台 API 区块（10+ 函数），使用 Store 前缀避免与已有 admin API 冲突
+  3. router/index.ts 新增 14 条门店收银区块路由，角色权限 [BOSS, MGR]
+  4. 适配：import 路径、localStorage 适配 Pinia auth store、角色权限适配 admin-web 现有体系
+- **验收标准**：vue-tsc --noEmit 0 错误
+- **验证结果**：vue-tsc --noEmit ✅ 0 错误
+- **提交**：6cc0594
 
 ---
 
