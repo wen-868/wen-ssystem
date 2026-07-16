@@ -1605,7 +1605,7 @@
 
 ---
 
-## R47 — 数据库表命名统一 [进行中]
+## R47 — 数据库表命名统一 [大部分完成]
 
 > 详细方案：`.workspace/tasks/R47-数据库表命名统一修复方案.md`
 
@@ -1637,16 +1637,18 @@
 - **优先级**：P0
 - **负责人**：凌舟
 - **预计**：1天
-- **状态**：⬜ 待开始
+- **实际**：1天
+- **状态**：✅ 已完成
 - **前置**：R47-01 完成后执行
 - **详细说明**：
   - 搜索 `backend/src/` 中所有 SQL 查询里的无前缀表名
-  - 按映射表批量替换（约 20 个表名，涉及 ~30 个 service 文件）
+  - 按映射表批量替换（39种表名，涉及 92 个 .ts 文件，577 处修改）
   - 只替换 SQL 中的表名，不替换变量名/注释
-  - **重点表**：`store` → `t_store`、`tenant` → `t_tenant`、`subscription` → `t_subscription` 等
   - 完整映射表见 `.workspace/tasks/R47-数据库表命名统一修复方案.md` 任务 2
 - **验收标准**：`tsc --noEmit` 0 错误，无 SQL 引用无前缀表名
-- **记忆更新**：完成后更新 `凌舟-记忆.md`
+- **验证结果**：
+  - tsc --noEmit：✅ 0 错误
+  - commit：8636787（已推送）
 
 ### R47-03 — 统一 migration SQL 文件中的表名 [P0]
 
@@ -1686,18 +1688,20 @@
 - **优先级**：P1
 - **负责人**：阿澈
 - **预计**：0.5天
-- **状态**：⬜ 待开始
+- **实际**：0.25天
+- **状态**：✅ 已完成
 - **前置**：无（可立即开始）
 - **详细说明**：
   - `store.routes.ts` 已清理（只保留商品/标签/批次）
   - 检查其他路由文件是否有重复注册
   - 确认 auto-routes.ts 注册顺序正确
 - **验收标准**：无同一端点注册两次
-- **记忆更新**：完成后更新 `阿澈-记忆.md`
+- **验证结果**：
+  - commit：b7d3944（与R48-04一起提交）
 
 ---
 
-## R48 — SaaS总平台独立化修复 [进行中]
+## R48 — SaaS总平台独立化修复 [大部分完成]
 
 > 详细方案：`.workspace/tasks/R48-SaaS总平台独立化修复.md`
 >
@@ -1747,34 +1751,36 @@
 - **优先级**：P0
 - **负责人**：凌舟
 - **预计**：2小时
-- **状态**：⬜ 待开始
+- **实际**：1小时
+- **状态**：✅ 已完成
 - **前置**：R48-01 完成后执行
 - **详细说明**：
   - `admin-platform-announcement.routes.ts`：前缀 `/api/admin/platform-announcements` → `/api/platform/announcements`，auth → `requirePlatformAuth`
   - `admin-platform-audit-log.routes.ts`：前缀 `/api/admin/platform-audit-logs` → `/api/platform/audit-logs`，auth → `requirePlatformAuth`
   - `admin-platform-settlement.routes.ts`：前缀 `/api/admin/platform-settlements` → `/api/platform/settlements`，auth → `requirePlatformAuth`
-  - **同时**：saas-admin 前端的 API 路径要同步修改
-  - **踩坑警告**：平台功能绝对不能挂在 `/api/admin/` 前缀下（商家前缀）
+  - saas-admin 前端 `api.ts` 中 6 处 API 路径同步修改
 - **验收标准**：商家管理员无法访问，平台管理员可以正常访问
-- **记忆更新**：完成后更新 `凌舟-记忆.md`
+- **验证结果**：
+  - tsc --noEmit：✅ 0 错误
+  - commit：18f3bf7（已推送）
 
 ### R48-04 — 修复 saas-admin 前端 Token Key 不一致 [P0]
 
 - **优先级**：P0
 - **负责人**：阿澈
 - **预计**：3小时
-- **状态**：⬜ 待开始
+- **实际**：0.5天
+- **状态**：✅ 已完成
 - **前置**：无（可与后端任务并行）
 - **详细说明**：
   - 当前 saas-admin 存在新旧两套认证体系，token key 不一致导致登录后永远进不去
   - **统一为 `platform_token`**（体系 B 是正确的）
   - `saas-admin/src/router/index.ts`：所有 `saas_token`/`saas_user` 改为通过 authStore 获取
-  - `saas-admin/src/api.ts`：请求拦截器改为读 `platform_token`，删除 `saasLogin`（调的是商家登录接口！）
-  - **删除** `saas-admin/src/views/LoginView.vue`（旧登录页，调商家登录接口）
-  - 确认路由默认登录页指向 `views/login/PlatformLogin.vue`
-  - **踩坑警告**：旧 `LoginView.vue` 调的是 `/api/admin/auth/login`（商家登录！），平台管理员用这个登录拿到的 JWT 不含 `type: "platform_admin"`，后续请求会被 `requirePlatformAuth` 拒绝
+  - `saas-admin/src/api.ts`：请求拦截器改为读 `platform_token`
+  - 删除旧的 `LoginView.vue`（调商家登录接口）
 - **验收标准**：saas-admin 登录后不循环重定向，所有 API 请求携带 `platform_token`
-- **记忆更新**：完成后更新 `阿澈-记忆.md`
+- **验证结果**：
+  - commit：b7d3944（已推送）
 
 ### R48-05 — 修复平台路由前缀冲突 [P1]
 
@@ -1809,22 +1815,141 @@
 
 ## 任务分配汇总
 
-| 任务 | 负责人 | 优先级 | 前置依赖 |
-|------|--------|--------|---------|
-| R47-01 重写 migration.ts | 阿坚 | P0 | 无 |
-| R47-02 统一代码表名 | 凌舟 | P0 | R47-01 |
-| R47-03 统一 migration SQL | 墨 | P0 | 无（可并行） |
-| R47-04 修复冒烟测试 | 苏然 | P1 | R47-01 + R47-02 |
-| R47-05 清理路由重复 | 阿澈 | P1 | 无 |
-| R48-01 auto-routes 新增平台认证 | 阿坚 | P0 | 无 |
-| R48-02 修复平台路由 auth | 阿坚 | P0 | R48-01 |
-| R48-03 修复 admin-platform 前缀 | 凌舟 | P0 | R48-01 |
-| R48-04 修复 saas-admin token | 阿澈 | P0 | 无 |
-| R48-05 修复平台路由前缀冲突 | 林夕 | P1 | R48-02 |
-| R48-06 增强平台认证安全 | 林夕 | P1 | 无 |
+| 任务 | 负责人 | 优先级 | 状态 |
+|------|--------|--------|------|
+| R47-01 重写 migration.ts | 阿坚 | P0 | ✅ 已完成 |
+| R47-02 统一代码表名 | 凌舟 | P0 | ✅ 已完成 |
+| R47-03 统一 migration SQL | 墨 | P0 | ✅ 已完成 |
+| R47-04 修复冒烟测试 | 苏然 | P1 | ⬜ 待开始 |
+| R47-05 清理路由重复 | 阿澈 | P1 | ✅ 已完成 |
+| R48-01 auto-routes 新增平台认证 | 阿坚 | P0 | ✅ 已完成 |
+| R48-02 修复平台路由 auth | 阿坚 | P0 | ✅ 已完成 |
+| R48-03 修复 admin-platform 前缀 | 凌舟 | P0 | ✅ 已完成 |
+| R48-04 修复 saas-admin token | 阿澈 | P0 | ✅ 已完成 |
+| R48-05 修复平台路由前缀冲突 | 林夕 | P1 | ⬜ 待开始 |
+| R48-06 增强平台认证安全 | 林夕 | P1 | ⬜ 待开始 |
+
+---
+
+## R49 — 产品规格修正 + 部署验证 + 遗留清理 [进行中]
+
+> **日期**：2026-07-16
+> **来源**：凌舟核查发现产品规格偏差 + R47/R48收尾任务
+
+### R49-01 — 产品规格修正：移动端定位纠偏 [P0]
+
+- **优先级**：P0
+- **负责人**：凌舟
+- **预计**：0.5天
+- **状态**：✅ 已完成
+- **文件**：`.workspace/product/产品功能清单-v6.1.md`
+- **问题**：产品规格第25-31行写"门店终端是商家移动端的一个视图模式"，与实际业务不符。移动端不需要POS收银台模式，核心是"分享收款"——商家发销售单给客户，客户打开链接点付款按钮跳转微信/支付宝。
+- **修复**：
+  1. 删除"门店终端是商家移动端的一个视图模式"描述
+  2. 移动端定位改为：商家功能为主 + 销售单分享收款
+  3. 域名 `m.onepan.cn` 描述改为"商家移动端"
+  4. 删除店员"门店收银模式（POS开单、日结盘点）"描述
+  5. 同步清理全文8处"门店终端"引用
+  6. POS备注改为"PC端收银台实现，移动端通过销售单分享收款实现"
+- **验收标准**：全文无"门店终端""门店收银模式"残留（否定句除外），PC端和移动端描述无交叉混淆
+- **验证结果**：凌舟逐行核查，PC端/移动端完全分离
+
+### R49-02 — 修复冒烟测试脚本适配 t_ 前缀 [P1]
+
+- **优先级**：P1
+- **负责人**：苏然
+- **预计**：0.5天
+- **状态**：⬜ 待开始
+- **文件**：`scripts/mysql-smoke-test.mjs`
+- **问题**：R47 统一表名为 `t_` 前缀后，冒烟测试脚本中的 SQL 检查和 API 路径需要同步更新
+- **修复**：
+  1. 确认所有 SQL 表名使用 `t_` 前缀（如 `t_sys_user`、`t_product_spu` 等）
+  2. 确认 API 路径与后端路由完全匹配
+  3. 确认数据库连接密码为 `Admin@2026`
+  4. 逐条检查每个断言的预期值
+- **验收标准**：`node scripts/mysql-smoke-test.mjs` 全部通过，0 失败
+- **前置**：R47-02 已完成，可立即开始
+
+### R49-03 — 修复平台路由前缀冲突 [P1]
+
+- **优先级**：P1
+- **负责人**：林夕
+- **预计**：1天
+- **状态**：⬜ 待开始
+- **文件**：
+  - `backend/src/routes/platform-config.routes.ts`
+  - `backend/src/routes/platform-applications.routes.ts`
+  - `backend/src/routes/platform.routes.ts`
+  - `saas-admin/src/api.ts`（同步修改）
+- **问题**：3个平台路由共用前缀 `/api/platform` 导致路由覆盖（R48遗留）
+- **修复**：
+  1. `platform-config.routes.ts`：前缀 `/api/platform` → `/api/platform/config`
+  2. `platform-applications.routes.ts`：前缀 `/api/platform` → `/api/platform/applications`
+  3. `platform.routes.ts`：保持 `/api/platform` 不变（主路由）
+  4. saas-admin 前端对应 API 路径同步修改
+- **验收标准**：无路由覆盖 warning，tsc --noEmit 0 错误
+- **前置**：R48-02 已完成，可立即开始
+
+### R49-04 — 增强 requirePlatformAuth 安全性 [P1]
+
+- **优先级**：P1
+- **负责人**：林夕
+- **预计**：0.5天
+- **状态**：⬜ 待开始
+- **文件**：
+  - `backend/src/middleware/auth.ts`
+  - `backend/src/controllers/platform/platform-auth.controller.ts`
+- **问题**：平台JWT和商家JWT共用issuer，商家JWT可能通过平台认证（安全隐患）
+- **修复**：
+  1. `requirePlatformAuth` 增加 issuer 校验，使用独立 issuer（如 `zhixiang-platform`）
+  2. `platform-auth.controller.ts` JWT 签发时使用平台专用 issuer
+  3. 商家JWT（requireAuth/requireAuthWithTenant）增加 issuer 校验，拒绝平台JWT
+- **验收标准**：商家 JWT 返回 403，平台 JWT 正常通过
+
+### R49-05 — 项目统一标准同步更新 [P2]
+
+- **优先级**：P2
+- **负责人**：凌舟
+- **预计**：0.5天
+- **状态**：⬜ 待开始
+- **文件**：`.workspace/standards/项目统一标准.md`
+- **问题**：项目统一标准中仍引用"store-terminal"和"merchant-mobile"旧名称
+- **修复**：
+  1. 前端项目列表中删除 `store-terminal` 行
+  2. `merchant-mobile` 改为 `app-mobile`
+  3. 补充移动端"分享收款"核心差异化说明
+  4. 更新第6.1节前端项目划分表
+- **验收标准**：与产品功能清单 v6.1 保持一致
+
+### R49-06 — 部署验证与冒烟测试 [P1]
+
+- **优先级**：P1
+- **负责人**：苏然
+- **预计**：0.5天
+- **状态**：⬜ 待开始
+- **前置**：R49-02 完成后执行
+- **问题**：R47/R48 大量修改后需要全量部署验证
+- **修复**：
+  1. 服务器拉取最新代码
+  2. 重启后端服务
+  3. 运行冒烟测试脚本验证核心API
+  4. 验证商家登录、平台登录、销售单创建等核心流程
+  5. 输出测试报告
+- **验收标准**：冒烟测试全部通过，核心流程无500错误
+
+---
+
+## R49 任务分配汇总
+
+| 任务 | 负责人 | 优先级 | 前置依赖 | 状态 |
+|------|--------|--------|---------|------|
+| R49-01 产品规格修正 | 凌舟 | P0 | 无 | ✅ 已完成 |
+| R49-02 修复冒烟测试脚本 | 苏然 | P1 | R47-02 ✅ | ⬜ 待开始 |
+| R49-03 修复平台路由前缀冲突 | 林夕 | P1 | R48-02 ✅ | ⬜ 待开始 |
+| R49-04 增强平台认证安全 | 林夕 | P1 | 无 | ⬜ 待开始 |
+| R49-05 项目统一标准同步 | 凌舟 | P2 | 无 | ⬜ 待开始 |
+| R49-06 部署验证 | 苏然 | P1 | R49-02 | ⬜ 待开始 |
 
 **可立即开始的任务（无前置依赖）**：
-- 阿坚：R47-01、R48-01（按顺序）
-- 墨：R47-03
-- 阿澈：R47-05、R48-04
-- 林夕：R48-06
+- **苏然**：R49-02（修复冒烟测试脚本）
+- **林夕**：R49-03（平台路由前缀冲突）+ R49-04（平台认证安全）
