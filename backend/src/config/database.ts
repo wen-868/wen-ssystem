@@ -82,24 +82,7 @@ async function tableExists(tableName: string) {
 export async function initDatabase() {
   if (env.USE_MOCK_DB) return;
   await ensureDatabaseExists();
-
-  if (await tableExists("sys_user")) {
-    logger.info("✅ 数据库表已存在，跳过 schema 和种子数据初始化");
-  } else {
-    const schemaPath = findSqlFile("001_phase1_schema.sql");
-    const schemaSql = readFileSync(schemaPath, "utf8");
-    for (const statement of splitSqlStatements(schemaSql)) {
-      await pool.query(statement);
-    }
-    logger.info("✅ 数据库 schema 初始化完成");
-
-    const seedPath = findSqlFile("002_phase1_seed.sql");
-    const seedSql = readFileSync(seedPath, "utf8");
-    for (const statement of splitSqlStatements(seedSql)) {
-      await pool.query(statement);
-    }
-    logger.info("✅ 数据库种子数据初始化完成");
-  }
+  logger.info("✅ 数据库已就绪，migration.ts 负责表结构和数据初始化");
 }
 
 /**

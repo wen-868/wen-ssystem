@@ -98,6 +98,63 @@ export async function runMigrations(): Promise<void> {
 
   try {
     // ============================================================
+    // 第0步：创建核心系统表（如果不存在）
+    // ============================================================
+    logger.info("[migration] 检查/创建核心系统表...");
+
+    await safeExec(conn, `
+      CREATE TABLE IF NOT EXISTS t_sys_user (
+        id INT UNSIGNED NOT NULL AUTO_INCREMENT,
+        username VARCHAR(50) NOT NULL COMMENT '用户名',
+        password_hash VARCHAR(255) NOT NULL COMMENT '密码hash',
+        real_name VARCHAR(50) DEFAULT NULL COMMENT '真实姓名',
+        email VARCHAR(128) DEFAULT NULL COMMENT '邮箱',
+        phone VARCHAR(20) DEFAULT NULL COMMENT '手机号',
+        store_id INT UNSIGNED DEFAULT NULL COMMENT '所属门店ID',
+        status TINYINT NOT NULL DEFAULT 1 COMMENT '状态 1=正常 0=禁用',
+        tenant_id VARCHAR(36) NOT NULL DEFAULT 'default' COMMENT '租户ID',
+        login_fail_count INT DEFAULT 0 COMMENT '登录失败次数',
+        locked_until DATETIME DEFAULT NULL COMMENT '锁定截止时间',
+        last_login_at DATETIME DEFAULT NULL COMMENT '最后登录时间',
+        default_homepage VARCHAR(50) DEFAULT NULL COMMENT '默认首页',
+        created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+        updated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+        PRIMARY KEY (id),
+        UNIQUE KEY uk_username_tenant (username, tenant_id),
+        KEY idx_tenant (tenant_id)
+      ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='系统用户表'
+    `, "创建 t_sys_user 表");
+
+    await safeExec(conn, `
+      CREATE TABLE IF NOT EXISTS t_sys_role (
+        id INT UNSIGNED NOT NULL AUTO_INCREMENT,
+        role_code VARCHAR(50) NOT NULL COMMENT '角色编码',
+        role_name VARCHAR(50) NOT NULL COMMENT '角色名称',
+        description VARCHAR(255) DEFAULT NULL COMMENT '角色描述',
+        status VARCHAR(20) NOT NULL DEFAULT 'ACTIVE' COMMENT '状态',
+        tenant_id VARCHAR(36) NOT NULL DEFAULT 'default' COMMENT '租户ID',
+        created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+        updated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+        PRIMARY KEY (id),
+        UNIQUE KEY uk_role_code_tenant (role_code, tenant_id),
+        KEY idx_tenant (tenant_id)
+      ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='系统角色表'
+    `, "创建 t_sys_role 表");
+
+    await safeExec(conn, `
+      CREATE TABLE IF NOT EXISTS t_sys_user_role (
+        id INT UNSIGNED NOT NULL AUTO_INCREMENT,
+        user_id INT UNSIGNED NOT NULL COMMENT '用户ID',
+        role_id INT UNSIGNED NOT NULL COMMENT '角色ID',
+        tenant_id VARCHAR(36) NOT NULL DEFAULT 'default' COMMENT '租户ID',
+        created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+        PRIMARY KEY (id),
+        UNIQUE KEY uk_user_role_tenant (user_id, role_id, tenant_id),
+        KEY idx_tenant (tenant_id)
+      ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='用户角色关联表'
+    `, "创建 t_sys_user_role 表");
+
+    // ============================================================
     // 第1步：创建/修复 tenant 表
     // ============================================================
     logger.info("[migration] 创建/修复 tenant 表...");
