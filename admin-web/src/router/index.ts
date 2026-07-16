@@ -254,21 +254,21 @@ const routes = [
       { path: "saas/config", name: "saas-config", component: () => import("../views/PlatformConfig.vue"), meta: { roles: ["BOSS"], title: "平台配置", icon: Setting } },
       // 14. 在线收款分析
       { path: "reports/online-payment", name: "online-payment-analysis", component: () => import("../views/OnlinePaymentAnalysis.vue"), meta: { roles: ["BOSS", "MGR"], title: "在线收款分析", icon: Money } },
-      // 15. 门店收银（原 store-terminal 合并，PC 端统一）
-      { path: "pos/dashboard", name: "pos-dashboard", component: () => import("../views/pos/StoreDashboardView.vue"), meta: { roles: ["BOSS", "MGR"], title: "门店工作台", icon: DataAnalysis } },
-      { path: "pos/cashier", name: "pos-cashier", component: () => import("../views/pos/CashierView.vue"), meta: { roles: ["BOSS", "MGR"], title: "快速收银", icon: ShoppingCart } },
-      { path: "pos/sale-bills", name: "pos-sale-bills", component: () => import("../views/pos/SaleBillsView.vue"), meta: { roles: ["BOSS", "MGR"], title: "销售单", icon: Document } },
-      { path: "pos/sale-returns", name: "pos-sale-returns", component: () => import("../views/pos/SaleReturnView.vue"), meta: { roles: ["BOSS", "MGR"], title: "销售退货", icon: RefreshRight } },
-      { path: "pos/order-fulfill", name: "pos-order-fulfill", component: () => import("../views/pos/OrderFulfillView.vue"), meta: { roles: ["BOSS", "MGR"], title: "接单履约", icon: Tickets } },
-      { path: "pos/collection", name: "pos-collection", component: () => import("../views/pos/CollectionView.vue"), meta: { roles: ["BOSS", "MGR"], title: "分享收款", icon: Money } },
-      { path: "pos/hold-orders", name: "pos-hold-orders", component: () => import("../views/pos/HoldOrderView.vue"), meta: { roles: ["BOSS", "MGR"], title: "挂单管理", icon: Timer } },
-      { path: "pos/members", name: "pos-members", component: () => import("../views/pos/MemberView.vue"), meta: { roles: ["BOSS", "MGR"], title: "会员识别", icon: User } },
-      { path: "pos/coupon-verify", name: "pos-coupon-verify", component: () => import("../views/pos/CouponVerifyView.vue"), meta: { roles: ["BOSS", "MGR"], title: "优惠券核销", icon: CreditCard } },
-      { path: "pos/shifts", name: "pos-shifts", component: () => import("../views/pos/ShiftView.vue"), meta: { roles: ["BOSS", "MGR"], title: "交接班管理", icon: Clock } },
-      { path: "pos/shifts/:id", name: "pos-shift-detail", component: () => import("../views/pos/ShiftDetailView.vue"), meta: { roles: ["BOSS", "MGR"], title: "交接班详情", icon: Clock, hidden: true } },
-      { path: "pos/daily-settle", name: "pos-daily-settle", component: () => import("../views/pos/DailySettleView.vue"), meta: { roles: ["BOSS", "MGR"], title: "日结对账", icon: Calendar } },
-      { path: "pos/store-control", name: "pos-store-control", component: () => import("../views/pos/StoreControlView.vue"), meta: { roles: ["BOSS", "MGR"], title: "门店管控", icon: Shop } },
-      { path: "pos/operation-logs", name: "pos-operation-logs", component: () => import("../views/pos/OperationLogView.vue"), meta: { roles: ["BOSS", "MGR"], title: "操作记录", icon: Document } }
+      // 15. 门店收银（合并自 store-terminal）
+      { path: "pos/dashboard", name: "pos-dashboard", component: () => import("../views/pos/StoreDashboardView.vue"), meta: { roles: ["BOSS", "MGR", "CASHIER", "STORE"], title: "门店工作台", icon: DataAnalysis } },
+      { path: "pos/cashier", name: "pos-cashier", component: () => import("../views/pos/CashierView.vue"), meta: { roles: ["BOSS", "MGR", "CASHIER", "STORE"], title: "快速收银", icon: Edit } },
+      { path: "pos/sale-bills", name: "pos-sale-bills", component: () => import("../views/pos/SaleBillsView.vue"), meta: { roles: ["BOSS", "MGR", "CASHIER", "STORE"], title: "销售单据", icon: Document } },
+      { path: "pos/order-fulfill", name: "pos-order-fulfill", component: () => import("../views/pos/OrderFulfillView.vue"), meta: { roles: ["BOSS", "MGR", "CASHIER", "STORE"], title: "接单履约", icon: Tickets } },
+      { path: "pos/collection", name: "pos-collection", component: () => import("../views/pos/CollectionView.vue"), meta: { roles: ["BOSS", "MGR", "CASHIER", "STORE"], title: "分享收款", icon: Share } },
+      { path: "pos/sale-return", name: "pos-sale-return", component: () => import("../views/pos/SaleReturnView.vue"), meta: { roles: ["BOSS", "MGR", "CASHIER", "STORE"], title: "销售退货", icon: RefreshRight } },
+      { path: "pos/hold-order", name: "pos-hold-order", component: () => import("../views/pos/HoldOrderView.vue"), meta: { roles: ["BOSS", "MGR", "CASHIER", "STORE"], title: "挂单管理", icon: FolderOpened } },
+      { path: "pos/member", name: "pos-member", component: () => import("../views/pos/MemberView.vue"), meta: { roles: ["BOSS", "MGR", "CASHIER", "STORE"], title: "会员识别", icon: User } },
+      { path: "pos/coupon-verify", name: "pos-coupon-verify", component: () => import("../views/pos/CouponVerifyView.vue"), meta: { roles: ["BOSS", "MGR", "CASHIER", "STORE"], title: "优惠券核销", icon: Ticket } },
+      { path: "pos/shift", name: "pos-shift", component: () => import("../views/pos/ShiftView.vue"), meta: { roles: ["BOSS", "MGR", "CASHIER", "STORE"], title: "交接班", icon: Clock } },
+      { path: "pos/shift/:id", name: "pos-shift-detail", component: () => import("../views/pos/ShiftDetailView.vue"), meta: { roles: ["BOSS", "MGR", "CASHIER", "STORE"], title: "交接班详情", icon: Clock, hidden: true } },
+      { path: "pos/daily-settle", name: "pos-daily-settle", component: () => import("../views/pos/DailySettleView.vue"), meta: { roles: ["BOSS", "MGR", "CASHIER", "STORE"], title: "日结管理", icon: Checked } },
+      { path: "pos/store-control", name: "pos-store-control", component: () => import("../views/pos/StoreControlView.vue"), meta: { roles: ["BOSS", "MGR", "STORE"], title: "门店管控", icon: Switch } },
+      { path: "pos/operation-log", name: "pos-operation-log", component: () => import("../views/pos/OperationLogView.vue"), meta: { roles: ["BOSS", "MGR", "STORE"], title: "操作记录", icon: Document } }
     ]
   },
   { path: "/:pathMatch(.*)*", name: "not-found", component: NotFound, meta: { requiresAuth: false, title: "页面不存在", icon: WarningFilled } }

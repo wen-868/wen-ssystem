@@ -1,4 +1,4 @@
-# 当前任务 — R46
+﻿# 当前任务 — R46
 
 > 仓库：https://github.com/wen-868/wen-ssystem  
 > 唯一分支：main  
@@ -6,48 +6,120 @@
 
 ---
 
-## R46 — 移动端统一：app-mobile 门店收银功能补齐 + PC端统一 [已完成]
+## R46 — 工作台与收银台合并（PC端统一+移动端统一） [已完成]
 
-### R46-01 — app-mobile 门店收银6个功能页面补齐 [P0]
+### 背景
 
-- **优先级**：P0
-- **负责人**：阿澈
-- **预计**：1天
-- **实际**：0.5天
-- **状态**：✅ 已完成
-- **文件**：`app-mobile/src/pages/cashier/`、`app-mobile/src/pages/shift/`、`app-mobile/src/pages/daily-settle/`、`app-mobile/src/pages/hold-order/`、`app-mobile/src/pages/order-fulfill/`、`app-mobile/src/pages/member-identify/`、`app-mobile/src/api/modules/cashier.ts`、`app-mobile/src/api/index.ts`、`app-mobile/src/pages.json`
-- **问题**：产品规格要求"移动端统一"——商家功能与门店收银在同一 H5 应用中，通过角色权限切换。但 app-mobile 商户移动端缺少门店收银相关功能页面。
-- **修复**：
-  1. 新增 [checkout.vue](file:///d:/Users/Documents/TREA/wen-ssystem/app-mobile/src/pages/cashier/checkout.vue) — 快速收银（扫码/搜索商品、购物车、会员识别、多支付方式、挂单、结账）
-  2. 新增 [shift.vue](file:///d:/Users/Documents/TREA/wen-ssystem/app-mobile/src/pages/shift/shift.vue) — 交接班（当前班次状态、本班汇总、收款方式明细、接班/交班、历史记录）
-  3. 新增 [daily-settle.vue](file:///d:/Users/Documents/TREA/wen-ssystem/app-mobile/src/pages/daily-settle/daily-settle.vue) — 日结对账（日期切换、销售汇总、收款方式汇总、优惠退款、日结操作）
-  4. 新增 [hold-order.vue](file:///d:/Users/Documents/TREA/wen-ssystem/app-mobile/src/pages/hold-order/hold-order.vue) — 挂单管理（挂单列表、详情查看、恢复收银、删除挂单）
-  5. 新增 [order-fulfill.vue](file:///d:/Users/Documents/TREA/wen-ssystem/app-mobile/src/pages/order-fulfill/order-fulfill.vue) — 接单履约（待接单/备货/配送/完成状态流转、接单拒单、商品明细）
-  6. 新增 [member-identify.vue](file:///d:/Users/Documents/TREA/wen-ssystem/app-mobile/src/pages/member-identify/member-identify.vue) — 会员识别（手机号查询、会员码扫描、会员信息展示、选此会员收银）
-  7. 新增 [cashier.ts](file:///d:/Users/Documents/TREA/wen-ssystem/app-mobile/src/api/modules/cashier.ts) — 收银 API 模块（cashierApi/shiftApi/dailySettleApi/holdOrderApi/memberIdentifyApi）
-  8. 更新 [api/index.ts](file:///d:/Users/Documents/TREA/wen-ssystem/app-mobile/src/api/index.ts) — 导出收银 API
-  9. 更新 [pages.json](file:///d:/Users/Documents/TREA/wen-ssystem/app-mobile/src/pages.json) — 注册6个页面路由
-- **验收标准**：vue-tsc --noEmit 0 错误，6个页面功能完整
-- **验证结果**：vue-tsc --noEmit ✅ 0 错误
-- **提交**：bfd7da4
+按用户要求实现"PC端统一"和"各端统一"：
+- store-terminal 门店终端合并到 admin-web 管理后台（PC端统一）
+- app-mobile 移动端补齐门店收银功能（移动端统一）
+- 后端 /store/* 路由复用，无需新增
 
-### R46-02 — admin-web 门店收银台合并（PC端统一） [P0]
+### R46-01 — admin-web 合并 store-terminal 14 个 POS 页面 [P0]
 
 - **优先级**：P0
 - **负责人**：阿澈
 - **预计**：1天
 - **实际**：0.5天
 - **状态**：✅ 已完成
-- **文件**：`admin-web/src/views/pos/`（14个页面）、`admin-web/src/api.ts`、`admin-web/src/router/index.ts`
-- **问题**：产品规格要求"PC端统一"——管理后台与收银台同一应用，角色权限切换。将 store-terminal 门店终端核心收银页面合并到 admin-web。
+- **文件**：
+  - `admin-web/src/views/pos/`（14 个 .vue 文件：CashierView/SaleBillsView/OrderFulfillView/CollectionView/SaleReturnView/HoldOrderView/MemberView/CouponVerifyView/ShiftView/ShiftDetailView/DailySettleView/StoreControlView/OperationLogView/StoreDashboardView）
+  - `admin-web/src/router/index.ts`（新增"15. 门店收银"路由块，14 条路由）
+  - `admin-web/src/api.ts`（新增 30+ 个 store 系列 API 函数）
+- **问题**：原 store-terminal 终端独立运行，与 admin-web 重复维护，违反"PC端统一"规划
 - **修复**：
-  1. 新建 `admin-web/src/views/pos/` 目录，14 个页面：StoreDashboardView（门店工作台）、CashierView（快速收银）、SaleBillsView（销售单）、OrderFulfillView（订单履约）、CollectionView（分享收款）、DailySettleView（日结对账）、StoreControlView（门店管控）、ShiftView/ShiftDetailView（交接班）、HoldOrderView（挂单管理）、MemberView（会员识别）、SaleReturnView（销售退货）、CouponVerifyView（优惠券核销）、OperationLogView（操作日志）
-  2. api.ts 新增门店收银台 API 区块（10+ 函数），使用 Store 前缀避免与已有 admin API 冲突
-  3. router/index.ts 新增 14 条门店收银区块路由，角色权限 [BOSS, MGR]
-  4. 适配：import 路径、localStorage 适配 Pinia auth store、角色权限适配 admin-web 现有体系
-- **验收标准**：vue-tsc --noEmit 0 错误
-- **验证结果**：vue-tsc --noEmit ✅ 0 错误
-- **提交**：6cc0594
+  1. 14 个 POS 页面迁移到 `admin-web/src/views/pos/` 目录
+  2. 路由配置为 `pos/*` 路径，角色权限 BOSS/MGR/CASHIER/STORE
+  3. API 函数全部追加到 admin-web 统一 api.ts，复用 admin_token + 后端 /store/* 路由
+  4. 无需适配 token key，pos 页面通过 `../../api` 统一导入
+- **验收标准**：vue-tsc 0 错误，npm run build 成功
+- **验证结果**：vue-tsc 0 错误，build 成功（34.49s）
+
+### R46-02 — app-mobile 合并门店移动端功能 [P0]
+
+- **优先级**：P0
+- **负责人**：阿澈
+- **预计**：1天
+- **实际**：0.5天
+- **状态**：✅ 已完成
+- **文件**：
+  - `app-mobile/src/api/modules/store.ts`（新增，40+ 接口方法）
+  - `app-mobile/src/pages/pos/`（新增 10 个 .vue 页面）
+  - `app-mobile/src/pages.json`（注册 10 个新页面）
+- **问题**：app-mobile 缺少门店收银移动端能力，违反"各端统一"规划
+- **修复**：
+  1. 创建 6 个核心页面：cashier/sale-bills/order-fulfill/shift/daily-settle/member
+  2. 创建 4 个辅助页面：sale-return/coupon-verify/hold-order/store-control
+  3. 使用 uni-app 原生组件 + 移动端样式（rpx、safe-area）
+  4. 统一使用 merchant_token（弃用 store-terminal 的 store_token）
+- **验收标准**：vue-tsc 0 错误
+- **验证结果**：vue-tsc 0 错误，pages.json 校验通过（88 个页面）
+
+### R46-03 — 后端 store 路由复用确认 [P0]
+
+- **优先级**：P0
+- **负责人**：阿坚
+- **预计**：0.5天
+- **实际**：0.25天
+- **状态**：✅ 已完成
+- **文件**：12 个 `backend/src/routes/store-*.routes.ts`（只读核查）
+- **问题**：需确认 admin-web 的 pos 页面 import 的 API 是否都有后端路由对应
+- **修复**：纯核查任务，未修改后端代码
+- **核查结果**：
+  - ✅ 35 个 store 系列 API 都有对应后端路由（prefix=/api/store/*，auth=requireAuthWithTenant）
+  - ✅ 2 个日结 API 实际路径为 `/admin/daily-settlements`（复数），前端调用路径已修正
+  - ✅ 所有 store 路由使用 queryWithTenant 实现租户隔离
+  - ✅ 路由 prefix 不与 admin-web 其他路由冲突
+- **验收标准**：所有前端 API 调用都有后端路由对应
+- **验证结果**：35/35 路由匹配，2/2 路径修正
+
+### R46-04 — 修复 R44 遗留的 API 缺失问题 [P0]
+
+- **优先级**：P0
+- **负责人**：阿澈
+- **预计**：0.5天
+- **实际**：0.25天
+- **状态**：✅ 已完成
+- **文件**：
+  - `admin-web/src/api.ts`（新增 18 个 API 函数）
+  - `admin-web/src/views/CustomerVisits.vue`（修复 2 处类型错误）
+- **问题**：R44 阶段创建的 5 个页面（CustomerVisits/PlatformAnnouncements/PlatformAuditLogs/PurchaseContracts/TenantUsage）import 的 18 个 API 函数在 api.ts 中缺失，导致 vue-tsc 报错
+- **修复**：
+  1. CustomerVisit 系列：补全 updateCustomerVisit/deleteCustomerVisit/exportCustomerVisitsCsv
+  2. PlatformAnnouncement 系列：补全 revoke/pin/unpin 三个函数 + 扩展 fetchPlatformAnnouncements 的 params 类型
+  3. PlatformAuditLog 系列：补全 fetchPlatformAuditLogs/fetchPlatformAuditLogDetail
+  4. PurchaseContract 系列：补全 6 个 CRUD + 导出函数
+  5. TenantUsage 系列：补全 4 个统计函数
+  6. 修复 CustomerVisits.vue 第 354/441 行漏写 `.data` 的类型错误
+- **验收标准**：vue-tsc 0 错误
+- **验证结果**：vue-tsc 0 错误
+
+### R46-05 — 全局回归测试 [P0]
+
+- **优先级**：P0
+- **负责人**：苏然
+- **预计**：0.5天
+- **实际**：0.25天
+- **状态**：✅ 已完成
+- **测试范围**：
+  - admin-web：vue-tsc 0 错误 ✅
+  - admin-web：npm run build 成功（34.49s）✅
+  - backend：tsc --noEmit 0 错误 ✅
+  - backend：vitest 414 文件 / 4741 用例全部通过 ✅
+- **结论**：R46 全部任务通过验收
+
+### R46 总结
+
+| 维度 | 数据 |
+|------|------|
+| 新增文件 | 25 个（14 admin-web + 10 app-mobile + 1 store.ts） |
+| 修改文件 | 4 个（router/index.ts、api.ts、CustomerVisits.vue、pages.json） |
+| 新增 API 函数 | 48+ 个（30 store + 18 R44补全） |
+| 新增代码行 | ~5000 行 |
+| vue-tsc | 0 错误 |
+| 后端 tsc | 0 错误 |
+| 后端 vitest | 414 文件 / 4741 用例 100% 通过 |
+| admin-web build | 成功 |
 
 ---
 

@@ -2304,16 +2304,13 @@ export async function cancelApproval(id: number) {
 }
 
 // ==================== CustomerVisit APIs ====================
-export const fetchCustomerVisits = (params: any) => api.get('/admin/customer-visits', { params }).then(res => res.data.data);
-export const createCustomerVisit = (data: any) => api.post('/admin/customer-visits', data).then(res => res.data.data);
-export const checkinCustomerVisit = (id: number, data?: any) => api.post(`/admin/customer-visits/${id}/checkin`, data).then(res => res.data.data);
-export const checkoutCustomerVisit = (id: number, data?: any) => api.post(`/admin/customer-visits/${id}/checkout`, data).then(res => res.data.data);
-export const cancelCustomerVisit = (id: number) => api.post(`/admin/customer-visits/${id}/cancel`).then(res => res.data.data);
-export const fetchCustomerVisitDetail = (id: number) => api.get(`/admin/customer-visits/${id}`).then(res => res.data.data);
-export const fetchCustomerVisitStatistics = (params: any) => api.get('/admin/customer-visits/statistics', { params }).then(res => res.data.data);
-export const updateCustomerVisit = (id: number, data: any) => api.put(`/admin/customer-visits/${id}`, data).then(res => res.data.data);
-export const deleteCustomerVisit = (id: number) => api.delete(`/admin/customer-visits/${id}`).then(res => res.data.data);
-export const exportCustomerVisitsCsv = (params: any) => api.get('/admin/customer-visits/export.csv', { params, responseType: 'blob' }).then(res => res.data as Blob);
+export const fetchCustomerVisits = (params: any) => api.get('/admin/customer-visits', { params });
+export const createCustomerVisit = (data: any) => api.post('/admin/customer-visits', data);
+export const checkinCustomerVisit = (id: number, data?: any) => api.post(`/admin/customer-visits/${id}/checkin`, data);
+export const checkoutCustomerVisit = (id: number, data?: any) => api.post(`/admin/customer-visits/${id}/checkout`, data);
+export const cancelCustomerVisit = (id: number) => api.post(`/admin/customer-visits/${id}/cancel`);
+export const fetchCustomerVisitDetail = (id: number) => api.get(`/admin/customer-visits/${id}`);
+export const fetchCustomerVisitStatistics = (params: any) => api.get('/admin/customer-visits/statistics', { params });
 
 // ==================== Subscription APIs ====================
 export const fetchSubscriptions = (params: any) => api.get('/admin/subscriptions', { params });
@@ -2448,6 +2445,267 @@ export async function fetchDbStatus() {
 
 export async function fetchApiStats() {
   const { data } = await api.get("/admin/monitor/api-stats");
+  return data.data;
+}
+
+// ==================== 门店收银（POS）APIs ====================
+// 以下函数供 admin-web 中合并的 pos 页面使用，复用后端 /store/* 路由
+// 后端路由使用 requireAuthWithTenant，复用 admin-web 的 admin_token 即可
+
+// ---------- 商品/会员搜索 ----------
+export async function searchStoreProducts(keyword: string) {
+  const { data } = await api.get("/store/products", { params: { keyword } });
+  return data.data as { records: any[] };
+}
+
+export async function searchStoreMembers(keyword: string) {
+  const { data } = await api.get("/store/members", { params: { keyword } });
+  return data.data as { records: any[] };
+}
+
+// ---------- 销售单 ----------
+export async function createStoreSaleBill(payload: unknown) {
+  const { data } = await api.post("/store/sale-bills", payload);
+  return data.data;
+}
+
+export async function fetchStoreSaleBills(params?: {
+  keyword?: string;
+  collectionStatus?: string;
+  page?: number;
+  pageSize?: number;
+}) {
+  const { data } = await api.get("/store/sale-bills", { params: { page: 1, pageSize: 20, ...params } });
+  return data.data;
+}
+
+export async function fetchStoreSaleBillDetail(billNo: string) {
+  const { data } = await api.get(`/store/sale-bills/${billNo}`);
+  return data.data;
+}
+
+export async function createStoreOfflinePayment(billNo: string, amount: number, paymentMethod: string) {
+  const { data } = await api.post(`/store/sale-bills/${billNo}/offline-payment`, { amount, paymentMethod });
+  return data.data;
+}
+
+export async function createStoreCollectionLink(billNo: string, amount: number, options?: { taxEnabled?: boolean; taxRate?: number }) {
+  const { data } = await api.post(`/store/sale-bills/${billNo}/collection-link`, {
+    shareChannel: "LINK",
+    amount,
+    taxEnabled: options?.taxEnabled ?? false,
+    taxRate: options?.taxRate ?? 0,
+    expireHours: 72
+  });
+  return data.data;
+}
+
+export async function fetchStoreCollectionLinks(params?: { page?: number; pageSize?: number }) {
+  const { data } = await api.get("/store/collection-links", { params: { page: 1, pageSize: 30, ...params } });
+  return data.data;
+}
+
+export async function fetchStorePaymentOrders(params?: { page?: number; pageSize?: number }) {
+  const { data } = await api.get("/store/payment-orders", { params: { page: 1, pageSize: 30, ...params } });
+  return data.data;
+}
+
+export async function fetchStoreRefundOrders(params?: { page?: number; pageSize?: number }) {
+  const { data } = await api.get("/store/refund-orders", { params: { page: 1, pageSize: 30, ...params } });
+  return data.data;
+}
+
+// ---------- 挂单 ----------
+export async function createStoreHoldOrder(payload: {
+  customerName?: string;
+  customerMobile?: string;
+  amount: number;
+  remark?: string;
+  items: Array<{ skuId: number; skuName: string; quantity: number; unitPrice: number; subtotalAmount: number }>;
+}) {
+  const { data } = await api.post("/store/hold-orders", payload);
+  return data.data;
+}
+
+export async function fetchStoreHoldOrders(params?: { page?: number; pageSize?: number }) {
+  const { data } = await api.get("/store/hold-orders", { params: { page: 1, pageSize: 30, ...params } });
+  return data.data;
+}
+
+export async function restoreStoreHoldOrder(holdNo: string) {
+  const { data } = await api.post(`/store/hold-orders/${holdNo}/restore`);
+  return data.data;
+}
+
+export async function deleteStoreHoldOrder(holdNo: string) {
+  const { data } = await api.delete(`/store/hold-orders/${holdNo}`);
+  return data.data;
+}
+
+// ---------- 订单履约 ----------
+export async function fetchStoreOrders(params?: { page?: number; pageSize?: number; status?: string; keyword?: string }) {
+  const { data } = await api.get("/store/orders", { params: { page: 1, pageSize: 20, ...params } });
+  return data.data;
+}
+
+export async function fetchStoreOrderDetail(orderNo: string) {
+  const { data } = await api.get(`/store/orders/${orderNo}`);
+  return data.data;
+}
+
+export async function acceptStoreOrder(orderNo: string) {
+  const { data } = await api.post(`/store/orders/${orderNo}/accept`, {});
+  return data.data;
+}
+
+export async function rejectStoreOrder(orderNo: string) {
+  const { data } = await api.post(`/store/orders/${orderNo}/reject`, {});
+  return data.data;
+}
+
+export async function completeStoreOrder(orderNo: string) {
+  const { data } = await api.post(`/store/orders/${orderNo}/complete`, {});
+  return data.data;
+}
+
+// ---------- 门店工作台 ----------
+export async function fetchStoreDashboard() {
+  const { data } = await api.get("/store/dashboard");
+  return data.data;
+}
+
+export async function fetchStoreDashboardOverview() {
+  const { data } = await api.get("/admin/dashboard/overview");
+  return data.data;
+}
+
+export async function fetchStoreDailySales() {
+  const { data } = await api.get("/store/daily-sales");
+  return data.data || [];
+}
+
+export async function fetchStoreInventoryAlerts() {
+  const { data } = await api.get("/store/inventory/alerts");
+  return data.data || [];
+}
+
+// ---------- 日结 ----------
+export async function submitStoreDailySettle(payload: { settleDate: string; actualCash?: number; remark?: string }) {
+  const { data } = await api.post("/admin/daily-settlements", payload);
+  return data.data;
+}
+
+export async function fetchStoreDailySettleHistory(params?: { page?: number; pageSize?: number; startDate?: string; endDate?: string }) {
+  const { data } = await api.get("/admin/daily-settlements", { params: { page: 1, pageSize: 30, ...params } });
+  return data.data;
+}
+
+// ---------- 交接班 ----------
+export async function fetchStoreShifts(params?: { page?: number; pageSize?: number; date?: string; shiftType?: string }) {
+  const { data } = await api.get("/store/shifts", { params: { page: 1, pageSize: 20, ...params } });
+  return data.data;
+}
+
+export async function createStoreShift(payload: {
+  shiftType: string;
+  startTime: string;
+  endTime?: string;
+  operatorId?: number;
+  operatorName?: string;
+  remark?: string;
+}) {
+  const { data } = await api.post("/store/shifts", payload);
+  return data.data;
+}
+
+export async function fetchStoreShiftDetail(shiftId: number) {
+  const { data } = await api.get(`/store/shifts/${shiftId}`);
+  return data.data;
+}
+
+export async function completeStoreShift(shiftId: number, payload: {
+  endTime: string;
+  actualCash?: number;
+  actualWechat?: number;
+  actualAlipay?: number;
+  remark?: string;
+}) {
+  const { data } = await api.post(`/store/shifts/${shiftId}/complete`, payload);
+  return data.data;
+}
+
+export async function getStoreShiftSalesStats(shiftId: number) {
+  const { data } = await api.get(`/store/shifts/${shiftId}/sales-stats`);
+  return data.data;
+}
+
+export async function getStoreShiftStockCheck(shiftId: number) {
+  const { data } = await api.get(`/store/shifts/${shiftId}/stock-check`);
+  return data.data;
+}
+
+export async function submitStoreShiftStockCheck(shiftId: number, items: Array<{ skuId: number; bookQty: number; actualQty: number; diffReason?: string }>) {
+  const { data } = await api.post(`/store/shifts/${shiftId}/stock-check`, { items });
+  return data.data;
+}
+
+// ---------- 销售退货 ----------
+export async function fetchStoreSaleReturns(params?: { page?: number; pageSize?: number; returnStatus?: string; date?: string }) {
+  const { data } = await api.get("/store/sale-returns", { params: { page: 1, pageSize: 20, ...params } });
+  return data.data;
+}
+
+export async function createStoreSaleReturn(payload: {
+  sourceBillNo: string;
+  items: Array<{ skuId: number; skuName: string; quantity: number; unitPrice: number; reason?: string }>;
+  remark?: string;
+}) {
+  const { data } = await api.post("/store/sale-returns", payload);
+  return data.data;
+}
+
+// ---------- 优惠券核销 ----------
+export async function verifyStoreCoupon(code: string) {
+  const { data } = await api.post("/store/coupons/verify", { code });
+  return data.data;
+}
+
+export async function manualVerifyStoreCoupon(payload: { couponCode: string; saleBillNo?: string }) {
+  const { data } = await api.post("/store/coupons/manual-verify", payload);
+  return data.data;
+}
+
+export async function fetchStoreCouponVerifyRecords(params?: { page?: number; pageSize?: number; status?: string }) {
+  const { data } = await api.get("/store/coupons/verify-records", { params: { page: 1, pageSize: 20, ...params } });
+  return data.data;
+}
+
+// ---------- 门店管控 ----------
+export async function fetchStoreControlStatus() {
+  const { data } = await api.get("/store/control/status");
+  return data.data;
+}
+
+export async function fetchStoreControlMyLogs(params?: { page?: number; pageSize?: number }) {
+  const { data } = await api.get("/store/control/my-logs", { params: { page: 1, pageSize: 20, ...params } });
+  return data.data;
+}
+
+// ---------- 操作记录 ----------
+export async function fetchStoreOperationLogs(params?: {
+  page?: number;
+  pageSize?: number;
+  startTime?: string;
+  endTime?: string;
+  operatorName?: string;
+  actionType?: string;
+}) {
+  const { data } = await api.get("/store/operation-logs", { params: { page: 1, pageSize: 30, ...params } });
+  return data.data;
+}
+
+export async function fetchStoreOperationLogDetail(logId: number) {
+  const { data } = await api.get(`/store/operation-logs/${logId}`);
   return data.data;
 }
 
@@ -2617,8 +2875,8 @@ export async function updatePlatformConfig(payload: Record<string, unknown>) {
 export async function fetchPlatformAnnouncements(params?: {
   page?: number;
   pageSize?: number;
-  status?: string;
   type?: string;
+  status?: string;
   keyword?: string;
 }) {
   const { data } = await api.get("/admin/platform/announcements", { params });
@@ -2642,101 +2900,6 @@ export async function updatePlatformAnnouncement(id: number, payload: Record<str
 
 export async function deletePlatformAnnouncement(id: number) {
   const { data } = await api.delete(`/admin/platform/announcements/${id}`);
-  return data.data;
-}
-
-export async function revokePlatformAnnouncement(id: number) {
-  const { data } = await api.post(`/admin/platform/announcements/${id}/revoke`);
-  return data.data;
-}
-
-export async function pinPlatformAnnouncement(id: number) {
-  const { data } = await api.post(`/admin/platform/announcements/${id}/pin`);
-  return data.data;
-}
-
-export async function unpinPlatformAnnouncement(id: number) {
-  const { data } = await api.post(`/admin/platform/announcements/${id}/unpin`);
-  return data.data;
-}
-
-// ==================== 平台审计日志 ====================
-export async function fetchPlatformAuditLogs(params?: {
-  page?: number;
-  pageSize?: number;
-  operationType?: string;
-  adminName?: string;
-  module?: string;
-  keyword?: string;
-  startTime?: string;
-  endTime?: string;
-}) {
-  const { data } = await api.get("/admin/platform-audit-logs", { params });
-  return data.data;
-}
-
-export async function fetchPlatformAuditLogDetail(id: number) {
-  const { data } = await api.get(`/admin/platform-audit-logs/${id}`);
-  return data.data;
-}
-
-// ==================== 采购合同 ====================
-export async function fetchPurchaseContracts(params?: {
-  page?: number;
-  pageSize?: number;
-  keyword?: string;
-  status?: string;
-  supplierId?: number;
-  dateStart?: string;
-  dateEnd?: string;
-}) {
-  const { data } = await api.get("/admin/purchase-contracts", { params: { page: 1, pageSize: 20, ...params } });
-  return data.data;
-}
-
-export async function fetchPurchaseContractDetail(id: number) {
-  const { data } = await api.get(`/admin/purchase-contracts/${id}`);
-  return data.data;
-}
-
-export async function createPurchaseContract(payload: unknown) {
-  const { data } = await api.post("/admin/purchase-contracts", payload);
-  return data.data;
-}
-
-export async function updatePurchaseContract(id: number, payload: unknown) {
-  const { data } = await api.put(`/admin/purchase-contracts/${id}`, payload);
-  return data.data;
-}
-
-export async function deletePurchaseContract(id: number) {
-  const { data } = await api.delete(`/admin/purchase-contracts/${id}`);
-  return data.data;
-}
-
-export async function exportPurchaseContractsCsv(params?: { keyword?: string; status?: string; supplierId?: number }) {
-  const { data } = await api.get("/admin/purchase-contracts/export.csv", { params, responseType: "blob" });
-  return data as Blob;
-}
-
-// ==================== 租户使用统计 ====================
-export async function fetchTenantUsageStats(params?: { startDate?: string; endDate?: string }) {
-  const { data } = await api.get("/admin/tenant-usage/stats", { params });
-  return data.data;
-}
-
-export async function fetchTenantUsageTrend(params?: { granularity?: string; startDate?: string; endDate?: string }) {
-  const { data } = await api.get("/admin/tenant-usage/trend", { params });
-  return data.data;
-}
-
-export async function fetchTenantUsageRanking(params?: { page?: number; pageSize?: number; keyword?: string; startDate?: string; endDate?: string }) {
-  const { data } = await api.get("/admin/tenant-usage/ranking", { params: { page: 1, pageSize: 10, ...params } });
-  return data.data;
-}
-
-export async function fetchTenantModuleUsage(params?: { startDate?: string; endDate?: string }) {
-  const { data } = await api.get("/admin/tenant-usage/module-usage", { params });
   return data.data;
 }
 
@@ -2778,260 +2941,134 @@ export async function batchRejectProductReviews(ids: number[], reviewComment: st
   return data.data;
 }
 
-// ==================== 门店收银台 API（原 store-terminal 合并，PC 端统一） ====================
-// 说明：使用 Store 前缀避免与 admin-web 已有 API 冲突，路径保持 /store/* 不变
+// ==================== CustomerVisit 扩展 API ====================
+// 注意：与已有 fetchCustomerVisits/createCustomerVisit 保持一致风格，直接返回 AxiosResponse
+export const updateCustomerVisit = (id: number, data: any) => api.put(`/admin/customer-visits/${id}`, data);
+export const deleteCustomerVisit = (id: number) => api.delete(`/admin/customer-visits/${id}`);
 
-// 商品与会员搜索
-export async function searchStoreProducts(keyword: string) {
-  const { data } = await api.get("/store/products", { params: { keyword } });
-  return data.data as { records: any[] };
-}
-
-export async function searchStoreMembers(keyword: string) {
-  const { data } = await api.get("/store/members", { params: { keyword } });
-  return data.data as { records: any[] };
-}
-
-// 销售单
-export async function createStoreSaleBill(payload: unknown) {
-  const { data } = await api.post("/store/sale-bills", payload);
-  return data.data;
-}
-
-export async function fetchStoreSaleBills(params?: { keyword?: string; collectionStatus?: string; page?: number; pageSize?: number }) {
-  const { data } = await api.get("/store/sale-bills", { params: { page: 1, pageSize: 20, ...params } });
-  return data.data;
-}
-
-export async function fetchStoreSaleBillDetail(billNo: string) {
-  const { data } = await api.get(`/store/sale-bills/${billNo}`);
-  return data.data;
-}
-
-export async function createStoreOfflinePayment(billNo: string, amount: number, paymentMethod: string) {
-  const { data } = await api.post(`/store/sale-bills/${billNo}/offline-payment`, { amount, paymentMethod });
-  return data.data;
-}
-
-export async function createStoreCollectionLink(billNo: string, amount: number, options?: { taxEnabled?: boolean; taxRate?: number }) {
-  const { data } = await api.post(`/store/sale-bills/${billNo}/collection-link`, {
-    shareChannel: "LINK",
-    amount,
-    taxEnabled: options?.taxEnabled ?? false,
-    taxRate: options?.taxRate ?? 0,
-    expireHours: 72
-  });
-  return data.data;
-}
-
-// 挂单
-export async function createStoreHoldOrder(payload: {
-  customerName?: string;
-  customerMobile?: string;
-  amount: number;
-  remark?: string;
-  items: Array<{ skuId: number; skuName: string; quantity: number; unitPrice: number; subtotalAmount: number }>;
+export async function exportCustomerVisitsCsv(params?: {
+  keyword?: string;
+  customerId?: number;
+  visitorName?: string;
+  visitType?: string;
+  purpose?: string;
 }) {
-  const { data } = await api.post("/store/hold-orders", payload);
+  const { data } = await api.get("/admin/customer-visits/export", { params, responseType: "blob" });
+  return data as Blob;
+}
+
+// ==================== PlatformAnnouncement 扩展 API ====================
+export async function revokePlatformAnnouncement(id: number) {
+  const { data } = await api.post(`/admin/platform-announcements/${id}/revoke`, {});
   return data.data;
 }
 
-export async function fetchStoreHoldOrders(params?: { page?: number; pageSize?: number }) {
-  const { data } = await api.get("/store/hold-orders", { params: { page: 1, pageSize: 30, ...params } });
+export async function pinPlatformAnnouncement(id: number) {
+  const { data } = await api.post(`/admin/platform-announcements/${id}/pin`, {});
   return data.data;
 }
 
-export async function restoreStoreHoldOrder(holdNo: string) {
-  const { data } = await api.post(`/store/hold-orders/${holdNo}/restore`);
+export async function unpinPlatformAnnouncement(id: number) {
+  const { data } = await api.post(`/admin/platform-announcements/${id}/unpin`, {});
   return data.data;
 }
 
-export async function deleteStoreHoldOrder(holdNo: string) {
-  const { data } = await api.delete(`/store/hold-orders/${holdNo}`);
-  return data.data;
-}
-
-// 订单履约
-export async function fetchStoreOrders(params?: { page?: number; pageSize?: number; status?: string }) {
-  const { data } = await api.get("/store/orders", { params: { page: 1, pageSize: 20, ...params } });
-  return data.data;
-}
-
-export async function fetchStoreOrderDetail(orderNo: string) {
-  const { data } = await api.get(`/store/orders/${orderNo}`);
-  return data.data;
-}
-
-export async function acceptStoreOrder(orderNo: string) {
-  const { data } = await api.post(`/store/orders/${orderNo}/accept`, {});
-  return data.data;
-}
-
-export async function rejectStoreOrder(orderNo: string) {
-  const { data } = await api.post(`/store/orders/${orderNo}/reject`, {});
-  return data.data;
-}
-
-export async function completeStoreOrder(orderNo: string) {
-  const { data } = await api.post(`/store/orders/${orderNo}/complete`, {});
-  return data.data;
-}
-
-// 收款与退款
-export async function fetchStoreCollectionLinks(params?: { page?: number; pageSize?: number }) {
-  const { data } = await api.get("/store/collection-links", { params: { page: 1, pageSize: 30, ...params } });
-  return data.data;
-}
-
-export async function fetchStorePaymentOrders(params?: { page?: number; pageSize?: number }) {
-  const { data } = await api.get("/store/payment-orders", { params: { page: 1, pageSize: 30, ...params } });
-  return data.data;
-}
-
-export async function fetchStoreRefundOrders(params?: { page?: number; pageSize?: number }) {
-  const { data } = await api.get("/store/refund-orders", { params: { page: 1, pageSize: 30, ...params } });
-  return data.data;
-}
-
-// 工作台与报表
-export async function fetchStoreDashboard() {
-  const { data } = await api.get("/store/dashboard");
-  return data.data;
-}
-
-export async function fetchStoreDashboardOverview() {
-  const { data } = await api.get("/admin/dashboard/overview");
-  return data.data;
-}
-
-export async function fetchStoreDailySales() {
-  const { data } = await api.get("/store/daily-sales");
-  return data.data || [];
-}
-
-export async function fetchStoreInventoryAlerts() {
-  const { data } = await api.get("/store/inventory/alerts");
-  return data.data || [];
-}
-
-// 日结对账
-export async function submitStoreDailySettle(payload: { settleDate: string }) {
-  const { data } = await api.post("/admin/daily-settle", payload);
-  return data.data;
-}
-
-export async function fetchStoreDailySettleHistory(params?: { page?: number; pageSize?: number; startDate?: string; endDate?: string }) {
-  const { data } = await api.get("/admin/daily-settle", { params: { page: 1, pageSize: 30, ...params } });
-  return data.data;
-}
-
-// 门店管控
-export async function fetchStoreControlStatus() {
-  const { data } = await api.get("/store/control/status");
-  return data.data;
-}
-
-export async function fetchStoreControlMyLogs(params?: { page?: number; pageSize?: number }) {
-  const { data } = await api.get("/store/control/my-logs", { params: { page: 1, pageSize: 20, ...params } });
-  return data.data;
-}
-
-// 交接班
-export async function fetchStoreShifts(params?: { page?: number; pageSize?: number; date?: string; shiftType?: string }) {
-  const { data } = await api.get("/store/shifts", { params: { page: 1, pageSize: 20, ...params } });
-  return data.data;
-}
-
-export async function fetchStoreShiftDetail(shiftId: number) {
-  const { data } = await api.get(`/store/shifts/${shiftId}`);
-  return data.data;
-}
-
-export async function createStoreShift(payload: {
-  shiftType: string;
-  startTime: string;
-  endTime?: string;
-  operatorId?: number;
-  operatorName?: string;
-  remark?: string;
-}) {
-  const { data } = await api.post("/store/shifts", payload);
-  return data.data;
-}
-
-export async function completeStoreShift(shiftId: number, payload: {
-  endTime: string;
-  actualCash?: number;
-  actualWechat?: number;
-  actualAlipay?: number;
-  remark?: string;
-}) {
-  const { data } = await api.post(`/store/shifts/${shiftId}/complete`, payload);
-  return data.data;
-}
-
-// 优惠券核销
-export async function verifyStoreCoupon(code: string) {
-  const { data } = await api.post("/store/coupons/verify", { code });
-  return data.data;
-}
-
-export async function manualVerifyStoreCoupon(payload: { couponCode: string; saleBillNo?: string }) {
-  const { data } = await api.post("/store/coupons/manual-verify", payload);
-  return data.data;
-}
-
-export async function fetchStoreCouponVerifyRecords(params?: { page?: number; pageSize?: number; status?: string }) {
-  const { data } = await api.get("/store/coupons", { params: { page: 1, pageSize: 20, ...params } });
-  return data.data;
-}
-
-// 操作记录
-export async function fetchStoreOperationLogs(params?: {
+// ==================== PlatformAuditLog API ====================
+export async function fetchPlatformAuditLogs(params?: {
   page?: number;
   pageSize?: number;
+  operationType?: string;
+  adminName?: string;
+  module?: string;
+  keyword?: string;
   startTime?: string;
   endTime?: string;
-  operatorName?: string;
-  actionType?: string;
 }) {
-  const { data } = await api.get("/store/operation-logs", { params: { page: 1, pageSize: 30, ...params } });
+  const { data } = await api.get("/admin/platform-audit-logs", { params });
   return data.data;
 }
 
-// 销售退货
-export async function fetchStoreSaleReturns(params?: { page?: number; pageSize?: number; returnStatus?: string; date?: string }) {
-  const { data } = await api.get("/store/sale-returns", { params: { page: 1, pageSize: 20, ...params } });
+export async function fetchPlatformAuditLogDetail(id: number) {
+  const { data } = await api.get(`/admin/platform-audit-logs/${id}`);
   return data.data;
 }
 
-export async function createStoreSaleReturn(payload: {
-  sourceBillNo: string;
-  items: Array<{ skuId: number; skuName: string; quantity: number; unitPrice: number; reason?: string }>;
-  remark?: string;
+// ==================== PurchaseContract API ====================
+export async function fetchPurchaseContracts(params?: {
+  page?: number;
+  pageSize?: number;
+  keyword?: string;
+  status?: string;
+  supplierId?: number;
+  dateStart?: string;
+  dateEnd?: string;
 }) {
-  const { data } = await api.post("/store/sale-returns", payload);
+  const { data } = await api.get("/admin/purchase-contracts", { params });
   return data.data;
 }
 
-// 交接班详情相关
-export async function getStoreShiftSalesStats(shiftId: number) {
-  const { data } = await api.get(`/store/shifts/${shiftId}/sales-stats`);
+export async function fetchPurchaseContractDetail(id: number) {
+  const { data } = await api.get(`/admin/purchase-contracts/${id}`);
   return data.data;
 }
 
-export async function getStoreShiftStockCheck(shiftId: number) {
-  const { data } = await api.get(`/store/shifts/${shiftId}/stock-check`);
+export async function createPurchaseContract(payload: Record<string, unknown>) {
+  const { data } = await api.post("/admin/purchase-contracts", payload);
   return data.data;
 }
 
-export async function submitStoreShiftStockCheck(shiftId: number, items: Array<{ skuId: number; bookQty: number; actualQty: number; diffReason?: string }>) {
-  const { data } = await api.post(`/store/shifts/${shiftId}/stock-check`, { items });
+export async function updatePurchaseContract(id: number, payload: Record<string, unknown>) {
+  const { data } = await api.put(`/admin/purchase-contracts/${id}`, payload);
   return data.data;
 }
 
-// 操作记录详情
-export async function fetchStoreOperationLogDetail(id: number) {
-  const { data } = await api.get(`/store/operation-logs/${id}`);
+export async function deletePurchaseContract(id: number) {
+  const { data } = await api.delete(`/admin/purchase-contracts/${id}`);
+  return data.data;
+}
+
+export async function exportPurchaseContractsCsv(params?: {
+  keyword?: string;
+  status?: string;
+  supplierId?: number;
+}) {
+  const { data } = await api.get("/admin/purchase-contracts/export", { params, responseType: "blob" });
+  return data as Blob;
+}
+
+// ==================== TenantUsage API ====================
+export async function fetchTenantUsageStats(params?: {
+  startDate?: string;
+  endDate?: string;
+}) {
+  const { data } = await api.get("/admin/tenant-usage/stats", { params });
+  return data.data;
+}
+
+export async function fetchTenantUsageTrend(params?: {
+  granularity?: string;
+  startDate?: string;
+  endDate?: string;
+}) {
+  const { data } = await api.get("/admin/tenant-usage/trend", { params });
+  return data.data;
+}
+
+export async function fetchTenantUsageRanking(params?: {
+  page?: number;
+  pageSize?: number;
+  keyword?: string;
+  startDate?: string;
+  endDate?: string;
+}) {
+  const { data } = await api.get("/admin/tenant-usage/ranking", { params });
+  return data.data;
+}
+
+export async function fetchTenantModuleUsage(params?: {
+  startDate?: string;
+  endDate?: string;
+}) {
+  const { data } = await api.get("/admin/tenant-usage/module-usage", { params });
   return data.data;
 }

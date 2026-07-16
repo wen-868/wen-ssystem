@@ -351,7 +351,7 @@ function onCustomerChange(val: number) {
 async function loadVisits() {
   loading.value = true;
   try {
-    const data = await fetchCustomerVisits({
+    const data = (await fetchCustomerVisits({
       page: page.value,
       pageSize: pageSize.value,
       keyword: keyword.value || undefined,
@@ -361,7 +361,7 @@ async function loadVisits() {
       purpose: filterPurpose.value || undefined,
       dateStart: dateRange.value?.[0] || undefined,
       dateEnd: dateRange.value?.[1] || undefined
-    });
+    })).data;
     visits.value = data.records || [];
     total.value = data.total || 0;
   } catch (e: any) {
@@ -438,7 +438,7 @@ async function handleSubmit() {
 
 async function viewDetail(row: any) {
   try {
-    currentVisit.value = await fetchCustomerVisitDetail(row.id);
+    currentVisit.value = (await fetchCustomerVisitDetail(row.id)).data;
     detailVisible.value = true;
   } catch (e: any) {
     ElMessage.error(e.response?.data?.msg || "加载详情失败");
