@@ -10,7 +10,7 @@
 -- 1. 支付配置表（独立，不放 sys_config）
 -- ────────────────────────────────────────────────────────────
 
-CREATE TABLE IF NOT EXISTS payment_config (
+CREATE TABLE IF NOT EXISTS t_payment_config (
   id            INT AUTO_INCREMENT PRIMARY KEY,
   tenant_id     VARCHAR(64)  NOT NULL,
   provider      VARCHAR(20)  NOT NULL COMMENT 'wechat/alipay/unionpay',
@@ -25,7 +25,7 @@ CREATE TABLE IF NOT EXISTS payment_config (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='支付渠道配置';
 
 -- 微信支付初始配置（DEFAULT 租户模板）
-INSERT INTO payment_config (tenant_id, provider, config_key, config_value, is_encrypted, description, sort_order) VALUES
+INSERT INTO t_payment_config (tenant_id, provider, config_key, config_value, is_encrypted, description, sort_order) VALUES
 ('DEFAULT', 'wechat', 'enabled', '0', 0, '是否启用', 1),
 ('DEFAULT', 'wechat', 'app_id', '', 0, '微信支付 AppID（来自 pay.weixin.qq.com，非小程序AppID）', 2),
 ('DEFAULT', 'wechat', 'mch_id', '', 0, '微信支付商户号', 3),
@@ -35,7 +35,7 @@ INSERT INTO payment_config (tenant_id, provider, config_key, config_value, is_en
 ('DEFAULT', 'wechat', 'notify_url', '', 0, '支付回调通知地址', 7);
 
 -- 支付宝初始配置
-INSERT INTO payment_config (tenant_id, provider, config_key, config_value, is_encrypted, description, sort_order) VALUES
+INSERT INTO t_payment_config (tenant_id, provider, config_key, config_value, is_encrypted, description, sort_order) VALUES
 ('DEFAULT', 'alipay', 'enabled', '0', 0, '是否启用', 1),
 ('DEFAULT', 'alipay', 'app_id', '', 0, '支付宝 AppID', 2),
 ('DEFAULT', 'alipay', 'private_key', '', 1, '应用私钥', 3),
@@ -46,7 +46,7 @@ INSERT INTO payment_config (tenant_id, provider, config_key, config_value, is_en
 -- 2. 银行收款账号表
 -- ────────────────────────────────────────────────────────────
 
-CREATE TABLE IF NOT EXISTS bank_account (
+CREATE TABLE IF NOT EXISTS t_bank_account (
   id            INT AUTO_INCREMENT PRIMARY KEY,
   tenant_id     VARCHAR(64)  NOT NULL,
   bank_name     VARCHAR(64)  NOT NULL COMMENT '银行名称',
@@ -69,7 +69,7 @@ CREATE TABLE IF NOT EXISTS bank_account (
 -- 注意：app_id 是小程序AppID（来自 mp.weixin.qq.com），不同于支付AppID
 -- ────────────────────────────────────────────────────────────
 
-CREATE TABLE IF NOT EXISTS miniapp_config (
+CREATE TABLE IF NOT EXISTS t_miniapp_config (
   id              INT AUTO_INCREMENT PRIMARY KEY,
   tenant_id       VARCHAR(64)  NOT NULL,
   platform        VARCHAR(20)  NOT NULL COMMENT 'WECHAT/ALIPAY/DOUYIN/KUAISHOU',
@@ -114,7 +114,7 @@ CREATE TABLE IF NOT EXISTS miniapp_config (
 -- 4. 小程序模板仓库
 -- ────────────────────────────────────────────────────────────
 
-CREATE TABLE IF NOT EXISTS miniapp_template (
+CREATE TABLE IF NOT EXISTS t_miniapp_template (
   id           INT AUTO_INCREMENT PRIMARY KEY,
   tenant_id    VARCHAR(64)  NOT NULL DEFAULT 'DEFAULT' COMMENT '租户ID（DEFAULT=全局模板）',
   name         VARCHAR(64)  NOT NULL COMMENT '模板名称',
@@ -131,7 +131,7 @@ CREATE TABLE IF NOT EXISTS miniapp_template (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='小程序模板';
 
 -- 初始3套模板
-INSERT INTO miniapp_template (tenant_id, name, description, style_config, page_config, sort_order, status) VALUES
+INSERT INTO t_miniapp_template (tenant_id, name, description, style_config, page_config, sort_order, status) VALUES
 ('DEFAULT',
   '经典蓝白',
   '蓝白配色，简洁大方，适合大多数酒水商家',
@@ -158,7 +158,7 @@ INSERT INTO miniapp_template (tenant_id, name, description, style_config, page_c
 -- 5. 小程序发布日志
 -- ────────────────────────────────────────────────────────────
 
-CREATE TABLE IF NOT EXISTS miniapp_publish_log (
+CREATE TABLE IF NOT EXISTS t_miniapp_publish_log (
   id          INT AUTO_INCREMENT PRIMARY KEY,
   tenant_id   VARCHAR(64)  NOT NULL,
   platform    VARCHAR(20)  NOT NULL DEFAULT 'WECHAT',
@@ -177,7 +177,7 @@ CREATE TABLE IF NOT EXISTS miniapp_publish_log (
 -- 6. 价格变更日志（实时同步用）
 -- ────────────────────────────────────────────────────────────
 
-CREATE TABLE IF NOT EXISTS price_change_log (
+CREATE TABLE IF NOT EXISTS t_price_change_log (
   id          BIGINT AUTO_INCREMENT PRIMARY KEY,
   tenant_id   VARCHAR(64)  NOT NULL,
   product_id  INT          NOT NULL,

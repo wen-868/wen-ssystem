@@ -7,7 +7,7 @@
 -- 使用了 DROP TABLE IF EXISTS，已修正为幂等语法
 
 -- 平台管理员账号
-CREATE TABLE IF NOT EXISTS platform_admin (
+CREATE TABLE IF NOT EXISTS t_platform_admin (
   id INT AUTO_INCREMENT PRIMARY KEY,
   username VARCHAR(64) NOT NULL UNIQUE COMMENT '登录账号',
   password_hash VARCHAR(255) NOT NULL COMMENT 'bcrypt 密码哈希',
@@ -21,7 +21,7 @@ CREATE TABLE IF NOT EXISTS platform_admin (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='平台管理员';
 
 -- 平台操作日志
-CREATE TABLE IF NOT EXISTS platform_audit_log (
+CREATE TABLE IF NOT EXISTS t_platform_audit_log (
   id BIGINT AUTO_INCREMENT PRIMARY KEY,
   admin_id INT NOT NULL COMMENT '操作人ID',
   admin_name VARCHAR(64) NOT NULL COMMENT '操作人姓名',

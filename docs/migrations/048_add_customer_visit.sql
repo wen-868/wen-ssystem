@@ -1,5 +1,5 @@
 -- 编号: 048, 描述: 添加客户拜访表, 创建人: 阿坚, 日期: 2026-07-05
-CREATE TABLE IF NOT EXISTS customer_visit (
+CREATE TABLE IF NOT EXISTS t_customer_visit (
   id BIGINT UNSIGNED NOT NULL AUTO_INCREMENT COMMENT '拜访记录ID',
   visit_no VARCHAR(64) NOT NULL COMMENT '拜访单号',
   customer_id BIGINT UNSIGNED NOT NULL COMMENT '客户ID',

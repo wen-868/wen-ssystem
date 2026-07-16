@@ -7,7 +7,7 @@
 -- ============================================================================
 
 -- ========== 套装表 ==========
-CREATE TABLE IF NOT EXISTS `product_bundle` (
+CREATE TABLE IF NOT EXISTS `t_product_bundle` (
   `id` INT NOT NULL AUTO_INCREMENT,
   `bundle_no` VARCHAR(32) NOT NULL COMMENT '套装编号',
   `bundle_name` VARCHAR(128) NOT NULL COMMENT '套装名称',
@@ -30,7 +30,7 @@ CREATE TABLE IF NOT EXISTS `product_bundle` (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='商品套装表';
 
 -- ========== 套装商品明细表 ==========
-CREATE TABLE IF NOT EXISTS `product_bundle_item` (
+CREATE TABLE IF NOT EXISTS `t_product_bundle_item` (
   `id` INT NOT NULL AUTO_INCREMENT,
   `bundle_id` INT NOT NULL COMMENT '套装ID',
   `sku_id` INT NOT NULL COMMENT '商品SKU ID',
@@ -49,7 +49,7 @@ CREATE TABLE IF NOT EXISTS `product_bundle_item` (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='套装商品明细表';
 
 -- ========== 组合品表 ==========
-CREATE TABLE IF NOT EXISTS `combo_product` (
+CREATE TABLE IF NOT EXISTS `t_combo_product` (
   `id` INT NOT NULL AUTO_INCREMENT,
   `combo_no` VARCHAR(32) NOT NULL COMMENT '组合品编号',
   `combo_name` VARCHAR(128) NOT NULL COMMENT '组合品名称',
@@ -72,7 +72,7 @@ CREATE TABLE IF NOT EXISTS `combo_product` (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='组合品表';
 
 -- ========== 组合品可选项目表 ==========
-CREATE TABLE IF NOT EXISTS `combo_product_option` (
+CREATE TABLE IF NOT EXISTS `t_combo_product_option` (
   `id` INT NOT NULL AUTO_INCREMENT,
   `combo_id` INT NOT NULL COMMENT '组合品ID',
   `group_name` VARCHAR(64) NOT NULL COMMENT '选项组名称',
@@ -93,7 +93,7 @@ CREATE TABLE IF NOT EXISTS `combo_product_option` (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='组合品可选项目表';
 
 -- ========== 报损单表 ==========
-CREATE TABLE IF NOT EXISTS `inventory_loss_order` (
+CREATE TABLE IF NOT EXISTS `t_inventory_loss_order` (
   `id` INT NOT NULL AUTO_INCREMENT,
   `loss_no` VARCHAR(32) NOT NULL COMMENT '报损单号',
   `store_id` INT NOT NULL COMMENT '仓库/门店ID',
@@ -121,7 +121,7 @@ CREATE TABLE IF NOT EXISTS `inventory_loss_order` (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='报损单表';
 
 -- ========== 报损单明细表 ==========
-CREATE TABLE IF NOT EXISTS `inventory_loss_order_item` (
+CREATE TABLE IF NOT EXISTS `t_inventory_loss_order_item` (
   `id` INT NOT NULL AUTO_INCREMENT,
   `loss_order_id` INT NOT NULL COMMENT '报损单ID',
   `loss_no` VARCHAR(32) NOT NULL COMMENT '报损单号',
@@ -144,7 +144,7 @@ CREATE TABLE IF NOT EXISTS `inventory_loss_order_item` (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='报损单明细表';
 
 -- ========== 报溢单表 ==========
-CREATE TABLE IF NOT EXISTS `inventory_profit_order` (
+CREATE TABLE IF NOT EXISTS `t_inventory_profit_order` (
   `id` INT NOT NULL AUTO_INCREMENT,
   `profit_no` VARCHAR(32) NOT NULL COMMENT '报溢单号',
   `store_id` INT NOT NULL COMMENT '仓库/门店ID',
@@ -172,7 +172,7 @@ CREATE TABLE IF NOT EXISTS `inventory_profit_order` (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='报溢单表';
 
 -- ========== 报溢单明细表 ==========
-CREATE TABLE IF NOT EXISTS `inventory_profit_order_item` (
+CREATE TABLE IF NOT EXISTS `t_inventory_profit_order_item` (
   `id` INT NOT NULL AUTO_INCREMENT,
   `profit_order_id` INT NOT NULL COMMENT '报溢单ID',
   `profit_no` VARCHAR(32) NOT NULL COMMENT '报溢单号',

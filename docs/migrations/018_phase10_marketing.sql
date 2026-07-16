@@ -7,7 +7,7 @@
 -- ============================================================
 
 -- 1. 优惠券模板表（coupon_template）
-CREATE TABLE IF NOT EXISTS coupon_template (
+CREATE TABLE IF NOT EXISTS t_coupon_template (
   id INT AUTO_INCREMENT PRIMARY KEY,
   template_code VARCHAR(32) NOT NULL UNIQUE COMMENT '模板编码',
   template_name VARCHAR(128) NOT NULL COMMENT '模板名称',
@@ -39,7 +39,7 @@ CREATE TABLE IF NOT EXISTS coupon_template (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='优惠券模板表';
 
 -- 2. 用户优惠券表（user_coupon）
-CREATE TABLE IF NOT EXISTS user_coupon (
+CREATE TABLE IF NOT EXISTS t_user_coupon (
   id INT AUTO_INCREMENT PRIMARY KEY,
   coupon_no VARCHAR(32) NOT NULL UNIQUE COMMENT '优惠券编号',
   template_id INT NOT NULL COMMENT '模板ID',
@@ -72,7 +72,7 @@ CREATE TABLE IF NOT EXISTS user_coupon (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='用户优惠券表';
 
 -- 3. 促销活动表（promotion_activity）
-CREATE TABLE IF NOT EXISTS promotion_activity (
+CREATE TABLE IF NOT EXISTS t_promotion_activity (
   id INT AUTO_INCREMENT PRIMARY KEY,
   activity_code VARCHAR(32) NOT NULL UNIQUE COMMENT '活动编码',
   activity_name VARCHAR(128) NOT NULL COMMENT '活动名称',
@@ -101,7 +101,7 @@ CREATE TABLE IF NOT EXISTS promotion_activity (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='促销活动表';
 
 -- 4. 满减规则表（full_reduction_rule）
-CREATE TABLE IF NOT EXISTS full_reduction_rule (
+CREATE TABLE IF NOT EXISTS t_full_reduction_rule (
   id INT AUTO_INCREMENT PRIMARY KEY,
   activity_id INT NOT NULL COMMENT '活动ID',
   threshold_amount DECIMAL(10,2) NOT NULL COMMENT '满足金额阈值',
@@ -115,7 +115,7 @@ CREATE TABLE IF NOT EXISTS full_reduction_rule (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='满减规则表';
 
 -- 5. 秒杀商品表（seckill_product）
-CREATE TABLE IF NOT EXISTS seckill_product (
+CREATE TABLE IF NOT EXISTS t_seckill_product (
   id INT AUTO_INCREMENT PRIMARY KEY,
   activity_id INT NOT NULL COMMENT '活动ID',
   product_id INT NOT NULL COMMENT '商品ID',
@@ -133,7 +133,7 @@ CREATE TABLE IF NOT EXISTS seckill_product (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='秒杀商品表';
 
 -- 6. 拼团活动表（group_buy_activity）
-CREATE TABLE IF NOT EXISTS group_buy_activity (
+CREATE TABLE IF NOT EXISTS t_group_buy_activity (
   id INT AUTO_INCREMENT PRIMARY KEY,
   activity_id INT NOT NULL COMMENT '活动ID',
   group_size INT NOT NULL COMMENT '成团人数',
@@ -148,7 +148,7 @@ CREATE TABLE IF NOT EXISTS group_buy_activity (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='拼团活动表';
 
 -- 7. 拼团记录表（group_buy_record）
-CREATE TABLE IF NOT EXISTS group_buy_record (
+CREATE TABLE IF NOT EXISTS t_group_buy_record (
   id INT AUTO_INCREMENT PRIMARY KEY,
   group_no VARCHAR(32) NOT NULL UNIQUE COMMENT '团号',
   activity_id INT NOT NULL COMMENT '活动ID',
@@ -172,7 +172,7 @@ CREATE TABLE IF NOT EXISTS group_buy_record (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='拼团记录表';
 
 -- 8. 拼团参与记录表（group_buy_participant）
-CREATE TABLE IF NOT EXISTS group_buy_participant (
+CREATE TABLE IF NOT EXISTS t_group_buy_participant (
   id INT AUTO_INCREMENT PRIMARY KEY,
   group_id INT NOT NULL COMMENT '拼团记录ID',
   user_id INT NOT NULL COMMENT '用户ID',
@@ -185,7 +185,7 @@ CREATE TABLE IF NOT EXISTS group_buy_participant (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='拼团参与记录表';
 
 -- 9. 活动叠加规则表（promotion_stack_rule）
-CREATE TABLE IF NOT EXISTS promotion_stack_rule (
+CREATE TABLE IF NOT EXISTS t_promotion_stack_rule (
   id INT AUTO_INCREMENT PRIMARY KEY,
   rule_name VARCHAR(128) NOT NULL COMMENT '规则名称',
   priority INT NOT NULL DEFAULT 0 COMMENT '优先级',
@@ -201,7 +201,7 @@ CREATE TABLE IF NOT EXISTS promotion_stack_rule (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='活动叠加规则表';
 
 -- 10. 营销操作日志表（marketing_operation_log）
-CREATE TABLE IF NOT EXISTS marketing_operation_log (
+CREATE TABLE IF NOT EXISTS t_marketing_operation_log (
   id INT AUTO_INCREMENT PRIMARY KEY,
   module VARCHAR(32) NOT NULL COMMENT '模块（coupon/promotion/seckill/group_buy）',
   action VARCHAR(32) NOT NULL COMMENT '操作类型',

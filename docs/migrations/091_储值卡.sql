@@ -1,5 +1,5 @@
 -- 编号: 091, 描述: 储值卡, 创建人: 阿坚, 日期: 2026-07-05
-CREATE TABLE IF NOT EXISTS store_value_card (
+CREATE TABLE IF NOT EXISTS t_store_value_card (
   id BIGINT AUTO_INCREMENT PRIMARY KEY,
   card_no VARCHAR(32) NOT NULL COMMENT '卡号',
   customer_id BIGINT NOT NULL COMMENT '客户ID',
@@ -18,7 +18,7 @@ CREATE TABLE IF NOT EXISTS store_value_card (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='储值卡';
 
 -- 储值卡交易记录
-CREATE TABLE IF NOT EXISTS store_value_transaction (
+CREATE TABLE IF NOT EXISTS t_store_value_transaction (
   id BIGINT AUTO_INCREMENT PRIMARY KEY,
   trans_no VARCHAR(32) NOT NULL COMMENT '交易编号',
   card_no VARCHAR(32) NOT NULL COMMENT '卡号',

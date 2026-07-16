@@ -1,5 +1,5 @@
 -- 编号: 030, 描述: 添加订阅计划表, 创建人: 阿坚, 日期: 2026-07-05
-CREATE TABLE IF NOT EXISTS subscription_plan (
+CREATE TABLE IF NOT EXISTS t_subscription_plan (
   id INT AUTO_INCREMENT PRIMARY KEY,
   plan_code VARCHAR(32) NOT NULL UNIQUE COMMENT '套餐编码（如：BASIC/STANDARD/PROFESSIONAL）',
   plan_name VARCHAR(64) NOT NULL COMMENT '套餐名称',

@@ -1,7 +1,7 @@
 -- 编号: 104, 描述: 平台公告表, 创建人: 阿坚, 日期: 2026-07-13
 -- 平台总后台向所有租户/商户发布的全局公告，区别于即时零售公告（retail_announcement）
 
-CREATE TABLE IF NOT EXISTS platform_announcement (
+CREATE TABLE IF NOT EXISTS t_platform_announcement (
   id BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
   title VARCHAR(200) NOT NULL COMMENT '公告标题',
   content TEXT NOT NULL COMMENT '公告内容',

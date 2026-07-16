@@ -11,10 +11,10 @@ SET FOREIGN_KEY_CHECKS = 0;
 
 -- ========== 预警管理 ==========
 
-DROP TABLE IF EXISTS alert_rule;
-DROP TABLE IF EXISTS alert_record;
+DROP TABLE IF EXISTS t_alert_rule;
+DROP TABLE IF EXISTS t_alert_record;
 
-CREATE TABLE alert_rule (
+CREATE TABLE t_alert_rule (
   id BIGINT UNSIGNED NOT NULL AUTO_INCREMENT COMMENT '预警规则ID',
   rule_code VARCHAR(64) NOT NULL COMMENT '规则编码',
   rule_name VARCHAR(128) NOT NULL COMMENT '规则名称',
@@ -31,7 +31,7 @@ CREATE TABLE alert_rule (
   KEY idx_alert_rule_type (rule_type)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='预警规则表';
 
-CREATE TABLE alert_record (
+CREATE TABLE t_alert_record (
   id BIGINT UNSIGNED NOT NULL AUTO_INCREMENT COMMENT '预警记录ID',
   alert_no VARCHAR(64) NOT NULL COMMENT '预警编号',
   rule_id BIGINT UNSIGNED NOT NULL COMMENT '预警规则ID',
@@ -61,7 +61,7 @@ CREATE TABLE alert_record (
 
 -- ========== 默认预警规则 ==========
 
-INSERT INTO alert_rule (rule_code, rule_name, rule_type, enabled, threshold_value, threshold_unit, extra_config, description) VALUES
+INSERT INTO t_alert_rule (rule_code, rule_name, rule_type, enabled, threshold_value, threshold_unit, extra_config, description) VALUES
 ('STOCK_LOW', '安全库存预警', 'STOCK_LOW', 1, 0, 'BOTTLES', '{"use_warning_threshold": true}', '商品可用库存低于安全库存值时触发预警'),
 ('EXPIRY_90', '保质期预警-90天', 'EXPIRY', 1, 90, 'DAYS', NULL, '商品有效期在90天内到期时触发预警'),
 ('EXPIRY_30', '保质期预警-30天', 'EXPIRY', 1, 30, 'DAYS', NULL, '商品有效期在30天内到期时触发预警'),

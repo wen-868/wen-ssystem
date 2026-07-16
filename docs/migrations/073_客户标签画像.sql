@@ -1,5 +1,5 @@
 -- 编号: 073, 描述: 客户标签画像, 创建人: 阿坚, 日期: 2026-07-05
-CREATE TABLE IF NOT EXISTS customer_tag (
+CREATE TABLE IF NOT EXISTS t_customer_tag (
   id BIGINT AUTO_INCREMENT PRIMARY KEY,
   tag_name VARCHAR(50) NOT NULL COMMENT '标签名称',
   tag_type VARCHAR(20) NOT NULL DEFAULT 'MANUAL' COMMENT '类型: MANUAL/AUTO',
@@ -12,7 +12,7 @@ CREATE TABLE IF NOT EXISTS customer_tag (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='客户标签';
 
 -- 客户标签关联
-CREATE TABLE IF NOT EXISTS customer_tag_relation (
+CREATE TABLE IF NOT EXISTS t_customer_tag_relation (
   id BIGINT AUTO_INCREMENT PRIMARY KEY,
   customer_id BIGINT NOT NULL COMMENT '客户ID',
   tag_id BIGINT NOT NULL COMMENT '标签ID',
@@ -25,7 +25,7 @@ CREATE TABLE IF NOT EXISTS customer_tag_relation (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='客户标签关联';
 
 -- 客户画像
-CREATE TABLE IF NOT EXISTS customer_profile (
+CREATE TABLE IF NOT EXISTS t_customer_profile (
   id BIGINT AUTO_INCREMENT PRIMARY KEY,
   customer_id BIGINT NOT NULL COMMENT '客户ID',
   age_group VARCHAR(20) DEFAULT NULL COMMENT '年龄段',
@@ -46,7 +46,7 @@ CREATE TABLE IF NOT EXISTS customer_profile (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='客户画像';
 
 -- 客户关怀规则
-CREATE TABLE IF NOT EXISTS customer_care_rule (
+CREATE TABLE IF NOT EXISTS t_customer_care_rule (
   id BIGINT AUTO_INCREMENT PRIMARY KEY,
   rule_name VARCHAR(100) NOT NULL COMMENT '规则名称',
   trigger_type VARCHAR(20) NOT NULL COMMENT '触发类型: BIRTHDAY/HOLIDAY/INACTIVE/LEVEL_UP',
@@ -62,7 +62,7 @@ CREATE TABLE IF NOT EXISTS customer_care_rule (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='客户关怀规则';
 
 -- 客户关怀记录
-CREATE TABLE IF NOT EXISTS customer_care_log (
+CREATE TABLE IF NOT EXISTS t_customer_care_log (
   id BIGINT AUTO_INCREMENT PRIMARY KEY,
   customer_id BIGINT NOT NULL COMMENT '客户ID',
   rule_id BIGINT NOT NULL COMMENT '关怀规则ID',
@@ -79,7 +79,7 @@ CREATE TABLE IF NOT EXISTS customer_care_log (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='客户关怀记录';
 
 -- 客户分群
-CREATE TABLE IF NOT EXISTS customer_segment (
+CREATE TABLE IF NOT EXISTS t_customer_segment (
   id BIGINT AUTO_INCREMENT PRIMARY KEY,
   segment_name VARCHAR(100) NOT NULL COMMENT '分群名称',
   conditions JSON NOT NULL COMMENT '分群条件',
@@ -92,7 +92,7 @@ CREATE TABLE IF NOT EXISTS customer_segment (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='客户分群';
 
 -- 客户分群成员
-CREATE TABLE IF NOT EXISTS customer_segment_member (
+CREATE TABLE IF NOT EXISTS t_customer_segment_member (
   id BIGINT AUTO_INCREMENT PRIMARY KEY,
   segment_id BIGINT NOT NULL COMMENT '分群ID',
   customer_id BIGINT NOT NULL COMMENT '客户ID',

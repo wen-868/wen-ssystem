@@ -5,7 +5,7 @@
 -- ============================================
 
 -- 1. 平台配置表
-CREATE TABLE IF NOT EXISTS `platform_config` (
+CREATE TABLE IF NOT EXISTS `t_platform_config` (
   `id` BIGINT AUTO_INCREMENT PRIMARY KEY,
   `platform` VARCHAR(20) NOT NULL COMMENT '平台: JD/MEITUAN/ELEME',
   `store_id` BIGINT DEFAULT NULL COMMENT '门店ID',
@@ -26,7 +26,7 @@ CREATE TABLE IF NOT EXISTS `platform_config` (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='平台配置表';
 
 -- 2. 平台订单表
-CREATE TABLE IF NOT EXISTS `platform_order` (
+CREATE TABLE IF NOT EXISTS `t_platform_order` (
   `id` BIGINT AUTO_INCREMENT PRIMARY KEY,
   `platform_order_id` VARCHAR(64) NOT NULL COMMENT '平台订单号',
   `platform` VARCHAR(20) NOT NULL COMMENT '平台: JD/MEITUAN/ELEME',
@@ -43,7 +43,7 @@ CREATE TABLE IF NOT EXISTS `platform_order` (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='平台订单表';
 
 -- 3. 平台商品映射表
-CREATE TABLE IF NOT EXISTS `platform_product_map` (
+CREATE TABLE IF NOT EXISTS `t_platform_product_map` (
   `id` BIGINT AUTO_INCREMENT PRIMARY KEY,
   `platform` VARCHAR(20) NOT NULL COMMENT '平台: JD/MEITUAN/ELEME',
   `store_id` BIGINT NOT NULL COMMENT '门店ID',
@@ -62,7 +62,7 @@ CREATE TABLE IF NOT EXISTS `platform_product_map` (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='平台商品映射表';
 
 -- 4. 零售门店配置表
-CREATE TABLE IF NOT EXISTS `retail_shop_config` (
+CREATE TABLE IF NOT EXISTS `t_retail_shop_config` (
   `id` BIGINT AUTO_INCREMENT PRIMARY KEY,
   `store_id` BIGINT NOT NULL COMMENT '门店ID',
   `shop_name` VARCHAR(100) NOT NULL COMMENT '店铺名称',
@@ -86,7 +86,7 @@ CREATE TABLE IF NOT EXISTS `retail_shop_config` (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='零售门店配置表';
 
 -- 5. 零售分类表
-CREATE TABLE IF NOT EXISTS `retail_category` (
+CREATE TABLE IF NOT EXISTS `t_retail_category` (
   `id` BIGINT AUTO_INCREMENT PRIMARY KEY,
   `category_name` VARCHAR(100) NOT NULL COMMENT '分类名称',
   `category_icon` VARCHAR(500) DEFAULT NULL COMMENT '分类图标',
@@ -103,7 +103,7 @@ CREATE TABLE IF NOT EXISTS `retail_category` (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='零售分类表';
 
 -- 6. 零售商品表
-CREATE TABLE IF NOT EXISTS `retail_product` (
+CREATE TABLE IF NOT EXISTS `t_retail_product` (
   `id` BIGINT AUTO_INCREMENT PRIMARY KEY,
   `product_id` BIGINT NOT NULL COMMENT '本地商品ID',
   `sku_id` BIGINT DEFAULT NULL COMMENT '本地SKU ID',
@@ -128,7 +128,7 @@ CREATE TABLE IF NOT EXISTS `retail_product` (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='零售商品表';
 
 -- 7. 零售订单表
-CREATE TABLE IF NOT EXISTS `retail_order` (
+CREATE TABLE IF NOT EXISTS `t_retail_order` (
   `id` BIGINT AUTO_INCREMENT PRIMARY KEY,
   `order_no` VARCHAR(32) NOT NULL COMMENT '订单号',
   `user_id` BIGINT DEFAULT NULL COMMENT '用户ID',
@@ -164,7 +164,7 @@ CREATE TABLE IF NOT EXISTS `retail_order` (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='零售订单表';
 
 -- 8. 零售订单明细表
-CREATE TABLE IF NOT EXISTS `retail_order_item` (
+CREATE TABLE IF NOT EXISTS `t_retail_order_item` (
   `id` BIGINT AUTO_INCREMENT PRIMARY KEY,
   `order_id` BIGINT NOT NULL COMMENT '订单ID',
   `product_id` BIGINT NOT NULL COMMENT '商品ID',
@@ -183,7 +183,7 @@ CREATE TABLE IF NOT EXISTS `retail_order_item` (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='零售订单明细表';
 
 -- 9. 零售Banner表
-CREATE TABLE IF NOT EXISTS `retail_banner` (
+CREATE TABLE IF NOT EXISTS `t_retail_banner` (
   `id` BIGINT AUTO_INCREMENT PRIMARY KEY,
   `banner_title` VARCHAR(100) DEFAULT NULL COMMENT 'Banner标题',
   `banner_image` VARCHAR(500) NOT NULL COMMENT 'Banner图片',
@@ -203,7 +203,7 @@ CREATE TABLE IF NOT EXISTS `retail_banner` (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='零售Banner表';
 
 -- 10. 零售评价表
-CREATE TABLE IF NOT EXISTS `retail_review` (
+CREATE TABLE IF NOT EXISTS `t_retail_review` (
   `id` BIGINT AUTO_INCREMENT PRIMARY KEY,
   `order_id` BIGINT NOT NULL COMMENT '订单ID',
   `user_id` BIGINT NOT NULL COMMENT '用户ID',

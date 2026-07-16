@@ -13,35 +13,35 @@ USE liquor_inventory;
 SET NAMES utf8mb4;
 SET FOREIGN_KEY_CHECKS = 0;
 
-DROP TABLE IF EXISTS operation_log;
-DROP TABLE IF EXISTS hold_order;
-DROP TABLE IF EXISTS refund_order;
-DROP TABLE IF EXISTS receivable_account;
-DROP TABLE IF EXISTS payment_order;
-DROP TABLE IF EXISTS collection_view_log;
-DROP TABLE IF EXISTS collection_link;
-DROP TABLE IF EXISTS sale_bill_item;
-DROP TABLE IF EXISTS sale_bill;
-DROP TABLE IF EXISTS miniapp_order_item;
-DROP TABLE IF EXISTS miniapp_order;
-DROP TABLE IF EXISTS inventory_ledger;
-DROP TABLE IF EXISTS inventory_balance;
-DROP TABLE IF EXISTS product_price_log;
-DROP TABLE IF EXISTS product_price;
-DROP TABLE IF EXISTS product_sku;
-DROP TABLE IF EXISTS product_spu;
-DROP TABLE IF EXISTS product_category;
-DROP TABLE IF EXISTS member;
-DROP TABLE IF EXISTS store;
-DROP TABLE IF EXISTS sys_role_permission;
-DROP TABLE IF EXISTS sys_user_role;
-DROP TABLE IF EXISTS sys_permission;
-DROP TABLE IF EXISTS sys_role;
-DROP TABLE IF EXISTS sys_user;
+DROP TABLE IF EXISTS t_operation_log;
+DROP TABLE IF EXISTS t_hold_order;
+DROP TABLE IF EXISTS t_refund_order;
+DROP TABLE IF EXISTS t_receivable_account;
+DROP TABLE IF EXISTS t_payment_order;
+DROP TABLE IF EXISTS t_collection_view_log;
+DROP TABLE IF EXISTS t_collection_link;
+DROP TABLE IF EXISTS t_sale_bill_item;
+DROP TABLE IF EXISTS t_sale_bill;
+DROP TABLE IF EXISTS t_miniapp_order_item;
+DROP TABLE IF EXISTS t_miniapp_order;
+DROP TABLE IF EXISTS t_inventory_ledger;
+DROP TABLE IF EXISTS t_inventory_balance;
+DROP TABLE IF EXISTS t_product_price_log;
+DROP TABLE IF EXISTS t_product_price;
+DROP TABLE IF EXISTS t_product_sku;
+DROP TABLE IF EXISTS t_product_spu;
+DROP TABLE IF EXISTS t_product_category;
+DROP TABLE IF EXISTS t_member;
+DROP TABLE IF EXISTS t_store;
+DROP TABLE IF EXISTS t_sys_role_permission;
+DROP TABLE IF EXISTS t_sys_user_role;
+DROP TABLE IF EXISTS t_sys_permission;
+DROP TABLE IF EXISTS t_sys_role;
+DROP TABLE IF EXISTS t_sys_user;
 
 SET FOREIGN_KEY_CHECKS = 1;
 
-CREATE TABLE sys_user (
+CREATE TABLE t_sys_user (
   id BIGINT UNSIGNED NOT NULL AUTO_INCREMENT COMMENT '用户ID',
   username VARCHAR(64) NOT NULL COMMENT '登录账号',
   password_hash VARCHAR(255) NOT NULL COMMENT '密码哈希',
@@ -58,7 +58,7 @@ CREATE TABLE sys_user (
   KEY idx_sys_user_mobile (mobile)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='系统账号表';
 
-CREATE TABLE sys_role (
+CREATE TABLE t_sys_role (
   id BIGINT UNSIGNED NOT NULL AUTO_INCREMENT COMMENT '角色ID',
   role_code VARCHAR(64) NOT NULL COMMENT '角色编码',
   role_name VARCHAR(64) NOT NULL COMMENT '角色名称',
@@ -70,7 +70,7 @@ CREATE TABLE sys_role (
   UNIQUE KEY uk_sys_role_code (role_code)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='角色表';
 
-CREATE TABLE sys_permission (
+CREATE TABLE t_sys_permission (
   id BIGINT UNSIGNED NOT NULL AUTO_INCREMENT COMMENT '权限ID',
   parent_id BIGINT UNSIGNED DEFAULT NULL COMMENT '父权限ID',
   permission_code VARCHAR(128) NOT NULL COMMENT '权限编码',
@@ -86,7 +86,7 @@ CREATE TABLE sys_permission (
   KEY idx_sys_permission_parent_id (parent_id)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='权限表';
 
-CREATE TABLE sys_user_role (
+CREATE TABLE t_sys_user_role (
   id BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
   user_id BIGINT UNSIGNED NOT NULL,
   role_id BIGINT UNSIGNED NOT NULL,
@@ -96,7 +96,7 @@ CREATE TABLE sys_user_role (
   KEY idx_sys_user_role_role_id (role_id)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='用户角色关联表';
 
-CREATE TABLE sys_role_permission (
+CREATE TABLE t_sys_role_permission (
   id BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
   role_id BIGINT UNSIGNED NOT NULL,
   permission_id BIGINT UNSIGNED NOT NULL,
@@ -106,7 +106,7 @@ CREATE TABLE sys_role_permission (
   KEY idx_sys_role_permission_permission_id (permission_id)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='角色权限关联表';
 
-CREATE TABLE store (
+CREATE TABLE t_store (
   id BIGINT UNSIGNED NOT NULL AUTO_INCREMENT COMMENT '门店ID',
   store_code VARCHAR(64) NOT NULL COMMENT '门店编码',
   name VARCHAR(128) NOT NULL COMMENT '门店名称',
@@ -127,7 +127,7 @@ CREATE TABLE store (
   KEY idx_store_status (status, business_status)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='门店表';
 
-CREATE TABLE member (
+CREATE TABLE t_member (
   id BIGINT UNSIGNED NOT NULL AUTO_INCREMENT COMMENT '会员ID',
   openid VARCHAR(128) DEFAULT NULL COMMENT '微信openid',
   unionid VARCHAR(128) DEFAULT NULL COMMENT '微信unionid',
@@ -149,7 +149,7 @@ CREATE TABLE member (
   KEY idx_member_staff_id (staff_id)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='会员客户表';
 
-CREATE TABLE product_category (
+CREATE TABLE t_product_category (
   id BIGINT UNSIGNED NOT NULL AUTO_INCREMENT COMMENT '分类ID',
   parent_id BIGINT UNSIGNED DEFAULT NULL COMMENT '父分类ID，仅支持两级',
   name VARCHAR(64) NOT NULL COMMENT '分类名称',
@@ -164,7 +164,7 @@ CREATE TABLE product_category (
   KEY idx_product_category_status (status, sort_no)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='商品分类表';
 
-CREATE TABLE product_spu (
+CREATE TABLE t_product_spu (
   id BIGINT UNSIGNED NOT NULL AUTO_INCREMENT COMMENT '商品ID',
   spu_code VARCHAR(64) NOT NULL COMMENT '商品编码',
   name VARCHAR(128) NOT NULL COMMENT '商品名称',
@@ -189,7 +189,7 @@ CREATE TABLE product_spu (
   FULLTEXT KEY ft_product_spu_name (name)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='商品主档案表';
 
-CREATE TABLE product_sku (
+CREATE TABLE t_product_sku (
   id BIGINT UNSIGNED NOT NULL AUTO_INCREMENT COMMENT 'SKU ID',
   spu_id BIGINT UNSIGNED NOT NULL COMMENT '商品ID',
   sku_code VARCHAR(64) NOT NULL COMMENT 'SKU编码',
@@ -213,7 +213,7 @@ CREATE TABLE product_sku (
   KEY idx_product_sku_trace_enabled (trace_enabled)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='商品SKU表';
 
-CREATE TABLE product_price (
+CREATE TABLE t_product_price (
   id BIGINT UNSIGNED NOT NULL AUTO_INCREMENT COMMENT '价格ID',
   sku_id BIGINT UNSIGNED NOT NULL COMMENT 'SKU ID',
   cost_price DECIMAL(12,2) NOT NULL DEFAULT 0.00 COMMENT '成本价',
@@ -227,7 +227,7 @@ CREATE TABLE product_price (
   UNIQUE KEY uk_product_price_sku_id (sku_id)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='商品价格表';
 
-CREATE TABLE product_price_log (
+CREATE TABLE t_product_price_log (
   id BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
   sku_id BIGINT UNSIGNED NOT NULL,
   operator_id BIGINT UNSIGNED NOT NULL,
@@ -243,7 +243,7 @@ CREATE TABLE product_price_log (
   KEY idx_product_price_log_created_at (created_at)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='价格修改日志表';
 
-CREATE TABLE inventory_balance (
+CREATE TABLE t_inventory_balance (
   id BIGINT UNSIGNED NOT NULL AUTO_INCREMENT COMMENT '库存余额ID',
   store_id BIGINT UNSIGNED NOT NULL COMMENT '门店ID',
   sku_id BIGINT UNSIGNED NOT NULL COMMENT 'SKU ID',
@@ -260,7 +260,7 @@ CREATE TABLE inventory_balance (
   KEY idx_inventory_balance_available_qty (available_qty)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='库存余额表';
 
-CREATE TABLE inventory_ledger (
+CREATE TABLE t_inventory_ledger (
   id BIGINT UNSIGNED NOT NULL AUTO_INCREMENT COMMENT '库存流水ID',
   ledger_no VARCHAR(64) NOT NULL COMMENT '库存流水号',
   store_id BIGINT UNSIGNED NOT NULL COMMENT '门店ID',
@@ -285,7 +285,7 @@ CREATE TABLE inventory_ledger (
   KEY idx_inventory_ledger_created_at (created_at)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='库存流水表';
 
-CREATE TABLE miniapp_order (
+CREATE TABLE t_miniapp_order (
   id BIGINT UNSIGNED NOT NULL AUTO_INCREMENT COMMENT '订单ID',
   order_no VARCHAR(64) NOT NULL COMMENT '订单号',
   member_id BIGINT UNSIGNED NOT NULL COMMENT '会员ID',
@@ -317,7 +317,7 @@ CREATE TABLE miniapp_order (
   KEY idx_miniapp_order_created_at (created_at)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='小程序订单表';
 
-CREATE TABLE miniapp_order_item (
+CREATE TABLE t_miniapp_order_item (
   id BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
   order_no VARCHAR(64) NOT NULL COMMENT '订单号',
   sku_id BIGINT UNSIGNED NOT NULL COMMENT 'SKU ID',
@@ -335,7 +335,7 @@ CREATE TABLE miniapp_order_item (
   KEY idx_miniapp_order_item_sku_id (sku_id)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='小程序订单明细表';
 
-CREATE TABLE sale_bill (
+CREATE TABLE t_sale_bill (
   id BIGINT UNSIGNED NOT NULL AUTO_INCREMENT COMMENT '销售单ID',
   bill_no VARCHAR(64) NOT NULL COMMENT '销售单号',
   store_id BIGINT UNSIGNED NOT NULL COMMENT '门店ID',
@@ -368,7 +368,7 @@ CREATE TABLE sale_bill (
   KEY idx_sale_bill_created_at (created_at)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='线下销售单表';
 
-CREATE TABLE sale_bill_item (
+CREATE TABLE t_sale_bill_item (
   id BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
   bill_no VARCHAR(64) NOT NULL COMMENT '销售单号',
   sku_id BIGINT UNSIGNED NOT NULL COMMENT 'SKU ID',
@@ -386,7 +386,7 @@ CREATE TABLE sale_bill_item (
   KEY idx_sale_bill_item_sku_id (sku_id)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='线下销售单明细表';
 
-CREATE TABLE collection_link (
+CREATE TABLE t_collection_link (
   id BIGINT UNSIGNED NOT NULL AUTO_INCREMENT COMMENT '分享收款ID',
   link_no VARCHAR(64) NOT NULL COMMENT '分享收款单号',
   source_type VARCHAR(32) NOT NULL COMMENT '来源类型：SALE_BILL/MINIAPP_ORDER/STATEMENT',
@@ -416,7 +416,7 @@ CREATE TABLE collection_link (
   KEY idx_collection_link_status_expire (status, expire_at)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='分享收款链接表';
 
-CREATE TABLE collection_view_log (
+CREATE TABLE t_collection_view_log (
   id BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
   link_no VARCHAR(64) NOT NULL COMMENT '分享收款单号',
   ip VARCHAR(64) DEFAULT NULL COMMENT '访问IP',
@@ -427,7 +427,7 @@ CREATE TABLE collection_view_log (
   KEY idx_collection_view_log_viewed_at (viewed_at)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='分享收款访问日志表';
 
-CREATE TABLE receivable_account (
+CREATE TABLE t_receivable_account (
   id BIGINT UNSIGNED NOT NULL AUTO_INCREMENT COMMENT '应收ID',
   receivable_no VARCHAR(64) NOT NULL COMMENT '应收单号',
   source_type VARCHAR(32) NOT NULL COMMENT '来源类型：MINIAPP_ORDER/SALE_BILL',
@@ -450,7 +450,7 @@ CREATE TABLE receivable_account (
   KEY idx_receivable_customer_id (customer_id)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='应收账款表';
 
-CREATE TABLE payment_order (
+CREATE TABLE t_payment_order (
   id BIGINT UNSIGNED NOT NULL AUTO_INCREMENT COMMENT '支付单ID',
   pay_no VARCHAR(64) NOT NULL COMMENT '支付单号',
   source_type VARCHAR(32) NOT NULL COMMENT '来源类型：MINIAPP_ORDER/SALE_BILL/COLLECTION_LINK',
@@ -471,7 +471,7 @@ CREATE TABLE payment_order (
   KEY idx_payment_order_status (status)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='支付单表';
 
-CREATE TABLE hold_order (
+CREATE TABLE t_hold_order (
   id BIGINT UNSIGNED NOT NULL AUTO_INCREMENT COMMENT '挂单ID',
   hold_no VARCHAR(64) NOT NULL COMMENT '挂单号',
   store_id BIGINT UNSIGNED NOT NULL COMMENT '门店ID',
@@ -489,7 +489,7 @@ CREATE TABLE hold_order (
   KEY idx_hold_order_created_at (created_at)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='门店挂单表';
 
-CREATE TABLE refund_order (
+CREATE TABLE t_refund_order (
   id BIGINT UNSIGNED NOT NULL AUTO_INCREMENT COMMENT '退款单ID',
   refund_no VARCHAR(64) NOT NULL COMMENT '退款单号',
   pay_no VARCHAR(64) NOT NULL COMMENT '支付单号',
@@ -509,7 +509,7 @@ CREATE TABLE refund_order (
   KEY idx_refund_order_status (status)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='退款单表';
 
-CREATE TABLE operation_log (
+CREATE TABLE t_operation_log (
   id BIGINT UNSIGNED NOT NULL AUTO_INCREMENT COMMENT '日志ID',
   operator_id BIGINT UNSIGNED DEFAULT NULL COMMENT '操作人ID',
   operator_name VARCHAR(64) DEFAULT NULL COMMENT '操作人名称',
@@ -528,12 +528,12 @@ CREATE TABLE operation_log (
   KEY idx_operation_log_created_at (created_at)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='操作日志表';
 
-INSERT INTO sys_role (role_code, role_name, data_scope, status) VALUES
+INSERT INTO t_sys_role (role_code, role_name, data_scope, status) VALUES
 ('SUPER_ADMIN', '超级管理员', 'ALL', 1),
 ('OPERATION_ADMIN', '运营管理员', 'ALL', 1),
 ('STORE_MANAGER', '门店店长', 'STORE', 1),
 ('STORE_OPERATOR', '门店操作员', 'STORE', 1),
 ('FINANCE', '财务人员', 'ALL', 1);
 
-INSERT INTO store (store_code, name, address, lng, lat, contact, phone, delivery_radius, business_status, status) VALUES
+INSERT INTO t_store (store_code, name, address, lng, lat, contact, phone, delivery_radius, business_status, status) VALUES
 ('STORE0001', '默认门店', '请在后台维护门店地址', NULL, NULL, '管理员', '13800000000', 3.00, 'OPEN', 1);

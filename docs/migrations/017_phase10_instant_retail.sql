@@ -7,7 +7,7 @@
 -- ============================================================
 
 -- 1. 即时零售店铺配置表（retail_shop_config）
-CREATE TABLE IF NOT EXISTS retail_shop_config (
+CREATE TABLE IF NOT EXISTS t_retail_shop_config (
   id INT AUTO_INCREMENT PRIMARY KEY,
   shop_name VARCHAR(128) NOT NULL COMMENT '店铺名称',
   shop_logo VARCHAR(255) COMMENT '店铺Logo',
@@ -32,7 +32,7 @@ CREATE TABLE IF NOT EXISTS retail_shop_config (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='即时零售店铺配置表';
 
 -- 2. 即时零售分类表（retail_category）
-CREATE TABLE IF NOT EXISTS retail_category (
+CREATE TABLE IF NOT EXISTS t_retail_category (
   id INT AUTO_INCREMENT PRIMARY KEY,
   category_name VARCHAR(64) NOT NULL COMMENT '分类名称',
   category_icon VARCHAR(255) COMMENT '分类图标',
@@ -50,7 +50,7 @@ CREATE TABLE IF NOT EXISTS retail_category (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='即时零售分类表';
 
 -- 3. 即时零售轮播图表（retail_banner）
-CREATE TABLE IF NOT EXISTS retail_banner (
+CREATE TABLE IF NOT EXISTS t_retail_banner (
   id INT AUTO_INCREMENT PRIMARY KEY,
   banner_title VARCHAR(128) NOT NULL COMMENT '轮播图标题',
   banner_image VARCHAR(255) NOT NULL COMMENT '轮播图URL',
@@ -70,7 +70,7 @@ CREATE TABLE IF NOT EXISTS retail_banner (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='即时零售轮播图表';
 
 -- 4. 即时零售商品表（retail_product）
-CREATE TABLE IF NOT EXISTS retail_product (
+CREATE TABLE IF NOT EXISTS t_retail_product (
   id INT AUTO_INCREMENT PRIMARY KEY,
   product_id INT NOT NULL COMMENT '关联商品ID（product_sku表）',
   category_id INT COMMENT '分类ID',
@@ -97,7 +97,7 @@ CREATE TABLE IF NOT EXISTS retail_product (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='即时零售商品表';
 
 -- 5. 即时零售订单表（retail_order）
-CREATE TABLE IF NOT EXISTS retail_order (
+CREATE TABLE IF NOT EXISTS t_retail_order (
   id INT AUTO_INCREMENT PRIMARY KEY,
   order_no VARCHAR(32) NOT NULL UNIQUE COMMENT '订单编号',
   user_id INT NOT NULL COMMENT '用户ID',
@@ -136,7 +136,7 @@ CREATE TABLE IF NOT EXISTS retail_order (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='即时零售订单表';
 
 -- 6. 即时零售订单商品表（retail_order_item）
-CREATE TABLE IF NOT EXISTS retail_order_item (
+CREATE TABLE IF NOT EXISTS t_retail_order_item (
   id INT AUTO_INCREMENT PRIMARY KEY,
   order_id INT NOT NULL COMMENT '订单ID',
   product_id INT NOT NULL COMMENT '商品ID',
@@ -152,7 +152,7 @@ CREATE TABLE IF NOT EXISTS retail_order_item (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='即时零售订单商品表';
 
 -- 7. 配送配置表（delivery_config）
-CREATE TABLE IF NOT EXISTS delivery_config (
+CREATE TABLE IF NOT EXISTS t_delivery_config (
   id INT AUTO_INCREMENT PRIMARY KEY,
   config_name VARCHAR(64) NOT NULL COMMENT '配置名称',
   delivery_type VARCHAR(16) NOT NULL COMMENT '配送类型（SELF/PLATFORM/THIRD_PARTY）',
@@ -171,7 +171,7 @@ CREATE TABLE IF NOT EXISTS delivery_config (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='配送配置表';
 
 -- 8. 配送记录表（delivery_record）
-CREATE TABLE IF NOT EXISTS delivery_record (
+CREATE TABLE IF NOT EXISTS t_delivery_record (
   id INT AUTO_INCREMENT PRIMARY KEY,
   order_id INT NOT NULL COMMENT '订单ID',
   delivery_no VARCHAR(32) COMMENT '配送单号',
@@ -196,7 +196,7 @@ CREATE TABLE IF NOT EXISTS delivery_record (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='配送记录表';
 
 -- 9. 即时零售操作日志表（retail_operation_log）
-CREATE TABLE IF NOT EXISTS retail_operation_log (
+CREATE TABLE IF NOT EXISTS t_retail_operation_log (
   id INT AUTO_INCREMENT PRIMARY KEY,
   module VARCHAR(32) NOT NULL COMMENT '模块（shop/category/product/order/delivery）',
   action VARCHAR(32) NOT NULL COMMENT '操作类型',

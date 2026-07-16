@@ -1,5 +1,5 @@
 -- 编号: 094, 描述: 调拨订单表, 创建人: 阿坚, 日期: 2026-07-05
-CREATE TABLE IF NOT EXISTS transfer_order (
+CREATE TABLE IF NOT EXISTS t_transfer_order (
   id BIGINT AUTO_INCREMENT PRIMARY KEY,
   transfer_no VARCHAR(32) NOT NULL COMMENT '调拨编号',
   from_store_id BIGINT NOT NULL COMMENT '调出门店ID',
@@ -18,7 +18,7 @@ CREATE TABLE IF NOT EXISTS transfer_order (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='调拨单';
 
 -- 调拨单明细
-CREATE TABLE IF NOT EXISTS transfer_order_item (
+CREATE TABLE IF NOT EXISTS t_transfer_order_item (
   id BIGINT AUTO_INCREMENT PRIMARY KEY,
   transfer_no VARCHAR(32) NOT NULL COMMENT '调拨编号',
   sku_id BIGINT NOT NULL COMMENT 'SKU ID',

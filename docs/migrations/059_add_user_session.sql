@@ -1,5 +1,5 @@
 -- 编号: 059, 描述: 添加用户会话表, 创建人: 阿坚, 日期: 2026-07-05
-CREATE TABLE IF NOT EXISTS user_session (
+CREATE TABLE IF NOT EXISTS t_user_session (
   id BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
   user_id BIGINT UNSIGNED NOT NULL COMMENT '用户ID',
   token VARCHAR(512) NOT NULL COMMENT '会话令牌',

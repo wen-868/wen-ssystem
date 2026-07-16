@@ -5,7 +5,7 @@
 -- ============================================
 
 -- 1. 限时折扣活动
-CREATE TABLE IF NOT EXISTS `limited_discount` (
+CREATE TABLE IF NOT EXISTS `t_limited_discount` (
   `id` BIGINT AUTO_INCREMENT PRIMARY KEY,
   `activity_code` VARCHAR(32) NOT NULL COMMENT '活动编码',
   `activity_name` VARCHAR(100) NOT NULL COMMENT '活动名称',
@@ -33,7 +33,7 @@ CREATE TABLE IF NOT EXISTS `limited_discount` (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='限时折扣活动';
 
 -- 1.1 限时折扣参与商品
-CREATE TABLE IF NOT EXISTS `limited_discount_product` (
+CREATE TABLE IF NOT EXISTS `t_limited_discount_product` (
   `id` BIGINT AUTO_INCREMENT PRIMARY KEY,
   `discount_id` BIGINT NOT NULL COMMENT '活动ID',
   `product_id` BIGINT NOT NULL COMMENT '商品ID',
@@ -49,7 +49,7 @@ CREATE TABLE IF NOT EXISTS `limited_discount_product` (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='限时折扣参与商品';
 
 -- 2. 满赠规则
-CREATE TABLE IF NOT EXISTS `gift_rule` (
+CREATE TABLE IF NOT EXISTS `t_gift_rule` (
   `id` BIGINT AUTO_INCREMENT PRIMARY KEY,
   `rule_code` VARCHAR(32) NOT NULL COMMENT '规则编码',
   `rule_name` VARCHAR(100) NOT NULL COMMENT '规则名称',
@@ -76,7 +76,7 @@ CREATE TABLE IF NOT EXISTS `gift_rule` (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='满赠规则';
 
 -- 2.1 满赠层级
-CREATE TABLE IF NOT EXISTS `gift_rule_level` (
+CREATE TABLE IF NOT EXISTS `t_gift_rule_level` (
   `id` BIGINT AUTO_INCREMENT PRIMARY KEY,
   `rule_id` BIGINT NOT NULL COMMENT '规则ID',
   `threshold_amount` DECIMAL(10,2) DEFAULT NULL COMMENT '门槛金额',
@@ -90,7 +90,7 @@ CREATE TABLE IF NOT EXISTS `gift_rule_level` (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='满赠规则层级';
 
 -- 3. 积分商城商品
-CREATE TABLE IF NOT EXISTS `points_product` (
+CREATE TABLE IF NOT EXISTS `t_points_product` (
   `id` BIGINT AUTO_INCREMENT PRIMARY KEY,
   `product_code` VARCHAR(32) NOT NULL COMMENT '商品编码',
   `product_name` VARCHAR(100) NOT NULL COMMENT '商品名称',
@@ -111,7 +111,7 @@ CREATE TABLE IF NOT EXISTS `points_product` (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='积分商城商品';
 
 -- 3.1 积分兑换记录
-CREATE TABLE IF NOT EXISTS `points_exchange_record` (
+CREATE TABLE IF NOT EXISTS `t_points_exchange_record` (
   `id` BIGINT AUTO_INCREMENT PRIMARY KEY,
   `record_no` VARCHAR(32) NOT NULL COMMENT '兑换编号',
   `product_id` BIGINT NOT NULL COMMENT '商品ID',
@@ -130,7 +130,7 @@ CREATE TABLE IF NOT EXISTS `points_exchange_record` (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='积分兑换记录';
 
 -- 4. 营销素材
-CREATE TABLE IF NOT EXISTS `marketing_material` (
+CREATE TABLE IF NOT EXISTS `t_marketing_material` (
   `id` BIGINT AUTO_INCREMENT PRIMARY KEY,
   `material_code` VARCHAR(32) NOT NULL COMMENT '素材编码',
   `material_name` VARCHAR(100) NOT NULL COMMENT '素材名称',
@@ -160,7 +160,7 @@ CREATE TABLE IF NOT EXISTS `marketing_material` (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='营销素材';
 
 -- 4.1 素材分类
-CREATE TABLE IF NOT EXISTS `material_category` (
+CREATE TABLE IF NOT EXISTS `t_material_category` (
   `id` BIGINT AUTO_INCREMENT PRIMARY KEY,
   `name` VARCHAR(50) NOT NULL COMMENT '分类名称',
   `parent_id` BIGINT DEFAULT NULL COMMENT '父分类ID',

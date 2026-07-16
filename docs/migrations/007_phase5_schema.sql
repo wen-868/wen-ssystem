@@ -13,8 +13,8 @@ SET FOREIGN_KEY_CHECKS = 0;
 
 -- ========== 库存批次管理 ==========
 
-DROP TABLE IF EXISTS inventory_batch;
-CREATE TABLE IF NOT EXISTS inventory_batch (
+DROP TABLE IF EXISTS t_inventory_batch;
+CREATE TABLE IF NOT EXISTS t_inventory_batch (
   id INT AUTO_INCREMENT PRIMARY KEY,
   store_id INT NOT NULL COMMENT '门店ID',
   sku_id INT NOT NULL COMMENT 'SKU ID',
@@ -35,8 +35,8 @@ CREATE TABLE IF NOT EXISTS inventory_batch (
 
 -- ========== 效期预警配置 ==========
 
-DROP TABLE IF EXISTS expiry_alert_config;
-CREATE TABLE IF NOT EXISTS expiry_alert_config (
+DROP TABLE IF EXISTS t_expiry_alert_config;
+CREATE TABLE IF NOT EXISTS t_expiry_alert_config (
   id INT AUTO_INCREMENT PRIMARY KEY,
   alert_level TINYINT NOT NULL COMMENT '预警级别(1/2/3)',
   level_name VARCHAR(20) NOT NULL COMMENT '级别名称(如"三级预警")',
@@ -56,8 +56,8 @@ INSERT IGNORE INTO expiry_alert_config (alert_level, level_name, days_before_exp
 
 -- ========== 效期预警记录 ==========
 
-DROP TABLE IF EXISTS expiry_alert_record;
-CREATE TABLE IF NOT EXISTS expiry_alert_record (
+DROP TABLE IF EXISTS t_expiry_alert_record;
+CREATE TABLE IF NOT EXISTS t_expiry_alert_record (
   id INT AUTO_INCREMENT PRIMARY KEY,
   batch_id INT NOT NULL COMMENT '批次ID',
   store_id INT NOT NULL COMMENT '门店ID',
@@ -82,8 +82,8 @@ CREATE TABLE IF NOT EXISTS expiry_alert_record (
 
 -- ========== 门店管控配置 ==========
 
-DROP TABLE IF EXISTS store_control_config;
-CREATE TABLE IF NOT EXISTS store_control_config (
+DROP TABLE IF EXISTS t_store_control_config;
+CREATE TABLE IF NOT EXISTS t_store_control_config (
   id INT AUTO_INCREMENT PRIMARY KEY,
   store_id INT NOT NULL UNIQUE COMMENT '门店ID',
   auto_open_time TIME DEFAULT NULL COMMENT '自动开门时间',
@@ -97,8 +97,8 @@ CREATE TABLE IF NOT EXISTS store_control_config (
 
 -- ========== 门店状态变更记录 ==========
 
-DROP TABLE IF EXISTS store_status_log;
-CREATE TABLE IF NOT EXISTS store_status_log (
+DROP TABLE IF EXISTS t_store_status_log;
+CREATE TABLE IF NOT EXISTS t_store_status_log (
   id INT AUTO_INCREMENT PRIMARY KEY,
   store_id INT NOT NULL COMMENT '门店ID',
   from_status VARCHAR(20) NOT NULL COMMENT '变更前状态',
@@ -112,6 +112,6 @@ CREATE TABLE IF NOT EXISTS store_status_log (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='门店状态变更记录表';
 
 -- ========== store表新增 status 字段 ==========
-ALTER TABLE store ADD COLUMN IF NOT EXISTS status VARCHAR(20) NOT NULL DEFAULT 'OPEN' COMMENT '门店状态: OPEN/CLOSED/SUSPENDED' AFTER business_status;
+ALTER TABLE t_store ADD COLUMN IF NOT EXISTS status VARCHAR(20) NOT NULL DEFAULT 'OPEN' COMMENT '门店状态: OPEN/CLOSED/SUSPENDED' AFTER business_status;
 
 SET FOREIGN_KEY_CHECKS = 1;

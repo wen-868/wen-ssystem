@@ -1,5 +1,5 @@
 -- 编号: 071, 描述: 客户积分, 创建人: 阿坚, 日期: 2026-07-05
-CREATE TABLE IF NOT EXISTS customer_points (
+CREATE TABLE IF NOT EXISTS t_customer_points (
   id BIGINT AUTO_INCREMENT PRIMARY KEY,
   customer_id BIGINT NOT NULL COMMENT '客户ID',
   total_points INT DEFAULT 0 COMMENT '累计积分',
@@ -13,7 +13,7 @@ CREATE TABLE IF NOT EXISTS customer_points (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='客户积分';
 
 -- 积分变动记录
-CREATE TABLE IF NOT EXISTS points_record (
+CREATE TABLE IF NOT EXISTS t_points_record (
   id BIGINT AUTO_INCREMENT PRIMARY KEY,
   record_no VARCHAR(32) NOT NULL COMMENT '记录编号',
   customer_id BIGINT NOT NULL COMMENT '客户ID',
@@ -31,7 +31,7 @@ CREATE TABLE IF NOT EXISTS points_record (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='积分变动记录';
 
 -- 积分规则
-CREATE TABLE IF NOT EXISTS points_rule (
+CREATE TABLE IF NOT EXISTS t_points_rule (
   id BIGINT AUTO_INCREMENT PRIMARY KEY,
   rule_name VARCHAR(100) NOT NULL COMMENT '规则名称',
   earn_type VARCHAR(20) NOT NULL COMMENT '获取方式: PURCHASE/SIGN_IN/BIRTHDAY/REFERRAL',
@@ -46,7 +46,7 @@ CREATE TABLE IF NOT EXISTS points_rule (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='积分规则';
 
 -- 客户等级
-CREATE TABLE IF NOT EXISTS customer_level (
+CREATE TABLE IF NOT EXISTS t_customer_level (
   id BIGINT AUTO_INCREMENT PRIMARY KEY,
   customer_id BIGINT NOT NULL COMMENT '客户ID',
   level_name VARCHAR(20) NOT NULL DEFAULT 'VIP1' COMMENT '等级名称',
@@ -60,7 +60,7 @@ CREATE TABLE IF NOT EXISTS customer_level (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='客户等级';
 
 -- 等级配置
-CREATE TABLE IF NOT EXISTS level_config (
+CREATE TABLE IF NOT EXISTS t_level_config (
   id BIGINT AUTO_INCREMENT PRIMARY KEY,
   level_name VARCHAR(20) NOT NULL COMMENT '等级名称',
   min_points INT NOT NULL DEFAULT 0 COMMENT '最低积分',

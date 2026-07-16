@@ -1,5 +1,5 @@
 -- 编号: 065, 描述: 添加推送模板表, 创建人: 阿坚, 日期: 2026-07-05
-CREATE TABLE IF NOT EXISTS push_template (
+CREATE TABLE IF NOT EXISTS t_push_template (
   id BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
   code VARCHAR(64) NOT NULL COMMENT '模板编码',
   name VARCHAR(128) NOT NULL COMMENT '模板名称',

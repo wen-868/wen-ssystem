@@ -1,6 +1,6 @@
 -- 编号: 107, 描述: 岗位管理表, 创建人: 阿坚, 日期: 2026-07-13
 
-CREATE TABLE IF NOT EXISTS sys_position (
+CREATE TABLE IF NOT EXISTS t_sys_position (
   id BIGINT AUTO_INCREMENT PRIMARY KEY,
   position_name VARCHAR(100) NOT NULL COMMENT '岗位名称',
   position_code VARCHAR(50) DEFAULT NULL COMMENT '岗位编码',

@@ -13,8 +13,8 @@ SET FOREIGN_KEY_CHECKS = 0;
 -- ========== 阶梯价体系 ==========
 
 -- 价格等级表（比文档更完善：增加折扣率、最低订单金额门槛、说明、排序）
-DROP TABLE IF EXISTS price_level;
-CREATE TABLE IF NOT EXISTS price_level (
+DROP TABLE IF EXISTS t_price_level;
+CREATE TABLE IF NOT EXISTS t_price_level (
   id INT AUTO_INCREMENT PRIMARY KEY,
   level_code VARCHAR(32) NOT NULL UNIQUE COMMENT '等级编码如RETAIL/WHOLESALE_L1/WHOLESALE_L2/AGREEMENT',
   level_name VARCHAR(64) NOT NULL COMMENT '等级名称',
@@ -28,8 +28,8 @@ CREATE TABLE IF NOT EXISTS price_level (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='价格等级表';
 
 -- 阶梯价格表（比文档更完善：增加成本价、建议零售价、生效时间范围）
-DROP TABLE IF EXISTS sku_price;
-CREATE TABLE IF NOT EXISTS sku_price (
+DROP TABLE IF EXISTS t_sku_price;
+CREATE TABLE IF NOT EXISTS t_sku_price (
   id INT AUTO_INCREMENT PRIMARY KEY,
   sku_id INT NOT NULL,
   price_level_id INT NOT NULL,
@@ -48,8 +48,8 @@ CREATE TABLE IF NOT EXISTS sku_price (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='阶梯价格表';
 
 -- 客户价格等级绑定（比文档更完善：增加审批流程、到期时间）
-DROP TABLE IF EXISTS customer_price_binding;
-CREATE TABLE IF NOT EXISTS customer_price_binding (
+DROP TABLE IF EXISTS t_customer_price_binding;
+CREATE TABLE IF NOT EXISTS t_customer_price_binding (
   id INT AUTO_INCREMENT PRIMARY KEY,
   customer_id INT NOT NULL,
   price_level_id INT NOT NULL,
@@ -65,8 +65,8 @@ CREATE TABLE IF NOT EXISTS customer_price_binding (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='客户价格等级绑定表';
 
 -- 价格变更历史（审计日志）
-DROP TABLE IF EXISTS price_change_log;
-CREATE TABLE IF NOT EXISTS price_change_log (
+DROP TABLE IF EXISTS t_price_change_log;
+CREATE TABLE IF NOT EXISTS t_price_change_log (
   id INT AUTO_INCREMENT PRIMARY KEY,
   sku_id INT NOT NULL,
   price_level_id INT NOT NULL,
@@ -92,8 +92,8 @@ INSERT IGNORE INTO price_level (level_code, level_name, discount_rate, min_order
 -- ========== 批发客户授信管理 ==========
 
 -- 客户授信额度表（比文档更完善：增加冻结原因、解冻流程、预警阈值、乐观锁）
-DROP TABLE IF EXISTS customer_credit;
-CREATE TABLE IF NOT EXISTS customer_credit (
+DROP TABLE IF EXISTS t_customer_credit;
+CREATE TABLE IF NOT EXISTS t_customer_credit (
   id INT AUTO_INCREMENT PRIMARY KEY,
   customer_id INT NOT NULL UNIQUE,
   credit_limit DECIMAL(12,2) NOT NULL DEFAULT 0 COMMENT '授信总额度',
@@ -115,8 +115,8 @@ CREATE TABLE IF NOT EXISTS customer_credit (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='客户授信额度表';
 
 -- 授信操作日志（比文档新增：完整审计追踪）
-DROP TABLE IF EXISTS credit_operation_log;
-CREATE TABLE IF NOT EXISTS credit_operation_log (
+DROP TABLE IF EXISTS t_credit_operation_log;
+CREATE TABLE IF NOT EXISTS t_credit_operation_log (
   id INT AUTO_INCREMENT PRIMARY KEY,
   customer_id INT NOT NULL,
   operation_type ENUM('ADJUST_LIMIT','OCCUPY','RELEASE','FREEZE','UNFREEZE','OVERDUE_DEDUCT','MANUAL_ADJUST') NOT NULL,
@@ -132,8 +132,8 @@ CREATE TABLE IF NOT EXISTS credit_operation_log (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='授信操作日志表';
 
 -- 催收记录表（比文档更完善：增加催收结果、跟进提醒、承诺还款）
-DROP TABLE IF EXISTS collection_record;
-CREATE TABLE IF NOT EXISTS collection_record (
+DROP TABLE IF EXISTS t_collection_record;
+CREATE TABLE IF NOT EXISTS t_collection_record (
   id INT AUTO_INCREMENT PRIMARY KEY,
   customer_id INT NOT NULL,
   receivable_no VARCHAR(64) DEFAULT NULL COMMENT '关联应收单号',
@@ -158,7 +158,7 @@ SET FOREIGN_KEY_CHECKS = 1;
 -- ========== 追溯服务 ==========
 
 -- 追溯配置表
-CREATE TABLE IF NOT EXISTS trace_config (
+CREATE TABLE IF NOT EXISTS t_trace_config (
   id INT AUTO_INCREMENT PRIMARY KEY,
   config_no VARCHAR(32) NOT NULL UNIQUE,
   config_level ENUM('CATEGORY','SKU','GLOBAL') NOT NULL,
@@ -178,7 +178,7 @@ CREATE TABLE IF NOT EXISTS trace_config (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
 -- 追溯码表
-CREATE TABLE IF NOT EXISTS trace_code (
+CREATE TABLE IF NOT EXISTS t_trace_code (
   id INT AUTO_INCREMENT PRIMARY KEY,
   trace_code VARCHAR(32) NOT NULL UNIQUE,
   sku_id INT NOT NULL,
@@ -211,7 +211,7 @@ CREATE TABLE IF NOT EXISTS trace_code (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
 -- 追溯事件日志
-CREATE TABLE IF NOT EXISTS trace_event_log (
+CREATE TABLE IF NOT EXISTS t_trace_event_log (
   id INT AUTO_INCREMENT PRIMARY KEY,
   trace_code VARCHAR(32) NOT NULL,
   event_type VARCHAR(32) NOT NULL,
@@ -232,7 +232,7 @@ CREATE TABLE IF NOT EXISTS trace_event_log (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
 -- 扫码日志
-CREATE TABLE IF NOT EXISTS trace_scan_log (
+CREATE TABLE IF NOT EXISTS t_trace_scan_log (
   id INT AUTO_INCREMENT PRIMARY KEY,
   trace_code VARCHAR(32) NOT NULL,
   scan_type ENUM('CONSUMER','BUSINESS','PDA','ADMIN') NOT NULL,
@@ -244,7 +244,7 @@ CREATE TABLE IF NOT EXISTS trace_scan_log (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
 -- 召回记录表
-CREATE TABLE IF NOT EXISTS recall_record (
+CREATE TABLE IF NOT EXISTS t_recall_record (
   id INT AUTO_INCREMENT PRIMARY KEY,
   recall_no VARCHAR(32) NOT NULL UNIQUE,
   recall_type ENUM('BATCH','CATEGORY','SKU','SUPPLIER','GLOBAL') NOT NULL,

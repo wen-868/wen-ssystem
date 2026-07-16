@@ -1,5 +1,5 @@
 -- 编号: 088, 描述: 销售佣金, 创建人: 阿坚, 日期: 2026-07-05
-CREATE TABLE IF NOT EXISTS sales_commission_rule (
+CREATE TABLE IF NOT EXISTS t_sales_commission_rule (
   id BIGINT AUTO_INCREMENT PRIMARY KEY,
   rule_name VARCHAR(100) NOT NULL COMMENT '规则名称',
   rule_type VARCHAR(20) NOT NULL COMMENT '规则类型: FIXED_AMOUNT/FIXED_RATE/TIERED',
@@ -16,7 +16,7 @@ CREATE TABLE IF NOT EXISTS sales_commission_rule (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='销售提成规则';
 
 -- 销售提成记录表
-CREATE TABLE IF NOT EXISTS sales_commission_record (
+CREATE TABLE IF NOT EXISTS t_sales_commission_record (
   id BIGINT AUTO_INCREMENT PRIMARY KEY,
   record_no VARCHAR(32) NOT NULL COMMENT '记录编号',
   bill_no VARCHAR(32) NOT NULL COMMENT '销售单号',

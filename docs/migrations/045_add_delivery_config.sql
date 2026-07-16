@@ -1,5 +1,5 @@
 -- 编号: 045, 描述: 添加配送配置表, 创建人: 阿坚, 日期: 2026-07-05
-CREATE TABLE IF NOT EXISTS delivery_config (
+CREATE TABLE IF NOT EXISTS t_delivery_config (
   id INT AUTO_INCREMENT PRIMARY KEY,
   config_name VARCHAR(64) NOT NULL COMMENT '配置名称',
   delivery_type VARCHAR(16) NOT NULL COMMENT '配送类型（SELF/PLATFORM/THIRD_PARTY）',

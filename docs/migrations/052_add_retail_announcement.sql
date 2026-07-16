@@ -1,5 +1,5 @@
 -- 编号: 052, 描述: 添加零售公告表, 创建人: 阿坚, 日期: 2026-07-05
-CREATE TABLE IF NOT EXISTS retail_announcement (
+CREATE TABLE IF NOT EXISTS t_retail_announcement (
   id BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
   store_id BIGINT UNSIGNED NOT NULL COMMENT '门店ID',
   title VARCHAR(128) NOT NULL COMMENT '公告标题',

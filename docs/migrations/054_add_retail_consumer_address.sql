@@ -1,5 +1,5 @@
 -- 编号: 054, 描述: 添加零售客户地址表, 创建人: 阿坚, 日期: 2026-07-05
-CREATE TABLE IF NOT EXISTS retail_consumer_address (
+CREATE TABLE IF NOT EXISTS t_retail_consumer_address (
   id BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
   user_id BIGINT UNSIGNED NOT NULL COMMENT '用户ID',
   name VARCHAR(64) NOT NULL COMMENT '收货人姓名',

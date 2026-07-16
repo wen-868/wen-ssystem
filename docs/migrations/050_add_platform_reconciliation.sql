@@ -1,5 +1,5 @@
 -- 编号: 050, 描述: 添加平台对账表, 创建人: 阿坚, 日期: 2026-07-05
-CREATE TABLE IF NOT EXISTS platform_reconciliation (
+CREATE TABLE IF NOT EXISTS t_platform_reconciliation (
   id BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
   platform VARCHAR(32) NOT NULL COMMENT '平台',
   reconciliation_date DATE NOT NULL COMMENT '对账日期',

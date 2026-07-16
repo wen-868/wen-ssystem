@@ -6,7 +6,7 @@
 -- ============================================================================
 
 -- 订单超时配置表
-CREATE TABLE IF NOT EXISTS `order_timeout_config` (
+CREATE TABLE IF NOT EXISTS `t_order_timeout_config` (
   `id` INT NOT NULL AUTO_INCREMENT,
   `order_type` VARCHAR(20) NOT NULL COMMENT '订单类型：SALE=销售单 PURCHASE=采购单',
   `timeout_type` VARCHAR(30) NOT NULL COMMENT '超时类型：WAIT_PAY=待付款 WAIT_ACCEPT=待接单 WAIT_SIGN=待签收 WAIT_CONFIRM=待确认',
@@ -22,7 +22,7 @@ CREATE TABLE IF NOT EXISTS `order_timeout_config` (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='订单超时配置表';
 
 -- 订单超时处理日志表
-CREATE TABLE IF NOT EXISTS `order_timeout_log` (
+CREATE TABLE IF NOT EXISTS `t_order_timeout_log` (
   `id` INT NOT NULL AUTO_INCREMENT,
   `order_id` INT NOT NULL COMMENT '订单ID',
   `order_type` VARCHAR(20) NOT NULL COMMENT '订单类型',

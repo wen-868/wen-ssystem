@@ -1,5 +1,5 @@
 -- 编号: 047, 描述: 添加零售操作日志表, 创建人: 阿坚, 日期: 2026-07-05
-CREATE TABLE IF NOT EXISTS retail_operation_log (
+CREATE TABLE IF NOT EXISTS t_retail_operation_log (
   id INT AUTO_INCREMENT PRIMARY KEY,
   module VARCHAR(32) NOT NULL COMMENT '模块（shop/category/product/order/delivery）',
   action VARCHAR(32) NOT NULL COMMENT '操作类型',

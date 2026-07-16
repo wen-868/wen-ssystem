@@ -1,5 +1,5 @@
 -- 编号: 060, 描述: 添加自定义报表模板表, 创建人: 阿坚, 日期: 2026-07-05
-CREATE TABLE IF NOT EXISTS custom_report_template (
+CREATE TABLE IF NOT EXISTS t_custom_report_template (
   id BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
   name VARCHAR(128) NOT NULL COMMENT '模板名称',
   type VARCHAR(32) NOT NULL COMMENT '报表类型：SALES/INVENTORY/FINANCE/CUSTOMER',

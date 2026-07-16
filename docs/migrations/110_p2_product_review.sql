@@ -4,7 +4,7 @@
 -- ============================================
 
 -- 1. 商品审核表
-CREATE TABLE IF NOT EXISTS `product_review` (
+CREATE TABLE IF NOT EXISTS `t_product_review` (
   `id` BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
   `review_no` VARCHAR(32) NOT NULL UNIQUE COMMENT '审核单号',
   `product_id` BIGINT NOT NULL COMMENT '商品SPU ID',

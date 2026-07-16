@@ -1,7 +1,7 @@
 -- 编号: 067, 描述: 添加单位组表, 创建人: 阿坚, 日期: 2026-07-05
 -- 支持 4-5 级自定义单位（箱>包>条>合>个）及换算率
 
-CREATE TABLE IF NOT EXISTS unit_group (
+CREATE TABLE IF NOT EXISTS t_unit_group (
   id BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
   name VARCHAR(64) NOT NULL COMMENT '单位组名称',
   tenant_id VARCHAR(64) NOT NULL DEFAULT 'default' COMMENT '租户ID',
@@ -11,7 +11,7 @@ CREATE TABLE IF NOT EXISTS unit_group (
   INDEX idx_tenant (tenant_id)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='单位组表';
 
-CREATE TABLE IF NOT EXISTS unit_group_item (
+CREATE TABLE IF NOT EXISTS t_unit_group_item (
   id BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
   group_id BIGINT UNSIGNED NOT NULL COMMENT '单位组ID',
   tenant_id VARCHAR(64) NOT NULL DEFAULT 'default' COMMENT '租户ID',

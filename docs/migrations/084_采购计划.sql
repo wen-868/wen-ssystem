@@ -1,5 +1,5 @@
 -- 编号: 084, 描述: 采购计划, 创建人: 阿坚, 日期: 2026-07-05
-CREATE TABLE IF NOT EXISTS purchase_plan (
+CREATE TABLE IF NOT EXISTS t_purchase_plan (
   id BIGINT AUTO_INCREMENT PRIMARY KEY,
   plan_no VARCHAR(32) NOT NULL COMMENT '计划编号',
   supplier_id BIGINT NOT NULL COMMENT '供应商ID',
@@ -16,7 +16,7 @@ CREATE TABLE IF NOT EXISTS purchase_plan (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='采购计划';
 
 -- 采购计划明细
-CREATE TABLE IF NOT EXISTS purchase_plan_item (
+CREATE TABLE IF NOT EXISTS t_purchase_plan_item (
   id BIGINT AUTO_INCREMENT PRIMARY KEY,
   plan_no VARCHAR(32) NOT NULL COMMENT '计划编号',
   sku_id BIGINT NOT NULL COMMENT 'SKU ID',

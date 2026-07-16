@@ -1,5 +1,5 @@
 -- 编号: 046, 描述: 添加配送记录表, 创建人: 阿坚, 日期: 2026-07-05
-CREATE TABLE IF NOT EXISTS delivery_record (
+CREATE TABLE IF NOT EXISTS t_delivery_record (
   id INT AUTO_INCREMENT PRIMARY KEY,
   order_id BIGINT NOT NULL COMMENT '订单ID',
   delivery_no VARCHAR(32) COMMENT '配送单号',

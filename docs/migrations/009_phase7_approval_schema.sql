@@ -6,7 +6,7 @@
 USE liquor_inventory;
 
 -- 1. 审批规则配置表
-CREATE TABLE approval_rule (
+CREATE TABLE t_approval_rule (
   id BIGINT UNSIGNED NOT NULL AUTO_INCREMENT COMMENT '规则ID',
   rule_name VARCHAR(128) NOT NULL COMMENT '规则名称',
   business_type VARCHAR(32) NOT NULL COMMENT '业务类型：PURCHASE_ORDER/SALE_RETURN/PRICE_CHANGE/CREDIT_LIMIT',
@@ -22,7 +22,7 @@ CREATE TABLE approval_rule (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='审批规则配置表';
 
 -- 2. 审批实例表
-CREATE TABLE approval_instance (
+CREATE TABLE t_approval_instance (
   id BIGINT UNSIGNED NOT NULL AUTO_INCREMENT COMMENT '实例ID',
   instance_no VARCHAR(64) NOT NULL COMMENT '审批实例编号',
   rule_id BIGINT UNSIGNED NOT NULL COMMENT '关联规则ID',
@@ -46,7 +46,7 @@ CREATE TABLE approval_instance (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='审批实例表';
 
 -- 3. 审批任务表（每个审批人的任务）
-CREATE TABLE approval_task (
+CREATE TABLE t_approval_task (
   id BIGINT UNSIGNED NOT NULL AUTO_INCREMENT COMMENT '任务ID',
   instance_id BIGINT UNSIGNED NOT NULL COMMENT '关联实例ID',
   approval_level INT NOT NULL COMMENT '审批层级',
@@ -67,7 +67,7 @@ CREATE TABLE approval_task (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='审批任务表';
 
 -- 4. 审批日志表
-CREATE TABLE approval_log (
+CREATE TABLE t_approval_log (
   id BIGINT UNSIGNED NOT NULL AUTO_INCREMENT COMMENT '日志ID',
   instance_id BIGINT UNSIGNED NOT NULL COMMENT '关联实例ID',
   task_id BIGINT UNSIGNED DEFAULT NULL COMMENT '关联任务ID',
@@ -85,7 +85,7 @@ CREATE TABLE approval_log (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='审批日志表';
 
 -- 5. 审批人配置表（角色与用户的映射）
-CREATE TABLE approval_approver (
+CREATE TABLE t_approval_approver (
   id BIGINT UNSIGNED NOT NULL AUTO_INCREMENT COMMENT '配置ID',
   approver_type VARCHAR(32) NOT NULL COMMENT '审批人类型：ROLE/USER/DEPARTMENT',
   approver_value VARCHAR(64) NOT NULL COMMENT '审批人值：角色代码/用户ID/部门ID',
@@ -99,7 +99,7 @@ CREATE TABLE approval_approver (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='审批人配置表';
 
 -- 6. 审批通知表
-CREATE TABLE approval_notification (
+CREATE TABLE t_approval_notification (
   id BIGINT UNSIGNED NOT NULL AUTO_INCREMENT COMMENT '通知ID',
   instance_id BIGINT UNSIGNED NOT NULL COMMENT '关联实例ID',
   task_id BIGINT UNSIGNED DEFAULT NULL COMMENT '关联任务ID',
@@ -120,14 +120,14 @@ CREATE TABLE approval_notification (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='审批通知表';
 
 -- 插入默认审批规则
-INSERT INTO approval_rule (rule_name, business_type, trigger_condition, approval_chain, sla_hours, escalation_level) VALUES
+INSERT INTO t_approval_rule (rule_name, business_type, trigger_condition, approval_chain, sla_hours, escalation_level) VALUES
 ('采购订单审批-5000元以上', 'PURCHASE_ORDER', '{"amount_threshold": 5000}', '[{"level": 1, "approver_type": "ROLE", "approver_value": "PURCHASE_MANAGER"}]', 24, 1),
 ('采购订单审批-20000元以上', 'PURCHASE_ORDER', '{"amount_threshold": 20000}', '[{"level": 1, "approver_type": "ROLE", "approver_value": "PURCHASE_MANAGER"}, {"level": 2, "approver_type": "ROLE", "approver_value": "FINANCE_MANAGER"}]', 48, 2),
 ('销售退货审批', 'SALE_RETURN', '{"amount_threshold": 0}', '[{"level": 1, "approver_type": "ROLE", "approver_value": "STORE_MANAGER"}]', 24, 1),
 ('价格调整审批', 'PRICE_CHANGE', '{"discount_rate_threshold": 0.1}', '[{"level": 1, "approver_type": "ROLE", "approver_value": "SALES_MANAGER"}]', 12, 1);
 
 -- 插入默认审批人配置
-INSERT INTO approval_approver (approver_type, approver_value, approver_name) VALUES
+INSERT INTO t_approval_approver (approver_type, approver_value, approver_name) VALUES
 ('ROLE', 'PURCHASE_MANAGER', '采购经理'),
 ('ROLE', 'FINANCE_MANAGER', '财务经理'),
 ('ROLE', 'STORE_MANAGER', '门店经理'),

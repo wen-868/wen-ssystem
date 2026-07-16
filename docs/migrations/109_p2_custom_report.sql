@@ -4,7 +4,7 @@
 -- ============================================
 
 -- 1. 自定义报表表
-CREATE TABLE IF NOT EXISTS `custom_report` (
+CREATE TABLE IF NOT EXISTS `t_custom_report` (
   `id` BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
   `report_name` VARCHAR(128) NOT NULL COMMENT '报表名称',
   `report_type` VARCHAR(32) NOT NULL COMMENT '报表类型：SALES/INVENTORY/FINANCE/CUSTOMER',
@@ -23,7 +23,7 @@ CREATE TABLE IF NOT EXISTS `custom_report` (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='自定义报表';
 
 -- 2. 报表生成记录表
-CREATE TABLE IF NOT EXISTS `custom_report_log` (
+CREATE TABLE IF NOT EXISTS `t_custom_report_log` (
   `id` BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
   `report_id` BIGINT UNSIGNED NOT NULL COMMENT '报表ID',
   `generated_by` BIGINT DEFAULT NULL COMMENT '生成人',

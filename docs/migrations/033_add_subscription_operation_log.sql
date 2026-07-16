@@ -1,5 +1,5 @@
 -- 编号: 033, 描述: 添加订阅操作日志表, 创建人: 阿坚, 日期: 2026-07-05
-CREATE TABLE IF NOT EXISTS subscription_operation_log (
+CREATE TABLE IF NOT EXISTS t_subscription_operation_log (
   id INT AUTO_INCREMENT PRIMARY KEY,
   subscription_id INT NOT NULL COMMENT '订阅ID',
   operation_type VARCHAR(32) NOT NULL COMMENT '操作类型（CREATE/RENEW/UPGRADE/DOWNGRADE/CANCEL/SUSPEND/RESUME）',

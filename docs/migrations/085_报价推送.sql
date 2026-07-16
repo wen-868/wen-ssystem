@@ -5,11 +5,11 @@
 USE liquor_inventory;
 
 -- 报价单主表
-DROP TABLE IF EXISTS customer_quote_item;
-DROP TABLE IF EXISTS customer_quote_push_log;
-DROP TABLE IF EXISTS customer_quote;
+DROP TABLE IF EXISTS t_customer_quote_item;
+DROP TABLE IF EXISTS t_customer_quote_push_log;
+DROP TABLE IF EXISTS t_customer_quote;
 
-CREATE TABLE customer_quote (
+CREATE TABLE t_customer_quote (
   id BIGINT UNSIGNED NOT NULL AUTO_INCREMENT COMMENT '报价单ID',
   quote_no VARCHAR(32) NOT NULL COMMENT '报价单号',
   title VARCHAR(200) NOT NULL COMMENT '报价单标题',
@@ -37,7 +37,7 @@ CREATE TABLE customer_quote (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='客户报价单';
 
 -- 报价单明细表
-CREATE TABLE customer_quote_item (
+CREATE TABLE t_customer_quote_item (
   id BIGINT UNSIGNED NOT NULL AUTO_INCREMENT COMMENT '明细ID',
   quote_id BIGINT UNSIGNED NOT NULL COMMENT '报价单ID',
   sku_id BIGINT UNSIGNED NOT NULL COMMENT 'SKU ID',
@@ -54,7 +54,7 @@ CREATE TABLE customer_quote_item (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='报价单明细';
 
 -- 报价推送日志表
-CREATE TABLE customer_quote_push_log (
+CREATE TABLE t_customer_quote_push_log (
   id BIGINT UNSIGNED NOT NULL AUTO_INCREMENT COMMENT '日志ID',
   quote_id BIGINT UNSIGNED NOT NULL COMMENT '报价单ID',
   channel VARCHAR(20) NOT NULL COMMENT '推送渠道：sms/miniapp/email',
@@ -77,7 +77,7 @@ SET @col_exists = (
     AND COLUMN_NAME = 'batch_no'
 );
 SET @sql = IF(@col_exists = 0,
-  'ALTER TABLE product_price_log ADD COLUMN batch_no VARCHAR(32) DEFAULT NULL COMMENT ''批量调整批次号'' AFTER action_type, ADD INDEX idx_batch_no (batch_no, tenant_id)',
+  'ALTER TABLE t_product_price_log ADD COLUMN batch_no VARCHAR(32) DEFAULT NULL COMMENT ''批量调整批次号'' AFTER action_type, ADD INDEX idx_batch_no (batch_no, tenant_id)',
   'SELECT 1'
 );
 PREPARE stmt FROM @sql;
@@ -92,7 +92,7 @@ SET @col2_exists = (
     AND COLUMN_NAME = 'change_reason'
 );
 SET @sql2 = IF(@col2_exists = 0,
-  'ALTER TABLE product_price_log ADD COLUMN change_reason VARCHAR(255) DEFAULT NULL COMMENT ''变更原因'' AFTER action_type',
+  'ALTER TABLE t_product_price_log ADD COLUMN change_reason VARCHAR(255) DEFAULT NULL COMMENT ''变更原因'' AFTER action_type',
   'SELECT 1'
 );
 PREPARE stmt2 FROM @sql2;

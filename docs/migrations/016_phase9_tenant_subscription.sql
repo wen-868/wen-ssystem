@@ -7,7 +7,7 @@
 -- ============================================================
 
 -- 1. 租户表（tenant）
-CREATE TABLE IF NOT EXISTS tenant (
+CREATE TABLE IF NOT EXISTS t_tenant (
   id INT AUTO_INCREMENT PRIMARY KEY,
   tenant_code VARCHAR(32) NOT NULL UNIQUE COMMENT '租户编码（如：T20260623001）',
   company_name VARCHAR(128) NOT NULL COMMENT '公司名称',
@@ -39,7 +39,7 @@ CREATE TABLE IF NOT EXISTS tenant (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='租户表';
 
 -- 2. 订阅套餐表（subscription_plan）
-CREATE TABLE IF NOT EXISTS subscription_plan (
+CREATE TABLE IF NOT EXISTS t_subscription_plan (
   id INT AUTO_INCREMENT PRIMARY KEY,
   plan_code VARCHAR(32) NOT NULL UNIQUE COMMENT '套餐编码（如：BASIC/STANDARD/PROFESSIONAL）',
   plan_name VARCHAR(64) NOT NULL COMMENT '套餐名称',
@@ -66,7 +66,7 @@ CREATE TABLE IF NOT EXISTS subscription_plan (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='订阅套餐表';
 
 -- 3. 订阅表（subscription）
-CREATE TABLE IF NOT EXISTS subscription (
+CREATE TABLE IF NOT EXISTS t_subscription (
   id INT AUTO_INCREMENT PRIMARY KEY,
   subscription_no VARCHAR(32) NOT NULL UNIQUE COMMENT '订阅编号（如：SUB20260623001）',
   tenant_id INT NOT NULL COMMENT '租户ID',
@@ -104,7 +104,7 @@ CREATE TABLE IF NOT EXISTS subscription (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='订阅表';
 
 -- 4. 租户模块访问权限表（tenant_module_access）
-CREATE TABLE IF NOT EXISTS tenant_module_access (
+CREATE TABLE IF NOT EXISTS t_tenant_module_access (
   id INT AUTO_INCREMENT PRIMARY KEY,
   tenant_id INT NOT NULL COMMENT '租户ID',
   module_code VARCHAR(64) NOT NULL COMMENT '模块编码（如：sales/purchase/inventory/marketing）',
@@ -125,7 +125,7 @@ CREATE TABLE IF NOT EXISTS tenant_module_access (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='租户模块访问权限表';
 
 -- 5. 订阅操作日志表（subscription_operation_log）
-CREATE TABLE IF NOT EXISTS subscription_operation_log (
+CREATE TABLE IF NOT EXISTS t_subscription_operation_log (
   id INT AUTO_INCREMENT PRIMARY KEY,
   subscription_id INT NOT NULL COMMENT '订阅ID',
   operation_type VARCHAR(32) NOT NULL COMMENT '操作类型（CREATE/RENEW/UPGRADE/DOWNGRADE/CANCEL/SUSPEND/RESUME）',
@@ -147,7 +147,7 @@ CREATE TABLE IF NOT EXISTS subscription_operation_log (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='订阅操作日志表';
 
 -- 6. 租户管理员表（tenant_admin）
-CREATE TABLE IF NOT EXISTS tenant_admin (
+CREATE TABLE IF NOT EXISTS t_tenant_admin (
   id INT AUTO_INCREMENT PRIMARY KEY,
   tenant_id INT NOT NULL COMMENT '租户ID',
   user_id INT NOT NULL COMMENT '用户ID（关联sys_user）',
@@ -167,7 +167,7 @@ CREATE TABLE IF NOT EXISTS tenant_admin (
 -- 初始化默认套餐数据
 -- ============================================================
 
-INSERT INTO subscription_plan (plan_code, plan_name, plan_type, price, original_price, duration_days, max_users, max_stores, max_customers, max_products, max_storage_mb, features, module_access, description, sort_order, status) VALUES
+INSERT INTO t_subscription_plan (plan_code, plan_name, plan_type, price, original_price, duration_days, max_users, max_stores, max_customers, max_products, max_storage_mb, features, module_access, description, sort_order, status) VALUES
 ('BASIC_MONTHLY', '基础版-月付', 'MONTHLY', 299.00, 299.00, 30, 3, 1, 500, 200, 512, 
  '["basic_sales","basic_inventory","basic_report"]',
  '["dashboard","sales","inventory","customer","report"]',
@@ -202,15 +202,15 @@ INSERT INTO subscription_plan (plan_code, plan_name, plan_type, price, original_
 -- 初始化默认租户（系统默认租户）
 -- ============================================================
 
-INSERT INTO tenant (tenant_code, company_name, contact_person, contact_mobile, status, expire_at) VALUES
+INSERT INTO t_tenant (tenant_code, company_name, contact_person, contact_mobile, status, expire_at) VALUES
 ('DEFAULT', '系统默认租户', '系统管理员', '13800000000', 'ACTIVE', '2099-12-31 23:59:59');
 
 -- 为默认租户创建管理员关联（假设sys_user中id=1为超级管理员）
--- INSERT INTO tenant_admin (tenant_id, user_id, role, is_primary) VALUES
+-- INSERT INTO t_tenant_admin (tenant_id, user_id, role, is_primary) VALUES
 -- (1, 1, 'SUPER_ADMIN', 1);
 
 -- 为默认租户授权所有模块
-INSERT INTO tenant_module_access (tenant_id, module_code, module_name, enabled, granted_by) VALUES
+INSERT INTO t_tenant_module_access (tenant_id, module_code, module_name, enabled, granted_by) VALUES
 (1, 'dashboard', '工作台', 1, 'MANUAL'),
 (1, 'sales', '销售管理', 1, 'MANUAL'),
 (1, 'purchase', '采购管理', 1, 'MANUAL'),

@@ -1,5 +1,5 @@
 -- 编号: 040, 描述: 添加团购活动表, 创建人: 阿坚, 日期: 2026-07-05
-CREATE TABLE IF NOT EXISTS group_buy_activity (
+CREATE TABLE IF NOT EXISTS t_group_buy_activity (
   id INT AUTO_INCREMENT PRIMARY KEY,
   activity_id INT NOT NULL COMMENT '活动ID',
   group_size INT NOT NULL COMMENT '成团人数',

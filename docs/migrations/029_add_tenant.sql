@@ -1,5 +1,5 @@
 -- 编号: 029, 描述: 添加租户表, 创建人: 阿坚, 日期: 2026-07-05
-CREATE TABLE IF NOT EXISTS tenant (
+CREATE TABLE IF NOT EXISTS t_tenant (
   id INT AUTO_INCREMENT PRIMARY KEY,
   tenant_code VARCHAR(32) NOT NULL UNIQUE COMMENT '租户编码（如：T20260623001）',
   company_name VARCHAR(128) NOT NULL COMMENT '公司名称',

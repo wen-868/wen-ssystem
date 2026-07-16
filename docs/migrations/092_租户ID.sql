@@ -61,7 +61,7 @@ DELIMITER ;
 -- ============================================================
 -- 第1步：新建 tenant 表
 -- ============================================================
-CREATE TABLE IF NOT EXISTS tenant (
+CREATE TABLE IF NOT EXISTS t_tenant (
   id VARCHAR(36) PRIMARY KEY COMMENT '租户ID（UUID）',
   name VARCHAR(100) NOT NULL COMMENT '租户名称（公司名）',
   contact_name VARCHAR(50) COMMENT '联系人',
@@ -75,7 +75,7 @@ CREATE TABLE IF NOT EXISTS tenant (
   INDEX idx_tenant_expire (expire_at)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='租户表';
 
-INSERT INTO tenant (id, name, contact_name, contact_phone, plan, status)
+INSERT INTO t_tenant (id, name, contact_name, contact_phone, plan, status)
 VALUES ('default', '默认租户', '系统管理员', '13800138000', 'basic', 1)
 ON DUPLICATE KEY UPDATE updated_at = NOW();
 
@@ -271,12 +271,12 @@ CALL add_index_if_not_exists('daily_settlement', 'idx_daily_settlement_tenant', 
 -- ============================================================
 -- 第4步：更新 sys_user 表的租户关系（默认租户）
 -- ============================================================
-UPDATE sys_user SET tenant_id = 'default' WHERE tenant_id IS NULL OR tenant_id = '';
+UPDATE t_sys_user SET tenant_id = 'default' WHERE tenant_id IS NULL OR tenant_id = '';
 
 -- ============================================================
 -- 第5步：更新 store 表的租户关系（默认租户）
 -- ============================================================
-UPDATE store SET tenant_id = 'default' WHERE tenant_id IS NULL OR tenant_id = '';
+UPDATE t_store SET tenant_id = 'default' WHERE tenant_id IS NULL OR tenant_id = '';
 
 -- 清理存储过程
 DROP PROCEDURE IF EXISTS add_column_if_not_exists;

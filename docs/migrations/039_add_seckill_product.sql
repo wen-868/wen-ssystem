@@ -1,5 +1,5 @@
 -- 编号: 039, 描述: 添加秒杀商品表, 创建人: 阿坚, 日期: 2026-07-05
-CREATE TABLE IF NOT EXISTS seckill_product (
+CREATE TABLE IF NOT EXISTS t_seckill_product (
   id INT AUTO_INCREMENT PRIMARY KEY,
   activity_id INT NOT NULL COMMENT '活动ID',
   product_id INT NOT NULL COMMENT '商品ID',

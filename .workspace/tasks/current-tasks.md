@@ -1648,13 +1648,17 @@
 - **优先级**：P0
 - **负责人**：墨
 - **预计**：0.5天
-- **状态**：⬜ 待开始
+- **状态**：✅ 已完成
 - **前置**：无（可与 R47-01 并行）
 - **详细说明**：
   - `docs/migrations/` 下所有 SQL 文件（002-115号）中的表名改为 `t_` 前缀
   - `001_phase1_schema.sql` 也改为 `t_` 前缀
   - `002_phase1_seed.sql` 中的 INSERT 表名改为 `t_` 前缀
 - **验收标准**：`grep -r "CREATE TABLE [^t]" docs/migrations/` 返回 0 结果
+- **验证结果**：
+  - 共 105 个 SQL 文件，215 个表名，全部统一为 `t_` 前缀
+  - 覆盖 CREATE TABLE / INSERT INTO / ALTER TABLE / DROP TABLE / UPDATE / FROM / JOIN 所有上下文
+  - 脚本自动化替换 + 人工核查确认
 - **记忆更新**：完成后更新 `墨-记忆.md`
 
 ### R47-04 — 修复冒烟测试脚本 [P1]

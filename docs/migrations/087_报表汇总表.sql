@@ -5,7 +5,7 @@
 -- ============================================
 
 -- 1. 销售日报汇总
-CREATE TABLE IF NOT EXISTS `report_sales_daily` (
+CREATE TABLE IF NOT EXISTS `t_report_sales_daily` (
   `id` BIGINT AUTO_INCREMENT PRIMARY KEY,
   `tenant_id` VARCHAR(32) NOT NULL COMMENT '租户ID',
   `store_id` BIGINT NOT NULL COMMENT '门店ID',
@@ -27,7 +27,7 @@ CREATE TABLE IF NOT EXISTS `report_sales_daily` (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='销售日报汇总';
 
 -- 2. 收款统计汇总
-CREATE TABLE IF NOT EXISTS `report_collection_stats` (
+CREATE TABLE IF NOT EXISTS `t_report_collection_stats` (
   `id` BIGINT AUTO_INCREMENT PRIMARY KEY,
   `tenant_id` VARCHAR(32) NOT NULL COMMENT '租户ID',
   `store_id` BIGINT NOT NULL COMMENT '门店ID',
@@ -47,7 +47,7 @@ CREATE TABLE IF NOT EXISTS `report_collection_stats` (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='收款统计汇总';
 
 -- 3. 商品销售汇总
-CREATE TABLE IF NOT EXISTS `report_product_sales` (
+CREATE TABLE IF NOT EXISTS `t_report_product_sales` (
   `id` BIGINT AUTO_INCREMENT PRIMARY KEY,
   `tenant_id` VARCHAR(32) NOT NULL COMMENT '租户ID',
   `store_id` BIGINT NOT NULL COMMENT '门店ID',
@@ -67,7 +67,7 @@ CREATE TABLE IF NOT EXISTS `report_product_sales` (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='商品销售汇总';
 
 -- 4. 客户统计汇总
-CREATE TABLE IF NOT EXISTS `report_customer_stats` (
+CREATE TABLE IF NOT EXISTS `t_report_customer_stats` (
   `id` BIGINT AUTO_INCREMENT PRIMARY KEY,
   `tenant_id` VARCHAR(32) NOT NULL COMMENT '租户ID',
   `store_id` BIGINT NOT NULL COMMENT '门店ID',
@@ -87,7 +87,7 @@ CREATE TABLE IF NOT EXISTS `report_customer_stats` (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='客户统计汇总';
 
 -- 5. 库存日报汇总
-CREATE TABLE IF NOT EXISTS `report_inventory_daily` (
+CREATE TABLE IF NOT EXISTS `t_report_inventory_daily` (
   `id` BIGINT AUTO_INCREMENT PRIMARY KEY,
   `tenant_id` VARCHAR(32) NOT NULL COMMENT '租户ID',
   `store_id` BIGINT NOT NULL COMMENT '门店ID',

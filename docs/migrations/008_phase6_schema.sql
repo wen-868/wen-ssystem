@@ -5,7 +5,7 @@
 -- ============================================================
 
 -- ========== 采购付款单 ==========
-CREATE TABLE IF NOT EXISTS purchase_payment (
+CREATE TABLE IF NOT EXISTS t_purchase_payment (
   id BIGINT AUTO_INCREMENT PRIMARY KEY,
   payment_no VARCHAR(30) NOT NULL UNIQUE,
   purchase_order_id BIGINT NOT NULL,
@@ -27,7 +27,7 @@ CREATE TABLE IF NOT EXISTS purchase_payment (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='采购付款单';
 
 -- ========== 供应商对账单 ==========
-CREATE TABLE IF NOT EXISTS supplier_statement (
+CREATE TABLE IF NOT EXISTS t_supplier_statement (
   id BIGINT AUTO_INCREMENT PRIMARY KEY,
   statement_no VARCHAR(30) NOT NULL UNIQUE,
   supplier_id BIGINT NOT NULL,
@@ -49,7 +49,7 @@ CREATE TABLE IF NOT EXISTS supplier_statement (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='供应商对账单';
 
 -- ========== 供应商对账明细 ==========
-CREATE TABLE IF NOT EXISTS supplier_statement_item (
+CREATE TABLE IF NOT EXISTS t_supplier_statement_item (
   id BIGINT AUTO_INCREMENT PRIMARY KEY,
   statement_id BIGINT NOT NULL,
   purchase_order_id BIGINT NOT NULL,
@@ -63,7 +63,7 @@ CREATE TABLE IF NOT EXISTS supplier_statement_item (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='供应商对账明细';
 
 -- ========== RBAC 角色管理 ==========
-CREATE TABLE IF NOT EXISTS sys_role (
+CREATE TABLE IF NOT EXISTS t_sys_role (
   id BIGINT AUTO_INCREMENT PRIMARY KEY,
   role_name VARCHAR(50) NOT NULL UNIQUE,
   role_code VARCHAR(50) NOT NULL UNIQUE,
@@ -78,7 +78,7 @@ CREATE TABLE IF NOT EXISTS sys_role (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='系统角色';
 
 -- ========== 用户角色关联 ==========
-CREATE TABLE IF NOT EXISTS sys_user_role (
+CREATE TABLE IF NOT EXISTS t_sys_user_role (
   id BIGINT AUTO_INCREMENT PRIMARY KEY,
   user_id BIGINT NOT NULL,
   role_id BIGINT NOT NULL,
@@ -91,7 +91,7 @@ CREATE TABLE IF NOT EXISTS sys_user_role (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='用户角色关联';
 
 -- ========== 系统通知 ==========
-CREATE TABLE IF NOT EXISTS notification (
+CREATE TABLE IF NOT EXISTS t_notification (
   id BIGINT AUTO_INCREMENT PRIMARY KEY,
   recipient_id BIGINT NOT NULL,
   recipient_type ENUM('ADMIN','MERCHANT','CONSUMER') NOT NULL DEFAULT 'ADMIN',

@@ -1,5 +1,5 @@
 -- 编号: 041, 描述: 添加团购记录表, 创建人: 阿坚, 日期: 2026-07-05
-CREATE TABLE IF NOT EXISTS group_buy_record (
+CREATE TABLE IF NOT EXISTS t_group_buy_record (
   id INT AUTO_INCREMENT PRIMARY KEY,
   group_no VARCHAR(32) NOT NULL UNIQUE COMMENT '团号',
   activity_id INT NOT NULL COMMENT '活动ID',

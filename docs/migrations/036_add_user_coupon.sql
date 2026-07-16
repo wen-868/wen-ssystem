@@ -1,5 +1,5 @@
 -- 编号: 036, 描述: 添加用户优惠券表, 创建人: 阿坚, 日期: 2026-07-05
-CREATE TABLE IF NOT EXISTS user_coupon (
+CREATE TABLE IF NOT EXISTS t_user_coupon (
   id INT AUTO_INCREMENT PRIMARY KEY,
   coupon_no VARCHAR(32) NOT NULL UNIQUE COMMENT '优惠券编号',
   template_id INT NOT NULL COMMENT '模板ID',

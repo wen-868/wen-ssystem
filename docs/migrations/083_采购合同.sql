@@ -1,5 +1,5 @@
 -- 编号: 083, 描述: 采购合同, 创建人: 阿坚, 日期: 2026-07-05
-CREATE TABLE IF NOT EXISTS purchase_contract (
+CREATE TABLE IF NOT EXISTS t_purchase_contract (
   id BIGINT AUTO_INCREMENT PRIMARY KEY,
   contract_no VARCHAR(32) NOT NULL COMMENT '合同编号',
   supplier_id BIGINT NOT NULL COMMENT '供应商ID',

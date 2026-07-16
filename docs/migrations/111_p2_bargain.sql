@@ -4,7 +4,7 @@
 -- ============================================
 
 -- 1. 砍价活动表
-CREATE TABLE IF NOT EXISTS `bargain_activity` (
+CREATE TABLE IF NOT EXISTS `t_bargain_activity` (
   `id` BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
   `activity_name` VARCHAR(200) NOT NULL COMMENT '活动名称',
   `activity_desc` VARCHAR(500) DEFAULT NULL COMMENT '活动描述',
@@ -31,7 +31,7 @@ CREATE TABLE IF NOT EXISTS `bargain_activity` (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='砍价活动表';
 
 -- 2. 砍价记录表
-CREATE TABLE IF NOT EXISTS `bargain_record` (
+CREATE TABLE IF NOT EXISTS `t_bargain_record` (
   `id` BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
   `activity_id` BIGINT UNSIGNED NOT NULL COMMENT '活动ID',
   `initiator_id` BIGINT NOT NULL COMMENT '发起人用户ID',
@@ -52,7 +52,7 @@ CREATE TABLE IF NOT EXISTS `bargain_record` (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='砍价记录表';
 
 -- 3. 帮砍记录表
-CREATE TABLE IF NOT EXISTS `bargain_help` (
+CREATE TABLE IF NOT EXISTS `t_bargain_help` (
   `id` BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
   `record_id` BIGINT UNSIGNED NOT NULL COMMENT '砍价记录ID',
   `helper_id` BIGINT NOT NULL COMMENT '帮砍人用户ID',

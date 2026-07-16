@@ -1,5 +1,5 @@
 -- 编号: 038, 描述: 添加满减规则表, 创建人: 阿坚, 日期: 2026-07-05
-CREATE TABLE IF NOT EXISTS full_reduction_rule (
+CREATE TABLE IF NOT EXISTS t_full_reduction_rule (
   id INT AUTO_INCREMENT PRIMARY KEY,
   activity_id INT NOT NULL COMMENT '活动ID',
   threshold_amount DECIMAL(10,2) NOT NULL COMMENT '满足金额阈值',

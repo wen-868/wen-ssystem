@@ -7,14 +7,14 @@
 -- ============================================================
 -- 第1步：删除旧表（如果存在）
 -- ============================================================
-DROP TABLE IF EXISTS sys_field_permission;
-DROP TABLE IF EXISTS sys_data_permission;
-DROP TABLE IF EXISTS sys_menu;
+DROP TABLE IF EXISTS t_sys_field_permission;
+DROP TABLE IF EXISTS t_sys_data_permission;
+DROP TABLE IF EXISTS t_sys_menu;
 
 -- ============================================================
 -- 第2步：新建菜单权限表
 -- ============================================================
-CREATE TABLE sys_menu (
+CREATE TABLE t_sys_menu (
   id BIGINT UNSIGNED NOT NULL AUTO_INCREMENT COMMENT '菜单ID',
   parent_id BIGINT UNSIGNED DEFAULT NULL COMMENT '父菜单ID，NULL=顶级菜单',
   menu_code VARCHAR(64) NOT NULL COMMENT '菜单编码，如 sale:order:view',
@@ -38,7 +38,7 @@ CREATE TABLE sys_menu (
 -- ============================================================
 -- 第3步：新建数据权限表（行级数据过滤规则）
 -- ============================================================
-CREATE TABLE sys_data_permission (
+CREATE TABLE t_sys_data_permission (
   id BIGINT UNSIGNED NOT NULL AUTO_INCREMENT COMMENT 'ID',
   role_id BIGINT UNSIGNED NOT NULL COMMENT '角色ID',
   table_name VARCHAR(64) NOT NULL COMMENT '表名',
@@ -56,7 +56,7 @@ CREATE TABLE sys_data_permission (
 -- ============================================================
 -- 第4步：新建字段权限表（字段可见性/可编辑性）
 -- ============================================================
-CREATE TABLE sys_field_permission (
+CREATE TABLE t_sys_field_permission (
   id BIGINT UNSIGNED NOT NULL AUTO_INCREMENT COMMENT 'ID',
   role_id BIGINT UNSIGNED NOT NULL COMMENT '角色ID',
   table_name VARCHAR(64) NOT NULL COMMENT '表名',
@@ -75,12 +75,12 @@ CREATE TABLE sys_field_permission (
 -- ============================================================
 
 -- 清理旧角色
-DELETE FROM sys_role_permission WHERE tenant_id = 'default';
-DELETE FROM sys_user_role WHERE tenant_id = 'default';
-DELETE FROM sys_role WHERE tenant_id = 'default';
+DELETE FROM t_sys_role_permission WHERE tenant_id = 'default';
+DELETE FROM t_sys_user_role WHERE tenant_id = 'default';
+DELETE FROM t_sys_role WHERE tenant_id = 'default';
 
 -- 插入8角色（status 字段为 TINYINT，使用 1 而非 'ACTIVE'）
-INSERT INTO sys_role (id, role_code, role_name, description, data_scope, permissions, status, tenant_id) VALUES
+INSERT INTO t_sys_role (id, role_code, role_name, description, data_scope, permissions, status, tenant_id) VALUES
 (1, 'SUPER_ADMIN', '超级管理员', '拥有系统全部权限，可管理所有租户和门店', 'ALL', '["*"]', 1, 'default'),
 (2, 'STORE_MANAGER', '门店店长', '管理本门店的销售、库存、客户、员工', 'STORE', '["store:*","sale:*","customer:*","inventory:*","report:*","dashboard:*"]', 1, 'default'),
 (3, 'SALES_STAFF', '销售员', '负责线下销售开单、客户管理、客户拜访', 'SELF', '["sale:create","sale:view","customer:view","customer:visit","dashboard:view"]', 1, 'default'),
@@ -95,7 +95,7 @@ INSERT INTO sys_role (id, role_code, role_name, description, data_scope, permiss
 -- ============================================================
 
 -- 一级目录
-INSERT INTO sys_menu (id, parent_id, menu_code, menu_name, menu_type, path, icon, sort_no, tenant_id) VALUES
+INSERT INTO t_sys_menu (id, parent_id, menu_code, menu_name, menu_type, path, icon, sort_no, tenant_id) VALUES
 (1,  NULL, 'dashboard',      '仪表盘',   'CATALOG', '/dashboard',      'dashboard',     1, 'default'),
 (10, NULL, 'goods',          '商品管理', 'CATALOG', '/goods',          'shopping',      2, 'default'),
 (20, NULL, 'sale',           '销售管理', 'CATALOG', '/sale',           'sell',          3, 'default'),
@@ -109,11 +109,11 @@ INSERT INTO sys_menu (id, parent_id, menu_code, menu_name, menu_type, path, icon
 (100,NULL, 'system',         '系统管理', 'CATALOG', '/system',         'setting',       11, 'default');
 
 -- 二级菜单 - 仪表盘
-INSERT INTO sys_menu (id, parent_id, menu_code, menu_name, menu_type, path, icon, sort_no, tenant_id) VALUES
+INSERT INTO t_sys_menu (id, parent_id, menu_code, menu_name, menu_type, path, icon, sort_no, tenant_id) VALUES
 (1, 1, 'dashboard:workbench', '工作台', 'MENU', '/dashboard/workbench', NULL, 1, 'default');
 
 -- 二级菜单 - 商品管理
-INSERT INTO sys_menu (id, parent_id, menu_code, menu_name, menu_type, path, icon, sort_no, tenant_id) VALUES
+INSERT INTO t_sys_menu (id, parent_id, menu_code, menu_name, menu_type, path, icon, sort_no, tenant_id) VALUES
 (10, 10, 'goods:list',      '商品列表', 'MENU', '/goods/list',      NULL, 1, 'default'),
 (11, 10, 'goods:category',  '商品分类', 'MENU', '/goods/category',  NULL, 2, 'default'),
 (12, 10, 'goods:price-level', '价格等级', 'MENU', '/goods/price-level', NULL, 3, 'default'),
@@ -123,7 +123,7 @@ INSERT INTO sys_menu (id, parent_id, menu_code, menu_name, menu_type, path, icon
 (16, 10, 'goods:ledger',    '库存流水', 'MENU', '/goods/ledger',    NULL, 7, 'default');
 
 -- 二级菜单 - 销售管理
-INSERT INTO sys_menu (id, parent_id, menu_code, menu_name, menu_type, path, icon, sort_no, tenant_id) VALUES
+INSERT INTO t_sys_menu (id, parent_id, menu_code, menu_name, menu_type, path, icon, sort_no, tenant_id) VALUES
 (20, 20, 'sale:bill',       '销售开单', 'MENU', '/sale/bill',       NULL, 1, 'default'),
 (21, 20, 'sale:record',     '销售记录', 'MENU', '/sale/record',     NULL, 2, 'default'),
 (22, 20, 'sale:return',     '销售退货', 'MENU', '/sale/return',     NULL, 3, 'default'),
@@ -131,7 +131,7 @@ INSERT INTO sys_menu (id, parent_id, menu_code, menu_name, menu_type, path, icon
 (24, 20, 'sale:cart',       '购物车管理', 'MENU', '/sale/cart',     NULL, 5, 'default');
 
 -- 二级菜单 - 采购管理
-INSERT INTO sys_menu (id, parent_id, menu_code, menu_name, menu_type, path, icon, sort_no, tenant_id) VALUES
+INSERT INTO t_sys_menu (id, parent_id, menu_code, menu_name, menu_type, path, icon, sort_no, tenant_id) VALUES
 (30, 30, 'purchase:order',  '采购订单', 'MENU', '/purchase/order',  NULL, 1, 'default'),
 (31, 30, 'purchase:inbound','采购入库', 'MENU', '/purchase/inbound',NULL, 2, 'default'),
 (32, 30, 'purchase:return', '采购退货', 'MENU', '/purchase/return', NULL, 3, 'default'),
@@ -139,7 +139,7 @@ INSERT INTO sys_menu (id, parent_id, menu_code, menu_name, menu_type, path, icon
 (34, 30, 'purchase:supplier','供应商管理','MENU', '/purchase/supplier',NULL, 5, 'default');
 
 -- 二级菜单 - 客户管理
-INSERT INTO sys_menu (id, parent_id, menu_code, menu_name, menu_type, path, icon, sort_no, tenant_id) VALUES
+INSERT INTO t_sys_menu (id, parent_id, menu_code, menu_name, menu_type, path, icon, sort_no, tenant_id) VALUES
 (40, 40, 'customer:list',      '客户列表', 'MENU', '/customer/list',      NULL, 1, 'default'),
 (41, 40, 'customer:credit',    '客户授信', 'MENU', '/customer/credit',    NULL, 2, 'default'),
 (42, 40, 'customer:statement', '客户对账', 'MENU', '/customer/statement', NULL, 3, 'default'),
@@ -147,7 +147,7 @@ INSERT INTO sys_menu (id, parent_id, menu_code, menu_name, menu_type, path, icon
 (44, 40, 'customer:payment',   '客户收款', 'MENU', '/customer/payment',   NULL, 5, 'default');
 
 -- 二级菜单 - 财务管理
-INSERT INTO sys_menu (id, parent_id, menu_code, menu_name, menu_type, path, icon, sort_no, tenant_id) VALUES
+INSERT INTO t_sys_menu (id, parent_id, menu_code, menu_name, menu_type, path, icon, sort_no, tenant_id) VALUES
 (50, 50, 'finance:receipt',    '收款管理', 'MENU', '/finance/receipt',    NULL, 1, 'default'),
 (51, 50, 'finance:payment',    '付款管理', 'MENU', '/finance/payment',    NULL, 2, 'default'),
 (52, 50, 'finance:statement',  '对账管理', 'MENU', '/finance/statement',  NULL, 3, 'default'),
@@ -155,7 +155,7 @@ INSERT INTO sys_menu (id, parent_id, menu_code, menu_name, menu_type, path, icon
 (54, 50, 'finance:report',     '财务报表', 'MENU', '/finance/report',     NULL, 5, 'default');
 
 -- 二级菜单 - 营销管理
-INSERT INTO sys_menu (id, parent_id, menu_code, menu_name, menu_type, path, icon, sort_no, tenant_id) VALUES
+INSERT INTO t_sys_menu (id, parent_id, menu_code, menu_name, menu_type, path, icon, sort_no, tenant_id) VALUES
 (60, 60, 'marketing:coupon',     '优惠券',   'MENU', '/marketing/coupon',     NULL, 1, 'default'),
 (61, 60, 'marketing:full-reduction', '满减活动', 'MENU', '/marketing/full-reduction', NULL, 2, 'default'),
 (62, 60, 'marketing:flash-sale', '秒杀活动', 'MENU', '/marketing/flash-sale', NULL, 3, 'default'),
@@ -163,21 +163,21 @@ INSERT INTO sys_menu (id, parent_id, menu_code, menu_name, menu_type, path, icon
 (64, 60, 'marketing:points',     '积分管理', 'MENU', '/marketing/points',     NULL, 5, 'default');
 
 -- 二级菜单 - 门店管理
-INSERT INTO sys_menu (id, parent_id, menu_code, menu_name, menu_type, path, icon, sort_no, tenant_id) VALUES
+INSERT INTO t_sys_menu (id, parent_id, menu_code, menu_name, menu_type, path, icon, sort_no, tenant_id) VALUES
 (70, 70, 'store:list',     '门店列表', 'MENU', '/store/list',     NULL, 1, 'default'),
 (71, 70, 'store:control',  '门店管控', 'MENU', '/store/control',  NULL, 2, 'default'),
 (72, 70, 'store:transfer', '调拨管理', 'MENU', '/store/transfer', NULL, 3, 'default'),
 (73, 70, 'store:stock-check','盘点管理','MENU', '/store/stock-check',NULL, 4, 'default');
 
 -- 二级菜单 - 追溯管理
-INSERT INTO sys_menu (id, parent_id, menu_code, menu_name, menu_type, path, icon, sort_no, tenant_id) VALUES
+INSERT INTO t_sys_menu (id, parent_id, menu_code, menu_name, menu_type, path, icon, sort_no, tenant_id) VALUES
 (80, 80, 'trace:config',  '追溯配置', 'MENU', '/trace/config',  NULL, 1, 'default'),
 (81, 80, 'trace:code',    '追溯码管理','MENU', '/trace/code',    NULL, 2, 'default'),
 (82, 80, 'trace:scan',    '扫码记录', 'MENU', '/trace/scan',    NULL, 3, 'default'),
 (83, 80, 'trace:recall',  '召回管理', 'MENU', '/trace/recall',  NULL, 4, 'default');
 
 -- 二级菜单 - 报表中心
-INSERT INTO sys_menu (id, parent_id, menu_code, menu_name, menu_type, path, icon, sort_no, tenant_id) VALUES
+INSERT INTO t_sys_menu (id, parent_id, menu_code, menu_name, menu_type, path, icon, sort_no, tenant_id) VALUES
 (90, 90, 'report:sales',    '销售报表', 'MENU', '/report/sales',    NULL, 1, 'default'),
 (91, 90, 'report:product',  '商品报表', 'MENU', '/report/product',  NULL, 2, 'default'),
 (92, 90, 'report:finance',  '财务报表', 'MENU', '/report/finance',  NULL, 3, 'default'),
@@ -185,7 +185,7 @@ INSERT INTO sys_menu (id, parent_id, menu_code, menu_name, menu_type, path, icon
 (94, 90, 'report:staff',    '员工报表', 'MENU', '/report/staff',    NULL, 5, 'default');
 
 -- 二级菜单 - 系统管理
-INSERT INTO sys_menu (id, parent_id, menu_code, menu_name, menu_type, path, icon, sort_no, tenant_id) VALUES
+INSERT INTO t_sys_menu (id, parent_id, menu_code, menu_name, menu_type, path, icon, sort_no, tenant_id) VALUES
 (100, 100, 'system:user',         '用户管理', 'MENU', '/system/user',         NULL, 1, 'default'),
 (101, 100, 'system:role',         '角色管理', 'MENU', '/system/role',         NULL, 2, 'default'),
 (102, 100, 'system:tenant',       '租户管理', 'MENU', '/system/tenant',       NULL, 3, 'default'),
@@ -195,7 +195,7 @@ INSERT INTO sys_menu (id, parent_id, menu_code, menu_name, menu_type, path, icon
 (106, 100, 'system:approval',     '审批管理', 'MENU', '/system/approval',     NULL, 7, 'default');
 
 -- 按钮权限
-INSERT INTO sys_menu (id, parent_id, menu_code, menu_name, menu_type, sort_no, tenant_id) VALUES
+INSERT INTO t_sys_menu (id, parent_id, menu_code, menu_name, menu_type, sort_no, tenant_id) VALUES
 (200, 10,  'goods:create', '新增商品', 'BUTTON', 1, 'default'),
 (201, 10,  'goods:edit',   '编辑商品', 'BUTTON', 2, 'default'),
 (202, 10,  'goods:delete', '删除商品', 'BUTTON', 3, 'default'),
@@ -223,26 +223,26 @@ INSERT INTO sys_menu (id, parent_id, menu_code, menu_name, menu_type, sort_no, t
 -- ============================================================
 
 -- 门店店长：只能看自己门店的数据
-INSERT INTO sys_data_permission (role_id, table_name, field_name, condition_type, condition_value, description, tenant_id) VALUES
+INSERT INTO t_sys_data_permission (role_id, table_name, field_name, condition_type, condition_value, description, tenant_id) VALUES
 (2, 'sale_bill', 'store_id', 'OWN', 'current_user.store_id', '门店店长只能查看本门店销售单', 'default'),
 (2, 'inventory_balance', 'store_id', 'OWN', 'current_user.store_id', '门店店长只能查看本门店库存', 'default'),
 (2, 'member', 'staff_id', 'OWN', 'current_user.store_id', '门店店长只能查看本门店客户', 'default'),
 (2, 'sys_user', 'store_id', 'OWN', 'current_user.store_id', '门店店长只能查看本门店员工', 'default');
 
 -- 销售员：只能看自己的销售数据和客户
-INSERT INTO sys_data_permission (role_id, table_name, field_name, condition_type, condition_value, description, tenant_id) VALUES
+INSERT INTO t_sys_data_permission (role_id, table_name, field_name, condition_type, condition_value, description, tenant_id) VALUES
 (3, 'sale_bill', 'operator_id', 'OWN', 'current_user.id', '销售员只能查看自己开的单', 'default'),
 (3, 'member', 'staff_id', 'OWN', 'current_user.id', '销售员只能查看自己的客户', 'default'),
 (3, 'customer_visit', 'id', 'OWN', 'current_user.id', '销售员只能查看自己的拜访记录', 'default');
 
 -- 仓管员：只能看自己门店的库存
-INSERT INTO sys_data_permission (role_id, table_name, field_name, condition_type, condition_value, description, tenant_id) VALUES
+INSERT INTO t_sys_data_permission (role_id, table_name, field_name, condition_type, condition_value, description, tenant_id) VALUES
 (5, 'inventory_balance', 'store_id', 'OWN', 'current_user.store_id', '仓管员只能查看本门店库存', 'default'),
 (5, 'inventory_batch', 'store_id', 'OWN', 'current_user.store_id', '仓管员只能查看本门店批次', 'default'),
 (5, 'purchase_in_stock', 'store_id', 'OWN', 'current_user.store_id', '仓管员只能查看本门店入库', 'default');
 
 -- 客服：只能看自己门店的客户和订单
-INSERT INTO sys_data_permission (role_id, table_name, field_name, condition_type, condition_value, description, tenant_id) VALUES
+INSERT INTO t_sys_data_permission (role_id, table_name, field_name, condition_type, condition_value, description, tenant_id) VALUES
 (7, 'member', 'store_id', 'OWN', 'current_user.store_id', '客服只能查看本门店客户', 'default'),
 (7, 'miniapp_order', 'store_id', 'OWN', 'current_user.store_id', '客服只能查看本门店订单', 'default');
 
@@ -251,7 +251,7 @@ INSERT INTO sys_data_permission (role_id, table_name, field_name, condition_type
 -- ============================================================
 
 -- 价格敏感字段：批发价、成本价仅管理员/财务/采购可见
-INSERT INTO sys_field_permission (role_id, table_name, field_name, permission_type, description, tenant_id) VALUES
+INSERT INTO t_sys_field_permission (role_id, table_name, field_name, permission_type, description, tenant_id) VALUES
 (3, 'product_price', 'wholesale_price', 'HIDDEN', '销售员不可见批发价', 'default'),
 (3, 'product_price', 'cost_price', 'HIDDEN', '销售员不可见成本价', 'default'),
 (3, 'sku_price', 'cost_price', 'HIDDEN', '销售员不可见成本价', 'default'),
@@ -262,15 +262,15 @@ INSERT INTO sys_field_permission (role_id, table_name, field_name, permission_ty
 (8, 'product_price', 'cost_price', 'HIDDEN', '只读用户不可见成本价', 'default');
 
 -- 只读用户：所有数据只读
-INSERT INTO sys_field_permission (role_id, table_name, field_name, permission_type, description, tenant_id) VALUES
+INSERT INTO t_sys_field_permission (role_id, table_name, field_name, permission_type, description, tenant_id) VALUES
 (8, '*', '*', 'READONLY', '只读用户不可编辑任何数据', 'default');
 
 -- 销售员：sale_bill 的 internal_remark 不可见
-INSERT INTO sys_field_permission (role_id, table_name, field_name, permission_type, description, tenant_id) VALUES
+INSERT INTO t_sys_field_permission (role_id, table_name, field_name, permission_type, description, tenant_id) VALUES
 (3, 'sale_bill', 'internal_remark', 'HIDDEN', '销售员不可见内部备注', 'default');
 
 -- 门店报表：门店店长不可见其他门店的销售数据字段
-INSERT INTO sys_field_permission (role_id, table_name, field_name, permission_type, description, tenant_id) VALUES
+INSERT INTO t_sys_field_permission (role_id, table_name, field_name, permission_type, description, tenant_id) VALUES
 (2, 'report', 'other_store_sales', 'HIDDEN', '门店店长不可见其他门店销售数据', 'default');
 
 SELECT '8角色权限矩阵初始化完成' AS result;

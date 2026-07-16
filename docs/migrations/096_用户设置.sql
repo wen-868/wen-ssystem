@@ -5,11 +5,11 @@
 -- --------------------------------------------------------------------------
 
 -- 添加 default_homepage 字段到 sys_user 表
-ALTER TABLE sys_user
+ALTER TABLE t_sys_user
 ADD COLUMN default_homepage VARCHAR(32) DEFAULT NULL COMMENT '用户默认首页：/admin 管理后台，/cashier 收银台';
 
 -- 添加索引
-ALTER TABLE sys_user
+ALTER TABLE t_sys_user
 ADD KEY idx_sys_user_default_homepage (default_homepage);
 
 -- --------------------------------------------------------------------------

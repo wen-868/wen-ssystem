@@ -1,5 +1,5 @@
 -- 编号: 055, 描述: 添加积分商城商品表, 创建人: 阿坚, 日期: 2026-07-05
-CREATE TABLE IF NOT EXISTS points_mall_item (
+CREATE TABLE IF NOT EXISTS t_points_mall_item (
   id BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
   name VARCHAR(128) NOT NULL COMMENT '商品名称',
   image VARCHAR(255) DEFAULT NULL COMMENT '商品图片',

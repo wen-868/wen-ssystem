@@ -7,9 +7,9 @@
 
 USE liquor_inventory;
 
-DROP TABLE IF EXISTS sys_config;
+DROP TABLE IF EXISTS t_sys_config;
 
-CREATE TABLE sys_config (
+CREATE TABLE t_sys_config (
   id BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
   config_key VARCHAR(128) NOT NULL COMMENT '配置键',
   config_value TEXT COMMENT '配置值（敏感字段加密存储）',
@@ -24,7 +24,7 @@ CREATE TABLE sys_config (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='系统配置表';
 
 -- 默认配置
-INSERT INTO sys_config (config_key, config_value, config_group, is_encrypted, description) VALUES
+INSERT INTO t_sys_config (config_key, config_value, config_group, is_encrypted, description) VALUES
 ('enterprise_name', '智享酒水', 'enterprise', 0, '企业名称'),
 ('enterprise_logo', '', 'enterprise', 0, '企业Logo URL'),
 ('enterprise_phone', '', 'enterprise', 0, '联系电话'),

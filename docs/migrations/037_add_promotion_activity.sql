@@ -1,5 +1,5 @@
 -- 编号: 037, 描述: 添加促销活动表, 创建人: 阿坚, 日期: 2026-07-05
-CREATE TABLE IF NOT EXISTS promotion_activity (
+CREATE TABLE IF NOT EXISTS t_promotion_activity (
   id INT AUTO_INCREMENT PRIMARY KEY,
   activity_code VARCHAR(32) NOT NULL UNIQUE COMMENT '活动编码',
   activity_name VARCHAR(128) NOT NULL COMMENT '活动名称',

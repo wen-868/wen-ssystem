@@ -11,10 +11,10 @@ SET FOREIGN_KEY_CHECKS = 0;
 
 -- ========== 供应商管理 ==========
 
-DROP TABLE IF EXISTS supplier;
-DROP TABLE IF EXISTS supplier_contact;
+DROP TABLE IF EXISTS t_supplier;
+DROP TABLE IF EXISTS t_supplier_contact;
 
-CREATE TABLE supplier (
+CREATE TABLE t_supplier (
   id BIGINT UNSIGNED NOT NULL AUTO_INCREMENT COMMENT '供应商ID',
   supplier_code VARCHAR(64) NOT NULL COMMENT '供应商编码',
   name VARCHAR(128) NOT NULL COMMENT '供应商名称',
@@ -41,7 +41,7 @@ CREATE TABLE supplier (
   KEY idx_supplier_status (status)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='供应商表';
 
-CREATE TABLE supplier_contact (
+CREATE TABLE t_supplier_contact (
   id BIGINT UNSIGNED NOT NULL AUTO_INCREMENT COMMENT '联系人ID',
   supplier_id BIGINT UNSIGNED NOT NULL COMMENT '供应商ID',
   name VARCHAR(64) NOT NULL COMMENT '联系人姓名',
@@ -61,15 +61,15 @@ CREATE TABLE supplier_contact (
 
 -- ========== 采购管理 ==========
 
-DROP TABLE IF EXISTS purchase_order;
-DROP TABLE IF EXISTS purchase_order_item;
-DROP TABLE IF EXISTS purchase_in_stock;
-DROP TABLE IF EXISTS purchase_in_stock_item;
-DROP TABLE IF EXISTS purchase_return;
-DROP TABLE IF EXISTS purchase_return_item;
-DROP TABLE IF EXISTS purchase_payment;
+DROP TABLE IF EXISTS t_purchase_order;
+DROP TABLE IF EXISTS t_purchase_order_item;
+DROP TABLE IF EXISTS t_purchase_in_stock;
+DROP TABLE IF EXISTS t_purchase_in_stock_item;
+DROP TABLE IF EXISTS t_purchase_return;
+DROP TABLE IF EXISTS t_purchase_return_item;
+DROP TABLE IF EXISTS t_purchase_payment;
 
-CREATE TABLE purchase_order (
+CREATE TABLE t_purchase_order (
   id BIGINT UNSIGNED NOT NULL AUTO_INCREMENT COMMENT '采购订单ID',
   order_no VARCHAR(64) NOT NULL COMMENT '采购订单号',
   supplier_id BIGINT UNSIGNED NOT NULL COMMENT '供应商ID',
@@ -97,7 +97,7 @@ CREATE TABLE purchase_order (
   KEY idx_purchase_order_created_at (created_at)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='采购订单表';
 
-CREATE TABLE purchase_order_item (
+CREATE TABLE t_purchase_order_item (
   id BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
   order_no VARCHAR(64) NOT NULL COMMENT '采购订单号',
   sku_id BIGINT UNSIGNED NOT NULL COMMENT 'SKU ID',
@@ -119,7 +119,7 @@ CREATE TABLE purchase_order_item (
   KEY idx_purchase_order_item_sku_id (sku_id)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='采购订单明细表';
 
-CREATE TABLE purchase_in_stock (
+CREATE TABLE t_purchase_in_stock (
   id BIGINT UNSIGNED NOT NULL AUTO_INCREMENT COMMENT '采购入库单ID',
   stock_no VARCHAR(64) NOT NULL COMMENT '入库单号',
   order_no VARCHAR(64) DEFAULT NULL COMMENT '关联采购订单号',
@@ -143,7 +143,7 @@ CREATE TABLE purchase_in_stock (
   KEY idx_purchase_in_stock_created_at (created_at)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='采购入库单表';
 
-CREATE TABLE purchase_in_stock_item (
+CREATE TABLE t_purchase_in_stock_item (
   id BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
   stock_no VARCHAR(64) NOT NULL COMMENT '入库单号',
   sku_id BIGINT UNSIGNED NOT NULL COMMENT 'SKU ID',
@@ -166,7 +166,7 @@ CREATE TABLE purchase_in_stock_item (
   KEY idx_purchase_in_stock_item_sku_id (sku_id)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='采购入库单明细表';
 
-CREATE TABLE purchase_return (
+CREATE TABLE t_purchase_return (
   id BIGINT UNSIGNED NOT NULL AUTO_INCREMENT COMMENT '采购退货单ID',
   return_no VARCHAR(64) NOT NULL COMMENT '退货单号',
   order_no VARCHAR(64) DEFAULT NULL COMMENT '关联采购订单号',
@@ -192,7 +192,7 @@ CREATE TABLE purchase_return (
   KEY idx_purchase_return_created_at (created_at)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='采购退货单表';
 
-CREATE TABLE purchase_return_item (
+CREATE TABLE t_purchase_return_item (
   id BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
   return_no VARCHAR(64) NOT NULL COMMENT '退货单号',
   sku_id BIGINT UNSIGNED NOT NULL COMMENT 'SKU ID',
@@ -212,7 +212,7 @@ CREATE TABLE purchase_return_item (
   KEY idx_purchase_return_item_sku_id (sku_id)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='采购退货单明细表';
 
-CREATE TABLE purchase_payment (
+CREATE TABLE t_purchase_payment (
   id BIGINT UNSIGNED NOT NULL AUTO_INCREMENT COMMENT '采购付款单ID',
   payment_no VARCHAR(64) NOT NULL COMMENT '付款单号',
   supplier_id BIGINT UNSIGNED NOT NULL COMMENT '供应商ID',
@@ -241,10 +241,10 @@ CREATE TABLE purchase_payment (
 
 -- ========== 客户往来账 ==========
 
-DROP TABLE IF EXISTS customer_statement;
-DROP TABLE IF EXISTS customer_payment;
+DROP TABLE IF EXISTS t_customer_statement;
+DROP TABLE IF EXISTS t_customer_payment;
 
-CREATE TABLE customer_statement (
+CREATE TABLE t_customer_statement (
   id BIGINT UNSIGNED NOT NULL AUTO_INCREMENT COMMENT '对账单ID',
   statement_no VARCHAR(64) NOT NULL COMMENT '对账单号',
   customer_id BIGINT UNSIGNED NOT NULL COMMENT '客户ID',
@@ -270,7 +270,7 @@ CREATE TABLE customer_statement (
   KEY idx_customer_statement_period (start_date, end_date)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='客户对账单表';
 
-CREATE TABLE customer_payment (
+CREATE TABLE t_customer_payment (
   id BIGINT UNSIGNED NOT NULL AUTO_INCREMENT COMMENT '客户收款单ID',
   receipt_no VARCHAR(64) NOT NULL COMMENT '收款单号',
   customer_id BIGINT UNSIGNED NOT NULL COMMENT '客户ID',
@@ -296,16 +296,16 @@ CREATE TABLE customer_payment (
 -- ========== 快速开单相关扩展 ==========
 
 -- 销售单扩展字段（赊销支持）
-ALTER TABLE sale_bill
+ALTER TABLE t_sale_bill
   ADD COLUMN IF NOT EXISTS sale_type VARCHAR(32) NOT NULL DEFAULT 'CASH' COMMENT '销售类型：CASH(现销)/CREDIT(赊销)' AFTER customer_type,
   ADD COLUMN IF NOT EXISTS due_date DATE DEFAULT NULL COMMENT '应收截止日期（赊销时）' AFTER collection_status,
   ADD COLUMN IF NOT EXISTS statement_id BIGINT UNSIGNED DEFAULT NULL COMMENT '关联对账单ID' AFTER due_date;
 
 -- 销售退货单
-DROP TABLE IF EXISTS sale_return;
-DROP TABLE IF EXISTS sale_return_item;
+DROP TABLE IF EXISTS t_sale_return;
+DROP TABLE IF EXISTS t_sale_return_item;
 
-CREATE TABLE sale_return (
+CREATE TABLE t_sale_return (
   id BIGINT UNSIGNED NOT NULL AUTO_INCREMENT COMMENT '销售退货单ID',
   return_no VARCHAR(64) NOT NULL COMMENT '退货单号',
   source_bill_no VARCHAR(64) DEFAULT NULL COMMENT '关联销售单号',
@@ -332,7 +332,7 @@ CREATE TABLE sale_return (
   KEY idx_sale_return_created_at (created_at)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='销售退货单表';
 
-CREATE TABLE sale_return_item (
+CREATE TABLE t_sale_return_item (
   id BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
   return_no VARCHAR(64) NOT NULL COMMENT '退货单号',
   sku_id BIGINT UNSIGNED NOT NULL COMMENT 'SKU ID',
@@ -350,9 +350,9 @@ CREATE TABLE sale_return_item (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='销售退货单明细表';
 
 -- 销售收款单（线下销售收款）
-DROP TABLE IF EXISTS sale_payment;
+DROP TABLE IF EXISTS t_sale_payment;
 
-CREATE TABLE sale_payment (
+CREATE TABLE t_sale_payment (
   id BIGINT UNSIGNED NOT NULL AUTO_INCREMENT COMMENT '销售收款单ID',
   receipt_no VARCHAR(64) NOT NULL COMMENT '收款单号',
   source_type VARCHAR(32) NOT NULL COMMENT '来源类型：SALE_BILL/SALE_RETURN/STATEMENT',

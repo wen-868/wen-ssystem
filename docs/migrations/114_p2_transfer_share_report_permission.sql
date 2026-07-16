@@ -7,7 +7,7 @@
 
 -- ========== 1. 完善调拨单表 ==========
 -- 补充现有 transfer_order 表缺失的字段（与现有service代码对齐）
-ALTER TABLE transfer_order
+ALTER TABLE t_transfer_order
   ADD COLUMN IF NOT EXISTS `status` VARCHAR(20) NOT NULL DEFAULT 'DRAFT' COMMENT '状态：DRAFT=草稿 PENDING=待审核 APPROVED=已审核 TRANSIT=运输中 RECEIVED=已完成 CANCELLED=已取消' AFTER `to_store_id`,
   ADD COLUMN IF NOT EXISTS `expected_date` DATE DEFAULT NULL COMMENT '预计到货日期' AFTER `status`,
   ADD COLUMN IF NOT EXISTS `total_amount` DECIMAL(12,2) NOT NULL DEFAULT 0.00 COMMENT '调拨总金额' AFTER `expected_date`,
@@ -27,14 +27,14 @@ ALTER TABLE transfer_order
 
 -- ========== 2. 完善调拨单明细表 ==========
 -- 补充现有 transfer_order_item 表缺失的字段
-ALTER TABLE transfer_order_item
+ALTER TABLE t_transfer_order_item
   ADD COLUMN IF NOT EXISTS `transfer_order_id` BIGINT NOT NULL DEFAULT 0 COMMENT '调拨单ID' AFTER `id`,
   ADD COLUMN IF NOT EXISTS `sku_name` VARCHAR(128) NOT NULL DEFAULT '' COMMENT 'SKU名称' AFTER `sku_id`,
   ADD COLUMN IF NOT EXISTS `quantity` INT NOT NULL DEFAULT 0 COMMENT '数量' AFTER `sku_name`,
   ADD COLUMN IF NOT EXISTS `subtotal` DECIMAL(12,2) NOT NULL DEFAULT 0.00 COMMENT '小计金额' AFTER `unit_price`;
 
 -- ========== 3. 库存共享设置表 ==========
-CREATE TABLE IF NOT EXISTS `inventory_share_setting` (
+CREATE TABLE IF NOT EXISTS `t_inventory_share_setting` (
   `id` INT NOT NULL AUTO_INCREMENT,
   `share_enabled` TINYINT(1) NOT NULL DEFAULT 0 COMMENT '是否启用库存共享：0=否 1=是',
   `auto_transfer` TINYINT(1) NOT NULL DEFAULT 0 COMMENT '是否自动调拨：0=否 1=是',
@@ -49,7 +49,7 @@ CREATE TABLE IF NOT EXISTS `inventory_share_setting` (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='库存共享设置表';
 
 -- ========== 4. 库存共享商品表 ==========
-CREATE TABLE IF NOT EXISTS `inventory_share_product` (
+CREATE TABLE IF NOT EXISTS `t_inventory_share_product` (
   `id` INT NOT NULL AUTO_INCREMENT,
   `spu_id` INT NOT NULL COMMENT 'SPU ID',
   `spu_name` VARCHAR(128) NOT NULL COMMENT 'SPU名称',
@@ -71,7 +71,7 @@ CREATE TABLE IF NOT EXISTS `inventory_share_product` (
 
 -- ========== 5. 扩展报表权限矩阵表 ==========
 -- 增加查看/导出权限字段
-ALTER TABLE report_permission_matrix
+ALTER TABLE t_report_permission_matrix
   ADD COLUMN IF NOT EXISTS `can_view` TINYINT(1) NOT NULL DEFAULT 1 COMMENT '是否可查看：0=否 1=是' AFTER `store_scope`,
   ADD COLUMN IF NOT EXISTS `can_export` TINYINT(1) NOT NULL DEFAULT 0 COMMENT '是否可导出：0=否 1=是' AFTER `can_view`,
   ADD COLUMN IF NOT EXISTS `tenant_id` VARCHAR(64) NOT NULL DEFAULT '' COMMENT '租户ID' AFTER `can_export`,
@@ -82,7 +82,7 @@ ALTER TABLE report_permission_matrix
 -- （由于不同MySQL版本语法差异，此处用安全的做法：先检查再添加）
 
 -- ========== 6. 报表权限审计日志表 ==========
-CREATE TABLE IF NOT EXISTS `report_permission_audit_log` (
+CREATE TABLE IF NOT EXISTS `t_report_permission_audit_log` (
   `id` BIGINT NOT NULL AUTO_INCREMENT,
   `operator_id` BIGINT DEFAULT NULL COMMENT '操作人ID',
   `operator_name` VARCHAR(64) DEFAULT NULL COMMENT '操作人姓名',

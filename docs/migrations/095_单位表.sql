@@ -1,7 +1,7 @@
 -- 编号: 095, 描述: 单位表, 创建人: 阿坚, 日期: 2026-07-05
 -- 日期：2026-06-28
 
-CREATE TABLE IF NOT EXISTS unit (
+CREATE TABLE IF NOT EXISTS t_unit (
   id BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
   name VARCHAR(32) NOT NULL COMMENT '单位名称（瓶/箱/件/桶）',
   code VARCHAR(32) NOT NULL COMMENT '单位编码',
