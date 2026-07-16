@@ -83,7 +83,7 @@ async function databaseChecks() {
     }
 
     const countChecks = [
-      ["默认账号 >= 1", "SELECT COUNT(*) AS count FROM sys_user"],
+      ["默认账号 >= 1", "SELECT COUNT(*) AS count FROM t_sys_user"],
       ["默认门店 >= 1", "SELECT COUNT(*) AS count FROM store"],
       ["默认商品 >= 1", "SELECT COUNT(*) AS count FROM product_sku"],
       ["默认库存 >= 1", "SELECT COUNT(*) AS count FROM inventory_balance"]
@@ -107,7 +107,7 @@ async function apiChecks() {
 
   const login = await request("/api/admin/auth/login", {
     method: "POST",
-    body: { username: "admin", password: "admin123" }
+    body: { username: "admin", password: "Admin@2026" }
   });
   const token = login.body?.data?.token;
   check("管理后台登录", login.status === 200 && login.body?.code === "0" && Boolean(token));
@@ -116,7 +116,7 @@ async function apiChecks() {
   const products = await request("/api/admin/products", { headers: auth });
   check("管理后台商品列表", products.body?.code === "0" && Array.isArray(products.body?.data?.records));
 
-  const dashboard = await request("/api/admin/reports/dashboard", { headers: auth });
+  const dashboard = await request("/api/admin/dashboard", { headers: auth });
   check("管理后台看板", dashboard.body?.code === "0" && dashboard.body?.data);
 
   const miniProducts = await request("/api/miniapp/products?storeId=1");
@@ -152,9 +152,9 @@ async function apiChecks() {
 
   const extraGetChecks = [
     ["后台支付记录", "/api/admin/payment-orders"],
-    ["后台库存总览", "/api/admin/inventory/balances"],
-    ["后台库存流水", "/api/admin/inventory/logs"],
-    ["后台库存预警", "/api/admin/inventory/alerts"],
+    ["后台库存总览", "/api/admin/inventory-balance"],
+    ["后台库存流水", "/api/admin/inventory-logs"],
+    ["后台库存预警", "/api/admin/inventory-alerts"],
     ["门店支付记录", "/api/store/payment-orders?storeId=1"],
     ["门店库存流水", "/api/store/inventory/logs?storeId=1"],
     ["门店库存预警", "/api/store/inventory/alerts?storeId=1"]

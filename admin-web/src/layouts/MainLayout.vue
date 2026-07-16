@@ -280,7 +280,7 @@
             @click="toggleCashierMode"
           >
             <el-icon><ArrowLeft /></el-icon>
-            返回管理后台
+            返回工作台
           </el-button>
           <h2 class="cashier-title">快速收银台</h2>
           <div class="cashier-date">{{ formatDate(new Date()) }}</div>
@@ -375,7 +375,7 @@ function toggleGroup(group: keyof typeof openGroups) {
 
 const pageTitle = computed(() => {
   const titles: Record<string, string> = {
-    "/dashboard": "工作总台",
+    "/dashboard": "工作台",
     "/todo-list": "待办提醒",
     "/quick-entries": "快捷入口",
     "/messages": "消息中心",

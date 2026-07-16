@@ -3,8 +3,8 @@
     <el-card class="login-card">
       <template #header>
         <div>
-          <h1>智享全链管理系统管理后台</h1>
-          <p class="muted">请先登录，登录后进入正式后台工作台。</p>
+          <h1>智享全链管理系统</h1>
+          <p class="muted">请先登录，登录后进入工作台。</p>
         </div>
       </template>
       <el-form ref="loginFormRef" :model="loginForm" :rules="loginRules" label-width="72px" @submit.prevent>

@@ -4,7 +4,7 @@
       <template #header>
         <div>
           <h1>智享全链管理系统</h1>
-          <p class="muted">租户注册 - 填写企业信息，开通管理后台账号</p>
+          <p class="muted">租户注册 - 填写企业信息，开通工作台账号</p>
         </div>
       </template>
 
