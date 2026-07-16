@@ -1,8 +1,8 @@
-﻿# 当前任务 — R46
+﻿# 当前任务 — R47 + R48
 
 > 仓库：https://github.com/wen-868/wen-ssystem  
 > 唯一分支：main  
-> 最后更新：2026-07-16
+> 最后更新：2026-07-17
 
 ---
 
@@ -1600,3 +1600,214 @@
 5. **提交** — 待执行
 6. **更新踩坑日志** — 待执行
 7. **推送** — 待执行
+
+---
+
+---
+
+## R47 — 数据库表命名统一 [进行中]
+
+> 详细方案：`.workspace/tasks/R47-数据库表命名统一修复方案.md`
+
+**核心问题**：项目中两套表命名规范并存（`t_` 前缀 vs 无前缀），代码中混用，导致大量 API 返回 500。
+
+### R47-01 — 重写 migration.ts 表创建逻辑 [P0]
+
+- **优先级**：P0
+- **负责人**：阿坚
+- **预计**：0.5天
+- **状态**：⬜ 待开始
+- **前置**：无
+- **详细说明**：
+  1. 删除 migration.ts 第 1.5 步"读取 001_phase1_schema.sql 自动加前缀"逻辑
+  2. 新增步骤：直接从 `docs/init_database.sql` 提取所有 `CREATE TABLE` 语句，用 `CREATE TABLE IF NOT EXISTS` 执行
+  3. 第 8 步执行 migration SQL 文件时，自动给所有表名加 `t_` 前缀
+  4. TENANT_TABLES 数组改为 `t_` 前缀版本
+  5. 第 5.5 步无前缀表改为 `t_` 前缀
+- **验收标准**：全新数据库启动后所有表都以 `t_` 前缀创建，无 ALTER TABLE 报错
+- **记忆更新**：完成后更新 `阿坚-记忆.md`
+
+### R47-02 — 统一代码中所有无前缀表名 [P0]
+
+- **优先级**：P0
+- **负责人**：凌舟
+- **预计**：1天
+- **状态**：⬜ 待开始
+- **前置**：R47-01 完成后执行
+- **详细说明**：
+  - 搜索 `backend/src/` 中所有 SQL 查询里的无前缀表名
+  - 按映射表批量替换（约 20 个表名，涉及 ~30 个 service 文件）
+  - 只替换 SQL 中的表名，不替换变量名/注释
+  - **重点表**：`store` → `t_store`、`tenant` → `t_tenant`、`subscription` → `t_subscription` 等
+  - 完整映射表见 `.workspace/tasks/R47-数据库表命名统一修复方案.md` 任务 2
+- **验收标准**：`tsc --noEmit` 0 错误，无 SQL 引用无前缀表名
+- **记忆更新**：完成后更新 `凌舟-记忆.md`
+
+### R47-03 — 统一 migration SQL 文件中的表名 [P0]
+
+- **优先级**：P0
+- **负责人**：墨
+- **预计**：0.5天
+- **状态**：⬜ 待开始
+- **前置**：无（可与 R47-01 并行）
+- **详细说明**：
+  - `docs/migrations/` 下所有 SQL 文件（002-115号）中的表名改为 `t_` 前缀
+  - `001_phase1_schema.sql` 也改为 `t_` 前缀
+  - `002_phase1_seed.sql` 中的 INSERT 表名改为 `t_` 前缀
+- **验收标准**：`grep -r "CREATE TABLE [^t]" docs/migrations/` 返回 0 结果
+- **记忆更新**：完成后更新 `墨-记忆.md`
+
+### R47-04 — 修复冒烟测试脚本 [P1]
+
+- **优先级**：P1
+- **负责人**：苏然
+- **预计**：0.5天
+- **状态**：⬜ 待开始
+- **前置**：R47-01 + R47-02 完成后执行
+- **详细说明**：
+  - MySQL 连接密码与服务器实际配置一致
+  - 所有 SQL 检查使用 `t_` 前缀表名
+  - 所有 API 路径与后端路由完全匹配
+  - 密码使用 `Admin@2026`
+- **验收标准**：`node scripts/mysql-smoke-test.mjs` 全部通过
+- **记忆更新**：完成后更新 `苏然-记忆.md`
+
+### R47-05 — 清理路由重复注册 [P1]
+
+- **优先级**：P1
+- **负责人**：阿澈
+- **预计**：0.5天
+- **状态**：⬜ 待开始
+- **前置**：无（可立即开始）
+- **详细说明**：
+  - `store.routes.ts` 已清理（只保留商品/标签/批次）
+  - 检查其他路由文件是否有重复注册
+  - 确认 auto-routes.ts 注册顺序正确
+- **验收标准**：无同一端点注册两次
+- **记忆更新**：完成后更新 `阿澈-记忆.md`
+
+---
+
+## R48 — SaaS总平台独立化修复 [进行中]
+
+> 详细方案：`.workspace/tasks/R48-SaaS总平台独立化修复.md`
+>
+> **核心概念**：SaaS总平台管理租户，在商家工作台之上。总平台不隶属于任何租户，不需要 `tenant_id`。
+> 总平台和商家是**完全独立的两套认证系统**，绝对不能混用。
+
+### R48-01 — auto-routes.ts 新增平台认证支持 [P0]
+
+- **优先级**：P0
+- **负责人**：阿坚
+- **预计**：2小时
+- **状态**：⬜ 待开始
+- **前置**：无
+- **详细说明**：
+  - 在 `backend/src/shared/auto-routes.ts` 的 `getAuthMiddlewares()` 中新增 `"requirePlatformAuth"` 选项
+  - 新增后该 auth 值会自动添加 `requirePlatformAuth` + `csrfMiddleware`
+  - 导入 `requirePlatformAuth` from `../middleware/auth`
+  - **注意**：当前 auto-routes 只识别 `requireAuthWithTenant`、`requireAuth`、`none` 三个值，缺少平台认证
+- **验收标准**：`tsc --noEmit` 0 错误，不影响现有路由
+- **记忆更新**：完成后更新 `阿坚-记忆.md`
+
+### R48-02 — 修复 3 个平台路由的 auth 配置 [P0]
+
+- **优先级**：P0
+- **负责人**：阿坚
+- **预计**：1小时
+- **状态**：⬜ 待开始
+- **前置**：R48-01 完成后执行
+- **详细说明**：
+  - `platform.routes.ts`（L11-15）：`auth: "requireAuthWithTenant"` → `auth: "requirePlatformAuth"`
+  - `platform-review.routes.ts`（L27-31）：同上，同时删除文件内部手动挂载的 `requireAuthWithTenant`
+  - `platform-reconciliation.routes.ts`（L21-25）：同上，同时删除手动挂载的 `requireAuthWithTenant`
+  - **踩坑警告**：平台路由绝对不能用 `requireAuthWithTenant`（平台管理员没有 tenantId）
+- **验收标准**：平台管理员能访问，商家管理员返回 403
+- **记忆更新**：完成后更新 `阿坚-记忆.md`
+
+### R48-03 — 修复 3 个 admin-platform 路由的前缀和认证 [P0]
+
+- **优先级**：P0
+- **负责人**：凌舟
+- **预计**：2小时
+- **状态**：⬜ 待开始
+- **前置**：R48-01 完成后执行
+- **详细说明**：
+  - `admin-platform-announcement.routes.ts`：前缀 `/api/admin/platform-announcements` → `/api/platform/announcements`，auth → `requirePlatformAuth`
+  - `admin-platform-audit-log.routes.ts`：前缀 `/api/admin/platform-audit-logs` → `/api/platform/audit-logs`，auth → `requirePlatformAuth`
+  - `admin-platform-settlement.routes.ts`：前缀 `/api/admin/platform-settlements` → `/api/platform/settlements`，auth → `requirePlatformAuth`
+  - **同时**：saas-admin 前端的 API 路径要同步修改
+  - **踩坑警告**：平台功能绝对不能挂在 `/api/admin/` 前缀下（商家前缀）
+- **验收标准**：商家管理员无法访问，平台管理员可以正常访问
+- **记忆更新**：完成后更新 `凌舟-记忆.md`
+
+### R48-04 — 修复 saas-admin 前端 Token Key 不一致 [P0]
+
+- **优先级**：P0
+- **负责人**：阿澈
+- **预计**：3小时
+- **状态**：⬜ 待开始
+- **前置**：无（可与后端任务并行）
+- **详细说明**：
+  - 当前 saas-admin 存在新旧两套认证体系，token key 不一致导致登录后永远进不去
+  - **统一为 `platform_token`**（体系 B 是正确的）
+  - `saas-admin/src/router/index.ts`：所有 `saas_token`/`saas_user` 改为通过 authStore 获取
+  - `saas-admin/src/api.ts`：请求拦截器改为读 `platform_token`，删除 `saasLogin`（调的是商家登录接口！）
+  - **删除** `saas-admin/src/views/LoginView.vue`（旧登录页，调商家登录接口）
+  - 确认路由默认登录页指向 `views/login/PlatformLogin.vue`
+  - **踩坑警告**：旧 `LoginView.vue` 调的是 `/api/admin/auth/login`（商家登录！），平台管理员用这个登录拿到的 JWT 不含 `type: "platform_admin"`，后续请求会被 `requirePlatformAuth` 拒绝
+- **验收标准**：saas-admin 登录后不循环重定向，所有 API 请求携带 `platform_token`
+- **记忆更新**：完成后更新 `阿澈-记忆.md`
+
+### R48-05 — 修复平台路由前缀冲突 [P1]
+
+- **优先级**：P1
+- **负责人**：林夕
+- **预计**：1小时
+- **状态**：⬜ 待开始
+- **前置**：R48-02 完成后执行
+- **详细说明**：
+  - `platform-config.routes.ts`：前缀 `/api/platform` → `/api/platform/config`
+  - `platform-applications.routes.ts`：前缀 `/api/platform` → `/api/platform/applications`
+  - `platform.routes.ts`：保持 `/api/platform` 不变
+  - **同时**：saas-admin 前端 API 路径同步修改
+- **验收标准**：无路由覆盖 warning
+- **记忆更新**：完成后更新 `林夕-记忆.md`
+
+### R48-06 — 增强 requirePlatformAuth 安全性 [P1]
+
+- **优先级**：P1
+- **负责人**：林夕
+- **预计**：1小时
+- **状态**：⬜ 待开始
+- **前置**：无（可立即开始）
+- **详细说明**：
+  - `backend/src/middleware/auth.ts` 的 `requirePlatformAuth` 增加 issuer 校验
+  - 使用独立 issuer（如 `zhixiang-platform`）区分平台和商家 JWT
+  - 修改 `platform-auth.controller.ts` JWT 签发使用平台专用 issuer
+- **验收标准**：商家 JWT 无法通过平台认证，平台 JWT 无法通过商家认证
+- **记忆更新**：完成后更新 `林夕-记忆.md`
+
+---
+
+## 任务分配汇总
+
+| 任务 | 负责人 | 优先级 | 前置依赖 |
+|------|--------|--------|---------|
+| R47-01 重写 migration.ts | 阿坚 | P0 | 无 |
+| R47-02 统一代码表名 | 凌舟 | P0 | R47-01 |
+| R47-03 统一 migration SQL | 墨 | P0 | 无（可并行） |
+| R47-04 修复冒烟测试 | 苏然 | P1 | R47-01 + R47-02 |
+| R47-05 清理路由重复 | 阿澈 | P1 | 无 |
+| R48-01 auto-routes 新增平台认证 | 阿坚 | P0 | 无 |
+| R48-02 修复平台路由 auth | 阿坚 | P0 | R48-01 |
+| R48-03 修复 admin-platform 前缀 | 凌舟 | P0 | R48-01 |
+| R48-04 修复 saas-admin token | 阿澈 | P0 | 无 |
+| R48-05 修复平台路由前缀冲突 | 林夕 | P1 | R48-02 |
+| R48-06 增强平台认证安全 | 林夕 | P1 | 无 |
+
+**可立即开始的任务（无前置依赖）**：
+- 阿坚：R47-01、R48-01（按顺序）
+- 墨：R47-03
+- 阿澈：R47-05、R48-04
+- 林夕：R48-06
