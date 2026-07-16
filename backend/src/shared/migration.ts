@@ -437,7 +437,7 @@ export async function runMigrations(): Promise<void> {
           // 确保超级管理员角色存在
           await safeExec(conn, `
             INSERT INTO t_sys_role (role_code, role_name, status, tenant_id, created_at, updated_at)
-            VALUES ('SUPER_ADMIN', '超级管理员', 1, 'default', NOW(), NOW())
+            VALUES ('SUPER_ADMIN', '超级管理员', 'ACTIVE', 'default', NOW(), NOW())
           `, "创建 SUPER_ADMIN 角色");
           const [roleRows] = await conn.query(
             "SELECT id FROM t_sys_role WHERE role_code = 'SUPER_ADMIN' AND tenant_id = 'default'"
@@ -472,7 +472,7 @@ export async function runMigrations(): Promise<void> {
         if (tenantUserId) {
           await safeExec(conn, `
             INSERT INTO t_sys_role (role_code, role_name, status, tenant_id, created_at, updated_at)
-            VALUES ('ADMIN', '管理员', 1, 'default', NOW(), NOW())
+            VALUES ('ADMIN', '管理员', 'ACTIVE', 'default', NOW(), NOW())
           `, "创建 ADMIN 角色");
           const [aRoleRows] = await conn.query(
             "SELECT id FROM t_sys_role WHERE role_code = 'ADMIN' AND tenant_id = 'default'"
