@@ -10,6 +10,23 @@ import mysql from "mysql2/promise";
 import { env } from "./env";
 import logger from "./logger";
 
+/** 在多个候选路径中查找 SQL 文件 */
+function findSqlFile(fileName: string) {
+  const candidates = [
+    resolve(process.cwd(), "docs/migrations", fileName),
+    resolve(process.cwd(), "docs", fileName),
+    resolve(process.cwd(), "../docs/migrations", fileName),
+    resolve(process.cwd(), "../docs", fileName),
+    resolve(process.cwd(), "../../docs/migrations", fileName),
+    resolve(process.cwd(), "../../docs", fileName),
+  ];
+  const found = candidates.find((candidate) => existsSync(candidate));
+  if (!found) {
+    throw new Error(`找不到数据库脚本 ${fileName}，已尝试：${candidates.join(", ")}`);
+  }
+  return found;
+}
+
 /** 跳过错误码集合 */
 export const SKIP_ERRORS = new Set([
   "ER_DUP_FIELDNAME", "ER_DUP_KEYNAME", "ER_DUP_ENTRY",
@@ -220,6 +237,46 @@ export async function runMigrations(): Promise<void> {
       }
     } catch (e: unknown) {
       logger.error("[migration] 租户数据操作失败:", (e as any).message);
+    }
+
+    // ============================================================
+    // 第1.5步：执行 schema SQL 创建业务表（带 t_ 前缀）
+    // ============================================================
+    logger.info("[migration] 检查/创建业务表...");
+    try {
+      const schemaPath = findSqlFile("001_phase1_schema.sql");
+      if (existsSync(schemaPath)) {
+        let schemaSql = readFileSync(schemaPath, "utf8");
+        // 去掉 DROP TABLE 和 INSERT 语句（不删除已有数据）
+        schemaSql = schemaSql.replace(/DROP\s+TABLE\s+IF\s+EXISTS\s+\w+;/gi, "");
+        schemaSql = schemaSql.replace(/INSERT\s+INTO\s+\w+\s*\([^)]*\)[^;]*;/gi, "");
+        // 把所有 CREATE TABLE 后的表名加 t_ 前缀
+        schemaSql = schemaSql.replace(
+          /CREATE\s+TABLE\s+([A-Za-z_])/gi,
+          (match, p1) => {
+            // 如果表名已经以 t_ 开头，不加
+            if (match.includes("t_")) return match;
+            return match.replace(/CREATE\s+TABLE\s+/, "CREATE TABLE IF NOT EXISTS t_");
+          }
+        );
+        // 给所有 UNIQUE KEY 和 KEY 等的表引用也加 t_ 前缀
+        // 不需要，因为 KEY 只引用当前表内的列
+
+        for (const statement of schemaSql.split(";").map(s => s.trim()).filter(Boolean)) {
+          if (statement.toUpperCase().startsWith("CREATE")) {
+            try {
+              await conn.query(statement);
+            } catch (e: any) {
+              if (!SKIP_ERRORS.has(e.code)) {
+                // 静默跳过已存在的表
+              }
+            }
+          }
+        }
+        logger.info("[migration] 业务表检查/创建完成");
+      }
+    } catch (e: unknown) {
+      logger.error("[migration] 业务表创建失败:", (e as any).message);
     }
 
     // ============================================================
