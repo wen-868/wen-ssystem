@@ -245,6 +245,25 @@ export async function runMigrations(): Promise<void> {
       ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='库存预警表'
     `, "创建 stock_warning 表");
 
+    // 5.5.1b 创建 t_store_control_config 表（门店管控需要）
+    await safeExec(conn, `
+      CREATE TABLE IF NOT EXISTS t_store_control_config (
+        id INT NOT NULL AUTO_INCREMENT COMMENT '配置ID',
+        store_id INT NOT NULL COMMENT '门店ID',
+        auto_open_time VARCHAR(10) DEFAULT NULL COMMENT '自动开门时间 HH:mm',
+        auto_close_time VARCHAR(10) DEFAULT NULL COMMENT '自动关门时间 HH:mm',
+        max_daily_orders INT DEFAULT NULL COMMENT '每日最大订单数',
+        max_order_amount DECIMAL(12,2) DEFAULT NULL COMMENT '单笔最大金额',
+        suspended_reason VARCHAR(255) DEFAULT NULL COMMENT '停用原因',
+        tenant_id VARCHAR(36) NOT NULL DEFAULT 'default' COMMENT '租户ID',
+        created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
+        updated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '更新时间',
+        PRIMARY KEY (id),
+        UNIQUE KEY uk_store_tenant (store_id, tenant_id),
+        KEY idx_tenant (tenant_id)
+      ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='门店管控配置表'
+    `, "创建 t_store_control_config 表");
+
     // 5.5.2 为 store 表添加缺失字段（门店列表需要）
     const storeColumns = [
       { name: "miniapp_appid", def: "VARCHAR(128) DEFAULT NULL COMMENT '小程序appid'" },
