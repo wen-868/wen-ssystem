@@ -334,7 +334,88 @@ export async function runMigrations(): Promise<void> {
     `, "创建 error_logs 表");
 
     // ============================================================
-    // 第6步：执行其他 SQL 迁移文件
+    // 第7步：确保默认管理员账号存在
+    // ============================================================
+    logger.info("[migration] 检查/创建默认管理员账号...");
+    try {
+      const bcrypt = await import("bcryptjs");
+
+      // 7.1 平台管理员 admin / Admin@2026（写入 t_sys_user）
+      const [adminRows] = await conn.query(
+        "SELECT id FROM t_sys_user WHERE username = 'admin' AND tenant_id = 'default'"
+      ) as unknown as [Record<string, unknown>[]];
+      if ((adminRows as unknown as any[]).length === 0) {
+        const adminHash = bcrypt.hashSync("Admin@2026", 10);
+        await conn.query(`
+          INSERT INTO t_sys_user (username, password_hash, real_name, status, tenant_id, created_at, updated_at)
+          VALUES ('admin', ?, '系统管理员', 1, 'default', NOW(), NOW())
+        `, [adminHash]);
+        logger.info("[migration] 已创建平台管理员 admin / Admin@2026");
+
+        // 给 admin 分配超级管理员角色
+        const [adminUser] = await conn.query(
+          "SELECT id FROM t_sys_user WHERE username = 'admin' AND tenant_id = 'default'"
+        ) as unknown as [Record<string, unknown>[]];
+        const adminId = (adminUser as unknown as any[])[0]?.id;
+        if (adminId) {
+          // 确保超级管理员角色存在
+          await safeExec(conn, `
+            INSERT INTO t_sys_role (role_code, role_name, status, tenant_id, created_at, updated_at)
+            VALUES ('SUPER_ADMIN', '超级管理员', 1, 'default', NOW(), NOW())
+          `, "创建 SUPER_ADMIN 角色");
+          const [roleRows] = await conn.query(
+            "SELECT id FROM t_sys_role WHERE role_code = 'SUPER_ADMIN' AND tenant_id = 'default'"
+          ) as unknown as [Record<string, unknown>[]];
+          const roleId = (roleRows as unknown as any[])[0]?.id;
+          if (roleId) {
+            await safeExec(conn, `
+              INSERT INTO t_sys_user_role (user_id, role_id, tenant_id, created_at)
+              VALUES (?, ?, 'default', NOW())
+            `, "admin 分配 SUPER_ADMIN 角色");
+          }
+        }
+      }
+
+      // 7.2 租户管理员 tenant_admin / Admin@2026
+      const [tenantRows] = await conn.query(
+        "SELECT id FROM t_sys_user WHERE username = 'tenant_admin' AND tenant_id = 'default'"
+      ) as unknown as [Record<string, unknown>[]];
+      if ((tenantRows as unknown as any[]).length === 0) {
+        const tenantHash = bcrypt.hashSync("Admin@2026", 10);
+        await conn.query(`
+          INSERT INTO t_sys_user (username, password_hash, real_name, status, tenant_id, created_at, updated_at)
+          VALUES ('tenant_admin', ?, '租户管理员', 1, 'default', NOW(), NOW())
+        `, [tenantHash]);
+        logger.info("[migration] 已创建租户管理员 tenant_admin / Admin@2026");
+
+        // 给 tenant_admin 分配管理员角色
+        const [tenantUser] = await conn.query(
+          "SELECT id FROM t_sys_user WHERE username = 'tenant_admin' AND tenant_id = 'default'"
+        ) as unknown as [Record<string, unknown>[]];
+        const tenantUserId = (tenantUser as unknown as any[])[0]?.id;
+        if (tenantUserId) {
+          await safeExec(conn, `
+            INSERT INTO t_sys_role (role_code, role_name, status, tenant_id, created_at, updated_at)
+            VALUES ('ADMIN', '管理员', 1, 'default', NOW(), NOW())
+          `, "创建 ADMIN 角色");
+          const [aRoleRows] = await conn.query(
+            "SELECT id FROM t_sys_role WHERE role_code = 'ADMIN' AND tenant_id = 'default'"
+          ) as unknown as [Record<string, unknown>[]];
+          const aRoleId = (aRoleRows as unknown as any[])[0]?.id;
+          if (aRoleId) {
+            await safeExec(conn, `
+              INSERT INTO t_sys_user_role (user_id, role_id, tenant_id, created_at)
+              VALUES (?, ?, 'default', NOW())
+            `, "tenant_admin 分配 ADMIN 角色");
+          }
+        }
+      }
+    } catch (e: unknown) {
+      logger.error("[migration] 默认管理员账号创建失败:", (e as any).message);
+    }
+
+    // ============================================================
+    // 第8步：执行其他 SQL 迁移文件
     // ============================================================
     const migrationsDir = resolve(process.cwd(), "docs/migrations");
     if (existsSync(migrationsDir)) {
