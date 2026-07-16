@@ -14,7 +14,7 @@ export const api = axios.create({
 });
 
 api.interceptors.request.use((config) => {
-  const token = localStorage.getItem("saas_token");
+  const token = localStorage.getItem("platform_token");
   if (token) {
     config.headers.Authorization = `Bearer ${token}`;
   }
@@ -25,10 +25,9 @@ api.interceptors.response.use(
   (response) => response,
   (error) => {
     if (error?.response?.status === 401) {
-      localStorage.removeItem("saas_token");
-      localStorage.removeItem("saas_user");
+      localStorage.removeItem("platform_token");
       if (typeof window !== "undefined") {
-        window.location.href = "/login";
+        window.location.hash = "#/login";
       }
     }
     return Promise.reject(error);
@@ -88,9 +87,8 @@ export interface ApiResult<T> {
 }
 
 // ==================== 认证 ====================
-export function saasLogin(username: string, password: string) {
-  return api.post<any, { data: ApiResult<{ token: string; user: any }> }>("/admin/auth/login", { username, password });
-}
+// 平台登录请使用 src/api/auth.ts 中的 loginApi（调 /platform-auth/login）
+// 旧的 saasLogin 已删除，它调的是商家登录接口 /admin/auth/login，不是平台登录
 
 // ==================== 租户管理 ====================
 export function getTenants(params: {

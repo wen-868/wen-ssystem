@@ -1,4 +1,5 @@
 import { createRouter, createWebHashHistory } from "vue-router";
+import { useAuthStore } from "../stores/auth";
 
 function parseJwtExp(token: string): number | null {
   try {
@@ -11,21 +12,11 @@ function parseJwtExp(token: string): number | null {
   }
 }
 
-function isTokenExpired(): boolean {
-  const token = localStorage.getItem("saas_token");
+function isTokenExpired(token: string): boolean {
   if (!token) return true;
   const exp = parseJwtExp(token);
   if (!exp) return false;
   return Date.now() >= exp;
-}
-
-function getUserRole(): string | null {
-  try {
-    const user = JSON.parse(localStorage.getItem("saas_user") || "{}");
-    return user.role || null;
-  } catch {
-    return null;
-  }
 }
 
 const router = createRouter({
@@ -162,12 +153,12 @@ const router = createRouter({
 })
 
 router.beforeEach((to, _from, next) => {
-  const token = localStorage.getItem("saas_token");
-  const expired = token && isTokenExpired();
+  const authStore = useAuthStore();
+  const token = authStore.token;
+  const expired = token && isTokenExpired(token);
 
   if (expired) {
-    localStorage.removeItem("saas_token");
-    localStorage.removeItem("saas_user");
+    authStore.logout();
     if (to.path !== "/login") {
       next("/login");
       return;
@@ -179,14 +170,6 @@ router.beforeEach((to, _from, next) => {
   } else if (to.path === "/login" && token) {
     next("/dashboard");
   } else {
-    const allowedRoles = to.meta.roles as string[] | undefined;
-    if (allowedRoles && allowedRoles.length > 0) {
-      const userRole = getUserRole();
-      if (userRole && !allowedRoles.includes(userRole)) {
-        next("/dashboard");
-        return;
-      }
-    }
     next();
   }
 });

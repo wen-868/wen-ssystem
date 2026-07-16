@@ -134,9 +134,11 @@ import {
   OfficeBuilding, Goods, Document, Setting, List, Monitor,
   WarningFilled, DataAnalysis, Bell, Search
 } from "@element-plus/icons-vue";
+import { useAuthStore } from "../stores/auth";
 
 const router = useRouter();
 const route = useRoute();
+const authStore = useAuthStore();
 
 const activeMenu = computed(() => {
   const path = route.path;
@@ -168,14 +170,7 @@ const pageTitle = computed(() => {
 });
 
 const userName = computed(() => {
-  try {
-    const raw = localStorage.getItem("saas_user");
-    if (raw) {
-      const user = JSON.parse(raw);
-      return user.realName || user.username || "超级管理员";
-    }
-  } catch {}
-  return "超级管理员";
+  return authStore.adminInfo?.realName || authStore.adminInfo?.username || "超级管理员";
 });
 
 const userAvatar = computed(() => {
@@ -187,8 +182,7 @@ function navTo(path: string) {
 }
 
 function handleLogout() {
-  localStorage.removeItem("saas_token");
-  localStorage.removeItem("saas_user");
+  authStore.logout();
   router.push("/login");
 }
 </script>
