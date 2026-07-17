@@ -6,8 +6,8 @@ import mysql from "mysql2/promise";
 const DB = {
   host: process.env.DB_HOST || "127.0.0.1",
   port: Number(process.env.DB_PORT || 3306),
-  user: process.env.DB_USER || "root",
-  password: process.env.DB_PASSWORD || "root123456",
+  user: process.env.DB_USER || "zhixiang_app",
+  password: process.env.DB_PASSWORD || "",
   database: process.env.DB_NAME || "liquor_inventory"
 };
 
@@ -70,9 +70,9 @@ async function databaseChecks() {
     check("数据库连接成功", true);
 
     const tables = [
-      "sys_user", "store", "product_spu", "product_sku", "product_price",
-      "inventory_balance", "miniapp_order", "sale_bill", "collection_link",
-      "payment_order", "hold_order", "refund_order"
+      "t_sys_user", "t_store", "t_product_spu", "t_product_sku", "t_product_price",
+      "t_inventory_balance", "t_miniapp_order", "t_sale_bill", "t_collection_link",
+      "t_payment_order", "t_hold_order", "t_refund_order"
     ];
     for (const table of tables) {
       const [rows] = await pool.query(
@@ -84,9 +84,9 @@ async function databaseChecks() {
 
     const countChecks = [
       ["默认账号 >= 1", "SELECT COUNT(*) AS count FROM t_sys_user"],
-      ["默认门店 >= 1", "SELECT COUNT(*) AS count FROM store"],
-      ["默认商品 >= 1", "SELECT COUNT(*) AS count FROM product_sku"],
-      ["默认库存 >= 1", "SELECT COUNT(*) AS count FROM inventory_balance"]
+      ["默认门店 >= 1", "SELECT COUNT(*) AS count FROM t_store"],
+      ["默认商品 >= 1", "SELECT COUNT(*) AS count FROM t_product_sku"],
+      ["默认库存 >= 1", "SELECT COUNT(*) AS count FROM t_inventory_balance"]
     ];
     for (const [name, sql] of countChecks) {
       const [rows] = await pool.query(sql);
