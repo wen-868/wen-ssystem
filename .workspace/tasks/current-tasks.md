@@ -2000,10 +2000,22 @@
 - **优先级**：P2
 - **负责人**：墨
 - **预计**：1天
-- **状态**：⬜ 待开始
+- **实际**：0.5天
+- **状态**：✅ 已完成
 - **前置**：R50-08
 - **详细说明**：
   - admin-web 的 `api.ts` 超过132KB，689个API方法集中在单文件
   - 按业务模块拆分为 `src/api/` 子目录结构（参考 saas-admin 的模式）
   - 主 api.ts 只做统一导出
   - 保持向后兼容（所有现有 import 路径不中断）
+- **拆分结果**：
+  - 主 api.ts：39 行（统一 re-export）
+  - 子模块文件：19 个（request/common/product/inventory/sale/purchase/customer/finance/marketing/instant-retail/pos/report/system/approval/export/tenant/trace/aftersale/alert/misc）
+  - request.ts：axios 实例 + 拦截器 + getErrorMessage
+  - common.ts：头部零散函数（adminLogin/fetchProducts/fetchStores 等36个）
+- **验收标准**：vue-tsc 0 错误，npm run build 成功，所有现有 import 路径不中断
+- **验证结果**：
+  - vue-tsc --noEmit：✅ 0 错误
+  - npm run build：✅ 成功（25.20s）
+  - 所有现有 import 路径保持兼容
+- **记忆更新**：完成后更新 `墨-记忆.md`
