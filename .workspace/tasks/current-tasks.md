@@ -1951,3 +1951,59 @@
 | R49-04 增强平台认证安全 | 阿坚 | P1 | ✅ 已完成 |
 | R49-05 项目统一标准同步 | 凌舟 | P2 | ⬜ 待开始 |
 | R49-06 部署验证 | 苏然 | P1 | ⬜ 待开始 |
+
+---
+
+## R50 — 全系统完成度审计工作流 [进行中]
+
+> 详细方案：`.workspace/tasks/R50-全局审计工作流.md`
+> **日期**：2026-07-17
+> **审计范围**：后端、前端三端、数据库、测试、安全、部署、文档
+
+### R50-08 — admin-web SaaS平台功能迁移 [P1]
+
+- **优先级**：P1
+- **负责人**：墨
+- **预计**：1天
+- **实际**：0.5天
+- **状态**：✅ 已完成
+- **前置**：R50-02（可并行执行，saas-admin 已有对应页面）
+- **文件**：
+  - `admin-web/src/router/index.ts`（删除10条 saas/ 路由，清理 store-terminal 注释）
+  - `admin-web/src/views/PlatformDashboard.vue`（已删除）
+  - `admin-web/src/views/SaasPlanManage.vue`（已删除）
+  - `admin-web/src/views/Tenants.vue`（已删除）
+  - `admin-web/src/views/Subscriptions.vue`（已删除）
+  - `admin-web/src/views/TenantReview.vue`（已删除）
+  - `admin-web/src/views/PlatformReview.vue`（已删除）
+  - `admin-web/src/views/TenantUsage.vue`（已删除）
+  - `admin-web/src/views/PlatformAnnouncements.vue`（已删除）
+  - `admin-web/src/views/PlatformAuditLogs.vue`（已删除）
+  - `admin-web/src/views/PlatformConfig.vue`（已删除）
+  - `admin-web/src/views/PlatformReconciliation.vue`（已删除，孤立文件）
+  - `admin-web/src/views/TenantDetail.vue`（已删除，孤立文件）
+- **问题**：admin-web 路由中有10条 SaaS 平台路由（saas/dashboard、saas/plans、saas/tenants等），这些页面应属于 saas-admin，商家后台不应看到
+- **修复**：
+  1. 删除 admin-web 中10条 SaaS 平台路由和对应 12 个页面组件（含2个孤立文件）
+  2. 确认 saas-admin 中有对应功能（已全部存在：Dashboard/Packages/Tenants/Subscriptions/ApplicationList/PlatformReviews/TenantUsage/Announcements/AuditLogs/SysConfigView）
+  3. 清理 router 中的 store-terminal 注释，简化为"门店收银"
+- **验收标准**：admin-web 全局搜索 `saas/` 无路由匹配
+- **验证结果**：
+  - vue-tsc --noEmit：✅ 0 错误
+  - ESLint：✅ 0 error（1 warning 为历史遗留，与本次无关）
+  - saas/ 路由搜索：✅ 0 结果
+  - 无其他页面引用被删除组件
+- **记忆更新**：完成后更新 `墨-记忆.md`
+
+### R50-12 — admin-web api.ts 拆分 [P2]
+
+- **优先级**：P2
+- **负责人**：墨
+- **预计**：1天
+- **状态**：⬜ 待开始
+- **前置**：R50-08
+- **详细说明**：
+  - admin-web 的 `api.ts` 超过132KB，689个API方法集中在单文件
+  - 按业务模块拆分为 `src/api/` 子目录结构（参考 saas-admin 的模式）
+  - 主 api.ts 只做统一导出
+  - 保持向后兼容（所有现有 import 路径不中断）

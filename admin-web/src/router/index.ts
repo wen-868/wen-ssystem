@@ -241,20 +241,9 @@ const routes = [
       { path: "monitor", name: "monitor", component: () => import("../views/MonitorView.vue"), meta: { roles: ["BOSS"], title: "系统监控", icon: Monitor } },
       { path: "system/feedback", name: "feedback", component: () => import("../views/FeedbackView.vue"), meta: { roles: ["BOSS"], title: "反馈管理", icon: ChatDotRound } },
       { path: "consumer-addresses", name: "consumer-addresses", component: () => import("../views/ConsumerAddress.vue"), meta: { roles: ["BOSS"], title: "收货地址", icon: Location } },
-      // 13. SaaS 平台后台
-      { path: "saas/dashboard", name: "saas-dashboard", component: () => import("../views/PlatformDashboard.vue"), meta: { roles: ["BOSS"], title: "平台看板", icon: DataAnalysis } },
-      { path: "saas/plans", name: "saas-plan-manage", component: () => import("../views/SaasPlanManage.vue"), meta: { roles: ["BOSS"], title: "套餐管理", icon: Tickets } },
-      { path: "saas/tenants", name: "saas-tenants", component: () => import("../views/Tenants.vue"), meta: { roles: ["BOSS"], title: "租户管理", icon: OfficeBuilding } },
-      { path: "saas/subscriptions", name: "saas-subscriptions", component: () => import("../views/Subscriptions.vue"), meta: { roles: ["BOSS"], title: "订阅管理", icon: Coin } },
-      { path: "saas/tenant-review", name: "saas-tenant-review", component: () => import("../views/TenantReview.vue"), meta: { roles: ["BOSS"], title: "入驻审核", icon: Document } },
-      { path: "saas/reviews", name: "platform-reviews", component: () => import("../views/PlatformReview.vue"), meta: { roles: ["BOSS"], title: "平台评价", icon: Star } },
-      { path: "saas/tenant-usage", name: "saas-tenant-usage", component: () => import("../views/TenantUsage.vue"), meta: { roles: ["BOSS"], title: "租户统计", icon: DataAnalysis } },
-      { path: "saas/announcements", name: "saas-announcements", component: () => import("../views/PlatformAnnouncements.vue"), meta: { roles: ["BOSS"], title: "公告管理", icon: ChatDotSquare } },
-      { path: "saas/audit-logs", name: "saas-audit-logs", component: () => import("../views/PlatformAuditLogs.vue"), meta: { roles: ["BOSS"], title: "审计日志", icon: Document } },
-      { path: "saas/config", name: "saas-config", component: () => import("../views/PlatformConfig.vue"), meta: { roles: ["BOSS"], title: "平台配置", icon: Setting } },
-      // 14. 在线收款分析
+      // 13. 在线收款分析
       { path: "reports/online-payment", name: "online-payment-analysis", component: () => import("../views/OnlinePaymentAnalysis.vue"), meta: { roles: ["BOSS", "MGR"], title: "在线收款分析", icon: Money } },
-      // 15. 门店收银（合并自 store-terminal）
+      // 14. 门店收银
       { path: "pos/dashboard", name: "pos-dashboard", component: () => import("../views/pos/StoreDashboardView.vue"), meta: { roles: ["BOSS", "MGR", "CASHIER", "STORE"], title: "门店工作台", icon: DataAnalysis } },
       { path: "pos/cashier", name: "pos-cashier", component: () => import("../views/pos/CashierView.vue"), meta: { roles: ["BOSS", "MGR", "CASHIER", "STORE"], title: "快速收银", icon: Edit } },
       { path: "pos/sale-bills", name: "pos-sale-bills", component: () => import("../views/pos/SaleBillsView.vue"), meta: { roles: ["BOSS", "MGR", "CASHIER", "STORE"], title: "销售单据", icon: Document } },
