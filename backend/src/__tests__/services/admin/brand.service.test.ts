@@ -30,7 +30,7 @@ describe("brand.service", () => {
       expect(res).toEqual(rows);
       expect(mocks.queryWithTenant).toHaveBeenCalledTimes(1);
       const [sql, params] = mocks.queryWithTenant.mock.calls[0];
-      expect(sql).toContain("FROM brand WHERE tenant_id = ?");
+      expect(sql).toContain("FROM t_brand WHERE tenant_id = ?");
       expect(params).toEqual(["t1"]);
     });
 
@@ -104,7 +104,7 @@ describe("brand.service", () => {
       const res = await remove(1, "t1");
       expect(res).toEqual({ id: 1 });
       const [sql] = mocks.queryWithTenant.mock.calls[0];
-      expect(sql).toContain("DELETE FROM brand");
+      expect(sql).toContain("DELETE FROM t_brand");
     });
   });
 });

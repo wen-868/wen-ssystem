@@ -36,7 +36,7 @@ describe("export.service", () => {
       const res = await exportCustomers("t1");
       expect(res.length).toBe(1);
       const [sql, params] = mocks.query.mock.calls[0];
-      expect(sql).toContain("FROM member");
+      expect(sql).toContain("FROM t_member");
       expect(params).toEqual(["t1"]);
     });
 
@@ -158,7 +158,7 @@ describe("export.service", () => {
       const res = await exportAuditLogs("t1");
       expect(res.length).toBe(1);
       const [sql] = mocks.query.mock.calls[0];
-      expect(sql).toContain("FROM audit_log");
+      expect(sql).toContain("FROM t_audit_log");
     });
 
     it("带 action/resourceType/日期范围", async () => {

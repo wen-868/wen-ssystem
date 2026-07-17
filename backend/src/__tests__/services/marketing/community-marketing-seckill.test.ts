@@ -242,7 +242,7 @@ describe("community-marketing.service - 秒杀下单", () => {
     await buySeckill(tenantId, 1, 1, 2);
     // 验证库存扣减
     const updateStockCall = mockConn.execute.mock.calls.find(
-      (call: any) => call[0].includes("UPDATE seckill_product SET available_stock")
+      (call: any) => call[0].includes("UPDATE t_seckill_product SET available_stock")
     );
     expect(updateStockCall).toBeTruthy();
     expect(updateStockCall[1][0]).toBe(2);

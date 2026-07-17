@@ -105,7 +105,7 @@ describe("department.service", () => {
       const res = await deleteDepartment(7);
       expect(res).toEqual({ success: true });
       const [sql, params] = mocks.query.mock.calls[0];
-      expect(sql).toContain("DELETE FROM sys_department WHERE id=?");
+      expect(sql).toContain("DELETE FROM t_sys_department WHERE id=?");
       expect(params).toEqual([7]);
     });
   });

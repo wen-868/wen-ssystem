@@ -173,7 +173,7 @@ describe("community-marketing.service - 发起拼团", () => {
     expect(res.id).toBe(100);
     // 验证 sold_count + 1
     const updateSoldCall = mockConn.execute.mock.calls.find(
-      (call: any) => call[0].includes("UPDATE group_buy SET sold_count")
+      (call: any) => call[0].includes("UPDATE t_group_buy SET sold_count")
     );
     expect(updateSoldCall).toBeTruthy();
     expect(updateSoldCall[1][0]).toBe(1);
@@ -270,7 +270,7 @@ describe("community-marketing.service - 参团", () => {
     await joinGroupBuy(tenantId, 1, 3, 1);
     // 验证状态更新为 COMPLETED
     const updateTeamCall = mockConn.execute.mock.calls.find(
-      (call: any) => call[0].includes("UPDATE group_buy_team")
+      (call: any) => call[0].includes("UPDATE t_group_buy_team")
     );
     expect(updateTeamCall).toBeTruthy();
     expect(updateTeamCall[1][1]).toBe("COMPLETED");

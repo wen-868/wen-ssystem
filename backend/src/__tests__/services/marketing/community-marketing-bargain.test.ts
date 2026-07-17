@@ -264,7 +264,7 @@ describe("community-marketing.service - 帮砍", () => {
     expect(res.isSuccess).toBe(false);
     // 验证插入的 helper_name 为 null
     const insertHelpCall = mockConn.execute.mock.calls.find(
-      (call: any) => call[0].includes("INSERT INTO bargain_help")
+      (call: any) => call[0].includes("INSERT INTO t_bargain_help")
     );
     expect(insertHelpCall).toBeTruthy();
     expect(insertHelpCall[1][2]).toBeNull();

@@ -101,7 +101,7 @@ describe("error-log.service", () => {
       const res = await cleanupOldLogs(30);
       expect(res).toBe(50);
       const [sql, params] = mocks.queryOne.mock.calls[0];
-      expect(sql).toContain("DELETE FROM error_logs");
+      expect(sql).toContain("DELETE FROM t_error_logs");
       expect(params).toEqual([30]);
     });
 

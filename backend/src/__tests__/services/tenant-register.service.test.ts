@@ -114,7 +114,7 @@ describe("tenant-register.service", () => {
       mocks.transaction.mockImplementation(async (cb: any) => {
         const mockConn = {
           query: vi.fn().mockImplementation(async (sql: string) => {
-            if (sql.includes("INSERT INTO tenant")) {
+            if (sql.includes("INSERT INTO t_tenant")) {
               tenantInsertId = { insertId: 100 };
               return tenantInsertId;
             }

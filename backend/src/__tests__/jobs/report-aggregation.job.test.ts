@@ -26,7 +26,7 @@ describe("report-aggregation.job", () => {
       // getTenants 返回租户列表
       (queryWithTenant as any).mockImplementation((sql: string) => {
         if (sql.includes("DISTINCT tenant_id")) return Promise.resolve([{ tenant_id: "t1" }]);
-        if (sql.includes("FROM store")) return Promise.resolve([{ id: 1 }]);
+        if (sql.includes("FROM t_store")) return Promise.resolve([{ id: 1 }]);
         if (sql.includes("t_sale_bill_item")) return Promise.resolve([]);
         return Promise.resolve([]);
       });

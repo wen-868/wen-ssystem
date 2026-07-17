@@ -136,7 +136,7 @@ describe("admin customer-merge.service - mergeCustomers", () => {
     expect(res.deletedCount).toBe(1);
     // updates.length === 0 时不执行 UPDATE member
     const executeCalls = mockConn.execute.mock.calls.map(c => c[0] as string);
-    expect(executeCalls.some((sql: string) => sql.includes("UPDATE member SET"))).toBe(false);
+    expect(executeCalls.some((sql: string) => sql.includes("UPDATE t_member SET"))).toBe(false);
   });
 
   it("全合并 + primaryCustomer 全空 + duplicates 全空（found false + allRemarks 空）+ primaryCredit 不存在 + firstCredit 存在", async () => {

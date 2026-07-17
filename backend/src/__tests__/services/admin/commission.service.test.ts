@@ -41,7 +41,7 @@ describe("commission.service", () => {
       const res = await listCommissionRules("t1");
       expect(res.length).toBe(1);
       const [sql, params] = mocks.queryWithTenant.mock.calls[0];
-      expect(sql).toContain("FROM sales_commission_rule");
+      expect(sql).toContain("FROM t_sales_commission_rule");
       expect(params).toEqual(["t1"]);
     });
   });
