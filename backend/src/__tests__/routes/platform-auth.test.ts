@@ -22,6 +22,15 @@ vi.mock("../../middleware/auth", () => ({
   requireAuth: (_req: any, _res: any, next: any) => next(),
   requireRoles: () => (_req: any, _res: any, next: any) => next(),
   requirePlatformAuth: (_req: any, _res: any, next: any) => next(),
+  // R48-06: controller 使用 signPlatformToken 签发平台 JWT，测试中 mock 为简单返回
+  signPlatformToken: vi.fn((payload: Record<string, unknown>) =>
+    JSON.stringify({ ...payload, _mock: true })
+  ),
+  PLATFORM_JWT_ISSUER: "zhixiang-platform",
+  PLATFORM_JWT_AUDIENCE: "zhixiang-platform-client",
+  MERCHANT_JWT_ISSUER: "zhixiang-system",
+  MERCHANT_JWT_AUDIENCE: "zhixiang-client",
+  signToken: vi.fn((user: unknown) => JSON.stringify({ user, _mock: true })),
 }));
 
 vi.mock("bcryptjs", () => ({

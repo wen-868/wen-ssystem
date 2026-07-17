@@ -1,34 +1,24 @@
 import { Router } from "express";
 import type { RouteConfig } from "../shared/auto-routes";
-import { requirePlatformAuth } from "../middleware/auth";
 import {
   listConfigs,
   updateConfig,
-  listAnnouncements,
-  createAnnouncement
 } from "../controllers/platform/platform-manage.controller";
 
+// R48-05: 平台全局配置路由，独立前缀 /api/platform/config
+// 平台公告路由已迁移至 platform.routes.ts（/api/platform/announcements）
+// auth 改为 requirePlatformAuth（由 auto-routes 自动挂载），删除手动 router.use
 export const platformConfigRouter = Router();
 
-platformConfigRouter.use(requirePlatformAuth);
-
-// ========== 平台全局配置 ==========
 // GET /api/platform/config - 全局配置列表
-platformConfigRouter.get("/config", listConfigs);
+platformConfigRouter.get("/", listConfigs);
 
 // PUT /api/platform/config - 更新配置
-platformConfigRouter.put("/config", updateConfig);
-
-// ========== 平台公告 ==========
-// GET /api/platform/announcements - 公告列表
-platformConfigRouter.get("/announcements", listAnnouncements);
-
-// POST /api/platform/announcements - 发布公告
-platformConfigRouter.post("/announcements", createAnnouncement);
+platformConfigRouter.put("/", updateConfig);
 
 // ========== 路由自动发现配置 ==========
 export const routeConfig: RouteConfig = {
-  prefix: "/api/platform",
+  prefix: "/api/platform/config",
   router: platformConfigRouter,
-  auth: "none",
+  auth: "requirePlatformAuth",
 };

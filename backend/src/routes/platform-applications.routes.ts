@@ -1,7 +1,6 @@
 import { Router } from "express";
 import type { RouteConfig } from "../shared/auto-routes";
 import { asyncHandler } from "../middleware/async-handler";
-import { requirePlatformAuth } from "../middleware/auth";
 import {
   handleListApplications,
   handleGetApplication,
@@ -9,26 +8,26 @@ import {
   handleRejectApplication
 } from "../controllers/admin/tenant-register.controller";
 
+// R48-05: 入驻申请路由独立前缀 /api/platform/applications
+// auth 改为 requirePlatformAuth（由 auto-routes 自动挂载），删除手动 router.use
+// 路由内路径去掉 /applications 前缀（prefix 已包含），保持实际请求路径不变
 export const platformApplicationsRouter = Router();
 
-// 入驻申请查询与审核需要平台管理员认证
-platformApplicationsRouter.use("/applications", requirePlatformAuth);
-
 // GET /api/platform/applications - 申请列表
-platformApplicationsRouter.get("/applications", asyncHandler(handleListApplications));
+platformApplicationsRouter.get("/", asyncHandler(handleListApplications));
 
 // GET /api/platform/applications/:id - 申请详情
-platformApplicationsRouter.get("/applications/:id", asyncHandler(handleGetApplication));
+platformApplicationsRouter.get("/:id", asyncHandler(handleGetApplication));
 
 // PUT /api/platform/applications/:id/approve - 审核通过
-platformApplicationsRouter.put("/applications/:id/approve", asyncHandler(handleApproveApplication));
+platformApplicationsRouter.put("/:id/approve", asyncHandler(handleApproveApplication));
 
 // PUT /api/platform/applications/:id/reject - 审核驳回
-platformApplicationsRouter.put("/applications/:id/reject", asyncHandler(handleRejectApplication));
+platformApplicationsRouter.put("/:id/reject", asyncHandler(handleRejectApplication));
 
 // ========== 路由自动发现配置 ==========
 export const routeConfig: RouteConfig = {
-  prefix: "/api/platform",
+  prefix: "/api/platform/applications",
   router: platformApplicationsRouter,
-  auth: "none",
+  auth: "requirePlatformAuth",
 };

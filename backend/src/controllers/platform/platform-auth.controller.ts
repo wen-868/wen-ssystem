@@ -1,9 +1,8 @@
-import jwt from "jsonwebtoken";
 import bcrypt from "bcryptjs";
 import { queryOne, query } from "../../shared/db";
-import { env } from "../../shared/env";
 import { ok, fail } from "../../shared/response";
 import { hashPassword, validatePassword } from "../../shared/password";
+import { signPlatformToken } from "../../middleware/auth";
 
 // ── 辅助函数（集中分支逻辑，减少重复分支统计） ──
 
@@ -38,11 +37,15 @@ export async function platformLogin(req: any, res: any) {
     return;
   }
 
-  const token = jwt.sign(
-    { id: admin.id, username: admin.username, realName: admin.real_name, type: "platform_admin" },
-    env.JWT_SECRET,
-    { expiresIn: "8h" }
-  );
+  // 使用平台专用 issuer/audience 签发 JWT，与商家 JWT 严格隔离
+  // 平台 JWT: issuer=zhixiang-platform, audience=zhixiang-platform-client
+  // 商家 JWT: issuer=zhixiang-system,  audience=zhixiang-client
+  const token = signPlatformToken({
+    id: admin.id,
+    username: admin.username,
+    realName: admin.real_name,
+    type: "platform_admin",
+  });
 
   res.json(ok({ token, admin: { id: admin.id, username: admin.username, realName: admin.real_name } }));
 }

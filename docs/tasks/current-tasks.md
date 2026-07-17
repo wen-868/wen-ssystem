@@ -1781,7 +1781,8 @@
 - **优先级**：P1
 - **负责人**：林夕
 - **预计**：1小时
-- **状态**：⬜ 待开始
+- **实际**：0.5天
+- **状态**：✅ 已完成
 - **前置**：R48-02 完成后执行
 - **详细说明**：
   - `platform-config.routes.ts`：前缀 `/api/platform` → `/api/platform/config`
@@ -1789,21 +1790,46 @@
   - `platform.routes.ts`：保持 `/api/platform` 不变
   - **同时**：saas-admin 前端 API 路径同步修改
 - **验收标准**：无路由覆盖 warning
-- **记忆更新**：完成后更新 `林夕-记忆.md`
+- **验证结果**：
+  - tsc --noEmit：✅ 0 错误
+  - 平台相关测试：✅ 3 文件 41 用例全部通过（platform.test.ts / platform-auth.test.ts / auth.test.ts）
+  - 全量测试：8 文件 30 用例失败，全部为 R47-02 表名统一遗留问题（如 `FROM member` 期望 vs `FROM t_member` 实际），与 R48-05 无关
+  - saas-admin 前端核查：✅ grep 确认 `/platform/announcements`、`/platform/audit-logs` 等路径后端都有对应路由，无需修改 saas-admin
+- **修改文件**：
+  - `backend/src/routes/platform-config.routes.ts` — 前缀改 `/api/platform/config`，auth 改 `requirePlatformAuth`，删除手动认证中间件，删除 announcements 路由（迁移到 platform.routes.ts）
+  - `backend/src/routes/platform-applications.routes.ts` — 前缀改 `/api/platform/applications`，auth 改 `requirePlatformAuth`，删除手动认证中间件
+  - `backend/src/routes/platform.routes.ts` — 新增 announcements 路由（GET/POST），保持 `/api/platform` 前缀
+  - `backend/src/__tests__/routes/platform.test.ts` — auth 期望从 `requireAuthWithTenant` 改为 `requirePlatformAuth`（R48-02 遗留）
+- **记忆更新**：✅ 已更新 `林夕-记忆.md`、踩坑日志 [62]
 
 ### R48-06 — 增强 requirePlatformAuth 安全性 [P1]
 
 - **优先级**：P1
 - **负责人**：林夕
 - **预计**：1小时
-- **状态**：⬜ 待开始
+- **实际**：0.5天
+- **状态**：✅ 已完成
 - **前置**：无（可立即开始）
 - **详细说明**：
   - `backend/src/middleware/auth.ts` 的 `requirePlatformAuth` 增加 issuer 校验
   - 使用独立 issuer（如 `zhixiang-platform`）区分平台和商家 JWT
   - 修改 `platform-auth.controller.ts` JWT 签发使用平台专用 issuer
 - **验收标准**：商家 JWT 无法通过平台认证，平台 JWT 无法通过商家认证
-- **记忆更新**：完成后更新 `林夕-记忆.md`
+- **验证结果**：
+  - tsc --noEmit：✅ 0 错误
+  - auth 中间件测试：✅ 31 用例全部通过（含 4 个新增跨域 JWT 隔离测试）
+  - 平台相关测试：✅ 3 文件 41 用例全部通过
+- **修改文件**：
+  - `backend/src/middleware/auth.ts` — 新增 4 个 JWT issuer/audience 常量，新增 `signPlatformToken` 函数，`requirePlatformAuth` 增加 issuer/audience 校验，`signToken` 也补上商家 issuer/audience
+  - `backend/src/controllers/platform/platform-auth.controller.ts` — platformLogin 改用 `signPlatformToken`，清理未使用 import
+  - `backend/src/__tests__/middleware/auth.test.ts` — 新增 4 个跨域 JWT 隔离测试用例
+  - `backend/src/__tests__/routes/platform-auth.test.ts` — mock 中增加 `signPlatformToken` 和 4 个常量
+- **新增测试**：
+  1. 商家 JWT 无法通过平台认证（issuer 不匹配）
+  2. 平台 JWT 无法通过商家认证（issuer 不匹配）
+  3. 伪造 type=platform_admin 的商家 JWT 无法通过平台认证
+  4. 平台 JWT 常量值正确
+- **记忆更新**：✅ 已更新 `林夕-记忆.md`、踩坑日志 [63]
 
 ---
 

@@ -1,4 +1,4 @@
-﻿import { describe, it, expect } from "vitest";
+import { describe, it, expect } from "vitest";
 import { routeConfig } from "../../routes/platform.routes";
 
 describe("routes/platform", () => {
@@ -8,8 +8,8 @@ describe("routes/platform", () => {
     expect(routeConfig.router).toBeDefined();
   });
 
-  it("应配置认证中间件", () => {
-    expect(routeConfig.auth).toBe("requireAuthWithTenant");
+  it("应配置平台认证中间件（R48-02 修复：平台路由不能使用 requireAuthWithTenant）", () => {
+    expect(routeConfig.auth).toBe("requirePlatformAuth");
   });
 
   it("router 应该是一个 Router 实例", () => {
@@ -19,3 +19,4 @@ describe("routes/platform", () => {
     expect(typeof routeConfig.router.delete).toBe("function");
   });
 });
+

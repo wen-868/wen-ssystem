@@ -61,12 +61,31 @@ declare global {
   }
 }
 
+// JWT issuer / audience 常量
+// 商家与平台使用不同的 issuer，从根本上隔离两类 JWT，防止跨域冒充
+export const MERCHANT_JWT_ISSUER = "zhixiang-system";
+export const MERCHANT_JWT_AUDIENCE = "zhixiang-client";
+export const PLATFORM_JWT_ISSUER = "zhixiang-platform";
+export const PLATFORM_JWT_AUDIENCE = "zhixiang-platform-client";
+
 export function signToken(user: AuthUser) {
   return jwt.sign(user, env.JWT_SECRET, {
     algorithm: "HS256",
     expiresIn: "4h",
-    issuer: "zhixiang-system",
-    audience: "zhixiang-client",
+    issuer: MERCHANT_JWT_ISSUER,
+    audience: MERCHANT_JWT_AUDIENCE,
+  });
+}
+
+/**
+ * 签发平台管理员 JWT（独立 issuer/audience，与商家 JWT 严格隔离）
+ */
+export function signPlatformToken(payload: Record<string, unknown>) {
+  return jwt.sign(payload, env.JWT_SECRET, {
+    algorithm: "HS256",
+    expiresIn: "8h",
+    issuer: PLATFORM_JWT_ISSUER,
+    audience: PLATFORM_JWT_AUDIENCE,
   });
 }
 
@@ -106,6 +125,8 @@ export const requireAuth: RequestHandler = (req, res, next) => {
 export const requireAuthWithTenant = [requireAuth, tenantMiddleware] as RequestHandler[];
 
 // 平台总后台认证：验证 platform_admin JWT
+// 同时校验 issuer/audience，确保只有平台签发的 JWT 才能通过
+// 商家 JWT（issuer=zhixiang-system）即使伪造 type=platform_admin 也会被拒绝
 export const requirePlatformAuth: RequestHandler = (req, res, next) => {
   const authorization = req.headers.authorization || "";
   const token = authorization.replace(/^Bearer\s+/i, "");
@@ -116,6 +137,8 @@ export const requirePlatformAuth: RequestHandler = (req, res, next) => {
   try {
     const decoded = jwt.verify(token, env.JWT_SECRET, {
       algorithms: ["HS256"],
+      issuer: PLATFORM_JWT_ISSUER,
+      audience: PLATFORM_JWT_AUDIENCE,
     }) as { type?: string; id?: number; tenantId?: number };
     if (decoded.type !== "platform_admin") {
       res.status(403).json(fail("无权限", "403"));
