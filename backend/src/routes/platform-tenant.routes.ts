@@ -25,7 +25,7 @@ platformTenantRouter.put("/:id", asyncHandler(controller.updatePlatformTenant));
 platformTenantRouter.post("/:id/toggle", asyncHandler(controller.togglePlatformTenantStatus));
 
 export const routeConfig: RouteConfig = {
-  prefix: "/api/platform-tenant",
+  prefix: "/api/platform/tenants",
   router: platformTenantRouter,
-  auth: "none",
+  auth: "requirePlatformAuth",
 };

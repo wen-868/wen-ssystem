@@ -21,5 +21,5 @@ storeReceivableRouter.post("/receivables/:receivableNo/payment", receivableContr
 export const routeConfig: RouteConfig = {
   prefix: "/api/store",
   router: storeReceivableRouter,
-  auth: "none",
+  auth: "requireAuthWithTenant",
 };

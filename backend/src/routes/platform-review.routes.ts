@@ -13,7 +13,7 @@ platformReviewRouter.post("/batch-approval", asyncHandler(controller.batchReview
 platformReviewRouter.get("/:id", asyncHandler(controller.getReviewById));
 
 export const routeConfig: RouteConfig = {
-  prefix: "/api/platform-review",
+  prefix: "/api/platform/reviews",
   router: platformReviewRouter,
   auth: "requirePlatformAuth",
 };

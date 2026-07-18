@@ -12,5 +12,5 @@ adminMarketingCalculationRouter.post("/calculate", requireAuthWithTenant, calcul
 export const routeConfig: RouteConfig = {
   prefix: "/api/admin/marketing",
   router: adminMarketingCalculationRouter,
-  auth: "none",
+  auth: "requireAuthWithTenant",
 };

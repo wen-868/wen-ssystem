@@ -11,5 +11,5 @@ export const adminCreditRouter = Router();
 export const routeConfig: RouteConfig = {
   prefix: "/api/admin",
   router: adminCreditRouter,
-  auth: "none",
+  auth: "requireAuthWithTenant",
 };

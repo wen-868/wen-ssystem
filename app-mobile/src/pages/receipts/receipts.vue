@@ -88,6 +88,7 @@
 <script setup lang="ts">
 import { ref, reactive, onMounted } from 'vue'
 import { useFormValidation, type Rules } from '@/composables/useFormValidation'
+import { receiptApi } from '@/api/modules/receipts'
 
 const formRef = ref<any>(null)
 const searchForm = reactive({ keyword: '' })
@@ -110,14 +111,19 @@ function onSearch() { loadReceipts() }
 function clearSearch() { searchForm.keyword = ''; loadReceipts() }
 function switchTab(val: string) { activeTab.value = val; loadReceipts() }
 
-function voidReceipt(item: any) {
+async function voidReceipt(item: any) {
   uni.showModal({
     title: '作废收款单',
     content: '确认作废该收款单？此操作不可撤销。',
-    success: (res) => {
+    success: async (res) => {
       if (res.confirm) {
-        // TODO: 对接作废收款单接口
-        uni.showToast({ title: '已作废', icon: 'success' })
+        try {
+          await receiptApi.cancel(item.id, '用户作废')
+          uni.showToast({ title: '已作废', icon: 'success' })
+          loadReceipts()
+        } catch (err) {
+          uni.showToast({ title: '作废失败', icon: 'error' })
+        }
       }
     }
   })
@@ -126,10 +132,16 @@ function voidReceipt(item: any) {
 async function loadReceipts() {
   loading.value = true
   try {
-    // TODO: 对接 /api/customer-payments 接口
-    list.value = []
+    const res = await receiptApi.getList({
+      page: 1,
+      pageSize: 50,
+      keyword: searchForm.keyword || undefined,
+      type: activeTab.value || undefined
+    })
+    list.value = res.list || []
   } catch (err) {
     console.error('加载收款单失败:', err)
+    uni.showToast({ title: '加载失败', icon: 'error' })
   } finally {
     loading.value = false
   }

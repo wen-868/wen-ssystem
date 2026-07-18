@@ -20,5 +20,5 @@ storeSaleBillRouter.post("/sale-bills/:billNo/payment", saleBillController.payme
 export const routeConfig: RouteConfig = {
   prefix: "/api/store",
   router: storeSaleBillRouter,
-  auth: "none",
+  auth: "requireAuthWithTenant",
 };

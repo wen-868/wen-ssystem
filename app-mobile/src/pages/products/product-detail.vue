@@ -134,6 +134,7 @@ import { ref, reactive, onMounted } from 'vue'
 import { onLoad } from '@dcloudio/uni-app'
 import { useFormValidation, type Rules } from '@/composables/useFormValidation'
 import { isWholesaleCustomer } from '@/utils/price'
+import { productsApi } from '@/api/modules/products'
 
 const formRef = ref<any>(null)
 const adjustForm = reactive({
@@ -200,7 +201,8 @@ async function onSubmitAdjust() {
 
 async function loadProduct(id: number) {
   try {
-    // TODO: 对接商品详情接口
+    const res = await productsApi.detail(id)
+    Object.assign(product.value, res)
   } catch (err) {
     console.error('加载商品详情失败:', err)
   }

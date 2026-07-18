@@ -24,5 +24,5 @@ saasTenantRouter.get("/statistics/overview", tenantController.getTenantStatistic
 export const routeConfig: RouteConfig = {
   prefix: "/api/saas/tenants",
   router: saasTenantRouter,
-  auth: "none",
+  auth: "requirePlatformAuth",
 };

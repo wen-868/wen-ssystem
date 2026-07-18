@@ -105,6 +105,7 @@
 <script setup lang="ts">
 import { ref, reactive, onMounted } from 'vue'
 import { useFormValidation, type Rules } from '@/composables/useFormValidation'
+import { post, get } from '@/api/request'
 
 const formRef = ref<any>(null)
 const pushForm = reactive({
@@ -159,8 +160,14 @@ async function handlePush() {
   }
   pushing.value = true
   try {
-    // TODO: 调用后端 API 推送报价
+    await post('/admin/quote-push', {
+      validity: validityOptions[pushForm.validityIndex],
+      target: targetOptions[pushForm.targetIndex],
+      marketNote: pushForm.marketNote,
+      channels: pushForm.channels,
+    })
     uni.showToast({ title: '报价已推送', icon: 'success' })
+    loadQuoteHistory()
   } catch (err: any) {
     uni.showToast({ title: err?.message || '推送失败', icon: 'none' })
   } finally {
@@ -168,21 +175,35 @@ async function handlePush() {
   }
 }
 
-function resendQuote(item: any) {
+async function resendQuote(item: any) {
   uni.showModal({
     title: '重新推送',
     content: '确定要重新推送此报价单吗？',
-    success: (res) => {
+    success: async (res) => {
       if (res.confirm) {
-        // TODO: 调用后端 API 重新推送
-        uni.showToast({ title: '已推送', icon: 'success' })
+        try {
+          await post(`/admin/quote-push/${item.quoteNo}/resend`, {})
+          uni.showToast({ title: '已推送', icon: 'success' })
+          loadQuoteHistory()
+        } catch (err: any) {
+          uni.showToast({ title: err?.message || '推送失败', icon: 'none' })
+        }
       }
     }
   })
 }
 
+async function loadQuoteHistory() {
+  try {
+    const res = await get('/admin/quote-push/history', { page: 1, pageSize: 10 })
+    quoteList.value = res?.list || res?.records || []
+  } catch (err) {
+    console.error('加载报价历史失败:', err)
+  }
+}
+
 onMounted(() => {
-  // TODO: 加载报价单历史
+  loadQuoteHistory()
 })
 </script>
 

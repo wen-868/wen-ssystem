@@ -80,6 +80,7 @@
 <script setup lang="ts">
 import { ref, reactive, onMounted } from 'vue'
 import { useFormValidation, type Rules } from '@/composables/useFormValidation'
+import { purchaseApi } from '@/api/modules/purchase'
 
 const formRef = ref<any>(null)
 const searchForm = reactive({ keyword: '' })
@@ -110,10 +111,16 @@ function handleInStock(item: any) {
 async function loadOrders() {
   loading.value = true
   try {
-    // TODO: 对接 /api/purchases 接口
-    list.value = []
+    const res = await purchaseApi.getOrderList({
+      page: 1,
+      pageSize: 50,
+      keyword: searchForm.keyword || undefined,
+      status: activeTab.value || undefined
+    })
+    list.value = res.list || []
   } catch (err) {
     console.error('加载采购订单失败:', err)
+    uni.showToast({ title: '加载失败', icon: 'error' })
   } finally {
     loading.value = false
   }

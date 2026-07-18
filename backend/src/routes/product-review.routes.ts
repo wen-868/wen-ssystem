@@ -18,5 +18,5 @@ productReviewRouter.post("/batch-approve", requireAuthWithTenant, asyncHandler(c
 export const routeConfig: RouteConfig = {
   prefix: "/api/admin/product-reviews",
   router: productReviewRouter,
-  auth: "none",
+  auth: "requireAuthWithTenant",
 };

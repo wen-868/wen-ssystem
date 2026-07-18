@@ -28,5 +28,5 @@ inventoryProfitLossRouter.get("/profit-loss/stats", requireAuthWithTenant, profi
 export const routeConfig: RouteConfig = {
   prefix: "/api/admin/inventory",
   router: inventoryProfitLossRouter,
-  auth: "none",
+  auth: "requireAuthWithTenant",
 };

@@ -174,7 +174,7 @@ function sourceTag(source: string): string {
 async function fetchList() {
   loading.value = true;
   try {
-    const res = await api.get("/admin/error-logs", {
+    const res = await api.get("/platform/error-logs", {
       params: {
         page: page.value,
         pageSize: pageSize.value,

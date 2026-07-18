@@ -122,7 +122,7 @@ async function loadExpenses() {
       keyword: keyword.value || undefined
     })
     if (page.value === 1) {
-      expenseList.value = res.list.length > 0 ? res.list : getMockExpenses()
+      expenseList.value = res.list
       total.value = res.total
     } else {
       expenseList.value = [...expenseList.value, ...res.list]
@@ -130,69 +130,12 @@ async function loadExpenses() {
   } catch (err) {
     console.error('加载费用列表失败:', err)
     if (page.value === 1) {
-      expenseList.value = getMockExpenses()
-      total.value = expenseList.value.length
+      expenseList.value = []
+      total.value = 0
     }
   } finally {
     loading.value = false
   }
-}
-
-function getMockExpenses(): Expense[] {
-  return [
-    {
-      id: 1,
-      expenseNo: 'FY20260713001',
-      type: 'SALARY',
-      typeName: '员工工资',
-      amount: 50000,
-      date: new Date().toISOString().split('T')[0],
-      status: 'PENDING',
-      statusName: '待审核',
-      remark: '7月份工资',
-      submitterName: '张三',
-      createdAt: new Date().toISOString().split('T')[0]
-    },
-    {
-      id: 2,
-      expenseNo: 'FY20260713002',
-      type: 'RENT',
-      typeName: '房租水电',
-      amount: 25000,
-      date: new Date().toISOString().split('T')[0],
-      status: 'APPROVED',
-      statusName: '已通过',
-      remark: '7月份房租',
-      submitterName: '李四',
-      createdAt: new Date().toISOString().split('T')[0]
-    },
-    {
-      id: 3,
-      expenseNo: 'FY20260713003',
-      type: 'MARKETING',
-      typeName: '营销费用',
-      amount: 10000,
-      date: new Date().toISOString().split('T')[0],
-      status: 'PENDING',
-      statusName: '待审核',
-      remark: '促销活动费用',
-      submitterName: '王五',
-      createdAt: new Date().toISOString().split('T')[0]
-    },
-    {
-      id: 4,
-      expenseNo: 'FY20260713004',
-      type: 'OTHER',
-      typeName: '其他',
-      amount: 5000,
-      date: new Date().toISOString().split('T')[0],
-      status: 'REJECTED',
-      statusName: '已驳回',
-      remark: '办公用品采购',
-      submitterName: '赵六',
-      createdAt: new Date().toISOString().split('T')[0]
-    }
-  ]
 }
 
 function onSearch() {

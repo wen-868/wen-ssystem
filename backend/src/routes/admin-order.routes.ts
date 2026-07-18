@@ -27,5 +27,5 @@ adminOrderRouter.get("/sale-bills/export-csv", requireAuthWithTenant, orderContr
 export const routeConfig: RouteConfig = {
   prefix: "/api/admin",
   router: adminOrderRouter,
-  auth: "none",
+  auth: "requireAuthWithTenant",
 };

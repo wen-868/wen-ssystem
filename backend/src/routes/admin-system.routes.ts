@@ -11,5 +11,5 @@ export const adminSystemRouter = Router();
 export const routeConfig: RouteConfig = {
   prefix: "/api/admin",
   router: adminSystemRouter,
-  auth: "none",
+  auth: "requireAuthWithTenant",
 };

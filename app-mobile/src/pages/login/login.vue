@@ -21,14 +21,14 @@
           </view>
           <input
             class="form-input"
-            v-model="loginForm.account"
+            v-model="loginForm.username"
             type="text"
             placeholder="请输入账号（手机号）"
             placeholder-class="input-placeholder"
-            @input="clearError('account')"
+            @input="clearError('username')"
           />
-          <view class="field-error" v-if="errors.account">
-            <text class="error-text">{{ errors.account }}</text>
+          <view class="field-error" v-if="errors.username">
+            <text class="error-text">{{ errors.username }}</text>
           </view>
         </view>
 
@@ -95,12 +95,12 @@ const errorMsg = ref('')
 // 表单三件套：ref + :model + :rules
 const formRef = ref<any>(null)
 const loginForm = reactive({
-  account: '',
+  username: '',
   password: '',
 })
 
 const loginRules: Rules = {
-  account: [
+  username: [
     { required: true, message: '请输入账号' },
     { minLength: 5, message: '账号长度不能少于5位' },
   ],
@@ -119,7 +119,7 @@ async function handleLogin() {
 
   loading.value = true
   try {
-    await userStore.login(loginForm.account.trim(), loginForm.password)
+    await userStore.login(loginForm.username.trim(), loginForm.password)
     uni.showToast({ title: '登录成功', icon: 'success' })
     setTimeout(() => {
       uni.reLaunch({ url: '/pages/home/home' })

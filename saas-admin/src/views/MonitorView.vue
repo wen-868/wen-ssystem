@@ -166,7 +166,7 @@ function formatUptime(seconds: number): string {
 async function fetchDbStatus() {
   dbLoading.value = true
   try {
-    const res = await api.get('/admin/monitor/db-status')
+    const res = await api.get('/platform/monitor/db-status')
     const data = res.data?.data || (res as any).data || res
     Object.assign(dbStatus, data)
   } catch { /* ignore */ }
@@ -176,7 +176,7 @@ async function fetchDbStatus() {
 async function fetchApiStats() {
   apiLoading.value = true
   try {
-    const res = await api.get('/admin/monitor/api-stats')
+    const res = await api.get('/platform/monitor/api-stats')
     const data = res.data?.data || (res as any).data || res
     Object.assign(apiStats, data)
   } catch { /* ignore */ }
@@ -186,7 +186,7 @@ async function fetchApiStats() {
 async function fetchExpiringTenants() {
   expiringLoading.value = true
   try {
-    const res = await api.get('/admin/monitor/expiring-tenants')
+    const res = await api.get('/platform/monitor/expiring-tenants')
     const data = res.data?.data || (res as any).data || res
     expiringTenants.value = Array.isArray(data) ? data : (data.records || [])
   } catch (e: any) {
@@ -198,7 +198,7 @@ async function fetchExpiringTenants() {
 
 async function notifyTenant(row: any) {
   try {
-    await api.post('/admin/monitor/notify-expiring', { tenantIds: [row.id] })
+    await api.post('/platform/monitor/notify-expiring', { tenantIds: [row.id] })
     ElMessage.success(`已向 ${row.companyName} 发送通知`)
   } catch (e: any) {
     ElMessage.error(e?.response?.data?.message || '发送失败')
@@ -209,7 +209,7 @@ async function notifyAll() {
   notifying.value = true
   try {
     const ids = expiringTenants.value.map(t => t.id)
-    await api.post('/admin/monitor/notify-expiring', { tenantIds: ids })
+    await api.post('/platform/monitor/notify-expiring', { tenantIds: ids })
     ElMessage.success(`已向 ${ids.length} 个租户发送通知`)
   } catch (e: any) {
     ElMessage.error(e?.response?.data?.message || '发送失败')

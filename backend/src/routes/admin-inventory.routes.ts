@@ -19,5 +19,5 @@ adminInventoryRouter.get("/reports/inventory-abc", requireAuthWithTenant, report
 export const routeConfig: RouteConfig = {
   prefix: "/api/admin",
   router: adminInventoryRouter,
-  auth: "none",
+  auth: "requireAuthWithTenant",
 };

@@ -518,6 +518,11 @@ const storeApi = {
     return (res?.result ?? res) as PageResult<any>
   },
 
+  /** 撤销收款链接 */
+  async revokeCollectionLink(linkNo: string): Promise<any> {
+    return post(`/store/collection-links/${linkNo}/revoke`, {})
+  },
+
   /** 支付单列表 */
   async fetchPaymentOrders(params?: PageParams): Promise<PageResult<PaymentOrder>> {
     const res: any = await get('/store/payment-orders', { page: 1, pageSize: 30, ...params })

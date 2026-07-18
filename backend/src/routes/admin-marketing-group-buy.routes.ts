@@ -22,5 +22,5 @@ adminMarketingGroupBuyRouter.post("/group-buys/teams/:teamId/join", requireAuthW
 export const routeConfig: RouteConfig = {
   prefix: "/api/admin/marketing",
   router: adminMarketingGroupBuyRouter,
-  auth: "none",
+  auth: "requireAuthWithTenant",
 };

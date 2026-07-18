@@ -192,12 +192,77 @@ export async function createPlatformTenant(params: PlatformTenantCreate) {
       );
     }
 
-    // TODO: 初始化租户默认数据（管理员账号、基础配置等）
+    // 初始化租户默认数据
+    await initializeTenantDefaults(conn, tenantId, params.contactName, params.contactPhone);
 
     return { tenantId, tenantCode };
   });
 
   return result;
+}
+
+/**
+ * 初始化租户默认数据
+ */
+async function initializeTenantDefaults(
+  conn: any,
+  tenantId: string,
+  adminName: string,
+  adminPhone: string
+) {
+  // 创建默认管理员账号
+  const adminPassword = await import("bcryptjs").then(m => m.hash("123456", 10));
+  await conn.query(
+    `INSERT INTO t_sys_user
+     (tenant_id, username, password, real_name, phone, role, status, is_default)
+     VALUES (?, ?, ?, ?, ?, 'SUPER_ADMIN', 'ACTIVE', 1)`,
+    [tenantId, "admin", adminPassword, adminName, adminPhone]
+  );
+
+  // 创建默认仓库
+  await conn.query(
+    `INSERT INTO t_store
+     (tenant_id, store_name, store_code, store_type, status, is_default)
+     VALUES (?, '默认仓库', 'WH001', 'WAREHOUSE', 'ACTIVE', 1)`,
+    [tenantId]
+  );
+
+  // 创建默认价格等级
+  await conn.query(
+    `INSERT INTO t_price_level
+     (tenant_id, level_name, level_code, sort_order)
+     VALUES (?, '零售价', 'RETAIL', 1)`,
+    [tenantId]
+  );
+
+  await conn.query(
+    `INSERT INTO t_price_level
+     (tenant_id, level_name, level_code, sort_order)
+     VALUES (?, '批发价', 'WHOLESALE', 2)`,
+    [tenantId]
+  );
+
+  // 创建默认支付方式
+  await conn.query(
+    `INSERT INTO t_payment_method
+     (tenant_id, method_name, method_code, status)
+     VALUES (?, '现金', 'CASH', 'ACTIVE')`,
+    [tenantId]
+  );
+
+  await conn.query(
+    `INSERT INTO t_payment_method
+     (tenant_id, method_name, method_code, status)
+     VALUES (?, '微信支付', 'WECHAT', 'ACTIVE')`,
+    [tenantId]
+  );
+
+  await conn.query(
+    `INSERT INTO t_payment_method
+     (tenant_id, method_name, method_code, status)
+     VALUES (?, '支付宝', 'ALIPAY', 'ACTIVE')`,
+    [tenantId]
+  );
 }
 
 /**

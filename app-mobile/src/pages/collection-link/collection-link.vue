@@ -88,6 +88,7 @@
 <script setup lang="ts">
 import { ref, reactive, onMounted } from 'vue'
 import { useFormValidation, type Rules } from '@/composables/useFormValidation'
+import { storeApi } from '@/api/modules/store'
 
 const formRef = ref<any>(null)
 const linkForm = reactive({
@@ -115,11 +116,15 @@ async function handleCreate() {
   if (!validate()) return
   creating.value = true
   try {
-    // TODO: 调用后端 API 创建收款链接
+    const res = await storeApi.createCollectionLink(linkForm.billNo, {
+      amount: Number(linkForm.amount),
+      remark: linkForm.remark,
+    })
     uni.showToast({ title: '收款链接已生成', icon: 'success' })
     linkForm.billNo = ''
     linkForm.amount = ''
     linkForm.remark = ''
+    loadLinkList()
   } catch (err: any) {
     uni.showToast({ title: err?.message || '生成失败', icon: 'none' })
   } finally {
@@ -128,25 +133,48 @@ async function handleCreate() {
 }
 
 function shareLink(link: any) {
-  // TODO: 分享收款链接
-  uni.showToast({ title: '敬请期待，即将上线', icon: 'none' })
+  if (link.shareUrl) {
+    uni.setClipboardData({
+      data: link.shareUrl,
+      success: () => {
+        uni.showToast({ title: '链接已复制', icon: 'success' })
+      }
+    })
+  } else {
+    uni.showToast({ title: '链接不可用', icon: 'none' })
+  }
 }
 
-function revokeLink(link: any) {
+async function revokeLink(link: any) {
   uni.showModal({
     title: '撤销确认',
     content: '确定要撤销此收款链接吗？',
-    success: (res) => {
+    success: async (res) => {
       if (res.confirm) {
-        // TODO: 调用后端 API 撤销
-        uni.showToast({ title: '已撤销', icon: 'success' })
+        try {
+          await storeApi.revokeCollectionLink(link.linkNo)
+          uni.showToast({ title: '已撤销', icon: 'success' })
+          loadLinkList()
+        } catch (err: any) {
+          uni.showToast({ title: err?.message || '撤销失败', icon: 'none' })
+        }
       }
     }
   })
 }
 
+async function loadLinkList() {
+  try {
+    const res = await storeApi.fetchCollectionLinks({ page: 1, pageSize: 20 })
+    linkList.value = res?.list || res?.records || []
+  } catch (err) {
+    console.error('加载收款链接列表失败:', err)
+    linkList.value = []
+  }
+}
+
 onMounted(() => {
-  // TODO: 加载收款链接列表
+  loadLinkList()
 })
 </script>
 

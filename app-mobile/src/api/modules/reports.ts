@@ -232,6 +232,27 @@ const reportsApi = {
   }): Promise<CashFlowItem[]> {
     const res: any = await get('/admin/reports/cash-flow', params)
     return (res?.list ?? res ?? []) as CashFlowItem[]
+  },
+
+  // 采购报表接口
+  async getPurchaseReport(params?: {
+    startDate?: string
+    endDate?: string
+  }): Promise<{
+    summary: { totalAmount: string; orderCount: number; supplierCount: number }
+    supplierList: any[]
+    detailList: any[]
+  }> {
+    const res: any = await get('/admin/reports/purchase-summary', params)
+    return {
+      summary: {
+        totalAmount: res?.totalAmount ?? '0.00',
+        orderCount: res?.orderCount ?? 0,
+        supplierCount: res?.supplierCount ?? 0,
+      },
+      supplierList: res?.supplierList ?? [],
+      detailList: res?.detailList ?? [],
+    }
   }
 }
 

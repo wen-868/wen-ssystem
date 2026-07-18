@@ -13,5 +13,5 @@ systemRouter.post("/migrate", asyncHandler(runSystemMigration));
 export const routeConfig: RouteConfig = {
   prefix: "/api/system",
   router: systemRouter,
-  auth: "none",
+  auth: "requireAuthWithTenant",
 };

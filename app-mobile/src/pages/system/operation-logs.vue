@@ -115,7 +115,7 @@ async function loadLogs() {
       keyword: keyword.value || undefined
     })
     if (page.value === 1) {
-      logList.value = res.list.length > 0 ? res.list : getMockLogs()
+      logList.value = res.list
       total.value = res.total
     } else {
       logList.value = [...logList.value, ...res.list]
@@ -123,78 +123,12 @@ async function loadLogs() {
   } catch (err) {
     console.error('加载操作日志失败:', err)
     if (page.value === 1) {
-      logList.value = getMockLogs()
-      total.value = logList.value.length
+      logList.value = []
+      total.value = 0
     }
   } finally {
     loading.value = false
   }
-}
-
-function getMockLogs(): OperationLog[] {
-  const now = new Date()
-  return [
-    {
-      id: 1,
-      operator: '张三',
-      operatorId: 1,
-      operationType: 'CREATE',
-      operationTypeName: '新增',
-      content: '新增商品：飞天茅台 53度 500ml',
-      module: 'PRODUCT',
-      moduleName: '商品管理',
-      ip: '192.168.1.100',
-      createdAt: now.toISOString()
-    },
-    {
-      id: 2,
-      operator: '李四',
-      operatorId: 2,
-      operationType: 'UPDATE',
-      operationTypeName: '修改',
-      content: '修改商品价格：飞天茅台 53度 500ml 从1499元改为1599元',
-      module: 'PRODUCT',
-      moduleName: '商品管理',
-      ip: '192.168.1.101',
-      createdAt: new Date(now.getTime() - 3600000).toISOString()
-    },
-    {
-      id: 3,
-      operator: '王五',
-      operatorId: 3,
-      operationType: 'DELETE',
-      operationTypeName: '删除',
-      content: '删除客户：北京XX商贸有限公司',
-      module: 'CUSTOMER',
-      moduleName: '客户管理',
-      ip: '192.168.1.102',
-      createdAt: new Date(now.getTime() - 7200000).toISOString()
-    },
-    {
-      id: 4,
-      operator: '张三',
-      operatorId: 1,
-      operationType: 'LOGIN',
-      operationTypeName: '登录',
-      content: '用户张三登录系统',
-      module: 'AUTH',
-      moduleName: '系统认证',
-      ip: '192.168.1.100',
-      createdAt: new Date(now.getTime() - 86400000).toISOString()
-    },
-    {
-      id: 5,
-      operator: '赵六',
-      operatorId: 4,
-      operationType: 'EXPORT',
-      operationTypeName: '导出',
-      content: '导出销售报表 2026年7月',
-      module: 'REPORT',
-      moduleName: '数据报表',
-      ip: '192.168.1.103',
-      createdAt: new Date(now.getTime() - 172800000).toISOString()
-    }
-  ]
 }
 
 function onSearch() {
@@ -223,21 +157,10 @@ function goDetail(id: number) {
 async function loadTypes() {
   try {
     const types = await operationLogApi.getTypes()
-    operationTypes.value = types.length > 0 ? types : getMockTypes()
+    operationTypes.value = types
   } catch (err) {
-    operationTypes.value = getMockTypes()
+    console.error('加载操作类型失败:', err)
   }
-}
-
-function getMockTypes(): OperationType[] {
-  return [
-    { value: 'CREATE', label: '新增' },
-    { value: 'UPDATE', label: '修改' },
-    { value: 'DELETE', label: '删除' },
-    { value: 'LOGIN', label: '登录' },
-    { value: 'EXPORT', label: '导出' },
-    { value: 'APPROVE', label: '审核' }
-  ]
 }
 
 onMounted(() => {

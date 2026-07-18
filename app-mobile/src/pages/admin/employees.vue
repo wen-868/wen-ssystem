@@ -100,6 +100,7 @@
 <script setup lang="ts">
 import { ref, reactive, onMounted } from 'vue'
 import { useFormValidation, type Rules } from '@/composables/useFormValidation'
+import { employeeApi, type Employee } from '@/api/modules/employees'
 
 const formRef = ref<any>(null)
 const searchForm = reactive({ keyword: '' })
@@ -114,11 +115,8 @@ const filterOptions = [
   { label: '离职', value: 'inactive' },
 ]
 const activeFilter = ref('')
-const list = ref<any[]>([
-  { id: 1, name: '张三', phone: '138****1234', roleName: '收银员', storeName: '总店', hireDate: '2026-01-15', status: 'active' },
-  { id: 2, name: '李四', phone: '139****5678', roleName: '店长', storeName: '分店', hireDate: '2026-02-20', status: 'active' },
-  { id: 3, name: '王五', phone: '137****9012', roleName: '库管', storeName: '总店', hireDate: '2026-03-10', status: 'inactive' },
-])
+const list = ref<Employee[]>([])
+const loading = ref(false)
 
 function onSearch() { loadEmployees() }
 function clearSearch() { searchForm.keyword = ''; loadEmployees() }
@@ -128,55 +126,81 @@ function goAddEmployee() {
     title: '添加员工',
     editable: true,
     placeholderText: '请输入员工姓名',
-    success: (res) => {
+    success: async (res) => {
       if (res.confirm && res.content) {
-        uni.showToast({ title: '添加成功', icon: 'success' })
-        loadEmployees()
+        try {
+          await employeeApi.addEmployee({ name: res.content, phone: '' })
+          uni.showToast({ title: '添加成功', icon: 'success' })
+          loadEmployees()
+        } catch (err) {
+          uni.showToast({ title: '添加失败', icon: 'error' })
+        }
       }
     }
   })
 }
 
-function viewDetail(item: any) {
+function viewDetail(item: Employee) {
   uni.showModal({
     title: item.name + '的详情',
-    content: `岗位：${item.roleName}\n门店：${item.storeName}\n入职时间：${item.hireDate}\n状态：${item.status === 'active' ? '在职' : '离职'}`,
+    content: `岗位：${item.roleName || '未设置'}\n门店：${item.storeName || '未分配'}\n入职时间：${item.hireDate || '未知'}\n状态：${item.status === 'active' ? '在职' : '离职'}`,
     showCancel: false,
   })
 }
 
-function editEmployee(item: any) {
+function editEmployee(item: Employee) {
   uni.showModal({
     title: '编辑员工',
     editable: true,
     placeholderText: '请输入新的岗位名称',
-    success: (res) => {
+    success: async (res) => {
       if (res.confirm && res.content) {
-        uni.showToast({ title: '编辑成功', icon: 'success' })
+        try {
+          await employeeApi.updateEmployee(item.id, { roleName: res.content })
+          uni.showToast({ title: '编辑成功', icon: 'success' })
+          loadEmployees()
+        } catch (err) {
+          uni.showToast({ title: '编辑失败', icon: 'error' })
+        }
       }
     }
   })
 }
 
-function toggleStatus(item: any) {
+function toggleStatus(item: Employee) {
   const action = item.status === 'active' ? '离职' : '复职'
   uni.showModal({
     title: `${action}确认`,
     content: `确定要将${item.name}${action}吗？`,
-    success: (res) => {
+    success: async (res) => {
       if (res.confirm) {
-        item.status = item.status === 'active' ? 'inactive' : 'active'
-        uni.showToast({ title: `${action}成功`, icon: 'success' })
+        try {
+          const newStatus = item.status === 'active' ? 'inactive' : 'active'
+          await employeeApi.toggleStatus(item.id, newStatus)
+          item.status = newStatus
+          uni.showToast({ title: `${action}成功`, icon: 'success' })
+        } catch (err) {
+          uni.showToast({ title: `${action}失败`, icon: 'error' })
+        }
       }
     }
   })
 }
 
 async function loadEmployees() {
+  loading.value = true
   try {
-    // TODO: 对接员工列表接口
+    const params: any = {}
+    if (searchForm.keyword) params.keyword = searchForm.keyword
+    if (activeFilter.value) params.status = activeFilter.value
+    
+    const result = await employeeApi.getEmployees(params)
+    list.value = result.records
   } catch (err) {
     console.error('加载员工列表失败:', err)
+    uni.showToast({ title: '加载失败', icon: 'error' })
+  } finally {
+    loading.value = false
   }
 }
 

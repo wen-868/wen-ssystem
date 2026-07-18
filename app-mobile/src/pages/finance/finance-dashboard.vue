@@ -169,55 +169,13 @@ async function loadData() {
     incomeStats.value = income
     expenseStats.value = expense
     profitStats.value = profit
-    incomeTrend.value = incomeTrendData.length > 0 ? incomeTrendData : getMockIncomeTrend()
-    expenseTrend.value = expenseTrendData.length > 0 ? expenseTrendData : getMockExpenseTrend()
-    categoryExpenses.value = categoryData.length > 0 ? categoryData : getMockCategoryExpense()
+    incomeTrend.value = incomeTrendData
+    expenseTrend.value = expenseTrendData
+    categoryExpenses.value = categoryData
   } catch (err) {
     console.error('加载财务数据失败:', err)
-    incomeTrend.value = getMockIncomeTrend()
-    expenseTrend.value = getMockExpenseTrend()
-    categoryExpenses.value = getMockCategoryExpense()
+    uni.showToast({ title: '加载失败', icon: 'error' })
   }
-}
-
-function getMockIncomeTrend(): IncomeTrendItem[] {
-  const days = 7
-  const trend: IncomeTrendItem[] = []
-  const today = new Date()
-  for (let i = days - 1; i >= 0; i--) {
-    const date = new Date(today)
-    date.setDate(date.getDate() - i)
-    trend.push({
-      date: date.toISOString().split('T')[0],
-      amount: Math.floor(Math.random() * 5000) + 1000
-    })
-  }
-  return trend
-}
-
-function getMockExpenseTrend(): ExpenseTrendItem[] {
-  const days = 7
-  const trend: ExpenseTrendItem[] = []
-  const today = new Date()
-  for (let i = days - 1; i >= 0; i--) {
-    const date = new Date(today)
-    date.setDate(date.getDate() - i)
-    trend.push({
-      date: date.toISOString().split('T')[0],
-      amount: Math.floor(Math.random() * 2000) + 200
-    })
-  }
-  return trend
-}
-
-function getMockCategoryExpense(): CategoryExpense[] {
-  return [
-    { name: '员工工资', amount: 50000, percent: 40 },
-    { name: '房租水电', amount: 25000, percent: 20 },
-    { name: '采购成本', amount: 30000, percent: 24 },
-    { name: '营销费用', amount: 10000, percent: 8 },
-    { name: '其他', amount: 10000, percent: 8 }
-  ]
 }
 
 async function onRefresh() {

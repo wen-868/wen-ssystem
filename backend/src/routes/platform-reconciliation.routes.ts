@@ -11,7 +11,7 @@ platformReconciliationRouter.put("/:id", asyncHandler(controller.updateReconcili
 platformReconciliationRouter.get("/:id", asyncHandler(controller.getReconciliationDetail));
 
 export const routeConfig: RouteConfig = {
-  prefix: "/api/platform-reconciliation",
+  prefix: "/api/platform/reconciliation",
   router: platformReconciliationRouter,
   auth: "requirePlatformAuth",
 };

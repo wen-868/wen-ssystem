@@ -14,7 +14,7 @@ platformMonitorRouter.use((_req, _res, next) => {
 platformMonitorRouter.get("/", requirePlatformAuth, asyncHandler(getMonitorStats));
 
 export const routeConfig: RouteConfig = {
-  prefix: "/api/platform-monitor",
+  prefix: "/api/platform/monitor",
   router: platformMonitorRouter,
-  auth: "none",
+  auth: "requirePlatformAuth",
 };

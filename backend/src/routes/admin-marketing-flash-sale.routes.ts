@@ -20,5 +20,5 @@ adminMarketingFlashSaleRouter.post("/flash-sales/:id/grab", requireAuthWithTenan
 export const routeConfig: RouteConfig = {
   prefix: "/api/admin/marketing",
   router: adminMarketingFlashSaleRouter,
-  auth: "none",
+  auth: "requireAuthWithTenant",
 };

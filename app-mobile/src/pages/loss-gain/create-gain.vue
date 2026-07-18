@@ -105,8 +105,9 @@
 </template>
 
 <script setup lang="ts">
-import { ref, reactive, computed } from 'vue'
+import { ref, reactive, computed, onMounted } from 'vue'
 import { inventoryLossGainApi, GAIN_REASONS } from '@/api/modules/inventory-loss-gain'
+import { productsApi } from '@/api/modules/products'
 
 const gainReasons = GAIN_REASONS
 
@@ -126,17 +127,26 @@ const showProductPicker = ref(false)
 const searchKeyword = ref('')
 const tempSelected = ref<number[]>([])
 
-// Mock 商品列表
-const productList = ref([
-  { id: 1, name: '茅台飞天53度500ml', spec: '500ml/瓶' },
-  { id: 2, name: '五粮液52度500ml', spec: '500ml/瓶' },
-  { id: 3, name: '青岛啤酒经典500ml*12', spec: '500ml*12/箱' },
-  { id: 4, name: '百威啤酒330ml*24', spec: '330ml*24/箱' },
-  { id: 5, name: '农夫山泉550ml*24', spec: '550ml*24/箱' },
-  { id: 6, name: '可口可乐330ml*24', spec: '330ml*24/箱' },
-  { id: 7, name: '雪花啤酒勇闯天涯500ml*12', spec: '500ml*12/箱' },
-  { id: 8, name: '江小白40度100ml', spec: '100ml/瓶' },
-])
+// 商品列表从API加载
+const productList = ref<Array<{ id: number; name: string; spec: string }>>([])
+
+async function loadProducts() {
+  try {
+    const res = await productsApi.list({ page: 1, pageSize: 100 })
+    productList.value = (res.list || []).map((p: any) => ({
+      id: p.id,
+      name: p.name,
+      spec: p.specs || p.unit || '',
+    }))
+  } catch (err) {
+    console.error('加载商品列表失败:', err)
+    productList.value = []
+  }
+}
+
+onMounted(() => {
+  loadProducts()
+})
 
 const filteredProducts = computed(() => {
   if (!searchKeyword.value) return productList.value

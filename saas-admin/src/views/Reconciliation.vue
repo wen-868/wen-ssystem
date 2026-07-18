@@ -188,7 +188,7 @@
 import { ref, reactive, onMounted } from "vue";
 import { ElMessage } from "element-plus";
 import { Money, Clock, CircleCheck, Tickets } from "@element-plus/icons-vue";
-import { getPlatformReconciliations, getPlatformReconciliationDetail } from "../api";
+import { getPlatformReconciliations, getPlatformReconciliationDetail, getReconciliationStats, settleReconciliation } from "../api";
 
 const loading = ref(false);
 const list = ref<any[]>([]);
@@ -239,11 +239,16 @@ function statusTag(status: string): string {
 }
 
 async function fetchStats() {
-  // 暂时使用模拟数据，等待后端API
-  stats.monthlyRevenue = 1256800;
-  stats.pendingAmount = 356800;
-  stats.settledAmount = 900000;
-  stats.totalCount = 156;
+  try {
+    const res = await getReconciliationStats();
+    const data = res.data?.data || (res as any).data || res;
+    stats.monthlyRevenue = data.monthlyRevenue || 0;
+    stats.pendingAmount = data.pendingAmount || 0;
+    stats.settledAmount = data.settledAmount || 0;
+    stats.totalCount = data.totalCount || 0;
+  } catch {
+    // stats remain at 0 on error
+  }
 }
 
 async function fetchList() {
@@ -259,29 +264,12 @@ async function fetchList() {
     list.value = data.records || [];
     total.value = data.total || 0;
   } catch (e: any) {
-    // API不存在时使用模拟数据
-    list.value = generateMockData();
-    total.value = 50;
+    ElMessage.error(e?.response?.data?.message || "加载失败");
+    list.value = [];
+    total.value = 0;
   } finally {
     loading.value = false;
   }
-}
-
-function generateMockData(): any[] {
-  const statuses = ["PENDING", "SETTLED", "PROCESSING", "REJECTED"];
-  return Array.from({ length: 10 }, (_, i) => ({
-    id: i + 1,
-    reconciliationNo: `JS${202401}${String(i + 1).padStart(4, '0')}`,
-    tenantName: `租户${i + 1}`,
-    period: `2024年${1 + (i % 12)}月`,
-    orderCount: Math.floor(Math.random() * 100) + 10,
-    orderAmount: Math.floor(Math.random() * 100000) + 10000,
-    commissionRate: 5,
-    commissionAmount: Math.floor(Math.random() * 5000) + 500,
-    settleAmount: Math.floor(Math.random() * 95000) + 9500,
-    status: statuses[i % 4],
-    createdAt: `2024-01-${String(i + 1).padStart(2, '0')} 10:00:00`
-  }));
 }
 
 function handleSearch() {
@@ -302,23 +290,22 @@ async function handleView(row: any) {
     const res = await getPlatformReconciliationDetail(row.id);
     const data = res.data?.data || (res as any).data || res;
     currentDetail.value = data;
-  } catch {
-    currentDetail.value = {
-      ...row,
-      items: Array.from({ length: 5 }, (_, i) => ({
-        orderNo: `DD${202401}${String(i + 1).padStart(6, '0')}`,
-        productName: `商品${i + 1}`,
-        amount: Math.floor(Math.random() * 1000) + 100,
-        commission: Math.floor(Math.random() * 50) + 5,
-        createdAt: `2024-01-${String(i + 1).padStart(2, '0')} 12:00:00`
-      }))
-    };
+  } catch (e: any) {
+    ElMessage.error(e?.response?.data?.message || "加载详情失败");
+    currentDetail.value = row;
   }
   detailVisible.value = true;
 }
 
-function handleSettle(row: any) {
-  ElMessage.info("结算功能待后端API支持");
+async function handleSettle(row: any) {
+  try {
+    await settleReconciliation(row.id);
+    ElMessage.success("结算成功");
+    fetchList();
+    fetchStats();
+  } catch (e: any) {
+    ElMessage.error(e?.response?.data?.message || "结算失败");
+  }
 }
 
 function handleExport() {

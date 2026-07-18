@@ -126,7 +126,7 @@ import { ref, reactive, onMounted, onUnmounted, nextTick } from "vue";
 import { ElMessage } from "element-plus";
 import { User, ShoppingCart, Money, Box, DataLine, TrendCharts } from "@element-plus/icons-vue";
 import * as echarts from "echarts";
-import { getTenantUsageStats, getTenants } from "../api";
+import { getTenantUsageStats, getTenants, getTenantRank } from "../api";
 
 const selectedTenant = ref<number | null>(null);
 const dateRange = ref<string[]>([]);
@@ -190,52 +190,9 @@ async function fetchStats() {
     renderTrendChart(data.trendData || []);
     renderModuleChart(data.moduleUsage || []);
   } catch {
-    // 使用模拟数据
-    renderMockCharts();
+    renderTrendChart([]);
+    renderModuleChart([]);
   }
-}
-
-function renderMockCharts() {
-  const mockTrend = generateMockTrendData();
-  renderTrendChart(mockTrend);
-  
-  const mockModule = [
-    { name: "销售管理", value: 35 },
-    { name: "库存管理", value: 25 },
-    { name: "订单管理", value: 20 },
-    { name: "会员管理", value: 12 },
-    { name: "营销推广", value: 8 }
-  ];
-  renderModuleChart(mockModule);
-  
-  overviewStats.value[0].value = 1256;
-  overviewStats.value[1].value = 3420;
-  overviewStats.value[2].value = "¥128,560";
-  overviewStats.value[3].value = 856;
-}
-
-function generateMockTrendData(): any[] {
-  const days = trendGranularity.value === 'day' ? 30 : trendGranularity.value === 'week' ? 12 : 6;
-  const labels: string[] = [];
-  const values: number[] = [];
-  const now = new Date();
-  
-  for (let i = days - 1; i >= 0; i--) {
-    const d = new Date(now);
-    if (trendGranularity.value === 'day') {
-      d.setDate(d.getDate() - i);
-      labels.push(`${d.getMonth() + 1}/${d.getDate()}`);
-    } else if (trendGranularity.value === 'week') {
-      d.setDate(d.getDate() - i * 7);
-      labels.push(`第${Math.ceil((d.getDate() + d.getDay()) / 7)}周`);
-    } else {
-      d.setMonth(d.getMonth() - i);
-      labels.push(`${d.getMonth() + 1}月`);
-    }
-    values.push(Math.floor(Math.random() * 500) + 100);
-  }
-  
-  return labels.map((label, i) => ({ period: label, value: values[i] }));
 }
 
 function renderTrendChart(trendData: any[]) {
@@ -303,21 +260,15 @@ function getMetricLabel(): string {
 async function fetchRank() {
   rankLoading.value = true;
   try {
-    // 暂时使用模拟数据
-    const mockData = Array.from({ length: 10 }, (_, i) => ({
-      id: i + 1,
-      tenantName: `租户${i + 1}`,
-      planName: ["基础版", "标准版", "旗舰版"][i % 3],
-      value: Math.floor(Math.random() * 10000) + 1000,
-      percentage: Math.floor(Math.random() * 40) + 10,
-      lastActive: `2024-01-${String(31 - i).padStart(2, '0')} ${String(10 + i).padStart(2, '0')}:00:00`
-    }));
-    rankList.value = mockData.sort((a, b) => b.value - a.value);
-    rankList.value.forEach((item, i) => {
-      item.percentage = Math.floor((item.value / rankList.value[0].value) * 100);
+    const res = await getTenantRank({
+      sortBy: rankTab.value,
+      limit: 10
     });
+    const data = res.data?.data || (res as any).data || res;
+    rankList.value = data || [];
   } catch (e: any) {
-    ElMessage.error(e?.response?.data?.message || "加载失败");
+    ElMessage.error(e?.response?.data?.message || "加载排行失败");
+    rankList.value = [];
   } finally {
     rankLoading.value = false;
   }

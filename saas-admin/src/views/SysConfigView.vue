@@ -65,7 +65,7 @@ const editForm = ref<ConfigItem | null>(null)
 async function fetchConfigs() {
   loading.value = true
   try {
-    const res = await api.get('/admin/sys-config')
+    const res = await api.get('/platform/config/sys-config')
     const data = res.data?.data || (res as any).data || res
     configList.value = Array.isArray(data) ? data : (data.records || [])
   } catch (e: any) {
@@ -84,7 +84,7 @@ async function saveConfig() {
   if (!editForm.value) return
   saving.value = true
   try {
-    await api.put('/admin/sys-config', { configs: [editForm.value] })
+    await api.put('/platform/config/sys-config', { configs: [editForm.value] })
     ElMessage.success('保存成功')
     dialogVisible.value = false
     fetchConfigs()

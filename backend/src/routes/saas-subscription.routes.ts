@@ -24,5 +24,5 @@ saasSubscriptionRouter.get("/statistics/overview", subscriptionController.getSub
 export const routeConfig: RouteConfig = {
   prefix: "/api/saas/subscriptions",
   router: saasSubscriptionRouter,
-  auth: "none",
+  auth: "requirePlatformAuth",
 };

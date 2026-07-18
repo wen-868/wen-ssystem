@@ -113,6 +113,7 @@
 import { ref, reactive, onMounted } from 'vue'
 import { onLoad } from '@dcloudio/uni-app'
 import { useFormValidation, type Rules } from '@/composables/useFormValidation'
+import { profileApi } from '@/api/modules/profile'
 
 const formRef = ref<any>(null)
 const form = reactive({
@@ -158,9 +159,20 @@ async function onSubmit() {
   uni.showModal({
     title: '确认保存',
     content: '确认保存个人资料修改？',
-    success: (res) => {
+    success: async (res) => {
       if (res.confirm) {
-        uni.showToast({ title: '保存成功', icon: 'success' })
+        try {
+          await profileApi.updateProfile({
+            realName: form.name,
+            phone: form.phone,
+            email: form.email,
+            avatar: form.avatar,
+          })
+          uni.showToast({ title: '保存成功', icon: 'success' })
+        } catch (err) {
+          console.error('保存失败:', err)
+          uni.showToast({ title: '保存失败', icon: 'none' })
+        }
       }
     }
   })
@@ -172,7 +184,12 @@ function goChangePassword() {
 
 async function loadProfile() {
   try {
-    // TODO: 对接个人资料接口
+    const res = await profileApi.getProfile()
+    form.avatar = res.avatar || ''
+    form.name = res.realName || ''
+    form.phone = res.phone || res.username || ''
+    form.role = res.roles?.join(', ') || ''
+    form.email = res.email || ''
   } catch (err) {
     console.error('加载个人资料失败:', err)
   }

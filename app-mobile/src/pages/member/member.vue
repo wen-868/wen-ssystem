@@ -95,8 +95,7 @@
 
 <script setup lang="ts">
 import { ref, reactive, onMounted } from 'vue'
-
-// 无表单交互，无需三件套（会员中心为展示+导航页面，资产数据通过API获取，菜单为页面跳转）
+import { memberApi } from '@/api/modules/member'
 
 const memberInfo = reactive({
   avatar: '',
@@ -112,8 +111,17 @@ function navigateTo(url: string) {
   uni.navigateTo({ url })
 }
 
+async function loadMemberInfo() {
+  try {
+    const res = await memberApi.getMemberInfo()
+    Object.assign(memberInfo, res)
+  } catch (err) {
+    console.error('加载会员信息失败:', err)
+  }
+}
+
 onMounted(() => {
-  // TODO: 加载会员信息
+  loadMemberInfo()
 })
 </script>
 

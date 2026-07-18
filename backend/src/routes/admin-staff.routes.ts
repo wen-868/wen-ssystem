@@ -15,5 +15,5 @@ adminStaffRouter.put("/staff/:id/disable", requireAuthWithTenant, employeeContro
 export const routeConfig: RouteConfig = {
   prefix: "/api/admin",
   router: adminStaffRouter,
-  auth: "none",
+  auth: "requireAuthWithTenant",
 };

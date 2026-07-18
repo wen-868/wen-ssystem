@@ -16,5 +16,5 @@ storeShiftRouter.get("/shift/history", shiftController.getShiftHistory);
 export const routeConfig: RouteConfig = {
   prefix: "/api/store",
   router: storeShiftRouter,
-  auth: "none",
+  auth: "requireAuthWithTenant",
 };

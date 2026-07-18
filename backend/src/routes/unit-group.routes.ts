@@ -14,5 +14,5 @@ unitGroupRouter.delete("/:id", asyncHandler(deleteUnitGroup));
 export const routeConfig: RouteConfig = {
   prefix: "/api/admin/unit-groups",
   router: unitGroupRouter,
-  auth: "none",
+  auth: "requireAuthWithTenant",
 };

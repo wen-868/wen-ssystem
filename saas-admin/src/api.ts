@@ -97,48 +97,48 @@ export function getTenants(params: {
   page?: number;
   pageSize?: number;
 }) {
-  return api.get<any, { data: ApiResult<PaginatedResult<TenantItem>> }>("/admin/tenants", { params });
+  return api.get<any, { data: ApiResult<PaginatedResult<TenantItem>> }>("/platform/tenants-management", { params });
 }
 
 export function getTenantDetail(id: number) {
-  return api.get<any, { data: ApiResult<TenantDetail> }>(`/admin/tenants/${id}`);
+  return api.get<any, { data: ApiResult<TenantDetail> }>(`/platform/tenants-management/${id}`);
 }
 
 export function createTenant(data: any) {
-  return api.post<any, { data: ApiResult<{ tenant_code: string }> }>("/admin/tenants", data);
+  return api.post<any, { data: ApiResult<{ tenant_code: string }> }>("/platform/tenants-management", data);
 }
 
 export function updateTenant(id: number, data: any) {
-  return api.put<any, { data: ApiResult<TenantItem> }>(`/admin/tenants/${id}`, data);
+  return api.put<any, { data: ApiResult<TenantItem> }>(`/platform/tenants-management/${id}`, data);
 }
 
 export function changeTenantStatus(id: number, status: string, reason?: string) {
-  return api.put<any, { data: ApiResult<TenantItem> }>(`/admin/tenants/${id}/status`, { status, reason });
+  return api.put<any, { data: ApiResult<TenantItem> }>(`/platform/tenants-management/${id}/status`, { status, reason });
 }
 
 export function getTenantModules(id: number) {
-  return api.get<any, { data: ApiResult<PaginatedResult<TenantModule>> }>(`/admin/tenants/${id}/modules`);
+  return api.get<any, { data: ApiResult<PaginatedResult<TenantModule>> }>(`/platform/tenants-management/${id}/modules`);
 }
 
 export function updateTenantModules(id: number, modules: TenantModule[]) {
-  return api.put<any, { data: ApiResult<PaginatedResult<TenantModule>> }>(`/admin/tenants/${id}/modules`, { modules });
+  return api.put<any, { data: ApiResult<PaginatedResult<TenantModule>> }>(`/platform/tenants-management/${id}/modules`, { modules });
 }
 
 // ==================== 套餐管理 ====================
 export function getPlans(params?: { status?: string }) {
-  return api.get<any, { data: ApiResult<PaginatedResult<any>> }>("/admin/subscriptions/plans", { params });
+  return api.get<any, { data: ApiResult<PaginatedResult<any>> }>("/platform/subscriptions-management/plans", { params });
 }
 
 export function getPlanDetail(id: number) {
-  return api.get<any, { data: ApiResult<any> }>(`/admin/subscriptions/plans/${id}`);
+  return api.get<any, { data: ApiResult<any> }>(`/platform/subscriptions-management/plans/${id}`);
 }
 
 export function createPlan(data: any) {
-  return api.post<any, { data: ApiResult<{ plan_code: string }> }>("/admin/subscriptions/plans", data);
+  return api.post<any, { data: ApiResult<{ plan_code: string }> }>("/platform/subscriptions-management/plans", data);
 }
 
 export function updatePlan(id: number, data: any) {
-  return api.put<any, { data: ApiResult<any> }>(`/admin/subscriptions/plans/${id}`, data);
+  return api.put<any, { data: ApiResult<any> }>(`/platform/subscriptions-management/plans/${id}`, data);
 }
 
 // ==================== 订阅管理 ====================
@@ -149,45 +149,45 @@ export function getSubscriptions(params: {
   page?: number;
   pageSize?: number;
 }) {
-  return api.get<any, { data: ApiResult<PaginatedResult<any>> }>("/admin/subscriptions", { params });
+  return api.get<any, { data: ApiResult<PaginatedResult<any>> }>("/platform/subscriptions-management", { params });
 }
 
 export function getSubscriptionDetail(id: number) {
-  return api.get<any, { data: ApiResult<any> }>(`/admin/subscriptions/${id}`);
+  return api.get<any, { data: ApiResult<any> }>(`/platform/subscriptions-management/${id}`);
 }
 
 export function createSubscription(data: any) {
-  return api.post<any, { data: ApiResult<{ subscription_no: string }> }>("/admin/subscriptions", data);
+  return api.post<any, { data: ApiResult<{ subscription_no: string }> }>("/platform/subscriptions-management", data);
 }
 
 export function renewSubscription(id: number, data: any) {
-  return api.post<any, { data: ApiResult<any> }>(`/admin/subscriptions/${id}/renew`, data);
+  return api.post<any, { data: ApiResult<any> }>(`/platform/subscriptions-management/${id}/renew`, data);
 }
 
 export function changeSubscriptionPlan(id: number, data: any) {
-  return api.post<any, { data: ApiResult<any> }>(`/admin/subscriptions/${id}/change-plan`, data);
+  return api.post<any, { data: ApiResult<any> }>(`/platform/subscriptions-management/${id}/change-plan`, data);
 }
 
 export function cancelSubscription(id: number, reason?: string) {
-  return api.post<any, { data: ApiResult<any> }>(`/admin/subscriptions/${id}/cancel`, { reason });
+  return api.post<any, { data: ApiResult<any> }>(`/platform/subscriptions-management/${id}/cancel`, { reason });
 }
 
 export function paySubscription(id: number, data: any) {
-  return api.post<any, { data: ApiResult<any> }>(`/admin/subscriptions/${id}/pay`, data);
+  return api.post<any, { data: ApiResult<any> }>(`/platform/subscriptions-management/${id}/pay`, data);
 }
 
 // ==================== 平台看板 ====================
 export function getPlatformOverview() {
-  return api.get<any, { data: ApiResult<any> }>("/admin/dashboard/overview");
+  return api.get<any, { data: ApiResult<any> }>("/platform/dashboard/overview");
 }
 
 // ==================== 平台配置 ====================
 export function getPlatformConfig() {
-  return api.get<any, { data: ApiResult<any> }>("/admin/sys-config");
+  return api.get<any, { data: ApiResult<any> }>("/platform/config/sys-config");
 }
 
 export function updatePlatformConfig(data: any) {
-  return api.put<any, { data: ApiResult<any> }>("/admin/sys-config", data);
+  return api.put<any, { data: ApiResult<any> }>("/platform/config/sys-config", data);
 }
 
 // ==================== 操作日志 ====================
@@ -197,19 +197,19 @@ export function getAuditLogs(params?: { keyword?: string; action?: string; userI
 
 // ==================== 监控告警 ====================
 export function fetchDbStatus() {
-  return api.get<any, { data: ApiResult<any> }>("/admin/monitor/db-status");
+  return api.get<any, { data: ApiResult<any> }>("/platform/monitor/db-status");
 }
 
 export function fetchApiStats() {
-  return api.get<any, { data: ApiResult<any> }>("/admin/monitor/api-stats");
+  return api.get<any, { data: ApiResult<any> }>("/platform/monitor/api-stats");
 }
 
 export function fetchExpiringTenants(days?: number) {
-  return api.get<any, { data: ApiResult<any> }>("/admin/monitor/expiring-tenants", { params: { days } });
+  return api.get<any, { data: ApiResult<any> }>("/platform/monitor/expiring-tenants", { params: { days } });
 }
 
 export function notifyExpiringTenants(tenantIds: number[]) {
-  return api.post<any, { data: ApiResult<any> }>("/admin/monitor/notify-expiring", { tenantIds });
+  return api.post<any, { data: ApiResult<any> }>("/platform/monitor/notify-expiring", { tenantIds });
 }
 
 // ==================== 平台公告 ====================
@@ -253,15 +253,15 @@ export function getPlatformReviews(params?: {
   rating?: number;
   keyword?: string;
 }) {
-  return api.get<any, { data: ApiResult<PaginatedResult<any>> }>("/admin/platform-reviews", { params: { page: 1, pageSize: 20, ...params } });
+  return api.get<any, { data: ApiResult<PaginatedResult<any>> }>("/platform/reviews", { params: { page: 1, pageSize: 20, ...params } });
 }
 
 export function getPlatformReviewStats(params?: any) {
-  return api.get<any, { data: ApiResult<any> }>("/admin/platform-reviews/stats", { params });
+  return api.get<any, { data: ApiResult<any> }>("/platform/reviews/stats", { params });
 }
 
 export function replyPlatformReview(id: number, reply: string) {
-  return api.post<any, { data: ApiResult<any> }>(`/admin/platform-reviews/${id}/reply`, { reply });
+  return api.post<any, { data: ApiResult<any> }>(`/platform/reviews/${id}/reply`, { reply });
 }
 
 // ==================== 财务结算 ====================
@@ -273,11 +273,11 @@ export function getPlatformReconciliations(params?: {
   dateEnd?: string;
   keyword?: string;
 }) {
-  return api.get<any, { data: ApiResult<PaginatedResult<any>> }>("/admin/platform-reconciliations", { params: { page: 1, pageSize: 20, ...params } });
+  return api.get<any, { data: ApiResult<PaginatedResult<any>> }>("/platform/reconciliation", { params: { page: 1, pageSize: 20, ...params } });
 }
 
 export function getPlatformReconciliationDetail(id: number) {
-  return api.get<any, { data: ApiResult<any> }>(`/admin/platform-reconciliations/${id}`);
+  return api.get<any, { data: ApiResult<any> }>(`/platform/reconciliation/${id}`);
 }
 
 // ==================== 租户使用统计 ====================
@@ -287,11 +287,26 @@ export function getTenantUsageStats(params?: {
   dateEnd?: string;
   metric?: string;
 }) {
-  return api.get<any, { data: ApiResult<any> }>("/admin/tenants/usage-stats", { params });
+  return api.get<any, { data: ApiResult<any> }>("/platform/tenants/usage-stats", { params });
 }
 
 export function getTenantStatistics() {
-  return api.get<any, { data: ApiResult<any> }>("/admin/tenants/statistics/overview");
+  return api.get<any, { data: ApiResult<any> }>("/platform/tenants/statistics/overview");
+}
+
+export function getTenantRank(params?: {
+  sortBy?: string;
+  limit?: number;
+}) {
+  return api.get<any, { data: ApiResult<any[]> }>("/platform/tenants/rank", { params });
+}
+
+export function getReconciliationStats() {
+  return api.get<any, { data: ApiResult<any> }>("/platform/reconciliation/stats");
+}
+
+export function settleReconciliation(id: number) {
+  return api.put<any, { data: ApiResult<any> }>(`/platform/reconciliation/${id}/settle`);
 }
 
 // ==================== 错误日志 ====================
@@ -303,5 +318,5 @@ export function getErrorLogs(params?: {
   source?: string;
   keyword?: string;
 }) {
-  return api.get<any, { data: ApiResult<PaginatedResult<any>> }>("/admin/error-logs", { params: { page: 1, pageSize: 20, ...params } });
+  return api.get<any, { data: ApiResult<PaginatedResult<any>> }>("/platform/error-logs", { params: { page: 1, pageSize: 20, ...params } });
 }

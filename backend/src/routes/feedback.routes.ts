@@ -18,5 +18,5 @@ feedbackRouter.put("/feedback/:id", requireAuthWithTenant, asyncHandler(updateFe
 export const routeConfig: RouteConfig = {
   prefix: "/api/admin",
   router: feedbackRouter,
-  auth: "none",
+  auth: "requireAuthWithTenant",
 };

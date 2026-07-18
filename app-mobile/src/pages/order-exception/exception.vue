@@ -84,6 +84,7 @@
 <script setup lang="ts">
 import { ref, reactive, onMounted } from 'vue'
 import { useFormValidation, type Rules } from '@/composables/useFormValidation'
+import { exceptionApi } from '@/api/modules/exceptions'
 
 const formRef = ref<any>(null)
 const searchForm = reactive({ keyword: '' })
@@ -107,14 +108,20 @@ function onSearch() { loadExceptions() }
 function clearSearch() { searchForm.keyword = ''; loadExceptions() }
 function switchTab(val: string) { activeTab.value = val; loadExceptions() }
 
-function handleException(item: any) {
+async function handleException(item: any) {
   uni.showModal({
     title: '处理异常',
     content: '确认处理该异常订单？',
-    success: (res) => {
+    success: async (res) => {
       if (res.confirm) {
-        // TODO: 对接异常处理接口
-        uni.showToast({ title: '已处理', icon: 'success' })
+        try {
+          await exceptionApi.handle(item.id, '已处理')
+          uni.showToast({ title: '已处理', icon: 'success' })
+          loadExceptions()
+        } catch (err) {
+          console.error('处理失败:', err)
+          uni.showToast({ title: '处理失败', icon: 'none' })
+        }
       }
     }
   })
@@ -124,9 +131,16 @@ function ignoreException(item: any) {
   uni.showModal({
     title: '忽略异常',
     content: '确认忽略该异常？',
-    success: (res) => {
+    success: async (res) => {
       if (res.confirm) {
-        uni.showToast({ title: '已忽略', icon: 'success' })
+        try {
+          await exceptionApi.handle(item.id, '已忽略')
+          uni.showToast({ title: '已忽略', icon: 'success' })
+          loadExceptions()
+        } catch (err) {
+          console.error('忽略失败:', err)
+          uni.showToast({ title: '忽略失败', icon: 'none' })
+        }
       }
     }
   })
@@ -135,10 +149,16 @@ function ignoreException(item: any) {
 async function loadExceptions() {
   loading.value = true
   try {
-    // TODO: 对接异常订单接口
-    list.value = []
+    const res = await exceptionApi.getList({
+      page: 1,
+      pageSize: 20,
+      keyword: searchForm.keyword,
+      exceptionType: activeTab.value,
+    })
+    list.value = res.list || []
   } catch (err) {
     console.error('加载异常订单失败:', err)
+    list.value = []
   } finally {
     loading.value = false
   }

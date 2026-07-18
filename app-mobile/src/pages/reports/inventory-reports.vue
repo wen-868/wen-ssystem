@@ -94,6 +94,7 @@
 <script setup lang="ts">
 import { ref, reactive, onMounted } from 'vue'
 import { useFormValidation, type Rules } from '@/composables/useFormValidation'
+import { reportsApi } from '@/api/modules/reports'
 
 const formRef = ref<any>(null)
 const filterForm = reactive({
@@ -107,22 +108,13 @@ const filterRules: Rules = {
 const { errors, validate, clearError } = useFormValidation(filterForm, filterRules)
 
 const summary = ref<any>({
-  totalQty: 12580,
-  totalValue: '2,680,500.00',
-  warningCount: 12,
+  totalQty: 0,
+  totalValue: '0.00',
+  warningCount: 0,
 })
 
-const rankList = ref<any[]>([
-  { id: 1, name: '茅台飞天53度', spec: '500ml', qty: 520, value: '884,000' },
-  { id: 2, name: '五粮液52度', spec: '500ml', qty: 380, value: '456,000' },
-  { id: 3, name: '洋河梦之蓝M6', spec: '500ml', qty: 650, value: '325,000' },
-])
-
-const detailList = ref<any[]>([
-  { id: 1, type: 'in', productName: '茅台飞天53度', qty: 100, date: '2026-07-08' },
-  { id: 2, type: 'out', productName: '五粮液52度', qty: 50, date: '2026-07-08' },
-  { id: 3, type: 'in', productName: '洋河梦之蓝M6', qty: 200, date: '2026-07-07' },
-])
+const rankList = ref<any[]>([])
+const detailList = ref<any[]>([])
 
 function chooseStartDate() {
   uni.showToast({ title: '日期选择', icon: 'none' })
@@ -140,7 +132,33 @@ function goDetail() {
 
 async function loadReportData() {
   try {
-    // TODO: 对接库存报表接口
+    const [summaryData, trendData, rankData, detailData] = await Promise.all([
+      reportsApi.getInventorySummary({
+        startDate: filterForm.startDate || undefined,
+        endDate: filterForm.endDate || undefined
+      }),
+      reportsApi.getInventoryTrend({
+        startDate: filterForm.startDate || undefined,
+        endDate: filterForm.endDate || undefined,
+        period: 'day'
+      }),
+      reportsApi.getInventoryRank({ limit: 10 }),
+      reportsApi.getInventoryDetail({
+        startDate: filterForm.startDate || undefined,
+        endDate: filterForm.endDate || undefined,
+        type: 'all',
+        page: 1,
+        pageSize: 20
+      })
+    ])
+    summary.value = {
+      totalQty: summaryData.totalQty,
+      totalValue: summaryData.totalValue.toFixed(2),
+      warningCount: summaryData.warningCount,
+    }
+    trendList.value = trendData
+    rankList.value = rankData
+    detailList.value = detailData
   } catch (err) {
     console.error('加载库存报表失败:', err)
   }

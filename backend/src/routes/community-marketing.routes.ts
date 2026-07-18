@@ -32,16 +32,16 @@ export const routeConfigs: RouteConfig[] = [
   {
     prefix: "/api/marketing/group-buy",
     router: groupBuyRouter,
-    auth: "none",
+    auth: "requireAuthWithTenant",
   },
   {
     prefix: "/api/marketing/bargain",
     router: bargainRouter,
-    auth: "none",
+    auth: "requireAuthWithTenant",
   },
   {
     prefix: "/api/marketing/seckill",
     router: seckillRouter,
-    auth: "none",
+    auth: "requireAuthWithTenant",
   },
 ];

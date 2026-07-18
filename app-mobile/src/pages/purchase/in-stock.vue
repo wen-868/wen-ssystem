@@ -112,6 +112,8 @@
 <script setup lang="ts">
 import { ref, reactive, onMounted } from 'vue'
 import { useFormValidation, type Rules } from '@/composables/useFormValidation'
+import { purchaseApi } from '@/api/modules/purchase'
+import { supplierApi } from '@/api/modules/suppliers'
 
 const formRef = ref<any>(null)
 const stockForm = reactive({
@@ -142,8 +144,15 @@ async function handleSubmit() {
   if (!validate()) return
   submitting.value = true
   try {
-    // TODO: 对接 /api/purchase-in-stocks 接口
+    await purchaseApi.createInStock({
+      orderNo: stockForm.orderNo,
+      supplierId: supplierList.value[stockForm.supplierIndex]?.id,
+      storeId: storeList.value[stockForm.storeIndex]?.id,
+      stockDate: stockForm.stockDate,
+      remark: stockForm.remark
+    })
     uni.showToast({ title: '入库成功', icon: 'success' })
+    loadHistory()
   } catch (err: any) {
     uni.showToast({ title: err?.message || '入库失败', icon: 'none' })
   } finally {
@@ -151,8 +160,27 @@ async function handleSubmit() {
   }
 }
 
+async function loadSuppliers() {
+  try {
+    const res = await supplierApi.getList({ page: 1, pageSize: 100 })
+    supplierList.value = res.list || []
+  } catch (err) {
+    console.error('加载供应商列表失败:', err)
+  }
+}
+
+async function loadHistory() {
+  try {
+    const res = await purchaseApi.getInStockList({ page: 1, pageSize: 20 })
+    historyList.value = res.list || []
+  } catch (err) {
+    console.error('加载入库记录失败:', err)
+  }
+}
+
 onMounted(() => {
-  // TODO: 加载供应商列表和入库记录
+  loadSuppliers()
+  loadHistory()
 })
 </script>
 

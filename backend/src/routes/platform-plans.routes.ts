@@ -30,5 +30,5 @@ platformPlansRouter.put("/:planId/features", planController.updatePlanFeatures);
 export const routeConfig: RouteConfig = {
   prefix: "/api/platform/plans",
   router: platformPlansRouter,
-  auth: "none",
+  auth: "requirePlatformAuth",
 };

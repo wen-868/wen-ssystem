@@ -30,5 +30,5 @@ adminFinanceRouter.get("/finance/expense-by-category", requireAuthWithTenant, fi
 export const routeConfig: RouteConfig = {
   prefix: "/api/admin",
   router: adminFinanceRouter,
-  auth: "none",
+  auth: "requireAuthWithTenant",
 };

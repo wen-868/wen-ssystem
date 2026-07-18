@@ -11,7 +11,7 @@ platformAuthRouter.get("/me", requirePlatformAuth, asyncHandler(getPlatformMe));
 platformAuthRouter.post("/admin/create", requirePlatformAuth, asyncHandler(createPlatformAdmin));
 
 export const routeConfig: RouteConfig = {
-  prefix: "/api/platform-auth",
+  prefix: "/api/platform/auth",
   router: platformAuthRouter,
   auth: "none",
 };

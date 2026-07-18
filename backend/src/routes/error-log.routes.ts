@@ -11,5 +11,5 @@ errorLogRouter.get("/error-logs", requireAuthWithTenant, ctrl.listErrorLogs);
 export const routeConfig: RouteConfig = {
   prefix: "/api/admin",
   router: errorLogRouter,
-  auth: "none",
+  auth: "requireAuthWithTenant",
 };

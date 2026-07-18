@@ -32,5 +32,5 @@ adminReportRouter.get("/reports/supplier-ranking", requireAuthWithTenant, report
 export const routeConfig: RouteConfig = {
   prefix: "/api/admin",
   router: adminReportRouter,
-  auth: "none",
+  auth: "requireAuthWithTenant",
 };

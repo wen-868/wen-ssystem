@@ -72,6 +72,7 @@
 <script setup lang="ts">
 import { ref, reactive, onMounted } from 'vue'
 import { useFormValidation, type Rules } from '@/composables/useFormValidation'
+import { statementApi } from '@/api/modules/statements'
 
 const formRef = ref<any>(null)
 const searchForm = reactive({ keyword: '' })
@@ -86,14 +87,19 @@ const loading = ref(false)
 function onSearch() { loadStatements() }
 function clearSearch() { searchForm.keyword = ''; loadStatements() }
 
-function confirmStatement(item: any) {
+async function confirmStatement(item: any) {
   uni.showModal({
     title: '确认对账',
     content: '确认对账单无误？',
-    success: (res) => {
+    success: async (res) => {
       if (res.confirm) {
-        // TODO: 对接确认对账接口
-        uni.showToast({ title: '已确认', icon: 'success' })
+        try {
+          await statementApi.confirm(item.id)
+          uni.showToast({ title: '已确认', icon: 'success' })
+          loadStatements()
+        } catch (err) {
+          uni.showToast({ title: '确认失败', icon: 'error' })
+        }
       }
     }
   })
@@ -114,10 +120,15 @@ function disputeStatement(item: any) {
 async function loadStatements() {
   loading.value = true
   try {
-    // TODO: 对接 /api/customer-statements 接口
-    list.value = []
+    const res = await statementApi.getList({
+      page: 1,
+      pageSize: 50,
+      keyword: searchForm.keyword || undefined
+    })
+    list.value = res.list || []
   } catch (err) {
     console.error('加载对账单失败:', err)
+    uni.showToast({ title: '加载失败', icon: 'error' })
   } finally {
     loading.value = false
   }

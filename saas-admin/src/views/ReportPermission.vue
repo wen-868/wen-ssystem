@@ -76,7 +76,7 @@ const gridRows = computed(() => {
 async function loadPermissions() {
   loading.value = true
   try {
-    const res = await api.get('/admin/report-permissions')
+    const res = await api.get('/platform/report-permissions')
     const data = res.data?.data || (res as any).data || res
     permissions.value = Array.isArray(data) ? data : (data.records || [])
 
@@ -88,9 +88,9 @@ async function loadPermissions() {
       g[p.roleName][p.reportCode] = p.accessLevel
     })
 
-    // 补充角色列表（从 /admin/roles 获取所有角色）
+    // 补充角色列表（从 /platform/roles 获取所有角色）
     try {
-      const roleRes = await api.get('/admin/roles')
+      const roleRes = await api.get('/platform/roles')
       const roles = roleRes.data?.data || (roleRes as any).data || []
       const roleList = Array.isArray(roles) ? roles : (roles.records || [])
       roleList.forEach((r: any) => {
@@ -118,7 +118,7 @@ async function savePermissions() {
     const roleMap: Record<string, number> = {}
 
     try {
-      const roleRes = await api.get('/admin/roles')
+      const roleRes = await api.get('/platform/roles')
       const roles = roleRes.data?.data || (roleRes as any).data || []
       const roleList = Array.isArray(roles) ? roles : (roles.records || [])
       roleList.forEach((r: any) => { roleMap[r.roleName || r.name] = r.id })
@@ -135,7 +135,7 @@ async function savePermissions() {
         })
       }
     }
-    await api.put('/admin/report-permissions', { permissions: list })
+    await api.put('/platform/report-permissions', { permissions: list })
     ElMessage.success('保存成功')
     loadPermissions()
   } catch (e: any) {

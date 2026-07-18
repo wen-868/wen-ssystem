@@ -15,5 +15,5 @@ adminMarketingStackRuleRouter.delete("/stack-rules/:id", requireAuthWithTenant, 
 export const routeConfig: RouteConfig = {
   prefix: "/api/admin/marketing",
   router: adminMarketingStackRuleRouter,
-  auth: "none",
+  auth: "requireAuthWithTenant",
 };

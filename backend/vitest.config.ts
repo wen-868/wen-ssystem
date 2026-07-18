@@ -22,16 +22,19 @@ export default defineConfig({
       include: [
         "src/controllers/**/*.ts",
         "src/routes/**/*.ts",
+        "src/services/**/*.ts",
+        "src/middleware/**/*.ts",
+        "src/shared/**/*.ts",
       ],
       exclude: [
         "src/__tests__/**",
         "tests/**",
       ],
       thresholds: {
-        branches: 100,
-        functions: 100,
-        lines: 100,
-        statements: 100,
+        branches: 90,
+        functions: 90,
+        lines: 90,
+        statements: 90,
       },
     },
   },

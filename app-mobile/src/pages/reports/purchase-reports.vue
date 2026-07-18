@@ -90,6 +90,7 @@
 <script setup lang="ts">
 import { ref, reactive, onMounted } from 'vue'
 import { useFormValidation, type Rules } from '@/composables/useFormValidation'
+import { reportsApi } from '@/api/modules/reports'
 
 const formRef = ref<any>(null)
 const filterForm = reactive({
@@ -103,22 +104,14 @@ const filterRules: Rules = {
 const { errors, validate, clearError } = useFormValidation(filterForm, filterRules)
 
 const summary = ref<any>({
-  totalAmount: '1,580,600.00',
-  orderCount: 32,
-  supplierCount: 8,
+  totalAmount: '0.00',
+  orderCount: 0,
+  supplierCount: 0,
 })
 
-const supplierList = ref<any[]>([
-  { id: 1, name: '茅台集团', category: '酒厂', amount: '520,000', ratio: 33 },
-  { id: 2, name: '五粮液股份', category: '酒厂', amount: '380,000', ratio: 24 },
-  { id: 3, name: '洋河酒业', category: '酒厂', amount: '280,000', ratio: 18 },
-])
+const supplierList = ref<any[]>([])
 
-const detailList = ref<any[]>([
-  { id: 1, orderNo: 'PO20260708001', supplierName: '茅台集团', amount: '120,000', date: '2026-07-08' },
-  { id: 2, orderNo: 'PO20260707002', supplierName: '五粮液股份', amount: '80,000', date: '2026-07-07' },
-  { id: 3, orderNo: 'PO20260706003', supplierName: '洋河酒业', amount: '60,000', date: '2026-07-06' },
-])
+const detailList = ref<any[]>([])
 
 function chooseStartDate() {
   uni.showToast({ title: '日期选择', icon: 'none' })
@@ -136,9 +129,18 @@ function goDetail() {
 
 async function loadReportData() {
   try {
-    // TODO: 对接采购报表接口
+    const res = await reportsApi.getPurchaseReport({
+      startDate: filterForm.startDate,
+      endDate: filterForm.endDate,
+    })
+    summary.value = res?.summary || { totalAmount: '0.00', orderCount: 0, supplierCount: 0 }
+    supplierList.value = res?.supplierList || []
+    detailList.value = res?.detailList || []
   } catch (err) {
     console.error('加载采购报表失败:', err)
+    summary.value = { totalAmount: '0.00', orderCount: 0, supplierCount: 0 }
+    supplierList.value = []
+    detailList.value = []
   }
 }
 

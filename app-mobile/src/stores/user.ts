@@ -12,26 +12,29 @@ export const useUserStore = defineStore('user', () => {
   const isLoggedIn = computed(() => !!token.value)
   const isAdmin = computed(() => user.value?.roles?.includes('SUPER_ADMIN') ?? false)
   const storeId = computed(() => user.value?.storeId ?? null)
-  const storeName = computed(() => user.value?.storeName ?? '')
+  const storeName = computed(() => user.value?.realName ?? '')
 
-  async function login(account: string, password: string) {
-    const result = await authApi.login({ account, password })
+  async function login(username: string, password: string) {
+    const result = await authApi.login({ username, password })
     token.value = result.token
     setToken(result.token)
 
     user.value = {
       id: result.user.id,
-      name: result.user.name,
-      account: result.user.account,
+      username: result.user.username,
+      realName: result.user.realName,
       avatar: result.user.avatar,
       roles: result.user.roles,
       storeId: result.user.storeId,
-      storeName: result.user.storeName
+      tenantId: result.user.tenantId
     }
     setUser(user.value)
 
-    tenant.value = result.tenant
-    setTenant(result.tenant)
+    // 从登录结果构造 tenant 信息
+    if (result.user.tenantId) {
+      tenant.value = { id: Number(result.user.tenantId) || 0, name: '', code: result.user.tenantId }
+      setTenant(tenant.value)
+    }
 
     initialized.value = true
   }

@@ -34,5 +34,5 @@ adminCustomerRouter.get("/members/lifecycle/detail", requireAuthWithTenant, life
 export const routeConfig: RouteConfig = {
   prefix: "/api/admin",
   router: adminCustomerRouter,
-  auth: "none",
+  auth: "requireAuthWithTenant",
 };

@@ -27,5 +27,5 @@ productBundleRouter.delete("/combo-products/:id", requireAuthWithTenant, comboPr
 export const routeConfig: RouteConfig = {
   prefix: "/api/admin",
   router: productBundleRouter,
-  auth: "none",
+  auth: "requireAuthWithTenant",
 };

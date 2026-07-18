@@ -116,6 +116,7 @@
 <script setup lang="ts">
 import { ref, reactive, onMounted } from 'vue'
 import { useFormValidation, type Rules } from '@/composables/useFormValidation'
+import { reportsApi } from '@/api/modules/reports'
 
 const formRef = ref<any>(null)
 const filterForm = reactive({
@@ -173,8 +174,34 @@ function onExport() {
 
 async function loadReportData() {
   try {
-    // TODO: 对接销售报表接口
-    categoryList.value = []
+    const [summaryData, trendData, rankData] = await Promise.all([
+      reportsApi.getSalesSummary({
+        startDate: filterForm.startDate || undefined,
+        endDate: filterForm.endDate || undefined,
+        storeId: filterForm.storeId || undefined,
+        salesmanId: filterForm.salesmanId || undefined
+      }),
+      reportsApi.getSalesTrend({
+        startDate: filterForm.startDate || undefined,
+        endDate: filterForm.endDate || undefined,
+        period: 'day'
+      }),
+      reportsApi.getSalesRank({
+        startDate: filterForm.startDate || undefined,
+        endDate: filterForm.endDate || undefined,
+        limit: 10
+      })
+    ])
+    summary.value = {
+      totalSales: summaryData.totalSales.toFixed(2),
+      orderCount: summaryData.orderCount,
+      itemCount: summaryData.itemCount,
+      profit: summaryData.profit.toFixed(2),
+      avgPrice: summaryData.avgPrice.toFixed(2),
+      customerCount: summaryData.customerCount,
+    }
+    categoryList.value = trendData
+    rankList.value = rankData
   } catch (err) {
     console.error('加载销售报表失败:', err)
   }

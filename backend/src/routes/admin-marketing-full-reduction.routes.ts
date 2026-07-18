@@ -18,5 +18,5 @@ adminMarketingFullReductionRouter.post("/full-reductions/:id/pause", requireAuth
 export const routeConfig: RouteConfig = {
   prefix: "/api/admin/marketing",
   router: adminMarketingFullReductionRouter,
-  auth: "none",
+  auth: "requireAuthWithTenant",
 };

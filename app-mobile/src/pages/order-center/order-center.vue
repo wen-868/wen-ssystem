@@ -91,6 +91,7 @@
 <script setup lang="ts">
 import { ref, reactive, onMounted } from 'vue'
 import { useFormValidation, type Rules } from '@/composables/useFormValidation'
+import { ordersApi, type OrderInfo } from '@/api/modules/orders'
 
 const formRef = ref<any>(null)
 const searchForm = reactive({ keyword: '' })
@@ -108,28 +109,40 @@ const tabs = [
   { label: '售后', value: 'aftersale' },
 ]
 const activeTab = ref('')
-const list = ref<any[]>([])
+const list = ref<OrderInfo[]>([])
 const loading = ref(false)
 
 function onSearch() { loadOrders() }
 function clearSearch() { searchForm.keyword = ''; loadOrders() }
 function switchTab(val: string) { activeTab.value = val; loadOrders() }
 
-function goDetail(item: any) {
+function goDetail(item: OrderInfo) {
   uni.navigateTo({ url: `/pages/orders/order-detail?orderNo=${item.orderNo}` })
 }
 
-function handleProcess(item: any) {
+function handleProcess(item: OrderInfo) {
   uni.navigateTo({ url: `/pages/orders/order-detail?orderNo=${item.orderNo}&action=process` })
 }
 
 async function loadOrders() {
   loading.value = true
   try {
-    // TODO: 对接 /api/orders 接口
-    list.value = []
+    const params: any = {
+      page: 1,
+      pageSize: 20
+    }
+    if (searchForm.keyword) {
+      params.keyword = searchForm.keyword
+    }
+    if (activeTab.value) {
+      params.status = activeTab.value
+    }
+    
+    const result = await ordersApi.list(params)
+    list.value = result.list
   } catch (err) {
     console.error('加载订单失败:', err)
+    uni.showToast({ title: '加载失败', icon: 'error' })
   } finally {
     loading.value = false
   }

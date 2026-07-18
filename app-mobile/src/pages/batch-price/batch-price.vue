@@ -140,6 +140,7 @@
 <script setup lang="ts">
 import { ref, reactive, onMounted } from 'vue'
 import { useFormValidation, type Rules } from '@/composables/useFormValidation'
+import { priceApi } from '@/api/modules/price'
 
 const formRef = ref<any>(null)
 const priceForm = reactive({
@@ -177,8 +178,13 @@ async function handlePreview() {
   if (!validate()) return
   previewing.value = true
   try {
-    // TODO: 调用后端 API 预览调价结果
-    uni.showToast({ title: '调价预览中...', icon: 'loading' })
+    await priceApi.previewBatch({
+      adjustType: priceForm.mode,
+      adjustValue: Number(priceForm.value),
+      priceType: priceTypeOptions[priceForm.priceTypeIndex],
+      remark: priceForm.remark,
+    })
+    uni.showToast({ title: '预览完成', icon: 'success' })
   } catch (err: any) {
     uni.showToast({ title: err?.message || '预览失败', icon: 'none' })
   } finally {
@@ -186,8 +192,17 @@ async function handlePreview() {
   }
 }
 
+async function loadHistory() {
+  try {
+    const res = await priceApi.listBatchLogs({ page: 1, pageSize: 10 })
+    historyList.value = res?.list || res?.records || []
+  } catch (err) {
+    console.error('加载调价历史失败:', err)
+  }
+}
+
 onMounted(() => {
-  // TODO: 加载调价历史记录
+  loadHistory()
 })
 </script>
 

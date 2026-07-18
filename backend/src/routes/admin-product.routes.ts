@@ -26,5 +26,5 @@ adminProductRouter.put("/products/:id/warning-threshold", requireAuthWithTenant,
 export const routeConfig: RouteConfig = {
   prefix: "/api/admin",
   router: adminProductRouter,
-  auth: "none",
+  auth: "requireAuthWithTenant",
 };

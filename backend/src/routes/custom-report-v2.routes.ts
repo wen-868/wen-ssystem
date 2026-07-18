@@ -21,5 +21,5 @@ customReportV2Router.get("/:id/export", requireAuthWithTenant, asyncHandler(cont
 export const routeConfig: RouteConfig = {
   prefix: "/api/admin/reports",
   router: customReportV2Router,
-  auth: "none",
+  auth: "requireAuthWithTenant",
 };

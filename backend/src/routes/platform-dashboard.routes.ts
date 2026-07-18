@@ -21,5 +21,5 @@ platformDashboardRouter.get("/revenue", getRevenueStats);
 export const routeConfig: RouteConfig = {
   prefix: "/api/platform/dashboard",
   router: platformDashboardRouter,
-  auth: "none",
+  auth: "requirePlatformAuth",
 };

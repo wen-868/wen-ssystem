@@ -19,5 +19,5 @@ adminMarketingPointsRouter.get("/points/stats", requireAuthWithTenant, pointsCon
 export const routeConfig: RouteConfig = {
   prefix: "/api/admin/marketing",
   router: adminMarketingPointsRouter,
-  auth: "none",
+  auth: "requireAuthWithTenant",
 };

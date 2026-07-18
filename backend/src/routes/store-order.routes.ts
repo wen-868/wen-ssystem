@@ -27,5 +27,5 @@ storeOrderRouter.delete("/hold-orders/:holdNo", otherController.deleteHoldOrder)
 export const routeConfig: RouteConfig = {
   prefix: "/api/store",
   router: storeOrderRouter,
-  auth: "none",
+  auth: "requireAuthWithTenant",
 };

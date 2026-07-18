@@ -91,20 +91,10 @@ async function onSubmit() {
 async function loadTypes() {
   try {
     const types = await expenseApi.getTypes()
-    expenseTypes.value = types.length > 0 ? types : getMockTypes()
+    expenseTypes.value = types
   } catch (err) {
-    expenseTypes.value = getMockTypes()
+    console.error('加载费用类型失败:', err)
   }
-}
-
-function getMockTypes(): ExpenseType[] {
-  return [
-    { value: 'SALARY', label: '员工工资' },
-    { value: 'RENT', label: '房租水电' },
-    { value: 'MARKETING', label: '营销费用' },
-    { value: 'PURCHASE', label: '采购成本' },
-    { value: 'OTHER', label: '其他' }
-  ]
 }
 
 onMounted(() => {

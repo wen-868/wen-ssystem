@@ -16,5 +16,5 @@ adminStoreRouter.get("/stores/:id/wechat-info", requireAuthWithTenant, employeeC
 export const routeConfig: RouteConfig = {
   prefix: "/api/admin",
   router: adminStoreRouter,
-  auth: "none",
+  auth: "requireAuthWithTenant",
 };

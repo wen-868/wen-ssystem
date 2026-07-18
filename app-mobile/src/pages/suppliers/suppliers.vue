@@ -66,6 +66,7 @@
 <script setup lang="ts">
 import { ref, reactive, onMounted } from 'vue'
 import { useFormValidation, type Rules } from '@/composables/useFormValidation'
+import { supplierApi, type Supplier } from '@/api/modules/suppliers'
 
 const formRef = ref<any>(null)
 const searchForm = reactive({ keyword: '' })
@@ -74,26 +75,30 @@ const searchRules: Rules = {
 }
 const { errors, validate, clearError } = useFormValidation(searchForm, searchRules)
 
-const list = ref<any[]>([])
+const list = ref<Supplier[]>([])
 const loading = ref(false)
 
 function onSearch() { loadSuppliers() }
 function clearSearch() { searchForm.keyword = ''; loadSuppliers() }
 function goDetail(id: number) { uni.navigateTo({ url: `/pages/suppliers/detail?id=${id}` }) }
 
-function viewOrders(item: any) {
+function viewOrders(item: Supplier) {
   uni.navigateTo({ url: `/pages/purchase/orders?supplierId=${item.id}` })
 }
 
-function viewStatements(item: any) {
+function viewStatements(item: Supplier) {
   uni.navigateTo({ url: `/pages/statements/statements?supplierId=${item.id}` })
 }
 
 async function loadSuppliers() {
   loading.value = true
   try {
-    // TODO: 对接 /api/suppliers 接口
-    list.value = []
+    const res = await supplierApi.getList({
+      page: 1,
+      pageSize: 100,
+      keyword: searchForm.keyword || undefined
+    })
+    list.value = res.list || []
   } catch (err) {
     console.error('加载供应商失败:', err)
   } finally {

@@ -90,6 +90,7 @@
 <script setup lang="ts">
 import { ref, reactive, onMounted } from 'vue'
 import { useFormValidation, type Rules } from '@/composables/useFormValidation'
+import { reportsApi } from '@/api/modules/reports'
 
 const formRef = ref<any>(null)
 const filterForm = reactive({
@@ -103,23 +104,13 @@ const filterRules: Rules = {
 const { errors, validate, clearError } = useFormValidation(filterForm, filterRules)
 
 const summary = ref<any>({
-  totalCustomer: 856,
-  totalSales: '2,156,800.00',
-  avgOrder: '2,520.80',
+  totalCustomer: 0,
+  totalSales: '0.00',
+  avgOrder: '0.00',
 })
 
-const levelList = ref<any[]>([
-  { level: 'vip', name: 'VIP客户', count: 86, percent: 10 },
-  { level: 'gold', name: '黄金客户', count: 258, percent: 30 },
-  { level: 'silver', name: '白银客户', count: 342, percent: 40 },
-  { level: 'normal', name: '普通客户', count: 170, percent: 20 },
-])
-
-const customerList = ref<any[]>([
-  { id: 1, name: '王总', level: 'vip', levelName: 'VIP', amount: '356,000', orderCount: 28 },
-  { id: 2, name: '李老板', level: 'gold', levelName: '黄金', amount: '288,000', orderCount: 35 },
-  { id: 3, name: '张经理', level: 'vip', levelName: 'VIP', amount: '245,000', orderCount: 22 },
-])
+const levelList = ref<any[]>([])
+const customerList = ref<any[]>([])
 
 function chooseStartDate() {
   uni.showToast({ title: '日期选择', icon: 'none' })
@@ -137,9 +128,26 @@ function goDetail() {
 
 async function loadReportData() {
   try {
-    // TODO: 对接客户报表接口
+    const [salesData, categoryData] = await Promise.all([
+      reportsApi.getSalesSummary({
+        startDate: filterForm.startDate || undefined,
+        endDate: filterForm.endDate || undefined
+      }),
+      reportsApi.getCategorySales({
+        startDate: filterForm.startDate || undefined,
+        endDate: filterForm.endDate || undefined
+      })
+    ])
+    summary.value = {
+      totalCustomer: salesData.customerCount,
+      totalSales: salesData.totalSales.toFixed(2),
+      avgOrder: salesData.avgPrice.toFixed(2),
+    }
+    levelList.value = categoryData
+    customerList.value = []
   } catch (err) {
     console.error('加载客户报表失败:', err)
+    uni.showToast({ title: '加载失败', icon: 'error' })
   }
 }
 

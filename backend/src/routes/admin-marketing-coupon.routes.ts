@@ -20,5 +20,5 @@ adminMarketingCouponRouter.get("/coupons/statistics", requireAuthWithTenant, cou
 export const routeConfig: RouteConfig = {
   prefix: "/api/admin/marketing",
   router: adminMarketingCouponRouter,
-  auth: "none",
+  auth: "requireAuthWithTenant",
 };

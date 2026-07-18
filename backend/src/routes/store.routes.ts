@@ -28,5 +28,5 @@ storeRouter.get("/batches/:id/trace", batchController.getTraceChain);
 export const routeConfig: RouteConfig = {
   prefix: "/api/store",
   router: storeRouter,
-  auth: "none",
+  auth: "requireAuthWithTenant",
 };

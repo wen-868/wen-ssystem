@@ -23,5 +23,5 @@ storeDashboardRouter.get("/daily-sales", receivableController.getDailySales);
 export const routeConfig: RouteConfig = {
   prefix: "/api/store",
   router: storeDashboardRouter,
-  auth: "none",
+  auth: "requireAuthWithTenant",
 };

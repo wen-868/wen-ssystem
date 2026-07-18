@@ -296,20 +296,20 @@ async function handleRegister() {
 
   loading.value = true
   try {
-    const result = await authApi.register({
-      mobile: registerForm.mobile,
-      smsCode: registerForm.smsCode,
-      password: registerForm.password,
-      name: registerForm.name
+    // 租户注册申请
+    await authApi.register({
+      companyName: registerForm.name || registerForm.mobile,
+      contactPerson: registerForm.name || '管理员',
+      contactMobile: registerForm.mobile,
+      adminUsername: registerForm.mobile,
+      adminPassword: registerForm.password,
+      adminRealName: registerForm.name || '管理员',
     })
     
-    // 自动登录
-    await userStore.login(result.user.account, registerForm.password)
-    
-    uni.showToast({ title: '注册成功', icon: 'success' })
+    uni.showToast({ title: '注册申请已提交，等待审核', icon: 'success' })
     setTimeout(() => {
-      uni.reLaunch({ url: '/pages/home/home' })
-    }, 1500)
+      uni.reLaunch({ url: '/pages/login/login' })
+    }, 2000)
   } catch (err: any) {
     errorMsg.value = err?.message || '注册失败，请重试'
   } finally {

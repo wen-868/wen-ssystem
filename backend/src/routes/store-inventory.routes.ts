@@ -17,5 +17,5 @@ storeInventoryRouter.get("/inventory/alerts", inventoryController.listInventoryA
 export const routeConfig: RouteConfig = {
   prefix: "/api/store",
   router: storeInventoryRouter,
-  auth: "none",
+  auth: "requireAuthWithTenant",
 };
