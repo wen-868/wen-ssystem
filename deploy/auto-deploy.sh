@@ -20,8 +20,7 @@ npm --workspace backend run build
 
 echo "==> 构建前端（相对路径 /api）"
 VITE_API_BASE=/api npm --workspace admin-web run build
-VITE_API_BASE=/api npm --workspace merchant-mobile run build
-VITE_API_BASE=/api npm --workspace store-terminal run build
+VITE_API_BASE=/api npm --workspace saas-admin run build
 
 echo "==> 构建官网"
 npm --workspace website run build

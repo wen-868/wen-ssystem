@@ -43,8 +43,7 @@ echo "构建后端和前端"
 npm --workspace backend run build
 echo "前端 API 地址：${VITE_API_BASE}"
 VITE_API_BASE="${VITE_API_BASE}" npm --workspace admin-web run build
-VITE_API_BASE="${VITE_API_BASE}" npm --workspace store-terminal run build
-VITE_API_BASE="${VITE_API_BASE}" npm --workspace merchant-mobile run build
+VITE_API_BASE="${VITE_API_BASE}" npm --workspace saas-admin run build
 npm --workspace website run build
 npm run test:production-deploy
 

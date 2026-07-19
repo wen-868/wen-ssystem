@@ -477,67 +477,6 @@
                       "style":  {
                                     "navigationBarTitleText":  "我的权限"
                                 }
-                  },
-                  {
-                      "path": "pages/pos/cashier",
-                      "style":  {
-                                    "navigationBarTitleText":  "快速收银",
-                                    "navigationStyle":  "custom"
-                                }
-                  },
-                  {
-                      "path": "pages/pos/sale-bills",
-                      "style":  {
-                                    "navigationBarTitleText":  "销售单据"
-                                }
-                  },
-                  {
-                      "path": "pages/pos/order-fulfill",
-                      "style":  {
-                                    "navigationBarTitleText":  "接单履约"
-                                }
-                  },
-                  {
-                      "path": "pages/pos/shift",
-                      "style":  {
-                                    "navigationBarTitleText":  "交接班"
-                                }
-                  },
-                  {
-                      "path": "pages/pos/daily-settle",
-                      "style":  {
-                                    "navigationBarTitleText":  "日结管理"
-                                }
-                  },
-                  {
-                      "path": "pages/pos/member",
-                      "style":  {
-                                    "navigationBarTitleText":  "会员识别"
-                                }
-                  },
-                  {
-                      "path": "pages/pos/sale-return",
-                      "style":  {
-                                    "navigationBarTitleText":  "销售退货"
-                                }
-                  },
-                  {
-                      "path": "pages/pos/coupon-verify",
-                      "style":  {
-                                    "navigationBarTitleText":  "优惠券核销"
-                                }
-                  },
-                  {
-                      "path": "pages/pos/hold-order",
-                      "style":  {
-                                    "navigationBarTitleText":  "挂单管理"
-                                }
-                  },
-                  {
-                      "path": "pages/pos/store-control",
-                      "style":  {
-                                    "navigationBarTitleText":  "门店管控"
-                                }
                   }
               ],
     "globalStyle":  {

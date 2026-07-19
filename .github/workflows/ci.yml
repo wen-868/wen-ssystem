@@ -30,9 +30,6 @@ jobs:
       - name: Build admin web
         run: npm --workspace admin-web run build
 
-      - name: Build store terminal
-        run: npm --workspace store-terminal run build
-
       - name: Start mock backend
         run: USE_MOCK_DB=true npm --workspace backend run dev > /tmp/zhixiang-backend.log 2>&1 &
 
