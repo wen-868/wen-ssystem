@@ -48,39 +48,39 @@ export const queryHandlers: Array<(s: string, params: unknown[]) => Row[] | null
     return null;
   },
   (s, params) => {
-    if (s.includes("from customer_statement") && s.includes("count(*)")) {
+    if ((s.includes("from customer_statement") || s.includes("from t_customer_statement")) && s.includes("count(*)")) {
       return [{ total: state.customerStatements.length }];
     }
-    if (s.includes("from customer_statement") && s.includes("where id = ?")) {
+    if ((s.includes("from customer_statement") || s.includes("from t_customer_statement")) && s.includes("where id = ?")) {
       const stmt = state.customerStatements.find((st: Row) => st.id === Number(params[0]));
       return stmt ? [stmt] : [];
     }
-    if (s.includes("from customer_statement") && !s.includes("count(*)")) {
+    if ((s.includes("from customer_statement") || s.includes("from t_customer_statement")) && !s.includes("count(*)")) {
       return state.customerStatements;
     }
     return null;
   },
   (s, _params) => {
-    if (s.includes("from customer_payment") && s.includes("count(*)")) {
+    if ((s.includes("from customer_payment") || s.includes("from t_customer_payment")) && s.includes("count(*)")) {
       return [{ total: state.customerPayments.length }];
     }
-    if (s.includes("from customer_payment") && !s.includes("count(*)")) {
+    if ((s.includes("from customer_payment") || s.includes("from t_customer_payment")) && !s.includes("count(*)")) {
       return state.customerPayments;
     }
     return null;
   },
   (s, params) => {
-    if (s.includes("from sale_bill") && s.includes("where customer_id = ?") && s.includes("count(*)")) {
+    if ((s.includes("from sale_bill") || s.includes("from t_sale_bill")) && s.includes("where customer_id = ?") && s.includes("count(*)")) {
       const cnt = state.saleBills.filter((b: Row) => b.customerId === Number(params[0]) || b.customer_id === Number(params[0])).length;
       return [{ total: cnt }];
     }
-    if (s.includes("from sale_bill") && s.includes("where customer_id = ?") && !s.includes("count(*)") && !s.includes("sum(")) {
+    if ((s.includes("from sale_bill") || s.includes("from t_sale_bill")) && s.includes("where customer_id = ?") && !s.includes("count(*)") && !s.includes("sum(")) {
       return state.saleBills.filter((b: Row) => b.customerId === Number(params[0]) || b.customer_id === Number(params[0]));
     }
     return null;
   },
   (s, params) => {
-    if (s.includes("from sale_payment") && s.includes("from customer_payment")) {
+    if ((s.includes("from sale_payment") || s.includes("from t_sale_payment")) && (s.includes("from customer_payment") || s.includes("from t_customer_payment"))) {
       const memberId = Number(params[0]);
       const sp = state.salePayments.filter((p: Row) => p.customer_id === memberId);
       const cp = state.customerPayments.filter((p: Row) => p.customer_id === memberId);
@@ -110,14 +110,14 @@ export const queryHandlers: Array<(s: string, params: unknown[]) => Row[] | null
     return null;
   },
   (s, params) => {
-    if (s.includes("count(*) as billcount") && s.includes("from sale_bill") && s.includes("where customer_id")) {
+    if (s.includes("count(*) as billcount") && (s.includes("from sale_bill") || s.includes("from t_sale_bill")) && s.includes("where customer_id")) {
       const bills = state.saleBills.filter((b: Row) => (b.customerId || b.customer_id) === Number(params[0]) && b.businessStatus !== "DRAFT" && b.businessStatus !== "VOIDED");
       return [{ billCount: bills.length, totalAmount: 0, receivedAmount: 0, unpaidAmount: 0 }];
     }
-    if (s.includes("from sale_bill_item sbi") && s.includes("join sale_bill sb") && s.includes("group by sbi.sku_id")) {
+    if ((s.includes("from sale_bill_item sbi") || s.includes("from t_sale_bill_item sbi")) && (s.includes("join sale_bill sb") || s.includes("join t_sale_bill sb")) && s.includes("group by sbi.sku_id")) {
       return [];
     }
-    if (s.includes("max(created_at) as lastorderat") && s.includes("from sale_bill") && s.includes("where customer_id")) {
+    if (s.includes("max(created_at) as lastorderat") && (s.includes("from sale_bill") || s.includes("from t_sale_bill")) && s.includes("where customer_id")) {
       return [{ lastOrderAt: null }];
     }
     return null;
@@ -126,13 +126,13 @@ export const queryHandlers: Array<(s: string, params: unknown[]) => Row[] | null
     if (s.includes("coalesce(sum(unreceived_amount), 0) as balance") && s.includes("date(created_at) < ?")) {
       return [{ balance: 0 }];
     }
-    if (s.includes("coalesce(sum(receivable_amount), 0) as total") && s.includes("from sale_bill") && s.includes("date(created_at) >= ?") && s.includes("date(created_at) <= ?")) {
+    if (s.includes("coalesce(sum(receivable_amount), 0) as total") && (s.includes("from sale_bill") || s.includes("from t_sale_bill")) && s.includes("date(created_at) >= ?") && s.includes("date(created_at) <= ?")) {
       return [{ total: 0 }];
     }
-    if (s.includes("coalesce(sum(refund_amount), 0) as total") && s.includes("from sale_return")) {
+    if (s.includes("coalesce(sum(refund_amount), 0) as total") && (s.includes("from sale_return") || s.includes("from t_sale_return"))) {
       return [{ total: 0 }];
     }
-    if (s.includes("coalesce(sum(amount), 0) as total") && s.includes("from customer_payment") && s.includes("payment_date >= ?")) {
+    if (s.includes("coalesce(sum(amount), 0) as total") && (s.includes("from customer_payment") || s.includes("from t_customer_payment")) && s.includes("payment_date >= ?")) {
       return [{ total: 0 }];
     }
     return null;
@@ -167,7 +167,7 @@ export const executeHandlers: Array<(s: string, params: unknown[]) => Row[] | nu
     return null;
   },
   (s, params) => {
-    if (s.includes("insert into customer_statement (")) {
+    if ((s.includes("insert into customer_statement (") || s.includes("insert into t_customer_statement ("))) {
       const id = state.customerStatements.length + 1;
       state.customerStatements.push({
         id,
@@ -193,7 +193,7 @@ export const executeHandlers: Array<(s: string, params: unknown[]) => Row[] | nu
     return null;
   },
   (s, params) => {
-    if (s.includes("insert into customer_payment (")) {
+    if ((s.includes("insert into customer_payment (") || s.includes("insert into t_customer_payment ("))) {
       const id = state.customerPayments.length + 1;
       state.customerPayments.push({
         id,

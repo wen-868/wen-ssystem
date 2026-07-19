@@ -130,10 +130,10 @@ export const queryHandlers: Array<(s: string, params: unknown[]) => Row[] | null
 
   // payment_order
   (s, _params) => {
-    if (s.includes("count(*) from payment_order")) {
+    if (s.includes("count(*) from payment_order") || s.includes("count(*) from t_payment_order")) {
       return [{ total: state.paymentOrders.length }];
     }
-    if (s.includes("from payment_order")) {
+    if (s.includes("from payment_order") || s.includes("from t_payment_order")) {
       return state.paymentOrders;
     }
     return null;
@@ -141,10 +141,10 @@ export const queryHandlers: Array<(s: string, params: unknown[]) => Row[] | null
 
   // refund_order
   (s, _params) => {
-    if (s.includes("count(*) from refund_order")) {
+    if (s.includes("count(*) from refund_order") || s.includes("count(*) from t_refund_order")) {
       return [{ total: state.refundOrders.length }];
     }
-    if (s.includes("from refund_order")) {
+    if (s.includes("from refund_order") || s.includes("from t_refund_order")) {
       return state.refundOrders;
     }
     return null;
@@ -179,7 +179,7 @@ export const queryHandlers: Array<(s: string, params: unknown[]) => Row[] | null
 
 export const executeHandlers: Array<(s: string, params: unknown[]) => Row[] | null> = [
   (s, params) => {
-    if (s.includes("insert into payment_order") && s.includes("'sale_bill'")) {
+    if ((s.includes("insert into payment_order") || s.includes("insert into t_payment_order")) && s.includes("'sale_bill'")) {
       state.paymentOrders.push({
         payNo: params[0],
         pay_no: params[0],
@@ -200,7 +200,7 @@ export const executeHandlers: Array<(s: string, params: unknown[]) => Row[] | nu
 
   // payment_order INSERT (receivable)
   (s, params) => {
-    if (s.includes("insert into payment_order") && s.includes("'receivable'")) {
+    if ((s.includes("insert into payment_order") || s.includes("insert into t_payment_order")) && s.includes("'receivable'")) {
       state.paymentOrders.push({
         payNo: params[0],
         pay_no: params[0],
@@ -221,7 +221,7 @@ export const executeHandlers: Array<(s: string, params: unknown[]) => Row[] | nu
 
   // payment_order INSERT (generic)
   (s, params) => {
-    if (s.includes("insert into payment_order")) {
+    if (s.includes("insert into payment_order") || s.includes("insert into t_payment_order")) {
       state.paymentOrders.push({
         payNo: params[0],
         pay_no: params[0],
@@ -242,7 +242,7 @@ export const executeHandlers: Array<(s: string, params: unknown[]) => Row[] | nu
 
   // refund_order INSERT
   (s, params) => {
-    if (s.includes("insert into refund_order")) {
+    if (s.includes("insert into refund_order") || s.includes("insert into t_refund_order")) {
       const pay = state.paymentOrders.find((p) => p.payNo === params[3] || p.pay_no === params[3]);
       state.refundOrders.push({
         refundNo: params[0],

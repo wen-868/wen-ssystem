@@ -83,7 +83,7 @@ export const queryHandlers: Array<(s: string, params: unknown[]) => Row[] | null
 
   // inventory_ledger / inventory_log
   (s, params) => {
-    if (s.includes("select id from inventory_ledger") && s.includes("biz_type = 'sale_out'")) {
+    if ((s.includes("select id from inventory_ledger") || s.includes("select id from t_inventory_ledger")) && s.includes("biz_type = 'sale_out'")) {
       return state.inventoryLogs
         .filter((log) => log.bizType === "SALE_OUT" && log.bizNo === params[0])
         .map((log) => ({ id: log.id ?? log.logNo }));

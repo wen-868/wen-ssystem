@@ -95,26 +95,20 @@ function isWriteSql(sql: string): boolean {
 }
 
 export async function query<T = any>(sql: string, params: unknown[] = []) {
-  // 自动补 t_ 前缀：service 层代码可使用无前缀表名，此处统一转换
-  sql = addTablePrefix(sql);
   if (env.USE_MOCK_DB) {
+    // mock 模式：不加 t_ 前缀，因为 mock handler 匹配的是无前缀表名
     // 修复坑：query() 在 mock 模式下只调用 mockQuery（仅处理 SELECT），不处理 INSERT/UPDATE/DELETE
-    // 部分 service 使用 `const [result] = await query<any>("INSERT ...")` 解构并访问 result.insertId
-    // 对于写操作，路由到 mockExecute，返回 [ResultSetHeader, ...] 数组以支持解构
     if (isWriteSql(sql)) {
       const execResult: any = await mockExecute(sql, params);
-      // mockExecute 返回 [ResultSetHeader, undefined] 或 handler 返回的结果
-      // 需要返回数组形式，使 `const [result] = await query(...)` 解构后 result 是 ResultSetHeader
       if (Array.isArray(execResult) && execResult.length === 2 && execResult[1] === undefined) {
-        // 返回 [ResultSetHeader] 数组，解构后 result = ResultSetHeader
-        // 同时在 ResultSetHeader 上已挂载 insertId/affectedRows 属性（由 result() 函数处理）
         return [execResult[0]] as T[];
       }
-      // handler 返回其他格式，直接包装为数组
       return Array.isArray(execResult) ? execResult as T[] : [execResult] as T[];
     }
     return mockQuery<T>(sql, params);
   }
+  // 真实数据库：自动补 t_ 前缀，兼容 service 层中无前缀和有前缀的 SQL
+  sql = addTablePrefix(sql);
   const start = Date.now();
   const [rows] = await pool.query(sql, params);
   // 在非 mock 模式下记录 SQL 执行耗时，超阈值的查询由监控模块处理
