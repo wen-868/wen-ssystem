@@ -27,7 +27,12 @@
           "<uses-permission android:name=\"android.permission.CAMERA\"/>",
           "<uses-permission android:name=\"android.permission.ACCESS_NETWORK_STATE\"/>",
           "<uses-permission android:name=\"android.permission.ACCESS_WIFI_STATE\"/>",
-          "<uses-feature android:name=\"android.hardware.camera.autofocus\"/>"
+          "<uses-feature android:name=\"android.hardware.camera.autofocus\"/>",
+          "<uses-permission android:name=\"android.permission.BLUETOOTH\"/>",
+          "<uses-permission android:name=\"android.permission.BLUETOOTH_ADMIN\"/>",
+          "<uses-permission android:name=\"android.permission.BLUETOOTH_SCAN\"/>",
+          "<uses-permission android:name=\"android.permission.BLUETOOTH_CONNECT\"/>",
+          "<uses-permission android:name=\"android.permission.ACCESS_FINE_LOCATION\"/>"
         ],
         "packagename": "com.zhixiang.app",
         "minSdkVersion": 21,
@@ -50,6 +55,10 @@
         "ZXing-Scanner": {
           "provider": "nativeplugins/ZXing-Scanner",
           "description": "条码扫码原生插件（基于 ZXing），支持商品条码/二维码/追溯码识别"
+        },
+        "PrintManager": {
+          "provider": "nativeplugins/PrintManager",
+          "description": "蓝牙热敏打印原生插件，支持 58mm/80mm 热敏打印机与针式三联打印，含销售单打印模板"
         }
       }
     },
