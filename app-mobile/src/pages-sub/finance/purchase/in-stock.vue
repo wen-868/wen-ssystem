@@ -1,0 +1,302 @@
+<template>
+  <view class="in-stock-page">
+    <view class="page-header">
+      <text class="header-title">采购入库</text>
+    </view>
+
+    <!-- 表单三件套：ref + :model + :rules -->
+    <form ref="formRef" :model="stockForm" :rules="stockRules" class="stock-form" @submit="handleSubmit">
+      <view class="form-section">
+        <view class="section-title">入库信息</view>
+
+        <view class="form-item">
+          <view class="form-label">关联采购订单</view>
+          <input
+            class="form-input"
+            v-model="stockForm.orderNo"
+            type="text"
+            placeholder="输入采购单号"
+            placeholder-class="input-placeholder"
+            @input="clearError('orderNo')"
+          />
+          <view class="field-error" v-if="errors.orderNo">
+            <text class="error-text">{{ errors.orderNo }}</text>
+          </view>
+        </view>
+
+        <view class="form-item">
+          <view class="form-label">供应商</view>
+          <picker
+            :value="stockForm.supplierIndex"
+            :range="supplierList"
+            range-key="name"
+            @change="onSupplierChange"
+          >
+            <view class="form-picker">
+              <text>{{ supplierList[stockForm.supplierIndex]?.name || '请选择供应商' }}</text>
+              <text class="picker-arrow">›</text>
+            </view>
+          </picker>
+          <view class="field-error" v-if="errors.supplierIndex">
+            <text class="error-text">{{ errors.supplierIndex }}</text>
+          </view>
+        </view>
+
+        <view class="form-item">
+          <view class="form-label">入库门店</view>
+          <picker
+            :value="stockForm.storeIndex"
+            :range="storeList"
+            range-key="name"
+            @change="onStoreChange"
+          >
+            <view class="form-picker">
+              <text>{{ storeList[stockForm.storeIndex]?.name || '请选择门店' }}</text>
+              <text class="picker-arrow">›</text>
+            </view>
+          </picker>
+        </view>
+
+        <view class="form-item">
+          <view class="form-label">入库日期</view>
+          <picker mode="date" :value="stockForm.stockDate" @change="onDateChange">
+            <view class="form-picker">
+              <text>{{ stockForm.stockDate || '请选择入库日期' }}</text>
+              <text class="picker-arrow">›</text>
+            </view>
+          </picker>
+        </view>
+
+        <view class="form-item">
+          <view class="form-label">备注</view>
+          <textarea
+            class="form-textarea"
+            v-model="stockForm.remark"
+            placeholder="入库备注（选填）"
+            placeholder-class="input-placeholder"
+          />
+        </view>
+
+        <button
+          class="submit-btn"
+          form-type="submit"
+          :disabled="submitting"
+        >
+          {{ submitting ? '提交中...' : '确认入库' }}
+        </button>
+      </view>
+    </form>
+
+    <!-- 入库记录 -->
+    <view class="history-section" v-if="historyList.length > 0">
+      <view class="section-title">入库记录</view>
+      <view class="history-card" v-for="item in historyList" :key="item.stockNo">
+        <view class="history-header">
+          <text class="history-no">入库单号：{{ item.stockNo }}</text>
+          <view class="history-status" :class="'status-' + item.status">
+            <text class="status-text">{{ item.statusLabel }}</text>
+          </view>
+        </view>
+        <view class="history-body">
+          <text class="history-info">供应商：{{ item.supplierName }}</text>
+          <text class="history-info">商品数：{{ item.itemCount }}</text>
+          <text class="history-info">入库日期：{{ item.stockDate }}</text>
+        </view>
+      </view>
+    </view>
+
+    <view class="safe-bottom"></view>
+  </view>
+</template>
+
+<script setup lang="ts">
+import { ref, reactive, onMounted } from 'vue'
+import { useFormValidation, type Rules } from '@/composables/useFormValidation'
+import { purchaseApi } from '@/api/modules/purchase'
+import { supplierApi } from '@/api/modules/suppliers'
+
+const formRef = ref<any>(null)
+const stockForm = reactive({
+  orderNo: '',
+  supplierIndex: -1,
+  storeIndex: 0,
+  stockDate: '',
+  remark: '',
+})
+
+const stockRules: Rules = {
+  orderNo: [{ minLength: 1, message: '请输入采购单号', required: false }],
+  supplierIndex: [{ required: true, message: '请选择供应商' }],
+}
+
+const { errors, validate, clearError } = useFormValidation(stockForm, stockRules)
+
+const supplierList = ref<any[]>([])
+const storeList = ref([{ name: '默认门店' }])
+const submitting = ref(false)
+const historyList = ref<any[]>([])
+
+function onSupplierChange(e: any) { stockForm.supplierIndex = e.detail.value }
+function onStoreChange(e: any) { stockForm.storeIndex = e.detail.value }
+function onDateChange(e: any) { stockForm.stockDate = e.detail.value }
+
+async function handleSubmit() {
+  if (!validate()) return
+  submitting.value = true
+  try {
+    await purchaseApi.createInStock({
+      orderNo: stockForm.orderNo,
+      supplierId: supplierList.value[stockForm.supplierIndex]?.id,
+      storeId: storeList.value[stockForm.storeIndex]?.id,
+      stockDate: stockForm.stockDate,
+      remark: stockForm.remark
+    })
+    uni.showToast({ title: '入库成功', icon: 'success' })
+    loadHistory()
+  } catch (err: any) {
+    uni.showToast({ title: err?.message || '入库失败', icon: 'none' })
+  } finally {
+    submitting.value = false
+  }
+}
+
+async function loadSuppliers() {
+  try {
+    const res = await supplierApi.getList({ page: 1, pageSize: 100 })
+    supplierList.value = res.list || []
+  } catch (err) {
+    console.error('加载供应商列表失败:', err)
+  }
+}
+
+async function loadHistory() {
+  try {
+    const res = await purchaseApi.getInStockList({ page: 1, pageSize: 20 })
+    historyList.value = res.list || []
+  } catch (err) {
+    console.error('加载入库记录失败:', err)
+  }
+}
+
+onMounted(() => {
+  loadSuppliers()
+  loadHistory()
+})
+</script>
+
+<style scoped>
+.in-stock-page {
+  min-height: 100vh;
+  background: #f0f5ff;
+}
+.page-header {
+  padding: 24rpx 32rpx;
+  padding-top: calc(24rpx + env(safe-area-inset-top));
+  background: #fff;
+}
+.header-title {
+  font-size: 34rpx;
+  font-weight: 700;
+  color: #333;
+}
+.stock-form {
+  padding: 16rpx 24rpx;
+}
+.form-section {
+  background: #fff;
+  border-radius: 16rpx;
+  padding: 24rpx;
+  margin-bottom: 16rpx;
+  box-shadow: 0 2rpx 12rpx rgba(0,0,0,0.04);
+}
+.section-title {
+  font-size: 28rpx;
+  font-weight: 600;
+  color: #333;
+  margin-bottom: 20rpx;
+}
+.form-item {
+  margin-bottom: 20rpx;
+}
+.form-label {
+  font-size: 26rpx;
+  color: #666;
+  margin-bottom: 8rpx;
+}
+.form-input {
+  width: 100%;
+  height: 80rpx;
+  background: #f5f7fa;
+  border-radius: 12rpx;
+  padding: 0 24rpx;
+  font-size: 28rpx;
+  color: #333;
+  box-sizing: border-box;
+}
+.form-textarea {
+  width: 100%;
+  height: 160rpx;
+  background: #f5f7fa;
+  border-radius: 12rpx;
+  padding: 20rpx 24rpx;
+  font-size: 28rpx;
+  color: #333;
+  box-sizing: border-box;
+}
+.form-picker {
+  width: 100%;
+  height: 80rpx;
+  background: #f5f7fa;
+  border-radius: 12rpx;
+  padding: 0 24rpx;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  font-size: 28rpx;
+  color: #333;
+  box-sizing: border-box;
+}
+.picker-arrow { font-size: 32rpx; color: #bbb; }
+.input-placeholder { color: #bbb; font-size: 26rpx; }
+.field-error { margin-top: 8rpx; padding: 6rpx 0; }
+.error-text { font-size: 24rpx; color: #ff4d4f; }
+.submit-btn {
+  width: 100%;
+  height: 88rpx;
+  background: linear-gradient(135deg, #1677FF, #4096ff);
+  border-radius: 44rpx;
+  font-size: 30rpx;
+  font-weight: 600;
+  color: #fff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: none;
+  margin-top: 20rpx;
+}
+.submit-btn::after { border: none; }
+.history-section { padding: 0 24rpx; }
+.history-card {
+  background: #fff;
+  border-radius: 16rpx;
+  padding: 24rpx;
+  margin-bottom: 16rpx;
+  box-shadow: 0 2rpx 12rpx rgba(0,0,0,0.04);
+}
+.history-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 12rpx;
+}
+.history-no { font-size: 26rpx; color: #333; font-weight: 600; }
+.history-status { padding: 4rpx 16rpx; border-radius: 20rpx; }
+.status-pending { background: #fff7e6; }
+.status-pending .status-text { color: #fa8c16; }
+.status-confirmed { background: #f6ffed; }
+.status-confirmed .status-text { color: #52c41a; }
+.status-text { font-size: 22rpx; }
+.history-body { display: flex; flex-direction: column; gap: 8rpx; }
+.history-info { font-size: 24rpx; color: #666; }
+.safe-bottom { height: 40rpx; }
+</style>

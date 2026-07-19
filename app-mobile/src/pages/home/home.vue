@@ -1,4 +1,4 @@
-﻿<template>
+<template>
   <!-- 无表单交互，无需三件套（纯展示仪表盘页） -->
   <scroll-view class="home-page" scroll-y :refresher-enabled="true" :refresher-triggered="refresherTriggered" @refresherrefresh="onRefresh">
     <!-- 顶部 Header -->
@@ -77,13 +77,13 @@
         </view>
         <text class="quick-label">商品管理</text>
       </view>
-      <view class="quick-action" @tap="navigateTo('/pages/customers/customers')">
+      <view class="quick-action" @tap="navigateTo('/pages-sub/product/customers/customers')">
         <view class="quick-icon-wrap quick-icon-wrap--orange">
           <text class="quick-icon">&#xe612;</text>
         </view>
         <text class="quick-label">客户管理</text>
       </view>
-      <view class="quick-action" @tap="navigateTo('/pages/reports/reports')">
+      <view class="quick-action" @tap="navigateTo('/pages-sub/finance/reports/reports')">
         <view class="quick-icon-wrap quick-icon-wrap--purple">
           <text class="quick-icon">&#xe613;</text>
         </view>
