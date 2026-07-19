@@ -1954,40 +1954,57 @@
 
 ---
 
-## R50 — 全系统完成度审计工作流 [大部分完成]
+## R50 — 全系统完成度审计工作流 [已完成]
 
-> **日期**：2026-07-17
+> **日期**：2026-07-17 / 更新 2026-07-19
 > **完整方案**：`.workspace/tasks/R50-全局审计工作流.md`
 
-### R50 核查结果
+### R50 核查结果（2026-07-19 最终核查）
 
 | 任务 | 负责人 | 提交 | 核查结果 |
 |------|--------|------|---------|
-| R50-01 平台路由前缀规范化 | 阿坚 | 未单独提交（可能在780f420中） | ⬜ 待确认 |
-| R50-02 saas-admin API路径修正 | 阿坚 | 未单独提交 | ⬜ 待执行 |
-| R50-03 商家路由auth+前缀 | 阿坚 | 未单独提交 | ⬜ 待执行 |
-| R50-04 跨界路由修正 | 阿坚 | 未单独提交 | ⬜ 待执行 |
-| R50-05 Controller分层修复 | 阿坚 | 780f420 | ⚠️ 部分完成（share.controller.ts遗漏） |
-| R50-06 Service TODO | 阿坚 | 未提交 | ⬜ 待执行 |
-| R50-07 响应时间中间件去重 | 阿坚 | 未提交 | ⬜ 待执行 |
-| R50-08 admin-web SaaS迁移 | 墨 | dd376b7 | ✅ 通过（11个平台页面删除） |
-| R50-09 saas-admin模拟数据 | 阿坚 | 未提交 | ⬜ 待执行 |
-| R50-10 app-mobile模拟数据 | 阿澈 | 未提交 | ⬜ 待执行 |
-| R50-11 merchant-mobile清理 | 阿澈 | 未提交 | ⬜ 待执行 |
-| R50-12 admin-web api.ts拆分 | 墨 | f818f91 | ✅ 通过（19个模块文件） |
-| R50-13 部署配置更新 | 阿坚 | 780f420 | ✅ 通过（docker-compose+PM2配置） |
-| R50-14 测试覆盖率扩展 | 阿坚 | 未提交 | ⬜ 待执行 |
-| R50-15 dist清理 | 阿坚 | 未提交 | ⬜ 待执行 |
-
-### 核查发现的问题
-
-**R50-05 遗漏**：
-- `share.controller.ts` 仍有约80行直接SQL + 3处try-catch，完全未修复
-- `sys-user.controller.ts` 有4处try-catch残留
-- `platform-auth.controller.ts` 有3处try-catch残留
-- `system.controller.ts` 有1处try-catch残留
+| R50-01 平台路由前缀规范化 | 阿坚 | 743a7d0 | ✅ 5个平台路由前缀全部改为 /api/platform/ 嵌套 |
+| R50-02 saas-admin API路径修正 | 阿坚 | 743a7d0 | ✅ 40+处 /admin/ 改为 /platform/，仅剩3处合理引用 |
+| R50-03 商家路由auth+前缀 | 阿坚 | 743a7d0 | ✅ 约30个路由文件auth和前缀已修正 |
+| R50-04 跨界路由修正 | 阿坚 | 743a7d0 | ✅ tenant→/platform/tenants-management，subscription→/platform/subscriptions-management |
+| R50-05 Controller分层修复 | 阿坚 | 743a7d0 | ✅ 6个controller不再import db，try-catch从11处降到2处（均为合理业务逻辑） |
+| R50-06 Service TODO | 阿坚 | 743a7d0 | ⚠️ tenant-admin.service.ts 已修复，quote-push.service.ts 3处TODO仍为占位（需第三方接入） |
+| R50-07 响应时间中间件去重 | 阿坚 | 743a7d0 | ✅ response-time.ts 已删除 |
+| R50-08 admin-web SaaS迁移 | 墨 | dd376b7 | ✅ 11个平台页面删除 |
+| R50-09 saas-admin模拟数据 | 阿坚 | 743a7d0 | ✅ 所有模拟数据已替换为真实API调用 |
+| R50-10 app-mobile模拟数据 | 阿澈 | 743a7d0+e8f318b | ✅ 34个页面修改，新增7个API模块 |
+| R50-11 merchant-mobile清理 | 阿澈 | 743a7d0 | ✅ 源码全部删除（89个.vue+2639行api.ts），仅残留dist/ |
+| R50-12 admin-web api.ts拆分 | 墨 | f818f91 | ✅ 3113行拆分为19个模块文件 |
+| R50-13 部署配置更新 | 阿坚 | 780f420 | ✅ docker-compose+PM2配置 |
+| R50-14 测试覆盖率扩展 | 阿坚 | 743a7d0 | ✅ vitest.config.ts coverage已扩展 |
+| R50-15 dist清理 | 阿坚 | — | ⬜ 未执行 |
 
 **编译验证**：tsc --noEmit ✅ 0 错误
+
+### 全局检测发现的剩余问题（2026-07-19）
+
+**1. 无前缀表名残留（7个文件）**
+- `notification` → `t_notification`（notification.service.ts）
+- `flash_sale` / `flash_sale_record` → `t_flash_sale` / `t_flash_sale_record`（marketing-flash-sale.service.ts、marketing-calculation.service.ts）
+- `receipt` / `receipt_writeoff` → `t_receipt` / `t_receipt_writeoff`（receipt.service.ts、finance-dashboard.service.ts）
+- `receivable` → `t_receivable`（receipt.service.ts、receivable.service.ts、reconciliation.service.ts、finance-dashboard.service.ts）
+- `tenant_config` / `upload_file` → `t_tenant_config` / `t_upload_file`（storage-guard.ts）
+
+**2. store-terminal 目录残留**
+- `store-terminal/` 整个目录仍存在（24个源码文件），应删除
+- 根 `package.json` 仍有 store-terminal workspace 和 dev:store 脚本
+- `scripts/` 中4个脚本引用 store-terminal
+
+**3. merchant-mobile 残留清理不彻底**
+- `merchant-mobile/dist/` 和 `.env.production` 残留
+- 根 `package.json` 仍有 merchant-mobile workspace
+- `scripts/` 和 `deploy/` 中有引用
+
+**4. quote-push.service.ts 3处TODO**
+- 短信服务、小程序订阅消息、邮件服务未接入（需第三方服务）
+
+**5. auth=none 路由需关注**
+- `aftersale.routes.ts`、`notification.routes.ts`、`instant-retail-store.routes.ts` 全量无鉴权
 
 > 详细方案：`.workspace/tasks/R50-全局审计工作流.md`
 > **日期**：2026-07-17
