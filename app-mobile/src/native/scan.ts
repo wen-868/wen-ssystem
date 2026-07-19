@@ -170,6 +170,21 @@ interface ZXingScannerNativeModule {
     isAvailable(callback: (available: boolean) => void): void
 }
 
+/**
+ * HMS Core Scan Kit 原生插件接口（HarmonyOS）
+ *
+ * 对应 @hms/core/scan 模块，HarmonyOS 平台通过 HBuilderX 打包鸿蒙包时
+ * 由原生层注入 __global__.HMSɨScanKit 全局对象。本接口仅描述 JS 侧调用签名。
+ */
+interface HMSScanKitNativeModule {
+    /** 发起扫码（HarmonyOS Scan Kit startScan） */
+    startScan(options: { types?: Array<ScanTypeFilter>; title?: string }, callback: (result: NativeScanResult) => void): void
+    /** 停止连续扫码 */
+    stopScan(): void
+    /** 检查扫码功能是否可用（相机权限等） */
+    isAvailable(callback: (available: boolean) => void): void
+}
+
 // ====================== 工具函数 ======================
 
 /**
@@ -229,25 +244,141 @@ export function identifyScanType(code: string, format?: string): ScanCodeType {
 
 // ====================== 原生插件实例获取 ======================
 
+/** 原生扫码模块统一接口（ZXing-Scanner + HMS Scan Kit 共同实现） */
+interface ScannerUnifiedModule {
+    /** 发起扫码 */
+    scan(options: ScanOptions, callback: (result: NativeScanResult) => void): void
+    /** 停止连续扫码 */
+    stopScan(): void
+    /** 检查扫码功能是否可用（相机权限等） */
+    isAvailable(callback: (available: boolean) => void): void
+}
+
+/** HarmonyOS HMS Scan Kit 全局对象键名（HBuilderX 打包鸿蒙包时由原生层注入） */
+const HMS_SCAN_KIT_KEY = 'HMSɨScanKit'
+
 /**
- * 获取 ZXing-Scanner 原生插件实例
+ * 从 globalThis 安全读取 HMS Scan Kit 原生实例
  *
- * - APP-PLUS 环境：通过 uni.requireNativePlugin 获取原生插件
- * - 其他环境（H5/小程序）：返回 null
+ * HarmonyOS 平台通过 HBuilderX 打包鸿蒙包时由原生层注入 globalThis.HMSɨScanKit。
+ * 使用方括号访问避免特殊字符 `ɨ`（U+0268）在 TypeScript 标识符中引起解析问题。
  *
- * 使用 IIFE 包裹条件编译，避免 vue-tsc 看到两个 return 语句造成问题（踩坑日志 [15]）
+ * @returns HMS Scan Kit 原生实例，未注入返回 null
+ */
+function readHMSScanKitRaw(): HMSScanKitNativeModule | null {
+    try {
+        const kit = (globalThis as Record<string, unknown>)[HMS_SCAN_KIT_KEY]
+        return kit ? (kit as HMSScanKitNativeModule) : null
+    } catch {
+        return null
+    }
+}
+
+/**
+ * 获取 HMS Scan Kit 适配器（统一为 ScannerUnifiedModule 接口）
+ *
+ * 将 HMS Scan Kit 的 startScan 方法适配为统一的 scan 方法，
+ * 使 isScanAvailable / startContinuousScan 等函数无需感知平台差异。
+ *
+ * @returns 适配后的统一扫码模块，未注入返回 null
+ */
+function getHMSScanAdapter(): ScannerUnifiedModule | null {
+    const kit = readHMSScanKitRaw()
+    if (!kit) return null
+    return {
+        scan(options: ScanOptions, callback: (result: NativeScanResult) => void): void {
+            // HMS Scan Kit 的 startScan 不需要 continuous/interval 字段，仅透传 types/title
+            const hmsOptions: { types?: Array<ScanTypeFilter>; title?: string } = {}
+            if (options?.types) hmsOptions.types = options.types
+            if (options?.title) hmsOptions.title = options.title
+            kit.startScan(hmsOptions, callback)
+        },
+        stopScan(): void {
+            kit.stopScan()
+        },
+        isAvailable(callback: (available: boolean) => void): void {
+            kit.isAvailable(callback)
+        },
+    }
+}
+
+/**
+ * 获取原生扫码插件实例（统一接口）
+ *
+ * 平台分支：
+ *  - APP-PLUS && !HARMONYOS：使用 uni.requireNativePlugin('ZXing-Scanner')
+ *  - HARMONYOS：使用 HMS Core Scan Kit（globalThis.HMSɨScanKit）
+ *  - 其他平台（H5/小程序）：返回 null
+ *
+ * 使用 IIFE 包裹条件编译，避免 vue-tsc 看到多个 return 语句造成问题（踩坑日志 [15]）
  *
  * @returns 原生插件实例，不可用时返回 null
  */
-function getScanner(): ZXingScannerNativeModule | null {
+function getScanner(): ScannerUnifiedModule | null {
     return (() => {
-        // #ifdef APP-PLUS
+        // #ifdef APP-PLUS && !HARMONYOS
         return uni.requireNativePlugin('ZXing-Scanner') as ZXingScannerNativeModule | null
+        // #endif
+        // #ifdef HARMONYOS
+        // HarmonyOS Scan Kit：HBuilderX 打包鸿蒙包时由原生层注入 globalThis 全局对象
+        return getHMSScanAdapter()
         // #endif
         // #ifndef APP-PLUS
         return null
         // #endif
     })()
+}
+
+// ====================== HarmonyOS HMS Scan Kit 适配 ======================
+
+/**
+ * HarmonyOS HMS Scan Kit 扫码适配
+ *
+ * 使用 HMS Core Scan Kit 的 startScan API，支持条码、二维码、追溯码识别。
+ * 复用现有的 identifyScanType 和 handleScanResult 逻辑。
+ *
+ * 注意：
+ *  - 仅在 HARMONYOS 平台下有效，其他平台调用会 reject
+ *  - HMS Scan Kit 的 startScan 选项中 types 字段兼容 ScanTypeFilter
+ *  - 实际 API 调用在 HBuilderX 打包鸿蒙包时由原生层处理
+ *
+ * @param options 扫码选项（continuous 字段会被忽略，强制为 false）
+ * @returns 扫码结果 Promise
+ */
+async function scanWithHMSScan(options?: Omit<ScanOptions, 'continuous'>): Promise<ScanResult> {
+    const scanKit = readHMSScanKitRaw()
+
+    if (!scanKit) {
+        uni.showToast({ title: 'HMS Scan Kit 不可用', icon: 'none' })
+        return Promise.reject(new Error('HMS Scan Kit 不可用'))
+    }
+
+    const scanOptions: { types?: Array<ScanTypeFilter>; title?: string } = {
+        title: options?.title || '扫一扫',
+    }
+    if (options?.types) {
+        scanOptions.types = options.types
+    }
+
+    return new Promise<ScanResult>((resolve, reject) => {
+        try {
+            scanKit.startScan(scanOptions, (res: NativeScanResult) => {
+                if (!res || !res.code) {
+                    reject(new Error('扫码未识别到内容'))
+                    return
+                }
+                const result: ScanResult = {
+                    code: res.code,
+                    type: identifyScanType(res.code, res.format),
+                    format: res.format,
+                    timestamp: Date.now(),
+                }
+                resolve(result)
+            })
+        } catch (err) {
+            reject(err instanceof Error ? err : new Error('HMS Scan Kit 调用失败'))
+        }
+    })
 }
 
 // ====================== 核心扫码 API ======================
@@ -277,6 +408,11 @@ export async function isScanAvailable(): Promise<boolean> {
 /**
  * 发起单次扫码
  *
+ * 平台分支：
+ *  - HARMONYOS：调用 HMS Scan Kit 的 scanWithHMSScan
+ *  - APP-PLUS && !HARMONYOS：调用 ZXing-Scanner 的 scan
+ *  - 其他平台：reject
+ *
  * @param options 扫码选项（continuous 字段会被忽略，强制为 false）
  * @returns 扫码结果 Promise
  *
@@ -287,6 +423,12 @@ export async function isScanAvailable(): Promise<boolean> {
  * ```
  */
 export function scanCode(options?: Omit<ScanOptions, 'continuous'>): Promise<ScanResult> {
+    // HarmonyOS 平台走 HMS Scan Kit 分支
+    // #ifdef HARMONYOS
+    return scanWithHMSScan(options)
+    // #endif
+
+    // #ifndef HARMONYOS
     const scanner = getScanner()
     if (!scanner) {
         uni.showToast({ title: '扫码功能仅在 App 端可用', icon: 'none' })
@@ -301,7 +443,8 @@ export function scanCode(options?: Omit<ScanOptions, 'continuous'>): Promise<Sca
 
     return new Promise<ScanResult>((resolve, reject) => {
         try {
-            scanner.scan(scanOptions, (res: NativeScanResult) => {
+            // 条件编译指令会干扰 vue-tsc 控制流分析，使用非空断言（上方已 null 检查）
+            scanner!.scan(scanOptions, (res: NativeScanResult) => {
                 if (!res || !res.code) {
                     reject(new Error('扫码未识别到内容'))
                     return
@@ -318,6 +461,7 @@ export function scanCode(options?: Omit<ScanOptions, 'continuous'>): Promise<Sca
             reject(err instanceof Error ? err : new Error('扫码调用失败'))
         }
     })
+    // #endif
 }
 
 /**

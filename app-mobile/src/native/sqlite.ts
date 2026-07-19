@@ -736,17 +736,231 @@ class NativeDatabase implements SQLiteOps {
     }
 }
 
+// ====================== HarmonyOS HMS Core DataRelationalStore 实现 ======================
+
+/** HarmonyOS HMS DataRelationalStore 全局对象键名（HBuilderX 打包鸿蒙包时由原生层注入） */
+const HMS_RDB_KIT_KEY = 'HMSɨDataRdbStore'
+
+/**
+ * HMS Core DataRelationalStore 原生插件接口（HarmonyOS）
+ *
+ * 对应 @hms/core/data-relational-store 模块，HarmonyOS 平台通过 HBuilderX 打包鸿蒙包时
+ * 由原生层注入 globalThis.HMSɨDataRdbStore 全局对象。
+ * 接口与 uni 原生 SQLite API 对齐，便于统一适配。
+ */
+interface HMSRdbStoreNativeModule {
+    /** 打开数据库（HarmonyOS DataRelationalStore.getRdbStore） */
+    openDatabase(options: { name: string }, callback: (res: { success?: boolean; error?: string }) => void): void
+    /** 执行非查询 SQL（HarmonyOS DataRelationalStore.executeSql） */
+    executeSql(options: { name: string; sql: string }, callback: (res: { success?: boolean; error?: string }) => void): void
+    /** 执行查询 SQL（HarmonyOS DataRelationalStore.querySql） */
+    querySql(options: { name: string; sql: string }, callback: (res: { data?: any[]; success?: boolean; error?: string }) => void): void
+    /** 关闭数据库（HarmonyOS DataRelationalStore.deleteRdbStore） */
+    closeDatabase(options: { name: string }, callback: (res: { success?: boolean; error?: string }) => void): void
+    /** 开始事务 */
+    beginTransaction(options: { name: string }, callback: (res: { success?: boolean }) => void): void
+    /** 提交事务 */
+    commit(options: { name: string }, callback: (res: { success?: boolean }) => void): void
+    /** 回滚事务 */
+    rollBack(options: { name: string }, callback: (res: { success?: boolean }) => void): void
+}
+
+/**
+ * 从 globalThis 安全读取 HMS DataRelationalStore 原生实例
+ *
+ * HarmonyOS 平台通过 HBuilderX 打包鸿蒙包时由原生层注入 globalThis.HMSɨDataRdbStore。
+ * 使用方括号访问避免特殊字符 `ɨ`（U+0268）在 TypeScript 标识符中引起解析问题。
+ *
+ * @returns HMS DataRelationalStore 原生实例，未注入返回 null
+ */
+function readHMSRdbStoreRaw(): HMSRdbStoreNativeModule | null {
+    try {
+        const kit = (globalThis as Record<string, unknown>)[HMS_RDB_KIT_KEY]
+        return kit ? (kit as HMSRdbStoreNativeModule) : null
+    } catch {
+        return null
+    }
+}
+
+/**
+ * HarmonyOS HMS Core DataRelationalStore 数据库实现
+ *
+ * 使用 HMS Core 的 DataRelationalStore 模块（@hms/core/data-relational-store），
+ * 实现与 NativeDatabase 相同的 SQLiteOps 接口（initDatabase/execute/query/transaction）。
+ *
+ * 复用现有的 5 张表 DDL（DDL_STATEMENTS）和业务 Db 类（LocalProductDb 等），
+ * 上层调用方无需感知平台差异。
+ *
+ * 注意：
+ *  - 仅在 HARMONYOS 平台下有效，其他平台构造的实例调用 open 会 reject
+ *  - HMS DataRelationalStore 的 SQL 语法与 SQLite 兼容
+ *  - 实际 API 调用在 HBuilderX 打包鸿蒙包时由原生层处理
+ */
+class HarmonyRDBDatabase implements SQLiteOps {
+    async open(): Promise<void> {
+        const kit = readHMSRdbStoreRaw()
+        if (!kit) {
+            throw new Error('HMS DataRelationalStore 不可用')
+        }
+        await this.callOpen(kit)
+        // 执行 DDL
+        for (const ddl of DDL_STATEMENTS) {
+            await this.callExecuteSql(kit, ddl)
+        }
+        // 初始化 sync_watermark 单行记录（INSERT OR IGNORE）
+        await this.callExecuteSql(
+            kit,
+            `INSERT OR IGNORE INTO sync_watermark (id, product_since, price_since, inventory_since, member_since) VALUES (1, '${DEFAULT_SINCE}', '${DEFAULT_SINCE}', '${DEFAULT_SINCE}', '${DEFAULT_SINCE}')`
+        )
+    }
+
+    async execute(sql: string, params?: SqlParameter[]): Promise<number> {
+        const kit = readHMSRdbStoreRaw()
+        if (!kit) {
+            throw new Error('HMS DataRelationalStore 不可用')
+        }
+        const finalSql = bindParams(sql, params)
+        await this.callExecuteSql(kit, finalSql)
+        // DataRelationalStore 不返回受影响行数，统一返回 1（与 NativeDatabase 行为一致）
+        return 1
+    }
+
+    async query<T = DbRow>(sql: string, params?: SqlParameter[]): Promise<T[]> {
+        const kit = readHMSRdbStoreRaw()
+        if (!kit) {
+            throw new Error('HMS DataRelationalStore 不可用')
+        }
+        const finalSql = bindParams(sql, params)
+        return this.callQuerySql<T>(kit, finalSql)
+    }
+
+    async transaction<T>(fn: (ops: SQLiteOps) => Promise<T>): Promise<T> {
+        const kit = readHMSRdbStoreRaw()
+        if (!kit) {
+            throw new Error('HMS DataRelationalStore 不可用')
+        }
+        await this.callBeginTransaction(kit)
+        try {
+            const result = await fn(this)
+            await this.callCommit(kit)
+            return result
+        } catch (err) {
+            try {
+                await this.callRollBack(kit)
+            } catch {
+                // 回滚失败忽略
+            }
+            throw err
+        }
+    }
+
+    async close(): Promise<void> {
+        const kit = readHMSRdbStoreRaw()
+        if (!kit) return
+        return this.callClose(kit)
+    }
+
+    // ---------- HMS RdbStore API 调用包装 ----------
+
+    private callOpen(kit: HMSRdbStoreNativeModule): Promise<void> {
+        return new Promise((resolve, reject) => {
+            kit.openDatabase({ name: DB_NAME }, (res) => {
+                if (res?.success === false) {
+                    reject(new Error(`HMS RDB 打开数据库失败: ${res?.error || '未知错误'}`))
+                    return
+                }
+                resolve()
+            })
+        })
+    }
+
+    private callExecuteSql(kit: HMSRdbStoreNativeModule, sql: string): Promise<void> {
+        return new Promise((resolve, reject) => {
+            kit.executeSql({ name: DB_NAME, sql }, (res) => {
+                if (res?.success === false) {
+                    reject(new Error(`HMS RDB 执行 SQL 失败: ${res?.error || '未知错误'} | SQL: ${sql}`))
+                    return
+                }
+                resolve()
+            })
+        })
+    }
+
+    private callQuerySql<T>(kit: HMSRdbStoreNativeModule, sql: string): Promise<T[]> {
+        return new Promise((resolve, reject) => {
+            kit.querySql({ name: DB_NAME, sql }, (res) => {
+                if (res?.success === false) {
+                    reject(new Error(`HMS RDB 查询 SQL 失败: ${res?.error || '未知错误'} | SQL: ${sql}`))
+                    return
+                }
+                resolve((res?.data ?? []) as T[])
+            })
+        })
+    }
+
+    private callClose(kit: HMSRdbStoreNativeModule): Promise<void> {
+        return new Promise((resolve, reject) => {
+            kit.closeDatabase({ name: DB_NAME }, (res) => {
+                if (res?.success === false) {
+                    reject(new Error(`HMS RDB 关闭数据库失败: ${res?.error || '未知错误'}`))
+                    return
+                }
+                resolve()
+            })
+        })
+    }
+
+    private callBeginTransaction(kit: HMSRdbStoreNativeModule): Promise<void> {
+        return new Promise((resolve, reject) => {
+            kit.beginTransaction({ name: DB_NAME }, (res) => {
+                if (res?.success === false) {
+                    reject(new Error('HMS RDB 开始事务失败'))
+                    return
+                }
+                resolve()
+            })
+        })
+    }
+
+    private callCommit(kit: HMSRdbStoreNativeModule): Promise<void> {
+        return new Promise((resolve, reject) => {
+            kit.commit({ name: DB_NAME }, (res) => {
+                if (res?.success === false) {
+                    reject(new Error('HMS RDB 提交事务失败'))
+                    return
+                }
+                resolve()
+            })
+        })
+    }
+
+    private callRollBack(kit: HMSRdbStoreNativeModule): Promise<void> {
+        return new Promise((resolve) => {
+            kit.rollBack({ name: DB_NAME }, () => {
+                // 回滚无论成功失败都 resolve，避免掩盖原始错误
+                resolve()
+            })
+        })
+    }
+}
+
 // ====================== 平台适配（IIFE 包裹条件编译，踩坑日志 [15]） ======================
 
 /**
  * 获取 SQLiteOps 实现
- *  - APP-PLUS：使用 NativeDatabase（uni 原生 SQLite）
+ *
+ * 平台分支：
+ *  - APP-PLUS && !HARMONYOS：使用 NativeDatabase（uni 原生 SQLite）
+ *  - HARMONYOS：使用 HarmonyRDBDatabase（HMS Core DataRelationalStore）
  *  - 其他平台（H5/小程序）：使用 MemoryDatabase（开发调试降级）
  */
 function createSqliteOps(): SQLiteOps {
     return (() => {
-        // #ifdef APP-PLUS
+        // #ifdef APP-PLUS && !HARMONYOS
         return new NativeDatabase()
+        // #endif
+        // #ifdef HARMONYOS
+        return new HarmonyRDBDatabase()
         // #endif
         // #ifndef APP-PLUS
         return new MemoryDatabase()

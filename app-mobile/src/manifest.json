@@ -97,5 +97,18 @@
         "desc": "获取位置信息用于门店管理"
       }
     }
+  },
+  "harmony": {
+    "appid": "__HARMONYOS_APPID__",
+    "bundleName": "com.zhixiang.app",
+    "permissions": [
+      "<uses-permission ohos:name=\"ohos.permission.INTERNET\"/>",
+      "<uses-permission ohos:name=\"ohos.permission.CAMERA\"/>",
+      "<uses-permission ohos:name=\"ohos.permission.GET_NETWORK_INFO\"/>",
+      "<uses-permission ohos:name=\"ohos.permission.ACCESS_BLUETOOTH\"/>"
+    ],
+    "distribute": {
+      "safeguard": true
+    }
   }
 }

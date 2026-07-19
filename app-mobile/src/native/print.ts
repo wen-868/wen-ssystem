@@ -226,6 +226,30 @@ interface PrintManagerNativeModule {
     printRaw(options: { lines: PrintLine[] }, callback: (result: NativePrintResult) => void): void
 }
 
+/**
+ * HMS Core Bluetooth Kit 原生插件接口（HarmonyOS）
+ *
+ * 对应 @hms/core/bluetooth 模块，HarmonyOS 平台通过 HBuilderX 打包鸿蒙包时
+ * 由原生层注入 globalThis.HMSɨBluetoothKit 全局对象。
+ * 接口与 PrintManagerNativeModule 对齐，便于统一适配。
+ */
+interface HMSBluetoothKitNativeModule {
+    /** 搜索蓝牙打印机（约 10s 超时） */
+    searchPrinters(callback: (result: NativeSearchResult) => void): void
+    /** 连接指定 MAC 的打印机 */
+    connectPrinter(options: { mac: string }, callback: (result: NativeSimpleResult) => void): void
+    /** 断开当前连接 */
+    disconnectPrinter(callback: (result: NativeSimpleResult) => void): void
+    /** 查询当前连接状态 */
+    isConnected(callback: (result: NativeSimpleResult) => void): void
+    /** 打印销售单（58mm 热敏） */
+    printSaleBill(options: { lines: PrintLine[] }, callback: (result: NativePrintResult) => void): void
+    /** 打印销售单（针式三联） */
+    printSaleBillDot(options: { lines: PrintLine[] }, callback: (result: NativePrintResult) => void): void
+    /** 原始打印指令 */
+    printRaw(options: { lines: PrintLine[] }, callback: (result: NativePrintResult) => void): void
+}
+
 // ====================== 工具函数 ======================
 
 /**
@@ -308,25 +332,130 @@ function normalizeDevice(raw: {
 
 // ====================== 原生插件实例获取 ======================
 
+/** HarmonyOS HMS Bluetooth Kit 全局对象键名（HBuilderX 打包鸿蒙包时由原生层注入） */
+const HMS_BT_KIT_KEY = 'HMSɨBluetoothKit'
+
+/**
+ * 从 globalThis 安全读取 HMS Bluetooth Kit 原生实例
+ *
+ * HarmonyOS 平台通过 HBuilderX 打包鸿蒙包时由原生层注入 globalThis.HMSɨBluetoothKit。
+ * 使用方括号访问避免特殊字符 `ɨ`（U+0268）在 TypeScript 标识符中引起解析问题。
+ *
+ * @returns HMS Bluetooth Kit 原生实例，未注入返回 null
+ */
+function readHMSBluetoothKitRaw(): HMSBluetoothKitNativeModule | null {
+    try {
+        const kit = (globalThis as Record<string, unknown>)[HMS_BT_KIT_KEY]
+        return kit ? (kit as HMSBluetoothKitNativeModule) : null
+    } catch {
+        return null
+    }
+}
+
 /**
  * 获取 PrintManager 原生插件实例
  *
- * - APP-PLUS 环境：通过 uni.requireNativePlugin 获取原生插件
- * - 其他环境（H5/小程序）：返回 null
+ * 平台分支：
+ *  - APP-PLUS && !HARMONYOS：通过 uni.requireNativePlugin('PrintManager') 获取
+ *  - HARMONYOS：使用 HMS Core Bluetooth Kit（globalThis.HMSɨBluetoothKit）
+ *  - 其他环境（H5/小程序）：返回 null
  *
- * 使用 IIFE 包裹条件编译，避免 vue-tsc 看到两个 return 语句造成问题（踩坑日志 [15]）
+ * 使用 IIFE 包裹条件编译，避免 vue-tsc 看到多个 return 语句造成问题（踩坑日志 [15]）
  *
  * @returns 原生插件实例，不可用时返回 null
  */
 function getPrintManager(): PrintManagerNativeModule | null {
     return (() => {
-        // #ifdef APP-PLUS
+        // #ifdef APP-PLUS && !HARMONYOS
         return uni.requireNativePlugin('PrintManager') as PrintManagerNativeModule | null
+        // #endif
+        // #ifdef HARMONYOS
+        // HMS Bluetooth Kit 接口与 PrintManagerNativeModule 对齐，可直接转换
+        return readHMSBluetoothKitRaw() as (HMSBluetoothKitNativeModule & PrintManagerNativeModule) | null
         // #endif
         // #ifndef APP-PLUS
         return null
         // #endif
     })()
+}
+
+// ====================== HarmonyOS HMS Bluetooth Kit 适配 ======================
+
+/**
+ * HarmonyOS HMS Bluetooth Kit 连接打印机适配
+ *
+ * 使用 HMS Core Bluetooth Kit 的 connectPrinter API 连接指定 MAC 的蓝牙打印机。
+ * 复用现有的 cacheConnectedPrinter 缓存逻辑。
+ *
+ * 注意：
+ *  - 仅在 HARMONYOS 平台下有效，其他平台调用会 reject
+ *  - 实际 API 调用在 HBuilderX 打包鸿蒙包时由原生层处理
+ *
+ * @param mac 蓝牙 MAC 地址（XX:XX:XX:XX:XX:XX）
+ * @returns 连接成功 resolve(true)，失败 reject
+ */
+export async function connectWithHMSBLE(mac: string): Promise<boolean> {
+    const kit = readHMSBluetoothKitRaw()
+    if (!kit) {
+        uni.showToast({ title: 'HMS Bluetooth Kit 不可用', icon: 'none' })
+        return Promise.reject(new Error('HMS Bluetooth Kit 不可用'))
+    }
+    if (!mac || typeof mac !== 'string') {
+        return Promise.reject(new Error('MAC 地址不能为空'))
+    }
+
+    return new Promise<boolean>((resolve, reject) => {
+        try {
+            kit.connectPrinter({ mac }, (res: NativeSimpleResult) => {
+                if (res && res.success) {
+                    cacheConnectedPrinter(mac, mac)
+                    resolve(true)
+                } else {
+                    reject(new Error(res?.error || 'HMS BLE 连接打印机失败'))
+                }
+            })
+        } catch (err) {
+            reject(err instanceof Error ? err : new Error('HMS BLE 连接调用失败'))
+        }
+    })
+}
+
+/**
+ * HarmonyOS HMS Bluetooth Kit 打印适配
+ *
+ * 使用 HMS Core Bluetooth Kit 的 printRaw API 发送打印指令。
+ * 复用现有的 buildSaleBillLines 模板和 persistPrintRecord 打印记录入库逻辑。
+ *
+ * 注意：
+ *  - 仅在 HARMONYOS 平台下有效，其他平台调用会 reject
+ *  - 实际 API 调用在 HBuilderX 打包鸿蒙包时由原生层处理
+ *
+ * @param lines PrintLine 数组（由 buildSaleBillLines 构造）
+ * @returns 打印成功 resolve，失败 reject
+ */
+export async function printWithHMSBLE(lines: PrintLine[]): Promise<void> {
+    const kit = readHMSBluetoothKitRaw()
+    if (!kit) {
+        uni.showToast({ title: 'HMS Bluetooth Kit 不可用', icon: 'none' })
+        return Promise.reject(new Error('HMS Bluetooth Kit 不可用'))
+    }
+    if (!Array.isArray(lines) || lines.length === 0) {
+        return Promise.reject(new Error('打印内容不能为空'))
+    }
+
+    return new Promise<void>((resolve, reject) => {
+        try {
+            kit.printRaw({ lines }, (res: NativePrintResult) => {
+                if (res && res.success) {
+                    resolve()
+                } else {
+                    reject(new Error(res?.error || 'HMS BLE 打印失败'))
+                }
+            })
+        } catch (err) {
+            reject(err instanceof Error ? err : new Error('HMS BLE 打印调用失败'))
+        }
+    })
 }
 
 // ====================== 后端打印记录保存 ======================
@@ -984,13 +1113,16 @@ export {
     // 类型已通过 export interface / export type 导出：
     // PrintAlign, PrintFontSize, PrintLine,
     // PrinterType, PrinterDevice, SaleBillItem, SaleBillData,
-    // PrintBillType, PrintRecordStatus, PrintRecordPayload, PrintRecordResult
+    // PrintBillType, PrintRecordStatus, PrintRecordPayload, PrintRecordResult,
+    // HMSBluetoothKitNativeModule（HarmonyOS 蓝牙打印插件接口）
     // 函数已通过 export function / export async function 导出：
     // searchPrinters, connectPrinter, disconnectPrinter, isConnected,
     // printSaleBill, printSaleBillDot, printRaw, buildSaleBillLines,
-    // printSaleBillAuto, getCachedPrinter
+    // printSaleBillAuto, getCachedPrinter,
+    // connectWithHMSBLE, printWithHMSBLE（HarmonyOS HMS Bluetooth Kit 适配）
     // 常量导出（便于外部模板构造时参考）
     PAPER_58MM_CHARS,
     DEFAULT_DIVIDER_CHAR,
     DEFAULT_FEED_LINES,
+    HMS_BT_KIT_KEY,
 }
