@@ -182,7 +182,7 @@ describe("employee.service", () => {
       const res = await updateStore(1, { name: "新名", status: 0 }, "t1");
       expect(res.name).toBe("新名");
       const [sql] = mocks.queryWithTenant.mock.calls[0];
-      expect(sql).toContain("UPDATE store SET");
+      expect(sql).toContain("UPDATE t_store SET");
     });
   });
 

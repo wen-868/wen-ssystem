@@ -55,7 +55,7 @@ describe("commission.service", () => {
       expect(res.id).toBe(5);
       expect(res.ruleName).toBe("R");
       const [sql, params] = mocks.queryWithTenant.mock.calls[0];
-      expect(sql).toContain("INSERT INTO sales_commission_rule");
+      expect(sql).toContain("INSERT INTO t_sales_commission_rule");
       expect(params).toEqual(["R", "FIXED_RATE", JSON.stringify({ rate: 0.1 }), null, null, null, "t1"]);
     });
 

@@ -44,7 +44,7 @@ describe("feedback.service", () => {
       });
       expect(id).toBe(42);
       const [sql, params] = mocks.query.mock.calls[0];
-      expect(sql).toContain("INSERT INTO system_feedback");
+      expect(sql).toContain("INSERT INTO t_system_feedback");
       expect(params).toEqual(["BUG", "标题", "内容", "c", "s", "p", "b", 1, "t1"]);
     });
 

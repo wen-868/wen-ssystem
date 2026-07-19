@@ -48,7 +48,7 @@ describe("brand.service", () => {
       const res = await create({ name: "剑南春", logo: "l", description: "d", sortNo: 5 }, "t1");
       expect(res).toEqual({ id: 10 });
       const [sql, params] = mocks.queryWithTenant.mock.calls[0];
-      expect(sql).toContain("INSERT INTO brand");
+      expect(sql).toContain("INSERT INTO t_brand");
       expect(params).toEqual(["剑南春", "l", "d", 5, "t1"]);
     });
 

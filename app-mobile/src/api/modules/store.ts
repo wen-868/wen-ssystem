@@ -1,6 +1,6 @@
 /**
  * 门店端（POS 收银台）业务接口模块
- * 由 store-terminal 合并而来，统一使用 app-mobile 的 request 实例与 token 存储机制
+ * 统一使用 app-mobile 的 request 实例与 token 存储机制
  * 对应后端 /store/* 路由
  */
 import { get, post, put, del } from '../request'
@@ -717,7 +717,7 @@ const storeApi = {
     return (res?.result ?? res)
   },
 
-  /** 会员列表（兼容 store-terminal searchStoreMembers） */
+  /** 会员列表（兼容旧版接口名） */
   async searchStoreMembers(keyword: string): Promise<{ records: StoreMember[] }> {
     const res: any = await get('/store/members', { keyword })
     return (res?.result ?? res) as { records: StoreMember[] }

@@ -43,7 +43,7 @@ describe("error-log.service", () => {
         source: "backend",
       });
       const [sql, params] = mocks.query.mock.calls[0];
-      expect(sql).toContain("INSERT INTO error_logs");
+      expect(sql).toContain("INSERT INTO t_error_logs");
       expect(params).toEqual(["TypeError", "ERROR", "boom", "s", "/api/x", "GET", 500, "1", "t1", "backend"]);
       expect(mocks.loggerError).not.toHaveBeenCalled();
     });

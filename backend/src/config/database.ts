@@ -3,6 +3,7 @@ import { existsSync, readFileSync } from "node:fs";
 import { resolve } from "node:path";
 import logger from "../shared/logger";
 import { env } from "./env";
+import { addTablePrefix } from "../shared/migration";
 import { mockConn, mockQuery, mockExecute } from "../__tests__/mocks/mock-db";
 import { recordQueryExecution } from "../middleware/slow-query-monitor";
 
@@ -94,6 +95,8 @@ function isWriteSql(sql: string): boolean {
 }
 
 export async function query<T = any>(sql: string, params: unknown[] = []) {
+  // 自动补 t_ 前缀：service 层代码可使用无前缀表名，此处统一转换
+  sql = addTablePrefix(sql);
   if (env.USE_MOCK_DB) {
     // 修复坑：query() 在 mock 模式下只调用 mockQuery（仅处理 SELECT），不处理 INSERT/UPDATE/DELETE
     // 部分 service 使用 `const [result] = await query<any>("INSERT ...")` 解构并访问 result.insertId
@@ -282,6 +285,12 @@ export async function transaction<T>(runner: (conn: mysql.PoolConnection) => Pro
   const conn = await pool.getConnection();
   try {
     await conn.beginTransaction();
+    // 包装 conn.query，自动补 t_ 前缀
+    const originalQuery = conn.query.bind(conn);
+    const wrappedQuery = (sql: string, params?: unknown[]) => {
+      return originalQuery(addTablePrefix(sql), params);
+    };
+    (conn as any).query = wrappedQuery;
     const result = await runner(conn);
     await conn.commit();
     return result;
