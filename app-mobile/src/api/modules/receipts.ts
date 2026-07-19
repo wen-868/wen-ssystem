@@ -30,22 +30,22 @@ export interface ReceiptListResponse {
 
 export const receiptApi = {
   async getList(query: ReceiptQuery): Promise<ReceiptListResponse> {
-    return get('/receipts', query)
+    return get('/admin/receipts', query)
   },
 
   async getById(id: number): Promise<Receipt> {
-    return get(`/receipts/${id}`)
+    return get(`/admin/receipts/${id}`)
   },
 
   async create(data: Partial<Receipt>): Promise<Receipt> {
-    return post('/receipts', data)
+    return post('/admin/receipts', data)
   },
 
   async update(id: number, data: Partial<Receipt>): Promise<Receipt> {
-    return put(`/receipts/${id}`, data)
+    return put(`/admin/receipts/${id}`, data)
   },
 
-  async cancel(id: number, reason: string): Promise<void> {
-    return post(`/receipts/${id}/cancel`, { reason })
+  async cancel(receiptNo: string, reason: string): Promise<void> {
+    return post(`/admin/receipts/${receiptNo}/void`, { reason })
   }
 }

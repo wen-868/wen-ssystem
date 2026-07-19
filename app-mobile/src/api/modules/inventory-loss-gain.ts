@@ -244,7 +244,7 @@ const inventoryLossGainApi = {
     endDate?: string
   }): Promise<{ list: LossGainOrder[]; total: number }> {
     try {
-      const res: any = await get('/inventory-loss-gains/loss-gains', params)
+      const res: any = await get('/admin/inventory/loss-gains', params)
       const raw = res?.result ?? res
       const rows: any[] = raw?.list ?? raw?.records ?? (Array.isArray(raw) ? raw : [])
       return {
@@ -278,7 +278,7 @@ const inventoryLossGainApi = {
   /** 损益单详情 */
   async detail(id: number): Promise<LossGainOrder> {
     try {
-      const res: any = await get(`/inventory-loss-gains/loss-gains/${id}`)
+      const res: any = await get(`/admin/inventory/loss-gains/${id}`)
       const raw = res?.result ?? res
       const order = mapLossGainOrder(raw?.order ?? raw ?? {})
       order.items = (raw?.items ?? []).map(mapItem)
@@ -300,7 +300,7 @@ const inventoryLossGainApi = {
     items: Array<{ skuId: number; quantity: number; remark?: string }>
   }): Promise<any> {
     try {
-      return post('/inventory-loss-gains/report-loss-gain', { type: 'LOSS', ...data })
+      return post('/admin/inventory/report-loss-gain', { type: 'LOSS', ...data })
     } catch {
       return { id: Date.now(), orderNo: `BS${Date.now()}` }
     }
@@ -313,7 +313,7 @@ const inventoryLossGainApi = {
     items: Array<{ skuId: number; quantity: number; remark?: string }>
   }): Promise<any> {
     try {
-      return post('/inventory-loss-gains/report-loss-gain', { type: 'GAIN', ...data })
+      return post('/admin/inventory/report-loss-gain', { type: 'GAIN', ...data })
     } catch {
       return { id: Date.now(), orderNo: `BY${Date.now()}` }
     }
@@ -322,7 +322,7 @@ const inventoryLossGainApi = {
   /** 审核通过 */
   async approve(id: number, remark?: string): Promise<any> {
     try {
-      return post(`/inventory-loss-gains/loss-gains/${id}/approve`, { remark })
+      return post(`/admin/inventory/loss-gains/${id}/approve`, { remark })
     } catch {
       return { success: true }
     }
@@ -331,7 +331,7 @@ const inventoryLossGainApi = {
   /** 审核驳回 */
   async reject(id: number, remark: string): Promise<any> {
     try {
-      return post(`/inventory-loss-gains/loss-gains/${id}/reject`, { remark })
+      return post(`/admin/inventory/loss-gains/${id}/reject`, { remark })
     } catch {
       return { success: true }
     }
@@ -340,7 +340,7 @@ const inventoryLossGainApi = {
   /** 损益统计 */
   async statistics(params?: { startDate?: string; endDate?: string; type?: LossGainType }): Promise<LossGainStatistics> {
     try {
-      const res: any = await get('/inventory-loss-gains/statistics', params)
+      const res: any = await get('/admin/inventory/statistics', params)
       return res?.result ?? res
     } catch {
       return getMockStatistics()

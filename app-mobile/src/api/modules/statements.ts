@@ -31,22 +31,22 @@ export interface StatementListResponse {
 
 export const statementApi = {
   async getList(query: StatementQuery): Promise<StatementListResponse> {
-    return get('/statements', query)
+    return get('/store/customer-statements', query)
   },
 
   async getById(id: number): Promise<Statement> {
-    return get(`/statements/${id}`)
+    return get(`/store/customer-statements/${id}`)
   },
 
   async create(data: Partial<Statement>): Promise<Statement> {
-    return post('/statements', data)
+    return post('/store/customer-statements', data)
   },
 
   async update(id: number, data: Partial<Statement>): Promise<Statement> {
-    return put(`/statements/${id}`, data)
+    return put(`/store/customer-statements/${id}`, data)
   },
 
-  async confirm(id: number): Promise<void> {
-    return post(`/statements/${id}/confirm`)
+  async confirm(statementNo: string): Promise<void> {
+    return post(`/store/customer-statements/${statementNo}/confirm`)
   }
 }

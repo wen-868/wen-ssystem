@@ -89,30 +89,30 @@ export interface InStockListResponse {
 
 export const purchaseApi = {
   async getOrderList(query: PurchaseOrderQuery): Promise<PurchaseOrderListResponse> {
-    return get('/purchase/orders', query)
+    return get('/admin/purchase-orders', query)
   },
 
   async getOrderById(id: number): Promise<PurchaseOrder> {
-    return get(`/purchase/orders/${id}`)
+    return get(`/admin/purchase-orders/${id}`)
   },
 
   async createOrder(data: Partial<PurchaseOrder>): Promise<PurchaseOrder> {
-    return post('/purchase/orders', data)
+    return post('/admin/purchase-orders', data)
   },
 
   async updateOrder(id: number, data: Partial<PurchaseOrder>): Promise<PurchaseOrder> {
-    return put(`/purchase/orders/${id}`, data)
+    return put(`/admin/purchase-orders/${id}`, data)
   },
 
   async getInStockList(query: InStockQuery): Promise<InStockListResponse> {
-    return get('/purchase/in-stock', query)
+    return get('/admin/purchase-orders/in-stock', query)
   },
 
   async getInStockById(id: number): Promise<InStockRecord> {
-    return get(`/purchase/in-stock/${id}`)
+    return get(`/admin/purchase-orders/in-stock/${id}`)
   },
 
   async createInStock(data: Partial<InStockRecord>): Promise<InStockRecord> {
-    return post('/purchase/in-stock', data)
+    return post('/admin/purchase-orders/in-stock', data)
   }
 }

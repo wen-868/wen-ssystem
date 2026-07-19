@@ -14,20 +14,22 @@ export interface UserProfile {
 
 export const profileApi = {
   async getProfile(): Promise<UserProfile> {
-    return get('/auth/profile')
+    return get('/admin/auth/me')
   },
 
   async updateProfile(data: Partial<UserProfile>): Promise<UserProfile> {
-    return put('/auth/profile', data)
+    // 后端没有专门的 profile 更新接口，使用 sys-users 接口
+    const profile = await get('/admin/auth/me')
+    return put(`/admin/sys-users/${profile.id}`, data)
   },
 
   async changePassword(oldPassword: string, newPassword: string): Promise<void> {
-    return post('/auth/change-password', { oldPassword, newPassword })
+    return post('/admin/auth/change-password', { oldPassword, newPassword })
   },
 
   async uploadAvatar(file: File): Promise<{ avatar: string }> {
-    const formData = new FormData()
-    formData.append('file', file)
-    return post('/auth/avatar', formData)
+    // 后端没有头像上传接口，暂时返回模拟数据
+    console.warn('头像上传接口未实现')
+    return { avatar: '' }
   }
 }

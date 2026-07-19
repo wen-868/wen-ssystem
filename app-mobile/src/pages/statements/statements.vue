@@ -94,7 +94,7 @@ async function confirmStatement(item: any) {
     success: async (res) => {
       if (res.confirm) {
         try {
-          await statementApi.confirm(item.id)
+          await statementApi.confirm(item.statementNo)
           uni.showToast({ title: '已确认', icon: 'success' })
           loadStatements()
         } catch (err) {

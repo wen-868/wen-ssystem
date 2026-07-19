@@ -30,22 +30,22 @@ export interface SupplierListResponse {
 
 export const supplierApi = {
   async getList(query: SupplierQuery): Promise<SupplierListResponse> {
-    return get('/suppliers', query)
+    return get('/admin/suppliers', query)
   },
 
   async getById(id: number): Promise<Supplier> {
-    return get(`/suppliers/${id}`)
+    return get(`/admin/suppliers/${id}`)
   },
 
   async create(data: Partial<Supplier>): Promise<Supplier> {
-    return post('/suppliers', data)
+    return post('/admin/suppliers', data)
   },
 
   async update(id: number, data: Partial<Supplier>): Promise<Supplier> {
-    return put(`/suppliers/${id}`, data)
+    return put(`/admin/suppliers/${id}`, data)
   },
 
   async delete(id: number): Promise<void> {
-    return del(`/suppliers/${id}`)
+    return del(`/admin/suppliers/${id}`)
   }
 }

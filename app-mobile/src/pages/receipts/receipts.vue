@@ -118,7 +118,7 @@ async function voidReceipt(item: any) {
     success: async (res) => {
       if (res.confirm) {
         try {
-          await receiptApi.cancel(item.id, '用户作废')
+          await receiptApi.cancel(item.receiptNo, '用户作废')
           uni.showToast({ title: '已作废', icon: 'success' })
           loadReceipts()
         } catch (err) {
