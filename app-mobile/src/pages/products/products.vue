@@ -35,65 +35,68 @@
       </view>
     </scroll-view>
 
-    <scroll-view
+    <!-- 虚拟滚动商品列表 -->
+    <virtual-list
+      v-if="productList.length > 0"
       class="product-scroll"
-      scroll-y
+      :data="productList"
+      :item-size="itemSize"
+      :height="0"
+      :buffer="5"
+      item-key="id"
       :refresher-enabled="true"
       :refresher-triggered="refresherTriggered"
-      @refresherrefresh="onPullDownRefresh"
-      @scrolltolower="onLoadMore"
+      @load-more="onLoadMore"
+      @refresh="onPullDownRefresh"
     >
-      <view class="product-grid" v-if="productList.length > 0">
-        <view
-          class="product-card"
-          v-for="product in productList"
-          :key="product.id"
-          @tap="goDetail(product.id)"
-        >
+      <template #default="{ item }">
+        <view class="product-card" @tap="goDetail(item.id)">
           <view class="product-image-wrap">
             <image
-              v-if="product.image"
+              v-if="item.image"
               class="product-image"
-              :src="product.image"
+              :src="item.image"
               mode="aspectFill"
+              lazy-load
             />
             <view v-else class="product-image-placeholder">
               <text class="placeholder-icon">&#xe630;</text>
             </view>
-            <view class="offline-tag" v-if="isOfflineProduct(product)">
+            <view class="offline-tag" v-if="isOfflineProduct(item)">
               <text class="offline-tag-text">仅线下</text>
             </view>
           </view>
           <view class="product-info">
-            <text class="product-name">{{ product.name }}</text>
+            <text class="product-name">{{ item.name }}</text>
             <view class="product-meta">
-              <text class="product-price">¥{{ product.price.toFixed(2) }}</text>
-              <text class="product-stock" :class="{ 'stock-low': product.stock <= 10 }">
-                库存 {{ product.stock }}
+              <text class="product-price">¥{{ item.price.toFixed(2) }}</text>
+              <text class="product-stock" :class="{ 'stock-low': item.stock <= 10 }">
+                库存 {{ item.stock }}
               </text>
             </view>
           </view>
         </view>
-      </view>
+      </template>
+    </virtual-list>
 
-      <view class="empty-state" v-if="!loading && productList.length === 0">
-        <text class="empty-icon">&#xe631;</text>
-        <text class="empty-text">暂无商品数据</text>
-      </view>
+    <view class="empty-state" v-if="!loading && productList.length === 0">
+      <text class="empty-icon">&#xe631;</text>
+      <text class="empty-text">暂无商品数据</text>
+    </view>
 
-      <view class="load-more" v-if="productList.length > 0">
-        <text class="load-more-text" v-if="loadingMore">加载中...</text>
-        <text class="load-more-text" v-else-if="noMore">-- 没有更多了 --</text>
-      </view>
+    <view class="load-more" v-if="productList.length > 0">
+      <text class="load-more-text" v-if="loadingMore">加载中...</text>
+      <text class="load-more-text" v-else-if="noMore">-- 没有更多了 --</text>
+    </view>
 
-      <view class="safe-bottom"></view>
-    </scroll-view>
+    <view class="safe-bottom"></view>
   </view>
 </template>
 
 <script setup lang="ts">
 import { ref, onMounted } from 'vue'
 import { productsApi, type ProductInfo, type CategoryInfo } from '@/api/modules/products'
+import VirtualList from '@/components/virtual-list.vue'
 
 const keyword = ref('')
 const activeCategory = ref(0)
@@ -105,6 +108,9 @@ const refresherTriggered = ref(false)
 const page = ref(1)
 const pageSize = 20
 const noMore = ref(false)
+
+/** 单行高度（px），onMounted 时按 rpx 转 px 计算 */
+const itemSize = ref(200)
 
 function switchCategory(categoryId: number) {
   activeCategory.value = categoryId
@@ -221,6 +227,12 @@ function goDetail(id: number) {
 }
 
 onMounted(() => {
+  // 200rpx 转 px（依赖屏幕宽度）
+  try {
+    itemSize.value = uni.upx2px(200)
+  } catch (err) {
+    itemSize.value = 100
+  }
   loadCategories()
   loadProducts()
 })
@@ -307,30 +319,34 @@ onMounted(() => {
   padding: 16rpx 24rpx;
 }
 
-.product-grid {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 16rpx;
-}
-
+/* 单行商品卡片（横向布局） */
 .product-card {
+  display: flex;
+  align-items: center;
   background: #fff;
   border-radius: 16rpx;
-  overflow: hidden;
+  padding: 16rpx;
+  margin-bottom: 16rpx;
   box-shadow: 0 2rpx 12rpx rgba(0, 0, 0, 0.04);
+  box-sizing: border-box;
+  height: 100%;
 }
 
 .product-image-wrap {
-  width: 100%;
-  height: 280rpx;
+  width: 160rpx;
+  height: 160rpx;
   background: #f5f7fa;
+  border-radius: 12rpx;
+  overflow: hidden;
   position: relative;
+  flex-shrink: 0;
+  margin-right: 20rpx;
 }
 
 .offline-tag {
   position: absolute;
-  top: 12rpx;
-  left: 12rpx;
+  top: 8rpx;
+  left: 8rpx;
   padding: 4rpx 12rpx;
   background: rgba(255, 77, 79, 0.9);
   border-radius: 6rpx;
@@ -372,7 +388,12 @@ onMounted(() => {
 }
 
 .product-info {
-  padding: 16rpx;
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  height: 160rpx;
 }
 
 .product-name {
@@ -383,7 +404,6 @@ onMounted(() => {
   -webkit-box-orient: vertical;
   -webkit-line-clamp: 2;
   overflow: hidden;
-  margin-bottom: 12rpx;
   line-height: 1.4;
 }
 
@@ -394,7 +414,7 @@ onMounted(() => {
 }
 
 .product-price {
-  font-size: 30rpx;
+  font-size: 32rpx;
   font-weight: 700;
   color: #1677FF;
 }

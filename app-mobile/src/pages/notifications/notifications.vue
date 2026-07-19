@@ -1,4 +1,4 @@
-﻿<template>
+<template>
   <!-- 无表单交互，无需三件套（纯展示消息列表页） -->
   <view class="notifications-page">
     <!-- 顶部栏 -->
@@ -52,83 +52,89 @@
       <text class="action-btn" @tap="markAllRead">全部已读</text>
     </view>
 
-    <!-- 消息列表 -->
-    <scroll-view
+    <view class="loading-overlay" v-if="loading && list.length === 0">
+      <view class="loading-spinner"></view>
+      <text class="loading-text">加载中...</text>
+    </view>
+
+    <!-- 虚拟滚动消息列表 -->
+    <virtual-list
+      v-if="list.length > 0"
       class="notification-list"
-      scroll-y
+      :data="list"
+      :item-size="itemSize"
+      :height="0"
+      :buffer="5"
+      item-key="id"
       :refresher-enabled="true"
       :refresher-triggered="refresherTriggered"
-      @refresherrefresh="onPullDownRefresh"
-      @scrolltolower="onLoadMore"
+      @load-more="onLoadMore"
+      @refresh="onPullDownRefresh"
     >
-      <view class="loading-overlay" v-if="loading && list.length === 0">
-        <view class="loading-spinner"></view>
-        <text class="loading-text">加载中...</text>
-      </view>
+      <template #default="{ item }">
+        <view
+          class="notification-item"
+          :class="{ 'notification-item--unread': !item.read, 'notification-item--selected': selectedIds.includes(item.id) }"
+          @tap="handleItemClick(item)"
+          @longpress="onLongPress(item)"
+        >
+          <!-- 编辑模式选择框 -->
+          <view class="select-checkbox" v-if="editMode" @tap.stop="toggleSelect(item.id)">
+            <view class="checkbox" :class="{ 'checkbox--checked': selectedIds.includes(item.id) }">
+              <text class="checkbox-icon" v-if="selectedIds.includes(item.id)">✓</text>
+            </view>
+          </view>
 
-      <view
-        class="notification-item"
-        v-for="item in list"
-        :key="item.id"
-        :class="{ 'notification-item--unread': !item.read, 'notification-item--selected': selectedIds.includes(item.id) }"
-        @tap="handleItemClick(item)"
-        @longpress="onLongPress(item)"
-      >
-        <!-- 编辑模式选择框 -->
-        <view class="select-checkbox" v-if="editMode" @tap.stop="toggleSelect(item.id)">
-          <view class="checkbox" :class="{ 'checkbox--checked': selectedIds.includes(item.id) }">
-            <text class="checkbox-icon" v-if="selectedIds.includes(item.id)">✓</text>
+          <view class="notification-icon-wrap">
+            <view class="notification-icon" :class="'icon-' + item.type">
+              <text class="icon-text">{{ getTypeIcon(item.type) }}</text>
+            </view>
+            <view class="unread-dot" v-if="!item.read && !editMode"></view>
+          </view>
+
+          <view class="notification-content">
+            <view class="notification-header">
+              <text class="notification-title">{{ item.title }}</text>
+              <text class="notification-time">{{ formatTime(item.createdAt) }}</text>
+            </view>
+            <text class="notification-summary">{{ item.summary || item.content }}</text>
+            <view class="notification-footer">
+              <text class="notification-type-tag" :class="'tag-' + item.type">
+                {{ getTypeLabel(item.type) }}
+              </text>
+              <text class="notification-link" v-if="item.linkUrl && !editMode">查看详情 ›</text>
+            </view>
+          </view>
+
+          <!-- 删除按钮 -->
+          <view class="delete-btn" v-if="editMode" @tap.stop="handleDelete(item.id)">
+            <text class="delete-text">删除</text>
           </view>
         </view>
+      </template>
+    </virtual-list>
 
-        <view class="notification-icon-wrap">
-          <view class="notification-icon" :class="'icon-' + item.type">
-            <text class="icon-text">{{ getTypeIcon(item.type) }}</text>
-          </view>
-          <view class="unread-dot" v-if="!item.read && !editMode"></view>
-        </view>
+    <!-- 空状态 -->
+    <view class="empty-state" v-if="!loading && list.length === 0">
+      <text class="empty-icon">&#xe617;</text>
+      <text class="empty-text">{{ emptyText }}</text>
+    </view>
 
-        <view class="notification-content">
-          <view class="notification-header">
-            <text class="notification-title">{{ item.title }}</text>
-            <text class="notification-time">{{ formatTime(item.createdAt) }}</text>
-          </view>
-          <text class="notification-summary">{{ item.summary || item.content }}</text>
-          <view class="notification-footer">
-            <text class="notification-type-tag" :class="'tag-' + item.type">
-              {{ getTypeLabel(item.type) }}
-            </text>
-            <text class="notification-link" v-if="item.linkUrl && !editMode">查看详情 ›</text>
-          </view>
-        </view>
+    <!-- 加载更多 -->
+    <view class="load-more" v-if="list.length > 0">
+      <view class="loading-more-spinner" v-if="loadingMore"></view>
+      <text class="load-more-text" v-if="loadingMore">加载中...</text>
+      <text class="load-more-text" v-else-if="noMore">-- 没有更多了 --</text>
+    </view>
 
-        <!-- 删除按钮 -->
-        <view class="delete-btn" v-if="editMode" @tap.stop="handleDelete(item.id)">
-          <text class="delete-text">删除</text>
-        </view>
-      </view>
-
-      <!-- 空状态 -->
-      <view class="empty-state" v-if="!loading && list.length === 0">
-        <text class="empty-icon">&#xe617;</text>
-        <text class="empty-text">{{ emptyText }}</text>
-      </view>
-
-      <!-- 加载更多 -->
-      <view class="load-more" v-if="list.length > 0">
-        <view class="loading-more-spinner" v-if="loadingMore"></view>
-        <text class="load-more-text" v-if="loadingMore">加载中...</text>
-        <text class="load-more-text" v-else-if="noMore">-- 没有更多了 --</text>
-      </view>
-
-      <view class="safe-bottom"></view>
-    </scroll-view>
+    <view class="safe-bottom"></view>
   </view>
 </template>
 
 <script setup lang="ts">
 import { ref, computed, onMounted } from 'vue'
 import { notificationsApi, type NotificationItem, type NotificationType } from '@/api/modules/notifications'
+import VirtualList from '@/components/virtual-list.vue'
 
 // 分类 Tab 配置
 const tabs = [
@@ -157,6 +163,9 @@ const unreadByType = ref<Record<string, number>>({
   marketing: 0,
   all: 0
 })
+
+/** 单行高度（px），onMounted 时按 rpx 转 px 计算 */
+const itemSize = ref(260)
 
 // 计算属性
 const emptyText = computed(() => {
@@ -498,6 +507,12 @@ async function loadUnreadCount() {
 }
 
 onMounted(() => {
+  // 260rpx 转 px（依赖屏幕宽度）
+  try {
+    itemSize.value = uni.upx2px(260)
+  } catch (err) {
+    itemSize.value = 130
+  }
   loadNotifications()
   loadUnreadCount()
 })
@@ -656,7 +671,6 @@ onMounted(() => {
 .notification-list {
   flex: 1;
   padding: 16rpx 24rpx;
-  height: 0;
 }
 
 .loading-overlay {
@@ -695,6 +709,8 @@ onMounted(() => {
   box-shadow: 0 2rpx 12rpx rgba(0, 0, 0, 0.04);
   position: relative;
   transition: all 0.2s ease;
+  box-sizing: border-box;
+  height: 100%;
 }
 
 .notification-item--unread {

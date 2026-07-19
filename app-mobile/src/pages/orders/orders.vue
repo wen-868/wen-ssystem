@@ -50,59 +50,65 @@
       </view>
     </view>
 
-    <scroll-view
+    <view class="loading-overlay" v-if="loading && orderList.length === 0">
+      <view class="loading-spinner"></view>
+      <text class="loading-text">加载中...</text>
+    </view>
+
+    <!-- 虚拟滚动订单列表 -->
+    <virtual-list
+      v-if="orderList.length > 0"
       class="order-list"
-      scroll-y
+      :data="orderList"
+      :item-size="itemSize"
+      :height="0"
+      :buffer="5"
+      item-key="orderNo"
       :refresher-enabled="true"
       :refresher-triggered="refresherTriggered"
-      @refresherrefresh="onPullDownRefresh"
-      @scrolltolower="onLoadMore"
+      @load-more="onLoadMore"
+      @refresh="onPullDownRefresh"
     >
-      <view class="loading-overlay" v-if="loading">
-        <view class="loading-spinner"></view>
-        <text class="loading-text">加载中...</text>
-      </view>
+      <template #default="{ item }">
+        <view
+          class="order-card"
+          @tap="goDetail(item.orderNo)"
+          @touchstart="activeCard = item.orderNo"
+          @touchend="activeCard = null"
+          :class="{ 'card-active': activeCard === item.orderNo }"
+        >
+          <view class="order-card-header">
+            <text class="order-no">订单号：{{ item.orderNo }}</text>
+            <view class="order-status" :class="'status-' + item.status">
+              <text class="status-text">{{ item.statusLabel }}</text>
+            </view>
+          </view>
 
-      <view
-        class="order-card"
-        v-for="order in orderList"
-        :key="order.orderNo"
-        @tap="goDetail(order.orderNo)"
-        @touchstart="activeCard = order.orderNo"
-        @touchend="activeCard = null"
-        :class="{ 'card-active': activeCard === order.orderNo }"
-      >
-        <view class="order-card-header">
-          <text class="order-no">订单号：{{ order.orderNo }}</text>
-          <view class="order-status" :class="'status-' + order.status">
-            <text class="status-text">{{ order.statusLabel }}</text>
+          <view class="order-card-body">
+            <text class="order-customer">{{ item.customerName }}</text>
+            <text class="order-amount">¥{{ item.totalAmount.toFixed(2) }}</text>
+          </view>
+
+          <view class="order-card-footer">
+            <text class="order-time">{{ formatTime(item.createdAt) }}</text>
+            <text class="order-arrow">&#xe616;</text>
           </view>
         </view>
+      </template>
+    </virtual-list>
 
-        <view class="order-card-body">
-          <text class="order-customer">{{ order.customerName }}</text>
-          <text class="order-amount">¥{{ order.totalAmount.toFixed(2) }}</text>
-        </view>
+    <view class="empty-state" v-if="!loading && orderList.length === 0">
+      <text class="empty-icon">&#xe617;</text>
+      <text class="empty-text">暂无订单数据</text>
+    </view>
 
-        <view class="order-card-footer">
-          <text class="order-time">{{ formatTime(order.createdAt) }}</text>
-          <text class="order-arrow">&#xe616;</text>
-        </view>
-      </view>
+    <view class="load-more" v-if="orderList.length > 0">
+      <view class="loading-more-spinner" v-if="loadingMore"></view>
+      <text class="load-more-text" v-if="loadingMore">加载中...</text>
+      <text class="load-more-text" v-else-if="noMore">-- 没有更多了 --</text>
+    </view>
 
-      <view class="empty-state" v-if="!loading && orderList.length === 0">
-        <text class="empty-icon">&#xe617;</text>
-        <text class="empty-text">暂无订单数据</text>
-      </view>
-
-      <view class="load-more" v-if="orderList.length > 0">
-        <view class="loading-more-spinner" v-if="loadingMore"></view>
-        <text class="load-more-text" v-if="loadingMore">加载中...</text>
-        <text class="load-more-text" v-else-if="noMore">-- 没有更多了 --</text>
-      </view>
-
-      <view class="safe-bottom"></view>
-    </scroll-view>
+    <view class="safe-bottom"></view>
 
     <!-- 客户选择弹窗 -->
     <view class="picker-mask" v-if="showCustomerPicker" @tap="showCustomerPicker = false">
@@ -179,6 +185,7 @@
 <script setup lang="ts">
 import { ref, reactive, onMounted, computed } from 'vue'
 import { ordersApi, type OrderInfo } from '@/api/modules/orders'
+import VirtualList from '@/components/virtual-list.vue'
 
 const tabs = [
   { label: '全部', value: '' },
@@ -211,6 +218,9 @@ const showDatePicker = ref(false)
 const quickDate = ref('')
 const customerList = ref<{ name: string }[]>([])
 const selectedCustomer = ref('')
+
+/** 单行高度（px），onMounted 时按 rpx 转 px 计算 */
+const itemSize = ref(220)
 
 const dateRangeText = computed(() => {
   if (!searchForm.startDate && !searchForm.endDate) return ''
@@ -258,7 +268,7 @@ function selectQuickDate(type: string) {
   quickDate.value = type
   const today = new Date()
   let startDate: Date
-  
+
   switch (type) {
     case 'today':
       startDate = today
@@ -275,7 +285,7 @@ function selectQuickDate(type: string) {
     default:
       startDate = today
   }
-  
+
   searchForm.startDate = formatDate(startDate)
   searchForm.endDate = formatDate(today)
 }
@@ -403,7 +413,7 @@ async function handleExport() {
       startDate: searchForm.startDate || undefined,
       endDate: searchForm.endDate || undefined
     })
-    
+
     // H5 端下载处理
     // #ifdef H5
     const url = window.URL.createObjectURL(blob)
@@ -415,7 +425,7 @@ async function handleExport() {
     document.body.removeChild(link)
     window.URL.revokeObjectURL(url)
     // #endif
-    
+
     // 小程序端处理
     // #ifndef H5
     uni.showToast({ title: '导出成功', icon: 'success' })
@@ -438,6 +448,12 @@ function goDetail(orderNo: string) {
 }
 
 onMounted(() => {
+  // 220rpx 转 px（依赖屏幕宽度）
+  try {
+    itemSize.value = uni.upx2px(220)
+  } catch (err) {
+    itemSize.value = 110
+  }
   loadCustomers()
   loadOrders()
 })
@@ -619,6 +635,8 @@ onMounted(() => {
   margin-bottom: 16rpx;
   box-shadow: 0 2rpx 12rpx rgba(0, 0, 0, 0.04);
   transition: all 0.2s ease;
+  box-sizing: border-box;
+  height: 100%;
 }
 
 .order-card:active,
