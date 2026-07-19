@@ -19,7 +19,7 @@ export function storageGuard() {
       // 查询租户存储配额
       const config = await queryOneWithTenant<Record<string, unknown>>(
         `SELECT storage_limit AS storageLimit, storage_limit_unit AS unit
-         FROM tenant_config WHERE tenant_id = ? AND config_key = 'storage_limit'`,
+         FROM t_tenant_config WHERE tenant_id = ? AND config_key = 'storage_limit'`,
         [tenantId],
         tenantId
       );
@@ -32,7 +32,7 @@ export function storageGuard() {
       // 查询当前已使用存储空间
       const usage = await queryOneWithTenant<Record<string, unknown>>(
         `SELECT COALESCE(SUM(file_size), 0) AS usedBytes
-         FROM upload_file WHERE tenant_id = ? AND status = 1`,
+         FROM t_upload_file WHERE tenant_id = ? AND status = 1`,
         [tenantId],
         tenantId
       );

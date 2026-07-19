@@ -5,7 +5,7 @@ export async function getFinanceDashboard(tenantId: string) {
   const monthStart = new Date(now.getFullYear(), now.getMonth(), 1).toISOString().slice(0, 10);
   const monthEnd = now.toISOString().slice(0, 10);
   const monthIncome = await queryOneWithTenant<any>(
-    "SELECT COALESCE(SUM(amount), 0) AS total FROM receipt WHERE tenant_id = ? AND status = 'CONFIRMED' AND received_date >= ? AND received_date <= ?",
+    "SELECT COALESCE(SUM(amount), 0) AS total FROM t_receipt WHERE tenant_id = ? AND status = 'CONFIRMED' AND received_date >= ? AND received_date <= ?",
     [tenantId, monthStart, monthEnd], tenantId
   );
   const monthExpense = await queryOneWithTenant<any>(
@@ -13,7 +13,7 @@ export async function getFinanceDashboard(tenantId: string) {
     [tenantId, monthStart, monthEnd], tenantId
   );
   const totalAR = await queryOneWithTenant<any>(
-    "SELECT COALESCE(SUM(balance), 0) AS total FROM receivable WHERE tenant_id = ? AND status IN ('PENDING', 'PARTIAL')",
+    "SELECT COALESCE(SUM(balance), 0) AS total FROM t_receivable WHERE tenant_id = ? AND status IN ('PENDING', 'PARTIAL')",
     [tenantId], tenantId
   );
   const totalAP = await queryOneWithTenant<any>(
@@ -41,7 +41,7 @@ export async function getDailyReport(tenantId: string, startDate?: string, endDa
   const where = conditions.join(" AND ");
   return queryWithTenant<any>(
     `SELECT received_date AS date, COALESCE(SUM(amount), 0) AS income
-     FROM receipt WHERE ${where} AND status = 'CONFIRMED'
+     FROM t_receipt WHERE ${where} AND status = 'CONFIRMED'
      GROUP BY received_date ORDER BY received_date`,
     values, tenantId
   );
@@ -51,7 +51,7 @@ export async function getMonthlyReport(tenantId: string, year?: number) {
   const yr = year ?? new Date().getFullYear();
   return queryWithTenant<any>(
     `SELECT DATE_FORMAT(received_date, '%Y-%m') AS month, COALESCE(SUM(amount), 0) AS income
-     FROM receipt WHERE tenant_id = ? AND status = 'CONFIRMED' AND YEAR(received_date) = ?
+     FROM t_receipt WHERE tenant_id = ? AND status = 'CONFIRMED' AND YEAR(received_date) = ?
      GROUP BY DATE_FORMAT(received_date, '%Y-%m') ORDER BY month`,
     [tenantId, yr], tenantId
   );
@@ -63,7 +63,7 @@ export async function getCashFlow(tenantId: string, months: number = 12) {
     const d = new Date(); d.setMonth(d.getMonth() - i);
     const monthStr = d.toISOString().slice(0, 7);
     const income = await queryOneWithTenant<any>(
-      "SELECT COALESCE(SUM(amount), 0) AS total FROM receipt WHERE tenant_id = ? AND status = 'CONFIRMED' AND DATE_FORMAT(received_date, '%Y-%m') = ?",
+      "SELECT COALESCE(SUM(amount), 0) AS total FROM t_receipt WHERE tenant_id = ? AND status = 'CONFIRMED' AND DATE_FORMAT(received_date, '%Y-%m') = ?",
       [tenantId, monthStr], tenantId
     );
     const expense = await queryOneWithTenant<any>(
@@ -91,7 +91,7 @@ export async function getProfitTrend(tenantId: string, months: number = 12) {
     const d = new Date(); d.setMonth(d.getMonth() - i);
     const monthStr = d.toISOString().slice(0, 7);
     const income = await queryOneWithTenant<any>(
-      "SELECT COALESCE(SUM(amount), 0) AS total FROM receipt WHERE tenant_id = ? AND status = 'CONFIRMED' AND DATE_FORMAT(received_date, '%Y-%m') = ?",
+      "SELECT COALESCE(SUM(amount), 0) AS total FROM t_receipt WHERE tenant_id = ? AND status = 'CONFIRMED' AND DATE_FORMAT(received_date, '%Y-%m') = ?",
       [tenantId, monthStr], tenantId
     );
     const expense = await queryOneWithTenant<any>(
@@ -106,7 +106,7 @@ export async function getProfitTrend(tenantId: string, months: number = 12) {
 export async function getTopCustomersAR(tenantId: string, limit: number = 10) {
   return queryWithTenant<any>(
     `SELECT customer_id AS customerId, customer_name AS customerName, COALESCE(SUM(balance), 0) AS totalAR
-     FROM receivable WHERE tenant_id = ? AND status IN ('PENDING', 'PARTIAL')
+     FROM t_receivable WHERE tenant_id = ? AND status IN ('PENDING', 'PARTIAL')
      GROUP BY customer_id, customer_name ORDER BY totalAR DESC LIMIT ?`,
     [tenantId, limit], tenantId
   );
@@ -157,7 +157,7 @@ export async function getIncomeExpenseStats(tenantId: string, startDate?: string
   const where = conditions.join(" AND ");
 
   const income = await queryOneWithTenant<any>(
-    `SELECT COALESCE(SUM(amount), 0) AS total, COUNT(*) AS count FROM receipt WHERE ${where} AND status = 'CONFIRMED'`,
+    `SELECT COALESCE(SUM(amount), 0) AS total, COUNT(*) AS count FROM t_receipt WHERE ${where} AND status = 'CONFIRMED'`,
     values, tenantId
   );
 
@@ -188,7 +188,7 @@ export async function getIncomeByCategory(tenantId: string, startDate?: string, 
 
   return queryWithTenant<any>(
     `SELECT receipt_type AS category, COALESCE(SUM(amount), 0) AS totalAmount, COUNT(*) AS count
-     FROM receipt WHERE ${where}
+     FROM t_receipt WHERE ${where}
      GROUP BY receipt_type ORDER BY totalAmount DESC`,
     values, tenantId
   );

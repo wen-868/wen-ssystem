@@ -88,7 +88,7 @@ export async function getUnreadCount(tenantId: string, userId: number) {
 
 export async function markAsRead(tenantId: string, id: number) {
   await query(
-    `UPDATE notification SET is_read = 1, read_at = NOW() WHERE id = ? AND tenant_id = ? AND is_read = 0`,
+    `UPDATE t_notification SET is_read = 1, read_at = NOW() WHERE id = ? AND tenant_id = ? AND is_read = 0`,
     [id, tenantId]
   );
   return { marked: true };
@@ -96,7 +96,7 @@ export async function markAsRead(tenantId: string, id: number) {
 
 export async function markAllRead(tenantId: string, userId: number) {
   await query(
-    `UPDATE notification SET is_read = 1, read_at = NOW()
+    `UPDATE t_notification SET is_read = 1, read_at = NOW()
      WHERE recipient_id = ? AND recipient_type = 'ADMIN' AND is_read = 0 AND tenant_id = ?`,
     [userId, tenantId]
   );
@@ -144,7 +144,7 @@ export async function getMyUnreadCount(tenantId: string, userId: number) {
 
 export async function markMyRead(tenantId: string, id: number) {
   await query(
-    `UPDATE notification SET is_read = 1, read_at = NOW() WHERE id = ? AND tenant_id = ? AND is_read = 0`,
+    `UPDATE t_notification SET is_read = 1, read_at = NOW() WHERE id = ? AND tenant_id = ? AND is_read = 0`,
     [id, tenantId]
   );
   return { marked: true };
@@ -152,7 +152,7 @@ export async function markMyRead(tenantId: string, id: number) {
 
 export async function markMyAllRead(tenantId: string, userId: number) {
   await query(
-    `UPDATE notification SET is_read = 1, read_at = NOW()
+    `UPDATE t_notification SET is_read = 1, read_at = NOW()
      WHERE recipient_id = ? AND recipient_type = 'CONSUMER' AND is_read = 0 AND tenant_id = ?`,
     [userId, tenantId]
   );

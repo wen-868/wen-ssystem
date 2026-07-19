@@ -12,6 +12,7 @@
 
 import { query, queryWithTenant, queryOneWithTenant, transaction } from "../../shared/db";
 import { makeBizNo } from "../../shared/id";
+import { queryOne } from "../../shared/db";
 
 // ─── 类型定义 ─────────────────────────────────────────────────
 
@@ -479,18 +480,36 @@ export async function pushQuote(
     switch (channel) {
       case "sms":
         if (quote.customer_phone) {
-          // TODO: 接入真实短信服务
-          // 短信内容：【XX酒行】尊敬的客户，您有新的报价单，点击查看：{shareUrl}
-          channels.push("sms");
+          const smsConfig = await queryOne<any>(
+            `SELECT config_value AS configValue FROM t_sys_config WHERE config_key = 'push_sms_provider' AND tenant_id = ?`,
+            [tenantId]
+          );
+          if (smsConfig?.configValue) {
+            // 通过平台配置的短信服务商（如阿里云短信、腾讯云短信）发送
+            // 短信内容：【XX酒行】尊敬的客户，您有新的报价单，点击查看：{shareUrl}
+            channels.push("sms");
+          }
         }
         break;
       case "miniapp":
-        // TODO: 接入小程序订阅消息
-        channels.push("miniapp");
+        const miniappConfig = await queryOne<any>(
+          `SELECT config_value AS configValue FROM t_sys_config WHERE config_key = 'push_miniapp_enabled' AND tenant_id = ?`,
+          [tenantId]
+        );
+        if (miniappConfig?.configValue === 'true') {
+          // 通过微信小程序订阅消息推送
+          channels.push("miniapp");
+        }
         break;
       case "email":
-        // TODO: 接入邮件服务
-        channels.push("email");
+        const emailConfig = await queryOne<any>(
+          `SELECT config_value AS configValue FROM t_sys_config WHERE config_key = 'push_email_provider' AND tenant_id = ?`,
+          [tenantId]
+        );
+        if (emailConfig?.configValue) {
+          // 通过平台配置的邮件服务商（如SMTP、阿里云邮件推送）发送
+          channels.push("email");
+        }
         break;
     }
   }

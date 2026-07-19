@@ -11,7 +11,7 @@ export async function getCustomerReconciliation(tenantId: string, startDate?: st
             COALESCE(SUM(r.receivable_amount), 0) AS totalReceivable,
             COALESCE(SUM(r.received_amount), 0) AS totalReceived,
             COALESCE(SUM(r.balance), 0) AS balance
-     FROM receivable r
+     FROM t_receivable r
      LEFT JOIN t_member m ON m.id = r.customer_id
      WHERE r.tenant_id = ? AND ${conditions}
      GROUP BY r.customer_id, m.name
@@ -29,12 +29,12 @@ export async function getCustomerReconciliationDetail(customerId: number, tenant
   const customer = await queryOneWithTenant<any>("SELECT id, name FROM t_member WHERE id = ? AND tenant_id = ?", [customerId, tenantId], tenantId);
   const summary = await queryOneWithTenant<any>(
     `SELECT COALESCE(SUM(receivable_amount), 0) AS totalReceivable, COALESCE(SUM(received_amount), 0) AS totalReceived, COALESCE(SUM(balance), 0) AS balance
-     FROM receivable WHERE ${conditions}`,
+     FROM t_receivable WHERE ${conditions}`,
     values, tenantId
   );
   const details = await queryWithTenant<any>(
     `SELECT source_type AS sourceType, source_no AS sourceNo, receivable_amount AS receivableAmount, received_amount AS receivedAmount, balance, due_date AS dueDate, status, created_at AS createdAt
-     FROM receivable WHERE ${conditions} ORDER BY created_at`,
+     FROM t_receivable WHERE ${conditions} ORDER BY created_at`,
     values, tenantId
   );
   return { customerId, customerName: customer?.name ?? "", ...summary, details };
@@ -42,7 +42,7 @@ export async function getCustomerReconciliationDetail(customerId: number, tenant
 
 // 确认客户对账
 export async function confirmCustomerReconciliation(customerId: number, tenantId: string) {
-  await queryWithTenant("UPDATE receivable SET status = 'CONFIRMED' WHERE customer_id = ? AND tenant_id = ? AND status = 'PENDING'", [customerId, tenantId], tenantId);
+  await queryWithTenant("UPDATE t_receivable SET status = 'CONFIRMED' WHERE customer_id = ? AND tenant_id = ? AND status = 'PENDING'", [customerId, tenantId], tenantId);
   return { customerId, status: "CONFIRMED" };
 }
 

@@ -32,7 +32,7 @@ export async function calculatePromotion(
   if (body.flashSaleId) {
     const flashSale = await queryOneWithTenant<any>(
       `SELECT id, sku_id, flash_price, status, start_time, end_time
-       FROM flash_sale WHERE id = ? AND status = 'ACTIVE' AND start_time <= ? AND end_time >= ?`,
+       FROM t_flash_sale WHERE id = ? AND status = 'ACTIVE' AND start_time <= ? AND end_time >= ?`,
       [body.flashSaleId, now, now],
       tenantId
     );

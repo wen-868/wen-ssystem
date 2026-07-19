@@ -9,10 +9,10 @@ export async function listReceivables(params: { customerId?: number; status?: st
   const where = `WHERE ${conditions.join(" AND ")}`;
   const records = await queryWithTenant<any>(
     `SELECT id, customer_id AS customerId, customer_name AS customerName, source_type AS sourceType, source_no AS sourceNo, receivable_amount AS receivableAmount, received_amount AS receivedAmount, balance, due_date AS dueDate, status, created_at AS createdAt
-     FROM receivable ${where} ORDER BY created_at DESC LIMIT ? OFFSET ?`,
+     FROM t_receivable ${where} ORDER BY created_at DESC LIMIT ? OFFSET ?`,
     [...values, pageSize, offset], tenantId
   );
-  const total = await queryOneWithTenant<any>(`SELECT COUNT(*) AS total FROM receivable ${where}`, values, tenantId);
+  const total = await queryOneWithTenant<any>(`SELECT COUNT(*) AS total FROM t_receivable ${where}`, values, tenantId);
   return { total: total?.total ?? 0, page, pageSize, records };
 }
 
@@ -40,7 +40,7 @@ export async function getReceivablesAging(tenantId: string) {
                  WHEN DATEDIFF(NOW(), due_date) <= 90 THEN '60-90天'
                  ELSE '90天以上' END AS agingGroup,
             COALESCE(SUM(balance), 0) AS totalAmount, COUNT(*) AS cnt
-     FROM receivable WHERE tenant_id = ? AND status IN ('PENDING', 'PARTIAL') AND due_date IS NOT NULL
+     FROM t_receivable WHERE tenant_id = ? AND status IN ('PENDING', 'PARTIAL') AND due_date IS NOT NULL
      GROUP BY agingGroup ORDER BY agingGroup`,
     [tenantId], tenantId
   );
@@ -62,7 +62,7 @@ export async function getPayablesAging(tenantId: string) {
 }
 
 export async function getReceivableDetail(id: number, tenantId: string) {
-  const ar = await queryOneWithTenant<any>("SELECT * FROM receivable WHERE id = ? AND tenant_id = ?", [id, tenantId], tenantId);
+  const ar = await queryOneWithTenant<any>("SELECT * FROM t_receivable WHERE id = ? AND tenant_id = ?", [id, tenantId], tenantId);
   if (!ar) throw new Error("记录不存在");
   const writeoffs = await queryWithTenant<any>(
     "SELECT rw.writeoff_amount AS writeoffAmount, r.receipt_no AS receiptNo, rw.created_at AS createdAt FROM receipt_writeoff rw LEFT JOIN receipt r ON r.id = rw.receipt_id WHERE rw.receivable_id = ? AND rw.tenant_id = ?",
