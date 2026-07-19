@@ -20,6 +20,7 @@
 import { get } from '@/api/request'
 import { productsApi, type ProductInfo } from '@/api/modules/products'
 import { getTenant } from '@/api/storage'
+import { LocalProductDb, type ProductDeltaData } from '@/api/local-db'
 
 // ====================== 类型定义 ======================
 
@@ -417,29 +418,62 @@ async function queryTraceChain(traceCode: string): Promise<TraceChainData> {
 /**
  * 通过条码查询商品
  *
- * 查询策略：
- *  1. 【预留】优先查询本地 SQLite（R51-04 完成后接入）
+ * 查询策略（R51-04 已接入本地 SQLite）：
+ *  1. 优先查询本地 SQLite（LocalProductDb.findByBarcode）— 离线场景快速命中
  *  2. 本地未命中 → 走网络 GET /admin/products?keyword=${barcode}
+ *  3. 网络查询成功后可异步触发增量同步（由调用方决定）
  *
  * @param barcode 商品条码
  * @returns 商品信息，未找到返回 null
  */
 async function findProductByBarcode(barcode: string): Promise<ProductInfo | null> {
-    const _tenantId = getCurrentTenantId()
+    const tenantId = getCurrentTenantId()
 
-    // TODO: R51-04 离线 SQLite 完成后，优先查询本地数据库
-    // import { LocalProductDb } from '@/api/local-db'
-    // if (_tenantId) {
-    //   const localProduct = await LocalProductDb.findByBarcode(barcode, _tenantId)
-    //   if (localProduct) return localProduct
-    // }
+    // 1. 优先查询本地 SQLite（离线场景快速命中）
+    if (tenantId) {
+        try {
+            const localProduct = await LocalProductDb.findByBarcode(barcode, tenantId)
+            if (localProduct) {
+                return mapDeltaToProductInfo(localProduct)
+            }
+        } catch (err) {
+            // 本地查询失败不阻断流程，降级到网络查询
+            console.warn('[scan] 本地商品查询失败，降级到网络查询:', err)
+        }
+    }
 
-    // 当前直接走网络查询（对齐后端 product.service.ts 的 s.barcode LIKE ? 搜索）
+    // 2. 本地未命中 → 走网络查询（对齐后端 product.service.ts 的 s.barcode LIKE ? 搜索）
     const res = await productsApi.list({ keyword: barcode, page: 1, pageSize: 10 })
     if (res.list && res.list.length > 0) {
         return res.list[0]
     }
     return null
+}
+
+/**
+ * 将本地 SQLite 的 ProductDeltaData 转换为 ProductInfo（对齐网络返回结构）
+ *
+ * 用于扫码场景下统一数据格式，避免上层调用方区分本地/网络数据源。
+ *
+ * @param delta 本地 SQLite 商品数据
+ * @returns 转换后的 ProductInfo
+ */
+function mapDeltaToProductInfo(delta: ProductDeltaData): ProductInfo {
+    return {
+        id: delta.spuId,
+        skuId: String(delta.skuId),
+        name: delta.skuName || delta.spuName,
+        categoryId: delta.categoryId || undefined,
+        categoryName: delta.categoryName || undefined,
+        price: Number(delta.retailPrice ?? 0),
+        stock: Number(delta.availableQty ?? 0),
+        unit: delta.baseUnit || '瓶',
+        image: delta.mainImage || undefined,
+        specs: delta.volume || undefined,
+        safetyStock: delta.warningThreshold || undefined,
+        status: delta.status === 1 ? 'ON' : 'OFF',
+        allowOnlineSale: undefined,
+    }
 }
 
 /**
