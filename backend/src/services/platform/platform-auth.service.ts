@@ -1,6 +1,5 @@
 import { queryOne, query } from "../../shared/db";
-import bcrypt from "bcryptjs";
-import { hashPassword, validatePassword } from "../../shared/password";
+import { hashPassword, verifyPassword, validatePassword } from "../../shared/password";
 import { signPlatformToken } from "../../middleware/auth";
 import { AppError } from "../../shared/app-error";
 
@@ -24,7 +23,7 @@ export async function login(username: string, password: string) {
     [username]
   );
 
-  if (!admin || !(await bcrypt.compare(password, admin.password))) {
+  if (!admin || !(await verifyPassword(password, admin.password))) {
     throw new AppError("用户名或密码错误", 401);
   }
 

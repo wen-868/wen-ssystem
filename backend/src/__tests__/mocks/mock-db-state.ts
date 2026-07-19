@@ -48,6 +48,9 @@ export const state = {
   errorLogs: [] as Row[],
   platformCredentials: [] as Row[],
   platformOrders: [] as Row[],
+  platformAdmins: [
+    { id: 1, username: "platform_admin", password: hashPasswordSync("admin123"), real_name: "平台管理员", email: "admin@onepan.cn", phone: "13800000000", role: "SUPER_ADMIN", status: 1 }
+  ],
   // ===== 第一/二阶段新增表 =====
   suppliers: [] as Row[],
   supplierContacts: [] as Row[],

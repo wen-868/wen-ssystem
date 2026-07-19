@@ -156,6 +156,25 @@ export const queryHandlers: Array<(s: string, params: unknown[]) => Row[] | null
     return null;
   },
 
+  // platform_admin / t_platform_admin
+  (s, params) => {
+    if ((s.includes("from platform_admin where username") || s.includes("from t_platform_admin where username")) && s.includes("status")) {
+      return state.platformAdmins.filter((u: any) => u.username === params[0] && u.status === 1);
+    }
+    if (s.includes("from platform_admin where id") || s.includes("from t_platform_admin where id")) {
+      return state.platformAdmins.filter((u: any) => u.id === Number(params[0]));
+    }
+    if (s.includes("select id from platform_admin where username") || s.includes("select id from t_platform_admin where username")) {
+      return state.platformAdmins.filter((u: any) => u.username === params[0]).map((u: any) => ({ id: u.id }));
+    }
+    if (s.includes("insert into platform_admin") || s.includes("insert into t_platform_admin")) {
+      const id = state.platformAdmins.length + 1;
+      state.platformAdmins.push({ id, username: params[0] as string, password: params[1] as string, real_name: params[2] as string, email: params[3] as string, phone: params[4] as string, role: params[5] as string, status: 1 });
+      return [{ insertId: id, affectedRows: 1 }];
+    }
+    return null;
+  },
+
   // platform_config / platform_credentials
   (s, params) => {
     if ((s.includes("from platform_config") || s.includes("from t_platform_config")) && s.includes("count(*)")) {
