@@ -1,8 +1,8 @@
-﻿# 当前任务 — R47 + R48
+# 当前任务 — R47 + R48 + R51
 
 > 仓库：https://github.com/wen-868/wen-ssystem  
 > 唯一分支：main  
-> 最后更新：2026-07-17
+> 最后更新：2026-07-20
 
 ---
 
@@ -2010,84 +2010,350 @@
 
 ---
 
-## R51 — App 原生层封装方案 [待开始]
+## R51 — App 原生层封装方案 [进行中]
 
-> **日期**：2026-07-19
-> **负责人**：阿澈（前端）+ 阿坚（后端）
-> **完整方案**：`.workspace/tasks/R51-App原生层封装方案.md`
+> **日期**：2026-07-19 撰写方案 / 2026-07-20 任务分派
+> **撰写人**：凌舟
+> **负责人**：阿澈（前端主导）+ 阿坚（后端）+ 苏然（测试）+ 凌舟（审查）
+> **完整方案**：`.workspace/tasks/R51-App原生层封装方案.md`（1172行，5大模块）
+> **范围**：app-mobile（uni-app）原生插件封装、离线能力、安全加固、性能优化、HarmonyOS 适配
 
-### R51 任务拆分
+### 任务目标
 
-| 任务 | 负责人 | 优先级 | 状态 |
-|------|--------|--------|------|
-| R51-01 条码扫码原生插件 | 阿澈 | P0 | ⬜ 待开始 |
-| R51-02 蓝牙热敏打印插件 | 阿澈 | P0 | ⬜ 待开始 |
-| R51-03 后端打印记录API | 阿坚 | P0 | ⬜ 待开始 |
-| R51-04 离线SQLite+同步扩展 | 阿澈+阿坚 | P1 | ⬜ 待开始 |
-| R51-05 安全加固（Token加密+证书锁定） | 阿澈 | P1 | ⬜ 待开始 |
-| R51-06 分包优化 | 阿澈 | P1 | ⬜ 待开始 |
-| R51-07 推送通知集成 | 阿坚+阿澈 | P2 | ⬜ 待开始 |
-| R51-08 虚拟滚动改造 | 阿澈 | P2 | ⬜ 待开始 |
-| R51-09 HarmonyOS适配 | 阿澈 | P3 | ⬜ 待开始 |
-> **日期**：2026-07-17
-> **审计范围**：后端、前端三端、数据库、测试、安全、部署、文档
+为 app-mobile 实现完整原生层封装，使 App 端具备离线开单、扫码、蓝牙打印、推送通知、安全加固、分包优化、HarmonyOS 适配七大能力，对齐生产级 App 标准。
 
-### R50-08 — admin-web SaaS平台功能迁移 [P1]
+### 技术要求
+
+- **后端**：Express.js + MySQL，需新建 7 个文件（print.routes/print.service/print.controller/push.service/sync.controller扩展/delta-sync.service/print_record.sql）
+- **前端**：uni-app + Vue3 + Vant，需新建 8 个文件（native/scan.ts、native/print.ts、native/push.ts、native/sqlite.ts、api/local-db.ts、utils/crypto.ts、utils/pin-ssl.ts、utils/security.ts）
+- **数据库**：新建 1 张打印记录表（t_print_record），扩展 SQLite 本地表 5 张
+- **同步机制**：基于 since 时间戳的增量同步，对齐现有 /api/sync 端点
+- **安全标准**：AES-256-GCM 加密、SSL Pinning、防调试、safeguard 代码混淆
+
+### 进度安排
+
+| 阶段 | 时间 | 任务 | 负责人 |
+|------|------|------|--------|
+| 第1周 | 2026-07-20 ~ 07-24 | R51-01 扫码 + R51-05 安全 + R51-06 分包 | 阿澈 |
+| 第2周 | 2026-07-27 ~ 07-31 | R51-02 打印插件 + R51-03 后端打印记录 | 阿澈 + 阿坚 |
+| 第3周 | 2026-08-03 ~ 08-07 | R51-04 离线能力（后端扩展 + SQLite + 同步） | 阿坚 + 阿澈 |
+| 第4周 | 2026-08-10 ~ 08-14 | R51-07 推送 + R51-08 虚拟滚动 | 阿坚 + 阿澈 |
+| 后续 | 待定 | R51-09 HarmonyOS 适配 | 阿澈 |
+
+### 风险评估与应对
+
+| 风险 | 等级 | 应对措施 |
+|------|:----:|---------|
+| 原生插件云打包兼容性问题（ZXing/JPush） | 中 | 先 HBuilderX 云打包测试，准备 uni-app 内置扫码降级方案 |
+| 离线同步网络不稳定导致冲突 | 中 | 基于 server_updated_at 时间戳 + 自动重试 + 冲突检测 |
+| SSL 证书锁定后证书更新导致无法访问 | 高 | 备份多个 hash + 应急开关（远程配置关闭 Pinning） |
+| 推送服务依赖第三方（FCM/极光/HMS）需注册付费 | 中 | 先实现接口层，第三方密钥后续配置，预留占位 |
+| HarmonyOS HMS Core Kit 文档不完整 | 中 | 列为 P3 探索任务，先完成 P0-P2 主线 |
+| 分包后路由跳转路径变更 | 低 | 保留旧路径兼容期 + 全量回归测试 |
+
+---
+
+### R51-01 — 条码扫码原生插件封装 [P0]
+
+- **优先级**：P0
+- **负责人**：阿澈
+- **预计**：2天
+- **状态**：⬜ 待开始
+- **文件**：
+  - `app-mobile/src/native/scan.ts`（新建，扫码插件封装 + 路由分发）
+  - `app-mobile/src/manifest.json`（新增 `android.hardware.camera.autofocus` 权限）
+  - `nativeplugins/ZXing-Scanner/`（新建原生插件目录，含 android/java + package.json + index.d.ts）
+- **问题**：app-mobile 当前无原生扫码能力，门店收银、盘点、追溯场景需依赖系统扫码功能
+- **修复**：
+  1. 封装 `uni.requireNativePlugin('ZXing-Scanner')` 为 Promise 接口
+  2. 实现 `ScanResult` 类型识别（barcode/qrcode/trace_code）
+  3. 实现 `handleScanResult()` 路由分发：追溯码 → /admin/trace/query/:code，商品条码 → 优先本地 SQLite，未命中走网络 /admin/products?keyword=
+  4. 支持连续扫码（盘点场景），间隔可配置
+  5. 复用现有 product.service.ts 的 `s.barcode LIKE ?` 搜索能力
+- **验收标准**：
+  1. vue-tsc 0 错误
+  2. 扫码插件可正常调用，返回 ScanResult 结构
+  3. 商品条码、追溯码、未知码三种场景路由分发正确
+  4. manifest.json 权限配置完整
+- **依赖**：R51-04 离线 SQLite（用于本地查商品，可降级走网络）
+
+---
+
+### R51-02 — 蓝牙热敏打印插件封装 [P0]
+
+- **优先级**：P0
+- **负责人**：阿澈
+- **预计**：3天
+- **状态**：⬜ 待开始
+- **前置**：R51-03 后端打印记录 API
+- **文件**：
+  - `app-mobile/src/native/print.ts`（新建，打印插件封装 + 模板引擎）
+  - `app-mobile/src/manifest.json`（新增 BLUETOOTH/BLUETOOTH_ADMIN/BLUETOOTH_SCAN/BLUETOOTH_CONNECT/ACCESS_FINE_LOCATION 权限）
+  - `nativeplugins/PrintManager/`（新建原生插件目录）
+- **问题**：app-mobile 无蓝牙打印能力，门店收银后无法打印小票
+- **修复**：
+  1. 实现 `PrintManager` 接口：search/connect/disconnect/isConnected/printSaleBill/printSaleBillDot/printRaw
+  2. 实现 `PrintLine` 类型：text/divider/table/barcode/qrcode/feed
+  3. 实现 58mm 热敏打印模板（销售单），对齐方案 2.2.3 节模板格式
+  4. 实现针式三联打印（printSaleBillDot）
+  5. 打印成功后调用后端 /api/admin/print/records 保存打印记录
+  6. Android 12+ 适配 BLUETOOTH_SCAN + BLUETOOTH_CONNECT 权限
+- **验收标准**：
+  1. vue-tsc 0 错误
+  2. 蓝牙打印机搜索、连接、断开正常
+  3. 销售单打印格式正确（含商品明细、合计、操作员）
+  4. 打印记录保存到后端
+  5. manifest.json 权限完整
+
+---
+
+### R51-03 — 后端打印记录 API [P0]
+
+- **优先级**：P0
+- **负责人**：阿坚
+- **预计**：1天
+- **状态**：⬜ 待开始
+- **文件**：
+  - `backend/src/routes/print.routes.ts`（新建）
+  - `backend/src/services/admin/print.service.ts`（新建）
+  - `backend/src/controllers/admin/print.controller.ts`（新建）
+  - `docs/migrations/20260720_print_record.sql`（新建迁移脚本）
+- **问题**：后端无任何打印记录能力，App 端打印小票无法留痕审计
+- **修复**：
+  1. 新建 `t_print_record` 表（含 tenant_id/store_id/bill_type/bill_no/printer_mac/print_content/copies/operator_id/status/error_msg 字段）
+  2. 路由 `POST /api/admin/print/records` 保存打印记录（requireAuthWithTenant）
+  3. 路由 `GET /api/admin/print/records` 查询打印记录（支持 bill_type/bill_no/store_id 筛选）
+  4. 路由 `POST /api/admin/print/records/:id/reprint` 重打（生成新记录）
+  5. 标准路由配置：prefix=/api/admin/print，auth=requireAuthWithTenant
+- **验收标准**：
+  1. tsc --noEmit 0 错误
+  2. vitest 测试通过（含 CRUD + 租户隔离）
+  3. 路由注册成功，无 prefix 冲突
+  4. 表结构 SQL 可执行
+
+---
+
+### R51-04 — 离线能力（SQLite + 增量同步） [P1]
 
 - **优先级**：P1
-- **负责人**：墨
-- **预计**：1天
-- **实际**：0.5天
-- **状态**：✅ 已完成
-- **前置**：R50-02（可并行执行，saas-admin 已有对应页面）
+- **负责人**：阿澈（前端）+ 阿坚（后端扩展）
+- **预计**：5天
+- **状态**：⬜ 待开始
 - **文件**：
-  - `admin-web/src/router/index.ts`（删除10条 saas/ 路由，清理 store-terminal 注释）
-  - `admin-web/src/views/PlatformDashboard.vue`（已删除）
-  - `admin-web/src/views/SaasPlanManage.vue`（已删除）
-  - `admin-web/src/views/Tenants.vue`（已删除）
-  - `admin-web/src/views/Subscriptions.vue`（已删除）
-  - `admin-web/src/views/TenantReview.vue`（已删除）
-  - `admin-web/src/views/PlatformReview.vue`（已删除）
-  - `admin-web/src/views/TenantUsage.vue`（已删除）
-  - `admin-web/src/views/PlatformAnnouncements.vue`（已删除）
-  - `admin-web/src/views/PlatformAuditLogs.vue`（已删除）
-  - `admin-web/src/views/PlatformConfig.vue`（已删除）
-  - `admin-web/src/views/PlatformReconciliation.vue`（已删除，孤立文件）
-  - `admin-web/src/views/TenantDetail.vue`（已删除，孤立文件）
-- **问题**：admin-web 路由中有10条 SaaS 平台路由（saas/dashboard、saas/plans、saas/tenants等），这些页面应属于 saas-admin，商家后台不应看到
+  - `app-mobile/src/native/sqlite.ts`（新建，SQLite 操作层）
+  - `app-mobile/src/api/local-db.ts`（新建，本地数据库业务层：LocalProductDb/LocalMemberDb/LocalSaleDraftDb/LocalInventoryDb）
+  - `backend/src/controllers/admin/sync.controller.ts`（扩展，新增 delta 端点）
+  - `backend/src/services/sync/delta-sync.service.ts`（新建，增量同步服务）
+- **问题**：app-mobile 无离线能力，网络中断时无法开单，门店场景体验差
 - **修复**：
-  1. 删除 admin-web 中10条 SaaS 平台路由和对应 12 个页面组件（含2个孤立文件）
-  2. 确认 saas-admin 中有对应功能（已全部存在：Dashboard/Packages/Tenants/Subscriptions/ApplicationList/PlatformReviews/TenantUsage/Announcements/AuditLogs/SysConfigView）
-  3. 清理 router 中的 store-terminal 注释，简化为"门店收银"
-- **验收标准**：admin-web 全局搜索 `saas/` 无路由匹配
-- **验证结果**：
-  - vue-tsc --noEmit：✅ 0 错误
-  - ESLint：✅ 0 error（1 warning 为历史遗留，与本次无关）
-  - saas/ 路由搜索：✅ 0 结果
-  - 无其他页面引用被删除组件
-- **记忆更新**：完成后更新 `墨-记忆.md`
+  1. **前端 SQLite 建表**（5张表）：
+     - local_product_sku（商品SKU + 价格 + 库存冗余）
+     - local_member（客户）
+     - local_sale_draft（销售单草稿，状态 DRAFT/PENDING_SYNC/SYNCED/SYNC_FAILED）
+     - local_inventory_snapshot（库存快照）
+     - sync_watermark（同步水位，4个 since 字段）
+  2. **前端同步流程**：
+     - App 启动 → 增量同步（读取 watermark → 调 delta 端点 → 更新本地 → 更新 watermark）
+     - 无网络 → 写入 local_sale_draft（status=DRAFT）
+     - 恢复网络 → 自动提交离线销售单 POST /api/sync/offline-orders
+     - 后台同步：每5分钟 + 前台恢复时静默增量同步
+  3. **后端新建 4 个同步端点**：
+     - `GET /api/sync/products/delta?since=` 增量商品变更（UPSERT/DELETE/STATUS_CHANGE）
+     - `GET /api/sync/inventory/delta?since=` 增量库存变更
+     - `GET /api/sync/members/delta?since=` 增量客户变更
+     - `POST /api/sync/offline-orders` 批量提交离线销售单（返回逐条结果）
+  4. **接口定义**：对齐方案 1.2 节 SyncDeltaResponse / ProductDeltaData / OfflineOrderBatch / OfflineOrderResult
+  5. **本地数据库操作层**：LocalProductDb.findByBarcode / search / bulkUpsert / applyDelta / getStock
+- **验收标准**：
+  1. vue-tsc 0 错误，tsc --noEmit 0 错误
+  2. SQLite 5张表可正常建表、查询、更新
+  3. 增量同步接口返回正确数据结构（含 hasMore 分页）
+  4. 离线开单 → 网络恢复 → 自动同步 → 服务端落库 全流程跑通
+  5. 同步水位正确更新
+  6. vitest 测试覆盖 delta-sync.service.ts
 
-### R50-12 — admin-web api.ts 拆分 [P2]
+---
+
+### R51-05 — 安全加固（Token加密 + 证书锁定 + 防调试） [P1]
+
+- **优先级**：P1
+- **负责人**：阿澈
+- **预计**：2天
+- **状态**：⬜ 待开始
+- **文件**：
+  - `app-mobile/src/utils/crypto.ts`（新建，AES-256-GCM 加密工具 + setSecureStorage/getSecureStorage）
+  - `app-mobile/src/utils/pin-ssl.ts`（新建，SSL 证书锁定）
+  - `app-mobile/src/utils/security.ts`（新建，防调试 + Root 检测）
+  - `app-mobile/src/api/storage.ts`（改造，替换 uni.setStorageSync 为 setSecureStorage）
+  - `app-mobile/src/manifest.json`（开启 safeguard 代码混淆）
+- **问题**：app-mobile 当前明文存储 JWT Token，无证书锁定，无防调试保护，安全性不达生产标准
+- **修复**：
+  1. **AES-256-GCM 加密**：
+     - `Crypto.deriveKey()` 基于设备指纹 + 固定盐值派生密钥
+     - `Crypto.encrypt()` / `Crypto.decrypt()` 加解密
+     - `setSecureStorage(key, value)` 加密后存储为 `enc_${key}`
+     - `getSecureStorage(key)` 读取并解密
+  2. **4个敏感 Key 加密**：merchant_token/merchant_user/merchant_tenant/merchant_tenant_id
+  3. **SSL 证书锁定**：内置生产证书指纹 SHA256 hash，请求时校验
+  4. **防调试 + Root 检测**：App 启动时 securityCheck()，检测 Root/越狱/调试器
+  5. **代码混淆**：manifest.json 的 android.distribute.safeguard = true
+  6. **条件编译**：所有原生能力用 `#ifdef APP-PLUS` 包裹，H5 端降级
+- **验收标准**：
+  1. vue-tsc 0 错误
+  2. storage.ts 4个 key 全部使用加密存储
+  3. SSL Pinning 在 APP-PLUS 环境生效
+  4. securityCheck 在模拟器/Root 设备上能识别
+  5. manifest.json safeguard 已开启
+
+---
+
+### R51-06 — 分包优化（pages.json 分包改造） [P1]
+
+- **优先级**：P1
+- **负责人**：阿澈
+- **预计**：1天
+- **状态**：⬜ 待开始
+- **文件**：
+  - `app-mobile/src/pages.json`（重构，主包14页 + 5个子包共79页）
+  - `app-mobile/src/pages-sub/`（新建目录：order/product/marketing/finance/admin）
+  - 受影响的页面 .vue 文件（路由跳转路径可能需调整）
+- **问题**：app-mobile 当前 62 条路由全部在主包，主包体积过大，首屏加载慢，不符合微信小程序主包 ≤2MB 限制
+- **修复**：
+  1. **主包保留 14 页**：login/register/home/orders/order-detail/create-sale/products/product-detail/profile/edit/change-password/notifications/notification-detail/todos
+  2. **5个子包**：
+     - `pages-sub/order`（4页：order-center/exception/aftersale/sale-bills）
+     - `pages-sub/product`（16页：inventory/customers/batches/categories/suppliers/batch-price/price/stock-check/stock-warning/collection-link）
+     - `pages-sub/marketing`（20页：marketing系列 + member/points/stored-cards）
+     - `pages-sub/finance`（25页：finance/reports/receipts/receivable/reconciliation/statements/loss-gain/transfer/purchase/instant-retail）
+     - `pages-sub/admin`（14页：admin/employees/roles/stores/system/report-permission系列）
+  3. **预估包体积**：主包 ~800KB / 总包 ~3.2MB
+  4. 全量回归所有路由跳转
+- **验收标准**：
+  1. vue-tsc 0 错误
+  2. pages.json 校验通过（主包14页 + 5个子包共79页）
+  3. 所有路由跳转正常（无 404）
+  4. 主包体积 ≤ 800KB
+
+---
+
+### R51-07 — 推送通知集成 [P2]
 
 - **优先级**：P2
-- **负责人**：墨
+- **负责人**：阿坚（后端）+ 阿澈（前端）
+- **预计**：3天
+- **状态**：⬜ 待开始
+- **文件**：
+  - `backend/src/services/admin/push.service.ts`（新建，统一推送接口 + 多厂商适配）
+  - `backend/src/services/admin/notification-sender.ts`（扩展，调用推送服务）
+  - `app-mobile/src/native/push.ts`（新建，推送注册 + 点击处理）
+  - `app-mobile/src/manifest.json`（扩展 Push 模块 + jpush 配置）
+- **问题**：App 端当前依赖轮询 `/admin/notifications/unread-count` 获取未读数，无法实时推送，体验差
+- **修复**：
+  1. **后端推送服务**：
+     - 定义 `PushProvider` 接口（send/sendBatch）
+     - 实现多厂商适配：FCM（Android）/ 极光（全平台）/ HMS Push（HarmonyOS）
+     - `notification-sender.ts` 写入 t_notification 表 + 调用推送服务
+  2. **前端推送接收**：
+     - `registerPush()` 初始化极光推送，设置 alias=`merchant_${userId}_${tenantId}`
+     - `onPushClick(payload)` 标记已读 + 路由跳转（order/inventory/marketing/system 四类映射）
+  3. **manifest.json 配置**：Push 模块 + sdkConfigs.push.jpush（appkey/secret 占位）
+  4. 对齐现有 NotificationType（system/order/inventory/marketing）
+- **验收标准**：
+  1. tsc --noEmit 0 错误，vue-tsc 0 错误
+  2. 推送服务接口可调用（第三方密钥可后续配置）
+  3. 前端推送注册 + 点击跳转逻辑完整
+  4. 推送记录可查询
+
+---
+
+### R51-08 — 虚拟滚动改造 [P2]
+
+- **优先级**：P2
+- **负责人**：阿澈
 - **预计**：1天
-- **实际**：0.5天
-- **状态**：✅ 已完成
-- **前置**：R50-08
-- **详细说明**：
-  - admin-web 的 `api.ts` 超过132KB，689个API方法集中在单文件
-  - 按业务模块拆分为 `src/api/` 子目录结构（参考 saas-admin 的模式）
-  - 主 api.ts 只做统一导出
-  - 保持向后兼容（所有现有 import 路径不中断）
-- **拆分结果**：
-  - 主 api.ts：39 行（统一 re-export）
-  - 子模块文件：19 个（request/common/product/inventory/sale/purchase/customer/finance/marketing/instant-retail/pos/report/system/approval/export/tenant/trace/aftersale/alert/misc）
-  - request.ts：axios 实例 + 拦截器 + getErrorMessage
-  - common.ts：头部零散函数（adminLogin/fetchProducts/fetchStores 等36个）
-- **验收标准**：vue-tsc 0 错误，npm run build 成功，所有现有 import 路径不中断
-- **验证结果**：
-  - vue-tsc --noEmit：✅ 0 错误
-  - npm run build：✅ 成功（25.20s）
-  - 所有现有 import 路径保持兼容
-- **记忆更新**：完成后更新 `墨-记忆.md`
+- **状态**：⬜ 待开始
+- **文件**：
+  - `app-mobile/src/components/virtual-list.vue`（新建，虚拟滚动组件）
+  - `app-mobile/src/pages/products/products.vue`（改造，使用虚拟列表）
+  - `app-mobile/src/pages/orders/orders.vue`（改造）
+  - `app-mobile/src/pages/notifications/notifications.vue`（改造）
+- **问题**：高频长列表页面（商品500+、销售单1000+、订单500+）渲染卡顿，滚动不流畅
+- **修复**：
+  1. 实现 `virtual-list` 组件：props（data/itemSize/buffer）、事件（load-more）、插槽（default）
+  2. 仅渲染可视区域 + buffer 行，超出部分用占位
+  3. 应用到 4 个高频页面：products/orders/notifications/sale-bills
+  4. 配合图片懒加载（lazy-load）+ 缩略图
+- **验收标准**：
+  1. vue-tsc 0 错误
+  2. 500 条数据滚动流畅（FPS ≥ 50）
+  3. 分页加载正常
+  4. 4 个页面全部改造完成
+
+---
+
+### R51-09 — HarmonyOS 适配 [P3]
+
+- **优先级**：P3
+- **负责人**：阿澈
+- **预计**：5天
+- **状态**：⬜ 待开始
+- **前置**：R51-01 ~ R51-04 完成后执行
+- **文件**：
+  - `app-mobile/src/manifest.json`（新增 harmony 配置块）
+  - `app-mobile/src/native/scan.ts`（扩展条件编译）
+  - `app-mobile/src/native/print.ts`（扩展条件编译）
+  - `app-mobile/src/native/push.ts`（扩展条件编译）
+  - `app-mobile/src/native/sqlite.ts`（扩展条件编译，使用 DataRelationalStore）
+- **问题**：app-mobile 当前仅适配 Android，未配置 HarmonyOS，无法在华为鸿蒙系统运行
+- **修复**：
+  1. **manifest.json 新增 harmony 配置**：appid/bundleName/permissions（INTERNET/CAMERA/GET_NETWORK_INFO/ACCESS_BLUETOOTH）
+  2. **原生能力适配**：
+     - 扫码：ZXing → @hms/core/Scan Kit
+     - 蓝牙：BLE API → @hms/core/Bluetooth Kit
+     - 推送：FCM/极光 → 华为 Push Kit
+     - SQLite → @hms/core/DataRelationalStore
+  3. **条件编译**：
+     - `#ifdef APP-PLUS && !HARMONYOS` 使用 Android 原生插件
+     - `#ifdef HARMONYOS` 使用 HMS Core Kit
+  4. **5个原生模块文件全部添加 HarmonyOS 分支**
+- **验收标准**：
+  1. vue-tsc 0 错误
+  2. manifest.json harmony 配置完整
+  3. 5 个原生模块条件编译分支完整
+  4. HBuilderX 可打包 HarmonyOS 包（实际测试需鸿蒙设备）
+
+---
+
+### R51 验收标准
+
+| 验收项 | 标准 | 负责人 |
+|--------|------|--------|
+| vue-tsc | 0 错误 | 阿澈 |
+| tsc --noEmit | 0 错误 | 阿坚 |
+| vitest | 全部通过 | 阿坚 |
+| npm run build | 成功 | 阿澈 |
+| 主包体积 | ≤ 800KB | 阿澈 |
+| 总包体积 | ≤ 3.5MB | 阿澈 |
+| 离线开单流程 | 全流程跑通 | 阿澈 |
+| 打印小票 | 格式正确 + 记录入库 | 阿澈 |
+| 扫码路由分发 | 三种场景正确 | 阿澈 |
+| 安全加固 | 4个 key 加密 + SSL Pinning 生效 | 阿澈 |
+| 推送通知 | 注册 + 点击跳转 | 阿澈 |
+| 回归测试 | 全端功能无影响 | 苏然 |
+
+### R51 任务总览
+
+| 任务 | 负责人 | 优先级 | 工作量 | 状态 |
+|------|--------|:------:|:------:|:----:|
+| R51-01 条码扫码原生插件 | 阿澈 | P0 | 2天 | ⬜ 待开始 |
+| R51-02 蓝牙热敏打印插件 | 阿澈 | P0 | 3天 | ⬜ 待开始 |
+| R51-03 后端打印记录API | 阿坚 | P0 | 1天 | ⬜ 待开始 |
+| R51-04 离线SQLite+同步扩展 | 阿澈+阿坚 | P1 | 5天 | ⬜ 待开始 |
+| R51-05 安全加固（Token加密+证书锁定） | 阿澈 | P1 | 2天 | ⬜ 待开始 |
+| R51-06 分包优化 | 阿澈 | P1 | 1天 | ⬜ 待开始 |
+| R51-07 推送通知集成 | 阿坚+阿澈 | P2 | 3天 | ⬜ 待开始 |
+| R51-08 虚拟滚动改造 | 阿澈 | P2 | 1天 | ⬜ 待开始 |
+| R51-09 HarmonyOS适配 | 阿澈 | P3 | 5天 | ⬜ 待开始 |
+| **合计** | — | — | **23天** | — |
+
+> 详细方案：`.workspace/tasks/R51-App原生层封装方案.md`
