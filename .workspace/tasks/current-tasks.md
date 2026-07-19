@@ -2249,6 +2249,16 @@
   - pages-sub 目录文件数：80个 .vue 文件（Get-ChildItem -Recurse 计数）
   - git status：4个 M + 28个 RM + 52个 R = 84个本任务文件，13个未追踪文件属后端测试不属本任务
   - vue-tsc 历史 24 错误位置确认（HEAD 版本对照验证）：home.vue(10,23)、profile.vue(13,14,83)、profile/edit.vue(191)、stores/user.ts(8,31,46)、api/index.ts(11)、order-center.vue(54,60,62,66)、suppliers.vue(30,43,47)、collection-link.vue(121)、in-stock.vue(148,150)、receipts.vue(139)、inventory-reports.vue(159)、sales-reports.vue(204)
+  - 远程 main 分支推送完成（3个 commit）：
+    - commit 1: `3875ea258116b38fe337548db89a5deeed0a8c59`（feat: R51-06 app-mobile分包优化，84个新增/修改文件，通过 GitHub Git Database API 推送）
+    - commit 2: `538695f10ed1c3cc905491ae7881bb4004ef8c86`（chore: R51-06 清理 pages 目录下79个旧文件，通过 Git Trees API + sha=null 批量删除）
+    - commit 3: `2b73734ca7f5637f79427341fa464e474b9684ec`（chore: R51-06 清理 pages/sales/sale-bills.vue + 修正 commit message 编码）
+  - 远程最终状态验证（Git Trees API）：
+    - app-mobile/src/pages/ 目录：14个 .vue 文件（主包14页）
+    - app-mobile/src/pages-sub/ 目录：80个 .vue 文件（5子包80页）
+    - 总计94页 = 14主包 + 80子包，与 pages.json 配置一致
+  - 本地同步：`git reset --hard origin/main` 后本地 HEAD = 2b73734，与远程 main 一致
+  - 踩坑日志更新：[66] GitHub Contents API DELETE 返回 404 但 Git Trees API 能查到文件、[67] PowerShell ConvertTo-Json 中文 commit message 变乱码
 
 ---
 
