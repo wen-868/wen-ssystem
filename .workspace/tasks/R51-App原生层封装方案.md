@@ -3,7 +3,7 @@
 > **日期**：2026-07-19
 > **撰写人**：凌舟
 > **范围**：app-mobile（uni-app）原生插件封装、离线能力、安全加固、性能优化、HarmonyOS 适配
-> **对齐代码版本**：main 分支，pages.json 72 条路由，38 个 API 模块
+> **对齐代码版本**：main 分支，pages.json 62 条路由，37 个 API 模块
 
 ---
 
@@ -826,14 +826,13 @@ async function securityCheck(): Promise<boolean> {
 
 ### 4.1 分包策略
 
-基于实际 72 条页面路由、42 个目录进行分包。
+基于实际 62 条页面路由、32 个目录进行分包。
 
 #### 当前页面统计
 
 | 目录 | 页面数 | 说明 |
 |------|:------:|------|
 | 主包（tabBar + login/register） | 7 | home/orders/products/profile/create-sale/login/register |
-| pos（门店收银） | 10 | cashier/sale-bills/order-fulfill/shift/daily-settle/member/sale-return/coupon-verify/hold-order/store-control |
 | marketing | 12 | marketing/coupons/create-coupon/activities/参与记录/社群/拼团/砍价/秒杀 |
 | reports | 6 | reports/sales/inventory/purchase/customer/finance |
 | report-permission | 7 | index/report-matrix/store-data-permission/permission-assign/audit-logs/audit-detail/my-permission |
@@ -890,21 +889,6 @@ async function securityCheck(): Promise<boolean> {
         { "path": "stock-check/check-detail" },
         { "path": "stock-warning/stock-warning" },
         { "path": "collection-link/collection-link" }
-      ]
-    },
-    {
-      "root": "pages-sub/pos",
-      "pages": [
-        { "path": "pos/cashier" },
-        { "path": "pos/sale-bills" },
-        { "path": "pos/order-fulfill" },
-        { "path": "pos/shift" },
-        { "path": "pos/daily-settle" },
-        { "path": "pos/member" },
-        { "path": "pos/sale-return" },
-        { "path": "pos/coupon-verify" },
-        { "path": "pos/hold-order" },
-        { "path": "pos/store-control" }
       ]
     },
     {
@@ -992,11 +976,10 @@ async function securityCheck(): Promise<boolean> {
 | 主包 | 14 | ~800KB |
 | pages-sub/order | 4 | ~200KB |
 | pages-sub/product | 16 | ~500KB |
-| pages-sub/pos | 10 | ~400KB |
 | pages-sub/marketing | 20 | ~600KB |
 | pages-sub/finance | 25 | ~700KB |
 | pages-sub/admin | 14 | ~400KB |
-| **总计** | **103** | **~3.6MB** |
+| **总计** | **93** | **~3.2MB** |
 
 > 主包控制在 2MB 以内（含公共依赖），满足微信小程序主包限制。App 端无主包大小硬限制，但分包可加速首屏加载。
 
