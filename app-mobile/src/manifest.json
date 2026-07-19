@@ -60,7 +60,8 @@
           "provider": "nativeplugins/PrintManager",
           "description": "蓝牙热敏打印原生插件，支持 58mm/80mm 热敏打印机与针式三联打印，含销售单打印模板"
         }
-      }
+      },
+      "safeguard": true
     },
     "networkTimeout": {
       "request": 30000,
