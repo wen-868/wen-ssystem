@@ -1,5 +1,4 @@
 import axios from "axios";
-import { ElMessage } from "element-plus";
 import { useAuthStore } from "../stores/auth";
 
 
@@ -54,4 +53,3 @@ export function getErrorMessage(error: unknown, fallback: string): string {
   }
   return fallback;
 }
-
