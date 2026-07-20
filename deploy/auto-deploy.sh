@@ -30,6 +30,21 @@ rm -rf /var/www/website
 mkdir -p /var/www/website
 cp -r "${PROJECT_DIR}/website/dist/"* /var/www/website/
 
+echo "==> 确保生产环境 .env 配置正确"
+ENV_FILE="${PROJECT_DIR}/backend/.env"
+if [ ! -f "${ENV_FILE}" ]; then
+  cp "${PROJECT_DIR}/backend/.env.example" "${ENV_FILE}"
+fi
+# 强制覆盖为生产环境配置（不管git拉下来的是什么）
+sed -i 's/^USE_MOCK_DB=.*/USE_MOCK_DB=false/' "${ENV_FILE}"
+sed -i 's/^NODE_ENV=.*/NODE_ENV=production/' "${ENV_FILE}"
+# 确保 JWT_SECRET 不为占位符
+if grep -q 'CHANGE_ME_TO_RANDOM_JWT_SECRET' "${ENV_FILE}"; then
+  sed -i "s|JWT_SECRET=.*|JWT_SECRET=zhixiang_liquor_jwt_secret_2026_secure|" "${ENV_FILE}"
+fi
+echo "  USE_MOCK_DB=$(grep '^USE_MOCK_DB=' "${ENV_FILE}" | cut -d= -f2)"
+echo "  NODE_ENV=$(grep '^NODE_ENV=' "${ENV_FILE}" | cut -d= -f2)"
+
 echo "==> 重载 Nginx"
 nginx -t && nginx -s reload
 
@@ -61,7 +76,7 @@ for i in {1..30}; do
 done
 
 echo "==> 运行冒烟测试"
-set -a && source .env && set +a
+set -a && source "${PROJECT_DIR}/backend/.env" && set +a
 npm run test:mysql 2>/dev/null || echo "冒烟测试跳过"
 
 echo "==> 部署完成 $(date '+%Y-%m-%d %H:%M:%S')"
