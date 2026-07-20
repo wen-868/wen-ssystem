@@ -1,8 +1,180 @@
-﻿# 当前任务 — R47 + R48
+# 当前任务 — R52 + R47 + R48
 
 > 仓库：https://github.com/wen-868/wen-ssystem  
 > 唯一分支：main  
-> 最后更新：2026-07-17
+> 最后更新：2026-07-20
+
+---
+
+## R52 — P0阻塞修复：CSRF前端缺失 + 角色体系断裂 + 测试用例修复 [进行中]
+
+### 背景
+
+依据 `D:\Huawei Share\Huawei Share\prod_19f7c3a9e36_69c9d45d1cc5_完整审查报告_v2_20260720.md` 审查报告，凌舟已核实报告内容属实，存在两个 P0 阻塞项和 85 个历史遗留失败测试用例，导致登录注册后无法正常使用系统。本轮集中修复，所有任务必须 100% 通过苏然全量测试验收。
+
+### R52-01 — P0-1 后端：登录接口下发 csrfToken [P0]
+
+- **优先级**：P0
+- **负责人**：阿坚
+- **预计**：0.25天
+- **状态**：待开始
+- **文件**：
+  - `backend/src/services/admin/auth.service.ts`（login 函数返回值新增 csrfToken 字段）
+  - `backend/src/controllers/admin/auth.controller.ts`（无需改动，直接透传）
+  - `backend/src/middleware/csrf.ts`（已存在 generateCsrfToken，复用）
+- **问题**：CSRF中间件已全局注册，POST/PUT/DELETE 请求必须携带 `x-csrf-token` header，但登录接口不返回 csrfToken，前端无法生成
+- **修复**：
+  1. 在 `auth.service.ts` 的 login 函数返回值中新增 `csrfToken: generateCsrfToken(account.id)` 字段
+  2. 在 `auth.service.ts` 的 getMe 函数返回值中同步返回 csrfToken（供前端刷新页面后恢复）
+  3. import { generateCsrfToken } from "../../middleware/csrf"
+- **验收标准**：tsc 0 错误，登录接口返回 `{ token, user, csrfToken }`
+
+### R52-02 — P0-2 后端：85个历史遗留失败测试用例修复 [P0]
+
+- **优先级**：P0
+- **负责人**：阿坚
+- **预计**：1天
+- **状态**：待开始
+- **文件**：`backend/src/__tests__/` 下测试文件
+- **问题**：审查报告显示后端测试通过率 98.2%，85 个用例失败，分4类：
+  - A类：表名前缀 `t_` 移除后测试未更新（~35 用例，涉及 commission/department/error-log/export/feedback）
+  - B类：路由认证中间件配置测试失败（~26 用例，22 文件）
+  - C类：控制器 Mock 不匹配（~17 用例，share/operation-log/system）
+  - D类：路由导出配置（~4 用例，subscription/tenant）
+- **修复**：
+  1. A类：批量去掉测试断言中的 `t_` 前缀（如 `t_sales_commission_rule` → `sales_commission_rule`）
+  2. B类：同步路由测试中的中间件断言（从 `requireAuth` 改为 `requireAuthWithTenant` 或实际配置）
+  3. C类：更新控制器 Mock 行为匹配当前实现
+  4. D类：修正 routeConfig 导出和平台级认证断言
+- **验收标准**：`npx vitest run` 全部通过，0 失败用例
+
+### R52-03 — P0-1 前端：admin-web 注入 x-csrf-token [P0]
+
+- **优先级**：P0
+- **负责人**：阿澈
+- **预计**：0.25天
+- **状态**：✅ 已完成
+- **文件**：
+  - `admin-web/src/stores/auth.ts`（UserInfo 新增 csrfToken 字段，setAuth 接收并存储）
+  - `admin-web/src/api/request.ts`（拦截器注入 `x-csrf-token` header）
+  - `admin-web/src/views/LoginView.vue`（登录成功后存储 csrfToken）
+  - `admin-web/src/views/RegisterView.vue`（注册流程同步处理）
+- **问题**：前端拦截器仅注入 Authorization Bearer，未注入 x-csrf-token，导致所有 POST/PUT/DELETE 被 403 拒绝
+- **修复**：
+  1. `auth.ts` UserInfo 新增 `csrfToken?: string` 字段
+  2. `auth.ts` setAuth 接收 csrfToken 并存储到 user 对象
+  3. `request.ts` 拦截器：`if (auth.csrfToken) config.headers["x-csrf-token"] = auth.csrfToken`
+  4. LoginView.vue 登录成功后调用 `setAuth(result.token, result.user, result.csrfToken)`
+- **验收标准**：vue-tsc 0 错误，登录后所有写操作不再 403
+- **验证结果**：vue-tsc 0 错误，npm run build 成功（42.10s）
+
+### R52-04 — P0-2 前端：admin-web 角色体系修复（UserInfo + 路由meta + 守卫） [P0]
+
+- **优先级**：P0
+- **负责人**：阿澈
+- **预计**：0.5天
+- **状态**：✅ 已完成
+- **文件**：
+  - `admin-web/src/stores/auth.ts`（UserInfo 改为 `roles: string[]`，userRole 改为 userRoles）
+  - `admin-web/src/router/index.ts`（~100 处 meta.roles 的 BOSS→SUPER_ADMIN、MGR→STORE_MANAGER 等替换）
+  - 路由守卫逻辑改为 `user.roles.some(r => allowedRoles.includes(r))`
+  - `admin-web/src/layouts/MainLayout.vue`（如有角色判断需同步）
+- **问题**：前端 UserInfo 使用 `role?: string`（单值），后端返回 `roles: string[]`（数组）；前端 meta.roles 使用 `["BOSS","MGR"]`，后端角色码是 `SUPER_ADMIN`/`OPERATION_ADMIN`/`STORE_MANAGER` 等，路由守卫 `allowedRoles.includes(userRole)` 永远返回 false
+- **修复**：
+  1. UserInfo：`role?: string` → `roles: string[]`
+  2. userRole computed → userRoles computed（返回数组）
+  3. 路由 meta.roles 角色码映射（约100处）：
+     - `BOSS` → `SUPER_ADMIN`
+     - `MGR` → `STORE_MANAGER`
+     - `CASHIER` → `CASHIER`（保留）
+     - `STORE` → `STORE_OPERATOR`
+     - `FINANCE` → `FINANCE_ADMIN`
+     - `WAREHOUSE` → `WAREHOUSE_ADMIN`
+     - `SALES` → `SALES`
+  4. 路由守卫：`allowedRoles.includes(userRole)` → `userRoles.some(r => allowedRoles.includes(r))`
+  5. LoginView 登录后存储 `result.user.roles`（数组）
+- **验收标准**：vue-tsc 0 错误，登录后可访问所有授权页面，路由守卫不再误拦截
+- **验证结果**：vue-tsc 0 错误，npm run build 成功；MainLayout 角色判断同步更新为 roles?.includes()
+
+### R52-05 — P0-1 前端：app-mobile 注入 x-csrf-token [P0]
+
+- **优先级**：P0
+- **负责人**：阿澈
+- **预计**：0.25天
+- **状态**：✅ 已完成
+- **文件**：
+  - `app-mobile/src/api/modules/auth.ts`（LoginResult 新增 csrfToken 字段）
+  - `app-mobile/src/api/storage.ts`（新增 csrfToken 存取）
+  - `app-mobile/src/api/request.ts`（拦截器注入 x-csrf-token header）
+  - `app-mobile/src/stores/user.ts`（login 函数存储 csrfToken）
+  - `app-mobile/src/pages/login/login.vue`（登录成功后存储 csrfToken）
+- **问题**：app-mobile 拦截器仅注入 Authorization Bearer，未注入 x-csrf-token
+- **修复**：
+  1. LoginResult 新增 `csrfToken: string` 字段
+  2. storage.ts 新增 `setCsrfToken/getCsrfToken/removeCsrfToken`
+  3. request.ts 在 headers 中注入 `x-csrf-token`
+  4. user.ts login 函数存储 csrfToken
+- **验收标准**：vue-tsc 0 错误，登录后写操作不再 403
+- **验证结果**：vue-tsc 0 错误；SENSITIVE_KEYS 扩展为 5 项（含 merchant_csrf_token），登录/获取资料/登出全链路同步 CSRF 令牌
+
+### R52-06 — P0 前端：app-mobile vue-tsc 25个错误修复 [P0]
+
+- **优先级**：P0
+- **负责人**：阿澈
+- **预计**：0.5天
+- **状态**：✅ 已完成
+- **文件**：12 个 app-mobile 文件
+- **问题**：`npx vue-tsc --noEmit` 报 25 个错误，主要类型：
+  1. UserInfo 类型不一致（roles vs role） — `stores/user.ts`、`pages/profile/edit.vue`
+  2. API 导出名不匹配 — `api/index.ts` batchesApi → batchApi
+  3. 类型字段缺失 — `suppliers.vue`（supplierCode/paymentDays/settlementType）、`order-center.vue`（itemCount/channel/createTime）、`collection-link.vue`（remark）、`in-stock.vue`（orderNo/id）、`receipts.vue`（type）、`home.vue`/`profile.vue`（storeName/name）
+  4. 变量未定义 — `inventory-reports.vue`（trendList）、`sales-reports.vue`（rankList）
+- **修复**：
+  1. 统一 UserInfo 类型为 `roles: string[]`（与后端对齐）
+  2. 修正 API 导出名 `batchesApi` → `batchApi`
+  3. 补全类型字段或扩展接口定义
+  4. 修正未定义变量（在 setup 中声明或改为 reactive 数据）
+- **验收标准**：`npx vue-tsc --noEmit` 0 错误
+- **验证结果**：vue-tsc 0 错误（由 25 个降为 0）；具体修复点：
+  - `api/index.ts`: batchesApi 导出名称修正为 batchApi
+  - `orders.ts`: OrderInfo 接口补充 itemCount/channel/createTime
+  - `receipts.ts`: ReceiptQuery 接口补充 type 字段
+  - `purchase.ts`: InStockRecord 接口补充 orderNo/storeId/stockDate 等
+  - `store.ts`: CollectionLinkParams 接口补充 remark 字段
+  - `suppliers.ts`: Supplier 接口补充 supplierCode/paymentDays/settlementType
+  - `profile.ts`: UserProfile 接口补充 roles/storeName 字段
+  - `auth.ts`: ProfileResult 接口补充 storeName/name 字段并对齐 UserInfo
+  - `storage.ts`: UserInfo 字段对齐 ProfileResult（name/account 改为可选）
+  - `in-stock.vue`: storeList 类型补充 id 字段
+  - `inventory-reports.vue`: 补充 trendList ref 声明
+  - `sales-reports.vue`: 补充 rankList ref 声明
+
+### R52-07 — 全量回归测试 [P0]
+
+- **优先级**：P0
+- **负责人**：苏然
+- **预计**：0.5天
+- **状态**：待开始
+- **测试范围**：
+  - 后端：tsc 0 错误 + vitest 全部通过（0 失败用例）
+  - admin-web：vue-tsc 0 错误 + npm run build 成功
+  - app-mobile：vue-tsc 0 错误
+  - 登录注册端到端验证：admin-web 和 app-mobile 均能登录、注册、执行写操作
+- **验收标准**：所有指标 100% 通过，输出测试报告 `docs/reports/test-report-2026-07-20-r52.md`
+
+### R52 验收标准
+
+| 维度 | 标准 |
+|------|------|
+| 后端 tsc | 0 错误 |
+| 后端 vitest | 0 失败用例（从 85 降到 0） |
+| admin-web vue-tsc | 0 错误 |
+| admin-web build | 成功 |
+| app-mobile vue-tsc | 0 错误（从 25 降到 0） |
+| 登录功能 | admin-web + app-mobile 均可登录 |
+| 注册功能 | admin-web + app-mobile 均可注册 |
+| 写操作 | 登录后 POST/PUT/DELETE 不再 403 |
+| 路由守卫 | 所有授权页面可访问 |
 
 ---
 
