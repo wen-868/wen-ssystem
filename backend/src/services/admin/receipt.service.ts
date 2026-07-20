@@ -35,7 +35,7 @@ export async function getReceiptDetail(receiptNo: string, tenantId: string) {
   );
   if (!receipt) throw new Error("收款单不存在");
   const writeoffs = await queryWithTenant<any>(
-    "SELECT rw.id, rw.receivable_id AS receivableId, r.source_no AS sourceNo, rw.writeoff_amount AS writeoffAmount, rw.created_at AS createdAt FROM t_receipt_writeoff rw LEFT JOIN receivable r ON r.id = rw.receivable_id WHERE rw.receipt_id = (SELECT id FROM t_receipt WHERE receipt_no = ? AND tenant_id = ?)",
+    "SELECT rw.id, rw.receivable_id AS receivableId, r.source_no AS sourceNo, rw.writeoff_amount AS writeoffAmount, rw.created_at AS createdAt FROM t_receipt_writeoff rw LEFT JOIN t_receivable r ON r.id = rw.receivable_id WHERE rw.receipt_id = (SELECT id FROM t_receipt WHERE receipt_no = ? AND tenant_id = ?)",
     [receiptNo, tenantId], tenantId
   );
   return { ...receipt, writeoffs };

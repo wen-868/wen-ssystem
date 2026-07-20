@@ -32,7 +32,7 @@ export async function listCouponTemplates(
             valid_type AS validType, valid_start AS validStart, valid_end AS validEnd,
             valid_days AS validDays, status, description,
             created_at AS createdAt, updated_at AS updatedAt
-     FROM coupon_template
+     FROM t_coupon_template
      ${where}
      ORDER BY created_at DESC
      LIMIT ? OFFSET ?`,
@@ -41,7 +41,7 @@ export async function listCouponTemplates(
   );
 
   const totalRow = await queryOneWithTenant<any>(
-    `SELECT COUNT(*) AS total FROM coupon_template ${where}`,
+    `SELECT COUNT(*) AS total FROM t_coupon_template ${where}`,
     params,
     tenantId
   );
@@ -65,7 +65,7 @@ export async function getCouponTemplate(templateId: number, tenantId: string) {
             valid_type AS validType, valid_start AS validStart, valid_end AS validEnd,
             valid_days AS validDays, status, description,
             created_at AS createdAt, updated_at AS updatedAt
-     FROM coupon_template
+     FROM t_coupon_template
      WHERE id = ?`,
     [templateId],
     tenantId
@@ -98,7 +98,7 @@ export async function createCouponTemplate(body: {
 
   await transaction(async (conn) => {
     await conn.execute(
-      `INSERT INTO coupon_template (
+      `INSERT INTO t_coupon_template (
         template_code, template_name, coupon_type, coupon_value,
         min_purchase, max_discount, applicable_scope, applicable_ids,
         total_quantity, per_limit, valid_type, valid_start, valid_end, valid_days,
@@ -115,7 +115,7 @@ export async function createCouponTemplate(body: {
     );
 
     await conn.execute(
-      `INSERT INTO marketing_operation_log (module, action, target_id, target_type, user_id, user_name, detail, tenant_id)
+      `INSERT INTO t_marketing_operation_log (module, action, target_id, target_type, user_id, user_name, detail, tenant_id)
        VALUES (?, ?, ?, ?, ?, ?, ?, ?)`,
       ["coupon", "CREATE", templateCode, "coupon_template", userId, username,
        `创建优惠券模板: ${templateCode}, 名称: ${body.templateName}`, tenantId]
@@ -148,7 +148,7 @@ export async function updateCouponTemplate(
   username: string
 ) {
   const existing = await queryOneWithTenant<any>(
-    "SELECT id, status FROM coupon_template WHERE id = ?",
+    "SELECT id, status FROM t_coupon_template WHERE id = ?",
     [templateId],
     tenantId
   );
@@ -192,13 +192,13 @@ export async function updateCouponTemplate(
   if (updates.length > 0) {
     params.push(templateId);
     await queryWithTenant(
-      `UPDATE coupon_template SET ${updates.join(", ")}, updated_at = NOW() WHERE id = ?`,
+      `UPDATE t_coupon_template SET ${updates.join(", ")}, updated_at = NOW() WHERE id = ?`,
       params,
       tenantId
     );
 
     await queryWithTenant(
-      `INSERT INTO marketing_operation_log (module, action, target_id, target_type, user_id, user_name, detail, tenant_id)
+      `INSERT INTO t_marketing_operation_log (module, action, target_id, target_type, user_id, user_name, detail, tenant_id)
        VALUES (?, ?, ?, ?, ?, ?, ?, ?)`,
       ["coupon", "UPDATE", String(templateId), "coupon_template", userId, username,
        `更新优惠券模板: ${templateId}`, tenantId],
@@ -221,7 +221,7 @@ export async function issueCoupons(
             min_purchase, max_discount, applicable_scope, applicable_ids,
             total_quantity, issued_quantity, per_limit, valid_type,
             valid_start, valid_end, valid_days, status
-     FROM coupon_template
+     FROM t_coupon_template
      WHERE id = ?`,
     [templateId],
     tenantId
@@ -244,7 +244,7 @@ export async function issueCoupons(
   await transaction(async (conn) => {
     for (const uid of userIds) {
       const [userCouponCountRows] = await conn.execute(
-        `SELECT COUNT(*) AS count FROM user_coupon
+        `SELECT COUNT(*) AS count FROM t_user_coupon
          WHERE template_id = ? AND user_id = ? AND tenant_id = ?`,
         [templateId, uid, tenantId]
       ) as unknown as Record<string, unknown>[];
@@ -269,7 +269,7 @@ export async function issueCoupons(
       }
 
       await conn.execute(
-        `INSERT INTO user_coupon (
+        `INSERT INTO t_user_coupon (
           coupon_no, template_id, user_id, coupon_type, coupon_name,
           coupon_value, min_purchase, max_discount, applicable_scope, applicable_ids,
           source, status, valid_start, valid_end, tenant_id
@@ -288,12 +288,12 @@ export async function issueCoupons(
     }
 
     await conn.execute(
-      "UPDATE coupon_template SET issued_quantity = issued_quantity + ? WHERE id = ?",
+      "UPDATE t_coupon_template SET issued_quantity = issued_quantity + ? WHERE id = ?",
       [issuedCoupons.length, templateId]
     );
 
     await conn.execute(
-      `INSERT INTO marketing_operation_log (module, action, target_id, target_type, user_id, user_name, detail, tenant_id)
+      `INSERT INTO t_marketing_operation_log (module, action, target_id, target_type, user_id, user_name, detail, tenant_id)
        VALUES (?, ?, ?, ?, ?, ?, ?, ?)`,
       ["coupon", "ISSUE", String(templateId), "coupon_template", userId, username,
        `发放优惠券: ${template.template_name}, 数量: ${issuedCoupons.length}`, tenantId]
@@ -334,7 +334,7 @@ export async function listUserCoupons(
             uc.used_at AS usedAt, uc.used_order_no AS usedOrderNo,
             uc.used_amount AS usedAmount, uc.discount_amount AS discountAmount,
             uc.created_at AS createdAt
-     FROM user_coupon uc
+     FROM t_user_coupon uc
      ${where}
      ORDER BY uc.valid_end ASC
      LIMIT ? OFFSET ?`,
@@ -343,7 +343,7 @@ export async function listUserCoupons(
   );
 
   const totalRow = await queryOneWithTenant<any>(
-    `SELECT COUNT(*) AS total FROM user_coupon uc ${where}`,
+    `SELECT COUNT(*) AS total FROM t_user_coupon uc ${where}`,
     params,
     tenantId
   );

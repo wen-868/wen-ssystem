@@ -139,7 +139,7 @@ export function getTemplatePlaceholders(): string[] {
 
 export async function publish(tenantId: string, body: any, platform: string = "WECHAT") {
   const config = await queryOneWithTenant<any>(
-    "SELECT app_id AS appId, app_name AS appName, status, template_id AS templateId FROM miniapp_config WHERE tenant_id = ? AND platform = ?",
+    "SELECT app_id AS appId, app_name AS appName, status, template_id AS templateId FROM t_miniapp_config WHERE tenant_id = ? AND platform = ?",
     [tenantId, platform],
     tenantId
   );
@@ -156,13 +156,13 @@ export async function publish(tenantId: string, body: any, platform: string = "W
   fs.writeFileSync(outputPath, rendered, "utf-8");
 
   await queryWithTenant(
-    "UPDATE miniapp_config SET status = 'published', app_version = ?, audit_status = 'published', updated_at = NOW() WHERE tenant_id = ? AND platform = ?",
+    "UPDATE t_miniapp_config SET status = 'published', app_version = ?, audit_status = 'published', updated_at = NOW() WHERE tenant_id = ? AND platform = ?",
     [version, tenantId, platform],
     tenantId
   );
 
   const publishLogId = await queryWithTenant(
-    "INSERT INTO miniapp_publish_log (tenant_id, platform, version, remark, status, action, result) VALUES (?, ?, ?, ?, 'published', 'publish', 'success')",
+    "INSERT INTO t_miniapp_publish_log (tenant_id, platform, version, remark, status, action, result) VALUES (?, ?, ?, ?, 'published', 'publish', 'success')",
     [tenantId, platform, version, remark],
     tenantId
   );
@@ -177,12 +177,12 @@ export async function publish(tenantId: string, body: any, platform: string = "W
 
 export async function rollback(tenantId: string, version: string, platform: string = "WECHAT") {
   await queryWithTenant(
-    "UPDATE miniapp_config SET app_version = ?, status = 'published', updated_at = NOW() WHERE tenant_id = ? AND platform = ?",
+    "UPDATE t_miniapp_config SET app_version = ?, status = 'published', updated_at = NOW() WHERE tenant_id = ? AND platform = ?",
     [version, tenantId, platform],
     tenantId
   );
   await queryWithTenant(
-    "INSERT INTO miniapp_publish_log (tenant_id, platform, version, remark, status, action, result) VALUES (?, ?, ?, ?, 'rollback', 'rollback', 'success')",
+    "INSERT INTO t_miniapp_publish_log (tenant_id, platform, version, remark, status, action, result) VALUES (?, ?, ?, ?, 'rollback', 'rollback', 'success')",
     [tenantId, platform, version, `回滚到版本 ${version}`],
     tenantId
   );
@@ -191,13 +191,13 @@ export async function rollback(tenantId: string, version: string, platform: stri
 
 export async function submitAudit(tenantId: string, body: any, platform: string = "WECHAT") {
   await queryWithTenant(
-    "UPDATE miniapp_config SET audit_status = 'submitted', audit_reason = ?, updated_at = NOW() WHERE tenant_id = ? AND platform = ?",
+    "UPDATE t_miniapp_config SET audit_status = 'submitted', audit_reason = ?, updated_at = NOW() WHERE tenant_id = ? AND platform = ?",
     [body.remark || "", tenantId, platform],
     tenantId
   );
 
   await queryWithTenant(
-    "INSERT INTO miniapp_publish_log (tenant_id, platform, version, remark, status, action, result) VALUES (?, ?, ?, ?, 'audit_submitted', 'audit_submit', 'success')",
+    "INSERT INTO t_miniapp_publish_log (tenant_id, platform, version, remark, status, action, result) VALUES (?, ?, ?, ?, 'audit_submitted', 'audit_submit', 'success')",
     [tenantId, platform, body.version || `1.0.${Date.now()}`, body.remark || ""],
     tenantId
   );
@@ -208,12 +208,12 @@ export async function getPublishHistory(tenantId: string, page: number, pageSize
   const offset = (page - 1) * pageSize;
   const [rows, total] = await Promise.all([
     queryWithTenant<any>(
-      "SELECT id, version, remark, status, created_at AS createdAt FROM miniapp_publish_log WHERE tenant_id = ? AND platform = ? ORDER BY id DESC LIMIT ? OFFSET ?",
+      "SELECT id, version, remark, status, created_at AS createdAt FROM t_miniapp_publish_log WHERE tenant_id = ? AND platform = ? ORDER BY id DESC LIMIT ? OFFSET ?",
       [tenantId, platform, pageSize, offset],
       tenantId
     ),
     queryOneWithTenant<any>(
-      "SELECT COUNT(*) AS total FROM miniapp_publish_log WHERE tenant_id = ? AND platform = ?",
+      "SELECT COUNT(*) AS total FROM t_miniapp_publish_log WHERE tenant_id = ? AND platform = ?",
       [tenantId, platform],
       tenantId
     ),
@@ -223,7 +223,7 @@ export async function getPublishHistory(tenantId: string, page: number, pageSize
 
 export async function getCurrentVersion(tenantId: string, platform: string = "WECHAT") {
   const row = await queryOneWithTenant<any>(
-    "SELECT app_version AS appVersion, status, audit_status AS auditStatus, updated_at AS updatedAt FROM miniapp_config WHERE tenant_id = ? AND platform = ?",
+    "SELECT app_version AS appVersion, status, audit_status AS auditStatus, updated_at AS updatedAt FROM t_miniapp_config WHERE tenant_id = ? AND platform = ?",
     [tenantId, platform],
     tenantId
   );

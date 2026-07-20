@@ -36,7 +36,7 @@ export async function listProductBundles(params: {
             b.cost_price AS costPrice, b.status, b.sort_order AS sortOrder,
             b.sales_count AS salesCount, b.created_at AS createdAt,
             b.updated_at AS updatedAt
-     FROM product_bundle b
+     FROM t_product_bundle b
      ${where}
      ORDER BY b.sort_order ASC, b.created_at DESC
      LIMIT ? OFFSET ?`,
@@ -44,7 +44,7 @@ export async function listProductBundles(params: {
     tenantId
   );
   const totalRow = await queryOneWithTenant<any>(
-    `SELECT COUNT(*) AS total FROM product_bundle b ${where}`,
+    `SELECT COUNT(*) AS total FROM t_product_bundle b ${where}`,
     queryParams,
     tenantId
   );
@@ -60,7 +60,7 @@ export async function getProductBundleDetail(id: number, tenantId: string) {
             bundle_price AS bundlePrice, cost_price AS costPrice,
             status, sort_order AS sortOrder, sales_count AS salesCount,
             created_at AS createdAt, updated_at AS updatedAt
-     FROM product_bundle WHERE id = ? AND tenant_id = ?`,
+     FROM t_product_bundle WHERE id = ? AND tenant_id = ?`,
     [id, tenantId],
     tenantId
   );
@@ -71,7 +71,7 @@ export async function getProductBundleDetail(id: number, tenantId: string) {
     `SELECT id, bundle_id AS bundleId, sku_id AS skuId, sku_name AS skuName,
             barcode, qty, unit_price AS unitPrice,
             subtotal_price AS subtotalPrice, cost_price AS costPrice
-     FROM product_bundle_item WHERE bundle_id = ?`,
+     FROM t_product_bundle_item WHERE bundle_id = ?`,
     [id],
     tenantId
   );
@@ -117,7 +117,7 @@ export async function createProductBundle(params: {
 
     // 插入套装主表
     const [insertResult] = await conn.execute<any>(
-      `INSERT INTO product_bundle (bundle_no, bundle_name, category_id, cover_image, description,
+      `INSERT INTO t_product_bundle (bundle_no, bundle_name, category_id, cover_image, description,
         original_price, bundle_price, cost_price, status, sort_order, tenant_id)
        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
       [bundleNo, bundleName, categoryId ?? null, coverImage ?? null, description ?? null,
@@ -129,7 +129,7 @@ export async function createProductBundle(params: {
     for (const item of items) {
       const subtotalPrice = item.qty * item.unitPrice;
       await conn.execute(
-        `INSERT INTO product_bundle_item (bundle_id, sku_id, sku_name, barcode, qty,
+        `INSERT INTO t_product_bundle_item (bundle_id, sku_id, sku_name, barcode, qty,
           unit_price, subtotal_price, cost_price, tenant_id)
          VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`,
         [bundleId, item.skuId, item.skuName, item.barcode ?? null, item.qty,
@@ -168,7 +168,7 @@ export async function updateProductBundle(
   const { bundleName, categoryId, coverImage, description, bundlePrice, status, sortOrder, tenantId, items } = params;
 
   const existing = await queryOneWithTenant<any>(
-    "SELECT id FROM product_bundle WHERE id = ? AND tenant_id = ?",
+    "SELECT id FROM t_product_bundle WHERE id = ? AND tenant_id = ?",
     [id, tenantId],
     tenantId
   );
@@ -208,17 +208,17 @@ export async function updateProductBundle(
     if (updateFields.length > 0) {
       updateParams.push(id, tenantId);
       await conn.execute(
-        { sql: `UPDATE product_bundle SET ${updateFields.join(", ")} WHERE id = ? AND tenant_id = ?`, values: updateParams } as { sql: string; values: unknown[] }
+        { sql: `UPDATE t_product_bundle SET ${updateFields.join(", ")} WHERE id = ? AND tenant_id = ?`, values: updateParams } as { sql: string; values: unknown[] }
       );
     }
 
     // 更新明细：先删后插
     if (items && items.length > 0) {
-      await conn.execute("DELETE FROM product_bundle_item WHERE bundle_id = ? AND tenant_id = ?", [id, tenantId]);
+      await conn.execute("DELETE FROM t_product_bundle_item WHERE bundle_id = ? AND tenant_id = ?", [id, tenantId]);
       for (const item of items) {
         const subtotalPrice = item.qty * item.unitPrice;
         await conn.execute(
-          `INSERT INTO product_bundle_item (bundle_id, sku_id, sku_name, barcode, qty,
+          `INSERT INTO t_product_bundle_item (bundle_id, sku_id, sku_name, barcode, qty,
             unit_price, subtotal_price, cost_price, tenant_id)
            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`,
           [id, item.skuId, item.skuName, item.barcode ?? null, item.qty,
@@ -236,7 +236,7 @@ export async function updateProductBundle(
 // ========== 删除套装 ==========
 export async function deleteProductBundle(id: number, tenantId: string) {
   const existing = await queryOneWithTenant<any>(
-    "SELECT id, status FROM product_bundle WHERE id = ? AND tenant_id = ?",
+    "SELECT id, status FROM t_product_bundle WHERE id = ? AND tenant_id = ?",
     [id, tenantId],
     tenantId
   );
@@ -248,8 +248,8 @@ export async function deleteProductBundle(id: number, tenantId: string) {
   }
 
   await transaction(async (conn) => {
-    await conn.execute("DELETE FROM product_bundle_item WHERE bundle_id = ? AND tenant_id = ?", [id, tenantId]);
-    await conn.execute("DELETE FROM product_bundle WHERE id = ? AND tenant_id = ?", [id, tenantId]);
+    await conn.execute("DELETE FROM t_product_bundle_item WHERE bundle_id = ? AND tenant_id = ?", [id, tenantId]);
+    await conn.execute("DELETE FROM t_product_bundle WHERE id = ? AND tenant_id = ?", [id, tenantId]);
   });
 
   return { success: true };
@@ -258,7 +258,7 @@ export async function deleteProductBundle(id: number, tenantId: string) {
 // ========== 上架套装 ==========
 export async function publishProductBundle(id: number, tenantId: string) {
   const existing = await queryOneWithTenant<any>(
-    "SELECT id, status FROM product_bundle WHERE id = ? AND tenant_id = ?",
+    "SELECT id, status FROM t_product_bundle WHERE id = ? AND tenant_id = ?",
     [id, tenantId],
     tenantId
   );
@@ -270,7 +270,7 @@ export async function publishProductBundle(id: number, tenantId: string) {
   }
 
   await queryWithTenant(
-    "UPDATE product_bundle SET status = 1 WHERE id = ? AND tenant_id = ?",
+    "UPDATE t_product_bundle SET status = 1 WHERE id = ? AND tenant_id = ?",
     [id, tenantId],
     tenantId
   );
@@ -281,7 +281,7 @@ export async function publishProductBundle(id: number, tenantId: string) {
 // ========== 下架套装 ==========
 export async function unpublishProductBundle(id: number, tenantId: string) {
   const existing = await queryOneWithTenant<any>(
-    "SELECT id, status FROM product_bundle WHERE id = ? AND tenant_id = ?",
+    "SELECT id, status FROM t_product_bundle WHERE id = ? AND tenant_id = ?",
     [id, tenantId],
     tenantId
   );
@@ -293,7 +293,7 @@ export async function unpublishProductBundle(id: number, tenantId: string) {
   }
 
   await queryWithTenant(
-    "UPDATE product_bundle SET status = 0 WHERE id = ? AND tenant_id = ?",
+    "UPDATE t_product_bundle SET status = 0 WHERE id = ? AND tenant_id = ?",
     [id, tenantId],
     tenantId
   );
@@ -329,7 +329,7 @@ export async function getProductBundleStats(params: {
        SUM(CASE WHEN status = 1 THEN 1 ELSE 0 END) AS publishedCount,
        SUM(CASE WHEN status = 0 THEN 1 ELSE 0 END) AS unpublishedCount,
        SUM(sales_count) AS totalSales
-     FROM product_bundle b
+     FROM t_product_bundle b
      ${where}`,
     queryParams,
     tenantId
@@ -339,7 +339,7 @@ export async function getProductBundleStats(params: {
   const topBundles = await queryWithTenant<any>(
     `SELECT id, bundle_no AS bundleNo, bundle_name AS bundleName,
             sales_count AS salesCount, bundle_price AS bundlePrice
-     FROM product_bundle b
+     FROM t_product_bundle b
      ${where}
      ORDER BY sales_count DESC
      LIMIT 5`,

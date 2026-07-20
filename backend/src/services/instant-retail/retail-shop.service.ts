@@ -75,7 +75,7 @@ export async function updateCategory(id: number, data: any, tenantId: string) {
   if (data.status !== undefined) { fields.push("status = ?"); values.push(data.status); }
   if (fields.length === 0) return { id };
   values.push(id, tenantId);
-  await queryWithTenant(`UPDATE retail_category SET ${fields.join(", ")} WHERE id = ? AND tenant_id = ?`, values, tenantId);
+  await queryWithTenant(`UPDATE t_retail_category SET ${fields.join(", ")} WHERE id = ? AND tenant_id = ?`, values, tenantId);
   return { id };
 }
 
@@ -210,7 +210,7 @@ export async function updateBanner(id: number, data: any, tenantId: string) {
   if (data.end_time !== undefined) { fields.push("end_time = ?"); values.push(data.end_time); }
   if (fields.length === 0) return { id };
   values.push(id, tenantId);
-  await queryWithTenant(`UPDATE retail_banner SET ${fields.join(", ")} WHERE id = ? AND tenant_id = ?`, values, tenantId);
+  await queryWithTenant(`UPDATE t_retail_banner SET ${fields.join(", ")} WHERE id = ? AND tenant_id = ?`, values, tenantId);
   return { id };
 }
 

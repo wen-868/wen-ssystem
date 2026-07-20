@@ -13,7 +13,7 @@ export async function listQuickEntries(tenantId: string, role?: string) {
   const records = await queryWithTenant<any>(
     `SELECT id, name, icon, route, group_name AS \`group\`, enabled, 
             visible_roles AS visibleRoles, sort_order AS sortOrder, tenant_id AS tenantId
-     FROM quick_entries
+     FROM t_quick_entries
      WHERE tenant_id = ?
      ORDER BY sort_order ASC, id ASC`,
     [tenantId],
@@ -39,14 +39,14 @@ export async function listQuickEntries(tenantId: string, role?: string) {
 
 export async function createQuickEntry(tenantId: string, data: QuickEntryData) {
   const sortOrderRow = await queryOneWithTenant<any>(
-    `SELECT COALESCE(MAX(sort_order), 0) + 1 AS nextOrder FROM quick_entries WHERE tenant_id = ?`,
+    `SELECT COALESCE(MAX(sort_order), 0) + 1 AS nextOrder FROM t_quick_entries WHERE tenant_id = ?`,
     [tenantId],
     tenantId
   );
   const sortOrder = Number(sortOrderRow?.nextOrder ?? 1);
 
   const [result] = await queryWithTenant<any>(
-    `INSERT INTO quick_entries (name, icon, route, group_name, enabled, visible_roles, sort_order, tenant_id)
+    `INSERT INTO t_quick_entries (name, icon, route, group_name, enabled, visible_roles, sort_order, tenant_id)
      VALUES (?, ?, ?, ?, ?, ?, ?, ?)`,
     [
       data.name,
@@ -80,7 +80,7 @@ export async function updateQuickEntry(tenantId: string, id: number, data: Parti
   params.push(id, tenantId);
 
   await executeWithTenant(
-    `UPDATE quick_entries SET ${sets.join(", ")} WHERE id = ? AND tenant_id = ?`,
+    `UPDATE t_quick_entries SET ${sets.join(", ")} WHERE id = ? AND tenant_id = ?`,
     params,
     tenantId
   );
@@ -90,7 +90,7 @@ export async function updateQuickEntry(tenantId: string, id: number, data: Parti
 
 export async function deleteQuickEntry(tenantId: string, id: number) {
   await executeWithTenant(
-    `DELETE FROM quick_entries WHERE id = ? AND tenant_id = ?`,
+    `DELETE FROM t_quick_entries WHERE id = ? AND tenant_id = ?`,
     [id, tenantId],
     tenantId
   );
@@ -100,7 +100,7 @@ export async function deleteQuickEntry(tenantId: string, id: number) {
 export async function sortQuickEntries(tenantId: string, ids: number[]) {
   for (let i = 0; i < ids.length; i++) {
     await executeWithTenant(
-      `UPDATE quick_entries SET sort_order = ? WHERE id = ? AND tenant_id = ?`,
+      `UPDATE t_quick_entries SET sort_order = ? WHERE id = ? AND tenant_id = ?`,
       [i, ids[i], tenantId],
       tenantId
     );

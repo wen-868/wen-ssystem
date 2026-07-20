@@ -51,7 +51,7 @@ export async function listLossOrders(params: {
             lo.auditor_id AS auditorId, lo.auditor_name AS auditorName,
             lo.audited_at AS auditedAt, lo.remark, lo.created_at AS createdAt,
             lo.updated_at AS updatedAt
-     FROM inventory_loss_order lo
+     FROM t_inventory_loss_order lo
      ${where}
      ORDER BY lo.created_at DESC
      LIMIT ? OFFSET ?`,
@@ -59,7 +59,7 @@ export async function listLossOrders(params: {
     tenantId
   );
   const totalRow = await queryOneWithTenant<any>(
-    `SELECT COUNT(*) AS total FROM inventory_loss_order lo ${where}`,
+    `SELECT COUNT(*) AS total FROM t_inventory_loss_order lo ${where}`,
     queryParams,
     tenantId
   );
@@ -75,7 +75,7 @@ export async function getLossOrderDetail(id: number, tenantId: string) {
             operator_id AS operatorId, operator_name AS operatorName,
             auditor_id AS auditorId, auditor_name AS auditorName,
             audited_at AS auditedAt, remark, created_at AS createdAt, updated_at AS updatedAt
-     FROM inventory_loss_order WHERE id = ? AND tenant_id = ?`,
+     FROM t_inventory_loss_order WHERE id = ? AND tenant_id = ?`,
     [id, tenantId],
     tenantId
   );
@@ -88,7 +88,7 @@ export async function getLossOrderDetail(id: number, tenantId: string) {
             specification, unit_name AS unitName, qty,
             cost_price AS costPrice, subtotal_amount AS subtotalAmount,
             loss_reason AS lossReason
-     FROM inventory_loss_order_item WHERE loss_order_id = ?
+     FROM t_inventory_loss_order_item WHERE loss_order_id = ?
      ORDER BY id ASC`,
     [id],
     tenantId
@@ -135,7 +135,7 @@ export async function createLossOrder(params: {
     totalAmount = Math.round(totalAmount * 100) / 100;
 
     const [insertResult] = await conn.execute<any>(
-      `INSERT INTO inventory_loss_order (loss_no, store_id, store_name, loss_type,
+      `INSERT INTO t_inventory_loss_order (loss_no, store_id, store_name, loss_type,
         total_qty, total_amount, status, reason, operator_id, operator_name, remark, tenant_id)
        VALUES (?, ?, ?, ?, ?, ?, 'DRAFT', ?, ?, ?, ?, ?)`,
       [lossNo, storeId, storeName ?? null, lossType, totalQty, totalAmount,
@@ -146,7 +146,7 @@ export async function createLossOrder(params: {
     for (const item of items) {
       const subtotalAmount = Math.round(item.qty * item.costPrice * 100) / 100;
       await conn.execute(
-        `INSERT INTO inventory_loss_order_item (loss_order_id, loss_no, sku_id, sku_name,
+        `INSERT INTO t_inventory_loss_order_item (loss_order_id, loss_no, sku_id, sku_name,
           barcode, specification, unit_name, qty, cost_price, subtotal_amount, loss_reason, tenant_id)
          VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
         [lossOrderId, lossNo, item.skuId, item.skuName, item.barcode ?? null,
@@ -173,7 +173,7 @@ export async function approveLossOrder(
   const { auditorId, auditorName, tenantId } = params;
 
   const existing = await queryOneWithTenant<any>(
-    "SELECT id, status, loss_no AS lossNo, store_id AS storeId FROM inventory_loss_order WHERE id = ? AND tenant_id = ?",
+    "SELECT id, status, loss_no AS lossNo, store_id AS storeId FROM t_inventory_loss_order WHERE id = ? AND tenant_id = ?",
     [id, tenantId],
     tenantId
   );
@@ -187,7 +187,7 @@ export async function approveLossOrder(
   const result = await transaction(async (conn) => {
     // 更新状态
     await conn.execute(
-      `UPDATE inventory_loss_order SET status = 'APPROVED', auditor_id = ?, auditor_name = ?, audited_at = NOW()
+      `UPDATE t_inventory_loss_order SET status = 'APPROVED', auditor_id = ?, auditor_name = ?, audited_at = NOW()
        WHERE id = ? AND tenant_id = ?`,
       [auditorId, auditorName ?? null, id, tenantId]
     );
@@ -195,7 +195,7 @@ export async function approveLossOrder(
     // 查询明细
     const items = await conn.query<any>(
       `SELECT sku_id AS skuId, qty, cost_price AS costPrice
-       FROM inventory_loss_order_item WHERE loss_order_id = ?`,
+       FROM t_inventory_loss_order_item WHERE loss_order_id = ?`,
       [id]
     ) as any[];
 
@@ -239,7 +239,7 @@ export async function rejectLossOrder(
   const { auditorId, auditorName, rejectReason, tenantId } = params;
 
   const existing = await queryOneWithTenant<any>(
-    "SELECT id, status FROM inventory_loss_order WHERE id = ? AND tenant_id = ?",
+    "SELECT id, status FROM t_inventory_loss_order WHERE id = ? AND tenant_id = ?",
     [id, tenantId],
     tenantId
   );
@@ -251,7 +251,7 @@ export async function rejectLossOrder(
   }
 
   await queryWithTenant(
-    `UPDATE inventory_loss_order SET status = 'REJECTED', auditor_id = ?, auditor_name = ?,
+    `UPDATE t_inventory_loss_order SET status = 'REJECTED', auditor_id = ?, auditor_name = ?,
      reject_reason = ?, audited_at = NOW()
      WHERE id = ? AND tenant_id = ?`,
     [auditorId, auditorName ?? null, rejectReason ?? null, id, tenantId],

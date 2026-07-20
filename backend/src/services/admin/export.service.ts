@@ -72,7 +72,7 @@ export async function exportInventory(tenantId: string, storeId?: string, keywor
     `SELECT store_id AS storeId, sku_id AS skuId, sku_code AS skuCode, sku_name AS skuName,
             quantity, locked_quantity AS lockedQuantity, available_quantity AS availableQuantity,
             updated_at AS updatedAt
-     FROM inventory ${where} ORDER BY store_id, sku_id LIMIT 5000`,
+     FROM t_inventory ${where} ORDER BY store_id, sku_id LIMIT 5000`,
     params
   );
 }
@@ -110,7 +110,7 @@ export async function exportPayments(tenantId: string, status?: string) {
   return query<any>(
     `SELECT payment_no AS paymentNo, purchase_no AS purchaseNo, supplier_name AS supplierName,
             amount, payment_method AS paymentMethod, status, created_at AS createdAt
-     FROM payment ${where} ORDER BY created_at DESC LIMIT 5000`,
+     FROM t_payment ${where} ORDER BY created_at DESC LIMIT 5000`,
     params
   );
 }
@@ -147,7 +147,7 @@ export async function exportSalesOrders(
             total_amount AS totalAmount, discount_amount AS discountAmount,
             paid_amount AS paidAmount, payment_method AS paymentMethod,
             status, created_at AS createdAt
-     FROM sales_order ${where} ORDER BY created_at DESC LIMIT 5000`,
+     FROM t_sales_order ${where} ORDER BY created_at DESC LIMIT 5000`,
     params
   );
 }
@@ -181,7 +181,7 @@ export async function exportAuditLogs(
   return query<any>(
     `SELECT user_name AS userName, role, action, resource_type AS resourceType,
             resource_id AS resourceId, ip, created_at AS createdAt
-     FROM audit_log ${where} ORDER BY created_at DESC LIMIT 10000`,
+     FROM t_audit_log ${where} ORDER BY created_at DESC LIMIT 10000`,
     params
   );
 }

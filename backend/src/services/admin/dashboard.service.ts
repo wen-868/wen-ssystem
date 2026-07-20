@@ -72,7 +72,7 @@ export async function getOverview(tenantId: string) {
       `SELECT
          COALESCE(COUNT(CASE WHEN sw.status = 'ACTIVE' THEN 1 END), 0) AS totalAlerts,
          COALESCE(COUNT(CASE WHEN sw.status = 'ACTIVE' AND sw.warning_level = 'URGENT' THEN 1 END), 0) AS urgentAlerts
-       FROM stock_warning sw
+       FROM t_stock_warning sw
        WHERE sw.tenant_id = ?`,
       [tenantId]
     );
@@ -344,7 +344,7 @@ export async function getTodos(tenantId: string) {
   // 4. 库存预警
   const stockWarnings = await query<any>(
     `SELECT sku_name AS skuName, current_stock AS currentStock, warning_level AS warningLevel
-     FROM stock_warning
+     FROM t_stock_warning
      WHERE tenant_id = ? AND status = 'ACTIVE'
      ORDER BY CASE warning_level WHEN 'URGENT' THEN 1 WHEN 'WARNING' THEN 2 ELSE 3 END
      LIMIT 3`,
@@ -527,7 +527,7 @@ export async function getInventoryWarningList(tenantId: string) {
             sw.warning_threshold AS warningThreshold,
             sw.warning_level AS warningLevel,
             sw.store_name AS storeName
-     FROM stock_warning sw
+     FROM t_stock_warning sw
      WHERE sw.tenant_id = ? AND sw.status = 'ACTIVE'
      ORDER BY CASE sw.warning_level WHEN 'URGENT' THEN 1 WHEN 'WARNING' THEN 2 ELSE 3 END
      LIMIT 10`,
@@ -809,7 +809,7 @@ export async function getTopEmployees(tenantId: string, dateStart: string, dateE
             COALESCE(SUM(sb.receivable_amount), 0) AS totalAmount,
             COALESCE(SUM(sb.received_amount), 0) AS receivedAmount
      FROM t_sale_bill sb
-     LEFT JOIN t_user u ON u.id = sb.operator_id
+     LEFT JOIN t_sys_user u ON u.id = sb.operator_id
      WHERE sb.business_status NOT IN ('DRAFT', 'VOIDED')
        AND sb.tenant_id = ?
        AND sb.operator_id IS NOT NULL

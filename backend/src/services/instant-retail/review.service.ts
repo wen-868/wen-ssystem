@@ -12,21 +12,21 @@ export async function listReviews(params: {
   if (rating) { conditions.push("rating = ?"); values.push(rating); }
   if (status) { conditions.push("status = ?"); values.push(status); }
   const where = `WHERE ${conditions.join(" AND ")}`;
-  const total = await queryOneWithTenant<any>(`SELECT COUNT(*) AS cnt FROM retail_review ${where}`, values, tenantId);
+  const total = await queryOneWithTenant<any>(`SELECT COUNT(*) AS cnt FROM t_retail_review ${where}`, values, tenantId);
   const rows = await queryWithTenant<any>(
-    `SELECT * FROM retail_review ${where} ORDER BY created_at DESC LIMIT ? OFFSET ?`,
+    `SELECT * FROM t_retail_review ${where} ORDER BY created_at DESC LIMIT ? OFFSET ?`,
     [...values, pageSize, (page - 1) * pageSize], tenantId
   );
   return { list: rows, total: Number(total?.cnt ?? 0), page, pageSize };
 }
 
 export async function getReviewDetail(id: number, tenantId: string) {
-  return queryOneWithTenant<any>("SELECT * FROM retail_review WHERE id = ? AND tenant_id = ?", [id, tenantId], tenantId);
+  return queryOneWithTenant<any>("SELECT * FROM t_retail_review WHERE id = ? AND tenant_id = ?", [id, tenantId], tenantId);
 }
 
 export async function replyReview(id: number, reply: string, tenantId: string) {
   await queryWithTenant(
-    "UPDATE retail_review SET reply = ?, reply_at = NOW() WHERE id = ? AND tenant_id = ?",
+    "UPDATE t_retail_review SET reply = ?, reply_at = NOW() WHERE id = ? AND tenant_id = ?",
     [reply, id, tenantId], tenantId
   );
   return { id, replied: true };
@@ -42,9 +42,9 @@ export async function getReviewStats(params: { tenantId: string; storeId?: numbe
   const values: unknown[] = [tenantId];
   if (platform) { conditions.push("platform = ?"); values.push(platform); }
   const where = `WHERE ${conditions.join(" AND ")}`;
-  const total = await queryOneWithTenant<any>(`SELECT COUNT(*) AS cnt FROM retail_review ${where}`, values, tenantId);
-  const avgRating = await queryOneWithTenant<any>(`SELECT AVG(rating) AS avgRating FROM retail_review ${where}`, values, tenantId);
-  const goodRating = await queryOneWithTenant<any>(`SELECT COUNT(*) AS cnt FROM retail_review ${where} AND rating >= 4`, values, tenantId);
+  const total = await queryOneWithTenant<any>(`SELECT COUNT(*) AS cnt FROM t_retail_review ${where}`, values, tenantId);
+  const avgRating = await queryOneWithTenant<any>(`SELECT AVG(rating) AS avgRating FROM t_retail_review ${where}`, values, tenantId);
+  const goodRating = await queryOneWithTenant<any>(`SELECT COUNT(*) AS cnt FROM t_retail_review ${where} AND rating >= 4`, values, tenantId);
   return {
     totalCount: Number(total?.cnt ?? 0),
     avgRating: Math.round(Number(avgRating?.avgRating ?? 0) * 10) / 10,

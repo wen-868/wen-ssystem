@@ -3,7 +3,7 @@ import logger from "../../shared/logger";
 
 export async function getConfigs(tenantId: string) {
   return queryWithTenant<any>(
-    "SELECT id, order_type AS orderType, timeout_type AS timeoutType, timeout_minutes AS timeoutMinutes, action, enabled, description, created_at AS createdAt, updated_at AS updatedAt FROM order_timeout_config ORDER BY id ASC",
+    "SELECT id, order_type AS orderType, timeout_type AS timeoutType, timeout_minutes AS timeoutMinutes, action, enabled, description, created_at AS createdAt, updated_at AS updatedAt FROM t_order_timeout_config ORDER BY id ASC",
     [],
     tenantId
   );
@@ -18,7 +18,7 @@ export async function createConfig(tenantId: string, body: {
   description?: string;
 }) {
   const result = await queryWithTenant<{ insertId: number }>(
-    "INSERT INTO order_timeout_config (order_type, timeout_type, timeout_minutes, action, enabled, description) VALUES (?, ?, ?, ?, ?, ?)",
+    "INSERT INTO t_order_timeout_config (order_type, timeout_type, timeout_minutes, action, enabled, description) VALUES (?, ?, ?, ?, ?, ?)",
     [body.orderType, body.timeoutType, body.timeoutMinutes, body.action, body.enabled ? 1 : 0, body.description || null],
     tenantId
   );
@@ -46,12 +46,12 @@ export async function updateConfig(tenantId: string, id: number, body: {
   if (fields.length === 0) return false;
 
   values.push(id);
-  await queryWithTenant(`UPDATE order_timeout_config SET ${fields.join(", ")} WHERE id = ?`, values, tenantId);
+  await queryWithTenant(`UPDATE t_order_timeout_config SET ${fields.join(", ")} WHERE id = ?`, values, tenantId);
   return true;
 }
 
 export async function deleteConfig(tenantId: string, id: number) {
-  await queryWithTenant("DELETE FROM order_timeout_config WHERE id = ?", [id], tenantId);
+  await queryWithTenant("DELETE FROM t_order_timeout_config WHERE id = ?", [id], tenantId);
 }
 
 export async function getLogs(tenantId: string, params: {
@@ -83,7 +83,7 @@ export async function getLogs(tenantId: string, params: {
   const whereSql = whereClauses.length > 0 ? "WHERE " + whereClauses.join(" AND ") : "";
 
   const totalRow = await queryOneWithTenant<{ total: number }>(
-    `SELECT COUNT(*) AS total FROM order_timeout_log otl ${whereSql}`,
+    `SELECT COUNT(*) AS total FROM t_order_timeout_log otl ${whereSql}`,
     sqlParams,
     tenantId
   );
@@ -92,7 +92,7 @@ export async function getLogs(tenantId: string, params: {
     `SELECT otl.id, otl.order_id AS orderId, otl.order_type AS orderType, otl.timeout_type AS timeoutType,
             otl.action_taken AS actionTaken, otl.triggered_at AS triggeredAt, otl.handled_at AS handledAt,
             otl.result, otl.remark, otl.created_at AS createdAt
-     FROM order_timeout_log otl
+     FROM t_order_timeout_log otl
      ${whereSql}
      ORDER BY otl.id DESC
      LIMIT ? OFFSET ?`,
@@ -110,27 +110,27 @@ export async function getLogs(tenantId: string, params: {
 
 export async function getStatistics(tenantId: string) {
   const todayStats = await queryOneWithTenant<{ count: number }>(
-    "SELECT COUNT(*) AS count FROM order_timeout_log WHERE DATE(triggered_at) = CURDATE()",
+    "SELECT COUNT(*) AS count FROM t_order_timeout_log WHERE DATE(triggered_at) = CURDATE()",
     [],
     tenantId
   );
   const weekStats = await queryOneWithTenant<{ count: number }>(
-    "SELECT COUNT(*) AS count FROM order_timeout_log WHERE YEARWEEK(triggered_at, 1) = YEARWEEK(CURDATE(), 1)",
+    "SELECT COUNT(*) AS count FROM t_order_timeout_log WHERE YEARWEEK(triggered_at, 1) = YEARWEEK(CURDATE(), 1)",
     [],
     tenantId
   );
   const monthStats = await queryOneWithTenant<{ count: number }>(
-    "SELECT COUNT(*) AS count FROM order_timeout_log WHERE DATE_FORMAT(triggered_at, '%Y-%m') = DATE_FORMAT(CURDATE(), '%Y-%m')",
+    "SELECT COUNT(*) AS count FROM t_order_timeout_log WHERE DATE_FORMAT(triggered_at, '%Y-%m') = DATE_FORMAT(CURDATE(), '%Y-%m')",
     [],
     tenantId
   );
   const successStats = await queryOneWithTenant<{ count: number }>(
-    "SELECT COUNT(*) AS count FROM order_timeout_log WHERE result = 'SUCCESS' AND DATE(triggered_at) = CURDATE()",
+    "SELECT COUNT(*) AS count FROM t_order_timeout_log WHERE result = 'SUCCESS' AND DATE(triggered_at) = CURDATE()",
     [],
     tenantId
   );
   const failedStats = await queryOneWithTenant<{ count: number }>(
-    "SELECT COUNT(*) AS count FROM order_timeout_log WHERE result = 'FAILED' AND DATE(triggered_at) = CURDATE()",
+    "SELECT COUNT(*) AS count FROM t_order_timeout_log WHERE result = 'FAILED' AND DATE(triggered_at) = CURDATE()",
     [],
     tenantId
   );
@@ -153,7 +153,7 @@ export async function getEnabledConfigs() {
     action: string;
     tenant_id: number;
   }>(
-    "SELECT id, order_type, timeout_type, timeout_minutes, action, tenant_id FROM order_timeout_config WHERE enabled = 1"
+    "SELECT id, order_type, timeout_type, timeout_minutes, action, tenant_id FROM t_order_timeout_config WHERE enabled = 1"
   );
 }
 
@@ -204,7 +204,7 @@ export async function processTimeoutConfig(config: {
        AND tenant_id = ?
        AND created_at < DATE_SUB(NOW(), INTERVAL ? MINUTE)
        AND id NOT IN (
-         SELECT order_id FROM order_timeout_log
+         SELECT order_id FROM t_order_timeout_log
          WHERE timeout_type = ? AND result = 'SUCCESS' AND tenant_id = ?
        )
      LIMIT 100`,
@@ -244,7 +244,7 @@ export async function processTimeoutConfig(config: {
         }
 
         await conn.execute(
-          `INSERT INTO order_timeout_log (order_id, order_type, timeout_type, action_taken, triggered_at, handled_at, result, remark, tenant_id)
+          `INSERT INTO t_order_timeout_log (order_id, order_type, timeout_type, action_taken, triggered_at, handled_at, result, remark, tenant_id)
            VALUES (?, ?, ?, ?, NOW(), NOW(), 'SUCCESS', ?, ?)`,
           [order.id, config.order_type, config.timeout_type, config.action, `订单${order.order_no}超时自动${config.action}`, tenantId]
         );
@@ -252,7 +252,7 @@ export async function processTimeoutConfig(config: {
     } catch (err) {
       try {
         await query(
-          `INSERT INTO order_timeout_log (order_id, order_type, timeout_type, action_taken, triggered_at, handled_at, result, remark, tenant_id)
+          `INSERT INTO t_order_timeout_log (order_id, order_type, timeout_type, action_taken, triggered_at, handled_at, result, remark, tenant_id)
            VALUES (?, ?, ?, ?, NOW(), NOW(), 'FAILED', ?, ?)`,
           [order.id, config.order_type, config.timeout_type, config.action, String(err), tenantId]
         );

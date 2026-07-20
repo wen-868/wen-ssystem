@@ -77,7 +77,7 @@ export async function getMemberProfile(memberId: number, tenantId: string) {
        SUM(CASE WHEN status = 'UNUSED' AND valid_end > NOW() THEN 1 ELSE 0 END) AS availableCount,
        SUM(CASE WHEN status = 'USED' THEN 1 ELSE 0 END) AS usedCount,
        SUM(CASE WHEN (status = 'UNUSED' AND valid_end <= NOW()) OR status = 'EXPIRED' THEN 1 ELSE 0 END) AS expiredCount
-     FROM user_coupon 
+     FROM t_user_coupon 
      WHERE user_id = ? AND tenant_id = ?`,
     [memberId, tenantId],
     tenantId
@@ -337,7 +337,7 @@ export async function getMyCoupons(
             uc.valid_start AS validStart, uc.valid_end AS validEnd,
             uc.used_at AS usedAt, uc.used_order_no AS usedOrderNo,
             uc.discount_amount AS discountAmount
-     FROM user_coupon uc
+     FROM t_user_coupon uc
      WHERE ${where} AND uc.tenant_id = ?
      ORDER BY 
        CASE WHEN uc.status = 'UNUSED' AND uc.valid_end > NOW() THEN 1 ELSE 2 END,
@@ -348,7 +348,7 @@ export async function getMyCoupons(
   );
 
   const totalRow = await queryOneWithTenant<any>(
-    `SELECT COUNT(*) AS total FROM user_coupon uc WHERE ${where} AND uc.tenant_id = ?`,
+    `SELECT COUNT(*) AS total FROM t_user_coupon uc WHERE ${where} AND uc.tenant_id = ?`,
     [...params, tenantId],
     tenantId
   );
@@ -398,7 +398,7 @@ export async function receiveCoupon(memberId: number, templateId: number, tenant
               per_limit AS perLimit, valid_type AS validType,
               valid_start AS validStart, valid_end AS validEnd,
               valid_days AS validDays, status
-       FROM coupon_template 
+       FROM t_coupon_template 
        WHERE id = ? AND tenant_id = ?
        LIMIT 1`,
       [templateId, tenantId]
@@ -420,7 +420,7 @@ export async function receiveCoupon(memberId: number, templateId: number, tenant
 
     // 检查每人限领数量
     const [countRows] = await (conn as any).execute(
-      "SELECT COUNT(*) AS count FROM user_coupon WHERE user_id = ? AND template_id = ? AND tenant_id = ?",
+      "SELECT COUNT(*) AS count FROM t_user_coupon WHERE user_id = ? AND template_id = ? AND tenant_id = ?",
       [memberId, templateId, tenantId]
     );
     const receivedCount = (countRows as any[])[0];
@@ -444,7 +444,7 @@ export async function receiveCoupon(memberId: number, templateId: number, tenant
 
     // 创建用户优惠券
     await (conn as any).execute(
-      `INSERT INTO user_coupon 
+      `INSERT INTO t_user_coupon 
        (coupon_no, template_id, user_id, coupon_type, coupon_name, coupon_value,
         min_purchase, max_discount, applicable_scope, applicable_ids,
         source, status, valid_start, valid_end, tenant_id)
@@ -468,7 +468,7 @@ export async function receiveCoupon(memberId: number, templateId: number, tenant
 
     // 更新发行数量
     await (conn as any).execute(
-      "UPDATE coupon_template SET issued_quantity = issued_quantity + 1 WHERE id = ? AND tenant_id = ?",
+      "UPDATE t_coupon_template SET issued_quantity = issued_quantity + 1 WHERE id = ? AND tenant_id = ?",
       [templateId, tenantId]
     );
 

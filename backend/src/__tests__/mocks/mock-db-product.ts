@@ -6,13 +6,13 @@ import { state, pendingProduct, result, Row } from "./mock-db-state";
 export const queryHandlers: Array<(s: string, params: unknown[]) => Row[] | null> = [
   // product_sku count
   (s, _params) => {
-    if ((s.includes("from product_sku") || s.includes("from t_product_sku")) && s.includes("count(*)")) return [{ total: state.products.length }];
+    if ((s.includes("from t_product_sku") || s.includes("from t_product_sku")) && s.includes("count(*)")) return [{ total: state.products.length }];
     return null;
   },
 
-  // sale_bill_item join sale_bill by customer_id
+  // sale_bill_item join t_sale_bill by customer_id
   (s, params) => {
-    if ((s.includes("from sale_bill_item") || s.includes("from t_sale_bill_item")) && (s.includes("join sale_bill") || s.includes("join t_sale_bill")) && s.includes("customer_id")) {
+    if ((s.includes("from t_sale_bill_item") || s.includes("from t_sale_bill_item")) && (s.includes("join t_sale_bill") || s.includes("join t_sale_bill")) && s.includes("customer_id")) {
       const memberId = Number(params[0]);
       const skuId = Number(params[1]);
       const bills = state.saleBills.filter((b) => Number(b.customerId ?? b.customer_id) === memberId);
@@ -32,9 +32,9 @@ export const queryHandlers: Array<(s: string, params: unknown[]) => Row[] | null
     return null;
   },
 
-  // product_sku join product_price
+  // product_sku join t_product_price
   (s, params) => {
-    if (s.includes("select s.sku_name") && (s.includes("from product_sku s") || s.includes("from t_product_sku s")) && (s.includes("join product_price") || s.includes("join t_product_price"))) {
+    if (s.includes("select s.sku_name") && (s.includes("from t_product_sku s") || s.includes("from t_product_sku s")) && (s.includes("join t_product_price") || s.includes("join t_product_price"))) {
       const product = state.products.find((p) => p.skuId === params[0]);
       return product
         ? [{
@@ -49,9 +49,9 @@ export const queryHandlers: Array<(s: string, params: unknown[]) => Row[] | null
     return null;
   },
 
-  // product_sku join product_spu join product_price (product listing)
+  // product_sku join t_product_spu join t_product_price (product listing)
   (s, _params) => {
-    if ((s.includes("from product_sku") || s.includes("from t_product_sku")) && (s.includes("join product_spu") || s.includes("join t_product_spu")) && (s.includes("join product_price") || s.includes("join t_product_price"))) {
+    if ((s.includes("from t_product_sku") || s.includes("from t_product_sku")) && (s.includes("join t_product_spu") || s.includes("join t_product_spu")) && (s.includes("join t_product_price") || s.includes("join t_product_price"))) {
       return state.products.map((product) => {
         const offline = state.inventory.find((inv) => inv.skuId === product.skuId && inv.stockType === "OFFLINE");
         const online = state.inventory.find((inv) => inv.skuId === product.skuId && inv.stockType === "ONLINE");
@@ -70,7 +70,7 @@ export const queryHandlers: Array<(s: string, params: unknown[]) => Row[] | null
 
   // product_price 查询
   (s, params) => {
-    if (s.includes("from product_price") || s.includes("from t_product_price")) {
+    if (s.includes("from t_product_price") || s.includes("from t_product_price")) {
       const skuId = Number(params[0]);
       const product = state.products.find((p) => p.skuId === skuId);
       if (!product) return [];
@@ -88,7 +88,7 @@ export const queryHandlers: Array<(s: string, params: unknown[]) => Row[] | null
 
   // product_price UPDATE (query handler)
   (s, params) => {
-    if (s.startsWith("update product_price") || s.startsWith("update t_product_price")) {
+    if (s.startsWith("update t_product_price") || s.startsWith("update t_product_price")) {
       const skuId = Number(params[params.length - 1]);
       const product = state.products.find((p) => p.skuId === skuId);
       if (product) {
@@ -107,7 +107,7 @@ export const queryHandlers: Array<(s: string, params: unknown[]) => Row[] | null
 export const executeHandlers: Array<(s: string, params: unknown[]) => Row[] | null> = [
   // product_spu UPDATE status
   (s, params) => {
-    if (s.startsWith("update product_spu set status") || s.startsWith("update t_product_spu set status")) {
+    if (s.startsWith("update t_product_spu set status") || s.startsWith("update t_product_spu set status")) {
       const status = params[0];
       const spuId = Number(params[1]);
       for (const product of state.products) {
@@ -120,7 +120,7 @@ export const executeHandlers: Array<(s: string, params: unknown[]) => Row[] | nu
 
   // product_price_log INSERT
   (s, params) => {
-    if (s.includes("insert into product_price_log") || s.includes("insert into t_product_price_log")) {
+    if (s.includes("insert into t_product_price_log") || s.includes("insert into t_product_price_log")) {
       state.priceLogs.unshift({
         id: state.priceLogs.length + 1,
         skuId: params[0],
@@ -138,7 +138,7 @@ export const executeHandlers: Array<(s: string, params: unknown[]) => Row[] | nu
 
   // product_spu INSERT
   (s, params) => {
-    if (s.includes("insert into product_spu") || s.includes("insert into t_product_spu")) {
+    if (s.includes("insert into t_product_spu") || s.includes("insert into t_product_spu")) {
       const spuId = state.products.length + 1;
       pendingProduct.spu = {
         spuId,
@@ -156,7 +156,7 @@ export const executeHandlers: Array<(s: string, params: unknown[]) => Row[] | nu
 
   // product_sku INSERT
   (s, params) => {
-    if (s.includes("insert into product_sku") || s.includes("insert into t_product_sku")) {
+    if (s.includes("insert into t_product_sku") || s.includes("insert into t_product_sku")) {
       const skuId = state.products.length + 1;
       pendingProduct.sku = {
         skuId,
@@ -176,7 +176,7 @@ export const executeHandlers: Array<(s: string, params: unknown[]) => Row[] | nu
 
   // product_price INSERT
   (s, params) => {
-    if (s.includes("insert into product_price") || s.includes("insert into t_product_price")) {
+    if (s.includes("insert into t_product_price") || s.includes("insert into t_product_price")) {
       if (pendingProduct.spu && pendingProduct.sku) {
         state.products.push({
           spuId: pendingProduct.spu.spuId,
@@ -201,7 +201,7 @@ export const executeHandlers: Array<(s: string, params: unknown[]) => Row[] | nu
 
   // product_price UPDATE (execute handler)
   (s, params) => {
-    if (s.includes("update product_price") || s.includes("update t_product_price")) {
+    if (s.includes("update t_product_price") || s.includes("update t_product_price")) {
       const skuId = Number(params[params.length - 1]);
       const product = state.products.find((p) => p.skuId === skuId);
       if (product) {

@@ -6,10 +6,10 @@ export async function getMarketingOverview(params: { tenantId: string; startDate
   const dateValues: unknown[] = [tenantId];
   if (startDate) { dateConditions.push("created_at >= ?"); dateValues.push(startDate); }
   if (endDate) { dateConditions.push("created_at <= ?"); dateValues.push(endDate); }
-  const couponStats = await queryOneWithTenant<any>(`SELECT COUNT(*) AS total, COUNT(CASE WHEN status = 'ACTIVE' THEN 1 END) AS active FROM coupon_template WHERE tenant_id = ?`, [tenantId], tenantId);
-  const discountStats = await queryOneWithTenant<any>(`SELECT COUNT(*) AS total, COUNT(CASE WHEN status = 'ACTIVE' THEN 1 END) AS active FROM limited_discount WHERE tenant_id = ?`, [tenantId], tenantId);
-  const giftRuleStats = await queryOneWithTenant<any>(`SELECT COUNT(*) AS total, COUNT(CASE WHEN status = 'ACTIVE' THEN 1 END) AS active FROM gift_rule WHERE tenant_id = ?`, [tenantId], tenantId);
-  const fullReductionStats = await queryOneWithTenant<any>(`SELECT COUNT(*) AS total, COUNT(CASE WHEN status = 'ACTIVE' THEN 1 END) AS active FROM promotion_activity WHERE tenant_id = ?`, [tenantId], tenantId);
+  const couponStats = await queryOneWithTenant<any>(`SELECT COUNT(*) AS total, COUNT(CASE WHEN status = 'ACTIVE' THEN 1 END) AS active FROM t_coupon_template WHERE tenant_id = ?`, [tenantId], tenantId);
+  const discountStats = await queryOneWithTenant<any>(`SELECT COUNT(*) AS total, COUNT(CASE WHEN status = 'ACTIVE' THEN 1 END) AS active FROM t_limited_discount WHERE tenant_id = ?`, [tenantId], tenantId);
+  const giftRuleStats = await queryOneWithTenant<any>(`SELECT COUNT(*) AS total, COUNT(CASE WHEN status = 'ACTIVE' THEN 1 END) AS active FROM t_gift_rule WHERE tenant_id = ?`, [tenantId], tenantId);
+  const fullReductionStats = await queryOneWithTenant<any>(`SELECT COUNT(*) AS total, COUNT(CASE WHEN status = 'ACTIVE' THEN 1 END) AS active FROM t_promotion_activity WHERE tenant_id = ?`, [tenantId], tenantId);
 
   return {
     totalActivities: Number(couponStats?.total ?? 0) + Number(discountStats?.total ?? 0) + Number(giftRuleStats?.total ?? 0) + Number(fullReductionStats?.total ?? 0),
@@ -48,8 +48,8 @@ export async function getSingleActivityStats(activityId: number, activityType: s
 }
 
 export async function getCouponStats(tenantId: string) {
-  const issued = await queryOneWithTenant<any>("SELECT COUNT(*) AS cnt FROM user_coupon WHERE tenant_id = ?", [tenantId], tenantId);
-  const used = await queryOneWithTenant<any>("SELECT COUNT(*) AS cnt FROM user_coupon WHERE tenant_id = ? AND status = 'USED'", [tenantId], tenantId);
+  const issued = await queryOneWithTenant<any>("SELECT COUNT(*) AS cnt FROM t_user_coupon WHERE tenant_id = ?", [tenantId], tenantId);
+  const used = await queryOneWithTenant<any>("SELECT COUNT(*) AS cnt FROM t_user_coupon WHERE tenant_id = ? AND status = 'USED'", [tenantId], tenantId);
   const total = Number(issued?.cnt ?? 0);
   const usedCount = Number(used?.cnt ?? 0);
   return {
@@ -72,11 +72,11 @@ export async function getMarketingTrend(params: { tenantId: string; period?: str
   else dateFormat = "DATE(created_at)";
 
   const couponTrend = await queryWithTenant<any>(
-    `SELECT ${dateFormat} AS period, COUNT(*) AS issuedCount, COUNT(CASE WHEN status = 'USED' THEN 1 END) AS usedCount FROM user_coupon WHERE tenant_id = ? ${dateWhere} GROUP BY period ORDER BY period`,
+    `SELECT ${dateFormat} AS period, COUNT(*) AS issuedCount, COUNT(CASE WHEN status = 'USED' THEN 1 END) AS usedCount FROM t_user_coupon WHERE tenant_id = ? ${dateWhere} GROUP BY period ORDER BY period`,
     dateValues, tenantId
   );
   const discountTrend = await queryWithTenant<any>(
-    `SELECT ${dateFormat} AS period, COUNT(*) AS count, COALESCE(SUM(total_sales_amount), 0) AS amount FROM limited_discount WHERE tenant_id = ? ${dateWhere} GROUP BY period ORDER BY period`,
+    `SELECT ${dateFormat} AS period, COUNT(*) AS count, COALESCE(SUM(total_sales_amount), 0) AS amount FROM t_limited_discount WHERE tenant_id = ? ${dateWhere} GROUP BY period ORDER BY period`,
     dateValues, tenantId
   );
   return { couponTrend, discountTrend };
@@ -95,7 +95,7 @@ export async function getActivityEffectAnalysis(params: { tenantId: string; acti
     `SELECT COUNT(*) AS totalUsers, 
             COUNT(DISTINCT customer_id) AS uniqueUsers,
             SUM(CASE WHEN status = 'USED' THEN 1 ELSE 0 END) AS usedCount
-     FROM user_coupon 
+     FROM t_user_coupon 
      WHERE tenant_id = ? AND template_id = ?`,
     [tenantId, activityId], tenantId
   );
@@ -106,7 +106,7 @@ export async function getActivityEffectAnalysis(params: { tenantId: string; acti
             COALESCE(SUM(order_amount), 0) AS totalOrderAmount,
             COALESCE(SUM(discount_amount), 0) AS totalDiscountAmount
      FROM t_order_coupon 
-     WHERE tenant_id = ? AND coupon_id IN (SELECT id FROM user_coupon WHERE template_id = ? AND tenant_id = ?)`,
+     WHERE tenant_id = ? AND coupon_id IN (SELECT id FROM t_user_coupon WHERE template_id = ? AND tenant_id = ?)`,
     [tenantId, activityId, tenantId], tenantId
   );
 
@@ -144,7 +144,7 @@ export async function getActivityConversionTrend(params: { tenantId: string; act
             COUNT(*) AS issuedCount,
             SUM(CASE WHEN status = 'USED' THEN 1 ELSE 0 END) AS usedCount,
             COUNT(DISTINCT customer_id) AS uniqueUsers
-     FROM user_coupon
+     FROM t_user_coupon
      WHERE tenant_id = ? AND template_id = ?
      GROUP BY period ORDER BY period`,
     [tenantId, activityId], tenantId
@@ -173,8 +173,8 @@ export async function getActivityRanking(params: { tenantId: string; rankBy?: st
             COUNT(uc.id) AS totalIssued,
             SUM(CASE WHEN uc.status = 'USED' THEN 1 ELSE 0 END) AS usedCount,
             COUNT(DISTINCT uc.customer_id) AS uniqueUsers
-     FROM coupon_template ct
-     LEFT JOIN user_coupon uc ON uc.template_id = ct.id AND uc.tenant_id = ct.tenant_id
+     FROM t_coupon_template ct
+     LEFT JOIN t_user_coupon uc ON uc.template_id = ct.id AND uc.tenant_id = ct.tenant_id
      WHERE ct.tenant_id = ? AND ct.status = 'ACTIVE'
      GROUP BY ct.id, ct.name, ct.type
      ORDER BY ${rankBy === "usedRate" ? "usedCount / NULLIF(COUNT(uc.id), 0) DESC" : "usedCount DESC"}

@@ -28,7 +28,7 @@ export async function getPermissionMatrix(tenantId: string) {
             rpm.report_code AS reportCode, rpm.store_scope AS storeScope,
             rpm.can_view AS canView, rpm.can_export AS canExport,
             rpm.store_ids AS storeIds
-     FROM report_permission_matrix rpm
+     FROM t_report_permission_matrix rpm
      LEFT JOIN t_sys_role r ON r.id = rpm.role_id AND r.tenant_id = rpm.tenant_id
      WHERE rpm.tenant_id = ?
      ORDER BY rpm.role_id, rpm.report_code`,
@@ -59,14 +59,14 @@ export async function savePermissionMatrix(
   await transaction(async (conn) => {
     // 删除现有权限
     await conn.execute(
-      "DELETE FROM report_permission_matrix WHERE tenant_id = ?",
+      "DELETE FROM t_report_permission_matrix WHERE tenant_id = ?",
       [tenantId]
     );
 
     // 插入新权限
     for (const perm of permissions) {
       await conn.execute(
-        `INSERT INTO report_permission_matrix (
+        `INSERT INTO t_report_permission_matrix (
           role_id, report_code, store_scope, can_view, can_export, store_ids, tenant_id
         ) VALUES (?, ?, ?, ?, ?, ?, ?)`,
         [
@@ -83,7 +83,7 @@ export async function savePermissionMatrix(
 
     // 记录审计日志
     await conn.execute(
-      `INSERT INTO report_permission_audit_log (
+      `INSERT INTO t_report_permission_audit_log (
         operator_id, operator_name, action, target_type, target_id,
         before_value, after_value, remark, tenant_id
       ) VALUES (?, ?, 'UPDATE', 'ROLE', 0, ?, ?, '更新权限矩阵', ?)`,
@@ -108,7 +108,7 @@ export async function getDataScopeConfig(tenantId: string) {
   const rows = await queryWithTenant<any>(
     `SELECT DISTINCT rpm.role_id AS roleId, r.name AS roleName,
             rpm.store_scope AS storeScope, rpm.store_ids AS storeIds
-     FROM report_permission_matrix rpm
+     FROM t_report_permission_matrix rpm
      LEFT JOIN t_sys_role r ON r.id = rpm.role_id AND r.tenant_id = rpm.tenant_id
      WHERE rpm.tenant_id = ?
      ORDER BY rpm.role_id`,
@@ -139,7 +139,7 @@ export async function updateDataScopeConfig(
   await transaction(async (conn) => {
     for (const config of configs) {
       await conn.execute(
-        `UPDATE report_permission_matrix
+        `UPDATE t_report_permission_matrix
          SET store_scope = ?, store_ids = ?
          WHERE role_id = ? AND tenant_id = ?`,
         [
@@ -153,7 +153,7 @@ export async function updateDataScopeConfig(
 
     // 记录审计日志
     await conn.execute(
-      `INSERT INTO report_permission_audit_log (
+      `INSERT INTO t_report_permission_audit_log (
         operator_id, operator_name, action, target_type, target_id,
         before_value, after_value, remark, tenant_id
       ) VALUES (?, ?, 'UPDATE', 'ROLE', 0, ?, ?, '更新数据权限配置', ?)`,
@@ -197,7 +197,7 @@ export async function getUserPermissions(userId: number, tenantId: string) {
             MAX(rpm.can_view) AS canView,
             MAX(rpm.can_export) AS canExport,
             GROUP_CONCAT(DISTINCT rpm.store_scope) AS storeScopes
-     FROM report_permission_matrix rpm
+     FROM t_report_permission_matrix rpm
      WHERE rpm.role_id IN (${placeholders}) AND rpm.tenant_id = ?
      GROUP BY rpm.report_code`,
     [...roleIds, tenantId],
@@ -241,7 +241,7 @@ export async function assignUserPermissions(
   await transaction(async (conn) => {
     // 记录审计日志
     await conn.execute(
-      `INSERT INTO report_permission_audit_log (
+      `INSERT INTO t_report_permission_audit_log (
         operator_id, operator_name, action, target_type, target_id,
         before_value, after_value, remark, tenant_id
       ) VALUES (?, ?, 'GRANT', 'USER', ?, ?, ?, '分配用户报表权限', ?)`,
@@ -335,7 +335,7 @@ export async function getAuditLogs(params: AuditLogQueryParams) {
             action, target_type AS targetType, target_id AS targetId, target_name AS targetName,
             report_code AS reportCode, before_value AS beforeValue, after_value AS afterValue,
             remark, created_at AS createdAt
-     FROM report_permission_audit_log
+     FROM t_report_permission_audit_log
      ${where}
      ORDER BY created_at DESC
      LIMIT ? OFFSET ?`,
@@ -344,7 +344,7 @@ export async function getAuditLogs(params: AuditLogQueryParams) {
   );
 
   const totalRow = await queryOneWithTenant<any>(
-    `SELECT COUNT(*) AS total FROM report_permission_audit_log ${where}`,
+    `SELECT COUNT(*) AS total FROM t_report_permission_audit_log ${where}`,
     queryParams,
     tenantId
   );

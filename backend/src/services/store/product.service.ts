@@ -78,7 +78,7 @@ export async function listProducts(params: {
   }
 
   if (tagIds && tagIds.length > 0) {
-    sql += ` AND p.id IN (SELECT DISTINCT ptr.spu_id FROM product_tag_relation ptr WHERE ptr.tag_id IN (${tagIds.map(() => '?').join(',')}))`;
+    sql += ` AND p.id IN (SELECT DISTINCT ptr.spu_id FROM t_product_tag_relation ptr WHERE ptr.tag_id IN (${tagIds.map(() => '?').join(',')}))`;
     paramsArr.push(...tagIds);
   }
 

@@ -12,7 +12,7 @@ export async function createFullReduction(body: {
   description: string;
 }, tenantId: string) {
   await queryWithTenant(
-    `INSERT INTO full_reduction (name, rules, applicable_scope, applicable_ids,
+    `INSERT INTO t_full_reduction (name, rules, applicable_scope, applicable_ids,
         start_time, end_time, priority, stackable, description, tenant_id)
        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
     [
@@ -27,7 +27,7 @@ export async function createFullReduction(body: {
     `SELECT id, name, rules, applicable_scope AS applicableScope, applicable_ids AS applicableIds,
             start_time AS startTime, end_time AS endTime, status, priority, stackable,
             description, created_at AS createdAt, updated_at AS updatedAt
-     FROM full_reduction ORDER BY id DESC LIMIT 1`,
+     FROM t_full_reduction ORDER BY id DESC LIMIT 1`,
     [],
     tenantId
   );
@@ -56,7 +56,7 @@ export async function listFullReductions(
     `SELECT id, name, rules, applicable_scope AS applicableScope, applicable_ids AS applicableIds,
             start_time AS startTime, end_time AS endTime, status, priority, stackable,
             description, created_at AS createdAt, updated_at AS updatedAt
-     FROM full_reduction
+     FROM t_full_reduction
      ${where}
      ORDER BY priority DESC, created_at DESC
      LIMIT ? OFFSET ?`,
@@ -65,7 +65,7 @@ export async function listFullReductions(
   );
 
   const totalRow = await queryOneWithTenant<any>(
-    `SELECT COUNT(*) AS total FROM full_reduction ${where}`,
+    `SELECT COUNT(*) AS total FROM t_full_reduction ${where}`,
     params,
     tenantId
   );
@@ -83,7 +83,7 @@ export async function getFullReduction(id: number, tenantId: string) {
     `SELECT id, name, rules, applicable_scope AS applicableScope, applicable_ids AS applicableIds,
             start_time AS startTime, end_time AS endTime, status, priority, stackable,
             description, created_at AS createdAt, updated_at AS updatedAt
-     FROM full_reduction WHERE id = ?`,
+     FROM t_full_reduction WHERE id = ?`,
     [id],
     tenantId
   );
@@ -104,7 +104,7 @@ export async function updateFullReduction(id: number, body: {
   stackable?: boolean;
   description?: string;
 }, tenantId: string) {
-  const existing = await queryOneWithTenant<any>("SELECT id, status FROM full_reduction WHERE id = ?", [id], tenantId);
+  const existing = await queryOneWithTenant<any>("SELECT id, status FROM t_full_reduction WHERE id = ?", [id], tenantId);
   if (!existing) {
     throw Object.assign(new Error("满减活动不存在"), { statusCode: 404 });
   }
@@ -124,14 +124,14 @@ export async function updateFullReduction(id: number, body: {
 
   if (updates.length > 0) {
     params.push(id);
-    await queryWithTenant(`UPDATE full_reduction SET ${updates.join(", ")} WHERE id = ?`, params, tenantId);
+    await queryWithTenant(`UPDATE t_full_reduction SET ${updates.join(", ")} WHERE id = ?`, params, tenantId);
   }
 
   const record = await queryOneWithTenant<any>(
     `SELECT id, name, rules, applicable_scope AS applicableScope, applicable_ids AS applicableIds,
             start_time AS startTime, end_time AS endTime, status, priority, stackable,
             description, created_at AS createdAt, updated_at AS updatedAt
-     FROM full_reduction WHERE id = ?`,
+     FROM t_full_reduction WHERE id = ?`,
     [id],
     tenantId
   );
@@ -140,7 +140,7 @@ export async function updateFullReduction(id: number, body: {
 }
 
 export async function deleteFullReduction(id: number, tenantId: string) {
-  const existing = await queryOneWithTenant<any>("SELECT id, status FROM full_reduction WHERE id = ?", [id], tenantId);
+  const existing = await queryOneWithTenant<any>("SELECT id, status FROM t_full_reduction WHERE id = ?", [id], tenantId);
   if (!existing) {
     throw Object.assign(new Error("满减活动不存在"), { statusCode: 404 });
   }
@@ -148,12 +148,12 @@ export async function deleteFullReduction(id: number, tenantId: string) {
     throw Object.assign(new Error("仅草稿状态的满减活动可删除"), { statusCode: 400 });
   }
 
-  await queryWithTenant("DELETE FROM full_reduction WHERE id = ?", [id], tenantId);
+  await queryWithTenant("DELETE FROM t_full_reduction WHERE id = ?", [id], tenantId);
   return { id, deleted: true };
 }
 
 export async function activateFullReduction(id: number, tenantId: string) {
-  const existing = await queryOneWithTenant<any>("SELECT id, status FROM full_reduction WHERE id = ?", [id], tenantId);
+  const existing = await queryOneWithTenant<any>("SELECT id, status FROM t_full_reduction WHERE id = ?", [id], tenantId);
   if (!existing) {
     throw Object.assign(new Error("满减活动不存在"), { statusCode: 404 });
   }
@@ -161,12 +161,12 @@ export async function activateFullReduction(id: number, tenantId: string) {
     throw Object.assign(new Error("仅草稿或暂停状态的活动可激活"), { statusCode: 400 });
   }
 
-  await queryWithTenant("UPDATE full_reduction SET status = 'ACTIVE' WHERE id = ?", [id], tenantId);
+  await queryWithTenant("UPDATE t_full_reduction SET status = 'ACTIVE' WHERE id = ?", [id], tenantId);
   return { id, status: "ACTIVE" };
 }
 
 export async function pauseFullReduction(id: number, tenantId: string) {
-  const existing = await queryOneWithTenant<any>("SELECT id, status FROM full_reduction WHERE id = ?", [id], tenantId);
+  const existing = await queryOneWithTenant<any>("SELECT id, status FROM t_full_reduction WHERE id = ?", [id], tenantId);
   if (!existing) {
     throw Object.assign(new Error("满减活动不存在"), { statusCode: 404 });
   }
@@ -174,6 +174,6 @@ export async function pauseFullReduction(id: number, tenantId: string) {
     throw Object.assign(new Error("仅激活状态的活动可暂停"), { statusCode: 400 });
   }
 
-  await queryWithTenant("UPDATE full_reduction SET status = 'PAUSED' WHERE id = ?", [id], tenantId);
+  await queryWithTenant("UPDATE t_full_reduction SET status = 'PAUSED' WHERE id = ?", [id], tenantId);
   return { id, status: "PAUSED" };
 }

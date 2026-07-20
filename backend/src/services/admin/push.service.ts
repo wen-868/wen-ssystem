@@ -350,14 +350,14 @@ export async function registerToken(
     }
 
     const existing = await queryOneWithTenant<{ id: number }>(
-        "SELECT id FROM push_token WHERE device_id = ? AND provider = ?",
+        "SELECT id FROM t_push_token WHERE device_id = ? AND provider = ?",
         [data.deviceId, provider],
         tenantId
     );
 
     if (existing) {
         await queryWithTenant(
-            `UPDATE push_token
+            `UPDATE t_push_token
        SET user_id = ?, push_token = ?, app_platform = ?, app_version = ?, status = 1, last_active_at = NOW()
        WHERE id = ?`,
             [data.userId, data.pushToken, data.appPlatform, data.appVersion ?? null, existing.id],
@@ -367,7 +367,7 @@ export async function registerToken(
     }
 
     const result = await queryWithTenant<{ insertId: number }>(
-        `INSERT INTO push_token
+        `INSERT INTO t_push_token
        (user_id, device_id, push_token, provider, app_platform, app_version, status, last_active_at)
      VALUES (?, ?, ?, ?, ?, ?, 1, NOW())`,
         [data.userId, data.deviceId, data.pushToken, provider, data.appPlatform, data.appVersion ?? null],
@@ -400,7 +400,7 @@ export async function unregisterToken(
     }
 
     const existing = await queryOneWithTenant<{ id: number }>(
-        "SELECT id FROM push_token WHERE device_id = ? AND provider = ?",
+        "SELECT id FROM t_push_token WHERE device_id = ? AND provider = ?",
         [deviceId, provider],
         tenantId
     );
@@ -410,7 +410,7 @@ export async function unregisterToken(
     }
 
     await queryWithTenant(
-        "UPDATE push_token SET status = 0 WHERE id = ?",
+        "UPDATE t_push_token SET status = 0 WHERE id = ?",
         [existing.id],
         tenantId
     );
@@ -433,7 +433,7 @@ export async function getUserTokens(
     }
     return queryWithTenant<Omit<PushTokenRow, "push_token">>(
         `SELECT id, tenant_id, user_id, device_id, provider, app_platform, app_version, status, last_active_at, created_at, updated_at
-     FROM push_token
+     FROM t_push_token
      WHERE user_id = ? AND status = 1
      ORDER BY last_active_at DESC`,
         [userId],
@@ -461,7 +461,7 @@ export async function sendToUser(
     }
 
     const tokens = await queryWithTenant<{ push_token: string; provider: PushProviderName }>(
-        "SELECT push_token, provider FROM push_token WHERE user_id = ? AND status = 1",
+        "SELECT push_token, provider FROM t_push_token WHERE user_id = ? AND status = 1",
         [userId],
         tenantId
     );
@@ -496,7 +496,7 @@ export async function sendToTenant(
     payload: SendPushInput
 ): Promise<PushResult[]> {
     const tokens = await queryWithTenant<{ push_token: string; provider: PushProviderName }>(
-        "SELECT push_token, provider FROM push_token WHERE status = 1",
+        "SELECT push_token, provider FROM t_push_token WHERE status = 1",
         [],
         tenantId
     );

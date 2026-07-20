@@ -36,7 +36,7 @@ export async function listComboProducts(params: {
             c.min_price AS minPrice, c.max_price AS maxPrice,
             c.status, c.sort_order AS sortOrder, c.created_at AS createdAt,
             c.updated_at AS updatedAt
-     FROM combo_product c
+     FROM t_combo_product c
      ${where}
      ORDER BY c.sort_order ASC, c.created_at DESC
      LIMIT ? OFFSET ?`,
@@ -44,7 +44,7 @@ export async function listComboProducts(params: {
     tenantId
   );
   const totalRow = await queryOneWithTenant<any>(
-    `SELECT COUNT(*) AS total FROM combo_product c ${where}`,
+    `SELECT COUNT(*) AS total FROM t_combo_product c ${where}`,
     queryParams,
     tenantId
   );
@@ -60,7 +60,7 @@ export async function getComboProductDetail(id: number, tenantId: string) {
             base_price AS basePrice, min_price AS minPrice,
             max_price AS maxPrice, status, sort_order AS sortOrder,
             created_at AS createdAt, updated_at AS updatedAt
-     FROM combo_product WHERE id = ? AND tenant_id = ?`,
+     FROM t_combo_product WHERE id = ? AND tenant_id = ?`,
     [id, tenantId],
     tenantId
   );
@@ -72,7 +72,7 @@ export async function getComboProductDetail(id: number, tenantId: string) {
             sku_id AS skuId, sku_name AS skuName, barcode,
             extra_price AS extraPrice, is_required AS isRequired,
             is_default AS isDefault, sort_order AS sortOrder
-     FROM combo_product_option WHERE combo_id = ?
+     FROM t_combo_product_option WHERE combo_id = ?
      ORDER BY sort_order ASC, id ASC`,
     [id],
     tenantId
@@ -134,7 +134,7 @@ export async function createComboProduct(params: {
 
     // 插入组合品主表
     const [insertResult] = await conn.execute<any>(
-      `INSERT INTO combo_product (combo_no, combo_name, combo_type, category_id, cover_image,
+      `INSERT INTO t_combo_product (combo_no, combo_name, combo_type, category_id, cover_image,
         description, base_price, min_price, max_price, status, sort_order, tenant_id)
        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
       [comboNo, comboName, comboType, categoryId ?? null, coverImage ?? null,
@@ -147,7 +147,7 @@ export async function createComboProduct(params: {
     for (let i = 0; i < options.length; i++) {
       const opt = options[i];
       await conn.execute(
-        `INSERT INTO combo_product_option (combo_id, group_name, sku_id, sku_name, barcode,
+        `INSERT INTO t_combo_product_option (combo_id, group_name, sku_id, sku_name, barcode,
           extra_price, is_required, is_default, sort_order, tenant_id)
          VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
         [comboId, opt.groupName, opt.skuId, opt.skuName, opt.barcode ?? null,
@@ -190,7 +190,7 @@ export async function updateComboProduct(
   const { comboName, comboType, categoryId, coverImage, description, basePrice, status, sortOrder, tenantId, options } = params;
 
   const existing = await queryOneWithTenant<any>(
-    "SELECT id FROM combo_product WHERE id = ? AND tenant_id = ?",
+    "SELECT id FROM t_combo_product WHERE id = ? AND tenant_id = ?",
     [id, tenantId],
     tenantId
   );
@@ -236,17 +236,17 @@ export async function updateComboProduct(
     if (updateFields.length > 0) {
       updateParams.push(id, tenantId);
       await conn.execute(
-        { sql: `UPDATE combo_product SET ${updateFields.join(", ")} WHERE id = ? AND tenant_id = ?`, values: updateParams } as { sql: string; values: unknown[] }
+        { sql: `UPDATE t_combo_product SET ${updateFields.join(", ")} WHERE id = ? AND tenant_id = ?`, values: updateParams } as { sql: string; values: unknown[] }
       );
     }
 
     // 更新选项：先删后插
     if (options && options.length > 0) {
-      await conn.execute("DELETE FROM combo_product_option WHERE combo_id = ? AND tenant_id = ?", [id, tenantId]);
+      await conn.execute("DELETE FROM t_combo_product_option WHERE combo_id = ? AND tenant_id = ?", [id, tenantId]);
       for (let i = 0; i < options.length; i++) {
         const opt = options[i];
         await conn.execute(
-          `INSERT INTO combo_product_option (combo_id, group_name, sku_id, sku_name, barcode,
+          `INSERT INTO t_combo_product_option (combo_id, group_name, sku_id, sku_name, barcode,
             extra_price, is_required, is_default, sort_order, tenant_id)
            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
           [id, opt.groupName, opt.skuId, opt.skuName, opt.barcode ?? null,
@@ -265,7 +265,7 @@ export async function updateComboProduct(
 // ========== 删除组合品 ==========
 export async function deleteComboProduct(id: number, tenantId: string) {
   const existing = await queryOneWithTenant<any>(
-    "SELECT id, status FROM combo_product WHERE id = ? AND tenant_id = ?",
+    "SELECT id, status FROM t_combo_product WHERE id = ? AND tenant_id = ?",
     [id, tenantId],
     tenantId
   );
@@ -277,8 +277,8 @@ export async function deleteComboProduct(id: number, tenantId: string) {
   }
 
   await transaction(async (conn) => {
-    await conn.execute("DELETE FROM combo_product_option WHERE combo_id = ? AND tenant_id = ?", [id, tenantId]);
-    await conn.execute("DELETE FROM combo_product WHERE id = ? AND tenant_id = ?", [id, tenantId]);
+    await conn.execute("DELETE FROM t_combo_product_option WHERE combo_id = ? AND tenant_id = ?", [id, tenantId]);
+    await conn.execute("DELETE FROM t_combo_product WHERE id = ? AND tenant_id = ?", [id, tenantId]);
   });
 
   return { success: true };

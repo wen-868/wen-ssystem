@@ -60,7 +60,7 @@ export async function createPurchasePlan(params: {
   const planNo = makeBizNo("JH");
   let goodsAmount = 0;
   await queryWithTenant(
-    `INSERT INTO purchase_plan (plan_no, supplier_id, store_id, plan_status, goods_amount, tenant_id)
+    `INSERT INTO t_purchase_plan (plan_no, supplier_id, store_id, plan_status, goods_amount, tenant_id)
      VALUES (?, ?, ?, 'DRAFT', 0, ?)`,
     [planNo, supplierId, storeId, tenantId],
     tenantId
@@ -78,15 +78,15 @@ export async function createPurchasePlan(params: {
     const safetyStock = Number(skuInfo?.safety_stock ?? 0);
     const monthlyAvgSales = 0; // simplified
     await queryWithTenant(
-      `INSERT INTO purchase_plan_item (plan_no, sku_id, suggest_qty, current_stock, safety_stock, monthly_avg_sales, in_transit_qty, reason, tenant_id)
+      `INSERT INTO t_purchase_plan_item (plan_no, sku_id, suggest_qty, current_stock, safety_stock, monthly_avg_sales, in_transit_qty, reason, tenant_id)
        VALUES (?, ?, ?, ?, ?, ?, 0, ?, ?)`,
       [planNo, item.skuId, item.suggestQty, currentStock, safetyStock, monthlyAvgSales, `当前库存${currentStock}低于安全库存${safetyStock}`, tenantId],
       tenantId
     );
-    goodsAmount += item.suggestQty * 0; // price would come from last purchase price
+    goodsAmount += item.suggestQty * 0; // price would come from t_last purchase price
   }
   await queryWithTenant(
-    "UPDATE purchase_plan SET goods_amount = ? WHERE plan_no = ? AND tenant_id = ?",
+    "UPDATE t_purchase_plan SET goods_amount = ? WHERE plan_no = ? AND tenant_id = ?",
     [goodsAmount, planNo, tenantId],
     tenantId
   );
@@ -109,7 +109,7 @@ export async function listPurchasePlans(params: {
             s.name AS supplierName, pp.store_id AS storeId,
             st.name AS storeName, pp.plan_status AS planStatus,
             pp.goods_amount AS goodsAmount, pp.created_at AS createdAt
-     FROM purchase_plan pp
+     FROM t_purchase_plan pp
      LEFT JOIN t_supplier s ON s.id = pp.supplier_id
      LEFT JOIN t_store st ON st.id = pp.store_id
      ${where}
@@ -119,7 +119,7 @@ export async function listPurchasePlans(params: {
     tenantId
   );
   const totalRow = await queryOneWithTenant<any>(
-    `SELECT COUNT(*) AS total FROM purchase_plan pp ${where}`,
+    `SELECT COUNT(*) AS total FROM t_purchase_plan pp ${where}`,
     queryParams,
     tenantId
   );
@@ -129,14 +129,14 @@ export async function listPurchasePlans(params: {
 // 采购计划转采购订单
 export async function convertPurchasePlan(planNo: string, tenantId: string) {
   const plan = await queryOneWithTenant<any>(
-    "SELECT plan_no, supplier_id, store_id, plan_status FROM purchase_plan WHERE plan_no = ? AND tenant_id = ?",
+    "SELECT plan_no, supplier_id, store_id, plan_status FROM t_purchase_plan WHERE plan_no = ? AND tenant_id = ?",
     [planNo, tenantId],
     tenantId
   );
   if (!plan) throw new Error("采购计划不存在");
   if (plan.plan_status !== "DRAFT" && plan.plan_status !== "CONFIRMED") throw new Error("计划已转换");
   const items = await queryWithTenant<any>(
-    "SELECT sku_id AS skuId, suggest_qty AS suggestQty FROM purchase_plan_item WHERE plan_no = ? AND tenant_id = ?",
+    "SELECT sku_id AS skuId, suggest_qty AS suggestQty FROM t_purchase_plan_item WHERE plan_no = ? AND tenant_id = ?",
     [planNo, tenantId],
     tenantId
   );
@@ -170,7 +170,7 @@ export async function convertPurchasePlan(planNo: string, tenantId: string) {
     tenantId
   );
   await queryWithTenant(
-    "UPDATE purchase_plan SET plan_status = 'CONVERTED' WHERE plan_no = ? AND tenant_id = ?",
+    "UPDATE t_purchase_plan SET plan_status = 'CONVERTED' WHERE plan_no = ? AND tenant_id = ?",
     [planNo, tenantId],
     tenantId
   );

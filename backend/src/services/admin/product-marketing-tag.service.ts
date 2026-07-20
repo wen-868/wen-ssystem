@@ -37,7 +37,7 @@ export async function listTags(tenantId: string, status?: number) {
     `SELECT id, tag_code AS tagCode, tag_name AS tagName, color,
             sort_no AS sortNo, status, tenant_id AS tenantId,
             created_at AS createdAt, updated_at AS updatedAt
-     FROM product_marketing_tag
+     FROM t_product_marketing_tag
      WHERE ${where}
      ORDER BY sort_no ASC, id ASC`,
     params
@@ -58,7 +58,7 @@ export async function createTag(body: {
 }) {
   // 校验同一租户下编码唯一（含通用标签）
   const existing = await queryOne<any>(
-    "SELECT id FROM product_marketing_tag WHERE tag_code = ? AND (tenant_id = ? OR tenant_id = '')",
+    "SELECT id FROM t_product_marketing_tag WHERE tag_code = ? AND (tenant_id = ? OR tenant_id = '')",
     [body.tagCode, body.tenantId]
   );
   if (existing) {
@@ -66,7 +66,7 @@ export async function createTag(body: {
   }
 
   await query(
-    `INSERT INTO product_marketing_tag (tag_code, tag_name, color, sort_no, status, tenant_id)
+    `INSERT INTO t_product_marketing_tag (tag_code, tag_name, color, sort_no, status, tenant_id)
      VALUES (?, ?, ?, ?, 1, ?)`,
     [
       body.tagCode,
@@ -81,7 +81,7 @@ export async function createTag(body: {
     `SELECT id, tag_code AS tagCode, tag_name AS tagName, color,
             sort_no AS sortNo, status, tenant_id AS tenantId,
             created_at AS createdAt, updated_at AS updatedAt
-     FROM product_marketing_tag
+     FROM t_product_marketing_tag
      WHERE tag_code = ? AND tenant_id = ?`,
     [body.tagCode, body.tenantId]
   );
@@ -99,7 +99,7 @@ export async function updateTag(id: number, body: {
   status?: number;
 }, tenantId: string) {
   const existing = await queryOne<any>(
-    "SELECT id, tenant_id AS tenantId FROM product_marketing_tag WHERE id = ?",
+    "SELECT id, tenant_id AS tenantId FROM t_product_marketing_tag WHERE id = ?",
     [id]
   );
   if (!existing) {
@@ -123,7 +123,7 @@ export async function updateTag(id: number, body: {
   if (updates.length > 0) {
     params.push(id);
     await query(
-      `UPDATE product_marketing_tag SET ${updates.join(", ")} WHERE id = ?`,
+      `UPDATE t_product_marketing_tag SET ${updates.join(", ")} WHERE id = ?`,
       params
     );
   }
@@ -132,7 +132,7 @@ export async function updateTag(id: number, body: {
     `SELECT id, tag_code AS tagCode, tag_name AS tagName, color,
             sort_no AS sortNo, status, tenant_id AS tenantId,
             created_at AS createdAt, updated_at AS updatedAt
-     FROM product_marketing_tag WHERE id = ?`,
+     FROM t_product_marketing_tag WHERE id = ?`,
     [id]
   );
   return record;
@@ -143,7 +143,7 @@ export async function updateTag(id: number, body: {
  */
 export async function deleteTag(id: number, tenantId: string) {
   const existing = await queryOne<any>(
-    "SELECT id, tenant_id AS tenantId FROM product_marketing_tag WHERE id = ?",
+    "SELECT id, tenant_id AS tenantId FROM t_product_marketing_tag WHERE id = ?",
     [id]
   );
   if (!existing) {
@@ -154,6 +154,6 @@ export async function deleteTag(id: number, tenantId: string) {
     throw Object.assign(new Error("平台通用标签不可删除"), { statusCode: 403 });
   }
 
-  await query("DELETE FROM product_marketing_tag WHERE id = ?", [id]);
+  await query("DELETE FROM t_product_marketing_tag WHERE id = ?", [id]);
   return { id, deleted: true };
 }

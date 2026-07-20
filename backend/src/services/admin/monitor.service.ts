@@ -61,13 +61,13 @@ export async function getApiStats(): Promise<ApiStats> {
 
   const [todayErrors, totalErrors, weeklyData] = await Promise.all([
     queryOne(
-      `SELECT COUNT(*) AS count FROM error_logs WHERE DATE(created_at) = ?`,
+      `SELECT COUNT(*) AS count FROM t_error_logs WHERE DATE(created_at) = ?`,
       [today]
     ),
-    queryOne(`SELECT COUNT(*) AS count FROM error_logs`),
+    queryOne(`SELECT COUNT(*) AS count FROM t_error_logs`),
     query(
       `SELECT DATE(created_at) AS date, COUNT(*) AS count 
-       FROM error_logs 
+       FROM t_error_logs 
        WHERE created_at >= DATE_SUB(NOW(), INTERVAL 7 DAY) 
        GROUP BY DATE(created_at) 
        ORDER BY date`
@@ -76,7 +76,7 @@ export async function getApiStats(): Promise<ApiStats> {
 
   const statusCodeResult = await query(
     `SELECT status_code, COUNT(*) AS count 
-     FROM error_logs 
+     FROM t_error_logs 
      WHERE status_code IS NOT NULL 
      GROUP BY status_code`
   );

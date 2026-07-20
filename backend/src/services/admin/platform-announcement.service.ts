@@ -104,7 +104,7 @@ export async function updateAnnouncement(id: number, data: Partial<AnnouncementC
   values.push(id);
 
   await query(
-    `UPDATE platform_announcement SET ${fields.join(", ")} WHERE id = ?`,
+    `UPDATE t_platform_announcement SET ${fields.join(", ")} WHERE id = ?`,
     values
   );
   return { id };
@@ -128,7 +128,7 @@ export async function togglePublish(id: number) {
   const publishAt = newStatus === 1 ? "publish_at = NOW()," : "";
 
   await query(
-    `UPDATE platform_announcement SET ${publishAt} status = ?, updated_at = NOW() WHERE id = ?`,
+    `UPDATE t_platform_announcement SET ${publishAt} status = ?, updated_at = NOW() WHERE id = ?`,
     [newStatus, id]
   );
 

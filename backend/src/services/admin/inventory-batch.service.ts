@@ -176,8 +176,8 @@ export async function getBatchTrace(tenantId: string, id: number) {
   // 2. 出库记录
   const saleItems = await query<Record<string, unknown>>(
     `SELECT si.*, sb.bill_no, sb.created_at
-     FROM sale_bill_items si
-     JOIN sale_bills sb ON sb.id = si.bill_id AND sb.tenant_id = si.tenant_id
+     FROM t_sale_bill_items si
+     JOIN t_sale_bills sb ON sb.id = si.bill_id AND sb.tenant_id = si.tenant_id
      WHERE si.batch_id = ? AND si.tenant_id = ?
      ORDER BY sb.created_at ASC`,
     [id, tenantId]

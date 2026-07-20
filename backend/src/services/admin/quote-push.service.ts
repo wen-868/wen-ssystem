@@ -261,7 +261,7 @@ export async function createQuote(
 
     // 插入报价单主表
     const [quoteResult] = await conn.query<any>(
-      `INSERT INTO customer_quote
+      `INSERT INTO t_customer_quote
        (quote_no, title, customer_id, customer_name, customer_phone, status,
         valid_days, expire_at, total_amount, total_sku, remark,
         created_by, share_token, tenant_id)
@@ -287,7 +287,7 @@ export async function createQuote(
     // 插入报价单明细
     for (const item of itemsWithPrice) {
       await conn.query(
-        `INSERT INTO customer_quote_item
+        `INSERT INTO t_customer_quote_item
          (quote_id, sku_id, sku_name, quote_price, min_qty, sort_order, tenant_id)
          VALUES (?, ?, ?, ?, ?, ?, ?)`,
         [quoteId, item.skuId, item.skuName, item.quotePrice, item.minQty, 0, tenantId]
@@ -296,7 +296,7 @@ export async function createQuote(
 
     // 生成分享URL
     const [tokenRows] = await conn.query<any[]>(
-      "SELECT share_token AS shareToken FROM customer_quote WHERE id = ? AND tenant_id = ?",
+      "SELECT share_token AS shareToken FROM t_customer_quote WHERE id = ? AND tenant_id = ?",
       [quoteId, tenantId]
     );
 
@@ -367,7 +367,7 @@ export async function listQuotes(
             valid_days AS validDays, expire_at AS expireAt,
             total_amount AS totalAmount, total_sku AS totalSku,
             view_count AS viewCount, created_at AS createdAt
-     FROM customer_quote
+     FROM t_customer_quote
      WHERE ${where}
      ORDER BY created_at DESC
      LIMIT ? OFFSET ?`,
@@ -376,7 +376,7 @@ export async function listQuotes(
   );
 
   const totalRow = await queryOneWithTenant<any>(
-    `SELECT COUNT(*) AS total FROM customer_quote WHERE ${where}`,
+    `SELECT COUNT(*) AS total FROM t_customer_quote WHERE ${where}`,
     params,
     tenantId
   );
@@ -402,7 +402,7 @@ export async function getQuoteDetail(quoteId: number, tenantId: string): Promise
             q.total_amount AS totalAmount, q.total_sku AS totalSku,
             q.remark, q.view_count AS viewCount, q.share_token AS shareToken,
             q.created_at AS createdAt, q.created_by AS createdBy
-     FROM customer_quote q
+     FROM t_customer_quote q
      WHERE q.id = ? AND q.tenant_id = ?`,
     [quoteId, tenantId],
     tenantId
@@ -414,7 +414,7 @@ export async function getQuoteDetail(quoteId: number, tenantId: string): Promise
     `SELECT qi.id, qi.sku_id AS skuId, qi.sku_name AS skuName,
             qi.quote_price AS quotePrice, qi.min_qty AS minQty,
             sk.barcode, sk.sku_code AS skuCode, s.unit, s.main_image AS imageUrl
-     FROM customer_quote_item qi
+     FROM t_customer_quote_item qi
      LEFT JOIN t_product_sku sk ON sk.id = qi.sku_id AND sk.tenant_id = qi.tenant_id
      LEFT JOIN t_product_spu s ON s.id = sk.spu_id AND s.tenant_id = sk.tenant_id
      WHERE qi.quote_id = ? AND qi.tenant_id = ?
@@ -459,7 +459,7 @@ export async function pushQuote(
 }> {
   const quote = await queryOneWithTenant<any>(
     `SELECT id, quote_no, customer_name, customer_phone, share_token, status
-     FROM customer_quote WHERE id = ? AND tenant_id = ?`,
+     FROM t_customer_quote WHERE id = ? AND tenant_id = ?`,
     [quoteId, tenantId],
     tenantId
   );
@@ -516,7 +516,7 @@ export async function pushQuote(
 
   // 记录推送日志
   await queryWithTenant(
-    `INSERT INTO customer_quote_push_log
+    `INSERT INTO t_customer_quote_push_log
      (quote_id, channel, content, target, status, tenant_id)
      VALUES (?, ?, ?, ?, 'SUCCESS', ?)`,
     [quoteId, params.channels.join(","), params.notifyText || "", quote.customer_phone || "", tenantId],
@@ -543,7 +543,7 @@ export async function viewQuoteByToken(shareToken: string): Promise<QuoteDetail 
             q.status, q.valid_days AS validDays, q.expire_at AS expireAt,
             q.total_amount AS totalAmount, q.total_sku AS totalSku,
             q.remark, q.view_count AS viewCount, q.tenant_id AS tenantId
-     FROM customer_quote q WHERE q.share_token = ? LIMIT 1`,
+     FROM t_customer_quote q WHERE q.share_token = ? LIMIT 1`,
     [shareToken]
   );
   const quote = rows[0] || null;
@@ -552,7 +552,7 @@ export async function viewQuoteByToken(shareToken: string): Promise<QuoteDetail 
 
   // 增加浏览次数
   await queryWithTenant(
-    "UPDATE customer_quote SET view_count = view_count + 1 WHERE id = ? AND tenant_id = ?",
+    "UPDATE t_customer_quote SET view_count = view_count + 1 WHERE id = ? AND tenant_id = ?",
     [quote.id, quote.tenantId],
     quote.tenantId
   );
@@ -561,7 +561,7 @@ export async function viewQuoteByToken(shareToken: string): Promise<QuoteDetail 
     `SELECT qi.sku_id AS skuId, qi.sku_name AS skuName,
             qi.quote_price AS quotePrice, qi.min_qty AS minQty,
             sk.barcode, s.unit, s.main_image AS imageUrl
-     FROM customer_quote_item qi
+     FROM t_customer_quote_item qi
      LEFT JOIN t_product_sku sk ON sk.id = qi.sku_id AND sk.tenant_id = qi.tenant_id
      LEFT JOIN t_product_spu s ON s.id = sk.spu_id AND s.tenant_id = sk.tenant_id
      WHERE qi.quote_id = ? AND qi.tenant_id = ?
@@ -607,7 +607,7 @@ export async function viewQuoteByToken(shareToken: string): Promise<QuoteDetail 
  */
 export async function cancelQuote(quoteId: number, tenantId: string) {
   const existing = await queryOneWithTenant<any>(
-    "SELECT id, status FROM customer_quote WHERE id = ? AND tenant_id = ?",
+    "SELECT id, status FROM t_customer_quote WHERE id = ? AND tenant_id = ?",
     [quoteId, tenantId],
     tenantId
   );
@@ -621,7 +621,7 @@ export async function cancelQuote(quoteId: number, tenantId: string) {
   }
 
   await queryWithTenant(
-    "UPDATE customer_quote SET status = 'CANCELLED', updated_at = NOW() WHERE id = ? AND tenant_id = ?",
+    "UPDATE t_customer_quote SET status = 'CANCELLED', updated_at = NOW() WHERE id = ? AND tenant_id = ?",
     [quoteId, tenantId],
     tenantId
   );

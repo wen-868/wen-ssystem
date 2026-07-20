@@ -8,7 +8,7 @@ export class PaymentConfigService {
   // 获取渠道配置（敏感字段脱敏：返回 ***）
   static async getChannelConfig(tenantId: string, provider: string) {
     const row = await queryOneWithTenant(
-      `SELECT * FROM payment_config WHERE provider = ?`,
+      `SELECT * FROM t_payment_config WHERE provider = ?`,
       [provider],
       tenantId
     );
@@ -23,17 +23,17 @@ export class PaymentConfigService {
   // 保存渠道配置
   static async saveChannelConfig(tenantId: string, provider: string, data: any) {
     const existing = await queryOneWithTenant(
-      `SELECT id FROM payment_config WHERE provider = ?`, [provider], tenantId
+      `SELECT id FROM t_payment_config WHERE provider = ?`, [provider], tenantId
     );
     if (existing) {
       await executeWithTenant(
-        `UPDATE payment_config SET app_id=?, mch_id=?, api_v3_key=?, private_key=?, serial_no=?, notify_url=?, alipay_public_key=?, enabled=?, updated_at=NOW() WHERE provider=?`,
+        `UPDATE t_payment_config SET app_id=?, mch_id=?, api_v3_key=?, private_key=?, serial_no=?, notify_url=?, alipay_public_key=?, enabled=?, updated_at=NOW() WHERE provider=?`,
         [data.appId||'', data.mchId||'', data.apiV3Key||'', data.privateKey||'', data.serialNo||'', data.notifyUrl||'', data.alipayPublicKey||'', data.enabled?1:0, provider],
         tenantId
       );
     } else {
       await executeWithTenant(
-        `INSERT INTO payment_config (provider, app_id, mch_id, api_v3_key, private_key, serial_no, notify_url, alipay_public_key, enabled, tenant_id) VALUES (?,?,?,?,?,?,?,?,?,?)`,
+        `INSERT INTO t_payment_config (provider, app_id, mch_id, api_v3_key, private_key, serial_no, notify_url, alipay_public_key, enabled, tenant_id) VALUES (?,?,?,?,?,?,?,?,?,?)`,
         [provider, data.appId||'', data.mchId||'', data.apiV3Key||'', data.privateKey||'', data.serialNo||'', data.notifyUrl||'', data.alipayPublicKey||'', data.enabled?1:0, tenantId],
         tenantId
       );
@@ -44,7 +44,7 @@ export class PaymentConfigService {
   // 检查是否已配置
   static async isProviderReady(tenantId: string, provider: string): Promise<boolean> {
     const row = await queryOneWithTenant(
-      `SELECT enabled, app_id, mch_id FROM payment_config WHERE provider = ?`, [provider], tenantId
+      `SELECT enabled, app_id, mch_id FROM t_payment_config WHERE provider = ?`, [provider], tenantId
     );
     return !!row && row.enabled === 1 && !!row.app_id && !!row.mch_id;
   }
@@ -52,7 +52,7 @@ export class PaymentConfigService {
   // 测试连接（mock实现）
   static async testConnection(tenantId: string, provider: string) {
     const config = await queryOneWithTenant(
-      `SELECT * FROM payment_config WHERE provider = ?`, [provider], tenantId
+      `SELECT * FROM t_payment_config WHERE provider = ?`, [provider], tenantId
     );
     if (!config) throw new Error('配置不存在');
     // Mock: 模拟测试连接
@@ -62,7 +62,7 @@ export class PaymentConfigService {
   // 各渠道配置状态
   static async getStatus(tenantId: string) {
     const rows = await queryWithTenant(
-      `SELECT provider, enabled, app_id, updated_at FROM payment_config`,
+      `SELECT provider, enabled, app_id, updated_at FROM t_payment_config`,
       [],
       tenantId
     );
@@ -72,14 +72,14 @@ export class PaymentConfigService {
   // 银行账号列表
   static async listBankAccounts(tenantId: string) {
     return await queryWithTenant(
-      `SELECT * FROM bank_account WHERE tenant_id = ? ORDER BY is_default DESC, id ASC`, [tenantId], tenantId
+      `SELECT * FROM t_bank_account WHERE tenant_id = ? ORDER BY is_default DESC, id ASC`, [tenantId], tenantId
     );
   }
 
   // 添加银行账号
   static async createBankAccount(tenantId: string, data: any) {
     const result = await executeWithTenant(
-      `INSERT INTO bank_account (bank_name, account_no, account_name, bank_branch, is_default, tenant_id) VALUES (?,?,?,?,?,?)`,
+      `INSERT INTO t_bank_account (bank_name, account_no, account_name, bank_branch, is_default, tenant_id) VALUES (?,?,?,?,?,?)`,
       [data.bankName, data.accountNo, data.accountName, data.bankBranch||'', data.isDefault?1:0, tenantId],
       tenantId
     );
@@ -89,7 +89,7 @@ export class PaymentConfigService {
   // 编辑银行账号
   static async updateBankAccount(tenantId: string, id: number, data: any) {
     await executeWithTenant(
-      `UPDATE bank_account SET bank_name=?, account_no=?, account_name=?, bank_branch=?, is_default=?, updated_at=NOW() WHERE id=? AND tenant_id=?`,
+      `UPDATE t_bank_account SET bank_name=?, account_no=?, account_name=?, bank_branch=?, is_default=?, updated_at=NOW() WHERE id=? AND tenant_id=?`,
       [data.bankName, data.accountNo, data.accountName, data.bankBranch||'', data.isDefault?1:0, id, tenantId],
       tenantId
     );
@@ -99,7 +99,7 @@ export class PaymentConfigService {
   // 删除银行账号
   static async deleteBankAccount(tenantId: string, id: number) {
     await executeWithTenant(
-      `DELETE FROM bank_account WHERE id=? AND tenant_id=?`, [id, tenantId], tenantId
+      `DELETE FROM t_bank_account WHERE id=? AND tenant_id=?`, [id, tenantId], tenantId
     );
     return { success: true };
   }
@@ -107,10 +107,10 @@ export class PaymentConfigService {
   // 设为默认银行账号
   static async setDefaultBankAccount(tenantId: string, id: number) {
     await executeWithTenant(
-      `UPDATE bank_account SET is_default=0 WHERE tenant_id=?`, [tenantId], tenantId
+      `UPDATE t_bank_account SET is_default=0 WHERE tenant_id=?`, [tenantId], tenantId
     );
     await executeWithTenant(
-      `UPDATE bank_account SET is_default=1 WHERE id=? AND tenant_id=?`, [id, tenantId], tenantId
+      `UPDATE t_bank_account SET is_default=1 WHERE id=? AND tenant_id=?`, [id, tenantId], tenantId
     );
     return { success: true };
   }

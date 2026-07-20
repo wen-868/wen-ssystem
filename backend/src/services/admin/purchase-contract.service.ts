@@ -18,7 +18,7 @@ export async function listPurchaseContracts(params: {
             pc.paid_amount AS paidAmount, pc.sign_date AS signDate,
             pc.start_date AS startDate, pc.end_date AS endDate,
             pc.status, pc.file_url AS fileUrl, pc.remark, pc.created_at AS createdAt
-     FROM purchase_contract pc
+     FROM t_purchase_contract pc
      LEFT JOIN t_supplier s ON s.id = pc.supplier_id
      ${where}
      ORDER BY pc.created_at DESC
@@ -27,7 +27,7 @@ export async function listPurchaseContracts(params: {
     tenantId
   );
   const totalRow = await queryOneWithTenant<any>(
-    `SELECT COUNT(*) AS total FROM purchase_contract pc ${where}`,
+    `SELECT COUNT(*) AS total FROM t_purchase_contract pc ${where}`,
     queryParams,
     tenantId
   );
@@ -42,7 +42,7 @@ export async function createPurchaseContract(params: {
   const { supplierId, contractName, contractType, totalAmount, signDate, startDate, endDate, remark, tenantId } = params;
   const contractNo = makeBizNo("HT");
   const result = await queryWithTenant<any>(
-    `INSERT INTO purchase_contract (contract_no, supplier_id, contract_name, contract_type, total_amount, sign_date, start_date, end_date, remark, tenant_id)
+    `INSERT INTO t_purchase_contract (contract_no, supplier_id, contract_name, contract_type, total_amount, sign_date, start_date, end_date, remark, tenant_id)
      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
     [contractNo, supplierId, contractName, contractType ?? "PURCHASE", totalAmount ?? 0, signDate ?? null, startDate ?? null, endDate ?? null, remark ?? null, tenantId],
     tenantId
@@ -56,7 +56,7 @@ export async function updatePurchaseContract(contractNo: string, params: {
   status?: string; remark?: string; tenantId: string;
 }) {
   const existing = await queryOneWithTenant<any>(
-    "SELECT contract_no FROM purchase_contract WHERE contract_no = ? AND tenant_id = ?",
+    "SELECT contract_no FROM t_purchase_contract WHERE contract_no = ? AND tenant_id = ?",
     [contractNo, params.tenantId],
     params.tenantId
   );
@@ -74,7 +74,7 @@ export async function updatePurchaseContract(contractNo: string, params: {
   if (fields.length === 0) throw new Error("没有需要更新的字段");
   values.push(contractNo, params.tenantId);
   await queryWithTenant<any>(
-    `UPDATE purchase_contract SET ${fields.join(", ")} WHERE contract_no = ? AND tenant_id = ?`,
+    `UPDATE t_purchase_contract SET ${fields.join(", ")} WHERE contract_no = ? AND tenant_id = ?`,
     values,
     params.tenantId
   );
@@ -83,13 +83,13 @@ export async function updatePurchaseContract(contractNo: string, params: {
 
 export async function deletePurchaseContract(contractNo: string, tenantId: string) {
   const existing = await queryOneWithTenant<any>(
-    "SELECT contract_no FROM purchase_contract WHERE contract_no = ? AND tenant_id = ?",
+    "SELECT contract_no FROM t_purchase_contract WHERE contract_no = ? AND tenant_id = ?",
     [contractNo, tenantId],
     tenantId
   );
   if (!existing) throw new Error("合同不存在");
   await queryWithTenant<any>(
-    "DELETE FROM purchase_contract WHERE contract_no = ? AND tenant_id = ?",
+    "DELETE FROM t_purchase_contract WHERE contract_no = ? AND tenant_id = ?",
     [contractNo, tenantId],
     tenantId
   );
@@ -98,13 +98,13 @@ export async function deletePurchaseContract(contractNo: string, tenantId: strin
 
 export async function uploadContractFile(contractNo: string, fileUrl: string, tenantId: string) {
   const existing = await queryOneWithTenant<any>(
-    "SELECT contract_no FROM purchase_contract WHERE contract_no = ? AND tenant_id = ?",
+    "SELECT contract_no FROM t_purchase_contract WHERE contract_no = ? AND tenant_id = ?",
     [contractNo, tenantId],
     tenantId
   );
   if (!existing) throw new Error("合同不存在");
   await queryWithTenant<any>(
-    "UPDATE purchase_contract SET file_url = ? WHERE contract_no = ? AND tenant_id = ?",
+    "UPDATE t_purchase_contract SET file_url = ? WHERE contract_no = ? AND tenant_id = ?",
     [fileUrl, contractNo, tenantId],
     tenantId
   );

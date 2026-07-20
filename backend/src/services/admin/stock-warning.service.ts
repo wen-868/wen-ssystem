@@ -19,7 +19,7 @@ export async function getStockWarnings(tenantId: string, storeId?: number) {
      FROM t_inventory_balance ib
      JOIN t_product_sku ps ON ps.id = ib.sku_id AND ps.tenant_id = ib.tenant_id
      LEFT JOIN t_store st ON st.id = ib.store_id
-     LEFT JOIN stock_warning_config swc ON swc.sku_id = ib.sku_id AND swc.store_id = ib.store_id AND swc.tenant_id = ib.tenant_id AND swc.enabled = 1
+     LEFT JOIN t_stock_warning_config swc ON swc.sku_id = ib.sku_id AND swc.store_id = ib.store_id AND swc.tenant_id = ib.tenant_id AND swc.enabled = 1
      WHERE ib.tenant_id = ? ${storeCondition}
        AND (
          (swc.id IS NOT NULL AND (ib.physical_qty < swc.min_qty OR (swc.max_qty > 0 AND ib.physical_qty > swc.max_qty)))
@@ -39,19 +39,19 @@ export async function batchConfigStockWarning(params: {
   const { storeId, configs, tenantId } = params;
   for (const cfg of configs) {
     const existing = await queryOneWithTenant<any>(
-      "SELECT id FROM stock_warning_config WHERE store_id = ? AND sku_id = ? AND tenant_id = ?",
+      "SELECT id FROM t_stock_warning_config WHERE store_id = ? AND sku_id = ? AND tenant_id = ?",
       [storeId, cfg.skuId, tenantId],
       tenantId
     );
     if (existing) {
       await queryWithTenant(
-        `UPDATE stock_warning_config SET min_qty = ?, max_qty = ?, enabled = 1 WHERE store_id = ? AND sku_id = ? AND tenant_id = ?`,
+        `UPDATE t_stock_warning_config SET min_qty = ?, max_qty = ?, enabled = 1 WHERE store_id = ? AND sku_id = ? AND tenant_id = ?`,
         [cfg.minQty, cfg.maxQty, storeId, cfg.skuId, tenantId],
         tenantId
       );
     } else {
       await queryWithTenant(
-        `INSERT INTO stock_warning_config (store_id, sku_id, min_qty, max_qty, enabled, tenant_id)
+        `INSERT INTO t_stock_warning_config (store_id, sku_id, min_qty, max_qty, enabled, tenant_id)
          VALUES (?, ?, ?, ?, 1, ?)`,
         [storeId, cfg.skuId, cfg.minQty, cfg.maxQty, tenantId],
         tenantId
@@ -72,7 +72,7 @@ export async function getStockWarningConfigs(tenantId: string, storeId?: number)
             swc.sku_id AS skuId, ps.sku_name AS skuName,
             swc.min_qty AS minQty, swc.max_qty AS maxQty,
             swc.enabled, ib.physical_qty AS currentStock
-     FROM stock_warning_config swc
+     FROM t_stock_warning_config swc
      LEFT JOIN t_store st ON st.id = swc.store_id
      LEFT JOIN t_product_sku ps ON ps.id = swc.sku_id
      LEFT JOIN t_inventory_balance ib ON ib.sku_id = swc.sku_id AND ib.store_id = swc.store_id AND ib.tenant_id = swc.tenant_id
@@ -90,20 +90,20 @@ export async function updateWarningThreshold(params: {
   const { skuId, storeId, minQty, maxQty, tenantId } = params;
 
   const existing = await queryOneWithTenant<any>(
-    "SELECT id FROM stock_warning_config WHERE store_id = ? AND sku_id = ? AND tenant_id = ?",
+    "SELECT id FROM t_stock_warning_config WHERE store_id = ? AND sku_id = ? AND tenant_id = ?",
     [storeId, skuId, tenantId],
     tenantId
   );
 
   if (existing) {
     await queryWithTenant(
-      `UPDATE stock_warning_config SET min_qty = ?, max_qty = ?, enabled = 1 WHERE store_id = ? AND sku_id = ? AND tenant_id = ?`,
+      `UPDATE t_stock_warning_config SET min_qty = ?, max_qty = ?, enabled = 1 WHERE store_id = ? AND sku_id = ? AND tenant_id = ?`,
       [minQty, maxQty, storeId, skuId, tenantId],
       tenantId
     );
   } else {
     await queryWithTenant(
-      `INSERT INTO stock_warning_config (store_id, sku_id, min_qty, max_qty, enabled, tenant_id)
+      `INSERT INTO t_stock_warning_config (store_id, sku_id, min_qty, max_qty, enabled, tenant_id)
        VALUES (?, ?, ?, ?, 1, ?)`,
       [storeId, skuId, minQty, maxQty, tenantId],
       tenantId

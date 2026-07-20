@@ -224,7 +224,7 @@ export async function upgradeSubscription(id: number, body: UpgradeRequest): Pro
     price: number;
     duration_days: number;
   }>(
-    "SELECT id, plan_name, plan_type, price, duration_days FROM subscription_plan WHERE id = ?",
+    "SELECT id, plan_name, plan_type, price, duration_days FROM t_subscription_plan WHERE id = ?",
     [body.newPlanId]
   );
 

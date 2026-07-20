@@ -464,9 +464,9 @@ export const queryHandlers: Array<(s: string, params: unknown[]) => Row[] | null
     }
     return null;
   },
-  // 列表（带 JOIN store）
+  // 列表（带 JOIN t_store）
   (s, params) => {
-    if (fromTable(s, "sale_return") && s.includes("left join store") && !s.includes("count(*)")) {
+    if (fromTable(s, "sale_return") && s.includes("left join t_store") && !s.includes("count(*)")) {
       const offset = Number(params[params.length - 1]) || 0;
       const pageSize = Number(params[params.length - 2]) || 20;
       const sorted = [...state.saleReturns].sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime());
@@ -722,7 +722,7 @@ export const queryHandlers: Array<(s: string, params: unknown[]) => Row[] | null
 
 export const executeHandlers: Array<(s: string, params: unknown[]) => Row[] | null> = [
   // ========== supplier INSERT ==========
-  // SQL: INSERT INTO supplier (supplier_code, name, short_name, category, province, city, district, address,
+  // SQL: INSERT INTO t_supplier (supplier_code, name, short_name, category, province, city, district, address,
   //   credit_level, settlement_type, settlement_day, tax_rate, bank_name, bank_account,
   //   bank_account_name, remark, tenant_id) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
   // params[0..16], 无字面量
@@ -758,7 +758,7 @@ export const executeHandlers: Array<(s: string, params: unknown[]) => Row[] | nu
   },
 
   // ========== supplier UPDATE ==========
-  // SQL: UPDATE supplier SET ... WHERE id = ? AND tenant_id = ?
+  // SQL: UPDATE t_supplier SET ... WHERE id = ? AND tenant_id = ?
   // 参数顺序: [updateValues..., id, tenant_id]
   (s, params) => {
     if (updateTable(s, "supplier") && s.includes("where id")) {

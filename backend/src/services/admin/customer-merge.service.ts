@@ -92,7 +92,7 @@ export async function getCustomerRelations(tenantId: string, customerId: number)
             COALESCE(SUM(total_amount), 0) as total_amount,
             COALESCE(SUM(paid_amount), 0) as paid_amount,
             COALESCE(SUM(total_amount - paid_amount), 0) as unpaid_amount
-     FROM sales_order
+     FROM t_sales_order
      WHERE customer_id = ? AND tenant_id = ?`,
     [customerId, tenantId],
     tenantId
@@ -117,7 +117,7 @@ export async function getCustomerRelations(tenantId: string, customerId: number)
 
   const visitStats = await queryOneWithTenant<any>(
     `SELECT COUNT(*) as visit_count
-     FROM customer_visit
+     FROM t_customer_visit
      WHERE customer_id = ? AND tenant_id = ?`,
     [customerId, tenantId],
     tenantId
@@ -209,7 +209,7 @@ export async function mergeCustomers(tenantId: string, body: {
     }
 
     await conn.execute(
-      `UPDATE sales_order SET customer_id = ? WHERE customer_id IN (?) AND tenant_id = ?`,
+      `UPDATE t_sales_order SET customer_id = ? WHERE customer_id IN (?) AND tenant_id = ?`,
       [body.primaryCustomerId, body.duplicateCustomerIds, tenantId]
     );
 
@@ -219,7 +219,7 @@ export async function mergeCustomers(tenantId: string, body: {
     );
 
     await conn.execute(
-      `UPDATE customer_visit SET customer_id = ? WHERE customer_id IN (?) AND tenant_id = ?`,
+      `UPDATE t_customer_visit SET customer_id = ? WHERE customer_id IN (?) AND tenant_id = ?`,
       [body.primaryCustomerId, body.duplicateCustomerIds, tenantId]
     );
 

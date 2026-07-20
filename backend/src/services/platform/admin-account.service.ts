@@ -127,7 +127,7 @@ export async function updatePlatformAdminStatus(
   }
 
   await query(
-    "UPDATE platform_admin SET status = ? WHERE id = ?",
+    "UPDATE t_platform_admin SET status = ? WHERE id = ?",
     [status, adminId]
   );
 

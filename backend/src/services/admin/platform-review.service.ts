@@ -20,7 +20,7 @@ export async function listReviews(tenantId: string, params: ReviewListParams) {
   const where = `WHERE ${conditions.join(" AND ")}`;
 
   const totalRow = await queryOneWithTenant<{ total: number }>(
-    `SELECT COUNT(*) AS total FROM platform_review ${where}`, sqlParams, tenantId
+    `SELECT COUNT(*) AS total FROM t_platform_review ${where}`, sqlParams, tenantId
   );
   const total = totalRow?.total ?? 0;
 
@@ -28,7 +28,7 @@ export async function listReviews(tenantId: string, params: ReviewListParams) {
     `SELECT id, platform_no AS platformNo, platform_name AS platformName,
             review_type AS reviewType, status, review_result AS reviewResult,
             review_at AS reviewAt, created_at AS createdAt, updated_at AS updatedAt
-     FROM platform_review ${where}
+     FROM t_platform_review ${where}
      ORDER BY created_at DESC
      LIMIT ? OFFSET ?`,
     [...sqlParams, params.pageSize, offset],
@@ -40,7 +40,7 @@ export async function listReviews(tenantId: string, params: ReviewListParams) {
 
 export async function replyReview(tenantId: string, id: number, replyContent: string) {
   await queryWithTenant(
-    "UPDATE platform_review SET review_result = CONCAT(IFNULL(review_result, ''), ?), review_at = NOW(), updated_at = NOW() WHERE id = ? AND tenant_id = ?",
+    "UPDATE t_platform_review SET review_result = CONCAT(IFNULL(review_result, ''), ?), review_at = NOW(), updated_at = NOW() WHERE id = ? AND tenant_id = ?",
     [`\n[回复] ${replyContent}`, id, tenantId],
     tenantId
   );
@@ -50,7 +50,7 @@ export async function replyReview(tenantId: string, id: number, replyContent: st
 export async function getStats(tenantId: string) {
   const stats = await queryWithTenant<{ platformName: string; cnt: number }>(
     `SELECT platform_name AS platformName, COUNT(*) AS cnt
-     FROM platform_review WHERE tenant_id = ?
+     FROM t_platform_review WHERE tenant_id = ?
      GROUP BY platform_name ORDER BY cnt DESC`,
     [tenantId],
     tenantId
@@ -78,7 +78,7 @@ export async function reviewApproval(tenantId: string, id: number, status: numbe
   params.push(tenantId);
 
   await queryWithTenant(
-    `UPDATE platform_review SET ${updates.join(", ")} WHERE id = ? AND tenant_id = ?`,
+    `UPDATE t_platform_review SET ${updates.join(", ")} WHERE id = ? AND tenant_id = ?`,
     params,
     tenantId
   );
@@ -89,7 +89,7 @@ export async function reviewApproval(tenantId: string, id: number, status: numbe
 export async function batchReviewApproval(tenantId: string, ids: number[], status: number) {
   const placeholders = ids.map(() => "?").join(",");
   await queryWithTenant(
-    `UPDATE platform_review SET status = ?, review_at = NOW(), updated_at = NOW() 
+    `UPDATE t_platform_review SET status = ?, review_at = NOW(), updated_at = NOW() 
      WHERE id IN (${placeholders}) AND tenant_id = ?`,
     [status, ...ids, tenantId],
     tenantId
@@ -103,7 +103,7 @@ export async function getReviewById(tenantId: string, id: number) {
     `SELECT id, platform_no AS platformNo, platform_name AS platformName,
             review_type AS reviewType, status, review_result AS reviewResult,
             review_at AS reviewAt, created_at AS createdAt, updated_at AS updatedAt
-     FROM platform_review WHERE id = ? AND tenant_id = ?`,
+     FROM t_platform_review WHERE id = ? AND tenant_id = ?`,
     [id, tenantId],
     tenantId
   );

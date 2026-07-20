@@ -24,7 +24,7 @@ export async function listCustomerPrices(params: {
             cp.effective_end AS effectiveEnd, cp.status,
             m.name AS customerName, ps.sku_name AS skuName,
             pp.retail_price AS retailPrice, pp.wholesale_price AS wholesalePrice
-     FROM customer_price cp
+     FROM t_customer_price cp
      LEFT JOIN t_member m ON m.id = cp.customer_id
      LEFT JOIN t_product_sku ps ON ps.id = cp.sku_id
      LEFT JOIN t_product_price pp ON pp.sku_id = cp.sku_id
@@ -35,7 +35,7 @@ export async function listCustomerPrices(params: {
     tenantId
   );
   const totalRow = await queryOneWithTenant<any>(
-    `SELECT COUNT(*) AS total FROM customer_price cp ${where}`,
+    `SELECT COUNT(*) AS total FROM t_customer_price cp ${where}`,
     queryParams,
     tenantId
   );
@@ -49,13 +49,13 @@ export async function createCustomerPrice(params: {
   const { customerId, skuId, customPrice, effectiveStart, effectiveEnd, tenantId } = params;
   // 检查是否已存在
   const existing = await queryOneWithTenant<any>(
-    "SELECT id FROM customer_price WHERE customer_id = ? AND sku_id = ? AND tenant_id = ?",
+    "SELECT id FROM t_customer_price WHERE customer_id = ? AND sku_id = ? AND tenant_id = ?",
     [customerId, skuId, tenantId],
     tenantId
   );
   if (existing) throw new Error("该客户已存在此SKU的价格记录");
   const result = await queryWithTenant<any>(
-    `INSERT INTO customer_price (customer_id, sku_id, custom_price, effective_start, effective_end, tenant_id)
+    `INSERT INTO t_customer_price (customer_id, sku_id, custom_price, effective_start, effective_end, tenant_id)
      VALUES (?, ?, ?, ?, ?, ?)`,
     [customerId, skuId, customPrice, effectiveStart ?? null, effectiveEnd ?? null, tenantId],
     tenantId
@@ -68,7 +68,7 @@ export async function updateCustomerPrice(id: number, params: {
   tenantId: string;
 }) {
   const existing = await queryOneWithTenant<any>(
-    "SELECT id FROM customer_price WHERE id = ? AND tenant_id = ?",
+    "SELECT id FROM t_customer_price WHERE id = ? AND tenant_id = ?",
     [id, params.tenantId],
     params.tenantId
   );
@@ -82,7 +82,7 @@ export async function updateCustomerPrice(id: number, params: {
   if (fields.length === 0) throw new Error("没有需要更新的字段");
   values.push(id, params.tenantId);
   await queryWithTenant<any>(
-    `UPDATE customer_price SET ${fields.join(", ")} WHERE id = ? AND tenant_id = ?`,
+    `UPDATE t_customer_price SET ${fields.join(", ")} WHERE id = ? AND tenant_id = ?`,
     values,
     params.tenantId
   );
@@ -91,13 +91,13 @@ export async function updateCustomerPrice(id: number, params: {
 
 export async function deleteCustomerPrice(id: number, tenantId: string) {
   const existing = await queryOneWithTenant<any>(
-    "SELECT id FROM customer_price WHERE id = ? AND tenant_id = ?",
+    "SELECT id FROM t_customer_price WHERE id = ? AND tenant_id = ?",
     [id, tenantId],
     tenantId
   );
   if (!existing) throw new Error("价格记录不存在");
   await queryWithTenant<any>(
-    "DELETE FROM customer_price WHERE id = ? AND tenant_id = ?",
+    "DELETE FROM t_customer_price WHERE id = ? AND tenant_id = ?",
     [id, tenantId],
     tenantId
   );
@@ -109,7 +109,7 @@ export async function getCustomerPrice(customerId: number, skuId: number, tenant
   const now = new Date().toISOString().slice(0, 10);
   const price = await queryOneWithTenant<any>(
     `SELECT custom_price AS customPrice
-     FROM customer_price
+     FROM t_customer_price
      WHERE customer_id = ? AND sku_id = ? AND status = 1 AND tenant_id = ?
        AND (effective_start IS NULL OR effective_start <= ?)
        AND (effective_end IS NULL OR effective_end >= ?)

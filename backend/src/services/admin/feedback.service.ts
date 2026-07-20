@@ -27,7 +27,7 @@ export interface FeedbackQuery {
 
 export async function insertFeedback(entry: FeedbackEntry): Promise<number> {
   const sql = `
-    INSERT INTO system_feedback
+    INSERT INTO t_system_feedback
     (type, title, content, contact, screenshot_urls, page_url, browser_info, user_id, tenant_id, status)
     VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, 'PENDING')
   `;
@@ -69,7 +69,7 @@ export async function listFeedbacks(params: FeedbackQuery) {
   const [rows, countResult] = await Promise.all([
     queryWithTenant(
       `SELECT f.*, u.real_name AS userName
-       FROM system_feedback f
+       FROM t_system_feedback f
        LEFT JOIN t_sys_user u ON u.id = f.user_id
        WHERE ${where}
        ORDER BY f.created_at DESC
@@ -78,7 +78,7 @@ export async function listFeedbacks(params: FeedbackQuery) {
       params.tenant_id
     ),
     queryOneWithTenant(
-      `SELECT COUNT(*) AS total FROM system_feedback f WHERE ${where}`,
+      `SELECT COUNT(*) AS total FROM t_system_feedback f WHERE ${where}`,
       values,
       params.tenant_id
     ),
@@ -99,8 +99,8 @@ export async function updateFeedbackStatus(
   tenant_id?: string
 ) {
   const sql = reply
-    ? `UPDATE system_feedback SET status = ?, reply = ?, updated_at = NOW() WHERE id = ? AND tenant_id = ?`
-    : `UPDATE system_feedback SET status = ?, updated_at = NOW() WHERE id = ? AND tenant_id = ?`;
+    ? `UPDATE t_system_feedback SET status = ?, reply = ?, updated_at = NOW() WHERE id = ? AND tenant_id = ?`
+    : `UPDATE t_system_feedback SET status = ?, updated_at = NOW() WHERE id = ? AND tenant_id = ?`;
   const values = reply ? [status, reply, id, tenant_id] : [status, id, tenant_id];
   await query(sql, values);
 }

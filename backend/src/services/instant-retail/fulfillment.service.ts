@@ -21,7 +21,7 @@ export async function startDelivery(platformOrderId: string, body: any, tenantId
   const success = await adapter.startDelivery(platformOrderId, body);
   if (success) {
     await queryWithTenant(
-      `UPDATE platform_order SET status = 'DELIVERING', updated_at = NOW() WHERE platform_order_id = ?`,
+      `UPDATE t_platform_order SET status = 'DELIVERING', updated_at = NOW() WHERE platform_order_id = ?`,
       [platformOrderId],
       tenantId
     );
@@ -47,7 +47,7 @@ export async function completeDelivery(platformOrderId: string, tenantId: string
   const success = await adapter.completeDelivery(platformOrderId);
   if (success) {
     await queryWithTenant(
-      `UPDATE platform_order SET status = 'COMPLETED', updated_at = NOW() WHERE platform_order_id = ?`,
+      `UPDATE t_platform_order SET status = 'COMPLETED', updated_at = NOW() WHERE platform_order_id = ?`,
       [platformOrderId],
       tenantId
     );

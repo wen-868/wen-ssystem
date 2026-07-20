@@ -85,7 +85,7 @@ describe("admin customer-payment.service - create", () => {
     mockConn.query
       .mockResolvedValueOnce([{}])                                          // INSERT payment
       .mockResolvedValueOnce([[{ receivable_amount: 1000, received_amount: 0 }]])  // SELECT bill
-      .mockResolvedValueOnce([{}])                                          // UPDATE bill
+      .mockResolvedValueOnce([{}])                                          // UPDATE t_bill
       .mockResolvedValueOnce([{}]);                                         // INSERT log
     const res = await create({
       customer_id: 1, customer_name: "张三", amount: 200, payment_date: "2026-07-09",
@@ -138,13 +138,13 @@ describe("admin customer-payment.service - voidPayment", () => {
     mockConn.query.mockResolvedValue([{}]);
     const res = await voidPayment("SK001", "t1", 1, "user1");
     expect(res).toEqual({ receipt_no: "SK001" });
-    expect(mockConn.query).toHaveBeenCalledTimes(2);  // UPDATE payment + INSERT log
+    expect(mockConn.query).toHaveBeenCalledTimes(2);  // UPDATE t_payment + INSERT log
   });
 
   it("SALE_BILL 类型 + billRow 不存在", async () => {
     mocks.queryOne.mockResolvedValue({ id: 1, status: "COMPLETED", source_type: "SALE_BILL", source_no: "B001", amount: 100 });
     mockConn.query
-      .mockResolvedValueOnce([{}])   // UPDATE payment
+      .mockResolvedValueOnce([{}])   // UPDATE t_payment
       .mockResolvedValueOnce([[]])   // SELECT bill (空)
       .mockResolvedValueOnce([{}]);  // INSERT log
     const res = await voidPayment("SK001", "t1", 1, "user1");
@@ -154,9 +154,9 @@ describe("admin customer-payment.service - voidPayment", () => {
   it("SALE_BILL 类型 + 部分付款（PARTIAL）", async () => {
     mocks.queryOne.mockResolvedValue({ id: 1, status: "COMPLETED", source_type: "SALE_BILL", source_no: "B001", amount: 200 });
     mockConn.query
-      .mockResolvedValueOnce([{}])   // UPDATE payment
+      .mockResolvedValueOnce([{}])   // UPDATE t_payment
       .mockResolvedValueOnce([[{ receivable_amount: 1000, received_amount: 500 }]])  // SELECT bill
-      .mockResolvedValueOnce([{}])   // UPDATE bill
+      .mockResolvedValueOnce([{}])   // UPDATE t_bill
       .mockResolvedValueOnce([{}]);  // INSERT log
     const res = await voidPayment("SK001", "t1", 1, "user1");
     expect(res).toEqual({ receipt_no: "SK001" });

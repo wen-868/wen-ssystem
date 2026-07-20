@@ -115,7 +115,7 @@ export async function createPrintRecord(
     }
 
     const result = await queryWithTenant<{ insertId: number }>(
-        `INSERT INTO print_record
+        `INSERT INTO t_print_record
       (store_id, bill_type, bill_no, printer_mac, print_content, copies, operator_id, status, error_msg, original_id)
      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
         [
@@ -199,7 +199,7 @@ export async function listPrintRecords(
     const records = await queryWithTenant<PrintRecordRow>(
         `SELECT id, tenant_id, store_id, bill_type, bill_no, printer_mac, print_content,
             copies, operator_id, status, error_msg, original_id, created_at, updated_at
-     FROM print_record
+     FROM t_print_record
      ${whereClause}
      ORDER BY created_at DESC, id DESC
      LIMIT ? OFFSET ?`,
@@ -208,7 +208,7 @@ export async function listPrintRecords(
     );
 
     const totalRow = await queryOneWithTenant<{ total: number }>(
-        `SELECT COUNT(*) AS total FROM print_record ${whereClause}`,
+        `SELECT COUNT(*) AS total FROM t_print_record ${whereClause}`,
         values,
         tenantId
     );
@@ -235,7 +235,7 @@ export async function getPrintRecordDetail(
     const row = await queryOneWithTenant<PrintRecordRow>(
         `SELECT id, tenant_id, store_id, bill_type, bill_no, printer_mac, print_content,
             copies, operator_id, status, error_msg, original_id, created_at, updated_at
-     FROM print_record
+     FROM t_print_record
      WHERE id = ?`,
         [id],
         tenantId
@@ -265,7 +265,7 @@ export async function reprintRecord(
     const original = await queryOneWithTenant<PrintRecordRow>(
         `SELECT id, tenant_id, store_id, bill_type, bill_no, printer_mac, print_content,
             copies, operator_id, status, error_msg, original_id, created_at, updated_at
-     FROM print_record
+     FROM t_print_record
      WHERE id = ?`,
         [id],
         tenantId
@@ -277,7 +277,7 @@ export async function reprintRecord(
 
     // 复制原记录数据，bill_type 改为 REPRINT，original_id 指向原记录
     const result = await queryWithTenant<{ insertId: number }>(
-        `INSERT INTO print_record
+        `INSERT INTO t_print_record
       (store_id, bill_type, bill_no, printer_mac, print_content, copies, operator_id, status, error_msg, original_id)
      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
         [

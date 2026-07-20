@@ -167,7 +167,7 @@ export async function upsertConfig(body: any, tenantId: string) {
 
   if (existing) {
     await queryWithTenant(
-      `UPDATE platform_config
+      `UPDATE t_platform_config
        SET store_id = ?, app_key = ?, app_secret = ?, merchant_id = ?, config_json = ?, updated_at = NOW()
        WHERE platform = ?`,
       [

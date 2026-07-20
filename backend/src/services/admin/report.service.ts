@@ -240,7 +240,7 @@ export async function getSalesRanking(tenantId: string, startDate?: string, endD
             COALESCE(SUM(sb.receivable_amount), 0) AS totalSales,
             COALESCE(SUM(sb.received_amount), 0) AS totalReceived
      FROM t_sale_bill sb
-     LEFT JOIN employee e ON e.id = sb.operator_id
+     LEFT JOIN t_employee e ON e.id = sb.operator_id
      WHERE sb.tenant_id = ?${dateFilter}
      GROUP BY sb.operator_id, e.name
      ORDER BY totalSales DESC`,

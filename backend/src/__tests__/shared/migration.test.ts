@@ -111,31 +111,31 @@ describe("addTablePrefix", () => {
   });
 
   it("INSERT INTO 应加 t_ 前缀", () => {
-    const sql = "INSERT INTO sys_user (name) VALUES ('test');";
+    const sql = "INSERT INTO t_sys_user (name) VALUES ('test');";
     const result = addTablePrefix(sql);
     expect(result).toContain("INSERT INTO t_sys_user");
   });
 
   it("UPDATE 应加 t_ 前缀", () => {
-    const sql = "UPDATE sys_user SET name = 'test';";
+    const sql = "UPDATE t_sys_user SET name = 'test';";
     const result = addTablePrefix(sql);
     expect(result).toContain("UPDATE t_sys_user");
   });
 
   it("DELETE FROM 应加 t_ 前缀", () => {
-    const sql = "DELETE FROM sys_user WHERE id = 1;";
+    const sql = "DELETE FROM t_sys_user WHERE id = 1;";
     const result = addTablePrefix(sql);
     expect(result).toContain("DELETE FROM t_sys_user");
   });
 
   it("FROM 子句应加 t_ 前缀", () => {
-    const sql = "SELECT * FROM sys_user;";
+    const sql = "SELECT * FROM t_sys_user;";
     const result = addTablePrefix(sql);
     expect(result).toContain("FROM t_sys_user");
   });
 
   it("JOIN 应加 t_ 前缀", () => {
-    const sql = "SELECT * FROM sys_user JOIN sys_role ON ...;";
+    const sql = "SELECT * FROM t_sys_user JOIN t_sys_role ON ...;";
     const result = addTablePrefix(sql);
     expect(result).toContain("JOIN t_sys_role");
   });

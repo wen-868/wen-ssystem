@@ -29,8 +29,8 @@ describe("routes/monitor-slow-query 集成测试", () => {
   describe("GET /slow-queries", () => {
     it("应返回慢查询列表", async () => {
       const mockQueries = [
-        { id: 1, sql: "SELECT * FROM orders", duration: 2500 },
-        { id: 2, sql: "SELECT * FROM products", duration: 1800 },
+        { id: 1, sql: "SELECT * FROM t_orders", duration: 2500 },
+        { id: 2, sql: "SELECT * FROM t_products", duration: 1800 },
       ];
       (getSlowQueries as any).mockReturnValue(mockQueries);
       const res = await request(app).get("/api/monitor/slow-queries");

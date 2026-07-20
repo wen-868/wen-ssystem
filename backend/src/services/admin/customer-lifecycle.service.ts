@@ -4,7 +4,7 @@ import { queryWithTenant, queryOneWithTenant } from "../../shared/db";
 export async function getLifecycleStages(tenantId: string) {
   const stages = await queryWithTenant<any>(
     `SELECT lifecycle_stage AS stage, COUNT(*) AS customerCount
-     FROM customer_profile WHERE tenant_id = ?
+     FROM t_customer_profile WHERE tenant_id = ?
      GROUP BY lifecycle_stage`,
     [tenantId], tenantId
   );
@@ -20,7 +20,7 @@ export async function getLifecycleTrend(tenantId: string, months: number = 6) {
     const monthStr = month.toISOString().slice(0, 7);
     const data = await queryWithTenant<any>(
       `SELECT lifecycle_stage AS stage, COUNT(*) AS cnt
-       FROM customer_profile WHERE tenant_id = ? AND DATE_FORMAT(updated_at, '%Y-%m') = ?
+       FROM t_customer_profile WHERE tenant_id = ? AND DATE_FORMAT(updated_at, '%Y-%m') = ?
        GROUP BY lifecycle_stage`,
       [tenantId, monthStr], tenantId
     );
@@ -42,11 +42,11 @@ export async function getLifecycleDetail(params: { stage?: string; page: number;
   const where = `WHERE ${conditions.join(" AND ")}`;
   const records = await queryWithTenant<any>(
     `SELECT cp.customer_id AS customerId, m.name AS customerName, m.mobile, cp.lifecycle_stage AS stage, cp.last_order_at AS lastOrderAt, cp.total_order_count AS totalOrderCount, cp.avg_order_amount AS avgOrderAmount, cp.member_level AS memberLevel, DATEDIFF(NOW(), COALESCE(cp.last_order_at, m.created_at)) AS daysSinceLastOrder
-     FROM customer_profile cp
+     FROM t_customer_profile cp
      LEFT JOIN t_member m ON m.id = cp.customer_id
      ${where} ORDER BY cp.last_order_at DESC LIMIT ? OFFSET ?`,
     [...values, pageSize, offset], tenantId
   );
-  const total = await queryOneWithTenant<any>(`SELECT COUNT(*) AS total FROM customer_profile cp ${where}`, values, tenantId);
+  const total = await queryOneWithTenant<any>(`SELECT COUNT(*) AS total FROM t_customer_profile cp ${where}`, values, tenantId);
   return { total: total?.total ?? 0, page, pageSize, records };
 }

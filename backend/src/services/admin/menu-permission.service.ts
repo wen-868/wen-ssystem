@@ -19,7 +19,7 @@ export async function getMenuTree(tenantId: string): Promise<MenuItem[]> {
   const records = await queryWithTenant<any>(
     `SELECT id, parent_id AS parentId, menu_name AS menuName, menu_code AS menuCode,
             menu_type AS menuType, path, icon, sort_no AS sortNo, status
-     FROM sys_menu
+     FROM t_sys_menu
      ORDER BY sort_no ASC`,
     [],
     tenantId
@@ -63,8 +63,8 @@ function buildTree(flatList: MenuItem[]): MenuItem[] {
 export async function getRoleMenuCodes(roleId: number, tenantId: string): Promise<string[]> {
   const records = await queryWithTenant<any>(
     `SELECT m.menu_code AS menuCode
-     FROM sys_role_menu rm
-     JOIN sys_menu m ON m.id = rm.menu_id
+     FROM t_sys_role_menu rm
+     JOIN t_sys_menu m ON m.id = rm.menu_id
      WHERE rm.role_id = ?`,
     [roleId],
     tenantId
@@ -100,7 +100,7 @@ export async function getUserMenus(userId: number, tenantId: string): Promise<Me
     records = await queryWithTenant<any>(
       `SELECT DISTINCT id, parent_id AS parentId, menu_name AS menuName, menu_code AS menuCode,
               menu_type AS menuType, path, icon, sort_no AS sortNo, status
-       FROM sys_menu
+       FROM t_sys_menu
        ORDER BY sort_no ASC`,
       [],
       tenantId
@@ -111,8 +111,8 @@ export async function getUserMenus(userId: number, tenantId: string): Promise<Me
     records = await queryWithTenant<any>(
       `SELECT DISTINCT m.id, m.parent_id AS parentId, m.menu_name AS menuName, m.menu_code AS menuCode,
               m.menu_type AS menuType, m.path, m.icon, m.sort_no AS sortNo, m.status
-       FROM sys_role_menu rm
-       JOIN sys_menu m ON m.id = rm.menu_id
+       FROM t_sys_role_menu rm
+       JOIN t_sys_menu m ON m.id = rm.menu_id
        WHERE rm.role_id IN (${placeholders})
        ORDER BY m.sort_no ASC`,
       roleIds,
@@ -138,7 +138,7 @@ export async function getDataPermissions(roleId: number, tenantId: string): Prom
   return await queryWithTenant<DataPermission>(
     `SELECT id, role_id AS roleId, table_name AS tableName, field_name AS fieldName,
             filter_type AS filterType, filter_value AS filterValue
-     FROM sys_data_permission
+     FROM t_sys_data_permission
      WHERE role_id = ?`,
     [roleId],
     tenantId
@@ -159,7 +159,7 @@ export async function getFieldPermissions(roleId: number, tenantId: string): Pro
   return await queryWithTenant<FieldPermission>(
     `SELECT id, role_id AS roleId, table_name AS tableName, field_name AS fieldName,
             permission_type AS permissionType
-     FROM sys_field_permission
+     FROM t_sys_field_permission
      WHERE role_id = ?`,
     [roleId],
     tenantId
@@ -194,13 +194,13 @@ export async function setRoleMenuPermissions(
   await transaction(async (conn) => {
     // 删除旧的菜单权限
     await (conn as { execute: (sql: string, params?: unknown[]) => Promise<unknown> }).execute(
-      "DELETE FROM sys_role_menu WHERE role_id = ?",
+      "DELETE FROM t_sys_role_menu WHERE role_id = ?",
       [roleId]
     );
     // 插入新的菜单权限
     for (const menuId of menuIds) {
       await (conn as { execute: (sql: string, params?: unknown[]) => Promise<unknown> }).execute(
-        "INSERT INTO sys_role_menu (role_id, menu_id) VALUES (?, ?)",
+        "INSERT INTO t_sys_role_menu (role_id, menu_id) VALUES (?, ?)",
         [roleId, menuId]
       );
     }
@@ -214,12 +214,12 @@ export async function setRoleDataPermissions(
 ): Promise<void> {
   await transaction(async (conn) => {
     await (conn as { execute: (sql: string, params?: unknown[]) => Promise<unknown> }).execute(
-      "DELETE FROM sys_data_permission WHERE role_id = ?",
+      "DELETE FROM t_sys_data_permission WHERE role_id = ?",
       [roleId]
     );
     for (const dp of dataPermissions) {
       await (conn as { execute: (sql: string, params?: unknown[]) => Promise<unknown> }).execute(
-        `INSERT INTO sys_data_permission (role_id, table_name, field_name, filter_type, filter_value)
+        `INSERT INTO t_sys_data_permission (role_id, table_name, field_name, filter_type, filter_value)
          VALUES (?, ?, ?, ?, ?)`,
         [roleId, dp.tableName, dp.fieldName, dp.filterType, dp.filterValue]
       );
@@ -234,12 +234,12 @@ export async function setRoleFieldPermissions(
 ): Promise<void> {
   await transaction(async (conn) => {
     await (conn as { execute: (sql: string, params?: unknown[]) => Promise<unknown> }).execute(
-      "DELETE FROM sys_field_permission WHERE role_id = ?",
+      "DELETE FROM t_sys_field_permission WHERE role_id = ?",
       [roleId]
     );
     for (const fp of fieldPermissions) {
       await (conn as { execute: (sql: string, params?: unknown[]) => Promise<unknown> }).execute(
-        `INSERT INTO sys_field_permission (role_id, table_name, field_name, permission_type)
+        `INSERT INTO t_sys_field_permission (role_id, table_name, field_name, permission_type)
          VALUES (?, ?, ?, ?)`,
         [roleId, fp.tableName, fp.fieldName, fp.permissionType]
       );

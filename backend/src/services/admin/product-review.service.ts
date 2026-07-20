@@ -60,7 +60,7 @@ export async function listProductReviews(tenantId: string, params: ProductReview
   const where = `WHERE ${conditions.join(" AND ")}`;
 
   const totalRow = await queryOneWithTenant<{ total: number }>(
-    `SELECT COUNT(*) AS total FROM product_review ${where}`,
+    `SELECT COUNT(*) AS total FROM t_product_review ${where}`,
     sqlParams,
     tenantId
   );
@@ -73,7 +73,7 @@ export async function listProductReviews(tenantId: string, params: ProductReview
             status, reviewer_id AS reviewerId, reviewer_name AS reviewerName,
             review_comment AS reviewComment, reviewed_at AS reviewedAt,
             created_at AS createdAt, updated_at AS updatedAt
-     FROM product_review ${where}
+     FROM t_product_review ${where}
      ORDER BY created_at DESC
      LIMIT ? OFFSET ?`,
     [...sqlParams, params.pageSize, offset],
@@ -92,7 +92,7 @@ export async function getProductReview(tenantId: string, id: number) {
             status, reviewer_id AS reviewerId, reviewer_name AS reviewerName,
             review_comment AS reviewComment, reviewed_at AS reviewedAt,
             created_at AS createdAt, updated_at AS updatedAt
-     FROM product_review
+     FROM t_product_review
      WHERE id = ? AND tenant_id = ?`,
     [id, tenantId],
     tenantId
@@ -112,7 +112,7 @@ export async function createProductReview(
 ) {
   const reviewNo = generateReviewNo();
   const result = await queryWithTenant<Record<string, unknown>>(
-    `INSERT INTO product_review (tenant_id, review_no, product_id, product_name, submitter_id, submitter_name, review_type, change_content, status)
+    `INSERT INTO t_product_review (tenant_id, review_no, product_id, product_name, submitter_id, submitter_name, review_type, change_content, status)
      VALUES (?, ?, ?, ?, ?, ?, ?, ?, 'PENDING')`,
     [
       tenantId,
@@ -139,7 +139,7 @@ export async function approveProductReview(
   data?: ProductReviewApproveData
 ) {
   const existing = await queryOneWithTenant<{ id: number; status: string }>(
-    "SELECT id, status FROM product_review WHERE id = ? AND tenant_id = ?",
+    "SELECT id, status FROM t_product_review WHERE id = ? AND tenant_id = ?",
     [id, tenantId],
     tenantId
   );
@@ -151,7 +151,7 @@ export async function approveProductReview(
   }
 
   await queryWithTenant(
-    `UPDATE product_review
+    `UPDATE t_product_review
      SET status = 'APPROVED', reviewer_id = ?, reviewer_name = ?, review_comment = ?, reviewed_at = NOW(), updated_at = NOW()
      WHERE id = ? AND tenant_id = ?`,
     [reviewerId, reviewerName || null, data?.reviewComment || null, id, tenantId],
@@ -169,7 +169,7 @@ export async function rejectProductReview(
   data: ProductReviewRejectData
 ) {
   const existing = await queryOneWithTenant<{ id: number; status: string }>(
-    "SELECT id, status FROM product_review WHERE id = ? AND tenant_id = ?",
+    "SELECT id, status FROM t_product_review WHERE id = ? AND tenant_id = ?",
     [id, tenantId],
     tenantId
   );
@@ -184,7 +184,7 @@ export async function rejectProductReview(
   }
 
   await queryWithTenant(
-    `UPDATE product_review
+    `UPDATE t_product_review
      SET status = 'REJECTED', reviewer_id = ?, reviewer_name = ?, review_comment = ?, reviewed_at = NOW(), updated_at = NOW()
      WHERE id = ? AND tenant_id = ?`,
     [reviewerId, reviewerName || null, data.reviewComment, id, tenantId],
@@ -212,7 +212,7 @@ export async function batchApproveProductReviews(
   const sqlParams: unknown[] = [reviewerId, reviewerName || null, reviewComment || null, ...ids, tenantId];
 
   const result = await queryWithTenant<Record<string, unknown>>(
-    `UPDATE product_review
+    `UPDATE t_product_review
      SET status = 'APPROVED', reviewer_id = ?, reviewer_name = ?, review_comment = ?, reviewed_at = NOW(), updated_at = NOW()
      WHERE id IN (${placeholders}) AND tenant_id = ? AND status = 'PENDING'`,
     sqlParams,

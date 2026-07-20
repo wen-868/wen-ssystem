@@ -380,7 +380,7 @@ export async function helpBargain(
     }
 
     const [helpRows] = await (conn as any).execute(
-      `SELECT id FROM bargain_help WHERE record_id = ? AND helper_id = ? AND tenant_id = ?`,
+      `SELECT id FROM t_bargain_help WHERE record_id = ? AND helper_id = ? AND tenant_id = ?`,
       [recordId, helperId, tenantId]
     );
     if ((helpRows as Record<string, unknown>[]).length > 0) {

@@ -67,7 +67,7 @@ export async function listSettlements(params: SettlementListParams) {
 
   const totalRow = await queryOne<{ total: number }>(
     `SELECT COUNT(*) AS total
-     FROM platform_settlement s
+     FROM t_platform_settlement s
      LEFT JOIN t_tenant t ON t.tenant_id = s.tenant_id
      WHERE ${where}`,
     sqlParams
@@ -82,7 +82,7 @@ export async function listSettlements(params: SettlementListParams) {
             s.pending_amount AS pendingAmount, s.status,
             s.settled_at AS settledAt, s.created_by AS createdBy,
             s.created_at AS createdAt, s.updated_at AS updatedAt
-     FROM platform_settlement s
+     FROM t_platform_settlement s
      LEFT JOIN t_tenant t ON t.tenant_id = s.tenant_id
      WHERE ${where}
      ORDER BY s.created_at DESC
@@ -102,7 +102,7 @@ export async function getSettlementById(id: number) {
             s.pending_amount AS pendingAmount, s.status, s.remark,
             s.settled_at AS settledAt, s.created_by AS createdBy,
             s.created_at AS createdAt, s.updated_at AS updatedAt
-     FROM platform_settlement s
+     FROM t_platform_settlement s
      LEFT JOIN t_tenant t ON t.tenant_id = s.tenant_id
      WHERE s.id = ?`,
     [id]
@@ -112,7 +112,7 @@ export async function getSettlementById(id: number) {
 export async function createSettlement(data: SettlementCreate) {
   const settlementNo = `SET${Date.now()}`;
   const result = await query(
-    `INSERT INTO platform_settlement
+    `INSERT INTO t_platform_settlement
      (settlement_no, tenant_id, period_start, period_end,
       total_amount, pending_amount, status, remark, created_by)
      VALUES (?, ?, ?, ?, ?, ?, 'PENDING', ?, 'system')`,
@@ -143,7 +143,7 @@ export async function updateSettlementStatus(id: number, status: string) {
   values.push(id);
 
   await query(
-    `UPDATE platform_settlement SET ${updates.join(", ")} WHERE id = ?`,
+    `UPDATE t_platform_settlement SET ${updates.join(", ")} WHERE id = ?`,
     values
   );
   return { id, status };
@@ -152,13 +152,13 @@ export async function updateSettlementStatus(id: number, status: string) {
 export async function getSettlementStats(): Promise<SettlementStats> {
   const row = await queryOne<any>(
     `SELECT
-       (SELECT IFNULL(SUM(total_amount), 0) FROM platform_settlement
+       (SELECT IFNULL(SUM(total_amount), 0) FROM t_platform_settlement
         WHERE DATE_FORMAT(created_at, '%Y-%m') = DATE_FORMAT(NOW(), '%Y-%m')) AS currentMonthRevenue,
-       (SELECT IFNULL(SUM(pending_amount), 0) FROM platform_settlement
+       (SELECT IFNULL(SUM(pending_amount), 0) FROM t_platform_settlement
         WHERE status = 'PENDING') AS pendingSettlement,
-       (SELECT IFNULL(SUM(settled_amount), 0) FROM platform_settlement
+       (SELECT IFNULL(SUM(settled_amount), 0) FROM t_platform_settlement
         WHERE status = 'SETTLED') AS settledAmount,
-       (SELECT COUNT(*) FROM platform_settlement) AS settlementCount
+       (SELECT COUNT(*) FROM t_platform_settlement) AS settlementCount
      FROM DUAL`
   );
 

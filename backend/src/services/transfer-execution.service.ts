@@ -32,7 +32,7 @@ export async function shipTransferOrder(id: number, tenantId: string, userId: nu
     if (order.status !== "APPROVED") throw new Error("仅已审核状态可发货");
 
     const [itemRows] = await (conn as any).execute(
-      "SELECT * FROM transfer_order_item WHERE transfer_order_id = ? AND tenant_id = ?",
+      "SELECT * FROM t_transfer_order_item WHERE transfer_order_id = ? AND tenant_id = ?",
       [id, tenantId]
     );
     const items = itemRows as unknown as Record<string, unknown>[];
@@ -102,7 +102,7 @@ export async function receiveTransferOrder(id: number, tenantId: string, userId:
 
     for (const item of items) {
       const [itemRows] = await (conn as any).execute(
-        "SELECT * FROM transfer_order_item WHERE id = ? AND transfer_order_id = ? AND tenant_id = ? FOR UPDATE",
+        "SELECT * FROM t_transfer_order_item WHERE id = ? AND transfer_order_id = ? AND tenant_id = ? FOR UPDATE",
         [item.itemId, id, tenantId]
       );
       const detail = (itemRows as unknown as Record<string, unknown>[])[0];
@@ -151,7 +151,7 @@ export async function receiveTransferOrder(id: number, tenantId: string, userId:
       );
 
       const [checkRows] = await (conn as any).execute(
-        "SELECT received_qty, quantity FROM transfer_order_item WHERE transfer_order_id = ? AND tenant_id = ?",
+        "SELECT received_qty, quantity FROM t_transfer_order_item WHERE transfer_order_id = ? AND tenant_id = ?",
         [id, tenantId]
       );
       for (const row of checkRows as unknown as Record<string, unknown>[]) {

@@ -35,7 +35,7 @@ export async function listInstances(
             current_level AS currentLevel, status, submitted_at AS submittedAt,
             completed_at AS completedAt, remark,
             created_at AS createdAt, updated_at AS updatedAt
-     FROM approval_instance
+     FROM t_approval_instance
      ${where}
      ORDER BY submitted_at DESC
      LIMIT ? OFFSET ?`,
@@ -44,7 +44,7 @@ export async function listInstances(
   );
 
   const totalRow = await queryOneWithTenant<any>(
-    `SELECT COUNT(*) AS total FROM approval_instance ${where}`,
+    `SELECT COUNT(*) AS total FROM t_approval_instance ${where}`,
     params,
     tenantId
   );
@@ -71,7 +71,7 @@ export async function submitApproval(
   const result = await transaction(async (conn) => {
     const [rules] = await conn.query<any[]>(
       `SELECT id, rule_name, trigger_condition, approval_chain, sla_hours, escalation_level
-       FROM approval_rule
+       FROM t_approval_rule
        WHERE business_type = ? AND status = 1 AND tenant_id = ?
        ORDER BY id ASC`,
       [body.businessType, tenantId]
@@ -88,7 +88,7 @@ export async function submitApproval(
     const instanceNo = makeBizNo("SP");
 
     await conn.execute(
-      `INSERT INTO approval_instance (instance_no, rule_id, business_type, business_no, business_title,
+      `INSERT INTO t_approval_instance (instance_no, rule_id, business_type, business_no, business_title,
                                       applicant_id, applicant_name, current_level, status, remark, tenant_id)
        VALUES (?, ?, ?, ?, ?, ?, ?, 1, 'PENDING', ?, ?)`,
       [instanceNo, rule.id, body.businessType, body.businessNo, body.businessTitle,
@@ -100,7 +100,7 @@ export async function submitApproval(
 
     for (const chainItem of approvalChain) {
       const [approvers] = await conn.query<any[]>(
-        `SELECT id, approver_name FROM approval_approver
+        `SELECT id, approver_name FROM t_approval_approver
          WHERE approver_type = ? AND approver_value = ? AND status = 1 AND tenant_id = ?
          LIMIT 1`,
         [chainItem.approverType, chainItem.approverValue, tenantId]
@@ -113,14 +113,14 @@ export async function submitApproval(
       const approver = approvers[0];
 
       await conn.execute(
-        `INSERT INTO approval_task (instance_id, approval_level, approver_id, approver_name,
+        `INSERT INTO t_approval_task (instance_id, approval_level, approver_id, approver_name,
                                     task_status, sla_deadline, tenant_id)
          VALUES (?, ?, ?, ?, 'PENDING', ?, ?)`,
         [instanceNo, chainItem.level, approver.id, approver.approver_name, slaDeadline, tenantId]
       );
 
       await conn.execute(
-        `INSERT INTO approval_notification (instance_id, notification_type, recipient_id, recipient_name,
+        `INSERT INTO t_approval_notification (instance_id, notification_type, recipient_id, recipient_name,
                                             title, content, channel, tenant_id)
          VALUES (?, 'NEW_TASK', ?, ?, ?, ?, 'SYSTEM', ?)`,
         [instanceNo, approver.id, approver.approver_name,
@@ -130,7 +130,7 @@ export async function submitApproval(
     }
 
     await conn.execute(
-      `INSERT INTO approval_log (instance_id, action, operator_id, operator_name, from_status, to_status, comment, tenant_id)
+      `INSERT INTO t_approval_log (instance_id, action, operator_id, operator_name, from_status, to_status, comment, tenant_id)
        VALUES (?, 'SUBMIT', ?, ?, NULL, 'PENDING', ?, ?)`,
       [instanceNo, userId ?? 0, username, body.remark ?? "提交审批", tenantId]
     );
@@ -149,7 +149,7 @@ export async function getInstanceDetail(instanceNo: string, tenantId: string) {
             current_level AS currentLevel, status, submitted_at AS submittedAt,
             completed_at AS completedAt, remark,
             created_at AS createdAt, updated_at AS updatedAt
-     FROM approval_instance WHERE instance_no = ?`,
+     FROM t_approval_instance WHERE instance_no = ?`,
     [instanceNo],
     tenantId
   );
@@ -163,7 +163,7 @@ export async function getInstanceDetail(instanceNo: string, tenantId: string) {
             approver_name AS approverName, task_status AS taskStatus,
             received_at AS receivedAt, processed_at AS processedAt,
             sla_deadline AS slaDeadline, escalated, approval_comment AS approvalComment
-     FROM approval_task WHERE instance_id = ?
+     FROM t_approval_task WHERE instance_id = ?
      ORDER BY approval_level ASC`,
     [instance.id],
     tenantId
@@ -173,7 +173,7 @@ export async function getInstanceDetail(instanceNo: string, tenantId: string) {
     `SELECT id, task_id AS taskId, action, operator_id AS operatorId,
             operator_name AS operatorName, from_status AS fromStatus,
             to_status AS toStatus, comment, created_at AS createdAt
-     FROM approval_log WHERE instance_id = ?
+     FROM t_approval_log WHERE instance_id = ?
      ORDER BY created_at ASC`,
     [instance.id],
     tenantId
@@ -200,8 +200,8 @@ export async function listTasks(
             i.instance_no AS instanceNo, i.business_type AS businessType,
             i.business_no AS businessNo, i.business_title AS businessTitle,
             i.applicant_name AS applicantName, i.submitted_at AS submittedAt
-     FROM approval_task t
-     JOIN approval_instance i ON i.instance_no = t.instance_id AND i.tenant_id = t.tenant_id
+     FROM t_approval_task t
+     JOIN t_approval_instance i ON i.instance_no = t.instance_id AND i.tenant_id = t.tenant_id
      WHERE t.approver_id = ? AND t.task_status = ?
      ORDER BY t.received_at DESC
      LIMIT ? OFFSET ?`,
@@ -211,7 +211,7 @@ export async function listTasks(
 
   const totalRow = await queryOneWithTenant<any>(
     `SELECT COUNT(*) AS total
-     FROM approval_task t
+     FROM t_approval_task t
      WHERE t.approver_id = ? AND t.task_status = ?`,
     [approverId, taskStatus],
     tenantId
@@ -236,8 +236,8 @@ export async function approveTask(
     const [taskRows] = await conn.query<any[]>(
       `SELECT t.id, t.instance_id, t.approval_level, t.approver_id, t.task_status,
               i.current_level, i.status AS instanceStatus
-       FROM approval_task t
-       JOIN approval_instance i ON i.instance_no = t.instance_id AND i.tenant_id = t.tenant_id
+       FROM t_approval_task t
+       JOIN t_approval_instance i ON i.instance_no = t.instance_id AND i.tenant_id = t.tenant_id
        WHERE t.id = ? AND t.tenant_id = ? FOR UPDATE`,
       [taskId, tenantId]
     );
@@ -248,45 +248,45 @@ export async function approveTask(
     if (task.task_status !== "PENDING") throw new Error("任务已处理");
 
     await conn.execute(
-      `UPDATE approval_task SET task_status = 'APPROVED', processed_at = NOW(), approval_comment = ?
+      `UPDATE t_approval_task SET task_status = 'APPROVED', processed_at = NOW(), approval_comment = ?
        WHERE id = ? AND tenant_id = ?`,
       [comment ?? null, taskId, tenantId]
     );
 
     const [nextTasks] = await conn.query<any[]>(
-      `SELECT id FROM approval_task
+      `SELECT id FROM t_approval_task
        WHERE instance_id = ? AND approval_level = ? AND task_status = 'PENDING' AND tenant_id = ?`,
       [task.instance_id, task.approval_level + 1, tenantId]
     );
 
     if (nextTasks.length > 0) {
       await conn.execute(
-        `UPDATE approval_instance SET current_level = ? WHERE instance_no = ? AND tenant_id = ?`,
+        `UPDATE t_approval_instance SET current_level = ? WHERE instance_no = ? AND tenant_id = ?`,
         [task.approval_level + 1, task.instance_id, tenantId]
       );
     } else {
       await conn.execute(
-        `UPDATE approval_instance SET status = 'APPROVED', completed_at = NOW()
+        `UPDATE t_approval_instance SET status = 'APPROVED', completed_at = NOW()
          WHERE instance_no = ? AND tenant_id = ?`,
         [task.instance_id, tenantId]
       );
     }
 
     await conn.execute(
-      `INSERT INTO approval_log (instance_id, task_id, action, operator_id, operator_name,
+      `INSERT INTO t_approval_log (instance_id, task_id, action, operator_id, operator_name,
                                  from_status, to_status, comment, tenant_id)
        VALUES (?, ?, 'APPROVE', ?, ?, 'PENDING', 'APPROVED', ?, ?)`,
       [task.instance_id, taskId, userId ?? 0, username, comment ?? "审批通过", tenantId]
     );
 
     const [instanceRows] = await conn.query<any[]>(
-      `SELECT applicant_id, applicant_name, business_title FROM approval_instance WHERE instance_no = ? AND tenant_id = ?`,
+      `SELECT applicant_id, applicant_name, business_title FROM t_approval_instance WHERE instance_no = ? AND tenant_id = ?`,
       [task.instance_id, tenantId]
     );
     const instance = instanceRows[0];
 
     await conn.execute(
-      `INSERT INTO approval_notification (instance_id, task_id, notification_type, recipient_id, recipient_name,
+      `INSERT INTO t_approval_notification (instance_id, task_id, notification_type, recipient_id, recipient_name,
                                           title, content, channel, tenant_id)
        VALUES (?, ?, 'RESULT', ?, ?, ?, ?, 'SYSTEM', ?)`,
       [task.instance_id, taskId, instance.applicant_id, instance.applicant_name,
@@ -310,7 +310,7 @@ export async function rejectTask(
   const result = await transaction(async (conn) => {
     const [taskRows] = await conn.query<any[]>(
       `SELECT t.id, t.instance_id, t.approver_id, t.task_status
-       FROM approval_task t
+       FROM t_approval_task t
        WHERE t.id = ? AND t.tenant_id = ? FOR UPDATE`,
       [taskId, tenantId]
     );
@@ -321,32 +321,32 @@ export async function rejectTask(
     if (task.task_status !== "PENDING") throw new Error("任务已处理");
 
     await conn.execute(
-      `UPDATE approval_task SET task_status = 'REJECTED', processed_at = NOW(), approval_comment = ?
+      `UPDATE t_approval_task SET task_status = 'REJECTED', processed_at = NOW(), approval_comment = ?
        WHERE id = ? AND tenant_id = ?`,
       [comment, taskId, tenantId]
     );
 
     await conn.execute(
-      `UPDATE approval_instance SET status = 'REJECTED', completed_at = NOW()
+      `UPDATE t_approval_instance SET status = 'REJECTED', completed_at = NOW()
        WHERE instance_no = ? AND tenant_id = ?`,
       [task.instance_id, tenantId]
     );
 
     await conn.execute(
-      `INSERT INTO approval_log (instance_id, task_id, action, operator_id, operator_name,
+      `INSERT INTO t_approval_log (instance_id, task_id, action, operator_id, operator_name,
                                  from_status, to_status, comment, tenant_id)
        VALUES (?, ?, 'REJECT', ?, ?, 'PENDING', 'REJECTED', ?, ?)`,
       [task.instance_id, taskId, userId ?? 0, username, comment, tenantId]
     );
 
     const [instanceRows] = await conn.query<any[]>(
-      `SELECT applicant_id, applicant_name, business_title FROM approval_instance WHERE instance_no = ? AND tenant_id = ?`,
+      `SELECT applicant_id, applicant_name, business_title FROM t_approval_instance WHERE instance_no = ? AND tenant_id = ?`,
       [task.instance_id, tenantId]
     );
     const instance = instanceRows[0];
 
     await conn.execute(
-      `INSERT INTO approval_notification (instance_id, task_id, notification_type, recipient_id, recipient_name,
+      `INSERT INTO t_approval_notification (instance_id, task_id, notification_type, recipient_id, recipient_name,
                                           title, content, channel, tenant_id)
        VALUES (?, ?, 'RESULT', ?, ?, ?, ?, 'SYSTEM', ?)`,
       [task.instance_id, taskId, instance.applicant_id, instance.applicant_name,
@@ -383,7 +383,7 @@ export async function listNotifications(
             notification_type AS notificationType, recipient_id AS recipientId,
             recipient_name AS recipientName, title, content, channel,
             read_status AS readStatus, sent_at AS sentAt, read_at AS readAt
-     FROM approval_notification
+     FROM t_approval_notification
      ${where}
      ORDER BY sent_at DESC
      LIMIT ? OFFSET ?`,
@@ -392,7 +392,7 @@ export async function listNotifications(
   );
 
   const totalRow = await queryOneWithTenant<any>(
-    `SELECT COUNT(*) AS total FROM approval_notification ${where}`,
+    `SELECT COUNT(*) AS total FROM t_approval_notification ${where}`,
     params,
     tenantId
   );
@@ -411,7 +411,7 @@ export async function markNotificationRead(
   tenantId: string
 ) {
   await queryWithTenant(
-    `UPDATE approval_notification SET read_status = 1, read_at = NOW() WHERE id = ? AND recipient_id = ?`,
+    `UPDATE t_approval_notification SET read_status = 1, read_at = NOW() WHERE id = ? AND recipient_id = ?`,
     [id, userId],
     tenantId
   );

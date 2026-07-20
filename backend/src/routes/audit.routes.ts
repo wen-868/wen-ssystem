@@ -10,7 +10,7 @@ auditRouter.get("/", requireAuthWithTenant, ctrl.listAuditLogs);
 auditRouter.get("/statistics", requireAuthWithTenant, ctrl.getAuditStatistics);
 
 export const routeConfig: RouteConfig = {
-  prefix: "/api/admin/audit-logs",
+  prefix: "/api/admin/system/audit-logs",
   router: auditRouter,
   auth: "requireAuthWithTenant",
 };

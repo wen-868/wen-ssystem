@@ -68,12 +68,12 @@ async function calcMarketingDiscount(
   if (couponId) {
     const userCoupon = await doQueryOne(
       `SELECT uc.id, uc.coupon_template_id, uc.status, uc.expire_at
-       FROM user_coupon uc WHERE uc.id = ? AND uc.customer_id = ? AND uc.status = 'AVAILABLE' AND uc.expire_at > NOW()`,
+       FROM t_user_coupon uc WHERE uc.id = ? AND uc.customer_id = ? AND uc.status = 'AVAILABLE' AND uc.expire_at > NOW()`,
       [couponId, customerId]
     );
     if (userCoupon) {
       const template = await doQueryOne(
-        `SELECT discount_value, discount_type FROM coupon_template WHERE id = ?`,
+        `SELECT discount_value, discount_type FROM t_coupon_template WHERE id = ?`,
         [userCoupon.coupon_template_id]
       );
       if (template) {
@@ -86,7 +86,7 @@ async function calcMarketingDiscount(
   // 满减活动
   if (fullReductionId) {
     const fullReduction = await doQueryOne(
-      `SELECT id, rules, status, start_time, end_time FROM full_reduction WHERE id = ? AND status = 'ACTIVE' AND start_time <= NOW() AND end_time >= NOW()`,
+      `SELECT id, rules, status, start_time, end_time FROM t_full_reduction WHERE id = ? AND status = 'ACTIVE' AND start_time <= NOW() AND end_time >= NOW()`,
       [fullReductionId]
     );
     if (fullReduction) {
@@ -119,7 +119,7 @@ export async function getCartList(tenantId: string, customerId: number, customer
             s.sku_name AS skuName, p.name AS spuName, p.main_image AS image,
             pp.retail_price AS retailPrice, pp.wholesale_price AS wholesalePrice, pp.miniapp_price AS miniappPrice,
             COALESCE(ib.available_qty, 0) AS availableQty
-     FROM cart_item c
+     FROM t_cart_item c
      JOIN t_product_sku s ON s.id = c.sku_id AND s.tenant_id = c.tenant_id
      JOIN t_product_spu p ON p.id = s.spu_id AND p.tenant_id = s.tenant_id
      JOIN t_product_price pp ON pp.sku_id = s.id AND pp.tenant_id = s.tenant_id
@@ -161,19 +161,19 @@ export async function addToCart(tenantId: string, customerId: number, skuId: num
   }
 
   const existing = await queryOneWithTenant<any>(
-    `SELECT id, quantity FROM cart_item WHERE customer_id = ? AND sku_id = ?`,
+    `SELECT id, quantity FROM t_cart_item WHERE customer_id = ? AND sku_id = ?`,
     [customerId, skuId],
     tenantId
   );
   if (existing) {
     await queryWithTenant(
-      `UPDATE cart_item SET quantity = quantity + ?, updated_at = NOW() WHERE id = ?`,
+      `UPDATE t_cart_item SET quantity = quantity + ?, updated_at = NOW() WHERE id = ?`,
       [quantity, existing.id],
       tenantId
     );
   } else {
     await queryWithTenant(
-      `INSERT INTO cart_item (customer_id, sku_id, quantity) VALUES (?, ?, ?)`,
+      `INSERT INTO t_cart_item (customer_id, sku_id, quantity) VALUES (?, ?, ?)`,
       [customerId, skuId, quantity],
       tenantId
     );
@@ -184,14 +184,14 @@ export async function addToCart(tenantId: string, customerId: number, skuId: num
 export async function updateCartItemQuantity(tenantId: string, customerId: number, skuId: number, quantity: number) {
   if (quantity === 0) {
     await queryWithTenant(
-      `DELETE FROM cart_item WHERE customer_id = ? AND sku_id = ?`,
+      `DELETE FROM t_cart_item WHERE customer_id = ? AND sku_id = ?`,
       [customerId, skuId],
       tenantId
     );
     return { success: true, message: "已更新" };
   } else {
     const result = await queryWithTenant(
-      `UPDATE cart_item SET quantity = ?, updated_at = NOW() WHERE customer_id = ? AND sku_id = ?`,
+      `UPDATE t_cart_item SET quantity = ?, updated_at = NOW() WHERE customer_id = ? AND sku_id = ?`,
       [quantity, customerId, skuId],
       tenantId
     );
@@ -204,7 +204,7 @@ export async function updateCartItemQuantity(tenantId: string, customerId: numbe
 
 export async function deleteCartItem(tenantId: string, customerId: number, skuId: number) {
   await queryWithTenant(
-    `DELETE FROM cart_item WHERE customer_id = ? AND sku_id = ?`,
+    `DELETE FROM t_cart_item WHERE customer_id = ? AND sku_id = ?`,
     [customerId, skuId],
     tenantId
   );
@@ -213,7 +213,7 @@ export async function deleteCartItem(tenantId: string, customerId: number, skuId
 
 export async function clearCart(tenantId: string, customerId: number) {
   await queryWithTenant(
-    `DELETE FROM cart_item WHERE customer_id = ?`,
+    `DELETE FROM t_cart_item WHERE customer_id = ?`,
     [customerId],
     tenantId
   );
@@ -222,7 +222,7 @@ export async function clearCart(tenantId: string, customerId: number) {
 
 export async function getCartCount(tenantId: string, customerId: number) {
   const row = await queryOneWithTenant<{ total: number }>(
-    `SELECT COALESCE(SUM(quantity), 0) AS total FROM cart_item WHERE customer_id = ?`,
+    `SELECT COALESCE(SUM(quantity), 0) AS total FROM t_cart_item WHERE customer_id = ?`,
     [customerId],
     tenantId
   );
@@ -250,7 +250,7 @@ export async function checkoutPreview(params: {
               s.sku_name AS skuName, p.name AS spuName, p.main_image AS image,
               pp.retail_price AS retailPrice, pp.wholesale_price AS wholesalePrice, pp.miniapp_price AS miniappPrice,
               COALESCE(ib.available_qty, 0) AS availableQty
-       FROM cart_item c
+       FROM t_cart_item c
        JOIN t_product_sku s ON s.id = c.sku_id AND s.tenant_id = c.tenant_id
        JOIN t_product_spu p ON p.id = s.spu_id AND p.tenant_id = s.tenant_id
        JOIN t_product_price pp ON pp.sku_id = s.id AND pp.tenant_id = s.tenant_id
@@ -265,7 +265,7 @@ export async function checkoutPreview(params: {
               s.sku_name AS skuName, p.name AS spuName, p.main_image AS image,
               pp.retail_price AS retailPrice, pp.wholesale_price AS wholesalePrice, pp.miniapp_price AS miniappPrice,
               COALESCE(ib.available_qty, 0) AS availableQty
-       FROM cart_item c
+       FROM t_cart_item c
        JOIN t_product_sku s ON s.id = c.sku_id AND s.tenant_id = c.tenant_id
        JOIN t_product_spu p ON p.id = s.spu_id AND p.tenant_id = s.tenant_id
        JOIN t_product_price pp ON pp.sku_id = s.id AND pp.tenant_id = s.tenant_id
@@ -346,12 +346,12 @@ export async function createCheckoutOrder(params: {
     if (skuIds && skuIds.length > 0) {
       const placeholders = skuIds.map(() => "?").join(",");
       cartItems = (await conn.query(
-        `SELECT sku_id AS skuId, quantity FROM cart_item WHERE customer_id = ? AND tenant_id = ? AND sku_id IN (${placeholders})`,
+        `SELECT sku_id AS skuId, quantity FROM t_cart_item WHERE customer_id = ? AND tenant_id = ? AND sku_id IN (${placeholders})`,
         [customerId, tenantId, ...skuIds]
       ))[0] as unknown as Record<string, unknown>[];
     } else {
       cartItems = (await conn.query(
-        `SELECT sku_id AS skuId, quantity FROM cart_item WHERE customer_id = ? AND tenant_id = ?`,
+        `SELECT sku_id AS skuId, quantity FROM t_cart_item WHERE customer_id = ? AND tenant_id = ?`,
         [customerId, tenantId]
       ))[0] as unknown as Record<string, unknown>[];
     }
@@ -453,7 +453,7 @@ export async function createCheckoutOrder(params: {
     const cartSkuIds = cartItems.map((c: any) => c.skuId);
     const placeholders = cartSkuIds.map(() => "?").join(",");
     await conn.execute(
-      `DELETE FROM cart_item WHERE customer_id = ? AND tenant_id = ? AND sku_id IN (${placeholders})`,
+      `DELETE FROM t_cart_item WHERE customer_id = ? AND tenant_id = ? AND sku_id IN (${placeholders})`,
       [customerId, tenantId, ...cartSkuIds]
     );
 

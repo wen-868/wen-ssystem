@@ -45,7 +45,7 @@ export async function updateMappingStatus(platform: string, localSkuId: number, 
   if (tenantId) { values.push(tenantId); }
   const tenantCondition = tenantId ? "AND tenant_id = ?" : "";
   await queryWithTenant(
-    `UPDATE platform_product_map SET ${fields.join(", ")} WHERE platform = ? AND local_sku_id = ? ${tenantCondition}`,
+    `UPDATE t_platform_product_map SET ${fields.join(", ")} WHERE platform = ? AND local_sku_id = ? ${tenantCondition}`,
     values, tenantId || ""
   );
 }

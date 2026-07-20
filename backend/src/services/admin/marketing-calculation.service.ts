@@ -88,7 +88,7 @@ export async function calculatePromotion(
     const placeholders = body.fullReductionIds.map(() => "?").join(", ");
     const fullReductions = await queryWithTenant<any>(
       `SELECT id, rules, applicable_scope, applicable_ids, stackable
-       FROM full_reduction
+       FROM t_full_reduction
        WHERE id IN (${placeholders}) AND status = 'ACTIVE' AND start_time <= ? AND end_time >= ?
        ORDER BY priority DESC`,
       [...body.fullReductionIds, now, now],
@@ -115,7 +115,7 @@ export async function calculatePromotion(
   if (body.couponTemplateId) {
     const coupon = await queryOneWithTenant<any>(
       `SELECT id, type, value, min_amount, max_discount, applicable_scope, applicable_ids
-       FROM coupon_template WHERE id = ? AND status = 'ACTIVE' AND start_time <= ? AND end_time >= ?`,
+       FROM t_coupon_template WHERE id = ? AND status = 'ACTIVE' AND start_time <= ? AND end_time >= ?`,
       [body.couponTemplateId, now, now],
       tenantId
     );

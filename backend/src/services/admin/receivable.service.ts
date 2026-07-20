@@ -25,10 +25,10 @@ export async function listPayables(params: { supplierId?: number; status?: strin
   const where = `WHERE ${conditions.join(" AND ")}`;
   const records = await queryWithTenant<any>(
     `SELECT id, supplier_id AS supplierId, supplier_name AS supplierName, source_type AS sourceType, source_no AS sourceNo, payable_amount AS payableAmount, paid_amount AS paidAmount, balance, due_date AS dueDate, status, created_at AS createdAt
-     FROM payable ${where} ORDER BY created_at DESC LIMIT ? OFFSET ?`,
+     FROM t_payable ${where} ORDER BY created_at DESC LIMIT ? OFFSET ?`,
     [...values, pageSize, offset], tenantId
   );
-  const total = await queryOneWithTenant<any>(`SELECT COUNT(*) AS total FROM payable ${where}`, values, tenantId);
+  const total = await queryOneWithTenant<any>(`SELECT COUNT(*) AS total FROM t_payable ${where}`, values, tenantId);
   return { total: total?.total ?? 0, page, pageSize, records };
 }
 
@@ -54,7 +54,7 @@ export async function getPayablesAging(tenantId: string) {
                  WHEN DATEDIFF(NOW(), due_date) <= 90 THEN '60-90天'
                  ELSE '90天以上' END AS agingGroup,
             COALESCE(SUM(balance), 0) AS totalAmount, COUNT(*) AS cnt
-     FROM payable WHERE tenant_id = ? AND status IN ('PENDING', 'PARTIAL') AND due_date IS NOT NULL
+     FROM t_payable WHERE tenant_id = ? AND status IN ('PENDING', 'PARTIAL') AND due_date IS NOT NULL
      GROUP BY agingGroup ORDER BY agingGroup`,
     [tenantId], tenantId
   );
@@ -65,17 +65,17 @@ export async function getReceivableDetail(id: number, tenantId: string) {
   const ar = await queryOneWithTenant<any>("SELECT * FROM t_receivable WHERE id = ? AND tenant_id = ?", [id, tenantId], tenantId);
   if (!ar) throw new Error("记录不存在");
   const writeoffs = await queryWithTenant<any>(
-    "SELECT rw.writeoff_amount AS writeoffAmount, r.receipt_no AS receiptNo, rw.created_at AS createdAt FROM receipt_writeoff rw LEFT JOIN receipt r ON r.id = rw.receipt_id WHERE rw.receivable_id = ? AND rw.tenant_id = ?",
+    "SELECT rw.writeoff_amount AS writeoffAmount, r.receipt_no AS receiptNo, rw.created_at AS createdAt FROM t_receipt_writeoff rw LEFT JOIN t_receipt r ON r.id = rw.receipt_id WHERE rw.receivable_id = ? AND rw.tenant_id = ?",
     [id, tenantId], tenantId
   );
   return { ...ar, writeoffs };
 }
 
 export async function getPayableDetail(id: number, tenantId: string) {
-  const ap = await queryOneWithTenant<any>("SELECT * FROM payable WHERE id = ? AND tenant_id = ?", [id, tenantId], tenantId);
+  const ap = await queryOneWithTenant<any>("SELECT * FROM t_payable WHERE id = ? AND tenant_id = ?", [id, tenantId], tenantId);
   if (!ap) throw new Error("记录不存在");
   const writeoffs = await queryWithTenant<any>(
-    "SELECT pw.writeoff_amount AS writeoffAmount, p.payment_no AS paymentNo, pw.created_at AS createdAt FROM payment_writeoff pw LEFT JOIN payment p ON p.id = pw.payment_id WHERE pw.payable_id = ? AND pw.tenant_id = ?",
+    "SELECT pw.writeoff_amount AS writeoffAmount, p.payment_no AS paymentNo, pw.created_at AS createdAt FROM t_payment_writeoff pw LEFT JOIN t_payment p ON p.id = pw.payment_id WHERE pw.payable_id = ? AND pw.tenant_id = ?",
     [id, tenantId], tenantId
   );
   return { ...ap, writeoffs };

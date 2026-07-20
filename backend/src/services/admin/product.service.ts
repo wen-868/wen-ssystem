@@ -30,7 +30,7 @@ export async function listProducts(keyword: string, page: number, pageSize: numb
        JOIN t_product_spu p ON p.id = s.spu_id
        JOIN t_product_price pp ON pp.sku_id = s.id
        LEFT JOIN t_product_category pc ON pc.id = p.category_id
-       LEFT JOIN brand b ON b.id = p.brand_id
+       LEFT JOIN t_brand b ON b.id = p.brand_id
        LEFT JOIN t_inventory_balance ib ON ib.sku_id = s.id AND ib.stock_type = 'OFFLINE'
        WHERE p.tenant_id = ? AND (p.name LIKE ? OR s.sku_code LIKE ? OR s.barcode LIKE ?)
        ORDER BY p.id DESC, s.id DESC
@@ -72,7 +72,7 @@ export async function listProducts(keyword: string, page: number, pageSize: numb
        JOIN t_product_spu p ON p.id = s.spu_id
        JOIN t_product_price pp ON pp.sku_id = s.id
        LEFT JOIN t_product_category pc ON pc.id = p.category_id
-       LEFT JOIN brand b ON b.id = p.brand_id
+       LEFT JOIN t_brand b ON b.id = p.brand_id
        LEFT JOIN t_inventory_balance ib ON ib.sku_id = s.id AND ib.stock_type = 'OFFLINE'
        WHERE p.tenant_id = ?
        ORDER BY p.id DESC, s.id DESC
@@ -101,7 +101,7 @@ export async function getProductDetail(spuId: number, tenantId: string) {
             p.description, p.marketing_tags AS marketingTags, p.status, p.created_at AS createdAt, p.updated_at AS updatedAt
      FROM t_product_spu p
      LEFT JOIN t_product_category pc ON pc.id = p.category_id
-     LEFT JOIN brand b ON b.id = p.brand_id
+     LEFT JOIN t_brand b ON b.id = p.brand_id
      WHERE p.id = ? AND p.tenant_id = ?`,
     [spuId, tenantId], tenantId
   );

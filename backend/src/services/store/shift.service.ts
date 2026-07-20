@@ -86,7 +86,7 @@ export async function settleShift(tenantId: string, storeId: number, operatorId:
   const settleNo = makeBizNo("BJ");
 
   await query(
-    `INSERT INTO daily_settlement (settle_date, shift_no, store_id, operator_id, tenant_id,
+    `INSERT INTO t_daily_settlement (settle_date, shift_no, store_id, operator_id, tenant_id,
       total_sales, total_received, total_refund, cash_amount, wechat_amount, alipay_amount, transfer_amount, other_amount,
       status, remark)
      VALUES (?, ?, ?, ?, ?, ?, ?, 0, ?, ?, ?, ?, ?, 'COMPLETED', '')`,
@@ -108,7 +108,7 @@ export async function getShiftHistory(tenantId: string, storeId: number, page: n
   const offset = (page - 1) * pageSize;
   const rows = await query<any>(
     `SELECT settle_date, shift_no, total_sales, total_received, status, created_at
-     FROM daily_settlement
+     FROM t_daily_settlement
      WHERE store_id = ? AND tenant_id = ?
      ORDER BY created_at DESC
      LIMIT ? OFFSET ?`,

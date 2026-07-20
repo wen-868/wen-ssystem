@@ -47,20 +47,20 @@ async function archiveByType(
 ): Promise<ArchiveResult> {
   const configs: Record<string, { sourceTable: string; archiveTable: string; dateField: string; statusCondition: string }> = {
     SALE_BILL: {
-      sourceTable: "sale_bill",
-      archiveTable: "sale_bill_archive",
+      sourceTable: "t_sale_bill",
+      archiveTable: "t_sale_bill_archive",
       dateField: "created_at",
       statusCondition: "business_status IN ('COMPLETED', 'CANCELLED')"
     },
     PURCHASE_ORDER: {
-      sourceTable: "purchase_order",
-      archiveTable: "purchase_order_archive",
+      sourceTable: "t_purchase_order",
+      archiveTable: "t_purchase_order_archive",
       dateField: "created_at",
       statusCondition: "status IN ('RECEIVED', 'CANCELLED')"
     },
     INVENTORY_LEDGER: {
-      sourceTable: "inventory_ledger",
-      archiveTable: "inventory_ledger_archive",
+      sourceTable: "t_inventory_ledger",
+      archiveTable: "t_inventory_ledger_archive",
       dateField: "created_at",
       statusCondition: "1=1"
     }
@@ -107,24 +107,24 @@ async function archiveByType(
     // 迁移关联子表（如有）
     if (type === "SALE_BILL") {
       await conn.execute(
-        `INSERT INTO sale_bill_item_archive
+        `INSERT INTO t_sale_bill_item_archive
          SELECT sbi.* FROM t_sale_bill_item sbi
          INNER JOIN t_sale_bill sb ON sb.bill_no = sbi.bill_no
          WHERE sb.tenant_id = ? AND ${config.statusCondition}
            AND DATE(sb.${config.dateField}) < ?
-           AND sbi.id NOT IN (SELECT id FROM sale_bill_item_archive)`,
+           AND sbi.id NOT IN (SELECT id FROM t_sale_bill_item_archive)`,
         [tenantId, cutoffDate]
       );
     }
 
     if (type === "PURCHASE_ORDER") {
       await conn.execute(
-        `INSERT INTO purchase_order_item_archive
+        `INSERT INTO t_purchase_order_item_archive
          SELECT poi.* FROM t_purchase_order_item poi
          INNER JOIN t_purchase_order po ON po.order_no = poi.order_no
          WHERE po.tenant_id = ? AND ${config.statusCondition}
            AND DATE(po.${config.dateField}) < ?
-           AND poi.id NOT IN (SELECT id FROM purchase_order_item_archive)`,
+           AND poi.id NOT IN (SELECT id FROM t_purchase_order_item_archive)`,
         [tenantId, cutoffDate]
       );
     }
@@ -133,7 +133,7 @@ async function archiveByType(
     if (type === "SALE_BILL") {
       await conn.execute(
         `DELETE FROM t_sale_bill_item
-         WHERE bill_no IN (SELECT bill_no FROM sale_bill_archive WHERE tenant_id = ?)`,
+         WHERE bill_no IN (SELECT bill_no FROM t_sale_bill_archive WHERE tenant_id = ?)`,
         [tenantId]
       );
     }
@@ -141,7 +141,7 @@ async function archiveByType(
     if (type === "PURCHASE_ORDER") {
       await conn.execute(
         `DELETE FROM t_purchase_order_item
-         WHERE order_no IN (SELECT order_no FROM purchase_order_archive WHERE tenant_id = ?)`,
+         WHERE order_no IN (SELECT order_no FROM t_purchase_order_archive WHERE tenant_id = ?)`,
         [tenantId]
       );
     }

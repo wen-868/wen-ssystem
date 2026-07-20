@@ -45,7 +45,7 @@ export async function getProfitLossStats(params: {
        COUNT(*) AS lossOrderCount,
        COALESCE(SUM(total_qty), 0) AS lossTotalQty,
        COALESCE(SUM(total_amount), 0) AS lossTotalAmount
-     FROM inventory_loss_order
+     FROM t_inventory_loss_order
      ${lossWhere}`,
     lossParams,
     tenantId
@@ -57,7 +57,7 @@ export async function getProfitLossStats(params: {
        COUNT(*) AS profitOrderCount,
        COALESCE(SUM(total_qty), 0) AS profitTotalQty,
        COALESCE(SUM(total_amount), 0) AS profitTotalAmount
-     FROM inventory_profit_order
+     FROM t_inventory_profit_order
      ${profitWhere}`,
     profitParams,
     tenantId
@@ -65,12 +65,12 @@ export async function getProfitLossStats(params: {
 
   // 待审核数量
   const pendingLoss = await queryOneWithTenant<any>(
-    `SELECT COUNT(*) AS count FROM inventory_loss_order WHERE tenant_id = ? AND status = 'PENDING'`,
+    `SELECT COUNT(*) AS count FROM t_inventory_loss_order WHERE tenant_id = ? AND status = 'PENDING'`,
     [tenantId],
     tenantId
   );
   const pendingProfit = await queryOneWithTenant<any>(
-    `SELECT COUNT(*) AS count FROM inventory_profit_order WHERE tenant_id = ? AND status = 'PENDING'`,
+    `SELECT COUNT(*) AS count FROM t_inventory_profit_order WHERE tenant_id = ? AND status = 'PENDING'`,
     [tenantId],
     tenantId
   );
@@ -80,7 +80,7 @@ export async function getProfitLossStats(params: {
     `SELECT loss_type AS lossType, COUNT(*) AS orderCount,
             COALESCE(SUM(total_qty), 0) AS totalQty,
             COALESCE(SUM(total_amount), 0) AS totalAmount
-     FROM inventory_loss_order
+     FROM t_inventory_loss_order
      ${lossWhere}
      GROUP BY loss_type
      ORDER BY totalAmount DESC`,
@@ -93,7 +93,7 @@ export async function getProfitLossStats(params: {
     `SELECT profit_type AS profitType, COUNT(*) AS orderCount,
             COALESCE(SUM(total_qty), 0) AS totalQty,
             COALESCE(SUM(total_amount), 0) AS totalAmount
-     FROM inventory_profit_order
+     FROM t_inventory_profit_order
      ${profitWhere}
      GROUP BY profit_type
      ORDER BY totalAmount DESC`,

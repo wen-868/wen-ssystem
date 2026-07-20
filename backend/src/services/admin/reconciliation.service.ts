@@ -57,7 +57,7 @@ export async function getSupplierReconciliation(tenantId: string, startDate?: st
             COALESCE(SUM(p.payable_amount), 0) AS totalPayable,
             COALESCE(SUM(p.paid_amount), 0) AS totalPaid,
             COALESCE(SUM(p.balance), 0) AS balance
-     FROM payable p
+     FROM t_payable p
      LEFT JOIN t_supplier s ON s.id = p.supplier_id
      WHERE p.tenant_id = ? AND ${conditions}
      GROUP BY p.supplier_id, s.name
@@ -74,18 +74,18 @@ export async function getSupplierReconciliationDetail(supplierId: number, tenant
   const supplier = await queryOneWithTenant<any>("SELECT id, name FROM t_supplier WHERE id = ? AND tenant_id = ?", [supplierId, tenantId], tenantId);
   const summary = await queryOneWithTenant<any>(
     `SELECT COALESCE(SUM(payable_amount), 0) AS totalPayable, COALESCE(SUM(paid_amount), 0) AS totalPaid, COALESCE(SUM(balance), 0) AS balance
-     FROM payable WHERE ${conditions}`,
+     FROM t_payable WHERE ${conditions}`,
     values, tenantId
   );
   const details = await queryWithTenant<any>(
     `SELECT source_type AS sourceType, source_no AS sourceNo, payable_amount AS payableAmount, paid_amount AS paidAmount, balance, due_date AS dueDate, status, created_at AS createdAt
-     FROM payable WHERE ${conditions} ORDER BY created_at`,
+     FROM t_payable WHERE ${conditions} ORDER BY created_at`,
     values, tenantId
   );
   return { supplierId, supplierName: supplier?.name ?? "", ...summary, details };
 }
 
 export async function confirmSupplierReconciliation(supplierId: number, tenantId: string) {
-  await queryWithTenant("UPDATE payable SET status = 'CONFIRMED' WHERE supplier_id = ? AND tenant_id = ? AND status = 'PENDING'", [supplierId, tenantId], tenantId);
+  await queryWithTenant("UPDATE t_payable SET status = 'CONFIRMED' WHERE supplier_id = ? AND tenant_id = ? AND status = 'PENDING'", [supplierId, tenantId], tenantId);
   return { supplierId, status: "CONFIRMED" };
 }

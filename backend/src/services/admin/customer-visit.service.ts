@@ -152,7 +152,7 @@ export async function listVisits(tenantId: string, query: VisitListQuery) {
             cv.status, cv.related_order_no AS relatedOrderNo,
             cv.images, cv.remark,
             cv.created_at AS createdAt, cv.updated_at AS updatedAt
-     FROM customer_visit cv
+     FROM t_customer_visit cv
      ${where}
      ORDER BY cv.visit_date DESC, cv.created_at DESC
      LIMIT ? OFFSET ?`,
@@ -161,7 +161,7 @@ export async function listVisits(tenantId: string, query: VisitListQuery) {
   );
 
   const totalRow = await queryOneWithTenant<any>(
-    `SELECT COUNT(*) AS total FROM customer_visit cv ${where}`,
+    `SELECT COUNT(*) AS total FROM t_customer_visit cv ${where}`,
     params,
     tenantId
   );
@@ -194,7 +194,7 @@ export async function getVisitDetail(tenantId: string, visitNo: string) {
             cv.status, cv.related_order_no AS relatedOrderNo,
             cv.images, cv.remark, cv.tenant_id AS tenantId,
             cv.created_at AS createdAt, cv.updated_at AS updatedAt
-     FROM customer_visit cv
+     FROM t_customer_visit cv
      WHERE cv.visit_no = ?`,
     [visitNo],
     tenantId
@@ -229,7 +229,7 @@ export async function createVisit(
 
   await transaction(async (conn) => {
     await conn.execute(
-      `INSERT INTO customer_visit (
+      `INSERT INTO t_customer_visit (
         visit_no, customer_id, customer_name, customer_mobile,
         store_id, visitor_id, visitor_name,
         visit_type, visit_purpose, visit_date,
@@ -273,7 +273,7 @@ export async function updateVisit(
   body: UpdateVisitInput
 ) {
   const existing = await queryOneWithTenant<any>(
-    "SELECT id, status FROM customer_visit WHERE visit_no = ?",
+    "SELECT id, status FROM t_customer_visit WHERE visit_no = ?",
     [visitNo],
     tenantId
   );
@@ -324,7 +324,7 @@ export async function updateVisit(
     updates.push("updated_at = NOW()");
     params.push(visitNo);
     await queryWithTenant(
-      `UPDATE customer_visit SET ${updates.join(", ")} WHERE visit_no = ?`,
+      `UPDATE t_customer_visit SET ${updates.join(", ")} WHERE visit_no = ?`,
       params,
       tenantId
     );
@@ -342,7 +342,7 @@ export async function updateVisit(
             status, visit_summary AS visitSummary, follow_up_required AS followUpRequired,
             follow_up_date AS followUpDate, next_action AS nextAction,
             updated_at AS updatedAt
-     FROM customer_visit WHERE visit_no = ?`,
+     FROM t_customer_visit WHERE visit_no = ?`,
     [visitNo],
     tenantId
   );
@@ -360,7 +360,7 @@ export async function checkin(
   body: CheckinInput
 ) {
   const existing = await queryOneWithTenant<any>(
-    "SELECT id, status FROM customer_visit WHERE visit_no = ?",
+    "SELECT id, status FROM t_customer_visit WHERE visit_no = ?",
     [visitNo],
     tenantId
   );
@@ -383,7 +383,7 @@ export async function checkin(
   updates.push("updated_at = NOW()");
   params.push(visitNo);
   await queryWithTenant(
-    `UPDATE customer_visit SET ${updates.join(", ")} WHERE visit_no = ?`,
+    `UPDATE t_customer_visit SET ${updates.join(", ")} WHERE visit_no = ?`,
     params,
     tenantId
   );
@@ -407,7 +407,7 @@ export async function checkout(
   body: CheckoutInput
 ) {
   const existing = await queryOneWithTenant<any>(
-    "SELECT id, status, start_time FROM customer_visit WHERE visit_no = ?",
+    "SELECT id, status, start_time FROM t_customer_visit WHERE visit_no = ?",
     [visitNo],
     tenantId
   );
@@ -442,7 +442,7 @@ export async function checkout(
   updates.push("updated_at = NOW()");
   params.push(visitNo);
   await queryWithTenant(
-    `UPDATE customer_visit SET ${updates.join(", ")} WHERE visit_no = ?`,
+    `UPDATE t_customer_visit SET ${updates.join(", ")} WHERE visit_no = ?`,
     params,
     tenantId
   );
@@ -465,7 +465,7 @@ export async function cancelVisit(
   visitNo: string
 ) {
   const existing = await queryOneWithTenant<any>(
-    "SELECT id, status FROM customer_visit WHERE visit_no = ?",
+    "SELECT id, status FROM t_customer_visit WHERE visit_no = ?",
     [visitNo],
     tenantId
   );
@@ -477,7 +477,7 @@ export async function cancelVisit(
   }
 
   await queryWithTenant(
-    "UPDATE customer_visit SET status = 'CANCELLED', updated_at = NOW() WHERE visit_no = ?",
+    "UPDATE t_customer_visit SET status = 'CANCELLED', updated_at = NOW() WHERE visit_no = ?",
     [visitNo],
     tenantId
   );
@@ -509,7 +509,7 @@ export async function listPendingFollowUps(
             cv.next_action AS nextAction, cv.status,
             cv.visitor_name AS visitorName,
             DATEDIFF(CURDATE(), cv.follow_up_date) AS overdueDays
-     FROM customer_visit cv
+     FROM t_customer_visit cv
      WHERE cv.follow_up_required = 1
        AND cv.follow_up_date <= CURDATE()
        AND cv.status IN ('COMPLETED', 'VISITED')
@@ -521,7 +521,7 @@ export async function listPendingFollowUps(
   );
 
   const totalRow = await queryOneWithTenant<any>(
-    `SELECT COUNT(*) AS total FROM customer_visit cv
+    `SELECT COUNT(*) AS total FROM t_customer_visit cv
      WHERE cv.follow_up_required = 1
        AND cv.follow_up_date <= CURDATE()
        AND cv.status IN ('COMPLETED', 'VISITED')
@@ -545,7 +545,7 @@ export async function getVisitStatistics(
   const visitorParams = visitorId ? [visitorId] : [];
 
   const totalVisits = await queryOneWithTenant<any>(
-    `SELECT COUNT(*) AS total FROM customer_visit cv
+    `SELECT COUNT(*) AS total FROM t_customer_visit cv
      WHERE cv.visit_date BETWEEN ? AND ? ${visitorCondition}`,
     [startDate, endDate, ...visitorParams],
     tenantId
@@ -553,7 +553,7 @@ export async function getVisitStatistics(
 
   const byType = await queryWithTenant<any>(
     `SELECT cv.visit_type AS visitType, COUNT(*) AS count
-     FROM customer_visit cv
+     FROM t_customer_visit cv
      WHERE cv.visit_date BETWEEN ? AND ? ${visitorCondition}
      GROUP BY cv.visit_type`,
     [startDate, endDate, ...visitorParams],
@@ -562,7 +562,7 @@ export async function getVisitStatistics(
 
   const byPurpose = await queryWithTenant<any>(
     `SELECT cv.visit_purpose AS visitPurpose, COUNT(*) AS count
-     FROM customer_visit cv
+     FROM t_customer_visit cv
      WHERE cv.visit_date BETWEEN ? AND ? ${visitorCondition}
      GROUP BY cv.visit_purpose`,
     [startDate, endDate, ...visitorParams],
@@ -571,7 +571,7 @@ export async function getVisitStatistics(
 
   const byStatus = await queryWithTenant<any>(
     `SELECT cv.status, COUNT(*) AS count
-     FROM customer_visit cv
+     FROM t_customer_visit cv
      WHERE cv.visit_date BETWEEN ? AND ? ${visitorCondition}
      GROUP BY cv.status`,
     [startDate, endDate, ...visitorParams],
@@ -580,7 +580,7 @@ export async function getVisitStatistics(
 
   const avgDuration = await queryOneWithTenant<any>(
     `SELECT AVG(cv.duration_minutes) AS avgMinutes
-     FROM customer_visit cv
+     FROM t_customer_visit cv
      WHERE cv.visit_date BETWEEN ? AND ?
        AND cv.duration_minutes IS NOT NULL ${visitorCondition}`,
     [startDate, endDate, ...visitorParams],
@@ -588,7 +588,7 @@ export async function getVisitStatistics(
   );
 
   const pendingFollowUp = await queryOneWithTenant<any>(
-    `SELECT COUNT(*) AS total FROM customer_visit cv
+    `SELECT COUNT(*) AS total FROM t_customer_visit cv
      WHERE cv.follow_up_required = 1
        AND cv.follow_up_date <= CURDATE()
        AND cv.status IN ('COMPLETED', 'VISITED')

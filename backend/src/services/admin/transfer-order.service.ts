@@ -178,7 +178,7 @@ export async function getTransferOrderDetail(id: number, tenantId: string) {
   const items = await queryWithTenant<any>(
     `SELECT id, transfer_order_id AS transferOrderId, transfer_no AS transferNo,
             sku_id AS skuId, sku_name AS skuName, quantity, unit_price AS unitPrice, subtotal
-     FROM transfer_order_item WHERE transfer_order_id = ?
+     FROM t_transfer_order_item WHERE transfer_order_id = ?
      ORDER BY id ASC`,
     [id],
     tenantId
@@ -226,7 +226,7 @@ export async function updateTransferOrder(id: number, tenantId: string, params: 
 
     if (items && items.length > 0) {
       await conn.execute(
-        "DELETE FROM transfer_order_item WHERE transfer_order_id = ? AND tenant_id = ?",
+        "DELETE FROM t_transfer_order_item WHERE transfer_order_id = ? AND tenant_id = ?",
         [id, tenantId]
       );
 
@@ -269,7 +269,7 @@ export async function deleteTransferOrder(id: number, tenantId: string) {
 
   await transaction(async (conn) => {
     await conn.execute(
-      "DELETE FROM transfer_order_item WHERE transfer_order_id = ? AND tenant_id = ?",
+      "DELETE FROM t_transfer_order_item WHERE transfer_order_id = ? AND tenant_id = ?",
       [id, tenantId]
     );
     await conn.execute(
@@ -396,7 +396,7 @@ export async function confirmTransferOut(
     // 查询明细
     const items = await conn.query<any>(
       `SELECT sku_id AS skuId, quantity
-       FROM transfer_order_item WHERE transfer_order_id = ?`,
+       FROM t_transfer_order_item WHERE transfer_order_id = ?`,
       [id]
     ) as any[];
 
@@ -453,7 +453,7 @@ export async function confirmTransferIn(
     // 查询明细
     const items = await conn.query<any>(
       `SELECT sku_id AS skuId, quantity, unit_price AS unitPrice
-       FROM transfer_order_item WHERE transfer_order_id = ?`,
+       FROM t_transfer_order_item WHERE transfer_order_id = ?`,
       [id]
     ) as any[];
 

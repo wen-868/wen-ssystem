@@ -188,7 +188,7 @@ export async function listReports(tenantId: string, params: ReportListParams) {
   const where = `WHERE ${conditions.join(" AND ")}`;
 
   const totalRow = await queryOneWithTenant<{ total: number }>(
-    `SELECT COUNT(*) AS total FROM custom_report ${where}`,
+    `SELECT COUNT(*) AS total FROM t_custom_report ${where}`,
     sqlParams,
     tenantId
   );
@@ -199,7 +199,7 @@ export async function listReports(tenantId: string, params: ReportListParams) {
             data_source AS dataSource, config, chart_type AS chartType,
             description, status, created_by AS createdBy,
             created_at AS createdAt, updated_at AS updatedAt
-     FROM custom_report ${where}
+     FROM t_custom_report ${where}
      ORDER BY created_at DESC
      LIMIT ? OFFSET ?`,
     [...sqlParams, params.pageSize, offset],
@@ -212,7 +212,7 @@ export async function listReports(tenantId: string, params: ReportListParams) {
 /** 创建报表 */
 export async function createReport(tenantId: string, data: ReportCreateData, userId?: number) {
   const result = await queryWithTenant<Record<string, unknown>>(
-    `INSERT INTO custom_report (tenant_id, report_name, report_type, data_source, config, chart_type, description, created_by)
+    `INSERT INTO t_custom_report (tenant_id, report_name, report_type, data_source, config, chart_type, description, created_by)
      VALUES (?, ?, ?, ?, ?, ?, ?, ?)`,
     [
       tenantId,
@@ -237,7 +237,7 @@ export async function getReport(tenantId: string, id: number) {
             data_source AS dataSource, config, chart_type AS chartType,
             description, status, created_by AS createdBy,
             created_at AS createdAt, updated_at AS updatedAt
-     FROM custom_report
+     FROM t_custom_report
      WHERE id = ? AND tenant_id = ?`,
     [id, tenantId],
     tenantId
@@ -251,7 +251,7 @@ export async function getReport(tenantId: string, id: number) {
 /** 更新报表 */
 export async function updateReport(tenantId: string, id: number, data: ReportUpdateData) {
   const existing = await queryOneWithTenant<{ id: number }>(
-    "SELECT id FROM custom_report WHERE id = ? AND tenant_id = ?",
+    "SELECT id FROM t_custom_report WHERE id = ? AND tenant_id = ?",
     [id, tenantId],
     tenantId
   );
@@ -278,7 +278,7 @@ export async function updateReport(tenantId: string, id: number, data: ReportUpd
   sqlParams.push(id, tenantId);
 
   await queryWithTenant(
-    `UPDATE custom_report SET ${sets.join(", ")} WHERE id = ? AND tenant_id = ?`,
+    `UPDATE t_custom_report SET ${sets.join(", ")} WHERE id = ? AND tenant_id = ?`,
     sqlParams,
     tenantId
   );
@@ -288,7 +288,7 @@ export async function updateReport(tenantId: string, id: number, data: ReportUpd
 /** 删除报表 */
 export async function deleteReport(tenantId: string, id: number) {
   const existing = await queryOneWithTenant<{ id: number }>(
-    "SELECT id FROM custom_report WHERE id = ? AND tenant_id = ?",
+    "SELECT id FROM t_custom_report WHERE id = ? AND tenant_id = ?",
     [id, tenantId],
     tenantId
   );
@@ -297,7 +297,7 @@ export async function deleteReport(tenantId: string, id: number) {
   }
 
   await queryWithTenant(
-    "DELETE FROM custom_report WHERE id = ? AND tenant_id = ?",
+    "DELETE FROM t_custom_report WHERE id = ? AND tenant_id = ?",
     [id, tenantId],
     tenantId
   );
@@ -307,7 +307,7 @@ export async function deleteReport(tenantId: string, id: number) {
 /** 生成报表数据 */
 export async function generateReport(tenantId: string, id: number, params: ReportGenerateParams) {
   const report = await queryOneWithTenant<Record<string, unknown>>(
-    "SELECT id, report_name AS reportName, report_type AS reportType, data_source AS dataSource, config, chart_type AS chartType FROM custom_report WHERE id = ? AND tenant_id = ?",
+    "SELECT id, report_name AS reportName, report_type AS reportType, data_source AS dataSource, config, chart_type AS chartType FROM t_custom_report WHERE id = ? AND tenant_id = ?",
     [id, tenantId],
     tenantId
   );
@@ -393,7 +393,7 @@ export async function generateReport(tenantId: string, id: number, params: Repor
 
   // 记录生成日志
   await queryWithTenant(
-    `INSERT INTO custom_report_log (report_id, params, row_count, status, tenant_id)
+    `INSERT INTO t_custom_report_log (report_id, params, row_count, status, tenant_id)
      VALUES (?, ?, ?, 'SUCCESS', ?)`,
     [id, JSON.stringify(params || {}), rows.length, tenantId],
     tenantId
@@ -420,7 +420,7 @@ export async function exportReport(tenantId: string, id: number, format: string,
 
   // 记录导出日志
   await queryWithTenant(
-    `INSERT INTO custom_report_log (report_id, params, row_count, file_url, export_format, status, tenant_id)
+    `INSERT INTO t_custom_report_log (report_id, params, row_count, file_url, export_format, status, tenant_id)
      VALUES (?, ?, ?, ?, ?, 'SUCCESS', ?)`,
     [id, JSON.stringify(params || {}), result.total, fileUrl, format.toUpperCase(), tenantId],
     tenantId

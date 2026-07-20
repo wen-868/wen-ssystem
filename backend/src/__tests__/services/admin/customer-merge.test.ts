@@ -134,7 +134,7 @@ describe("admin customer-merge.service - mergeCustomers", () => {
     mocks.queryWithTenant.mockResolvedValue([{ id: 2, name: "李四", mobile: "139", address: "新地址", remark: "重复" }]);
     const res = await mergeCustomers("t1", { primaryCustomerId: 1, duplicateCustomerIds: [2], mergeName: false, mergeMobile: false, mergeAddress: false, mergeRemark: false }, 1, "user1");
     expect(res.deletedCount).toBe(1);
-    // updates.length === 0 时不执行 UPDATE member
+    // updates.length === 0 时不执行 UPDATE t_member
     const executeCalls = mockConn.execute.mock.calls.map(c => c[0] as string);
     expect(executeCalls.some((sql: string) => sql.includes("UPDATE t_member SET"))).toBe(false);
   });

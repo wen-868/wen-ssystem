@@ -6,8 +6,8 @@ import { state, Row } from "./mock-db-state";
 export const queryHandlers: Array<(s: string, params: unknown[]) => Row[] | null> = [
   // store 查询
   (s, _params) => {
-    if ((s.includes("from store") || s.includes("from t_store")) && s.includes("count(*)")) return [{ total: state.stores.length }];
-    if ((s.includes("from store") || s.includes("from t_store")) && !s.includes("group by") && !s.includes("join")) {
+    if ((s.includes("from t_store") || s.includes("from t_store")) && s.includes("count(*)")) return [{ total: state.stores.length }];
+    if ((s.includes("from t_store") || s.includes("from t_store")) && !s.includes("group by") && !s.includes("join")) {
       return state.stores.map((st) => ({
         id: st.id,
         storeCode: st.store_code,
@@ -30,7 +30,7 @@ export const queryHandlers: Array<(s: string, params: unknown[]) => Row[] | null
 
   // 按门店分组的销售统计
   (s, _params) => {
-    if ((s.includes("left join sale_bill") || s.includes("left join t_sale_bill")) && s.includes("group by")) {
+    if ((s.includes("left join t_sale_bill") || s.includes("left join t_sale_bill")) && s.includes("group by")) {
       return state.stores.map((st: Row) => {
         const bills = state.saleBills.filter((b: Row) => (b.storeId || b.store_id) === st.id);
         const total = bills.reduce((sum: number, b: Row) => sum + Number(b.receivableAmount || b.receivable_amount || 0), 0);
@@ -44,7 +44,7 @@ export const queryHandlers: Array<(s: string, params: unknown[]) => Row[] | null
 export const executeHandlers: Array<(s: string, params: unknown[]) => Row[] | null> = [
   // store INSERT
   (s, params) => {
-    if (s.includes("insert into store") || s.includes("insert into t_store")) {
+    if (s.includes("insert into t_store") || s.includes("insert into t_store")) {
       state.stores.push({
         id: state.stores.length + 1,
         store_code: String(params[0]),

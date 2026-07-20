@@ -8,14 +8,14 @@ import { state, result, Row } from "./mock-db-state";
 export const queryHandlers: Array<(s: string, params: unknown[]) => Row[] | null> = [
   // sys_user / t_sys_user（兼容两种表名格式）
   (s, params) => {
-    if (s.includes("from sys_user where username") || s.includes("from t_sys_user where username")) {
+    if (s.includes("from t_sys_user where username") || s.includes("from t_sys_user where username")) {
       return state.users.filter((u) => u.username === params[0]);
     }
-    if ((s.includes("from sys_user_role") || s.includes("from t_sys_user_role")) && (s.includes("join sys_role") || s.includes("join t_sys_role"))) {
+    if ((s.includes("from t_sys_user_role") || s.includes("from t_sys_user_role")) && (s.includes("join t_sys_role") || s.includes("join t_sys_role"))) {
       const userId = Number(params[0]);
       return state.userRoles.filter((role) => role.user_id === userId).map((role) => ({ role_code: role.role_code }));
     }
-    if ((s.includes("from sys_user") || s.includes("from t_sys_user")) && !s.includes("where username")) {
+    if ((s.includes("from t_sys_user") || s.includes("from t_sys_user")) && !s.includes("where username")) {
       return state.users.map((u) => ({
         staffId: u.id,
         id: u.id,
@@ -30,7 +30,7 @@ export const queryHandlers: Array<(s: string, params: unknown[]) => Row[] | null
 
   // error_logs INSERT
   (s, params) => {
-    if (s.includes("insert into error_logs") || s.includes("insert into t_error_logs")) {
+    if (s.includes("insert into t_error_logs") || s.includes("insert into t_error_logs")) {
       const id = state.errorLogs.length + 1;
       state.errorLogs.push({
         id,
@@ -54,10 +54,10 @@ export const queryHandlers: Array<(s: string, params: unknown[]) => Row[] | null
 
   // error_logs
   (s, params) => {
-    if ((s.includes("from error_logs") || s.includes("from t_error_logs")) && s.includes("count(*) as count")) {
+    if ((s.includes("from t_error_logs") || s.includes("from t_error_logs")) && s.includes("count(*) as count")) {
       return [{ count: state.errorLogs.length }];
     }
-    if ((s.includes("from error_logs") || s.includes("from t_error_logs")) && s.includes("date(created_at) as date") && s.includes("group by date(created_at)")) {
+    if ((s.includes("from t_error_logs") || s.includes("from t_error_logs")) && s.includes("date(created_at) as date") && s.includes("group by date(created_at)")) {
       const dateMap = new Map<string, number>();
       for (const e of state.errorLogs) {
         const date = (e.created_at || e.createdAt || "").split("T")[0];
@@ -69,7 +69,7 @@ export const queryHandlers: Array<(s: string, params: unknown[]) => Row[] | null
         .sort((a, b) => a[0].localeCompare(b[0]))
         .map(([date, count]) => ({ date, count }));
     }
-    if ((s.includes("from error_logs") || s.includes("from t_error_logs")) && s.includes("status_code") && s.includes("group by status_code")) {
+    if ((s.includes("from t_error_logs") || s.includes("from t_error_logs")) && s.includes("status_code") && s.includes("group by status_code")) {
       const codeMap = new Map<number, number>();
       for (const e of state.errorLogs) {
         const sc = e.status_code;
@@ -79,7 +79,7 @@ export const queryHandlers: Array<(s: string, params: unknown[]) => Row[] | null
       }
       return Array.from(codeMap.entries()).map(([status_code, count]) => ({ status_code, count }));
     }
-    if ((s.includes("from error_logs") || s.includes("from t_error_logs")) && s.includes("count(*) as total")) {
+    if ((s.includes("from t_error_logs") || s.includes("from t_error_logs")) && s.includes("count(*) as total")) {
       let filtered = state.errorLogs;
       let paramIdx = 0;
       if (s.includes("error_type = ?")) {
@@ -103,7 +103,7 @@ export const queryHandlers: Array<(s: string, params: unknown[]) => Row[] | null
       }
       return [{ total: filtered.length }];
     }
-    if ((s.includes("from error_logs") || s.includes("from t_error_logs")) && s.includes("order by created_at desc")) {
+    if ((s.includes("from t_error_logs") || s.includes("from t_error_logs")) && s.includes("order by created_at desc")) {
       let filtered = state.errorLogs;
       let paramIdx = 0;
       if (s.includes("error_type = ?")) {
@@ -133,7 +133,7 @@ export const queryHandlers: Array<(s: string, params: unknown[]) => Row[] | null
       const offset = Number(params[paramIdx + 1]) || 0;
       return sorted.slice(offset, offset + pageSize);
     }
-    if (s.includes("from error_logs") || s.includes("from t_error_logs")) {
+    if (s.includes("from t_error_logs") || s.includes("from t_error_logs")) {
       return state.errorLogs;
     }
     return null;
@@ -141,7 +141,7 @@ export const queryHandlers: Array<(s: string, params: unknown[]) => Row[] | null
 
   // operation_logs
   (s, params) => {
-    if (s.includes("insert into operation_log") || s.includes("insert into t_operation_log")) {
+    if (s.includes("insert into t_operation_log") || s.includes("insert into t_operation_log")) {
       state.operationLogs.push({
         operatorId: params[0],
         operatorName: params[1],
@@ -158,16 +158,16 @@ export const queryHandlers: Array<(s: string, params: unknown[]) => Row[] | null
 
   // platform_admin / t_platform_admin
   (s, params) => {
-    if ((s.includes("from platform_admin where username") || s.includes("from t_platform_admin where username")) && s.includes("status")) {
+    if ((s.includes("from t_platform_admin where username") || s.includes("from t_platform_admin where username")) && s.includes("status")) {
       return state.platformAdmins.filter((u: any) => u.username === params[0] && u.status === 1);
     }
-    if (s.includes("from platform_admin where id") || s.includes("from t_platform_admin where id")) {
+    if (s.includes("from t_platform_admin where id") || s.includes("from t_platform_admin where id")) {
       return state.platformAdmins.filter((u: any) => u.id === Number(params[0]));
     }
-    if (s.includes("select id from platform_admin where username") || s.includes("select id from t_platform_admin where username")) {
+    if (s.includes("select id from t_platform_admin where username") || s.includes("select id from t_platform_admin where username")) {
       return state.platformAdmins.filter((u: any) => u.username === params[0]).map((u: any) => ({ id: u.id }));
     }
-    if (s.includes("insert into platform_admin") || s.includes("insert into t_platform_admin")) {
+    if (s.includes("insert into t_platform_admin") || s.includes("insert into t_platform_admin")) {
       const id = state.platformAdmins.length + 1;
       state.platformAdmins.push({ id, username: params[0] as string, password: params[1] as string, real_name: params[2] as string, email: params[3] as string, phone: params[4] as string, role: params[5] as string, status: 1 });
       return [{ insertId: id, affectedRows: 1 }];
@@ -177,14 +177,14 @@ export const queryHandlers: Array<(s: string, params: unknown[]) => Row[] | null
 
   // platform_config / platform_credentials
   (s, params) => {
-    if ((s.includes("from platform_config") || s.includes("from t_platform_config")) && s.includes("count(*)")) {
+    if ((s.includes("from t_platform_config") || s.includes("from t_platform_config")) && s.includes("count(*)")) {
       return [{ total: state.platformCredentials.length }];
     }
-    if ((s.includes("from platform_config") || s.includes("from t_platform_config")) && s.includes("where platform = ?")) {
+    if ((s.includes("from t_platform_config") || s.includes("from t_platform_config")) && s.includes("where platform = ?")) {
       const found = state.platformCredentials.find((c: Row) => c.platform === params[0]);
       return found ? [found] : [];
     }
-    if (s.includes("from platform_config") || s.includes("from t_platform_config")) {
+    if (s.includes("from t_platform_config") || s.includes("from t_platform_config")) {
       return state.platformCredentials;
     }
     return null;
@@ -192,14 +192,14 @@ export const queryHandlers: Array<(s: string, params: unknown[]) => Row[] | null
 
   // platform_order
   (s, params) => {
-    if ((s.includes("from platform_order") || s.includes("from t_platform_order")) && s.includes("count(*)")) {
+    if ((s.includes("from t_platform_order") || s.includes("from t_platform_order")) && s.includes("count(*)")) {
       return [{ total: state.platformOrders.length }];
     }
-    if ((s.includes("from platform_order") || s.includes("from t_platform_order")) && s.includes("where platform_order_id = ?")) {
+    if ((s.includes("from t_platform_order") || s.includes("from t_platform_order")) && s.includes("where platform_order_id = ?")) {
       const found = state.platformOrders.find((o: Row) => o.platformOrderId === params[0] || o.platform_order_id === params[0]);
       return found ? [found] : [];
     }
-    if (s.includes("from platform_order") || s.includes("from t_platform_order")) {
+    if (s.includes("from t_platform_order") || s.includes("from t_platform_order")) {
       return state.platformOrders;
     }
     return null;
@@ -211,7 +211,7 @@ export const queryHandlers: Array<(s: string, params: unknown[]) => Row[] | null
 export const executeHandlers: Array<(s: string, params: unknown[]) => Row[] | null> = [
   // error_logs DELETE
   (s, params) => {
-    if ((s.includes("delete from error_logs") || s.includes("delete from t_error_logs")) && s.includes("created_at <")) {
+    if ((s.includes("delete from t_error_logs") || s.includes("delete from t_error_logs")) && s.includes("created_at <")) {
       const retainDays = Number(params[0]) || 30;
       const cutoff = new Date();
       cutoff.setDate(cutoff.getDate() - retainDays);
@@ -227,7 +227,7 @@ export const executeHandlers: Array<(s: string, params: unknown[]) => Row[] | nu
 
   // platform_config INSERT
   (s, params) => {
-    if (s.includes("insert into platform_config") || s.includes("insert into t_platform_config")) {
+    if (s.includes("insert into t_platform_config") || s.includes("insert into t_platform_config")) {
       state.platformCredentials.push({
         id: state.platformCredentials.length + 1,
         platform: params[0],
@@ -252,7 +252,7 @@ export const executeHandlers: Array<(s: string, params: unknown[]) => Row[] | nu
 
   // platform_config UPDATE
   (s, params) => {
-    if (s.includes("update platform_config") || s.includes("update t_platform_config")) {
+    if (s.includes("update t_platform_config") || s.includes("update t_platform_config")) {
       const cfg = state.platformCredentials.find((c: Row) => c.platform === params[params.length - 1]);
       if (cfg) {
         if (params[0] != null) { cfg.store_id = params[0]; cfg.storeId = params[0]; }
@@ -269,7 +269,7 @@ export const executeHandlers: Array<(s: string, params: unknown[]) => Row[] | nu
 
   // platform_config DELETE
   (s, params) => {
-    if (s.includes("delete from platform_config") || s.includes("delete from t_platform_config")) {
+    if (s.includes("delete from t_platform_config") || s.includes("delete from t_platform_config")) {
       state.platformCredentials = state.platformCredentials.filter((c: Row) => c.platform !== params[0]);
       return result();
     }
@@ -278,7 +278,7 @@ export const executeHandlers: Array<(s: string, params: unknown[]) => Row[] | nu
 
   // platform_order INSERT
   (s, params) => {
-    if (s.includes("insert into platform_order") || s.includes("insert into t_platform_order")) {
+    if (s.includes("insert into t_platform_order") || s.includes("insert into t_platform_order")) {
       const existingIdx = state.platformOrders.findIndex((o: Row) =>
         (o.platformOrderId === params[0] || o.platform_order_id === params[0]) && o.platform === params[1]
       );
@@ -308,7 +308,7 @@ export const executeHandlers: Array<(s: string, params: unknown[]) => Row[] | nu
 
   // platform_order UPDATE
   (s, params) => {
-    if (s.includes("update platform_order") || s.includes("update t_platform_order")) {
+    if (s.includes("update t_platform_order") || s.includes("update t_platform_order")) {
       const order = state.platformOrders.find((o: Row) => o.platformOrderId === params[params.length - 1] || o.platform_order_id === params[params.length - 1]);
       if (order) {
         order.status = params[0];

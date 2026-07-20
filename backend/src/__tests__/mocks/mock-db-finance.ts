@@ -79,7 +79,7 @@ export const queryHandlers: Array<(s: string, params: unknown[]) => Row[] | null
     return null;
   },
   (s, params) => {
-    if (s.includes("insert into collection_link")) {
+    if (s.includes("insert into t_collection_link")) {
       state.collectionLinks.push({
         linkNo: params[0],
         sourceType: "SALE_BILL",
@@ -101,7 +101,7 @@ export const queryHandlers: Array<(s: string, params: unknown[]) => Row[] | null
 
   // collection_link join
   (s, params) => {
-    if (s.includes("from collection_link") && s.includes("where cl.token")) {
+    if (s.includes("from t_collection_link") && s.includes("where cl.token")) {
       const link = state.collectionLinks.find((l) => l.token === params[0]);
       if (!link) return [];
       const bill = state.saleBills.find((b) => b.billNo === link.sourceNo);
@@ -112,7 +112,7 @@ export const queryHandlers: Array<(s: string, params: unknown[]) => Row[] | null
 
   // collection_link by token
   (s, params) => {
-    if (s.includes("from collection_link where token")) {
+    if (s.includes("from t_collection_link where token")) {
       const link = state.collectionLinks.find((l) => l.token === params[0]);
       return link ? [{ link_no: link.linkNo, amount: link.amount, status: link.status }] : [];
     }
@@ -121,7 +121,7 @@ export const queryHandlers: Array<(s: string, params: unknown[]) => Row[] | null
 
   // collection_view_log INSERT
   (s, params) => {
-    if (s.includes("insert into collection_view_log")) {
+    if (s.includes("insert into t_collection_view_log")) {
       state.viewLogs.push({ linkNo: params[0], ip: params[1], userAgent: params[2] });
       return [];
     }
@@ -130,10 +130,10 @@ export const queryHandlers: Array<(s: string, params: unknown[]) => Row[] | null
 
   // payment_order
   (s, _params) => {
-    if (s.includes("count(*) from payment_order") || s.includes("count(*) from t_payment_order")) {
+    if (s.includes("count(*) from t_payment_order") || s.includes("count(*) from t_payment_order")) {
       return [{ total: state.paymentOrders.length }];
     }
-    if (s.includes("from payment_order") || s.includes("from t_payment_order")) {
+    if (s.includes("from t_payment_order") || s.includes("from t_payment_order")) {
       return state.paymentOrders;
     }
     return null;
@@ -141,10 +141,10 @@ export const queryHandlers: Array<(s: string, params: unknown[]) => Row[] | null
 
   // refund_order
   (s, _params) => {
-    if (s.includes("count(*) from refund_order") || s.includes("count(*) from t_refund_order")) {
+    if (s.includes("count(*) from t_refund_order") || s.includes("count(*) from t_refund_order")) {
       return [{ total: state.refundOrders.length }];
     }
-    if (s.includes("from refund_order") || s.includes("from t_refund_order")) {
+    if (s.includes("from t_refund_order") || s.includes("from t_refund_order")) {
       return state.refundOrders;
     }
     return null;
@@ -152,10 +152,10 @@ export const queryHandlers: Array<(s: string, params: unknown[]) => Row[] | null
 
   // collection_link
   (s, _params) => {
-    if (s.includes("count(*) from collection_link")) {
+    if (s.includes("count(*) from t_collection_link")) {
       return [{ total: state.collectionLinks.length }];
     }
-    if (s.includes("from collection_link")) {
+    if (s.includes("from t_collection_link")) {
       return state.collectionLinks;
     }
     return null;
@@ -163,7 +163,7 @@ export const queryHandlers: Array<(s: string, params: unknown[]) => Row[] | null
 
   // receivable_account
   (s, params) => {
-    if (s.includes("from receivable_account")) {
+    if (s.includes("from t_receivable_account")) {
       if (s.includes("count(*) as total")) {
         return [{ total: state.receivables.length }];
       }
@@ -179,7 +179,7 @@ export const queryHandlers: Array<(s: string, params: unknown[]) => Row[] | null
 
 export const executeHandlers: Array<(s: string, params: unknown[]) => Row[] | null> = [
   (s, params) => {
-    if ((s.includes("insert into payment_order") || s.includes("insert into t_payment_order")) && s.includes("'sale_bill'")) {
+    if ((s.includes("insert into t_payment_order") || s.includes("insert into t_payment_order")) && s.includes("'sale_bill'")) {
       state.paymentOrders.push({
         payNo: params[0],
         pay_no: params[0],
@@ -200,7 +200,7 @@ export const executeHandlers: Array<(s: string, params: unknown[]) => Row[] | nu
 
   // payment_order INSERT (receivable)
   (s, params) => {
-    if ((s.includes("insert into payment_order") || s.includes("insert into t_payment_order")) && s.includes("'receivable'")) {
+    if ((s.includes("insert into t_payment_order") || s.includes("insert into t_payment_order")) && s.includes("'receivable'")) {
       state.paymentOrders.push({
         payNo: params[0],
         pay_no: params[0],
@@ -221,7 +221,7 @@ export const executeHandlers: Array<(s: string, params: unknown[]) => Row[] | nu
 
   // payment_order INSERT (generic)
   (s, params) => {
-    if (s.includes("insert into payment_order") || s.includes("insert into t_payment_order")) {
+    if (s.includes("insert into t_payment_order") || s.includes("insert into t_payment_order")) {
       state.paymentOrders.push({
         payNo: params[0],
         pay_no: params[0],
@@ -242,7 +242,7 @@ export const executeHandlers: Array<(s: string, params: unknown[]) => Row[] | nu
 
   // refund_order INSERT
   (s, params) => {
-    if (s.includes("insert into refund_order") || s.includes("insert into t_refund_order")) {
+    if (s.includes("insert into t_refund_order") || s.includes("insert into t_refund_order")) {
       const pay = state.paymentOrders.find((p) => p.payNo === params[3] || p.pay_no === params[3]);
       state.refundOrders.push({
         refundNo: params[0],
@@ -265,7 +265,7 @@ export const executeHandlers: Array<(s: string, params: unknown[]) => Row[] | nu
 
   // receivable_account INSERT
   (s, params) => {
-    if (s.includes("insert into receivable_account")) {
+    if (s.includes("insert into t_receivable_account")) {
       state.receivables.push({
         receivableNo: params[0],
         receivable_no: params[0],
@@ -294,7 +294,7 @@ export const executeHandlers: Array<(s: string, params: unknown[]) => Row[] | nu
 
   // receivable_account UPDATE
   (s, params) => {
-    if (s.includes("update receivable_account")) {
+    if (s.includes("update t_receivable_account")) {
       const receivable = state.receivables.find((r) => r.receivableNo === params[3] || r.receivable_no === params[3]);
       if (receivable) {
         receivable.receivedAmount = params[0];

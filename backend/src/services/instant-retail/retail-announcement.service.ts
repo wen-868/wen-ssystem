@@ -33,7 +33,7 @@ export async function updateAnnouncement(
   }
 ) {
   await query<any>(
-    "UPDATE retail_announcement SET title = ?, content = ?, is_top = ?, start_time = ?, end_time = ? WHERE id = ?",
+    "UPDATE t_retail_announcement SET title = ?, content = ?, is_top = ?, start_time = ?, end_time = ? WHERE id = ?",
     [data.title, data.content, data.is_top, data.start_time ?? null, data.end_time ?? null, id]
   );
   return { id };

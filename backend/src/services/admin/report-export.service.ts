@@ -115,7 +115,7 @@ const reportQueries: Record<ReportType, (filters: Record<string, any>, tenantId:
       sql: `SELECT expense_no AS expenseNo, expense_type AS expenseType, category,
                    amount, payee, payment_method AS paymentMethod,
                    status, expense_date AS expenseDate, created_at AS createdAt
-            FROM expense WHERE ${conditions.join(" AND ")} ORDER BY created_at DESC`,
+            FROM t_expense WHERE ${conditions.join(" AND ")} ORDER BY created_at DESC`,
       params,
     };
   },

@@ -4,7 +4,7 @@ import { makeBizNo } from "../../shared/id";
 export async function createLimitedDiscount(data: any, tenantId: string, userId: number) {
   const code = makeBizNo("XS");
   const result = await queryWithTenant(
-    `INSERT INTO limited_discount (activity_code, activity_name, activity_desc, discount_type, discount_value, min_purchase, applicable_scope, applicable_ids, start_time, end_time, total_stock, available_stock, limit_per_user, per_order_limit, tenant_id, created_by) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+    `INSERT INTO t_limited_discount (activity_code, activity_name, activity_desc, discount_type, discount_value, min_purchase, applicable_scope, applicable_ids, start_time, end_time, total_stock, available_stock, limit_per_user, per_order_limit, tenant_id, created_by) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
     [code, data.activity_name, data.activity_desc ?? null, data.discount_type ?? "PERCENT", data.discount_value, data.min_purchase ?? 0, data.applicable_scope ?? "ALL", data.applicable_ids ? JSON.stringify(data.applicable_ids) : null, data.start_time, data.end_time, data.total_stock ?? 0, data.total_stock ?? 0, data.limit_per_user ?? null, data.per_order_limit ?? null, tenantId, userId], tenantId
   );
   return { id: (result as unknown as Record<string, unknown>).insertId, activity_code: code };
@@ -16,18 +16,18 @@ export async function listLimitedDiscounts(params: { tenantId: string; status?: 
   const values: unknown[] = [tenantId];
   if (status) { conditions.push("status = ?"); values.push(status); }
   const where = `WHERE ${conditions.join(" AND ")}`;
-  const total = await queryOneWithTenant<any>(`SELECT COUNT(*) AS cnt FROM limited_discount ${where}`, values, tenantId);
+  const total = await queryOneWithTenant<any>(`SELECT COUNT(*) AS cnt FROM t_limited_discount ${where}`, values, tenantId);
   const rows = await queryWithTenant<any>(
-    `SELECT * FROM limited_discount ${where} ORDER BY created_at DESC LIMIT ? OFFSET ?`,
+    `SELECT * FROM t_limited_discount ${where} ORDER BY created_at DESC LIMIT ? OFFSET ?`,
     [...values, pageSize, (page - 1) * pageSize], tenantId
   );
   return { list: rows, total: Number(total?.cnt ?? 0), page, pageSize };
 }
 
 export async function getLimitedDiscountDetail(id: number, tenantId: string) {
-  const discount = await queryOneWithTenant<any>("SELECT * FROM limited_discount WHERE id = ? AND tenant_id = ?", [id, tenantId], tenantId);
+  const discount = await queryOneWithTenant<any>("SELECT * FROM t_limited_discount WHERE id = ? AND tenant_id = ?", [id, tenantId], tenantId);
   if (!discount) return null;
-  const products = await queryWithTenant<any>("SELECT * FROM limited_discount_product WHERE discount_id = ? AND tenant_id = ?", [id, tenantId], tenantId);
+  const products = await queryWithTenant<any>("SELECT * FROM t_limited_discount_product WHERE discount_id = ? AND tenant_id = ?", [id, tenantId], tenantId);
   return { ...discount, products };
 }
 
@@ -48,34 +48,34 @@ export async function updateLimitedDiscount(id: number, data: any, tenantId: str
   if (data.per_order_limit !== undefined) { fields.push("per_order_limit = ?"); values.push(data.per_order_limit); }
   if (fields.length === 0) return null;
   values.push(id, tenantId);
-  await queryWithTenant(`UPDATE limited_discount SET ${fields.join(", ")} WHERE id = ? AND tenant_id = ?`, values, tenantId);
+  await queryWithTenant(`UPDATE t_limited_discount SET ${fields.join(", ")} WHERE id = ? AND tenant_id = ?`, values, tenantId);
   return { id };
 }
 
 export async function deleteLimitedDiscount(id: number, tenantId: string) {
-  await queryWithTenant("DELETE FROM limited_discount_product WHERE discount_id = ? AND tenant_id = ?", [id, tenantId], tenantId);
-  await queryWithTenant("DELETE FROM limited_discount WHERE id = ? AND tenant_id = ?", [id, tenantId], tenantId);
+  await queryWithTenant("DELETE FROM t_limited_discount_product WHERE discount_id = ? AND tenant_id = ?", [id, tenantId], tenantId);
+  await queryWithTenant("DELETE FROM t_limited_discount WHERE id = ? AND tenant_id = ?", [id, tenantId], tenantId);
 }
 
 export async function activateLimitedDiscount(id: number, tenantId: string) {
-  await queryWithTenant("UPDATE limited_discount SET status = 'ACTIVE' WHERE id = ? AND tenant_id = ?", [id, tenantId], tenantId);
+  await queryWithTenant("UPDATE t_limited_discount SET status = 'ACTIVE' WHERE id = ? AND tenant_id = ?", [id, tenantId], tenantId);
 }
 
 export async function pauseLimitedDiscount(id: number, tenantId: string) {
-  await queryWithTenant("UPDATE limited_discount SET status = 'PAUSED' WHERE id = ? AND tenant_id = ?", [id, tenantId], tenantId);
+  await queryWithTenant("UPDATE t_limited_discount SET status = 'PAUSED' WHERE id = ? AND tenant_id = ?", [id, tenantId], tenantId);
 }
 
 export async function getDiscountProducts(discountId: number, tenantId: string) {
-  return queryWithTenant<any>("SELECT * FROM limited_discount_product WHERE discount_id = ? AND tenant_id = ?", [discountId, tenantId], tenantId);
+  return queryWithTenant<any>("SELECT * FROM t_limited_discount_product WHERE discount_id = ? AND tenant_id = ?", [discountId, tenantId], tenantId);
 }
 
 export async function addDiscountProduct(discountId: number, data: any, tenantId: string) {
   await queryWithTenant(
-    "INSERT INTO limited_discount_product (discount_id, product_id, sku_id, original_price, discount_price, stock, tenant_id) VALUES (?, ?, ?, ?, ?, ?, ?)",
+    "INSERT INTO t_limited_discount_product (discount_id, product_id, sku_id, original_price, discount_price, stock, tenant_id) VALUES (?, ?, ?, ?, ?, ?, ?)",
     [discountId, data.product_id, data.sku_id ?? null, data.original_price, data.discount_price, data.stock ?? 0, tenantId], tenantId
   );
 }
 
 export async function removeDiscountProduct(discountId: number, productId: number, tenantId: string) {
-  await queryWithTenant("DELETE FROM limited_discount_product WHERE discount_id = ? AND product_id = ? AND tenant_id = ?", [discountId, productId, tenantId], tenantId);
+  await queryWithTenant("DELETE FROM t_limited_discount_product WHERE discount_id = ? AND product_id = ? AND tenant_id = ?", [discountId, productId, tenantId], tenantId);
 }

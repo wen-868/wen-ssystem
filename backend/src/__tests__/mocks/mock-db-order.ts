@@ -20,7 +20,7 @@ export const queryHandlers: Array<(s: string, params: unknown[]) => Row[] | null
 
   // miniapp_order count
   (s, params) => {
-    if (s.includes("count(*) as cnt from miniapp_order")) {
+    if (s.includes("count(*) as cnt from t_miniapp_order")) {
       if (s.includes("pending_payment")) {
         const queryStoreId = Number(params[0]);
         const pool = queryStoreId && !Number.isNaN(queryStoreId)
@@ -41,7 +41,7 @@ export const queryHandlers: Array<(s: string, params: unknown[]) => Row[] | null
 
   // miniapp_order 状态统计
   (s, _params) => {
-    if (s.includes("order_status as status") && s.includes("from miniapp_order")) {
+    if (s.includes("order_status as status") && s.includes("from t_miniapp_order")) {
       const map = new Map<string, number>();
       for (const order of state.miniappOrders) {
         const st = String(order.order_status ?? order.orderStatus ?? "未知");
@@ -54,7 +54,7 @@ export const queryHandlers: Array<(s: string, params: unknown[]) => Row[] | null
 
   // miniapp_order count by status
   (s, params) => {
-    if (s.includes("from miniapp_order") && s.includes("count(*)")) {
+    if (s.includes("from t_miniapp_order") && s.includes("count(*)")) {
       const statusIndex = s.includes("order_status = ?") ? 0 : -1;
       const filtered = statusIndex >= 0
         ? state.miniappOrders.filter((o) => (o.orderStatus || o.order_status) === params[statusIndex])
@@ -66,7 +66,7 @@ export const queryHandlers: Array<(s: string, params: unknown[]) => Row[] | null
 
   // miniapp_order by order_no
   (s, params) => {
-    if (s.includes("from miniapp_order") && s.includes("where order_no = ?")) {
+    if (s.includes("from t_miniapp_order") && s.includes("where order_no = ?")) {
       const order = state.miniappOrders.find((o) => o.orderNo === params[0] || o.order_no === params[0]);
       return order ? [order] : [];
     }
@@ -75,7 +75,7 @@ export const queryHandlers: Array<(s: string, params: unknown[]) => Row[] | null
 
   // miniapp_order list
   (s, params) => {
-    if (s.includes("from miniapp_order") && !s.includes("group by") && !s.includes("count(*)")) {
+    if (s.includes("from t_miniapp_order") && !s.includes("group by") && !s.includes("count(*)")) {
       const statusIndex = s.includes("order_status = ?") ? 0 : -1;
       const filtered = statusIndex >= 0
         ? state.miniappOrders.filter((o) => (o.orderStatus || o.order_status) === params[statusIndex])
@@ -87,7 +87,7 @@ export const queryHandlers: Array<(s: string, params: unknown[]) => Row[] | null
 
   // miniapp_order_item
   (s, params) => {
-    if (s.includes("from miniapp_order_item") && s.includes("where order_no = ?")) {
+    if (s.includes("from t_miniapp_order_item") && s.includes("where order_no = ?")) {
       return state.miniappOrderItems.filter((item) => item.orderNo === params[0] || item.order_no === params[0]);
     }
     return null;
@@ -166,14 +166,14 @@ export const queryHandlers: Array<(s: string, params: unknown[]) => Row[] | null
 
   // hold_order
   (s, params) => {
-    if (s.includes("count(*) from hold_order")) {
+    if (s.includes("count(*) from t_hold_order")) {
       return [{ total: state.holdOrders.filter((h) => h.status !== "DELETED").length }];
     }
-    if (s.includes("from hold_order") && s.includes("where hold_no = ?")) {
+    if (s.includes("from t_hold_order") && s.includes("where hold_no = ?")) {
       const hold = state.holdOrders.find((h) => (h.holdNo === params[0] || h.hold_no === params[0]) && h.status !== "DELETED");
       return hold ? [hold] : [];
     }
-    if (s.includes("from hold_order")) {
+    if (s.includes("from t_hold_order")) {
       return state.holdOrders.filter((h) => h.status !== "DELETED");
     }
     return null;
@@ -237,7 +237,7 @@ export const executeHandlers: Array<(s: string, params: unknown[]) => Row[] | nu
 
   // miniapp_order INSERT
   (s, params) => {
-    if (s.includes("insert into miniapp_order")) {
+    if (s.includes("insert into t_miniapp_order")) {
       state.miniappOrders.push({
         orderNo: params[0],
         order_no: params[0],
@@ -271,7 +271,7 @@ export const executeHandlers: Array<(s: string, params: unknown[]) => Row[] | nu
 
   // miniapp_order_item INSERT
   (s, params) => {
-    if (s.includes("insert into miniapp_order_item")) {
+    if (s.includes("insert into t_miniapp_order_item")) {
       state.miniappOrderItems.push({
         orderNo: params[0],
         skuId: params[1],
@@ -290,7 +290,7 @@ export const executeHandlers: Array<(s: string, params: unknown[]) => Row[] | nu
 
   // miniapp_order UPDATE
   (s, params) => {
-    if (s.includes("update miniapp_order")) {
+    if (s.includes("update t_miniapp_order")) {
       const order = state.miniappOrders.find((o) => o.orderNo === params[0] || o.order_no === params[0]);
       if (order && s.includes("accepted")) {
         order.orderStatus = "ACCEPTED";
@@ -356,7 +356,7 @@ export const executeHandlers: Array<(s: string, params: unknown[]) => Row[] | nu
 
   // hold_order INSERT
   (s, params) => {
-    if (s.includes("insert into hold_order")) {
+    if (s.includes("insert into t_hold_order")) {
       state.holdOrders.unshift({
         holdNo: params[0],
         hold_no: params[0],
@@ -379,7 +379,7 @@ export const executeHandlers: Array<(s: string, params: unknown[]) => Row[] | nu
 
   // hold_order UPDATE (DELETE)
   (s, params) => {
-    if (s.includes("update hold_order set status = 'DELETED'")) {
+    if (s.includes("update t_hold_order set status = 'DELETED'")) {
       const hold = state.holdOrders.find((h) => h.holdNo === params[0] || h.hold_no === params[0]);
       if (hold) hold.status = "DELETED";
       return [];

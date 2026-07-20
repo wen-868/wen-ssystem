@@ -93,7 +93,7 @@ export async function getSubscription(subscriptionId: number, tenantId: string) 
             old_plan_id AS oldPlanId, new_plan_id AS newPlanId,
             old_end_date AS oldEndDate, new_end_date AS newEndDate,
             amount, operator_name AS operatorName, remark, created_at AS createdAt
-     FROM subscription_operation_log
+     FROM t_subscription_operation_log
      WHERE subscription_id = ?
      ORDER BY created_at DESC`,
     [subscriptionId],
@@ -125,7 +125,7 @@ export async function createSubscription(
   }
 
   const plan = await queryOne<any>(
-    "SELECT id, plan_name, plan_type, price, duration_days, module_access FROM subscription_plan WHERE id = ? AND status = 'ACTIVE'",
+    "SELECT id, plan_name, plan_type, price, duration_days, module_access FROM t_subscription_plan WHERE id = ? AND status = 'ACTIVE'",
     [body.planId]
   );
   if (!plan) {
@@ -154,7 +154,7 @@ export async function createSubscription(
     );
 
     await conn.execute(
-      `INSERT INTO subscription_operation_log (subscription_id, operation_type, new_plan_id, new_end_date, amount, operator_id, operator_name, remark)
+      `INSERT INTO t_subscription_operation_log (subscription_id, operation_type, new_plan_id, new_end_date, amount, operator_id, operator_name, remark)
        VALUES (?, 'CREATE', ?, ?, ?, ?, ?, ?)`,
       [subscriptionNo, body.planId, endDate.toISOString().slice(0, 10), plan.price,
        userId, username, `创建订阅: ${subscriptionNo}`]
@@ -167,10 +167,10 @@ export async function createSubscription(
 
     if (plan.module_access) {
       const modules = JSON.parse(plan.module_access);
-      await conn.execute("DELETE FROM tenant_module_access WHERE tenant_id = ? AND granted_by = 'PLAN'", [body.tenantId]);
+      await conn.execute("DELETE FROM t_tenant_module_access WHERE tenant_id = ? AND granted_by = 'PLAN'", [body.tenantId]);
       for (const mod of modules) {
         await conn.execute(
-          `INSERT INTO tenant_module_access (tenant_id, module_code, module_name, enabled, granted_by, expire_at)
+          `INSERT INTO t_tenant_module_access (tenant_id, module_code, module_name, enabled, granted_by, expire_at)
            VALUES (?, ?, ?, 1, 'PLAN', ?)`,
           [body.tenantId, mod, mod, endDate.toISOString().slice(0, 19).replace("T", " ")]
         );
@@ -213,7 +213,7 @@ export async function changePlan(
   }
 
   const newPlan = await queryOne<any>(
-    "SELECT id, plan_name, plan_type, price, duration_days, module_access FROM subscription_plan WHERE id = ? AND status = 'ACTIVE'",
+    "SELECT id, plan_name, plan_type, price, duration_days, module_access FROM t_subscription_plan WHERE id = ? AND status = 'ACTIVE'",
     [body.newPlanId]
   );
   if (!newPlan) {
@@ -221,7 +221,7 @@ export async function changePlan(
   }
 
   const oldPlan = await queryOne<any>(
-    "SELECT id, plan_name, price FROM subscription_plan WHERE id = ?",
+    "SELECT id, plan_name, price FROM t_subscription_plan WHERE id = ?",
     [existing.plan_id]
   );
 
@@ -234,7 +234,7 @@ export async function changePlan(
     );
 
     await conn.execute(
-      `INSERT INTO subscription_operation_log (subscription_id, operation_type, old_plan_id, new_plan_id, amount, operator_id, operator_name, remark)
+      `INSERT INTO t_subscription_operation_log (subscription_id, operation_type, old_plan_id, new_plan_id, amount, operator_id, operator_name, remark)
        VALUES (?, ?, ?, ?, ?, ?, ?, ?)`,
       [subscriptionId, priceDiff > 0 ? "UPGRADE" : "DOWNGRADE",
        existing.plan_id, body.newPlanId, priceDiff,
@@ -244,10 +244,10 @@ export async function changePlan(
 
     if (newPlan.module_access) {
       const modules = JSON.parse(newPlan.module_access);
-      await conn.execute("DELETE FROM tenant_module_access WHERE tenant_id = ? AND granted_by = 'PLAN'", [existing.tenant_id]);
+      await conn.execute("DELETE FROM t_tenant_module_access WHERE tenant_id = ? AND granted_by = 'PLAN'", [existing.tenant_id]);
       for (const mod of modules) {
         await conn.execute(
-          `INSERT INTO tenant_module_access (tenant_id, module_code, module_name, enabled, granted_by, expire_at)
+          `INSERT INTO t_tenant_module_access (tenant_id, module_code, module_name, enabled, granted_by, expire_at)
            VALUES (?, ?, ?, 1, 'PLAN', ?)`,
           [existing.tenant_id, mod, mod, existing.end_date]
         );
@@ -292,7 +292,7 @@ export async function cancelSubscription(
     );
 
     await conn.execute(
-      `INSERT INTO subscription_operation_log (subscription_id, operation_type, operator_id, operator_name, remark)
+      `INSERT INTO t_subscription_operation_log (subscription_id, operation_type, operator_id, operator_name, remark)
        VALUES (?, 'CANCEL', ?, ?, ?)`,
       [subscriptionId, userId, username, body.reason || "取消订阅"]
     );
@@ -338,7 +338,7 @@ export async function paySubscription(
     );
 
     await conn.execute(
-      `INSERT INTO subscription_operation_log (subscription_id, operation_type, operator_id, operator_name, remark)
+      `INSERT INTO t_subscription_operation_log (subscription_id, operation_type, operator_id, operator_name, remark)
        VALUES (?, 'PAY', ?, ?, ?)`,
       [subscriptionId, userId, username, `确认支付: ${body.paymentMethod}`]
     );

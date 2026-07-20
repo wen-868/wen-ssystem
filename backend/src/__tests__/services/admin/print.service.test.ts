@@ -70,7 +70,7 @@ describe("print.service - createPrintRecord", () => {
         expect(res).toEqual({ id: 100 });
         // 验证调用了 INSERT 并传入了正确的默认值
         const callArgs = mocks.queryWithTenant.mock.calls[0];
-        expect(callArgs[0]).toContain("INSERT INTO print_record");
+        expect(callArgs[0]).toContain("INSERT INTO t_print_record");
         expect(callArgs[1]).toEqual([
             null, // storeId
             "SALE_BILL",
@@ -399,7 +399,7 @@ describe("print.service - reprintRecord", () => {
         expect(res).toEqual({ id: 51, originalId: 50 });
         // 验证 INSERT 时复制了原记录的关键字段
         const insertCall = mocks.queryWithTenant.mock.calls[0];
-        expect(insertCall[0]).toContain("INSERT INTO print_record");
+        expect(insertCall[0]).toContain("INSERT INTO t_print_record");
         expect(insertCall[1]).toEqual([
             5, // store_id
             "REPRINT", // bill_type 改为 REPRINT

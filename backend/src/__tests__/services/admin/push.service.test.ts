@@ -138,7 +138,7 @@ describe("push.service - registerToken", () => {
 
         // 验证先查询 existing
         const selectCall = mocks.queryOneWithTenant.mock.calls[0];
-        expect(selectCall[0]).toContain("SELECT id FROM push_token");
+        expect(selectCall[0]).toContain("SELECT id FROM t_push_token");
         expect(selectCall[0]).toContain("device_id = ?");
         expect(selectCall[0]).toContain("provider = ?");
         expect(selectCall[1]).toEqual(["device-A", "jpush"]);
@@ -146,7 +146,7 @@ describe("push.service - registerToken", () => {
 
         // 验证 INSERT 调用
         const insertCall = mocks.queryWithTenant.mock.calls[0];
-        expect(insertCall[0]).toContain("INSERT INTO push_token");
+        expect(insertCall[0]).toContain("INSERT INTO t_push_token");
         expect(insertCall[1]).toEqual([
             10,
             "device-A",
@@ -207,7 +207,7 @@ describe("push.service - registerToken", () => {
         // 仅调用了 1 次 queryWithTenant（UPDATE），不应再调 INSERT
         expect(mocks.queryWithTenant).toHaveBeenCalledTimes(1);
         const updateCall = mocks.queryWithTenant.mock.calls[0];
-        expect(updateCall[0]).toContain("UPDATE push_token");
+        expect(updateCall[0]).toContain("UPDATE t_push_token");
         expect(updateCall[0]).toContain("SET user_id = ?");
         expect(updateCall[0]).toContain("status = 1");
         expect(updateCall[0]).toContain("last_active_at = NOW()");
@@ -357,13 +357,13 @@ describe("push.service - unregisterToken", () => {
 
         // 验证先查询 existing
         const selectCall = mocks.queryOneWithTenant.mock.calls[0];
-        expect(selectCall[0]).toContain("SELECT id FROM push_token");
+        expect(selectCall[0]).toContain("SELECT id FROM t_push_token");
         expect(selectCall[1]).toEqual(["device-X", "fcm"]);
         expect(selectCall[2]).toBe("t1");
 
         // 验证 UPDATE 调用
         const updateCall = mocks.queryWithTenant.mock.calls[0];
-        expect(updateCall[0]).toContain("UPDATE push_token SET status = 0");
+        expect(updateCall[0]).toContain("UPDATE t_push_token SET status = 0");
         expect(updateCall[1]).toEqual([88]);
         expect(updateCall[2]).toBe("t1");
     });
@@ -427,7 +427,7 @@ describe("push.service - getUserTokens", () => {
         expect(sql).toContain("status = 1");
         expect(call[1]).toEqual([10]);
         expect(call[2]).toBe("t1");
-        // 验证 SELECT 字段列表不含 push_token（只截取 SELECT 到 FROM 之间的部分，避免 FROM push_token 表名误判）
+        // 验证 SELECT 字段列表不含 push_token（只截取 SELECT 到 FROM 之间的部分，避免 FROM t_push_token 表名误判）
         const selectClause = sql.substring(
             sql.toLowerCase().indexOf("select"),
             sql.toLowerCase().indexOf("from")
@@ -618,7 +618,7 @@ describe("push.service - sendToTenant", () => {
         expect(results).toEqual([{ success: true, messageId: "msg-x" }]);
         // 验证查询无 user_id 条件，仅 status=1
         const call = mocks.queryWithTenant.mock.calls[0];
-        expect(call[0]).toContain("FROM push_token WHERE status = 1");
+        expect(call[0]).toContain("FROM t_push_token WHERE status = 1");
         expect(call[0]).not.toContain("user_id");
         expect(call[1]).toEqual([]);
         expect(call[2]).toBe("t-broadcast");

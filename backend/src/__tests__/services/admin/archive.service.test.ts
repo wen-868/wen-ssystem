@@ -62,7 +62,7 @@ describe("archive.service", () => {
       // SALE_BILL 事务中执行：主表INSERT、子表INSERT、子表DELETE、主表DELETE = 4 次
       expect(conn.execute).toHaveBeenCalledTimes(4);
       const firstSql = conn.execute.mock.calls[0][0] as string;
-      expect(firstSql).toContain("INSERT INTO sale_bill_archive");
+      expect(firstSql).toContain("INSERT INTO t_sale_bill_archive");
     });
   });
 
@@ -76,7 +76,7 @@ describe("archive.service", () => {
       });
       expect(res[0].archivedCount).toBe(3);
       expect(conn.execute).toHaveBeenCalledTimes(4);
-      expect(conn.execute.mock.calls[0][0]).toContain("INSERT INTO purchase_order_archive");
+      expect(conn.execute.mock.calls[0][0]).toContain("INSERT INTO t_purchase_order_archive");
     });
   });
 

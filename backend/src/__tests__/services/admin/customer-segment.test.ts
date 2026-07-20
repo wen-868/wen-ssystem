@@ -100,7 +100,7 @@ describe("admin customer-segment.service - refreshSegmentMembers", () => {
       .mockResolvedValueOnce([{ customerId: 1 }, { customerId: 2 }])  // SELECT members
       .mockResolvedValueOnce([])  // INSERT member 1
       .mockResolvedValueOnce([])  // INSERT member 2
-      .mockResolvedValueOnce([]); // UPDATE member_count
+      .mockResolvedValueOnce([]); // UPDATE t_member_count
     const res = await refreshSegmentMembers(1, "t1");
     expect(res).toEqual({ segmentId: 1, memberCount: 2 });
   });
@@ -110,7 +110,7 @@ describe("admin customer-segment.service - refreshSegmentMembers", () => {
     mocks.queryWithTenant
       .mockResolvedValueOnce([])  // DELETE
       .mockResolvedValueOnce([])  // SELECT members (空)
-      .mockResolvedValueOnce([]); // UPDATE member_count
+      .mockResolvedValueOnce([]); // UPDATE t_member_count
     const res = await refreshSegmentMembers(1, "t1");
     expect(res).toEqual({ segmentId: 1, memberCount: 0 });
   });

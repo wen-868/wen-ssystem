@@ -39,7 +39,7 @@ export async function listTodos(
   const records = await queryWithTenant<any>(
     `SELECT id, title, type, source, priority, status, due_date AS dueDate,
             remark, tenant_id AS tenantId, created_at AS createdAt
-     FROM todos
+     FROM t_todos
      ${where}
      ORDER BY 
        CASE priority WHEN 'HIGH' THEN 1 WHEN 'MEDIUM' THEN 2 WHEN 'LOW' THEN 3 END,
@@ -50,7 +50,7 @@ export async function listTodos(
   );
 
   const totalRow = await queryOneWithTenant<any>(
-    `SELECT COUNT(*) AS total FROM todos ${where}`,
+    `SELECT COUNT(*) AS total FROM t_todos ${where}`,
     params,
     tenantId
   );
@@ -66,7 +66,7 @@ export async function listTodos(
 export async function getTodoStats(tenantId: string) {
   const rows = await queryWithTenant<any>(
     `SELECT type, COUNT(*) AS count
-     FROM todos
+     FROM t_todos
      WHERE tenant_id = ? AND status = 'PENDING'
      GROUP BY type`,
     [tenantId],
@@ -99,7 +99,7 @@ export async function getTodoStats(tenantId: string) {
 
 export async function createTodo(tenantId: string, data: TodoData) {
   const [result] = await queryWithTenant<any>(
-    `INSERT INTO todos (title, type, source, priority, status, due_date, remark, tenant_id, created_at)
+    `INSERT INTO t_todos (title, type, source, priority, status, due_date, remark, tenant_id, created_at)
      VALUES (?, ?, ?, ?, 'PENDING', ?, ?, ?, NOW())`,
     [
       data.title,
@@ -118,7 +118,7 @@ export async function createTodo(tenantId: string, data: TodoData) {
 
 export async function completeTodo(tenantId: string, id: number) {
   await executeWithTenant(
-    `UPDATE todos SET status = 'COMPLETED' WHERE id = ? AND tenant_id = ?`,
+    `UPDATE t_todos SET status = 'COMPLETED' WHERE id = ? AND tenant_id = ?`,
     [id, tenantId],
     tenantId
   );
@@ -127,7 +127,7 @@ export async function completeTodo(tenantId: string, id: number) {
 
 export async function dismissTodo(tenantId: string, id: number) {
   await executeWithTenant(
-    `UPDATE todos SET status = 'DISMISSED' WHERE id = ? AND tenant_id = ?`,
+    `UPDATE t_todos SET status = 'DISMISSED' WHERE id = ? AND tenant_id = ?`,
     [id, tenantId],
     tenantId
   );
@@ -136,7 +136,7 @@ export async function dismissTodo(tenantId: string, id: number) {
 
 export async function deleteTodo(tenantId: string, id: number) {
   await executeWithTenant(
-    `DELETE FROM todos WHERE id = ? AND tenant_id = ?`,
+    `DELETE FROM t_todos WHERE id = ? AND tenant_id = ?`,
     [id, tenantId],
     tenantId
   );

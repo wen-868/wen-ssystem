@@ -78,7 +78,7 @@ export async function getTenantDetail(tenantId: number) {
     `SELECT module_code AS moduleCode, module_name AS moduleName,
             enabled, granted_by AS grantedBy, granted_at AS grantedAt,
             expire_at AS expireAt
-     FROM tenant_module_access
+     FROM t_tenant_module_access
      WHERE tenant_id = ?
      ORDER BY module_code`,
     [tenantId]
@@ -250,7 +250,7 @@ export async function getTenantModules(tenantId: number) {
     `SELECT module_code AS moduleCode, module_name AS moduleName,
             enabled, granted_by AS grantedBy, granted_at AS grantedAt,
             expire_at AS expireAt, remark
-     FROM tenant_module_access
+     FROM t_tenant_module_access
      WHERE tenant_id = ?
      ORDER BY module_code`,
     [tenantId]
@@ -277,10 +277,10 @@ export async function setTenantModules(tenantId: number, body: {
   await transaction(async (conn) => {
     for (const mod of body.modules) {
       await conn.execute(
-        `INSERT INTO tenant_module_access (tenant_id, module_code, module_name, enabled, granted_by, expire_at, remark)
+        `INSERT INTO t_tenant_module_access (tenant_id, module_code, module_name, enabled, granted_by, expire_at, remark)
          VALUES (?, ?, ?, ?, ?, ?, ?)
          ON DUPLICATE KEY UPDATE
-           module_name = VALUES(module_name),
+           t_module_name = VALUES(module_name),
            enabled = VALUES(enabled),
            granted_by = VALUES(granted_by),
            expire_at = VALUES(expire_at),
@@ -302,7 +302,7 @@ export async function setTenantModules(tenantId: number, body: {
   const modules = await query<any>(
     `SELECT module_code AS moduleCode, module_name AS moduleName,
             enabled, granted_by AS grantedBy, expire_at AS expireAt
-     FROM tenant_module_access
+     FROM t_tenant_module_access
      WHERE tenant_id = ?
      ORDER BY module_code`,
     [tenantId]

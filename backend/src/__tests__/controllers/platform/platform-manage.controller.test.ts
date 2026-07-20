@@ -52,7 +52,7 @@ describe("platform-manage.controller", () => {
   });
 
   describe("updateConfig", () => {
-    it("should update config successfully", async () => {
+    it("should update t_config successfully", async () => {
       const mockResult = { key: "test", value: "new_value" };
       (configService.updatePlatformConfig as vi.Mock).mockResolvedValue(mockResult);
 

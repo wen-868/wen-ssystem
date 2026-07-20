@@ -5,7 +5,7 @@ export async function getPointsRule(tenantId: string) {
     `SELECT id, earn_ratio AS earnRatio, redeem_ratio AS redeemRatio,
             min_redeem_amount AS minRedeemAmount, max_redeem_ratio AS maxRedeemRatio,
             expire_days AS expireDays, enabled, created_at AS createdAt, updated_at AS updatedAt
-     FROM points_rule`,
+     FROM t_points_rule`,
     [],
     tenantId
   );
@@ -20,7 +20,7 @@ export async function updatePointsRule(body: {
   expireDays?: number;
   enabled?: boolean;
 }, tenantId: string) {
-  const existing = await queryOneWithTenant<any>("SELECT id FROM points_rule", [], tenantId);
+  const existing = await queryOneWithTenant<any>("SELECT id FROM t_points_rule", [], tenantId);
 
   if (existing) {
     const updates: string[] = [];
@@ -35,11 +35,11 @@ export async function updatePointsRule(body: {
 
     if (updates.length > 0) {
       params.push(existing.id);
-      await queryWithTenant(`UPDATE points_rule SET ${updates.join(", ")} WHERE id = ?`, params, tenantId);
+      await queryWithTenant(`UPDATE t_points_rule SET ${updates.join(", ")} WHERE id = ?`, params, tenantId);
     }
   } else {
     await queryWithTenant(
-      `INSERT INTO points_rule (earn_ratio, redeem_ratio, min_redeem_amount, max_redeem_ratio, expire_days, enabled, tenant_id)
+      `INSERT INTO t_points_rule (earn_ratio, redeem_ratio, min_redeem_amount, max_redeem_ratio, expire_days, enabled, tenant_id)
        VALUES (?, ?, ?, ?, ?, ?, ?)`,
       [
         body.earnRatio ?? 1,
@@ -58,7 +58,7 @@ export async function updatePointsRule(body: {
     `SELECT id, earn_ratio AS earnRatio, redeem_ratio AS redeemRatio,
             min_redeem_amount AS minRedeemAmount, max_redeem_ratio AS maxRedeemRatio,
             expire_days AS expireDays, enabled, created_at AS createdAt, updated_at AS updatedAt
-     FROM points_rule`,
+     FROM t_points_rule`,
     [],
     tenantId
   );
@@ -92,7 +92,7 @@ export async function listPointsRecords(
     `SELECT id, user_id AS userId, type, amount, balance,
             source_type AS sourceType, source_id AS sourceId,
             remark, created_at AS createdAt
-     FROM points_record
+     FROM t_points_record
      ${where}
      ORDER BY created_at DESC
      LIMIT ? OFFSET ?`,
@@ -101,7 +101,7 @@ export async function listPointsRecords(
   );
 
   const totalRow = await queryOneWithTenant<any>(
-    `SELECT COUNT(*) AS total FROM points_record ${where}`,
+    `SELECT COUNT(*) AS total FROM t_points_record ${where}`,
     params,
     tenantId
   );
@@ -118,7 +118,7 @@ export async function getUserPoints(userId: number, tenantId: string) {
   const record = await queryOneWithTenant<any>(
     `SELECT id, user_id AS userId, points, total_earned AS totalEarned,
             total_spent AS totalSpent, updated_at AS updatedAt
-     FROM user_points WHERE user_id = ?`,
+     FROM t_user_points WHERE user_id = ?`,
     [userId],
     tenantId
   );
@@ -147,7 +147,7 @@ export async function listMyPointsRecords(
     `SELECT id, user_id AS userId, type, amount, balance,
             source_type AS sourceType, source_id AS sourceId,
             remark, created_at AS createdAt
-     FROM points_record
+     FROM t_points_record
      WHERE ${where}
      ORDER BY created_at DESC
      LIMIT ? OFFSET ?`,
@@ -156,7 +156,7 @@ export async function listMyPointsRecords(
   );
 
   const totalRow = await queryOneWithTenant<any>(
-    `SELECT COUNT(*) AS total FROM points_record WHERE ${where}`,
+    `SELECT COUNT(*) AS total FROM t_points_record WHERE ${where}`,
     params,
     tenantId
   );
@@ -196,8 +196,8 @@ export async function getPointsRecords(params: {
             pr.source_type AS sourceType, pr.source_id AS sourceId,
             pr.remark, pr.created_at AS createdAt,
             uc.name AS userName, uc.phone AS phone
-     FROM points_record pr
-     LEFT JOIN user_customer uc ON uc.id = pr.user_id AND uc.tenant_id = pr.tenant_id
+     FROM t_points_record pr
+     LEFT JOIN t_user_customer uc ON uc.id = pr.user_id AND uc.tenant_id = pr.tenant_id
      WHERE ${where}
      ORDER BY pr.created_at DESC
      LIMIT ? OFFSET ?`,
@@ -205,7 +205,7 @@ export async function getPointsRecords(params: {
     tenantId
   );
 
-  const totalRow = await queryOneWithTenant<any>(`SELECT COUNT(*) AS total FROM points_record WHERE ${where}`, paramsList, tenantId);
+  const totalRow = await queryOneWithTenant<any>(`SELECT COUNT(*) AS total FROM t_points_record WHERE ${where}`, paramsList, tenantId);
 
   return {
     total: Number(totalRow?.total ?? 0),
@@ -238,7 +238,7 @@ export async function createPointsRedeem(params: {
   // 扣减积分
   const newBalance = Number(userPoints.points) - points;
   await queryWithTenant(
-    `UPDATE user_points 
+    `UPDATE t_user_points 
      SET points = ?, total_spent = total_spent + ? 
      WHERE user_id = ?`,
     [newBalance, points, userId],
@@ -247,7 +247,7 @@ export async function createPointsRedeem(params: {
 
   // 记录积分变动
   await queryWithTenant(
-    `INSERT INTO points_record (user_id, type, amount, balance, source_type, source_id, remark, tenant_id)
+    `INSERT INTO t_points_record (user_id, type, amount, balance, source_type, source_id, remark, tenant_id)
      VALUES (?, 'SPEND', ?, ?, 'REDEEM', ?, ?, ?)`,
     [userId, -points, newBalance, orderId ?? null, remark ?? "积分兑换", tenantId],
     tenantId
@@ -264,22 +264,22 @@ export async function createPointsRedeem(params: {
 // ========== 积分统计 ==========
 export async function getPointsStats(tenantId: string) {
   const totalPoints = await queryOneWithTenant<any>(
-    `SELECT COALESCE(SUM(points), 0) AS total FROM user_points WHERE tenant_id = ?`,
+    `SELECT COALESCE(SUM(points), 0) AS total FROM t_user_points WHERE tenant_id = ?`,
     [tenantId], tenantId
   );
 
   const todayEarned = await queryOneWithTenant<any>(
-    `SELECT COALESCE(SUM(amount), 0) AS total FROM points_record WHERE tenant_id = ? AND type = 'EARN' AND DATE(created_at) = CURDATE()`,
+    `SELECT COALESCE(SUM(amount), 0) AS total FROM t_points_record WHERE tenant_id = ? AND type = 'EARN' AND DATE(created_at) = CURDATE()`,
     [tenantId], tenantId
   );
 
   const todaySpent = await queryOneWithTenant<any>(
-    `SELECT COALESCE(SUM(ABS(amount)), 0) AS total FROM points_record WHERE tenant_id = ? AND type = 'SPEND' AND DATE(created_at) = CURDATE()`,
+    `SELECT COALESCE(SUM(ABS(amount)), 0) AS total FROM t_points_record WHERE tenant_id = ? AND type = 'SPEND' AND DATE(created_at) = CURDATE()`,
     [tenantId], tenantId
   );
 
   const userCount = await queryOneWithTenant<any>(
-    `SELECT COUNT(*) AS total FROM user_points WHERE tenant_id = ? AND points > 0`,
+    `SELECT COUNT(*) AS total FROM t_user_points WHERE tenant_id = ? AND points > 0`,
     [tenantId], tenantId
   );
 

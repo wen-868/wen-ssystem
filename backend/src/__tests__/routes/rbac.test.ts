@@ -4,7 +4,7 @@ import { routeConfig } from "../../routes/rbac.routes";
 describe("routes/rbac", () => {
   it("应导出正确的 routeConfig", () => {
     expect(routeConfig).toBeDefined();
-    expect(routeConfig.prefix).toBe("/api/admin/roles");
+    expect(routeConfig.prefix).toBe("/api/admin/system/roles");
     expect(routeConfig.router).toBeDefined();
   });
 

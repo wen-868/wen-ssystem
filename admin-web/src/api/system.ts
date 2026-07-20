@@ -125,23 +125,23 @@ export async function assignRoleUsers(id: number, userIds: number[]) {
   return data.data;
 }
 export async function fetchUserRoles(userId: number) {
-  const { data } = await api.get(`/admin/roles/users/${userId}/roles`);
+  const { data } = await api.get(`/admin/system/roles/users/${userId}/roles`);
   return data.data;
 }
 export async function setUserRoles(userId: number, roleIds: number[]) {
-  const { data } = await api.put(`/admin/roles/users/${userId}/roles`, { roleIds });
+  const { data } = await api.put(`/admin/system/roles/users/${userId}/roles`, { roleIds });
   return data.data;
 }
 
 
 // ==================== Data Permission APIs ====================
 export async function fetchRoleDataPermissions(roleId: number) {
-  const { data } = await api.get(`/admin/roles/${roleId}/data-permissions`);
+  const { data } = await api.get(`/admin/system/roles/${roleId}/data-permissions`);
   return data.data;
 }
 
 export async function setRoleDataPermissions(roleId: number, dataPermissions: any[]) {
-  const { data } = await api.put(`/admin/roles/${roleId}/data-permissions`, { dataPermissions });
+  const { data } = await api.put(`/admin/system/roles/${roleId}/data-permissions`, { dataPermissions });
   return data.data;
 }
 

@@ -36,9 +36,9 @@ export const queryHandlers: Array<(s: string, params: unknown[]) => Row[] | null
     return null;
   },
 
-  // inventory_balance left join store
+  // inventory_balance left join t_store
   (s, _params) => {
-    if (fromTable(s, "inventory_balance") && s.includes("left join store")) {
+    if (fromTable(s, "inventory_balance") && s.includes("left join t_store")) {
       const isAlert = s.includes("where ib.available_qty <= 5");
       const filtered = isAlert
         ? state.inventory.filter((inv: Row) => (inv.availableQty ?? 0) <= 5)
@@ -83,7 +83,7 @@ export const queryHandlers: Array<(s: string, params: unknown[]) => Row[] | null
 
   // inventory_ledger / inventory_log
   (s, params) => {
-    if ((s.includes("select id from inventory_ledger") || s.includes("select id from t_inventory_ledger")) && s.includes("biz_type = 'sale_out'")) {
+    if ((s.includes("select id from t_inventory_ledger") || s.includes("select id from t_inventory_ledger")) && s.includes("biz_type = 'sale_out'")) {
       return state.inventoryLogs
         .filter((log) => log.bizType === "SALE_OUT" && log.bizNo === params[0])
         .map((log) => ({ id: log.id ?? log.logNo }));

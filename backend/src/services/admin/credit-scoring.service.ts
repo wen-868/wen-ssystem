@@ -122,7 +122,7 @@ export async function evaluateCreditScore(
        COALESCE(SUM(CASE WHEN status = 'PAID' THEN pay_amount ELSE 0 END), 0) AS paidAmount,
        COALESCE(SUM(CASE WHEN status = 'OVERDUE' THEN 1 ELSE 0 END), 0) AS overdueCount,
        MAX(created_at) AS lastTradeDate
-     FROM sale_bills
+     FROM t_sale_bills
      WHERE customer_id = ? AND tenant_id = ?`,
     [customerId, ctx.tenantId],
     ctx.tenantId

@@ -311,12 +311,12 @@
 
 ### 门店管理
 
-#### GET /api/admin/stores
+#### GET /api/admin/system/stores
 - **描述**: 获取门店列表（分页+搜索）
 - **认证**: 需要认证
 - **Query参数**: page, pageSize, keyword
 
-#### POST /api/admin/stores
+#### POST /api/admin/system/stores
 - **描述**: 创建门店
 - **认证**: 需要认证
 - **请求体**:
@@ -331,21 +331,21 @@
 | phone | string | 否 | 电话 |
 | deliveryRadius | number | 否 | 配送半径(km)，默认3 |
 
-#### GET /api/admin/stores/:id
+#### GET /api/admin/system/stores/:id
 - **描述**: 获取门店详情
 - **认证**: 需要认证
 
-#### PUT /api/admin/stores/:id
+#### PUT /api/admin/system/stores/:id
 - **描述**: 更新门店基本信息
 - **认证**: 需要认证
 - **请求体**: name, address, contact, phone, deliveryRadius, businessStatus（均可选）
 
-#### PATCH /api/admin/stores/:id
+#### PATCH /api/admin/system/stores/:id
 - **描述**: 部分更新门店信息
 - **认证**: 需要认证
 - **请求体**: name, address, phone, status, longitude, latitude（均可选）
 
-#### POST /api/admin/stores/:id/fetch-wx-info
+#### POST /api/admin/system/stores/:id/fetch-wx-info
 - **描述**: 拉取微信小程序商户信息
 - **认证**: 需要认证
 

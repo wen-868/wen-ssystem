@@ -27,7 +27,7 @@ export async function listRules(
             trigger_condition AS triggerCondition, approval_chain AS approvalChain,
             sla_hours AS slaHours, escalation_level AS escalationLevel,
             status, created_at AS createdAt, updated_at AS updatedAt
-     FROM approval_rule
+     FROM t_approval_rule
      ${where}
      ORDER BY id DESC
      LIMIT ? OFFSET ?`,
@@ -36,7 +36,7 @@ export async function listRules(
   );
 
   const totalRow = await queryOneWithTenant<any>(
-    `SELECT COUNT(*) AS total FROM approval_rule ${where}`,
+    `SELECT COUNT(*) AS total FROM t_approval_rule ${where}`,
     params,
     tenantId
   );
@@ -67,7 +67,7 @@ export async function createRule(
   tenantId: string
 ) {
   await queryWithTenant(
-    `INSERT INTO approval_rule (rule_name, business_type, trigger_condition, approval_chain, sla_hours, escalation_level, status, tenant_id)
+    `INSERT INTO t_approval_rule (rule_name, business_type, trigger_condition, approval_chain, sla_hours, escalation_level, status, tenant_id)
      VALUES (?, ?, ?, ?, ?, ?, 1, ?)`,
     [body.ruleName, body.businessType, JSON.stringify(body.triggerCondition), JSON.stringify(body.approvalChain), body.slaHours, body.escalationLevel, tenantId],
     tenantId
@@ -100,7 +100,7 @@ export async function updateRule(
   tenantId: string
 ) {
   const existing = await queryOneWithTenant<any>(
-    "SELECT id FROM approval_rule WHERE id = ?",
+    "SELECT id FROM t_approval_rule WHERE id = ?",
     [id],
     tenantId
   );
@@ -138,7 +138,7 @@ export async function updateRule(
 
   if (updates.length > 0) {
     await queryWithTenant(
-      `UPDATE approval_rule SET ${updates.join(", ")} WHERE id = ?`,
+      `UPDATE t_approval_rule SET ${updates.join(", ")} WHERE id = ?`,
       [...params, id],
       tenantId
     );

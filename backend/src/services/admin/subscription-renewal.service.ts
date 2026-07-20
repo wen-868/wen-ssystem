@@ -16,7 +16,7 @@ export async function renewSubscription(
     `SELECT s.id, s.subscription_no, s.tenant_id, s.plan_id, s.plan_name, s.end_date, s.price,
             p.duration_days, p.price AS plan_price
      FROM t_subscription s
-     LEFT JOIN subscription_plan p ON p.id = ?
+     LEFT JOIN t_subscription_plan p ON p.id = ?
      WHERE s.id = ?`,
     [body.planId || 0, subscriptionId],
     tenantId
@@ -28,7 +28,7 @@ export async function renewSubscription(
 
   const planId = body.planId || existing.plan_id;
   const plan = await queryOne<any>(
-    "SELECT id, plan_name, plan_type, price, duration_days, module_access FROM subscription_plan WHERE id = ? AND status = 'ACTIVE'",
+    "SELECT id, plan_name, plan_type, price, duration_days, module_access FROM t_subscription_plan WHERE id = ? AND status = 'ACTIVE'",
     [planId]
   );
   if (!plan) {
@@ -57,7 +57,7 @@ export async function renewSubscription(
     );
 
     await conn.execute(
-      `INSERT INTO subscription_operation_log (subscription_id, operation_type, old_plan_id, new_plan_id, old_end_date, new_end_date, amount, operator_id, operator_name, remark)
+      `INSERT INTO t_subscription_operation_log (subscription_id, operation_type, old_plan_id, new_plan_id, old_end_date, new_end_date, amount, operator_id, operator_name, remark)
        VALUES (?, 'RENEW', ?, ?, ?, ?, ?, ?, ?, ?)`,
       [subscriptionId, existing.plan_id, plan.id, existing.end_date,
        renewEndDate.toISOString().slice(0, 10), plan.price,
@@ -71,10 +71,10 @@ export async function renewSubscription(
 
     if (plan.module_access) {
       const modules = JSON.parse(plan.module_access);
-      await conn.execute("DELETE FROM tenant_module_access WHERE tenant_id = ? AND granted_by = 'PLAN'", [existing.tenant_id]);
+      await conn.execute("DELETE FROM t_tenant_module_access WHERE tenant_id = ? AND granted_by = 'PLAN'", [existing.tenant_id]);
       for (const mod of modules) {
         await conn.execute(
-          `INSERT INTO tenant_module_access (tenant_id, module_code, module_name, enabled, granted_by, expire_at)
+          `INSERT INTO t_tenant_module_access (tenant_id, module_code, module_name, enabled, granted_by, expire_at)
            VALUES (?, ?, ?, 1, 'PLAN', ?)`,
           [existing.tenant_id, mod, mod, renewEndDate.toISOString().slice(0, 19).replace("T", " ")]
         );

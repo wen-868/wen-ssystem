@@ -20,7 +20,7 @@ export async function getPricesByIds(tenantId: string, ids: number[]) {
   const placeholders = ids.map(() => "?").join(",");
   const rows = await queryWithTenant<any>(
     `SELECT id AS skuId, spu_id AS spuId, price, cost_price AS costPrice, market_price AS marketPrice
-     FROM sku WHERE tenant_id = ? AND id IN (${placeholders})`,
+     FROM t_sku WHERE tenant_id = ? AND id IN (${placeholders})`,
     [tenantId, ...ids],
     tenantId
   );
@@ -36,13 +36,13 @@ export async function syncPrices(tenantId: string, skuIds?: number[]) {
     const placeholders = skuIds.map(() => "?").join(",");
     skus = await queryWithTenant<any>(
       `SELECT id AS skuId, spu_id AS spuId, price, cost_price AS costPrice, market_price AS marketPrice, store_id AS storeId
-       FROM sku WHERE tenant_id = ? AND id IN (${placeholders})`,
+       FROM t_sku WHERE tenant_id = ? AND id IN (${placeholders})`,
       [tenantId, ...skuIds],
       tenantId
     );
   } else {
     skus = await queryWithTenant<any>(
-      "SELECT id AS skuId, spu_id AS spuId, price, cost_price AS costPrice, market_price AS marketPrice, store_id AS storeId FROM sku WHERE tenant_id = ?",
+      "SELECT id AS skuId, spu_id AS spuId, price, cost_price AS costPrice, market_price AS marketPrice, store_id AS storeId FROM t_sku WHERE tenant_id = ?",
       [tenantId],
       tenantId
     );
@@ -51,7 +51,7 @@ export async function syncPrices(tenantId: string, skuIds?: number[]) {
   // 写入价格缓存表
   for (const sku of skus) {
     await queryWithTenant(
-      `INSERT INTO sync_cache (tenant_id, sync_type, entity_id, sync_data, sync_status)
+      `INSERT INTO t_sync_cache (tenant_id, sync_type, entity_id, sync_data, sync_status)
        VALUES (?, 'price', ?, ?, 'synced')
        ON DUPLICATE KEY UPDATE sync_data = ?, sync_status = 'synced', updated_at = NOW()`,
       [tenantId, sku.skuId, JSON.stringify(sku), JSON.stringify(sku)],
@@ -64,7 +64,7 @@ export async function syncPrices(tenantId: string, skuIds?: number[]) {
 
 export async function getSyncStatus(tenantId: string, syncType: string) {
   const rows = await queryWithTenant<any>(
-    "SELECT sync_status AS syncStatus, COUNT(*) AS count FROM sync_cache WHERE tenant_id = ? AND sync_type = ? GROUP BY sync_status",
+    "SELECT sync_status AS syncStatus, COUNT(*) AS count FROM t_sync_cache WHERE tenant_id = ? AND sync_type = ? GROUP BY sync_status",
     [tenantId, syncType],
     tenantId
   );
@@ -73,7 +73,7 @@ export async function getSyncStatus(tenantId: string, syncType: string) {
 
 export async function getLastSyncTime(tenantId: string, syncType: string) {
   const row = await queryWithTenant<any>(
-    "SELECT MAX(updated_at) AS lastSyncTime FROM sync_cache WHERE tenant_id = ? AND sync_type = ?",
+    "SELECT MAX(updated_at) AS lastSyncTime FROM t_sync_cache WHERE tenant_id = ? AND sync_type = ?",
     [tenantId, syncType],
     tenantId
   );

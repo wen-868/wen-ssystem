@@ -8,8 +8,8 @@ export async function getGroupBuyActivities(tenantId: string, params?: { status?
   const vals: any[] = [];
   if (params?.status) { where += " AND gba.status = ?"; vals.push(params.status); }
   const [rows, total] = await Promise.all([
-    query<any>(`SELECT gba.*, p.name AS productName FROM group_buy_activity gba LEFT JOIN t_product p ON gba.product_id = p.id ${where} ORDER BY gba.start_time ASC LIMIT ${offset}, ${pageSize}`, vals),
-    queryOne<any>(`SELECT COUNT(*) AS cnt FROM group_buy_activity ${where}`, vals)
+    query<any>(`SELECT gba.*, p.name AS productName FROM t_group_buy_activity gba LEFT JOIN t_product p ON gba.product_id = p.id ${where} ORDER BY gba.start_time ASC LIMIT ${offset}, ${pageSize}`, vals),
+    queryOne<any>(`SELECT COUNT(*) AS cnt FROM t_group_buy_activity ${where}`, vals)
   ]);
   return { records: rows, total: total?.cnt || 0, page, pageSize };
 }
@@ -17,8 +17,8 @@ export async function getGroupBuyActivities(tenantId: string, params?: { status?
 export async function getGroupBuyRecordDetail(groupNo: string) {
   const record = await queryOne<any>(
     `SELECT gbr.*, gba.product_id AS productId, p.name AS productName
-     FROM group_buy_record gbr
-     LEFT JOIN group_buy_activity gba ON gbr.activity_id = gba.id
+     FROM t_group_buy_record gbr
+     LEFT JOIN t_group_buy_activity gba ON gbr.activity_id = gba.id
      LEFT JOIN t_product p ON gba.product_id = p.id
      WHERE gbr.group_no = ?`,
     [groupNo]
@@ -35,7 +35,7 @@ export async function getGroupBuyRecordDetail(groupNo: string) {
 
 export async function cancelGroupBuyRecord(groupNo: string) {
   await query(
-    `UPDATE group_buy_record SET status = 'CANCELLED' WHERE group_no = ? AND status IN ('PENDING', 'IN_PROGRESS')`,
+    `UPDATE t_group_buy_record SET status = 'CANCELLED' WHERE group_no = ? AND status IN ('PENDING', 'IN_PROGRESS')`,
     [groupNo]
   );
   return { success: true };
@@ -43,7 +43,7 @@ export async function cancelGroupBuyRecord(groupNo: string) {
 
 export async function createGroupBuyActivity(data: any) {
   const result = await query(
-    `INSERT INTO group_buy_activity (product_id, group_price, min_group_size, max_group_size, start_time, end_time, status) VALUES (?, ?, ?, ?, ?, ?, ?)`,
+    `INSERT INTO t_group_buy_activity (product_id, group_price, min_group_size, max_group_size, start_time, end_time, status) VALUES (?, ?, ?, ?, ?, ?, ?)`,
     [data.productId, data.groupPrice, data.minGroupSize, data.maxGroupSize || 10, data.startTime, data.endTime, data.status || 'PENDING']
   );
   return { id: (result as unknown as Record<string, unknown>).insertId };
@@ -51,14 +51,14 @@ export async function createGroupBuyActivity(data: any) {
 
 export async function updateGroupBuyActivity(id: number, data: any) {
   await query(
-    `UPDATE group_buy_activity SET product_id=?, group_price=?, min_group_size=?, max_group_size=?, start_time=?, end_time=?, status=? WHERE id=?`,
+    `UPDATE t_group_buy_activity SET product_id=?, group_price=?, min_group_size=?, max_group_size=?, start_time=?, end_time=?, status=? WHERE id=?`,
     [data.productId, data.groupPrice, data.minGroupSize, data.maxGroupSize, data.startTime, data.endTime, data.status, id]
   );
   return { success: true };
 }
 
 export async function deleteGroupBuyActivity(id: number) {
-  await query(`DELETE FROM group_buy_activity WHERE id=?`, [id]);
+  await query(`DELETE FROM t_group_buy_activity WHERE id=?`, [id]);
   return { success: true };
 }
 
@@ -71,8 +71,8 @@ export async function getGroupBuyRecords(tenantId: string, params?: { activityId
   if (params?.activityId) { where += " AND gbr.activity_id = ?"; vals.push(params.activityId); }
   if (params?.status) { where += " AND gbr.status = ?"; vals.push(params.status); }
   const [rows, total] = await Promise.all([
-    query<any>(`SELECT gbr.*, gba.product_id AS productId, p.name AS productName FROM group_buy_record gbr LEFT JOIN group_buy_activity gba ON gbr.activity_id = gba.id LEFT JOIN t_product p ON gba.product_id = p.id ${where} ORDER BY gbr.id DESC LIMIT ${offset}, ${pageSize}`, vals),
-    queryOne<any>(`SELECT COUNT(*) AS cnt FROM group_buy_record ${where}`, vals)
+    query<any>(`SELECT gbr.*, gba.product_id AS productId, p.name AS productName FROM t_group_buy_record gbr LEFT JOIN t_group_buy_activity gba ON gbr.activity_id = gba.id LEFT JOIN t_product p ON gba.product_id = p.id ${where} ORDER BY gbr.id DESC LIMIT ${offset}, ${pageSize}`, vals),
+    queryOne<any>(`SELECT COUNT(*) AS cnt FROM t_group_buy_record ${where}`, vals)
   ]);
   return { records: rows, total: total?.cnt || 0, page, pageSize };
 }
@@ -80,8 +80,8 @@ export async function getGroupBuyRecords(tenantId: string, params?: { activityId
 export async function getGroupBuyDetail(groupNo: string) {
   const row = await queryOne<any>(
     `SELECT gbr.*, gba.product_id AS productId, p.name AS productName, gba.group_price AS groupPrice, gba.min_group_size AS minGroupSize
-     FROM group_buy_record gbr
-     LEFT JOIN group_buy_activity gba ON gbr.activity_id = gba.id
+     FROM t_group_buy_record gbr
+     LEFT JOIN t_group_buy_activity gba ON gbr.activity_id = gba.id
      LEFT JOIN t_product p ON gba.product_id = p.id
      WHERE gbr.group_no = ?`,
     [groupNo]
@@ -92,7 +92,7 @@ export async function getGroupBuyDetail(groupNo: string) {
 
 export async function cancelGroupBuy(groupNo: string) {
   await query(
-    `UPDATE group_buy_record SET status='CANCELLED', cancelled_at=NOW() WHERE group_no=? AND status IN ('ACTIVE','PENDING')`,
+    `UPDATE t_group_buy_record SET status='CANCELLED', cancelled_at=NOW() WHERE group_no=? AND status IN ('ACTIVE','PENDING')`,
     [groupNo]
   );
   return { success: true };

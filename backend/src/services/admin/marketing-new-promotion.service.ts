@@ -99,7 +99,7 @@ async function logOperation(
   tenantId: string
 ) {
   await conn.execute(
-    `INSERT INTO marketing_operation_log (module, action, target_id, target_type, user_id, user_name, detail, tenant_id)
+    `INSERT INTO t_marketing_operation_log (module, action, target_id, target_type, user_id, user_name, detail, tenant_id)
      VALUES (?, ?, ?, ?, ?, ?, ?, ?)`,
     [module, action, targetId, targetType, userId, username, detail, tenantId]
   );
@@ -134,7 +134,7 @@ export async function listPromotions(
             rules, max_participants AS maxParticipants,
             participant_count AS participantCount, status, priority, stackable,
             created_at AS createdAt, updated_at AS updatedAt
-     FROM promotion_activity
+     FROM t_promotion_activity
      ${where}
      ORDER BY start_time DESC
      LIMIT ? OFFSET ?`,
@@ -143,7 +143,7 @@ export async function listPromotions(
   );
 
   const totalRow = await queryOneWithTenant<{ total: number }>(
-    `SELECT COUNT(*) AS total FROM promotion_activity ${where}`,
+    `SELECT COUNT(*) AS total FROM t_promotion_activity ${where}`,
     params,
     tenantId
   );
@@ -166,7 +166,7 @@ export async function createPromotion(
 
   await transaction(async (conn) => {
     await conn.execute(
-      `INSERT INTO promotion_activity (
+      `INSERT INTO t_promotion_activity (
         activity_code, activity_name, activity_type, activity_desc,
         start_time, end_time, applicable_scope, applicable_ids,
         rules, max_participants, priority, stackable,
@@ -205,7 +205,7 @@ export async function updatePromotion(
   username: string
 ) {
   const existing = await queryOneWithTenant<{ id: number; status: string }>(
-    "SELECT id, status FROM promotion_activity WHERE id = ?",
+    "SELECT id, status FROM t_promotion_activity WHERE id = ?",
     [activityId],
     tenantId
   );
@@ -250,13 +250,13 @@ export async function updatePromotion(
   if (updates.length > 0) {
     params.push(activityId);
     await queryWithTenant(
-      `UPDATE promotion_activity SET ${updates.join(", ")}, updated_at = NOW() WHERE id = ?`,
+      `UPDATE t_promotion_activity SET ${updates.join(", ")}, updated_at = NOW() WHERE id = ?`,
       params,
       tenantId
     );
 
     await queryWithTenant(
-      `INSERT INTO marketing_operation_log (module, action, target_id, target_type, user_id, user_name, detail, tenant_id)
+      `INSERT INTO t_marketing_operation_log (module, action, target_id, target_type, user_id, user_name, detail, tenant_id)
        VALUES (?, ?, ?, ?, ?, ?, ?, ?)`,
       ["promotion", "UPDATE", String(activityId), "promotion_activity", userId, username,
        `更新促销活动: ${activityId}`, tenantId],
@@ -276,7 +276,7 @@ export async function calculateDiscount(
     const couponRecord = await queryOneWithTenant<any>(
       `SELECT id, coupon_type AS couponType, coupon_value AS couponValue, min_purchase AS minPurchase, max_discount AS maxDiscount,
               applicable_scope AS applicableScope, applicable_ids AS applicableIds, valid_start AS validStart, valid_end AS validEnd
-       FROM user_coupon
+       FROM t_user_coupon
        WHERE coupon_no = ? AND user_id = ? AND status = 'UNUSED'`,
       [body.couponNo, body.userId],
       tenantId
@@ -300,7 +300,7 @@ export async function calculateDiscount(
 
   const promotions = await queryWithTenant<PromotionActivity>(
     `SELECT id, activity_type AS activityType, rules, applicable_scope AS applicableScope, applicable_ids AS applicableIds, priority, stackable
-     FROM promotion_activity
+     FROM t_promotion_activity
      WHERE status = 'ACTIVE'
        AND start_time <= NOW() AND end_time >= NOW()
      ORDER BY priority DESC`,

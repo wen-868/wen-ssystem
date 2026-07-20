@@ -75,13 +75,13 @@ describe("slow-query-monitor", () => {
     });
 
     it("慢查询记录包含完整字段", () => {
-      recordQueryExecution("SELECT * FROM orders WHERE id = ?", [42], 2500);
+      recordQueryExecution("SELECT * FROM t_orders WHERE id = ?", [42], 2500);
       const record = getSlowQueries()[0];
       expect(record).toHaveProperty("sql");
       expect(record).toHaveProperty("params");
       expect(record).toHaveProperty("duration");
       expect(record).toHaveProperty("timestamp");
-      expect(record.sql).toBe("SELECT * FROM orders WHERE id = ?");
+      expect(record.sql).toBe("SELECT * FROM t_orders WHERE id = ?");
       expect(record.params).toEqual([42]);
       expect(record.duration).toBe(2500);
     });

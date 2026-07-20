@@ -14,7 +14,7 @@ export async function createCouponTemplate(body: {
   description: string;
 }, tenantId: string) {
   await queryWithTenant(
-    `INSERT INTO coupon_template (name, type, value, min_amount, max_discount,
+    `INSERT INTO t_coupon_template (name, type, value, min_amount, max_discount,
         applicable_scope, applicable_ids, total_count, start_time, end_time, description, tenant_id)
        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
     [
@@ -31,7 +31,7 @@ export async function createCouponTemplate(body: {
               total_count AS totalCount, claimed_count AS claimedCount, used_count AS usedCount,
               start_time AS startTime, end_time AS endTime, status, description,
               created_at AS createdAt, updated_at AS updatedAt
-       FROM coupon_template ORDER BY id DESC LIMIT 1`,
+       FROM t_coupon_template ORDER BY id DESC LIMIT 1`,
     [],
     tenantId
   );
@@ -73,7 +73,7 @@ export async function listCouponTemplates(
               ct.claimed_count AS claimedCount, ct.used_count AS usedCount,
               ct.start_time AS startTime, ct.end_time AS endTime, ct.status,
               ct.description, ct.created_at AS createdAt, ct.updated_at AS updatedAt
-       FROM coupon_template ct
+       FROM t_coupon_template ct
        ${where}
        ORDER BY ct.created_at DESC
        LIMIT ? OFFSET ?`,
@@ -82,7 +82,7 @@ export async function listCouponTemplates(
   );
 
   const totalRow = await queryOneWithTenant<any>(
-    `SELECT COUNT(*) AS total FROM coupon_template ct ${where}`,
+    `SELECT COUNT(*) AS total FROM t_coupon_template ct ${where}`,
     params,
     tenantId
   );
@@ -102,7 +102,7 @@ export async function getCouponTemplate(id: number, tenantId: string) {
             total_count AS totalCount, claimed_count AS claimedCount, used_count AS usedCount,
             start_time AS startTime, end_time AS endTime, status, description,
             created_at AS createdAt, updated_at AS updatedAt
-     FROM coupon_template WHERE id = ?`,
+     FROM t_coupon_template WHERE id = ?`,
     [id],
     tenantId
   );
@@ -125,7 +125,7 @@ export async function updateCouponTemplate(id: number, body: {
   endTime?: string;
   description?: string;
 }, tenantId: string) {
-  const existing = await queryOneWithTenant<any>("SELECT id, status FROM coupon_template WHERE id = ?", [id], tenantId);
+  const existing = await queryOneWithTenant<any>("SELECT id, status FROM t_coupon_template WHERE id = ?", [id], tenantId);
   if (!existing) {
     throw Object.assign(new Error("优惠券模板不存在"), { statusCode: 404 });
   }
@@ -147,7 +147,7 @@ export async function updateCouponTemplate(id: number, body: {
 
   if (updates.length > 0) {
     params.push(id);
-    await queryWithTenant(`UPDATE coupon_template SET ${updates.join(", ")} WHERE id = ?`, params, tenantId);
+    await queryWithTenant(`UPDATE t_coupon_template SET ${updates.join(", ")} WHERE id = ?`, params, tenantId);
   }
 
   const record = await queryOneWithTenant<any>(
@@ -156,7 +156,7 @@ export async function updateCouponTemplate(id: number, body: {
             total_count AS totalCount, claimed_count AS claimedCount, used_count AS usedCount,
             start_time AS startTime, end_time AS endTime, status, description,
             created_at AS createdAt, updated_at AS updatedAt
-     FROM coupon_template WHERE id = ?`,
+     FROM t_coupon_template WHERE id = ?`,
     [id],
     tenantId
   );
@@ -165,7 +165,7 @@ export async function updateCouponTemplate(id: number, body: {
 }
 
 export async function deleteCouponTemplate(id: number, tenantId: string) {
-  const existing = await queryOneWithTenant<any>("SELECT id, status FROM coupon_template WHERE id = ?", [id], tenantId);
+  const existing = await queryOneWithTenant<any>("SELECT id, status FROM t_coupon_template WHERE id = ?", [id], tenantId);
   if (!existing) {
     throw Object.assign(new Error("优惠券模板不存在"), { statusCode: 404 });
   }
@@ -173,12 +173,12 @@ export async function deleteCouponTemplate(id: number, tenantId: string) {
     throw Object.assign(new Error("仅草稿状态的优惠券模板可删除"), { statusCode: 400 });
   }
 
-  await queryWithTenant("DELETE FROM coupon_template WHERE id = ?", [id], tenantId);
+  await queryWithTenant("DELETE FROM t_coupon_template WHERE id = ?", [id], tenantId);
   return { id, deleted: true };
 }
 
 export async function activateCouponTemplate(id: number, tenantId: string) {
-  const existing = await queryOneWithTenant<any>("SELECT id, status FROM coupon_template WHERE id = ?", [id], tenantId);
+  const existing = await queryOneWithTenant<any>("SELECT id, status FROM t_coupon_template WHERE id = ?", [id], tenantId);
   if (!existing) {
     throw Object.assign(new Error("优惠券模板不存在"), { statusCode: 404 });
   }
@@ -186,12 +186,12 @@ export async function activateCouponTemplate(id: number, tenantId: string) {
     throw Object.assign(new Error("仅草稿或暂停状态的优惠券可激活"), { statusCode: 400 });
   }
 
-  await queryWithTenant("UPDATE coupon_template SET status = 'ACTIVE' WHERE id = ?", [id], tenantId);
+  await queryWithTenant("UPDATE t_coupon_template SET status = 'ACTIVE' WHERE id = ?", [id], tenantId);
   return { id, status: "ACTIVE" };
 }
 
 export async function pauseCouponTemplate(id: number, tenantId: string) {
-  const existing = await queryOneWithTenant<any>("SELECT id, status FROM coupon_template WHERE id = ?", [id], tenantId);
+  const existing = await queryOneWithTenant<any>("SELECT id, status FROM t_coupon_template WHERE id = ?", [id], tenantId);
   if (!existing) {
     throw Object.assign(new Error("优惠券模板不存在"), { statusCode: 404 });
   }
@@ -199,7 +199,7 @@ export async function pauseCouponTemplate(id: number, tenantId: string) {
     throw Object.assign(new Error("仅激活状态的优惠券可暂停"), { statusCode: 400 });
   }
 
-  await queryWithTenant("UPDATE coupon_template SET status = 'PAUSED' WHERE id = ?", [id], tenantId);
+  await queryWithTenant("UPDATE t_coupon_template SET status = 'PAUSED' WHERE id = ?", [id], tenantId);
   return { id, status: "PAUSED" };
 }
 
@@ -236,8 +236,8 @@ export async function listUserCoupons(
             uc.expires_at AS expiresAt, uc.created_at AS createdAt,
             ct.name AS templateName, ct.type AS couponType, ct.value AS couponValue,
             ct.min_amount AS minAmount, ct.applicable_scope AS applicableScope
-     FROM user_coupon uc
-     JOIN coupon_template ct ON ct.id = uc.template_id AND ct.tenant_id = ?
+     FROM t_user_coupon uc
+     JOIN t_coupon_template ct ON ct.id = uc.template_id AND ct.tenant_id = ?
      ${where}
      ORDER BY uc.claimed_at DESC
      LIMIT ? OFFSET ?`,
@@ -246,8 +246,8 @@ export async function listUserCoupons(
   );
 
   const totalRow = await queryOneWithTenant<any>(
-    `SELECT COUNT(*) AS total FROM user_coupon uc
-     JOIN coupon_template ct ON ct.id = uc.template_id AND ct.tenant_id = ?
+    `SELECT COUNT(*) AS total FROM t_user_coupon uc
+     JOIN t_coupon_template ct ON ct.id = uc.template_id AND ct.tenant_id = ?
      ${where}`,
     params,
     tenantId
@@ -265,7 +265,7 @@ export async function getCouponStatistics(tenantId: string) {
   const byType = await queryWithTenant<any>(
     `SELECT type, COUNT(*) AS templateCount,
             SUM(total_count) AS totalIssued, SUM(claimed_count) AS totalClaimed, SUM(used_count) AS totalUsed
-     FROM coupon_template GROUP BY type`,
+     FROM t_coupon_template GROUP BY type`,
     [],
     tenantId
   );
@@ -273,7 +273,7 @@ export async function getCouponStatistics(tenantId: string) {
   const overall = await queryOneWithTenant<any>(
     `SELECT COUNT(*) AS totalTemplates, SUM(total_count) AS totalIssued,
             SUM(claimed_count) AS totalClaimed, SUM(used_count) AS totalUsed
-     FROM coupon_template`,
+     FROM t_coupon_template`,
     [],
     tenantId
   );
@@ -314,7 +314,7 @@ export async function listAvailableCoupons(tenantId: string) {
             applicable_scope AS applicableScope, total_count AS totalCount,
             claimed_count AS claimedCount,
             start_time AS startTime, end_time AS endTime, description
-     FROM coupon_template
+     FROM t_coupon_template
      WHERE status = 'ACTIVE' AND start_time <= ? AND end_time >= ?
        AND (total_count = 0 OR claimed_count < total_count)
      ORDER BY created_at DESC`,
@@ -332,7 +332,7 @@ export async function claimCoupon(templateId: number, userId: number, tenantId: 
     const [templateRows] = await conn.execute(
       `SELECT id, name, type, value, min_amount, max_discount, total_count, claimed_count,
               end_time, status
-       FROM coupon_template
+       FROM t_coupon_template
        WHERE id = ? AND tenant_id = ? AND status = 'ACTIVE' AND start_time <= ? AND end_time >= ?
        FOR UPDATE`,
       [templateId, tenantId, now, now]
@@ -348,8 +348,8 @@ export async function claimCoupon(templateId: number, userId: number, tenantId: 
     }
 
     const [existingRows] = await conn.execute(
-      `SELECT uc.id FROM user_coupon uc
-       JOIN coupon_template ct ON ct.id = uc.template_id AND ct.tenant_id = ?
+      `SELECT uc.id FROM t_user_coupon uc
+       JOIN t_coupon_template ct ON ct.id = uc.template_id AND ct.tenant_id = ?
        WHERE uc.template_id = ? AND uc.user_id = ? AND uc.status = 'AVAILABLE'`,
       [tenantId, templateId, userId]
     ) as unknown as Record<string, unknown>[];
@@ -362,13 +362,13 @@ export async function claimCoupon(templateId: number, userId: number, tenantId: 
     const expiresAt = endTime.toISOString();
 
     await conn.execute(
-      `INSERT INTO user_coupon (template_id, user_id, status, expires_at, tenant_id)
+      `INSERT INTO t_user_coupon (template_id, user_id, status, expires_at, tenant_id)
        VALUES (?, ?, 'AVAILABLE', ?, ?)`,
       [templateId, userId, expiresAt, tenantId]
     );
 
     await conn.execute(
-      `UPDATE coupon_template SET claimed_count = claimed_count + 1 WHERE id = ? AND tenant_id = ?`,
+      `UPDATE t_coupon_template SET claimed_count = claimed_count + 1 WHERE id = ? AND tenant_id = ?`,
       [templateId, tenantId]
     );
   });
@@ -378,8 +378,8 @@ export async function claimCoupon(templateId: number, userId: number, tenantId: 
             uc.status, uc.claimed_at AS claimedAt, uc.expires_at AS expiresAt,
             ct.name AS templateName, ct.type AS couponType, ct.value AS couponValue,
             ct.min_amount AS minAmount, ct.applicable_scope AS applicableScope
-     FROM user_coupon uc
-     JOIN coupon_template ct ON ct.id = uc.template_id AND ct.tenant_id = ?
+     FROM t_user_coupon uc
+     JOIN t_coupon_template ct ON ct.id = uc.template_id AND ct.tenant_id = ?
      WHERE uc.template_id = ? AND uc.user_id = ?
      ORDER BY uc.id DESC LIMIT 1`,
     [tenantId, templateId, userId],
@@ -414,8 +414,8 @@ export async function listMyCoupons(
             ct.name AS templateName, ct.type AS couponType, ct.value AS couponValue,
             ct.min_amount AS minAmount, ct.max_discount AS maxDiscount,
             ct.applicable_scope AS applicableScope, ct.description
-     FROM user_coupon uc
-     JOIN coupon_template ct ON ct.id = uc.template_id AND ct.tenant_id = ?
+     FROM t_user_coupon uc
+     JOIN t_coupon_template ct ON ct.id = uc.template_id AND ct.tenant_id = ?
      WHERE ${where}
      ORDER BY uc.claimed_at DESC
      LIMIT ? OFFSET ?`,
@@ -424,7 +424,7 @@ export async function listMyCoupons(
   );
 
   const totalRow = await queryOneWithTenant<any>(
-    `SELECT COUNT(*) AS total FROM user_coupon uc WHERE ${where}`,
+    `SELECT COUNT(*) AS total FROM t_user_coupon uc WHERE ${where}`,
     params,
     tenantId
   );

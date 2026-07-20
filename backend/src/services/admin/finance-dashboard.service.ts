@@ -9,7 +9,7 @@ export async function getFinanceDashboard(tenantId: string) {
     [tenantId, monthStart, monthEnd], tenantId
   );
   const monthExpense = await queryOneWithTenant<any>(
-    "SELECT COALESCE(SUM(amount), 0) AS total FROM expense WHERE tenant_id = ? AND status = 'APPROVED' AND expense_date >= ? AND expense_date <= ?",
+    "SELECT COALESCE(SUM(amount), 0) AS total FROM t_expense WHERE tenant_id = ? AND status = 'APPROVED' AND expense_date >= ? AND expense_date <= ?",
     [tenantId, monthStart, monthEnd], tenantId
   );
   const totalAR = await queryOneWithTenant<any>(
@@ -17,11 +17,11 @@ export async function getFinanceDashboard(tenantId: string) {
     [tenantId], tenantId
   );
   const totalAP = await queryOneWithTenant<any>(
-    "SELECT COALESCE(SUM(balance), 0) AS total FROM payable WHERE tenant_id = ? AND status IN ('PENDING', 'PARTIAL')",
+    "SELECT COALESCE(SUM(balance), 0) AS total FROM t_payable WHERE tenant_id = ? AND status IN ('PENDING', 'PARTIAL')",
     [tenantId], tenantId
   );
   const monthPayment = await queryOneWithTenant<any>(
-    "SELECT COALESCE(SUM(amount), 0) AS total FROM payment WHERE tenant_id = ? AND status = 'CONFIRMED' AND paid_date >= ? AND paid_date <= ?",
+    "SELECT COALESCE(SUM(amount), 0) AS total FROM t_payment WHERE tenant_id = ? AND status = 'CONFIRMED' AND paid_date >= ? AND paid_date <= ?",
     [tenantId, monthStart, monthEnd], tenantId
   );
   return {
@@ -67,11 +67,11 @@ export async function getCashFlow(tenantId: string, months: number = 12) {
       [tenantId, monthStr], tenantId
     );
     const expense = await queryOneWithTenant<any>(
-      "SELECT COALESCE(SUM(amount), 0) AS total FROM expense WHERE tenant_id = ? AND status = 'APPROVED' AND DATE_FORMAT(expense_date, '%Y-%m') = ?",
+      "SELECT COALESCE(SUM(amount), 0) AS total FROM t_expense WHERE tenant_id = ? AND status = 'APPROVED' AND DATE_FORMAT(expense_date, '%Y-%m') = ?",
       [tenantId, monthStr], tenantId
     );
     const payment = await queryOneWithTenant<any>(
-      "SELECT COALESCE(SUM(amount), 0) AS total FROM payment WHERE tenant_id = ? AND status = 'CONFIRMED' AND DATE_FORMAT(paid_date, '%Y-%m') = ?",
+      "SELECT COALESCE(SUM(amount), 0) AS total FROM t_payment WHERE tenant_id = ? AND status = 'CONFIRMED' AND DATE_FORMAT(paid_date, '%Y-%m') = ?",
       [tenantId, monthStr], tenantId
     );
     results.push({
@@ -95,7 +95,7 @@ export async function getProfitTrend(tenantId: string, months: number = 12) {
       [tenantId, monthStr], tenantId
     );
     const expense = await queryOneWithTenant<any>(
-      "SELECT COALESCE(SUM(amount), 0) AS total FROM expense WHERE tenant_id = ? AND status = 'APPROVED' AND DATE_FORMAT(expense_date, '%Y-%m') = ?",
+      "SELECT COALESCE(SUM(amount), 0) AS total FROM t_expense WHERE tenant_id = ? AND status = 'APPROVED' AND DATE_FORMAT(expense_date, '%Y-%m') = ?",
       [tenantId, monthStr], tenantId
     );
     results.push({ month: monthStr, income: income?.total ?? 0, expense: expense?.total ?? 0, profit: (income?.total ?? 0) - (expense?.total ?? 0) });
@@ -115,7 +115,7 @@ export async function getTopCustomersAR(tenantId: string, limit: number = 10) {
 export async function getTopSuppliersAP(tenantId: string, limit: number = 10) {
   return queryWithTenant<any>(
     `SELECT supplier_id AS supplierId, supplier_name AS supplierName, COALESCE(SUM(balance), 0) AS totalAP
-     FROM payable WHERE tenant_id = ? AND status IN ('PENDING', 'PARTIAL')
+     FROM t_payable WHERE tenant_id = ? AND status IN ('PENDING', 'PARTIAL')
      GROUP BY supplier_id, supplier_name ORDER BY totalAP DESC LIMIT ?`,
     [tenantId, limit], tenantId
   );
@@ -168,7 +168,7 @@ export async function getIncomeExpenseStats(tenantId: string, startDate?: string
   const expenseWhere = expenseCond.join(" AND ");
 
   const expense = await queryOneWithTenant<any>(
-    `SELECT COALESCE(SUM(amount), 0) AS total, COUNT(*) AS count FROM expense WHERE ${expenseWhere} AND status = 'APPROVED'`,
+    `SELECT COALESCE(SUM(amount), 0) AS total, COUNT(*) AS count FROM t_expense WHERE ${expenseWhere} AND status = 'APPROVED'`,
     expenseValues, tenantId
   );
 
@@ -203,7 +203,7 @@ export async function getExpenseByCategory(tenantId: string, startDate?: string,
 
   return queryWithTenant<any>(
     `SELECT expense_type AS category, COALESCE(SUM(amount), 0) AS totalAmount, COUNT(*) AS count
-     FROM expense WHERE ${where}
+     FROM t_expense WHERE ${where}
      GROUP BY expense_type ORDER BY totalAmount DESC`,
     values, tenantId
   );

@@ -41,7 +41,7 @@ export async function listAuditLogs(params: {
   const where = `WHERE ${conditions.join(" AND ")}`;
 
   const totalRow = await queryOne<{ total: number }>(
-    `SELECT COUNT(*) AS total FROM audit_log ${where}`,
+    `SELECT COUNT(*) AS total FROM t_audit_log ${where}`,
     sqlParams
   );
   const total = totalRow?.total ?? 0;
@@ -50,7 +50,7 @@ export async function listAuditLogs(params: {
     `SELECT id, user_id AS userId, user_name AS userName, role,
             action, resource_type AS resourceType, resource_id AS resourceId,
             detail, ip, user_agent AS userAgent, created_at AS createdAt
-     FROM audit_log ${where}
+     FROM t_audit_log ${where}
      ORDER BY created_at DESC
      LIMIT ? OFFSET ?`,
     [...sqlParams, pageSize, offset]
@@ -65,11 +65,11 @@ export async function getAuditStatistics(tenantId: string) {
   const monthStart = new Date(Date.now() - 30 * 86400000).toISOString().slice(0, 10);
 
   const [todayCount, weekCount, monthCount, actionDist, userDist] = await Promise.all([
-    queryOne<{ cnt: number }>(`SELECT COUNT(*) AS cnt FROM audit_log WHERE tenant_id = ? AND DATE(created_at) = ?`, [tenantId, today]),
-    queryOne<{ cnt: number }>(`SELECT COUNT(*) AS cnt FROM audit_log WHERE tenant_id = ? AND DATE(created_at) >= ?`, [tenantId, weekStart]),
-    queryOne<{ cnt: number }>(`SELECT COUNT(*) AS cnt FROM audit_log WHERE tenant_id = ? AND DATE(created_at) >= ?`, [tenantId, monthStart]),
-    query<{ action: string; cnt: number }>(`SELECT action, COUNT(*) AS cnt FROM audit_log WHERE tenant_id = ? AND DATE(created_at) >= ? GROUP BY action ORDER BY cnt DESC`, [tenantId, weekStart]),
-    query<{ userName: string; cnt: number }>(`SELECT user_name AS userName, COUNT(*) AS cnt FROM audit_log WHERE tenant_id = ? AND DATE(created_at) >= ? GROUP BY user_name ORDER BY cnt DESC LIMIT 10`, [tenantId, weekStart])
+    queryOne<{ cnt: number }>(`SELECT COUNT(*) AS cnt FROM t_audit_log WHERE tenant_id = ? AND DATE(created_at) = ?`, [tenantId, today]),
+    queryOne<{ cnt: number }>(`SELECT COUNT(*) AS cnt FROM t_audit_log WHERE tenant_id = ? AND DATE(created_at) >= ?`, [tenantId, weekStart]),
+    queryOne<{ cnt: number }>(`SELECT COUNT(*) AS cnt FROM t_audit_log WHERE tenant_id = ? AND DATE(created_at) >= ?`, [tenantId, monthStart]),
+    query<{ action: string; cnt: number }>(`SELECT action, COUNT(*) AS cnt FROM t_audit_log WHERE tenant_id = ? AND DATE(created_at) >= ? GROUP BY action ORDER BY cnt DESC`, [tenantId, weekStart]),
+    query<{ userName: string; cnt: number }>(`SELECT user_name AS userName, COUNT(*) AS cnt FROM t_audit_log WHERE tenant_id = ? AND DATE(created_at) >= ? GROUP BY user_name ORDER BY cnt DESC LIMIT 10`, [tenantId, weekStart])
   ]);
 
   return {
@@ -99,7 +99,7 @@ export function writeAuditLog(p: LogAuditParams): void {
 
   pool
     .query(
-      `INSERT INTO audit_log (user_id, user_name, role, action, resource_type, resource_id, detail, ip, user_agent, tenant_id)
+      `INSERT INTO t_audit_log (user_id, user_name, role, action, resource_type, resource_id, detail, ip, user_agent, tenant_id)
        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
       [p.userId, p.userName, p.role, p.action, p.resourceType, p.resourceId ?? null, p.detail ?? null, ip, userAgent, p.tenantId]
     )

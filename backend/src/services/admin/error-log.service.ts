@@ -17,7 +17,7 @@ export interface ErrorLogEntry {
 export async function insertErrorLog(entry: ErrorLogEntry): Promise<void> {
   try {
     await query(
-      `INSERT INTO error_logs 
+      `INSERT INTO t_error_logs 
        (error_type, severity, message, stack, request_url, request_method, status_code, user_id, tenant_id, source) 
        VALUES (?,?,?,?,?,?,?,?,?,?)`,
       [
@@ -76,10 +76,10 @@ export async function listErrorLogs(params: {
 
   const [rows, countResult] = await Promise.all([
     query(
-      `SELECT * FROM error_logs ${where} ORDER BY created_at DESC LIMIT ? OFFSET ?`,
+      `SELECT * FROM t_error_logs ${where} ORDER BY created_at DESC LIMIT ? OFFSET ?`,
       [...values, params.pageSize, offset]
     ),
-    queryOne(`SELECT COUNT(*) AS total FROM error_logs ${where}`, values),
+    queryOne(`SELECT COUNT(*) AS total FROM t_error_logs ${where}`, values),
   ]);
 
   return { items: rows, total: (countResult as { total?: number } | null)?.total || 0 };
@@ -87,7 +87,7 @@ export async function listErrorLogs(params: {
 
 export async function cleanupOldLogs(retainDays: number = 30): Promise<number> {
   const result = await queryOne(
-    `DELETE FROM error_logs WHERE created_at < DATE_SUB(NOW(), INTERVAL ? DAY)`,
+    `DELETE FROM t_error_logs WHERE created_at < DATE_SUB(NOW(), INTERVAL ? DAY)`,
     [retainDays]
   );
   return (result as { affectedRows?: number } | null)?.affectedRows || 0;

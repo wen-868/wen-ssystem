@@ -4,7 +4,7 @@ import { routeConfig } from "../../routes/admin-store.routes";
 describe("routes/admin-store", () => {
   it("应导出正确的 routeConfig", () => {
     expect(routeConfig).toBeDefined();
-    expect(routeConfig.prefix).toBe("/api/admin");
+    expect(routeConfig.prefix).toBe("/api/admin/system");
     expect(routeConfig.router).toBeDefined();
   });
 

@@ -72,7 +72,7 @@ export async function confirmOrder(platformOrderId: string, tenantId: string) {
   const success = await adapter.confirmOrder(platformOrderId);
   if (success) {
     await queryWithTenant(
-      `UPDATE platform_order SET status = 'ACCEPTED', updated_at = NOW() WHERE platform_order_id = ?`,
+      `UPDATE t_platform_order SET status = 'ACCEPTED', updated_at = NOW() WHERE platform_order_id = ?`,
       [platformOrderId],
       tenantId
     );
@@ -100,7 +100,7 @@ export async function cancelOrder(platformOrderId: string, reason: string | unde
   const success = await adapter.cancelOrder(platformOrderId, reason);
   if (success) {
     await queryWithTenant(
-      `UPDATE platform_order SET status = 'CANCELLED', updated_at = NOW() WHERE platform_order_id = ?`,
+      `UPDATE t_platform_order SET status = 'CANCELLED', updated_at = NOW() WHERE platform_order_id = ?`,
       [platformOrderId],
       tenantId
     );

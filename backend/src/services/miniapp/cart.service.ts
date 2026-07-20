@@ -7,7 +7,7 @@ export async function getCartList(tenantId: string, customerId: number, customer
             s.sku_name AS skuName, p.name AS spuName, p.main_image AS image,
             pp.retail_price AS retailPrice, pp.wholesale_price AS wholesalePrice, pp.miniapp_price AS miniappPrice,
             COALESCE(ib.available_qty, 0) AS availableQty
-     FROM cart_item c
+     FROM t_cart_item c
      JOIN t_product_sku s ON s.id = c.sku_id AND s.tenant_id = c.tenant_id
      JOIN t_product_spu p ON p.id = s.spu_id AND p.tenant_id = s.tenant_id
      JOIN t_product_price pp ON pp.sku_id = s.id AND pp.tenant_id = s.tenant_id
@@ -49,19 +49,19 @@ export async function addToCart(tenantId: string, customerId: number, skuId: num
   }
 
   const existing = await queryOneWithTenant<any>(
-    `SELECT id, quantity FROM cart_item WHERE customer_id = ? AND sku_id = ?`,
+    `SELECT id, quantity FROM t_cart_item WHERE customer_id = ? AND sku_id = ?`,
     [customerId, skuId],
     tenantId
   );
   if (existing) {
     await queryWithTenant(
-      `UPDATE cart_item SET quantity = quantity + ?, updated_at = NOW() WHERE id = ?`,
+      `UPDATE t_cart_item SET quantity = quantity + ?, updated_at = NOW() WHERE id = ?`,
       [quantity, existing.id],
       tenantId
     );
   } else {
     await queryWithTenant(
-      `INSERT INTO cart_item (customer_id, sku_id, quantity) VALUES (?, ?, ?)`,
+      `INSERT INTO t_cart_item (customer_id, sku_id, quantity) VALUES (?, ?, ?)`,
       [customerId, skuId, quantity],
       tenantId
     );
@@ -72,14 +72,14 @@ export async function addToCart(tenantId: string, customerId: number, skuId: num
 export async function updateCartItemQuantity(tenantId: string, customerId: number, skuId: number, quantity: number) {
   if (quantity === 0) {
     await queryWithTenant(
-      `DELETE FROM cart_item WHERE customer_id = ? AND sku_id = ?`,
+      `DELETE FROM t_cart_item WHERE customer_id = ? AND sku_id = ?`,
       [customerId, skuId],
       tenantId
     );
     return { success: true, message: "已更新" };
   } else {
     const result = await queryWithTenant(
-      `UPDATE cart_item SET quantity = ?, updated_at = NOW() WHERE customer_id = ? AND sku_id = ?`,
+      `UPDATE t_cart_item SET quantity = ?, updated_at = NOW() WHERE customer_id = ? AND sku_id = ?`,
       [quantity, customerId, skuId],
       tenantId
     );
@@ -92,7 +92,7 @@ export async function updateCartItemQuantity(tenantId: string, customerId: numbe
 
 export async function deleteCartItem(tenantId: string, customerId: number, skuId: number) {
   await queryWithTenant(
-    `DELETE FROM cart_item WHERE customer_id = ? AND sku_id = ?`,
+    `DELETE FROM t_cart_item WHERE customer_id = ? AND sku_id = ?`,
     [customerId, skuId],
     tenantId
   );
@@ -101,7 +101,7 @@ export async function deleteCartItem(tenantId: string, customerId: number, skuId
 
 export async function clearCart(tenantId: string, customerId: number) {
   await queryWithTenant(
-    `DELETE FROM cart_item WHERE customer_id = ?`,
+    `DELETE FROM t_cart_item WHERE customer_id = ?`,
     [customerId],
     tenantId
   );
@@ -110,7 +110,7 @@ export async function clearCart(tenantId: string, customerId: number) {
 
 export async function getCartCount(tenantId: string, customerId: number) {
   const row = await queryOneWithTenant<{ total: number }>(
-    `SELECT COALESCE(SUM(quantity), 0) AS total FROM cart_item WHERE customer_id = ?`,
+    `SELECT COALESCE(SUM(quantity), 0) AS total FROM t_cart_item WHERE customer_id = ?`,
     [customerId],
     tenantId
   );

@@ -111,9 +111,9 @@ describe("admin customer-care.service - executeCareRule", () => {
     mocks.queryWithTenant
       .mockResolvedValueOnce([{ id: 1 }, { id: 2 }])  // BIRTHDAY 目标客户
       .mockResolvedValueOnce([])  // INSERT log customer 1
-      .mockResolvedValueOnce([])  // UPDATE points customer 1
+      .mockResolvedValueOnce([])  // UPDATE t_points customer 1
       .mockResolvedValueOnce([])  // INSERT log customer 2
-      .mockResolvedValueOnce([]); // UPDATE points customer 2
+      .mockResolvedValueOnce([]); // UPDATE t_points customer 2
     const res = await executeCareRule(1, "t1");
     expect(res.executed).toBe(2);
     expect(res.logs).toHaveLength(2);
@@ -138,7 +138,7 @@ describe("admin customer-care.service - executeCareRule", () => {
       .mockResolvedValueOnce([]);  // INSERT log
     const res = await executeCareRule(3, "t1");
     expect(res.executed).toBe(1);
-    // cp 不存在，不执行 UPDATE points
+    // cp 不存在，不执行 UPDATE t_points
     expect(mocks.queryWithTenant).toHaveBeenCalledTimes(2);  // SELECT + INSERT log
   });
 

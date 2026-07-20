@@ -13,8 +13,9 @@ adminStoreRouter.put("/stores/:id", requireAuthWithTenant, employeeController.up
 adminStoreRouter.get("/stores/:id/wechat-info", requireAuthWithTenant, employeeController.getStoreWechatInfo);
 
 // ========== 路由自动发现配置 ==========
+// 前端 admin-web 通过 /api/admin/system/* 命名空间访问门店管理 API
 export const routeConfig: RouteConfig = {
-  prefix: "/api/admin",
+  prefix: "/api/admin/system",
   router: adminStoreRouter,
   auth: "requireAuthWithTenant",
 };

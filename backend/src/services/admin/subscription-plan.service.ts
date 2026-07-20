@@ -21,7 +21,7 @@ export async function listPlans(status?: string) {
             features, module_access AS moduleAccess,
             description, sort_order AS sortOrder, status,
             created_at AS createdAt, updated_at AS updatedAt
-     FROM subscription_plan
+     FROM t_subscription_plan
      ${where}
      ORDER BY sort_order ASC, id ASC`,
     params
@@ -41,7 +41,7 @@ export async function getPlan(planId: number) {
             features, module_access AS moduleAccess,
             description, sort_order AS sortOrder, status,
             created_at AS createdAt, updated_at AS updatedAt
-     FROM subscription_plan
+     FROM t_subscription_plan
      WHERE id = ?`,
     [planId]
   );
@@ -67,7 +67,7 @@ export async function createPlan(body: {
   status: string;
 }) {
   await query(
-    `INSERT INTO subscription_plan (
+    `INSERT INTO t_subscription_plan (
       plan_code, plan_name, plan_type, price, original_price,
       duration_days, max_users, max_stores, max_customers, max_products,
       max_storage_mb, features, module_access, description, sort_order, status
@@ -104,7 +104,7 @@ export async function updatePlan(planId: number, body: {
   status?: string;
 }) {
   const existing = await queryOne<any>(
-    "SELECT id FROM subscription_plan WHERE id = ?",
+    "SELECT id FROM t_subscription_plan WHERE id = ?",
     [planId]
   );
   if (!existing) {
@@ -150,14 +150,14 @@ export async function updatePlan(planId: number, body: {
   if (updates.length > 0) {
     params.push(planId);
     await query(
-      `UPDATE subscription_plan SET ${updates.join(", ")}, updated_at = NOW() WHERE id = ?`,
+      `UPDATE t_subscription_plan SET ${updates.join(", ")}, updated_at = NOW() WHERE id = ?`,
       params
     );
   }
 
   const record = await queryOne<any>(
     `SELECT id, plan_code AS planCode, plan_name AS planName, price, status, updated_at AS updatedAt
-     FROM subscription_plan WHERE id = ?`,
+     FROM t_subscription_plan WHERE id = ?`,
     [planId]
   );
 
@@ -166,7 +166,7 @@ export async function updatePlan(planId: number, body: {
 
 export async function deletePlan(planId: number) {
   const existing = await queryOne<any>(
-    "SELECT id FROM subscription_plan WHERE id = ?",
+    "SELECT id FROM t_subscription_plan WHERE id = ?",
     [planId]
   );
   if (!existing) {
@@ -182,7 +182,7 @@ export async function deletePlan(planId: number) {
     throw Object.assign(new Error("该套餐存在关联订阅，无法删除"), { statusCode: 400 });
   }
 
-  await query("DELETE FROM subscription_plan WHERE id = ?", [planId]);
+  await query("DELETE FROM t_subscription_plan WHERE id = ?", [planId]);
   return { planId, deleted: true };
 }
 
@@ -191,7 +191,7 @@ export async function updatePlanFeatures(planId: number, body: {
   moduleAccess?: unknown;
 }) {
   const existing = await queryOne<any>(
-    "SELECT id FROM subscription_plan WHERE id = ?",
+    "SELECT id FROM t_subscription_plan WHERE id = ?",
     [planId]
   );
   if (!existing) {
@@ -213,7 +213,7 @@ export async function updatePlanFeatures(planId: number, body: {
   if (updates.length > 0) {
     params.push(planId);
     await query(
-      `UPDATE subscription_plan SET ${updates.join(", ")}, updated_at = NOW() WHERE id = ?`,
+      `UPDATE t_subscription_plan SET ${updates.join(", ")}, updated_at = NOW() WHERE id = ?`,
       params
     );
   }
@@ -221,7 +221,7 @@ export async function updatePlanFeatures(planId: number, body: {
   const record = await queryOne<any>(
     `SELECT id, plan_code AS planCode, plan_name AS planName,
             features, module_access AS moduleAccess, updated_at AS updatedAt
-     FROM subscription_plan WHERE id = ?`,
+     FROM t_subscription_plan WHERE id = ?`,
     [planId]
   );
   return record;

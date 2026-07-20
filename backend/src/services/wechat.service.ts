@@ -10,7 +10,7 @@ export async function login(wxData: { openid: string; session_key: string; union
   let wxUserId: number;
   if (existing) {
     await query(
-      "UPDATE wx_user SET session_key = ?, unionid = ?, last_login_at = NOW() WHERE id = ?",
+      "UPDATE t_wx_user SET session_key = ?, unionid = ?, last_login_at = NOW() WHERE id = ?",
       [wxData.session_key, wxData.unionid || null, existing.id]
     );
     wxUserId = existing.id;
@@ -54,7 +54,7 @@ export async function decryptPhone(
   phone: string
 ) {
   await query(
-    "UPDATE wx_user SET phone = ? WHERE id = ?",
+    "UPDATE t_wx_user SET phone = ? WHERE id = ?",
     [phone, wxUserId]
   );
 
@@ -63,7 +63,7 @@ export async function decryptPhone(
 
 export async function updateProfile(wxUserId: number, body: { nickname?: string; avatarUrl?: string }) {
   await query(
-    "UPDATE wx_user SET nickname = ?, avatar_url = ? WHERE id = ?",
+    "UPDATE t_wx_user SET nickname = ?, avatar_url = ? WHERE id = ?",
     [body.nickname || null, body.avatarUrl || null, wxUserId]
   );
 }
@@ -139,7 +139,7 @@ export async function bindUser(
 
 export async function unbindUser(wxUserId: number, systemUserId: number) {
   const result = await query<any>(
-    "UPDATE user_binding SET status = 'UNBOUND', unbound_at = NOW() WHERE wx_user_id = ? AND system_user_id = ? AND status = 'ACTIVE'",
+    "UPDATE t_user_binding SET status = 'UNBOUND', unbound_at = NOW() WHERE wx_user_id = ? AND system_user_id = ? AND status = 'ACTIVE'",
     [wxUserId, systemUserId]
   );
 

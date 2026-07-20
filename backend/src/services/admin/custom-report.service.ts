@@ -114,14 +114,14 @@ export async function listTemplates(tenantId: string, params: TemplateListParams
   const where = `WHERE ${conditions.join(" AND ")}`;
 
   const totalRow = await queryOneWithTenant<{ total: number }>(
-    `SELECT COUNT(*) AS total FROM custom_report_template ${where}`, sqlParams, tenantId
+    `SELECT COUNT(*) AS total FROM t_custom_report_template ${where}`, sqlParams, tenantId
   );
   const total = totalRow?.total ?? 0;
 
   const records = await queryWithTenant<any>(
     `SELECT id, name, type, config, description, status, created_by AS createdBy,
             created_at AS createdAt, updated_at AS updatedAt
-     FROM custom_report_template ${where}
+     FROM t_custom_report_template ${where}
      ORDER BY created_at DESC
      LIMIT ? OFFSET ?`,
     [...sqlParams, params.pageSize, offset],
@@ -133,7 +133,7 @@ export async function listTemplates(tenantId: string, params: TemplateListParams
 
 export async function createTemplate(tenantId: string, data: TemplateCreateData) {
   const result = await queryWithTenant<any>(
-    `INSERT INTO custom_report_template (tenant_id, name, type, config, description, status)
+    `INSERT INTO t_custom_report_template (tenant_id, name, type, config, description, status)
      VALUES (?, ?, ?, ?, ?, 'active')`,
     [tenantId, data.name, data.type, JSON.stringify(data.config || {}), data.description || null],
     tenantId
@@ -155,7 +155,7 @@ export async function updateTemplate(tenantId: string, id: number, data: Templat
   sqlParams.push(id, tenantId);
 
   await queryWithTenant(
-    `UPDATE custom_report_template SET ${sets.join(", ")} WHERE id = ? AND tenant_id = ?`,
+    `UPDATE t_custom_report_template SET ${sets.join(", ")} WHERE id = ? AND tenant_id = ?`,
     sqlParams,
     tenantId
   );
@@ -164,7 +164,7 @@ export async function updateTemplate(tenantId: string, id: number, data: Templat
 
 export async function deleteTemplate(tenantId: string, id: number) {
   await queryWithTenant(
-    "DELETE FROM custom_report_template WHERE id = ? AND tenant_id = ?",
+    "DELETE FROM t_custom_report_template WHERE id = ? AND tenant_id = ?",
     [id, tenantId],
     tenantId
   );
@@ -173,7 +173,7 @@ export async function deleteTemplate(tenantId: string, id: number) {
 
 export async function executeTemplate(tenantId: string, id: number, params: Record<string, unknown>) {
   const template = await queryOneWithTenant<any>(
-    "SELECT id, name, type, config FROM custom_report_template WHERE id = ? AND tenant_id = ?",
+    "SELECT id, name, type, config FROM t_custom_report_template WHERE id = ? AND tenant_id = ?",
     [id, tenantId],
     tenantId
   );
@@ -273,7 +273,7 @@ export async function listSchedules(tenantId: string, params: ScheduleListParams
   const where = `WHERE ${conditions.join(" AND ")}`;
 
   const totalRow = await queryOneWithTenant<{ total: number }>(
-    `SELECT COUNT(*) AS total FROM custom_report_schedule cs ${where}`, sqlParams, tenantId
+    `SELECT COUNT(*) AS total FROM t_custom_report_schedule cs ${where}`, sqlParams, tenantId
   );
   const total = totalRow?.total ?? 0;
 
@@ -283,8 +283,8 @@ export async function listSchedules(tenantId: string, params: ScheduleListParams
             cs.export_format AS exportFormat, cs.recipients,
             cs.status, cs.last_run_at AS lastRunAt,
             cs.created_at AS createdAt, cs.updated_at AS updatedAt
-     FROM custom_report_schedule cs
-     LEFT JOIN custom_report_template ct ON ct.id = cs.template_id AND ct.tenant_id = cs.tenant_id
+     FROM t_custom_report_schedule cs
+     LEFT JOIN t_custom_report_template ct ON ct.id = cs.template_id AND ct.tenant_id = cs.tenant_id
      ${where}
      ORDER BY cs.created_at DESC
      LIMIT ? OFFSET ?`,
@@ -297,7 +297,7 @@ export async function listSchedules(tenantId: string, params: ScheduleListParams
 
 export async function createSchedule(tenantId: string, data: ScheduleCreateData) {
   const result = await queryWithTenant<any>(
-    `INSERT INTO custom_report_schedule (tenant_id, name, template_id, cron_expression, export_format, recipients, status)
+    `INSERT INTO t_custom_report_schedule (tenant_id, name, template_id, cron_expression, export_format, recipients, status)
      VALUES (?, ?, ?, ?, ?, ?, 'active')`,
     [tenantId, data.name, data.templateId, data.cronExpression, data.exportFormat, data.recipients || null],
     tenantId
@@ -319,7 +319,7 @@ export async function updateSchedule(tenantId: string, id: number, data: Schedul
   sqlParams.push(id, tenantId);
 
   await queryWithTenant(
-    `UPDATE custom_report_schedule SET ${sets.join(", ")} WHERE id = ? AND tenant_id = ?`,
+    `UPDATE t_custom_report_schedule SET ${sets.join(", ")} WHERE id = ? AND tenant_id = ?`,
     sqlParams,
     tenantId
   );
@@ -328,7 +328,7 @@ export async function updateSchedule(tenantId: string, id: number, data: Schedul
 
 export async function deleteSchedule(tenantId: string, id: number) {
   await queryWithTenant(
-    "DELETE FROM custom_report_schedule WHERE id = ? AND tenant_id = ?",
+    "DELETE FROM t_custom_report_schedule WHERE id = ? AND tenant_id = ?",
     [id, tenantId],
     tenantId
   );
@@ -337,7 +337,7 @@ export async function deleteSchedule(tenantId: string, id: number) {
 
 export async function toggleSchedule(tenantId: string, id: number, status: string) {
   await queryWithTenant(
-    "UPDATE custom_report_schedule SET status = ?, updated_at = NOW() WHERE id = ? AND tenant_id = ?",
+    "UPDATE t_custom_report_schedule SET status = ?, updated_at = NOW() WHERE id = ? AND tenant_id = ?",
     [status, id, tenantId],
     tenantId
   );
@@ -346,14 +346,14 @@ export async function toggleSchedule(tenantId: string, id: number, status: strin
 
 export async function runSchedule(tenantId: string, id: number) {
   const schedule = await queryOneWithTenant<any>(
-    "SELECT id, name, template_id AS templateId FROM custom_report_schedule WHERE id = ? AND tenant_id = ?",
+    "SELECT id, name, template_id AS templateId FROM t_custom_report_schedule WHERE id = ? AND tenant_id = ?",
     [id, tenantId],
     tenantId
   );
   if (!schedule) throw new Error("定时任务不存在");
 
   await queryWithTenant(
-    "UPDATE custom_report_schedule SET last_run_at = NOW(), updated_at = NOW() WHERE id = ? AND tenant_id = ?",
+    "UPDATE t_custom_report_schedule SET last_run_at = NOW(), updated_at = NOW() WHERE id = ? AND tenant_id = ?",
     [id, tenantId],
     tenantId
   );

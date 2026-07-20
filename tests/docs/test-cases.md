@@ -51,10 +51,10 @@
 
 | ID | 用例名称 | 步骤 | 预期 | 优先级 |
 |---|---|---|---|---|
-| TC-STORE-001 | 查询门店列表 | 1. GET `/api/admin/stores?page=1&pageSize=10` | HTTP 200，code=0，records 包含门店数据 | P0 |
-| TC-STORE-002 | 创建新门店 | 1. POST `/api/admin/stores` body `{"name":"TestStore","address":"TestAddr","deliveryRadius":3}` | code=0，返回 `id` `storeCode` `name` | P0 |
-| TC-STORE-003 | 门店搜索 | 1. GET `/api/admin/stores?keyword=Test` | 返回包含关键字的记录 | P2 |
-| TC-STORE-004 | 创建门店缺少必填字段 | 1. POST `/api/admin/stores` body 缺少 name | HTTP 400 或 validation error | P2 |
+| TC-STORE-001 | 查询门店列表 | 1. GET `/api/admin/system/stores?page=1&pageSize=10` | HTTP 200，code=0，records 包含门店数据 | P0 |
+| TC-STORE-002 | 创建新门店 | 1. POST `/api/admin/system/stores` body `{"name":"TestStore","address":"TestAddr","deliveryRadius":3}` | code=0，返回 `id` `storeCode` `name` | P0 |
+| TC-STORE-003 | 门店搜索 | 1. GET `/api/admin/system/stores?keyword=Test` | 返回包含关键字的记录 | P2 |
+| TC-STORE-004 | 创建门店缺少必填字段 | 1. POST `/api/admin/system/stores` body 缺少 name | HTTP 400 或 validation error | P2 |
 
 ## 模块 4: 订单管理 (Orders)
 

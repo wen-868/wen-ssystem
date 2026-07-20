@@ -54,7 +54,7 @@ export async function updatePlatformConfig(
   }
 
   await query(
-    "UPDATE platform_config SET config_value = ?, updated_by = ? WHERE config_key = ?",
+    "UPDATE t_platform_config SET config_value = ?, updated_by = ? WHERE config_key = ?",
     [configValue, operator, configKey]
   );
 

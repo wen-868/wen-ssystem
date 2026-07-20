@@ -39,7 +39,7 @@ export async function listReconciliations(tenantId: string, params: Reconciliati
   const where = `WHERE ${conditions.join(" AND ")}`;
 
   const totalRow = await queryOneWithTenant<{ total: number }>(
-    `SELECT COUNT(*) AS total FROM platform_reconciliation ${where}`, sqlParams, tenantId
+    `SELECT COUNT(*) AS total FROM t_platform_reconciliation ${where}`, sqlParams, tenantId
   );
   const total = totalRow?.total ?? 0;
 
@@ -47,7 +47,7 @@ export async function listReconciliations(tenantId: string, params: Reconciliati
     `SELECT id, reconciliation_no AS reconciliationNo, platform_no AS platformNo,
             platform_name AS platformName, type, amount, status,
             recorded_at AS recordedAt, created_at AS createdAt, updated_at AS updatedAt
-     FROM platform_reconciliation ${where}
+     FROM t_platform_reconciliation ${where}
      ORDER BY recorded_at DESC
      LIMIT ? OFFSET ?`,
     [...sqlParams, params.pageSize, offset],
@@ -59,7 +59,7 @@ export async function listReconciliations(tenantId: string, params: Reconciliati
 
 export async function createReconciliation(tenantId: string, data: ReconciliationCreateData) {
   const result = await queryWithTenant<any>(
-    `INSERT INTO platform_reconciliation (tenant_id, reconciliation_no, platform_no, platform_name, type, amount, status, recorded_at)
+    `INSERT INTO t_platform_reconciliation (tenant_id, reconciliation_no, platform_no, platform_name, type, amount, status, recorded_at)
      VALUES (?, ?, ?, ?, ?, ?, ?, ?)`,
     [tenantId, data.reconciliationNo, data.platformNo, data.platformName, data.type, data.amount, data.status, data.recordedAt || null],
     tenantId
@@ -78,7 +78,7 @@ export async function updateReconciliation(tenantId: string, id: number, data: R
   sqlParams.push(id, tenantId);
 
   await queryWithTenant(
-    `UPDATE platform_reconciliation SET ${sets.join(", ")} WHERE id = ? AND tenant_id = ?`,
+    `UPDATE t_platform_reconciliation SET ${sets.join(", ")} WHERE id = ? AND tenant_id = ?`,
     sqlParams,
     tenantId
   );
@@ -90,7 +90,7 @@ export async function getDetail(tenantId: string, id: number) {
     `SELECT id, reconciliation_no AS reconciliationNo, platform_no AS platformNo,
             platform_name AS platformName, type, amount, status,
             recorded_at AS recordedAt, created_at AS createdAt, updated_at AS updatedAt
-     FROM platform_reconciliation WHERE id = ? AND tenant_id = ?`,
+     FROM t_platform_reconciliation WHERE id = ? AND tenant_id = ?`,
     [id, tenantId],
     tenantId
   );

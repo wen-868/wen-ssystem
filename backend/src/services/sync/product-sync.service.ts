@@ -51,7 +51,7 @@ export async function syncProducts(tenantId: string, spuIds?: number[]) {
     const syncData = { spuId: spu.spuId, name: spu.name, mainImage: spu.mainImage, description: spu.description, categoryId: spu.categoryId, status: spu.status, brand: spu.brand, unit: spu.unit, storeId: spu.storeId, skus };
 
     await queryWithTenant(
-      `INSERT INTO sync_cache (tenant_id, sync_type, entity_id, sync_data, sync_status)
+      `INSERT INTO t_sync_cache (tenant_id, sync_type, entity_id, sync_data, sync_status)
        VALUES (?, 'product', ?, ?, 'synced')
        ON DUPLICATE KEY UPDATE sync_data = ?, sync_status = 'synced', updated_at = NOW()`,
       [tenantId, spu.spuId, JSON.stringify(syncData), JSON.stringify(syncData)],

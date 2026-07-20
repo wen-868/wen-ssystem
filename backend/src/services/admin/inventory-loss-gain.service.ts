@@ -10,7 +10,7 @@ export async function reportLossGain(params: {
   const lgNo = makeBizNo("SY");
   const amount = Math.round(qty * costPrice * 100) / 100;
   await queryWithTenant(
-    `INSERT INTO inventory_loss_gain (lg_no, store_id, type, sku_id, qty, cost_price, amount, reason, operator_id, status, tenant_id)
+    `INSERT INTO t_inventory_loss_gain (lg_no, store_id, type, sku_id, qty, cost_price, amount, reason, operator_id, status, tenant_id)
      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, 'PENDING', ?)`,
     [lgNo, storeId, type, skuId, qty, costPrice, amount, reason ?? null, operatorId, tenantId],
     tenantId
@@ -48,7 +48,7 @@ export async function listLossGains(params: {
             lg.type, lg.sku_id AS skuId, ps.sku_name AS skuName,
             lg.qty, lg.cost_price AS costPrice, lg.amount,
             lg.reason, lg.operator_id AS operatorId, lg.status, lg.created_at AS createdAt
-     FROM inventory_loss_gain lg
+     FROM t_inventory_loss_gain lg
      LEFT JOIN t_store st ON st.id = lg.store_id
      LEFT JOIN t_product_sku ps ON ps.id = lg.sku_id
      ${where}
@@ -58,7 +58,7 @@ export async function listLossGains(params: {
     tenantId
   );
   const totalRow = await queryOneWithTenant<any>(
-    `SELECT COUNT(*) AS total FROM inventory_loss_gain lg ${where}`,
+    `SELECT COUNT(*) AS total FROM t_inventory_loss_gain lg ${where}`,
     queryParams,
     tenantId
   );

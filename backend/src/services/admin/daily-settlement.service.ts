@@ -9,7 +9,7 @@ export async function createDailySettlement(params: {
 
   // 检查是否已有该日期的日结记录
   const existing = await queryOneWithTenant<any>(
-    "SELECT id FROM daily_settlement WHERE settle_date = ? AND tenant_id = ?",
+    "SELECT id FROM t_daily_settlement WHERE settle_date = ? AND tenant_id = ?",
     [settleDate, tenantId],
     tenantId
   );
@@ -59,7 +59,7 @@ export async function createDailySettlement(params: {
   const totalRefund = Number(refundRow?.totalRefund ?? 0);
 
   await queryWithTenant(
-    `INSERT INTO daily_settlement (settle_date, total_sales, total_received, total_refund,
+    `INSERT INTO t_daily_settlement (settle_date, total_sales, total_received, total_refund,
        cash_amount, wechat_amount, alipay_amount, transfer_amount, other_amount, operator_id, created_at, tenant_id)
      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, NOW(), ?)`,
     [settleDate, totalSales, totalReceived, totalRefund,
@@ -110,7 +110,7 @@ export async function listDailySettlements(params: {
             cash_amount AS cashAmount, wechat_amount AS wechatAmount,
             alipay_amount AS alipayAmount, transfer_amount AS transferAmount,
             other_amount AS otherAmount, operator_id AS operatorId, created_at AS createdAt
-     FROM daily_settlement
+     FROM t_daily_settlement
      ${where}
      ORDER BY settle_date DESC
      LIMIT ? OFFSET ?`,
@@ -118,7 +118,7 @@ export async function listDailySettlements(params: {
     tenantId
   );
   const totalRow = await queryOneWithTenant<any>(
-    `SELECT COUNT(*) AS total FROM daily_settlement ${where}`,
+    `SELECT COUNT(*) AS total FROM t_daily_settlement ${where}`,
     queryParams,
     tenantId
   );
@@ -132,7 +132,7 @@ export async function getDailySettlementDetail(id: number, tenantId: string) {
             cash_amount AS cashAmount, wechat_amount AS wechatAmount,
             alipay_amount AS alipayAmount, transfer_amount AS transferAmount,
             other_amount AS otherAmount, operator_id AS operatorId, created_at AS createdAt
-     FROM daily_settlement WHERE id = ? AND tenant_id = ?`,
+     FROM t_daily_settlement WHERE id = ? AND tenant_id = ?`,
     [id, tenantId],
     tenantId
   );

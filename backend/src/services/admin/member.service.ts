@@ -53,15 +53,15 @@ export async function selfRegisterMember(params: {
   await queryWithTenant("UPDATE t_member_sms_code SET used = 1 WHERE id = ?", [codeRecord.id], tenantId);
 
   await queryWithTenant(
-    "INSERT INTO customer_points (customer_id, total_points, available_points, tenant_id) VALUES (?, 0, 0, ?)",
+    "INSERT INTO t_customer_points (customer_id, total_points, available_points, tenant_id) VALUES (?, 0, 0, ?)",
     [memberId, tenantId], tenantId
   );
   await queryWithTenant(
-    "INSERT INTO customer_level (customer_id, level_name, level_points, tenant_id) VALUES (?, 'VIP1', 0, ?)",
+    "INSERT INTO t_customer_level (customer_id, level_name, level_points, tenant_id) VALUES (?, 'VIP1', 0, ?)",
     [memberId, tenantId], tenantId
   );
   await queryWithTenant(
-    "INSERT INTO customer_profile (customer_id, lifecycle_stage, tenant_id) VALUES (?, 'PROSPECT', ?)",
+    "INSERT INTO t_customer_profile (customer_id, lifecycle_stage, tenant_id) VALUES (?, 'PROSPECT', ?)",
     [memberId, tenantId], tenantId
   );
 
@@ -120,11 +120,11 @@ export async function registerMember(params: { name: string; mobile: string; pas
   );
   const memberId = (result as unknown as Record<string, unknown>).insertId;
   // 初始化积分账户
-  await queryWithTenant("INSERT INTO customer_points (customer_id, total_points, available_points, tenant_id) VALUES (?, 0, 0, ?)", [memberId, tenantId], tenantId);
+  await queryWithTenant("INSERT INTO t_customer_points (customer_id, total_points, available_points, tenant_id) VALUES (?, 0, 0, ?)", [memberId, tenantId], tenantId);
   // 初始化等级
-  await queryWithTenant("INSERT INTO customer_level (customer_id, level_name, level_points, tenant_id) VALUES (?, 'VIP1', 0, ?)", [memberId, tenantId], tenantId);
+  await queryWithTenant("INSERT INTO t_customer_level (customer_id, level_name, level_points, tenant_id) VALUES (?, 'VIP1', 0, ?)", [memberId, tenantId], tenantId);
   // 初始化画像
-  await queryWithTenant("INSERT INTO customer_profile (customer_id, lifecycle_stage, tenant_id) VALUES (?, 'PROSPECT', ?)", [memberId, tenantId], tenantId);
+  await queryWithTenant("INSERT INTO t_customer_profile (customer_id, lifecycle_stage, tenant_id) VALUES (?, 'PROSPECT', ?)", [memberId, tenantId], tenantId);
   return { id: memberId, name, mobile };
 }
 
@@ -135,11 +135,11 @@ export async function getMemberCard(memberId: number, tenantId: string) {
     [memberId, tenantId], tenantId
   );
   if (!member) throw new Error("会员不存在");
-  const points = await queryOneWithTenant<any>("SELECT total_points AS totalPoints, available_points AS availablePoints FROM customer_points WHERE customer_id = ? AND tenant_id = ?", [memberId, tenantId], tenantId);
-  const level = await queryOneWithTenant<any>("SELECT level_name AS levelName, level_points AS levelPoints, upgraded_at AS upgradedAt FROM customer_level WHERE customer_id = ? AND tenant_id = ?", [memberId, tenantId], tenantId);
-  const card = await queryOneWithTenant<any>("SELECT card_no AS cardNo, balance, status FROM store_value_card WHERE customer_id = ? AND tenant_id = ?", [memberId, tenantId], tenantId);
+  const points = await queryOneWithTenant<any>("SELECT total_points AS totalPoints, available_points AS availablePoints FROM t_customer_points WHERE customer_id = ? AND tenant_id = ?", [memberId, tenantId], tenantId);
+  const level = await queryOneWithTenant<any>("SELECT level_name AS levelName, level_points AS levelPoints, upgraded_at AS upgradedAt FROM t_customer_level WHERE customer_id = ? AND tenant_id = ?", [memberId, tenantId], tenantId);
+  const card = await queryOneWithTenant<any>("SELECT card_no AS cardNo, balance, status FROM t_store_value_card WHERE customer_id = ? AND tenant_id = ?", [memberId, tenantId], tenantId);
   const levelConfig = await queryOneWithTenant<any>(
-    "SELECT discount_rate AS discountRate, benefits FROM level_config WHERE level_name = ? AND tenant_id = ?",
+    "SELECT discount_rate AS discountRate, benefits FROM t_level_config WHERE level_name = ? AND tenant_id = ?",
     [member.memberLevel ?? "VIP1", tenantId], tenantId
   );
   return {
@@ -160,15 +160,15 @@ export async function updateMemberLevel(memberId: number, levelName: string, ten
   const member = await queryOneWithTenant<any>("SELECT id FROM t_member WHERE id = ? AND tenant_id = ?", [memberId, tenantId], tenantId);
   if (!member) throw new Error("会员不存在");
   await queryWithTenant("UPDATE t_member SET member_level = ? WHERE id = ? AND tenant_id = ?", [levelName, memberId, tenantId], tenantId);
-  await queryWithTenant("UPDATE customer_level SET level_name = ?, upgraded_at = NOW() WHERE customer_id = ? AND tenant_id = ?", [levelName, memberId, tenantId], tenantId);
-  await queryWithTenant("UPDATE customer_profile SET member_level = ? WHERE customer_id = ? AND tenant_id = ?", [levelName, memberId, tenantId], tenantId);
+  await queryWithTenant("UPDATE t_customer_level SET level_name = ?, upgraded_at = NOW() WHERE customer_id = ? AND tenant_id = ?", [levelName, memberId, tenantId], tenantId);
+  await queryWithTenant("UPDATE t_customer_profile SET member_level = ? WHERE customer_id = ? AND tenant_id = ?", [levelName, memberId, tenantId], tenantId);
   return { memberId, levelName };
 }
 
 // 会员权益
 export async function getMemberBenefits(tenantId: string) {
   return queryWithTenant<any>(
-    "SELECT level_name AS levelName, discount_rate AS discountRate, benefits FROM level_config WHERE tenant_id = ? ORDER BY min_points",
+    "SELECT level_name AS levelName, discount_rate AS discountRate, benefits FROM t_level_config WHERE tenant_id = ? ORDER BY min_points",
     [tenantId], tenantId
   );
 }

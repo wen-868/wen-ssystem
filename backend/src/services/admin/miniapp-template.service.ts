@@ -9,7 +9,7 @@ function safeJsonParse(val: any, fallback: any) {
 export async function listTemplates(tenantId: string) {
   const rows = await queryWithTenant<any>(
     `SELECT id, name, description, thumbnail, preview_urls, style_config, page_config, version, status, sort_order, created_at AS createdAt, updated_at AS updatedAt
-     FROM miniapp_template WHERE (tenant_id = ? OR tenant_id = 'DEFAULT') AND status = 'active'
+     FROM t_miniapp_template WHERE (tenant_id = ? OR tenant_id = 'DEFAULT') AND status = 'active'
      ORDER BY sort_order ASC, id ASC`,
     [tenantId],
     tenantId
@@ -33,7 +33,7 @@ export async function listTemplates(tenantId: string) {
 export async function getTemplateDetail(tenantId: string, id: number) {
   const row = await queryOneWithTenant<any>(
     `SELECT id, name, description, thumbnail, preview_urls, style_config, page_config, version, status, sort_order, created_at AS createdAt, updated_at AS updatedAt
-     FROM miniapp_template WHERE id = ? AND (tenant_id = ? OR tenant_id = 'DEFAULT')`,
+     FROM t_miniapp_template WHERE id = ? AND (tenant_id = ? OR tenant_id = 'DEFAULT')`,
     [id, tenantId],
     tenantId
   );
@@ -56,7 +56,7 @@ export async function getTemplateDetail(tenantId: string, id: number) {
 
 export async function createTemplate(tenantId: string, body: any) {
   const result = await queryWithTenant(
-    `INSERT INTO miniapp_template (tenant_id, name, description, thumbnail, preview_urls, style_config, page_config, version, status, sort_order)
+    `INSERT INTO t_miniapp_template (tenant_id, name, description, thumbnail, preview_urls, style_config, page_config, version, status, sort_order)
      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
     [tenantId, body.name, body.description || "", body.thumbnail || "",
       JSON.stringify(body.previewUrls || []),
@@ -89,7 +89,7 @@ export async function updateTemplate(tenantId: string, id: number, body: any) {
   if (sets.length > 0) {
     params.push(id, tenantId);
     await queryWithTenant(
-      `UPDATE miniapp_template SET ${sets.join(", ")}, updated_at = NOW() WHERE id = ? AND (tenant_id = ? OR tenant_id = 'DEFAULT')`,
+      `UPDATE t_miniapp_template SET ${sets.join(", ")}, updated_at = NOW() WHERE id = ? AND (tenant_id = ? OR tenant_id = 'DEFAULT')`,
       params,
       tenantId
     );
@@ -99,7 +99,7 @@ export async function updateTemplate(tenantId: string, id: number, body: any) {
 
 export async function deleteTemplate(tenantId: string, id: number) {
   await queryWithTenant(
-    "DELETE FROM miniapp_template WHERE id = ? AND (tenant_id = ? OR tenant_id = 'DEFAULT')",
+    "DELETE FROM t_miniapp_template WHERE id = ? AND (tenant_id = ? OR tenant_id = 'DEFAULT')",
     [id, tenantId],
     tenantId
   );
@@ -110,7 +110,7 @@ export async function applyTemplate(tenantId: string, templateId: number, platfo
   const template = await getTemplateDetail(tenantId, templateId);
   if (!template) throw new Error("模板不存在");
   await queryWithTenant(
-    "UPDATE miniapp_config SET template_id = ?, updated_at = NOW() WHERE tenant_id = ? AND platform = ?",
+    "UPDATE t_miniapp_config SET template_id = ?, updated_at = NOW() WHERE tenant_id = ? AND platform = ?",
     [templateId, tenantId, platform],
     tenantId
   );
@@ -120,12 +120,12 @@ export async function applyTemplate(tenantId: string, templateId: number, platfo
 export async function getPreviewConfig(tenantId: string, platform: string = "WECHAT") {
   const [config, template] = await Promise.all([
     queryOneWithTenant<any>(
-      "SELECT app_id AS appId, app_name AS appName, template_id AS templateId, status FROM miniapp_config WHERE tenant_id = ? AND platform = ?",
+      "SELECT app_id AS appId, app_name AS appName, template_id AS templateId, status FROM t_miniapp_config WHERE tenant_id = ? AND platform = ?",
       [tenantId, platform],
       tenantId
     ),
     queryOneWithTenant<any>(
-      "SELECT t.id, t.name, t.style_config AS styleConfig FROM miniapp_config c JOIN miniapp_template t ON c.template_id = t.id WHERE c.tenant_id = ? AND c.platform = ?",
+      "SELECT t.id, t.name, t.style_config AS styleConfig FROM t_miniapp_config c JOIN t_miniapp_template t ON c.template_id = t.id WHERE c.tenant_id = ? AND c.platform = ?",
       [tenantId, platform],
       tenantId
     ),

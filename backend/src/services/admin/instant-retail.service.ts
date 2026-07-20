@@ -181,7 +181,7 @@ export async function upsertConfig(body: any, tenantId: string) {
 
   if (existing) {
     await queryWithTenant(
-      `UPDATE platform_config
+      `UPDATE t_platform_config
        SET store_id = ?, app_key = ?, app_secret = ?, merchant_id = ?, config_json = ?, updated_at = NOW()
        WHERE platform = ?`,
       [
@@ -366,7 +366,7 @@ export async function confirmOrder(platformOrderId: string, tenantId: string) {
   const success = await adapter.confirmOrder(platformOrderId);
   if (success) {
     await queryWithTenant(
-      `UPDATE platform_order SET status = 'ACCEPTED', updated_at = NOW() WHERE platform_order_id = ?`,
+      `UPDATE t_platform_order SET status = 'ACCEPTED', updated_at = NOW() WHERE platform_order_id = ?`,
       [platformOrderId],
       tenantId
     );
@@ -392,7 +392,7 @@ export async function startDelivery(platformOrderId: string, body: any, tenantId
   const success = await adapter.startDelivery(platformOrderId, body);
   if (success) {
     await queryWithTenant(
-      `UPDATE platform_order SET status = 'DELIVERING', updated_at = NOW() WHERE platform_order_id = ?`,
+      `UPDATE t_platform_order SET status = 'DELIVERING', updated_at = NOW() WHERE platform_order_id = ?`,
       [platformOrderId],
       tenantId
     );
@@ -418,7 +418,7 @@ export async function completeDelivery(platformOrderId: string, tenantId: string
   const success = await adapter.completeDelivery(platformOrderId);
   if (success) {
     await queryWithTenant(
-      `UPDATE platform_order SET status = 'COMPLETED', updated_at = NOW() WHERE platform_order_id = ?`,
+      `UPDATE t_platform_order SET status = 'COMPLETED', updated_at = NOW() WHERE platform_order_id = ?`,
       [platformOrderId],
       tenantId
     );
@@ -446,7 +446,7 @@ export async function cancelOrder(platformOrderId: string, reason: string | unde
   const success = await adapter.cancelOrder(platformOrderId, reason);
   if (success) {
     await queryWithTenant(
-      `UPDATE platform_order SET status = 'CANCELLED', updated_at = NOW() WHERE platform_order_id = ?`,
+      `UPDATE t_platform_order SET status = 'CANCELLED', updated_at = NOW() WHERE platform_order_id = ?`,
       [platformOrderId],
       tenantId
     );

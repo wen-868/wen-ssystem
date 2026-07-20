@@ -76,7 +76,7 @@ export async function createVisitPlan(
 
   await transaction(async (conn) => {
     await conn.execute(
-      `INSERT INTO customer_visit (
+      `INSERT INTO t_customer_visit (
         visit_no, customer_id, customer_name, customer_mobile,
         store_id, visitor_id, visitor_name,
         visit_type, visit_purpose, visit_date,
@@ -118,7 +118,7 @@ export async function updateVisitPlan(
   body: UpdateVisitPlanInput
 ) {
   const existing = await queryOneWithTenant<any>(
-    "SELECT id, status FROM customer_visit WHERE visit_no = ?",
+    "SELECT id, status FROM t_customer_visit WHERE visit_no = ?",
     [visitNo],
     tenantId
   );
@@ -169,7 +169,7 @@ export async function updateVisitPlan(
     updates.push("updated_at = NOW()");
     params.push(visitNo);
     await queryWithTenant(
-      `UPDATE customer_visit SET ${updates.join(", ")} WHERE visit_no = ?`,
+      `UPDATE t_customer_visit SET ${updates.join(", ")} WHERE visit_no = ?`,
       params,
       tenantId
     );
@@ -187,7 +187,7 @@ export async function updateVisitPlan(
             status, visit_summary AS visitSummary, follow_up_required AS followUpRequired,
             follow_up_date AS followUpDate, next_action AS nextAction,
             updated_at AS updatedAt
-     FROM customer_visit WHERE visit_no = ?`,
+     FROM t_customer_visit WHERE visit_no = ?`,
     [visitNo],
     tenantId
   );
@@ -202,7 +202,7 @@ export async function cancelVisitPlan(
   visitNo: string
 ) {
   const existing = await queryOneWithTenant<any>(
-    "SELECT id, status FROM customer_visit WHERE visit_no = ?",
+    "SELECT id, status FROM t_customer_visit WHERE visit_no = ?",
     [visitNo],
     tenantId
   );
@@ -214,7 +214,7 @@ export async function cancelVisitPlan(
   }
 
   await queryWithTenant(
-    "UPDATE customer_visit SET status = 'CANCELLED', updated_at = NOW() WHERE visit_no = ?",
+    "UPDATE t_customer_visit SET status = 'CANCELLED', updated_at = NOW() WHERE visit_no = ?",
     [visitNo],
     tenantId
   );

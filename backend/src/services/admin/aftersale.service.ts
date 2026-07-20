@@ -29,7 +29,7 @@ export async function createAftersale(params: {
   if (order.order_status === "CANCELLED") throw Object.assign(new Error("已取消的订单不可申请售后"), { statusCode: 400 });
 
   const existingAftersale = await queryOneWithTenant<Record<string, unknown>>(
-    `SELECT id FROM aftersale WHERE order_no = ? AND customer_id = ? AND tenant_id = ? AND status NOT IN ('CANCELLED', 'COMPLETED', 'REJECTED', 'EXPIRED', 'CLOSED')`,
+    `SELECT id FROM t_aftersale WHERE order_no = ? AND customer_id = ? AND tenant_id = ? AND status NOT IN ('CANCELLED', 'COMPLETED', 'REJECTED', 'EXPIRED', 'CLOSED')`,
     [orderNo, customerId, tenantId],
     tenantId
   );
@@ -39,7 +39,7 @@ export async function createAftersale(params: {
   const deadline = new Date(Date.now() + constants.AFTERSALE_DEADLINE_MS);
 
   await queryWithTenant(
-    `INSERT INTO aftersale (aftersale_no, order_id, order_no, customer_id, store_id, aftersale_type,
+    `INSERT INTO t_aftersale (aftersale_no, order_id, order_no, customer_id, store_id, aftersale_type,
                               reason, reason_detail, images, items, refund_amount, exchange_sku_id, exchange_qty,
                               status, deadline, tenant_id)
      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'PENDING', ?, ?)`,
@@ -77,14 +77,14 @@ export async function listMyAftersales(params: {
             a.reason, a.refund_amount AS refundAmount, a.status, a.deadline,
             a.return_logistics_no AS returnLogisticsNo,
             a.created_at AS createdAt, a.updated_at AS updatedAt
-     FROM aftersale a ${whereSql}
+     FROM t_aftersale a ${whereSql}
      ORDER BY a.id DESC LIMIT ? OFFSET ?`,
     [...queryParams, pageSize, offset],
     tenantId
   );
 
   const total = await queryOneWithTenant<{ total: number }>(
-    `SELECT COUNT(*) AS total FROM aftersale a ${whereSql}`,
+    `SELECT COUNT(*) AS total FROM t_aftersale a ${whereSql}`,
     queryParams,
     tenantId
   );
@@ -96,7 +96,7 @@ export async function listMyAftersales(params: {
 export async function getAftersaleDetail(aftersaleNo: string, customerId: number, tenantId: string) {
   const row = await queryOneWithTenant<Record<string, unknown>>(
     `SELECT a.*, o.receiver_name AS orderReceiverName, o.receiver_mobile AS orderReceiverMobile
-     FROM aftersale a
+     FROM t_aftersale a
      LEFT JOIN t_miniapp_order o ON o.order_no = a.order_no AND o.tenant_id = a.tenant_id
      WHERE a.aftersale_no = ? AND a.customer_id = ? AND a.tenant_id = ?`,
     [aftersaleNo, customerId, tenantId],
@@ -109,7 +109,7 @@ export async function getAftersaleDetail(aftersaleNo: string, customerId: number
 // 4. 取消售后
 export async function cancelAftersale(aftersaleNo: string, customerId: number, tenantId: string) {
   const result = await queryWithTenant(
-    `UPDATE aftersale SET status = 'CANCELLED', updated_at = NOW()
+    `UPDATE t_aftersale SET status = 'CANCELLED', updated_at = NOW()
      WHERE aftersale_no = ? AND customer_id = ? AND tenant_id = ? AND status = 'PENDING'`,
     [aftersaleNo, customerId, tenantId],
     tenantId
@@ -130,7 +130,7 @@ export async function submitReturnLogistics(params: {
 }) {
   const { aftersaleNo, customerId, tenantId, returnLogisticsNo, returnLogisticsCompany } = params;
   const result = await queryWithTenant(
-    `UPDATE aftersale SET return_logistics_no = ?, return_logistics_company = ?, status = 'RETURNING', updated_at = NOW()
+    `UPDATE t_aftersale SET return_logistics_no = ?, return_logistics_company = ?, status = 'RETURNING', updated_at = NOW()
      WHERE aftersale_no = ? AND customer_id = ? AND tenant_id = ? AND status IN ('APPROVED', 'RETURNING')`,
     [returnLogisticsNo, returnLogisticsCompany, aftersaleNo, customerId, tenantId],
     tenantId
@@ -151,7 +151,7 @@ export async function rateAftersale(params: {
 }) {
   const { aftersaleNo, customerId, tenantId, satisfaction, customerComment } = params;
   const result = await queryWithTenant(
-    `UPDATE aftersale SET satisfaction = ?, customer_comment = ?, updated_at = NOW()
+    `UPDATE t_aftersale SET satisfaction = ?, customer_comment = ?, updated_at = NOW()
      WHERE aftersale_no = ? AND customer_id = ? AND tenant_id = ? AND status = 'COMPLETED'`,
     [satisfaction, customerComment ?? null, aftersaleNo, customerId, tenantId],
     tenantId
@@ -195,14 +195,14 @@ export async function listAftersales(params: {
             a.status, a.deadline, a.return_logistics_no AS returnLogisticsNo,
             a.return_logistics_company AS returnLogisticsCompany,
             a.created_at AS createdAt, a.updated_at AS updatedAt
-     FROM aftersale a ${whereSql}
+     FROM t_aftersale a ${whereSql}
      ORDER BY a.id DESC LIMIT ? OFFSET ?`,
     [...queryParams, pageSize, offset],
     tenantId
   );
 
   const total = await queryOneWithTenant<{ total: number }>(
-    `SELECT COUNT(*) AS total FROM aftersale a ${whereSql}`,
+    `SELECT COUNT(*) AS total FROM t_aftersale a ${whereSql}`,
     queryParams,
     tenantId
   );
@@ -215,7 +215,7 @@ export async function getAftersaleDetailById(id: number, tenantId: string) {
   const row = await queryOneWithTenant<Record<string, unknown>>(
     `SELECT a.*,
             o.receiver_name AS orderReceiverName, o.receiver_mobile AS orderReceiverMobile, o.receiver_address AS orderReceiverAddress
-     FROM aftersale a
+     FROM t_aftersale a
      LEFT JOIN t_miniapp_order o ON o.order_no = a.order_no AND o.tenant_id = a.tenant_id
      WHERE a.id = ? AND a.tenant_id = ?`,
     [id, tenantId],
@@ -228,7 +228,7 @@ export async function getAftersaleDetailById(id: number, tenantId: string) {
 // 9. 审核通过
 export async function approveAftersale(id: number, tenantId: string, operatorId: number, processRemark?: string, version?: number) {
   const result = await queryWithTenant(
-    `UPDATE aftersale SET status = 'APPROVED', processed_by = ?, process_remark = ?, updated_at = NOW(), version = version + 1
+    `UPDATE t_aftersale SET status = 'APPROVED', processed_by = ?, process_remark = ?, updated_at = NOW(), version = version + 1
      WHERE id = ? AND tenant_id = ? AND status = 'PENDING' AND version = ?`,
     [operatorId, processRemark || null, id, tenantId, version || 1],
     tenantId
@@ -242,7 +242,7 @@ export async function approveAftersale(id: number, tenantId: string, operatorId:
 // 10. 审核拒绝
 export async function rejectAftersale(id: number, tenantId: string, operatorId: number, processRemark: string, version?: number) {
   const result = await queryWithTenant(
-    `UPDATE aftersale SET status = 'REJECTED', processed_by = ?, process_remark = ?, updated_at = NOW(), version = version + 1
+    `UPDATE t_aftersale SET status = 'REJECTED', processed_by = ?, process_remark = ?, updated_at = NOW(), version = version + 1
      WHERE id = ? AND tenant_id = ? AND status = 'PENDING' AND version = ?`,
     [operatorId, processRemark, id, tenantId, version || 1],
     tenantId
@@ -256,7 +256,7 @@ export async function rejectAftersale(id: number, tenantId: string, operatorId: 
 // 11. 确认收货
 export async function confirmReceipt(id: number, tenantId: string) {
   const result = await queryWithTenant(
-    `UPDATE aftersale SET status = 'RECEIVED', updated_at = NOW(), version = version + 1
+    `UPDATE t_aftersale SET status = 'RECEIVED', updated_at = NOW(), version = version + 1
      WHERE id = ? AND tenant_id = ? AND status = 'RETURNING'`,
     [id, tenantId],
     tenantId
@@ -280,7 +280,7 @@ export async function inspectAftersale(params: {
   const { id, tenantId, operatorId, inspectResult, inspectImages, processRemark, version } = params;
   const newStatus = inspectResult === "FAIL" ? "REJECTED" : "INSPECTING";
   const result = await queryWithTenant(
-    `UPDATE aftersale SET status = ?, inspected_by = ?, inspect_result = ?, inspect_images = ?, updated_at = NOW(), version = version + 1
+    `UPDATE t_aftersale SET status = ?, inspected_by = ?, inspect_result = ?, inspect_images = ?, updated_at = NOW(), version = version + 1
      WHERE id = ? AND tenant_id = ? AND status IN ('RECEIVED', 'INSPECTING') AND version = ?`,
     [
       newStatus, operatorId, processRemark || inspectResult,
@@ -304,7 +304,7 @@ export async function completeAftersale(params: {
 }) {
   const { id, tenantId, operatorId, processRemark, version } = params;
   const result = await queryWithTenant(
-    `UPDATE aftersale SET status = 'COMPLETED', processed_by = ?, process_remark = ?, updated_at = NOW(), version = version + 1
+    `UPDATE t_aftersale SET status = 'COMPLETED', processed_by = ?, process_remark = ?, updated_at = NOW(), version = version + 1
      WHERE id = ? AND tenant_id = ? AND status IN ('INSPECTING', 'APPROVED') AND version = ?`,
     [operatorId, processRemark || null, id, tenantId, version || 1],
     tenantId
@@ -321,37 +321,37 @@ export async function getAftersaleStatistics(tenantId: string, storeId?: number)
   const storeParams = storeId ? [tenantId, storeId] : [tenantId];
 
   const typeStats = await queryWithTenant<Record<string, unknown>>(
-    `SELECT aftersale_type AS type, COUNT(*) AS count FROM aftersale ${storeFilter} GROUP BY aftersale_type`,
+    `SELECT aftersale_type AS type, COUNT(*) AS count FROM t_aftersale ${storeFilter} GROUP BY aftersale_type`,
     storeParams,
     tenantId
   );
 
   const statusStats = await queryWithTenant<Record<string, unknown>>(
-    `SELECT status, COUNT(*) AS count FROM aftersale ${storeFilter} GROUP BY status`,
+    `SELECT status, COUNT(*) AS count FROM t_aftersale ${storeFilter} GROUP BY status`,
     storeParams,
     tenantId
   );
 
   const avgTime = await queryOneWithTenant<{ avgHours: string }>(
     `SELECT AVG(TIMESTAMPDIFF(HOUR, created_at, updated_at)) AS avgHours
-     FROM aftersale ${storeFilter} AND status IN ('COMPLETED', 'CLOSED')`,
+     FROM t_aftersale ${storeFilter} AND status IN ('COMPLETED', 'CLOSED')`,
     storeParams,
     tenantId
   );
 
   const avgSatisfaction = await queryOneWithTenant<{ avgScore: string }>(
-    `SELECT AVG(satisfaction) AS avgScore FROM aftersale ${storeFilter} AND satisfaction IS NOT NULL`,
+    `SELECT AVG(satisfaction) AS avgScore FROM t_aftersale ${storeFilter} AND satisfaction IS NOT NULL`,
     storeParams,
     tenantId
   );
 
   const totalPending = await queryOneWithTenant<{ total: number }>(
-    `SELECT COUNT(*) AS total FROM aftersale ${storeFilter} AND deadline IS NOT NULL`,
+    `SELECT COUNT(*) AS total FROM t_aftersale ${storeFilter} AND deadline IS NOT NULL`,
     storeParams,
     tenantId
   );
   const totalOverdue = await queryOneWithTenant<{ total: number }>(
-    `SELECT COUNT(*) AS total FROM aftersale ${storeFilter} AND deadline IS NOT NULL AND status NOT IN ('COMPLETED', 'CLOSED', 'CANCELLED') AND deadline < NOW()`,
+    `SELECT COUNT(*) AS total FROM t_aftersale ${storeFilter} AND deadline IS NOT NULL AND status NOT IN ('COMPLETED', 'CLOSED', 'CANCELLED') AND deadline < NOW()`,
     storeParams,
     tenantId
   );

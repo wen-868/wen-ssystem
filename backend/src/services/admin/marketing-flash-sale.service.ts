@@ -192,7 +192,7 @@ export async function getFlashSaleStatistics(tenantId: string) {
             COUNT(fsr.id) AS orderCount, SUM(fsr.quantity) AS totalQuantity,
             SUM(fsr.price * fsr.quantity) AS totalAmount
      FROM t_flash_sale fs
-     LEFT JOIN flash_sale_record fsr ON fsr.flash_sale_id = fs.id
+     LEFT JOIN t_flash_sale_record fsr ON fsr.flash_sale_id = fs.id
      GROUP BY fs.id
      ORDER BY fs.created_at DESC`,
     [],
@@ -282,7 +282,7 @@ export async function buyFlashSale(
     const [purchaseRows] = await (conn as any).execute(
       `SELECT COALESCE(SUM(quantity), 0) AS totalQty
        FROM t_flash_sale_record fsr
-       JOIN flash_sale fs ON fs.id = fsr.flash_sale_id AND fs.tenant_id = ?
+       JOIN t_flash_sale fs ON fs.id = fsr.flash_sale_id AND fs.tenant_id = ?
        WHERE fsr.flash_sale_id = ? AND fsr.user_id = ?`,
       [tenantId, flashSaleId, userId]
     ) as unknown as Record<string, unknown>[];

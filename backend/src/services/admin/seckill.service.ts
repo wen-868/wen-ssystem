@@ -16,7 +16,7 @@ export async function getSeckillProducts(tenantId: string, params?: { status?: s
 
 export async function createSeckillProduct(data: any) {
   const result = await query(
-    `INSERT INTO seckill_product (product_id, seckill_price, seckill_stock, limit_per_user, start_time, end_time, status) VALUES (?, ?, ?, ?, ?, ?, ?)`,
+    `INSERT INTO t_seckill_product (product_id, seckill_price, seckill_stock, limit_per_user, start_time, end_time, status) VALUES (?, ?, ?, ?, ?, ?, ?)`,
     [data.productId, data.seckillPrice, data.seckillStock, data.limitPerUser || 1, data.startTime, data.endTime, data.status || 'PENDING']
   );
   return { id: (result as unknown as Record<string, unknown>).insertId };
@@ -24,7 +24,7 @@ export async function createSeckillProduct(data: any) {
 
 export async function updateSeckillProduct(id: number, data: any) {
   await query(
-    `UPDATE seckill_product SET product_id=?, seckill_price=?, seckill_stock=?, limit_per_user=?, start_time=?, end_time=?, status=? WHERE id=?`,
+    `UPDATE t_seckill_product SET product_id=?, seckill_price=?, seckill_stock=?, limit_per_user=?, start_time=?, end_time=?, status=? WHERE id=?`,
     [data.productId, data.seckillPrice, data.seckillStock, data.limitPerUser, data.startTime, data.endTime, data.status, id]
   );
   return { success: true };

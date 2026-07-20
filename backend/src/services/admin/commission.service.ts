@@ -8,7 +8,7 @@ export async function listCommissionRules(tenantId: string) {
     `SELECT id, rule_name AS ruleName, rule_type AS ruleType, config,
             effective_start AS effectiveStart, effective_end AS effectiveEnd,
             status, remark, created_at AS createdAt
-     FROM sales_commission_rule
+     FROM t_sales_commission_rule
      WHERE tenant_id = ?
      ORDER BY id DESC`,
     [tenantId],
@@ -22,7 +22,7 @@ export async function createCommissionRule(params: {
 }) {
   const { ruleName, ruleType, config, effectiveStart, effectiveEnd, remark, tenantId } = params;
   const result = await queryWithTenant<any>(
-    `INSERT INTO sales_commission_rule (rule_name, rule_type, config, effective_start, effective_end, remark, tenant_id)
+    `INSERT INTO t_sales_commission_rule (rule_name, rule_type, config, effective_start, effective_end, remark, tenant_id)
      VALUES (?, ?, ?, ?, ?, ?, ?)`,
     [ruleName, ruleType, JSON.stringify(config), effectiveStart ?? null, effectiveEnd ?? null, remark ?? null, tenantId],
     tenantId
@@ -36,7 +36,7 @@ export async function updateCommissionRule(id: number, params: {
   tenantId: string;
 }) {
   const existing = await queryOneWithTenant<any>(
-    "SELECT id FROM sales_commission_rule WHERE id = ? AND tenant_id = ?",
+    "SELECT id FROM t_sales_commission_rule WHERE id = ? AND tenant_id = ?",
     [id, params.tenantId],
     params.tenantId
   );
@@ -53,7 +53,7 @@ export async function updateCommissionRule(id: number, params: {
   if (fields.length === 0) throw new Error("没有需要更新的字段");
   values.push(id, params.tenantId);
   await queryWithTenant<any>(
-    `UPDATE sales_commission_rule SET ${fields.join(", ")} WHERE id = ? AND tenant_id = ?`,
+    `UPDATE t_sales_commission_rule SET ${fields.join(", ")} WHERE id = ? AND tenant_id = ?`,
     values,
     params.tenantId
   );
@@ -62,13 +62,13 @@ export async function updateCommissionRule(id: number, params: {
 
 export async function deleteCommissionRule(id: number, tenantId: string) {
   const existing = await queryOneWithTenant<any>(
-    "SELECT id FROM sales_commission_rule WHERE id = ? AND tenant_id = ?",
+    "SELECT id FROM t_sales_commission_rule WHERE id = ? AND tenant_id = ?",
     [id, tenantId],
     tenantId
   );
   if (!existing) throw new Error("规则不存在");
   await queryWithTenant<any>(
-    "DELETE FROM sales_commission_rule WHERE id = ? AND tenant_id = ?",
+    "DELETE FROM t_sales_commission_rule WHERE id = ? AND tenant_id = ?",
     [id, tenantId],
     tenantId
   );
@@ -117,7 +117,7 @@ export async function calculateCommissions(params: {
   );
   const rules = await queryWithTenant<any>(
     `SELECT id, rule_name AS ruleName, rule_type AS ruleType, config
-     FROM sales_commission_rule
+     FROM t_sales_commission_rule
      WHERE tenant_id = ? AND status = 1
        AND (effective_start IS NULL OR effective_start <= ?)
        AND (effective_end IS NULL OR effective_end >= ?)`,
@@ -134,14 +134,14 @@ export async function calculateCommissions(params: {
     if (amount <= 0) continue;
     // 检查是否已存在记录
     const existing = await queryOneWithTenant<any>(
-      "SELECT id FROM sales_commission_record WHERE bill_no = ? AND staff_id = ? AND tenant_id = ?",
+      "SELECT id FROM t_sales_commission_record WHERE bill_no = ? AND staff_id = ? AND tenant_id = ?",
       [bill.billNo, bill.staffId, tenantId],
       tenantId
     );
     if (existing) continue;
     const recordNo = makeBizNo("TC");
     await queryWithTenant<any>(
-      `INSERT INTO sales_commission_record (record_no, bill_no, staff_id, rule_id, commission_amount, base_amount, rate, status, tenant_id)
+      `INSERT INTO t_sales_commission_record (record_no, bill_no, staff_id, rule_id, commission_amount, base_amount, rate, status, tenant_id)
        VALUES (?, ?, ?, ?, ?, ?, ?, 'PENDING', ?)`,
       [recordNo, bill.billNo, bill.staffId, rule.id, amount, baseAmount, rate, tenantId],
       tenantId
@@ -158,7 +158,7 @@ export async function settleCommissions(params: {
   const { recordNos, tenantId } = params;
   const placeholders = recordNos.map(() => "?").join(",");
   await queryWithTenant<any>(
-    `UPDATE sales_commission_record SET status = 'SETTLED', settled_at = NOW()
+    `UPDATE t_sales_commission_record SET status = 'SETTLED', settled_at = NOW()
      WHERE record_no IN (${placeholders}) AND tenant_id = ? AND status = 'PENDING'`,
     [...recordNos, tenantId],
     tenantId
@@ -183,8 +183,8 @@ export async function listCommissionRecords(params: {
             cr.rate, cr.status, cr.settled_at AS settledAt, cr.created_at AS createdAt,
             sr.rule_name AS ruleName, sr.rule_type AS ruleType,
             u.real_name AS staffName
-     FROM sales_commission_record cr
-     LEFT JOIN sales_commission_rule sr ON sr.id = cr.rule_id
+     FROM t_sales_commission_record cr
+     LEFT JOIN t_sales_commission_rule sr ON sr.id = cr.rule_id
      LEFT JOIN t_sys_user u ON u.id = cr.staff_id
      ${where}
      ORDER BY cr.id DESC
@@ -193,7 +193,7 @@ export async function listCommissionRecords(params: {
     tenantId
   );
   const totalRow = await queryOneWithTenant<any>(
-    `SELECT COUNT(*) AS total FROM sales_commission_record cr ${where}`,
+    `SELECT COUNT(*) AS total FROM t_sales_commission_record cr ${where}`,
     queryParams,
     tenantId
   );

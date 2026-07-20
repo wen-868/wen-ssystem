@@ -159,7 +159,7 @@ export async function getTransferOrderDetail(id: number, tenantId: string) {
   }
 
   const items = await queryWithTenant<Record<string, unknown>>(
-    "SELECT * FROM transfer_order_item WHERE transfer_order_id = ?",
+    "SELECT * FROM t_transfer_order_item WHERE transfer_order_id = ?",
     [id],
     tenantId
   );
@@ -195,7 +195,7 @@ export async function updateTransferOrder(id: number, tenantId: string, params: 
     }
 
     if (items && items.length > 0) {
-      await (conn as any).execute("DELETE FROM transfer_order_item WHERE transfer_order_id = ? AND tenant_id = ?", [id, tenantId]);
+      await (conn as any).execute("DELETE FROM t_transfer_order_item WHERE transfer_order_id = ? AND tenant_id = ?", [id, tenantId]);
       let totalAmount = 0;
       for (const item of items) {
         const subtotal = item.quantity * item.unitPrice;

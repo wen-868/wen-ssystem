@@ -4,7 +4,7 @@ import { routeConfig } from "../../routes/audit.routes";
 describe("routes/audit", () => {
   it("应导出正确的 routeConfig", () => {
     expect(routeConfig).toBeDefined();
-    expect(routeConfig.prefix).toBe("/api/admin/audit-logs");
+    expect(routeConfig.prefix).toBe("/api/admin/system/audit-logs");
     expect(routeConfig.router).toBeDefined();
   });
 
