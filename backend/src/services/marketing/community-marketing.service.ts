@@ -539,7 +539,7 @@ export async function buySeckill(
     }
 
     await (conn as any).execute(
-      `UPDATE seckill_product SET available_stock = available_stock - ? WHERE id = ? AND tenant_id = ?`,
+      `UPDATE t_seckill_product SET available_stock = available_stock - ? WHERE id = ? AND tenant_id = ?`,
       [quantity, activityId, tenantId]
     );
 

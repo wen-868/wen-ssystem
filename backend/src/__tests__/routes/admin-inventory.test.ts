@@ -9,7 +9,7 @@ describe("routes/admin-inventory", () => {
   });
 
   it("应配置认证中间件", () => {
-    expect(routeConfig.auth).toBe("none");
+    expect(routeConfig.auth).toBe("requireAuthWithTenant");
   });
 
   it("router 应该是一个 Router 实例", () => {

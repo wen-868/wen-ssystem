@@ -3,6 +3,8 @@
 vi.mock("@shared/db", () => ({
   query: vi.fn().mockResolvedValue([]),
   queryOne: vi.fn().mockResolvedValue({ total: 0 }),
+  queryWithTenant: vi.fn().mockResolvedValue([]),
+  queryOneWithTenant: vi.fn().mockResolvedValue({ total: 0, cnt: 0 }),
 }));
 
 vi.mock("@shared/response", () => ({

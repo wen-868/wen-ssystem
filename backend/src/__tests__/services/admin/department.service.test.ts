@@ -1,7 +1,7 @@
-﻿/**
- * 管理端部门 service 单元测试
- * 被测文件：src/services/admin/department.service.ts
- */
+﻿﻿/**
+* 管理端部门 service 单元测试
+* 被测文件：src/services/admin/department.service.ts
+*/
 import { describe, it, expect, vi, beforeEach } from "vitest";
 
 const mocks = vi.hoisted(() => ({
@@ -76,7 +76,7 @@ describe("department.service", () => {
       const res = await createDepartment({ parentId: null, name: "新部门", storeId: 1 });
       expect(res).toEqual({ id: 100 });
       const [sql, params] = mocks.query.mock.calls[0];
-      expect(sql).toContain("INSERT INTO t_sys_department");
+      expect(sql).toContain("INSERT INTO sys_department");
       expect(params).toEqual([null, "新部门", 1, 0, 1]);
     });
 
@@ -94,7 +94,7 @@ describe("department.service", () => {
       const res = await updateDepartment(9, { name: "改名", parentId: 2, storeId: 3, sortOrder: 1, status: 1 });
       expect(res).toEqual({ success: true });
       const [sql, params] = mocks.query.mock.calls[0];
-      expect(sql).toContain("UPDATE t_sys_department SET");
+      expect(sql).toContain("UPDATE sys_department SET");
       expect(params).toEqual([2, "改名", 3, 1, 1, 9]);
     });
   });
@@ -105,7 +105,7 @@ describe("department.service", () => {
       const res = await deleteDepartment(7);
       expect(res).toEqual({ success: true });
       const [sql, params] = mocks.query.mock.calls[0];
-      expect(sql).toContain("DELETE FROM t_sys_department WHERE id=?");
+      expect(sql).toContain("DELETE FROM sys_department WHERE id=?");
       expect(params).toEqual([7]);
     });
   });

@@ -4,12 +4,12 @@ import { routeConfig } from "../../routes/tenant.routes";
 describe("routes/tenant", () => {
   it("应导出正确的 routeConfig", () => {
     expect(routeConfig).toBeDefined();
-    expect(routeConfig.prefix).toBe("/api/admin/tenants");
+    expect(routeConfig.prefix).toBe("/api/platform/tenants-management");
     expect(routeConfig.router).toBeDefined();
   });
 
   it("应配置认证中间件（平台级，不需要租户隔离）", () => {
-    expect(routeConfig.auth).toBe("requireAuth");
+    expect(routeConfig.auth).toBe("requirePlatformAuth");
   });
 
   it("router 应该是一个 Router 实例", () => {

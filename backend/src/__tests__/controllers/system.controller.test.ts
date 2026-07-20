@@ -2,6 +2,7 @@ import { vi, describe, it, beforeEach, expect } from "vitest";
 
 vi.mock("@shared/db", () => ({
   queryOne: vi.fn().mockResolvedValue({ cnt: 0 }),
+  queryOneWithTenant: vi.fn().mockResolvedValue({ cnt: 0 }),
 }));
 
 vi.mock("@shared/response", () => ({
@@ -22,7 +23,7 @@ vi.mock("@shared/logger", () => ({
 }));
 
 import { ok, fail } from "@shared/response";
-import { queryOne } from "@shared/db";
+import { queryOneWithTenant } from "@shared/db";
 import { runMigrations } from "@shared/migration";
 import { healthCheck, getSystemInfo, runSystemMigration } from "@controllers/admin/system.controller";
 
@@ -64,7 +65,7 @@ describe("system.controller", () => {
 
   // ==================== 分支覆盖率补充测试 ====================
   it("getSystemInfo - queryOne返回null时使用默认值0", async () => {
-    (queryOne as any).mockResolvedValue(null);
+    (queryOneWithTenant as any).mockResolvedValue(null);
     const req = mockReq();
     const res = mockRes();
     await getSystemInfo(req as any, res as any);

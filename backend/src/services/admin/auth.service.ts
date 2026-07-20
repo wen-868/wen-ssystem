@@ -2,6 +2,7 @@ import { query, queryOne, queryWithTenant, queryOneWithTenant } from "../../shar
 import { signToken, getUserAccessInfo, AuthUser } from "../../middleware/auth";
 import { verifyPassword, validatePassword } from "../../shared/password";
 import { AppError } from "../../shared/app-error";
+import { generateCsrfToken } from "../../middleware/csrf";
 
 const MAX_LOGIN_ATTEMPTS = 5;
 const LOCK_DURATION_MINUTES = 15;
@@ -79,7 +80,7 @@ export async function login(username: string, password: string) {
     permissions: ["*"],
     ...accessInfo
   };
-  return { token: signToken(authUser), user };
+  return { token: signToken(authUser), user, csrfToken: generateCsrfToken(account.id) };
 }
 
 export async function getMe(user: AuthUser) {
@@ -92,7 +93,7 @@ export async function getMe(user: AuthUser) {
   const defaultMode = userSetting?.default_homepage
     ? (userSetting.default_homepage === '/cashier' ? 'CASHIER' : 'ADMIN')
     : accessInfo.defaultMode;
-  return { ...user, ...accessInfo, defaultMode };
+  return { ...user, ...accessInfo, defaultMode, csrfToken: generateCsrfToken(user.id) };
 }
 
 export async function getSettings(userId: number, tenantId: string) {
