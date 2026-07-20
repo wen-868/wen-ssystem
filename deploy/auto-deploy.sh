@@ -38,6 +38,7 @@ if command -v pm2 >/dev/null 2>&1; then
   pm2 delete zhixiang-api 2>/dev/null || true
   pm2 start "${PROJECT_DIR}/backend/dist/server.js" \
     --name zhixiang-api \
+    --cwd "${PROJECT_DIR}/backend" \
     --env production \
     --log "${LOG_DIR}/backend.log" \
     --time
