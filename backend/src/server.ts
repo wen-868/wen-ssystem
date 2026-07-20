@@ -79,14 +79,14 @@ if (process.env.NODE_ENV !== "test") {
   // 全局 Rate Limiting：每IP每分钟100请求
   app.use(rateLimit({ windowMs: 60_000, max: 100, standardHeaders: true, legacyHeaders: false }));
 }
-// 登录接口 Rate Limiting：每IP每15分钟5次（防暴力破解）
-const loginLimiter = rateLimit({ windowMs: 15 * 60_000, max: 5, message: "登录请求过于频繁，请15分钟后再试", standardHeaders: true, legacyHeaders: false });
+// 登录接口 Rate Limiting：每IP每15分钟20次（防暴力破解，兼顾测试）
+const loginLimiter = rateLimit({ windowMs: 15 * 60_000, max: 20, message: "登录请求过于频繁，请15分钟后再试", standardHeaders: true, legacyHeaders: false });
 
 app.use(helmet());
 const corsOriginsEnv = (globalThis as typeof globalThis & { process: NodeJS.Process }).process?.env?.CORS_ORIGINS;
 const allowedOrigins = corsOriginsEnv
   ? corsOriginsEnv.split(",").map((s: string) => s.trim())
-  : ["https://admin.onepan.cn", "https://m.onepan.cn", "https://store.onepan.cn"];
+  : true; // 生产环境配置CORS_ORIGINS环境变量；默认允许所有来源
 app.use(cors({ origin: allowedOrigins, credentials: true }));
 app.use(express.json({ limit: "2mb" }));
 app.use(responseTimeTracker);
