@@ -4,19 +4,13 @@ export type Row = Record<string, any>;
 
 export const state = {
   users: [
-    { id: 1, username: "admin", password_hash: hashPasswordSync("admin123"), real_name: "系统管理员", store_id: null, status: 1, tenant_id: "default" },
-    { id: 2, username: "store_manager", password_hash: hashPasswordSync("admin123"), real_name: "默认店长", store_id: 1, status: 1, tenant_id: "default" },
-    { id: 3, username: "store_operator", password_hash: hashPasswordSync("admin123"), real_name: "默认店员", store_id: 1, status: 1, tenant_id: "default" }
+    { id: 1, username: "admin", password_hash: hashPasswordSync("admin123"), real_name: "系统管理员", store_id: null, status: 1, tenant_id: "default" }
   ],
   roles: [
-    { id: 1, role_code: "SUPER_ADMIN", role_name: "超级管理员", status: 1 },
-    { id: 2, role_code: "STORE_MANAGER", role_name: "门店店长", status: 1 },
-    { id: 3, role_code: "STORE_OPERATOR", role_name: "门店操作员", status: 1 }
+    { id: 1, role_code: "SUPER_ADMIN", role_name: "超级管理员", status: 1 }
   ],
   userRoles: [
-    { user_id: 1, role_code: "SUPER_ADMIN" },
-    { user_id: 2, role_code: "STORE_MANAGER" },
-    { user_id: 3, role_code: "STORE_OPERATOR" }
+    { user_id: 1, role_code: "SUPER_ADMIN" }
   ],
   members: [
     { id: 1, name: "默认零售客户", mobile: "13900000000", customer_type: "RETAIL", settlement_type: "CASH", points: 120, level_code: "NORMAL", status: 1, staff_id: null as number | null },

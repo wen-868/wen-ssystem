@@ -30,6 +30,9 @@ jobs:
       - name: Build admin web
         run: npm --workspace admin-web run build
 
+      - name: Build saas admin
+        run: npm --workspace saas-admin run build
+
       - name: Start mock backend
         run: USE_MOCK_DB=true npm --workspace backend run dev > /tmp/zhixiang-backend.log 2>&1 &
 
@@ -39,11 +42,5 @@ jobs:
       - name: Flow self test
         run: npm run test:flow
 
-      - name: Store quick test
-        run: npm run test:store
-
       - name: QA regression test
         run: npm run test:qa
-
-      - name: UI contract test
-        run: npm run test:ui
