@@ -9,6 +9,7 @@ import { resolve, join } from "path";
 import mysql from "mysql2/promise";
 import { env } from "./env";
 import logger from "./logger";
+import { seedData } from "./seed-data";
 
 /** 在多个候选路径中查找 SQL 文件 */
 function findSqlFile(fileName: string) {
@@ -488,6 +489,16 @@ export async function runMigrations(): Promise<void> {
     `, "创建 t_error_logs 表");
 
     // ============================================================
+    // 第6步：初始化种子数据（仅在表为空时插入，不覆盖已有数据）
+    // ============================================================
+    logger.info("[migration] 检查/初始化种子数据...");
+    try {
+      await seedData(conn);
+    } catch (e: unknown) {
+      logger.error("[migration] 种子数据初始化失败:", (e as any).message);
+    }
+
+    // ============================================================
     // 第7步：确保默认管理员账号存在
     // ============================================================
     logger.info("[migration] 检查/创建默认管理员账号...");
@@ -615,6 +626,6 @@ export async function runMigrations(): Promise<void> {
   } catch (e: unknown) {
     logger.error("[migration] 迁移过程出错:", (e as any).message);
   } finally {
-    await conn.end().catch(() => {});
+    await conn.end().catch(() => { });
   }
 }
