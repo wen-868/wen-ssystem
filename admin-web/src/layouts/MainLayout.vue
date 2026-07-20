@@ -202,22 +202,6 @@
           </div>
         </div>
 
-        <!-- 一级：SaaS 平台 -->
-        <div class="nav-group">
-          <div class="nav-item has-sub" :class="{ open: openGroups.saas }" @click="toggleGroup('saas')">
-            <el-icon class="nav-icon"><OfficeBuilding /></el-icon>
-            <span v-show="!isMenuCollapsed" class="nav-label">SaaS 平台</span>
-            <el-icon v-show="!isMenuCollapsed" class="nav-arrow"><ArrowDown /></el-icon>
-          </div>
-          <div v-show="openGroups.saas && !isMenuCollapsed" class="nav-sub">
-            <div class="nav-sub-item" :class="{ active: isActive('/saas/dashboard') }" @click="navTo('/saas/dashboard')">平台看板</div>
-            <div class="nav-sub-item" :class="{ active: isActive('/saas/plans') }" @click="navTo('/saas/plans')">套餐管理</div>
-            <div class="nav-sub-item" :class="{ active: isActive('/saas/tenants') }" @click="navTo('/saas/tenants')">租户管理</div>
-            <div class="nav-sub-item" :class="{ active: isActive('/saas/subscriptions') }" @click="navTo('/saas/subscriptions')">订阅管理</div>
-            <div class="nav-sub-item" :class="{ active: isActive('/saas/tenant-review') }" @click="navTo('/saas/tenant-review')">入驻审核</div>
-            <div class="nav-sub-item" :class="{ active: isActive('/saas/config') }" @click="navTo('/saas/config')">平台配置</div>
-          </div>
-        </div>
       </nav>
     </aside>
 
@@ -329,7 +313,6 @@ const openGroups = reactive({
   reports: false,
   finance: false,
   system: false,
-  saas: false,
   marketing: false,
 });
 
@@ -357,7 +340,6 @@ onMounted(() => {
   if (path.startsWith('/reports')) openGroups.reports = true;
   if (path.startsWith('/bank-accounts') || path.startsWith('/fund-report') || path.startsWith('/bill-management')) openGroups.finance = true;
   if (path.startsWith('/system') || path.startsWith('/employees') || path.startsWith('/department-manage') || path.startsWith('/position-manage') || path.startsWith('/stores') || path.startsWith('/audit') || path.startsWith('/error-log') || path.startsWith('/monitor')) openGroups.system = true;
-  if (path.startsWith('/saas')) openGroups.saas = true;
   if (path.startsWith('/marketing') || path.startsWith('/aftersale')) openGroups.marketing = true;
 });
 
@@ -413,12 +395,6 @@ const pageTitle = computed(() => {
     "/error-log": "错误日志",
     "/marketing": "营销活动",
     "/marketing/tags": "营销标签管理",
-    "/saas/dashboard": "平台经营看板",
-    "/saas/plans": "SaaS 套餐管理",
-    "/saas/tenants": "租户管理",
-    "/saas/subscriptions": "订阅管理",
-    "/saas/tenant-review": "入驻审核",
-    "/saas/config": "平台配置",
     "/reports/online-payment": "在线收款分析",
   };
   return titles[route.path] || "智享全链管理系统";

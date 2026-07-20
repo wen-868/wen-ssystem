@@ -522,10 +522,11 @@ export async function runMigrations(): Promise<void> {
           ) as unknown as [Record<string, unknown>[]];
           const roleId = (roleRows as unknown as any[])[0]?.id;
           if (roleId) {
-            await safeExec(conn, `
-              INSERT INTO t_sys_user_role (user_id, role_id, tenant_id, created_at)
+            await conn.query(`
+              INSERT IGNORE INTO t_sys_user_role (user_id, role_id, tenant_id, created_at)
               VALUES (?, ?, 'default', NOW())
-            `, "admin 分配 SUPER_ADMIN 角色");
+            `, [adminId, roleId]);
+            logger.info("[migration] 已为 admin 分配 SUPER_ADMIN 角色");
           }
         }
       }
@@ -557,10 +558,11 @@ export async function runMigrations(): Promise<void> {
           ) as unknown as [Record<string, unknown>[]];
           const aRoleId = (aRoleRows as unknown as any[])[0]?.id;
           if (aRoleId) {
-            await safeExec(conn, `
-              INSERT INTO t_sys_user_role (user_id, role_id, tenant_id, created_at)
+            await conn.query(`
+              INSERT IGNORE INTO t_sys_user_role (user_id, role_id, tenant_id, created_at)
               VALUES (?, ?, 'default', NOW())
-            `, "tenant_admin 分配 ADMIN 角色");
+            `, [tenantUserId, aRoleId]);
+            logger.info("[migration] 已为 tenant_admin 分配 ADMIN 角色");
           }
         }
       }
