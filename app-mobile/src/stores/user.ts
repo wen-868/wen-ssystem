@@ -1,7 +1,13 @@
 import { defineStore } from 'pinia'
 import { ref, computed } from 'vue'
 import { authApi, type LoginParams, type LoginResult, type ProfileResult } from '@/api/modules/auth'
-import { setToken, removeToken, setUser, removeUser, setTenant, removeTenant, getUser, getTenant } from '@/api/storage'
+import {
+  setToken, removeToken,
+  setUser, removeUser,
+  setTenant, removeTenant,
+  getUser, getTenant,
+  setCsrfToken, removeCsrfToken
+} from '@/api/storage'
 
 export const useUserStore = defineStore('user', () => {
   const token = ref<string>(uni.getStorageSync('merchant_token') || '')
@@ -19,6 +25,11 @@ export const useUserStore = defineStore('user', () => {
     token.value = result.token
     setToken(result.token)
 
+    // 存储 CSRF 令牌（后端 R52-01 登录接口下发，写操作需注入 x-csrf-token header）
+    if (result.csrfToken) {
+      setCsrfToken(result.csrfToken)
+    }
+
     user.value = {
       id: result.user.id,
       username: result.user.username,
@@ -26,7 +37,8 @@ export const useUserStore = defineStore('user', () => {
       avatar: result.user.avatar,
       roles: result.user.roles,
       storeId: result.user.storeId,
-      tenantId: result.user.tenantId
+      tenantId: result.user.tenantId,
+      csrfToken: result.csrfToken
     }
     setUser(user.value)
 
@@ -44,6 +56,10 @@ export const useUserStore = defineStore('user', () => {
       const profile = await authApi.getProfile()
       user.value = profile
       setUser(profile)
+      // 如果 profile 返回 csrfToken，同步更新加密存储（供刷新页面后恢复）
+      if (profile.csrfToken) {
+        setCsrfToken(profile.csrfToken)
+      }
       initialized.value = true
     } catch (err) {
       // 如果 token 失效，执行登出
@@ -66,6 +82,7 @@ export const useUserStore = defineStore('user', () => {
     removeToken()
     removeUser()
     removeTenant()
+    removeCsrfToken()
     uni.reLaunch({ url: '/pages/login/login' })
   }
 

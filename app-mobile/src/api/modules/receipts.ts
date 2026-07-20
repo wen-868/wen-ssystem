@@ -18,6 +18,7 @@ export interface ReceiptQuery {
   pageSize: number
   keyword?: string
   status?: string
+  type?: string
   customerId?: number
   startDate?: string
   endDate?: string

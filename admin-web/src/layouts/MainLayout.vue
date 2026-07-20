@@ -339,11 +339,11 @@ const avatarText = computed(() => {
 });
 
 const isCashierUser = computed(() => {
-  return currentUser.value?.role === "CASHIER";
+  return currentUser.value?.roles?.includes("CASHIER") ?? false;
 });
 
 onMounted(() => {
-  if (currentUser.value?.role === "CASHIER") {
+  if (currentUser.value?.roles?.includes("CASHIER")) {
     isCashierMode.value = true;
     isMenuCollapsed.value = true;
   }

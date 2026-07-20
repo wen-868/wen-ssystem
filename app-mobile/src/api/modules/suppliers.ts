@@ -4,6 +4,7 @@ export interface Supplier {
   id: number
   name: string
   code: string
+  supplierCode?: string
   contactName: string
   contactPhone: string
   address: string
@@ -11,6 +12,8 @@ export interface Supplier {
   bankAccount: string
   taxNo: string
   paymentTerms: string
+  paymentDays?: number
+  settlementType?: string
   status: string
   remark: string
   createdAt: string

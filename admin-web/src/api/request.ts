@@ -26,6 +26,10 @@ api.interceptors.request.use((config) => {
   if (auth.token) {
     config.headers.Authorization = `Bearer ${auth.token}`;
   }
+  // CSRF 防护：写操作需注入 x-csrf-token header（后端登录接口下发，存于 user.csrfToken）
+  if (auth.user?.csrfToken) {
+    config.headers["x-csrf-token"] = auth.user.csrfToken;
+  }
   return config;
 });
 

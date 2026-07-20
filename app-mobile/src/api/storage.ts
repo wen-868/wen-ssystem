@@ -1,8 +1,8 @@
 /**
- * 持久化存储适配层 — R51-05 安全加固
+ * 持久化存储适配层 — R51-05 安全加固 + R52-05 CSRF 令牌扩展
  *
  * 改造说明：
- *  - 4 个敏感 Key（merchant_token / merchant_user / merchant_tenant / merchant_tenant_id）
+ *  - 5 个敏感 Key（merchant_token / merchant_user / merchant_tenant / merchant_tenant_id / merchant_csrf_token）
  *    改用 setSecureStorage / getSecureStorage 加密存储（AES-256-GCM）
  *  - 非敏感 Key（主题、语言偏好等）保持明文存储（直接用 uni.setStorageSync）
  *  - 保留现有 API 接口（getToken / setToken / removeToken 等），仅内部实现改为加密
@@ -18,6 +18,7 @@
  *  | merchant_user           | enc_merchant_user         |
  *  | merchant_tenant         | enc_merchant_tenant       |
  *  | merchant_tenant_id      | enc_merchant_tenant_id    |
+ *  | merchant_csrf_token     | enc_merchant_csrf_token   |
  *
  * 拦截器循环依赖检查：
  *  - crypto.ts 的 setSecureStorage 内部调用 uni.setStorageSync('enc_' + key, ...)
@@ -35,12 +36,20 @@ import { setSecureStorage, getSecureStorage, removeSecureStorage } from '@/utils
 
 export interface UserInfo {
   id: number
-  name: string
-  account: string
+  /** 兼容字段：旧版使用 name，新版使用 realName（与 ProfileResult 对齐） */
+  name?: string
+  /** 兼容字段：旧版使用 account，新版使用 username（与 ProfileResult 对齐） */
+  account?: string
+  username?: string
+  realName?: string
   avatar?: string
+  email?: string
+  phone?: string
   roles: string[]
   storeId?: number
   storeName?: string
+  tenantId?: string
+  csrfToken?: string
 }
 
 export interface TenantInfo {
@@ -51,12 +60,13 @@ export interface TenantInfo {
 
 // ====================== 敏感 Key 常量 ======================
 
-/** 4 个敏感 Key（需加密存储） */
+/** 5 个敏感 Key（需加密存储） */
 const SENSITIVE_KEYS = {
   TOKEN: 'merchant_token',
   USER: 'merchant_user',
   TENANT: 'merchant_tenant',
-  TENANT_ID: 'merchant_tenant_id'
+  TENANT_ID: 'merchant_tenant_id',
+  CSRF_TOKEN: 'merchant_csrf_token'
 } as const
 
 // ====================== 原始 uni API 引用（在拦截器安装前保存） ======================
@@ -309,16 +319,55 @@ export function removeTenant(): void {
   uni.removeStorageSync(SENSITIVE_KEYS.TENANT_ID)
 }
 
+// ──────────────────────────── CsrfToken ────────────────────────────
+
+/**
+ * 获取 CSRF 令牌
+ * - 从加密存储 enc_merchant_csrf_token 读取并解密
+ * - 解密失败（数据被篡改或密钥不匹配）返回空字符串
+ *
+ * 兼容性说明：
+ *  - request.ts 中通过 uni.getStorageSync('merchant_csrf_token') 读取
+ *  - 由于 SENSITIVE_KEYS 已包含该 Key，拦截器会自动转发到加密存储
+ *  - 本函数提供等价的直读能力，优先使用
+ */
+export function getCsrfToken(): string {
+  const value = getSecureStorage(SENSITIVE_KEYS.CSRF_TOKEN)
+  if (!value) return ''
+  try {
+    const parsed = JSON.parse(value)
+    return typeof parsed === 'string' ? parsed : String(parsed)
+  } catch {
+    return value
+  }
+}
+
+/**
+ * 设置 CSRF 令牌（加密存储）
+ * @param csrfToken CSRF 令牌字符串（后端登录/ getMe 接口下发）
+ */
+export function setCsrfToken(csrfToken: string): void {
+  setSecureStorage(SENSITIVE_KEYS.CSRF_TOKEN, csrfToken)
+}
+
+/** 删除 CSRF 令牌（含加密存储） */
+export function removeCsrfToken(): void {
+  removeSecureStorage(SENSITIVE_KEYS.CSRF_TOKEN)
+  // 兼容性：同时清理可能残留的旧明文
+  uni.removeStorageSync(SENSITIVE_KEYS.CSRF_TOKEN)
+}
+
 // ──────────────────────────── Clear All ────────────────────────────
 
 /**
  * 退出登录：清除所有敏感信息并跳转登录页
- * - 清除 Token / User / Tenant（含加密存储）
+ * - 清除 Token / User / Tenant / CsrfToken（含加密存储）
  * - 跳转到登录页（reLaunch）
  */
 export function logout(): void {
   removeToken()
   removeUser()
   removeTenant()
+  removeCsrfToken()
   uni.reLaunch({ url: '/pages/login/login' })
 }

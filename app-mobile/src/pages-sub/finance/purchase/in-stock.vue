@@ -132,7 +132,7 @@ const stockRules: Rules = {
 const { errors, validate, clearError } = useFormValidation(stockForm, stockRules)
 
 const supplierList = ref<any[]>([])
-const storeList = ref([{ name: '默认门店' }])
+const storeList = ref<Array<{ id?: number; name: string }>>([{ name: '默认门店' }])
 const submitting = ref(false)
 const historyList = ref<any[]>([])
 

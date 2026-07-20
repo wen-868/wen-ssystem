@@ -5,8 +5,9 @@ export interface UserInfo {
   id?: number;
   username?: string;
   realName?: string;
-  role?: string;
+  roles?: string[]; // 后端返回数组形式角色码（如 SUPER_ADMIN/STORE_MANAGER）
   tenantId?: number;
+  csrfToken?: string; // CSRF 防护令牌，写操作需注入 x-csrf-token header
   [key: string]: unknown;
 }
 
@@ -15,11 +16,21 @@ export const useAuthStore = defineStore("auth", () => {
   const user = ref<UserInfo | null>(null);
 
   const isLoggedIn = computed(() => !!token.value);
-  const userRole = computed(() => user.value?.role || null);
+  // 角色数组：与后端 roles: string[] 对齐，用于路由守卫 some() 判断
+  const userRoles = computed<string[]>(() => user.value?.roles || []);
   const userName = computed(() => user.value?.realName || user.value?.username || "管理员");
 
-  function setAuth(newToken: string, newUser: UserInfo) {
+  /**
+   * 写入登录态。
+   * @param newToken JWT token
+   * @param newUser 用户信息（含 roles 数组）
+   * @param csrfToken CSRF 令牌（后端登录接口下发，写操作需注入 x-csrf-token header）
+   */
+  function setAuth(newToken: string, newUser: UserInfo, csrfToken?: string) {
     token.value = newToken;
+    if (csrfToken) {
+      newUser.csrfToken = csrfToken;
+    }
     user.value = newUser;
   }
 
@@ -50,7 +61,7 @@ export const useAuthStore = defineStore("auth", () => {
     token,
     user,
     isLoggedIn,
-    userRole,
+    userRoles,
     userName,
     setAuth,
     clearAuth,

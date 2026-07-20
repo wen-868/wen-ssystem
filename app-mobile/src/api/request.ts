@@ -39,11 +39,17 @@ function getTenantId(): string {
   return uni.getStorageSync('merchant_tenant_id') || ''
 }
 
+function getCsrfToken(): string {
+  // 走 storage.ts 拦截器：'merchant_csrf_token' 已加入 SENSITIVE_KEYS，自动解密返回
+  return uni.getStorageSync('merchant_csrf_token') || ''
+}
+
 export async function request<T = any>(options: RequestOptions): Promise<T> {
   const { url, method = 'GET', data, header = {}, timeout = 30000, responseType } = options
 
   const token = getToken()
   const tenantId = getTenantId()
+  const csrfToken = getCsrfToken()
 
   const headers: Record<string, string> = {
     'Content-Type': 'application/json',
@@ -55,6 +61,10 @@ export async function request<T = any>(options: RequestOptions): Promise<T> {
   }
   if (tenantId) {
     headers['X-Tenant-Id'] = tenantId
+  }
+  // CSRF 防护：写操作需注入 x-csrf-token header（后端登录接口下发，存于加密 storage）
+  if (csrfToken) {
+    headers['x-csrf-token'] = csrfToken
   }
 
   return new Promise((resolve, reject) => {
@@ -151,10 +161,13 @@ export function del<T = any>(url: string): Promise<T> {
 export function upload<T = any>(url: string, filePath: string, name = 'file', formData?: Record<string, any>): Promise<T> {
   const token = getToken()
   const tenantId = getTenantId()
+  const csrfToken = getCsrfToken()
 
   const headers: Record<string, string> = {}
   if (token) headers['Authorization'] = `Bearer ${token}`
   if (tenantId) headers['X-Tenant-Id'] = tenantId
+  // CSRF 防护：上传同样属于写操作，注入 x-csrf-token
+  if (csrfToken) headers['x-csrf-token'] = csrfToken
 
   return new Promise((resolve, reject) => {
     uni.uploadFile({

@@ -125,6 +125,7 @@ export interface CollectionLinkParams {
   taxEnabled?: boolean
   taxRate?: number
   expireHours?: number
+  remark?: string
 }
 
 export interface PaymentOrder {

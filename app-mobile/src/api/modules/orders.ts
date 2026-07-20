@@ -29,6 +29,10 @@ export interface OrderInfo {
   logs?: OrderLog[]
   createdAt: string
   logisticsInfo?: LogisticsInfo
+  // 列表展示用扩展字段
+  itemCount?: number
+  channel?: string
+  createTime?: string
 }
 
 export interface OrderLog {

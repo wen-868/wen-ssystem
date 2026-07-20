@@ -7,6 +7,8 @@ export interface LoginParams {
 
 export interface LoginResult {
   token: string
+  /** CSRF 防护令牌（后端 R52-01 登录接口下发，写操作需注入 x-csrf-token header） */
+  csrfToken: string
   user: {
     id: number
     username: string
@@ -21,14 +23,18 @@ export interface LoginResult {
 
 export interface ProfileResult {
   id: number
-  username: string
-  realName: string
+  username?: string
+  realName?: string
   avatar?: string
   email?: string
   phone?: string
   roles: string[]
   storeId?: number
+  storeName?: string
+  name?: string
   tenantId?: string
+  /** CSRF 防护令牌（getMe 接口同步返回，供前端刷新页面后恢复） */
+  csrfToken?: string
 }
 
 export interface TenantRegisterParams {

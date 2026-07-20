@@ -8,8 +8,10 @@ export interface UserProfile {
   email: string
   avatar: string
   role: string
+  roles?: string[]
   tenantId: number
   tenantName: string
+  storeName?: string
 }
 
 export const profileApi = {

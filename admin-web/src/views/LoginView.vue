@@ -64,7 +64,10 @@ async function handleLogin() {
     const res: any = await adminLogin(loginForm.username, loginForm.password);
     const token = res.token || res.data?.token || res;
     if (token) {
-      auth.setAuth(token, res.data?.user || res.user || { realName: loginForm.username });
+      // 后端 R52-01 登录接口下发 csrfToken，写入 user.csrfToken，拦截器自动注入 x-csrf-token
+      const csrfToken = res.csrfToken || res.data?.csrfToken;
+      const userInfo = res.data?.user || res.user || { realName: loginForm.username };
+      auth.setAuth(token, userInfo, csrfToken);
       ElMessage.success("登录成功");
       router.push("/dashboard");
     } else {

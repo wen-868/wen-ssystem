@@ -143,6 +143,7 @@ const summary = ref<any>({
 })
 
 const categoryList = ref<any[]>([])
+const rankList = ref<any[]>([])
 
 function chooseStartDate() {
   uni.showToast({ title: '日期选择开发中', icon: 'none' })

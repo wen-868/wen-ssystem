@@ -45,15 +45,21 @@ export interface PurchaseOrderListResponse {
 export interface InStockRecord {
   id: number
   inStockNo: string
+  orderNo?: string
   purchaseOrderId: number
   purchaseOrderNo: string
   supplierId: number
   supplierName: string
+  storeId?: number
+  storeName?: string
   inStockDate: string
+  stockDate?: string
   warehouseId: number
   warehouseName: string
   totalAmount: number
   status: string
+  statusLabel?: string
+  itemCount?: number
   remark: string
   items: InStockItem[]
   createdAt: string

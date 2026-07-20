@@ -115,6 +115,7 @@ const summary = ref<any>({
 
 const rankList = ref<any[]>([])
 const detailList = ref<any[]>([])
+const trendList = ref<any[]>([])
 
 function chooseStartDate() {
   uni.showToast({ title: '日期选择', icon: 'none' })
