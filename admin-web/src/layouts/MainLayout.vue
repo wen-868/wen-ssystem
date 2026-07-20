@@ -12,9 +12,9 @@
           v-if="!isMenuCollapsed"
           class="collapse-btn"
           :icon="isMenuCollapsed ? 'Expand' : 'Fold'"
-          @click="isMenuCollapsed = !isMenuCollapsed"
           size="small"
           text
+          @click="isMenuCollapsed = !isMenuCollapsed"
         />
       </div>
 
@@ -201,22 +201,21 @@
             <div class="nav-sub-item" :class="{ active: isActive('/marketing/tags') }" @click="navTo('/marketing/tags')">营销标签</div>
           </div>
         </div>
-
       </nav>
     </aside>
 
     <!-- 主内容区 -->
-    <main class="main" v-loading="pageLoading">
+    <main v-loading="pageLoading" class="main">
       <!-- 顶栏：磨砂半透明 -->
-      <header class="main-header" v-if="!isCashierMode">
+      <header v-if="!isCashierMode" class="main-header">
         <div class="header-left">
           <el-button
             v-if="isMenuCollapsed"
             class="menu-toggle-btn"
             :icon="isMenuCollapsed ? 'Expand' : 'Fold'"
-            @click="isMenuCollapsed = !isMenuCollapsed"
             size="small"
             text
+            @click="isMenuCollapsed = !isMenuCollapsed"
           />
           <span class="breadcrumb">{{ pageTitle }}</span>
         </div>
@@ -241,7 +240,9 @@
           </el-badge>
           <el-dropdown trigger="click">
             <span class="user-info">
-              <el-avatar :size="28" style="background: var(--color-primary)">{{ avatarText }}</el-avatar>
+              <el-avatar :size="28" class="user-avatar-icon" style="background: var(--color-primary)">
+                <el-icon><User /></el-icon>
+              </el-avatar>
               <span class="user-name">{{ currentUser?.realName || '管理员' }}</span>
               <el-icon><CaretBottom /></el-icon>
             </span>
@@ -289,7 +290,7 @@ import { ElMessage } from "element-plus";
 import {
   HomeFilled, Goods, Document, ShoppingCart, User, Files, Shop,
   DataAnalysis, Setting, Bell, Grid, ChatDotRound, Search,
-  ArrowDown, CaretBottom, ArrowLeft, OfficeBuilding, Coin, Checked, Money, Discount
+  ArrowDown, CaretBottom, ArrowLeft, Money, Discount
 } from "@element-plus/icons-vue";
 import { formatDate } from "../utils/format";
 import { useAuthStore } from "../stores/auth";
@@ -314,11 +315,6 @@ const openGroups = reactive({
   finance: false,
   system: false,
   marketing: false,
-});
-
-const avatarText = computed(() => {
-  const name = currentUser.value?.realName || '管理员';
-  return name.charAt(0);
 });
 
 const isCashierUser = computed(() => {
@@ -696,6 +692,15 @@ function handleLogout() {
 .user-name {
   font-size: 13px;
   font-weight: 500;
+}
+
+.user-avatar-icon {
+  color: #fff;
+}
+
+.user-avatar-icon :deep(svg) {
+  width: 16px;
+  height: 16px;
 }
 
 /* 页面内容区 */

@@ -2466,11 +2466,22 @@
 - **优先级**：P1
 - **负责人**：墨
 - **预计**：0.25天
-- **状态**：⬜ 待开始
-- **文件**：`admin-web/src/layouts/MainLayout.vue` 或 `admin-web/src/stores/user.ts`
+- **状态**：✅ 已完成
+- **文件**：`admin-web/src/layouts/MainLayout.vue`
 - **问题**：顶栏右上角用户名前有"系"字前缀（可能取了角色代码首字母）
 - **修复方向**：检查用户名拼接逻辑，移除多余前缀
 - **验收标准**：顶栏只显示"系统管理员"
+- **根因**：头像 el-avatar 内显示 `avatarText = realName.charAt(0)`，当 realName="系统管理员" 时返回"系"字；头像紧贴用户名（gap:8px），视觉上被误读为"系 系统管理员"前缀。并非角色代码拼接 bug。
+- **修复内容**：
+  1. 头像内 `{{ avatarText }}` 替换为 `<el-icon><User /></el-icon>` 用户图标，彻底消除"系"字
+  2. 删除不再使用的 `avatarText` computed（无用代码清理）
+  3. 新增 `.user-avatar-icon` CSS 样式（白色图标、16px 尺寸）
+  4. 顺手清理 MainLayout.vue 10 个 pre-existing ESLint warning（7 个 --fix 自动修复 + 3 个未使用 import OfficeBuilding/Coin/Checked 手动删除）
+- **app-mobile 检查**：`app-mobile/src/pages/profile/profile.vue` 头像和用户名为垂直排列（flex-direction: column），不存在视觉混淆，无需修复
+- **验证结果**：
+  - `npx vue-tsc --noEmit`：0 错误
+  - `npm run build`：成功（built in 52.29s）
+  - `npx eslint src/layouts/MainLayout.vue`：0 error 0 warning
 
 ---
 
