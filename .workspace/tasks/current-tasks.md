@@ -2681,6 +2681,236 @@
 
 ---
 
+### 外部测试报告v5核查结论
+
+> 2026-07-21 凌舟核查外部提交的"全面测试报告v5"
+
+#### 核查结果总览
+
+| 报告编号 | 报告描述 | 核查结论 | 行动 |
+|:---:|------|:---:|------|
+| P0-1 | CSRF中间件双重注册（server.ts全局 + auto-routes按路由） | **属实** | 写入R54-14 |
+| P0-2 | changePassword密码校验规则不一致（Controller vs Service） | **属实** | 写入R54-14 |
+| P1-1 | 双重错误日志记录（errorHandler + errorResponseInterceptor） | **属实** | 写入R54-15 |
+| P1-2 | rate-limit使用默认MemoryStore | **部分属实**（行号不准，实际80/83行） | 写入R54-15 |
+| P1-3 | saas-admin缺失CSRF防护 | **属实** | 写入R54-14 |
+| P1-4 | LoginView前端密码校验min:6与后端不一致 | **属实** | 写入R54-14 |
+| P1-5 | env.ts Number(process.env.PORT \|\| 8080)隐患 | **不属实**（\|\|在Number前执行，逻辑正确） | 不处理 |
+| P2-1 | permissions: ["*"] 通配符权限 | **属实** | 写入R54-15 |
+| P2-2 | admin/store登录共享同一RateLimiter | **属实** | 写入R54-15 |
+| P2-3 | queryOne\<any\> 100+处失去类型安全 | **属实**（实际153处/42个文件） | 暂不处理（技术债） |
+| P2-4 | response.ts硬编码apiCost:1 | **属实** | 暂不处理（技术债） |
+| P2-5 | retail-announcement路由缺少租户隔离 | **部分属实**（有意的requireAuth设计，是否需租户隔离待定） | 待定 |
+| P2-6 | saas-admin错误上报节流缺陷 | **属实** | 写入R54-15 |
+| P3-1~P3-4 | asyncHandler用any/JWT密钥复用/hashPassword动态import/健康检查any | **全部属实** | 暂不处理（技术债） |
+
+**结论：17个问题中15个属实，1个部分属实，1个不属实。其中需立即修复的有5个（P0-1/P0-2/P1-3/P1-4 + P0-2合并处理），其余列入技术债迭代修复。**
+
+---
+
+### R54-14 — 后端安全与一致性问题修复 [P0]
+
+- **优先级**：P0
+- **负责人**：阿坚
+- **预计**：1天
+- **状态**：⬜ 待开始
+- **文件**：
+  - `backend/src/server.ts`（第116行移除全局csrfMiddleware）
+  - `backend/src/controllers/admin/auth.controller.ts`（删除validatePasswordStrength）
+  - `backend/src/services/admin/auth.service.ts`（统一使用validatePassword）
+  - `saas-admin/src/utils/request.ts`（补充CSRF token注入）
+  - `saas-admin/src/stores/auth.ts`（login后提取csrfToken）
+  - `admin-web/src/views/LoginView.vue`（密码校验改为≥8位+字母+数字+特殊字符）
+- **问题**：外部测试报告v5核查确认的4个安全/一致性问题：
+  1. CSRF中间件双重注册（server.ts:116全局 + auto-routes按路由双重注册）
+  2. changePassword密码校验不一致（Controller要求大小写+数字，Service要求字母+数字+特殊字符）
+  3. saas-admin完全缺失CSRF防护
+  4. admin-web LoginView前端密码校验min:6，后端要求≥8位+特殊字符
+- **修复方向**：
+  1. server.ts第116行删除`app.use(csrfMiddleware)`，仅保留auto-routes中的按路由注册
+  2. auth.controller.ts中删除validatePasswordStrength函数，密码校验统一使用password.ts的validatePassword
+  3. saas-admin参考admin-web实现：login后存储csrfToken，request拦截器注入x-csrf-token
+  4. LoginView.vue密码规则改为与后端一致：`min: 8, 必须包含字母+数字+特殊字符`
+- **验收标准**：代码审查确认修复，后端编译通过
+
+### R54-15 — 后端代码质量修复（日志/限流/权限） [P1]
+
+- **优先级**：P1
+- **负责人**：阿坚
+- **预计**：1天
+- **状态**：⬜ 待开始
+- **文件**：
+  - `backend/src/middleware/error-response-interceptor.ts`（第44行移除insertErrorLog）
+  - `backend/src/server.ts`（第105-106行admin/store登录使用独立RateLimiter）
+  - `backend/src/services/admin/auth.service.ts`（第80行permissions不返回["*"]）
+  - `saas-admin/src/utils/request.ts`（修复isReportingError节流缺陷）
+- **问题**：外部测试报告v5核查确认的4个中风险问题：
+  1. 双重错误日志记录（errorResponseInterceptor和errorHandler都写入error_logs）
+  2. admin/store登录共享同一RateLimiter实例
+  3. 登录返回permissions: ["*"]，所有用户获完整权限
+  4. saas-admin错误上报节流缺陷（isReportingError在fetch慢时长期为true）
+- **修复方向**：
+  1. errorResponseInterceptor移除insertErrorLog调用，仅保留重定向/降级职责
+  2. server.ts为admin和store登录分别创建独立的rateLimit实例
+  3. auth.service.ts登录时根据用户角色返回实际权限列表（暂时返回角色对应的权限，后续实现RBAC）
+  4. saas-admin request.ts改用纯时间节流，不依赖fetch完成才重置isReportingError
+- **验收标准**：代码审查确认修复，后端编译通过
+
+---
+
+### 移动端app-mobile全面检查结果
+
+> 2026-07-21 凌舟代码级全面检查移动端
+> app-mobile基于uni-app (Vue3 + TypeScript)，采用主包+分包结构
+> 主包10个页面 + 5个分包约55个页面 = **65+个页面**
+
+#### 总体评价
+
+**移动端不是空壳项目**，页面数量充足，核心页面（首页、商品列表、订单列表/详情、财务看板、秒杀、储值卡、库存盘点等）有真实API调用和业务逻辑。但存在**严重问题**，特别是开单功能和会员中心。
+
+#### 关键问题（需立即修复）
+
+1. **开单功能不完整（TabBar核心入口）**：`create-sale.vue` 作为底部TabBar"开单"入口，客户选择和商品选择只有 `uni.showToast` 提示，**无法实际选客户/加商品**，等于开单功能不可用
+2. **会员中心导航路径全部错误**：`member.vue` 中所有子页面链接指向不存在的 `/pages/member/*`，实际路径应为 `/pages-sub/marketing/*`
+3. **支付功能完全缺失**：manifest声明了支付模块但无任何支付页面或支付API调用
+4. **优惠券列表未接API**：`coupons.vue` 的 `loadCoupons()` 里直接 `list.value = []`，没有调用任何API
+5. **报表页跨平台兼容问题**：`reports.vue` 使用了 `document.getElementById()`，在**小程序和App端会报错**（仅H5可用）
+6. **订单客户筛选用假数据**：`orders.vue` 的 `loadCustomers()` 用硬编码假数据（张老板、李经理等）
+
+#### 功能覆盖度对比
+
+| admin-web模块 | 页面数 | app-mobile覆盖 | 缺失要点 |
+|---|:---:|:---:|------|
+| 商品管理 | 14 | 部分覆盖 | 品牌管理、商品组合、审核工作流、标签/标签组、单位管理 |
+| 订单管理 | 9 | 大部分覆盖 | 订单看板、订单路由、订单同步、订单超时 |
+| 库存管理 | 12 | 大部分覆盖 | 库存成本、库存共享配置 |
+| 采购管理 | 8 | **少量覆盖** | 合同、付款、退货、计划、供应商对账（**最缺**） |
+| 财务管理 | 13 | 大部分覆盖 | 银行账户、账单管理 |
+| 营销中心 | 12 | 部分覆盖 | 营销仪表盘、满减、限时折扣、赠品规则、积分商城 |
+| POS收银 | 14 | **极少覆盖** | 收银主界面、挂单、交接班、日结、门店控制台（**最缺**） |
+| 客户管理 | 12 | **极少覆盖** | 画像、生命周期、分层、拜访、关怀、标签、信用管理（**最缺**） |
+| 系统设置 | 17 | 部分覆盖 | 部门、职位、审批流程、监控、错误日志 |
+| 数据报表 | 11 | 部分覆盖 | 自定义报表、员工/门店维度报表 |
+| 即时零售 | 12 | 部分覆盖 | 配送、自提、支付、上架、同步 |
+
+---
+
+### R54-16 — 移动端开单功能不可用 [P0]
+
+- **优先级**：P0
+- **负责人**：阿澈
+- **预计**：2天
+- **状态**：⬜ 待开始
+- **文件**：`app-mobile/src/pages/sales/create-sale.vue`
+- **问题**：开单是TabBar核心入口（底部第3个tab），但客户选择和商品选择只有 `uni.showToast("功能开发中")`，无法实际选客户/加商品，等于核心业务流程不可用。用户说"上线后大部分客户都用手机"，这个问题直接影响核心收入
+- **修复方向**：
+  1. 客户选择：调用 `customersApi.list()` 实现客户搜索选择器（参考admin-web的el-select远程搜索）
+  2. 商品选择：调用 `productsApi.list()` 实现商品搜索选择器（支持搜索、分类筛选、扫码添加）
+  3. 选中的商品自动添加到开单明细列表
+  4. 保留现有的金额汇总和提交逻辑
+- **验收标准**：移动端能搜索选择客户、搜索/扫码添加商品、提交开单
+
+### R54-17 — 移动端会员中心导航路径全部错误 [P0]
+
+- **优先级**：P0
+- **负责人**：阿澈
+- **预计**：0.5天
+- **状态**：⬜ 待开始
+- **文件**：`app-mobile/src/pages-sub/marketing/member/member.vue`
+- **问题**：member.vue中所有子页面链接指向不存在的 `/pages/member/*`（如 `/pages/member/points`、`/pages/member/address`），实际路径应为 `/pages-sub/marketing/*`。点击任何子功能都会跳转到不存在的页面
+- **修复方向**：修正所有navigateTo路径，从 `/pages/member/*` 改为对应分包实际路径
+- **验收标准**：会员中心各子功能页面能正常跳转
+
+### R54-18 — 移动端优惠券/报表/订单筛选假数据问题 [P1]
+
+- **优先级**：P1
+- **负责人**：阿澈
+- **预计**：1天
+- **状态**：⬜ 待开始
+- **文件**：
+  - `app-mobile/src/pages-sub/marketing/coupon/coupons.vue`（loadCoupons未调API）
+  - `app-mobile/src/pages-sub/marketing/coupon/create-coupon.vue`（提交用setTimeout模拟）
+  - `app-mobile/src/pages-sub/finance/report/reports.vue`（用document.getElementById跨端不兼容 + loadReportData未调API）
+  - `app-mobile/src/pages/orders/orders.vue`（客户筛选用硬编码假数据）
+- **问题**：4个页面存在假数据/未接API/跨端不兼容问题
+- **修复方向**：
+  1. coupons.vue：接入 `marketingApi.listCoupons()` API
+  2. create-coupon.vue：接入 `marketingApi.createCoupon()` API
+  3. reports.vue：移除 `document.getElementById()`，改用uni-app API（如 `uni.createSelectorQuery()`）；接入报表API
+  4. orders.vue：客户筛选接入 `customersApi.list()` API，删除硬编码假数据
+- **验收标准**：4个页面都使用真实API数据，跨端兼容
+
+### R54-19 — 移动端收货地址页面缺失 [P1]
+
+- **优先级**：P1
+- **负责人**：阿澈
+- **预计**：0.5天
+- **状态**：⬜ 待开始
+- **文件**：新建 `app-mobile/src/pages-sub/marketing/member/address.vue`
+- **问题**：member.vue中有"收货地址"菜单项，但指向不存在的页面，无收货地址管理功能。线上客户下单/配送必须有地址管理
+- **修复方向**：创建收货地址管理页面（列表+新增+编辑+删除+设默认），调用对应API
+- **验收标准**：会员中心"收货地址"能正常进入并管理地址
+
+---
+
+### R54 最终任务总览（全面更新后）
+
+| 任务 | 负责人 | 优先级 | 工作量 | 状态 |
+|------|--------|:------:|:------:|:----:|
+| **第一批 P0（后端安全）** | | | | |
+| R54-14 后端安全与一致性问题修复 | 阿坚 | P0 | 1天 | ⬜ 待开始 |
+| R54-04 客户表单字段缺失+后端SQL Bug | 墨+阿坚 | P0 | 1天 | ⬜ 待开始 |
+| R54-09 库存调拨新建弹窗无表单 | 墨 | P0 | 0.5天 | ⬜ 待开始 |
+| R54-10 采购退货新建弹窗无表单 | 墨 | P0 | 0.5天 | ⬜ 待开始 |
+| **第一批 P0（移动端核心）** | | | | |
+| R54-16 移动端开单功能不可用 | 阿澈 | P0 | 2天 | ⬜ 待开始 |
+| R54-17 移动端会员中心导航路径错误 | 阿澈 | P0 | 0.5天 | ⬜ 待开始 |
+| **第二批 P1（PC端业务）** | | | | |
+| R54-01 销售开单基础信息补全 | 墨 | P1 | 1天 | ⬜ 待开始 |
+| R54-02 商品编辑多单位开关 | 墨 | P1 | 1.5天 | ⬜ 待开始 |
+| R54-03 单位组换算公式优化 | 墨 | P1 | 0.5天 | ⬜ 待开始 |
+| R54-05 客户类型配置化 | 墨+阿坚 | P1 | 2天 | ⬜ 待开始 |
+| R54-06 采购订单缺预计到货日期 | 墨 | P1 | 0.5天 | ⬜ 待开始 |
+| R54-07 门店表单字段缺失 | 墨 | P1 | 0.5天 | ⬜ 待开始 |
+| R54-08 供应商缺联系人子表 | 墨+阿坚 | P1 | 1.5天 | ⬜ 待开始 |
+| R54-11 采购报表页面空白 | 墨 | P1 | 0.5天 | ⬜ 待开始 |
+| R54-12 员工缺密码设置 | 墨 | P1 | 0.5天 | ⬜ 待开始 |
+| R54-13 销售开单缺门店/赊销字段 | 墨 | P1 | 0.5天 | ⬜ 待开始 |
+| **第二批 P1（后端质量）** | | | | |
+| R54-15 后端代码质量修复 | 阿坚 | P1 | 1天 | ⬜ 待开始 |
+| **第二批 P1（移动端）** | | | | |
+| R54-18 移动端优惠券/报表/订单假数据 | 阿澈 | P1 | 1天 | ⬜ 待开始 |
+| R54-19 移动端收货地址页面缺失 | 阿澈 | P1 | 0.5天 | ⬜ 待开始 |
+| **合计** | — | — | **18.5天** | — |
+
+### 最终执行顺序
+
+```
+【第一批 P0 — 立即执行，并行展开】
+  阿坚线：R54-14（后端安全，1天）→ R54-04后端部分（SQL Bug修复）
+  墨线：R54-09（调拨表单，0.5天）→ R54-10（退货表单，0.5天）→ R54-03（单位组，0.5天）
+  阿澈线：R54-16（移动端开单，2天）+ R54-17（导航修复，0.5天，并行）
+
+【第二批 P1 — 核心业务完善】
+  墨线：R54-02（多单位，1.5天）→ R54-01+13（销售开单，1.5天合并）
+  阿坚线：R54-15（后端质量，1天）+ R54-05后端部分 + R54-08后端部分
+  阿澈线：R54-18（移动端假数据，1天）+ R54-19（地址管理，0.5天）
+
+【第三批 P1 — 增强功能】
+  墨线：R54-06/07/11/12（各0.5天，合计2天）
+  墨+阿坚线：R54-05前端 + R54-08前端
+```
+
+### 注意事项
+
+- R54-14和R54-15是阿坚的后端任务，与R54-04后端部分可并行
+- R54-16是移动端最关键的P0，开单不可用直接影响核心收入
+- R54-17修复简单但影响大，建议阿澈第一批就修
+- 移动端支付功能缺失暂不列入本轮（涉及微信/支付宝商户号配置，属于运营层面问题）
+- 技术债（queryOne\<any\> 153处、apiCost硬编码、asyncHandler any等）记录在案，后续迭代处理
+
+---
+
 ## R53 — 生产环境全面整改（基于AUDIT-ISSUES审查） [第0-2步已完成，第3步延后]
 
 > **日期**：2026-07-20
