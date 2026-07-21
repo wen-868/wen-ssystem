@@ -30,7 +30,7 @@ export async function fetchMembers(params?: { keyword?: string; page?: number; p
   return data.data;
 }
 
-export async function createMember(payload: { name: string; mobile: string; customerType: "RETAIL" | "WHOLESALE"; staffId?: number }) {
+export async function createMember(payload: { name: string; mobile: string; customerType: string; staffId?: number; address?: string; settlementType?: string; remark?: string }) {
   const { data } = await api.post("/admin/members", payload);
   return data.data;
 }
@@ -85,7 +85,19 @@ export async function fetchMemberStatements(id: number, params?: { page?: number
   return data.data;
 }
 
-export async function createStore(payload: { code: string; name: string; address?: string; phone?: string }) {
+export async function createStore(payload: {
+  code: string;
+  name: string;
+  address?: string;
+  phone?: string;
+  contact?: string;
+  lng?: number;
+  lat?: number;
+  deliveryRadius?: number;
+  businessStatus?: string;
+  fulfillmentDeliveryEnabled?: number | boolean;
+  fulfillmentPickupEnabled?: number | boolean;
+}) {
   const { data } = await api.post("/admin/system/stores", payload);
   return data.data;
 }
@@ -103,13 +115,15 @@ export function updateStore(id: number, data: {
   businessStatus?: string
   openTime?: string
   closeTime?: string
-  lng?: string
-  lat?: string
+  lng?: number
+  lat?: number
   wxHeadImg?: string
   miniappAppid?: string
   wxMerchantName?: string
   wxServicePhone?: string
   wxQrcodeUrl?: string
+  fulfillmentDeliveryEnabled?: number | boolean
+  fulfillmentPickupEnabled?: number | boolean
 }) {
   return api.put(`/admin/system/stores/${id}`, data)
 }

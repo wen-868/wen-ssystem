@@ -1,4 +1,4 @@
-import { createRouter, createWebHistory } from "vue-router";
+﻿import { createRouter, createWebHistory } from "vue-router";
 import { ElMessage } from "element-plus";
 import {
   Avatar,
@@ -155,6 +155,7 @@ const routes = [
       // 6. 客户管理
       { path: "customers", name: "customers", component: () => import("../views/customer/CustomersView.vue"), meta: { roles: ["SUPER_ADMIN", "STORE_MANAGER"], title: "客户管理", icon: UserFilled } },
       { path: "customers/detail/:memberId", name: "customer-detail", component: () => import("../views/customer/CustomerDetail.vue"), meta: { roles: ["SUPER_ADMIN", "STORE_MANAGER"], title: "客户详情", icon: UserFilled } },
+      { path: "customer-types", name: "customer-types", component: () => import("../views/customer/CustomerTypes.vue"), meta: { roles: ["SUPER_ADMIN"], title: "客户类型", icon: CollectionTag } },
       { path: "credit", name: "credit", component: () => import("../views/customer/CreditView.vue"), meta: { roles: ["SUPER_ADMIN", "STORE_MANAGER"], title: "信用管理", icon: Lock } },
       // 7. 商品中心
       { path: "products", name: "products", component: () => import("../views/product/Products.vue"), meta: { roles: ["SUPER_ADMIN", "STORE_MANAGER"], title: "商品管理", icon: Goods } },

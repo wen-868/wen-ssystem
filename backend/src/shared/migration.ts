@@ -45,7 +45,7 @@ export const TENANT_TABLES = [
   "t_store",
   "t_product_category", "t_product_spu", "t_product_sku", "t_product_price", "t_sku_price",
   "t_supplier", "t_supplier_contact",
-  "t_member", "t_customer_price_binding", "t_customer_credit",
+  "t_member", "t_customer_type", "t_customer_price_binding", "t_customer_credit",
   "t_inventory_balance", "t_inventory_batch", "t_inventory_ledger",
   "t_price_level", "t_price_change_log",
   "t_alert_rule", "t_alert_record", "t_expiry_alert_config", "t_expiry_alert_record",
@@ -487,6 +487,40 @@ export async function runMigrations(): Promise<void> {
         KEY idx_error_logs_created (created_at)
       ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='错误日志表'
     `, "创建 t_error_logs 表");
+
+    // 5.5.7 创建 t_customer_type 表（客户类型自定义配置）
+    await safeExec(conn, `
+      CREATE TABLE IF NOT EXISTS t_customer_type (
+        id INT UNSIGNED NOT NULL AUTO_INCREMENT COMMENT '类型ID',
+        tenant_id VARCHAR(36) NOT NULL DEFAULT 'default' COMMENT '租户ID',
+        name VARCHAR(50) NOT NULL COMMENT '类型名称',
+        code VARCHAR(32) NOT NULL COMMENT '类型编码',
+        sort INT NOT NULL DEFAULT 0 COMMENT '排序号',
+        status TINYINT NOT NULL DEFAULT 1 COMMENT '状态 1=启用 0=禁用',
+        created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+        updated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+        PRIMARY KEY (id),
+        UNIQUE KEY uk_code_tenant (code, tenant_id),
+        KEY idx_tenant (tenant_id),
+        KEY idx_status (status)
+      ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='客户类型配置表'
+    `, "创建 t_customer_type 表");
+
+    // 5.5.7b 初始化默认客户类型（零售客户/批发客户）
+    try {
+      const [typeRows] = await conn.query(
+        "SELECT id FROM t_customer_type WHERE tenant_id = 'default'"
+      ) as unknown as [Record<string, unknown>[]];
+      if ((typeRows as unknown as any[]).length === 0) {
+        await safeExec(conn, `
+          INSERT INTO t_customer_type (name, code, sort, status, tenant_id) VALUES
+          ('零售客户', 'RETAIL', 1, 1, 'default'),
+          ('批发客户', 'WHOLESALE', 2, 1, 'default')
+        `, "初始化默认客户类型");
+      }
+    } catch (e: unknown) {
+      logger.error("[migration] 默认客户类型初始化失败:", (e as any).message);
+    }
 
     // ============================================================
     // 第6步：初始化种子数据（仅在表为空时插入，不覆盖已有数据）

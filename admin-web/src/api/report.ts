@@ -104,8 +104,8 @@ export async function fetchReportCustomerContribution() {
   return data.data;
 }
 
-export async function fetchReportPurchaseSummary() {
-  const { data } = await api.get("/admin/reports/purchase-summary");
+export async function fetchReportPurchaseSummary(params?: { dateStart?: string; dateEnd?: string; supplierId?: number; storeId?: number }) {
+  const { data } = await api.get("/admin/reports/purchase-summary", { params });
   return data.data;
 }
 

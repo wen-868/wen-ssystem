@@ -20,7 +20,6 @@ request.interceptors.request.use((config) => {
 })
 
 // ==================== HTTP 错误上报 ====================
-let isReportingError = false
 let lastReportTime = 0
 
 function reportHttpError(payload: {
@@ -31,8 +30,8 @@ function reportHttpError(payload: {
   status_code: number
 }) {
   const now = Date.now()
-  if (isReportingError || now - lastReportTime < 1000) return
-  isReportingError = true
+  // 纯时间节流：1秒内最多上报1次，不依赖 fetch 完成状态
+  if (now - lastReportTime < 1000) return
   lastReportTime = now
   fetch('/api/admin/error-report', {
     method: 'POST',
@@ -42,9 +41,7 @@ function reportHttpError(payload: {
       source: 'saas-admin',
       timestamp: new Date().toISOString(),
     }),
-  }).catch(() => { }).finally(() => {
-    isReportingError = false
-  })
+  }).catch(() => { })
 }
 
 request.interceptors.response.use(

@@ -151,4 +151,45 @@ export async function fetchReplenishmentSuggestions() {
   return data.data;
 }
 
+// ==================== 供应商联系人 ====================
+export async function fetchSupplierContacts(supplierId: number) {
+  const { data } = await api.get("/admin/supplier-contacts", { params: { supplierId } });
+  return data.data;
+}
+export async function createSupplierContact(payload: {
+  supplierId: number;
+  name: string;
+  mobile?: string;
+  phone?: string;
+  email?: string;
+  wechat?: string;
+  position?: string;
+  isPrimary?: number | boolean;
+  remark?: string;
+}) {
+  const { data } = await api.post("/admin/supplier-contacts", payload);
+  return data.data;
+}
+export async function updateSupplierContact(id: number, payload: {
+  name?: string;
+  mobile?: string;
+  phone?: string;
+  email?: string;
+  wechat?: string;
+  position?: string;
+  isPrimary?: number | boolean;
+  remark?: string;
+}) {
+  const { data } = await api.put(`/admin/supplier-contacts/${id}`, payload);
+  return data.data;
+}
+export async function deleteSupplierContact(id: number) {
+  const { data } = await api.delete(`/admin/supplier-contacts/${id}`);
+  return data.data;
+}
+export async function setPrimarySupplierContact(id: number) {
+  const { data } = await api.post(`/admin/supplier-contacts/${id}/set-primary`);
+  return data.data;
+}
+
 

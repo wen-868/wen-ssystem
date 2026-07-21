@@ -314,6 +314,12 @@
                     }
                 },
                 {
+                    "path": "member/address",
+                    "style": {
+                        "navigationBarTitleText": "收货地址"
+                    }
+                },
+                {
                     "path": "member-levels/member-levels",
                     "style": {
                         "navigationBarTitleText": "会员等级"

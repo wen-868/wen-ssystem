@@ -112,6 +112,7 @@ describe("auth.service", () => {
   describe("getMe", () => {
     it("用户设置了 /cashier 主页时 defaultMode 为 CASHIER", async () => {
       mocks.queryOneWithTenant.mockResolvedValue({ default_homepage: "/cashier" });
+      mocks.query.mockResolvedValue([]); // getUserPermissions 结果
       mocks.getUserAccessInfo.mockReturnValue({ defaultMode: "ADMIN" });
       const user = { id: 1, tenantId: "t1" } as any;
       const res = await getMe(user);
@@ -120,6 +121,7 @@ describe("auth.service", () => {
 
     it("用户设置了其他主页时 defaultMode 为 ADMIN", async () => {
       mocks.queryOneWithTenant.mockResolvedValue({ default_homepage: "/dashboard" });
+      mocks.query.mockResolvedValue([]); // getUserPermissions 结果
       mocks.getUserAccessInfo.mockReturnValue({ defaultMode: "CASHIER" });
       const res = await getMe({ id: 1, tenantId: "t1" } as any);
       expect(res.defaultMode).toBe("ADMIN");
@@ -127,9 +129,22 @@ describe("auth.service", () => {
 
     it("未设置主页时使用 accessInfo.defaultMode", async () => {
       mocks.queryOneWithTenant.mockResolvedValue(null);
+      mocks.query.mockResolvedValue([]); // getUserPermissions 结果
       mocks.getUserAccessInfo.mockReturnValue({ defaultMode: "ADMIN" });
       const res = await getMe({ id: 1, tenantId: "t1" } as any);
       expect(res.defaultMode).toBe("ADMIN");
+    });
+
+    it("返回用户权限列表", async () => {
+      mocks.queryOneWithTenant.mockResolvedValue({ default_homepage: null });
+      mocks.query.mockResolvedValue([
+        { permissions: JSON.stringify(["product:read", "order:read"]) },
+        { permissions: JSON.stringify(["order:write"]) },
+      ]);
+      mocks.getUserAccessInfo.mockReturnValue({ defaultMode: "ADMIN" });
+      const res = await getMe({ id: 1, tenantId: "t1" } as any);
+      expect(res.permissions).toEqual(expect.arrayContaining(["product:read", "order:read", "order:write"]));
+      expect(res.permissions.length).toBe(3);
     });
   });
 

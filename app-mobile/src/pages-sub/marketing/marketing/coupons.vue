@@ -81,6 +81,7 @@
 <script setup lang="ts">
 import { ref, reactive, onMounted } from 'vue'
 import { useFormValidation, type Rules } from '@/composables/useFormValidation'
+import { couponsApi, type CouponTemplate } from '@/api/modules/coupons'
 
 const formRef = ref<any>(null)
 const searchForm = reactive({ keyword: '' })
@@ -96,42 +97,88 @@ const tabs = [
   { label: '已结束', value: 'ended' },
 ]
 const activeTab = ref('')
-const list = ref<any[]>([])
+const list = ref<CouponTemplate[]>([])
 const loading = ref(false)
+const page = ref(1)
+const pageSize = 20
+const noMore = ref(false)
+const loadingMore = ref(false)
 
-function onSearch() { loadCoupons() }
-function clearSearch() { searchForm.keyword = ''; loadCoupons() }
-function switchTab(val: string) { activeTab.value = val; loadCoupons() }
+function onSearch() {
+  page.value = 1
+  noMore.value = false
+  list.value = []
+  loadCoupons()
+}
+function clearSearch() {
+  searchForm.keyword = ''
+  onSearch()
+}
+function switchTab(val: string) {
+  activeTab.value = val
+  page.value = 1
+  noMore.value = false
+  list.value = []
+  loadCoupons()
+}
 function goCreate() {
   uni.navigateTo({ url: '/pages-sub/marketing/marketing/create-coupon' })
 }
-function viewDetail(item: any) {
+function viewDetail(item: CouponTemplate) {
   uni.showToast({ title: '查看详情', icon: 'none' })
 }
-function editCoupon(item: any) {
+function editCoupon(item: CouponTemplate) {
   uni.showToast({ title: '编辑优惠券', icon: 'none' })
 }
-function stopCoupon(item: any) {
+function stopCoupon(item: CouponTemplate) {
   uni.showModal({
     title: '停用优惠券',
     content: '确认停用该优惠券？停用后无法领取但已领取的仍可使用。',
-    success: (res) => {
+    success: async (res) => {
       if (res.confirm) {
-        uni.showToast({ title: '已停用', icon: 'success' })
+        try {
+          await couponsApi.pause(item.id)
+          uni.showToast({ title: '已停用', icon: 'success' })
+          loadCoupons()
+        } catch (err) {
+          console.error('停用优惠券失败:', err)
+        }
       }
     }
   })
 }
 
 async function loadCoupons() {
+  if (loading.value) return
   loading.value = true
   try {
-    list.value = []
+    const result = await couponsApi.list({
+      keyword: searchForm.keyword || undefined,
+      status: activeTab.value || undefined,
+      page: page.value,
+      pageSize,
+    })
+    const dataList = result.list || []
+    if (page.value === 1) {
+      list.value = dataList
+    } else {
+      list.value = [...list.value, ...dataList]
+    }
+    noMore.value = dataList.length < pageSize
   } catch (err) {
     console.error('加载优惠券失败:', err)
+    uni.showToast({ title: '加载失败', icon: 'none' })
   } finally {
     loading.value = false
+    loadingMore.value = false
   }
+}
+
+async function onLoadMore() {
+  if (loadingMore.value || noMore.value) return
+  loadingMore.value = true
+  page.value++
+  await loadCoupons()
 }
 
 onMounted(() => { loadCoupons() })

@@ -4,24 +4,22 @@
       <text class="header-title">数据报表</text>
     </view>
 
-    <form ref="formRef" :model="filterForm" class="filter-form">
+    <view class="filter-form">
       <view class="filter-row">
-        <view class="filter-item" @tap="chooseStartDate">
-          <text class="filter-label">开始日期</text>
-          <text class="filter-value">{{ filterForm.startDate || '请选择' }}</text>
-        </view>
-        <view class="filter-item" @tap="chooseEndDate">
-          <text class="filter-label">结束日期</text>
-          <text class="filter-value">{{ filterForm.endDate || '请选择' }}</text>
-        </view>
+        <picker mode="date" :value="filterForm.startDate" @change="onStartDateChange">
+          <view class="filter-item">
+            <text class="filter-label">开始日期</text>
+            <text class="filter-value">{{ filterForm.startDate || '请选择' }}</text>
+          </view>
+        </picker>
+        <picker mode="date" :value="filterForm.endDate" @change="onEndDateChange">
+          <view class="filter-item">
+            <text class="filter-label">结束日期</text>
+            <text class="filter-value">{{ filterForm.endDate || '请选择' }}</text>
+          </view>
+        </picker>
       </view>
-      <picker mode="date" :value="filterForm.startDate" @change="onStartDateChange" :id="'start-date-picker'" style="display:none;">
-        <view></view>
-      </picker>
-      <picker mode="date" :value="filterForm.endDate" @change="onEndDateChange" :id="'end-date-picker'" style="display:none;">
-        <view></view>
-      </picker>
-    </form>
+    </view>
 
     <view class="quick-date-bar">
       <view
@@ -118,18 +116,12 @@
 
 <script setup lang="ts">
 import { ref, reactive, onMounted } from 'vue'
-import { useFormValidation, type Rules } from '@/composables/useFormValidation'
+import { reportsApi, type SalesRankItem } from '@/api/modules/reports'
 
-const formRef = ref<any>(null)
 const filterForm = reactive({
   startDate: '',
   endDate: '',
 })
-const filterRules: Rules = {
-  startDate: [{ required: false }],
-  endDate: [{ required: false }],
-}
-const { errors, validate, clearError } = useFormValidation(filterForm, filterRules)
 
 const quickDates = [
   { label: '今日', value: 'today' },
@@ -147,16 +139,9 @@ const summary = ref<any>({
   salesGrowth: 0,
 })
 
-const rankList = ref<any[]>([])
+const rankList = ref<SalesRankItem[]>([])
+const loading = ref(false)
 
-function chooseStartDate() {
-  const picker = document.getElementById('start-date-picker') as any
-  if (picker) picker.click()
-}
-function chooseEndDate() {
-  const picker = document.getElementById('end-date-picker') as any
-  if (picker) picker.click()
-}
 function onStartDateChange(e: any) {
   filterForm.startDate = e.detail.value
   activeQuickDate.value = ''
@@ -169,8 +154,38 @@ function onEndDateChange(e: any) {
 }
 function chooseQuickDate(val: string) {
   activeQuickDate.value = val
+  const today = new Date()
+  let startDate: Date
+
+  switch (val) {
+    case 'today':
+      startDate = today
+      break
+    case 'week':
+      startDate = new Date(today.getTime() - 7 * 24 * 60 * 60 * 1000)
+      break
+    case 'month':
+      startDate = new Date(today.getTime() - 30 * 24 * 60 * 60 * 1000)
+      break
+    case 'year':
+      startDate = new Date(today.getTime() - 365 * 24 * 60 * 60 * 1000)
+      break
+    default:
+      startDate = today
+  }
+
+  filterForm.startDate = formatDate(startDate)
+  filterForm.endDate = formatDate(today)
   loadReportData()
 }
+
+function formatDate(date: Date): string {
+  const year = date.getFullYear()
+  const month = String(date.getMonth() + 1).padStart(2, '0')
+  const day = String(date.getDate()).padStart(2, '0')
+  return `${year}-${month}-${day}`
+}
+
 function goReport(type: string) {
   const urlMap: Record<string, string> = {
     sales: '/pages-sub/finance/reports/sales-reports',
@@ -186,14 +201,37 @@ function goReport(type: string) {
 }
 
 async function loadReportData() {
+  loading.value = true
   try {
-    rankList.value = []
+    const params = {
+      startDate: filterForm.startDate || undefined,
+      endDate: filterForm.endDate || undefined,
+    }
+    // 并行加载销售汇总和商品排行
+    const [salesSummary, salesRank] = await Promise.all([
+      reportsApi.getSalesSummary(params),
+      reportsApi.getSalesRank({ ...params, limit: 10 }),
+    ])
+    summary.value = {
+      totalSales: salesSummary.totalSales?.toFixed?.(2) ?? Number(salesSummary.totalSales).toFixed(2),
+      orderCount: salesSummary.orderCount ?? 0,
+      customerCount: salesSummary.customerCount ?? 0,
+      profit: salesSummary.profit?.toFixed?.(2) ?? Number(salesSummary.profit).toFixed(2),
+      salesGrowth: salesSummary.salesGrowth ?? 0,
+    }
+    rankList.value = salesRank
   } catch (err) {
     console.error('加载报表数据失败:', err)
+    uni.showToast({ title: '加载失败', icon: 'none' })
+  } finally {
+    loading.value = false
   }
 }
 
-onMounted(() => { loadReportData() })
+onMounted(() => {
+  // 默认加载本月数据
+  chooseQuickDate('month')
+})
 </script>
 
 <style scoped>

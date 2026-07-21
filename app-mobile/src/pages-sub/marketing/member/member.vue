@@ -21,15 +21,15 @@
 
     <!-- 资产概览 -->
     <view class="asset-grid">
-      <view class="asset-item" @tap="navigateTo('/pages/member/points')">
+      <view class="asset-item" @tap="navigateTo('/pages-sub/marketing/points/points-detail')">
         <text class="asset-value">{{ memberInfo.points || 0 }}</text>
         <text class="asset-label">积分</text>
       </view>
-      <view class="asset-item" @tap="navigateTo('/pages/member/stored-value')">
+      <view class="asset-item" @tap="navigateTo('/pages-sub/marketing/stored-cards/stored-cards')">
         <text class="asset-value">¥{{ memberInfo.balance || '0.00' }}</text>
         <text class="asset-label">储值余额</text>
       </view>
-      <view class="asset-item" @tap="navigateTo('/pages/member/coupons')">
+      <view class="asset-item" @tap="navigateTo('/pages-sub/marketing/marketing/coupons')">
         <text class="asset-value">{{ memberInfo.couponCount || 0 }}</text>
         <text class="asset-label">优惠券</text>
       </view>
@@ -37,7 +37,7 @@
 
     <!-- 功能菜单 -->
     <view class="menu-section">
-      <view class="menu-item" @tap="navigateTo('/pages/member/points')">
+      <view class="menu-item" @tap="navigateTo('/pages-sub/marketing/points/points-detail')">
         <view class="menu-left">
           <text class="menu-icon">★</text>
           <text class="menu-text">我的积分</text>
@@ -45,7 +45,7 @@
         <text class="menu-arrow">›</text>
       </view>
 
-      <view class="menu-item" @tap="navigateTo('/pages/member/stored-value')">
+      <view class="menu-item" @tap="navigateTo('/pages-sub/marketing/stored-cards/stored-cards')">
         <view class="menu-left">
           <text class="menu-icon">💰</text>
           <text class="menu-text">我的储值</text>
@@ -53,7 +53,7 @@
         <text class="menu-arrow">›</text>
       </view>
 
-      <view class="menu-item" @tap="navigateTo('/pages/member/coupons')">
+      <view class="menu-item" @tap="navigateTo('/pages-sub/marketing/marketing/coupons')">
         <view class="menu-left">
           <text class="menu-icon">🎫</text>
           <text class="menu-text">我的优惠券</text>
@@ -61,7 +61,7 @@
         <text class="menu-arrow">›</text>
       </view>
 
-      <view class="menu-item" @tap="navigateTo('/pages/member/level')">
+      <view class="menu-item" @tap="navigateTo('/pages-sub/marketing/member-levels/member-levels')">
         <view class="menu-left">
           <text class="menu-icon">👑</text>
           <text class="menu-text">我的等级</text>
@@ -72,7 +72,7 @@
         </view>
       </view>
 
-      <view class="menu-item" @tap="navigateTo('/pages/member/address')">
+      <view class="menu-item" @tap="navigateTo('/pages-sub/marketing/member/address')">
         <view class="menu-left">
           <text class="menu-icon">📍</text>
           <text class="menu-text">收货地址</text>

@@ -129,9 +129,9 @@
           <view
             class="picker-item"
             v-for="customer in customerList"
-            :key="customer.name"
+            :key="customer.id"
             :class="{ 'picker-item--active': selectedCustomer === customer.name }"
-            @tap="selectCustomer(customer.name)"
+            @tap="selectCustomer(customer)"
           >
             <text class="picker-item-text">{{ customer.name }}</text>
             <view class="picker-check" v-if="selectedCustomer === customer.name">✓</view>
@@ -185,6 +185,7 @@
 <script setup lang="ts">
 import { ref, reactive, onMounted, computed } from 'vue'
 import { ordersApi, type OrderInfo } from '@/api/modules/orders'
+import { customersApi, type CustomerInfo } from '@/api/modules/customers'
 import VirtualList from '@/components/virtual-list.vue'
 
 const tabs = [
@@ -216,7 +217,7 @@ const noMore = ref(false)
 const showCustomerPicker = ref(false)
 const showDatePicker = ref(false)
 const quickDate = ref('')
-const customerList = ref<{ name: string }[]>([])
+const customerList = ref<CustomerInfo[]>([])
 const selectedCustomer = ref('')
 
 /** 单行高度（px），onMounted 时按 rpx 转 px 计算 */
@@ -249,9 +250,14 @@ function clearSearch() {
   onSearch()
 }
 
-function selectCustomer(name: string) {
-  selectedCustomer.value = name
-  searchForm.customerName = name
+function selectCustomer(customer: CustomerInfo | '') {
+  if (customer === '') {
+    selectedCustomer.value = ''
+    searchForm.customerName = ''
+  } else {
+    selectedCustomer.value = customer.name
+    searchForm.customerName = customer.name
+  }
   showCustomerPicker.value = false
   onSearch()
 }
@@ -314,17 +320,14 @@ function confirmDateFilter() {
 
 async function loadCustomers() {
   try {
-    // 模拟客户列表数据
-    customerList.value = [
-      { name: '张老板' },
-      { name: '李经理' },
-      { name: '王总' },
-      { name: '陈老板' },
-      { name: '刘老板' },
-      { name: '赵经理' }
-    ]
+    const result = await customersApi.list({
+      page: 1,
+      pageSize: 50,
+    })
+    customerList.value = result.list || []
   } catch (err) {
     console.error('加载客户列表失败:', err)
+    uni.showToast({ title: '加载客户失败', icon: 'none' })
   }
 }
 

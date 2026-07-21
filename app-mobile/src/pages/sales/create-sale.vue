@@ -11,8 +11,11 @@
       <!-- 客户选择 -->
       <view class="form-section">
         <view class="section-title">选择客户</view>
-        <view class="customer-select" @tap="showCustomerPicker">
-          <text class="customer-name" v-if="selectedCustomer">{{ selectedCustomer.name }}</text>
+        <view class="customer-select" @tap="openCustomerPicker">
+          <view class="customer-info" v-if="selectedCustomer">
+            <text class="customer-name">{{ selectedCustomer.name }}</text>
+            <text class="customer-phone" v-if="selectedCustomer.phone">{{ selectedCustomer.phone }}</text>
+          </view>
           <text class="customer-placeholder" v-else>请选择客户</text>
           <text class="customer-arrow">&#xe616;</text>
         </view>
@@ -23,27 +26,33 @@
 
       <!-- 商品列表 -->
       <view class="form-section">
-        <view class="section-title">商品明细</view>
+        <view class="section-title">
+          <text>商品明细</text>
+          <text class="item-count">共{{ saleItems.length }}件</text>
+        </view>
         <view class="item-row" v-for="(item, index) in saleItems" :key="index">
           <view class="item-info">
             <text class="item-name">{{ item.productName }}</text>
-            <text class="item-price">¥{{ (item.price ?? 0).toFixed(2) }}</text>
+            <text class="item-spec" v-if="item.specs">{{ item.specs }}</text>
+            <text class="item-price">¥{{ (item.price ?? 0).toFixed(2) }} / {{ item.unit || '件' }}</text>
           </view>
           <view class="item-quantity">
             <view class="qty-btn" @tap="decreaseQty(index)">-</view>
             <input
               class="qty-input"
-              v-model="item.quantity"
+              :value="item.quantity"
               type="number"
-              @input="onQtyChange(index)"
+              @input="onQtyChange(index, $event)"
             />
-            <view class="qty-btn" @tap="increaseQty(index)">+</view>
+            <view class="qty-btn qty-btn--add" @tap="increaseQty(index)">+</view>
           </view>
-          <text class="item-total">¥{{ (item.total ?? 0).toFixed(2) }}</text>
-          <view class="item-delete" @tap="removeItem(index)">&#xe615;</view>
+          <view class="item-right">
+            <text class="item-total">¥{{ (item.total ?? 0).toFixed(2) }}</text>
+            <view class="item-delete" @tap="removeItem(index)">删除</view>
+          </view>
         </view>
 
-        <view class="add-item-btn" @tap="showProductPicker">
+        <view class="add-item-btn" @tap="openProductPicker">
           <text class="add-icon">+</text>
           <text class="add-text">添加商品</text>
         </view>
@@ -55,8 +64,12 @@
       <!-- 金额汇总 -->
       <view class="form-section" v-if="saleItems.length > 0">
         <view class="amount-row">
+          <text class="amount-label">商品数量</text>
+          <text class="amount-value">{{ totalQty }}件</text>
+        </view>
+        <view class="amount-row amount-row--total">
           <text class="amount-label">合计金额</text>
-          <text class="amount-value">¥{{ totalAmount.toFixed(2) }}</text>
+          <text class="amount-value amount-value--total">¥{{ totalAmount.toFixed(2) }}</text>
         </view>
       </view>
 
@@ -90,6 +103,133 @@
         {{ submitting ? '提交中...' : '提交订单' }}
       </button>
     </view>
+
+    <!-- 客户选择弹窗 -->
+    <view class="picker-mask" v-if="showCustomerPicker" @tap="closeCustomerPicker">
+      <view class="picker-popup picker-popup--large" @tap.stop>
+        <view class="picker-header">
+          <text class="picker-title">选择客户</text>
+          <text class="picker-close" @tap="closeCustomerPicker">×</text>
+        </view>
+        <view class="picker-search">
+          <view class="search-input-wrap">
+            <text class="search-icon">&#xe614;</text>
+            <input
+              class="search-input"
+              v-model="customerSearchKeyword"
+              type="text"
+              placeholder="搜索客户名称/手机号"
+              placeholder-class="search-placeholder"
+              confirm-type="search"
+              @confirm="searchCustomers"
+            />
+          </view>
+        </view>
+        <scroll-view class="picker-content picker-content--with-search" scroll-y @scrolltolower="loadMoreCustomers">
+          <view class="customer-loading" v-if="customerLoading && customerList.length === 0">
+            <view class="loading-spinner"></view>
+            <text class="loading-text">加载中...</text>
+          </view>
+          <view
+            class="picker-item picker-item--customer"
+            v-for="customer in customerList"
+            :key="customer.id"
+            :class="{ 'picker-item--active': selectedCustomer?.id === customer.id }"
+            @tap="selectCustomer(customer)"
+          >
+            <view class="customer-item-info">
+              <text class="customer-item-name">{{ customer.name }}</text>
+              <text class="customer-item-phone" v-if="customer.phone">{{ customer.phone }}</text>
+            </view>
+            <view class="customer-item-type" v-if="customer.typeLabel">{{ customer.typeLabel }}</view>
+            <view class="picker-check" v-if="selectedCustomer?.id === customer.id">✓</view>
+          </view>
+          <view class="load-more" v-if="customerList.length > 0">
+            <view class="loading-more-spinner" v-if="customerLoadingMore"></view>
+            <text class="load-more-text" v-if="customerLoadingMore">加载中...</text>
+            <text class="load-more-text" v-else-if="customerNoMore">-- 没有更多了 --</text>
+          </view>
+          <view class="empty-state" v-if="!customerLoading && customerList.length === 0">
+            <text class="empty-text">暂无客户</text>
+          </view>
+        </scroll-view>
+      </view>
+    </view>
+
+    <!-- 商品选择弹窗 -->
+    <view class="picker-mask picker-mask--product" v-if="showProductPicker" @tap="closeProductPicker">
+      <view class="picker-popup picker-popup--product" @tap.stop>
+        <view class="picker-header">
+          <text class="picker-title">选择商品</text>
+          <text class="picker-close" @tap="closeProductPicker">×</text>
+        </view>
+        <view class="picker-search">
+          <view class="search-input-wrap">
+            <text class="search-icon">&#xe614;</text>
+            <input
+              class="search-input"
+              v-model="productSearchKeyword"
+              type="text"
+              placeholder="搜索商品名称"
+              placeholder-class="search-placeholder"
+              confirm-type="search"
+              @confirm="searchProducts"
+            />
+          </view>
+        </view>
+        <!-- 分类筛选 -->
+        <scroll-view class="category-bar" scroll-x :show-scrollbar="false" v-if="categoryList.length > 0">
+          <view
+            class="category-item"
+            :class="{ 'category-item--active': selectedCategoryId === 0 }"
+            @tap="selectCategory(0)"
+          >
+            <text class="category-text">全部</text>
+          </view>
+          <view
+            class="category-item"
+            v-for="cat in categoryList"
+            :key="cat.id"
+            :class="{ 'category-item--active': selectedCategoryId === cat.id }"
+            @tap="selectCategory(cat.id)"
+          >
+            <text class="category-text">{{ cat.name }}</text>
+          </view>
+        </scroll-view>
+        <scroll-view class="picker-content picker-content--product" scroll-y @scrolltolower="loadMoreProducts">
+          <view class="product-loading" v-if="productLoading && productList.length === 0">
+            <view class="loading-spinner"></view>
+            <text class="loading-text">加载中...</text>
+          </view>
+          <view
+            class="product-item"
+            v-for="product in productList"
+            :key="product.id"
+          >
+            <image class="product-image" :src="product.image || '/static/tabbar/product.svg'" mode="aspectFill" />
+            <view class="product-info">
+              <text class="product-name">{{ product.name }}</text>
+              <text class="product-spec" v-if="product.specs">{{ product.specs }}</text>
+              <view class="product-bottom">
+                <text class="product-price">¥{{ product.price.toFixed(2) }}</text>
+                <text class="product-stock">库存: {{ product.stock }}{{ product.unit }}</text>
+              </view>
+            </view>
+            <view class="product-actions">
+              <view class="qty-btn qty-btn--add" @tap="addProduct(product)">+</view>
+            </view>
+          </view>
+          <view class="load-more" v-if="productList.length > 0">
+            <view class="loading-more-spinner" v-if="productLoadingMore"></view>
+            <text class="load-more-text" v-if="productLoadingMore">加载中...</text>
+            <text class="load-more-text" v-else-if="productNoMore">-- 没有更多了 --</text>
+          </view>
+          <view class="empty-state" v-if="!productLoading && productList.length === 0">
+            <text class="empty-text">暂无商品</text>
+          </view>
+        </scroll-view>
+      </view>
+    </view>
   </view>
 </template>
 
@@ -97,10 +237,10 @@
 import { ref, computed, reactive } from 'vue'
 import { salesApi, type SaleItem } from '@/api/modules/sales'
 import { customersApi, type CustomerInfo } from '@/api/modules/customers'
-import { productsApi, type ProductInfo } from '@/api/modules/products'
+import { productsApi, type ProductInfo, type CategoryInfo } from '@/api/modules/products'
 import { useFormValidation, type Rules } from '@/composables/useFormValidation'
 
-// 表单三件套：ref + :model + :rules
+// ========== 表单三件套 ==========
 const formRef = ref<any>(null)
 const saleForm = reactive({
   selectedCustomer: null as CustomerInfo | null,
@@ -125,30 +265,204 @@ const remark = computed({
 
 const submitting = ref(false)
 
+// ========== 计算属性 ==========
 const totalAmount = computed(() => {
   return saleItems.reduce((sum, item) => sum + (item.total ?? 0), 0)
+})
+
+const totalQty = computed(() => {
+  return saleItems.reduce((sum, item) => sum + (item.quantity ?? 0), 0)
 })
 
 const canSubmit = computed(() => {
   return saleForm.selectedCustomer !== null && saleItems.length > 0 && !submitting.value
 })
 
-function showCustomerPicker() {
-  // 模拟选择客户 - 实际项目中应跳转到客户选择页或弹窗
+// ========== 客户选择弹窗 ==========
+const showCustomerPicker = ref(false)
+const customerSearchKeyword = ref('')
+const customerList = ref<CustomerInfo[]>([])
+const customerLoading = ref(false)
+const customerLoadingMore = ref(false)
+const customerPage = ref(1)
+const customerPageSize = 20
+const customerNoMore = ref(false)
+
+function openCustomerPicker() {
   clearError('selectedCustomer')
-  uni.showToast({ title: '请从客户列表选择', icon: 'none' })
+  showCustomerPicker.value = true
+  customerPage.value = 1
+  customerNoMore.value = false
+  customerList.value = []
+  loadCustomers()
 }
 
-function showProductPicker() {
-  // 模拟选择商品 - 实际项目中应跳转到商品选择页或弹窗
-  uni.showToast({ title: '请从商品列表选择', icon: 'none' })
+function closeCustomerPicker() {
+  showCustomerPicker.value = false
 }
 
+function searchCustomers() {
+  customerPage.value = 1
+  customerNoMore.value = false
+  customerList.value = []
+  loadCustomers()
+}
+
+async function loadCustomers() {
+  if (customerLoading.value) return
+  customerLoading.value = true
+  try {
+    const result = await customersApi.list({
+      keyword: customerSearchKeyword.value || undefined,
+      page: customerPage.value,
+      pageSize: customerPageSize,
+    })
+    const list = result.list || []
+    if (customerPage.value === 1) {
+      customerList.value = list
+    } else {
+      customerList.value = [...customerList.value, ...list]
+    }
+    customerNoMore.value = list.length < customerPageSize
+  } catch (err) {
+    console.error('加载客户列表失败:', err)
+    uni.showToast({ title: '加载失败', icon: 'none' })
+  } finally {
+    customerLoading.value = false
+    customerLoadingMore.value = false
+  }
+}
+
+async function loadMoreCustomers() {
+  if (customerLoadingMore.value || customerNoMore.value) return
+  customerLoadingMore.value = true
+  customerPage.value++
+  await loadCustomers()
+}
+
+function selectCustomer(customer: CustomerInfo) {
+  saleForm.selectedCustomer = customer
+  showCustomerPicker.value = false
+}
+
+// ========== 商品选择弹窗 ==========
+const showProductPicker = ref(false)
+const productSearchKeyword = ref('')
+const productList = ref<ProductInfo[]>([])
+const categoryList = ref<CategoryInfo[]>([])
+const selectedCategoryId = ref<number>(0)
+const productLoading = ref(false)
+const productLoadingMore = ref(false)
+const productPage = ref(1)
+const productPageSize = 20
+const productNoMore = ref(false)
+
+async function openProductPicker() {
+  showProductPicker.value = true
+  productPage.value = 1
+  productNoMore.value = false
+  productList.value = []
+  // 加载分类
+  if (categoryList.value.length === 0) {
+    try {
+      const cats = await productsApi.categories()
+      categoryList.value = cats
+    } catch (err) {
+      console.error('加载分类失败:', err)
+    }
+  }
+  loadProducts()
+}
+
+function closeProductPicker() {
+  showProductPicker.value = false
+}
+
+function searchProducts() {
+  productPage.value = 1
+  productNoMore.value = false
+  productList.value = []
+  loadProducts()
+}
+
+function selectCategory(categoryId: number) {
+  selectedCategoryId.value = categoryId
+  productPage.value = 1
+  productNoMore.value = false
+  productList.value = []
+  loadProducts()
+}
+
+async function loadProducts() {
+  if (productLoading.value) return
+  productLoading.value = true
+  try {
+    const result = await productsApi.list({
+      keyword: productSearchKeyword.value || undefined,
+      categoryId: selectedCategoryId.value > 0 ? selectedCategoryId.value : undefined,
+      page: productPage.value,
+      pageSize: productPageSize,
+    })
+    const list = result.list || []
+    if (productPage.value === 1) {
+      productList.value = list
+    } else {
+      productList.value = [...productList.value, ...list]
+    }
+    productNoMore.value = list.length < productPageSize
+  } catch (err) {
+    console.error('加载商品列表失败:', err)
+    uni.showToast({ title: '加载失败', icon: 'none' })
+  } finally {
+    productLoading.value = false
+    productLoadingMore.value = false
+  }
+}
+
+async function loadMoreProducts() {
+  if (productLoadingMore.value || productNoMore.value) return
+  productLoadingMore.value = true
+  productPage.value++
+  await loadProducts()
+}
+
+function addProduct(product: ProductInfo) {
+  // 检查是否已添加
+  const existingIndex = saleItems.findIndex(item => item.productId === product.id)
+  if (existingIndex >= 0) {
+    // 已存在，数量+1
+    const item = saleItems[existingIndex]!
+    item.quantity = (item.quantity ?? 0) + 1
+    item.total = (item.price ?? 0) * (item.quantity ?? 0)
+    uni.showToast({ title: '已添加', icon: 'none' })
+    return
+  }
+  // 新增
+  const newItem: SaleItem = {
+    productId: product.id,
+    productName: product.name,
+    price: product.price,
+    quantity: 1,
+    total: product.price,
+    boxQty: 0,
+    bottleQty: 1,
+    unitPrice: product.price,
+    subtotalAmount: product.price,
+    unit: product.unit,
+    specs: product.specs,
+  } as any
+  saleItems.push(newItem)
+  uni.showToast({ title: '已添加', icon: 'none' })
+}
+
+// ========== 商品明细操作 ==========
 function decreaseQty(index: number) {
   const item = saleItems[index]!
   if ((item.quantity ?? 0) > 1) {
     item.quantity = (item.quantity ?? 0) - 1
     item.total = (item.price ?? 0) * (item.quantity ?? 0)
+    item.subtotalAmount = item.total
+    item.bottleQty = item.quantity
   }
 }
 
@@ -156,19 +470,32 @@ function increaseQty(index: number) {
   const item = saleItems[index]!
   item.quantity = (item.quantity ?? 0) + 1
   item.total = (item.price ?? 0) * (item.quantity ?? 0)
+  item.subtotalAmount = item.total
+  item.bottleQty = item.quantity
 }
 
-function onQtyChange(index: number) {
+function onQtyChange(index: number, e: any) {
   const item = saleItems[index]!
-  const qty = Math.max(1, Number(item.quantity) || 1)
+  const qty = Math.max(1, Number(e.detail.value) || 1)
   item.quantity = qty
   item.total = (item.price ?? 0) * qty
+  item.subtotalAmount = item.total
+  item.bottleQty = qty
 }
 
 function removeItem(index: number) {
-  saleItems.splice(index, 1)
+  uni.showModal({
+    title: '确认删除',
+    content: '确定要删除该商品吗？',
+    success: (res) => {
+      if (res.confirm) {
+        saleItems.splice(index, 1)
+      }
+    }
+  })
 }
 
+// ========== 提交 ==========
 async function handleSubmit() {
   // 表单校验
   if (!validate()) return
@@ -239,8 +566,18 @@ async function handleSubmit() {
   font-weight: 600;
   color: #333;
   margin-bottom: 16rpx;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
 }
 
+.item-count {
+  font-size: 24rpx;
+  font-weight: 400;
+  color: #999;
+}
+
+/* 客户选择 */
 .customer-select {
   display: flex;
   align-items: center;
@@ -250,10 +587,22 @@ async function handleSubmit() {
   padding: 0 24rpx;
 }
 
+.customer-info {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  gap: 16rpx;
+}
+
 .customer-name {
   flex: 1;
   font-size: 28rpx;
   color: #333;
+}
+
+.customer-phone {
+  font-size: 24rpx;
+  color: #999;
 }
 
 .customer-placeholder {
@@ -273,6 +622,7 @@ async function handleSubmit() {
   align-items: center;
   padding: 20rpx 0;
   border-bottom: 1rpx solid #f5f5f5;
+  gap: 12rpx;
 }
 
 .item-row:last-child {
@@ -283,11 +633,21 @@ async function handleSubmit() {
   flex: 1;
   display: flex;
   flex-direction: column;
+  min-width: 0;
 }
 
 .item-name {
   font-size: 28rpx;
   color: #333;
+  margin-bottom: 4rpx;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.item-spec {
+  font-size: 22rpx;
+  color: #999;
   margin-bottom: 4rpx;
 }
 
@@ -299,7 +659,6 @@ async function handleSubmit() {
 .item-quantity {
   display: flex;
   align-items: center;
-  margin: 0 16rpx;
 }
 
 .qty-btn {
@@ -311,12 +670,17 @@ async function handleSubmit() {
   align-items: center;
   justify-content: center;
   font-size: 28rpx;
-  color: #1677FF;
+  color: #666;
   font-weight: 600;
 }
 
+.qty-btn--add {
+  background: #e6f4ff;
+  color: #1677FF;
+}
+
 .qty-input {
-  width: 80rpx;
+  width: 72rpx;
   height: 48rpx;
   text-align: center;
   font-size: 28rpx;
@@ -326,19 +690,26 @@ async function handleSubmit() {
   border-radius: 8rpx;
 }
 
+.item-right {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 8rpx;
+  flex-shrink: 0;
+}
+
 .item-total {
   font-size: 28rpx;
   font-weight: 600;
   color: #333;
   min-width: 120rpx;
   text-align: right;
-  margin-right: 12rpx;
 }
 
 .item-delete {
-  font-size: 32rpx;
+  font-size: 22rpx;
   color: #ff4d4f;
-  padding: 4rpx;
+  padding: 4rpx 8rpx;
 }
 
 .add-item-btn {
@@ -367,15 +738,27 @@ async function handleSubmit() {
   display: flex;
   justify-content: space-between;
   align-items: center;
+  padding: 12rpx 0;
+}
+
+.amount-row--total {
+  padding-top: 16rpx;
+  border-top: 1rpx solid #f5f5f5;
+  margin-top: 4rpx;
 }
 
 .amount-label {
-  font-size: 28rpx;
-  color: #333;
-  font-weight: 600;
+  font-size: 26rpx;
+  color: #666;
 }
 
 .amount-value {
+  font-size: 28rpx;
+  color: #333;
+  font-weight: 500;
+}
+
+.amount-value--total {
   font-size: 36rpx;
   font-weight: 700;
   color: #1677FF;
@@ -464,5 +847,316 @@ async function handleSubmit() {
 .error-text {
   font-size: 24rpx;
   color: #ff4d4f;
+}
+
+/* ========== 弹窗样式 ========== */
+.picker-mask {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.5);
+  z-index: 1000;
+  display: flex;
+  align-items: flex-end;
+}
+
+.picker-mask--product {
+  align-items: stretch;
+}
+
+.picker-popup {
+  width: 100%;
+  background: #fff;
+  border-radius: 24rpx 24rpx 0 0;
+  max-height: 80vh;
+  display: flex;
+  flex-direction: column;
+}
+
+.picker-popup--large {
+  max-height: 85vh;
+}
+
+.picker-popup--product {
+  max-height: 90vh;
+  border-radius: 24rpx 24rpx 0 0;
+}
+
+.picker-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 24rpx 32rpx;
+  border-bottom: 1rpx solid #f5f5f5;
+  flex-shrink: 0;
+}
+
+.picker-title {
+  font-size: 32rpx;
+  font-weight: 600;
+  color: #333;
+}
+
+.picker-close {
+  font-size: 48rpx;
+  color: #999;
+  line-height: 1;
+}
+
+.picker-search {
+  padding: 16rpx 24rpx;
+  border-bottom: 1rpx solid #f5f5f5;
+  flex-shrink: 0;
+}
+
+.search-input-wrap {
+  display: flex;
+  align-items: center;
+  height: 64rpx;
+  background: #f5f7fa;
+  border-radius: 32rpx;
+  padding: 0 24rpx;
+}
+
+.search-icon {
+  font-size: 28rpx;
+  color: #999;
+  margin-right: 12rpx;
+}
+
+.search-input {
+  flex: 1;
+  font-size: 26rpx;
+  color: #333;
+}
+
+.search-placeholder {
+  color: #bbb;
+  font-size: 24rpx;
+}
+
+.picker-content {
+  flex: 1;
+  overflow-y: auto;
+}
+
+.picker-content--with-search {
+  max-height: 60vh;
+}
+
+.picker-content--product {
+  padding: 0 24rpx;
+}
+
+/* 客户列表项 */
+.picker-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 28rpx 32rpx;
+  border-bottom: 1rpx solid #f9f9f9;
+}
+
+.picker-item--customer {
+  flex-wrap: wrap;
+}
+
+.customer-item-info {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 4rpx;
+}
+
+.customer-item-name {
+  font-size: 28rpx;
+  color: #333;
+  font-weight: 500;
+}
+
+.customer-item-phone {
+  font-size: 24rpx;
+  color: #999;
+}
+
+.customer-item-type {
+  font-size: 22rpx;
+  color: #1677FF;
+  background: #e6f4ff;
+  padding: 4rpx 12rpx;
+  border-radius: 8rpx;
+  margin-right: 16rpx;
+}
+
+.picker-item--active .customer-item-name {
+  color: #1677FF;
+  font-weight: 600;
+}
+
+.picker-check {
+  font-size: 32rpx;
+  color: #1677FF;
+  font-weight: 600;
+}
+
+/* 分类筛选 */
+.category-bar {
+  white-space: nowrap;
+  padding: 12rpx 24rpx;
+  border-bottom: 1rpx solid #f5f5f5;
+  flex-shrink: 0;
+}
+
+.category-item {
+  display: inline-block;
+  padding: 12rpx 24rpx;
+  background: #f5f7fa;
+  border-radius: 24rpx;
+  margin-right: 12rpx;
+}
+
+.category-item--active {
+  background: #1677FF;
+}
+
+.category-item--active .category-text {
+  color: #fff;
+  font-weight: 500;
+}
+
+.category-text {
+  font-size: 24rpx;
+  color: #666;
+}
+
+/* 商品列表 */
+.product-item {
+  display: flex;
+  align-items: center;
+  padding: 20rpx 0;
+  border-bottom: 1rpx solid #f5f5f5;
+  gap: 16rpx;
+}
+
+.product-item:last-child {
+  border-bottom: none;
+}
+
+.product-image {
+  width: 96rpx;
+  height: 96rpx;
+  border-radius: 12rpx;
+  background: #f5f5f5;
+  flex-shrink: 0;
+}
+
+.product-info {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 6rpx;
+  min-width: 0;
+}
+
+.product-name {
+  font-size: 28rpx;
+  color: #333;
+  font-weight: 500;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.product-spec {
+  font-size: 22rpx;
+  color: #999;
+}
+
+.product-bottom {
+  display: flex;
+  align-items: center;
+  gap: 16rpx;
+}
+
+.product-price {
+  font-size: 28rpx;
+  color: #ff4d4f;
+  font-weight: 600;
+}
+
+.product-stock {
+  font-size: 22rpx;
+  color: #999;
+}
+
+.product-actions {
+  flex-shrink: 0;
+}
+
+/* 加载更多 */
+.load-more {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 24rpx 0;
+  gap: 12rpx;
+}
+
+.loading-more-spinner {
+  width: 28rpx;
+  height: 28rpx;
+  border: 3rpx solid #e0e0e0;
+  border-top-color: #1677FF;
+  border-radius: 50%;
+  animation: spin 0.8s linear infinite;
+}
+
+.load-more-text {
+  font-size: 22rpx;
+  color: #bbb;
+}
+
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+
+/* 加载中 */
+.customer-loading,
+.product-loading {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 80rpx 0;
+}
+
+.loading-spinner {
+  width: 48rpx;
+  height: 48rpx;
+  border: 4rpx solid #e0e0e0;
+  border-top-color: #1677FF;
+  border-radius: 50%;
+  animation: spin 0.8s linear infinite;
+}
+
+.loading-text {
+  font-size: 26rpx;
+  color: #999;
+  margin-top: 20rpx;
+}
+
+/* 空状态 */
+.empty-state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 80rpx 0;
+}
+
+.empty-text {
+  font-size: 26rpx;
+  color: #bbb;
 }
 </style>

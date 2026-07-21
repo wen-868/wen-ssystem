@@ -19,6 +19,7 @@
         <el-table-column prop="businessStatus" label="营业状态" width="100">
           <template #default="{ row }">
             <el-tag v-if="row.businessStatus === 'OPEN'" type="success">营业中</el-tag>
+            <el-tag v-else-if="row.businessStatus === 'PAUSED'" type="warning">暂停营业</el-tag>
             <el-tag v-else-if="row.businessStatus === 'CLOSED'" type="info">已关闭</el-tag>
             <el-tag v-else>{{ row.businessStatus }}</el-tag>
           </template>
@@ -46,20 +47,75 @@
       </div>
     </el-card>
 
-    <el-dialog v-model="storeDialogVisible" title="新增门店" width="480px">
-      <el-form ref="storeFormRef" :model="storeForm" :rules="storeRules" label-width="100px">
-        <el-form-item label="门店编码" prop="code">
-          <el-input v-model="storeForm.code" />
-        </el-form-item>
-        <el-form-item label="门店名称" prop="name">
-          <el-input v-model="storeForm.name" />
-        </el-form-item>
-        <el-form-item label="门店地址">
+    <el-dialog v-model="storeDialogVisible" title="新增门店" width="560px">
+      <el-form ref="storeFormRef" :model="storeForm" :rules="storeRules" label-width="110px">
+        <el-row :gutter="20">
+          <el-col :span="12">
+            <el-form-item label="门店编码" prop="code">
+              <el-input v-model="storeForm.code" />
+            </el-form-item>
+          </el-col>
+          <el-col :span="12">
+            <el-form-item label="门店名称" prop="name">
+              <el-input v-model="storeForm.name" />
+            </el-form-item>
+          </el-col>
+        </el-row>
+        <el-form-item label="门店地址" prop="address">
           <el-input v-model="storeForm.address" />
         </el-form-item>
-        <el-form-item label="联系电话" prop="phone">
-          <el-input v-model="storeForm.phone" />
-        </el-form-item>
+        <el-row :gutter="20">
+          <el-col :span="12">
+            <el-form-item label="联系人" prop="contact">
+              <el-input v-model="storeForm.contact" />
+            </el-form-item>
+          </el-col>
+          <el-col :span="12">
+            <el-form-item label="联系电话" prop="phone">
+              <el-input v-model="storeForm.phone" />
+            </el-form-item>
+          </el-col>
+        </el-row>
+        <el-row :gutter="20">
+          <el-col :span="12">
+            <el-form-item label="经度" prop="lng">
+              <el-input-number v-model="storeForm.lng" :precision="6" :step="0.0001" style="width: 100%" />
+            </el-form-item>
+          </el-col>
+          <el-col :span="12">
+            <el-form-item label="纬度" prop="lat">
+              <el-input-number v-model="storeForm.lat" :precision="6" :step="0.0001" style="width: 100%" />
+            </el-form-item>
+          </el-col>
+        </el-row>
+        <el-row :gutter="20">
+          <el-col :span="12">
+            <el-form-item label="配送半径(km)" prop="deliveryRadius">
+              <el-input-number v-model="storeForm.deliveryRadius" :min="0" :max="100" style="width: 100%" />
+            </el-form-item>
+          </el-col>
+          <el-col :span="12">
+            <el-form-item label="营业状态" prop="businessStatus">
+              <el-select v-model="storeForm.businessStatus" style="width: 100%">
+                <el-option label="营业中" value="OPEN" />
+                <el-option label="暂停营业" value="PAUSED" />
+                <el-option label="已关闭" value="CLOSED" />
+              </el-select>
+            </el-form-item>
+          </el-col>
+        </el-row>
+        <el-row :gutter="20">
+          <el-col :span="12">
+            <el-form-item label="支持配送">
+              <el-switch v-model="storeForm.fulfillmentDeliveryEnabled" />
+            </el-form-item>
+          </el-col>
+          <el-col :span="12">
+            <el-form-item label="支持自提">
+              <el-switch v-model="storeForm.fulfillmentPickupEnabled" />
+            </el-form-item>
+          </el-col>
+        </el-row>
       </el-form>
       <template #footer>
         <el-button @click="storeDialogVisible = false">取消</el-button>
@@ -67,29 +123,66 @@
       </template>
     </el-dialog>
 
-    <el-dialog v-model="storeEditDialogVisible" title="编辑门店" width="520px">
+    <el-dialog v-model="storeEditDialogVisible" title="编辑门店" width="560px">
       <el-form ref="storeEditFormRef" :model="storeEditForm" :rules="storeEditFormRules" label-width="110px">
-        <el-form-item label="门店名称">
+        <el-form-item label="门店名称" prop="name">
           <el-input v-model="storeEditForm.name" />
         </el-form-item>
-        <el-form-item label="地址">
+        <el-form-item label="地址" prop="address">
           <el-input v-model="storeEditForm.address" />
         </el-form-item>
-        <el-form-item label="联系人">
-          <el-input v-model="storeEditForm.contact" />
-        </el-form-item>
-        <el-form-item label="联系电话">
-          <el-input v-model="storeEditForm.phone" />
-        </el-form-item>
-        <el-form-item label="配送半径(km)">
-          <el-input-number v-model="storeEditForm.deliveryRadius" :min="1" :max="100" />
-        </el-form-item>
-        <el-form-item label="营业状态">
-          <el-select v-model="storeEditForm.businessStatus" style="width: 100%">
-            <el-option label="营业中" value="OPEN" />
-            <el-option label="已关闭" value="CLOSED" />
-          </el-select>
-        </el-form-item>
+        <el-row :gutter="20">
+          <el-col :span="12">
+            <el-form-item label="联系人" prop="contact">
+              <el-input v-model="storeEditForm.contact" />
+            </el-form-item>
+          </el-col>
+          <el-col :span="12">
+            <el-form-item label="联系电话" prop="phone">
+              <el-input v-model="storeEditForm.phone" />
+            </el-form-item>
+          </el-col>
+        </el-row>
+        <el-row :gutter="20">
+          <el-col :span="12">
+            <el-form-item label="经度" prop="lng">
+              <el-input-number v-model="storeEditForm.lng" :precision="6" :step="0.0001" style="width: 100%" />
+            </el-form-item>
+          </el-col>
+          <el-col :span="12">
+            <el-form-item label="纬度" prop="lat">
+              <el-input-number v-model="storeEditForm.lat" :precision="6" :step="0.0001" style="width: 100%" />
+            </el-form-item>
+          </el-col>
+        </el-row>
+        <el-row :gutter="20">
+          <el-col :span="12">
+            <el-form-item label="配送半径(km)" prop="deliveryRadius">
+              <el-input-number v-model="storeEditForm.deliveryRadius" :min="0" :max="100" style="width: 100%" />
+            </el-form-item>
+          </el-col>
+          <el-col :span="12">
+            <el-form-item label="营业状态" prop="businessStatus">
+              <el-select v-model="storeEditForm.businessStatus" style="width: 100%">
+                <el-option label="营业中" value="OPEN" />
+                <el-option label="暂停营业" value="PAUSED" />
+                <el-option label="已关闭" value="CLOSED" />
+              </el-select>
+            </el-form-item>
+          </el-col>
+        </el-row>
+        <el-row :gutter="20">
+          <el-col :span="12">
+            <el-form-item label="支持配送">
+              <el-switch v-model="storeEditForm.fulfillmentDeliveryEnabled" />
+            </el-form-item>
+          </el-col>
+          <el-col :span="12">
+            <el-form-item label="支持自提">
+              <el-switch v-model="storeEditForm.fulfillmentPickupEnabled" />
+            </el-form-item>
+          </el-col>
+        </el-row>
         <el-form-item label="小程序 AppID">
           <div style="display: flex; gap: 8px; width: 100%">
             <el-input v-model="storeEditForm.miniappAppid" placeholder="输入微信小程序 AppID" style="flex: 1" />
@@ -146,7 +239,14 @@ const storeForm = reactive({
   code: "",
   name: "",
   address: "",
-  phone: ""
+  contact: "",
+  phone: "",
+  lng: 0,
+  lat: 0,
+  deliveryRadius: 3,
+  businessStatus: "OPEN",
+  fulfillmentDeliveryEnabled: true,
+  fulfillmentPickupEnabled: true
 });
 
 const storeEditForm = ref({
@@ -155,8 +255,12 @@ const storeEditForm = ref({
   address: '',
   contact: '',
   phone: '',
+  lng: 0,
+  lat: 0,
   deliveryRadius: 3,
   businessStatus: 'OPEN',
+  fulfillmentDeliveryEnabled: true,
+  fulfillmentPickupEnabled: true,
   miniappAppid: '',
   wxMerchantName: '',
   wxServicePhone: '',
@@ -225,14 +329,28 @@ async function handleCreateStore() {
         code: storeForm.code,
         name: storeForm.name,
         address: storeForm.address,
-        phone: storeForm.phone
+        contact: storeForm.contact,
+        phone: storeForm.phone,
+        lng: storeForm.lng,
+        lat: storeForm.lat,
+        deliveryRadius: storeForm.deliveryRadius,
+        businessStatus: storeForm.businessStatus,
+        fulfillmentDeliveryEnabled: storeForm.fulfillmentDeliveryEnabled,
+        fulfillmentPickupEnabled: storeForm.fulfillmentPickupEnabled
       });
       ElMessage.success("门店已新增");
       storeDialogVisible.value = false;
       storeForm.code = "";
       storeForm.name = "";
       storeForm.address = "";
+      storeForm.contact = "";
       storeForm.phone = "";
+      storeForm.lng = 0;
+      storeForm.lat = 0;
+      storeForm.deliveryRadius = 3;
+      storeForm.businessStatus = "OPEN";
+      storeForm.fulfillmentDeliveryEnabled = true;
+      storeForm.fulfillmentPickupEnabled = true;
       loadStores();
     } catch (e: any) {
       ElMessage.error(getErrorMessage(e, "新增门店失败"));
@@ -254,8 +372,12 @@ async function openStoreEdit(row: any) {
       address: detail.address || '',
       contact: detail.contact || '',
       phone: detail.phone || '',
+      lng: detail.lng || 0,
+      lat: detail.lat || 0,
       deliveryRadius: detail.deliveryRadius || 3,
       businessStatus: detail.businessStatus || 'OPEN',
+      fulfillmentDeliveryEnabled: detail.fulfillmentDeliveryEnabled ?? true,
+      fulfillmentPickupEnabled: detail.fulfillmentPickupEnabled ?? true,
       miniappAppid: detail.miniappAppid || '',
       wxMerchantName: detail.wxMerchantName || '',
       wxServicePhone: detail.wxServicePhone || '',
@@ -278,8 +400,12 @@ async function submitStoreEdit() {
       address: storeEditForm.value.address,
       contact: storeEditForm.value.contact,
       phone: storeEditForm.value.phone,
+      lng: storeEditForm.value.lng,
+      lat: storeEditForm.value.lat,
       deliveryRadius: storeEditForm.value.deliveryRadius,
       businessStatus: storeEditForm.value.businessStatus,
+      fulfillmentDeliveryEnabled: storeEditForm.value.fulfillmentDeliveryEnabled,
+      fulfillmentPickupEnabled: storeEditForm.value.fulfillmentPickupEnabled,
       miniappAppid: storeEditForm.value.miniappAppid,
       wxMerchantName: storeEditForm.value.wxMerchantName,
       wxServicePhone: storeEditForm.value.wxServicePhone,

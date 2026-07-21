@@ -56,154 +56,95 @@ describe("error-response-interceptor", () => {
     expect(next).toHaveBeenCalled();
   });
 
-  it("2xx 状态码不应记录错误日志", () => {
+  it("2xx 状态码不应触发飞书告警，也不记录错误日志", () => {
     const { req, res, next } = mockReqRes();
     errorResponseInterceptor(req, res as any, next);
 
     res.status(200).json({ msg: "ok" });
     expect(mockInsertErrorLog).not.toHaveBeenCalled();
+    expect(mockReportToLingZhou).not.toHaveBeenCalled();
   });
 
-  it("400 状态码应记录 validation 类型错误", () => {
+  it("400 状态码不应调用 insertErrorLog（统一由 errorHandler 负责）", () => {
     const { req, res, next } = mockReqRes("/api/test", "POST", { id: 1 });
     errorResponseInterceptor(req, res as any, next);
 
     res.status(400).json({ msg: "参数错误" });
-    expect(mockInsertErrorLog).toHaveBeenCalledWith(
-      expect.objectContaining({
-        error_type: "validation",
-        severity: "WARN",
-        message: "参数错误",
-        status_code: 400,
-      })
-    );
+    expect(mockInsertErrorLog).not.toHaveBeenCalled();
+    expect(mockReportToLingZhou).not.toHaveBeenCalled();
   });
 
-  it("401 状态码应记录 auth 类型错误", () => {
+  it("401 状态码不应调用 insertErrorLog", () => {
     const { req, res, next } = mockReqRes();
     errorResponseInterceptor(req, res as any, next);
 
     res.status(401).json({ msg: "未登录" });
-    expect(mockInsertErrorLog).toHaveBeenCalledWith(
-      expect.objectContaining({
-        error_type: "auth",
-        severity: "WARN",
-      })
-    );
+    expect(mockInsertErrorLog).not.toHaveBeenCalled();
+    expect(mockReportToLingZhou).not.toHaveBeenCalled();
   });
 
-  it("403 状态码应记录 auth 类型错误 + ERROR 级别", () => {
+  it("403 状态码不应调用 insertErrorLog", () => {
     const { req, res, next } = mockReqRes();
     errorResponseInterceptor(req, res as any, next);
 
     res.status(403).json({ msg: "无权限" });
-    expect(mockInsertErrorLog).toHaveBeenCalledWith(
-      expect.objectContaining({
-        error_type: "auth",
-        severity: "ERROR",
-      })
-    );
+    expect(mockInsertErrorLog).not.toHaveBeenCalled();
+    expect(mockReportToLingZhou).not.toHaveBeenCalled();
   });
 
-  it("404 状态码应记录 not_found 类型错误", () => {
+  it("404 状态码不应调用 insertErrorLog", () => {
     const { req, res, next } = mockReqRes();
     errorResponseInterceptor(req, res as any, next);
 
     res.status(404).json({ msg: "未找到" });
-    expect(mockInsertErrorLog).toHaveBeenCalledWith(
-      expect.objectContaining({
-        error_type: "not_found",
-      })
-    );
+    expect(mockInsertErrorLog).not.toHaveBeenCalled();
+    expect(mockReportToLingZhou).not.toHaveBeenCalled();
   });
 
-  it("500 状态码应记录 server 类型错误 + ERROR 级别", () => {
-    const { req, res, next } = mockReqRes("/api/crash", "POST", { id: 42 });
-    errorResponseInterceptor(req, res as any, next);
-
-    res.status(500).json({ msg: "服务器内部错误" });
-    expect(mockInsertErrorLog).toHaveBeenCalledWith(
-      expect.objectContaining({
-        error_type: "server",
-        severity: "ERROR",
-        message: "服务器内部错误",
-        status_code: 500,
-        user_id: 42,
-        request_url: "/api/crash",
-        request_method: "POST",
-      })
-    );
-  });
-
-  it("422 状态码应记录 validation 类型错误", () => {
+  it("422 状态码不应调用 insertErrorLog", () => {
     const { req, res, next } = mockReqRes();
     errorResponseInterceptor(req, res as any, next);
 
     res.status(422).json({ msg: "验证失败" });
-    expect(mockInsertErrorLog).toHaveBeenCalledWith(
-      expect.objectContaining({
-        error_type: "validation",
-      })
-    );
+    expect(mockInsertErrorLog).not.toHaveBeenCalled();
+    expect(mockReportToLingZhou).not.toHaveBeenCalled();
   });
 
-  it("429 状态码应记录 business 类型 + ERROR 级别", () => {
+  it("429 状态码不应调用 insertErrorLog", () => {
     const { req, res, next } = mockReqRes();
     errorResponseInterceptor(req, res as any, next);
 
     res.status(429).json({ msg: "请求过于频繁" });
-    expect(mockInsertErrorLog).toHaveBeenCalledWith(
-      expect.objectContaining({
-        error_type: "business",
-        severity: "ERROR",
-      })
-    );
+    expect(mockInsertErrorLog).not.toHaveBeenCalled();
+    expect(mockReportToLingZhou).not.toHaveBeenCalled();
   });
 
-  it("其他 4xx 状态码应记录 business 类型", () => {
+  it("其他 4xx 状态码不应调用 insertErrorLog", () => {
     const { req, res, next } = mockReqRes();
     errorResponseInterceptor(req, res as any, next);
 
     res.status(409).json({ msg: "冲突" });
-    expect(mockInsertErrorLog).toHaveBeenCalledWith(
-      expect.objectContaining({
-        error_type: "business",
-      })
-    );
+    expect(mockInsertErrorLog).not.toHaveBeenCalled();
+    expect(mockReportToLingZhou).not.toHaveBeenCalled();
   });
 
-  it("无 user 时 user_id 应为 null", () => {
-    const { req, res, next } = mockReqRes();
+  it("500 状态码应触发飞书告警（不调用 insertErrorLog）", () => {
+    const { req, res, next } = mockReqRes("/api/crash", "POST", { id: 42 });
     errorResponseInterceptor(req, res as any, next);
 
-    res.status(400).json({ msg: "错误" });
-    expect(mockInsertErrorLog).toHaveBeenCalledWith(
+    res.status(500).json({ msg: "服务器内部错误" });
+    expect(mockInsertErrorLog).not.toHaveBeenCalled();
+    expect(mockReportToLingZhou).toHaveBeenCalledWith(
       expect.objectContaining({
-        user_id: null,
-      })
-    );
-  });
-
-  it("body.message 存在时应使用 message", () => {
-    const { req, res, next } = mockReqRes();
-    errorResponseInterceptor(req, res as any, next);
-
-    res.status(400).json({ message: "自定义错误消息" });
-    expect(mockInsertErrorLog).toHaveBeenCalledWith(
-      expect.objectContaining({
-        message: "自定义错误消息",
-      })
-    );
-  });
-
-  it("body 无 message/msg 时应使用默认消息", () => {
-    const { req, res, next } = mockReqRes();
-    errorResponseInterceptor(req, res as any, next);
-
-    res.status(400).json({ foo: "bar" });
-    expect(mockInsertErrorLog).toHaveBeenCalledWith(
-      expect.objectContaining({
-        message: "请求错误",
+        phase: "系统错误告警",
+        status: "BLOCKED",
+        summary: "[POST] /api/crash — 服务器内部错误",
+        details: expect.arrayContaining([
+          { label: "请求URL", value: "POST /api/crash" },
+          { label: "用户ID", value: 42 },
+          { label: "状态码", value: "500" },
+          { label: "错误消息", value: "服务器内部错误" },
+        ]),
       })
     );
   });
@@ -248,6 +189,34 @@ describe("error-response-interceptor", () => {
     );
   });
 
+  it("body.message 存在时飞书告警应使用 message", () => {
+    const { req, res, next } = mockReqRes();
+    errorResponseInterceptor(req, res as any, next);
+
+    res.status(500).json({ message: "自定义错误消息" });
+    expect(mockReportToLingZhou).toHaveBeenCalledWith(
+      expect.objectContaining({
+        details: expect.arrayContaining([
+          { label: "错误消息", value: "自定义错误消息" },
+        ]),
+      })
+    );
+  });
+
+  it("body 无 message/msg 时飞书告警应使用默认消息", () => {
+    const { req, res, next } = mockReqRes();
+    errorResponseInterceptor(req, res as any, next);
+
+    res.status(500).json({ foo: "bar" });
+    expect(mockReportToLingZhou).toHaveBeenCalledWith(
+      expect.objectContaining({
+        details: expect.arrayContaining([
+          { label: "错误消息", value: "服务器内部错误" },
+        ]),
+      })
+    );
+  });
+
   it("req.originalUrl 不存在时应回退到 req.url", () => {
     const { req, res, next } = mockReqRes(
       "/api/fallback",
@@ -260,12 +229,6 @@ describe("error-response-interceptor", () => {
     errorResponseInterceptor(req, res as any, next);
 
     res.status(500).json({ msg: "错误" });
-
-    expect(mockInsertErrorLog).toHaveBeenCalledWith(
-      expect.objectContaining({
-        request_url: "/api/fallback",
-      })
-    );
 
     expect(mockReportToLingZhou).toHaveBeenCalledWith(
       expect.objectContaining({
@@ -285,12 +248,6 @@ describe("error-response-interceptor", () => {
 
     res.status(500).json({ msg: "错误" });
 
-    expect(mockInsertErrorLog).toHaveBeenCalledWith(
-      expect.objectContaining({
-        request_url: "",
-      })
-    );
-
     expect(mockReportToLingZhou).toHaveBeenCalledWith(
       expect.objectContaining({
         summary: "[GET]  — 错误",
@@ -308,12 +265,6 @@ describe("error-response-interceptor", () => {
 
     res.status(500).json({ msg: "错误" });
 
-    expect(mockInsertErrorLog).toHaveBeenCalledWith(
-      expect.objectContaining({
-        request_method: "",
-      })
-    );
-
     expect(mockReportToLingZhou).toHaveBeenCalledWith(
       expect.objectContaining({
         summary: "[] /api/test — 错误",
@@ -322,15 +273,6 @@ describe("error-response-interceptor", () => {
         ]),
       })
     );
-  });
-
-  it("insertErrorLog reject 时 catch 回调应被触发且不抛出", async () => {
-    mockInsertErrorLog.mockRejectedValueOnce(new Error("db error"));
-    const { req, res, next } = mockReqRes();
-    errorResponseInterceptor(req, res as any, next);
-
-    expect(() => res.status(400).json({ msg: "错误" })).not.toThrow();
-    await new Promise((r) => setTimeout(r, 0));
   });
 
   it("reportToLingZhou reject 时 catch 回调应被触发且不抛出", async () => {

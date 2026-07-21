@@ -84,17 +84,30 @@
       <el-form ref="formRef" :model="form" :rules="rules" label-width="100px">
         <el-row :gutter="20">
           <el-col :span="12">
-            <el-form-item label="供应商">
+            <el-form-item label="供应商" prop="supplierId">
               <el-select v-model="form.supplierId" placeholder="请选择供应商" style="width: 100%">
                 <el-option v-for="s in suppliers" :key="s.id" :label="s.name" :value="s.id" />
               </el-select>
             </el-form-item>
           </el-col>
           <el-col :span="12">
-            <el-form-item label="门店">
+            <el-form-item label="门店" prop="storeId">
               <el-select v-model="form.storeId" style="width: 100%">
                 <el-option label="默认门店" :value="1" />
               </el-select>
+            </el-form-item>
+          </el-col>
+        </el-row>
+        <el-row :gutter="20">
+          <el-col :span="12">
+            <el-form-item label="预计到货日期" prop="expectedDate">
+              <el-date-picker
+                v-model="form.expectedDate"
+                type="date"
+                placeholder="请选择预计到货日期"
+                value-format="YYYY-MM-DD"
+                style="width: 100%"
+              />
             </el-form-item>
           </el-col>
         </el-row>
@@ -145,6 +158,7 @@
           <el-descriptions-item label="订单号">{{ currentOrder.orderNo }}</el-descriptions-item>
           <el-descriptions-item label="供应商">{{ currentOrder.supplierName }}</el-descriptions-item>
           <el-descriptions-item label="门店ID">{{ currentOrder.storeId }}</el-descriptions-item>
+          <el-descriptions-item label="预计到货日期">{{ currentOrder.expectedDate || '-' }}</el-descriptions-item>
           <el-descriptions-item label="订单状态">
             <el-tag v-if="currentOrder.orderStatus === 'DRAFT'" type="info">草稿</el-tag>
             <el-tag v-else-if="currentOrder.orderStatus === 'PENDING'" type="warning">待确认</el-tag>
@@ -207,6 +221,7 @@ const currentOrder = ref<any>(null);
 const defaultForm = {
   supplierId: 0,
   storeId: 1,
+  expectedDate: "",
   remark: "",
   items: [{ skuId: 0, skuName: "", bottleQty: 1, totalBottleQty: 1, unitPrice: 0 }]
 };

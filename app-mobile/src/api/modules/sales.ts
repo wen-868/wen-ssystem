@@ -10,6 +10,8 @@ export interface SaleItem {
   bottleQty: number
   unitPrice: number
   subtotalAmount: number
+  unit?: string
+  specs?: string
 }
 
 export interface CreateSaleParams {

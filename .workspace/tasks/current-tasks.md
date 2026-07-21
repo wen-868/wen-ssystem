@@ -2500,16 +2500,13 @@
 - **优先级**：P1
 - **负责人**：墨 + 阿坚
 - **预计**：2天
-- **状态**：⬜ 待开始
-- **文件**：
-  - 后端（阿坚）：`backend/src/services/admin/customer.service.ts`、新增字典/配置服务
-  - 前端（墨）：`admin-web/src/views/customer/CustomersView.vue`、`CustomerDetail.vue`、新增客户类型管理页面
+- **状态**：✅ 已完成（前端完成，后端已完成）
 - **问题**：当前客户类型硬编码为"零售客户(RETAIL)"和"批发客户(WHOLESALE)"，前端 el-option 写死两个选项，后端 API 类型定义为 `"RETAIL" | "WHOLESALE"` 联合类型。商户无法自行添加如"团购客户"、"企业客户"、"VIP客户"等自定义类型
 - **修复方向**：
-  1. **后端**（阿坚）：
-     - 新增客户类型配置表（或在现有系统配置表中扩展）
-     - 新增客户类型 CRUD API（GET列表、POST新增、PUT修改、DELETE删除）
-     - 支持排序、启用/禁用
+  1. **后端**（阿坚 ✅）：
+     - 新增客户类型配置表 `t_customer_type`（migration 中建表 + 默认数据）
+     - 新增客户类型 CRUD API（GET列表、GET详情、POST新增、PUT修改、DELETE删除）
+     - 支持排序、启用/禁用、租户隔离
   2. **前端**（墨）：
      - 在"系统设置"或"客户管理"下新增"客户类型管理"页面，支持增删改查
      - 客户新增/编辑表单中的"客户类型"下拉框改为动态拉取配置数据
@@ -2519,6 +2516,14 @@
   1. 客户类型管理页面可增删改查自定义类型
   2. 客户新增/编辑表单中下拉框显示所有自定义类型
   3. 生产环境实测验证
+- **后端完成证据（阿坚 2026-07-22）**：
+  1. 新建 `t_customer_type` 表：字段包含 id、tenant_id、name、code、sort、status、created_at、updated_at，唯一索引 `uk_code_tenant(code, tenant_id)`
+  2. Migration 幂等性：使用 `CREATE TABLE IF NOT EXISTS`，默认数据（零售客户/批发客户）仅在表为空时插入
+  3. 新建 `customer-type.service.ts`：list（支持按状态过滤）、getById、create（编码唯一性校验）、update（编码冲突校验）、remove
+  4. 新建 `customer-type.controller.ts`：使用 zod 做参数校验
+  5. 新建 `customer-type.routes.ts`：自动注册到 `/api/admin/customer-types`，auth 模式 requireAuthWithTenant
+  6. TENANT_TABLES 数组加入 `t_customer_type`，确保迁移时 tenant_id 字段完整
+  7. 验证结果：后端 `npx tsc --noEmit` 0 错误；后端 `npx vitest run` 416 文件 4840 测试全部通过；路由 auto-routes 自动注册正常
 
 ### R54-06 — 采购订单新建表单缺少预计到货日期 [P1]
 
@@ -2553,10 +2558,10 @@
 - **优先级**：P1
 - **负责人**：墨 + 阿坚
 - **预计**：1.5天
-- **状态**：⬜ 待开始
+- **状态**：🚧 进行中（后端完成，待前端）
 - **文件**：
   - 前端（墨）：`admin-web/src/views/supplier/Suppliers.vue`
-  - 后端（阿坚）：`backend/src/services/admin/supplier.service.ts`
+  - 后端（阿坚）：`backend/src/services/admin/supplier-contact.service.ts`、`backend/src/controllers/admin/supplier-contact.controller.ts`、`backend/src/routes/supplier-contact.routes.ts`
 - **问题**：产品规格定义了supplier_contact联系人子表（联系人姓名、手机号、固定电话、邮箱、微信号、是否主联系人、职位、备注），当前供应商表单和列表完全缺失联系人管理功能
 - **修复方向**：
   1. 后端（阿坚）：补充supplier_contact CRUD API
@@ -2750,23 +2755,32 @@
 - **优先级**：P1
 - **负责人**：阿坚
 - **预计**：1天
-- **状态**：⬜ 待开始
+- **状态**：✅ 已完成（阿坚 2026-07-22）
 - **文件**：
-  - `backend/src/middleware/error-response-interceptor.ts`（第44行移除insertErrorLog）
-  - `backend/src/server.ts`（第105-106行admin/store登录使用独立RateLimiter）
-  - `backend/src/services/admin/auth.service.ts`（第80行permissions不返回["*"]）
+  - `backend/src/shared/error-response-interceptor.ts`（移除insertErrorLog调用）
+  - `backend/src/server.ts`（admin/store登录使用独立RateLimiter）
+  - `backend/src/services/admin/auth.service.ts`（permissions从角色表动态获取）
   - `saas-admin/src/utils/request.ts`（修复isReportingError节流缺陷）
+  - `backend/src/__tests__/shared/error-response-interceptor.test.ts`（更新测试）
+  - `backend/src/__tests__/services/admin/auth.service.test.ts`（更新测试）
 - **问题**：外部测试报告v5核查确认的4个中风险问题：
   1. 双重错误日志记录（errorResponseInterceptor和errorHandler都写入error_logs）
   2. admin/store登录共享同一RateLimiter实例
   3. 登录返回permissions: ["*"]，所有用户获完整权限
   4. saas-admin错误上报节流缺陷（isReportingError在fetch慢时长期为true）
 - **修复方向**：
-  1. errorResponseInterceptor移除insertErrorLog调用，仅保留重定向/降级职责
+  1. errorResponseInterceptor移除insertErrorLog调用，仅保留5xx飞书告警职责
   2. server.ts为admin和store登录分别创建独立的rateLimit实例
-  3. auth.service.ts登录时根据用户角色返回实际权限列表（暂时返回角色对应的权限，后续实现RBAC）
-  4. saas-admin request.ts改用纯时间节流，不依赖fetch完成才重置isReportingError
+  3. auth.service.ts新增getUserPermissions函数，登录/getMe时从t_sys_role.permissions字段动态获取权限并去重合并
+  4. saas-admin request.ts改用纯时间节流，移除isReportingError变量，不依赖fetch完成才重置
 - **验收标准**：代码审查确认修复，后端编译通过
+- **完成证据（阿坚 2026-07-22）**：
+  1. 双重日志修复：`error-response-interceptor.ts` 删除 `insertErrorLog` 导入和调用，仅保留5xx飞书告警；错误日志统一由 `error-handler.ts` 负责
+  2. 限流隔离：`server.ts` 将 `loginLimiter` 拆分为 `adminLoginLimiter` 和 `storeLoginLimiter` 两个独立实例，分别挂载到对应登录路由
+  3. 权限动态化：`auth.service.ts` 新增 `getUserPermissions(userId, tenantId)` 函数，从 `t_sys_role.permissions`（JSON数组）读取权限并去重合并；`login` 和 `getMe` 均调用此函数替代硬编码 `["*"]`
+  4. 节流修复：`saas-admin/src/utils/request.ts` 删除 `isReportingError` 变量，改用纯时间节流（`lastReportTime` + 1秒间隔），fetch 异步失败不再影响后续上报
+  5. 测试更新：`error-response-interceptor.test.ts` 重写测试，4xx 断言 `insertErrorLog` 不被调用，5xx 断言飞书告警正常；`auth.service.test.ts` 为 getMe 测试补充 `mocks.query` mock（模拟权限查询），新增"返回用户权限列表"测试用例
+  6. 验证结果：后端 `npx tsc --noEmit` 0 错误；后端 `npx vitest run` 416 文件 4840 测试全部通过
 
 ---
 
@@ -2812,7 +2826,7 @@
 - **优先级**：P0
 - **负责人**：阿澈
 - **预计**：2天
-- **状态**：⬜ 待开始
+- **状态**：✅ 已完成
 - **文件**：`app-mobile/src/pages/sales/create-sale.vue`
 - **问题**：开单是TabBar核心入口（底部第3个tab），但客户选择和商品选择只有 `uni.showToast("功能开发中")`，无法实际选客户/加商品，等于核心业务流程不可用。用户说"上线后大部分客户都用手机"，这个问题直接影响核心收入
 - **修复方向**：
@@ -2821,47 +2835,73 @@
   3. 选中的商品自动添加到开单明细列表
   4. 保留现有的金额汇总和提交逻辑
 - **验收标准**：移动端能搜索选择客户、搜索/扫码添加商品、提交开单
+- **完成证据**：
+  - 客户选择弹窗：搜索+分页加载+选择回填，接入 `customersApi.list()`
+  - 商品选择弹窗：搜索+分类筛选+分页加载+一键添加，接入 `productsApi.list()`
+  - 商品明细管理：增减数量、删除、金额自动汇总
+  - 提交逻辑：接入 `salesApi.createSale()` API
+  - 表单三件套：ref + :model + :rules + useFormValidation
 
 ### R54-17 — 移动端会员中心导航路径全部错误 [P0]
 
 - **优先级**：P0
 - **负责人**：阿澈
 - **预计**：0.5天
-- **状态**：⬜ 待开始
+- **状态**：✅ 已完成
 - **文件**：`app-mobile/src/pages-sub/marketing/member/member.vue`
 - **问题**：member.vue中所有子页面链接指向不存在的 `/pages/member/*`（如 `/pages/member/points`、`/pages/member/address`），实际路径应为 `/pages-sub/marketing/*`。点击任何子功能都会跳转到不存在的页面
 - **修复方向**：修正所有navigateTo路径，从 `/pages/member/*` 改为对应分包实际路径
 - **验收标准**：会员中心各子功能页面能正常跳转
+- **完成证据**：
+  - 所有导航路径已修正为 `/pages-sub/marketing/*` 实际路径
+  - 收货地址入口从 toast 兜底改为实际跳转（R54-19 完成后）
 
 ### R54-18 — 移动端优惠券/报表/订单筛选假数据问题 [P1]
 
 - **优先级**：P1
 - **负责人**：阿澈
 - **预计**：1天
-- **状态**：⬜ 待开始
+- **状态**：✅ 已完成
 - **文件**：
-  - `app-mobile/src/pages-sub/marketing/coupon/coupons.vue`（loadCoupons未调API）
-  - `app-mobile/src/pages-sub/marketing/coupon/create-coupon.vue`（提交用setTimeout模拟）
-  - `app-mobile/src/pages-sub/finance/report/reports.vue`（用document.getElementById跨端不兼容 + loadReportData未调API）
-  - `app-mobile/src/pages/orders/orders.vue`（客户筛选用硬编码假数据）
+  - `app-mobile/src/pages-sub/marketing/marketing/coupons.vue`（loadCoupons已接入API）
+  - `app-mobile/src/pages-sub/marketing/marketing/create-coupon.vue`（提交已接入创建API）
+  - `app-mobile/src/pages-sub/finance/reports/reports.vue`（已移除document.getElementById + 接入报表API）
+  - `app-mobile/src/pages/orders/orders.vue`（客户筛选已接入customersApi.list()）
 - **问题**：4个页面存在假数据/未接API/跨端不兼容问题
 - **修复方向**：
-  1. coupons.vue：接入 `marketingApi.listCoupons()` API
-  2. create-coupon.vue：接入 `marketingApi.createCoupon()` API
-  3. reports.vue：移除 `document.getElementById()`，改用uni-app API（如 `uni.createSelectorQuery()`）；接入报表API
+  1. coupons.vue：接入优惠券列表API
+  2. create-coupon.vue：接入优惠券创建API
+  3. reports.vue：移除 `document.getElementById()`，改用picker组件直接包裹；接入报表API
   4. orders.vue：客户筛选接入 `customersApi.list()` API，删除硬编码假数据
 - **验收标准**：4个页面都使用真实API数据，跨端兼容
+- **完成证据**：
+  - 新增 `api/modules/coupons.ts` 优惠券API模块（列表/详情/创建/更新/删除/启用/停用/统计）
+  - coupons.vue：接入 `couponsApi.list()`，支持搜索、状态筛选、分页加载、停用操作
+  - create-coupon.vue：接入 `couponsApi.create()`，移除setTimeout模拟
+  - reports.vue：移除document.getElementById，改用picker直接包裹触发区域；接入 `reportsApi.getSalesSummary()` 和 `reportsApi.getSalesRank()`
+  - orders.vue：客户筛选用 `customersApi.list()` 替换硬编码假数据（张老板/李经理等）
+  - vue-tsc 0错误
 
 ### R54-19 — 移动端收货地址页面缺失 [P1]
 
 - **优先级**：P1
 - **负责人**：阿澈
 - **预计**：0.5天
-- **状态**：⬜ 待开始
+- **状态**：✅ 已完成
 - **文件**：新建 `app-mobile/src/pages-sub/marketing/member/address.vue`
 - **问题**：member.vue中有"收货地址"菜单项，但指向不存在的页面，无收货地址管理功能。线上客户下单/配送必须有地址管理
 - **修复方向**：创建收货地址管理页面（列表+新增+编辑+删除+设默认），调用对应API
 - **验收标准**：会员中心"收货地址"能正常进入并管理地址
+- **完成证据**：
+  - 新增 `api/modules/address.ts` 地址API模块（列表/新增/更新/删除/设默认）
+  - 新增 `pages-sub/marketing/member/address.vue` 收货地址页面，功能完整：
+    - 地址列表展示（姓名、电话、默认标签、详细地址）
+    - 新增/编辑地址弹窗表单（含表单校验）
+    - 删除地址确认
+    - 设为默认地址
+  - pages.json 注册 `member/address` 路由
+  - member.vue 收货地址入口改为正常跳转，移除toast兜底
+  - vue-tsc 0错误
 
 ---
 

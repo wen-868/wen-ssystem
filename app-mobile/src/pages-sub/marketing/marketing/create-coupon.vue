@@ -178,22 +178,24 @@
 <script setup lang="ts">
 import { ref, reactive } from 'vue'
 import { useFormValidation, type Rules } from '@/composables/useFormValidation'
+import { couponsApi } from '@/api/modules/coupons'
 
 const formRef = ref<any>(null)
+const submitting = ref(false)
 const form = reactive({
   name: '',
-  type: 'full',
+  type: 'full' as 'full' | 'discount' | 'shipping',
   amount: '',
   minAmount: '',
   totalCount: '',
   perPersonLimit: '1',
   startDate: '',
   endDate: '',
-  scopeType: 'all',
+  scopeType: 'all' as 'all' | 'category' | 'product',
   useCondition: '',
 })
 
-const couponTypes = [
+const couponTypes: { value: 'full' | 'discount' | 'shipping'; label: string; icon: string }[] = [
   { value: 'full', label: '满减券', icon: '¥' },
   { value: 'discount', label: '折扣券', icon: '%' },
   { value: 'shipping', label: '包邮券', icon: '邮' },
@@ -243,6 +245,7 @@ function chooseStartDate() {
       const days = [0, 1, 2, 7]
       const date = new Date(now.getTime() + days[res.tapIndex] * 24 * 60 * 60 * 1000)
       form.startDate = `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}-${String(date.getDate()).padStart(2, '0')}`
+      clearError('startDate')
     }
   })
 }
@@ -255,6 +258,7 @@ function chooseEndDate() {
       const days = [7, 14, 30, 90]
       const date = new Date(now.getTime() + days[res.tapIndex] * 24 * 60 * 60 * 1000)
       form.endDate = `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}-${String(date.getDate()).padStart(2, '0')}`
+      clearError('endDate')
     }
   })
 }
@@ -262,20 +266,39 @@ function chooseEndDate() {
 async function onSubmit() {
   const valid = await validate()
   if (!valid) return
+  if (submitting.value) return
 
   uni.showModal({
     title: '确认发布',
     content: '确认发布该优惠券？',
-    success: (res) => {
+    success: async (res) => {
       if (res.confirm) {
+        submitting.value = true
         uni.showLoading({ title: '发布中...' })
-        setTimeout(() => {
+        try {
+          await couponsApi.create({
+            name: form.name,
+            type: form.type,
+            amount: parseFloat(form.amount),
+            minAmount: form.minAmount ? parseFloat(form.minAmount) : 0,
+            totalCount: form.totalCount ? parseInt(form.totalCount) : undefined,
+            perPersonLimit: form.perPersonLimit ? parseInt(form.perPersonLimit) : 1,
+            startTime: `${form.startDate} 00:00:00`,
+            endTime: `${form.endDate} 23:59:59`,
+            scopeType: form.scopeType,
+            useCondition: form.useCondition || undefined,
+          })
           uni.hideLoading()
           uni.showToast({ title: '发布成功', icon: 'success' })
           setTimeout(() => {
             uni.navigateBack()
           }, 1500)
-        }, 1000)
+        } catch (err) {
+          uni.hideLoading()
+          console.error('发布优惠券失败:', err)
+        } finally {
+          submitting.value = false
+        }
       }
     }
   })

@@ -1,7 +1,7 @@
 import { api } from "./request";
 
 // ==================== Staff Management APIs ====================
-export async function createStaff(payload: { username: string; realName: string; mobile: string; role: string; storeId?: number }) {
+export async function createStaff(payload: { username: string; realName: string; mobile: string; role: string; storeId?: number; password?: string }) {
   const { data } = await api.post("/admin/staff", payload);
   return data.data;
 }

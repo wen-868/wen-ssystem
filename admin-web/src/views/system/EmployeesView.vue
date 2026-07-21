@@ -43,6 +43,7 @@
         <el-table-column label="操作" width="200" fixed="right">
           <template #default="{ row }">
             <el-button size="small" link type="primary" @click="openEdit(row)">编辑</el-button>
+            <el-button size="small" link type="warning" @click="openResetPassword(row)">重置密码</el-button>
             <el-button size="small" link :type="row.status === 1 || row.status === 'ACTIVE' ? 'danger' : 'success'" @click="toggleStatus(row)">
               {{ row.status === 1 || row.status === 'ACTIVE' ? '禁用' : '启用' }}
             </el-button>
@@ -94,10 +95,37 @@
             />
           </el-select>
         </el-form-item>
+        <el-form-item v-if="!isEdit" label="初始密码" prop="password">
+          <el-input v-model="form.password" type="password" show-password placeholder="请设置初始密码" />
+          <div style="font-size: 12px; color: #909399; margin-top: 4px">至少8位，包含字母、数字和特殊字符</div>
+        </el-form-item>
       </el-form>
       <template #footer>
         <el-button @click="dialogVisible = false">取消</el-button>
         <el-button type="primary" :loading="submitLoading" @click="handleSubmit">保存</el-button>
+      </template>
+    </el-dialog>
+
+    <!-- 重置密码弹窗 -->
+    <el-dialog v-model="resetPasswordVisible" title="重置密码" width="480px">
+      <el-form ref="resetPasswordFormRef" :model="resetPasswordForm" :rules="resetPasswordRules" label-width="100px">
+        <el-form-item label="员工姓名">
+          <span>{{ resetPasswordForm.realName }}</span>
+        </el-form-item>
+        <el-form-item label="用户名">
+          <span>{{ resetPasswordForm.username }}</span>
+        </el-form-item>
+        <el-form-item label="新密码" prop="newPassword">
+          <el-input v-model="resetPasswordForm.newPassword" type="password" show-password placeholder="请输入新密码" />
+          <div style="font-size: 12px; color: #909399; margin-top: 4px">至少8位，包含字母、数字和特殊字符</div>
+        </el-form-item>
+        <el-form-item label="确认密码" prop="confirmPassword">
+          <el-input v-model="resetPasswordForm.confirmPassword" type="password" show-password placeholder="请再次输入新密码" />
+        </el-form-item>
+      </el-form>
+      <template #footer>
+        <el-button @click="resetPasswordVisible = false">取消</el-button>
+        <el-button type="primary" :loading="resetPasswordLoading" @click="handleResetPassword">确认重置</el-button>
       </template>
     </el-dialog>
   </div>
@@ -106,7 +134,7 @@
 <script setup lang="ts">
 import { onMounted, reactive, ref } from "vue";
 import { ElMessage, ElMessageBox, type FormInstance, type FormRules } from "element-plus";
-import { createStaff, fetchStaff, fetchStores, toggleStaffStatus, updateStaff } from "../../api";
+import { createStaff, fetchStaff, fetchStores, toggleStaffStatus, updateStaff, resetEmployeePassword } from "../../api";
 
 const loading = ref(false);
 const submitLoading = ref(false);
@@ -120,6 +148,30 @@ const dialogVisible = ref(false);
 const isEdit = ref(false);
 const formRef = ref<FormInstance>();
 
+// 重置密码相关
+const resetPasswordVisible = ref(false);
+const resetPasswordLoading = ref(false);
+const resetPasswordFormRef = ref<FormInstance>();
+const resetPasswordForm = reactive({
+  id: 0,
+  username: "",
+  realName: "",
+  newPassword: "",
+  confirmPassword: ""
+});
+
+const validateConfirmPassword = (_rule: any, value: string, callback: any) => {
+  if (!value) {
+    callback(new Error("请再次输入密码"));
+    return;
+  }
+  if (value !== resetPasswordForm.newPassword) {
+    callback(new Error("两次输入的密码不一致"));
+    return;
+  }
+  callback();
+};
+
 const mobilePattern = /^1[3-9]\d{9}$/;
 
 const defaultForm = {
@@ -128,10 +180,41 @@ const defaultForm = {
   realName: "",
   mobile: "",
   role: "STAFF",
-  storeId: null as number | null
+  storeId: null as number | null,
+  password: ""
 };
 
 const form = reactive({ ...defaultForm });
+
+// 密码校验：至少8位，包含字母、数字和特殊字符
+const validatePassword = (_rule: any, value: string, callback: any) => {
+  if (!value) {
+    callback(new Error("请输入密码"));
+    return;
+  }
+  if (value.length < 8) {
+    callback(new Error("密码长度不能少于8位"));
+    return;
+  }
+  if (!/[a-zA-Z]/.test(value)) {
+    callback(new Error("密码必须包含字母"));
+    return;
+  }
+  if (!/[0-9]/.test(value)) {
+    callback(new Error("密码必须包含数字"));
+    return;
+  }
+  if (!/[!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?`~]/.test(value)) {
+    callback(new Error("密码必须包含特殊字符"));
+    return;
+  }
+  callback();
+};
+
+const resetPasswordRules: FormRules = {
+  newPassword: [{ required: true, validator: validatePassword, trigger: "blur" }],
+  confirmPassword: [{ required: true, validator: validateConfirmPassword, trigger: "blur" }]
+};
 
 const rules: FormRules = {
   username: [{ required: true, message: "请填写用户名", trigger: "blur" }],
@@ -140,7 +223,8 @@ const rules: FormRules = {
     { required: true, message: "请填写手机号", trigger: "blur" },
     { pattern: mobilePattern, message: "请填写正确的手机号", trigger: "blur" }
   ],
-  role: [{ required: true, message: "请选择角色", trigger: "change" }]
+  role: [{ required: true, message: "请选择角色", trigger: "change" }],
+  password: [{ required: true, validator: validatePassword, trigger: "blur" }]
 };
 
 function getErrorMessage(error: unknown, fallback: string) {
@@ -222,7 +306,8 @@ async function handleSubmit() {
           realName: form.realName,
           mobile: form.mobile,
           role: form.role,
-          storeId: form.storeId || undefined
+          storeId: form.storeId || undefined,
+          password: form.password
         });
         ElMessage.success("员工已新增");
       }
@@ -251,6 +336,32 @@ async function toggleStatus(row: any) {
   } catch (e: any) {
     ElMessage.error(getErrorMessage(e, `${actionText}失败`));
   }
+}
+
+function openResetPassword(row: any) {
+  resetPasswordForm.id = row.staffId || row.id;
+  resetPasswordForm.username = row.username || "";
+  resetPasswordForm.realName = row.realName || "";
+  resetPasswordForm.newPassword = "";
+  resetPasswordForm.confirmPassword = "";
+  resetPasswordVisible.value = true;
+}
+
+async function handleResetPassword() {
+  if (!resetPasswordFormRef.value) return;
+  await resetPasswordFormRef.value.validate(async (valid) => {
+    if (!valid) return;
+    resetPasswordLoading.value = true;
+    try {
+      await resetEmployeePassword(resetPasswordForm.id, { newPassword: resetPasswordForm.newPassword });
+      ElMessage.success("密码重置成功");
+      resetPasswordVisible.value = false;
+    } catch (e: any) {
+      ElMessage.error(getErrorMessage(e, "重置密码失败"));
+    } finally {
+      resetPasswordLoading.value = false;
+    }
+  });
 }
 
 onMounted(() => {

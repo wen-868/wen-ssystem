@@ -7,6 +7,29 @@ import { generateCsrfToken } from "../../middleware/csrf";
 const MAX_LOGIN_ATTEMPTS = 5;
 const LOCK_DURATION_MINUTES = 15;
 
+/**
+ * 根据用户ID获取其所有角色的权限列表（去重合并）
+ * 角色 permissions 字段存储 JSON 数组格式的权限编码
+ */
+async function getUserPermissions(userId: number, tenantId: string): Promise<string[]> {
+  const roles = await query<any>(
+    `SELECT r.permissions
+     FROM t_sys_user_role ur
+     JOIN t_sys_role r ON r.id = ur.role_id AND r.tenant_id = ur.tenant_id
+     WHERE ur.user_id = ? AND ur.tenant_id = ? AND r.status = 'ACTIVE'`,
+    [userId, tenantId]
+  );
+
+  const permSet = new Set<string>();
+  for (const role of roles) {
+    const perms: string[] = role.permissions ? JSON.parse(role.permissions) : [];
+    for (const p of perms) {
+      permSet.add(p);
+    }
+  }
+  return Array.from(permSet);
+}
+
 export async function login(username: string, password: string) {
   const account = await queryOne<any>(
     "SELECT id, username, password_hash, real_name, store_id, status, tenant_id, login_fail_count, locked_until FROM t_sys_user WHERE username = ? LIMIT 1",
@@ -61,6 +84,10 @@ export async function login(username: string, password: string) {
   );
   const roleCodes = roles.map((r: any) => r.role_code);
   const resolvedTenantId = account.tenant_id || 'default';
+
+  // 根据用户角色获取实际权限列表
+  const permissions = await getUserPermissions(account.id, resolvedTenantId);
+
   const authUser: AuthUser = {
     id: account.id,
     username: account.username,
@@ -77,7 +104,7 @@ export async function login(username: string, password: string) {
     storeId: account.store_id,
     tenantId: resolvedTenantId,
     roles: roleCodes,
-    permissions: ["*"],
+    permissions,
     ...accessInfo
   };
   return { token: signToken(authUser), user, csrfToken: generateCsrfToken(account.id) };
@@ -89,11 +116,12 @@ export async function getMe(user: AuthUser) {
     [user.id],
     user.tenantId
   );
+  const permissions = await getUserPermissions(user.id, user.tenantId);
   const accessInfo = getUserAccessInfo(user);
   const defaultMode = userSetting?.default_homepage
     ? (userSetting.default_homepage === '/cashier' ? 'CASHIER' : 'ADMIN')
     : accessInfo.defaultMode;
-  return { ...user, ...accessInfo, defaultMode, csrfToken: generateCsrfToken(user.id) };
+  return { ...user, permissions, ...accessInfo, defaultMode, csrfToken: generateCsrfToken(user.id) };
 }
 
 export async function getSettings(userId: number, tenantId: string) {

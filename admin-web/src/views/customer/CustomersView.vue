@@ -28,9 +28,7 @@
         <el-table-column prop="mobile" label="手机号" width="140" />
         <el-table-column prop="customerType" label="客户类型" width="120">
           <template #default="{ row }">
-            <el-tag v-if="row.customerType === 'RETAIL'" type="primary">零售客户</el-tag>
-            <el-tag v-else-if="row.customerType === 'WHOLESALE'" type="success">批发客户</el-tag>
-            <el-tag v-else>{{ row.customerType }}</el-tag>
+            <el-tag :type="getCustomerTypeTagType(row.customerType)">{{ getCustomerTypeName(row.customerType) }}</el-tag>
           </template>
         </el-table-column>
         <el-table-column prop="staffName" label="归属销售员" width="140" />
@@ -99,9 +97,8 @@
           <el-input v-model="memberForm.mobile" />
         </el-form-item>
         <el-form-item label="客户类型">
-          <el-select v-model="memberForm.customerType" style="width: 100%">
-            <el-option label="零售客户" value="RETAIL" />
-            <el-option label="批发客户" value="WHOLESALE" />
+          <el-select v-model="memberForm.customerType" style="width: 100%" placeholder="请选择客户类型">
+            <el-option v-for="t in customerTypeOptions" :key="t.id" :label="t.name" :value="t.code" />
           </el-select>
         </el-form-item>
         <el-form-item label="客户地址">
@@ -136,6 +133,7 @@ import { ElMessage, ElMessageBox, type FormInstance, type FormRules } from "elem
 import { useRouter } from "vue-router";
 import TableSkeleton from "../../components/TableSkeleton.vue";
 import { assignMember, createMember, disableMember, fetchMemberPriceHistory, fetchMembers, fetchStaff } from "../../api";
+import { fetchCustomerTypes } from "../../api/customer";
 
 const router = useRouter();
 const loading = ref(false);
@@ -149,13 +147,14 @@ const memberDialogVisible = ref(false);
 const memberFormRef = ref<FormInstance>();
 const priceHistoryTip = ref("");
 const staffList = ref<any[]>([]);
+const customerTypeOptions = ref<any[]>([]);
 
 const mobilePattern = /^1[3-9]\d{9}$/;
 
 const memberForm = reactive({
   name: "",
   mobile: "",
-  customerType: "RETAIL" as "RETAIL" | "WHOLESALE",
+  customerType: "" as string,
   address: "",
   settlementType: "",
   staffId: null as number | null,
@@ -180,6 +179,26 @@ async function loadStaff() {
     const data = await fetchStaff();
     staffList.value = data.records || data || [];
   } catch { /* ignore */ }
+}
+
+async function loadCustomerTypes() {
+  try {
+    const data = await fetchCustomerTypes({ status: "ENABLED" });
+    customerTypeOptions.value = data.records || data || [];
+  } catch { /* ignore */ }
+}
+
+function getCustomerTypeName(code: string) {
+  const found = customerTypeOptions.value.find(t => t.code === code);
+  return found?.name || code;
+}
+
+function getCustomerTypeTagType(code: string) {
+  const found = customerTypeOptions.value.find(t => t.code === code);
+  // 根据索引返回不同颜色，简单处理
+  const idx = customerTypeOptions.value.indexOf(found);
+  const types = ["primary", "success", "warning", "info", "danger"];
+  return found ? types[idx % types.length] : "info";
 }
 
 async function loadMembers() {
@@ -220,7 +239,7 @@ async function handleCreateMember() {
       memberDialogVisible.value = false;
       memberForm.name = "";
       memberForm.mobile = "";
-      memberForm.customerType = "RETAIL";
+      memberForm.customerType = customerTypeOptions.value[0]?.code || "";
       memberForm.address = "";
       memberForm.settlementType = "";
       memberForm.staffId = null;
@@ -283,6 +302,7 @@ async function handleToggleDisable(row: any, disabled: boolean) {
 onMounted(() => {
   loadMembers();
   loadStaff();
+  loadCustomerTypes();
 });
 </script>
 

@@ -80,7 +80,9 @@ if (process.env.NODE_ENV !== "test") {
   app.use(rateLimit({ windowMs: 60_000, max: 100, standardHeaders: true, legacyHeaders: false }));
 }
 // 登录接口 Rate Limiting：每IP每15分钟20次（防暴力破解，兼顾测试）
-const loginLimiter = rateLimit({ windowMs: 15 * 60_000, max: 20, message: "登录请求过于频繁，请15分钟后再试", standardHeaders: true, legacyHeaders: false });
+// admin 和 store 登录使用独立实例，避免互相影响计数
+const adminLoginLimiter = rateLimit({ windowMs: 15 * 60_000, max: 20, message: "登录请求过于频繁，请15分钟后再试", standardHeaders: true, legacyHeaders: false });
+const storeLoginLimiter = rateLimit({ windowMs: 15 * 60_000, max: 20, message: "登录请求过于频繁，请15分钟后再试", standardHeaders: true, legacyHeaders: false });
 
 app.use(helmet());
 const corsOriginsEnv = (globalThis as typeof globalThis & { process: NodeJS.Process }).process?.env?.CORS_ORIGINS;
@@ -102,8 +104,8 @@ app.get("/health", (_req: any, res: any) => {
 });
 
 // 登录接口（无需认证，但受 Rate Limiting 保护）
-app.post("/api/admin/auth/login", loginLimiter, authController.login);
-app.post("/api/store/auth/login", loginLimiter, authController.login);
+app.post("/api/admin/auth/login", adminLoginLimiter, authController.login);
+app.post("/api/store/auth/login", storeLoginLimiter, authController.login);
 // 认证后的用户接口
 // 注意：手动注册的写操作接口需单独挂载 csrfMiddleware（auto-routes 已对自动注册的路由按 auth 配置附加 CSRF）
 app.get("/api/admin/auth/me", requireAuthWithTenant, authController.getMe);

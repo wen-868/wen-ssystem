@@ -385,4 +385,22 @@ export async function fetchConsumerAddressDetail(id: number) {
   return data.data;
 }
 
+// ==================== 客户类型管理 ====================
+export async function fetchCustomerTypes(params?: { status?: string; page?: number; pageSize?: number }) {
+  const { data } = await api.get("/admin/customer-types", { params: { page: 1, pageSize: 100, ...params } });
+  return data.data;
+}
+export async function createCustomerType(payload: { name: string; code: string; sortNo?: number; status?: string }) {
+  const { data } = await api.post("/admin/customer-types", payload);
+  return data.data;
+}
+export async function updateCustomerType(id: number, payload: { name?: string; code?: string; sortNo?: number; status?: string }) {
+  const { data } = await api.put(`/admin/customer-types/${id}`, payload);
+  return data.data;
+}
+export async function deleteCustomerType(id: number) {
+  const { data } = await api.delete(`/admin/customer-types/${id}`);
+  return data.data;
+}
+
 

@@ -92,6 +92,14 @@
           <span v-else>{{ row.settlementType || '-' }}</span>
         </template>
 
+        <template #primaryContact="{ row }">
+          <span>{{ getPrimaryContactName(row) }}</span>
+        </template>
+
+        <template #primaryMobile="{ row }">
+          <span>{{ getPrimaryContactMobile(row) }}</span>
+        </template>
+
         <template #status="{ row }">
           <el-tag v-if="row.status === 1" type="success" size="small">启用</el-tag>
           <el-tag v-else type="info" size="small">禁用</el-tag>
@@ -115,150 +123,222 @@
     <el-dialog
       v-model="dialogVisible"
       :title="isEdit ? '编辑供应商' : '新增供应商'"
-      width="680px"
+      width="760px"
       :close-on-click-modal="false"
     >
-      <el-form
-        ref="formRef"
-        :model="form"
-        :rules="formRules"
-        label-width="100px"
-      >
-        <el-row :gutter="20">
-          <el-col :span="12">
-            <el-form-item label="供应商名称" prop="name">
-              <el-input v-model="form.name" placeholder="请输入供应商名称" />
+      <el-tabs v-model="activeTab">
+        <!-- 基本信息 -->
+        <el-tab-pane label="基本信息" name="basic">
+          <el-form
+            ref="formRef"
+            :model="form"
+            :rules="formRules"
+            label-width="100px"
+          >
+            <el-row :gutter="20">
+              <el-col :span="12">
+                <el-form-item label="供应商名称" prop="name">
+                  <el-input v-model="form.name" placeholder="请输入供应商名称" />
+                </el-form-item>
+              </el-col>
+              <el-col :span="12">
+                <el-form-item label="简称">
+                  <el-input v-model="form.shortName" placeholder="请输入简称" />
+                </el-form-item>
+              </el-col>
+            </el-row>
+            <el-row :gutter="20">
+              <el-col :span="12">
+                <el-form-item label="分类" prop="category">
+                  <el-select v-model="form.category" placeholder="请选择分类" style="width: 100%">
+                    <el-option label="品牌商" value="BRAND" />
+                    <el-option label="批发商" value="WHOLESALER" />
+                    <el-option label="经销商" value="DISTRIBUTOR" />
+                  </el-select>
+                </el-form-item>
+              </el-col>
+              <el-col :span="12">
+                <el-form-item label="信用等级">
+                  <el-select v-model="form.creditLevel" placeholder="请选择" style="width: 100%">
+                    <el-option label="A级" value="A" />
+                    <el-option label="B级" value="B" />
+                    <el-option label="C级" value="C" />
+                  </el-select>
+                </el-form-item>
+              </el-col>
+            </el-row>
+            <el-row :gutter="20">
+              <el-col :span="12">
+                <el-form-item label="结算方式">
+                  <el-select v-model="form.settlementType" placeholder="请选择" style="width: 100%">
+                    <el-option label="现结" value="CASH" />
+                    <el-option label="月结" value="MONTHLY" />
+                    <el-option label="周结" value="WEEKLY" />
+                  </el-select>
+                </el-form-item>
+              </el-col>
+              <el-col :span="12">
+                <el-form-item label="结算日">
+                  <el-input-number v-model="form.settlementDay" :min="1" :max="31" style="width: 100%" />
+                </el-form-item>
+              </el-col>
+            </el-row>
+            <el-row :gutter="20">
+              <el-col :span="12">
+                <el-form-item label="税率(%)">
+                  <el-input-number v-model="form.taxRate" :min="0" :max="100" :precision="2" style="width: 100%" />
+                </el-form-item>
+              </el-col>
+              <el-col :span="12">
+                <el-form-item label="状态">
+                  <el-radio-group v-model="form.status">
+                    <el-radio :value="1">启用</el-radio>
+                    <el-radio :value="0">禁用</el-radio>
+                  </el-radio-group>
+                </el-form-item>
+              </el-col>
+            </el-row>
+            <el-form-item label="地址">
+              <el-input v-model="form.address" placeholder="请输入详细地址" />
             </el-form-item>
-          </el-col>
-          <el-col :span="12">
-            <el-form-item label="简称">
-              <el-input v-model="form.shortName" placeholder="请输入简称" />
+            <el-row :gutter="20">
+              <el-col :span="8">
+                <el-form-item label="省份">
+                  <el-input v-model="form.province" placeholder="省份" />
+                </el-form-item>
+              </el-col>
+              <el-col :span="8">
+                <el-form-item label="城市">
+                  <el-input v-model="form.city" placeholder="城市" />
+                </el-form-item>
+              </el-col>
+              <el-col :span="8">
+                <el-form-item label="区县">
+                  <el-input v-model="form.district" placeholder="区县" />
+                </el-form-item>
+              </el-col>
+            </el-row>
+            <el-row :gutter="20">
+              <el-col :span="12">
+                <el-form-item label="开户银行">
+                  <el-input v-model="form.bankName" placeholder="请输入开户银行" />
+                </el-form-item>
+              </el-col>
+              <el-col :span="12">
+                <el-form-item label="银行账号">
+                  <el-input v-model="form.bankAccount" placeholder="请输入银行账号" />
+                </el-form-item>
+              </el-col>
+            </el-row>
+            <el-form-item label="户名">
+              <el-input v-model="form.bankAccountName" placeholder="请输入银行户名" />
             </el-form-item>
-          </el-col>
-        </el-row>
-        <el-row :gutter="20">
-          <el-col :span="12">
-            <el-form-item label="分类" prop="category">
-              <el-select v-model="form.category" placeholder="请选择分类" style="width: 100%">
-                <el-option label="品牌商" value="BRAND" />
-                <el-option label="批发商" value="WHOLESALER" />
-                <el-option label="经销商" value="DISTRIBUTOR" />
-              </el-select>
+            <el-form-item label="备注">
+              <el-input v-model="form.remark" type="textarea" :rows="2" placeholder="请输入备注" />
             </el-form-item>
-          </el-col>
-          <el-col :span="12">
-            <el-form-item label="信用等级">
-              <el-select v-model="form.creditLevel" placeholder="请选择" style="width: 100%">
-                <el-option label="A级" value="A" />
-                <el-option label="B级" value="B" />
-                <el-option label="C级" value="C" />
-              </el-select>
-            </el-form-item>
-          </el-col>
-        </el-row>
-        <el-row :gutter="20">
-          <el-col :span="12">
-            <el-form-item label="结算方式">
-              <el-select v-model="form.settlementType" placeholder="请选择" style="width: 100%">
-                <el-option label="现结" value="CASH" />
-                <el-option label="月结" value="MONTHLY" />
-                <el-option label="周结" value="WEEKLY" />
-              </el-select>
-            </el-form-item>
-          </el-col>
-          <el-col :span="12">
-            <el-form-item label="结算日">
-              <el-input-number v-model="form.settlementDay" :min="1" :max="31" style="width: 100%" />
-            </el-form-item>
-          </el-col>
-        </el-row>
-        <el-row :gutter="20">
-          <el-col :span="12">
-            <el-form-item label="税率(%)">
-              <el-input-number v-model="form.taxRate" :min="0" :max="100" :precision="2" style="width: 100%" />
-            </el-form-item>
-          </el-col>
-          <el-col :span="12">
-            <el-form-item label="状态">
-              <el-radio-group v-model="form.status">
-                <el-radio :value="1">启用</el-radio>
-                <el-radio :value="0">禁用</el-radio>
-              </el-radio-group>
-            </el-form-item>
-          </el-col>
-        </el-row>
-        <el-form-item label="地址">
-          <el-input v-model="form.address" placeholder="请输入详细地址" />
-        </el-form-item>
-        <el-row :gutter="20">
-          <el-col :span="8">
-            <el-form-item label="省份">
-              <el-input v-model="form.province" placeholder="省份" />
-            </el-form-item>
-          </el-col>
-          <el-col :span="8">
-            <el-form-item label="城市">
-              <el-input v-model="form.city" placeholder="城市" />
-            </el-form-item>
-          </el-col>
-          <el-col :span="8">
-            <el-form-item label="区县">
-              <el-input v-model="form.district" placeholder="区县" />
-            </el-form-item>
-          </el-col>
-        </el-row>
-        <el-row :gutter="20">
-          <el-col :span="12">
-            <el-form-item label="开户银行">
-              <el-input v-model="form.bankName" placeholder="请输入开户银行" />
-            </el-form-item>
-          </el-col>
-          <el-col :span="12">
-            <el-form-item label="银行账号">
-              <el-input v-model="form.bankAccount" placeholder="请输入银行账号" />
-            </el-form-item>
-          </el-col>
-        </el-row>
-        <el-form-item label="户名">
-          <el-input v-model="form.bankAccountName" placeholder="请输入银行户名" />
-        </el-form-item>
+          </el-form>
+        </el-tab-pane>
 
-        <el-divider content-position="left">联系人</el-divider>
-
-        <div class="contacts-section">
-          <div class="contacts-header">
-            <span>联系人列表</span>
-            <el-button type="primary" link @click="addContact">
-              <el-icon><Plus /></el-icon> 添加联系人
-            </el-button>
+        <!-- 联系人 -->
+        <el-tab-pane label="联系人" name="contacts">
+          <div v-if="!isEdit" style="text-align: center; padding: 40px 0; color: #909399">
+            请先保存供应商基础信息后再管理联系人
           </div>
-          <div v-if="form.contacts.length === 0" class="empty-contacts">
-            暂无联系人，点击上方按钮添加
-          </div>
-          <div v-else class="contacts-list">
-            <div v-for="(contact, index) in form.contacts" :key="index" class="contact-item">
-              <div class="contact-fields">
-                <el-input v-model="contact.name" placeholder="姓名" style="width: 120px" />
-                <el-input v-model="contact.mobile" placeholder="手机号" style="width: 140px" />
-                <el-input v-model="contact.phone" placeholder="电话" style="width: 140px" />
-                <el-input v-model="contact.position" placeholder="职位" style="width: 120px" />
-                <el-input v-model="contact.email" placeholder="邮箱" style="width: 160px" />
-                <el-checkbox v-model="contact.isPrimary">主要联系人</el-checkbox>
-              </div>
-              <el-button link type="danger" @click="removeContact(index)">
-                <el-icon><Delete /></el-icon>
+          <div v-else>
+            <div class="contact-tab-header">
+              <span style="font-weight: 500">联系人列表</span>
+              <el-button type="primary" size="small" @click="openAddContact">
+                <el-icon><Plus /></el-icon> 新增联系人
               </el-button>
             </div>
+            <el-table :data="contactList" v-loading="contactLoading" border stripe size="small" style="width: 100%">
+              <el-table-column prop="name" label="姓名" width="100" />
+              <el-table-column prop="position" label="职位" width="100" />
+              <el-table-column prop="mobile" label="手机号" width="120" />
+              <el-table-column prop="phone" label="固话" width="120" />
+              <el-table-column prop="email" label="邮箱" min-width="140" showOverflowTooltip />
+              <el-table-column prop="wechat" label="微信" width="110" />
+              <el-table-column prop="isPrimary" label="主联系人" width="90" align="center">
+                <template #default="{ row }">
+                  <el-tag v-if="row.isPrimary === 1 || row.isPrimary === true" type="primary" size="small">是</el-tag>
+                  <span v-else style="color: #909399">否</span>
+                </template>
+              </el-table-column>
+              <el-table-column label="操作" width="200" fixed="right">
+                <template #default="{ row }">
+                  <el-button link type="primary" size="small" @click="openEditContact(row)">编辑</el-button>
+                  <el-button link type="warning" size="small" @click="handleSetPrimary(row)">设为主联系人</el-button>
+                  <el-button link type="danger" size="small" @click="handleDeleteContact(row)">删除</el-button>
+                </template>
+              </el-table-column>
+              <template #empty>
+                <el-empty description="暂无联系人" :image-size="60" />
+              </template>
+            </el-table>
           </div>
-        </div>
-
-        <el-form-item label="备注">
-          <el-input v-model="form.remark" type="textarea" :rows="2" placeholder="请输入备注" />
-        </el-form-item>
-      </el-form>
+        </el-tab-pane>
+      </el-tabs>
       <template #footer>
         <el-button @click="dialogVisible = false">取消</el-button>
         <el-button type="primary" :loading="submitLoading" @click="handleSubmit">保存</el-button>
+      </template>
+    </el-dialog>
+
+    <!-- 联系人新增/编辑弹窗 -->
+    <el-dialog
+      v-model="contactDialogVisible"
+      :title="isContactEdit ? '编辑联系人' : '新增联系人'"
+      width="520px"
+      :close-on-click-modal="false"
+    >
+      <el-form ref="contactFormRef" :model="contactForm" :rules="contactRules" label-width="100px">
+        <el-row :gutter="20">
+          <el-col :span="12">
+            <el-form-item label="姓名" prop="name">
+              <el-input v-model="contactForm.name" placeholder="请输入姓名" />
+            </el-form-item>
+          </el-col>
+          <el-col :span="12">
+            <el-form-item label="职位">
+              <el-input v-model="contactForm.position" placeholder="请输入职位" />
+            </el-form-item>
+          </el-col>
+        </el-row>
+        <el-row :gutter="20">
+          <el-col :span="12">
+            <el-form-item label="手机号">
+              <el-input v-model="contactForm.mobile" placeholder="请输入手机号" />
+            </el-form-item>
+          </el-col>
+          <el-col :span="12">
+            <el-form-item label="固话">
+              <el-input v-model="contactForm.phone" placeholder="请输入固话" />
+            </el-form-item>
+          </el-col>
+        </el-row>
+        <el-row :gutter="20">
+          <el-col :span="12">
+            <el-form-item label="邮箱">
+              <el-input v-model="contactForm.email" placeholder="请输入邮箱" />
+            </el-form-item>
+          </el-col>
+          <el-col :span="12">
+            <el-form-item label="微信">
+              <el-input v-model="contactForm.wechat" placeholder="请输入微信号" />
+            </el-form-item>
+          </el-col>
+        </el-row>
+        <el-form-item label="主联系人">
+          <el-switch v-model="contactForm.isPrimary" />
+          <span style="margin-left: 8px; color: #909399; font-size: 12px">设置为主要联系人</span>
+        </el-form-item>
+        <el-form-item label="备注">
+          <el-input v-model="contactForm.remark" type="textarea" :rows="2" placeholder="请输入备注" />
+        </el-form-item>
+      </el-form>
+      <template #footer>
+        <el-button @click="contactDialogVisible = false">取消</el-button>
+        <el-button type="primary" :loading="contactSubmitLoading" @click="handleContactSubmit">保存</el-button>
       </template>
     </el-dialog>
 
@@ -320,7 +400,7 @@
 import { ref, reactive, onMounted } from "vue";
 import { ElMessage, ElMessageBox, type FormInstance, type FormRules } from "element-plus";
 import { Search, Plus, Refresh, Delete } from "@element-plus/icons-vue";
-import { fetchSuppliers, createSupplier, updateSupplier } from "../../api";
+import { fetchSuppliers, createSupplier, updateSupplier, fetchSupplierContacts, createSupplierContact, updateSupplierContact, deleteSupplierContact, setPrimarySupplierContact } from "../../api/purchase";
 import { formatDate } from "../../utils/format";
 import PageCard from "../../components/PageCard.vue";
 import DataTable from "../../components/DataTable.vue";
@@ -352,6 +432,8 @@ const columns = [
   { prop: "name", label: "供应商名称", minWidth: 180, showOverflowTooltip: true },
   { prop: "shortName", label: "简称", width: 120, showOverflowTooltip: true },
   { prop: "category", label: "分类", width: 100, slot: "category" },
+  { prop: "primaryContactName", label: "主联系人", width: 100, slot: "primaryContact" },
+  { prop: "primaryContactMobile", label: "联系电话", width: 130, slot: "primaryMobile" },
   { prop: "creditLevel", label: "信用等级", width: 100, slot: "creditLevel" },
   { prop: "settlementType", label: "结算方式", width: 100, slot: "settlementType" },
   { prop: "address", label: "地址", minWidth: 150, showOverflowTooltip: true },
@@ -387,6 +469,52 @@ const formRules: FormRules = {
   category: [{ required: true, message: "请选择分类", trigger: "change" }]
 };
 
+// 联系人相关
+const activeTab = ref("basic");
+const contactList = ref<any[]>([]);
+const contactLoading = ref(false);
+const contactDialogVisible = ref(false);
+const isContactEdit = ref(false);
+const contactFormRef = ref<FormInstance>();
+const contactSubmitLoading = ref(false);
+
+const defaultContactForm = {
+  id: 0,
+  supplierId: 0,
+  name: "",
+  mobile: "",
+  phone: "",
+  email: "",
+  wechat: "",
+  position: "",
+  isPrimary: false,
+  remark: ""
+};
+
+const contactForm = reactive({ ...defaultContactForm });
+
+const contactRules: FormRules = {
+  name: [{ required: true, message: "请输入联系人姓名", trigger: "blur" }]
+};
+
+function getPrimaryContactName(row: any) {
+  if (row.primaryContactName) return row.primaryContactName;
+  if (row.contacts && row.contacts.length > 0) {
+    const primary = row.contacts.find((c: any) => c.isPrimary === 1 || c.isPrimary === true);
+    return primary?.name || row.contacts[0]?.name || "-";
+  }
+  return "-";
+}
+
+function getPrimaryContactMobile(row: any) {
+  if (row.primaryContactMobile) return row.primaryContactMobile;
+  if (row.contacts && row.contacts.length > 0) {
+    const primary = row.contacts.find((c: any) => c.isPrimary === 1 || c.isPrimary === true);
+    return primary?.mobile || row.contacts[0]?.mobile || "-";
+  }
+  return "-";
+}
+
 async function loadSuppliers() {
   loading.value = true;
   try {
@@ -418,12 +546,15 @@ function resetFilter() {
 
 function handleAdd() {
   isEdit.value = false;
+  activeTab.value = "basic";
   Object.assign(form, { ...defaultForm, contacts: [] });
+  contactList.value = [];
   dialogVisible.value = true;
 }
 
 function handleEdit(row: any) {
   isEdit.value = true;
+  activeTab.value = "basic";
   Object.assign(form, {
     supplierId: row.supplierId,
     name: row.name,
@@ -444,7 +575,10 @@ function handleEdit(row: any) {
     remark: row.remark,
     contacts: row.contacts ? JSON.parse(JSON.stringify(row.contacts)) : []
   });
+  contactList.value = [];
   dialogVisible.value = true;
+  // 编辑时加载联系人
+  loadContacts();
 }
 
 function handleView(row: any) {
@@ -467,21 +601,91 @@ async function handleToggleStatus(row: any) {
   }
 }
 
-function addContact() {
-  form.contacts.push({
-    name: "",
-    mobile: "",
-    phone: "",
-    email: "",
-    wechat: "",
-    isPrimary: form.contacts.length === 0,
-    position: "",
-    remark: ""
+async function loadContacts() {
+  if (!form.supplierId) return;
+  contactLoading.value = true;
+  try {
+    const data = await fetchSupplierContacts(form.supplierId);
+    contactList.value = data.records || data || [];
+  } catch (e: any) {
+    ElMessage.error(e.response?.data?.msg || "加载联系人失败");
+  } finally {
+    contactLoading.value = false;
+  }
+}
+
+function openAddContact() {
+  isContactEdit.value = false;
+  Object.assign(contactForm, { ...defaultContactForm, supplierId: form.supplierId });
+  contactDialogVisible.value = true;
+}
+
+function openEditContact(row: any) {
+  isContactEdit.value = true;
+  Object.assign(contactForm, {
+    id: row.id,
+    supplierId: row.supplierId || form.supplierId,
+    name: row.name || "",
+    mobile: row.mobile || "",
+    phone: row.phone || "",
+    email: row.email || "",
+    wechat: row.wechat || "",
+    position: row.position || "",
+    isPrimary: row.isPrimary === 1 || row.isPrimary === true,
+    remark: row.remark || ""
+  });
+  contactDialogVisible.value = true;
+}
+
+async function handleContactSubmit() {
+  if (!contactFormRef.value) return;
+  await contactFormRef.value.validate(async (valid) => {
+    if (!valid) return;
+    contactSubmitLoading.value = true;
+    try {
+      const payload = {
+        ...contactForm,
+        isPrimary: contactForm.isPrimary ? 1 : 0
+      };
+      if (isContactEdit.value) {
+        await updateSupplierContact(contactForm.id, payload);
+        ElMessage.success("更新成功");
+      } else {
+        await createSupplierContact(payload);
+        ElMessage.success("新增成功");
+      }
+      contactDialogVisible.value = false;
+      loadContacts();
+    } catch (e: any) {
+      ElMessage.error(e.response?.data?.msg || "保存失败");
+    } finally {
+      contactSubmitLoading.value = false;
+    }
   });
 }
 
-function removeContact(index: number) {
-  form.contacts.splice(index, 1);
+async function handleDeleteContact(row: any) {
+  try {
+    await ElMessageBox.confirm(`确定删除联系人「${row.name}」吗？`, "提示", { type: "warning" });
+    await deleteSupplierContact(row.id);
+    ElMessage.success("删除成功");
+    loadContacts();
+  } catch (e: any) {
+    if (e !== "cancel") {
+      ElMessage.error(e.response?.data?.msg || "删除失败");
+    }
+  }
+}
+
+async function handleSetPrimary(row: any) {
+  if (row.isPrimary === 1 || row.isPrimary === true) return;
+  try {
+    await setPrimarySupplierContact(row.id);
+    ElMessage.success("设置成功");
+    loadContacts();
+  } catch (e: any) {
+    ElMessage.error(e.response?.data?.msg || "设置失败");
+  }
 }
 
 async function handleSubmit() {
@@ -538,6 +742,13 @@ onMounted(() => {
 
 .contacts-section {
   margin-bottom: 16px;
+}
+
+.contact-tab-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 12px;
 }
 
 .contacts-header {
