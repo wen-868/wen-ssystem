@@ -139,34 +139,83 @@
     <el-dialog
       v-model="dialogVisible"
       title="新建退货单"
-      width="720px"
+      width="920px"
       :close-on-click-modal="false"
     >
-      <el-form ref="formRef" :model="form" :rules="formRules" label-width="100px">
-        <el-form-item label="采购订单" prop="purchaseOrderId">
-          <el-select
-            v-model="form.purchaseOrderId"
-            placeholder="请选择采购订单"
-            filterable
-            style="width: 100%"
-            @change="onOrderChange"
-          >
-            <el-option
-              v-for="po in purchaseOrders"
-              :key="po.id"
-              :label="`${po.orderNo} - ${po.supplierName || ''}`"
-              :value="po.id"
-            />
-          </el-select>
-        </el-form-item>
-        <el-form-item label="退货原因" prop="reason">
-          <el-input
-            v-model="form.reason"
-            type="textarea"
-            :rows="3"
-            placeholder="请输入退货原因"
-          />
-        </el-form-item>
+      <el-form ref="formRef" :model="form" :rules="formRules" label-width="110px">
+        <el-row :gutter="16">
+          <el-col :span="12">
+            <el-form-item label="供应商" prop="supplierId">
+              <el-select
+                v-model="form.supplierId"
+                placeholder="请选择供应商（可搜索）"
+                filterable
+                remote
+                :remote-method="searchSupplierRemote"
+                :loading="supplierLoading"
+                clearable
+                style="width: 100%"
+                @change="onSupplierChange"
+              >
+                <el-option
+                  v-for="s in supplierList"
+                  :key="s.id"
+                  :label="s.name"
+                  :value="s.id"
+                />
+              </el-select>
+            </el-form-item>
+          </el-col>
+          <el-col :span="12">
+            <el-form-item label="退货门店" prop="storeId">
+              <el-select
+                v-model="form.storeId"
+                placeholder="请选择退货门店"
+                filterable
+                style="width: 100%"
+              >
+                <el-option
+                  v-for="st in storeList"
+                  :key="st.id"
+                  :label="st.name"
+                  :value="st.id"
+                />
+              </el-select>
+            </el-form-item>
+          </el-col>
+        </el-row>
+        <el-row :gutter="16">
+          <el-col :span="12">
+            <el-form-item label="关联采购单号" prop="purchaseOrderId">
+              <el-select
+                v-model="form.purchaseOrderId"
+                placeholder="选择采购订单（可搜索/手动输入）"
+                filterable
+                allow-create
+                default-first-option
+                clearable
+                style="width: 100%"
+                @change="onOrderChange"
+              >
+                <el-option
+                  v-for="po in purchaseOrders"
+                  :key="po.id"
+                  :label="`${po.orderNo} - ${po.supplierName || ''}`"
+                  :value="po.id"
+                />
+              </el-select>
+            </el-form-item>
+          </el-col>
+          <el-col :span="12">
+            <el-form-item label="关联入库单号" prop="inboundNo">
+              <el-input
+                v-model="form.inboundNo"
+                placeholder="请输入关联入库单号（选填）"
+                clearable
+              />
+            </el-form-item>
+          </el-col>
+        </el-row>
         <el-form-item label="退货商品">
           <el-table :data="form.items" size="small" border>
             <el-table-column label="商品名称" min-width="160">
@@ -196,6 +245,11 @@
                 />
               </template>
             </el-table-column>
+            <el-table-column label="退货原因" min-width="140">
+              <template #default="{ row }">
+                <el-input v-model="row.returnReason" size="small" placeholder="如：质量问题/过期" />
+              </template>
+            </el-table-column>
             <el-table-column label="小计" width="100">
               <template #default="{ row }">
                 ¥{{ Number((row.quantity || 0) * (row.unitPrice || 0)).toFixed(2) }}
@@ -213,11 +267,19 @@
             + 添加商品
           </el-button>
         </el-form-item>
-        <el-form-item label="退款金额">
-          <span class="total-amount">¥{{ totalAmount.toFixed(2) }}</span>
+        <el-form-item label="退货原因" prop="reason">
+          <el-input
+            v-model="form.reason"
+            type="textarea"
+            :rows="2"
+            placeholder="请输入整体退货原因说明"
+          />
         </el-form-item>
         <el-form-item label="备注">
           <el-input v-model="form.remark" type="textarea" :rows="2" placeholder="选填" />
+        </el-form-item>
+        <el-form-item label="合计金额">
+          <span class="total-amount">¥{{ totalAmount.toFixed(2) }}</span>
         </el-form-item>
       </el-form>
       <template #footer>
@@ -266,7 +328,7 @@
 import { ref, reactive, computed, onMounted } from "vue";
 import { ElMessage, ElMessageBox, type FormInstance, type FormRules } from "element-plus";
 import { Search, Plus, Refresh } from "@element-plus/icons-vue";
-import { createPurchaseReturn, fetchPurchaseOrders, fetchSuppliers, api } from "../../api";
+import { createPurchaseReturn, fetchPurchaseOrders, fetchSuppliers, fetchStores, api } from "../../api";
 import { formatDate } from "../../utils/format";
 import PageCard from "../../components/PageCard.vue";
 import DataTable from "../../components/DataTable.vue";
@@ -276,6 +338,9 @@ const loading = ref(false);
 const submitLoading = ref(false);
 const tableData = ref<any[]>([]);
 const supplierList = ref<any[]>([]);
+const allSupplierList = ref<any[]>([]);
+const supplierLoading = ref(false);
+const storeList = ref<any[]>([]);
 const purchaseOrders = ref<any[]>([]);
 const dialogVisible = ref(false);
 const detailVisible = ref(false);
@@ -305,16 +370,21 @@ const columns = [
 ];
 
 const defaultForm = {
+  supplierId: null as number | null,
+  storeId: null as number | null,
   purchaseOrderId: null as number | null,
+  inboundNo: "",
   reason: "",
   remark: "",
-  items: [{ skuName: "", quantity: 1, unitPrice: 0, maxQty: 99999 }] as any[]
+  items: [{ skuName: "", quantity: 1, unitPrice: 0, maxQty: 99999, returnReason: "" }] as any[]
 };
 
 const form = reactive(JSON.parse(JSON.stringify(defaultForm)));
 
 const formRules: FormRules = {
-  purchaseOrderId: [{ required: true, message: "请选择采购订单", trigger: "change" }],
+  supplierId: [{ required: true, message: "请选择供应商", trigger: "change" }],
+  storeId: [{ required: true, message: "请选择退货门店", trigger: "change" }],
+  purchaseOrderId: [{ required: true, message: "请选择或输入关联采购单号", trigger: "change" }],
   reason: [{ required: true, message: "请输入退货原因", trigger: "blur" }]
 };
 
@@ -346,9 +416,21 @@ async function loadReturns() {
 async function loadSuppliers() {
   try {
     const data = await fetchSuppliers({ page: 1, pageSize: 100 });
-    supplierList.value = data.records || data || [];
+    const list = data.records || data || [];
+    allSupplierList.value = list;
+    supplierList.value = list;
   } catch {
+    allSupplierList.value = [];
     supplierList.value = [];
+  }
+}
+
+async function loadStores() {
+  try {
+    const data = await fetchStores();
+    storeList.value = (data as any)?.records || (data as any) || [];
+  } catch {
+    storeList.value = [];
   }
 }
 
@@ -358,6 +440,30 @@ async function loadPurchaseOrders() {
     purchaseOrders.value = data.records || [];
   } catch {
     purchaseOrders.value = [];
+  }
+}
+
+// 供应商远程搜索（基于已加载的全量列表本地过滤）
+function searchSupplierRemote(keyword: string) {
+  if (!keyword) {
+    supplierList.value = allSupplierList.value;
+    return;
+  }
+  supplierList.value = allSupplierList.value.filter((s: any) =>
+    String(s.name || "").toLowerCase().includes(keyword.toLowerCase())
+  );
+}
+
+// 选中供应商后，可按供应商过滤采购订单（仅展示该供应商的已审核订单）
+function onSupplierChange(supplierId: number | null) {
+  if (!supplierId) return;
+  // 如未加载过采购订单，先加载
+  if (purchaseOrders.value.length === 0) {
+    loadPurchaseOrders().then(() => {
+      purchaseOrders.value = purchaseOrders.value.filter((po: any) => po.supplierId === supplierId);
+    });
+  } else {
+    purchaseOrders.value = purchaseOrders.value.filter((po: any) => po.supplierId === supplierId);
   }
 }
 
@@ -374,23 +480,26 @@ function handleCreate() {
   Object.assign(form, JSON.parse(JSON.stringify(defaultForm)));
   dialogVisible.value = true;
   loadPurchaseOrders();
+  if (storeList.value.length === 0) loadStores();
+  if (allSupplierList.value.length === 0) loadSuppliers();
 }
 
-function onOrderChange(orderId: number) {
-  const po = purchaseOrders.value.find((p: any) => p.id === orderId);
+function onOrderChange(orderId: number | string) {
+  const po = purchaseOrders.value.find((p: any) => String(p.id) === String(orderId));
   if (po && po.items && po.items.length > 0) {
     form.items = po.items.map((item: any) => ({
       skuName: item.skuName || "",
       quantity: item.bottleQty || 1,
       unitPrice: item.unitPrice || 0,
       maxQty: item.bottleQty || 99999,
-      skuId: item.skuId || 0
+      skuId: item.skuId || 0,
+      returnReason: ""
     }));
   }
 }
 
 function addItem() {
-  form.items.push({ skuName: "", quantity: 1, unitPrice: 0, maxQty: 99999 });
+  form.items.push({ skuName: "", quantity: 1, unitPrice: 0, maxQty: 99999, returnReason: "" });
 }
 
 function removeItem(index: number) {
@@ -463,6 +572,7 @@ async function handleSubmit() {
 onMounted(() => {
   loadReturns();
   loadSuppliers();
+  loadStores();
 });
 </script>
 

@@ -37,7 +37,7 @@
                 />
               </div>
               <div class="unit-arrow" v-if="idx < group.items.length - 1">
-                <span class="arrow-rate">×{{ item.conversionRate || 1 }}</span>
+                <span class="arrow-rate">{{ group.items[idx + 1].conversionRate || 1 }}:1</span>
                 <span class="arrow-icon">→</span>
               </div>
             </template>
@@ -66,7 +66,6 @@
             <div v-for="(item, idx) in form.items" :key="idx" class="item-row">
               <span class="item-level">L{{ idx }}</span>
               <el-input v-model="item.name" placeholder="单位名称" style="width: 100px" />
-              <span class="sep" v-if="idx > 0">1{{ form.items[idx - 1].name || '上级' }} =</span>
               <el-input-number
                 v-if="idx > 0"
                 v-model="item.conversionRate"
@@ -76,7 +75,7 @@
                 style="width: 110px"
                 placeholder="换算率"
               />
-              <span class="sep" v-if="idx > 0">{{ item.name || '本级' }}</span>
+              <span class="sep" v-if="idx > 0">{{ form.items[idx - 1].name || '上级' }} = 1 {{ item.name || '本级' }}</span>
               <el-switch v-model="item.status" :active-value="1" :inactive-value="0" size="small" />
               <el-button size="small" link type="danger" @click="removeItem(idx)" :disabled="form.items.length <= 1">
                 <el-icon><Delete /></el-icon>

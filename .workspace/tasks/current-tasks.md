@@ -2445,7 +2445,7 @@
 - **优先级**：P1
 - **负责人**：墨
 - **预计**：0.5天
-- **状态**：⬜ 待开始
+- **状态**：✅ 已完成
 - **文件**：`admin-web/src/views/product/Units.vue`
 - **问题**：当前换算公式展示为"1瓶 = [-] 1 [+] 本级"，用户反馈这个交互不合理。用户期望的格式是"6瓶 = 1箱"这样的直观表达，而不是"1瓶 = 6 本级"
 - **修复方向**：
@@ -2465,7 +2465,7 @@
 - **优先级**：P0
 - **负责人**：墨
 - **预计**：1天
-- **状态**：⬜ 待开始
+- **状态**：🟡 进行中（后端阿坚已完成 2026-07-22，前端墨待开始）
 - **文件**：`admin-web/src/views/customer/CustomersView.vue`、`admin-web/src/views/customer/CustomerDetail.vue`
 - **问题**：客户新增表单只有7个字段（客户名称、手机号、客户类型、客户地址、结算方式、归属销售员、备注），而产品功能清单v6.1定义了大量客户属性。更严重的是，后端SQL查询遗漏了 address/settlement_type/remark 字段，导致列表和详情页这些字段显示为空
 - **对比结果**：
@@ -2489,6 +2489,11 @@
   2. **前端表单补全（墨）**：在新增/编辑客户表单中确认所有字段正确展示
   3. **详情页补全**：确认详情页完整展示所有字段
 - **验收标准**：客户列表、详情页、新增/编辑表单中 address/settlement_type/remark 正确显示
+- **后端完成证据（阿坚 2026-07-22）**：
+  1. `backend/src/services/admin/customer.service.ts` 的 `listMembers` SQL 补充 `m.address, m.settlement_type AS settlementType, m.remark`，GROUP BY 同步补充这三个字段
+  2. `getCustomerDetail` SQL 补充同样三个字段
+  3. 表名已确认全部使用 `t_` 前缀（t_member / t_sys_user / t_sale_bill），R53-01 无遗漏
+  4. 验证：后端 `npx tsc --noEmit` 0 错误；后端 `npx vitest run` 全量 4841 测试通过；customer.test.ts 相关测试全部通过
 
 ### R54-05 — 客户类型自定义配置化 [P1]
 
@@ -2563,7 +2568,7 @@
 - **优先级**：P0
 - **负责人**：墨
 - **预计**：0.5天
-- **状态**：⬜ 待开始
+- **状态**：✅ 已完成
 - **文件**：`admin-web/src/views/inventory/InventoryTransfer.vue`
 - **问题**：点击"新建调拨"按钮后弹窗打开但表单为空（无任何字段），产品规格要求应有：调出门店、调入门店、商品明细（SKU、箱数、瓶数、单价）
 - **修复方向**：补全新建调拨表单，包含完整的调拨字段和商品明细录入
@@ -2574,7 +2579,7 @@
 - **优先级**：P0
 - **负责人**：墨
 - **预计**：0.5天
-- **状态**：⬜ 待开始
+- **状态**：✅ 已完成
 - **文件**：`admin-web/src/views/purchase/PurchaseReturns.vue`
 - **问题**：点击"新增退货"按钮后弹窗打开但表单为空（无任何字段），产品规格要求应有：供应商、退货门店、关联采购单号、关联入库单号、备注、商品明细
 - **修复方向**：补全采购退货新建表单
@@ -2713,7 +2718,7 @@
 - **优先级**：P0
 - **负责人**：阿坚
 - **预计**：1天
-- **状态**：⬜ 待开始
+- **状态**：✅ 已完成（阿坚 2026-07-22）
 - **文件**：
   - `backend/src/server.ts`（第116行移除全局csrfMiddleware）
   - `backend/src/controllers/admin/auth.controller.ts`（删除validatePasswordStrength）
@@ -2732,6 +2737,13 @@
   3. saas-admin参考admin-web实现：login后存储csrfToken，request拦截器注入x-csrf-token
   4. LoginView.vue密码规则改为与后端一致：`min: 8, 必须包含字母+数字+特殊字符`
 - **验收标准**：代码审查确认修复，后端编译通过
+- **完成证据（阿坚 2026-07-22）**：
+  1. CSRF双重注册修复：`server.ts` 删除全局 `app.use(csrfMiddleware)`，手动注册的写操作接口（PUT /settings、POST /change-password）单独挂载 csrfMiddleware；同步修复 `platform-auth.routes.ts` 的 `/admin/create` POST 接口补 csrfMiddleware
+  2. 密码校验统一：`auth.controller.ts` 删除 `validatePasswordStrength` 函数和 `fail` 导入，密码强度校验统一由 `auth.service.ts` 的 `changePassword` 使用 `password.ts` 的 `validatePassword` 完成
+  3. saas-admin CSRF 防护：后端 `platform-auth.service.ts` 的 `login` 和 `getMe` 下发 `csrfToken`（HMAC-SHA256），前端 `saas-admin/src/stores/auth.ts` 新增 csrfToken 字段并持久化到 localStorage，`saas-admin/src/utils/request.ts` 拦截器注入 `x-csrf-token` header
+  4. LoginView.vue 密码校验：`min: 6` 改为 `min: 8 + max: 32 + 字母+数字+特殊字符` validator，与后端 `password.ts` 的 `validatePassword` 规则一致
+  5. 测试更新：`auth.controller.test.ts` 删除 4 个 controller 密码校验测试（service 层已覆盖），新增"service 抛错时 controller 透传"测试；`platform-auth.controller.test.ts` 更新 mock 包含 csrfToken
+  6. 验证结果：后端 `npx tsc --noEmit` 0 错误；后端 `npx vitest run` 416 文件 4841 测试全部通过；admin-web `vue-tsc --noEmit` 0 错误；saas-admin `vue-tsc --noEmit` 0 错误
 
 ### R54-15 — 后端代码质量修复（日志/限流/权限） [P1]
 
