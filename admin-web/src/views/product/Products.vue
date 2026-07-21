@@ -201,6 +201,20 @@
             </el-form-item>
           </el-col>
           <el-col :span="8">
+            <el-form-item label="多单位">
+              <el-switch v-model="form.multiUnitEnabled" />
+            </el-form-item>
+          </el-col>
+          <el-col :span="8" v-if="form.multiUnitEnabled">
+            <el-form-item label="单位组" prop="unitGroupId">
+              <el-select v-model="form.unitGroupId" placeholder="选择单位组" style="width: 100%">
+                <el-option v-for="g in unitGroupOptions" :key="g.id" :label="g.name" :value="g.id" />
+              </el-select>
+            </el-form-item>
+          </el-col>
+        </el-row>
+        <el-row :gutter="20">
+          <el-col :span="8">
             <el-form-item label="规格">
               <el-input v-model="form.specs" placeholder="如：500ml*12" />
             </el-form-item>
@@ -499,6 +513,7 @@ const formRef = ref<FormInstance>();
 
 const categoryTree = ref<any[]>([]);
 const brandList = ref<any[]>([]);
+const unitGroupOptions = ref<any[]>([]);
 const detailSpu = ref<any>(null);
 const priceHistory = ref<any[]>([]);
 const skuPriceTarget = ref<any>(null);
@@ -552,6 +567,8 @@ const defaultForm = {
   origin: "",
   saleChannels: ["MINIAPP", "STORE"] as string[],
   unit: "",
+  multiUnitEnabled: false,
+  unitGroupId: null as number | null,
   specs: "",
   sortNo: 0,
   isNew: false,
@@ -652,6 +669,8 @@ function openEditDialog(row: any) {
   form.origin = row.origin || "";
   form.saleChannels = parseChannels(row.saleChannels);
   form.unit = row.unit || "";
+  form.multiUnitEnabled = !!row.multiUnitEnabled;
+  form.unitGroupId = row.unitGroupId || null;
   form.specs = row.specs || "";
   form.sortNo = row.sortNo || 0;
   form.isNew = !!row.isNew;
@@ -692,7 +711,9 @@ async function handleSubmit() {
         await api.put(`/admin/products/${editSpuId.value}`, {
           name: form.name, category: form.categoryId, brand: form.brandId,
           alcoholContent: form.alcoholContent, origin: form.origin,
-          unit: form.unit, specs: form.specs, sortNo: form.sortNo,
+          unit: form.unit, multiUnitEnabled: form.multiUnitEnabled,
+          unitGroupId: form.unitGroupId || undefined,
+          specs: form.specs, sortNo: form.sortNo,
           isNew: form.isNew, isRecommend: form.isRecommend,
           description: form.description,
           imageUrls: form.imageUrls || undefined,
@@ -703,7 +724,9 @@ async function handleSubmit() {
         await api.post("/admin/products", {
           name: form.name, categoryId: form.categoryId, brandId: form.brandId || undefined,
           mainImage: form.mainImage || undefined,
-          unit: form.unit, specs: form.specs, sortNo: form.sortNo,
+          unit: form.unit, multiUnitEnabled: form.multiUnitEnabled,
+          unitGroupId: form.unitGroupId || undefined,
+          specs: form.specs, sortNo: form.sortNo,
           isNew: form.isNew, isRecommend: form.isRecommend,
           description: form.description,
           imageUrls: form.imageUrls || undefined,
@@ -813,13 +836,15 @@ async function handleSkuPriceUpdate() {
 // ---------- Ref Data ----------
 async function loadRefData() {
   try {
-    const [{ data: d1 }, { data: d2 }] = await Promise.all([
+    const [{ data: d1 }, { data: d2 }, { data: d3 }] = await Promise.all([
       api.get("/admin/products/categories"),
-      api.get("/admin/brands", { params: { pageSize: 999 } })
+      api.get("/admin/brands", { params: { pageSize: 999 } }),
+      api.get("/admin/unit-groups")
     ]);
     const list = d1.data || [];
     categoryTree.value = buildTree(list);
     brandList.value = (d2.data?.records || d2.data || []);
+    unitGroupOptions.value = (d3.data?.records || d3.data || []).filter((g: any) => g.status === 1);
   } catch { /* ignore */ }
 }
 

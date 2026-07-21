@@ -15,6 +15,13 @@
             <el-form ref="formRef" :model="form" :rules="rules" label-width="100px" size="default">
               <el-row :gutter="16">
                 <el-col :span="12">
+                  <el-form-item label="门店" required prop="storeId">
+                    <el-select v-model="form.storeId" placeholder="请选择门店" style="width:100%">
+                      <el-option v-for="s in storeOptions" :key="s.id" :label="s.name" :value="s.id" />
+                    </el-select>
+                  </el-form-item>
+                </el-col>
+                <el-col :span="12">
                   <el-form-item label="客户" required prop="customerId">
                     <el-select
                       v-model="form.customerId"
@@ -24,6 +31,7 @@
                       :remote-method="searchCustomers"
                       :loading="customerLoading"
                       style="width:100%"
+                      @change="onCustomerChange"
                     >
                       <el-option
                         v-for="c in customerOptions"
@@ -34,12 +42,40 @@
                     </el-select>
                   </el-form-item>
                 </el-col>
-                <el-col :span="12">
+              </el-row>
+              <el-row :gutter="16">
+                <el-col :span="8">
+                  <el-form-item label="联系人" prop="customerName">
+                    <el-input v-model="form.customerName" placeholder="联系人姓名" />
+                  </el-form-item>
+                </el-col>
+                <el-col :span="8">
+                  <el-form-item label="联系电话" prop="customerMobile">
+                    <el-input v-model="form.customerMobile" placeholder="联系电话" />
+                  </el-form-item>
+                </el-col>
+                <el-col :span="8">
                   <el-form-item label="销售类型">
                     <el-radio-group v-model="form.saleType">
                       <el-radio value="CASH">现销</el-radio>
                       <el-radio value="CREDIT">赊销</el-radio>
                     </el-radio-group>
+                  </el-form-item>
+                </el-col>
+              </el-row>
+              <el-row :gutter="16">
+                <el-col :span="16">
+                  <el-form-item label="客户地址" prop="customerAddress">
+                    <el-input v-model="form.customerAddress" placeholder="客户地址" />
+                  </el-form-item>
+                </el-col>
+                <el-col :span="8">
+                  <el-form-item label="交货方式">
+                    <el-select v-model="form.deliveryType" style="width:100%">
+                      <el-option label="自提" value="SELF" />
+                      <el-option label="配送" value="DELIVERY" />
+                      <el-option label="快递" value="EXPRESS" />
+                    </el-select>
                   </el-form-item>
                 </el-col>
               </el-row>
@@ -51,18 +87,9 @@
                 </el-col>
               </el-row>
               <el-row :gutter="16">
-                <el-col :span="12">
-                  <el-form-item label="交货方式">
-                    <el-select v-model="form.deliveryType" style="width:100%">
-                      <el-option label="自提" value="SELF" />
-                      <el-option label="配送" value="DELIVERY" />
-                      <el-option label="快递" value="EXPRESS" />
-                    </el-select>
-                  </el-form-item>
-                </el-col>
-                <el-col :span="12">
+                <el-col :span="24">
                   <el-form-item label="备注">
-                    <el-input v-model="form.remark" placeholder="订单备注" />
+                    <el-input v-model="form.remark" type="textarea" :rows="2" placeholder="订单备注" />
                   </el-form-item>
                 </el-col>
               </el-row>
@@ -164,13 +191,17 @@
 </template>
 
 <script setup lang="ts">
-import { computed, reactive, ref } from "vue";
-import { ElMessage } from "element-plus";
+import { computed, onMounted, reactive, ref } from "vue";
+import { ElMessage, type FormInstance, type FormRules } from "element-plus";
 import PageCard from "../../components/PageCard.vue";
-import { api } from "../../api";
+import { api, fetchStores, fetchMemberDetail } from "../../api";
 
 const form = reactive({
+  storeId: null as number | null,
   customerId: null as number | null,
+  customerName: "",
+  customerMobile: "",
+  customerAddress: "",
   saleType: "CASH",
   dueDate: null as string | null,
   deliveryType: "SELF",
@@ -181,8 +212,9 @@ const form = reactive({
   wipeAmount: 0
 });
 
-const formRef = ref();
-const rules = {
+const formRef = ref<FormInstance>();
+const rules: FormRules = {
+  storeId: [{ required: true, message: "请选择门店", trigger: "change" }],
   customerId: [{ required: true, message: "请选择客户", trigger: "change" }],
   dueDate: [
     {
@@ -198,6 +230,7 @@ const rules = {
   ]
 };
 
+const storeOptions = ref<any[]>([]);
 const customerOptions = ref<any[]>([]);
 const customerLoading = ref(false);
 const productOptions = ref<Record<number, any[]>>({});
@@ -249,6 +282,45 @@ async function searchCustomers(query: string) {
   customerLoading.value = false;
 }
 
+async function onCustomerChange(customerId: number) {
+  if (!customerId) {
+    form.customerName = "";
+    form.customerMobile = "";
+    form.customerAddress = "";
+    return;
+  }
+  try {
+    const customer = customerOptions.value.find(c => c.id === customerId);
+    if (customer) {
+      form.customerName = customer.name || "";
+      form.customerMobile = customer.mobile || "";
+      form.customerAddress = customer.address || "";
+    } else {
+      const detail = await fetchMemberDetail(customerId);
+      form.customerName = detail.name || "";
+      form.customerMobile = detail.mobile || "";
+      form.customerAddress = detail.address || "";
+    }
+  } catch (e) {
+    console.error("获取客户详情失败", e);
+  }
+}
+
+async function loadStores() {
+  try {
+    storeOptions.value = await fetchStores() || [];
+    if (storeOptions.value.length > 0 && !form.storeId) {
+      form.storeId = storeOptions.value[0].id;
+    }
+  } catch (e) {
+    console.error("加载门店列表失败", e);
+  }
+}
+
+onMounted(() => {
+  loadStores();
+});
+
 async function searchProducts(query: string, index: number) {
   if (!query || query.length < 1) return;
   try {
@@ -283,26 +355,35 @@ async function handleSubmit() {
   }
   try {
     const payload = {
+      storeId: form.storeId,
       customerId: form.customerId,
+      customerName: form.customerName,
+      customerMobile: form.customerMobile,
+      customerAddress: form.customerAddress,
       saleType: form.saleType,
       dueDate: form.dueDate,
       deliveryType: form.deliveryType,
       remark: form.remark,
       items: form.items.map((item: any) => ({
-        productId: item.productId,
-        unit: item.unit,
-        qty: item.qty,
-        price: item.price,
+        skuId: item.skuId || item.productId,
+        quantity: item.qty,
+        boxQty: 0,
+        bottleQty: item.qty,
+        totalBottleQty: item.qty,
+        unitPrice: item.price,
         discount: item.discount
       })),
       orderDiscount: form.orderDiscount,
       discountAmount: form.discountAmount,
-      wipeAmount: form.wipeAmount
+      roundingAmount: form.wipeAmount
     };
     const res = await api.post("/sale-bills", payload);
     ElMessage.success("订单创建成功！");
     // 重置表单
     form.customerId = null;
+    form.customerName = "";
+    form.customerMobile = "";
+    form.customerAddress = "";
     form.items = [];
     form.orderDiscount = 0;
     form.discountAmount = 0;
