@@ -6,8 +6,10 @@ export async function listMembers(tenantId: string, page: number, pageSize: numb
   const offset = (page - 1) * pageSize;
   const kw = `%${keyword}%`;
   // 使用 LEFT JOIN + GROUP BY 替代相关子查询，减少数据库查询次数
+  // R54-04：补充 address/settlement_type/remark 字段，修复列表页这些字段显示为空的 Bug
   const records = await queryWithTenant<any>(
     `SELECT m.id AS memberId, m.name, m.mobile, m.customer_type AS customerType,
+            m.address, m.settlement_type AS settlementType, m.remark,
             m.points, m.level_code AS levelCode, m.status,
             m.staff_id AS staffId, u.real_name AS staffName,
             COALESCE(SUM(sb.receivable_amount), 0) AS totalSpent,
@@ -16,7 +18,7 @@ export async function listMembers(tenantId: string, page: number, pageSize: numb
      LEFT JOIN t_sys_user u ON u.id = m.staff_id
      LEFT JOIN t_sale_bill sb ON sb.customer_id = m.id AND sb.business_status NOT IN ('DRAFT', 'VOIDED')
      WHERE m.tenant_id = ? AND (m.name LIKE ? OR m.mobile LIKE ?)
-     GROUP BY m.id, m.name, m.mobile, m.customer_type, m.points, m.level_code, m.status, m.staff_id, u.real_name
+     GROUP BY m.id, m.name, m.mobile, m.customer_type, m.address, m.settlement_type, m.remark, m.points, m.level_code, m.status, m.staff_id, u.real_name
      ORDER BY m.id DESC
      LIMIT ? OFFSET ?`,
     [tenantId, kw, kw, pageSize, offset],
@@ -40,8 +42,10 @@ export async function createCustomer(tenantId: string, body: { name: string; mob
 }
 
 export async function getCustomerDetail(tenantId: string, memberId: number) {
+  // R54-04：补充 address/settlement_type/remark 字段，修复详情页这些字段显示为空的 Bug
   const member = await queryOneWithTenant<any>(
     `SELECT m.id AS memberId, m.name, m.mobile, m.customer_type AS customerType,
+            m.address, m.settlement_type AS settlementType, m.remark,
             m.points, m.level_code AS levelCode, m.status,
             m.staff_id AS staffId, u.real_name AS staffName
      FROM t_member m
@@ -81,7 +85,7 @@ export async function updateCustomer(tenantId: string, memberId: number, body: {
     { name: body.name, mobile: body.mobile }
   );
   if (changedFields.length > 0) {
-    syncChangedFields("member", memberId, changedFields, tenantId).catch(() => {});
+    syncChangedFields("member", memberId, changedFields, tenantId).catch(() => { });
   }
 
   return { memberId };

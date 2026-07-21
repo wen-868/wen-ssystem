@@ -14,11 +14,12 @@ vi.mock("../../../shared/response", () => ({
 }));
 
 vi.mock("../../../middleware/async-handler", () => ({
+  // asyncHandler 透传异步函数的错误，由全局 errorHandler 处理
   asyncHandler: (fn: any) => fn,
 }));
 
 import * as authService from "../../../services/admin/auth.service";
-import { ok, fail } from "../../../shared/response";
+import { ok } from "../../../shared/response";
 import {
   login,
   changePassword,
@@ -66,36 +67,18 @@ describe("auth.controller", () => {
     expect(ok).toHaveBeenCalled();
   });
 
-  it("changePassword - 密码长度不足应返回400", async () => {
-    const req = mockReq({ body: { oldPassword: "oldPass", newPassword: "Short1@" } });
+  it("changePassword - 密码强度校验由 service 层统一处理，service 抛错时 controller 透传错误", async () => {
+    // R54-14：controller 不再做密码强度校验，统一由 service 层 validatePassword 完成
+    // service 校验失败时抛 AppError，asyncHandler 透传给全局 errorHandler
+    const error = Object.assign(new Error("密码不符合要求：密码必须包含特殊字符"), { statusCode: 400 });
+    (authService.changePassword as any).mockRejectedValue(error);
+    const req = mockReq({ body: { oldPassword: "oldPass", newPassword: "NoSpecialChar1" } });
     const res = mockRes();
-    await changePassword(req as any, res as any);
-    expect(res.status).toHaveBeenCalledWith(400);
-    expect(fail).toHaveBeenCalled();
-  });
-
-  it("changePassword - 缺少大写字母应返回400", async () => {
-    const req = mockReq({ body: { oldPassword: "oldPass", newPassword: "nouppercase123@" } });
-    const res = mockRes();
-    await changePassword(req as any, res as any);
-    expect(res.status).toHaveBeenCalledWith(400);
-    expect(fail).toHaveBeenCalled();
-  });
-
-  it("changePassword - 缺少小写字母应返回400", async () => {
-    const req = mockReq({ body: { oldPassword: "oldPass", newPassword: "NOLOWERCASE123@" } });
-    const res = mockRes();
-    await changePassword(req as any, res as any);
-    expect(res.status).toHaveBeenCalledWith(400);
-    expect(fail).toHaveBeenCalled();
-  });
-
-  it("changePassword - 缺少数字应返回400", async () => {
-    const req = mockReq({ body: { oldPassword: "oldPass", newPassword: "NoNumberHere@" } });
-    const res = mockRes();
-    await changePassword(req as any, res as any);
-    expect(res.status).toHaveBeenCalledWith(400);
-    expect(fail).toHaveBeenCalled();
+    await expect(changePassword(req as any, res as any)).rejects.toMatchObject({
+      message: "密码不符合要求：密码必须包含特殊字符",
+      statusCode: 400,
+    });
+    expect(authService.changePassword).toHaveBeenCalledWith(1, "oldPass", "NoSpecialChar1", "t1");
   });
 
   it("getMe - 应返回当前用户信息", async () => {

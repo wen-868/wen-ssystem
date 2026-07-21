@@ -48,7 +48,20 @@ const loginRules: FormRules = {
   username: [{ required: true, message: "请输入账号", trigger: "blur" }],
   password: [
     { required: true, message: "请输入密码", trigger: "blur" },
-    { min: 6, message: "密码至少6个字符", trigger: "blur" }
+    // R54-14：前端密码校验与后端 password.ts 的 validatePassword 保持一致
+    // 后端规则：长度8-32位 + 字母 + 数字 + 特殊字符
+    { min: 8, message: "密码至少8个字符", trigger: "blur" },
+    { max: 32, message: "密码不能超过32个字符", trigger: "blur" },
+    {
+      validator: (_rule: unknown, value: string, callback: (err?: Error) => void) => {
+        if (!value) return callback();
+        if (!/[a-zA-Z]/.test(value)) return callback(new Error("密码必须包含字母"));
+        if (!/[0-9]/.test(value)) return callback(new Error("密码必须包含数字"));
+        if (!/[^a-zA-Z0-9]/.test(value)) return callback(new Error("密码必须包含特殊字符"));
+        callback();
+      },
+      trigger: "blur"
+    }
   ]
 };
 

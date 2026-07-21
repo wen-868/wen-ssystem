@@ -35,7 +35,7 @@ process.on("uncaughtException", (err: Error) => {
     severity: "FATAL",
     message: err.message || "未捕获的异常",
     stack: err.stack || undefined,
-  }).catch(() => {});
+  }).catch(() => { });
   reportToLingZhou({
     phase: "系统错误告警",
     status: "BLOCKED",
@@ -47,7 +47,7 @@ process.on("uncaughtException", (err: Error) => {
     ],
     reporter: "系统自动告警",
     webhookUrl: process.env.FEISHU_ALERT_WEBHOOK_URL || process.env.FEISHU_WEBHOOK_URL,
-  }).catch(() => {});
+  }).catch(() => { });
 });
 
 process.on("unhandledRejection", (reason: any, _promise: Promise<any>) => {
@@ -59,7 +59,7 @@ process.on("unhandledRejection", (reason: any, _promise: Promise<any>) => {
     severity: "ERROR",
     message,
     stack,
-  }).catch(() => {});
+  }).catch(() => { });
   reportToLingZhou({
     phase: "系统错误告警",
     status: "BLOCKED",
@@ -71,7 +71,7 @@ process.on("unhandledRejection", (reason: any, _promise: Promise<any>) => {
     ],
     reporter: "系统自动告警",
     webhookUrl: process.env.FEISHU_ALERT_WEBHOOK_URL || process.env.FEISHU_WEBHOOK_URL,
-  }).catch(() => {});
+  }).catch(() => { });
 });
 
 // 测试环境不禁用限流，避免影响测试
@@ -105,15 +105,16 @@ app.get("/health", (_req: any, res: any) => {
 app.post("/api/admin/auth/login", loginLimiter, authController.login);
 app.post("/api/store/auth/login", loginLimiter, authController.login);
 // 认证后的用户接口
+// 注意：手动注册的写操作接口需单独挂载 csrfMiddleware（auto-routes 已对自动注册的路由按 auth 配置附加 CSRF）
 app.get("/api/admin/auth/me", requireAuthWithTenant, authController.getMe);
 app.get("/api/admin/auth/settings", requireAuthWithTenant, authController.getSettings);
-app.put("/api/admin/auth/settings", requireAuthWithTenant, authController.updateSettings);
-app.post("/api/admin/auth/change-password", requireAuthWithTenant, authController.changePassword);
+app.put("/api/admin/auth/settings", requireAuthWithTenant, csrfMiddleware, authController.updateSettings);
+app.post("/api/admin/auth/change-password", requireAuthWithTenant, csrfMiddleware, authController.changePassword);
 
-// CSRF 防护：全局注册，对已认证用户检查 x-csrf-token
-// auth: "none" 路由因 req.user 不存在会自动放行
-// 需要认证的路由通过 auto-routes 在认证后再次执行 CSRF 检查
-app.use(csrfMiddleware);
+// CSRF 防护：不再全局注册，避免与 auto-routes 中的按路由注册形成双重注册。
+// - 自动注册的路由：auto-routes.ts 的 getAuthMiddlewares 已对 requireAuth/requireAuthWithTenant/requirePlatformAuth 三种模式附加 csrfMiddleware
+// - 手动注册的写操作接口：在上方各自挂载 csrfMiddleware
+// - auth: "none" 路由：req.user 不存在，csrfMiddleware 会自动放行，无需全局注册
 
 // 自动发现并注册 routes/ 目录下所有路由
 await setupRoutes(app);

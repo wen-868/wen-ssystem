@@ -1,6 +1,7 @@
 import { queryOne, query } from "../../shared/db";
 import { hashPassword, verifyPassword, validatePassword } from "../../shared/password";
 import { signPlatformToken } from "../../middleware/auth";
+import { generateCsrfToken } from "../../middleware/csrf";
 import { AppError } from "../../shared/app-error";
 
 function getStringOrDefault(value: unknown, defaultValue: string): string {
@@ -34,7 +35,8 @@ export async function login(username: string, password: string) {
     type: "platform_admin",
   });
 
-  return { token, admin: { id: admin.id, username: admin.username, realName: admin.real_name } };
+  // 下发 CSRF token，saas-admin 写操作需注入 x-csrf-token header（与 admin-web 保持一致）
+  return { token, admin: { id: admin.id, username: admin.username, realName: admin.real_name }, csrfToken: generateCsrfToken(admin.id) };
 }
 
 export async function getMe(adminId: number) {
@@ -43,7 +45,8 @@ export async function getMe(adminId: number) {
     [adminId]
   );
   if (!admin) throw new AppError("管理员不存在", 404);
-  return { id: admin.id, username: admin.username, realName: admin.real_name };
+  // /me 接口同步下发 csrfToken，便于前端刷新页面后重新获取
+  return { id: admin.id, username: admin.username, realName: admin.real_name, csrfToken: generateCsrfToken(admin.id) };
 }
 
 export async function createAdmin(data: {

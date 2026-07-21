@@ -88,6 +88,7 @@ describe("platform-auth.controller", () => {
       (platformAuthMocks.login as any).mockResolvedValue({
         token: "token123",
         admin: { id: 1, username: "admin", realName: "Admin" },
+        csrfToken: "csrf_token_xxx",
       });
 
       await platformLogin({ body: { username: "admin", password: "123456" } } as any, mockRes);
@@ -97,9 +98,11 @@ describe("platform-auth.controller", () => {
       const callArgs = mockRes.json.mock.calls[0][0];
       expect(callArgs.code).toBe("0");
       expect(callArgs.msg).toBe("成功");
+      // R54-14：login 下发 csrfToken，saas-admin 写操作需注入 x-csrf-token header
       expect(callArgs.data).toEqual({
         token: "token123",
         admin: { id: 1, username: "admin", realName: "Admin" },
+        csrfToken: "csrf_token_xxx",
       });
     });
   });
@@ -114,7 +117,7 @@ describe("platform-auth.controller", () => {
     });
 
     it("should return admin info", async () => {
-      (platformAuthMocks.getMe as any).mockResolvedValue({ id: 1, username: "admin", realName: "Admin" });
+      (platformAuthMocks.getMe as any).mockResolvedValue({ id: 1, username: "admin", realName: "Admin", csrfToken: "csrf_token_me" });
 
       await getPlatformMe({ user: { id: 1 } } as any, mockRes);
 
@@ -123,7 +126,8 @@ describe("platform-auth.controller", () => {
       const callArgs = mockRes.json.mock.calls[0][0];
       expect(callArgs.code).toBe("0");
       expect(callArgs.msg).toBe("成功");
-      expect(callArgs.data).toEqual({ id: 1, username: "admin", realName: "Admin" });
+      // R54-14：/me 接口同步下发 csrfToken，便于前端刷新页面后重新获取
+      expect(callArgs.data).toEqual({ id: 1, username: "admin", realName: "Admin", csrfToken: "csrf_token_me" });
     });
   });
 

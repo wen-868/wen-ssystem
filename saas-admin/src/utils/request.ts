@@ -12,6 +12,10 @@ request.interceptors.request.use((config) => {
   if (authStore.token) {
     config.headers.Authorization = `Bearer ${authStore.token}`
   }
+  // CSRF 防护：写操作需注入 x-csrf-token header（后端登录/ME 接口下发，存于 authStore.csrfToken）
+  if (authStore.csrfToken) {
+    config.headers['x-csrf-token'] = authStore.csrfToken
+  }
   return config
 })
 
@@ -38,7 +42,7 @@ function reportHttpError(payload: {
       source: 'saas-admin',
       timestamp: new Date().toISOString(),
     }),
-  }).catch(() => {}).finally(() => {
+  }).catch(() => { }).finally(() => {
     isReportingError = false
   })
 }
