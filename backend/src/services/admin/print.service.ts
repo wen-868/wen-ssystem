@@ -114,7 +114,7 @@ export async function createPrintRecord(
         throw Object.assign(new Error("打印份数必须在 1-99 之间"), { statusCode: 400 });
     }
 
-    const result = await queryWithTenant<{ insertId: number }>(
+    const result: any = await queryWithTenant<any>(
         `INSERT INTO t_print_record
       (store_id, bill_type, bill_no, printer_mac, print_content, copies, operator_id, status, error_msg, original_id)
      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
@@ -133,9 +133,14 @@ export async function createPrintRecord(
         tenantId
     );
 
-    const insertId = Number(
-        (result as unknown as Record<string, unknown>).insertId ?? 0
-    );
+    // queryWithTenant 对 INSERT 的返回形态：
+    //  - 真实 DB：ResultSetHeader 对象（含 insertId，见 database.ts queryWithTenant 的 pool.query 分支）
+    //  - mock DB：[ResultSetHeader] 数组（见 database.ts queryWithTenant 的 mock 分支）
+    // 兼容两种形态提取 insertId（踩坑日志 [23]：mock 下数组访问 .insertId 为 undefined）
+    const insertId =
+        Number(
+            Array.isArray(result) ? result[0]?.insertId : result?.insertId
+        ) || 0;
     return { id: insertId };
 }
 
@@ -276,7 +281,7 @@ export async function reprintRecord(
     }
 
     // 复制原记录数据，bill_type 改为 REPRINT，original_id 指向原记录
-    const result = await queryWithTenant<{ insertId: number }>(
+    const result: any = await queryWithTenant<any>(
         `INSERT INTO t_print_record
       (store_id, bill_type, bill_no, printer_mac, print_content, copies, operator_id, status, error_msg, original_id)
      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
@@ -295,8 +300,10 @@ export async function reprintRecord(
         tenantId
     );
 
-    const insertId = Number(
-        (result as unknown as Record<string, unknown>).insertId ?? 0
-    );
+    // 兼容 mock（数组）与真实 DB（对象）两种 INSERT 返回形态，详见踩坑日志 [23]
+    const insertId =
+        Number(
+            Array.isArray(result) ? result[0]?.insertId : result?.insertId
+        ) || 0;
     return { id: insertId, originalId: original.id };
 }

@@ -37,8 +37,9 @@
 - **优先级**：P1
 - **负责人**：阿坚
 - **预计**：0.5天
-- **状态**：⬜ 待开始
-- **文件**：`backend/src/middleware/error-handler.ts`、`backend/src/shared/error-response-interceptor.ts`
+- **状态**：✅ 已完成（2026-07-23）
+- **完成证据**：移除 `errorResponseInterceptor` 中的 `reportToLingZhou` 调用与 feishu-report import，简化为透传中间件（保留作响应降级扩展点）；飞书告警统一由 `errorHandler` 负责（5xx 唯一告警源）。同步改写 `error-response-interceptor.test.ts`（移除飞书告警断言，保留透传 + 不触发副作用验证）。`npx tsc --noEmit` 0 错误，`npx vitest run` 416 文件 4857 用例全部通过。
+- **文件**：`backend/src/middleware/error-handler.ts`、`backend/src/shared/error-response-interceptor.ts`、`backend/src/__tests__/shared/error-response-interceptor.test.ts`
 - **问题**：errorHandler（第63/96行）和errorResponseInterceptor（第33行）各自对5xx错误调用reportToLingZhou发送飞书告警，同一条错误告警发送两次。insertErrorLog双重写入已修复，但告警仍重复
 - **修复方向**：移除errorResponseInterceptor中的reportToLingZhou调用，仅保留errorHandler发送告警；errorResponseInterceptor仅负责响应重定向/降级
 - **验收标准**：5xx错误只触发一次飞书告警
@@ -48,8 +49,9 @@
 - **优先级**：P1
 - **负责人**：阿坚
 - **预计**：0.5天
-- **状态**：⬜ 待开始
-- **文件**：`backend/src/server.ts`
+- **状态**：✅ 已完成（2026-07-23）
+- **完成证据**：新增 `rate-limit-redis@6.0.0` 依赖（monorepo hoist 到根 node_modules）；`config/env.ts` 新增 `REDIS_URL`（可选）；`server.ts` 新增 `createRateLimiter` 工厂函数——测试环境或未配置 REDIS_URL 时用默认 MemoryStore，生产环境+REDIS_URL 时用 RedisStore（ioredis + sendCommand），初始化抛错降级 MemoryStore，Redis 运行时连接错误经 error 事件记录日志。三个限流器（globalLimiter/adminLoginLimiter/storeLoginLimiter）均改用工厂创建。`npx tsc --noEmit` 0 错误，`npx vitest run` 全量通过。
+- **文件**：`backend/src/server.ts`、`backend/src/config/env.ts`、`backend/package.json`
 - **问题**：globalLimiter（第80行）、adminLoginLimiter（第84行）、storeLoginLimiter（第85行）三个rateLimit实例均使用默认MemoryStore，多进程部署或重启后计数清零，防暴力破解能力降级
 - **修复方向**：生产环境替换为rate-limit-redis（需安装依赖并配置Redis连接），开发环境可保留MemoryStore
 - **验收标准**：生产环境限流器使用Redis存储
@@ -243,8 +245,9 @@
 - **优先级**：P0
 - **负责人**：阿坚
 - **预计**：1天
-- **状态**：⬜ 待开始
-- **文件**：`backend/src/routes/print.routes.ts`（新建）、`backend/src/services/admin/print.service.ts`（新建）、`backend/src/controllers/admin/print.controller.ts`（新建）、`docs/migrations/20260720_print_record.sql`（新建）
+- **状态**：✅ 已完成（2026-07-23）
+- **完成证据**：routes/service/migration/测试前序轮次已部分完成（存在但 controller 缺失导致编译失败），本次补齐缺失的 `print.controller.ts`（4 端点：POST /records 保存、GET /records 分页查询、GET /records/:id 详情、POST /records/:id/reprint 重打），修复 `print.service.ts` 的 insertId 提取 bug（兼容 mock 数组与真实 DB 对象两种形态，踩坑 [76]）。routeConfig.auth=requireAuthWithTenant，租户隔离用 queryWithTenant/queryOneWithTenant，operatorId 由服务端从 req.user.id 注入（不信任客户端）。主键采用 BIGINT 自增（比 VARCHAR(36) 更适合审计记录高频写入，service/test 均基于 number 类型实现）。`npx tsc --noEmit` 0 错误，`npx vitest run` print.service.test.ts + print.routes.test.ts 全部通过（含 CRUD + 租户隔离 + 边界）。
+- **文件**：`backend/src/routes/print.routes.ts`、`backend/src/services/admin/print.service.ts`、`backend/src/controllers/admin/print.controller.ts`、`docs/migrations/20260720_print_record.sql`
 - **问题**：后端无任何打印记录能力，App 端打印小票无法留痕审计
 - **修复方向**：
   1. 新建 `t_print_record` 表（含 tenant_id/store_id/bill_type/bill_no/printer_mac/print_content/copies/operator_id/status/error_msg）

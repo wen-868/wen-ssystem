@@ -1,53 +1,24 @@
 ﻿import type { Request, Response, NextFunction } from "express";
-import { reportToLingZhou } from "./feishu-report";
 
 /**
  * 错误响应拦截器
- * 职责：仅对 5xx 错误进行飞书告警，错误日志写入统一由 errorHandler 中间件负责
- * 注意：不再在此处调用 insertErrorLog，避免与 errorHandler 形成双重写入
+ *
+ * 职责：响应降级/重定向扩展点（当前为透传）。
+ *
+ * 历史背景（R55-02）：
+ *  - 修复前：本中间件会拦截 5xx 响应并调用 reportToLingZhou 发送飞书告警，
+ *    但全局 errorHandler（middleware/error-handler.ts）在捕获 5xx 异常时也会
+ *    调用 reportToLingZhou 发送告警，导致同一条错误告警被发送两次。
+ *  - 修复后：移除本中间件的 reportToLingZhou 调用，飞书告警统一由 errorHandler
+ *    负责（errorHandler 是错误处理的唯一权威源，见踩坑日志 [9]/[70] 的分层原则）；
+ *    本中间件仅保留作为响应降级/重定向的扩展点，当前不做任何拦截。
+ *
+ * 关联任务：R55-02 双重飞书告警
  */
 export function errorResponseInterceptor(
-  req: Request,
-  res: Response,
+  _req: Request,
+  _res: Response,
   next: NextFunction
 ) {
-  const originalJson = res.json.bind(res);
-  const originalStatus = res.status.bind(res);
-
-  let statusCode = 200;
-
-  res.status = (code: number) => {
-    statusCode = code;
-    return originalStatus(code);
-  };
-
-  res.json = (body: any) => {
-    if (statusCode >= 500) {
-      const requestUrl = req.originalUrl || req.url || "";
-      const requestMethod = req.method || "";
-      const userId = (req as { user?: { id: number } }).user?.id || null;
-      const tenantId = (req as { tenantId?: number }).tenantId || null;
-
-      const message = body?.message || body?.msg || "服务器内部错误";
-
-      reportToLingZhou({
-        phase: "系统错误告警",
-        status: "BLOCKED",
-        summary: `[${requestMethod}] ${requestUrl} — ${message}`,
-        details: [
-          { label: "请求URL", value: `${requestMethod} ${requestUrl}` },
-          { label: "用户ID", value: userId || "未登录" },
-          { label: "租户ID", value: tenantId || "N/A" },
-          { label: "状态码", value: String(statusCode) },
-          { label: "错误消息", value: message },
-        ],
-        reporter: "系统自动告警",
-        webhookUrl: process.env.FEISHU_ALERT_WEBHOOK_URL || process.env.FEISHU_WEBHOOK_URL,
-      }).catch(() => { });
-    }
-
-    return originalJson(body);
-  };
-
   next();
 }

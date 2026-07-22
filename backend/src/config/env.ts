@@ -52,6 +52,16 @@ export const env = {
   /** Redis 端口，默认 6379 */
   REDIS_PORT: Number(process.env.REDIS_PORT || 6379),
 
+  /**
+   * Redis 连接 URL（可选，多进程限流共享存储用）
+   * 配置后限流器（express-rate-limit）将使用 RedisStore，替代默认 MemoryStore，
+   * 避免多进程部署或重启后计数清零导致防暴力破解能力降级。
+   * 格式：redis://[:password@]host:port[/db]
+   * 未配置时限流器回退到 MemoryStore（单进程内存）。
+   * 关联任务：R55-03 rate-limit 使用 MemoryStore
+   */
+  REDIS_URL: process.env.REDIS_URL || "",
+
   /** 主域名，默认 onepan.cn */
   DOMAIN: process.env.DOMAIN || "onepan.cn",
 

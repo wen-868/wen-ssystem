@@ -2,6 +2,8 @@ import cors from "cors";
 import express from "express";
 import helmet from "helmet";
 import rateLimit from "express-rate-limit";
+import { RedisStore, type RedisReply } from "rate-limit-redis";
+import { Redis } from "ioredis";
 import logger from "./shared/logger";
 import { env } from "./shared/env";
 import { initDatabase } from "./shared/db";
@@ -74,15 +76,63 @@ process.on("unhandledRejection", (reason: any, _promise: Promise<any>) => {
   }).catch(() => { });
 });
 
+/**
+ * 创建限流器（R55-03）
+ *
+ * 存储策略：
+ *  - 测试环境（NODE_ENV === "test"）或未配置 REDIS_URL：使用默认 MemoryStore（单进程内存）
+ *  - 生产环境且配置了 REDIS_URL：使用 RedisStore（多进程共享计数，防暴力破解不因重启/多进程清零）
+ *
+ * 容错：RedisStore 初始化抛错时降级为 MemoryStore；Redis 运行时连接错误通过 error 事件记录日志。
+ * 关联任务：R55-03 rate-limit 使用 MemoryStore
+ */
+function createRateLimiter(options: NonNullable<Parameters<typeof rateLimit>[0]>) {
+  const baseOptions = { standardHeaders: true, legacyHeaders: false, ...options };
+  // 测试环境使用 MemoryStore，避免依赖真实 Redis 影响测试
+  if (process.env.NODE_ENV === "test") {
+    return rateLimit(baseOptions);
+  }
+  // 未配置 REDIS_URL：开发/单进程环境使用 MemoryStore
+  if (!env.REDIS_URL) {
+    logger.info("[rate-limit] 未配置 REDIS_URL，限流器使用 MemoryStore（单进程内存）");
+    return rateLimit(baseOptions);
+  }
+  // 生产环境 + REDIS_URL：使用 RedisStore
+  try {
+    const client = new Redis(env.REDIS_URL, {
+      maxRetriesPerRequest: 3,
+      // Redis 未连接时命令立即失败而非排队，避免请求挂起
+      enableOfflineQueue: false,
+    });
+    client.on("error", (err: Error) => {
+      logger.error("[rate-limit] Redis 连接错误:", err.message);
+    });
+    const store = new RedisStore({
+      // ioredis 的 call 签名为 call(command, ...args)，第一个参数是命令名
+      // 参考 rate-limit-redis readme 的 ioredis 用法
+      sendCommand: (command: string, ...args: string[]) =>
+        client.call(command, ...args) as Promise<RedisReply>,
+    });
+    logger.info("[rate-limit] 限流器启用 RedisStore（REDIS_URL 已配置）");
+    return rateLimit({ ...baseOptions, store });
+  } catch (err) {
+    logger.error(
+      "[rate-limit] RedisStore 初始化失败，降级 MemoryStore:",
+      err instanceof Error ? err.message : err
+    );
+    return rateLimit(baseOptions);
+  }
+}
+
 // 测试环境不禁用限流，避免影响测试
 if (process.env.NODE_ENV !== "test") {
   // 全局 Rate Limiting：每IP每分钟100请求
-  app.use(rateLimit({ windowMs: 60_000, max: 100, standardHeaders: true, legacyHeaders: false }));
+  app.use(createRateLimiter({ windowMs: 60_000, max: 100 }));
 }
 // 登录接口 Rate Limiting：每IP每15分钟20次（防暴力破解，兼顾测试）
 // admin 和 store 登录使用独立实例，避免互相影响计数
-const adminLoginLimiter = rateLimit({ windowMs: 15 * 60_000, max: 20, message: "登录请求过于频繁，请15分钟后再试", standardHeaders: true, legacyHeaders: false });
-const storeLoginLimiter = rateLimit({ windowMs: 15 * 60_000, max: 20, message: "登录请求过于频繁，请15分钟后再试", standardHeaders: true, legacyHeaders: false });
+const adminLoginLimiter = createRateLimiter({ windowMs: 15 * 60_000, max: 20, message: "登录请求过于频繁，请15分钟后再试" });
+const storeLoginLimiter = createRateLimiter({ windowMs: 15 * 60_000, max: 20, message: "登录请求过于频繁，请15分钟后再试" });
 
 app.use(helmet());
 const corsOriginsEnv = (globalThis as typeof globalThis & { process: NodeJS.Process }).process?.env?.CORS_ORIGINS;
