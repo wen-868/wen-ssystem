@@ -87,9 +87,32 @@
                 </el-col>
               </el-row>
               <el-row :gutter="16">
-                <el-col :span="24">
-                  <el-form-item label="备注">
-                    <el-input v-model="form.remark" type="textarea" :rows="2" placeholder="订单备注" />
+                <el-col :span="12">
+                  <el-form-item label="客户可见备注" prop="customerRemark">
+                    <el-input
+                      v-model="form.customerRemark"
+                      type="textarea"
+                      :rows="3"
+                      maxlength="255"
+                      show-word-limit
+                      placeholder="客户可见的订单备注，将出现在销售单据上"
+                    />
+                  </el-form-item>
+                </el-col>
+                <el-col :span="12">
+                  <el-form-item prop="internalRemark">
+                    <template #label>
+                      <span>内部备注</span>
+                      <el-tag size="small" type="info" effect="plain" class="internal-tag">仅内部可见</el-tag>
+                    </template>
+                    <el-input
+                      v-model="form.internalRemark"
+                      type="textarea"
+                      :rows="3"
+                      maxlength="255"
+                      show-word-limit
+                      placeholder="仅内部可见的备注，客户无法查看"
+                    />
                   </el-form-item>
                 </el-col>
               </el-row>
@@ -205,7 +228,10 @@ const form = reactive({
   saleType: "CASH",
   dueDate: null as string | null,
   deliveryType: "SELF",
-  remark: "",
+  // 客户可见备注（对应后端 sale_bill.remark 列，注释为"客户可见备注"）
+  customerRemark: "",
+  // 内部备注（对应后端 sale_bill.internal_remark 列，仅内部可见）
+  internalRemark: "",
   items: [] as any[],
   orderDiscount: 0,
   discountAmount: 0,
@@ -363,7 +389,10 @@ async function handleSubmit() {
       saleType: form.saleType,
       dueDate: form.dueDate,
       deliveryType: form.deliveryType,
-      remark: form.remark,
+      // 客户可见备注 → 后端 sale_bill.remark 列
+      remark: form.customerRemark,
+      // 内部备注 → 后端 sale_bill.internal_remark 列
+      internalRemark: form.internalRemark,
       items: form.items.map((item: any) => ({
         skuId: item.skuId || item.productId,
         quantity: item.qty,
@@ -384,6 +413,8 @@ async function handleSubmit() {
     form.customerName = "";
     form.customerMobile = "";
     form.customerAddress = "";
+    form.customerRemark = "";
+    form.internalRemark = "";
     form.items = [];
     form.orderDiscount = 0;
     form.discountAmount = 0;
@@ -410,4 +441,5 @@ async function handleSubmit() {
 .summary-row.total { font-size: 16px; font-weight: 600; color: var(--text-primary); }
 .money-text { font-weight: 600; color: var(--text-primary); }
 .total-money { font-size: 22px; font-weight: 700; color: #e53935; }
+.internal-tag { margin-left: 6px; vertical-align: middle; }
 </style>
