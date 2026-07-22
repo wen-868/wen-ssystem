@@ -1,5 +1,97 @@
 import { queryWithTenant, queryOneWithTenant, transaction } from "../../shared/db";
+import type { RowDataPacket } from "mysql2/promise";
 import { makeBizNo } from "../../shared/id";
+
+// ==================== 类型定义 ====================
+
+/** 小程序订单列表行 */
+interface OrderListRow {
+  orderNo: string;
+  storeId: number;
+  customerType: string;
+  fulfillmentType: string;
+  orderStatus: string;
+  payStatus: string;
+  payableAmount: number | string;
+  receiverName: string;
+  receiverMobile: string;
+  createdAt: string | Date;
+}
+
+/** 计数 total 行 */
+interface CountTotalRow {
+  total: number;
+}
+
+/** 小程序订单详情行 */
+interface OrderDetailRow {
+  orderNo: string;
+  storeId: number;
+  customerType: string;
+  fulfillmentType: string;
+  orderStatus: string;
+  payStatus: string;
+  payableAmount: number | string;
+  receiverName: string;
+  receiverMobile: string;
+  receiverAddress: string | null;
+  createdAt: string | Date;
+}
+
+/** 小程序订单项行 */
+interface OrderItemRow {
+  skuId: number;
+  skuName: string;
+  quantity: number;
+  unitPrice: number | string;
+  subtotalAmount: number | string;
+}
+
+/** 订单状态统计行 */
+interface OrderStatusStatRow {
+  status: string;
+  count: number;
+}
+
+/** 销售单列表行 */
+interface SaleBillListRow {
+  billNo: string;
+  storeId: number;
+  customerName: string;
+  customerMobile: string;
+  receivableAmount: number | string;
+  receivedAmount: number | string;
+  unreceivedAmount: number | string;
+  collectionStatus: string;
+  businessStatus: string;
+  createdAt: string | Date;
+}
+
+/** 小程序订单全部字段行 */
+interface OrderFullRow {
+  order_no: string;
+  order_status: string;
+  pay_status: string;
+  [key: string]: unknown;
+}
+
+/** 订单项（库存释放用） */
+interface OrderItemQtyRow {
+  sku_id: number;
+  qty: number;
+}
+
+/** 操作日志行 */
+interface OperationLogRow {
+  logNo: string;
+  module: string;
+  action: string;
+  bizNo: string;
+  operatorId: number;
+  operatorName: string;
+  remark: string;
+  createdAt: string | Date;
+}
 
 export async function listOrders(
   page: number,
@@ -31,7 +123,7 @@ export async function listOrders(
     params.push(dateEnd);
   }
   const where = `WHERE ${conditions.join(" AND ")}`;
-  const records = await queryWithTenant<any>(
+  const records = await queryWithTenant<OrderListRow>(
     `SELECT order_no AS orderNo, store_id AS storeId, customer_type AS customerType,
             fulfillment_type AS fulfillmentType, order_status AS orderStatus,
             pay_status AS payStatus, payable_amount AS payableAmount,
@@ -43,7 +135,7 @@ export async function listOrders(
     [...params, pageSize, offset],
     tenantId
   );
-  const totalRow = await queryOneWithTenant<any>(
+  const totalRow = await queryOneWithTenant<CountTotalRow>(
     `SELECT COUNT(*) AS total FROM t_miniapp_order ${where}`,
     params,
     tenantId
@@ -78,7 +170,7 @@ export async function exportOrdersCsv(
     params.push(dateEnd);
   }
   const where = `WHERE ${conditions.join(" AND ")}`;
-  const records = await queryWithTenant<any>(
+  const records = await queryWithTenant<OrderListRow>(
     `SELECT order_no AS orderNo, store_id AS storeId, customer_type AS customerType,
             fulfillment_type AS fulfillmentType, order_status AS orderStatus,
             pay_status AS payStatus, payable_amount AS payableAmount,
@@ -92,7 +184,7 @@ export async function exportOrdersCsv(
   );
   const escapeCsv = (value: unknown) => `"${String(value ?? "").replace(/"/g, '""')}"`;
   const header = ["订单号", "门店ID", "客户类型", "履约方式", "订单状态", "支付状态", "金额", "收货人", "手机号", "创建时间"];
-  const rows = records.map((row: any) => [
+  const rows = records.map((row) => [
     row.orderNo,
     row.storeId,
     row.customerType,
@@ -109,7 +201,7 @@ export async function exportOrdersCsv(
 }
 
 export async function getOrderDetail(orderNo: string, tenantId: string) {
-  const order = await queryOneWithTenant<any>(
+  const order = await queryOneWithTenant<OrderDetailRow>(
     `SELECT order_no AS orderNo, store_id AS storeId, customer_type AS customerType,
             fulfillment_type AS fulfillmentType, order_status AS orderStatus,
             pay_status AS payStatus, payable_amount AS payableAmount,
@@ -120,7 +212,7 @@ export async function getOrderDetail(orderNo: string, tenantId: string) {
     tenantId
   );
   if (!order) return null;
-  const items = await queryWithTenant<any>(
+  const items = await queryWithTenant<OrderItemRow>(
     `SELECT sku_id AS skuId, sku_name AS skuName, qty AS quantity, unit_price AS unitPrice,
             subtotal_amount AS subtotalAmount
      FROM t_miniapp_order_item WHERE order_no = ?`,
@@ -131,7 +223,7 @@ export async function getOrderDetail(orderNo: string, tenantId: string) {
 }
 
 export async function getOrderStatusStats(tenantId: string) {
-  const records = await queryWithTenant<any>(
+  const records = await queryWithTenant<OrderStatusStatRow>(
     `SELECT order_status AS status, COUNT(*) AS count
      FROM t_miniapp_order
      WHERE tenant_id = ?
@@ -174,7 +266,7 @@ export async function listSaleBills(
   }
 
   const where = `WHERE ${conditions.join(" AND ")}`;
-  const records = await queryWithTenant<any>(
+  const records = await queryWithTenant<SaleBillListRow>(
     `SELECT bill_no AS billNo, store_id AS storeId, customer_name AS customerName,
             customer_mobile AS customerMobile, receivable_amount AS receivableAmount,
             received_amount AS receivedAmount, unreceived_amount AS unreceivedAmount,
@@ -187,7 +279,7 @@ export async function listSaleBills(
     [...params, pageSize, offset],
     tenantId
   );
-  const totalRow = await queryOneWithTenant<any>(`SELECT COUNT(*) AS total FROM t_sale_bill ${where}`, params, tenantId);
+  const totalRow = await queryOneWithTenant<CountTotalRow>(`SELECT COUNT(*) AS total FROM t_sale_bill ${where}`, params, tenantId);
   return { total: totalRow?.total ?? 0, page, pageSize, records };
 }
 
@@ -220,7 +312,7 @@ export async function exportSaleBillsCsv(
   }
 
   const where = `WHERE ${conditions.join(" AND ")}`;
-  const records = await queryWithTenant<any>(
+  const records = await queryWithTenant<SaleBillListRow>(
     `SELECT bill_no AS billNo, store_id AS storeId, customer_name AS customerName,
             customer_mobile AS customerMobile, receivable_amount AS receivableAmount,
             received_amount AS receivedAmount, unreceived_amount AS unreceivedAmount,
@@ -235,7 +327,7 @@ export async function exportSaleBillsCsv(
   );
   const escapeCsv = (value: unknown) => `"${String(value ?? "").replace(/"/g, '""')}"`;
   const header = ["销售单号", "门店ID", "客户名称", "客户手机", "应收金额", "已收金额", "未收金额", "收款状态", "业务状态", "创建时间"];
-  const rows = records.map((row: any) => [
+  const rows = records.map((row) => [
     row.billNo, row.storeId, row.customerName, row.customerMobile,
     row.receivableAmount, row.receivedAmount, row.unreceivedAmount,
     row.collectionStatus, row.businessStatus, row.createdAt
@@ -260,7 +352,7 @@ export function validateStatusTransition(from: string, to: string): boolean {
 }
 
 export async function cancelOrder(orderNo: string, reason: string, operatorId: number | null, operatorName: string, tenantId: string) {
-  const order = await queryOneWithTenant<any>(
+  const order = await queryOneWithTenant<OrderFullRow>(
     "SELECT * FROM t_miniapp_order WHERE order_no = ? AND tenant_id = ?",
     [orderNo, tenantId],
     tenantId
@@ -275,11 +367,11 @@ export async function cancelOrder(orderNo: string, reason: string, operatorId: n
       [orderNo, tenantId]
     );
     // 释放库存
-    const items = await conn.execute<any[]>(
+    const items = await conn.execute<RowDataPacket[]>(
       "SELECT sku_id, qty FROM t_miniapp_order_item WHERE order_no = ? AND tenant_id = ?",
       [orderNo, tenantId]
     );
-    for (const item of (items[0])) {
+    for (const item of items[0] as OrderItemQtyRow[]) {
       await conn.execute(
         "UPDATE t_inventory_balance SET available_qty = available_qty + ?, locked_qty = locked_qty - ? WHERE sku_id = ? AND tenant_id = ?",
         [item.qty, item.qty, item.sku_id, tenantId]
@@ -296,7 +388,7 @@ export async function cancelOrder(orderNo: string, reason: string, operatorId: n
 }
 
 export async function remarkOrder(orderNo: string, remark: string, operatorId: number | null, operatorName: string, tenantId: string) {
-  const order = await queryOneWithTenant<any>(
+  const order = await queryOneWithTenant<OrderFullRow>(
     "SELECT * FROM t_miniapp_order WHERE order_no = ? AND tenant_id = ?",
     [orderNo, tenantId],
     tenantId
@@ -318,7 +410,7 @@ export async function remarkOrder(orderNo: string, remark: string, operatorId: n
 }
 
 export async function updateOrderStatus(orderNo: string, targetStatus: string, operatorId: number | null, operatorName: string, remark: string | null, tenantId: string) {
-  const order = await queryOneWithTenant<any>(
+  const order = await queryOneWithTenant<OrderFullRow>(
     "SELECT * FROM t_miniapp_order WHERE order_no = ? AND tenant_id = ?",
     [orderNo, tenantId],
     tenantId
@@ -356,7 +448,7 @@ export async function batchUpdateOrderStatus(orderNos: string[], targetStatus: s
 }
 
 export async function getOrderOperationLogs(orderNo: string, tenantId: string) {
-  return queryWithTenant<any>(
+  return queryWithTenant<OperationLogRow>(
     "SELECT log_no AS logNo, module, action, biz_no AS bizNo, operator_id AS operatorId, operator_name AS operatorName, remark, created_at AS createdAt FROM t_operation_log WHERE biz_no = ? AND module = 'ORDER' AND tenant_id = ? ORDER BY created_at DESC",
     [orderNo, tenantId],
     tenantId

@@ -7,12 +7,15 @@ import { fail } from "../shared/response";
 const SAFE_METHODS = ["GET", "OPTIONS", "HEAD"];
 
 /**
- * 基于 userId + JWT_SECRET 生成 CSRF token（HMAC-SHA256）
+ * 基于 userId + CSRF_SECRET 生成 CSRF token（HMAC-SHA256）
  * @param userId 用户 ID
  * @returns HMAC-SHA256 十六进制字符串
  */
 export function generateCsrfToken(userId: number): string {
-  return createHmac("sha256", env.JWT_SECRET)
+  // 优先使用 CSRF_SECRET，未配置时回退到 JWT_SECRET，确保向后兼容
+  const secret = env.CSRF_SECRET || env.JWT_SECRET;
+  if (!secret) throw new Error("CSRF_SECRET 或 JWT_SECRET 必须配置");
+  return createHmac("sha256", secret)
     .update(String(userId))
     .digest("hex");
 }
@@ -23,7 +26,7 @@ export function generateCsrfToken(userId: number): string {
  * - GET/OPTIONS/HEAD 方法直接放行
  * - POST/PUT/DELETE 方法校验请求头 x-csrf-token
  * - 从 req.headers 读取 token，与 req.user.id 生成的 HMAC 值比较
- * - 使用 env.JWT_SECRET 作为 HMAC 密钥
+ * - 使用 env.CSRF_SECRET 作为 HMAC 密钥
  *
  * 需在认证中间件之后注册，以确保 req.user 已被设置
  */

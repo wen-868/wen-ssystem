@@ -8,11 +8,10 @@ describe("ok", () => {
     expect(result.msg).toBe("成功");
   });
 
-  it("应包含 traceId 和 apiCost", () => {
+  it("应包含 traceId", () => {
     const result = ok();
     expect(result.traceId).toBeDefined();
     expect(typeof result.traceId).toBe("string");
-    expect(result.apiCost).toBe(1);
   });
 
   it("传入数据时应将 data 附加到响应中", () => {
@@ -57,10 +56,9 @@ describe("fail", () => {
     expect(result.msg).toBe("权限不足");
   });
 
-  it("应包含 traceId 和 apiCost", () => {
+  it("应包含 traceId", () => {
     const result = fail("错误");
     expect(result.traceId).toBeDefined();
-    expect(result.apiCost).toBe(1);
   });
 
   it("fail 和 ok 的 code 不应相同", () => {

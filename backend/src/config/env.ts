@@ -13,6 +13,13 @@ export const env = {
   /** JWT 签名密钥（必须设置，无默认值，缺失时启动失败） */
   JWT_SECRET: process.env.JWT_SECRET || (() => { throw new Error("环境变量 JWT_SECRET 必须设置，不能为空"); })(),
 
+  /**
+   * CSRF 令牌 HMAC 签名密钥（独立于 JWT_SECRET）
+   * 未设置时自动回退到 JWT_SECRET，确保向后兼容。
+   * 建议生产环境独立配置，避免 JWT 密钥轮换导致所有 CSRF token 立即失效。
+   */
+  CSRF_SECRET: process.env.CSRF_SECRET || (process.env.JWT_SECRET as string) || (() => { throw new Error("环境变量 CSRF_SECRET 或 JWT_SECRET 必须设置"); })(),
+
   /** MySQL 数据库主机地址，默认 127.0.0.1 */
   DB_HOST: process.env.DB_HOST || "127.0.0.1",
 

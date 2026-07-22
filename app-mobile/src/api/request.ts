@@ -28,7 +28,6 @@ interface RequestResponse<T = any> {
   msg: string
   data: T
   traceId: string
-  apiCost: number
 }
 
 function getToken(): string {

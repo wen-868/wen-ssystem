@@ -1,5 +1,80 @@
 ﻿import { query, queryOne, queryWithTenant, queryOneWithTenant, transaction } from "../../shared/db";
+import type { ResultSetHeader } from "mysql2/promise";
 import { makeBizNo } from "../../shared/id";
+
+// ==================== 类型定义 ====================
+
+/** 采购订单列表行 */
+interface PurchaseOrderRow {
+  id: number;
+  orderNo: string;
+  supplierId: number;
+  supplierName: string;
+  storeId: number;
+  orderStatus: string;
+  goodsAmount: number | string;
+  taxAmount: number | string;
+  discountAmount: number | string;
+  payableAmount: number | string;
+  paidAmount: number | string;
+  unpaidAmount: number | string;
+  expectedDate: string | Date | null;
+  actualDate: string | Date | null;
+  operatorId: number;
+  auditorId: number | null;
+  remark: string | null;
+  createdAt: string | Date;
+  updatedAt: string | Date;
+}
+
+/** 计数 total 行 */
+interface CountTotalRow {
+  total: number;
+}
+
+/** 采购订单详情行（含 auditedAt） */
+interface PurchaseOrderDetailRow extends PurchaseOrderRow {
+  auditedAt: string | Date | null;
+}
+
+/** 采购订单明细行 */
+interface PurchaseOrderItemRow {
+  id: number;
+  orderNo: string;
+  skuId: number;
+  skuName: string;
+  barcode: string | null;
+  boxQty: number;
+  bottleQty: number;
+  totalBottleQty: number;
+  unitPrice: number | string;
+  taxRate: number | string;
+  subtotalAmount: number | string;
+  taxAmount: number | string;
+  totalAmount: number | string;
+  inStockedQty: number;
+  remark: string | null;
+}
+
+/** 供应商信息行 */
+interface SupplierRow {
+  id: number;
+  name: string;
+  tax_rate: number | string;
+}
+
+/** INSERT 结果行 */
+interface InsertOkPacket {
+  insertId: number;
+  affectedRows: number;
+}
+
+/** 采购订单状态行 */
+interface PurchaseOrderStatusRow {
+  id: number;
+  orderNo: string;
+  orderStatus: string;
+}
 
 // ========== 采购订单列表 ==========
 export async function listPurchaseOrders(params: {
@@ -39,7 +114,7 @@ export async function listPurchaseOrders(params: {
   }
 
   const where = `WHERE ${conditions.join(" AND ")}`;
-  const records = await queryWithTenant<any>(
+  const records = await queryWithTenant<PurchaseOrderRow>(
     `SELECT id, order_no AS orderNo, supplier_id AS supplierId, supplier_name AS supplierName,
             store_id AS storeId, order_status AS orderStatus,
             goods_amount AS goodsAmount, tax_amount AS taxAmount,
@@ -55,7 +130,7 @@ export async function listPurchaseOrders(params: {
     [...queryParams, pageSize, offset],
     tenantId
   );
-  const totalRow = await queryOneWithTenant<any>(
+  const totalRow = await queryOneWithTenant<CountTotalRow>(
     `SELECT COUNT(*) AS total FROM t_purchase_order ${where}`,
     queryParams,
     tenantId
@@ -65,7 +140,7 @@ export async function listPurchaseOrders(params: {
 
 // ========== 采购订单详情（含明细） ==========
 export async function getPurchaseOrderDetail(id: number, tenantId: string) {
-  const order = await queryOneWithTenant<any>(
+  const order = await queryOneWithTenant<PurchaseOrderDetailRow>(
     `SELECT id, order_no AS orderNo, supplier_id AS supplierId, supplier_name AS supplierName,
             store_id AS storeId, order_status AS orderStatus,
             goods_amount AS goodsAmount, tax_amount AS taxAmount,
@@ -81,7 +156,7 @@ export async function getPurchaseOrderDetail(id: number, tenantId: string) {
   if (!order) {
     throw Object.assign(new Error("采购订单不存在"), { statusCode: 404 });
   }
-  const items = await queryWithTenant<any>(
+  const items = await queryWithTenant<PurchaseOrderItemRow>(
     `SELECT id, order_no AS orderNo, sku_id AS skuId, sku_name AS skuName, barcode,
             box_qty AS boxQty, bottle_qty AS bottleQty, total_bottle_qty AS totalBottleQty,
             unit_price AS unitPrice, tax_rate AS taxRate,
@@ -117,7 +192,7 @@ export async function createPurchaseOrder(params: {
   const { supplierId, storeId, tenantId, operatorId, expectedDate, remark, items } = params;
 
   // 获取供应商信息
-  const supplier = await queryOneWithTenant<any>(
+  const supplier = await queryOneWithTenant<SupplierRow>(
     "SELECT id, name, tax_rate FROM t_supplier WHERE id = ? AND tenant_id = ?",
     [supplierId, tenantId],
     tenantId
@@ -140,14 +215,14 @@ export async function createPurchaseOrder(params: {
 
     const payableAmount = goodsAmount + taxAmount;
 
-    const [orderResult] = await conn.execute<any>(
+    const [orderResult] = await conn.execute<ResultSetHeader>(
       `INSERT INTO t_purchase_order (order_no, supplier_id, supplier_name, store_id, order_status,
         goods_amount, tax_amount, discount_amount, payable_amount, paid_amount, unpaid_amount,
         expected_date, operator_id, remark, tenant_id)
        VALUES (?, ?, ?, ?, 'DRAFT', ?, ?, 0, ?, 0, ?, ?, ?, ?, ?)`,
       [orderNo, supplierId, supplier.name, storeId,
-       goodsAmount, taxAmount, payableAmount, payableAmount,
-       expectedDate ?? null, operatorId, remark ?? null, tenantId]
+        goodsAmount, taxAmount, payableAmount, payableAmount,
+        expectedDate ?? null, operatorId, remark ?? null, tenantId]
     );
 
     for (const item of items) {
@@ -159,8 +234,8 @@ export async function createPurchaseOrder(params: {
           total_bottle_qty, unit_price, tax_rate, subtotal_amount, tax_amount, total_amount, remark)
          VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
         [orderNo, item.skuId, item.skuName, item.barcode ?? null,
-         item.boxQty, item.bottleQty, item.totalBottleQty,
-         item.unitPrice, item.taxRate, subtotal, tax, total, item.remark ?? null]
+          item.boxQty, item.bottleQty, item.totalBottleQty,
+          item.unitPrice, item.taxRate, subtotal, tax, total, item.remark ?? null]
       );
     }
 
@@ -188,7 +263,7 @@ export async function updatePurchaseOrder(id: number, params: {
 }) {
   const { tenantId, expectedDate, remark, items } = params;
 
-  const existing = await queryOneWithTenant<any>(
+  const existing = await queryOneWithTenant<PurchaseOrderStatusRow>(
     `SELECT id, order_no AS orderNo, order_status AS orderStatus FROM t_purchase_order WHERE id = ? AND tenant_id = ?`,
     [id, tenantId],
     tenantId
@@ -238,8 +313,8 @@ export async function updatePurchaseOrder(id: number, params: {
             total_bottle_qty, unit_price, tax_rate, subtotal_amount, tax_amount, total_amount, remark)
            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
           [existing.orderNo, item.skuId, item.skuName, item.barcode ?? null,
-           item.boxQty, item.bottleQty, item.totalBottleQty,
-           item.unitPrice, item.taxRate, subtotal, tax, total, item.remark ?? null]
+          item.boxQty, item.bottleQty, item.totalBottleQty,
+          item.unitPrice, item.taxRate, subtotal, tax, total, item.remark ?? null]
         );
       }
     }
@@ -251,7 +326,7 @@ export async function updatePurchaseOrder(id: number, params: {
     }
   });
 
-  return await queryOneWithTenant<any>(
+  return await queryOneWithTenant<PurchaseOrderRow>(
     `SELECT id, order_no AS orderNo, supplier_id AS supplierId, supplier_name AS supplierName,
             store_id AS storeId, order_status AS orderStatus,
             goods_amount AS goodsAmount, tax_amount AS taxAmount,
@@ -267,7 +342,7 @@ export async function updatePurchaseOrder(id: number, params: {
 
 // ========== 取消采购订单 ==========
 export async function cancelPurchaseOrder(id: number, tenantId: string) {
-  const existing = await queryOneWithTenant<any>(
+  const existing = await queryOneWithTenant<PurchaseOrderStatusRow>(
     `SELECT id, order_no AS orderNo, order_status AS orderStatus FROM t_purchase_order WHERE id = ? AND tenant_id = ?`,
     [id, tenantId],
     tenantId
@@ -288,7 +363,7 @@ export async function cancelPurchaseOrder(id: number, tenantId: string) {
 
 // ========== 确认采购订单 ==========
 export async function confirmPurchaseOrder(id: number, tenantId: string, auditorId: number) {
-  const existing = await queryOneWithTenant<any>(
+  const existing = await queryOneWithTenant<PurchaseOrderStatusRow>(
     `SELECT id, order_no AS orderNo, order_status AS orderStatus FROM t_purchase_order WHERE id = ? AND tenant_id = ?`,
     [id, tenantId],
     tenantId

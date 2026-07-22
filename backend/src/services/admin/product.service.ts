@@ -1,16 +1,172 @@
 ﻿import { queryWithTenant, queryOneWithTenant, transaction } from "../../shared/db";
+import type { ResultSetHeader, RowDataPacket } from "mysql2/promise";
 import logger from "../../shared/logger";
 import { makeBizNo } from "../../shared/id";
 import { detectChangedFields, syncChangedFields } from "../../shared/field-sync";
 import { syncProductFullChain, syncProductStatus, syncProductPrice } from "../../shared/product-sync";
 import { cacheGet, CacheKeys } from "../../shared/redis-cache";
 
+// ==================== 类型定义 ====================
+
+/** 商品列表行（含SKU、价格、库存） */
+interface ProductListRow {
+  spuId: number;
+  spuCode: string;
+  name: string;
+  categoryId: number;
+  categoryName: string;
+  allowOnlineSale: number | string | null;
+  brandId: number | null;
+  brandName: string | null;
+  unit: string | null;
+  specs: string | null;
+  alcoholContent: number | string | null;
+  origin: string | null;
+  mainImage: string | null;
+  imageUrls: unknown;
+  detail: string | null;
+  saleChannels: unknown;
+  sortNo: number;
+  isNew: number;
+  isRecommend: number;
+  description: string | null;
+  marketingTags: unknown;
+  status: string;
+  skuId: number;
+  skuCode: string;
+  skuName: string;
+  barcode: string | null;
+  volume: string | null;
+  packaging: string | null;
+  baseUnit: string | null;
+  boxUnit: string | null;
+  boxRatio: number;
+  temperature: string;
+  traceEnabled: number;
+  warningThreshold: number;
+  retailPrice: number | string;
+  wholesalePrice: number | string | null;
+  costPrice: number | string;
+  miniappPrice: number | string | null;
+  storePrice: number | string | null;
+  availableQty: number | string;
+}
+
+/** 计数 total 行 */
+interface CountTotalRow {
+  total: number;
+}
+
+/** 商品SPU详情行 */
+interface ProductSpuRow {
+  id: number;
+  spuCode: string;
+  name: string;
+  categoryId: number;
+  categoryName: string;
+  allowOnlineSale: number | string | null;
+  brandId: number | null;
+  brandName: string | null;
+  unit: string | null;
+  specs: string | null;
+  alcoholContent: number | string | null;
+  origin: string | null;
+  mainImage: string | null;
+  imageUrls: unknown;
+  detail: string | null;
+  saleChannels: unknown;
+  sortNo: number;
+  isNew: number;
+  isRecommend: number;
+  description: string | null;
+  marketingTags: unknown;
+  status: string;
+  createdAt: string | Date;
+  updatedAt: string | Date;
+}
+
+/** 商品SKU详情行 */
+interface ProductSkuRow {
+  id: number;
+  skuCode: string;
+  skuName: string;
+  barcode: string | null;
+  volume: string | null;
+  packaging: string | null;
+  baseUnit: string | null;
+  boxUnit: string | null;
+  boxRatio: number;
+  temperature: string;
+  traceEnabled: number;
+  warningThreshold: number;
+  costPrice: number | string;
+  retailPrice: number | string;
+  wholesalePrice: number | string | null;
+  miniappPrice: number | string | null;
+  storePrice: number | string | null;
+  availableQty: number | string;
+}
+
+/** 商品SPU全部字段行（用于 update 对比） */
+interface ProductSpuFullRow {
+  id: number;
+  name: string;
+  category_id: number;
+  brand_id: number | null;
+  unit: string | null;
+  status: string;
+  [key: string]: unknown;
+}
+
+/** 商品SPU状态行 */
+interface ProductSpuStatusRow {
+  id: number;
+  name: string;
+  status: string;
+}
+
+/** 价格历史行 */
+interface PriceHistoryRow {
+  id: number;
+  skuId: number;
+  priceType: string;
+  oldPrice: number | string | null;
+  newPrice: number | string;
+  actionType: string;
+  operatorId: number;
+  createdAt: string | Date;
+}
+
+/** SKU SPU ID 行 */
+interface SkuSpuIdRow {
+  spu_id: number;
+}
+
+/** INSERT 结果行（mysql2 OkPacket） */
+interface InsertOkPacket {
+  insertId: number;
+  affectedRows: number;
+}
+
+/** 商品价格行 */
+interface ProductPriceRow {
+  id: number;
+  sku_id: number;
+  cost_price: number | string;
+  retail_price: number | string;
+  wholesale_price: number | string | null;
+  miniapp_price: number | string | null;
+  store_price: number | string | null;
+  tenant_id: string;
+  [key: string]: unknown;
+}
+
 export async function listProducts(keyword: string, page: number, pageSize: number, tenantId: string) {
   // 有搜索关键词时不使用缓存
   if (keyword) {
     const like = `%${keyword}%`;
     const offset = (page - 1) * pageSize;
-    const records = await queryWithTenant<any>(
+    const records = await queryWithTenant<ProductListRow>(
       `SELECT p.id AS spuId, p.spu_code AS spuCode, p.name, p.category_id AS categoryId,
               pc.name AS categoryName, pc.allow_online_sale AS allowOnlineSale,
               p.brand_id AS brandId, b.name AS brandName, p.unit, p.specs,
@@ -38,7 +194,7 @@ export async function listProducts(keyword: string, page: number, pageSize: numb
       [tenantId, like, like, like, pageSize, offset],
       tenantId
     );
-    const totalRow = await queryOneWithTenant<any>(
+    const totalRow = await queryOneWithTenant<CountTotalRow>(
       `SELECT COUNT(*) AS total
        FROM t_product_sku s
        JOIN t_product_spu p ON p.id = s.spu_id
@@ -52,7 +208,7 @@ export async function listProducts(keyword: string, page: number, pageSize: numb
   // 无搜索关键词时使用缓存
   return cacheGet(CacheKeys.products(Number(tenantId), page, pageSize), async () => {
     const offset = (page - 1) * pageSize;
-    const records = await queryWithTenant<any>(
+    const records = await queryWithTenant<ProductListRow>(
       `SELECT p.id AS spuId, p.spu_code AS spuCode, p.name, p.category_id AS categoryId,
               pc.name AS categoryName, pc.allow_online_sale AS allowOnlineSale,
               p.brand_id AS brandId, b.name AS brandName, p.unit, p.specs,
@@ -80,7 +236,7 @@ export async function listProducts(keyword: string, page: number, pageSize: numb
       [tenantId, pageSize, offset],
       tenantId
     );
-    const totalRow = await queryOneWithTenant<any>(
+    const totalRow = await queryOneWithTenant<CountTotalRow>(
       `SELECT COUNT(*) AS total FROM t_product_sku s JOIN t_product_spu p ON p.id = s.spu_id WHERE p.tenant_id = ?`,
       [tenantId],
       tenantId
@@ -90,7 +246,7 @@ export async function listProducts(keyword: string, page: number, pageSize: numb
 }
 
 export async function getProductDetail(spuId: number, tenantId: string) {
-  const spu = await queryOneWithTenant<any>(
+  const spu = await queryOneWithTenant<ProductSpuRow>(
     `SELECT p.id, p.spu_code AS spuCode, p.name, p.category_id AS categoryId,
             pc.name AS categoryName, pc.allow_online_sale AS allowOnlineSale,
             p.brand_id AS brandId, b.name AS brandName, p.unit, p.specs,
@@ -107,7 +263,7 @@ export async function getProductDetail(spuId: number, tenantId: string) {
   );
   if (!spu) throw Object.assign(new Error("商品不存在"), { statusCode: 404 });
 
-  const skus = await queryWithTenant<any>(
+  const skus = await queryWithTenant<ProductSkuRow>(
     `SELECT s.id, s.sku_code AS skuCode, s.sku_name AS skuName, s.barcode,
             s.volume, s.packaging, s.base_unit AS baseUnit, s.box_unit AS boxUnit,
             s.box_ratio AS boxRatio, s.temperature, s.trace_enabled AS traceEnabled,
@@ -161,30 +317,30 @@ export async function createProduct(body: {
 }, tenantId: string, rawBody: Record<string, unknown>) {
   const result = await transaction(async (conn) => {
     const spuCode = makeBizNo("SPU");
-    const [spuResult] = await conn.query<any>(
+    const [spuResult] = await conn.query<ResultSetHeader>(
       `INSERT INTO t_product_spu (spu_code, name, category_id, brand_id, unit, specs,
        main_image, sale_channels, alcohol_content, origin, sort_no, is_new, is_recommend,
        description, status, tenant_id)
        VALUES (?, ?, ?, ?, ?, ?, ?, CAST(? AS JSON), ?, ?, ?, ?, ?, ?, 'DRAFT', ?)`,
       [spuCode, body.name, body.categoryId,
-       body.brandId ?? null, body.unit ?? null, body.specs ?? null,
-       body.mainImage ?? null, JSON.stringify(body.saleChannels),
-       body.alcoholContent ?? null, body.origin ?? null,
-       body.sortNo ?? 0, body.isNew ? 1 : 0, body.isRecommend ? 1 : 0,
-       body.description ?? null, tenantId]
+        body.brandId ?? null, body.unit ?? null, body.specs ?? null,
+        body.mainImage ?? null, JSON.stringify(body.saleChannels),
+        body.alcoholContent ?? null, body.origin ?? null,
+        body.sortNo ?? 0, body.isNew ? 1 : 0, body.isRecommend ? 1 : 0,
+        body.description ?? null, tenantId]
     );
     const spuId = spuResult.insertId as number;
     let firstSkuId: number | null = null;
     for (const sku of body.skus) {
       const skuCode = makeBizNo("SKU");
-      const [skuResult] = await conn.query<any>(
+      const [skuResult] = await conn.query<ResultSetHeader>(
         `INSERT INTO t_product_sku (spu_id, sku_code, barcode, sku_name, volume, packaging,
          base_unit, box_unit, box_ratio, temperature, trace_enabled, warning_threshold, tenant_id)
          VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
         [spuId, skuCode, sku.barcode ?? null, sku.skuName,
-         sku.volume ?? null, sku.packaging ?? null,
-         sku.baseUnit ?? '瓶', sku.boxUnit ?? '箱',
-         sku.boxRatio, sku.temperature, sku.traceEnabled ? 1 : 0, sku.warningThreshold, tenantId]
+          sku.volume ?? null, sku.packaging ?? null,
+          sku.baseUnit ?? '瓶', sku.boxUnit ?? '箱',
+          sku.boxRatio, sku.temperature, sku.traceEnabled ? 1 : 0, sku.warningThreshold, tenantId]
       );
       const skuId = skuResult.insertId as number;
       firstSkuId ??= skuId;
@@ -234,7 +390,7 @@ export async function updateProduct(spuId: number, body: {
   isRecommend?: boolean;
   description?: string;
 }, tenantId: string) {
-  const existing = await queryOneWithTenant<any>("SELECT * FROM t_product_spu WHERE id = ? AND tenant_id = ?", [spuId, tenantId], tenantId);
+  const existing = await queryOneWithTenant<ProductSpuFullRow>("SELECT * FROM t_product_spu WHERE id = ? AND tenant_id = ?", [spuId, tenantId], tenantId);
   if (!existing) {
     return null;
   }
@@ -262,7 +418,7 @@ export async function updateProduct(spuId: number, body: {
     await queryWithTenant("UPDATE t_product_sku SET box_ratio = ? WHERE spu_id = ? AND tenant_id = ?", [body.boxRatio, spuId, tenantId], tenantId);
   }
 
-  const changedFields = detectChangedFields(body, {
+  const changedFields = detectChangedFields<Record<string, unknown>>(body, {
     name: existing.name,
     category: existing.category_id,
     brandId: existing.brand_id,
@@ -287,7 +443,7 @@ export async function updateProduct(spuId: number, body: {
 }
 
 export async function disableProduct(spuId: number, tenantId: string) {
-  const existing = await queryOneWithTenant<any>("SELECT id, name, status FROM t_product_spu WHERE id = ? AND tenant_id = ?", [spuId, tenantId], tenantId);
+  const existing = await queryOneWithTenant<ProductSpuStatusRow>("SELECT id, name, status FROM t_product_spu WHERE id = ? AND tenant_id = ?", [spuId, tenantId], tenantId);
   if (!existing) {
     throw Object.assign(new Error("商品不存在"), { statusCode: 404 });
   }
@@ -299,7 +455,7 @@ export async function disableProduct(spuId: number, tenantId: string) {
 }
 
 export async function getProductPriceHistory(skuId: number, tenantId: string) {
-  const records = await queryWithTenant<any>(
+  const records = await queryWithTenant<PriceHistoryRow>(
     `SELECT id, sku_id AS skuId, price_type AS priceType, old_price AS oldPrice,
             new_price AS newPrice, action_type AS actionType, operator_id AS operatorId, created_at AS createdAt
      FROM t_product_price_log
@@ -320,8 +476,8 @@ export async function updateProductPrice(skuId: number, body: {
   storePrice?: number | null;
 }, tenantId: string, userId: number) {
   const result = await transaction(async (conn) => {
-    const [oldRows] = await conn.query<any[]>("SELECT * FROM t_product_price WHERE sku_id = ? AND tenant_id = ?", [skuId, tenantId]);
-    const oldPrice = oldRows[0];
+    const [oldRows] = await conn.query<RowDataPacket[]>("SELECT * FROM t_product_price WHERE sku_id = ? AND tenant_id = ?", [skuId, tenantId]);
+    const oldPrice = oldRows[0] as ProductPriceRow;
     if (!oldPrice) throw Object.assign(new Error("SKU价格不存在"), { statusCode: 404 });
     const changes = [
       ["COST", oldPrice.cost_price, body.costPrice],
@@ -364,7 +520,7 @@ export async function updateProductPrice(skuId: number, body: {
     if (body.retailPrice !== undefined) changedTypes.push("retailPrice");
     if (body.wholesalePrice !== undefined) changedTypes.push("wholesalePrice");
 
-    const skuInfo = await queryOneWithTenant<any>(
+    const skuInfo = await queryOneWithTenant<SkuSpuIdRow>(
       "SELECT spu_id FROM t_product_sku WHERE id = ? AND tenant_id = ?",
       [skuId, tenantId],
       tenantId
@@ -398,38 +554,38 @@ export async function importProducts(
       }
       await transaction(async (conn) => {
         const spuCode = makeBizNo("SPU");
-        const [spuResult] = await conn.query<any>(
+        const [spuResult] = await conn.query<ResultSetHeader>(
           `INSERT INTO t_product_spu (spu_code, name, category_id, brand_id, unit, specs,
            main_image, sale_channels, alcohol_content, origin, sort_no, is_new, is_recommend,
            description, status, tenant_id)
            VALUES (?, ?, ?, ?, ?, ?, ?, CAST(? AS JSON), ?, ?, ?, ?, ?, ?, 'DRAFT', ?)`,
           [spuCode, row.name, Number(row.categoryId) || 1,
-           row.brandId ? Number(row.brandId) : null, row.unit ?? null, row.specs ?? null,
-           row.mainImage ?? null, JSON.stringify(["STORE", "MINIAPP"]),
-           row.alcoholContent ? Number(row.alcoholContent) : null, row.origin ?? null,
-           Number(row.sortNo) || 0, row.isNew === '1' ? 1 : 0, row.isRecommend === '1' ? 1 : 0,
-           row.description ?? null, tenantId]
+            row.brandId ? Number(row.brandId) : null, row.unit ?? null, row.specs ?? null,
+            row.mainImage ?? null, JSON.stringify(["STORE", "MINIAPP"]),
+            row.alcoholContent ? Number(row.alcoholContent) : null, row.origin ?? null,
+            Number(row.sortNo) || 0, row.isNew === '1' ? 1 : 0, row.isRecommend === '1' ? 1 : 0,
+            row.description ?? null, tenantId]
         );
         const spuId = spuResult.insertId as number;
         const skuCode = makeBizNo("SKU");
-        const [skuResult] = await conn.query<any>(
+        const [skuResult] = await conn.query<ResultSetHeader>(
           `INSERT INTO t_product_sku (spu_id, sku_code, barcode, sku_name, volume, packaging,
            base_unit, box_unit, box_ratio, temperature, trace_enabled, warning_threshold, tenant_id)
            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
           [spuId, skuCode, row.barcode ?? null, row.skuName,
-           row.volume ?? null, row.packaging ?? null,
-           row.baseUnit ?? '瓶', row.boxUnit ?? '箱',
-           Number(row.boxRatio) || 1, row.temperature || 'NORMAL',
-           row.traceEnabled === '1' ? 1 : 0, Number(row.warningThreshold) || 0, tenantId]
+            row.volume ?? null, row.packaging ?? null,
+            row.baseUnit ?? '瓶', row.boxUnit ?? '箱',
+            Number(row.boxRatio) || 1, row.temperature || 'NORMAL',
+            row.traceEnabled === '1' ? 1 : 0, Number(row.warningThreshold) || 0, tenantId]
         );
         const skuId = skuResult.insertId as number;
         await conn.query(
           `INSERT INTO t_product_price (sku_id, cost_price, retail_price, wholesale_price, miniapp_price, store_price, tenant_id)
            VALUES (?, ?, ?, ?, ?, ?, ?)`,
           [skuId, Number(row.costPrice) || 0, Number(row.retailPrice) || 0,
-           row.wholesalePrice ? Number(row.wholesalePrice) : null,
-           row.miniappPrice ? Number(row.miniappPrice) : null,
-           row.storePrice ? Number(row.storePrice) : null, tenantId]
+            row.wholesalePrice ? Number(row.wholesalePrice) : null,
+            row.miniappPrice ? Number(row.miniappPrice) : null,
+            row.storePrice ? Number(row.storePrice) : null, tenantId]
         );
       });
       successCount++;

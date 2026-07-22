@@ -61,68 +61,80 @@
 - **优先级**：P2
 - **负责人**：阿坚
 - **预计**：3天
-- **状态**：⬜ 待开始
+- **状态**：🚧 进行中（第一批：5个核心模块完成）
 - **文件**：`backend/src/services/` 目录下42个文件（153处）
 - **问题**：整个后端services目录153处使用queryOne\<any\>或queryAll\<any\>，数据库层完全失去类型安全，字段名和类型无编译期检查
 - **修复方向**：为高频模块（auth、customer、product、order）定义TypeScript接口，逐步替换any泛型。可分批进行，优先处理核心业务模块
 - **验收标准**：核心模块（auth/customer/product/order/sale）无any泛型
+- **完成进度**（第一批，2026-07-23）：
+  - `auth.service.ts`：6处 → 定义 SysUserRow/RolePermissionRow/RoleCodeRow/UserHomepageRow/UserPasswordRow 接口
+  - `customer.service.ts`：23处 → 定义 MemberListRow/MemberDetailRow/CountTotalRow 等 15 个接口
+  - `product.service.ts`：14处 → 定义 ProductListRow/ProductSpuRow/ProductSkuRow 等接口，conn.query 使用 ResultSetHeader/RawDataPacket
+  - `order.service.ts`：13处 → 定义 OrderListRow/OrderDetailRow/SaleBillListRow 等接口
+  - `purchase-order.service.ts`：9处 → 定义 PurchaseOrderRow/PurchaseOrderItemRow 等接口
+  - 合计：5个模块，65处 any 替换为明确接口
+  - 验证：tsc 无新增错误，vitest 4857 用例全部通过
 
 #### R55-05 — apiCost:1 硬编码 [P2]
 
 - **优先级**：P2
 - **负责人**：阿坚
 - **预计**：0.25天
-- **状态**：⬜ 待开始
-- **文件**：`backend/src/shared/response.ts`
+- **状态**：✅ 已完成（2026-07-23）
+- **文件**：`backend/src/shared/response.ts`、`docs/API.md`、`app-mobile/src/api/request.ts`、`backend/src/__tests__/shared/response.test.ts`
 - **问题**：ok()和fail()函数都硬编码返回apiCost:1，不论实际接口开销如何，所有响应返回固定值
 - **修复方向**：移除apiCost字段（如无消费方依赖），或改为可选参数由调用方传入实际耗时
 - **验收标准**：apiCost字段移除或动态计算
+- **完成证据**：从 `response.ts` 的 ok()/fail() 中移除 `apiCost: 1` 字段；同步移除 `response.test.ts` 中的相关断言（2处）；从 `app-mobile/src/api/request.ts` 的 `RequestResponse` 接口中移除 `apiCost`；从 `docs/API.md` 的成功响应和失败响应示例中移除 `apiCost`。验证：`npx tsc --noEmit` 0 新增错误，`npx vitest run` 4857 用例全部通过
 
 #### R55-06 — asyncHandler 类型安全 [P3]
 
 - **优先级**：P3
 - **负责人**：阿坚
 - **预计**：0.5天
-- **状态**：⬜ 待开始
+- **状态**：✅ 已完成（2026-07-23）
 - **文件**：`backend/src/middleware/async-handler.ts`
 - **问题**：asyncHandler函数签名使用(req: any, res: any, next: any)和返回类型any，Express类型安全保障丢失
 - **修复方向**：使用Express官方类型Request/Response/NextFunction替换any，返回类型改为RequestHandler
 - **验收标准**：asyncHandler无any类型
+- **完成证据**：引入 Express 官方类型 `Request`/`Response`/`NextFunction`/`RequestHandler`；handler 参数类型从 `any` 改为 `(req: Request, res: Response, next: NextFunction) => unknown`；返回类型明确为 `RequestHandler`。验证：`npx tsc --noEmit` 0 新增错误，`npx vitest run` 4857 用例全部通过
 
 #### R55-07 — JWT_SECRET 密钥复用 [P3]
 
 - **优先级**：P3
 - **负责人**：阿坚
 - **预计**：0.25天
-- **状态**：⬜ 待开始
+- **状态**：✅ 已完成（2026-07-23）
 - **文件**：`backend/src/middleware/csrf.ts`、`backend/src/config/env.ts`
 - **问题**：CSRF的HMAC和JWT签名共用env.JWT_SECRET，密钥轮换时所有CSRF token立即失效
 - **修复方向**：新增env.CSRF_SECRET独立密钥，csrf.ts使用CSRF_SECRET而非JWT_SECRET
 - **验收标准**：CSRF和JWT使用不同密钥
+- **完成证据**：`config/env.ts` 新增 `CSRF_SECRET` 环境变量，未设置时回退到 `JWT_SECRET` 确保向后兼容；`middleware/csrf.ts` 的 `generateCsrfToken` 优先使用 `CSRF_SECRET`，未配置时回退到 `JWT_SECRET`，两者均缺失时抛出明确错误。验证：`npx tsc --noEmit` 0 新增错误，`npx vitest run` 4857 用例全部通过
 
 #### R55-08 — hashPassword 动态 import 不一致 [P3]
 
 - **优先级**：P3
 - **负责人**：阿坚
 - **预计**：0.25天
-- **状态**：⬜ 待开始
+- **状态**：✅ 已完成（2026-07-23）
 - **文件**：`backend/src/services/admin/auth.service.ts`
 - **问题**：第161行使用await import("../../shared/password.js")动态导入hashPassword，但同文件顶部已static import verifyPassword和validatePassword，导入方式不一致且路径后缀不统一
 - **修复方向**：将hashPassword加入顶部static import，删除动态import
 - **验收标准**：auth.service.ts中password模块全部使用static import
+- **完成证据**：将 `hashPassword` 加入顶部 static import（与 `verifyPassword`、`validatePassword` 同一声明）；删除动态 `import("../../shared/password.js")` 调用；改密码逻辑直接使用 `await hashPassword(newPassword)`。验证：`npx tsc --noEmit` 0 新增错误，`npx vitest run` 4857 用例全部通过
 
 #### R55 任务总览
 
 | 任务 | 负责人 | 优先级 | 工作量 | 状态 |
 |------|--------|:------:|:------:|:----:|
 | R55-01 retail-announcement跨租户泄露 | 阿坚 | P0 | 1天 | ⬜ 待开始 |
-| R55-02 双重飞书告警 | 阿坚 | P1 | 0.5天 | ⬜ 待开始 |
-| R55-03 rate-limit MemoryStore | 阿坚 | P1 | 0.5天 | ⬜ 待开始 |
-| R55-04 queryOne\<any\>类型安全 | 阿坚 | P2 | 3天 | ⬜ 待开始 |
-| R55-05 apiCost硬编码 | 阿坚 | P2 | 0.25天 | ⬜ 待开始 |
-| R55-06 asyncHandler类型安全 | 阿坚 | P3 | 0.5天 | ⬜ 待开始 |
-| R55-07 JWT_SECRET复用 | 阿坚 | P3 | 0.25天 | ⬜ 待开始 |
-| R55-08 hashPassword动态import | 阿坚 | P3 | 0.25天 | ⬜ 待开始 |
+| R55-02 双重飞书告警 | 阿坚 | P1 | 0.5天 | ✅ 已完成 |
+| R55-03 rate-limit MemoryStore | 阿坚 | P1 | 0.5天 | ✅ 已完成 |
+| R55-04 queryOne\<any\>类型安全 | 阿坚 | P2 | 3天 | 🚧 进行中（第一批5模块完成） |
+| R55-05 apiCost硬编码 | 阿坚 | P2 | 0.25天 | ✅ 已完成 |
+| R55-06 asyncHandler类型安全 | 阿坚 | P3 | 0.5天 | ✅ 已完成 |
+| R55-07 JWT_SECRET复用 | 阿坚 | P3 | 0.25天 | ✅ 已完成 |
+| R55-08 hashPassword动态import | 阿坚 | P3 | 0.25天 | ✅ 已完成 |
 | **合计** | — | — | **6.25天** | — |
 
 #### R55 执行顺序

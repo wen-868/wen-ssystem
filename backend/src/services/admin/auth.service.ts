@@ -1,8 +1,43 @@
 import { query, queryOne, queryWithTenant, queryOneWithTenant } from "../../shared/db";
 import { signToken, getUserAccessInfo, AuthUser } from "../../middleware/auth";
-import { verifyPassword, validatePassword } from "../../shared/password";
+import { verifyPassword, validatePassword, hashPassword } from "../../shared/password";
 import { AppError } from "../../shared/app-error";
 import { generateCsrfToken } from "../../middleware/csrf";
+
+// ==================== 类型定义 ====================
+
+/** 系统用户登录信息行 */
+interface SysUserRow {
+  id: number;
+  username: string;
+  password_hash: string;
+  real_name: string;
+  store_id: number | null;
+  status: number;
+  tenant_id: string;
+  login_fail_count: number;
+  locked_until: Date | string | null;
+}
+
+/** 角色权限行 */
+interface RolePermissionRow {
+  permissions: unknown;
+}
+
+/** 角色编码行 */
+interface RoleCodeRow {
+  role_code: string;
+}
+
+/** 用户主页设置行 */
+interface UserHomepageRow {
+  default_homepage: string;
+}
+
+/** 用户密码行 */
+interface UserPasswordRow {
+  passwordHash: string;
+}
 
 const MAX_LOGIN_ATTEMPTS = 5;
 const LOCK_DURATION_MINUTES = 15;
@@ -50,7 +85,7 @@ function normalizePermissions(raw: unknown): string[] {
  *       但 079_权限矩阵.sql 的 seed 数据用 1（被转成字符串 "1"）。
  */
 async function getUserPermissions(userId: number, tenantId: string): Promise<string[]> {
-  const roles = await query<any>(
+  const roles = await query<RolePermissionRow>(
     `SELECT r.permissions
      FROM t_sys_user_role ur
      JOIN t_sys_role r ON r.id = ur.role_id AND r.tenant_id = ur.tenant_id
@@ -69,7 +104,7 @@ async function getUserPermissions(userId: number, tenantId: string): Promise<str
 }
 
 export async function login(username: string, password: string) {
-  const account = await queryOne<any>(
+  const account = await queryOne<SysUserRow>(
     "SELECT id, username, password_hash, real_name, store_id, status, tenant_id, login_fail_count, locked_until FROM t_sys_user WHERE username = ? LIMIT 1",
     [username]
   );
@@ -113,14 +148,14 @@ export async function login(username: string, password: string) {
     [account.id]
   );
 
-  const roles = await query<any>(
+  const roles = await query<RoleCodeRow>(
     `SELECT r.role_code
      FROM t_sys_user_role ur
      JOIN t_sys_role r ON r.id = ur.role_id
      WHERE ur.user_id = ? AND r.status = 'ACTIVE'`,
     [account.id]
   );
-  const roleCodes = roles.map((r: any) => r.role_code);
+  const roleCodes = roles.map((r) => r.role_code);
   const resolvedTenantId = account.tenant_id || 'default';
 
   // 根据用户角色获取实际权限列表
@@ -149,7 +184,7 @@ export async function login(username: string, password: string) {
 }
 
 export async function getMe(user: AuthUser) {
-  const userSetting = await queryOneWithTenant<any>(
+  const userSetting = await queryOneWithTenant<UserHomepageRow>(
     "SELECT default_homepage FROM t_sys_user WHERE id = ?",
     [user.id],
     user.tenantId
@@ -163,7 +198,7 @@ export async function getMe(user: AuthUser) {
 }
 
 export async function getSettings(userId: number, tenantId: string) {
-  const userSetting = await queryOneWithTenant<any>(
+  const userSetting = await queryOneWithTenant<UserHomepageRow>(
     "SELECT default_homepage FROM t_sys_user WHERE id = ?",
     [userId],
     tenantId
@@ -183,7 +218,7 @@ export async function updateSettings(userId: number, defaultHomepage: string | n
 }
 
 export async function changePassword(userId: number, oldPassword: string, newPassword: string, tenantId: string) {
-  const user = await queryOneWithTenant<any>(
+  const user = await queryOneWithTenant<UserPasswordRow>(
     "SELECT id, password_hash AS passwordHash FROM t_sys_user WHERE id = ?",
     [userId],
     tenantId
@@ -196,7 +231,6 @@ export async function changePassword(userId: number, oldPassword: string, newPas
     throw new AppError(`密码不符合要求：${validation.errors.join("；")}`, 400);
   }
 
-  const { hashPassword } = await import("../../shared/password.js");
   const hashed = await hashPassword(newPassword);
   await queryWithTenant("UPDATE t_sys_user SET password_hash = ?, updated_at = NOW() WHERE id = ?", [hashed, userId], tenantId);
   return { message: "密码修改成功" };
