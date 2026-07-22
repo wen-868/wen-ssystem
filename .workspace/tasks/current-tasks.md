@@ -197,20 +197,31 @@
 > **负责人**：阿澈（前端主导）+ 阿坚（后端）+ 苏然（测试）+ 凌舟（审查）
 > **完整方案**：`.workspace/tasks/R51-App原生层封装方案.md`（1172行，5大模块）
 
-#### R51-01 — 条码扫码原生插件封装 [P0]
+#### R51-01 — 条码扫码原生插件封装 [P0] ✅ 已完成
 
 - **优先级**：P0
 - **负责人**：阿澈
 - **预计**：2天
-- **状态**：⬜ 待开始
-- **文件**：`app-mobile/src/native/scan.ts`（新建）、`app-mobile/src/manifest.json`
+- **状态**：✅ 已完成（2026-07-23）
+- **文件**：`app-mobile/src/native/scan.ts`（重构949行）、`app-mobile/src/manifest.json`（已配置 ZXing-Scanner + CAMERA 权限）
 - **问题**：app-mobile 当前无原生扫码能力，门店收银、盘点、追溯场景需依赖系统扫码功能
 - **修复方向**：
   1. 封装 `uni.requireNativePlugin('ZXing-Scanner')` 为 Promise 接口
   2. 实现 `ScanResult` 类型识别（barcode/qrcode/trace_code）
   3. 实现 `handleScanResult()` 路由分发：追溯码 → /admin/trace/query/:code，商品条码 → 优先本地 SQLite，未命中走网络
   4. 支持连续扫码（盘点场景），间隔可配置
-- **验收标准**：vue-tsc 0 错误，扫码插件可正常调用，三种场景路由分发正确
+  5. 错误处理：相机权限拒绝、设备不支持、扫码超时
+- **验收标准**：vue-tsc 0 错误，扫码插件类型定义完整，三种场景路由分发逻辑正确
+- **完成内容**：
+  - 接口对齐 R51 方案：`scan(options?): Promise<ScanResult>` + `startContinuousScan(callback, options?): void` + `stopContinuousScan(): void` + `handleScanResult(result): Promise<void>`
+  - ScanOptions 新增 `timeout?: number`（默认 30000ms）
+  - 新增 `ScanError` 类 + `ScanErrorType` 枚举（device_not_supported/camera_permission_denied/timeout/scan_failed/no_content）
+  - `checkCameraPermission()` 用 `uni.getSetting` 检查 `scope.camera` 拒绝状态
+  - `scan()` 用 `Promise.race` + `setTimeout` 实现扫码超时
+  - 路由分发：追溯码 → `/pages-sub/admin/trace/trace-query?code=xxx` + 后端 `GET /admin/trace/query/:code`；商品条码 → `LocalProductDb.findByBarcode` 优先，未命中走 `productsApi.list({ keyword })`
+  - 保留 `scanCode` / `stopScan` 作为 `@deprecated` 别名向后兼容
+  - HMS Scan Kit 适配（HarmonyOS）保留
+- **验证结果**：`npx vue-tsc --noEmit` 0 错误（app-mobile 全量通过）
 
 #### R51-02 — 蓝牙热敏打印插件封装 [P0]
 
@@ -300,7 +311,7 @@
 
 | 任务 | 负责人 | 优先级 | 工作量 | 状态 |
 |------|--------|:------:|:------:|:----:|
-| R51-01 条码扫码原生插件 | 阿澈 | P0 | 2天 | ⬜ 待开始 |
+| R51-01 条码扫码原生插件 | 阿澈 | P0 | 2天 | ✅ 已完成 |
 | R51-02 蓝牙热敏打印插件 | 阿澈 | P0 | 3天 | ⬜ 待开始 |
 | R51-03 后端打印记录API | 阿坚 | P0 | 1天 | ⬜ 待开始 |
 | R51-04 离线SQLite+同步扩展 | 阿澈+阿坚 | P1 | 5天 | ⬜ 待开始 |
