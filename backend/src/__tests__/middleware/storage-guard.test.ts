@@ -2,7 +2,7 @@
 
 const { mockQueryOneWithTenant, mockFail, mockLogger } = vi.hoisted(() => ({
   mockQueryOneWithTenant: vi.fn(),
-  mockFail: vi.fn((msg: string, code?: string) => ({ code: code || "400", msg, traceId: "test", apiCost: 1 })),
+  mockFail: vi.fn((msg: string, code?: string) => ({ code: code || "400", msg, traceId: "test" })),
   mockLogger: {
     warn: vi.fn(),
     error: vi.fn(),

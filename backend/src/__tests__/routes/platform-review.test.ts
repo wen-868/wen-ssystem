@@ -9,8 +9,8 @@ vi.mock("../../services/admin/platform-review.service", () => ({
 }));
 
 vi.mock("../../shared/response", () => ({
-  ok: vi.fn((data) => ({ code: "0", msg: "成功", data, traceId: "test-trace", apiCost: 0 })),
-  fail: vi.fn((msg, code = "400") => ({ code, msg, traceId: "test-trace", apiCost: 0 })),
+  ok: vi.fn((data) => ({ code: "0", msg: "成功", data, traceId: "test-trace" })),
+  fail: vi.fn((msg, code = "400") => ({ code, msg, traceId: "test-trace" })),
 }));
 
 vi.mock("../../middleware/auth", () => ({

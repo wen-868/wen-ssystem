@@ -9,8 +9,8 @@ const platformAuthMocks = vi.hoisted(() => ({
 vi.mock("@services/platform/platform-auth.service", () => platformAuthMocks);
 
 vi.mock("@shared/response", () => ({
-  ok: vi.fn((data) => ({ code: "0", msg: "成功", data, traceId: "test", apiCost: 1 })),
-  fail: vi.fn((msg, code = "400") => ({ code, msg, traceId: "test", apiCost: 1 })),
+  ok: vi.fn((data) => ({ code: "0", msg: "成功", data, traceId: "test" })),
+  fail: vi.fn((msg, code = "400") => ({ code, msg, traceId: "test" })),
 }));
 
 vi.mock("@shared/db", () => ({

@@ -35,8 +35,8 @@ vi.mock("../../shared/price-guard", () => ({
 }));
 
 vi.mock("../../shared/response", () => ({
-  ok: vi.fn((data: any) => ({ code: "0", msg: "成功", data, traceId: "test-trace", apiCost: 0 })),
-  fail: vi.fn((msg: string, code = "400") => ({ code, msg, traceId: "test-trace", apiCost: 0 })),
+  ok: vi.fn((data: any) => ({ code: "0", msg: "成功", data, traceId: "test-trace" })),
+  fail: vi.fn((msg: string, code = "400") => ({ code, msg, traceId: "test-trace" })),
 }));
 
 vi.mock("../../middleware/auth", () => ({

@@ -1,4 +1,4 @@
-import { vi, describe, it, beforeEach, expect } from "vitest";
+﻿import { vi, describe, it, beforeEach, expect } from "vitest";
 import request from "supertest";
 import { createTestApp } from "../fixtures/create-test-app";
 
@@ -9,8 +9,8 @@ vi.mock("../../services/admin/user-session.service", () => ({
 }));
 
 vi.mock("../../shared/response", () => ({
-  ok: vi.fn((data) => ({ code: "0", msg: "成功", data, traceId: "test-trace", apiCost: 0 })),
-  fail: vi.fn((msg, code = "400") => ({ code, msg, traceId: "test-trace", apiCost: 0 })),
+  ok: vi.fn((data) => ({ code: "0", msg: "成功", data, traceId: "test-trace" })),
+  fail: vi.fn((msg, code = "400") => ({ code, msg, traceId: "test-trace" })),
 }));
 
 vi.mock("../../middleware/auth", () => ({

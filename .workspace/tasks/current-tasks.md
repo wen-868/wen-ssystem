@@ -248,9 +248,9 @@
 - **优先级**：P0
 - **负责人**：阿澈
 - **预计**：3天
-- **状态**：⬜ 待开始
-- **前置**：R51-03 后端打印记录 API
-- **文件**：`app-mobile/src/native/print.ts`（新建）、`app-mobile/src/manifest.json`
+- **状态**：✅ 已完成（2026-07-23）
+- **前置**：R51-03 后端打印记录 API ✅
+- **文件**：`app-mobile/src/native/print.ts`、`app-mobile/src/manifest.json`
 - **问题**：app-mobile 无蓝牙打印能力，门店收银后无法打印小票
 - **修复方向**：
   1. 实现 `PrintManager` 接口：search/connect/disconnect/isConnected/printSaleBill/printSaleBillDot/printRaw
@@ -333,7 +333,7 @@
 | 任务 | 负责人 | 优先级 | 工作量 | 状态 |
 |------|--------|:------:|:------:|:----:|
 | R51-01 条码扫码原生插件 | 阿澈 | P0 | 2天 | ✅ 已完成 |
-| R51-02 蓝牙热敏打印插件 | 阿澈 | P0 | 3天 | ⬜ 待开始 |
+| R51-02 蓝牙热敏打印插件 | 阿澈 | P0 | 3天 | ✅ 已完成 |
 | R51-03 后端打印记录API | 阿坚 | P0 | 1天 | ⬜ 待开始 |
 | R51-04 离线SQLite+同步扩展 | 阿澈+阿坚 | P1 | 5天 | ⬜ 待开始 |
 | R51-05 安全加固（Token加密+证书锁定） | 阿澈 | P1 | 2天 | ✅ 已完成 |
