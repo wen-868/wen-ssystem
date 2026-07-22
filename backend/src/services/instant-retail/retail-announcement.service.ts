@@ -1,27 +1,70 @@
-﻿import { query, queryOne } from "../../shared/db";
+﻿/**
+ * 即时零售公告服务
+ *
+ * 用途：门店端管理即时零售小程序的公告（置顶/时段展示）。
+ * 租户隔离：admin 接口使用 queryWithTenant / queryOneWithTenant 自动注入 tenant_id；
+ *            update/delete 额外注入 store_id 条件，实现 store_id + tenant_id 双重校验，
+ *            防止跨租户/跨门店修改或删除公告。
+ * miniapp 公开接口（getActiveAnnouncements）无认证上下文，保持按 store_id 过滤
+ *             （公告为公开信息，消费者按门店查看）。
+ *
+ * 关联任务：R55-01 retail-announcement 跨租户数据泄露修复
+ */
 
-export async function listAnnouncements(storeId: number) {
-  return query<any>(
+import { query, queryWithTenant } from "../../shared/db";
+
+/**
+ * 查询门店公告列表（admin）
+ *
+ * @param storeId 门店ID（来自 req.user.storeId，不信任用户输入）
+ * @param tenantId 租户ID（来自 req.tenantId）
+ */
+export async function listAnnouncements(storeId: number, tenantId: string) {
+  return queryWithTenant<any>(
     "SELECT * FROM t_retail_announcement WHERE store_id = ? ORDER BY is_top DESC, created_at DESC",
-    [storeId]
+    [storeId],
+    tenantId
   );
 }
 
-export async function createAnnouncement(data: {
-  store_id: number;
-  title: string;
-  content: string;
-  is_top?: number;
-  start_time?: string | null;
-  end_time?: string | null;
-}) {
-  const result = await query<any>(
+/**
+ * 创建公告（admin）
+ *
+ * tenant_id 由 queryWithTenant 自动注入 INSERT 语句，store_id 来自 req.user.storeId。
+ *
+ * @param data 公告数据（store_id 来自 req.user.storeId，已在 controller 校验）
+ * @param tenantId 租户ID
+ */
+export async function createAnnouncement(
+  data: {
+    store_id: number;
+    title: string;
+    content: string;
+    is_top?: number;
+    start_time?: string | null;
+    end_time?: string | null;
+  },
+  tenantId: string
+) {
+  const result = await queryWithTenant<{ insertId: number }>(
     "INSERT INTO t_retail_announcement (store_id, title, content, is_top, start_time, end_time, status) VALUES (?, ?, ?, ?, ?, ?, 1)",
-    [data.store_id, data.title, data.content, data.is_top ?? 0, data.start_time ?? null, data.end_time ?? null]
+    [data.store_id, data.title, data.content, data.is_top ?? 0, data.start_time ?? null, data.end_time ?? null],
+    tenantId
   );
   return { id: (result as unknown as { insertId: number }).insertId };
 }
 
+/**
+ * 更新公告（admin）
+ *
+ * WHERE 条件同时校验 id + store_id，tenant_id 由 queryWithTenant 自动注入，
+ * 实现 store_id + tenant_id 双重校验。affectedRows=0 表示公告不存在或不属于该门店/租户。
+ *
+ * @param id 公告ID
+ * @param data 更新数据
+ * @param storeId 门店ID（来自 req.user.storeId）
+ * @param tenantId 租户ID
+ */
 export async function updateAnnouncement(
   id: number,
   data: {
@@ -30,19 +73,56 @@ export async function updateAnnouncement(
     is_top?: number;
     start_time?: string | null;
     end_time?: string | null;
-  }
+  },
+  storeId: number,
+  tenantId: string
 ) {
-  await query<any>(
-    "UPDATE t_retail_announcement SET title = ?, content = ?, is_top = ?, start_time = ?, end_time = ? WHERE id = ?",
-    [data.title, data.content, data.is_top, data.start_time ?? null, data.end_time ?? null, id]
+  const result = await queryWithTenant<{ affectedRows: number }>(
+    "UPDATE t_retail_announcement SET title = ?, content = ?, is_top = ?, start_time = ?, end_time = ? WHERE id = ? AND store_id = ?",
+    [data.title, data.content, data.is_top, data.start_time ?? null, data.end_time ?? null, id, storeId],
+    tenantId
   );
+  const affectedRows = Number(
+    (result as unknown as { affectedRows?: number }).affectedRows ?? 0
+  );
+  if (affectedRows === 0) {
+    throw Object.assign(new Error("公告不存在或无权限"), { statusCode: 404 });
+  }
   return { id };
 }
 
-export async function deleteAnnouncement(id: number) {
-  await query<any>("DELETE FROM t_retail_announcement WHERE id = ?", [id]);
+/**
+ * 删除公告（admin）
+ *
+ * WHERE 条件同时校验 id + store_id，tenant_id 由 queryWithTenant 自动注入，
+ * 实现 store_id + tenant_id 双重校验。affectedRows=0 表示公告不存在或不属于该门店/租户。
+ *
+ * @param id 公告ID
+ * @param storeId 门店ID（来自 req.user.storeId）
+ * @param tenantId 租户ID
+ */
+export async function deleteAnnouncement(id: number, storeId: number, tenantId: string) {
+  const result = await queryWithTenant<{ affectedRows: number }>(
+    "DELETE FROM t_retail_announcement WHERE id = ? AND store_id = ?",
+    [id, storeId],
+    tenantId
+  );
+  const affectedRows = Number(
+    (result as unknown as { affectedRows?: number }).affectedRows ?? 0
+  );
+  if (affectedRows === 0) {
+    throw Object.assign(new Error("公告不存在或无权限"), { statusCode: 404 });
+  }
 }
 
+/**
+ * 查询活跃公告（miniapp 公开接口）
+ *
+ * 公开接口无认证上下文（无 req.tenantId），公告为公开信息，按 store_id 过滤。
+ * 消费者通过 storeId 查看指定门店的公告。
+ *
+ * @param storeId 门店ID（来自 req.query，消费者无登录）
+ */
 export async function getActiveAnnouncements(storeId: number) {
   return query<any>(
     "SELECT * FROM t_retail_announcement WHERE store_id = ? AND status = 1 AND (start_time IS NULL OR start_time <= NOW()) AND (end_time IS NULL OR end_time >= NOW()) ORDER BY is_top DESC, created_at DESC",

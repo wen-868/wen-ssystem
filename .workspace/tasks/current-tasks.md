@@ -333,7 +333,7 @@
 | 问题 | 严重程度 | 说明 |
 |------|:---:|------|
 | R54-13 内部备注字段缺失 | 低 | SalesOrderCreate.vue有"备注"但无"内部备注"区分 |
-| 生产环境登录API 500错误 | **高** | `admin.onepan.cn/api/admin/auth/login` 返回500，系统无法访问 |
+| ~~生产环境登录API 500错误~~ | ~~高~~ | ✅ 已修复（2026-07-23，阿坚）：根因 mysql2 自动解析 JSON 类型列导致 JSON.parse(数组) 抛异常，新增 normalizePermissions 容错函数 + status 查询兼容 VARCHAR/TINYINT |
 
 ---
 
