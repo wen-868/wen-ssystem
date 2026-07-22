@@ -41,7 +41,11 @@
       "ios": {
         "appid": "com.zhixiang.app",
         "UIBackgroundModes": [],
-        "dSYMs": false
+        "dSYMs": false,
+        "privacyDescription": {
+          "NSBluetoothPeripheralUsageDescription": "需要使用蓝牙连接打印机进行小票打印",
+          "NSBluetoothAlwaysUsageDescription": "需要使用蓝牙连接打印机进行小票打印"
+        }
       },
       "sdkConfigs": {
         "payment": {
