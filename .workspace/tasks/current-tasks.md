@@ -61,7 +61,7 @@
 - **优先级**：P2
 - **负责人**：阿坚
 - **预计**：3天
-- **状态**：🚧 进行中（第一批：5个核心模块完成）
+- **状态**：🚧 进行中（第二批：15个模块完成）
 - **文件**：`backend/src/services/` 目录下42个文件（153处）
 - **问题**：整个后端services目录153处使用queryOne\<any\>或queryAll\<any\>，数据库层完全失去类型安全，字段名和类型无编译期检查
 - **修复方向**：为高频模块（auth、customer、product、order）定义TypeScript接口，逐步替换any泛型。可分批进行，优先处理核心业务模块
@@ -74,6 +74,28 @@
   - `purchase-order.service.ts`：9处 → 定义 PurchaseOrderRow/PurchaseOrderItemRow 等接口
   - 合计：5个模块，65处 any 替换为明确接口
   - 验证：tsc 无新增错误，vitest 4857 用例全部通过
+- **完成进度**（第二批，2026-07-23）：
+  - **库存模块（2个）**：
+    - `purchase-in-stock.service.ts`：10处 → PurchaseInStockRow/PurchaseInStockItemRow等8个接口
+    - `purchase-return.service.ts`：10处 → PurchaseReturnRow/PurchaseReturnItemRow等7个接口
+  - **销售/财务模块（2个）**：
+    - `customer-payment.service.ts`：6处 → CustomerPaymentRawRow/PaymentStatusRow等6个接口
+    - `payment.service.ts`：4处 → PaymentOrderRawRow/PaymentOrderBriefRow接口
+  - **营销模块（5个）**：
+    - `seckill.service.ts`：6处 → SeckillProductRow/CountCntRow接口
+    - `group-buy.service.ts`：8处 → GroupBuyActivityRow/GroupBuyRecordRow等5个接口
+    - `points-mall.service.ts`：6处 → PointsMallItemRow/PointsMallOrderRow等4个接口
+    - `marketing-asset.service.ts`：4处 → MarketingAssetRow接口
+    - `product-marketing-tag.service.ts`：补充TagIdRow/TagTenantRow接口
+  - **系统/设置模块（6个）**：
+    - `sys-config.service.ts`：5处 → SysConfigRow/ConfigIdRow接口
+    - `notification.service.ts`：7处 → NotificationRow/NotificationMiniRow等4个接口
+    - `dashboard.service.ts`：35处 → OverviewSalesStatsRow/SalesTrendRow等30个统计接口
+    - `user-session.service.ts`：8处 → UserSessionRow/CountCntRow等5个接口
+    - `tenant.service.ts`：11处 → TenantRow/TenantBriefRow等7个接口
+    - `rbac.service.ts`：15处 → RoleRow/UserRoleRow等7个接口
+  - 合计：15个模块，约130处 any 替换为明确接口
+  - 验证：tsc 无新增错误（仅3个已有 controller 层错误与本次无关）
 
 #### R55-05 — apiCost:1 硬编码 [P2]
 
@@ -130,7 +152,7 @@
 | R55-01 retail-announcement跨租户泄露 | 阿坚 | P0 | 1天 | ⬜ 待开始 |
 | R55-02 双重飞书告警 | 阿坚 | P1 | 0.5天 | ✅ 已完成 |
 | R55-03 rate-limit MemoryStore | 阿坚 | P1 | 0.5天 | ✅ 已完成 |
-| R55-04 queryOne\<any\>类型安全 | 阿坚 | P2 | 3天 | 🚧 进行中（第一批5模块完成） |
+| R55-04 queryOne\<any\>类型安全 | 阿坚 | P2 | 3天 | 🚧 进行中（第二批15模块完成） |
 | R55-05 apiCost硬编码 | 阿坚 | P2 | 0.25天 | ✅ 已完成 |
 | R55-06 asyncHandler类型安全 | 阿坚 | P3 | 0.5天 | ✅ 已完成 |
 | R55-07 JWT_SECRET复用 | 阿坚 | P3 | 0.25天 | ✅ 已完成 |

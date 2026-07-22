@@ -1,6 +1,122 @@
 ﻿import { query, queryOne, queryWithTenant, queryOneWithTenant, transaction } from "../../shared/db";
+import type { ResultSetHeader } from "mysql2/promise";
 import { makeBizNo } from "../../shared/id";
 import { bindTraceCodeOnInStock } from "../../shared/trace-code";
+
+// ==================== 类型定义 ====================
+
+/** 采购入库单列表行 */
+interface PurchaseInStockRow {
+  id: number;
+  stockNo: string;
+  orderNo: string | null;
+  supplierId: number;
+  supplierName: string;
+  storeId: number;
+  stockStatus: string;
+  goodsAmount: number | string;
+  taxAmount: number | string;
+  totalAmount: number | string;
+  operatorId: number;
+  auditorId: number | null;
+  auditedAt: string | Date | null;
+  remark: string | null;
+  createdAt: string | Date;
+}
+
+/** 采购入库单原始行（snake_case 字段） */
+interface PurchaseInStockRawRow {
+  id: number;
+  stock_no: string;
+  order_no: string | null;
+  supplier_id: number;
+  supplier_name: string;
+  store_id: number;
+  stock_status: string;
+  goods_amount: number | string;
+  tax_amount: number | string;
+  total_amount: number | string;
+  operator_id: number;
+  auditor_id: number | null;
+  audited_at: string | Date | null;
+  remark: string | null;
+  tenant_id: string;
+  created_at: string | Date;
+  updated_at: string | Date;
+}
+
+/** 采购入库单明细行 */
+interface PurchaseInStockItemRow {
+  id: number;
+  stockNo: string;
+  skuId: number;
+  skuName: string;
+  boxQty: number;
+  bottleQty: number;
+  totalBottleQty: number;
+  unitPrice: number | string;
+  taxRate: number | string;
+  subtotalAmount: number | string;
+  taxAmount: number | string;
+  totalAmount: number | string;
+  batchNo: string | null;
+  productionDate: string | Date | null;
+  expiryDate: string | Date | null;
+  remark: string | null;
+}
+
+/** 采购入库单明细原始行 */
+interface PurchaseInStockItemRawRow {
+  id: number;
+  stock_no: string;
+  sku_id: number;
+  sku_name: string;
+  box_qty: number;
+  bottle_qty: number;
+  total_bottle_qty: number;
+  unit_price: number | string;
+  tax_rate: number | string;
+  subtotal_amount: number | string;
+  tax_amount: number | string;
+  total_amount: number | string;
+  batch_no: string | null;
+  production_date: string | Date | null;
+  expiry_date: string | Date | null;
+  remark: string | null;
+}
+
+/** 计数 total 行 */
+interface CountTotalRow {
+  total: number;
+}
+
+/** 计数 cnt 行 */
+interface CountCntRow {
+  cnt: number;
+}
+
+/** 采购订单简要行 */
+interface PurchaseOrderBriefRow {
+  id: number;
+  orderNo: string;
+  supplierId: number;
+  supplierName: string;
+  storeId: number;
+  orderStatus: string;
+}
+
+/** 入库单状态行 */
+interface InStockStatusRow {
+  id: number;
+  stock_status: string;
+  store_id: number;
+}
+
+/** 入库单状态行（仅状态） */
+interface InStockStatusOnlyRow {
+  id: number;
+  stock_status: string;
+}
 
 export async function list(params: {
   page: number; pageSize: number; tenantId: string;
@@ -29,7 +145,7 @@ export async function list(params: {
 
   const whereClause = " AND tenant_id = ?" + (conditions.length > 0 ? " AND " + conditions.join(" AND ") : "");
   const offset = (page - 1) * pageSize;
-  const stocks = await query<any>(
+  const stocks = await query<PurchaseInStockRawRow>(
     `SELECT * FROM t_purchase_in_stock WHERE 1=1${whereClause} ORDER BY created_at DESC LIMIT ? OFFSET ?`,
     [tenantId, ...queryParams, pageSize, offset]
   );
@@ -37,12 +153,12 @@ export async function list(params: {
 }
 
 export async function getDetail(stockNo: string, tenantId: string) {
-  const stock = await queryOne<any>(
+  const stock = await queryOne<PurchaseInStockRawRow>(
     "SELECT * FROM t_purchase_in_stock WHERE stock_no = ? AND tenant_id = ?",
     [stockNo, tenantId]
   );
   if (!stock) throw Object.assign(new Error("入库单不存在"), { statusCode: 404 });
-  const items = await query<any>(
+  const items = await query<PurchaseInStockItemRawRow>(
     "SELECT * FROM t_purchase_in_stock_item WHERE stock_no = ? ORDER BY id ASC",
     [stockNo]
   );
@@ -52,9 +168,11 @@ export async function getDetail(stockNo: string, tenantId: string) {
 export async function create(body: {
   order_no?: string; supplier_id: number; supplier_name: string;
   store_id: number; remark?: string;
-  items: Array<{ sku_id: number; sku_name: string; box_qty?: number; bottle_qty?: number;
+  items: Array<{
+    sku_id: number; sku_name: string; box_qty?: number; bottle_qty?: number;
     unit_price: number; tax_rate?: number; batch_no?: string; production_date?: string;
-    expiry_date?: string; remark?: string; }>;
+    expiry_date?: string; remark?: string;
+  }>;
 }, tenantId: string, userId: number, username: string) {
   const stockNo = makeBizNo("RK");
   let goodsAmount = 0;
@@ -100,7 +218,7 @@ export async function create(body: {
 }
 
 export async function approve(stockNo: string, tenantId: string, userId: number, username: string) {
-  const stock = await queryOne<any>(
+  const stock = await queryOne<InStockStatusRow>(
     "SELECT id, stock_status, store_id FROM t_purchase_in_stock WHERE stock_no = ? AND tenant_id = ?",
     [stockNo, tenantId]
   );
@@ -117,7 +235,7 @@ export async function approve(stockNo: string, tenantId: string, userId: number,
          VALUES (?, ?, 'OFFLINE', ?, 0, ?, ?)
          ON DUPLICATE KEY UPDATE physical_qty = physical_qty + ?, available_qty = available_qty + ?`,
         [stock.store_id, item.sku_id, item.total_bottle_qty, item.total_bottle_qty, tenantId,
-          item.total_bottle_qty, item.total_bottle_qty]
+        item.total_bottle_qty, item.total_bottle_qty]
       );
 
       const [balanceRows] = await conn.query(
@@ -154,7 +272,7 @@ export async function approve(stockNo: string, tenantId: string, userId: number,
 }
 
 export async function voidStock(stockNo: string, tenantId: string, userId: number, username: string) {
-  const stock = await queryOne<any>(
+  const stock = await queryOne<InStockStatusOnlyRow>(
     "SELECT id, stock_status FROM t_purchase_in_stock WHERE stock_no = ? AND tenant_id = ?",
     [stockNo, tenantId]
   );
@@ -191,7 +309,7 @@ export async function purchaseInStock(id: number, params: {
 }) {
   const { tenantId, operatorId, remark, items } = params;
 
-  const order = await queryOneWithTenant<any>(
+  const order = await queryOneWithTenant<PurchaseOrderBriefRow>(
     `SELECT id, order_no AS orderNo, supplier_id AS supplierId, supplier_name AS supplierName,
             store_id AS storeId, order_status AS orderStatus
      FROM t_purchase_order WHERE id = ? AND tenant_id = ?`,
@@ -223,7 +341,7 @@ export async function purchaseInStock(id: number, params: {
         stock_status, goods_amount, tax_amount, total_amount, operator_id, remark, tenant_id)
        VALUES (?, ?, ?, ?, ?, 'PENDING', ?, ?, ?, ?, ?, ?)`,
       [stockNo, order.orderNo, order.supplierId, order.supplierName, order.storeId,
-       goodsAmount, taxAmount, totalAmount, operatorId, remark ?? null, tenantId]
+        goodsAmount, taxAmount, totalAmount, operatorId, remark ?? null, tenantId]
     );
 
     for (const item of items) {
@@ -236,8 +354,8 @@ export async function purchaseInStock(id: number, params: {
           batch_no, production_date, expiry_date, remark)
          VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
         [stockNo, item.skuId, item.skuName, item.boxQty, item.bottleQty, item.totalBottleQty,
-         item.unitPrice, item.taxRate, subtotal, tax, total,
-         item.batchNo ?? null, item.productionDate ?? null, item.expiryDate ?? null, item.remark ?? null]
+          item.unitPrice, item.taxRate, subtotal, tax, total,
+          item.batchNo ?? null, item.productionDate ?? null, item.expiryDate ?? null, item.remark ?? null]
       );
 
       // 更新采购订单明细的已入库数量
@@ -323,7 +441,7 @@ export async function listPurchaseInStocks(params: {
   }
 
   const where = `WHERE ${conditions.join(" AND ")}`;
-  const records = await query<any>(
+  const records = await query<PurchaseInStockRow>(
     `SELECT id, stock_no AS stockNo, order_no AS orderNo, supplier_id AS supplierId,
             supplier_name AS supplierName, store_id AS storeId, stock_status AS stockStatus,
             goods_amount AS goodsAmount, tax_amount AS taxAmount, total_amount AS totalAmount,
@@ -335,7 +453,7 @@ export async function listPurchaseInStocks(params: {
      LIMIT ? OFFSET ?`,
     [...queryParams, pageSize, offset]
   );
-  const totalRow = await queryOne<any>(
+  const totalRow = await queryOne<CountTotalRow>(
     `SELECT COUNT(*) AS total FROM t_purchase_in_stock ${where}`,
     queryParams
   );
@@ -344,7 +462,7 @@ export async function listPurchaseInStocks(params: {
 
 // ========== 入库单详情 ==========
 export async function getPurchaseInStockDetail(id: number, tenantId: string) {
-  const stock = await queryOneWithTenant<any>(
+  const stock = await queryOneWithTenant<PurchaseInStockRow>(
     `SELECT id, stock_no AS stockNo, order_no AS orderNo, supplier_id AS supplierId,
             supplier_name AS supplierName, store_id AS storeId, stock_status AS stockStatus,
             goods_amount AS goodsAmount, tax_amount AS taxAmount, total_amount AS totalAmount,
@@ -357,7 +475,7 @@ export async function getPurchaseInStockDetail(id: number, tenantId: string) {
   if (!stock) {
     throw Object.assign(new Error("入库单不存在"), { statusCode: 404 });
   }
-  const items = await query<any>(
+  const items = await query<PurchaseInStockItemRow>(
     `SELECT id, stock_no AS stockNo, sku_id AS skuId, sku_name AS skuName,
             box_qty AS boxQty, bottle_qty AS bottleQty, total_bottle_qty AS totalBottleQty,
             unit_price AS unitPrice, tax_rate AS taxRate,

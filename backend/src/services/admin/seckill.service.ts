@@ -1,5 +1,27 @@
 ﻿import { query, queryOne } from "../../shared/db";
 
+// ==================== 类型定义 ====================
+
+/** 秒杀商品行（关联产品名称） */
+interface SeckillProductRow {
+  id: number;
+  product_id: number;
+  seckill_price: number | string;
+  seckill_stock: number;
+  limit_per_user: number;
+  start_time: string | Date;
+  end_time: string | Date;
+  status: string;
+  productName: string | null;
+  created_at?: string | Date;
+  updated_at?: string | Date;
+}
+
+/** 计数行 */
+interface CountCntRow {
+  cnt: number;
+}
+
 export async function getSeckillProducts(tenantId: string, params?: { status?: string; page?: number; pageSize?: number }) {
   const page = params?.page || 1;
   const pageSize = params?.pageSize || 20;
@@ -8,8 +30,8 @@ export async function getSeckillProducts(tenantId: string, params?: { status?: s
   const vals: any[] = [];
   if (params?.status) { where += " AND sp.status = ?"; vals.push(params.status); }
   const [rows, total] = await Promise.all([
-    query<any>(`SELECT sp.*, p.name AS productName FROM t_seckill_product sp LEFT JOIN t_product p ON sp.product_id = p.id ${where} ORDER BY sp.start_time ASC LIMIT ${offset}, ${pageSize}`, vals),
-    queryOne<any>(`SELECT COUNT(*) AS cnt FROM t_seckill_product ${where}`, vals)
+    query<SeckillProductRow>(`SELECT sp.*, p.name AS productName FROM t_seckill_product sp LEFT JOIN t_product p ON sp.product_id = p.id ${where} ORDER BY sp.start_time ASC LIMIT ${offset}, ${pageSize}`, vals),
+    queryOne<CountCntRow>(`SELECT COUNT(*) AS cnt FROM t_seckill_product ${where}`, vals)
   ]);
   return { records: rows, total: total?.cnt || 0, page, pageSize };
 }

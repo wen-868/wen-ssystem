@@ -1,5 +1,42 @@
 import { query, queryOne } from "../../shared/db";
 
+// ==================== 类型定义 ====================
+
+/** 积分商城商品行 */
+interface PointsMallItemRow {
+  id: number;
+  name: string;
+  image: string | null;
+  points: number;
+  stock: number;
+  limit_per_user: number;
+  valid_start: string | Date | null;
+  valid_end: string | Date | null;
+  status: string;
+  sort_order: number;
+  created_at?: string | Date;
+  updated_at?: string | Date;
+}
+
+/** 积分商城订单行 */
+interface PointsMallOrderRow {
+  id: number;
+  order_no: string;
+  user_id: number;
+  item_id: number;
+  item_name: string;
+  points: number;
+  status: string;
+  cancelled_at?: string | Date | null;
+  delivered_at?: string | Date | null;
+  created_at?: string | Date;
+}
+
+/** 计数行 */
+interface CountCntRow {
+  cnt: number;
+}
+
 export async function getPointsMallItems(tenantId: string, params?: { status?: string; page?: number; pageSize?: number }) {
   const page = params?.page || 1;
   const pageSize = params?.pageSize || 20;
@@ -8,8 +45,8 @@ export async function getPointsMallItems(tenantId: string, params?: { status?: s
   const vals: any[] = [];
   if (params?.status) { where += " AND status = ?"; vals.push(params.status); }
   const [rows, total] = await Promise.all([
-    query<any>(`SELECT * FROM t_points_mall_item ${where} ORDER BY sort_order ASC, id DESC LIMIT ${offset}, ${pageSize}`, vals),
-    queryOne<any>(`SELECT COUNT(*) AS cnt FROM t_points_mall_item ${where}`, vals)
+    query<PointsMallItemRow>(`SELECT * FROM t_points_mall_item ${where} ORDER BY sort_order ASC, id DESC LIMIT ${offset}, ${pageSize}`, vals),
+    queryOne<CountCntRow>(`SELECT COUNT(*) AS cnt FROM t_points_mall_item ${where}`, vals)
   ]);
   return { records: rows, total: total?.cnt || 0, page, pageSize };
 }
@@ -51,8 +88,8 @@ export async function getPointsMallOrders(tenantId: string, params?: { status?: 
   const vals: any[] = [];
   if (params?.status) { where += " AND status = ?"; vals.push(params.status); }
   const [rows, total] = await Promise.all([
-    query<any>(`SELECT * FROM t_points_mall_order ${where} ORDER BY id DESC LIMIT ${offset}, ${pageSize}`, vals),
-    queryOne<any>(`SELECT COUNT(*) AS cnt FROM t_points_mall_order ${where}`, vals)
+    query<PointsMallOrderRow>(`SELECT * FROM t_points_mall_order ${where} ORDER BY id DESC LIMIT ${offset}, ${pageSize}`, vals),
+    queryOne<CountCntRow>(`SELECT COUNT(*) AS cnt FROM t_points_mall_order ${where}`, vals)
   ]);
   return { records: rows, total: total?.cnt || 0, page, pageSize };
 }

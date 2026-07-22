@@ -1,7 +1,24 @@
 ﻿import { query, queryOne } from "../../shared/db";
 
+// ==================== 类型定义 ====================
+
+/** 系统配置行 */
+interface SysConfigRow {
+  id: number;
+  configKey: string;
+  configValue: string;
+  configGroup: string;
+  description: string;
+  updatedAt: string | Date;
+}
+
+/** 配置ID行（存在性校验） */
+interface ConfigIdRow {
+  id: number;
+}
+
 export async function getAllConfigs(tenantId: string) {
-  const records = await query<any>(
+  const records = await query<SysConfigRow>(
     `SELECT id, config_key AS configKey, config_value AS configValue,
             config_group AS configGroup, description, updated_at AS updatedAt
      FROM t_sys_config
@@ -9,7 +26,7 @@ export async function getAllConfigs(tenantId: string) {
      ORDER BY config_group, id`,
     [tenantId]
   );
-  const grouped: Record<string, any[]> = {};
+  const grouped: Record<string, SysConfigRow[]> = {};
   for (const r of records) {
     const group = r.configGroup || "other";
     if (!grouped[group]) grouped[group] = [];
@@ -19,7 +36,7 @@ export async function getAllConfigs(tenantId: string) {
 }
 
 export async function getConfigByGroup(group: string, tenantId: string) {
-  const records = await query<any>(
+  const records = await query<SysConfigRow>(
     `SELECT id, config_key AS configKey, config_value AS configValue,
             config_group AS configGroup, description, updated_at AS updatedAt
      FROM t_sys_config
@@ -32,7 +49,7 @@ export async function getConfigByGroup(group: string, tenantId: string) {
 
 export async function batchUpdateConfigs(items: Array<{ config_key: string; config_value: string }>, tenantId: string) {
   for (const item of items) {
-    const existing = await queryOne<any>(
+    const existing = await queryOne<ConfigIdRow>(
       "SELECT id FROM t_sys_config WHERE config_key = ? AND tenant_id = ?",
       [item.config_key, tenantId]
     );

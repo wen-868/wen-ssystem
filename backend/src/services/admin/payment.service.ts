@@ -1,7 +1,34 @@
 ﻿import { query, queryOne, transaction } from "../../shared/db";
+import type { ResultSetHeader } from "mysql2/promise";
 import { makeBizNo } from "../../shared/id";
 import { env } from "../../shared/env";
 import type { WechatPay } from "../../shared/wechat-pay";
+
+// ==================== 类型定义 ====================
+
+/** 支付订单原始行 */
+interface PaymentOrderRawRow {
+  id: number;
+  pay_no: string;
+  source_type: string;
+  source_no: string;
+  channel: string;
+  amount: number | string;
+  paid_amount: number | string | null;
+  transaction_id: string | null;
+  status: string;
+  tenant_id: string;
+  paid_at: string | Date | null;
+  created_at: string | Date;
+  updated_at: string | Date;
+}
+
+/** 支付订单简要行 */
+interface PaymentOrderBriefRow {
+  amount: number | string;
+  status: string;
+  transaction_id: string | null;
+}
 
 export async function createPaymentOrder(
   body: { sourceType: string; sourceNo: string; amount: number; openid?: string; description?: string },
@@ -120,7 +147,7 @@ export async function createRefund(
   tenantId: string,
   wechatPay: WechatPay
 ) {
-  const payment = await queryOne<any>(
+  const payment = await queryOne<PaymentOrderBriefRow>(
     "SELECT amount, status, transaction_id FROM t_payment_order WHERE pay_no = ? AND tenant_id = ?",
     [body.payNo, tenantId]
   );
@@ -157,7 +184,7 @@ export async function createRefund(
 }
 
 export async function getPaymentOrder(payNo: string, tenantId: string) {
-  const order = await queryOne<any>(
+  const order = await queryOne<PaymentOrderRawRow>(
     "SELECT * FROM t_payment_order WHERE pay_no = ? AND tenant_id = ?",
     [payNo, tenantId]
   );
@@ -177,6 +204,6 @@ export async function listPaymentOrders(tenantId: string, page: number, pageSize
   sql += " ORDER BY created_at DESC LIMIT ? OFFSET ?";
   params.push(pageSize, (page - 1) * pageSize);
 
-  const orders = await query<any>(sql, params);
+  const orders = await query<PaymentOrderRawRow>(sql, params);
   return orders;
 }

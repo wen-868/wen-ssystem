@@ -1,5 +1,37 @@
 import { query, queryOne, transaction } from "../../shared/db";
+import type { ResultSetHeader } from "mysql2/promise";
 import { makeBizNo } from "../../shared/id";
+
+// ==================== 类型定义 ====================
+
+/** 客户收款单原始行 */
+interface CustomerPaymentRawRow {
+  id: number;
+  receipt_no: string;
+  customer_id: number;
+  customer_name: string;
+  amount: number | string;
+  payment_method: string;
+  source_type: string | null;
+  source_no: string | null;
+  voucher_no: string | null;
+  payment_date: string | Date;
+  operator_id: number;
+  status: string;
+  remark: string | null;
+  tenant_id: string;
+  created_at: string | Date;
+  updated_at: string | Date;
+}
+
+/** 收款单状态行 */
+interface PaymentStatusRow {
+  id: number;
+  status: string;
+  source_type: string | null;
+  source_no: string | null;
+  amount: number | string;
+}
 
 export async function list(params: {
   page: number; pageSize: number; tenantId: string;
@@ -28,7 +60,7 @@ export async function list(params: {
 
   const whereClause = " AND tenant_id = ?" + (conditions.length > 0 ? " AND " + conditions.join(" AND ") : "");
   const offset = (page - 1) * pageSize;
-  const payments = await query<any>(
+  const payments = await query<CustomerPaymentRawRow>(
     `SELECT * FROM t_customer_payment WHERE 1=1${whereClause} ORDER BY created_at DESC LIMIT ? OFFSET ?`,
     [tenantId, ...queryParams, pageSize, offset]
   );
@@ -36,7 +68,7 @@ export async function list(params: {
 }
 
 export async function getDetail(receiptNo: string, tenantId: string) {
-  const payment = await queryOne<any>(
+  const payment = await queryOne<CustomerPaymentRawRow>(
     "SELECT * FROM t_customer_payment WHERE receipt_no = ? AND tenant_id = ?",
     [receiptNo, tenantId]
   );
@@ -88,7 +120,7 @@ export async function create(body: {
 }
 
 export async function voidPayment(receiptNo: string, tenantId: string, userId: number, username: string) {
-  const payment = await queryOne<any>(
+  const payment = await queryOne<PaymentStatusRow>(
     "SELECT id, status, source_type, source_no, amount FROM t_customer_payment WHERE receipt_no = ? AND tenant_id = ?",
     [receiptNo, tenantId]
   );

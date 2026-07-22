@@ -1,5 +1,46 @@
 ﻿import { query, queryOne, pool } from "../../shared/db";
 
+// ==================== 类型定义 ====================
+
+/** 通知行 */
+interface NotificationRow {
+  id: number;
+  recipientId: number;
+  recipientType: string;
+  title: string;
+  content: string;
+  type: string;
+  relatedId: number | null;
+  relatedType: string | null;
+  isRead: number;
+  sentAt: string | Date;
+  readAt: string | Date | null;
+  createdAt: string | Date;
+}
+
+/** 小程序通知行（字段更少） */
+interface NotificationMiniRow {
+  id: number;
+  title: string;
+  content: string;
+  type: string;
+  relatedId: number | null;
+  relatedType: string | null;
+  isRead: number;
+  sentAt: string | Date;
+  readAt: string | Date | null;
+}
+
+/** 计数 total 行 */
+interface CountTotalRow {
+  total: number;
+}
+
+/** 计数 count 行 */
+interface CountCountRow {
+  count: number;
+}
+
 export interface SendNotificationParams {
   recipientId: number;
   recipientType: "ADMIN" | "MERCHANT" | "CONSUMER";
@@ -52,7 +93,7 @@ export async function listNotifications(
   const where = `WHERE ${conditions.join(" AND ")}`;
   const offset = (page - 1) * pageSize;
 
-  const records = await query<any>(
+  const records = await query<NotificationRow>(
     `SELECT n.id, n.recipient_id AS recipientId, n.recipient_type AS recipientType,
             n.title, n.content, n.type,
             n.related_id AS relatedId, n.related_type AS relatedType,
@@ -65,7 +106,7 @@ export async function listNotifications(
     [...params, pageSize, offset]
   );
 
-  const totalRow = await queryOne<any>(
+  const totalRow = await queryOne<CountTotalRow>(
     `SELECT COUNT(*) AS total FROM t_notification n ${where}`,
     params
   );
@@ -79,7 +120,7 @@ export async function listNotifications(
 }
 
 export async function getUnreadCount(tenantId: string, userId: number) {
-  const count = await queryOne<any>(
+  const count = await queryOne<CountCountRow>(
     `SELECT COUNT(*) AS count FROM t_notification WHERE recipient_id = ? AND recipient_type = 'ADMIN' AND is_read = 0 AND tenant_id = ?`,
     [userId, tenantId]
   );
@@ -110,7 +151,7 @@ export async function listMyNotifications(
 ) {
   const offset = (page - 1) * pageSize;
 
-  const records = await query<any>(
+  const records = await query<NotificationMiniRow>(
     `SELECT id, title, content, type,
             related_id AS relatedId, related_type AS relatedType,
             is_read AS isRead, sent_at AS sentAt, read_at AS readAt
@@ -121,7 +162,7 @@ export async function listMyNotifications(
     [userId, tenantId, pageSize, offset]
   );
 
-  const totalRow = await queryOne<any>(
+  const totalRow = await queryOne<CountTotalRow>(
     `SELECT COUNT(*) AS total FROM t_notification WHERE recipient_id = ? AND recipient_type = 'CONSUMER' AND tenant_id = ?`,
     [userId, tenantId]
   );
@@ -135,7 +176,7 @@ export async function listMyNotifications(
 }
 
 export async function getMyUnreadCount(tenantId: string, userId: number) {
-  const count = await queryOne<any>(
+  const count = await queryOne<CountCountRow>(
     `SELECT COUNT(*) AS count FROM t_notification WHERE recipient_id = ? AND recipient_type = 'CONSUMER' AND is_read = 0 AND tenant_id = ?`,
     [userId, tenantId]
   );

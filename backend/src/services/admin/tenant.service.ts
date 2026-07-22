@@ -1,5 +1,83 @@
 ﻿import { query, queryOne, transaction } from "../../shared/db";
+import type { ResultSetHeader } from "mysql2/promise";
 import { makeBizNo } from "../../shared/id";
+
+// ==================== 类型定义 ====================
+
+/** 租户口径行 */
+interface TenantRow {
+  id: number;
+  tenantCode: string;
+  companyName: string;
+  companyShortName: string | null;
+  contactPerson: string;
+  contactMobile: string;
+  contactEmail: string | null;
+  province: string | null;
+  city: string | null;
+  district: string | null;
+  address: string | null;
+  businessLicense: string | null;
+  legalPerson: string | null;
+  industry: string | null;
+  companyScale: string | null;
+  source: string;
+  status: string;
+  suspendReason: string | null;
+  suspendedAt: string | Date | null;
+  expireAt: string | Date | null;
+  remark: string | null;
+  createdAt: string | Date;
+  updatedAt: string | Date;
+}
+
+/** 租户简要行（更新后返回） */
+interface TenantBriefRow {
+  id: number;
+  tenantCode: string;
+  companyName: string;
+  contactPerson: string;
+  contactMobile: string;
+  status: string;
+  updatedAt: string | Date;
+}
+
+/** 租户状态行 */
+interface TenantStatusRow {
+  id: number;
+  tenantCode: string;
+  companyName: string;
+  status: string;
+  suspendReason: string | null;
+  suspendedAt: string | Date | null;
+}
+
+/** 租户ID行（存在性校验） */
+interface TenantIdRow {
+  id: number;
+}
+
+/** 租户ID+状态行（状态变更校验） */
+interface TenantIdStatusRow {
+  id: number;
+  status: string;
+}
+
+/** 租户模块权限行 */
+interface TenantModuleRow {
+  moduleCode: string;
+  moduleName: string;
+  enabled: number;
+  grantedBy: string | null;
+  grantedAt: string | Date | null;
+  expireAt: string | Date | null;
+  remark?: string | null;
+}
+
+/** 计数 total 行 */
+interface CountTotalRow {
+  total: number;
+}
 
 // ========== 租户列表 ==========
 export async function listTenants(params: {
@@ -21,7 +99,7 @@ export async function listTenants(params: {
 
   const where = conditions.length > 0 ? `WHERE ${conditions.join(" AND ")}` : "";
 
-  const records = await query<any>(
+  const records = await query<TenantRow>(
     `SELECT t.id, t.tenant_code AS tenantCode, t.company_name AS companyName,
             t.company_short_name AS companyShortName,
             t.contact_person AS contactPerson, t.contact_mobile AS contactMobile,
@@ -39,7 +117,7 @@ export async function listTenants(params: {
     [...queryParams, pageSize, (page - 1) * pageSize]
   );
 
-  const totalRow = await queryOne<any>(
+  const totalRow = await queryOne<CountTotalRow>(
     `SELECT COUNT(*) AS total FROM t_tenant t ${where}`,
     queryParams
   );
@@ -54,7 +132,7 @@ export async function listTenants(params: {
 
 // ========== 租户详情 ==========
 export async function getTenantDetail(tenantId: number) {
-  const record = await queryOne<any>(
+  const record = await queryOne<TenantRow>(
     `SELECT t.id, t.tenant_code AS tenantCode, t.company_name AS companyName,
             t.company_short_name AS companyShortName,
             t.contact_person AS contactPerson, t.contact_mobile AS contactMobile,
@@ -74,7 +152,7 @@ export async function getTenantDetail(tenantId: number) {
     throw Object.assign(new Error("租户不存在"), { statusCode: 404 });
   }
 
-  const modules = await query<any>(
+  const modules = await query<TenantModuleRow>(
     `SELECT module_code AS moduleCode, module_name AS moduleName,
             enabled, granted_by AS grantedBy, granted_at AS grantedAt,
             expire_at AS expireAt
@@ -122,7 +200,7 @@ export async function createTenant(body: {
       `INSERT INTO t_operation_log (module, action, target_id, target_type, user_id, user_name, detail, tenant_id)
        VALUES (?, ?, ?, ?, ?, ?, ?, ?)`,
       ["tenant", "CREATE", tenantCode, "tenant", userId, username,
-       `创建租户: ${tenantCode}, 公司: ${body.companyName}`, tenantId]
+        `创建租户: ${tenantCode}, 公司: ${body.companyName}`, tenantId]
     );
   });
 
@@ -137,7 +215,7 @@ export async function updateTenant(tenantId: number, body: {
   businessLicense?: string; legalPerson?: string; industry?: string;
   companyScale?: string; remark?: string;
 }, userId: number, username: string) {
-  const existing = await queryOne<any>(
+  const existing = await queryOne<TenantIdRow>(
     "SELECT id FROM t_tenant WHERE id = ?",
     [tenantId]
   );
@@ -184,11 +262,11 @@ export async function updateTenant(tenantId: number, body: {
       `INSERT INTO t_operation_log (module, action, target_id, target_type, user_id, user_name, detail, tenant_id)
        VALUES (?, ?, ?, ?, ?, ?, ?, ?)`,
       ["tenant", "UPDATE", String(tenantId), "tenant", userId, username,
-       `更新租户信息: ${tenantId}`, tenantId]
+        `更新租户信息: ${tenantId}`, tenantId]
     );
   }
 
-  const record = await queryOne<any>(
+  const record = await queryOne<TenantBriefRow>(
     `SELECT id, tenant_code AS tenantCode, company_name AS companyName,
             contact_person AS contactPerson, contact_mobile AS contactMobile,
             status, updated_at AS updatedAt
@@ -203,7 +281,7 @@ export async function updateTenant(tenantId: number, body: {
 export async function changeTenantStatus(tenantId: number, body: {
   status: string; reason?: string;
 }, userId: number, username: string) {
-  const existing = await queryOne<any>(
+  const existing = await queryOne<TenantIdStatusRow>(
     "SELECT id, status FROM t_tenant WHERE id = ?",
     [tenantId]
   );
@@ -231,10 +309,10 @@ export async function changeTenantStatus(tenantId: number, body: {
     `INSERT INTO t_operation_log (module, action, target_id, target_type, user_id, user_name, detail, tenant_id)
      VALUES (?, ?, ?, ?, ?, ?, ?, ?)`,
     ["tenant", "STATUS_CHANGE", String(tenantId), "tenant", userId, username,
-     `租户状态变更: ${existing.status} -> ${body.status}`, tenantId]
+      `租户状态变更: ${existing.status} -> ${body.status}`, tenantId]
   );
 
-  const record = await queryOne<any>(
+  const record = await queryOne<TenantStatusRow>(
     `SELECT id, tenant_code AS tenantCode, company_name AS companyName,
             status, suspend_reason AS suspendReason, suspended_at AS suspendedAt
      FROM t_tenant WHERE id = ?`,
@@ -246,7 +324,7 @@ export async function changeTenantStatus(tenantId: number, body: {
 
 // ========== 获取租户模块访问权限 ==========
 export async function getTenantModules(tenantId: number) {
-  const modules = await query<any>(
+  const modules = await query<TenantModuleRow>(
     `SELECT module_code AS moduleCode, module_name AS moduleName,
             enabled, granted_by AS grantedBy, granted_at AS grantedAt,
             expire_at AS expireAt, remark
@@ -266,7 +344,7 @@ export async function setTenantModules(tenantId: number, body: {
     grantedBy: string; expireAt?: string; remark?: string;
   }>;
 }, userId: number, username: string) {
-  const existing = await queryOne<any>(
+  const existing = await queryOne<TenantIdRow>(
     "SELECT id FROM t_tenant WHERE id = ?",
     [tenantId]
   );
@@ -287,7 +365,7 @@ export async function setTenantModules(tenantId: number, body: {
            remark = VALUES(remark),
            updated_at = NOW()`,
         [tenantId, mod.moduleCode, mod.moduleName, mod.enabled, mod.grantedBy,
-         mod.expireAt || null, mod.remark || null]
+          mod.expireAt || null, mod.remark || null]
       );
     }
 
@@ -295,11 +373,11 @@ export async function setTenantModules(tenantId: number, body: {
       `INSERT INTO t_operation_log (module, action, target_id, target_type, user_id, user_name, detail, tenant_id)
        VALUES (?, ?, ?, ?, ?, ?, ?, ?)`,
       ["tenant", "MODULE_UPDATE", String(tenantId), "tenant", userId, username,
-       `更新租户模块权限: ${tenantId}`, tenantId]
+        `更新租户模块权限: ${tenantId}`, tenantId]
     );
   });
 
-  const modules = await query<any>(
+  const modules = await query<TenantModuleRow>(
     `SELECT module_code AS moduleCode, module_name AS moduleName,
             enabled, granted_by AS grantedBy, expire_at AS expireAt
      FROM t_tenant_module_access

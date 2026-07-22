@@ -1,5 +1,93 @@
 ﻿import { query, queryOne, queryWithTenant, queryOneWithTenant, transaction } from "../../shared/db";
+import type { ResultSetHeader } from "mysql2/promise";
 import { makeBizNo } from "../../shared/id";
+
+// ==================== 类型定义 ====================
+
+/** 采购退货单列表行 */
+interface PurchaseReturnRow {
+  id: number;
+  returnNo: string;
+  orderNo: string | null;
+  stockNo: string | null;
+  supplierId: number;
+  supplierName: string;
+  storeId: number;
+  returnStatus: string;
+  goodsAmount: number | string;
+  taxAmount: number | string;
+  totalAmount: number | string;
+  refundAmount: number | string;
+  refundedAmount: number | string;
+  operatorId: number;
+  remark: string | null;
+  createdAt: string | Date;
+}
+
+/** 采购退货单原始行 */
+interface PurchaseReturnRawRow {
+  id: number;
+  return_no: string;
+  order_no: string | null;
+  stock_no: string | null;
+  supplier_id: number;
+  supplier_name: string;
+  store_id: number;
+  return_status: string;
+  goods_amount: number | string;
+  tax_amount: number | string;
+  total_amount: number | string;
+  refund_amount: number | string;
+  refunded_amount: number | string;
+  operator_id: number;
+  auditor_id: number | null;
+  audited_at: string | Date | null;
+  remark: string | null;
+  tenant_id: string;
+  created_at: string | Date;
+  updated_at: string | Date;
+}
+
+/** 采购退货单明细原始行 */
+interface PurchaseReturnItemRawRow {
+  id: number;
+  return_no: string;
+  sku_id: number;
+  sku_name: string;
+  box_qty: number;
+  bottle_qty: number;
+  total_bottle_qty: number;
+  unit_price: number | string;
+  tax_rate: number | string;
+  subtotal_amount: number | string;
+  tax_amount: number | string;
+  total_amount: number | string;
+  reason: string | null;
+}
+
+/** 计数 total 行 */
+interface CountTotalRow {
+  total: number;
+}
+
+/** 供应商简要行 */
+interface SupplierBriefRow {
+  id: number;
+  name: string;
+}
+
+/** 退货单状态行 */
+interface ReturnStatusRow {
+  id: number;
+  return_status: string;
+  store_id: number;
+}
+
+/** 退货单状态行（仅状态） */
+interface ReturnStatusOnlyRow {
+  id: number;
+  return_status: string;
+}
 
 export async function list(params: {
   page: number; pageSize: number; tenantId: string;
@@ -28,7 +116,7 @@ export async function list(params: {
 
   const whereClause = " AND tenant_id = ?" + (conditions.length > 0 ? " AND " + conditions.join(" AND ") : "");
   const offset = (page - 1) * pageSize;
-  const returns = await query<any>(
+  const returns = await query<PurchaseReturnRawRow>(
     `SELECT * FROM t_purchase_return WHERE 1=1${whereClause} ORDER BY created_at DESC LIMIT ? OFFSET ?`,
     [tenantId, ...queryParams, pageSize, offset]
   );
@@ -36,12 +124,12 @@ export async function list(params: {
 }
 
 export async function getDetail(returnNo: string, tenantId: string) {
-  const returnOrder = await queryOne<any>(
+  const returnOrder = await queryOne<PurchaseReturnRawRow>(
     "SELECT * FROM t_purchase_return WHERE return_no = ? AND tenant_id = ?",
     [returnNo, tenantId]
   );
   if (!returnOrder) throw Object.assign(new Error("退货单不存在"), { statusCode: 404 });
-  const items = await query<any>(
+  const items = await query<PurchaseReturnItemRawRow>(
     "SELECT * FROM t_purchase_return_item WHERE return_no = ? ORDER BY id ASC",
     [returnNo]
   );
@@ -51,8 +139,10 @@ export async function getDetail(returnNo: string, tenantId: string) {
 export async function create(body: {
   order_no?: string; stock_no?: string; supplier_id: number; supplier_name: string;
   store_id: number; remark?: string;
-  items: Array<{ sku_id: number; sku_name: string; box_qty?: number; bottle_qty?: number;
-    unit_price: number; tax_rate?: number; reason?: string; }>;
+  items: Array<{
+    sku_id: number; sku_name: string; box_qty?: number; bottle_qty?: number;
+    unit_price: number; tax_rate?: number; reason?: string;
+  }>;
 }, tenantId: string, userId: number, username: string) {
   const returnNo = makeBizNo("CGTH");
   let goodsAmount = 0;
@@ -97,7 +187,7 @@ export async function create(body: {
 }
 
 export async function approve(returnNo: string, tenantId: string, userId: number, username: string) {
-  const returnOrder = await queryOne<any>(
+  const returnOrder = await queryOne<ReturnStatusRow>(
     "SELECT id, return_status, store_id FROM t_purchase_return WHERE return_no = ? AND tenant_id = ?",
     [returnNo, tenantId]
   );
@@ -115,7 +205,7 @@ export async function approve(returnNo: string, tenantId: string, userId: number
       );
       const currentQty = (balanceRows as Record<string, unknown>[])?.[0]?.physical_qty || 0;
       if (currentQty < (item as any).total_bottle_qty) {
-      throw new Error(`库存不足: SKU ${item.sku_id} 当前库存 ${currentQty}, 退货数量 ${(item as any).total_bottle_qty}`);
+        throw new Error(`库存不足: SKU ${item.sku_id} 当前库存 ${currentQty}, 退货数量 ${(item as any).total_bottle_qty}`);
       }
 
       await conn.query(
@@ -150,7 +240,7 @@ export async function approve(returnNo: string, tenantId: string, userId: number
 }
 
 export async function voidReturn(returnNo: string, tenantId: string, userId: number, username: string) {
-  const returnOrder = await queryOne<any>(
+  const returnOrder = await queryOne<ReturnStatusOnlyRow>(
     "SELECT id, return_status FROM t_purchase_return WHERE return_no = ? AND tenant_id = ?",
     [returnNo, tenantId]
   );
@@ -188,7 +278,7 @@ export async function purchaseReturn(params: {
 }) {
   const { orderNo, stockNo, supplierId, storeId, tenantId, operatorId, remark, items } = params;
 
-  const supplier = await queryOneWithTenant<any>(
+  const supplier = await queryOneWithTenant<SupplierBriefRow>(
     "SELECT id, name FROM t_supplier WHERE id = ? AND tenant_id = ?",
     [supplierId, tenantId],
     tenantId
@@ -216,8 +306,8 @@ export async function purchaseReturn(params: {
         operator_id, remark, tenant_id)
        VALUES (?, ?, ?, ?, ?, ?, 'PENDING', ?, ?, ?, ?, 0, ?, ?, ?)`,
       [returnNo, orderNo ?? null, stockNo ?? null, supplierId, supplier.name,
-       storeId, goodsAmount, taxAmount, totalAmount, totalAmount,
-       operatorId, remark ?? null, tenantId]
+        storeId, goodsAmount, taxAmount, totalAmount, totalAmount,
+        operatorId, remark ?? null, tenantId]
     );
 
     for (const item of items) {
@@ -229,7 +319,7 @@ export async function purchaseReturn(params: {
           total_bottle_qty, unit_price, tax_rate, subtotal_amount, tax_amount, total_amount, reason)
          VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
         [returnNo, item.skuId, item.skuName, item.boxQty, item.bottleQty, item.totalBottleQty,
-         item.unitPrice, item.taxRate, subtotal, tax, total, item.reason ?? null]
+          item.unitPrice, item.taxRate, subtotal, tax, total, item.reason ?? null]
       );
 
       // 扣减库存
@@ -281,7 +371,7 @@ export async function listPurchaseReturns(params: {
   }
 
   const where = `WHERE ${conditions.join(" AND ")}`;
-  const records = await query<any>(
+  const records = await query<PurchaseReturnRow>(
     `SELECT id, return_no AS returnNo, order_no AS orderNo, stock_no AS stockNo,
             supplier_id AS supplierId, supplier_name AS supplierName, store_id AS storeId,
             return_status AS returnStatus,
@@ -294,7 +384,7 @@ export async function listPurchaseReturns(params: {
      LIMIT ? OFFSET ?`,
     [...queryParams, pageSize, offset]
   );
-  const totalRow = await queryOne<any>(
+  const totalRow = await queryOne<CountTotalRow>(
     `SELECT COUNT(*) AS total FROM t_purchase_return ${where}`,
     queryParams
   );

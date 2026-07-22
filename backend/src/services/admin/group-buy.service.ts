@@ -1,5 +1,55 @@
 ﻿import { query, queryOne } from "../../shared/db";
 
+// ==================== 类型定义 ====================
+
+/** 团购活动行（关联产品名称） */
+interface GroupBuyActivityRow {
+  id: number;
+  product_id: number;
+  group_price: number | string;
+  min_group_size: number;
+  max_group_size: number;
+  start_time: string | Date;
+  end_time: string | Date;
+  status: string;
+  productName: string | null;
+  created_at?: string | Date;
+  updated_at?: string | Date;
+}
+
+/** 团购记录行（关联产品信息） */
+interface GroupBuyRecordRow {
+  id: number;
+  group_no: string;
+  activity_id: number;
+  status: string;
+  current_size: number;
+  leader_id: number;
+  productId: number | null;
+  productName: string | null;
+  created_at?: string | Date;
+  cancelled_at?: string | Date | null;
+}
+
+/** 团购记录详情行（含 groupPrice/minGroupSize） */
+interface GroupBuyDetailRow extends GroupBuyRecordRow {
+  groupPrice: number | string | null;
+  minGroupSize: number | null;
+}
+
+/** 团组成员行 */
+interface GroupBuyMemberRow {
+  id: number;
+  group_no: string;
+  user_id: number;
+  joined_at: string | Date;
+}
+
+/** 计数行 */
+interface CountCntRow {
+  cnt: number;
+}
+
 export async function getGroupBuyActivities(tenantId: string, params?: { status?: string; page?: number; pageSize?: number }) {
   const page = params?.page || 1;
   const pageSize = params?.pageSize || 20;
@@ -8,14 +58,14 @@ export async function getGroupBuyActivities(tenantId: string, params?: { status?
   const vals: any[] = [];
   if (params?.status) { where += " AND gba.status = ?"; vals.push(params.status); }
   const [rows, total] = await Promise.all([
-    query<any>(`SELECT gba.*, p.name AS productName FROM t_group_buy_activity gba LEFT JOIN t_product p ON gba.product_id = p.id ${where} ORDER BY gba.start_time ASC LIMIT ${offset}, ${pageSize}`, vals),
-    queryOne<any>(`SELECT COUNT(*) AS cnt FROM t_group_buy_activity ${where}`, vals)
+    query<GroupBuyActivityRow>(`SELECT gba.*, p.name AS productName FROM t_group_buy_activity gba LEFT JOIN t_product p ON gba.product_id = p.id ${where} ORDER BY gba.start_time ASC LIMIT ${offset}, ${pageSize}`, vals),
+    queryOne<CountCntRow>(`SELECT COUNT(*) AS cnt FROM t_group_buy_activity ${where}`, vals)
   ]);
   return { records: rows, total: total?.cnt || 0, page, pageSize };
 }
 
 export async function getGroupBuyRecordDetail(groupNo: string) {
-  const record = await queryOne<any>(
+  const record = await queryOne<GroupBuyRecordRow>(
     `SELECT gbr.*, gba.product_id AS productId, p.name AS productName
      FROM t_group_buy_record gbr
      LEFT JOIN t_group_buy_activity gba ON gbr.activity_id = gba.id
@@ -26,7 +76,7 @@ export async function getGroupBuyRecordDetail(groupNo: string) {
   if (!record) {
     throw new Error('拼团记录不存在');
   }
-  const members = await query<any>(
+  const members = await query<GroupBuyMemberRow>(
     `SELECT * FROM t_group_buy_member WHERE group_no = ? ORDER BY joined_at ASC`,
     [groupNo]
   );
@@ -71,14 +121,14 @@ export async function getGroupBuyRecords(tenantId: string, params?: { activityId
   if (params?.activityId) { where += " AND gbr.activity_id = ?"; vals.push(params.activityId); }
   if (params?.status) { where += " AND gbr.status = ?"; vals.push(params.status); }
   const [rows, total] = await Promise.all([
-    query<any>(`SELECT gbr.*, gba.product_id AS productId, p.name AS productName FROM t_group_buy_record gbr LEFT JOIN t_group_buy_activity gba ON gbr.activity_id = gba.id LEFT JOIN t_product p ON gba.product_id = p.id ${where} ORDER BY gbr.id DESC LIMIT ${offset}, ${pageSize}`, vals),
-    queryOne<any>(`SELECT COUNT(*) AS cnt FROM t_group_buy_record ${where}`, vals)
+    query<GroupBuyRecordRow>(`SELECT gbr.*, gba.product_id AS productId, p.name AS productName FROM t_group_buy_record gbr LEFT JOIN t_group_buy_activity gba ON gbr.activity_id = gba.id LEFT JOIN t_product p ON gba.product_id = p.id ${where} ORDER BY gbr.id DESC LIMIT ${offset}, ${pageSize}`, vals),
+    queryOne<CountCntRow>(`SELECT COUNT(*) AS cnt FROM t_group_buy_record ${where}`, vals)
   ]);
   return { records: rows, total: total?.cnt || 0, page, pageSize };
 }
 
 export async function getGroupBuyDetail(groupNo: string) {
-  const row = await queryOne<any>(
+  const row = await queryOne<GroupBuyDetailRow>(
     `SELECT gbr.*, gba.product_id AS productId, p.name AS productName, gba.group_price AS groupPrice, gba.min_group_size AS minGroupSize
      FROM t_group_buy_record gbr
      LEFT JOIN t_group_buy_activity gba ON gbr.activity_id = gba.id

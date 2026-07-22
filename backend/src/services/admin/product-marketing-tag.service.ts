@@ -19,6 +19,17 @@ export interface ProductMarketingTag {
   updatedAt: Date;
 }
 
+/** 标签ID行（用于存在性校验） */
+interface TagIdRow {
+  id: number;
+}
+
+/** 标签租户行（用于权限校验） */
+interface TagTenantRow {
+  id: number;
+  tenantId: string;
+}
+
 /**
  * 标签列表（包含平台通用标签 + 当前租户自定义标签）
  */
@@ -57,7 +68,7 @@ export async function createTag(body: {
   tenantId: string;
 }) {
   // 校验同一租户下编码唯一（含通用标签）
-  const existing = await queryOne<any>(
+  const existing = await queryOne<TagIdRow>(
     "SELECT id FROM t_product_marketing_tag WHERE tag_code = ? AND (tenant_id = ? OR tenant_id = '')",
     [body.tagCode, body.tenantId]
   );
@@ -98,7 +109,7 @@ export async function updateTag(id: number, body: {
   sortNo?: number;
   status?: number;
 }, tenantId: string) {
-  const existing = await queryOne<any>(
+  const existing = await queryOne<TagTenantRow>(
     "SELECT id, tenant_id AS tenantId FROM t_product_marketing_tag WHERE id = ?",
     [id]
   );
@@ -142,7 +153,7 @@ export async function updateTag(id: number, body: {
  * 删除标签（仅可删除当前租户自定义标签）
  */
 export async function deleteTag(id: number, tenantId: string) {
-  const existing = await queryOne<any>(
+  const existing = await queryOne<TagTenantRow>(
     "SELECT id, tenant_id AS tenantId FROM t_product_marketing_tag WHERE id = ?",
     [id]
   );

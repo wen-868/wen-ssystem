@@ -1,7 +1,66 @@
 import { query, queryOne, transaction } from "../../shared/db";
 
+// ==================== 类型定义 ====================
+
+/** 角色行 */
+interface RoleRow {
+  id: number;
+  roleName: string;
+  roleCode: string;
+  description: string | null;
+  status: string;
+  permissions: unknown;
+  dataScope: string;
+  createdAt: string | Date;
+  updatedAt: string | Date;
+}
+
+/** 角色ID行（存在性校验） */
+interface RoleIdRow {
+  id: number;
+}
+
+/** 角色编码行（编码唯一性校验） */
+interface RoleCodeRow {
+  id: number;
+  role_code: string;
+}
+
+/** 角色权限行 */
+interface RolePermissionRow {
+  permissions: unknown;
+}
+
+/** 用户角色行（含分配时间） */
+interface UserRoleRow {
+  id: number;
+  roleName: string;
+  roleCode: string;
+  description: string | null;
+  status: string;
+  permissions?: unknown;
+  dataScope?: string;
+  assignedAt?: string | Date;
+}
+
+/** 角色数据权限行 */
+interface RoleDataPermissionRow {
+  id: number;
+  dataPermissionId: number;
+  scopeValues: unknown;
+  permissionName: string;
+  permissionCode: string;
+  permissionType: string;
+  description: string | null;
+}
+
+/** 计数 count 行 */
+interface CountCountRow {
+  count: number;
+}
+
 export async function listRoles(tenantId: string) {
-  const records = await query<any>(
+  const records = await query<RoleRow>(
     `SELECT id, role_name AS roleName, role_code AS roleCode, description, status,
             permissions, data_scope AS dataScope,
             created_at AS createdAt, updated_at AS updatedAt
@@ -20,7 +79,7 @@ export async function createRole(body: {
   permissions: string[];
   dataScope: string;
 }, tenantId: string) {
-  const existing = await queryOne<any>(
+  const existing = await queryOne<RoleIdRow>(
     "SELECT id FROM t_sys_role WHERE role_code = ? AND tenant_id = ?",
     [body.roleCode, tenantId]
   );
@@ -34,7 +93,7 @@ export async function createRole(body: {
     [body.roleName, body.roleCode, body.description ?? null, JSON.stringify(body.permissions), body.dataScope, tenantId]
   );
 
-  const record = await queryOne<any>(
+  const record = await queryOne<RoleRow>(
     `SELECT id, role_name AS roleName, role_code AS roleCode, description, status,
             permissions, data_scope AS dataScope,
             created_at AS createdAt, updated_at AS updatedAt
@@ -45,7 +104,7 @@ export async function createRole(body: {
 }
 
 export async function getRoleDetail(id: number, tenantId: string) {
-  const record = await queryOne<any>(
+  const record = await queryOne<RoleRow>(
     `SELECT id, role_name AS roleName, role_code AS roleCode, description, status,
             permissions, data_scope AS dataScope,
             created_at AS createdAt, updated_at AS updatedAt
@@ -65,7 +124,7 @@ export async function updateRole(id: number, body: {
   dataScope?: string;
   status?: string;
 }, tenantId: string) {
-  const existing = await queryOne<any>(
+  const existing = await queryOne<RoleCodeRow>(
     "SELECT id, role_code FROM t_sys_role WHERE id = ? AND tenant_id = ?",
     [id, tenantId]
   );
@@ -89,7 +148,7 @@ export async function updateRole(id: number, body: {
     );
   }
 
-  const record = await queryOne<any>(
+  const record = await queryOne<RoleRow>(
     `SELECT id, role_name AS roleName, role_code AS roleCode, description, status,
             permissions, data_scope AS dataScope,
             created_at AS createdAt, updated_at AS updatedAt
@@ -100,7 +159,7 @@ export async function updateRole(id: number, body: {
 }
 
 export async function deleteRole(id: number, tenantId: string) {
-  const existing = await queryOne<any>(
+  const existing = await queryOne<RoleCodeRow>(
     "SELECT id, role_code FROM t_sys_role WHERE id = ? AND tenant_id = ?",
     [id, tenantId]
   );
@@ -121,7 +180,7 @@ export async function deleteRole(id: number, tenantId: string) {
 
 // 专用接口：只更新角色权限
 export async function updateRolePermissions(id: number, permissions: string[], tenantId: string) {
-  const existing = await queryOne<any>(
+  const existing = await queryOne<RoleIdRow>(
     "SELECT id FROM t_sys_role WHERE id = ? AND tenant_id = ?",
     [id, tenantId]
   );
@@ -134,7 +193,7 @@ export async function updateRolePermissions(id: number, permissions: string[], t
     [JSON.stringify(permissions), id, tenantId]
   );
 
-  const record = await queryOne<any>(
+  const record = await queryOne<RoleRow>(
     `SELECT id, role_name AS roleName, role_code AS roleCode, description, status,
             permissions, data_scope AS dataScope,
             created_at AS createdAt, updated_at AS updatedAt
@@ -145,7 +204,7 @@ export async function updateRolePermissions(id: number, permissions: string[], t
 }
 
 export async function getUserRoles(userId: number, tenantId: string) {
-  const records = await query<any>(
+  const records = await query<UserRoleRow>(
     `SELECT r.id, r.role_name AS roleName, r.role_code AS roleCode, r.description, r.status,
             r.permissions, r.data_scope AS dataScope,
             ur.created_at AS assignedAt
@@ -159,7 +218,7 @@ export async function getUserRoles(userId: number, tenantId: string) {
 }
 
 export async function setUserRoles(userId: number, roleIds: number[], tenantId: string) {
-  const user = await queryOne<any>(
+  const user = await queryOne<RoleIdRow>(
     "SELECT id FROM t_sys_user WHERE id = ? AND tenant_id = ?",
     [userId, tenantId]
   );
@@ -169,7 +228,7 @@ export async function setUserRoles(userId: number, roleIds: number[], tenantId: 
 
   if (roleIds.length > 0) {
     const placeholders = roleIds.map(() => "?").join(",");
-    const roleCount = await queryOne<any>(
+    const roleCount = await queryOne<CountCountRow>(
       `SELECT COUNT(*) AS count FROM t_sys_role WHERE id IN (${placeholders}) AND tenant_id = ?`,
       [...roleIds, tenantId]
     );
@@ -188,7 +247,7 @@ export async function setUserRoles(userId: number, roleIds: number[], tenantId: 
     }
   });
 
-  const records = await query<any>(
+  const records = await query<UserRoleRow>(
     `SELECT r.id, r.role_name AS roleName, r.role_code AS roleCode, r.description, r.status
      FROM t_sys_user_role ur
      JOIN t_sys_role r ON r.id = ur.role_id AND r.tenant_id = ur.tenant_id
@@ -199,7 +258,7 @@ export async function setUserRoles(userId: number, roleIds: number[], tenantId: 
 }
 
 export async function checkUserPermission(userId: number, tenantId: number, permCode: string): Promise<boolean> {
-  const roles = await query<any>(
+  const roles = await query<RolePermissionRow>(
     `SELECT r.permissions
      FROM t_sys_user_role ur
      JOIN t_sys_role r ON r.id = ur.role_id AND r.tenant_id = ur.tenant_id
@@ -208,7 +267,7 @@ export async function checkUserPermission(userId: number, tenantId: number, perm
   );
 
   for (const role of roles) {
-    const perms: string[] = role.permissions ? JSON.parse(role.permissions) : [];
+    const perms: string[] = role.permissions ? JSON.parse(role.permissions as string) : [];
     if (perms.includes("*") || perms.includes(permCode)) {
       return true;
     }
@@ -217,7 +276,7 @@ export async function checkUserPermission(userId: number, tenantId: number, perm
 }
 
 export async function getRoleWithDataPermissions(id: number, tenantId: string) {
-  const role = await queryOne<any>(
+  const role = await queryOne<RoleRow>(
     `SELECT id, role_name AS roleName, role_code AS roleCode, description, status,
             permissions, data_scope AS dataScope,
             created_at AS createdAt, updated_at AS updatedAt
@@ -228,7 +287,7 @@ export async function getRoleWithDataPermissions(id: number, tenantId: string) {
     throw Object.assign(new Error("角色不存在"), { statusCode: 404 });
   }
 
-  const dataPermissions = await query<any>(
+  const dataPermissions = await query<RoleDataPermissionRow>(
     `SELECT rdp.id, rdp.data_permission_id AS dataPermissionId,
             rdp.scope_values AS scopeValues,
             dp.permission_name AS permissionName, dp.permission_code AS permissionCode,
