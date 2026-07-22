@@ -3355,3 +3355,162 @@
 | R53-20 项目规则更新 | 凌舟 | P1 | 0.5天 | 第4步 |
 | R53-21 产品清单命名同步 | 凌舟 | P1 | 0.25天 | 第4步 |
 | **合计** | — | — | **~34天** | — |
+
+---
+
+## R55 — 后端安全与质量遗留问题（基于v7测试报告核查） [待开始]
+
+> **日期**：2026-07-22
+> **来源**：全面测试报告v7 + 凌舟逐项代码级核查
+> **核查结论**：v7报告16项验证全部属实（8项已修复确认 + 8项仍存在确认）
+> **说明**：R54已修复P0级问题（CSRF双重注册、密码校验不一致等），本轮处理剩余P1-P3级遗留问题
+
+### 核查记录（凌舟 2026-07-22）
+
+| v7报告项 | 核查结论 | 依据 |
+|----------|:--------:|------|
+| P0-1 CSRF双重注册 | ✅已修复 | server.ts无全局app.use(csrfMiddleware)，auto-routes按路由注册 |
+| P0-2 密码校验不一致 | ✅已修复 | validatePasswordStrength已删除，统一走password.ts |
+| P1-3 saas-admin缺CSRF | ✅已修复 | request.ts注入x-csrf-token，auth.ts存储csrfToken |
+| P1-4 LoginView密码校验 | ✅已修复 | 改为min:8+字母+数字+特殊字符，与后端一致 |
+| P2-1 permissions:["*"] | ✅已修复 | 改为getUserPermissions从t_sys_user_role JOIN t_sys_role查询 |
+| P2-2 共享RateLimiter | ✅已修复 | adminLoginLimiter和storeLoginLimiter独立实例 |
+| P2-6 错误上报节流 | ✅已修复 | 改为纯时间节流lastReportTime |
+| P1-5 env.ts PORT NaN | ✅不存在 | \|\|在Number()前执行，逻辑正确 |
+| 双重飞书告警 | ✅确实存在 | error-handler.ts两处+error-response-interceptor.ts一处reportToLingZhou |
+| rate-limit MemoryStore | ✅确实存在 | server.ts三个限流器均未指定store |
+| queryOne\<any\>大量存在 | ✅确实存在 | services目录153处/42文件 |
+| apiCost:1硬编码 | ✅确实存在 | response.ts第4行和第8行 |
+| retail-announcement无租户隔离 | ✅确实存在 | **比报告更严重：表无tenant_id列，update/delete仅凭id操作** |
+| asyncHandler仍用any | ✅确实存在 | async-handler.ts第4-6行 |
+| JWT_SECRET复用 | ✅确实存在 | csrf.ts第15行+auth.ts第72/84/114/138行 |
+| hashPassword动态import | ✅确实存在 | auth.service.ts第161行动态import，顶部已static import |
+
+### 任务列表
+
+#### R55-01 — retail-announcement 跨租户数据泄露 [P0]
+
+- **优先级**：P0
+- **负责人**：阿坚
+- **预计**：1天
+- **状态**：⬜ 待开始
+- **文件**：`backend/src/routes/retail-announcement.routes.ts`、`backend/src/services/instant-retail/retail-announcement.service.ts`、`docs/migrations/052_add_retail_announcement.sql`
+- **问题**：retail-announcement路由使用requireAuth（不含tenantMiddleware），表无tenant_id列，所有SQL仅按store_id过滤且storeId来自用户输入。updateAnnouncement和deleteAnnouncement仅凭id操作，连store_id都不校验。任何认证用户可跨租户访问/修改/删除其他租户公告
+- **修复方向**：
+  1. DDL迁移：t_retail_announcement表新增tenant_id列
+  2. 路由auth从"requireAuth"改为"requireAuthWithTenant"
+  3. service层所有SQL增加tenant_id过滤条件（从req.user.tenantId获取）
+  4. updateAnnouncement和deleteAnnouncement增加store_id + tenant_id双重校验
+  5. storeId从req.user关联查询获取，不直接信任用户输入
+- **验收标准**：跨租户用户无法访问其他租户的公告数据
+
+#### R55-02 — 双重飞书告警 [P1]
+
+- **优先级**：P1
+- **负责人**：阿坚
+- **预计**：0.5天
+- **状态**：⬜ 待开始
+- **文件**：`backend/src/middleware/error-handler.ts`、`backend/src/shared/error-response-interceptor.ts`
+- **问题**：errorHandler（第63/96行）和errorResponseInterceptor（第33行）各自对5xx错误调用reportToLingZhou发送飞书告警，同一条错误告警发送两次。insertErrorLog双重写入已修复，但告警仍重复
+- **修复方向**：移除errorResponseInterceptor中的reportToLingZhou调用，仅保留errorHandler发送告警；errorResponseInterceptor仅负责响应重定向/降级
+- **验收标准**：5xx错误只触发一次飞书告警
+
+#### R55-03 — rate-limit 使用 MemoryStore [P1]
+
+- **优先级**：P1
+- **负责人**：阿坚
+- **预计**：0.5天
+- **状态**：⬜ 待开始
+- **文件**：`backend/src/server.ts`
+- **问题**：globalLimiter（第80行）、adminLoginLimiter（第84行）、storeLoginLimiter（第85行）三个rateLimit实例均使用默认MemoryStore，多进程部署或重启后计数清零，防暴力破解能力降级
+- **修复方向**：生产环境替换为rate-limit-redis（需安装依赖并配置Redis连接），开发环境可保留MemoryStore
+- **验收标准**：生产环境限流器使用Redis存储
+
+#### R55-04 — queryOne\<any\> 类型安全缺失 [P2]
+
+- **优先级**：P2
+- **负责人**：阿坚
+- **预计**：3天
+- **状态**：⬜ 待开始
+- **文件**：`backend/src/services/` 目录下42个文件（153处）
+- **问题**：整个后端services目录153处使用queryOne\<any\>或queryAll\<any\>，数据库层完全失去类型安全，字段名和类型无编译期检查
+- **修复方向**：为高频模块（auth、customer、product、order）定义TypeScript接口，逐步替换any泛型。可分批进行，优先处理核心业务模块
+- **验收标准**：核心模块（auth/customer/product/order/sale）无any泛型
+
+#### R55-05 — apiCost:1 硬编码 [P2]
+
+- **优先级**：P2
+- **负责人**：阿坚
+- **预计**：0.25天
+- **状态**：⬜ 待开始
+- **文件**：`backend/src/shared/response.ts`
+- **问题**：ok()和fail()函数都硬编码返回apiCost:1，不论实际接口开销如何，所有响应返回固定值
+- **修复方向**：移除apiCost字段（如无消费方依赖），或改为可选参数由调用方传入实际耗时
+- **验收标准**：apiCost字段移除或动态计算
+
+#### R55-06 — asyncHandler 类型安全 [P3]
+
+- **优先级**：P3
+- **负责人**：阿坚
+- **预计**：0.5天
+- **状态**：⬜ 待开始
+- **文件**：`backend/src/middleware/async-handler.ts`
+- **问题**：asyncHandler函数签名使用(req: any, res: any, next: any)和返回类型any，Express类型安全保障丢失
+- **修复方向**：使用Express官方类型Request/Response/NextFunction替换any，返回类型改为RequestHandler
+- **验收标准**：asyncHandler无any类型
+
+#### R55-07 — JWT_SECRET 密钥复用 [P3]
+
+- **优先级**：P3
+- **负责人**：阿坚
+- **预计**：0.25天
+- **状态**：⬜ 待开始
+- **文件**：`backend/src/middleware/csrf.ts`、`backend/src/config/env.ts`
+- **问题**：CSRF的HMAC和JWT签名共用env.JWT_SECRET，密钥轮换时所有CSRF token立即失效
+- **修复方向**：新增env.CSRF_SECRET独立密钥，csrf.ts使用CSRF_SECRET而非JWT_SECRET
+- **验收标准**：CSRF和JWT使用不同密钥
+
+#### R55-08 — hashPassword 动态 import 不一致 [P3]
+
+- **优先级**：P3
+- **负责人**：阿坚
+- **预计**：0.25天
+- **状态**：⬜ 待开始
+- **文件**：`backend/src/services/admin/auth.service.ts`
+- **问题**：第161行使用await import("../../shared/password.js")动态导入hashPassword，但同文件顶部已static import verifyPassword和validatePassword，导入方式不一致且路径后缀不统一
+- **修复方向**：将hashPassword加入顶部static import，删除动态import
+- **验收标准**：auth.service.ts中password模块全部使用static import
+
+### R55 任务总览
+
+| 任务 | 负责人 | 优先级 | 工作量 | 状态 |
+|------|--------|:------:|:------:|:----:|
+| R55-01 retail-announcement跨租户泄露 | 阿坚 | P0 | 1天 | ⬜ 待开始 |
+| R55-02 双重飞书告警 | 阿坚 | P1 | 0.5天 | ⬜ 待开始 |
+| R55-03 rate-limit MemoryStore | 阿坚 | P1 | 0.5天 | ⬜ 待开始 |
+| R55-04 queryOne\<any\>类型安全 | 阿坚 | P2 | 3天 | ⬜ 待开始 |
+| R55-05 apiCost硬编码 | 阿坚 | P2 | 0.25天 | ⬜ 待开始 |
+| R55-06 asyncHandler类型安全 | 阿坚 | P3 | 0.5天 | ⬜ 待开始 |
+| R55-07 JWT_SECRET复用 | 阿坚 | P3 | 0.25天 | ⬜ 待开始 |
+| R55-08 hashPassword动态import | 阿坚 | P3 | 0.25天 | ⬜ 待开始 |
+| **合计** | — | — | **6.25天** | — |
+
+### 执行顺序
+
+```
+【第一批 P0 — 立即执行】
+  阿坚：R55-01（retail-announcement租户隔离，1天）
+
+【第二批 P1 — 高优先级】
+  阿坚：R55-02（双重告警，0.5天）→ R55-03（rate-limit Redis，0.5天）
+
+【第三批 P2-P3 — 迭代优化】
+  阿坚：R55-05（apiCost，0.25天）→ R55-07（JWT_SECRET，0.25天）→ R55-08（hashPassword，0.25天）→ R55-06（asyncHandler，0.5天）→ R55-04（queryOne类型安全，3天，可分批）
+```
+
+### 注意事项
+
+- R55-01虽在v7报告中标记为P2，但凌舟核查后发现表无tenant_id列且update/delete不校验store_id，实际风险为P0级跨租户数据泄露，已升级
+- R55-04工作量最大（3天），建议分批处理核心模块，非核心模块可后续迭代
+- R55-03需要Redis环境支持，需确认生产环境是否已部署Redis
+- R55全部为后端任务，墨和阿澈本轮无任务，可继续处理R54-13（内部备注）和R53-18（UI审查）
