@@ -301,7 +301,7 @@
     </el-drawer>
 
     <el-dialog v-model="cancelDialogVisible" title="取消订单" width="480px">
-      <el-form :model="cancelForm" :rules="cancelRules" ref="cancelFormRef" label-width="90px">
+      <el-form :model="cancelForm" :rules="cancelRules" ref="cancelFormRef" label-width="100px">
         <el-form-item label="订单号">
           <el-input v-model="cancelForm.orderNo" disabled />
         </el-form-item>

@@ -90,7 +90,7 @@
 
     <!-- 分组弹窗 -->
     <el-dialog v-model="groupDialogVisible" :title="editingGroup ? '编辑分组' : '新增标签分组'" width="480px">
-      <el-form ref="groupFormRef" :model="groupForm" :rules="groupRules" label-width="90px">
+      <el-form ref="groupFormRef" :model="groupForm" :rules="groupRules" label-width="100px">
         <el-form-item label="分组编码" prop="groupCode" required>
           <el-input v-model="groupForm.groupCode" placeholder="如: aroma" :disabled="!!editingGroup" />
         </el-form-item>

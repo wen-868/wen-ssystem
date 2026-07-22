@@ -456,7 +456,7 @@
     </el-dialog>
 
     <!-- SKU 改价 -->
-    <el-dialog v-model="skuPriceVisible" title="改价" width="450px">
+    <el-dialog v-model="skuPriceVisible" title="改价" width="480px">
       <template v-if="skuPriceTarget">
         <el-form label-width="100px">
           <el-form-item label="SKU名称"><span>{{ skuPriceTarget.skuName }}</span></el-form-item>

@@ -52,7 +52,7 @@
 
     <!-- 标签表单弹窗 -->
     <el-dialog v-model="dialogVisible" :title="editing ? '编辑标签' : '新增标签'" width="480px">
-      <el-form ref="formRef" :model="form" :rules="formRules" label-width="90px">
+      <el-form ref="formRef" :model="form" :rules="formRules" label-width="100px">
         <el-form-item label="标签名称" prop="name">
           <el-input v-model="form.name" placeholder="请输入标签名称" />
         </el-form-item>
@@ -83,7 +83,7 @@
 
     <!-- 打标签弹窗 -->
     <el-dialog v-model="tagCustomerVisible" title="为客户打标签" width="560px">
-      <el-form label-width="90px">
+      <el-form label-width="100px">
         <el-form-item label="选择客户">
           <el-select v-model="tagCustomerForm.memberId" placeholder="搜索客户" filterable remote :remote-method="searchMembers" :loading="memberLoading" style="width: 100%">
             <el-option v-for="m in memberOptions" :key="m.memberId" :label="`${m.name} (${m.mobile})`" :value="m.memberId" />

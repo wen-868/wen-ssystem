@@ -44,7 +44,7 @@
     </PageCard>
 
     <!-- 生成对账单弹窗 -->
-    <el-dialog v-model="genVisible" title="生成对账单" width="450px" :close-on-click-modal="false">
+    <el-dialog v-model="genVisible" title="生成对账单" width="480px" :close-on-click-modal="false">
       <el-form ref="formRef" :model="genForm" :rules="rules" label-width="100px">
         <el-form-item label="供应商" prop="supplierId">
           <el-select v-model="genForm.supplierId" filterable placeholder="请选择供应商" style="width: 100%">
@@ -125,7 +125,7 @@
     </DetailDrawer>
 
     <!-- 争议原因弹窗 -->
-    <el-dialog v-model="disputeVisible" title="填写争议原因" width="400px" :close-on-click-modal="false">
+    <el-dialog v-model="disputeVisible" title="填写争议原因" width="480px" :close-on-click-modal="false">
       <el-input v-model="disputeReason" type="textarea" :rows="3" placeholder="请描述争议原因" />
       <template #footer>
         <el-button @click="disputeVisible = false">取消</el-button>

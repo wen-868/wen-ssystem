@@ -56,7 +56,7 @@
       width="680px"
       destroy-on-close
     >
-      <el-form ref="formRef" :model="form" :rules="formRules" label-width="80px">
+      <el-form ref="formRef" :model="form" :rules="formRules" label-width="100px">
         <el-form-item label="组名称" prop="name">
           <el-input v-model="form.name" placeholder="例如：酒类通用单位组" />
         </el-form-item>

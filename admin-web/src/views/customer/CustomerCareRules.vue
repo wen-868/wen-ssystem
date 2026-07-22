@@ -72,7 +72,7 @@
 
     <!-- 规则表单弹窗 -->
     <el-dialog v-model="dialogVisible" :title="editing ? '编辑规则' : '新增规则'" width="540px">
-      <el-form ref="formRef" :model="form" :rules="formRules" label-width="90px">
+      <el-form ref="formRef" :model="form" :rules="formRules" label-width="100px">
         <el-form-item label="规则名称" prop="name">
           <el-input v-model="form.name" placeholder="请输入规则名称" />
         </el-form-item>

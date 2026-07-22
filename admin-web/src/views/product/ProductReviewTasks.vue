@@ -234,7 +234,7 @@
 
     <!-- 驳回弹窗 -->
     <el-dialog v-model="rejectVisible" title="审核驳回" width="480px" :close-on-click-modal="false">
-      <el-form ref="rejectFormRef" :model="rejectForm" :rules="rejectRules" label-width="80px">
+      <el-form ref="rejectFormRef" :model="rejectForm" :rules="rejectRules" label-width="100px">
         <el-form-item label="驳回意见" prop="opinion">
           <el-input v-model="rejectForm.opinion" type="textarea" :rows="4" placeholder="请输入驳回意见（必填）" />
         </el-form-item>

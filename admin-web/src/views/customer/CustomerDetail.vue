@@ -226,7 +226,7 @@
       </template>
     </el-dialog>
 
-    <el-dialog v-model="levelDialogVisible" title="调整会员等级" width="420px">
+    <el-dialog v-model="levelDialogVisible" title="调整会员等级" width="480px">
       <el-form ref="levelFormRef" :model="levelForm" :rules="levelRules" label-width="100px">
         <el-form-item label="目标等级" prop="levelId">
           <el-select v-model="levelForm.levelId" style="width: 100%" placeholder="请选择等级">

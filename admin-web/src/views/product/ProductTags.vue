@@ -48,7 +48,7 @@
     </PageCard>
 
     <el-dialog v-model="dialogVisible" :title="editing ? '编辑标签' : '新增标签'" width="480px">
-      <el-form ref="formRef" :model="form" :rules="formRules" label-width="90px">
+      <el-form ref="formRef" :model="form" :rules="formRules" label-width="100px">
         <el-form-item label="标签名称" prop="name">
           <el-input v-model="form.name" placeholder="请输入标签名称" />
         </el-form-item>

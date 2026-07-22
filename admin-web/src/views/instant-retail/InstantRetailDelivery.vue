@@ -88,8 +88,8 @@
       </div>
     </el-card>
 
-    <el-dialog v-model="assignDialogVisible" title="分配骑手" width="420px">
-      <el-form ref="assignFormRef" :model="assignForm" :rules="assignRules" label-width="80px">
+    <el-dialog v-model="assignDialogVisible" title="分配骑手" width="480px">
+      <el-form ref="assignFormRef" :model="assignForm" :rules="assignRules" label-width="100px">
         <el-form-item label="骑手ID" prop="riderId">
           <el-input-number v-model="assignForm.riderId" :min="1" style="width: 100%" />
         </el-form-item>

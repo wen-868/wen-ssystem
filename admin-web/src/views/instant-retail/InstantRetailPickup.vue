@@ -336,8 +336,8 @@
     </div>
 
     <!-- 拒单弹窗 -->
-    <el-dialog v-model="rejectDialogVisible" title="拒单原因" width="420px">
-      <el-form :model="rejectForm" label-width="80px">
+    <el-dialog v-model="rejectDialogVisible" title="拒单原因" width="480px">
+      <el-form :model="rejectForm" label-width="100px">
         <el-form-item label="订单号">
           <span>{{ rejectOrder?.orderNo }}</span>
         </el-form-item>

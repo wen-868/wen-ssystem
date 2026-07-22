@@ -47,7 +47,7 @@
 
     <!-- 分群表单弹窗 -->
     <el-dialog v-model="dialogVisible" :title="editing ? '编辑分群' : '新增分群'" width="520px">
-      <el-form ref="formRef" :model="form" :rules="formRules" label-width="90px">
+      <el-form ref="formRef" :model="form" :rules="formRules" label-width="100px">
         <el-form-item label="分群名称" prop="name">
           <el-input v-model="form.name" placeholder="请输入分群名称" />
         </el-form-item>

@@ -136,7 +136,7 @@
       </template>
     </el-dialog>
 
-    <el-dialog v-model="adjustDialogVisible" title="调整授信额度" width="420px">
+    <el-dialog v-model="adjustDialogVisible" title="调整授信额度" width="480px">
       <el-form ref="adjustFormRef" :model="adjustForm" :rules="adjustRules" label-width="100px">
         <el-form-item label="客户名称">
           <span>{{ adjustForm.customerName }}</span>
