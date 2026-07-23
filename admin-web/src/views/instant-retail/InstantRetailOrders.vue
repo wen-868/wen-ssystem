@@ -320,7 +320,7 @@
       </el-form>
       <template #footer>
         <el-button @click="cancelDialogVisible = false">返回</el-button>
-        <el-button type="danger" :loading="cancelLoading" @click="submitCancel">确认取消</el-button>
+        <el-button type="danger" :loading="cancelLoading" @click="submitCancel">确定取消</el-button>
       </template>
     </el-dialog>
   </div>

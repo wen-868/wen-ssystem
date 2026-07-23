@@ -360,7 +360,7 @@
       </el-form>
       <template #footer>
         <el-button @click="rejectDialogVisible = false">取消</el-button>
-        <el-button type="danger" @click="confirmReject">确认拒单</el-button>
+        <el-button type="danger" @click="confirmReject">确定拒单</el-button>
       </template>
     </el-dialog>
   </div>

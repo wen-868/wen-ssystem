@@ -249,7 +249,7 @@
       <el-input v-model="rejectReason" type="textarea" :rows="4" placeholder="请输入拒绝原因" />
       <template #footer>
         <el-button @click="rejectDialogVisible = false">取消</el-button>
-        <el-button type="danger" @click="handleRejectConfirm">确认拒绝</el-button>
+        <el-button type="danger" @click="handleRejectConfirm">确定拒绝</el-button>
       </template>
     </el-dialog>
   </div>

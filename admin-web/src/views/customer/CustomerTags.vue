@@ -102,7 +102,7 @@
       </el-form>
       <template #footer>
         <el-button @click="tagCustomerVisible = false">取消</el-button>
-        <el-button type="primary" :loading="tagLoading" @click="handleAddTag">确定</el-button>
+        <el-button type="primary" :loading="tagLoading" @click="handleAddTag">保存</el-button>
       </template>
     </el-dialog>
   </div>
