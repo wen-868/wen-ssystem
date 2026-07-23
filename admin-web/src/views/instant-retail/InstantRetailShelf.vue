@@ -155,7 +155,7 @@
       </div>
     </div>
 
-    <el-dialog v-model="addDialogVisible" title="添加商品到货架" width="800px" class="add-product-dialog">
+    <el-dialog v-model="addDialogVisible" title="添加商品到货架" width="900px" class="add-product-dialog">
       <div class="add-product-search">
         <el-input
           v-model="addKeyword"
@@ -305,7 +305,7 @@
       </template>
     </el-dialog>
 
-    <el-dialog v-model="batchCategoryVisible" title="批量修改分类" width="420px">
+    <el-dialog v-model="batchCategoryVisible" title="批量修改分类" width="480px">
       <el-form label-width="100px">
         <el-form-item label="选择分类">
           <el-tree-select

@@ -81,7 +81,7 @@
       </DataTable>
     </PageCard>
 
-    <DetailDrawer v-model="detailVisible" title="销售单详情" width="650px">
+    <DetailDrawer v-model="detailVisible" title="销售单详情" width="720px">
       <template v-if="currentBill">
         <el-descriptions :column="2" border>
           <el-descriptions-item label="销售单号">{{ currentBill.billNo }}</el-descriptions-item>

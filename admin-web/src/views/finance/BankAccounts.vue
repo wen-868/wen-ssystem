@@ -71,7 +71,7 @@
     </div>
 
     <!-- 新增/编辑弹窗 -->
-    <el-dialog v-model="dialogVisible" :title="isEdit ? '编辑银行账户' : '新增银行账户'" width="520px" :close-on-click-modal="false">
+    <el-dialog v-model="dialogVisible" :title="isEdit ? '编辑银行账户' : '新增银行账户'" width="720px" :close-on-click-modal="false">
       <el-form ref="formRef" :model="form" :rules="formRules" label-width="110px">
         <el-form-item label="开户行" prop="bankName">
           <el-input v-model="form.bankName" placeholder="请输入开户行名称" />
@@ -103,7 +103,7 @@
     </el-dialog>
 
     <!-- 余额流水弹窗 -->
-    <el-dialog v-model="balanceDialogVisible" title="账户余额流水" width="800px" :close-on-click-modal="false">
+    <el-dialog v-model="balanceDialogVisible" title="账户余额流水" width="900px" :close-on-click-modal="false">
       <div class="balance-header">
         <span class="balance-info">账户：{{ currentAccount?.bankName }} - {{ currentAccount?.accountName }}</span>
         <span class="balance-amount">当前余额：{{ formatMoney(currentAccount?.balance || 0) }}</span>

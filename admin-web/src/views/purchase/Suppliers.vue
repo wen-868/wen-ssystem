@@ -123,7 +123,7 @@
     <el-dialog
       v-model="dialogVisible"
       :title="isEdit ? '编辑供应商' : '新增供应商'"
-      width="760px"
+      width="720px"
       :close-on-click-modal="false"
     >
       <el-tabs v-model="activeTab">
@@ -288,7 +288,7 @@
     <el-dialog
       v-model="contactDialogVisible"
       :title="isContactEdit ? '编辑联系人' : '新增联系人'"
-      width="520px"
+      width="720px"
       :close-on-click-modal="false"
     >
       <el-form ref="contactFormRef" :model="contactForm" :rules="contactRules" label-width="100px">
@@ -342,7 +342,7 @@
       </template>
     </el-dialog>
 
-    <DetailDrawer v-model="detailVisible" title="供应商详情" width="560px">
+    <DetailDrawer v-model="detailVisible" title="供应商详情" width="720px">
       <template v-if="currentSupplier">
         <el-descriptions :column="2" border>
           <el-descriptions-item label="供应商编码">{{ currentSupplier.supplierCode }}</el-descriptions-item>

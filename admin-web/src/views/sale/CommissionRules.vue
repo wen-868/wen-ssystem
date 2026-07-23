@@ -42,7 +42,7 @@
       </DataTable>
     </PageCard>
 
-    <el-dialog v-model="dialogVisible" :title="isEdit ? '编辑规则' : '新增规则'" width="520px" :close-on-click-modal="false">
+    <el-dialog v-model="dialogVisible" :title="isEdit ? '编辑规则' : '新增规则'" width="720px" :close-on-click-modal="false">
       <el-form ref="formRef" :model="form" :rules="rules" label-width="100px">
         <el-form-item label="规则名称" prop="name">
           <el-input v-model="form.name" placeholder="如：基础提成规则" />

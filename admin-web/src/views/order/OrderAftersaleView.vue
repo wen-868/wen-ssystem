@@ -161,7 +161,7 @@
     </el-card>
 
     <!-- 售后详情弹窗 -->
-    <el-dialog v-model="detailVisible" title="售后详情" width="800px" top="5vh">
+    <el-dialog v-model="detailVisible" title="售后详情" width="900px" top="5vh">
       <template v-if="currentAftersale">
         <el-row :gutter="24">
           <el-col :span="12">

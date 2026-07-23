@@ -145,7 +145,7 @@
     </el-dialog>
 
     <!-- 审批弹窗 -->
-    <el-dialog v-model="approveVisible" title="审批费用" width="450px">
+    <el-dialog v-model="approveVisible" title="审批费用" width="480px">
       <el-descriptions v-if="approveTarget" :column="1" border>
         <el-descriptions-item label="费用单号">{{ approveTarget.expenseNo }}</el-descriptions-item>
         <el-descriptions-item label="金额">{{ formatYuan(approveTarget.amount) }}</el-descriptions-item>

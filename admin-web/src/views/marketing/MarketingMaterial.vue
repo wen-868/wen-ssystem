@@ -299,7 +299,7 @@
     <el-dialog
       v-model="uploadDialogVisible"
       title="上传素材"
-      width="600px"
+      width="720px"
       @close="resetUploadForm"
     >
       <el-upload

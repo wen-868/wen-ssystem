@@ -76,7 +76,7 @@
     </div>
 
     <!-- 新增/编辑弹窗 -->
-    <el-dialog v-model="dialogVisible" :title="isEdit ? '编辑岗位' : '新增岗位'" width="520px" :close-on-click-modal="false">
+    <el-dialog v-model="dialogVisible" :title="isEdit ? '编辑岗位' : '新增岗位'" width="480px" :close-on-click-modal="false">
       <el-form ref="formRef" :model="form" :rules="formRules" label-width="110px">
         <el-form-item label="岗位名称" prop="name">
           <el-input v-model="form.name" placeholder="请输入岗位名称" />

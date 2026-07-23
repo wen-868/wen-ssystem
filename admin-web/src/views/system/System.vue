@@ -135,7 +135,7 @@
       </el-tabs>
     </el-card>
 
-    <el-dialog v-model="storeDialogVisible" :title="isStoreEdit ? '编辑门店' : '新增门店'" width="560px">
+    <el-dialog v-model="storeDialogVisible" :title="isStoreEdit ? '编辑门店' : '新增门店'" width="720px">
       <el-form :model="storeForm" label-width="100px" :rules="storeRules" ref="storeFormRef">
         <el-row :gutter="20">
           <el-col :span="12">
@@ -168,7 +168,7 @@
       </template>
     </el-dialog>
 
-    <el-dialog v-model="staffDialogVisible" :title="isStaffEdit ? '编辑员工' : '新增员工'" width="560px">
+    <el-dialog v-model="staffDialogVisible" :title="isStaffEdit ? '编辑员工' : '新增员工'" width="720px">
       <el-form :model="staffForm" label-width="100px" :rules="staffRules" ref="staffFormRef">
         <el-row :gutter="20">
           <el-col :span="12">

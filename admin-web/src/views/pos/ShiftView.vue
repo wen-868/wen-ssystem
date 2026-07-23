@@ -78,7 +78,7 @@
     </el-card>
 
     <!-- 新建交接班弹窗 -->
-    <el-dialog v-model="showCreateDialog" title="新建交接班" width="450px">
+    <el-dialog v-model="showCreateDialog" title="新建交接班" width="480px">
       <el-form :model="createForm" label-width="100px">
         <el-form-item label="班次类型" required>
           <el-radio-group v-model="createForm.shiftType">

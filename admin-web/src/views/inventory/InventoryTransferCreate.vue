@@ -165,7 +165,7 @@
     <el-dialog
       v-model="showProductDialog"
       title="选择商品"
-      width="800px"
+      width="900px"
       :close-on-click-modal="false"
     >
       <div class="product-search">

@@ -67,7 +67,7 @@
     </PageCard>
 
     <!-- 计算提成弹窗 -->
-    <el-dialog v-model="calcVisible" title="计算提成" width="450px" :close-on-click-modal="false">
+    <el-dialog v-model="calcVisible" title="计算提成" width="480px" :close-on-click-modal="false">
       <el-form ref="calcFormRef" :model="calcForm" :rules="calcRules" label-width="100px">
         <el-form-item label="日期范围" prop="dateRange">
           <el-date-picker

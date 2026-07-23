@@ -131,7 +131,7 @@
     </PageCard>
 
     <!-- 生成对账单弹窗 -->
-    <el-dialog v-model="generateVisible" title="生成对账单" width="450px">
+    <el-dialog v-model="generateVisible" title="生成对账单" width="480px">
       <el-form ref="generateFormRef" :model="generateForm" :rules="generateRules" label-width="100px">
         <el-form-item :label="activeTab === 'customer' ? '客户' : '供应商'" prop="entityId">
           <el-select v-model="generateForm.entityId" filterable placeholder="请选择" style="width: 100%">
@@ -161,7 +161,7 @@
     </el-dialog>
 
     <!-- 详情弹窗 -->
-    <el-dialog v-model="detailVisible" title="对账详情" width="750px">
+    <el-dialog v-model="detailVisible" title="对账详情" width="900px">
       <el-descriptions v-if="detail" :column="2" border style="margin-bottom: 16px">
         <el-descriptions-item :label="activeTab === 'customer' ? '客户' : '供应商'">{{ detail.entityName }}</el-descriptions-item>
         <el-descriptions-item label="状态">

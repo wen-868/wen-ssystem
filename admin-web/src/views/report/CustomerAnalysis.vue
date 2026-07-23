@@ -104,7 +104,7 @@
           </el-col>
         </el-row>
         <!-- 客户明细弹窗 -->
-        <el-dialog v-model="rfmDetailVisible" title="客户明细" width="600px">
+        <el-dialog v-model="rfmDetailVisible" title="客户明细" width="720px">
           <el-table :data="rfmDetailCustomers" stripe size="small">
             <el-table-column prop="customerName" label="客户名称" />
             <el-table-column prop="r" label="R值" width="80" align="center" />

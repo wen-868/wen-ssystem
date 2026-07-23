@@ -78,7 +78,7 @@
     </PageCard>
 
     <!-- 新增收款弹窗 -->
-    <el-dialog v-model="dialogVisible" title="新增收款" width="550px">
+    <el-dialog v-model="dialogVisible" title="新增收款" width="720px">
       <el-form ref="formRef" :model="form" :rules="rules" label-width="100px">
         <el-form-item label="客户" prop="customerId">
           <el-select v-model="form.customerId" filterable placeholder="选择客户" style="width: 100%" @change="loadArBills">
@@ -151,7 +151,7 @@
     </el-dialog>
 
     <!-- 详情弹窗 -->
-    <el-dialog v-model="detailVisible" title="收款详情" width="650px">
+    <el-dialog v-model="detailVisible" title="收款详情" width="720px">
       <el-descriptions v-if="detail" :column="2" border>
         <el-descriptions-item label="收款单号">{{ detail.receiptNo }}</el-descriptions-item>
         <el-descriptions-item label="客户">{{ detail.customerName }}</el-descriptions-item>

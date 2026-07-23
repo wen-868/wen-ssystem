@@ -51,7 +51,7 @@
       </div>
     </PageCard>
 
-    <el-dialog v-model="dialogVisible" :title="editing ? '编辑公告' : '新增公告'" width="600px">
+    <el-dialog v-model="dialogVisible" :title="editing ? '编辑公告' : '新增公告'" width="720px">
       <el-form ref="formRef" :model="form" :rules="formRules" label-width="100px">
         <el-form-item label="所属门店" prop="storeId">
           <el-select v-model="form.storeId" placeholder="请选择门店" style="width: 100%" filterable>

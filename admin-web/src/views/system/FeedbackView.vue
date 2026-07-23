@@ -82,7 +82,7 @@
     </el-card>
 
     <!-- 提交弹窗 -->
-    <el-dialog v-model="showDialog" title="提交反馈" width="600px" :close-on-click-modal="false">
+    <el-dialog v-model="showDialog" title="提交反馈" width="720px" :close-on-click-modal="false">
       <el-form :model="form" :rules="rules" ref="formRef" label-width="80px">
         <el-form-item label="类型" prop="type">
           <el-radio-group v-model="form.type">
@@ -109,7 +109,7 @@
     </el-dialog>
 
     <!-- 详情弹窗 -->
-    <el-dialog v-model="showDetail" title="反馈详情" width="600px">
+    <el-dialog v-model="showDetail" title="反馈详情" width="720px">
       <template v-if="detail">
         <el-descriptions :column="2" border>
           <el-descriptions-item label="ID">{{ detail.id }}</el-descriptions-item>

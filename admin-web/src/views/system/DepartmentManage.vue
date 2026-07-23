@@ -68,7 +68,7 @@
     </div>
 
     <!-- 新增/编辑弹窗 -->
-    <el-dialog v-model="dialogVisible" :title="dialogTitle" width="500px" :close-on-click-modal="false">
+    <el-dialog v-model="dialogVisible" :title="dialogTitle" width="480px" :close-on-click-modal="false">
       <el-form ref="formRef" :model="form" :rules="formRules" label-width="100px">
         <el-form-item label="上级部门">
           <el-cascader

@@ -181,7 +181,7 @@
     </el-dialog>
 
     <!-- 分配用户弹窗 -->
-    <el-dialog v-model="assignDialogVisible" title="分配用户" width="600px">
+    <el-dialog v-model="assignDialogVisible" title="分配用户" width="720px">
       <div class="assign-dialog-content">
         <el-select v-model="selectedUserIds" multiple filterable placeholder="选择用户" style="width: 100%">
           <el-option

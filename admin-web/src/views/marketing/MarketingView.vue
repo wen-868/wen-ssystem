@@ -120,7 +120,7 @@
     </el-card>
 
     <!-- 新建活动对话框 -->
-    <el-dialog v-model="createDialogVisible" title="新建活动" width="600px">
+    <el-dialog v-model="createDialogVisible" title="新建活动" width="720px">
       <el-form ref="formRef" :model="createForm" :rules="rules" label-width="100px">
         <el-form-item label="活动名称" prop="name">
           <el-input v-model="createForm.name" placeholder="请输入活动名称" />
@@ -193,7 +193,7 @@
     </el-dialog>
 
     <!-- 效果分析对话框 -->
-    <el-dialog v-model="effectDialogVisible" title="活动效果分析" width="800px" append-to-body>
+    <el-dialog v-model="effectDialogVisible" title="活动效果分析" width="900px" append-to-body>
       <div v-if="effectData" class="effect-analysis">
         <el-row :gutter="20" style="margin-bottom: 20px">
           <el-col :span="6">

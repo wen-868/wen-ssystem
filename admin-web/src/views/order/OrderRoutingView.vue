@@ -131,7 +131,7 @@
     </el-tabs>
 
     <!-- 新增/编辑规则弹窗 -->
-    <el-dialog v-model="ruleDialogVisible" :title="isEditRule ? '编辑路由规则' : '新增路由规则'" width="800px" destroy-on-close>
+    <el-dialog v-model="ruleDialogVisible" :title="isEditRule ? '编辑路由规则' : '新增路由规则'" width="900px" destroy-on-close>
       <el-form ref="formRef" :model="ruleForm" :rules="rules" label-width="100px">
         <el-row :gutter="16">
           <el-col :span="12">

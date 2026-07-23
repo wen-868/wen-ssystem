@@ -46,7 +46,7 @@
     </PageCard>
 
     <!-- 分群表单弹窗 -->
-    <el-dialog v-model="dialogVisible" :title="editing ? '编辑分群' : '新增分群'" width="520px">
+    <el-dialog v-model="dialogVisible" :title="editing ? '编辑分群' : '新增分群'" width="720px">
       <el-form ref="formRef" :model="form" :rules="formRules" label-width="100px">
         <el-form-item label="分群名称" prop="name">
           <el-input v-model="form.name" placeholder="请输入分群名称" />
@@ -86,7 +86,7 @@
     </el-dialog>
 
     <!-- 查看成员弹窗 -->
-    <el-dialog v-model="memberVisible" title="分群成员" width="800px">
+    <el-dialog v-model="memberVisible" title="分群成员" width="900px">
       <el-table :data="memberList" v-loading="memberLoading" stripe>
         <el-table-column prop="name" label="客户名称" min-width="120" />
         <el-table-column prop="mobile" label="手机" width="140" />

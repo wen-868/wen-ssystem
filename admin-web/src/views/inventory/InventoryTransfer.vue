@@ -328,7 +328,7 @@
     <el-dialog
       v-model="productDialogVisible"
       title="选择商品"
-      width="780px"
+      width="900px"
       :close-on-click-modal="false"
       append-to-body
       destroy-on-close

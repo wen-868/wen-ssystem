@@ -73,7 +73,7 @@
       />
     </el-card>
 
-    <el-dialog v-model="detailVisible" title="退货详情" width="600px">
+    <el-dialog v-model="detailVisible" title="退货详情" width="720px">
       <el-descriptions :column="2" border>
         <el-descriptions-item label="退货单号">{{ detail.returnNo }}</el-descriptions-item>
         <el-descriptions-item label="关联采购单">{{ detail.purchaseBillNo }}</el-descriptions-item>

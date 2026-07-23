@@ -99,7 +99,7 @@
     </div>
 
     <!-- 新增/编辑弹窗 -->
-    <el-dialog v-model="dialogVisible" :title="isEdit ? '编辑票据' : '新增票据'" width="520px" :close-on-click-modal="false">
+    <el-dialog v-model="dialogVisible" :title="isEdit ? '编辑票据' : '新增票据'" width="720px" :close-on-click-modal="false">
       <el-form ref="formRef" :model="form" :rules="formRules" label-width="110px">
         <el-form-item label="票据号" prop="billNo">
           <el-input v-model="form.billNo" placeholder="请输入票据号" />

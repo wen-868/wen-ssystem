@@ -96,7 +96,7 @@
       </div>
     </el-card>
 
-    <el-dialog v-model="detailVisible" title="授信详情" width="600px">
+    <el-dialog v-model="detailVisible" title="授信详情" width="720px">
       <template v-if="currentCredit">
         <el-descriptions :column="2" border>
           <el-descriptions-item label="客户名称">{{ currentCredit.customerName }}</el-descriptions-item>

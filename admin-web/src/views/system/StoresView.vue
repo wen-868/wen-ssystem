@@ -47,7 +47,7 @@
       </div>
     </el-card>
 
-    <el-dialog v-model="storeDialogVisible" title="新增门店" width="560px">
+    <el-dialog v-model="storeDialogVisible" title="新增门店" width="720px">
       <el-form ref="storeFormRef" :model="storeForm" :rules="storeRules" label-width="110px">
         <el-row :gutter="20">
           <el-col :span="12">
@@ -123,7 +123,7 @@
       </template>
     </el-dialog>
 
-    <el-dialog v-model="storeEditDialogVisible" title="编辑门店" width="560px">
+    <el-dialog v-model="storeEditDialogVisible" title="编辑门店" width="720px">
       <el-form ref="storeEditFormRef" :model="storeEditForm" :rules="storeEditFormRules" label-width="110px">
         <el-form-item label="门店名称" prop="name">
           <el-input v-model="storeEditForm.name" />

@@ -113,7 +113,7 @@
     </el-card>
 
     <!-- 新增/编辑映射弹窗 -->
-    <el-dialog v-model="mapDialogVisible" :title="editingMap ? '编辑映射' : '新增映射'" width="800px" top="5vh">
+    <el-dialog v-model="mapDialogVisible" :title="editingMap ? '编辑映射' : '新增映射'" width="900px" top="5vh">
       <el-form ref="formRef" :model="mapForm" :rules="rules" label-width="120px">
         <el-row :gutter="20">
           <el-col :span="12">
@@ -164,7 +164,7 @@
     </el-dialog>
 
     <!-- 批量导入弹窗 -->
-    <el-dialog v-model="batchImportVisible" title="批量导入商品映射" width="700px" top="5vh">
+    <el-dialog v-model="batchImportVisible" title="批量导入商品映射" width="720px" top="5vh">
       <el-steps :active="importStep" align-center style="margin-bottom: 24px">
         <el-step title="上传文件" />
         <el-step title="预览数据" />

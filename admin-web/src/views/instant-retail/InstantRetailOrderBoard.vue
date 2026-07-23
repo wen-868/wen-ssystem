@@ -41,7 +41,7 @@
         v-model="newOrderPopupVisible"
         :close-on-click-modal="false"
         :show-close="false"
-        width="420px"
+        width="480px"
         class="new-order-dialog"
       >
         <div class="popup-header">

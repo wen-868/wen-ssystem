@@ -86,7 +86,7 @@
     </el-dialog>
 
     <!-- 批量设置弹窗 -->
-    <el-dialog v-model="batchVisible" title="批量设置专属价格" width="600px" :close-on-click-modal="false">
+    <el-dialog v-model="batchVisible" title="批量设置专属价格" width="720px" :close-on-click-modal="false">
       <el-form ref="batchFormRef" :model="batchForm" :rules="batchFormRules" label-width="100px">
         <el-form-item label="选择客户">
           <el-select v-model="batchForm.customerId" filterable placeholder="请选择客户" style="width: 100%" @change="onBatchCustomerChange">

@@ -452,7 +452,7 @@
     </div>
 
     <!-- 短信模板编辑弹窗 -->
-    <el-dialog v-model="showSmsTemplateDialog" :title="isSmsTemplateEdit ? '编辑短信模板' : '新增短信模板'" width="560px">
+    <el-dialog v-model="showSmsTemplateDialog" :title="isSmsTemplateEdit ? '编辑短信模板' : '新增短信模板'" width="720px">
       <el-form :model="smsTemplateForm" label-width="100px" :rules="smsTemplateRules" ref="smsTemplateFormRef">
         <el-form-item label="模板名称" prop="name">
           <el-input v-model="smsTemplateForm.name" placeholder="请输入模板名称" />

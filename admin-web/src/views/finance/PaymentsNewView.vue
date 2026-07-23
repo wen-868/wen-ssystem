@@ -78,7 +78,7 @@
     </PageCard>
 
     <!-- 新增付款弹窗 -->
-    <el-dialog v-model="dialogVisible" title="新增付款" width="550px">
+    <el-dialog v-model="dialogVisible" title="新增付款" width="720px">
       <el-form ref="formRef" :model="form" :rules="rules" label-width="100px">
         <el-form-item label="供应商" prop="supplierId">
           <el-select v-model="form.supplierId" filterable placeholder="选择供应商" style="width: 100%" @change="loadApBills">
@@ -151,7 +151,7 @@
     </el-dialog>
 
     <!-- 详情弹窗 -->
-    <el-dialog v-model="detailVisible" title="付款详情" width="650px">
+    <el-dialog v-model="detailVisible" title="付款详情" width="720px">
       <el-descriptions v-if="detail" :column="2" border>
         <el-descriptions-item label="付款单号">{{ detail.paymentNo }}</el-descriptions-item>
         <el-descriptions-item label="供应商">{{ detail.supplierName }}</el-descriptions-item>

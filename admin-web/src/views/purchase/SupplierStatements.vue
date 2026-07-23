@@ -70,7 +70,7 @@
     </el-dialog>
 
     <!-- 对账单详情抽屉 -->
-    <DetailDrawer v-model="detailVisible" title="对账单详情" width="600px">
+    <DetailDrawer v-model="detailVisible" title="对账单详情" width="720px">
       <template v-if="currentDetail">
         <!-- 汇总卡片 -->
         <div class="summary-row">

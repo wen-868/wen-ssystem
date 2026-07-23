@@ -75,7 +75,7 @@
       </div>
     </el-card>
 
-    <el-dialog v-model="dialogVisible" title="新增销售退货" width="560px">
+    <el-dialog v-model="dialogVisible" title="新增销售退货" width="720px">
       <el-form ref="formRef" :model="form" :rules="rules" label-width="100px">
         <el-form-item label="关联销售单" prop="saleBillNo">
           <el-input v-model="form.saleBillNo" placeholder="请输入销售单号" />

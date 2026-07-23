@@ -165,7 +165,7 @@
       </el-tabs>
     </el-card>
 
-    <el-dialog v-model="bannerDialogVisible" :title="bannerEditId ? '编辑轮播图' : '新增轮播图'" width="560px">
+    <el-dialog v-model="bannerDialogVisible" :title="bannerEditId ? '编辑轮播图' : '新增轮播图'" width="720px">
       <el-form :model="bannerForm" :rules="bannerRules" ref="bannerFormRef" label-width="100px">
         <el-form-item label="标题" prop="title">
           <el-input v-model="bannerForm.title" placeholder="请输入轮播图标题" />

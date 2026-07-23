@@ -95,7 +95,7 @@
         </el-row>
 
         <!-- 模板预览弹窗 -->
-        <el-dialog v-model="previewVisible" title="模板预览" width="800px">
+        <el-dialog v-model="previewVisible" title="模板预览" width="900px">
           <div class="preview-placeholder">
             <div class="preview-bg" :style="{ background: selectedTemplate?.bgColor }">
               <span class="preview-icon">{{ selectedTemplate?.icon }}</span>

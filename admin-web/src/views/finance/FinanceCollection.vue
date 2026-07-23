@@ -66,7 +66,7 @@
     </PageCard>
 
     <!-- 创建收款链接弹窗 -->
-    <el-dialog v-model="dialogVisible" title="创建收款链接" width="500px">
+    <el-dialog v-model="dialogVisible" title="创建收款链接" width="720px">
       <el-form ref="formRef" :model="form" :rules="rules" label-width="100px">
         <el-form-item label="关联单据" prop="billNo">
           <el-select v-model="form.billNo" filterable placeholder="选择销售单据" style="width: 100%">
@@ -93,7 +93,7 @@
     </el-dialog>
 
     <!-- 支付状态弹窗 -->
-    <el-dialog v-model="statusDialogVisible" title="支付状态" width="400px">
+    <el-dialog v-model="statusDialogVisible" title="支付状态" width="480px">
       <el-descriptions v-if="statusDetail" :column="1" border>
         <el-descriptions-item label="链接编号">{{ statusDetail.linkNo }}</el-descriptions-item>
         <el-descriptions-item label="状态">

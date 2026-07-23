@@ -88,7 +88,7 @@
       </div>
     </el-card>
 
-    <el-dialog v-model="detailVisible" title="支付详情" width="560px">
+    <el-dialog v-model="detailVisible" title="支付详情" width="720px">
       <el-descriptions v-if="paymentDetail" :column="2" border>
         <el-descriptions-item label="支付单号">{{ paymentDetail.paymentNo }}</el-descriptions-item>
         <el-descriptions-item label="关联订单号">{{ paymentDetail.orderNo }}</el-descriptions-item>

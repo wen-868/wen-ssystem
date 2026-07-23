@@ -48,7 +48,7 @@
       </DataTable>
     </PageCard>
 
-    <el-dialog v-model="dialogVisible" title="提交审批" width="560px" :close-on-click-modal="false">
+    <el-dialog v-model="dialogVisible" title="提交审批" width="720px" :close-on-click-modal="false">
       <el-form ref="formRef" :model="submitForm" :rules="rules" label-width="100px">
         <el-form-item label="审批规则" prop="ruleId">
           <el-select v-model="submitForm.ruleId" style="width: 100%" placeholder="请选择审批规则" @change="onRuleChange">

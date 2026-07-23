@@ -213,7 +213,7 @@
     <el-dialog
       v-model="productDialogVisible"
       :title="editingProduct ? '编辑商品' : '新建商品'"
-      width="700px"
+      width="720px"
       @close="resetProductForm"
     >
       <el-form ref="productFormRef" :model="productForm" :rules="productRules" label-width="100px">

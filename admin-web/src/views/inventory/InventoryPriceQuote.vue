@@ -101,7 +101,7 @@
     </el-dialog>
 
     <!-- 报价详情弹窗 -->
-    <el-dialog v-model="detailDialogVisible" title="报价详情" width="800px">
+    <el-dialog v-model="detailDialogVisible" title="报价详情" width="900px">
       <div v-if="detailQuote">
         <el-descriptions :column="2" border>
           <el-descriptions-item label="报价单号">{{ detailQuote.quoteNo }}</el-descriptions-item>

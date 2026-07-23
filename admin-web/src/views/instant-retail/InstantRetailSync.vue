@@ -138,7 +138,7 @@
     </el-card>
 
     <!-- 同步详情对话框 -->
-    <el-dialog v-model="detailVisible" title="同步详情" width="700px">
+    <el-dialog v-model="detailVisible" title="同步详情" width="720px">
       <div v-if="currentDetail" class="detail-content">
         <el-descriptions :column="2" border size="small">
           <el-descriptions-item label="批次号">{{ currentDetail.batchNo }}</el-descriptions-item>

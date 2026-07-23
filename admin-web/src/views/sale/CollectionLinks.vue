@@ -82,7 +82,7 @@
     </PageCard>
 
     <!-- 批量生成弹窗 -->
-    <el-dialog v-model="batchVisible" title="批量生成分享链接" width="550px" :close-on-click-modal="false">
+    <el-dialog v-model="batchVisible" title="批量生成分享链接" width="720px" :close-on-click-modal="false">
       <el-form ref="batchFormRef" :model="batchForm" :rules="batchRules" label-width="100px">
         <el-form-item label="选择销售单" prop="billNos">
           <el-select

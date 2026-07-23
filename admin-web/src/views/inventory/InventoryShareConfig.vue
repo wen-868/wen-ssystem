@@ -262,7 +262,7 @@
   <el-dialog
     v-model="showConfigDialog"
     title="共享配置"
-    width="500px"
+    width="720px"
     :close-on-click-modal="false"
   >
     <el-form :model="configForm" label-width="120px">

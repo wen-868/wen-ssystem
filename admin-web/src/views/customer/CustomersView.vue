@@ -88,7 +88,7 @@
       </div>
     </el-card>
 
-    <el-dialog v-model="memberDialogVisible" title="新增客户" width="520px">
+    <el-dialog v-model="memberDialogVisible" title="新增客户" width="720px">
       <el-form ref="memberFormRef" :model="memberForm" :rules="memberRules" label-width="100px">
         <el-form-item label="客户名称" prop="name">
           <el-input v-model="memberForm.name" />

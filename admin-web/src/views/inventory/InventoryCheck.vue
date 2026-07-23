@@ -207,7 +207,7 @@
       </template>
     </el-dialog>
 
-    <DetailDrawer v-model="detailVisible" title="盘点详情" width="560px">
+    <DetailDrawer v-model="detailVisible" title="盘点详情" width="720px">
       <template v-if="currentCheck">
         <el-descriptions :column="2" border>
           <el-descriptions-item label="盘点单号">{{ currentCheck.checkNo }}</el-descriptions-item>

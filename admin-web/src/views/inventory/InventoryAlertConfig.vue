@@ -113,7 +113,7 @@
     </PageCard>
 
     <!-- 新增/编辑配置弹窗 -->
-    <el-dialog v-model="configDialogVisible" :title="editingConfig ? '编辑预警配置' : '新增预警配置'" width="500px">
+    <el-dialog v-model="configDialogVisible" :title="editingConfig ? '编辑预警配置' : '新增预警配置'" width="720px">
       <el-form ref="configFormRef" :model="configForm" :rules="configRules" label-width="100px">
         <el-form-item label="门店" prop="storeId" required>
           <el-select v-model="configForm.storeId" filterable placeholder="选择门店" style="width: 100%">

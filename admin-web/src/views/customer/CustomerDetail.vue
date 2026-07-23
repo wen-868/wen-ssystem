@@ -188,7 +188,7 @@
       </el-tabs>
     </el-card>
 
-    <el-dialog v-model="editDialogVisible" title="编辑客户" width="520px">
+    <el-dialog v-model="editDialogVisible" title="编辑客户" width="720px">
       <el-form ref="editFormRef" :model="editForm" :rules="editRules" label-width="100px">
         <el-form-item label="客户名称" prop="name">
           <el-input v-model="editForm.name" />

@@ -63,7 +63,7 @@
     </PageCard>
 
     <!-- 批次详情/追溯 -->
-    <DetailDrawer v-model="detailVisible" title="批次追溯详情" width="700px">
+    <DetailDrawer v-model="detailVisible" title="批次追溯详情" width="720px">
       <template v-if="detailData">
         <el-descriptions :column="2" border>
           <el-descriptions-item label="批次号">{{ detailData.batchNo }}</el-descriptions-item>

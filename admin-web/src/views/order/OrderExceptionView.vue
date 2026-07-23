@@ -176,7 +176,7 @@
     </el-card>
 
     <!-- 异常详情弹窗 -->
-    <el-dialog v-model="detailVisible" title="异常详情" width="800px" top="5vh">
+    <el-dialog v-model="detailVisible" title="异常详情" width="900px" top="5vh">
       <template v-if="currentException">
         <el-row :gutter="24">
           <el-col :span="12">

@@ -205,7 +205,7 @@
     <el-dialog
       v-model="bankDialogVisible"
       :title="isBankEdit ? '编辑银行账号' : '添加银行账号'"
-      width="520px"
+      width="720px"
       :close-on-click-modal="false"
     >
       <el-form
